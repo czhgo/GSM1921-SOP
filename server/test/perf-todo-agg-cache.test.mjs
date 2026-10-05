@@ -12,14 +12,14 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261005d';
+import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261005e';
 import {
   MockAdapter,
-} from '../../docs/src/data/mock-adapter.js?v=20261005d';
-import { setDataSource } from '../../docs/src/data/data-adapter.js?v=20261005d';
+} from '../../docs/src/data/mock-adapter.js?v=20261005e';
+import { setDataSource } from '../../docs/src/data/data-adapter.js?v=20261005e';
 import {
   TodoStore, TodoCategory, TodoStatus, WORK_DOMAIN,
-} from '../../docs/src/services/governance/todo.js?v=20261005d';
+} from '../../docs/src/services/governance/todo.js?v=20261005e';
 
 // ── localStorage 内存桩（member-persist 同款）─────────────────────
 const _store = new Map();
@@ -69,7 +69,7 @@ function runs() {
 
 test('① 未写时连续两次 getDomainsWithGroups：结果一致（同引用）且内部聚合只执行一次', () => {
   beginMockCase();
-  mk({ id: 'ag-1', domain: WORK_DOMAIN.MEETING, actionKey: 'participate', title: '参加党员大会', deadline: '2099-06-01' });
+  mk({ id: 'ag-1', domain: WORK_DOMAIN.PROJECT, actionKey: 'participate', title: '参加党员大会', deadline: '2099-06-01' });
   mk({ id: 'ag-2', domain: WORK_DOMAIN.ATTENDANCE, actionKey: 'attendance-remind', title: '考勤待录入', deadline: '2099-08-01' });
 
   const r0 = runs();
@@ -80,7 +80,7 @@ test('① 未写时连续两次 getDomainsWithGroups：结果一致（同引用�
   const v2 = TodoStore.getDomainsWithGroups('secretary');
   assert.equal(runs(), afterFirst, '未写时第二次调用命中缓存：内部聚合不重复执行');
   assert.strictEqual(v2, v1, '未写时返回同一缓存引用（只读契约，调用方仅读）');
-  assert.deepEqual(v2.map(d => d.domain), ['meeting', 'attendance'], '域序/内容一致');
+  assert.deepEqual(v2.map(d => d.domain), ['project', 'attendance'], '域序/内容一致');
 
   // 其它角色/其它聚合方法同样缓存（未写 → 计数不涨）
   assert.deepEqual(TodoStore.getDomainsWithGroups('prop-commissioner'), [], '空角色域视图');
@@ -90,7 +90,7 @@ test('① 未写时连续两次 getDomainsWithGroups：结果一致（同引用�
 
 test('② create 后：getDomainsWithGroups 结果变化（新引用、计数 +1）', () => {
   beginMockCase();
-  mk({ id: 'ag-10', domain: WORK_DOMAIN.MEETING, actionKey: 'participate', title: '参加党员大会', deadline: '2099-06-01' });
+  mk({ id: 'ag-10', domain: WORK_DOMAIN.PROJECT, actionKey: 'participate', title: '参加党员大会', deadline: '2099-06-01' });
   const v1 = TodoStore.getDomainsWithGroups('secretary');
   const runs1 = runs();
   assert.equal(v1[0].count, 1, '初始 1 条');
@@ -107,7 +107,7 @@ test('② create 后：getDomainsWithGroups 结果变化（新引用、计数 +1
 
 test('③ complete 后：getDomainsWithGroups 结果变化（计数 +1，完成态排除）', () => {
   beginMockCase();
-  mk({ id: 'ag-20', domain: WORK_DOMAIN.MEETING, actionKey: 'participate', title: '参加党员大会', deadline: '2099-06-01' });
+  mk({ id: 'ag-20', domain: WORK_DOMAIN.PROJECT, actionKey: 'participate', title: '参加党员大会', deadline: '2099-06-01' });
   const v1 = TodoStore.getDomainsWithGroups('secretary');
   const runs1 = runs();
   assert.equal(v1[0].count, 1);
@@ -124,7 +124,7 @@ test('③ complete 后：getDomainsWithGroups 结果变化（计数 +1，完成�
 test('④ refreshExpiredStatus 实际变更后：结果变化（计数 +1，条目转 expired）', () => {
   beginMockCase();
   // 远期正常待办 + 过期待办（pending、deadline 早于今日 → refresh 会置为 expired）
-  mk({ id: 'ag-30', domain: WORK_DOMAIN.MEETING, actionKey: 'participate', title: '参加党员大会', deadline: '2099-06-01' });
+  mk({ id: 'ag-30', domain: WORK_DOMAIN.PROJECT, actionKey: 'participate', title: '参加党员大会', deadline: '2099-06-01' });
   const expiredId = mk({ id: 'ag-31', domain: WORK_DOMAIN.ATTENDANCE, actionKey: 'attendance-remind', title: '过期考勤待录入', deadline: '2000-01-01' }).id;
 
   const v1 = TodoStore.getDomainsWithGroups('secretary');

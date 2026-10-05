@@ -3,9 +3,9 @@
 // 背景：6 个工作台 todo-tab 骨架逐字重复（选中首条 / renderTodoList / 两栏 HTML / 删除 / 详情按钮绑定），
 //       支书 2026-08-30：「模块化只见代码增多少见代码减少」→ 共性抽壳。
 // 设计：createTodoTab(opts) 工厂，每个角色一个实例（状态自持，与原模块级私有状态等价）。
-// IA-C1 Task4（按工作类型 9 域折组，spec .trae/specs/2026-09-06-ia-todo-cards/spec.md）：
+// IA-C1 Task4（按工作类型 **6 类**域折组，`D-787` 由 9 域合并；原 spec .trae/specs/2026-09-06-ia-todo-cards/spec.md）：
 //   输出区 = ① 页顶「未读通知 N 条」轻量条（getUnreadNotices；点击展开阅读列表，点读即消）
-//          ② 9 业务域折组列表（getDomainsWithGroups + buildRealtimeGroups 实时组经
+//          ② 6 类业务域折组列表（getDomainsWithGroups + buildRealtimeGroups 实时组经
 //            mergeRealtimeDomains 并入对应域；域头=域名+计数+逾期红点，有活才显）
 //          ③ 各角色自定义渲染区（extraTopHtml/bindExtras）照旧挂载
 //   角色差异经参数注入：containerId/prefix/role/onAction/buildRealtimeGroups/renderDetail/
@@ -14,19 +14,19 @@
 // 视觉沿用 card/rounded/折叠既有体系（域折组渲染在 components/record/todo-list.js renderDomainTodoList）。
 // 设计权威源：content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md §六 M6（共性抽象净减）
 
-import { TodoStore, urgeRolesOf, WORK_DOMAIN, WORK_DOMAIN_LABELS, realtimeGroupDomainOf } from '../../services/governance/todo.js?v=20261005d';
+import { TodoStore, urgeRolesOf, WORK_DOMAIN, WORK_DOMAIN_LABELS, realtimeGroupDomainOf } from '../../services/governance/todo.js?v=20261005e';
 // S3②（2026-09-12）：未读通知计数单一来源——与顶栏角标/首页同源（NoticeStore activeOnly+read 过滤），
 // 不再用「通知类待办」现算（口径不同致三处不一致）。
-import { NoticeStore, NOTICE_MODULE_ROLE_PAGES } from '../../services/governance/notice.js?v=20261005d';
-import { renderDomainTodoList } from './todo-list.js?v=20261005d';
-import { badgeHtml } from '../ui/badges.js?v=20261005d';
-import { showToast, escHtml, todayLocal } from '../../core/base/utils.js?v=20261005d';
-import { solidAccentStyle, ROLE_LABELS, BRANCH_COMMISSION_ROLES } from '../../core/domain/constants.js?v=20261005d';
-import { openModal, closeModal } from '../ui/modal.js?v=20261005d';
-import { AuthStore } from '../../services/core/auth.js?v=20261005d';
-import { mockDB } from '../../core/domain/domain.js?v=20261005d';
-import { tokenOf } from '../../core/base/version-token.js?v=20261005d'; // P0 域写版本戳（spec §二.4）
-import { memoizeRender } from '../ui/memoize-render.js?v=20261005d'; // P2 渲染守卫（spec §四.1）
+import { NoticeStore, NOTICE_MODULE_ROLE_PAGES } from '../../services/governance/notice.js?v=20261005e';
+import { renderDomainTodoList } from './todo-list.js?v=20261005e';
+import { badgeHtml } from '../ui/badges.js?v=20261005e';
+import { showToast, escHtml, todayLocal } from '../../core/base/utils.js?v=20261005e';
+import { solidAccentStyle, ROLE_LABELS, BRANCH_COMMISSION_ROLES } from '../../core/domain/constants.js?v=20261005e';
+import { openModal, closeModal } from '../ui/modal.js?v=20261005e';
+import { AuthStore } from '../../services/core/auth.js?v=20261005e';
+import { mockDB } from '../../core/domain/domain.js?v=20261005e';
+import { tokenOf } from '../../core/base/version-token.js?v=20261005e'; // P0 域写版本戳（spec §二.4）
+import { memoizeRender } from '../ui/memoize-render.js?v=20261005e'; // P2 渲染守卫（spec §四.1）
 
 // ── P0 组合数据复合键（2026-09-07 · spec §二.4）──────────────────
 // 组合点（buildRealtimeGroups + mergeRealtimeDomains + getUnreadNotices）以

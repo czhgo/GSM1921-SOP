@@ -18,8 +18,8 @@ import assert from 'node:assert/strict';
 import { chromium } from 'playwright';
 import { createApp } from '../app.js';
 import { seedDatabase } from '../seed.js';
-// `V-6` 丙（2026-10-01 批次 327）：业务域**重点三域**识别色的单一源 —— 非空转断言用它（不依赖演示数据）
-import { WORK_DOMAIN_COLORS } from '../../docs/src/core/domain/constants.js?v=20261005d';
+// `D-787`（2026-10-05 · 9 → 6 合并）：业务域识别色的单一源 —— 非空转断言用它（现行**空**：配色待支书指色）
+import { WORK_DOMAIN_COLORS } from '../../docs/src/core/domain/constants.js?v=20261005e';
 
 let server, base, browser;
 
@@ -39,8 +39,8 @@ after(async () => {
 });
 
 const ACTION_LABELS = ['审核', '提交', '赋权', '参与', '归档', '阅读', '追踪'];
-/** 九业务域标签（`services/governance/todo.js::WORK_DOMAIN_LABELS` 的取值；V-6 丙断言用它筛「域胶囊」本身） */
-const DOMAIN_LABELS = ['会务', '活动', '考勤纪律', '考察', '成员发展', '专班', '决议上报', '归档宣传', '汇报反馈', '通知/未分类'];
+/** 业务域标签（`services/governance/todo.js::WORK_DOMAIN_LABELS` 的取值；`D-787` 合并后 **6 类**） */
+const DOMAIN_LABELS = ['项目', '考勤纪律', '考察', '成员发展', '上报与汇报', '归档宣传', '通知/未分类'];
 
 test('S12 今天页左卡＝动作性质分组（七类）；旧「本岗待办」概括行已移除；分组行带业务域胶囊', async () => {
   const page = await browser.newPage();
@@ -71,8 +71,8 @@ test('S12 今天页左卡＝动作性质分组（七类）；旧「本岗待办�
       const h4s = [...card.querySelectorAll('h4')].map((h) => (h.textContent || '').replace(/\d+$/, '').trim());
       const groupLabels = h4s.filter((t) => labels.includes(t));
       const withDomainChip = rows.filter((r) => !!r.querySelector('span.rounded-full')).length;
-      // V-6 丙（批次 327）：重点三域的域胶囊**带 `data-domain` ＋ 内联底色**；其余六域**保持中性**（无内联底色）
-      //   ⚠ 只认**域胶囊本身**——行内还可能有别的圆角元素（组内角色 chip 等），按文案筛出九域标签那一种。
+      // `D-787`（9 → 6 合并）后 `WORK_DOMAIN_COLORS` 暂空 ⇒ 现行**各域胶囊一律中性**（无 `data-domain`、
+      //   无内联底色）；本探针仍按「有 `data-domain` 才要求底色」取数，供支书定色后同批复用。
       const domainChips = [...wrap.querySelectorAll('span[data-domain]')];
       const chips = [...wrap.querySelectorAll('.today-go[data-go="todo"] span.rounded-full')]
         .filter((el) => domainLabels.includes((el.textContent || '').trim()));
@@ -111,22 +111,20 @@ test('S12 今天页左卡＝动作性质分组（七类）；旧「本岗待办�
       assert.ok(probe.withDomainChip >= 1, '分组行须带业务域小胶囊（九域降为行内胶囊）');
     }
 
-    // ④ `V-6` 丙（2026-10-01 批次 327 · 支书裁「只给重点域配色」· 重点＝项目线三域）：
-    //    **条件断言**——凡**带 `data-domain`** 的域胶囊必有内联底色，且域键只许三域之一；
-    //    **不带 `data-domain`** 的域胶囊**不得**有内联底色（＝其余六域保持中性，不配色即不强调）。
-    assert.ok(probe.chipsTotal >= 1, '分组行须带业务域小胶囊（九域降为行内胶囊）');
-    assert.ok(probe.domainAllInlineBg, '带 `data-domain` 的业务域胶囊必须带内联底色（只有重点域配色）');
-    assert.ok(probe.domainKeys.every((k) => ['meeting', 'activity', 'taskforce'].includes(k)),
-      `只许「重点三域」上色；实得 ${JSON.stringify(probe.domainKeys)}`);
-    assert.ok(probe.neutralNoInlineBg, '未上色的域胶囊不得带内联底色（其余六域保持中性）');
+    // ④ `D-787`（2026-10-05 · 支书「九类 可以再 合并合并 同类项！」＋ 圈乙「9 → 6 类 · 单一源统一改」）：
+    //    **合并后 `WORK_DOMAIN_COLORS` 暂空**（配色随 6 类再议、待支书指色）⇒ 今天页各域胶囊**一律中性**。
+    //    本断言写成**条件式**：凡带 `data-domain` 的域胶囊须带内联底色、且域键只许 6 类域值之一；
+    //    不带 `data-domain` 的域胶囊不得有内联底色（现行全部如此 ⇒ 即「全部中性」）。
+    assert.ok(probe.chipsTotal >= 1, '分组行须带业务域小胶囊（合并后 6 类，降为行内胶囊）');
+    assert.ok(probe.domainAllInlineBg, '若存在带 `data-domain` 的域胶囊则必须带内联底色');
+    assert.ok(probe.domainKeys.every((k) => Object.keys(DOMAIN_LABELS).includes(k)),
+      `上色的域键只许 6 类域值之一；实得 ${JSON.stringify(probe.domainKeys)}`);
+    assert.ok(probe.neutralNoInlineBg, '未上色的域胶囊不得带内联底色（现行全部中性）');
 
-    // ⑤ 非空转（**不依赖演示数据**）：单一源 `WORK_DOMAIN_COLORS` **恰三键** ⇒ 证明「只给三域配色」
-    //    不是「碰巧演示库里一条重点域都没有」。
-    assert.deepEqual(Object.keys(WORK_DOMAIN_COLORS).sort(), ['activity', 'meeting', 'taskforce'],
-      '业务域识别色单一源须恰三键（重点＝项目线三域：会务 / 活动 / 专班）');
-    for (const k of Object.keys(WORK_DOMAIN_COLORS)) {
-      const c = WORK_DOMAIN_COLORS[k];
-      assert.ok(c && c.bg && c.text && c.border, `域 ${k} 的色须齐备 bg / text / border（含深色三件套）`);
-    }
+    // ⑤ 非空转（**不依赖演示数据**）：`WORK_DOMAIN_COLORS` **现为空**——`D-787`（9 → 6 合并）后
+    //    **配色随 6 类再议**（待支书指色）⇒ 断言「恰零键」。**若支书定色**，须同批改本断言，
+    //    并补「色键 ⊆ 6 类域值 且 `bg`/`text`/`border` 齐备」的非空转（否则本断言退化为恒真）。
+    assert.deepEqual(Object.keys(WORK_DOMAIN_COLORS), [],
+      '业务域识别色单一源现为空（`D-787` 合并后配色待支书指色）');
   } finally { await page.close(); }
 });

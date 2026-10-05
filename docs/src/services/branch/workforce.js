@@ -9,21 +9,21 @@
 //   议题 extras 记 voteOutcome {status,tally,needed,evaluatedAt}；会前草稿=支书台暂存。
 // R2-3（2026-09-06 支书裁，附录⑩ S2）：门槛改「应到会人数超过 2/3 且无反对」——
 //   出席须严格超过应到 2/3（整界不过），反对=0（'object' 异议与 'oppose' 反对同口径），弃权允许。
-import { BranchService } from '../core/runtime.js?v=20261005d';
-import { NoticeStore } from '../governance/notice.js?v=20261005d';
-import { defaultVoteConfig, resolveVoterIds } from '../activity/vote-config.js?v=20261005d';
-import { ROLE_LABELS } from '../../core/domain/constants.js?v=20261005d';
-import { POLICY_DEFAULTS } from '../../core/domain/policy-defaults.js?v=20261005d';
-import { WORK_MAP_MODULES, mergeWorkforceSnapshot, canDisableModule, ORG_SUBJECT_LABELS } from '../../core/domain/work-map.js?v=20261005d';
-import { getPersonName } from '../member/person.js?v=20261005d';
-import { AuthStore } from '../core/auth.js?v=20261005d';
-import { getBranchWorkforce, updateBranchWorkforce } from './branch.js?v=20261005d';
-import { fetchVotesStrict } from '../activity/committee-vote.js?v=20261005d';
-import { TodoStore, TodoCategory, TodoSourceType, WORK_DOMAIN } from '../governance/todo.js?v=20261005d';
+import { BranchService } from '../core/runtime.js?v=20261005e';
+import { NoticeStore } from '../governance/notice.js?v=20261005e';
+import { defaultVoteConfig, resolveVoterIds } from '../activity/vote-config.js?v=20261005e';
+import { ROLE_LABELS } from '../../core/domain/constants.js?v=20261005e';
+import { POLICY_DEFAULTS } from '../../core/domain/policy-defaults.js?v=20261005e';
+import { WORK_MAP_MODULES, mergeWorkforceSnapshot, canDisableModule, ORG_SUBJECT_LABELS } from '../../core/domain/work-map.js?v=20261005e';
+import { getPersonName } from '../member/person.js?v=20261005e';
+import { AuthStore } from '../core/auth.js?v=20261005e';
+import { getBranchWorkforce, updateBranchWorkforce } from './branch.js?v=20261005e';
+import { fetchVotesStrict } from '../activity/committee-vote.js?v=20261005e';
+import { TodoStore, TodoCategory, TodoSourceType, WORK_DOMAIN } from '../governance/todo.js?v=20261005e';
 // 2026-09-28 修（去表决 dogfood）：议题议程项须带 id，线上表态位（.vote-widget-slot / .vote-panel-slot
 //   仅在议程项含 id 时渲染）才成立；原实现无 id ⇒ 表决入口页「该条无表决编号」，谁也投不了票。
-import { generateId } from '../../core/base/id.js?v=20261005d';
-import { todayLocal } from '../../core/base/utils.js?v=20261005d';
+import { generateId } from '../../core/base/id.js?v=20261005e';
+import { todayLocal } from '../../core/base/utils.js?v=20261005e';
 
 export const WORKFORCE_PROPOSAL_KIND = 'workforce-proposal';
 
@@ -199,20 +199,20 @@ export async function adoptWorkforceProposal(branchId, activityId) {
 /** 模块 → 业务域（履职待办归入对应域折组；缺省 ACTIVITY） */
 const DUTY_DOMAIN = {
   // 2026-09-22 批次 145：原「三会一课」单模块按形式拆为 4 个模块（见 core/domain/work-map.js 文件头），
-  //   四者均属会议域（`WORK_DOMAIN.MEETING`，与原 `three-meetings` 同域）。
-  'branch-party-meeting': WORK_DOMAIN.MEETING,
-  'branch-committee-meeting': WORK_DOMAIN.MEETING,
-  'party-group-meeting': WORK_DOMAIN.MEETING,
-  'party-lecture': WORK_DOMAIN.MEETING,
-  'theme-party': WORK_DOMAIN.ACTIVITY,
-  taskforce: WORK_DOMAIN.TASKFORCE,
-  'joint-event': WORK_DOMAIN.ACTIVITY,
+  //   四者均属「项目」域（`D-787` 合并后 会务 / 活动 / 专班 → 项目，与原 `three-meetings` 同域）。
+  'branch-party-meeting': WORK_DOMAIN.PROJECT,
+  'branch-committee-meeting': WORK_DOMAIN.PROJECT,
+  'party-group-meeting': WORK_DOMAIN.PROJECT,
+  'party-lecture': WORK_DOMAIN.PROJECT,
+  'theme-party': WORK_DOMAIN.PROJECT,
+  taskforce: WORK_DOMAIN.PROJECT,
+  'joint-event': WORK_DOMAIN.PROJECT,
   'develop-party-member': WORK_DOMAIN.MEMBER_DEV,
-  'democratic-review': WORK_DOMAIN.MEETING,
-  election: WORK_DOMAIN.MEETING,
+  'democratic-review': WORK_DOMAIN.PROJECT,
+  election: WORK_DOMAIN.PROJECT,
   'attendance-inspection': WORK_DOMAIN.ATTENDANCE,
-  'feedback-handling': WORK_DOMAIN.REPORT,
-  'rule-making': WORK_DOMAIN.ACTIVITY,
+  'feedback-handling': WORK_DOMAIN.REPORT_UP,
+  'rule-making': WORK_DOMAIN.PROJECT,
   'info-platform': WORK_DOMAIN.ARCHIVE,
 };
 
@@ -239,7 +239,7 @@ function _deriveDutyTodos(activityId, proposal) {
         description: `支委会已通过分工调整：「${name}」由你负责。请按对应工作台的规范与工作方法推进。`,
         category: TodoCategory.TRACK,
         priority: 'normal',
-        domain: DUTY_DOMAIN[c.moduleId] || WORK_DOMAIN.ACTIVITY,
+        domain: DUTY_DOMAIN[c.moduleId] || WORK_DOMAIN.PROJECT,
         sourceType: TodoSourceType.MANUAL,
         sourceId,
         actionKey: 'workforce-duty',

@@ -2,7 +2,7 @@
 // ════════════════════════════════════════════════════════════════
 //  todo-list.js — 待办列表组件
 //  最小三成本原则落地：进入工作台第一眼即见待办
-//  2026-09-07 IA-C1 Task4：新增 renderDomainTodoList（9 业务域折组列表，六台待办页主列；
+//  2026-09-07 IA-C1 Task4：新增 renderDomainTodoList（**6 类**业务域折组列表，六台待办页主列；
 //  数据源=TodoStore.getDomainsWithGroups/mergeRealtimeDomains，域头=域名+计数+逾期红点）
 //  2026-09-07 IA-C1 Task5：旧 renderTodoList（按分类/actionType 大列表）已无调用者移除
 //  （六台待办页 C1 Task4 已改挂 renderDomainTodoList）；按钮文案表去无生产者死键
@@ -14,15 +14,15 @@
 //         content/04_web_design/design-system/DESIGN_SYSTEM.md §一 第6条
 // ════════════════════════════════════════════════════════════════
 
-import { badgeHtml } from '../ui/badges.js?v=20261005d';
-import { renderFilteredList } from '../ui/list-filter.js?v=20261005d';
-import { solidAccentStyle } from '../../core/domain/constants.js?v=20261005d';
+import { badgeHtml } from '../ui/badges.js?v=20261005e';
+import { renderFilteredList } from '../ui/list-filter.js?v=20261005e';
+import { solidAccentStyle } from '../../core/domain/constants.js?v=20261005e';
 // P1（2026-09-07）：渲染层过期红点收敛于 todo.js isTodoExpired（单一过期判定实现 · spec §三.6）
-import { isTodoExpired } from '../../services/governance/todo.js?v=20261005d';
-import { todayLocal } from '../../core/base/utils.js?v=20261005d';
+import { isTodoExpired } from '../../services/governance/todo.js?v=20261005e';
+import { todayLocal } from '../../core/base/utils.js?v=20261005e';
 
 /**
- * 渲染「9 业务域折组」待办列表（IA 收敛 C1 Task4 六台待办页主列；替代旧按分类/actionType 大列表）。
+ * 渲染「**6 类**业务域折组」待办列表（IA 收敛 C1 Task4 六台待办页主列；替代旧按分类/actionType 大列表）。
  *
  * 数据源 = TodoStore.getDomainsWithGroups(role) / mergeRealtimeDomains(role, realtimeGroups) 输出：
  *   [{ domain, label, count, expiredCount, groups: [{ groupKey, actionKey, title, deadline, count, items }] }]

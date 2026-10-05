@@ -19,24 +19,24 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261005d';
+import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261005e';
 import {
   MockAdapter,
-} from '../../docs/src/data/mock-adapter.js?v=20261005d';
-import { setDataSource } from '../../docs/src/data/data-adapter.js?v=20261005d';
+} from '../../docs/src/data/mock-adapter.js?v=20261005e';
+import { setDataSource } from '../../docs/src/data/data-adapter.js?v=20261005e';
 import {
   WORK_DOMAIN, TodoStore, TodoSourceType,
   LifecycleTodoDeriver, VisitorTodoDeriver, NoticeTodoDeriver,
   REALTIME_GROUP_DOMAIN, realtimeGroupDomainOf,
   buildDevelopNodeRemindGroup,
-} from '../../docs/src/services/governance/todo.js?v=20261005d';
-import { HandoffStore } from '../../docs/src/services/governance/handoff.js?v=20261005d';
-import { SignupStore } from '../../docs/src/services/activity/signup.js?v=20261005d';
-import { TaskForceRecordStore } from '../../docs/src/services/activity/taskforce.js?v=20261005d';
+} from '../../docs/src/services/governance/todo.js?v=20261005e';
+import { HandoffStore } from '../../docs/src/services/governance/handoff.js?v=20261005e';
+import { SignupStore } from '../../docs/src/services/activity/signup.js?v=20261005e';
+import { TaskForceRecordStore } from '../../docs/src/services/activity/taskforce.js?v=20261005e';
 import {
   saveFollowups, buildOverdueRemindGroup,
-} from '../../docs/src/services/governance/resolution-followup.js?v=20261005d';
-import { SecretaryTodoDeriver } from '../../docs/src/services/governance/secretary-overview.js?v=20261005d';
+} from '../../docs/src/services/governance/resolution-followup.js?v=20261005e';
+import { SecretaryTodoDeriver } from '../../docs/src/services/governance/secretary-overview.js?v=20261005e';
 
 // ── localStorage 内存桩（member-persist 同款）─────────────────────
 const _store = new Map();
@@ -86,15 +86,15 @@ test('① 活动创建 → leader authorize：scenarioId 分域（三会→会�
   assert.equal(tm.role, 'leader');
   assert.equal(tm.actionType, 'authorize');
   assert.equal(tm.actionKey, 'activity-authorize', '活动赋权派生补稳定 actionKey');
-  assert.equal(tm.domain, 'meeting', '三会 scenarioId → 会务域');
+  assert.equal(tm.domain, 'project', '三会 scenarioId → 项目域（\`D-787\` 合并）');
   assert.equal(tm.actionData.scenarioId, 'branch-committee', 'scenarioId 落到 actionData');
 
   const tt = byAct('act-t');
   assert.equal(tt.actionKey, 'activity-authorize');
-  assert.equal(tt.domain, 'activity', 'theme-party → 活动/项目域');
+  assert.equal(tt.domain, 'project', 'theme-party → 项目域');
   assert.equal(tt.actionData.scenarioId, 'theme-party');
 
-  assert.equal(byAct('act-x').domain, 'activity', '无 scenario → 默认活动/项目');
+  assert.equal(byAct('act-x').domain, 'project', '无 scenario → 项目域');
 });
 
 test('①b 专班创建 → org-commissioner authorize：domain=专班 + 稳定键 taskforce-authorize', () => {
@@ -104,7 +104,7 @@ test('①b 专班创建 → org-commissioner authorize：domain=专班 + 稳定�
   assert.equal(t.role, 'org-commissioner');
   assert.equal(t.actionType, 'authorize');
   assert.equal(t.actionKey, 'taskforce-authorize', '专班赋权派生补稳定 actionKey');
-  assert.equal(t.domain, 'taskforce');
+  assert.equal(t.domain, 'project');
 });
 
 // ═══════════════ ② 活动归档 → 宣传归档（Lifecycle） ═══════════════
@@ -143,16 +143,16 @@ test('③ visitor 参与：活动/专班 participate + 稳定键 participate（�
   const act = findPart('act-v');
   assert.equal(act.role, 'visitor');
   assert.equal(act.actionKey, 'participate', '活动参与派生补稳定 actionKey');
-  assert.equal(act.domain, 'activity', 'theme-party → 活动/项目域');
+  assert.equal(act.domain, 'project', 'theme-party → 项目域');
   assert.equal(act.actionData.scenarioId, 'theme-party');
 
   const vm = findPart('act-vm');
   assert.equal(vm.actionKey, 'participate');
-  assert.equal(vm.domain, 'meeting', '三会参与 → 会务域（scenarioId 落到 actionData）');
+  assert.equal(vm.domain, 'project', '三会参与 → 项目域（scenarioId 落到 actionData；\`D-787\` 合并）');
 
   const tf = findPart('tf-v');
   assert.equal(tf.actionKey, 'participate');
-  assert.equal(tf.domain, 'taskforce', '专班参与 → 专班域');
+  assert.equal(tf.domain, 'project', '专班参与 → 项目域（\`D-787\` 合并）');
 });
 
 // ═══════════════ ④ 通知阅读类 → NONE ═══════════════
@@ -230,7 +230,7 @@ test('⑥ signup-review：活动(theme-party)→活动/项目、专班→专班�
   assert.equal(ta.role, 'leader', '审核人=活动 organizer（p1 leader）');
   assert.equal(ta.sourceType, 'activity');
   assert.equal(ta.actionKey, 'signup-review', 'signup-review 稳定键已设');
-  assert.equal(ta.domain, 'activity', '活动侧报名审核按源活动归活动/项目域');
+  assert.equal(ta.domain, 'project', '活动侧报名审核 → 项目域');
   assert.equal(ta.actionData.scenarioId, 'theme-party', '源活动 scenarioId 落到 actionData');
 
   const tt = TodoStore.getAll().find(t => t.actionKey === 'signup-review' && t.actionData && t.actionData.signupId === rt.signup.id);
@@ -238,7 +238,7 @@ test('⑥ signup-review：活动(theme-party)→活动/项目、专班→专班�
   assert.equal(tt.role, 'leader', '审核人=专班 initiator（p1 leader）');
   assert.equal(tt.sourceType, 'taskforce');
   assert.equal(tt.actionKey, 'signup-review');
-  assert.equal(tt.domain, 'taskforce', '专班侧报名审核归专班域');
+  assert.equal(tt.domain, 'project', '专班侧报名审核 → 项目域');
 
   // participant 报名（auto approved）→ 参与待办同步打标
   const rp = SignupStore.apply({ sourceType: 'activity', sourceId: 'act-su2', personId: 'p3', role: 'participant' });
@@ -247,7 +247,7 @@ test('⑥ signup-review：活动(theme-party)→活动/项目、专班→专班�
   assert.ok(tp, 'approved 报名生成参与待办');
   assert.equal(tp.role, 'visitor');
   assert.equal(tp.actionKey, 'participate', '报名渠道参与待办与 VisitorDeriver 同键');
-  assert.equal(tp.domain, 'activity');
+  assert.equal(tp.domain, 'project');
 });
 
 // ═══════════════ ⑦ resolution-followup ═══════════════
@@ -268,7 +268,7 @@ test('⑦ resolution-followup：责任人跟进待办 domain=决议上报 + 稳�
   assert.ok(t, '决议待落实派生责任人跟进待办');
   assert.equal(t.role, 'org-commissioner');
   assert.equal(t.actionKey, 'resolution-followup');
-  assert.equal(t.domain, 'resolution', '决议跟进归决议上报域');
+  assert.equal(t.domain, 'report-up', '决议跟进归上报与汇报域（\`D-787\` 合并）');
 });
 
 // ═══════════════ ⑧ 支书/纪检实时组域标签 ═══════════════
@@ -280,11 +280,11 @@ test('⑧ 实时组域标签：导出映射覆盖支书 8 组/决议逾期/成�
     'attendance-confirm': WORK_DOMAIN.ATTENDANCE,
     'inspection-remind': WORK_DOMAIN.INSPECTION,
     'inspection-confirm': WORK_DOMAIN.INSPECTION,
-    'review-remind': WORK_DOMAIN.ACTIVITY,   // 活动复盘待提交（spec 三节：复盘归活动/项目）
-    'review-confirm': WORK_DOMAIN.ACTIVITY,  // 活动复盘复核
+    'review-remind': WORK_DOMAIN.PROJECT,   // 活动复盘待提交（spec 三节：复盘归活动/项目）
+    'review-confirm': WORK_DOMAIN.PROJECT,  // 活动复盘复核
     'archive-remind': WORK_DOMAIN.ARCHIVE,
     'archive-confirm': WORK_DOMAIN.ARCHIVE,
-    'resolution-followup-remind': WORK_DOMAIN.RESOLUTION,
+    'resolution-followup-remind': WORK_DOMAIN.REPORT_UP,
     'member-confirm': WORK_DOMAIN.MEMBER_DEV,
     'semester-detained-remind': WORK_DOMAIN.MEMBER_DEV,
   };
@@ -311,8 +311,8 @@ test('⑧ 实时组域标签：导出映射覆盖支书 8 组/决议逾期/成�
   const g = buildOverdueRemindGroup([overdueAct], '2026-09-06');
   assert.ok(g, '决议逾期应生成提醒组');
   assert.equal(g.actionKey, 'resolution-followup-remind');
-  assert.equal(g.domain, 'resolution', '决议逾期提醒组 domain=决议上报');
-  assert.equal(realtimeGroupDomainOf(g), 'resolution');
+  assert.equal(g.domain, 'report-up', '决议逾期提醒组 domain=上报与汇报');
+  assert.equal(realtimeGroupDomainOf(g), 'report-up');
 });
 
 // ═══════════════ ⑨ 发展节点提醒（组织委员流程指南附录A；2026-09-10） ═══════════════

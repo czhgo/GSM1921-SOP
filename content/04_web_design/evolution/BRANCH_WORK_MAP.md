@@ -54,7 +54,7 @@ related_files: [WORKFLOW_BLOCK_CONTRACT.md, ARCHITECTURE_EVOLUTION.md, ../../../
 
 | 过拟合实例 | 位置 | 原状 | 现修 |
 |---|---|---|---|
-| 「专班待议（支委会）」独立顶卡 | `secretary/todo-tab.js` | **无条件渲染**，无数据也占位「暂无待议专班」 | 撤销顶卡 → 实时组归入「专班」业务域折组（有报送才成组） |
+| 「专班待议（支委会）」独立顶卡 | `secretary/todo-tab.js` | **无条件渲染**，无数据也占位「暂无待议专班」 | 撤销顶卡 → 实时组归入「项目」业务域折组（有报送才成组） |
 | 首页「活跃专班」统计卡 | `dashboard/stats.js` | 无专班支部永远显示「0 个」（不可配置） | 仅在确有活跃/招募中专班时出现 |
 | 首页「专班进展」卡 | `index.html` + `dashboard/taskforce-list.js` | 空态「暂无活跃专班」恒占位 | 无活跃专班 → **整卡不出**（含标题与入口） |
 | 首页「活动风采」卡 | `index.html` + `dashboard/gallery.js` | 空态「暂无风采展示」恒占位 | 无内容 → 整卡不出 |

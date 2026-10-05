@@ -17,17 +17,17 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261005d';
+import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261005e';
 import {
   MockAdapter,
-} from '../../docs/src/data/mock-adapter.js?v=20261005d';
-import { setDataSource } from '../../docs/src/data/data-adapter.js?v=20261005d';
+} from '../../docs/src/data/mock-adapter.js?v=20261005e';
+import { setDataSource } from '../../docs/src/data/data-adapter.js?v=20261005e';
 import {
   WORK_DOMAIN, WORK_DOMAIN_LABELS, DOMAIN_ORDER,
   TodoStore, TodoCategory, TodoStatus,
   realtimeGroupDomainOf,
   urgeRolesOf,
-} from '../../docs/src/services/governance/todo.js?v=20261005d';
+} from '../../docs/src/services/governance/todo.js?v=20261005e';
 // A① 通知对象级深链守卫（2026-09-10）：静态扫描 docs/src 全部通知生产点（纯 fs，无需浏览器）
 import { readFileSync, readdirSync } from 'node:fs';
 import { join, relative } from 'node:path';
@@ -76,20 +76,17 @@ function mk(partial) {
 
 // ═══════════════ ① DOMAIN_ORDER ═══════════════
 
-test('① DOMAIN_ORDER：9 域固定顺序（会务→…→汇报反馈），NONE 不入列', () => {
-  assert.equal(DOMAIN_ORDER.length, 9, '9 业务域');
-  assert.equal(new Set(DOMAIN_ORDER).size, 9, '域值无重复');
+test('① DOMAIN_ORDER：**6 类**固定顺序（项目→考勤纪律→考察→成员发展→上报与汇报→归档宣传），NONE 不入列', () => {
+  assert.equal(DOMAIN_ORDER.length, 6, '6 类业务域（`D-787` 9 → 6 合并）');
+  assert.equal(new Set(DOMAIN_ORDER).size, 6, '域值无重复');
   assert.deepEqual(DOMAIN_ORDER, [
-    WORK_DOMAIN.MEETING,     // 会务
-    WORK_DOMAIN.ACTIVITY,    // 活动/项目
+    WORK_DOMAIN.PROJECT,     // 项目（会务 · 活动 · 专班）
     WORK_DOMAIN.ATTENDANCE,  // 考勤纪律
     WORK_DOMAIN.INSPECTION,  // 考察
     WORK_DOMAIN.MEMBER_DEV,  // 成员发展
-    WORK_DOMAIN.TASKFORCE,   // 专班
-    WORK_DOMAIN.RESOLUTION,  // 决议上报
+    WORK_DOMAIN.REPORT_UP,   // 上报与汇报（决议上报 · 汇报反馈）
     WORK_DOMAIN.ARCHIVE,     // 归档宣传
-    WORK_DOMAIN.REPORT,      // 汇报反馈
-  ], '域序固定（spec 一 ①→⑨）');
+  ], '域序固定（`D-787` 合并后 6 类）');
   assert.ok(!DOMAIN_ORDER.includes(WORK_DOMAIN.NONE), 'NONE（通知/未分类）不入普通域列');
   // 每个域都有中文标签（域头展示用）
   for (const d of DOMAIN_ORDER) {
@@ -102,15 +99,15 @@ test('① DOMAIN_ORDER：9 域固定顺序（会务→…→汇报反馈），NO
 test('② getDomainsWithGroups：多域聚合（域序固定/无活不出/跨角色不混入/计数与逾期正确/NONE 不入列）', () => {
   beginMockCase();
   // meeting 域 2 条（同 actionKey participate → 一组）
-  mk({ id: 'dv-m1', domain: WORK_DOMAIN.MEETING, actionKey: 'participate', actionType: 'participate', title: '参加支部党员大会', deadline: '2099-06-01' });
-  mk({ id: 'dv-m2', domain: WORK_DOMAIN.MEETING, actionKey: 'participate', actionType: 'participate', title: '参加党小组会', deadline: '2099-06-10' });
+  mk({ id: 'dv-m1', domain: WORK_DOMAIN.PROJECT, actionKey: 'participate', actionType: 'participate', title: '参加支部党员大会', deadline: '2099-06-01' });
+  mk({ id: 'dv-m2', domain: WORK_DOMAIN.PROJECT, actionKey: 'participate', actionType: 'participate', title: '参加党小组会', deadline: '2099-06-10' });
   // attendance 域 3 条：remind×2（pending 未来）+ confirm×1（无显式 domain → 兼容推断考勤纪律；expired）
   mk({ id: 'dv-at1', domain: WORK_DOMAIN.ATTENDANCE, actionKey: 'attendance-remind', title: '考勤待录入', deadline: '2099-08-01' });
   mk({ id: 'dv-at2', domain: WORK_DOMAIN.ATTENDANCE, actionKey: 'attendance-remind', title: '考勤待录入', deadline: '2099-08-02' });
   mk({ id: 'dv-at3', actionKey: 'attendance-confirm', actionType: 'review', title: '考勤待复核', status: TodoStatus.EXPIRED, deadline: '2026-01-01' });
   // member-dev / report 域各 1 条
   mk({ id: 'dv-md1', domain: WORK_DOMAIN.MEMBER_DEV, actionKey: 'member-confirm', title: '成员变更待确认', deadline: '2099-09-01' });
-  mk({ id: 'dv-rp1', domain: WORK_DOMAIN.REPORT, actionKey: 'weekly-report', title: '提交周报', deadline: '2099-10-01' });
+  mk({ id: 'dv-rp1', domain: WORK_DOMAIN.REPORT_UP, actionKey: 'weekly-report', title: '提交周报', deadline: '2099-10-01' });
   // NONE 通知类（不入普通域列表）
   mk({ id: 'dv-n1', domain: WORK_DOMAIN.NONE, category: TodoCategory.NOTICE, actionKey: 'notice-read', title: '阅读通知', deadline: '2099-11-01' });
   // 他人角色待办（不混入 secretary 域视图）
@@ -118,8 +115,8 @@ test('② getDomainsWithGroups：多域聚合（域序固定/无活不出/跨角
 
   const view = TodoStore.getDomainsWithGroups('secretary');
   // ① 域序固定 + 无活域不出 + NONE/他人角色不出现
-  assert.deepEqual(view.map(d => d.domain), ['meeting', 'attendance', 'member-dev', 'report'],
-    '域按 DOMAIN_ORDER 出现（只含有活域；none 与 org 角色不入列）');
+  assert.deepEqual(view.map(d => d.domain), ['project', 'attendance', 'member-dev', 'report-up'],
+    '域按 DOMAIN_ORDER 出现（只含有活域；none 与 org 角色不入列；`D-787` 合并后 6 类）');
   // 记录结构：domain/label/count/expiredCount/groups
   for (const d of view) {
     assert.equal(typeof d.domain, 'string');
@@ -129,9 +126,9 @@ test('② getDomainsWithGroups：多域聚合（域序固定/无活不出/跨角
     assert.ok(Array.isArray(d.groups));
   }
 
-  // meeting 域：计数/过期/组聚合
-  const meet = view.find(d => d.domain === 'meeting');
-  assert.equal(meet.count, 2, 'meeting 域计数 2');
+  // project 域（原会务）：计数/过期/组聚合
+  const meet = view.find(d => d.domain === 'project');
+  assert.equal(meet.count, 2, 'project 域计数 2');
   assert.equal(meet.expiredCount, 0);
   assert.equal(meet.groups.length, 1, '同 actionKey 聚合为 1 组');
   const meetG = meet.groups[0];
@@ -154,9 +151,9 @@ test('② getDomainsWithGroups：多域聚合（域序固定/无活不出/跨角
   assert.equal(atRemind.count, 2);
   assert.equal(atRemind.deadline, '2099-08-01');
 
-  // member-dev / report：单组计数
+  // member-dev / report-up：单组计数
   assert.equal(view.find(d => d.domain === 'member-dev').count, 1);
-  assert.equal(view.find(d => d.domain === 'report').groups[0].actionKey, 'weekly-report');
+  assert.equal(view.find(d => d.domain === 'report-up').groups[0].actionKey, 'weekly-report');
 
   // 无活角色 → 空数组
   assert.deepEqual(TodoStore.getDomainsWithGroups('prop-commissioner'), []);
@@ -233,7 +230,7 @@ test('⑤ mergeRealtimeDomains：实时组并入对应域（新增域/域内追�
     // 同 groupKey 重复（前序已并入）→ 去重跳过
     { groupKey: 'secretary:member-confirm', actionKey: 'member-confirm', domain: WORK_DOMAIN.MEMBER_DEV, title: '成员变更待确认(重复)', kind: 'confirm', count: 99, items: [{ id: 'mcX' }] },
     // resolution 实时组：3 条逾期（items 无 status → deadline 过期视为逾期）
-    { groupKey: 'secretary:resolution-followup-remind', actionKey: 'resolution-followup-remind', domain: WORK_DOMAIN.RESOLUTION, title: '决议落实逾期', kind: 'remind', count: 3, items: [{ id: 'r1', name: '甲', deadline: '2026-01-05' }, { id: 'r2', name: '乙', deadline: '2026-02-05' }, { id: 'r3', name: '丙', deadline: '2026-03-05' }] },
+    { groupKey: 'secretary:resolution-followup-remind', actionKey: 'resolution-followup-remind', domain: WORK_DOMAIN.REPORT_UP, title: '决议落实逾期', kind: 'remind', count: 3, items: [{ id: 'r1', name: '甲', deadline: '2026-01-05' }, { id: 'r2', name: '乙', deadline: '2026-02-05' }, { id: 'r3', name: '丙', deadline: '2026-03-05' }] },
     // attendance 域内追加实时组（remind，deadline 早于持久化 confirm → 域内组序前置）
     { groupKey: 'secretary:attendance-remind', actionKey: 'attendance-remind', domain: WORK_DOMAIN.ATTENDANCE, title: '考勤待录入', kind: 'remind', count: 1, items: [{ id: 'ar1', name: '活动一', deadline: '2099-05-01' }] },
     // 缺 domain 标注 → realtimeGroupDomainOf 回退推断（inspection）
@@ -245,9 +242,9 @@ test('⑤ mergeRealtimeDomains：实时组并入对应域（新增域/域内追�
 
   const merged = TodoStore.mergeRealtimeDomains('secretary', realtime);
 
-  // 域序仍按 DOMAIN_ORDER（attendance → inspection → member-dev → resolution），none 不入
-  assert.deepEqual(merged.map(d => d.domain), ['attendance', 'inspection', 'member-dev', 'resolution'],
-    '合并后域序=DOMAIN_ORDER（实时组新增域也按固定序插入）');
+  // 域序仍按 DOMAIN_ORDER（attendance → inspection → member-dev → report-up），none 不入
+  assert.deepEqual(merged.map(d => d.domain), ['attendance', 'inspection', 'member-dev', 'report-up'],
+    '合并后域序=DOMAIN_ORDER（实时组新增域也按固定序插入；`D-787` 6 类）');
 
   // attendance：持久化 1 + 实时 remind 1 = 2；组序 deadline asc（remind 2099-05-01 → confirm 2099-09-01）
   const att = merged.find(d => d.domain === 'attendance');
@@ -268,8 +265,8 @@ test('⑤ mergeRealtimeDomains：实时组并入对应域（新增域/域内追�
   assert.equal(md.groups.length, 1);
   assert.deepEqual(md.groups.map(g => g.actionKey), ['member-confirm']);
 
-  // resolution：实时组逾期计数入域级 expiredCount
-  const rs = merged.find(d => d.domain === 'resolution');
+  // report-up：实时组逾期计数入域级 expiredCount
+  const rs = merged.find(d => d.domain === 'report-up');
   assert.equal(rs.count, 3);
   assert.equal(rs.expiredCount, 3, '实时组 3 条逾期计入域级逾期数');
 
@@ -286,9 +283,9 @@ test('⑤ mergeRealtimeDomains：实时组并入对应域（新增域/域内追�
 
 test('⑥ 向后兼容：getGroupedByAction 平铺语义不变（完成态排除；组含 title/deadline/items/count/flow）', () => {
   beginMockCase();
-  const c1 = TodoStore.create({ role: 'leader', domain: WORK_DOMAIN.ACTIVITY, category: TodoCategory.AUTH, actionKey: 'activity-authorize', actionType: 'authorize', title: '为活动赋权', deadline: '2099-07-01', priority: 'urgent', flow: '活动创建 → 组长赋权 → 执行' });
-  TodoStore.create({ id: 'dv-c2', role: 'leader', domain: WORK_DOMAIN.ACTIVITY, category: TodoCategory.AUTH, actionKey: 'activity-authorize', actionType: 'authorize', title: '为活动赋权(已完成)', status: TodoStatus.COMPLETED, deadline: '2099-07-05' });
-  TodoStore.create({ id: 'dv-c3', role: 'leader', domain: WORK_DOMAIN.MEETING, category: TodoCategory.TRACK, actionKey: 'participate', actionType: 'participate', title: '参加支委会', deadline: '2099-08-01' });
+  const c1 = TodoStore.create({ role: 'leader', domain: WORK_DOMAIN.PROJECT, category: TodoCategory.AUTH, actionKey: 'activity-authorize', actionType: 'authorize', title: '为活动赋权', deadline: '2099-07-01', priority: 'urgent', flow: '活动创建 → 组长赋权 → 执行' });
+  TodoStore.create({ id: 'dv-c2', role: 'leader', domain: WORK_DOMAIN.PROJECT, category: TodoCategory.AUTH, actionKey: 'activity-authorize', actionType: 'authorize', title: '为活动赋权(已完成)', status: TodoStatus.COMPLETED, deadline: '2099-07-05' });
+  TodoStore.create({ id: 'dv-c3', role: 'leader', domain: WORK_DOMAIN.PROJECT, category: TodoCategory.TRACK, actionKey: 'participate', actionType: 'participate', title: '参加支委会', deadline: '2099-08-01' });
 
   const groups = TodoStore.getGroupedByAction('leader');
   assert.deepEqual(groups.map(g => g.actionKey), ['activity-authorize', 'participate'], '按首现序平铺');

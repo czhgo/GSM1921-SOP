@@ -17,15 +17,15 @@
 // 时间口径：dateKey 由 now 按【本地时区】取 YYYY-MM-DD（勿用 toISOString——UTC 偏移跨日错位）。
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../../core/domain/domain.js?v=20261005d';
-import { getMeetingRosterIds, getEffectiveMembers, RESIDENCE_KEY } from '../member/roster.js?v=20261005d';
-import { TodoStore, TodoActionType, inferDomain, WORK_DOMAIN_LABELS } from './todo.js?v=20261005d';
+import { mockDB } from '../../core/domain/domain.js?v=20261005e';
+import { getMeetingRosterIds, getEffectiveMembers, RESIDENCE_KEY } from '../member/roster.js?v=20261005e';
+import { TodoStore, TodoActionType, inferDomain, WORK_DOMAIN_LABELS } from './todo.js?v=20261005e';
 // 待批活动的可见性单一源（2026-09-22 批次 151 · 支书裁定「只支委层可见」）：「今天」的今日会议/我的分工
 // 同样按查看者角色收窄——待批活动不进非支委层的今日摘要（与各台列表同一判据）。
-import { filterActivitiesForViewer } from '../core/visibility.js?v=20261005d';
-import { tokenOf } from '../../core/base/version-token.js?v=20261005d'; // P1 消费方会话缓存失效（spec §三.4）
+import { filterActivitiesForViewer } from '../core/visibility.js?v=20261005e';
+import { tokenOf } from '../../core/base/version-token.js?v=20261005e'; // P1 消费方会话缓存失效（spec §三.4）
 // 成员基础数据预览键（仅作 raw 源指纹；person.js 读链叠加预览，见 org-base-data-preview）
-import { PREVIEW_KEY } from '../branch/org-base-data-preview.js?v=20261005d';
+import { PREVIEW_KEY } from '../branch/org-base-data-preview.js?v=20261005e';
 
 /** 按 roster 应到口径判定的会议类型（R6-3 支书 2026-09-06 裁定：今天有会 = 我应出席/参与） */
 const ROSTER_MEETING_TYPES = new Set(['支部党员大会', '党课', '组织生活会', '党小组会']);
@@ -219,9 +219,9 @@ export function buildTodaySummary({ personId, role, now = new Date() } = {}) {
   // ── 按**动作性质**分组的在办待办（2026-10-01 批次 320 · 支书裁定「甲：直接用 TodoActionType 七类」）──
   //   **为什么立**：支书评今天页「信息量居然这么少…**这个第一次进入的界面居然只是一个花瓶**」⇒ 首屏
   //   必须把**我要做的事**按**动作性质**摊开，而不是只给一行「本岗待办 合计 N」。
-  //   ⚠ **不新造分类**：`TodoActionType`（七类动作性质）· `inferDomain` · `WORK_DOMAIN_LABELS`（九业务域）
+  //   ⚠ **不新造分类**：`TodoActionType`（七类动作性质）· `inferDomain` · `WORK_DOMAIN_LABELS`（**6 类业务域**，`D-787` 由 9 域合并）
   //   全是既有单一源（`services/governance/todo.js`）——支书原话「我提的工作类型更多想说的是
-  //   **审核类、提交类、表决类** 等等」正是 `actionType` 这一层；**九业务域降为行内小胶囊**。
+  //   **审核类、提交类、表决类** 等等」正是 `actionType` 这一层；**业务域降为行内小胶囊**。
   //   **口径**：与 overdue/dueToday 吃**同一份** `groups`（`getGroupedByAction`）⇒ 不新增取数；
   //   **含无截止项**（挂起待办的大多数，旧版只统计不列示 ⇒ 正是「信息量少」的根源之一）。
   const ACTION_ORDER = TODO_ACTION_ORDER;

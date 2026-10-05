@@ -3125,3 +3125,48 @@ $body
 
 - 只改 `.ctx/logs/**`（立据）⇒ **未 bump 版本戳**。
 - **下一步在办**（按 `D-787`/`D-788`/`D-789`）：九业务域合并草案 · 问卷表单 / 字段模型 / 导入链 · `P.16` 继续合并。
+
+
+***
+
+## 批次 398（2026-10-05 · `D-787`）「今天」页业务域 **9 → 6 类合并**（单一源统一改）
+
+> **来源**：本轮 AskUserQuestion —— 支书「九类 可以再 合并合并 同类项！」＋ 圈**乙「9 → 6 类」**、**甲「单一源统一改」**。
+
+### 一、合并方案（9 → 6）
+
+| 合并后（6 类） | 由谁合并 | 域键 |
+| --- | --- | --- |
+| **项目** | 会务 · 活动 · 专班 | `project` |
+| 考勤纪律 | —— | `attendance` |
+| 考察 | —— | `inspection` |
+| 成员发展 | —— | `member-dev` |
+| **上报与汇报** | 决议上报 · 汇报反馈 | `report-up` |
+| 归档宣传 | —— | `archive` |
+
+（＋ `none` 通知/未分类，不入域序）
+
+### 二、做法（单一源 `docs/src/services/governance/todo.js`）
+
+- `WORK_DOMAIN` 枚举 → **6 类 ＋ `NONE`**；`WORK_DOMAIN_LABELS` / `DOMAIN_ORDER` 同源改准。
+- **存量旧域键读取归一**：新增 `_LEGACY_DOMAIN`（`meeting/activity/taskforce → project`；`resolution/report → report-up`），`inferDomain` / `_effDomain` / `_buildTodo` 三处归一 ⇒ **旧数据不回丢、写入即归一新键**。
+- `inferDomain`：`taskforce-*` → 项目 · `resolution-*` → 上报与汇报 · `signup-review` 两源同域 · `authorize/participate` 一律项目（三会一课 scenario 表随之全为项目）。
+- `REALTIME_GROUP_DOMAIN`：`review-*` → 项目 · `resolution-followup-remind` / `todo-void-confirm` → 上报与汇报。
+- 消费面同批：`services/branch/workforce.js::DUTY_DOMAIN` · `entries/tabs/secretary/todo-tab.js` · `today-summary.js` / `today-tab.js` 注释。
+- **配色**：`constants.js::WORK_DOMAIN_COLORS` **暂清空**（原「项目线三域」三色随合并失效；支书明示**配色随 6 类再议**）⇒ 各域胶囊一律中性。**待支书指色**。
+
+### 三、判据（改判据与改实现同批）
+
+- `todo-domain`（枚举 7 常量 / 旧键归一 / 映射逐条）· `todo-domain-view`（`DOMAIN_ORDER` 6 · 域序 · 实时融合）· `todo-deriver-domain`（13 处域期望）· `today-action-groups-e2e::S12`（`DOMAIN_LABELS` 6 类 · `WORK_DOMAIN_COLORS` 暂空）· `perf-todo-agg-cache` 期望串 —— 全批改准。
+- **实跑**：`npm run test:daily` **747 / 747 / 0**；`npm run test:fast` **146 / 146 / 0**。
+
+### 四、文档同批（一改具改）
+
+- `content/04_web_design/design-system/DESIGN_SYSTEM.md` §2.9「业务域识别色」行改准（**现空 · 配色待定**）· `content/04_web_design/evolution/BRANCH_WORK_MAP.md`（「专班」域 → 「项目」域）· `docs/help.html` 待办折组列表（九域 → 6 类）· 根 `README.md` 工作域折组 · `CLAUDE.md` `V-6` 行（合并已落 · **仅配色待裁**）。
+- 版本戳 **`20261005d → 20261005e`**（`docs/src/**` 改动；bump 实测 JS 224 / HTML 23 / CSS 2 / server-test 92，陈旧戳 0）。
+
+### 五、边界（如实）
+
+- **配色未定**（`WORK_DOMAIN_COLORS` 空表）⇒ 今天页各域胶囊**中性**；待支书指色后逐键补入（`today-action-groups-e2e::S12` 已留「定色后同批复用」的条件断言，非恒真）。
+- `TIMESTAMPS`：`today-summary.js` 行日期刷 `2026-10-05`、`TIMESTAMPS.md` 自身 `last_updated` 两处刷 `2026-10-05`；`today-tab.js` / `todo-tab.js` / `todo-tab-shell.js` **无表行**（既有覆盖缺口，只登记）。
+- 全量 probe：本批为降频窗内**第 6 个 commit**（上一窗批次 397 已跑 `964/964/0`）⇒ 顺延；本批以 `test:daily` ＋ `test:fast` 覆盖。
