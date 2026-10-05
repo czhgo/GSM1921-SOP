@@ -3565,3 +3565,24 @@ $body
 
 - 本窗累计 **4 个 commit**（408 / 409 / 410 / 411）⇒ 按 `D-795`「**5–6**」门槛**继续累计**（未到阈；下一窗自批次 412 起）。
 - 其间每批已跑：`test:fast` **146/146**（批次 408 / 410）· `module-load` **4/4** · 真机 `help-e2e`＋`copy-anchor-guard-e2e` **4/4** · `copy-screen-guard` **11/11** · 静态族（`doc-consistency` / `timestamps-note-guard` / `frontmatter-freshness` / `link-integrity` / `doc-line-ref` / `catalog-sync`）**全绿**。
+
+## 批次 412（2026-10-06 · `D-800`）**台账文件作用分工（`H26.2`）＋「不留指针」口径**
+
+> **来源**：支书令「REVIEW_QUEUE 只承担**评议规则**的作用，但后来又新建了 ACTIVE RULINGS，所以我要求你**明确好文件的作用**！**不用什么都保留指针**！……**git 过程中 log 已经很清楚了！我们的 10 月的 logs 也要瘦身！**」（`D-800`）。
+
+### 一、动作
+
+1. **`CLAUDE.md` 甲部新立 `H26.2`「台账文件作用分工」**——**一个文件只答一个问题**分工表（`CLAUDE.md` 甲/乙/丙部 · `.ctx/ACTIVE_RULINGS.md`「现在该怎么判」· `.ctx/REVIEW_QUEUE.md`「要评议什么 ＋ 评议怎么做」· 两类 logs · `.ctx/TIMESTAMPS.md` · `DOC_MAP.md`）＋ **「不留指针」口径**（**git 即沿革 ⇒ 迁出 / 删除只需删、不必写「见 XXX」**；例外仅限「跨文件编号引用 / 守卫锚点」等读者难找回者，此时留一行）。
+2. **`H26.1` 判据改准**：「本地 log 只留一行指针」→「**一律删去、不必留指针**」；判据 3 改为「各文件只答自己那一个问题（见 `H26.2`）」。
+3. **`OPERATIONS_GUIDE §5.1 / §5.2` 同口径改准**（「迁出后原位只留一行去向说明」→「**直接删去**」；§5.2「迁出后按 §5.1 留一行去指针」→「**直接删去**」）。
+4. **`REVIEW_QUEUE.md` / `ACTIVE_RULINGS.md` 文首**：各写明本文件作用 ＋ 指向 `H26.2`；`REVIEW_QUEUE` 收口规则改准为「**已闭环即删（连同指针一并删）**」。
+
+### 二、守卫读数
+
+- `doc-consistency`（S1–S18）· `timestamps-note-guard`（N1–N7）· `frontmatter-freshness`（F1–F3）· `link-integrity`（L1–L5）· `doc-line-ref`（R1–R6）· `version-stamp` ＝ **57 / 57 / 0**。
+- **F2 抓出并改准 2 处**：机器时钟已跨日（本批提交时 `2026-10-06`）⇒ `content/02_institution/sop/宣传委员工作流程指南.md`（批次 411）与 `content/03_doc_system/OPERATIONS_GUIDE.md` 的 frontmatter ＋ `TIMESTAMPS` 行由 `2026-10-05` 刷为 `2026-10-06`。
+
+### 三、边界（如实）
+
+- 本批**只立口径与作用**（**不减判据 / 不删守卫 / 不放宽基线**）；**具体瘦身**（`ACTIVE_RULINGS` 逐批增量句删除 · `REVIEW_QUEUE` 已闭环指针块与「要点留档」删除 · **十月 logs 瘦身**）**留后续批**（逐块按 `R-93` 逐条核 ⚠ 行后执行）。
+- **只改 `CLAUDE.md` ＋ `.ctx/**` ＋ `content/03_doc_system/OPERATIONS_GUIDE.md`（§5.1–§5.2）＋ `content/**` frontmatter/表行** ⇒ **未 bump 任何 `?v=`**（仍 `20261005m`）。
