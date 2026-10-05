@@ -17,7 +17,7 @@ import assert from 'node:assert/strict';
 
 import {
   SELF_PROFILE_FIELDS, SELF_PROFILE_KEYS, emptySelfProfile, sanitizeSelfProfile, isSelfProfileEmpty,
-} from '../../docs/src/core/domain/self-profile.js?v=20261005h';
+} from '../../docs/src/core/domain/self-profile.js?v=20261005i';
 import { createApp } from '../app.js';
 import { seedDatabase } from '../seed.js';
 
@@ -83,10 +83,10 @@ test('A3 净化不崩 ＋ 空值判定：非对象输入 → 空表单；全空 
 
 // ═════════════════ B mock 写链 ═════════════════
 
-import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261005h';
-import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261005h';
-import { setDataSource } from '../../docs/src/data/data-adapter.js?v=20261005h';
-import { PersonStore } from '../../docs/src/services/member/person.js?v=20261005h';
+import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261005i';
+import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261005i';
+import { setDataSource } from '../../docs/src/data/data-adapter.js?v=20261005i';
+import { PersonStore } from '../../docs/src/services/member/person.js?v=20261005i';
 
 const _store = new Map();
 globalThis.localStorage = {

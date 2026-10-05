@@ -89,3 +89,74 @@ test('P1 本人自助填「自我描述」：入口在 · 模态只出该组 · 
     await page.close();
   }
 });
+
+test('P2 组织委员批量导入「自我描述」：粘贴 → 解析预览 → 确认 → 逐人落库可读回', async () => {
+  const page = await browser.newPage();
+  await page.route('**://fonts.googleapis.com/**', (r) => r.abort());
+  await page.route('**://fonts.gstatic.com/**', (r) => r.abort());
+  await page.route('**://cdn.tailwindcss.com/**', (r) => r.abort());
+  try {
+    // ① 真登录：组织委员 p11（学号 2400012355 / 123456）
+    await page.goto(`${base}/login.html`, { waitUntil: 'domcontentloaded' });
+    await page.fill('#student-id', '2400012355');
+    await page.fill('#password', '123456');
+    await Promise.all([
+      page.waitForURL('**/workspace/**', { timeout: 12000 }),
+      page.click('button[type="submit"]'),
+    ]);
+
+    // ② 组织台「成员名册」tab（深链 ?tab=roster）⇒ 导入区在位、名单已渲染
+    await page.goto(`${base}/workspace/org.html?tab=roster`, { waitUntil: 'domcontentloaded' });
+    await page.waitForSelector('#roster-sp-import-card', { timeout: 15000 });
+    await page.waitForSelector('.roster-edit[data-person-id="p3"]', { timeout: 15000 });
+
+    // ③ 变前基线：p3「专业」尚空（证明后面的非空确系导入所致，排除「本来就有」）
+    await page.click('.roster-edit[data-person-id="p3"]');
+    await page.waitForSelector('#person-edit-modal-form', { timeout: 8000 });
+    const before = await page.evaluate(() =>
+      document.querySelector('#person-edit-modal-form [data-field="selfProfile.major"]')?.value ?? null);
+    assert.equal(before, '', '变前 p3 的「专业」应为空');
+    await page.click('button[data-modal-cancel="person-edit-modal"]');
+    await page.waitForSelector('#person-edit-modal-form', { state: 'detached', timeout: 8000 });
+
+    // ④ 展开导入区 → 粘贴问卷表格（含表头行；制表符分隔）→ 解析预览
+    await page.click('#roster-sp-toggle');
+    await page.waitForSelector('#roster-sp-panel:not(.hidden)', { timeout: 5000 });
+    const sheet = [
+      ['姓名', '学号', '您的专业', '您是否参加过志愿服务', '您的累计志愿服务时长大致为:', '您担任什么学生工作？:职务'].join('\t'),
+      ['何晓峰', '2400012347', '软件工程', '是', '88 小时', '学习委员'].join('\t'),
+    ].join('\n');
+    await page.fill('#roster-sp-text', sheet);
+    await page.click('#roster-sp-parse');
+    await page.waitForSelector('#roster-sp-confirm', { timeout: 8000 });
+    const stat = await page.evaluate(() => document.querySelector('#roster-sp-status')?.textContent || '');
+    assert.ok(/可导入\s*1/.test(stat), `预览须报「可导入 1」；实得「${stat}」`);
+    const confirmLabel = await page.evaluate(() => document.querySelector('#roster-sp-confirm')?.textContent?.trim() || '');
+    assert.ok(confirmLabel.includes('确认导入 1 条'), `确认按钮文案须带条数；实得「${confirmLabel}」`);
+
+    // ⑤ 确认导入 → 整页刷新（预览区随草稿清空、面板回到收起）
+    await page.click('#roster-sp-confirm');
+    await page.waitForFunction(() => {
+      const el = document.querySelector('#roster-sp-preview');
+      return !el || el.innerHTML.trim() === '';
+    }, { timeout: 10000 });
+    await page.waitForSelector('.roster-edit[data-person-id="p3"]', { timeout: 15000 });
+
+    // ⑥ 读回（走应用自己的读链）：p3 档案模态里「专业 / 志愿服务时长 / 学生工作」应更新
+    await page.click('.roster-edit[data-person-id="p3"]');
+    await page.waitForSelector('#person-edit-modal-form', { timeout: 8000 });
+    const after = await page.evaluate(() => {
+      const f = document.querySelector('#person-edit-modal-form');
+      return {
+        major: f.querySelector('[data-field="selfProfile.major"]')?.value ?? '',
+        hours: f.querySelector('[data-field="selfProfile.volunteerHours"]')?.value ?? '',
+        works: f.querySelector('[data-field="selfProfile.studentWorks"]')?.value ?? '',
+      };
+    });
+    assert.equal(after.major, '软件工程', '导入的「专业」须落库并可读回');
+    assert.equal(after.hours, '88 小时', '导入的「志愿服务时长」须落库并可读回');
+    assert.ok(after.works.includes('学习委员'), '导入的子表（学生工作·职务）须落库并可读回');
+  } finally {
+    await page.close();
+  }
+});

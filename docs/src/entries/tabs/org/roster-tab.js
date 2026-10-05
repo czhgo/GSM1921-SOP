@@ -42,33 +42,40 @@
 //    支书确认生效时先 roster.saveResidenceChange（RESIDENCE_KEY 覆盖 + 留痕）→ 再 saveMember 镜像进档案。
 // ════════════════════════════════════════════════════════════════
 
-import { PersonStore, getPersonName } from '../../../services/member/person.js?v=20261005h';
-import { getRosterStats, getResidenceOf } from '../../../services/member/roster.js?v=20261005h';
-import { listPendingConfirmations } from '../../../services/member/member-confirmation.js?v=20261005h';
-import { DEVELOP_STAGE_OPTIONS } from '../../../services/branch/org-base-data-preview.js?v=20261005h';
+import { PersonStore, getPersonName } from '../../../services/member/person.js?v=20261005i';
+import { getRosterStats, getResidenceOf } from '../../../services/member/roster.js?v=20261005i';
+import { listPendingConfirmations } from '../../../services/member/member-confirmation.js?v=20261005i';
+import { DEVELOP_STAGE_OPTIONS } from '../../../services/branch/org-base-data-preview.js?v=20261005i';
 // 党小组常态清单唯一来源（活组、按 seq 升序；新增/改名/解散后随渲染即时可见）
-import { groupOptions } from '../../../services/member/party-group.js?v=20261005h';
-import { AuthStore } from '../../../services/core/auth.js?v=20261005h';
+import { groupOptions } from '../../../services/member/party-group.js?v=20261005i';
+import { AuthStore } from '../../../services/core/auth.js?v=20261005i';
 // Q-21-3 收敛（2026-09-13）：在册状态枚举单一源 = core/domain/constants.js（原经 roster.js 转出）
-import { ROLE_LABELS, RESIDENCE } from '../../../core/domain/constants.js?v=20261005h';
-import { showToast, escHtml as esc, getBasePath } from '../../../core/base/utils.js?v=20261005h';
-import { openModal, closeModal, openFormModal } from '../../../components/ui/modal.js?v=20261005h';
+import { ROLE_LABELS, RESIDENCE } from '../../../core/domain/constants.js?v=20261005i';
+import { showToast, escHtml as esc, getBasePath } from '../../../core/base/utils.js?v=20261005i';
+import { openModal, closeModal, openFormModal } from '../../../components/ui/modal.js?v=20261005i';
 // 统一成员档案编辑模态（成员名册行内「编辑」入口；模态内按字段分流：档案属性立即生效 / 制度变更报支书确认）
-import { openPersonEditModal } from '../../../components/governance/pickers.js?v=20261005h';
+import { openPersonEditModal } from '../../../components/governance/pickers.js?v=20261005i';
 // 纯逻辑（可单测）：新增表单校验
-import { validateMemberForm } from '../../../services/member/roster-ui-logic.js?v=20261005h';
+import { validateMemberForm } from '../../../services/member/roster-ui-logic.js?v=20261005i';
+// `D-788` / `V-10b` 第三批（2026-10-05 · 支书圈「甲：粘贴/CSV ＋ 预览」）：自我描述批量导入服务
+//   （纯函数：解析 → 表头关键词映射 → 净化 → 与名册匹配 → 预览；本模块不落库，确认由本 tab 逐行走 saveMember）
+import { buildSelfProfileImport } from '../../../services/member/self-profile-import.js?v=20261005i';
 // 统一检索引擎（2026-09-13 表格统一化批次 A）：名册列表接入关键词 + 分面（≤8 行引擎自动不渲染检索条）
-import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261005h';
+import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261005i';
 // 成员流出登记（行内「移出」＝登记即生效）：2026-09-28 批次 220 · R10 拆分后，本 tab 只留「移出」这一
 //   行操作；「成员流动」面板（登记流入 / 登记流出 / 对账行 / 台账表 / 撤销）已拆到独立 tab（org/member-flow-tab.js）。
-import { registerOutflow } from '../../../services/member/member-flow.js?v=20261005h';
+import { registerOutflow } from '../../../services/member/member-flow.js?v=20261005i';
 // 支部归属解析（当前操作人 → 支部 id）：台账/对账/登记同支部口径
-import { getBranchIdOfPerson } from '../../../services/branch/branch.js?v=20261005h';
+import { getBranchIdOfPerson } from '../../../services/branch/branch.js?v=20261005i';
 // 自定义圆角下拉增强（select.input-flat.text-xs → cs-trigger；与全局 observer 幂等）
-import { enhanceSelects } from '../../../components/ui/custom-select.js?v=20261005h';
+import { enhanceSelects } from '../../../components/ui/custom-select.js?v=20261005i';
 
 // 模块级 ctx 缓存：行内保存/删除/新增后整页刷新复用首次渲染的 accent
 let _ctx = null;
+
+// `D-788` / `V-10b` 第三批（2026-10-05）：自我描述「粘贴 / CSV 导入」草稿——
+//   仅存**已解析预览**（未落库）；交互就地改 DOM，不触发整页重渲染（textarea 内容天然保态）。
+let _spDraft = null;
 
 /** 发展阶段展示排序（仅排序用，值仍出自 DEVELOP_STAGE_OPTIONS，不新增枚举） */
 const STAGE_ORDER = ['正式党员', '预备党员', '发展对象', '积极分子'];
@@ -160,6 +167,8 @@ export function renderContent(ctx) {
         <div id="roster-list-host"></div>
       </div>
       <p class="text-[11px] text-gray-500 px-1">移出即登记流出：名册移出、账号停用，原考勤与考察历史保留；流出台账与撤销见「成员流动」（2026-09-28 拆出的独立 tab）。</p>
+
+      ${_spImportHtml()}
     </div>
   `;
 
@@ -180,6 +189,7 @@ export function renderContent(ctx) {
     rowHtml: (p) => _rowHtml(p, _pendingMap()),
   });
   _bindList(host);
+  _bindSpImport(container);
 
   enhanceSelects(container);
 }
@@ -267,9 +277,146 @@ function _openEdit(personId) {
 }
 
 // ════════════════════════════════════════════════════════════════
-//  新增成员（openFormModal；姓名必填，党小组/阶段/在册状态选单枚举与数据一致）
+//  `D-788` / `V-10b` 第三批：自我描述「粘贴 / CSV 导入」（问卷批量回收）
+//  支书口径（2026-10-05 圈「甲：粘贴/CSV ＋ 预览」）：表格整块粘贴 → 解析 → 预览 → 确认逐人落库。
+//   · 解析 / 净化 / 匹配全在服务层（services/member/self-profile-import.js，纯函数、可单测）；
+//   · 本区只负责：读输入 → 渲染预览表 → 逐行确认（matched 行走 PersonStore.saveMember({id,selfProfile})，
+//     与「我的自我描述」本人自填走**同一写口**，服务端靶向判据已放行本人/组织委员）。
+//   · 只导入 status==='matched' 的行；empty / unmatched / ambiguous 在预览标出原因、不落库。
 // ════════════════════════════════════════════════════════════════
 
+/** 状态 → 展示色（预览行小胶囊；文案 = 导入可否） */
+const SP_STATUS = {
+  matched: { text: '可导入', cls: 'bg-green-50 text-green-700 border-green-200' },
+  empty: { text: '无内容', cls: 'bg-gray-50 text-gray-500 border-gray-200' },
+  unmatched: { text: '未匹配', cls: 'bg-amber-50 text-amber-700 border-amber-200' },
+  ambiguous: { text: '重名', cls: 'bg-amber-50 text-amber-700 border-amber-200' },
+};
+
+/** 导入区 HTML（折叠面板；默认收起，避免名册主视图被批量工具挤占） */
+function _spImportHtml() {
+  return `
+    <div class="card rounded-xl p-4" id="roster-sp-import-card">
+      <div class="flex items-center justify-between flex-wrap gap-2">
+        <div class="flex items-center gap-2 min-w-0">
+          <h3 class="font-title-cn text-sm font-semibold text-gray-800">导入自我描述（粘贴 / CSV）</h3>
+          <span class="text-xs text-gray-500">问卷批量回收 · 预览后逐人落库</span>
+        </div>
+        <button id="roster-sp-toggle" type="button" class="btn-outline text-xs px-2.5 py-1 whitespace-nowrap" style="cursor:pointer;">展开 / 收起</button>
+      </div>
+      <div id="roster-sp-panel" class="mt-3 space-y-2 hidden">
+        <p class="text-xs text-gray-500">从问卷后台「导出」表格后，整块复制（含表头行）粘贴到此框（另存为 CSV 后复制亦可）；首行须为列名，且含「姓名」或「学号」列用于匹配。</p>
+        <p class="text-xs text-gray-500">解析后先核对预览，只导入「可导入」行；未匹配 / 重名 / 无内容的行会标出原因，可补全后重试。</p>
+        <textarea id="roster-sp-text" class="input-flat w-full text-xs" rows="5" placeholder="在此粘贴问卷表格（含表头行；Excel 复制为制表符分隔，CSV 为逗号分隔）…"></textarea>
+        <div class="flex flex-wrap items-center gap-2">
+          <button id="roster-sp-parse" type="button" class="btn-accent-soft text-xs px-3 py-1.5" style="cursor:pointer;">解析预览</button>
+          <button id="roster-sp-clear" type="button" class="btn-outline text-xs px-3 py-1.5" style="cursor:pointer;">清空</button>
+          <span id="roster-sp-status" class="text-xs text-gray-500"></span>
+        </div>
+        <div id="roster-sp-preview"></div>
+      </div>
+    </div>`;
+}
+
+/** 预览表（统计条 + 逐行 姓名/学号/匹配/变更字段数/问题 + 确认按钮） */
+function _spPreviewHtml(r) {
+  const c = r.counts;
+  const rows = r.rows.map((row) => {
+    const meta = SP_STATUS[row.status] || SP_STATUS.unmatched;
+    const who = row.name || row.studentId || '—';
+    const problems = (row.problems || []).length
+      ? `<span class="text-[11px] text-amber-700">${esc(row.problems.join('；'))}</span>`
+      : '<span class="text-[11px] text-gray-400">—</span>';
+    return `
+      <div class="grid grid-cols-1 gap-1 md:gap-2 py-1.5 border-b border-gray-50 last:border-b-0 md:items-center md:[grid-template-columns:minmax(96px,1.2fr)_1fr_72px_72px_2fr]">
+        <span class="text-xs text-gray-800 truncate">${esc(who)}</span>
+        <span class="text-xs text-gray-500 truncate">${esc(row.studentId || '—')}</span>
+        <span class="text-[11px] px-1.5 py-0.5 rounded-full border ${meta.cls} justify-self-start whitespace-nowrap">${meta.text}</span>
+        <span class="text-xs text-gray-600">${row.status === 'matched' ? `${row.fields} 项` : '—'}</span>
+        ${problems}
+      </div>`;
+  }).join('');
+  const n = c.matched;
+  return `
+    <div class="rounded-lg border border-green-200 bg-white p-3 space-y-2">
+      <div class="flex flex-wrap items-center justify-between gap-2">
+        <p class="text-xs font-semibold text-gray-700">导入预览</p>
+        <span class="text-xs text-gray-500">共 ${c.total} 行 · 可导入 <b class="text-green-700">${n}</b> · 未匹配 ${c.unmatched} · 重名 ${c.ambiguous} · 无内容 ${c.empty}</span>
+      </div>
+      <div class="hidden md:grid text-[11px] text-gray-500 pb-1 border-b border-gray-100" style="grid-template-columns:minmax(96px,1.2fr) 1fr 72px 72px 2fr;gap:8px;">
+        <span>姓名</span><span>学号</span><span>匹配</span><span>变更字段</span><span>问题</span>
+      </div>
+      <div class="max-h-72 overflow-y-auto">${rows}</div>
+      <div class="flex flex-wrap items-center justify-between gap-2">
+        <p class="text-xs text-gray-500">确认后：仅「可导入」行写入对应成员的自我描述（覆盖其自我描述字段；姓名 / 学号等档案字段不受影响）。</p>
+        <button id="roster-sp-confirm" type="button" class="btn-accent px-3 py-1.5 text-xs font-medium" ${n ? '' : 'disabled style="cursor:not-allowed;opacity:.5;"'}>确认导入 ${n} 条</button>
+      </div>
+    </div>`;
+}
+
+/** 绑定导入区（就地改 DOM，不触发整页重渲染 ⇒ textarea 内容与草稿天然保态） */
+function _bindSpImport(container) {
+  const toggle = container.querySelector('#roster-sp-toggle');
+  const panel = container.querySelector('#roster-sp-panel');
+  const ta = container.querySelector('#roster-sp-text');
+  const status = container.querySelector('#roster-sp-status');
+  const host = container.querySelector('#roster-sp-preview');
+  if (!toggle || !panel) return;
+  toggle.addEventListener('click', () => panel.classList.toggle('hidden'));
+  container.querySelector('#roster-sp-clear')?.addEventListener('click', () => {
+    if (ta) ta.value = '';
+    if (host) host.innerHTML = '';
+    if (status) status.textContent = '';
+    _spDraft = null;
+  });
+  container.querySelector('#roster-sp-parse')?.addEventListener('click', () => {
+    _spDraft = null;
+    if (host) host.innerHTML = '';
+    const text = ta ? ta.value : '';
+    if (!String(text || '').trim()) {
+      if (status) status.textContent = '尚未粘贴问卷表格（含表头行）';
+      showToast('info', '尚未粘贴问卷表格 —— 请粘贴含表头行的表格后再解析');
+      return;
+    }
+    const r = buildSelfProfileImport(text, _branchMembers());
+    if (!r.ok) {
+      if (status) status.textContent = r.reason || '解析未通过';
+      showToast('error', r.reason || '解析未通过');
+      return;
+    }
+    _spDraft = r;
+    if (host) host.innerHTML = _spPreviewHtml(r);
+    if (status) status.textContent = `已解析 ${r.counts.total} 行 · 可导入 ${r.counts.matched} 条`;
+    host?.querySelector('#roster-sp-confirm')?.addEventListener('click', _confirmSpImport);
+  });
+}
+
+/**
+ * 确认导入：逐行（仅 `matched`）走 PersonStore.saveMember({ id, selfProfile })——与本人自填同一写口。
+ * 逐行 await（不并发）⇒ 逐条结果可归因；任一失败不影响其余，末尾汇总成功/失败。
+ */
+async function _confirmSpImport() {
+  const r = _spDraft;
+  if (!r || !r.rows) return;
+  const importable = r.rows.filter((row) => row.status === 'matched' && row.personId);
+  if (!importable.length) { showToast('error', '没有可导入的行（请检查匹配列与内容）'); return; }
+  const by = _actorId();
+  let okN = 0;
+  const fails = [];
+  for (const row of importable) {
+    const res = await PersonStore.saveMember({ id: row.personId, selfProfile: row.selfProfile }, { by });
+    if (res && res.ok) okN += 1;
+    else fails.push(`${row.name || row.studentId}：${(res && res.reason) || '写入失败'}`);
+  }
+  if (okN) showToast('success', `已导入 ${okN} 名成员的自我描述${fails.length ? `（${fails.length} 条失败）` : ''}`);
+  if (fails.length) showToast('error', `未写入：${fails.join('；')}`);
+  _spDraft = null;
+  renderContent(_ctx); // 落库后整页刷新（草稿已清；导入区回到收起态）
+}
+
+// ════════════════════════════════════════════════════════════════
+//  新增成员（openFormModal；姓名必填，党小组/阶段/在册状态选单枚举与数据一致）
+// ════════════════════════════════════════════════════════════════
 function _openAddForm() {
   const emptyOpt = { value: '', label: '—' };
   openFormModal({

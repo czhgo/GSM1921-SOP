@@ -3255,3 +3255,30 @@ $body
 
 - **导入链（粘贴 / CSV ＋ 预览）** 未落 ⇒ 第三批（`D-788` 在办）。
 - 「自我描述」**未进快照字段白名单**（`person-consistency::SNAPSHOT_FIELDS` 不列它）——不参与快照等价断言；亦**未加演示种子样例**。
+
+## 批次 402（2026-10-05 · `D-788` / `V-10b` 第三批）自我描述**批量导入链**（粘贴 / CSV ＋ 预览 ＋ 确认逐人落库）
+
+> **来源**：`D-788` 收口批（支书圈「**甲：粘贴/CSV ＋ 预览**」）。
+
+### 一、做法
+
+- **解析服务（纯函数、单一源）**：新建 `docs/src/services/member/self-profile-import.js`——`headerToTarget`（**表头关键词驱动**映射；问卷长列名顺序敏感：「独立负责 / 活动名称 / 工作内容 / 奖项荣誉」须先于泛词「学生工作」判定）· `detectDelimiter`（制表符 / 半角逗号 / 全角逗号）· `parseSelfProfileSheet`（门槛：≥2 行、至少一列**映射到 `selfProfile` 字段**、含「姓名 / 学号」匹配键）· `buildSelfProfileImport`（逐行 → `sanitizeSelfProfile` 净化 → 按**学号优先·姓名次之**匹配名册 → `matched` / `empty` / `unmatched` / `ambiguous` 四态 ＋ `counts`）。**本模块不落库**（同 `branch-roster-import` 分工）。
+- **UI（组织委员侧）**：`entries/tabs/org/roster-tab.js` 新增「**导入自我描述（粘贴 / CSV）**」折叠区——textarea ＋「解析预览」⇒ 预览表（姓名 / 学号 / 匹配 / 变更字段数 / 问题）＋「**确认导入 N 条**」；**只导入 `matched` 行**，逐行走 `PersonStore.saveMember({ id, selfProfile })`（**与本人自填同一写口**；服务端靶向判据放行组织委员）。交互**就地改 DOM**（不触发整页重渲染 ⇒ textarea 与草稿保态），落库成功后整页刷新。
+
+### 二、判据（单元 ＋ 真机）
+
+- 新建 `server/test/self-profile-import.test.mjs`（5 件）：① 解析门槛（行数 / 匹配键 / **无可识别列**——注意 `姓名/学号` 只是匹配键、**不算**内容列）② 分隔符检出 ③ **支书问卷表头逐字**全列映射（含顺序敏感三列 ＋ 档案字段「政治面貌/发展阶段」须忽略）④ 匹配五态（学号优先 > 姓名唯一 > 重名 ambiguous > 无此人 > 无内容）⑤ 非空转。**实跑 5/5**。
+- **真机件** `self-profile-e2e.test.mjs` 增 **P2**（自包含 `createApp(:memory:)`）：组织委员 p11（2400012355）登录 → `org.html?tab=roster` → **变前基线**（p3「专业」空）→ 展开导入区 → 粘贴含表头行的制表符表格 → 解析预览（断言「可导入 1」＋ 按钮带条数）→ 确认 → 整页刷新（预览区清空）→ 打开 p3 档案模态**读回**（专业 / 志愿服务时长 / 学生工作职务）。**P1 ＋ P2 实跑 2/2**。
+- **实跑**：`test:fast` **146 / 146 / 0**；`self-profile-import` 5/5；`self-profile-e2e` 2/2；`test:daily` 相关件（doc-consistency / doc-line-ref / frontmatter-freshness / version-stamp / import-path-guard / module-load / hex / style-baseline / button-system）**60 / 60 / 0**。
+
+### 三、文档 / 台账 / 版本
+
+- `content/04_web_design/data/DATA_MODEL.md` §2.26 增**行为口径 6**：两条录入链（本人自助 / 支委层批量）＋「子表文本格式单一源」。
+- 版本戳 `20261005h → 20261005i`（bump：JS 225 / HTML 23 / CSS 2 / server-test 94）。
+- `package.json` `test:daily` 增 `self-profile-import.test.mjs`（`doc-consistency::S16` 要求）。`self-profile-e2e.test.mjs` **已在分片池**（`sweep-shard` 分片 4），P2 同件无需新登记。
+
+### 四、边界（如实）
+
+- **无新增门禁红**：新增的 `showToast('info', …)`（空输入提示）**不**落 `validation-site-coverage` 粗筛（该守卫只扫 `error|warn|warning`）；导入导语按 `copy-length-guard::L2`（单段 ≤80）拆两句。
+- `D-788` 至此三批（字段模型 → 表单/本人自助 → 批量导入）**全部落地**；**D-788 收口**。
+- 全量 probe：本批为降频窗内**第 1 个 commit**（上一窗批次 400 已跑 `970/970/0`）⇒ 累计中，未到窗（`D-784`）。
