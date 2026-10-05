@@ -7,8 +7,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { buildOrgWizardReport } from '../../docs/src/services/branch/org-wizard-report.js?v=20261005k';
-import { getRosterStats } from '../../docs/src/services/member/roster.js?v=20261005k';
+import { buildOrgWizardReport } from '../../docs/src/services/branch/org-wizard-report.js?v=20261005l';
+import { getRosterStats } from '../../docs/src/services/member/roster.js?v=20261005l';
 
 const SAMPLE = {
   branchInfo: {

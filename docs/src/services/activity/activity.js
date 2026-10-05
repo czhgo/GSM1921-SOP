@@ -4,12 +4,12 @@
 //  与 attendance.js / inspection.js 同构：mockDB 优先 + mock 常量 fallback
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB, ReviewStatus } from '../../core/domain/domain.js?v=20261005k';
-import { persist } from '../../data/data-adapter.js?v=20261005k';
-import { bumpToken } from '../../core/base/version-token.js?v=20261005k';
-import { BRANCH_COMMISSION_ROLES, ACTIVITY_CLASSIFICATION, SECRETARY_AND_DEPUTY_ROLES } from '../../core/domain/constants.js?v=20261005k';
-import { ACTIVITIES } from '../../data/mock/index.js?v=20261005k';
-import { isInitStateActive } from '../core/init-reset.js?v=20261005k'; // C2 修复（2026-09-08）：init 态空态不回退演示种子
+import { mockDB, ReviewStatus } from '../../core/domain/domain.js?v=20261005l';
+import { persist } from '../../data/data-adapter.js?v=20261005l';
+import { bumpToken } from '../../core/base/version-token.js?v=20261005l';
+import { BRANCH_COMMISSION_ROLES, ACTIVITY_CLASSIFICATION, SECRETARY_AND_DEPUTY_ROLES } from '../../core/domain/constants.js?v=20261005l';
+import { ACTIVITIES } from '../../data/mock/index.js?v=20261005l';
+import { isInitStateActive } from '../core/init-reset.js?v=20261005l'; // C2 修复（2026-09-08）：init 态空态不回退演示种子
 
 /** 读取全部活动（同步接口，供 UI 层使用） */
 export function loadActivities() {
@@ -765,8 +765,8 @@ export async function openCommitteeVoteForActivity({ activityId, by, role, mode 
   if (existing) return { ok: true, already: true, agendaItemId: existing.id };
   // 动态引入（不改本文件行号；表决配置与 id 生成的单一源仍在各自模块，不在此另写一套）
   const [{ defaultVoteConfig, resolveVoterIds }, { generateId }] = await Promise.all([
-    import('./vote-config.js?v=20261005k'),
-    import('../../core/base/id.js?v=20261005k'),
+    import('./vote-config.js?v=20261005l'),
+    import('../../core/base/id.js?v=20261005l'),
   ]);
   const agendaItemId = generateId('ag');
   const at = new Date().toISOString();

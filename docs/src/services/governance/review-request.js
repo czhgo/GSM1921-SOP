@@ -7,13 +7,13 @@
 //   提交 → 定向通知党委（party-staff）；批准/驳回 → 回传通知发起支书（带结论/意见）。
 //   复用 NoticeStore 既有链路（站内信优先，辅以邮件）；文案带事项类型/标题/编号，可回溯定位该上报。
 
-import { mockDB } from '../../core/domain/domain.js?v=20261005k';
-import { getAdapter, persist } from '../../data/data-adapter.js?v=20261005k';
-import { NoticeStore } from './notice.js?v=20261005k';
-import { getPersonName } from '../member/person.js?v=20261005k';
+import { mockDB } from '../../core/domain/domain.js?v=20261005l';
+import { getAdapter, persist } from '../../data/data-adapter.js?v=20261005l';
+import { NoticeStore } from './notice.js?v=20261005l';
+import { getPersonName } from '../member/person.js?v=20261005l';
 // R-23②（2026-10-05 批次 391）：展示值「支部名 / 事项摘要」下沉到**零依赖叶子** `core/domain/review-request-labels.js`
 //   ⇒ 服务端同引一处、可**按表复算**（不再整包采信客户端 payload），且**不落第二实现**（`H31`）。
-import { branchDisplayName, reviewRequestSubject } from '../../core/domain/review-request-labels.js?v=20261005k';
+import { branchDisplayName, reviewRequestSubject } from '../../core/domain/review-request-labels.js?v=20261005l';
 
 /** 支部显示名（通知定位用）——口径单一源＝`core/domain/review-request-labels.js` */
 function _branchLabel(branchId) {

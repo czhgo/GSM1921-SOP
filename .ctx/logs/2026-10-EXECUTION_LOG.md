@@ -3366,3 +3366,25 @@ $body
 - 版本戳 `20261005j → 20261005k`（bump：JS 225 / HTML 23 / CSS 2 / server-test 94）。
 - **母本一字未改**（按裁定取「改系统」档）；`content/**` 未动。
 - **全量 probe**：本批为降频窗内**第 2 个 commit**（上一窗批次 404）⇒ 累计中，未到窗（`D-784`）。
+
+## 批次 407（2026-10-05 · `D-794`）支部书记裁定之四：补录#1 新建通知 kind `record-void-decided`
+
+> **来源**：同批次 405/406（支书四条裁定之四）。补录#1 登记：业务记录「作废（软）」裁决**无派生知会**（待办作废有 `todo-void-decided`）⇒ 申请人（非支委）收不到结果。支书圈**甲「新建通知 kind」**。
+
+### 一、三面同加
+
+1. **模板单一源** `docs/src/core/domain/system-notice-templates.js` 新增 `record-void-decided`（标题/正文按 `decision` 分「已确认 / 被驳回」；受众 `audiencePersons`）。
+2. **服务端 kind** `server/system-notice-kinds.js`——`authorize`＝**支委层 ∧ `payload.resource` 在 `RESOURCE_TABLES` 内**（**单一源 import `./routes/resources/store.js`**，勿另写一张名表）**∧ 该行存在**；`build` 的**受众＝申请人本人**（按记录行复算 `voided.byPersonId` / `voidRejected.byPersonId`）——**到人定向、不发角色广播**；记录标签 / 原因取 payload（知会文案，同 `todo-void-decided` 口径）。
+3. **前端发知会** `docs/src/entries/tabs/secretary/todo-tab.js`——`_onRecordVoidDecide`（确认，先由 `SoftVoid.listVoidPending()` 取标签/原因）与 `_askRecordVoidReject`（驳回）两分支各调 `_notifyRecordVoidDecision` → `NoticeStore.addSystem('record-void-decided', rv.id, { resource, label, decision, reason })`。
+
+### 二、判据（单元）
+
+- `system-notice-project-auth-authorize.test.mjs` 新增 **`C1`–`C3`**：`C1` 授权三态（支委层放行 / 非支委拒 / **未知资源拒** / 行不存在拒 / 无 actor 拒）；`C2` 确认分支受众＝申请人（到人）且**不发角色广播**；`C3` 驳回分支受众＝原申请人（`voidRejected.byPersonId`）＋ 无申请人 ⇒ **不设受众**（不广播给任何人）。
+- **实跑**：`system-notice-project-auth-authorize` ＋ `doc-consistency` ＋ `module-load` ＋ `doc-line-ref` ＋ `notice-message` ＋ `roles-sync` **57 / 57 / 0**；`npm run test:fast` **146 / 146 / 0**。
+
+### 三、文档 / 台账 / 版本
+
+- `README-server.md §6.7` **kind 数 23 → 24**（三处同源：清单「共 N 种」· 依据行「N 个键」＋ **行号 `:57-496 → :57-528`、新增 `:507-527`** · 权威源行「N 种 kind」）；**`doc-consistency::S14` 可数事实对账**据此复算通过。
+- `.ctx/REVIEW_QUEUE.md` 补录表第 1 行性质栏改「✅ 已裁（批次 407）」。至此**补录表 8 条：已闭环 4（#5 / #8 / #1 / #2）· 余 4（#3 / #4 / #6 / #7）待支书一个动作**。
+- 版本戳 `20261005k → 20261005l`（bump：JS 225 / HTML 23 / CSS 2 / server-test 94）。
+- **全量 probe**：本批为降频窗内**第 3 个 commit**（上一窗批次 404）⇒ 累计中，未到窗（`D-784`）。

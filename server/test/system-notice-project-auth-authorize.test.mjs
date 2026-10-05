@@ -165,3 +165,48 @@ test('B10 赋权通知：项目名按表复算（活动 title / 专班 name）',
   assert.ok(byTf.includes('表内专班名') && !byTf.includes('伪造项目名'), byTf);
 });
 
+// ── 补录#1（2026-10-05 批次 407 · 支书圈「新建通知 kind」）：业务记录作废已裁决 ─────────────────
+//   病灶：业务记录「作废（软）」裁决（`SoftVoid.confirmVoid/rejectVoid`）此前**不发派生知会** ⇒
+//   **申请人（非支委）收不到裁决结果**（待办作废有 `todo-void-decided`，记录作废无对应 kind）。
+//   本件钉死：① 授权＝支委层 ∧ `payload.resource` 在 `RESOURCE_TABLES` 内 ∧ 该行存在；
+//             ② 受众＝**申请人本人**（按记录行 `voided/voidRejected.byPersonId` 复算，**到人定向**、不发广播）。
+const RAUTH = (actor, resource, sourceId, rows) =>
+  SYSTEM_NOTICE_KINDS['record-void-decided'].authorize({ actor, payload: { resource }, sourceId, db: dbStub(rows) });
+
+test('C1 记录作废裁决：支委层 + 已知资源 + 行存在 ⇒ 放行；非支委 / 未知资源 / 行不存在 ⇒ 拒', () => {
+  const rows = { makeup_tasks: { 'mk-1': { id: 'mk-1' } } };
+  assert.equal(RAUTH({ id: 'p11', role: 'org-commissioner' }, 'makeupTasks', 'mk-1', rows), true, '支委层放行');
+  assert.equal(RAUTH({ id: 'p7', role: 'participant' }, 'makeupTasks', 'mk-1', rows), false, '非支委层拒');
+  assert.equal(RAUTH({ id: 'p11', role: 'org-commissioner' }, 'nopeResource', 'mk-1', rows), false, '未知资源拒（不采信客户端自造名）');
+  assert.equal(RAUTH({ id: 'p11', role: 'org-commissioner' }, 'makeupTasks', 'mk-9', rows), false, '行不存在拒');
+  assert.equal(RAUTH(null, 'makeupTasks', 'mk-1', rows), false, '无 actor 拒（防未登录）');
+});
+
+test('C2 记录作废裁决（确认）：受众＝申请人本人（按记录行复算，到人定向、不广播）', () => {
+  const rows = { makeup_tasks: { 'mk-1': { id: 'mk-1', voided: { byPersonId: 'p20' } } } };
+  const notice = SYSTEM_NOTICE_KINDS['record-void-decided'].build({
+    db: dbStub(rows), sourceId: 'mk-1',
+    payload: { resource: 'makeupTasks', label: '补课任务 · 表内活动名', decision: 'confirmed', reason: '长期未补' },
+  });
+  assert.deepEqual(notice.audiencePersons, ['p20'], '受众＝申请人（到人）');
+  assert.equal(notice.audience, undefined, '不发角色广播');
+  const t = TEXT(notice);
+  assert.ok(t.includes('补课任务 · 表内活动名') && t.includes('长期未补'), t);
+  assert.ok(!t.includes('驳回'), `confirmed 分支不得出现「驳回」：${t}`);
+});
+
+test('C3 记录作废裁决（驳回）：受众＝原申请人（`voidRejected.byPersonId`）；无申请人 ⇒ 不设受众', () => {
+  const rows = { makeup_tasks: { 'mk-1': { id: 'mk-1', voidRejected: { byPersonId: 'p21', note: '证据不足' } } } };
+  const notice = SYSTEM_NOTICE_KINDS['record-void-decided'].build({
+    db: dbStub(rows), sourceId: 'mk-1',
+    payload: { resource: 'makeupTasks', label: 'L', decision: 'rejected', reason: '证据不足' },
+  });
+  assert.deepEqual(notice.audiencePersons, ['p21']);
+  assert.ok(TEXT(notice).includes('驳回'), TEXT(notice));
+  const blank = SYSTEM_NOTICE_KINDS['record-void-decided'].build({
+    db: dbStub({ makeup_tasks: { 'mk-2': { id: 'mk-2' } } }), sourceId: 'mk-2',
+    payload: { resource: 'makeupTasks', label: 'L', decision: 'confirmed' },
+  });
+  assert.equal(blank.audiencePersons, undefined, '无申请人 ⇒ 不设受众（不广播给任何人）');
+});
+

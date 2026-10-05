@@ -17,6 +17,8 @@ import { BRANCH_COMMISSION_ROLES, SECRETARY_AND_DEPUTY_ROLES, PARTY_STAFF_ROLE }
 import { buildSystemNotice } from '../docs/src/core/domain/system-notice-templates.js';
 // R-23②（2026-10-05 批次 391）：支部上报的「支部名 / 事项摘要」展示值单一源（**零依赖叶子**，前端同引一处）
 import { branchDisplayName, reviewRequestSubject } from '../docs/src/core/domain/review-request-labels.js';
+// 补录#1（2026-10-05 批次 407）：`payload.resource` → 服务端表名的单一源（勿另写一张名表）
+import { RESOURCE_TABLES } from './routes/resources/store.js';
 
 const COMMITTEE_ROLE_SET = new Set(BRANCH_COMMISSION_ROLES);
 const SECRETARY_DEPUTY_SET = new Set(SECRETARY_AND_DEPUTY_ROLES);
@@ -490,6 +492,36 @@ const KINDS = {
         decision: p.decision === 'rejected' || row.voidRejected ? 'rejected' : 'confirmed',
         reason: p.reason || (row.voided && row.voided.reason) || (row.voidRejected && row.voidRejected.reason) || '',
         audience: row.role ? [row.role] : undefined,
+      });
+    },
+  },
+
+  // ── 业务记录作废已裁决（`CRUD-4`/`CRUD-6` · 补录#1；2026-10-05 批次 407 · 支书圈「新建通知 kind」）──
+  // 场景：责任人 `requestVoid` → 支委层在支书台**确认**或**驳回**该**业务记录**作废申请后的**到人知会**
+  //   （与 `todo-void-decided` 同口径；本条补的是「业务记录」那一面：原只发待办作废、记录作废无派生知会）。
+  // 授权：① actor 为**支委层**（裁决动作的功能位）；② `payload.resource` 须在 `RESOURCE_TABLES` 内
+  //   （服务端已知资源表，勿信客户端自造名）；③ 该记录行必须存在（按表复算）。
+  // 受众：**申请人本人**（按记录行复算 `voided.byPersonId` / `voidRejected.byPersonId`）——**到人定向**、
+  //   不发角色广播（消除补录#1 登记的缺口：申请人（非支委）收不到裁决知会）。
+  // 展示值：记录标签 / 原因取 payload（知会文案，同 `todo-void-decided`「裁决事实由前端在授权门内自述」口径）。
+  'record-void-decided': {
+    authorize({ actor, payload, sourceId, db }) {
+      if (!actor || !COMMITTEE_ROLE_SET.has(actor.role)) return false;
+      const table = RESOURCE_TABLES[payloadOf({ payload }).resource];
+      if (!table || !sourceId) return false;
+      return !!rowOf(db, table, sourceId);
+    },
+    build(ctx) {
+      const p = payloadOf(ctx);
+      const table = RESOURCE_TABLES[p.resource];
+      const row = table ? (rowOf(ctx.db, table, ctx.sourceId) || {}) : {};
+      const applicant = (row.voided && row.voided.byPersonId) || (row.voidRejected && row.voidRejected.byPersonId) || '';
+      return buildSystemNotice('record-void-decided', {
+        sourceId: ctx.sourceId,
+        label: p.label || '',
+        decision: p.decision === 'rejected' ? 'rejected' : 'confirmed',
+        reason: p.reason || '',
+        audiencePersons: applicant ? [applicant] : undefined,
       });
     },
   },

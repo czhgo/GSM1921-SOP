@@ -68,9 +68,9 @@ test('产出块：支书停用宣传 → 组长活动详情无 publicity 按钮 
   await login(sec, '2300010001');
   await sec.waitForURL('**/workspace/secretary.html', { timeout: 10000 });
   // P0-2 形态断言（2026-09-23 支书裁定「形态必须可断言」）：本文件真机用例必须在 API 形态下跑
-  await sec.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20261005k')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
+  await sec.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20261005l')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
   await sec.evaluate(async () => {
-    const { updateBranchBlocks } = await import('/src/services/branch/branch.js?v=20261005k');
+    const { updateBranchBlocks } = await import('/src/services/branch/branch.js?v=20261005l');
     await updateBranchBlocks('br-b1', { outputBlocks: { hiddenBlockIds: ['publicity'], blockOrder: [] } });
   });
   await new Promise((r) => setTimeout(r, 1200));
@@ -92,7 +92,7 @@ test('产出块：支书停用宣传 → 组长活动详情无 publicity 按钮 
 
   // ③ 支书恢复默认（产出块=null）→ 组长刷新详情 → publicity 回归（考勤/考察仍只读）
   await sec.evaluate(async () => {
-    const { updateBranchBlocks } = await import('/src/services/branch/branch.js?v=20261005k');
+    const { updateBranchBlocks } = await import('/src/services/branch/branch.js?v=20261005l');
     await updateBranchBlocks('br-b1', null);
   });
   await new Promise((r) => setTimeout(r, 1000));

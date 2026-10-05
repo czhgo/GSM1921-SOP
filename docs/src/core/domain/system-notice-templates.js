@@ -13,7 +13,7 @@
 // ════════════════════════════════════════════════════════════════
 
 // 期次标签单一源（core/base/period.js）——勿在本文件另写季度格式化
-import { periodLabel } from '../base/period.js?v=20261005k';
+import { periodLabel } from '../base/period.js?v=20261005l';
 
 /** 组装返回对象（跳过 undefined，保持通知结构精简；与原前端 add() 落库形态一致） */
 function pick(obj) {
@@ -299,6 +299,21 @@ const TEMPLATES = {
     priority: 'normal',
     audience,
     targetUrl: 'workspace/secretary.html?tab=todo',
+    read: false,
+  }),
+
+  // ── 业务记录作废已裁决（`CRUD-4`/`CRUD-6` · 补录#1；2026-10-05 批次 407 · 支书圈「新建通知 kind」）──
+  // 场景：责任人 `requestVoid` → 支委层在支书台**确认**或**驳回**该**业务记录**作废申请后的**到人知会**。
+  // 受众＝**申请人本人**（服务端按所涉记录行复算 `voided.byPersonId` / `voidRejected.byPersonId`，不信客户端自述）；
+  //   记录标签 / 原因取 payload（知会文案：申请人与裁决事实由前端在授权门内自述，同 `todo-void-decided` 口径）。
+  // **非行动性**（不设 `actionable`/`actionRoles`）⇒ 不派生待办，纯站内知会。
+  'record-void-decided': ({ sourceId, label, decision, reason, audiencePersons }) => pick({
+    title: decision === 'rejected' ? '记录的作废申请被驳回' : '记录的作废已确认',
+    content: decision === 'rejected'
+      ? `「${label || '该记录'}」的作废申请已被驳回：该记录回到原状、仍按原流程办结${reason ? `（驳回意见：${reason}）` : ''}。`
+      : `「${label || '该记录'}」的作废申请已获支委会确认，该记录已出列（原因：${reason || '未填'}）。`,
+    priority: 'normal',
+    audiencePersons,
     read: false,
   }),
 };
