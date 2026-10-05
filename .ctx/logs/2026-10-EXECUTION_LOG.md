@@ -3006,3 +3006,57 @@ related_files: [CLAUDE.md, .ctx/logs/2026-09-EXECUTION_LOG.md, .ctx/logs/EXECUTI
 - 守卫：`doc-consistency` · `doc-line-ref` · `link-integrity` · `version-stamp` · `timestamps-note-guard` · `date-canon-guard` · `frontmatter-freshness` · `catalog-sync` · `module-load` ＝ **68/68 / 0 红**（含 `doc-consistency::S14` 十一组定量锚点全在位）。
 - 边界：**只改 `README-server.md` ＋ `.ctx/**`** ⇒ **未 bump 版本戳**；`ACTIVE_RULINGS` 零行。
 - **全量 probe 未跑**：本批为降频窗内**第 4 个 commit**，而**上一个 commit（批次 393）刚跑过 `964/964/0`** ⇒ 依 `D-784`「3–4 个 commit 一次」**顺延至下一窗**（避免重复全量）。
+
+
+***
+
+## 批次 395（2026-10-05 · `R-89` 续批（第九轮））TIMESTAMPS 备注列 **`N4 T-编号` 余 20 格收敛**（合计 32,729 → 31,250）
+
+> **来源**：objective #8「裁定时间戳 非常浪费内存」＋ `R-89`。本批为**结构上可做的最后一轮**——余下 3 格是 `N7` 要求的「四份清单各不相同的非空下限」。
+
+### 一、做法
+
+- codemod（`server/.tmp-converge395.mjs`，跑完即删）按 **path → 新备注** 映射改写 20 格（不靠正则匹配旧文）；旧备注**逐字**收集并迁入本日志附节。
+- 清后复量：`N4` **21 → 1**（仅留 `.ctx/logs/2026-08-EXECUTION_LOG.md`）；备注列合计 **32,729 → 31,250**（291 行不变）；最长单格 **937**。
+- `COMPONENT_SPEC.md` 只**摘去 `T-282`**、**保留 ≥4 处「批次 N」** ⇒ 仍作 `N6` 的非空下限（故不在 `N4`、仍在 `N6`）。
+
+### 二、判据
+
+- `timestamps-note-guard` **7/7**（`N4` 1 · `N5` 1 · `N6` 1 · `N3` 0 · `N2` 预算 31,600 下调后仍绿 · `N1` · `N7` 四份清单互不相同）。
+- 四份清单（**非空下限，三者互不相同**）：`N4`＝`.ctx/logs/2026-08-EXECUTION_LOG.md` · `N5`＝`docs/src/entries/pages/notice-entry.js` · `N6`＝`content/04_web_design/design-system/COMPONENT_SPEC.md`；`OVERLONG`＝空。
+
+### 三、⚠ 结构上限（如实登记）
+
+- **`R-89` 已到「无 `N7` 放宽则不可再降」的上限**：四份清单必须**互不相同**且至少一份非空 ⇒ 各留 1 格为下限。要**三条一并清零**，须把 `N7` 收窄为「**非空清单之间互不相同**」（空表不参与比对）——**属改守卫判据 · 已登记「待支书圈」**（照 `S13` 阈值先例：改判据须核可）。
+
+### 四、边界
+
+- 只改 `.ctx/**` ＋ `server/test/timestamps-note-baseline.mjs`（数据）＋ `server/README.md` 实测数 ＋ `CLAUDE.md` 进度行 ⇒ **未 bump 版本戳**；`ACTIVE_RULINGS` 零行。
+- 全量 probe：本批为降频窗内**第 5 个 commit**；上一窗（批次 393）刚跑 `964/964/0` ⇒ 顺延。
+
+***
+
+### 附：TIMESTAMPS 备注列迁出的逐批沿革（2026-10-05 批次 395 · `R-89` 续批 · `N4 T-编号` 余 20 格）
+
+> 收敛路径同前：历史沿革**逐字**迁入本日志、原位只留「现状 / 边界 ＋ 沿革指针」。本批 **20** 格（保留 `.ctx/logs/2026-08-EXECUTION_LOG.md` 1 格为「清单非空下限」）。
+
+- content/03_doc_system/PROCESS_GUIDE.md :: 🗑️ **已删除**（**2026-09-26 批次 202**：正文**整体并入** `content/03_doc_system/OPERATIONS_GUIDE.md`《运行与协作规范》的 **§15–§18**〔**编号一字未改**——原即承 OPERATIONS_GUIDE §1–§14 顺延；原 §18 内 `***` 分隔符按 §7.1 改 `---`〕⇒ **四份 → 一份**）（原：运行标准·流程机制 §15 甲部修改/§16 吸收外部输入/§17 周期性任务含 W4 五专项/§18 支书评议细节；T-282 自 OPERATIONS_GUIDE 拆分）
+- content/04_web_design/design-system/COLOR_SYSTEM.md :: 🗑️ **已删除**（**2026-09-24 批次 172**：正文**整体并入** `content/04_web_design/design-system/DESIGN_SYSTEM.md` 的 **§二 色彩系统**〔编号 **2.1–2.8 一字未改**〕⇒ **四份 → 一份**；`D-638`）（原：色彩系统规范——T-282 自 DESIGN_SYSTEM 拆分 §二：色盘/主色/辅助色/中性色/功能色/表面色/配色规则；2026-09-20 批次 110 改准「6 → 7 个工作台」，批次 113 刷本行日期）
+- content/04_web_design/design-system/COMPONENT_SPEC.md :: 🗑️ **已删除**（**2026-09-24 批次 172**：正文**整体并入** `content/04_web_design/design-system/DESIGN_SYSTEM.md` 的 **§四 组件规范**〔编号 **4.1–4.17 一字未改**〕；`D-638`）（原：组件规范——T-282 自 DESIGN_SYSTEM 拆分 §四：按钮/卡片/输入/侧边栏/导航/日历图例/数据展示/图标/选人/状态徽章；2026-09-20 批次 110 改准「待初阅队列」现状句、批次 41 沿革句原样保留，批次 113 刷本行日期）
+- content/04_web_design/module/ABOUT_PAGE_DESIGN.md :: **（2026-09-28 批次 233：`related_files` 里的入口路径随「entries/ 按判据分三类」改准〔`docs/src/entries/about-entry.js` → `docs/src/entries/pages/about-entry.js`〕⇒ 按 R-83 刷卡；frontmatter 与本报行同批刷为 `2026-09-28`）** **（2026-09-26 批次 201：`D-660` 加「本文负责 / 本文不负责 → 去哪找」边界头〔本组判「分而治之」、未合并未删文件〕；由「另一路」落地，本表行日期按 `S13` 口径不刷）**  About 页面设计系统（超参数设定原则/防风格疲劳/无竖线红线，新建 T-272；T-278 无人称修缮）
+- content/04_web_design/deploy/PKU_PARTY_INTEGRATION.md :: 🗑️ **已删除**（**2026-09-25 批次 181**：正文**整体并入** `content/04_web_design/deploy/DEPLOYMENT_GUIDE.md` 的 **§六 北大党校对接**〔内部 §一–§十一 → **6.1–6.11**〕⇒ **四份 → 一份**；`D-645`）（原：北大党校与智慧党建系统对接设计（党校单向爬取+智慧党建双向同步+数据映射+小程序归位说明+待确认清单，新建；对接授权=党委组织部支持；T-278 无人称修缮；2026-09-20 批次 110 资源表 32 → 35〔2 处〕，批次 113 刷本行日期）
+- content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md :: **（2026-09-27 批次 213：清偿 `R-83` 债务——frontmatter `last_updated` 由 `2026-09-26` 刷为 `2026-09-27`（HEAD 提交日 2026-09-27 后 `F2` 判红；仅刷元数据、正文未改）；与本报行同值 ⇒ `S13` 绿）** **（2026-09-26 04 组减负续批：§8.2 L2 行「操作位收口」细节〔设置→支部治理 / 原支书台「工作台配置」tab 废止〕系复述 `PARTY_COMMITTEE_DESIGN.md` §2.5/§2.6，原位改一行指针；行数守恒；frontmatter 实读仍 `2026-09-26`、与表行同值 ⇒ `S13` 绿）** **（2026-09-26 批次 201：`D-660` 加「本文负责 / 本文不负责 → 去哪找」边界头〔本组判「分而治之」、未合并未删文件〕；由「另一路」落地，本表行日期按 `S13` 口径不刷）**  架构演进（组件化落地评估+轻量插件化「能力注册表」设计+迭代机制+实施路径，新建 T-276；无人称文体）
+- content/04_web_design/deploy/WECHAT_INTEGRATION.md :: 🗑️ **已删除**（**2026-09-25 批次 181**：正文**整体并入** `content/04_web_design/deploy/DEPLOYMENT_GUIDE.md` 的 **§五 微信协同与小程序设计**〔内部 §一–§八 → **5.1–5.8**〕⇒ **四份 → 一份**；`D-645`）（原：微信协同与小程序设计方案（§八 新增北大对接数据展示；小程序独立问题归位本文档；T-278 无人称修缮）
+- content/04_web_design/module/SOP_WEBSITE_GUIDE.md :: **（2026-09-26 批次 202：03《运行与协作规范》合并后引用改准〔`:187` → `OPERATIONS_GUIDE.md`〕；只改引用、`last_updated` 未刷〔`R-83` 债务〕；由同一批「另一路」落地）** **（2026-09-26 批次 201：`D-660` 加「本文负责 / 本文不负责 → 去哪找」边界头〔本组判「分而治之」、未合并未删文件〕；由「另一路」落地，本表行日期按 `S13` 口径不刷）**  SOP-系统联动方法（T-278 无人称修缮）
+- content/04_web_design/deploy/AUTHENTICATION_MODEL.md :: 🗑️ **已删除**（**2026-09-25 批次 181**：正文**整体并入** `content/04_web_design/deploy/DEPLOYMENT_GUIDE.md` 的 **§四 认证与登录门控**〔内部 §一–§八 → **4.1–4.8**〕⇒ **四份 → 一份**；`D-645`）（原：部署与认证场景模型（5 场景两轴正交 + 侧边栏统一 + 登录门控四层；T-278 无人称修缮）
+- server/test/b3-1-makeup-writeback.test.mjs :: B3-1 补课完成→考勤回写验证（T-280 新建，5 项断言；**2026-09-24 批次 176：补 1 行 CDN `route.abort`**〔`:17`〕，`D-642`）
+- docs/src/core/session/cross-page-state.js :: 跨页状态（T-280 B1-5 版本化 `CODE_VERSION`；**2026-09-22 批次 141 bump 自增 264 → 265**——`docs/scripts/bump-version.mjs` 每次 bump 自增，勿手改；**截至 2026-09-23 批次 155 已随各批 bump 至 `CODE_VERSION` 275 / 全站版本戳 `20260922k`**）
+- docs/src/entries/workspace/ws-visitor-entry.js :: 访客/成员工作台入口（T-279 M3 薄壳化 + T-280 B1-5 条件抑制+高亮存活）
+- docs/src/services/member/person.js :: 人员数据抽象服务（PersonStore，T-142 阶段2）
+- docs/src/services/governance/secretary-overview.js :: 支书全局概况服务（T-143，E2 派生待办 flow；**2026-09-21 批次 132：`_aggAttendanceRemind` 排除不考勤类型**〔支委会〕——单源 `policy attendnoAttendanceTypes`，`D-558`）
+- docs/src/capabilities/activity-calendar.js :: 首页活动日历能力声明（自注册模式，T-279 M1 新建）
+- docs/src/capabilities/leader-workspace.js :: 组长工作台能力声明（tab 清单自注册，scope='workspace:leader'，T-279 M2e 新建）
+- docs/src/capabilities/org-workspace.js :: **（2026-09-28 批次 227：R10「成员流动」拆 tab——在 `roster` 后注册 `{ id:'member-flow', label:'成员流动' }`（组织台 **11 → 12**）；`D-675`）** 组织委员工作台能力声明（tab 清单自注册，scope='workspace:org'，T-279 M3 新建）
+- docs/src/capabilities/prop-workspace.js :: 宣传委员工作台能力声明（tab 清单自注册，scope='workspace:prop'，T-279 M3 新建）。**边界**：tab 数 9；改 tab 结构须同批改 `help.html §0.1/§2.3` 与 `README-server.md §3.2.3`。
+- docs/src/capabilities/visitor-workspace.js :: 成员工作台能力声明（tab 清单自注册，scope='workspace:visitor'，T-279 M3 新建）
+- docs/src/about.css :: **（2026-09-28 批次 227：CSS 零引用类全删——本文件 **3 类**（净 −26 行）＋ `.ab-edge-arrow{}` 空规则 / `.ab-hero-scroll-hint` 死 `animation` ＋ 孤立 `@keyframes ab-bounce-hint`；⚠ 本文件另有**他人未提交**改动（删 `.ab-bounce-hint` / `.ab-edge-arrow`）、**非本批**；`D-675`）** 关于页独立样式表（ab-* 内容区 + 南西油墨宋 @font-face + Tailwind 最小兜底，about.html 独占引用；T-272 第一章错落无竖线/第二章文字优先）

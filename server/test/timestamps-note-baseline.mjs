@@ -15,6 +15,11 @@
 // ⚠ 本文件**只许减**：任何一次「删条目」都是收敛；任何一次「加条目」都要在批注里写明理由与裁定出处。
 
 /** 备注列**总字符预算**（当前生效值；只许人工下调，上调＝越权） */
+// ⚠ 2026-10-05 批次 395（备注列第九轮）：实测 32,729（291 行）→ **收敛余下 `N4`（T-编号）20 格**（旧备注逐字迁 `.ctx/logs/2026-10-EXECUTION_LOG.md` 附节）后 **31,250**（291 行）
+//   ⇒ 预算 33,100 → **31,600**（**只降不升**；留 ≈350 字供「改了必须刷卡」的短注）。
+//   ⚠ 按 `N7`（四份清单**互不相同**）约束：`OVERLONG` 已为空 ⇒ 四份清单**各不相同的非空下限**分别为——
+//     `N4`＝`.ctx/logs/2026-08-EXECUTION_LOG.md` · `N5`＝`docs/src/entries/pages/notice-entry.js` · `N6`＝`content/04_web_design/design-system/COMPONENT_SPEC.md`（三者互不相同、均非空）。
+//     若要**三条一并清零**，须把 `N7` 的「互不相同」收窄为「**非空清单之间互不相同**」（空表不参与比对）⇒ **属改守卫判据 · 待支书核可**。
 // ⚠ 2026-10-05 批次 392（备注列第八轮）：实测 44,343（291 行）→ **收敛 `N5`/`N6` 两条清单并集 31 格**（沿革逐字迁 `.ctx/logs/2026-10-EXECUTION_LOG.md` 附节）后 **32,729**（291 行）
 //   ⇒ 预算 44,700 → **33,100**（**只降不升**；留 ≈370 字供「改了必须刷卡」的短注）。
 //   ⚠ 按 `N7`（四份清单**互不相同**）约束：`OVERLONG` 已为空 ⇒ `N5`/`N6` **不得同时清空**（两条空表相撞即红）⇒ 各**保留 1 格**作「清单非空下限」——保留格 `docs/src/entries/pages/notice-entry.js`（`N5`）· `content/04_web_design/design-system/COMPONENT_SPEC.md`（`N6`，其备注含 `T-282` ⇒ `N4` 亦保留）。
@@ -23,7 +28,7 @@
 // ⚠ 2026-10-02 批次 333（备注列第六轮）：实测 47,744（守卫口径，275 行）→ **迁出 2 格 ＋ 修一处「8 段被跳过」结构缺陷** 后 **47,136**（276 行）
 //   ⇒ 预算 50,000 → **47,500**（**只降不升**）。**修缺陷说明**：`content/05_ai_coding/DATA_CONSISTENCY_CHECKLIST.md` 那格含未转义竖线 ⇒ 整行 8 段、被守卫跳过。
 // ⚠ 2026-10-01 批次 322（备注列第五轮）：实测 53,708 → **49,750** ⇒ 预算 57,000 → 50,000（**只降不升**）。
-export const NOTE_TOTAL_BUDGET = 33100;
+export const NOTE_TOTAL_BUDGET = 31600;
 /** 历史冻结高水位（机检 NOTE_TOTAL_BUDGET ≤ 本值 ⇒ 预算不可能被悄悄调大） */
 export const NOTE_TOTAL_HARD_CEIL = 95000;
 // 高水位沿革（只许下调）：2026-09-30 批次 311 第四轮收敛（再迁 5 格：README.md /
@@ -50,29 +55,9 @@ export const ROWS_MIN = 245;
 export const OVERLONG_BASELINE = [
 ];
 
-/** 备注含 `T-\d*` 编号（74 → **21 行**；2026-10-05 批次 389 收敛 42 格 ＋ 批次 392 再收敛 9 格 · T-编号是执行日志的键，台账不应承载） */
+/** 备注含 `T-\d*` 编号（21 → **1 行**；2026-10-05 批次 389/392/395 逐轮收敛 · T-编号是执行日志的键，台账不应承载）。⚠ 保留 1 行为「清单非空下限」（`N7`：四份清单互不相同，`OVERLONG` 已空） */
 export const WITH_TID_BASELINE = [
   '.ctx/logs/2026-08-EXECUTION_LOG.md',
-  'content/03_doc_system/PROCESS_GUIDE.md',
-  'content/04_web_design/deploy/AUTHENTICATION_MODEL.md',
-  'content/04_web_design/deploy/PKU_PARTY_INTEGRATION.md',
-  'content/04_web_design/deploy/WECHAT_INTEGRATION.md',
-  'content/04_web_design/design-system/COLOR_SYSTEM.md',
-  'content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md',
-  'content/04_web_design/module/ABOUT_PAGE_DESIGN.md',
-  'content/04_web_design/module/SOP_WEBSITE_GUIDE.md',
-  'docs/src/about.css',
-  'docs/src/core/session/cross-page-state.js',
-  'docs/src/entries/workspace/ws-visitor-entry.js',
-  'docs/src/capabilities/activity-calendar.js',
-  'docs/src/capabilities/leader-workspace.js',
-  'docs/src/capabilities/org-workspace.js',
-  'docs/src/capabilities/prop-workspace.js',
-  'docs/src/capabilities/visitor-workspace.js',
-  'docs/src/services/governance/secretary-overview.js',
-  'docs/src/services/member/person.js',
-  'server/test/b3-1-makeup-writeback.test.mjs',
-  'content/04_web_design/design-system/COMPONENT_SPEC.md',
 ];
 
 /** 备注含「日期由 X 刷 Y / 刷为 YYYY-MM-DD / 日期不变」复述（24 → **1 行**；2026-10-05 批次 392 收敛本清单 13 格、**保留 1 格**为「清单非空下限」〔`N7`：四份清单互不相同，`OVERLONG` 已空〕） */
