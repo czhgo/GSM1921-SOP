@@ -3216,3 +3216,11 @@ $body
 
 - **表单（模态字段）与导入链（粘贴 / CSV ＋ 预览）** 尚未落 ⇒ 另批（`D-788` 在办）。
 - 演示种子 `people.js` **未加 `selfProfile` 样例**（展示面随表单批）；`person-entry.js` / `member.js` **无 TIMESTAMPS 表行**（既有覆盖缺口，只登记）。
+
+
+***
+
+## 批次 400 收尾 · 降频窗全量 probe（依 `D-784`）
+
+- 本窗＝批次 **398–400**（3 个 commit：业务域 9→6 合并 · 只给「项目」配红金 · 成员「自我描述」字段模型 ＋ 写口）⇒ 跑全量，**实读 `970 / 970 / 0 红`**（较批次 397 的 964 增 **6**，＝新件 `self-profile.test.mjs`）。
+- ⚠ 退出码非 0 仍系**沙箱拒绝写 Playwright `debug.log`**（`TRAE Sandbox Error: hit restricted`），**非测试失败**；临时日志未留盘、跑完已停服。
