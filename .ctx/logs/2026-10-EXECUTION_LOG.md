@@ -3388,3 +3388,30 @@ $body
 - `.ctx/REVIEW_QUEUE.md` 补录表第 1 行性质栏改「✅ 已裁（批次 407）」。至此**补录表 8 条：已闭环 4（#5 / #8 / #1 / #2）· 余 4（#3 / #4 / #6 / #7）待支书一个动作**。
 - 版本戳 `20261005k → 20261005l`（bump：JS 225 / HTML 23 / CSS 2 / server-test 94）。
 - **全量 probe**：本批为降频窗内**第 3 个 commit**（上一窗批次 404）⇒ 累计中，未到窗（`D-784`）。
+
+## 批次 407 收尾（2026-10-05 · `D-795`）**S6 台账行号改签 ＋ 全量 probe 降频改准（3–4 → 5–6）＋ 降频窗全量 probe**
+
+> **裁定与落地全在 `D-795`**——本条只留**量测 + 边界**（照 `H26.1`）。
+
+### 一、`form-loop-sweep::S6` 判红与修法（首跑全量拦下一次）
+
+- 首跑全量时 `form-loop-sweep::S6` 判红：`docs/src/entries/tabs/secretary/todo-tab.js:824 驳回意见（文案「请填写驳回意见（必填）」实际在第 830 / 862 行）`。
+- 根因＝**批次 407** 在 `_askRecordVoidReject` / `_onRecordVoidDecide` 内插入 `_notifyRecordVoidDecision` 调用，使该文案行**下移 6 行**（824 → 830）；`form-loop-registry.mjs` 登记行未同批改签 ⇒ `S6` 按「行号须真落在该 `msg` 那一行」判红。
+- 修法＝台账登记行 `line: 824 → 830` ＋ reason 补「批次 407 起…本行号随该批插入位移改准」；**当时 StopCommand 中止首跑，修后重跑全量**（S6 复绿）。
+
+### 二、量测读数
+
+- **全量**（`SWEEP_SHARD=all`）：**981 / 981 / 0 红**（`duration_ms 1,494,208 ≈ 24.9 min`）。退出码非零＝**沙箱对 Playwright `debug.log` 的写盘限制**（`TRAE Sandbox Error: hit restricted`），**非测试失败**（pass 981 / fail 0），如实登记。
+- `doc-consistency`（S1–S18）· `doc-line-ref`（R1–R6）· `frontmatter-freshness`（F1–F3）· `module-load`（E1–E4）· `form-loop-sweep`（S0–S7）＝ **全绿**。
+- `npm run test:fast` ＝ **146 / 146 / 0**。
+- **服务起停**：本窗验证起 `npm start`（`http://localhost:3000`）→ 跑完 `StopCommand` 停服。
+
+### 三、降频阈值改准（`D-795`）
+
+- `server/README.md` 测试章节**两处**「3–4 个 commit」→「**5–6 个 commit**」（`全量跑` 条 ＋ `提交前` 条，均注明「同日后续改准，见 `D-795`」）。
+- `CLAUDE.md` 丙部 `#10` 收口说明行同改 5–6（保留 `D-784` 引用、补 `D-795`）。
+- **边界（如实）**：只改**节奏**——不缩判据面 / 不删守卫 / 不放宽任何基线；`D-784` 正文**不改写**，由其后续 `D-795` 记「改准」。本窗全量（批次 405/406/407 · 距上一窗批次 404 计 **3 个 commit**）系**按新令前**的「3–4」门槛触发；**自批次 408 起**按新「**5–6**」门槛重新累计。
+
+### 四、边界（如实）
+
+- 本批**只改** `.ctx/**` ＋ `server/README.md` ＋ `CLAUDE.md` ＋ `server/test/form-loop-registry.mjs`（测试台账行号）⇒ **未 bump 任何 `?v=`**（仍 `20261005l`）。
