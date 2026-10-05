@@ -2764,6 +2764,38 @@ related_files: [CLAUDE.md, .ctx/logs/2026-09-EXECUTION_LOG.md, .ctx/logs/EXECUTI
 
 ***
 
+## 批次 390（2026-10-05 · `D-782`）**`R-23`② 展示值按表复算**（8 个 kind）＋ 判 ③ 非缺口
+
+> **来源**：`CLAUDE.md R-23` 的 ②（「部分 kind 展示值仍取自 payload」）与 ③。
+> **病灶**：`server/system-notice-kinds.js` 末尾的**统一包装**＝`(ctx) => buildSystemNotice(kind, { ...payloadOf(ctx), sourceId })`——**无 `build` 的 kind 会把客户端 payload 整包展开成模板变量** ⇒ 任一**获授权**的 actor 直调 `POST /api/v1/system-notices` 即可让通知**正文**显示**任意**活动名 / 日期 / 地点 / 材料名 / 周次 / 阶段名（`R-22` 的「按表复算」此前只落在 **6** 个 kind 的 `authorize` 与文案上）。
+
+### 一、口径（把仓里既有做法升为通例）
+
+- **对象字段按表复算**：活动名 / 日期 / 地点 / 材料名 / 接收角色 / 周次 / 阶段名 —— 一律取自**服务端可读表**，**不采信客户端 payload**。
+- **人名沿用 payload**：服务端**无人员名册**（`activities.assignments[].personId` 是演示 id）⇒ 与既有 `organizer-transferred` 注记（原话「项目名按表复算；人名沿用 payload」）**同一口径**。
+
+### 二、落地（8 个 kind ＋ 判据）
+
+- `server/system-notice-kinds.js`（**+70 行**）补 `build`：`attendance-confirmed`（`activities.title`）· `activity-agenda-updated`（同）· `workforce-proposal-created`（同）· `activity-created-broadcast`（`title`/`date`/`location`）· `taskforce-vote-requested`（`title`/`date`→`publishDate`）· `member-change-approved`（`member_change_requests.fromStage`/`toStage`）· `external-dispatch-created`（`external_dispatches.refLabel`/`receiverRole`）· `weekly-report-submitted`（`weekly_reports.week`/`weekRange`）。
+- `server/test/system-notice-project-auth-authorize.test.mjs`（**+66 行**）新增 **`B1`–`B7`**：伪造 payload 的 display 值**不得**出现在产物里 · 表内值**必须**在 · `B7` 非空转（8 个 kind 都真有 `build`）。
+- `README-server.md` §2.2.3 / §6.7 **一改具改**（`:106-111`→`:122-136`；`:57-388`→`:57-458`；`:205-212`→`:260-276`；`:325-347`→`:408-430`；`:362-387`→`:441-457`）＋ §6.7 补「**展示值亦按表复算**」口径段。
+- 版本戳**不 bump**（无 `docs/src/**` 改动）；`ACTIVE_RULINGS` 零行（执行、非新裁定）。
+
+### 三、判据与反例（真机无需；纯 node）
+
+- **正向**：`A1`–`A8` ＋ `B1`–`B7` 绿。
+- **反例自检**：`git checkout` 退回旧 `server/system-notice-kinds.js` ⇒ **`B1`–`B6` 全红**（另有 `B7` 红）⇒ 从字节副本复原、`numstat` 复验 **+70/−0**。
+- ⚠ **过程中一处自伤已修**：首版生成器把活动类写成 `act.activityTitle`（活动行的字段实为 `title`）⇒ `B1`–`B3` 首跑**判红**暴露；改准 5 处后复绿。**这正是「反例自检不可省」的自证**。
+
+### 四、边界（如实）
+
+- **只完成 8 / 11 个「可复算」kind**；余 3 个（`review-request-submitted` / `review-request-decided` / `project-auth-granted`）**未做**——其对象字段来自**前端既有纯函数**（`review-request.js::_subject` / `_branchLabel` 等），服务端复算须先抽**前后端共用件**，否则＝**第二实现**（违 `H31`）⇒ 属**下一批**。
+- **人名仍沿用 payload**：服务端无人员名册 ⇒ 「通知里写别人的名字」这一半**仍未堵**；要堵需先立服务端人员名册读口（另立项）。
+- **`review-overdue-reminder` / `review-resubmit-reminder`**：`authorize` 只认角色、**无 sourceId 对象** ⇒ **无表可复算**（登记为不可复算面）。
+- **`R-23`③ 判非缺口**：`activity-notice-draft` / `taskforce-notice-draft` / `committee-dispatch` 的标题正文**由发布人填写**（草稿 / 人工下发）——**系设计**，不是「该复算而未复算」。
+
+***
+
 ### 附：TIMESTAMPS 备注列迁出的逐批沿革（2026-10-05 批次 389 · `R-89` 续批）
 
 > 收敛路径＝把该格的历史沿革**逐字**迁入本日志、原位只留「现状 / 边界 ＋ 沿革指针」。本批共 **42** 格（皆只犯 `N4 T-编号`；`timestamps-note-baseline.mjs::WITH_TID_BASELINE` 同批删这 42 条）。

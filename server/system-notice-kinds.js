@@ -90,6 +90,14 @@ const KINDS = {
         || act.organizer === actor.id
         || SECRETARY_DEPUTY_SET.has(actor.role);
     },
+    // R-23②（2026-10-05 批次 390）：展示值**按表复算**——对象字段不采信客户端 payload；
+    //   人名沿用 payload（服务端无人员名册；口径同 `organizer-transferred`）。
+    build(ctx) {
+      const vars = { ...payloadOf(ctx), sourceId: ctx.sourceId };
+      const act = rowOf(ctx.db, 'activities', ctx.sourceId) || {};
+      if (act.title !== undefined) vars.activityTitle = act.title;
+      return buildSystemNotice('attendance-confirmed', vars);
+    },
   },
 
   // ── 议程已更新 ────────────────────────────────────────────────
@@ -98,6 +106,14 @@ const KINDS = {
     authorize({ actor, sourceId, db }) {
       if (!actor) return false;
       return !!rowOf(db, 'activities', sourceId) && COMMITTEE_ROLE_SET.has(actor.role);
+    },
+    // R-23②（2026-10-05 批次 390）：展示值**按表复算**——对象字段不采信客户端 payload；
+    //   人名沿用 payload（服务端无人员名册；口径同 `organizer-transferred`）。
+    build(ctx) {
+      const vars = { ...payloadOf(ctx), sourceId: ctx.sourceId };
+      const act = rowOf(ctx.db, 'activities', ctx.sourceId) || {};
+      if (act.title !== undefined) vars.activityTitle = act.title;
+      return buildSystemNotice('activity-agenda-updated', vars);
     },
   },
 
@@ -108,6 +124,15 @@ const KINDS = {
       if (!actor || actor.role !== 'org-commissioner') return false;
       return !!rowOf(db, 'member_change_requests', sourceId);
     },
+    // R-23②（2026-10-05 批次 390）：展示值**按表复算**——对象字段不采信客户端 payload；
+    //   人名沿用 payload（服务端无人员名册；口径同 `organizer-transferred`）。
+    build(ctx) {
+      const vars = { ...payloadOf(ctx), sourceId: ctx.sourceId };
+      const row = rowOf(ctx.db, 'member_change_requests', ctx.sourceId) || {};
+      if (row.fromStage !== undefined) vars.fromStage = row.fromStage;
+      if (row.toStage !== undefined) vars.toStage = row.toStage;
+      return buildSystemNotice('member-change-approved', vars);
+    },
   },
 
   // ── 支部分工调整议题待表决 / 已生效 ─────────────────────────────
@@ -116,6 +141,14 @@ const KINDS = {
     authorize({ actor, sourceId, db }) {
       if (!actor || !SECRETARY_DEPUTY_SET.has(actor.role)) return false;
       return !!rowOf(db, 'activities', sourceId);
+    },
+    // R-23②（2026-10-05 批次 390）：展示值**按表复算**——对象字段不采信客户端 payload；
+    //   人名沿用 payload（服务端无人员名册；口径同 `organizer-transferred`）。
+    build(ctx) {
+      const vars = { ...payloadOf(ctx), sourceId: ctx.sourceId };
+      const act = rowOf(ctx.db, 'activities', ctx.sourceId) || {};
+      if (act.title !== undefined) vars.activityTitle = act.title;
+      return buildSystemNotice('workforce-proposal-created', vars);
     },
   },
   'workforce-proposal-adopted': {
@@ -210,6 +243,15 @@ const KINDS = {
       const senderId = rec ? rec.senderId : payloadOf({ payload }).senderId;
       return !!senderId && actor.id === senderId;
     },
+    // R-23②（2026-10-05 批次 390）：展示值**按表复算**——对象字段不采信客户端 payload；
+    //   人名沿用 payload（服务端无人员名册；口径同 `organizer-transferred`）。
+    build(ctx) {
+      const vars = { ...payloadOf(ctx), sourceId: ctx.sourceId };
+      const row = rowOf(ctx.db, 'external_dispatches', ctx.sourceId) || {};
+      if (row.refLabel !== undefined) vars.refLabel = row.refLabel;
+      if (row.receiverRole !== undefined) vars.receiverRole = row.receiverRole;
+      return buildSystemNotice('external-dispatch-created', vars);
+    },
   },
 
   // ── 宣传周报已报送待支书审核（SOP-B-40 ②，2026-09-19 批次 94）────────────────
@@ -221,6 +263,15 @@ const KINDS = {
       const row = rowOf(db, 'weekly_reports', sourceId);
       if (!row) return false;
       return row.submittedBy === actor.id || actor.role === 'prop-commissioner';
+    },
+    // R-23②（2026-10-05 批次 390）：展示值**按表复算**——对象字段不采信客户端 payload；
+    //   人名沿用 payload（服务端无人员名册；口径同 `organizer-transferred`）。
+    build(ctx) {
+      const vars = { ...payloadOf(ctx), sourceId: ctx.sourceId };
+      const row = rowOf(ctx.db, 'weekly_reports', ctx.sourceId) || {};
+      if (row.week !== undefined) vars.week = row.week;
+      if (row.weekRange !== undefined) vars.weekRange = row.weekRange;
+      return buildSystemNotice('weekly-report-submitted', vars);
     },
   },
 
@@ -252,6 +303,16 @@ const KINDS = {
       if (COMMITTEE_ROLE_SET.has(actor.role)) return true;
       return actor.role === 'leader' && LEADER_ACTIVITY_TYPES.has(act.type);
     },
+    // R-23②（2026-10-05 批次 390）：展示值**按表复算**——对象字段不采信客户端 payload；
+    //   人名沿用 payload（服务端无人员名册；口径同 `organizer-transferred`）。
+    build(ctx) {
+      const vars = { ...payloadOf(ctx), sourceId: ctx.sourceId };
+      const act = rowOf(ctx.db, 'activities', ctx.sourceId) || {};
+      if (act.title !== undefined) vars.activityTitle = act.title;
+      if (act.date !== undefined) vars.date = act.date;
+      if (act.location !== undefined) vars.location = act.location;
+      return buildSystemNotice('activity-created-broadcast', vars);
+    },
   },
 
   // ── 专班议案排入线上支委会待表态 ───────────────────────────────
@@ -260,6 +321,15 @@ const KINDS = {
     authorize({ actor, sourceId, db }) {
       if (!actor || !COMMITTEE_ROLE_SET.has(actor.role)) return false;
       return !!rowOf(db, 'activities', sourceId);
+    },
+    // R-23②（2026-10-05 批次 390）：展示值**按表复算**——对象字段不采信客户端 payload；
+    //   人名沿用 payload（服务端无人员名册；口径同 `organizer-transferred`）。
+    build(ctx) {
+      const vars = { ...payloadOf(ctx), sourceId: ctx.sourceId };
+      const act = rowOf(ctx.db, 'activities', ctx.sourceId) || {};
+      if (act.title !== undefined) vars.activityTitle = act.title;
+      if (act.date !== undefined) vars.date = act.date;
+      return buildSystemNotice('taskforce-vote-requested', vars);
     },
   },
 

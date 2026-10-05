@@ -59,3 +59,69 @@ test('A7 来源对象不存在一律拒（三档皆然）', () => {
 test('A8 无 actor 一律拒（防未登录）', () => {
   assert.equal(AUTH(null, 'act-1', ACT()), false);
 });
+
+// ── `R-23`②（2026-10-05 批次 390）：展示值**按表复算** ──────────────────────────────────
+//   病灶：`def.build` 缺省时统一包装会把**客户端 payload 整包展开**成模板变量 ⇒ 任一获授权的 actor 直调 API
+//   即可让通知正文显示**任意**活动名 / 周次 / 材料名（`R-22` 的「按表复算」此前只落在 6 个 kind 上）。
+//   本件把 8 个 kind 的**对象字段**钉住：伪造的 display 值**不得**出现在产物里；表内值**必须**在。
+//   ⚠ 边界（如实）：**人名仍沿用 payload**（服务端无人员名册，口径同 `organizer-transferred`）⇒
+//     本件只断言**对象字段**，不断言人名——那一半不是本批射程。
+const BUILD = (kind, sourceId, rows, payload) => SYSTEM_NOTICE_KINDS[kind].build({ db: dbStub(rows), sourceId, payload });
+const TEXT = (notice) => `${notice.title || ''}\n${notice.content || ''}`;
+const ACT_TITLE_KINDS = ['attendance-confirmed', 'activity-agenda-updated', 'workforce-proposal-created'];
+
+test('B1 活动名按表复算：伪造 payload.activityTitle 不得出现（3 个活动类 kind）', () => {
+  const rows = { activities: { 'act-1': { id: 'act-1', title: '表内活动名' } } };
+  for (const kind of ACT_TITLE_KINDS) {
+    const t = TEXT(BUILD(kind, 'act-1', rows, { activityTitle: '伪造活动名' }));
+    assert.ok(t.includes('表内活动名'), `${kind} 应含表内活动名：${t}`);
+    assert.ok(!t.includes('伪造活动名'), `${kind} 不得含伪造活动名：${t}`);
+  }
+});
+
+test('B2 活动已创建广播：表内 title/date/location 覆盖伪造值', () => {
+  const rows = { activities: { 'act-1': { id: 'act-1', title: '表内活动名', date: '2026-10-09', location: '理科五号楼' } } };
+  const t = TEXT(BUILD('activity-created-broadcast', 'act-1', rows,
+    { activityTitle: '伪造活动', date: '1970-01-01', location: '伪造地点' }));
+  assert.ok(t.includes('表内活动名') && t.includes('2026-10-09') && t.includes('理科五号楼'), t);
+  assert.ok(!t.includes('伪造活动') && !t.includes('1970-01-01') && !t.includes('伪造地点'), t);
+});
+
+test('B3 专班议案：表内 title 覆盖伪造值；date 落 `publishDate`（该模板不把 date 写进正文）', () => {
+  const rows = { activities: { 'act-1': { id: 'act-1', title: '线上支委会', date: '2026-10-10' } } };
+  const n = BUILD('taskforce-vote-requested', 'act-1', rows, { activityTitle: '伪造活动', date: '1970-01-01' });
+  const t = TEXT(n);
+  assert.ok(t.includes('线上支委会'), t);
+  assert.ok(!t.includes('伪造活动'), t);
+  assert.equal(n.publishDate, '2026-10-10', `publishDate 应取表内日期，实为 ${n.publishDate}`);
+});
+
+test('B4 成员变更：fromStage/toStage 按表复算', () => {
+  const rows = { member_change_requests: { 'r-1': { id: 'r-1', fromStage: '积极分子', toStage: '发展对象' } } };
+  const t = TEXT(BUILD('member-change-approved', 'r-1', rows, { fromStage: '伪造甲', toStage: '伪造乙' }));
+  assert.ok(t.includes('积极分子') && t.includes('发展对象'), t);
+  assert.ok(!t.includes('伪造甲') && !t.includes('伪造乙'), t);
+});
+
+test('B5 材料外发：refLabel/receiverRole 按表复算', () => {
+  const rows = { external_dispatches: { 'd-1': { id: 'd-1', refLabel: '表内材料名', receiverRole: '党委组织员' } } };
+  const t = TEXT(BUILD('external-dispatch-created', 'd-1', rows, { refLabel: '伪造材料', receiverRole: '伪造角色' }));
+  assert.ok(t.includes('表内材料名') && t.includes('党委组织员'), t);
+  assert.ok(!t.includes('伪造材料') && !t.includes('伪造角色'), t);
+});
+
+test('B6 宣传周报：week/weekRange 按表复算；人名（无服务端名册）沿用 payload', () => {
+  const rows = { weekly_reports: { 'w-1': { id: 'w-1', week: '第 41 周', weekRange: '2026-10-05 ~ 10-11', submittedBy: 'p1' } } };
+  const t = TEXT(BUILD('weekly-report-submitted', 'w-1', rows, { week: '伪造周次', weekRange: '伪造区间', submitterName: '张三' }));
+  assert.ok(t.includes('第 41 周') && t.includes('2026-10-05 ~ 10-11'), t);
+  assert.ok(!t.includes('伪造周次') && !t.includes('伪造区间'), t);
+  assert.ok(t.includes('张三'), `人名为 payload 口径（如实边界）：${t}`);
+});
+
+test('B7 非空转：8 个 kind 都真有 `build`（防判据被写成恒真）', () => {
+  const kinds = [...ACT_TITLE_KINDS, 'activity-created-broadcast', 'taskforce-vote-requested',
+    'member-change-approved', 'external-dispatch-created', 'weekly-report-submitted'];
+  assert.equal(kinds.length, 8);
+  for (const k of kinds) assert.equal(typeof SYSTEM_NOTICE_KINDS[k].build, 'function', `${k} 缺 build`);
+});
+
