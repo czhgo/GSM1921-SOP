@@ -20,15 +20,15 @@
 import { test, before } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261005j';
-import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261005j';
-import { registerMockAdapter, setDataSource } from '../../docs/src/data/data-adapter.js?v=20261005j';
+import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261005k';
+import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261005k';
+import { registerMockAdapter, setDataSource } from '../../docs/src/data/data-adapter.js?v=20261005k';
 import {
   SOFT_VOID_RESOURCES, filterActive, listPending, listVoidPending, parseRecordVoidId,
   requestVoid, confirmVoid, rejectVoid,
-} from '../../docs/src/services/governance/soft-void.js?v=20261005j';
+} from '../../docs/src/services/governance/soft-void.js?v=20261005k';
 // 批次 405（`D-792`）：报名「作废（软）」后的重复报名判据（`hasApplied`）单源验证
-import { SignupStore } from '../../docs/src/services/activity/signup.js?v=20261005j';
+import { SignupStore } from '../../docs/src/services/activity/signup.js?v=20261005k';
 
 // ── localStorage 内存桩（member-persist 同款）──
 const _store = new Map();
@@ -156,7 +156,7 @@ test('V6 注册表扩容（批次 352）：第二张表（weeklyReports）走同
 //   **而当时一件静态守卫都没拦住**。本判据＝对每张登记表逐面核「两个适配器都有 `update`」＋「mockDB 有该域」
 //   ＋「注册项四要素齐」——新增登记表忘了补适配器时**立刻红**。
 test('V7 登记表 × 适配器完备性：每张登记表在两个适配器上都必须可写（防同型缺口复发）', async () => {
-  const { ApiAdapter } = await import('../../docs/src/data/api-adapter.js?v=20261005j');
+  const { ApiAdapter } = await import('../../docs/src/data/api-adapter.js?v=20261005k');
   const problems = [];
   const res = Object.keys(SOFT_VOID_RESOURCES);
   assert.ok(res.length >= 6, `登记表只剩 ${res.length} 张（基线 6）：登记面被掏空`);

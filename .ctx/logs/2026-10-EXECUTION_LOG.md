@@ -3343,3 +3343,26 @@ $body
 - **台账**：`.ctx/REVIEW_QUEUE.md` —— 补录表第 2 行性质栏改「✅ 已裁（批次 405）」；`SOP-C-72` 节点标题加「✅ 已裁已落」＋ 补「裁定与落法」条；该节头「阶段 B 累计」**已裁 71 → 72 · 待裁 2 → 1**。
 - **版本戳** `20261005i → 20261005j`（bump：JS 225 / HTML 23 / CSS 2 / server-test 94）。
 - **全量 probe**：本批为降频窗内**第 1 个 commit**（上一窗批次 404 已跑 `977/977/0`）⇒ 累计中，未到窗（`D-784`）。
+
+## 批次 406（2026-10-05 · `D-793`）支部书记裁定之三：`SOP-C-73` 私信发送权 —— **改系统**
+
+> **来源**：同批次 405（支书四条裁定之三）。母本 `常见工作场景快速指南.md` 第 11 章 `:426` 写「**直接向支书反馈**」（渠道 2），而系统私信发送权仅「支委层 ∪ 党小组组长」（`D-748`）⇒ **普通成员在系统内无此渠道**。支书圈**甲「改系统」**。
+
+### 一、三面同改
+
+1. **前端单一源** `docs/src/services/governance/notice.js::canSendDirectMessage(role)` → `!!role`（原 `BRANCH_COMMISSION_ROLES.includes(role) || role === 'leader'`）；`sendDirectMessage` 内判据「发送权 ∪ 标题正文非空 ∪ 收件人非空」**随单一源生效**。
+2. **服务端快照口写门** `server/routes/resources/gates.js::_snapshotNoticeMessageGateDeny`——**去掉角色门**（删 `DIRECT_MESSAGE_ROLE_SET`），**只锁「发件人须为本人」**（`fromPersonId === actor.id`，无会话亦拦）＋ 既有篡改面（作者不可改 / 非作者不得改收件人）**一字未动**；拒文案改「无权限：站内信（私信）发件人须为本人」。
+3. **文案 / 文档**：`messages-entry.js` 页脚改「任何支部成员均可写私信」（去掉按角色的免责句）；`docs/help.html:279` 同批改准；`README-server.md` 私信门表行改「**全体成员均可发私信**」＋ 引用行号 **`gates.js:235 → :236`**（一改具改）。
+
+### 二、判据（单元 ＋ api 面）
+
+- `notice-message.test.mjs::N3` **改准**：普通成员**本人**发 → **放行**（原「拦截」）；**代他人** / **无会话** → 拦（两条「应拦」保住，反例不退化）。
+- `permission-gate.test.mjs` **改准**：api 面 ① **代他人**伪造 → **403**（原「普通成员伪造」用例改为真违规形）② 普通成员**本人**发 → **200**（原「支委层本人发」）。
+- **实跑**：`notice-message` ＋ `permission-gate` ＋ `doc-line-ref` ＋ `module-load` ＋ `doc-consistency` ＋ `link-integrity` ＋ `import-path-guard` **52 / 52 / 0**；`npm run test:fast` **146 / 146 / 0**。
+
+### 三、台账 / 版本
+
+- `.ctx/REVIEW_QUEUE.md`：`SOP-C-73` 节点标题加「✅ 已裁已落（批次 406 · `D-793`）」＋ 补「裁定与落法」条；该节头 **阶段 B 累计 ＝ 已裁 73 ＋ 待裁 0**（`SOP-C-72`/`C-73` 两条真新命题**全清**）。
+- 版本戳 `20261005j → 20261005k`（bump：JS 225 / HTML 23 / CSS 2 / server-test 94）。
+- **母本一字未改**（按裁定取「改系统」档）；`content/**` 未动。
+- **全量 probe**：本批为降频窗内**第 2 个 commit**（上一窗批次 404）⇒ 累计中，未到窗（`D-784`）。

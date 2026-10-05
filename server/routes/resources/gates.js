@@ -207,22 +207,23 @@ export function _assertActivityBlockEnabled(db, actor, effectiveType) {
 }
 
 // ════════════════════════════════════════════════════════════════
-//  站内信（`noticeType:'message'`）**服务端写门**（2026-10-05 批次 393 · 支书 `D-748`）
+//  站内信（`noticeType:'message'`）**服务端写门**（2026-10-05 批次 393 · 支书 `D-748`；
+//  发送权面于 2026-10-05 批次 406 按 `D-793` 放开到「全体成员」）
 //
-//  · 为什么：`D-748` 圈定「发件权＝支委层 ∪ 党小组组长」——**前端**已实现（`services/governance/notice.js::
-//    canSendDirectMessage`），但私信落库走 `POST /api/v1/snapshot`（整表写穿），该口此前仅 `requireAuth`
+//  · 为什么：私信落库走 `POST /api/v1/snapshot`（整表写穿），该口此前仅 `requireAuth`
 //    ⇒ 任一登录成员直连即可**伪造一条私信**（冒充发件人 / 塞给任意收件人）。按 `D-677`（判据须落在 api 面
 //    的真实行为上），须在服务端复算同一口径。
-//  · 单一源＝角色集取自 `constants.js::BRANCH_COMMISSION_ROLES`（与前端 `canSendDirectMessage` 同源），
-//    此处只做「支委层 ∪ leader」的同一表达（与既有 `ACTIVITY_WRITE_ROLES` 同法），不另造第二套角色表。
+//  · 发送权（`D-793`，批次 406 改裁）：**全体成员均可发私信**（原「支委层 ∪ 党小组组长」已放开，与前端
+//    `services/governance/notice.js::canSendDirectMessage` 同一口径）：母本「所有支部成员可直接向支书反馈」
+//    （`常见工作场景快速指南.md` 第 11 章）此前在系统内对普通成员**不可达** ⇒ 按支书「改系统」收口。
+//    服务端**只锁一件事**：发件人须为本人（不得代发）。
 //  · 只拦「**新增 / 篡改私信**」这一面（同快照口批准门口径）：既有私信的**未变行照旧放行**——快照是整表写穿，
 //    正常同步里 payload 必然带着收发双方的其它在库私信。篡改面只锁两件：`fromPersonId` 不可改；非作者不得改
 //    收件人 `audiencePersons`（防把私下一条改成发给别人 / 群发）。
 //  · 边界（如实）：`POST /api/v1/notices` 的既有通用写门不动（私信不经该口）；「删除私信」未设门（沿用既有）。
 // ⚠ 本段置于文件末尾：不改动上文任何行号（README-server 有 `文件:行号` 引用指向本文件，`doc-line-ref` 逐条核）。
 // ════════════════════════════════════════════════════════════════
-const DIRECT_MESSAGE_ROLE_SET = new Set([...BRANCH_COMMISSION_ROLES, 'leader']);
-export const NOTICE_MESSAGE_DENY_MSG = '无权限：站内信（私信）仅支委层与党小组组长可发，且发件人须为本人';
+export const NOTICE_MESSAGE_DENY_MSG = '无权限：站内信（私信）发件人须为本人';
 
 /**
  * 快照口的**站内信写门**（纯判定）：允许 → null；拦截 → 403 文案。
@@ -241,9 +242,8 @@ export function _snapshotNoticeMessageGateDeny(db, payload, actor) {
     const prev = prevById.get(row.id);
     const wasMessage = !!prev && prev.noticeType === 'message';
     if (!wasMessage) {
-      // 新增私信（或把既有通知改成私信）：写者须有发送权，且发件人须为本人（不得代发）
-      if (!actor || !DIRECT_MESSAGE_ROLE_SET.has(actor.role)) return NOTICE_MESSAGE_DENY_MSG;
-      if (row.fromPersonId !== actor.id) return NOTICE_MESSAGE_DENY_MSG;
+      // 新增私信（或把既有通知改成私信）：发件人须为本登录人（不得代发）；发送权已于批次 406 放开到全体成员
+      if (!actor || row.fromPersonId !== actor.id) return NOTICE_MESSAGE_DENY_MSG;
       continue;
     }
     // 既有私信：作者不可被改

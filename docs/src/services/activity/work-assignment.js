@@ -12,11 +12,11 @@
 //  写口形态与 `services/governance/soft-void.js` 同款：`getAdapter().assignments.*` → 同步 `mockDB` → `persist()`，
 //  且**不假设适配器返回形状**（`MockAdapter.create` 自己会改 `mockDB`，故本地按 id 幂等合并）。
 // ════════════════════════════════════════════════════════════════
-import { mockDB } from '../../core/domain/domain.js?v=20261005j';
-import { getAdapter, persist } from '../../data/data-adapter.js?v=20261005j';
-import { generateId } from '../../core/base/id.js?v=20261005j';
-import { isActivityOrganizerIn } from './activity.js?v=20261005j';
-import { BRANCH_COMMISSION_ROLES } from '../../core/domain/constants.js?v=20261005j';
+import { mockDB } from '../../core/domain/domain.js?v=20261005k';
+import { getAdapter, persist } from '../../data/data-adapter.js?v=20261005k';
+import { generateId } from '../../core/base/id.js?v=20261005k';
+import { isActivityOrganizerIn } from './activity.js?v=20261005k';
+import { BRANCH_COMMISSION_ROLES } from '../../core/domain/constants.js?v=20261005k';
 
 export const WORK_ASSIGNMENT_STATUS = {
   PENDING: 'pending',

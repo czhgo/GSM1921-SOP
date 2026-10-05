@@ -13,7 +13,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { canReadNotice } from '../../docs/src/services/governance/notice.js?v=20261005j';
+import { canReadNotice } from '../../docs/src/services/governance/notice.js?v=20261005k';
 import { _snapshotNoticeMessageGateDeny, NOTICE_MESSAGE_DENY_MSG } from '../routes/resources/gates.js';
 
 const MSG = {
@@ -50,23 +50,25 @@ test('N2 对照：普通通知的既有可见性口径未被误伤', () => {
     '非受众、非支委 → 仍不可读（非恒真）');
 });
 
-// ── N3 / N4（2026-10-05 批次 393）：服务端**快照口私信写门**（`D-748` 发件权＝支委层 ∪ 组长）──────────
+// ── N3 / N4（2026-10-05 批次 393）：服务端**快照口私信写门**（发送权于批次 406 · `D-793` 放开到全体成员）──
 // 由来：私信落库走 `POST /api/v1/snapshot`（整表写穿），该口此前仅 `requireAuth` ⇒ 任一登录成员直连即可
 //   伪造一条私信。判据落服务端复算（`server/routes/resources/gates.js::_snapshotNoticeMessageGateDeny`）。
-// 反例锁死：若把该门写成恒 `null`（或不接入快照 handler），`N3` 的三条「应拦」与 `N4` 的两条「应拦」立刻变红。
+// 反例锁死：若把该门写成恒 `null`（或不接入快照 handler），`N3` 的两条「应拦」与 `N4` 的两条「应拦」立刻变红。
 const fakeDb = (rows) => ({ prepare: () => ({ all: () => rows.map((r) => ({ data: JSON.stringify(r) })) }) });
 
-test('N3 服务端私信写门：新增私信须「有发送权 ＋ 发件人为本人」', () => {
+test('N3 服务端私信写门：新增私信须「发件人为本人」（发送权已放开到全体成员）', () => {
   const db = fakeDb([]);
   const mk = (from) => ({ id: 'ntc-new', title: 't', content: 'c', noticeType: 'message', fromPersonId: from, audiencePersons: ['p5'] });
   assert.equal(_snapshotNoticeMessageGateDeny(db, { notices: [mk('p13')] }, { role: 'secretary', id: 'p13' }), null,
     '支书发本人私信 → 放行');
   assert.equal(_snapshotNoticeMessageGateDeny(db, { notices: [mk('p4')] }, { role: 'leader', id: 'p4' }), null,
-    '党小组组长（∪ 支委层）发本人私信 → 放行');
-  assert.equal(_snapshotNoticeMessageGateDeny(db, { notices: [mk('p7')] }, { role: 'participant', id: 'p7' }), NOTICE_MESSAGE_DENY_MSG,
-    '普通成员发私信 → 拦截（前端只在前端判，服务端须复算）');
+    '党小组组长发本人私信 → 放行');
+  assert.equal(_snapshotNoticeMessageGateDeny(db, { notices: [mk('p7')] }, { role: 'participant', id: 'p7' }), null,
+    '**普通成员**发本人私信 → 放行（批次 406 · `D-793`：全体成员均可发，原「支委层 ∪ 组长」已放开）');
+  assert.equal(_snapshotNoticeMessageGateDeny(db, { notices: [mk('p7')] }, null), NOTICE_MESSAGE_DENY_MSG,
+    '无会话（actor 缺）→ 拦截');
   assert.equal(_snapshotNoticeMessageGateDeny(db, { notices: [mk('p5')] }, { role: 'secretary', id: 'p13' }), NOTICE_MESSAGE_DENY_MSG,
-    '支委层**代他人**发私信（fromPersonId ≠ 本人）→ 拦截');
+    '**代他人**发私信（fromPersonId ≠ 本人）→ 拦截');
   assert.equal(_snapshotNoticeMessageGateDeny(db, { notices: [{ id: 'n9', title: 'x', content: 'y', noticeType: undefined }] }, { role: 'participant', id: 'p7' }), null,
     '非私信（普通通知）未受本门影响 → 放行');
 });

@@ -5,23 +5,23 @@
 //  独立于 mockDB 内存结构，通过 mockDB.notices 统一持久化
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../../core/domain/domain.js?v=20261005j';
-import { generateId } from '../../core/base/id.js?v=20261005j';
-import { persist, getDataSource, getApiBaseUrl, getAuthToken } from '../../data/data-adapter.js?v=20261005j';
-import { buildSystemNotice } from '../../core/domain/system-notice-templates.js?v=20261005j';
-import { bumpToken } from '../../core/base/version-token.js?v=20261005j'; // P0 域缓存失效（spec §二.3）
-import { MOCK_NOTICES } from '../../data/mock/index.js?v=20261005j';
-import { isInitStateActive } from '../core/init-reset.js?v=20261005j'; // C2 修复（2026-09-08）：init 态跳过演示种子兜底
-import { getBasePath, todayLocal } from '../../core/base/utils.js?v=20261005j';
-import { AuthStore } from '../core/auth.js?v=20261005j';
-import {  getPersonById } from '../member/person.js?v=20261005j';
-import { NoticeTodoDeriver, TodoStore, TodoSourceType, TodoStatus } from './todo.js?v=20261005j';
+import { mockDB } from '../../core/domain/domain.js?v=20261005k';
+import { generateId } from '../../core/base/id.js?v=20261005k';
+import { persist, getDataSource, getApiBaseUrl, getAuthToken } from '../../data/data-adapter.js?v=20261005k';
+import { buildSystemNotice } from '../../core/domain/system-notice-templates.js?v=20261005k';
+import { bumpToken } from '../../core/base/version-token.js?v=20261005k'; // P0 域缓存失效（spec §二.3）
+import { MOCK_NOTICES } from '../../data/mock/index.js?v=20261005k';
+import { isInitStateActive } from '../core/init-reset.js?v=20261005k'; // C2 修复（2026-09-08）：init 态跳过演示种子兜底
+import { getBasePath, todayLocal } from '../../core/base/utils.js?v=20261005k';
+import { AuthStore } from '../core/auth.js?v=20261005k';
+import {  getPersonById } from '../member/person.js?v=20261005k';
+import { NoticeTodoDeriver, TodoStore, TodoSourceType, TodoStatus } from './todo.js?v=20261005k';
 // 组织者身份读取单一源（2026-09-19 批次 91 · SOP-B-17）——发布权随「被指定为该场组织者」动态获得
-import {  getOrganizedActivities } from '../activity/activity.js?v=20261005j';
+import {  getOrganizedActivities } from '../activity/activity.js?v=20261005k';
 import {
   NOTICE_PUBLISH_ROLES, NOTICE_MANAGE_ROLES, BRANCH_COMMISSION_ROLES,
   NOTICE_AUDIENCE_SENTINELS, ROLE_LABELS,
-} from '../../core/domain/constants.js?v=20261005j';
+} from '../../core/domain/constants.js?v=20261005k';
 
 function _loadNotices() {
   try {
@@ -585,14 +585,14 @@ export function canReadNotice(notice, viewer) {
 
 // ════════════════════════════════════════════════════════════════
 //  站内信（点对点私信）读写口 —— 2026-10-03 批次 353 · 支书 `D-748`
-//  · **发送权单列**：支委层 ∪ 党小组组长（`canSendDirectMessage`）——与通用发布权分列，见 `add()` 注。
+//  · **发送权**：**全体成员**（批次 406 · `D-793` 改裁——原为「支委层 ∪ 党小组组长」）——与通用发布权分列，见 `add()` 注。
 //  · **可见性**：仅发件人与收件人（`canReadNotice` ⑥，批次 348 已立；此处**复用、不另写规则**）。
 //  · **回复线程**：回信＝一条新私信 ＋ `replyTo` 指向原信 ⇒ 「一来一往」成线（不新造实体）。
 // ════════════════════════════════════════════════════════════════
 
-/** 站内信发送权（`D-748`：支委层 ∪ 党小组组长）——单一源，供页面与 `add()` 同判 */
+/** 站内信发送权（批次 406 · `D-793`：**全体登录成员**；原「支委层 ∪ 党小组组长」已放开）——单一源，供页面与 `add()` 同判 */
 export function canSendDirectMessage(role) {
-  return BRANCH_COMMISSION_ROLES.includes(role) || role === 'leader';
+  return !!role;
 }
 
 /** 我的私信（**收件 ＋ 发件**两条线，按时间倒序）。
