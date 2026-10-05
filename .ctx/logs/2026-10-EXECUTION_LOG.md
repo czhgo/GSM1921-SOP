@@ -3283,55 +3283,31 @@ $body
 - `D-788` 至此三批（字段模型 → 表单/本人自助 → 批量导入）**全部落地**；**D-788 收口**。
 - 全量 probe：本批为降频窗内**第 1 个 commit**（上一窗批次 400 已跑 `970/970/0`）⇒ 累计中，未到窗（`D-784`）。
 
-## 批次 403（2026-10-05 · `D-789` / `P.16`「丙」）content 正文**沿革瘦身**（第一批 · 机械摘除「纯戳括注」）
+## 批次 403 / 404（2026-10-05 · `D-789` / `P.16`）**自纠**：content 沿革瘦身与 `OPERATIONS_GUIDE §5.2` 判据相抵 ⇒ **全部还原**，`P.16` 收口
 
-> **来源**：支书 2026-10-05 就 `P.16` 圈**丙「只做正文沿革瘦身（推荐）」**——文件划分不动，把 content 正文里的「`批次 N` / `D-N` / `T-N`」沿革注记迁出到 `.ctx/logs`，原位不留（或留去向行）。
+> **结论：本批对 `content/**` 的编辑已**全部还原**；`P.16` 依 §5.2 判定**已收口**（可搬项 ＝ 0）。下方「原批记录」作为**自纠留痕**保留。**
 
-### 一、范围与判据
+> **来源与自纠**：支书 2026-10-05 就 `P.16` 圈丙「只做正文沿革瘦身」——**该选项文本系依我「content 有 342 处可搬戳」的错误前提提的**。动手后（批次 403 摘除「纯戳括注」22 处 ＋ `DATA_MODEL.md` 手工 11 处；批次 404 又收敛 `SYSTEM_ROLE_PERMISSION` / `COMMISSIONER_DUTY_FRAMEWORK` / `ARCHITECTURE` / `DOC_MAP` / `03 README` / `DEPLOYMENT_GUIDE` 六件）方读到**仓库既有权威判据** `OPERATIONS_GUIDE §5.2`（2026-09-27 批次 213 成文；当年支书令「**要继续搬，须先裁定判据本身**」）：
+>
+> - §5.2 结论 **「`content/**` 可搬项 ＝ 0」**——全部沿革注记**已逐条归入九类判据族**（第 1「沿革总指针」/ 第 2「承担现状口径的承接声明」/ 第 3「确立日期｜确立背景」/ 第 4「文档自身台账」/ 第 5「现行结构溯源」/ 第 6「一行去指针的迁出登记」/ 第 7「含链接的合并注记」/ 第 8「清单本体」/ 第 9「禁改面」）；且**保护面计数（24 份文件）只许因明确裁定而变**。
+> - 本批所动位置**恰在受保护之列**：第 7 类正例含 `DOC_MAP.md:87`（含链接）· 第 6 类正例含 `02_institution/README.md:14`/`:28` · 第 9 类「禁改面」点名 `SYSTEM_ROLE_PERMISSION.md` / `DATA_MODEL.md` / `DEPLOYMENT_GUIDE.md`。
+>
+> ⇒ **本批上呈支书**；支书 2026-10-05 划**甲「遵从 §5.2，`P.16` 收口」**（见 `D-790`）。**处置**：`git checkout 16d9e461d -- content/` 把 `content/**` **整体还原**（342 处戳／28 文件，回到 403 前状态）；本批仅保留本自纠记录。
 
-- **范围**＝`content/02_institution` ＋ `content/03_doc_system` ＋ `content/04_web_design`（`P.16` 立项时的 **02/03/04** 口径）。
-  - ⚠ **`content/05_ai_coding/DATA_CONSISTENCY_CHECKLIST.md` 排除**：它是**事件台账**——表格「日期 批次」列**即内容本体**（逐条体检记录），非「描述文档里的历史堆砌」。
-- **判据（纯戳括注）**：全角括注 `（…）` 内容**只由** 数字 / 字母 / 日期 / `批次 N` / `` `D-NNN` `` / `` `T-NNN` `` / 分隔符构成（**不含任何汉字词**）⇒ 认定为**纯沿革注记**，整括注摘除。
-  - **夹叙括注**（括注内含实质说明或活指针，如 `（支书复议裁定）` / `（见 §18.5.1）` / `（107 处日期/批次）`）**本批不动**——须逐条研判，留后续批次。
-- **行数纪律**：括注**不跨行**地整段摘除 ⇒ **行数零变化** ⇒ `README-server.md` 的 `文件:行号` 引用**不受影响**（`doc-line-ref` R1–R6 不动）。
+### 「原批记录」（**已还原** · 留痕用）
 
-### 二、本批摘除（**逐字迁移** · 共 22 处）
+> ⚠ 下列编辑**均已还原**，**不在现行状态**。保留以记「曾按何判据动过哪些位置」。
 
-| # | 文件:行 | 摘除文字 |
-|---|---|---|
-| 1 | `02_institution/COMMISSIONER_DUTY_FRAMEWORK.md:70` | `（D-240）` |
-| 2 | `02_institution/COMMISSIONER_DUTY_FRAMEWORK.md:336` | `（D-215）` |
-| 3 | `02_institution/README.md:14` | `（2026-09-26 批次 202）` |
-| 4 | `02_institution/README.md:28` | `（2026-09-26 批次 202）` |
-| 5 | `02_institution/SYSTEM_ROLE_PERMISSION.md:239` | `（`D-294`）` |
-| 6 | `02_institution/SYSTEM_ROLE_PERMISSION.md:254` | `（`D-545`）` |
-| 7 | `02_institution/SYSTEM_ROLE_PERMISSION.md:260` | `（批次 124）` |
-| 8 | `03_doc_system/OPERATIONS_GUIDE.md:505` | `（D-188）` |
-| 9 | `03_doc_system/OPERATIONS_GUIDE.md:985` | `（T-200，H60）` |
-| 10 | `03_doc_system/OPERATIONS_GUIDE.md:1188` | `（T-195）` |
-| 11 | `04_web_design/design-system/DESIGN_SYSTEM.md:708` | `（批次 288）` |
-| 12 | `04_web_design/design-system/DESIGN_SYSTEM.md:709` | `（批次 290，2026-09-29）` |
-| 13 | `04_web_design/design-system/DESIGN_SYSTEM.md:709` | `（批次 288）` |
-| 14 | `04_web_design/evolution/BRANCH_WORK_MAP.md:154` | `（2026-09-14 批次 26）` |
-| 15 | `04_web_design/evolution/PARTY_COMMITTEE_DESIGN.md:123` | `（`D-545`）` |
-| 16 | `04_web_design/evolution/WORKFLOW_BLOCK_CONTRACT.md:261` | `（2026-09-28 批次 246）` |
-| 17 | `04_web_design/evolution/WORKFLOW_BLOCK_CONTRACT.md:267` | `（2026-09-29 批次 248）` |
-| 18 | `04_web_design/evolution/WORKFLOW_BLOCK_CONTRACT.md:271` | `（2026-09-28 批次 247）` |
-| 19 | `04_web_design/module/ABOUT_PAGE_DESIGN.md:82` | `（T-272）` |
-| 20 | `04_web_design/module/ABOUT_PAGE_DESIGN.md:134` | `（T-248）` |
-| 21 | `04_web_design/module/ABOUT_PAGE_DESIGN.md:143` | `（T-271）` |
-| 22 | `04_web_design/README.md:13` | `（T-286）` |
+- **批次 403**：判据＝「纯戳括注」（括注内只由数字/字母/日期/`批次 N`/`` `D-NNN` ``/`` `T-NNN` ``/分隔符构成 ⇒ 整括注摘除）；摘除 22 处（`COMMISSIONER_DUTY_FRAMEWORK.md:70`（`D-240`）· `:336`（`D-215`）· `02_institution/README.md:14/:28`（`2026-09-26 批次 202`）· `SYSTEM_ROLE_PERMISSION.md:239`（`D-294`）· `:254`（`D-545`）· `:260`（`批次 124`）· `OPERATIONS_GUIDE.md:505`（`D-188`）· `:985`（`T-200，H60`）· `:1188`（`T-195`）· `DESIGN_SYSTEM.md:708`（`批次 288`）· `:709`（`批次 290，2026-09-29` / `批次 288`）· `BRANCH_WORK_MAP.md:154`（`2026-09-14 批次 26`）· `PARTY_COMMITTEE_DESIGN.md:123`（`D-545`）· `WORKFLOW_BLOCK_CONTRACT.md:261/:267/:271`（`批次 246/248/247`）· `ABOUT_PAGE_DESIGN.md:82/:134/:143`（`T-272/T-248/T-271`）· `04_web_design/README.md:13`（`T-286`））＋ `DATA_MODEL.md` 手工 11 处（转义同上批）。**全部行数零变化**。
+- **批次 404（未提交）**：`SYSTEM_ROLE_PERMISSION.md`（§变更历史 只摘 `批次 N`、留日期 ＋ 正文 6 处摘 `D-585`/`D-558`/`D-559`/`D-547`/`D-536` 及 `批次 202` 补注）· `COMMISSIONER_DUTY_FRAMEWORK.md:26/:84/:119`（摘 `批次 202`/`T-190`/`D-287`）· `ARCHITECTURE.md:472`、`DOC_MAP.md:87`、`03_doc_system/README.md:19`、`DEPLOYMENT_GUIDE.md:746`（各摘 `批次 202` / `批次 342`）。
 
-- **同批手工（`DATA_MODEL.md` · 11 处行内改注，行数零变化）**：① §2.1 `deepWorkMode` 去 `（2026-09-23 批次 156）`；② §2.1.3「项目级授权」去 `（2026-09-30 `D-718`／`D-719`）`；③ §2.11 标题 `—— **已于 2026-10-02 删除**` → `—— **已删除**`；④ 同节注 `批次 342 · 支书裁「甲」· `CRUD-1`：` 摘除（余「死表——…」保留）；⑤ §2.26 `selfProfile` 行去 `2026-10-05 `D-788` / `V-10b`：`（改「支书问卷字段清单落地 ⇒ 扩本实体」）；⑥ §2.26 行为口径 6 去 `（2026-10-05 `D-788` / `V-10b` 第三批）`；⑦ §母本登记表去 `；`D-788` / `V-10b``；⑧–⑪ 四处 `**已删（2026-10-02 批次 342…）**` → `**已删**`。
+### 实跑（本批）
 
-### 三、实跑
+- 还原后 `grep`：`content/**` 戳命中重回 **342 处 / 28 文件**（＝403 前实测值）。
+- 版本戳**不 bump**（本批 net 改动只在 `.ctx/**`）。
 
-- `git diff --numstat`：content 全部 **N/N（零行数变化）**。
-- 守卫：`doc-line-ref` ＋ `doc-consistency` ＋ `link-integrity` ＋ `frontmatter-freshness` ＋ `timestamps-note-guard` **39 / 39 / 0**（`link-integrity::L5` content 542 链接全绿）。
-- 版本戳**不 bump**（只改 `content/**` ＋ `.ctx`）。
+### 边界（如实）
 
-### 四、边界（如实）
-
-- **夹叙括注 77 处未动**（含实质说明 / 活指针 / 计数）——须逐条研判，留批次 404＋（**不假装覆盖**）。工作清单可再生：`grep -n '批次\s*[0-9]+\|D-[0-9]\{3\}\|T-[0-9]\{3\}' content/02_institution content/03_doc_system content/04_web_design`（判据同上：括注含汉字词 ⇒ 人工研判）。
-- 本批**未动** `content/01_strategy` / `content/05_ai_coding` / `content/insights`（`P.16` 立项口径＝02/03/04）；`DATA_CONSISTENCY_CHECKLIST.md` 因属事件台账而**排除**（理由见上）。
-- 工具：一次性 codemod（`server/.tmp-p16-slim.mjs`）跑完即删，不留盘。
+- **本批对 `content/**` 的一切编辑已还原**；`P.16` 依 §5.2 **收口**（可搬项 ＝ 0，不再动 content 正文）。
+- **未提交的 404 编辑已随 `git checkout` 一并丢弃**；`content/**` 无残留改动。
+- 教科书：**先读既有判据（§5.2 / CLAUDE.md 丙部）再动手**——本批之失在于以「数量」代替「判据」。

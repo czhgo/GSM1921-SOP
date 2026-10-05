@@ -2,7 +2,7 @@
 title: "制度层索引——支部发展和管理的制度"
 type: index
 role: "[用户]+[工程师]+[AI]"
-last_updated: "2026-09-26"
+last_updated: "2026-10-05"
 status: active
 ---
 
@@ -11,7 +11,7 @@ status: active
 > **定位：** 本目录存放**知识类型 2：支部发展和管理的制度**——回答"支部如何运作、分工、专班、报备审批"。
 > **受众：** [用户]+[工程师]（党支书、支委、系统维护者）
 > 本目录内部区分：制度设计（COMMISSIONER_DUTY_FRAMEWORK［《支部组织与委员体系》，含原 FLAT_ORGANIZATION_DESIGN 扁平化设计 §G］/SYSTEM_ROLE_PERMISSION）+ 方法指引（SOP 文件），作为文件合并参考
-> **迁出登记**：原 `ROLE_CLASSIFICATION.md`（文件角色分类体系）已迁入 `content/03_doc_system/OPERATIONS_GUIDE.md` 的 §24–§31（《运行与协作规范》）——它讲的是全仓库文件的 `[用户]`/`[工程师]`/`[AI]` 受众分类，属文档治理，非支部组织。
+> **迁出登记（2026-09-26 批次 202）**：原 `ROLE_CLASSIFICATION.md`（文件角色分类体系）已迁入 `content/03_doc_system/OPERATIONS_GUIDE.md` 的 §24–§31（《运行与协作规范》）——它讲的是全仓库文件的 `[用户]`/`[工程师]`/`[AI]` 受众分类，属文档治理，非支部组织。
 
 ---
 
@@ -25,7 +25,7 @@ status: active
 
 ### 二、角色分类
 
-> 原 `ROLE_CLASSIFICATION.md`（[用户]/[工程师]/[AI] 三类文件角色标记体系）已迁出→ **现行权威源**：[`content/03_doc_system/OPERATIONS_GUIDE.md` §24–§31](../03_doc_system/OPERATIONS_GUIDE.md)（《运行与协作规范》文件角色分类体系）。
+> 原 `ROLE_CLASSIFICATION.md`（[用户]/[工程师]/[AI] 三类文件角色标记体系）已迁出（2026-09-26 批次 202）→ **现行权威源**：[`content/03_doc_system/OPERATIONS_GUIDE.md` §24–§31](../03_doc_system/OPERATIONS_GUIDE.md)（《运行与协作规范》文件角色分类体系）。
 
 ### 三、系统角色权限
 
