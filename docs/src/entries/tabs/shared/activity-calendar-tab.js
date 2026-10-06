@@ -29,9 +29,9 @@
 //   容器内容却没登记标记」时会把本页判成「已在位」而跳过骨架重建，留下空白（同 today-tab 2026-09-25
 //   真机实测的残留病）。
 
-import { getAppState } from '../../../core/base/state.js?v=20261006b';
-import { populateMonthSelector, renderCalendarByActivities } from '../../../components/record/calendar.js?v=20261006b';
-import { renderInspectorFromState } from '../../../components/record/inspector.js?v=20261006b';
+import { getAppState } from '../../../core/base/state.js?v=20261006c';
+import { populateMonthSelector, renderCalendarByActivities } from '../../../components/record/calendar.js?v=20261006c';
+import { renderInspectorFromState } from '../../../components/record/inspector.js?v=20261006c';
 
 const TAB_HTML = `
   <div class="card rounded-xl p-5">

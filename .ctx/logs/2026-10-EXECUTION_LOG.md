@@ -2056,3 +2056,23 @@ $body
 - **余项收敛为**：① **支部改派（`config.workforce`）接线**（三个派生点未传 `opts.snapshot`；⚠ `data/mock-adapter.js` 属数据层、直引 `services/branch/branch.js` 有**成环风险** ⇒ 须先定接法）· ② **「到人」主责**待「按人索待办」· ③ **周期扩面**须支书给定频次与出处。
 - **改的是公共壳**（7 台待办页共用）⇒ 潜在影响面大于批次 423；已以「三台真机 ＋ `tab-nav` / `module-load` 守卫」取证，**其余四台的同类渲染等同路径、未逐台跑**（如实登记）。
 
+## 批次 425（2026-10-06 · `D-804` 续 · `R-29⑤` 余项 ② 收口）**三个写口接线分工快照**
+
+> **来源**：批次 423 的「联动赋权」只在**派生器**一层取模块主责；三个**写口**未传分工快照 ⇒ 实际只按**缺省分工**解析，**支部改派不生效**（已在 `D-804` 登记为余项 ②）。
+
+### 一、动作
+
+1. `docs/src/services/core/mock.js::createActivity`：静态 import 已有 `branch.js` ⇒ 追加 `getBranchIdOfPerson` / `getBranchWorkforce`，取「**创建人所属支部**」快照传入 `deriveFromActivityCreate(activity, { snapshot })`。
+2. `docs/src/data/mock-adapter.js` 的 `activities.create`：改 `Promise.all([ 动态引 todo.js, 动态引 branch.js ])`（**本文件属数据层，静态引 services 层有成环风险** ⇒ 循既有「动态引 `todo.js`」同法）。
+3. `docs/src/services/activity/taskforce.js::add`：同法动态引 `branch.js`；人取 `manager` → `initiator` → 当前登录人（`AuthStore`，该文件已引）。
+4. **判据**：`module-owner-authz.test.mjs` 新增 `A10`（活动写口）· `A11`（专班写口）——注入 `br-b1` 的 `config.workforce` 改派后，断言待办 `role` **随改派走**（未接线则落回缺省角色 ⇒ 判红）。
+
+### 二、守卫读数
+
+- `module-owner-authz`（含新 `A10`/`A11`）**11 / 11 / 0**；`module-load` · `import-path-guard` · `module-cycle-remind` · `todo-deriver-domain` · `todo-domain` · `todo-domain-view` · `taskforce-lifecycle` · `version-stamp` · `doc-consistency` · `doc-line-ref` · `timestamps-note-guard` · `frontmatter-freshness` 合计 **115 / 115 / 0**。
+
+### 三、边界（如实）
+
+- **`mock-adapter.js` 那一路未单列判据**（浏览器 mock 形态的写口；与 `A10` 同构，属**间接覆盖**）——若要单列须真机造活动，**未做**。
+- **API 形态不变**：服务端仍无派生器（赋权待办不在服务端派生），本批只改 mock / 演示链（**既有形态**）。
+

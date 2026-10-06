@@ -20,8 +20,8 @@
 //    `externalDispatches` 的既有读面落在**禁改文件**（支书台「全局概况」）须特批或另择承载，
 //    `tasks` 须先定「作废一条 SOP 派生任务」的语义（见 `.ctx/REVIEW_QUEUE.md`）。
 // ════════════════════════════════════════════════════════════════
-import { mockDB } from '../../core/domain/domain.js?v=20261006b';
-import { getAdapter, persist } from '../../data/data-adapter.js?v=20261006b';
+import { mockDB } from '../../core/domain/domain.js?v=20261006c';
+import { getAdapter, persist } from '../../data/data-adapter.js?v=20261006c';
 
 /** 登记「可软作废」的资源：key ＝ 资源名（**同时是 `getAdapter()` 的键与 `mockDB` 的域键**，六张业务表三者同名） */
 export const SOFT_VOID_RESOURCES = {

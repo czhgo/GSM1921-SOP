@@ -10,12 +10,14 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261006b';
-import { setDataSource } from '../../docs/src/data/data-adapter.js?v=20261006b';
-import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261006b';
+import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261006c';
+import { setDataSource } from '../../docs/src/data/data-adapter.js?v=20261006c';
+import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261006c';
 import {
   TodoStore, TodoSourceType, LifecycleTodoDeriver,
-} from '../../docs/src/services/governance/todo.js?v=20261006b';
+} from '../../docs/src/services/governance/todo.js?v=20261006c';
+import { createActivity } from '../../docs/src/services/core/mock.js?v=20261006c';
+import { TaskForceRecordStore } from '../../docs/src/services/activity/taskforce.js?v=20261006c';
 
 // ── localStorage 内存桩 ─────────────────────────────────────────
 const _store = new Map();
@@ -152,4 +154,40 @@ test('A9 非空转：角色档能被 getByRole 取到（防「回退写错 ⇒ �
   const hit = leaderList.find((t) => t.sourceId === 'act-v2');
   assert.ok(hit, '到人档仍须落在回退角色的可见面内');
   assert.equal(hit.personId, 'p3');
+});
+
+// ═══════════════ A10–A11 接线：写口须把「分工快照」传进派生器（批次 425）═══════════════
+
+/** 给演示支部 br-b1 注入一条分工改派（`config.workforce`），返回清理函数 */
+function _overrideWorkforce(moduleId, ownerRef) {
+  const br = (mockDB.branches || []).find((b) => b.id === 'br-b1');
+  assert.ok(br, '演示支部 br-b1 必须在场');
+  const before = br.config && br.config.workforce;
+  br.config = { ...(br.config || {}), workforce: { ...(before || {}), [moduleId]: ownerRef } };
+  return () => { br.config = { ...(br.config || {}), workforce: before }; };
+}
+const tick = (ms = 60) => new Promise((r) => setTimeout(r, ms));
+
+test('A10 活动写口（mock.js::createActivity）已把分工快照传进派生器 ⇒ 收件人随「支部改派」走', async () => {
+  beginMockCase();
+  const restore = _overrideWorkforce('branch-committee-meeting', { ownerType: 'role', ownerId: 'deputy-secretary' });
+  try {
+    const act = await createActivity({ title: '改派核 · 支委会', type: '支委会', date: '2026-10-30', createdBy: 'p1' });
+    await tick();
+    const t = todoOf(TodoSourceType.ACTIVITY, act.id);
+    assert.ok(t, '活动创建须派生赋权待办（assignments 为空）');
+    assert.equal(t.role, 'deputy-secretary', '缺省主责是支书；支部改派为副支书 ⇒ 收件人须随之改（证明快照已接线）');
+  } finally { restore(); }
+});
+
+test('A11 专班写口（TaskForceRecordStore.add）已把分工快照传进派生器 ⇒ 收件人随「支部改派」走', async () => {
+  beginMockCase();
+  const restore = _overrideWorkforce('taskforce', { ownerType: 'role', ownerId: 'deputy-secretary' });
+  try {
+    const rec = TaskForceRecordStore.add({ name: '改派核 · 专班', manager: 'p1', members: [] });
+    await tick();
+    const t = todoOf(TodoSourceType.TASKFORCE, rec.id);
+    assert.ok(t, '专班创建须派生赋权待办（members 为空）');
+    assert.equal(t.role, 'deputy-secretary', '缺省主责是组织委员；支部改派为副支书 ⇒ 收件人须随之改');
+  } finally { restore(); }
 });
