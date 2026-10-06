@@ -13,18 +13,18 @@
 import {
   listPartyGroups, countOpenReportsByGroup, groupReportRowsOf, reportRowStateOf,
   groupActivitiesOf, reviewBucketOf,
-} from '../../services/member/group-view.js?v=20261005m';
-import { PersonStore, getPersonName } from '../../services/member/person.js?v=20261005m';
-import { AuthStore } from '../../services/core/auth.js?v=20261005m';
-import { getBranchIdOfPerson } from '../../services/branch/branch.js?v=20261005m';
-import { IssueStore } from '../../services/governance/issues.js?v=20261005m';
-import { loadActivities } from '../../services/activity/activity.js?v=20261005m';
-import { loadActivityReviews } from '../../services/governance/review.js?v=20261005m';
-import { loadAttendanceRecords } from '../../services/activity/attendance.js?v=20261005m';
-import { loadInspectionRecords } from '../../services/activity/inspection.js?v=20261005m';
-import { getMeetingRosterIds } from '../../services/member/roster.js?v=20261005m';
-import { AttendanceStatus } from '../../core/domain/domain.js?v=20261005m';
-import { escHtml as esc, todayLocal } from '../../core/base/utils.js?v=20261005m';
+} from '../../services/member/group-view.js?v=20261006a';
+import { PersonStore, getPersonName } from '../../services/member/person.js?v=20261006a';
+import { AuthStore } from '../../services/core/auth.js?v=20261006a';
+import { getBranchIdOfPerson } from '../../services/branch/branch.js?v=20261006a';
+import { IssueStore } from '../../services/governance/issues.js?v=20261006a';
+import { loadActivities } from '../../services/activity/activity.js?v=20261006a';
+import { loadActivityReviews } from '../../services/governance/review.js?v=20261006a';
+import { loadAttendanceRecords } from '../../services/activity/attendance.js?v=20261006a';
+import { loadInspectionRecords } from '../../services/activity/inspection.js?v=20261006a';
+import { getMeetingRosterIds } from '../../services/member/roster.js?v=20261006a';
+import { AttendanceStatus } from '../../core/domain/domain.js?v=20261006a';
+import { escHtml as esc, todayLocal } from '../../core/base/utils.js?v=20261006a';
 
 /**
  * 渲染「其他组」只读一览（本支部内除「我所属组」外的所有组，逐组一卡）。

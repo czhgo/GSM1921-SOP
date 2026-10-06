@@ -1993,3 +1993,39 @@ $body
 - **次跑**（修后重跑全量）：**987 / 987 / 0 绿**（`duration_ms 1,420,792 ≈ 23.7 min`）。退出码非零＝**沙箱对 Playwright `debug.log` 的写盘限制**，**非测试失败**。
 - **时序如实（不替首跑辩解）**：本批内 `test:fast` 曾报 **148 / 148 绿**（该跑**含** `doc-consistency`），而**全量首跑**在 `S15` ② 判红（`R-23` 行含「已立」）⇒ **两读数不一致，以「全量跑（读盘最新态）」为权威**、**首跑如实记红**。**处置**＝当场改准措辞 ＋ 复跑（绿）；**教训**：**改乙部表措辞后必须复跑 `doc-consistency`**（本批即以此收口）。
 - **降频窗口径（依 `D-795`）**：本窗＝批次 **418 / 419 / 420 / 421 / 422 共 5 个 commit** ⇒ 达阈跑全量；**下一窗自批次 423 起重新累计**。
+
+## 批次 423（2026-10-06 · `D-804`）**`R-29⑤` 落地**（模块周期单一源 ＋ 联动赋权取模块主责）
+
+> **来源**：支书 2026-10-06 就 `R-29⑤` 圈「**落地（新功能）**」（`D-803` ②）——补上 `R-29` ⑤「信息传递仍以『提醒＋入口』为限（**未生成周期性任务**、**未与项目创建联动赋权**）」。**边界（`D-803②` 原令）**：须定**任务来源单一源**与**赋权判据单一源**（**不得新造第二份映射**），并配常驻判据。
+
+### 一、实探（先核单一源与可核母本）
+
+1. **周期任务＝全仓零基础**：`WORK_MAP_MODULES`（14 模块）**无 `cycle` / 频次字段**；`docs/src` 内**无任何「周期性任务」实现或命名**（`grep 周期性|periodic|recurring|cycleDays` **零命中**）。
+2. **期次口径原有两套且都不适用**：`core/base/period.js::PERIOD_RE/periodOf` **只到季度**（服务思想汇报）；`todo.js::halfYearPeriodOf` 只到半年 ⇒ 周期任务需**月 / 季 / 半年 / 年**四档 ⇒ 另立纯函数（**不改旧口径**）。
+3. **母本可核的固定周期只找到一条**：《党小组组长工作手册》§2.1「日常活动组织（**每月至少 1 次**）」＋《支委与党小组定人定责定岗说明》§2.2 块块职责 1（同句）。三会一课逐模块频次（支委会 / 党员大会 / 党课）**仓内无权威母本**（`常见工作场景快速指南` 只有通用流程与提前量；`references/历史会议材料/关于支部大会时间调整的改革说明（征求意见稿·修订版）` 的「每月最后一个完整周周日」**是征求意见稿、不作制度依据**）。
+4. **联动赋权现状**：`LifecycleTodoDeriver.deriveFromActivityCreate` / `deriveFromTaskforceCreate` 只把赋权待办发给**固定角色**（`leader` / `org-commissioner`），**未读 `config.workforce`**；`MODULE_VIEW_SEGMENT` 只标 7 个模块 → 视图段。
+5. **「模块 ↔ 活动」原无映射**，但 `WORK_MAP_MODULES[].name`（`支部党员大会` / `支委会` / `党小组会` / `党课` / `主题党日`）与 `constants.js::ACTIVITY_SUBTYPES`（活动类型**权威子类名**）**逐字同名** ⇒ 判据可**直接取该同名字段**、**不必新造映射**。
+
+### 二、动作
+
+1. **周期单一源**：`core/domain/work-map.js::WORK_MAP_MODULES` 每项加**可选** `cycle: { unit, source }`（typedef 已登记）；**只填母本可核的两个形态**——`party-group-meeting`（党小组会）· `theme-party`（主题党日），`source` 逐条写出处；**其余 12 个不填**（＝不派生，如实登记）。新增 `cycleOfModule` / `modulesWithCycle` / `ownerOfModule` / `moduleIdOfActivity`（**零依赖**，故 `normalizeActivityType` 同口径内联）。
+2. **期键纯函数**：`core/base/period.js` 新增 `CYCLE_UNITS` / `CYCLE_UNIT_LABELS` / `cyclePeriodOf(dateStr, unit)` / `cyclePeriodLabel(period, unit)`（月 `YYYY-MM` · 季 `YYYY-Qn` · 半年 `YYYY-Hn` · 年 `YYYY`）；与既有「期次（季度）」**并列共存、互不改动**。
+3. **周期提醒实时组**：`services/governance/todo.js` 新增 `MODULE_CYCLE_ACTION_KEY` ＋ `buildModuleCycleRemindGroup({ activities, subjectIds, snapshot, today })`——**纯读、不落库、不派任务**（体例照 `buildHalfYearInspectionRemindGroup`）；判据＝「本模块**本期无对应活动**」；`REALTIME_GROUP_DOMAIN['module-cycle-remind'] = 项目`。
+4. **台接线**：`entries/tabs/leader/todo-tab.js` 加 `buildRealtimeGroups`（分工快照取法照 `workforce-duty-card.js`：`AuthStore.getCurrentUser` → `getBranchIdOfPerson` → `getBranchWorkforce`）。
+5. **联动赋权**：`LifecycleTodoDeriver` 两个派生器加**可选** `opts.snapshot`，收件人经 `_authzRecipient` 三档解析（角色档直达 / 到人档 `personId` 定向＋`role` 回退 / 组织型与无模块回退）；`actionData` 补 `moduleId` / `ownerType` / `ownerId`。**缺省分工即刻生效**（`type='支委会'` 的赋权待办 ⇒ 支书，此前一律组长）。
+6. **常驻判据**：新建 `server/test/module-cycle-remind.test.mjs`（`C1`–`C8`）＋ `server/test/module-owner-authz.test.mjs`（`A1`–`A9`），**两件同批登记 `test:fast` ＋ `test:daily`**（`S16`）。
+
+### 三、守卫读数
+
+- 新增两件：**17 / 17 / 0**（`module-cycle-remind` 8 ＋ `module-owner-authz` 9）。
+- 静态族 `test:fast`（含新两件）：**165 / 165 / 0**（较批次 422 的 148 增 **17**）。
+- 定向：`doc-consistency` · `doc-line-ref` · `timestamps-note-guard` · `frontmatter-freshness` · `module-load` · `import-path-guard` · `version-stamp` · `work-map` · `todo-deriver-domain` · `todo-domain` · `todo-domain-view` · `branch-module-catalog` · `localstorage-key-guard` **63 / 63 / 0**。
+- **首跑一处判红并当场改正**：`localstorage-key-guard::L1` 把新常量 `MODULE_CYCLE_ACTION_KEY`（**动作键、非存储键**）当作未登记存储键 ⇒ 循该守卫**既有例外机制**（`NON_STORAGE_CONST_NAMES`，同 `RESOLUTION_FOLLOWUP_ACTION_KEY`）补登 ＋ 写明理由 ⇒ 复跑 `localstorage-key-guard` ＋ `test:fast` 全绿。
+
+### 四、边界（如实 · 不得读成已全落）
+
+- **未闭环余项**：① 周期提醒**只接线组长台**（支书台 / 组织台等未接）；② **支部改派尚未接到三个派生点**（`services/core/mock.js::createActivity` · `data/mock-adapter.js` 两处 · `services/activity/taskforce.js::add` —— 未传 `opts.snapshot`，按**缺省分工**解析，已正确但改派不生效）；③ **「到人」主责**今仍回退角色、`personId` 仅作定向（待 `TodoStore` 增按人索引面）。
+- **服务端仍无派生器**：`todos` 只有通用 CRUD ⇒ **API 形态下赋权待办仍不在服务端派生**（**既有形态、非本批引入**）。
+- **周期取值面窄是事实、不是遗漏**：只两个模块有可核母本 ⇒ 若要扩面，**须支书给定频次与出处**（一行即可填）。
+- **一改具改**：`content/05_ai_coding/DATA_CONSISTENCY_CHECKLIST.md` 两条校验点 ＋ `CLAUDE.md` 乙部 `R-29` 行 ＋ `server/test/localstorage-key-guard.test.mjs` 例外表 ＋ 戳 `20261005m → 20261006a`（`docs/src/**` 已改 ⇒ **必 bump**）。
+

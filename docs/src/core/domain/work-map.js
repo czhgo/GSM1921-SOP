@@ -94,6 +94,10 @@ export function ownerSubjectType(id) {
  * @property {string} defaultOwner 缺省主责**主体引用**（角色键 或 组织型主体 id，见 `ORG_SUBJECTS`；SOP/职责表草案，支委会可改）
  * @property {string} desc      一句话说明（卡面文案）
  * @property {string[]} [outputs] 产出交接标签（考勤/考察/宣传/材料，对应活动/专班运行产出）
+ * @property {{unit:'month'|'quarter'|'half-year'|'year', source:string}} [cycle]
+ *   开展周期（2026-10-06 批次 423 · `R-29⑤` · `D-804`）——**周期任务的唯一来源**（不另立第二份映射，`D-803②`）。
+ *   `source`＝出处（母本文件 §节），供面板 title 与核查。**只填母本可核者**；无制度固定周期者**不填**
+ *   （＝不派生周期提醒，如实登记，见 `.ctx/logs/2026-10-DECISION_LOG.md` `D-804`）。
  */
 export const WORK_MAP_MODULES = [
   {
@@ -119,6 +123,10 @@ export const WORK_MAP_MODULES = [
     // 同上：本行＝党小组会（母本 `:159`「党小组会 ｜ 党小组组长」＋ `定人定责:228` §5.3「党小组会 ｜
     //   主导者＝党小组组长」）⇒ 缺省主责记角色键 `leader`（本支部 3 个党小组，各归本组组长；缺省位只能
     //   记一个主体引用，故记角色键、不记具体某组）。
+    // 周期单一源（2026-10-06 批次 423 · `R-29⑤`）：党小组日常活动**每月至少 1 次**（母本《党小组组长
+    //   工作手册》§2.1 标题「日常活动组织（每月至少 1 次）」＋《支委与党小组定人定责定岗说明》§2.2
+    //   块块职责 1「组织本党小组的日常活动（每月至少 1 次）」）——党小组会即其**会议形态**。
+    cycle: { unit: 'month', source: '党小组组长工作手册 §2.1 · 支委与党小组定人定责定岗说明 §2.2' },
     desc: '党小组会：本组内部学习与交流（刚性考勤，不默认补课）；由本组组长主导',
     outputs: ['考勤', '宣传', '材料'],
   },
@@ -139,6 +147,9 @@ export const WORK_MAP_MODULES = [
     //   → 支书 / 副支书 / 代组长」＋ §5.3 `:230`「党小组活动 ｜ 主导者＝党小组组长」）⇒ 缺省主责记
     //   `leader`（各党小组主题党日归本组组长）。⚠ 支部级 / 跨组的主题党日由支书发起（`指南:112`
     //   「支书（跨组/全支部）」）——属**例外**，走支书台改派，不在此缺省。
+    // 周期单一源（同批）：与党小组会共用母本同一条——「党小组日常活动（每月至少 1 次）」的**活动形态**
+    //   （办活动即党小组承办，见本模块 desc 与 `joint-event` 同裁定）。
+    cycle: { unit: 'month', source: '党小组组长工作手册 §2.1（党小组日常活动 · 每月至少 1 次）' },
     desc: '主题党日活动（含党小组主题党日；共建/外出/载体为正交维度），工作流块驱动；本组组长组织、组织者担纲',
     outputs: ['考勤', '宣传', '材料'],
   },
@@ -257,6 +268,45 @@ export function isDisabledAssign(assign) {
 }
 
 export const WORK_MAP_DISABLED = { ownerType: 'none', ownerId: '' };
+
+// ── 周期（开展频次）单一源（2026-10-06 批次 423 · `R-29⑤` · `D-804`）────────────
+//  用途：① 周期任务派生（`services/governance/todo.js::buildModuleCycleRemindGroup`）；
+//        ② 联动赋权（`services/governance/todo.js::LifecycleTodoDeriver` 的收件人取模块主责）。
+//  两者**共用本文件这一张表** —— **不另立第二份映射**（`D-803②` 边界）。
+//  取值口径见上方 `WORK_MAP_MODULES[].cycle` 的 typedef：**只填母本可核者**，其余不填。
+//  ⚠ 单位**取值集与中文标签**的单一源在 `core/base/period.js::CYCLE_UNITS / CYCLE_UNIT_LABELS`
+//    （本文件守「零依赖」约定，不 import，故不在此处另立一份枚举）。
+/** 模块周期（无制度固定周期 ⇒ null） */
+export function cycleOfModule(moduleId) {
+  const m = WORK_MAP_MODULES.find((x) => x.id === moduleId);
+  return (m && m.cycle && m.cycle.unit) ? m.cycle : null;
+}
+
+/** 有制度固定周期的模块 id（派生面＝本表，不另立映射；顺序＝模块表顺序） */
+export function modulesWithCycle() {
+  return WORK_MAP_MODULES.filter((m) => m.cycle && m.cycle.unit).map((m) => m.id);
+}
+
+/** 模块主责（分工快照覆盖 ＋ 缺省兜底）；**停用 / 无主责 ⇒ null** */
+export function ownerOfModule(moduleId, snapshot = null) {
+  const snap = snapshot || expandWorkforce(null);
+  const a = snap[moduleId];
+  if (!a || a.ownerType === 'none' || !a.ownerId) return null;
+  return { ownerType: a.ownerType, ownerId: a.ownerId };
+}
+
+/**
+ * 活动类型 → 模块 id（判据单一源＝活动类型**权威子类名** ↔ 模块 `name`；无命中 ⇒ null）。
+ * ⚠ 本文件**零依赖**约定 ⇒ 不 `import` `constants.js::normalizeActivityType`，此处内联同口径
+ *   （剥 `'大类·子类'` 前缀）；两种写法归一后再比。
+ */
+export function moduleIdOfActivity(activity) {
+  const t = String((activity && activity.type) || '').trim();
+  if (!t) return null;
+  const base = t.includes('·') ? t.split('·').pop().trim() : t;
+  const m = WORK_MAP_MODULES.find((x) => x.name === base);
+  return m ? m.id : null;
+}
 
 /** 缺省分工：{ [moduleId]: 主体引用 }（角色键 或 组织型主体 id；workforce=null 时兜底展示；SOP/职责表草案） */
 export const WORK_MAP_DEFAULT = Object.fromEntries(

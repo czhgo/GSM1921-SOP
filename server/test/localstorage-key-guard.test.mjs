@@ -122,6 +122,7 @@ const UI_PREF_SESSION_PREFIXES = {
 /** 非存储键的常量例外（逐条给理由；`*_ACTION_KEY` 是业务动作键，不落存储） */
 const NON_STORAGE_CONST_NAMES = {
   RESOLUTION_FOLLOWUP_ACTION_KEY: '待办「决议跟进」动作键（todo.actionKey），不写 localStorage/sessionStorage（services/governance/resolution-followup.js）',
+  MODULE_CYCLE_ACTION_KEY: '待办「模块周期提醒」实时组动作键（todo.actionKey / 实时组 actionKey），不写 localStorage/sessionStorage（services/governance/todo.js，2026-10-06 批次 423）',
 };
 
 // ════════════════════════════════════════════════════════════════

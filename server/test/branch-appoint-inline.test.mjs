@@ -13,12 +13,12 @@
 import { test, before } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261005m';
-import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261005m';
-import { registerMockAdapter, setDataSource } from '../../docs/src/data/data-adapter.js?v=20261005m';
-import { createBranch, getBranchById } from '../../docs/src/services/branch/branch.js?v=20261005m';
-import { PersonStore } from '../../docs/src/services/member/person.js?v=20261005m';
-import { appointInauguralOfficers } from '../../docs/src/services/branch/appointment.js?v=20261005m';
+import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261006a';
+import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261006a';
+import { registerMockAdapter, setDataSource } from '../../docs/src/data/data-adapter.js?v=20261006a';
+import { createBranch, getBranchById } from '../../docs/src/services/branch/branch.js?v=20261006a';
+import { PersonStore } from '../../docs/src/services/member/person.js?v=20261006a';
+import { appointInauguralOfficers } from '../../docs/src/services/branch/appointment.js?v=20261006a';
 
 // ── localStorage 内存桩（member-persist 同款；key/length 供 handleResetIfRequested 枚举）──
 const _store = new Map();

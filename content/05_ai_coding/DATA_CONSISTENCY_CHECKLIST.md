@@ -2,7 +2,7 @@
 title: "数据同源一致性校验手册"
 type: governance
 role: "[工程师]+[AI]"
-last_updated: 2026-10-05
+last_updated: 2026-10-06
 status: active
 related_files: [DATA_MODEL.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 ---
@@ -462,7 +462,8 @@ related_files: [DATA_MODEL.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 
 - [ ] 通知类待办（TodoCategory.NOTICE）= actionable=true 且 actionRoles 非空的通知，为每个角色派生一条（NoticeTodoDeriver，字段驱动而非关键词判断）
 - [ ] 审核类待办（TodoCategory.REVIEW）= 待审核的考勤/考察/复盘记录派生
-- [ ] 赋权类待办（TodoCategory.AUTH）= 活动创建→组长赋权待办（LifecycleTodoDeriver.deriveFromActivityCreate）+ 专班创建→组织委员赋权待办（deriveFromTaskforceCreate）+ 支书待赋权活动派生
+- [ ] 赋权类待办（TodoCategory.AUTH）= 活动创建→**模块主责**赋权待办（LifecycleTodoDeriver.deriveFromActivityCreate，收件人＝该活动所属模块的主责；判据单一源＝`core/domain/work-map.js`）+ 专班创建→`taskforce` 模块主责赋权待办（deriveFromTaskforceCreate）+ 支书待赋权活动派生（2026-10-06 批次 423 · `D-804` 改准：原写「组长 / 组织委员赋权」系固定角色的旧口径）
+- [ ] 模块周期提醒（**实时组、不落库**）= 有制度固定周期的模块（`core/domain/work-map.js::WORK_MAP_MODULES[].cycle`）× 本台主体为其主责 × 本期**无对应活动**（活动类型权威子类名 ↔ 模块 `name`）⇒ 出组卡（`buildModuleCycleRemindGroup`；`D-804`）
 - [ ] 各角色工作台的待办列表仅含与该角色相关的待办
 - [ ] 待办状态流转：pending → in_progress → completed（或 expired）
 - [ ] 支书待办 8 组动态聚合（SecretaryTodoDeriver.computeAggregates）：4 提醒类（考勤>3天未录入/考察超期/复盘>7天未提交/归档材料缺失）+ 4 复核类（考勤/考察/复盘/归档 secretaryConfirmedAt 为空），空组不展示

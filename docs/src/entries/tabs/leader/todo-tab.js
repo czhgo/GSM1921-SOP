@@ -2,9 +2,34 @@
 // 组长工作台 Tab：待办（T-279 M2 拆分；T-304 代码减负 2026-08-30：骨架并入 todo-tab-shell）
 // 最小三成本原则落地：进入即见首条详情，减一次点击。
 
-import { showToast } from '../../../core/base/utils.js?v=20261005m';
-import { createTodoTab } from '../../../components/record/todo-tab-shell.js?v=20261005m';
-import { tryDirectJump } from '../../../components/record/todo-jump.js?v=20261005m';
+import { showToast } from '../../../core/base/utils.js?v=20261006a';
+import { createTodoTab } from '../../../components/record/todo-tab-shell.js?v=20261006a';
+import { tryDirectJump } from '../../../components/record/todo-jump.js?v=20261006a';
+import { mockDB } from '../../../core/domain/domain.js?v=20261006a';
+import { AuthStore } from '../../../services/core/auth.js?v=20261006a';
+import { getBranchIdOfPerson, getBranchWorkforce } from '../../../services/branch/branch.js?v=20261006a';
+import { buildModuleCycleRemindGroup } from '../../../services/governance/todo.js?v=20261006a';
+
+/**
+ * 本台实时组（不落库）：**模块周期提醒**（2026-10-06 批次 423 · `R-29⑤` · `D-804`）
+ * 口径：本台主体（登录角色键 ＋ 本人 personId）名下、**有制度固定周期**的支部分工模块
+ *   （`core/domain/work-map.js::WORK_MAP_MODULES[].cycle`），**本期未见对应活动** ⇒ 出组卡。
+ *   **纯读**：不落库、不改数据、不派任务（与组织台「半年考察提醒」同体例）。
+ * 分工快照取法照 `components/governance/workforce-duty-card.js`（同一口径，勿另写）。
+ */
+function _buildLeaderRealtimeGroups() {
+  const me = AuthStore.getCurrentUser && AuthStore.getCurrentUser();
+  if (!me) return [];
+  const personId = me.personId || me.id;
+  const branchId = personId ? getBranchIdOfPerson(personId) : null;
+  const snapshot = branchId ? getBranchWorkforce(branchId) : null;
+  const group = buildModuleCycleRemindGroup({
+    activities: [...(mockDB.activities || [])],
+    subjectIds: [me.role, personId].filter(Boolean),
+    snapshot,
+  });
+  return group ? [group] : [];
+}
 
 function _handleTodoAction(todo, ctx) {
   // 直达跳转（通知阅读 T-234 F1 / 报名审核 T-233）已收敛于 components/record/todo-jump.js（2026-09-04）
@@ -49,4 +74,6 @@ export const { renderContent } = createTodoTab({
   prefix: 'leader',
   role: 'leader',
   onAction: _handleTodoAction,
+  // 模块周期提醒实时组（`R-29⑤` · `D-804`；纯读、不落库）
+  buildRealtimeGroups: _buildLeaderRealtimeGroups,
 });

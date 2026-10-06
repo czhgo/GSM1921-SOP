@@ -14,19 +14,19 @@
 // 视觉沿用 card/rounded/折叠既有体系（域折组渲染在 components/record/todo-list.js renderDomainTodoList）。
 // 设计权威源：content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md §六 M6（共性抽象净减）
 
-import { TodoStore, urgeRolesOf, WORK_DOMAIN, WORK_DOMAIN_LABELS, realtimeGroupDomainOf } from '../../services/governance/todo.js?v=20261005m';
+import { TodoStore, urgeRolesOf, WORK_DOMAIN, WORK_DOMAIN_LABELS, realtimeGroupDomainOf } from '../../services/governance/todo.js?v=20261006a';
 // S3②（2026-09-12）：未读通知计数单一来源——与顶栏角标/首页同源（NoticeStore activeOnly+read 过滤），
 // 不再用「通知类待办」现算（口径不同致三处不一致）。
-import { NoticeStore, NOTICE_MODULE_ROLE_PAGES } from '../../services/governance/notice.js?v=20261005m';
-import { renderDomainTodoList } from './todo-list.js?v=20261005m';
-import { badgeHtml } from '../ui/badges.js?v=20261005m';
-import { showToast, escHtml, todayLocal } from '../../core/base/utils.js?v=20261005m';
-import { solidAccentStyle, ROLE_LABELS, BRANCH_COMMISSION_ROLES } from '../../core/domain/constants.js?v=20261005m';
-import { openModal, closeModal } from '../ui/modal.js?v=20261005m';
-import { AuthStore } from '../../services/core/auth.js?v=20261005m';
-import { mockDB } from '../../core/domain/domain.js?v=20261005m';
-import { tokenOf } from '../../core/base/version-token.js?v=20261005m'; // P0 域写版本戳（spec §二.4）
-import { memoizeRender } from '../ui/memoize-render.js?v=20261005m'; // P2 渲染守卫（spec §四.1）
+import { NoticeStore, NOTICE_MODULE_ROLE_PAGES } from '../../services/governance/notice.js?v=20261006a';
+import { renderDomainTodoList } from './todo-list.js?v=20261006a';
+import { badgeHtml } from '../ui/badges.js?v=20261006a';
+import { showToast, escHtml, todayLocal } from '../../core/base/utils.js?v=20261006a';
+import { solidAccentStyle, ROLE_LABELS, BRANCH_COMMISSION_ROLES } from '../../core/domain/constants.js?v=20261006a';
+import { openModal, closeModal } from '../ui/modal.js?v=20261006a';
+import { AuthStore } from '../../services/core/auth.js?v=20261006a';
+import { mockDB } from '../../core/domain/domain.js?v=20261006a';
+import { tokenOf } from '../../core/base/version-token.js?v=20261006a'; // P0 域写版本戳（spec §二.4）
+import { memoizeRender } from '../ui/memoize-render.js?v=20261006a'; // P2 渲染守卫（spec §四.1）
 
 // ── P0 组合数据复合键（2026-09-07 · spec §二.4）──────────────────
 // 组合点（buildRealtimeGroups + mergeRealtimeDomains + getUnreadNotices）以

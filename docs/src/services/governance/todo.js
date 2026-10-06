@@ -6,14 +6,18 @@
 //         content/04_web_design/design-system/DESIGN_SYSTEM.md §一 第6条
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../../core/domain/domain.js?v=20261005m';
-import { persist } from '../../data/data-adapter.js?v=20261005m';
-import { generateId } from '../../core/base/id.js?v=20261005m';
-import { bumpToken, tokenOf } from '../../core/base/version-token.js?v=20261005m';
+import { mockDB } from '../../core/domain/domain.js?v=20261006a';
+import { persist } from '../../data/data-adapter.js?v=20261006a';
+import { generateId } from '../../core/base/id.js?v=20261006a';
+import { bumpToken, tokenOf } from '../../core/base/version-token.js?v=20261006a';
 // 待批活动状态值单一源（2026-09-22 批次 151 · 支书裁定「只支委层可见」）：待批活动**不是**「待参与」的活动
 // ——它还没获批（与 `draft` 同待遇），不为它派生「参与活动」待办（也免得从待办标题把没批的活动漏出去）。
-import { PENDING_APPROVAL_STATUS } from '../activity/activity.js?v=20261005m';
-import { todayLocal, _fmtDate } from '../../core/base/utils.js?v=20261005m';
+import { PENDING_APPROVAL_STATUS } from '../activity/activity.js?v=20261006a';
+import { todayLocal, _fmtDate } from '../../core/base/utils.js?v=20261006a';
+// 周期键（月/季/半年/年）与「模块周期」单一源（2026-10-06 批次 423 · `R-29⑤` · `D-804`）——
+//   周期任务的**来源**＝`work-map.js::WORK_MAP_MODULES[].cycle`（不另立第二份映射，`D-803②`）。
+import { cyclePeriodOf, cyclePeriodLabel } from '../../core/base/period.js?v=20261006a';
+import { WORK_MAP_MODULES, expandWorkforce, ownerOfModule, moduleIdOfActivity } from '../../core/domain/work-map.js?v=20261006a';
 
 // ── 待办分类枚举 ──────────────────────────────────────────────
 export const TodoCategory = {
@@ -188,6 +192,8 @@ export const REALTIME_GROUP_DOMAIN = {
   'semester-detained-remind': WORK_DOMAIN.MEMBER_DEV,
   'develop-node-remind': WORK_DOMAIN.MEMBER_DEV, // 发展节点期满提醒（组织委员流程指南附录A）
   'half-year-inspection-remind': WORK_DOMAIN.MEMBER_DEV, // 半年考察提醒（SOP-B-39 · D-295）
+  // 模块周期提醒（`R-29⑤` · `D-804`）：三会一课 / 主题党日类**会议与活动形态** ⇒ 归「项目」域（`D-787` 同域）。
+  'module-cycle-remind': WORK_DOMAIN.PROJECT,
   // 待办作废待确认（`#1`/`D-742`）：责任人 `requestVoid` 后派生到支书台的实时组 →
   // 「报支委会」＝一次上报/请示，归「汇报反馈」域（`D-743` 登记：域归属为落地时裁定，非支书专门圈定）。
   'todo-void-confirm': WORK_DOMAIN.REPORT_UP,
@@ -379,6 +385,75 @@ export function buildHalfYearInspectionRemindGroup({ members = [], records = [],
     domain: WORK_DOMAIN.MEMBER_DEV,
     title: `半年考察提醒（${period}）`,
     flow: '考察意见半年一次（制度固定）→ 本半年内无考察记录 → 组织委员核对建档；考察记录的督办位仍在纪检台',
+    count: items.length,
+    items,
+  };
+}
+
+// ════════════════════════════════════════════════════════════════
+//  模块周期提醒（2026-10-06 批次 423 · `R-29⑤` · `D-804`）
+//  依据：支书 2026-10-06 裁「`R-29⑤` **落地（新功能）**」——补上 `R-29` ⑤「信息传递仍以
+//    『提醒＋入口』为限（**未生成周期性任务**）」。
+//  口径（三条，全部取自**既有单一源**，**不新造第二份映射**，`D-803②`）：
+//    · **周期来源**＝`core/domain/work-map.js::WORK_MAP_MODULES[].cycle`（只填母本可核者）；
+//    · **期键**＝`core/base/period.js::cyclePeriodOf`（月/季/半年/年 四选一）；
+//    · **「本期已开展」判据**＝本模块本期**存在对应活动**——模块 ↔ 活动的匹配取
+//      `work-map.js::moduleIdOfActivity`（活动类型**权威子类名** ↔ 模块 `name`，无第二份映射）。
+//  **纯读实时组**：不落库、不改数据模型、**不派任务**（同 `buildHalfYearInspectionRemindGroup` 体例：
+//    天然幂等、跨期自动翻篇、无定时器）。**只报「本期未见开展」这一事实**，不推定应到口径。
+//  ⚠ **只对「主责∈本台主体集」的模块出条**（分工快照 `config.workforce` 覆盖 ＋ 缺省兜底；停用不计）。
+// ════════════════════════════════════════════════════════════════
+
+/** 周期提醒实时组的 actionKey（组卡 / 域标注 / 判据共用一处） */
+export const MODULE_CYCLE_ACTION_KEY = 'module-cycle-remind';
+
+/**
+ * 派生「本周期尚未开展」实时组（按模块周期；只列本主体主责的模块）。
+ * @param {Object} opts
+ * @param {Array}  [opts.activities] 全部活动（读 `type` / `date`；缺省＝[]）
+ * @param {Array}  [opts.subjectIds]  本台主体集（角色键 / 组织型主体 id；如 `['leader']`）
+ * @param {Record<string,{ownerType,ownerId}>|null} [opts.snapshot] 分工快照（缺省＝缺省分工兜底）
+ * @param {string} [opts.today]       日期键 YYYY-MM-DD（缺省＝今天）
+ * @returns {Object|null} 实时组；无「本期未开展」的模块 → null（不产生空组卡）
+ */
+export function buildModuleCycleRemindGroup({ activities = [], subjectIds = [], snapshot = null, today } = {}) {
+  const ids = (Array.isArray(subjectIds) ? subjectIds : [subjectIds]).filter(Boolean);
+  if (!ids.length) return null;
+  // 快照接受「`config.workforce` 原样」或「`expandWorkforce` 展开后」——展开幂等，故一律再展开一次
+  const snap = expandWorkforce(snapshot);
+  const day = today || _todayStr();
+  if (!/^\d{4}-\d{2}/.test(String(day))) return null;
+  const items = [];
+  for (const m of WORK_MAP_MODULES) {
+    const cyc = m.cycle;
+    if (!cyc || !cyc.unit) continue;                       // 无制度固定周期 ⇒ 不派生（如实登记）
+    const owner = ownerOfModule(m.id, snap);
+    if (!owner || !ids.includes(owner.ownerId)) continue;  // 非本主体主责 / 已停用 ⇒ 不派生
+    const period = cyclePeriodOf(day, cyc.unit);
+    if (!period) continue;
+    const done = (activities || []).some((a) => {
+      if (!a || moduleIdOfActivity(a) !== m.id) return false;
+      const d = String(a.date || '').slice(0, 10);
+      return !!d && cyclePeriodOf(d, cyc.unit) === period;
+    });
+    if (done) continue;
+    items.push({
+      id: `cycle-${m.id}-${period}`,
+      moduleId: m.id,
+      moduleName: m.name,
+      period,
+      ownerType: owner.ownerType,
+      ownerId: owner.ownerId,
+      title: `${cyclePeriodLabel(period, cyc.unit)}的「${m.name}」尚未开展`,
+    });
+  }
+  if (!items.length) return null;
+  return {
+    groupKey: MODULE_CYCLE_ACTION_KEY,
+    actionKey: MODULE_CYCLE_ACTION_KEY,
+    domain: WORK_DOMAIN.PROJECT,
+    title: '本周期尚未开展（支部分工模块）',
+    flow: '模块周期（母本可核者）→ 本期未见对应活动 → 主责人据此组织；不派任务、不改数据',
     count: items.length,
     items,
   };
@@ -1175,18 +1250,50 @@ export const NoticeTodoDeriver = {
 //  Source: content/04_web_design/data/DATA_ARCHITECTURE.md §2.18.3
 // ════════════════════════════════════════════════════════════════
 
+/**
+ * 赋权待办收件人（**联动赋权** · 2026-10-06 批次 423 · `R-29⑤` · `D-804`）
+ * 口径：**收件人取模块主责**（分工快照 `config.workforce` 命中即支部实际改派；缺省＝模块 `defaultOwner`）
+ *   ——判据单一源＝`core/domain/work-map.js`，**不新造第二份映射**（`D-803②`）。
+ * 三档：
+ *   · 主责＝**角色键** ⇒ 收件人＝该角色（`role`），**待办落到该角色台**；
+ *   · 主责＝**具体人** ⇒ 补 `personId`（定向），但 `role` 仍回退本台固定角色（**待办只有 `role` 索引**，
+ *     见 `TodoStore.getByRole` ⇒ 不写 `role` 会让待办**不可见**）——**如实登记为余项**（待「按人索待办」）；
+ *   · 主责＝**组织型主体** / 无模块（活动无 `type`）/ 已停用 ⇒ **回退固定角色**（既有行为，一字不改）。
+ * @param {string} fallbackRole 回退角色（活动＝`leader`；专班＝`org-commissioner`）
+ * @param {string|null} moduleId 模块 id（活动按 `type` 归一；专班固定 `taskforce`）
+ * @param {Record<string,{ownerType,ownerId}>|null} [snapshot] 分工快照
+ * @returns {{role:string, personId:string|null, ownerType:string|null, ownerId:string|null}}
+ */
+function _authzRecipient(fallbackRole, moduleId, snapshot) {
+  // 快照接受「`config.workforce` 原样」或「`expandWorkforce` 展开后」——展开幂等，故一律再展开一次
+  const owner = moduleId ? ownerOfModule(moduleId, expandWorkforce(snapshot)) : null;
+  if (!owner) return { role: fallbackRole, personId: null, ownerType: null, ownerId: null };
+  if (owner.ownerType === 'person') {
+    return { role: fallbackRole, personId: owner.ownerId, ownerType: 'person', ownerId: owner.ownerId };
+  }
+  if (owner.ownerType === 'role') {
+    return { role: owner.ownerId, personId: null, ownerType: 'role', ownerId: owner.ownerId };
+  }
+  // 组织型主体（支委会 / 党委 / 支委扩大会）不是登录身份 ⇒ 无台可落，回退固定角色
+  return { role: fallbackRole, personId: null, ownerType: owner.ownerType, ownerId: owner.ownerId };
+}
+
 export const LifecycleTodoDeriver = {
   /**
-   * 活动创建后，自动为党小组组长生成赋权待办
+   * 活动创建后，自动派生**赋权待办**（收件人＝该活动所属模块的主责，见 `_authzRecipient`）
    * @param {Object} activity - 活动对象
+   * @param {{snapshot?:Record<string,{ownerType,ownerId}>|null}} [opts] 分工快照（缺省＝缺省分工）
    */
-  deriveFromActivityCreate(activity) {
+  deriveFromActivityCreate(activity, opts = {}) {
     if (!activity || !activity.id) return [];
+    const moduleId = moduleIdOfActivity(activity);
+    const to = _authzRecipient('leader', moduleId, opts.snapshot);
 
     return TodoStore.createBatch([{
       title: `为活动「${activity.title || '未命名'}」赋权组织者/深度参与者`,
       description: `活动日期：${activity.date || '未设定'}。请选择人员授予组织者或深度参与者角色。`,
-      role: 'leader',
+      role: to.role,
+      personId: to.personId,
       category: TodoCategory.AUTH,
       priority: 'urgent',
       deadline: activity.date || null,
@@ -1199,23 +1306,29 @@ export const LifecycleTodoDeriver = {
         scope: 'activity', sourceId: activity.id, sourceName: activity.title,
         // IA-C1 Task2：源活动 scenarioId 落 actionData → domain 判定点（三会→会务，theme-party 等→活动/项目）
         scenarioId: activity.scenarioId || activity.type || null,
+        // 联动赋权（`R-29⑤`）：落模块 + 主责，供界面显示「本活动对应哪个模块、主责是谁」
+        moduleId: moduleId || null,
+        ownerType: to.ownerType, ownerId: to.ownerId,
       },
       // E2 数据上下游标注
-      flow: '活动创建 → 组长赋权 → 组织者/深度参与者执行',
+      flow: '活动创建 → 模块主责赋权 → 组织者/深度参与者执行',
     }]);
   },
 
   /**
-   * 专班创建后，自动为组织委员生成赋权待办
+   * 专班创建后，自动派生**赋权待办**（模块固定 `taskforce`，收件人＝其主责）
    * @param {Object} taskforce - 专班对象
+   * @param {{snapshot?:Record<string,{ownerType,ownerId}>|null}} [opts] 分工快照（缺省＝缺省分工）
    */
-  deriveFromTaskforceCreate(taskforce) {
+  deriveFromTaskforceCreate(taskforce, opts = {}) {
     if (!taskforce || !taskforce.id) return [];
+    const to = _authzRecipient('org-commissioner', 'taskforce', opts.snapshot);
 
     return TodoStore.createBatch([{
       title: `为专班「${taskforce.name || '未命名'}」赋权组织者/深度参与者`,
       description: `专班周期：${taskforce.startDate || '?'} ~ ${taskforce.endDate || '?'}. 请选择人员授予组织者或深度参与者角色。`,
-      role: 'org-commissioner',
+      role: to.role,
+      personId: to.personId,
       category: TodoCategory.AUTH,
       priority: 'urgent',
       deadline: taskforce.startDate || null,
@@ -1224,9 +1337,12 @@ export const LifecycleTodoDeriver = {
       actionType: TodoActionType.AUTHORIZE,
       // IA-C1 Task2：稳定业务动作键（专班赋权 → 专班域聚合）
       actionKey: 'taskforce-authorize',
-      actionData: { scope: 'taskforce', sourceId: taskforce.id, sourceName: taskforce.name },
+      actionData: {
+        scope: 'taskforce', sourceId: taskforce.id, sourceName: taskforce.name,
+        moduleId: 'taskforce', ownerType: to.ownerType, ownerId: to.ownerId,
+      },
       // E2 数据上下游标注
-      flow: '专班创建 → 组织委员赋权 → 成员执行',
+      flow: '专班创建 → 模块主责赋权 → 成员执行',
     }]);
   },
 
