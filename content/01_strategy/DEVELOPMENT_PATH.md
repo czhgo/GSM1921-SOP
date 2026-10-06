@@ -2,7 +2,7 @@
 title: "发展路径"
 type: guide
 role: "[用户]+[AI]"
-last_updated: "2026-09-26"
+last_updated: "2026-10-06"
 status: active
 related_files: [ARCHITECTURE.md, CLAUDE.md, content/04_web_design/data/DATA_MODEL.md, content/02_institution/SYSTEM_ROLE_PERMISSION.md, content/02_institution/COMMISSIONER_DUTY_FRAMEWORK.md, content/insights/党支部管理与实务经验沉淀.md, content/02_institution/sop/支委与党小组定人定责定岗说明.md, SECRETARY_DIRECTIVES.md]
 ---

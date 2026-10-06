@@ -2,7 +2,7 @@
 title: "经验沉淀索引——跨多类组织智慧"
 type: index
 role: "[用户]+[工程师]"
-last_updated: "2026-09-26"
+last_updated: "2026-10-06"
 status: active
 ---
 
