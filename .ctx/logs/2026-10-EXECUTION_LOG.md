@@ -2270,3 +2270,17 @@ $body
 **坑（如实登记）**：两轮 PowerShell `String.Replace` 批量改 `renderContent` 签名**静默失败**（CRLF/LF 差异），致第一轮探针考勤区空挂——教训：结构性代码改动一律用 Edit 工具逐处落、改后必须 grep 复核「改到了没有」，不得信脚本返回的成功打印。
 
 **读数**：`S6`＋`module-load`＋`capability-registry`＋`version-stamp`＋`doc-line-ref`＋`permission-gate` 54/54 绿。
+
+## 批次 437（2026-10-06 · 支书五点新令 · 快速收尾 + README 使用指南 + 服务常开）
+
+**① 评议待办/在办快速收尾（`D-809`）**：R-23/R-29 边界结项删行（R-23 唯余项＝落点 `targetPage` 前端口径；R-29 唯余项＝服务端无待办派生器〔既有形态，前端双形态同码派生〕——两条均「如实边界、非在办」，正文入本日志）；T-206 撤销（支书裁）；T-118 随治理文档三份合一（批次 179–202）收口结项；P3 空表删节。乙部现余＝持续任务 C-3/C-4 ＋ V-10b（待支书页面上传，体验时可顺手完成）。`S15①` 判据同批改「允许空表」（锚点＝节头在＋迁出附节全集断言）。
+
+**② 机械评议砍除改 CLI（`D-809`③）**：C 表 10 行 → 2 行（C-3/C-4 保留）；C-1/C-2/C-5/C-6-1…C-6-5 删行，注记「机械面＝`cd server && npm test`（守卫族）」；需支书判断的评议按需发起（机制在 `H60.5`，不驻乙部）。
+
+**③ README 快速开始（支书令「非常重要」）**：根 README 新增「三条命令跑起来，浏览器即用」节——clone → `cd server && npm install` → `npm start` → **http://localhost:3000**；演示账号八个代表学号（口令 123456）＋完整表指针；真实数据空库起步（`DISABLE_SEED=1`）；**局域网免域名直连**（`http://<本机IP>:3000`）＋公网部署指针（DEPLOYMENT_GUIDE / deploy 一键包）＋重置/测试备查。
+
+**④ 服务已常开供支书体验**：`http://localhost:3000`（演示库 51 账号在库；日志见 50 演示种子自检通过）。
+
+**⑤ 归档现状口径（答支书问，人话版见会话）**：active/archive 同库不同态——活动归档＝软删位 `archived` ＋ 级联完结任务（不迁表）；宣传材料＝`archive_records` ＋ 附件物理文件落 `server/uploads`（删记录连删物理文件）；**读频**＝活跃面全站默认过滤（`isActivityLive`），归档面只在档案/详情/归档库可见；**权限**＝归档动作白名单（宣传委员本位 ＋ 支书/副支书代归档本台直执〔`D-807`④〕），写口不随归档放宽；**server 侧可传接**＝① `server/scripts/backup.mjs`（WAL checkpoint ＋ 库 ＋ uploads 整目录，幂等）② 报表 CSV 导出（四域）③ 上传接口（`POST /api/v1/uploads`）。**边界（如实）**：无冷热分级存储（支部规模单库即标准做法，暂不立项——防过度工程）。
+
+**读数**：`doc-consistency`+`link-integrity`+`copy-master`+`copy-length`+`frontmatter-freshness` 36/36 绿。

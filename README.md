@@ -16,6 +16,26 @@ MIT · Node ≥ 22 · 原生 ESM（无打包器/无构建步骤）· 纯本地�
 
 ---
 
+## 快速开始：三条命令跑起来，浏览器即用
+
+> **你要用这个系统，只需要下面三步**——页面、接口、数据库同源一体，无需任何构建或域名。
+
+```bash
+git clone https://github.com/<你的组织>/GSM1921-SOP.git   # ① 克隆本仓库
+cd GSM1921-SOP/server && npm install                       # ② 装依赖（仅首次；需 Node ≥ 22）
+npm start                                                  # ③ 启动服务
+```
+
+**打开浏览器访问 <http://localhost:3000>** 即可使用：
+
+1. **登录**：登录页用**演示账号**（示例支部 · 账号即学号 · 口令统一 `123456`）——支书 `2300010001`、副支书 `2300010002`、组织委员 `2400012355`、宣传委员 `2400012356`、纪检委员 `2400012354`、组长 `2400012345`、普通成员 `2400012349`、党委组织员 `9000000001`（完整 18 个见 `docs/src/data/mock/accounts.js`；成员视角说明见 [README-members.md](README-members.md)）。接入校园统一身份认证走登录页「统一身份认证登录」（需先完成 IAAA 备案，见 [README-server.md](README-server.md) 文末）。
+2. **按身份直达角色工作台**：支书 / 组织 / 宣传 / 纪检 / 党小组组长 / 成员 / 党委七台；写活动、传考勤考察、发通知、报周报、思想汇报、名册与审批……**全部在浏览器里操作，数据实时落库**（SQLite 单文件 `server/data.db`，重启不丢）。
+3. **换真实数据**：演示种子只为开箱即跑——真实使用以空库起步（`DISABLE_SEED=1 npm start`，或删 `server/data.db` 后带该变量重启），再用**页面**录入名册 / 导入自我描述 / 写组织信息（换壳向导），**不要手改任何数据文件**。
+4. **同学的手机 / 电脑一起用**：同一局域网内直接访问 `http://<启动机器的IP>:3000`（查 IP：Windows `ipconfig`）；**无需域名**。要上公网（域名 / HTTPS / nginx 反代）见 [content/04_web_design/deploy/DEPLOYMENT_GUIDE.md](content/04_web_design/deploy/DEPLOYMENT_GUIDE.md) 与 [deploy/](deploy/) 一键安装包。
+5. **不装 Node 只想看看**：GitHub Pages 在线只读演示（写操作关闭）；**日常备查**：`Ctrl+C` 停服务，`cd server && npm test` 跑全量测试，`rm server/data.db` 后重启即重置演示数据。
+
+---
+
 <!--FUNC-MAP:ANCHOR-->
 
 ## 功能地图
