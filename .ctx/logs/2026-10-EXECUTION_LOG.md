@@ -2258,3 +2258,15 @@ $body
 **读数（降频窗全量 · 430–434 五 commit 后）**：改前单通道全量 1337.6s（≈22.3min ❌）→ 中间版双通道 1276.0s（非 e2e ∥ e2e 串行，全绿）→ **本批三通道 986.7s ≈ 16.4 分钟 ✅（≤20min）**，三道全绿（`[node]=绿 · [e2e-A]=绿（18 件）· [e2e-B]=绿（17 件）`）。分片档（`npm test`）同步受益：非 e2e 道并行化后预计 <8.6min（未单独复测，下批收尾实测）。
 
 **边界（如实登记）**：① 沙箱在 playwright 崩溃件写 `chrome-headless-shell\debug.log` 时会杀包装进程（本两轮全量的 wrapper exit=1 均系此、套件本体已全绿打印「全通道完成」——同 `H-12` 既有登记）；真机/CI 不受影响。② e2e 双道按**文件数**粗平衡（非按时长），B 道含 form-loop-sweep 为长杆（986.4s）；后续若超时可按时长精调。
+
+## 批次 436（2026-10-06 · 执行 `D-808` · 组织者上传位归成员本台）——进行中
+
+## 批次 436（2026-10-06 · 执行 `D-808` · 组织者上传位归成员本台）
+
+**做了什么（指针）**：① 成员台「考勤概况 / 我的考察」顶部新增「**由我组织的活动**」上传位区（本人是被指定组织者时才出现，判据单一源 `getOrganizedActivities`；**实现单一源＝组长台两页**——`leader/attendance-tab.js` / `leader/inspection-tab.js` 的 `renderContent(ctx, host)` 加 host 参数〔缺省原容器、行为零变化〕，成员台经宿主容器懒挂，**不复制表单**〔H31，同 weekly-tab 宿主先例〕）；② 撤跨台链——`bootstrap.js` 组织者放行门、`activity.js::isOrganizerFallbackPage`、`leader-workspace.js` 的 tab 收窄；③ `capability-registry` 守卫同批改判据（清单只剩党委演示门＋两门零残留断言）；④ README-server §3.2.5 特例段改写 ＋ §3.2.6 两行补上传位 ＋ `ACTIVE_RULINGS` D-494 行按 `D-808` 改准；⑤ form-loop 台账 15 处行号改签（visitor 两件随插入位移、leader 两件随 host 参数 +1、activity.js 锚点 −9）＋ 版本戳统一 bump。
+
+**真机取证（p3 · 成员身份 · 四场活动组织者 · API 会话注入）**：考勤页上传位区在场且含表单 ✓ · 考察页同 ✓ · 直开组长台被重定向回成员台 ✓ · pageerror 0 ✓（探针跑完即删）。
+
+**坑（如实登记）**：两轮 PowerShell `String.Replace` 批量改 `renderContent` 签名**静默失败**（CRLF/LF 差异），致第一轮探针考勤区空挂——教训：结构性代码改动一律用 Edit 工具逐处落、改后必须 grep 复核「改到了没有」，不得信脚本返回的成功打印。
+
+**读数**：`S6`＋`module-load`＋`capability-registry`＋`version-stamp`＋`doc-line-ref`＋`permission-gate` 54/54 绿。

@@ -4,12 +4,12 @@
 //  与 attendance.js / inspection.js 同构：mockDB 优先 + mock 常量 fallback
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB, ReviewStatus } from '../../core/domain/domain.js?v=20261006h';
-import { persist } from '../../data/data-adapter.js?v=20261006h';
-import { bumpToken } from '../../core/base/version-token.js?v=20261006h';
-import { BRANCH_COMMISSION_ROLES, ACTIVITY_CLASSIFICATION, SECRETARY_AND_DEPUTY_ROLES } from '../../core/domain/constants.js?v=20261006h';
-import { ACTIVITIES } from '../../data/mock/index.js?v=20261006h';
-import { isInitStateActive } from '../core/init-reset.js?v=20261006h'; // C2 修复（2026-09-08）：init 态空态不回退演示种子
+import { mockDB, ReviewStatus } from '../../core/domain/domain.js?v=20261006j';
+import { persist } from '../../data/data-adapter.js?v=20261006j';
+import { bumpToken } from '../../core/base/version-token.js?v=20261006j';
+import { BRANCH_COMMISSION_ROLES, ACTIVITY_CLASSIFICATION, SECRETARY_AND_DEPUTY_ROLES } from '../../core/domain/constants.js?v=20261006j';
+import { ACTIVITIES } from '../../data/mock/index.js?v=20261006j';
+import { isInitStateActive } from '../core/init-reset.js?v=20261006j'; // C2 修复（2026-09-08）：init 态空态不回退演示种子
 
 /** 读取全部活动（同步接口，供 UI 层使用） */
 export function loadActivities() {
@@ -229,21 +229,12 @@ export function listMyProjectTasks(personId) {
   return out;
 }
 
-// ── 组织者兜底进入组长台的放行门（2026-09-19 批次 91）────────────────────
-// 与 `core/domain/constants.js::isArchiveFallbackPage`（支书/副支书兜底进宣传台归档面）同款：
-//   **这位组织者的「事」在组长台那两个上传位上**（考勤上传 / 考察上传——判据与表单都是现成的，
-//   见 `entries/tabs/leader/attendance-tab.js` 与 `inspection-tab.js`），故按「人」放行这一页；
-//   放行面由 `capabilities/leader-workspace.js` 收窄到「我的职责」里的那两个 tab，
-//   **不放宽任何写权限**（写口仍按 `canUploadAttendance` / 组织者身份逐场判定）。
-// 放行判据需读活动数据，故本门落在服务层（`core/domain/constants.js` 只引零依赖叶子、不成环，不入那侧）。
-// 消费点单一源：`core/boot/bootstrap.js` 身份门 —— 勿手写第二份。
-export const ORGANIZER_FALLBACK_PAGE = 'leader.html';
-export function isOrganizerFallbackPage(personId, page) {
-  if (!personId) return false;
-  const norm = (p) => (p || '').replace(/\.html$/, '');
-  if (norm(page) !== norm(ORGANIZER_FALLBACK_PAGE)) return false;
-  return getOrganizedActivities(personId).length > 0;
-}
+// ── 组织者上传位的承载（D-808 · 2026-10-06 改准）────────────────────────
+// 原「组织者兜底进入组长台的放行门」（isOrganizerFallbackPage / ORGANIZER_FALLBACK_PAGE，
+// 2026-09-19 批次 91）已按支书圈甲撤除——「组长和组织者是两个概念」：组织者的考勤/考察上传位
+// 改挂【成员本人】页面（visitor 两 tab 顶部「由我组织的活动」区，host 复用 leader 两 tab 实现）。
+// `getOrganizedActivities` 保留：成员台判定「是否呈现上传位」的单一源。
+// 写口不放宽也不收窄——仍按 `canUploadAttendance` / 组织者身份逐场判定。
 
 // ════════════════════════════════════════════════════════════════
 //  品牌认定：提案 → 支委会审议通过后确定（2026-09-21 批次 132 · 支书口径二）
@@ -765,8 +756,8 @@ export async function openCommitteeVoteForActivity({ activityId, by, role, mode 
   if (existing) return { ok: true, already: true, agendaItemId: existing.id };
   // 动态引入（不改本文件行号；表决配置与 id 生成的单一源仍在各自模块，不在此另写一套）
   const [{ defaultVoteConfig, resolveVoterIds }, { generateId }] = await Promise.all([
-    import('./vote-config.js?v=20261006h'),
-    import('../../core/base/id.js?v=20261006h'),
+    import('./vote-config.js?v=20261006j'),
+    import('../../core/base/id.js?v=20261006j'),
   ]);
   const agendaItemId = generateId('ag');
   const at = new Date().toISOString();

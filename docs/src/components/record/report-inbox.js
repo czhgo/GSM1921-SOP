@@ -8,13 +8,13 @@
 //  本组件禁用 SVG 图标（支书 2026-08-10 裁定），类别用色点+文字标签区分
 // ════════════════════════════════════════════════════════════════
 
-import { IssueStore, deriveIssueDisplayState, REPORT_CATEGORIES } from '../../services/governance/issues.js?v=20261006h';
-import { AuthStore } from '../../services/core/auth.js?v=20261006h';
-import { showToast, escHtml } from '../../core/base/utils.js?v=20261006h';
-import { getPersonName } from '../../services/member/person.js?v=20261006h';
-import { solidAccentStyle } from '../../core/domain/constants.js?v=20261006h';
+import { IssueStore, deriveIssueDisplayState, REPORT_CATEGORIES } from '../../services/governance/issues.js?v=20261006j';
+import { AuthStore } from '../../services/core/auth.js?v=20261006j';
+import { showToast, escHtml } from '../../core/base/utils.js?v=20261006j';
+import { getPersonName } from '../../services/member/person.js?v=20261006j';
+import { solidAccentStyle } from '../../core/domain/constants.js?v=20261006j';
 // 统一检索引擎（2026-09-14 批次 37）：待答复汇报列表接入（关键词 事项/汇报人 + 引擎内置分页）
-import { renderFilteredList } from '../ui/list-filter.js?v=20261006h';
+import { renderFilteredList } from '../ui/list-filter.js?v=20261006j';
 
 // ── E-3（2026-09-09 · H60.7 面板保态复查③）：列表瞬态草稿互扰兜底 ──────
 // 某行正式答复成功 → onAnswered → 调用方整块重渲染（支书待办/组长组员汇报），

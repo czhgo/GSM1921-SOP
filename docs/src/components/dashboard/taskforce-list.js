@@ -5,8 +5,8 @@
 //  职责单一：活跃/招募中专班列表（前 5 条，进度条 + 状态徽章）。
 // ════════════════════════════════════════════════════════════════
 
-import { getPersonName } from '../../services/member/person.js?v=20261006h';
-import { todayLocal } from '../../core/base/utils.js?v=20261006h';
+import { getPersonName } from '../../services/member/person.js?v=20261006j';
+import { todayLocal } from '../../core/base/utils.js?v=20261006j';
 
 const TF_STATUS_BADGE = {
   recruiting: { text: '招募中', cls: 'bg-orange-100 text-orange-700' },

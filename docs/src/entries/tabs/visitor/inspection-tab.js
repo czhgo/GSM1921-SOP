@@ -2,18 +2,18 @@
 // 参与者工作台 Tab：我的考察（T-279 M3 拆分，照 M2 样板）
 // 个人考察记录查询视图（spec §五 数据访问规则：支部成员对自己的历次活动参与考察情况有查询视图）。
 
-import { AuthStore } from '../../../services/core/auth.js?v=20261006h';
+import { AuthStore } from '../../../services/core/auth.js?v=20261006j';
 // 待批活动的可见性单一源（2026-09-22 批次 151 · 支书裁定「只支委层可见」）：成员台非支委层 ⇒ 待批活动
 // 不在本页「考察申诉选活动」下拉里出现。
-import { filterActivitiesForViewer } from '../../../services/core/visibility.js?v=20261006h';
-import { loadActiveInspectionRecords } from '../../../services/activity/inspection.js?v=20261006h';
-import { inspectionToDisplay, createInspectionAppeal, loadInspectionAppeals } from '../../../services/activity/inspection.js?v=20261006h';
-import { loadActivities } from '../../../services/activity/activity.js?v=20261006h';
-import { ROLE_COLORS } from '../../../core/domain/constants.js?v=20261006h';
-import { badgeHtml } from '../../../components/ui/badges.js?v=20261006h';
-import { showToast, escHtml as esc } from '../../../core/base/utils.js?v=20261006h';
+import { filterActivitiesForViewer } from '../../../services/core/visibility.js?v=20261006j';
+import { loadActiveInspectionRecords } from '../../../services/activity/inspection.js?v=20261006j';
+import { inspectionToDisplay, createInspectionAppeal, loadInspectionAppeals } from '../../../services/activity/inspection.js?v=20261006j';
+import { loadActivities, getOrganizedActivities } from '../../../services/activity/activity.js?v=20261006j';
+import { ROLE_COLORS } from '../../../core/domain/constants.js?v=20261006j';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20261006j';
+import { showToast, escHtml as esc } from '../../../core/base/utils.js?v=20261006j';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是活动的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
-import { renderFilteredList, activityKeyword, activityFacets } from '../../../components/ui/list-filter.js?v=20261006h';
+import { renderFilteredList, activityKeyword, activityFacets } from '../../../components/ui/list-filter.js?v=20261006j';
 
 export function renderContent(ctx) {
   const tc = document.getElementById('visitor-tab-content');
@@ -49,7 +49,17 @@ export function renderContent(ctx) {
       }).join('')}
     </div>`;
 
+  // D-808（2026-10-06 支书圈甲「组长和组织者是两个概念」）：被指定为组织者的成员，考察上传位长在
+  // 【本人】页面——顶部挂「由我组织的活动 · 考察上传位」（实现单一源＝leader/inspection-tab.js，
+  // host 宿主复用、不复制表单）；原「组织者兜底进组长台」跨台形态已同批撤除（bootstrap 放行门一并撤）。
+  const myOrgActs = getOrganizedActivities(personId).filter(a => a.archived !== true);
+
   tc.innerHTML = `
+    ${myOrgActs.length ? `
+    <div class="mb-4">
+      <div class="text-xs text-gray-500 mb-1.5">由我组织的活动 · 考察上传位（考察记录由组织者上传；此处即你的上传面）</div>
+      <div id="visitor-org-insp-host"></div>
+    </div>` : ''}
     <div class="mb-3 p-3 rounded-lg bg-white flex items-center gap-4">
       <div class="flex-1">
         <p class="text-sm font-semibold text-gray-800">我的考察记录</p>
@@ -71,6 +81,12 @@ export function renderContent(ctx) {
     </div>
     <div id="visitor-insp-list" class="space-y-2"></div>
   `;
+
+  // 挂「由我组织的活动」上传位（实现单一源＝leader/inspection-tab，host 复用）
+  const _orgInspHost = document.getElementById('visitor-org-insp-host');
+  if (_orgInspHost) {
+    import('../leader/inspection-tab.js?v=20261006j').then(m => { if (_orgInspHost.isConnected) m.renderContent(ctx, _orgInspHost); });
+  }
 
   // 提交申诉（同考勤申诉口径：先去纪检核实，不直接改考察记录）
   document.getElementById('visitor-insp-appeal-submit')?.addEventListener('click', () => {

@@ -147,9 +147,9 @@ test('P2 支书任命：任命宋佳宁(p5)为支书 → p5 登录直达支书�
       return h && h.textContent.includes('光华管理学院党委');
     }, { timeout: 10000 });
     const appoint = await page.evaluate(async () => {
-      const { appointSecretary } = await import('/src/services/branch/appointment.js?v=20261006h');
+      const { appointSecretary } = await import('/src/services/branch/appointment.js?v=20261006j');
       await appointSecretary({ branchId: 'br-b1', personId: 'p5', note: 'E2E 换届测试' });
-      const { mockDB } = await import('/src/core/domain/domain.js?v=20261006h');
+      const { mockDB } = await import('/src/core/domain/domain.js?v=20261006j');
       const branch = (mockDB.branches || []).find(b => b.id === 'br-b1');
       const recs = (mockDB.appointmentRecords || []).filter(r => r.branchId === 'br-b1');
       return { secretaryId: branch?.secretaryId, recs: recs.length, currentTo: (recs.find(r => !r.to) || {}).secretaryId };
@@ -227,7 +227,7 @@ test('A⑤ 党委「进入支部」API 会话下钻：进入支部只读视图�
       '党委登录后应为 API 会话（存在 gsm1921-api-token）'
     );
     // P0-2 形态断言（2026-09-23 支书裁定「形态必须可断言」）：真机用例的数据源形态单一源 = data/data-adapter.js::getRuntimeMode()
-    await page.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20261006h')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
+    await page.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20261006j')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
     await page.waitForFunction(() => Boolean(document.getElementById('app-header')), { timeout: 15000 });
 
     // 2. 「支部监控台账」→ 点 br-b1 卡的「进入支部」
@@ -267,7 +267,7 @@ test('A⑤ 党委「进入支部」API 会话下钻：进入支部只读视图�
 
     // 5. 写权限不放宽：party-staff 写权限键仍全关（看≠做）；requiredRoles / 权限键未动
     const perms = await page.evaluate(async () => {
-      const { AuthStore } = await import('/src/services/core/auth.js?v=20261006h');
+      const { AuthStore } = await import('/src/services/core/auth.js?v=20261006j');
       const me = AuthStore.getCurrentUser();
       return {
         role: me && me.role,

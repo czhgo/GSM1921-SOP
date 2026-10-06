@@ -10,17 +10,17 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261006h';
-import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261006h';
-import { setDataSource } from '../../docs/src/data/data-adapter.js?v=20261006h';
-import { bumpToken, tokenOf, resetAllTokens } from '../../docs/src/core/base/version-token.js?v=20261006h';
-import { saveAttendanceRecords, loadAttendanceRecords } from '../../docs/src/services/activity/attendance.js?v=20261006h';
-import { saveInspectionRecords, loadInspectionRecords } from '../../docs/src/services/activity/inspection.js?v=20261006h';
-import { addActivityReview } from '../../docs/src/services/governance/review.js?v=20261006h';
-import { TaskForceRecordStore } from '../../docs/src/services/activity/taskforce.js?v=20261006h';
-import { SignupStore } from '../../docs/src/services/activity/signup.js?v=20261006h';
-import { saveFollowups } from '../../docs/src/services/governance/resolution-followup.js?v=20261006h';
-import { SecretaryOverviewStore, SecretaryTodoDeriver } from '../../docs/src/services/governance/secretary-overview.js?v=20261006h';
+import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261006j';
+import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261006j';
+import { setDataSource } from '../../docs/src/data/data-adapter.js?v=20261006j';
+import { bumpToken, tokenOf, resetAllTokens } from '../../docs/src/core/base/version-token.js?v=20261006j';
+import { saveAttendanceRecords, loadAttendanceRecords } from '../../docs/src/services/activity/attendance.js?v=20261006j';
+import { saveInspectionRecords, loadInspectionRecords } from '../../docs/src/services/activity/inspection.js?v=20261006j';
+import { addActivityReview } from '../../docs/src/services/governance/review.js?v=20261006j';
+import { TaskForceRecordStore } from '../../docs/src/services/activity/taskforce.js?v=20261006j';
+import { SignupStore } from '../../docs/src/services/activity/signup.js?v=20261006j';
+import { saveFollowups } from '../../docs/src/services/governance/resolution-followup.js?v=20261006j';
+import { SecretaryOverviewStore, SecretaryTodoDeriver } from '../../docs/src/services/governance/secretary-overview.js?v=20261006j';
 
 // ── localStorage 内存桩（member-persist 同款）─────────────────────
 const _store = new Map();

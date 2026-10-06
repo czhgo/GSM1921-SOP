@@ -2,22 +2,22 @@
 // 纪检委员工作台 Tab：复盘（T-279 M3 拆分；2026-10-04 批次 368 页签名由「活动监督复盘」改「复盘」——原名＝动作＋对象混轴）
 // 活动流程监督（超时提醒）+ 活动复盘监督（批注/打回/确认）+ 经验沉淀督促清单。
 
-import { mockDB, ReviewStatus } from '../../../core/domain/domain.js?v=20261006h';
-import { persist } from '../../../data/data-adapter.js?v=20261006h';
-import { reviewToDisplay } from '../../../services/governance/review.js?v=20261006h';
-import { loadActiveActivityReviews, loadTaskforceReviews, updateReviewById } from '../../../services/governance/review.js?v=20261006h';
-import { loadActivities } from '../../../services/activity/activity.js?v=20261006h';
-import { showToast, escHtml } from '../../../core/base/utils.js?v=20261006h';
-import { openFormModal } from '../../../components/ui/modal.js?v=20261006h';
+import { mockDB, ReviewStatus } from '../../../core/domain/domain.js?v=20261006j';
+import { persist } from '../../../data/data-adapter.js?v=20261006j';
+import { reviewToDisplay } from '../../../services/governance/review.js?v=20261006j';
+import { loadActiveActivityReviews, loadTaskforceReviews, updateReviewById } from '../../../services/governance/review.js?v=20261006j';
+import { loadActivities } from '../../../services/activity/activity.js?v=20261006j';
+import { showToast, escHtml } from '../../../core/base/utils.js?v=20261006j';
+import { openFormModal } from '../../../components/ui/modal.js?v=20261006j';
 // 批次 352（`D-746` · `D-744`② 业务过程类余项）：经验沉淀「作废（软）」——统一写口 ＋ 支委层判据
-import * as SoftVoid from '../../../services/governance/soft-void.js?v=20261006h';
-import { openVoidModal } from '../../../components/ui/void-record.js?v=20261006h';
-import { NoticeStore } from '../../../services/governance/notice.js?v=20261006h';
-import { generateId } from '../../../core/base/id.js?v=20261006h';
-import { getPersonById } from '../../../services/member/person.js?v=20261006h';
-import { DISC_COMMISSIONER_ID } from './_shared.js?v=20261006h';
+import * as SoftVoid from '../../../services/governance/soft-void.js?v=20261006j';
+import { openVoidModal } from '../../../components/ui/void-record.js?v=20261006j';
+import { NoticeStore } from '../../../services/governance/notice.js?v=20261006j';
+import { generateId } from '../../../core/base/id.js?v=20261006j';
+import { getPersonById } from '../../../services/member/person.js?v=20261006j';
+import { DISC_COMMISSIONER_ID } from './_shared.js?v=20261006j';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是活动的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
-import { renderFilteredList, activityKeyword, activityFacets } from '../../../components/ui/list-filter.js?v=20261006h';
+import { renderFilteredList, activityKeyword, activityFacets } from '../../../components/ui/list-filter.js?v=20261006j';
 
 // ── 超期提醒真实触达（2026-09-10）───────────────────────────────
 // 依据：纪检委员工作流程指南 §3.1「超时确认后可触发邮件提醒」、党小组组长工作手册

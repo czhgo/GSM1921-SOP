@@ -4,30 +4,28 @@
 // 第3轮 Task 9: dev 参数读取改用 CrossPageState.getParam（统一入口）
 // 2026-07-30: 改为 async，统一预加载所有 Service（IssueStore/MilestoneStore），消除跨页面数据不同步
 
-import { renderSidebar } from '../../components/shell/sidebar.js?v=20261006h';
-import { renderHeader } from '../../components/shell/header.js?v=20261006h';
-import { AuthStore } from '../../services/core/auth.js?v=20261006h';
-import { IssueStore } from '../../services/governance/issues.js?v=20261006h';
-import { MilestoneStore } from '../../services/governance/milestones.js?v=20261006h';
-import { CrossPageState } from '../session/cross-page-state.js?v=20261006h';
-import { getBasePath } from '../base/utils.js?v=20261006h';
-import { enhanceSelects } from '../../components/ui/custom-select.js?v=20261006h';
+import { renderSidebar } from '../../components/shell/sidebar.js?v=20261006j';
+import { renderHeader } from '../../components/shell/header.js?v=20261006j';
+import { AuthStore } from '../../services/core/auth.js?v=20261006j';
+import { IssueStore } from '../../services/governance/issues.js?v=20261006j';
+import { MilestoneStore } from '../../services/governance/milestones.js?v=20261006j';
+import { CrossPageState } from '../session/cross-page-state.js?v=20261006j';
+import { getBasePath } from '../base/utils.js?v=20261006j';
+import { enhanceSelects } from '../../components/ui/custom-select.js?v=20261006j';
 // 立项⑦ B波 演示放行门（单一源，与「进入支部（演示）」按钮同口径）
-import { isPartyStaffBranchDemoAllowed } from '../../services/core/branch-demo-nav.js?v=20261006h';
-import { isBranchPendingUser } from '../domain/constants.js?v=20261006h';
-// 组织者兜底放行门（2026-09-19 批次 91 · SOP-B-17）：判定需读活动数据，故单一源落在服务层
-import { isOrganizerFallbackPage } from '../../services/activity/activity.js?v=20261006h';
+import { isPartyStaffBranchDemoAllowed } from '../../services/core/branch-demo-nav.js?v=20261006j';
+import { isBranchPendingUser } from '../domain/constants.js?v=20261006j';
 // 强调色解析（R1-A 点⑤，2026-09-09）：person-aware 渲染时取色——替代只读全局键的
 // constants resolveAccentRole（冻结读取点语义，仅服务访客与首帧兜底）；--app-accent 与
 // 返回值（壳 ctx.accent → tab-bar/各 tab）统一取「当前作用域生效覆盖」，登录人改强调色后同源。
-import { getAppliedAccentColors } from './theme.js?v=20261006h';
-import { registerApiAdapter, init, renderDataSourceError, hydrateDataSource } from '../../data/data-adapter.js?v=20261006h';
-import { ApiAdapter } from '../../data/api-adapter.js?v=20261006h';
-import { getCapabilities } from './registry.js?v=20261006h';
+import { getAppliedAccentColors } from './theme.js?v=20261006j';
+import { registerApiAdapter, init, renderDataSourceError, hydrateDataSource } from '../../data/data-adapter.js?v=20261006j';
+import { ApiAdapter } from '../../data/api-adapter.js?v=20261006j';
+import { getCapabilities } from './registry.js?v=20261006j';
 // M4 数据源注册化：副作用导入触发 mock/api 数据源能力注册，bootstrap 经注册表选择数据源
-import '../../capabilities/data-source.js?v=20261006h';
+import '../../capabilities/data-source.js?v=20261006j';
 // M6（2026-08-30）：共享组件能力随全局引导注册（todo-list/calendar/custom-select），所有页面可发现组件清单
-import '../../capabilities/components.js?v=20261006h';
+import '../../capabilities/components.js?v=20261006j';
 
 // ════════════════════════════════════════════════════════════════
 // S2 自定义圆角下拉：全局自动增强（MutationObserver 防抖扫描）
@@ -203,14 +201,9 @@ export async function bootstrapPage({ module, accentRole, accentAlpha }) {
     // A② 归档兜底放行门已撤（D-807④ 2026-10-06）：支书/副支书不再进入宣传台——
     // 代归档改由支书台待办「代归档」按钮本台浮窗直执（todo-tab.js::_openDelegateArchiveModal）。
 
-    // 组织者兜底放行（2026-09-19 批次 91 · SOP-B-17 / D-308 · D-309）：
-    // 「组织者是这场事上被指定的人」——被指定为某场活动的组织者，该场的上传位（考勤 / 考察，
-    // 含纪检打回后的「待你确认」区）就在他手上；而那两个上传位现承载在组长台，故按「人」放行这一页。
-    // 判定单一源 = services/activity/activity.js::isOrganizerFallbackPage（与界面侧的收窄同一处，勿手写角色清单）；
-    // 放行面由 leader-workspace 能力收窄到「我的职责」里的那两个 tab，**不放宽任何写权限**。
-    if (!allowedPages.has(currentPage) && isOrganizerFallbackPage(user.personId, currentPage)) {
-      allowedPages.add(currentPage);
-    }
+    // 组织者兜底放行门已撤（D-808 · 2026-10-06 支书圈甲「组长和组织者是两个概念」）：
+    // 组织者的考勤/考察上传位改挂【成员本人】页面（visitor 两 tab 顶部「由我组织的活动」区），
+    // 组长台回归组长本人使用——不再按「人」放行非组长进 leader.html。
 
     if (!allowedPages.has(currentPage)) {
       // 跳转目标：以登录快照身份为准（与身份标签一致）；缺失时回退内存判定角色页面
