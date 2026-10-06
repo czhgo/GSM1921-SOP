@@ -11,18 +11,18 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261006f';
-import { setDataSource } from '../../docs/src/data/data-adapter.js?v=20261006f';
-import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261006f';
+import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261006g';
+import { setDataSource } from '../../docs/src/data/data-adapter.js?v=20261006g';
+import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261006g';
 import {
   WORK_MAP_MODULES, ownerOfModule, moduleIdOfActivity, modulesWithCycle, cycleOfModule, expandWorkforce,
-} from '../../docs/src/core/domain/work-map.js?v=20261006f';
+} from '../../docs/src/core/domain/work-map.js?v=20261006g';
 import {
   CYCLE_UNITS, CYCLE_UNIT_LABELS, cyclePeriodOf, cyclePeriodLabel,
-} from '../../docs/src/core/base/period.js?v=20261006f';
+} from '../../docs/src/core/base/period.js?v=20261006g';
 import {
   REALTIME_GROUP_DOMAIN, MODULE_CYCLE_ACTION_KEY, buildModuleCycleRemindGroup,
-} from '../../docs/src/services/governance/todo.js?v=20261006f';
+} from '../../docs/src/services/governance/todo.js?v=20261006g';
 
 // ── localStorage 内存桩（与 todo-deriver-domain 同款）─────────────
 const _store = new Map();
@@ -48,25 +48,35 @@ function beginMockCase() {
   MockAdapter.loadDB();
 }
 
+// ═══════════════ C0 判据用注入表（真实表当前无 cycle） ═══════════════
+// 支书 2026-10-06 裁「**先不做周期提醒**」⇒ 真实 `WORK_MAP_MODULES` 上**已无** `cycle` 取值
+//   （机制 `cycle` 字段 + `buildModuleCycleRemindGroup` 均在位，**一行即可重新启用**）。
+// 故判据以「注入表」覆盖机制本身；`C1` 另断言「真实表当前零启用」。
+const CYCLE_ON = WORK_MAP_MODULES.map((m) => (
+  (m.id === 'party-group-meeting' || m.id === 'theme-party')
+    ? { ...m, cycle: { unit: 'month', source: '判据注入（＝裁定前按母本填的两个形态）' } }
+    : m
+));
+
 // ═══════════════ C1 单一源自洽 ═══════════════
 
-test('C1 周期单一源：只在模块表上（不另立映射），取值集与标签自洽', () => {
-  const ids = modulesWithCycle();
-  // 母本可核者只有两处（《党小组组长工作手册》§2.1 的「党小组日常活动每月至少 1 次」）：
-  // 会议形态＝党小组会、活动形态＝主题党日。其余模块**不填**（如实登记，见 `D-804`）。
-  assert.deepEqual(ids, ['party-group-meeting', 'theme-party'], '有制度周期的模块＝母本可核的那两个');
+test('C1 周期单一源：真实表当前**零启用**（支书裁「先不做」）；注入表则取值集与标签自洽', () => {
+  // ① 真实表：支书 2026-10-06 裁定「先不做周期提醒」⇒ 无任何模块带 `cycle`
+  assert.deepEqual(modulesWithCycle(), [], '真实模块表当前不得有启用周期的模块（支书 2026-10-06 裁定）');
+  assert.equal(cycleOfModule('party-group-meeting'), null, '党小组会当前无周期取值');
+  assert.equal(cycleOfModule('theme-party'), null, '主题党日当前无周期取值');
+  assert.equal(buildModuleCycleRemindGroup({ activities: [], subjectIds: ['leader'], today: '2026-10-15' }), null,
+    '真实表零启用 ⇒ 该实时组恒不出（停用态）');
 
-  for (const id of ids) {
-    const cyc = cycleOfModule(id);
-    assert.ok(cyc && CYCLE_UNITS.includes(cyc.unit), `${id} 的 cycle.unit 必须在 CYCLE_UNITS 取值集内`);
-    assert.ok(typeof cyc.source === 'string' && cyc.source.length > 0, `${id} 的 cycle.source（母本出处）不得为空`);
-    assert.ok(CYCLE_UNIT_LABELS[cyc.unit], `${id} 的 cycle.unit 必须有中文标签`);
+  // ② 注入表：机制自洽（单位 ∈ CYCLE_UNITS、出处非空、有中文标签）
+  for (const m of CYCLE_ON.filter((x) => x.cycle)) {
+    assert.ok(CYCLE_UNITS.includes(m.cycle.unit), `${m.id} 的 cycle.unit 必须在 CYCLE_UNITS 取值集内`);
+    assert.ok(typeof m.cycle.source === 'string' && m.cycle.source.length > 0, `${m.id} 的 cycle.source（出处）不得为空`);
+    assert.ok(CYCLE_UNIT_LABELS[m.cycle.unit], `${m.id} 的 cycle.unit 必须有中文标签`);
   }
-  // 反向：无周期字段的模块一律不派生（`cycleOfModule` 给 null）
-  const noCycle = WORK_MAP_MODULES.filter((m) => !cycleOfModule(m.id)).map((m) => m.id);
-  assert.ok(noCycle.length >= 10, `未填周期的模块应占多数（实为 ${noCycle.length} 个）`);
+  assert.equal(CYCLE_ON.filter((x) => x.cycle).length, 2, '注入表恰两个形态（会议 + 活动）');
 
-  // 活动类型 → 模块：判据＝权威子类名 ↔ 模块 name；两种历史写法都要归一命中
+  // ③ 活动类型 → 模块：判据＝权威子类名 ↔ 模块 name；两种历史写法都要归一命中
   assert.equal(moduleIdOfActivity({ type: '党小组会' }), 'party-group-meeting');
   assert.equal(moduleIdOfActivity({ type: '三会一课·党小组会' }), 'party-group-meeting');
   assert.equal(moduleIdOfActivity({ type: '主题党日' }), 'theme-party');
@@ -75,7 +85,7 @@ test('C1 周期单一源：只在模块表上（不另立映射），取值集�
   assert.equal(moduleIdOfActivity(null), null);
   assert.equal(moduleIdOfActivity({}), null);
 
-  // 模块主责：停用 / 无主责 ⇒ null
+  // ④ 模块主责：停用 / 无主责 ⇒ null
   assert.equal(ownerOfModule('party-group-meeting', null).ownerId, 'leader', '缺省分工兜底＝defaultOwner');
   assert.equal(ownerOfModule('party-group-meeting', { 'party-group-meeting': { ownerType: 'none', ownerId: '' } }), null, '停用 ⇒ null');
   assert.equal(ownerOfModule('不存在的模块', null), null);
@@ -112,6 +122,7 @@ test('C3 本期未见对应活动 ⇒ 出组（组长台；会议与活动两个
   const g = buildModuleCycleRemindGroup({
     activities: [{ id: 'a1', type: '党小组会', date: '2026-09-10' }], // 上月 → 本期不算
     subjectIds: ['leader'],
+    modules: CYCLE_ON, // 真实表当前零启用 ⇒ 判据用注入表覆盖机制（批次 429 · 支书裁「先不做」）
     today: '2026-10-15',
   });
   assert.ok(g, '有未开展模块 ⇒ 出组（不得是空组）');
@@ -130,6 +141,7 @@ test('C4 本期已有对应活动 ⇒ 该模块不出（另一模块照出）', 
       { id: 'a2', type: '主题党日', date: '2026-09-20' },          // 上月 → 不影响本期
     ],
     subjectIds: ['leader'],
+    modules: CYCLE_ON,
     today: '2026-10-15',
   });
   assert.deepEqual(g.items.map((i) => i.moduleId), ['theme-party'], '党小组会本期已开展 ⇒ 只剩主题党日');
@@ -139,25 +151,26 @@ test('C4 本期已有对应活动 ⇒ 该模块不出（另一模块照出）', 
 
 test('C5 非本台主体主责的模块一律不出（本台无周期模块 ⇒ null）', () => {
   beginMockCase();
-  assert.equal(buildModuleCycleRemindGroup({ activities: [], subjectIds: ['org-commissioner'], today: '2026-10-15' }), null);
-  assert.equal(buildModuleCycleRemindGroup({ activities: [], subjectIds: [], today: '2026-10-15' }), null, '无主体 ⇒ 不出组');
-  assert.equal(buildModuleCycleRemindGroup({ activities: [], subjectIds: ['leader'], today: '坏日期' }), null, '坏日期 ⇒ 不出组（不抛错）');
+  assert.equal(buildModuleCycleRemindGroup({ activities: [], subjectIds: ['org-commissioner'], modules: CYCLE_ON, today: '2026-10-15' }), null);
+  assert.equal(buildModuleCycleRemindGroup({ activities: [], subjectIds: [], modules: CYCLE_ON, today: '2026-10-15' }), null, '无主体 ⇒ 不出组');
+  assert.equal(buildModuleCycleRemindGroup({ activities: [], subjectIds: ['leader'], modules: CYCLE_ON, today: '坏日期' }), null, '坏日期 ⇒ 不出组（不抛错）');
 });
 
 test('C6 支部改派随分工快照走（到人 ⇒ 该人可见；该角色不再出）', () => {
   beginMockCase();
   // 分工快照 = `expandWorkforce` 展开后（支部改派项 ＋ 缺省兜底）——调用方契约同 `getBranchWorkforce`
   const snapshot = expandWorkforce({ 'party-group-meeting': { ownerType: 'person', ownerId: 'p3' } });
-  const asP3 = buildModuleCycleRemindGroup({ activities: [], subjectIds: ['p3'], snapshot, today: '2026-10-15' });
+  const asP3 = buildModuleCycleRemindGroup({ activities: [], subjectIds: ['p3'], snapshot, modules: CYCLE_ON, today: '2026-10-15' });
   assert.deepEqual(asP3.items.map((i) => i.moduleId), ['party-group-meeting'],
     'p3 只领改派到的党小组会（主题党日仍归 leader 角色，不在本主体集内）');
-  const asLeader = buildModuleCycleRemindGroup({ activities: [], subjectIds: ['leader'], snapshot, today: '2026-10-15' });
+  const asLeader = buildModuleCycleRemindGroup({ activities: [], subjectIds: ['leader'], snapshot, modules: CYCLE_ON, today: '2026-10-15' });
   assert.deepEqual(asLeader.items.map((i) => i.moduleId), ['theme-party'], '党小组会已改派给 p3 ⇒ leader 不再出该条');
 
   // 停用（方法类）⇒ 不出；此处用同一停机位验证「none 一律跳过」
   const off = buildModuleCycleRemindGroup({
     activities: [], subjectIds: ['leader'],
     snapshot: expandWorkforce({ 'theme-party': { ownerType: 'none', ownerId: '' } }),
+    modules: CYCLE_ON,
     today: '2026-10-15',
   });
   assert.deepEqual(off.items.map((i) => i.moduleId), ['party-group-meeting'], '停用模块不出条');
@@ -173,6 +186,7 @@ test('C7 两个模块本期都已开展 ⇒ 不出空组', () => {
       { id: 'a2', type: '主题党日', date: '2026-10-12' },
     ],
     subjectIds: ['leader'],
+    modules: CYCLE_ON,
     today: '2026-10-15',
   });
   assert.equal(g, null, '无未开展模块 ⇒ null（不产生空组卡）');
@@ -181,7 +195,7 @@ test('C7 两个模块本期都已开展 ⇒ 不出空组', () => {
 test('C8 组对象自带 actionKey 且域标注在位（供 T4 域折组）', () => {
   beginMockCase();
   assert.equal(REALTIME_GROUP_DOMAIN[MODULE_CYCLE_ACTION_KEY], 'project', '周期提醒归「项目」域（D-787 同域）');
-  const g = buildModuleCycleRemindGroup({ activities: [], subjectIds: ['leader'], today: '2026-10-15' });
+  const g = buildModuleCycleRemindGroup({ activities: [], subjectIds: ['leader'], modules: CYCLE_ON, today: '2026-10-15' });
   assert.equal(g.actionKey, MODULE_CYCLE_ACTION_KEY);
   assert.equal(g.domain, 'project');
   assert.equal(g.count, g.items.length);

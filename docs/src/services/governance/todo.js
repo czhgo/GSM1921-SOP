@@ -6,18 +6,18 @@
 //         content/04_web_design/design-system/DESIGN_SYSTEM.md §一 第6条
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../../core/domain/domain.js?v=20261006f';
-import { persist } from '../../data/data-adapter.js?v=20261006f';
-import { generateId } from '../../core/base/id.js?v=20261006f';
-import { bumpToken, tokenOf } from '../../core/base/version-token.js?v=20261006f';
+import { mockDB } from '../../core/domain/domain.js?v=20261006g';
+import { persist } from '../../data/data-adapter.js?v=20261006g';
+import { generateId } from '../../core/base/id.js?v=20261006g';
+import { bumpToken, tokenOf } from '../../core/base/version-token.js?v=20261006g';
 // 待批活动状态值单一源（2026-09-22 批次 151 · 支书裁定「只支委层可见」）：待批活动**不是**「待参与」的活动
 // ——它还没获批（与 `draft` 同待遇），不为它派生「参与活动」待办（也免得从待办标题把没批的活动漏出去）。
-import { PENDING_APPROVAL_STATUS } from '../activity/activity.js?v=20261006f';
-import { todayLocal, _fmtDate } from '../../core/base/utils.js?v=20261006f';
+import { PENDING_APPROVAL_STATUS } from '../activity/activity.js?v=20261006g';
+import { todayLocal, _fmtDate } from '../../core/base/utils.js?v=20261006g';
 // 周期键（月/季/半年/年）与「模块周期」单一源（2026-10-06 批次 423 · `R-29⑤` · `D-804`）——
 //   周期任务的**来源**＝`work-map.js::WORK_MAP_MODULES[].cycle`（不另立第二份映射，`D-803②`）。
-import { cyclePeriodOf, cyclePeriodLabel } from '../../core/base/period.js?v=20261006f';
-import { WORK_MAP_MODULES, expandWorkforce, ownerOfModule, moduleIdOfActivity } from '../../core/domain/work-map.js?v=20261006f';
+import { cyclePeriodOf, cyclePeriodLabel } from '../../core/base/period.js?v=20261006g';
+import { WORK_MAP_MODULES, expandWorkforce, ownerOfModule, moduleIdOfActivity } from '../../core/domain/work-map.js?v=20261006g';
 
 // ── 待办分类枚举 ──────────────────────────────────────────────
 export const TodoCategory = {
@@ -413,10 +413,12 @@ export const MODULE_CYCLE_ACTION_KEY = 'module-cycle-remind';
  * @param {Array}  [opts.activities] 全部活动（读 `type` / `date`；缺省＝[]）
  * @param {Array}  [opts.subjectIds]  本台主体集（角色键 / 组织型主体 id；如 `['leader']`）
  * @param {Record<string,{ownerType,ownerId}>|null} [opts.snapshot] 分工快照（缺省＝缺省分工兜底）
+ * @param {Array}  [opts.modules]     模块表（缺省＝`WORK_MAP_MODULES`；**仅供判据注入**——支书 2026-10-06 裁「先不做周期提醒」
+ *   后真实模块表上**无** `cycle`，机制仍由本参数在判据里被覆盖）
  * @param {string} [opts.today]       日期键 YYYY-MM-DD（缺省＝今天）
  * @returns {Object|null} 实时组；无「本期未开展」的模块 → null（不产生空组卡）
  */
-export function buildModuleCycleRemindGroup({ activities = [], subjectIds = [], snapshot = null, today } = {}) {
+export function buildModuleCycleRemindGroup({ activities = [], subjectIds = [], snapshot = null, today, modules = WORK_MAP_MODULES } = {}) {
   const ids = (Array.isArray(subjectIds) ? subjectIds : [subjectIds]).filter(Boolean);
   if (!ids.length) return null;
   // 快照接受「`config.workforce` 原样」或「`expandWorkforce` 展开后」——展开幂等，故一律再展开一次
@@ -424,7 +426,7 @@ export function buildModuleCycleRemindGroup({ activities = [], subjectIds = [], 
   const day = today || _todayStr();
   if (!/^\d{4}-\d{2}/.test(String(day))) return null;
   const items = [];
-  for (const m of WORK_MAP_MODULES) {
+  for (const m of (modules || [])) {
     const cyc = m.cycle;
     if (!cyc || !cyc.unit) continue;                       // 无制度固定周期 ⇒ 不派生（如实登记）
     const owner = ownerOfModule(m.id, snap);

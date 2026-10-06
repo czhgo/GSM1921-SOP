@@ -642,9 +642,9 @@ function enumCount(line) {
 
 test('S14 可数事实对账：文档里的「枚举 / 计数」必须等于代码 / 数据的实然值', async () => {
   const problems = [];
-  const { WORK_MAP_MODULES } = await import('../../docs/src/core/domain/work-map.js?v=20261006f');
-  const { sopDatabase } = await import('../../docs/src/workflow/sopData.js?v=20261006f');
-  const { ROLE_KEYS, ROLE_LEGACY_KEYS } = await import('../../docs/src/core/domain/constants.js?v=20261006f');
+  const { WORK_MAP_MODULES } = await import('../../docs/src/core/domain/work-map.js?v=20261006g');
+  const { sopDatabase } = await import('../../docs/src/workflow/sopData.js?v=20261006g');
+  const { ROLE_KEYS, ROLE_LEGACY_KEYS } = await import('../../docs/src/core/domain/constants.js?v=20261006g');
   const { SYSTEM_NOTICE_KIND_NAMES } = await import('../system-notice-kinds.js');
 
   /** 对账一条：`got` 为文档里抽出的数（null＝抽不出，判红并提示是判据失效而非「文档错」） */
@@ -885,7 +885,7 @@ test('S15 弱清单：有正当沿革 / 取值定义不清的枚举数字只登�
   // 下限 5 → 1（2026-10-06 批次 418 · `D-802`）：原写死 5 是「**人手维护的整数**」，与 `D-663`「规模面须
   //   推导式、不许写死整数」相抵；且乙部表按 `H50.1 §3` **本就随闭环而删行**（批次 418 删 `R-92`/`R-93`
   //   后余 4 条）⇒ 改判「**非空**」。**真正的解析失效锚点**在下两条：全集 ≥65 与 编号区间 23…93。
-  //   ⚠ 属「追实况 ＋ 去写死整数」，**如实登记为须支书核可项**（`D-802`）。
+  //   ✅ **已于 2026-10-06 经支书核可**（`D-806`：支书答「确认改判 ≥1（推荐）」）——原「须支书核可项」登记**解除**。
   assert.ok(rIds.length >= 1, `CLAUDE.md 只解析到 ${rIds.length} 条 R-NN 行（下限 1＝非空）：解析失效或整表被清空`);
   assert.equal(new Set(rIds).size, rIds.length, `CLAUDE.md 的 R-NN 编号有重复：${rIds.filter((id, i) => rIds.indexOf(id) !== i).join(' / ')}`);
   const closedRows = rRows.filter(([, tail]) => /已闭环|已立/.test(tail)).map((r) => r[0]);

@@ -2169,3 +2169,24 @@ $body
 - **未给本人身份 ⇒ 完全不过滤**——这是刻意的：node 程序化读口（守卫/脚本/派生器）与「无登录上下文」的调用方**行为一字不变**；「只给本人看」只在**待办壳带本人身份**时生效。⇒ 若某读口绕过待办壳直接 `getByRole(role)`（**不传 personId**），仍会看到到人待办（**如实登记，未逐一改造全部读口**）。
 - **服务端不参与**：本批只改前端读链（`todos` 的服务端表与通用 CRUD 未动）。
 
+## 批次 429（2026-10-06 · **`D-806`**）**支书两答落地：周期提醒「先不做」＋ `S15`① 下限确认 ≥1**
+
+> **来源**：本会话**上呈支书两条**（`AskUserQuestion`）并获答——① 周期扩面（三档）⇒ 支书取「**先不做周期提醒**」；② `S15`① 下限（批次 418 改判 ≥1、原登记「须支书核可」）⇒ 支书「**确认改判 ≥1**」。
+
+### 一、动作
+
+1. **撤去周期取值**（「先不做」）：`docs/src/core/domain/work-map.js::WORK_MAP_MODULES` 的 `party-group-meeting` / `theme-party` **两处 `cycle` 删除**，原位改写为沿革句（**保留母本出处**：《党小组组长工作手册》§2.1 ＋《支委与党小组定人定责定岗说明》§2.2）。**机制一字未删**——`cycle` 字段、`core/base/period.js` 的 `cyclePeriodOf` / `CYCLE_UNITS` / `CYCLE_UNIT_LABELS`、`buildModuleCycleRemindGroup`、待办壳接线、`REALTIME_GROUP_DOMAIN` 归域全部在位。
+2. **判据改准（防「停用即无覆盖」）**：`buildModuleCycleRemindGroup` 增**可选** `opts.modules`（缺省＝真实模块表；**仅供判据注入**，注释写明缘由）；`module-cycle-remind.test.mjs` 新增顶层 `CYCLE_ON` 注入表，`C1` 改**双向断言**（真实表零启用 ＋ 注入表覆盖机制自洽），`C3`–`C8` 一律传注入表。
+3. **`S15`① 核可**：`doc-consistency.test.mjs` 注释「⚠ 须支书核可项」→「✅ 已于 2026-10-06 经支书核可（`D-806`）」；`assert` 一字未改。
+4. 戳 `20261006f → 20261006g`。
+
+### 二、读数
+
+- `module-cycle-remind` · `module-owner-authz` · `work-map` · `doc-consistency` · `todo-domain` · `todo-domain-view` · `tab-nav` 合计 **66 / 66 / 0**。
+
+### 三、边界（如实）
+
+- **停用 ≠ 删除**：支书给定频次与出处后，**在模块表加一行 `cycle` 即恢复**（判据 `CYCLE_ON` 注入表做法可直接照搬）。
+- 本批**不改**该实时组的判据语义 / 归域 / 去重口径。
+- **未跑真机**：本批为「取值撤除 ＋ 判据注入」——真机形态与「该组恒 null」等价（判据已断言），**未另起真机探针**（如实登记）。
+

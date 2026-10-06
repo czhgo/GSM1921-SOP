@@ -10,14 +10,14 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261006f';
-import { setDataSource } from '../../docs/src/data/data-adapter.js?v=20261006f';
-import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261006f';
+import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261006g';
+import { setDataSource } from '../../docs/src/data/data-adapter.js?v=20261006g';
+import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261006g';
 import {
   TodoStore, TodoSourceType, LifecycleTodoDeriver,
-} from '../../docs/src/services/governance/todo.js?v=20261006f';
-import { createActivity } from '../../docs/src/services/core/mock.js?v=20261006f';
-import { TaskForceRecordStore } from '../../docs/src/services/activity/taskforce.js?v=20261006f';
+} from '../../docs/src/services/governance/todo.js?v=20261006g';
+import { createActivity } from '../../docs/src/services/core/mock.js?v=20261006g';
+import { TaskForceRecordStore } from '../../docs/src/services/activity/taskforce.js?v=20261006g';
 
 // ── localStorage 内存桩 ─────────────────────────────────────────
 const _store = new Map();
