@@ -2029,3 +2029,8 @@ $body
 - **周期取值面窄是事实、不是遗漏**：只两个模块有可核母本 ⇒ 若要扩面，**须支书给定频次与出处**（一行即可填）。
 - **一改具改**：`content/05_ai_coding/DATA_CONSISTENCY_CHECKLIST.md` 两条校验点 ＋ `CLAUDE.md` 乙部 `R-29` 行 ＋ `server/test/localstorage-key-guard.test.mjs` 例外表 ＋ 戳 `20261005m → 20261006a`（`docs/src/**` 已改 ⇒ **必 bump**）。
 
+### 五、真机验证（自包含 `createApp(:memory:)` ＋ 真登录 p1 ＝ 组长罗文杰 / 学号 2400012345；探针跑完即删、未留盘）
+
+- **组长台「待办」tab 正常渲染**（`#leader-tab-content` 文本 925 字）；**「本周期尚未开展（支部分工模块）」实时组卡在位**（标题逐字命中、组内 **2 条**＝党小组会 ＋ 主题党日，本期（2026-10）均无对应活动）；**`pageerror` 0**。
+- 如实登记：`console.error` 中有 8 条 `net::ERR_FAILED`（＝用例按纪律 `route.abort` 拦掉的三个 CDN）＋ 1 条 **403**（无 token 请求的既有现象，**本批未新增任何网络调用**、非本批引入）。
+
