@@ -13,18 +13,18 @@
 //   通知被赋权人）。⇒ 「退出与接手人」两者都在既有审计链里可查。
 // **不改权限门**：本件不新增任何写权限——能否转交由本文件判据决定，底层写入仍走既有写口。
 
-import { openModal, closeModal } from '../ui/modal.js?v=20261006d';
-import { PersonPicker } from './pickers.js?v=20261006d';
-import { AuthStore } from '../../services/core/auth.js?v=20261006d';
-import { getPersonName } from '../../services/member/person.js?v=20261006d';
-import { showToast, escHtml } from '../../core/base/utils.js?v=20261006d';
-import { mockDB } from '../../core/domain/domain.js?v=20261006d';
+import { openModal, closeModal } from '../ui/modal.js?v=20261006e';
+import { PersonPicker } from './pickers.js?v=20261006e';
+import { AuthStore } from '../../services/core/auth.js?v=20261006e';
+import { getPersonName } from '../../services/member/person.js?v=20261006e';
+import { showToast, escHtml } from '../../core/base/utils.js?v=20261006e';
+import { mockDB } from '../../core/domain/domain.js?v=20261006e';
 // 「做事即销待办」：转交完成＝本对象已完成「指定组织者」这件事 ⇒ 与两处既有「保存角色」同款，
 //   销掉该对象的赋权待办（`TodoSourceType.ACTIVITY` / `TASKFORCE`）——**不一致会留下悬空待办**。
-import { TodoStore, TodoSourceType } from '../../services/governance/todo.js?v=20261006d';
+import { TodoStore, TodoSourceType } from '../../services/governance/todo.js?v=20261006e';
 // 通知**被退出的原组织者**（2026-10-01 批次 330 · 支书裁「补：通知原组织者」）：走系统派生通知单一源
 //   （kind `organizer-transferred`，服务端按注册表复算授权；受众＝到人定向，文案/落点在模板单一源）。
-import { NoticeStore } from '../../services/governance/notice.js?v=20261006d';
+import { NoticeStore } from '../../services/governance/notice.js?v=20261006e';
 
 /** 可发起「转交组织者」的角色 —— **单一源**（支书 / 副支书 / 组织委员；现任组织者本人另按人判，见下） */
 const TRANSFER_ROLES = ['secretary', 'deputy-secretary', 'org-commissioner'];

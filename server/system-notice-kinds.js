@@ -13,7 +13,7 @@
 //  ctx = { actor, sourceId, payload, db }
 //  角色集合单一源 = docs/src/core/domain/constants.js（勿手写 5 支委授权列表，roles-sync 守卫会拦）。
 // ════════════════════════════════════════════════════════════════
-import { BRANCH_COMMISSION_ROLES, SECRETARY_AND_DEPUTY_ROLES, PARTY_STAFF_ROLE } from '../docs/src/core/domain/constants.js';
+import { BRANCH_COMMISSION_ROLES, SECRETARY_AND_DEPUTY_ROLES, PARTY_STAFF_ROLE, ROLE_LABELS } from '../docs/src/core/domain/constants.js';
 import { buildSystemNotice } from '../docs/src/core/domain/system-notice-templates.js';
 // R-23②（2026-10-05 批次 391）：支部上报的「支部名 / 事项摘要」展示值单一源（**零依赖叶子**，前端同引一处）
 import { branchDisplayName, reviewRequestSubject } from '../docs/src/core/domain/review-request-labels.js';
@@ -245,11 +245,14 @@ const KINDS = {
     //   口径与 `organizer-transferred` 同一份）。
     // 2026-10-06 批次 426（`R-23` 余项收口）：**授权人**改「按源行派生配对 id」——授权人＝本请求的 `actor`（服务端
     //   已知，无需采信客户端），补 `authorizerId` 后由 `applyRosterNames` **按名册复算** `authorizerName`。
-    //   ⚠ 仍沿用 payload 的两项：**角色标签 `roleLabel`**（＝被赋权人被授的角色，服务端未建「角色标签 → 中文」表，
-    //   系既有口径）与 **落点 `targetPage`**（「进谁的台」取决于被赋权人身份）。
+    // 2026-10-06 批次 427（`R-23` 余项收口 · 角色标签）：**角色标签改按 `role` 键复算**——单一源＝
+    //   `docs/src/core/domain/constants.js::ROLE_LABELS`（`organizer`→组织者 / `deep`→深度参与者；**服务端与前端同引一处**），
+    //   前端 `services/core/auth.js::_notifyProjectAuth` 随包带 `role` 键。**仍沿用 payload 的只剩落点 `targetPage`**
+    //   （「进谁的台」取决于被赋权人身份 ⇒ 属前端口径，非展示值漏洞）。
     build(ctx) {
       const raw = { ...payloadOf(ctx), sourceId: ctx.sourceId };
       if (ctx.actor && ctx.actor.id) raw.authorizerId = ctx.actor.id;
+      if (raw.role && ROLE_LABELS[raw.role]) raw.roleLabel = ROLE_LABELS[raw.role];
       const vars = applyRosterNames(ctx.db, raw);
       const act = rowOf(ctx.db, 'activities', ctx.sourceId);
       const tf = rowOf(ctx.db, 'taskforces', ctx.sourceId);

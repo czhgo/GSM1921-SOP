@@ -28,19 +28,19 @@
 //      to ≠ from），明确提示随在册状态变更一并报送，不静默丢弃。
 // ════════════════════════════════════════════════════════════════
 
-import { openModal, closeModal } from '../ui/modal.js?v=20261006d';
-import { PersonStore } from '../../services/member/person.js?v=20261006d';
-import { getBranchById } from '../../services/branch/branch.js?v=20261006d';
+import { openModal, closeModal } from '../ui/modal.js?v=20261006e';
+import { PersonStore } from '../../services/member/person.js?v=20261006e';
+import { getBranchById } from '../../services/branch/branch.js?v=20261006e';
 // Q-21-3 收敛（2026-09-13）：在册状态枚举单一源 = core/domain/constants.js（原经 org-base-data-preview 转出）
-import { ROLE_LABELS, DEVELOP_STAGES, RESIDENCE } from '../../core/domain/constants.js?v=20261006d';
-import { submitMemberChange } from '../../services/member/member-confirmation.js?v=20261006d';
-import { AuthStore } from '../../services/core/auth.js?v=20261006d';
-import { showToast, escHtml as esc, getBasePath, todayLocal } from '../../core/base/utils.js?v=20261006d';
+import { ROLE_LABELS, DEVELOP_STAGES, RESIDENCE } from '../../core/domain/constants.js?v=20261006e';
+import { submitMemberChange } from '../../services/member/member-confirmation.js?v=20261006e';
+import { AuthStore } from '../../services/core/auth.js?v=20261006e';
+import { showToast, escHtml as esc, getBasePath, todayLocal } from '../../core/base/utils.js?v=20261006e';
 // `D-788`（2026-10-05 · `V-10b`）：成员「自我描述」字段模型（**零依赖叶子**）——表单控件由它逐字段生成（单一源）
 import {
   SELF_PROFILE_FIELDS, sanitizeSelfProfile,
   selfProfileListToText, selfProfileListFromText,
-} from '../../core/domain/self-profile.js?v=20261006d';
+} from '../../core/domain/self-profile.js?v=20261006e';
 
 /** 模态 id（openModal / closeModal 定位键） */
 const MODAL_ID = 'person-edit-modal';

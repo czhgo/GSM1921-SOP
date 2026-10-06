@@ -13,7 +13,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { canReadNotice } from '../../docs/src/services/governance/notice.js?v=20261006d';
+import { canReadNotice } from '../../docs/src/services/governance/notice.js?v=20261006e';
 import { _snapshotNoticeMessageGateDeny, NOTICE_MESSAGE_DENY_MSG } from '../routes/resources/gates.js';
 
 const MSG = {

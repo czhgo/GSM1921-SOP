@@ -7,14 +7,14 @@
 // 故本 tab 每次渲染前先读取表单现值、渲染后回填——工作台数据变更重绘不丢撰写内容。
 // 设计权威源：content/04_web_design/evolution/PARTY_COMMITTEE_DESIGN.md §5 P3
 
-import { mockDB } from '../../../core/domain/domain.js?v=20261006d';
-import { AuthStore } from '../../../services/core/auth.js?v=20261006d';
-import { getCommitteeName } from '../../../services/branch/branch.js?v=20261006d';
-import { NoticeStore } from '../../../services/governance/notice.js?v=20261006d';
-import { textField, textareaField } from '../../../components/ui/forms.js?v=20261006d';
-import { showToast, escHtml as esc } from '../../../core/base/utils.js?v=20261006d';
+import { mockDB } from '../../../core/domain/domain.js?v=20261006e';
+import { AuthStore } from '../../../services/core/auth.js?v=20261006e';
+import { getCommitteeName } from '../../../services/branch/branch.js?v=20261006e';
+import { NoticeStore } from '../../../services/governance/notice.js?v=20261006e';
+import { textField, textareaField } from '../../../components/ui/forms.js?v=20261006e';
+import { showToast, escHtml as esc } from '../../../core/base/utils.js?v=20261006e';
 // 支部筛选共用件（2026-10-04 批次 374 · 支书「按下设支部筛选信息」）——三页复用同一件，不各写一份
-import { renderBranchFilter, filterByBranch } from '../../../components/governance/branch-filter.js?v=20261006d';
+import { renderBranchFilter, filterByBranch } from '../../../components/governance/branch-filter.js?v=20261006e';
 
 /** 本页支部筛选的 stateKey（选择随模块自持，页内重绘不丢） */
 const BRANCH_FILTER_STATE = 'pc-dispatch';

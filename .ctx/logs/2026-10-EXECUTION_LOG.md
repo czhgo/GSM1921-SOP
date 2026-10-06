@@ -2114,3 +2114,31 @@ $body
 - **次跑（起 3000 服务后重跑全量）**：**1010 / 1010 / 0 绿**（`cancelled 0` / `skipped 0`）。退出码非零＝**沙箱对 Playwright `debug.log` 的写盘限制**，**非测试失败**。
 - **教训（已落盘）**：① 全量 probe **必须先起 3000 服务**（`R-85` 早已写明；本批首跑漏做 ⇒ 白跑一轮）；② **改公共件（尤其 `components/`）后要反查 `form-loop-registry.mjs` 行号**——本批的 `S6` 就是这么冒出来的；③ 降频窗（`D-795`）本窗＝批次 **423–426 共 5 个 commit** ⇒ 达阈跑全量；**下一窗自批次 427 起重新累计**。
 
+## 批次 427（2026-10-06 · `D-805` 续）**`R-23` 余项再收口：角色标签 `roleLabel` 按 `role` 键复算**
+
+> **来源**：`D-805` 收口后仍剩两项沿用 payload；本批复核发现其中**角色标签这一项其实早就有单一源**。
+
+### 一、实探（先找单一源、不新建表）
+
+- `project-auth-granted` 模板变量 `roleLabel` 由**前端** `services/core/auth.js::_notifyProjectAuth` 以 `ROLE_LABELS[role] || role` 算出后**整份塞进 payload** ⇒ 服务端原样透传 ⇒ **任一获授权 actor 直调端点即可让通知写任意角色名**（R-22 同类信任边界）。
+- 单一源**已存在**：`docs/src/core/domain/constants.js::ROLE_LABELS`（`organizer → 组织者` / `deep → 深度参与者`），该文件**只引一个零依赖叶子**（`base/date.js`）⇒ 双端可载；且 `server/system-notice-kinds.js` **本就已 import 该文件**（第 16 行）。
+- 另核：`PROJECT_ROLES = ['organizer','deep']`（同文件 `:297`）⇒ **取值集也已有单一源**。
+
+### 二、动作
+
+1. 服务端（`server/system-notice-kinds.js`）：import 增 `ROLE_LABELS`；`project-auth-granted.build` 增一行——`if (raw.role && ROLE_LABELS[raw.role]) raw.roleLabel = ROLE_LABELS[raw.role];`（**有 `role` 即覆盖 payload 标签**）。
+2. 前端（`docs/src/services/core/auth.js`）：`_notifyProjectAuth` 的 `addSystem` payload **随包带 `role` 键**（键值即 `PROJECT_ROLES` 之一）。
+3. 判据（`system-notice-project-auth-authorize.test.mjs`）：`E3` 改准（伪 `roleLabel='伪造角色'` ＋ `role='organizer'` ⇒ 必须出「组织者」且**不得出现伪标签**）＋ 新增 **`E5`**（`role=deep` ⇒「深度参与者」）＋ **`E6`**（**反例（如实）**：payload 不带 `role` ⇒ 仍沿用 payload、**不空标签**）。
+4. **一改具改**：`system-notice-kinds.js` 再增行 ⇒ `README-server.md §6.7` 依据行 **5 处行号再改签**（`KINDS` `:63-551` · `weekly-report-submitted` `:291-313` · `organizer-transferred` `:471-503` · `todo-void-decided` `:504-529` · `record-void-decided` `:530-550`；另两处 `:128-148` / `:63-89` 在改动点之前、**未漂移**）＋ 该节「权威源」段**改准**（角色标签已收口、余项只剩 `targetPage`）＋ 判据清单补 `E5`/`E6`；`CLAUDE.md` 乙部 `R-23` 行**改准**。戳 `20261006d → 20261006e`。
+
+### 三、守卫读数
+
+- `system-notice-project-auth-authorize` **31 / 31 / 0**（较批次 426 的 29 增 **2**＝`E5`/`E6`）。
+- 定向：`roles-sync` · `doc-line-ref` · `doc-consistency` · `import-path-guard` · `module-load` · `permission-gate` · `timestamps-note-guard` · `frontmatter-freshness` · `version-stamp` 合计 **106 / 106 / 0**。
+- **过程中一处自伤**：`E5` 的**用例标题**里写了裸单引号（`` `role='deep'` ``）⇒ 该件**整体语法错误、26 个用例全部加载失败**；改为 `` `role=deep` `` 后复跑全绿（如实登记）。
+
+### 四、边界（如实）
+
+- **`R-23` 展示值余项至此只剩落点 `targetPage`**：「进谁的台」取决于被赋权人身份 ⇒ 前端口径，**非展示值漏洞**（`targetPage` 仍是客户端给的字符串，服务端只透传、不校验——**若要收严须定义「谁该进哪个台」的判据**，本批不做）。
+- **`role` 键本身仍由客户端给**（服务端未按 `assignments`/`members` 源行复算「此人是否真是该角色」）——属**授权/一致性**面（`authorize` 已核「actor 有权赋权该对象」），**非本批射程**，如实登记。
+

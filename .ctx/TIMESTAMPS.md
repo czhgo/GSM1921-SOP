@@ -376,7 +376,7 @@ dynamic_role:
 |---------|-------------|--------|------|------|
 | docs/src/services/core/mock.js | 2026-10-06 | — | [工程师]+[AI] | Mock 数据总服务（活动写口传分工快照给赋权派生器，批次 425） |
 | docs/src/services/branch/workforce.js | 2026-10-05 | — | [工程师]+[AI] | **（2026-09-28 批次 221：`D-671`——该议题议程项原无 `id` ⇒ 全站 0 个表决位；本批补 `id: generateId('ag')` ＋ `kind:'normal'`（`:126-132`）；日期由 `2026-09-22` 刷 `2026-09-28`）** 支部分工提议与采纳（**2026-09-22 批次 141 补登**——本表原先无此行；本批 `ownerDisplay` 补 `org` 分支（显示「支委会」）＋ `_deriveDutyTodos` 对 `org` **不派生到人待办**（防把组织型主体写成 `role` 脏值）；**改派面一字未动**，`D-573`） |
-| docs/src/services/core/auth.js | 2026-10-05 | — | [工程师]+[AI] | 认证与赋权服务（**2026-09-21 批次 139：副组长键 `deputy-leader` 的权限集与赋权链**——与组长同一份〔不硬切分正副职责〕，**集中在文件末挂载**；`AUTHORIZE_CHAIN` 支书 / 副支书两行**行内**加该键；`_getUserRoleFromMemory` 改为组长 / 副组长同取更晚一条〔**行数守恒**，`README-server.md` 的逐行引用不漂移〕，`D-571`） |
+| docs/src/services/core/auth.js | 2026-10-06 | — | [工程师]+[AI] | 认证与赋权服务（**2026-09-21 批次 139：副组长键 `deputy-leader` 的权限集与赋权链**——与组长同一份〔不硬切分正副职责〕，**集中在文件末挂载**；`AUTHORIZE_CHAIN` 支书 / 副支书两行**行内**加该键；`_getUserRoleFromMemory` 改为组长 / 副组长同取更晚一条〔**行数守恒**，`README-server.md` 的逐行引用不漂移〕，`D-571`；**2026-10-06 批次 427：`_notifyProjectAuth` 随包带 `role` 键**——服务端据此按 `ROLE_LABELS` 复算角色标签，`D-805`） |
 | docs/src/services/activity/external-dispatch.js | 2026-10-03 | — | [工程师]+[AI] | 外发确认闭环服务（批次 352b 补登） |
 | docs/src/services/activity/activity.js | 2026-09-21 | — | [工程师]+[AI] | 活动服务（品牌认定段 / 追加复盘要求段 / 「勾掉即关闭」写口 `completeMyProjectTask` / 活动批准门·支委会档段）。沿革见 `.ctx/logs/2026-10-EXECUTION_LOG.md`「附：TIMESTAMPS 备注列迁出的逐批沿革（批次 356）」。 |
 | docs/src/services/activity/attendance.js | 2026-09-21 | — | [工程师]+[AI] | 考勤服务（**2026-09-21 批次 132：`canUploadAttendance` 改为按会议类型分**——支委会不考勤 / 党课·党员大会＝纪检 / 其余＝该场组织者；`MEETING_ATTENDANCE_TYPES` 注释改准，`D-558`） |

@@ -286,19 +286,36 @@ test('E2 `review-request-submitted`：源行 `submittedBy` ⇒ 按名册复算 `
   assert.ok(!t.includes('伪造发起人'), `伪造发起人不得出现：${t}`);
 });
 
-test('E3 `project-auth-granted`：授权人＝服务端 `actor` ⇒ 按名册复算 `authorizerName`', () => {
+test('E3 `project-auth-granted`：授权人＝服务端 `actor`、角色标签＝按 `role` 键复算（均不采信 payload）', () => {
   const rows = {
     users: { p13: { id: 'p13', name: '支书真名' } },
     activities: { 'act-1': { id: 'act-1', title: '表内活动' } },
   };
   const t = TEXT(BUILD('project-auth-granted', 'act-1', rows,
-    { authorizerName: '伪造授权人', projectName: '伪造活动', roleLabel: '组织者', targetPage: './workspace/leader.html' },
+    { authorizerName: '伪造授权人', projectName: '伪造活动', roleLabel: '伪造角色', targetPage: './workspace/leader.html', role: 'organizer' },
     { id: 'p13', role: 'secretary' }));
   assert.ok(t.includes('支书真名'), `授权人未按名册复算（须取自 ctx.actor.id）：${t}`);
   assert.ok(!t.includes('伪造授权人'), `伪造授权人不得出现：${t}`);
   assert.ok(t.includes('表内活动'), '项目名仍按表复算（批次 391 口径未动）');
-  // ⚠ 如实：以下两项**仍沿用 payload**（余项）
-  assert.ok(t.includes('组织者'), '如实：角色标签仍沿用 payload（服务端未建「角色标签 → 中文」表）');
+  assert.ok(t.includes('组织者'), `角色标签须按 role='organizer' 从 ROLE_LABELS 复算：${t}`);
+  assert.ok(!t.includes('伪造角色'), `伪造角色标签不得出现（批次 427 起不再采信 payload.roleLabel）：${t}`);
+});
+
+test('E5 `project-auth-granted`：`role=deep` ⇒ 「深度参与者」（同一张 ROLE_LABELS 单一源）', () => {
+  const rows = { activities: { 'act-2': { id: 'act-2', title: '表内活动二' } } };
+  const t = TEXT(BUILD('project-auth-granted', 'act-2', rows,
+    { roleLabel: '伪造角色', role: 'deep', targetPage: './workspace/visitor.html' },
+    { id: 'p11', role: 'org-commissioner' }));
+  assert.ok(t.includes('深度参与者'), t);
+  assert.ok(!t.includes('伪造角色'), t);
+});
+
+test('E6 反例（如实）：payload 不带 `role` 键 ⇒ 角色标签沿用 payload（不空标签）', () => {
+  const rows = { activities: { 'act-3': { id: 'act-3', title: '表内活动三' } } };
+  const t = TEXT(BUILD('project-auth-granted', 'act-3', rows,
+    { roleLabel: '旧客户端发来的标签', targetPage: './workspace/visitor.html' },
+    { id: 'p11', role: 'org-commissioner' }));
+  assert.ok(t.includes('旧客户端发来的标签'), `无 role 键 ⇒ 沿用 payload（不空标签）：${t}`);
 });
 
 test('E4 反例：源行无人字段 ⇒ 仍沿用 payload（不得产出空名）', () => {

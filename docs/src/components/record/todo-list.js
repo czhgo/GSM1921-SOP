@@ -14,12 +14,12 @@
 //         content/04_web_design/design-system/DESIGN_SYSTEM.md §一 第6条
 // ════════════════════════════════════════════════════════════════
 
-import { badgeHtml } from '../ui/badges.js?v=20261006d';
-import { renderFilteredList } from '../ui/list-filter.js?v=20261006d';
-import { solidAccentStyle } from '../../core/domain/constants.js?v=20261006d';
+import { badgeHtml } from '../ui/badges.js?v=20261006e';
+import { renderFilteredList } from '../ui/list-filter.js?v=20261006e';
+import { solidAccentStyle } from '../../core/domain/constants.js?v=20261006e';
 // P1（2026-09-07）：渲染层过期红点收敛于 todo.js isTodoExpired（单一过期判定实现 · spec §三.6）
-import { isTodoExpired } from '../../services/governance/todo.js?v=20261006d';
-import { todayLocal } from '../../core/base/utils.js?v=20261006d';
+import { isTodoExpired } from '../../services/governance/todo.js?v=20261006e';
+import { todayLocal } from '../../core/base/utils.js?v=20261006e';
 
 /**
  * 渲染「**6 类**业务域折组」待办列表（IA 收敛 C1 Task4 六台待办页主列；替代旧按分类/actionType 大列表）。
