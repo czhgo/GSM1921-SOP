@@ -5,7 +5,7 @@
 // R-26③（2026-10-05 批次 388）：本件**只引一个零依赖叶子** `core/base/date.js`（取本地「今天」）——
 //   不成环、双端可载；**不得**引 `core/base/utils.js`（那会牵 `core/session/pending-writes.js`）。
 
-import { todayLocal } from '../base/date.js?v=20261006g';
+import { todayLocal } from '../base/date.js?v=20261006h';
 
 // ── 内联标签深色适配：深色三件套自动生成 ──────────────────────────
 // 深色模式下内联样式（background/color/border 浅底深字）不随主题反转，按「同色系提亮一档」为每个颜色条目
@@ -328,20 +328,11 @@ export const ROLE_PAGE_MAP = {
   },
 };
 
-// ── 归档兜底页面放行门（A② 2026-09-10 支书裁定：代归档闭环）──────────────
-// 依据 SYSTEM_ROLE_PERMISSION.md §9b 矩阵：支书/副支书持 archive=Y（归档兜底权限）。
-// ROLE_PAGE_MAP 中宣传台（prop.html）默认仅宣传委员可达；为打通支书/副支书「代归档」闭环，
-// 额外放行二者进入宣传台——但仅限归档兜底面：宣传台壳（capabilities/prop-workspace.js
-// 的 tabs）对二者只呈现「档案归档」tab，不呈现/不启用其它 tab（不扩大任何写权限）。
-// 消费点单一源：core/boot/bootstrap.js 身份门（放行页面）+ entries/tabs/secretary/todo-tab.js
-// 代归档入口（_canOpenPropWorkspace）同源判定，勿各自手写角色清单。
-export const ARCHIVE_FALLBACK_ROLES = ['secretary', 'deputy-secretary'];
-const ARCHIVE_FALLBACK_PAGE = 'prop.html';
-/** 该角色是否可经归档兜底进入指定页面（当前仅 prop.html） */
-export function isArchiveFallbackPage(role, page) {
-  const norm = (p) => (p || '').replace(/\.html$/, '');
-  return ARCHIVE_FALLBACK_ROLES.includes(role) && norm(page) === norm(ARCHIVE_FALLBACK_PAGE);
-}
+// ── 归档兜底（D-807④ 2026-10-06 改准）────────────────────────────────────
+// 原「支书/副支书经放行门进入宣传台、只呈现归档兜底面」的跨台形态已按支书令撤除——
+// 「兜底在自己的工作台集成，不看别的角色工作台」。现行形态：支书台待办「宣传材料待归档」
+// 组的「代归档」按钮**本台浮窗直执**（entries/tabs/secretary/todo-tab.js::_openDelegateArchiveModal，
+// 判据与写口均与宣传台归档面同源）。§9b 矩阵的 archive=Y 兜底**权限**不变，变的只是承载面。
 
 /**
  * **「待归属支部」判定**（2026-09-29 批次 277 —— IAAA 入站阻断层的**单一源**，勿在别处另写一份）。

@@ -146,10 +146,13 @@ test('requiredRoles 门禁被 workspace-shell 消费（先按角色查；两查�
     '不得退回「只按 scope 查」的单查写法');
   assert.match(src, /if \(!cap\) \{\s*_renderCapabilityDenied\(/,
     '能力两查皆空须渲染显式提示（不得静默空壳）');
-  // 兜底的三条放行门须在注释里指名单一源（防后来者误当「绕过门禁」而删）
-  for (const gate of ['isPartyStaffBranchDemoAllowed', 'isArchiveFallbackPage', 'isOrganizerFallbackPage']) {
+  // 兜底的放行门须在注释里指名单一源（防后来者误当「绕过门禁」而删）。
+  // 2026-10-06 批次 433（D-807④）：isArchiveFallbackPage 已随「支书代归档跨台形态」撤除
+  // （代归档改支书台本台浮窗直执）⇒ 从清单摘除；其余两门照旧。
+  for (const gate of ['isPartyStaffBranchDemoAllowed', 'isOrganizerFallbackPage']) {
     assert.ok(src.includes(gate), `兜底放行门须指名单一源 ${gate}（不另立第二套判定）`);
   }
+  assert.ok(!src.includes('isArchiveFallbackPage'), 'isArchiveFallbackPage 已撤（D-807④）——不得残留跨台代归档放行门');
 });
 
 test('bootstrap 数据源选择经注册表（行为零变化：有 token 走 api，回退 mock）', async () => {

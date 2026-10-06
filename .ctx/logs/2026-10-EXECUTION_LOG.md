@@ -2228,3 +2228,15 @@ $body
 **坑（如实登记）**：本批实测用 PowerShell 5.1 作 API 客户端，其 `ConvertTo-Json` 序列化把数组包成 `{value:[…]}` 单对象写进 todos 表（2 行脏数据，id=null）——**服务端忠实写入所收 payload，无服务端缺陷**；已定向清除 ＋ 版本 bump（todos 现余 10 行基线）。教训：临时 API 探针一律用 node 脚本（JSON 往返无损），不用 PS 对象管线。
 
 **读数**：`mock-api-parity` + `server-base` + `module-load` + `version-stamp` 38/38 绿。
+
+## 批次 433（2026-10-06 · 执行 `D-807`④ · 兜底归本台）
+
+**做了什么（指针）**：撤「支书/副支书进宣传台代归档」的跨台形态，整链 6 处——① 支书台待办「宣传材料待归档」组的「代归档」按钮改**本台浮窗直执**（`secretary/todo-tab.js::_openDelegateArchiveModal`：A 段「已结束未归档」逐行可归档〔写口＝`BranchService.archiveActivity`，与宣传台同源〕＋ B 段「已归档缺材料」**只读**——材料属宣传委员本职原始记录〔附录⑦禁代执行〕，只提示回组催办）；② `constants.js` 撤 `ARCHIVE_FALLBACK_ROLES`/`isArchiveFallbackPage`；③ `bootstrap.js` 撤放行门；④ `prop-workspace.js` 撤 tab 收窄（宣传台仅宣传委员可达，页签恒全量）；⑤ `prop/archive-tab.js` 撤兜底横幅与周报短路；⑥ `capability-registry` 守卫同批改判据（摘 `isArchiveFallbackPage`、加零残留断言）。README-server 三处改准＋锚点重钉；版本戳统一 bump g→h。
+
+**为什么**：支书令「兜底在自己的工作台集成，不看别的角色工作台」（`D-807`④）。§9b 的 archive=Y 兜底**权限**不变，变的只是承载面。
+
+**真机取证（起 3000 服务 · Playwright · 探针跑完即删）**：注入 A 型（completed 未归档）＋ B 型（archived 无归档记录）各一 → 支书台待办组在场 ✓ → 代归档按钮 ✓ → 浮窗开（A 段 24 行含探针 / B 段只读行在场）✓ → 点「归档」→ **写穿落库（服务端 activities 表 archived=true）**✓ → 探针清理 200 ✓ → pageerror 0。
+
+**边界（如实登记）**：① 概况侧禁改面（`overview-tab.js`）的 `archive-pending` 催办 `targetUrl` 指**宣传委员本人**的台——收件人落点，非兜底入口，**未动**；② 「组织者兜底」（非组长组织者进组长台用两个上传位，`D-494`）与本次裁定的**形态不一致**但属另一次裁定——已立丙部 `P.18` 请支书定；③ 组织者兜底放行门与党委演示放行门未动。
+
+**读数**：`module-load`+`capability-registry`+`version-stamp`+`doc-line-ref` 41/41 绿。

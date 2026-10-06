@@ -11,7 +11,7 @@ import {
   ROLE_KEYS, ROLE_LEGACY_KEYS,
   BRANCH_COMMISSION_ROLES, SECRETARY_ROLES, SECRETARY_AND_DEPUTY_ROLES, PARTY_STAFF_ROLE, COMMITTEE_IDS,
   COMMISSIONER_ROLES,
-} from '../../docs/src/core/domain/constants.js?v=20261006g';
+} from '../../docs/src/core/domain/constants.js?v=20261006h';
 
 const root = fileURLToPath(new URL('../..', import.meta.url)); // 仓库根
 

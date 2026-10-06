@@ -5,24 +5,24 @@
 //  依赖：domain.js, id.js（单向依赖，不依赖 UI 或 runtime）
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../../core/domain/domain.js?v=20261006g';
-import { generateId } from '../../core/base/id.js?v=20261006g';
-import { getDataSource, notifyDataLoaded, persist } from '../../data/data-adapter.js?v=20261006g';
-import { bumpToken, resetAllTokens } from '../../core/base/version-token.js?v=20261006g'; // P0 域缓存失效（spec §二.3/§二.4）
+import { mockDB } from '../../core/domain/domain.js?v=20261006h';
+import { generateId } from '../../core/base/id.js?v=20261006h';
+import { getDataSource, notifyDataLoaded, persist } from '../../data/data-adapter.js?v=20261006h';
+import { bumpToken, resetAllTokens } from '../../core/base/version-token.js?v=20261006h'; // P0 域缓存失效（spec §二.3/§二.4）
 // Mock 持久化/种子引擎（saveDB/loadDB/seed 同步）收敛到 data/mock-adapter.js 唯一实现
 // （T-2026-09-007 Step1：services 版私有引擎曾与 mock-adapter 同 Key 双写并缺
 //   imageRecords/agendaVotes 等新域恢复 → 刷新即丢；现统一由 MockAdapter 承担全量持久化域 34 个，含 users）
-import { MockAdapter } from '../../data/mock-adapter.js?v=20261006g';
+import { MockAdapter } from '../../data/mock-adapter.js?v=20261006h';
 // C3 一键初始化档（?reset=init，2026-09-08）：mock-adapter 禁改 → reset/清库逻辑经本
 // 可改入口兜底；init 档与 demo/preview 档并存（demo/preview 仍在 MockAdapter.loadDB
 // 内既有 handleResetIfRequested 处理，本档先于其检测、互不冲突——见 init-reset.js）。
 // C2 修复（2026-09-08）：init 档在浏览器形态被 adapter 判空回填（init≈demo）——
 // loadDB 委派 MockAdapter.loadDB 后按 init 态哨兵剔除演示种子（见 stripSeedRecordsIfInitState）。
-import { handleInitResetIfRequested, stripSeedRecordsIfInitState } from './init-reset.js?v=20261006g';
+import { handleInitResetIfRequested, stripSeedRecordsIfInitState } from './init-reset.js?v=20261006h';
 // 批4（2026-09-09 支书批「域参数」）：数据加载完成 → 读侧有效默认注入
 // （当前人所属支部 config.policyOverrides merge 进 POLICY_DEFAULTS；无 overrides = 保持默认）
-import { applyEffectivePolicyDefaultsForPerson, getBranchIdOfPerson, getBranchWorkforce } from '../branch/branch.js?v=20261006g';
-import { todayLocal } from '../../core/base/utils.js?v=20261006g';
+import { applyEffectivePolicyDefaultsForPerson, getBranchIdOfPerson, getBranchWorkforce } from '../branch/branch.js?v=20261006h';
+import { todayLocal } from '../../core/base/utils.js?v=20261006h';
 
 const MOCK_DELAY_MS = 600;
 
@@ -138,7 +138,7 @@ export function createActivity(data) {
     //   传进去（判据单一源＝`core/domain/work-map.js`；分支取「创建人所属支部」，取不到＝缺省分工）。
     if (!newItem.assignments || newItem.assignments.length === 0) {
       const snapshot = getBranchWorkforce(getBranchIdOfPerson(newItem.createdBy));
-      import('../governance/todo.js?v=20261006g').then(({ LifecycleTodoDeriver }) => {
+      import('../governance/todo.js?v=20261006h').then(({ LifecycleTodoDeriver }) => {
         LifecycleTodoDeriver.deriveFromActivityCreate(newItem, { snapshot });
       }).catch(e => console.warn('[MockAdapter] 派生活动赋权待办失败：', e));
     }
@@ -200,7 +200,7 @@ export function deleteActivity(id) {
     saveDB();
     console.info('[MockAdapter] deleteActivity 成功，id=' + id);
     // 联动删除关联待办（避免遗留孤儿待办）
-    import('../governance/todo.js?v=20261006g').then(({ LifecycleTodoDeriver }) => {
+    import('../governance/todo.js?v=20261006h').then(({ LifecycleTodoDeriver }) => {
       LifecycleTodoDeriver.deleteByActivity(id);
     }).catch(e => console.warn('[MockAdapter] 联动删除待办失败：', e));
     // 2026-08-27 T-283 生命周期修复：彻底删除活动须联动清理全部子记录
@@ -261,7 +261,7 @@ export function archiveActivity(id) {
     console.info('[MockAdapter] archiveActivity 成功，id=' + id
       + '，级联完成下属 tasks。');
     // 派生归档待办给宣传委员（最小三成本原则·阶段1C-3）
-    import('../governance/todo.js?v=20261006g').then(({ LifecycleTodoDeriver }) => {
+    import('../governance/todo.js?v=20261006h').then(({ LifecycleTodoDeriver }) => {
       LifecycleTodoDeriver.deriveFromActivityArchive(archived);
     }).catch(e => console.warn('[MockAdapter] 派生活动归档待办失败：', e));
     return archived;

@@ -120,8 +120,8 @@
 | 权限键 | `view_all`、`create_activity`、`assign_task`、`modify_assignment`、`mark_complete`、`fill_review`、`record_inspection`、`manage_taskforce`、`initiate_taskforce`、`authorize_taskforce`、`authorize`、`archive`、`manage_members` + 意见反馈**基础键 7 个**（`issue.view` / `issue.create` / `issue.comment.add` / `issue.reaction.toggle` / `issue.mention` / `issue.reference` / `issue.edit.own`）+ 意见反馈**处置键 8 个**（`issue.status.change` / `issue.close` / `issue.comment.hide` / `issue.edit.others` / `issue.milestone.manage` / `issue.assignee.set` / `issue.drafts.merge` / `issue.drafts.reject`）——**支委层五角色（支书 / 副支书 / 组织 / 宣传 / 纪检）均持** |
 | 不能做什么 | 不持 `record_attendance`（不直接记考勤）、不持 `summarize_inspection`（不汇总考察）、不持 `assign_project_role`（项目角色赋权走组长/组织者链） |
 | 审批位 | ① 成员变更申请**确认**（组织委员审批后由支书确认生效）；② 支部**上报党委**的发起方；③ 意见反馈**处置**（指派/关闭/重开/隐藏/合并/里程碑/终审）——**归支委会：支委层五角色（支书 / 副支书 / 组织 / 宣传 / 纪检）均可**；④ **品牌认定**：本角色可**提案**，认定本身须经**支委会审议通过**后确定 |
-| 特例 / 边界 | ① **看不到匿名反馈的真实提交人**——「处置」与「查看真身」是两项分开的权限（真身仅党委可查）；② 支部 config 全量可写，但**不含支部官方名 `name`**（仅 `party-staff` 可改）；③ 党小组管理（新增/改名/解散/归组）仅支书（含副支书）；④ 进宣传工作台只放行「档案归档」页（代归档兜底），不获得其它页签；⑤ **支委身份配置**：可把**本支部成员**配为组织 / 宣传 / 纪检委员（可改派、可撤销）——**支书本人与副支书的身份由党委配置**，不在此列；**副支书与支书同权**（两者均可配） |
-| 依据 | `docs/src/services/core/auth.js:79`、`:68-75`、`docs/src/core/domain/constants.js:202-204`（`BRANCH_COMMISSION_ROLES`）、`docs/src/core/domain/constants.js:332-338`（归档兜底）、`content/02_institution/SYSTEM_ROLE_PERMISSION.md:167-180`（§9j）、`server/routes/resources/gates.js:24-36`（党小组门） |
+| 特例 / 边界 | ① **看不到匿名反馈的真实提交人**——「处置」与「查看真身」是两项分开的权限（真身仅党委可查）；② 支部 config 全量可写，但**不含支部官方名 `name`**（仅 `party-staff` 可改）；③ 党小组管理（新增/改名/解散/归组）仅支书（含副支书）；④ **代归档兜底在本台集成**——待办「宣传材料待归档」组「代归档」按钮**本台浮窗直执**（判据与写口与宣传台归档面同源；原「进宣传工作台只放行档案归档页」的跨台形态已撤，`D-807④`）；⑤ **支委身份配置**：可把**本支部成员**配为组织 / 宣传 / 纪检委员（可改派、可撤销）——**支书本人与副支书的身份由党委配置**，不在此列；**副支书与支书同权**（两者均可配） |
+| 依据 | `docs/src/services/core/auth.js:79`、`:68-75`、`docs/src/core/domain/constants.js:202-204`（`BRANCH_COMMISSION_ROLES`）、`content/02_institution/SYSTEM_ROLE_PERMISSION.md:167-180`（§9j）、`server/routes/resources/gates.js:24-36`（党小组门）、`docs/src/entries/tabs/secretary/todo-tab.js`（代归档本台直执，`D-807④`） |
 
 > **⚠「仍专属支书」的清单**：「**品牌认定**」「**意见处置**」已归支委会 / 支委层，**仍专属支书**的为——① **活动信息编辑**（巡查面板按钮，前端按 `SECRETARY_ROLES` 判：`docs/src/components/record/inspector.js:626`）；② **全支部通知发布**（本组通知发布口的注释明写「全支部通知仍归支书」：`docs/src/components/governance/notice-view.js:182`）；③ **名册成员变更确认链的阶段语义端点**（服务端走 `SECRETARY_AND_DEPUTY_ROLES`，属既有支书写链：`server/routes/member.js:129`）。`SECRETARY_ROLES` 的注释写明「品牌认定、意见处置已移出本集」（`docs/src/core/domain/constants.js:205`）。
 
@@ -406,7 +406,7 @@
 | 8 | `tf-view` / 知情查看 | 知情查看 | 分段集合由「赋权下游」派生；宣传委员名下无专属下游 ⇒ **只出「活动」段**（「活动」＝全支部通用知情面） |
 | 9 | `my-dispatch` / 我的处置 | 制度与答复 | 同上 |
 
-> **特例**：支书 / 副支书**可进入本工作台，但只呈现「档案归档」一个页签**（代归档兜底），不启用其它页签、不扩大任何写权限。
+> **特例**：支书 / 副支书的「代归档」兜底**不在本台**——在支书台待办「宣传材料待归档」组的「代归档」按钮**本台浮窗直执**（判据与写口与本页归档面同源；本工作台仅宣传委员可达，`D-807④` 2026-10-06 撤跨台放行门）。
 
 #### 3.2.4 纪检委员工作台（`disc.html`）— 9 个
 
@@ -1094,7 +1094,7 @@
 | platformReportedBy | string | 否 | 上报留痕·操作人 personId（与 `platformReportedAt` 同步写入） |
 
 **服务端种子**：**有**（`server/seed.js:61` 从 `docs/src/data/mock/seed.js::SEED_ARCHIVE_RECORDS` 播种 6 条）。
-**依据**：`docs/src/data/mock/seed.js:37-44`、`docs/src/entries/tabs/prop/archive-tab.js:1083-1145`（运行时新建：`_handleArchiveUpload`）、`docs/src/entries/tabs/prop/archive-tab.js:631-650`（党建平台留痕位：`_markPlatformReported` 写、`_renderPlatformCell` 读）、`docs/src/services/governance/secretary-overview.js:595`（`secretaryConfirmedAt` 读）、`docs/src/entries/tabs/secretary/todo-tab.js:737`（写）、`server/seed.js:61`、`server/routes/resources/store.js:30,56`。
+**依据**：`docs/src/data/mock/seed.js:37-44`、`docs/src/entries/tabs/prop/archive-tab.js:1069-1131`（运行时新建：`_handleArchiveUpload`）、`docs/src/entries/tabs/prop/archive-tab.js:617-636`（党建平台留痕位：`_markPlatformReported` 写、`_renderPlatformCell` 读）、`docs/src/services/governance/secretary-overview.js:595`（`secretaryConfirmedAt` 读）、`docs/src/entries/tabs/secretary/todo-tab.js:737`（写）、`server/seed.js:61`、`server/routes/resources/store.js:30,56`。
 
 ---
 

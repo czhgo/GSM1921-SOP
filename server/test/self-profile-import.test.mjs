@@ -14,7 +14,7 @@ import assert from 'node:assert/strict';
 
 import {
   buildSelfProfileImport, parseSelfProfileSheet, detectDelimiter, headerToTarget,
-} from '../../docs/src/services/member/self-profile-import.js?v=20261006g';
+} from '../../docs/src/services/member/self-profile-import.js?v=20261006h';
 
 /** 支书提供的问卷导出表头（**逐字**；用于顺序敏感的全列映射） */
 const HEAD = [

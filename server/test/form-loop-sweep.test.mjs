@@ -142,7 +142,7 @@ async function createSession(studentId, pageName) {
 
 /** P0-2 形态断言：本文件真机用例必须在 API 形态下跑（单一源 = data/data-adapter.js::getRuntimeMode） */
 async function assertApiMode(page) {
-  await page.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20261006g')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
+  await page.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20261006h')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
 }
 
 /** 等「上一态已清、本态已到」的**可判定条件**（替代原来的固定 `waitForTimeout(1500)`）。
@@ -156,7 +156,7 @@ async function assertApiMode(page) {
 async function waitShellSettled(page) {
   await page.waitForFunction(async () => {
     if (document.querySelectorAll('button[role="tab"]').length === 0) return false;
-    const { getAppState, STATE } = await import('/src/core/base/state.js?v=20261006g');
+    const { getAppState, STATE } = await import('/src/core/base/state.js?v=20261006h');
     const st = getAppState();
     // ⚠ 只判 `status === IDLE` **不够**：`status` 的初值就是 IDLE，而工作台壳层的 tab 条
     //   可能在 `loadWorkspaceData` 之前就已渲染 ⇒ 会「假就位」，此时切 tab 会被随后的
