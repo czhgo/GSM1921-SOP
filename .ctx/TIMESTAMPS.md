@@ -302,7 +302,7 @@ dynamic_role:
 | 文件路径 | last_updated | 移入归档日 | 角色 | 备注 |
 |---------|-------------|--------|------|------|
 | docs/src/entries/tabs/leader/_shared.js | 2026-08-22 | — | [工程师]+[AI] | 组长工作台共享上下文（纯函数 `currentLeaderGroup` / `filterByRole`）。沿革见 `.ctx/logs/`。 |
-| docs/src/entries/tabs/leader/todo-tab.js | 2026-10-06 | — | [工程师]+[AI] | 组长「待办」tab（含**模块周期提醒**实时组接线，批次 423）。沿革见 `.ctx/logs/`。 |
+| docs/src/entries/tabs/leader/todo-tab.js | 2026-08-22 | — | [工程师]+[AI] | 组长「待办」tab。沿革见 `.ctx/logs/`。 |
 | docs/src/entries/tabs/leader/overview-tab.js | 2026-08-22 | — | [工程师]+[AI] | 组长「工作概况」tab。沿革见 `.ctx/logs/`。 |
 | docs/src/entries/tabs/leader/write-tab.js | 2026-10-05 | — | [工程师]+[AI] | 组长活动管理 tab（含决策树引导式写入；活动信息区顶部有「先报备、报备通过后方才写入」提示，**不设门槛**）。沿革见 `.ctx/logs/`。 |
 | docs/src/entries/tabs/leader/attendance-tab.js | 2026-10-04 | — | [工程师]+[AI] | 组长「考勤上传」tab（党课 / 党员大会上传位在纪检；支委会不考勤）。沿革见 `.ctx/logs/`。 |

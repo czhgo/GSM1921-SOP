@@ -10,12 +10,12 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261006a';
-import { setDataSource } from '../../docs/src/data/data-adapter.js?v=20261006a';
-import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261006a';
+import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261006b';
+import { setDataSource } from '../../docs/src/data/data-adapter.js?v=20261006b';
+import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261006b';
 import {
   TodoStore, TodoSourceType, LifecycleTodoDeriver,
-} from '../../docs/src/services/governance/todo.js?v=20261006a';
+} from '../../docs/src/services/governance/todo.js?v=20261006b';
 
 // ── localStorage 内存桩 ─────────────────────────────────────────
 const _store = new Map();

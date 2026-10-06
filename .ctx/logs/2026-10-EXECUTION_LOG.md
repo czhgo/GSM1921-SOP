@@ -2034,3 +2034,25 @@ $body
 - **组长台「待办」tab 正常渲染**（`#leader-tab-content` 文本 925 字）；**「本周期尚未开展（支部分工模块）」实时组卡在位**（标题逐字命中、组内 **2 条**＝党小组会 ＋ 主题党日，本期（2026-10）均无对应活动）；**`pageerror` 0**。
 - 如实登记：`console.error` 中有 8 条 `net::ERR_FAILED`（＝用例按纪律 `route.abort` 拦掉的三个 CDN）＋ 1 条 **403**（无 token 请求的既有现象，**本批未新增任何网络调用**、非本批引入）。
 
+## 批次 424（2026-10-06 · `D-804` 续 · `R-29⑤` 余项 ① 收口）**周期提醒改「各台通用、不逐台接线」**
+
+> **来源**：批次 423 把周期提醒实时组接在**组长台一处**、并在 `D-804` 如实登记为余项 ①。本批把它改为**单一源、各台通用**。
+
+### 一、动作
+
+1. `docs/src/components/record/todo-tab-shell.js` 新增 `_moduleCycleGroupsFor(role)` ＋ 在 `renderContent` 组装实时组处 `rtGroups.push(...)`（新增 import：`buildModuleCycleRemindGroup` · `getBranchIdOfPerson` · `getBranchWorkforce`）。
+   - 主体集＝**登录角色键**（`me.role`，回退本壳 `role`）＋ **本人 `personId`**；分工快照取法照 `components/governance/workforce-duty-card.js`（同一口径，不另写）。
+   - 无登录人 / 无相关模块 ⇒ **空数组**（不产生空组卡）；纯读、不落库、不派任务。
+2. `docs/src/entries/tabs/leader/todo-tab.js` 的**专用接线撤销**（含其四处 import）——避免逐台复制（单一源）。
+3. 戳 `20261006a → 20261006b`。
+
+### 二、守卫与真机读数
+
+- 定向：`module-load` · `import-path-guard` · `todo-deriver-domain` · `todo-domain` · `todo-domain-view` · `module-cycle-remind` · `module-owner-authz` · `tab-nav` · `version-stamp` **70 / 70 / 0**。
+- **真机核三台**（自包含 `createApp(:memory:)` ＋ 真登录；探针跑完即删、未留盘）：**组长台**（p1 ＝ 罗文杰）出组 **2 条**（党小组会 ＋ 主题党日，本期 2026-10 均无对应活动）；**支书台**（p13）与**组织台**（p11）**均不出条**（该二模块缺省主责＝`leader`）——即**接线通用、分域正确**；三台 `pageerror` **0**。
+
+### 三、边界（如实）
+
+- **余项收敛为**：① **支部改派（`config.workforce`）接线**（三个派生点未传 `opts.snapshot`；⚠ `data/mock-adapter.js` 属数据层、直引 `services/branch/branch.js` 有**成环风险** ⇒ 须先定接法）· ② **「到人」主责**待「按人索待办」· ③ **周期扩面**须支书给定频次与出处。
+- **改的是公共壳**（7 台待办页共用）⇒ 潜在影响面大于批次 423；已以「三台真机 ＋ `tab-nav` / `module-load` 守卫」取证，**其余四台的同类渲染等同路径、未逐台跑**（如实登记）。
+
