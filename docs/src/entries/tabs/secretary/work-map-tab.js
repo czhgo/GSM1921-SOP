@@ -25,7 +25,7 @@ import { mountWorkforcePanel } from './workforce-panel.js?v=20261006g';
 let _view = 'persons'; // 视图：平铺模块 / 按人 / 按项目（宽表默认「按人」；同一会话内保持）
 // R5（2026-09-28 批次 220）：分工调整工具（写）默认折叠——本 tab 主问「每项工作归谁负责？」＝看分工（读），
 //   分工调整（发起议题/跟踪/采纳）属「偶尔要用的工具」（判定＝一 tab 一问：「支部分工」混装读/写两件事，
-//   写侧折叠为按钮；原 MODULE_UI_DESIGN.md §四 规划稿已清出，出处见 .ctx/logs/2026-09-DECISION_LOG.md）。折叠体例照本仓既有 `_progressOpen`（group-progress-tab.js）：模块级布尔 + 卡片 + 单钮，
+//   写侧折叠为按钮；原 MODULE_UI_DESIGN.md §四 规划稿已清出，出处见 .ctx/logs/archive/2026-09-DECISION_LOG.md）。折叠体例照本仓既有 `_progressOpen`（group-progress-tab.js）：模块级布尔 + 卡片 + 单钮，
 //   展开态才挂载工具（未展开不 load，减负首屏）；功能不删（展开后 DOM/事件一字不减）。
 let _toolOpen = false;
 

@@ -21,7 +21,7 @@ status: active
 | [党支部管理与实务经验沉淀.md](党支部管理与实务经验沉淀.md) | 组织性（管理事、服务人）、条块二元结构、支委角色设计、活动分类体系、专班经验 | \[1]支部战略 + \[2]支部制度 |
 
 > **工程类经验（2026-09-14/15 集中沉淀）**：本轮整改（分页引擎化 / 人×项目矩阵单一源 / 档位口径 / 非闭环修复 / 仲裁落地 / 同类病灶规模扩大 / 口径守卫化）提炼的**判例与可复用判据**集中在 [content/05_ai_coding/DATA_CONSISTENCY_CHECKLIST.md](../05_ai_coding/DATA_CONSISTENCY_CHECKLIST.md)（**第六~第十四范本** + **§0.2 规则 → 守卫 → 状态 总索引**）与 [content/05_ai_coding/TEST_AND_VERIFICATION.md](../05_ai_coding/TEST_AND_VERIFICATION.md)（判例立规），并把它们压成 **[§0.1 AI 自查问句十四问](../05_ai_coding/DATA_CONSISTENCY_CHECKLIST.md)**——AI 每接一个「改表格/改控件/改数据/加能力/改说明文件」的任务先自问，**答不实就问支书**。此处不另开文件，避免与 05 域重复维护。
-> **沿革去向（2026-09-26 批次 208）**：本条原有两条**追加型沿革注记**（「2026-09-14 批次 37–39 追加」「2026-09-15 批次 44 追加」——只记「哪一批往 05 域加了哪些范本 / 自查问句」的编辑动作，不含现行规则）已**成段迁出**至 `.ctx/logs/2026-09-EXECUTION_LOG.md`「附：`content/**` 沿革注记迁出（2026-09-26 批次 208）」（含「原句 → 去向」逐字对照）。各范本、§0.1 自查问句与 §0.2 总索引的**现行正文**仍在 [DATA_CONSISTENCY_CHECKLIST.md](../05_ai_coding/DATA_CONSISTENCY_CHECKLIST.md)，对应判例仍在 [TEST_AND_VERIFICATION.md](../05_ai_coding/TEST_AND_VERIFICATION.md)。
+> **沿革去向（2026-09-26 批次 208）**：本条原有两条**追加型沿革注记**（「2026-09-14 批次 37–39 追加」「2026-09-15 批次 44 追加」——只记「哪一批往 05 域加了哪些范本 / 自查问句」的编辑动作，不含现行规则）已**成段迁出**至 `.ctx/logs/archive/2026-09-EXECUTION_LOG.md`「附：`content/**` 沿革注记迁出（2026-09-26 批次 208）」（含「原句 → 去向」逐字对照）。各范本、§0.1 自查问句与 §0.2 总索引的**现行正文**仍在 [DATA_CONSISTENCY_CHECKLIST.md](../05_ai_coding/DATA_CONSISTENCY_CHECKLIST.md)，对应判例仍在 [TEST_AND_VERIFICATION.md](../05_ai_coding/TEST_AND_VERIFICATION.md)。
 
 ---
 

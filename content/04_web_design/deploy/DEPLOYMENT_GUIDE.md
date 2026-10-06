@@ -13,7 +13,7 @@ related_files: [docs/src/data/data-adapter.js, docs/src/data/api-adapter.js, doc
 > **总述：** 本文是系统**部署与对外对接**的唯一权威源，回答四件事——① **系统长什么样、给谁用**（§一 系统形态速览）；② **怎么落地部署**（§二 四条落地路径与部署决策：A 静态托管 / B Node 自托管 / C 计算中心托管 / D 微信小程序）；③ **怎么和学校/党校对接**（§三 与学校/党校对接总叙事与决策矩阵——对接对象、我方诉求、系统能力、数据流边界、前置条件、对接步骤、邮件与上报通道）；④ **三块专项设计**（§四 认证与登录门控 / §五 微信协同与小程序 / §六 北大党校与智慧党建系统对接）。四部分互为依据：形态决定路径，路径决定对接方式，专项给出各侧实现细节——对外的三章（§一–§三）自包含、可直接拿去讲；专项（§四–§六）与附录（落地实施细节，对内）供实施与落地执行。
 >
 > **受众：** [工程师]+[AI]（部署与对接实施）；**§一–§三** 同时面向**对外的读者**（学校计算中心、党委组织部、党校办公室、信息中心的对接人）——这三章已完整自包含，讲清我方是什么系统、部署在哪、给谁用、对接诉求是什么、数据边界在哪、能交付什么，**不需要再去别的章节拼装**；对内的读者（支书/工程师/AI/未来接手者），落地实施细节（代码就绪度 / 真实部署 checklist / 风险）见**附录**。（2026-09-04 支书裁决：deploy/ 按「阅读对象」组织——需要一个相对完整的文件去和学校/党校交涉对接，本文件即为此而设，自包含、可直接拿去讲。）
-> **本文不回答**：① **沿革与「哪一批做了什么」** → `.ctx/logs/2026-09-EXECUTION_LOG.md`；② **数据结构与数据流（实体字段表 / 枚举 / 表结构）** → [DATA_MODEL.md](../data/DATA_MODEL.md)；③ **系统角色权限矩阵（角色键级权威）** → [SYSTEM_ROLE_PERMISSION.md](../../02_institution/SYSTEM_ROLE_PERMISSION.md)；④ **前端设计规范** → [DESIGN_SYSTEM.md](../design-system/DESIGN_SYSTEM.md)；⑤ **架构分层与单一事实源注册表** → [ARCHITECTURE.md](../../03_doc_system/ARCHITECTURE.md)。
+> **本文不回答**：① **沿革与「哪一批做了什么」** → `.ctx/logs/archive/2026-09-EXECUTION_LOG.md`；② **数据结构与数据流（实体字段表 / 枚举 / 表结构）** → [DATA_MODEL.md](../data/DATA_MODEL.md)；③ **系统角色权限矩阵（角色键级权威）** → [SYSTEM_ROLE_PERMISSION.md](../../02_institution/SYSTEM_ROLE_PERMISSION.md)；④ **前端设计规范** → [DESIGN_SYSTEM.md](../design-system/DESIGN_SYSTEM.md)；⑤ **架构分层与单一事实源注册表** → [ARCHITECTURE.md](../../03_doc_system/ARCHITECTURE.md)。
 >
 > **战略母本**：本系统是支部「管理事、服务人」叙事的数字化承载，其战略论断母本见 [SECRETARY_DIRECTIVES.md](../../01_strategy/SECRETARY_DIRECTIVES.md)（P-001「管理事、服务人」战略路线、P-015 探索机会——支部方兴未艾、探索 AI 时代组织产品）与 [DEVELOPMENT_PATH.md](../../01_strategy/DEVELOPMENT_PATH.md)（发展路径叙事；第四章 发展党员流程对应本系统的全流程追踪与培训对接诉求）。工具类论断出处（2026-08-10 微信协同战略目标、2026-08-19 北大对接「提前想全面」）分别见 §五 与 §六 的出处注。
 
@@ -942,7 +942,7 @@ WebView 套壳（短期）→ Taro 跨端（中期），与网页共用后端；
 | 术语使用规范 / 文件角色分类 | [OPERATIONS_GUIDE.md §19–§31](../../03_doc_system/OPERATIONS_GUIDE.md)（《运行与协作规范》） |
 | 支书裁定原文（P-xxx 系列） | [SECRETARY_DIRECTIVES.md](../../01_strategy/SECRETARY_DIRECTIVES.md) / [DEVELOPMENT_PATH.md](../../01_strategy/DEVELOPMENT_PATH.md) |
 | 后端安装 / 启动 / 测试 / 部署对接说明 | [server/README.md](../../../server/README.md) |
-| 沿革与「哪一批做了什么」 | `.ctx/logs/2026-09-EXECUTION_LOG.md` |
+| 沿革与「哪一批做了什么」 | `.ctx/logs/archive/2026-09-EXECUTION_LOG.md` |
 
 ---
 

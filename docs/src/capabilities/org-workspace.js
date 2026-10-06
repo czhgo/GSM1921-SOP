@@ -67,7 +67,7 @@ export const ORG_WORKSPACE_TAB_DECLS = [
     { id: 'taskforce', label: '专班管理', groupLabel: '我的职责', render: (ctx) => import('../entries/tabs/org/taskforce-tab.js?v=20261006g').then(m => m.renderContent(ctx)) },
     // 成员流动（2026-09-28 批次 220 · R10：从「成员名册」拆出的独立 tab）——判据＝一 tab 一问：
     //   名册答「支部在册成员有谁、档案状态如何」；本 tab 答「成员怎么变（流入 / 流出）」——原二者同装
-    //   「成员名册」属两个语义域混装（判据「一 tab 一问」；原 MODULE_UI_DESIGN.md §四 规划稿已清出，出处见 .ctx/logs/2026-09-DECISION_LOG.md）。承原「成员流动」面板
+    //   「成员名册」属两个语义域混装（判据「一 tab 一问」；原 MODULE_UI_DESIGN.md §四 规划稿已清出，出处见 .ctx/logs/archive/2026-09-DECISION_LOG.md）。承原「成员流动」面板
     //   全部功能（登记流入 / 登记流出 / 对账行 / 台账表 / 撤销）；行内「移出」仍在名册 tab。
     { id: 'member-flow', label: '成员流动', groupLabel: '我的职责', render: (ctx) => import('../entries/tabs/org/member-flow-tab.js?v=20261006g').then(m => m.renderContent(ctx)) },
     // ⚠ 原 `development`（发展数据）页签已于 2026-10-01 批次 321 摘除（支书 V-10 取「乙：整页并入人才库」）

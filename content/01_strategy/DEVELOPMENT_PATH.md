@@ -14,7 +14,7 @@ related_files: [ARCHITECTURE.md, CLAUDE.md, content/04_web_design/data/DATA_MODE
 > - 与 [DATA_MODEL.md §3 参与者数据流设计](../04_web_design/data/DATA_MODEL.md)（数据流，含三级参与者数据流）、[SYSTEM_ROLE_PERMISSION.md](../02_institution/SYSTEM_ROLE_PERMISSION.md)（系统角色权限矩阵）、[COMMISSIONER_DUTY_FRAMEWORK.md §G](../02_institution/COMMISSIONER_DUTY_FRAMEWORK.md)（组织者与深度参与者的扁平化设计）的关系见附录 A。
 > - 第三章 P-016「恢复对话能力」是「党建+科研」这一方面的重要战略选择——恢复对话能力是「党建+科研」的目标，不是党建全局的根本目标。
 >
-> **沿革去向（2026-09-26 批次 206）**：本文件原有的**记账式沿革注记**（「某节原为独立文件…并入…」一类，记录过去的编辑动作、不含现行规则）已**成段迁出**至 `.ctx/logs/2026-09-EXECUTION_LOG.md`「附：`content/**` 沿革注记迁出（2026-09-26 批次 206）」（含「原句 → 去向」逐字对照）。
+> **沿革去向（2026-09-26 批次 206）**：本文件原有的**记账式沿革注记**（「某节原为独立文件…并入…」一类，记录过去的编辑动作、不含现行规则）已**成段迁出**至 `.ctx/logs/archive/2026-09-EXECUTION_LOG.md`「附：`content/**` 沿革注记迁出（2026-09-26 批次 206）」（含「原句 → 去向」逐字对照）。
 
 # 发展路径
 

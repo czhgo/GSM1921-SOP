@@ -42,4 +42,4 @@
 
 - 读口收紧：资源表默认**要求登录**，仅「有明确裁定公开」的 `issues` 留白名单；通知发布/管理、党小组管理、成员流动登记、支部文件等写口按角色门收严；匿名反馈**出口脱敏**（真身仅党委核查出口单点可见）。
 
-<!-- 沿革指针：0.1.0 之前的逐批沿革见 .ctx/logs/2026-08-EXECUTION_LOG.md 与 .ctx/logs/2026-09-EXECUTION_LOG.md。 -->
+<!-- 沿革指针：0.1.0 之前的逐批沿革见 .ctx/logs/archive/2026-08-EXECUTION_LOG.md 与 .ctx/logs/archive/2026-09-EXECUTION_LOG.md。 -->

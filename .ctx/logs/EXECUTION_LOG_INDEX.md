@@ -18,11 +18,11 @@ status: active
 | 2026年02月 | `.ctx/logs/2026-02-EXECUTION_LOG.md` | ✅ 已归档 |
 | 2026年03月 | `.ctx/logs/2026-03-EXECUTION_LOG.md` | ✅ 已归档 |
 | 2026年04月 | `.ctx/logs/2026-04-EXECUTION_LOG.md` | ✅ 已归档 |
-| 2026年05月 | `.ctx/logs/2026-05-EXECUTION_LOG.md` | ✅ 已归档 |
-| 2026年06月 | `.ctx/logs/2026-06-EXECUTION_LOG.md` | ✅ 已归档 |
-| 2026年07月 | `.ctx/logs/2026-07-EXECUTION_LOG.md` | ✅ 已归档 |
-| 2026年08月 | `.ctx/logs/2026-08-EXECUTION_LOG.md` | ✅ 已归档 |
-| 2026年09月 | `.ctx/logs/2026-09-EXECUTION_LOG.md` | ✅ 已归档（2026-10-02 冻结；10-01/02 的 12 节已迁出） |
+| 2026年05月 | `.ctx/logs/archive/2026-05-EXECUTION_LOG.md` | ✅ 已归档 |
+| 2026年06月 | `.ctx/logs/archive/2026-06-EXECUTION_LOG.md` | ✅ 已归档 |
+| 2026年07月 | `.ctx/logs/archive/2026-07-EXECUTION_LOG.md` | ✅ 已归档 |
+| 2026年08月 | `.ctx/logs/archive/2026-08-EXECUTION_LOG.md` | ✅ 已归档 |
+| 2026年09月 | `.ctx/logs/archive/2026-09-EXECUTION_LOG.md` | ✅ 已归档（2026-10-02 冻结；10-01/02 的 12 节已迁出） |
 | 2026年10月 | `.ctx/logs/2026-10-EXECUTION_LOG.md` | 📝 活跃（当前月份） |
 
 ## 轮转规则
@@ -220,7 +220,7 @@ status: active
 
 ### 2026年09月
 
-> 2026-09 起工作主要以「**批次**」编号记载（正文见 [`.ctx/logs/2026-09-EXECUTION_LOG.md`](2026-09-EXECUTION_LOG.md)）；下表只收 **T 编号**条目。
+> 2026-09 起工作主要以「**批次**」编号记载（正文见 [`.ctx/logs/archive/2026-09-EXECUTION_LOG.md`](archive/2026-09-EXECUTION_LOG.md)）；下表只收 **T 编号**条目。
 
 | T 编号 | 日期 | 标题 |
 |--------|------|------|
@@ -257,5 +257,5 @@ status: active
 
 | 归档文件 | 归档范围 | 归档日期 | 母本文件 |
 |---------|---------|---------|---------|
-| `.ctx/logs/archive/2026-05-early-EXECUTION_LOG.md` | 2026年05月早期条目 | 2026-05-03 | `.ctx/logs/2026-05-EXECUTION_LOG.md` |
-| `.ctx/logs/archive/2026-07-early-entries.md` | T22-T70（2026-07-01 ~ 2026-07-08） | 2026-07-12 | `.ctx/logs/2026-07-EXECUTION_LOG.md` |
+| `.ctx/logs/archive/2026-05-early-EXECUTION_LOG.md` | 2026年05月早期条目 | 2026-05-03 | `.ctx/logs/archive/2026-05-EXECUTION_LOG.md` |
+| `.ctx/logs/archive/2026-07-early-entries.md` | T22-T70（2026-07-01 ~ 2026-07-08） | 2026-07-12 | `.ctx/logs/archive/2026-07-EXECUTION_LOG.md` |

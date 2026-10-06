@@ -342,7 +342,7 @@ calendarView: 'month',  // 'month' | 'week' | 'day' | 'list'
 
 > **状态**：2026-09-27 的「全站 8 角色 tab」体检与规划稿（原 §四.1–§四.5）**已全部执行并收口**，已执行内容按 `H50.1 §3` 清出——**空章不驻留**。
 > **现行口径（判据不随清出而失）**：分组主轴见 [DESIGN_SYSTEM.md §2.8](../design-system/DESIGN_SYSTEM.md)；「数据格式 → 视图模式」对照表**已升为 [DESIGN_SYSTEM.md §4.10.1](../design-system/DESIGN_SYSTEM.md) 正式条文（单一源）**；命名口径见该文「tab 命名一致性」。
-> **去向**：2026-09-27 四条裁定原话见 `.ctx/logs/2026-09-DECISION_LOG.md`（2026-09-27 条）；`#10` 全站页签单一轴的分期口径与裁定见 `.ctx/logs/2026-10-DECISION_LOG.md` `D-754`…`D-767`；逐批落地见 `.ctx/logs/2026-10-EXECUTION_LOG.md` 批次 365–375。
+> **去向**：2026-09-27 四条裁定原话见 `.ctx/logs/archive/2026-09-DECISION_LOG.md`（2026-09-27 条）；`#10` 全站页签单一轴的分期口径与裁定见 `.ctx/logs/2026-10-DECISION_LOG.md` `D-754`…`D-767`；逐批落地见 `.ctx/logs/2026-10-EXECUTION_LOG.md` 批次 365–375。
 
 ---
 

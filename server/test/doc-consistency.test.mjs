@@ -875,7 +875,7 @@ test('S15 弱清单：有正当沿革 / 取值定义不清的枚举数字只登�
 
   // ② CLAUDE.md 的「评议待办 · 执行型」表（`R-NN`）：**只留在办项**——`H50.1 §3`＝完成即**整行删除**（禁仅标 ✅）。
   //   2026-10-01 批次 314 按此把 **60 行已闭环 / 已立**删去（**69 → 9 行**）；**全文不丢** ⇒ 迁出附节
-  //   （`.ctx/logs/2026-09-EXECUTION_LOG.md`「附：乙部「评议待办 · 执行型」`R-23`…`R-91` 迁出全文」）。
+  //   （`.ctx/logs/archive/2026-09-EXECUTION_LOG.md`「附：乙部「评议待办 · 执行型」`R-23`…`R-91` 迁出全文」）。
   //   本判据两条：① **在办表 ∪ 迁出附节**的 `R-NN` 并集须仍覆盖 `R-23`…`R-91` 全集（防「删表＝丢编号」）；
   //              ② **在办表自身不得再出现「已闭环 / 已立」注记**（防退回「仅标 ✅ 不删除」）。
   //   **无别处转引 ⇒ 不判「文档声称值」**（弱清单；下限 5 防「正则失效 ⇒ 一条也解析不到 ⇒ 断言恒真」）。
@@ -890,7 +890,8 @@ test('S15 弱清单：有正当沿革 / 取值定义不清的枚举数字只登�
   assert.equal(new Set(rIds).size, rIds.length, `CLAUDE.md 的 R-NN 编号有重复：${rIds.filter((id, i) => rIds.indexOf(id) !== i).join(' / ')}`);
   const closedRows = rRows.filter(([, tail]) => /已闭环|已立/.test(tail)).map((r) => r[0]);
   assert.deepEqual(closedRows, [], `乙部「评议待办 · 执行型」表出现「已闭环 / 已立」注记（H50.1 §3 禁「仅标 ✅ 不删除」）：${closedRows.join(' / ')}`);
-  const migrated = read(join(ROOT, '.ctx', 'logs', '2026-09-EXECUTION_LOG.md'));
+  // 2026-10-06 批次 431：09 月日志已归档至 .ctx/logs/archive/（冻结月惯例，git mv 留沿革）。
+  const migrated = read(join(ROOT, '.ctx', 'logs', 'archive', '2026-09-EXECUTION_LOG.md'));
   const migratedIds = [...migrated.matchAll(/^\| (R-\d+) \|/gm)].map((x) => x[1]);
   const rAll = new Set([...rIds, ...migratedIds]);
   assert.ok(rAll.size >= 65, `R-NN 全集只解析到 ${rAll.size} 个（乙部在办表 ∪ 迁出附节；下限 65）：迁出附节被删或写法变了`);

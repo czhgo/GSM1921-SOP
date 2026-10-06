@@ -22,7 +22,7 @@
 // ⚠ 2026-10-05 批次 395（备注列第九轮）：实测 32,729（291 行）→ **收敛余下 `N4`（T-编号）20 格**（旧备注逐字迁 `.ctx/logs/2026-10-EXECUTION_LOG.md` 附节）后 **31,250**（291 行）
 //   ⇒ 预算 33,100 → **31,600**（**只降不升**；留 ≈350 字供「改了必须刷卡」的短注）。
 //   ⚠ 按 `N7`（四份清单**互不相同**）约束：`OVERLONG` 已为空 ⇒ 四份清单**各不相同的非空下限**分别为——
-//     `N4`＝`.ctx/logs/2026-08-EXECUTION_LOG.md` · `N5`＝`docs/src/entries/pages/notice-entry.js` · `N6`＝`content/04_web_design/design-system/COMPONENT_SPEC.md`（三者互不相同、均非空）。
+//     `N4`＝`.ctx/logs/archive/2026-08-EXECUTION_LOG.md` · `N5`＝`docs/src/entries/pages/notice-entry.js` · `N6`＝`content/04_web_design/design-system/COMPONENT_SPEC.md`（三者互不相同、均非空）。
 //     若要**三条一并清零**，须把 `N7` 的「互不相同」收窄为「**非空清单之间互不相同**」（空表不参与比对）⇒ **属改守卫判据 · 待支书核可**。
 // ⚠ 2026-10-05 批次 392（备注列第八轮）：实测 44,343（291 行）→ **收敛 `N5`/`N6` 两条清单并集 31 格**（沿革逐字迁 `.ctx/logs/2026-10-EXECUTION_LOG.md` 附节）后 **32,729**（291 行）
 //   ⇒ 预算 44,700 → **33,100**（**只降不升**；留 ≈370 字供「改了必须刷卡」的短注）。
@@ -44,7 +44,7 @@ export const NOTE_TOTAL_HARD_CEIL = 95000;
 //   .ctx/ENGINEERING_ASSESSMENT.md / server/test/form-loop-registry.mjs）后实测 60,898，
 //   预算随之下调 75,000 → 65,000（**只降不升**）。
 //   2026-09-28 批次 235 首建时实测 157,952；同批按 R-89 收敛路径迁出 5 格
-//   （`.ctx/logs/2026-09-EXECUTION_LOG.md`「附：TIMESTAMPS 备注列迁出的逐批沿革」）后实测 93,008，
+//   （`.ctx/logs/archive/2026-09-EXECUTION_LOG.md`「附：TIMESTAMPS 备注列迁出的逐批沿革」）后实测 93,008，
 //   人工下调上限至 95,000（留 ≈2,000 字供「改了必须刷卡」的短注）。**再上调＝放宽守卫＝越权项。**
 /** 单格字数硬顶（超过即入清单） */
 export const NOTE_LONG_MAX = 1000;
@@ -54,7 +54,7 @@ export const BATCH_MENTION_MAX = 3;
 export const ROWS_MIN = 245;
 
 /** 单格 > NOTE_LONG_MAX 字（26 行 · 待专项批把沿革迁 `.ctx/logs/**`） */
-// ⚠ 2026-10-01 批次 322：**已清零**——原 6 格 >1000 字的备注**整段迁出**到 `.ctx/logs/2026-09-EXECUTION_LOG.md`
+// ⚠ 2026-10-01 批次 322：**已清零**——原 6 格 >1000 字的备注**整段迁出**到 `.ctx/logs/archive/2026-09-EXECUTION_LOG.md`
 //   「附：TIMESTAMPS 备注列迁出的逐批沿革（批次 322）」，原位换短注 ⇒ 本清单合法为空（**达标态**，非「删空即变绿」，见 `N7` 例外条）。
 export const OVERLONG_BASELINE = [
 ];

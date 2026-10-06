@@ -11,7 +11,7 @@ related_files: [docs/src/styles.css, ../evolution/DESIGN_METHODOLOGY.md, ../data
 
 > **总述：** 本文是系统**前端设计**的唯一权威源，回答四件事——**「为什么这么设计」**（§一 设计哲学：14 条核心原则 + 减负空间排查）、**「颜色怎么用」**（§二 色彩系统：四层色板 + 色盘 + 配色规则）、**「组件长什么样、怎么交互」**（§四 组件规范：按钮/卡片/输入框/侧边栏/导航/模块标签/角色/嵌套/日历图例/数据展示/图标/交互载体/选人/状态徽章/反馈管理）、**「什么地方可以点击、点击后落在哪里」**（§十 点击落点映射：分层原则 + 条目落点表）；**§三 排版 / §五 交互反馈 / §六 响应式 / §七 深色模式 / §八 设计资产** 规定页面级体验，**§九 快速参考**为查阅入口，**§十一 边界与引用**列出本文不重复展开的权威源。四部分互为依据：哲学是裁决标准，色彩与组件是其落地形态，点击落点决定交互去向——任一处改动的裁决标准都回 §一。
 > **受众：** [工程师]+[AI] —— 让任何工程师（含外包）从头至尾读懂本系统的设计思路与需求，可直接按文档实现/复刻整套界面。
-> **本文不回答**：① **沿革与「哪一批做了什么」** → `.ctx/logs/2026-09-EXECUTION_LOG.md`；② **设计论证与判例（为什么不是另一种做法、什么条件下失效）** → [DESIGN_METHODOLOGY.md](../evolution/DESIGN_METHODOLOGY.md)；③ **数据结构与数据流** → [DATA_MODEL.md](../data/DATA_MODEL.md)；④ **系统角色权限矩阵** → [SYSTEM_ROLE_PERMISSION.md](../../02_institution/SYSTEM_ROLE_PERMISSION.md)。
+> **本文不回答**：① **沿革与「哪一批做了什么」** → `.ctx/logs/archive/2026-09-EXECUTION_LOG.md`；② **设计论证与判例（为什么不是另一种做法、什么条件下失效）** → [DESIGN_METHODOLOGY.md](../evolution/DESIGN_METHODOLOGY.md)；③ **数据结构与数据流** → [DATA_MODEL.md](../data/DATA_MODEL.md)；④ **系统角色权限矩阵** → [SYSTEM_ROLE_PERMISSION.md](../../02_institution/SYSTEM_ROLE_PERMISSION.md)。
 > 🔴 **强制自检声明**：本规范各原则的「可验证条件」与 §7.3 深色自查 9 条，是**修改 UI/工作台/数据流/组件/颜色时的强制自检项**（CLAUDE.md H40 检查清单第 12 项）——AI 改动相关代码时必须对照自检，不得以"设计文档只供参考"为由跳过；违反即违规。
 
 ## 零、读本文件指南（外包工程师入口）
@@ -1623,4 +1623,4 @@ li + li { margin-top: 0.25em; }
 | 文档地图与单一事实源索引 | [DOC_MAP.md](../../03_doc_system/DOC_MAP.md) / [ARCHITECTURE.md §十](../../03_doc_system/ARCHITECTURE.md#十单一事实源注册表与权威源治理) |
 | 架构分层与目录结构 | [ARCHITECTURE.md](../../03_doc_system/ARCHITECTURE.md) |
 | 组件与样式的实现母本（代码） | `docs/src/styles.css` · `docs/src/components/*` |
-| 沿革与「哪一批做了什么」 | `.ctx/logs/2026-09-EXECUTION_LOG.md` |
+| 沿革与「哪一批做了什么」 | `.ctx/logs/archive/2026-09-EXECUTION_LOG.md` |

@@ -58,7 +58,7 @@ related_files: [DATA_MODEL.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 4. **写结构层静态扫描**：把「口径只有一处实现」固化为断言，防新代码回潮
 5. **实测暴露的问题一律根治**（改单一源）而非打补丁——补丁只会留下第二处实现
 
-> **2026-09-30 批次 309（`D-725`）压缩**：下列 27 段「范本」的**原全文**已**整体逐字迁入** [`.ctx/logs/2026-09-EXECUTION_LOG.md`](../../.ctx/logs/2026-09-EXECUTION_LOG.md) 的「**附：`DATA_CONSISTENCY_CHECKLIST.md §0` 的「范本 2–28」迁出全文**」节（**沿革的权威落点**，同 `CLAUDE.md R-84` / `R-86` / `R-89`）。本处自本批起**只留索引**（范本号 / 批次 / 主题 / 同族纪律）；**日常执行面是下面那 28 条问句**，不是范本正文。查详情：按 `范本 N` 在该节内检索。
+> **2026-09-30 批次 309（`D-725`）压缩**：下列 27 段「范本」的**原全文**已**整体逐字迁入** [`.ctx/logs/archive/2026-09-EXECUTION_LOG.md`](../../.ctx/logs/archive/2026-09-EXECUTION_LOG.md) 的「**附：`DATA_CONSISTENCY_CHECKLIST.md §0` 的「范本 2–28」迁出全文**」节（**沿革的权威落点**，同 `CLAUDE.md R-84` / `R-86` / `R-89`）。本处自本批起**只留索引**（范本号 / 批次 / 主题 / 同族纪律）；**日常执行面是下面那 28 条问句**，不是范本正文。查详情：按 `范本 N` 在该节内检索。
 
 | 范本 | 出处 | 主题（标题里的「…」类） | 同族纪律（`CLAUDE.md`） |
 | --- | --- | --- | --- |
@@ -195,7 +195,7 @@ related_files: [DATA_MODEL.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 | 同屏复述（归一化后 ≥15 字块出现 ≥2 次）与每屏「文案 ÷ 控件」比值（≤12；12–20 须登记；>20 记待改造） | `DESIGN_SYSTEM.md §4.18 C3/C4` | `copy-screen-guard.test.mjs::M1–M4` | 已闭环（**真机** 7 台 × 默认视图，自起自停） | `DESIGN_SYSTEM.md §4.18` |
 | 折叠区口径与 `help.html` 是否**同义**（C8）——**机器判不了「同义」⇒ 只登记不判红** | `DESIGN_SYSTEM.md §4.18 C8` · `docs/src/**` 折叠区 · `docs/help.html` | `copy-fold-guard.test.mjs::F1/F2`（**只报不判**） | 半闭环（如实登记：C8 落「纪律 ＋ 人检清单」，守卫不越界假装覆盖） | `DESIGN_SYSTEM.md §4.18` |
 | 口径定点锚点**真机可达 / 可检索**（深链直达且目标可见；搜索 → 点结果 → 卡片高亮） | `docs/help.html` 的 `card-copy-*` 定点卡片 · `help-catalog.js` 运行时索引 | `copy-anchor-guard-e2e.test.mjs::A1–A3` | 已闭环（CDN 一律 `route.abort`、不依赖外网） | `DESIGN_SYSTEM.md §4.18` |
-| mock 形态与 api 形态**读数一致** ＋ **服务端是否真按同源播种**（承重臂＝服务端 HTTP 原始行；只看前端缓存会被 `SEED_FALLBACK` 顶替 ⇒ 假绿） | `docs/src/data/mock/**` 语料 · `server/seed.js` · `server/routes/resources.js` | `mock-api-parity.test.mjs::S0 / P1–P3` | 已闭环（表集合 5 张：`todos` / `notices` / `attendances` / `inspections` / `makeupTasks`） | `.ctx/logs/2026-09-DECISION_LOG.md`（`D-658`） |
+| mock 形态与 api 形态**读数一致** ＋ **服务端是否真按同源播种**（承重臂＝服务端 HTTP 原始行；只看前端缓存会被 `SEED_FALLBACK` 顶替 ⇒ 假绿） | `docs/src/data/mock/**` 语料 · `server/seed.js` · `server/routes/resources.js` | `mock-api-parity.test.mjs::S0 / P1–P3` | 已闭环（表集合 5 张：`todos` / `notices` / `attendances` / `inspections` / `makeupTasks`） | `.ctx/logs/archive/2026-09-DECISION_LOG.md`（`D-658`） |
 | 数据库结构变更必须走**版本化迁移**（`PRAGMA user_version` ＋ 有序 `MIGRATIONS`；新建库 / 幂等可重入 / 既有库兼容 / 失败回滚 / 失败不吞） | `server/db.js`（`MIGRATIONS` / `SCHEMA_VERSION` / `applyMigrations`） | `db-migration.test.mjs::M1–M6` | 已闭环 | `.ctx/ACTIVE_RULINGS.md`（`D-650`） |
 | SQLite 备份一律用 `db.backup()`、**绝不直接 `copy` 主文件**（WAL 尾部会丢）——备份 → 破坏 → 恢复到新路径演练 | `server/scripts/backup.mjs`（在线备份 API） | `backup-restore.test.mjs::B1` | 已闭环（真 spawn 备份脚本 ＋ 反证「只 `copy` 丢 WAL 尾」） | `.ctx/ACTIVE_RULINGS.md`（`D-650`） |
 | 数据库完整性 / 版本自检 ＋ 「**新增结构须写 migration**」纪律（`ALTER TABLE` 只许出现在 migration 段内） | `server/db.js`（`validateMigrations` · v1 冻结基线 45 表） | `db-integrity-guard.test.mjs::G1–G6` | 已闭环 | `.ctx/ACTIVE_RULINGS.md`（`D-650`） |
@@ -666,7 +666,7 @@ related_files: [DATA_MODEL.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
   - 四数之差有据：资源名 29 ＋ 语义端点表 5 ＝ server 表 34；持久化域 33 − 快照排除的 9 域（`users` / `branchDocs` ＋ `memberChangeRequests` / `committeeBroadcasts` / `agendaVotes` / `handoffs` / `branches` / `appointmentRecords` / `reviewRequests`）＝ 快照 24。**结论：三者非「一一映射」，须按上述分口径读**（旧文件「27 域 / 28 表一一映射」的表述已作废）。
 - [ ] 快照写穿边界（B5-1/B5-3 2026-08-24）：全量快照（`_buildSnapshotPayload`）覆盖 **24** 个键，**不含 users 与 branchDocs**；branchDocs 走 per-item CRUD（POST/PATCH/DELETE `/api/v1/branchDocs`）且仅支委可写（COMMISSIONER_WRITE）——**严禁将 branchDocs 加入快照 payload**，否则 references.js 本地缓存与 server 会产生覆盖竞态
   > **口径维护**：实测值以本节上列五行为唯一口径；此后新增域须同步更新这五个值，勿只改其中一处。
-  > **迁出去向说明**：本处原有三条批次注（批次 25 新增 `partyGroups` / `memberFlows` 两域、2026-09-15 收口替换并列旧数、2026-09-17 由 34 改为 35）已于 2026-09-17 **逐字迁出**至 `.ctx/logs/2026-09-EXECUTION_LOG.md` 的「**附：稳定文档迁出的逐批沿革（2026-09-17 批次 58）**」节。**为什么迁**：本手册是现行判据，批次史与「本注不改上文历史记载」类元注记不属此处。**现在要查**：当前五数看本节上列五行（口径定义同处）；沿革去上述日志附节。
+  > **迁出去向说明**：本处原有三条批次注（批次 25 新增 `partyGroups` / `memberFlows` 两域、2026-09-15 收口替换并列旧数、2026-09-17 由 34 改为 35）已于 2026-09-17 **逐字迁出**至 `.ctx/logs/archive/2026-09-EXECUTION_LOG.md` 的「**附：稳定文档迁出的逐批沿革（2026-09-17 批次 58）**」节。**为什么迁**：本手册是现行判据，批次史与「本注不改上文历史记载」类元注记不属此处。**现在要查**：当前五数看本节上列五行（口径定义同处）；沿革去上述日志附节。
 - [ ] 聚合域存储模式（B5 对账 2026-08-24）：actSubRecords/tfSubRecords 服务端以「__root__ 单行」存储（`{id:'__root__', body:<原对象>}`），init() 拉取解包、快照写穿包装，round-trip 对称
 - [ ] 实体 id 生成单一源（`core/base/id.js::generateId(prefix, sep)` + `randomHex()`，降级链 `crypto.randomUUID` → `crypto.getRandomValues` → `Math.random` 单一源）：全站实体 id 一律经此生成，禁止 `前缀 + Date.now()`、禁止 `Math.random()` 参与 id；**连字符前缀契约**——`tf-`/`notice-`（及 `cmt-`/`mc-`）必须显式传 `sep='-'`，否则打断 `sourceId.startsWith` 契约
 - [ ] 受众写入值与判定同源（`NOTICE_AUDIENCE_SENTINELS`，`core/domain/constants.js`）：发布侧写入的受众标识（sentinel）与消费侧可见性判定**必须取自同一注册表**；**语义维度不止角色**（还可能是发展阶段——`activists`/`candidates`＝入党积极分子/发展对象），勿假设「受众＝角色键」
@@ -685,4 +685,4 @@ related_files: [DATA_MODEL.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 # 手动检查清单（浏览器实测）· **已收口**（2026-10-05 批次 377 按 `H50.1 §3` 清出）
 
 > 本章原载 2026-08 的四组人工实测记录（T-235 首页跳转直达 / T-280-B1 待办直达 / T-280-B5 前后端对账 / T223 活动排序统一）＋「编辑完整性 / 链接完整性」两组检查项。
-> 其中**已常态化的检查一律以守卫为准**（`link-integrity` L1–L5 / `module-load` / `click-cost` / `mock-integrity` / `agenda-flow` / `version-stamp` 等，均在 `test:daily` 内）——**人类手抄版按 `H50.1 §3` 清出**；人工实测的逐条经过见 `.ctx/logs/2026-08-EXECUTION_LOG.md`。**空章不驻留。**
+> 其中**已常态化的检查一律以守卫为准**（`link-integrity` L1–L5 / `module-load` / `click-cost` / `mock-integrity` / `agenda-flow` / `version-stamp` 等，均在 `test:daily` 内）——**人类手抄版按 `H50.1 §3` 清出**；人工实测的逐条经过见 `.ctx/logs/archive/2026-08-EXECUTION_LOG.md`。**空章不驻留。**
