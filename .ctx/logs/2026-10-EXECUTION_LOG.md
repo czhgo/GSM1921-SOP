@@ -2284,3 +2284,15 @@ $body
 **⑤ 归档现状口径（答支书问，人话版见会话）**：active/archive 同库不同态——活动归档＝软删位 `archived` ＋ 级联完结任务（不迁表）；宣传材料＝`archive_records` ＋ 附件物理文件落 `server/uploads`（删记录连删物理文件）；**读频**＝活跃面全站默认过滤（`isActivityLive`），归档面只在档案/详情/归档库可见；**权限**＝归档动作白名单（宣传委员本位 ＋ 支书/副支书代归档本台直执〔`D-807`④〕），写口不随归档放宽；**server 侧可传接**＝① `server/scripts/backup.mjs`（WAL checkpoint ＋ 库 ＋ uploads 整目录，幂等）② 报表 CSV 导出（四域）③ 上传接口（`POST /api/v1/uploads`）。**边界（如实）**：无冷热分级存储（支部规模单库即标准做法，暂不立项——防过度工程）。
 
 **读数**：`doc-consistency`+`link-integrity`+`copy-master`+`copy-length`+`frontmatter-freshness` 36/36 绿。
+
+## 批次 438（2026-10-06 · 支书令「全仓库清理 · 冗余文件删除」）
+
+**删（5 项，均为本地未跟踪 / 可再生产物，git 零影响）**：① `.tmp/`（41 文件 2.7MB——旧测试计时脚本＋历史全量日志残留）；② `.tmp-save/`（空夹）；③ `.trae/`（空夹，IDE 残留）；④ `dist/`（v0.1.0-20260929 发布 tar 3.7MB——`deploy/package.mjs` 可随时重打的**产物**，不驻仓库）；⑤ `tabbar-orig.tmp`（旧代码备份，git 历史已有）。
+
+**留（3 项，有理由）**：① `server/.browsers/`（Playwright 浏览器缓存——删则 e2e 全量需重下浏览器、时长爆炸）；② `server/backups/`（**数据备份**，非冗余）；③ `content/01_strategy/references/历史会议材料/`（历史资料档案）。
+
+**澄清支书问的「20260925」**：全仓无此命名文件夹（全深度扫描仅命中历史会议材料 PDF 的规范日期前缀 20251130）——所见应为 `dist/` 发布包文件名里的日期戳 **20260929**（tar.gz 命名，随 dist 一并删除）或 `.tmp/` 里的日期日志，均已清。
+
+**顺带修复（如实登记）**：批次 433–437 期间多次用 PowerShell `WriteAllLines` 改文件导致 11 个文件行尾 LF→CRLF 假差异（diff 内容为空），`git add --renormalize .` 一次性归一，树净。**教训**：批量文本改写后必须 `git status` 复核行尾；后续此类改写统一走 Edit 工具。
+
+**读数**：git 树 0 未提交；服务 health 200（清理未影响运行中的体验服务）；根目录仅余 6 目录＋9 个正经根文件。
