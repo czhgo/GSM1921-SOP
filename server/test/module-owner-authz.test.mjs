@@ -10,14 +10,14 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261006e';
-import { setDataSource } from '../../docs/src/data/data-adapter.js?v=20261006e';
-import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261006e';
+import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261006f';
+import { setDataSource } from '../../docs/src/data/data-adapter.js?v=20261006f';
+import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261006f';
 import {
   TodoStore, TodoSourceType, LifecycleTodoDeriver,
-} from '../../docs/src/services/governance/todo.js?v=20261006e';
-import { createActivity } from '../../docs/src/services/core/mock.js?v=20261006e';
-import { TaskForceRecordStore } from '../../docs/src/services/activity/taskforce.js?v=20261006e';
+} from '../../docs/src/services/governance/todo.js?v=20261006f';
+import { createActivity } from '../../docs/src/services/core/mock.js?v=20261006f';
+import { TaskForceRecordStore } from '../../docs/src/services/activity/taskforce.js?v=20261006f';
 
 // ── localStorage 内存桩 ─────────────────────────────────────────
 const _store = new Map();
@@ -136,6 +136,37 @@ test('A8 专班改派到「人」⇒ 补 personId、role 回退组织委员', ()
   assert.equal(t.role, 'org-commissioner');
   assert.equal(t.personId, 'p9');
   assert.equal(t.actionData.ownerType, 'person');
+});
+
+// ═══════════════ A12 「到人」定向读链（批次 428 · `R-29⑤` 余项收口）═══════════════
+
+test('A12 `personId` 非空的待办只给本人看；角色档不受影响；未给本人身份时不过滤（既有行为不变）', () => {
+  beginMockCase();
+  // 到人档：`theme-party` 改派给具体人 p3 ⇒ 收件人 role 回退 leader ＋ personId='p3'
+  LifecycleTodoDeriver.deriveFromActivityCreate(
+    { id: 'act-p', title: '到人档 · 主题党日', type: '主题党日', date: '2026-10-28' },
+    { snapshot: { 'theme-party': { ownerType: 'person', ownerId: 'p3' } } },
+  );
+  // 角色档（无 personId）：作对照
+  LifecycleTodoDeriver.deriveFromActivityCreate({ id: 'act-r', title: '角色档 · 党小组会', type: '党小组会', date: '2026-10-29' });
+
+  const asOther = TodoStore.getByRole('leader', { personId: 'p9' });
+  assert.ok(!asOther.some((t) => t.sourceId === 'act-p'), '到人待办不得出现在他人（p9）的待办面');
+  assert.ok(asOther.some((t) => t.sourceId === 'act-r'), '角色档（无 personId）不受按人过滤影响');
+
+  const asSelf = TodoStore.getByRole('leader', { personId: 'p3' });
+  assert.ok(asSelf.some((t) => t.sourceId === 'act-p'), '本人（p3）须看得到该到人待办');
+
+  const noFilter = TodoStore.getByRole('leader');
+  assert.ok(noFilter.some((t) => t.sourceId === 'act-p'),
+    '**未给本人身份 ⇒ 不过滤**（既有调用方 / node 程序化读口行为一字不变）');
+
+  // 待办页主读链（域视图）同口径
+  const ids = (d) => (d.groups || []).flatMap((g) => (g.items || []).map((i) => i.sourceId));
+  const domOther = TodoStore.mergeRealtimeDomains('leader', [], { personId: 'p9' }).flatMap(ids);
+  assert.ok(!domOther.includes('act-p'), '域视图（待办页主读链）也须按人过滤');
+  const domSelf = TodoStore.mergeRealtimeDomains('leader', [], { personId: 'p3' }).flatMap(ids);
+  assert.ok(domSelf.includes('act-p'), '本人的域视图须含该条');
 });
 
 // ═══════════════ A9 非空转：派生的待办在这两档里都取得到 ═══════════════

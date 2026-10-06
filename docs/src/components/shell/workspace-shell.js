@@ -20,33 +20,33 @@
 
 
 
-import { STATE, getAppState, setState, registerRenderCallback } from '../../core/base/state.js?v=20261006e';
+import { STATE, getAppState, setState, registerRenderCallback } from '../../core/base/state.js?v=20261006f';
 
-import { bootstrapPage } from '../../core/boot/bootstrap.js?v=20261006e';
-import { renderTabBar, tabContentSkeletonHtml } from './tab-bar.js?v=20261006e';
-import { flashHighlight, escHtml } from '../../core/base/utils.js?v=20261006e';
-import { CrossPageState } from '../../core/session/cross-page-state.js?v=20261006e';
-import { getCapabilities } from '../../core/boot/registry.js?v=20261006e';
-import { loadWorkspaceData } from '../../data/data-loader.js?v=20261006e';
+import { bootstrapPage } from '../../core/boot/bootstrap.js?v=20261006f';
+import { renderTabBar, tabContentSkeletonHtml } from './tab-bar.js?v=20261006f';
+import { flashHighlight, escHtml } from '../../core/base/utils.js?v=20261006f';
+import { CrossPageState } from '../../core/session/cross-page-state.js?v=20261006f';
+import { getCapabilities } from '../../core/boot/registry.js?v=20261006f';
+import { loadWorkspaceData } from '../../data/data-loader.js?v=20261006f';
 // 待批活动的可见性单一源（2026-09-22 批次 151）：种子兜底路径同样按查看者角色收窄（与 data-loader 同判据）
-import { filterActivitiesForViewer } from '../../services/core/visibility.js?v=20261006e';
+import { filterActivitiesForViewer } from '../../services/core/visibility.js?v=20261006f';
 
-import { TodoStore } from '../../services/governance/todo.js?v=20261006e';
-import { AuthStore } from '../../services/core/auth.js?v=20261006e';
-import { BranchService } from '../../services/core/runtime.js?v=20261006e';
-import { applyTabPolicy, getBranchIdOfPerson, getBranchById, getBranchWorkforce } from '../../services/branch/branch.js?v=20261006e';
+import { TodoStore } from '../../services/governance/todo.js?v=20261006f';
+import { AuthStore } from '../../services/core/auth.js?v=20261006f';
+import { BranchService } from '../../services/core/runtime.js?v=20261006f';
+import { applyTabPolicy, getBranchIdOfPerson, getBranchById, getBranchWorkforce } from '../../services/branch/branch.js?v=20261006f';
 // 设置中心批2（2026-09-09 支书批准 v3）：个人 tab 顺序覆盖（个人层；支部层=applyTabPolicy 之上叠加）
-import { applyPersonalTabOrder } from '../../services/core/preferences.js?v=20261006e';
+import { applyPersonalTabOrder } from '../../services/core/preferences.js?v=20261006f';
 // （丁）归属可转移：可转移页签的**判据单一源**（2026-10-05 批次 379 · `D-771`）——模块主责快照派生，
 //   禁前端写死「哪个 tab 长在哪个台」。
-import { TRANSFERABLE_TAB_ROWS, transferRowOf, transferTabDecision, expandWorkforce } from '../../core/domain/work-map.js?v=20261006e';
+import { TRANSFERABLE_TAB_ROWS, transferRowOf, transferTabDecision, expandWorkforce } from '../../core/domain/work-map.js?v=20261006f';
 // 「归属可转移」**原台页签声明单一源**（迁入时取**同一份声明**，勿在本处复制 render）：
 //   ⚠ 台账：`TRANSFERABLE_TAB_ROWS` 的每个 `page` 都必须在此有对应声明（新增行时同批补），
 //     由 `server/test/work-map.test.mjs` 断言 `page ∈ {org, disc, leader}` 守住。
 //   ⚠ 统一取**声明常量**而非各台 `tabs()`：后者是**查看者上下文相关**的（如组长台按「组织者兜底进入」过滤）。
-import { ORG_WORKSPACE_TAB_DECLS } from '../../capabilities/org-workspace.js?v=20261006e';
-import { DISC_WORKSPACE_TAB_DECLS } from '../../capabilities/disc-workspace.js?v=20261006e';
-import { LEADER_WORKSPACE_TAB_DECLS } from '../../capabilities/leader-workspace.js?v=20261006e';
+import { ORG_WORKSPACE_TAB_DECLS } from '../../capabilities/org-workspace.js?v=20261006f';
+import { DISC_WORKSPACE_TAB_DECLS } from '../../capabilities/disc-workspace.js?v=20261006f';
+import { LEADER_WORKSPACE_TAB_DECLS } from '../../capabilities/leader-workspace.js?v=20261006f';
 
 /** 台 → 页签声明（归属可转移迁入取用；单一源＝各台能力模块的声明常量） */
 const TRANSFER_HOME_DECLS = {

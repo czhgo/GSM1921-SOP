@@ -6,18 +6,18 @@
 //         content/04_web_design/design-system/DESIGN_SYSTEM.md §一 第6条
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../../core/domain/domain.js?v=20261006e';
-import { persist } from '../../data/data-adapter.js?v=20261006e';
-import { generateId } from '../../core/base/id.js?v=20261006e';
-import { bumpToken, tokenOf } from '../../core/base/version-token.js?v=20261006e';
+import { mockDB } from '../../core/domain/domain.js?v=20261006f';
+import { persist } from '../../data/data-adapter.js?v=20261006f';
+import { generateId } from '../../core/base/id.js?v=20261006f';
+import { bumpToken, tokenOf } from '../../core/base/version-token.js?v=20261006f';
 // 待批活动状态值单一源（2026-09-22 批次 151 · 支书裁定「只支委层可见」）：待批活动**不是**「待参与」的活动
 // ——它还没获批（与 `draft` 同待遇），不为它派生「参与活动」待办（也免得从待办标题把没批的活动漏出去）。
-import { PENDING_APPROVAL_STATUS } from '../activity/activity.js?v=20261006e';
-import { todayLocal, _fmtDate } from '../../core/base/utils.js?v=20261006e';
+import { PENDING_APPROVAL_STATUS } from '../activity/activity.js?v=20261006f';
+import { todayLocal, _fmtDate } from '../../core/base/utils.js?v=20261006f';
 // 周期键（月/季/半年/年）与「模块周期」单一源（2026-10-06 批次 423 · `R-29⑤` · `D-804`）——
 //   周期任务的**来源**＝`work-map.js::WORK_MAP_MODULES[].cycle`（不另立第二份映射，`D-803②`）。
-import { cyclePeriodOf, cyclePeriodLabel } from '../../core/base/period.js?v=20261006e';
-import { WORK_MAP_MODULES, expandWorkforce, ownerOfModule, moduleIdOfActivity } from '../../core/domain/work-map.js?v=20261006e';
+import { cyclePeriodOf, cyclePeriodLabel } from '../../core/base/period.js?v=20261006f';
+import { WORK_MAP_MODULES, expandWorkforce, ownerOfModule, moduleIdOfActivity } from '../../core/domain/work-map.js?v=20261006f';
 
 // ── 待办分类枚举 ──────────────────────────────────────────────
 export const TodoCategory = {
@@ -730,8 +730,8 @@ function _compareDomainGroups(a, b, today) {
  * role 视角 todos 一次扫描 → 域折组数组（域序=DOMAIN_ORDER、无活域不出、NONE 不入列；
  * 域内 groups=actionKey 组聚合，组序=先逾期 → deadline → actionKey 稳定）。
  */
-function _aggregateByRole(role, today) {
-  const todos = TodoStore.getByRole(role);
+function _aggregateByRole(role, today, personId) {
+  const todos = TodoStore.getByRole(role, { personId });
   const buckets = new Map();
   for (const d of DOMAIN_ORDER) buckets.set(d, []);
   for (const t of todos) {
@@ -757,9 +757,9 @@ function _aggregateByRole(role, today) {
 }
 
 /** 实时组并入基准域视图的实现（P0：基准为共享缓存引用 → 本方法只浅克隆自身要改写的层，不污染缓存） */
-function _mergeRealtimeDomains(role, realtimeGroups, today) {
+function _mergeRealtimeDomains(role, realtimeGroups, today, personId) {
   // 基准域视图为 TodoStore 聚合缓存共享引用 → 先浅克隆「域记录 + groups 数组」两层（只读契约）
-  const view = TodoStore.getDomainsWithGroups(role).map(d => ({ ...d, groups: [...(d.groups || [])] }));
+  const view = TodoStore.getDomainsWithGroups(role, { personId }).map(d => ({ ...d, groups: [...(d.groups || [])] }));
   const recByDomain = new Map(view.map(d => [d.domain, d]));
   for (const g of realtimeGroups || []) {
     if (!g || typeof g !== 'object') continue;
@@ -814,11 +814,19 @@ export const TodoStore = {
    *  `includeVoided`（缺省 false）：**已作废（`voided`）一律不出列**——作废＝不办了、从待办面消失；
    *  回看入口支书 2026-10-02 裁「暂不做」（`D-743`），故各处读默认即过滤（`#1`/`D-742`）。 */
   getByRole(role, options = {}) {
-    const { status, includeCompleted = false, includeVoided = false } = options;
+    const { status, includeCompleted = false, includeVoided = false, personId } = options;
     let todos = _loadTodos().filter(t => t.role === role);
 
     if (!includeVoided) {
       todos = todos.filter(t => !t.voided);
+    }
+
+    // 「到人」定向过滤（2026-10-06 批次 428 · `R-29⑤` 余项收口）：
+    //   `personId` **非空**的待办（到人主责：`LifecycleTodoDeriver` 到人档 / 决议跟进到人责任人）
+    //   **只给本人看**。**仅在调用方给出「本人 personId」时生效**——未给 ⇒ 完全不过滤，
+    //   既有调用方（含 node 单测）行为一字不变。
+    if (personId) {
+      todos = todos.filter(t => !t.personId || t.personId === personId);
     }
 
     if (!includeCompleted) {
@@ -1044,8 +1052,10 @@ export const TodoStore = {
    * @param {string} role
    * @returns {Array<{domain, label, count, expiredCount, groups: Array}>}
    */
-  getDomainsWithGroups(role) {
-    return _withAggCache(`domains:${role}:${_todayStr()}`, () => _aggregateByRole(role, _todayStr()));
+  getDomainsWithGroups(role, opts = {}) {
+    // 「到人」定向（批次 428）：`opts.personId` 入缓存键 ⇒ 同一角色的不同本人各自成键（不串台）
+    return _withAggCache(`domains:${role}:${_todayStr()}:p=${opts.personId || ''}`,
+      () => _aggregateByRole(role, _todayStr(), opts.personId));
   },
 
   /**
@@ -1056,9 +1066,9 @@ export const TodoStore = {
    * @param {string} role
    * @returns {Array} 未读通知待办（未完成）
    */
-  getUnreadNotices(role) {
-    return _withAggCache(`unread:${role}:${_todayStr()}`, () => {
-      const notices = this.getByRole(role).filter(t =>
+  getUnreadNotices(role, opts = {}) {
+    return _withAggCache(`unread:${role}:${_todayStr()}:p=${opts.personId || ''}`, () => {
+      const notices = this.getByRole(role, { personId: opts.personId }).filter(t =>
         _effDomain(t) === WORK_DOMAIN.NONE && t.category === TodoCategory.NOTICE
       );
       notices.sort((a, b) => {
@@ -1086,15 +1096,15 @@ export const TodoStore = {
    * @param {Array} [realtimeGroups]
    * @returns {Array} 合并后的域视图（结构同 getDomainsWithGroups）
    */
-  mergeRealtimeDomains(role, realtimeGroups = []) {
+  mergeRealtimeDomains(role, realtimeGroups = [], opts = {}) {
     const today = _todayStr();
     // 实时组指纹（groupKey+计数+截止）+ 来源域指纹（域 token + 源长度）——
     // 写口 bump / 源长度变化均使合并缓存键变化（防止 groupKey/count 不变时内容已变的陈旧命中）
     const rtSig = (realtimeGroups || []).map(g =>
       `${(g && g.groupKey) || ''}:${typeof g === 'object' && typeof g.count === 'number' ? g.count : (g && Array.isArray(g.items) ? g.items.length : 0)}:${(g && g.deadline) || ''}`
     ).join('|');
-    return _withAggCache(`merge:${role}:${today}:${_mergeFp()}:${rtSig}`, () =>
-      _mergeRealtimeDomains(role, realtimeGroups || [], today)
+    return _withAggCache(`merge:${role}:${today}:${_mergeFp()}:${rtSig}:p=${opts.personId || ''}`, () =>
+      _mergeRealtimeDomains(role, realtimeGroups || [], today, opts.personId)
     );
   },
 

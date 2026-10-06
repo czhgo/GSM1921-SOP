@@ -2,19 +2,19 @@
 // ws-visitor-entry.js — 参与者工作台入口（T-279 M3 拆分；T-304 代码减负 2026-08-30：骨架并入 workspace-shell）
 // 入口职责：壳配置（注册表 tab 清单 + 导航落点 + 数据加载），角色特有逻辑仅保留。
 
-import { createWorkspaceShell } from '../../components/shell/workspace-shell.js?v=20261006e';
-import { loadActivities } from '../../services/activity/activity.js?v=20261006e';
-import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261006e';
-import { NoticeStore } from '../../services/governance/notice.js?v=20261006e';
-import { SignupStore } from '../../services/activity/signup.js?v=20261006e';
-import { AuthStore } from '../../services/core/auth.js?v=20261006e';
-import { liveMembers, PersonStore } from '../../services/member/person.js?v=20261006e';
+import { createWorkspaceShell } from '../../components/shell/workspace-shell.js?v=20261006f';
+import { loadActivities } from '../../services/activity/activity.js?v=20261006f';
+import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261006f';
+import { NoticeStore } from '../../services/governance/notice.js?v=20261006f';
+import { SignupStore } from '../../services/activity/signup.js?v=20261006f';
+import { AuthStore } from '../../services/core/auth.js?v=20261006f';
+import { liveMembers, PersonStore } from '../../services/member/person.js?v=20261006f';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/member/person.js 获取（原直连 mock PEOPLE）
 // 实时视图（非快照）：成员增删即时可见——见 services/member/person.js liveMembers 说明
 const PEOPLE = liveMembers();
-import { TodoStore, seedTodos, VisitorTodoDeriver } from '../../services/governance/todo.js?v=20261006e';
+import { TodoStore, seedTodos, VisitorTodoDeriver } from '../../services/governance/todo.js?v=20261006f';
 // 副作用导入触发参与者工作台能力注册（tab 清单）
-import '../../capabilities/visitor-workspace.js?v=20261006e';
+import '../../capabilities/visitor-workspace.js?v=20261006f';
 
 await createWorkspaceShell({
   accentRole: 'participant',

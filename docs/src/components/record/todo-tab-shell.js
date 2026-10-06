@@ -14,21 +14,21 @@
 // 视觉沿用 card/rounded/折叠既有体系（域折组渲染在 components/record/todo-list.js renderDomainTodoList）。
 // 设计权威源：content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md §六 M6（共性抽象净减）
 
-import { TodoStore, urgeRolesOf, WORK_DOMAIN, WORK_DOMAIN_LABELS, realtimeGroupDomainOf, buildModuleCycleRemindGroup } from '../../services/governance/todo.js?v=20261006e';
+import { TodoStore, urgeRolesOf, WORK_DOMAIN, WORK_DOMAIN_LABELS, realtimeGroupDomainOf, buildModuleCycleRemindGroup } from '../../services/governance/todo.js?v=20261006f';
 // S3②（2026-09-12）：未读通知计数单一来源——与顶栏角标/首页同源（NoticeStore activeOnly+read 过滤），
 // 不再用「通知类待办」现算（口径不同致三处不一致）。
-import { NoticeStore, NOTICE_MODULE_ROLE_PAGES } from '../../services/governance/notice.js?v=20261006e';
-import { renderDomainTodoList } from './todo-list.js?v=20261006e';
-import { badgeHtml } from '../ui/badges.js?v=20261006e';
-import { showToast, escHtml, todayLocal } from '../../core/base/utils.js?v=20261006e';
-import { solidAccentStyle, ROLE_LABELS, BRANCH_COMMISSION_ROLES } from '../../core/domain/constants.js?v=20261006e';
-import { openModal, closeModal } from '../ui/modal.js?v=20261006e';
-import { AuthStore } from '../../services/core/auth.js?v=20261006e';
-import { mockDB } from '../../core/domain/domain.js?v=20261006e';
-import { tokenOf } from '../../core/base/version-token.js?v=20261006e'; // P0 域写版本戳（spec §二.4）
-import { memoizeRender } from '../ui/memoize-render.js?v=20261006e'; // P2 渲染守卫（spec §四.1）
+import { NoticeStore, NOTICE_MODULE_ROLE_PAGES } from '../../services/governance/notice.js?v=20261006f';
+import { renderDomainTodoList } from './todo-list.js?v=20261006f';
+import { badgeHtml } from '../ui/badges.js?v=20261006f';
+import { showToast, escHtml, todayLocal } from '../../core/base/utils.js?v=20261006f';
+import { solidAccentStyle, ROLE_LABELS, BRANCH_COMMISSION_ROLES } from '../../core/domain/constants.js?v=20261006f';
+import { openModal, closeModal } from '../ui/modal.js?v=20261006f';
+import { AuthStore } from '../../services/core/auth.js?v=20261006f';
+import { mockDB } from '../../core/domain/domain.js?v=20261006f';
+import { tokenOf } from '../../core/base/version-token.js?v=20261006f'; // P0 域写版本戳（spec §二.4）
+import { memoizeRender } from '../ui/memoize-render.js?v=20261006f'; // P2 渲染守卫（spec §四.1）
 // 模块周期提醒（`R-29⑤` · `D-804`）：分工快照取法与 `components/governance/workforce-duty-card.js` 同口径
-import { getBranchIdOfPerson, getBranchWorkforce } from '../../services/branch/branch.js?v=20261006e';
+import { getBranchIdOfPerson, getBranchWorkforce } from '../../services/branch/branch.js?v=20261006f';
 
 // ── P0 组合数据复合键（2026-09-07 · spec §二.4）──────────────────
 // 组合点（buildRealtimeGroups + mergeRealtimeDomains + getUnreadNotices）以
@@ -63,6 +63,9 @@ function _comboKeyOf(role) {
   parts.push(`member=${tokenOf('member')}`);
   parts.push(`day=${todayLocal()}`);
   parts.push(`role=${role}`);
+  // 「到人」定向（批次 428）：本人身份入复合键 —— 同一 tab 内换登录身份（开发身份卡）不得命中上一位的组合缓存
+  const _me = AuthStore.getCurrentUser && AuthStore.getCurrentUser();
+  parts.push(`p=${(_me && (_me.personId || _me.id)) || ''}`);
   return parts.join(',');
 }
 
@@ -292,7 +295,9 @@ export function createTodoTab(opts) {
       const rtGroups = buildRealtimeGroups ? (buildRealtimeGroups(ctx) || []) : [];
       // 模块周期提醒（`R-29⑤` · `D-804`）：**各台通用**（不逐台接线）——按本台主体集取「有周期模块本期未开展」
       rtGroups.push(..._moduleCycleGroupsFor(role));
-      const domains = TodoStore.mergeRealtimeDomains(role, rtGroups);
+      // 「到人」定向（批次 428 · `R-29⑤` 余项收口）：把「本人 personId」传进读链 ⇒ `personId` 非空的待办只给本人看
+      const meNow = AuthStore.getCurrentUser && AuthStore.getCurrentUser();
+      const domains = TodoStore.mergeRealtimeDomains(role, rtGroups, { personId: meNow && (meNow.personId || meNow.id) });
       // 全部组（选中态查找；含持久化聚合组与并入的实时组）
       const allGroups = [];
       for (const d of domains) {

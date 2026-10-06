@@ -2142,3 +2142,30 @@ $body
 - **`R-23` 展示值余项至此只剩落点 `targetPage`**：「进谁的台」取决于被赋权人身份 ⇒ 前端口径，**非展示值漏洞**（`targetPage` 仍是客户端给的字符串，服务端只透传、不校验——**若要收严须定义「谁该进哪个台」的判据**，本批不做）。
 - **`role` 键本身仍由客户端给**（服务端未按 `assignments`/`members` 源行复算「此人是否真是该角色」）——属**授权/一致性**面（`authorize` 已核「actor 有权赋权该对象」），**非本批射程**，如实登记。
 
+## 批次 428（2026-10-06 · `D-805` 续）**`R-29⑤` 余项① 收口：「按人索待办」**
+
+> **来源**：批次 423–425 把「联动赋权」做到「收件人取模块主责、写口接分工快照」，但**到人档**只把 `personId` 当**定向标注**、`role` 仍回退本台固定角色 ⇒ **到人待办在该角色台上人人都看得到**（如实登记为余项①）。本批把这条读链收口。
+
+### 一、实探（先定「谁在生产 `personId`」）
+
+- `grep personId:` 全仓后确认：**写待办时带 `personId` 的只有两处**——① `LifecycleTodoDeriver` 的**到人档**（`todo.js:1296` / `:1331`，批次 423 新落）；② `services/governance/resolution-followup.js:79`（决议跟进**到人责任人**）。两者**语义一致**＝「这条是给某个人的」⇒ 收窄成「只给本人看」不会误伤。
+
+### 二、动作
+
+1. `todo.js::getByRole(role, options)` 增**可选** `personId`：**非空时**过滤掉「`t.personId` 已设且 ≠ 本人」的行。
+2. 读链**逐层透传** `opts.personId`：`getDomainsWithGroups(role, opts)` → `_aggregateByRole(role, today, personId)` → `getByRole`；`_mergeRealtimeDomains(role, rtGroups, today, personId)`；`mergeRealtimeDomains(role, rtGroups, opts)`；`getUnreadNotices(role, opts)`。**四处缓存键均带 `:p=<personId>`**（同角色不同本人各自成键、不串台）。
+3. 待办壳 `components/record/todo-tab-shell.js`：`mergeRealtimeDomains(role, rtGroups, { personId: 本人 })`；并把**本人身份并入组合键** `_comboKeyOf`（同一 tab 内换登录身份不得命中上一位的组合缓存）。
+4. **判据**：`module-owner-authz.test.mjs` 新增 **`A12`**——到人待办对**他人（p9）不可见** · 对**本人（p3）可见** · **角色档（无 `personId`）不受影响** · **不给身份时仍在**；并加断言「**域视图（待办页主读链）同口径**」。
+5. 戳 `20261006e → 20261006f`。
+
+### 三、守卫与真机读数
+
+- `module-owner-authz`（含新 `A12`）**12 / 12 / 0**；定向 `todo-domain` · `todo-domain-view` · `todo-deriver-domain` · `todo-void-flow` · `perf-todo-agg-cache` · `perf-index-equivalence` 合计 **51 / 51 / 0**（**聚合缓存件亦绿** ⇒ `:p=` 入键未破坏记忆化口径）。
+- **真机核四台**（组长 p1 / 支书 p13 / 组织委员 p11 / 普通成员 p5；自包含 `createApp(:memory:)`，探针跑完即删、未留盘）：四台**待办页均正常渲染**、**`pageerror` 0**；组长台读数 **925**，与批次 424 **逐字相同** ⇒ **真机无回归**。
+  - ⚠ 探针首跑把「普通成员」账号写成 `2400012347`（p3）——**该学号不在 `docs/src/data/mock/accounts.js` 演示账号表内**、登录不通 ⇒ 改 `2400012349`（p5）后通过（**探针数据问题，非回归**，如实登记）。
+
+### 四、边界（如实）
+
+- **未给本人身份 ⇒ 完全不过滤**——这是刻意的：node 程序化读口（守卫/脚本/派生器）与「无登录上下文」的调用方**行为一字不变**；「只给本人看」只在**待办壳带本人身份**时生效。⇒ 若某读口绕过待办壳直接 `getByRole(role)`（**不传 personId**），仍会看到到人待办（**如实登记，未逐一改造全部读口**）。
+- **服务端不参与**：本批只改前端读链（`todos` 的服务端表与通用 CRUD 未动）。
+

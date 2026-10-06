@@ -399,7 +399,7 @@ dynamic_role:
 | docs/src/services/activity/taskforce.js | 2026-10-06 | — | [工程师]+[AI] | 专班服务（含专班→待办派生；写口动态引 `branch.js` 传分工快照，批次 425） |
 | docs/src/services/activity/work-assignment.js | 2026-10-03 | — | [工程师]+[AI] | 活动「工作分工」（服务端表 assignments）统一读写口；全 CRUD。 |
 | docs/src/services/governance/today-summary.js | 2026-10-05 | — | [工程师]+[AI] | 「今天」页今日聚合服务（纯逻辑可测；今日活动参与判定）。 |
-| docs/src/services/governance/todo.js | 2026-10-06 | — | [工程师]+[AI] | 待办服务（TodoStore+NoticeTodoDeriver+LifecycleTodoDeriver，E2 flow 标注；含 **`buildModuleCycleRemindGroup` 模块周期实时组**，批次 423） |
+| docs/src/services/governance/todo.js | 2026-10-06 | — | [工程师]+[AI] | 待办服务（TodoStore+NoticeTodoDeriver+LifecycleTodoDeriver，E2 flow 标注；含 **`buildModuleCycleRemindGroup` 模块周期实时组**（批次 423）与 **`getByRole` 可选 `personId`「到人只给本人看」读链**（批次 428）） |
 | docs/src/services/branch/branch-doc.js | 2026-10-05 | — | [工程师]+[AI] | 支部文件服务（2026-09-21 批次 129 **补登**——本表原先无此行；本批新增「制度链」段：草案 / 待党员大会表决两态 ＋ 支委会审议结果应用 ＋ 草案修改，`saveDoc` 增 `asDraft`） |
 | docs/src/services/activity/agenda-follow-up.js | 2026-09-21 | — | [工程师]+[AI] | 议程跟办服务（2026-09-21 批次 129 **补登**——本表原先无此行；本批「讨论文件」分支按 `purpose:'institution'` 分流到制度链，`recordAgendaResult` 增 `reportToPartyMeeting`，非制度文件仍走原归档；**批次 132 再加 `brand-designation` 分流**⇒ 品牌认定「通过才置 `isBrand`」，`D-559`） |
 | docs/src/services/member/group-view.js | 2026-09-21 | — | [工程师]+[AI] | 党小组分组只读聚合（2026-09-21 批次 139 **补登**——本表原先无此行；本批「本组组长」这一格的解析改为**组长优先**〔`leader`〕、**组内无组长时才回落副组长**〔`deputy-leader`，次选〕——即「任务优先打给组长」，`D-571`） |
