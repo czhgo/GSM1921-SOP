@@ -191,7 +191,7 @@ dynamic_role:
 | server/test/*.test.mjs | 2026-09-29 | — | [工程师]+[AI] | **（批次 236：沿革已整段迁出**——本行的逐批沿革（5729 字）见 `.ctx/logs/2026-09-EXECUTION_LOG.md`「附：TIMESTAMPS 备注列迁出的逐批沿革」；**2026-09-29 批次 253 二次迁出**：本会话各批新增的 5 条短注一并迁入同节（`R-89` 只降不升）；本列只写**现状 / 边界 / 为什么**）** |
 | server/test/b3-1-makeup-writeback.test.mjs | 2026-09-24 | — | [工程师]+[AI] | B3-1 补课完成→考勤回写验证（5 项断言；含 CDN `route.abort` 拦截）。沿革见 `.ctx/logs/`。 |
 | server/test/style-baseline.mjs | 2026-09-28 | — | [工程师]+[AI] | **（批次 236：沿革已整段迁出**——本行的逐批沿革（3832 字）见 `.ctx/logs/2026-09-EXECUTION_LOG.md`「附：TIMESTAMPS 备注列迁出的逐批沿革（批次 236）」；本列只写**现状 / 边界 / 为什么**）** |
-| server/test/form-loop-registry.mjs | 2026-10-05 | — | [工程师]+[AI] | 表单闭环台账（全站「提交动作的字段级必填校验点」逐条登记 `file` / `msg` / `line` / `machine` / 理由）。**边界**：本件只登记，真机覆盖在 `form-loop-sweep.test.mjs`（台账三层可核见 `R-80`）。沿革见 `.ctx/logs/2026-09-EXECUTION_LOG.md`「附：TIMESTAMPS 备注列迁出的逐批沿革（批次 308）」。 |
+| server/test/form-loop-registry.mjs | 2026-10-06 | — | [工程师]+[AI] | 表单闭环台账（全站「提交动作的字段级必填校验点」逐条登记 `file` / `msg` / `line` / `machine` / 理由）。**边界**：本件只登记，真机覆盖在 `form-loop-sweep.test.mjs`（台账三层可核见 `R-80`）。沿革见 `.ctx/logs/2026-09-EXECUTION_LOG.md`「附：TIMESTAMPS 备注列迁出的逐批沿革（批次 308）」。 |
 | server/run-suite.mjs | 2026-10-03 | — | [工程师]+[AI] | 测试分片启动器：按 `SWEEP_SHARD` 选片（非 e2e 每片全跑 ＋ 本片 e2e），透传退出码。 |
 | server/test/sweep-shard.mjs | 2026-10-03 | — | [工程师]+[AI] | 测试分片单源（片数 / 各片工作台 / 各片 e2e 文件）；四片并集 ≡ 全量由 `suite-shard` 守卫钉死。 |
 | server/test/probe*.mjs | — | — | — | 🗑️ 已删除（T-280 B1 临时探针，定位完成清理） |

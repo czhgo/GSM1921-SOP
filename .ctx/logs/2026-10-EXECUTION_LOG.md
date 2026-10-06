@@ -2106,3 +2106,11 @@ $body
 - **`thought-report-submitted` 不属本项**：其 `build` 早已直接取表内 `personName`（不采信 payload）。
 - **本批未 bump**（`docs/src/**` 一字未动）；commit 里一并带上批次 425 收尾所跑的**全站重戳 `20261006c → 20261006d`**（纯 `?v=` 机械替换）。
 
+## 批次 426 收尾 · 降频窗（批次 423 / 423收尾 / 424 / 425 / 426 · 5 commit）· **全量 probe（两跑）**
+
+- **首跑（未起 3000 服务）**：**1010 例 / 1001 pass / 9 fail**。逐条定位后**分两类**：
+  - **8 例＝环境类**（**未起 `localhost:3000`**）：`click-cost` `C1`–`C5`（`page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3000/login.html`）· `b3-1-makeup-writeback`（`BASE` 缺省即 3000）· `mock-integrity` `M1`/`M2`（该件头注明写「环境：server localhost:3000 + Playwright」）——**四件皆硬编码 3000**（`grep localhost:3000` 命中 4 文件），**不属回归**。
+  - **1 例＝真回归（本批自伤）**：`form-loop-sweep` 的 **`S6`「台账行号未同步即红灯」** —— 批次 424 把 `components/record/todo-tab-shell.js` **+27 行**（各台通用接线）⇒ 台账 `form-loop-registry.mjs` 里该文件那条（`作废原因` / `请填写作废原因（必填）`）登记行 **476 已漂到 503** ⇒ 判红。**这正是 `R-80`／台账守卫该抓的东西**（一改具改漏签）。**处置**：`line: 476 → 503`（只改行号、判据与文案一字未动）。
+- **次跑（起 3000 服务后重跑全量）**：**1010 / 1010 / 0 绿**（`cancelled 0` / `skipped 0`）。退出码非零＝**沙箱对 Playwright `debug.log` 的写盘限制**，**非测试失败**。
+- **教训（已落盘）**：① 全量 probe **必须先起 3000 服务**（`R-85` 早已写明；本批首跑漏做 ⇒ 白跑一轮）；② **改公共件（尤其 `components/`）后要反查 `form-loop-registry.mjs` 行号**——本批的 `S6` 就是这么冒出来的；③ 降频窗（`D-795`）本窗＝批次 **423–426 共 5 个 commit** ⇒ 达阈跑全量；**下一窗自批次 427 起重新累计**。
+
