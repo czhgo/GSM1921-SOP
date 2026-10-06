@@ -166,7 +166,7 @@ export const VALIDATION_SITES = [
   //   ——**演示种子下无「待支委会确认的作废申请」过渡态**（须先由非支委 `requestVoid` 生成 `voidPending`，
   //   再由支书台确认/驳回；跨角色两步、无种子）⇒ 这两处弹窗在真机演示数据下结构性不可达；
   //   同批新定向件 `todo-void-flow.test.mjs` 已在**服务层**覆盖状态机（含「无原因不得作废」/确认/驳回）。
-  { file: SRC + 'components/record/todo-tab-shell.js', line: 503, field: '作废原因', flow: 'shell/待办·作废', machine: false, reason: '演示种子下无「待支委会确认的作废申请」过渡态（须先由非支委 requestVoid 生成 voidPending）⇒ 作废弹窗在真机演示数据下不可达；状态机由新定向件在服务层覆盖。', msg: '请填写作废原因（必填）' },
+  { file: SRC + 'components/record/todo-tab-shell.js', line: 508, field: '作废原因', flow: 'shell/待办·作废', machine: false, reason: '演示种子下无「待支委会确认的作废申请」过渡态（须先由非支委 requestVoid 生成 voidPending）⇒ 作废弹窗在真机演示数据下不可达；状态机由新定向件在服务层覆盖。', msg: '请填写作废原因（必填）' },
   { file: SRC + 'entries/tabs/secretary/todo-tab.js', line: 830, field: '驳回意见', flow: 'secretary/待办·驳回作废', machine: false, reason: '同壳体作废弹窗：驳回入口只在「存在 voidPending 申请」时渲染，演示种子无该过渡态 ⇒ 真机不可达；驳回落库由新定向件在服务层覆盖。（批次 346 起「记录作废驳回」复用同一文案，登记只此一条、按 (file, 文案) 覆盖两处弹窗；批次 407 起「记录作废裁决」两分支发 `record-void-decided` 知会，本行号随该批插入位移改准。）', msg: '请填写驳回意见（必填）' },
   { file: SRC + 'entries/tabs/secretary/feedback-tab.js', line: 559, field: '评论内容', flow: 'secretary/反馈管理·议题评论', machine: true, msg: '请输入评论内容' },
   { file: SRC + 'entries/tabs/secretary/feedback-tab.js', line: 570, field: '批复内容', flow: 'secretary/反馈管理·议题批复', machine: true, msg: '请输入批复内容' },
