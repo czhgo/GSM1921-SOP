@@ -2218,3 +2218,13 @@ $body
 **边界（如实登记）**：① `2026-10-DECISION_LOG.md`（append-only 纪律）内约 30 处 `D-` 条目中的旧路径未回改——读者经 `archive/` 可达，不改写历史条目；② TIMESTAMPS 备注列「沿革见 09 日志附节」长指针删改为「沿革已迁出（git 可溯）」（N2 预算只降不升，实测回落绿）；③ 09 执行日志的「R-23…R-93 迁出附节」**保留**——它是 `S15②` 的守卫锚点（H26.2 例外：跨文件编号引用）；④ 10 月执行日志不再逐条压（批次 415/417 已两轮，M1 月度清理续收）。
 
 **读数**：`doc-consistency` + `timestamps-note-guard` + `frontmatter-freshness` + `module-load` + `doc-line-ref` 38/38 绿；活跃 logs 目录仅余 10 月两件 + 两索引。
+
+## 批次 432（2026-10-06 · 执行 `D-807`②）
+
+**做了什么（指针）**：`docs/src/config/deploy.js` 默认形态 `'static'` → `'server'`（Node 托管下本就被 app.js 注入覆盖 ⇒ 此默认只影响「不经 Node 直接打开 docs/」；GitHub Pages 演示部署时按注释改回 'static'）。守卫无断言该值（grep 零命中）。
+
+**serve/落盘实测（真机读数）**：起 `npm start`（:3000，演示种子 50 账号自检通过）——① `/api/v1/health` OK；② 登录 p13（支书·储子禾）取 token OK；③ `GET /snapshot/versions` 基线 OK；④ `POST /snapshot`（todos 集合 ＋ `_versions`）写穿成功、版本 3→4→5 递增；⑤ 行级验证：写后行持久在 SQLite `data.db`（todos 表逐行可查）⇒ **落盘成立**；⑥ 乐观锁（409/428 协议）与原子替换按设计工作；⑦ 静态托管 index=200、`/src/config/deploy.js` 注入 `DEPLOY_MODE="server"` 生效。**mock→API 全量转化在架构上早已成立**（写穿透缓存 ＋ 语义端点 ＋ DEMO_READONLY 只读演示），本批把「默认形态」改准到与支书令一致。
+
+**坑（如实登记）**：本批实测用 PowerShell 5.1 作 API 客户端，其 `ConvertTo-Json` 序列化把数组包成 `{value:[…]}` 单对象写进 todos 表（2 行脏数据，id=null）——**服务端忠实写入所收 payload，无服务端缺陷**；已定向清除 ＋ 版本 bump（todos 现余 10 行基线）。教训：临时 API 探针一律用 node 脚本（JSON 往返无损），不用 PS 对象管线。
+
+**读数**：`mock-api-parity` + `server-base` + `module-load` + `version-stamp` 38/38 绿。

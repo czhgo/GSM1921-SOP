@@ -2,11 +2,14 @@
 // 部署形态配置 — 构建/部署时注入，标记静态托管 vs 有后端
 // 依据 content/04_web_design/deploy/AUTHENTICATION_MODEL.md §六
 //
-// 'static' = GitHub Pages 静态托管（docs/ 直接部署，无后端，有 about）
-// 'server' = Node 一体化后端（server/ 同源，有 /api/v1 + 登录 + 持久化，无 about）
+// 'server' = Node 一体化后端（server/ 同源，有 /api/v1 + 登录 + SQLite 持久化）——**默认形态**
+// 'static'  = GitHub Pages 静态托管（docs/ 直接部署，无后端，只读演示）
 //
-// 部署时按形态改此常量（GitHub Pages 保持 'static'；Node server 部署改为 'server'）。
-export const DEPLOY_MODE = 'static';
+// 2026-10-06 支书令「mock 数据全量转 API、静态托管的局面必须改变」：默认由 'static' 改为
+// 'server'——本仓库的主交付形态是一体化后端（npm start），数据一律落 SQLite（data.db）。
+// Node 托管下本文件被 server/app.js 动态注入覆盖（值恒为 'server'）⇒ 此默认值只影响
+// 「不经 Node 直接打开 docs/」的场合（GitHub Pages 演示部署时改回 'static'）。
+export const DEPLOY_MODE = 'server';
 
 // 空域 seed 回退开关（2026-09-02 部署件）：
 // - true  = 演示形态（默认）：API 模式下 attendances/inspections/todos 三域为空时回退注入演示种子，体验不空窗
