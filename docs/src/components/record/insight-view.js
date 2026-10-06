@@ -106,15 +106,15 @@ export function renderInsightView(container, opts = {}) {
 
   if (view === 'group') {
     // 「其他组」只读一览（组长台；见组件头注：看≠做、判据单一源＝group-view.js）
-    return import('./other-groups-view.js?v=20261006c').then(m => m.renderOtherGroupsView(body));
+    return import('./other-groups-view.js?v=20261006d').then(m => m.renderOtherGroupsView(body));
   }
   if (view === 'taskforce') {
-    return import('./taskforce-view.js?v=20261006c').then(m => m.renderTaskforceView(body, {
+    return import('./taskforce-view.js?v=20261006d').then(m => m.renderTaskforceView(body, {
       highlightId: opts.highlightTfId || null,
       onLocated: opts.onLocated,
     }));
   }
-  return import('./activity-view.js?v=20261006c').then(m => m.renderActivityView(body, {
+  return import('./activity-view.js?v=20261006d').then(m => m.renderActivityView(body, {
     highlightId: opts.highlightActId || null,
     // 知情查看 = 只读形态（组织台原「活动查看（只读）」的 readonly:true 合并后保持不变）
     readonly: opts.readonly !== false,

@@ -130,11 +130,14 @@ const KINDS = {
       if (!actor || actor.role !== 'org-commissioner') return false;
       return !!rowOf(db, 'member_change_requests', sourceId);
     },
-    // R-23②（2026-10-05 批次 390）：展示值**按表复算**——对象字段不采信客户端 payload；
-    //   人名按**名册**复算（`server/person-roster.js`）；payload 不带 `<x>Id` 或名册查无者**沿用 payload**（已登记余项）。
+    // R-23②（2026-10-05 批次 390）：展示值**按表复算**——对象字段不采信客户端 payload。
+    // 2026-10-06 批次 426（`R-23` 余项收口）：**成员**改「按源行派生配对 id」——源行 `personId` 补进 vars 后，
+    //   由 `applyRosterNames` 按名册复算 `personName`（authorize 已核该申请存在）。
     build(ctx) {
-      const vars = applyRosterNames(ctx.db, { ...payloadOf(ctx), sourceId: ctx.sourceId });
+      const raw = { ...payloadOf(ctx), sourceId: ctx.sourceId };
       const row = rowOf(ctx.db, 'member_change_requests', ctx.sourceId) || {};
+      if (row.personId) raw.personId = row.personId;
+      const vars = applyRosterNames(ctx.db, raw);
       if (row.fromStage !== undefined) vars.fromStage = row.fromStage;
       if (row.toStage !== undefined) vars.toStage = row.toStage;
       return buildSystemNotice('member-change-approved', vars);
@@ -239,10 +242,15 @@ const KINDS = {
       return proj.some((x) => x && x.role === 'organizer' && x.personId === actor.id);
     },
     // R-23②（2026-10-05 批次 391）：**项目名按表复算**（`activities.title` / `taskforces.name`，不采信客户端——
-    //   口径与 `organizer-transferred` 同一份）。**人名 / 角色标签 / 落点沿用 payload**：服务端无人员名册，
-    //   且「进谁的台」取决于被赋权人身份（前端口径 `services/core/auth.js::_notifyProjectAuth`）。
+    //   口径与 `organizer-transferred` 同一份）。
+    // 2026-10-06 批次 426（`R-23` 余项收口）：**授权人**改「按源行派生配对 id」——授权人＝本请求的 `actor`（服务端
+    //   已知，无需采信客户端），补 `authorizerId` 后由 `applyRosterNames` **按名册复算** `authorizerName`。
+    //   ⚠ 仍沿用 payload 的两项：**角色标签 `roleLabel`**（＝被赋权人被授的角色，服务端未建「角色标签 → 中文」表，
+    //   系既有口径）与 **落点 `targetPage`**（「进谁的台」取决于被赋权人身份）。
     build(ctx) {
-      const vars = applyRosterNames(ctx.db, { ...payloadOf(ctx), sourceId: ctx.sourceId });
+      const raw = { ...payloadOf(ctx), sourceId: ctx.sourceId };
+      if (ctx.actor && ctx.actor.id) raw.authorizerId = ctx.actor.id;
+      const vars = applyRosterNames(ctx.db, raw);
       const act = rowOf(ctx.db, 'activities', ctx.sourceId);
       const tf = rowOf(ctx.db, 'taskforces', ctx.sourceId);
       if (act && act.title) vars.projectName = act.title;
@@ -260,11 +268,14 @@ const KINDS = {
       const senderId = rec ? rec.senderId : payloadOf({ payload }).senderId;
       return !!senderId && actor.id === senderId;
     },
-    // R-23②（2026-10-05 批次 390）：展示值**按表复算**——对象字段不采信客户端 payload；
-    //   人名按**名册**复算（`server/person-roster.js`）；payload 不带 `<x>Id` 或名册查无者**沿用 payload**（已登记余项）。
+    // R-23②（2026-10-05 批次 390）：展示值**按表复算**——对象字段不采信客户端 payload。
+    // 2026-10-06 批次 426（`R-23` 余项收口）：**发送人**改「按源行派生配对 id」——源行 `senderId` 补进 vars 后，
+    //   由 `applyRosterNames` 按名册复算 `senderName`（该 id 即本请求 actor，authorize 已核）。
     build(ctx) {
-      const vars = applyRosterNames(ctx.db, { ...payloadOf(ctx), sourceId: ctx.sourceId });
+      const raw = { ...payloadOf(ctx), sourceId: ctx.sourceId };
       const row = rowOf(ctx.db, 'external_dispatches', ctx.sourceId) || {};
+      if (row.senderId) raw.senderId = row.senderId;
+      const vars = applyRosterNames(ctx.db, raw);
       if (row.refLabel !== undefined) vars.refLabel = row.refLabel;
       if (row.receiverRole !== undefined) vars.receiverRole = row.receiverRole;
       return buildSystemNotice('external-dispatch-created', vars);
@@ -281,11 +292,14 @@ const KINDS = {
       if (!row) return false;
       return row.submittedBy === actor.id || actor.role === 'prop-commissioner';
     },
-    // R-23②（2026-10-05 批次 390）：展示值**按表复算**——对象字段不采信客户端 payload；
-    //   人名按**名册**复算（`server/person-roster.js`）；payload 不带 `<x>Id` 或名册查无者**沿用 payload**（已登记余项）。
+    // R-23②（2026-10-05 批次 390）：展示值**按表复算**——对象字段不采信客户端 payload。
+    // 2026-10-06 批次 426（`R-23` 余项收口）：**报送人**改「按源行派生配对 id」——源行 `submittedBy` 补 `submitterId`
+    //   后，由 `applyRosterNames` 按名册复算 `submitterName`（authorize 已核 submittedBy）。
     build(ctx) {
-      const vars = applyRosterNames(ctx.db, { ...payloadOf(ctx), sourceId: ctx.sourceId });
+      const raw = { ...payloadOf(ctx), sourceId: ctx.sourceId };
       const row = rowOf(ctx.db, 'weekly_reports', ctx.sourceId) || {};
+      if (row.submittedBy) raw.submitterId = row.submittedBy;
+      const vars = applyRosterNames(ctx.db, raw);
       if (row.week !== undefined) vars.week = row.week;
       if (row.weekRange !== undefined) vars.weekRange = row.weekRange;
       return buildSystemNotice('weekly-report-submitted', vars);
@@ -303,10 +317,14 @@ const KINDS = {
     },
     // R-23②（2026-10-05 批次 391）：**支部名 / 事项摘要按表复算**——单一源＝零依赖叶子
     //   `docs/src/core/domain/review-request-labels.js`（前端 `review-request.js` 同引一处）。
-    //   行缺失时回落默认包装（与改动前同形）；**姓名沿用 payload**（服务端无人员名册）。
+    //   行缺失时回落默认包装（与改动前同形）。
+    // 2026-10-06 批次 426（`R-23` 余项收口）：**发起人**改「按源行派生配对 id」——源行 `submittedBy` 补
+    //   `submitterId` 后，由 `applyRosterNames` 按名册复算 `submitterName`（authorize 已核该提交人）。
     build(ctx) {
-      const vars = applyRosterNames(ctx.db, { ...payloadOf(ctx), sourceId: ctx.sourceId });
+      const raw = { ...payloadOf(ctx), sourceId: ctx.sourceId };
       const row = rowOf(ctx.db, 'review_requests', ctx.sourceId);
+      if (row && row.submittedBy) raw.submitterId = row.submittedBy;
+      const vars = applyRosterNames(ctx.db, raw);
       if (row) {
         vars.branchLabel = branchDisplayName(row.branchId, rowOf(ctx.db, 'branches', row.branchId));
         vars.subject = reviewRequestSubject(row);

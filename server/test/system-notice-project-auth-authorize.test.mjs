@@ -68,7 +68,7 @@ test('A8 无 actor 一律拒（防未登录）', () => {
 //   本件把 8 个 kind 的**对象字段**钉住：伪造的 display 值**不得**出现在产物里；表内值**必须**在。
 //   ⚠ 边界（如实）：**人名仍沿用 payload**（服务端无人员名册，口径同 `organizer-transferred`）⇒
 //     本件只断言**对象字段**，不断言人名——那一半不是本批射程。
-const BUILD = (kind, sourceId, rows, payload) => SYSTEM_NOTICE_KINDS[kind].build({ db: dbStub(rows), sourceId, payload });
+const BUILD = (kind, sourceId, rows, payload, actor) => SYSTEM_NOTICE_KINDS[kind].build({ db: dbStub(rows), sourceId, payload, actor });
 const TEXT = (notice) => `${notice.title || ''}\n${notice.content || ''}`;
 const ACT_TITLE_KINDS = ['attendance-confirmed', 'activity-agenda-updated', 'workforce-proposal-created'];
 
@@ -112,12 +112,14 @@ test('B5 材料外发：refLabel/receiverRole 按表复算', () => {
   assert.ok(!t.includes('伪造材料') && !t.includes('伪造角色'), t);
 });
 
-test('B6 宣传周报：week/weekRange 按表复算；人名（payload 不带 `<x>Id`）沿用 payload', () => {
+test('B6 宣传周报：week/weekRange 按表复算（人名见 E1/E4：源行有 `submittedBy` 才按名册复算）', () => {
   const rows = { weekly_reports: { 'w-1': { id: 'w-1', week: '第 41 周', weekRange: '2026-10-05 ~ 10-11', submittedBy: 'p1' } } };
   const t = TEXT(BUILD('weekly-report-submitted', 'w-1', rows, { week: '伪造周次', weekRange: '伪造区间', submitterName: '张三' }));
   assert.ok(t.includes('第 41 周') && t.includes('2026-10-05 ~ 10-11'), t);
   assert.ok(!t.includes('伪造周次') && !t.includes('伪造区间'), t);
-  assert.ok(t.includes('张三'), `payload 不带 \`submitterName\` 的配对 id ⇒ 名册无从复算、沿用 payload（如实边界）：${t}`);
+  // 本夹具**未给 `users` 表** ⇒ 名册查无 p1 ⇒ 沿用 payload（批次 426 口径：先按源行补 `submitterId`、再走名册；
+  //   「源行有 `submittedBy` 且名册查得到」的正例见 E1，「源行无 `submittedBy`」的反例见 E4）。
+  assert.ok(t.includes('张三'), `名册查无 ⇒ 沿用 payload（不空名）：${t}`);
 });
 
 test('B7 非空转：11 个 kind 都真有 `build`（防判据被写成恒真）', () => {
@@ -245,13 +247,64 @@ test('D3 端口：`applyRosterNames` 只覆写「名册查得到」的 `<x>Id` �
   assert.equal(vars.activityName, '活动名', '`activityId` 不在 `users` 表 ⇒ 不得覆写 `activityName`');
 });
 
-test('D4 余项（如实）：payload 不带配对 id 者仍沿用 payload —— 本批**未堵**', () => {
-  // `member-change-approved` 的 payload 只有 `personName`（无 `personId`）⇒ 名册无从复算。
+test('D4 余项**已收口**（2026-10-06 批次 426）：`member-change-approved` 的 payload 不带 `personId` 也按**源行** `personId` 复算', () => {
+  // 批次 422 时这里记的是「payload 无配对 id ⇒ 名册无从复算（余项）」；批次 426 改为**按源行派生 id**：
+  //   源行 `member_change_requests.personId` 补进 vars ⇒ `applyRosterNames` 按名册复算 `personName`。
   const rows = {
     users: { p7: { id: 'p7', name: '在册真名' } },
     member_change_requests: { 'mc-1': { id: 'mc-1', personId: 'p7', fromStage: '积极分子', toStage: '发展对象' } },
   };
   const t = TEXT(BUILD('member-change-approved', 'mc-1', rows, { personName: 'payload 名' }));
-  assert.ok(t.includes('payload 名'), `**如实**：源行虽有 personId，但本批未做「按源行派生 id」⇒ 仍沿用 payload：${t}`);
+  assert.ok(t.includes('在册真名'), `须按源行 personId 走名册复算：${t}`);
+  assert.ok(!t.includes('payload 名'), `伪造 payload 名不得出现：${t}`);
 });
+
+// ─────────────────────────────────────────────────────────────────────────────
+// E 组（2026-10-06 批次 426）：`R-23` 余项**收口**——「payload 不带配对 id」者改
+//   **按源行派生配对 id**，再走 `applyRosterNames` 按名册复算人名。
+//   ⚠ 仍沿用 payload 的（如实登记）：`project-auth-granted` 的 `roleLabel`（角色标签，服务端未建
+//     「角色标签 → 中文」表）与 `targetPage`（落点，取决于被赋权人身份）。
+test('E1 `weekly-report-submitted`：源行 `submittedBy` ⇒ 按名册复算 `submitterName`', () => {
+  const rows = {
+    users: { p11: { id: 'p11', name: '宣传委员真名' } },
+    weekly_reports: { 'wr-1': { id: 'wr-1', submittedBy: 'p11', week: '第十周', weekRange: '10.01–10.07' } },
+  };
+  const t = TEXT(BUILD('weekly-report-submitted', 'wr-1', rows, { submitterName: '伪造报送人', week: '伪造周' }));
+  assert.ok(t.includes('宣传委员真名'), `报送人未按名册复算：${t}`);
+  assert.ok(!t.includes('伪造报送人'), `伪造报送人不得出现：${t}`);
+  assert.ok(t.includes('第十周'), '周次仍按表复算（批次 390 口径未动）');
+});
+
+test('E2 `review-request-submitted`：源行 `submittedBy` ⇒ 按名册复算 `submitterName`', () => {
+  const rows = {
+    users: { p13: { id: 'p13', name: '支书真名' } },
+    branches: { 'br-b1': { id: 'br-b1', name: '演示支部' } },
+    review_requests: { 'rr-1': { id: 'rr-1', submittedBy: 'p13', branchId: 'br-b1', type: 'report', title: '半年小结' } },
+  };
+  const t = TEXT(BUILD('review-request-submitted', 'rr-1', rows, { submitterName: '伪造发起人' }));
+  assert.ok(t.includes('支书真名'), `发起人未按名册复算：${t}`);
+  assert.ok(!t.includes('伪造发起人'), `伪造发起人不得出现：${t}`);
+});
+
+test('E3 `project-auth-granted`：授权人＝服务端 `actor` ⇒ 按名册复算 `authorizerName`', () => {
+  const rows = {
+    users: { p13: { id: 'p13', name: '支书真名' } },
+    activities: { 'act-1': { id: 'act-1', title: '表内活动' } },
+  };
+  const t = TEXT(BUILD('project-auth-granted', 'act-1', rows,
+    { authorizerName: '伪造授权人', projectName: '伪造活动', roleLabel: '组织者', targetPage: './workspace/leader.html' },
+    { id: 'p13', role: 'secretary' }));
+  assert.ok(t.includes('支书真名'), `授权人未按名册复算（须取自 ctx.actor.id）：${t}`);
+  assert.ok(!t.includes('伪造授权人'), `伪造授权人不得出现：${t}`);
+  assert.ok(t.includes('表内活动'), '项目名仍按表复算（批次 391 口径未动）');
+  // ⚠ 如实：以下两项**仍沿用 payload**（余项）
+  assert.ok(t.includes('组织者'), '如实：角色标签仍沿用 payload（服务端未建「角色标签 → 中文」表）');
+});
+
+test('E4 反例：源行无人字段 ⇒ 仍沿用 payload（不得产出空名）', () => {
+  const rows = { users: { p11: { id: 'p11', name: '在册真名' } }, weekly_reports: { 'wr-2': { id: 'wr-2', week: '第十一周' } } };
+  const t = TEXT(BUILD('weekly-report-submitted', 'wr-2', rows, { submitterName: '报表未记报送人时的 payload 名' }));
+  assert.ok(t.includes('报表未记报送人时的 payload 名'), `源行无 submittedBy ⇒ 沿用 payload（不空名）：${t}`);
+});
+
 

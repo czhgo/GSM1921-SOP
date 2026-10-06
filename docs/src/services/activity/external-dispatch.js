@@ -8,11 +8,11 @@
 //  （"标记已发送" 演进为 "发送到对方微信"，"确认收到" 保持同构）。
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../../core/domain/domain.js?v=20261006c';
-import { persist } from '../../data/data-adapter.js?v=20261006c';
-import { NoticeStore } from '../governance/notice.js?v=20261006c';
-import { generateId } from '../../core/base/id.js?v=20261006c';
-import * as SoftVoid from '../governance/soft-void.js?v=20261006c';
+import { mockDB } from '../../core/domain/domain.js?v=20261006d';
+import { persist } from '../../data/data-adapter.js?v=20261006d';
+import { NoticeStore } from '../governance/notice.js?v=20261006d';
+import { generateId } from '../../core/base/id.js?v=20261006d';
+import * as SoftVoid from '../governance/soft-void.js?v=20261006d';
 
 /** 读取外发确认记录（mockDB 持久化）
  *  ⚠ **写路径专用**——返回值会被 `mockDB.externalDispatches = list` 写回 ⇒ **不得在此过滤**

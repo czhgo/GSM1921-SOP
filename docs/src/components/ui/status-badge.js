@@ -5,7 +5,7 @@
 //  用途：任务状态 / 考勤状态 / 交接状态等行内状态（替代原生 select 下拉）
 // ════════════════════════════════════════════════════════════════
 
-import { icon } from '../../core/base/icons.js?v=20261006c';
+import { icon } from '../../core/base/icons.js?v=20261006d';
 
 const VIEWPORT_PADDING = 8;
 

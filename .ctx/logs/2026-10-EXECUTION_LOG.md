@@ -2076,3 +2076,33 @@ $body
 - **`mock-adapter.js` 那一路未单列判据**（浏览器 mock 形态的写口；与 `A10` 同构，属**间接覆盖**）——若要单列须真机造活动，**未做**。
 - **API 形态不变**：服务端仍无派生器（赋权待办不在服务端派生），本批只改 mock / 演示链（**既有形态**）。
 
+## 批次 426（2026-10-06 · `D-805`）**`R-23` 余项收口**（人名改「按源行派生配对 id」再走名册复算）
+
+> **来源**：批次 422 立「服务端人员名册读口」时如实登记余项——**payload 不带配对 id** 的场合仍沿用 payload。本批按该余项**原写法之二**（服务端逐 kind 按源行派生）收口。
+
+### 一、实探与口径（先定「源行里到底有没有那个 id」）
+
+- `applyRosterNames` 的判据是「vars 里**同时**有 `<x>Id` 与 `<x>Name`」⇒ 只要把**源行里的既有人员 id** 补进 vars，人名即可按名册复算。逐 kind 实读源行字段（**只取确实存在的**，不臆造）：
+  - `member_change_requests.personId`（`member-change-approved`；authorize 已核该申请存在）
+  - `weekly_reports.submittedBy`（`weekly-report-submitted`；authorize 已核 `submittedBy === actor.id`）
+  - `review_requests.submittedBy`（`review-request-submitted`；authorize 已核）
+  - `external_dispatches.senderId`（`external-dispatch-created`；authorize 已核 `actor.id === senderId`）
+  - `project-auth-granted`：**授权人＝本请求的 `actor`**（服务端已知、无须采信客户端）⇒ 取 `ctx.actor.id`
+
+### 二、动作
+
+1. 上述 5 个 kind 的 `build` 一律改为「**先读源行 → 补配对 id 进 vars → 再 `applyRosterNames`**」；其余字段（周次 / 阶段 / 材料名 / 支部名 / 事项摘要 / 项目名）复算口径**一字未动**。
+2. **判据**（`system-notice-project-auth-authorize.test.mjs`）：`D4` **由「余项（未堵）」改准为收口正例**；新增 `E1`（周报）· `E2`（支部上报）· `E3`（赋权通知；附「项目名仍按表复算」「角色标签仍沿用 payload」两断言）· `E4`（**反例**：源行无 `submittedBy` ⇒ 沿用 payload、不空名）；`B6` 标题与说明同批改准（夹具未给 `users` ⇒ 名册查无 ⇒ 沿用，判据未变）。
+3. **一改具改**：`server/system-notice-kinds.js` 增行 ⇒ `README-server.md §6.7` **7 处 `文件:行号` 同批改签**（5 处键区间 ＋ `:124-138 → :128-148`、`:63-80 → :63-89`）＋ 该节「权威源」段人名口径**改准**；`CLAUDE.md` 乙部 `R-23` 行**改准**（余项收敛为「角色标签 / 落点」两项）。
+
+### 三、守卫读数
+
+- `system-notice-project-auth-authorize` **29 / 29 / 0**（较批次 422 的 25 增 **4**＝`E1`–`E4`）。
+- 定向：`doc-consistency` · `doc-line-ref` · `frontmatter-freshness` · `timestamps-note-guard` · `version-stamp` · `module-load` · `import-path-guard` · `localstorage-key-guard` **90 / 90 / 0**。
+
+### 四、边界（如实）
+
+- **仍沿用 payload 的两项**（不得读成已全堵）：`project-auth-granted` 的**角色标签 `roleLabel`**（服务端未建「角色标签 → 中文」表）与**落点 `targetPage`**（「进谁的台」取决于被赋权人身份）。
+- **`thought-report-submitted` 不属本项**：其 `build` 早已直接取表内 `personName`（不采信 payload）。
+- **本批未 bump**（`docs/src/**` 一字未动）；commit 里一并带上批次 425 收尾所跑的**全站重戳 `20261006c → 20261006d`**（纯 `?v=` 机械替换）。
+

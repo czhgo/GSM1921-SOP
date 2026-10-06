@@ -16,8 +16,8 @@
 //
 // 纯 ESM、零依赖（浏览器 / Node 双端可加载）；守卫 = `server/test/block-orchestration.test.mjs::O1–O5`。
 
-import { BLOCK_MANIFESTS, validateBlockManifest } from './manifests.js?v=20261006c';
-import { resolveConflicts } from '../../core/base/module-compose.js?v=20261006c';
+import { BLOCK_MANIFESTS, validateBlockManifest } from './manifests.js?v=20261006d';
+import { resolveConflicts } from '../../core/base/module-compose.js?v=20261006d';
 
 /**
  * 按作用域取可编排的块（L4 原则：**可拖范围仍受角色 / 作用域约束**，界面上不是所有块都能拖）。
