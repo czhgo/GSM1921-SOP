@@ -32,14 +32,14 @@ globalThis.localStorage = makeStorage();
 
 import { createApp } from '../app.js';
 import { seedDatabase } from '../seed.js';
-import { PersonStore } from '../../docs/src/services/member/person.js?v=20261011a';
-import { isPartyMember } from '../../docs/src/services/member/roster.js?v=20261011a';
-import { ReviewStatus } from '../../docs/src/core/domain/domain.js?v=20261011a';
+import { PersonStore } from '../../docs/src/services/member/person.js?v=20261011b';
+import { isPartyMember } from '../../docs/src/services/member/roster.js?v=20261011b';
+import { ReviewStatus } from '../../docs/src/core/domain/domain.js?v=20261011b';
 import {
   listPartyGroups, memberScopeOfGroup, countOpenReportsByGroup,
   isGroupActivity, groupActivitiesOf, reviewBucketOf,
-} from '../../docs/src/services/member/group-view.js?v=20261011a';
-import { getRuntimeMode, init, setDataSource } from '../../docs/src/data/data-adapter.js?v=20261011a';
+} from '../../docs/src/services/member/group-view.js?v=20261011b';
+import { getRuntimeMode, init, setDataSource } from '../../docs/src/data/data-adapter.js?v=20261011b';
 
 // ── B 类现场（api 形态）：内存服务 + 真登录取 token + init() 把服务端全量灌进 mockDB 缓存 ──
 const _app = createApp({ dbPath: ':memory:' });

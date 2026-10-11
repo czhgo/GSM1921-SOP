@@ -5,10 +5,10 @@
 // 动画：Lenis 平滑滚动 + CSS 滚动驱动（animation-timeline: view()）+ 原生 JS 驱动
 // 签名元素：收束致谢（三层小字）+ 探索区 SVG 关系网络 + 对话卡日出日落公转（文字正立）
 
-import { renderSidebar } from '../../components/shell/sidebar.js?v=20261011a';
-import { renderHeader } from '../../components/shell/header.js?v=20261011a';
-import { getBasePath } from '../../core/base/utils.js?v=20261011a';
-import { icon } from '../../core/base/icons.js?v=20261011a';
+import { renderSidebar } from '../../components/shell/sidebar.js?v=20261011b';
+import { renderHeader } from '../../components/shell/header.js?v=20261011b';
+import { getBasePath } from '../../core/base/utils.js?v=20261011b';
+import { icon } from '../../core/base/icons.js?v=20261011b';
 
 // ── 公开访问：不检查登录 ──
 // 静态壳模式（2026-08-12）：about 为纯静态文档，不加载 auth/notice 数据链（约 50 模块），
@@ -379,7 +379,6 @@ function renderHero() {
       <div class="ab-hero-inner">
         <h1 class="ab-hero-title">从入党申请人<br/>到正式党员</h1>
         <p class="ab-hero-subtitle">以本支部为例</p>
-        <p class="ab-hero-subtitle" style="letter-spacing:0.02em;font-size:clamp(13px,1.5vw,15px);line-height:1.9;margin:14px auto 0;max-width:600px;">本系统面向各类党支部与学生组织——每个组织可部署自己的实例（自有名称、人员、制度、配色与数据）。</p>
         <div class="ab-hero-rule"></div>
         <div class="ab-hero-scroll-hint" aria-hidden="true">
           <span class="ab-scroll-text">向下滚动</span>

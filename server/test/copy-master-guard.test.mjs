@@ -166,9 +166,11 @@ const BASELINE = {
   'docs/src/core/domain/system-notice-templates.js': [
     '已报送支委会表决，表决通过后将开放招募（截止',                // 系统通知模板正文（与 §3.6 专班说明同句）
   ],
-  'docs/src/entries/pages/about-entry.js': [
-    '本系统面向各类党支部与学生组织——每个组织可部署自己的实例（自有名称、人员、制度、配色与数据）。', // 关于页首段与 help 页眉同句
-  ],
+  // `docs/src/entries/pages/about-entry.js` 条目已于 2026-10-11（批次 441）**收基线移除**：
+  //   该句「本系统面向各类党支部与学生组织……」系宣传形态要去掉的平台化小字，本批从
+  //   关于页 / 帮助页 / 首页三处一并删除（母本侧与界面侧重合同时消失）⇒ 按本守卫自身
+  //   纪律（收基线＝删条目）删去，并同批下调 BASELINE_FILE_COUNT / BASELINE_TOTAL
+  //   与 N3 两处硬下限（只降不升，见下方常量注释）。
   'docs/src/entries/pages/party-committee-meeting-entry.js': [
     '线上表决与线上记录的讨论结果即终局，不需线下追认',            // 支委会会议页效力口径（与 §0.1 同句）
   ],
@@ -202,9 +204,12 @@ const BASELINE = {
  *  2026-09-25「文案存量清理」批收基线：`disc/attendance-tab.js`（2 条）已改为「一行 ＋ help 深链」
  *  ⇒ 文件 10 → 9、条数 13 → 11（两处同步下调，见上）；下限随真实值下调，**只降不升**。
  *  ⚠ 2026-10-01 批次 326 实跑发现一条僵尸条目（见上 `settings-entry.js` 处注释）：实测命中 10 条而降级
- *    防线要求 `>= 11` ⇒ **本批不回改**（要收须同一批同时下调下限并说明，属独立取证件）。 */
-const BASELINE_FILE_COUNT = 9;
-const BASELINE_TOTAL = 11;
+ *    防线要求 `>= 11` ⇒ **本批不回改**（要收须同一批同时下调下限并说明，属独立取证件）。
+ *  2026-10-11（批次 441）：收 `about-entry.js` 条目（该平台化小字已从关于页 / 帮助页 / 首页三处删除，
+ *    母本与界面侧重合同时清零）⇒ 文件 9 → 8、条数 11 → 10；N3 两处硬下限同批下调为 `>= 8` / `>= 10`
+ *    （与上一条同规矩：只降不升、同批说明）。 */
+const BASELINE_FILE_COUNT = 8;
+const BASELINE_TOTAL = 10;
 
 /** 定点登记表（help.html 里 data-copy-key 卡片数）的下限，防台账被删空
  *  2026-09-25「文案存量清理」批：本批新增 4 张定点（issue-reveal / pcm-scope / attendance-record / makeup-scope）
@@ -264,8 +269,8 @@ test('N3 非空转：抽取口径可用（含 20/19 字边界）+ 基线规模�
 
   // ② 基线规模下限（低于此值说明台账被删减或口径失效）
   const baseFiles = Object.keys(BASELINE);
-  assert.ok(BASELINE_FILE_COUNT >= 9, `基线文件数过少（声明 ${BASELINE_FILE_COUNT}，下限 9）——台账被删减或抽取口径失效`);
-  assert.ok(BASELINE_TOTAL >= 11, `基线条数过少（声明 ${BASELINE_TOTAL}，下限 11）——台账被删减或抽取口径失效`);
+  assert.ok(BASELINE_FILE_COUNT >= 8, `基线文件数过少（声明 ${BASELINE_FILE_COUNT}，下限 8）——台账被删减或抽取口径失效`);
+  assert.ok(BASELINE_TOTAL >= 10, `基线条数过少（声明 ${BASELINE_TOTAL}，下限 10）——台账被删减或抽取口径失效`);
   assert.equal(baseFiles.length, BASELINE_FILE_COUNT,
     `基线条目数与声明的文件数不一致（实测 ${baseFiles.length} / 声明 ${BASELINE_FILE_COUNT}）`);
   assert.equal(baseFiles.reduce((a, f) => a + BASELINE[f].length, 0), BASELINE_TOTAL,

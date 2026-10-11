@@ -12,10 +12,10 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
-import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261011a';
-import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261011a';
-import { setDataSource } from '../../docs/src/data/data-adapter.js?v=20261011a';
-import { TodoStore, TodoCategory } from '../../docs/src/services/governance/todo.js?v=20261011a';
+import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261011b';
+import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261011b';
+import { setDataSource } from '../../docs/src/data/data-adapter.js?v=20261011b';
+import { TodoStore, TodoCategory } from '../../docs/src/services/governance/todo.js?v=20261011b';
 
 const ROOT = join(import.meta.dirname, '..', '..');
 

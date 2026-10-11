@@ -102,11 +102,12 @@ export const ACTIVITIES = [
   // ════════════════════════════════════════════════════════════════════
   //  2026-10 宣传基线（支书令「十月份显示一些活动 —— 党建思想学习 与
   //  红色徒步去香山（纪念长征胜利 90 周年）」）：
-  //  act-36 党课（已举办）、act-37 红色徒步主题党日（计划中）两条自 10 月起亮相，
+  //  act-36 党课、act-37 红色徒步主题党日两条自 10 月起亮相，
   //  供 mock 直读与 server/seed.js（同一份）两形态同源展示。
-  //  自洽校核：act-36 status=completed 不挂未完成任务（SEED_TASKS 未引用之）；
-  //  act-37 status=published 为计划中；二者均为非表决类，不加 voteConfig。
+  //  自洽校核（2026-10-11 支书改准：「10月15日还没到，所以我们还没有归档这个活动！！」）：
+  //  未到日期的活动不得判为「已执行 / 待归档」⇒ act-36 由 completed 改准为 published；
+  //  两条均为「计划中」，SEED_TASKS 未引用二者（无未完成任务挂靠）；均为非表决类，不加 voteConfig。
   // ════════════════════════════════════════════════════════════════════
-  { id: 'act-36', title: '党建思想学习会', date: '2026-10-15', type: '党课', organizer: 'p13', direction: 'top-down', location: '光华1号楼101报告厅', status: 'completed', scenarioId: 'party-lecture', domain: 'party-building', assignments: [{ personId: 'p13', role: 'organizer' }], agenda: [{ item: '主题讲授：深入学习党的创新理论', host: '支书' }] },
+  { id: 'act-36', title: '党建思想学习会', date: '2026-10-15', type: '党课', organizer: 'p13', direction: 'top-down', location: '光华1号楼101报告厅', status: 'published', scenarioId: 'party-lecture', domain: 'party-building', assignments: [{ personId: 'p13', role: 'organizer' }], agenda: [{ item: '主题讲授：深入学习党的创新理论', host: '支书' }] },
   { id: 'act-37', title: '红色徒步·香山行（纪念长征胜利 90 周年）', date: '2026-10-22', type: '主题党日', organizer: 'p3', direction: 'bottom-up', location: '香山公园', status: 'published', isBrand: true, brandName: '红色徒步', scenarioId: 'theme-party', domain: 'party-building', carriers: ['实践参访'], isOutdoor: true, assignments: [{ personId: 'p3', role: 'organizer' }] },
 ];
