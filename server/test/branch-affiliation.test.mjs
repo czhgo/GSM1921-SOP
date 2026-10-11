@@ -5,18 +5,18 @@
 //      party-staff（branchId null）→ null）
 //   ② getBranchIdOfPerson 保留数据解析兜底语义（演示/存量兼容：undefined/查无档案/p_pc → 'br-b1'）
 //   ③ getHeaderTitle：party-staff → 党委名；有归属 → config.headerTitle；登录无归属 → 中性「未绑定支部」
-//      （不再泄漏示例支部名，placeholder 可覆盖）；未登录静态壳 → 数据解析兜底 / 末级兜底名（换壳范围）
+//      （不再泄漏示例支部名，placeholder 可覆盖）；未登录静态壳 → 支部显示名（数据驱动，缺省取支部名兜底）
 // 运行：node --test test/branch-affiliation.test.mjs
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261006j';
-import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261006j';
-import { setDataSource, registerMockAdapter } from '../../docs/src/data/data-adapter.js?v=20261006j';
-import { MEMBER_OVERLAY_KEY } from '../../docs/src/services/member/person.js?v=20261006j';
+import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261011a';
+import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261011a';
+import { setDataSource, registerMockAdapter } from '../../docs/src/data/data-adapter.js?v=20261011a';
+import { MEMBER_OVERLAY_KEY } from '../../docs/src/services/member/person.js?v=20261011a';
 import {
   getBoundBranch, getBranchIdOfPerson, getHeaderTitle, getBranchById, getCommitteeName, isLoaded,
-} from '../../docs/src/services/branch/branch.js?v=20261006j';
+} from '../../docs/src/services/branch/branch.js?v=20261011a';
 
 // ── localStorage 内存桩 + mock 适配器注册（people 为静态种子，读链即时可用）──
 const _store = new Map();
@@ -95,14 +95,14 @@ test('③ header：party-staff → 党委名；有归属 → config.headerTitle�
   assert.equal(getHeaderTitle('p_ghostbind'), '未绑定支部', 'branchId 查无 → 同为无归属中性占位');
 });
 
-test('③ header：未登录/查无档案 → 中性占位「示例组织（未登录）」；数据未加载 → 静态兜底名', () => {
+test('③ header：未登录/查无档案 → 支部显示名「光华管理学院本科生党支部」；数据未加载 → 静态兜底名', () => {
   beginMockCase();
   mockDB.branches = mockDB.branches.map(b => (b.id === 'br-b1'
     ? { ...b, config: { ...b.config, headerTitle: '页眉测试名' } }
     : b));
-  // 未登录（personId 缺省）/ 查无档案：中性占位——不再走 br-b1 数据解析兜底泄漏示例支部名
-  assert.equal(getHeaderTitle(), '示例组织（未登录）');
-  assert.equal(getHeaderTitle('p_ghost'), '示例组织（未登录）', 'personId 查无档案 → 同未登录中性占位');
+  // 未登录（personId 缺省）/ 查无档案：支部显示名——数据驱动（缺省取支部名兜底），不再走 br-b1 数据解析兜底
+  assert.equal(getHeaderTitle(), '光华管理学院本科生党支部');
+  assert.equal(getHeaderTitle('p_ghost'), '光华管理学院本科生党支部', 'personId 查无档案 → 同未登录支部显示名');
 
   // 登录人但分支数据尚未加载（loadDB 未完成，时序竞态）→ 静态兜底名，而非误报「未绑定支部」
   mockDB.branches = [];
@@ -113,5 +113,5 @@ test('③ header：未登录/查无档案 → 中性占位「示例组织（未�
   // 数据已加载但确无该支部：登录成员 → 真无归属中性占位；未登录 → 中性占位（不受加载态影响）
   mockDB._loaded = true;
   assert.equal(getHeaderTitle('p13'), '未绑定支部', '数据已加载（p13 归属支部不存在）→ 确无归属中性占位');
-  assert.equal(getHeaderTitle(), '示例组织（未登录）', '未登录 → 中性占位，不泄漏示例支部名');
+  assert.equal(getHeaderTitle(), '光华管理学院本科生党支部', '未登录 → 支部显示名（数据驱动，缺省取支部名兜底）');
 });

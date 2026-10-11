@@ -18,14 +18,14 @@
 // 纯 ESM、无 DOM；localStorage 仅在函数内以 typeof 守卫惰性访问 → 浏览器 / Node 双端可载（单测直导）。
 // ════════════════════════════════════════════════════════════════
 
-import { PEOPLE } from '../../data/mock/people.js?v=20261006j';
+import { PEOPLE } from '../../data/mock/people.js?v=20261011a';
 // 2026-09-14 批次 25：党小组枚举改由 data/mock/party-groups.js 种子派生（该文件为无 import 的叶子数据模块，
 //   不会引入 person→preview→party-group 成环；运行时活组清单以 services/member/party-group.js::groupOptions() 为准）。
-import { PARTY_GROUPS } from '../../data/mock/party-groups.js?v=20261006j';
-import { POLICY_DEFAULTS } from '../../core/domain/policy-defaults.js?v=20261006j';
+import { PARTY_GROUPS } from '../../data/mock/party-groups.js?v=20261011a';
+import { POLICY_DEFAULTS } from '../../core/domain/policy-defaults.js?v=20261011a';
 // Q-21-3 收敛（2026-09-13）：在册状态枚举单一源 = core/domain/constants.js（本模块原先自写一份与 roster 同值的
 //   副本；constants.js 无 import → 可安全被本模块与 roster.js 双向共用，person→preview→roster 成环问题消解）。
-import { RESIDENCE } from '../../core/domain/constants.js?v=20261006j';
+import { RESIDENCE } from '../../core/domain/constants.js?v=20261011a';
 
 /** 预览包类型标识（导入门槛，防误导入异类 JSON） */
 export const PREVIEW_KIND = 'gsm1921-base-data';
@@ -87,7 +87,7 @@ export function buildPreviewTemplate() {
       + 'residenceStatus 在校|滞留、residenceNote 滞留备注（自由文本，可为空）。'
       + 'id 为成员唯一标识不可改（白名单外整条忽略）；非法枚举回退该成员原值、空姓名整条忽略；'
       + '删行不生效（该成员保持种子现状，预览不增减成员，正式减员走成员档案流程）。'
-      + '注意：业务历史（活动/考勤/议程/专班等）仍关联演示成员，正式换数据请按换壳工作单落仓库文件。',
+      + '注意：业务历史（活动/考勤/议程/专班等）仍关联历史成员，正式换数据请按换壳工作单落仓库文件。',
     people: SEED_MEMBERS.map(p => ({
       id: p.id,
       name: p.name,

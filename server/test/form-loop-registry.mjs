@@ -655,6 +655,11 @@ export const MACHINE_FLOWS = [
       // 批次 47-W：入口由「日历**第一条**」改为**显式指定 act-31**——原写法依赖「当月恰好只有一条活动」
       //   这个**偶然事实**（2026-09 只有 act-31）；本批为「决议落实」新增了 act-35（8 月）后，
       //   一旦将来 9 月再多一条，本流程就会静默切到别的活动上（**判据随数据变动**，同 R-76 ④）。
+      // 批次 440（2026-10-11）：10 月新增 act-36/act-37 后，「活动管理」日历默认落**当月（10 月）**
+      //   ⇒ act-31（9 月）不在默认网格里。故**先切月到 2026-09** 再点（做法同下方 act-35 流程的 `selectValue`）。
+      //   教训同文首 47-W：入口不得依赖「当月恰好只有某条活动」这个**偶然事实**。
+      { selectValue: { selector: '#month-selector', value: '2026-09' } },
+      { waitFor: '.cal-activity-item[data-act-id="act-31"]' },
       { click: '.cal-activity-item[data-act-id="act-31"]' },
       { waitFor: '#inspector-edit-btn' },
       { click: '#inspector-edit-btn' },
@@ -736,6 +741,9 @@ export const MACHINE_FLOWS = [
     tab: '活动管理',
     open: [
       // 批次 47-W：同 `secretary-inspector-activity-edit`——入口显式指定 act-31，不再依赖「当月只有一条」。
+      // 批次 440：同因（10 月起日历默认落当月）先切月到 2026-09 再点。
+      { selectValue: { selector: '#month-selector', value: '2026-09' } },
+      { waitFor: '.cal-activity-item[data-act-id="act-31"]' },
       { click: '.cal-activity-item[data-act-id="act-31"]' },
       { waitFor: '.vote-submit' },
     ],

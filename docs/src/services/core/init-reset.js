@@ -28,6 +28,12 @@
 /** 主库存储键（与 data/mock-adapter.js STORAGE_KEY 同值；mock-adapter 禁改 → 此处显式声明） */
 export const INIT_BLOB_KEY = 'workflowos_branch_db_v1';
 
+// 种子数据版本（domain.js::SEED_DATA_VERSION）：init 裁剪后写回主库时**盖当前版本戳**——
+// 语义：?reset=init 是「有意的初始化」，产出的库已是「当前种子版本的空业务态」；
+// 若不盖戳（尤其是旧访客的库本就无该字段），下一次 loadDB 会被「旧本地演示数据自动失效」
+// 判据误判为旧版本演示库 → 整库丢弃回种子 → 连 init 有意保留的支部 config（分工/header）也会丢。
+import { SEED_DATA_VERSION } from '../../core/domain/domain.js?v=20261011a';
+
 /**
  * init 档保留的主库字段（白名单 = 组织骨架；键名与 mock-adapter _saveToStorage 一致）：
  *  - _schema            持久化 schema 版本（不可动）
@@ -216,6 +222,9 @@ export function trimInitBlob(parsed) {
   for (const [key, empty] of Object.entries(INIT_BLOB_CLEAR_DEFAULTS)) {
     out[key] = Array.isArray(empty) ? [] : (empty === null ? null : {});
   }
+  // 盖当前种子版本戳（见文件头 import 处说明）：init 产出的库视为「当前种子版本」，
+  // 避免下轮 loadDB 被「旧本地演示数据自动失效」判据误丢弃（旧库无该字段时尤其必要）。
+  out._seedVersion = SEED_DATA_VERSION;
   return out;
 }
 

@@ -9,6 +9,16 @@
 export const SCHEMA_VERSION = 1;
 
 /**
+ * 种子数据版本（**只用于「旧本地演示数据自动失效」**）
+ * 每次改动种子数据（活动/通知/待办等）后，应把它 +1 或改成新日期——老访客浏览器
+ * localStorage 里的旧版本演示库（`_seedVersion` 与本值不符/缺失）会在 loadDB 时被整库丢弃、
+ * 按最新种子重建，从而根除「旧的测试数据/缓存」问题（改了种子内容却忘了改这里 = 老访客看不到新数据）。
+ * ⚠ 与 SCHEMA_VERSION 区分：SCHEMA_VERSION 是「持久化结构版本」（结构变了才动，现为 1 不动）；
+ *    本值是「数据内容版本」（内容变了就改）。
+ */
+export const SEED_DATA_VERSION = '2026-10-07';
+
+/**
  * @typedef {Object} Activity
  * @property {string}  id          - 唯一标识符（由 id.js 生成）
  * @property {string}  title       - 活动标题

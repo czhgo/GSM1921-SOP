@@ -15,10 +15,10 @@
 // （auth.js ROLE_PERMISSIONS 无 party-staff 键）→ 可见 ≠ 可写；本模块只放开「进入支部」的可见性
 // 放行（只读），不放宽任何写权限（requiredRoles / 权限键一律不动）。
 
-import { getBranchById } from '../branch/branch.js?v=20261006j';
-import { showToast } from '../../core/base/utils.js?v=20261006j';
-import { AuthStore } from './auth.js?v=20261006j';
-import { CrossPageState } from '../../core/session/cross-page-state.js?v=20261006j';
+import { getBranchById } from '../branch/branch.js?v=20261011a';
+import { showToast } from '../../core/base/utils.js?v=20261011a';
+import { AuthStore } from './auth.js?v=20261011a';
+import { CrossPageState } from '../../core/session/cross-page-state.js?v=20261011a';
 
 // 演示目标页：支书工作台（演示形态固定 secretary.html；后续如需演示其他支委角色在此扩展）
 const DEMO_PAGE = 'secretary.html';
@@ -36,7 +36,7 @@ function buildBranchDemoUrl(branchId) {
   const branch = getBranchById(branchId);
   if (!branch) return { ok: false, reason: '支部不存在（可能已被移除）' };
   if (!LOCAL_HOSTS.has(window.location.hostname)) {
-    return { ok: false, reason: '「进入支部（演示）」仅本地开发环境可用（localhost/127.0.0.1）' };
+    return { ok: false, reason: '「进入支部（党委视角）」仅本地开发环境可用（localhost/127.0.0.1）' };
   }
   // API 会话不再拒绝（支书 2026-09-10 裁定 A⑤）：党委在真实后端登录下同样可下钻查看支部只读视图，
   // 写操作由角色权限层拒绝（party-staff 不在支部业务角色矩阵，无任何写权限键）。

@@ -4,27 +4,27 @@
 // 各区块渲染已拆至 components/dashboard/：stats（统计卡+考勤弹窗）/ activity-panel（活动日历+列表）/ taskforce-list / gallery。
 // 本文件仅保留：bootstrap、工作台链接修正、renderUI 调度、renderDashboard 组装+导航委托、数据变更即时刷新。
 
-import { BranchService } from '../../services/core/runtime.js?v=20261006j';
-import { STATE, setState, registerRenderCallback, getAppState } from '../../core/base/state.js?v=20261006j';
-import { NoticeStore } from '../../services/governance/notice.js?v=20261006j';
+import { BranchService } from '../../services/core/runtime.js?v=20261011a';
+import { STATE, setState, registerRenderCallback, getAppState } from '../../core/base/state.js?v=20261011a';
+import { NoticeStore } from '../../services/governance/notice.js?v=20261011a';
 // 视图层独立：renderNoticeList 属「通知视图层」（G1 第③项服务层不产 UI，2026-09-28 迁出）
-import { renderNoticeList } from '../../components/governance/notice-view.js?v=20261006j';
-import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261006j';
-import { getBasePath } from '../../core/base/utils.js?v=20261006j';
-import { loadAttendanceRecords, loadActiveAttendanceRecords } from '../../services/activity/attendance.js?v=20261006j';
-import { loadActivities } from '../../services/activity/activity.js?v=20261006j';
-import { CrossPageState } from '../../core/session/cross-page-state.js?v=20261006j';
-import { bootstrapPage } from '../../core/boot/bootstrap.js?v=20261006j';
-import { AuthStore } from '../../services/core/auth.js?v=20261006j';
-import { getHeaderTitle } from '../../services/branch/branch.js?v=20261006j';
-import { loadWorkspaceData } from '../../data/data-loader.js?v=20261006j';
-import { DATA_CHANGED_EVENT, probeRemoteChanges } from '../../data/data-adapter.js?v=20261006j';
-import '../../capabilities/activity-calendar.js?v=20261006j'; // 副作用导入：注册首页活动日历能力
+import { renderNoticeList } from '../../components/governance/notice-view.js?v=20261011a';
+import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261011a';
+import { getBasePath } from '../../core/base/utils.js?v=20261011a';
+import { loadAttendanceRecords, loadActiveAttendanceRecords } from '../../services/activity/attendance.js?v=20261011a';
+import { loadActivities } from '../../services/activity/activity.js?v=20261011a';
+import { CrossPageState } from '../../core/session/cross-page-state.js?v=20261011a';
+import { bootstrapPage } from '../../core/boot/bootstrap.js?v=20261011a';
+import { AuthStore } from '../../services/core/auth.js?v=20261011a';
+import { getHeaderTitle } from '../../services/branch/branch.js?v=20261011a';
+import { loadWorkspaceData } from '../../data/data-loader.js?v=20261011a';
+import { DATA_CHANGED_EVENT, probeRemoteChanges } from '../../data/data-adapter.js?v=20261011a';
+import '../../capabilities/activity-calendar.js?v=20261011a'; // 副作用导入：注册首页活动日历能力
 // ── 方案 B 入口拆分：dashboard 区块渲染模块 ──
-import { renderDashboardStats } from '../../components/dashboard/stats.js?v=20261006j';
-import { renderActivityList, renderActivityCalendar, initActivityTabs, getInitialActivityView } from '../../components/dashboard/activity-panel.js?v=20261006j';
-import { renderTaskforceList } from '../../components/dashboard/taskforce-list.js?v=20261006j';
-import { renderGallery } from '../../components/dashboard/gallery.js?v=20261006j';
+import { renderDashboardStats } from '../../components/dashboard/stats.js?v=20261011a';
+import { renderActivityList, renderActivityCalendar, initActivityTabs, getInitialActivityView } from '../../components/dashboard/activity-panel.js?v=20261011a';
+import { renderTaskforceList } from '../../components/dashboard/taskforce-list.js?v=20261011a';
+import { renderGallery } from '../../components/dashboard/gallery.js?v=20261011a';
 
 // ── 时序修复（2026-09-10「归属显示不一致」；正确先例 settings-entry.js:1236-1244）──
 // header 品牌标题经 getHeaderTitle 读 mockDB.branches，必须先完成 BranchService.loadDB()
@@ -39,10 +39,11 @@ try {
 const { user } = await bootstrapPage({ module: 'dashboard' });
 
 // C5②（2026-09-12）：首页大标题按登录态显示支部名——此前为 HTML 硬编码「示例组织（未登录）」，
-// 已登录仍显示该文案。未登录保持中性占位（HTML 静态文案不变）；已登录归还本人支部品牌名。
-if (user) {
-  const heroTitleEl = document.querySelector('#view-dashboard h2.font-title-cn');
-  if (heroTitleEl) heroTitleEl.textContent = getHeaderTitle(user.personId);
+// 已登录仍显示该文案。2026-10-11 去演示化：未登录也按支部显示名落地（不再依赖 HTML 硬编码），
+// 已登录归还本人支部品牌名。
+const heroTitleEl = document.querySelector('#view-dashboard h2.font-title-cn');
+if (heroTitleEl) {
+  heroTitleEl.textContent = user ? getHeaderTitle(user.personId) : getHeaderTitle();
 }
 
 // 根据用户角色更新 dashboard 中的 workspace 链接

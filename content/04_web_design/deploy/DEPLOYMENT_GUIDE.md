@@ -3,7 +3,7 @@ title: "部署与对外对接"
 type: design
 role: "[工程师]+[AI]"
 created: 2026-08-19
-last_updated: 2026-10-06
+last_updated: 2026-10-11
 status: active
 related_files: [docs/src/data/data-adapter.js, docs/src/data/api-adapter.js, docs/src/services/core/runtime.js, docs/src/config/deploy.js, docs/src/core/boot/bootstrap.js, docs/src/components/shell/sidebar.js, docs/src/components/shell/header.js, docs/login.html, docs/src/services/core/auth.js, server/server.js, server/app.js, server/db.js, server/routes/auth.js, server/routes/resources.js, server/routes/uploads.js]
 ---
@@ -464,12 +464,12 @@ AI_API_BASE_URL = 'https://<计算中心提供的域名>/ai/v1'
 
 支部文件的「可见」本身也需登录：匿名只看到「登录后查看」提示。
 
-### 4.6 后端检测：构建时注入配置
+### 4.6 后端检测：按宿主环境自动判定 ＋ Node 侧注入覆盖
 
-侧边栏需要知道「静态托管 vs 有后端」以决定「关于」链接显隐，采用**构建时注入配置**，不做运行时探测：
+侧边栏需要知道「静态托管 vs 有后端」以决定「关于」链接显隐，采用**按宿主环境自动判定 ＋ Node 侧注入覆盖**：
 
 - 新增 `docs/src/config/deploy.js`，导出 `DEPLOY_MODE: 'static' | 'server'`。
-- GitHub Pages 部署时保持 `'static'`；Node `server/` 部署时注入为 `'server'`（注入机制见实现）。
+- **浏览器（非 Node 托管）加载本文件即自动判为 `'static'`**（GitHub Pages 静态托管 / 直接以 `docs/` 为根，**无需手改**）；Node `server/` 部署时由 `server/app.js` 动态注入覆盖为 `'server'`（注入机制见实现）。
 - 侧边栏据此决定「关于」显隐；`getDataSource()`（mock / api）仍由登录态独立决定，二者不混淆。
 
 ### 4.7 代码落点
@@ -964,7 +964,7 @@ WebView 套壳（短期）→ Taro 跨端（中期），与网页共用后端；
 | 后端服务 | `server/` Express + better-sqlite3：**35 资源表**（id + data JSON 通用结构，含 branch_docs）+ sessions/attachments；routes：auth（login/logout/me）、resources（CRUD + bootstrap + snapshot 写穿）、uploads（jpg/png/pdf/doc/docx/xlsx/mp4 ≤10MB）、report（§3.9）；`npm test` 测试全绿（server/test/ 覆盖单元/E2E/审计/链接完整性） |
 | 邮件双通道（§3.8） | `server/services/mailer.js`（nodemailer 通用 SMTP，env 注入不落库，失败重试 3 次 + 静默降级）+ `services/mailer-hooks.js` 接入通知发布/待办提醒/反馈汇报触发点；成员档案 email 字段预留，补充后通道自动生效 |
 | 数据上报（§3.9） | `server/routes/report.js` + `services/reporting.js`：`GET /api/v1/report/:domain`（JSON 拉取）/ `/report/export`（CSV+BOM 人工导入）/ `POST /report/trigger`（手动推送）+ 每日 03:00 定时批量上报 + 每 10 分钟会议提醒扫描 |
-| 部署形态区分 | `docs/src/config/deploy.js` `DEPLOY_MODE: 'static' | 'server'`（构建时注入）；侧边栏「关于」显隐按此区分（静态托管显示 / 有后端隐藏） |
+| 部署形态区分 | `docs/src/config/deploy.js` `DEPLOY_MODE: 'static' | 'server'`（**浏览器加载即 `static`；Node 由注入覆盖为 `server`——自动判定，无需手改**）；侧边栏「关于」显隐按此区分（静态托管显示 / 有后端隐藏） |
 | 登录门控 | 四层模型已落地（本文件 §4.4）：L1 页面 / L2 功能写入 / L3 身份组件 / L4 下载 |
 
 **待做**：
@@ -983,7 +983,7 @@ WebView 套壳（短期）→ Taro 跨端（中期），与网页共用后端；
 
 1. **设 `APP_ENV=production`**：生产形态下 ① **未设 `LOGIN_PASSWORD` 启动即拒**（进程退出并打印原因）；② `DISABLE_PASSWORD_CHECK` **一律不认**；③ 空库**默认不播种**（不再依赖「记得加 `DISABLE_SEED=1`」）。等价显式做法：`DISABLE_SEED=1`（空库不导入 50 人演示支部种子，全新建库直接录入真实人员）。
 2. **设 `LOGIN_PASSWORD`**（所有账号共用的统一口令）；可改的其余项见 `server/.env.example`。
-3. **关断前端空域回退（防污染真实账本）**：路径 B/C 是 Node 托管，`/src/config/deploy.js` 由 `server/app.js` 动态注入（`DEPLOY_MODE` 恒为 `'server'`，**无需手改磁盘常量**）⇒ **设环境变量 `SEED_FALLBACK=0`**（注入串据此注入 `false`，见 `server/.env.example`）：置 `false` 后 `data/data-adapter.js::init()` **不再**为考勤 / 考察 / 待办三域回退注入演示种子（缺省 `true`＝演示形态）。若改用静态托管形态，则改 `docs/src/config/deploy.js` 的 `DEPLOY_MODE` 与 `SEED_FALLBACK` 常量即可。它**只管那三处**，不替代第 1 步/第 4 步。
+3. **关断前端空域回退（防污染真实账本）**：路径 B/C 是 Node 托管，`/src/config/deploy.js` 由 `server/app.js` 动态注入（`DEPLOY_MODE` 恒为 `'server'`，**无需手改磁盘常量**）⇒ **设环境变量 `SEED_FALLBACK=0`**（注入串据此注入 `false`，见 `server/.env.example`）：置 `false` 后 `data/data-adapter.js::init()` **不再**为考勤 / 考察 / 待办三域回退注入演示种子（缺省 `true`＝演示形态）。若改用静态托管形态，`DEPLOY_MODE` 由浏览器加载自动判为 `'static'`（**无需手改**），仅需按需改 `docs/src/config/deploy.js` 的 `SEED_FALLBACK` 常量即可。它**只管那三处**，不替代第 1 步/第 4 步。
 4. 逐一关闭 **services 层 9 处空表回退**（`_loadX` 空则注入演示 seed：attendance/inspection/review/thought-report/activity/makeup/notice/todo/signup）。**原因**：空表回退只填前端缓存本无害，但用户任一后续写会触发快照上传，把回退的演示种子整体写到服务端，污染真实账本。
 5. **确认库内只有真人**：看启动日志的 `[server] 自检 · users 计数=…；演示种子账号=…`（判据＝`docs/src/data/mock/people.js::PEOPLE` 的 id 集）；若演示种子账号 > 0 而这是正式库 ⇒ 换空库重建（生产形态已默认不播种）。
 

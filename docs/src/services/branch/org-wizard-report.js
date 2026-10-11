@@ -19,7 +19,7 @@
 /** 待手动替换文件清单（阶段一固定条目；「换壳不换骨」= 这些内容在线改不了，出仓后改仓库文件） */
 const REPLACE_ENTRIES = [
   {
-    group: '演示数据与人员档案（docs/src/data/mock/）',
+    group: '示例数据与人员档案（docs/src/data/mock/）',
     desc: '支部成员/账号/活动/通知等示例数据按需替换：people.js（成员档案，含 role/developStage/党小组/滞留标注）、accounts.js（登录账号）、branches.js（支部种子）、activities.js / taskforces.js 等业务示例。',
     files: ['docs/src/data/mock/people.js', 'docs/src/data/mock/accounts.js', 'docs/src/data/mock/branches.js', 'docs/src/data/mock/activities.js'],
   },
@@ -131,7 +131,7 @@ export function buildOrgWizardReport({
   L.push('- 配置即时生效说明：本向导每步改动即时写入支部 config 并记录变更（branch.config.configChangeHistory 可查）；');
   L.push('  模块/块启停对支部成员「下次进入工作台/活动详情」生效，组织信息/主题即时生效。');
   L.push('');
-  L.push('- 演示重置：浏览器演示在页面 URL 加 `?reset=1` 访问，一键清除本域演示存储并回到种子初始态（仅 mock 演示模式；生产数据不受影响）。');
+  L.push('- 重置：在页面 URL 加 `?reset=1` 访问，一键清除本域本地存储并回到种子初始态（仅本地浏览模式；生产数据不受影响）。');
   L.push('');
   L.push('- 回归验证：改仓库文件后在 `server` 目录执行 `npm test`（`node --test`）确认全绿，再行交付。');
   L.push('');

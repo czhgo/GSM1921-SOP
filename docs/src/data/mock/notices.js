@@ -128,4 +128,30 @@ export const MOCK_NOTICES = [
     targetModule: 'activity',
     read: true,
   },
+  // ── 10 月通知（2026-10 宣传基线，与 activities.js 保持数据协调）───────
+  //  expireDate 均不早于 2026-10-15（否则被视为过期通知、不派生阅读待办）。
+  {
+    id: 'notice-111',
+    title: '开展"红色徒步·香山行"（纪念长征胜利 90 周年）活动的通知',
+    content: '10月22日组织支部党员赴香山公园开展"红色徒步·香山行"主题党日（纪念长征胜利 90 周年），请全体党员、预备党员、积极分子做好参加准备。',
+    priority: 'urgent',
+    publishDate: '2026-10-08',
+    expireDate: '2026-10-22',
+    targetModule: 'activity',
+    targetType: 'activity',
+    targetId: 'act-37',
+    read: false,
+  },
+  {
+    id: 'notice-112',
+    title: '十月党建思想学习会安排',
+    content: '10月15日在光华1号楼101报告厅举办党建思想学习会，主题为深入学习党的创新理论，请全体党员准时参加。',
+    priority: 'normal',
+    publishDate: '2026-10-08',
+    expireDate: '2026-10-15',
+    targetModule: 'activity',
+    targetType: 'activity',
+    targetId: 'act-36',
+    read: false,
+  },
 ];

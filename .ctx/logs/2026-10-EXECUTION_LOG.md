@@ -2304,3 +2304,13 @@ $body
 **边界（如实）**：① 服务器侧全部操作由支书照手册执行（浏览器操作未经批准不代做）；② `install.sh` 仍标注「未在真机执行过」（诚实声明保留）——本批真机首跑的输出回来后按实际修订；③ 出方向 443 若防火墙不批，手册已备「本地下载 Node 官方包随包上传」零外网预案。
 
 **读数**：frontmatter-freshness / doc-consistency / link-integrity / scan-forbidden / copy 两件 36/36 绿。
+
+## 批次 440（2026-10-11 · 执行 `D-810` · GitHub Pages 宣传形态）
+
+**做了什么**：① **去演示化**——未登录静态壳页眉/首页/登录页/帮助页/关于页标题直显支部显示名（`branch.js` 段⑤ 由中性占位改 `DEFAULT_BRANCH_DISPLAY_NAME`，`main-entry.js` 未登录也按 `getHeaderTitle()` 落地），全站用户可见面清除「示例组织 / 演示账号 / Mock 校验 / 只读演示 / 进入支部（演示）/ 党委演示只读视图」等（含帮助页**真实姓名+学号+统一口令**串的移除、秘书台/党委台/向导/提示串 20 余处）；**支部名仍数据驱动**（换壳配置不受影响）。② **十月活动**（`activities.js` 单一源）：`act-36` 党建思想学习会 2026-10-15（已举办）、`act-37` 红色徒步·香山行（纪念长征胜利 90 周年）2026-10-22（计划中）；`notices.js` 配套十月通知 2 条。③ **种子无超期待办**：`todo_seed_6`（截止 2026-08-01）重定向为十月主题、截止改 2026-12-31。④ **旧本地数据自动失效**：`domain.js` 新增 `SEED_DATA_VERSION='2026-10-07'`；`mock-adapter` `_saveToStorage` 写 `_seedVersion`、`_loadFromStorage` 版本不符即**丢弃整库回种子**（并把 `_schema` 不匹配分支由「中止→可能空页」改为同样丢弃+重播）；`init-reset` 的 `?reset=init` 回写补盖版本戳。⑤ **静态托管形态自动判定**：`deploy.js` 的 `DEPLOY_MODE` 改为按宿主判定（浏览器加载即 `static`，Node 由 `server/app.js` 注入覆盖 `server`）——静态页不再误报「会话已失效」、侧边栏「关于」正常。⑥ `bump-version` 20261006j → **20261011a**（CODE_VERSION 421）；帮助页补「如何清掉旧的本地数据/缓存」（`?reset=demo` / `?reset=preview`）；新增非 e2e 守卫 `server/test/publicity-static-guard.test.mjs`（G1 无演示字样 / G2 十月两活动在册 / G3 种子无过去截止 / G4 形态自动判定；已按 S16 登记进 `test:daily`）。
+
+**修了三处回归/红灯**：① `leader-workspace.js` 缺 `AuthStore` 导入（批次 436 删导入时连带删掉了仍被使用的引用）⇒ 组长台「今天」渲染抛错、整台空白、普查 tab 数 59<68 —— 补回导入后 `page-sweep` 绿；② 两条 form-loop 流程（`secretary-inspector-activity-edit` / `-vote`）随十月活动入册而失效——「活动管理」日历默认落**当月（10 月）**、act-31（9 月）不在网格 ⇒ 按 `act-35` 流程既有做法**先切月到 2026-09 再点**；③ `doc-line-ref` 的 R1/R2 行号漂移（既有：README 批次 437 加节后 `README-server.md` 内引用未同步；本轮：`domain.js` +10、`main-entry.js` +1）＋ `S13` 一次（DEPLOYMENT_GUIDE frontmatter 2026-10-11 vs 表行）—— 一并改准，两守卫 24/24 绿。
+
+**读数**：全量 `npm run test:full` 墙钟 **1050.4s ≈ 17.5 分钟（≤20min 达标）**；`[node] 797/797 绿`；e2e-A 50/58、e2e-B 160/164（12 处失败＝**`:3000` 外部服务中途已挂**的 8 处〔click-cost 5 + b3-1 + mock-integrity 2〕＋ 上面①③ 的真回归）；逐项复跑后：`click-cost/b3-1/mock-integrity/page-sweep`＋form-loop(secretary) 全绿（35/35），`doc-line-ref`+`doc-consistency` 24/24，`publicity-static-guard` 4/4。**静态形态真机探针**（极简静态服务器托管 `docs/`）：浏览器侧 `DEPLOY_MODE=static` ✓、首页标题「光华管理学院本科生党支部」✓、首页可见面禁串归零 ✓、日历默认月 **2026-10** 且活动条 2（10/15 党课 / 10/22 党日）✓、重要通知含十月红色徒步通知 ✓、待办页「已过期」计数 **0** ✓、pageerror 0 ✓。
+
+**边界（如实）**：① 待办页仍显示演示基线自带的 7 月「N 条逾期」徽标（复盘/考勤/考察积压）——支书裁定「既然是真实数据，这些内容都应该计算出来才对」⇒ 维持现状、不改演示基线。② 全量跑尾部 sandbox 仍因 playwright 写 `chrome-headless-shell\debug.log` 报受限（既有 `H-12` 登记，套件本体已判定全通道结果）。③ 上一轮 Agent 留下的临时 worktree 目录 `D:\GitHub\GSM1921-headcheck` 在沙箱外、**本工具无法删除**，需人工删（不影响仓库）。

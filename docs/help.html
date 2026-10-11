@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
   
-<script src="./src/theme-init.js?v=20261006j"></script>
+<script src="./src/theme-init.js?v=20261011a"></script>
 <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>帮助 — GSM1921-SOP</title>
@@ -13,8 +13,8 @@
   <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;800&family=Noto+Serif+SC:wght@400;500;600;700;800&display=swap" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;800&family=Noto+Serif+SC:wght@400;500;600;700;800&display=swap" rel="stylesheet"></noscript>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="./src/tailwind-config.js?v=20261006j"></script>
-  <link rel="stylesheet" href="./src/styles.css?v=20261006j">
+  <script src="./src/tailwind-config.js?v=20261011a"></script>
+  <link rel="stylesheet" href="./src/styles.css?v=20261011a">
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
@@ -228,9 +228,9 @@
       <!-- ========== 页眉 ========== -->
       <div class="text-center mb-10">
         <img src="./assets/images/party_emblem.png" alt="党徽" class="mx-auto mb-3" style="width:48px;height:48px;" draggable="false">
-        <h2 class="font-title-cn text-2xl font-bold text-gray-800 mb-1">示例组织（未登录）</h2>
+        <h2 class="font-title-cn text-2xl font-bold text-gray-800 mb-1">光华管理学院本科生党支部</h2>
         <p class="text-sm text-gray-500">GSM1921-SOP · 系统说明书</p>
-        <p class="text-xs text-gray-500" style="max-width:640px;margin:10px auto 0;">本系统面向各类党支部与学生组织——每个组织可部署自己的实例（自有名称、人员、制度、配色与数据）；当前页面展示的是<strong>示例组织</strong>的一套部署。</p>
+        <p class="text-xs text-gray-500" style="max-width:640px;margin:10px auto 0;">本系统面向各类党支部与学生组织——每个组织可部署自己的实例（自有名称、人员、制度、配色与数据）。</p>
       </div>
 
       <!-- ========== 三区布局：左目录树 + 右内容面板（搜索框/章节） ========== -->
@@ -271,7 +271,7 @@
             <thead><tr><th style="width:17%;">页面</th><th style="width:36%;">是什么</th><th style="width:20%;">谁能进</th><th>怎么到达</th></tr></thead>
             <tbody>
               <tr><td><a href="./index.html">首页</a></td><td>支部活动日历 / 近期活动 / 通知与招募一览；登录后显示本人待办与角色区块</td><td>公共</td><td>站点入口；侧边栏「首页」</td></tr>
-              <tr><td><a href="./login.html">登录</a></td><td>账号登录（演示卡见 0.3）</td><td>所有人</td><td>顶栏 / 侧栏「登录」按钮；访问需登录页面自动跳转</td></tr>
+              <tr><td><a href="./login.html">登录</a></td><td>账号登录（开发模式卡见 0.3）</td><td>所有人</td><td>顶栏 / 侧栏「登录」按钮；访问需登录页面自动跳转</td></tr>
               <tr><td><a href="./search.html">资料查询</a></td><td>官方制度文件与支部文件检索；已归档支部文件标注讨论来源</td><td>公共</td><td>侧边栏「资料查询」</td></tr>
               <tr><td><a href="./archive.html">归档库</a></td><td>历届已归档工作成果的浏览与检索</td><td>公共</td><td>侧边栏「归档库」</td></tr>
               <tr><td><a href="./activity.html">活动详情</a></td><td>单个活动的详情页：议程 / 报名 / 线上表态 / 考勤与产出记录；报名、表态、记录需登录</td><td>公共可看；操作需登录</td><td>首页日历与活动卡、工作台内活动行、待办、通知等链接</td></tr>
@@ -320,8 +320,8 @@
 
         <!-- 0.3 登录说明 -->
         <h3 class="doc-h3"><span class="doc-h3-badge">0.3</span>登录说明</h3>
-        <div class="doc-key"><strong>账号登录</strong>：到登录页（顶栏 / 侧栏「登录」）输入<strong>学号 + 密码</strong>，登录后自动跳转到你身份对应的工作台（0.2 表）。演示 / 测试账号密码统一 <strong>123456</strong>（如支书 储子禾 2300010001、党委组织员 9000000001）。</div>
-        <div class="doc-key"><strong>开发演示卡</strong>：登录页勾选「开发模式」开关 → 出现身份卡片网格 → 点任意角色卡一键进入该工作台（仅本地开发 / 演示形态可用）。</div>
+        <div class="doc-key"><strong>账号登录</strong>：到登录页（顶栏 / 侧栏「登录」）输入<strong>学号 + 密码</strong>，登录后自动跳转到你身份对应的工作台（0.2 表）。账号由各支部按实际部署建立（空库起步 / IAAA 统一身份认证 / 党委台建名册）。</div>
+        <div class="doc-key"><strong>开发模式卡</strong>：登录页勾选「开发模式」开关 → 出现身份卡片网格 → 点任意角色卡一键进入该工作台（仅本地开发形态可用）。</div>
         <div class="doc-key"><strong>未登录</strong>：根页面大多可匿名浏览（见 0.1 表）；顶栏铃铛左侧与侧栏底部都有「登录」按钮；点工作台、提交反馈等需登录的操作会自动跳登录页。</div>
 
         <!-- 0.4 设置中心速览 -->
@@ -564,7 +564,7 @@
           <table class="doc-table">
             <thead><tr><th style="width:15%;">tab</th><th style="width:14%;">给谁用</th><th style="width:43%;">这页做什么</th><th>怎么做（点哪里）</th></tr></thead>
             <tbody>
-              <tr><td>治理总览</td><td>党委组织员</td><td>登录落点 / 全院治理首页：支部概览列表（成员 / 党员 / 滞留实时统计 + 近期动态摘要）</td><td>打开工作台即此页；支部卡「进入支部（演示）」下钻</td></tr>
+              <tr><td>治理总览</td><td>党委组织员</td><td>登录落点 / 全院治理首页：支部概览列表（成员 / 党员 / 滞留实时统计 + 近期动态摘要）</td><td>打开工作台即此页；支部卡「进入支部（党委视角）」下钻</td></tr>
               <tr><td>支部监控台账</td><td>党委组织员</td><td>全院各支部台账监控（跨支部看板）；页首「支部筛选」可按支部收窄</td><td>「全院治理」段；按支部 / 维度查看台账</td></tr>
               <tr><td>支部上报</td><td>党委组织员</td><td>各支部上报的关键事项（发展节点 / 活动报备）——党委<b>接收</b>后逐项批复（批准 / 批驳并附意见），结论<b>回复支部</b>；页首「支部筛选」可按支部收窄</td><td>「全院治理」段；点开上报 → 「批准 / 批驳」并附意见</td></tr>
               <tr><td>支部管理</td><td>党委组织员</td><td>支部实例管理（新建 / 改名 / 停用恢复 / 支书任命 / 空支部名册导入）＋ 页内「<b>支部配置</b>」（换组织向导：「模块 / 分工 / 向导配置」，部署期职责）</td><td>「全院治理」段；增删改支部实例；页底「支部配置」区选支部 → 走换组织向导 → 保存</td></tr>
@@ -1379,7 +1379,7 @@
         <!-- 4.2 外观 -->
         <h3 class="doc-h3" style="margin-top:34px;"><span class="doc-h3-badge">4.2</span>外观（字号 / 明暗主题 / 强调色）</h3>
         <p class="doc-p">「外观」是全站唯一<strong>人人可见</strong>的分区——未登录访客的左栏里也有它。三项偏好都是「个人口味」，改完立即在本页与全站生效。</p>
-        <div class="help-card" id="card-set-appearance" data-search="外观 字号 中号 大号 明暗主题 浅色 跟随系统 深色 强调色 色板 红 橙 金 绿 青 天蓝 海蓝 紫 雾紫 亮蓝 即时生效 访客 本浏览器 随账号 归属判定 当前形态 数据源 mock api 版本戳 未绑定支部 示例组织">
+        <div class="help-card" id="card-set-appearance" data-search="外观 字号 中号 大号 明暗主题 浅色 跟随系统 深色 强调色 色板 红 橙 金 绿 青 天蓝 海蓝 紫 雾紫 亮蓝 即时生效 访客 本浏览器 随账号 归属判定 当前形态 数据源 mock api 版本戳 未绑定支部 本地浏览态">
           <h4 class="help-card-title">三项偏好逐项 · 以及同区的「当前形态 · 归属判定」自查卡</h4>
           <div class="doc-table-wrap">
             <table class="doc-table">
@@ -1392,8 +1392,8 @@
             </table>
           </div>
           <p class="help-card-desc" style="margin-top:8px;"><strong>偏好存哪：</strong>未登录访客的三项偏好只存本浏览器；登录后随账号独立保存——换设备、换登录人互不串。</p>
-          <p class="help-card-desc"><strong>同区的「当前形态 · 归属判定」卡（只读自查，不做设置）：</strong>把「顶栏那个组织名是从哪来的」摊开——当前数据源（api 已连服务器 / mock 本地演示）、依据（本机有无登录 token，只判有 / 无、不显示内容）、归属判定命中的是哪一段、所属支部 id、登录人与角色、代码版本戳。不开调试器也能核对形态。</p>
-          <p class="help-card-desc"><strong>两个中性占位名：</strong>「示例组织（未登录）」＝未登录 / 查无档案时的占位；「未绑定支部」＝已登录但档案还没有有效归属时的占位——两者都不是真实支部名；后者须由党委在「支部管理」里确认归属。</p>
+          <p class="help-card-desc"><strong>同区的「当前形态 · 归属判定」卡（只读自查，不做设置）：</strong>把「顶栏那个组织名是从哪来的」摊开——当前数据源（服务器 / 本机浏览）、依据（本机有无登录 token，只判有 / 无、不显示内容）、归属判定命中的是哪一段、所属支部 id、登录人与角色、代码版本戳。不开调试器也能核对形态。</p>
+          <p class="help-card-desc"><strong>两个归属展示：</strong>未登录 / 查无档案时显示支部显示名（数据驱动，缺省取支部名兜底）；「未绑定支部」＝已登录但档案还没有有效归属时的占位——后者须由党委在「支部管理」里确认归属。</p>
         </div>
 
         <!-- 4.3 我的工作台 -->
@@ -1635,7 +1635,7 @@
           <ol style="list-style:decimal;margin:4px 0 6px;padding-left:1.5em;">
             <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">换届任命：党委组织员在党委台「支部管理」对新任支书「任命支书」（选本支部成员，可写任命说明如换届选举）→ 原支书自动降回成员、任期档案记录（操作见 6.1 表）→ 新支书登录即接管本支部工作台。</li>
             <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">换组织 / 初始化：从三入口之一进入「支部配置向导」分步进行——① 组织信息 → ② 模块 / 块组合 → ③ 角色分工 → ④ 术语制度指引 + 换壳工作单 → ⑤ 验证与重置（入口与每步说明见 6.2）。</li>
-            <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">数据保留语义：向导改的是「壳」（名称 / 模块 / 分工 / 主题），成员档案、考勤考察、思想汇报、支部文件、档案与决议等历史数据全部保留随支部；演示形态的重置档位（回种子 / 清预览 / 初始化空支部）只作用于浏览器演示数据，正式形态数据保存后持久保留（见 6.3）。</li>
+            <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">数据保留语义：向导改的是「壳」（名称 / 模块 / 分工 / 主题），成员档案、考勤考察、思想汇报、支部文件、档案与决议等历史数据全部保留随支部；本地浏览形态的重置档位（回种子 / 清预览 / 初始化空支部）只作用于浏览器本地数据，正式形态数据保存后持久保留（见 6.3）。</li>
           </ol>
         </div>
       </section>
@@ -1656,7 +1656,7 @@
             <table class="doc-table">
               <thead><tr><th style="width:14%;">tab</th><th style="width:12%;">给谁用</th><th style="width:38%;">做什么</th><th>操作要点</th></tr></thead>
               <tbody>
-                <tr><td>治理总览</td><td>党委组织员</td><td>登录落点：顶部全委统计条（支部数 / 在册成员 / 在册党员 / 滞留 / 全院通知）+ 各支部概览卡（成员 / 党员 / 滞留实时统计 + 近期动态摘要）</td><td>打开党委工作台即此页；支部卡「进入支部（演示）」可下钻支部层工作台（本地演示）</td></tr>
+                <tr><td>治理总览</td><td>党委组织员</td><td>登录落点：顶部全委统计条（支部数 / 在册成员 / 在册党员 / 滞留 / 全院通知）+ 各支部概览卡（成员 / 党员 / 滞留实时统计 + 近期动态摘要）</td><td>打开党委工作台即此页；支部卡「进入支部（党委视角）」可下钻支部层工作台（本地浏览）</td></tr>
                 <tr><td>支部监控台账</td><td>党委组织员</td><td>全院支部运行台账：成员规模 / 发展阶段分布 / 思想汇报篇数 / 组织生活类型计数 / 近期活动 / 现任支书；页首「支部筛选」可按支部收窄</td><td>「全院治理」段；逐支部卡片查看；支部在「支部管理」新增后自动上卡</td></tr>
                 <tr><td>支部管理</td><td>党委组织员</td><td>支部实例管理：新建空支部 / 改名 / 任命支书 / 空支部整表导入成员名册 ＋ 页内「<b>支部配置</b>」（换组织向导分步，任意支部可切换；吸收合并原模块启停裸开关清单）</td><td>「全院治理」段。「+ 新建支部」填名称与类型 → 建成空支部（模块默认全开、业务为空、支书席位空缺）→ 支部卡「导入成员名册」：下载名册模板 JSON → 保留迁入本支部的成员行、删去其余 → 「选择名册文件」→ 核对导入统计卡（在册党员 / 滞留 / 支部大会应到 / 各组应到）→「确认导入保存」；支部卡「任命支书」选本支部成员（可写任命说明）→ 确认后原支书自动降回成员、任期档案记录；「改名」即时更新页眉显示。仅空支部可整表导入，已有成员 / 历史的支部逐人在本支部「成员名册」维护（见 3.5）。页底「支部配置」区：默认进入首支部，顶部可切其它支部 → 按分步向导操作（见 6.2）</td></tr>
                 <tr><td>支部上报</td><td>党委组织员</td><td>各支部上报的关键事项（发展节点 / 活动报备）——党委<b>接收</b>后逐项批复（批准 / 批驳并附意见），结论<b>回复支部</b>；页首「支部筛选」可按支部收窄</td><td>「全院治理」段；待批复区逐条填「审批意见」→「批准 / 驳回」（驳回必填意见，便于支部整改）；支部侧自动收到结论（支部侧操作见 3.7 / 5.9）</td></tr>
@@ -1690,7 +1690,7 @@
                 <tr><td>② 模块 / 块组合</td><td>业务模块（支书工作台 tab，核心组固定不可关）、活动产出块（详情页「添加记录」按钮集）、工作流块（整条 SOP 入口）三组开关——决定成员下次进入工作台哪些 tab / 模板 / 按钮可见，如停用「主题党日组织块」→ 主题党日模板卡隐藏（见 3.2）</td><td>点开关后「保存本步」即时生效；「恢复默认（全开）」</td></tr>
                 <tr><td>③ 角色分工</td><td>各工作模块负责人归属（支委角色位 / 到人位 / 组织主体位：如支委会）</td><td>部署期 / 换壳期直接写库即时生效并记录；日常分工调整请走支书台「支部分工」的支委会议题流程</td></tr>
                 <tr><td>④ 术语制度指引 + 工作单</td><td>只读查看「换壳需人工替换内容」总表（术语 / 制度 / 数据 / 配色指引），说明哪些内容需按新组织人工替换</td><td>「生成并下载换壳工作单」（Markdown：已完成配置摘要 + 待人工替换文件清单 + 验证点）</td></tr>
-                <tr><td>⑤ 验证与重置</td><td>应到名单核对（支部党员大会应到 = 在册党员 − 滞留剔除，现读数）+ 演示重置档位说明 + 回归验证</td><td>步骤完成情况存档草稿可续走；完成后出「完成报告」（摘要 / 下载工作单 / 去验证 / 重走向导）</td></tr>
+                <tr><td>⑤ 验证与重置</td><td>应到名单核对（支部党员大会应到 = 在册党员 − 滞留剔除，现读数）+ 重置档位说明 + 回归验证</td><td>步骤完成情况存档草稿可续走；完成后出「完成报告」（摘要 / 下载工作单 / 去验证 / 重走向导）</td></tr>
               </tbody>
             </table>
           </div>
@@ -1698,15 +1698,17 @@
         </div>
 
         <!-- 6.3 数据保留与重置档位 -->
-        <h3 class="doc-h3" style="margin-top:34px;"><span class="doc-h3-badge">6.3</span>数据保留与重置档位</h3>
-        <div class="help-card" id="card-admin-reset" data-search="数据保留 重置 档位 演示 reset demo preview init 初始化 空支部 API 换壳不换档 历史数据 种子 预览 草稿 持久化">
-          <h4 class="help-card-title">重置会清什么、保留什么（面向使用者说明）</h4>
+        <h3 class="doc-h3" style="margin-top:34px;"><span class="doc-h3-badge">6.3</span>数据保留、重置与本地缓存清理</h3>
+        <div class="help-card" id="card-admin-reset" data-search="数据保留 重置 档位 清理 清除 旧数据 本地数据 本地浏览数据 缓存 初始基线 reset demo preview init 初始化 空支部 API 换壳不换档 历史数据 种子 预览 草稿 持久化 静态托管 服务器形态 服务端 自动 作废 重建">
+          <h4 class="help-card-title">重置会清什么、保留什么 · 如何清掉旧的本地数据 / 缓存</h4>
           <p class="help-card-desc" style="margin-top:6px;"><strong>换壳不换档：</strong>向导 ①②③ 改的是支部的「壳」——名称 / 模块 / 分工 / 主题。成员档案（名册 / 发展阶段 / 在册滞留）、考勤考察、思想汇报、支部文件、档案与决议、专班历史等业务数据<strong>全部保留</strong>，随支部继续生效（历史记录只追加、不覆盖）。</p>
-          <p class="help-card-desc"><strong>验证第⑤步的「重置」档位（本地演示形态，浏览器演示时使用）：</strong></p>
+          <p class="help-card-desc"><strong>如何清掉旧的本地数据 / 缓存：</strong>系统可在浏览器里直接打开，资料会暂存在<strong>本机（浏览器本地）</strong>。换成新版本后，打开页面时系统会<strong>自动</strong>把旧版本地数据作废、并按最新基线重建——<strong>无需手动操作</strong>，看到的就是最新基线。若仍想手动彻底清理（例如数据看起来不对、想要一个完全干净的开始）：在网址后面接一个参数再回车，页面会自行清理并刷新——<strong>?reset=demo</strong>：清掉本机全部本地浏览数据、<strong>回到初始基线</strong>；<strong>?reset=preview</strong>：只清「临时草稿与预览」（换组织向导草稿、成员基础数据预览等）、已保存的本地数据保留。</p>
+          <p class="help-card-desc"><strong>静态托管 与 服务器形态的差别：</strong>上面说的清理只影响「本机浏览态」——即<strong>你这一台浏览器</strong>里暂存的数据，换台电脑 / 换浏览器互不相干。若系统以<strong>服务器形态</strong>运行（经登录认证、数据写入服务端），账本存在<strong>服务端</strong>：本机清理<strong>不影响服务端账本</strong>，正式数据不会因清本机缓存而丢失。</p>
+          <p class="help-card-desc"><strong>验证第⑤步的「重置」档位（本地浏览形态，使用浏览器本地数据时）：</strong></p>
           <ul class="doc-list" style="margin-top:6px;">
-            <li><strong>?reset=demo</strong>（?reset=1 为其旧写法同义）：把全部演示数据复位到「种子初始态」——向导里试改的配置也会被清掉。用于演示前整体复位。</li>
-            <li><strong>?reset=preview</strong>：只清理「运行痕迹」——向导草稿与成员基础数据预览等临时状态，演示数据本身保留。用于试走向导后想从头再走、但不想丢已演示的数据。</li>
-            <li><strong>?reset=init</strong>：一键初始化为「新支部初始态」——清空试用期积累的<strong>业务过程数据</strong>（活动 / 考勤 / 考察 / 专班 / 通知 / 汇报 / 议程决议跟进 / 归档 / 交接 / 意见反馈提交等），<strong>保留组织骨架</strong>：账号与角色结构、成员档案（名册，可后续在名册再调）、支部配置 / 分工 / 术语（向导可再改）、成员在册状态（在校 / 滞留）与主题外观。用于「演示 / 试用结束、正式投入使用前」的干净起步——已配好的壳不丢、过程数据清零、空支部起步。</li>
+            <li><strong>?reset=demo</strong>（?reset=1 为其旧写法同义）：把全部本地数据复位到「种子初始态」——向导里试改的配置也会被清掉。用于整体复位。</li>
+            <li><strong>?reset=preview</strong>：只清理「运行痕迹」——向导草稿与成员基础数据预览等临时状态，本地数据本身保留。用于试走向导后想从头再走、但不想丢已保存的数据。</li>
+            <li><strong>?reset=init</strong>：一键初始化为「新支部初始态」——清空试用期积累的<strong>业务过程数据</strong>（活动 / 考勤 / 考察 / 专班 / 通知 / 汇报 / 议程决议跟进 / 归档 / 交接 / 意见反馈提交等），<strong>保留组织骨架</strong>：账号与角色结构、成员档案（名册，可后续在名册再调）、支部配置 / 分工 / 术语（向导可再改）、成员在册状态（在校 / 滞留）与主题外观。用于「试用结束、正式投入使用前」的干净起步——已配好的壳不丢、过程数据清零、空支部起步。</li>
             <li><strong>API（正式对接）形态</strong>：以上三档 URL 参数均不生效——数据经登录认证后写入系统持久保存（换届不丢档、操作有记录）；正式数据不提供页面级清空入口（初始化 / 清档属管理员级操作：重建种子库或走管理端，见 README 快速开始 reset 说明）。</li>
           </ul>
         </div>
@@ -1717,7 +1719,7 @@
         <h2 class="doc-h2"><span class="doc-num">7</span>这个系统在干什么</h2>
         <hr class="doc-divider">
         <p class="doc-p doc-lead">
-          这个系统是面向各类党支部与学生组织的通用化数字化管理工具，每个组织都可以部署自己的实例，默认示例组织为光华管理学院本科生党支部——把制度文本转化为可执行的代码工作流，让工作不随人走。
+          这个系统是面向各类党支部与学生组织的通用化数字化管理工具，每个组织都可以部署自己的实例，当前实例为光华管理学院本科生党支部——把制度文本转化为可执行的代码工作流，让工作不随人走。
         </p>
         <p class="doc-p">
           它要解决的核心问题是：党支部工作如何从"人治"走向"制度治理"？支委换届频繁，经验随人走、制度随人变；新支委上任后需要数月摸索才能上手；同一种工作在不同人手里做法完全不同。围绕这个问题，系统展开三个理念：
@@ -1763,7 +1765,7 @@
         <!-- 8.2 技术栈与运行方式 -->
         <h3 class="doc-h3"><span class="doc-h3-badge">8.2</span>技术栈与运行方式</h3>
         <ul class="doc-list">
-          <li>静态前端 + Node 一体化后端 — 本地完整运行：进入 server/ 目录执行 <code>npm start</code>，浏览器访问即全链路使用（登录 → API → 数据持久化）；docs/ 亦可独立静态托管作演示形态（数据存浏览器本地，重置档位见 6.3）</li>
+          <li>静态前端 + Node 一体化后端 — 本地完整运行：进入 server/ 目录执行 <code>npm start</code>，浏览器访问即全链路使用（登录 → API → 数据持久化）；docs/ 亦可独立静态托管（只读浏览形态，数据存浏览器本地，重置档位见 6.3）</li>
           <li>ES Modules — 无构建工具、零打包依赖</li>
           <li>Tailwind CSS CDN — 原子化样式引擎</li>
           <li>REST API（/api/v1）— 登录认证、资源表读写、附件上传、快照持久化</li>
@@ -1777,7 +1779,7 @@
         <h2 class="doc-h2" style="color:#92400E;">免责声明</h2>
         <hr class="doc-divider" style="background:linear-gradient(90deg,#D97706 0 64px,#E5E7EB 64px 100%);">
         <p class="doc-p" style="color:#7C5A14;">
-          本系统为面向各类党支部与学生组织的通用化内部管理工具，默认示例组织为光华管理学院本科生党支部。<strong>所有功能仅供组织内部使用</strong>，不对任何外部组织或个人承担技术可用性或数据准确性保证。系统中展示的活动日历、人员信息、SOP 文献与制度文件均为内部参考资料，不构成对上级党委或外部机构的正式上报材料。<strong>使用本系统的任何决策后果由使用者自行承担</strong>。系统开发者及维护者不承担因系统功能变更、数据展示不完整或误解系统输出而产生的任何责任。
+          本系统为面向各类党支部与学生组织的通用化内部管理工具，当前实例为光华管理学院本科生党支部。<strong>所有功能仅供组织内部使用</strong>，不对任何外部组织或个人承担技术可用性或数据准确性保证。系统中展示的活动日历、人员信息、SOP 文献与制度文件均为内部参考资料，不构成对上级党委或外部机构的正式上报材料。<strong>使用本系统的任何决策后果由使用者自行承担</strong>。系统开发者及维护者不承担因系统功能变更、数据展示不完整或误解系统输出而产生的任何责任。
         </p>
       </section>
 
@@ -1791,6 +1793,6 @@
   </main>
 </div>
 
-<script type="module" src="./src/entries/pages/help-entry.js?v=20261006j"></script>
+<script type="module" src="./src/entries/pages/help-entry.js?v=20261011a"></script>
 </body>
 </html>

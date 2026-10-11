@@ -32,7 +32,7 @@ npm start            # http://localhost:3000
 npm test             # 全量测试（node --test 并发 1；自动带 DISABLE_PASSWORD_CHECK=1 测试逃逸门）
 ```
 
-- 前端静态调试：直接打开 `docs/index.html` 等入口（mock 模式）；API 模式切 `docs/src/config/deploy.js` 的 `DEPLOY_MODE='server'`。
+- 前端静态调试：直接打开 `docs/index.html` 等入口（mock 模式，`DEPLOY_MODE` 自动为 `'static'`）；API 模式（Node 托管，`npm start`）由 `server/app.js` 注入覆盖为 `'server'`，**无需手改** `docs/src/config/deploy.js`。
 - 沙箱/受限环境跑浏览器测试：把 Playwright 临时目录指向项目内可写目录后再 `npm test`：
   `$env:TMP="<仓库>\server\.tmp\pw"; $env:TEMP=$env:TMP`
 - 环境变量模板见 `server/.env.example`。

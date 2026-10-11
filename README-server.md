@@ -28,7 +28,7 @@
 | 前端 `docs/` | 纯静态 ESM 页面（无打包器、无构建步骤，浏览器直接加载） | mock：浏览器本地存储 + 内存 | 全部使用者 |
 | 后端 `server/` | 可选一体化 Node 服务（Express + better-sqlite3 单进程），同时托管 `docs/` 静态页与 `/api/v1` 接口 | SQLite 单文件持久化 | 需要账号登录与数据持久化时启用 |
 
-**依据**：`README.md:3`、`README.md:234`（技术形态：原生 ESM、无打包器/无构建步骤）、`server/README.md:3`、`content/04_web_design/deploy/DEPLOYMENT_GUIDE.md:28-35`。
+**依据**：`README.md:3`、`README.md:256`（技术形态：原生 ESM、无打包器/无构建步骤）、`server/README.md:3`、`content/04_web_design/deploy/DEPLOYMENT_GUIDE.md:28-35`。
 
 ### 1.2 与「SOP 母本」的关系
 
@@ -474,7 +474,7 @@
 
 > **左栏共 10 个分区**（外观 · 我的工作台 · 支部信息与向导 · 工作台默认顺序 · 支部制度参数 · 配置变更记录 · 纪检 / 组织 / 组长职责参数 · 支部治理快捷块说明）；逐区「管什么 + 谁能看到」见系统内【帮助】页 §4.1（该处逐项独立成章），本表只给三档归属。
 
-**依据**：`README.md:144`（设置中心分区）、`README-members.md:109-117`（设置中心分区）、`content/02_institution/SYSTEM_ROLE_PERMISSION.md:136-150`（§9h）。
+**依据**：`README.md:164`（设置中心分区）、`README-members.md:109-117`（设置中心分区）、`content/02_institution/SYSTEM_ROLE_PERMISSION.md:136-150`（§9h）。
 
 ### 3.4 关键机制（可复用工作流）
 
@@ -499,7 +499,7 @@
 
 **依据**：`README.md:172-186`（§3.5 关键机制）、`docs/src/core/domain/policy-defaults.js:36`（票决门槛 `quorum: 2/3`、`vetoOnObject: true`）、`docs/src/core/domain/policy-defaults.js:60-73`（会议考勤的「记录人 / 不设考勤类型」：`recorderByType` / `noAttendanceTypes`）、`docs/src/services/activity/attendance.js:85-111`（`canUploadAttendance`）、`server/routes/committee.js:161-177`（截止不可逆）、`server/routes/resources/index.js:143-161`（删除活动的级联清理）。
 
-> **说明**：制度文本里还有「数据交接」一项（`docs/src/core/domain/domain.js:264` 的 `handoffs` 域）。**服务端已有对源**：服务端建表 `handoffs`（`server/db.js::SEMANTIC_TABLES`）＋ 语义端点 `GET/POST /api/v1/handoffs`、`POST /api/v1/handoffs/:id/confirm`（见 §6.13），前端 api 形态改经端点读写、mock 形态维持本地路径。
+> **说明**：制度文本里还有「数据交接」一项（`docs/src/core/domain/domain.js:274` 的 `handoffs` 域）。**服务端已有对源**：服务端建表 `handoffs`（`server/db.js::SEMANTIC_TABLES`）＋ 语义端点 `GET/POST /api/v1/handoffs`、`POST /api/v1/handoffs/:id/confirm`（见 §6.13），前端 api 形态改经端点读写、mock 形态维持本地路径。
 
 ### 3.5 支部分工模块目录（`config.workforce` 的键集，共 14 个）
 
@@ -646,7 +646,7 @@
 
 **产出类型枚举（7 种）与定向路由**：
 
-**依据**：`content/04_web_design/data/DATA_MODEL.md:366-392`、`docs/src/core/domain/domain.js:340-410`（`OutputType` / `OUTPUT_ROUTES` / `deriveOutputRoute`）。
+**依据**：`content/04_web_design/data/DATA_MODEL.md:366-392`、`docs/src/core/domain/domain.js:349-419`（`OutputType` / `OUTPUT_ROUTES` / `deriveOutputRoute`）。
 
 ### 4.9 补课任务（MakeupTask）
 
@@ -1107,7 +1107,7 @@
 | Node.js | **`Node ≥ 22`**（根说明与部署文档现已一致）；依赖 `better-sqlite3@12` 的 `engines` 为 `20.x \|\| 22.x`，**Node 18 不可用**；**`server/package.json` 未声明 `engines`**（建议按 ≥ 22 准备） | `README.md:15`、`content/04_web_design/deploy/DEPLOYMENT_GUIDE.md:46`、`server/package.json` |
 | 运行依赖（4 个） | `express ^4.19.0`、`better-sqlite3 ^12.0.0`、`multer ^1.4.5-lts.1`、`nodemailer ^9.0.6` | `server/package.json:14-19` |
 | 开发依赖（仅测试用） | `playwright 1.60.0`（**锁定版本**）；全新环境需先 `npx playwright install chromium` 下载浏览器 | `server/package.json:20-22`、`server/README.md:69` |
-| 前端依赖 | **无**——原生 ESM，**无打包器、无构建步骤**，浏览器直接加载 `docs/src/*.js` | `README.md:15`、`README.md:234` |
+| 前端依赖 | **无**——原生 ESM，**无打包器、无构建步骤**，浏览器直接加载 `docs/src/*.js` | `README.md:15`、`README.md:256` |
 | 编译工具 | `better-sqlite3` 为原生模块，安装时可能需要本机编译工具链（或在有预编译包的平台安装） | 未取证（本仓未记录） |
 | 数据库 | **无需外部数据库服务**——SQLite 单文件（内置） | `server/README.md:25` |
 
@@ -1124,8 +1124,8 @@ npm start                   # 启动服务，默认端口 3000（PORT 可覆盖�
 - 启动后访问 `http://127.0.0.1:3000/login.html`。
 - **测试**：`npm test`（全量）/ `npm run test:core` / `npm run test:fast` / `npm run clean:tmp`。测试脚本自带 `DISABLE_PASSWORD_CHECK=1` 与 `DEMO_READONLY=0` 注入（后者放行本机可写；手跑 `node --test` 时须自行设置，否则按只读演示运行、写路径用例会红）。
 - **前端 API 形态启用路径**：登录表单 → 本地 Mock 校验（学号 → personId）→ `POST /api/v1/auth/login`（**传 personId + password**）→ 拿到 token → 写入 `sessionStorage['gsm1921-api-token']` → 切换为 API 数据源。**不许静默降级**：**有 token 时**若 `init()` 拉不到服务端数据，页面**显式报错**（「无法连接服务器」+ 重试按钮），**不再**回退可写的本地 mock（旧行为＝用户以为在真系统里操作、实际只写浏览器，下次登录被服务端覆盖 ⇒ **静默丢单**）；**无 token 的本地演示形态保持原样**。运行时形态可用 `docs/src/data/data-adapter.js::getRuntimeMode()` 查（返回 `{source, hasToken, branchId, stage}`）。
-- **远端变更探测（P1-1）——多标签 / 多设备「不整页重载也能看见别人刚写的」**：前端 `init()` 只在**页面加载那一刻**拉一次数据、之后读内存缓存 ⇒ 补一条**低频探测**（`docs/src/data/data-adapter.js:1136`（`probeRemoteChanges`））：① 页面由隐藏转可见时探测一次（`docs/src/entries/pages/main-entry.js:211-217`（`visibilitychange`），**复用既有监听器**、不另挂第二个）；② 可见态下的低频定时器（缺省 **60 秒**，`docs/src/data/data-adapter.js:999`（`REMOTE_PROBE_INTERVAL_MS`）；隐藏态不探测）。动作＝取既有 `GET /api/v1/snapshot/versions`（**未新增任何接口**）与本机基线 `_versions` **逐集合比对**，**只对版本不一致的集合**重拉（与 409 冲突恢复共用同一份 `_refreshCollections`）。同源多标签另加 `BroadcastChannel`（频道 `gsm1921-data-changed`）：写成功后广播一次，**零网络**，收信侧只把它当「去探测一次」的唤醒信号（数据一律从服务端取）。**避让**（防把本机未提交的改动当「远端更新」回滚）：本机有在途写 / `init()` 未完成 ⇒ 整次跳过；该集合本机仍脏 ⇒ 逐个排除在重拉清单之外。**失败静默**：探测只读，失败只 `console.warn`，**不弹错误、不影响使用**（写链 fail-fast 行为一字未改）。**开关**：`localStorage['gsm1921-remote-probe'] = 'off'`（键名见 `docs/src/data/data-adapter.js:1002`（`REMOTE_PROBE_PREF_KEY`））关闭，也可在页面内调 `docs/src/data/data-adapter.js:1039`（`setRemoteProbeEnabled`）；**默认开**。**mock / 静态托管形态零网络、自动不启用**（`DATA_SOURCE !== 'api'` 直接返回）。定时器可手动 `startRemoteChangeProbe()` / `stopRemoteChangeProbe()`（`:1193` / `:1204`）。
-- 静态托管形态（无后端）：把 `docs/` 当 Web 根目录即可，`docs/src/config/deploy.js` 保持 `DEPLOY_MODE = 'static'`；**Node 形态下由服务端动态注入**该文件为 `DEPLOY_MODE = "server"`（见 §6.12）。
+- **远端变更探测（P1-1）——多标签 / 多设备「不整页重载也能看见别人刚写的」**：前端 `init()` 只在**页面加载那一刻**拉一次数据、之后读内存缓存 ⇒ 补一条**低频探测**（`docs/src/data/data-adapter.js:1136`（`probeRemoteChanges`））：① 页面由隐藏转可见时探测一次（`docs/src/entries/pages/main-entry.js:212-218`（`visibilitychange`），**复用既有监听器**、不另挂第二个）；② 可见态下的低频定时器（缺省 **60 秒**，`docs/src/data/data-adapter.js:999`（`REMOTE_PROBE_INTERVAL_MS`）；隐藏态不探测）。动作＝取既有 `GET /api/v1/snapshot/versions`（**未新增任何接口**）与本机基线 `_versions` **逐集合比对**，**只对版本不一致的集合**重拉（与 409 冲突恢复共用同一份 `_refreshCollections`）。同源多标签另加 `BroadcastChannel`（频道 `gsm1921-data-changed`）：写成功后广播一次，**零网络**，收信侧只把它当「去探测一次」的唤醒信号（数据一律从服务端取）。**避让**（防把本机未提交的改动当「远端更新」回滚）：本机有在途写 / `init()` 未完成 ⇒ 整次跳过；该集合本机仍脏 ⇒ 逐个排除在重拉清单之外。**失败静默**：探测只读，失败只 `console.warn`，**不弹错误、不影响使用**（写链 fail-fast 行为一字未改）。**开关**：`localStorage['gsm1921-remote-probe'] = 'off'`（键名见 `docs/src/data/data-adapter.js:1002`（`REMOTE_PROBE_PREF_KEY`））关闭，也可在页面内调 `docs/src/data/data-adapter.js:1039`（`setRemoteProbeEnabled`）；**默认开**。**mock / 静态托管形态零网络、自动不启用**（`DATA_SOURCE !== 'api'` 直接返回）。定时器可手动 `startRemoteChangeProbe()` / `stopRemoteChangeProbe()`（`:1193` / `:1204`）。
+- 静态托管形态（无后端）：把 `docs/` 当 Web 根目录即可，`docs/src/config/deploy.js` 在浏览器加载时**自动判为 `DEPLOY_MODE = 'static'`**（**无需手改**）；**Node 形态下由服务端动态注入**该文件为 `DEPLOY_MODE = "server"`（见 §6.12）。
 - ⚠ **反向代理的约束**：`/src/config/deploy.js` 是 **Node 动态注入**路由（不是磁盘上的静态文件），`/api/v1/**` 也由 Node 提供。若用 nginx 直接托管 `docs/` 静态资源，必须为 **`/src/config/deploy.js` 单独放行到 Node**（`location = /src/config/deploy.js { proxy_pass ...; }`），否则该文件会以磁盘版（`DEPLOY_MODE='static'`）返回 ⇒ **「关于」门面与部署形态判定会错**；或者把该文件静态写死为 `'server'` 并接受「不再由 Node 注入」。同源代理示例见 §5.1 / `DEPLOYMENT_GUIDE.md` 附录 A.2。
 - ⚠ **上传目录与请求体上限**：反向代理须允许 `client_max_body_size ≥ 10m`（`server/routes/uploads.js:52` 的上传上限；另有 `/snapshot` 4MB 与 JSON 体 2MB），并保证 `UPLOAD_DIR`（缺省 `server/uploads/`）**对 Node 进程可写**，否则上传 500/413。
 
@@ -1160,7 +1160,7 @@ npm start                   # 启动服务，默认端口 3000（PORT 可覆盖�
 | 20 | `SEED_FALLBACK` | **前端空域种子回退开关**（Node 托管形态下由 `server/app.js` 注入进 `/src/config/deploy.js`）：置 `0` ⇒ 注入 `false`，不给「考勤 / 考察 / 待办」三域注入演示种子 | 否 | 未设置（＝`true`，演示形态） | `server/app.js:55-57`、`server/.env.example:15-18` |
 | 21 | `DEMO_READONLY` | **前端演示形态只读开关**（Node 托管形态下由 `server/app.js` 注入进 `/src/config/deploy.js`；静态托管读该文件常量）：置 `0` ⇒ 注入 `false`＝放行本机可写（**仅本地 / 测试**）；缺省 / 其它值 ⇒ `true`＝**无 API 会话时只读**（写操作提示「请登录后使用服务器数据」、数据不落本机浏览器） | 否（**生产不得设置**） | 未设置（＝`true`，只读演示） | `server/app.js:55-57`（`DEMO_READONLY`）、`server/.env.example:59-66`（`DEMO_READONLY`） |
 
-> 另有**部署文档提到但代码中未使用**的变量，**未取证**（不要照抄）：`AI_API_BASE_URL`（AI 推理服务，见 `DEPLOYMENT_GUIDE.md:237`——在代码中未检索到消费点）。另有 `SEED_FALLBACK`（**已进上表第 20 项**）：它是**前端构建期常量**（`docs/src/config/deploy.js`）——**静态托管 / 直接以 `docs/` 为根**时改该常量即生效；**Node 托管形态下 `/src/config/deploy.js` 由 `server/app.js` 动态注入**，注入值改由环境变量 `SEED_FALLBACK` 决定（置 `0` ⇒ `false`，缺省 `true`；见 `server/app.js:55-57`、`server/.env.example`）⇒ 该形态下发 `SEED_FALLBACK=0` 即可关断。消费点＝`docs/src/data/data-adapter.js::init()` 的考勤/考察/待办三域空表回退判据（命名空间读取，缺该导出按 `true`），默认 `true`＝演示形态（**保持既有测试基线不变**）。⚠ 它**只覆盖那三处**，**不替代**关断手段：服务端种子仍靠 `DISABLE_SEED=1`（或生产形态默认不播种）+ `DEPLOYMENT_GUIDE.md` 附录 A.2 的 services 层空表回退清单。
+> 另有**部署文档提到但代码中未使用**的变量，**未取证**（不要照抄）：`AI_API_BASE_URL`（AI 推理服务，见 `DEPLOYMENT_GUIDE.md:239`——在代码中未检索到消费点）。另有 `SEED_FALLBACK`（**已进上表第 20 项**）：它是**前端构建期常量**（`docs/src/config/deploy.js`）——**静态托管 / 直接以 `docs/` 为根**时改该常量即生效；**Node 托管形态下 `/src/config/deploy.js` 由 `server/app.js` 动态注入**，注入值改由环境变量 `SEED_FALLBACK` 决定（置 `0` ⇒ `false`，缺省 `true`；见 `server/app.js:55-57`、`server/.env.example`）⇒ 该形态下发 `SEED_FALLBACK=0` 即可关断。消费点＝`docs/src/data/data-adapter.js::init()` 的考勤/考察/待办三域空表回退判据（命名空间读取，缺该导出按 `true`），默认 `true`＝演示形态（**保持既有测试基线不变**）。⚠ 它**只覆盖那三处**，**不替代**关断手段：服务端种子仍靠 `DISABLE_SEED=1`（或生产形态默认不播种）+ `DEPLOYMENT_GUIDE.md` 附录 A.2 的 services 层空表回退清单。
 
 ### 5.4 数据存储形态
 
@@ -1198,7 +1198,7 @@ npm start                   # 启动服务，默认端口 3000（PORT 可覆盖�
 | 17 | **默认支部 id 硬编码兜底** | 大量读写在 `branchId` 缺省时回退常量 `'br-b1'`（示例支部 id）；真实部署若用别的 id，须保证所有写入都带 `branchId` | `server/routes/resources/gates.js:50`、`server/routes/resources/index.js:519,608`、`server/routes/member.js:180,207` |
 | 18 | **快照写穿的残余口（P0-1）** | `POST /api/v1/snapshot` 的乐观锁只对**带了 `_versions` 的集合**生效；未带该键的集合**按无条件整表写**（兼容旧客户端与直连调用，如 `server-base.test.mjs`）。真实写路径只有前端一条（`data-adapter.js::_flushSnapshot` 恒定带 `_versions`）⇒ 生产链路不暴露；对外直连写库须自行带 `_versions`（先 `GET /api/v1/snapshot/versions` 取基线） | `server/routes/resources/index.js` 末尾「快照写穿的集合版本号协议」段、`docs/src/data/data-adapter.js` 末尾「P0-1 乐观锁」段 |
 | 19 | **pagehide 兜底写撞 409 时无法当场自愈** | 页面卸载瞬间的同步冲刷（`_flushSnapshotSync`）同样带 `_versions`（不会退化成无条件覆盖），但**该上下文已无法再观测响应** ⇒ 撞 409 时只 `console.warn`，本地改动靠 `localStorage` 备份保留、不会进服务端（下次打开页面以服务端为准） | `docs/src/data/data-adapter.js`（`_flushSnapshotSync` / `_recoverFromConflict`） |
-| 20 | **远端变更探测（P1-1）：多标签 / 多设备不必整页重载** | 前端读的是内存缓存（`init()` 只在页面加载时拉一次）⇒ 现加**低频探测**：触发＝①「页面转可见」（`docs/src/entries/pages/main-entry.js:211-217`（`visibilitychange`），复用既有监听器）② 可见态低频定时器（缺省 60s，`docs/src/data/data-adapter.js:999`（`REMOTE_PROBE_INTERVAL_MS`））；动作＝取既有 `GET /api/v1/snapshot/versions` 与本机基线**逐集合比对**、**只重拉版本不一致的集合**（与 409 冲突恢复共用 `_refreshCollections`）；同源多标签另有 `BroadcastChannel`（频道 `gsm1921-data-changed`）**零网络**唤醒——它只是「去探测一次」的信号，数据一律从服务端取。**避让**：本机在途写 / `init()` 未完成 ⇒ 整次跳过；该集合本机仍脏 ⇒ 逐个排除（防回滚本机未提交的改动）。**失败静默**（探测只读；失败仅 `console.warn`，不弹错误、不影响使用——与写链 fail-fast 是两件事）。**开关**：`localStorage['gsm1921-remote-probe']='off'`（或 `setRemoteProbeEnabled(false)`）关闭，**默认开**；**mock / 静态托管形态零网络、不启用**。**未新增任何服务端路由** | `docs/src/data/data-adapter.js:1136`（`probeRemoteChanges`）、`docs/src/entries/pages/main-entry.js:211-217`（`visibilitychange`）、`server/routes/resources/index.js:665`（versions 读口） |
+| 20 | **远端变更探测（P1-1）：多标签 / 多设备不必整页重载** | 前端读的是内存缓存（`init()` 只在页面加载时拉一次）⇒ 现加**低频探测**：触发＝①「页面转可见」（`docs/src/entries/pages/main-entry.js:212-218`（`visibilitychange`），复用既有监听器）② 可见态低频定时器（缺省 60s，`docs/src/data/data-adapter.js:999`（`REMOTE_PROBE_INTERVAL_MS`））；动作＝取既有 `GET /api/v1/snapshot/versions` 与本机基线**逐集合比对**、**只重拉版本不一致的集合**（与 409 冲突恢复共用 `_refreshCollections`）；同源多标签另有 `BroadcastChannel`（频道 `gsm1921-data-changed`）**零网络**唤醒——它只是「去探测一次」的信号，数据一律从服务端取。**避让**：本机在途写 / `init()` 未完成 ⇒ 整次跳过；该集合本机仍脏 ⇒ 逐个排除（防回滚本机未提交的改动）。**失败静默**（探测只读；失败仅 `console.warn`，不弹错误、不影响使用——与写链 fail-fast 是两件事）。**开关**：`localStorage['gsm1921-remote-probe']='off'`（或 `setRemoteProbeEnabled(false)`）关闭，**默认开**；**mock / 静态托管形态零网络、不启用**。**未新增任何服务端路由** | `docs/src/data/data-adapter.js:1136`（`probeRemoteChanges`）、`docs/src/entries/pages/main-entry.js:212-218`（`visibilitychange`）、`server/routes/resources/index.js:665`（versions 读口） |
 | 21 | **探测的边界（残余，如实登记）** | ① **不是实时推送**：最坏等一个探测周期（缺省 60s）——同源多标签由 `BroadcastChannel` 缩短到近实时，**跨设备仍按周期**；② 只覆盖 **api 形态的已登录页面**（mock / 静态托管不启用）；③ `handoffs` / 成员变更确认队列 / `milestones` **三域不带集合版本号**（它们不进快照集合，见 §6 末「语义端点」段）⇒ 每次探测**直接重拉这三个小集合**并按内容比对（体量小、代价低；**未改**「语义端点域不进快照集合」这条既有纪律）；④ 探测**不写任何数据**（不做离线队列、不做冲突合并）——写链仍是「脏集合增量快照 ＋ `_versions` 乐观锁」 | `docs/src/data/data-adapter.js:1018`（`REMOTE_PROBE_AUX`）、`:1062`（`_refreshCollections`）、`server/test/records-endpoints.test.mjs:182-190`（三域不进集合版本基线） |
 
 ### 5.6 部署到真实环境需要替换的东西
@@ -1206,12 +1206,12 @@ npm start                   # 启动服务，默认端口 3000（PORT 可覆盖�
 | # | 要替换的 | 做法 | 依据 |
 |---|---|---|---|
 | 1 | **示例成员与账号** | 换 `docs/src/data/mock/people.js`、`accounts.js`、`branches.js`、`party-groups.js`、`activities.js`、`notices.js`、`taskforces.js`、`seed.js`；或**空库起步**（`DISABLE_SEED=1`）后从系统内录入 | `server/seed.js:41-83`、`README.md:198`。首启播种的表含 15 张（考勤 / 考察 / 活动复盘 / 专班复盘 / 思想汇报 / 宣传周报 / 宣传任务 / 文件流外发确认 / 支书任期记录 / 三委数据交接 / 成员变更确认队列 / 出勤与考察申诉队列 / 反馈未读标记 / 授权审计留痕），使「只有结构、没有数据」的表首启即有真行；另补 `todos`（同为单据型种子，见 §4.19；同源 `docs/src/services/governance/todo.js::SEED_TODOS`）⇒ 合计 16 张。逐表口径见 `server/seed.js` 末尾「待办基线种子」段 |
-| 2 | **登录口令** | 设 `LOGIN_PASSWORD`（**并确认未开 `DISABLE_PASSWORD_CHECK`**）；接入学校统一认证（IAAA）时替换 `POST /auth/login` 的校验逻辑 | `server/routes/auth.js:12-18`、`DEPLOYMENT_GUIDE.md:207,215` |
+| 2 | **登录口令** | 设 `LOGIN_PASSWORD`（**并确认未开 `DISABLE_PASSWORD_CHECK`**）；接入学校统一认证（IAAA）时替换 `POST /auth/login` 的校验逻辑 | `server/routes/auth.js:12-18`、`DEPLOYMENT_GUIDE.md:209,217` |
 | 3 | **演示支委名单 / 默认支部 id** | `COMMITTEE_IDS` 与 `'br-b1'` 兜底常量（见 §5.5 第 16、17 条） | 同上 |
 | 4 | **示例反馈种子** | `docs/data/issues.json`（服务端播种时读取；内部汇报型不脱敏、公开型脱敏） | `server/seed.js:19-39`、`:67` |
 | 5 | **组织名称 / 主题 / 术语** | 支部名与 `config.headerTitle`；主题预设 `themePreset`（需支书特批的配色见 `DESIGN_SYSTEM.md` §二 色彩系统）；术语权威源 `content/03_doc_system/OPERATIONS_GUIDE.md` §19（《运行与协作规范》） | `README.md:195-202` |
 | 6 | **制度参数默认值** | `docs/src/core/domain/policy-defaults.js`（支部可调项）；制度固定项勿改 | `docs/src/core/domain/policy-defaults.js:6-15` |
-| 7 | **关闭演示数据回退（防污染真实账本）** | ① 设 **`APP_ENV=production`**（生产形态**默认不播种**，主推做法）；② 仍可显式 `DISABLE_SEED=1`（等价、更直白）；③ 前端空域回退开关 `SEED_FALLBACK` 置 `false`（关的是 `data/data-adapter.js::init()` 里考勤/考察/待办三域的空表回退）——**静态托管 / 直接以 `docs/` 为根** ⇒ 改 `docs/src/config/deploy.js` 常量；**Node 托管** ⇒ 设环境变量 `SEED_FALLBACK=0`（由 `server/app.js:55-57` 注入 `false`；缺省 `true`＝演示形态）；④ 按部署文档附录 A.2 逐项关闭 services 层其余空表回退 | `DEPLOYMENT_GUIDE.md:249`、`docs/src/config/deploy.js`、`server/app.js:55-57`、`server/env.js` |
+| 7 | **关闭演示数据回退（防污染真实账本）** | ① 设 **`APP_ENV=production`**（生产形态**默认不播种**，主推做法）；② 仍可显式 `DISABLE_SEED=1`（等价、更直白）；③ 前端空域回退开关 `SEED_FALLBACK` 置 `false`（关的是 `data/data-adapter.js::init()` 里考勤/考察/待办三域的空表回退）——**静态托管 / 直接以 `docs/` 为根** ⇒ 改 `docs/src/config/deploy.js` 常量；**Node 托管** ⇒ 设环境变量 `SEED_FALLBACK=0`（由 `server/app.js:55-57` 注入 `false`；缺省 `true`＝演示形态）；④ 按部署文档附录 A.2 逐项关闭 services 层其余空表回退 | `DEPLOYMENT_GUIDE.md:251`、`docs/src/config/deploy.js`、`server/app.js:55-57`、`server/env.js` |
 | 8 | **平台对接地址** | `REPORT_WEBHOOK_URL` / `REPORT_TOKEN` / `REPORT_BASE_URL` / `REPORT_ADMIN_MAIL`；邮件 `SMTP_*` | `server/.env.example:23-36` |
 | 9 | **API 基址** | 前端切换 API 形态时的 `apiBaseUrl`（`services/core/runtime.js` 的 `setDataSource('api', {...})`），对接计算中心域名 | `DEPLOYMENT_GUIDE.md:124-134` |
 | 10 | **学校侧要提供的环境** | 域名 + ICP 备案、数据库、API 服务器、HTTPS（责任方为支书/计算中心） | `DEPLOYMENT_GUIDE.md:193-202` |
@@ -1451,8 +1451,8 @@ npm start                   # 启动服务，默认端口 3000（PORT 可覆盖�
 | 12 | **活动字段 `deliverableIds` 已废弃** | 字段仍在模型中（标注为废弃），交付物实际由「文件空间记录」覆盖 | `content/04_web_design/data/DATA_MODEL.md:50` |
 | 13 | **归档材料 `url` 字段当前恒为 null** | 模型写明「阶段 2 后端支持时填充，mock 阶段为 null」 | `content/04_web_design/data/DATA_MODEL.md:877` |
 | 14 | **邮件通道实际不会发出任何邮件** | 三重原因叠加：① 收件人从成员档案 `email` 读取，而**示例数据无该字段**；② 需 `MAIL_ENABLED=true` 且 `SMTP_*` 齐备；③ 即便发出，也只覆盖「通知发布 / 待办提醒 / 汇报」三类触发点，受众解析**只实现了 activity 定向与全体两种**（党小组/角色定向统一按全体处理） | `server/services/mailer.js:93-106`、`server/services/mailer-hooks.js:19-37` |
-| 15 | **`handoffs`（三委数据交接记录）：服务端已有表** | 前端 mockDB 有 `handoffs` 域；**服务端现有同名表 `handoffs`**（语义端点组 = `server/db.js::SEMANTIC_TABLES`，写读口见 §6 末「语义端点」段）⇒ API 形态下该域**已落库**，且 `init()` 会拉取填充 | `docs/src/core/domain/domain.js:266`、`server/db.js:152-159`（`SEMANTIC_TABLES`）、`server/routes/resources/semantic-routes.js:155-194`（handoffs 三端点：列表 / 发起 / 接收确认） |
-| 16 | **`pendingMemberConfirmations`：服务端已有表** | 前端 mockDB 数组承载内存读链；**服务端现有表 `member_confirmations`**（语义端点组 = `server/db.js::SEMANTIC_TABLES`）⇒ API 形态下该队列**已落库**、清浏览器缓存不丢（写读口见 §6 末「语义端点」段）；浏览器 localStorage 键 `gsm1921-member-confirmations` 仍作 mock 形态的持久化通道，两形态并存 | `docs/src/core/domain/domain.js:324-332`（`pendingMemberConfirmations`）、`server/db.js:152-159`、`server/routes/resources/semantic-routes.js:198-235`（入队 / 支书决策两端点） |
+| 15 | **`handoffs`（三委数据交接记录）：服务端已有表** | 前端 mockDB 有 `handoffs` 域；**服务端现有同名表 `handoffs`**（语义端点组 = `server/db.js::SEMANTIC_TABLES`，写读口见 §6 末「语义端点」段）⇒ API 形态下该域**已落库**，且 `init()` 会拉取填充 | `docs/src/core/domain/domain.js:274`、`server/db.js:152-159`（`SEMANTIC_TABLES`）、`server/routes/resources/semantic-routes.js:155-194`（handoffs 三端点：列表 / 发起 / 接收确认） |
+| 16 | **`pendingMemberConfirmations`：服务端已有表** | 前端 mockDB 数组承载内存读链；**服务端现有表 `member_confirmations`**（语义端点组 = `server/db.js::SEMANTIC_TABLES`）⇒ API 形态下该队列**已落库**、清浏览器缓存不丢（写读口见 §6 末「语义端点」段）；浏览器 localStorage 键 `gsm1921-member-confirmations` 仍作 mock 形态的持久化通道，两形态并存 | `docs/src/core/domain/domain.js:334-342`（`pendingMemberConfirmations`）、`server/db.js:152-159`、`server/routes/resources/semantic-routes.js:198-235`（入队 / 支书决策两端点） |
 | 17 | **「副组长」身份已落地** | 制度文本规定「每个党小组设 1 名组长 + 1-2 名副组长，副组长可共享同组组长工作台的相关内容」；系统已把 `deputy-leader` 落成**可与组长区分的第二个身份**——**同页同台、同权限集，任务优先给组长、不硬切分正副职责**；**支书台「党小组」清单行内可赋权 / 撤销副组长（与组长同列双身份）** | `content/02_institution/SYSTEM_ROLE_PERMISSION.md:46`、`content/02_institution/sop/支委与党小组定人定责定岗说明.md:40`、`content/02_institution/sop/党小组组长工作手册.md:46-48`；载体名单（`docs/` 内「副组长」命中集）见 `server/test/doc-line-ref.test.mjs:268-275` |
 | 18 | **`party-staff` 无可见性配置** | 「谁能看谁」（`ROLE_VISIBILITY`）表中**没有 `party-staff` 键** ⇒ 该角色的可见目标投影恒为空 | `docs/src/services/core/visibility.js:48-56`、`:99-101` |
 

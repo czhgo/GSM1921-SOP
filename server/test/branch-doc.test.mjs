@@ -10,18 +10,20 @@
 //   ⑥ listDocs 过滤（只看制度 / 按状态 current|disabled）+ updatedAt 倒序
 //   ⑦ 普通文件（doc）新建/编辑不受影响；旧数据（无 purpose/versions）完全兼容不报错
 //   ⑧ mock 整库持久：写入后重 loadDB（模拟刷新）仍在
+//   ⑩ 旧本地演示数据自动失效：本地库 _seedVersion 缺失/过旧（或 _schema 过旧）→ loadDB 整库丢弃回新种子
+//      （含 2026-10 宣传基线 act-36/act-37）并落盘（domain.js::SEED_DATA_VERSION 判据）
 // 运行：node --test test/branch-doc.test.mjs（server 目录）
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 
-import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261006j';
-import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261006j';
-import { getAdapter, registerMockAdapter, setDataSource } from '../../docs/src/data/data-adapter.js?v=20261006j';
+import { mockDB, SEED_DATA_VERSION } from '../../docs/src/core/domain/domain.js?v=20261011a';
+import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261011a';
+import { getAdapter, registerMockAdapter, setDataSource } from '../../docs/src/data/data-adapter.js?v=20261011a';
 import {
   isInstitutionManager, saveDoc, publishNewVersion, setDocStatus,
   listDocs, listVersions, buildDocVersionsView, renderDocBody, BODY_MAX_LEN,
-} from '../../docs/src/services/branch/branch-doc.js?v=20261006j';
+} from '../../docs/src/services/branch/branch-doc.js?v=20261011a';
 
 // ── localStorage 内存桩（member-persist 头 60 行同款做法）──
 const _store = new Map();
@@ -482,4 +484,68 @@ test('⑨ 消费端经 listDocs 读支部文件（资料查询 / 活动写入会
     assert.match(src, /await\s+listDocs\s*\(|await\s+listBranchDocs\s*\(/, `${name} 读列表须经 listDocs()`);
     assert.ok(!/getAdapter\(\)\.branchDocs\.list\(\)/.test(src), `${name} 不得再直读 getAdapter().branchDocs.list()`);
   }
+});
+
+// ═══════════════ ⑩ 旧本地演示数据自动失效（SEED_DATA_VERSION 判据）═══════════════
+// 场景：被宣传链接吸引来的老访客，浏览器 localStorage 里存的是**旧版本**演示库
+//   （_seedVersion 缺失/过旧，activities 不含 2026-10 宣传基线新增的 act-36/act-37）
+//   → loadDB 应整库丢弃、按最新种子重建，根除「旧的测试数据/缓存」。
+const STORAGE_KEY = 'workflowos_branch_db_v1';
+
+/** 模拟「页面刚打开、mockDB 尚空」的现场（真实首启即空域 + 旧本地库） */
+function resetMockForColdLoad() {
+  _store.clear();
+  delete globalThis.window;
+  for (const k of [
+    'activities', 'tasks', 'attendances', 'inspections', 'taskforces', 'notices', 'todos',
+    'assignments', 'signups', 'activityReviews', 'taskforceReviews', 'agendaVotes',
+    'memberChangeRequests', 'committeeBroadcasts', 'thoughtReports', 'branchDocs',
+    'appointmentRecords', 'reviewRequests', 'archiveRecords',
+  ]) {
+    mockDB[k] = [];
+  }
+  mockDB.branches = [];
+  mockDB._loaded = false;
+  setDataSource('mock');
+}
+
+test('⑩ 旧种子版本本地库自动失效：_seedVersion 缺失/过旧 → 丢弃整库回新种子（含 act-36/act-37）并落盘', () => {
+  resetMockForColdLoad();
+  // 预置「旧版本演示库」：_schema 合法、但 _seedVersion 缺失，activities 被替换成不含 act-36/37 的旧集
+  _store.set(STORAGE_KEY, JSON.stringify({
+    _schema: 1,
+    activities: [{ id: 'act-999', title: '旧演示活动（已从种子移除）', date: '2026-08-01', status: 'completed' }],
+    tasks: [],
+  }));
+
+  MockAdapter.loadDB(); // 应触发「旧本地演示数据自动失效」
+
+  const ids = mockDB.activities.map(a => a.id);
+  assert.ok(ids.includes('act-36'), `回新种子后应含 act-36，实测 ${ids.join(',')}`);
+  assert.ok(ids.includes('act-37'), `回新种子后应含 act-37，实测 ${ids.join(',')}`);
+  assert.ok(!ids.includes('act-999'), '旧库记录 act-999 已被丢弃（未先灌进 mockDB）');
+  // 落盘已重写为最新种子版本（下次加载不再重复作废）
+  const persisted = JSON.parse(_store.get(STORAGE_KEY));
+  assert.equal(persisted._seedVersion, SEED_DATA_VERSION, '落盘 _seedVersion 已更新为最新种子版本');
+  assert.ok(persisted.activities.some(a => a.id === 'act-36') && persisted.activities.some(a => a.id === 'act-37'),
+    '落盘含最新种子 act-36/act-37');
+});
+
+test('⑩b _schema 不匹配亦丢弃回种子（原有「中止→空页」隐患已修）：_schema 过旧 → 回新种子且不再空页', () => {
+  resetMockForColdLoad();
+  // _schema 过旧（结构不可兼容），但 _seedVersion 合法 → 仍应丢弃整库回种子，而非仅中止（旧实现会空页）
+  _store.set(STORAGE_KEY, JSON.stringify({
+    _schema: 0,
+    _seedVersion: SEED_DATA_VERSION,
+    activities: [{ id: 'act-999', title: '旧结构活动', date: '2026-08-01', status: 'completed' }],
+    tasks: [],
+  }));
+
+  MockAdapter.loadDB();
+
+  const ids = mockDB.activities.map(a => a.id);
+  assert.ok(ids.includes('act-36') && ids.includes('act-37'), `_schema 过旧也应回新种子，实测 ${ids.join(',')}`);
+  const persisted = JSON.parse(_store.get(STORAGE_KEY));
+  assert.equal(persisted._schema, 1, '落盘 _schema 已回当前 SCHEMA_VERSION');
+  assert.equal(persisted._seedVersion, SEED_DATA_VERSION, '落盘种子版本为最新');
 });

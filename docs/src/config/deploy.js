@@ -1,15 +1,21 @@
 // role: [工程师]+[AI]
-// 部署形态配置 — 构建/部署时注入，标记静态托管 vs 有后端
+// 部署形态配置 — 按宿主环境自动判定，标记静态托管 vs 有后端
 // 依据 content/04_web_design/deploy/AUTHENTICATION_MODEL.md §六
 //
-// 'server' = Node 一体化后端（server/ 同源，有 /api/v1 + 登录 + SQLite 持久化）——**默认形态**
+// 'server' = Node 一体化后端（server/ 同源，有 /api/v1 + 登录 + SQLite 持久化）
 // 'static'  = GitHub Pages 静态托管（docs/ 直接部署，无后端，只读演示）
 //
-// 2026-10-06 支书令「mock 数据全量转 API、静态托管的局面必须改变」：默认由 'static' 改为
-// 'server'——本仓库的主交付形态是一体化后端（npm start），数据一律落 SQLite（data.db）。
-// Node 托管下本文件被 server/app.js 动态注入覆盖（值恒为 'server'）⇒ 此默认值只影响
-// 「不经 Node 直接打开 docs/」的场合（GitHub Pages 演示部署时改回 'static'）。
-export const DEPLOY_MODE = 'server';
+// 自动判定（2026-10-11）：`DEPLOY_MODE` 不再写死，而是按宿主环境自动取值——
+//   · 本文件的字面值**只影响「不经 Node 直接加载本文件」的场合**（GitHub Pages 静态托管 /
+//     本地直接以 `docs/` 为根）：浏览器加载本模块 ⇒ `window` 存在 ⇒ 判为 `'static'`。
+//     **无需人工改回**（原「GitHub Pages 演示部署时改回 'static'」的口径已作废）。
+//   · Node 托管（`npm start`）下本文件**不会被浏览器加载**——`server/app.js` 对
+//     `/src/config/deploy.js` 有**动态注入**，注入串恒为 `DEPLOY_MODE = "server"` 并覆盖本文件。
+//     测试进程等直接 import 本模块时（Node，无 `window`）亦自动判为 `'server'`。
+//   判据用 `window` 而非 `process`：仓库无打包器、纯原生 ESM，浏览器宿主必无 `window` 之外的歧义，
+//   也避免 `process` 垫片在浏览器侧误判。
+const RUNNING_IN_BROWSER = typeof window !== 'undefined';
+export const DEPLOY_MODE = RUNNING_IN_BROWSER ? 'static' : 'server';
 
 // 空域 seed 回退开关（2026-09-02 部署件）：
 // - true  = 演示形态（默认）：API 模式下 attendances/inspections/todos 三域为空时回退注入演示种子，体验不空窗

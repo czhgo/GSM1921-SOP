@@ -32,7 +32,7 @@ export const MOCK_TASKFORCES = [
       // **为什么自洽（R-78 ②）**：这正是**成员本人**在专班详情「我的产出填报」（`#tfv-contrib-add`）提交后的形状
       //   ——`{ id, desc, by, at }` 且**无 `verifiedStatus`**（＝待核）。产品自己就会产出这个状态：成员填报 → 组织委员逐条核。
       //   本批正是拿 **p5**（47-X 已加入本专班、且 47-X 那条成功路径就在他的填报口上）来产生，语义连贯。
-      { personId: 'p5', role: 'deep', contributions: [{ id: 'c-tf1-1', desc: '撰写专班宣传稿（演示·待核）', by: 'p5', at: '2026-09-14T20:10:00+08:00' }] },
+      { personId: 'p5', role: 'deep', contributions: [{ id: 'c-tf1-1', desc: '撰写专班宣传稿（待核）', by: 'p5', at: '2026-09-14T20:10:00+08:00' }] },
     ],
     capacity: 5,
     deadline: '2026-07-17',

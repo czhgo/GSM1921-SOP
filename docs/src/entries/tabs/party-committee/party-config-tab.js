@@ -10,9 +10,9 @@
 // 权限：党委台仅 party-staff 进入（canSwitchBranch 任意支部）；现任支书走独立页 wizard.html?branch=
 // 写口：branch 服务既有校验语义（config 写口 = party-staff / 本支部现任支书）+ 即时生效留痕。
 
-import { AuthStore } from '../../../services/core/auth.js?v=20261006j';
-import { mountOrgSetupWizard } from '../../../components/governance/org-setup-wizard.js?v=20261006j';
-import { getAuthToken, getApiBaseUrl, getDataSource } from '../../../data/data-adapter.js?v=20261006j';
+import { AuthStore } from '../../../services/core/auth.js?v=20261011a';
+import { mountOrgSetupWizard } from '../../../components/governance/org-setup-wizard.js?v=20261011a';
+import { getAuthToken, getApiBaseUrl, getDataSource } from '../../../data/data-adapter.js?v=20261011a';
 
 // ════════════════════════════════════════════════════════════════
 //  「部署与对接」面板（2026-09-29 批次 273 新增）
@@ -29,7 +29,7 @@ async function renderDeployPanel(host) {
   if (!host) return;
   if (getDataSource() !== 'api' || !getAuthToken()) {
     host.innerHTML = `<div class="rounded-lg border border-gray-200 bg-white p-4">
-      <p class="text-xs text-gray-500">部署与对接 · 仅**服务端形态**可用（当前是只读演示形态，未接服务端）</p></div>`;
+      <p class="text-xs text-gray-500">部署与对接 · 仅**服务端形态**可用（当前未接服务端）</p></div>`;
     return;
   }
   host.innerHTML = `<div class="rounded-lg border border-gray-200 bg-white p-4">
@@ -77,7 +77,7 @@ async function renderDeployPanel(host) {
         </ol></details>` : ''}
 
       <p class="mt-3 text-xs text-gray-600">库里现状：党委 ${data.db.partyStaff} · 支部 ${data.db.branches} ·
-         已归属 ${data.db.members} · 待确认归属 ${data.db.unassigned} · 演示残留 ${data.db.demoAccounts} · 库表 v${data.db.schemaVersion}</p>
+         已归属 ${data.db.members} · 待确认归属 ${data.db.unassigned} · 历史账号残留 ${data.db.demoAccounts} · 库表 v${data.db.schemaVersion}</p>
 
       <details class="mt-2">
         <summary class="text-xs text-gray-600 cursor-pointer">环境变量模板（可复制）</summary>

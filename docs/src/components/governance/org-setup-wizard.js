@@ -14,33 +14,33 @@
 // 草稿：localStorage `wizard-draft-<branchId>`（当前步 + 每步完成标记 + 完成态），中断可续走。
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../../core/domain/domain.js?v=20261006j';
-import { getCapabilities } from '../../core/boot/registry.js?v=20261006j';
-import { OUTPUT_BLOCK_DEFS, BRANCH_COMMISSION_ROLES, ROLE_LABELS, getAccentColors } from '../../core/domain/constants.js?v=20261006j';
-import { ORG_SUBJECT_LABELS, isBranchOrgSubject, ownerSubjectType } from '../../core/domain/work-map.js?v=20261006j';
+import { mockDB } from '../../core/domain/domain.js?v=20261011a';
+import { getCapabilities } from '../../core/boot/registry.js?v=20261011a';
+import { OUTPUT_BLOCK_DEFS, BRANCH_COMMISSION_ROLES, ROLE_LABELS, getAccentColors } from '../../core/domain/constants.js?v=20261011a';
+import { ORG_SUBJECT_LABELS, isBranchOrgSubject, ownerSubjectType } from '../../core/domain/work-map.js?v=20261011a';
 // 副作用：注册支委层工作台能力（配置目录=其 tab 清单，单一源）
-import '../../capabilities/secretary-workspace.js?v=20261006j';
-import { BLOCK_MANIFESTS } from '../../workflow/blocks/manifests.js?v=20261006j';
+import '../../capabilities/secretary-workspace.js?v=20261011a';
+import { BLOCK_MANIFESTS } from '../../workflow/blocks/manifests.js?v=20261011a';
 // L3 流程组合（2026-09-28 批次 246）：把编排内核接进**生产路径**——配置面用它做「组合体检」
-import { composePlan } from '../../workflow/blocks/orchestration.js?v=20261006j';
-import { escHtml as esc, showToast, downloadBlob } from '../../core/base/utils.js?v=20261006j';
-import { WORK_MAP_MODULES } from '../../core/domain/work-map.js?v=20261006j';
+import { composePlan } from '../../workflow/blocks/orchestration.js?v=20261011a';
+import { escHtml as esc, showToast, downloadBlob } from '../../core/base/utils.js?v=20261011a';
+import { WORK_MAP_MODULES } from '../../core/domain/work-map.js?v=20261011a';
 import {
   getBranchById, getBranchOrg, getBranchTabPolicy, getCoreTabIds,
   getBranchOutputBlocks, getOutputBlockPolicy, getWorkflowBlockPolicy, orderByIds,
   updateBranchModules, getBranchWorkforce, updateBranchWorkforce, updateBranchOrg,
   applyConfigCopy, createBranch, getBranchIdOfPerson,
-} from '../../services/branch/branch.js?v=20261006j';
-import { buildConfigPackage, applyConfigPackage } from '../../services/branch/org-config-package.js?v=20261006j';
+} from '../../services/branch/branch.js?v=20261011a';
+import { buildConfigPackage, applyConfigPackage } from '../../services/branch/org-config-package.js?v=20261011a';
 import {
   buildPreviewTemplate, sanitizePreview, applyPreview, clearPreview, getPreviewState,
   PREVIEW_KIND, PREVIEW_VERSION,
-} from '../../services/branch/org-base-data-preview.js?v=20261006j';
-import { getRosterStats, isDetained } from '../../services/member/roster.js?v=20261006j';
-import { buildOrgWizardReport } from '../../services/branch/org-wizard-report.js?v=20261006j';
-import { PersonStore, getPersonName } from '../../services/member/person.js?v=20261006j';
+} from '../../services/branch/org-base-data-preview.js?v=20261011a';
+import { getRosterStats, isDetained } from '../../services/member/roster.js?v=20261011a';
+import { buildOrgWizardReport } from '../../services/branch/org-wizard-report.js?v=20261011a';
+import { PersonStore, getPersonName } from '../../services/member/person.js?v=20261011a';
 // R5-1（2026-09-06）：建空支部「就地任命首任骨干」——任命编排在 appointment.js 收口（含数据边界登记）
-import { appointInauguralOfficers } from '../../services/branch/appointment.js?v=20261006j';
+import { appointInauguralOfficers } from '../../services/branch/appointment.js?v=20261011a';
 
 // ── 步骤元信息（支书已批口径）────────────────────────────────────
 export const WIZARD_STEPS = [
@@ -361,7 +361,7 @@ function _createPanelHtml(S, isStaff) {
           <input type="checkbox" id="wz-create-appoint" ${appointOn ? 'checked' : ''} class="shrink-0">
           就地任命首任骨干（首任支书 + 组织委员各 1 人，任命后立即建册）
         </label>
-        <p class="text-[11px] text-gray-500 leading-relaxed">新支部为空、支书席位空缺：勾选后创建时一并就地任命首任骨干——新任支书凭本人账号登录即可接管该支部（组织信息/模块/名册可在支书工作台与支部配置中继续完善）。任命对象来自现有成员（演示=跨支部兼任/调任）：若其在原支部任支委/组长，原支部对应席位将空缺（界面明示）；人员后续也可在成员管理/名单导入中补入新支部后再次调整。</p>
+        <p class="text-[11px] text-gray-500 leading-relaxed">新支部为空、支书席位空缺：勾选后创建时一并就地任命首任骨干——新任支书凭本人账号登录即可接管该支部（组织信息/模块/名册可在支书工作台与支部配置中继续完善）。任命对象来自现有成员（如跨支部兼任/调任）：若其在原支部任支委/组长，原支部对应席位将空缺（界面明示）；人员后续也可在成员管理/名单导入中补入新支部后再次调整。</p>
         <div id="wz-create-appoint-fields" class="grid grid-cols-1 md:grid-cols-2 gap-2 ${appointOn ? '' : 'hidden'}">
           <div>
             <label class="text-[11px] text-gray-500 block mb-1" for="wz-create-appoint-secretary">首任支书 <span class="text-red-600">*</span>（勾选时必选）</label>
@@ -446,7 +446,7 @@ function _basePanelHtml(S) {
     <div class="rounded-lg border border-blue-100 bg-blue-50/40 p-3 mt-2.5 space-y-2">
       <p class="text-xs font-semibold text-gray-700">成员基础数据预览 <span class="text-[11px] font-normal text-gray-500">（本地预览：仅覆盖姓名/党小组归属/发展阶段/在校·滞留，不写 mockDB / 种子持久）</span></p>
       <p class="text-[11px] text-gray-500">下载「成员名单模板」→ 按真实名册改 JSON → 「导入名单(JSON)预览」：应到人数 / 党员分布即时可见变化（⑤ 验证与重置、纪检考勤等的应到名单来源一致）；「清除预览」一键回种子。</p>
-      <p class="text-[11px] text-amber-700">注意：业务历史（活动/考勤/议程/专班等）仍关联演示成员，正式换数据请按「换壳工作单」落仓库文件。</p>
+      <p class="text-[11px] text-amber-700">注意：业务历史（活动/考勤/议程/专班等）仍关联历史成员，正式换数据请按「换壳工作单」落仓库文件。</p>
       <div class="flex flex-wrap items-center gap-2">
         <button type="button" data-wz-act="download-base-template" class="btn-outline ${subtle}">下载成员名单模板</button>
         <button type="button" data-wz-act="import-base" class="btn-outline ${subtle}">导入名单(JSON)预览</button>
@@ -733,7 +733,7 @@ function _step3Html(S, branch) {
 // ── ④ 术语/制度/数据指引 + 换壳工作单 ──
 function _step4Html(S, branch) {
   const guide = [
-    ['演示数据与人员档案', 'docs/src/data/mock/（people.js 成员档案 / accounts.js 账号 / branches.js 支部种子 / activities.js 等活动示例）'],
+    ['示例数据与人员档案', 'docs/src/data/mock/（people.js 成员档案 / accounts.js 账号 / branches.js 支部种子 / activities.js 等活动示例）'],
     ['系统常量', 'docs/src/core/domain/constants.js（角色/文案/活动类型/产出块目录）'],
     ['角色权限', 'content/02_institution/SYSTEM_ROLE_PERMISSION.md（矩阵单一源；代码侧 auth.js ROLE_PERMISSIONS 同步）'],
     ['术语/使用策略', 'content/03_doc_system/OPERATIONS_GUIDE.md §19–§23（《运行与协作规范》）+ docs/src/core/domain/policy-defaults.js'],
@@ -776,8 +776,8 @@ function _step5Html(S, branch, org) {
         <p class="text-[11px] text-gray-500 mt-1">计算规则：docs/src/core/domain/policy-defaults.js attendance.roster（换数据后回本页复查读数）</p>
       </div>
       <div class="rounded-xl border border-amber-100 bg-amber-50/50 p-3">
-        <p class="text-xs font-semibold text-gray-700">演示重置 ?reset=1</p>
-        <p class="text-[11px] text-gray-500 mt-1">浏览器演示：在任意页面 URL 末尾加 <code class="text-[11px] bg-white px-1 py-0.5 rounded border border-amber-200">?reset=1</code> 访问，一键清除本域全部演示存储并回到种子初始态（含本向导配置）——仅 mock 演示模式，生产数据不受影响。</p>
+        <p class="text-xs font-semibold text-gray-700">重置 ?reset=1</p>
+        <p class="text-[11px] text-gray-500 mt-1">本地浏览模式：在任意页面 URL 末尾加 <code class="text-[11px] bg-white px-1 py-0.5 rounded border border-amber-200">?reset=1</code> 访问，一键清除本域全部本地存储并回到种子初始态（含本向导配置）——仅本地形态，生产数据不受影响。</p>
       </div>
       <div class="rounded-xl border border-gray-200 bg-gray-50/60 p-3">
         <p class="text-xs font-semibold text-gray-700">回归验证</p>
@@ -1426,7 +1426,7 @@ function _downloadBaseTemplate(S) {
   try {
     const tpl = buildPreviewTemplate();
     if (!tpl.people || !tpl.people.length) {
-      showToast('info', '当前无预置成员名册可导出（演示成员种子见 docs/src/data/mock/people.js）');
+      showToast('info', '当前无预置成员名册可导出（成员种子见 docs/src/data/mock/people.js）');
       return;
     }
     const blob = new Blob([JSON.stringify(tpl, null, 2)], { type: 'application/json;charset=utf-8' });
@@ -1473,7 +1473,7 @@ function _importBaseFile(S, file) {
 function _clearBasePreview(S) {
   const st = getPreviewState();
   if (!st.active) return;
-  if (!window.confirm('确认清除成员基础数据预览？成员读数将回到演示种子（业务历史数据不受影响）。')) return;
+  if (!window.confirm('确认清除成员基础数据预览？成员读数将回到种子初始态（业务历史数据不受影响）。')) return;
   clearPreview();
   S.baseDraft = null;
   _render(S);

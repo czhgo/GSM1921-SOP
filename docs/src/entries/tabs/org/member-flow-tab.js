@@ -15,25 +15,25 @@
 //   登记者角色门 = canRegisterFlow（组织委员 + 支书/副支书）。
 // ════════════════════════════════════════════════════════════════
 
-import { AuthStore } from '../../../services/core/auth.js?v=20261006j';
-import { getBranchIdOfPerson } from '../../../services/branch/branch.js?v=20261006j';
-import { getPersonName } from '../../../services/member/person.js?v=20261006j';
+import { AuthStore } from '../../../services/core/auth.js?v=20261011a';
+import { getBranchIdOfPerson } from '../../../services/branch/branch.js?v=20261011a';
+import { getPersonName } from '../../../services/member/person.js?v=20261011a';
 // 党小组常态清单唯一来源（活组、按 seq 升序；新增/改名/解散后随渲染即时可见）——登记流入的「党小组」选项
-import { groupOptions } from '../../../services/member/party-group.js?v=20261006j';
-import { showToast, escHtml as esc, getBasePath, todayLocal } from '../../../core/base/utils.js?v=20261006j';
-import { getAuthToken, getApiBaseUrl } from '../../../data/data-adapter.js?v=20261006j';
-import { openModal, closeModal } from '../../../components/ui/modal.js?v=20261006j';
+import { groupOptions } from '../../../services/member/party-group.js?v=20261011a';
+import { showToast, escHtml as esc, getBasePath, todayLocal } from '../../../core/base/utils.js?v=20261011a';
+import { getAuthToken, getApiBaseUrl } from '../../../data/data-adapter.js?v=20261011a';
+import { openModal, closeModal } from '../../../components/ui/modal.js?v=20261011a';
 // 统一检索引擎（表格统一化批次 A）：台账表接入关键词 + 分面（≤8 行引擎自动不渲染检索条）
-import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261006j';
+import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261011a';
 // 成员流入/流出登记服务层（2026-09-14 批次 25 支书裁定）：登记即生效 + 台账 + 对账 + 撤销
 import {
   loadMemberFlows, reconcile, registerIntake, registerIntakeBatch,
   registerOutflow, revokeFlow, canRegisterFlow,
-} from '../../../services/member/member-flow.js?v=20261006j';
+} from '../../../services/member/member-flow.js?v=20261011a';
 // 选人规范：凡选择具体人一律 PersonPicker（禁 select 罗列人名）——登记流出选人
-import { PersonPicker } from '../../../components/governance/pickers.js?v=20261006j';
+import { PersonPicker } from '../../../components/governance/pickers.js?v=20261011a';
 // 自定义圆角下拉增强（select.input-flat.text-xs → cs-trigger；与全局 observer 幂等）
-import { enhanceSelects } from '../../../components/ui/custom-select.js?v=20261006j';
+import { enhanceSelects } from '../../../components/ui/custom-select.js?v=20261011a';
 
 // 模块级 ctx 缓存：登记/撤销后整页刷新复用首次渲染的 accent
 let _ctx = null;
@@ -152,7 +152,7 @@ async function _loadIaaaPending() {
   const host = document.getElementById('iaaa-pending-host');
   if (!host) return;
   const token = getAuthToken();
-  if (!token) { host.innerHTML = '<p class="text-xs text-gray-500">本地演示形态无入站申请；接入统一身份认证后在此确认。</p>'; return; }
+  if (!token) { host.innerHTML = '<p class="text-xs text-gray-500">本地浏览形态无入站申请；接入统一身份认证后在此确认。</p>'; return; }
   host.innerHTML = '<p class="text-xs text-gray-500">正在加载…</p>';
   try {
     const r = await fetch(`${getApiBaseUrl()}/api/v1/auth/iaaa/pending`, { headers: { Authorization: `Bearer ${token}` } });
