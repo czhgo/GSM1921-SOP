@@ -14,7 +14,7 @@ before(async () => {
   const login = await fetch(`${base}/api/v1/auth/login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ personId: 'p13' }),
+    body: JSON.stringify({ personId: 'p13', password: '123456' }),
   });
   token = (await login.json()).token;
 });

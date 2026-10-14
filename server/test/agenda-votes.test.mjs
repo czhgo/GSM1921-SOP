@@ -200,6 +200,31 @@ test('无记名 formal：多人表态只累计 tally（p5 approve / p8 abstain�
   assert.deepEqual(present, ['p3', 'p5', 'p8'], '参与记录保留 personId（可催未投者）');
 });
 
+test('无记名 tally 写入失败时，参与记录必须一起回滚', async () => {
+  const agendaItemId = 'ai-atomic-failure';
+  db.exec(`
+    CREATE TRIGGER fail_anonymous_tally
+    BEFORE INSERT ON agenda_votes
+    WHEN NEW.id LIKE 'avt-%'
+    BEGIN
+      SELECT RAISE(ABORT, 'forced tally failure');
+    END;
+  `);
+  try {
+    const response = await fetch(`${base}/api/v1/agenda-votes`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${tokenMember}` },
+      body: JSON.stringify({ ...FORMAL_VOTE, agendaItemId, position: 'approve' }),
+    });
+    assert.equal(response.status, 500, '模拟 tally 写入失败应返回服务端错误');
+    const rows = await fetchVoteRows('act-formal-test');
+    assert.equal(rows.filter((row) => row.agendaItemId === agendaItemId).length, 0,
+      '参与记录和 tally 必须作为一个事务一起回滚');
+  } finally {
+    db.exec('DROP TRIGGER IF EXISTS fail_anonymous_tally');
+  }
+});
+
 test('无记名 formal：同人重复提交幂等（不可改票、不重复计数）', async () => {
   const post = (position) => fetch(`${base}/api/v1/agenda-votes`, {
     method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${tokenMember}` },
@@ -330,8 +355,8 @@ test('formal 活动：voteConfig.voterIds 空数组：400（fail-closed，不回
 
 // ===== mock 形态同口径（与 server 双形态一致；纯前端模块直调，不起服务）=====
 test('mock 形态：无记名只落参与记录 + tally、无逐人选项；记名保持逐人可见', async () => {
-  const { mockDB } = await import('../../docs/src/core/domain/domain.js?v=20261011b');
-  const { MockAdapter } = await import('../../docs/src/data/mock-adapter.js?v=20261011b');
+  const { mockDB } = await import('../../docs/src/core/domain/domain.js?v=20261014b');
+  const { MockAdapter } = await import('../../docs/src/data/mock-adapter.js?v=20261014b');
   const originActs = mockDB.activities;
   const originVotes = mockDB.agendaVotes;
   const originLoaded = mockDB._loaded;

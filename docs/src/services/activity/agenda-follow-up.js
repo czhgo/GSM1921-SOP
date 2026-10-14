@@ -3,16 +3,16 @@
 // 2026-09-02 AV4：记录「通过」前对支部党员大会（voteConfig.quorumCheck=true）做出席/赞成过半数硬校验
 //（spec §3.4）；校验不通过抛错中止（不写 result，UI 层 catch 以 error toast 提示支书）。
 
-import { fetchVotesStrict, presentIdsForItem, tallyForItem } from './committee-vote.js?v=20261011b';
+import { fetchVotesStrict, presentIdsForItem, tallyForItem } from './committee-vote.js?v=20261014b';
 // S-1（2026-09-09 支书批）：逐人结果中「通过者」需按人推导当前发展阶段（fromStage）——
 // 单条议程的 fromStage / personStages 可能不覆盖全部对象（各自阶段不同），以成员档案现值兜底。
-import { PersonStore } from '../member/person.js?v=20261011b';
+import { PersonStore } from '../member/person.js?v=20261014b';
 // 制度链（2026-09-21 批次 129 · `SOP-B-25` 第 ① 项 / `SOP-B-26`）：议程项结果的「制度」分支只做 IO，
 //   判据与状态迁移的单一源在 branch-doc.js::applyInstitutionAgendaResult（纯函数，本文件不复制状态名）。
-import { isInstitutionDoc, applyInstitutionAgendaResult } from '../branch/branch-doc.js?v=20261011b';
+import { isInstitutionDoc, applyInstitutionAgendaResult } from '../branch/branch-doc.js?v=20261014b';
 // 品牌认定（2026-09-21 批次 132 · 支书口径二「提案 → 支委会通过后确定」）：议程项结果的 `brand-designation`
 //   分支只做 IO，判据与状态迁移的单一源在 activity.js::applyBrandDesignationResult（纯函数）。
-import { commitBrandDesignationResult, commitActivityApprovalResult } from './activity.js?v=20261011b';
+import { commitBrandDesignationResult, commitActivityApprovalResult } from './activity.js?v=20261014b';
 
 function replaceById(records, record) {
   const index = records.findIndex((item) => item.id === record.id);
@@ -68,7 +68,7 @@ function resolveFromStage(agendaItem, personId) {
 
 /**
  * 正式表决硬校验（spec §3.4）：活动 voteConfig.quorumCheck === true 时，记录「通过」前校验
- *   (a) 出席过半数：实到（参与记录去重 personId，含弃权）≥ ceil(应到/2)；
+ *   (a) 实到（参与记录去重 personId，含弃权）严格超过应到人数的一半；
  *   (b) 赞成过半数：approve 票数 > 应到/2。
  * 弃权计入出席、不计入赞成。返回拦截文案（含按场景拆分的可采取动作提示）；null = 校验通过。
  * 无记名活动（2026-09-12 支书裁定）：实到取参与记录、赞成取 tally 行（逐人选项不落库，
@@ -87,7 +87,7 @@ async function quorumBlockMessage(activity, agendaItemId) {
   // 按本议程项统计（一条议程一次表决；多议题各自独立判定出席/赞成）
   const present = presentIdsForItem(votes, agendaItemId).length;
   const approve = Number(tallyForItem(votes, agendaItemId).approve) || 0;
-  if (present < Math.ceil(total / 2)) {
+  if (present <= total / 2) {
     return `应到会有表决权党员过半数出席方可表决（当前 ${present}/${total} 已表态），可督促未表态党员表态`;
   }
   if (approve <= total / 2) {

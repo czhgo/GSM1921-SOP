@@ -110,34 +110,39 @@ export function createCommitteeRouter(db) {
         ? '正式表决须以无记名方式提交（不得记名）'
         : '提交的计票方式与活动配置不一致' });
     }
-    const existing = listTable(db, 'agenda_votes').find((v) =>
-      v.activityId === activityId && v.agendaItemId === agendaItemId && v.personId === req.actor.id);
     const now = new Date().toISOString();
 
     // 无记名（anonymous）：两段式落库 ——「参与记录」{personId, votedAt}（可判谁已投，供催办/人数核验）
     //   +「选项计数」tally 行 {tally: {选项: 次数}}（逐人选项不落库、附言不落库）。
-    // 同人同议题重复提交：幂等返回原参与记录（无逐人选项可回退 → 不可改票，亦不重复计数）。
+    // 两行与幂等检查处于同一事务；重复提交返回原参与记录（无逐人选项可回退 → 不可改票，亦不重复计数）。
     if (ballotMode === 'anonymous') {
-      if (existing) return res.json(existing);
-      const row = {
-        id: `av-${randomUUID().slice(0, 8)}`,
-        activityId, agendaItemId,
-        personId: req.actor.id,
-        votedAt: now,
-        ballotMode: 'anonymous',
-        createdAt: now,
-      };
-      writeRow(db, 'agenda_votes', row);
-      // tally 行 id 按（活动, 议程项）确定性生成，读改写计数（演示规模可接受）
-      const tallyId = `avt-${activityId}-${agendaItemId}`;
-      const prev = listTable(db, 'agenda_votes').find((v) => v.id === tallyId);
-      const tally = { ...((prev && prev.tally) || {}) };
-      tally[position] = (Number(tally[position]) || 0) + 1;
-      writeRow(db, 'agenda_votes', { id: tallyId, activityId, agendaItemId, ballotMode: 'anonymous', tally, updatedAt: now });
-      return res.status(201).json(row);
+      const saved = db.transaction(() => {
+        const existing = listTable(db, 'agenda_votes').find((v) =>
+          v.activityId === activityId && v.agendaItemId === agendaItemId && v.personId === req.actor.id);
+        if (existing) return { row: existing, created: false };
+        const row = {
+          id: `av-${randomUUID().slice(0, 8)}`,
+          activityId, agendaItemId,
+          personId: req.actor.id,
+          votedAt: now,
+          ballotMode: 'anonymous',
+          createdAt: now,
+        };
+        writeRow(db, 'agenda_votes', row);
+        // tally 行 id 按（活动, 议程项）确定性生成。
+        const tallyId = `avt-${activityId}-${agendaItemId}`;
+        const prev = listTable(db, 'agenda_votes').find((v) => v.id === tallyId);
+        const tally = { ...((prev && prev.tally) || {}) };
+        tally[position] = (Number(tally[position]) || 0) + 1;
+        writeRow(db, 'agenda_votes', { id: tallyId, activityId, agendaItemId, ballotMode: 'anonymous', tally, updatedAt: now });
+        return { row, created: true };
+      })();
+      return res.status(saved.created ? 201 : 200).json(saved.row);
     }
 
     // 记名（named）：逐人选项落库（现状行为不变）
+    const existing = listTable(db, 'agenda_votes').find((v) =>
+      v.activityId === activityId && v.agendaItemId === agendaItemId && v.personId === req.actor.id);
     if (existing) {
       const updated = { ...existing, position, note, updatedAt: now };
       writeRow(db, 'agenda_votes', updated);

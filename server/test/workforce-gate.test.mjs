@@ -7,8 +7,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { evaluateWorkforceVotes } from '../../docs/src/services/branch/workforce.js?v=20261011b';
-import { mergeWorkforceSnapshot, expandWorkforce } from '../../docs/src/core/domain/work-map.js?v=20261011b';
+import { evaluateWorkforceVotes } from '../../docs/src/services/branch/workforce.js?v=20261014b';
+import { mergeWorkforceSnapshot, expandWorkforce } from '../../docs/src/core/domain/work-map.js?v=20261014b';
 
 const ROSTER = ['p1', 'p2', 'p3', 'p4', 'p5']; // 应到支委 5 人（演示）
 const v = (posArr) => posArr.map((position, i) => ({ personId: ROSTER[i], position }));
@@ -66,6 +66,28 @@ test('evaluateWorkforceVotes：反对=1（正式 oppose 口径）→ failed', ()
   const r = evaluateWorkforceVotes({ roster: ROSTER, votes: v(['approve', 'oppose', 'approve', 'approve']) });
   assert.equal(r.status, 'failed', '反对 1 即不通过（反对=0 门槛）');
   assert.equal(r.tally.object, 1, 'oppose 归入反对口径统计');
+});
+
+test('evaluateWorkforceVotes：无记名汇总读取实际异议票，不把参与记录误算成同意', () => {
+  const ids = ROSTER.slice(0, 4);
+  const votes = [
+    ...ids.map((personId) => ({ activityId: 'act-anon', agendaItemId: 'ag1', personId, ballotMode: 'anonymous' })),
+    { id: 'tally-anon', activityId: 'act-anon', agendaItemId: 'ag1', ballotMode: 'anonymous', tally: { agree: 3, object: 1 } },
+  ];
+  const r = evaluateWorkforceVotes({ roster: ROSTER, votes, agendaItemId: 'ag1' });
+  assert.equal(r.status, 'failed', '匿名 tally 中有 1 张异议票，必须否决');
+  assert.deepEqual(r.tally, { total: 5, voted: 4, agree: 3, object: 1, comment: 0 });
+});
+
+test('evaluateWorkforceVotes：无记名 tally 与参与人数不一致时 fail-closed', () => {
+  const ids = ROSTER.slice(0, 4);
+  const votes = [
+    ...ids.map((personId) => ({ activityId: 'act-anon', agendaItemId: 'ag1', personId, ballotMode: 'anonymous' })),
+    { id: 'tally-anon', activityId: 'act-anon', agendaItemId: 'ag1', ballotMode: 'anonymous', tally: { agree: 3 } },
+  ];
+  const r = evaluateWorkforceVotes({ roster: ROSTER, votes, agendaItemId: 'ag1' });
+  assert.equal(r.status, 'pending', '票数聚合与参与记录不一致时不可按通过处理');
+  assert.match(r.reason, /汇总票数与参与人数不一致/);
 });
 
 test('evaluateWorkforceVotes：弃权允许——出席过线且无反对 → passed（弃权不计赞成）', () => {

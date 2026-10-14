@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import { chromium } from 'playwright';
 import { createApp } from '../app.js';
 import { seedDatabase } from '../seed.js';
-import { FUNCTION_CATALOG } from '../../docs/src/core/domain/function-catalog.js?v=20261011b';
+import { FUNCTION_CATALOG } from '../../docs/src/core/domain/function-catalog.js?v=20261014b';
 
 let server, base, browser;
 
@@ -76,5 +76,54 @@ test('help 页：目录树（致谢第一）+ 搜索 + 章节卡片 + 导图降�
   assert.ok(whatText.includes('赋权链'), '系统是什么章应含「赋权链」术语');
   assert.ok(!whatText.includes('14 个页面'), '系统是什么章不得保留旧 14 页面数字');
 
+  await page.close();
+});
+
+test('Help 搜索覆盖卡片正文并提供摘要与可分享的定位链接', async () => {
+  const page = await browser.newPage();
+  await page.route('**://cdn.jsdelivr.net/**', (r) => r.abort());
+  await page.route('**://fonts.googleapis.com/**', (r) => r.abort());
+  await page.route('**://fonts.gstatic.com/**', (r) => r.abort());
+  await page.route('**://cdn.tailwindcss.com/**', (r) => r.abort());
+  await page.goto(`${base}/help.html`, { waitUntil: 'domcontentloaded' });
+  await page.waitForSelector('.help-toc-item', { timeout: 8000 });
+
+  await page.fill('#help-search-input', '副支书共台');
+  await page.waitForFunction(() => document.querySelectorAll('.help-search-result').length > 0, null, { timeout: 3000 });
+  const result = page.locator('.help-search-result').filter({ hasText: '会议议程与记录' }).first();
+  assert.equal(await result.getAttribute('href'), '#card-dom31-agenda');
+  assert.ok((await result.textContent()).includes('副支书共台'), '搜索结果展示命中正文的摘要');
+  await result.click();
+  assert.equal(new URL(page.url()).hash, '#card-dom31-agenda', '点击结果更新可分享的章节锚点');
+  await page.waitForSelector('#card-dom31-agenda.is-highlighted', { timeout: 3000 });
+  await page.close();
+});
+
+test('Help 搜索覆盖章节表格，并提供按角色与常见任务浏览', async () => {
+  const page = await browser.newPage();
+  await page.route('**://cdn.jsdelivr.net/**', (r) => r.abort());
+  await page.route('**://fonts.googleapis.com/**', (r) => r.abort());
+  await page.route('**://fonts.gstatic.com/**', (r) => r.abort());
+  await page.route('**://cdn.tailwindcss.com/**', (r) => r.abort());
+  await page.goto(`${base}/help.html`, { waitUntil: 'domcontentloaded' });
+  await page.waitForSelector('.help-toc-item', { timeout: 8000 });
+
+  await page.fill('#help-search-input', '最近 6 期可展开');
+  await page.waitForFunction(() => document.querySelectorAll('.help-search-result').length > 0, null, { timeout: 3000 });
+  const chapterResult = page.locator('.help-search-result').filter({ hasText: '角色工作台导览' }).first();
+  assert.ok(await chapterResult.count(), '结果能定位到章节中的表格说明');
+  assert.equal(await chapterResult.getAttribute('href'), '#sec-roles');
+
+  await page.locator('.help-browse summary').click();
+  await page.fill('#help-search-input', '');
+  await page.locator('#help-role-filter').selectOption('organization');
+  await page.waitForFunction(() => document.querySelectorAll('.help-search-result').length > 0, null, { timeout: 3000 });
+  const roleResults = await page.locator('.help-search-result').allTextContents();
+  assert.ok(roleResults.some((text) => text.includes('组织委员')), '选择角色后显示相关入口');
+
+  const taskLink = page.getByRole('link', { name: '创建会议活动' });
+  assert.equal(await taskLink.getAttribute('href'), '#card-dom31-meeting-create');
+  await taskLink.click();
+  assert.equal(new URL(page.url()).hash, '#card-dom31-meeting-create');
   await page.close();
 });

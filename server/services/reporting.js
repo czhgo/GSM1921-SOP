@@ -74,7 +74,12 @@ export function extractDomain(db, domain, from, to) {
     // 活动记录：有效活动（排除 取消/草稿）；已完成/进行中/已发布均属有效
     const activities = listTable(db, 'activities').filter(a => !['cancelled', 'draft'].includes(a.status));
     const signups = listTable(db, 'signups');
-    const signupCount = id => signups.filter(s => s.sourceType === 'activity' && s.sourceId === id).length;
+    const approvedSignupPeopleByActivity = new Map();
+    for (const signup of signups) {
+      if (signup.sourceType !== 'activity' || signup.status !== 'approved' || signup.voided || !signup.personId) continue;
+      if (!approvedSignupPeopleByActivity.has(signup.sourceId)) approvedSignupPeopleByActivity.set(signup.sourceId, new Set());
+      approvedSignupPeopleByActivity.get(signup.sourceId).add(signup.personId);
+    }
     return activities
       .filter(a => inWindow(a[cfg.dateField], from, to))
       .map(a => ({
@@ -84,7 +89,10 @@ export function extractDomain(db, domain, from, to) {
         date: a.date,
         location: a.location || '',
         organizer: nameOf(a.organizer),
-        participantCount: (a.assignments || []).length + signupCount(a.id),
+        participantCount: new Set([
+          ...(a.assignments || []).map(assignment => assignment.personId).filter(Boolean),
+          ...(approvedSignupPeopleByActivity.get(a.id) || []),
+        ]).size,
         status: a.status,
       }));
   }

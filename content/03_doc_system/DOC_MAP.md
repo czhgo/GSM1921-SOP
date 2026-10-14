@@ -2,10 +2,10 @@
 title: "全局文档导航映射"
 type: governance
 role: "[工程师]+[AI]"
-last_updated: 2026-10-06
+last_updated: 2026-10-14
 version: "2.5"
 status: active
-related_files: [OPERATIONS_GUIDE.md, CLAUDE.md, ARCHITECTURE.md, .ctx/REVIEW_QUEUE.md, .ctx/ENGINEERING_ASSESSMENT.md]
+related_files: [OPERATIONS_GUIDE.md, CLAUDE.md, ARCHITECTURE.md, .ctx/REVIEW_QUEUE.md, .ctx/ENGINEERING_ASSESSMENT.md, content/insights/README.md]
 ---
 
 # 文档导航映射
@@ -121,7 +121,7 @@ related_files: [OPERATIONS_GUIDE.md, CLAUDE.md, ARCHITECTURE.md, .ctx/REVIEW_QUE
 | `content/04_web_design/module/SOP_WEBSITE_GUIDE.md` | [工程师]+[AI] | SOP 系统优化与同步指南 | CLAUDE.md H30.2 |
 | `content/04_web_design/deploy/DEPLOYMENT_GUIDE.md` | [工程师]+[AI] | 部署与对外对接（系统形态速览 + 四条落地路径与决策矩阵 + 学校/党校对接总叙事与决策矩阵 + 认证与登录门控 + 微信协同与小程序 + 北大党校与智慧党建对接） | DATA_MODEL.md、SYSTEM_ROLE_PERMISSION.md、DESIGN_SYSTEM.md、ARCHITECTURE.md |
 | `content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md` | [工程师]+[AI] | 架构演进（2026-09-03 精简：组件化落地评估历史结论 + §八 拖拽编排远期愿景；评估承接见 .ctx/ENGINEERING_ASSESSMENT.md「工程化评估与改造行动线」） | .ctx/ENGINEERING_ASSESSMENT.md、DATA_MODEL.md、SOP_WEBSITE_GUIDE.md |
-| `.ctx/ENGINEERING_ASSESSMENT.md`（2026-09-08 自 content/04_web_design/evolution 迁入 .ctx/；2026-09-09 更名自 MODULARIZATION_ASSESSMENT：评估职能归审计底座；2026-09-17 收敛：逐批沿革迁入月度日志，本体只维护**当前值**；**2026-09-29 批次 268：本行分数按现况改准**——`REVIEW_QUEUE H-5` 裁「随现况」） | [工程师]+[AI] | 工程化评估与改造行动线——**回答「现在工程化到几成、下一步该改哪里」**：五维**当前**打分（模块化 **99** / 插件化 **76** / 开源化 **81** / 超参数可调性 **86** / 组合能力 **83**，**综合 ≈ 85**）+ 工程做法纪律 + 行动线 P0~P4 的**当前**状态。**口径唯一源＝该文件 §一 / §5.2**（本行只是镜像、分歧时以它为准）。⚠ **逐批沿革与「为何 +1」论证已于 2026-09-17 迁入 `.ctx/logs/archive/2026-09-EXECUTION_LOG.md`** | ARCHITECTURE_EVOLUTION.md、CLAUDE.md（工程化方向判断依据） |
+| `.ctx/ENGINEERING_ASSESSMENT.md`（2026-09-08 自 content/04_web_design/evolution 迁入 .ctx/；2026-09-09 更名自 MODULARIZATION_ASSESSMENT；逐批沿革由月度日志承接） | [工程师]+[AI] | 工程化评估与改造行动线——**回答「当前风险在哪里、下一步先改什么」**：业务与数据正确性、安全与权限、最小三成本体验、架构复杂度与变更成本、测试与发布质量、运行/部署/跨组织复用六维评分；**不设综合均分**，阻断风险单列。各维证据、残项和行动顺序以本文为准。 | ARCHITECTURE_EVOLUTION.md、CLAUDE.md、content/insights/README.md |
 | `.ctx/REVIEW_QUEUE.md`（2026-09-17 收敛：已闭环项迁入月度日志，本体只留未闭环；此前**未登记于本表**，2026-09-17 补登） | [工程师]+[AI] | 支书评议队列——**回答「哪些评议与裁定还没闭环」**：待裁 / 待登记 / 进行中 / 待落地事项 + W4 专项评议循环承接区（全局评估总表 / 评议方法总索引 / 附录 ①–⑪） | CLAUDE.md H60/H60.6、各批次执行日志 |
 | `content/04_web_design/evolution/WORKFLOW_BLOCK_CONTRACT.md` | [工程师]+[AI] | L3 工作流块封装契约 v1.1（块差异化三维度 + 契约总则 + manifest 字段定义；2026-09-03 定稿） | docs/src/workflow/blocks/*、server/test/block-*（契约源） |
 | `content/04_web_design/evolution/BRANCH_WORK_MAP.md`（已落地 2026-09-04） | [工程师]+[AI] | L4 支部工作地图设计稿 v2.1（平铺模块清单 + 按人双视图，已落地、设计论证档案；支书 2026-09-03 放行编码） | docs/src/entries/tabs/secretary/work-map-tab.js + workforce-panel.js（server/test/work-map.test.mjs） |
@@ -145,12 +145,13 @@ related_files: [OPERATIONS_GUIDE.md, CLAUDE.md, ARCHITECTURE.md, .ctx/REVIEW_QUE
 
 ### 跨多类：经验沉淀（content/insights/）
 
-> insights 跨多类经验沉淀（党建实务 = 类型 1+2 保留）；工程方法论（类型 3+4+5）已于 2026-09-04 分流至 04/05/03/02 各权威文件，承接声明见 [content/insights/README.md](../insights/README.md)。
+> insights 面向人类读者，负责把跨域经验讲清、把学习路径连起来；其中的解释性文章不取代 03/04/05 的规范权威源。2026-09-04 的工程方法论分流仍是规范与判例的归属依据；新的全栈实践文章是学习入口与经验串讲，详见 [content/insights/README.md](../insights/README.md)。
 
 | 文件 | 受众 | 内容 | 被引用方 |
 |------|------|------|---------|
-| `content/insights/README.md` | [用户]+[工程师] | 经验沉淀层目录索引（含 2026-09-04 工程方法论分流承接声明） | — |
+| `content/insights/README.md` | [用户]+[工程师] | 前后端、数据库、权限、测试、部署、架构和 AI 协作的学习入口；指向权威规范与经验文 | DOC_MAP、content/03_doc_system/、content/04_web_design/、content/05_ai_coding/ |
 | `content/insights/党支部管理与实务经验沉淀.md` | [用户]+[AI] | 经验沉淀（组织性/管理事服务人、条块二元结构、支委角色设计、活动分类体系、专班） | AI（经验提炼） |
+| `content/insights/工程与AI协作的全栈实践.md` | [用户]+[工程师] | 面向人的全栈工程方法：业务路径、数据权威源、权限、测试、运行及 AI 协作；规范细节回链 03/04/05 权威源 | insights/README.md、.ctx/ENGINEERING_ASSESSMENT.md |
 
 ### 跨多类：根目录 + 审计底座 + 实现层
 
@@ -163,6 +164,7 @@ related_files: [OPERATIONS_GUIDE.md, CLAUDE.md, ARCHITECTURE.md, .ctx/REVIEW_QUE
 | `.ctx/logs/YYYY-MM-EXECUTION_LOG.md` | [工程师] | 月度执行日志 | ARCHITECTURE.md、CLAUDE.md |
 | `.ctx/logs/DECISION_LOG.md` | [工程师] | 决策日志 | ARCHITECTURE.md、CLAUDE.md |
 | `docs/src/*` | [工程师] | 代码实现（workflow/services/entries/core/components/styles） | ARCHITECTURE.md |
+| `docs/help.html` | [用户] | 系统帮助与操作说明；章节阅读、全文搜索、按角色/任务进入 | Help 章节正文、FUNCTION_CATALOG、docs/src/components/sections/help-navigation.js |
 
 ---
 

@@ -3,7 +3,7 @@ import { Router } from 'express';
 import { randomUUID } from 'node:crypto';
 import { gunzipSync } from 'node:zlib';
 import { requireAuth, requireCommissioner, requireRole } from '../auth.js';
-import { replaceCollectionsAtomic, readCollectionVersions } from '../../db.js';
+import { replaceCollectionsAtomic, readCollectionVersions, bumpCollectionVersion } from '../../db.js';
 import { deleteUploadedFile } from '../uploads.js';
 import { afterResourceWrite } from '../../services/mailer-hooks.js';
 // R-26③（2026-10-05 批次 388）：日期口径统一到**本地**（服务端单一源 `services/reporting.js`）
@@ -128,6 +128,11 @@ export function createResourcesRouter(db) {
         if (actRow && !_assertActivityWrite(req.actor, JSON.parse(actRow.data).type)) {
           return res.status(403).json({ error: ACTIVITY_WRITE_DENY_MSG });
         }
+        const id = req.params.id;
+        const remove = deleteActivityCascade(db, id);
+        if (!remove.found) return res.status(404).json({ error: 'not found' });
+        for (const filePath of remove.filePaths) deleteUploadedFile(filePath);
+        return res.status(200).json({ id, versions: remove.versions });
       }
       // 文件类资源（支部文件/文件空间记录/图片记录）：删除记录前联动删除已上传的物理文件
       // （支书 2026-08-18 裁决「连物理文件一起删」；T-304 D 档扩展至文件空间/图片记录，杜绝孤儿文件）
@@ -140,25 +145,6 @@ export function createResourcesRouter(db) {
       }
       const info = db.prepare(`DELETE FROM ${table} WHERE id = ?`).run(req.params.id);
       if (info.changes === 0) return res.status(404).json({ error: 'not found' });
-      // 2026-08-27 T-283 生命周期修复：彻底删除活动须联动清理全部子记录
-      // （与前端 mock.js/mock-adapter.js deleteActivity 同构，防 API 直连路径产生孤儿数据）
-      if (name === 'activities') {
-        const id = req.params.id;
-        const CHILD_TABLES = ['tasks', 'attendances', 'inspections', 'assignments', 'activity_reviews', 'makeup_tasks'];
-        for (const t of CHILD_TABLES) {
-          for (const r of db.prepare(`SELECT id, data FROM ${t}`).all()) {
-            if (JSON.parse(r.data).activityId === id) db.prepare(`DELETE FROM ${t} WHERE id = ?`).run(r.id);
-          }
-        }
-        for (const r of db.prepare('SELECT id, data FROM signups').all()) {
-          const row = JSON.parse(r.data);
-          if (row.sourceType === 'activity' && row.sourceId === id) db.prepare('DELETE FROM signups WHERE id = ?').run(r.id);
-        }
-        for (const r of db.prepare('SELECT id, data FROM notices').all()) {
-          const row = JSON.parse(r.data);
-          if (row.targetType === 'activity' && row.targetId === id) db.prepare('DELETE FROM notices WHERE id = ?').run(r.id);
-        }
-      }
       res.status(204).end();
     });
   }
@@ -664,4 +650,70 @@ export function createResourcesRouter(db) {
   });
   router.get('/snapshot/versions', requireAuth(db), (req, res) => res.json({ versions: _allCollectionVersions(db) })); registerExtraSemanticRoutes(router, db); // P0-1 集合版本基线查询（前端 init() 取基线；返回全集，未出现过的集合＝0）；2026-09-24 批次 169 追加申诉/未读/审计三组语义端点（函数体置文件末，保上文行号）
   return router;
+}
+
+/** 活动物理删除事务：级联清理业务记录、附件引用与子记录聚合键，并推进快照集合版本。 */
+function deleteActivityCascade(db, id) {
+  return db.transaction(() => {
+    const info = db.prepare('DELETE FROM activities WHERE id = ?').run(id);
+    if (!info.changes) return { found: false, versions: {}, filePaths: [] };
+
+    const changed = new Set(['activities']);
+    const filePaths = new Set();
+    const deleteMatching = (tableName, collection, predicate) => {
+      let count = 0;
+      for (const row of db.prepare(`SELECT id, data FROM ${tableName}`).all()) {
+        const data = JSON.parse(row.data);
+        if (!predicate(data)) continue;
+        if (data.filePath) filePaths.add(data.filePath);
+        db.prepare(`DELETE FROM ${tableName} WHERE id = ?`).run(row.id);
+        count++;
+      }
+      if (count && collection) changed.add(collection);
+    };
+
+    for (const [tableName, collection] of [
+      ['tasks', 'tasks'], ['attendances', 'attendances'], ['inspections', 'inspections'],
+      ['assignments', 'assignments'], ['activity_reviews', 'activityReviews'], ['makeup_tasks', 'makeupTasks'],
+    ]) deleteMatching(tableName, collection, (row) => row.activityId === id);
+    deleteMatching('signups', 'signups', (row) => row.sourceType === 'activity' && row.sourceId === id);
+    deleteMatching('notices', 'notices', (row) => row.targetType === 'activity' && row.targetId === id);
+    deleteMatching('todos', 'todos', (row) => row.sourceType === 'activity' && row.sourceId === id);
+    deleteMatching('archive_records', 'archiveRecords', (row) => row.activityId === id);
+    deleteMatching('file_space_records', 'fileSpaceRecords', (row) =>
+      row.activityId === id || (row.sourceType === 'activity' && row.sourceId === id));
+    deleteMatching('image_records', 'imageRecords', (row) => row.activityId === id);
+    deleteMatching('agenda_votes', null, (row) => row.activityId === id);
+
+    const aggregateRow = db.prepare("SELECT data FROM act_sub_records WHERE id = '__root__'").get();
+    if (aggregateRow) {
+      const root = JSON.parse(aggregateRow.data);
+      const aggregate = root && root.body && typeof root.body === 'object' && !Array.isArray(root.body)
+        ? root.body : root;
+      if (Object.prototype.hasOwnProperty.call(aggregate, id)) {
+        delete aggregate[id];
+        const nextRoot = root && root.body && typeof root.body === 'object' && !Array.isArray(root.body)
+          ? { ...root, body: aggregate } : { id: '__root__', body: aggregate };
+        db.prepare("UPDATE act_sub_records SET data = ? WHERE id = '__root__'")
+          .run(JSON.stringify(nextRoot));
+        changed.add('actSubRecords');
+      }
+    }
+
+    // 文件系统写入无法与 SQLite 回滚；仅在事务提交后删除文件，且保留仍被引用的文件。
+    const removableFiles = [];
+    for (const filePath of filePaths) {
+      const stillReferenced = ['branch_docs', 'file_space_records', 'image_records', 'archive_records']
+        .some((table) => db.prepare(`SELECT data FROM ${table}`).all()
+          .some((row) => JSON.parse(row.data).filePath === filePath));
+      if (!stillReferenced) {
+        db.prepare('DELETE FROM attachments WHERE path = ?').run(filePath);
+        removableFiles.push(filePath);
+      }
+    }
+
+    const versions = {};
+    for (const collection of changed) versions[collection] = bumpCollectionVersion(db, collection);
+    return { found: true, versions, filePaths: removableFiles };
+  })();
 }

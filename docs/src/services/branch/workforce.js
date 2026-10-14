@@ -9,21 +9,21 @@
 //   议题 extras 记 voteOutcome {status,tally,needed,evaluatedAt}；会前草稿=支书台暂存。
 // R2-3（2026-09-06 支书裁，附录⑩ S2）：门槛改「应到会人数超过 2/3 且无反对」——
 //   出席须严格超过应到 2/3（整界不过），反对=0（'object' 异议与 'oppose' 反对同口径），弃权允许。
-import { BranchService } from '../core/runtime.js?v=20261011b';
-import { NoticeStore } from '../governance/notice.js?v=20261011b';
-import { defaultVoteConfig, resolveVoterIds } from '../activity/vote-config.js?v=20261011b';
-import { ROLE_LABELS } from '../../core/domain/constants.js?v=20261011b';
-import { POLICY_DEFAULTS } from '../../core/domain/policy-defaults.js?v=20261011b';
-import { WORK_MAP_MODULES, mergeWorkforceSnapshot, canDisableModule, ORG_SUBJECT_LABELS } from '../../core/domain/work-map.js?v=20261011b';
-import { getPersonName } from '../member/person.js?v=20261011b';
-import { AuthStore } from '../core/auth.js?v=20261011b';
-import { getBranchWorkforce, updateBranchWorkforce } from './branch.js?v=20261011b';
-import { fetchVotesStrict } from '../activity/committee-vote.js?v=20261011b';
-import { TodoStore, TodoCategory, TodoSourceType, WORK_DOMAIN } from '../governance/todo.js?v=20261011b';
+import { BranchService } from '../core/runtime.js?v=20261014b';
+import { NoticeStore } from '../governance/notice.js?v=20261014b';
+import { defaultVoteConfig, resolveVoterIds } from '../activity/vote-config.js?v=20261014b';
+import { ROLE_LABELS } from '../../core/domain/constants.js?v=20261014b';
+import { POLICY_DEFAULTS } from '../../core/domain/policy-defaults.js?v=20261014b';
+import { WORK_MAP_MODULES, mergeWorkforceSnapshot, canDisableModule, ORG_SUBJECT_LABELS } from '../../core/domain/work-map.js?v=20261014b';
+import { getPersonName } from '../member/person.js?v=20261014b';
+import { AuthStore } from '../core/auth.js?v=20261014b';
+import { getBranchWorkforce, updateBranchWorkforce } from './branch.js?v=20261014b';
+import { fetchVotesStrict } from '../activity/committee-vote.js?v=20261014b';
+import { TodoStore, TodoCategory, TodoSourceType, WORK_DOMAIN } from '../governance/todo.js?v=20261014b';
 // 2026-09-28 修（去表决 dogfood）：议题议程项须带 id，线上表态位（.vote-widget-slot / .vote-panel-slot
 //   仅在议程项含 id 时渲染）才成立；原实现无 id ⇒ 表决入口页「该条无表决编号」，谁也投不了票。
-import { generateId } from '../../core/base/id.js?v=20261011b';
-import { todayLocal } from '../../core/base/utils.js?v=20261011b';
+import { generateId } from '../../core/base/id.js?v=20261014b';
+import { todayLocal } from '../../core/base/utils.js?v=20261014b';
 
 export const WORKFORCE_PROPOSAL_KIND = 'workforce-proposal';
 
@@ -45,26 +45,61 @@ export const WORKFORCE_VOTE_DEFAULT = { ...POLICY_DEFAULTS.workforce.voteThresho
  *   弃权（abstain）计出席、不计赞成与反对（弃权允许）。needed = 通过所需的**最小出席数**
  *   （= 使 voted/total 严格 > quorum 的最小整数，2/3 整界不过）。
  */
-export function evaluateWorkforceVotes({ roster = [], votes = [] }, opts = {}) {
+export function evaluateWorkforceVotes({ roster = [], votes = [], agendaItemId = null }, opts = {}) {
   const { quorum = WORKFORCE_VOTE_DEFAULT.quorum, vetoOnObject = WORKFORCE_VOTE_DEFAULT.vetoOnObject } = opts;
   const rosterSet = new Set(roster || []);
   const tally = { total: rosterSet.size, voted: 0, agree: 0, object: 0, comment: 0 };
+  let ballotRows = Array.isArray(votes) ? votes : [];
+  if (agendaItemId) ballotRows = ballotRows.filter((vote) => vote?.agendaItemId === agendaItemId);
+  const agendaIds = new Set(ballotRows.map((vote) => vote?.agendaItemId).filter(Boolean));
   const seen = new Set();
-  (votes || []).forEach(v => {
-    if (!v || !v.personId || !rosterSet.has(v.personId) || seen.has(v.personId)) return;
-    seen.add(v.personId);
-    tally.voted += 1;
-    const pos = v.position;
-    // 反对口径（R2-3 裁定）：'object'（交流式·异议）与 'oppose'（正式·反对）同视为反对/否决；
-    // 'abstain'（弃权）只计出席（voted），不推进赞成亦不否决；'comment'（附言）单列；其余按同意。
-    if (pos === 'object' || pos === 'oppose') tally.object += 1;
-    else if (pos === 'abstain') { /* 弃权允许：仅出席 */ }
-    else if (pos === 'comment') tally.comment += 1;
-    else tally.agree += 1; // agree / approve / 其他均按同意计
+  ballotRows.forEach((vote) => {
+    if (!vote?.personId || !rosterSet.has(vote.personId)) return;
+    seen.add(vote.personId);
   });
+  tally.voted = seen.size;
+  const needed = tally.total > 0 ? Math.floor(tally.total * quorum + 1e-9) + 1 : 0;
+  const pending = (reason) => ({ status: 'pending', tally, needed, reason });
+
+  // 无记名行不存逐人 position：必须从同议程的 tally 行取真实选项，并核对总票数与参与记录。
+  // 旧逻辑把 position 缺失的参与行落入「其余按同意」，会把无记名异议错误地放行为通过。
+  const anonymousRows = ballotRows.filter((vote) => vote?.ballotMode === 'anonymous');
+  const namedParticipants = ballotRows.filter((vote) => vote?.personId && vote.ballotMode !== 'anonymous');
+  if (agendaIds.size > 1) return pending('包含多个议程项，请按议程项分别核算');
+  if (anonymousRows.length) {
+    if (namedParticipants.length) return pending('同一议程混有记名与无记名记录');
+    const tallyRows = anonymousRows.filter((vote) => vote?.tally && typeof vote.tally === 'object' && !Array.isArray(vote.tally));
+    if (tallyRows.length !== 1) return pending('无记名投票缺少唯一的汇总票数');
+    const raw = tallyRows[0].tally;
+    const allowed = new Set(['agree', 'object', 'comment', 'approve', 'oppose', 'abstain']);
+    const counts = Object.entries(raw);
+    if (counts.some(([key, value]) => !allowed.has(key) || !Number.isInteger(value) || value < 0)) {
+      return pending('无记名汇总票数格式无效');
+    }
+    const hasDeliberative = counts.some(([key]) => ['agree', 'object', 'comment'].includes(key));
+    const hasFormal = counts.some(([key]) => ['approve', 'oppose', 'abstain'].includes(key));
+    if (hasDeliberative && hasFormal) return pending('无记名汇总混用了不同表决选项集');
+    const counted = counts.reduce((sum, [, value]) => sum + value, 0);
+    if (counted !== tally.voted) return pending('汇总票数与参与人数不一致');
+    tally.agree = (raw.agree || 0) + (raw.approve || 0);
+    tally.object = (raw.object || 0) + (raw.oppose || 0);
+    tally.comment = raw.comment || 0;
+  } else {
+    const seenPositions = new Set();
+    for (const vote of ballotRows) {
+      if (!vote?.personId || !rosterSet.has(vote.personId) || seenPositions.has(vote.personId)) continue;
+      seenPositions.add(vote.personId);
+      const pos = vote.position;
+      // 反对/异议同口径否决；弃权只计出席；附言单列。未知选项不再误当同意。
+      if (pos === 'object' || pos === 'oppose') tally.object += 1;
+      else if (pos === 'abstain') { /* 弃权允许：仅出席 */ }
+      else if (pos === 'comment') tally.comment += 1;
+      else if (pos === 'agree' || pos === 'approve') tally.agree += 1;
+      else return pending('记名表态选项无效');
+    }
+  }
   // 出席门槛 = voted/total **严格超过** quorum（2/3 整界不过）；needed = 达标最小出席数。
   // +1e-9 防浮点整界误判：如 3*(2/3)≈1.999…，不加修正 floor 得 1 → needed=2 会把 2/3 整界误放行。
-  const needed = tally.total > 0 ? Math.floor(tally.total * quorum + 1e-9) + 1 : 0;
   const status = tally.total === 0 || tally.voted < needed
     ? 'pending'
     : (vetoOnObject && tally.object > 0 ? 'failed' : 'passed');
@@ -151,10 +186,10 @@ export async function listWorkforceProposals(branchId) {
 }
 
 /** 拉取议题实时票决判定（应到=委员会名单；供采纳硬校验与支书台卡片共用） */
-export async function getWorkforceVoteOutcome(activityId) {
+export async function getWorkforceVoteOutcome(activityId, agendaItemId = null) {
   const roster = resolveVoterIds('committee');
   const votes = await fetchVotesStrict(activityId);
-  return evaluateWorkforceVotes({ roster, votes });
+  return evaluateWorkforceVotes({ roster, votes, agendaItemId });
 }
 
 /**
@@ -170,7 +205,7 @@ export async function adoptWorkforceProposal(branchId, activityId) {
   }
   if (act.extras.adoptedAt) throw new Error('该议题已采纳，无需重复操作');
 
-  const outcome = await getWorkforceVoteOutcome(activityId);
+  const outcome = await getWorkforceVoteOutcome(activityId, act.agenda?.[0]?.id || null);
   if (outcome.status === 'pending') {
     throw new Error(`表决未达通过门槛：出席 ${outcome.tally.voted}/${outcome.tally.total}，未超过应到 2/3（需 ${outcome.needed} 人出席且无反对），暂不可采纳`);
   }

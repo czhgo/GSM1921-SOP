@@ -1,8 +1,9 @@
 // role: [工程师]+[AI]
 // help-entry.js — 帮助页入口（系统说明书）
 
-import { renderSidebar } from '../../components/shell/sidebar.js?v=20261011b';
-import { renderHeader } from '../../components/shell/header.js?v=20261011b';
+import { renderSidebar } from '../../components/shell/sidebar.js?v=20261014b';
+import { renderHeader } from '../../components/shell/header.js?v=20261014b';
+import { HELP_TOC_CHAPTERS } from '../../components/sections/help-navigation.js?v=20261014b';
 
 // 静态壳模式（2026-08-12）：help 为纯静态文档，不加载 auth/notice 数据链（约 50 模块），
 // 仅渲染共享侧边栏/顶栏壳；通知铃首次点击时才按需加载通知模块。
@@ -14,7 +15,7 @@ renderHeader('help', { staticShell: true });
 // E-5（2026-09-09）首屏优化：catalog 链（help-catalog → function-catalog/mermaid-sources
 // 约 30KB 模块）改 DOMContentLoaded 后动态加载——0–7 章为 help.html 静态正文，首屏不等待
 // 该模块图；目录/搜索/卡片在 DCL 后数毫秒内补齐，交互与功能不变。
-import('../../components/sections/help-catalog.js?v=20261011b')
+import('../../components/sections/help-catalog.js?v=20261014b')
   .then(({ renderHelpCatalog }) => {
     renderHelpCatalog(document.getElementById('help-toc-slot'));
   })
@@ -26,22 +27,8 @@ import('../../components/sections/help-catalog.js?v=20261011b')
 // 2026-09-27：新增「4 设置逐项」（设置说明书自原第 5 章 5.4 独立成章，插在域手册与业务链路之间），
 //   原 4 业务链路 → 5、原 5 党委与配置 → 6、原 6 → 7、原 7 → 8（章号与全仓引用同批改准）；
 // 与 help.html 静态章节 id、help-catalog.js 左侧目录树保持同一序列。
-const TOC_ITEMS = [
-  { id: 'sec-ack',        label: '致谢' },
-  { id: 'sec-entries',    label: '0 入口速查' },
-  { id: 'sec-quickstart', label: '1 快速上手' },
-  { id: 'sec-roles',      label: '2 角色工作台导览' },
-  { id: 'sec-domains',    label: '3 域手册' },
-  { id: 'sec-settings',   label: '4 设置逐项' },
-  { id: 'sec-flows',      label: '5 业务链路' },
-  { id: 'sec-admin',      label: '6 党委与配置' },
-  { id: 'sec-what',       label: '7 这个系统在干什么' },
-  { id: 'sec-tech',       label: '8 技术架构' },
-  { id: 'sec-disclaimer', label: '免责声明' },
-];
-
 function renderTOC() {
-  const items = TOC_ITEMS.map(item => `
+  const items = HELP_TOC_CHAPTERS.map(item => `
     <a href="#${item.id}" class="help-toc-dot-item" data-toc="${item.id}" aria-label="跳转到${item.label}">
       <span class="help-toc-dot-mark" aria-hidden="true"></span>
       <span class="help-toc-dot-tooltip">${item.label}</span>
@@ -95,10 +82,10 @@ function bindTOC() {
     // 滚动到底部兜底激活最后一章（末章顶部可能永远无法越过标记线）
     const scrolledToBottom = window.scrollY + window.innerHeight >= document.documentElement.scrollHeight - 1;
     if (scrolledToBottom) {
-      setActive(TOC_ITEMS[TOC_ITEMS.length - 1].id);
+      setActive(HELP_TOC_CHAPTERS[HELP_TOC_CHAPTERS.length - 1].id);
       return;
     }
-    let active = TOC_ITEMS[0].id;
+    let active = HELP_TOC_CHAPTERS[0].id;
     sections.forEach(s => {
       if (s.getBoundingClientRect().top <= MARKER_OFFSET) {
         active = s.dataset.tocId;

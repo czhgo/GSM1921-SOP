@@ -2,7 +2,7 @@
 title: "系统角色权限矩阵（代码键级权威）"
 type: governance
 role: "[工程师]+[AI]"
-last_updated: 2026-10-05
+last_updated: 2026-10-14
 status: active
 related_files: [content/03_doc_system/OPERATIONS_GUIDE.md, docs/src/core/domain/constants.js]
 ---
@@ -135,7 +135,7 @@ related_files: [content/03_doc_system/OPERATIONS_GUIDE.md, docs/src/core/domain/
 
 ## 9h. 支部 config 写权（config 写权分层）
 
-> **定位与键级说明**：支部 config（branches.config 各域）写权**未入 auth.js ROLE_PERMISSIONS 键集**——按 §9f 双轨约定属「写层业务守卫」类（与建档/监督/导入等操作位限定同理，不硬凑缺键）；守卫同口径在 `services/branch/branch.js`（`updateBranchModules` / `updateBranchBlocks` / `updateBranchWorkforce` / `updateBranchOrg` / `savePolicyOverrides` / `canManagePolicyOverrides`）与 server `PATCH /branches/:id/config`（resources.js：fullRights = party-staff / 本支部现任支书 / 本副支书；域负责人仅本域 policyOverrides）。分层矩阵与词条收口见 [PARTY_COMMITTEE_DESIGN.md §2.6](../04_web_design/evolution/PARTY_COMMITTEE_DESIGN.md)。
+> **定位与键级说明**：支部 config（branches.config 各域）写权**未入 auth.js ROLE_PERMISSIONS 键集**——按 §9f 双轨约定属「写层业务守卫」类（与建档/监督/导入等操作位限定同理，不硬凑缺键）；守卫同口径在 `services/branch/branch.js`（`updateBranchModules` / `updateBranchBlocks` / `updateBranchWorkforce` / `updateBranchOrg` / `savePolicyOverrides` / `canManagePolicyOverrides`）与 server `PATCH /branches/:id/config`（`server/routes/resources/index.js`：fullRights = party-staff / 本支部现任支书 / 本副支书；域负责人仅本域 policyOverrides）。分层矩阵与词条收口见 [PARTY_COMMITTEE_DESIGN.md §2.6](../04_web_design/evolution/PARTY_COMMITTEE_DESIGN.md)。
 
 | 角色 | config.modules/blocks | config.workforce | org 档案（headerTitle/desc/themePreset） | 域参数 policyOverrides（L2） | 顶层治理字段 name/type/secretaryId/status |
 |---|:---:|:---:|:---:|:---:|:---:|
@@ -166,7 +166,7 @@ related_files: [content/03_doc_system/OPERATIONS_GUIDE.md, docs/src/core/domain/
 
 ## 9j. 匿名意见反馈的「查看真身」权限
 
-> **定位与键级说明**：本能力**未入 auth.js ROLE_PERMISSIONS 键集**——按 §9f 双轨约定属「写层业务守卫」类（与 §9h／§9i 同理，不硬凑缺键）。守卫落点＝`server/routes/resources.js` 的 `GET /api/v1/issues/reveal`（`PARTY_STAFF_ROLE` 判定）＋ 前端党委台「匿名反馈核查」页签自带角色闸门（**两道闸门，缺一不可**）。
+> **定位与键级说明**：本能力**未入 auth.js ROLE_PERMISSIONS 键集**——按 §9f 双轨约定属「写层业务守卫」类（与 §9h／§9i 同理，不硬凑缺键）。守卫落点＝`server/routes/resources/index.js` 的 `GET /api/v1/issues/reveal`（`PARTY_STAFF_ROLE` 判定）＋ 前端党委台「匿名反馈核查」页签自带角色闸门（**两道闸门，缺一不可**）。
 >
 > **裁定依据（支书 2026-09-17 原话）**：「**后台记录真实情况，匿名是前端的。但是我们也强调清楚，查看匿名的权限只有党委有。**」
 

@@ -5,27 +5,10 @@
 // 功能地图 mindmap 与业务链路 flowchart 以 <pre class="mermaid"> 文本注入（源文本来自共享模块
 // src/core/mermaid-sources.js，与 gen 脚本同实现），由 help-entry.js 懒加载 mermaid CDN 渲染
 // （离线失败保留 .mermaid-fallback 降级文本）
-import { FUNCTION_GROUPS, FUNCTION_CATALOG } from '../../core/domain/function-catalog.js?v=20261011b';
-import { generateMindmapText, FLOW_LINKS } from '../../core/domain/mermaid-sources.js?v=20261011b';
-import { escHtml as esc } from '../../core/base/utils.js?v=20261011b';
-
-// 目录树（左）：0–8 章 + 致谢/免责声明（与 help.html 静态章节 id、help-entry.js TOC_ITEMS 同一序列）
-// 2026-09-07 C1 批次：原「功能地图/党建等组卡片/业务链路/权限体系」目录项随章节骨架重组撤销——
-// 卡片组仍由 catalog 渲染（检索总览，位于第 2 章导览之后）；单功能细则/链路/党委配置已分别成章（第 3/5/6 章，C2/C3 完成）。
-// 2026-09-27：新增「4 设置逐项」（原第 5 章 5.4 独立成章），原 4/5/6/7 依次顺延为 5/6/7/8。
-const TOC_CHAPTERS = [
-  { id: 'sec-ack',        label: '致谢' },
-  { id: 'sec-entries',    label: '0 入口速查' },
-  { id: 'sec-quickstart', label: '1 快速上手' },
-  { id: 'sec-roles',      label: '2 角色工作台导览' },
-  { id: 'sec-domains',    label: '3 域手册' },
-  { id: 'sec-settings',   label: '4 设置逐项' },
-  { id: 'sec-flows',      label: '5 业务链路' },
-  { id: 'sec-admin',      label: '6 党委与配置' },
-  { id: 'sec-what',       label: '7 这个系统在干什么' },
-  { id: 'sec-tech',       label: '8 技术架构' },
-  { id: 'sec-disclaimer', label: '免责声明' },
-];
+import { FUNCTION_GROUPS, FUNCTION_CATALOG } from '../../core/domain/function-catalog.js?v=20261014b';
+import { generateMindmapText, FLOW_LINKS } from '../../core/domain/mermaid-sources.js?v=20261014b';
+import { escHtml as esc } from '../../core/base/utils.js?v=20261014b';
+import { HELP_BROWSE_ROLES, HELP_QUICK_TASKS, HELP_TOC_CHAPTERS } from './help-navigation.js?v=20261014b';
 
 // HTML 转义统一走 core/base/utils.js escHtml（2026-09-03 去重收口）
 
@@ -40,7 +23,7 @@ export function renderHelpCatalog(root) {
   const toc = document.createElement('nav');
   toc.className = 'help-toc';
   toc.setAttribute('aria-label', '帮助目录');
-  let tocHtml = TOC_CHAPTERS.map((s) => `<a class="help-toc-item" href="#${s.id}" data-target="${s.id}">${s.label}</a>`).join('');
+  let tocHtml = HELP_TOC_CHAPTERS.map((s) => `<a class="help-toc-item" href="#${s.id}" data-target="${s.id}">${s.label}</a>`).join('');
   toc.innerHTML = tocHtml;
   root.appendChild(toc);
 
@@ -49,8 +32,24 @@ export function renderHelpCatalog(root) {
   const searchBox = document.createElement('div');
   searchBox.className = 'help-search';
   searchBox.innerHTML = `
-    <input id="help-search-input" class="help-search-input" type="search" placeholder="搜索功能，如：补课 / 审批 / 归档" aria-label="搜索帮助功能" autocomplete="off">
-    <div id="help-search-results" class="help-search-results" hidden></div>`;
+    <label class="help-search-label" for="help-search-input">搜索系统使用说明</label>
+    <input id="help-search-input" class="help-search-input" type="search" placeholder="试试：副支书、请假、议题表决、怎么归档" aria-label="搜索帮助说明、操作步骤和设置" aria-controls="help-search-results" autocomplete="off">
+    <div id="help-search-results" class="help-search-results" role="region" aria-label="帮助搜索结果" aria-live="polite" hidden></div>
+    <details class="help-browse">
+      <summary>按角色或常见任务浏览</summary>
+      <div class="help-browse-panel">
+        <label class="help-role-label" for="help-role-filter">我以什么身份使用？
+          <select id="help-role-filter" class="help-role-filter">
+            <option value="">选择角色查看相关说明</option>
+            ${HELP_BROWSE_ROLES.map((role) => `<option value="${esc(role.id)}">${esc(role.label)}</option>`).join('')}
+          </select>
+        </label>
+        <nav class="help-quick-tasks" aria-label="常见任务">
+          <span class="help-quick-tasks-label">常见任务</span>
+          ${HELP_QUICK_TASKS.map((task) => `<a href="${esc(task.href)}">${esc(task.label)}</a>`).join('')}
+        </nav>
+      </div>
+    </details>`;
   (searchSlot || root).appendChild(searchBox);
 
   // ── 功能章节卡片（#help-catalog-slot：5 组 feature 条目；位于功能地图之后、第 3 章「域手册」之前——
@@ -103,45 +102,117 @@ ${steps.join('\n')}</pre></div>` : ''}
     }).join('');
   }
 
-  // ── 搜索逻辑（索引全页 .help-card，含业务链路 flow 卡片）──
+  // ── 搜索索引：卡片全文 + 未被卡片覆盖的章节正文/表格 ──
   const input = searchBox.querySelector('#help-search-input');
   const resultsBox = searchBox.querySelector('#help-search-results');
-  const cards = Array.from(document.querySelectorAll('.help-card'));
-  const index = cards.map((c) => ({ el: c, text: c.dataset.search || '' }));
-  input.addEventListener('input', () => {
-    const q = input.value.trim().toLowerCase();
-    if (!q) { resultsBox.hidden = true; resultsBox.innerHTML = ''; return; }
-    const hits = index.filter((c) => c.text.toLowerCase().includes(q)).slice(0, 8);
-    if (!hits.length) {
-      resultsBox.innerHTML = '<div class="help-search-none">无结果，试试：考勤 / 审批 / 归档</div>';
+  const roleFilter = searchBox.querySelector('#help-role-filter');
+  const normalize = (value) => String(value || '').toLowerCase().replace(/\s+/g, ' ').trim();
+  const sectionEntries = Array.from(document.querySelectorAll('.doc-card[data-toc-id]')).map((el) => {
+    const copy = el.cloneNode(true);
+    copy.querySelectorAll('.help-card, .mermaid-host, .mermaid-fallback').forEach((node) => node.remove());
+    const title = el.querySelector('.doc-h2')?.textContent || el.id;
+    const text = copy.textContent || '';
+    return {
+      el, id: el.id, title,
+      text: normalize(text), displayText: normalize(text),
+      sectionId: el.dataset.tocId, kind: 'section',
+    };
+  }).filter((entry) => entry.id && entry.text);
+  const cardEntries = Array.from(document.querySelectorAll('.help-card')).map((el, index) => {
+    const title = el.querySelector('.help-card-title, h2, h3, h4')?.textContent || `帮助条目 ${index + 1}`;
+    const section = el.closest('.doc-card[data-toc-id]');
+    const group = el.closest('.help-card-group');
+    const groupTitle = group?.querySelector('h2')?.textContent || '';
+    const sectionId = section?.dataset.tocId || group?.id || '';
+    const sectionLabel = HELP_TOC_CHAPTERS.find((item) => item.id === sectionId)?.label || groupTitle || '功能总览';
+    return {
+      el, id: el.id, title, sectionLabel,
+      sectionId,
+      text: normalize(`${el.dataset.search || ''} ${el.textContent || ''}`),
+      displayText: normalize(el.textContent || ''),
+      kind: 'card',
+    };
+  }).filter((entry) => entry.id && entry.text);
+  const searchIndex = [...cardEntries, ...sectionEntries];
+
+  function makeSnippet(text, term) {
+    const plain = text.replace(/\s+/g, ' ').trim();
+    const at = term ? plain.toLowerCase().indexOf(term) : -1;
+    if (at < 0) return plain.slice(0, 104) + (plain.length > 104 ? '…' : '');
+    const start = Math.max(0, at - 32);
+    const end = Math.min(plain.length, at + term.length + 72);
+    return `${start ? '…' : ''}${plain.slice(start, end)}${end < plain.length ? '…' : ''}`;
+  }
+
+  function renderResults() {
+    const query = normalize(input.value);
+    const selectedRole = HELP_BROWSE_ROLES.find((role) => role.id === roleFilter.value);
+    const roleTerms = selectedRole ? selectedRole.terms.map(normalize) : [];
+    if (!query && !selectedRole) {
+      resultsBox.hidden = true;
+      resultsBox.innerHTML = '';
+      return;
+    }
+    const hits = searchIndex.filter((entry) => {
+      const matchesQuery = !query || entry.text.includes(query);
+      const matchesRole = !selectedRole || roleTerms.some((term) => entry.text.includes(term));
+      return matchesQuery && matchesRole;
+    });
+    const matchingCardSections = new Set(hits.filter((entry) => entry.kind === 'card').map((entry) => entry.sectionId));
+    const uniqueHits = hits.filter((entry) => entry.kind !== 'section' || !matchingCardSections.has(entry.sectionId));
+    uniqueHits.sort((a, b) => {
+      const aTitle = query && normalize(a.title).includes(query) ? 1 : 0;
+      const bTitle = query && normalize(b.title).includes(query) ? 1 : 0;
+      return bTitle - aTitle || (a.kind === b.kind ? 0 : a.kind === 'card' ? -1 : 1);
+    });
+    const visibleHits = uniqueHits.slice(0, 10);
+    if (!visibleHits.length) {
+      resultsBox.innerHTML = '<div class="help-search-none">没有找到相关说明。试试换个关键词，或清除角色筛选。</div>';
     } else {
-      resultsBox.innerHTML = hits.map((h) => {
-        const name = h.el.querySelector('.help-card-title').firstChild.textContent.trim();
-        return `<button class="btn-ghost help-search-result" type="button" data-id="${h.el.id}">${esc(name)}</button>`;
-      }).join('');
+      const countLabel = query ? `找到 ${uniqueHits.length} 条相关说明` : `找到 ${uniqueHits.length} 条与「${esc(selectedRole.label)}」相关的说明`;
+      resultsBox.innerHTML = `<div class="help-search-count">${countLabel}</div>${visibleHits.map((entry) => {
+        const terms = [query, ...roleTerms].filter(Boolean);
+        const matchedTerm = terms.find((term) => entry.text.includes(term)) || '';
+        const chapter = entry.kind === 'section'
+          ? '章节正文'
+          : entry.sectionLabel;
+        const snippet = makeSnippet(entry.displayText, matchedTerm);
+        return `<a class="help-search-result" href="#${esc(entry.id)}" data-id="${esc(entry.id)}">
+          <span class="help-search-result-heading"><strong>${esc(entry.title.trim())}</strong><small>${esc(chapter)}</small></span>
+          <span class="help-search-snippet">${esc(snippet)}</span>
+        </a>`;
+      }).join('')}${uniqueHits.length > visibleHits.length ? `<div class="help-search-count">仅显示前 ${visibleHits.length} 条，请再加一个关键词缩小范围。</div>` : ''}`;
     }
     resultsBox.hidden = false;
-  });
+  }
+
+  input.addEventListener('input', renderResults);
+  roleFilter.addEventListener('change', renderResults);
   resultsBox.addEventListener('click', (e) => {
-    const btn = e.target.closest('.help-search-result');
-    if (!btn) return;
-    const card = document.getElementById(btn.dataset.id);
-    if (!card) return;
-    card.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    card.classList.add('is-highlighted');
-    setTimeout(() => card.classList.remove('is-highlighted'), 2600);
+    const link = e.target.closest('.help-search-result');
+    if (!link) return;
+    const target = document.getElementById(link.dataset.id);
+    if (!target) return;
+    e.preventDefault();
+    window.history.pushState(null, '', `#${target.id}`);
+    if (!target.hasAttribute('tabindex')) target.setAttribute('tabindex', '-1');
+    target.focus({ preventScroll: true });
+    target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    target.classList.add('is-highlighted');
+    setTimeout(() => target.classList.remove('is-highlighted'), 2600);
     input.value = '';
-    resultsBox.hidden = true;
-    resultsBox.innerHTML = '';
+    roleFilter.value = '';
+    renderResults();
   });
 
   // ── 搜索面板关闭：ESC 清空并隐藏；点击面板/输入框外区域关闭 ──
-  input.addEventListener('keydown', (e) => {
+  searchBox.addEventListener('keydown', (e) => {
     if (e.key !== 'Escape') return;
     input.value = '';
-    resultsBox.hidden = true;
-    resultsBox.innerHTML = '';
+    roleFilter.value = '';
+    renderResults();
     input.blur();
+    if (e.target.closest('.help-search-result')) input.focus();
   });
   document.addEventListener('pointerdown', (e) => {
     if (resultsBox.hidden) return;
@@ -156,6 +227,9 @@ ${steps.join('\n')}</pre></div>` : ''}
     if (!item) return;
     e.preventDefault();
     const el = document.getElementById(item.dataset.target);
-    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    if (el) {
+      window.history.pushState(null, '', `#${el.id}`);
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
   });
 }
