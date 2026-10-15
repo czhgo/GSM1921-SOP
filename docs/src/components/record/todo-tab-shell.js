@@ -26,6 +26,7 @@ import { openModal, closeModal } from '../ui/modal.js?v=20261014b';
 import { AuthStore } from '../../services/core/auth.js?v=20261014b';
 import { mockDB } from '../../core/domain/domain.js?v=20261014b';
 import { tokenOf } from '../../core/base/version-token.js?v=20261014b'; // P0 域写版本戳（spec §二.4）
+import { resolveDocumentUrl } from '../../core/base/page-url.js?v=20261014b';
 import { memoizeRender } from '../ui/memoize-render.js?v=20261014b'; // P2 渲染守卫（spec §四.1）
 // 模块周期提醒（`R-29⑤` · `D-804`）：分工快照取法与 `components/governance/workforce-duty-card.js` 同口径
 import { getBranchIdOfPerson, getBranchWorkforce } from '../../services/branch/branch.js?v=20261014b';
@@ -433,8 +434,7 @@ export function createTodoTab(opts) {
           if (!notice) return;
           // 直达通知详情页（T-234 F1 同款）；notice 页内已读自动销「通知阅读」待办
           const noticeId = notice.actionData?.noticeId || notice.sourceId || notice.id;
-          const basePath = window.location.pathname.includes('/workspace/') ? '../' : '';
-          window.location.href = `${basePath}notice.html?id=${noticeId}`;
+          window.location.href = resolveDocumentUrl('notice.html', { searchParams: { id: noticeId } });
         });
       });
       container.querySelectorAll(`.${prefix}-unread-read-btn`).forEach(btn => {

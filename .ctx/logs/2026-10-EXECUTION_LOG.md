@@ -2345,3 +2345,9 @@ $body
 **验证**：新增 `page-navigation-url` 4/4（本地根部署、GitHub Pages 项目路径前缀、参数编码、调用接线及目标文件存在）；`link-integrity` L1/L2 2/2；`link-target-guard` 2/2；`import-path-guard` 2/2；`module-load` E1–E4 4/4（模块 181/181）；`doc-consistency` S1–S18 18/18；三个改动模块语法检查与 `git diff --check` 通过。内置浏览器从标注按钮实点后到达 `/login.html`；通知根页可正常载入。未运行全量测试，未写业务数据。
 
 **待续审计**：README 确认 GitHub Pages 以 `/GSM1921-SOP/` 项目路径部署；当前 L2 只核模板字面量中是否存在页面文件，未按 `document.baseURI` 模拟最终 URL。`bootstrap.js` 与待办直达、成员项目卡、宣传看板仍有工作台 `../` 拼接，可能跳出项目路径。本批按已确认范围只修两处，后续扩面待支书选择。
+
+## 批次 446（2026-10-15）工作台其余直达入口统一按站点基址解析
+
+**改动**：沿用批次 445 的 `resolveDocumentUrl()`，收敛工作台登录门控（含待归属参数）、待办通知与报名/参与直达、成员项目卡、宣传项目看板的 URL 生成；移除基于 `/workspace/` 拼 `../` 的分支。活动/专班/通知 ID 均经 `URLSearchParams` 编码。GitHub Pages 的 `/GSM1921-SOP/` 子路径和本机根路径共用 `<base>` 解析。`page-navigation-url` 增加项目路径下活动/专班目标断言及所有五类调用方的防回潮检查；测试已在 `test:daily` 登记，无新增长期规则或数据/API 改动。
+
+**验证**：`page-navigation-url` 5/5；`link-integrity` L1/L2 2/2；`link-target-guard` L6/L7 2/2；`import-path-guard` G1/G2 2/2；`module-load` E1–E4 4/4（模块 181/181）；`doc-consistency` S1–S18 18/18；5 个修改模块 `node --check` 通过；全局旧工作台 `pathname`/`_detailBase` 路由模式扫描无命中；`git diff --check` 通过。模块装配测试首次在默认沙箱下被 `127.0.0.1` 回环权限拒绝，获准提升后复跑通过。未跑全量，未写业务数据；保留原有未跟踪审计台账。

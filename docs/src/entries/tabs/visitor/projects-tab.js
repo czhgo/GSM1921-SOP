@@ -12,6 +12,7 @@ import { ROLE_COLORS } from '../../../core/domain/constants.js?v=20261014b';
 // 活动「仍在办」口径单一源（2026-09-13 收敛）：替代手写 !archived && status!=='cancelled'
 import { isActivityLive } from '../../../core/domain/constants.js?v=20261014b';
 import { flashHighlight, todayLocal } from '../../../core/base/utils.js?v=20261014b';
+import { resolveDocumentUrl } from '../../../core/base/page-url.js?v=20261014b';
 // 党小组筛选项单一源（活组按 seq 升序；2026-09-14 批次 29 收敛，原从成员档案派生）
 import { groupOptions } from '../../../services/member/party-group.js?v=20261014b';
 // 活动生命周期展示态单一源（2026-09-13 支书裁定：「活动与专班是并列的概念，各走各的」）——
@@ -228,8 +229,8 @@ export function renderContent(ctx) {
     const tfId = card.dataset.tfId;
     const actId = card.dataset.actId;
     if (!tfId && !actId) return;
-    const basePath = window.location.pathname.includes('/workspace/') ? '../' : '';
-    window.location.href = tfId ? `${basePath}taskforce.html?id=${tfId}` : `${basePath}activity.html?id=${actId}`;
+    const page = tfId ? 'taskforce.html' : 'activity.html';
+    window.location.href = resolveDocumentUrl(page, { searchParams: { id: tfId || actId } });
   });
 
   tc.querySelectorAll('.visitor-proj-sub').forEach(btn => {

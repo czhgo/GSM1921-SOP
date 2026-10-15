@@ -3,13 +3,14 @@
 // 2026-09-04 模块化扎口：org/leader/prop/visitor/secretary 五份 todo-tab 曾各自复制同源段，现收敛于此。
 // 兼容聚合卡（items[0] 取首条）与单条待办；命中并执行跳转返回 true，未命中返回 false（交调用方继续 tabMap 处理）。
 
+import { resolveDocumentUrl } from '../../core/base/page-url.js?v=20261014b';
+
 export function tryDirectJump(todo) {
   // 通知阅读待办（T-234 F1）：直达通知详情页（聚合时取首条 noticeId）
   const firstNotice = (todo.items && todo.items[0]) || todo;
   if (firstNotice.sourceType === 'notice' && (firstNotice.actionData?.noticeId || todo.actionData?.noticeId)) {
     const noticeId = firstNotice.actionData?.noticeId || todo.actionData?.noticeId;
-    const basePath = window.location.pathname.includes('/workspace/') ? '../' : '';
-    window.location.href = `${basePath}notice.html?id=${noticeId}`;
+    window.location.href = resolveDocumentUrl('notice.html', { searchParams: { id: noticeId } });
     return true;
   }
   // 报名审核待办（T-233）：直达活动/专班详情页（多源聚合时取首条 sourceId）
@@ -17,9 +18,8 @@ export function tryDirectJump(todo) {
     const first = (todo.items && todo.items[0]) || todo;
     const srcId = first.sourceId || (first.actionData && first.actionData.sourceId);
     if (srcId) {
-      const base = window.location.pathname.includes('/workspace/') ? '../' : '';
       const page = srcId.startsWith('tf-') ? 'taskforce.html' : 'activity.html';
-      window.location.href = `${base}${page}?id=${srcId}`;
+      window.location.href = resolveDocumentUrl(page, { searchParams: { id: srcId } });
       return true;
     }
   }
@@ -31,9 +31,8 @@ export function tryDirectJump(todo) {
       || (first.actionData && (first.actionData.activityId || first.actionData.taskforceId))
       || (todo.actionData && (todo.actionData.activityId || todo.actionData.taskforceId));
     if (srcId) {
-      const base = window.location.pathname.includes('/workspace/') ? '../' : '';
       const page = srcId.startsWith('tf-') ? 'taskforce.html' : 'activity.html';
-      window.location.href = `${base}${page}?id=${srcId}`;
+      window.location.href = resolveDocumentUrl(page, { searchParams: { id: srcId } });
       return true;
     }
   }

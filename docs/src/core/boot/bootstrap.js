@@ -11,6 +11,7 @@ import { IssueStore } from '../../services/governance/issues.js?v=20261014b';
 import { MilestoneStore } from '../../services/governance/milestones.js?v=20261014b';
 import { CrossPageState } from '../session/cross-page-state.js?v=20261014b';
 import { getBasePath } from '../base/utils.js?v=20261014b';
+import { resolveDocumentUrl } from '../base/page-url.js?v=20261014b';
 import { enhanceSelects } from '../../components/ui/custom-select.js?v=20261014b';
 // 立项⑦ B波 演示放行门（单一源，与「进入支部（演示）」按钮同口径）
 import { isPartyStaffBranchDemoAllowed } from '../../services/core/branch-demo-nav.js?v=20261014b';
@@ -143,9 +144,7 @@ export async function bootstrapPage({ module, accentRole, accentAlpha }) {
     // L1 页面门控：仅工作台强制跳登录；首页等公开页匿名可访（AUTHENTICATION_MODEL.md §四）
     // 首页组件（活动/专班/日历）点击跳工作台，再由工作台门控触发登录（当前跳 login.html，IAAA 为后续目标）
     if (module === 'workspace') {
-      const base = window.location.pathname.includes('/workspace/')
-        ? '../' : './';
-      window.location.href = base + 'login.html';
+      window.location.href = resolveDocumentUrl('login.html');
       return { user: null };
     }
   }
@@ -158,8 +157,7 @@ export async function bootstrapPage({ module, accentRole, accentAlpha }) {
   //   **组织级（党委组织员）排除**——党委本就不属于任何支部 ⇒ 不得被本层挡住。
   //   判据**单一源** ＝ `domain/constants.js::isBranchPendingUser`（登录页同一处消费，勿手写第二份）。
   if (module === 'workspace' && isBranchPendingUser(user)) {
-    const base = window.location.pathname.includes('/workspace/') ? '../' : './';
-    window.location.href = base + 'login.html?need-branch=1';
+    window.location.href = resolveDocumentUrl('login.html', { searchParams: { 'need-branch': '1' } });
     return { user: null, needBranch: true };
   }
 

@@ -10,6 +10,7 @@ import { NoticeStore } from '../../../services/governance/notice.js?v=20261014b'
 import { persist } from '../../../data/data-adapter.js?v=20261014b';
 import { showToast, escHtml as esc } from '../../../core/base/utils.js?v=20261014b';
 import { setState } from '../../../core/base/state.js?v=20261014b';
+import { resolveDocumentUrl } from '../../../core/base/page-url.js?v=20261014b';
 // 统一检索引擎（2026-09-14 批次 37）：三桶各接一个实例（keyword null + facets [] → 仅分页，保持三桶观感）
 import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261014b';
 
@@ -67,7 +68,6 @@ export function renderContent(ctx) {
 
   // 三桶各接一个引擎实例（keyword null + facets [] → 引擎不渲染检索条，只出分页；≤8 行不出翻页控件）。
   // 卡片 HTML 逐字保留；行内「确认完成/归档」与整卡跳转改事件委托，挂在各桶宿主上。
-  const _detailBase = window.location.pathname.includes('/workspace/') ? '../' : '';
   [
     { host: container.querySelector('#kanban-pending-host'), stateKey: 'prop-kanban-pending', rows: pending, emptyMessage: '暂无待启动项目', showComplete: false },
     { host: container.querySelector('#kanban-active-host'), stateKey: 'prop-kanban-active', rows: active, emptyMessage: '暂无进行中项目', showComplete: true },
@@ -126,9 +126,8 @@ export function renderContent(ctx) {
       if (!card) return;
       const id = card.dataset.ki;
       if (!id) return;
-      window.location.href = card.dataset.kt === 'taskforce'
-        ? `${_detailBase}taskforce.html?id=${id}`
-        : `${_detailBase}activity.html?id=${id}`;
+      const page = card.dataset.kt === 'taskforce' ? 'taskforce.html' : 'activity.html';
+      window.location.href = resolveDocumentUrl(page, { searchParams: { id } });
     }, true);
     // dogfood #13（2026-09-12）：卡片为 role=button 的 div，补 Enter/Space 键盘激活
     host.addEventListener('keydown', (e) => {
