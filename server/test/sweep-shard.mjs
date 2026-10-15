@@ -66,6 +66,7 @@ export const SHARD_E2E_FILES = {
     'multi-tab-sync.test.mjs',
     'records-endpoints.test.mjs',
     'relation-matrix.test.mjs',
+    'attendance-queue-selection-e2e.test.mjs',
     'inspection-loop-e2e.test.mjs',
     'preferences.test.mjs',
   ],

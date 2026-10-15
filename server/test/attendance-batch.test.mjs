@@ -15,6 +15,7 @@
 //   本文件的 mockDB 重置将不作用于被测 attendance.js 所见状态（实测：同 query 共享实例、异 query 分裂）。
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 
 import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261014b';
 import { POLICY_DEFAULTS } from '../../docs/src/core/domain/policy-defaults.js?v=20261014b';
@@ -224,4 +225,18 @@ test('上传位：党课/支部党员大会＝纪检（支书/副支书例外）
   assert.equal(canUploadAttendance('p1', 'act-132-e'), true, '本组组长（兼该场组织者）持本组小组会上传位');
   mockDB.activities = [];
   mockDB.attendances = [];
+});
+
+// ── h) 纪检待确认队列：批量操作必须显式选择，不能默认选中 ──
+test('待确认队列默认不选；全选限当前可见项；清空移除所有显式选择', () => {
+  const source = readFileSync(new URL('../../docs/src/entries/tabs/disc/attendance-tab.js', import.meta.url), 'utf8');
+  assert.match(source, /let _queueChecked = new Set\(\);/, '新待确认记录初始不在已选集合中');
+  assert.match(source, /const checkedCount = visible\.filter\(r => _queueChecked\.has\(r\.id\)\)\.length;/);
+  assert.match(source, /const checked = _queueChecked\.has\(r\.id\);/, '只有明确加入集合的记录才显示勾选');
+  assert.match(source, /if \(cb\.checked\) _queueChecked\.add\(id\); else _queueChecked\.delete\(id\);/);
+  assert.match(source, /#att-queue-select-all[\s\S]{0,260}_queueChecked\.add\(cb\.dataset\.recordId\)/,
+    '全选只处理当前渲染的可见复选框');
+  assert.match(source, /#att-queue-clear[\s\S]{0,260}_queueChecked\.clear\(\)/,
+    '清空操作也清除折叠后不可见项的已选状态');
+  assert.match(source, /btn\.disabled = n === 0;/, '没有显式选择时批量确认按钮禁用');
 });

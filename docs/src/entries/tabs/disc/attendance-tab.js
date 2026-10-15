@@ -204,20 +204,18 @@ export function renderContent(ctx) {
     else showToast('error', '所选考勤均已确认或不存在');
     renderContent(ctx);
   });
-  // 勾选状态只改「未勾选」集合、只刷新汇总条（不整块重渲染，避免丢滚动位置）
+  // 勾选状态只改显式「已勾选」集合、只刷新汇总条（不整块重渲染，避免丢滚动位置）
   _bindQueueCheckboxes(container);
   container.querySelector('#att-queue-select-all')?.addEventListener('click', () => {
     container.querySelectorAll('.att-queue-check').forEach(cb => {
       cb.checked = true;
-      if (cb.dataset.recordId) _queueUnchecked.delete(cb.dataset.recordId);
+      if (cb.dataset.recordId) _queueChecked.add(cb.dataset.recordId);
     });
     _syncBatchBar(container);
   });
   container.querySelector('#att-queue-clear')?.addEventListener('click', () => {
-    container.querySelectorAll('.att-queue-check').forEach(cb => {
-      cb.checked = false;
-      if (cb.dataset.recordId) _queueUnchecked.add(cb.dataset.recordId);
-    });
+    _queueChecked.clear();
+    container.querySelectorAll('.att-queue-check').forEach(cb => { cb.checked = false; });
     _syncBatchBar(container);
   });
 
@@ -479,8 +477,8 @@ export function renderContent(ctx) {
 const QUEUE_VISIBLE = 8; // 最小信息成本：默认只暴露最近需处理的少量条目
 let _queueExpanded = false;
 // 打包确认（SOP-B-41 / `D-455`）：纪检勾一批 → 一次确认（不逐条）。
-// 记「未勾选」集合而非「已勾选」——新增待确认项默认纳入本批（打包＝默认整批）。
-let _queueUnchecked = new Set();
+// 2026-10-15 支书确认：默认不选；只记录主动选择的记录，降低误批量确认风险。
+let _queueChecked = new Set();
 // A1-2026-09-05：会议考勤录入（2026-09-21 批次 124：上传位＝该场会议组织者；CF §C.1a 会议考勤）
 // 保态折叠（2026-09-05 quick-fix）：收起/取消只切 #disc-meet-body 的 hidden——
 // 不销毁 _meetPickerInstance、不重建 innerHTML，已选活动/人员/逐人状态保留；
@@ -521,11 +519,11 @@ function _prefillMakeupForActivity() {
 function _buildQueueHTML(items, returnedRecs, leaveCount, absentCount, overdueCount, autoConfirmedCount, accent, accentBorder, actById) {
   const visible = _queueExpanded ? items : items.slice(0, QUEUE_VISIBLE);
   const total = items.length;
-  const checkedCount = visible.filter(r => !_queueUnchecked.has(r.id)).length;
+  const checkedCount = visible.filter(r => _queueChecked.has(r.id)).length;
   const rowHtml = (r) => {
     const act = actById.get(r.activityId);
     const color = r.status === AttendanceStatus.ABSENT ? '#EF4444' : '#F59E0B';
-    const checked = !_queueUnchecked.has(r.id);
+    const checked = _queueChecked.has(r.id);
     return `
         <div class="flex items-center gap-3 py-2 rounded-xl hover:bg-gray-50 transition-colors">
           <input type="checkbox" class="att-queue-check w-3.5 h-3.5 rounded shrink-0" data-record-id="${r.id}"${checked ? ' checked' : ''} aria-label="选择本条考勤">
@@ -587,7 +585,7 @@ function _buildQueueHTML(items, returnedRecs, leaveCount, absentCount, overdueCo
           ${autoConfirmedCount > 0 ? `<span class="text-gray-500">出勤自动确认 <span class="font-bold text-green-700">${autoConfirmedCount}</span></span>` : ''}
         </div>
       </div>
-      <div class="text-xs text-gray-500 mb-2">打包确认：勾选一批、一次确认（整批确认，不逐条）；单条有误可「打回」交活动组织方重新确认。</div>
+      <div class="text-xs text-gray-500 mb-2">打包确认：先勾选本次要确认的记录，再一次确认；单条有误可「打回」交活动组织方重新确认。</div>
       ${listHtml}
       ${returnedHtml}
     </div>
@@ -623,13 +621,13 @@ function _confirmAttendanceBatch(recordIds, actById) {
   return picked.length;
 }
 
-/** 队列勾选：只维护「未勾选」集合并刷新汇总条（不整块重渲染，避免丢滚动位置） */
+/** 队列勾选：只维护显式「已勾选」集合并刷新汇总条（不整块重渲染，避免丢滚动位置） */
 function _bindQueueCheckboxes(container) {
   container.querySelectorAll('.att-queue-check').forEach(cb => {
     cb.addEventListener('change', () => {
       const id = cb.dataset.recordId;
       if (!id) return;
-      if (cb.checked) _queueUnchecked.delete(id); else _queueUnchecked.add(id);
+      if (cb.checked) _queueChecked.add(id); else _queueChecked.delete(id);
       _syncBatchBar(container);
     });
   });
