@@ -60,7 +60,7 @@ $12026-10-15 | — | [工程师]+[AI] | **（本批：4 格加短注）** **（�
 | .ctx/snapshots/INDEX.md | 2026-07-11 | — | [工程师]+[AI] | 快照历史索引 |
 | .ctx/snapshots/SNAPSHOT_v3_20260502.md | 2026-08-05 | — | [工程师]+[AI] | v3 快照 |
 | .ctx/logs/EXECUTION_LOG_INDEX.md | 2026-10-02 | — | [工程师]+[AI] | 日志索引（2026-09-19 补 2026年08月 / 09月 T 条目表） |
-| .ctx/logs/DECISION_LOG.md | 2026-10-06 | — | [工程师]+[AI] | **（批次 236：沿革已整段迁出**——本行的逐批沿革（3828 字）见 `.ctx/logs/archive/2026-09-EXECUTION_LOG.md`「附：TIMESTAMPS 备注列迁出的逐批沿革（批次 236）」；本列只写**现状 / 边界 / 为什么**）** |
+| .ctx/logs/DECISION_LOG.md | 2026-10-15 | — | [工程师]+[AI] | **（批次 236：沿革已整段迁出**——本行的逐批沿革（3828 字）见 `.ctx/logs/archive/2026-09-EXECUTION_LOG.md`「附：TIMESTAMPS 备注列迁出的逐批沿革（批次 236）」；本列只写**现状 / 边界 / 为什么**）** |
 | .ctx/logs/archive/2026-02-EXECUTION_LOG.md | 2026-02-28 | 2026-07-31 | [工程师]+[AI] | 已归档 |
 | .ctx/logs/archive/2026-03-EXECUTION_LOG.md | 2026-03-02 | 2026-07-31 | [工程师]+[AI] | 已归档 |
 | .ctx/logs/archive/2026-04-EXECUTION_LOG.md | 2026-04-01 | 2026-07-31 | [工程师]+[AI] | 已归档 |
@@ -358,7 +358,7 @@ $12026-10-15 | — | [工程师]+[AI] | 10 月决策日志（**当月活跃 · �
 | docs/src/entries/tabs/disc/_shared.js | 2026-08-23 | — | [工程师]+[AI] | 纪检委员共享上下文（`DISC_COMMISSIONER_ID`）。沿革见 `.ctx/logs/`。 |
 | docs/src/entries/tabs/disc/todo-tab.js | 2026-08-23 | — | [工程师]+[AI] | 纪检委员「待办」tab。沿革见 `.ctx/logs/`。 |
 | docs/src/entries/tabs/disc/overview-tab.js | 2026-08-23 | — | [工程师]+[AI] | 纪检委员「工作概况」tab。沿革见 `.ctx/logs/`。 |
-| docs/src/entries/tabs/disc/attendance-tab.js | 2026-10-04 | — | [工程师]+[AI] | 考勤管理 tab（会议卡：党课 / 党员大会＝纪检上传位；补课说明与 modal 说明走折叠摘要）。沿革见 `.ctx/logs/`。 |
+| docs/src/entries/tabs/disc/attendance-tab.js | 2026-10-15 | — | [工程师]+[AI] | 考勤管理 tab（党小组会只读列表并入总表活动类型筛选；会议卡：党课 / 党员大会＝纪检上传位）。沿革见 `.ctx/logs/`。 |
 | docs/src/entries/tabs/disc/review-tab.js | 2026-10-04 | — | [工程师]+[AI] | 「复盘」tab（由「活动监督复盘」改名）。沿革见 `.ctx/logs/`。 |
 | docs/src/entries/tabs/disc/inspection-tab.js | 2026-09-28 | — | [工程师]+[AI] | 考察管理 tab。沿革见 `.ctx/logs/`。 |
 | docs/src/entries/tabs/disc/makeup-tab.js | 2026-10-03 | — | [工程师]+[AI] | 补课制度 tab（范围段与归档段走折叠摘要）。沿革见 `.ctx/logs/`。 |
