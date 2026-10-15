@@ -3,44 +3,46 @@
 // 2026-08-07 自 ws-secretary-entry.js 拆分：统计条 + 活动日历 + 写入活动悬浮表单 + 活动查询。
 // D4 裁决批二（2026-09-08）：「考勤概况」独立卡移除 → 考勤作为活动字段入「活动查询」行内只读摘要。
 
-import { getAppState, setState } from '../../../core/base/state.js?v=20261014b';
-import { showToast, escHtml as esc, todayLocal } from '../../../core/base/utils.js?v=20261014b';
-import { scrollDetailIntoView } from '../../../components/ui/detail-anchor.js?v=20261014b';
-import { populateMonthSelector, renderCalendarByActivities } from '../../../components/record/calendar.js?v=20261014b';
-import { renderInspectorFromState, _draftMaterialCount } from '../../../components/record/inspector.js?v=20261014b';
-import { computeSecretaryStats } from '../../../services/core/roles.js?v=20261014b';
-import { PersonPicker } from '../../../components/governance/pickers.js?v=20261014b';
-import { openModal, closeModal, confirmNudge, confirmWriteWithoutGrant } from '../../../components/ui/modal.js?v=20261014b';
-import { DecisionTreeState, renderWorkflowPanel, writeActivityWithSOP } from '../../../services/activity/decision-tree.js?v=20261014b';
-import { loadActivities, listBrandProposals } from '../../../services/activity/activity.js?v=20261014b';
-import { renderQueryView } from '../../../components/governance/query-view.js?v=20261014b';
-import { icon } from '../../../core/base/icons.js?v=20261014b';
-import { loadAttendanceRecords } from '../../../services/activity/attendance.js?v=20261014b';
-import { liveMembers, PersonStore, getPersonName } from '../../../services/member/person.js?v=20261014b';
+import { getAppState, setState } from '../../../core/base/state.js?v=20261015b';
+import { showToast, escHtml as esc, todayLocal } from '../../../core/base/utils.js?v=20261015b';
+import { scrollDetailIntoView } from '../../../components/ui/detail-anchor.js?v=20261015b';
+import { populateMonthSelector, renderCalendarByActivities } from '../../../components/record/calendar.js?v=20261015b';
+import { renderInspectorFromState, _draftMaterialCount } from '../../../components/record/inspector.js?v=20261015b';
+import { computeSecretaryStats } from '../../../services/core/roles.js?v=20261015b';
+import { PersonPicker } from '../../../components/governance/pickers.js?v=20261015b';
+import { openModal, closeModal, confirmNudge, confirmWriteWithoutGrant } from '../../../components/ui/modal.js?v=20261015b';
+import { DecisionTreeState, renderWorkflowPanel, writeActivityWithSOP } from '../../../services/activity/decision-tree.js?v=20261015b';
+import { loadActivities, listBrandProposals } from '../../../services/activity/activity.js?v=20261015b';
+import { renderQueryView } from '../../../components/governance/query-view.js?v=20261015b';
+import { icon } from '../../../core/base/icons.js?v=20261015b';
+import { loadAttendanceRecords } from '../../../services/activity/attendance.js?v=20261015b';
+import { liveMembers, PersonStore, getPersonName } from '../../../services/member/person.js?v=20261015b';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/member/person.js 获取（原直连 mock PEOPLE）
 // 实时视图（非快照）：成员增删即时可见——见 services/member/person.js liveMembers 说明
 const PEOPLE = liveMembers();
-import { NoticeStore } from '../../../services/governance/notice.js?v=20261014b';
-import { BranchService } from '../../../services/core/runtime.js?v=20261014b';
-import { ACTIVITY_CLASSIFICATION, classifyActivityType, normalizeActivityType, dotDarkVars, SCENARIO_WRITE_IDS, SCENARIO_LABELS, ROLE_LABELS, PROJECT_ROLES, activityTypeBadgeVariant } from '../../../core/domain/constants.js?v=20261014b';
+import { NoticeStore } from '../../../services/governance/notice.js?v=20261015b';
+import { BranchService } from '../../../services/core/runtime.js?v=20261015b';
+import { ACTIVITY_CLASSIFICATION, classifyActivityType, normalizeActivityType, dotDarkVars, SCENARIO_WRITE_IDS, SCENARIO_LABELS, ROLE_LABELS, PROJECT_ROLES, activityTypeBadgeVariant } from '../../../core/domain/constants.js?v=20261015b';
 // R1-A 点⑤（2026-09-09）：强调色渲染统一 person-aware 动态解析（替代模块级 resolveAccentRole 快照）
-import { getAppliedAccentColors } from '../../../core/boot/theme.js?v=20261014b';
-import { badgeHtml } from '../../../components/ui/badges.js?v=20261014b';
-import { collectAgendaRows, buildAgendaCandidates, AGENDA_CANDIDATE_GROUPS } from './agenda-form.js?v=20261014b';
-import { defaultVoteConfig, isDecisionScenario, resolveVoterIds, resolveParticipantIds, isAnonymousForced } from '../../../services/activity/vote-config.js?v=20261014b';
-import { AuthStore } from '../../../services/core/auth.js?v=20261014b';
-import { getBranchIdOfPerson, getBranchById, applyWorkflowBlockPolicy, getWorkflowBlockFieldPolicy, getWorkflowBlockParticipantPolicy } from '../../../services/branch/branch.js?v=20261014b';
+import { getAppliedAccentColors } from '../../../core/boot/theme.js?v=20261015b';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20261015b';
+import { collectAgendaRows, buildAgendaCandidates, AGENDA_CANDIDATE_GROUPS } from './agenda-form.js?v=20261015b';
+import { defaultVoteConfig, isDecisionScenario, resolveVoterIds, resolveParticipantIds, isAnonymousForced } from '../../../services/activity/vote-config.js?v=20261015b';
+import { AuthStore } from '../../../services/core/auth.js?v=20261015b';
+import { getBranchIdOfPerson, getBranchById, applyWorkflowBlockPolicy, getWorkflowBlockFieldPolicy, getWorkflowBlockParticipantPolicy } from '../../../services/branch/branch.js?v=20261015b';
+import { generateId } from '../../../core/base/id.js?v=20261015b';
+import { validateAgendaStructure } from '../../../services/activity/agenda-relations.js?v=20261015b';
 // 支部文件读侧收敛点（2026-09-10）：会前草案下拉经 branch-doc 服务读取（按归属支部过滤，跨支部不可见）
-import { listDocs as listBranchDocs, isAgendaDraftDoc } from '../../../services/branch/branch-doc.js?v=20261014b';
+import { listDocs as listBranchDocs, isAgendaDraftDoc } from '../../../services/branch/branch-doc.js?v=20261015b';
 // L3 S4（2026-09-03）：主题党日工作流块 manifest 驱动试点（入口守卫 + 表单元数据单一源）
-import { BLOCK_MANIFESTS, THEME_PARTY_DAY_MANIFEST, THREE_MEETINGS_MANIFESTS } from '../../../workflow/blocks/manifests.js?v=20261014b';
+import { BLOCK_MANIFESTS, THEME_PARTY_DAY_MANIFEST, THREE_MEETINGS_MANIFESTS } from '../../../workflow/blocks/manifests.js?v=20261015b';
 // B1（2026-09-12）：党委下钻支部的演示只读视图判定（单一源 = services/core/branch-demo-nav.js）
-import { isReadonlyBranchDrilldown } from '../../../services/core/branch-demo-nav.js?v=20261014b';
+import { isReadonlyBranchDrilldown } from '../../../services/core/branch-demo-nav.js?v=20261015b';
 // 统一检索引擎（2026-10-04 批次 373）：党小组活动列表（原支书台「党小组与活动」分区）按对象归位到本页
-import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261014b';
+import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261015b';
 // 项目赋权整卡（2026-10-04 批次 373 · 支书圈乙「整卡搬去活动管理」）：实现单一源＝assign-tab.js
 //   ——本页只给落点宿主，不新造第二套视觉/表单（同 group-progress-tab 既有形态）。
-import { mountActivityProjectAuth } from './assign-tab.js?v=20261014b';
+import { mountActivityProjectAuth } from './assign-tab.js?v=20261015b';
 
 // 生效强调色 hex（R1-A 点⑤：登录人强调色=person 键覆盖，禁止模块加载期快照写死——
 // 一律渲染时经 getAppliedAccentColors 动态解析，改色后随重渲染/刷新生效，与 --app-accent 同源）
@@ -117,21 +119,30 @@ const AGENDA_KIND_CHIPS = [
   { kind: 'brand-designation', label: '品牌认定' }, // 2026-09-21 批次 132：品牌认定＝提案 → 支委会通过后确定
 ];
 
-/** 议程行 HTML（议题 + 主持人 + 类型 chips + 折叠的草案/待讨论名单字段；2026-09-21 批次 132：品牌认定提案带回指 `brandActivityId`） */
-function _agendaRowHTML({ item = '', host = '', kinds = [], branchDocId = '', toStage = '', brandActivityId = '' } = {}) {
+/** 议程行 HTML（议题步骤与业务类型分别表达；讨论/表决关系用稳定 agenda id 连接） */
+function _agendaRowHTML({ id = '', item = '', host = '', kinds = [], branchDocId = '', toStage = '', brandActivityId = '', agendaStep = '', discussionAgendaItemId = '' } = {}) {
   const kindOn = (k) => (kinds.includes(k) ? ' wp-agenda-kind-on' : '');
   const docVisible = kinds.includes('discussion-file') ? '' : ' hidden';
   const memberVisible = kinds.includes('attendee-list') ? '' : ' hidden';
+  const agendaId = esc(id || generateId('ag'));
+  const stepOptions = [['', '普通议题'], ['discussion', '讨论项'], ['vote', '表决项']].map(([value, label]) =>
+    `<option value="${value}" ${value === agendaStep ? 'selected' : ''}>${label}</option>`).join('');
   const targetOptions = ['', ...AGENDA_TARGET_STAGES].map((s) =>
     `<option value="${s}" ${s === (toStage || '') ? 'selected' : ''}>${s ? `转为${s}` : '选择目标阶段'}</option>`).join('');
   return `
-    <div class="wp-agenda-row border border-gray-100 rounded-lg p-2 space-y-1.5 bg-white"${brandActivityId ? ` data-brand-activity-id="${brandActivityId}"` : ''}>
+    <div class="wp-agenda-row border border-gray-100 rounded-lg p-2 space-y-1.5 bg-white" data-agenda-id="${agendaId}"${brandActivityId ? ` data-brand-activity-id="${esc(brandActivityId)}"` : ''}>
       <div class="flex items-center gap-2">
         <input type="text" class="wp-agenda-item input-flat w-full text-xs" placeholder="议题，如：讨论关于 N 名发展对象转为预备党员" value="${item}">
         <input type="text" class="wp-agenda-host input-flat w-24 text-xs" placeholder="主持人" value="${host}">
         <button type="button" data-action="agenda-remove" class="btn-ghost text-sm px-1 shrink-0" title="删除该条">✕</button>
       </div>
-      <div class="flex items-center gap-1.5">
+      <div class="flex flex-wrap items-center gap-1.5">
+        <label class="text-[11px] text-gray-500 shrink-0" for="${agendaId}-step">步骤</label>
+        <select id="${agendaId}-step" class="wp-agenda-step input-flat text-xs" aria-label="议程步骤">${stepOptions}</select>
+        <div class="wp-agenda-discussion-slot flex items-center gap-1.5${agendaStep === 'vote' ? '' : ' hidden'}">
+          <label class="text-[11px] text-gray-500 shrink-0" for="${agendaId}-discussion">对应讨论项</label>
+          <select id="${agendaId}-discussion" class="wp-agenda-discussion-ref input-flat text-xs" aria-label="表决项对应的讨论项" data-selected="${esc(discussionAgendaItemId)}"></select>
+        </div>
         <span class="text-[11px] text-gray-500 shrink-0">类型</span>
         ${AGENDA_KIND_CHIPS.map((c) => `
           <button type="button" data-kind="${c.kind}" class="btn-tab wp-agenda-kind text-xs px-3 py-1.5 rounded-lg border text-gray-600 transition-colors${kindOn(c.kind)}">${c.label}</button>
@@ -736,7 +747,11 @@ function renderFormStep() {
     // 初始 1 行空议程（HTML 内嵌，减少首条输入点击；添加/删除由 bindWritePanelEvents 事件处理）
     html += _agendaRowHTML();
     html += `</div>`;
-    html += `<button type="button" data-action="agenda-add" class="btn-outline text-xs px-3 py-1.5">+ 添加议程</button>`;
+    html += `<div class="flex flex-wrap gap-2">
+      <button type="button" data-action="agenda-add" class="btn-outline text-xs px-3 py-1.5">+ 添加议题</button>
+      <button type="button" data-action="agenda-add-vote-pair" class="btn-outline text-xs px-3 py-1.5">+ 添加讨论＋表决事项</button>
+    </div>`;
+    html += `<p class="text-xs text-gray-500 mt-1.5">先讨论后表决时分成两条；表态和最终结果记录在表决项。</p>`;
     html += `</div>`;
   }
 
@@ -951,12 +966,13 @@ function renderVoteConfigSection(scenarioId) {
   return html;
 }
 
-/** 添加一条议程输入行（T-283：议题 + 可选主持人；2026-09-01：类型 chips + 待讨论名单多选；2026-09-21 批次 127：清单勾入时带人选 personIds；批次 132：品牌认定提案带回指 brandActivityId） */
-function _addAgendaRow(container, item = '', host = '', kinds = [], branchDocId = '', toStage = '', personIds = [], brandActivityId = '') {
+/** 添加一条议程输入行；议程 id 在编辑期间稳定，供讨论/表决关系回指。 */
+function _addAgendaRow(container, item = '', host = '', kinds = [], branchDocId = '', toStage = '', personIds = [], brandActivityId = '', step = {}) {
   const list = container.querySelector('#wp-agenda-list');
-  if (!list) return;
+  if (!list) return null;
   const wrapper = document.createElement('div');
-  wrapper.innerHTML = _agendaRowHTML({ item, host, kinds, branchDocId, toStage, brandActivityId });
+  wrapper.innerHTML = _agendaRowHTML({ id: step.id || generateId('ag'), item, host, kinds, branchDocId, toStage, brandActivityId,
+    agendaStep: step.agendaStep || '', discussionAgendaItemId: step.discussionAgendaItemId || '' });
   const row = wrapper.firstElementChild;
   list.appendChild(row);
   // 行内动作（「删除该条」）直绑：`bindWritePanelEvents` 只在渲染那一轮绑**既有**元素，
@@ -965,6 +981,45 @@ function _addAgendaRow(container, item = '', host = '', kinds = [], branchDocId 
   if (branchDocId) row.dataset.docId = branchDocId; if (brandActivityId) row.dataset.brandActivityId = brandActivityId; _hydrateDraftDocs(row);
   _bindRowKindChips(row);
   _initRowPersonPicker(row, personIds);
+  _refreshAgendaRelationControls(list);
+  return row;
+}
+
+/** 表决项只可关联前面已出现的讨论项；议题文字变更时同步下拉选项。 */
+function _refreshAgendaRelationControls(list) {
+  if (!list) return;
+  const earlierDiscussions = [];
+  for (const row of list.querySelectorAll('.wp-agenda-row')) {
+    const step = row.querySelector('.wp-agenda-step')?.value || '';
+    const slot = row.querySelector('.wp-agenda-discussion-slot');
+    const select = row.querySelector('.wp-agenda-discussion-ref');
+    if (slot) slot.classList.toggle('hidden', step !== 'vote');
+    if (select) {
+      const previous = step === 'vote'
+        ? (select.options.length ? select.value : (select.dataset.selected || ''))
+        : '';
+      select.replaceChildren();
+      const placeholder = document.createElement('option');
+      placeholder.value = '';
+      placeholder.textContent = earlierDiscussions.length ? '选择对应讨论项' : '请先添加前面的讨论项';
+      select.appendChild(placeholder);
+      for (const discussion of earlierDiscussions) {
+        const option = document.createElement('option');
+        option.value = discussion.id;
+        option.textContent = discussion.label;
+        option.selected = discussion.id === previous;
+        select.appendChild(option);
+      }
+      select.disabled = step === 'vote' && earlierDiscussions.length === 0;
+      if (!earlierDiscussions.some((discussion) => discussion.id === previous)) select.value = '';
+      select.dataset.selected = select.value;
+    }
+    if (step === 'discussion') {
+      const id = row.dataset.agendaId || '';
+      const title = row.querySelector('.wp-agenda-item')?.value?.trim() || '';
+      earlierDiscussions.push({ id, label: `${earlierDiscussions.length + 1}. ${title || '（尚未填写讨论事项）'}` });
+    }
+  }
 }
 
 /** 绑定单个议程行的类型 chips（多选不互斥；选中展开对应字段区） */
@@ -1025,10 +1080,20 @@ function bindWritePanelEvents(container) {
   const agendaList = container.querySelector('#wp-agenda-list');
   if (agendaList && agendaList.children.length === 0) _addAgendaRow(container);
   if (agendaList) {
+    if (!agendaList.dataset.relationEventsBound) {
+      agendaList.dataset.relationEventsBound = '1';
+      agendaList.addEventListener('change', (event) => {
+        if (event.target.matches('.wp-agenda-step, .wp-agenda-discussion-ref')) _refreshAgendaRelationControls(agendaList);
+      });
+      agendaList.addEventListener('input', (event) => {
+        if (event.target.matches('.wp-agenda-item')) _refreshAgendaRelationControls(agendaList);
+      });
+    }
     agendaList.querySelectorAll('.wp-agenda-row').forEach((row) => {
       _hydrateDraftDocs(row);
       _initRowPersonPicker(row);
     });
+    _refreshAgendaRelationControls(agendaList);
   }
   // 议程类型 chips（2026-09-01：多选不互斥；初始行绑定，新增行在 _addAgendaRow 内绑定）
   container.querySelectorAll('.wp-agenda-row').forEach((row) => _bindRowKindChips(row));
@@ -1159,12 +1224,24 @@ function handleWritePanelAction(e) {
       return; // 不重渲染面板
     }
 
+    case 'agenda-add-vote-pair': {
+      const container = _getWritePanelContainer();
+      const discussion = _addAgendaRow(container, '', '', [], '', '', [], '', { agendaStep: 'discussion' });
+      if (!discussion) return;
+      _addAgendaRow(container, '', '', [], '', '', [], '', {
+        agendaStep: 'vote', discussionAgendaItemId: discussion.dataset.agendaId,
+      });
+      showToast('info', '已添加一组讨论项和表决项，请分别填写议题内容');
+      return;
+    }
+
     case 'agenda-remove': {
       const list = btn.closest('#wp-agenda-list');
       const row = btn.closest('.wp-agenda-row');
       if (row) {
         if (list && list.children.length > 1) row.remove();
         else row.querySelectorAll('input, select').forEach(i => { i.value = ''; });
+        _refreshAgendaRelationControls(list);
       }
       return;
     }
@@ -1224,6 +1301,15 @@ async function handleSubmitActivity() {
     const formArea = _getWritePanelContainer();
     if (formArea) {
       const rows = [...formArea.querySelectorAll('.wp-agenda-row')];
+      const incompleteStep = rows.find((row) => {
+        const step = row.querySelector('.wp-agenda-step')?.value || '';
+        return step && !row.querySelector('.wp-agenda-item')?.value?.trim();
+      });
+      if (incompleteStep) {
+        showToast('error', `${incompleteStep.querySelector('.wp-agenda-step')?.selectedOptions?.[0]?.textContent || '议程项'}请填写议题内容`);
+        incompleteStep.querySelector('.wp-agenda-item')?.focus();
+        return;
+      }
       agenda.push(...collectAgendaRows(rows.map(row => {
         const kinds = [...row.querySelectorAll('.wp-agenda-kind.wp-agenda-kind-on')].map(c => c.dataset.kind);
         const pickerEntry = (wp.agendaPickers || []).find(entry => entry.row === row);
@@ -1237,8 +1323,11 @@ async function handleSubmitActivity() {
           }
         }
         return {
+          id: row.dataset.agendaId || '',
           item: row.querySelector('.wp-agenda-item')?.value || '',
           host: row.querySelector('.wp-agenda-host')?.value || '',
+          agendaStep: row.querySelector('.wp-agenda-step')?.value || '',
+          discussionAgendaItemId: row.querySelector('.wp-agenda-discussion-ref')?.value || '',
           kinds,
           branchDocId: row.querySelector('.wp-agenda-doc')?.value || '', brandActivityId: row.dataset.brandActivityId || '',
           personIds,
@@ -1247,6 +1336,11 @@ async function handleSubmitActivity() {
         };
       })));
     }
+  }
+  const agendaStructure = validateAgendaStructure(agenda);
+  if (!agendaStructure.ok) {
+    showToast('error', agendaStructure.error);
+    return;
   }
   // S-2 校验：待讨论名单须选目标阶段（否则无法派生成员变更申请）
   if (agenda.some(a => Array.isArray(a.personIds) && a.personIds.length > 0 && !a.toStage)) {
@@ -1513,9 +1607,9 @@ document.addEventListener('click', (e) => { if (e.target?.closest?.('#wp-agenda-
 async function _loadAgendaCandidateSources() {
   const out = { taskforceProposals: [], issues: [], draftDocs: [], members: [], stageEntries: {} };
   const [{ TaskForceRecordStore }, { IssueStore }, { loadStageEntryDates }] = await Promise.all([
-    import('../../../services/activity/taskforce.js?v=20261014b'),
-    import('../../../services/governance/issues.js?v=20261014b'),
-    import('../../../services/member/member-confirmation.js?v=20261014b'),
+    import('../../../services/activity/taskforce.js?v=20261015b'),
+    import('../../../services/governance/issues.js?v=20261015b'),
+    import('../../../services/member/member-confirmation.js?v=20261015b'),
   ]);
   try { out.taskforceProposals = TaskForceRecordStore.listCommitteeRequests(); }
   catch (e) { console.warn('[calendar] 专班待议加载失败：', e); }

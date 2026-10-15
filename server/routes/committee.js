@@ -10,6 +10,7 @@ import { requireAuth, requireRole } from './auth.js';
 // 计票方式（ballotMode）同源（2026-09-12 支书裁定「正式表决无记名 + 匿名模式可选」）：
 //   强制/默认规则 = ballotModeOfActivity/isAnonymousForced，勿在本文件另写副本。
 import { SECRETARY_AND_DEPUTY_ROLES as SECRETARY_DEPUTY_ROLE_KEYS, COMMITTEE_IDS as BRANCH_COMMITTEE_IDS, ballotModeOfActivity } from '../../docs/src/core/domain/constants.js';
+import { validateAgendaVoteTarget } from '../../docs/src/services/activity/agenda-relations.js';
 
 // 支委白名单 = 旧活动回退白名单（保留不改行为；名单单一源 = constants.js COMMITTEE_IDS，与 member.js 同源），
 // 供无 voteConfig 的旧活动/回退场景兜底校验。
@@ -67,6 +68,8 @@ export function createCommitteeRouter(db) {
     // 活动存在性检查（活动数据在 activities 表；活动不存在一律 404，不静默放行）
     const actRow = getRow(db, 'activities', activityId);
     if (!actRow) return res.status(404).json({ error: '活动不存在' });
+    const agendaTarget = validateAgendaVoteTarget(actRow.agenda, agendaItemId);
+    if (!agendaTarget.ok) return res.status(400).json({ error: agendaTarget.error });
     // ===== 表决授权解析（AV3，fail-closed）=====
     // 信任模型：表决授权（optionSet 选项枚举 + voterIds 应到名单）存于活动 voteConfig，
     //   由前端创建活动时经 vote-config 固化写入（客户端写）。

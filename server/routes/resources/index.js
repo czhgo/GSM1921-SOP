@@ -16,6 +16,7 @@ import { sanitizeConfigModules, sanitizeConfigBlocks, sanitizeConfigWorkforce, s
 import { POLICY_OVERRIDE_SECTIONS } from '../../../docs/src/core/domain/policy-defaults.js';
 // P2c（2026-09-03）：授权语义角色集单一源 = docs/src/core/domain/constants.js（勿手写）
 import { BRANCH_COMMISSION_ROLES, hashSubmitterToken } from '../../../docs/src/core/domain/constants.js';
+import { validateAgendaStructure } from '../../../docs/src/services/activity/agenda-relations.js';
 
 // 资源名 → 表名映射（与 data-adapter 的分组名对齐）
 // T-218：新增 4 张 niche 表（键名与前端快照 payload 键名完全一致）
@@ -69,6 +70,10 @@ export function createResourcesRouter(db) {
         if (!row || typeof row !== 'object' || Array.isArray(row)) {
           return res.status(400).json({ error: 'body 须为单条数据对象' });
         }
+        if (name === 'activities') {
+          const agendaCheck = validateAgendaStructure(row.agenda);
+          if (!agendaCheck.ok) return res.status(400).json({ error: agendaCheck.error });
+        }
         // 活动写门：非支委层拒；组长限党小组会/主题党日（批准门开启档时直建的写入态见文件末 `_activityCreateGatePatch`）
         if (name === 'activities' && !_assertActivityWrite(req.actor, row.type)) {
           return res.status(403).json({ error: ACTIVITY_WRITE_DENY_MSG });
@@ -113,6 +118,10 @@ export function createResourcesRouter(db) {
         if (ballotErr) return res.status(400).json({ error: ballotErr });
       }
       const merged = { ...JSON.parse(existing.data), ...(req.body || {}), id };
+      if (name === 'activities') {
+        const agendaCheck = validateAgendaStructure(merged.agenda);
+        if (!agendaCheck.ok) return res.status(400).json({ error: agendaCheck.error });
+      }
       db.prepare(`INSERT OR REPLACE INTO ${table} (id, data) VALUES (?, ?)`).run(id, JSON.stringify(merged));
       res.json(merged);
     });

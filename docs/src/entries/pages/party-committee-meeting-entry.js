@@ -19,34 +19,35 @@
 //
 // 数据源装配：与 activity-entry.js / notice-entry.js 同款——有 API 会话时先切数据源并 init() 拉全量
 //   再渲染（`module-load.test.mjs::E2` 独立页装配断言要求）。
-import { renderSidebar } from '../../components/shell/sidebar.js?v=20261014b';
-import { renderHeader } from '../../components/shell/header.js?v=20261014b';
-import { hydrateDataSource, notifyDataLoaded, getAdapter, persist } from '../../data/data-adapter.js?v=20261014b';
-import { ApiAdapter } from '../../data/api-adapter.js?v=20261014b';
-import { mockDB } from '../../core/domain/domain.js?v=20261014b';
-import { AuthStore } from '../../services/core/auth.js?v=20261014b';
-import { PersonStore, getPersonName } from '../../services/member/person.js?v=20261014b';
-import { BranchService } from '../../services/core/runtime.js?v=20261014b';
-import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261014b';
-import { IssueStore } from '../../services/governance/issues.js?v=20261014b';
-import { resolveVoterIds, defaultVoteConfig, optionSetOf, isAnonymousActivity } from '../../services/activity/vote-config.js?v=20261014b';
-import { fetchVotes, tallyForItem } from '../../services/activity/committee-vote.js?v=20261014b';
-import { renderVoteWidget } from '../../components/governance/vote-widget.js?v=20261014b';
-import { renderVoteSummary } from '../../components/governance/vote-summary-panel.js?v=20261014b';
-import { recordAgendaResultForActivity } from '../../services/activity/agenda-follow-up.js?v=20261014b';
+import { renderSidebar } from '../../components/shell/sidebar.js?v=20261015b';
+import { renderHeader } from '../../components/shell/header.js?v=20261015b';
+import { hydrateDataSource, notifyDataLoaded, getAdapter, persist } from '../../data/data-adapter.js?v=20261015b';
+import { ApiAdapter } from '../../data/api-adapter.js?v=20261015b';
+import { mockDB } from '../../core/domain/domain.js?v=20261015b';
+import { AuthStore } from '../../services/core/auth.js?v=20261015b';
+import { PersonStore, getPersonName } from '../../services/member/person.js?v=20261015b';
+import { BranchService } from '../../services/core/runtime.js?v=20261015b';
+import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261015b';
+import { IssueStore } from '../../services/governance/issues.js?v=20261015b';
+import { resolveVoterIds, defaultVoteConfig, optionSetOf, isAnonymousActivity } from '../../services/activity/vote-config.js?v=20261015b';
+import { fetchVotes, tallyForItem } from '../../services/activity/committee-vote.js?v=20261015b';
+import { agendaDecisionSource } from '../../services/activity/agenda-relations.js?v=20261015b';
+import { renderVoteWidget } from '../../components/governance/vote-widget.js?v=20261015b';
+import { renderVoteSummary } from '../../components/governance/vote-summary-panel.js?v=20261015b';
+import { recordAgendaResultForActivity } from '../../services/activity/agenda-follow-up.js?v=20261015b';
 // 「拟上会」清单单一源（2026-09-21 批次 127 · `SOP-B-33` 取（乙）档）：本页的「提取议程」
 // 与写入活动的议程区块共用**同一张清单**（agenda-form.js::buildAgendaCandidates）——
 // 原按来源分两块的呈现（专班报送 / 意见反馈）已按乙档收为一张清单（不按来源各做导入口）。
-import { buildAgendaCandidates, AGENDA_CANDIDATE_GROUPS } from '../tabs/secretary/agenda-form.js?v=20261014b';
-import { listDocs as listBranchDocs, isAgendaDraftDoc, isInstitutionDraftAgendaItem } from '../../services/branch/branch-doc.js?v=20261014b';
+import { buildAgendaCandidates, AGENDA_CANDIDATE_GROUPS } from '../tabs/secretary/agenda-form.js?v=20261015b';
+import { listDocs as listBranchDocs, isAgendaDraftDoc, isInstitutionDraftAgendaItem } from '../../services/branch/branch-doc.js?v=20261015b';
 // 党小组组长（含代组长）清单单一源——2026-09-23 支书裁定甲「支委扩大会…党小组组长（代组长）是可以
 //   打包的」；**不另造组长名单**（同 services/member/party-group.js 的组清单同源；组内无组长时由该源回落次选身份）
-import { listPartyGroups } from '../../services/member/group-view.js?v=20261014b';
-import { loadStageEntryDates } from '../../services/member/member-confirmation.js?v=20261014b';
+import { listPartyGroups } from '../../services/member/group-view.js?v=20261015b';
+import { loadStageEntryDates } from '../../services/member/member-confirmation.js?v=20261015b';
 // 品牌认定提案（2026-09-21 批次 132 · 支书口径二「提案 → 支委会通过后确定」）——判据单一源
-import { listBrandProposals } from '../../services/activity/activity.js?v=20261014b';
-import { showToast, escHtml as esc, todayLocal } from '../../core/base/utils.js?v=20261014b';
-import { generateId } from '../../core/base/id.js?v=20261014b';
+import { listBrandProposals } from '../../services/activity/activity.js?v=20261015b';
+import { showToast, escHtml as esc, todayLocal } from '../../core/base/utils.js?v=20261015b';
+import { generateId } from '../../core/base/id.js?v=20261015b';
 
 renderSidebar('dashboard');
 renderHeader('dashboard');
@@ -325,6 +326,9 @@ function agendaSectionHtml(act) {
   const voterIds = Array.isArray(act.voteConfig?.voterIds) ? act.voteConfig.voterIds : [];
   const canVote = !!me && voterIds.includes(me.personId);
   const items = (act.agenda || []).filter((a) => a && a.item);
+  const stepBadge = (a) => a.agendaStep === 'discussion'
+    ? '<span class="inline-flex items-center px-1.5 py-0.5 rounded text-[11px] font-medium text-indigo-700 bg-indigo-50">讨论项</span>'
+    : (a.agendaStep === 'vote' ? '<span class="inline-flex items-center px-1.5 py-0.5 rounded text-[11px] font-medium text-rose-700 bg-rose-50">表决项</span>' : '');
   if (!items.length) {
     return `
       <div class="card rounded-xl p-5">
@@ -339,17 +343,20 @@ function agendaSectionHtml(act) {
         <div class="flex-1 min-w-0">
           <div class="flex items-center gap-2 flex-wrap">
             <span class="text-sm font-medium text-gray-700">${esc(a.item)}</span>
+            ${stepBadge(a)}
             ${a.result ? `<span class="inline-flex items-center px-1.5 py-0.5 rounded text-[11px] font-medium ${a.result === 'passed' ? 'text-green-700 bg-green-50' : 'text-red-700 bg-red-50'}">${a.result === 'passed' ? '已通过' : (a.result === 'partial' ? '部分通过' : '未通过')}</span>` : ''}
           </div>
-          ${a.host ? `<div class="text-xs text-gray-500 mt-0.5">（主持人：${esc(a.host)}）</div>` : ''}
+          ${a.host || a.discussionAgendaItemId ? `<div class="text-xs text-gray-500 mt-0.5">${a.host ? `（主持人：${esc(a.host)}）` : ''}${a.discussionAgendaItemId ? `${a.host ? ' · ' : ''}对应讨论：${esc(items.find((item) => item.id === a.discussionAgendaItemId)?.item || '议程关系无效')}` : ''}</div>` : ''}
         </div>
       </div>
-      ${a.id ? `<div class="vote-widget-slot mt-2" data-vote-item-id="${esc(a.id)}"></div>` : '<div class="text-[11px] text-gray-500 mt-2">该条无表决编号，仅作议程记录。</div>'}
+      ${a.agendaStep === 'discussion'
+        ? '<div class="text-[11px] text-gray-500 mt-2">讨论过程项；表态与决议结果记录在关联表决项</div>'
+        : (a.id ? `<div class="vote-widget-slot mt-2" data-vote-item-id="${esc(a.id)}"></div>` : '<div class="text-[11px] text-gray-500 mt-2">该条无表决编号，仅作议程记录。</div>')}
     </div>`).join('');
   return `
     <div class="card rounded-xl p-5">
       <p class="text-sm font-semibold text-gray-700 mb-1">③ 议程与表态</p>
-      <p class="text-[11px] text-gray-500 mb-3">${canVote ? '你是本场应到表决人，可就每条议程表态（同意 / 异议 / 附言，可改票）。' : '你不在本场应到表决名单内，以下为只读议程。'}</p>
+      <p class="text-[11px] text-gray-500 mb-3">${canVote ? '你是本场应到表决人，可就表决项表态（同意 / 异议 / 附言，可改票）。讨论项用于记录讨论过程。' : '你不在本场应到表决名单内，以下为只读议程。'}</p>
       <div class="space-y-3">${rows}</div>
     </div>`;
 }
@@ -372,10 +379,14 @@ function resultSectionHtml(act, votes) {
   const items = (act.agenda || []).filter((a) => a && a.id);
   const canRecord = isSecretaryOrDeputy();
   const body = items.length ? items.map((a, i) => {
+    const isDiscussion = a.agendaStep === 'discussion';
+    const decisionSource = agendaDecisionSource(act.agenda, a);
     const rows = (votes || []).filter((v) => v && v.agendaItemId === a.id);
     const ballots = rows.filter((v) => v.personId);
     let detail;
-    if (anonymous) {
+    if (isDiscussion) {
+      detail = '讨论过程项不单独表态';
+    } else if (anonymous) {
       const t = tallyForItem(votes, a.id);
       const parts = Object.entries(t).map(([k, n]) => `${labelOf(k)} ${n}`).join(' · ');
       detail = `${parts || '暂无人表态'}（无记名：${ballots.length} 人已表态，不展示个人选项）`;
@@ -384,22 +395,25 @@ function resultSectionHtml(act, votes) {
         ? ballots.map((v) => `${getPersonName(v.personId) || v.personId}：${labelOf(v.position)}${v.note ? '（' + v.note + '）' : ''}`).join('；')
         : '暂无人表态';
     }
-    const resultLabel = a.result === 'passed' ? '已记录：通过'
+    const resultLabel = isDiscussion ? '过程项；决议结果在关联表决项记录'
+      : a.result === 'passed' ? '已记录：通过'
       : a.result === 'rejected' ? '已记录：未通过'
         : a.result === 'partial' ? '已记录：部分通过' : '尚未记录结果';
     const recorder = a.recordedBy ? `${getPersonName(a.recordedBy) || a.recordedBy}${a.recordedAt ? ' · ' + String(a.recordedAt).slice(0, 16).replace('T', ' ') : ''}` : '';
     // 2026-09-21 批次 129（制度链）：支委会审议**制度草案**时，在记录结果处定「是否报送党员大会表决」
     // （母本「在审议时确定」）——判据单一源在 branch-doc.js::isInstitutionDraftAgendaItem。
-    const instDraft = canRecord && isInstitutionDraftAgendaItem(a, mockDB.branchDocs || []);
+    const instDraft = canRecord && !isDiscussion && isInstitutionDraftAgendaItem(decisionSource, mockDB.branchDocs || []);
     return `
       <div class="rounded-xl border border-gray-100 p-3.5">
         <div class="flex items-start gap-2">
           <span class="text-xs text-gray-500 flex-shrink-0 w-5 pt-0.5">${i + 1}.</span>
           <div class="flex-1 min-w-0">
             <p class="text-sm font-medium text-gray-700">${esc(a.item)}</p>
+            ${a.agendaStep === 'discussion' ? '<span class="inline-flex items-center mt-1 px-1.5 py-0.5 rounded text-[11px] font-medium text-indigo-700 bg-indigo-50">讨论项</span>' : (a.agendaStep === 'vote' ? '<span class="inline-flex items-center mt-1 px-1.5 py-0.5 rounded text-[11px] font-medium text-rose-700 bg-rose-50">表决项</span>' : '')}
+            ${a.discussionAgendaItemId ? `<p class="text-xs text-gray-500 mt-1">对应讨论：${esc((act.agenda || []).find((item) => item.id === a.discussionAgendaItemId)?.item || '议程关系无效')}</p>` : ''}
             <p class="text-xs text-gray-500 mt-1">表态记录：${esc(detail)}</p>
             <p class="text-xs text-gray-500 mt-0.5">讨论结果：${esc(resultLabel)}${a.reportToPartyMeeting ? '（报送党员大会表决）' : ''}${recorder ? '（记录人 ' + esc(recorder) + '）' : ''}</p>
-            ${canRecord ? `<div class="mt-2 flex items-center gap-2 flex-wrap">
+            ${canRecord && !isDiscussion ? `<div class="mt-2 flex items-center gap-2 flex-wrap">
               <button type="button" class="btn-outline pcm-record text-xs px-2.5 py-1" data-item-id="${esc(a.id)}" data-result="passed">记录通过</button>
               <button type="button" class="btn-outline pcm-record text-xs px-2.5 py-1" data-item-id="${esc(a.id)}" data-result="rejected">记录未通过</button>
               ${instDraft ? `<label class="text-[11px] text-gray-500 flex items-center gap-1"><input type="checkbox" class="pcm-report-party" data-item-id="${esc(a.id)}" style="cursor:pointer;">报送党员大会表决</label>` : ''}

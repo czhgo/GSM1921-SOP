@@ -9,24 +9,24 @@
 //   committeeMembers.length。矩阵成员由调用方传入（有 voteConfig → voterIds 映射人员；无 → 权威支委名单
 //   resolveVoterIds('committee')，过滤见 inspector.js；server/routes/committee.js COMMITTEE_IDS 仅作旧活动
 //   回退白名单，勿再本地罗列支委成员）。选项集/标签权威 = vote-config.js OPTION_SETS（勿再本地硬编码）
-import { fetchVotes, lockVotes, votedCountOf, tallyOf } from '../../services/activity/committee-vote.js?v=20261014b';
-import { optionSetOf, isAnonymousActivity } from '../../services/activity/vote-config.js?v=20261014b';
-import { showToast, escHtml as esc } from '../../core/base/utils.js?v=20261014b';
+import { fetchVotes, lockVotes, votedCountOf, tallyOf } from '../../services/activity/committee-vote.js?v=20261015b';
+import { optionSetOf, isAnonymousActivity } from '../../services/activity/vote-config.js?v=20261015b';
+import { showToast, escHtml as esc } from '../../core/base/utils.js?v=20261015b';
 // R2-2（2026-09-06）：决议「待落实」跟进管理器（记录决议视图内勾选/保存/销项；本文件保留原版本串——
 //   唯一引用方 components/record/inspector.js 属禁改文件无法同步 ?v=，改动经子模块新版本串保证取新代码）
-import { loadActivities } from '../../services/activity/activity.js?v=20261014b';
+import { loadActivities } from '../../services/activity/activity.js?v=20261015b';
 import {
   resolutionFollowupSectionHtml, bindResolutionFollowupSection,
-} from './resolution-followup-manager.js?v=20261014b';
+} from './resolution-followup-manager.js?v=20261015b';
 // 批次 39：表态矩阵并入单一源「人 × 项目」矩阵（原 .vs-matrix 自建实现撤除，Q-23-18 收敛）
-import { renderRelationMatrix } from '../ui/relation-matrix.js?v=20261014b';
+import { renderRelationMatrix } from '../ui/relation-matrix.js?v=20261015b';
 
 // HTML 转义统一走 core/base/utils.js escHtml（2026-09-03 去重收口）
 
 export async function renderVoteSummary(container, { activity, committeeMembers, canLock }) {
   const votes = await fetchVotes(activity.id);
   const locked = activity.votesLocked === true;
-  const items = Array.isArray(activity.agenda) ? activity.agenda : [];
+  const items = Array.isArray(activity.agenda) ? activity.agenda.filter((item) => item?.agendaStep !== 'discussion') : [];
   // 无记名（2026-09-12 支书裁定）：矩阵/结果页只呈现「已投 / 未投 + 汇总计数」，
   //   逐人选项不落库亦不展示（参与记录仍可见，供催办与人数核验）；记名保持逐人现状。
   const anonymous = isAnonymousActivity(activity);
@@ -89,7 +89,7 @@ export async function renderVoteSummary(container, { activity, committeeMembers,
     rowLimit: 0,
     personLabel: '成员',
     itemLabel: '议题',
-    emptyText: '本活动暂无议程',
+    emptyText: '本活动暂无可表态的议题',
     cell: (pid, iid) => {
       const v = votes.find((x) => x.personId === pid && x.agendaItemId === iid);
       // 无记名：只呈现已投/未投（无逐人选项可展示）；记名：逐格显示选项 + 附言

@@ -5,48 +5,49 @@
 //        renderInspectorList, renderInspectorDetail
 // ════════════════════════════════════════════════════════════════
 
-import { setState, STATE, getAppState } from '../../core/base/state.js?v=20261014b';
-import { ROLE_COLORS, ROLE_LABELS, ROLE_THEME_CLASS, COMMISSIONER_ROLES, SECRETARY_ROLES, ACTIVITY_CLASSIFICATION } from '../../core/domain/constants.js?v=20261014b';
-import { _fmtChinese, showToast, escHtml as esc } from '../../core/base/utils.js?v=20261014b';
-import { icon } from '../../core/base/icons.js?v=20261014b';
-import { openModal, closeModal } from '../ui/modal.js?v=20261014b';
+import { setState, STATE, getAppState } from '../../core/base/state.js?v=20261015b';
+import { ROLE_COLORS, ROLE_LABELS, ROLE_THEME_CLASS, COMMISSIONER_ROLES, SECRETARY_ROLES, ACTIVITY_CLASSIFICATION } from '../../core/domain/constants.js?v=20261015b';
+import { _fmtChinese, showToast, escHtml as esc } from '../../core/base/utils.js?v=20261015b';
+import { icon } from '../../core/base/icons.js?v=20261015b';
+import { openModal, closeModal } from '../ui/modal.js?v=20261015b';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/member/person.js 获取（原直连 mock PEOPLE）
 // 实时视图（非快照）：成员增删即时可见——见 services/member/person.js liveMembers 说明
 const PEOPLE = liveMembers();
-import { getPersonById } from '../../services/member/person.js?v=20261014b';
-import { BranchService } from '../../services/core/runtime.js?v=20261014b';
-import { AuthStore } from '../../services/core/auth.js?v=20261014b';
-import { liveMembers, PersonStore, getPersonName } from '../../services/member/person.js?v=20261014b';
-import { statusBadgeHtml, bindStatusBadge, badgeHtml } from '../ui/badges.js?v=20261014b';
+import { getPersonById } from '../../services/member/person.js?v=20261015b';
+import { BranchService } from '../../services/core/runtime.js?v=20261015b';
+import { AuthStore } from '../../services/core/auth.js?v=20261015b';
+import { liveMembers, PersonStore, getPersonName } from '../../services/member/person.js?v=20261015b';
+import { statusBadgeHtml, bindStatusBadge, badgeHtml } from '../ui/badges.js?v=20261015b';
 // 表态权判据单一源（2026-09-30 批次 304 立 · 批次 312 补齐）：`isVoterOf` —— **角色无关**，只看本场固化应到名单。
 // 依据：支书 2026-09-30 原话「**即使是支部书记 / 其他支委 投票，在投票的时候也就是普通党员**」。
 // ⚠ 批次 304 只改了「表态位是否挂」（下方 slot 那行）；**表态面板的动作门与填充循环仍是 `isCommittee`**
 //   ⇒ 应到名单内的普通党员在支书台**挂得出空槽**（面板无按钮 / 循环根本不填）。批次 312 把这两处一并收口。
-import { isVoterOf } from '../../services/activity/vote-config.js?v=20261014b';
+import { isVoterOf } from '../../services/activity/vote-config.js?v=20261015b';
 // 批次 352b（`D-746` · 支书取「活动详情页行内作废」）：任务「作废（软）」——单一源弹窗
-import { openVoidModal } from '../ui/void-record.js?v=20261014b';
-import { persist, getAuthToken, getApiBaseUrl, getAdapter } from '../../data/data-adapter.js?v=20261014b';
-import { recordAgendaResultForActivity } from '../../services/activity/agenda-follow-up.js?v=20261014b';
+import { openVoidModal } from '../ui/void-record.js?v=20261015b';
+import { persist, getAuthToken, getApiBaseUrl, getAdapter } from '../../data/data-adapter.js?v=20261015b';
+import { recordAgendaResultForActivity } from '../../services/activity/agenda-follow-up.js?v=20261015b';
 // 制度链（2026-09-21 批次 129）：制度草案议程项在「记录结果」旁给一个「报送党员大会表决」勾选位——
 // 判据单一源在 branch-doc.js（勿在界面另写一份 purpose/status 判断）。
-import { isInstitutionDraftAgendaItem } from '../../services/branch/branch-doc.js?v=20261014b';
+import { isInstitutionDraftAgendaItem } from '../../services/branch/branch-doc.js?v=20261015b';
 // 品牌认定（2026-09-21 批次 132 · 支书口径二「支委/党小组组长均可以提案，支委会通过后确定」）：判据与写口单一源 = services/activity/activity.js；
 // 本处只渲染「提案 / 撤回 / 取消认定」三种动作，**不再有「点一下即认定」**；同源另取三项（2026-09-21 批次 135）：追加复盘要求进关闭判据。
-import { canProposeBrand, brandProposalOf, proposeBrandDesignation, withdrawBrandProposal, revokeBrandDesignation, reviewRequestOf, isReviewReturned, isReviewRequestEligibleActivity, PENDING_APPROVAL_STATUS, canApproveActivity, approveActivity, rejectActivity, activityApprovalVoteOf, openCommitteeVoteForActivity } from '../../services/activity/activity.js?v=20261014b';
+import { canProposeBrand, brandProposalOf, proposeBrandDesignation, withdrawBrandProposal, revokeBrandDesignation, reviewRequestOf, isReviewReturned, isReviewRequestEligibleActivity, PENDING_APPROVAL_STATUS, canApproveActivity, approveActivity, rejectActivity, activityApprovalVoteOf, openCommitteeVoteForActivity } from '../../services/activity/activity.js?v=20261015b';
 // 活动批准门当前档位（2026-09-22 批次 150）：参数本体单一源 = core/domain/policy-defaults.js::activityApproval.mode
-import { activityApprovalMode, ACTIVITY_APPROVAL_MODE_LABELS } from '../../core/domain/policy-defaults.js?v=20261014b';
+import { activityApprovalMode, ACTIVITY_APPROVAL_MODE_LABELS } from '../../core/domain/policy-defaults.js?v=20261015b';
 // 议程行内编辑纯函数（2026-09-06 复用激活）：createEditableAgenda 整对象投影随行保留扩展字段；
 // normalizeEditedAgenda 保存时 {...原对象, item/host} 重建并剔空行——修复编辑丢 id/配置/结果的数据安全事故
-import { createEditableAgenda, normalizeEditedAgenda } from '../../services/activity/agenda-editing.js?v=20261014b';
+import { createEditableAgenda, normalizeEditedAgenda } from '../../services/activity/agenda-editing.js?v=20261015b';
+import { agendaDecisionSource, validateAgendaStructure } from '../../services/activity/agenda-relations.js?v=20261015b';
 // 议程更新后通知全员（活动锚定，targetType/targetId 供归档联动）
-import { NoticeStore } from '../../services/governance/notice.js?v=20261014b';
-import { fetchVotes, submitVote } from '../../services/activity/committee-vote.js?v=20261014b';
-import { optionSetOf, resolveVoterIds, OPTION_SETS, isAnonymousActivity } from '../../services/activity/vote-config.js?v=20261014b';
-import { renderVoteSummary } from '../governance/vote-summary-panel.js?v=20261014b';
-import { loadAttendanceRecords } from '../../services/activity/attendance.js?v=20261014b';
-import { loadInspectionRecords } from '../../services/activity/inspection.js?v=20261014b';
-import { loadActivityReviews } from '../../services/governance/review.js?v=20261014b';
-import { mockDB, OutputType, deriveOutputRoute, ReviewStatus, AttendanceStatus } from '../../core/domain/domain.js?v=20261014b';
+import { NoticeStore } from '../../services/governance/notice.js?v=20261015b';
+import { fetchVotes, submitVote } from '../../services/activity/committee-vote.js?v=20261015b';
+import { optionSetOf, resolveVoterIds, OPTION_SETS, isAnonymousActivity } from '../../services/activity/vote-config.js?v=20261015b';
+import { renderVoteSummary } from '../governance/vote-summary-panel.js?v=20261015b';
+import { loadAttendanceRecords } from '../../services/activity/attendance.js?v=20261015b';
+import { loadInspectionRecords } from '../../services/activity/inspection.js?v=20261015b';
+import { loadActivityReviews } from '../../services/governance/review.js?v=20261015b';
+import { mockDB, OutputType, deriveOutputRoute, ReviewStatus, AttendanceStatus } from '../../core/domain/domain.js?v=20261015b';
 
 // T-217 §2.4：任务状态定义（status-badge 用，色点 + 文字）
 const TASK_STATUSES = {
@@ -720,16 +721,27 @@ function renderInspectorDetail(activity, tasks, managementRole) {
     html += '</div>';
     html += '<ol class="space-y-1.5">';
     activity.agenda.forEach((a, i) => {
-      const canRecord = isSecretaryOrDeputy && !isArchived && !a.result && !!a.id;
-      const typeBadges = _agendaTypeBadges(a);
+      const isDiscussionStep = a.agendaStep === 'discussion';
+      const canRecord = isSecretaryOrDeputy && !isArchived && !isDiscussionStep && !a.result && !!a.id;
+      const decisionSource = agendaDecisionSource(activity.agenda, a);
+      const typeBadges = _agendaTypeBadges(decisionSource);
+      const agendaStepBadge = a.agendaStep === 'discussion'
+        ? '<span class="inline-flex items-center px-1.5 py-0.5 rounded text-[11px] font-medium text-indigo-700 bg-indigo-50">讨论项</span>'
+        : (a.agendaStep === 'vote' ? '<span class="inline-flex items-center px-1.5 py-0.5 rounded text-[11px] font-medium text-rose-700 bg-rose-50">表决项</span>' : '');
+      const relatedDiscussion = a.discussionAgendaItemId
+        ? activity.agenda.find((item) => item.id === a.discussionAgendaItemId) : null;
+      const stepNote = a.agendaStep === 'discussion'
+        ? '讨论过程项；表态与决议结果记录在关联表决项'
+        : (a.agendaStep === 'vote' ? `对应讨论：${esc(relatedDiscussion?.item || '议程关系无效')}` : '');
       const meta = AGENDA_RESULT_META[a.result];
       const resultBadge = meta
         ? `<span class="inline-flex items-center px-1.5 py-0.5 rounded text-[11px] font-medium ${meta.cls}">${meta.label}</span>`
         : '';
       const recordInfo = a.recordedBy ? ` · 记录：${getPersonById(a.recordedBy)?.name || a.recordedBy}${a.recordedAt ? ' ' + String(a.recordedAt).slice(0, 10) : ''}` : '';
       // S-1：逐人结果议程（待讨论名单）→ 提供逐人「通过/未通过」勾选（未通过留痕 → 见下方只读留痕）
-      const isKind = (k) => (Array.isArray(a.kinds) && a.kinds.includes(k)) || a.kind === k;
-      const personIds = Array.isArray(a.personIds) ? a.personIds : (a.personId ? [a.personId] : []);
+      const isKind = (k) => (Array.isArray(decisionSource.kinds) && decisionSource.kinds.includes(k)) || decisionSource.kind === k;
+      const personIds = Array.isArray(decisionSource.personIds)
+        ? decisionSource.personIds : (decisionSource.personId ? [decisionSource.personId] : []);
       const perPerson = (isKind('attendee-list') || isKind('member-change')) && personIds.length > 0;
       const perPersonTally = (Array.isArray(a.personResults) && a.personResults.length > 0)
         ? `<div class="text-[11px] text-gray-500 mt-0.5">${a.personResults.map(r =>
@@ -752,12 +764,13 @@ function renderInspectorDetail(activity, tasks, managementRole) {
         <div class="flex-1 min-w-0">
           <div class="flex items-center gap-1.5 flex-wrap">
             <span class="text-gray-700">${a.item}</span>
+            ${agendaStepBadge}
             ${typeBadges}
             ${resultBadge}
           </div>
-          <div class="text-gray-500 mt-0.5">${a.host ? `（主持人：${a.host}）` : ''}${recordInfo}${a.reportToPartyMeeting ? ' · 已定：报送党员大会表决' : ''}</div>${_reportPartyToggleHtml(a, canRecord)}
+          <div class="text-gray-500 mt-0.5">${a.host ? `（主持人：${a.host}）` : ''}${stepNote ? ` · ${stepNote}` : ''}${recordInfo}${a.reportToPartyMeeting ? ' · 已定：报送党员大会表决' : ''}</div>${_reportPartyToggleHtml(a, canRecord, decisionSource)}
           ${perPersonTally}
-          ${isVoterOf(activity, currentUserId) && a.id ? `<div class="vote-panel-slot" data-vote-agenda-id="${a.id}"></div>` : ''}
+          ${!isDiscussionStep && isVoterOf(activity, currentUserId) && a.id ? `<div class="vote-panel-slot" data-vote-agenda-id="${a.id}"></div>` : ''}
           ${personPanel}
         </div>
         ${canRecord && !perPerson ? `
@@ -1259,6 +1272,7 @@ function _startAgendaEdit(activity, cardsEl, tasks, managementRole) {
     || (Array.isArray(a.personIds) && a.personIds.length > 0)
     || a.branchDocId || a.kind || a.personId || a.fromStage || a.toStage
   ));
+  const _hasAgendaStep = (a) => !!(a && (a.agendaStep || a.discussionAgendaItemId));
 
   const renderEditor = () => {
     let html = '<div class="flex items-center justify-between mb-1.5"><p class="text-xs text-gray-500">编辑会议议程</p></div>';
@@ -1296,7 +1310,7 @@ function _startAgendaEdit(activity, cardsEl, tasks, managementRole) {
             <input type="text" class="agenda-edit-host input-flat w-24 text-xs" value="${a.host}" placeholder="主持人">
             <button type="button" class="btn-danger agenda-edit-del text-sm px-1 shrink-0" title="删除该议程（连同其讨论文件/待讨论名单配置）">✕</button>
           </div>
-          ${_hasStructuredCfg(a) ? '<div class="agenda-edit-ext text-[11px] text-amber-700 pl-1 mt-0.5 leading-snug" title="该议程的讨论文件/待讨论名单配置及已记录结果将原样保留，本次仅可修改议题/主持人文本">该议程含讨论文件/待讨论名单配置，将原样保留</div>' : ''}
+          ${_hasStructuredCfg(a) || _hasAgendaStep(a) ? `<div class="agenda-edit-ext text-[11px] text-amber-700 pl-1 mt-0.5 leading-snug" title="议程业务配置、步骤关系及已记录结果将原样保留，本次仅可修改议题/主持人文本">${_hasAgendaStep(a) ? (a.agendaStep === 'discussion' ? '讨论项' : '表决项及其关联') : '讨论文件/待讨论名单配置'}将原样保留</div>` : ''}
         </div>`).join('');
       list.querySelectorAll('.agenda-edit-del').forEach((btn) => {
         btn.addEventListener('click', () => {
@@ -1322,6 +1336,11 @@ function _startAgendaEdit(activity, cardsEl, tasks, managementRole) {
       // 剔除空 item 行（新加未填行自动忽略）；原对象的 id/result/扩展字段全部保留
       syncFromDom();
       const next = normalizeEditedAgenda(current);
+      const relationCheck = validateAgendaStructure(next);
+      if (!relationCheck.ok) {
+        showToast('error', relationCheck.error);
+        return;
+      }
       try {
         const updated = await BranchService.updateActivity(activity.id, { agenda: next });
         persist();
@@ -1467,8 +1486,8 @@ async function _downloadMaterialRecord(rec) {
  * @param {boolean} canRecord 当前人可记录结果（支书/副支书且未归档且尚无结果）
  * @returns {string} HTML（不适用时为空串）
  */
-function _reportPartyToggleHtml(agendaItem, canRecord) {
+function _reportPartyToggleHtml(agendaItem, canRecord, decisionSource = agendaItem) {
   if (!canRecord || !agendaItem || agendaItem.result) return '';
-  if (!isInstitutionDraftAgendaItem(agendaItem, mockDB.branchDocs || [])) return '';
+  if (!isInstitutionDraftAgendaItem(decisionSource, mockDB.branchDocs || [])) return '';
   return `<label class="text-[11px] text-gray-500 inline-flex items-center gap-1 mt-1"><input type="checkbox" class="ap-report-party" data-agenda-item-id="${esc(agendaItem.id)}" style="cursor:pointer;">报送党员大会表决（不勾＝支委会通过即现行版）</label>`;
 }

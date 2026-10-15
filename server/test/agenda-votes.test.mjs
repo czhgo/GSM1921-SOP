@@ -6,7 +6,7 @@
 //   p3=正式党员（participant，studentId 2400012347）
 //   p14=副支书（deputy-secretary，studentId 2300010002）
 // 旧活动回退用例用 act-27（8月支委会：新学期筹备，真实存在且含 agenda，见 docs/src/data/mock/activities.js）；
-// agendaItemId 'ai-1' 为测试虚构值——agenda 项无 id 字段，后端不校验议程存在性为有意设计。
+// 测试 setup 为其注入稳定议程 id，覆盖服务端议程归属校验。
 // AV3 formal 用例用 act-formal-test（before 中直接 db 写入含 voteConfig 的党员大会 fixture）。
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
@@ -29,6 +29,9 @@ before(async () => {
   const app = createApp({ dbPath: ':memory:' });
   await seedDatabase(app.locals.db);
   db = app.locals.db;
+  const act27 = JSON.parse(db.prepare('SELECT data FROM activities WHERE id = ?').get('act-27').data);
+  act27.agenda = (act27.agenda || []).map((item, index) => ({ ...item, id: `ag-act27-${index + 1}` }));
+  db.prepare('UPDATE activities SET data = ? WHERE id = ?').run(JSON.stringify(act27), 'act-27');
   // AV3 fixture：支部党员大会（formal 正式表决），voteConfig 固化应到名单
   // （含正式党员 p3，不含副支书 p14 —— 验证名单驱动而非角色白名单）
   db.prepare('INSERT INTO activities (id, data) VALUES (?, ?)').run('act-formal-test', JSON.stringify({
@@ -45,7 +48,8 @@ before(async () => {
       voterIds: ['p3', 'p5', 'p8'],
       quorumCheck: true,
     },
-    agenda: [{ item: '审议发展党员事项', host: '支书' }],
+    agenda: [{ id: 'ag-formal-test-1', item: '审议发展党员事项', host: '支书' },
+      { id: 'ag-atomic-failure', item: '表决 tally 回滚测试议题', host: '支书' }],
   }));
   server = app.listen(0);
   base = `http://127.0.0.1:${server.address().port}`;
@@ -58,7 +62,7 @@ after(async () => {
   if (server) await new Promise((r) => server.close(r));
 });
 
-const VOTE = { activityId: 'act-27', agendaItemId: 'ai-1', position: 'agree', note: '' };
+const VOTE = { activityId: 'act-27', agendaItemId: 'ag-act27-1', position: 'agree', note: '' };
 
 test('支委提交表态：201 且落库', async () => {
   const r = await fetch(`${base}/api/v1/agenda-votes`, {
@@ -80,7 +84,7 @@ test('重复表态幂等：同人同议题覆盖更新（200）', async () => {
   const list = await (await fetch(`${base}/api/v1/agenda-votes?activityId=act-27`, {
     headers: { Authorization: `Bearer ${tokenSec}` },
   })).json();
-  const mine = list.filter((v) => v.personId === 'p13' && v.agendaItemId === 'ai-1');
+  const mine = list.filter((v) => v.personId === 'p13' && v.agendaItemId === 'ag-act27-1');
   assert.equal(mine.length, 1);
   assert.equal(mine[0].position, 'comment');
 });
@@ -143,10 +147,97 @@ test('未登录访问返回 401', async () => {
   assert.equal(r.status, 401);
 });
 
+test('表态议题必须属于所提交的活动', async () => {
+  const unknown = await fetch(`${base}/api/v1/agenda-votes`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${tokenSec}` },
+    body: JSON.stringify({ ...VOTE, agendaItemId: 'ag-does-not-exist' }),
+  });
+  assert.equal(unknown.status, 400);
+  assert.match((await unknown.json()).error, /议程项/);
+
+  const foreign = await fetch(`${base}/api/v1/agenda-votes`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${tokenSec}` },
+    body: JSON.stringify({ ...VOTE, agendaItemId: 'ag-formal-test-1' }),
+  });
+  assert.equal(foreign.status, 400, '另一活动的议程 id 不得被复用');
+});
+
+test('明确拆分的讨论项不可投票；其关联表决项可投票', async () => {
+  addActivityFixture({
+    id: 'act-agenda-steps', title: '支委会：议程步骤关系（测试）', date: '2026-09-08',
+    type: '支委会', scenarioId: 'branch-committee', status: 'published',
+    agenda: [
+      { id: 'ag-step-discuss', item: '讨论：下季度工作安排', agendaStep: 'discussion' },
+      { id: 'ag-step-vote', item: '表决：下季度工作安排', agendaStep: 'vote', discussionAgendaItemId: 'ag-step-discuss' },
+    ],
+  });
+  const post = (agendaItemId) => fetch(`${base}/api/v1/agenda-votes`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${tokenSec}` },
+    body: JSON.stringify({ activityId: 'act-agenda-steps', agendaItemId, position: 'agree', note: '' }),
+  });
+  const discussion = await post('ag-step-discuss');
+  assert.equal(discussion.status, 400);
+  assert.match((await discussion.json()).error, /讨论项/);
+  assert.equal((await post('ag-step-vote')).status, 201);
+});
+
+test('活动写口拒绝没有先行讨论项的表决项，并接受有效关联', async () => {
+  const baseActivity = {
+    title: '支委会：议题关联写入（测试）', date: '2026-09-08',
+    type: '支委会', scenarioId: 'branch-committee', status: 'published',
+  };
+  const invalid = await fetch(`${base}/api/v1/activities`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${tokenSec}` },
+    body: JSON.stringify({ ...baseActivity, id: 'act-bad-agenda-link', agenda: [
+      { id: 'ag-vote-only', item: '表决事项', agendaStep: 'vote' },
+    ] }),
+  });
+  assert.equal(invalid.status, 400);
+  assert.match((await invalid.json()).error, /讨论项/);
+
+  const valid = await fetch(`${base}/api/v1/activities`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${tokenSec}` },
+    body: JSON.stringify({ ...baseActivity, id: 'act-good-agenda-link', agenda: [
+      { id: 'ag-discussion', item: '讨论事项', agendaStep: 'discussion' },
+      { id: 'ag-vote', item: '表决事项', agendaStep: 'vote', discussionAgendaItemId: 'ag-discussion' },
+    ] }),
+  });
+  assert.equal(valid.status, 201);
+  const saved = await valid.json();
+  assert.equal(saved.agenda[1].discussionAgendaItemId, 'ag-discussion');
+
+  const invalidPatch = await fetch(`${base}/api/v1/activities/act-good-agenda-link`, {
+    method: 'PATCH', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${tokenSec}` },
+    body: JSON.stringify({ agenda: [
+      { id: 'ag-discussion', item: '讨论事项', agendaStep: 'discussion' },
+      { id: 'ag-vote', item: '表决事项', agendaStep: 'vote', discussionAgendaItemId: 'ag-missing' },
+    ] }),
+  });
+  assert.equal(invalidPatch.status, 400);
+
+  const discussionResultPatch = await fetch(`${base}/api/v1/activities/act-good-agenda-link`, {
+    method: 'PATCH', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${tokenSec}` },
+    body: JSON.stringify({ agenda: [
+      { id: 'ag-discussion', item: '讨论事项', agendaStep: 'discussion', result: 'passed', recordedBy: 'p13' },
+      { id: 'ag-vote', item: '表决事项', agendaStep: 'vote', discussionAgendaItemId: 'ag-discussion' },
+    ] }),
+  });
+  assert.equal(discussionResultPatch.status, 400, '讨论项不可直接写入决议结果');
+  assert.match((await discussionResultPatch.json()).error, /讨论项/);
+
+  const readBack = await (await fetch(`${base}/api/v1/activities`, {
+    headers: { Authorization: `Bearer ${tokenSec}` },
+  })).json();
+  assert.equal(readBack.find((activity) => activity.id === 'act-good-agenda-link').agenda[1].discussionAgendaItemId,
+    'ag-discussion', '拒绝非法 PATCH 后原关联保持不变');
+  assert.equal(readBack.find((activity) => activity.id === 'act-good-agenda-link').agenda[0].result,
+    undefined, '拒绝在讨论项写入结果后保持原始数据');
+});
+
 // ===== AV3：voteConfig 泛化（formal 党员大会：optionSet 枚举 + voterIds 名单驱动）=====
 // 2026-09-12 支书裁定「正式表决无记名 + 匿名模式可选」：formal（正式表决）强制 anonymous——
 //   落库两段式（参与记录 {personId, votedAt} + 计数行 tally），逐人选项/附言不落库、响应亦不可见。
-const FORMAL_VOTE = { activityId: 'act-formal-test', agendaItemId: 'ai-formal-1', note: '' };
+const FORMAL_VOTE = { activityId: 'act-formal-test', agendaItemId: 'ag-formal-test-1', note: '' };
 
 /** 拉取某活动表态行（含参与记录 + tally 行） */
 async function fetchVoteRows(activityId, token = tokenMember) {
@@ -181,7 +272,7 @@ test('无记名 formal：名单内正式党员 p3 表态 approve → 201 仅落�
   assert.equal(row.note, undefined, '无记名不得落逐人附言');
   const rows = await fetchVoteRows('act-formal-test');
   assertNoPerPersonOption(rows);
-  assert.deepEqual(tallyOf(rows, 'ai-formal-1'), { approve: 1 }, 'tally 应记 approve 1');
+  assert.deepEqual(tallyOf(rows, 'ag-formal-test-1'), { approve: 1 }, 'tally 应记 approve 1');
 });
 
 test('无记名 formal：多人表态只累计 tally（p5 approve / p8 abstain），参与名单可判谁已投', async () => {
@@ -195,13 +286,13 @@ test('无记名 formal：多人表态只累计 tally（p5 approve / p8 abstain�
   }
   const rows = await fetchVoteRows('act-formal-test');
   assertNoPerPersonOption(rows);
-  assert.deepEqual(tallyOf(rows, 'ai-formal-1'), { approve: 2, abstain: 1 });
-  const present = rows.filter((v) => v.personId && v.agendaItemId === 'ai-formal-1').map((v) => v.personId).sort();
+  assert.deepEqual(tallyOf(rows, 'ag-formal-test-1'), { approve: 2, abstain: 1 });
+  const present = rows.filter((v) => v.personId && v.agendaItemId === 'ag-formal-test-1').map((v) => v.personId).sort();
   assert.deepEqual(present, ['p3', 'p5', 'p8'], '参与记录保留 personId（可催未投者）');
 });
 
 test('无记名 tally 写入失败时，参与记录必须一起回滚', async () => {
-  const agendaItemId = 'ai-atomic-failure';
+  const agendaItemId = 'ag-atomic-failure';
   db.exec(`
     CREATE TRIGGER fail_anonymous_tally
     BEFORE INSERT ON agenda_votes
@@ -232,8 +323,8 @@ test('无记名 formal：同人重复提交幂等（不可改票、不重复计�
   });
   assert.equal((await post('oppose')).status, 200, '重复提交返回 200（幂等）');
   const rows = await fetchVoteRows('act-formal-test');
-  assert.equal(rows.filter((v) => v.personId === 'p3' && v.agendaItemId === 'ai-formal-1').length, 1, '参与记录仅 1 条');
-  assert.deepEqual(tallyOf(rows, 'ai-formal-1'), { approve: 2, abstain: 1 }, 'tally 不因重复提交变化（不可改票）');
+  assert.equal(rows.filter((v) => v.personId === 'p3' && v.agendaItemId === 'ag-formal-test-1').length, 1, '参与记录仅 1 条');
+  assert.deepEqual(tallyOf(rows, 'ag-formal-test-1'), { approve: 2, abstain: 1 }, 'tally 不因重复提交变化（不可改票）');
 });
 
 test('无记名 formal：存储层亦无逐人选项（原表逐行断言）', () => {
@@ -308,6 +399,7 @@ test('记名回归（deliberative + ballotMode=named）：逐人选项/附言可
     id: 'act-named-test', title: '支委会：记名表态（测试）', date: '2026-09-07',
     type: '支委会', scenarioId: 'branch-committee', status: 'published',
     voteConfig: { mode: 'async', optionSet: 'deliberative', ballotMode: 'named', voterScope: 'committee', voterIds: ['p11', 'p13'], quorumCheck: false },
+    agenda: [{ id: 'ai-named-1', item: '测试议题' }],
   });
   const post = (position, note = '') => fetch(`${base}/api/v1/agenda-votes`, {
     method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${tokenOrg}` },
@@ -328,6 +420,7 @@ test('formal 活动：voteConfig.optionSet 非法（formal2）：400', async () 
     id: 'act-bad-option-set', title: '支部党员大会：配置非法 optionSet（测试）', date: '2026-09-06',
     type: '支部党员大会', scenarioId: 'branch-party-meeting', status: 'published',
     voteConfig: { mode: 'async', optionSet: 'formal2', voterIds: ['p3'], quorumCheck: true },
+    agenda: [{ id: 'ai-x', item: '测试议题' }],
   });
   const r = await fetch(`${base}/api/v1/agenda-votes`, {
     method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${tokenMember}` },
@@ -343,6 +436,7 @@ test('formal 活动：voteConfig.voterIds 空数组：400（fail-closed，不回
     id: 'act-empty-voter-ids', title: '支部党员大会：名单为空（测试）', date: '2026-09-06',
     type: '支部党员大会', scenarioId: 'branch-party-meeting', status: 'published',
     voteConfig: { mode: 'async', optionSet: 'formal', voterIds: [], quorumCheck: true },
+    agenda: [{ id: 'ai-x', item: '测试议题' }],
   });
   const r = await fetch(`${base}/api/v1/agenda-votes`, {
     method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${tokenMember}` },
@@ -355,8 +449,8 @@ test('formal 活动：voteConfig.voterIds 空数组：400（fail-closed，不回
 
 // ===== mock 形态同口径（与 server 双形态一致；纯前端模块直调，不起服务）=====
 test('mock 形态：无记名只落参与记录 + tally、无逐人选项；记名保持逐人可见', async () => {
-  const { mockDB } = await import('../../docs/src/core/domain/domain.js?v=20261014b');
-  const { MockAdapter } = await import('../../docs/src/data/mock-adapter.js?v=20261014b');
+  const { mockDB } = await import('../../docs/src/core/domain/domain.js?v=20261015b');
+  const { MockAdapter } = await import('../../docs/src/data/mock-adapter.js?v=20261015b');
   const originActs = mockDB.activities;
   const originVotes = mockDB.agendaVotes;
   const originLoaded = mockDB._loaded;

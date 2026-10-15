@@ -313,3 +313,58 @@ test('A5 支部分工「去表决」落到支委会会议页且表态位在位�
     console.log('[A5] ✅ 去表决落点与表态位通过');
   } finally { await context.close(); }
 });
+
+// A6：新建显式讨论→表决议程，核 UI 关系与持久化 ID；旧 A1–A5 继续覆盖普通议程兼容。
+test('A6 新建讨论＋表决事项：先讨论、后表决并持久化关联', async () => {
+  const { context, page } = await newIsolatedPage();
+  try {
+    await loginAs(page, 'secretary');
+    await gotoCalendar(page);
+    await page.click('#ws-sec-write-btn');
+    await page.waitForSelector('[data-action="select-template"][data-category="three-meetings"]', { timeout: 10000 });
+    await page.click('[data-action="select-template"][data-category="three-meetings"][data-subtype="party-group-meeting"]');
+
+    const title = `讨论表决议程-${Date.now().toString().slice(-5)}`;
+    await page.fill('#wp-title', title);
+    await page.fill('#wp-location', '光华1号楼203会议室');
+    await page.click('[data-action="agenda-add-vote-pair"]');
+    await page.locator('.wp-agenda-item').nth(1).fill('讨论关于支部换届安排');
+    await page.locator('.wp-agenda-item').nth(2).fill('表决关于支部换届安排');
+    const voteRow = page.locator('.wp-agenda-row').nth(2);
+    const relation = voteRow.locator('.wp-agenda-discussion-ref');
+    const discussionId = await page.locator('.wp-agenda-row').nth(1).getAttribute('data-agenda-id');
+    assert.equal(await relation.locator('option').count(), 2, '表决项下拉应有占位项和前序讨论项');
+    assert.equal(await relation.inputValue(), discussionId, '新建的表决项应自动关联刚添加的讨论项');
+    await voteRow.locator('.wp-agenda-step').selectOption('discussion');
+    assert.equal(await relation.inputValue(), '', '切出表决步骤后应清理隐藏的讨论关联');
+    await voteRow.locator('.wp-agenda-step').selectOption('vote');
+    await relation.selectOption(discussionId);
+
+    await page.click('[data-action="wp-submit"]');
+    await page.click('[data-nudge-confirm]').catch(() => {});
+    await page.waitForFunction((u) => {
+      const grid = document.querySelector('#cal-main-grid');
+      return grid ? grid.innerHTML.includes(u) : false;
+    }, title, { timeout: 20000 });
+    await page.locator(`#cal-main-grid .cal-activity-item[title*="${title}"]`).first().click();
+    await page.waitForSelector('#agenda-block', { timeout: 10000 });
+
+    const visible = await page.locator('#agenda-block').innerText();
+    assert.match(visible, /讨论关于支部换届安排[\s\S]*讨论项[\s\S]*表决关于支部换届安排[\s\S]*表决项/);
+    assert.match(visible, /对应讨论：讨论关于支部换届安排/);
+
+    const saved = await page.evaluate((activityTitle) => {
+      const data = JSON.parse(localStorage.getItem('workflowos_branch_db_v1') || 'null');
+      const activity = data?.activities?.find((item) => item.title === activityTitle);
+      const discussion = activity?.agenda?.find((item) => item.agendaStep === 'discussion');
+      const vote = activity?.agenda?.find((item) => item.agendaStep === 'vote');
+      return { discussion, vote };
+    }, title);
+    assert.ok(saved.discussion?.id, '讨论项应有稳定议程 ID');
+    assert.ok(saved.vote?.id, '表决项应有稳定议程 ID');
+    assert.equal(saved.vote.discussionAgendaItemId, saved.discussion.id);
+    assert.ok(saved.discussion.result === undefined, '讨论步骤不得承载最终表决结果');
+    assert.equal(await page.locator(`#agenda-block [data-vote-agenda-id="${saved.discussion.id}"]`).count(), 0,
+      '讨论项不应渲染成员表态区');
+  } finally { await context.close(); }
+});

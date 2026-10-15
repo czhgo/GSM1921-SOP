@@ -9,9 +9,9 @@
 // 运行：node --test server/test/agenda-quorum.test.mjs
 import { test, afterEach } from 'node:test';
 import assert from 'node:assert/strict';
-import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261014b';
-import { recordAgendaResultForActivity } from '../../docs/src/services/activity/agenda-follow-up.js?v=20261014b';
-import { defaultVoteConfig } from '../../docs/src/services/activity/vote-config.js?v=20261014b';
+import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261015b';
+import { recordAgendaResultForActivity } from '../../docs/src/services/activity/agenda-follow-up.js?v=20261015b';
+import { defaultVoteConfig } from '../../docs/src/services/activity/vote-config.js?v=20261015b';
 
 const ACT_ID = 'act-quorum';
 const AGENDA_ITEM_ID = 'a1';

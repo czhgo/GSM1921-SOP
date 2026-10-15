@@ -3,7 +3,7 @@ title: "数据模型与数据流"
 type: design
 role: "[工程师]+[AI]"
 version: "1.0"
-last_updated: 2026-10-05
+last_updated: 2026-10-15
 status: active
 related_files: [content/02_institution/SYSTEM_ROLE_PERMISSION.md, content/02_institution/COMMISSIONER_DUTY_FRAMEWORK.md, content/02_institution/sop/纪检委员工作流程指南.md, content/03_doc_system/ARCHITECTURE.md]
 ---
@@ -52,7 +52,7 @@ related_files: [content/02_institution/SYSTEM_ROLE_PERMISSION.md, content/02_ins
 | carriers | string[] | 否 | -- | 主题党日活动载体（理论学习/实践参访/交流座谈/其他），与写入表单正交维度对齐 |
 | isJoint | boolean | 否 | `false` | 共建性质（共建开展为 true） |
 | brandName | string | 否 | -- | 品牌族名称（如"五四精神传承"/"人生回望录"），支委会认定 isBrand 后由写入表单"延续已有品牌/创建新品牌"补录 |
-| agenda | `Array<{item: string, host?: string}>` | 否 | `[]` | 会议议程（三会一课专用：逐条议题 + 可选主持人）。创建时经写入表单"会议议程"区块填写；会后可在活动详情修改 |
+| agenda | `Array<{id, item, host?, kinds?, agendaStep?, discussionAgendaItemId?, ...业务回指与结果字段}>` | 否 | `[]` | 会议议程（三会一课专用）。`agendaStep` 缺省＝普通/历史议题；`discussion`＝讨论项；`vote`＝表决项，须用 `discussionAgendaItemId` 指向本活动中排在前面的讨论项。`kinds` 仍是可多选业务标签，不表示议程步骤；“三会”会议类型仍由活动 `type/scenarioId` 表达。结果与表态锚定表决项；业务回指可留在其关联讨论项，由会后衔接读取。表态接口校验议题归属与步骤，旧议程未标步骤时继续沿用原逐项表态行为。创建时经写入表单"会议议程"区块填写；会后可在活动详情修改 |
 | organizer | string | 否 | -- | 组织者 personId。写入时缺省＝创建人本人；若 `assignments` 中已指定组织者，创建链按主源同步为被指定人（`writeActivityWithSOP` 原则7「同一套数据」）。读端（归档 / 首页 / 复盘卡 / inspector）消费本字段 |
 | direction | `'top-down'\|'bottom-up'` | 否 | `'bottom-up'` | 发起方向：自上而下（支部部署）/ 自下而上（党小组发起）；由组长写入表单 L4 级选定 |
 | hostGroup | string\|null | 否 | null | 承办党小组（组长写入时固化）。考勤「应到」与考察上传位判据优先取它、缺省回退组织者所属小组 |

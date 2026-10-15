@@ -6,11 +6,11 @@
 // 2026-09-21 批次 127（`SOP-B-33` 取乙档）：本文件**再加一处纯函数** `buildAgendaCandidates`——
 // 「拟上会」清单的归集单一源（写议程时从这一张清单勾）；IO 仍由各处 UI 自己做（见下方该段注释）。
 
-import { generateId } from '../../../core/base/id.js?v=20261014b';
+import { generateId } from '../../../core/base/id.js?v=20261015b';
 // 事项领域单一源（services/governance/issues.js 末尾的 ISSUE_DOMAINS；四类逐字照母本
 // 《常见工作场景快速指南》「意见建议类型」表）——本模块只取「标签 / 建议归口」两个纯函数，
 // 不读 IssueStore（IO 由调用方做）。
-import { ISSUE_DOMAINS, issueDomainLabel, issueDomainSuggest } from '../../../services/governance/issues.js?v=20261014b';
+import { ISSUE_DOMAINS, issueDomainLabel, issueDomainSuggest } from '../../../services/governance/issues.js?v=20261015b';
 
 /**
  * 将创建/编辑表单的议程行收集为规范化议程数组。
@@ -18,8 +18,8 @@ import { ISSUE_DOMAINS, issueDomainLabel, issueDomainSuggest } from '../../../se
  * 「待讨论名单」：personIds 多选 + toStage（目标阶段，S-2 界面仅「预备党员/正式党员」两项）；
  * personStages = 逐人当前阶段快照（id→阶段，S-2 由写入面板按所选对象各自现值推导，
  * 供 agenda-follow-up 逐人写申请 fromStage）；fromStage 字段保留仅兼容历史数据（界面已不让人选「从什么」）。
- * @param {Array<{item?:string, host?:string, kinds?:string[], branchDocId?:string, personIds?:string[], personId?:string, fromStage?:string, toStage?:string, personStages?:Object<string,string>}>} rows
- * @returns {Array<{id:string, item:string, host:string, kinds:string[], branchDocId?:string, personIds?:string[], fromStage?:string, toStage?:string, personStages?:Object<string,string>}>}
+ * @param {Array<{id?:string, item?:string, host?:string, agendaStep?:'discussion'|'vote', discussionAgendaItemId?:string, kinds?:string[], branchDocId?:string, personIds?:string[], personId?:string, fromStage?:string, toStage?:string, personStages?:Object<string,string>}>} rows
+ * @returns {Array<{id:string, item:string, host:string, agendaStep?:'discussion'|'vote', discussionAgendaItemId?:string, kinds:string[], branchDocId?:string, personIds?:string[], fromStage?:string, toStage?:string, personStages?:Object<string,string>}>}
  */
 export function collectAgendaRows(rows = []) {
   return rows
@@ -33,6 +33,9 @@ export function collectAgendaRows(rows = []) {
         host: String(row.host || '').trim(),
         kinds,
       };
+      // 议程步骤（讨论/表决）与 kinds 业务标签正交；未标步骤保留旧议程行为。
+      if (row.agendaStep) out.agendaStep = String(row.agendaStep).trim();
+      if (row.discussionAgendaItemId) out.discussionAgendaItemId = String(row.discussionAgendaItemId).trim();
       if (kinds.includes('discussion-file') && row.branchDocId) {
         out.branchDocId = row.branchDocId;
       }

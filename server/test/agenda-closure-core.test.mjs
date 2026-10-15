@@ -5,8 +5,8 @@
 // 运行：node --test server/test/agenda-closure-core.test.mjs
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { collectAgendaRows } from '../../docs/src/entries/tabs/secretary/agenda-form.js?v=20261014b';
-import { recordAgendaResultForActivity } from '../../docs/src/services/activity/agenda-follow-up.js?v=20261014b';
+import { collectAgendaRows } from '../../docs/src/entries/tabs/secretary/agenda-form.js?v=20261015b';
+import { recordAgendaResultForActivity } from '../../docs/src/services/activity/agenda-follow-up.js?v=20261015b';
 
 test('collectAgendaRows：议程行多类型不互斥，产出 kinds 数组与结构化字段', () => {
   const rows = [
@@ -35,6 +35,19 @@ test('collectAgendaRows：议程行多类型不互斥，产出 kinds 数组与�
   assert.deepEqual(agenda[1].personIds, ['p6', 'p22'], '待讨论名单应多选');
   assert.equal(agenda[1].fromStage, '发展对象');
   assert.equal(agenda[1].toStage, '预备党员');
+});
+
+test('collectAgendaRows：议程步骤与讨论关联独立于业务类型，并保留行 id', () => {
+  const agenda = collectAgendaRows([
+    { id: 'ag-discussion', item: '讨论：预算安排', agendaStep: 'discussion', kinds: ['discussion-file'] },
+    { id: 'ag-vote', item: '表决：预算安排', agendaStep: 'vote', discussionAgendaItemId: 'ag-discussion', kinds: [] },
+  ]);
+
+  assert.deepEqual(agenda.map(({ id, agendaStep, discussionAgendaItemId }) => ({ id, agendaStep, discussionAgendaItemId })), [
+    { id: 'ag-discussion', agendaStep: 'discussion', discussionAgendaItemId: undefined },
+    { id: 'ag-vote', agendaStep: 'vote', discussionAgendaItemId: 'ag-discussion' },
+  ]);
+  assert.deepEqual(agenda[0].kinds, ['discussion-file'], '步骤分类不得覆盖原有多选业务标签');
 });
 
 test('recordAgendaResultForActivity：记录通过后归档草案，并为名单每人创建待审批申请', async () => {
@@ -123,4 +136,65 @@ test('recordAgendaResultForActivity：重复记录通过不重复建申请（幂
   // p6 已有申请（幂等跳过），仅 p22 新建
   assert.equal(calls.memberCreates.length, 1);
   assert.equal(calls.memberCreates[0].personId, 'p22');
+});
+
+test('记录关联表决结果：沿用讨论项的成员变更数据并把决议落在表决项', async () => {
+  const calls = [];
+  const db = { branchDocs: [], memberChangeRequests: [] };
+  const adapter = {
+    branchDocs: { async update() { throw new Error('本例不应更新文件'); } },
+    memberChangeRequests: {
+      async create(data) {
+        calls.push(data);
+        const request = { ...data, id: 'mcr-vote-step', status: 'pending-org-approval' };
+        db.memberChangeRequests.push(request);
+        return request;
+      },
+    },
+  };
+  const activity = {
+    id: 'act-vote-step',
+    agenda: [
+      {
+        id: 'ag-discussion', item: '讨论 p6 转为预备党员', agendaStep: 'discussion',
+        kinds: ['attendee-list'], personIds: ['p6', 'p22'],
+        personStages: { p6: '发展对象', p22: '积极分子' }, toStage: '预备党员',
+      },
+      {
+        id: 'ag-vote', item: '表决 p6 转为预备党员', agendaStep: 'vote', discussionAgendaItemId: 'ag-discussion',
+        kinds: [], personIds: [], personStages: { p6: '发展对象' },
+      },
+    ],
+  };
+
+  const updated = await recordAgendaResultForActivity({
+    activity, agendaItemId: 'ag-vote', result: 'passed', adapter, db, actorId: 'p13', now: '2026-09-02T00:00:00.000Z',
+  });
+
+  assert.equal(updated.agenda[0].result, undefined, '讨论过程项不承载最终决议结果');
+  assert.equal(updated.agenda[1].result, 'passed', '最终结果落在表决项');
+  assert.equal(calls.length, 2, '部分填入表决项阶段时，讨论项其余成员阶段仍须参与跟办');
+  assert.equal(calls[0].agendaItemId, 'ag-vote', '派生申请回指最终表决项');
+  assert.deepEqual(calls.map(({ personId, fromStage, toStage }) => ({ personId, fromStage, toStage })), [
+    { personId: 'p6', fromStage: '发展对象', toStage: '预备党员' },
+    { personId: 'p22', fromStage: '积极分子', toStage: '预备党员' },
+  ]);
+});
+
+test('recordAgendaResultForActivity：服务层拒绝给讨论项记决议且不执行后续动作', async () => {
+  let writes = 0;
+  const agenda = [{
+    id: 'ag-discussion', item: '讨论事项', agendaStep: 'discussion',
+    kinds: ['attendee-list'], personIds: ['p6'], fromStage: '发展对象', toStage: '预备党员',
+  }];
+  await assert.rejects(recordAgendaResultForActivity({
+    activity: { id: 'act-discussion-result', agenda },
+    agendaItemId: 'ag-discussion', result: 'passed',
+    adapter: {
+      branchDocs: { async update() { writes += 1; } },
+      memberChangeRequests: { async create() { writes += 1; } },
+    },
+    db: { branchDocs: [], memberChangeRequests: [] },
+  }), /讨论项不能直接记录决议/);
+  assert.equal(writes, 0, '拒绝在任何派生写入发生前执行');
 });

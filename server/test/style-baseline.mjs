@@ -571,7 +571,6 @@ export const P_TEXT_TIER_BASELINE = {
   'docs/src/components/governance/signup-panel.js': { c: 1, v: [11] },
   'docs/src/entries/pages/notice-entry.js': { c: 1, v: [11] },
   'docs/src/entries/pages/party-committee-meeting-entry.js': { c: 9, v: [11] },
-  'docs/src/entries/tabs/disc/attendance-tab.js': { c: 1, v: [11] },
   'docs/src/entries/tabs/leader/review-tab.js': { c: 1, v: [11] },
   'docs/src/entries/tabs/leader/write-tab.js': { c: 1, v: [11] },
   // ⚠ 2026-10-01 批次 321：`org/development-tab.js` 条目已删（文件随「并入人才库」删除）。
@@ -596,11 +595,13 @@ export const P_TEXT_TIER_BASELINE = {
  *    文件数 **27 → 26**、处数 **83 → 81**（同批收基线；其 11px 站点随之消失）。
  *  ⚠ 2026-10-01 批次 329：`today/today-tab.js` 的**唯一** 11px `<p>`（旧「逾期区」段头）随
  *    「今天页收成单一轴」（逾期不再单开段）**清零** ⇒ 收基线删条目（`c:1`）：
- *    文件数 **26 → 25**、处数 **81 → 80**。 */
-export const P_TEXT_TIER_TOTAL_BASELINE = 80;
-export const P_TEXT_TIER_FILE_BASELINE = 25;
-/** 按值台账（只报不判；9/10px 是禁止档，恒为 0）——11 档随上条同批 83 → 81 → 80（2026-10-01 批次 329） */
-export const P_TEXT_TIER_BY_VALUE_BASELINE = { 11: 80, 10: 0, 9: 0 };
+ *    文件数 **26 → 25**、处数 **81 → 80**。
+ *  ⚠ 2026-10-15 批次 447：复核发现 `disc/attendance-tab.js` 仅有小字控件、没有 11px `<p>`，
+ *    该文件条目是误登记；按收基线纪律删除 ⇒ 文件数 **25 → 24**、段落处数 **80 → 79**。 */
+export const P_TEXT_TIER_TOTAL_BASELINE = 79;
+export const P_TEXT_TIER_FILE_BASELINE = 24;
+/** 按值台账（只报不判；9/10px 是禁止档，恒为 0）——11 档总数为 79（2026-10-15 批次 447 复核误登记后） */
+export const P_TEXT_TIER_BY_VALUE_BASELINE = { 11: 79, 10: 0, 9: 0 };
 
 /** 「零引用类」台账（2026-09-28 死码清理批，给 `server/test/dead-selector-guard.test.mjs` 消费）
  *

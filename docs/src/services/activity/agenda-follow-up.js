@@ -3,16 +3,17 @@
 // 2026-09-02 AV4：记录「通过」前对支部党员大会（voteConfig.quorumCheck=true）做出席/赞成过半数硬校验
 //（spec §3.4）；校验不通过抛错中止（不写 result，UI 层 catch 以 error toast 提示支书）。
 
-import { fetchVotesStrict, presentIdsForItem, tallyForItem } from './committee-vote.js?v=20261014b';
+import { fetchVotesStrict, presentIdsForItem, tallyForItem } from './committee-vote.js?v=20261015b';
 // S-1（2026-09-09 支书批）：逐人结果中「通过者」需按人推导当前发展阶段（fromStage）——
 // 单条议程的 fromStage / personStages 可能不覆盖全部对象（各自阶段不同），以成员档案现值兜底。
-import { PersonStore } from '../member/person.js?v=20261014b';
+import { PersonStore } from '../member/person.js?v=20261015b';
 // 制度链（2026-09-21 批次 129 · `SOP-B-25` 第 ① 项 / `SOP-B-26`）：议程项结果的「制度」分支只做 IO，
 //   判据与状态迁移的单一源在 branch-doc.js::applyInstitutionAgendaResult（纯函数，本文件不复制状态名）。
-import { isInstitutionDoc, applyInstitutionAgendaResult } from '../branch/branch-doc.js?v=20261014b';
+import { isInstitutionDoc, applyInstitutionAgendaResult } from '../branch/branch-doc.js?v=20261015b';
 // 品牌认定（2026-09-21 批次 132 · 支书口径二「提案 → 支委会通过后确定」）：议程项结果的 `brand-designation`
 //   分支只做 IO，判据与状态迁移的单一源在 activity.js::applyBrandDesignationResult（纯函数）。
-import { commitBrandDesignationResult, commitActivityApprovalResult } from './activity.js?v=20261014b';
+import { commitBrandDesignationResult, commitActivityApprovalResult } from './activity.js?v=20261015b';
+import { agendaDecisionSource, validateAgendaStructure } from './agenda-relations.js?v=20261015b';
 
 function replaceById(records, record) {
   const index = records.findIndex((item) => item.id === record.id);
@@ -111,8 +112,15 @@ async function quorumBlockMessage(activity, agendaItemId) {
  */
 export async function recordAgendaResult({ activity, agendaItemId, result, personResults = null, reportToPartyMeeting = false, adapter, db, actorId = null, now = new Date().toISOString() }) {
   if (!activity || !Array.isArray(activity.agenda)) throw new Error('活动议程不存在');
+  const agendaCheck = validateAgendaStructure(activity.agenda);
+  if (!agendaCheck.ok) throw new Error(agendaCheck.error);
   const agendaItem = activity.agenda.find((item) => item.id === agendaItemId);
   if (!agendaItem) throw new Error('议程项不存在');
+  if (agendaItem.agendaStep === 'discussion') throw new Error('讨论项不能直接记录决议，请在关联表决项中记录');
+  const decisionItem = agendaDecisionSource(activity.agenda, agendaItem);
+  const discussionItem = agendaItem.agendaStep === 'vote'
+    ? activity.agenda.find((item) => item.id === agendaItem.discussionAgendaItemId)
+    : agendaItem;
 
   const perPersonInput = Array.isArray(personResults) && personResults.length > 0 ? personResults : null;
   if (!perPersonInput && !['passed', 'rejected'].includes(result)) throw new Error('会议结果无效');
@@ -149,7 +157,8 @@ export async function recordAgendaResult({ activity, agendaItemId, result, perso
       result: effectiveResult,
       ...(normalizedPerPerson ? { personResults: normalizedPerPerson } : {}),
       // 支委会审议制度草案时勾的「是否报送党员大会表决」（2026-09-21 批次 129）：留痕在议程项上
-      ...(reportToPartyMeeting ? { reportToPartyMeeting: true } : {}),
+      ...(reportToPartyMeeting || agendaItem.reportToPartyMeeting === true || decisionItem.reportToPartyMeeting === true
+        ? { reportToPartyMeeting: true } : {}),
       recordedBy: actorId,
       recordedAt: now,
     }
@@ -162,28 +171,28 @@ export async function recordAgendaResult({ activity, agendaItemId, result, perso
   //     审议时勾了「报送党员大会」的 ⇒ 转「待党员大会表决」，再由支部党员大会记录通过成现行版；
   //     未通过 ⇒ 退回起草人修改（仍为草案＋退回意见，可改后重新提交）。会议类型与环节不符时不动。
   //   · 普通文件：**现状不变**——仅整条通过时归档（部分通过不归档）。
-  if (hasKind(agendaItem, 'discussion-file') && agendaItem.branchDocId) {
-    const doc = (db.branchDocs || []).find((d) => d && d.id === agendaItem.branchDocId);
+  if (hasKind(decisionItem, 'discussion-file') && decisionItem.branchDocId) {
+    const doc = (db.branchDocs || []).find((d) => d && d.id === decisionItem.branchDocId);
     const onChain = doc && isInstitutionDoc(doc);
     const inst = onChain ? applyInstitutionAgendaResult({
       doc,
       meetingType: activity.type,
       decision: effectiveResult,
-      reportToPartyMeeting: reportToPartyMeeting === true || agendaItem.reportToPartyMeeting === true,
+      reportToPartyMeeting: reportToPartyMeeting === true || agendaItem.reportToPartyMeeting === true || decisionItem.reportToPartyMeeting === true,
       by: actorId,
       at: now,
       activityId: activity.id,
-      agendaItemId: agendaItem.id,
+      agendaItemId: discussionItem?.id || agendaItem.id,
     }) : null;
     if (inst && inst.ok) {
       const updated = await adapter.branchDocs.update(doc.id, inst.patch);
       db.branchDocs = replaceById(db.branchDocs || [], updated);
     } else if (effectiveResult === 'passed' && !onChain) {
-      const archived = await adapter.branchDocs.update(agendaItem.branchDocId, {
+      const archived = await adapter.branchDocs.update(decisionItem.branchDocId, {
         status: 'archived',
         archivedAt: now,
         discussionActivityId: activity.id,
-        discussionAgendaItemId: agendaItem.id,
+        discussionAgendaItemId: discussionItem?.id || agendaItem.id,
       });
       db.branchDocs = replaceById(db.branchDocs || [], archived);
     }
@@ -195,9 +204,9 @@ export async function recordAgendaResult({ activity, agendaItemId, result, perso
   //   且页面本地主源同步更新 ⇒ 紧随其后的快照不会把认定覆盖回去）。
   //   只对「已提案、尚未认定」的活动且**会议类型＝支委会**时生效（会议类型不符则不动）；
   //   通过 ⇒ 置 `isBrand`（品牌认定确定）＋ 认定留痕；未通过 ⇒ 不作认定（提案保留 ＋ 退回意见）。
-  if (hasKind(agendaItem, 'brand-designation') && agendaItem.brandActivityId) {
+  if (hasKind(decisionItem, 'brand-designation') && decisionItem.brandActivityId) {
     commitBrandDesignationResult({
-      activityId: agendaItem.brandActivityId,
+      activityId: decisionItem.brandActivityId,
       meetingActivityId: activity.id,
       meetingType: activity.type,
       decision: effectiveResult,
@@ -211,9 +220,9 @@ export async function recordAgendaResult({ activity, agendaItemId, result, perso
   //   记录结果 ⇒ 通过 ⇒ 该活动**发布**；未通过 ⇒ **终止**（母本「不批准则终止」同一口径）。
   //   判据与状态迁移的单一源在 `services/activity/activity.js::applyActivityApprovalResult`（纯函数）；
   //   落库走 `commitActivityApprovalResult`（活动主源单点改写 ＋ persist ⇒ mock/api 同码，与品牌认定同法）。
-  if (hasKind(agendaItem, 'activity-approval') && agendaItem.approvalActivityId) {
+  if (hasKind(decisionItem, 'activity-approval') && decisionItem.approvalActivityId) {
     commitActivityApprovalResult({
-      activityId: agendaItem.approvalActivityId,
+      activityId: decisionItem.approvalActivityId,
       decision: effectiveResult,
       by: actorId,
       at: now,
@@ -223,21 +232,21 @@ export async function recordAgendaResult({ activity, agendaItemId, result, perso
 
   // 待讨论名单（支书 2026-09-01 多选裁决）：通过者逐人创建一条待审批申请（幂等防重复）。
   // S-1：有逐人结果 → 只建通过者；无逐人结果 → 整条通过时建全部名单对象（旧行为）。
-  const isAttendeeList = hasKind(agendaItem, 'attendee-list') || hasKind(agendaItem, 'member-change');
+  const isAttendeeList = hasKind(decisionItem, 'attendee-list') || hasKind(decisionItem, 'member-change');
   if (isAttendeeList) {
     const passedPersonIds = normalizedPerPerson
       ? normalizedPerPerson.filter((r) => r.passed).map((r) => r.personId)
-      : (effectiveResult === 'passed' ? agendaPersonIds(agendaItem) : []);
+      : (effectiveResult === 'passed' ? agendaPersonIds(decisionItem) : []);
     for (const personId of passedPersonIds) {
       if (findMemberChangeRequest(db, activity.id, agendaItem.id, personId)) continue;
-      const fromStage = resolveFromStage(agendaItem, personId);
-      if (!fromStage || !agendaItem.toStage) continue; // 阶段信息不全不生成（避免无效申请）
+      const fromStage = resolveFromStage(decisionItem, personId);
+      if (!fromStage || !decisionItem.toStage) continue; // 阶段信息不全不生成（避免无效申请）
       const request = await adapter.memberChangeRequests.create({
         activityId: activity.id,
         agendaItemId: agendaItem.id,
         personId,
         fromStage,
-        toStage: agendaItem.toStage,
+        toStage: decisionItem.toStage,
         meetingResult: 'passed',
       });
       db.memberChangeRequests = replaceById(db.memberChangeRequests || [], request);
