@@ -61,6 +61,7 @@ import { hasVoted } from '../../../services/activity/committee-vote.js?v=2026101
 // 活动类型胶囊（批次 301）：变体判据＝单一源 `activityTypeBadgeVariant`（三会一课＝brand 红 / 主题党日＝gold 金），
 //   渲染唯一源＝`components/ui/badge.js`；**本文件不手写类型色值**。
 import { activityTypeBadgeVariant, WORK_DOMAIN_COLORS, accDarkVars } from '../../../core/domain/constants.js?v=20261014b';
+import { resolveDocumentUrl } from '../../../core/base/page-url.js?v=20261014b';
 // 徽章扎口出口（2026-09-30 批次 304 改准）：`components/ui/badges.js` 是**唯一调用口**
 //   （其文件头明写「调用方一律 import badges.js；内部实现文件 badge.js / status-badge.js 可各自演进」）；
 //   批次 301 我直连了实现文件 `badge.js` ⇒ 本批收回归口，**零行为变化**。
@@ -673,6 +674,7 @@ function _openNotice(noticeId) {
     NoticeStore.markRead(noticeId);
   } catch (_) { /* 忽略 */ }
   const dest = resolveNoticeUrl(notice);
-  const base = typeof window !== 'undefined' && window.location ? window.location.pathname.replace(/[^/]*$/, '') : '';
-  window.location.href = dest.direct && dest.url ? dest.url : `${base}notice.html?id=${noticeId}`;
+  window.location.href = dest.direct && dest.url
+    ? dest.url
+    : resolveDocumentUrl('notice.html', { searchParams: { id: noticeId } });
 }

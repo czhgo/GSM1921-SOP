@@ -60,7 +60,7 @@ const SUBMITTER_TOKEN_KEY = 'gsm1921-issue-submitter-token';
 
 let _issuesCache = null;
 
-/** 当前是否 API 形态（mock/api 双形态判定；data-adapter 为零静态依赖叶子模块） */
+/** 当前是否 API 形态（mock/api 双形态判定；data-adapter 不静态依赖业务服务） */
 function _isApiMode() {
   return getDataSource() === 'api';
 }

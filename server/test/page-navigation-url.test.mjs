@@ -1,0 +1,34 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { existsSync, readFileSync } from 'node:fs';
+import { resolveDocumentUrl } from '../../docs/src/core/base/page-url.js';
+
+const adapterSource = readFileSync(new URL('../../docs/src/data/data-adapter.js', import.meta.url), 'utf8');
+const todaySource = readFileSync(new URL('../../docs/src/entries/tabs/today/today-tab.js', import.meta.url), 'utf8');
+
+test('workspace fallbacks resolve from document base to the site root', () => {
+  const workspaceBase = 'http://127.0.0.1:3001/'; // workspace HTML <base href="../">
+
+  assert.equal(resolveDocumentUrl('login.html', { baseURI: workspaceBase }), `${workspaceBase}login.html`);
+  assert.equal(
+    resolveDocumentUrl('notice.html', { baseURI: workspaceBase, searchParams: { id: 'notice 1&2' } }),
+    `${workspaceBase}notice.html?id=notice+1%262`,
+  );
+});
+
+test('workspace fallbacks preserve a project deployment prefix', () => {
+  const projectBase = 'https://example.org/GSM1921-SOP/'; // /workspace/*.html with <base href="../">
+
+  assert.equal(resolveDocumentUrl('login.html', { baseURI: projectBase }), `${projectBase}login.html`);
+  assert.equal(resolveDocumentUrl('notice.html', { baseURI: projectBase, searchParams: { id: 'n1' } }), `${projectBase}notice.html?id=n1`);
+});
+
+test('session-expired and today-notice fallbacks use the shared document URL resolver', () => {
+  assert.match(adapterSource, /resolveDocumentUrl\(['"]login\.html['"]\)/);
+  assert.match(todaySource, /resolveDocumentUrl\(['"]notice\.html['"],\s*\{\s*searchParams:\s*\{\s*id:\s*noticeId\s*\}\s*\}\)/);
+});
+
+test('resolved fallback pages exist at the docs site root', () => {
+  assert.equal(existsSync(new URL('../../docs/login.html', import.meta.url)), true);
+  assert.equal(existsSync(new URL('../../docs/notice.html', import.meta.url)), true);
+});

@@ -2337,3 +2337,11 @@ $body
 **改动**：移除纪检考勤页下方独立的党小组会只读表；总表新增活动类型筛选，选择「党小组会（只读）」后复用同一组考勤记录，保留搜索、状态筛选、分页和导出。筛选结果不显示打回/队列操作入口，行提示保留组长与上传人。未改数据库或 API。
 
 **验证**：`attendance-queue-selection-e2e` 2/2（内存库；覆盖筛选排除其他活动、恢复总表、只读操作、活动日期、备注及组长/上传人上下文）；`doc-consistency` S1–S18 18/18；`suite-shard` G1–G4 4/4；`git diff --check` 通过。未跑全量；按单点页面变更沿用现有模块版本戳，未做全站重戳。
+
+## 批次 445（2026-10-15）工作台会话过期与通知回退跳转修正
+
+**问题与修复**：工作台设置了 `<base href="../">`，但会话失效的「去登录页」和「今天」页未读通知回退目标按当前 `pathname` 拼接，分别落到不存在的 `/workspace/login.html`、`/workspace/notice.html`。新增零依赖 `page-url.js`，按 `document.baseURI` 解析根页面并编码通知查询参数；两个入口改用该单一解析器。同步修正 data-adapter 与调用方对静态依赖边界的注释，并在 TIMESTAMPS 登记新叶子模块。
+
+**验证**：新增 `page-navigation-url` 4/4（本地根部署、GitHub Pages 项目路径前缀、参数编码、调用接线及目标文件存在）；`link-integrity` L1/L2 2/2；`link-target-guard` 2/2；`import-path-guard` 2/2；`module-load` E1–E4 4/4（模块 181/181）；`doc-consistency` S1–S18 18/18；三个改动模块语法检查与 `git diff --check` 通过。内置浏览器从标注按钮实点后到达 `/login.html`；通知根页可正常载入。未运行全量测试，未写业务数据。
+
+**待续审计**：README 确认 GitHub Pages 以 `/GSM1921-SOP/` 项目路径部署；当前 L2 只核模板字面量中是否存在页面文件，未按 `document.baseURI` 模拟最终 URL。`bootstrap.js` 与待办直达、成员项目卡、宣传看板仍有工作台 `../` 拼接，可能跳出项目路径。本批按已确认范围只修两处，后续扩面待支书选择。

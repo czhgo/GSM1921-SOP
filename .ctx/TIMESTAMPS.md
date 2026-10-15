@@ -244,6 +244,7 @@ $12026-10-15 | — | [工程师]+[AI] | 10 月决策日志（**当月活跃 · �
 | docs/src/core/domain/domain.js | 2026-09-29 | — | [工程师]+[AI] | 领域模型（2026-09-21 批次 120：`ImageRecord` typedef 按现状改准——文件存上传接口 `filePath` 或旧形态 `base64`，**行数守恒**） |
 | docs/src/core/base/icons.js | 2026-09-29 | — | [工程师]+[AI] | 图标系统（含 upload 上传图标） |
 | docs/src/core/base/id.js | 2026-09-29 | — | [工程师]+[AI] | UUID 发生器 |
+| docs/src/core/base/page-url.js | 2026-10-15 | — | [工程师]+[AI] | 站内页面 URL 单一解析：按 `document.baseURI` 保留工作台 `<base>` 与部署子路径，并安全设置查询参数。 |
 | docs/src/core/domain/policy-defaults.js | 2026-09-29 | — | [工程师]+[AI] | **（本批：G3-2 收口——新增 `POLICY_FIXED` 台账（12 条不可覆盖项：kind ＋ why ＋ src），消灭「未登记」第三态；26 叶键 ＝ 白名单 14 ＋ 固定台账 12，判据 `policy-config.test.mjs::R1–R3`）** **（2026-09-27 批次 211–212：路二 setting 可调性真缺陷修复——`POLICY_OVERRIDABLE` 白名单 **4 → 12 条**（新增 `attendance×3` / `review×2` / `makeup×3` / `thoughtReport×2`）；**域归属按母本**（时限类 / 补课范围与时限 → 纪检域、篇幅字数 → 组织域））** 业务默认值集中单一源（**2026-09-21 批次 132 补登**——本表原先无此行；本批 `attendance` 块：**新增 `noAttendanceTypes = ['支委会']`**、`meetingTypes` 去掉支委会、`recorderByType` 改准为「只列非组织者位类型」——**考勤上传位按会议类型分**，`D-558`） |
 | docs/src/core/base/state.js | 2026-09-29 | — | [工程师]+[AI] | 全局状态 |
 | docs/src/core/base/utils.js | 2026-10-05 | — | [工程师]+[AI] | 通用工具 |

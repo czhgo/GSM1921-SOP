@@ -18,10 +18,11 @@
 //  Source: content/04_web_design/deploy/DEPLOYMENT_GUIDE.md §3.2.4/§3.7.2（与学校对接：API 设计要求与交付清单）
 // ════════════════════════════════════════════════════════════════
 
-// 2026-09-17 批次 49：成功提示的统一等待点。本文件刻意**全部使用动态 import** 以避开
-// 环依赖，此处是唯一静态 import —— 因 pending-writes 是**叶子模块**（零依赖），静态引入不成环，
-// 且必须同步可用（persist() 在排程那一刻就要登记，不能等一个 await）。
+// 本文件避免静态引入业务服务以防环依赖；静态依赖仅限零依赖叶子模块：
+//   · pending-writes：persist() 排程时必须同步登记写入，不能等 await（批次 49）。
+//   · page-url：纯 URL 解析，无数据或业务依赖，不形成反向依赖。
 import { trackWrite } from '../core/session/pending-writes.js?v=20261014b';
+import { resolveDocumentUrl } from '../core/base/page-url.js?v=20261014b';
 
 /**
  * DataAdapter Interface — 统一数据访问接口
@@ -847,18 +848,15 @@ export function renderDataSourceError(detail, opts = {}) {
 
 /**
  * 渲染「会话已失效」提示态（**T3 专用，复用上面同一浮层样式**，不另建一套）。
- * 业务语言文案 + 「去登录页」动作（相对当前目录拼 `login.html`，与各页既有的相对跳转口径一致）。
+ * 业务语言文案 + 「去登录页」动作（按 document.baseURI 解析，兼容工作台 <base> 与部署子路径）。
  */
 export function renderSessionExpiredError() {
-  const dir = (typeof window !== 'undefined' && window.location && window.location.pathname)
-    ? window.location.pathname.replace(/[^/]*$/, '')
-    : '';
   renderDataSourceError(null, {
     title: '会话已失效，请重新登录',
     message: '你在本机的登录会话已失效（例如清除了浏览器会话数据，或换到了一个新的标签页）。为避免把数据误写到本机浏览器，页面没有加载。请重新登录后继续。',
     note: '（你的数据保存在服务器上，重新登录即可恢复。）',
     actionLabel: '去登录页',
-    onAction: () => { window.location.href = `${dir}login.html`; },
+    onAction: () => { window.location.href = resolveDocumentUrl('login.html'); },
   });
 }
 

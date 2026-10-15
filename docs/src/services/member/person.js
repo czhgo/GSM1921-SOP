@@ -34,7 +34,7 @@ import { PEOPLE } from '../../data/mock/people.js?v=20261014b';
 // 成员基础数据预览叠加（立项④阶段三·目标1）：PersonStore 读取时套预览 override；
 // 依赖方向单向（person → preview，preview 不 import person/roster，无循环）
 import { overlayPreviewMembers } from '../branch/org-base-data-preview.js?v=20261014b';
-// 双形态判定（mock/api）：data-adapter.js 为零静态依赖的叶子模块（无环）
+// 双形态判定（mock/api）：data-adapter.js 不静态依赖业务服务；其静态依赖仅为零依赖叶子（无环）
 import { getDataSource } from '../../data/data-adapter.js?v=20261014b';
 // 新成员 id 生成（mock 形态；'p_' + uuid，与种子 p1~p50/p_pc 不冲突）
 import { generateId } from '../../core/base/id.js?v=20261014b';
