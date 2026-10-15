@@ -5,26 +5,24 @@
 // 核心变化:
 //   - 去掉 stance/view/mode 三元组
 //   - 去掉 AUTHZ_CHAIN + scope 双轨制
-//   - 改为: 常设角色 + 项目角色 → canDo() 统一判定
+//   - 常设角色判全局本职；项目成员身份与工作组操作授权分开记录
 //   - 链式赋权: AUTHORIZE_CHAIN 定义谁可以赋权什么角色
 //   - party 页面已移除，organizer/deep 内容落在成员工作台（workspace/visitor.html）——
 //     首页并无"我的角色"区块（2026-09-17 批次 64 dogfood 实测）
 
-import { ROLE_LABELS, ROLE_PAGE_MAP, BRANCH_COMMISSION_ROLES } from '../../core/domain/constants.js?v=20261015b';
-import { PEOPLE } from '../../data/mock/index.js?v=20261015b';
+import { ROLE_LABELS, ROLE_PAGE_MAP, BRANCH_COMMISSION_ROLES } from '../../core/domain/constants.js?v=20261016a';
+import { PEOPLE } from '../../data/mock/index.js?v=20261016a';
 // 账号登录校验（认证域收口：UI 不直连 mock 账号仓；真实后端接入时此处替换校验实现）
 // 2026-09-14 批次 25：改为「可持久化账号层 ∪ 静态种子表」校验（成员流入自动建号 / 流出停用；
 //   见 services/core/accounts.js），支撑「账号与成员档案同源」口径。
-import { verifyLogin } from './accounts.js?v=20261015b';
-import { getPersonById, getPersonName } from '../member/person.js?v=20261015b';
-import { mockDB } from '../../core/domain/domain.js?v=20261015b';
-import { NoticeStore } from '../governance/notice.js?v=20261015b';
-import { updateActivity } from './mock.js?v=20261015b';
-import { TaskForceRecordStore } from '../activity/taskforce.js?v=20261015b';
-import { persist } from '../../data/data-adapter.js?v=20261015b';
-import { enableApiMode } from './runtime.js?v=20261015b';
-import { generateId } from '../../core/base/id.js?v=20261015b';
-import { todayLocal } from '../../core/base/utils.js?v=20261015b';
+import { verifyLogin } from './accounts.js?v=20261016a';
+import { getPersonById, getPersonName } from '../member/person.js?v=20261016a';
+import { mockDB } from '../../core/domain/domain.js?v=20261016a';
+import { NoticeStore } from '../governance/notice.js?v=20261016a';
+import { getAdapter } from '../../data/data-adapter.js?v=20261016a';
+import { enableApiMode } from './runtime.js?v=20261016a';
+import { generateId } from '../../core/base/id.js?v=20261016a';
+import { todayLocal } from '../../core/base/utils.js?v=20261016a';
 
 // ── 登录状态 ─────────────────────────────────────
 const LOGIN_KEY = 'gsm1921-login-user';   // localStorage: { personId, role, tabId }
@@ -93,10 +91,92 @@ const ROLE_PERMISSIONS = {
 // 文档映射：content/02_institution/SYSTEM_ROLE_PERMISSION.md §9f（权限名语义说明）+ CF §C.2。
 // 注：§9b 16 操作矩阵列不并该键（消费侧未建、不硬凑列），见该文件变更历史 2026-09-05 条目。
 
-const PROJECT_PERMISSIONS = {
-  'organizer': ['view_project', 'assign_task', 'modify_assignment', 'mark_complete', 'fill_review', 'record_inspection', 'assign_project_role'],
-  'deep':       ['view_project', 'mark_complete'],
+// 项目身份说明「在这件事里承担什么职责」；系统动作另由 workgroupGrants 明确授予。
+const PROJECT_ACTION_PERMISSION = {
+  view_project: 'activity.view',
+  assign_task: 'task.manage',
+  modify_assignment: 'workgroup.members.manage',
+  mark_complete: 'task.complete',
+  fill_review: 'output.submit',
+  record_inspection: 'output.submit',
+  assign_project_role: 'workgroup.members.manage',
 };
+
+export const WORKGROUP_PERMISSION_TEMPLATES = Object.freeze({
+  organizer: Object.freeze(['activity.edit', 'activity.signup.manage', 'activity.attendance.record', 'workgroup.members.manage', 'task.manage', 'output.submit']),
+  deep: Object.freeze(['activity.view', 'task.complete', 'output.submit']),
+});
+
+function _workgroupIdForProject(projectId) {
+  const activity = mockDB.activities.find((row) => row.id === projectId);
+  if (activity) return activity.workgroupId || `wg-activity-${projectId}`;
+  const taskforce = mockDB.taskforces.find((row) => row.id === projectId);
+  if (taskforce) return taskforce.workgroupId || `wg-taskforce-${projectId}`;
+  return null;
+}
+
+function _updateProjectMemberCache(projectId, personId, role, remove = false) {
+  const activity = mockDB.activities.find((row) => row.id === projectId);
+  const taskforce = mockDB.taskforces.find((row) => row.id === projectId);
+  const source = activity || taskforce;
+  if (!source) return;
+  const memberKey = activity ? 'assignments' : 'members';
+  const members = Array.isArray(source[memberKey]) ? source[memberKey] : [];
+  const nextMembers = members.filter((member) => member.personId !== personId);
+  if (!remove && role && !nextMembers.some((member) => member.personId === personId)) {
+    const previous = members.find((member) => member.personId === personId);
+    nextMembers.push({ ...previous, personId, role });
+  }
+  const next = { ...source, [memberKey]: nextMembers };
+  if (activity) next.organizer = nextMembers.find((member) => member.role === 'organizer')?.personId || null;
+  const collection = activity ? 'activities' : 'taskforces';
+  mockDB[collection] = mockDB[collection].map((row) => row.id === projectId ? next : row);
+}
+
+async function _upsertProjectMember(projectId, personId, role) {
+  const workgroupId = _workgroupIdForProject(projectId);
+  if (!workgroupId) throw new Error('找不到项目对应的工作组');
+  const row = await getAdapter().workgroups.members.add(workgroupId, { personId, role });
+  const previous = mockDB.workgroupMembers.find((item) => item.id === row?.id);
+  mockDB.workgroupMembers = [...mockDB.workgroupMembers.filter((item) => item.id !== row?.id), { ...(previous || {}), ...row }];
+  _updateProjectMemberCache(projectId, personId, role, false);
+  return row;
+}
+
+async function _removeProjectMember(projectId, personId) {
+  const workgroupId = _workgroupIdForProject(projectId);
+  if (!workgroupId) throw new Error('找不到项目对应的工作组');
+  await getAdapter().workgroups.members.remove(workgroupId, personId);
+  const memberId = `wgm-${encodeURIComponent(workgroupId)}-${encodeURIComponent(String(personId))}`;
+  mockDB.workgroupMembers = mockDB.workgroupMembers.map((item) => item.id === memberId
+    ? { ...item, status: 'removed', removedAt: new Date().toISOString() } : item);
+  mockDB.workgroupGrants = mockDB.workgroupGrants.map((item) => item.workgroupId === workgroupId && item.personId === personId && item.status === 'active'
+    ? { ...item, status: 'revoked', revokedAt: new Date().toISOString() } : item);
+  _updateProjectMemberCache(projectId, personId, null, true);
+}
+
+async function _grantProjectPermissions(projectId, personId, templateKey, options = {}) {
+  const workgroupId = _workgroupIdForProject(projectId);
+  if (!workgroupId) throw new Error('找不到项目对应的工作组');
+  const grant = await getAdapter().workgroups.grants.create(workgroupId, {
+    personId, templateKey, permissionKeys: options.permissionKeys,
+    reason: options.reason || '', grantedBy: options.grantedBy || null,
+  });
+  if (grant) mockDB.workgroupGrants = [...mockDB.workgroupGrants.filter((item) => item.id !== grant.id), grant];
+  return grant;
+}
+
+async function _replaceProjectPermissions(projectId, personId, templateKey, options = {}) {
+  const workgroupId = _workgroupIdForProject(projectId);
+  if (!workgroupId) throw new Error('找不到项目对应的工作组');
+  const grants = await getAdapter().workgroups.grants.list(workgroupId);
+  for (const grant of grants.filter((row) => row.personId === personId && row.status === 'active')) {
+    await getAdapter().workgroups.grants.revoke(workgroupId, grant.id);
+    mockDB.workgroupGrants = mockDB.workgroupGrants.map((row) => row.id === grant.id
+      ? { ...row, status: 'revoked', revokedAt: new Date().toISOString() } : row);
+  }
+  return _grantProjectPermissions(projectId, personId, templateKey, options);
+}
 
 // ── 赋权链 ──────────────────────────────────────
 // 统一记录"谁可以赋权什么角色"，由 authorize() 的 context 参数区分:
@@ -210,19 +290,6 @@ function _notifyProjectAuth(projectId, authorizerId, targetPersonId, role) {
   NoticeStore.addSystem('project-auth-granted', projectId, {
     targetPage, authorizerName, projectName, roleLabel, role,
   });
-}
-
-// ── 同步活动顶层 organizer 派生字段（原则7 同一套数据）──────────────
-// 顶层 activity.organizer 是历史遗留字段，全仓 41 处读端（archive/main/inspector/todo/roles/
-// ws-leader-entry 等）仍消费它。T-190 主源为 activity.assignments，本函数保证二者一致：
-// activity.organizer = assignments 中首个 organizer 的 personId；无 organizer 时置 null。
-// 支书裁决（2026-08-02）：采用"同步派生字段"方案统一双轨，不迁移 41 处读端。
-function _syncTopLevelOrganizer(activity) {
-  if (!activity) return;
-  const orgAssign = Array.isArray(activity.assignments)
-    ? activity.assignments.find(a => a.role === 'organizer')
-    : null;
-  activity.organizer = orgAssign ? orgAssign.personId : null;
 }
 
 // ── 追加审计快照条目 ──────────────────────────────
@@ -500,19 +567,20 @@ export const AuthStore = {
   canDo(personId, action, context = {}) {
     const userRole = _getUserRoleFromMemory(personId);
     const perms = ROLE_PERMISSIONS[userRole] || [];
+    const projectIdentityOnly = userRole === 'organizer' || userRole === 'deep';
 
     // 全局权限判定
-    if (perms.includes(action)) return true;
-    if (perms.includes('view_all') && action.startsWith('view_')) return true;
+    if (!projectIdentityOnly && perms.includes(action)) return true;
+    if (!projectIdentityOnly && perms.includes('view_all') && action.startsWith('view_')) return true;
 
-    // 项目上下文: 常设 + 项目角色取并集
+    // 项目身份只说明成员承担的职责。工作组动作须另有显式 grant；支委等常设角色仍保留其本职能力。
     if (context.projectId) {
-      const projectRole = _getProjectRole(personId, context.projectId);
-      if (projectRole) {
-        const projectPerms = PROJECT_PERMISSIONS[projectRole] || [];
-        if (projectPerms.includes(action)) return true;
-        if (projectPerms.includes('view_project') && action.startsWith('view_')) return true;
-      }
+      const workgroupId = _workgroupIdForProject(context.projectId);
+      const permissionKey = PROJECT_ACTION_PERMISSION[action] || (action.startsWith('view_') ? 'activity.view' : null);
+      const workgroup = mockDB.workgroups.find((row) => row.id === workgroupId);
+      if (workgroupId && workgroup && ['active', 'recruiting'].includes(workgroup.status) && permissionKey && mockDB.workgroupGrants.some((grant) => grant.workgroupId === workgroupId
+        && grant.personId === personId && grant.status === 'active'
+        && Array.isArray(grant.permissionKeys) && grant.permissionKeys.includes(permissionKey))) return true;
     }
 
     return false;
@@ -546,36 +614,23 @@ export const AuthStore = {
     const latestDup = dupRecs.length > 0 ? dupRecs[dupRecs.length - 1] : null;
     if (latestDup && latestDup.action !== 'revoke') return { ok: false, id: latestDup.id };
 
-    // ① 写主源（活动 assignments / 专班 members，合并去重）
-    // 仅 organizer/deep 有主源载体（与 revoke 对称）；leader 等角色只走审计快照，防止污染主源。
+    // ① 项目身份与系统权限分别落表：成员关系写工作组成员表，操作权另写授权表。
+    let memberAdded = false;
     try {
       if (scopeRef && (role === 'organizer' || role === 'deep')) {
-        const activity = mockDB.activities.find(a => a.id === scopeRef);
-        if (activity) {
-          const current = Array.isArray(activity.assignments) ? activity.assignments : [];
-          const updated = await updateActivity(scopeRef, {
-            assignments: [
-              ...current.filter(x => !(x.personId === targetPersonId && x.role === role)),
-              { personId: targetPersonId, role },
-            ],
-          });
-          _syncTopLevelOrganizer(updated); // 原则7：顶层 organizer 与主源 assignments 同步派生
-          persist(); // 活动主源写入后落盘（updateActivity 不自动 persist）
-        } else {
-          const tf = mockDB.taskforces.find(t => t.id === scopeRef);
-          if (tf) {
-            const cur = Array.isArray(tf.members) ? tf.members : [];
-            TaskForceRecordStore.update(scopeRef, {
-              members: [
-                ...cur.filter(m => !(m.personId === targetPersonId && m.role === role)),
-                { personId: targetPersonId, role, contributions: [] },
-              ],
-            });
-          }
-        }
+        const workgroupId = _workgroupIdForProject(scopeRef);
+        memberAdded = !mockDB.workgroupMembers.some((row) => row.workgroupId === workgroupId
+          && row.personId === targetPersonId && row.status === 'active');
+        await _upsertProjectMember(scopeRef, targetPersonId, role);
+        await _grantProjectPermissions(scopeRef, targetPersonId, context.templateKey || role, {
+          permissionKeys: context.permissionKeys, reason: context.reason, grantedBy: authorizerId,
+        });
       }
     } catch (e) {
       console.warn('[AuthStore] authorize 写主源失败：', e);
+      if (memberAdded) {
+        try { await _removeProjectMember(scopeRef, targetPersonId); } catch {}
+      }
       return { ok: false, id: '' };
     }
 
@@ -612,29 +667,17 @@ export const AuthStore = {
     const rec = records.find(r => r.id === recordId);
     if (!rec) return false;
 
-    const { personId, role, scopeRef } = rec;
+    const personId = rec.targetPersonId;
+    const { role, scopeRef } = rec;
 
-    // 删主源（仅 organizer/deep 有主源载体）
+    // 撤销项目身份时，从工作组移除成员；服务端同步撤销其活动授权并保留留痕。
     if (scopeRef && role && (role === 'organizer' || role === 'deep')) {
       try {
-        const activity = mockDB.activities.find(a => a.id === scopeRef);
-        if (activity && Array.isArray(activity.assignments)) {
-          const updated = await updateActivity(scopeRef, {
-            assignments: activity.assignments.filter(x => !(x.personId === personId && x.role === role)),
-          });
-          _syncTopLevelOrganizer(updated); // 原则7：顶层 organizer 与主源 assignments 同步派生
-          persist(); // 活动主源写入后落盘（updateActivity 不自动 persist）
-        } else {
-          const tf = mockDB.taskforces.find(t => t.id === scopeRef);
-          if (tf && Array.isArray(tf.members)) {
-            TaskForceRecordStore.update(scopeRef, {
-              members: tf.members.filter(m => !(m.personId === personId && m.role === role)),
-            });
-          }
-        }
+        const currentRole = _getProjectRole(personId, scopeRef);
+        if (currentRole === role) await _removeProjectMember(scopeRef, personId);
       } catch (e) {
-        console.warn('[AuthStore] revoke 写主源失败：', e);
-        return false; // 主源未删成功不追加 revoke 快照，避免快照与主源不一致
+        console.warn('[AuthStore] revoke 工作组成员失败：', e);
+        return false;
       }
     }
 
@@ -654,9 +697,11 @@ export const AuthStore = {
    * @param {{ scopeRef: string, assignments: Array<{personId:string, role:string}>, actorId?: string }} opts
    * @returns {Promise<{ added: number, removed: number }>}
    */
-  async syncProjectRoles({ scopeRef, assignments = [], actorId }) {
+  async syncProjectRoles({ scopeRef, assignments = [], actorId, permissionKeysByRole = {} }) {
     if (!scopeRef) return { added: 0, removed: 0 };
-    const desired = assignments.filter(x => x.personId && (x.role === 'organizer' || x.role === 'deep'));
+    const desired = [...new Map(assignments
+      .filter((x) => x.personId && (x.role === 'organizer' || x.role === 'deep'))
+      .map((x) => [String(x.personId), { personId: String(x.personId), role: x.role }])).values()];
 
     const activity = mockDB.activities.find(a => a.id === scopeRef);
     const tf = mockDB.taskforces.find(t => t.id === scopeRef);
@@ -673,35 +718,45 @@ export const AuthStore = {
       return { added: 0, removed: 0 };
     }
 
-    const currentKeys = new Set(current.map(x => x.personId + ':' + x.role));
-    const desiredKeys = new Set(desired.map(x => x.personId + ':' + x.role));
-    const added = desired.filter(x => !currentKeys.has(x.personId + ':' + x.role));
-    const removed = current.filter(x => !desiredKeys.has(x.personId + ':' + x.role));
+    const currentByPerson = new Map(current.map((row) => [String(row.personId), row]));
+    const desiredByPerson = new Map(desired.map((row) => [row.personId, row]));
+    const added = desired.filter((row) => currentByPerson.get(row.personId)?.role !== row.role);
+    const removed = current.filter((row) => desiredByPerson.get(String(row.personId))?.role !== row.role);
 
-    // 写主源：保留非 organizer/deep 条目（活动 participant / 专班含 contributions 的成员）
+    // 成员和操作授权分别写入语义 API。保留 participant 等非项目角色成员。
     try {
-      if (activity) {
-        const nonProj = Array.isArray(activity.assignments)
-          ? activity.assignments.filter(x => x.role !== 'organizer' && x.role !== 'deep')
-          : [];
-        const updated = await updateActivity(scopeRef, { assignments: [...nonProj, ...desired] });
-        _syncTopLevelOrganizer(updated); // 原则7：顶层 organizer 与主源 assignments 同步派生
-        persist(); // 活动主源写入后落盘（updateActivity 不自动 persist）
-      } else if (tf) {
-        const prevMembers = Array.isArray(tf.members) ? tf.members : [];
-        const contributionsById = {};
-        prevMembers.forEach(m => { if (m.personId) contributionsById[m.personId] = m.contributions || []; });
-        // 保留非 organizer/deep 成员（participant 等，含 contributions），与活动分支对齐
-        const nonProj = prevMembers.filter(m => m.role !== 'organizer' && m.role !== 'deep');
-        const desiredWithCtx = desired.map(x => ({
-          personId: x.personId,
-          role: x.role,
-          contributions: contributionsById[x.personId] || [],
-        }));
-        TaskForceRecordStore.update(scopeRef, { members: [...nonProj, ...desiredWithCtx] });
+      for (const row of removed) {
+        if (!desiredByPerson.has(String(row.personId))) await _removeProjectMember(scopeRef, row.personId);
+        else {
+          await _upsertProjectMember(scopeRef, row.personId, desiredByPerson.get(String(row.personId)).role);
+          const nextRole = desiredByPerson.get(String(row.personId)).role;
+          await _replaceProjectPermissions(scopeRef, row.personId, nextRole, {
+            permissionKeys: permissionKeysByRole[nextRole], grantedBy: actorId, reason: '工作组职责调整',
+          });
+        }
+      }
+      for (const row of added) {
+        if (currentByPerson.has(row.personId)) continue;
+        await _upsertProjectMember(scopeRef, row.personId, row.role);
+        await _grantProjectPermissions(scopeRef, row.personId, row.role, {
+          permissionKeys: permissionKeysByRole[row.role], grantedBy: actorId, reason: '工作组职责分配',
+        });
+      }
+      // 同一职责下也允许调整建议模板；只在权限集合确实变化时重建授权并留痕。
+      for (const row of desired) {
+        if (!currentByPerson.has(row.personId) || permissionKeysByRole[row.role] === undefined) continue;
+        const grants = await getAdapter().workgroups.grants.list(_workgroupIdForProject(scopeRef));
+        const active = grants.filter((grant) => grant.personId === row.personId && grant.status === 'active');
+        const requested = [...new Set(permissionKeysByRole[row.role])].sort();
+        const granted = [...new Set(active.flatMap((grant) => grant.permissionKeys || []))].sort();
+        if (JSON.stringify(requested) !== JSON.stringify(granted)) {
+          await _replaceProjectPermissions(scopeRef, row.personId, row.role, {
+            permissionKeys: requested, grantedBy: actorId, reason: '调整工作组操作权限',
+          });
+        }
       }
     } catch (e) {
-      console.warn('[AuthStore] syncProjectRoles 写主源失败：', e);
+      console.warn('[AuthStore] syncProjectRoles 工作组语义写入失败：', e);
       return { added: 0, removed: 0 }; // 主源未写成功不追加审计快照，避免快照与主源不一致
     }
 
@@ -720,17 +775,20 @@ export const AuthStore = {
    * @param {string} [actorId]
    * @returns {number} 实际新增快照条数
    */
-  recordProjectGrants(scopeRef, assignments, actorId) {
+  async recordProjectGrants(scopeRef, assignments, actorId, { permissionKeysByRole = {} } = {}) {
     if (!scopeRef || !Array.isArray(assignments)) return 0;
     const records = _getAuthRecords();
     let count = 0;
-    assignments.forEach(a => {
-      if (!a.personId || (a.role !== 'organizer' && a.role !== 'deep')) return;
+    for (const a of assignments) {
+      if (!a.personId || (a.role !== 'organizer' && a.role !== 'deep')) continue;
       const dupRecs = records.filter(r =>
         r.targetPersonId === a.personId && r.role === a.role && r.scopeRef === scopeRef
       );
       const latestDup = dupRecs.length > 0 ? dupRecs[dupRecs.length - 1] : null;
-      if (latestDup && latestDup.action !== 'revoke') return;
+      if (latestDup && latestDup.action !== 'revoke') continue;
+      await _grantProjectPermissions(scopeRef, a.personId, a.role, {
+        permissionKeys: permissionKeysByRole[a.role], grantedBy: actorId, reason: '活动/工作组创建时赋予职责',
+      });
       records.push({
         id: generateId('auth', '-'),
         targetPersonId: a.personId,
@@ -740,9 +798,9 @@ export const AuthStore = {
         authorizedAt: todayLocal(),
         action: 'grant',
       });
-      _notifyProjectAuth(scopeRef, actorId, a.personId, a.role);
+      if (actorId !== a.personId) _notifyProjectAuth(scopeRef, actorId, a.personId, a.role);
       count++;
-    });
+    }
     _saveAuthRecords(records);
     return count;
   },
@@ -806,7 +864,7 @@ function _syncAuthAuditToServer(records) {
   const fresh = rows.filter((r) => r && r.id && !_auditSyncedIds.has(r.id));
   if (!fresh.length) return;
   fresh.forEach((r) => _auditSyncedIds.add(r.id));
-  import('../../data/data-adapter.js?v=20261015b').then(async ({ getDataSource, getAdapter }) => {
+  import('../../data/data-adapter.js?v=20261016a').then(async ({ getDataSource, getAdapter }) => {
     if (getDataSource() !== 'api') return; // mock 形态：不发（本机键即权威）
     const a = getAdapter();
     if (!a.authAudit || typeof a.authAudit.create !== 'function') return;

@@ -101,7 +101,7 @@ test('A2 创建三会一课活动写入议程并显示', async () => {
     await gotoCalendar(page);
     await page.click('#ws-sec-write-btn');
     await page.waitForSelector('[data-action="select-template"][data-category="three-meetings"]', { timeout: 10000 });
-    await page.click('[data-action="select-template"][data-category="three-meetings"][data-subtype="party-group-meeting"]');
+    await page.click('[data-action="select-template"][data-category="three-meetings"][data-subtype="branch-committee"]');
 
     const uniqueTitle = `T283议程-${Date.now().toString().slice(-5)}`;
     await page.fill('#wp-title', uniqueTitle);
@@ -236,7 +236,7 @@ test('A4 副支书议程编辑 / 结果记录可用（副书同权）', async ()
     // 新建三会一课活动（议程条目经 collectAgendaRows 带 id → 结果记录按钮渲染）
     await page.click('#ws-sec-write-btn');
     await page.waitForSelector('[data-action="select-template"][data-category="three-meetings"]', { timeout: 10000 });
-    await page.click('[data-action="select-template"][data-category="three-meetings"][data-subtype="party-group-meeting"]');
+    await page.click('[data-action="select-template"][data-category="three-meetings"][data-subtype="branch-committee"]');
     const title = `副书议程-${Date.now().toString().slice(-5)}`;
     await page.fill('#wp-title', title);
     await page.fill('#wp-location', '光华1号楼203会议室');
@@ -322,7 +322,7 @@ test('A6 新建讨论＋表决事项：先讨论、后表决并持久化关联',
     await gotoCalendar(page);
     await page.click('#ws-sec-write-btn');
     await page.waitForSelector('[data-action="select-template"][data-category="three-meetings"]', { timeout: 10000 });
-    await page.click('[data-action="select-template"][data-category="three-meetings"][data-subtype="party-group-meeting"]');
+    await page.click('[data-action="select-template"][data-category="three-meetings"][data-subtype="branch-committee"]');
 
     const title = `讨论表决议程-${Date.now().toString().slice(-5)}`;
     await page.fill('#wp-title', title);

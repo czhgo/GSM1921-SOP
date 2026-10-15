@@ -5,10 +5,10 @@
 // 动画：Lenis 平滑滚动 + CSS 滚动驱动（animation-timeline: view()）+ 原生 JS 驱动
 // 签名元素：收束致谢（三层小字）+ 探索区 SVG 关系网络 + 对话卡日出日落公转（文字正立）
 
-import { renderSidebar } from '../../components/shell/sidebar.js?v=20261015b';
-import { renderHeader } from '../../components/shell/header.js?v=20261015b';
-import { getBasePath } from '../../core/base/utils.js?v=20261015b';
-import { icon } from '../../core/base/icons.js?v=20261015b';
+import { renderSidebar } from '../../components/shell/sidebar.js?v=20261016a';
+import { renderHeader } from '../../components/shell/header.js?v=20261016a';
+import { getBasePath } from '../../core/base/utils.js?v=20261016a';
+import { icon } from '../../core/base/icons.js?v=20261016a';
 
 // ── 公开访问：不检查登录 ──
 // 静态壳模式（2026-08-12）：about 为纯静态文档，不加载 auth/notice 数据链（约 50 模块），
@@ -60,12 +60,17 @@ const WORKFLOW_ROLES = {
   leader:    { name: '党小组组长',   short: '党小组组长', color: '#15803D' }, // 深绿·审批/赋权
   organizer: { name: '组织者',       short: '组织者',     color: '#0E7490' }, // 深青·执行核心
   deep:      { name: '深度参与者',   short: '深度参与者', color: '#64748B' }, // 灰蓝·参与
+  workgroup: { name: '工作组',       short: '工作组',     color: '#0F766E' },
+  activity:  { name: '活动',         short: '活动',       color: '#15803D' },
+  permission:{ name: '系统权限',     short: '系统权限',   color: '#475569' },
+  tasks:     { name: '登记任务',     short: '登记任务',   color: '#0E7490' },
+  outputs:   { name: '登记产出',     short: '登记产出',   color: '#2563EB' },
   normal:    { name: '普通参与者',   short: '普通参与者', color: '#6B7280' }, // 灰·参与
   orgComm:   { name: '组织委员',     short: '组织委员',   color: '#0EA5E9' }, // 天蓝·组织协调（DESIGN_SYSTEM §2.3.2）
   discComm:  { name: '纪检委员',     short: '纪检委员',   color: '#C2410C' }, // 深橙·监督警示（DESIGN_SYSTEM §2.3.2）
   propComm:  { name: '宣传委员',     short: '宣传委员',   color: '#2563EB' }, // 海蓝·宣传传播（DESIGN_SYSTEM §2.3.2）
   initiator: { name: '发起人',       short: '发起人',     color: '#B91C1C' }, // 党建红·发起
-  committee: { name: '支委会',       short: '支委会',     color: '#B91C1C' }, // 党建红·专班审议立项（集体决策）
+  committee: { name: '支委会',       short: '支委会',     color: '#B91C1C' }, // 党建红·制度、议程明确要求时作集体决策
   expanded:  { name: '支委扩大群',   short: '支委扩大群', color: '#B91C1C' }, // 党建红·活动报备（群内知悉，不另加审批门）
 };
 
@@ -73,26 +78,26 @@ const WORKFLOW_ROLES = {
 const ACTIVITY_SCENE = {
   id: 'activity',
   no: '01',
-  title: '活动：党小组组长发起，同志们参与',
-  note: '探索的边界由党小组组长划定，信息流与任务流并行——从策划、通知、执行到考勤、归档，每个环节都有明确的“谁找谁”。',
+  title: '活动：按承办范围确定责任入口',
+  note: '本图展示组内承办示例：党小组组长创建活动并建立活动工作组；跨组承办由支书/副书记从支书台创建。承办范围表示责任归属，不限制参与资格。',
   viewBox: '0 0 800 720',
   shots: [
     {
       id: 0,
-      title: '发起 + 报备',
-      desc: '党小组组长汇集活动信息，把活动方案发到支委扩大群报备（有意见在群里交流），报备通过后方才写入活动，由组织者推进执行。',
+      title: '按承办范围创建',
+      desc: '组内承办由所属党小组组长从组长台创建；跨组承办由支书/副书记从支书台创建。活动创建时建立工作组并记录组织者、深度参与者等并列分工。',
       flows: [
-        { text: '党小组组长 → 支委扩大群（报备活动方案）', type: 'info' },
-        { text: '支委扩大群 → 组织者（报备通过·写入活动）', type: 'task' },
+        { text: '责任主体 → 活动记录（持久化承办范围）', type: 'task' },
+        { text: '活动记录 → 活动工作组（建立协作成员）', type: 'task' },
       ],
       nodes: [
         { id: 'leader',    x: 170, y: 204 },
-        { id: 'expanded',  x: 400, y: 480 },
-        { id: 'organizer', x: 630, y: 204 },
+        { id: 'activity',  x: 400, y: 348 },
+        { id: 'workgroup', x: 630, y: 204 },
       ],
       edges: [
-        { from: 'leader',    to: 'expanded',  type: 'info' },
-        { from: 'expanded',  to: 'organizer', type: 'task' },
+        { from: 'leader',    to: 'activity',  type: 'task' },
+        { from: 'activity',  to: 'workgroup', type: 'task' },
       ],
     },
     {
@@ -138,10 +143,10 @@ const ACTIVITY_SCENE = {
     },
     {
       id: 3,
-      title: '复盘 + 宣传产出 + 材料归档',
-      desc: '组织者提交复盘给纪检委员批注确认；深度参与者将宣传产出与材料交组织者，组织者打包后统一提交宣传委员归档——多线程并行。',
+      title: '复盘、宣传产出与材料归档',
+      desc: '按活动安排登记复盘、宣传产出和材料归档任务；纪检考察只在制度、议程或具体事项明确要求时办理。',
       flows: [
-        { text: '组织者 → 纪检委员（提交复盘·批注确认）', type: 'info' },
+        { text: '组织者 → 纪检委员（按事项要求协作）', type: 'info' },
         { text: '深度参与者 → 组织者（交付宣传产出+材料）', type: 'file' },
         { text: '组织者 → 宣传委员（打包提交归档）', type: 'file' },
       ],
@@ -159,10 +164,10 @@ const ACTIVITY_SCENE = {
     },
     {
       id: 4,
-      title: '考察建档',
-      desc: '纪检委员将考察记录提交组织委员，组织委员据此更新支部人才库——活动至此办结。',
+      title: '按需考察与活动收尾',
+      desc: '活动按其登记任务和产出收尾；只有制度、议程或具体事项明确要求时，才办理纪检考察。工作组成员名单不自动成为考察名单。',
       flows: [
-        { text: '纪检委员 → 组织委员（考察记录·更新人才库）', type: 'file' },
+        { text: '纪检委员 → 组织委员（仅在明确要求时交接考察记录）', type: 'file' },
       ],
       nodes: [
         { id: 'discComm', x: 260, y: 348 },
@@ -175,72 +180,69 @@ const ACTIVITY_SCENE = {
   ],
 };
 
-// 专班场景：3 镜组（flow 底账对齐 SOP 组织委员工作流程指南 + 党小组组长工作手册 §4）
+// 专班工作组场景：3 镜组（任务、成员、权限和产出分层表达）
 const TASKFORCE_SCENE = {
   id: 'taskforce',
   no: '02',
-  title: '专班：组织委员统筹，不限时间地点',
-  note: '与活动不同——专班由发起人提出需求，支委会审议立项后交组织委员统一招募；组织者负责分工记录与协调，深度参与者承担具体分工。',
+  title: '专班工作组：围绕事项协作',
+  note: '专班工作组围绕自身任务存在，可承接持续职能或一次性专项事项；组织委员是默认扎口协调角色，具体角色可按支部制度参数调整。',
   viewBox: '0 0 800 720',
   shots: [
     {
       id: 0,
-      title: '发起 + 支委会审议',
-      desc: '发起人（支书/党小组组长/支委等，可多人）提出专班需求；支委会审议立项（线上或线下），通过后交组织委员招募。',
+      title: '明确事项 + 建立工作组',
+      desc: '先登记专班工作组的任务、支部归属、预期产出和结束条件；组织委员默认扎口协调。只有制度或具体议程明确要求时，才进入表决。',
       flows: [
-        { text: '发起人 → 支委会（提出需求）', type: 'info' },
-        { text: '支委会 → 组织委员（审议通过·交招募）', type: 'task' },
+        { text: '发起人 → 工作组（登记事项与任务）', type: 'info' },
+        { text: '组织委员（按制度参数协调）', type: 'task' },
       ],
       nodes: [
         { id: 'initiator', x: 180, y: 348 },
-        { id: 'committee', x: 400, y: 348 },
-        { id: 'orgComm',   x: 620, y: 348 },
+        { id: 'orgComm',   x: 400, y: 348 },
+        { id: 'workgroup', x: 620, y: 348 },
       ],
       edges: [
-        { from: 'initiator', to: 'committee', type: 'info' },
-        { from: 'committee', to: 'orgComm',   type: 'task' },
+        { from: 'initiator', to: 'orgComm',   type: 'info' },
+        { from: 'orgComm',   to: 'workgroup', type: 'task' },
       ],
     },
     {
       id: 1,
-      title: '招募赋权 + 名单同步',
-      desc: '组织委员统一招募赋权给组织者和深度参与者；同时将名单同步给纪检委员——多线程并行。',
+      title: '并列分工 + 独立授权',
+      desc: '工作组记录组织者与深度参与者等并列分工；工作组成员关系不自动授予系统权限，必要操作另行授权并留痕。成员名单不自动变成考勤或考察名单。',
       flows: [
-        { text: '组织委员 → 组织者（招募赋权）', type: 'task' },
-        { text: '组织委员 → 深度参与者（招募赋权）', type: 'task' },
-        { text: '组织委员 → 纪检委员（名单同步）', type: 'info' },
+        { text: '工作组 → 组织者（分工记录）', type: 'task' },
+        { text: '工作组 → 深度参与者（分工记录）', type: 'task' },
+        { text: '负责人 → 授权记录（需要权限时单独授权）', type: 'info' },
       ],
       nodes: [
-        { id: 'orgComm',   x: 400, y: 180 },
+        { id: 'workgroup', x: 400, y: 180 },
         { id: 'organizer', x: 200, y: 516 },
         { id: 'deep',      x: 600, y: 516 },
-        { id: 'discComm',  x: 640, y: 180 },
+        { id: 'permission',x: 640, y: 180 },
       ],
       edges: [
-        { from: 'orgComm', to: 'organizer', type: 'task' },
-        { from: 'orgComm', to: 'deep',      type: 'task' },
-        { from: 'orgComm', to: 'discComm',  type: 'info' },
+        { from: 'workgroup', to: 'organizer', type: 'task' },
+        { from: 'workgroup', to: 'deep',      type: 'task' },
+        { from: 'permission',to: 'workgroup', type: 'info' },
       ],
     },
     {
       id: 2,
-      title: '分工协调 + 归档',
-      desc: '组织者分工记录、协调推进；提交工作考察记录给纪检委员、工作量归档给组织委员——专班至此办结。',
+      title: '任务产出闭合 + 收尾',
+      desc: '工作组完成并关闭全部登记任务与产出后收尾，历史保留只读；只有事项明确要求时办理纪检考察或表决。',
       flows: [
-        { text: '组织者 → 深度参与者（分工记录·协调推进）', type: 'task' },
-        { text: '组织者 → 纪检委员（工作考察记录）', type: 'file' },
-        { text: '组织者 → 组织委员（工作量归档）', type: 'file' },
+        { text: '工作组 → 任务记录（全部闭合）', type: 'file' },
+        { text: '工作组 → 历史记录（只读保留）', type: 'file' },
       ],
       nodes: [
-        { id: 'organizer', x: 400, y: 180 },
-        { id: 'deep',      x: 180, y: 516 },
-        { id: 'discComm',  x: 620, y: 348 },
-        { id: 'orgComm',   x: 620, y: 540 },
+        { id: 'workgroup', x: 400, y: 180 },
+        { id: 'tasks',     x: 180, y: 516 },
+        { id: 'outputs',   x: 620, y: 516 },
       ],
       edges: [
-        { from: 'organizer', to: 'deep',     type: 'task' },
-        { from: 'organizer', to: 'discComm', type: 'file' },
-        { from: 'organizer', to: 'orgComm',  type: 'file' },
+        { from: 'workgroup', to: 'tasks',   type: 'task' },
+        { from: 'workgroup', to: 'outputs', type: 'file' },
       ],
     },
   ],
@@ -253,7 +255,7 @@ const DIALOGUE_STAGES = [
     phase: '工作之前',
     question: '谁去告诉同志们活动/专班的工作内容？',
     answer: '党小组组长 / 发起人',
-    desc: '工作开始前，由党小组组长（活动）或发起人（专班）向参与同志讲清工作内容、边界与预期。',
+    desc: '工作开始前，由活动或工作组责任人向参与同志讲清任务、边界与预期。',
     quote: null,
   },
   {

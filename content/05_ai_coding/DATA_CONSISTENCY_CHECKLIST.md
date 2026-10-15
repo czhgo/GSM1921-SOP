@@ -2,7 +2,7 @@
 title: "数据同源一致性校验手册"
 type: governance
 role: "[工程师]+[AI]"
-last_updated: 2026-10-06
+last_updated: 2026-10-16
 status: active
 related_files: [DATA_MODEL.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 ---
@@ -412,7 +412,7 @@ related_files: [DATA_MODEL.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 - [ ] 活动考察记录（sourceType='activity'）的 activityId 在 ACTIVITIES 中存在
 - [ ] 专班考察记录（sourceType='taskforce'）的 sourceName 在 MOCK_TASKFORCES 中有对应名称
 - [ ] 考察层级（organize/deep）= 活动的 assignments 中对应人员角色
-- [ ] 参与过活动/专班（assignments 中 role=organizer/deep）的人员**应有**对应考察记录——业务期望，考察为组长/组织委员手工上传，数量依赖录入行为，非自动从 assignments 派生（B4-2 修正 2026-08-24）
+- [ ] 只有制度、议程或具体事项明确要求考察时，才核对对应记录是否存在；工作组成员/活动分工角色不自动要求考察，也不从 assignments 派生考察名单
 - [ ] 考察记录字段语义（P1-5 固化）：考察内容入 `content` 字段，`role` 存角色职责标签，禁止把内容文本塞进 role
 - [ ] 组长/组织委员录入的考察子记录同步写入正式考察库（P0-2 固化），同一数据仅一套正式存储
 
@@ -658,7 +658,7 @@ related_files: [DATA_MODEL.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 - [ ] 活动存储态判据单一源（`isActivityEnded / isActivityArchived / isActivityNotStarted / isActivityLive`，`core/domain/constants.js`）：活动「已结束/已归档/未开始/仍在办」判据全站禁止手写 `status==='completed' || archived`，一律引用该单一源
 - [ ] 按人视图口径（SecretaryOverviewStore.getPersonOverview）：4 角色（org/prop/disc/leader，副支书除外）；todoCount=聚合卡 count 求和；在办活动/专班按职责关系投影（manager=统筹/initiator=发起/member=成员）
 - [ ] **前端持久化域 ↔ server 表对账（B5-2 2026-08-24 立；2026-09-15 收敛为实测口径，Q-23-1 结案）**——**口径定义**（下列五个数各自统计什么，严禁混用/互相代入）：
-  - **mockDB 顶层业务域** ＝ `docs/src/core/domain/domain.js::mockDB` 的顶层非 `_` 键数 → **实测 34**（含 `users` 与仅内存读链的 `pendingMemberConfirmations`；2026-10-02 批次 342 删 `complianceReferences` ⇒ 35 → 34）
+  - **mockDB 顶层业务域** ＝ `docs/src/core/domain/domain.js::mockDB` 的顶层非 `_` 键数 → **实测 40**（含 `users`、仅内存读链的 `pendingMemberConfirmations`，以及工作组五集合与能力包目录；2026-10-02 批次 342 删 `complianceReferences` 后为 34，本批新增六域）
   - **localStorage 持久化域** ＝ `docs/src/data/mock-adapter.js::_saveToStorage()` 序列化字段数 → **实测 33**（含 `users`；users 在 mock 形态走「members 持久覆盖层」子域；同上批删 `complianceReferences` ⇒ 34 → 33）
   - **server 表** ＝ `server/db.js::RESOURCE_TABLES` 长度 → **实测 34**（含 `issues` / `member_change_requests` / `committee_broadcasts` / `agenda_votes` / `issue_reveals` 五张语义端点表——不进通用资源名映射；`issue_reveals` 为 2026-09-17 支书裁定「查看匿名的权限只有党委有」的留痕表，仅 `GET /api/v1/issues/reveal` 命中时写入）
   - **资源名映射** ＝ `server/routes/resources.js::RESOURCE_TABLES` 键数 → **实测 29**

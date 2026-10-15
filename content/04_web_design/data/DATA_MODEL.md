@@ -2,8 +2,8 @@
 title: "数据模型与数据流"
 type: design
 role: "[工程师]+[AI]"
-version: "1.0"
-last_updated: 2026-10-15
+version: "1.1"
+last_updated: 2026-10-16
 status: active
 related_files: [content/02_institution/SYSTEM_ROLE_PERMISSION.md, content/02_institution/COMMISSIONER_DUTY_FRAMEWORK.md, content/02_institution/sop/纪检委员工作流程指南.md, content/03_doc_system/ARCHITECTURE.md]
 ---
@@ -53,10 +53,14 @@ related_files: [content/02_institution/SYSTEM_ROLE_PERMISSION.md, content/02_ins
 | isJoint | boolean | 否 | `false` | 共建性质（共建开展为 true） |
 | brandName | string | 否 | -- | 品牌族名称（如"五四精神传承"/"人生回望录"），支委会认定 isBrand 后由写入表单"延续已有品牌/创建新品牌"补录 |
 | agenda | `Array<{id, item, host?, kinds?, agendaStep?, discussionAgendaItemId?, ...业务回指与结果字段}>` | 否 | `[]` | 会议议程（三会一课专用）。`agendaStep` 缺省＝普通/历史议题；`discussion`＝讨论项；`vote`＝表决项，须用 `discussionAgendaItemId` 指向本活动中排在前面的讨论项。`kinds` 仍是可多选业务标签，不表示议程步骤；“三会”会议类型仍由活动 `type/scenarioId` 表达。结果与表态锚定表决项；业务回指可留在其关联讨论项，由会后衔接读取。表态接口校验议题归属与步骤，旧议程未标步骤时继续沿用原逐项表态行为。创建时经写入表单"会议议程"区块填写；会后可在活动详情修改 |
-| organizer | string | 否 | -- | 组织者 personId。写入时缺省＝创建人本人；若 `assignments` 中已指定组织者，创建链按主源同步为被指定人（`writeActivityWithSOP` 原则7「同一套数据」）。读端（归档 / 首页 / 复盘卡 / inspector）消费本字段 |
+| organizer | string | 否 | -- | 组织者 personId。活动工作组中的 `organizer` 成员为标准记录；本字段是兼容读侧镜像。活动创建时由对应入口指定：组内活动由党小组组长写入，跨组活动由支书/副支书写入并指定组织者 |
 | direction | `'top-down'\|'bottom-up'` | 否 | `'bottom-up'` | 发起方向：自上而下（支部部署）/ 自下而上（党小组发起）；由组长写入表单 L4 级选定 |
-| hostGroup | string\|null | 否 | null | 承办党小组（组长写入时固化）。考勤「应到」与考察上传位判据优先取它、缺省回退组织者所属小组 |
-| assignments | `Array<{personId: string, role: 'organizer'\|'deep'\|'participant'}>` | 否 | `[]` | 活动参与人 / 项目内角色的内联登记主源（边界见 §2.1.3）。创建时随指定写入，`AuthStore.authorize` 按它判项目身份；**非空时不再派生组长赋权待办** |
+| hostGroup | string\|null | 否 | null | 旧名称兼容字段。新数据以 `hostGroupId` 表达责任归属；不得用它限制其他党小组成员报名或参加 |
+| branchId | string | 是 | 创建者支部 | 活动所属支部；写入后不可改，跨支部引用由服务端拒绝 |
+| organizingScope | `'party-group'\|'cross-group'` | 是 | -- | 承办责任范围：组内承办或跨组承办。组内由本组组长从组长台创建；跨组由书记/副书记从书记台创建。它不限制其他成员报名或参加 |
+| hostGroupId | string\|null | 条件必填 | `null` | `party-group` 时指向同支部党小组；`cross-group` 时必须为 `null`。旧 `hostGroup` 名称字段暂保留兼容 |
+| workgroupId | string | 是 | `wg-activity-{id}` | 活动工作组主记录 ID；活动记录与统一工作组记录在同一事务中建立 |
+| assignments | `Array<{personId: string, role: 'organizer'\|'deep'\|'participant'}>` | 否 | `[]` | 兼容旧页面与快照的工作组成员镜像；标准主源为 `workgroup_members`。成员身份不自动产生系统授权，授权另存 `workgroup_grants` |
 | signupEnabled | boolean | 否 | `false` | 开放报名开关（SOP-B-2）：勾选后该活动可被报名；草稿态默认不可报名，须本字段为 `true` 才放开。**与下行的分工**：本字段＝写入活动时的「是否开放报名」，关闭动作见 `signupClosed` |
 | signupClosed | boolean | 否 | `false` | 本场报名是否已**手动关闭**（SOP-B-2 · 支书 2026-09-20 定案「不设截止，但组织者可手动关」）：置 `true` 后成员不能**新报**（判据单一出口 `services/activity/signup.js::_sourceOpen`），**已报名者仍可自行取消**；可关者＝**本场组织者（判据 `isActivityOrganizer`）＋ 支书/副支书**，入口在活动详情页报名区块旁。**不设「报名截止时点」字段** |
 | requireMakeup | boolean | 否 | `false` | 活动级「本次要求补课」（SOP-B-6）：党小组会等**不默认补课**的类型，勾选后才进补课名单（补课范围单一出口 `isMakeupRequired`） |
@@ -178,19 +182,11 @@ ActivityRecord (主记录)
 }
 ```
 
-#### 2.1.3 参与人双入口边界
+#### 2.1.3 活动工作组与系统授权边界
 
-> **背景**：`activity.assignments`（活动参与人）与 `AuthStore.authorize`（项目级授权）是两个**相互独立**的入口，数据同源原则要求文档明确二者边界，避免"参与人=被赋权人"的误读。
+活动工作组的组织者、深度参与者和普通参与者都用成员关系记录；成员仍保留原党小组归属。组织者身份用于标明本活动责任，不因此自动获得系统操作权。确需代录考勤、管理任务或提交产出时，由有权管理者通过授权语义接口单独授予、调整或撤销，并记录操作者与时间。参加资格、承办范围和系统权限是三个不同维度。
 
-| 入口 | 数据载体 | 写入时机 | 语义 | 派生影响 |
-|---|---|---|---|---|
-| **活动参与人** | `activity.assignments: Array<{personId, role:'participant'}>`（活动创建时内联） | 创建活动表单勾选参与人（支书台 / 组长台） | 记录"谁参加本次活动"（参与层） | **非空时不再派生组长赋权待办**（calendar-tab.js 内联赋权）；不影响 organizer/deep 项目角色 |
-| **项目级授权** | `AuthStore.authorize` 写主源（活动 `assignments` / 专班 `members`）+ 审计快照键 `sop_org_os_auth_audit`（旧键 `gsm1921-auth-grants` 已废弃） | **在写入路径上顺带赋权**（2026-09-30 `D-718`／`D-719`）：支书台「写入活动」表单、组长台写入活动、专班详情与发布招募的「初始成员」均**内嵌**赋权字段组，与独立赋权记录块共用**同一写口** `AuthStore.authorize`（不新造第二套机制） | 授予"组织者/深度参与者"项目角色权限（活动与专班统称「项目」，共用全局授权体系） | 派生对应对应项目的管理权限，与参与人名单无关 |
-
-**边界规则**：
-1. 活动参与人是**活动级事实**，只回答"谁参加"；项目角色授权是**权限级事实**，只回答"谁能管这个项目"。
-2. 两个入口数据互不读写：勾选参与人不会自动产生 organizer/deep 授权；项目赋权也不会把被赋权人塞进参与人名单。
-3. 派生存档的待办链依据同上：组长赋权待办仅在 `assignments` 为空时派生（活动创建无参与人 → 提示组长补录参与人）；项目角色授权待办独立派生。
+活动承办范围是活动数据字段：组内承办由本组组长从组长台创建；跨组承办由支书/副支书从书记台创建并指定工作组组织者。工作组成员不是活动应到名单；活动报名与出席名单可包含本支部其他党小组成员。
 
 ### 2.2 角色与权限数据
 
@@ -231,13 +227,14 @@ ActivityRecord (主记录)
 **关键规则要点**（详细规则见权威源）：
 - 基础 ACL 实现：[services/core/auth.js `AuthStore.canDo(personId, action, context)`](../../../docs/src/services/core/auth.js#L477-L496)（ROLE_PERMISSIONS + PROJECT_PERMISSIONS 并集判定；旧 domain.js `can()` 已移除）
 - 特殊资源 `evaluation`（考察档案）: 仅 `secretary` 和 `org-commissioner` 可读写，其他角色绝对隔离
-- 宣传委员不可创建活动（仅党支书和党小组组长可创建），但任何活动创建后应自动出现在宣传委员的视图中
+- 活动创建者按活动承办范围区分：组内活动由所属党小组组长写入，跨组活动由书记/副书记写入；服务端验证角色、支部、党小组和活动类型
+- 工作组成员关系不授予系统权限；工作组授权另行留痕，服务端逐操作核验支部、活动和工作组范围
 - 支委身份选择：sidebar "支委" 卡片 → 模态框选择 → `setState({ selectedRole })` → 工作台「我的职责」Tab 分组面板按角色显示对应支委面板
 - 支书独占能力：党课布置、主持大会、全局视角切换、赋权管理（详见 SYSTEM_ROLE_PERMISSION.md §9b）
 
 ### 2.3 专班数据 (TaskForceRecord)
 
-> 专班为人员维度组织结构，由 `TaskForceRecordStore`（services/activity/taskforce.js）实体化管理，存储于 `mockDB.taskforces`（随全量键 `workflowos_branch_db_v1` 持久化），组织委员面板看板展示。
+> 活动工作组与专班工作组共用工作组领域，但各自保留原有业务记录。活动工作组随活动创建；专班工作组围绕专班自身任务存在。跨组活动筹办组不改变成员的党小组归属。当前数据库表为 `workgroups`、`workgroup_members`、`workgroup_grants`、`workgroup_tasks`、`workgroup_outputs`。
 
 | 字段名 | 类型 | 必填 | 默认值 | 说明 |
 |---|---|---|---|---|
@@ -245,30 +242,47 @@ ActivityRecord (主记录)
 | name | string | 是 | -- | 专班名称 |
 | type | string | 是 | -- | 专班类型 |
 | status | `'recruiting'\|'active'\|'archived'\|'dissolved'` | 是 | `'recruiting'` | 专班状态（状态机见 TaskForceRecordStore：recruiting → active → archived/dissolved） |
-| activityId | string\|null | 否 | `null` | 关联活动 ID（专班与活动互斥，为 null） |
+| branchId | string | 是 | -- | 所属支部；服务端逐次校验关联记录的支部归属 |
+| activityId | string\|null | 否 | `null` | 旧数据兼容字段；新专班围绕自身任务，不以此字段直接挂靠活动。活动上下文写入具体任务或产出 |
+| workgroupId | string | 是 | `wg-taskforce-{id}` | 对应专班工作组 ID |
+| task | string | 是 | -- | 专班主任务；兼容字段，同时作为 `workgroup_tasks` 的主任务镜像。创建时须登记，旧记录缺失时只由经办人核实后补录 |
 | createdBy | string | 是 | -- | 创建者 ID |
 | createdAt | string (ISO) | 是 | -- | 创建时间 |
-| members | `Array<{personId: string, role: 'organizer'\|'deep'\|'participant', contributions: string[]}>` | 否 | `[]` | 专班成员对象数组（项目角色主源之一：organizer/deep 在此登记，含工作量 contributions；非字符串 ID 列表） |
+| members | array | 否 | `[]` | 历史兼容镜像。新增和变更通过 `workgroup_members` 语义接口；组织者、深度参与者与普通参与者均属于工作组成员关系 |
 | description | string | 否 | -- | 专班描述 |
 
-> **字段核对**：mock/seed 另含展示字段 `task`/`manager`/`initiator`/`capacity`/`deadline`（见 [data/mock/taskforces.js](../../../docs/src/data/mock/taskforces.js) 样本），未列为必填模型字段。
+> **字段核对**：mock/seed 另含展示字段 `manager`/`initiator`/`capacity`/`deadline`（见 [data/mock/taskforces.js](../../../docs/src/data/mock/taskforces.js) 样本）。新建专班围绕自己的工作组任务存在，不以 `activityId` 直接挂靠活动。
 
-**项目角色赋权与审计**：遗留键 `sop_org_os_assigned_roles` 已删除（services/core/roles.js 启动时清理一次存储残留，无调用方）。项目角色（organizer/deep）以**主源**为准——活动挂 `activity.assignments`、专班挂 `members`；`AuthStore.authorize` / `revokeAuthorization` / `syncProjectRoles` 写主源 + 追加审计快照：
+#### 2.3.1 工作组、成员、授权、任务与产出
+
+| 记录 | 核心字段 | 约束 |
+|---|---|---|
+| `WorkGroup` | `id, branchId, kind, sourceType, sourceId, name, status, organizingScope?, hostGroupId?` | `kind` 为 `activity` 或 `taskforce`；活动与专班分别保留自己的业务记录，工作组记录承接共同的组织者/深度参与者结构 |
+| `WorkGroupMember` | `id, branchId, workgroupId, personId, role, status, createdBy, createdAt` | `role` 为 `organizer/deep/participant`；成员须属于同一支部。登记成员不自动授予系统权限 |
+| `WorkGroupGrant` | `id, branchId, workgroupId, personId, templateKey?, permissionKeys[], status, grantedBy, grantedAt, revokedBy?, revokedAt?` | 独立授权留痕；可套用建议模板后调整；服务端按支部、活动与工作组范围校验每项操作 |
+| `WorkGroupTask` | `id, branchId, workgroupId, title, status, activityId?, capabilityPackageId?, isPurpose?` | `status` 为 `open/in_progress/completed/cancelled`；主任务 `isPurpose` 唯一。每个工作组至少有一项经确认的任务才可收尾。关联活动/能力包须同支部 |
+| `WorkGroupOutput` | `id, branchId, workgroupId, taskId?, activityId?, capabilityPackageId?, title, submittedBy, submittedAt, status` | 产出可关联任务、活动与能力包；跨支部或跨工作组引用由服务端拒绝。收尾需所有已登记产出完成登记 |
+
+**工作组创建、权限与生命周期**：活动工作组随活动创建；专班工作组围绕自身任务创建，专班可由能力包承载，也可由一次性任务触发。活动承办范围 (`party-group/cross-group`)、参加资格和系统授权是不同维度。党小组组长只能创建本组活动；跨组活动由支书/副书记创建。组织者与深度参与者是并列成员角色；具体操作权限经独立授权接口授予并留痕。活动、成员、任务和产出等跨记录写入都须由服务端校验支部归属。
+
+工作组收尾以全部登记任务和产出闭合为准，不要求每个工作组都产生考察记录；纪检考察与支委会表决只在制度、议程或该事项明确要求时触发。能力包停用后禁止新建事项，在办事项可以完成，历史只读保留。党委负责目录/模板，支部自主采纳模板版本。
+
+**能力包目录**：`docs/src/core/domain/capability-packages.js` 是当前静态目录入口。能力包记录所属页面、工作流块、产出块、制度依据状态、适用范围、配置权、依赖和版本。`required/optional/local/pending` 是适用范围属性；制度依据尚未核实时保留 `pending`。党委维护目录与模板，支部自主选择并采纳模板版本。目录编辑和模板发布的专用管理界面尚未建立。T1–T3 是术语授权层级，不作为功能等级。
+
+**项目角色与系统授权分离**：遗留键 `sop_org_os_assigned_roles` 已删除。活动 `assignments` 与专班 `members` 仍为兼容镜像；规范成员关系存于 `workgroup_members`，系统权限另存于 `workgroup_grants`。任何工作组成员身份都不会自动扩大系统权限。授权与撤销均写明操作人和时间。
 
 ```js
-// 主源（运行时实体，随活动/专班持久化）
+// 兼容镜像（运行时仍同步，逐步转由标准化成员关系表提供成员主源）
 activity.assignments: Array<{ personId, role: 'organizer' | 'deep' | 'participant' }>
-taskforce.members:    Array<{ personId, role: 'organizer' | 'deep' | 'participant', contributions: string[] }>
-// 审计快照（独立 localStorage 键，只增不改；撤销为追加 action:'revoke' 记录，判定取最新一条）
-// 键: 'sop_org_os_auth_audit'（AUDIT_KEY，services/core/auth.js）
-// 记录: { id, targetPersonId, role, scopeRef(活动/专班 ID), authorizedBy, authorizedAt, action: 'grant'|'revoke' }
+taskforce.members:    Array<{ personId, role: 'organizer' | 'deep' | 'participant', contributions?: string[] }>
+// 标准主源：workgroup_members；权限主源：workgroup_grants
 ```
 
-**专班成员展示**：由专班 `members` 主源渲染（组织委员/宣传委员看板按需取用），不再经赋权记录。
+**专班成员展示**：由 `workgroup_members` 渲染；组织委员工作组页按专班工作组为主对象展示，报名、活动任务与产出作为关联视图。
 
 ### 2.4 系列活动数据 (SeriesRecord)
 
-> 长期活动/系列活动属于时间维度的重复模式，与专班（人员维度的组织结构）相区分。
+> 长期活动/系列活动属于时间维度的重复模式，与任务工作组和随活动创建的活动工作组相区分。
 
 | 字段名 | 类型 | 必填 | 说明 |
 |---|---|---|---|
@@ -285,10 +299,10 @@ taskforce.members:    Array<{ personId, role: 'organizer' | 'deep' | 'participan
 | archived | boolean | 否 | 全部子活动完成→true→归档 |
 | createdAt | string (ISO) | 是 | 创建时间 |
 
-**三者关系**：
-- **短期活动** (ActivityRecord)：一次性事件，党小组组长写入
-- **系列活动** (SeriesRecord)：时间重复模式，党小组组长创建、支书审核
-- **专班** (TaskForceRecord)：人员组织结构，组织委员招募统筹
+**边界关系**：
+- **活动** (ActivityRecord)：一次活动，带组内/跨组承办范围；需要协同即随活动建立活动工作组
+- **系列活动** (SeriesRecord)：时间重复模式，仍关联多条独立活动记录
+- **专班工作组** (TaskForceRecord)：围绕一类任务或产出组织协作，可跨时间；是否表决由制度或具体议程要求决定
 
 ### 2.5 考勤数据 (AttendanceRecord)
 
@@ -300,12 +314,14 @@ taskforce.members:    Array<{ personId, role: 'organizer' | 'deep' | 'participan
 | id | string | 是 | `generateId()` | 唯一标识符 |
 | activityId | string | 是 | -- | 所属活动 ID |
 | personId | string | 是 | -- | 参会成员人员 ID（统一命名，代码中为 userId） |
-| status | `'present'\|'absent'\|'leave'` | 是 | -- | 出勤状态（出席/缺席/请假） |
+| status | `'present'\|'absent'\|'leave'\|'made_up'` | 是 | -- | 出勤状态（出席/缺席/请假/已补） |
 | recordedBy | string | 是 | -- | 记录人用户 ID（纪检委员） |
 | recordedAt | string (ISO) | 是 | -- | 记录时间 |
 | studentId | string | 否 | -- | 学号 |
 | developStage | `'积极分子'\|'发展对象'\|'预备党员'\|'正式党员'` | 否 | -- | 发展阶段（统一中文枚举） |
 | partyGroup | string | 否 | -- | 所属党小组 |
+
+**活动应到快照与统计口径**：`attendance_rosters` 以活动 ID 唯一保存冻结的原应到人员列表，包含 `branchId, activityId, personIds[], frozen, version, frozenBy, frozenAt`。冻结后不可原位覆盖。考勤事实以活动和人员为唯一组合；实际到场状态为 `present` 或 `made_up`。应到集合按“冻结的原应到名单与实际到场人员去重并集”计算，因此实际到场者即使不在原党小组名单也会计入。请假、缺勤继续留在分母；工作组成员名单不自动成为应到名单。出勤率以该并集为分母、到场/已补为分子；录入覆盖率以已有考勤记录数为分子。未冻结原名单时标注暂估，不把当前名册倒推成历史应到名单。
 
 **出勤状态枚举：**
 
@@ -329,7 +345,7 @@ taskforce.members:    Array<{ personId, role: 'organizer' | 'deep' | 'participan
 
 #### 2.5.1 考察数据 (InspectionRecord)
 
-> 类型定义位于 [domain.js](../../../docs/src/core/domain/domain.js#L165-L177)（InspectionRecord typedef），持久化域 `mockDB.inspections`（`domain.js:245`，随全量键 `workflowos_branch_db_v1` 持久化）。考察记录为**工作量记录**（对象：组织者/深度参与者；适用：所有支部工作），与考勤（0-1 出席变量，对象：党员+预备党员）相区分（见本文 §3.3）。
+> 类型定义位于 [domain.js](../../../docs/src/core/domain/domain.js#L165-L177)（InspectionRecord typedef），持久化域 `mockDB.inspections`（`domain.js:245`，随全量键 `workflowos_branch_db_v1` 持久化）。考察记录用于记录制度、议程或具体事项明确要求的考察工作，不是所有工作组/活动的通用必经步骤；组织者/深度参与者与考勤事实分开建模（见本文 §3.3）。
 
 | 字段名 | 类型 | 必填 | 默认值 | 说明 |
 |---|---|---|---|---|
@@ -344,7 +360,7 @@ taskforce.members:    Array<{ personId, role: 'organizer' | 'deep' | 'participan
 | recordedAt | string (ISO) | 是 | -- | 记录时间 |
 | status | `'pending'\|'confirmed'` | 否 | `'pending'` | 考察确认状态（纪检委员确认后录入考察总表） |
 
-> **写入/确认链路**：党小组组长（活动）或专班负责人/组织委员上传 → 纪检委员确认后录入考察总表（与 server 端同构，见 mock-adapter.js inspections）。
+> **写入/确认链路**：仅在事项明确要求考察时，按其授权流程写入并由纪检委员处理；不得仅因建立工作组而自动派生考察要求。既有党小组活动/专班考察数据与入口保留，具体流程见纪检委员指南。
 
 ### 2.6 分工数据 (AssignmentRecord)
 
@@ -382,11 +398,11 @@ taskforce.members:    Array<{ personId, role: 'organizer' | 'deep' | 'participan
 | 产出物 | 上游产出方 | 系统定向投递 | 最终沉淀 |
 |--------|-----------|-------------|---------|
 | 考勤数据 | 组长·组织者上传 / 纪检一体 | 纪检确认 → 考勤明细 | 组织/宣传只读同源 |
-| 工作考察记录 | 组长·组织者上传 | 纪检确认 → 考察总表 | 组织委员建档 |
-| 专班考察 | 专班负责人 / 组织委员 | 纪检确认 → 考察总表 | 组织委员建档 |
+| 工作考察记录（事项要求时） | 按事项授权的负责人 | 纪检确认 → 考察总表 | 组织委员按职责建档 |
+| 专班考察（事项要求时） | 按事项授权的负责人 | 纪检确认 → 考察总表 | 组织委员按职责建档 |
 | 宣传材料 | 宣传委员拍摄 / 组织者打包提交（深度参与者素材） | 宣传委员归档 | 产出物查看区 |
 | 复盘总结 | 组织者 | 纪检批注/确认 | 活动关闭前置 |
-| 专班工作量 | 专班成员 | 系统自动记录 | 解散报告 → 个人档案 |
+| 工作组任务与产出 | 工作组成员/负责人 | 工作组任务、产出记录 | 工作组收尾与只读历史 |
 | 思想汇报 | 党员本人 | 组织委员归档 | 个人档案（不经纪检/宣传） |
 
 > **同一套数据**：产出物区与各录入入口读取同一份数据（`parent_record[byproduct] == 各入口读取值`），不重复录入。
@@ -695,21 +711,26 @@ taskforce.members:    Array<{ personId, role: 'organizer' | 'deep' | 'participan
 
 ### 2.16.2 周报数据 (WeeklyReport)
 
-> 宣传委员按周报送工作内容，报送历史供支书/宣传条线查阅。
-> **写入入口**：宣传委员工作台·周报报送 tab（支持「+ 新增周次」内联表单新建草稿周次）。
+> 历史资源仍名为 `WeeklyReport/weeklyReports`；业务入口并入“档案归档”。这是按支部周期策略形成的归档提交，周/月周期由制度参数控制，保留旧数据字段与 ID。
+> **写入入口**：宣传委员工作台“档案归档”中的周期归档区（按支部策略预填期次）。
 
 | 字段名 | 类型 | 必填 | 默认值 | 说明 |
 |---|---|---|---|---|
 | id | string | 是 | -- | 唯一标识符（seed 为 wrN，新建为 wr_时间戳） |
-| week | string | 是 | -- | 周次标签（如 '第32周'，同标签唯一性校验） |
-| weekRange | string | 是 | -- | 日期范围（如 '2026-08-04 ~ 2026-08-08'） |
-| content | string | 否 | `''` | 周报内容（每条一行） |
+| week | string | 是 | -- | 历史周期标签兼容字段；新数据同时写 `periodLabel` |
+| weekRange | string | 是 | -- | 历史日期范围兼容字段；新数据同时写 `periodRange` |
+| periodUnit | `'week'\|'month'` | 否 | -- | 所用周期单位 |
+| periodKey | string | 否 | -- | ISO 周或自然月标识 |
+| periodLabel | string | 否 | -- | 周/月期次展示名 |
+| periodRange | string | 否 | -- | 周期起止日期 |
+| archivePolicySnapshot | `{id, version, unit, periodKey, periodLabel, periodRange}` | 提交时生成 | -- | `unit` 来自支部 `policyOverrides.archive.periodic.unit`，`version` 对应周期归档策略版本；服务端在提交时冻结，后续策略变更不改历史快照。历史已提交且无快照的记录保持未知，不用当前规则推测 |
+| content | string | 否 | `''` | 周期工作与产出内容 |
 | status | `'draft'\|'submitted'` | 是 | `'draft'` | 报送状态 |
 | submittedAt | string (date) | 否 | `null` | 报送日期（status='submitted' 时填写） |
 | createdAt | string (ISO) | 否 | -- | 新建时间（新建周次时写入） |
 | createdBy | string | 否 | -- | 创建人短 ID（宣传委员 personId） |
 
-> **标签属性**：seed 预置（wr1-wr4）+ 用户表单写入型——week/weekRange/createdAt/createdBy 由「新增周次」表单写入，content/submittedAt 由「报送」表单写入。
+> **历史属性与迁移**：存量 `week/weekRange` 与资源名继续读取；新提交增加周期字段及规则快照。统计提交周期时优先取周期范围起始日期，不按较晚的提交日期替代所报期次。
 
 ### 2.17 写入数据验证设计
 
@@ -1213,9 +1234,9 @@ pending ──用户开始处理──→ in_progress ──完成──→ comp
 ```
 活动 Activity（创建 → 发布 → 进行 → 归档）
  ├─→ 任务 Task           ：SOP 场景模板生成活动子任务（§2.12）
- ├─→ 分工 Assignment     ：组织者创建、深度参与者执行（§2.6）
+  ├─→ 工作组 WorkGroup    ：组织者与深度参与者登记为并列成员（§2.3.1）
  ├─→ 考勤 Attendance    ：活动副产物，纪检委员写入（§2.5）
- ├─→ 考察 Inspection    ：活动执行记录，纪检确认（§3.3）
+  ├─→ 考察 Inspection    ：仅事项明确要求时产生（§3.3）
  └─→ 产出物 Output       ：按产出类型定向投递，去向由路由表派生（§2.7）
 ```
 
@@ -1226,18 +1247,23 @@ pending ──用户开始处理──→ in_progress ──完成──→ comp
  ├─ 缺勤/请假 ──→ 补课任务 MakeupTask ──→ 补课完成 ──→ 考勤回写「已补」（§2.8）
  └─ 跨活动聚合 ──→ 考勤明细（纪检维护）──→ 个人/支部考勤统计
 
-考察（挂靠 activityId / taskforceId）
- ├─ 纪检确认录入总表 ──→ 组织委员每月建档（考察档案）──→ 人才库/发展党员依据（§3.3）
- └─ 专班工作量汇总 ──→ 专班解散报告 ──→ 写入个人档案
+工作组 WorkGroup（与活动、专班业务记录分别存在）
+  ├─ 成员 WorkGroupMember（organizer / deep / participant）
+  ├─ 独立授权 WorkGroupGrant（授权/撤销审计，不由成员身份自动派生）
+  ├─ 任务 WorkGroupTask（可关联同支部活动或能力包）
+  └─ 产出 WorkGroupOutput（可关联任务、活动或能力包）
+
+考察（仅在制度、议程或事项明确要求时产生）
+  └─ 按事项授权的提交/确认链 ──→ 考察总表 / 人才库依据（§3.3）
 ```
 
-**主线三：赋权 → 工作台 → 入档**
+**主线三：工作组成员/独立授权 → 工作台业务 → 归档**
 
 ```
-赋权记录 AuthRecord（支书赋权，见 §2.2「角色与权限数据」/ §2.3「专班数据」）
- └─→ 项目角色（organizer/deep）工作台出现对应模块
-      └─→ 工作量记录（专班/活动运行期）
-           └─→ 专班解散 → 工作量汇总报告 → 写入个人档案
+工作组成员关系 WorkGroupMember（组织者/深度参与者/普通参与者）
+  ├─→ 显示相关任务与工作台入口
+  └─→ 不自动获得系统写权限
+       └─→ 经独立授权记录 WorkGroupGrant 授予必要权限并留痕
 ```
 
 **交织关系要点**（挂靠 + 聚合双语义）：
@@ -1245,20 +1271,19 @@ pending ──用户开始处理──→ in_progress ──完成──→ comp
 | 数据 | 上下文挂靠（副产物） | 聚合去向（总数据） | 关键字段 |
 |---|---|---|---|
 | 考勤 | 活动 `activityId` | 考勤明细 → 个人考勤统计 | `activityId` |
-| 考察 | 活动/专班 | 考察总表 → 组织委员建档 → 人才库 | `activityId`/`taskforceId` |
-| 分工 | 活动/专班 | 分工汇总 → 工作量统计 | `assignmentId` |
+| 考察 | 明确要求考察的事项 | 考察总表 → 按职责建档 → 人才库 | `activityId`/`taskforceId` |
+| 工作组成员 | 活动/专班工作组 | 工作组任务与入口；不自动授予权限 | `workgroupId/personId/role` |
+| 工作组授权 | 具体工作组 | 受限写操作；可撤销、可审计 | `workgroupId/personId/permissionKeys` |
 | 补课 | 考勤（缺勤/请假触发） | 回写考勤「已补」 | `makeupTask`→考勤回写 |
 | 任务 | 活动 | 完成状态汇总 → 活动进度 | `activityId` |
 
-### 1.4 归档由系统自动同步（2026-09-17 支书裁定）
+### 1.4 归档由系统按业务形态承载
 
-> **需求**：**归档在系统中自动同步完成，不依赖任何人的重复劳动。**
-> **支书原话（2026-09-17）**：「**归档这件事情应该在 系统中自动实现同步，而不需要依靠个人重复劳动！【我认为删去更好】**」
-> **状态**：**待落地**（产品裁定已定；本节只登记**需求与口径**，具体做法待设计）。
+> **原则**：一般归档是已有业务记录的可查询沉淀，不应要求用户把同一事实重复抄写；周期归档则是特定制度/支部策略要求的定期报送，仍由责任人提交，并冻结提交时使用的策略版本。
 
-- **与既有设计的关系**：§1.3 主线三「赋权 → 工作台 → 入档」与 §3.1.1「归档层」把归档写成**由人执行的数据交接环节**（如「纪检委员（执行人）汇总考勤 / 考察记录」）。本裁定要求该环节**不再由人手工传递**——数据在其产生处即归位，归档成为系统的自动结果。
-- **为什么**：手工归档会产生「谁归档」的口径冲突（考勤归档归组织委员还是纪检委员），并把同一份数据反复传递，增加重复劳动与出错面。
-- **用户得到什么**：各身份都**不再需要做「归档」这个动作**；归档状态由系统自动呈现，人只做自己职责之内的事。
+- 通用档案视图读取原业务记录，不为同一事实复制一份“周报”实体。
+- 周期报送的周期单位（周/月）来自支部策略；每次提交快照保存 `periodicArchiveVersion`、单位、期次与日期范围，后续制度参数变更不改历史记录（见 §2.16.2）。
+- 系统承担分类、关联和历史留存；提交与审核动作仍按该档案策略的责任角色执行。
 
 ---
 
@@ -1271,10 +1296,11 @@ pending ──用户开始处理──→ in_progress ──完成──→ comp
 | 层级 | 角色 | 核心职责 | 产出 |
 |------|------|---------|------|
 | **党支部**（支委会统筹决策层） | 党支书+支委 | 统筹决策 | — |
-| **组织者**（分工记录层） | 党小组组长 / 支委（组织活动时）/ 组织者 | 平等协商分工（非上下级）+ 桥梁作用（与支委同步）+ 打包产出物（考勤+考察）+ 鼓励复盘和创新提案 | 分工记录 / 考察记录+产出物打包 / 考察记录：组织 |
-| **深度参与者**（具体执行层） | 有明确分工并实际完成的成员（宣传/现场统筹/技术支持/一对一对接/材料整理等） | 承担具体工作 | 考察记录：深度参与-[角色] |
+| **组织者**（分工记录层） | 活动或专班工作组成员 | 协调、分工和责任记录，与深度参与者并列 | 工作组成员/任务关系；按事项要求形成产出 |
+| **深度参与者**（具体执行层） | 有明确分工并实际完成的成员 | 承担具体工作 | 工作组成员/任务关系；按事项要求形成产出 |
 | **普通参与者**（考勤记录层） | 参加但无具体分工 | 出席 | 考勤记录：出勤 |
-| **归档层** | 纪检委员（执行人） | 汇总考勤/考察记录 | 考勤（对象：党员+预备党员；适用：三会一课；状态：出勤/请假/缺勤；提交：支委会，组织委员接收建档）+ 考察（对象：深度参与者和组织者；适用：所有支部工作；层级：组织/深度参与；提交：组织委员建档每月） |
+| **工作组** | 工作组责任人/成员 | 登记成员、任务、产出；必要时另行授权 | 全部登记任务和产出闭合后结束；历史只读保留 |
+| **归档层** | 按具体档案规则分工 | 通用档案复用业务记录；周期档案按策略定期提交 | 考勤按适用场景记录；考察仅在制度/议程/事项明确要求时办理 |
 
 > 完整的分工记录、桥梁作用、考勤/考察规则详见 [COMMISSIONER_DUTY_FRAMEWORK.md §G（原 FLAT_ORGANIZATION_DESIGN.md）](../../02_institution/COMMISSIONER_DUTY_FRAMEWORK.md) + [纪检委员工作流程指南 §1.2](../../02_institution/sop/纪检委员工作流程指南.md)。
 
@@ -1309,7 +1335,7 @@ pending ──用户开始处理──→ in_progress ──完成──→ comp
 
 > 完整的考勤/考察规则、判断逻辑、记录字段定义见 [纪检委员工作流程指南 §1.2](../../02_institution/sop/纪检委员工作流程指南.md) + [COMMISSIONER_DUTY_FRAMEWORK.md 补课闭环](../../02_institution/COMMISSIONER_DUTY_FRAMEWORK.md)。本节仅保留要点索引。考勤/考察在端到端数据流中的「挂靠活动 + 聚合总数据」交织位置见 [§1.3](#13-端到端数据流交织图)。
 
-**要点**：考勤为 0-1 变量（出勤/请假/缺勤），对象为党员+预备党员，适用三会一课；考察为工作量记录（组织/深度参与），对象为深度参与者和组织者，适用所有支部工作。系统记录字段：考勤见 §2.5 AttendanceRecord；考察见 §2.5.1 InspectionRecord（`level`/`role`/`recordedBy`/`recordedAt`/`status`，持久化域 `mockDB.inspections`）。
+**要点**：考勤按活动×人员记录；冻结的原应到名单与实际到场名单去重并集构成应到名单。出勤率以该集合为分母、出席/已补为分子，同时单列已有记录覆盖率。考察按制度、议程或具体事项要求产生，不因活动、专班或工作组存在而自动适用于所有支部工作。字段见 §2.5 AttendanceRecord 与 §2.5.1 InspectionRecord。
 
 > **（论断 P-026）：人才库（组织委员维护）是画像数据库，基于考察信息更新——装的是"画像"（某同志擅长什么、表现如何、有何特长），不是原始材料本身；原始材料库（纪检委员持有）是考勤明细、考察总表等原始记录。纪检委员把考察信息给组织委员，原始材料留在纪检委员处——不是副本关系。**
 

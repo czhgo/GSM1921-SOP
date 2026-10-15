@@ -119,16 +119,21 @@ export function bumpCollectionVersion(db, name) {
  * @param {Array<{name:string, table:string, rows:Array}>} writes 本次要写的集合（name = 快照 payload 键）
  * @returns {Object<string, number>} 各集合写后的新版本号
  */
-export function replaceCollectionsAtomic(db, writes) {
-  const run = db.transaction((items) => {
+export function replaceCollectionsAtomic(db, writes, { workgroups = [] } = {}) {
+  const run = db.transaction((items, relatedWorkgroups) => {
     const versions = {};
     for (const it of items) {
       replaceCollection(db, it.table, it.rows);
       versions[it.name] = bumpCollectionVersion(db, it.name);
     }
+    for (const workgroup of relatedWorkgroups) {
+      db.prepare('INSERT OR REPLACE INTO workgroups (id, data) VALUES (?, ?)')
+        .run(workgroup.id, JSON.stringify(workgroup));
+    }
+    if (relatedWorkgroups.length > 0) bumpCollectionVersion(db, 'workgroups');
     return versions;
   });
-  return run(writes);
+  return run(writes, workgroups);
 }
 
 // ════════════════════════════════════════════════════════════════
@@ -167,7 +172,12 @@ export const SEMANTIC_TABLES = [
   // 授权审计留痕（端点见 resources.js「授权审计留痕」段）——原只存 localStorage 键 sop_org_os_auth_audit
   //   ⇒ 清缓存即留痕灭失。留痕的意义＝让「谁给谁赋了什么角色」这条治理承诺可被事后核对（只增不改）。
   'auth_audit',
+  // 工作组子域和应到名单快照不属于既有语义表；由 schema v3 迁移建立。
 ];
+
+const WORKGROUP_TABLES = Object.freeze([
+  'workgroups', 'workgroup_members', 'workgroup_grants', 'workgroup_tasks', 'workgroup_outputs', 'attendance_rosters',
+]);
 
 // ════════════════════════════════════════════════════════════════
 //  最小可用迁移机制（2026-09-25）：PRAGMA user_version 版本号 + 有序 migration 列表
@@ -188,12 +198,12 @@ export const SEMANTIC_TABLES = [
 // ⚠ 本段整体置于文件末尾：上文 `SCHEMA` / `initDb` / `replaceCollection` 的行号是 `README-server.md` 的取证
 //   靶点（`doc-line-ref.test.mjs` 逐条核）——接入点与 `return db;` **同行**，故上文行号零漂移。
 
-/** v1 基线覆盖的**全部** db.js 自建表（冻结现状：35 资源表 + 7 语义表 + `sessions`/`attachments` + `collection_versions`） */
+/** v1 冻结表清单：34 资源表 + 7 语义表 + sessions/attachments/collection_versions；新表必须走后续迁移。 */
 const BASELINE_TABLES = [
-  ...RESOURCE_TABLES,
-  ...SEMANTIC_TABLES,
-  'sessions', 'attachments',
-  COLLECTION_VERSIONS_TABLE,
+  'users', 'activities', 'tasks', 'attendances', 'inspections', 'taskforces', 'notices', 'todos', 'assignments', 'makeup_tasks', 'experience_deposits', 'file_space_records',
+  'image_records', 'signups', 'activity_reviews', 'taskforce_reviews', 'prop_tasks', 'weekly_reports', 'archive_records', 'external_dispatches', 'act_sub_records', 'tf_sub_records', 'branch_docs',
+  'member_change_requests', 'committee_broadcasts', 'agenda_votes', 'branches', 'appointment_records', 'review_requests', 'issues', 'thought_reports', 'party_groups', 'member_flows', 'issue_reveals',
+  'handoffs', 'member_confirmations', 'milestones', 'attendance_appeals', 'inspection_appeals', 'issue_unread', 'auth_audit', 'sessions', 'attachments', 'collection_versions',
 ];
 
 /**
@@ -212,7 +222,7 @@ export const MIGRATIONS = [
     up(db) {
       // 幂等重放 db.js 自建 DDL（此刻 initDb 已完成同样动作 ⇒ 纯标记；既有路径与数据不受影响）
       db.exec(SCHEMA);
-      for (const t of [...RESOURCE_TABLES, ...SEMANTIC_TABLES]) {
+      for (const t of BASELINE_TABLES.filter((name) => !['sessions', 'attachments', 'collection_versions'].includes(name))) {
         db.exec(`CREATE TABLE IF NOT EXISTS ${t} (id TEXT PRIMARY KEY, data TEXT NOT NULL)`);
       }
       db.exec(`CREATE TABLE IF NOT EXISTS ${COLLECTION_VERSIONS_TABLE} (name TEXT PRIMARY KEY, version INTEGER NOT NULL DEFAULT 0)`);
@@ -227,6 +237,76 @@ export const MIGRATIONS = [
     tables: [],
     up(db) {
       db.exec('DROP TABLE IF EXISTS compliance_references');
+    },
+  },
+  {
+    version: 3,
+    name: 'workgroups-and-attendance-rosters',
+    tables: WORKGROUP_TABLES,
+    up(db) {
+      for (const table of WORKGROUP_TABLES) db.exec('CREATE TABLE IF NOT EXISTS ' + table + ' (id TEXT PRIMARY KEY, data TEXT NOT NULL)');
+      // 旧活动与专班的业务 ID 保持原样；新工作组 ID 可由旧 ID 稳定重建。
+      const users = new Map(db.prepare('SELECT id, data FROM users').all().map((r) => [r.id, JSON.parse(r.data)]));
+      const groups = new Map(db.prepare('SELECT id, data FROM party_groups').all().map((r) => [r.id, JSON.parse(r.data)]));
+      const groupNameByBranch = new Map([...groups.values()].map((g) => [`${g.branchId}:${g.name}`, g.id]));
+      const write = (table, row) => db.prepare(`INSERT OR IGNORE INTO ${table} (id, data) VALUES (?, ?)`).run(row.id, JSON.stringify(row));
+      const addMembers = (workgroup, members) => {
+        for (const member of Array.isArray(members) ? members : []) {
+          if (!member || !member.personId) continue;
+          const role = ['organizer', 'deep', 'participant'].includes(member.role) ? member.role : 'participant';
+          const id = `wgm-${encodeURIComponent(workgroup.id)}-${encodeURIComponent(String(member.personId))}`;
+          write('workgroup_members', {
+            id, branchId: workgroup.branchId, workgroupId: workgroup.id,
+            personId: String(member.personId), role, status: 'active',
+            createdBy: 'migration-v3', createdAt: workgroup.createdAt || new Date(0).toISOString(),
+            migratedFromLegacy: true,
+          });
+        }
+      };
+      for (const row of db.prepare('SELECT id, data FROM activities').all()) {
+        const activity = JSON.parse(row.data);
+        const id = activity.workgroupId || `wg-activity-${row.id}`;
+        const organizer = users.get(activity.organizer);
+        const branchId = activity.branchId || organizer?.branchId || null;
+        const hostGroupId = activity.hostGroupId || (branchId && activity.hostGroup ? groupNameByBranch.get(`${branchId}:${activity.hostGroup}`) : null) || null;
+        const workgroup = {
+          id, branchId, kind: 'activity', sourceType: 'activity', sourceId: row.id,
+          name: activity.title || row.id, status: activity.archived ? 'archived' : 'active',
+          organizingScope: ['party-group', 'cross-group'].includes(activity.organizingScope) ? activity.organizingScope : null,
+          hostGroupId,
+          migrationState: activity.organizingScope ? 'ready' : 'pending-review',
+          createdAt: activity.createdAt || null,
+        };
+        write('workgroups', workgroup);
+        addMembers(workgroup, activity.assignments);
+        const migratedActivity = {
+          ...activity,
+          ...(branchId && !activity.branchId ? { branchId } : {}),
+          ...(hostGroupId && !activity.hostGroupId ? { hostGroupId } : {}),
+          workgroupId: id,
+        };
+        if (JSON.stringify(migratedActivity) !== JSON.stringify(activity)) {
+          db.prepare('UPDATE activities SET data = ? WHERE id = ?').run(JSON.stringify(migratedActivity), row.id);
+        }
+      }
+      for (const row of db.prepare('SELECT id, data FROM taskforces').all()) {
+        const taskforce = JSON.parse(row.data);
+        const id = taskforce.workgroupId || `wg-taskforce-${row.id}`;
+        const manager = users.get(taskforce.manager);
+        const initiator = users.get(taskforce.initiator);
+        const candidates = [manager?.branchId, initiator?.branchId].filter(Boolean);
+        const branchId = taskforce.branchId || (new Set(candidates).size === 1 ? candidates[0] : null);
+        const workgroup = {
+          id, branchId, kind: 'taskforce', sourceType: 'taskforce', sourceId: row.id,
+          name: taskforce.name || row.id, status: taskforce.deletedAt ? 'archived' : (taskforce.status || 'active'),
+          migrationState: 'pending-review', createdAt: taskforce.createdAt || null,
+        };
+        write('workgroups', workgroup);
+        addMembers(workgroup, taskforce.members);
+        if (!taskforce.workgroupId) {
+          db.prepare('UPDATE taskforces SET data = ? WHERE id = ?').run(JSON.stringify({ ...taskforce, workgroupId: id }), row.id);
+        }
+      }
     },
   },
 ];

@@ -61,7 +61,9 @@ const AD_HOC = new Set([
   ...listNames('SEMANTIC_TABLES'),
   ...[.../const SCHEMA = `([\s\S]*?)`;/.exec(SRC)[1].matchAll(/CREATE TABLE IF NOT EXISTS (\w+)/g)].map((m) => m[1]),
   /COLLECTION_VERSIONS_TABLE = '(\w+)'/.exec(SRC)[1],
+  ...MIGRATIONS.flatMap((migration) => migration.tables || []),
 ]);
+const AD_HOC_BASELINE = 50; // v1 冻结 44 张 + schema v3 新增 6 张；新增迁移表须同步审阅本基线。
 
 /** 各迁移声明的表名（`tables` 字段） */
 const DECLARED = new Set();
@@ -78,6 +80,8 @@ test('G1/G2 完整性 + 版本对齐：临时库 integrity_check=ok，且 user_v
     assert.equal(db.pragma('integrity_check', { simple: true }), 'ok', 'integrity_check 必须 ok');
     assert.equal(Number(db.pragma('user_version', { simple: true })), SCHEMA_VERSION,
       `user_version 须＝迁移列表最大版本 ${SCHEMA_VERSION}（落后＝有迁移没跑；超前＝版本号被手改）`);
+    const actualTables = db.prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%' ORDER BY name").all().map((row) => row.name);
+    assert.deepEqual(actualTables, [...AD_HOC].sort(), '临时库实际表集合与源码抽取 / 迁移声明不符');
   } finally { db.close(); fs.rmSync(dir, { recursive: true, force: true }); }
 });
 
@@ -95,11 +99,12 @@ test('G3 迁移列表自检：version 严格递增且唯一、每项有 name 与
 
 // ── G4 非空转 ──────────────────────────────────────────────────────────────
 test('G4 非空转：抽取有基线 + 校验器在合成反例上必命中（防守卫恒真）', () => {
-  // ① 抽取有基线：db.js 自建表抽取结果须＝冻结基线（口径被改坏时立刻暴露，G5 才不会恒真）
-  assert.equal(AD_HOC.size, LEGACY_TABLES.length,
-    `db.js 自建表抽取数 ${AD_HOC.size} ≠ 冻结基线 ${LEGACY_TABLES.length}`);
-  assert.deepEqual([...AD_HOC].sort(), [...LEGACY_TABLES].sort(),
-    'db.js 自建表集合与冻结基线不符（新增/删除表须同步此清单 **并** 写 migration）');
+  // ① 抽取有基线：分别锁住 v1 冻结集与含后续迁移表的当前全量实况。
+  assert.equal(LEGACY_TABLES.length, 44, `v1 冻结表清单规模变化：${LEGACY_TABLES.length} ≠ 44`);
+  assert.equal(AD_HOC.size, AD_HOC_BASELINE,
+    `db.js 自建表抽取数 ${AD_HOC.size} ≠ 当前冻结基线 ${AD_HOC_BASELINE}`);
+  assert.deepEqual([...AD_HOC].sort(), [...new Set([...LEGACY_TABLES, ...DECLARED])].sort(),
+    'db.js 自建表抽取与 v1 冻结基线 ∪ 迁移声明不符（新结构须登记迁移）');
 
   // ② 合成反例：校验器必须逐类命中
   const dup = validateMigrations([{ version: 1, name: 'a', up() {} }, { version: 1, name: 'b', up() {} }]);

@@ -14,7 +14,7 @@
 // ════════════════════════════════════════════════════════════════
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
-import { SCENARIO_WRITE_IDS, SCENARIO_LABELS, BRANCH_COMMISSION_ROLES } from '../../docs/src/core/domain/constants.js?v=20261015b';
+import { SCENARIO_WRITE_IDS, SCENARIO_LABELS, BRANCH_COMMISSION_ROLES } from '../../docs/src/core/domain/constants.js?v=20261016a';
 const { createApp } = await import('../app.js');
 const { seedBaseline } = await import('../seed-baseline.js');
 
@@ -50,6 +50,7 @@ function setHiddenBlocks(ids) {
 let seq = 0;
 const postActivity = (type) => api('POST', '/api/v1/activities', { body: {
   id: `act-blockgate-${++seq}`, name: `运行时面测试 ${seq}`, type, date: '2026-09-28',
+  organizingScope: 'cross-group', hostGroupId: null,
 } });
 
 before(async () => {
@@ -111,4 +112,54 @@ test('G6 反例锁死：hiddenBlockIds 为空数组 ⇒ 恢复可写（判据非
   setHiddenBlocks([]);
   const r = await postActivity(A_LABEL);
   assert.equal(r.status, 201, `空停用清单应放行，实测 ${r.status} ${r.text.slice(0, 160)}`);
+});
+
+test('G7 停止新建但允许在办活动完成；活动完成后只读保留', async () => {
+  setHiddenBlocks([]);
+  const created = await postActivity(A_LABEL);
+  assert.equal(created.status, 201);
+  const id = created.json.id;
+  setHiddenBlocks([A_ID]);
+
+  const progress = await api('PATCH', `/api/v1/activities/${id}`, { body: { title: '停用后仍允许办结' } });
+  assert.equal(progress.status, 200, `在办记录仍可完成，实测 ${progress.status} ${progress.text.slice(0, 160)}`);
+  const completed = await api('PATCH', `/api/v1/activities/${id}`, { body: { status: 'completed' } });
+  assert.equal(completed.status, 200, `在办流程应可走到完成，实测 ${completed.status} ${completed.text.slice(0, 160)}`);
+
+  const historyEdit = await api('PATCH', `/api/v1/activities/${id}`, { body: { title: '改写历史' } });
+  assert.equal(historyEdit.status, 409, '完成记录保持可读但不能修改');
+  const historyDelete = await api('DELETE', `/api/v1/activities/${id}`);
+  assert.equal(historyDelete.status, 409, '完成记录不能物理删除');
+  const retained = await api('GET', '/api/v1/activities');
+  assert.equal(retained.status, 200);
+  assert.equal(retained.json.find((row) => row.id === id)?.status, 'completed');
+});
+
+test('G8 停用专班能力后不再新建；在办工作组可办结，历史保留只读', async () => {
+  setHiddenBlocks([]);
+  const created = await api('POST', '/api/v1/taskforces', { body: {
+    id: `tf-blockgate-${++seq}`, name: '停用生命周期测试', task: '测试事项治理', status: 'active', members: [],
+  } });
+  assert.equal(created.status, 201);
+  const id = created.json.id;
+
+  setHiddenBlocks(['taskforce']);
+  const newGroup = await api('POST', '/api/v1/taskforces', { body: {
+    id: `tf-blockgate-${++seq}`, name: '停用后不应新建', task: '测试事项治理', status: 'active', members: [],
+  } });
+  assert.equal(newGroup.status, 403, '关闭能力后停止新建工作组');
+
+  const workgroupId = created.json.workgroupId;
+  const tasks = await api('GET', `/api/v1/workgroups/${workgroupId}/tasks`);
+  assert.equal(tasks.status, 200);
+  assert.equal(tasks.json.length, 1);
+  const completedTask = await api('PATCH', `/api/v1/workgroups/${workgroupId}/tasks/${tasks.json[0].id}`, { body: { status: 'completed' } });
+  assert.equal(completedTask.status, 200, '停用能力后既有任务仍可完成');
+  const finish = await api('POST', `/api/v1/taskforces/${id}/dissolution`, { body: { requiresCommitteeVote: false } });
+  assert.equal(finish.status, 200, '既有工作组须先经任务与产出闭合的语义接口办理收尾');
+
+  const edit = await api('PATCH', `/api/v1/taskforces/${id}`, { body: { name: '改写历史' } });
+  assert.equal(edit.status, 409, '能力停用后的历史工作组只读保留');
+  const remove = await api('DELETE', `/api/v1/taskforces/${id}`);
+  assert.equal(remove.status, 409, '能力停用后不得删除历史工作组');
 });

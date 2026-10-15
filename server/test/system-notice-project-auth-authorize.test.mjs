@@ -275,6 +275,22 @@ test('E1 `weekly-report-submitted`：源行 `submittedBy` ⇒ 按名册复算 `s
   assert.ok(t.includes('第十周'), '周次仍按表复算（批次 390 口径未动）');
 });
 
+test('周期归档通知按服务端冻结的周期快照展示，不采信客户端伪造期次', () => {
+  const rows = {
+    users: { p11: { id: 'p11', name: '宣传委员真名' } },
+    weekly_reports: { 'wr-month': {
+      id: 'wr-month', submittedBy: 'p11', week: '旧兼容字段', weekRange: '旧日期',
+      archivePolicySnapshot: { unit: 'month', periodLabel: '2026年10月', periodRange: '2026-10-01 ~ 2026-10-31', version: 2 },
+    } },
+  };
+  const t = TEXT(BUILD('weekly-report-submitted', 'wr-month', rows, {
+    periodLabel: '伪造期次', periodRange: '伪造区间', week: '伪造周',
+  }));
+  assert.ok(t.includes('宣传周期归档待审核'), t);
+  assert.ok(t.includes('2026年10月') && t.includes('2026-10-01 ~ 2026-10-31'), t);
+  assert.ok(!t.includes('伪造期次') && !t.includes('伪造区间'), t);
+});
+
 test('E2 `review-request-submitted`：源行 `submittedBy` ⇒ 按名册复算 `submitterName`', () => {
   const rows = {
     users: { p13: { id: 'p13', name: '支书真名' } },

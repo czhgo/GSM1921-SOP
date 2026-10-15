@@ -3,31 +3,32 @@
 // 党小组组长可创建党小组会、主题党日活动，写入后自动生成SOP任务节点。
 // 含决策树引导式写入（DecisionTreeState）+ 活动详情/子记录内联编辑 + 活动角色赋权。
 
-import { setState, getAppState } from '../../../core/base/state.js?v=20261015b';
-import { BranchService } from '../../../services/core/runtime.js?v=20261015b';
-import { DecisionTreeState, DECISION_TREE_CONFIGS, renderWorkflowPanel, writeActivityWithSOP, hostGroups as buildHostGroupOptions } from '../../../services/activity/decision-tree.js?v=20261015b';
+import { setState, getAppState } from '../../../core/base/state.js?v=20261016a';
+import { BranchService } from '../../../services/core/runtime.js?v=20261016a';
+import { DecisionTreeState, DECISION_TREE_CONFIGS, renderWorkflowPanel, writeActivityWithSOP, hostGroups as buildHostGroupOptions } from '../../../services/activity/decision-tree.js?v=20261016a';
 // 党小组常态清单唯一来源（活组、按 seq 升序）——承办党小组选项不再写死
-import { groupOptions } from '../../../services/member/party-group.js?v=20261015b';
-import { AuthStore } from '../../../services/core/auth.js?v=20261015b';
-import { TodoStore, TodoSourceType } from '../../../services/governance/todo.js?v=20261015b';
-import { mockDB, OutputType, deriveOutputRoute } from '../../../core/domain/domain.js?v=20261015b';
-import { persist } from '../../../data/data-adapter.js?v=20261015b';
-import { PersonPicker } from '../../../components/governance/pickers.js?v=20261015b';
-import { recordFormShell } from '../../../components/ui/forms.js?v=20261015b';
-import { getBranchIdOfPerson, getBranchOutputBlocks, applyOutputBlockPolicy } from '../../../services/branch/branch.js?v=20261015b';
-import { badgeHtml } from '../../../components/ui/badges.js?v=20261015b';
+import { groupOptions, loadPartyGroups } from '../../../services/member/party-group.js?v=20261016a';
+import { AuthStore } from '../../../services/core/auth.js?v=20261016a';
+import { TodoStore, TodoSourceType } from '../../../services/governance/todo.js?v=20261016a';
+import { mockDB, OutputType, deriveOutputRoute } from '../../../core/domain/domain.js?v=20261016a';
+import { persist } from '../../../data/data-adapter.js?v=20261016a';
+import { PersonPicker } from '../../../components/governance/pickers.js?v=20261016a';
+import { renderWorkgroupPermissionEditor, readWorkgroupPermissionEditor } from '../../../components/governance/workgroup-permissions.js?v=20261016a';
+import { recordFormShell } from '../../../components/ui/forms.js?v=20261016a';
+import { getBranchIdOfPerson, getBranchOutputBlocks, applyOutputBlockPolicy } from '../../../services/branch/branch.js?v=20261016a';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20261016a';
 // 活动生命周期展示态单一源（草稿/已发布/进行中/待归档/已执行/已归档/已取消）——勿在本文件另造中文标签
-import { activityLifecycleBadgeHtml } from '../../../components/record/inspector.js?v=20261015b';
-import { showToast, escHtml, todayLocal } from '../../../core/base/utils.js?v=20261015b';
+import { activityLifecycleBadgeHtml } from '../../../components/record/inspector.js?v=20261016a';
+import { showToast, escHtml, todayLocal } from '../../../core/base/utils.js?v=20261016a';
 // 组织者的发布口（2026-09-19 批次 91 · SOP-B-17）：本人被指定为该场组织者时，本台即可发布本组通知
-import { isActivityOrganizer, findActivityById, OUTDOOR_CHECKLIST, isOutdoorActivity, PUBLICITY_DRAFT_STATUS, PUBLICITY_DRAFT_LABELS, publicityDraftStatusOf, setPublicityDraftStatus, DEEP_WORK_MODE } from '../../../services/activity/activity.js?v=20261015b';
-import { openModal, closeModal } from '../../../components/ui/modal.js?v=20261015b';
-import { openGroupNoticeComposer } from '../../../components/governance/notice-view.js?v=20261015b';
-import { solidAccentStyle, accDarkVars, accDarkParts, OUTPUT_BLOCK_DEFS, isActivityEnded, ACTIVITY_SUBTYPES, normalizeActivityType } from '../../../core/domain/constants.js?v=20261015b';
-import { filterByRole, getCurrentLeaderId, currentLeaderGroup } from './_shared.js?v=20261015b';
-import { anchorDetailToTrigger } from '../../../components/ui/detail-anchor.js?v=20261015b';
+import { isActivityOrganizer, findActivityById, OUTDOOR_CHECKLIST, isOutdoorActivity, PUBLICITY_DRAFT_STATUS, PUBLICITY_DRAFT_LABELS, publicityDraftStatusOf, setPublicityDraftStatus, DEEP_WORK_MODE } from '../../../services/activity/activity.js?v=20261016a';
+import { openModal, closeModal } from '../../../components/ui/modal.js?v=20261016a';
+import { openGroupNoticeComposer } from '../../../components/governance/notice-view.js?v=20261016a';
+import { solidAccentStyle, accDarkVars, accDarkParts, OUTPUT_BLOCK_DEFS, isActivityEnded, ACTIVITY_SUBTYPES, normalizeActivityType } from '../../../core/domain/constants.js?v=20261016a';
+import { filterByRole, getCurrentLeaderId, currentLeaderGroup } from './_shared.js?v=20261016a';
+import { anchorDetailToTrigger } from '../../../components/ui/detail-anchor.js?v=20261016a';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是活动的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
-import { renderFilteredList, activityKeyword, activityFacets } from '../../../components/ui/list-filter.js?v=20261015b';
+import { renderFilteredList, activityKeyword, activityFacets } from '../../../components/ui/list-filter.js?v=20261016a';
 
 /**
  * 活动角色可编辑性（dogfood 权限专项 2026-09-13）
@@ -334,6 +335,7 @@ export function renderContent(ctx) {
               <div id="detail-deep-picker"></div>
             </div>
           </div>
+          ${renderWorkgroupPermissionEditor('activity-detail')}
           <p class="text-[12px] text-gray-500 mt-2">提示：修改将同步到活动，被赋权人将收到通知。</p>
         </div>
 
@@ -422,7 +424,8 @@ export function renderContent(ctx) {
           ...deepIds.map(personId => ({ personId, role: 'deep' })),
         ];
         const actorId = AuthStore.getCurrentUser()?.personId;
-        const { added, removed } = await AuthStore.syncProjectRoles({ scopeRef: actId, assignments: newAssignments, actorId });
+        const permissionKeysByRole = readWorkgroupPermissionEditor(detailPanel, 'activity-detail');
+        const { added, removed } = await AuthStore.syncProjectRoles({ scopeRef: actId, assignments: newAssignments, actorId, permissionKeysByRole });
         // 做事即销待办：保存角色 → 销组长「赋权」待办
         TodoStore.completeBySource(TodoSourceType.ACTIVITY, actId);
         if (added > 0 || removed > 0) {
@@ -624,7 +627,8 @@ function _renderDecisionTreePanel({ accent, accentRgba, accentBorder, _dtBtnStyl
   // 承办党小组选项：活组清单渲染时现取 groupOptions()（新增/改名/解散后即时可见），
   // 再经 hostGroups() 补入「组长本组」（本组可能不在活组清单内，如历史数据）——
   // 不改权限，仅保证「组长本组承办」这一既有语义可提交，且改选后仍能回选本组。
-  const hostGroups = buildHostGroupOptions(groupOptions(), currentLeaderGroup().group);
+  const ownGroupName = currentLeaderGroup().group;
+  const hostGroups = buildHostGroupOptions(groupOptions().filter((name) => name === ownGroupName), ownGroupName);
 
   // 活动类型
   const l1Html = `
@@ -766,6 +770,7 @@ function _renderDecisionTreePanel({ accent, accentRgba, accentBorder, _dtBtnStyl
             <div id="dt-deep-picker"></div>
           </div>
         </div>
+        ${renderWorkgroupPermissionEditor('activity-create')}
       </div>
 
       ${deepWorkHtml}
@@ -1068,6 +1073,11 @@ function _dtBindPanelArea(container, ctx, refresh) {
 
     try {
       const currentLeaderId = getCurrentLeaderId();
+      const currentUser = AuthStore.getCurrentUser();
+      const branchId = currentUser?.branchId || getBranchIdOfPerson(currentLeaderId);
+      const hostGroupRecord = loadPartyGroups().find((group) => group.name === hostGroup
+        && (group.branchId || 'br-b1') === branchId && group.status === 'active');
+      if (!hostGroupRecord) throw new Error('只能由组长创建本党小组承办的活动');
       const activityData = {
         title,
         // 权威类型取值 = 子类中文名（单一源 ACTIVITY_SUBTYPES；组长台 L1 标签即权威子类名），
@@ -1083,6 +1093,9 @@ function _dtBindPanelArea(container, ctx, refresh) {
         direction: L4,
         duration: L3,
         hostGroup,
+        hostGroupId: hostGroupRecord.id,
+        organizingScope: 'party-group',
+        branchId,
         scenarioId,
         status: 'draft',
         visibility: 'group',
@@ -1124,8 +1137,8 @@ function _dtBindPanelArea(container, ctx, refresh) {
       // 同步赋权：追加审计快照 + 通知被赋权人（主源已由创建写入，原则7 不重复填写）
       // 组长本人作为默认组织者属发起人，不重复计入赋权统计/快照/通知
       const actorId = AuthStore.getCurrentUser()?.personId;
-      const grantedEntries = assignments.filter(a => a.personId !== currentLeaderId);
-      const granted = AuthStore.recordProjectGrants(activity.id, grantedEntries, actorId);
+      const permissionKeysByRole = readWorkgroupPermissionEditor(wrap, 'activity-create', { includeDefaults: true });
+      const granted = await AuthStore.recordProjectGrants(activity.id, assignments, actorId, { permissionKeysByRole });
       if (granted > 0) {
         showToast('success', `已同步赋权 ${granted} 名成员`);
       }

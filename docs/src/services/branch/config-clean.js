@@ -7,14 +7,15 @@
 //  语义采用 server 严格口径：id 只收非空字符串（不强制转串）、长度 ≤80、去重保序、限长截断。
 //  本文件为纯 ESM（仅依赖 work-map / policy-defaults 两个纯数据模块），浏览器与 node 双端可加载。
 // ════════════════════════════════════════════════════════════════
-import { WORK_MAP_IDS, canDisableModule } from '../../core/domain/work-map.js?v=20261015b';
+import { WORK_MAP_IDS, canDisableModule } from '../../core/domain/work-map.js?v=20261016a';
+import { CAPABILITY_PACKAGE_BY_ID } from '../../core/domain/capability-packages.js?v=20261016a';
 // 批4（2026-09-09 支书批「域参数」）：policyOverrides 白名单/复位/注入原语取自 policy-defaults
 // （单源：覆盖白名单 POLICY_OVERRIDABLE 只定义于 policy-defaults，本文件为其唯一净化消费方）
 import {
   POLICY_OVERRIDABLE,
   resetPolicyDefaults,
   applyPolicyOverrides,
-} from '../../core/domain/policy-defaults.js?v=20261015b';
+} from '../../core/domain/policy-defaults.js?v=20261016a';
 
 const MAX_ID_LEN = 80;
 const MODULES_LIMIT = 200;
@@ -29,7 +30,7 @@ export const CONFIG_HISTORY_MAX = 100; // 历史上限：保留最近 N 条（�
 export const CONFIG_ROLLBACK_WHAT = 'rollback'; // 回滚留痕 what 标记
 // 可回滚的单键变更（= 两端口径的追踪键全集；what 不在表内的留痕仅展示不可回滚）
 export const CONFIG_ROLLBACK_KEYS = [
-  'modules', 'blocks', 'workforce', 'headerTitle', 'desc', 'themePreset', 'policyOverrides',
+  'modules', 'blocks', 'workforce', 'capabilityPackages', 'headerTitle', 'desc', 'themePreset', 'policyOverrides',
 ];
 
 /** 净化 id 数组：只收非空字符串、去重保序、长度 ≤80、最多保留 limit 项 */
@@ -108,6 +109,25 @@ export function sanitizeConfigBlocks(blocks) {
     }
   }
   return out;
+}
+
+/**
+ * 净化支部选用的业务能力包版本；适用范围/依据仍由党委目录定义，支部只保存是否启用与采用版本。
+ * 仅 `optional` / `local` 包可由支部关闭；`required` / `pending` 不允许关闭或伪造新版本。
+ */
+export function sanitizeConfigCapabilityPackages(value) {
+  if (value === null) return null;
+  const raw = value && typeof value === 'object' && !Array.isArray(value) ? value : {};
+  const source = raw.packages && typeof raw.packages === 'object' && !Array.isArray(raw.packages) ? raw.packages : {};
+  const packages = {};
+  for (const [id, entry] of Object.entries(source)) {
+    const definition = CAPABILITY_PACKAGE_BY_ID.get(id);
+    if (!definition || !entry || typeof entry !== 'object' || Array.isArray(entry)) continue;
+    if (typeof entry.enabled !== 'boolean' || entry.version !== definition.version) continue;
+    if (!entry.enabled && !['optional', 'local'].includes(definition.applicability)) continue;
+    packages[id] = { version: definition.version, enabled: entry.enabled };
+  }
+  return { schemaVersion: 1, packages };
 }
 
 // ③ 参与人范围轴（契约 §8.3）：可配面**只开两字段**——`mode` ∈ {fixed, configurable}、

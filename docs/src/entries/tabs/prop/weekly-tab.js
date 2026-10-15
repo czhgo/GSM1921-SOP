@@ -2,27 +2,28 @@
 // 宣传委员工作台 Tab：周报报送（T-279 M3 拆分，照 M2 样板）
 // 周报 seed 常量 + mockDB 持久化，刷新不再丢失；T-209 改进项②：新建周次内联表单。
 
-import { icon } from '../../../core/base/icons.js?v=20261015b';
-import { solidAccentStyle } from '../../../core/domain/constants.js?v=20261015b';
-import { showToast, todayLocal } from '../../../core/base/utils.js?v=20261015b';
-import { persist } from '../../../data/data-adapter.js?v=20261015b';
-import { mockDB } from '../../../core/domain/domain.js?v=20261015b';
-import { AuthStore } from '../../../services/core/auth.js?v=20261015b';
-import { generateId } from '../../../core/base/id.js?v=20261015b';
-import { loadActivities } from '../../../services/activity/activity.js?v=20261015b';
-import { NoticeStore } from '../../../services/governance/notice.js?v=20261015b';
-import { getPersonName } from '../../../services/member/person.js?v=20261015b';
-import { WEEKLY_REVIEW_STATUS, WEEKLY_REVIEW_LABELS, weeklyReviewStatusOf } from '../../../services/governance/secretary-overview.js?v=20261015b';
+import { icon } from '../../../core/base/icons.js?v=20261016a';
+import { showToast, todayLocal } from '../../../core/base/utils.js?v=20261016a';
+import { persist } from '../../../data/data-adapter.js?v=20261016a';
+import { mockDB } from '../../../core/domain/domain.js?v=20261016a';
+import { AuthStore } from '../../../services/core/auth.js?v=20261016a';
+import { POLICY_DEFAULTS } from '../../../core/domain/policy-defaults.js?v=20261016a';
+import { attachArchivePolicySnapshot, deriveArchivePeriod, compareArchivePeriodDesc } from '../../../services/governance/periodic-archive.js?v=20261016a';
+import { generateId } from '../../../core/base/id.js?v=20261016a';
+import { loadActivities } from '../../../services/activity/activity.js?v=20261016a';
+import { NoticeStore } from '../../../services/governance/notice.js?v=20261016a';
+import { getPersonName } from '../../../services/member/person.js?v=20261016a';
+import { WEEKLY_REVIEW_STATUS, WEEKLY_REVIEW_LABELS, weeklyReviewStatusOf } from '../../../services/governance/secretary-overview.js?v=20261016a';
 // 批次 352（`D-746` · `D-744`② 业务过程类余项）：周报「作废（软）」——统一写口 ＋ 支委层判据
-import * as SoftVoid from '../../../services/governance/soft-void.js?v=20261015b';
-import { openVoidModal } from '../../../components/ui/void-record.js?v=20261015b';
+import * as SoftVoid from '../../../services/governance/soft-void.js?v=20261016a';
+import { openVoidModal } from '../../../components/ui/void-record.js?v=20261016a';
 
 // ── 周报报送 seed 数据（2026-08-05：seed 常量 + mockDB 持久化，刷新不再丢失）──
 // 2026-09-12 修正：起止原整体晚一天（第30周误记 07-21~07-25 等）→ 按 ISO 周「周一~周五」口径校准
 //（第30周=2026-07-20~07-24 / 第31周=2026-07-27~07-31），与 _weekDefaults 派生同口径。
 // 2026-09-28 批次 234：常量**搬到内容单一源** `docs/src/data/mock/prop.js`（服务端 `server/seed.js` 同源 import，
 //   原先此处私有常量被服务端逐字复刻一份 ⇒ 两份字面量，本批收成一份；取值与顺序一字未改）。
-import { WEEKLY_REPORTS_SEED } from '../../../data/mock/prop.js?v=20261015b';
+import { WEEKLY_REPORTS_SEED } from '../../../data/mock/prop.js?v=20261016a';
 
 // 从 mockDB 读取（seed 兜底注入一次）；写操作须更新 mockDB.weeklyReports 后调用 persist()
 function _loadWeeklyReports() {
@@ -32,18 +33,12 @@ function _loadWeeklyReports() {
   return mockDB.weeklyReports;
 }
 
-/** 周次号（'第30周' → 30；非数字兜底 0），供下拉/历史按周次排序 */
-function _weekNo(r) {
-  const m = String((r && r.week) || '').match(/(\d+)/);
-  return m ? Number(m[1]) : 0;
-}
-
-/** 周次降序（新周在前）——下拉与「报送历史」同一口径，避免旧实现按录入顺序（28→29→30→31）错乱
+/** 周期归档按期次日期降序——策略切换后周/月记录仍按时间同序展示
  *  批次 352（`D-746`）：已作废（`voided`）的周报不进下拉、也不在历史里显示（留痕仍可回查）；
  *  ⚠ 过滤只在此处做——`_loadWeeklyReports()` 保持原样，否则写回 `mockDB.weeklyReports` 时会丢掉已作废行。 */
 function _sortedReports() {
   return SoftVoid.filterActive('weeklyReports', _loadWeeklyReports())
-    .sort((a, b) => _weekNo(b) - _weekNo(a));
+    .sort(compareArchivePeriodDesc);
 }
 
 const WEEKLY_STATUS_LABEL = { draft: '草稿', submitted: '已报送' };
@@ -69,25 +64,9 @@ function _autoWeeklyContent(weekRange) {
     .join('\n');
 }
 
-// 周次与起止自动派生（支书 2026-09-10 裁定：按当前日期预填，仍允许手动覆盖）
-// 周号口径：ISO 周（周一为一周之始），与既有 seed/文案一致（第31周=2026-07-27 所在周）。
-// 起止口径：本周一 ~ 本周五，格式沿用既有示例 `YYYY-MM-DD ~ YYYY-MM-DD`。
-function _isoWeek(date) {
-  const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
-  const day = (d.getUTCDay() + 6) % 7; // 0=周一
-  d.setUTCDate(d.getUTCDate() - day + 3); // 移到本周四（ISO 归属年）
-  const firstThu = new Date(Date.UTC(d.getUTCFullYear(), 0, 4));
-  firstThu.setUTCDate(firstThu.getUTCDate() - ((firstThu.getUTCDay() + 6) % 7) + 3);
-  return 1 + Math.round((d - firstThu) / (7 * 86400000));
-}
-
-function _weekDefaults(now = new Date()) {
-  const fmt = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-  const monday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  monday.setDate(monday.getDate() - ((monday.getDay() + 6) % 7));
-  const friday = new Date(monday);
-  friday.setDate(friday.getDate() + 4);
-  return { week: `第${_isoWeek(now)}周`, range: `${fmt(monday)} ~ ${fmt(friday)}` };
+function _weekDefaults(now = new Date(), unit = POLICY_DEFAULTS.archive.periodic.unit) {
+  const period = deriveArchivePeriod(unit, now);
+  return { week: period.label, range: period.range, key: period.key, unit: period.unit };
 }
 
 // 批次 367（`#10` 单一轴 · 支书 2026-10-04 裁「**周报作为 归档的一个 特例即可！！**」）：
@@ -97,11 +76,11 @@ export function renderContent(ctx, host = null) {
   const container = host || document.getElementById('prop-tab-content');
   if (!container) return;
 
-  // 默认填写对象 = 待填写草稿（按周次降序取最新草稿）；无草稿回退最新周次（下拉已排序，最新周在前）
+  // 默认填写对象 = 待填写草稿（按期次降序取最新草稿）；无草稿回退最新期次。
   const sortedReports = _sortedReports();
   const draftReport = sortedReports.find(r => r.status === 'draft') || null;
-  // 支书 2026-09-10 裁定：新增周次的周次号/起止按当前日期自动派生预填（0 输入可直存，仍可手改）
-  const weekDefaults = _weekDefaults();
+  const archiveUnit = POLICY_DEFAULTS.archive.periodic.unit;
+  const weekDefaults = _weekDefaults(new Date(), archiveUnit);
 
   container.innerHTML = `
     <div class="grid grid-cols-1 lg:grid-cols-5 gap-4 mb-4">
@@ -109,17 +88,17 @@ export function renderContent(ctx, host = null) {
         <div class="flex items-center justify-between mb-4">
           <div class="flex items-center gap-2">
             ${icon('pencil', { className: 'w-4 h-4 text-blue-600' })}
-            <h4 class="text-sm font-bold text-gray-700">填写周报</h4>
+            <h4 class="text-sm font-bold text-gray-700">填写周期归档</h4>
             ${draftReport ? `<span class="text-xs px-1.5 py-0.5 rounded-full border ${WEEKLY_STATUS_STYLE.draft}">${draftReport.week}</span>` : ''}
           </div>
-          <button id="weekly-add-btn" class="btn-outline text-xs px-3 py-1.5">+ 新增周次</button>
+          <button id="weekly-add-btn" class="btn-outline text-xs px-3 py-1.5">+ 新增归档期次</button>
         </div>
         <!-- T-209 改进项②：新建周次内联表单（周次标签 + 日期范围） -->
         <div id="weekly-add-form" class="hidden mb-3 p-3 rounded-lg bg-blue-50/50 border border-blue-100" style="--acc-bg-dark:rgba(96,165,250,0.10);">
-          <div class="text-[12px] font-bold text-gray-600 mb-2">新建周次</div>
+          <div class="text-[12px] font-bold text-gray-600 mb-2">新建归档期次</div>
           <div class="flex flex-col gap-2 mb-2">
-            <input id="weekly-add-week" type="text" value="${weekDefaults.week}" placeholder="周次标签，如：第32周" class="input-flat w-full" />
-            <input id="weekly-add-range" type="text" value="${weekDefaults.range}" placeholder="日期范围，如：2026-08-04 ~ 2026-08-08" class="input-flat w-full" />
+            <input id="weekly-add-week" type="text" value="${weekDefaults.week}" placeholder="期次名称，如：${archiveUnit === 'month' ? '2026年10月' : '第32周'}" class="input-flat w-full" />
+            <input id="weekly-add-range" type="text" value="${weekDefaults.range}" placeholder="日期范围，如：2026-10-01 ~ 2026-10-31" class="input-flat w-full" />
           </div>
           <div class="flex gap-2 justify-end">
             <button id="weekly-add-cancel" type="button" class="btn-outline text-xs px-3 py-1.5">取消</button>
@@ -128,29 +107,29 @@ export function renderContent(ctx, host = null) {
         </div>
         <div class="space-y-3">
           <div>
-            <label class="text-xs text-gray-500 mb-1.5 block font-medium" for="weekly-week">选择周次</label>
+            <label class="text-xs text-gray-500 mb-1.5 block font-medium" for="weekly-week">选择归档期次</label>
             <select id="weekly-week" class="input-flat w-full">
-              ${sortedReports.map(r => `<option value="${r.id}" ${draftReport && r.id === draftReport.id ? 'selected' : ''}>${r.week}（${r.weekRange}）</option>`).join('')}
+              ${sortedReports.map(r => `<option value="${r.id}" ${draftReport && r.id === draftReport.id ? 'selected' : ''}>${r.periodLabel || r.week}（${r.periodRange || r.weekRange}）</option>`).join('')}
             </select>
           </div>
           <div>
-            <label class="text-xs text-gray-500 mb-1.5 block font-medium" for="weekly-content">周报内容</label>
-            <textarea id="weekly-content" rows="6" placeholder="请填写本周工作内容，每条一行..." class="input-flat w-full resize-none">${draftReport ? draftReport.content : ''}</textarea>
+            <label class="text-xs text-gray-500 mb-1.5 block font-medium" for="weekly-content">本期归档内容</label>
+            <textarea id="weekly-content" rows="6" placeholder="请填写本期工作与产出..." class="input-flat w-full resize-none">${draftReport ? draftReport.content : ''}</textarea>
           </div>
           <!-- SOP-B-40 ②：基于活动数据自动生成报送内容（生成后可手改，是草稿起点不是结论） -->
           <div class="flex items-center justify-between gap-2">
-            <button id="weekly-gen-btn" type="button" class="btn-outline text-xs px-3 py-1.5">按本周活动自动生成</button>
+            <button id="weekly-gen-btn" type="button" class="btn-outline text-xs px-3 py-1.5">按本期活动自动生成</button>
             <span class="text-[11px] text-gray-400">生成后仍可手改</span>
           </div>
-          <button id="weekly-submit-btn" class="btn-accent w-full text-sm px-4 py-[7px] font-medium" >报送</button>
-          <div class="text-[11px] text-gray-500 leading-5">报送后系统会<b>站内通知支书</b>，支书在支书台「全局概况」审核（通过 / 退回）。</div>
+          <button id="weekly-submit-btn" class="btn-accent w-full text-sm px-4 py-[7px] font-medium" >提交本期归档</button>
+          <div class="text-[11px] text-gray-500 leading-5">提交后系统会<b>站内通知支书</b>，支书在「全局概况」审核（通过 / 退回）。提交记录保存本期采用的归档规则版本。</div>
         </div>
       </div>
 
       <div class="lg:col-span-3 card rounded-xl p-5">
         <div class="flex items-center gap-2 mb-3">
           ${icon('clock', { className: 'w-4 h-4 text-gray-500' })}
-          <h4 class="text-sm font-bold text-gray-700">报送历史</h4>
+          <h4 class="text-sm font-bold text-gray-700">归档记录</h4>
         </div>
         <div class="space-y-2">
           ${sortedReports.map(r => _renderWeeklyReportItem(r)).join('')}
@@ -169,14 +148,18 @@ export function renderContent(ctx, host = null) {
   container.querySelector('#weekly-add-save')?.addEventListener('click', () => {
     const week = container.querySelector('#weekly-add-week').value.trim();
     const weekRange = container.querySelector('#weekly-add-range').value.trim();
-    if (!week) { showToast('error', '请填写周次标签'); return; }
-    if (!weekRange) { showToast('error', '请填写日期范围'); return; }
+    if (!week) { showToast('error', '请填写归档期次名称'); return; }
+    if (!weekRange) { showToast('error', '请填写归档日期范围'); return; }
     const reports = _loadWeeklyReports();
     if (reports.some(r => r.week === week)) { showToast('error', '该周次已存在'); return; }
     reports.push({
       id: generateId('wr'),
       week,
       weekRange,
+      periodUnit: archiveUnit,
+      periodKey: weekDefaults.key,
+      periodLabel: week,
+      periodRange: weekRange,
       content: '',
       status: 'draft',
       submittedAt: null,
@@ -185,7 +168,7 @@ export function renderContent(ctx, host = null) {
     });
     mockDB.weeklyReports = reports;
     persist();
-    showToast('success', '已新建周次，自动选中待填写');
+    showToast('success', '已新建归档期次，自动选中待填写');
     renderContent(ctx, container);
   });
 
@@ -196,10 +179,10 @@ export function renderContent(ctx, host = null) {
     const report = _loadWeeklyReports().find(r => r.id === selectEl.value);
     if (!report) return;
     const generated = _autoWeeklyContent(report.weekRange);
-    if (!generated) { showToast('info', `${report.week}（${report.weekRange}）没有可用的活动数据，请手填`); return; }
+    if (!generated) { showToast('info', `${report.periodLabel || report.week}（${report.periodRange || report.weekRange}）没有可用的活动数据，请手填`); return; }
     if (textareaEl.value.trim() && !window.confirm('已有内容，用自动生成的结果覆盖？')) return;
     textareaEl.value = generated;
-    showToast('success', '已按本周活动生成草稿内容（可继续手改）');
+    showToast('success', '已按本期活动生成草稿内容（可继续手改）');
   });
 
   // 报送按钮
@@ -210,7 +193,7 @@ export function renderContent(ctx, host = null) {
     const reportId = selectEl.value;
     const content = textareaEl.value.trim();
     if (!content) {
-      showToast('error', '请填写周报内容');
+      showToast('error', '请填写本期归档内容');
       return;
     }
     const report = _loadWeeklyReports().find(r => r.id === reportId);
@@ -223,6 +206,13 @@ export function renderContent(ctx, host = null) {
     report.submittedBy = AuthStore.getCurrentUser()?.personId || 'u_prop';
     report.reviewStatus = WEEKLY_REVIEW_STATUS.PENDING;
     delete report.reviewNote;
+    const currentUser = AuthStore.getCurrentUser();
+    const branch = (mockDB.branches || []).find((row) => row.id === currentUser?.branchId)
+      || (mockDB.branches || []).find((row) => row.secretaryId === currentUser?.personId);
+    const strategyVersion = Math.max(1, Number(branch?.config?.periodicArchiveVersion) || 1);
+    Object.assign(report, attachArchivePolicySnapshot(report, POLICY_DEFAULTS.archive.periodic, strategyVersion, report.submittedAt));
+    report.week = report.periodLabel || report.week;
+    report.weekRange = report.periodRange || report.weekRange;
     persist();
     // 「存好了才通知」：`persist()` 在 API 形态排的是 800ms 防抖快照，而服务端按 kind 注册表
     //   复算授权（R-22：`rowOf(db,'weekly_reports',sourceId)`）——两者若并行，会赛跑在
@@ -230,12 +220,12 @@ export function renderContent(ctx, host = null) {
     //   故先等成功提示走完结算，再发通知（同批次 49「存好了才报成功」/ 批次 83 先例）。
     //   ⚠ 顺序不能颠倒：`settleWrites` 的失败只报一次，若先自行结算会把失败吞掉、
     //     让成功提示变成假话。真机证据：报送后 4s 服务端通知一条（`宣传周报待审核`）。
-    const settled = showToast('success', `${report.week}周报已报送，将通知支书审核`);
+    const settled = showToast('success', `${report.periodLabel || report.week}周期归档已提交，将通知支书审核`);
     Promise.resolve(settled).then(() => NoticeStore.addSystem('weekly-report-submitted', report.id, {
-      week: report.week,
-      weekRange: report.weekRange,
+      periodLabel: report.archivePolicySnapshot?.periodLabel || report.periodLabel || report.week,
+      periodRange: report.archivePolicySnapshot?.periodRange || report.periodRange || report.weekRange,
       submitterName: getPersonName(report.submittedBy) || '',
-    })).catch((e) => console.warn('[weekly-tab] 周报已报送，但通知支书未发出：', e));
+    })).catch((e) => console.warn('[weekly-tab] 周期归档已报送，但通知支书未发出：', e));
     renderContent(ctx, container);
   });
 
@@ -248,7 +238,7 @@ export function renderContent(ctx, host = null) {
       report.platformReportedAt = new Date().toISOString();
       report.platformReportedBy = AuthStore.getCurrentUser()?.personId || '';
       persist();
-      showToast('success', '已留痕：该周报标记为已上报北京大学智慧党建平台');
+      showToast('success', '已留痕：本期归档已上报北京大学智慧党建平台');
       renderContent(ctx, container);
     });
   });
@@ -260,8 +250,8 @@ export function renderContent(ctx, host = null) {
       const report = _loadWeeklyReports().find(r => r.id === btn.dataset.id);
       if (!report) return;
       openVoidModal({
-        resource: 'weeklyReports', id: report.id, label: '周报',
-        subject: `${report.week || ''}（${report.weekRange || ''}）`,
+        resource: 'weeklyReports', id: report.id, label: '周期归档',
+        subject: `${report.archivePolicySnapshot?.periodLabel || report.periodLabel || report.week || ''}（${report.archivePolicySnapshot?.periodRange || report.periodRange || report.weekRange || ''}）`,
         onDone: () => renderContent(ctx, container),
       });
     });
@@ -294,12 +284,14 @@ function _renderWeeklyReportItem(report) {
         ? `<span class="text-xs px-1.5 py-0.5 rounded-full border bg-violet-50 text-violet-700 border-violet-200" title="上报留痕：${(report.platformReportedAt || '').slice(0, 16).replace('T', ' ')}">已上报党建平台</span>`
         : `<button class="btn-outline weekly-platform-btn text-xs px-2.5 py-1" data-id="${report.id}" style="cursor:pointer;">标记已上报党建平台</button>`)
     : '';
+  const periodLabel = report.archivePolicySnapshot?.periodLabel || report.periodLabel || report.week || '未命名期次';
+  const periodRange = report.archivePolicySnapshot?.periodRange || report.periodRange || report.weekRange || '';
   return `
     <div class="weekly-report-item p-3 rounded-xl bg-white hover:bg-gray-50 transition-colors">
       <div class="flex items-center justify-between mb-1">
         <div class="flex items-center gap-2">
-          <span class="text-sm font-medium text-gray-800">${report.week}</span>
-          <span class="text-xs text-gray-500">${report.weekRange}</span>
+          <span class="text-sm font-medium text-gray-800">${periodLabel}</span>
+          <span class="text-xs text-gray-500">${periodRange}</span>
           <span class="text-xs px-1.5 py-0.5 rounded-full border ${statusStyle}">${WEEKLY_STATUS_LABEL[report.status]}</span>
           ${reviewBadge}
         </div>
@@ -309,7 +301,7 @@ function _renderWeeklyReportItem(report) {
           ${report.content ? `<button class="btn-neutral weekly-detail-toggle text-xs px-3 py-1.5">展开</button>` : ''}
           ${report.voidPending && !report.voided
             ? '<span class="text-[11px] text-gray-500">待支委会确认</span>'
-            : `<button class="btn-action btn-action-gray weekly-void-btn text-xs" data-id="${report.id}" title="软作废：周报从报送历史出列、留痕可回查；支委可直接作废，其余人报支委会确认">作废</button>`}
+            : `<button class="btn-action btn-action-gray weekly-void-btn text-xs" data-id="${report.id}" title="软作废：记录从归档历史出列、留痕可回查；支委可直接作废，其余人报支委会确认">作废</button>`}
         </div>
       </div>
       ${report.content ? `<div class="weekly-detail-content hidden mt-2 p-2.5 rounded-lg bg-gray-50 text-xs text-gray-600 whitespace-pre-line">${report.content}</div>` : '<p class="text-xs text-gray-500 mt-1">暂无内容</p>'}

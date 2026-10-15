@@ -2,7 +2,7 @@
 title: "系统角色权限矩阵（代码键级权威）"
 type: governance
 role: "[工程师]+[AI]"
-last_updated: 2026-10-14
+last_updated: 2026-10-16
 status: active
 related_files: [content/03_doc_system/OPERATIONS_GUIDE.md, docs/src/core/domain/constants.js]
 ---
@@ -49,7 +49,7 @@ related_files: [content/03_doc_system/OPERATIONS_GUIDE.md, docs/src/core/domain/
 
 > **来源：**[OPERATIONS_GUIDE.md §19.3](../03_doc_system/OPERATIONS_GUIDE.md)（《运行与协作规范》术语使用规范；原 `USAGE_POLICY.md`，2026-09-26 已并入） — 术语权威源。
 
-**写入门禁**：仅支书、副支书、党小组组长持有 `create_activity` 权限，可直接创建/修改活动数据（见 §9b 矩阵）；宣传委员、纪检委员不持有该权限，通过审核、确认、备案等流程间接参与。专班创建走 `initiate_taskforce`/`authorize_taskforce` 通道（组织委员持有，见 §9b）。
+**写入门禁**：活动创建主体受持久化承办范围约束：组内承办只能由所属党小组组长从组长工作台创建；跨组承办由本支部支书/副书记从支书工作台创建。党委角色不能替代支部写入人。活动工作组随活动创建；专班工作组围绕事项创建，由组织委员默认扎口协调（制度参数可调整）。工作组成员登记与系统权限授权分开处理。旧矩阵中的通用权限键仍须受本节范围规则及服务端对象归属校验约束。
 
 ## 9b. 常设角色权限矩阵（6 角色 × 16 操作）
 
@@ -135,19 +135,30 @@ related_files: [content/03_doc_system/OPERATIONS_GUIDE.md, docs/src/core/domain/
 
 ## 9h. 支部 config 写权（config 写权分层）
 
-> **定位与键级说明**：支部 config（branches.config 各域）写权**未入 auth.js ROLE_PERMISSIONS 键集**——按 §9f 双轨约定属「写层业务守卫」类（与建档/监督/导入等操作位限定同理，不硬凑缺键）；守卫同口径在 `services/branch/branch.js`（`updateBranchModules` / `updateBranchBlocks` / `updateBranchWorkforce` / `updateBranchOrg` / `savePolicyOverrides` / `canManagePolicyOverrides`）与 server `PATCH /branches/:id/config`（`server/routes/resources/index.js`：fullRights = party-staff / 本支部现任支书 / 本副支书；域负责人仅本域 policyOverrides）。分层矩阵与词条收口见 [PARTY_COMMITTEE_DESIGN.md §2.6](../04_web_design/evolution/PARTY_COMMITTEE_DESIGN.md)。
+> **定位与键级说明**：支部 config（branches.config 各域）写权**未入 auth.js ROLE_PERMISSIONS 键集**——按 §9f 双轨约定属「写层业务守卫」类（与建档/监督/导入等操作位限定同理，不硬凑缺键）。党委维护能力目录与模板，支部自主选择已发布能力包；党委组织员不直接替支部开关模块、流程块或能力包。服务端仍按域校验党委组织员可写的组织档案、分工和域参数；本支部支书/副支书可管理本支部的模块、流程块和能力包；域负责人仅写本域 policyOverrides。实现见 `server/routes/resources/index.js` 与 `services/branch/branch.js`。
 
-| 角色 | config.modules/blocks | config.workforce | org 档案（headerTitle/desc/themePreset） | 域参数 policyOverrides（L2） | 顶层治理字段 name/type/secretaryId/status |
-|---|:---:|:---:|:---:|:---:|:---:|
-| party-staff（党委组织员，组织级） | Y（全支部） | Y（全支部） | Y（全支部；含 name 同步） | Y（全量） | **Y（唯一可写）** |
-| 现任支书（本支部） | Y | Y（日常 = 支委会议题 M2 表决落库；换壳/部署 = 向导③直写） | Y（**不含 name**） | Y（全量） | -- |
-| 现任副支书（本支部 · 副书同权） | Y | Y（同上） | Y（**不含 name**） | Y（全量） | -- |
-| 纪检委员（本支部） | -- | -- | -- | Y（本域 `inspection`/`attendance`/`review`/`makeup` 节） | -- |
-| 组织委员（本支部） | -- | -- | -- | Y（本域 `memberConfirmation`/`thoughtReport` 节） | -- |
-| 党小组组长（本支部） | -- | -- | -- | Y（仅 `leader` 节） | -- |
-| 其余角色（宣传委员/成员等） | -- | -- | -- | -- | -- |
+| 角色 | config.modules/blocks | config.capabilityPackages | config.workforce | org 档案（headerTitle/desc/themePreset） | 域参数 policyOverrides（L2） | 顶层治理字段 name/type/secretaryId/status |
+|---|:---:|:---:|:---:|:---:|:---:|:---:|
+| party-staff（党委组织员，组织级） | -- | -- | Y（全支部） | Y（全支部；含 name 同步） | Y（全量） | **Y（唯一可写）** |
+| 现任支书（本支部） | Y | Y | Y（日常 = 支委会议题 M2 表决落库；换壳/部署 = 向导③直写） | Y（**不含 name**） | Y（全量） | -- |
+| 现任副支书（本支部 · 副书同权） | Y | Y | Y（同上） | Y（**不含 name**） | Y（全量） | -- |
+| 纪检委员（本支部） | -- | -- | -- | -- | Y（本域 `inspection`/`attendance`/`review`/`makeup` 节） | -- |
+| 组织委员（本支部） | -- | -- | -- | -- | Y（本域 `memberConfirmation`/`thoughtReport` 节） | -- |
+| 党小组组长（本支部） | -- | -- | -- | -- | Y（仅 `leader` 节） | -- |
+| 其余角色（宣传委员/成员等） | -- | -- | -- | -- | -- | -- |
 
-> 注：① modules/blocks 核心组（groupLabel='工作台'）固定不可关、不参与排序；null = 默认全开。② org 档案写口 = 换组织向导步骤①；顶层 name 仅 party-staff（支书/副支书不可改官方名，改名同步 headerTitle）。③ 全部 config 写留痕 `config.configChangeHistory`（{by,at,what,from?,to?}），逐键 diff、空变化不冗余。④ 他支部的支书/副支书不可写本支部 config（person → branchId 归属校验）。⑤ modules/blocks/workforce/org 档案操作位 = 设置（侧边栏右下）→ 支部治理 + 换组织向导内嵌（支书/副支书共台）。
+> 注：① modules/blocks 核心组（groupLabel='工作台'）固定不可关、不参与排序；null = 默认全开。② `config.capabilityPackages` 只接受目录中可由支部配置的 optional/local 包；停用后停止新建，在办可完成，历史只读；模板版本由支部自主采纳。③ org 档案写口 = 换组织向导步骤①；顶层 name 仅 party-staff（支书/副支书不可改官方名，改名同步 headerTitle）。④ 全部 config 写留痕 `config.configChangeHistory`（{by,at,what,from?,to?}），逐键 diff、空变化不冗余。⑤ 他支部的支书/副支书不可写本支部 config（person → branchId 归属校验）。⑥ modules/blocks/workforce/org 档案操作位 = 设置（侧边栏右下）→ 支部治理 + 换组织向导内嵌（支书/副支书共台）。
+
+### 9h.1 活动承办与工作组权限边界
+
+| 操作 | 允许主体 | 范围与限制 |
+|---|---|---|
+| 创建组内承办活动 | 所属支部党小组组长 | 仅本支部、本人所属党小组；活动记录持久化 `organizingScope='party-group'` |
+| 创建跨组承办活动 | 本支部支书/副支书 | 从支书工作台创建并指定跨组工作组人员；记录 `organizingScope='cross-group'`，不限制其他成员参加 |
+| 维护工作组成员 | 具备对应业务范围的负责人 | 成员关系不自动授予系统权限；组织者与深度参与者是并列分工 |
+| 授予/撤销系统权限 | 具备独立授权权的负责人 | 单独留痕授权人、时间和权限键；服务端按支部、活动及工作组逐项核验 |
+
+活动工作组随活动建立；专班工作组围绕任务建立。一个党委可管理多个支部，但每个写入关联都须核验同支部归属，不能用成员关系或前端隐藏代替服务端授权。
 
 ## 9i. 党小组管理与成员流动登记写权
 

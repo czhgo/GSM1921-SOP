@@ -1,33 +1,32 @@
 // role: [工程师]+[AI]
 // 纪检委员工作台 Tab：考察管理（T-279 M3 拆分）
-// 专班名单区（组织→纪检 自动同步，纪检只读同源）+ 考察总表（确认/删除）。
+// 仅展示已登记的考察事项；工作组成员名单不自动生成考察清单。
 
-import { TaskForceRecordStore } from '../../../services/activity/taskforce.js?v=20261015b';
-import { loadActiveInspectionRecords, getOverdueRecords, confirmInspectionRecord, deleteInspectionRecord, listInspectionSupervision } from '../../../services/activity/inspection.js?v=20261015b';
-import { loadInspectionRecords, saveInspectionRecords, isInspectionHomePosition } from '../../../services/activity/inspection.js?v=20261015b';
-import { returnInspectionRecord, loadInspectionAppeals, returnInspectionAppeal, closeInspectionAppeal } from '../../../services/activity/inspection.js?v=20261015b';
-import { inspectionToLong, inspectionToWide } from '../../../services/activity/inspection.js?v=20261015b';
-import { getPersonById, getPersonName } from '../../../services/member/person.js?v=20261015b';
-import { SourceType, OutputType, deriveOutputRoute, ParticipationLevel } from '../../../core/domain/domain.js?v=20261015b';
+import { loadActiveInspectionRecords, getOverdueRecords, confirmInspectionRecord, deleteInspectionRecord, listInspectionSupervision } from '../../../services/activity/inspection.js?v=20261016a';
+import { loadInspectionRecords, saveInspectionRecords, isInspectionHomePosition } from '../../../services/activity/inspection.js?v=20261016a';
+import { returnInspectionRecord, loadInspectionAppeals, returnInspectionAppeal, closeInspectionAppeal } from '../../../services/activity/inspection.js?v=20261016a';
+import { inspectionToLong, inspectionToWide } from '../../../services/activity/inspection.js?v=20261016a';
+import { getPersonById, getPersonName } from '../../../services/member/person.js?v=20261016a';
+import { SourceType, ParticipationLevel } from '../../../core/domain/domain.js?v=20261016a';
 // P3c 单一源（批4 副本收编 2026-09-09）：超期天数与文案由 policy 派生，勿在此写字面量
-import { POLICY_DEFAULTS } from '../../../core/domain/policy-defaults.js?v=20261015b';
-import { badgeHtml } from '../../../components/ui/badges.js?v=20261015b';
-import { showToast, downloadCSV, triggerPrint, _fmtDate, escHtml as esc, getBasePath } from '../../../core/base/utils.js?v=20261015b';
-import { HandoffStore } from '../../../services/governance/handoff.js?v=20261015b';
-import { DISC_COMMISSIONER_ID, getDiscCommissionerId } from './_shared.js?v=20261015b';
+import { POLICY_DEFAULTS } from '../../../core/domain/policy-defaults.js?v=20261016a';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20261016a';
+import { showToast, downloadCSV, triggerPrint, _fmtDate, escHtml as esc, getBasePath } from '../../../core/base/utils.js?v=20261016a';
+import { HandoffStore } from '../../../services/governance/handoff.js?v=20261016a';
+import { DISC_COMMISSIONER_ID, getDiscCommissionerId } from './_shared.js?v=20261016a';
 // 统一检索引擎（支书 2026-09-13 裁定）：可搜索表一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
-import { renderFilteredList, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261015b';
+import { renderFilteredList, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261016a';
 // 人×项目矩阵单一源（支书 2026-09-14 批次 35 裁定：宽表默认 + 矩阵推广到其它二元关系域）
-import { renderRelationMatrix, MATRIX_COL_LIMIT } from '../../../components/ui/relation-matrix.js?v=20261015b';
+import { renderRelationMatrix, MATRIX_COL_LIMIT } from '../../../components/ui/relation-matrix.js?v=20261016a';
 // 考察代录位（2026-09-23 支书追裁「开一个代录位」）：写口与字段**完全复用**组长台「考察上传」，
 //   本位判据单一源 `services/activity/inspection.js::isInspectionHomePosition`，非本位代录走既有 nudge。
-import { loadActivities } from '../../../services/activity/activity.js?v=20261015b';
-import { filterActivitiesForViewer } from '../../../services/core/visibility.js?v=20261015b';
-import { AuthStore } from '../../../services/core/auth.js?v=20261015b';
-import { PersonPicker } from '../../../components/governance/pickers.js?v=20261015b';
+import { loadActivities } from '../../../services/activity/activity.js?v=20261016a';
+import { filterActivitiesForViewer } from '../../../services/core/visibility.js?v=20261016a';
+import { AuthStore } from '../../../services/core/auth.js?v=20261016a';
+import { PersonPicker } from '../../../components/governance/pickers.js?v=20261016a';
 // 「本位」nudge 确认弹窗（单一源 = components/ui/modal.js::confirmNudge）
-import { confirmNudge } from '../../../components/ui/modal.js?v=20261015b';
-import { generateId } from '../../../core/base/id.js?v=20261015b';
+import { confirmNudge } from '../../../components/ui/modal.js?v=20261016a';
+import { generateId } from '../../../core/base/id.js?v=20261016a';
 
 // 考察代录表单状态（随模块自持，不污染入口；与组长 / 组织台考察上传同规）
 let _discInspFormVisible = false;
@@ -61,7 +60,6 @@ export function renderContent(ctx) {
     .sort((a, b) => (b.date || '').localeCompare(a.date || ''));
 
   container.innerHTML = `
-    ${_buildTaskforceRosterHTML()}
     ${_buildSupervisionCardHTML(supervisionRows, overdueDays, returnedRecs)}
     ${_buildAppealCardHTML(pendingAppeals, returnedAppeals)}
     ${_buildInspectionProxyCardHTML(proxyActivities)}
@@ -624,78 +622,6 @@ function _buildAppealCardHTML(pendingAppeals, returnedAppeals) {
       ${returnedAppeals.length > 0
         ? `<div class="text-xs text-gray-600 mt-3 mb-1.5">已打回 · 待上传方确认（${returnedAppeals.length}）</div>${returnedAppeals.map(a => row(a, false)).join('')}`
         : ''}
-    </div>
-  `;
-}
-
-// ── 专班名单区（组织→纪检 自动同步，纪检只读同源 + 考察确认进度） ──
-function _buildTaskforceRosterHTML() {
-  const tfs = TaskForceRecordStore.getAll().filter(t => t.status === 'recruiting' || t.status === 'active');
-  if (tfs.length === 0) return '';
-  const allRecords = loadActiveInspectionRecords();
-  const statusMeta = {
-    recruiting: { label: '招募中', cls: 'bg-blue-100 text-blue-700' },
-    active: { label: '进行中', cls: 'bg-green-100 text-green-700' },
-  };
-  const rows = tfs.map(tf => {
-    const meta = statusMeta[tf.status] || statusMeta.active;
-    const tfRecords = allRecords.filter(r => r.sourceType === SourceType.TASKFORCE && r.sourceName === tf.name);
-    const total = tfRecords.length;
-    const confirmed = tfRecords.filter(r => r.status === 'confirmed').length;
-    const pending = total - confirmed;
-    const memberNames = (tf.members || []).map(m => getPersonName(m.personId) || m.name || m.personId).filter(Boolean).join('、') || '—';
-    const progressCls = pending > 0 ? 'text-orange-700' : 'text-green-700';
-    // T-224 §8 产出物查看区（纪检项目看板卡片展开面板，同源读取）
-    const inspRoute = deriveOutputRoute(OutputType.TASKFORCE_INSPECTION);
-    const workloadRoute = deriveOutputRoute(OutputType.WORKLOAD);
-    const workloadItems = (tf.members || []).flatMap(m =>
-      (m.contributions || []).map(c => ({
-        name: getPersonName(m.personId) || m.name || '成员',
-        item: typeof c === 'string' ? c : (c.description || c.title || ''),
-      }))
-    );
-    return `
-      <div class="rounded-lg border border-gray-100 p-3">
-        <div class="flex items-center justify-between mb-1">
-          <span class="text-sm font-bold text-gray-800">${tf.name}</span>
-          <span class="text-xs px-1.5 py-0.5 rounded-full ${meta.cls}">${meta.label}</span>
-        </div>
-        <p class="text-xs text-gray-500 mb-1">${tf.task || ''}</p>
-        <div class="flex items-center justify-between text-xs">
-          <span class="text-gray-600 truncate mr-2">成员：${memberNames}</span>
-          <span class="${progressCls} font-medium whitespace-nowrap">考察确认 ${confirmed}/${total}${pending > 0 ? `（待确认 ${pending}）` : ''}</span>
-        </div>
-        <div class="mt-2 pt-2 border-t border-gray-100">
-          <button class="btn-ghost text-xs flex items-center gap-1" onclick="this.nextElementSibling.classList.toggle('hidden')">
-            产出物 <span>▾</span>
-          </button>
-          <div class="hidden mt-2 space-y-1.5">
-            <div class="flex items-center justify-between text-[11px] text-gray-500">
-              <span class="flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full flex-shrink-0" style="background:${inspRoute.color};"></span>考察记录</span>
-              <span>${total === 0 ? '未提交' : pending > 0 ? `待确认 ${pending}/${total}` : `已确认 ${total}`}</span>
-            </div>
-            <div class="flex items-center justify-between text-[11px] text-gray-500">
-              <span class="flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full flex-shrink-0" style="background:${workloadRoute.color};"></span>工作量报告</span>
-              <span>${workloadItems.length > 0 ? `${workloadItems.length} 项产出` : '未生成'}</span>
-            </div>
-            ${workloadItems.length > 0 ? `
-              <ul class="space-y-1.5 pl-3">
-                ${workloadItems.slice(0, 5).map(w => `<li class="text-[11px] text-gray-500 truncate">${w.name}：${w.item}</li>`).join('')}
-                ${workloadItems.length > 5 ? `<li class="text-[11px] text-gray-500">…另有 ${workloadItems.length - 5} 项</li>` : ''}
-              </ul>` : ''}
-          </div>
-        </div>
-      </div>
-    `;
-  }).join('');
-
-  return `
-    <div class="card rounded-xl p-4 mb-4">
-      <div class="flex items-center justify-between mb-3">
-        <h3 class="font-title-cn text-base font-semibold text-gray-800">专班名单</h3>
-        <span class="text-xs text-gray-500">名单由组织委员管理，纪检只读同步（前置）</span>
-      </div>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-3">${rows}</div>
     </div>
   `;
 }

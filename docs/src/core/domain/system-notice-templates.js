@@ -13,7 +13,7 @@
 // ════════════════════════════════════════════════════════════════
 
 // 期次标签单一源（core/base/period.js）——勿在本文件另写季度格式化
-import { periodLabel } from '../base/period.js?v=20261015b';
+import { periodLabel } from '../base/period.js?v=20261016a';
 
 /** 组装返回对象（跳过 undefined，保持通知结构精简；与原前端 add() 落库形态一致） */
 function pick(obj) {
@@ -39,11 +39,11 @@ const TEMPLATES = {
     targetUrl: `workspace/org.html?tab=thought-review&highlight=${sourceId}`,
   }),
 
-  // ── 宣传周报已报送待支书审核（weekly-tab.js 迁移 · SOP-B-40 ②，2026-09-19 批次 94）──
+  // ── 宣传周期归档已报送待支书审核（存量 kind 键兼容 weekly-report-submitted）──
   // 受众锁定支书/副支书（审核位在支书台「全局概况」的异常优先队列里）；落点带 highlight 供直达定位。
-  'weekly-report-submitted': ({ sourceId, week, weekRange, submitterName }) => pick({
-    title: '宣传周报待审核',
-    content: `${submitterName} 已报送${week || '本周'}周报${weekRange ? `（${weekRange}）` : ''}，请审核（通过 / 退回）。`,
+  'weekly-report-submitted': ({ sourceId, periodLabel, periodRange, week, weekRange, submitterName }) => pick({
+    title: '宣传周期归档待审核',
+    content: `${submitterName || '宣传委员'} 已提交周期归档${periodLabel || week ? `「${periodLabel || week}」` : ''}${periodRange || weekRange ? `（${periodRange || weekRange}）` : ''}，请审核（通过 / 退回）。`,
     priority: 'normal',
     audience: ['secretary', 'deputy-secretary'],
     targetUrl: `workspace/secretary.html?tab=overview&highlight=${sourceId}`,

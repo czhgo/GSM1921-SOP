@@ -6,11 +6,11 @@
 // 2026-09-21 批次 127（`SOP-B-33` 取乙档）：本文件**再加一处纯函数** `buildAgendaCandidates`——
 // 「拟上会」清单的归集单一源（写议程时从这一张清单勾）；IO 仍由各处 UI 自己做（见下方该段注释）。
 
-import { generateId } from '../../../core/base/id.js?v=20261015b';
+import { generateId } from '../../../core/base/id.js?v=20261016a';
 // 事项领域单一源（services/governance/issues.js 末尾的 ISSUE_DOMAINS；四类逐字照母本
 // 《常见工作场景快速指南》「意见建议类型」表）——本模块只取「标签 / 建议归口」两个纯函数，
 // 不读 IssueStore（IO 由调用方做）。
-import { ISSUE_DOMAINS, issueDomainLabel, issueDomainSuggest } from '../../../services/governance/issues.js?v=20261015b';
+import { ISSUE_DOMAINS, issueDomainLabel, issueDomainSuggest } from '../../../services/governance/issues.js?v=20261016a';
 
 /**
  * 将创建/编辑表单的议程行收集为规范化议程数组。
@@ -82,8 +82,8 @@ export function collectAgendaRows(rows = []) {
 //   · 归集的是「**待办 / 待议**」态，不是全量：办结 / 已排入的自会消失。
 //
 // 放哪几类、为什么（逐类给出处，勿凭印象增删）：
-//   ① `taskforce` 专班报送 —— `TaskForceRecordStore.listCommitteeRequests()`（既有的唯一「一键」范式，
-//      母本 `COMMISSIONER_DUTY_FRAMEWORK.md:418`：专班需求「支委会审议立项」）。
+//   ① `taskforce` 专班事项 —— `TaskForceRecordStore.listCommitteeRequests()` 只收集显式标明
+//      需要表决并附制度/议程依据的事项；创建专班工作组本身不默认上会或表决。
 //   ② `issue` 意见反馈 —— 母本《常见工作场景快速指南》「意见建议类型」表（`:439`-`:444`）里
 //      **归口含「支委会」的两类**（制度建设建议 → 支委会讨论制度修改 / 其他建议 → 支书提交支委会研究）
 //      ——归口判据由该表**派生**（见下方 `COMMITTEE_ISSUE_DOMAINS`），不手写第二份四类名单。
@@ -108,7 +108,7 @@ export const COMMITTEE_ISSUE_DOMAINS = ISSUE_DOMAINS
 
 /** 清单类目（顺序＝呈现顺序；`hint` 说明这一类「为什么在这张清单上」） */
 export const AGENDA_CANDIDATE_GROUPS = [
-  { key: 'taskforce', label: '专班报送（待支委会表决）', hint: '专班需求支委会审议立项' },
+  { key: 'taskforce', label: '专班事项（明确要求表决）', hint: '仅收集已登记具体制度或议程依据的事项' },
   { key: 'issue', label: '意见反馈（归口支委会）', hint: '制度建设建议 / 其他建议——支委会讨论或研究' },
   { key: 'draftDoc', label: '制度草案（草案态支部文件）', hint: '制度修改由支委会讨论' },
   { key: 'partyVote', label: '待报送党员大会表决的制度', hint: '支委会已审议通过并决定报送党员大会' },

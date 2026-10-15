@@ -2,17 +2,19 @@
 // ws-org-commissioner-entry.js — 组织委员工作台入口（T-279 M3 拆分；T-304 代码减负 2026-08-30：骨架并入 workspace-shell）
 // 入口职责：壳配置（注册表 tab 清单 + 导航落点 + 数据加载），角色特有逻辑仅保留。
 
-import { getAppState, setState } from '../../core/base/state.js?v=20261015b';
-import { createWorkspaceShell } from '../../components/shell/workspace-shell.js?v=20261015b';
-import { flashHighlight } from '../../core/base/utils.js?v=20261015b';
-import { loadActivities } from '../../services/activity/activity.js?v=20261015b';
-import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261015b';
-import { SignupStore } from '../../services/activity/signup.js?v=20261015b';
-import { seedTodos } from '../../services/governance/todo.js?v=20261015b';
-import { solidAccentStyle } from '../../core/domain/constants.js?v=20261015b';
-import { openRecruitForm } from '../tabs/org/taskforce-tab.js?v=20261015b';
+import { getAppState, setState } from '../../core/base/state.js?v=20261016a';
+import { createWorkspaceShell } from '../../components/shell/workspace-shell.js?v=20261016a';
+import { flashHighlight } from '../../core/base/utils.js?v=20261016a';
+import { loadActivities } from '../../services/activity/activity.js?v=20261016a';
+import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261016a';
+import { SignupStore } from '../../services/activity/signup.js?v=20261016a';
+import { seedTodos } from '../../services/governance/todo.js?v=20261016a';
+import { solidAccentStyle } from '../../core/domain/constants.js?v=20261016a';
+import { AuthStore } from '../../services/core/auth.js?v=20261016a';
+import { getBranchIdOfPerson, getBranchCapabilityPackageState } from '../../services/branch/branch.js?v=20261016a';
+import { openRecruitForm } from '../tabs/org/taskforce-tab.js?v=20261016a';
 // 副作用导入触发组织委员工作台能力注册（tab 清单；含 立项⑥B波 成员名册 tab）
-import '../../capabilities/org-workspace.js?v=20261015b';
+import '../../capabilities/org-workspace.js?v=20261016a';
 
 await createWorkspaceShell({
   accentRole: 'org-commissioner',
@@ -31,15 +33,23 @@ await createWorkspaceShell({
       pending: sortTfByNew(taskforces.filter(t => t.status === 'draft' || t.status === 'pending_review')),
       recruiting: sortTfByNew(taskforces.filter(t => t.status === 'recruiting')),
       active: sortTfByNew(taskforces.filter(t => t.status === 'active')),
+      taskforcePackageEnabled: getBranchCapabilityPackageState(getBranchIdOfPerson(AuthStore.getCurrentUser?.()?.personId || AuthStore.getCurrentUser?.()?.id))['taskforce-workgroup'] !== false,
       highlightActId: ctx.highlightTfId, // 对齐 org tab 的高亮字段名（activity-view 组件）
     };
   },
   // 本台唯一主 CTA＝「发布招募」（2026-09-30 批次 297-2：页头只留 1 枚本台主 CTA；
   //   「一键汇报」已收进顶栏全局固定位 ⇒ 不再在此并排第二枚彩色按钮）
-  extraRightHtml: ({ accent, accentBorder }) =>
-    '<button id="btn-publish-tf" style="' + solidAccentStyle(accent, accentBorder) + ';border:none;padding:6px 16px;border-radius:var(--radius-sm);font-size:0.75rem;font-weight:500;cursor:pointer;transition:opacity 0.15s;" onmouseover="this.style.opacity=\'0.9\'" onmouseout="this.style.opacity=\'1\'">发布招募</button>',
+  extraRightHtml: ({ accent, accentBorder }) => {
+    const me = AuthStore.getCurrentUser?.();
+    const branchId = getBranchIdOfPerson(me?.personId || me?.id);
+    const enabled = getBranchCapabilityPackageState(branchId)['taskforce-workgroup'] !== false;
+    return '<button id="btn-publish-tf" ' + (enabled ? '' : 'disabled aria-disabled="true" title="本支部已停用专班工作组；可继续处理在办事项并查阅历史" ') + 'style="' + solidAccentStyle(accent, accentBorder) + ';border:none;padding:6px 16px;border-radius:var(--radius-sm);font-size:0.75rem;font-weight:500;cursor:' + (enabled ? 'pointer' : 'not-allowed') + ';opacity:' + (enabled ? '1' : '.55') + ';transition:opacity 0.15s;"' + (enabled ? ' onmouseover="this.style.opacity=\'0.9\'" onmouseout="this.style.opacity=\'1\'"' : '') + '>发布招募</button>';
+  },
   bindExtras: (container, shell) => {
-    container.querySelector('#btn-publish-tf')?.addEventListener('click', () => openRecruitForm(shell.renderCtx(getAppState())));
+    container.querySelector('#btn-publish-tf')?.addEventListener('click', (event) => {
+      if (event.currentTarget.disabled) return;
+      openRecruitForm(shell.renderCtx(getAppState()));
+    });
   },
   // ── 首页跳转落点（支书 2026-08-08 裁定：activityId / view=activities / taskforceId 必须消费）──
   onNavTarget: (nav, state, shell) => {

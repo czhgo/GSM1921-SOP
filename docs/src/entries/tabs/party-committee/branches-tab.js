@@ -5,20 +5,20 @@
 //   统计卡预览 → 确认 → PersonStore.replaceBranchMembers 落库（mock/api 双形态由服务保证），
 //   导入后成员/应到统计即时可见（读链自动）；仅空支部可整表替换（非空支部提示逐人编辑，不提供动作）。
 
-import { mockDB } from '../../../core/domain/domain.js?v=20261015b';
+import { mockDB } from '../../../core/domain/domain.js?v=20261016a';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/member/person.js 获取（原直连 mock PEOPLE）；
 // 每次渲染现读（members 覆盖层即时吃到），不缓存在模块顶层
-import { PersonStore, getPersonName } from '../../../services/member/person.js?v=20261015b';
-import { createBranch, renameBranch, getCommitteeName, setBranchActive } from '../../../services/branch/branch.js?v=20261015b';
-import { appointSecretary, listAppointments } from '../../../services/branch/appointment.js?v=20261015b';
-import { getRosterStats } from '../../../services/member/roster.js?v=20261015b';
+import { PersonStore, getPersonName } from '../../../services/member/person.js?v=20261016a';
+import { createBranch, renameBranch, getCommitteeName, setBranchActive } from '../../../services/branch/branch.js?v=20261016a';
+import { appointSecretary, listAppointments } from '../../../services/branch/appointment.js?v=20261016a';
+import { getRosterStats } from '../../../services/member/roster.js?v=20261016a';
 // 立项⑥ B波：空支部名册导入服务（模板/净化/统计；确认落库直接走 PersonStore.replaceBranchMembers）
-import { buildBranchRosterTemplate, sanitizeBranchRoster } from '../../../services/member/branch-roster-import.js?v=20261015b';
-import { showToast, escHtml as esc, downloadBlob, getBasePath } from '../../../core/base/utils.js?v=20261015b';
+import { buildBranchRosterTemplate, sanitizeBranchRoster } from '../../../services/member/branch-roster-import.js?v=20261016a';
+import { showToast, escHtml as esc, downloadBlob, getBasePath } from '../../../core/base/utils.js?v=20261016a';
 // 立项⑦ B波：支部卡「进入支部（演示）」按钮绑定（与 governance-overview-tab 同源）
-import { bindBranchDemoButtons } from '../../../services/core/branch-demo-nav.js?v=20261015b';
+import { bindBranchDemoButtons } from '../../../services/core/branch-demo-nav.js?v=20261016a';
 // 支部配置（换组织向导 ＋ 部署与对接）——2026-10-04 批次 374：自「支部配置」tab 并入本页内区（实现单一源不变）
-import { mountPartyConfig } from './party-config-tab.js?v=20261015b';
+import { mountPartyConfig } from './party-config-tab.js?v=20261016a';
 
 // HTML 转义统一走 core/base/utils.js escHtml（2026-09-03 去重收口）
 
@@ -26,6 +26,7 @@ import { mountPartyConfig } from './party-config-tab.js?v=20261015b';
 let _rosterOpenBranch = null;    // 展开导入面板的支部 id（null = 全部收起）
 const _rosterDrafts = new Map(); // branchId → { people, stats, dropped, fileName }（净化通过、未落库）
 let _rosterInputBranch = null;   // 触发「选择名册文件」的支部 id（共享 file input 需要）
+let _branchConfigOpen = false;
 
 /** 操作人（审计预留 by；与 services/branch/branch.js 同键跨模块约定，不 import auth 防循环依赖） */
 function _actorId() {
@@ -127,15 +128,14 @@ export async function renderContent() {
       </div>
       <p class="text-xs text-gray-500">党委组织：${esc(getCommitteeName())} · 支部 ${branches.length} 个 · 名册导入仅对空支部开放</p>
       <input type="file" id="branch-roster-file" accept=".json,application/json" class="hidden" aria-label="选择成员名册 JSON 文件">
-      <!-- 2026-10-04 批次 374（支书圈乙）：「支部配置」并入本页（管理 ⊃ 配置）⇒ 党委台 7 → 6 页签。
-           宿主 id pc-wizard-host / pc-deploy-panel 一字未改 ⇒ e2e / 台账选择器零改签（只换落点 tab）。 -->
-      <div class="card rounded-xl p-4">
-        <p class="font-title-cn text-base font-bold text-gray-800">支部配置（换组织向导）</p>
-        <p class="text-xs text-gray-500 mt-0.5">党委侧 · <b>部署期 / 调整期</b>使用（不在支部日常台出现）：模块 / 分工 / 向导配置在此编排。</p>
-        <p class="text-xs text-gray-500 mt-0.5">其中第③步「角色分工」即支部分工编排（与支部侧「支部分工」同源、同一数据）——支部日常由支书台调整，党委 / 部署期在此定基线。</p>
-      </div>
-      <div id="pc-wizard-host"></div>
-      <div id="pc-deploy-panel"></div>
+      <!-- 配置低频：目录优先，向导仅在用户展开后加载。 -->
+      <details id="branch-config-details" class="card rounded-xl p-4" ${_branchConfigOpen ? 'open' : ''}>
+        <summary class="font-title-cn text-base font-bold text-gray-800 cursor-pointer select-none">支部配置（按需展开）</summary>
+        <p class="text-xs text-gray-500 mt-2">部署或调整组织结构时使用；支部目录与日常治理入口保持在首屏。</p>
+        <p class="text-xs text-gray-500 mt-1">党委维护目录与模板，支部自主选择能力包；配置向导中的角色分工与支部日常设置共用同一数据。</p>
+        <div id="pc-wizard-host" class="mt-3"></div>
+        <div id="pc-deploy-panel" class="mt-3"></div>
+      </details>
     </div>
   `;
 
@@ -202,8 +202,18 @@ export async function renderContent() {
   // 名册导入（容器级委托：面板/草稿为动态区，重挂前先摘旧监听防叠加）
   _bindRosterDelegation(el);
 
-  // 支部配置（换组织向导 ＋ 部署与对接）——2026-10-04 批次 374：自「支部配置」tab 并入本页内区
-  mountPartyConfig({ wizardHost: el.querySelector('#pc-wizard-host'), deployHost: el.querySelector('#pc-deploy-panel') });
+  // 支部目录优先；配置向导仅按需挂载，展开状态在列表刷新后保留。
+  const configDetails = el.querySelector('#branch-config-details');
+  const mountConfigIfOpen = () => {
+    if (!configDetails?.open || configDetails.dataset.mounted === 'true') return;
+    configDetails.dataset.mounted = 'true';
+    mountPartyConfig({ wizardHost: el.querySelector('#pc-wizard-host'), deployHost: el.querySelector('#pc-deploy-panel') });
+  };
+  configDetails?.addEventListener('toggle', () => {
+    _branchConfigOpen = configDetails.open;
+    mountConfigIfOpen();
+  });
+  mountConfigIfOpen();
 }
 
 // ── 支部软停用（2026-10-02 批次 344 · 支书裁 `D-744`③「补『停用（软）』入口」）──

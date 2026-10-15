@@ -60,7 +60,7 @@ node scripts/backup.mjs --out /srv/bak/20260923
 
 - **版本号**：库内 `PRAGMA user_version` 记 schema 版本；单一源＝`server/db.js` 末尾 `MIGRATIONS` 列表（每项 `{ version, name, tables?, up(db) }`，`version` 严格递增且唯一）。
 - **启动自动应用**：`initDb` 末尾调用 `applyMigrations(db)`——未应用的迁移**按序、在一个事务内**执行、每项跑完写回 `user_version`，并打印 `[db] schema vN（本次应用 M 项）`。**失败即抛**（better-sqlite3 `transaction` 整体回滚，含 `user_version` 与 DDL）⇒ 启动报错，**绝不静默吞**；幂等可重入（已应用者跳过）。
-- **v1 基线**：把机制落地时的 schema 现状登记下来（`up()` 幂等重放既有 `CREATE TABLE IF NOT EXISTS`）⇒ **既有真库首启即登记为 v1、一行数据不动**；**既有建表路径一字未改**（机制是叠加，不是替换）。**今后新增/变更结构一律追加 `v2+`**，并在其 `tables` 里登记表名。
+- **v1 基线**：把机制落地时的 schema 现状登记下来（`up()` 幂等重放既有 `CREATE TABLE IF NOT EXISTS`）⇒ **既有真库首启即登记为 v1、一行数据不动**；**既有建表路径一字未改**（机制是叠加，不是替换）。**今后新增/变更结构一律追加 `v2+`**，并在其 `tables` 里登记表名。当前 **v3** 为活动/专班统一工作组记录、成员/授权/任务/产出与活动应到名单快照；迁移保留旧业务 ID，无法可靠判断的旧活动承办范围标记待核。
 - **纪律（可判红）**：新增/变更结构却没写 migration ⇒ `server/test/db-integrity-guard.test.mjs` 的 **G5 / G6** 判红：G5＝`db.js` 自建表必须被「v1 冻结基线 ∪ 迁移声明」覆盖（并核 v1 基线已冻结、不得被悄悄加表）；G6＝全 `server/` 的 `ALTER TABLE` 只许出现在 migration 段内。
 - **验收**：`server/test/db-migration.test.mjs`（应用 / 幂等可重入 / 失败回滚 / 失败不吞 / 启动日志）、`server/test/db-integrity-guard.test.mjs`（完整性 / 版本对齐 / 列表自检 / 非空转 / 纪律）、`server/test/backup-restore.test.mjs`（备份 → 恢复演练）。运行：在 `server/` 下 `node --test test/db-migration.test.mjs test/db-integrity-guard.test.mjs test/backup-restore.test.mjs`（纯 node，无需起服务）。
 
@@ -239,7 +239,7 @@ node --input-type=module -e "import Database from 'better-sqlite3'; import { PEO
 | # | 限制 | 对部署的含义 |
 |---|---|---|
 | 1 | **服务端不做支部级读取过滤** | 列表读口是**整表返回**，支部过滤由**前端** `withinBranch` 做 ⇒ **同一台服务器上驻多个支部时，任一已登录读者可拿到全部支部的数据**。⇒ **一实例一支部**部署；若必须多支部共用，**须先补服务端过滤**（属权限口径，见 `README-server.md §7.1 #2`） |
-| 2 | **多数资源写口只要求登录** | 30 类资源中只有 `branchDocs` / `fileSpaceRecords` / `imageRecords` 用支委门、`activities` 有活动写门，**其余任意登录成员可 POST / PATCH / DELETE**（`README-server.md §7.1 #3`）。⇒ 面向真实支部上线时，**以「成员都可信」为前提**；若不可信，须先补写门 |
+| 2 | **通用资源写口仍有登录即写面** | 资源级角色门见 `RESOURCE_WRITE_GATE`；活动、专班工作组、考勤等另有业务写门。未列入角色门且无专门 handler 的通用资源仍只要求登录；跨资源关联与支部归属还没有一套覆盖所有资源的统一写门（`README-server.md §7.1 #3`）。⇒ 面向多个支部上线前，须先补齐这些剩余读写隔离 |
 | 3 | **无业务字段索引** | 全库是 `(id TEXT PRIMARY KEY, data TEXT)` 宽表：`id` 有主键索引，**`data` 内字段无索引**、读路径一律取全表在 JS 里 `JSON.parse`。⇒ 数据量上到**万行级**前应先评估再优化（属**性能债**，非功能缺陷；本批**只登记未改**） |
 | 4 | **token 无过期 / 无刷新** · **口令是全支部统一口令** | 会话仅显式 logout 或账号流出时失效；系统**没有个人密码**概念（`README-server.md §7.1 #5 / #6`） |
 

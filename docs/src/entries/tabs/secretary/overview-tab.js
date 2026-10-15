@@ -8,22 +8,23 @@
 // 重设计要点：单列进度总览，取消 2x2 四色卡片与四色左边条，主体色统一党建红。
 // 2026-08-10 支书裁定：本页禁用 SVG 图标（不再引入 icon），类别用色点+文字标签区分。
 
-import { showToast, escHtml as esc, todayLocal } from '../../../core/base/utils.js?v=20261015b';
-import { NoticeStore } from '../../../services/governance/notice.js?v=20261015b';
-import { ROLE_LABELS, ROLE_COLORS } from '../../../core/domain/constants.js?v=20261015b';
-import { AuthStore } from '../../../services/core/auth.js?v=20261015b';
-import { dutyCardHtml } from '../../../components/governance/workforce-duty-card.js?v=20261015b';
-import { SecretaryOverviewStore, listWeeklyReportsPendingReview, reviewWeeklyReport, WEEKLY_REVIEW_STATUS } from '../../../services/governance/secretary-overview.js?v=20261015b';
+import { showToast, escHtml as esc, todayLocal } from '../../../core/base/utils.js?v=20261016a';
+import { NoticeStore } from '../../../services/governance/notice.js?v=20261016a';
+import { ROLE_LABELS, ROLE_COLORS } from '../../../core/domain/constants.js?v=20261016a';
+import { AuthStore } from '../../../services/core/auth.js?v=20261016a';
+import { dutyCardHtml } from '../../../components/governance/workforce-duty-card.js?v=20261016a';
+import { SecretaryOverviewStore, listWeeklyReportsPendingReview, reviewWeeklyReport, WEEKLY_REVIEW_STATUS } from '../../../services/governance/secretary-overview.js?v=20261016a';
 // S1–S4 滞留党员设计（2026-09-06 支书已批）：支书复核卡（只读查看徽标/备注/变更留痕）
-import { getRosterStats } from '../../../services/member/roster.js?v=20261015b';
-import { loadActivities } from '../../../services/activity/activity.js?v=20261015b';
-import { loadAttendanceRecords } from '../../../services/activity/attendance.js?v=20261015b';
-import { AttendanceStatus } from '../../../core/domain/domain.js?v=20261015b';
-import { IssueStore, REPORT_CATEGORIES } from '../../../services/governance/issues.js?v=20261015b';
+import { getRosterStats } from '../../../services/member/roster.js?v=20261016a';
+import { loadActivities } from '../../../services/activity/activity.js?v=20261016a';
+import { loadAttendanceRecords } from '../../../services/activity/attendance.js?v=20261016a';
+import { AttendanceStatus } from '../../../core/domain/domain.js?v=20261016a';
+import { IssueStore, REPORT_CATEGORIES } from '../../../services/governance/issues.js?v=20261016a';
 // D2 裁决批二（2026-09-08 支书特批）：按人视图汇报区降级只读摘要 → 「去待办处理」定位跳转（pendingTarget 一次性消费）
-import { PendingTarget } from '../../../core/session/pending-target.js?v=20261015b';
-import { listPendingByReceiver, confirmExternalDispatch } from '../../../services/activity/external-dispatch.js?v=20261015b';
-import { getPersonName } from '../../../services/member/person.js?v=20261015b';
+import { PendingTarget } from '../../../core/session/pending-target.js?v=20261016a';
+import { listPendingByReceiver, confirmExternalDispatch } from '../../../services/activity/external-dispatch.js?v=20261016a';
+import { getPersonName } from '../../../services/member/person.js?v=20261016a';
+import { TodoStore } from '../../../services/governance/todo.js?v=20261016a';
 
 const OVERVIEW_TAB_HTML = `
   <div id="secretary-overview-content"></div>
@@ -283,6 +284,10 @@ function renderProgressSection(people) {
 function renderDimensionView(container) {
   const data = SecretaryOverviewStore.getOverview();
   const { attendance, inspection, activity, propaganda } = data;
+  const todoGroups = TodoStore.getGroupedByAction('secretary');
+  const pendingDispatches = listPendingByReceiver('secretary');
+  const weeklyPending = listWeeklyReportsPendingReview();
+  const pendingItems = todoGroups.reduce((sum, group) => sum + group.count, 0) + pendingDispatches.length + weeklyPending.length;
 
   // ════════════════════════════════════════════════════════════
   //  管理科学·执行层仪表盘（支书 2026-08-08 重设计）
@@ -315,7 +320,8 @@ function renderDimensionView(container) {
     { label: '会议应到', value: rosterStats.expected, unit: '人', status: 'ok', title: `在册党员 ${rosterStats.partyTotal} − 滞留剔除 ${rosterStats.detainedParty}（滞留＝组织关系保留但不参加日常会议）` },
     // 2026-08-10 支书裁定：考察积压/待办异常无既定目标值，不设虚假目标（状态由圆点色表达）
     { label: '考察积压', value: inspection.pendingInspections + inspection.overdueInspections, unit: '条', status: inspection.overdueInspections ? 'danger' : inspection.pendingInspections ? 'warn' : 'ok', title: '待确认 + 超期' },
-    { label: '待办异常', value: anomalyTotal, unit: '项', status: anomalyTotal ? 'danger' : 'ok', title: '异常优先管理 · 目标 0' },
+    { label: '待处理', value: pendingItems, unit: '项', status: pendingItems ? 'warn' : 'ok', title: '书记需要作出决定、确认或督办的事项；含待办、外发确认和周期归档审核' },
+    { label: '异常', value: anomalyTotal, unit: '项', status: anomalyTotal ? 'danger' : 'ok', title: '需要关注的异常事实，和待处理事项分开统计' },
   ];
 
   // 出勤趋势（近 6 场有考勤记录的活动）
@@ -344,7 +350,6 @@ function renderDimensionView(container) {
   const stageTotal = stages.reduce((s, x) => s + x.value, 0) || 1;
 
   // 文件流外发确认（支书 2026-08-10 裁定）：微信外发文件到达支书后在此确认，形成闭环
-  const pendingDispatches = listPendingByReceiver('secretary');
   const dispatchRows = pendingDispatches.map(d => `
     <div class="flex items-center gap-3 py-2.5 px-3 rounded-lg hover:bg-gray-50 transition-colors">
       <span class="w-2 h-2 rounded-full flex-shrink-0" style="background:var(--functional-warning);"></span>
@@ -354,24 +359,32 @@ function renderDimensionView(container) {
       <button type="button" class="sec-ed-confirm btn-accent-soft text-xs px-2.5 py-1" style="--acc-text-dark:color-mix(in srgb, var(--app-accent) 55%, #fff)" data-ed-id="${d.id}">确认收到</button>
     </div>`);
 
-  // 宣传周报待审核（SOP-B-40 ②，2026-09-19 批次 94）：宣传委员报送后在此审核（通过 / 退回）。
+  // 周期归档待审核：宣传委员提交后在此审核；期次展示取服务端冻结快照。
   // 判据与写口单一源 = services/governance/secretary-overview.js（勿在页面另写状态名）。
-  const weeklyPending = listWeeklyReportsPendingReview();
   const weeklyRows = weeklyPending.map(r => `
     <div class="flex items-center gap-3 py-2.5 px-3 rounded-lg hover:bg-gray-50 transition-colors">
       <span class="w-2 h-2 rounded-full flex-shrink-0" style="background:var(--accent-sky);"></span>
-      <span class="text-sm font-medium text-gray-700 w-24 flex-shrink-0">周报待审核</span>
-      <span class="text-xs text-gray-500 flex-1 truncate">${r.week}（${r.weekRange}）· ${getPersonName(r.submittedBy) || '宣传委员'} 报送于 ${r.submittedAt || '—'}</span>
+      <span class="text-sm font-medium text-gray-700 w-24 flex-shrink-0">周期归档待审核</span>
+      <span class="text-xs text-gray-500 flex-1 truncate">${esc(r.archivePolicySnapshot?.periodLabel || r.periodLabel || r.week || '未命名期次')}（${esc(r.archivePolicySnapshot?.periodRange || r.periodRange || r.weekRange || '日期待补')}）· ${esc(getPersonName(r.submittedBy) || '宣传委员')} 提交于 ${esc(r.submittedAt || '—')}</span>
       <span class="text-xs text-gray-500 w-16 flex-shrink-0">宣传委员</span>
       <button type="button" class="sec-weekly-btn btn-accent-soft text-xs px-2.5 py-1" style="--acc-text-dark:color-mix(in srgb, var(--app-accent) 55%, #fff)" data-weekly-id="${r.id}" data-weekly-decision="approved">通过</button>
       <button type="button" class="sec-weekly-btn btn-accent-soft text-xs px-2.5 py-1" style="--acc-text-dark:color-mix(in srgb, var(--app-accent) 55%, #fff)" data-weekly-id="${r.id}" data-weekly-decision="returned">退回</button>
     </div>`);
 
-  const exceptionsHtml = (exceptions.length === 0 && dispatchRows.length === 0 && weeklyRows.length === 0)
+  const todoRows = todoGroups.map((group) => `
+    <div class="flex items-center gap-3 py-2.5 px-3 rounded-lg hover:bg-gray-50 transition-colors">
+      <span class="w-2 h-2 rounded-full flex-shrink-0" style="background:var(--app-accent);"></span>
+      <span class="text-sm font-medium text-gray-700 w-24 flex-shrink-0">${esc(group.title || '待办')}</span>
+      <span class="text-xs text-gray-500 flex-1 truncate">${group.count} 项${group.deadline ? ` · 截止 ${esc(group.deadline)}` : ''}</span>
+      <span class="text-xs text-gray-500 w-16 flex-shrink-0">书记</span>
+      <button type="button" class="sec-todo-direct btn-accent-soft text-xs px-2.5 py-1">去待办</button>
+    </div>`);
+
+  const exceptionsHtml = (exceptions.length === 0 && dispatchRows.length === 0 && weeklyRows.length === 0 && todoRows.length === 0)
     ? `<div class="flex items-center gap-2 py-3 px-3 rounded-lg bg-green-50 text-green-700 text-xs">
          <span class="w-2 h-2 rounded-full bg-green-500 flex-shrink-0"></span> 全部正常，无待处理异常
        </div>`
-    : dispatchRows.join('') + weeklyRows.join('') + exceptions.map(e => {
+    : todoRows.join('') + dispatchRows.join('') + weeklyRows.join('') + exceptions.map(e => {
         const dot = e.level === 3 ? '#EF4444' : e.level === 2 ? '#F59E0B' : '#3B82F6';
         const actionHtml = e.action.urge
           ? `<button type="button" class="sec-urge-btn btn-accent-soft text-xs px-2.5 py-1" style="--acc-text-dark:color-mix(in srgb, var(--app-accent) 55%, #fff)" data-urge="${e.action.urge}">催办</button>`
@@ -399,21 +412,21 @@ function renderDimensionView(container) {
         `).join('')}
       </div>
 
-      <!-- 异常优先队列（出勤迷你趋势内联于队列底部） -->
+      <!-- 书记统一待处理主队列：工作待办、外发确认、周期归档审核和异常提醒集中呈现 -->
       <div class="card rounded-xl p-4">
         <div class="flex items-center justify-between mb-3">
-          <h4 class="font-title-cn text-sm font-bold text-gray-700">异常优先队列</h4>
-          <span class="text-xs text-gray-500">按紧急度排序 · ${exceptions.length + pendingDispatches.length} 项</span>
+          <h4 class="font-title-cn text-sm font-bold text-gray-700">书记待处理</h4>
+          <span class="text-xs text-gray-500">待处理 ${pendingItems} 项 · 异常 ${anomalyTotal} 项</span>
         </div>
         <div class="space-y-1.5">${exceptionsHtml}</div>
-        <!-- 出勤迷你趋势（近 6 场活动出勤率；不并入 KPI、不新增出勤率指标卡） -->
-        <div class="mt-3 pt-3 border-t border-gray-100">
+        <details class="mt-3 pt-3 border-t border-gray-100">
+          <summary class="cursor-pointer text-xs text-gray-500">查看出勤趋势</summary>
           <div class="flex items-center justify-between mb-1">
             <span class="text-xs text-gray-500">近 6 场活动出勤率</span>
             ${trend.length ? `<span class="text-xs text-gray-500">最新一场 ${trend[trend.length - 1].rate}%</span>` : ''}
           </div>
           ${_sparkline(trend)}
-        </div>
+        </details>
         <!-- 出勤率偏低提示（SOP-B-15 / SOP-B-7）：只作提示、不触发任何动作；提示线为可调参数（非制度门槛） -->
         ${(attendance.lowSessions && attendance.lowSessions.length) ? `
         <div class="mt-2 text-xs text-amber-700 leading-5">
@@ -432,7 +445,7 @@ function renderDimensionView(container) {
           <a href="./workspace/org.html?tab=roster" class="text-blue-600 hover:text-blue-800">去查看 →</a>
         </span>
         <span class="inline-flex items-center gap-2.5 flex-wrap">
-          <span>党员结构</span>
+          <span>成员发展阶段</span>
           <span class="inline-flex h-1.5 w-20 rounded-full bg-neutral-100 overflow-hidden">
             ${stages.map(s => s.value > 0 ? `<span style="width:${(s.value / stageTotal * 100).toFixed(1)}%;background:${s.color};" title="${esc(s.label)} ${s.value}人"></span>` : '').join('')}
           </span>
@@ -450,7 +463,7 @@ function renderDimensionView(container) {
       renderDimensionView(container);
     });
   });
-  // 宣传周报审核（SOP-B-40 ②）：通过 / 退回（退回可写一句说明，随留痕给宣传委员）
+  // 周期归档审核：通过 / 退回（退回可写一句说明，随留痕给宣传委员）
   container.querySelectorAll('.sec-weekly-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       const decision = btn.dataset.weeklyDecision;
@@ -461,7 +474,7 @@ function renderDimensionView(container) {
       }
       const res = reviewWeeklyReport({ id: btn.dataset.weeklyId, decision, reviewerId, note });
       if (!res.ok) { showToast('error', `审核失败：${res.reason}`); return; }
-      showToast('success', decision === WEEKLY_REVIEW_STATUS.APPROVED ? '周报已通过' : '周报已退回宣传委员');
+      showToast('success', decision === WEEKLY_REVIEW_STATUS.APPROVED ? '周期归档已通过' : '周期归档已退回宣传委员');
       renderDimensionView(container);
     });
   });
@@ -477,6 +490,10 @@ function renderDimensionView(container) {
       showToast('info', `已直达${tabLabels[tabId] || '对应功能'}`);
     });
   });
+  container.querySelectorAll('.sec-todo-direct').forEach((btn) => btn.addEventListener('click', () => {
+    const tabBtn = document.querySelector('.secretary-tab-btn[data-secretary-tab="todo"]');
+    if (tabBtn) tabBtn.click();
+  }));
 }
 
 /** 近 6 场有考勤记录活动的出勤率序列（趋势线数据源） */

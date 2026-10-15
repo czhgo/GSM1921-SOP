@@ -10,10 +10,13 @@
 // 注意：mockDB/服务均带 ?v= 导入保证与 services 模块缓存同一实例。
 import { test, beforeEach, afterEach } from 'node:test';
 import assert from 'node:assert/strict';
-import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261015b';
-import { TaskForceRecordStore } from '../../docs/src/services/activity/taskforce.js?v=20261015b';
+import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261016a';
+import { TaskForceRecordStore } from '../../docs/src/services/activity/taskforce.js?v=20261016a';
+import { getDataSource, setDataSource } from '../../docs/src/data/data-adapter.js?v=20261016a';
 
 const ORIGINAL_TASKFORCES = mockDB.taskforces;
+const ORIGINAL_WORKGROUP_TASKS = mockDB.workgroupTasks;
+const ORIGINAL_WORKGROUP_OUTPUTS = mockDB.workgroupOutputs;
 
 /** 用 add() 构造测试专班（避开 init/migrateFromLegacy 对 localStorage 的依赖；id 保证唯一防 Date.now 同毫秒碰撞） */
 let _tfSeq = 0;
@@ -42,6 +45,8 @@ beforeEach(() => {
 afterEach(() => {
   TaskForceRecordStore._records = [];
   mockDB.taskforces = ORIGINAL_TASKFORCES;
+  mockDB.workgroupTasks = ORIGINAL_WORKGROUP_TASKS;
+  mockDB.workgroupOutputs = ORIGINAL_WORKGROUP_OUTPUTS;
 });
 
 // ── A. 报送支委会：状态门禁 ─────────────────────────────────────
@@ -56,6 +61,37 @@ test('A1 submitForCommittee initiate：draft/pending_review 可报；recruiting/
   const tfActive = addTf({ status: 'active' });
   assert.equal(TaskForceRecordStore.submitForCommittee(tfActive.id, { kind: 'initiate' }), null, '运行中不可报送发起');
   assert.equal(TaskForceRecordStore.submitForCommittee('tf-none', { kind: 'initiate' }), null, '不存在返回 null');
+});
+
+test('API 空支部不灌演示专班；旧含义不明 localStorage 键原样保留待核', () => {
+  const previousStorage = globalThis.localStorage;
+  const previousSource = getDataSource();
+  const entries = new Map();
+  const legacyKey = 'propaganda_whitelist_legacy';
+  const legacyValue = JSON.stringify(['历史名单成员']);
+  entries.set(legacyKey, legacyValue);
+  globalThis.localStorage = {
+    get length() { return entries.size; },
+    key(index) { return [...entries.keys()][index] ?? null; },
+    getItem(key) { return entries.get(key) ?? null; },
+    setItem(key, value) { entries.set(key, String(value)); },
+    removeItem(key) { entries.delete(key); },
+  };
+  mockDB.taskforces = [];
+  TaskForceRecordStore._records = [];
+  setDataSource('api');
+
+  try {
+    TaskForceRecordStore.init();
+    assert.deepEqual(TaskForceRecordStore._records, [], 'API 空集合保持为空，不回退到 mock 演示种子');
+    assert.deepEqual(mockDB.taskforces, [], '初始化不把演示专班写入快照缓存');
+    assert.equal(globalThis.localStorage.getItem(legacyKey), legacyValue, '原始名单键不得删除或改写');
+    assert.equal(TaskForceRecordStore._migrationReport[0]?.status, 'needs-review');
+    assert.match(TaskForceRecordStore._migrationReport[0]?.reason || '', /任务、类型、成员角色或结束状态/);
+  } finally {
+    setDataSource(previousSource);
+    globalThis.localStorage = previousStorage;
+  }
 });
 
 test('A2 submitForCommittee dissolve：仅 active 可报解散；recruiting 拒绝', () => {
@@ -191,8 +227,13 @@ test('D2 applyCommitteeDecision initiate rejected：→ draft 可改重报，二
 
 test('D3 applyCommitteeDecision dissolve approved：→ dissolved + dissolvedAt；rejected：→ 回 active', () => {
   const tf1 = addTf({ status: 'active' });
+  const workgroupId = `wg-taskforce-${tf1.id}`;
+  mockDB.workgroupTasks = [{ id: 'task-close-vote', workgroupId, isPurpose: true, status: 'completed' }];
+  mockDB.workgroupOutputs = [];
   TaskForceRecordStore.submitForCommittee(tf1.id, { kind: 'dissolve', by: 'p11' });
-  const approved = TaskForceRecordStore.applyCommitteeDecision(tf1.id, { decision: 'approved', by: 'p1' });
+  const approved = TaskForceRecordStore.applyCommitteeDecision(tf1.id, {
+    decision: 'approved', by: 'p1', decisionRef: 'meeting-dissolution:agenda-dissolve',
+  });
   assert.equal(approved.status, 'dissolved', '表决通过解散留痕');
   assert.ok(approved.dissolvedAt, '记录解散日期');
   assert.equal(approved.committeeDecision[0].kind, 'dissolve');

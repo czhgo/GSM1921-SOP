@@ -2,22 +2,22 @@
 // 组织委员工作台 Tab：考察上传（T-279 M3 拆分，照 M2 样板）
 // 专班考察：专班负责人/组织委员上传 → 纪检委员确认 → 录入考察总表。
 
-import { loadInspectionRecords, saveInspectionRecords } from '../../../services/activity/inspection.js?v=20261015b';
-import { reconfirmReturnedInspectionRecord, isInspectionHomePosition } from '../../../services/activity/inspection.js?v=20261015b';
-import { TaskForceRecordStore } from '../../../services/activity/taskforce.js?v=20261015b';
-import { anchorDetailToTrigger } from '../../../components/ui/detail-anchor.js?v=20261015b';
-import { AuthStore } from '../../../services/core/auth.js?v=20261015b';
-import { PersonPicker } from '../../../components/governance/pickers.js?v=20261015b';
+import { loadInspectionRecords, saveInspectionRecords } from '../../../services/activity/inspection.js?v=20261016a';
+import { reconfirmReturnedInspectionRecord, isInspectionHomePosition } from '../../../services/activity/inspection.js?v=20261016a';
+import { TaskForceRecordStore } from '../../../services/activity/taskforce.js?v=20261016a';
+import { anchorDetailToTrigger } from '../../../components/ui/detail-anchor.js?v=20261016a';
+import { AuthStore } from '../../../services/core/auth.js?v=20261016a';
+import { PersonPicker } from '../../../components/governance/pickers.js?v=20261016a';
 // 「本位」nudge 确认弹窗（2026-09-23 支书裁定 · 单一源 = components/ui/modal.js::confirmNudge）
-import { confirmNudge } from '../../../components/ui/modal.js?v=20261015b';
-import { inspectionToLong } from '../../../services/activity/inspection.js?v=20261015b';
-import { getPersonById, getPersonName } from '../../../services/member/person.js?v=20261015b';
-import { SourceType, ParticipationLevel } from '../../../core/domain/domain.js?v=20261015b';
-import { showToast, escHtml as esc, getBasePath } from '../../../core/base/utils.js?v=20261015b';
-import { solidAccentStyle, accDarkVars } from '../../../core/domain/constants.js?v=20261015b';
-import { generateId } from '../../../core/base/id.js?v=20261015b';
+import { confirmNudge } from '../../../components/ui/modal.js?v=20261016a';
+import { inspectionToLong } from '../../../services/activity/inspection.js?v=20261016a';
+import { getPersonById, getPersonName } from '../../../services/member/person.js?v=20261016a';
+import { SourceType, ParticipationLevel } from '../../../core/domain/domain.js?v=20261016a';
+import { showToast, escHtml as esc, getBasePath } from '../../../core/base/utils.js?v=20261016a';
+import { solidAccentStyle, accDarkVars } from '../../../core/domain/constants.js?v=20261016a';
+import { generateId } from '../../../core/base/id.js?v=20261016a';
 // 统一检索引擎（2026-09-13 表格统一化批次 A）：考察明细表接入关键词 + 分面（≤8 行引擎自动不渲染检索条）
-import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261015b';
+import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261016a';
 
 // 私有状态（随模块自持，不污染入口）
 let _orgInspFormVisible = false;
@@ -52,9 +52,9 @@ export function renderContent(ctx, container) {
 
   const formHtml = _orgInspFormVisible ? `
     <div class="mt-3 p-4 rounded-lg bg-white border border-gray-100 shadow-sm" id="org-insp-form-panel">
-      <div class="text-xs font-bold text-gray-600 mb-3">上传专班考察表单</div>
+      <div class="text-xs font-bold text-gray-600 mb-3">按事项要求录入考察记录</div>
       <div class="mb-3">
-        <label class="text-xs text-gray-500 mb-1.5 block font-medium">选择专班 <span class="text-red-600">*</span></label>
+        <label class="text-xs text-gray-500 mb-1.5 block font-medium">选择有明确考察要求的专班 <span class="text-red-600">*</span></label>
         <select id="org-insp-tf-select" class="input-flat w-full">
           <option value="">请选择专班</option>
           ${activeTaskforces.map(tf => `<option value="${tf.id}" data-name="${tf.name}">${tf.name}（${tf.status === 'active' ? '运行中' : '招募中'}）</option>`).join('')}
@@ -69,7 +69,7 @@ export function renderContent(ctx, container) {
         <button id="org-insp-form-submit" class="btn-accent text-sm px-4 py-[7px]" style="cursor:pointer">提交考察</button>
         <button id="org-insp-form-cancel" class="btn-outline text-sm px-4 py-1.5" style="cursor:pointer;">取消</button>
       </div>
-      <p class="text-[11px] text-gray-500 mt-2">提交后自动投递：纪检确认 → 考察总表（组织委员建档），无需手动选择接收方</p>
+      <p class="text-[11px] text-gray-500 mt-2">仅制度、议程或具体事项明确要求时录入；请在记录内容中写明要求来源。提交后由纪检确认。</p>
     </div>
   ` : '';
 
@@ -79,10 +79,10 @@ export function renderContent(ctx, container) {
   container.innerHTML = `
     <div class="card rounded-xl p-5">
       <div class="flex items-center justify-between mb-4">
-        <h3 class="font-title-cn text-base font-semibold text-gray-800">专班考察上传</h3>
-        <button class="btn-md" id="btn-org-upload-insp" style="${_accVars}background:${accentRgba};color:color-mix(in srgb, ${accent} 60%, #000);border:1px solid ${accentBorder};">${_orgInspFormVisible ? '收起表单' : '上传考察表单'}</button>
+        <h3 class="font-title-cn text-base font-semibold text-gray-800">专班事项考察记录</h3>
+        <button class="btn-md" id="btn-org-upload-insp" style="${_accVars}background:${accentRgba};color:color-mix(in srgb, ${accent} 60%, #000);border:1px solid ${accentBorder};">${_orgInspFormVisible ? '收起表单' : '录入事项考察'}</button>
       </div>
-      <div class="text-xs text-gray-500 mb-3">专班考察：专班负责人/组织委员上传 → 纪检委员确认 → 录入考察总表。本页只收专班考察；组长台「考察管理」收本组活动考察。</div>
+      <div class="text-xs text-gray-500 mb-3">仅为制度、议程或事项明确要求的专班录入考察；工作组成员名单不会自动生成考察名单。提交后由纪检委员确认。</div>
       ${formHtml}
       <div class="overflow-x-auto ${_orgInspFormVisible ? 'mt-4 pt-3 border-t border-gray-100' : ''}">
         <div id="org-insp-list-host"></div>
@@ -118,7 +118,7 @@ export function renderContent(ctx, container) {
       return;
     }
     const collapsed = panel.classList.toggle('hidden');
-    if (btn) btn.textContent = collapsed ? '上传考察表单' : '收起表单';
+    if (btn) btn.textContent = collapsed ? '录入事项考察' : '收起表单';
   });
 
   // 统一检索引擎（table 模式：rowHtml 返回 <tr>，避免把 <div> 塞进 <tbody>）——

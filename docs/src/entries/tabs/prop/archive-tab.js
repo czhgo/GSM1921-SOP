@@ -2,32 +2,33 @@
 // 宣传委员工作台 Tab：档案归档（T-279 M3 拆分，照 M2 样板）
 // 归档记录纯读 + 材料标准/模板 + 归档推进浮窗（材料确认清单）+ 上传宣传材料（attachments 双模式）。
 
-import { icon } from '../../../core/base/icons.js?v=20261015b';
-import { solidAccentStyle, activityTypeBadgeVariant } from '../../../core/domain/constants.js?v=20261015b';
+import { icon } from '../../../core/base/icons.js?v=20261016a';
+import { solidAccentStyle, activityTypeBadgeVariant } from '../../../core/domain/constants.js?v=20261016a';
+import { POLICY_DEFAULTS } from '../../../core/domain/policy-defaults.js?v=20261016a';
 // 活动类型胶囊（批次 301）：类别色走单一源（三会一课＝brand 红 / 主题党日＝gold 金），渲染唯一源 badge.js
-import { badgeHtml } from '../../../components/ui/badges.js?v=20261015b'; // 扎口出口（批次 304 收回，勿直连 badge.js）
-import { showToast, downloadCSV, downloadBlob, downloadUrl, _fmtDate, escHtml, todayLocal } from '../../../core/base/utils.js?v=20261015b';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20261016a'; // 扎口出口（批次 304 收回，勿直连 badge.js）
+import { showToast, downloadCSV, downloadBlob, downloadUrl, _fmtDate, escHtml, todayLocal } from '../../../core/base/utils.js?v=20261016a';
 // 2026-09-21 批次 139：本 tab 的浮层是**自建浮层**（不走 components/ui/modal.js），页脚那条「相关设置」
 //   深链用 modal.js 导出的同一段标记（`settingsLinkHTML`）——不落第二份 HTML（仍是单一源）。
-import { settingsLinkHTML } from '../../../components/ui/modal.js?v=20261015b';
-import { persist, getAuthToken, getApiBaseUrl, getAdapter } from '../../../data/data-adapter.js?v=20261015b';
-import { mockDB } from '../../../core/domain/domain.js?v=20261015b';
-import { bumpToken } from '../../../core/base/version-token.js?v=20261015b'; // P0 域缓存失效（spec §二.3）
-import { loadActivities, listPublicityDrafts, setPublicityDraftStatus, PUBLICITY_DRAFT_STATUS, listGalleryCandidates, setGalleryFeatured, setGalleryPinned, isGalleryFeatured, isGalleryPinned } from '../../../services/activity/activity.js?v=20261015b';
-import { isApiMode } from '../../../services/core/runtime.js?v=20261015b';
-import { AuthStore } from '../../../services/core/auth.js?v=20261015b';
-import { getPersonName } from '../../../services/member/person.js?v=20261015b';
+import { settingsLinkHTML } from '../../../components/ui/modal.js?v=20261016a';
+import { persist, getAuthToken, getApiBaseUrl, getAdapter } from '../../../data/data-adapter.js?v=20261016a';
+import { mockDB } from '../../../core/domain/domain.js?v=20261016a';
+import { bumpToken } from '../../../core/base/version-token.js?v=20261016a'; // P0 域缓存失效（spec §二.3）
+import { loadActivities, listPublicityDrafts, setPublicityDraftStatus, PUBLICITY_DRAFT_STATUS, listGalleryCandidates, setGalleryFeatured, setGalleryPinned, isGalleryFeatured, isGalleryPinned } from '../../../services/activity/activity.js?v=20261016a';
+import { isApiMode } from '../../../services/core/runtime.js?v=20261016a';
+import { AuthStore } from '../../../services/core/auth.js?v=20261016a';
+import { getPersonName } from '../../../services/member/person.js?v=20261016a';
 // 批次 352（`D-746` · `D-744`② 业务过程类余项）：照片记录「作废（软）」——统一写口 ＋ 支委层判据
-import * as SoftVoid from '../../../services/governance/soft-void.js?v=20261015b';
-import { openVoidModal } from '../../../components/ui/void-record.js?v=20261015b';
-import { generateId } from '../../../core/base/id.js?v=20261015b';
-import { addExternalDispatch, loadExternalDispatches, loadActiveDispatches } from '../../../services/activity/external-dispatch.js?v=20261015b';
+import * as SoftVoid from '../../../services/governance/soft-void.js?v=20261016a';
+import { openVoidModal } from '../../../components/ui/void-record.js?v=20261016a';
+import { generateId } from '../../../core/base/id.js?v=20261016a';
+import { addExternalDispatch, loadExternalDispatches, loadActiveDispatches } from '../../../services/activity/external-dispatch.js?v=20261016a';
 // A② 归档缺口判据单一源（支书台「宣传材料待归档」实时组同源）：已归档但无归档记录的活动
-import { getArchiveGapActivities, getEndedUnarchivedActivities } from '../../../services/governance/secretary-overview.js?v=20261015b';
+import { getArchiveGapActivities, getEndedUnarchivedActivities } from '../../../services/governance/secretary-overview.js?v=20261016a';
 // 活动归档写口（与支书台活动管理同源：软删 archived=true + 级联完成下属任务）
-import { BranchService } from '../../../services/core/runtime.js?v=20261015b';
+import { BranchService } from '../../../services/core/runtime.js?v=20261016a';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是活动的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
-import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261015b';
+import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261016a';
 
 // ── 档案归档 ─────────────────────────────────────────────
 // 种子数据已提升为全局（data/mock/seed.js SEED_ARCHIVE_RECORDS，loadDB 时注入），
@@ -410,12 +411,12 @@ let _weeklyOpen = false;
 /** 懒挂周报内容到宿主容器（`weekly-tab.js` 的 `renderContent(ctx, host)` 已支持传入宿主） */
 function _mountWeekly(host, ctx) {
   host.dataset.weeklyMounted = '1';
-  import('./weekly-tab.js?v=20261015b').then(m => {
+  import('./weekly-tab.js?v=20261016a').then(m => {
     if (host.isConnected) m.renderContent(ctx, host);
   });
 }
 
-/** 折叠区骨架（默认收起；标题「周报 · 归档特例」）。
+/** 折叠区骨架（默认收起；标题聚焦周期归档，周期来自支部制度参数）。
  *  原「归档兜底不自伤」短路已撤（D-807④ 2026-10-06）：支书/副支书不再进入本台
  *  （代归档在支书台本台浮窗直执）⇒ 本页只有宣传委员可达，周报折叠区恒呈现。 */
 function _renderWeeklySlot() {
@@ -423,8 +424,8 @@ function _renderWeeklySlot() {
     <div class="mb-4 rounded-xl border border-gray-100 bg-white">
       <button id="archive-weekly-toggle" type="button" class="btn-outline w-full flex items-center justify-between px-4 py-3 text-left" style="cursor:pointer;">
         <span class="flex items-center gap-2">
-          <span class="text-sm font-bold text-gray-700">周报</span>
-          <span class="text-xs px-1.5 py-0.5 rounded-full border bg-gray-50 text-gray-600">归档特例</span>
+          <span class="text-sm font-bold text-gray-700">周期归档报送</span>
+          <span class="text-xs px-1.5 py-0.5 rounded-full border bg-gray-50 text-gray-600">当前按${POLICY_DEFAULTS.archive.periodic.unit === 'month' ? '月' : '周'}</span>
         </span>
         <span class="archive-weekly-toggle-label text-xs text-gray-500">${_weeklyOpen ? '收起' : '展开'}</span>
       </button>

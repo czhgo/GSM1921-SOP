@@ -3,44 +3,45 @@
 // 看板式专班全生命周期管理 + 发布招募表单 + 活动进度追踪（原追踪看板融入）。
 // 私有状态（PersonPicker 实例）随模块自持；共享数据（taskforce 分类/activities）经 ctx 传入。
 
-import { setState } from '../../../core/base/state.js?v=20261015b';
-import { BranchService } from '../../../services/core/runtime.js?v=20261015b';
-import { TaskForceRecordStore, isTaskforceOrganizer } from '../../../services/activity/taskforce.js?v=20261015b';
-import { SignupStore, resolveSignupReviewer, SignupStatus, SIGNUP_ROLE_LABELS, SIGNUP_STATUS_LABELS } from '../../../services/activity/signup.js?v=20261015b';
-import { AuthStore } from '../../../services/core/auth.js?v=20261015b';
-import { loadTaskforceReviews, addTaskforceReview } from '../../../services/governance/review.js?v=20261015b';
-import { loadInspectionRecords } from '../../../services/activity/inspection.js?v=20261015b'; // IA-C3 收敛单写入口 2026-09-06：saveInspectionRecords 已随考察写入口移除
-import { TodoStore, TodoSourceType, TodoCategory, TodoActionType } from '../../../services/governance/todo.js?v=20261015b';
-import { NoticeStore } from '../../../services/governance/notice.js?v=20261015b';
-import { mockDB, SourceType, ReviewStatus } from '../../../core/domain/domain.js?v=20261015b'; // IA-C3 收敛单写入口 2026-09-06：ParticipationLevel 随考察写入口移除
-import { persist } from '../../../data/data-adapter.js?v=20261015b';
-import { showToast, escHtml as esc, getBasePath, todayLocal } from '../../../core/base/utils.js?v=20261015b';
-import { generateId } from '../../../core/base/id.js?v=20261015b';
-import { solidAccentStyle } from '../../../core/domain/constants.js?v=20261015b';
+import { setState } from '../../../core/base/state.js?v=20261016a';
+import { BranchService } from '../../../services/core/runtime.js?v=20261016a';
+import { TaskForceRecordStore, isTaskforceOrganizer } from '../../../services/activity/taskforce.js?v=20261016a';
+import { SignupStore, resolveSignupReviewer, SignupStatus, SIGNUP_ROLE_LABELS, SIGNUP_STATUS_LABELS } from '../../../services/activity/signup.js?v=20261016a';
+import { AuthStore } from '../../../services/core/auth.js?v=20261016a';
+import { loadTaskforceReviews, addTaskforceReview } from '../../../services/governance/review.js?v=20261016a';
+import { TodoStore, TodoSourceType, TodoCategory, TodoActionType } from '../../../services/governance/todo.js?v=20261016a';
+import { NoticeStore } from '../../../services/governance/notice.js?v=20261016a';
+import { mockDB, ReviewStatus } from '../../../core/domain/domain.js?v=20261016a'; // IA-C3 收敛单写入口 2026-09-06：ParticipationLevel 随考察写入口移除
+import { persist } from '../../../data/data-adapter.js?v=20261016a';
+import { showToast, escHtml as esc, getBasePath, todayLocal } from '../../../core/base/utils.js?v=20261016a';
+import { generateId } from '../../../core/base/id.js?v=20261016a';
+import { solidAccentStyle } from '../../../core/domain/constants.js?v=20261016a';
 // 活动「已结束/已归档」判据单一源（2026-09-13 收敛）：替代手写 `status === 'completed'`
-import { isActivityEnded } from '../../../core/domain/constants.js?v=20261015b';
-import { icon } from '../../../core/base/icons.js?v=20261015b';
-import { PersonPicker } from '../../../components/governance/pickers.js?v=20261015b';
-import { recordFormShell } from '../../../components/ui/forms.js?v=20261015b';
+import { isActivityEnded } from '../../../core/domain/constants.js?v=20261016a';
+import { icon } from '../../../core/base/icons.js?v=20261016a';
+import { PersonPicker } from '../../../components/governance/pickers.js?v=20261016a';
+import { renderWorkgroupPermissionEditor, readWorkgroupPermissionEditor } from '../../../components/governance/workgroup-permissions.js?v=20261016a';
+import { recordFormShell } from '../../../components/ui/forms.js?v=20261016a';
 // 「本位」nudge 确认弹窗（2026-09-23 支书裁定 · 单一源 = components/ui/modal.js::confirmNudge）
-import { confirmNudge, confirmWriteWithoutGrant } from '../../../components/ui/modal.js?v=20261015b';
+import { confirmNudge, confirmWriteWithoutGrant } from '../../../components/ui/modal.js?v=20261016a';
 // 转交组织者（SOP-G-2-② · 2026-10-01 批次 327 · 支书裁「乙：直接转交 ＋ 留痕」）：判据 / 写口 /
 //   弹窗单一源＝`components/governance/organizer-transfer.js`（本台只挂入口，不复制一份实现）。
-import { canTransferOrganizer, openOrganizerTransfer } from '../../../components/governance/organizer-transfer.js?v=20261015b';
-import { renderQueryView } from '../../../components/governance/query-view.js?v=20261015b';
-import { badgeHtml } from '../../../components/ui/badges.js?v=20261015b';
+import { canTransferOrganizer, openOrganizerTransfer } from '../../../components/governance/organizer-transfer.js?v=20261016a';
+import { renderQueryView } from '../../../components/governance/query-view.js?v=20261016a';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20261016a';
 // 人×项目矩阵单一源（支书 2026-09-14 裁定：把宽表推广到其它二元关系域 → 本批「专班报名」域）
-import { renderRelationMatrix } from '../../../components/ui/relation-matrix.js?v=20261015b';
-import { getPersonName, PersonStore } from '../../../services/member/person.js?v=20261015b';
+import { renderRelationMatrix } from '../../../components/ui/relation-matrix.js?v=20261016a';
+import { getPersonName, PersonStore } from '../../../services/member/person.js?v=20261016a';
 // 统一检索引擎（2026-09-13 表格统一化批次 A）：报名名单等按人段落接入关键词 + 分面
-import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261015b';
+import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261016a';
 // 情景③ 专班赋权（2026-09-25 支书裁「全按对象归位」：专班赋权归本台「专班管理」）——
 //   实现单一源＝entries/tabs/secretary/assign-tab.js::mountTaskforceProjectAuth（该模块已不注册为 tab，
 //   仅余分块渲染）⇒ 本 tab 只挂载，不新造第二套表单/视觉；权限判定仍在 assign-tab/AuthStore 一处。
-import { mountTaskforceProjectAuth } from '../secretary/assign-tab.js?v=20261015b';
+import { mountTaskforceProjectAuth } from '../secretary/assign-tab.js?v=20261016a';
 
 // 私有状态（随模块自持，不污染入口）
-let _recruitPersonPicker = null;
+let _recruitOrganizerPicker = null;
+let _recruitDeepPicker = null;
 let _tfOrgPicker = null;    // 专班详情：组织者多选
 let _tfDeepPicker = null;   // 专班详情：深度参与者多选
 let _tfContribPicker = null; // 专班详情：成员贡献录入多选（立项③阶段b）
@@ -66,11 +67,11 @@ export function renderContent(ctx) {
     .sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
 
   container.innerHTML = `
-    <!-- 批次 39（2026-09-14）：专班管理子视图钮——「看板」（缺省＝原样看板）|「报名总表」（新增人×专班宽表）。
-         形态沿用考勤矩阵/考察总表的互斥小圆角钮组（data-view 切换逻辑照旧） -->
+    <!-- 工作组为主对象：专班与活动工作组并列，报名总表作为跨专班关系视图。 -->
     <div class="flex items-center justify-between flex-wrap gap-2 mb-3">
       <div class="flex items-center gap-2" id="org-tf-view-btns">
-        <button type="button" class="btn-tab org-tf-view-btn px-3 py-1.5 text-xs font-medium [color:color-mix(in_srgb,var(--app-accent)_60%,#000)]" style="--acc-text-dark:color-mix(in srgb, var(--app-accent) 55%, #fff)" data-view="kanban">看板</button>
+        <button type="button" class="btn-tab org-tf-view-btn px-3 py-1.5 text-xs font-medium [color:color-mix(in_srgb,var(--app-accent)_60%,#000)]" style="--acc-text-dark:color-mix(in srgb, var(--app-accent) 55%, #fff)" data-view="workgroups">专班工作组</button>
+        <button type="button" class="btn-tab org-tf-view-btn px-3 py-1.5 text-xs font-medium" data-view="activities">活动工作组</button>
         <button type="button" class="btn-tab org-tf-view-btn px-3 py-1.5 text-xs font-medium" data-view="matrix">报名总表</button>
       </div>
     </div>
@@ -78,6 +79,7 @@ export function renderContent(ctx) {
       <input type="text" id="org-tf-search" class="input-flat text-xs lf-kw" placeholder="搜索专班名称或任务...">
     </div>
     <div id="org-tf-kanban"></div>
+    <div id="org-tf-activity-area" class="hidden"><div id="org-activity-progress"></div></div>
     <div id="org-tf-matrix-area" class="hidden">
       <!-- 转置双视图钮（缺省「按人」＝宽表默认，与全站口径一致）：data-mode 直接映射矩阵 mode -->
       <div class="flex items-center gap-2 mb-3" id="org-tf-mode-btns">
@@ -87,7 +89,6 @@ export function renderContent(ctx) {
       <div id="org-tf-signup-matrix"></div>
     </div>
     <div id="tf-detail-panel" class="hidden card rounded-xl p-5"></div>
-    <div id="org-activity-progress" class="mt-4"></div>
     <div id="org-tf-assign-host" class="mt-4"></div>
   `;
 
@@ -195,6 +196,7 @@ export function renderContent(ctx) {
   // 子视图切换：「看板」（缺省，现有看板 DOM 只做显隐、不重绘 → 行为/外观不变）|「报名总表」
   const kbViewEl = document.getElementById('org-tf-kanban');
   const searchBarEl = document.getElementById('org-tf-search-bar');
+  const activityAreaEl = document.getElementById('org-tf-activity-area');
   const matrixAreaEl = document.getElementById('org-tf-matrix-area');
   const viewBtnsEl = document.getElementById('org-tf-view-btns');
   viewBtnsEl?.addEventListener('click', (e) => {
@@ -211,11 +213,16 @@ export function renderContent(ctx) {
       b.classList.toggle('border-neutral-200', !on);
       b.classList.toggle('text-gray-600', !on);
     });
-    const isMatrix = btn.dataset.view === 'matrix';
-    kbViewEl?.classList.toggle('hidden', isMatrix);
-    // 检索条只服务看板各桶（宽表自带列上限 + 人维分页），宽表视图下隐藏
-    searchBarEl?.classList.toggle('hidden', isMatrix);
+    const view = btn.dataset.view;
+    const isWorkgroups = view === 'workgroups';
+    const isActivities = view === 'activities';
+    const isMatrix = view === 'matrix';
+    kbViewEl?.classList.toggle('hidden', !isWorkgroups);
+    activityAreaEl?.classList.toggle('hidden', !isActivities);
+    // 检索条只服务工作组看板；活动列表与宽表各自提供查询维度。
+    searchBarEl?.classList.toggle('hidden', !isWorkgroups);
     matrixAreaEl?.classList.toggle('hidden', !isMatrix);
+    if (isActivities) _renderActivityProgress(activities, ctx);
     if (isMatrix) renderSignupMatrix();
   });
   const modeBtnsEl = document.getElementById('org-tf-mode-btns');
@@ -236,13 +243,10 @@ export function renderContent(ctx) {
     renderSignupMatrix();
   });
 
-  // ── 活动进度区块（原追踪看板内容融入） ──
-  _renderActivityProgress(activities, ctx);
-
   // ── 情景③ 专班赋权（从支书台「赋权管理」按对象归位到本台） ──
   mountTaskforceProjectAuth(document.getElementById('org-tf-assign-host'));
 
-  // ── 招募状态流转按钮事件委托（recruiting → active → archived；挂各桶宿主，捕获阶段） ──
+  // ── 招募状态流转按钮事件委托（仅 recruiting → active；运行中工作组统一走语义收尾） ──
   function bindStatusButtons(host) {
     host.addEventListener('click', (e) => {
       // 启动专班：recruiting → active
@@ -259,27 +263,6 @@ export function renderContent(ctx) {
           setState({});
         } else {
           showToast('error', '启动失败，状态流转不合法');
-        }
-        return;
-      }
-      // 归档专班：active → archived
-      const archiveBtn = e.target.closest('.tf-archive-btn');
-      if (archiveBtn) {
-        const tfId = archiveBtn.dataset.tfId;
-        const tf = TaskForceRecordStore.getAll().find(r => r.id === tfId);
-        if (!tf || tf.status !== 'active') return;
-        const confirmed = window.confirm(`确认归档专班「${tf.name}」？归档后专班转入已归档状态。`);
-        if (!confirmed) return;
-        const updated = TaskForceRecordStore.updateStatus(tf.id, 'archived');
-        if (updated) {
-          // 做事即销待办：归档专班 → 销「专班归档」待办
-          TodoStore.completeBySource(TodoSourceType.TASKFORCE, tf.id);
-          // 2026-08-08 归档闭环：专班归档 → 配套通知随之一并归档，退出工作区
-          NoticeStore.archiveBySource('taskforce', tf.id);
-          showToast('success', `专班「${tf.name}」已归档`);
-          setState({});
-        } else {
-          showToast('error', '归档失败，状态流转不合法');
         }
         return;
       }
@@ -406,6 +389,7 @@ function _openTfDetail(tfId, ctx) {
 
     <!-- E-1 分块刷新：只读信息/状态区之上的各写块独立容器；操作成功仅刷对应容器 -->
     <div id="tf-sec-roles"></div>
+    <div id="tf-sec-tasks"></div>
     <div id="tf-sec-work"></div>
     <div id="tf-sec-contrib"></div>
     <div id="tf-sec-signup"></div>
@@ -415,6 +399,7 @@ function _openTfDetail(tfId, ctx) {
   `;
 
   _tfRenderRolesBlock(panel, tf, ctx);
+  _tfRenderTasksBlock(panel, tf, ctx);
   _tfRenderWorkBlock(panel, tf, ctx);
   _tfRenderContribBlock(panel, tf, ctx);
   _tfRenderSignupBlock(panel, tf, ctx);
@@ -431,12 +416,131 @@ function _refreshTfBlock(blockId) {
   if (!panel.querySelector('#' + blockId)) return;
   const ctx = _tfDetailCtx;
   if (blockId === 'tf-sec-roles') _tfRenderRolesBlock(panel, tf, ctx);
+  else if (blockId === 'tf-sec-tasks') _tfRenderTasksBlock(panel, tf, ctx);
   else if (blockId === 'tf-sec-work') _tfRenderWorkBlock(panel, tf, ctx);
   else if (blockId === 'tf-sec-contrib') _tfRenderContribBlock(panel, tf, ctx);
   else if (blockId === 'tf-sec-signup') _tfRenderSignupBlock(panel, tf, ctx);
   else if (blockId === 'tf-sec-subs') _tfRenderSubsBlock(panel, tf, ctx);
   else if (blockId === 'tf-sec-progress') _tfRenderProgressBlock(panel, tf, ctx);
   else if (blockId === 'tf-sec-review') _tfRenderReviewBlock(panel, tf, ctx);
+}
+
+const _TASK_STATUS_LABEL = { open: '待开始', in_progress: '进行中', completed: '已完成', cancelled: '已取消' };
+const _OUTPUT_STATUS_LABEL = { draft: '待登记', pending: '待处理', submitted: '已登记', accepted: '已确认', archived: '已归档' };
+
+async function _tfRenderTasksBlock(panel, tf, ctx = {}) {
+  const mount = panel.querySelector('#tf-sec-tasks');
+  if (!mount) return;
+  mount.innerHTML = '<div class="mt-4 pt-3 border-t border-gray-100 text-xs text-gray-500">正在读取登记任务与产出…</div>';
+  try {
+    const [tasks, outputs] = await Promise.all([
+      TaskForceRecordStore.listWorkgroupTasks(tf.id),
+      TaskForceRecordStore.listWorkgroupOutputs(tf.id),
+    ]);
+    if (_tfOpenId !== tf.id || !mount.isConnected) return;
+    const taskById = new Map(tasks.map((task) => [task.id, task]));
+    const closedCount = tasks.filter((task) => ['completed', 'cancelled'].includes(task.status)).length;
+    const closedOutputCount = outputs.filter((output) => ['submitted', 'accepted', 'archived'].includes(output.status)).length;
+    const packageEnabled = ctx.taskforcePackageEnabled !== false;
+    const unfinishedTasks = tasks.filter((task) => ['open', 'in_progress'].includes(task.status));
+    const unfinishedOutputs = outputs.filter((output) => !['submitted', 'accepted', 'archived'].includes(output.status));
+    const closureReady = tasks.length > 0 && unfinishedTasks.length === 0 && unfinishedOutputs.length === 0;
+    const pendingDissolution = tf.committeeRequest?.kind === 'dissolve' && tf.committeeRequest.status === 'pending';
+    const needsPurposeRepair = tf.status === 'active' && tasks.length === 0;
+    mount.innerHTML = `
+      <section class="mt-4 pt-3 border-t border-gray-100" aria-labelledby="tf-task-output-title">
+        <div class="flex items-start justify-between gap-3 mb-2">
+          <div>
+            <h5 id="tf-task-output-title" class="font-title-cn text-xs font-bold text-gray-700">登记任务与产出</h5>
+            <p class="mt-1 text-xs leading-4 text-gray-500">结束前须闭合所有登记任务与产出；历史记录保留。纪检考察仅在事项明确要求时办理。</p>
+          </div>
+          <span class="text-[11px] text-gray-500 flex-shrink-0">任务 ${closedCount}/${tasks.length} · 产出 ${closedOutputCount}/${outputs.length}</span>
+        </div>
+        ${tasks.length ? `<ul class="space-y-2">${tasks.map((task) => `
+          <li class="flex flex-wrap items-center justify-between gap-2 rounded-lg bg-gray-50 px-3 py-2">
+            <div class="min-w-0 flex-1">
+              <p class="text-xs text-gray-700">${esc(task.title)}${task.isPurpose ? '<span class="ml-1 text-[10px] text-gray-400">工作组主任务</span>' : ''}</p>
+              <p class="mt-0.5 text-xs text-gray-500">${_TASK_STATUS_LABEL[task.status] || '状态待核'}${task.completedAt ? ` · ${String(task.completedAt).slice(0, 10)}完成` : ''}</p>
+            </div>
+            ${tf.status === 'active' && ['open', 'in_progress'].includes(task.status) ? `<div class="flex gap-1.5">
+              ${task.status === 'open' ? `<button type="button" class="btn-outline tf-task-status-btn text-[11px] px-2 py-1" data-task-id="${esc(task.id)}" data-status="in_progress">开始办理</button>` : ''}
+              <button type="button" class="btn-accent-soft tf-task-status-btn text-[11px] px-2 py-1" data-task-id="${esc(task.id)}" data-status="completed">标记完成</button>
+            </div>` : ''}
+          </li>`).join('')}</ul>` : '<p class="rounded-lg bg-gray-50 px-3 py-2 text-xs text-gray-500">暂无登记任务</p>'}
+        ${tf.status === 'active' && (packageEnabled || needsPurposeRepair) ? `<form id="tf-new-task-form" class="mt-2 flex flex-wrap gap-2">
+          <label class="sr-only" for="tf-new-task-title">新增任务名称</label>
+          <input id="tf-new-task-title" name="title" class="input-flat min-w-0 flex-1 text-xs" required maxlength="160" placeholder="${needsPurposeRepair ? '核对并补登记工作组主任务' : '登记一项新任务'}">
+          <button class="btn-outline px-3 py-1.5 text-xs" type="submit">${needsPurposeRepair ? '补登记主任务' : '添加任务'}</button>
+        </form>` : ''}
+        <div class="mt-3">
+          <h6 class="mb-1.5 text-[11px] font-semibold text-gray-600">产出记录（${outputs.length}）</h6>
+          ${outputs.length ? `<ul class="space-y-1">${outputs.map((output) => `<li class="rounded-lg border border-gray-100 px-3 py-2 text-[11px] text-gray-600">${esc(output.title)}${output.taskId && taskById.has(output.taskId) ? ` · ${esc(taskById.get(output.taskId).title)}` : ''} · ${_OUTPUT_STATUS_LABEL[output.status] || '状态待核'}</li>`).join('')}</ul>` : '<p class="text-xs text-gray-400">尚无登记产出</p>'}
+        </div>
+        ${tf.status === 'active' ? `<div class="mt-3 flex flex-wrap items-center justify-between gap-2 rounded-lg border border-gray-200 px-3 py-2">
+          <p class="text-xs text-gray-600">${pendingDissolution ? '收尾事项已提交支委会，等待表决。' : closureReady ? '任务与产出均已闭合，可以结束工作组。' : '全部任务与产出闭合后，才可以结束工作组。'}</p>
+          ${pendingDissolution ? '<span class="text-[11px] text-amber-700">待事项表决</span>' : `<button type="button" id="btn-dissolve-tf" class="btn-md btn-md-red" ${closureReady ? '' : 'disabled title="请先闭合全部登记任务与产出"'}>结束工作组</button>`}
+        </div>` : ''}
+        ${tf.status === 'active' && (packageEnabled || unfinishedTasks.length > 0) ? `<form id="tf-new-output-form" class="mt-2 grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_auto_auto] gap-2">
+          <label class="sr-only" for="tf-new-output-title">新增产出名称</label>
+          <input id="tf-new-output-title" name="title" class="input-flat min-w-0 text-xs" required maxlength="160" placeholder="登记已提交的工作产出">
+          <label class="sr-only" for="tf-new-output-task">关联任务</label>
+          <select id="tf-new-output-task" name="taskId" class="input-flat text-xs" ${packageEnabled ? '' : 'required'}>
+            ${packageEnabled ? '<option value="">不关联具体任务</option>' : ''}
+            ${(packageEnabled ? tasks : unfinishedTasks).map((task) => `<option value="${esc(task.id)}">${esc(task.title)}</option>`).join('')}
+          </select>
+          <button class="btn-outline px-3 py-1.5 text-xs" type="submit">登记产出</button>
+        </form>` : ''}
+        ${tf.status === 'active' && !packageEnabled ? `<p class="mt-2 text-xs text-amber-700">本支部已停用专班工作组：不再登记新任务；可完成既有任务，并为在办任务登记收尾产出。${needsPurposeRepair ? '该历史工作组缺少主任务，请核对原记录后补登记。' : ''}</p>` : ''}
+      </section>`;
+    mount.querySelector('#tf-new-task-form')?.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const form = event.currentTarget;
+      const input = form.elements.title;
+      const title = input.value.trim();
+      if (!title) return;
+      const button = form.querySelector('button'); button.disabled = true;
+      try {
+        await TaskForceRecordStore.createWorkgroupTask(tf.id, { title, isPurpose: needsPurposeRepair });
+        showToast('success', needsPurposeRepair ? '主任务已补登记' : '任务已登记');
+        _refreshTfBlock('tf-sec-tasks');
+      } catch (error) {
+        button.disabled = false;
+        showToast('error', error?.message || '任务登记失败');
+      }
+    });
+    mount.querySelector('#tf-new-output-form')?.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const form = event.currentTarget;
+      const title = form.elements.title.value.trim();
+      if (!title) return;
+      const button = form.querySelector('button'); button.disabled = true;
+      try {
+        await TaskForceRecordStore.createWorkgroupOutput(tf.id, {
+          title, taskId: form.elements.taskId.value || null,
+        });
+        showToast('success', '产出已登记并保留历史');
+        _refreshTfBlock('tf-sec-tasks');
+      } catch (error) {
+        button.disabled = false;
+        showToast('error', error?.message || '产出登记失败');
+      }
+    });
+    mount.querySelectorAll('.tf-task-status-btn').forEach((button) => button.addEventListener('click', async () => {
+      button.disabled = true;
+      try {
+        await TaskForceRecordStore.updateWorkgroupTask(tf.id, button.dataset.taskId, { status: button.dataset.status });
+        showToast('success', button.dataset.status === 'completed' ? '任务已标记完成' : '任务已进入办理中');
+        _refreshTfBlock('tf-sec-tasks');
+      } catch (error) {
+        button.disabled = false;
+        showToast('error', error?.message || '任务状态更新失败');
+      }
+    }));
+    mount.querySelector('#btn-dissolve-tf')?.addEventListener('click', () => _showTaskforceDissolutionDialog(tf));
+  } catch (error) {
+    if (_tfOpenId !== tf.id || !mount.isConnected) return;
+    mount.innerHTML = `<div class="mt-4 border-t border-gray-100 pt-3 text-xs text-red-600">登记任务读取失败：${esc(error?.message || '请稍后重试')}</div>`;
+  }
 }
 
 // ── 写块①成员角色（独立容器；保存仍走 setState 整页刷新——成员主源变更影响看板名额） ──
@@ -446,6 +550,11 @@ function _tfRenderRolesBlock(panel, tf, ctx) {
   const { accent, accentBorder } = ctx;
   if (_tfOrgPicker) { _tfOrgPicker.destroy(); _tfOrgPicker = null; }
   if (_tfDeepPicker) { _tfDeepPicker.destroy(); _tfDeepPicker = null; }
+
+  if (ctx.taskforcePackageEnabled === false && ['completed', 'archived', 'dissolved'].includes(tf.status)) {
+    mount.innerHTML = `<div class="mt-4 pt-3 border-t border-gray-100"><h6 class="font-title-cn text-xs font-bold text-gray-600">成员角色</h6><p class="mt-2 text-xs text-gray-500">本支部已停用该能力包；历史成员记录只读保留。</p><p class="mt-1 text-xs text-gray-600">${_tfAssignsOf(tf).map((member) => `${esc(getPersonName(member.personId))}（${member.role === 'organizer' ? '组织者' : member.role === 'deep' ? '深度参与者' : '参与者'}）`).join('、') || '暂无成员记录'}</p></div>`;
+    return;
+  }
 
   const _meId = AuthStore.getCurrentUser()?.personId;
   const _canTransfer = canTransferOrganizer('taskforce', tf.id, _meId);
@@ -469,6 +578,7 @@ function _tfRenderRolesBlock(panel, tf, ctx) {
           <div id="tf-deep-picker"></div>
         </div>
       </div>
+      ${renderWorkgroupPermissionEditor('taskforce-detail')}
       <p class="text-[12px] text-gray-500 mt-2">提示：修改将同步到专班，被赋权人将收到通知。</p>
     </div>`;
 
@@ -505,7 +615,8 @@ function _tfRenderRolesBlock(panel, tf, ctx) {
       ...deepIds.map(personId => ({ personId, role: 'deep' })),
     ];
     const actorId = AuthStore.getCurrentUser()?.personId;
-    const { added, removed } = await AuthStore.syncProjectRoles({ scopeRef: tf.id, assignments: newAssignments, actorId });
+    const permissionKeysByRole = readWorkgroupPermissionEditor(mount, 'taskforce-detail');
+    const { added, removed } = await AuthStore.syncProjectRoles({ scopeRef: tf.id, assignments: newAssignments, actorId, permissionKeysByRole });
     // 做事即销待办：保存成员角色 → 销组织委员「专班赋权」待办
     TodoStore.completeBySource(TodoSourceType.TASKFORCE, tf.id);
     if (added > 0 || removed > 0) {
@@ -543,17 +654,14 @@ function _tfRenderWorkBlock(panel, tf, ctx) {
       </div>`;
 
     if (tf.status === 'active') {
-      // 当前待支委会表决请求（发起/解散均置 committeeRequest，B批 R3-1/R3-2）
+      // 只在解散事项已有明确表决依据并已提交时显示待表决状态；收尾操作在任务/产出区展示。
       const tfPendReq = (tf.committeeRequest && tf.committeeRequest.status === 'pending') ? tf.committeeRequest : null;
-      // B批 R3-2：解散走支委会表决——报送后状态不变（active），表决通过才落 dissolved
       const dissolveArea = (tfPendReq && tfPendReq.kind === 'dissolve')
         ? `<div class="mt-4 pt-3 border-t border-gray-100 flex items-center justify-end gap-2">
-            <span class="text-[11px] px-2 py-1 rounded-full bg-amber-50 text-amber-700">待解散表决</span>
+            <span class="text-[11px] px-2 py-1 rounded-full bg-amber-50 text-amber-700">待事项表决</span>
             <span class="text-[11px] text-gray-500">${tfPendReq.by ? getPersonName(tfPendReq.by) : '组织委员'} ${String(tfPendReq.at || '').slice(0, 16).replace('T', ' ')} 已报送支委会表决</span>
           </div>`
-        : `<div class="mt-4 pt-3 border-t border-gray-100 flex justify-end">
-            <button id="btn-dissolve-tf" class="btn-md btn-md-red">报送解散表决</button>
-          </div>`;
+        : '';
       html += dissolveArea;
 
       // B批 R3-3：成员贡献=成员填报 → 组织委员逐条核（同意入档 / 退回补料，留痕）
@@ -574,12 +682,6 @@ function _tfRenderWorkBlock(panel, tf, ctx) {
     }
   }
   mount.innerHTML = html;
-
-  // 解散按钮（B批 R3-2：报送解散表决 → 支委会表决；行为不变）
-  const dissolveBtn = mount.querySelector('#btn-dissolve-tf');
-  if (dissolveBtn) {
-    dissolveBtn.addEventListener('click', () => _dissolveTaskforce(tf));
-  }
 
   // 工作量汇总：接引擎实例（行 HTML 原样；首列＝人，按规矩配姓名搜索）
   const workHost = mount.querySelector('#tf-work-host');
@@ -864,25 +966,27 @@ function _tfRenderSubsBlock(panel, tf, ctx) {
   const tfSubs = _tfSubsData(tf.id);
   const ins = _tfSubTableHtml('inspection', tfSubs.inspection, true);
   const mat = _tfSubTableHtml('materials', tfSubs.materials);
+  const inspectionHtml = tfSubs.inspection.length ? ins.shellHtml : '';
 
   mount.innerHTML = `
     <div class="mt-4 pt-3 border-t border-gray-100">
       <h5 class="font-title-cn text-xs font-bold text-gray-600 mb-2">子记录</h5>
-      ${ins.shellHtml /* IA-C3 收敛单写入口 2026-09-06：考察记录只读展示 */}
+      ${inspectionHtml /* 仅有明确事项并已有记录时展示；新事项不被误导成必须考察 */}
       ${mat.shellHtml}
     </div>`;
 
-  // 两表各接一个引擎实例（table 模式；行 HTML 原样）
-  // 考察记录首列＝被考察人、材料记录含提交人，均按「首列是人不离搜索」的规矩配关键词
-  renderFilteredList(mount.querySelector('#tf-sub-host-inspection'), {
-    stateKey: `org-taskforce-subs-inspection-${tf.id}`,
-    rows: tfSubs.inspection,
-    keyword: { keys: ['person', 'content'], placeholder: '搜索被考察人 / 考察内容…' },
-    countUnit: '条',
-    table: ins.table,
-    emptyMessage: '暂无记录',
-    rowHtml: ins.rowHtml,
-  });
+  // 考察仅是按事项要求产生的记录；有记录时保留只读查询，没有时不展示空的流程入口。
+  if (tfSubs.inspection.length) {
+    renderFilteredList(mount.querySelector('#tf-sub-host-inspection'), {
+      stateKey: `org-taskforce-subs-inspection-${tf.id}`,
+      rows: tfSubs.inspection,
+      keyword: { keys: ['person', 'content'], placeholder: '搜索被考察人 / 考察内容…' },
+      countUnit: '条',
+      table: ins.table,
+      emptyMessage: '暂无记录',
+      rowHtml: ins.rowHtml,
+    });
+  }
   const matHost = mount.querySelector('#tf-sub-host-materials');
   renderFilteredList(matHost, {
     stateKey: `org-taskforce-subs-materials-${tf.id}`,
@@ -1103,61 +1207,101 @@ function _tfRenderReviewBlock(panel, tf, ctx) {
 //  专班解散流程（P1-5）
 // ════════════════════════════════════════════════════════════════
 
-function _showDissolveBlockModal(tf, missing) {
-  const overlay = document.createElement('div');
-  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px;';
-  const card = document.createElement('div');
-  card.style.cssText = 'background:var(--surface-card);border-radius:var(--radius-lg);padding:20px 22px;max-width:360px;width:100%;box-shadow:0 12px 40px rgba(0,0,0,0.18);';
-  card.innerHTML =
-    `<p class="font-bold text-sm text-gray-800 mb-1">无法报送解散「${tf.name}」</p>`
-    + '<p class="text-xs text-gray-500 mb-3">以下产出未齐，补齐后方可报送解散表决：</p>'
-    + '<ul class="space-y-1.5 mb-4">'
-    + missing.map(m =>
-        `<li class="text-xs text-red-600 flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-red-400 flex-shrink-0"></span>${m}</li>`
-      ).join('')
-    + '</ul>'
-    + '<button class="btn-accent text-xs px-3 py-1.5 w-full">知道了</button>';
-  card.querySelector('button').addEventListener('click', () => overlay.remove());
-  overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
-  card.addEventListener('click', e => e.stopPropagation());
-  overlay.appendChild(card);
-  document.body.appendChild(overlay);
-}
-
 async function _dissolveTaskforce(tf) {
   if (!tf || tf.status !== 'active') return;
-  // B批 R3-2：已报送解散表决（committeeRequest pending）时不可重复报送
+  // 已有事项待表决时不可重复报送。
   if (tf.committeeRequest && tf.committeeRequest.status === 'pending') {
-    showToast('info', '该专班已报送解散表决，等待支委会审议');
+    showToast('info', '该工作组已有待审议事项');
     return;
   }
 
-  // T-224 §7 专班关闭条件：考察确认 + 工作量报告；产出缺失阻塞解散报送，缺失项明确显示
-  const tfInspections = loadInspectionRecords().filter(r => r.sourceType === SourceType.TASKFORCE && r.sourceName === tf.name);
-  const inspPending = tfInspections.filter(r => r.status !== 'confirmed').length;
-  const hasWorkload = (tf.members || []).some(m => (m.contributions || []).length > 0);
-  const missing = [];
-  if (tfInspections.length === 0) missing.push('专班考察记录（尚未上传考察）');
-  else if (inspPending > 0) missing.push(`考察确认（${inspPending} 条待纪检确认）`);
-  if (!hasWorkload) missing.push('工作量报告（成员无产出记录）');
+  _showTaskforceDissolutionDialog(tf);
+}
 
-  if (missing.length > 0) {
-    _showDissolveBlockModal(tf, missing);
-    return;
-  }
-
-  // B批 R3-2：前置校验通过后「报送解散表决」，不再由组织委员直接解散；
-  // 表决通过后由支书侧 applyCommitteeDecision 落 dissolved（解散留痕），未通过专班继续运行
-  const currentUserId = AuthStore.getCurrentUser()?.personId || '';
-  const confirmed = window.confirm(`确认将「${tf.name}」报送解散表决？将提交支委会表决，表决通过后专班才会解散（当前仍运行中）。`);
-  if (!confirmed) return;
-  const updated = TaskForceRecordStore.submitForCommittee(tf.id, { kind: 'dissolve', by: currentUserId, note: '组织委员发起解散报送（考察确认+工作量前置已满足）' });
-  if (!updated) {
-    showToast('error', '报送失败：仅运行中的专班可报送解散表决');
-    return;
-  }
-  showToast('success', `专班「${tf.name}」已报送支委会表决，通过后解散`);
-  setState({});
+function _showTaskforceDissolutionDialog(tf) {
+  const overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(15,23,42,.48);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px;';
+  const card = document.createElement('section');
+  card.className = 'card rounded-xl';
+  card.setAttribute('role', 'dialog');
+  card.setAttribute('aria-modal', 'true');
+  card.setAttribute('aria-labelledby', 'tf-dissolve-title');
+  card.style.cssText = 'width:480px;max-width:100%;padding:22px;';
+  card.innerHTML = `
+    <h3 id="tf-dissolve-title" class="font-title-cn text-sm font-semibold text-gray-800">结束工作组：${esc(tf.name)}</h3>
+    <p class="mt-2 text-xs leading-5 text-gray-600">登记任务闭合后即可结束，工作组与产出历史会保留。纪检考察只在该事项明确要求时办理；只有制度或议程明确要求表决时，才提交表决。</p>
+    <label class="mt-4 flex items-start gap-2 rounded-lg border border-gray-200 p-3 text-xs text-gray-700">
+      <input id="tf-dissolve-vote" type="checkbox" class="mt-0.5 accent-red-600">
+      <span>本事项有明确的制度或议程表决依据</span>
+    </label>
+    <div id="tf-dissolve-basis-wrap" class="mt-3 hidden">
+      <label for="tf-dissolve-basis" class="mb-1 block text-xs font-medium text-gray-600">制度条款或议程事项 <span class="text-red-600">*</span></label>
+      <textarea id="tf-dissolve-basis" rows="2" class="input-flat w-full" placeholder="写明要求支委会表决的具体依据"></textarea>
+    </div>
+    <div class="mt-3">
+      <label for="tf-dissolve-note" class="mb-1 block text-xs font-medium text-gray-600">收尾说明 <span class="font-normal text-gray-500">（选填）</span></label>
+      <textarea id="tf-dissolve-note" rows="2" class="input-flat w-full" placeholder="记录事项完成情况或后续交接"></textarea>
+    </div>
+    <div class="mt-5 flex justify-end gap-2">
+      <button type="button" id="tf-dissolve-cancel" class="btn-outline text-xs px-3 py-2">返回</button>
+      <button type="button" id="tf-dissolve-submit" class="btn-md btn-md-red">直接结束工作组</button>
+    </div>`;
+  overlay.appendChild(card);
+  document.body.appendChild(overlay);
+  const vote = card.querySelector('#tf-dissolve-vote');
+  const basisWrap = card.querySelector('#tf-dissolve-basis-wrap');
+  const basis = card.querySelector('#tf-dissolve-basis');
+  const submit = card.querySelector('#tf-dissolve-submit');
+  vote.addEventListener('change', () => {
+    basisWrap.classList.toggle('hidden', !vote.checked);
+    basis.required = vote.checked;
+    submit.textContent = vote.checked ? '提交支委会表决' : '直接结束工作组';
+    if (vote.checked) basis.focus();
+  });
+  const close = () => overlay.remove();
+  card.querySelector('#tf-dissolve-cancel').addEventListener('click', close);
+  overlay.addEventListener('click', (event) => { if (event.target === overlay) close(); });
+  const onKeydown = (event) => {
+    if (event.key === 'Escape') close();
+  };
+  overlay.addEventListener('keydown', onKeydown);
+  submit.addEventListener('click', async () => {
+    const governanceReason = basis.value.trim();
+    if (vote.checked && !governanceReason) {
+      showToast('error', '请写明制度或议程表决依据');
+      basis.focus();
+      return;
+    }
+    submit.disabled = true;
+    const currentUserId = AuthStore.getCurrentUser()?.personId || '';
+    try {
+      const updated = await TaskForceRecordStore.dissolve(tf.id, {
+        requiresCommitteeVote: vote.checked,
+        governanceReason,
+        note: card.querySelector('#tf-dissolve-note').value.trim(),
+        by: currentUserId,
+      });
+      if (!updated) {
+        showToast('error', '工作组收尾失败：请刷新后检查状态与权限');
+        submit.disabled = false;
+        return;
+      }
+      if (!vote.checked) {
+        // 任务和产出均闭合后直接结束，才销掉收尾待办并归档配套通知。
+        TodoStore.completeBySource(TodoSourceType.TASKFORCE, tf.id);
+        NoticeStore.archiveBySource('taskforce', tf.id);
+      }
+      close();
+      showToast('success', vote.checked
+        ? `工作组「${tf.name}」已提交支委会表决`
+        : `工作组「${tf.name}」已结束，历史记录保留`);
+      setState({});
+    } catch (error) {
+      submit.disabled = false;
+      showToast('error', error?.message || '工作组收尾失败，请稍后重试');
+    }
+  });
+  card.querySelector('#tf-dissolve-cancel').focus();
 }
 
 function _renderTfCard(t, statusLabel, statusColor) {
@@ -1173,7 +1317,7 @@ function _renderTfCard(t, statusLabel, statusColor) {
   // 卡片状态徽标：待表决（committeeRequest pending）> draft（表决未通过退回）特判 > 状态映射
   const badgeText = pendText
     || ((t.status === 'draft' && t.approvalStatus === 'rejected') ? '未通过·草稿' : (statusLabel[t.status] || t.status));
-  // 招募状态流转按钮：recruiting → active → archived
+  // 招募状态流转按钮：recruiting → active；运行中工作组从详情统一办理收尾
   let statusBtn = '';
   if (t.status === 'recruiting') {
     // B 档 CRUD 补全：招募中可撤销（彻底删除），误建/取消招募的专班可清理
@@ -1186,9 +1330,6 @@ function _renderTfCard(t, statusLabel, statusColor) {
     statusBtn = `<div class="flex gap-2 mt-2">
       <button class="btn-danger tf-delete-btn text-xs px-3 py-1.5" data-tf-id="${t.id}" onclick="event.stopPropagation();" style="cursor:pointer;">撤销并删除</button>
     </div>`;
-  } else if (t.status === 'active') {
-    // B批 R3-2：active 专班（含已报送解散表决）仍可归档；解散报送入口在专班详情内
-    statusBtn = `<button class="btn-accent-soft tf-archive-btn text-xs px-3 py-1.5 mt-2" data-tf-id="${t.id}" onclick="event.stopPropagation();">归档专班</button>`;
   } else if (t.status === 'draft') {
     // B批 R3-1：draft=表决未通过退回草稿（可修改重报）；已重新报送等待审议时仅可撤销
     const resubmitBtn = pendReq ? '' : `<button class="btn-accent-soft tf-resubmit-btn text-xs px-3 py-1.5" data-tf-id="${t.id}" onclick="event.stopPropagation();">重新报送支委会表决</button>`;
@@ -1253,6 +1394,14 @@ export function openRecruitForm(ctx) {
         <textarea id="rf-task" required rows="3" placeholder="描述专班的核心任务与目标" class="input-flat w-full"></textarea>
       </div>
 
+      <div class="mb-3 rounded-lg border border-gray-200 p-3">
+        <label class="flex items-start gap-2 text-xs text-gray-700 cursor-pointer">
+          <input id="rf-governance-vote" type="checkbox" class="mt-0.5 accent-red-600">
+          <span><b>本事项需支委会表决</b>（仅在制度或议程明确要求时勾选）</span>
+        </label>
+        <textarea id="rf-governance-reason" rows="2" class="input-flat w-full mt-2 hidden" placeholder="写明对应制度条款或议程事项"></textarea>
+      </div>
+
       <div class="grid grid-cols-2 gap-3 mb-3">
         <div>
           <label class="text-xs text-gray-500 mb-1.5 block font-medium">所需人数 <span class="text-red-600">*</span></label>
@@ -1281,8 +1430,12 @@ export function openRecruitForm(ctx) {
       </div>
 
       <div class="mb-3">
-        <label class="text-xs text-gray-500 mb-1.5 block font-medium">初始成员 <span class="text-gray-500">（选填）</span></label>
-        <div id="rf-members-picker"></div>
+        <label class="text-xs text-gray-500 mb-1.5 block font-medium">工作组成员与职责 <span class="text-gray-500">（选填）</span></label>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div><div class="text-[12px] text-gray-500 mb-1">组织者</div><div id="rf-organizers-picker"></div></div>
+          <div><div class="text-[12px] text-gray-500 mb-1">深度参与者</div><div id="rf-deep-picker"></div></div>
+        </div>
+        ${renderWorkgroupPermissionEditor('taskforce-create')}
       </div>
 
       <div class="mb-3">
@@ -1318,15 +1471,24 @@ export function openRecruitForm(ctx) {
   panel.querySelector('#recruit-form-close').addEventListener('click', () => _closeRecruitForm());
   panel.querySelector('#recruit-form-cancel').addEventListener('click', () => _closeRecruitForm());
 
-  // 初始化 PersonPicker
-  const pickerContainer = panel.querySelector('#rf-members-picker');
-  _recruitPersonPicker = new PersonPicker({
+  // 工作组成员身份与操作权限分开配置。
+  const organizerContainer = panel.querySelector('#rf-organizers-picker');
+  _recruitOrganizerPicker = new PersonPicker({
     mode: 'multi',
-    placeholder: '选择初始成员（选填）',
+    placeholder: '选择组织者',
     accentColor: accent,
     onSelect: () => {},
   });
-  _recruitPersonPicker.render(pickerContainer);
+  _recruitOrganizerPicker.render(organizerContainer);
+  const deepContainer = panel.querySelector('#rf-deep-picker');
+  _recruitDeepPicker = new PersonPicker({ mode: 'multi', placeholder: '选择深度参与者', accentColor: accent, onSelect: () => {} });
+  _recruitDeepPicker.render(deepContainer);
+  const voteRequired = panel.querySelector('#rf-governance-vote');
+  const voteReason = panel.querySelector('#rf-governance-reason');
+  voteRequired?.addEventListener('change', () => {
+    voteReason?.classList.toggle('hidden', !voteRequired.checked);
+    if (voteReason) voteReason.required = voteRequired.checked;
+  });
 
   // 表单提交
   panel.querySelector('#recruit-form').addEventListener('submit', (e) => {
@@ -1336,15 +1498,15 @@ export function openRecruitForm(ctx) {
 }
 
 function _closeRecruitForm() {
-  if (_recruitPersonPicker) {
-    _recruitPersonPicker.destroy();
-    _recruitPersonPicker = null;
-  }
+  _recruitOrganizerPicker?.destroy();
+  _recruitDeepPicker?.destroy();
+  _recruitOrganizerPicker = null;
+  _recruitDeepPicker = null;
   const overlay = document.getElementById('recruit-form-overlay');
   if (overlay) overlay.remove();
 }
 
-// ── 专班发起表单提交（B批 R3-1：创建即自动报送支委会表决，不再派生支书单人审批待办） ──
+// ── 专班工作组发起（仅明确要求表决的事项才报送支委会） ──
 
 async function _submitRecruitForm(ctx) {
   const name = document.getElementById('rf-name')?.value?.trim();
@@ -1355,6 +1517,8 @@ async function _submitRecruitForm(ctx) {
   const periodStart = document.getElementById('rf-period-start')?.value || '';
   const periodEnd = document.getElementById('rf-period-end')?.value || '';
   const notes = document.getElementById('rf-notes')?.value?.trim() || '';
+  const requiresCommitteeVote = !!document.getElementById('rf-governance-vote')?.checked;
+  const governanceReason = document.getElementById('rf-governance-reason')?.value?.trim() || '';
 
   // 预拟通知（选填，2026-08-05 支书裁决「表单内预拟通知·只跑一次」）
   const noticeTitle = document.getElementById('rf-notice-title')?.value?.trim();
@@ -1365,14 +1529,15 @@ async function _submitRecruitForm(ctx) {
   if (!task) { showToast('error', '请填写任务描述'); return; }
   if (!capacity || capacity < 1) { showToast('error', '请填写有效的所需人数'); return; }
   if (!deadline) { showToast('error', '请选择截止日期'); return; }
+  if (requiresCommitteeVote && !governanceReason) { showToast('error', '请写明要求支委会表决的制度或议程依据'); return; }
 
   // 获取初始成员（统一英文编码 role: 'deep'，T-190 修复 P1-2 中英文混用）
-  const selectedIds = _recruitPersonPicker ? _recruitPersonPicker.getSelected() : [];
-  const members = selectedIds.map(pid => ({
-    personId: pid,
-    role: 'deep',
-    contributions: [],
-  }));
+  const organizers = _recruitOrganizerPicker?.getSelected() || [];
+  const deepParticipants = _recruitDeepPicker?.getSelected() || [];
+  const members = [
+    ...organizers.map((personId) => ({ personId, role: 'organizer', contributions: [] })),
+    ...deepParticipants.filter((personId) => !organizers.includes(personId)).map((personId) => ({ personId, role: 'deep', contributions: [] })),
+  ];
 
   // 未赋权软提示（2026-10-01 批次 326 · 支书裁定 `SOP-G-2-①` ＝ 乙）：初始成员里没有组织者
   //   ⇒ 本专班尚未完成赋权（专班组织者也可在后续「定人定责定岗」中指定）⇒ 提交前软提示一次，
@@ -1383,14 +1548,15 @@ async function _submitRecruitForm(ctx) {
   }
 
   // 构建专班记录
-  // B批 R3-1：发起即置 pending_review（待支委会表决），随后自动报送支委会表决；
-  // 表决通过后由支书侧 applyCommitteeDecision 写 recruiting（进入招募中），不再单人审批
+  // 普通事项直接进入招募；只有勾选明确表决依据时才进入 pending_review。
   const record = {
     name,
     task,
-    status: 'pending_review',
-    manager: 'p11',
-    initiator: 'p11',
+    status: requiresCommitteeVote ? 'pending_review' : 'recruiting',
+    manager: AuthStore.getCurrentUser()?.personId || null,
+    initiator: AuthStore.getCurrentUser()?.personId || null,
+    governanceRequired: requiresCommitteeVote,
+    governanceReason: requiresCommitteeVote ? governanceReason : '',
     members,
     capacity,
     deadline,
@@ -1405,22 +1571,24 @@ async function _submitRecruitForm(ctx) {
 
   try {
     const actorId = AuthStore.getCurrentUser()?.personId;
-    const created = TaskForceRecordStore.add(record);
+    const created = await TaskForceRecordStore.create(record);
     // 做事即销待办：专班创建即完成赋权 → 销组织委员「专班赋权」待办
     if (created) TodoStore.completeBySource(TodoSourceType.TASKFORCE, created.id);
     // T-190 同步赋权：追加审计快照 + 通知初始成员（主源已由招募写入，原则7 不重复填写）
     if (created && members.length > 0) {
-      AuthStore.recordProjectGrants(created.id, members, actorId);
+      const permissionKeysByRole = readWorkgroupPermissionEditor(document.getElementById('recruit-form'), 'taskforce-create', { includeDefaults: true });
+      await AuthStore.recordProjectGrants(created.id, members, actorId, { permissionKeysByRole });
     }
-    // B批 R3-1：创建后自动报送支委会表决（报送发起）；若自动报送失败（理论不发生），
-    // 专班保留 pending_review，提示用户可在看板撤销重建后重报
-    let submitOk = false;
-    if (created) {
+    // 治理按事项而定：只有表单记录了制度/议程依据时才报送支委会；其余事项直接进入招募。
+    let submitOk = !requiresCommitteeVote;
+    if (created && requiresCommitteeVote) {
       const submitted = TaskForceRecordStore.submitForCommittee(created.id, { kind: 'initiate', by: actorId, note: '' });
       submitOk = !!submitted;
-      if (!submitOk) showToast('error', `专班「${name}」已创建，但自动报送支委会失败，请稍后重试`);
+      if (!submitOk) showToast('error', `专班「${name}」已创建，但提交明确表决事项失败，请稍后重试`);
     }
-    if (created && submitOk) showToast('success', `专班「${name}」发布成功，已报送支委会表决`);
+    if (created && submitOk) showToast('success', requiresCommitteeVote
+      ? `专班「${name}」已报送支委会表决`
+      : `专班「${name}」已创建并进入招募`);
 
     // 预拟通知「只跑一次」（2026-08-05）：仅在表单填写了标题时发布一条通知，单次调用不重复发。
     // R-22（2026-09-13）：系统派生通知改由服务端生成（kind 注册表复算授权 + 落点；标题/正文为发布人所填）
@@ -1453,8 +1621,8 @@ function _renderActivityProgress(activities, ctx) {
 
   progressEl.innerHTML = `
     <div class="card rounded-xl p-5">
-      <h3 class="font-title-cn text-base font-semibold text-gray-800 mb-3">活动进度</h3>
-      <div class="text-xs text-gray-500 mb-3">追踪所有已发布活动的执行状态</div>
+      <h3 class="font-title-cn text-base font-semibold text-gray-800 mb-1">活动工作组</h3>
+      <div class="text-xs text-gray-500 mb-3">按承办范围查看活动；参加活动不改变成员原党小组归属。</div>
       <div id="org-activity-query"></div>
     </div>
   `;
@@ -1476,6 +1644,13 @@ function _renderActivityProgress(activities, ctx) {
     data: queryData,
     renderRow: (a) => {
       const isArchived = isActivityEnded(a);
+      const scopeLabel = a.organizingScope === 'party-group' ? '组内承办'
+        : a.organizingScope === 'cross-group' ? '跨组承办' : '承办范围待核';
+      const organizers = [...new Set([
+        a.organizer,
+        ...(Array.isArray(a.assignments) ? a.assignments.filter((member) => member.role === 'organizer').map((member) => member.personId) : []),
+      ].filter(Boolean))];
+      const deepCount = Array.isArray(a.assignments) ? a.assignments.filter((member) => member.role === 'deep').length : 0;
       const statusTag = isArchived
         ? badgeHtml('已归档', 'neutral')
         : badgeHtml('已发布', 'success');
@@ -1487,6 +1662,7 @@ function _renderActivityProgress(activities, ctx) {
           <div class="flex-1 min-w-0">
             <div class="text-sm font-medium ${isArchived ? 'text-gray-500 line-through' : 'text-gray-800'}">${a.title || '未命名'}</div>
             <div class="text-xs text-gray-500 mt-0.5">${a.date || ''}${a.type ? ' · ' + a.type : ''}${a.location ? ' · ' + a.location : ''}</div>
+            <div class="text-[11px] text-gray-500 mt-1">${scopeLabel} · 组织者：${organizers.length ? organizers.map((id) => getPersonName(id)).join('、') : '待指定'} · 深度参与 ${deepCount} 人</div>
           </div>
           <div class="flex items-center gap-2">
             ${statusTag}

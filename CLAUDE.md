@@ -2,7 +2,7 @@
 title: "Org OS — 系统路线图与 Harness"
 type: roadmap
 role: "[工程师]+[AI]"
-last_updated: 2026-10-06
+last_updated: 2026-10-16
 status: active
 related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/DOC_MAP.md, content/01_strategy/SECRETARY_DIRECTIVES.md, content/01_strategy/, content/02_institution/, content/03_doc_system/, content/04_web_design/, content/05_ai_coding/, content/insights/, server/, .ctx/logs/]
 ---
@@ -719,6 +719,14 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/DOC
 | ID | 事项（人话） | 裁定 / 现状 | 状态 |
 | --- | --- | --- | --- |
 | V-10b | 「他擅长的工作（其他组织任职 / 奖励奖学金 / 考勤纪律）」来自**问卷数据** | **落地现实已明确（批次 421 · `D-803`④ · 口径见 `H32`）**：导入链与字段模型已具备（15 字段模型 ＋ 双端写口 ＋ 表单 ＋ 本人自助 ＋ 批量导入）⇒ **数据由支书在「名册台 · 导入自我描述（粘贴 / CSV）」折叠区**粘贴或上传即可（`self-profile-import` 解析 → `PersonStore.saveMember` → `api/v1/users` 落库）——**无需任何代码改动，唯一待办＝支书在页面上传**。 | 待支书在页面上传 |
+
+## 支书已裁定 · 工作组与工作台改进（执行中）
+
+> 按 H20.2、H25 与 OPERATIONS_GUIDE.md §10.5 分片；采用 `codex/agenda-link-voting` 已选工作树，先守住数据归属与服务端权限，再做兼容迁移、展示和知识归档。
+
+| ID | 事项 | 引用流程 | 修改对象 | 状态 |
+| --- | --- | --- | --- | --- |
+| T-903 | 落地已确认工作台信息结构、能力包治理字段、全量标签盘点和文案收尾；周报进入周期归档入口 | H20.2 + H25 + DESIGN_SYSTEM + 最小三成本 | `docs/src/entries/`、`docs/src/services/`、`content/04_web_design/` | 进行中（全量工作台标签盘点待续） |
 
 ***
 

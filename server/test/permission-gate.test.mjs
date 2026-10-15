@@ -113,7 +113,7 @@ test('活动写门：支委层可建；普通成员 403；组长限党小组会/
   const { token } = await login('p13'); // 支书（支委层）
   const ok = await fetch(`${base}/api/v1/activities`, {
     method: 'POST', headers: authHeaders(token),
-    body: JSON.stringify({ title: '权限门回归活动', date: '2026-09-10', type: '主题党日' }),
+    body: JSON.stringify({ title: '权限门回归活动', date: '2026-09-10', type: '主题党日', organizingScope: 'cross-group', hostGroupId: null }),
   });
   assert.equal(ok.status, 201, '支书（支委层）可创建活动');
 
@@ -138,7 +138,7 @@ test('活动写门：支委层可建；普通成员 403；组长限党小组会/
   assert.equal(leaderBad.status, 403, '组长不得创建支委会（限党小组会/主题党日）');
   const leaderOk = await fetch(`${base}/api/v1/activities`, {
     method: 'POST', headers: authHeaders(leaderToken),
-    body: JSON.stringify({ title: '组长建党小组会', date: '2026-09-20', type: '党小组会' }),
+    body: JSON.stringify({ title: '组长建党小组会', date: '2026-09-20', type: '党小组会', organizingScope: 'party-group', hostGroupId: 'pg-1' }),
   });
   assert.equal(leaderOk.status, 201, '组长可创建党小组会');
 
@@ -737,6 +737,7 @@ test('分工自动传递（2026-09-13 支书裁定）：分工生效通知的受
     method: 'POST', headers: authHeaders(secToken),
     body: JSON.stringify({
       title: '支部分工调整（测试）', date: '2026-09-13', type: '支委会', status: 'in-progress',
+      organizingScope: 'cross-group', hostGroupId: null,
       extras: {
         proposal: [
           { moduleId: 'taskforce', to: { ownerType: 'person', ownerId: 'p3' } },

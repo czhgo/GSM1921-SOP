@@ -3,16 +3,17 @@
 //  attendance.js — 考勤记录 CRUD 服务
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB, AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../core/domain/domain.js?v=20261015b';
-import { POLICY_DEFAULTS } from '../../core/domain/policy-defaults.js?v=20261015b';
-import { persist, getDataSource, getAdapter } from '../../data/data-adapter.js?v=20261015b';
-import { generateId } from '../../core/base/id.js?v=20261015b';
-import { bumpToken } from '../../core/base/version-token.js?v=20261015b'; // P0 域缓存失效（spec §二.3）
-import { ATTENDANCE_RECORDS } from '../../data/mock/index.js?v=20261015b';
-import { isInitStateActive } from '../core/init-reset.js?v=20261015b'; // C2 修复（2026-09-08）：init 态空态不回退演示种子
-import { PersonStore, getPersonById, getPersonName } from '../member/person.js?v=20261015b';
-import { getRosterStats } from '../member/roster.js?v=20261015b';
-import { loadActivities, isActivityOrganizer } from './activity.js?v=20261015b';
+import { mockDB, AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../core/domain/domain.js?v=20261016a';
+import { POLICY_DEFAULTS } from '../../core/domain/policy-defaults.js?v=20261016a';
+import { persist, getDataSource, getAdapter } from '../../data/data-adapter.js?v=20261016a';
+import { generateId } from '../../core/base/id.js?v=20261016a';
+import { bumpToken } from '../../core/base/version-token.js?v=20261016a'; // P0 域缓存失效（spec §二.3）
+import { ATTENDANCE_RECORDS } from '../../data/mock/index.js?v=20261016a';
+import { isInitStateActive } from '../core/init-reset.js?v=20261016a'; // C2 修复（2026-09-08）：init 态空态不回退演示种子
+import { PersonStore, getPersonById, getPersonName } from '../member/person.js?v=20261016a';
+import { getRosterStats } from '../member/roster.js?v=20261016a';
+import { getMeetingRosterIds } from '../member/roster.js?v=20261016a';
+import { loadActivities, isActivityOrganizer } from './activity.js?v=20261016a';
 
 export function loadAttendanceRecords() {
   if (mockDB.attendances.length > 0) return [...mockDB.attendances];
@@ -35,6 +36,23 @@ export function saveAttendanceRecords(records) {
   mockDB.attendances = [...records];
   bumpToken('attendance'); // P0：考勤写口统一 bump（纪检确认/组织者上传/纪检录入等均经本函数落库）
   persist();
+}
+
+/** 冻结一场活动创建时适用的「原应到名单」；实际到场名单在汇总时与其去重并集。 */
+export async function freezeExpectedRosterForActivity(activityId) {
+  const activity = loadActivities().find((row) => row.id === activityId);
+  if (!activity) throw Object.assign(new Error('活动不存在，无法冻结应到名单'), { type: 'NotFoundError' });
+  const groupId = activity.type === '党小组会'
+    ? (activity.hostGroup || getPersonById(activity.organizer)?.partyGroup || '')
+    : undefined;
+  if (activity.type === '党小组会' && !groupId) {
+    throw Object.assign(new Error('党小组会缺少承办党小组，无法冻结应到名单'), { type: 'ValidationError' });
+  }
+  const personIds = getMeetingRosterIds({ type: activity.type, groupId, branchId: activity.branchId || undefined });
+  const frozen = await getAdapter().attendanceRosters.freeze(activityId, personIds);
+  const rows = Array.isArray(mockDB.attendanceRosters) ? mockDB.attendanceRosters : [];
+  mockDB.attendanceRosters = [...rows.filter((row) => row.activityId !== activityId), frozen];
+  return frozen;
 }
 
 // ── A1 写入门禁（2026-09-05 落代码，操作位语义见 SYSTEM_ROLE_PERMISSION §9b/§9f + CF §C.1a）──
@@ -541,26 +559,45 @@ export function listActivityParticipationByPerson(records) {
  * @param {{month?:string, records?:Array}} [params] month 形如 '2026-09'（缺省 = 全部活动）
  * @returns {{month:string, rows:Array<Object>, total:number, presentTotal:number, rate:number}}
  */
-export function summarizeAttendanceByActivity({ month, records } = {}) {
+export function summarizeAttendanceByActivity({ month, records, rosterSnapshots } = {}) {
   const src = records || loadActiveAttendanceRecords();
+  const snapshots = rosterSnapshots || mockDB.attendanceRosters || [];
   const rows = [];
   for (const a of loadActivities()) {
     if (month && !(a.date || '').startsWith(month)) continue;
-    const rs = src.filter(r => r.activityId === a.id);
-    if (rs.length === 0) continue; // 无考勤记录的场次不占位
-    const present = rs.filter(r => r.status === AttendanceStatus.PRESENT || r.status === AttendanceStatus.MADE_UP).length;
-    const leave = rs.filter(r => r.status === AttendanceStatus.LEAVE).length;
-    const absent = rs.filter(r => r.status === AttendanceStatus.ABSENT).length;
+    const recordByPerson = new Map();
+    for (const record of src) {
+      if (record.activityId === a.id && record.personId) recordByPerson.set(record.personId, record);
+    }
+    const snapshot = snapshots.find((row) => row.activityId === a.id && row.frozen === true);
+    const expectedIds = new Set(Array.isArray(snapshot?.personIds) ? snapshot.personIds.map(String) : []);
+    const actualIds = new Set([...recordByPerson.values()]
+      .filter((record) => record.status === AttendanceStatus.PRESENT || record.status === AttendanceStatus.MADE_UP)
+      .map((record) => String(record.personId)));
+    const rosterIds = new Set([...expectedIds, ...actualIds]);
+    if (rosterIds.size === 0) continue; // 尚无冻结名单且没有记录的活动不占位
+    const counted = [...rosterIds].map((personId) => recordByPerson.get(personId)).filter(Boolean);
+    const present = counted.filter(r => r.status === AttendanceStatus.PRESENT || r.status === AttendanceStatus.MADE_UP).length;
+    const leave = counted.filter(r => r.status === AttendanceStatus.LEAVE).length;
+    const absent = counted.filter(r => r.status === AttendanceStatus.ABSENT).length;
+    const unrecorded = rosterIds.size - counted.length;
+    const coverage = Math.round((counted.length / rosterIds.size) * 100);
     rows.push({
       activityId: a.id, activity: a.title, date: a.date || '', type: a.type || '',
-      total: rs.length, present, leave, absent,
-      rate: Math.round((present / rs.length) * 100),
+      total: rosterIds.size, present, leave, absent, unrecorded, coverage,
+      rosterFrozen: !!snapshot, estimate: !snapshot,
+      rate: Math.round((present / rosterIds.size) * 100),
     });
   }
   rows.sort((x, y) => (y.date || '').localeCompare(x.date || ''));
   const total = rows.reduce((s, r) => s + r.total, 0);
   const presentTotal = rows.reduce((s, r) => s + r.present, 0);
-  return { month: month || '', rows, total, presentTotal, rate: total > 0 ? Math.round((presentTotal / total) * 100) : 0 };
+  const recordedTotal = rows.reduce((s, r) => s + r.total - r.unrecorded, 0);
+  return {
+    month: month || '', rows, total, presentTotal, recordedTotal,
+    coverage: total > 0 ? Math.round((recordedTotal / total) * 100) : 0,
+    rate: total > 0 ? Math.round((presentTotal / total) * 100) : 0,
+  };
 }
 
 /**

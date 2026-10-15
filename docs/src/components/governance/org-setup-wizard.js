@@ -7,40 +7,41 @@
 //   ③ 角色分工（workforce 模块负责人归属）     ④ 术语制度指引 + 换壳工作单（md 下载）
 //   ⑤ 验证与重置（roster stats / ?reset=1 / npm test）+ 完成报告（摘要/下载/重走）
 // 挂载点：party-config-tab 内容区 + wizard.html 独立页共用；样式沿用 card/input-flat/chip 体系。
-// 权限双轨（支书 R4）：party-staff = 任意支部（canSwitchBranch）；本支部现任支书/副支书 = 固定本支部
-//   （副书同权，2026-09-09 支书批——config 写权同现任支书）；其它角色/外支部 → 无权限卡。
-//   写口全走 branch 服务既有校验语义（config 写口 = party-staff / 本支部现任支书或副支书）。
+// 权限双轨：party-staff 可切换支部并管理组织档案、分工和授权范围内的制度参数；
+//   本支部现任支书/副支书可管理本支部模块、流程块与能力包（副书同权）。党委维护能力目录/模板，不能代支部选配。
+//   写口由 branch service 与 server 按配置域分别校验；成员角色和系统授权分别留痕。
 // 留痕：每次保存即时写入 branch.config.configChangeHistory（by/at/what/from/to，见 services/branch/branch.js）。
 // 草稿：localStorage `wizard-draft-<branchId>`（当前步 + 每步完成标记 + 完成态），中断可续走。
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../../core/domain/domain.js?v=20261015b';
-import { getCapabilities } from '../../core/boot/registry.js?v=20261015b';
-import { OUTPUT_BLOCK_DEFS, BRANCH_COMMISSION_ROLES, ROLE_LABELS, getAccentColors } from '../../core/domain/constants.js?v=20261015b';
-import { ORG_SUBJECT_LABELS, isBranchOrgSubject, ownerSubjectType } from '../../core/domain/work-map.js?v=20261015b';
+import { mockDB } from '../../core/domain/domain.js?v=20261016a';
+import { getCapabilities } from '../../core/boot/registry.js?v=20261016a';
+import { OUTPUT_BLOCK_DEFS, BRANCH_COMMISSION_ROLES, ROLE_LABELS, getAccentColors } from '../../core/domain/constants.js?v=20261016a';
+import { CAPABILITY_PACKAGES } from '../../core/domain/capability-packages.js?v=20261016a';
+import { ORG_SUBJECT_LABELS, isBranchOrgSubject, ownerSubjectType } from '../../core/domain/work-map.js?v=20261016a';
 // 副作用：注册支委层工作台能力（配置目录=其 tab 清单，单一源）
-import '../../capabilities/secretary-workspace.js?v=20261015b';
-import { BLOCK_MANIFESTS } from '../../workflow/blocks/manifests.js?v=20261015b';
+import '../../capabilities/secretary-workspace.js?v=20261016a';
+import { BLOCK_MANIFESTS } from '../../workflow/blocks/manifests.js?v=20261016a';
 // L3 流程组合（2026-09-28 批次 246）：把编排内核接进**生产路径**——配置面用它做「组合体检」
-import { composePlan } from '../../workflow/blocks/orchestration.js?v=20261015b';
-import { escHtml as esc, showToast, downloadBlob } from '../../core/base/utils.js?v=20261015b';
-import { WORK_MAP_MODULES } from '../../core/domain/work-map.js?v=20261015b';
+import { composePlan } from '../../workflow/blocks/orchestration.js?v=20261016a';
+import { escHtml as esc, showToast, downloadBlob } from '../../core/base/utils.js?v=20261016a';
+import { WORK_MAP_MODULES } from '../../core/domain/work-map.js?v=20261016a';
 import {
   getBranchById, getBranchOrg, getBranchTabPolicy, getCoreTabIds,
-  getBranchOutputBlocks, getOutputBlockPolicy, getWorkflowBlockPolicy, orderByIds,
-  updateBranchModules, getBranchWorkforce, updateBranchWorkforce, updateBranchOrg,
+  getBranchOutputBlocks, getBranchCapabilityPackageState, getOutputBlockPolicy, getWorkflowBlockPolicy, orderByIds,
+  updateBranchModules, updateBranchCapabilityPackages, getBranchWorkforce, updateBranchWorkforce, updateBranchOrg,
   applyConfigCopy, createBranch, getBranchIdOfPerson,
-} from '../../services/branch/branch.js?v=20261015b';
-import { buildConfigPackage, applyConfigPackage } from '../../services/branch/org-config-package.js?v=20261015b';
+} from '../../services/branch/branch.js?v=20261016a';
+import { buildConfigPackage, applyConfigPackage } from '../../services/branch/org-config-package.js?v=20261016a';
 import {
   buildPreviewTemplate, sanitizePreview, applyPreview, clearPreview, getPreviewState,
   PREVIEW_KIND, PREVIEW_VERSION,
-} from '../../services/branch/org-base-data-preview.js?v=20261015b';
-import { getRosterStats, isDetained } from '../../services/member/roster.js?v=20261015b';
-import { buildOrgWizardReport } from '../../services/branch/org-wizard-report.js?v=20261015b';
-import { PersonStore, getPersonName } from '../../services/member/person.js?v=20261015b';
+} from '../../services/branch/org-base-data-preview.js?v=20261016a';
+import { getRosterStats, isDetained } from '../../services/member/roster.js?v=20261016a';
+import { buildOrgWizardReport } from '../../services/branch/org-wizard-report.js?v=20261016a';
+import { PersonStore, getPersonName } from '../../services/member/person.js?v=20261016a';
 // R5-1（2026-09-06）：建空支部「就地任命首任骨干」——任命编排在 appointment.js 收口（含数据边界登记）
-import { appointInauguralOfficers } from '../../services/branch/appointment.js?v=20261015b';
+import { appointInauguralOfficers } from '../../services/branch/appointment.js?v=20261016a';
 
 // ── 步骤元信息（支书已批口径）────────────────────────────────────
 export const WIZARD_STEPS = [
@@ -170,6 +171,7 @@ export function mountOrgSetupWizard(host, opts) {
     wbHidden: null,    // Set workflow block id
     bOrder: null,      // 产出块顺序（本步无排序 UI，只为「原样保存」不丢）
     wbOrder: null,     // 工作流块顺序（▲▼ 可调；L3 流程组合 2026-09-28 批次 246）
+    capabilityPackages: null,
     wfSnapshot: null,  // 展开 workforce（保存时全量写回）
     // 阶段二（2026-09-06）：「复制配置到支部…」小面板展开态 + 多选目标集
     copyOpen: false,
@@ -213,7 +215,7 @@ function _enterBranch(S, branchId) {
   S.step = draft && draft.step ? draft.step : 1;
   S.done = draft && draft.done ? { ...draft.done } : {};
   S.dirty = { 1: false, 2: false, 3: false };
-  S.modHidden = S.modOrder = S.bHidden = S.wbHidden = S.wfSnapshot = null;
+  S.modHidden = S.modOrder = S.bHidden = S.wbHidden = S.wfSnapshot = S.capabilityPackages = null;
   S.copyOpen = false;
   S.copySel = new Set();
   S.baseOpen = false;
@@ -233,7 +235,7 @@ function _persistDraft(S) {
 
 /** 重读服务端数据 → 重置当前步编辑态（保存成功/换支部后） */
 function _refreshStepState(S) {
-  S.modHidden = S.modOrder = S.bHidden = S.wbHidden = S.wfSnapshot = null;
+  S.modHidden = S.modOrder = S.bHidden = S.wbHidden = S.wfSnapshot = S.capabilityPackages = null;
   S.dirty = { 1: false, 2: false, 3: false };
 }
 
@@ -423,18 +425,17 @@ function _toolbarHtml(S, isStaff) {
     <div class="flex flex-wrap items-center gap-2 pt-2.5 mt-2.5 border-t border-gray-100">
       <span class="text-[11px] text-gray-500 shrink-0">配置工具</span>
       <button type="button" data-wz-act="export-pkg" class="btn-outline ${subtle}">导出 JSON 配置包</button>
-      <button type="button" data-wz-act="import-pkg" class="btn-outline ${subtle}">导入 JSON 配置包</button>
-      ${isStaff ? `<button type="button" data-wz-act="toggle-copy" class="btn-outline ${subtle}">${S.copyOpen ? '收起' : ''}复制配置到支部…</button>` : ''}
+      ${!isStaff ? `<button type="button" data-wz-act="import-pkg" class="btn-outline ${subtle}">导入 JSON 配置包</button>` : ''}
       <input type="file" id="wz-pkg-file" accept=".json,application/json" class="hidden" data-wz-file="pkg">
     </div>`;
-  const panel = isStaff && S.copyOpen ? _copyPanelHtml(S, branches) : '';
+  const panel = '';
   const baseRow = `
     <div class="flex flex-wrap items-center gap-2 pt-2.5 mt-2.5 border-t border-gray-100">
       <span class="text-[11px] text-gray-500 shrink-0">数据预览</span>
       <button type="button" data-wz-act="toggle-base" class="btn-outline ${subtle}">${S.baseOpen ? '收起' : ''}成员名册预览…</button>
     </div>`;
   const basePanel = S.baseOpen ? _basePanelHtml(S) : '';
-  return row + panel + baseRow + basePanel;
+  return row + baseRow + basePanel;
 }
 
 /** 成员名册数据预览面板（阶段三·目标1）：下载模板 / 导入预览 / 清除回种子 + 应用前统计卡 */
@@ -543,7 +544,7 @@ function _stepperHtml(S) {
 function _stepBodyHtml(S, branch, org, isStaff) {
   switch (S.step) {
     case 1: return _step1Html(S, branch, org, isStaff);
-    case 2: return _step2Html(S, branch);
+    case 2: return _step2Html(S, branch, isStaff);
     case 3: return _step3Html(S, branch);
     case 4: return _step4Html(S, branch);
     case 5: return _step5Html(S, branch, org);
@@ -605,7 +606,7 @@ function _step1Html(S, branch, org, isStaff) {
 }
 
 // ── ② 模块/块组合（原 party-config 主体原样搬入）──
-function _step2Html(S, branch) {
+function _step2Html(S, branch, isStaff = false) {
   const rawTabs = _branchTabs();
   const coreIds = new Set(getCoreTabIds(rawTabs));
   const coreTabs = rawTabs.filter(t => coreIds.has(t.id));
@@ -615,7 +616,8 @@ function _step2Html(S, branch) {
   S.modHidden = hidden;
   const order = policy.order || businessTabs.map(t => t.id);
   S.modOrder = order;
-  const blocksCfg = getBranchOutputBlocks(S.branchId);
+  // 编辑时读取原始 blocks，不能把运行时由能力包派生的隐藏项写回子层配置。
+  const blocksCfg = branch?.config?.blocks ?? null;
   const bPolicy = getOutputBlockPolicy(blocksCfg);
   const bHidden = S.bHidden || new Set(bPolicy.hidden);
   S.bHidden = bHidden;
@@ -626,17 +628,18 @@ function _step2Html(S, branch) {
   S.wbHidden = wbHidden;
   // L3 流程组合（2026-09-28 批次 246）：工作流块**可排序**（▲▼）——「做哪些流程（启停）＋ 什么顺序」两面都归支部
   if (S.wbOrder === null) S.wbOrder = orderByIds(BLOCK_MANIFESTS.map(m => m.blockId), wPolicy.order);
+  if (S.capabilityPackages === null) S.capabilityPackages = getBranchCapabilityPackageState(S.branchId);
   const { accent, accentRgba, accentBorder } = _presetAccent(getBranchOrg(S.branchId).themePreset || 'red');
   const chipStyle = (on) => on
     ? `background:${accentRgba};border-color:${accentBorder};color:${accent};`
     : 'border:1px solid var(--neutral-200);color:var(--neutral-500);background:var(--neutral-100);';
   const chip = (attr, id, label, on) =>
-    `<button type="button" data-wz-chip="${attr}" data-id="${esc(id)}" class="btn-tab text-xs px-3 py-1.5 rounded-lg border transition-all ${on ? '' : 'opacity-45'}" style="${chipStyle(on)}">${esc(label)}</button>`;
+    `<button type="button" data-wz-chip="${attr}" data-id="${esc(id)}"${isStaff ? ' disabled aria-disabled="true"' : ''} class="btn-tab text-xs px-3 py-1.5 rounded-lg border transition-all ${on ? '' : 'opacity-45'} ${isStaff ? 'cursor-not-allowed' : ''}" style="${chipStyle(on)}">${esc(label)}</button>`;
   const chipOn = (attr, set) => !set.has(attr);
   // 可排序块行（工作流块专用）：chip 本体不变（`_paintChips` 仍按 `[data-wz-chip]` 重绘），右侧 ▲▼ 是
   //   **键盘可达的按钮等价路径**（拖拽只在设置页的 tab 顺序上；向导侧不引拖拽，免与 chip 点击混手势）。
   const moveBtn = (id, label, dir, disabled) =>
-    `<button type="button" data-wz-move="wblock" data-id="${esc(id)}" data-dir="${dir}"${disabled ? ' disabled' : ''} class="btn-outline px-1.5 py-0.5 text-xs leading-none" aria-label="${dir < 0 ? '上移' : '下移'}工作流块 ${esc(label)}">${dir < 0 ? '▲' : '▼'}</button>`;
+    `<button type="button" data-wz-move="wblock" data-id="${esc(id)}" data-dir="${dir}"${disabled || isStaff ? ' disabled' : ''} class="btn-outline px-1.5 py-0.5 text-xs leading-none" aria-label="${dir < 0 ? '上移' : '下移'}工作流块 ${esc(label)}">${dir < 0 ? '▲' : '▼'}</button>`;
   const wblockRow = (id, label, on, i, len) =>
     `<span class="inline-flex items-center gap-1">${chip('wblock', id, label, on)}<span class="inline-flex flex-col gap-0.5">${moveBtn(id, label, -1, i === 0)}${moveBtn(id, label, 1, i === len - 1)}</span></span>`;
   // 目录内、按支部顺序 → 行；**目录外 id**（配置持久化后目录变更）由下方体检点名（不静默丢）
@@ -653,11 +656,35 @@ function _step2Html(S, branch) {
   const composeHint = (!comp.ok || unknownWbIds.length)
     ? `<p class="text-xs text-red-700 mt-1.5">组合体检：${[...comp.errors, ...unknownWbIds.map(id => `配置含目录外块 ${id}`)].map(esc).join('；')}</p>`
     : `<p class="text-xs text-green-700 mt-1.5">组合体检：通过（启用 ${wbEnabled.length} 块${wPolicy.order ? '，顺序已自定义' : ''}）</p>`;
+  const applicabilityLabel = { required: '必办', optional: '可选', local: '本地配置', pending: '待确认' };
+  const packageRows = CAPABILITY_PACKAGES.map((item) => {
+    const canSelect = ['optional', 'local'].includes(item.applicability);
+    const enabled = S.capabilityPackages[item.id] !== false;
+    const children = [
+      ...(item.pages || []).map((page) => `页面 ${page.role}/${page.tabId}`),
+      ...(item.workflowBlockIds || []).map((id) => `流程 ${id}`),
+      ...(item.outputBlockIds || []).map((id) => `产出 ${id}`),
+    ];
+    const basis = item.basisReferences?.length ? item.basisReferences.join('；') : '尚无明确制度引用';
+    return `<div class="rounded-lg border border-gray-200 bg-white px-3 py-2.5">
+      <div class="flex items-start justify-between gap-3">
+        <div class="min-w-0">
+          <p class="text-xs font-semibold text-gray-700">${esc(item.name)} <span class="ml-1 text-[10px] font-normal text-gray-500">v${esc(item.version)} · ${applicabilityLabel[item.applicability] || item.applicability}</span></p>
+          <p class="mt-1 text-xs leading-4 text-gray-500">${esc(children.join('、') || '待关联子能力')} · 制度依据：${esc(item.basisStatus)}（${esc(basis)}）</p>
+          ${item.dependencies?.length ? `<p class="mt-0.5 text-xs text-gray-500">依赖：${esc(item.dependencies.join('、'))}</p>` : ''}
+        </div>
+        ${canSelect ? `<label class="inline-flex shrink-0 items-center gap-2 text-xs text-gray-700">
+          <input type="checkbox" data-wz-capability="${esc(item.id)}" ${enabled ? 'checked' : ''} ${isStaff ? 'disabled' : ''}>
+          <span>${enabled ? '已选用' : '已停用'}</span>
+        </label>` : '<span class="shrink-0 text-[11px] text-gray-500">依据确认前不下放开关</span>'}
+      </div>
+    </div>`;
+  }).join('');
   return `
     <div class="rounded-xl border border-gray-200 bg-white p-4 space-y-3">
       <div class="flex items-center justify-between">
         <p class="text-xs font-bold text-gray-700">② 模块 / 块组合</p>
-        <span class="text-[11px] text-gray-500">对支部工作台成员「下次进入」生效；点击开关 → 保存本步</span>
+        <span class="text-[11px] ${isStaff ? 'text-amber-700' : 'text-gray-500'}">${isStaff ? '党委查看支部当前选配；支部自主选择，本页只读' : '对支部工作台成员「下次进入」生效；点击开关 → 保存本步'}</span>
       </div>
       <div>
         <p class="text-xs font-bold text-gray-600 mb-1.5">业务模块 <span class="text-[11px] font-normal text-gray-500">（支书工作台 tab；核心组固定不可关）</span></p>
@@ -673,10 +700,17 @@ function _step2Html(S, branch) {
         <div class="flex flex-wrap items-center gap-2">${wbRows}</div>
         ${composeHint}
       </div>
-      <div class="flex gap-2 justify-end pt-2 border-t border-gray-100">
+      <div class="border-t border-gray-100 pt-3">
+        <div class="mb-2">
+          <p class="text-xs font-bold text-gray-600">业务能力包</p>
+          <p class="mt-1 text-xs leading-4 text-gray-500">能力包把页面、流程与产出作为一个部署单位；下方模块/块开关用于包内细调。关闭可选包后停止新建，在办事项可完成，历史保留只读。T1–T3 不作为功能等级。</p>
+        </div>
+        <div class="space-y-2">${packageRows}</div>
+      </div>
+      ${isStaff ? '<p class="text-xs text-gray-500 border-t border-gray-100 pt-2">支部的启用范围和顺序由本支部自行维护；党委可维护能力目录与模板，但本向导尚未提供目录模板编辑入口。</p>' : `<div class="flex gap-2 justify-end pt-2 border-t border-gray-100">
         <button type="button" data-wz-act="reset-modules" class="btn-outline text-xs px-3 py-1.5">恢复默认（全开）</button>
         <button type="button" data-wz-act="save-step" data-step="2" class="btn-accent px-3 py-1.5 text-xs font-medium">保存本步</button>
-      </div>
+      </div>`}
     </div>`;
 }
 
@@ -871,6 +905,7 @@ function _onClick(S, e) {
   }
   // chips（模块/块开关：只更新本地状态并重绘样式，保存走「保存本步」）
   if (el.hasAttribute('data-wz-chip')) {
+    if (S.actor.role === 'party-staff') return;
     const kind = el.getAttribute('data-wz-chip');
     const id = el.getAttribute('data-id');
     const set = kind === 'module' ? S.modHidden : (kind === 'block' ? S.bHidden : S.wbHidden);
@@ -882,6 +917,7 @@ function _onClick(S, e) {
   }
   // 工作流块排序（▲▼ 按钮等价路径；L3 流程组合 2026-09-28 批次 246）
   if (el.hasAttribute('data-wz-move')) {
+    if (S.actor.role === 'party-staff') return;
     const id = el.getAttribute('data-id');
     const dir = Number(el.getAttribute('data-dir')) || 1;
     const list = S.wbOrder || [];
@@ -981,6 +1017,15 @@ function _onClick(S, e) {
 function _onChange(S, e) {
   const t = e.target;
   if (!t) return;
+  if (t.hasAttribute('data-wz-capability')) {
+    if (S.actor.role === 'party-staff') return;
+    const id = t.getAttribute('data-wz-capability');
+    S.capabilityPackages = { ...(S.capabilityPackages || getBranchCapabilityPackageState(S.branchId)), [id]: !!t.checked };
+    S.dirty[2] = true;
+    const label = t.closest('label')?.querySelector('span');
+    if (label) label.textContent = t.checked ? '已选用' : '已停用';
+    return;
+  }
   if (t.id === 'wz-branch-select') {
     const v = t.value;
     if (v && v !== S.branchId) {
@@ -1146,6 +1191,7 @@ async function _saveOrg(S) {
 
 // ── ② 保存模块/块 ──
 async function _saveModules(S) {
+  if (S.actor.role === 'party-staff') throw new Error('支部工作台模块与流程块由支部自行选配');
   const rawTabs = _branchTabs();
   // 产出块顺序**原样保留**（旧实现写死 [] ⇒ 静默抹掉已设顺序）；工作流块顺序＝本步 ▲▼ 调出的顺序
   const blockPayload = {
@@ -1153,14 +1199,17 @@ async function _saveModules(S) {
     workflowBlocks: { hiddenBlockIds: [...(S.wbHidden || [])], blockOrder: [...(S.wbOrder || [])] },
   };
   await updateBranchModules(S.branchId, { hiddenTabIds: [...(S.modHidden || [])], tabOrder: [...(S.modOrder || [])] }, rawTabs, blockPayload);
+  await updateBranchCapabilityPackages(S.branchId, S.capabilityPackages || getBranchCapabilityPackageState(S.branchId));
   return true;
 }
 
 async function _resetModules(S) {
+  if (S.actor.role === 'party-staff') return;
   if (!window.confirm('确认恢复默认（业务模块/产出块/工作流块全开 + 注册顺序）？')) return;
   try {
     const rawTabs = _branchTabs();
     await updateBranchModules(S.branchId, null, rawTabs, null);
+    await updateBranchCapabilityPackages(S.branchId, Object.fromEntries(CAPABILITY_PACKAGES.map((item) => [item.id, true])));
     _refreshStepState(S);
     S.done[2] = true;
     _persistDraft(S);

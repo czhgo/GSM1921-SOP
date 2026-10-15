@@ -27,6 +27,10 @@ function _clone(v) {
  * POLICY_DEFAULTS 副本、本基准恒净（重置 = 从本基准整节回拷）。
  */
 const _FACTORY = {
+  archive: {
+    // 档案周期是支部制度参数；新归档按当前周期生成，已提交记录保留策略快照。
+    periodic: { unit: 'week' },
+  },
   workforce: {
     // 票决通过门槛（支委会从严：应到会人数超过 2/3 且无反对，弃权允许）
     // kind 'branch-default'：2026-09-06 支书裁（附录⑩ S2 R2-3，出处 .ctx/REVIEW_QUEUE.md），
@@ -212,6 +216,7 @@ export const POLICY_DEFAULTS = _clone(_FACTORY);
  * ⚠ `domain` = 域负责人角色键（谁能改）；一域可辖多节（如纪检域＝inspection/attendance/review/makeup）。
  */
 export const POLICY_OVERRIDABLE = [
+  { path: ['archive', 'periodic', 'unit'], type: 'enum', values: ['week', 'month'], domain: 'secretary' },
   { path: ['inspection', 'overdueDays'], type: 'int', min: 1, max: 90, domain: 'disc-commissioner' },
   { path: ['memberConfirmation', 'semesterDetainedWindows'], type: 'windows', domain: 'org-commissioner' },
   { path: ['leader', 'semesterReportReminder', 'enabled'], type: 'boolean', domain: 'leader' },

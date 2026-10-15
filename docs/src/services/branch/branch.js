@@ -3,23 +3,24 @@
 // 支部边界收敛点（防止未同步的情况）：人→支部归属、支部配置档案读取（header 软编码/主题/启停模块）
 // 单一数据源：mockDB.branches（首启 seed 自 data/mock/branches.js BRANCHES）
 
-import { mockDB } from '../../core/domain/domain.js?v=20261015b';
-import { getPersonById } from '../member/person.js?v=20261015b';
-import { PARTY_COMMITTEE, DEFAULT_BRANCH_DISPLAY_NAME } from '../../data/mock/branches.js?v=20261015b';
-import { getAdapter, persist, getDataSource } from '../../data/data-adapter.js?v=20261015b';
-import { listCapabilities } from '../../core/boot/registry.js?v=20261015b';
+import { mockDB } from '../../core/domain/domain.js?v=20261016a';
+import { getPersonById } from '../member/person.js?v=20261016a';
+import { PARTY_COMMITTEE, DEFAULT_BRANCH_DISPLAY_NAME } from '../../data/mock/branches.js?v=20261016a';
+import { getAdapter, persist, getDataSource } from '../../data/data-adapter.js?v=20261016a';
+import { listCapabilities } from '../../core/boot/registry.js?v=20261016a';
 // P1a 单向权威（2026-09-03）：config 净化唯一实现 = services/branch/config-clean.js（server PATCH /branches/:id/config 同源）
-import { sanitizeConfigBlocks, sanitizeConfigModules, sanitizeConfigWorkforce, sanitizeConfigOrg, sanitizeConfigPolicyOverrides, applyBranchPolicyOverrides } from './config-clean.js?v=20261015b';
+import { sanitizeConfigBlocks, sanitizeConfigModules, sanitizeConfigWorkforce, sanitizeConfigOrg, sanitizeConfigPolicyOverrides, sanitizeConfigCapabilityPackages, applyBranchPolicyOverrides } from './config-clean.js?v=20261016a';
+import { CAPABILITY_PACKAGES, disabledCapabilityChildIds } from '../../core/domain/capability-packages.js?v=20261016a';
 // 审计内核共享常量（2026-09-09 支书批）：why 透传/单键回滚白名单/历史上限单一源 = config-clean
 // （server resources.js 同源 import，双形态防止未同步的情况）
-import { CONFIG_HISTORY_MAX, CONFIG_ROLLBACK_WHAT, CONFIG_ROLLBACK_KEYS } from './config-clean.js?v=20261015b';
+import { CONFIG_HISTORY_MAX, CONFIG_ROLLBACK_WHAT, CONFIG_ROLLBACK_KEYS } from './config-clean.js?v=20261016a';
 // L4（2026-09-03）：支部工作地图模块目录单一源 = core/domain/work-map.js（14 模块/缺省分工/快照展开）
-import { expandWorkforce } from '../../core/domain/work-map.js?v=20261015b';
+import { expandWorkforce } from '../../core/domain/work-map.js?v=20261016a';
 // 批4（2026-09-09 支书批「域参数」）：policyOverrides 顶层节白名单（覆盖写口校验用）
-import { POLICY_OVERRIDE_SECTIONS } from '../../core/domain/policy-defaults.js?v=20261015b';
-import { randomHex } from '../../core/base/id.js?v=20261015b';
+import { POLICY_DEFAULTS, POLICY_OVERRIDE_SECTIONS } from '../../core/domain/policy-defaults.js?v=20261016a';
+import { randomHex } from '../../core/base/id.js?v=20261016a';
 // 核心组判定单一源（2026-09-14 支书裁定·tab 全盘重设）：由「显示标签反推」改为「注册表 coreTab 显式声明」
-import { isCoreTab } from '../../core/domain/constants.js?v=20261015b';
+import { isCoreTab } from '../../core/domain/constants.js?v=20261016a';
 
 export function getBranchById(branchId) {
   return (mockDB.branches || []).find(b => b.id === branchId) || null;
@@ -57,6 +58,14 @@ export function getBranchTabPolicy(branchId) {
   return getTabPolicy(getBranchById(branchId)?.config?.modules);
 }
 
+/** 支部选用的业务能力包；旧配置未显式记录时按兼容默认启用。 */
+export function getBranchCapabilityPackageState(branchId) {
+  const saved = getBranchById(branchId)?.config?.capabilityPackages?.packages || {};
+  return Object.fromEntries(CAPABILITY_PACKAGES.map((definition) => [
+    definition.id, saved[definition.id]?.enabled !== false,
+  ]));
+}
+
 /** tab 分类：核心组（注册表显式声明 coreTab）固定；业务组可配置 */
 function _splitTabs(tabs) {
   const core = tabs.filter(isCoreTab);
@@ -87,8 +96,12 @@ export function applyTabPolicyPure(tabs, modules) {
 /**
  * 按支部策略过滤/排序工作台 tab（渲染侧收敛点：workspace-shell 构建 tab bar 前调用一次）
  */
-export function applyTabPolicy(tabs, branchId) {
-  return applyTabPolicyPure(tabs, getBranchById(branchId)?.config?.modules);
+export function applyTabPolicy(tabs, branchId, role = null) {
+  const branch = getBranchById(branchId);
+  const modules = branch?.config?.modules;
+  // 停用能力包只停止新建；页签仍承载在办事项的完成与历史查阅，不能随开关一起隐藏。
+  // `role` 保留为调用兼容参数；页面级新建入口与服务端写口各自检查包状态。
+  return applyTabPolicyPure(tabs, modules);
 }
 
 // ── 活动产出块策略（块画布 v0，2026-09-03）────────────────────────────────────
@@ -106,7 +119,21 @@ export function getOutputBlockPolicy(blocks) {
 
 /** 读支部产出块配置（null=全开） */
 export function getBranchOutputBlocks(branchId) {
-  return getBranchById(branchId)?.config?.blocks ?? null;
+  const raw = getBranchById(branchId)?.config?.blocks ?? null;
+  const state = getBranchCapabilityPackageState(branchId);
+  const hiddenOutputIds = disabledCapabilityChildIds(state, 'outputBlockIds');
+  const hiddenWorkflowIds = disabledCapabilityChildIds(state, 'workflowBlockIds');
+  if (!hiddenOutputIds.length && !hiddenWorkflowIds.length) return raw;
+  const blocks = raw && typeof raw === 'object' ? raw : {};
+  const outputHidden = new Set(blocks.outputBlocks?.hiddenBlockIds || []);
+  const workflowHidden = new Set(blocks.workflowBlocks?.hiddenBlockIds || []);
+  hiddenOutputIds.forEach((id) => outputHidden.add(id));
+  hiddenWorkflowIds.forEach((id) => workflowHidden.add(id));
+  return {
+    ...blocks,
+    outputBlocks: { ...(blocks.outputBlocks || {}), hiddenBlockIds: [...outputHidden] },
+    workflowBlocks: { ...(blocks.workflowBlocks || {}), hiddenBlockIds: [...workflowHidden] },
+  };
 }
 
 /**
@@ -352,7 +379,7 @@ export async function rollbackBranchConfig(branchId, { by = null, targetEntryAt,
   // api 形态：语义交服务端 /branches/:id/config/rollback（服务端角色门+同规则回滚，返回权威分支）
   if (getDataSource() === 'api') {
     try {
-      const { ApiAdapter } = await import('../../data/api-adapter.js?v=20261015b');
+      const { ApiAdapter } = await import('../../data/api-adapter.js?v=20261016a');
       const updated = await ApiAdapter.branches.rollbackConfig(branchId, {
         ...(typeof targetEntryAt === 'string' && targetEntryAt ? { targetEntryAt } : {}),
         ...(Number.isInteger(index) ? { index } : {}),
@@ -377,8 +404,8 @@ export async function rollbackBranchConfig(branchId, { by = null, targetEntryAt,
 }
 
 /**
- * 保存支部工作流配置（支书/副支书操作——config 写权 = party-staff / 本支部现任支书或
- * 副支书（同支部），2026-09-09 副书同权支书批；server PATCH /branches/:id/config 同口径门控）：
+ * 保存支部工作流配置（UI 供本支部支书/副支书使用；最终写权由 server PATCH /branches/:id/config 校验。
+ * 党委维护能力目录与模板，但不能替支部开关 modules/blocks/capabilityPackages）：
  *   modules —— config.modules：模块/业务 tab 配置（null=恢复默认全开；undefined=不改）；
  *   blocks  —— config.blocks：活动产出块配置（null=恢复默认；undefined=不改）
  * tabs 仅用于防御核心 tab 不可隐藏。
@@ -396,6 +423,22 @@ export async function updateBranchModules(branchId, modules, tabs = [], blocks, 
     }
   }
   if (blocks !== undefined) payload.blocks = _sanitizeBlocks(blocks);
+  return _saveBranchConfig(branchId, payload, opts);
+}
+
+/** 支部自主采用能力目录中的 optional/local 包；目录与版本由党委维护。 */
+export async function updateBranchCapabilityPackages(branchId, selected, opts = {}) {
+  const payload = selected === null ? { capabilityPackages: null } : {
+    capabilityPackages: sanitizeConfigCapabilityPackages({
+      schemaVersion: 1,
+      packages: Object.fromEntries(CAPABILITY_PACKAGES
+        .filter((definition) => ['optional', 'local'].includes(definition.applicability))
+        .map((definition) => [definition.id, {
+          version: definition.version,
+          enabled: selected?.[definition.id] !== false,
+        }])),
+    }),
+  };
   return _saveBranchConfig(branchId, payload, opts);
 }
 
@@ -483,7 +526,7 @@ export async function savePolicyOverrides(branchId, overrides, opts = {}) {
     return { ok: false, changed: false, reason: 'policyOverrides 须为对象（节 → 值/null）' };
   }
   // 与既有覆盖合并：节=null → 删该节（恢复该域默认）；节=对象 → 净化后整节替换
-  const prevPo = (branch.config && typeof branch.config.policyOverrides === 'object' && !Array.isArray(branch.config.policyOverrides))
+  const prevPo = (branch.config && branch.config.policyOverrides !== null && typeof branch.config.policyOverrides === 'object' && !Array.isArray(branch.config.policyOverrides))
     ? JSON.parse(JSON.stringify(branch.config.policyOverrides))
     : {};
   const nextPo = { ...prevPo };
@@ -504,6 +547,10 @@ export async function savePolicyOverrides(branchId, overrides, opts = {}) {
   }
   if (!changed) return { ok: true, changed: false };
   const payload = Object.keys(nextPo).length ? { policyOverrides: nextPo } : { policyOverrides: null };
+  const oldArchiveUnit = prevPo.archive?.periodic?.unit || POLICY_DEFAULTS.archive.periodic.unit;
+  const nextArchiveUnit = nextPo.archive?.periodic?.unit || POLICY_DEFAULTS.archive.periodic.unit;
+  const archiveVersion = Math.max(1, Number(branch.config?.periodicArchiveVersion) || 1);
+  payload.periodicArchiveVersion = oldArchiveUnit === nextArchiveUnit ? archiveVersion : archiveVersion + 1;
   await _saveBranchConfig(branchId, payload, { why: opts.why });
   return { ok: true, changed: true };
 }

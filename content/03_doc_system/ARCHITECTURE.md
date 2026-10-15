@@ -2,8 +2,8 @@
 title: "架构与单一事实源"
 type: architecture
 role: "[工程师]+[AI]"
-last_updated: 2026-10-05
-version: "7.3"
+last_updated: 2026-10-16
+version: "7.4"
 status: active
 related_files: [CLAUDE.md, content/03_doc_system/DOC_MAP.md, content/02_institution/SYSTEM_ROLE_PERMISSION.md, content/04_web_design/]
 ---
@@ -484,7 +484,7 @@ content/02_institution/sop/ → docs/src/workflow/ → core/constants/utils → 
 | 服务 | 服务文件 | 入口页面 | 核心操作 | 关联制度 |
 |------|---------|---------|---------|---------|
 | 活动管理 | `services/core/runtime.js`（BranchService 插槽）+ `services/activity/decision-tree.js` + `services/activity/activity.js`（读） | `workspace/secretary.html`、`workspace/leader.html` | 创建/编辑/发布/归档/品牌标签；决策树式创建引导（三会一课 / 主题党日，含共建性质、是否外出、活动载体三正交维度） | CF §审批 §一 |
-| 专班管理 | `services/activity/taskforce.js` | `workspace/org.html` | 创建/招募（赋权）/运行跟踪/解散/工作量汇总 | CF §A.4/§A.6/§A.7 + CF §审批 §二 |
+| 工作组管理 | `services/activity/taskforce.js` + workgroup APIs | `workspace/org.html` | 活动/专班工作组、成员、独立授权、任务与产出；按事项收尾 | CF §A.4–A.7 + DATA_MODEL §2.3.1 |
 | 分工记录 | `data/data-adapter.js`（assignments 主源）+ `services/core/auth.js`（syncProjectRoles） | 工作台分工闭环（leader/secretary） | 指派分工/跟踪完成度/标记完成/逾期检测/提交参与角色确认 | DA §2.6（AssignmentRecord）+ FLAT |
 | 考察记录 | `services/activity/inspection.js` | `workspace/disc.html` | 上传/修改/确认录入总表/类别标签/超期提醒/单一活动或人员查询 | CF §C.1a + DA §2.5.1（InspectionRecord） |
 | 考勤管理 | `services/activity/attendance.js` | `workspace/disc.html`、`workspace/visitor.html`（个人出勤率） | 上传/修改/确认+录入总表/总表修改/超期提醒/单一活动或人员查询；出勤率汇总（支委会内部，不公示、不对外）与个人出勤率（当事人本人可见，只算自己） | CF §C.1a + CF §审批 §四 |

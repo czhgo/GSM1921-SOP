@@ -12,6 +12,7 @@ import { listTable, getRow, writeRow } from './store.js';
 import { ORG_COMMISSIONER_ROLE_SET, SECRETARY_AND_DEPUTY_ROLE_SET } from './gates.js';
 // R-26③（2026-10-05 批次 388）：日期口径统一到**本地**（服务端单一源 `services/reporting.js`）
 import { today as todayLocal } from '../../services/reporting.js';
+import { registerWorkgroupRoutes } from './workgroup-routes.js';
 
 // ════════════════════════════════════════════════════════════════
 //  语义端点：申诉队列 / 反馈未读标记 / 授权审计留痕（2026-09-24 批次 169）
@@ -30,6 +31,7 @@ import { today as todayLocal } from '../../services/reporting.js';
 //   `registerExtraSemanticRoutes(router, db)` 调用它——上文（`:919-1040` 等）行号是 README-server.md 的
 //   取证靶点（doc-line-ref.test.mjs 逐条核），在 router 内插行会整体漂移 ⇒ 同 server/db.js「新增一律追加在尾部」纪律。
 export function registerExtraSemanticRoutes(router, db) {
+  registerWorkgroupRoutes(router, db);
   const APPEAL_STATUSES = ['pending', 'returned', 'closed'];
   const APPEAL_PATCH_KEYS = ['status', 'note'];
   // 申诉处置位＝支委层（纪检/支书/组织/宣传）+ 党小组组长（「交组织方重新确认」的重确认位）——

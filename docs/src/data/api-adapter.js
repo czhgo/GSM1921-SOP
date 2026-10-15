@@ -14,7 +14,7 @@
 //         content/04_web_design/data/DATA_ARCHITECTURE.md §8.4
 // ════════════════════════════════════════════════════════════════
 
-import { getApiBaseUrl, getAuthToken } from './data-adapter.js?v=20261015b';
+import { getApiBaseUrl, getAuthToken } from './data-adapter.js?v=20261016a';
 
 // ── HTTP 工具函数 ──────────────────────────────────────────────
 
@@ -296,6 +296,10 @@ export const ApiAdapter = {
 
     update(id, patch) {
       return _patch(`/api/v1/taskforces/${id}`, patch);
+    },
+
+    dissolve(id, data) {
+      return _post(`/api/v1/taskforces/${encodeURIComponent(id)}/dissolution`, data);
     },
 
     delete(id) {
@@ -835,6 +839,50 @@ export const ApiAdapter = {
 
     create(data) {
       return _post('/api/v1/agenda-votes', data);
+    },
+  },
+
+  // 工作组成员、授权、任务、产出与应到名单均走语义 API，不进入全量快照。
+  workgroups: {
+    list(params = {}) {
+      const query = new URLSearchParams(params).toString();
+      return _get(`/api/v1/workgroups${query ? '?' + query : ''}`);
+    },
+    members: {
+      list(params = {}) {
+        const query = new URLSearchParams(params).toString();
+        return _get(`/api/v1/workgroup-members${query ? '?' + query : ''}`);
+      },
+      add(id, data) { return _post(`/api/v1/workgroups/${encodeURIComponent(id)}/members`, data); },
+      remove(id, personId) { return _delete(`/api/v1/workgroups/${encodeURIComponent(id)}/members/${encodeURIComponent(personId)}`); },
+    },
+    grants: {
+      list(id) { return _get(`/api/v1/workgroups/${encodeURIComponent(id)}/grants`); },
+      listMine() { return _get('/api/v1/workgroup-grants'); },
+      create(id, data) { return _post(`/api/v1/workgroups/${encodeURIComponent(id)}/grants`, data); },
+      revoke(id, grantId) { return _post(`/api/v1/workgroups/${encodeURIComponent(id)}/grants/${encodeURIComponent(grantId)}/revoke`); },
+    },
+    tasks: {
+      list(id) { return _get(`/api/v1/workgroups/${encodeURIComponent(id)}/tasks`); },
+      create(id, data) { return _post(`/api/v1/workgroups/${encodeURIComponent(id)}/tasks`, data); },
+      update(id, taskId, patch) { return _patch(`/api/v1/workgroups/${encodeURIComponent(id)}/tasks/${encodeURIComponent(taskId)}`, patch); },
+    },
+    outputs: {
+      list(id) { return _get(`/api/v1/workgroups/${encodeURIComponent(id)}/outputs`); },
+      create(id, data) { return _post(`/api/v1/workgroups/${encodeURIComponent(id)}/outputs`, data); },
+    },
+  },
+
+  attendanceRosters: {
+    list(params = {}) {
+      const query = new URLSearchParams(params).toString();
+      return _get(`/api/v1/attendance-rosters${query ? '?' + query : ''}`);
+    },
+    get(activityId) { return _get(`/api/v1/activities/${encodeURIComponent(activityId)}/expected-roster`); },
+    freeze(activityId, personIds) {
+      return _request(`/api/v1/activities/${encodeURIComponent(activityId)}/expected-roster`, {
+        method: 'PUT', body: JSON.stringify({ personIds, frozen: true }),
+      });
     },
   },
 

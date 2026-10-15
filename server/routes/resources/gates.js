@@ -7,6 +7,7 @@
 import { requireAuth, requireCommissioner } from '../auth.js';
 import { BRANCH_COMMISSION_ROLES, PARTY_STAFF_ROLE as PARTY_STAFF_KEYS, SECRETARY_AND_DEPUTY_ROLES, NOTICE_PUBLISH_ROLES, NOTICE_MANAGE_ROLES, MEMBER_FLOW_ROLES, ORG_COMMISSIONER_ROLES, branchCommissionerWriteDeny, isAnonymousForced } from '../../../docs/src/core/domain/constants.js';
 import { RESOURCE_TABLES, listTable } from './store.js';
+import { CAPABILITY_PACKAGES } from '../../../docs/src/core/domain/capability-packages.js';
 
 // ── P3 上线前收紧（2026-09-03，design §7 登记项落地）：资源级写角色门 ──────────
 // 默认仍 requireAuth；以下资源写权限按角色收紧（防支部成员自批/篡改治理档案）：
@@ -196,14 +197,36 @@ export function _assertActivityBlockEnabled(db, actor, effectiveType) {
   const scenarioId = Object.keys(SCENARIO_LABELS).find((k) => SCENARIO_LABELS[k] === effectiveType);
   if (!scenarioId) return true;                     // 非场景化活动 ⇒ 不涉块启停
   const blockId = BLOCK_ID_ALIASES[scenarioId] || scenarioId;
+  return _assertWorkflowBlockEnabled(db, actor, blockId);
+}
+
+/** 明确停用某支部能力包时拒绝新建该包主对象；旧分支无配置仍兼容默认启用。 */
+export function _assertCapabilityPackageEnabled(db, actor, packageId) {
+  const branchId = (actor && actor.branchId) || 'br-b1';
+  const row = db.prepare('SELECT data FROM branches WHERE id = ?').get(branchId);
+  if (!row) return true;
+  let branch;
+  try { branch = JSON.parse(row.data); } catch { return true; }
+  const state = branch?.config?.capabilityPackages?.packages?.[packageId];
+  return state?.enabled !== false;
+}
+
+/** 工作流块的支部运行时开关；无显式停用配置时保持兼容默认启用。 */
+export function _assertWorkflowBlockEnabled(db, actor, blockId) {
+  if (!blockId) return true;
   const branchId = (actor && actor.branchId) || 'br-b1';   // 与全仓「缺省支部」兜底同口径
   const row = db.prepare('SELECT data FROM branches WHERE id = ?').get(branchId);
   if (!row) return true;                            // 支部不存在 ⇒ 交给其它门拦；本门不越权
   let cfg; try { cfg = JSON.parse(row.data); } catch { return true; }
-  const hidden = cfg && cfg.config && cfg.config.blocks && cfg.config.blocks.workflowBlocks
-    && cfg.config.blocks.workflowBlocks.hiddenBlockIds;
-  if (!Array.isArray(hidden) || hidden.length === 0) return true;   // 缺省全开
-  return !hidden.includes(blockId);
+  const hidden = cfg?.config?.blocks?.workflowBlocks?.hiddenBlockIds;
+  if (Array.isArray(hidden) && hidden.includes(blockId)) return false;
+  const packages = cfg?.config?.capabilityPackages?.packages || {};
+  return !CAPABILITY_PACKAGES.some((definition) => definition.workflowBlockIds?.includes(blockId)
+    && packages[definition.id]?.enabled === false);
+}
+
+export function workflowBlockDisabledMsg(blockId) {
+  return `该工作流程所属模块「${blockId}」已被本支部停用；可完成在办事项，不能新建或改写历史记录。`;
 }
 
 // ════════════════════════════════════════════════════════════════

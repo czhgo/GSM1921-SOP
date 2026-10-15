@@ -20,42 +20,42 @@
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261015b';
-import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261015b';
-import { setDataSource, registerMockAdapter } from '../../docs/src/data/data-adapter.js?v=20261015b';
+import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261016a';
+import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261016a';
+import { setDataSource, registerMockAdapter } from '../../docs/src/data/data-adapter.js?v=20261016a';
 import {
   POLICY_DEFAULTS, POLICY_OVERRIDABLE, POLICY_FIXED, POLICY_OVERRIDE_SECTIONS, activityApprovalMode,
-} from '../../docs/src/core/domain/policy-defaults.js?v=20261015b';
+} from '../../docs/src/core/domain/policy-defaults.js?v=20261016a';
 // ⑧ 活动批准门（2026-09-22 批次 150）：判据/写口/状态单一源 = services/activity/activity.js
 import {
   pendingApprovalPatchOnWrite, canApproveActivity, PENDING_APPROVAL_STATUS,
   // ⑨ 批次 151（启用端：待批可见性 / 支委会档复用线上表决）
   activityApprovalVoteOf, openCommitteeVoteForActivity, applyActivityApprovalResult,
-} from '../../docs/src/services/activity/activity.js?v=20261015b';
+} from '../../docs/src/services/activity/activity.js?v=20261016a';
 // ⑨ 待批可见性单一源（2026-09-22 批次 151 · 支书裁定「只支委层可见」）
 import {
   canSeePendingApprovalActivities, isActivityVisibleTo, filterActivitiesForViewer,
-} from '../../docs/src/services/core/visibility.js?v=20261015b';
+} from '../../docs/src/services/core/visibility.js?v=20261016a';
 // 批次 47-F 第二组并入：消费点导出面（原 policy-defaults-sync.test.mjs 的导入）
-import { MEETING_ATTENDANCE_TYPES } from '../../docs/src/services/activity/attendance.js?v=20261015b';
-import { WORKFORCE_VOTE_DEFAULT } from '../../docs/src/services/branch/workforce.js?v=20261015b';
-import { getOverdueRecords } from '../../docs/src/services/activity/inspection.js?v=20261015b';
+import { MEETING_ATTENDANCE_TYPES } from '../../docs/src/services/activity/attendance.js?v=20261016a';
+import { WORKFORCE_VOTE_DEFAULT } from '../../docs/src/services/branch/workforce.js?v=20261016a';
+import { getOverdueRecords } from '../../docs/src/services/activity/inspection.js?v=20261016a';
 import {
   sanitizeConfigPolicyOverrides, applyBranchPolicyOverrides,
-} from '../../docs/src/services/branch/config-clean.js?v=20261015b';
+} from '../../docs/src/services/branch/config-clean.js?v=20261016a';
 import {
   savePolicyOverrides, canManagePolicyOverrides, getBranchById,
-} from '../../docs/src/services/branch/branch.js?v=20261015b';
+} from '../../docs/src/services/branch/branch.js?v=20261016a';
 import {
   semesterDetainedWindowsLabel,
-} from '../../docs/src/services/member/member-confirmation.js?v=20261015b';
+} from '../../docs/src/services/member/member-confirmation.js?v=20261016a';
 // ⑪ 2026-09-27「补入口」批：补课范围/时限 call-time 消费点（makeup.js 读 POLICY_DEFAULTS）
 import {
   makeupDefaultActivityTypes, makeupDeadlineDays, isMakeupRequired,
-} from '../../docs/src/services/activity/makeup.js?v=20261015b';
+} from '../../docs/src/services/activity/makeup.js?v=20261016a';
 import {
   leaderSemesterReportTermKey, isLeaderSemesterRemindWindow,
-} from '../../docs/src/entries/tabs/today/today-tab.js?v=20261015b';
+} from '../../docs/src/entries/tabs/today/today-tab.js?v=20261016a';
 // HTTP 域（PATCH /branches/:id/config policyOverrides 写口与 server 同源校验）
 import { createApp } from '../app.js';
 import { seedDatabase } from '../seed.js';
@@ -156,7 +156,7 @@ test('① policy-defaults 批4：新节结构与默认值（memberConfirmation/l
   //   组长域＝leader；支书域＝activityApproval。
   assert.deepEqual(
     POLICY_OVERRIDE_SECTIONS,
-    ['inspection', 'memberConfirmation', 'leader', 'activityApproval', 'attendance', 'review', 'makeup', 'thoughtReport'],
+    ['archive', 'inspection', 'memberConfirmation', 'leader', 'activityApproval', 'attendance', 'review', 'makeup', 'thoughtReport'],
   );
 });
 
@@ -434,6 +434,27 @@ test('⑦ HTTP：普通成员 403；本支部组长可写自己 leader 节', asy
   assert.equal((await r2.json()).config.policyOverrides.leader.semesterReportReminder.enabled, false);
 });
 
+test('⑦ HTTP：党委可读目录但不能替支部启停功能；支书可自治选择并留痕', async () => {
+  const staff = await _login('p_pc');
+  const deniedModules = await _patchConfig(staff, { config: { modules: { hiddenTabIds: ['calendar'], tabOrder: [] } } });
+  assert.equal(deniedModules.status, 403, '党委不能替支部改变工作台能力选配');
+  const deniedBlocks = await _patchConfig(staff, { config: { blocks: { workflowBlocks: { hiddenBlockIds: ['taskforce'] } } } });
+  assert.equal(deniedBlocks.status, 403, '党委不能替支部启停流程块');
+
+  const secretary = await _login('p13');
+  const selected = await _patchConfig(secretary, { config: { modules: { hiddenTabIds: ['calendar'], tabOrder: [] } } });
+  assert.equal(selected.status, 200, '本支部支书可调整本支部能力选配');
+  const selectedBranch = await selected.json();
+  assert.deepEqual(selectedBranch.config.modules.hiddenTabIds, ['calendar']);
+  const moduleEntry = [...(selectedBranch.config.configChangeHistory || [])].reverse().find((entry) => entry.what === 'modules');
+  assert.ok(moduleEntry, '支部模块选配应有可复核的变更留痕');
+  const rollback = await fetch(`${_httpBase}/api/v1/branches/br-b1/config/rollback`, {
+    method: 'PATCH', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${staff}` },
+    body: JSON.stringify({ targetEntryAt: moduleEntry.at }),
+  });
+  assert.equal(rollback.status, 403, '党委不能代支部回滚工作台模块选配');
+});
+
 // ── ⑨ 活动批准门「启用端」（2026-09-22 批次 151 · 支书三条裁定）────────────────────────
 // ① 待批可见性＝只支委层可见；② 服务端门（PATCH 上判状态转移）；③ 支委会档复用线上表决。
 test('⑨ 待批可见性：只支委层可见；非待批活动恒可见（关闭档位时过滤为空转）', () => {
@@ -502,7 +523,7 @@ test('⑨ 支委会档：提请表决＝挂 activity-approval 议程项＋支委
 test('⑨ HTTP：服务端门——待批活动改状态必须带批准语义且角色符合该活动固化的档位', async () => {
   const sec = await _login('p13');
   const post = (token, body) => fetch(`${_httpBase}/api/v1/activities`, {
-    method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify(body),
+    method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ organizingScope: 'cross-group', hostGroupId: null, ...body }),
   });
   const patch = (token, id, body) => fetch(`${_httpBase}/api/v1/activities/${id}`, {
     method: 'PATCH', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify(body),
@@ -551,7 +572,7 @@ test('⑩ HTTP：快照口只拦不该发生的状态迁移（其余整表写入
     method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify(body),
   });
   const post = (token, body) => fetch(`${_httpBase}/api/v1/activities`, {
-    method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify(body),
+    method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ organizingScope: 'cross-group', hostGroupId: null, ...body }),
   });
   const listAll = async (token) => (await (await fetch(`${_httpBase}/api/v1/activities`, { headers: { Authorization: `Bearer ${token}` } })).json());
   // T5（2026-09-23 批次 163）：`/snapshot` 拒收**缺集合版本号**的集合（整批 428）⇒ 直连调用须自带 `_versions`

@@ -2,17 +2,15 @@
 // 宣传委员工作台 Tab：项目看板（T-279 M3 拆分，照 M2 样板）
 // 活动/专班合并看板（活动+专班分桶）+ 专班工作量区块；从 TaskForceRecordStore 动态派生（H-1 数据断裂修复）。
 
-import { badgeHtml } from '../../../components/ui/badges.js?v=20261015b';
-import { BranchService } from '../../../services/core/runtime.js?v=20261015b';
-import { TaskForceRecordStore } from '../../../services/activity/taskforce.js?v=20261015b';
-import { TodoStore, TodoSourceType } from '../../../services/governance/todo.js?v=20261015b';
-import { NoticeStore } from '../../../services/governance/notice.js?v=20261015b';
-import { persist } from '../../../data/data-adapter.js?v=20261015b';
-import { showToast, escHtml as esc } from '../../../core/base/utils.js?v=20261015b';
-import { setState } from '../../../core/base/state.js?v=20261015b';
-import { resolveDocumentUrl } from '../../../core/base/page-url.js?v=20261015b';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20261016a';
+import { BranchService } from '../../../services/core/runtime.js?v=20261016a';
+import { TodoStore, TodoSourceType } from '../../../services/governance/todo.js?v=20261016a';
+import { persist } from '../../../data/data-adapter.js?v=20261016a';
+import { showToast, escHtml as esc } from '../../../core/base/utils.js?v=20261016a';
+import { setState } from '../../../core/base/state.js?v=20261016a';
+import { resolveDocumentUrl } from '../../../core/base/page-url.js?v=20261016a';
 // 统一检索引擎（2026-09-14 批次 37）：三桶各接一个实例（keyword null + facets [] → 仅分页，保持三桶观感）
-import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261015b';
+import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261016a';
 
 export function renderContent(ctx) {
   const container = document.getElementById('prop-tab-content');
@@ -30,7 +28,7 @@ export function renderContent(ctx) {
   // 专班按状态分桶（宣传相关）
   const pendingTf = propTf.filter(t => t.status === 'draft' || t.status === 'pending_review' || t.status === 'recruiting');
   const activeTf = propTf.filter(t => t.status === 'active');
-  const completedTf = propTf.filter(t => t.status === 'completed' || t.status === 'archived');
+  const completedTf = propTf.filter(t => t.status === 'completed' || t.status === 'archived' || t.status === 'dissolved');
 
   // 合并待启动：活动 + 专班（T223 桶内新者在前）
   const pending = [
@@ -67,7 +65,7 @@ export function renderContent(ctx) {
   `;
 
   // 三桶各接一个引擎实例（keyword null + facets [] → 引擎不渲染检索条，只出分页；≤8 行不出翻页控件）。
-  // 卡片 HTML 逐字保留；行内「确认完成/归档」与整卡跳转改事件委托，挂在各桶宿主上。
+  // 活动完成沿活动流程；工作组收尾由组织委员统一办理，宣传看板仅提供详情入口。
   [
     { host: container.querySelector('#kanban-pending-host'), stateKey: 'prop-kanban-pending', rows: pending, emptyMessage: '暂无待启动项目', showComplete: false },
     { host: container.querySelector('#kanban-active-host'), stateKey: 'prop-kanban-active', rows: active, emptyMessage: '暂无进行中项目', showComplete: true },
@@ -104,23 +102,6 @@ export function renderContent(ctx) {
         setState({});
         return;
       }
-      const tfBtn = e.target.closest('.tf-complete-btn');
-      if (tfBtn) {
-        const tfId = tfBtn.dataset.tfId;
-        const tf = TaskForceRecordStore.getAll().find(r => r.id === tfId);
-        if (!tf || tf.status !== 'active') return;
-        // T-224 §7 关闭权归组织委员：宣传端仅「归档」（active→archived 合法迁移），不置 completed（解散语义）
-        const confirmed = window.confirm(`确认归档专班「${tf.name}」？归档不回收赋权、不生成工作量报告；解散由组织委员执行。`);
-        if (!confirmed) return;
-        TaskForceRecordStore.updateStatus(tfId, 'archived');
-        // 做事即销待办：专班归档 → 销「专班归档」待办
-        TodoStore.completeBySource(TodoSourceType.TASKFORCE, tfId);
-        // 2026-08-08 归档闭环：专班归档 → 配套通知随之一并归档，退出工作区
-        NoticeStore.archiveBySource('taskforce', tfId);
-        showToast('success', `专班「${tf.name}」已归档`);
-        setState({});
-        return;
-      }
       // 看板条目跳转详情（活动→activity.html / 专班→taskforce.html）
       const card = e.target.closest('.kanban-card');
       if (!card) return;
@@ -148,11 +129,9 @@ function _renderKanbanItem(item, showCompleteBtn = false) {
   const subInfo = isTf
     ? `<span class="text-xs text-gray-500">${item.filled}/${item.capacity} 人 × ${item.contributions} 产出</span>`
     : '';
-  const completeBtn = showCompleteBtn
-    ? (isTf
-      ? `<button class="btn-accent-soft tf-complete-btn text-xs px-3 py-1.5 mt-1" data-tf-id="${item.id}" onclick="event.stopPropagation();">归档专班</button>`
-      : `<button class="btn-accent-soft activity-complete-btn text-xs px-3 py-1.5 mt-1" data-act-id="${item.id}" onclick="event.stopPropagation();">确认完成</button>`)
-    : '';
+  const completeBtn = showCompleteBtn && !isTf
+    ? `<button class="btn-accent-soft activity-complete-btn text-xs px-3 py-1.5 mt-1" data-act-id="${item.id}" onclick="event.stopPropagation();">确认完成</button>`
+    : (showCompleteBtn && isTf ? '<span class="text-xs text-gray-500">收尾由组织委员办理</span>' : '');
   return `
     <div class="kanban-card p-3 rounded-xl bg-white hover:bg-gray-200 transition-colors cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#CE1126]" role="button" tabindex="0" aria-label="查看 ${esc(item.title || '未命名')} 详情" data-kt="${item._type}" data-ki="${item.id}">
       <div class="flex items-center gap-2 mb-0.5">

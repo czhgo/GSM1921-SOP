@@ -303,8 +303,13 @@ const KINDS = {
       const row = rowOf(ctx.db, 'weekly_reports', ctx.sourceId) || {};
       if (row.submittedBy) raw.submitterId = row.submittedBy;
       const vars = applyRosterNames(ctx.db, raw);
-      if (row.week !== undefined) vars.week = row.week;
-      if (row.weekRange !== undefined) vars.weekRange = row.weekRange;
+      const archivePeriod = row.archivePolicySnapshot || {};
+      if (archivePeriod.periodLabel !== undefined) vars.periodLabel = archivePeriod.periodLabel;
+      else if (row.periodLabel !== undefined) vars.periodLabel = row.periodLabel;
+      else if (row.week !== undefined) vars.periodLabel = row.week;
+      if (archivePeriod.periodRange !== undefined) vars.periodRange = archivePeriod.periodRange;
+      else if (row.periodRange !== undefined) vars.periodRange = row.periodRange;
+      else if (row.weekRange !== undefined) vars.periodRange = row.weekRange;
       return buildSystemNotice('weekly-report-submitted', vars);
     },
   },

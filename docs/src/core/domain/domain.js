@@ -23,6 +23,10 @@ export const SEED_DATA_VERSION = '2026-10-07';
  * @property {string}  id          - 唯一标识符（由 id.js 生成）
  * @property {string}  title       - 活动标题
  * @property {string}  type        - 活动类型（如 '组织生活会'、'主题党日'）
+ * @property {'party-group'|'cross-group'} [organizingScope] - 持久化承办责任范围；不限制成员报名或参加
+ * @property {string|null} [hostGroupId] - 组内承办党小组 ID；跨组承办时为 null
+ * @property {string} [workgroupId] - 随活动创建的活动工作组主记录 ID
+ * @property {string} [branchId] - 活动所属支部；关联写入须由服务端校验同支部
  * @property {'draft'|'pending-approval'|'published'|'ongoing'|'completed'|'cancelled'} status - 活动状态（`pending-approval`＝待批，2026-09-22 批次 150 活动批准门开启时写入，默认关） - Source: knowledge/SOP/常见工作场景快速指南.md#我要组织一次党小组活动
  * @property {'branch'|'group'} visibility - 可见范围：全支部 or 党小组 - Source: knowledge/SOP/支委与党小组定人定责定岗说明.md#一、人员结构与双重身份体系
  * @property {string}  date        - 活动日期 ISO 字符串（YYYY-MM-DD）
@@ -41,6 +45,47 @@ export const SEED_DATA_VERSION = '2026-10-07';
  * @property {OutputRecord[]} [outputs] - 产出物记录（T-224 §5.5/§8 数据结构预留）：
  *   `{ type: OutputType, title, submittedBy, submittedAt, status: 'pending'|'submitted', routedTo: deriveOutputRoute(type).route }`
  *   `routedTo` 由类型派生（非人工录入），组织者上传时只见「提交」不见「发送对象」。
+ */
+
+/**
+ * @typedef {Object} WorkGroupRecord
+ * @property {string} id
+ * @property {string} branchId
+ * @property {'activity'|'taskforce'} kind
+ * @property {'activity'|'taskforce'} sourceType
+ * @property {string} sourceId
+ * @property {string} name
+ * @property {'active'|'recruiting'|'archived'|'dissolved'} status
+ * @property {'party-group'|'cross-group'} [organizingScope] - 活动工作组的承办范围
+ * @property {string|null} [hostGroupId] - 活动工作组的承办党小组；跨组时为 null
+ * @property {string} createdBy
+ * @property {string} createdAt
+ */
+
+/**
+ * @typedef {Object} WorkGroupMemberRecord
+ * @property {string} id
+ * @property {string} branchId
+ * @property {string} workgroupId
+ * @property {string} personId
+ * @property {'organizer'|'deep'|'participant'} role - 业务成员分工，不等同于系统权限
+ * @property {'active'|'removed'} status
+ * @property {string} createdBy
+ * @property {string} createdAt
+ */
+
+/**
+ * @typedef {Object} WorkGroupGrantRecord
+ * @property {string} id
+ * @property {string} branchId
+ * @property {string} workgroupId
+ * @property {string} personId
+ * @property {string[]} permissionKeys - 与成员分工分开保存，服务端逐项验证
+ * @property {'active'|'revoked'} status
+ * @property {string} grantedBy
+ * @property {string} grantedAt
+ * @property {string} [revokedBy]
+ * @property {string} [revokedAt]
  */
 
 /**
@@ -274,6 +319,18 @@ export const mockDB = {
   handoffs: [],
   /** @type {Object[]} 专班数据 */
   taskforces: [],
+  /** @type {Object[]} 工作组主记录（业务任务/活动协作关系） */
+  workgroups: [],
+  /** @type {Object[]} 工作组成员关系；不隐含系统权限 */
+  workgroupMembers: [],
+  /** @type {Object[]} 独立、可审计的工作组授权 */
+  workgroupGrants: [],
+  /** @type {Object[]} 工作组任务 */
+  workgroupTasks: [],
+  /** @type {Object[]} 工作组产出 */
+  workgroupOutputs: [],
+  /** @type {Object[]} 活动冻结应到名单 */
+  attendanceRosters: [],
   /** @type {Object[]} 通知数据 */
   notices: [],
   /** @type {Object[]} 待办任务数据 — Source: content/04_web_design/data/DATA_ARCHITECTURE.md §2.18 */
@@ -285,7 +342,7 @@ export const mockDB = {
   // ── 2026-08-05 假操作修复新增持久化域 ──
   /** @type {Object[]} 宣传任务（prop-commissioner 工作台） */
   propTasks: [],
-  /** @type {Object[]} 宣传周报记录（prop-commissioner 工作台） */
+  /** @type {Object[]} 周期归档提交记录（历史资源名 weeklyReports） */
   weeklyReports: [],
   /** @type {Object[]} 档案归档记录（prop-commissioner 工作台） */
   archiveRecords: [],

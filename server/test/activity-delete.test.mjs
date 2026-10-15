@@ -55,6 +55,23 @@ test('删除活动会原子清理所有活动关联数据并保留其他活动�
   put('archive_records', `archive-${id}`, { id: `archive-${id}`, activityId: id, filePath: '/api/v1/uploads/activity.pdf' });
   put('file_space_records', `file-${id}`, { id: `file-${id}`, activityId: id, filePath: '/api/v1/uploads/activity.pdf' });
   put('image_records', `image-${id}`, { id: `image-${id}`, activityId: id, filePath: '/api/v1/uploads/activity.pdf' });
+  put('workgroups', `wg-activity-${id}`, {
+    id: `wg-activity-${id}`, branchId: 'br-b1', kind: 'activity', sourceType: 'activity', sourceId: id,
+  });
+  put('workgroup_members', `wgm-${id}-p2`, {
+    id: `wgm-${id}-p2`, branchId: 'br-b1', workgroupId: `wg-activity-${id}`, personId: 'p2', status: 'active',
+  });
+  put('workgroup_grants', `wgg-${id}-p2`, {
+    id: `wgg-${id}-p2`, branchId: 'br-b1', workgroupId: `wg-activity-${id}`, personId: 'p2', status: 'active',
+  });
+  put('workgroup_tasks', `wgt-${id}`, { id: `wgt-${id}`, branchId: 'br-b1', workgroupId: `wg-activity-${id}` });
+  put('workgroup_outputs', `wgo-${id}`, { id: `wgo-${id}`, branchId: 'br-b1', workgroupId: `wg-activity-${id}`, activityId: id });
+  put('attendance_rosters', `atr-${id}`, { id: `atr-${id}`, branchId: 'br-b1', activityId: id, personIds: ['p2'], frozen: true });
+  put('workgroups', 'wg-taskforce-keep', {
+    id: 'wg-taskforce-keep', branchId: 'br-b1', kind: 'taskforce', sourceType: 'taskforce', sourceId: 'tf-keep',
+  });
+  put('workgroup_tasks', 'wgt-keep', { id: 'wgt-keep', branchId: 'br-b1', workgroupId: 'wg-taskforce-keep', activityId: id });
+  put('workgroup_outputs', 'wgo-keep', { id: 'wgo-keep', branchId: 'br-b1', workgroupId: 'wg-taskforce-keep', activityId: id });
   db.prepare('INSERT INTO attachments (id, filename, path, size, uploaded_by, uploaded_at) VALUES (?, ?, ?, ?, ?, ?)')
     .run(`attachment-${id}`, 'activity.pdf', '/api/v1/uploads/activity.pdf', 1, 'p13', '2026-10-14');
   put('act_sub_records', '__root__', { [id]: { activityId: id, note: '删除' }, [other]: { activityId: other, note: '保留' } });
@@ -65,9 +82,13 @@ test('删除活动会原子清理所有活动关联数据并保留其他活动�
   assert.equal(result.id, id);
   for (const [table, rowId] of [['activities', id], ...linkedRows,
     ['signups', `signup-${id}`], ['notices', `notice-${id}`], ['todos', `todo-${id}`],
-    ['archive_records', `archive-${id}`], ['file_space_records', `file-${id}`], ['image_records', `image-${id}`]]) {
+    ['archive_records', `archive-${id}`], ['file_space_records', `file-${id}`], ['image_records', `image-${id}`],
+    ['workgroups', `wg-activity-${id}`], ['workgroup_members', `wgm-${id}-p2`], ['workgroup_grants', `wgg-${id}-p2`],
+    ['workgroup_tasks', `wgt-${id}`], ['workgroup_outputs', `wgo-${id}`], ['attendance_rosters', `atr-${id}`]]) {
     assert.equal(db.prepare(`SELECT COUNT(*) AS n FROM ${table} WHERE id = ?`).get(rowId).n, 0, `${table} should be removed`);
   }
+  assert.equal(JSON.parse(db.prepare("SELECT data FROM workgroup_tasks WHERE id = 'wgt-keep'").get().data).activityId, null);
+  assert.equal(JSON.parse(db.prepare("SELECT data FROM workgroup_outputs WHERE id = 'wgo-keep'").get().data).activityId, null);
   assert.equal(db.prepare('SELECT data FROM agenda_votes').all()
     .filter((row) => JSON.parse(row.data).activityId === id).length, 0);
   assert.equal(db.prepare('SELECT COUNT(*) AS n FROM attachments WHERE id = ?').get(`attachment-${id}`).n, 0);
