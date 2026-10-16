@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
   
-<script src="./src/theme-init.js?v=20261016a"></script>
+<script src="./src/theme-init.js?v=20261016b"></script>
 <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>帮助 — GSM1921-SOP</title>
@@ -13,8 +13,8 @@
   <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;800&family=Noto+Serif+SC:wght@400;500;600;700;800&display=swap" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;800&family=Noto+Serif+SC:wght@400;500;600;700;800&display=swap" rel="stylesheet"></noscript>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="./src/tailwind-config.js?v=20261016a"></script>
-  <link rel="stylesheet" href="./src/styles.css?v=20261016a">
+  <script src="./src/tailwind-config.js?v=20261016b"></script>
+  <link rel="stylesheet" href="./src/styles.css?v=20261016b">
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
@@ -307,7 +307,7 @@
               <tr><td><a href="./workspace/disc.html">纪检委员工作台</a></td><td>纪检委员全部工作视图（9 个 tab，见 2.4）</td><td>纪检委员</td><td>登录后自动直达；侧边栏「工作台」</td></tr>
               <tr><td><a href="./workspace/leader.html">党小组组长工作台</a></td><td>组长全部工作视图（10 个 tab，见 2.5）</td><td>党小组组长</td><td>登录后自动直达；侧边栏「工作台」</td></tr>
               <tr><td><a href="./workspace/visitor.html">成员工作台</a></td><td>成员全部工作视图（11 个 tab，见 2.6）</td><td>普通成员；组织者 / 深度参与者被赋权后在本台承担对应操作</td><td>登录后自动直达；侧边栏「工作台」</td></tr>
-              <tr><td><a href="./workspace/party-committee.html">党委工作台</a></td><td>全院支部治理视图（6 个 tab，见 2.7）——组织级，不属于任一支部</td><td>党委组织员（party-staff）</td><td>登录后自动直达；侧边栏「工作台」</td></tr>
+              <tr><td><a href="./workspace/party-committee.html">党委工作台</a></td><td>全院支部治理视图（5 个 tab，见 2.7）——组织级，不属于任一支部</td><td>党委组织员（party-staff）</td><td>登录后自动直达；侧边栏「工作台」</td></tr>
             </tbody>
           </table>
         </div>
@@ -328,7 +328,7 @@
               <tr><td>党小组组长</td><td>块块：本组活动、考勤 / 考察管理、组员进展（含本组复盘状态只读）</td><td><a href="./workspace/leader.html">党小组组长工作台</a></td></tr>
               <tr><td>普通成员</td><td>参与活动、看考勤考察、交思想汇报、复盘提交</td><td><a href="./workspace/visitor.html">成员工作台</a></td></tr>
               <tr><td>组织者 / 深度参与者</td><td>项目角色，无独立页面，归入成员工作台；被赋权后在对应活动 / 专班内承担职责（如活动复盘提交）</td><td><a href="./workspace/visitor.html">成员工作台</a></td></tr>
-              <tr><td>党委组织员</td><td>组织级角色（party-staff），监控全院各支部，不属于任一支部、不参与支部内部事务；<strong>但对匿名事项保留核查权</strong>（可查反馈的真实提交人，每次查看留痕）</td><td><a href="./workspace/party-committee.html">党委工作台</a></td></tr>
+              <tr><td>党委组织员</td><td>组织级角色（party-staff），监控全院各支部，不属于任一支部、不参与支部内部事务；意见反馈始终在支部内闭环，党委不读取反馈或提交人身份</td><td><a href="./workspace/party-committee.html">党委工作台</a></td></tr>
             </tbody>
           </table>
         </div>
@@ -573,8 +573,8 @@
         </div>
 
         <!-- 2.7 党委工作台 -->
-        <h3 class="doc-h3"><span class="doc-h3-badge">2.7</span>党委工作台（6 tab · 党委组织员）</h3>
-        <p class="doc-p">入口：登录直达或侧边栏「工作台」→ <a href="./workspace/party-committee.html">party-committee.html</a>。组织级角色（party-staff）专用，监控全院各支部，不属于任一支部。tab 条分段：首页 / 全院治理。<strong>「全院治理」段的信息页页首带「支部筛选」下拉</strong>（支部监控台账 / 支部上报 / 匿名反馈核查 / 下发通知——选中后只出该支部的行）。</p>
+        <h3 class="doc-h3"><span class="doc-h3-badge">2.7</span>党委工作台（5 tab · 党委组织员）</h3>
+        <p class="doc-p">入口：登录直达或侧边栏「工作台」→ <a href="./workspace/party-committee.html">party-committee.html</a>。组织级角色（party-staff）专用，监控全院各支部，不属于任一支部。tab 条分段：首页 / 全院治理。「全院治理」段的信息页提供支部筛选；<strong>意见反馈属于支部内部闭环，不在党委工作台展示。</strong></p>
         <div class="doc-table-wrap">
           <table class="doc-table">
             <thead><tr><th style="width:15%;">tab</th><th style="width:14%;">给谁用</th><th style="width:43%;">这页做什么</th><th>怎么做（点哪里）</th></tr></thead>
@@ -583,7 +583,6 @@
               <tr><td>支部监控台账</td><td>党委组织员</td><td>全院各支部台账监控（跨支部看板）；页首「支部筛选」可按支部收窄</td><td>「全院治理」段；按支部 / 维度查看台账</td></tr>
               <tr><td>支部上报</td><td>党委组织员</td><td>各支部上报的关键事项（发展节点 / 活动报备）——党委<b>接收</b>后逐项批复（批准 / 批驳并附意见），结论<b>回复支部</b>；页首「支部筛选」可按支部收窄</td><td>「全院治理」段；点开上报 → 「批准 / 批驳」并附意见</td></tr>
               <tr><td>支部管理</td><td>党委组织员</td><td>支部实例管理（新建 / 改名 / 停用恢复 / 支书任命 / 空支部名册导入）＋ 页内「<b>支部配置</b>」（换组织向导：「模块 / 分工 / 向导配置」，部署期职责）</td><td>「全院治理」段；增删改支部实例；页底「支部配置」区选支部 → 走换组织向导 → 保存</td></tr>
-              <tr><td>匿名反馈核查</td><td>党委组织员</td><td>列出反馈的真实提交人（含匿名项真身）· 仅党委可见 · 每次查看留痕；页首「支部筛选」可按支部收窄</td><td>「全院治理」段；逐条核对真实提交人（实名项显其本名，匿名项显真身并标「匿名提交」）；党支部内部（含支书）看不到本页</td></tr>
               <tr><td>下发通知</td><td>党委组织员</td><td>面向支部支委层下发通知（标「党委下发」来源）· 页首「支部筛选」可按支部收窄下发历史</td><td>「全院治理」段；「+ 下发」选送达支部 → 发布</td></tr>
             </tbody>
           </table>
@@ -669,14 +668,14 @@
         </div>
 
         <!-- 以下四条 ＝ 2026-09-25「文案存量清理」批：界面口径段 → 一行摘要 ＋ 本锚点深链（原句逐字保留在此） -->
-        <div class="help-card" id="card-copy-issue-reveal" data-copy-key="issue-reveal" data-copy-source="docs/src/entries/tabs/party-committee/issue-review-tab.js" data-search="匿名反馈核查 真身 真实提交人 仅党委可见 留痕 查看真身 处置权 支部内部 匿名提交 reveal 党委 全院治理">
-          <h3 class="help-card-title">匿名反馈核查（谁能看真身 · 留痕 · 与处置权的关系）</h3>
-          <p class="help-card-desc"><strong>原文（原为党委台「匿名反馈核查」tab 顶部口径条的三段，2026-09-25 起界面只留一行摘要 ＋ 本锚点深链）：</strong>① 本页仅党委可见：匿名 = 前端展示层匿名，后台记录真实提交人；查看真身的权限只有党委有。② 每次查看都会留痕（谁 / 何时 / 看了哪些匿名条目）：留痕让「只有党委能看」这句承诺可被事后核对。③ 党支部内部（含支书）看不到本页信息：支书只负责处置——「处置」与「查看真身」是两项分开的权限。</p>
+        <div class="help-card" id="card-copy-issue-reveal" data-search="匿名反馈 支部内部 支部隔离 匿名 真身 党委 不能查看 登录 支委处置 授权核查">
+          <h3 class="help-card-title">匿名反馈的支部范围与身份保护</h3>
+          <p class="help-card-desc"><strong>现行口径（D-824）：</strong>意见反馈必须登录后提交，只能在所属支部内读取和处置；党委不是反馈上报渠道，也不能读取反馈内容或真实提交人。勾选匿名后，支部工作人员看到的提交人始终显示为「匿名」。服务端以受保护字段保留真实提交人，但当前没有系统查询入口；浏览器演示模式不保存真实身份。</p>
           <ul class="doc-list" style="margin-top:8px;">
-            <li><strong>本页只有党委能进</strong>：匿名属于前端展示层，真身由服务端保存；另有服务端 403 兜底，拼出页签也拿不到。</li>
-            <li><strong>看一次记一笔</strong>：进入即落一条查看记录（人 / 时 / 本次含几条匿名），mock 与 api 两形态同构，便于事后复核这句承诺。</li>
-            <li><strong>与处置分开</strong>：支书只有处置口（改状态），没有真身读口——「做与看分开」在本页的落点。</li>
-            <li><strong>相关</strong>：§2.7 党委工作台「全院治理」组「匿名反馈核查」行；意见反馈的处置见支书台「意见反馈」。</li>
+            <li><strong>登录和支部隔离</strong>：未登录者不能读反馈；支部账号只能读写本支部，跨支部请求由服务端拒绝。</li>
+            <li><strong>党委边界</strong>：党委工作台不提供反馈列表、提交入口或揭名功能。</li>
+            <li><strong>身份保护</strong>：匿名字段保存在服务端受保护记录中；当前没有系统查询入口。未来若要建立核查机制，必须先另行明确授权角色、条件与审计规则。</li>
+            <li><strong>相关</strong>：意见反馈的支委处置见本章「意见反馈」；正式表决继续保持独立的真无记名机制。</li>
           </ul>
         </div>
 
@@ -1188,7 +1187,7 @@
             <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">对每条填写「审批意见」（驳回必填；批准可填指导意见）→「批准」或「驳回」。</li>
           </ol>
           <p class="help-card-desc" style="margin-top:8px;"><span style="display:inline-block;font-size:0.68rem;font-weight:600;line-height:1.6;letter-spacing:0.04em;color:#047857;background:#ECFDF5;border:1px solid #A7F3D0;border-radius:999px;padding:1px 8px;margin-right:6px;vertical-align:1px;">自动</span>结论（批准 / 驳回 · 处理人 · 时间 · 意见）回传支部侧「上报党委」页；已处理历史在本页「已处理」区留存可查。</p>
-          <p class="help-card-desc"><span style="display:inline-block;font-size:0.68rem;font-weight:600;line-height:1.6;letter-spacing:0.04em;color:#B91C1C;background:#FEF2F2;border:1px solid #FECACA;border-radius:999px;padding:1px 8px;margin-right:6px;vertical-align:1px;">退回 / 注意</span>驳回未填意见被拦（提示填写，便于支部知悉整改方向）；组织级角色不参与支部内部事务（见 1.3），但对匿名事项保留核查权（可查反馈的真实提交人，每次查看留痕）。</p>
+          <p class="help-card-desc"><span style="display:inline-block;font-size:0.68rem;font-weight:600;line-height:1.6;letter-spacing:0.04em;color:#B91C1C;background:#FEF2F2;border:1px solid #FECACA;border-radius:999px;padding:1px 8px;margin-right:6px;vertical-align:1px;">退回 / 注意</span>驳回未填意见被拦（提示填写，便于支部知悉整改方向）；组织级角色不参与支部匿名反馈闭环（见 D-824），党委工作台没有反馈列表或揭名入口。</p>
         </div>
 
         <!-- 3.8 归档与宣传 -->
@@ -1271,7 +1270,7 @@
 
         <!-- 3.9 汇报与反馈 -->
         <h3 class="doc-h3" style="margin-top:34px;"><span class="doc-h3-badge">3.9</span>汇报与反馈</h3>
-        <p class="doc-p">汇报反馈域 = 支部双向互动通道：<strong>① 工作汇报</strong>（成员 / 委员「一键汇报」进度 / 卡点 / 请示 → 支书「待答复收件箱」正式答复 → 汇报人确认收到即办结；支书 / 组长「了解进展」请汇报）；<strong>② 意见反馈</strong>（公共页 feedback.html 提交 → 支委层处置：支书台「反馈管理」／公开反馈页议题详情）；<strong>③ 组长「组员进展」</strong>（本组组员汇报收件与行内答复 + 卡点知情）；<strong>④ 文件外发确认接收侧</strong>（发起侧在 3.8 档案归档）。宣传线的周期归档已写在 3.8，此处不重复。待办「汇报反馈」折组 / 顶部常驻「一键汇报」与角标承担提醒（支书台另把「待答复汇报」置顶待办）。</p>
+        <p class="doc-p">汇报反馈域 = 支部内部双向互动：<strong>① 工作汇报</strong>（成员 / 委员「一键汇报」进度 / 卡点 / 请示 → 支书「待答复收件箱」正式答复 → 汇报人确认收到即办结；支书 / 组长「了解进展」请汇报）；<strong>② 意见反馈</strong>（登录成员在本支部提交 → 支委层处置；不向党委汇总，支部间相互隔离）；<strong>③ 组长「组员进展」</strong>（本组组员汇报收件与行内答复 + 卡点知情）；<strong>④ 文件外发确认接收侧</strong>（发起侧在 3.8 档案归档）。宣传线的周期归档已写在 3.8，此处不重复。待办「汇报反馈」折组 / 顶部常驻「一键汇报」与角标承担提醒（支书台另把「待答复汇报」置顶待办）。</p>
 
         <div class="help-card" id="card-dom39-report" data-search="汇报反馈 一键汇报 进度 卡点 请示 汇报 支书 待答复 正式答复 收件箱 确认已收到答复 办结">
           <h4 class="help-card-title">双向工作汇报（一键汇报 → 支书答复 → 汇报人确认后办结）</h4>
@@ -1302,9 +1301,9 @@
         </div>
 
         <div class="help-card" id="card-dom39-feedback" data-search="汇报反馈 意见反馈 反馈 建议 问题 新建反馈 草稿 审核 驳回 批复 评论 指派 关闭 隐藏 合并 匿名 缺陷 增强 提案 疑问 事项领域 建议归口 反馈时间 支委会">
-          <h4 class="help-card-title">意见反馈（公共页提交 + 支书台反馈管理处置）</h4>
-          <p class="help-card-desc" style="margin-top:6px;"><strong>入口：</strong>公共页「意见反馈」feedback.html（列表 / 详情 / 新建；提交需登录，未登录自动跳登录页）；支书台「制度与答复」段「反馈管理」。</p>
-          <p class="help-card-desc"><strong>谁来用：</strong>支部成员提交（可勾匿名——<strong>勾选后的「匿名」＝对外展示匿名</strong>：列表 / 详情一律显示「匿名」，<strong>真实提交人只有党委在必要时可查，且每次查看都会留下记录</strong>；党支部内部（含支书）看不到真身——「处置」与「查看真身」是两项分开的权限）；草稿审核在支书台「反馈管理」（支书 / 副支书）；<strong>处置（批复 / 评论 / 指派 / 关闭 / 隐藏 / 合并）由支委层行使</strong>——支书 / 副支书 / 组织 / 宣传 / 纪检，在公开反馈页议题详情即可改状态、隐藏评论（普通成员与党小组组长不可）。</p>
+          <h4 class="help-card-title">意见反馈（支部内提交 + 支委处置）</h4>
+          <p class="help-card-desc" style="margin-top:6px;"><strong>入口：</strong>登录后的支部「意见反馈」feedback.html（列表 / 详情 / 新建；未登录自动跳登录页）；支书台「制度与答复」段「反馈管理」。</p>
+          <p class="help-card-desc"><strong>谁来用：</strong>仅登录的支部成员在本支部提交反馈；党委账号不能读取、代为提交或揭名。可勾匿名——支部工作人员看到的提交人始终显示「匿名」，服务端受保护记录保留真实提交人，但当前没有系统查询入口；浏览器演示模式不保存真实身份。草稿审核在支书台「反馈管理」（支书 / 副支书）；<strong>处置（批复 / 评论 / 指派 / 关闭 / 隐藏 / 合并）由支委层行使</strong>——支书 / 副支书 / 组织 / 宣传 / 纪检，只能处置本支部反馈（普通成员与党小组组长不可）。</p>
           <p class="help-card-desc" style="margin-top:10px;"><strong>几步：</strong></p>
           <ol style="list-style:decimal;margin:4px 0 6px;padding-left:1.5em;">
             <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">成员：feedback.html「新建反馈」→ 标题 * / 正文 * / 范围 *（底层架构 / 全局通用 / 权责调整 / 特定场景）/ 类型 * 多选（缺陷 / 增强 / 提案 / 疑问）/ <strong>事项领域</strong>（制度建设建议 / 活动组织建议 / 工作流程建议 / 其他建议——选定后系统按领域<strong>给出建议归口与反馈时间</strong>，只给建议、不自动派单），可勾「匿名提交」→「提交反馈」→ 状态 = 待审核草稿（提示「待支书审核通过后公开」）。</li>
@@ -1318,7 +1317,7 @@
 
         <div class="help-card" id="card-dom39-my-dispatch" data-search="汇报反馈 我的处置 请我汇报 我发起的汇报 指派给我的反馈 支委 组织委员 宣传委员 纪检委员 组长 处置结果 待终审">
           <h4 class="help-card-title">我的处置（组织 / 宣传 / 纪检 / 党小组组长 / 成员五台：请我汇报 / 我发起的汇报 / 指派给我的反馈；成员台为答复入口）</h4>
-          <p class="help-card-desc" style="margin-top:6px;"><strong>入口：</strong>组织 / 宣传 / 纪检 / 党小组组长台「制度与答复」段「我的处置」；成员台「制度与答复」段「我的处置」（成员侧为答复入口：显示「我提交 / 参与的反馈」并允许追加说明，不给处置写权）。<strong>怎么认领「我提交的」</strong>：提交时本机会留一串随机标识，服务端只存它的哈希（<strong>它认的是「这台设备提交过什么」，与「提交人是谁」无关</strong>）——据此比对即可认出自己提交过的反馈；换设备或清除浏览器数据后认不回。<strong>关于「匿名提交」</strong>：勾选后列表 / 详情一律显示「匿名」，<strong>真实提交人只有党委在必要时可查（党委台「匿名反馈核查」页签），且每次查看都会留下记录</strong>；党支部内部（含支书）看不到真身——处置由支委层负责（「处置」与「查看真身」是两项分开的权限）。</p>
+          <p class="help-card-desc" style="margin-top:6px;"><strong>入口：</strong>组织 / 宣传 / 纪检 / 党小组组长台「制度与答复」段「我的处置」；成员台「制度与答复」段「我的处置」（成员侧为答复入口：显示「我提交 / 参与的反馈」并允许追加说明，不给处置写权）。<strong>怎么认领「我提交的」</strong>：提交时本机会留一串随机标识，服务端只存它的哈希（<strong>它认的是「这台设备提交过什么」，与「提交人是谁」无关</strong>）——据此比对即可认出自己提交过的反馈；换设备或清除浏览器数据后认不回。<strong>关于「匿名提交」</strong>：支部工作人员看到的列表 / 详情始终显示「匿名」；后台身份字段受保护，当前不提供系统揭名入口。党委工作台不读取反馈；处置由支委层负责，范围限定在本支部。</p>
           <p class="help-card-desc"><strong>谁来用：</strong>组织 / 宣传 / 纪检委员、党小组组长（被请汇报人 / 汇报发起人 / 被指派人三合一）；成员（答复自己提交 / 参与的反馈——按提交时留在本机的随机标识比对认领，服务端只存该标识的哈希、与「谁提交」无关，故换设备或清除浏览器数据后认不回）。</p>
           <p class="help-card-desc" style="margin-top:10px;"><strong>几步：</strong></p>
           <ol style="list-style:decimal;margin:4px 0 6px;padding-left:1.5em;">
@@ -1660,13 +1659,13 @@
         <h2 class="doc-h2"><span class="doc-num">6</span>党委与配置</h2>
         <hr class="doc-divider">
         <p class="doc-p doc-lead">
-          本章讲两件事：<strong>① 党委组织员的全院治理操作</strong>（党委工作台 7 个 tab，6.1）；<strong>② 支部级配置</strong>（支部配置分步向导与三入口，6.2；数据保留与重置档位，6.3）。设置中心的<strong>逐项说明</strong>已独立成章，见第 4 章「设置逐项」。组织级角色（party-staff）不属于任一支部、不参与支部内部事务（见 1.3），<strong>但对匿名事项保留核查权</strong>（可查反馈的真实提交人，每次查看留痕，见 2.7 与 6.1）；tab 级概览在 2.7，本章写「进了这个 tab 具体怎么做」。
+          本章讲两件事：<strong>① 党委组织员的全院治理操作</strong>（党委工作台各 tab，6.1）；<strong>② 支部级配置</strong>（支部配置分步向导与三入口，6.2；数据保留与重置档位，6.3）。设置中心的<strong>逐项说明</strong>已独立成章，见第 4 章「设置逐项」。组织级角色（party-staff）不属于任一支部、不参与支部匿名反馈闭环（见 D-824）；tab 级概览在 2.7，本章写「进了这个 tab 具体怎么做」。
         </p>
 
-        <!-- 6.1 党委工作台 7 tab 导览 -->
-        <h3 class="doc-h3" style="margin-top:34px;"><span class="doc-h3-badge">6.1</span>党委工作台 7 tab 导览</h3>
-        <div class="help-card" id="card-admin-ws" data-search="党委工作台 治理总览 支部监控台账 支部管理 上报审批 下发通知 支部配置 匿名反馈核查 党委组织员 全院治理 支部治理 操作要点">
-          <h4 class="help-card-title">7 tab：给谁用 · 做什么 · 操作要点</h4>
+        <!-- 6.1 党委工作台 5 tab 导览 -->
+        <h3 class="doc-h3" style="margin-top:34px;"><span class="doc-h3-badge">6.1</span>党委工作台 5 tab 导览</h3>
+        <div class="help-card" id="card-admin-ws" data-search="党委工作台 治理总览 支部监控台账 支部管理 上报审批 下发通知 支部配置 党委组织员 全院治理 支部治理 操作要点">
+          <h4 class="help-card-title">5 tab：给谁用 · 做什么 · 操作要点</h4>
           <div class="doc-table-wrap">
             <table class="doc-table">
               <thead><tr><th style="width:14%;">tab</th><th style="width:12%;">给谁用</th><th style="width:38%;">做什么</th><th>操作要点</th></tr></thead>
@@ -1675,7 +1674,6 @@
                 <tr><td>支部监控台账</td><td>党委组织员</td><td>全院支部运行台账：成员规模 / 发展阶段分布 / 思想汇报篇数 / 组织生活类型计数 / 近期活动 / 现任支书；页首「支部筛选」可按支部收窄</td><td>「全院治理」段；逐支部卡片查看；支部在「支部管理」新增后自动上卡</td></tr>
                 <tr><td>支部管理</td><td>党委组织员</td><td>支部实例管理：新建空支部 / 改名 / 任命支书 / 空支部整表导入成员名册 ＋ 页内「<b>支部配置</b>」（换组织向导分步，任意支部可切换；吸收合并原模块启停裸开关清单）</td><td>「全院治理」段。「+ 新建支部」填名称与类型 → 建成空支部（模块默认全开、业务为空、支书席位空缺）→ 支部卡「导入成员名册」：下载名册模板 JSON → 保留迁入本支部的成员行、删去其余 → 「选择名册文件」→ 核对导入统计卡（在册党员 / 滞留 / 支部大会应到 / 各组应到）→「确认导入保存」；支部卡「任命支书」选本支部成员（可写任命说明）→ 确认后原支书自动降回成员、任期档案记录；「改名」即时更新页眉显示。仅空支部可整表导入，已有成员 / 历史的支部逐人在本支部「成员名册」维护（见 3.5）。页底「支部配置」区：默认进入首支部，顶部可切其它支部 → 按分步向导操作（见 6.2）</td></tr>
                 <tr><td>支部上报</td><td>党委组织员</td><td>各支部上报的关键事项（发展节点 / 活动报备）——党委<b>接收</b>后逐项批复（批准 / 批驳并附意见），结论<b>回复支部</b>；页首「支部筛选」可按支部收窄</td><td>「全院治理」段；待批复区逐条填「审批意见」→「批准 / 驳回」（驳回必填意见，便于支部整改）；支部侧自动收到结论（支部侧操作见 3.7 / 5.9）</td></tr>
-                <tr><td>匿名反馈核查</td><td>党委组织员</td><td>列出反馈的真实提交人（含匿名项）：匿名 = 前端展示层匿名，后台记录真实提交人；页首「支部筛选」可按支部收窄</td><td>「全院治理」段；进页即列出真身（实名显本名、匿名显真身并标「匿名提交」）——<b>本页仅党委可见，且每次查看都留痕</b>；党支部内部（含支书）看不到，支书只负责处置（「处置」与「查看真身」是两项分开的权限）</td></tr>
                 <tr><td>下发通知</td><td>党委组织员</td><td>面向支部支委层下发通知（送达支委收件与已读反馈，标「党委下发」来源，不打扰非支委党员）；页首「支部筛选」可按支部收窄下发历史</td><td>「全院治理」段；「+ 下发」勾选目标支部（可全选；支部动态创建后自动可选）→ 填标题正文 → 发布</td></tr>
               </tbody>
             </table>
@@ -1808,6 +1806,6 @@
   </main>
 </div>
 
-<script type="module" src="./src/entries/pages/help-entry.js?v=20261016a"></script>
+<script type="module" src="./src/entries/pages/help-entry.js?v=20261016b"></script>
 </body>
 </html>

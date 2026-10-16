@@ -120,7 +120,7 @@
 | 权限键 | `view_all`、`create_activity`、`assign_task`、`modify_assignment`、`mark_complete`、`fill_review`、`record_inspection`、`manage_taskforce`、`initiate_taskforce`、`authorize_taskforce`、`authorize`、`archive`、`manage_members` + 意见反馈**基础键 7 个**（`issue.view` / `issue.create` / `issue.comment.add` / `issue.reaction.toggle` / `issue.mention` / `issue.reference` / `issue.edit.own`）+ 意见反馈**处置键 8 个**（`issue.status.change` / `issue.close` / `issue.comment.hide` / `issue.edit.others` / `issue.milestone.manage` / `issue.assignee.set` / `issue.drafts.merge` / `issue.drafts.reject`）——**支委层五角色（支书 / 副支书 / 组织 / 宣传 / 纪检）均持** |
 | 不能做什么 | 不持 `record_attendance`（不直接记考勤）、不持 `summarize_inspection`（不汇总考察）、不持 `assign_project_role`（项目角色赋权走组长/组织者链） |
 | 审批位 | ① 成员变更申请**确认**（组织委员审批后由支书确认生效）；② 支部**上报党委**的发起方；③ 意见反馈**处置**（指派/关闭/重开/隐藏/合并/里程碑/终审）——**归支委会：支委层五角色（支书 / 副支书 / 组织 / 宣传 / 纪检）均可**；④ **品牌认定**：本角色可**提案**，认定本身须经**支委会审议通过**后确定 |
-| 特例 / 边界 | ① **看不到匿名反馈的真实提交人**——「处置」与「查看真身」是两项分开的权限（真身仅党委可查）；② 支部 config 全量可写，但**不含支部官方名 `name`**（仅 `party-staff` 可改）；③ 党小组管理（新增/改名/解散/归组）仅支书（含副支书）；④ **代归档兜底在本台集成**——待办「宣传材料待归档」组「代归档」按钮**本台浮窗直执**（判据与写口与宣传台归档面同源；原「进宣传工作台只放行档案归档页」的跨台形态已撤，`D-807④`）；⑤ **支委身份配置**：可把**本支部成员**配为组织 / 宣传 / 纪检委员（可改派、可撤销）——**支书本人与副支书的身份由党委配置**，不在此列；**副支书与支书同权**（两者均可配） |
+| 特例 / 边界 | ① **看不到匿名反馈的真实提交人**——匿名反馈只在所属支部内闭环，当前任何角色均无系统揭名入口（`D-824`）；② 支部 config 全量可写，但**不含支部官方名 `name`**（仅 `party-staff` 可改）；③ 党小组管理（新增/改名/解散/归组）仅支书（含副支书）；④ **代归档兜底在本台集成**——待办「宣传材料待归档」组「代归档」按钮**本台浮窗直执**（判据与写口与宣传台归档面同源；原「进宣传工作台只放行档案归档页」的跨台形态已撤，`D-807④`）；⑤ **支委身份配置**：可把**本支部成员**配为组织 / 宣传 / 纪检委员（可改派、可撤销）——**支书本人与副支书的身份由党委配置**，不在此列；**副支书与支书同权**（两者均可配） |
 | 依据 | `docs/src/services/core/auth.js:79`、`:68-75`、`docs/src/core/domain/constants.js:202-204`（`BRANCH_COMMISSION_ROLES`）、`content/02_institution/SYSTEM_ROLE_PERMISSION.md:167-180`（§9j）、`server/routes/resources/gates.js:24-36`（党小组门）、`docs/src/entries/tabs/secretary/todo-tab.js`（代归档本台直执，`D-807④`） |
 
 > **⚠「仍专属支书」的清单**：「**品牌认定**」「**意见处置**」已归支委会 / 支委层，**仍专属支书**的为——① **活动信息编辑**（巡查面板按钮，前端按 `SECRETARY_ROLES` 判：`docs/src/components/record/inspector.js:627`）；② **全支部通知发布**（本组通知发布口的注释明写「全支部通知仍归支书」：`docs/src/components/governance/notice-view.js:182`）；③ **名册成员变更确认链的阶段语义端点**（服务端走 `SECRETARY_AND_DEPUTY_ROLES`，属既有支书写链：`server/routes/member.js:129`）。`SECRETARY_ROLES` 的注释写明「品牌认定、意见处置已移出本集」（`docs/src/core/domain/constants.js:205`）。
@@ -202,9 +202,9 @@
 | 身份 | 院系党委的组织员／党务老师；**不属于任一支部**（示例种子 `branchId: null`），**不参与支部内部活动闭环** |
 | 工作台 | `party-committee.html`（党委工作台），登录直达 |
 | 权限与职责 | ① 支部**实例管理**（增改、空模板创建/复制创建、**只有它可改支部官方名 `name`**）；② 支书**任命/撤换**（写任期档案 + 同步双方 `users.role` + 写 `branches.secretaryId`）；③ 支部**上报审批**（逐项批准/驳回，驳回须意见）；④ **下发通知**（送达目标支部支委层）；⑤ 支部**配置**（modules/blocks/workforce/组织档案/域参数，全支部）；⑥ `branches` / `appointmentRecords` 与 `users` 的 `POST`/`DELETE` 资源级写权限**仅此角色**（`users` 的 `PATCH` 另开「本支部现任支书 / 副支书的支委身份配置」一格） |
-| 唯一例外 | 党委**保留对匿名意见反馈的核查权**——`GET /api/v1/issues/reveal` 可查看匿名反馈**真实提交人**，且**每次查看写一条留痕**（`issue_reveals` 表）。这是「不参与支部内部事务」的唯一例外 |
+| 匿名意见反馈边界 | 反馈仅在支部内提交、读取和处置；党委无读取或揭名入口。服务端受保护字段保留匿名提交人的真实身份；浏览器 mock 不留存，旧揭名接口仅返回 403，历史留痕表停写（`D-824`） |
 | 特例 | 制度权限矩阵 §9b（支部 6 角色）与 §9c（项目 2 角色）**都不含它**——它是组织级角色，不进支部矩阵。另外：可见性配置表 `ROLE_VISIBILITY` 中没有它，因此「谁能看谁」的投影对它返回空 |
-| 依据 | `docs/src/services/core/auth.js:91-107`、`server/routes/resources/gates.js:25-27`、`server/routes/resources/index.js:56-58`、`content/02_institution/SYSTEM_ROLE_PERMISSION.md:44,167-180`、`docs/src/services/core/visibility.js:48-56`（无 party-staff 键）、`server/routes/resources/index.js:83-88-560`、`server/db.js:41` |
+| 依据 | `docs/src/services/core/auth.js:91-107`、`server/routes/resources/gates.js:25-27`、`server/routes/resources/index.js:56-58`、`content/02_institution/SYSTEM_ROLE_PERMISSION.md:44,178-190`、`docs/src/services/core/visibility.js:48-56`（无 party-staff 键）、`server/routes/resources/index.js:83-88-560`、`server/db.js:37-40` |
 
 #### 2.2.9 `organizer` 组织者（项目角色）
 
@@ -313,7 +313,7 @@
 
 | 门 | 含义 | 谁用 |
 |---|---|---|
-| （无门） | **完全公开**，不需要 token | `GET /api/v1/health`；`GET /api/v1/issues`（**唯一公开的资源读口**） |
+| （无门） | **完全公开**，不需要 token | 仅 `GET /api/v1/health`；意见反馈列表另需登录并按支部过滤 |
 | `requireAuth` | 需要有效 token（登录即可） | **29 个通用资源名的 `GET /<资源名>` 列表读**与 `GET /api/v1/bootstrap`；绝大多数写口与 `/snapshot`、`/report/*`、`/leader/member-progress`、`GET /uploads/:name`（另＋支部隔离） |
 | `requireCommissioner` | 支委层（支书/副支书/组织/宣传/纪检） | `branchDocs` 的通用写口；成员变更申请创建；**`POST /api/v1/uploads`** |
 | `requireRole(...)` | 指定角色集 | 成员变更审批/确认、名册语义端点、表决截止、意见反馈处置（**支委层**：`BRANCH_COMMISSION_ROLES`）、品牌认定**取消**口（支委层） |
@@ -321,9 +321,9 @@
 | 活动专门写门 | 非支委层一律拒；组长**仅限**「党小组会/主题党日」 | `POST/PATCH/DELETE /api/v1/activities*` |
 | 正式表决计票写侧校验 | `optionSet='formal'` 时显式写 `ballotMode='named'` → 400 | `POST/PATCH /api/v1/activities` |
 
-**依据**：`server/routes/resources/index.js:116-119`（逐表读口默认 requireAuth，白名单仅 `issues`）、`server/routes/resources/gates.js:24-67`（写门表）、`server/routes/resources/gates.js:83-97`（活动写门）、`server/routes/resources/gates.js:98-104`（计票方式）、`server/routes/resources/index.js:562`（bootstrap）、`server/routes/resources/index.js:873`（`ISSUE_DISPOSITION_SET`：意见处置＝支委层）、`server/routes/resources/index.js:901`（issues 公开读）、`server/routes/auth.js:57-96`（中间件）、`server/app.js:25`（health）。
+**依据**：`server/routes/resources/index.js:97-110`（逐表读口默认 requireAuth）、`server/routes/resources/gates.js:24-67`（写门表）、`server/routes/resources/gates.js:83-97`（活动写门）、`server/routes/resources/gates.js:98-104`（计票方式）、`server/routes/resources/index.js:565`（bootstrap）、`server/routes/resources/index.js:874`（`ISSUE_DISPOSITION_SET`：意见处置＝支委层）、`server/routes/resources/index.js:896-903`（issues 登录与支部过滤）、`server/routes/auth.js:57-96`（中间件）、`server/app.js:25`（health）。
 
-> ⚠ **给后端的重要提示**：**「（无门）」只剩两个只读口**——`/api/v1/health` 与公开的意见反馈列表 `/api/v1/issues`（出口脱敏）。**29 个通用资源名的列表读与 `/bootstrap` 已改为需登录**；此前未登录者可列举含学号的 `users` 等资源。服务端现按支部范围过滤通用资源、语义列表、汇总与导出；支部账号跨支部查询返回 403，党委可按 `branchId` 读取选中支部或不指定支部生成跨支部汇总。普通用户的数据写入仍须逐接口核对角色规则；快照不能写 `users` / `branches`，支部局部快照只替换本支部记录并保留其他支部数据。详见 §7.1。
+> ⚠ **给后端的重要提示**：**公开只读口仅 `/api/v1/health`**。意见反馈 `/api/v1/issues` 必须登录，并按本支部过滤；党委列表为空。**29 个通用资源名的列表读与 `/bootstrap` 同样需登录**；此前未登录者可列举含学号的 `users` 等资源。服务端现按支部范围过滤通用资源、语义列表、汇总与导出；支部账号跨支部查询返回 403，党委可按 `branchId` 读取选中支部或不指定支部生成跨支部汇总。普通用户的数据写入仍须逐接口核对角色规则；快照不能写 `users` / `branches`，支部局部快照只替换本支部记录并保留其他支部数据。详见 §7.1。
 
 ---
 
@@ -451,7 +451,7 @@
 | 10 | `tf-view` / 专班动态 | 知情查看 | 全支部**专班**只读一览（本台**只出「专班」段**，活动那一览已由 `activities` 承载）；点专班卡进只读详情，其中**「我的产出填报」是本人在专班上报产出的写口**（原地保留） |
 | 11 | `my-dispatch` / 我的处置 | 制度与答复 | 意见反馈答复入口（认领依据＝本机浏览器里的随机标识，**只答「这台设备提交过什么」**，换设备或清浏览器数据则认不回） |
 
-#### 3.2.7 党委工作台（`party-committee.html`）— 6 个
+#### 3.2.7 党委工作台（`party-committee.html`）— 5 个
 
 | # | 页签 | 分组 | 做什么 |
 |---|---|---|---|
@@ -459,10 +459,9 @@
 | 2 | `monitor` / 支部监控台账 | 全院治理 | 各支部工作台账监控；**页首「支部筛选」** |
 | 3 | `review` / 支部上报 | 全院治理 | 各支部上报的关键事项（发展节点/活动报备）——党委**接收**后逐项批准 / 驳回（驳回须意见），结论**回复支部**；**页首「支部筛选」** |
 | 4 | `branches` / 支部管理 | 全院治理 | 支部实例增改、空模板创建 / 复制创建、支书任命；**页内「支部配置」区（换组织向导）**；`#pc-wizard-host` / `#pc-deploy-panel` id 不变 |
-| 5 | `issue-review` / 匿名反馈核查 | 全院治理 | **查看匿名反馈真实提交人**（仅党委；每次查看留痕）；**页首「支部筛选」** |
-| 6 | `dispatch` / 下发通知 | 全院治理 | 向目标支部**支委层**下发通知（标「党委下发」）；**页首「支部筛选」**收窄下发历史 |
+| 5 | `dispatch` / 下发通知 | 全院治理 | 向目标支部**支委层**下发通知（标「党委下发」）；**页首「支部筛选」**收窄下发历史 |
 
-**「支部筛选」**＝共用件 `docs/src/components/governance/branch-filter.js`（**四页复用同一件**）；`''`＝全部支部。**豁免**：支部管理（它本身就是支部主数据清单，且页内「支部配置」自带支部选择器）。
+**「支部筛选」**＝共用件 `docs/src/components/governance/branch-filter.js`（监控台账 / 支部上报 / 下发通知三页复用同一件）；`''`＝全部支部。**豁免**：支部管理（它本身就是支部主数据清单，且页内「支部配置」自带支部选择器）。意见反馈始终在支部内闭环，不进入党委工作台。
 
 **依据（3.2 全节）**：`docs/src/capabilities/{secretary,org,prop,disc,leader,visitor,party-committee}-workspace.js`（逐台的 `tabs()` 数组）；`docs/src/core/domain/constants.js:249-258`（核心页签判定 `isCoreTab`）；`server/test/doc-consistency.test.mjs:64-72`（七台注册文件与分组轴口径）。
 
@@ -540,7 +539,7 @@
 | **来源 B**：`server/db.js` / `server/routes/*.js` | **服务端专有表**（母本未列的 5 张）：`sessions` · `attachments` · `member_change_requests` · `committee_broadcasts` · `agenda_votes` —— **39 条** | **是**（§4.34–§4.38） |
 | **来源 C**：`docs/src/**` 的实际读写点（`core/domain/domain.js` 之外的 seed / services / entries）＋ `server/routes/resources/index.js` 的资源名映射 | **代码确实在读写、但来源 A 字段表未列的字段**：**5 张通用资源表**（§4.39–§4.42、§4.44：`signups` 10 · `prop_tasks` 6 · `external_dispatches` 9 · `branch_docs` **24**〔含制度链 3 个字段〕 · `archive_records` 13）**62** 条 ＋ 子记录聚合域 2 条（§4.43）＋ 支书复核标记 `secretaryConfirmedAt` 3 条（§4.5 / §4.6 / §4.17）＝ **67** 条；**另 9 条**——意见反馈「事项领域」`domain`（§4.16）· 活动主源 `signupClosed` 与「品牌认定」留痕 8 个字段（§4.1） | **是**（逐条给代码出处，**后端建模时不得漏**） |
 
-- **数据落库形态（关键）**：服务端所有业务表都是 **`id TEXT PRIMARY KEY` + `data TEXT`（整条 JSON 字符串）** 的键值表——**字段本身不在 SQL 列里**，而是在 JSON 内部。后端若要换成关系型表，须按**母本字段表**（来源 A）＋ **本文来源 B / C** 逐条建列 / 建 JSON 列。**依据**：`server/db.js:44-58`（`SCHEMA`：`sessions`、`attachments` 为关系表）、`server/db.js:64-66`（业务表统一 `(id TEXT PRIMARY KEY, data TEXT NOT NULL)`）。
+- **数据落库形态（关键）**：服务端所有业务表都是 **`id TEXT PRIMARY KEY` + `data TEXT`（整条 JSON 字符串）** 的键值表——**字段本身不在 SQL 列里**，而是在 JSON 内部。后端若要换成关系型表，须按**母本字段表**（来源 A）＋ **本文来源 B / C** 逐条建列 / 建 JSON 列。**依据**：`server/db.js:42-56`（`SCHEMA`：`sessions`、`attachments` 为关系表）、`server/db.js:64-66`（业务表统一 `(id TEXT PRIMARY KEY, data TEXT NOT NULL)`）。
 - **通用约定**：`id` 形如 `前缀-随机`（服务端缺 id 时自动补，前缀表见 §6.2）；时间字段统一 ISO 字符串；`YYYY-MM-DD` 为日期；枚举值未注明时即「有且仅有」所列取值。
 
 > **服务端表全表清单（共 34 张资源表 + 2 张关系表）**：34 张资源表的表名见 `server/db.js:9-41`；另外 `sessions` / `attachments` 两张为关系表（`server/db.js:44-56`）。其中 **29 张**在 `server/routes/resources/index.js` 里映射为「资源名」（可走通用 CRUD，见 §6.2）；**另 5 张不在通用映射内**（只有语义端点或只有内部写入）：`issues`、`issue_reveals`、`member_change_requests`、`committee_broadcasts`、`agenda_votes`。
@@ -555,7 +554,7 @@
 
 > **`deepWorkMode` 补充说明**：该字段有母本依据（《常见工作场景快速指南》:120）；**已列入 `DATA_MODEL.md` §2.1 字段表**（同属来源 A）。**依据**：`docs/src/services/activity/activity.js`（`DEEP_WORK_MODE` / `DEEP_WORK_MODE_LABEL` / `deepWorkModeOf` 单一源）、`docs/src/services/activity/decision-tree.js`（`DecisionTreeState.deepItems` 项清单）、`docs/src/entries/tabs/leader/write-tab.js` 的勾选排、`docs/src/entries/tabs/visitor/projects-tab.js` 的「我的任务」完成方式位。
 
-> **来源 C · 原字段表尾行补充**：本节**原字段表**最后 7 行（`organizer`→`voteConfig`）与 `isOutdoor` 同属「代码确实写入 / 读取」的字段，**现均已列入 `DATA_MODEL.md` §2.1**（同属来源 A）；其代码出处保留如下，后端建模不得漏。**依据**：`docs/src/data/mock/activities.js:12-14,61-66`（`organizer` / `direction` / `hostGroup` / `assignments` 的实存形态）、`docs/src/services/activity/decision-tree.js:359`（`organizer` 写入）、`docs/src/services/core/auth.js:489-493`（`assignments` 写读）、`docs/src/entries/tabs/leader/write-tab.js:1105,1107`（`signupEnabled` / `requireMakeup` 写入）、`docs/src/entries/tabs/secretary/calendar-tab.js:1398-1414`（`voteConfig` 写入）、`docs/src/services/activity/vote-config.js:41,44`（`voteConfig` 取值）、`docs/src/services/activity/attendance.js:82-89`（`hostGroup` 判据）、`server/routes/resources/gates.js:98-104`、`server/routes/resources/index.js:308-310`（`voteConfig` 写侧校验）。
+> **来源 C · 原字段表尾行补充**：本节**原字段表**最后 7 行（`organizer`→`voteConfig`）与 `isOutdoor` 同属「代码确实写入 / 读取」的字段，**现均已列入 `DATA_MODEL.md` §2.1**（同属来源 A）；其代码出处保留如下，后端建模不得漏。**依据**：`docs/src/data/mock/activities.js:12-14,61-66`（`organizer` / `direction` / `hostGroup` / `assignments` 的实存形态）、`docs/src/services/activity/decision-tree.js:359`（`organizer` 写入）、`docs/src/services/core/auth.js:489-493`（`assignments` 写读）、`docs/src/entries/tabs/leader/write-tab.js:1105,1107`（`signupEnabled` / `requireMakeup` 写入）、`docs/src/entries/tabs/secretary/calendar-tab.js:1398-1414`（`voteConfig` 写入）、`docs/src/services/activity/vote-config.js:41,44`（`voteConfig` 取值）、`docs/src/services/activity/attendance.js:82-89`（`hostGroup` 判据）、`server/routes/resources/gates.js:98-104`、`server/routes/resources/index.js:304-307`（`voteConfig` 写侧校验）。
 
 **活动存储状态取值**：`draft` 草稿 / `pending-approval` 待批（**仅活动批准门开启时出现**，默认关不写入） / `published` 已发布 / `ongoing` 进行中 / `completed` 已结束 / `cancelled` 已取消。
 **活动生命周期展示态（派生，不落库）**：`draft` / `pending_approval`（待批） / `published` / `ongoing` / `pending_archive`（待归档，悬停显示缺项）/ `executed`（已执行）/ `archived` / `cancelled`。
@@ -733,10 +732,10 @@
 
 > 字段级清单见母本 `content/04_web_design/data/DATA_MODEL.md`（本文不复刻）。
 
-**落库时由服务端追加的字段（文档未列，见代码）**：`branchId`（支部归属，服务端取登录人所属支部，缺省 `br-b1`）、`tokenHash`（防刷判重/限频，**与 personId 无关、不可反推人**）、`createdAt`（ISO 时间戳）。另有 `kind`（内部汇报型反馈自身为 `'report'`）——**该字段不在服务端 `POST /issues` 的落库对象里**，而来自种子文件 `docs/data/issues.json` 与前端写入，见 §4.16 说明与 §5.6 第 4 条。
-**匿名口径（重要）**：`anonymous !== false` 即匿名（**缺省匿名**）；匿名＝**前端展示层匿名**，后台记真身；**「处置」与「查看真身」是两项分开的权限**。
+**落库时由服务端追加的字段（文档未列，见代码）**：`branchId`（服务端从登录会话取所属支部；党委账号不得回落默认支部）、`tokenHash`（防刷判重/限频，**与 personId 无关、不可反推人**）、`createdAt`（ISO 时间戳）。另有 `kind`（内部汇报型反馈自身为 `'report'`）——**该字段不在服务端 `POST /issues` 的落库对象里**，而来自种子文件 `docs/data/issues.json` 与前端写入，见 §4.16 说明与 §5.6 第 4 条。
+**匿名与范围（D-824）**：`anonymous !== false` 即匿名（**缺省匿名**）；必须登录后在所属支部内提交、读取和处置，支部账号之间相互隔离。党委不得读取、代为提交或揭名；匿名反馈不是向党委上报的通道。服务端受保护字段保留真实提交人，但当前不向任何角色提供系统揭名入口；浏览器 mock 缓存与草稿不保存身份，旧缓存会在读取时清理。
 **来源 C · `domain`（事项领域，母本字段表未列）**：`institution` 制度建设建议 / `activity` 活动组织建议 / `workflow` 工作流程建议 / `other` 其他建议——照母本《常见工作场景快速指南》「意见建议类型」表四类；随附**建议归口**（只给建议、**不自动派单**）。⚠ **服务端选填、表单侧必填**（不对称，如实登记）；单一源 `docs/src/services/governance/issues.js` 的 `ISSUE_DOMAINS`，落库白名单见下「依据」。
-**依据**：`content/04_web_design/data/DATA_MODEL.md:610-656`、`server/routes/resources/index.js:943`（落库字段含 `domain`）、`server/routes/resources/index.js:879-890`（脱敏 / 留痕序列化）。
+**依据**：`content/04_web_design/data/DATA_MODEL.md:610-656`、`server/routes/resources/index.js:951-952`（落库字段含 `domain`）、`server/routes/resources/index.js:879-890`（脱敏 / 留痕序列化）。
 
 ### 4.17 复盘记录（ReviewRecord）
 
@@ -888,8 +887,8 @@
 
 > 字段级清单见母本 `content/04_web_design/data/DATA_MODEL.md`（本文不复刻）。
 
-**表只增不改**：写入唯一入口＝`GET /api/v1/issues/reveal`（命中即写一条，与返回值同一次发生）。
-**依据**：`content/04_web_design/data/DATA_MODEL.md:1126-1144`、`server/routes/resources/index.js:543-564`、`server/db.js:37-41`。
+**历史表，保留但停写**：D-824 起 `/api/v1/issues/reveal` 对已登录用户统一返回 403，不读真实提交人，也不再向本表写入。保留已有历史记录以供后台审计；本表无通用 CRUD。
+**依据**：`content/04_web_design/data/DATA_MODEL.md` §2.29、`server/routes/resources/index.js` 意见反馈语义端点、`server/db.js` schema。
 
 ### 4.34 成员变更申请（member_change_requests，**服务端专有**）
 
@@ -1183,13 +1182,13 @@ npm start                   # 启动服务，默认端口 3000（PORT 可覆盖�
 | 前端静态文件 | `docs/` | 由 Express 静态托管（**强制 `Cache-Control: no-cache, must-revalidate`**） | `server/app.js:63-66` |
 | 备份 | `server/backups/<时间戳>/` | **用脚本备，不要手拷库文件**：`scripts/backup.mjs`（Windows 可调 `scripts/backup.ps1`）→ 数据库走 SQLite **在线备份**（better-sqlite3 `db.backup()`，**含 WAL 内容的一致性快照，不需停服**）+ 附件目录整体复制 + 备份当场校验（`integrity_check`）；**只拷 `data.db` 会丢最近写入**（WAL 未并回）**且会丢附件物理文件**（表里只存元数据） | `server/scripts/backup.mjs`、`server/README.md`「备份与恢复」一节；WAL 见 `server/db.js:62`；附件目录见 §5.4 上一行 |
 | 重置 | —— | **API 形态下 `?reset=` 三档不生效**；服务端重置＝删除 `server/data.db` 后重启自动重种，或 `DISABLE_SEED=1` 空库起步 | `server/README.md:19` |
-| 库结构版本 | 库内 `PRAGMA user_version` | **有版本化迁移**：`server/db.js` 末尾「最小可用迁移机制」段以 `user_version` 记 schema 版本，启动（`initDb`）时把未应用的迁移**按序、在一个事务内**执行、**失败即抛**（不静默）；`v1` 为**冻结的基线迁移**，之后结构变更走 `v2+`；v3 新增工作组与应到名单快照表；v4 将周报历史迁入通用周期归档表，旧专班/活动工作组兼容迁入；验收见 `server/test/db-migration.test.mjs` / `server/test/db-integrity-guard.test.mjs` / `server/test/backup-restore.test.mjs` | `server/db.js:217-328`（`MIGRATIONS`）、`server/db.js:334`（`SCHEMA_VERSION`）、`server/db.js:68`（启动接入点） |
+| 库结构版本 | 库内 `PRAGMA user_version` | **有版本化迁移**：`server/db.js` 末尾「最小可用迁移机制」段以 `user_version` 记 schema 版本，启动（`initDb`）时把未应用的迁移**按序、在一个事务内**执行、**失败即抛**（不静默）；`v1` 为**冻结的基线迁移**，之后结构变更走 `v2+`；v3 新增工作组与应到名单快照表；v4 将周报历史迁入通用周期归档表，旧专班/活动工作组兼容迁入；验收见 `server/test/db-migration.test.mjs` / `server/test/db-integrity-guard.test.mjs` / `server/test/backup-restore.test.mjs` | `server/db.js:215-329`（`MIGRATIONS`）、`server/db.js:331-332`（`SCHEMA_VERSION`）、`server/db.js:58-67`（启动接入点） |
 
 ### 5.5 服务器侧注意事项 / 限制（**请逐条核对**）
 
 | # | 事项 | 说明 | 依据 |
 |---|---|---|---|
-| 1 | **资源列表读口需登录** | `GET /api/v1/<资源名>`（29 个）与 `GET /api/v1/bootstrap` **默认要登录**（未登录 401）；**唯一公开的资源读口＝`GET /api/v1/issues`**（**全量**公开——**不分处置状态、含未处置件**；出口一律脱敏）；`GET /api/v1/health` 公开。**白名单口径＝「有明确裁定公开的才公开」**，故 `users`（含姓名/学号）、考勤、考察、思想汇报、附件元数据等**一律不再公开**。**收紧前**为「全部公开」 | `server/routes/resources/index.js:116-119`（逐表读口）、`server/routes/resources/index.js:562`（bootstrap）、`server/routes/resources/index.js:901`（issues 公开） |
+| 1 | **资源列表读口需登录** | `GET /api/v1/<资源名>`（29 个）与 `GET /api/v1/bootstrap` 默认要登录（未登录 401）；意见反馈 `/api/v1/issues` 也需登录且按支部过滤，党委得到空列表；仅 `GET /api/v1/health` 公开。`users`（含姓名/学号）、考勤、考察、思想汇报、附件元数据等不向匿名访问者开放 | `server/routes/resources/index.js:97-110`（逐表读口）、`:896-903`（issues）、`:562`（bootstrap）、`server/app.js:25`（health） |
 | 2 | **通用资源写口仍有登录即写面** | 资源角色门见 `RESOURCE_WRITE_GATE`；活动、专班工作组、考勤等另有业务写门。未列入角色门且无专门 handler 的通用资源仍只要求登录。跨资源关联与支部归属尚未形成覆盖全部资源的统一写门 | `server/routes/resources/gates.js`、`server/routes/resources/index.js`、`server/routes/resources/workgroup-routes.js` |
 | 3 | **无 CORS 配置** | 未挂载 CORS 中间件 → 只能**同源部署**（前端与 API 同一域名/端口）；跨域调用会被浏览器拦截 | `server/app.js`（无 cors 挂载） |
 | 4 | **无 HTTPS** | 服务自身只提供 HTTP；token 明文传输。真实部署应由反向代理终止 TLS | `server/server.js:21`；HTTPS 为对接前置条件见 `DEPLOYMENT_GUIDE.md:200` |
@@ -1218,7 +1217,7 @@ npm start                   # 启动服务，默认端口 3000（PORT 可覆盖�
 | 1 | **示例成员与账号** | 换 `docs/src/data/mock/people.js`、`accounts.js`、`branches.js`、`party-groups.js`、`activities.js`、`notices.js`、`taskforces.js`、`seed.js`；或**空库起步**（`DISABLE_SEED=1`）后从系统内录入 | `server/seed.js:41-83`、`README.md:198`。首启播种的表含 15 张（考勤 / 考察 / 活动复盘 / 专班复盘 / 思想汇报 / 宣传周报 / 宣传任务 / 文件流外发确认 / 支书任期记录 / 三委数据交接 / 成员变更确认队列 / 出勤与考察申诉队列 / 反馈未读标记 / 授权审计留痕），使「只有结构、没有数据」的表首启即有真行；另补 `todos`（同为单据型种子，见 §4.19；同源 `docs/src/services/governance/todo.js::SEED_TODOS`）⇒ 合计 16 张。逐表口径见 `server/seed.js` 末尾「待办基线种子」段 |
 | 2 | **登录口令** | 设 `LOGIN_PASSWORD`（**并确认未开 `DISABLE_PASSWORD_CHECK`**）；接入学校统一认证（IAAA）时替换 `POST /auth/login` 的校验逻辑 | `server/routes/auth.js:12-18`、`DEPLOYMENT_GUIDE.md:209,217` |
 | 3 | **演示支委名单 / 默认支部 id** | `COMMITTEE_IDS` 与 `'br-b1'` 兜底常量（见 §5.5 第 16、17 条） | 同上 |
-| 4 | **示例反馈种子** | `docs/data/issues.json`（服务端播种时读取；内部汇报型不脱敏、公开型脱敏） | `server/seed.js:19-39`、`:67` |
+| 4 | **示例反馈种子** | `docs/data/issues.json`（服务端播种时读取；匿名反馈保持匿名，内部汇报保留业务署名；两类均按登录与支部范围控制读取） | `server/seed.js:19-39`、`:67` |
 | 5 | **组织名称 / 主题 / 术语** | 支部名与 `config.headerTitle`；主题预设 `themePreset`（需支书特批的配色见 `DESIGN_SYSTEM.md` §二 色彩系统）；术语权威源 `content/03_doc_system/OPERATIONS_GUIDE.md` §19（《运行与协作规范》） | `README.md:195-202` |
 | 6 | **制度参数默认值** | `docs/src/core/domain/policy-defaults.js`（支部可调项）；制度固定项勿改 | `docs/src/core/domain/policy-defaults.js:6-15` |
 | 7 | **关闭演示数据回退（防污染真实账本）** | ① 设 **`APP_ENV=production`**（生产形态**默认不播种**，主推做法）；② 仍可显式 `DISABLE_SEED=1`（等价、更直白）；③ 前端空域回退开关 `SEED_FALLBACK` 置 `false`（关的是 `data/data-adapter.js::init()` 里考勤/考察/待办三域的空表回退）——**静态托管 / 直接以 `docs/` 为根** ⇒ 改 `docs/src/config/deploy.js` 常量；**Node 托管** ⇒ 设环境变量 `SEED_FALLBACK=0`（由 `server/app.js:55-57` 注入 `false`；缺省 `true`＝演示形态）；④ 按部署文档附录 A.2 逐项关闭 services 层其余空表回退 | `DEPLOYMENT_GUIDE.md:251`、`docs/src/config/deploy.js`、`server/app.js:55-57`、`server/env.js` |
@@ -1258,7 +1257,7 @@ npm start                   # 启动服务，默认端口 3000（PORT 可覆盖�
 
 | 方法 | 路径 | 用途 | 权限门 |
 |---|---|---|---|
-| GET | `/api/v1/<资源名>` | 列资源记录（JSON 数组） | **需登录**（29 个资源名一律；未登录 401。唯一公开的资源读口＝`GET /api/v1/issues`，见 §6.9） |
+| GET | `/api/v1/<资源名>` | 列资源记录（JSON 数组） | 需登录（29 个资源名一律；未登录 401。`/api/v1/issues` 是独立语义端点，同样需登录并按支部过滤，见 §4.16） |
 | POST | `/api/v1/<资源名>` | 新建单条；缺 `id` 时服务端生成 | 需登录（`branchDocs` 例外＝支委门）+ 资源写角色门（若有） |
 | PATCH | `/api/v1/<资源名>/:id` | 局部合并更新 | 同上 |
 | DELETE | `/api/v1/<资源名>/:id` | 删除（文件类资源联动删物理文件；删活动级联删子记录） | 同上 |
@@ -1299,7 +1298,7 @@ npm start                   # 启动服务，默认端口 3000（PORT 可覆盖�
 
 > ⚠ **`complianceReferences`（`compliance_references`，前缀 `cr`，原第 12 项）已删除**（死表——无 UI 消费方 / 无写口 / 无字段契约），删表走 `server/db.js` 的 `v2` `DROP TABLE` 迁移。
 > `users` 的 `POST` / `DELETE` 门＝**仅 `party-staff`**；`PATCH` 门＝**仅 `party-staff`**，另开**本支部现任支书 / 副支书**的「支委身份配置」一格（组织 / 宣传 / 纪检委员；撤销位 `participant`；跨支部 / 白名单外角色键 / 支书·副支书身份一律 403——判据 `docs/src/core/domain/constants.js::branchCommissionerWriteDeny`）；`branches`/`appointmentRecords` 同理仅党委。**依据**：`server/routes/resources/index.js:23`、`server/routes/resources/store.js:8-43`（映射）、`server/routes/resources/gates.js:24-36`（写门）、`server/routes/resources/store.js:48-65`（id 前缀）。
-> **GET 读口**：29 个资源名**默认要登录**，**唯一留白名单的是「有明确裁定公开」的 `issues`**（且它不在这 29 个里，是独立语义端点）；**`branches` 不放行**（按「不放行」处理，宁严勿松）。**依据**：`server/routes/resources/index.js:116-119`、`:851`。
+> **GET 读口**：29 个资源名默认要登录；独立语义端点 `issues` 也需登录并按本支部过滤，党委返回空列表；`branches` 不通过通用 GET 放行。**依据**：`server/routes/resources/index.js:97-110`、`:896-903`、`:851`。
 
 ### 6.3 支部与配置（`server/routes/resources/index.js`）
 
@@ -1365,10 +1364,10 @@ npm start                   # 启动服务，默认端口 3000（PORT 可覆盖�
 
 | 方法 | 路径 | 用途 | 权限门 |
 |---|---|---|---|
-| GET | `/api/v1/issues` | 公开读反馈列表（**一律脱敏，不含提交人真身**） | **无门（公开）** |
-| POST | `/api/v1/issues` | 提交反馈：`{title, body, scope, types[], domain?, anonymous?, submitterToken?}`（`domain`＝**事项领域**，**服务端选填、不设硬校验**）。字段缺失 400；超频 429；重复 409。**匿名亦落库真实提交人 `_realPersonId`** | 需登录 |
-| PATCH | `/api/v1/issues/:id` | 处置/回复：白名单字段局部合并（`status`/`closedReason`/`assignee`/`dispatchHistory`/`comments`/`hidden`/`mergedInto`…）；**读取原始记录后只合并白名单字段、原样写回**（不会抹掉真身） | 需登录 + **支委会（支委层）**——`ISSUE_DISPOSITION_SET`＝`BRANCH_COMMISSION_ROLES`（普通成员与党小组组长仍 403） |
-| GET | `/api/v1/issues/reveal` | **查看匿名反馈的真实提交人**；命中即写一条 `issue_reveals` 留痕 | 需登录 + **仅 `party-staff`**（非党委 403） |
+| GET | `/api/v1/issues` | 未登录 401；支部账号仅读本支部且一律脱敏；党委账号返回空数组以兼容数据初始化 | 需登录 |
+| POST | `/api/v1/issues` | 提交反馈：`{title, body, scope, types[], domain?, anonymous?, submitterToken?}`（`domain`＝**事项领域**，**服务端选填、不设硬校验**）。字段缺失 400；超频 429；重复 409。匿名真实提交人落入受保护字段 `_realPersonId`；`branchId` 由服务端会话决定 | 需登录 + 支部账号；党委 403 |
+| PATCH | `/api/v1/issues/:id` | 处置/回复：白名单字段局部合并（`status`/`closedReason`/`assignee`/`dispatchHistory`/`comments`/`hidden`/`mergedInto`…）；**读取原始记录后只合并白名单字段、原样写回**（不会抹掉真身） | 需登录 + 支委层 + 反馈属于操作者本支部；跨支部 403 |
+| GET | `/api/v1/issues/reveal` | 旧兼容路径；当前不读取真身、不写留痕 | 未登录 401；所有已登录角色 403 |
 
 ### 6.10 附件（`server/routes/uploads.js`）
 
@@ -1461,7 +1460,7 @@ npm start                   # 启动服务，默认端口 3000（PORT 可覆盖�
 
 | # | 项 | 现状 | 依据 |
 |---|---|---|---|
-| 1 | **资源读口需登录且按支部过滤** | `GET /api/v1/<资源名>`（29 个）与 `/bootstrap` 需登录；普通支部账号仅返回本支部数据，指定其他 `branchId` 返回 403。党委可指定支部或不指定以供跨支部汇总。**唯一公开资源读口＝`GET /api/v1/issues`**（出口脱敏）；匿名访问仍按公开反馈契约提供全量反馈列表 | `server/routes/resources/index.js`、`server/routes/resources/branch-scope.js`、`server/routes/resources/semantic-routes.js`、`server/routes/report.js`、`server/routes/leader-progress.js` |
+| 1 | **资源读口需登录且按支部过滤** | `GET /api/v1/<资源名>`（29 个）与 `/bootstrap` 需登录；普通支部账号仅返回本支部数据，指定其他 `branchId` 返回 403。党委可指定支部或不指定以供跨支部汇总。意见反馈 `/api/v1/issues` 也需登录，支部账号仅读本支部，党委列表为空（D-824） | `server/routes/resources/index.js`、`server/routes/resources/branch-scope.js`、`server/routes/resources/semantic-routes.js`、`server/routes/report.js`、`server/routes/leader-progress.js` |
 | 2 | **成员与支部治理数据不经快照写入** | `/snapshot` 拒绝 `users` 与 `branches` 集合；成员及支部配置必须走专用写接口。支部局部快照只替换本支部记录并保留其他支部行 | `server/routes/resources/workgroup-routes.js::snapshotScopeDeny`、`server/routes/resources/branch-scope.js::scopedSnapshotWriteDeny` / `mergeScopedSnapshotWrites`、`server/routes/resources/index.js` |
 | 3 | **通用资源写口仍有登录即写面** | 资源角色门见 `RESOURCE_WRITE_GATE`；活动、专班工作组、考勤等另有业务写门。未列入角色门且无专门 handler 的部分资源仍只要求登录；各业务动作的角色授权尚未完全统一 | `server/routes/resources/gates.js`、`server/routes/resources/index.js`、`server/routes/resources/workgroup-routes.js` |
 | 4 | **活动写门是有意留白** | 活动写门已拒「非支委层」，但**支委层的既有功能位（宣传归档、议程/结果编辑、状态更新）保持放行**——注释明确写「是否进一步收紧为『仅支书/副支书/党小组组长』列入待支书裁（避免误伤归档/议程链路）」 | `server/routes/resources/gates.js:83-97`（尤其 141-142 行） |
@@ -1482,8 +1481,8 @@ npm start                   # 启动服务，默认端口 3000（PORT 可覆盖�
 | 12 | **活动字段 `deliverableIds` 已废弃** | 字段仍在模型中（标注为废弃），交付物实际由「文件空间记录」覆盖 | `content/04_web_design/data/DATA_MODEL.md:50` |
 | 13 | **归档材料 `url` 字段当前恒为 null** | 模型写明「阶段 2 后端支持时填充，mock 阶段为 null」 | `content/04_web_design/data/DATA_MODEL.md:903` |
 | 14 | **邮件通道实际不会发出任何邮件** | 三重原因叠加：① 收件人从成员档案 `email` 读取，而**示例数据无该字段**；② 需 `MAIL_ENABLED=true` 且 `SMTP_*` 齐备；③ 即便发出，也只覆盖「通知发布 / 待办提醒 / 汇报」三类触发点，受众解析**只实现了 activity 定向与全体两种**（党小组/角色定向统一按全体处理） | `server/services/mailer.js:93-106`、`server/services/mailer-hooks.js:19-37` |
-| 15 | **`handoffs`（三委数据交接记录）：服务端已有表** | 前端 mockDB 有 `handoffs` 域；**服务端现有同名表 `handoffs`**（语义端点组 = `server/db.js::SEMANTIC_TABLES`，写读口见 §6 末「语义端点」段）⇒ API 形态下该域**已落库**，且 `init()` 会拉取填充 | `docs/src/core/domain/domain.js:339`、`server/db.js:157-159`（`SEMANTIC_TABLES`）、`server/routes/resources/semantic-routes.js:155-194`（handoffs 三端点：列表 / 发起 / 接收确认） |
-| 16 | **`pendingMemberConfirmations`：服务端已有表** | 前端 mockDB 数组承载内存读链；**服务端现有表 `member_confirmations`**（语义端点组 = `server/db.js::SEMANTIC_TABLES`）⇒ API 形态下该队列**已落库**、清浏览器缓存不丢（写读口见 §6 末「语义端点」段）；浏览器 localStorage 键 `gsm1921-member-confirmations` 仍作 mock 形态的持久化通道，两形态并存 | `docs/src/core/domain/domain.js:416`（`pendingMemberConfirmations`）、`server/db.js:157-159`、`server/routes/resources/semantic-routes.js:198-235`（入队 / 支书决策两端点） |
+| 15 | **`handoffs`（三委数据交接记录）：服务端已有表** | 前端 mockDB 有 `handoffs` 域；**服务端现有同名表 `handoffs`**（语义端点组 = `server/db.js::SEMANTIC_TABLES`，写读口见 §6 末「语义端点」段）⇒ API 形态下该域**已落库**，且 `init()` 会拉取填充 | `docs/src/core/domain/domain.js:339`、`server/db.js:155-159`（`SEMANTIC_TABLES`）、`server/routes/resources/semantic-routes.js:155-194`（handoffs 三端点：列表 / 发起 / 接收确认） |
+| 16 | **`pendingMemberConfirmations`：服务端已有表** | 前端 mockDB 数组承载内存读链；**服务端现有表 `member_confirmations`**（语义端点组 = `server/db.js::SEMANTIC_TABLES`）⇒ API 形态下该队列**已落库**、清浏览器缓存不丢（写读口见 §6 末「语义端点」段）；浏览器 localStorage 键 `gsm1921-member-confirmations` 仍作 mock 形态的持久化通道，两形态并存 | `docs/src/core/domain/domain.js:416`（`pendingMemberConfirmations`）、`server/db.js:155-159`、`server/routes/resources/semantic-routes.js:198-235`（入队 / 支书决策两端点） |
 | 17 | **「副组长」身份已落地** | 制度文本规定「每个党小组设 1 名组长 + 1-2 名副组长，副组长可共享同组组长工作台的相关内容」；系统已把 `deputy-leader` 落成**可与组长区分的第二个身份**——**同页同台、同权限集，任务优先给组长、不硬切分正副职责**；**支书台「党小组」清单行内可赋权 / 撤销副组长（与组长同列双身份）** | `content/02_institution/SYSTEM_ROLE_PERMISSION.md:46`、`content/02_institution/sop/支委与党小组定人定责定岗说明.md:40`、`content/02_institution/sop/党小组组长工作手册.md:46-48`；载体名单（`docs/` 内「副组长」命中集）见 `server/test/doc-line-ref.test.mjs:268-275` |
 | 18 | **`party-staff` 无可见性配置** | 「谁能看谁」（`ROLE_VISIBILITY`）表中**没有 `party-staff` 键** ⇒ 该角色的可见目标投影恒为空 | `docs/src/services/core/visibility.js:48-56`、`:99-101` |
 

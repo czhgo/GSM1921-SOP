@@ -44,7 +44,7 @@ const SEMANTIC_ALLOW = [
   /\/api\/v1\/leader\/member-progress\b/,    // 聚合读口
   /\/api\/v1\/auth\//,                       // 认证域（login / iaaa/pending）
   /\/api\/v1\/setup\/setup-status\b/,        // 换组织向导状态
-  /\/api\/v1\/issues\/reveal\b/,             // 匿名核查留痕（裁定：仅党委可查）
+  /\/api\/v1\/issues\/reveal\b/,             // 旧客户端兼容拒绝路径（D-824：所有角色均拒绝）
   /\/api\/v1\/members\b/,                    // 成员语义端点（profile / 支委身份配置）
   /\/api\/v1\/branches\/[^'"`]*\/(config|config\/rollback)\b/, // 支部语义子路由（**不是** branches 资源本身）
   /\/api\/v1\/versions\b/,                   // 集合版本读口

@@ -17,7 +17,10 @@ before(async () => {
     .run(row.id, JSON.stringify(row));
   write('branches', { id: 'br-b2', name: '第二支部', status: 'active', config: {} });
   write('users', { id: 'p99', name: '第二支部成员', role: 'participant', branchId: 'br-b2' });
+  write('users', { id: 'p98', name: '第二支部书记', role: 'secretary', branchId: 'br-b2' });
   write('activities', { id: 'act-b2', branchId: 'br-b2', title: '第二支部活动', status: 'active', assignments: [] });
+  write('taskforces', { id: 'tf-b2', branchId: 'br-b2', name: '第二支部工作组', task: '测试任务', status: 'recruiting', initiator: 'p98', members: [] });
+  write('signups', { id: 'signup-b2-fixture', sourceType: 'taskforce', sourceId: 'tf-b2', personId: 'p98', role: 'participant', status: 'approved' });
   write('tasks', { id: 'task-b2', activityId: 'act-b2', title: '第二支部任务' });
   write('act_sub_records', { id: '__root__', body: {
     'act-11': { note: '本支部子记录' },
@@ -36,7 +39,7 @@ before(async () => {
   write('attendance_rosters', { id: 'atr-act-b2', branchId: 'br-b2', activityId: 'act-b2', personIds: ['p99'], frozen: true });
   server = app.listen(0);
   base = `http://127.0.0.1:${server.address().port}/api/v1`;
-  for (const personId of ['p13', 'p99', 'p_pc']) {
+  for (const personId of ['p13', 'p98', 'p99', 'p_pc']) {
     const response = await fetch(`${base}/auth/login`, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ personId, password: '123456' }),
@@ -73,6 +76,8 @@ test('支部资源列表与 bootstrap 只返回本支部数据，关联记录按
 
   const appeals = await get('p13', '/attendance-appeals');
   assert.ok(!appeals.body.some((row) => row.id === 'appeal-b2'));
+  const signups = await get('p13', '/signups');
+  assert.ok(!signups.body.some((row) => row.id === 'signup-b2-fixture'));
   const unread = await get('p13', '/issue-unread');
   assert.ok(!unread.body.some((row) => row.id === 'p99:issue-b2'));
   const audit = await get('p13', '/auth-audit');
@@ -173,6 +178,75 @@ test('支部局部快照不会覆盖其他支部，并自动标记新建记录�
   });
   assert.equal(forbidden.status, 403);
   assert.equal(JSON.parse(db.prepare('SELECT data FROM tasks WHERE id = ?').get('task-b2').data).title, '第二支部任务');
+});
+
+test('报名写入按来源支部、本人身份和业务状态变更逐项授权', async () => {
+  const headers = (personId) => ({ Authorization: `Bearer ${tokens.get(personId)}`, 'Content-Type': 'application/json' });
+  const foreignSource = await fetch(`${base}/signups`, {
+    method: 'POST', headers: headers('p99'),
+    body: JSON.stringify({ id: 'signup-cross-branch', sourceType: 'activity', sourceId: 'act-11', personId: 'p99', role: 'participant', status: 'approved' }),
+  });
+  assert.equal(foreignSource.status, 403, '不能把本支部报名挂到其他支部活动');
+
+  const impersonation = await fetch(`${base}/signups`, {
+    method: 'POST', headers: headers('p99'),
+    body: JSON.stringify({ id: 'signup-impersonation', sourceType: 'activity', sourceId: 'act-b2', personId: 'p13', role: 'participant', status: 'approved' }),
+  });
+  assert.equal(impersonation.status, 403, '不能替其他成员报名');
+
+  const spoofStatus = await fetch(`${base}/signups`, {
+    method: 'POST', headers: headers('p99'),
+    body: JSON.stringify({ id: 'signup-status-spoof', sourceType: 'activity', sourceId: 'act-b2', personId: 'p99', role: 'organizer', status: 'approved', reviewedBy: 'p99', reviewedAt: '2026-01-01' }),
+  });
+  assert.equal(spoofStatus.status, 403, '报名人不能自批 organizer/deep 报名');
+
+  const create = await fetch(`${base}/signups`, {
+    method: 'POST', headers: headers('p99'),
+    body: JSON.stringify({ id: 'signup-b2-pending', sourceType: 'taskforce', sourceId: 'tf-b2', personId: 'p99', role: 'organizer', status: 'pending', reviewedBy: null, reviewedAt: null }),
+  });
+  assert.equal(create.status, 201);
+  const created = await create.json();
+  assert.equal(created.branchId, 'br-b2');
+  assert.equal(created.status, 'pending');
+
+  const memberReview = await patch('p99', '/signups/signup-b2-pending', { status: 'approved', reviewedBy: 'p99', reviewedAt: '2026-01-01' });
+  assert.equal(memberReview.status, 403, '普通成员不能审核报名');
+  const secretaryReview = await patch('p98', '/signups/signup-b2-pending', { status: 'approved' });
+  assert.equal(secretaryReview.status, 200, '本支部书记可以审核报名');
+  const reviewed = await secretaryReview.json();
+  assert.equal(reviewed.reviewedBy, 'p98', '审核人由服务端填入');
+});
+
+test('报名快照不能伪造报名人、状态或移除留痕记录', async () => {
+  const versions = (await get('p99', '/snapshot/versions')).body.versions;
+  const current = (await get('p99', '/signups')).body;
+  const apiHeaders = { Authorization: `Bearer ${tokens.get('p99')}`, 'Content-Type': 'application/json' };
+  const spoof = await fetch(`${base}/snapshot`, {
+    method: 'POST', headers: apiHeaders,
+    body: JSON.stringify({
+      signups: [...current, { id: 'signup-snapshot-spoof', sourceType: 'activity', sourceId: 'act-b2', personId: 'p13', role: 'participant', status: 'approved' }],
+      _versions: { signups: versions.signups || 0 },
+    }),
+  });
+  assert.equal(spoof.status, 403, '快照不能冒名创建报名');
+
+  const removed = await fetch(`${base}/snapshot`, {
+    method: 'POST', headers: apiHeaders,
+    body: JSON.stringify({ signups: [], _versions: { signups: versions.signups || 0 } }),
+  });
+  assert.equal(removed.status, 403, '快照不能物理删除报名留痕');
+});
+
+test('系统通知的业务来源按资源精确校验支部，不能借未列举资源越界', async () => {
+  const response = await fetch(`${base}/system-notices`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${tokens.get('p13')}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      kind: 'record-void-decided', sourceId: 'task-b2',
+      payload: { resource: 'tasks', label: '第二支部任务', decision: 'confirmed', reason: '跨支部测试' },
+    }),
+  });
+  assert.equal(response.status, 403, '支部支委不能为其他支部业务记录生成通知');
 });
 
 test('快照拒绝绕过专用接口改写成员或支部治理记录', async () => {

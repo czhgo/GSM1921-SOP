@@ -1,4 +1,4 @@
-import { WORKGROUP_PERMISSION_TEMPLATES } from '../../services/core/auth.js?v=20261016a';
+import { WORKGROUP_PERMISSION_TEMPLATES } from '../../services/core/auth.js?v=20261016b';
 
 const LABELS = {
   'activity.edit': '编辑活动',

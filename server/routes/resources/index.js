@@ -30,6 +30,7 @@ import { _snapshotBaseVersions, _snapshotWrites, _snapshotMissingVersions, _allC
 import { registerExtraSemanticRoutes } from './semantic-routes.js';
 import { activityCreationDeny, activityOperationAllowed, approvedTaskforceDissolutionWorkgroups, attendanceWriteDeny, createActivityWorkgroup, createTaskforceWorkgroup, snapshotScopeDeny } from './workgroup-routes.js';
 import { actorBranchId, aggregateWriteDeny, branchForNewResource, branchSelectionError, mergeAggregateBody, mergeScopedSnapshotWrites, recordBranchWriteDeny, resourceRowsForActor, scopedSnapshotWriteDeny } from './branch-scope.js';
+import { normalizeSignupCreate, normalizeSignupPatch, signupCreateDeny, signupSnapshotDeny } from './signup-write-guard.js';
 
 function _archiveSnapshotForActor(db, actor, submittedAt, report = {}) {
   let branchId = actor?.branchId || null;
@@ -79,20 +80,6 @@ function _resourceRowsForActor(db, name, table, actor, requestedBranchId) {
   return resourceRowsForActor(db, name, listTable(db, table), actor, requestedBranchId);
 }
 
-function optionalActor(db) {
-  return (req, _res, next) => {
-    const token = String(req.headers.authorization || '').replace(/^Bearer\s+/i, '');
-    if (token) {
-      const session = db.prepare('SELECT person_id FROM sessions WHERE token = ?').get(token);
-      if (session) {
-        const row = db.prepare('SELECT data FROM users WHERE id = ?').get(session.person_id);
-        if (row) req.actor = JSON.parse(row.data);
-      }
-    }
-    next();
-  };
-}
-
 export function createResourcesRouter(db) {
   const router = Router();
 
@@ -108,12 +95,11 @@ export function createResourcesRouter(db) {
   // ── 读口收紧（2026-09-18 批次 81；支书 2026-09-18 裁定「授权收紧」）──────────────
   // 病灶（批次 80 实测）：未登录 GET 30 张资源表一律 200，`users`（含姓名/学号/角色/联系方式）
   //   可被全量列举。裁定：**默认要登录**，**只给「明写公开」的留白名单**（宁严勿松）。
-  // 白名单口径＝「**有明确裁定公开的才公开**」：现**只有 `issues`** —— 它是本文件下游的语义端点
-  //   （见本文件意见反馈一节注释原文「GET /api/v1/issues 公开读（**全量**公开）」），
-  //   且**不走在下方循环里**，故本循环的白名单集合当前为空集也正确；保留该集合是为了让
+  // 白名单口径＝「**有明确裁定公开的才公开**」：当前没有公开读取的资源；意见反馈也必须登录且仅支部内可读。
+  //   且**不走在下方循环里**，故本循环白名单当前为空集；保留该集合是为了让
   //   「哪几张放行」在代码里显式可见（改口径时只动这一处）。
   // **不放行 `branches`**：批次 80 对它的判断标注为「判断存疑」⇒ 本批按「不放行」处理。
-  const PUBLIC_READ = new Set(['issues']);
+  const PUBLIC_READ = new Set();
   // 每个资源 GET list
   for (const [name, table] of Object.entries(RESOURCE_TABLES)) {
     const readAuth = PUBLIC_READ.has(name) ? [] : [requireAuth(db)];
@@ -145,9 +131,14 @@ export function createResourcesRouter(db) {
         if (!_assertResourceWrite(req.actor, name, 'post', req.body, req.params.id, db)) {
           return res.status(403).json({ error: _writeDenyMsg(name) });
         }
-        const row = req.body;
+        let row = req.body;
         if (!row || typeof row !== 'object' || Array.isArray(row)) {
           return res.status(400).json({ error: 'body 须为单条数据对象' });
+        }
+        if (name === 'signups') {
+          const deny = signupCreateDeny(db, req.actor, row);
+          if (deny) return res.status(403).json({ error: deny });
+          row = normalizeSignupCreate(db, req.actor, row);
         }
         if (['actSubRecords', 'tfSubRecords'].includes(name)) {
           const deny = aggregateWriteDeny(db, name, row.body || {}, req.actor);
@@ -256,6 +247,12 @@ export function createResourcesRouter(db) {
       const id = req.params.id;
       const existing = db.prepare(`SELECT data FROM ${table} WHERE id = ?`).get(id);
       if (!existing) return res.status(404).json({ error: 'not found' });
+      const previousRecord = JSON.parse(existing.data);
+      if (name === 'signups') {
+        const transition = normalizeSignupPatch(db, req.actor, previousRecord, req.body || {});
+        if (transition.error) return res.status(403).json({ error: transition.error });
+        req.body = transition.row;
+      }
       if (['actSubRecords', 'tfSubRecords'].includes(name) && req.body && Object.prototype.hasOwnProperty.call(req.body, 'body')) {
         const deny = aggregateWriteDeny(db, name, req.body.body, req.actor);
         if (deny) return res.status(403).json({ error: deny });
@@ -309,7 +306,6 @@ export function createResourcesRouter(db) {
         const ballotErr = _ballotModeReject(req.body.voteConfig);
         if (ballotErr) return res.status(400).json({ error: ballotErr });
       }
-      const previousRecord = JSON.parse(existing.data);
       const merged = { ...previousRecord, ...(req.body || {}), id };
       if (name === 'periodicArchives') {
         delete merged.archivePolicySnapshot;
@@ -392,6 +388,9 @@ export function createResourcesRouter(db) {
       }
       if (['actSubRecords', 'tfSubRecords'].includes(name)) {
         return res.status(403).json({ error: '聚合子记录根节点不可物理删除' });
+      }
+      if (name === 'signups') {
+        return res.status(409).json({ error: '报名记录须保留；请通过本人撤回、取消或作废流程留痕，不得物理删除' });
       }
       if (!['users', 'branches', 'actSubRecords', 'tfSubRecords'].includes(name)) {
         const existing = db.prepare(`SELECT data FROM ${table} WHERE id = ?`).get(req.params.id);
@@ -595,6 +594,11 @@ export function createResourcesRouter(db) {
     const aliasResult = _normalizeSnapshotAliases(payload);
     if (aliasResult.error) return res.status(400).json({ error: aliasResult.error });
     payload = aliasResult.payload;
+    if (Array.isArray(payload.signups)) {
+      const signupResult = signupSnapshotDeny(db, payload.signups, req.actor);
+      if (signupResult.error) return res.status(403).json({ error: signupResult.error });
+      payload = { ...payload, signups: signupResult.rows };
+    }
     const branchWriteDeny = scopedSnapshotWriteDeny(db, payload, req.actor);
     if (branchWriteDeny) return res.status(403).json({ error: branchWriteDeny });
     const snapshotWrites = mergeScopedSnapshotWrites(db, _snapshotWrites(payload), req.actor);
@@ -854,26 +858,23 @@ export function createResourcesRouter(db) {
   });
 
   // ════════════════════════════════════════════════════════════════
-  //  意见反馈语义端点（2026-09-12 首裁「真匿名」→ **2026-09-17 支书改裁**）
-  //  · GET  /api/v1/issues          公开读（**全量**公开：**不分处置状态、含未处置件**；所有人可见）——**一律脱敏，不含提交人**
-  //  · POST /api/v1/issues          登录用户可提交；**匿名亦落库真实提交人**
+  //  意见反馈语义端点（2026-10-16 更新：支部内部闭环，党委不是上报渠道）
+  //  · GET  /api/v1/issues          必须登录；仅所属支部读取；党委账号返回空列表
+  //  · POST /api/v1/issues          支部账号可提交；党委账号拒绝；branchId 只取会话归属
   //  · PATCH /api/v1/issues/:id     处置/回复＝**支委会**（支委层；2026-09-21 批次 126 · `D-550` 由「仅支书」放开）——**处置人也看不到提交人**
-  //  · GET  /api/v1/issues/reveal   **仅党委（party-staff）**：可看匿名反馈的真实提交人，**每次查看留痕**
-  //  ── 口径变更依据（支书 2026-09-17 原话）：「**后台记录真实情况，匿名是前端的。但是我们也强调清楚，
-  //     查看匿名的权限只有党委有。**」 ──
-  //  · 匿名 = **前端展示层匿名**：后台记真实提交人（`_realPersonId`），前端与一切常规读出口都看不出是谁。
-  //  · **可见范围＝仅党委**：支书**不可见**——「处置」与「查看真身」是**两项分开的权限**，
-  //    不能因为支书有处置权就顺带把真身给他（这正是本次改裁与旧实现「仅支书可追溯」的关键差别）。
+  //  · GET  /api/v1/issues/reveal   仅保留拒绝响应兼容路径；所有角色均 403，不读身份、不写留痕
+  //  · 匿名 = 支部工作人员看不到提交人；服务端保留受保护字段 `_realPersonId`，当前无任何揭名入口。
+  //  · 反馈是支部内部闭环，不是向党委上报或跨支部汇集的入口。
   //  · **适用范围（重要）**：本改裁**只落在意见反馈一处**。「正式表决无记名」**维持 2026-09-12 原裁定不变**
   //    （两段式：参与记录 + tally，**逐人选项不落库**）——支书同日就「无记名表决是否一并改」单独裁定为
   //    「**表决保持真无记名**」⇒ 那句「对所有匿名都成立」在**表决**这一处**由支书本人豁免**。
   //  · 防刷：仍**只按 tokenHash** 判重/限频（与 personId 无关），与「后台记真身」互不影响。
-  //  · 支部归属（2026-09-15 裁定）：写入取 actor.branchId（缺省 'br-b1'）；读取过滤在前端 withinBranch。
+  //  · 支部归属：写入取 actor.branchId；读取在服务端按所属支部过滤。
   // ════════════════════════════════════════════════════════════════
   const ISSUE_DISPOSITION_SET = new Set(BRANCH_COMMISSION_ROLES); // 意见处置＝支委会（支委层；2026-09-21 批次 126 · D-550：原为 new Set(SECRETARY_ROLES) 仅支书）
   // 真身同族键：任何常规读出口都不得带出
   const ISSUE_IDENTITY_KEYS = ['_realPersonId', 'realPersonId', 'submitterId'];
-  // **脱敏序列化（默认出口）**：拷贝后剥掉真身键。**一切常规读（公开 / 支书 / 提交回执 / 处置回执）都走它**。
+  // **脱敏序列化（默认出口）**：拷贝后剥掉真身键。**一切常规读（支部内列表 / 提交回执 / 处置回执）都走它**。
   // ⚠ 2026-09-17 改裁前，本函数是「读取/回写时清理既有记录的 `_realPersonId`」（历史数据迁移，删了就没了）；
   //   改裁后改为**只剥不外泄、不回写**——库里要留真身，出口要脱敏，两者从此分开。
   const sanitizeIssue = (rec) => {
@@ -883,12 +884,6 @@ export function createResourcesRouter(db) {
     return out;
   };
   const listIssues = () => listTable(db, 'issues').map(sanitizeIssue);
-  // **留痕序列化（唯一例外）**：只给党委出口用。**不得用于任何其他路由**。
-  const revealIssue = (rec) => {
-    const out = sanitizeIssue(rec);
-    out.realPersonId = (rec && rec._realPersonId) || null;
-    return out;
-  };
   // 处置可写字段白名单（不可写 submittedBy/anonymous/tokenHash/id/number/title/body/scope/types 等身份与内容字段）
   const ISSUE_MUTABLE_KEYS = [
     'status', 'closedReason', 'closedAt', 'assignee', 'assigneeRole', 'dispatchHistory',
@@ -898,44 +893,26 @@ export function createResourcesRouter(db) {
   const RATE_MAX = 20;                   // 窗口内同 tokenHash 最大提交数
   const DEDUP_WINDOW_MS = 5 * 60 * 1000; // 判重窗口
 
-  router.get('/issues', optionalActor(db), (req, res) => {
+  router.get('/issues', requireAuth(db), (req, res) => {
     const deny = branchSelectionError(req.actor, req.query.branchId);
     if (deny) return res.status(403).json({ error: deny });
-    let rows = listIssues();
-    const branchId = actorBranchId(req.actor) || req.query.branchId || null;
-    if (branchId) rows = rows.filter((row) => (row.branchId || 'br-b1') === branchId);
-    return res.json(rows);
+    const branchId = actorBranchId(req.actor);
+    // 党委账号无支部归属：保持 API bootstrap 形状可用，但不泄漏反馈列表。
+    if (!branchId) return res.json([]);
+    return res.json(listIssues().filter((row) => (row.branchId || 'br-b1') === branchId));
   });
 
-  // **仅党委**：查看匿名反馈的真实提交人（2026-09-17 支书改裁）。**每次查看留痕**（AI 建议、无异议即执行）：
-  //  留痕的意义＝「**只有党委能看**」这条承诺**可被事后核对**（否则「只有党委能看」只是一句声明，
-  //  没有任何东西能证伪它）。留痕表见 server/db.js 的 RESOURCE_TABLES（issue_reveals）。
-  router.get('/issues/reveal', requireAuth(db), (req, res) => {
-    const actor = req.actor;
-    if (!actor) return res.status(401).json({ error: '未登录' });
-    if (!PARTY_STAFF_ROLE.has(actor.role)) {
-      return res.status(403).json({ error: '仅党委可查看匿名反馈的真实提交人' });
-    }
-    const rows = listTable(db, 'issues').map(revealIssue);
-    const at = new Date().toISOString();
-    const traceId = 'reveal-' + randomUUID().slice(0, 8);
-    db.prepare('INSERT OR REPLACE INTO issue_reveals (id, data) VALUES (?, ?)').run(
-      traceId,
-      JSON.stringify({
-        id: traceId,
-        by: actor.id,
-        byRole: actor.role,
-        at,
-        // 留痕记「看了哪些**匿名**条目」——实名条目的真身本就公开，不计入
-        revealedIds: rows.filter((r) => r.anonymous).map((r) => r.id),
-      }),
-    );
-    res.json(rows);
+  // D-824：任何角色均没有系统揭名入口。保留此兼容路径以便旧客户端得到明确拒绝；
+  // 不读真实提交人、不新增揭名留痕，后台受保护字段仍保存在 issues._realPersonId。
+  router.get('/issues/reveal', requireAuth(db), (_req, res) => {
+    res.status(403).json({ error: '匿名反馈真实提交人当前不开放系统查询' });
   });
 
   router.post('/issues', requireAuth(db), (req, res) => {
     const actor = req.actor;
     if (!actor) return res.status(401).json({ error: '未登录' });
+    const branchId = actorBranchId(actor);
+    if (!branchId) return res.status(403).json({ error: '党委账号不能提交支部内部匿名反馈' });
     const body = (req.body && typeof req.body === 'object' && !Array.isArray(req.body)) ? req.body : {};
     const title = typeof body.title === 'string' ? body.title.trim() : '';
     const text = typeof body.body === 'string' ? body.body.trim() : '';
@@ -961,10 +938,7 @@ export function createResourcesRouter(db) {
 
     const number = all.reduce((m, r) => Math.max(m, r.number || 0), 0) + 1;
     const id = 'issue-' + randomUUID().slice(0, 8);
-    // 支部归属（每个组织独立 issue 空间，2026-09-15 支书裁定）：服务端权威取登录人所属支部，
-    // 不采信客户端自述（防伪造跨支部）；无支部/党委级人员 → 部署默认支部 'br-b1'
-    //（与前端 services/governance/issues.js 写入口径 getBranchIdOfPerson / 读过滤 withinBranch 同源）。
-    const branchId = actor.branchId || 'br-b1';
+    // 支部归属由服务端会话确定；不采信客户端自述，也不把党委账号回落到默认支部。
     // 落库白名单：匿名 → submittedBy='匿名' 且 participants 为空，**但落真实提交人 `_realPersonId`**
     //（2026-09-17 支书改裁「后台记录真实情况」）；实名 → 按现口径记 actor.id（真身即 submittedBy，不重复存）
     const record = {
@@ -1014,6 +988,10 @@ export function createResourcesRouter(db) {
     const row = db.prepare('SELECT data FROM issues WHERE id = ?').get(req.params.id);
     if (!row) return res.status(404).json({ error: 'not found' });
     const issue = JSON.parse(row.data); // 原始记录（含真身键，不得在此脱敏）
+    const ownBranchId = actorBranchId(req.actor);
+    if (!ownBranchId || (issue.branchId || 'br-b1') !== ownBranchId) {
+      return res.status(403).json({ error: '无权限：不能处置其他支部的反馈' });
+    }
     const body = (req.body && typeof req.body === 'object' && !Array.isArray(req.body)) ? req.body : {};
     for (const k of ISSUE_MUTABLE_KEYS) {
       if (Object.prototype.hasOwnProperty.call(body, k)) issue[k] = body[k];

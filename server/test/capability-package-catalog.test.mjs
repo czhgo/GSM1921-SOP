@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { CAPABILITY_PACKAGES, CAPABILITY_PACKAGE_BY_ID, disabledCapabilityChildIds } from '../../docs/src/core/domain/capability-packages.js?v=20261016a';
+import { CAPABILITY_PACKAGES, CAPABILITY_PACKAGE_BY_ID, disabledCapabilityChildIds } from '../../docs/src/core/domain/capability-packages.js?v=20261016b';
 
 test('业务能力包目录记录正交治理属性、页面子项与版本，未核实项保持待核', () => {
   const ids = new Set(CAPABILITY_PACKAGES.map((item) => item.id));

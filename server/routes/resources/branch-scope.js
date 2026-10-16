@@ -23,6 +23,11 @@ function get(db, table, id) {
 function linkedBranch(db, name, row) {
   const parent = AGGREGATE_PARENT[name];
   if (parent) return null;
+  if (['activity', 'taskforce'].includes(row.sourceType) && row.sourceId) {
+    const sourceTable = row.sourceType === 'activity' ? 'activities' : 'taskforces';
+    const source = get(db, sourceTable, row.sourceId);
+    if (source) return resourceBranchId(db, sourceTable, source);
+  }
   const activityId = row.activityId || (name === 'activities' ? null : null);
   if (activityId) {
     const activity = get(db, 'activities', activityId);
@@ -73,6 +78,13 @@ export function resourceBranchId(db, name, row) {
   if (!row || typeof row !== 'object') return null;
   if (name === 'branches') return row.id || null;
   if (name === 'users') return row.branchId || null;
+  if (name === 'signups' && ['activity', 'taskforce'].includes(row.sourceType) && row.sourceId) {
+    const table = row.sourceType === 'activity' ? 'activities' : 'taskforces';
+    const source = get(db, table, row.sourceId);
+    if (!source) return null;
+    const sourceBranch = resourceBranchId(db, table, source);
+    return row.branchId && row.branchId !== sourceBranch ? null : sourceBranch;
+  }
 
   const direct = row.branchId || null;
   const linked = linkedBranch(db, name, row);

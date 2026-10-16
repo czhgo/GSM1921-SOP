@@ -14,7 +14,7 @@
 //         content/04_web_design/data/DATA_ARCHITECTURE.md §8.4
 // ════════════════════════════════════════════════════════════════
 
-import { getApiBaseUrl, getAuthToken } from './data-adapter.js?v=20261016a';
+import { getApiBaseUrl, getAuthToken } from './data-adapter.js?v=20261016b';
 
 // ── HTTP 工具函数 ──────────────────────────────────────────────
 
@@ -597,14 +597,12 @@ export const ApiAdapter = {
     },
   },
 
-  // 意见反馈匿名口径（2026-09-17 支书裁定，本次改裁）：语义端点（server/routes/resources.js）
-  //   GET   /api/v1/issues          公开读（处置结果公开可见）——**一律脱敏，不含真实提交人**
-  //   POST  /api/v1/issues          登录用户可提交（匿名亦在服务端落真实提交人 `_realPersonId`）
-  //   PATCH /api/v1/issues/:id      处置/回复＝支委会（支委层；2026-09-21 批次 126 · D-550）——处置人也看不到提交人
-  //   GET   /api/v1/issues/reveal   **仅党委（party-staff）**：查看匿名反馈真实提交人；服务端每次留痕
-  //   ── 依据（支书 2026-09-17 原话）：「后台记录真实情况，匿名是前端的。但是我们也强调清楚，
-  //      查看匿名的权限只有党委有。」──
-  //   适用范围：本改裁只落在意见反馈；「正式表决无记名」维持原裁定不变（表决相关端点不在此域）。
+  // 意见反馈支部内闭环（D-824）：必须登录、读写按所属支部校验；匿名真身保存在服务端，但没有揭名端点权限。
+  //   GET /issues: 未登录 401、支部账号只读本支部、党委返回空列表（保持 bootstrap 兼容）
+  //   POST /issues: 仅支部账号可提交，branchId 由服务端按会话确定
+  //   PATCH /issues/:id: 支委层处置，并校验反馈属于操作者支部
+  //   /issues/reveal: 兼容端点保留但始终拒绝；不得把反馈当作向党委上报的渠道
+  //   正式表决「真无记名」仍是独立数据边界。
   issues: {
     list(params = {}) {
       const query = new URLSearchParams(params).toString();
@@ -619,7 +617,7 @@ export const ApiAdapter = {
       return _patch(`/api/v1/issues/${id}`, patch);
     },
 
-    /** **仅党委**：查看匿名反馈的真实提交人（服务端鉴权：非 party-staff → 403、未登录 → 401；命中即写 `issue_reveals` 留痕） */
+    /** 历史兼容端点；按 D-824 当前所有揭名请求均由服务端拒绝。 */
     reveal() {
       return _get('/api/v1/issues/reveal');
     },

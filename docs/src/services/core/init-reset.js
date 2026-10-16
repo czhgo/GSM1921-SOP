@@ -32,7 +32,7 @@ export const INIT_BLOB_KEY = 'workflowos_branch_db_v1';
 // 语义：?reset=init 是「有意的初始化」，产出的库已是「当前种子版本的空业务态」；
 // 若不盖戳（尤其是旧访客的库本就无该字段），下一次 loadDB 会被「旧本地演示数据自动失效」
 // 判据误判为旧版本演示库 → 整库丢弃回种子 → 连 init 有意保留的支部 config（分工/header）也会丢。
-import { SEED_DATA_VERSION } from '../../core/domain/domain.js?v=20261016a';
+import { SEED_DATA_VERSION } from '../../core/domain/domain.js?v=20261016b';
 
 /**
  * init 档保留的主库字段（白名单 = 组织骨架；键名与 mock-adapter _saveToStorage 一致）：
@@ -79,7 +79,7 @@ export const INIT_BLOB_CLEAR_DEFAULTS = {
  * 「前缀整清」形成对照：init 档保白名单）。
  */
 export const INIT_EXACT_REMOVE_KEYS = [
-  // issue（意见反馈）域：草稿/缓存/版本/提交/迁移标记 + 对外匿名（后台记真身）防刷令牌
+  // issue（意见反馈）域：草稿/缓存/版本/提交/迁移标记 + 防刷令牌（真实身份仅服务端受保护记录留存）
   'gsm1921-issue-drafts', 'gsm1921-issue-cache-v3', 'gsm1921-issue-cache-version',
   'gsm1921-issue-cache', 'gsm1921-feedback-submissions', 'gsm1921-feedback-migrated',
   'gsm1921-issue-submitter-token',

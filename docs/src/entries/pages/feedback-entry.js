@@ -1,23 +1,23 @@
 // role: [工程师]+[AI]
 // feedback-entry.js — 意见反馈入口（GitHub Issue 风格）
 
-import { renderSidebar } from '../../components/shell/sidebar.js?v=20261016a';
-import { renderHeader } from '../../components/shell/header.js?v=20261016a';
-import { BranchService } from '../../services/core/runtime.js?v=20261016a';
+import { renderSidebar } from '../../components/shell/sidebar.js?v=20261016b';
+import { renderHeader } from '../../components/shell/header.js?v=20261016b';
+import { BranchService } from '../../services/core/runtime.js?v=20261016b';
 // D-486（2026-09-18 批次 88）：本页必须先 hydrate API 数据源再取数——与 activity / archive 独立页同款标准形。
 // 此前本页连 runtime.js 都未 import ⇒ api 形态下 getDataSource() 仍是 mock，意见列表读的是本地
 // issues.json / localStorage（种子能开、服务端新数据打不开）。本批与评论写链（issue-detail.js 改走
 // 服务层）一并处置——只补 hydrate 而写链没接，会把「评论落本机、自见」变成「评论静默丢失」。
-import { hydrateDataSource, notifyDataLoaded } from '../../data/data-adapter.js?v=20261016a';
-import { ApiAdapter } from '../../data/api-adapter.js?v=20261016a';
-import { IssueStore } from '../../services/governance/issues.js?v=20261016a';
-import { MilestoneStore } from '../../services/governance/milestones.js?v=20261016a';
-import { showToast, getBasePath } from '../../core/base/utils.js?v=20261016a';
-import { AuthStore } from '../../services/core/auth.js?v=20261016a';
-import { renderIssueList } from '../../components/feedback/issue-list.js?v=20261016a';
-import { renderIssueDetail } from '../../components/feedback/issue-detail.js?v=20261016a';
-import { scrollDetailIntoView } from '../../components/ui/detail-anchor.js?v=20261016a';
-import { renderIssueForm } from '../../components/feedback/issue-form.js?v=20261016a';
+import { hydrateDataSource, notifyDataLoaded } from '../../data/data-adapter.js?v=20261016b';
+import { ApiAdapter } from '../../data/api-adapter.js?v=20261016b';
+import { IssueStore } from '../../services/governance/issues.js?v=20261016b';
+import { MilestoneStore } from '../../services/governance/milestones.js?v=20261016b';
+import { showToast, getBasePath } from '../../core/base/utils.js?v=20261016b';
+import { AuthStore } from '../../services/core/auth.js?v=20261016b';
+import { renderIssueList } from '../../components/feedback/issue-list.js?v=20261016b';
+import { renderIssueDetail } from '../../components/feedback/issue-detail.js?v=20261016b';
+import { scrollDetailIntoView } from '../../components/ui/detail-anchor.js?v=20261016b';
+import { renderIssueForm } from '../../components/feedback/issue-form.js?v=20261016b';
 
 renderSidebar('feedback');
 renderHeader('feedback');
@@ -43,6 +43,21 @@ function getRouteParam(key) {
 }
 
 async function initRoute() {
+  const actor = AuthStore.getCurrentUser();
+  if (!actor) {
+    window.location.replace(getBasePath() + 'login.html');
+    return;
+  }
+  if (actor.role === 'party-staff') {
+    const main = document.getElementById('main-content');
+    if (main) main.innerHTML = `
+      <section class="max-w-2xl mx-auto mt-12 rounded-lg border border-gray-200 bg-white p-6 text-center">
+        <h2 class="font-title-cn text-lg font-bold text-gray-800">此事项在支部内处理</h2>
+        <p class="mt-2 text-sm text-gray-600">匿名反馈不是向党委上报的入口。党委工作台不读取反馈内容或提交人身份。</p>
+      </section>`;
+    return;
+  }
+
   // 旧数据迁移（一次性）
   const migrated = IssueStore.migrateFromFeedbackStore();
   if (migrated > 0) {
@@ -99,6 +114,11 @@ window.__issueRouter = { showListView, showDetailView, showNewView };
 
 // 初始渲染：先 hydrate 数据源，再路由 / 取数（IssueStore.loadAll / MilestoneStore.loadAll 在 initRoute 内）
 (async () => {
+  const actor = AuthStore.getCurrentUser();
+  if (!actor || actor.role === 'party-staff') {
+    await initRoute();
+    return;
+  }
   await _hydrateData();
   initRoute();
 })();

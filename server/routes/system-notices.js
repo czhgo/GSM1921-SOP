@@ -13,6 +13,73 @@ import { SYSTEM_NOTICE_KINDS } from '../system-notice-kinds.js';
 // R-26③（2026-10-05 批次 388）：日期口径统一到**本地**（服务端单一源 `services/reporting.js`）
 import { today as todayLocal } from '../services/reporting.js';
 import { actorBranchId, resourceBranchId } from './resources/branch-scope.js';
+import { RESOURCE_TABLES } from './resources/store.js';
+
+const SOURCE_RESOURCE_BY_KIND = Object.freeze({
+  'periodic-archive-submitted': 'periodicArchives',
+  'weekly-report-submitted': 'periodicArchives',
+  'thought-report-submitted': 'thoughtReports',
+  'attendance-confirmed': 'activities',
+  'activity-agenda-updated': 'activities',
+  'workforce-proposal-created': 'activities',
+  'workforce-proposal-adopted': 'activities',
+  'committee-vote-progress': 'activities',
+  'committee-vote-locked': 'activities',
+  'external-dispatch-created': 'externalDispatches',
+  'review-request-submitted': 'reviewRequests',
+  'review-request-decided': 'reviewRequests',
+  'activity-created-broadcast': 'activities',
+  'taskforce-vote-requested': 'activities',
+  'activity-notice-draft': 'activities',
+  'taskforce-notice-draft': 'taskforces',
+  'makeup-remind': 'makeupTasks',
+  'committee-dispatch': 'branches',
+  'member-change-approved': 'memberChangeRequests',
+  'todo-void-decided': 'todos',
+});
+
+// Semantic records whose tables are outside the generic resource CRUD registry still need a
+// fixed source-table mapping so notice authorization can enforce branch ownership.
+const SEMANTIC_SOURCE_TABLES = Object.freeze({
+  memberChangeRequests: 'member_change_requests',
+});
+
+function sourceRow(db, resource, sourceId) {
+  const table = RESOURCE_TABLES[resource] || SEMANTIC_SOURCE_TABLES[resource];
+  if (!table || !sourceId) return null;
+  const found = db.prepare(`SELECT data FROM ${table} WHERE id = ?`).get(String(sourceId));
+  return found ? JSON.parse(found.data) : null;
+}
+
+function noticeSource(db, kind, sourceId, payload) {
+  if (kind === 'record-void-decided') {
+    const resource = payload?.resource;
+    const row = sourceRow(db, resource, sourceId);
+    return row ? { resource, row } : null;
+  }
+  if (kind === 'project-auth-granted' || kind === 'organizer-transferred') {
+    const hint = payload?.targetType || payload?.sourceType;
+    const resource = hint === 'taskforce' ? 'taskforces' : hint === 'activity' ? 'activities' : null;
+    if (resource) {
+      const row = sourceRow(db, resource, sourceId);
+      return row ? { resource, row } : null;
+    }
+    const candidates = ['activities', 'taskforces']
+      .map((name) => ({ resource: name, row: sourceRow(db, name, sourceId) }))
+      .filter((item) => item.row);
+    return candidates.length === 1 ? candidates[0] : null;
+  }
+  const mapped = SOURCE_RESOURCE_BY_KIND[kind];
+  if (mapped) {
+    const row = sourceRow(db, mapped, sourceId);
+    return row ? { resource: mapped, row } : null;
+  }
+  // 未登记 kind 保留兼容读取，但仅在全资源表中唯一命中时采用；ID 冲突不能靠表遍历顺序猜来源。
+  const candidates = [...new Set(Object.keys(RESOURCE_TABLES))]
+    .map((resource) => ({ resource, row: sourceRow(db, resource, sourceId) }))
+    .filter((item) => item.row);
+  return candidates.length === 1 ? candidates[0] : null;
+}
 
 export function createSystemNoticesRouter(db) {
   const router = Router();
@@ -45,16 +112,14 @@ export function createSystemNoticesRouter(db) {
       return res.status(403).json({ error: `无权限：当前身份不能触发「${kind}」系统通知` });
     }
 
-    const sourceTables = ['periodic_archive_submissions', 'thought_reports', 'activities', 'taskforces', 'member_change_requests', 'review_requests', 'external_dispatches', 'makeup_tasks', 'todos'];
-    let sourceBranchId = null;
-    for (const table of sourceTables) {
-      const source = db.prepare(`SELECT data FROM ${table} WHERE id = ?`).get(ctx.sourceId);
-      if (!source) continue;
-      const row = JSON.parse(source.data);
-      sourceBranchId = resourceBranchId(db, table, row);
-      if (sourceBranchId) break;
-    }
+    const resolvedSource = noticeSource(db, kind, ctx.sourceId, payload);
+    const sourceBranchId = resolvedSource
+      ? resourceBranchId(db, resolvedSource.resource, resolvedSource.row)
+      : null;
     const ownBranch = actorBranchId(actor);
+    if (ownBranch && resolvedSource && !sourceBranchId) {
+      return res.status(403).json({ error: '无权限：无法确认业务记录的支部归属' });
+    }
     if (ownBranch && sourceBranchId && ownBranch !== sourceBranchId) {
       return res.status(403).json({ error: '无权限：不能为其他支部触发系统通知' });
     }

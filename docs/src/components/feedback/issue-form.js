@@ -1,10 +1,10 @@
 // role: [工程师]+[AI]
 // issue-form.js — 反馈新建表单
 
-import { IssueStore, ISSUE_DOMAINS, issueDomainSuggest, issueDomainReplyHint } from '../../services/governance/issues.js?v=20261016a';
-import { showToast } from '../../core/base/utils.js?v=20261016a';
-import { icon } from '../../core/base/icons.js?v=20261016a';
-import { badgeHtml } from '../ui/badges.js?v=20261016a';
+import { IssueStore, ISSUE_DOMAINS, issueDomainSuggest, issueDomainReplyHint } from '../../services/governance/issues.js?v=20261016b';
+import { showToast } from '../../core/base/utils.js?v=20261016b';
+import { icon } from '../../core/base/icons.js?v=20261016b';
+import { badgeHtml } from '../ui/badges.js?v=20261016b';
 
 const SCOPE_OPTIONS = [
   { value: 'permanent', label: '底层架构' },
@@ -20,7 +20,7 @@ const TYPE_OPTIONS = [
   { value: 'question', label: '疑问', color: '#6B7280', darkColor: '#94A3B8' },
 ];
 
-/** 渲染新建反馈表单（默认匿名；提交经 IssueStore.submitIssue 走双形态对外匿名写口——后台记真实提交人 `_realPersonId`，一切常规读出口脱敏） */
+/** 渲染新建反馈表单（默认匿名；服务端受保护记录保留身份，mock 浏览器存储不留身份） */
 export function renderIssueForm() {
   const container = document.getElementById('issue-form-container');
   if (!container) return;
@@ -77,7 +77,7 @@ export function renderIssueForm() {
         </div>
 
         <div class="flex items-center justify-between gap-2 pt-3 border-t border-gray-100">
-          <label class="flex items-center gap-1.5 text-xs text-gray-500 cursor-pointer font-sans select-none" title="勾选后以「匿名」公开——列表与详情一律显示匿名；真实提交人仅党委在必要时可查，且每次查看都会留痕">
+          <label class="flex items-center gap-1.5 text-xs text-gray-500 cursor-pointer font-sans select-none" title="勾选后，支部工作人员看到的提交人显示为「匿名」；服务端受保护记录保留真实身份，当前不提供系统查询入口">
             <input type="checkbox" id="form-anon" class="checkbox-accent" checked>
             匿名提交
           </label>
@@ -107,8 +107,8 @@ export function renderIssueForm() {
 
     const anon = document.getElementById('form-anon')?.checked ?? true;
 
-    // 对外匿名（后台记真身）：匿名时对外出口一律脱敏（支部内部含支书不可见），但库里留真实提交人
-    // `_realPersonId`——真实提交人仅党委在必要时可查、每次查看留痕；实名按现口径记真实 personId
+    // 匿名提交：支部工作人员看不到提交人；服务端受保护记录保留身份，当前没有任何系统揭名入口。
+    // mock 演示没有受保护的服务端存储，不留存真实身份；实名仍按现口径记录真实 personId。
     try {
       await IssueStore.submitIssue({ title, body, scope, types, domain, anonymous: anon });
     } catch (e) {

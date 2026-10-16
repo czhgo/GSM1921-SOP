@@ -2,7 +2,7 @@
 title: "设计系统"
 type: design
 role: "[工程师]+[AI]"
-last_updated: 2026-10-06
+last_updated: 2026-10-16
 status: active
 related_files: [docs/src/styles.css, ../evolution/DESIGN_METHODOLOGY.md, ../data/DATA_MODEL.md]
 ---
@@ -1216,8 +1216,8 @@ li + li { margin-top: 0.25em; }
 
 **提交侧（issue-form.js）**：
 - **人名化**：提交人/评论人/指派人一律经 `PersonStore` 解析为姓名，禁止显示 mock 字段/角色键；
-- **匿名提交开关**：checkbox（`.checkbox-accent`）勾选后**对外显示「匿名」**（列表/详情提交人均显示「匿名」，详情面板**不**标注真身），后台（服务端 `issues` 表 / mock 本地库）**保留真实提交人 `_realPersonId`**。
-  - **2026-09-17 支书改裁**：「后台记录真实情况，匿名是前端的。但是我们也强调清楚，查看匿名的权限只有党委有。」⇒ **查看真身的权限只有党委**（党委台「匿名反馈核查」页签；服务端 `GET /api/v1/issues/reveal`，**每次查看留痕** `issue_reveals`）；**党支部内部（含支书）不可见**——「处置」与「查看真身」是两项分开的权限。适用范围：本改裁只落在意见反馈，「正式表决无记名」维持原裁定不变。
+- **匿名提交开关**：checkbox（`.checkbox-accent`）勾选后，支部工作人员的列表与详情均显示「匿名」。服务端 `issues` 表以受保护字段 `_realPersonId` 留存真实提交人；浏览器 mock 缓存和草稿不保存身份，读取旧记录时会迁除。任何角色当前均无系统揭名入口（`D-824`）。
+  - **历史裁定（2026-09-17，已由 D-824 于 2026-10-16 改裁）**：当时曾开放党委揭名页与 `/api/v1/issues/reveal` 留痕；现行规则为登录后支部内闭环，党委不读取、不代收、不揭名，处置权不含揭名权。正式表决仍沿用独立的真无记名规则。
 
 **处置侧（feedback-tab.js 支书工作台）**：
 - **正式答复栏**：独立输入行 + `btn-accent` 按钮，以 `kind='reply'` 写入时间线；时间线以主题色浅底 + 「正式答复」徽标显著区分，作者经 `getPersonName` 解析为支书姓名；

@@ -5,7 +5,7 @@
 // R-26③（2026-10-05 批次 388）：本件**只引一个零依赖叶子** `core/base/date.js`（取本地「今天」）——
 //   不成环、双端可载；**不得**引 `core/base/utils.js`（那会牵 `core/session/pending-writes.js`）。
 
-import { todayLocal } from '../base/date.js?v=20261016a';
+import { todayLocal } from '../base/date.js?v=20261016b';
 
 // ── 内联标签深色适配：深色三件套自动生成 ──────────────────────────
 // 深色模式下内联样式（background/color/border 浅底深字）不随主题反转，按「同色系提亮一档」为每个颜色条目
@@ -794,11 +794,11 @@ export const ISSUE_CLOSED_REASON_LABELS = {
   not_planned: '暂不计划',
 };
 
-// ── 意见反馈「对外匿名（后台记真身）」防刷令牌哈希（2026-09-12 裁定；2026-09-17 改裁更正措辞）──
+// ── 意见反馈防刷令牌哈希（身份留存边界见 D-824）──
 // 客户端首次提交时生成随机 token（localStorage，不可由 personId 推导）；服务端仅存其哈希，
 // 只用于判重与频率限制。输入 = 随机 token 本身（不含 personId、不使用任何 salt/固定盐），
-// 故不可由 personId 推导、不可反查提交人——与「后台记真实提交人 `_realPersonId`」**互不影响**：
-// 防刷判重仍只认 tokenHash；真身另行落库，仅党委在必要时可查、每次查看留痕。
+// 故不可由 personId 推导、不可反查提交人——与服务端按会话保留受保护 `_realPersonId` **互不影响**：
+// 防刷判重只认 tokenHash；任何角色目前均无系统揭名入口，本机 mock 不留存真身。
 // 纯同步函数、node/browser 同源：server/routes/resources.js 与前端 services/governance/issues.js 共用，
 // 防止两端算法未同步的情况（FNV-1a 双通道 → 16 hex，随机 128bit token 的判重/限频抗碰撞足够）。
 export function hashSubmitterToken(token) {

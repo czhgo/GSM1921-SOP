@@ -23,8 +23,8 @@ const RESOURCE_TABLES = [
   'review_requests',
   // 2026-09-12 意见反馈「真匿名」→ **2026-09-17 支书改裁**：issues 表（仅 server/routes/resources.js 语义端点读写，
   // 不在 resources.js RESOURCE_TABLES 映射内 → 无通用 CRUD / 不进快照写穿；落库字段白名单）。
-  //   改裁后的口径：匿名＝**前端展示层匿名**——后台记真实提交人 `_realPersonId`，**常规读出口一律脱敏**，
-  //   唯一可见出口＝党委核查端点 GET /api/v1/issues/reveal（仅 party-staff，**每次查看留痕** issue_reveals）；
+  //   旧口径：后台记真实提交人 `_realPersonId`、党委可通过 reveal 核查。D-824 已改为支部内闭环、无系统揭名入口；
+  //   当前真实提交人只在服务端受保护字段保留，常规读口脱敏，旧接口拒绝所有角色；
   //   「正式表决无记名」不受本改裁影响（两段式：参与记录 + tally，逐人选项不落库）。
   'issues',
   // R-23（2026-09-13）：思想汇报建服务端表——原「服务端无表」使系统通知 authorize 只能采信
@@ -34,10 +34,8 @@ const RESOURCE_TABLES = [
   'party_groups',
   // 2026-09-14 批次 25：成员流动台账（流入/流出复式记账；登记即生效、可撤销留痕）
   'member_flows',
-  // 2026-09-17 批次 51：匿名反馈「查看真身」留痕（支书改裁「查看匿名的权限只有党委有」）。
-  //   留痕的意义＝让「只有党委能看」这条承诺**可被事后核对**——没有它，该承诺无从证伪。
-  //   仅在 GET /api/v1/issues/reveal 命中时写入一条；不在 resources.js RESOURCE_TABLES 映射内
-  //   ⇒ 无通用 CRUD 入口（前端不能自行造/改留痕）。
+  // 2026-09-17 旧匿名反馈揭名留痕表；D-824 起停写，仅保留历史记录且无系统读取入口。
+  // 不在资源 CRUD 映射内，避免通用快照或资源接口读写历史留痕。
   'issue_reveals',
 ];
 

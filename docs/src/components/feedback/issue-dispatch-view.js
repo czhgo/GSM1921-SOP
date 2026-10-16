@@ -11,9 +11,9 @@
 //  依赖方向正确：组件 → 服务（不是服务 → 组件）。守卫：issue-branch.test.mjs（结构层）。
 // ════════════════════════════════════════════════════════════════
 
-import { renderFilteredList } from '../ui/list-filter.js?v=20261016a';
-import { escHtml, showToast } from '../../core/base/utils.js?v=20261016a';
-import { IssueStore, IssueNotify, deriveIssueDisplayState, REPORT_CATEGORIES, displayNameOf as _displayName } from '../../services/governance/issues.js?v=20261016a';
+import { renderFilteredList } from '../ui/list-filter.js?v=20261016b';
+import { escHtml, showToast } from '../../core/base/utils.js?v=20261016b';
+import { IssueStore, IssueNotify, deriveIssueDisplayState, REPORT_CATEGORIES, displayNameOf as _displayName } from '../../services/governance/issues.js?v=20261016b';
 
 // ════════════════════════════════════════════════════════════════
 //  「我的处置」Tab 渲染工具（各角色工作台复用）
@@ -75,8 +75,8 @@ export function renderMyDispatchTab(role, userId) {
   //   api 形态下公开反馈的 `submittedBy`/`participants` 一律按对外匿名脱敏（`server/seed.js::seedIssues`），
   //   故「按人回认」在正式部署下靠不住。改走**本浏览器随机令牌的哈希**（`getMyIssues` 第 ③ 条判据）：
   //   提交时客户端带一个与 personId 无关的随机令牌，服务端只存哈希 ⇒ 浏览器自己认得出「我提交过哪几条」，
-  //   而 **tokenHash 本身推不出提交人**（仅判重/限频；真身另存 `_realPersonId`，仅党委可查、每次留痕
-  //   ——见本文件顶部匿名口径）。边界如实写出：换设备/清浏览器数据后认不回。
+  //   而 **tokenHash 本身推不出提交人**（仅判重/限频；真身另存于服务端受保护字段 `_realPersonId`，
+  //   当前无系统揭名入口；见 D-824）。边界如实写出：换设备/清浏览器数据后认不回。
   html += `<div class="rounded-xl border border-gray-100 bg-white p-3 mt-3">`;
   html += `<p class="text-xs font-medium text-gray-700 mb-1">我提交 / 参与的反馈 · ${myIssues.length}</p>`;
   html += `<p class="text-xs text-gray-500 mb-2">本浏览器提交的反馈可在此回看（按提交时的随机令牌比对，不以提交人身份为判据；换设备或清除浏览器数据后无法回认）</p>`;

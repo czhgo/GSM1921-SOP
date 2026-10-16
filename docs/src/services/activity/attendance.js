@@ -3,17 +3,17 @@
 //  attendance.js — 考勤记录 CRUD 服务
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB, AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../core/domain/domain.js?v=20261016a';
-import { POLICY_DEFAULTS } from '../../core/domain/policy-defaults.js?v=20261016a';
-import { persist, getDataSource, getAdapter } from '../../data/data-adapter.js?v=20261016a';
-import { generateId } from '../../core/base/id.js?v=20261016a';
-import { bumpToken } from '../../core/base/version-token.js?v=20261016a'; // P0 域缓存失效（spec §二.3）
-import { ATTENDANCE_RECORDS } from '../../data/mock/index.js?v=20261016a';
-import { isInitStateActive } from '../core/init-reset.js?v=20261016a'; // C2 修复（2026-09-08）：init 态空态不回退演示种子
-import { PersonStore, getPersonById, getPersonName } from '../member/person.js?v=20261016a';
-import { getRosterStats } from '../member/roster.js?v=20261016a';
-import { getMeetingRosterIds } from '../member/roster.js?v=20261016a';
-import { loadActivities, isActivityOrganizer } from './activity.js?v=20261016a';
+import { mockDB, AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../core/domain/domain.js?v=20261016b';
+import { POLICY_DEFAULTS } from '../../core/domain/policy-defaults.js?v=20261016b';
+import { persist, getDataSource, getAdapter } from '../../data/data-adapter.js?v=20261016b';
+import { generateId } from '../../core/base/id.js?v=20261016b';
+import { bumpToken } from '../../core/base/version-token.js?v=20261016b'; // P0 域缓存失效（spec §二.3）
+import { ATTENDANCE_RECORDS } from '../../data/mock/index.js?v=20261016b';
+import { isInitStateActive } from '../core/init-reset.js?v=20261016b'; // C2 修复（2026-09-08）：init 态空态不回退演示种子
+import { PersonStore, getPersonById, getPersonName } from '../member/person.js?v=20261016b';
+import { getRosterStats } from '../member/roster.js?v=20261016b';
+import { getMeetingRosterIds } from '../member/roster.js?v=20261016b';
+import { loadActivities, isActivityOrganizer } from './activity.js?v=20261016b';
 
 export function loadAttendanceRecords() {
   if (mockDB.attendances.length > 0) return [...mockDB.attendances];

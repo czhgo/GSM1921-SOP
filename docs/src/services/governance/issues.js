@@ -6,16 +6,16 @@
 //   见 server/routes/resources.js 末「反馈未读标记」段），`init()` 拉取填 `mockDB.issueUnread` 供同步读；
 //   mock 形态原路径（本机键）一字未改。
 
-import { mockDB } from '../../core/domain/domain.js?v=20261016a';
-import { AuthStore } from '../core/auth.js?v=20261016a';
-import { PersonStore } from '../member/person.js?v=20261016a';
-import { bumpToken } from '../../core/base/version-token.js?v=20261016a'; // P2 渲染守卫失效（spec §四.1）
-import { getDataSource, getAdapter, isDemoReadOnly, demoReadOnlyMessage } from '../../data/data-adapter.js?v=20261016a';
-import { hashSubmitterToken, BRANCH_COMMISSION_ROLES, PARTY_STAFF_ROLE } from '../../core/domain/constants.js?v=20261016a';
+import { mockDB } from '../../core/domain/domain.js?v=20261016b';
+import { AuthStore } from '../core/auth.js?v=20261016b';
+import { PersonStore } from '../member/person.js?v=20261016b';
+import { bumpToken } from '../../core/base/version-token.js?v=20261016b'; // P2 渲染守卫失效（spec §四.1）
+import { getDataSource, getAdapter, isDemoReadOnly, demoReadOnlyMessage } from '../../data/data-adapter.js?v=20261016b';
+import { hashSubmitterToken, BRANCH_COMMISSION_ROLES, PARTY_STAFF_ROLE } from '../../core/domain/constants.js?v=20261016b';
 // 2026-09-17 批次 49：处置写链（REST 直连，不走 persist）须自登记进成功提示的统一等待点
-import { trackWrite } from '../../core/session/pending-writes.js?v=20261016a';
-import { withinBranch, getBranchIdOfPerson } from '../branch/branch.js?v=20261016a';
-import { generateId, randomHex } from '../../core/base/id.js?v=20261016a';
+import { trackWrite } from '../../core/session/pending-writes.js?v=20261016b';
+import { withinBranch, getBranchIdOfPerson } from '../branch/branch.js?v=20261016b';
+import { generateId, randomHex } from '../../core/base/id.js?v=20261016b';
 // 批次 47-M（2026-09-16）：**补上缺失的 showToast 导入**——本文件有 11 处 `showToast(...)`，
 //   却从未 import 它，页面也没有任何地方把它挂到 window 上 ⇒ 真机跑到这些行时**一律抛
 //   `ReferenceError: showToast is not defined`**。后果（正是支书实报的那类「非闭环」）：
@@ -26,7 +26,7 @@ import { generateId, randomHex } from '../../core/base/id.js?v=20261016a';
 //       **写已经落库，提示却抛在写之后**，于是「事情办成了，但界面一声不吭」，用户会以为没生效而重复提交。
 //   之所以长期没被发现：这五处校验点的「载体不在位」旧理由（「需先有议题并进入评论态」等）把它们
 //   一直挂在 machine:false 白名单里，**真机从未跑到这些行**（见批 47-M 台账注释）。
-import { showToast, todayLocal } from '../../core/base/utils.js?v=20261016a';
+import { showToast, todayLocal } from '../../core/base/utils.js?v=20261016b';
 // 统一检索引擎（2026-09-14 批次 37）：本 tab 三区各接一个实例（关键词 + 引擎内置分页）
 
 /** 解析人员 ID → 姓名（反馈系统统一走 PersonStore 唯一解析源） */
@@ -44,7 +44,7 @@ export function displayNameOf(id) {
 }
 
 const ISSUES_JSON_PATH = './data/issues.json';
-const DRAFT_KEY = 'gsm1921-issue-drafts'; // 本机草稿（**仅本机·不上服务端**：未提交的反馈/评论草稿，其 payload 可能含匿名真身；白名单见 DATA_CONSISTENCY_CHECKLIST.md）
+const DRAFT_KEY = 'gsm1921-issue-drafts'; // 本机草稿（仅本机；匿名身份字段禁止持久化，旧草稿读取时清理；白名单见 DATA_CONSISTENCY_CHECKLIST.md）
 // 2026-07-30 v2：新增 dispatchHistory/comments.kind/hidden/mergedInto 字段，需重新加载 mock 数据
 // 2026-08-01 v3：反馈数据长 ID（u_org_commissioner 等）统一改短 ID（u_org），强制清旧缓存重拉
 // 2026-09-13 v4：反馈指派/审计身份统一改真实成员 ID（u_org→p11 等），缓存版本号 +1 强制清旧缓存重拉
@@ -54,8 +54,8 @@ export const ISSUE_CACHE_KEY = CACHE_KEY; // 供其它模块（issue-detail 等�
 const CACHE_VERSION_KEY = 'gsm1921-issue-cache-version';
 const CACHE_VERSION = '4';
 const MIGRATED_KEY = 'gsm1921-feedback-migrated';
-// 对外匿名（后台记真身）防刷令牌（2026-09-12 裁定；2026-09-17 改裁更正措辞）：客户端首次提交生成随机 token 存本地，
-// 提交时只把其哈希（tokenHash）随记录落库，仅用于判重/频率限制——不可反查提交人（真身另行落库，见下方匿名口径）。
+// 匿名反馈防刷令牌：客户端首次提交生成随机 token 存本地，提交时只把其哈希（tokenHash）随记录落库，
+// 仅用于判重/频率限制——不可反查提交人；API 服务端另按会话保存受保护身份，本机 mock 不留存身份。
 const SUBMITTER_TOKEN_KEY = 'gsm1921-issue-submitter-token';
 
 let _issuesCache = null;
@@ -91,22 +91,30 @@ function _peekSubmitterToken() {
   }
 }
 
-// ── 匿名口径（2026-09-17 支书裁定，本次改裁）─────────────────────────────
-// 依据（支书 2026-09-17 原话）：「**后台记录真实情况，匿名是前端的。但是我们也强调清楚，
-//   查看匿名的权限只有党委有。**」
-//   · 匿名 = **前端展示层匿名**：后台记真实提交人（`_realPersonId`），**常规读出口一律脱敏**；
-//   · **可见范围＝仅党委**：党支部内部（含支书）看不到真身——「处置」与「查看真身」是**两项分开的权限**；
-//   · **适用范围**：本改裁只落在意见反馈。「正式表决无记名」维持 2026-09-12 原裁定不变
-//     （2026-09-17 支书就表决单独裁定「表决保持真无记名」）——本文件与表决无关，勿外推。
-// 与旧实现的关键差别：2026-09-12「真匿名」原为「读取/回写时删除 `_realPersonId`」（删了就没了），
-//   本次改裁改为「库里留真身、出口脱敏」——故旧迁移函数整段撤除，**不再删除**本地记录里的真身。
+// ── 匿名口径（2026-10-16 更新：支部内部闭环）──────────────────────────────
+// 匿名反馈必须登录后在所属支部内提交、读取和处置；党委账号不能查看、揭名或代为提交。
+// 服务端受保护记录保留真实提交人 `_realPersonId`；本机 mock 不具备受保护存储，因此不留真身。当前无系统揭名入口；
+// 支部/党委的任何身份核查方式须另有明确授权，不得从角色习惯或旧版 UI 推定。
+// 此规则仅涉及意见反馈，不改变正式表决「真无记名」的独立数据边界。
 
 /** 真身同族键（与 server/routes/resources.js 的 ISSUE_IDENTITY_KEYS 同源同口径）：任何常规读出口都不得带出 */
 const ISSUE_IDENTITY_KEYS = ['_realPersonId', 'realPersonId', 'submitterId'];
 
-/** 当前登录人是否党委（唯一有权查看匿名反馈真实提交人的角色；与 server 侧 PARTY_STAFF_ROLE 同源） */
-function _isPartyStaff() {
-  return PARTY_STAFF_ROLE.includes(AuthStore.getCurrentUser()?.role);
+/** 本机 mock / 草稿没有服务端访问控制；从其持久化副本递归清除匿名身份字段。 */
+function _stripStoredIdentity(value) {
+  if (Array.isArray(value)) return value.map(_stripStoredIdentity);
+  if (!value || typeof value !== 'object') return value;
+  const out = {};
+  for (const [key, child] of Object.entries(value)) {
+    if (!ISSUE_IDENTITY_KEYS.includes(key)) out[key] = _stripStoredIdentity(child);
+  }
+  return out;
+}
+
+/** 只有登录的支部账号能进入反馈域；党委无支部归属，不是反馈入口。 */
+function _hasBranchFeedbackAccess() {
+  const actor = AuthStore.getCurrentUser();
+  return !!actor && !PARTY_STAFF_ROLE.includes(actor.role);
 }
 
 /**
@@ -120,59 +128,38 @@ function _sanitizeIssue(rec) {
   return out;
 }
 
-/** **留痕序列化（唯一例外）**：只给党委核查出口用。**不得用于任何其他出口**。 */
-function _revealIssue(rec) {
-  const out = _sanitizeIssue(rec);
-  out.realPersonId = (rec && rec._realPersonId) || null;
-  return out;
-}
-
 const _sanitizeIssues = (list) => (list || []).map(_sanitizeIssue);
 
-/** 草稿脱敏（草稿 payload 同样可能带真身——匿名草稿在本机留真身、出口脱敏） */
+/** 草稿脱敏（兼容旧草稿中的身份字段） */
 function _sanitizeDraft(d) {
   if (!d || typeof d !== 'object') return d;
   return { ...d, payload: d.payload ? _sanitizeIssue(d.payload) : d.payload };
 }
 
-/** 原始草稿（**含真身**）：写链与审核内部专用；对外出口一律经 _sanitizeDraft */
+/** 原始草稿：写链与审核内部专用；加载时清理旧身份字段，对外出口一律经 _sanitizeDraft */
 function _rawDrafts() {
-  try { return JSON.parse(localStorage.getItem(DRAFT_KEY) || '[]'); } catch { return []; }
+  try {
+    const raw = localStorage.getItem(DRAFT_KEY) || '[]';
+    const parsed = JSON.parse(raw);
+    const cleaned = _stripStoredIdentity(parsed);
+    if (JSON.stringify(cleaned) !== JSON.stringify(parsed)) {
+      localStorage.setItem(DRAFT_KEY, JSON.stringify(cleaned));
+    }
+    return cleaned;
+  } catch { return []; }
 }
 
-/** 原始记录（**含真身**）：写链与党委核查出口内部专用；其余出口一律经 _sanitizeIssue(s) */
+/** 原始记录：写链内部专用；mock 中不保存真身，API 缓存来自服务端脱敏响应。 */
 function _rawById(id) {
   return (_issuesCache || []).find(i => i.id === id);
 }
 
-// ── 留痕（与服务端表 `issue_reveals` 同名同构：id/by/byRole/at/revealedIds）──
-// 2026-09-17 支书裁定：查看匿名的权限只有党委有 ⇒ **每次党委核查都留一条痕**——
-// 留痕的意义＝让「只有党委能看」这句承诺**可被事后核对**（否则它只是一句无从证伪的声明）。
-// api 形态由服务端写入（前端不能自行造/改留痕：该表不在 resources.js 通用 CRUD 映射内）；
-// mock 形态写入本地同名表，两形态行为一致。
+// 旧版揭名审计键保留兼容读取；2026-10-16 起没有系统揭名入口，不再新增前端揭名留痕。
 const ISSUE_REVEALS_KEY = 'issue_reveals';
 export const ISSUE_REVEALS = ISSUE_REVEALS_KEY;
 
 function _readRevealTraces() {
   try { return JSON.parse(localStorage.getItem(ISSUE_REVEALS_KEY) || '[]'); } catch { return []; }
-}
-
-/** mock 形态写一条留痕（谁 / 何时 / 看了哪些**匿名**条目——实名真身本就公开，不计入） */
-function _writeRevealTrace(rows) {
-  const me = AuthStore.getCurrentUser() || {};
-  const trace = {
-    id: generateId('reveal', '-'),
-    by: me.personId || null,
-    byRole: me.role || null,
-    at: new Date().toISOString(),
-    revealedIds: (rows || []).filter(r => r.anonymous).map(r => r.id),
-  };
-  try {
-    const list = _readRevealTraces();
-    list.push(trace);
-    localStorage.setItem(ISSUE_REVEALS_KEY, JSON.stringify(list));
-  } catch {}
-  return trace;
 }
 
 /**
@@ -221,22 +208,20 @@ function _currentPersonId() {
   return AuthStore.getCurrentUser()?.personId || '匿名';
 }
 
-// ── 支部归属（每个组织独立 issue 空间，2026-09-15 支书裁定）───────────────
-// 口径单一源 = services/branch/branch.js（勿另写第二套）：
-//   · 读取过滤 viewer 所属支部 → withinBranch（登录=本人所属支部；未登录/无档案→部署默认支部 'br-b1'）；
-//   · 写入归属 branchId → getBranchIdOfPerson（与读取同源；公共反馈页未登录落部署默认支部 'br-b1'）。
-// 默认支部依据：data/mock/branches.js BRANCHES 唯一实例 br-b1（支部 id 为多支部演示基线）。
+// ── 支部归属（支部内闭环）───────────────────────────────────────────────
+// 未登录或党委账号没有支部反馈访问权；支部账号按所属支部过滤，服务端对读写再次执行范围校验。
 function _viewerId() {
   return AuthStore.getCurrentUser()?.personId || null;
 }
 
-/** 新建 issue 的支部归属（写入口径唯一源；登录=本人所属支部，未登录=部署默认支部 'br-b1'） */
+/** 新建 issue 的支部归属候选值；仅已登录的支部账号能调用，服务端会再次校验。 */
 function _writeBranchId() {
   return getBranchIdOfPerson(_viewerId());
 }
 
 /** 按 viewer 所属支部过滤 issue 列表（唯一源 withinBranch；缺 branchId 存量按部署默认支部惰性兼容） */
 function _withinViewerBranch(list) {
+  if (!_hasBranchFeedbackAccess()) return [];
   return withinBranch(list || [], _viewerId());
 }
 
@@ -260,7 +245,7 @@ export const IssueStore = {
    * @returns {Promise<Array>} issues 列表
    */
   async loadAll() {
-    // API 形态：以服务器为权威源（GET /api/v1/issues）；服务端出口已脱敏（真身只在党委出口）
+    // API 形态：以服务器为权威源（GET /api/v1/issues）；服务端出口已脱敏，真身只留在服务端受保护记录。
     if (_isApiMode()) {
       try {
         const rows = await getAdapter().issues.list();
@@ -272,6 +257,8 @@ export const IssueStore = {
         return [];
       }
     }
+    // 加载意见域时顺手迁除旧草稿中的身份字段；浏览器本地存储不是受保护后台。
+    _rawDrafts();
     // 优先从内存缓存读
     if (_issuesCache) return _sanitizeIssues(_issuesCache);
     // 缓存版本检查：版本不匹配则丢弃旧缓存，强制从 issues.json 重新加载
@@ -282,11 +269,15 @@ export const IssueStore = {
         localStorage.setItem(CACHE_VERSION_KEY, CACHE_VERSION);
       }
     } catch {}
-    // 其次从 localStorage 缓存读（**不再删除 `_realPersonId`**：2026-09-17 支书裁定口径 = 库里留真身、出口脱敏）
+    // 其次从 localStorage 缓存读。mock 浏览器存储不具备服务端访问控制，读取时清理历史身份字段并回写。
     try {
       const cached = localStorage.getItem(CACHE_KEY);
       if (cached) {
-        _issuesCache = JSON.parse(cached);
+        const parsed = JSON.parse(cached);
+        _issuesCache = _stripStoredIdentity(parsed);
+        if (JSON.stringify(_issuesCache) !== JSON.stringify(parsed)) {
+          localStorage.setItem(CACHE_KEY, JSON.stringify(_issuesCache));
+        }
         return _sanitizeIssues(_issuesCache);
       }
     } catch {}
@@ -294,7 +285,7 @@ export const IssueStore = {
     try {
       const resp = await fetch(ISSUES_JSON_PATH);
       const data = await resp.json();
-      _issuesCache = data.issues || [];
+      _issuesCache = _stripStoredIdentity(data.issues || []);
       try { localStorage.setItem(CACHE_KEY, JSON.stringify(_issuesCache)); } catch {}
       return _sanitizeIssues(_issuesCache);
     } catch {
@@ -333,10 +324,10 @@ export const IssueStore = {
     if (milestone && milestone !== 'all') list = list.filter(i => i.milestone === milestone);
     // 批次 47-Q（2026-09-16，支书裁定「加过滤 + 种进同源」）：**按题种类过滤**。
     // 本域混装两类东西，语义判别字段就是 `kind`：
-    //   · 公开匿名反馈（`docs/data/issues.json` 的 issue-001~004）——**无 `kind` 字段**（历史形态）；
+    //   · 匿名反馈（`docs/data/issues.json` 的 issue-001~004）——**无 `kind` 字段**（历史形态）；
     //   · 内部汇报（`kind: 'report'`，由「一键汇报 / 了解进展」生成）——**带名**（submittedBy/assignee 指向真人）。
-    // 公开匿名反馈页**只应显示前者**（内部汇报含真人归属与内部事项），故该页查询一律传 `kind: 'feedback'`
-    // （`= 无 kind 或 kind!=='report'`）。**不传则不筛**——既有调用方行为一字不变（当前仅公开页在用）。
+    // 支部反馈入口**只显示前者**（内部汇报含真人归属与内部事项），故查询一律传 `kind: 'feedback'`
+    // （`= 无 kind 或 kind!=='report'`）。入口须登录并由 `_withinViewerBranch` 按所属支部收口。
     if (kind) list = list.filter(i => (i.kind || 'feedback') === kind);
     if (keyword) {
       const kw = keyword.toLowerCase();
@@ -361,11 +352,7 @@ export const IssueStore = {
 
   // ── 草稿（localStorage）──
 
-  /**
-   * 读取个人草稿（**出口脱敏**：不再删除库里的 `_realPersonId`——匿名草稿在本机留真身、支书侧看不到）
-   * ⚠ 2026-09-17 支书裁定：撤除原「读取时删除 `_realPersonId` 并回写」的历史迁移（删了就没了，
-   *   与本次改裁「后台记录真实情况」相反）。草稿真身仅经党委核查出口可见。
-   */
+  /** 读取个人草稿；兼容清理旧浏览器草稿中的身份字段后再脱敏返回。 */
   getDrafts() {
     return _rawDrafts().map(_sanitizeDraft);
   },
@@ -373,8 +360,7 @@ export const IssueStore = {
   /**
    * 添加草稿（新建/评论/反应都先进草稿）
    * @param {Object} draft
-   * @param {string} [authorOverride] 覆盖草稿作者（匿名提交时传「匿名」——作者字段不落真实 personId，
-   *   真身落在 payload 的 `_realPersonId`，仅供党委核查出口追溯）
+   * @param {string} [authorOverride] 覆盖草稿作者（匿名提交时传「匿名」；身份不得落入浏览器草稿）
    */
   addDraft(draft, authorOverride) {
     // 2026-09-28 支书裁定「静态模式只保留侧边栏/about 等区别，所有数据都走服务器 API」：
@@ -388,7 +374,7 @@ export const IssueStore = {
       draftId: generateId('dft', '-'),
       type: draft.type, // 'new-issue' | 'comment' | 'reaction'
       targetIssueId: draft.targetIssueId || null,
-      payload: draft.payload,
+      payload: _stripStoredIdentity(draft.payload),
       author: authorOverride || _currentPersonId(),
       createdAt: todayLocal(),
       status: 'pending', // pending | approved | rejected
@@ -400,17 +386,17 @@ export const IssueStore = {
   },
 
   /**
-   * 提交意见反馈（**匿名＝前端展示层匿名**，2026-09-17 支书裁定口径）
-   * 匿名：submittedBy='匿名' + anonymous:true，**但本机/后台记真实提交人 `_realPersonId`**
-   *   （「后台记录真实情况」）；一切常规读出口脱敏，真身只有党委核查出口可见。
+   * 提交意见反馈（匿名提交由服务端受保护记录留存身份；本机 mock 不留存）
+   * 匿名：submittedBy='匿名' + anonymous:true；服务端从登录会话记录 `_realPersonId`，不采信客户端身份。
    * 实名：按现口径记真实 personId（展示层经 PersonStore 解析姓名）。
    * 防刷：客户端随机令牌 → 只落 tokenHash（API 形态由服务端哈希，mock 形态本地哈希），仅用于判重/限频。
    * @returns {Promise<Object>} API 形态返回落库记录（服务端已脱敏）；mock 形态返回新建草稿（出口亦已脱敏）
    */
   async submitIssue({ title, body, scope, types = [], domain = '', anonymous = true } = {}) {
+    if (!_hasBranchFeedbackAccess()) throw new Error('意见反馈仅限登录的支部成员在本支部内使用');
     const now = todayLocal();
     const token = _getSubmitterToken();
-    // 支部归属：登录=本人所属支部，未登录（公共反馈页）=部署默认支部（写入口径单一源 _writeBranchId）
+    // 支部归属：登录账号的所属支部（服务端会再次核验）；不接受未登录或党委账号。
     const branchId = _writeBranchId();
     if (_isApiMode()) {
       const record = await getAdapter().issues.create({
@@ -421,7 +407,7 @@ export const IssueStore = {
         submittedAt: now,
       });
       _issuesCache = _issuesCache || [];
-      // 服务端已按其口径落真身（`_realPersonId`）并回传脱敏记录 ⇒ 本机缓存同样不含真身（党委核查走服务端出口）
+      // 服务端已按其口径落真身（`_realPersonId`）并回传脱敏记录 ⇒ 本机缓存同样不含真身。
       _issuesCache.push(record);
       _noteIssueChange();
       return _sanitizeIssue(record);
@@ -433,10 +419,7 @@ export const IssueStore = {
         branchId,
         submittedBy: anonymous ? '匿名' : _currentPersonId(),
         anonymous: !!anonymous,
-        // 2026-09-17 支书裁定「后台记录真实情况」：匿名反馈在本地库里留真实提交人，
-        // 出口（getDrafts/getAll/getById…）一律脱敏，仅党委核查出口（getIssuesForPartyReview）可见。
-        // 实名不重复存（真身即 submittedBy）。
-        ...(anonymous ? { _realPersonId: _currentPersonId() } : {}),
+        // mock 没有受保护的服务端存储，不持久化匿名提交人的真实身份。
         tokenHash: hashSubmitterToken(token),
         submittedAt: now,
       },
@@ -445,7 +428,7 @@ export const IssueStore = {
 
   /** 支书审核通过：合并到 issues.json（实际操作：本地更新+提示支书保存文件） */
   approveDraft(draftId) {
-    // 审核是**写链**：走原始草稿（含 `_realPersonId`），真身随 payload 并入 issue 记录（本地库留真身）
+    // 审核是写链：读取已清理身份字段的本机草稿；mock 形态不把匿名身份并入本地 issue 记录。
     const drafts = _rawDrafts();
     const d = drafts.find(x => x.draftId === draftId);
     if (!d) return null;
@@ -533,8 +516,7 @@ export const IssueStore = {
   },
 
   // ── 意见处置（支委层；2026-09-21 批次 126 · D-550 由「支书专属」放开）：直接修改缓存，API 形态经 _syncIssueToApi 写回服务端 ──
-  // ⚠ 写链一律经 `_rawById` 取**原始记录**（改的是库里那条，含真身字段不动），出口再脱敏——
-  //   若写链改的是脱敏副本，处置会静默丢失（副本回写覆盖真身）。2026-09-17 支书裁定口径。
+  // 写链经 `_rawById` 取原始记录并就地更新；API 缓存本身已脱敏，服务端 PATCH 合并白名单字段时保留受保护身份。
 
   /** 改状态（意见处置） */
   changeStatus(id, status, closedReason = null) {
@@ -926,9 +908,8 @@ export const IssueStore = {
    * 服务端只存它的哈希 `tokenHash`（本就随 `GET /api/v1/issues` 返回）⇒ 浏览器拿本地令牌
    * 自算哈希、自己比对即可「认出我提交过哪几条」，而 **tokenHash 本身推不出提交人**
    * （含支书、含拿到常规读出口数据的人）——自认需求得到满足，且不额外扩大真身可见面。
-   * ⚠ 与现实口径的关系（2026-09-17 改裁）：匿名是**对外匿名、后台记真身**——真身另存
-   * `_realPersonId`，仅党委可查（每次查看留痕），**不经 tokenHash 泄露**；tokenHash 只判重/限频，
-   * 「防刷线」与「真身线」两条线互不影响。
+   * ⚠ 身份口径（D-824）：API 服务端把真身另存 `_realPersonId`，不经常规出口暴露，也不经 tokenHash 泄露；
+   * 本机 mock 不留存真身。tokenHash 只判重/限频，「防刷线」与「身份留存线」互不影响。
    *
    * ⚠ 如实登记的边界：令牌在本浏览器本地（localStorage）⇒ **换设备 / 清除浏览器数据后无法回认**
    * （这是「不可反查」的必然代价：没有身份就没有跨设备的找回依据）。同浏览器内换登录账号亦然——
@@ -952,7 +933,7 @@ export const IssueStore = {
     return this.editIssue(id, { milestone: milestoneId });
   },
 
-  /** 导出为 JSON（供支书手动同步到 issues.json）；**出口脱敏**（支书侧看不到匿名真身） */
+  /** 导出为 JSON（供支书手动同步到 issues.json）；出口脱敏，不导出匿名身份字段。 */
   exportJSON() {
     return JSON.stringify({
       version: 1,
@@ -962,69 +943,35 @@ export const IssueStore = {
   },
 
   // ── 写链回写（**内部写链专用**，非读出口）─────────────────────────────────
-  // 背景（2026-09-17 支书裁定）：常规读出口（getById/getAll/filter…）自本次改裁起**一律脱敏**，
+  // 背景：常规读出口（getById/getAll/filter…）一律脱敏，
   //   故「取记录 → 就地改 → 回写缓存」这类既有写链（components/feedback/issue-detail.js 的评论口）必须
-  //   ① 取**原始记录**（否则改动落在副本上，静默丢失）；② 回写**原始缓存**（否则用脱敏副本覆盖
-  //   缓存，会把库里的匿名真身抹掉——与「后台记录真实情况」相反）。
+  //   ① 取**原始记录**（否则改动落在副本上，静默丢失）；② 回写缓存并让服务端 PATCH 保留其受保护字段。
 
-  /** 写链专用：取原始记录（**含真身**，live 对象；改动即落内存缓存）。展示/出口一律走 getById */
+  /** 写链专用：取原始记录（live 对象；API 缓存已脱敏，mock 缓存也不持久化真身）。展示/出口一律走 getById */
   getRawById(id) {
     return _rawById(id);
   },
 
   /**
-   * 写链专用：把内存缓存（**保留真身**）序列化回 localStorage 缓存键（与 CACHE_KEY 同键）。
+   * 写链专用：把内存缓存（递归剔除身份字段）序列化回 localStorage 缓存键（与 CACHE_KEY 同键）。
    * @returns {boolean} 是否写成功（失败由调用方告警并登记，不得静默吞掉）
    */
   persistCacheFromWrite() {
     try {
+      _issuesCache = _stripStoredIdentity(_issuesCache || []);
       localStorage.setItem(CACHE_KEY, JSON.stringify(_issuesCache || []));
       return true;
     } catch { return false; }
   },
 
-  // ── 党委核查出口（2026-09-17 支书裁定：查看匿名的权限只有党委有）────────────
+  // ── 受保护真实提交人：本轮不开放任何前端揭名出口 ───────────────────────
 
-  /**
-   * **党委核查出口（唯一带真身的读口）** —— 列出反馈及其真实提交人（含匿名项）。
-   *
-   * 口径（支书 2026-09-17 原话）：「后台记录真实情况，匿名是前端的。但是我们也强调清楚，
-   *   查看匿名的权限只有党委有。」⇒ 本方法**只给党委台「匿名反馈核查」页用**；
-   *   不得用于任何常规读（常规读一律走 getAll/getById/filter… 的脱敏出口）。
-   *
-   * 双形态同构（形状一致）：
-   *   · mock：从本地记录读 `_realPersonId`（脱敏后补 `realPersonId`），本地写一条留痕；
-   *   · api ：`GET /api/v1/issues/reveal`（服务端鉴权 party-staff，否则 403；命中即由服务端写留痕）。
-   * 角色闸门（前端）：非党委角色一律返回 `forbidden: true` + 空列表，**不带真身**（服务端另有 403 兜底）。
-   *
-   * @returns {Promise<{rows: Array, traced: boolean, trace: Object|null, forbidden: boolean}>}
-   *   rows     反馈列表；每条含 `realPersonId`（匿名项=真实提交人 id；实名项=null，真身即 submittedBy）
-   *   traced   本次查看**是否已留痕**（api 由服务端记、mock 本地同名表记——两形态都为 true）
-   *   trace    留痕记录（mock 形态为本地写入的那一条；api 形态服务端不回读 ⇒ null，以 traced 表明已记）
-   *   forbidden 调用者非党委（未授权），此时 rows 恒为空
-   */
+  /** 保留旧调用兼容，但不读取真身、不写揭名日志；服务端也会拒绝该端点。 */
   async getIssuesForPartyReview() {
-    if (!_isPartyStaff()) {
-      return { rows: [], traced: false, trace: null, forbidden: true };
-    }
-    if (_isApiMode()) {
-      const rows = await getAdapter().issues.reveal();
-      // 服务端已补 realPersonId（真身来自其 `_realPersonId`）；此处只做形态归一，**不重算**
-      return {
-        rows: (Array.isArray(rows) ? rows : []).map(r => ({ ...r, realPersonId: r.realPersonId || null })),
-        traced: true,
-        trace: null,
-        forbidden: false,
-      };
-    }
-    if (!_issuesCache) await this.loadAll();
-    // mock：库（本地记录）里留真身 ⇒ 出口补出；留痕写本地同名表（与服务端 issue_reveals 同构）
-    const rows = (_issuesCache || []).map(_revealIssue);
-    const trace = _writeRevealTrace(rows);
-    return { rows, traced: true, trace, forbidden: false };
+    return { rows: [], traced: false, trace: null, forbidden: true };
   },
 
-  /** 本地留痕（mock 形态；api 形态由服务端表 `issue_reveals` 记录，前端不可造/改）——供党委台展示「留痕已记」 */
+  /** 旧版前端留痕读取兼容；当前没有前端揭名操作会新增该类记录。 */
   getRevealTraces() {
     return _readRevealTraces();
   },

@@ -7,7 +7,7 @@
 //        mock 形态的对应物（清了不丢数据，或清了只是回到服务端值）。
 //        消费点：`server/db.js` 的 `RESOURCE_TABLES` / `SEMANTIC_TABLES` 与 `server/routes/**` 端点。
 //     B. **本机临时白名单**（local-only）：语义上**就应当只在本机**（草稿 / 预览 / mock 形态专属 / 设计如此）——
-//        硬搬服务端反而错（如草稿内含匿名真身、预览只是「本地看效果」）。逐条写明「为什么不上服务端」。
+//        硬搬服务端反而错（如未提交草稿、预览只是「本地看效果」）。逐条写明「为什么不上服务端」。
 //        落点见 `content/05_ai_coding/DATA_CONSISTENCY_CHECKLIST.md` 的「浏览器存储键白名单」表。
 //     C. **UI 偏好与会话**（ui-pref-session）：主题 / 字号 / 强调色 / 个人偏好前缀 / 登录会话 / 标签页 / 令牌。
 //    ⇒ **任何新键若未进这三档之一 ⇒ 红灯**，并给出「请登记到白名单或改为服务端权威」的提示。
@@ -72,7 +72,7 @@ const SERVER_AUTHORITATIVE = {
   'gsm1921-issue-cache-version': '上条缓存的版本号（缓存失效用，非数据本体）',
   'gsm1921-feedback-migrated': '反馈迁移标记（一次性迁移用；迁移的是种子，非用户数据）',
   'gsm1921-feedback-submissions': '旧版反馈本地提交件（迁移源；migrateFeedbackSubmissions 处理后清除）',
-  'issue_reveals': '匿名反馈「查看真身」留痕；服务端表 issue_reveals（services/governance/issues.js；mock 形态本地同构）',
+  'issue_reveals': '匿名反馈揭名的历史留痕；当前系统已关闭揭名入口，仅保留历史记录（服务端表 issue_reveals）',
   'gsm1921-milestone-cache': '批次里程碑读缓存；服务端表 milestones（内容单一源 docs/data/milestones.json，seed.js 播种；services/governance/milestones.js）',
   'workflowos_taskforces_v1': '专班旧单域键（已被整库键 workflowos_branch_db_v1 取代；taskforces 是服务端资源表）',
   'workflowos_notices_v1': '通知旧单域键（同上；notices 是服务端资源表）',
@@ -81,7 +81,7 @@ const SERVER_AUTHORITATIVE = {
 /** B 档：本机临时白名单（**就应当只在本机**——逐条写明为何不上服务端） */
 const LOCAL_ONLY = {
   'gsm1921-base-data-preview': '本机临时·预览：换组织前「本地看效果」，绝不写 mockDB / 种子 / 服务器（org-base-data-preview.js）——服务端化会把「看效果」变成「真改数据」',
-  'gsm1921-issue-drafts': '本机临时·草稿：未提交的反馈/评论草稿，其 payload 可能含匿名真身 ⇒ 落服务端即破坏匿名承诺（services/governance/issues.js）',
+  'gsm1921-issue-drafts': '本机临时·草稿：未提交的反馈/评论草稿不得保存真实身份；旧草稿读取时迁除身份字段（services/governance/issues.js）',
   'gsm1921-workforce-draft': '本机临时·草稿：支书台「拟定分工」未提交内容，属该设备上未完成的工作（entries/tabs/secretary/workforce-panel.js）',
   'workflowos_leader_activity_draft': '本机临时·草稿：组长「写入活动」未提交的表单暂存（刷新恢复用；entries/tabs/leader/write-tab.js）',
   'gsm1921-members-overlay': 'mock 形态专属：成员档案覆盖层；api 形态读链走 server users、写走 /members* 端点 ⇒ 无需服务端化（services/member/person.js）',

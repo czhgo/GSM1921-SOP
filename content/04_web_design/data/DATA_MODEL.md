@@ -626,7 +626,7 @@ taskforce.members:    Array<{ personId, role: 'organizer' | 'deep' | 'participan
 
 ### 2.16 意见反馈数据 (IssueRecord)
 
-> 意见反馈为 GitHub Issue 风格意见反馈系统，数据双轨（`issues.json` 权威源 + localStorage 草稿/缓存）。旧 FeedbackRecord 类型已弃用，保留向后兼容 shim（feedback.js）。
+> 意见反馈为支部内部闭环的 Issue 风格系统。登录后提交、读取和处置均限于所属支部；mock/本地形态使用 `issues.json` 与本机草稿/缓存，API 形态以服务端 `issues` 表为权威。
 
 > 类型定义与权威实现位于 [issues.js](../../../docs/src/services/governance/issues.js)（IssueStore），权威源 `docs/data/issues.json`
 
@@ -639,7 +639,7 @@ taskforce.members:    Array<{ personId, role: 'organizer' | 'deep' | 'participan
 | status | `'open'\|'closed'` | 开放 / 关闭 |
 | closedReason / closedAt | `'completed'\|'duplicate'\|'wontfix'\|'not_planned'` / string\|null | 关闭原因 / 关闭时间 |
 | submittedBy / submittedAt | string | 提交人（**对外展示值**：匿名提交时恒为 `'匿名'`；实名时为短 ID）/ 提交日期 |
-| _realPersonId | string \| 无 | **真实提交人 personId**（**仅匿名提交时落库**；2026-09-17 支书改裁「后台记录真实情况，匿名是前端的」）——**任何常规读出口一律不外泄**（公开读 / 支书读 / 提交回执 / 处置回执均脱敏），唯一可见出口＝党委核查端点 `GET /api/v1/issues/reveal`（仅 `party-staff`，**每次查看留痕**见 §2.29）。**党支部内部（含支书）不可见**：支书只有处置权，与「查看真身」是两项分开的权限 |
+| _realPersonId | string \| 无 | **真实提交人 personId**（仅服务端匿名记录持有）。任何常规读出口一律不外泄；仅服务端受保护记录保留该字段。浏览器 mock 缓存与草稿不得持久化该字段，旧缓存读取时迁除。当前没有任何系统揭名入口，党委不得读取反馈内容或提交人身份；历史揭名留痕见 §2.29 |
 | assignee / assigneeRole | string \| null | 支书指派对象（personId / 角色键，如 `u_org` / `'org-commissioner'`） |
 | dispatchHistory | {from, to, by, at, note}[] | 指派历史时间线（from→to 变更记录） |
 | milestone | string \| null | 里程碑 |
@@ -650,7 +650,7 @@ taskforce.members:    Array<{ personId, role: 'organizer' | 'deep' | 'participan
 | comments | {id, author, authorRole, body, createdAt, kind, hidden, hiddenBy, hiddenReason, hiddenAt}[] | 评论时间线；kind：`comment`（普通评论）/ `reply`（支书正式答复，通知汇报人）/ `dispatch`（指派事件）/ `result`（处置结果）/ `verdict`（支书终审/合并事件）。注：工作汇报型 issue 自身 `kind='report'`（issue 级，非评论时间线 kind，见 issues.js addReport） |
 | resultPending / resultSubmittedAt | boolean / string\|null | 待终审标记（处置结果提交后置位） |
 
-**匿名口径（2026-09-17 支书改裁，正面改裁）**：意见反馈的「匿名」＝**对外展示匿名**——列表 / 详情一律显示「匿名」，**后台仍记真实提交人**（`_realPersonId`）。**查看真身的权限只有党委**（`GET /api/v1/issues/reveal`，见 §2.29），**党支部内部（含支书）不可见**——支书只有处置权，「处置」与「查看真身」是**两项分开的权限**；**每次查看都留痕**。**适用范围**：本口径**只落在意见反馈**——「正式表决无记名」维持 2026-09-12 原裁定不变（两段式：参与记录 + tally，**逐人选项不落库**），任何文档不得把表决写成「党委可查」。
+**匿名与范围口径（D-824）**：意见反馈必须登录后提交，并始终在提交人所属支部内读取和处置；支部账号不能跨支部读写，党委账号不读取列表、不代为提交，也不能揭名。匿名提交在支部工作人员的列表与详情中始终显示为「匿名」；服务端受保护记录保留真实提交人字段，但当前不提供任何系统揭名入口。无受保护服务端存储的浏览器 mock 只保留匿名业务内容，不持久化真实身份；升级时会清理本机旧匿名缓存与草稿中的身份字段。意见反馈不是向党委上报的通道。此规则不改变正式表决独立的「真无记名」机制。
 
 **处理流程（GitHub Issue 风格）**：提交(open) → 支书审阅并指派（assignee + dispatchHistory，通知被指派人）→ 公开讨论（评论+表态，全员可参与）→ 被指派人提交处置结果（kind=`result`）→ 待终审（resultPending=true，支书工作台高亮）→ 支书终审：关闭(closed) / 重新开放(reopen)。
 
@@ -1154,7 +1154,7 @@ pending ──用户开始处理──→ in_progress ──完成──→ comp
 
 > **仅服务端表**：无前端持久化域、不进快照写穿、**无通用 CRUD**（`server/db.js::RESOURCE_TABLES`）。
 
-> **用途**＝**党委查看匿名反馈真实提交人的留痕**（2026-09-17 支书改裁「查看匿名的权限只有党委有」）。表只增不改：**每次查看写一条**，使「只有党委能看」这句承诺**可被事后核对**。
+> **历史用途**＝记录旧版系统曾由党委调用揭名出口的事件。D-824 之后不再提供揭名入口，历史记录保留、不新增；此表不构成当前任何角色的读取授权。
 
 | 字段 | 类型 | 说明 |
 |---|---|---|
@@ -1166,9 +1166,9 @@ pending ──用户开始处理──→ in_progress ──完成──→ comp
 
 **读取口径（与 §2.16 同源）：**
 
-1. **写入唯一入口**＝`GET /api/v1/issues/reveal`（仅 `party-staff`；未登录 **401**、非党委 **403**）——命中即写一条留痕，**与返回值同一次发生**（不会出现「看了没记」）。
-2. **前端不能造改**：本表**不在** `server/routes/resources.js` 的资源名映射内 ⇒ 无通用 CRUD 入口。
-3. **留痕记「看了哪些匿名条目」**（不记「看到了谁的真身」——真身由 `issues._realPersonId` 现取）；其职能是**证明这次查看发生过**，守的是「只有党委能看」这条边界。
+1. `/api/v1/issues/reveal` 仅作为旧客户端兼容路径保留；当前所有登录请求均返回 **403**，不读真身、不新增留痕。未登录请求先由认证层返回 **401**。
+2. 本表不在通用资源读写映射内；前端不能通过快照或通用 CRUD 查询、制造或修改留痕。
+3. 既有留痕只用于历史审计，不能反推当前授权，也不能替代未来可能另行裁定的核查流程。
 
 ---
 
@@ -1231,7 +1231,7 @@ pending ──用户开始处理──→ in_progress ──完成──→ comp
 
 ### 1.2.1 多支部部署与数据边界
 
-一个服务实例可承载同一党委下的多个支部，业务记录以 `branchId` 归属支部。普通支部账号只能读取本支部记录；请求中显式指定其他支部时，服务端返回 403。党委组织员可用 `branchId` 选定支部读取，也可不指定支部读取跨支部数据以形成汇总。匿名意见反馈列表仍按公开反馈契约返回脱敏列表。
+一个服务实例可承载同一党委下的多个支部，业务记录以 `branchId` 归属支部。普通支部账号只能读取本支部记录；请求中显式指定其他支部时，服务端返回 403。党委组织员可用 `branchId` 选定支部读取，也可不指定支部读取跨支部数据形成治理汇总；意见反馈是明确例外，始终在支部内闭环，党委读该列表只返回空数组。
 
 读取关联记录时按其所属活动、工作组、专班、党小组或人员解析支部；记录自身与关联对象的支部归属冲突时按无权处理。兼容的无 `branchId` 旧记录按 `br-b1` 读取，新的写入从关联业务记录或操作者取得支部归属。支部局部快照只替换本支部记录并保留其他支部已有行；`users` 与 `branches` 不接受快照写入，必须经过专用接口。跨支部关联写入由服务端逐项拒绝，工作组成员关系也不自动授予操作权限。
 

@@ -118,7 +118,7 @@ related_files: [DATA_MODEL.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 15. **小字的用途**——我加的这段小字（`text-xs` / `text-[11px]` / `text-[10px]`），是在做**辅助**（提示 / 徽标 / 单位 / 状态），还是在**讲背景信息**？若是后者：它该出现在这个页面上吗，还是应归到「知情查看 / 制度与答复」？（支书 2026-09-15 原话：「有很多辅助小字都脱离了使用辅助的功能，而是讲很多背景信息，这是我所不喜欢的」——**拿不准就问支书**，登记 `REVIEW_QUEUE Q-23-39`）
 16. **静默的成因**——我说「这里静默失败 / 没反应 / 查不出原因」时，**判据本身是不是只看得见「文本」**？我有没有丢掉**异常 / 状态 / 网络**层面的证据（未捕获脚本错误、请求失败、状态机没推进）？这个「静默」是不是**被某条白名单长期挡在真机之外**才一直没人发现？（→ 批次 47-M：`services/governance/issues.js` 11 处 `showToast` 未导入 ⇒ `ReferenceError`，两类文本判据都只能把它记成「静默失败」而查不出成因；见「范本第十七」）
 17. **守卫守的是一维还是整个接口**——我为这个接口/组件建的守卫，是**按「接口的完整约定」逐维覆盖**（参数个数 / 顺序 / 允许枚举 / 返回值 / 状态机），还是**只把「上次踩过的那个坑」写成唯一判据**？同接口的其它形态是否从它眼皮下走过？（→ 批次 47-P：`ux-guard ⑥`「防参数写反」**只匹配两参形态**，而真实存在的**单参** `showToast('文案')` 恰恰从它眼皮下走过 ⇒ 用户只看到「只有图标、没有文字」的空提示；见「范本第十八」）
-18. **这份内容同时还给谁看**——我要改的这个文件 / 表 / 数据，是**只有内部可见**，还是**同时也是公开面（或另一种可见性）的来源**？我加进去的东西，**在那个面上该不该出现**？（→ 批次 47-Q：`issues.json` 既是内部汇报的单一源、又是**公开匿名反馈页**的数据源，直种＝内部汇报上公开页；见「范本第十九」）
+18. **这份内容同时还给谁看**——我要改的这个文件 / 表 / 数据，是**只有内部可见**，还是**同时也是公开面（或另一种可见性）的来源**？我加进去的东西，**在那个面上该不该出现**？（→ 批次 47-Q：历史上 `issues.json` 同时承载内部汇报与公开反馈；公开入口已由 D-824 关闭，当前须登录并按支部隔离；见「范本第十九」）
 19. **我补的种子会不会把要测的那一支挡住**——我为了让某个按钮 / 表单出现而补的数据，是否同时决定了它**落在哪个状态分支**（哪一列、哪套 UI、是只读还是可写）？**该分支正是我要测的那一支吗**？这个表单有没有**出厂预填**（尤其是「上一次的内容」）使必填分支走不到？（→ 批次 47-R：给「我的复盘」补归属时挑到了**已有复盘记录**的活动 ⇒ 行卡落进「已复盘」列、渲染只读详情，**没有复盘表单**；见「范本第二十」）
 20. **我等的那个信号，窗口够不够**——凡判据是「等某信号出现」（提示 / 列表刷新 / 状态改写），我给的**等待窗口**是否覆盖了该动作的**真实耗时**？这是**长链**吗（串行多写口 / 多次落盘 / 大列表）？我有没有在**没等到**时直接判「静默失败」——把「**慢**」读成「**没成**」？（→ 批次 47-S：`writeActivityWithSOP` **串行建 16 个 SOP 任务**（每口 600ms）⇒ 约 10s 才弹提示，而守卫只等 4s ⇒ 误报「静默失败」，**排查方向被带偏**；见「范本第二十一」）
 21. **我这条判据分流，依据是「事实」还是「我用的手段」**——我按某个字段 / 路径 / 标记分流行为时，它对应的是**一种事实**还是**多种事实**（同一手段可达的多种页面形态 / 数据形态）？我对**唯一的事实来源**（页面实测、接口实测）做过核对吗？我沿用的那条**口径**（注释 / 台账里的断言）与**实测**一致吗——不一致时我**更正了什么、原结论是否仍成立**？（→ 批次 47-S：① 「重载后要不要切 tab」原按 `flow.path` 分流，而 `path` 对应**独立页 / 工作台深链**两种形态 ⇒ 深链页假红；② 台账原写「普查全程跑在 mock 态」**是错的**（实为 api 形态），这句错口径**把只在 api 显形的病灶盖章为不存在**；③ **批次 47-V 补**：跨「整页重载」的断言，我**把「页面形态」恢复到位了吗**——详情面板 / 浮窗重载后**会收起**（展开态不落库），不重开就断言只会得到「载体不在位」的**假红**（看着像产品病，其实是守卫没摆好被测对象）⇒ 用 `SUCCESS_FLOWS[].reopen[]`；见「范本第二十二」）
@@ -162,7 +162,7 @@ related_files: [DATA_MODEL.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 | R26 说明文件里的「数字与名称」须指到代码出处（**含「守卫自身须登记进 README 测试清单」**——守卫存在却无人可见＝半个没做） | 各说明文件 ↔ 代码注册数组 · `README.md` 测试清单 | `doc-consistency.test.mjs::S1–S16`（**2026-09-26 批次 205 改准**：原写 `S1–S12`；**2026-09-28 批次 243 续**：现到 **S1–S16**，另含 S13 时间戳↔frontmatter／S14 可数事实对账／S15 弱清单／S16 守卫注册完整性） | 已闭环 | `§3.4 R26` · `REVIEW_QUEUE Q-23-24 / Q-23-37` |
 | R28 同一病灶只修一处＝没修完（须数同类规模 + 建台账 + 真机覆盖） | `server/test/form-loop-registry.mjs`（**95** 条校验点台账，**91** 条可自动化 / **4** 条逐条 reason，含「需跨页前置链」「服务层重复守卫」分列——批 47-W/47-X/47-Y/47-Z 由 84/9 升为 **91/2**；**批次 91 再增 2 条**（本组通知发布口，`services/governance/notice.js`）⇒ **现余 4 条＝服务层重复守卫 1 · 缺稳定前置待解锁 3**，各条归属均写在 reason 内） | `form-loop-sweep.test.mjs::S0–S5` + **54 条真机闭环** + **17 条真机成功路径**（每条另加「未捕获脚本错误」判据） | 已闭环 | `§3.4 R28` · `REVIEW_QUEUE Q-23-31 / Q-23-44 / 批次 47-W / 47-X / 47-Y / 47-Z` |
 | R73 台账完备性**三缺**——规模不缩水（S0）/ 已登记项全覆盖（S2）/ **全站是否都已登记（漏登记时前三条全绿）**；**③ 缺的守卫已于 2026-10-01 批次 323 落成** | `server/test/form-loop-registry.mjs`（批 47-R 补登 1 处遗漏：`thought-report-entry.js:287`） | `form-loop-sweep.test.mjs::S0–S6` · **`validation-site-coverage.test.mjs::V1`**（漏登记增量检测：按台账开篇同一套登记判据扫 `docs/src/**`，未登记者进**只降不升**的存量基线；落成当天即揪出 5 处真漏登记并同批登记） | 已闭环（批次 323） | `CLAUDE.md R-73` · `REVIEW_QUEUE 批次 47-R` |
-| 内容单一源同时承载**可见性不同**的两类数据时，公开面必须显式过滤（且列表与统计同一口径） | `docs/data/issues.json`（公开匿名反馈 + 内部汇报同文件）· `docs/src/components/feedback/issue-list.js` · `server/seed.js::seedIssues()`（按 `kind` 分流脱敏） | `page-sweep.test.mjs`（公开反馈页）· 真机探针取证（公开页 4 行 / 无汇报标题） | 已闭环 | `REVIEW_QUEUE 批次 47-Q` · `范本第十九` |
+| 内容单一源承载**支部范围不同**的记录时，服务端读写与前端显示都须按会话支部收口；党委不得获得意见反馈列表（D-824） | `docs/data/issues.json`（反馈与内部汇报同源）· `docs/src/services/governance/issues.js` · `server/routes/resources/index.js` | `issue-branch-policy.test.mjs` · `issue-anonymity.test.mjs`（支部范围、党委空列表、出口脱敏） | 已闭环（D-824） | `D-824` · `REVIEW_QUEUE 批次 47-Q` · `范本第十九` |
 | 显示接口须按其**完整约定**逐维守卫（参数个数 / 顺序）——只守「见过的错误形态」＝守一半 | `docs/src/core/base/utils.js::showToast(type, message)`（两参） | `ux-guard.test.mjs::⑥`（两维：**参数顺序写反** + **参数个数不足**）· 真机侧 `form-loop-sweep.test.mjs::pc-review-reject-note` | 已闭环（3 处单参真实调用已修） | `CLAUDE.md R-72` · `范本第十八` · `§0.1 第十七问` · `REVIEW_QUEUE 批次 47-P` |
 | R28-附 工具脚本会把「数据」当「代码」改写（补戳正则命中路径数据） | `docs/scripts/version-next.mjs::isCacheKeyLine`（缓存键语境单一源；`bump-version.mjs` 补戳与自检同判据） | `form-loop-sweep.test.mjs::S4`（防污染断言：数据里不得出现 `?v=`）· `version-stamp.test.mjs::S4–S6 / D7–D9` | 已闭环（批次 46 ① 根治 Q-23-33） | `范本第十四` · `REVIEW_QUEUE Q-23-33` |
 | R-74 「等信号出现」的判据**等待窗口必须覆盖真实耗时**——长链（串行多写口）窗口不足时，会把「**慢**」误判成「**没成**」并把排查方向带偏 | `server/test/form-loop-registry.mjs::SUCCESS_FLOWS[].toastTimeoutMs`（缺省 4s 不动旧行为；长链显式声明） | `form-loop-sweep.test.mjs`（`leader-write-activity-save` 首用；`writeActivityWithSOP` 串行 16 个写口 × 600ms ⇒ 约 10s） | 已闭环 | `CLAUDE.md R-74` · `范本第二十一` · `§0.1 第二十问` · `REVIEW_QUEUE 批次 47-S` |
@@ -234,7 +234,7 @@ related_files: [DATA_MODEL.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 | `sop_org_os_auth_audit` | 授权审计留痕 | 表 `auth_audit`（批次 169） |
 | `gsm1921-issue-cache-v3` / `gsm1921-issue-cache` / `gsm1921-issue-cache-version` | 意见反馈读缓存 + 版本号 | 表 `issues` |
 | `gsm1921-feedback-migrated` / `gsm1921-feedback-submissions` | 旧版反馈迁移标记 / 迁移源 | 同上（迁移的是种子，非用户数据） |
-| `issue_reveals` | 匿名反馈「查看真身」留痕（mock 形态本地同构） | 表 `issue_reveals` |
+| `issue_reveals` | 匿名反馈揭名的历史留痕（D-824 起停写；无前端读取入口） | 表 `issue_reveals` |
 | `gsm1921-milestone-cache` | 批次里程碑读缓存 | 表 `milestones`（内容单一源 `docs/data/milestones.json`） |
 | `workflowos_taskforces_v1` / `workflowos_notices_v1` | 专班 / 通知旧单域键（已被整库键取代） | 服务端资源表 `taskforces` / `notices` |
 
@@ -243,7 +243,7 @@ related_files: [DATA_MODEL.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 | 键 | 语义 | 为什么**不上服务端** |
 |---|---|---|
 | `gsm1921-base-data-preview` | 本机临时·**预览**（换组织前「本地看效果」） | 服务的正是「只看效果、不改真数据」——服务端化会把「预览」变成「真改」（`org-base-data-preview.js`） |
-| `gsm1921-issue-drafts` | 本机临时·**草稿**（未提交的反馈/评论） | 草稿 payload 可能含**匿名真身** ⇒ 落服务端即破坏匿名承诺（`issues.js`） |
+| `gsm1921-issue-drafts` | 本机临时·**草稿**（未提交的反馈/评论） | 不得保存匿名真实身份；读取时会迁除旧草稿身份字段。真实身份只由 API 服务端写入受保护记录（`issues.js`） |
 | `gsm1921-workforce-draft` | 本机临时·**草稿**（支书台「拟定分工」未提交内容） | 属该设备上未完成的工作，不是组织决定（`workforce-panel.js`） |
 | `workflowos_leader_activity_draft` | 本机临时·**草稿**（组长「写入活动」表单暂存） | 同上；刷新恢复用（`write-tab.js`） |
 | `wizard-draft-`（前缀） | 本机临时·**草稿**（换组织向导未走完，按支部一份） | 同上（`org-setup-wizard.js`） |
@@ -660,7 +660,7 @@ related_files: [DATA_MODEL.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 - [ ] **前端持久化域 ↔ server 表对账（B5-2 2026-08-24 立；2026-09-15 收敛为实测口径，Q-23-1 结案）**——**口径定义**（下列五个数各自统计什么，严禁混用/互相代入）：
   - **mockDB 顶层业务域** ＝ `docs/src/core/domain/domain.js::mockDB` 的顶层非 `_` 键数 → **实测 40**（含 `users`、仅内存读链的 `pendingMemberConfirmations`，以及工作组五集合与能力包目录；2026-10-02 批次 342 删 `complianceReferences` 后为 34，本批新增六域）
   - **localStorage 持久化域** ＝ `docs/src/data/mock-adapter.js::_saveToStorage()` 序列化字段数 → **实测 33**（含 `users`；users 在 mock 形态走「members 持久覆盖层」子域；同上批删 `complianceReferences` ⇒ 34 → 33）
-  - **server 表** ＝ `server/db.js::RESOURCE_TABLES` 长度 → **实测 34**（含 `issues` / `member_change_requests` / `committee_broadcasts` / `agenda_votes` / `issue_reveals` 五张语义端点表——不进通用资源名映射；`issue_reveals` 为 2026-09-17 支书裁定「查看匿名的权限只有党委有」的留痕表，仅 `GET /api/v1/issues/reveal` 命中时写入）
+  - **server 表** ＝ `server/db.js::RESOURCE_TABLES` 长度 → **实测 34**（含 `issues` / `member_change_requests` / `committee_broadcasts` / `agenda_votes` / `issue_reveals` 五张语义端点表——不进通用资源名映射；`issue_reveals` 是旧揭名功能的历史留痕表，D-824 起停止写入）
   - **资源名映射** ＝ `server/routes/resources.js::RESOURCE_TABLES` 键数 → **实测 29**
   - **快照 payload 键** ＝ `docs/src/data/data-adapter.js::_buildSnapshotPayload()` 键数 → **实测 24**
   - 四数之差有据：资源名 29 ＋ 语义端点表 5 ＝ server 表 34；持久化域 33 − 快照排除的 9 域（`users` / `branchDocs` ＋ `memberChangeRequests` / `committeeBroadcasts` / `agendaVotes` / `handoffs` / `branches` / `appointmentRecords` / `reviewRequests`）＝ 快照 24。**结论：三者非「一一映射」，须按上述分口径读**（旧文件「27 域 / 28 表一一映射」的表述已作废）。

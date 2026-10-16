@@ -38,7 +38,7 @@ dynamic_role:
 | 文件路径 | last_updated | 移入归档日 | 角色 | 备注 |
 |---------|-------------|--------|------|------|
 | README.md | 2026-10-16 | — | [用户]+[AI] | 全站门面（定位 / 快速开始〔2026-10-07 批次 437 新增：三命令跑起来＋演示账号＋局域网免域名直连＋真实数据空库起步〕 / 页面与页签清单 / 支部分工覆盖面 / 测试与发版清单）；会议表决规则改为按场景说明。**边界**：逐枚页面与逐枚页签的权威源是 `README-server.md` §3.1–§3.2 与 `docs/help.html` §0 / §2，本件只给概览与入口。守卫清单列在此处是 `doc-consistency::S10` 的硬要求。沿革已迁出（git 可溯）。 |
-| README-members.md | 2026-09-29 | — | [用户]+[AI] | 支部成员版说明（思想汇报篇幅提醒只给本人；组长台考勤上传位按会议类型分；意见反馈含「事项领域 ＋ 建议归口 ＋ 处置归支委会」；匿名口径含「支委层也看不到真身」）。沿革见 `.ctx/logs/`。 |
+| README-members.md | 2026-10-16 | — | [用户]+[AI] | 支部成员版说明；匿名反馈为登录后的支部内闭环，处置权不含揭名权（`D-824`）。 |
 | README-server.md | 2026-10-16 | — | [用户]+[AI] | 面向**外部后端对接团队**的对接说明书（背景 / 角色 / 板块 / 字段〔**指针**〕/ 部署 / 接口 / 已知限制）。**边界**：**字段级清单的唯一权威源＝母本 `content/04_web_design/data/DATA_MODEL.md`**——§4 只留「**指针 ＋ 后端增量**」（服务端专有表 ＋ 来源 C 字段 ＋ 行为口径），**不再逐表复刻**。正文 **≥370 处 `文件:行号` 引用**由 `doc-line-ref` 守卫常驻核对（行号随代码位移须**同批改签**）。本批同步工作组与考勤接口说明并改签引用。沿革见 `.ctx/logs/`。 |
 | CLAUDE.md | 2026-10-16 | — | [工程师]+[AI] | AI 协作总纲：甲部（通用流程 / 指导思想，`H10`–`H100`）＋ 乙部（具体执行事项）＋ 丙部（待决策事项）。**边界**：过程 / 沿革 / 决议**各有其位**（`H26.2` 分工表）；乙部「评议待办 · 执行型」只留一句话索引（原文入 `.ctx/logs/**`）。**为什么**：本文件是最高治理文件，只承载规矩与在办项。 |
 | CHECKLIST.md | — | — | — | 🗑️ 已删除（迁移至 content/05_ai_coding/DATA_CONSISTENCY_CHECKLIST.md） |
@@ -126,13 +126,13 @@ dynamic_role:
 
 | 文件路径 | last_updated | 移入归档日 | 角色 | 备注 |
 |---------|-------------|--------|------|------|
-| content/04_web_design/design-system/DESIGN_SYSTEM.md | 2026-10-06 | — | [工程师]+[AI] | **（批次 236：沿革已整段迁出**——本行的逐批沿革（4192 字）见 `.ctx/logs/archive/2026-09-EXECUTION_LOG.md`「附：TIMESTAMPS 备注列迁出的逐批沿革（批次 236）」；本列只写**现状 / 边界 / 为什么**）** |
+| content/04_web_design/design-system/DESIGN_SYSTEM.md | 2026-10-16 | — | [工程师]+[AI] | **（批次 236：沿革已整段迁出**——本行的逐批沿革（4192 字）见 `.ctx/logs/archive/2026-09-EXECUTION_LOG.md`「附：TIMESTAMPS 备注列迁出的逐批沿革（批次 236）」；本列只写**现状 / 边界 / 为什么**）** |
 | content/04_web_design/design-system/COLOR_SYSTEM.md | 2026-09-24 | — | [工程师]+[AI] | 🗑️ **已删除**：正文**整体并入** `content/04_web_design/design-system/DESIGN_SYSTEM.md` 的 **§二 色彩系统**〔编号 2.1–2.8 一字未改〕⇒ **四份 → 一份**。（原：自 DESIGN_SYSTEM 拆分的 §二：色盘 / 主色 / 辅助色 / 中性色 / 功能色 / 表面色 / 配色规则。）沿革见 `.ctx/logs/`。 |
 | content/04_web_design/design-system/COMPONENT_SPEC.md | 2026-09-24 | — | [工程师]+[AI] | 🗑️ **已删除**（**2026-09-24 批次 172**：正文**整体并入** `content/04_web_design/design-system/DESIGN_SYSTEM.md` 的 **§四 组件规范**〔编号 **4.1–4.17 一字未改**〕；`D-638`）（原：组件规范——自 DESIGN_SYSTEM 拆分 §四：按钮 / 卡片 / 输入 / 侧边栏 / 导航 / 日历图例 / 数据展示 / 图标 / 选人 / 状态徽章；2026-09-20 批次 110 改准「待初阅队列」现状句） |
 | content/04_web_design/module/ABOUT_PAGE_DESIGN.md | 2026-10-05 | — | [工程师]+[AI] | About 页面设计系统（超参数设定原则 / 防风格疲劳 / 无竖线红线；无人称文体）。**边界**：入口路径以 `docs/src/entries/pages/about-entry.js` 为准。沿革见 `.ctx/logs/`。 |
 | content/04_web_design/deploy/PKU_PARTY_INTEGRATION.md | 2026-09-20 | — | [工程师]+[AI] | 🗑️ **已删除**：正文**整体并入** `content/04_web_design/deploy/DEPLOYMENT_GUIDE.md` 的 **§六 北大党校对接**〔内部 §一–§十一 → 6.1–6.11〕⇒ **四份 → 一份**。（原：北大党校与智慧党建对接设计：党校单向爬取 ＋ 智慧党建双向同步 ＋ 数据映射 ＋ 小程序归位 ＋ 待确认清单；对接授权＝党委组织部支持。）沿革见 `.ctx/logs/`。 |
 | content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md | 2026-09-27 | — | [工程师]+[AI] | 架构演进（组件化落地评估 ＋ 轻量插件化「能力注册表」设计 ＋ 迭代机制 ＋ 实施路径；无人称文体）。**边界**：「操作位收口」细节以 `PARTY_COMMITTEE_DESIGN.md` §2.5/§2.6 为准（本件只留一行指针）。沿革见 `.ctx/logs/`。 |
-| content/04_web_design/evolution/BRANCH_WORK_MAP.md | 2026-10-06 | — | [工程师]+[AI] | **（2026-09-26 批次 205 补行**：本表原无其行——历批按「覆盖缺口如实登记、**不补行**」处置，本批改为**补行**；日期＝该文件 frontmatter `last_updated` 实读值，与表行同值 ⇒ `S13` 绿；`git log -1 --format=%ad --date=short` 亦为 2026-09-26**）** 支部工作地图设计稿（平铺模块 ＋ 按人双视图） |
+| content/04_web_design/evolution/BRANCH_WORK_MAP.md | 2026-10-16 | — | [工程师]+[AI] | **（2026-09-26 批次 205 补行**：本表原无其行——历批按「覆盖缺口如实登记、**不补行**」处置，本批改为**补行**；日期＝该文件 frontmatter `last_updated` 实读值，与表行同值 ⇒ `S13` 绿；`git log -1 --format=%ad --date=short` 亦为 2026-09-26**）** 支部工作地图设计稿（平铺模块 ＋ 按人双视图） |
 | content/04_web_design/evolution/DESIGN_METHODOLOGY.md | 2026-09-26 | — | [工程师]+[AI] | **（2026-09-26 批次 205 补行**：本表原无其行，本批补行；日期＝frontmatter `last_updated` 实读值（与表行同值 ⇒ `S13` 绿）；`git log` 亦 2026-09-26**）** 设计理念与方法论承接（设计论证与方法档案） |
 | content/04_web_design/evolution/PARTY_COMMITTEE_DESIGN.md | 2026-10-05 | — | [工程师]+[AI] | 院系党委后台——支部多实例两级治理设计定案（§2.5 远期形态只留指针指 `ARCHITECTURE_EVOLUTION.md §八`；§2.6 ⑤ 域参数白名单已扩表并留放行登记）。沿革见 `.ctx/logs/`。 |
 | content/04_web_design/evolution/ROLE_PERMISSION_DESIGN.md | 2026-09-29 | — | [工程师]+[AI] | **（2026-09-26 批次 205 补行**：本表原无其行，本批补行；日期＝frontmatter `last_updated` 实读值（与表行同值 ⇒ `S13` 绿）；`git log` 亦 2026-09-26**）** 权限功能合一收敛设计 |
@@ -145,7 +145,7 @@ dynamic_role:
 | content/04_web_design/module/MODULE_UI_DESIGN.md | 2026-10-06 | — | [工程师]+[AI] | 模块界面设计（§一 总览 / §二 党建 Tab / §三 日历 / §四 全站 Tab 总方案＝2026-09-27 规划稿）。**边界**：§四.2 已升为 `DESIGN_SYSTEM.md §4.10.1` 正式条文（单一源）；§四 的逐台 tab 清单是**当日快照**，活口径以 `docs/src/capabilities/*-workspace.js` 为单一源（门控对账在 `doc-consistency::S1`）。沿革已迁出（git 可溯）。 |
 | content/04_web_design/module/SOP_WEBSITE_GUIDE.md | 2026-09-26 | — | [工程师]+[AI] | SOP-系统联动方法（无人称文体）。**边界**：相关引用指向 `content/03_doc_system/OPERATIONS_GUIDE.md`。沿革见 `.ctx/logs/`。 |
 | content/04_web_design/module/AGENDA_AND_REFERENCE_DESIGN.md | 2026-09-29 | — | [工程师]+[AI] | **（2026-09-26 批次 205 补行**：本表原无其行，本批补行；日期＝frontmatter `last_updated` 实读值（与表行同值 ⇒ `S13` 绿）；`git log` 亦 2026-09-26**）** 会议议程与资料查询设计 |
-| content/04_web_design/deploy/DEPLOYMENT_GUIDE.md | 2026-10-11 | — | [工程师]+[AI] | **部署**手册（环境 / 起服务 / 发版 / 回滚）。**边界**：只讲部署，**不含**权限模型（那在 `AUTHENTICATION_MODEL.md`）与运行协作（`OPERATIONS_GUIDE.md`）；**为什么**：三件分工不重叠，避免同一件事两处写法漂移。沿革见执行日志「附：TIMESTAMPS 备注列迁出的逐批沿革（批次 322）」。 |
+| content/04_web_design/deploy/DEPLOYMENT_GUIDE.md | 2026-10-16 | — | [工程师]+[AI] | **部署**手册（环境 / 起服务 / 发版 / 回滚）。**边界**：只讲部署，**不含**权限模型（那在 `AUTHENTICATION_MODEL.md`）与运行协作（`OPERATIONS_GUIDE.md`）；**为什么**：三件分工不重叠，避免同一件事两处写法漂移。沿革见执行日志「附：TIMESTAMPS 备注列迁出的逐批沿革（批次 322）」。 |
 | content/04_web_design/deploy/SERVER_DEPLOY_MANUAL.md | 2026-10-07 | — | [支书]+[运维执行人] | **服务器逐键部署手册**（支书版，2026-10-07 批次 439 新建）：名词卡片（堡垒机/sudo/防火墙/systemd/SFTP/冒烟）＋六步操作（探机 → 防火墙申请填单模板 → SFTP 上传 → 有/无 sudo 双路线安装 → 设口令启动体检 → 空库换壳起步）＋日常三招与出错对照表＋安全两件事。**边界**：只管「做」；「为什么/总览/回滚深度」在 `DEPLOYMENT_GUIDE.md`（姊妹篇互指）。
 | content/04_web_design/deploy/AUTHENTICATION_MODEL.md | 2026-09-05 | — | [工程师]+[AI] | 🗑️ **已删除**：正文**整体并入** `content/04_web_design/deploy/DEPLOYMENT_GUIDE.md` 的 **§四 认证与登录门控**〔内部 §一–§八 → 4.1–4.8〕⇒ **四份 → 一份**。（原：部署与认证场景模型：5 场景两轴正交 ＋ 侧边栏统一 ＋ 登录门控四层。）沿革见 `.ctx/logs/`。 |
 | content/04_web_design/SCHOOL_IT_DEPLOYMENT.md | 2026-08-27 | — | [工程师]+[AI] | 🗑️ 已删除（计算中心对接全案已并入 DEPLOYMENT_GUIDE §三） |
