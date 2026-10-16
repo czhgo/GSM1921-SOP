@@ -2,7 +2,7 @@
 title: "工程与 AI 协作的全栈实践"
 type: experience_doc
 role: "[用户]+[工程师]"
-last_updated: "2026-10-14"
+last_updated: "2026-10-16"
 status: active
 related_files: [content/insights/README.md, content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/OPERATIONS_GUIDE.md, content/04_web_design/data/DATA_MODEL.md, content/04_web_design/data/SYSTEM_ROLE_PERMISSION.md, content/04_web_design/design-system/DESIGN_SYSTEM.md, content/05_ai_coding/DATA_CONSISTENCY_CHECKLIST.md, content/05_ai_coding/TEST_AND_VERIFICATION.md, content/05_ai_coding/CONTEXT_MANAGEMENT.md, server/README.md, .ctx/ENGINEERING_ASSESSMENT.md]
 ---
@@ -94,6 +94,8 @@ related_files: [content/insights/README.md, content/03_doc_system/ARCHITECTURE.m
 ### 从“重复”到“维护成本”的判断
 
 同一规则在两个入口重复实现，常适合抽出共用服务；两个角色的工作台布局相似，却可能代表不同责任，不应只为减少文件数而合并。项目已把分工提案和专班提案的票决计算归为同一算法，同时保留不同场景的门槛；Help 的章节导航元数据也从两处定义收敛为一处。这类改动减少重复口径，没有改变业务语义。
+
+本轮工作台复核进一步用具体维度检验这条判据：正式会议类型与议程步骤分别表达；活动与专班保留各自记录并关联共同工作组；活动承办范围与报名资格分别判断；工作组成员与系统授权分别记录；角色入口保留，同时允许只读日历共用渲染。候选合并时逐项比较任务、数据来源、身份键、生命周期、权限和失败处理；这些条件一致时合并实现，条件有差异时保留各自对象或责任关系。验证时改变其中一项，检查其余维度的存储值、访问范围和角色入口不发生意外联动。
 
 评估功能体验时，使用设计规范中的**最小三成本**：信息成本（找出要做什么）、操作成本（从入口到完成动作的步骤）、适应学习成本（理解角色分工和使用方式）。对真实高频任务逐条走查，记录用户需要找几次、跳几页、还要问谁；再决定应删除入口、合并入口、改名还是把信息前置。
 

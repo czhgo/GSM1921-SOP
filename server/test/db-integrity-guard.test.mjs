@@ -27,8 +27,8 @@ const SRC = fs.readFileSync(DB_JS, 'utf8');
  * v1 冻结基线：迁移机制落地（2026-09-25）时 db.js 自建的**全部**表。
  * ⚠ 只增不改版本——**新增表一律走 `v2+` 迁移**（并在其 `tables` 里登记），**不得**改写这份基线。
  * ⚠ **删表是唯一例外**（2026-10-02 批次 342 · `CRUD-1`）：**删表**必须同批① 从 `db.js` 的 `RESOURCE_TABLES`
- *   移除、② 追加 `v2+` 的 `DROP TABLE` 迁移、③ **同步删除本基线里的那一行**（因为本清单与 `AD_HOC` 抽取集
- *   逐项相等，见 G4）——本批据此删去 `compliance_references`（**44 张**，原 45）。
+ *   移除、② 追加 `v2+` 的 `DROP TABLE` 迁移并在 `drops` 声明、③ 保留冻结的 v1 基线行（它记录历史结构，
+ *   不代表当前表仍存在）；G1 用全部 migration 的 `drops` 计算当前表集，G4 仍核对历史基线与创建声明。
  */
 const LEGACY_TABLES = [
   // 34 张资源表（RESOURCE_TABLES）
@@ -63,13 +63,17 @@ const AD_HOC = new Set([
   /COLLECTION_VERSIONS_TABLE = '(\w+)'/.exec(SRC)[1],
   ...MIGRATIONS.flatMap((migration) => migration.tables || []),
 ]);
-const AD_HOC_BASELINE = 50; // v1 冻结 44 张 + schema v3 新增 6 张；新增迁移表须同步审阅本基线。
+const AD_HOC_BASELINE = 51; // v1 冻结 44 张 + schema v3 新增 6 张 + schema v4 周期归档表；新增迁移表须同步审阅本基线。
 
 /** 各迁移声明的表名（`tables` 字段） */
 const DECLARED = new Set();
 for (const m of MIGRATIONS) for (const t of (m.tables || [])) DECLARED.add(t);
 /** 被迁移机制覆盖的表＝冻结基线 ∪ 迁移声明 */
 const COVERED = new Set([...LEGACY_TABLES, ...DECLARED]);
+/** 从已创建结构扣除迁移明确声明删除的历史表，得到目标版本应存在的表集。 */
+const RETIRED_TABLES = new Set(MIGRATIONS.flatMap((migration) => migration.drops || []));
+const CURRENT_TABLES = new Set([...AD_HOC].filter((table) => !RETIRED_TABLES.has(table)));
+const CURRENT_TABLE_BASELINE = 50;
 
 // ── G1 / G2 ────────────────────────────────────────────────────────────────
 test('G1/G2 完整性 + 版本对齐：临时库 integrity_check=ok，且 user_version=SCHEMA_VERSION', () => {
@@ -81,7 +85,7 @@ test('G1/G2 完整性 + 版本对齐：临时库 integrity_check=ok，且 user_v
     assert.equal(Number(db.pragma('user_version', { simple: true })), SCHEMA_VERSION,
       `user_version 须＝迁移列表最大版本 ${SCHEMA_VERSION}（落后＝有迁移没跑；超前＝版本号被手改）`);
     const actualTables = db.prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%' ORDER BY name").all().map((row) => row.name);
-    assert.deepEqual(actualTables, [...AD_HOC].sort(), '临时库实际表集合与源码抽取 / 迁移声明不符');
+    assert.deepEqual(actualTables, [...CURRENT_TABLES].sort(), '临时库实际表集合与源码抽取、迁移创建/删除声明不符');
   } finally { db.close(); fs.rmSync(dir, { recursive: true, force: true }); }
 });
 
@@ -103,6 +107,9 @@ test('G4 非空转：抽取有基线 + 校验器在合成反例上必命中（�
   assert.equal(LEGACY_TABLES.length, 44, `v1 冻结表清单规模变化：${LEGACY_TABLES.length} ≠ 44`);
   assert.equal(AD_HOC.size, AD_HOC_BASELINE,
     `db.js 自建表抽取数 ${AD_HOC.size} ≠ 当前冻结基线 ${AD_HOC_BASELINE}`);
+  assert.equal(CURRENT_TABLES.size, CURRENT_TABLE_BASELINE,
+    `迁移后的当前表数 ${CURRENT_TABLES.size} ≠ 当前基线 ${CURRENT_TABLE_BASELINE}`);
+  assert.equal(RETIRED_TABLES.size, 1, `已声明删除表数 ${RETIRED_TABLES.size} ≠ 当前基线 1`);
   assert.deepEqual([...AD_HOC].sort(), [...new Set([...LEGACY_TABLES, ...DECLARED])].sort(),
     'db.js 自建表抽取与 v1 冻结基线 ∪ 迁移声明不符（新结构须登记迁移）');
 

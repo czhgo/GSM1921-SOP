@@ -510,18 +510,18 @@ export const ApiAdapter = {
     },
   },
 
-  weeklyReports: {
+  periodicArchives: {
     list(params = {}) {
       const query = new URLSearchParams(params).toString();
-      return _get(`/api/v1/weeklyReports${query ? '?' + query : ''}`);
+      return _get(`/api/v1/periodicArchives${query ? '?' + query : ''}`);
     },
 
     create(data) {
-      return _post('/api/v1/weeklyReports', data);
+      return _post('/api/v1/periodicArchives', data);
     },
 
     update(id, patch) {
-      return _patch(`/api/v1/weeklyReports/${id}`, patch);
+      return _patch(`/api/v1/periodicArchives/${id}`, patch);
     },
   },
 

@@ -47,7 +47,7 @@ import { resolveDocumentUrl } from '../core/base/page-url.js?v=20261016a';
  * - activityReviews: 活动复盘
  * - taskforceReviews: 专班复盘
  * - propTasks: 宣传任务
- * - weeklyReports: 宣传周报
+ * - periodicArchives: 按支部周期策略提交的归档记录
  * - archiveRecords: 档案归档
  * - externalDispatches: 文件流外发确认（T-208）
  * - actSubRecords: 活动子记录（聚合域，__root__ 单行）
@@ -233,14 +233,14 @@ export async function init() {
 
       // T-218：niche 集合（经验沉淀/合规引用/文件空间/图片记录）从后端拉取填充，
       // 拉取失败时回退本地备份（不影响主集合；旧行为是纯本地恢复）
-      // T-209 全栈同步：再补拉 7 个数组域（报名/活动复盘/专班复盘/宣传任务/周报/档案/外发确认）
+      // T-209 全栈同步：再补拉 7 个数组域（报名/活动复盘/专班复盘/宣传任务/周期归档/档案/外发确认）
       // + 2 个聚合域（活动子记录/专班子记录，以 __root__ 单行存储，拉取后解包）。
       try {
         const [
           experienceDeposits,
           fileSpaceRecords, imageRecords,
           signups, activityReviews, taskforceReviews,
-          propTasks, weeklyReports, archiveRecords,
+          propTasks, periodicArchives, archiveRecords,
           externalDispatches,
           branchDocs,
           branches,
@@ -259,7 +259,7 @@ export async function init() {
           adapter.activityReviews.list(),
           adapter.taskforceReviews.list(),
           adapter.propTasks.list(),
-          adapter.weeklyReports.list(),
+          adapter.periodicArchives.list(),
           adapter.archiveRecords.list(),
           adapter.externalDispatches.list(),
           adapter.branchDocs.list(),
@@ -288,7 +288,7 @@ export async function init() {
         mockDB.activityReviews       = activityReviews || [];
         mockDB.taskforceReviews      = taskforceReviews || [];
         mockDB.propTasks             = propTasks || [];
-        mockDB.weeklyReports         = weeklyReports || [];
+        mockDB.periodicArchives      = periodicArchives || [];
         mockDB.archiveRecords        = archiveRecords || [];
         mockDB.externalDispatches    = externalDispatches || [];
         mockDB.branchDocs            = branchDocs || [];
@@ -554,7 +554,7 @@ function _buildSnapshotPayload(mockDB) {
     activityReviews: mockDB.activityReviews,
     taskforceReviews: mockDB.taskforceReviews,
     propTasks:      mockDB.propTasks,
-    weeklyReports:  mockDB.weeklyReports,
+    periodicArchives: mockDB.periodicArchives,
     archiveRecords: mockDB.archiveRecords,
     externalDispatches: mockDB.externalDispatches,
     thoughtReports: mockDB.thoughtReports,

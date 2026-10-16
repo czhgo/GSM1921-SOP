@@ -217,6 +217,7 @@ mockDB 为唯一数据源，所有视图经 Service 层读取；按角色过滤�
 
 - **键名**： `workflowos_branch_db_v1`（`localStorage`，见 `docs/src/services/core/mock.js`）
 - **版本防御**： `loadDB()` 检查 `_schema !== SCHEMA_VERSION` 时拒绝脏数据并 `console.warn`
+- **服务端多支部**：一个 SQLite 实例可承载同一党委下多个支部；API 按 `branchId` 过滤支部账号的读取，党委组织员可选定支部或读取跨支部汇总。数据范围由服务端路由执行，前端可见性规则不替代服务端授权；具体实体和快照边界见 [DATA_MODEL.md §1.2.1](../04_web_design/data/DATA_MODEL.md) 与 [README-server.md §7.1](../../README-server.md)。
 - **根结构完整键表见权威源**：[DATA_MODEL.md §4.2.1](../04_web_design/data/DATA_MODEL.md)（存储键/字段/版本校验全量清单），本处不复刻。
 
 ---
@@ -491,7 +492,7 @@ content/02_institution/sop/ → docs/src/workflow/ → core/constants/utils → 
 | 补课管理 | `services/activity/makeup.js` | `workspace/disc.html` | 自动生成补课任务/标记完成+回写考勤/导出统计 | [纪检委员工作流程指南](../02_institution/sop/纪检委员工作流程指南.md) |
 | 复盘服务 | `services/governance/review.js` | `workspace/disc.html` | 提交复盘/批注/打回/确认/超期提醒（未提交 → 已上传 → 批注中 → 确认/打回） | CF §审批 §五 + CF §C.1a |
 | 发展党员 | `core/domain/domain.js`（developStage 四阶段）+ `data/data-adapter.js`（持久化） | `workspace/org.html` | 查看候选人列表/修改阶段状态/上传更新材料/标记缺失并提醒（思想汇报已数字化并实现：`services/governance/thought-report.js` 提交即入库即归档，组织委员查看/调用——2026-08-30 支书决策） | [组织委员工作流程指南](../02_institution/sop/组织委员工作流程指南.md) + CF §C.1b |
-| 档案宣传 | `data/data-adapter.js`（imageRecords 聚合）+ `components/sections/references.js` | `workspace/prop.html` | 档案归档/材料标准/模板管理/周报报送（图片随宣传材料走「档案归档」；**图片记录只有数据通道、图片管理界面未实现**） | [宣传委员工作流程指南](../02_institution/sop/宣传委员工作流程指南.md) + CF §C.1b |
+| 档案宣传 | `data/data-adapter.js`（imageRecords 聚合）+ `components/sections/references.js` | `workspace/prop.html` | 档案归档/材料标准/模板管理/周期归档（周/月由支部制度设置；图片随宣传材料走「档案归档」；**图片记录只有数据通道、图片管理界面未实现**） | [宣传委员工作流程指南](../02_institution/sop/宣传委员工作流程指南.md) + CF §C.1b |
 | 人员管理 | `services/member/person.js` | 各工作台（人才库/人员选择） | 人员查询/名称解析/档案展示 | — |
 | 待办服务 | `services/governance/todo.js` | 各工作台 | 待办派生/标记完成/按分类展开收起（幂等去重） | — |
 | 支书总览 | `services/governance/secretary-overview.js` | `workspace/secretary.html` | 全局统计/总览待办派生 | — |

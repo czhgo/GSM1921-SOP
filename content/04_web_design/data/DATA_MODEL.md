@@ -321,6 +321,8 @@ taskforce.members:    Array<{ personId, role: 'organizer' | 'deep' | 'participan
 | developStage | `'积极分子'\|'发展对象'\|'预备党员'\|'正式党员'` | 否 | -- | 发展阶段（统一中文枚举） |
 | partyGroup | string | 否 | -- | 所属党小组 |
 
+**人 × 活动关系**：考勤不是两份互不相关的“人员清单”和“活动清单”，也不是把人员表原样转置；每条考勤事实是一个 `(activityId, personId)` 关系，表达某人在某场活动中的状态。因此矩阵的格子承载关系状态，行列是两个维度的索引。展示人员集取冻结应到人员与已有考勤人员并集，活动集取有冻结名单或考勤事实的活动；应到但未记录显示“未录”，不在冻结名单显示“非应”，没有冻结名单时显示“待冻”。
+
 **活动应到快照与统计口径**：`attendance_rosters` 以活动 ID 唯一保存冻结的原应到人员列表，包含 `branchId, activityId, personIds[], frozen, version, frozenBy, frozenAt`。冻结后不可原位覆盖。考勤事实以活动和人员为唯一组合；实际到场状态为 `present` 或 `made_up`。应到集合按“冻结的原应到名单与实际到场人员去重并集”计算，因此实际到场者即使不在原党小组名单也会计入。请假、缺勤继续留在分母；工作组成员名单不自动成为应到名单。出勤率以该并集为分母、到场/已补为分子；录入覆盖率以已有考勤记录数为分子。未冻结原名单时标注暂估，不把当前名册倒推成历史应到名单。
 
 **出勤状态枚举：**
@@ -709,16 +711,18 @@ taskforce.members:    Array<{ personId, role: 'organizer' | 'deep' | 'participan
 | `已确认` | 纪检委员确认完成 | 批注中 → 已确认 |
 | `已打回` | 纪检委员打回要求修改 | 批注中 → 已打回 → 已上传（重新提交） |
 
-### 2.16.2 周报数据 (WeeklyReport)
+### 2.16.2 周期归档提交记录 (PeriodicArchiveSubmission)
 
-> 历史资源仍名为 `WeeklyReport/weeklyReports`；业务入口并入“档案归档”。这是按支部周期策略形成的归档提交，周/月周期由制度参数控制，保留旧数据字段与 ID。
+> 通用资源与表分别为 `periodicArchives` / `periodic_archive_submissions`；业务入口位于“档案归档”。周/月是支部制度参数，策略版本与提交期次冻结在提交记录中。
+> **历史迁移**：启动迁移将旧 `weekly_reports` 表中的记录原 ID、状态、字段和快照搬入通用表；旧 REST 路径 `/weeklyReports` 暂作同表别名。新写入只使用通用字段。
 > **写入入口**：宣传委员工作台“档案归档”中的周期归档区（按支部策略预填期次）。
 
 | 字段名 | 类型 | 必填 | 默认值 | 说明 |
 |---|---|---|---|---|
-| id | string | 是 | -- | 唯一标识符（seed 为 wrN，新建为 wr_时间戳） |
-| week | string | 是 | -- | 历史周期标签兼容字段；新数据同时写 `periodLabel` |
-| weekRange | string | 是 | -- | 历史日期范围兼容字段；新数据同时写 `periodRange` |
+| id | string | 是 | -- | 唯一标识符（历史 ID 保持；新建使用 `pa` 前缀） |
+| branchId | string | 是 | 当前支部 | 记录所属支部；读取和写入按支部校验 |
+| week | string | 否 | -- | 只为迁移来的历史记录保留的旧标签字段；新写入不再生成 |
+| weekRange | string | 否 | -- | 只为迁移来的历史记录保留的旧日期字段；新写入不再生成 |
 | periodUnit | `'week'\|'month'` | 否 | -- | 所用周期单位 |
 | periodKey | string | 否 | -- | ISO 周或自然月标识 |
 | periodLabel | string | 否 | -- | 周/月期次展示名 |
@@ -727,10 +731,10 @@ taskforce.members:    Array<{ personId, role: 'organizer' | 'deep' | 'participan
 | content | string | 否 | `''` | 周期工作与产出内容 |
 | status | `'draft'\|'submitted'` | 是 | `'draft'` | 报送状态 |
 | submittedAt | string (date) | 否 | `null` | 报送日期（status='submitted' 时填写） |
-| createdAt | string (ISO) | 否 | -- | 新建时间（新建周次时写入） |
-| createdBy | string | 否 | -- | 创建人短 ID（宣传委员 personId） |
+| createdAt | string (ISO) | 否 | -- | 新建时间 |
+| createdBy | string | 否 | -- | 创建人短 ID |
 
-> **历史属性与迁移**：存量 `week/weekRange` 与资源名继续读取；新提交增加周期字段及规则快照。统计提交周期时优先取周期范围起始日期，不按较晚的提交日期替代所报期次。
+> **历史属性与迁移**：迁入的 `week/weekRange` 原样保留供历史读取；新提交只写 `periodUnit/periodKey/periodLabel/periodRange` 和策略快照。旧记录按提交人名册归属补 `branchId`；旧记录没有提交人时按其产生于单支部时期归入 `br-b1`。统计提交周期时优先取周期范围起始日期，不按较晚的提交日期替代所报期次。
 
 ### 2.17 写入数据验证设计
 
@@ -808,7 +812,7 @@ taskforce.members:    Array<{ personId, role: 'organizer' | 'deep' | 'participan
 | 归档类 | `archive` | 待归档活动、待归档专班 | 默认折叠 |
 | 审核类 | `review` | 考勤确认、考察确认、复盘审核、活动审批 | 默认展开 |
 | 通知类 | `notice` | 通知阅读、通知催读 | 默认折叠 |
-| 提交类 | `submit` | 考勤上传、考察上传、复盘提交、周报报送 | 默认折叠 |
+| 提交类 | `submit` | 考勤上传、考察上传、复盘提交、周期归档报送 | 默认折叠 |
 | 追踪类 | `track` | 发展党员追踪、材料催缴、补课跟进 | 默认折叠 |
 
 每类内部按截止时间升序排列，过期待办（status=`pending` 且 deadline < today）红色标记排在各类最前。
@@ -820,7 +824,7 @@ taskforce.members:    Array<{ personId, role: 'organizer' | 'deep' | 'participan
 | 支书 | 待设党小组组长 | -- | 待审批事项 | 通知未读超期 | -- | -- |
 | 党小组组长 | 待赋权活动 | -- | -- | 通知阅读 | 活动写入/考勤上传/考察上传/复盘提交 | -- |
 | 组织委员 | 待赋权专班 | -- | 考察审核 | 通知阅读 | 考察上传 | 发展党员追踪/材料催缴 |
-| 宣传委员 | -- | 待归档活动 | -- | 通知阅读 | 宣传任务/周报报送 | -- |
+| 宣传委员 | -- | 待归档活动 | -- | 通知阅读 | 宣传任务/周期归档 | -- |
 | 纪检委员 | -- | -- | 考勤确认/考察确认/复盘审核 | 通知阅读 | -- | 补课跟进 |
 | 普通成员 | -- | -- | -- | 通知阅读 | -- | 个人考勤查询 |
 
@@ -1225,6 +1229,12 @@ pending ──用户开始处理──→ in_progress ──完成──→ comp
 | 角色常量 (ROLE_LABELS/COLORS) | core/domain/constants.js (静态代码) | 静态，代码级维护 | 13 键角色（11 业务 + 2 遗留）的中文标签与视觉配色 |
 | 意见反馈 (IssueRecord) | `docs/data/issues.json` + localStorage `gsm1921-issue-drafts` | open->closed->reopened | GitHub Issue 风格开源讨论，双轨数据层，处置归支委会、由支书主持支委会（`issues.json` 权威源） |
 
+### 1.2.1 多支部部署与数据边界
+
+一个服务实例可承载同一党委下的多个支部，业务记录以 `branchId` 归属支部。普通支部账号只能读取本支部记录；请求中显式指定其他支部时，服务端返回 403。党委组织员可用 `branchId` 选定支部读取，也可不指定支部读取跨支部数据以形成汇总。匿名意见反馈列表仍按公开反馈契约返回脱敏列表。
+
+读取关联记录时按其所属活动、工作组、专班、党小组或人员解析支部；记录自身与关联对象的支部归属冲突时按无权处理。兼容的无 `branchId` 旧记录按 `br-b1` 读取，新的写入从关联业务记录或操作者取得支部归属。支部局部快照只替换本支部记录并保留其他支部已有行；`users` 与 `branches` 不接受快照写入，必须经过专用接口。跨支部关联写入由服务端逐项拒绝，工作组成员关系也不自动授予操作权限。
+
 ### 1.3 端到端数据流交织图
 
 > **设计原则**：数据之间相互交织——同一条数据既**挂靠其产生的上下文**（如考勤是活动的副产物），又**聚合进入跨实体的总数据**（如考勤进入考勤考察总数据）。文档与功能层的表达必须体现这种交织关系，而非孤立的积木堆叠。
@@ -1281,7 +1291,7 @@ pending ──用户开始处理──→ in_progress ──完成──→ comp
 
 > **原则**：一般归档是已有业务记录的可查询沉淀，不应要求用户把同一事实重复抄写；周期归档则是特定制度/支部策略要求的定期报送，仍由责任人提交，并冻结提交时使用的策略版本。
 
-- 通用档案视图读取原业务记录，不为同一事实复制一份“周报”实体。
+- 通用档案视图读取同一份周期归档提交记录；周/月策略变化不复制出另一类业务实体。
 - 周期报送的周期单位（周/月）来自支部策略；每次提交快照保存 `periodicArchiveVersion`、单位、期次与日期范围，后续制度参数变更不改历史记录（见 §2.16.2）。
 - 系统承担分类、关联和历史留存；提交与审核动作仍按该档案策略的责任角色执行。
 
@@ -1426,7 +1436,7 @@ pending ──用户开始处理──→ in_progress ──完成──→ comp
 | `activityReviews` | ReviewRecord[] | 活动复盘记录 |
 | `taskforceReviews` | ReviewRecord[] | 专班复盘记录 |
 | `propTasks` | Object[] | 宣传任务（prop-commissioner 工作台） |
-| `weeklyReports` | WeeklyReport[] | 宣传周报记录 |
+| `periodicArchives` | PeriodicArchiveSubmission[] | 按支部周期策略提交的归档记录；旧资源路径仅作兼容别名 |
 | `archiveRecords` | ArchiveRecord[] | 档案归档记录（prop-commissioner 工作台） |
 | `externalDispatches` | Object[] | 文件流外发确认记录 |
 | `branchDocs` | Object[] | 支部文件（一支部一存储空间，挂 branchId） |

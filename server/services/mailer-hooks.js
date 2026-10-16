@@ -4,7 +4,7 @@
 //  - 站内优先、邮件并行：hooks 全部 fire-and-forget，失败/未配置均不影响站内功能（降级不阻断）
 //  - 收件人从成员档案 email 字段读取（字段预留：暂无 email → 整条静默跳过）
 //  - 受众尽力解析：复杂受众规则与前端 services/governance/notice.js 对齐，当前覆盖 activity/全体两种
-//  触发点：notices（通知发布） / todos（待办提醒） / weeklyReports（反馈/汇报）
+//  触发点：notices（通知发布） / todos（待办提醒） / periodicArchives（周期归档）
 //  会议提醒（场景④）由 reporting.js checkMeetingReminders 定时扫描负责
 import { sendMail, emailOf } from './mailer.js';
 
@@ -76,7 +76,7 @@ export async function afterResourceWrite(db, name, row) {
   try {
     if (name === 'notices') return await sendNoticeEmail(db, row);
     if (name === 'todos') return await sendTodoEmail(db, row);
-    if (name === 'weeklyReports') return await sendReportEmail(db, row);
+    if (name === 'periodicArchives') return await sendReportEmail(db, row);
   } catch (e) {
     console.error(`[mailer-hooks] ${name} 邮件发送异常（站内功能不受影响）:`, e.message);
   }

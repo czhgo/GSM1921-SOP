@@ -10,7 +10,7 @@ const RESOURCE_TABLES = [
   'users', 'activities', 'tasks', 'attendances', 'inspections',
   'taskforces', 'notices', 'todos', 'assignments', 'makeup_tasks',
   'experience_deposits', 'file_space_records', 'image_records',
-  'signups', 'activity_reviews', 'taskforce_reviews', 'prop_tasks', 'weekly_reports',
+  'signups', 'activity_reviews', 'taskforce_reviews', 'prop_tasks', 'periodic_archive_submissions',
   'archive_records', 'external_dispatches',
   'act_sub_records', 'tf_sub_records',
   'branch_docs', 'member_change_requests', 'committee_broadcasts',
@@ -307,6 +307,25 @@ export const MIGRATIONS = [
           db.prepare('UPDATE taskforces SET data = ? WHERE id = ?').run(JSON.stringify({ ...taskforce, workgroupId: id }), row.id);
         }
       }
+    },
+  },
+  {
+    version: 4,
+    name: 'periodic-archive-generic-submissions',
+    tables: ['periodic_archive_submissions'],
+    drops: ['weekly_reports'],
+    up(db) {
+      db.exec('CREATE TABLE IF NOT EXISTS periodic_archive_submissions (id TEXT PRIMARY KEY, data TEXT NOT NULL)');
+      const branchByPerson = new Map(db.prepare('SELECT id, data FROM users').all()
+        .map((row) => [row.id, JSON.parse(row.data).branchId || null]));
+      const write = db.prepare('INSERT OR IGNORE INTO periodic_archive_submissions (id, data) VALUES (?, ?)');
+      for (const legacy of db.prepare('SELECT id, data FROM weekly_reports').all()) {
+        const row = JSON.parse(legacy.data);
+        // 旧资源诞生于单支部时期；可按提交人名册归属时优先取名册，缺失时沿用当时唯一支部。
+        const migrated = { ...row, branchId: row.branchId || branchByPerson.get(row.submittedBy) || 'br-b1' };
+        write.run(legacy.id, JSON.stringify(migrated));
+      }
+      db.exec('DROP TABLE weekly_reports');
     },
   },
 ];

@@ -13,7 +13,7 @@ before(async () => {
   db = app.locals.db;
   server = app.listen(0);
   base = `http://127.0.0.1:${server.address().port}`;
-  for (const id of ['p1', 'p13', 'p14', 'p5', 'p8', 'p11', 'p_pc']) {
+  for (const id of ['p1', 'p2', 'p10', 'p13', 'p14', 'p5', 'p8', 'p11', 'p_pc']) {
     const response = await fetch(`${base}/api/v1/auth/login`, {
       method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ personId: id, password: '123456' }),
     });
@@ -63,6 +63,36 @@ test('组长只能从本人党小组创建组内活动，组内范围不限制�
   assert.equal(otherGroup.response.status, 403);
   const crossAsLeader = await createGroupActivity('p1', { organizingScope: 'cross-group', hostGroupId: null, hostGroup: '' });
   assert.equal(crossAsLeader.response.status, 403);
+});
+
+test('党小组会考勤记录人角色仍受活动承办党小组范围限制', async () => {
+  const activity = await createGroupActivity('p1');
+  assert.equal(activity.response.status, 201);
+
+  const otherGroupLeader = await request('attendances', 'p2', 'POST', {
+    activityId: activity.data.id, personId: 'p3', status: 'present',
+  });
+  assert.equal(otherGroupLeader.response.status, 403, '其他党小组组长不能因角色映射而跨组录入');
+
+  const inspectionCommissioner = await request('attendances', 'p10', 'POST', {
+    activityId: activity.data.id, personId: 'p3', status: 'present',
+  });
+  assert.equal(inspectionCommissioner.response.status, 403, '纪检委员不能越过会议记录人规则录入党小组会');
+
+  const hostGroupLeader = await request('attendances', 'p1', 'POST', {
+    activityId: activity.data.id, personId: 'p3', status: 'present',
+  });
+  assert.equal(hostGroupLeader.response.status, 201, '承办党小组组长仍可登记本组活动考勤');
+
+  const committeeMeeting = await request('activities', 'p13', 'POST', {
+    title: '支委会不设考勤', type: '支委会', date: '2026-10-23', status: 'published', branchId: 'br-b1',
+    organizingScope: 'cross-group', hostGroupId: null, assignments: [],
+  });
+  assert.equal(committeeMeeting.response.status, 201);
+  const forbiddenAttendance = await request('attendances', 'p13', 'POST', {
+    activityId: committeeMeeting.data.id, personId: 'p3', status: 'present',
+  });
+  assert.equal(forbiddenAttendance.response.status, 403, '不设考勤的会议类型不得由书记例外写入');
 });
 
 test('跨组活动由书记/副书记创建；参与者的党小组归属不受活动承办范围限制', async () => {
@@ -120,6 +150,12 @@ test('工作组成员关系独立于权限；异支部成员与快照伪造授�
     personId: 'p8', role: 'deep', branchId: 'br-b1',
   });
   assert.equal(member.response.status, 201);
+  const firstGrant = await request(`workgroups/${created.data.workgroupId}/grants`, 'p1', 'POST', {
+    personId: 'p8', templateKey: 'deep', permissionKeys: ['activity.edit'], reason: '移出前权限',
+  });
+  assert.equal(firstGrant.response.status, 201);
+  const memberCanEdit = await request(`activities/${created.data.id}`, 'p8', 'PATCH', { title: '移出前可修改' });
+  assert.equal(memberCanEdit.response.status, 200);
   const removed = await request(`workgroups/${created.data.workgroupId}/members/p8`, 'p1', 'DELETE');
   assert.equal(removed.response.status, 204);
   const sourceAfterRemoval = JSON.parse(db.prepare('SELECT data FROM activities WHERE id = ?').get(created.data.id).data);
@@ -127,11 +163,20 @@ test('工作组成员关系独立于权限；异支部成员与快照伪造授�
   const memberAfterRemoval = JSON.parse(db.prepare('SELECT data FROM workgroup_members WHERE id = ?')
     .get(`wgm-${encodeURIComponent(created.data.workgroupId)}-${encodeURIComponent('p8')}`).data);
   assert.equal(memberAfterRemoval.status, 'removed');
+  const revokedGrant = JSON.parse(db.prepare('SELECT data FROM workgroup_grants WHERE id = ?').get(firstGrant.data.id).data);
+  assert.equal(revokedGrant.status, 'revoked', '移出成员时一并撤回其全部有效授权');
+  assert.equal(revokedGrant.revokedBy, 'p1');
+  assert.ok(revokedGrant.revokedAt);
+  const memberAfterRemovalCannotEdit = await request(`activities/${created.data.id}`, 'p8', 'PATCH', { title: '移出后不得修改' });
+  assert.notEqual(memberAfterRemovalCannotEdit.response.status, 200);
   const memberAgain = await request(`workgroups/${created.data.workgroupId}/members`, 'p1', 'POST', { personId: 'p8', role: 'deep' });
   assert.equal(memberAgain.response.status, 200, '重新加入恢复同一关系记录');
   const grants = await request(`workgroups/${created.data.workgroupId}/grants`, 'p1');
   assert.equal(grants.response.status, 200);
-  assert.equal(grants.data.length, 0, '加入工作组不会自动创建系统授权');
+  assert.equal(grants.data.length, 1, '保留撤回留痕；重新加入不会复活旧授权');
+  assert.equal(grants.data[0].status, 'revoked');
+  const rejoinedCannotEdit = await request(`activities/${created.data.id}`, 'p8', 'PATCH', { title: '重新加入不恢复权限' });
+  assert.notEqual(rejoinedCannotEdit.response.status, 200);
 
   const crossBranch = await request(`workgroups/${created.data.workgroupId}/members`, 'p1', 'POST', {
     personId: 'p_b2', role: 'deep', branchId: 'br-b1',

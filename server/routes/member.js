@@ -23,6 +23,7 @@ import { DEVELOP_STAGE_OPTIONS } from '../../docs/src/services/branch/org-base-d
 import { sanitizeSelfProfile } from '../../docs/src/core/domain/self-profile.js';
 // R-26③（2026-10-05 批次 388）：日期口径统一到**本地**（服务端单一源 `services/reporting.js`）
 import { today as todayLocal } from '../services/reporting.js';
+import { actorBranchId, branchSelectionError, recordBranchWriteDeny, resourceRowsForActor } from './resources/branch-scope.js';
 
 // 全体支委（广播对象：支书/副支书/组织/宣传/纪检，与 member-change-flow 测试断言一致）
 // P2c：名单单一源 = constants.js COMMITTEE_IDS（勿手写）
@@ -53,7 +54,9 @@ export function createMemberRouter(db) {
 
   // ── 申请列表（支委可见；支持按活动/状态过滤）──
   router.get('/member-change-requests', requireAuth(db), (req, res) => {
-    let rows = listTable(db, 'member_change_requests');
+    const scopeDeny = branchSelectionError(req.actor, req.query.branchId);
+    if (scopeDeny) return res.status(403).json({ error: scopeDeny });
+    let rows = resourceRowsForActor(db, 'member_change_requests', listTable(db, 'member_change_requests'), req.actor, req.query.branchId);
     if (req.query.activityId) rows = rows.filter((r) => r.activityId === req.query.activityId);
     if (req.query.status) rows = rows.filter((r) => r.status === req.query.status);
     res.json(rows);
@@ -75,8 +78,12 @@ export function createMemberRouter(db) {
       return res.status(409).json({ error: '该议程对此成员的变更申请已存在', id: existing.id });
     }
     const id = `mcr-${randomUUID().slice(0, 8)}`;
+    const activity = getRow(db, 'activities', activityId);
+    if (!activity) return res.status(404).json({ error: '关联活动不存在' });
+    const rowBranchId = activity.branchId || 'br-b1';
     const row = {
       id,
+      branchId: rowBranchId,
       activityId,
       agendaItemId,
       personId,
@@ -87,6 +94,8 @@ export function createMemberRouter(db) {
       createdBy: req.actor.id,
       createdAt: new Date().toISOString(),
     };
+    const scopeDeny = recordBranchWriteDeny(db, 'member_change_requests', row, req.actor);
+    if (scopeDeny) return res.status(403).json({ error: scopeDeny });
     writeRow(db, 'member_change_requests', row);
     res.status(201).json(row);
   });
@@ -95,6 +104,7 @@ export function createMemberRouter(db) {
   router.post('/member-change-requests/:id/approve', requireRole(db, ORG_COMMISSIONER_ROLES), (req, res) => {
     const existing = getRow(db, 'member_change_requests', req.params.id);
     if (!existing) return res.status(404).json({ error: '申请不存在' });
+    if (recordBranchWriteDeny(db, 'member_change_requests', existing, req.actor, { requireBranch: false })) return res.status(403).json({ error: '无权限：不能审批其他支部的申请' });
     if (existing.status === 'completed' || existing.status === 'rejected') {
       return res.status(400).json({ error: `申请已${existing.status}，不可再审批` });
     }
@@ -113,6 +123,7 @@ export function createMemberRouter(db) {
       const bid = `cb-${randomUUID().slice(0, 8)}`;
       writeRow(db, 'committee_broadcasts', {
         id: bid,
+        branchId: existing.branchId || 'br-b1',
         requestId: existing.id,
         recipientId,
         status: 'pending',
@@ -129,6 +140,7 @@ export function createMemberRouter(db) {
   router.post('/member-change-requests/:id/confirm', requireRole(db, SECRETARY_AND_DEPUTY_ROLES), (req, res) => {
     const existing = getRow(db, 'member_change_requests', req.params.id);
     if (!existing) return res.status(404).json({ error: '申请不存在' });
+    if (recordBranchWriteDeny(db, 'member_change_requests', existing, req.actor, { requireBranch: false })) return res.status(403).json({ error: '无权限：不能确认其他支部的申请' });
     if (existing.status !== 'pending-secretary') {
       return res.status(400).json({ error: `当前状态 ${existing.status} 不可确认，须组织委员审批后` });
     }
@@ -362,7 +374,9 @@ export function createMemberRouter(db) {
 
   // ── 广播记录（支委可见；按 requestId 过滤）──
   router.get('/committeeBroadcasts', requireAuth(db), (req, res) => {
-    let rows = listTable(db, 'committee_broadcasts');
+    const scopeDeny = branchSelectionError(req.actor, req.query.branchId);
+    if (scopeDeny) return res.status(403).json({ error: scopeDeny });
+    let rows = resourceRowsForActor(db, 'committee_broadcasts', listTable(db, 'committee_broadcasts'), req.actor, req.query.branchId);
     if (req.query.requestId) rows = rows.filter((r) => r.requestId === req.query.requestId);
     res.json(rows);
   });

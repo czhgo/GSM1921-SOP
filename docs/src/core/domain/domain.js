@@ -218,6 +218,26 @@ export const REVIEW_STATUS_LABELS = {
  */
 
 /**
+ * 通用周期归档提交 — 周/月是支部制度策略，不是不同的业务实体。
+ * @typedef {Object} PeriodicArchiveSubmission
+ * @property {string} id
+ * @property {string} branchId
+ * @property {'week'|'month'} [periodUnit]
+ * @property {string} [periodKey]
+ * @property {string} [periodLabel]
+ * @property {string} [periodRange]
+ * @property {{id:string,version:number,unit:'week'|'month',periodKey:string,periodLabel:string,periodRange:string}} [archivePolicySnapshot]
+ * @property {string} [content]
+ * @property {'draft'|'submitted'} status
+ * @property {string|null} [submittedAt]
+ * @property {string} [submittedBy]
+ * @property {string} [createdAt]
+ * @property {string} [createdBy]
+ * @property {string} [week] - 仅迁移历史读取；新写入不再生成。
+ * @property {string} [weekRange] - 仅迁移历史读取；新写入不再生成。
+ */
+
+/**
  * @typedef {Object} InspectionRecord
  * @property {string}  id            - 唯一标识符（由 id.js 生成）
  * @property {'activity'|'taskforce'} sourceType - 考察来源类型（活动 or 专班）— Source: D-198
@@ -342,8 +362,8 @@ export const mockDB = {
   // ── 2026-08-05 假操作修复新增持久化域 ──
   /** @type {Object[]} 宣传任务（prop-commissioner 工作台） */
   propTasks: [],
-  /** @type {Object[]} 周期归档提交记录（历史资源名 weeklyReports） */
-  weeklyReports: [],
+  /** @type {PeriodicArchiveSubmission[]} 周期归档提交记录（通用周期策略与版本快照） */
+  periodicArchives: [],
   /** @type {Object[]} 档案归档记录（prop-commissioner 工作台） */
   archiveRecords: [],
   // ── 2026-08-10 文件流内控新增持久化域 ──

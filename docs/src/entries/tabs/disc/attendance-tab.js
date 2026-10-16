@@ -14,7 +14,8 @@
 
 import { AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../../core/domain/domain.js?v=20261016a';
 import { generateId } from '../../../core/base/id.js?v=20261016a';
-import { attendanceToLong, loadAttendanceRecords, loadActiveAttendanceRecords, saveAttendanceRecords, canUploadAttendance, upsertMeetingAttendance, MEETING_ATTENDANCE_TYPES as MEETING_TYPES, ABSENCE_REASONS, absenceReasonLabel, absenceReasonNote, recorderRolesOf, listGroupMeetingAttendance, loadAttendanceAppeals, returnAttendanceAppeal, closeAttendanceAppeal, returnAttendanceRecord, summarizeAttendanceByActivity, isAttendanceHomePosition, freezeExpectedRosterForActivity } from '../../../services/activity/attendance.js?v=20261016a';
+import { attendanceToLong, loadAttendanceRecords, loadActiveAttendanceRecords, loadAttendanceRosterSnapshots, saveAttendanceRecords, canUploadAttendance, upsertMeetingAttendance, MEETING_ATTENDANCE_TYPES as MEETING_TYPES, ABSENCE_REASONS, absenceReasonLabel, absenceReasonNote, recorderRolesOf, listGroupMeetingAttendance, loadAttendanceAppeals, returnAttendanceAppeal, closeAttendanceAppeal, returnAttendanceRecord, summarizeAttendanceByActivity, isAttendanceHomePosition, freezeExpectedRosterForActivity } from '../../../services/activity/attendance.js?v=20261016a';
+import { buildAttendanceMatrixModel } from '../../../services/activity/attendance-matrix.js?v=20261016a';
 import { getPersonName } from '../../../services/member/person.js?v=20261016a';
 // S1–S4 滞留党员设计（2026-09-06 支书已批）：会议考勤「应到清点/全选范围」= 应到名单口径
 // （党员 正式+预备 且非滞留；滞留者「可见但禁用」、党课列席不计应到），不再全支部 50 人候选
@@ -128,6 +129,9 @@ export function renderContent(ctx) {
   const allRecords = loadActiveAttendanceRecords();
   const longData = attendanceToLong(allRecords);
   const actById = new Map(loadActivities().map(a => [a.id, a]));
+  const matrixModel = buildAttendanceMatrixModel({
+    activities: loadActivities(), records: allRecords, rosterSnapshots: loadAttendanceRosterSnapshots(),
+  });
   // 党小组会继续消费同一份考勤记录；其组长/上传人上下文只用于总表行的只读提示。
   const groupMeetingMetaByActivity = new Map(
     listGroupMeetingAttendance(allRecords).map(group => [group.activityId, group]),
@@ -188,7 +192,7 @@ export function renderContent(ctx) {
         ${_buildMeetingCardHTML(ctx, accent, accentBorder, actById)}
       ` : `
         <p class="text-xs text-gray-500 mb-3">按活动或成员查阅同一份考勤事实；总表用于明细、筛选与导出。</p>
-        ${_buildMatrixCardHTML(ctx, allRecords, actById, filterActivityId, accent, accentRgba, accentBorder)}
+        ${_buildMatrixCardHTML(ctx, matrixModel, filterActivityId, accent, accentRgba, accentBorder)}
         ${_buildTableCardHTML(ctx, allRecords, longData, actById, filterActivityId, accent, accentRgba, accentBorder)}
       `}
     </div>
@@ -387,7 +391,7 @@ export function renderContent(ctx) {
   // ── 矩阵转置切换 + 活动名/时间区间筛选 ──
   // 批次 35（支书 2026-09-14 裁定「宽表默认」）：默认「按人」——一进 tab 先看「谁参加了哪些活动」
   let matrixView = 'byPerson'; // byPerson（行=人，列=活动，宽表默认）| byActivity（行=活动，列=人）
-  const renderMatrix = () => _renderMatrix(matrixView, actById, allRecords, ctx, accent, accentBorder);
+  const renderMatrix = () => _renderMatrix(matrixView, matrixModel, actById, ctx, accent, accentBorder);
   container.querySelectorAll('.att-mtx-view-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       // UI-A（2026-09-07）：激活态=主题浅底+主题色字/边框（独立小圆角钮，无衬不再用 ov-sub-tab-active）
@@ -1009,9 +1013,9 @@ function _syncReasonNote(rowsContainer, pid) {
 // ════════════════════════════════════════════════════════════════
 //  ② 考勤矩阵（「按活动」/「按人」互为转置 + 活动名/时间区间筛选）
 // ════════════════════════════════════════════════════════════════
-function _buildMatrixCardHTML(ctx, allRecords, actById, filterActivityId, accent, accentRgba, accentBorder) {
-  const acts = loadActivities()
-    .filter(a => allRecords.some(r => r.activityId === a.id))
+function _buildMatrixCardHTML(ctx, matrixModel, filterActivityId, accent, accentRgba, accentBorder) {
+  const acts = matrixModel.activities
+    .filter(a => isActivityLive(a))
     .filter(a => !filterActivityId || a.id === filterActivityId)
     .sort((a, b) => (b.date || '').localeCompare(a.date || ''));
   const actOptions = acts
@@ -1040,7 +1044,7 @@ function _buildMatrixCardHTML(ctx, allRecords, actById, filterActivityId, accent
         <span class="text-xs text-gray-500 self-center">至</span>
         <input type="date" id="att-mtx-to" class="input-flat text-xs" title="时间区间：截止日期">
       </div>
-      <div class="text-[11px] text-gray-500 mb-2">色点 + 缩写：${Object.entries(CELL_META).map(([k, m]) => `<span class="inline-flex items-center gap-1 mr-2"><span class="w-2 h-2 rounded-full" style="background:${m.dot}"></span>${ATTENDANCE_STATUS_LABELS[k]}</span>`).join('')}</div>
+      <div class="text-[11px] text-gray-500 mb-2">${Object.entries(CELL_META).map(([k, m]) => `<span class="inline-flex items-center gap-1 mr-2"><span class="w-2 h-2 rounded-full" style="background:${m.dot}"></span>${ATTENDANCE_STATUS_LABELS[k]}</span>`).join('')}<span class="mr-2">未录＝冻结应到但无记录</span><span class="mr-2">非应＝不在冻结名单</span><span>待冻＝尚无冻结名单</span></div>
       <div id="att-matrix-container"></div>
     </div>
   `;
@@ -1062,22 +1066,31 @@ function _filterActivities(acts, actById) {
   });
 }
 
-function _renderMatrix(matrixView, actById, allRecords, ctx, accent, accentBorder) {
+function _renderMatrix(matrixView, matrixModel, actById, ctx, accent, accentBorder) {
   const tc = document.getElementById('att-matrix-container');
   if (!tc) return;
   // 时间降序：活动按日期最新在前（按活动视图最新在最上；按人视图最新在最左＝矩阵列的上限口径）
-  const acts = loadActivities()
+  const acts = matrixModel.activities
     .filter(a => isActivityLive(a))
     .sort((a, b) => (b.date || '').localeCompare(a.date || ''));
   const visibleActs = _filterActivities(acts, actById);
-  const personIds = [...new Set(allRecords.map(r => r.personId))];
+  const personIds = matrixModel.personIds;
 
   // T-304 第5轮：矩阵回归只读分析（去确认操作/去待确认标记，职责单一化）
   const cellHtml = (personId, activityId) => {
-    const rec = allRecords.find(r => r.personId === personId && r.activityId === activityId);
-    if (!rec) return null;
-    const m = CELL_META[rec.status];
-    return `<span class="inline-flex items-center gap-1" title="${esc(getPersonName(rec.personId))} · ${esc(ATTENDANCE_STATUS_LABELS[rec.status])}">
+    const state = matrixModel.cell(personId, activityId);
+    if (state.kind === 'unrecorded') {
+      return '<span class="text-xs font-medium text-amber-700" title="该成员在冻结应到名单中，尚未录入考勤">未录</span>';
+    }
+    if (state.kind === 'not-applicable') {
+      return '<span class="text-xs text-gray-400" title="该成员不在本场冻结应到名单中">非应</span>';
+    }
+    if (state.kind === 'not-frozen') {
+      return '<span class="text-xs text-gray-400" title="本场尚无冻结应到名单，无法判断是否应到">待冻</span>';
+    }
+    const m = CELL_META[state.status];
+    if (!m) return `<span class="text-xs text-gray-500" title="未知状态">${esc(state.status || '—')}</span>`;
+    return `<span class="inline-flex items-center gap-1" title="${esc(getPersonName(personId))} · ${esc(ATTENDANCE_STATUS_LABELS[state.status] || state.status)}">
       <span class="w-2 h-2 rounded-full" style="background:${m.dot}"></span><span class="text-xs text-gray-600">${m.label}</span>
     </span>`;
   };

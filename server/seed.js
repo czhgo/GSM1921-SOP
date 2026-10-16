@@ -144,8 +144,8 @@ export async function seedDatabase(db) {
   //   ⇒ 两份字面量、须人工同步（该复刻块的原注释即写明「如后续把该常量导出，请改为 import 同源（勿留两份）」）。
   //   现该常量已收进单一源模块：UI 侧（`prop/weekly-tab.js` / `prop/tasks-tab.js`）与本节**同源 import 同一份**——
   //   UI 侧作 mockDB 空表兜底注入，本节作 api 形态首启播种 ⇒ 两形态同内容、且再无第二份可漂移。
-  const { WEEKLY_REPORTS_SEED, PROP_TASKS_SEED } = await import('../docs/src/data/mock/prop.js');
-  replaceCollection(db, 'weekly_reports', WEEKLY_REPORTS_SEED);
+  const { PERIODIC_ARCHIVES_SEED, PROP_TASKS_SEED } = await import('../docs/src/data/mock/prop.js');
+  replaceCollection(db, 'periodic_archive_submissions', PERIODIC_ARCHIVES_SEED);
   replaceCollection(db, 'prop_tasks', PROP_TASKS_SEED);
   // 文件流外发确认（形状 = `services/activity/external-dispatch.js::addExternalDispatch`；1 条待确认 + 1 条已确认）
   replaceCollection(db, 'external_dispatches', SEED_EXTERNAL_DISPATCHES);

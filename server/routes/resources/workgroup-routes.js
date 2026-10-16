@@ -7,6 +7,7 @@ import { POLICY_DEFAULTS } from '../../../docs/src/core/domain/policy-defaults.j
 import { bumpCollectionVersion } from '../../db.js';
 import { CAPABILITY_PACKAGE_BY_ID } from '../../../docs/src/core/domain/capability-packages.js';
 import { _assertCapabilityPackageEnabled } from './gates.js';
+import { actorBranchId, branchSelectionError } from './branch-scope.js';
 
 const COMMITTEE = new Set(BRANCH_COMMISSION_ROLES);
 const SECRETARY = new Set(SECRETARY_AND_DEPUTY_ROLES);
@@ -43,6 +44,15 @@ const isDisabledTaskforceHistory = (db, workgroup) => {
 const isDisabledActivityHistory = (db, activity) => !!activity
   && !_assertCapabilityPackageEnabled(db, { branchId: activity.branchId || 'br-b1' }, 'activity-organization')
   && (isActivityEnded(activity) || activity.status === 'cancelled');
+
+export function grantsRevokedByMembershipRemoval(grants, { workgroupId, personId, removedBy, removedAt }) {
+  return (Array.isArray(grants) ? grants : [])
+    .filter((grant) => grant.workgroupId === workgroupId && grant.personId === personId && grant.status === 'active')
+    .map((grant) => ({
+      ...grant, status: 'revoked', revokedBy: removedBy, revokedAt: removedAt,
+      revocationReason: 'membership-removed',
+    }));
+}
 
 function userOf(db, id) { return rowOf(db, 'users', id); }
 function groupOf(db, id) { return rowOf(db, 'party_groups', id); }
@@ -178,14 +188,21 @@ export function attendanceOperationAllowed(db, actor, activity, personId) {
   if (!actor || !activity || ownBranch(actor) !== (activity.branchId || 'br-b1')) return false;
   const person = userOf(db, personId);
   if (!person || memberBranch(person) !== (activity.branchId || 'br-b1')) return false;
-  if (SECRETARY.has(actor.role) || actor.role === 'disc-commissioner') return true;
+  if (POLICY_DEFAULTS.attendance.noAttendanceTypes.includes(activity.type)) return false;
+  if (POLICY_DEFAULTS.attendance.uploaderExceptions.secretaryDeputy.includes(actor.role)) return true;
   const workgroupId = activity.workgroupId || workgroupIdFor('activity', activity.id);
   if (hasWorkgroupPermission(db, workgroupId, actor.id, 'activity.attendance.record')) return true;
   const group = activity.hostGroupId && groupOf(db, activity.hostGroupId);
   const policyRoles = POLICY_DEFAULTS.attendance.recorderByType[activity.type] || [];
-  if (policyRoles.includes(actor.role)) return true;
-  return actor.role === 'leader' && activity.organizingScope !== 'cross-group'
+  const isHostGroupLeader = actor.role === 'leader'
     && !!group && group.branchId === ownBranch(actor) && actor.partyGroup === group.name;
+  const isActivityOrganizer = activity.organizer === actor.id
+    || (Array.isArray(activity.assignments)
+      && activity.assignments.some((item) => item?.personId === actor.id && item.role === 'organizer'));
+
+  if (activity.type === '党小组会') return isHostGroupLeader || isActivityOrganizer;
+  if (policyRoles.length > 0) return policyRoles.includes(actor.role);
+  return isActivityOrganizer;
 }
 
 export function attendanceWriteDeny(db, actor, attendance) {
@@ -197,9 +214,31 @@ export function attendanceWriteDeny(db, actor, attendance) {
 }
 
 export function snapshotScopeDeny(db, payload, actor) {
+  if (['users', 'branches'].some((key) => Object.prototype.hasOwnProperty.call(payload, key))) {
+    return '无权限：成员与支部治理记录须走专用语义接口，不能通过整库快照写入';
+  }
   const protectedKeys = ['workgroups', 'workgroupMembers', 'workgroupGrants', 'workgroupTasks', 'workgroupOutputs', 'attendanceRosters'];
   if (protectedKeys.some((key) => Object.prototype.hasOwnProperty.call(payload, key))) {
     return '无权限：工作组关系、授权与应到名单须走各自的语义 API，不能通过整库快照写入';
+  }
+  if (Array.isArray(payload.periodicArchives)) {
+    const branchId = ownBranch(actor);
+    const current = new Map(jsonRows(db, 'periodic_archive_submissions').map((row) => [String(row.id), row]));
+    const incomingIds = new Set();
+    for (const row of payload.periodicArchives) {
+      if (!row?.id || !row.branchId) return '周期归档写入必须包含记录 ID 与支部归属';
+      if (incomingIds.has(String(row.id))) return '周期归档快照中记录 ID 不得重复';
+      const previous = current.get(String(row.id));
+      if (row.branchId !== branchId) {
+        if (previous && previous.branchId === row.branchId && JSON.stringify(previous) === JSON.stringify(row)) {
+          incomingIds.add(String(row.id));
+          continue;
+        }
+        return '无权限：周期归档只能写入当前支部记录';
+      }
+      if (previous && (previous.branchId || 'br-b1') !== branchId) return '无权限：不能跨支部修改周期归档';
+      incomingIds.add(String(row.id));
+    }
   }
   if (Array.isArray(payload.taskforces)) {
     const current = new Map(jsonRows(db, 'taskforces').map((row) => [String(row.id), row]));
@@ -356,15 +395,17 @@ export function createTaskforceWorkgroup(db, actor, taskforce) {
 
 export function registerWorkgroupRoutes(router, db) {
   router.get('/workgroups', requireAuth(db), (req, res) => {
-    const branchId = req.query.branchId || ownBranch(req.actor);
-    if (req.actor.role !== 'party-staff' && branchId !== ownBranch(req.actor)) return res.status(403).json({ error: '无权限：只能读取本支部工作组' });
-    const rows = jsonRows(db, 'workgroups').filter((row) => row.branchId === branchId);
+    const deny = branchSelectionError(req.actor, req.query.branchId);
+    if (deny) return res.status(403).json({ error: deny });
+    const branchId = actorBranchId(req.actor) || req.query.branchId || null;
+    const rows = jsonRows(db, 'workgroups').filter((row) => !branchId || row.branchId === branchId);
     res.json(rows);
   });
   router.get('/workgroup-members', requireAuth(db), (req, res) => {
-    const branchId = req.query.branchId || ownBranch(req.actor);
-    if (req.actor.role !== 'party-staff' && branchId !== ownBranch(req.actor)) return res.status(403).json({ error: '无权限：只能读取本支部工作组成员' });
-    res.json(jsonRows(db, 'workgroup_members').filter((row) => row.branchId === branchId && row.status !== 'removed'));
+    const deny = branchSelectionError(req.actor, req.query.branchId);
+    if (deny) return res.status(403).json({ error: deny });
+    const branchId = actorBranchId(req.actor) || req.query.branchId || null;
+    res.json(jsonRows(db, 'workgroup_members').filter((row) => (!branchId || row.branchId === branchId) && row.status !== 'removed'));
   });
   router.get('/workgroup-grants', requireAuth(db), (req, res) => {
     res.json(jsonRows(db, 'workgroup_grants').filter((row) => row.personId === req.actor.id && row.status === 'active'));
@@ -438,10 +479,16 @@ export function registerWorkgroupRoutes(router, db) {
     } else {
       source.members = sourceMembers.filter((item) => item.personId !== current.personId);
     }
+    const removedAt = new Date().toISOString();
+    const memberGrants = grantsRevokedByMembershipRemoval(jsonRows(db, 'workgroup_grants'), {
+      workgroupId: workgroup.id, personId: current.personId, removedBy: req.actor.id, removedAt,
+    });
     const run = db.transaction(() => {
-      put(db, 'workgroup_members', { ...current, status: 'removed', removedBy: req.actor.id, removedAt: new Date().toISOString() });
+      put(db, 'workgroup_members', { ...current, status: 'removed', removedBy: req.actor.id, removedAt });
+      for (const grant of memberGrants) put(db, 'workgroup_grants', grant);
       put(db, sourceTable, source);
       bumpCollectionVersion(db, collection);
+      if (memberGrants.length > 0) bumpCollectionVersion(db, 'workgroup_grants');
     });
     run();
     res.status(204).end();
@@ -660,9 +707,10 @@ export function registerWorkgroupRoutes(router, db) {
     res.json(rowOf(db, 'attendance_rosters', `atr-${activity.id}`));
   });
   router.get('/attendance-rosters', requireAuth(db), (req, res) => {
-    const branchId = req.query.branchId || ownBranch(req.actor);
-    if (req.actor.role !== 'party-staff' && branchId !== ownBranch(req.actor)) return res.status(403).json({ error: '无权限：只能读取本支部应到名单快照' });
-    let rows = jsonRows(db, 'attendance_rosters').filter((row) => row.branchId === branchId);
+    const deny = branchSelectionError(req.actor, req.query.branchId);
+    if (deny) return res.status(403).json({ error: deny });
+    const branchId = actorBranchId(req.actor) || req.query.branchId || null;
+    let rows = jsonRows(db, 'attendance_rosters').filter((row) => !branchId || row.branchId === branchId);
     if (req.query.activityId) rows = rows.filter((row) => row.activityId === req.query.activityId);
     res.json(rows);
   });

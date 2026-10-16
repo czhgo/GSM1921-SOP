@@ -2,13 +2,13 @@
 title: "系统快照"
 type: snapshot
 role: "[AI]"
-last_updated: "2026-10-03"
+last_updated: "2026-10-16"
 status: "ACTIVE"
-date: "2026-09-15"
-version: "v56"
+date: "2026-10-16"
+version: "v57"
 ---
 
-# System Snapshot — v56
+# System Snapshot — v57
 
 > 当前活跃基线。历史快照见 `.ctx/snapshots/`。
 
@@ -48,7 +48,7 @@ GSM1921-SOP/
 │   │   ├── secretary.html      ← 支书工作台（支书/副支书共用：活动写入+分工调整+issue 管理+通知发布+上报党委+待办；英文 key `secretary`=代码标识，中文一律「支书」）
 │   │   ├── leader.html         ← 党小组组长工作台（活动管理+考勤上传+考察上传+组员进展+待办）
 │   │   ├── org.html            ← 组织委员工作台（考察上传+专班管理+人才库+发展党员+待办）
-│   │   ├── prop.html           ← 宣传委员工作台（宣传任务+项目看板+档案归档+周报报送+待办）
+│   │   ├── prop.html           ← 宣传委员工作台（宣传任务+项目看板+档案归档+周期归档+待办）
 │   │   ├── disc.html           ← 纪检委员工作台（考勤管理（含补课分段）+监督复盘+考察管理+知情查看+待办）
 │   │   ├── visitor.html        ← 成员工作台（含思想汇报提交/待办）
 │   │   └── party-committee.html← 党委工作台（党委组织员·全院支部治理，组织级角色非支部角色）
@@ -59,7 +59,7 @@ GSM1921-SOP/
 │       ├── core/               ← 内核（**2026-09-29 批次 267 分四子域**：`base/` 零依赖基础件 · `domain/` 领域口径与单一源清单 · `boot/` 启动装配与页面骨架 · `session/` 会话级跨页轻量状态）
 │       ├── data/               ← 数据形态层（**2026-09-29 批次 267 新立**）：`data-adapter`（门面）· `api-adapter` · `mock-adapter`（禁改）· `data-loader` ＋ `mock/`（演示数据种子）
 │       ├── services/           ← 服务层（**2026-09-28 目录分层**：`core/`（底座与横切：auth/roles/runtime/mock/preferences/visibility/init-reset/accounts）· `member/`（person/roster/member-flow/member-confirmation/party-group…）· `activity/`（activity/attendance/inspection/makeup/signup/taskforce/agenda-*/vote-config/decision-tree…）· `governance/`（issues/review/handoff/thought-report/notice/todo…）· `branch/`（branch/branch-doc/config-clean/org-config-package/appointment/workforce…））
-│       ├── data/mock/          ← Mock 演示数据（people/branches/activities/attendance 等种子文件 + index；数据窗口 2026-07~09；**`prop.js`＝周报 / 宣传任务种子单一源，UI 侧与服务端同源导入**，2026-09-28 批次 234）
+│       ├── data/mock/          ← Mock 演示数据（people/branches/activities/attendance 等种子文件 + index；数据窗口 2026-07~09；**`prop.js`＝周期归档 / 宣传任务种子单一源，UI 侧与服务端同源导入**，2026-09-28 批次 234）
 │       ├── capabilities/       ← 能力声明（**2026-09-29 批次 267 由 `modules/capabilities/` 上提为顶层**，12 件；与 `entries/` 对称：入口薄壳 ↔ 能力声明）
 │       ├── components/sections/ ← 页级板块渲染器（**2026-09-29 批次 267 新立**：`help-catalog` help 页目录树/章节卡片 · `references` 资料查询板块）
 │       ├── workflow/           ← 工作流引擎（engine/renderer/sop/sopData + blocks/ 块契约 manifests〔**6 块**：试点 2 ＋ 2026-09-29 批次 248 铺开的三会一课 4〕 + **`blocks/orchestration.js`＝通用编排内核**：范围过滤 / 组合校验 / 稳定拓扑序 / 编译为既有 definition 形状的纯数据；2026-09-28 批次 239）
@@ -92,9 +92,11 @@ GSM1921-SOP/
 
 > **数据表现状（台账标注 · 2026-09-25 批次 190，系 `.ctx` 侧登记、**未改 `server/**`**）**：`server/data.db` 实有 **45 张表**、全库 **317 行**；其中 **30 张为空表**——**仅结构先行、数据尚未落地**（逐表清单见下句）。**⚠ 本注记的性质＝台账标注**：这些表**有结构、有读写口**（多为既有上传 / 留痕 / 申诉 / 服务端化链的承载位），**不代表功能不可用**——**这不是缺陷、也未被「修复」**（**只是把结构现状写清**）。同批另两条**本就建议不动**，一并说明：**单写者**（better-sqlite3 同步、单进程；WAL 只救读、不救写）· **附件走磁盘**（`uploads/` 落文件、库里只存路径，当前方向正确）。
 >
-> **29 张「结构先行、暂无数据」的表（逐表清单，照录上一批后端实测；2026-10-02 批次 342 删 `compliance_references` ⇒ 30 → 29）**：`act_sub_records` · `activity_reviews` · `agenda_votes` · `appointment_records` · `attachments` · `attendance_appeals` · `attendances` · `auth_audit` · `branch_docs` · `collection_versions` · `committee_broadcasts` · `experience_deposits` · `external_dispatches` · `file_space_records` · `handoffs` · `image_records` · `inspection_appeals` · `inspections` · `issue_reveals` · `issue_unread` · `member_change_requests` · `member_confirmations` · `member_flows` · `milestones` · `prop_tasks` · `taskforce_reviews` · `tf_sub_records` · `thought_reports` · `weekly_reports`。
+> **28 张「结构先行、暂无数据」的表（逐表清单，照录上一批后端实测；2026-10-02 批次 342 删 `compliance_references` ⇒ 30 → 29；schema v4 将 `weekly_reports` 迁入有数据的通用周期归档表，空表 29 → 28）**：`act_sub_records` · `activity_reviews` · `agenda_votes` · `appointment_records` · `attachments` · `attendance_appeals` · `attendances` · `auth_audit` · `branch_docs` · `collection_versions` · `committee_broadcasts` · `experience_deposits` · `external_dispatches` · `file_space_records` · `handoffs` · `image_records` · `inspection_appeals` · `inspections` · `issue_reveals` · `issue_unread` · `member_change_requests` · `member_confirmations` · `member_flows` · `milestones` · `prop_tasks` · `taskforce_reviews` · `tf_sub_records` · `thought_reports`。
 
 ## II. 分层架构（D-218 正交维度模型）
+
+**多支部服务边界（D-823）**：一个党委下可由同一服务实例承载多个支部。普通支部账号的读取在服务端限制为本支部；党委组织员可选支部或生成跨支部汇总。支部局部快照保留其他支部数据；成员和支部治理数据不通过通用快照写入。各业务动作的角色授权仍按接口逐项核对，详见 `README-server.md §7.1` 与 `DATA_MODEL.md §1.2.1`。
 
 | Layer | 名称 | 位置 | 角色 |
 |-------|------|------|------|
@@ -143,7 +145,7 @@ GSM1921-SOP/
 | `workspace/secretary.html` | 子页面 | 支书工作台（支书/副支书共用；活动写入+分工调整+issue 管理+通知发布+上报党委+待办；英文 key `secretary`=代码标识，中文一律「支书」） |
 | `workspace/leader.html` | 子页面 | 党小组组长工作台（活动管理+考勤上传+考察上传+组员进展+待办） |
 | `workspace/org.html` | 子页面 | 组织委员工作台（考察上传+专班管理+人才库+发展党员+待办） |
-| `workspace/prop.html` | 子页面 | 宣传委员工作台（宣传任务+项目看板+档案归档+周报报送+待办） |
+| `workspace/prop.html` | 子页面 | 宣传委员工作台（宣传任务+项目看板+档案归档+周期归档+待办） |
 | `workspace/disc.html` | 子页面 | 纪检委员工作台（考勤管理（含补课分段）+监督复盘+考察管理+知情查看+待办） |
 | `workspace/visitor.html` | 子页面 | 成员工作台（活动动态+专班进展+个人考勤+思想汇报提交+日历/列表切换+待办） |
 | `workspace/party-committee.html` | 子页面 | 党委工作台（党委组织员：支部台账/支部管理/任命/上报审批/下发通知/支部配置） |
@@ -177,7 +179,7 @@ GSM1921-SOP/
 | 支书（支书） | 支书工作台（活动写入+专班发起+分工调整（常设赋权，票决采纳）+反馈/issue+通知发布+上报党委+待办；支书专属操作收敛 SECRETARY_ROLES） |
 | 副支书（副支书） | 共用支书工作台（支书专属操作除外；上报党委可发起） |
 | 组织委员 | 专班建设（招募统筹·定人定责定岗）+专班发起+考察上传+人才库（含滞留维护）+发展党员+待办 |
-| 宣传委员 | 宣传任务+项目看板+档案归档+周报报送+待办 |
+| 宣传委员 | 宣传任务+项目看板+档案归档+周期归档+待办 |
 | 纪检委员 | 考勤管理（会议类批量录入+纪检更正+应到口径 roster 单源，含补课分段；**党课 / 支部党员大会的上传位在此**；支委会不考勤）+考察管理+复盘（原「活动监督复盘」）+知情查看+待办 |
 | 党小组组长 | 块块活动管理+活动写入+考勤上传（**该场组织者位**：党小组会 / 组织生活会 / 主题党日）+考察上传+组员进展（含本组复盘状态只读）+待办 |
 | 参与者（普通参与者） | 成员工作台（个人视角：查看支委工作成果+个人考勤+思想汇报+待办） |

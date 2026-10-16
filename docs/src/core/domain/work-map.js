@@ -422,7 +422,7 @@ export const INSTITUTION_DOMAINS = [
     scope: '发展党员各环节、名册与阶段管理、专班与赋权、党小组设置',
     basis: '定人定责 §2.1 / §3.2「发展党员的考察与材料准备、考察档案体系建立」' },
   { id: 'propaganda', label: '宣传与档案类', subject: 'prop-commissioner',
-    scope: '宣传材料产出与归档、档案合规、模板管理、周报',
+    scope: '宣传材料产出与归档、档案合规、模板管理、周期归档',
     basis: '定人定责 §2.1 / §3.2「宣传与档案制度建设及队伍建设」' },
   { id: 'discipline', label: '纪检类', subject: 'disc-commissioner',
     scope: '考勤、补课、考察、活动监督复盘、意见渠道维护',

@@ -15,7 +15,7 @@ npm run test:fast      # 快速回归子集（基础单元 + 目录/链接审计
 npm run clean:tmp      # 清理测试残留目录 .tmp（脚本非正常中止时使用）
 ```
 
-- 启动入口 `server/server.js`：数据库为空时自动从 `docs/src/data/mock/*.js` 导入种子数据（users/branches/activities/notices/taskforces/tasks/assignments/archive_records/signups；**2026-09-25 批次 189 起另补** attendances/inspections/activity_reviews/taskforce_reviews/thought_reports/weekly_reports/prop_tasks/external_dispatches/appointment_records 与语义端点域 handoffs/member_confirmations/attendance_appeals/inspection_appeals/issue_unread/auth_audit —— 使「只有结构、没有数据」的表**首启即有真行**（判据：引用一律取自既有 users/branches/activities，零孤立引用）；`DISABLE_SEED=1` 时空库也不导入演示种子（真实支部全新建库直接录真实数据用）。**2026-09-23 P0-4**：**生产形态（`APP_ENV=production` 或 `NODE_ENV=production`）默认不播种**（不必依赖「记得设 `DISABLE_SEED=1`」）；启动日志会打印 `users` 计数与「演示种子账号」计数，供核对「库内是否只有真人」。**前端侧另有构建期常量 `docs/src/config/deploy.js::SEED_FALLBACK`**（**2026-09-23 批次 163 起已接线、改它生效**）：置 `false` 时 `docs/src/data/data-adapter.js::init()` 不再为「考勤 / 考察 / 待办」三域注入演示种子（默认 `true`＝演示形态）。⚠ **Node 托管（本 server）形态下已接线**：`server/app.js` 对 `/src/config/deploy.js` 的动态注入串**已带上该常量**，其值由环境变量 `SEED_FALLBACK` 决定（置 `0` ⇒ 注入 `false`；缺省 / 其它值 ⇒ `true`）⇒ 本形态下发 `SEED_FALLBACK=0` 即可关断（见 `server/.env.example`）。它只覆盖那三处，**不替代**上面的 `DISABLE_SEED`／生产形态。
+- 启动入口 `server/server.js`：数据库为空时自动从 `docs/src/data/mock/*.js` 导入种子数据（users/branches/activities/notices/taskforces/tasks/assignments/archive_records/signups；**2026-09-25 批次 189 起另补** attendances/inspections/activity_reviews/taskforce_reviews/thought_reports/periodic_archive_submissions/prop_tasks/external_dispatches/appointment_records 与语义端点域 handoffs/member_confirmations/attendance_appeals/inspection_appeals/issue_unread/auth_audit —— 使「只有结构、没有数据」的表**首启即有真行**（判据：引用一律取自既有 users/branches/activities，零孤立引用）；`DISABLE_SEED=1` 时空库也不导入演示种子（真实支部全新建库直接录真实数据用）。**2026-09-23 P0-4**：**生产形态（`APP_ENV=production` 或 `NODE_ENV=production`）默认不播种**（不必依赖「记得设 `DISABLE_SEED=1`」）；启动日志会打印 `users` 计数与「演示种子账号」计数，供核对「库内是否只有真人」。**前端侧另有构建期常量 `docs/src/config/deploy.js::SEED_FALLBACK`**（**2026-09-23 批次 163 起已接线、改它生效**）：置 `false` 时 `docs/src/data/data-adapter.js::init()` 不再为「考勤 / 考察 / 待办」三域注入演示种子（默认 `true`＝演示形态）。⚠ **Node 托管（本 server）形态下已接线**：`server/app.js` 对 `/src/config/deploy.js` 的动态注入串**已带上该常量**，其值由环境变量 `SEED_FALLBACK` 决定（置 `0` ⇒ 注入 `false`；缺省 / 其它值 ⇒ `true`）⇒ 本形态下发 `SEED_FALLBACK=0` 即可关断（见 `server/.env.example`）。它只覆盖那三处，**不替代**上面的 `DISABLE_SEED`／生产形态。
 - 环境变量模板见 `server/.env.example`（均有缺省，未配置即可本地演示运行）：`DB_PATH` 指定数据库文件路径（默认 `server/data.db`）、`PORT` 指定监听端口、`LOGIN_PASSWORD` 为统一登录口令（缺省 '123456'，与前端演示账号一致）、`DISABLE_PASSWORD_CHECK=1` 跳过口令校验（内网演示/测试套件用；`npm test`/`test:core`/`test:fast`/`test:full` 脚本均默认注入）、`APP_ENV` 运行形态（**`production` ＝ 生产**，见下条）。**2026-09-23 P0-3（上线安全）**：生产形态下 ① 未设 `LOGIN_PASSWORD` ⇒ **启动即拒**（进程退出并打印可读原因）；② `DISABLE_PASSWORD_CHECK` **一律不认**（逃逸门只在本地/测试形态生效）；③ 口令比对不含 `'123456'` 兜底。**非生产形态（本地/测试）行为一字不变**。
 - **重置 / 初始化口径**：前端 `?reset=demo/preview/init` 仅本地演示形态（无 API token）生效，API 模式不执行、数据以服务器为权威；服务端重置 = 删除 `server/data.db` 后重启自动重种，或 `DISABLE_SEED=1`（或生产形态）空库起步。
 
@@ -60,7 +60,7 @@ node scripts/backup.mjs --out /srv/bak/20260923
 
 - **版本号**：库内 `PRAGMA user_version` 记 schema 版本；单一源＝`server/db.js` 末尾 `MIGRATIONS` 列表（每项 `{ version, name, tables?, up(db) }`，`version` 严格递增且唯一）。
 - **启动自动应用**：`initDb` 末尾调用 `applyMigrations(db)`——未应用的迁移**按序、在一个事务内**执行、每项跑完写回 `user_version`，并打印 `[db] schema vN（本次应用 M 项）`。**失败即抛**（better-sqlite3 `transaction` 整体回滚，含 `user_version` 与 DDL）⇒ 启动报错，**绝不静默吞**；幂等可重入（已应用者跳过）。
-- **v1 基线**：把机制落地时的 schema 现状登记下来（`up()` 幂等重放既有 `CREATE TABLE IF NOT EXISTS`）⇒ **既有真库首启即登记为 v1、一行数据不动**；**既有建表路径一字未改**（机制是叠加，不是替换）。**今后新增/变更结构一律追加 `v2+`**，并在其 `tables` 里登记表名。当前 **v3** 为活动/专班统一工作组记录、成员/授权/任务/产出与活动应到名单快照；迁移保留旧业务 ID，无法可靠判断的旧活动承办范围标记待核。
+- **v1 基线**：把机制落地时的 schema 现状登记下来（`up()` 幂等重放既有 `CREATE TABLE IF NOT EXISTS`）⇒ **既有真库首启即登记为 v1、一行数据不动**；**既有建表路径一字未改**（机制是叠加，不是替换）。**今后新增/变更结构一律追加 `v2+`**，并在其 `tables` 里登记表名。当前 **v3/v4** 分别增加工作组与应到名单快照、通用周期归档提交表；迁移保留旧业务 ID，无法可靠判断的旧活动承办范围标记待核。
 - **纪律（可判红）**：新增/变更结构却没写 migration ⇒ `server/test/db-integrity-guard.test.mjs` 的 **G5 / G6** 判红：G5＝`db.js` 自建表必须被「v1 冻结基线 ∪ 迁移声明」覆盖（并核 v1 基线已冻结、不得被悄悄加表）；G6＝全 `server/` 的 `ALTER TABLE` 只许出现在 migration 段内。
 - **验收**：`server/test/db-migration.test.mjs`（应用 / 幂等可重入 / 失败回滚 / 失败不吞 / 启动日志）、`server/test/db-integrity-guard.test.mjs`（完整性 / 版本对齐 / 列表自检 / 非空转 / 纪律）、`server/test/backup-restore.test.mjs`（备份 → 恢复演练）。运行：在 `server/` 下 `node --test test/db-migration.test.mjs test/db-integrity-guard.test.mjs test/backup-restore.test.mjs`（纯 node，无需起服务）。
 
@@ -238,10 +238,9 @@ node --input-type=module -e "import Database from 'better-sqlite3'; import { PEO
 
 | # | 限制 | 对部署的含义 |
 |---|---|---|
-| 1 | **服务端不做支部级读取过滤** | 列表读口是**整表返回**，支部过滤由**前端** `withinBranch` 做 ⇒ **同一台服务器上驻多个支部时，任一已登录读者可拿到全部支部的数据**。⇒ **一实例一支部**部署；若必须多支部共用，**须先补服务端过滤**（属权限口径，见 `README-server.md §7.1 #2`） |
-| 2 | **通用资源写口仍有登录即写面** | 资源级角色门见 `RESOURCE_WRITE_GATE`；活动、专班工作组、考勤等另有业务写门。未列入角色门且无专门 handler 的通用资源仍只要求登录；跨资源关联与支部归属还没有一套覆盖所有资源的统一写门（`README-server.md §7.1 #3`）。⇒ 面向多个支部上线前，须先补齐这些剩余读写隔离 |
-| 3 | **无业务字段索引** | 全库是 `(id TEXT PRIMARY KEY, data TEXT)` 宽表：`id` 有主键索引，**`data` 内字段无索引**、读路径一律取全表在 JS 里 `JSON.parse`。⇒ 数据量上到**万行级**前应先评估再优化（属**性能债**，非功能缺陷；本批**只登记未改**） |
-| 4 | **token 无过期 / 无刷新** · **口令是全支部统一口令** | 会话仅显式 logout 或账号流出时失效；系统**没有个人密码**概念（`README-server.md §7.1 #5 / #6`） |
+| 1 | **各业务动作的角色写权限尚未完全统一** | 资源级角色门见 `RESOURCE_WRITE_GATE`；活动、专班工作组、考勤等另有专门业务写门。部分通用资源仍只要求登录，按 `README-server.md §7.1 #3` 逐项核对，不应把“跨支部写入已拦截”理解成“所有角色写权已统一” |
+| 2 | **无业务字段索引** | 全库是 `(id TEXT PRIMARY KEY, data TEXT)` 宽表：`id` 有主键索引，**`data` 内字段无索引**、读路径一律取全表在 JS 里 `JSON.parse`。⇒ 数据量上到**万行级**前应先评估再优化（属**性能债**，非功能缺陷；本批**只登记未改**） |
+| 3 | **token 无过期 / 无刷新** · **口令是全支部统一口令** | 会话仅显式 logout 或账号流出时失效；系统**没有个人密码**概念（`README-server.md §7.1 #5 / #6`） |
 
 ### 优雅关闭（2026-09-29 批次 268 新增）
 

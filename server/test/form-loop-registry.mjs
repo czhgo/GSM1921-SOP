@@ -231,9 +231,9 @@ export const VALIDATION_SITES = [
   { file: SRC + 'entries/tabs/org/taskforce-tab.js', line: 1082, field: '专班复盘内容', flow: 'org/专班管理·提交复盘', machine: true, msg: '请填写专班复盘内容' },
 
   // ── 宣传委员台 ──
-  { file: SRC + 'entries/tabs/prop/weekly-tab.js', line: 172, field: '周次标签', flow: 'prop/档案归档·周报·新增周次', machine: true, msg: '请填写周次标签' },
-  { file: SRC + 'entries/tabs/prop/weekly-tab.js', line: 173, field: '日期范围', flow: 'prop/档案归档·周报·新增周次', machine: true, msg: '请填写日期范围' },
-  { file: SRC + 'entries/tabs/prop/weekly-tab.js', line: 213, field: '周报内容', flow: 'prop/档案归档·周报', machine: true, msg: '请填写周报内容' },
+  { file: SRC + 'entries/tabs/prop/weekly-tab.js', line: 154, field: '归档期次名称', flow: 'prop/档案归档·新增期次', machine: true, msg: '请填写归档期次名称' },
+  { file: SRC + 'entries/tabs/prop/weekly-tab.js', line: 155, field: '归档日期范围', flow: 'prop/档案归档·新增期次', machine: true, msg: '请填写归档日期范围' },
+  { file: SRC + 'entries/tabs/prop/weekly-tab.js', line: 199, field: '本期归档内容', flow: 'prop/档案归档', machine: true, msg: '请填写本期归档内容' },
   // 批次 47-M（2026-09-16）：**宣传委员台 · 档案归档 · 上传宣传材料浮窗**——一条流程覆盖该浮窗**两处**校验点。
   // ⚠ 台账原挂 machine:false 的两条理由都被真机证伪，且**证伪方式与 47-K「制度参考写入」完全同款**：
   //   ①「文件（文件选择器不可脚本设值）」——**把手段当成了结论**：该支只需文件**为空**即报，
@@ -511,7 +511,7 @@ export const MACHINE_FLOWS = [
     ],
     submit: [{ click: '#weekly-submit-btn' }],
     expect: [
-      { file: SRC + 'entries/tabs/prop/weekly-tab.js', field: '周报内容', msg: '请填写周报内容', carrier: '#weekly-content' },
+      { file: SRC + 'entries/tabs/prop/weekly-tab.js', field: '本期归档内容', msg: '请填写本期归档内容', carrier: '#weekly-content' },
     ],
   },
   {
@@ -1173,8 +1173,8 @@ export const MACHINE_FLOWS = [
     ],
     submit: [{ click: '#weekly-add-save' }],
     expect: [
-      { file: SRC + 'entries/tabs/prop/weekly-tab.js', field: '周次标签', msg: '请填写周次标签', carrier: '#weekly-add-week', satisfy: { setValue: { selector: '#weekly-add-week', value: '第32周' } } },
-      { file: SRC + 'entries/tabs/prop/weekly-tab.js', field: '日期范围', msg: '请填写日期范围', carrier: '#weekly-add-range' },
+      { file: SRC + 'entries/tabs/prop/weekly-tab.js', field: '归档期次名称', msg: '请填写归档期次名称', carrier: '#weekly-add-week', satisfy: { setValue: { selector: '#weekly-add-week', value: '第32周' } } },
+      { file: SRC + 'entries/tabs/prop/weekly-tab.js', field: '归档日期范围', msg: '请填写归档日期范围', carrier: '#weekly-add-range' },
     ],
   },
   {
@@ -1775,7 +1775,7 @@ export const SUCCESS_FLOWS = [
       { click: '#archive-weekly-toggle' },
       { waitFor: '#weekly-week' },
     ],
-    // 落库窗口：本写口是 `mockDB.weeklyReports = …; persist(); showToast(…)` —— persist 不 await，
+    // 落库窗口：本写口是 `mockDB.periodicArchives = …; persist(); showToast(…)` —— persist 不 await，
     // 提示先于落库；不给窗口则重载会打断在途写（详见 form-loop-sweep 的 ⓪ 说明）。
     settleMs: 1500,
     asserts: [
@@ -2192,7 +2192,7 @@ export const SUCCESS_FLOWS = [
       { setValue: { selector: '#weekly-content', value: '（成功路径普查）本周完成的工作条目——本条由真机成功路径写入。' } },
     ],
     act: [{ click: '#weekly-submit-btn' }],
-    toast: '周报已报送',
+    toast: '周期归档已提交',
     settleMs: 1500,
     reload: true,
     // 批次 367（2026-10-04）：重载后周报折叠区回到收起态 ⇒ 断言前需再展开（形态同 open[]）。

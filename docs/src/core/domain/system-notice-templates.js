@@ -24,6 +24,14 @@ function pick(obj) {
   return out;
 }
 
+const buildPeriodicArchiveSubmitted = ({ sourceId, periodLabel, periodRange, week, weekRange, submitterName }) => pick({
+  title: '周期归档待审核',
+  content: `${submitterName || '提交人'} 已提交周期归档${periodLabel || week ? `「${periodLabel || week}」` : ''}${periodRange || weekRange ? `（${periodRange || weekRange}）` : ''}，请审核（通过 / 退回）。`,
+  priority: 'normal',
+  audience: ['secretary', 'deputy-secretary'],
+  targetUrl: `workspace/secretary.html?tab=overview&highlight=${sourceId}`,
+});
+
 const TEMPLATES = {
   // ── 思想汇报已提交（thought-report.js 迁移） ──────────────────────
   // R-23（2026-09-13）：受众锁定组织委员（思想汇报归口）——原无 audience/actionRoles
@@ -39,15 +47,10 @@ const TEMPLATES = {
     targetUrl: `workspace/org.html?tab=thought-review&highlight=${sourceId}`,
   }),
 
-  // ── 宣传周期归档已报送待支书审核（存量 kind 键兼容 weekly-report-submitted）──
-  // 受众锁定支书/副支书（审核位在支书台「全局概况」的异常优先队列里）；落点带 highlight 供直达定位。
-  'weekly-report-submitted': ({ sourceId, periodLabel, periodRange, week, weekRange, submitterName }) => pick({
-    title: '宣传周期归档待审核',
-    content: `${submitterName || '宣传委员'} 已提交周期归档${periodLabel || week ? `「${periodLabel || week}」` : ''}${periodRange || weekRange ? `（${periodRange || weekRange}）` : ''}，请审核（通过 / 退回）。`,
-    priority: 'normal',
-    audience: ['secretary', 'deputy-secretary'],
-    targetUrl: `workspace/secretary.html?tab=overview&highlight=${sourceId}`,
-  }),
+  // ── 周期归档提交后待支书审核（旧 kind 保持模板别名）──
+  // 受众锁定支书/副支书；落点带 highlight 供直达定位。
+  'periodic-archive-submitted': buildPeriodicArchiveSubmitted,
+  'weekly-report-submitted': buildPeriodicArchiveSubmitted,
 
   // ── 考勤已确认并归档（disc/attendance-tab.js 迁移） ────────────────
   'attendance-confirmed': ({ sourceId, activityTitle }) => pick({

@@ -103,7 +103,7 @@ const BLOB = {
   activityReviews: [{ id: 'r1', activityId: 'act-31', organizerId: 'p3' }],
   taskforceReviews: [{ id: 'trv1', sourceType: 'taskforce', organizerId: 'p3' }],
   propTasks: [{ id: 'pt1', title: '宣传任务' }],
-  weeklyReports: [{ id: 'wr1', title: '宣传周报' }],
+  periodicArchives: [{ id: 'pa1', title: '周期归档示例' }],
   archiveRecords: [{ id: 'ar1', title: '归档材料' }],
   externalDispatches: [{ id: 'ed1' }],
   branchDocs: [{ id: 'bd1', branchId: 'br-b1', fileName: '支部文件.pdf' }],

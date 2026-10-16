@@ -87,7 +87,7 @@ function _saveToStorage() {
       activityReviews: mockDB.activityReviews,
       taskforceReviews: mockDB.taskforceReviews,
       propTasks:     mockDB.propTasks,
-      weeklyReports: mockDB.weeklyReports,
+      periodicArchives: mockDB.periodicArchives,
       archiveRecords: mockDB.archiveRecords,
       // 2026-08-10 文件流内控：外发确认记录持久化
       externalDispatches: mockDB.externalDispatches,
@@ -286,7 +286,8 @@ function _loadFromStorage() {
     if (Array.isArray(parsed.activityReviews))  mockDB.activityReviews  = parsed.activityReviews;
     if (Array.isArray(parsed.taskforceReviews)) mockDB.taskforceReviews = parsed.taskforceReviews;
     if (Array.isArray(parsed.propTasks))     mockDB.propTasks     = parsed.propTasks;
-    if (Array.isArray(parsed.weeklyReports)) mockDB.weeklyReports = parsed.weeklyReports;
+    if (Array.isArray(parsed.periodicArchives)) mockDB.periodicArchives = parsed.periodicArchives;
+    else if (Array.isArray(parsed.weeklyReports)) mockDB.periodicArchives = parsed.weeklyReports;
     if (Array.isArray(parsed.archiveRecords)) mockDB.archiveRecords = parsed.archiveRecords;
     if (Array.isArray(parsed.externalDispatches)) mockDB.externalDispatches = parsed.externalDispatches;
     if (Array.isArray(parsed.branchDocs)) mockDB.branchDocs = parsed.branchDocs;
@@ -888,7 +889,7 @@ export const MockAdapter = {
       });
     },
     // 批次 359（`D-750` 续答「全 CRUD」）：补 `update` / `delete` 两件——活动详情页「工作分工」块要就地改 / 删；
-    //   此前该域只有 `list` / `create`（同批次 352 的 `weeklyReports`、358 的 `signups`：**域不全就抛**）。
+    //   此前该域只有 `list` / `create`（同批次 352 的旧周期归档域、358 的 `signups`：**域不全就抛**）。
     update(id, patch) {
       return _withDelay(() => {
         const idx = mockDB.assignments.findIndex(r => r.id === id);
@@ -1011,45 +1012,45 @@ export const MockAdapter = {
     },
   },
 
-  // 批次 352（`D-746`）：补 `weeklyReports` 域（四件套）——此前 **MockAdapter 缺该域**（api-adapter 已有），
-  //   周报既有写法是 `mockDB.weeklyReports` ＋ `persist()` 直写，故一直没暴露；
+  // 周期归档域提供 list/create/update/delete 四件套；本地运行与 API 模式使用同一资源名，
+  //   老 localStorage 的 weeklyReports 键在恢复时迁到 periodicArchives。
   //   本批「作废（软）」走统一写口 `getAdapter()[resource].update` ⇒ 演示（mock）形态必须同面，否则抛
   //   「Cannot read properties of undefined (reading 'update')」（真机取证在 api 形态下抓到的同类缺陷）。
-  weeklyReports: {
-    list() { return _withDelay(() => [...mockDB.weeklyReports]); },
+  periodicArchives: {
+    list() { return _withDelay(() => [...mockDB.periodicArchives]); },
     create(data) {
       return _withDelay(() => {
-        const report = { ...data, id: generateId('wr'), createdAt: new Date().toISOString() };
-        mockDB.weeklyReports = [...mockDB.weeklyReports, report];
+        const report = { ...data, id: generateId('pa'), createdAt: new Date().toISOString() };
+        mockDB.periodicArchives = [...mockDB.periodicArchives, report];
         _saveToStorage();
         return report;
       });
     },
     update(id, patch) {
       return _withDelay(() => {
-        const idx = mockDB.weeklyReports.findIndex(r => r.id === id);
-        if (idx === -1) throw Object.assign(new Error(`周报 ${id} 不存在`), { type: 'NotFoundError' });
-        mockDB.weeklyReports = [
-          ...mockDB.weeklyReports.slice(0, idx),
-          { ...mockDB.weeklyReports[idx], ...patch },
-          ...mockDB.weeklyReports.slice(idx + 1),
+        const idx = mockDB.periodicArchives.findIndex(r => r.id === id);
+        if (idx === -1) throw Object.assign(new Error(`周期归档 ${id} 不存在`), { type: 'NotFoundError' });
+        mockDB.periodicArchives = [
+          ...mockDB.periodicArchives.slice(0, idx),
+          { ...mockDB.periodicArchives[idx], ...patch },
+          ...mockDB.periodicArchives.slice(idx + 1),
         ];
         _saveToStorage();
-        return mockDB.weeklyReports[idx];
+        return mockDB.periodicArchives[idx];
       });
     },
     delete(id) {
       return _withDelay(() => {
-        const prev = mockDB.weeklyReports.length;
-        mockDB.weeklyReports = mockDB.weeklyReports.filter(r => r.id !== id);
-        if (mockDB.weeklyReports.length === prev) throw Object.assign(new Error(`周报 ${id} 不存在`), { type: 'NotFoundError' });
+        const prev = mockDB.periodicArchives.length;
+        mockDB.periodicArchives = mockDB.periodicArchives.filter(r => r.id !== id);
+        if (mockDB.periodicArchives.length === prev) throw Object.assign(new Error(`周期归档 ${id} 不存在`), { type: 'NotFoundError' });
         _saveToStorage();
         return { id };
       });
     },
   },
 
-  // 批次 352b（`D-746`）：补 `externalDispatches` 域——与 `weeklyReports` **同型缺口**（api-adapter 早有该域、
+  // 批次 352b（`D-746`）：补 `externalDispatches` 域——与周期归档 **同型缺口**（api-adapter 早有该域、
   //   MockAdapter 一直缺）；否则演示（mock）形态的外发记录「作废（软）」会抛
   //   「Cannot read properties of undefined (reading 'update')」。
   externalDispatches: {
@@ -1115,7 +1116,7 @@ export const MockAdapter = {
   // 批次 358（`D-751` · C 档 2 张）：`signups` ／ `propTasks` **补域**。
   //   ⚠ 同型缺口（实读教训）——这两张此前**只有 `mockDB` 域与持久化列表**，**没有适配器域**
   //     ⇒ `getAdapter().signups` 为 `undefined` ⇒ 「作废（软）」统一写口在这两张上会抛
-  //     `Cannot read properties of undefined (reading 'update')`（同批次 352 的 `weeklyReports`、
+  //     `Cannot read properties of undefined (reading 'update')`（同批次 352 的周期归档、
   //     批次 352b 的 `externalDispatches`）。`soft-void.test.mjs::V7` 已把这类缺口钉成判据。
   signups: {
     list() { return _withDelay(() => [...mockDB.signups]); },
@@ -1664,15 +1665,17 @@ export const MockAdapter = {
           return row;
         });
       },
-      remove(id, personId) {
+      remove(id, personId, metadata = {}) {
         return _withDelay(() => {
           const memberId = `wgm-${encodeURIComponent(id)}-${encodeURIComponent(String(personId))}`;
           const current = mockDB.workgroupMembers.find((row) => row.id === memberId);
           if (!current) return null;
+          const removedAt = new Date().toISOString();
+          const removedBy = metadata.removedBy || null;
           mockDB.workgroupMembers = mockDB.workgroupMembers.map((row) => row.id === memberId
-            ? { ...row, status: 'removed', removedAt: new Date().toISOString() } : row);
+            ? { ...row, status: 'removed', removedAt, removedBy } : row);
           mockDB.workgroupGrants = mockDB.workgroupGrants.map((grant) => grant.workgroupId === id && grant.personId === personId && grant.status === 'active'
-            ? { ...grant, status: 'revoked', revokedAt: new Date().toISOString(), revokedBy: 'membership-removed' } : grant);
+            ? { ...grant, status: 'revoked', revokedAt: removedAt, revokedBy, revocationReason: 'membership-removed' } : grant);
           const workgroup = mockDB.workgroups.find((row) => row.id === id);
           const sourceKey = workgroup?.kind === 'activity' ? 'activities' : 'taskforces';
           const sourceIndex = mockDB[sourceKey].findIndex((item) => item.id === workgroup?.sourceId);
@@ -1813,7 +1816,8 @@ export function restoreNicheCollections() {
     if (Array.isArray(parsed.activityReviews))  mockDB.activityReviews  = parsed.activityReviews;
     if (Array.isArray(parsed.taskforceReviews)) mockDB.taskforceReviews = parsed.taskforceReviews;
     if (Array.isArray(parsed.propTasks))       mockDB.propTasks       = parsed.propTasks;
-    if (Array.isArray(parsed.weeklyReports))   mockDB.weeklyReports   = parsed.weeklyReports;
+    if (Array.isArray(parsed.periodicArchives)) mockDB.periodicArchives = parsed.periodicArchives;
+    else if (Array.isArray(parsed.weeklyReports)) mockDB.periodicArchives = parsed.weeklyReports;
     if (Array.isArray(parsed.archiveRecords))  mockDB.archiveRecords  = parsed.archiveRecords;
     if (Array.isArray(parsed.externalDispatches)) mockDB.externalDispatches = parsed.externalDispatches;
     if (Array.isArray(parsed.branchDocs)) mockDB.branchDocs = parsed.branchDocs;

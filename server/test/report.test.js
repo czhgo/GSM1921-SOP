@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import { createApp } from '../app.js';
 import { seedDatabase } from '../seed.js';
 
-let server, base, token;
+let server, base, token, partyToken;
 
 before(async () => {
   const app = createApp({ dbPath: ':memory:' });
@@ -17,6 +17,12 @@ before(async () => {
     body: JSON.stringify({ personId: 'p13', password: '123456' }),
   });
   token = (await login.json()).token;
+  const partyLogin = await fetch(`${base}/api/v1/auth/login`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ personId: 'p_pc', password: '123456' }),
+  });
+  partyToken = (await partyLogin.json()).token;
 });
 after(() => server.close());
 
@@ -83,10 +89,15 @@ test('未知数据域返回 400', async () => {
   assert.equal(res.status, 400);
 });
 
-test('手动触发推送：未配置 webhook → 409 提示拉取模式', async () => {
-  const res = await fetch(`${base}/api/v1/report/trigger`, {
+test('只有党委可手动触发跨支部推送；未配置 webhook 时提示拉取模式', async () => {
+  const branchRes = await fetch(`${base}/api/v1/report/trigger`, {
     method: 'POST',
     headers: { Authorization: `Bearer ${token}` },
+  });
+  assert.equal(branchRes.status, 403);
+  const res = await fetch(`${base}/api/v1/report/trigger`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${partyToken}` },
   });
   assert.equal(res.status, 409);
   const body = await res.json();

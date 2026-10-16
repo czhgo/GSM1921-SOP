@@ -32,6 +32,11 @@ export function loadActiveAttendanceRecords() {
   return loadAttendanceRecords().filter(r => activeIds.has(r.activityId));
 }
 
+/** 读取活动创建时冻结的应到名单；矩阵需要用它区分“应到未录”和“不适用”。 */
+export function loadAttendanceRosterSnapshots() {
+  return Array.isArray(mockDB.attendanceRosters) ? [...mockDB.attendanceRosters] : [];
+}
+
 export function saveAttendanceRecords(records) {
   mockDB.attendances = [...records];
   bumpToken('attendance'); // P0：考勤写口统一 bump（纪检确认/组织者上传/纪检录入等均经本函数落库）

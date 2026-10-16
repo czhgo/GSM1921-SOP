@@ -52,6 +52,8 @@ before(async () => {
     id: 'mp-r1', kind: 'report', submittedBy: TARGET, status: 'open',
     reportCategory: 'blocked', title: '卡点事由',
   });
+  // 成员范围必须先存在于当前支部名册，接口再计算其汇总。
+  put('users', TARGET, { id: TARGET, name: '测试成员', role: 'participant', branchId: 'br-b1' });
 
   server = app.listen(0);
   base = `http://127.0.0.1:${server.address().port}`;

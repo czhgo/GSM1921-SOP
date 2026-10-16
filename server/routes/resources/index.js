@@ -26,9 +26,10 @@ import { deriveArchivePeriod } from '../../../docs/src/services/governance/perio
 import { RESOURCE_TABLES, ID_PREFIX, listTable, getRow, writeRow } from './store.js';
 import { RESOURCE_WRITE_GATE, _assertResourceWrite, _writeDenyMsg, ACTIVITY_WRITE_DENY_MSG, _assertActivityWrite, _ballotModeReject, BRANCH_COMMITTEE_ROLES, PARTY_STAFF_ROLE, _assertActivityBlockEnabled, _assertWorkflowBlockEnabled, _assertCapabilityPackageEnabled, activityBlockDisabledMsg, workflowBlockDisabledMsg, _snapshotNoticeMessageGateDeny } from './gates.js';
 import { _activityApprovalGateDeny, _snapshotActivityApprovalGateDeny, _activityCreateGatePatch } from './approval-gates.js';
-import { _snapshotBaseVersions, _snapshotWrites, _snapshotMissingVersions, _allCollectionVersions, _snapshotVersionConflicts } from './snapshot-versions.js';
+import { _snapshotBaseVersions, _snapshotWrites, _snapshotMissingVersions, _allCollectionVersions, _snapshotVersionConflicts, _normalizeSnapshotAliases } from './snapshot-versions.js';
 import { registerExtraSemanticRoutes } from './semantic-routes.js';
 import { activityCreationDeny, activityOperationAllowed, approvedTaskforceDissolutionWorkgroups, attendanceWriteDeny, createActivityWorkgroup, createTaskforceWorkgroup, snapshotScopeDeny } from './workgroup-routes.js';
+import { actorBranchId, aggregateWriteDeny, branchForNewResource, branchSelectionError, mergeAggregateBody, mergeScopedSnapshotWrites, recordBranchWriteDeny, resourceRowsForActor, scopedSnapshotWriteDeny } from './branch-scope.js';
 
 function _archiveSnapshotForActor(db, actor, submittedAt, report = {}) {
   let branchId = actor?.branchId || null;
@@ -49,9 +50,9 @@ function _archiveSnapshotForActor(db, actor, submittedAt, report = {}) {
 }
 
 function _freezeArchiveSnapshots(db, writes, actor) {
-  const write = writes.find((item) => item.table === 'weekly_reports');
+  const write = writes.find((item) => item.table === 'periodic_archive_submissions');
   if (!write) return;
-  const previous = new Map(db.prepare('SELECT id, data FROM weekly_reports').all()
+  const previous = new Map(db.prepare('SELECT id, data FROM periodic_archive_submissions').all()
     .map((row) => [row.id, JSON.parse(row.data)]));
   write.rows = write.rows.map((raw) => {
     const row = { ...raw };
@@ -74,8 +75,35 @@ function _disabledActivityHistoryReadOnly(db, activity) {
   return !enabled && (isActivityEnded(activity) || activity.status === 'cancelled');
 }
 
+function _resourceRowsForActor(db, name, table, actor, requestedBranchId) {
+  return resourceRowsForActor(db, name, listTable(db, table), actor, requestedBranchId);
+}
+
+function optionalActor(db) {
+  return (req, _res, next) => {
+    const token = String(req.headers.authorization || '').replace(/^Bearer\s+/i, '');
+    if (token) {
+      const session = db.prepare('SELECT person_id FROM sessions WHERE token = ?').get(token);
+      if (session) {
+        const row = db.prepare('SELECT data FROM users WHERE id = ?').get(session.person_id);
+        if (row) req.actor = JSON.parse(row.data);
+      }
+    }
+    next();
+  };
+}
+
 export function createResourcesRouter(db) {
   const router = Router();
+
+  // 旧客户端兼容入口只转接到通用周期归档资源，不维护第二份记录。
+  // 在未挂载路径前缀的 router middleware 中改写，避免 Express 剥除 /weeklyReports 后保留错误 baseUrl。
+  router.use((req, _res, next) => {
+    if (/^\/weeklyReports(?=\/|\?|$)/i.test(req.url)) {
+      req.url = req.url.replace(/^\/weeklyReports(?=\/|\?|$)/i, '/periodicArchives');
+    }
+    next();
+  });
 
   // ── 读口收紧（2026-09-18 批次 81；支书 2026-09-18 裁定「授权收紧」）──────────────
   // 病灶（批次 80 实测）：未登录 GET 30 张资源表一律 200，`users`（含姓名/学号/角色/联系方式）
@@ -89,7 +117,11 @@ export function createResourcesRouter(db) {
   // 每个资源 GET list
   for (const [name, table] of Object.entries(RESOURCE_TABLES)) {
     const readAuth = PUBLIC_READ.has(name) ? [] : [requireAuth(db)];
-    router.get(`/${name}`, ...readAuth, (req, res) => res.json(listTable(db, table)));
+    router.get(`/${name}`, ...readAuth, (req, res) => {
+      const deny = branchSelectionError(req.actor, req.query.branchId);
+      if (deny) return res.status(403).json({ error: deny });
+      return res.json(_resourceRowsForActor(db, name, table, req.actor, req.query.branchId));
+    });
   }
 
   // 资源级 CRUD（2026-08-06 扎口修复 Z2：此前前端 ApiAdapter 暴露的
@@ -116,6 +148,18 @@ export function createResourcesRouter(db) {
         const row = req.body;
         if (!row || typeof row !== 'object' || Array.isArray(row)) {
           return res.status(400).json({ error: 'body 须为单条数据对象' });
+        }
+        if (['actSubRecords', 'tfSubRecords'].includes(name)) {
+          const deny = aggregateWriteDeny(db, name, row.body || {}, req.actor);
+          if (deny) return res.status(403).json({ error: deny });
+        }
+        if (!['users', 'branches', 'actSubRecords', 'tfSubRecords'].includes(name)) {
+          const branchId = branchForNewResource(db, name, row, req.actor);
+          const scopeDeny = recordBranchWriteDeny(db, name, { ...row, ...(branchId ? { branchId } : {}) }, req.actor);
+          if (scopeDeny) return res.status(403).json({ error: scopeDeny });
+        }
+        if (name === 'periodicArchives' && row.branchId && row.branchId !== (req.actor.branchId || 'br-b1')) {
+          return res.status(403).json({ error: '无权限：周期归档只能归属当前支部' });
         }
         if (name === 'activities') {
           const agendaCheck = validateAgendaStructure(row.agenda);
@@ -163,6 +207,9 @@ export function createResourcesRouter(db) {
         if (db.prepare(`SELECT id FROM ${table} WHERE id = ?`).get(id)) return res.status(409).json({ error: `记录 id 已存在：${id}` });
         const data = {
           ...row,
+          ...(!['users', 'branches', 'actSubRecords', 'tfSubRecords'].includes(name) ? {
+            ...(branchForNewResource(db, name, row, req.actor) ? { branchId: branchForNewResource(db, name, row, req.actor) } : {}),
+          } : null),
           ...(name === 'activities' ? {
             ...(row.branchId ? {} : { branchId: req.actor.branchId || 'br-b1' }),
             ...(!row.organizingScope && ['secretary', 'deputy-secretary'].includes(req.actor.role)
@@ -178,9 +225,10 @@ export function createResourcesRouter(db) {
             workgroupId: `wg-taskforce-${id}`,
           } : null),
           ...(name === 'attendances' ? { recordedBy: req.actor.id, branchId: req.actor.branchId || 'br-b1' } : null),
+          ...(name === 'periodicArchives' ? { branchId: req.actor.branchId || 'br-b1' } : null),
           id,
         };
-        if (name === 'weeklyReports') {
+        if (name === 'periodicArchives') {
           delete data.archivePolicySnapshot;
           if (data.status === 'submitted') data.archivePolicySnapshot = _archiveSnapshotForActor(db, req.actor, data.submittedAt, data);
         }
@@ -208,6 +256,25 @@ export function createResourcesRouter(db) {
       const id = req.params.id;
       const existing = db.prepare(`SELECT data FROM ${table} WHERE id = ?`).get(id);
       if (!existing) return res.status(404).json({ error: 'not found' });
+      if (['actSubRecords', 'tfSubRecords'].includes(name) && req.body && Object.prototype.hasOwnProperty.call(req.body, 'body')) {
+        const deny = aggregateWriteDeny(db, name, req.body.body, req.actor);
+        if (deny) return res.status(403).json({ error: deny });
+        req.body = {
+          ...req.body,
+          body: mergeAggregateBody(db, name, JSON.parse(existing.data).body, req.body.body, req.actor),
+        };
+      }
+      if (!['users', 'branches', 'actSubRecords', 'tfSubRecords'].includes(name)) {
+        const previous = JSON.parse(existing.data);
+        const currentScopeDeny = recordBranchWriteDeny(db, name, previous, req.actor, { requireBranch: false });
+        if (currentScopeDeny) return res.status(403).json({ error: currentScopeDeny });
+        if (req.body && Object.prototype.hasOwnProperty.call(req.body, 'branchId')
+          && req.body.branchId !== (previous.branchId || actorBranchId(req.actor))) {
+          return res.status(403).json({ error: '记录的支部归属创建后不可修改' });
+        }
+        const nextScopeDeny = recordBranchWriteDeny(db, name, { ...previous, ...(req.body || {}) }, req.actor, { requireBranch: false });
+        if (nextScopeDeny) return res.status(403).json({ error: nextScopeDeny });
+      }
       // 活动写门：按「本次改后的类型」判定（未携带 type 时取既有类型）；批准门状态转移门（批次 151）叠加其后
       if (name === 'activities') {
         const prevRow = JSON.parse(existing.data);
@@ -244,7 +311,7 @@ export function createResourcesRouter(db) {
       }
       const previousRecord = JSON.parse(existing.data);
       const merged = { ...previousRecord, ...(req.body || {}), id };
-      if (name === 'weeklyReports') {
+      if (name === 'periodicArchives') {
         delete merged.archivePolicySnapshot;
         if (previousRecord.archivePolicySnapshot) {
           merged.archivePolicySnapshot = previousRecord.archivePolicySnapshot;
@@ -322,6 +389,16 @@ export function createResourcesRouter(db) {
     router.delete(`/${name}/:id`, writeAuth, (req, res) => {
       if (!_assertResourceWrite(req.actor, name, 'delete', null, req.params.id, db)) {
         return res.status(403).json({ error: _writeDenyMsg(name) });
+      }
+      if (['actSubRecords', 'tfSubRecords'].includes(name)) {
+        return res.status(403).json({ error: '聚合子记录根节点不可物理删除' });
+      }
+      if (!['users', 'branches', 'actSubRecords', 'tfSubRecords'].includes(name)) {
+        const existing = db.prepare(`SELECT data FROM ${table} WHERE id = ?`).get(req.params.id);
+        if (existing) {
+          const scopeDeny = recordBranchWriteDeny(db, name, JSON.parse(existing.data), req.actor, { requireBranch: false });
+          if (scopeDeny) return res.status(403).json({ error: scopeDeny });
+        }
       }
       // 活动写门：删除同样受限（防普通成员清库）
       if (name === 'activities') {
@@ -483,9 +560,11 @@ export function createResourcesRouter(db) {
   // 2026-09-18 批次 81：本口与逐表读等价（一次给全 30 张表）⇒ **与逐表同门 requireAuth**；
   //   否则「逐表收紧」形同虚设（未登录改调本口即可拿到同一份数据）。
   router.get('/bootstrap', requireAuth(db), (req, res) => {
+    const deny = branchSelectionError(req.actor, req.query.branchId);
+    if (deny) return res.status(403).json({ error: deny });
     const out = {};
     for (const [name, table] of Object.entries(RESOURCE_TABLES)) {
-      out[name] = listTable(db, table);
+      out[name] = _resourceRowsForActor(db, name, table, req.actor, req.query.branchId);
     }
     res.json(out);
   });
@@ -513,16 +592,24 @@ export function createResourcesRouter(db) {
     if (!payload || typeof payload !== 'object') {
       return res.status(400).json({ error: '快照 payload 必须是 JSON 对象' });
     }
-    const scopeDeny = snapshotScopeDeny(db, payload, req.actor);
+    const aliasResult = _normalizeSnapshotAliases(payload);
+    if (aliasResult.error) return res.status(400).json({ error: aliasResult.error });
+    payload = aliasResult.payload;
+    const branchWriteDeny = scopedSnapshotWriteDeny(db, payload, req.actor);
+    if (branchWriteDeny) return res.status(403).json({ error: branchWriteDeny });
+    const snapshotWrites = mergeScopedSnapshotWrites(db, _snapshotWrites(payload), req.actor);
+    const validationPayload = { ...payload };
+    for (const write of snapshotWrites) validationPayload[write.name] = write.rows;
+    const scopeDeny = snapshotScopeDeny(db, validationPayload, req.actor);
     if (scopeDeny) return res.status(403).json({ error: scopeDeny });
-    const snapshotDeny = _snapshotActivityApprovalGateDeny(db, payload, req.actor) || _snapshotNoticeMessageGateDeny(db, payload, req.actor);
+    const snapshotDeny = _snapshotActivityApprovalGateDeny(db, validationPayload, req.actor) || _snapshotNoticeMessageGateDeny(db, validationPayload, req.actor);
     if (snapshotDeny) return res.status(403).json({ error: snapshotDeny });
     const baseVersions = _snapshotBaseVersions(payload);
     const missing = _snapshotMissingVersions(payload, baseVersions); if (missing.length) return res.status(428).json({ error: '快照被拒：payload 里的集合未随 `_versions` 给出基线版本（见本文件末「快照写穿的集合版本号协议」）', missingVersions: missing });
     if (baseVersions) { const conflicts = _snapshotVersionConflicts(db, payload, baseVersions); if (conflicts.length) return res.status(409).json({ error: '数据已被他人更新，本次写入未生效（版本冲突，请刷新后重试）', conflicts }); }
-    const writes = _snapshotWrites(payload);
+    const writes = snapshotWrites;
     _freezeArchiveSnapshots(db, writes, req.actor);
-    const workgroupUpdates = approvedTaskforceDissolutionWorkgroups(db, payload, req.actor);
+    const workgroupUpdates = approvedTaskforceDissolutionWorkgroups(db, validationPayload, req.actor);
     const nextVersions = replaceCollectionsAtomic(db, writes, { workgroups: workgroupUpdates });
     return baseVersions ? res.json({ versions: nextVersions }) : res.status(204).end();
   });
@@ -811,7 +898,14 @@ export function createResourcesRouter(db) {
   const RATE_MAX = 20;                   // 窗口内同 tokenHash 最大提交数
   const DEDUP_WINDOW_MS = 5 * 60 * 1000; // 判重窗口
 
-  router.get('/issues', (req, res) => res.json(listIssues()));
+  router.get('/issues', optionalActor(db), (req, res) => {
+    const deny = branchSelectionError(req.actor, req.query.branchId);
+    if (deny) return res.status(403).json({ error: deny });
+    let rows = listIssues();
+    const branchId = actorBranchId(req.actor) || req.query.branchId || null;
+    if (branchId) rows = rows.filter((row) => (row.branchId || 'br-b1') === branchId);
+    return res.json(rows);
+  });
 
   // **仅党委**：查看匿名反馈的真实提交人（2026-09-17 支书改裁）。**每次查看留痕**（AI 建议、无异议即执行）：
   //  留痕的意义＝「**只有党委能看**」这条承诺**可被事后核对**（否则「只有党委能看」只是一句声明，
@@ -927,7 +1021,10 @@ export function createResourcesRouter(db) {
     db.prepare('INSERT OR REPLACE INTO issues (id, data) VALUES (?, ?)').run(issue.id, JSON.stringify(issue));
     res.json(sanitizeIssue(issue));
   });
-  router.get('/snapshot/versions', requireAuth(db), (req, res) => res.json({ versions: _allCollectionVersions(db) })); registerExtraSemanticRoutes(router, db); // P0-1 集合版本基线查询（前端 init() 取基线；返回全集，未出现过的集合＝0）；2026-09-24 批次 169 追加申诉/未读/审计三组语义端点（函数体置文件末，保上文行号）
+  router.get('/snapshot/versions', requireAuth(db), (req, res) => {
+    const versions = _allCollectionVersions(db);
+    res.json({ versions: { ...versions, weeklyReports: versions.periodicArchives } });
+  }); registerExtraSemanticRoutes(router, db); // P0-1 集合版本基线查询（前端 init() 取基线；返回全集，未出现过的集合＝0）；2026-09-24 批次 169 追加申诉/未读/审计三组语义端点（函数体置文件末，保上文行号）
   return router;
 }
 

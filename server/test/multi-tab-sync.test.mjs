@@ -325,14 +325,14 @@ test('判据C-② 本机未 persist 的脏集合不重拉（其它集合照常�
   const b = await openApiPage(base, 'p11');
   try {
     await waitIdle(b.page);
-    // B 本机：weeklyReports 上有**未 persist** 的本地改动（`_collectDirty` 认为脏、但无在途写）
+    // B 本机：periodicArchives 上有**未 persist** 的本地改动（`_collectDirty` 认为脏、但无在途写）
     await b.page.evaluate(async () => {
       const { mockDB } = await import('/src/core/domain/domain.js?v=20261016a');
-      mockDB.weeklyReports.push({ id: 'p11-c2-local', week: 'W-local', content: 'x' });
+      mockDB.periodicArchives.push({ id: 'p11-c2-local', periodLabel: 'P-local', content: 'x' });
     });
-    // A 写两个集合：一个与 B 的脏集合同名（weeklyReports），一个是干净集合（archiveRecords）
+    // A 写两个集合：一个与 B 的脏集合同名（periodicArchives），一个是干净集合（archiveRecords）
     await pushAndPersist(a.page, {
-      weeklyReports: { id: 'p11-c2-server', week: 'W-server', content: 'y' },
+      periodicArchives: { id: 'p11-c2-server', periodLabel: 'P-server', content: 'y' },
       archiveRecords: { id: 'p11-c2-arch', title: 'P1-1 C2', archivedAt: '2026-09-24' },
     });
     await settle(a.page);
@@ -340,15 +340,15 @@ test('判据C-② 本机未 persist 的脏集合不重拉（其它集合照常�
     const local = await b.page.evaluate(async () => {
       const { mockDB } = await import('/src/core/domain/domain.js?v=20261016a');
       return {
-        keepLocal: (mockDB.weeklyReports || []).some((w) => w.id === 'p11-c2-local'),
+        keepLocal: (mockDB.periodicArchives || []).some((w) => w.id === 'p11-c2-local'),
         gotOther: (mockDB.archiveRecords || []).some((x) => x.id === 'p11-c2-arch'),
-        tookServerForDirty: (mockDB.weeklyReports || []).some((w) => w.id === 'p11-c2-server'),
+        tookServerForDirty: (mockDB.periodicArchives || []).some((w) => w.id === 'p11-c2-server'),
       };
     });
     assert.equal(local.keepLocal, true, '本机未提交的脏集合不得被远端数据覆盖（否则即「回滚本机未提交的写」）');
     assert.equal(local.tookServerForDirty, false, '判据同源：该集合本次根本不应进入重拉清单');
     assert.equal(local.gotOther, true, '干净集合应照常刷新（探测未被整体关掉）');
-    assert.ok(!(r.changed || []).includes('weeklyReports'), `脏集合不得出现在 changed 里（实测 ${JSON.stringify(r)}）`);
+    assert.ok(!(r.changed || []).includes('periodicArchives'), `脏集合不得出现在 changed 里（实测 ${JSON.stringify(r)}）`);
     assert.ok((r.changed || []).includes('archiveRecords'), `干净集合应出现在 changed 里（实测 ${JSON.stringify(r)}）`);
     console.log(`[判据C-②] changed=${JSON.stringify(r.changed)} keepLocal=${local.keepLocal} gotOther=${local.gotOther}`);
   } finally {

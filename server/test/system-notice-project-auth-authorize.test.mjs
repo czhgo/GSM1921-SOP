@@ -112,9 +112,11 @@ test('B5 材料外发：refLabel/receiverRole 按表复算', () => {
   assert.ok(!t.includes('伪造材料') && !t.includes('伪造角色'), t);
 });
 
-test('B6 宣传周报：week/weekRange 按表复算（人名见 E1/E4：源行有 `submittedBy` 才按名册复算）', () => {
-  const rows = { weekly_reports: { 'w-1': { id: 'w-1', week: '第 41 周', weekRange: '2026-10-05 ~ 10-11', submittedBy: 'p1' } } };
-  const t = TEXT(BUILD('weekly-report-submitted', 'w-1', rows, { week: '伪造周次', weekRange: '伪造区间', submitterName: '张三' }));
+test('B6 周期归档：旧期次字段按表复算，旧通知 kind 仍兼容', () => {
+  const rows = { periodic_archive_submissions: { 'w-1': { id: 'w-1', week: '第 41 周', weekRange: '2026-10-05 ~ 10-11', submittedBy: 'p1' } } };
+  const payload = { week: '伪造周次', weekRange: '伪造区间', submitterName: '张三' };
+  const t = TEXT(BUILD('periodic-archive-submitted', 'w-1', rows, payload));
+  assert.equal(TEXT(BUILD('weekly-report-submitted', 'w-1', rows, payload)), t, '旧 kind 必须转到同一模板');
   assert.ok(t.includes('第 41 周') && t.includes('2026-10-05 ~ 10-11'), t);
   assert.ok(!t.includes('伪造周次') && !t.includes('伪造区间'), t);
   // 本夹具**未给 `users` 表** ⇒ 名册查无 p1 ⇒ 沿用 payload（批次 426 口径：先按源行补 `submitterId`、再走名册；
@@ -124,9 +126,9 @@ test('B6 宣传周报：week/weekRange 按表复算（人名见 E1/E4：源行�
 
 test('B7 非空转：11 个 kind 都真有 `build`（防判据被写成恒真）', () => {
   const kinds = [...ACT_TITLE_KINDS, 'activity-created-broadcast', 'taskforce-vote-requested',
-    'member-change-approved', 'external-dispatch-created', 'weekly-report-submitted',
+    'member-change-approved', 'external-dispatch-created', 'periodic-archive-submitted', 'weekly-report-submitted',
     'project-auth-granted', 'review-request-submitted', 'review-request-decided'];
-  assert.equal(kinds.length, 11);
+  assert.equal(kinds.length, 12);
   for (const k of kinds) assert.equal(typeof SYSTEM_NOTICE_KINDS[k].build, 'function', `${k} 缺 build`);
 });
 
@@ -264,12 +266,12 @@ test('D4 余项**已收口**（2026-10-06 批次 426）：`member-change-approve
 //   **按源行派生配对 id**，再走 `applyRosterNames` 按名册复算人名。
 //   ⚠ 仍沿用 payload 的（如实登记）：`project-auth-granted` 的 `roleLabel`（角色标签，服务端未建
 //     「角色标签 → 中文」表）与 `targetPage`（落点，取决于被赋权人身份）。
-test('E1 `weekly-report-submitted`：源行 `submittedBy` ⇒ 按名册复算 `submitterName`', () => {
+test('E1 `periodic-archive-submitted`：源行 `submittedBy` ⇒ 按名册复算 `submitterName`', () => {
   const rows = {
     users: { p11: { id: 'p11', name: '宣传委员真名' } },
-    weekly_reports: { 'wr-1': { id: 'wr-1', submittedBy: 'p11', week: '第十周', weekRange: '10.01–10.07' } },
+    periodic_archive_submissions: { 'wr-1': { id: 'wr-1', submittedBy: 'p11', week: '第十周', weekRange: '10.01–10.07' } },
   };
-  const t = TEXT(BUILD('weekly-report-submitted', 'wr-1', rows, { submitterName: '伪造报送人', week: '伪造周' }));
+  const t = TEXT(BUILD('periodic-archive-submitted', 'wr-1', rows, { submitterName: '伪造报送人', week: '伪造周' }));
   assert.ok(t.includes('宣传委员真名'), `报送人未按名册复算：${t}`);
   assert.ok(!t.includes('伪造报送人'), `伪造报送人不得出现：${t}`);
   assert.ok(t.includes('第十周'), '周次仍按表复算（批次 390 口径未动）');
@@ -278,15 +280,15 @@ test('E1 `weekly-report-submitted`：源行 `submittedBy` ⇒ 按名册复算 `s
 test('周期归档通知按服务端冻结的周期快照展示，不采信客户端伪造期次', () => {
   const rows = {
     users: { p11: { id: 'p11', name: '宣传委员真名' } },
-    weekly_reports: { 'wr-month': {
+    periodic_archive_submissions: { 'wr-month': {
       id: 'wr-month', submittedBy: 'p11', week: '旧兼容字段', weekRange: '旧日期',
       archivePolicySnapshot: { unit: 'month', periodLabel: '2026年10月', periodRange: '2026-10-01 ~ 2026-10-31', version: 2 },
     } },
   };
-  const t = TEXT(BUILD('weekly-report-submitted', 'wr-month', rows, {
+  const t = TEXT(BUILD('periodic-archive-submitted', 'wr-month', rows, {
     periodLabel: '伪造期次', periodRange: '伪造区间', week: '伪造周',
   }));
-  assert.ok(t.includes('宣传周期归档待审核'), t);
+  assert.ok(t.includes('周期归档待审核'), t);
   assert.ok(t.includes('2026年10月') && t.includes('2026-10-01 ~ 2026-10-31'), t);
   assert.ok(!t.includes('伪造期次') && !t.includes('伪造区间'), t);
 });
@@ -335,8 +337,8 @@ test('E6 反例（如实）：payload 不带 `role` 键 ⇒ 角色标签沿用 p
 });
 
 test('E4 反例：源行无人字段 ⇒ 仍沿用 payload（不得产出空名）', () => {
-  const rows = { users: { p11: { id: 'p11', name: '在册真名' } }, weekly_reports: { 'wr-2': { id: 'wr-2', week: '第十一周' } } };
-  const t = TEXT(BUILD('weekly-report-submitted', 'wr-2', rows, { submitterName: '报表未记报送人时的 payload 名' }));
+  const rows = { users: { p11: { id: 'p11', name: '在册真名' } }, periodic_archive_submissions: { 'wr-2': { id: 'wr-2', week: '第十一周' } } };
+  const t = TEXT(BUILD('periodic-archive-submitted', 'wr-2', rows, { submitterName: '报表未记报送人时的 payload 名' }));
   assert.ok(t.includes('报表未记报送人时的 payload 名'), `源行无 submittedBy ⇒ 沿用 payload（不空名）：${t}`);
 });
 

@@ -11,6 +11,7 @@ import { requireAuth, requireRole } from './auth.js';
 //   强制/默认规则 = ballotModeOfActivity/isAnonymousForced，勿在本文件另写副本。
 import { SECRETARY_AND_DEPUTY_ROLES as SECRETARY_DEPUTY_ROLE_KEYS, COMMITTEE_IDS as BRANCH_COMMITTEE_IDS, ballotModeOfActivity } from '../../docs/src/core/domain/constants.js';
 import { validateAgendaVoteTarget } from '../../docs/src/services/activity/agenda-relations.js';
+import { actorBranchId, branchSelectionError, resourceRowsForActor } from './resources/branch-scope.js';
 
 // 支委白名单 = 旧活动回退白名单（保留不改行为；名单单一源 = constants.js COMMITTEE_IDS，与 member.js 同源），
 // 供无 voteConfig 的旧活动/回退场景兜底校验。
@@ -48,7 +49,9 @@ export function createCommitteeRouter(db) {
 
   // 表态列表（按活动过滤；全量可见）
   router.get('/agenda-votes', requireAuth(db), (req, res) => {
-    let rows = listTable(db, 'agenda_votes');
+    const scopeDeny = branchSelectionError(req.actor, req.query.branchId);
+    if (scopeDeny) return res.status(403).json({ error: scopeDeny });
+    let rows = resourceRowsForActor(db, 'agenda_votes', listTable(db, 'agenda_votes'), req.actor, req.query.branchId);
     if (req.query.activityId) rows = rows.filter((v) => v.activityId === req.query.activityId);
     res.json(rows);
   });
@@ -68,6 +71,7 @@ export function createCommitteeRouter(db) {
     // 活动存在性检查（活动数据在 activities 表；活动不存在一律 404，不静默放行）
     const actRow = getRow(db, 'activities', activityId);
     if (!actRow) return res.status(404).json({ error: '活动不存在' });
+    if (actorBranchId(req.actor) && actorBranchId(req.actor) !== (actRow.branchId || 'br-b1')) return res.status(403).json({ error: '无权限：不能参与其他支部活动表决' });
     const agendaTarget = validateAgendaVoteTarget(actRow.agenda, agendaItemId);
     if (!agendaTarget.ok) return res.status(400).json({ error: agendaTarget.error });
     // ===== 表决授权解析（AV3，fail-closed）=====
@@ -125,6 +129,7 @@ export function createCommitteeRouter(db) {
         if (existing) return { row: existing, created: false };
         const row = {
           id: `av-${randomUUID().slice(0, 8)}`,
+          branchId: actRow.branchId || 'br-b1',
           activityId, agendaItemId,
           personId: req.actor.id,
           votedAt: now,
@@ -137,7 +142,7 @@ export function createCommitteeRouter(db) {
         const prev = listTable(db, 'agenda_votes').find((v) => v.id === tallyId);
         const tally = { ...((prev && prev.tally) || {}) };
         tally[position] = (Number(tally[position]) || 0) + 1;
-        writeRow(db, 'agenda_votes', { id: tallyId, activityId, agendaItemId, ballotMode: 'anonymous', tally, updatedAt: now });
+        writeRow(db, 'agenda_votes', { id: tallyId, branchId: actRow.branchId || 'br-b1', activityId, agendaItemId, ballotMode: 'anonymous', tally, updatedAt: now });
         return { row, created: true };
       })();
       return res.status(saved.created ? 201 : 200).json(saved.row);
@@ -147,12 +152,13 @@ export function createCommitteeRouter(db) {
     const existing = listTable(db, 'agenda_votes').find((v) =>
       v.activityId === activityId && v.agendaItemId === agendaItemId && v.personId === req.actor.id);
     if (existing) {
-      const updated = { ...existing, position, note, updatedAt: now };
+      const updated = { ...existing, branchId: actRow.branchId || 'br-b1', position, note, updatedAt: now };
       writeRow(db, 'agenda_votes', updated);
       return res.json(updated);
     }
     const row = {
       id: `av-${randomUUID().slice(0, 8)}`,
+      branchId: actRow.branchId || 'br-b1',
       activityId, agendaItemId,
       personId: req.actor.id,
       position, note,
@@ -174,6 +180,7 @@ export function createCommitteeRouter(db) {
     }
     const act = getRow(db, 'activities', activityId);
     if (!act) return res.status(404).json({ error: '活动不存在' });
+    if (actorBranchId(req.actor) && actorBranchId(req.actor) !== (act.branchId || 'br-b1')) return res.status(403).json({ error: '无权限：不能截止其他支部活动表决' });
     const merged = {
       ...act,
       // 截止不可逆：仅允许置 true，禁止解锁（传 false 不写入）

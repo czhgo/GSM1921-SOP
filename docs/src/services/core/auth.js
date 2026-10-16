@@ -146,12 +146,15 @@ async function _upsertProjectMember(projectId, personId, role) {
 async function _removeProjectMember(projectId, personId) {
   const workgroupId = _workgroupIdForProject(projectId);
   if (!workgroupId) throw new Error('找不到项目对应的工作组');
-  await getAdapter().workgroups.members.remove(workgroupId, personId);
+  const actor = AuthStore.getCurrentUser();
+  const removedBy = actor?.personId || actor?.id || null;
+  const removedAt = new Date().toISOString();
+  await getAdapter().workgroups.members.remove(workgroupId, personId, { removedBy });
   const memberId = `wgm-${encodeURIComponent(workgroupId)}-${encodeURIComponent(String(personId))}`;
   mockDB.workgroupMembers = mockDB.workgroupMembers.map((item) => item.id === memberId
-    ? { ...item, status: 'removed', removedAt: new Date().toISOString() } : item);
+    ? { ...item, status: 'removed', removedBy, removedAt } : item);
   mockDB.workgroupGrants = mockDB.workgroupGrants.map((item) => item.workgroupId === workgroupId && item.personId === personId && item.status === 'active'
-    ? { ...item, status: 'revoked', revokedAt: new Date().toISOString() } : item);
+    ? { ...item, status: 'revoked', revokedBy, revokedAt: removedAt, revocationReason: 'membership-removed' } : item);
   _updateProjectMemberCache(projectId, personId, null, true);
 }
 

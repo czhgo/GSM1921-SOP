@@ -38,11 +38,11 @@ export const SOFT_VOID_RESOURCES = {
     ownerRole: 'prop-commissioner',
     titleOf: (r) => r.title || r.fileName || r.id,
   },
-  weeklyReports: {
-    storeKey: 'weeklyReports',
-    label: '周报',
+  periodicArchives: {
+    storeKey: 'periodicArchives',
+    label: '周期归档',
     ownerRole: 'prop-commissioner',
-    titleOf: (r) => r.week || r.id,
+    titleOf: (r) => r.periodLabel || r.week || r.id,
   },
   experienceDeposits: {
     storeKey: 'experienceDeposits',

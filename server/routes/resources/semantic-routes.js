@@ -13,6 +13,7 @@ import { ORG_COMMISSIONER_ROLE_SET, SECRETARY_AND_DEPUTY_ROLE_SET } from './gate
 // R-26③（2026-10-05 批次 388）：日期口径统一到**本地**（服务端单一源 `services/reporting.js`）
 import { today as todayLocal } from '../../services/reporting.js';
 import { registerWorkgroupRoutes } from './workgroup-routes.js';
+import { actorBranchId, branchSelectionError, branchForNewResource, recordBranchWriteDeny, resourceRowsForActor } from './branch-scope.js';
 
 // ════════════════════════════════════════════════════════════════
 //  语义端点：申诉队列 / 反馈未读标记 / 授权审计留痕（2026-09-24 批次 169）
@@ -37,10 +38,10 @@ export function registerExtraSemanticRoutes(router, db) {
   // 申诉处置位＝支委层（纪检/支书/组织/宣传）+ 党小组组长（「交组织方重新确认」的重确认位）——
   //   角色集由 constants.js::BRANCH_COMMISSION_ROLES 单一源派生，勿手写角色字符串
   const APPEAL_DISPOSITION_ROLE_SET = new Set([...BRANCH_COMMISSION_ROLES, 'leader']);
+  const readScoped = (req, table, name = table) => resourceRowsForActor(db, name, listTable(db, table), req.actor, req.query.branchId);
   // 申诉读（可按支部 / 状态过滤）
   const readAppeals = (req, table) => {
-    let rows = listTable(db, table);
-    if (req.query.branchId) rows = rows.filter((r) => (r.branchId || 'br-b1') === req.query.branchId);
+    let rows = readScoped(req, table);
     if (req.query.status) rows = rows.filter((r) => r.status === req.query.status);
     return rows;
   };
@@ -62,6 +63,8 @@ export function registerExtraSemanticRoutes(router, db) {
       status: 'pending',
       createdAt: body.createdAt || new Date().toISOString(),
     };
+    const scopeDeny = recordBranchWriteDeny(db, table, row, req.actor);
+    if (scopeDeny) return res.status(403).json({ error: scopeDeny });
     writeRow(db, table, row);
     res.status(201).json(row);
   };
@@ -69,6 +72,7 @@ export function registerExtraSemanticRoutes(router, db) {
   const disposeAppeal = (req, res, table) => {
     const row = getRow(db, table, req.params.id);
     if (!row) return res.status(404).json({ error: '申诉不存在' });
+    if (recordBranchWriteDeny(db, table, row, req.actor, { requireBranch: false })) return res.status(403).json({ error: '无权限：不能处置其他支部申诉' });
     const body = (req.body && typeof req.body === 'object' && !Array.isArray(req.body)) ? req.body : {};
     const bad = Object.keys(body).find((k) => !APPEAL_PATCH_KEYS.includes(k));
     if (bad) return res.status(400).json({ error: `字段 ${bad} 不在白名单（本端点仅可写 ${APPEAL_PATCH_KEYS.join(' / ')}）` });
@@ -84,11 +88,19 @@ export function registerExtraSemanticRoutes(router, db) {
     res.json(next);
   };
   // ── 出勤申诉队列（SOP-B-42 / D-456；前端 services/activity/attendance.js）──
-  router.get('/attendance-appeals', requireAuth(db), (req, res) => res.json(readAppeals(req, 'attendance_appeals')));
+  router.get('/attendance-appeals', requireAuth(db), (req, res) => {
+    const deny = branchSelectionError(req.actor, req.query.branchId);
+    if (deny) return res.status(403).json({ error: deny });
+    return res.json(readAppeals(req, 'attendance_appeals'));
+  });
   router.post('/attendance-appeals', requireAuth(db), (req, res) => submitAppeal(req, res, 'attendance_appeals', 'appeal'));
   router.patch('/attendance-appeals/:id', requireRole(db, APPEAL_DISPOSITION_ROLE_SET), (req, res) => disposeAppeal(req, res, 'attendance_appeals'));
   // ── 考察申诉队列（SOP-B-10；前端 services/activity/inspection.js）──
-  router.get('/inspection-appeals', requireAuth(db), (req, res) => res.json(readAppeals(req, 'inspection_appeals')));
+  router.get('/inspection-appeals', requireAuth(db), (req, res) => {
+    const deny = branchSelectionError(req.actor, req.query.branchId);
+    if (deny) return res.status(403).json({ error: deny });
+    return res.json(readAppeals(req, 'inspection_appeals'));
+  });
   router.post('/inspection-appeals', requireAuth(db), (req, res) => submitAppeal(req, res, 'inspection_appeals', 'inspAppeal'));
   router.patch('/inspection-appeals/:id', requireRole(db, APPEAL_DISPOSITION_ROLE_SET), (req, res) => disposeAppeal(req, res, 'inspection_appeals'));
   // ── 意见反馈「逐人未读标记」（前端 services/governance/issues.js::IssueNotify）──
@@ -99,7 +111,9 @@ export function registerExtraSemanticRoutes(router, db) {
   const issueUnreadId = (assigneeId, issueId) => `${assigneeId}:${issueId}`;
   const UNREAD_WRITE_KEYS = ['assigneeId', 'issueId', 'unread'];
   router.get('/issue-unread', requireAuth(db), (req, res) => {
-    let rows = listTable(db, 'issue_unread');
+    const deny = branchSelectionError(req.actor, req.query.branchId);
+    if (deny) return res.status(403).json({ error: deny });
+    let rows = readScoped(req, 'issue_unread', 'issue_unread');
     if (req.query.assigneeId) rows = rows.filter((r) => r.assigneeId === req.query.assigneeId);
     if (req.query.open === '1') rows = rows.filter((r) => r.unread === true);
     res.json(rows);
@@ -112,23 +126,34 @@ export function registerExtraSemanticRoutes(router, db) {
     const issueId = body.issueId ? String(body.issueId) : '';
     if (!assigneeId || !issueId) return res.status(400).json({ error: '缺少必要字段：assigneeId/issueId' });
     const id = issueUnreadId(assigneeId, issueId);
+    const assignee = getRow(db, 'users', assigneeId);
+    if (!assignee) return res.status(400).json({ error: '未读标记对象不存在' });
     const prev = getRow(db, 'issue_unread', id) || {};
-    const row = { ...prev, id, assigneeId, issueId, unread: body.unread !== false, at: new Date().toISOString() };
+    const row = { ...prev, id, assigneeId, issueId, branchId: assignee.branchId || 'br-b1', unread: body.unread !== false, at: new Date().toISOString() };
+    const scopeDeny = recordBranchWriteDeny(db, 'issue_unread', row, req.actor);
+    if (scopeDeny) return res.status(403).json({ error: scopeDeny });
     writeRow(db, 'issue_unread', row);
     res.json(row);
   });
   // ── 授权审计留痕（T-190；前端 services/core/auth.js）──
   // 只增不改的治理档案：读＝支委层（赋权留痕是支委治理记录）；写＝登录用户（赋权动作内部调用，服务端只落不判定）
   const AUTH_AUDIT_KEYS = ['id', 'targetPersonId', 'role', 'scopeRef', 'authorizedBy', 'authorizedAt', 'action'];
-  router.get('/auth-audit', requireRole(db, new Set(BRANCH_COMMISSION_ROLES)), (req, res) => res.json(listTable(db, 'auth_audit')));
+  router.get('/auth-audit', requireRole(db, new Set([...BRANCH_COMMISSION_ROLES, 'party-staff'])), (req, res) => {
+    const deny = branchSelectionError(req.actor, req.query.branchId);
+    if (deny) return res.status(403).json({ error: deny });
+    return res.json(readScoped(req, 'auth_audit', 'auth_audit'));
+  });
   router.post('/auth-audit', requireAuth(db), (req, res) => {
     const body = (req.body && typeof req.body === 'object' && !Array.isArray(req.body)) ? req.body : {};
     const bad = Object.keys(body).find((k) => !AUTH_AUDIT_KEYS.includes(k));
     if (bad) return res.status(400).json({ error: `字段 ${bad} 不在白名单（本端点仅可写 ${AUTH_AUDIT_KEYS.join(' / ')}）` });
     const id = body.id ? String(body.id) : `auth-${randomUUID().slice(0, 8)}`;
     if (db.prepare('SELECT id FROM auth_audit WHERE id = ?').get(id)) return res.json(getRow(db, 'auth_audit', id)); // 幂等：同 id 不重复落
+    const targetUser = body.targetPersonId ? getRow(db, 'users', String(body.targetPersonId)) : null;
+    const scopeBranchId = targetUser?.branchId || (req.actor.role === 'party-staff' ? null : actorBranchId(req.actor));
     const row = {
       id,
+      ...(scopeBranchId ? { branchId: scopeBranchId } : {}),
       targetPersonId: body.targetPersonId ? String(body.targetPersonId) : null,
       role: body.role ? String(body.role) : null,
       scopeRef: body.scopeRef !== undefined && body.scopeRef !== null ? String(body.scopeRef) : '',
@@ -136,6 +161,8 @@ export function registerExtraSemanticRoutes(router, db) {
       authorizedAt: body.authorizedAt || todayLocal(),
       action: body.action === 'revoke' ? 'revoke' : 'grant',
     };
+    const scopeDeny = recordBranchWriteDeny(db, 'auth_audit', row, req.actor);
+    if (scopeDeny) return res.status(403).json({ error: scopeDeny });
     writeRow(db, 'auth_audit', row);
     res.status(201).json(row);
   });
@@ -155,7 +182,9 @@ export function registerExtraSemanticRoutes(router, db) {
   // ── 三委数据交接（T-304 C2 §E.2）──
   // 类型元数据单一源 = `docs/src/services/governance/handoff.js::HANDOFF_TYPES`（from/to 由类型派生，**不采信客户端自述**）。
   router.get('/handoffs', requireAuth(db), (req, res) => {
-    let rows = listTable(db, 'handoffs');
+    const deny = branchSelectionError(req.actor, req.query.branchId);
+    if (deny) return res.status(403).json({ error: deny });
+    let rows = readScoped(req, 'handoffs', 'handoffs');
     if (req.query.to) rows = rows.filter((h) => h.to === req.query.to);
     if (req.query.status) rows = rows.filter((h) => h.status === req.query.status);
     res.json(rows);
@@ -176,6 +205,7 @@ export function registerExtraSemanticRoutes(router, db) {
     const now = new Date().toISOString();
     const row = {
       id,
+      ...(branchForNewResource(db, 'handoffs', body, req.actor) ? { branchId: branchForNewResource(db, 'handoffs', body, req.actor) } : {}),
       type: body.type,
       from: meta.from,
       to: meta.to,
@@ -188,6 +218,8 @@ export function registerExtraSemanticRoutes(router, db) {
       confirmedAt: auto ? now : null,
       confirmedBy: auto ? 'system' : null,
     };
+    const scopeDeny = recordBranchWriteDeny(db, 'handoffs', { ...row, ...body }, req.actor);
+    if (scopeDeny) return res.status(403).json({ error: scopeDeny });
     writeRow(db, 'handoffs', row);
     res.status(201).json(row);
   });
@@ -195,6 +227,7 @@ export function registerExtraSemanticRoutes(router, db) {
   router.post('/handoffs/:id/confirm', requireAuth(db), (req, res) => {
     const row = getRow(db, 'handoffs', req.params.id);
     if (!row) return res.status(404).json({ error: '交接记录不存在' });
+    if (recordBranchWriteDeny(db, 'handoffs', row, req.actor, { requireBranch: false })) return res.status(403).json({ error: '无权限：不能确认其他支部交接' });
     if (row.to !== req.actor.role) return res.status(403).json({ error: '无权限：仅接收方可确认该交接' });
     if (row.status !== 'pending') return res.json(row);
     const next = { ...row, status: 'done', confirmedAt: new Date().toISOString(), confirmedBy: req.actor.role };
@@ -205,7 +238,9 @@ export function registerExtraSemanticRoutes(router, db) {
   // 发起＝组织委员（与 services/member/member-confirmation.js::submitMemberChange 同口径：阶段/在册滞留下方写权）；
   // 决策＝支书/副支书（副书同权，单一源 constants.js::SECRETARY_AND_DEPUTY_ROLES，与本文件既有集合同源）。
   router.get('/member-confirmations', requireAuth(db), (req, res) => {
-    let rows = listTable(db, 'member_confirmations');
+    const deny = branchSelectionError(req.actor, req.query.branchId);
+    if (deny) return res.status(403).json({ error: deny });
+    let rows = readScoped(req, 'member_confirmations', 'member_confirmations');
     if (req.query.status) rows = rows.filter((r) => r.status === req.query.status);
     res.json(rows);
   });
@@ -213,11 +248,14 @@ export function registerExtraSemanticRoutes(router, db) {
     const body = (req.body && typeof req.body === 'object' && !Array.isArray(req.body)) ? req.body : {};
     const { id: rawId, personId, kind, action, to } = body;
     if (!personId || !action || !to) return res.status(400).json({ error: '缺少必要字段：personId/action/to' });
+    const person = getRow(db, 'users', personId);
+    if (!person) return res.status(400).json({ error: '待确认成员不存在' });
     const id = rawId ? String(rawId) : `mc-${randomUUID().slice(0, 8)}`;
     if (db.prepare('SELECT id FROM member_confirmations WHERE id = ?').get(id)) return res.status(409).json({ error: '该请求 id 已存在' });
     const row = {
       ...body,
       id,
+      branchId: person.branchId || 'br-b1',
       kind: kind || 'change',
       personId,
       action,
@@ -227,12 +265,15 @@ export function registerExtraSemanticRoutes(router, db) {
       decidedAt: null,
       rejectNote: '',
     };
+    const scopeDeny = recordBranchWriteDeny(db, 'member_confirmations', row, req.actor);
+    if (scopeDeny) return res.status(403).json({ error: scopeDeny });
     writeRow(db, 'member_confirmations', row);
     res.status(201).json(row);
   });
   router.post('/member-confirmations/:id/decide', requireRole(db, SECRETARY_AND_DEPUTY_ROLE_SET), (req, res) => {
     const row = getRow(db, 'member_confirmations', req.params.id);
     if (!row) return res.status(404).json({ error: '待确认请求不存在' });
+    if (recordBranchWriteDeny(db, 'member_confirmations', row, req.actor, { requireBranch: false })) return res.status(403).json({ error: '无权限：不能决定其他支部的成员请求' });
     const { decision, note } = (req.body && typeof req.body === 'object' && !Array.isArray(req.body)) ? req.body : {};
     if (decision !== 'approved' && decision !== 'rejected') return res.status(400).json({ error: 'decision 须为 approved 或 rejected' });
     if (row.status !== 'pending') return res.status(400).json({ error: `当前状态 ${row.status} 不可再决策` });

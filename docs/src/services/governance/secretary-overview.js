@@ -19,7 +19,7 @@ import { PEOPLE } from '../../data/mock/index.js?v=20261016a';
 import { getPersonById } from '../member/person.js?v=20261016a';
 import { ROLE_LABELS, isActivityEnded, isActivityArchived } from '../../core/domain/constants.js?v=20261016a';
 import { mockDB, AttendanceStatus, ReviewStatus } from '../../core/domain/domain.js?v=20261016a';
-import { persist } from '../../data/data-adapter.js?v=20261016a'; // 周报审核写口落盘（SOP-B-40 ②）
+import { persist } from '../../data/data-adapter.js?v=20261016a'; // 周期归档审核写口落盘（SOP-B-40 ②）
 // 批4（2026-09-09 支书批「域参数」副本收编）：本文件 4 组提醒阈值/deadline 一律引 policy 单一源派生，
 // 勿再写字面量（attendance.entryRemindDays/summaryDeadlineDays · inspection.overdueDays ·
 // review.overdueDays/deadlineDays——读侧注入后自动跟随域覆盖值）
@@ -398,50 +398,56 @@ export function getEndedUnarchivedActivities() {
 }
 
 // ════════════════════════════════════════════════════════════════
-//  宣传周报的「支书审核位」（SOP-B-40 ②，2026-09-19 批次 94）
-//  母本口径：周报「每周一报送」——系统内通知支书 + 支书审核位（旧实现只有 手填 → 报送 → 报送历史，
+//  周期归档的「支书审核位」（SOP-B-40 ②，2026-09-19 批次 94）
+//  当前口径：支部制度可配置周或月周期——系统内通知支书 + 支书审核位（旧实现只有 手填 → 报送 → 报送历史，
 //  无通知、无审核环）。审核＝支书/副支书在支书台「全局概况」的异常优先队列里 通过 / 退回。
 //  ⚠ 状态位与写口单一源即此处（消费方：entries/tabs/secretary/overview-tab.js 审核位 ·
 //    entries/tabs/prop/weekly-tab.js 报送侧展示），勿在页面另写状态名。
-//  ⚠ 存量口径：**不回填**——历史「已报送」周报（无 reviewStatus）按「待审核」呈现（它们确实没被审过），
-//    退回不写回执历史；周报本身的状态（draft/submitted）与审核状态（reviewStatus）**并存、互不顶替**。
+//  ⚠ 存量口径：**不回填**——历史「已报送」周期归档（无 reviewStatus）按「待审核」呈现（它们确实没被审过），
+//    退回不写回执历史；归档本身的状态（draft/submitted）与审核状态（reviewStatus）**并存、互不顶替**。
 // ════════════════════════════════════════════════════════════════
 
-export const WEEKLY_REVIEW_STATUS = { PENDING: 'pending', APPROVED: 'approved', RETURNED: 'returned' };
-export const WEEKLY_REVIEW_LABELS = { pending: '待审核', approved: '已通过', returned: '已退回' };
+export const PERIODIC_ARCHIVE_REVIEW_STATUS = { PENDING: 'pending', APPROVED: 'approved', RETURNED: 'returned' };
+export const PERIODIC_ARCHIVE_REVIEW_LABELS = { pending: '待审核', approved: '已通过', returned: '已退回' };
+export const WEEKLY_REVIEW_STATUS = PERIODIC_ARCHIVE_REVIEW_STATUS;
+export const WEEKLY_REVIEW_LABELS = PERIODIC_ARCHIVE_REVIEW_LABELS;
 
-/** 某条周报的审核状态：显式值优先；已报送而无值 = 待审核（存量同此）；草稿 = 空 */
-export function weeklyReviewStatusOf(report) {
+/** 某条周期归档的审核状态：显式值优先；已提交而无值 = 待审核；草稿 = 空 */
+export function periodicArchiveReviewStatusOf(report) {
   if (!report || report.status !== 'submitted') return '';
   const s = report.reviewStatus;
-  return WEEKLY_REVIEW_LABELS[s] ? s : WEEKLY_REVIEW_STATUS.PENDING;
+  return PERIODIC_ARCHIVE_REVIEW_LABELS[s] ? s : PERIODIC_ARCHIVE_REVIEW_STATUS.PENDING;
 }
+export const weeklyReviewStatusOf = periodicArchiveReviewStatusOf;
 
-/** 待支书审核的周报（已报送 + 未出审核结论）；可按 id 过滤出单条（通知 highlight 直达用） */
-export function listWeeklyReportsPendingReview({ id } = {}) {
-  return (mockDB.weeklyReports || []).filter(r =>
-    weeklyReviewStatusOf(r) === WEEKLY_REVIEW_STATUS.PENDING && (!id || r.id === id));
+/** 待支书审核的周期归档（已报送 + 未出审核结论）；可按 id 过滤出单条（通知 highlight 直达用） */
+export function listPeriodicArchivesPendingReview({ id } = {}) {
+  return (mockDB.periodicArchives || []).filter(r =>
+    periodicArchiveReviewStatusOf(r) === PERIODIC_ARCHIVE_REVIEW_STATUS.PENDING && (!id || r.id === id));
 }
 
 /**
- * 支书审核周报（通过 / 退回）——单一写口。
+ * 支书审核周期归档（通过 / 退回）——单一写口。
  * @param {{id:string, decision:'approved'|'returned', reviewerId:string, note?:string}} params
  * @returns {{ok:boolean, reason?:string}}
  */
-export function reviewWeeklyReport({ id, decision, reviewerId, note } = {}) {
-  if (![WEEKLY_REVIEW_STATUS.APPROVED, WEEKLY_REVIEW_STATUS.RETURNED].includes(decision)) {
+export function reviewPeriodicArchive({ id, decision, reviewerId, note } = {}) {
+  if (![PERIODIC_ARCHIVE_REVIEW_STATUS.APPROVED, PERIODIC_ARCHIVE_REVIEW_STATUS.RETURNED].includes(decision)) {
     return { ok: false, reason: '未知的审核结论' };
   }
-  const report = (mockDB.weeklyReports || []).find(r => r.id === id);
-  if (!report) return { ok: false, reason: '该周报不存在' };
+  const report = (mockDB.periodicArchives || []).find(r => r.id === id);
+  if (!report) return { ok: false, reason: '该周期归档不存在' };
   report.reviewStatus = decision;
   report.reviewedAt = new Date().toISOString();
   report.reviewedBy = reviewerId || '';
   if (note) report.reviewNote = String(note);
-  mockDB.weeklyReports = [...mockDB.weeklyReports];
+  mockDB.periodicArchives = [...mockDB.periodicArchives];
   persist();
   return { ok: true };
 }
+
+export const listWeeklyReportsPendingReview = listPeriodicArchivesPendingReview;
+export const reviewWeeklyReport = reviewPeriodicArchive;
 
 export const SecretaryTodoDeriver = {
 

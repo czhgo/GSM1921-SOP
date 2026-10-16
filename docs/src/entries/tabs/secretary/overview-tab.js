@@ -13,7 +13,7 @@ import { NoticeStore } from '../../../services/governance/notice.js?v=20261016a'
 import { ROLE_LABELS, ROLE_COLORS } from '../../../core/domain/constants.js?v=20261016a';
 import { AuthStore } from '../../../services/core/auth.js?v=20261016a';
 import { dutyCardHtml } from '../../../components/governance/workforce-duty-card.js?v=20261016a';
-import { SecretaryOverviewStore, listWeeklyReportsPendingReview, reviewWeeklyReport, WEEKLY_REVIEW_STATUS } from '../../../services/governance/secretary-overview.js?v=20261016a';
+import { SecretaryOverviewStore, listPeriodicArchivesPendingReview, reviewPeriodicArchive, PERIODIC_ARCHIVE_REVIEW_STATUS } from '../../../services/governance/secretary-overview.js?v=20261016a';
 // S1–S4 滞留党员设计（2026-09-06 支书已批）：支书复核卡（只读查看徽标/备注/变更留痕）
 import { getRosterStats } from '../../../services/member/roster.js?v=20261016a';
 import { loadActivities } from '../../../services/activity/activity.js?v=20261016a';
@@ -286,8 +286,8 @@ function renderDimensionView(container) {
   const { attendance, inspection, activity, propaganda } = data;
   const todoGroups = TodoStore.getGroupedByAction('secretary');
   const pendingDispatches = listPendingByReceiver('secretary');
-  const weeklyPending = listWeeklyReportsPendingReview();
-  const pendingItems = todoGroups.reduce((sum, group) => sum + group.count, 0) + pendingDispatches.length + weeklyPending.length;
+  const periodicArchivePending = listPeriodicArchivesPendingReview();
+  const pendingItems = todoGroups.reduce((sum, group) => sum + group.count, 0) + pendingDispatches.length + periodicArchivePending.length;
 
   // ════════════════════════════════════════════════════════════
   //  管理科学·执行层仪表盘（支书 2026-08-08 重设计）
@@ -361,14 +361,14 @@ function renderDimensionView(container) {
 
   // 周期归档待审核：宣传委员提交后在此审核；期次展示取服务端冻结快照。
   // 判据与写口单一源 = services/governance/secretary-overview.js（勿在页面另写状态名）。
-  const weeklyRows = weeklyPending.map(r => `
+  const periodicArchiveRows = periodicArchivePending.map(r => `
     <div class="flex items-center gap-3 py-2.5 px-3 rounded-lg hover:bg-gray-50 transition-colors">
       <span class="w-2 h-2 rounded-full flex-shrink-0" style="background:var(--accent-sky);"></span>
       <span class="text-sm font-medium text-gray-700 w-24 flex-shrink-0">周期归档待审核</span>
       <span class="text-xs text-gray-500 flex-1 truncate">${esc(r.archivePolicySnapshot?.periodLabel || r.periodLabel || r.week || '未命名期次')}（${esc(r.archivePolicySnapshot?.periodRange || r.periodRange || r.weekRange || '日期待补')}）· ${esc(getPersonName(r.submittedBy) || '宣传委员')} 提交于 ${esc(r.submittedAt || '—')}</span>
       <span class="text-xs text-gray-500 w-16 flex-shrink-0">宣传委员</span>
-      <button type="button" class="sec-weekly-btn btn-accent-soft text-xs px-2.5 py-1" style="--acc-text-dark:color-mix(in srgb, var(--app-accent) 55%, #fff)" data-weekly-id="${r.id}" data-weekly-decision="approved">通过</button>
-      <button type="button" class="sec-weekly-btn btn-accent-soft text-xs px-2.5 py-1" style="--acc-text-dark:color-mix(in srgb, var(--app-accent) 55%, #fff)" data-weekly-id="${r.id}" data-weekly-decision="returned">退回</button>
+      <button type="button" class="sec-archive-review-btn btn-accent-soft text-xs px-2.5 py-1" style="--acc-text-dark:color-mix(in srgb, var(--app-accent) 55%, #fff)" data-archive-id="${r.id}" data-archive-decision="approved">通过</button>
+      <button type="button" class="sec-archive-review-btn btn-accent-soft text-xs px-2.5 py-1" style="--acc-text-dark:color-mix(in srgb, var(--app-accent) 55%, #fff)" data-archive-id="${r.id}" data-archive-decision="returned">退回</button>
     </div>`);
 
   const todoRows = todoGroups.map((group) => `
@@ -380,11 +380,11 @@ function renderDimensionView(container) {
       <button type="button" class="sec-todo-direct btn-accent-soft text-xs px-2.5 py-1">去待办</button>
     </div>`);
 
-  const exceptionsHtml = (exceptions.length === 0 && dispatchRows.length === 0 && weeklyRows.length === 0 && todoRows.length === 0)
+  const exceptionsHtml = (exceptions.length === 0 && dispatchRows.length === 0 && periodicArchiveRows.length === 0 && todoRows.length === 0)
     ? `<div class="flex items-center gap-2 py-3 px-3 rounded-lg bg-green-50 text-green-700 text-xs">
          <span class="w-2 h-2 rounded-full bg-green-500 flex-shrink-0"></span> 全部正常，无待处理异常
        </div>`
-    : todoRows.join('') + dispatchRows.join('') + weeklyRows.join('') + exceptions.map(e => {
+    : todoRows.join('') + dispatchRows.join('') + periodicArchiveRows.join('') + exceptions.map(e => {
         const dot = e.level === 3 ? '#EF4444' : e.level === 2 ? '#F59E0B' : '#3B82F6';
         const actionHtml = e.action.urge
           ? `<button type="button" class="sec-urge-btn btn-accent-soft text-xs px-2.5 py-1" style="--acc-text-dark:color-mix(in srgb, var(--app-accent) 55%, #fff)" data-urge="${e.action.urge}">催办</button>`
@@ -464,17 +464,17 @@ function renderDimensionView(container) {
     });
   });
   // 周期归档审核：通过 / 退回（退回可写一句说明，随留痕给宣传委员）
-  container.querySelectorAll('.sec-weekly-btn').forEach(btn => {
+  container.querySelectorAll('.sec-archive-review-btn').forEach(btn => {
     btn.addEventListener('click', () => {
-      const decision = btn.dataset.weeklyDecision;
+      const decision = btn.dataset.archiveDecision;
       const reviewerId = AuthStore.getCurrentUser()?.personId;
       let note = '';
-      if (decision === WEEKLY_REVIEW_STATUS.RETURNED) {
+      if (decision === PERIODIC_ARCHIVE_REVIEW_STATUS.RETURNED) {
         note = window.prompt('退回说明（可留空）——将随留痕显示给宣传委员：', '') || '';
       }
-      const res = reviewWeeklyReport({ id: btn.dataset.weeklyId, decision, reviewerId, note });
+      const res = reviewPeriodicArchive({ id: btn.dataset.archiveId, decision, reviewerId, note });
       if (!res.ok) { showToast('error', `审核失败：${res.reason}`); return; }
-      showToast('success', decision === WEEKLY_REVIEW_STATUS.APPROVED ? '周期归档已通过' : '周期归档已退回宣传委员');
+      showToast('success', decision === PERIODIC_ARCHIVE_REVIEW_STATUS.APPROVED ? '周期归档已通过' : '周期归档已退回宣传委员');
       renderDimensionView(container);
     });
   });

@@ -55,6 +55,29 @@ function payloadOf(ctx) {
   return p && typeof p === 'object' && !Array.isArray(p) ? p : {};
 }
 
+const periodicArchiveSubmittedKind = {
+  authorize({ actor, sourceId, db }) {
+    if (!actor) return false;
+    const row = rowOf(db, 'periodic_archive_submissions', sourceId);
+    if (!row) return false;
+    return row.submittedBy === actor.id || actor.role === 'prop-commissioner';
+  },
+  build(ctx) {
+    const raw = { ...payloadOf(ctx), sourceId: ctx.sourceId };
+    const row = rowOf(ctx.db, 'periodic_archive_submissions', ctx.sourceId) || {};
+    if (row.submittedBy) raw.submitterId = row.submittedBy;
+    const vars = applyRosterNames(ctx.db, raw);
+    const archivePeriod = row.archivePolicySnapshot || {};
+    if (archivePeriod.periodLabel !== undefined) vars.periodLabel = archivePeriod.periodLabel;
+    else if (row.periodLabel !== undefined) vars.periodLabel = row.periodLabel;
+    else if (row.week !== undefined) vars.periodLabel = row.week;
+    if (archivePeriod.periodRange !== undefined) vars.periodRange = archivePeriod.periodRange;
+    else if (row.periodRange !== undefined) vars.periodRange = row.periodRange;
+    else if (row.weekRange !== undefined) vars.periodRange = row.weekRange;
+    return buildSystemNotice('periodic-archive-submitted', vars);
+  },
+};
+
 /** 活动可表决应到名单（voteConfig.voterIds） */
 function voterIdsOf(act) {
   return act && act.voteConfig && Array.isArray(act.voteConfig.voterIds) ? act.voteConfig.voterIds : [];
@@ -285,34 +308,9 @@ const KINDS = {
     },
   },
 
-  // ── 宣传周报已报送待支书审核（SOP-B-40 ②，2026-09-19 批次 94）────────────────
-  // 对象：周报表必须存在（表 weekly_reports，随快照写穿）；授权＝提交人本人或宣传委员归口
-  //   （与 thought-report-submitted 同款：不信客户端自述的姓名/周次，展示值由模板按表内容传参）。
-  'weekly-report-submitted': {
-    authorize({ actor, sourceId, db }) {
-      if (!actor) return false;
-      const row = rowOf(db, 'weekly_reports', sourceId);
-      if (!row) return false;
-      return row.submittedBy === actor.id || actor.role === 'prop-commissioner';
-    },
-    // R-23②（2026-10-05 批次 390）：展示值**按表复算**——对象字段不采信客户端 payload。
-    // 2026-10-06 批次 426（`R-23` 余项收口）：**报送人**改「按源行派生配对 id」——源行 `submittedBy` 补 `submitterId`
-    //   后，由 `applyRosterNames` 按名册复算 `submitterName`（authorize 已核 submittedBy）。
-    build(ctx) {
-      const raw = { ...payloadOf(ctx), sourceId: ctx.sourceId };
-      const row = rowOf(ctx.db, 'weekly_reports', ctx.sourceId) || {};
-      if (row.submittedBy) raw.submitterId = row.submittedBy;
-      const vars = applyRosterNames(ctx.db, raw);
-      const archivePeriod = row.archivePolicySnapshot || {};
-      if (archivePeriod.periodLabel !== undefined) vars.periodLabel = archivePeriod.periodLabel;
-      else if (row.periodLabel !== undefined) vars.periodLabel = row.periodLabel;
-      else if (row.week !== undefined) vars.periodLabel = row.week;
-      if (archivePeriod.periodRange !== undefined) vars.periodRange = archivePeriod.periodRange;
-      else if (row.periodRange !== undefined) vars.periodRange = row.periodRange;
-      else if (row.weekRange !== undefined) vars.periodRange = row.weekRange;
-      return buildSystemNotice('weekly-report-submitted', vars);
-    },
-  },
+  // 周期归档的旧 kind 仅用于已发通知兼容；新提交使用 generic kind。
+  'periodic-archive-submitted': periodicArchiveSubmittedKind,
+  'weekly-report-submitted': periodicArchiveSubmittedKind,
 
   // ── 支部上报待批复 / 上报结论 ──────────────────────────────────
   // 提交：对象=上报记录存在；发起人为该记录提交人（或本支部支委层）。

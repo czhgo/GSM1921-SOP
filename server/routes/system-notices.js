@@ -12,6 +12,7 @@ import { requireAuth } from './auth.js';
 import { SYSTEM_NOTICE_KINDS } from '../system-notice-kinds.js';
 // R-26③（2026-10-05 批次 388）：日期口径统一到**本地**（服务端单一源 `services/reporting.js`）
 import { today as todayLocal } from '../services/reporting.js';
+import { actorBranchId, resourceBranchId } from './resources/branch-scope.js';
 
 export function createSystemNoticesRouter(db) {
   const router = Router();
@@ -44,6 +45,20 @@ export function createSystemNoticesRouter(db) {
       return res.status(403).json({ error: `无权限：当前身份不能触发「${kind}」系统通知` });
     }
 
+    const sourceTables = ['periodic_archive_submissions', 'thought_reports', 'activities', 'taskforces', 'member_change_requests', 'review_requests', 'external_dispatches', 'makeup_tasks', 'todos'];
+    let sourceBranchId = null;
+    for (const table of sourceTables) {
+      const source = db.prepare(`SELECT data FROM ${table} WHERE id = ?`).get(ctx.sourceId);
+      if (!source) continue;
+      const row = JSON.parse(source.data);
+      sourceBranchId = resourceBranchId(db, table, row);
+      if (sourceBranchId) break;
+    }
+    const ownBranch = actorBranchId(actor);
+    if (ownBranch && sourceBranchId && ownBranch !== sourceBranchId) {
+      return res.status(403).json({ error: '无权限：不能为其他支部触发系统通知' });
+    }
+
     let built;
     try {
       built = def.build(ctx);
@@ -55,6 +70,7 @@ export function createSystemNoticesRouter(db) {
     const id = `ntc-${randomUUID().slice(0, 8)}`;
     const notice = {
       ...built,
+      ...((sourceBranchId || ownBranch) ? { branchId: sourceBranchId || ownBranch } : {}),
       id,
       publishDate: todayLocal(),
     };

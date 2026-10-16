@@ -5,16 +5,17 @@
 //  - POST /api/v1/report/trigger             → 手动触发推送（推送模式；未配置 webhook 提示拉取模式）
 //  认证：requireAuth（计算中心拉取/触发需会话 token；字段以平台侧映射表适配）
 import { Router } from 'express';
-import { requireAuth } from './auth.js';
+import { requireAuth, requireRole } from './auth.js';
 import {
   REPORT_DOMAINS, extractDomain, resolveWindow, toCsv, pushReport,
 } from '../services/reporting.js';
+import { actorBranchId, branchSelectionError } from './resources/branch-scope.js';
 
 export function createReportRouter(db) {
   const router = Router();
 
   // 手动触发推送（推送模式）
-  router.post('/report/trigger', requireAuth(db), async (req, res) => {
+  router.post('/report/trigger', requireRole(db, new Set(['party-staff'])), async (req, res) => {
     const { from, to } = resolveWindow(req.query);
     const result = await pushReport(db, { from, to });
     if (!result.pushed) {
@@ -25,12 +26,14 @@ export function createReportRouter(db) {
 
   // CSV 导出——必须先于 /report/:domain 注册，避免 :domain 吞掉 'export'
   router.get('/report/export', requireAuth(db), (req, res) => {
+    const scopeDeny = branchSelectionError(req.actor, req.query.branchId);
+    if (scopeDeny) return res.status(403).json({ error: scopeDeny });
     const { domain } = req.query;
     if (!domain || !REPORT_DOMAINS[domain]) {
       return res.status(400).json({ error: `未知数据域：${domain}（可选 ${Object.keys(REPORT_DOMAINS).join('/')}）` });
     }
     const { from, to } = resolveWindow(req.query);
-    const rows = extractDomain(db, domain, from, to);
+    const rows = extractDomain(db, domain, from, to, { branchId: actorBranchId(req.actor) || req.query.branchId || null });
     const csv = `\uFEFF${toCsv(rows)}`; // UTF-8 BOM：Excel 中文兼容
     res.setHeader('Content-Type', 'text/csv; charset=utf-8');
     res.setHeader('Content-Disposition', `attachment; filename="${domain}-${to}.csv"`);
@@ -39,12 +42,14 @@ export function createReportRouter(db) {
 
   // JSON 拉取
   router.get('/report/:domain', requireAuth(db), (req, res) => {
+    const scopeDeny = branchSelectionError(req.actor, req.query.branchId);
+    if (scopeDeny) return res.status(403).json({ error: scopeDeny });
     const { domain } = req.params;
     if (!REPORT_DOMAINS[domain]) {
       return res.status(400).json({ error: `未知数据域：${domain}（可选 ${Object.keys(REPORT_DOMAINS).join('/')}）` });
     }
     const { from, to } = resolveWindow(req.query);
-    const items = extractDomain(db, domain, from, to);
+    const items = extractDomain(db, domain, from, to, { branchId: actorBranchId(req.actor) || req.query.branchId || null });
     res.json({
       domain,
       label: REPORT_DOMAINS[domain].label,

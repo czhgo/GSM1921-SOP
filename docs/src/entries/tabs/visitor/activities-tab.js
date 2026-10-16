@@ -17,6 +17,8 @@ import { isActivityOrganizer, findActivityById } from '../../../services/activit
 import { openGroupNoticeComposer } from '../../../components/governance/notice-view.js?v=20261016a';
 // 翻页控件单一源（批次 38：全站手写翻页一律并轨 pagerHtml）
 import { pagerHtml } from '../../../components/ui/pager.js?v=20261016a';
+import { getAppState } from '../../../core/base/state.js?v=20261016a';
+import { renderContent as renderSharedActivityCalendar } from '../shared/activity-calendar-tab.js?v=20261016a';
 
 const ACTIVITY_TYPE_COLORS = getActivityTypeColors();
 
@@ -201,55 +203,16 @@ function _renderActListView(sorted, highlightId) {
 function _renderActCalendarView(sorted, highlightId) {
   const vc = document.getElementById('visitor-act-view');
   if (!vc) return;
-
-  const byMonth = {};
-  sorted.forEach(a => {
-    const m = (a.date || '').substring(0, 7);
-    if (!byMonth[m]) byMonth[m] = [];
-    byMonth[m].push(a);
-  });
-  const months = Object.keys(byMonth).sort().reverse();
-
-  vc.innerHTML = months.length === 0
-    ? '<p class="text-xs text-gray-500 text-center py-6">暂无活动</p>'
-    : months.map(m => {
-      const acts = byMonth[m];
-      const [y, mo] = m.split('-');
-      const monthLabel = `${y}年${parseInt(mo)}月`;
-      return `
-        <div class="mb-5">
-          <h4 class="font-title-cn text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
-            ${icon('calendar', { stroke: 'var(--primary-700)', className: 'w-3.5 h-3.5' })}
-            ${monthLabel}
-            <span class="text-xs font-normal text-gray-500">${acts.length} 场</span>
-          </h4>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
-            ${acts.map(a => {
-              const color = ACTIVITY_TYPE_COLORS[a.type || a.category] || { bg: '#F9FAFB', dot: '#6B7280' };
-              const day = (a.date || '').substring(8, 10);
-              return `
-                <a href="./activity.html?id=${a.id || ''}" class="flex items-start gap-3 p-3 rounded-lg bg-white hover:bg-gray-50 hover:shadow-sm transition-all cursor-pointer" data-visitor-act-id="${a.id || ''}">
-                  <div class="text-center flex-shrink-0 w-10">
-                    <div class="text-lg font-bold" style="color:${color.text || color.dot};line-height:1;">${day || '?'}</div>
-                    <div class="text-xs text-gray-500">日</div>
-                  </div>
-                  <div class="flex-1 min-w-0">
-                    <p class="text-sm font-medium text-gray-800">${a.title || '未命名'}</p>
-                    <p class="text-xs text-gray-500 mt-0.5">${a.type || '—'}${a.location ? ' · ' + a.location : ''}</p>
-                  </div>
-                </a>
-              `;
-            }).join('')}
-          </div>
-        </div>
-      `;
-    }).join('');
-
+  if (sorted.length === 0) {
+    vc.innerHTML = '<p class="text-xs text-gray-500 text-center py-6">暂无活动</p>';
+    return;
+  }
+  const state = getAppState() || {};
+  renderSharedActivityCalendar(vc, { ...state, activities: sorted });
   if (highlightId) {
-    const el = vc.querySelector(`[data-visitor-act-id="${highlightId}"]`);
+    const el = [...vc.querySelectorAll('.cal-activity-item')].find((item) => item.dataset.actId === highlightId);
     if (el) {
       el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      // 高亮定时自动褪去（支书 2026-08-08 裁定：2.5~3s CSS 过渡）
       flashHighlight(el);
     }
   }

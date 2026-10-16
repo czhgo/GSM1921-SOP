@@ -17,6 +17,7 @@ import { requireAuth } from './auth.js';
 import { aggregateMemberProgress } from '../../docs/src/services/member/member-progress.js';
 // R-26③（2026-10-05 批次 388）：日期口径统一到**本地**（服务端单一源 `services/reporting.js`）
 import { today as todayLocal } from '../services/reporting.js';
+import { actorBranchId, branchSelectionError, resourceRowsForActor } from './resources/branch-scope.js';
 
 /** 取整表全量（键值表：id 主键 + data JSON） */
 const allOf = (db, table) => db.prepare(`SELECT data FROM ${table}`).all().map((r) => JSON.parse(r.data));
@@ -28,6 +29,9 @@ export function createLeaderProgressRouter(db) {
   // 返回：{ rows: [{ personId, active, overdue, absent, inspPending, reportState, reportKind, reportTitle }], today }
   // 「今天」由查询参数给定（缺省取服务端当日）——避免两端各自取时区导致超期判定口径未同步。
   router.get('/leader/member-progress', requireAuth(db), (req, res) => {
+    const scopeDeny = branchSelectionError(req.actor, req.query.branchId);
+    if (scopeDeny) return res.status(403).json({ error: scopeDeny });
+    const branchId = actorBranchId(req.actor) || req.query.branchId || null;
     const personIds = String(req.query.personIds || '')
       .split(',')
       .map((s) => s.trim())
@@ -35,14 +39,19 @@ export function createLeaderProgressRouter(db) {
     if (!personIds.length) {
       return res.status(400).json({ error: 'personIds 必填（逗号分隔的人员 id）' });
     }
+    const requestedUsers = new Map(allOf(db, 'users').map((user) => [user.id, user]));
+    if (personIds.some((personId) => {
+      const user = requestedUsers.get(personId);
+      return !user || (branchId && (user.branchId || 'br-b1') !== branchId);
+    })) return res.status(403).json({ error: '无权限：只能查看所选支部成员进展' });
     const today = String(req.query.today || '').trim() || todayLocal();
 
     const rows = aggregateMemberProgress({
       persons: personIds.map((personId) => ({ personId })),
-      todos: allOf(db, 'todos'),
-      attendance: allOf(db, 'attendances'),
-      inspections: allOf(db, 'inspections'),
-      issues: allOf(db, 'issues'),
+      todos: resourceRowsForActor(db, 'todos', allOf(db, 'todos'), req.actor, branchId),
+      attendance: resourceRowsForActor(db, 'attendances', allOf(db, 'attendances'), req.actor, branchId),
+      inspections: resourceRowsForActor(db, 'inspections', allOf(db, 'inspections'), req.actor, branchId),
+      issues: resourceRowsForActor(db, 'issues', allOf(db, 'issues'), req.actor, branchId),
       today,
     });
 

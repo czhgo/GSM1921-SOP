@@ -72,6 +72,7 @@ const branchExists = (db, id) => !!db.prepare('SELECT id FROM branches WHERE id 
 function audit(db, { targetPersonId, branchId, actorId, action }) {
   const row = {
     id: `auth-${randomUUID().slice(0, 8)}`,
+    branchId: String(branchId),
     targetPersonId: String(targetPersonId),
     role: 'participant',            // 入站者按成员（participant）归入支部
     scopeRef: String(branchId),     // 「归入哪个支部」

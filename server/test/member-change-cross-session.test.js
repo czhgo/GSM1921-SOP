@@ -19,7 +19,7 @@ async function login(personId) {
   const response = await fetch(`${base}/api/v1/auth/login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ personId }),
+    body: JSON.stringify({ personId, password: '123456' }),
   });
   assert.equal(response.status, 200);
   return (await response.json()).token;

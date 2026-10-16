@@ -25,7 +25,7 @@ export const TodoCategory = {
   ARCHIVE: 'archive', // 归档类：待归档活动、待归档专班
   REVIEW: 'review',   // 审核类：考勤确认、考察确认、复盘审核、活动审批
   NOTICE: 'notice',   // 通知类：通知阅读、通知催读
-  SUBMIT: 'submit',   // 提交类：考勤上传、考察上传、复盘提交、周报报送
+  SUBMIT: 'submit',   // 提交类：考勤上传、考察上传、复盘提交、周期归档
   TRACK: 'track',     // 追踪类：发展党员追踪、材料催缴、补课跟进
 };
 

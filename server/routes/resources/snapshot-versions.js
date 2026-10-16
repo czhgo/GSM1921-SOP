@@ -44,6 +44,32 @@ export function _snapshotWrites(payload) {
 }
 
 /**
+ * 将旧周报快照集合与版本键转到通用周期归档集合；旧、新集合同时出现时拒绝歧义写入。
+ */
+export function _normalizeSnapshotAliases(payload) {
+  if (!Array.isArray(payload.weeklyReports)) return { payload, error: null };
+  if (Array.isArray(payload.periodicArchives)) {
+    return { payload, error: '快照不能同时包含 weeklyReports 与 periodicArchives；请只提交一个归档集合' };
+  }
+
+  const normalized = { ...payload, periodicArchives: payload.weeklyReports };
+  delete normalized.weeklyReports;
+  if (normalized._versions && typeof normalized._versions === 'object' && !Array.isArray(normalized._versions)) {
+    const versions = { ...normalized._versions };
+    if (Object.prototype.hasOwnProperty.call(versions, 'weeklyReports')) {
+      if (Object.prototype.hasOwnProperty.call(versions, 'periodicArchives')
+        && Number(versions.periodicArchives) !== Number(versions.weeklyReports)) {
+        return { payload, error: '旧周报与周期归档版本基线不一致' };
+      }
+      versions.periodicArchives = versions.periodicArchives ?? versions.weeklyReports;
+      delete versions.weeklyReports;
+      normalized._versions = versions;
+    }
+  }
+  return { payload: normalized, error: null };
+}
+
+/**
  * 缺版本集合清单（2026-09-23 批次 163）：**payload 里要写、而 `_versions` 里没有基线**的集合名。
  * 非空 ⇒ 调用方整批 428（不写任何集合）。空 payload（无集合要写）恒返回 `[]` ⇒ 仍走 204。
  * @returns {string[]}

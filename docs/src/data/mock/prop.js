@@ -1,9 +1,9 @@
 // role: [工程师]+[AI]
 // ════════════════════════════════════════════════════════════════
-//  docs/src/data/mock/prop.js —— 宣传域种子（**内容单一源**：周报报送 / 宣传任务）
+//  docs/src/data/mock/prop.js —— 宣传域种子（**内容单一源**：周期归档 / 宣传任务）
 //  ════════════════════════════════════════════════════════════════
 // 由来（2026-09-28 批次 234「去冗余」）：这两个常量原先**各存两份**——UI 侧私有常量
-//   （`entries/tabs/prop/weekly-tab.js::WEEKLY_REPORTS_SEED` / `tasks-tab.js::PROP_TASKS_SEED`，未导出）
+//   （`entries/tabs/prop/weekly-tab.js::PERIODIC_ARCHIVES_SEED` / `tasks-tab.js::PROP_TASKS_SEED`，未导出）
 //   ＋ 服务端**逐字复刻**一份（`server/seed.js::SEED_WEEKLY_REPORTS` / `SEED_PROP_TASKS`，其原注释即写明
 //   「如后续把该常量导出，请改为 import 同源（勿留两份）」）。两处字面量一字不差、却要人工同步 ⇒ 典型冗余。
 // 现按本仓「内容单一源」纪律（同 `seedIssues()` / `seedMilestones()` / `SEED_TODOS`）**收成一份纯数据模块**：
@@ -14,16 +14,18 @@
 // ⚠ 禁止在此写运行期逻辑（取值 / 派生 / 校验一律留在各自消费方）。
 
 /**
- * 宣传周报报送基线（第 28–31 周）。
- * 形状 = `{ id, week, weekRange, content, status:'submitted'|'draft', submittedAt }`（周报 tab 的写口 `push` 形状）。
- * 口径：ISO 周「周一~周五」（第30周=2026-07-20~07-24 / 第31周=2026-07-27~07-31，与 `_weekDefaults` 派生同口径）。
+ * 周期归档演示基线（当前示例采用周策略）。
+ * 形状 = `PeriodicArchiveSubmission`；周只是 `periodUnit` 的取值，不改变记录实体。
  */
-export const WEEKLY_REPORTS_SEED = [
-  { id: 'wr1', week: '第30周', weekRange: '2026-07-20 ~ 2026-07-24', content: '1. 七一主题党日活动新闻稿发布\n2. 发展对象公示推送排版完成\n3. 上半年活动照片归档整理进行中', status: 'submitted', submittedAt: '2026-07-24' },
-  { id: 'wr2', week: '第29周', weekRange: '2026-07-13 ~ 2026-07-17', content: '1. 入党积极分子培训资料归档完成\n2. 组织生活会预告推送发布\n3. 配合组织委员完成发展对象材料审核', status: 'submitted', submittedAt: '2026-07-17' },
-  { id: 'wr3', week: '第28周', weekRange: '2026-07-06 ~ 2026-07-10', content: '1. 预备党员转正大会新闻稿起草\n2. 七一活动素材整理\n3. 宣传专栏内容更新', status: 'submitted', submittedAt: '2026-07-10' },
-  { id: 'wr4', week: '第31周', weekRange: '2026-07-27 ~ 2026-07-31', content: '', status: 'draft', submittedAt: null },
+export const PERIODIC_ARCHIVES_SEED = [
+  { id: 'pa1', branchId: 'br-b1', periodUnit: 'week', periodKey: '2026-W30', periodLabel: '第30周', periodRange: '2026-07-20 ~ 2026-07-24', content: '1. 七一主题党日活动新闻稿发布\n2. 发展对象公示推送排版完成\n3. 上半年活动照片归档整理进行中', status: 'submitted', submittedAt: '2026-07-24' },
+  { id: 'pa2', branchId: 'br-b1', periodUnit: 'week', periodKey: '2026-W29', periodLabel: '第29周', periodRange: '2026-07-13 ~ 2026-07-17', content: '1. 入党积极分子培训资料归档完成\n2. 组织生活会预告推送发布\n3. 配合组织委员完成发展对象材料审核', status: 'submitted', submittedAt: '2026-07-17' },
+  { id: 'pa3', branchId: 'br-b1', periodUnit: 'week', periodKey: '2026-W28', periodLabel: '第28周', periodRange: '2026-07-06 ~ 2026-07-10', content: '1. 预备党员转正大会新闻稿起草\n2. 七一活动素材整理\n3. 宣传专栏内容更新', status: 'submitted', submittedAt: '2026-07-10' },
+  { id: 'pa4', branchId: 'br-b1', periodUnit: 'week', periodKey: '2026-W31', periodLabel: '第31周', periodRange: '2026-07-27 ~ 2026-07-31', content: '', status: 'draft', submittedAt: null },
 ];
+
+// 历史导入名兼容旧开发脚本；存储域与运行期 API 均使用 periodicArchives。
+export const WEEKLY_REPORTS_SEED = PERIODIC_ARCHIVES_SEED;
 
 /**
  * 宣传任务基线（8 条）。

@@ -55,8 +55,8 @@ export const INIT_BLOB_CLEAR_DEFAULTS = {
   actSubRecords: {}, tfSubRecords: {},
   // 专班/通知/待办/报名
   taskforces: [], notices: [], todos: [], signups: [],
-  // 汇报与复盘：活动复盘/专班复盘/思想汇报/宣传任务/宣传周报
-  activityReviews: [], taskforceReviews: [], thoughtReports: [], propTasks: [], weeklyReports: [],
+  // 汇报与复盘：活动复盘/专班复盘/思想汇报/宣传任务/周期归档
+  activityReviews: [], taskforceReviews: [], thoughtReports: [], propTasks: [], periodicArchives: [],
   // 归档/文件/资料：档案归档/支部文件/文件空间/图片/经验沉淀
   archiveRecords: [], branchDocs: [], fileSpaceRecords: [], imageRecords: [],
   experienceDeposits: [],

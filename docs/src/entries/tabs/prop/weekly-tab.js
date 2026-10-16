@@ -13,7 +13,7 @@ import { generateId } from '../../../core/base/id.js?v=20261016a';
 import { loadActivities } from '../../../services/activity/activity.js?v=20261016a';
 import { NoticeStore } from '../../../services/governance/notice.js?v=20261016a';
 import { getPersonName } from '../../../services/member/person.js?v=20261016a';
-import { WEEKLY_REVIEW_STATUS, WEEKLY_REVIEW_LABELS, weeklyReviewStatusOf } from '../../../services/governance/secretary-overview.js?v=20261016a';
+import { PERIODIC_ARCHIVE_REVIEW_STATUS, PERIODIC_ARCHIVE_REVIEW_LABELS, periodicArchiveReviewStatusOf } from '../../../services/governance/secretary-overview.js?v=20261016a';
 // 批次 352（`D-746` · `D-744`② 业务过程类余项）：周报「作废（软）」——统一写口 ＋ 支委层判据
 import * as SoftVoid from '../../../services/governance/soft-void.js?v=20261016a';
 import { openVoidModal } from '../../../components/ui/void-record.js?v=20261016a';
@@ -23,21 +23,21 @@ import { openVoidModal } from '../../../components/ui/void-record.js?v=20261016a
 //（第30周=2026-07-20~07-24 / 第31周=2026-07-27~07-31），与 _weekDefaults 派生同口径。
 // 2026-09-28 批次 234：常量**搬到内容单一源** `docs/src/data/mock/prop.js`（服务端 `server/seed.js` 同源 import，
 //   原先此处私有常量被服务端逐字复刻一份 ⇒ 两份字面量，本批收成一份；取值与顺序一字未改）。
-import { WEEKLY_REPORTS_SEED } from '../../../data/mock/prop.js?v=20261016a';
+import { PERIODIC_ARCHIVES_SEED } from '../../../data/mock/prop.js?v=20261016a';
 
-// 从 mockDB 读取（seed 兜底注入一次）；写操作须更新 mockDB.weeklyReports 后调用 persist()
-function _loadWeeklyReports() {
-  if (mockDB.weeklyReports.length === 0 && WEEKLY_REPORTS_SEED.length > 0) {
-    mockDB.weeklyReports = WEEKLY_REPORTS_SEED.map(r => ({ ...r }));
+// 从 mockDB 读取（seed 兜底注入一次）；写操作更新 mockDB.periodicArchives 后调用 persist()
+function _loadPeriodicArchives() {
+  if (mockDB.periodicArchives.length === 0 && PERIODIC_ARCHIVES_SEED.length > 0) {
+    mockDB.periodicArchives = PERIODIC_ARCHIVES_SEED.map(r => ({ ...r }));
   }
-  return mockDB.weeklyReports;
+  return mockDB.periodicArchives;
 }
 
 /** 周期归档按期次日期降序——策略切换后周/月记录仍按时间同序展示
  *  批次 352（`D-746`）：已作废（`voided`）的周报不进下拉、也不在历史里显示（留痕仍可回查）；
- *  ⚠ 过滤只在此处做——`_loadWeeklyReports()` 保持原样，否则写回 `mockDB.weeklyReports` 时会丢掉已作废行。 */
+ *  ⚠ 过滤只在此处做——`_loadPeriodicArchives()` 保持原样，否则写回时会丢掉已作废行。 */
 function _sortedReports() {
-  return SoftVoid.filterActive('weeklyReports', _loadWeeklyReports())
+  return SoftVoid.filterActive('periodicArchives', _loadPeriodicArchives())
     .sort(compareArchivePeriodDesc);
 }
 
@@ -79,7 +79,10 @@ export function renderContent(ctx, host = null) {
   // 默认填写对象 = 待填写草稿（按期次降序取最新草稿）；无草稿回退最新期次。
   const sortedReports = _sortedReports();
   const draftReport = sortedReports.find(r => r.status === 'draft') || null;
-  const archiveUnit = POLICY_DEFAULTS.archive.periodic.unit;
+  const actor = AuthStore.getCurrentUser();
+  const branch = (mockDB.branches || []).find((row) => row.id === actor?.branchId)
+    || (mockDB.branches || []).find((row) => row.secretaryId === actor?.personId);
+  const archiveUnit = branch?.config?.policyOverrides?.archive?.periodic?.unit || POLICY_DEFAULTS.archive.periodic.unit;
   const weekDefaults = _weekDefaults(new Date(), archiveUnit);
 
   container.innerHTML = `
@@ -89,7 +92,7 @@ export function renderContent(ctx, host = null) {
           <div class="flex items-center gap-2">
             ${icon('pencil', { className: 'w-4 h-4 text-blue-600' })}
             <h4 class="text-sm font-bold text-gray-700">填写周期归档</h4>
-            ${draftReport ? `<span class="text-xs px-1.5 py-0.5 rounded-full border ${WEEKLY_STATUS_STYLE.draft}">${draftReport.week}</span>` : ''}
+            ${draftReport ? `<span class="text-xs px-1.5 py-0.5 rounded-full border ${WEEKLY_STATUS_STYLE.draft}">${draftReport.periodLabel || draftReport.week || '待填写'}</span>` : ''}
           </div>
           <button id="weekly-add-btn" class="btn-outline text-xs px-3 py-1.5">+ 新增归档期次</button>
         </div>
@@ -109,7 +112,7 @@ export function renderContent(ctx, host = null) {
           <div>
             <label class="text-xs text-gray-500 mb-1.5 block font-medium" for="weekly-week">选择归档期次</label>
             <select id="weekly-week" class="input-flat w-full">
-              ${sortedReports.map(r => `<option value="${r.id}" ${draftReport && r.id === draftReport.id ? 'selected' : ''}>${r.periodLabel || r.week}（${r.periodRange || r.weekRange}）</option>`).join('')}
+              ${sortedReports.map(r => `<option value="${r.id}" ${draftReport && r.id === draftReport.id ? 'selected' : ''}>${r.periodLabel || r.week || '未命名期次'}（${r.periodRange || r.weekRange || '日期待补'}）</option>`).join('')}
             </select>
           </div>
           <div>
@@ -146,27 +149,27 @@ export function renderContent(ctx, host = null) {
     container.querySelector('#weekly-add-form').classList.add('hidden');
   });
   container.querySelector('#weekly-add-save')?.addEventListener('click', () => {
-    const week = container.querySelector('#weekly-add-week').value.trim();
-    const weekRange = container.querySelector('#weekly-add-range').value.trim();
-    if (!week) { showToast('error', '请填写归档期次名称'); return; }
-    if (!weekRange) { showToast('error', '请填写归档日期范围'); return; }
-    const reports = _loadWeeklyReports();
-    if (reports.some(r => r.week === week)) { showToast('error', '该周次已存在'); return; }
+    const periodLabel = container.querySelector('#weekly-add-week').value.trim();
+    const periodRange = container.querySelector('#weekly-add-range').value.trim();
+    if (!periodLabel) { showToast('error', '请填写归档期次名称'); return; }
+    if (!periodRange) { showToast('error', '请填写归档日期范围'); return; }
+    const reports = _loadPeriodicArchives();
+    if (reports.some(r => (r.periodLabel || r.week) === periodLabel)) { showToast('error', '该归档期次已存在'); return; }
+    const currentUser = AuthStore.getCurrentUser();
     reports.push({
-      id: generateId('wr'),
-      week,
-      weekRange,
+      id: generateId('pa'),
+      branchId: currentUser?.branchId || branch?.id || 'br-b1',
+      periodLabel,
+      periodRange,
       periodUnit: archiveUnit,
       periodKey: weekDefaults.key,
-      periodLabel: week,
-      periodRange: weekRange,
       content: '',
       status: 'draft',
       submittedAt: null,
       createdAt: new Date().toISOString(),
-      createdBy: AuthStore.getCurrentUser()?.personId || 'u_prop',
+      createdBy: currentUser?.personId || 'u_prop',
     });
-    mockDB.weeklyReports = reports;
+    mockDB.periodicArchives = reports;
     persist();
     showToast('success', '已新建归档期次，自动选中待填写');
     renderContent(ctx, container);
@@ -176,9 +179,9 @@ export function renderContent(ctx, host = null) {
   container.querySelector('#weekly-gen-btn')?.addEventListener('click', () => {
     const selectEl = container.querySelector('#weekly-week');
     const textareaEl = container.querySelector('#weekly-content');
-    const report = _loadWeeklyReports().find(r => r.id === selectEl.value);
+    const report = _loadPeriodicArchives().find(r => r.id === selectEl.value);
     if (!report) return;
-    const generated = _autoWeeklyContent(report.weekRange);
+    const generated = _autoWeeklyContent(report.periodRange || report.weekRange);
     if (!generated) { showToast('info', `${report.periodLabel || report.week}（${report.periodRange || report.weekRange}）没有可用的活动数据，请手填`); return; }
     if (textareaEl.value.trim() && !window.confirm('已有内容，用自动生成的结果覆盖？')) return;
     textareaEl.value = generated;
@@ -196,7 +199,7 @@ export function renderContent(ctx, host = null) {
       showToast('error', '请填写本期归档内容');
       return;
     }
-    const report = _loadWeeklyReports().find(r => r.id === reportId);
+    const report = _loadPeriodicArchives().find(r => r.id === reportId);
     if (!report) return;
     report.content = content;
     report.status = 'submitted';
@@ -204,28 +207,26 @@ export function renderContent(ctx, host = null) {
     // SOP-B-40 ②（2026-09-19 批次 94）：报送人 + 审核位状态位（新报送即回到「待审核」，
     // 清掉上一次的退回说明——重新报送是对退回的回应）
     report.submittedBy = AuthStore.getCurrentUser()?.personId || 'u_prop';
-    report.reviewStatus = WEEKLY_REVIEW_STATUS.PENDING;
+    report.reviewStatus = PERIODIC_ARCHIVE_REVIEW_STATUS.PENDING;
     delete report.reviewNote;
     const currentUser = AuthStore.getCurrentUser();
     const branch = (mockDB.branches || []).find((row) => row.id === currentUser?.branchId)
       || (mockDB.branches || []).find((row) => row.secretaryId === currentUser?.personId);
     const strategyVersion = Math.max(1, Number(branch?.config?.periodicArchiveVersion) || 1);
     Object.assign(report, attachArchivePolicySnapshot(report, POLICY_DEFAULTS.archive.periodic, strategyVersion, report.submittedAt));
-    report.week = report.periodLabel || report.week;
-    report.weekRange = report.periodRange || report.weekRange;
     persist();
     // 「存好了才通知」：`persist()` 在 API 形态排的是 800ms 防抖快照，而服务端按 kind 注册表
-    //   复算授权（R-22：`rowOf(db,'weekly_reports',sourceId)`）——两者若并行，会赛跑在
+    //   复算授权（R-22：`rowOf(db,'periodic_archive_submissions',sourceId)`）——两者若并行，会赛跑在
     //   「这一行还没落库」上，授权不通过即 403 并把本地镜像回收（通知发不出去）。
     //   故先等成功提示走完结算，再发通知（同批次 49「存好了才报成功」/ 批次 83 先例）。
     //   ⚠ 顺序不能颠倒：`settleWrites` 的失败只报一次，若先自行结算会把失败吞掉、
     //     让成功提示变成假话。真机证据：报送后 4s 服务端通知一条（`宣传周报待审核`）。
     const settled = showToast('success', `${report.periodLabel || report.week}周期归档已提交，将通知支书审核`);
-    Promise.resolve(settled).then(() => NoticeStore.addSystem('weekly-report-submitted', report.id, {
+    Promise.resolve(settled).then(() => NoticeStore.addSystem('periodic-archive-submitted', report.id, {
       periodLabel: report.archivePolicySnapshot?.periodLabel || report.periodLabel || report.week,
       periodRange: report.archivePolicySnapshot?.periodRange || report.periodRange || report.weekRange,
       submitterName: getPersonName(report.submittedBy) || '',
-    })).catch((e) => console.warn('[weekly-tab] 周期归档已报送，但通知支书未发出：', e));
+    })).catch((e) => console.warn('[periodic-archive] 周期归档已提交，但通知支书未发出：', e));
     renderContent(ctx, container);
   });
 
@@ -233,7 +234,7 @@ export function renderContent(ctx, host = null) {
   container.querySelectorAll('.weekly-platform-btn').forEach(btn => {
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
-      const report = _loadWeeklyReports().find(r => r.id === btn.dataset.id);
+      const report = _loadPeriodicArchives().find(r => r.id === btn.dataset.id);
       if (!report) return;
       report.platformReportedAt = new Date().toISOString();
       report.platformReportedBy = AuthStore.getCurrentUser()?.personId || '';
@@ -247,10 +248,10 @@ export function renderContent(ctx, host = null) {
   container.querySelectorAll('.weekly-void-btn').forEach(btn => {
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
-      const report = _loadWeeklyReports().find(r => r.id === btn.dataset.id);
+      const report = _loadPeriodicArchives().find(r => r.id === btn.dataset.id);
       if (!report) return;
       openVoidModal({
-        resource: 'weeklyReports', id: report.id, label: '周期归档',
+        resource: 'periodicArchives', id: report.id, label: '周期归档',
         subject: `${report.archivePolicySnapshot?.periodLabel || report.periodLabel || report.week || ''}（${report.archivePolicySnapshot?.periodRange || report.periodRange || report.weekRange || ''}）`,
         onDone: () => renderContent(ctx, container),
       });
@@ -273,10 +274,10 @@ export function renderContent(ctx, host = null) {
 function _renderWeeklyReportItem(report) {
   const statusStyle = WEEKLY_STATUS_STYLE[report.status];
   const isSubmitted = report.status === 'submitted';
-  // 审核位状态（SOP-B-40 ②）：单一源 = services/governance/secretary-overview.js::weeklyReviewStatusOf
-  const reviewStatus = weeklyReviewStatusOf(report);
+  // 审核位状态（SOP-B-40 ②）：单一源 = services/governance/secretary-overview.js::periodicArchiveReviewStatusOf
+  const reviewStatus = periodicArchiveReviewStatusOf(report);
   const reviewBadge = reviewStatus
-    ? `<span class="text-xs px-1.5 py-0.5 rounded-full border ${WEEKLY_REVIEW_STYLE[reviewStatus]}">支书${WEEKLY_REVIEW_LABELS[reviewStatus]}</span>`
+    ? `<span class="text-xs px-1.5 py-0.5 rounded-full border ${WEEKLY_REVIEW_STYLE[reviewStatus]}">支书${PERIODIC_ARCHIVE_REVIEW_LABELS[reviewStatus]}</span>`
     : '';
   // 平台上报留痕（SOP-B-40 ③）：只留痕，不对接（对接方为外部）
   const platformHtml = isSubmitted
