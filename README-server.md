@@ -329,7 +329,7 @@
 
 ## §3 功能 / 板块
 
-### 3.1 页面清单（共 23 个静态页）
+### 3.1 页面清单（共 25 个静态页）
 
 | 类型 | 页面文件 | 用途 | 登录门控 |
 |---|---|---|---|
@@ -348,6 +348,7 @@
 | | `docs/about.html` | 「支部的故事」公开门面 | 公开（**仅静态托管形态显示**；有后端时侧边栏隐藏入口） |
 | | `docs/settings.html` | 设置中心（外观 / 我的工作台 / 支部治理） | 需登录（外观区匿名可用） |
 | | `docs/person.html` | 成员档案页 | 需登录 |
+| | `docs/branch-config.html` | 党委选定单一支部后的组织维护、名册初始化与分区配置 | 强制登录 + `party-staff`，必须带 `branchId` |
 | | `docs/thought-report.html` | 思想汇报独立阅读页 | 需登录 |
 | 工作台 | `docs/workspace/secretary.html` | 支书工作台（支书 / 副支书共台） | **强制登录**（未登录跳 `login.html`） |
 | | `docs/workspace/org.html` | 组织委员工作台 | 强制登录 |
@@ -356,12 +357,13 @@
 | | `docs/workspace/leader.html` | 党小组组长工作台 | 强制登录 |
 | | `docs/workspace/visitor.html` | 成员工作台（普通参与者） | 强制登录 |
 | | `docs/workspace/party-committee.html` | 党委工作台（组织级） | 强制登录 |
+| | `docs/workspace/branch-readonly.html` | 党委选中单一支部后的独立只读视图 | 强制登录 + `party-staff` + 明确 `branchId` |
 
-**依据**：`docs/` 目录实况（16 个根 `.html` + `docs/workspace/` 7 个 `.html`）；门控四层模型见 `content/04_web_design/deploy/DEPLOYMENT_GUIDE.md:443-454`（L1 工作台强制跳登录）。`party-committee-meeting.html` 的角色门为**页面内自检**（`docs/src/entries/pages/party-committee-meeting-entry.js`）：进页＝本支部支委名单（单一源 `docs/src/services/activity/vote-config.js::resolveVoterIds('committee')`）**或**被任一场支委会 `voteConfig.voterIds` 包含，页内场次再经 `visibleMeetingsFor` 按同判据过滤；服务端写口另有既有门（`server/routes/committee.js`）。
+**依据**：`docs/` 目录实况（17 个根 `.html` + `docs/workspace/` 8 个 `.html`）；门控四层模型见 `content/04_web_design/deploy/DEPLOYMENT_GUIDE.md:443-454`（L1 工作台强制跳登录）。`party-committee-meeting.html` 的角色门为**页面内自检**（`docs/src/entries/pages/party-committee-meeting-entry.js`）：进页＝本支部支委名单（单一源 `docs/src/services/activity/vote-config.js::resolveVoterIds('committee')`）**或**被任一场支委会 `voteConfig.voterIds` 包含，页内场次再经 `visibleMeetingsFor` 按同判据过滤；服务端写口另有既有门（`server/routes/committee.js`）。
 
 ### 3.2 各工作台页签（共 67 个）
 
-> 登记方式：每台由「能力注册表」声明页签清单（单一源 `docs/src/capabilities/*-workspace.js`）。分组轴只有一套：**支部角色台＝工作台 / 我的职责 / 知情查看 / 制度与答复**；**党委台＝首页 / 全院治理 / 支部治理**。带 ★ 的为核心页签（固定显示、不可隐藏、不参与排序）。
+> 登记方式：每台由「能力注册表」声明页签清单（单一源 `docs/src/capabilities/*-workspace.js`）。分组轴只有一套：**支部角色台＝工作台 / 我的职责 / 知情查看 / 制度与答复**；**党委台五个日常页签统一归入「党委治理」**。带 ★ 的为核心页签（固定显示、不可隐藏、不参与排序）。
 
 #### 3.2.1 支书工作台（`secretary.html`，支书与副支书共台）— 12 个
 
@@ -455,13 +457,13 @@
 
 | # | 页签 | 分组 | 做什么 |
 |---|---|---|---|
-| 1 | `governance-overview` / 治理总览 | 首页 | 登录落点：支部概览（成员/党员/滞留实时统计 + 近期动态） |
-| 2 | `monitor` / 支部监控台账 | 全院治理 | 各支部工作台账监控；**页首「支部筛选」** |
-| 3 | `review` / 支部上报 | 全院治理 | 各支部上报的关键事项（发展节点/活动报备）——党委**接收**后逐项批准 / 驳回（驳回须意见），结论**回复支部**；**页首「支部筛选」** |
-| 4 | `branches` / 支部管理 | 全院治理 | 支部实例增改、空模板创建 / 复制创建、支书任命；**页内「支部配置」区（换组织向导）**；`#pc-wizard-host` / `#pc-deploy-panel` id 不变 |
-| 5 | `dispatch` / 下发通知 | 全院治理 | 向目标支部**支委层**下发通知（标「党委下发」）；**页首「支部筛选」**收窄下发历史 |
+| 1 | `governance-overview` / 治理总览 | 党委治理 | 登录落点：待批复事项优先；运行支部缺少支书单独列为组织待补，不显示个人级明细 |
+| 2 | `monitor` / 支部监控台账 | 党委治理 | 按支部对比运行状态、成员规模和工作卡点；选中后进入党委只读支部视图，不进入支书工作台 |
+| 3 | `review` / 支部上报 | 党委治理 | 发展节点/活动报备按待批与已处理分区；决定、意见与回传结果附着在同一上报记录 |
+| 4 | `branches` / 支部管理 | 党委治理 | 首屏为支部目录；“支部设置”进入独立 `branch-config.html?branchId=...`，组织维护与名册初始化在所选支部上下文中完成 |
+| 5 | `dispatch` / 下发通知 | 党委治理 | 在“撰写 / 已发送”间切换；向目标支部支委层下发，收件方通过通知铃铛查看 |
 
-**「支部筛选」**＝共用件 `docs/src/components/governance/branch-filter.js`（监控台账 / 支部上报 / 下发通知三页复用同一件）；`''`＝全部支部。**豁免**：支部管理（它本身就是支部主数据清单，且页内「支部配置」自带支部选择器）。意见反馈始终在支部内闭环，不进入党委工作台。
+五个页签使用统一“党委治理”分组标签，不再把首页与全院治理拆成两个导航小组。需要支部明细时先明确选择单一支部；支部目录保留创建、配置和只读查看入口，改名、任命、状态维护和空支部名册导入集中在独立配置页。意见反馈始终在支部内闭环，不进入党委工作台；党委共享顶栏不提供“我的档案”。
 
 **依据（3.2 全节）**：`docs/src/capabilities/{secretary,org,prop,disc,leader,visitor,party-committee}-workspace.js`（逐台的 `tabs()` 数组）；`docs/src/core/domain/constants.js:249-258`（核心页签判定 `isCoreTab`）；`server/test/doc-consistency.test.mjs:64-72`（七台注册文件与分组轴口径）。
 

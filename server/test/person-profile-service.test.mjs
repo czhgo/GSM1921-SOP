@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { loadMemberProfile } from '../../docs/src/services/member/profile.js?v=20261017h';
-import { canMaintainMemberProfileFields } from '../../docs/src/core/domain/profile-access.js?v=20261017h';
+import { loadMemberProfile } from '../../docs/src/services/member/profile.js?v=20261018a';
+import { canMaintainMemberProfileFields } from '../../docs/src/core/domain/profile-access.js?v=20261018a';
 
 const member = { id: 'p-target', branchId: 'br-b1', name: '目标成员', selfProfile: { phone: 'protected' } };
 
@@ -47,6 +47,34 @@ test('本人和同支部支委通过统一策略读取 mock 档案', async () =>
     dataSource: 'mock', apiGet: async () => null, mockGet: () => member,
   });
   assert.equal(committee, member);
+});
+
+test('党委必须明确选择目标支部才能只读查看该支部档案', async () => {
+  const partyViewer = { id: 'p-party', role: 'party-staff' };
+  await assert.rejects(
+    loadMemberProfile({
+      personId: member.id,
+      actor: partyViewer,
+      dataSource: 'mock', apiGet: async () => null, mockGet: () => member,
+    }),
+    (error) => error.status === 403,
+  );
+  const selected = await loadMemberProfile({
+    personId: member.id,
+    actor: partyViewer,
+    selectedBranchId: 'br-b1',
+    dataSource: 'mock', apiGet: async () => null, mockGet: () => member,
+  });
+  assert.equal(selected, member);
+  await assert.rejects(
+    loadMemberProfile({
+      personId: member.id,
+      actor: partyViewer,
+      selectedBranchId: 'br-b2',
+      dataSource: 'mock', apiGet: async () => null, mockGet: () => member,
+    }),
+    (error) => error.status === 403,
+  );
 });
 
 test('治理字段编辑按钮只显示给同支部组织委员', () => {

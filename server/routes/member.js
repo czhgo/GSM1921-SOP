@@ -24,7 +24,7 @@ import { sanitizeSelfProfile } from '../../docs/src/core/domain/self-profile.js'
 import { canReadMemberProfile, projectMemberProfile } from '../../docs/src/core/domain/profile-access.js';
 // R-26③（2026-10-05 批次 388）：日期口径统一到**本地**（服务端单一源 `services/reporting.js`）
 import { today as todayLocal } from '../services/reporting.js';
-import { actorBranchId, branchSelectionError, recordBranchWriteDeny, resourceRowsForActor } from './resources/branch-scope.js';
+import { actorBranchId, branchSelectionError, selectedBranchRequiredError, recordBranchWriteDeny, resourceRowsForActor } from './resources/branch-scope.js';
 
 // 全体支委（广播对象：支书/副支书/组织/宣传/纪检，与 member-change-flow 测试断言一致）
 // P2c：名单单一源 = constants.js COMMITTEE_IDS（勿手写）
@@ -242,10 +242,17 @@ export function createMemberRouter(db) {
 
   // 档案专用只读口：通用 users 列表不代表获准查看个人档案；服务端在返回前强制按统一制度策略校验。
   router.get('/members/:id/profile', requireAuth(db), (req, res) => {
+    const selectionError = selectedBranchRequiredError(req.actor, req.query.branchId);
+    if (selectionError) return res.status(403).json({ error: selectionError });
+    const scopeError = branchSelectionError(req.actor, req.query.branchId);
+    if (scopeError) return res.status(403).json({ error: scopeError });
     const user = readUser(req.params.id);
     if (!user) return res.status(404).json({ error: '成员不存在' });
-    if (!canReadMemberProfile(req.actor, user)) {
-      return res.status(403).json({ error: '无权限：仅本人或本支部支委可查看成员档案' });
+    if (req.actor.role === 'party-staff' && !db.prepare('SELECT id FROM branches WHERE id = ?').get(String(req.query.branchId))) {
+      return res.status(403).json({ error: '无权限：所选支部不存在' });
+    }
+    if (!canReadMemberProfile(req.actor, user, req.query.branchId)) {
+      return res.status(403).json({ error: '无权限：仅本人、本支部支委或党委所选支部只读范围内可查看成员档案' });
     }
     return res.json(projectMemberProfile(user));
   });

@@ -1,211 +1,170 @@
-﻿// role: [工程师]+[AI]
-// 党委工作台 Tab：下发通知（P3 党委后台，2026-09-02）
-// 党委侧发起点（双向通道下发半侧）：选目标支部（可全选/单选，支部动态创建后自动可选）→
-// 下发「党委通知」到目标支部的支委层（送达=通知流 audience='committee' 过滤 + 来源徽标）。
-// 复用既有通知实体（支书 2026-09-02 裁定：能复用就复用，不新建「下发箱」领域）。
-// 重绘纪律：party-committee 各 tab 每次整容器重绘（无 dataset.currentTab 约定），
-// 故本 tab 每次渲染前先读取表单现值、渲染后回填——工作台数据变更重绘不丢撰写内容。
-// 设计权威源：content/04_web_design/evolution/PARTY_COMMITTEE_DESIGN.md §5 P3
+// Party dispatch reuses the notice domain; this page separates composing from sent history.
+import { mockDB } from '../../../core/domain/domain.js?v=20261018a';
+import { AuthStore } from '../../../services/core/auth.js?v=20261018a';
+import { NoticeStore } from '../../../services/governance/notice.js?v=20261018a';
+import { textField, textareaField } from '../../../components/ui/forms.js?v=20261018a';
+import { showToast, escHtml as esc } from '../../../core/base/utils.js?v=20261018a';
+import { renderBranchFilter, filterByBranch } from '../../../components/governance/branch-filter.js?v=20261018a';
 
-import { mockDB } from '../../../core/domain/domain.js?v=20261017h';
-import { AuthStore } from '../../../services/core/auth.js?v=20261017h';
-import { getCommitteeName } from '../../../services/branch/branch.js?v=20261017h';
-import { NoticeStore } from '../../../services/governance/notice.js?v=20261017h';
-import { textField, textareaField } from '../../../components/ui/forms.js?v=20261017h';
-import { showToast, escHtml as esc } from '../../../core/base/utils.js?v=20261017h';
-// 支部筛选共用件（2026-10-04 批次 374 · 支书「按下设支部筛选信息」）——三页复用同一件，不各写一份
-import { renderBranchFilter, filterByBranch } from '../../../components/governance/branch-filter.js?v=20261017h';
-
-/** 本页支部筛选的 stateKey（选择随模块自持，页内重绘不丢） */
 const BRANCH_FILTER_STATE = 'pc-dispatch';
+let dispatchView = 'compose';
+let draft = null;
 
-// HTML 转义统一走 core/base/utils.js escHtml（2026-09-03 去重收口）
-
-/** 重绘前读取表单现值（分支勾选/优先级/标题/正文）——缺省：全支部选中、重要 */
-function _readFormState(el) {
-  const boxes = el?.querySelectorAll('input[name="dispatch-branch"]:checked');
-  const branchIds = boxes && boxes.length ? [...boxes].map(cb => cb.value) : (mockDB.branches || []).map(b => b.id);
-  const priInput = el?.querySelector('input[name="dispatch-pri"]:checked');
+function readDraft(el) {
+  const title = el?.querySelector('#dispatch-title');
+  if (!title) return draft;
+  const branches = [...el.querySelectorAll('input[name="dispatch-branch"]')];
   return {
-    branchIds,
-    pri: priInput?.value || 'normal',
-    title: el?.querySelector('#dispatch-title')?.value || '',
-    content: el?.querySelector('#dispatch-content')?.value || '',
+    branchIds: branches.filter((box) => box.checked).map((box) => box.value),
+    pri: el.querySelector('input[name="dispatch-pri"]:checked')?.value || 'normal',
+    title: title.value || '',
+    content: el.querySelector('#dispatch-content')?.value || '',
   };
 }
 
 export function renderContent() {
-  const el = document.getElementById('party-committee-tab-content');
-  if (!el) return;
-  // 跨 tab 共享容器约定（同 today/group-progress/insight-view 体例）：登记当前 tab 标记。
-  //   本台 `party-config` 以 `dataset.currentTab` 守卫决定是否重建骨架，其余 tab 原不登记该标记
-  //   ⇒「支部配置 → 本 tab → 支部配置」会因守卫读到陈旧标记 'party-config' 而跳过重建、残留本 tab 内容。
-  el.dataset.currentTab = 'dispatch';
-  const me = AuthStore.getCurrentUser();
-  if (!me) return;
-  const prev = _readFormState(el);
+  const host = document.getElementById('party-committee-tab-content');
+  if (!host) return;
+  host.dataset.currentTab = 'dispatch';
+  const actor = AuthStore.getCurrentUser();
+  if (!actor) return;
+  draft = readDraft(host) || draft || {
+    branchIds: (mockDB.branches || []).map((branch) => branch.id),
+    pri: 'normal', title: '', content: '',
+  };
 
-  el.innerHTML = `
-    <div class="space-y-4">
-      <div class="rounded-lg border border-gray-200 bg-white p-4">
-        <div class="flex items-center justify-between gap-3 mb-1">
-          <div class="flex items-center gap-2">
-            <p class="font-title-cn text-base font-bold text-gray-800">下发通知</p>
-            <span class="text-xs px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-600">动作</span>
-          </div>
-          <div class="text-right shrink-0">
-            <p class="text-xs text-gray-500">送达范围</p>
-            <p class="text-sm font-medium text-gray-700">目标支部 · 支委层</p>
-          </div>
+  host.innerHTML = `
+    <div class="party-page">
+      <header class="party-page__header">
+        <div class="party-page__heading">
+        <p class="text-xs font-medium text-gray-500">党委 · 支委层收件</p>
+        <h2 class="mt-1 font-title-cn text-xl font-bold text-gray-900">下发通知</h2>
+        <p class="mt-1 text-sm text-gray-600">通知送达所选支部的支委层；收件人在通知铃铛中查看。</p>
         </div>
-        <p class="text-xs text-gray-500">通知直达支部委员会（支委层收件并已读反馈）；支部非支委党员不受打扰。支部动态创建后自动可选。</p>
+      </header>
+      <div class="flex gap-1 border-b border-gray-200" role="tablist" aria-label="通知工作区">
+        <button id="pc-dispatch-tab-compose" type="button" class="px-3 py-2 text-sm ${dispatchView === 'compose' ? 'border-b-2 border-red-700 font-semibold text-gray-900' : 'text-gray-600'}" data-dispatch-view="compose" role="tab" aria-controls="pc-dispatch-panel" aria-selected="${dispatchView === 'compose'}" tabindex="${dispatchView === 'compose' ? '0' : '-1'}">撰写</button>
+        <button id="pc-dispatch-tab-history" type="button" class="px-3 py-2 text-sm ${dispatchView === 'history' ? 'border-b-2 border-red-700 font-semibold text-gray-900' : 'text-gray-600'}" data-dispatch-view="history" role="tab" aria-controls="pc-dispatch-panel" aria-selected="${dispatchView === 'history'}" tabindex="${dispatchView === 'history' ? '0' : '-1'}">已发送 <span class="ml-1 tabular-nums">${(mockDB.notices || []).filter((notice) => notice.source === 'committee').length}</span></button>
       </div>
+      <section id="pc-dispatch-panel" role="tabpanel" aria-labelledby="${dispatchView === 'compose' ? 'pc-dispatch-tab-compose' : 'pc-dispatch-tab-history'}" tabindex="0">
+        ${dispatchView === 'compose' ? composeHtml(draft) : historyHtml()}
+      </section>
+    </div>`;
 
-      <div class="rounded-lg border border-gray-200 bg-white p-4">
-        <p class="font-title-cn text-sm font-bold text-gray-800 mb-3">撰写下发通知</p>
-        <div class="mb-3">
-          <p class="text-xs text-gray-500 block mb-1.5">目标支部（可多选）<span class="text-red-600">*</span></p>
-          <div id="dispatch-branches" class="flex flex-wrap gap-2"></div>
-        </div>
-        ${textField({ id: 'dispatch-title', label: '标题', required: true, value: prev.title || '', placeholder: '例：关于规范主题党日开展程序的工作提示…', autocomplete: 'off', compact: false })}
-        ${textareaField({ id: 'dispatch-content', label: '正文（下发内容/要求）', required: true, value: prev.content || '', rows: 4, placeholder: '面向支部委员会的工作要求、提醒或安排…' })}
-        <div class="mb-4">
-          <p class="text-xs text-gray-500 block mb-1.5">优先级</p>
-          <div class="flex gap-2">
-            <label data-dispatch-pri="normal" class="cursor-pointer rounded-lg border ${prev.pri === 'urgent' ? 'border-gray-200' : 'border-red-300 bg-red-50/40'} px-3 py-1.5 text-xs text-gray-700 transition-colors">
-              <input type="radio" name="dispatch-pri" value="normal" class="hidden" ${prev.pri !== 'urgent' ? 'checked' : ''} /> 重要（常规）
-            </label>
-            <label data-dispatch-pri="urgent" class="cursor-pointer rounded-lg border ${prev.pri === 'urgent' ? 'border-red-300 bg-red-50/40' : 'border-gray-200'} px-3 py-1.5 text-xs text-gray-700 transition-colors">
-              <input type="radio" name="dispatch-pri" value="urgent" class="hidden" ${prev.pri === 'urgent' ? 'checked' : ''} /> 紧急（需立即办理）
-            </label>
-          </div>
-        </div>
-        <div class="flex justify-end gap-2">
-          <button id="dispatch-submit" class="btn-accent text-xs px-3 py-1.5 font-medium">下发</button>
-        </div>
-      </div>
+  const dispatchTabs = [...host.querySelectorAll('[data-dispatch-view]')];
+  dispatchTabs.forEach((button, index) => {
+    button.addEventListener('click', () => {
+      draft = readDraft(host) || draft;
+      dispatchView = button.dataset.dispatchView === 'history' ? 'history' : 'compose';
+      renderContent();
+    });
+    button.addEventListener('keydown', (event) => {
+      const nextIndex = event.key === 'ArrowRight' ? (index + 1) % dispatchTabs.length
+        : event.key === 'ArrowLeft' ? (index + dispatchTabs.length - 1) % dispatchTabs.length
+          : event.key === 'Home' ? 0 : event.key === 'End' ? dispatchTabs.length - 1 : -1;
+      if (nextIndex < 0) return;
+      event.preventDefault();
+      const nextView = dispatchTabs[nextIndex].dataset.dispatchView;
+      dispatchTabs[nextIndex].click();
+      host.querySelector(`[data-dispatch-view="${nextView}"]`)?.focus();
+    });
+  });
 
-      <div>
-        <p class="text-xs text-gray-500 mb-2">下发历史（${esc(getCommitteeName())}）</p>
-        <div id="pc-dispatch-branch-filter" class="mb-2"></div>
-        <div id="dispatch-history" class="space-y-3"></div>
-      </div>
-    </div>
-  `;
-
-  // 支部筛选（共用件；变更即重渲本页 ⇒ 下发历史按所选支部收窄）
-  renderBranchFilter(el.querySelector('#pc-dispatch-branch-filter'), {
+  if (dispatchView === 'compose') bindComposer(host, draft);
+  else renderBranchFilter(host.querySelector('#pc-dispatch-branch-filter'), {
     stateKey: BRANCH_FILTER_STATE,
     onChange: () => renderContent(),
   });
+}
 
-  bindBranches(el, prev.branchIds);
-  bindPriority(el, prev.pri);
-  el.querySelector('#dispatch-submit')?.addEventListener('click', async () => {
-    const branchIds = [...el.querySelectorAll('input[name="dispatch-branch"]:checked')].map(cb => cb.value);
-    const title = el.querySelector('#dispatch-title')?.value.trim();
-    const content = el.querySelector('#dispatch-content')?.value.trim();
-    const priority = el.querySelector('input[name="dispatch-pri"]:checked')?.value || 'normal';
-    if (!branchIds.length) { showToast('error', '请选择目标支部'); return; }
+function composeHtml(state) {
+  const branches = mockDB.branches || [];
+  const selected = new Set(state.branchIds || []);
+  return `
+    <section aria-labelledby="dispatch-compose-title" class="card layout-shell layout-shell--form p-5">
+      <h3 id="dispatch-compose-title" class="font-title-cn text-base font-bold text-gray-900">撰写一条党委通知</h3>
+      <fieldset class="mt-4">
+        <legend class="text-sm font-medium text-gray-800">目标支部 <span class="text-red-700">*</span></legend>
+        <div class="mt-2 flex flex-wrap gap-x-5 gap-y-2">
+          <label class="inline-flex items-center gap-2 py-1 text-sm text-gray-700"><input type="checkbox" data-dispatch-all ${selected.size === branches.length && branches.length ? 'checked' : ''}>全部支部</label>
+          ${branches.map((branch) => `<label class="inline-flex items-center gap-2 py-1 text-sm text-gray-700"><input type="checkbox" name="dispatch-branch" value="${esc(branch.id)}" ${selected.has(branch.id) ? 'checked' : ''}>${esc(branch.config?.headerTitle || branch.name)}</label>`).join('')}
+        </div>
+        <p class="mt-1 text-xs text-gray-500">发送前请核对收件支部。</p>
+      </fieldset>
+      <div class="mt-4 space-y-3">
+        ${textField({ id: 'dispatch-title', label: '标题', required: true, value: state.title, placeholder: '通知主题', autocomplete: 'off', compact: false })}
+        ${textareaField({ id: 'dispatch-content', label: '正文', required: true, value: state.content, rows: 5, placeholder: '写清工作要求、对象和完成时限。' })}
+      </div>
+      <fieldset class="mt-4">
+        <legend class="text-sm font-medium text-gray-800">优先级</legend>
+        <div class="mt-2 flex flex-wrap gap-x-5 gap-y-2">
+          <label class="inline-flex items-center gap-2 py-1 text-sm text-gray-700"><input type="radio" name="dispatch-pri" value="normal" ${state.pri !== 'urgent' ? 'checked' : ''}>重要（常规）</label>
+          <label class="inline-flex items-center gap-2 py-1 text-sm text-gray-700"><input type="radio" name="dispatch-pri" value="urgent" ${state.pri === 'urgent' ? 'checked' : ''}>紧急（需立即办理）</label>
+        </div>
+      </fieldset>
+      <div class="mt-5 flex justify-end border-t border-gray-200 pt-4">
+        <button id="dispatch-submit" type="button" class="btn-accent px-4 py-2 text-sm font-medium">下发通知</button>
+      </div>
+    </section>`;
+}
+
+function bindComposer(host) {
+  const allBox = host.querySelector('[data-dispatch-all]');
+  const branchBoxes = [...host.querySelectorAll('input[name="dispatch-branch"]')];
+  const updateAll = () => {
+    if (allBox) allBox.checked = branchBoxes.length > 0 && branchBoxes.every((box) => box.checked);
+    draft = readDraft(host);
+  };
+  allBox?.addEventListener('change', () => {
+    branchBoxes.forEach((box) => { box.checked = allBox.checked; });
+    updateAll();
+  });
+  branchBoxes.forEach((box) => box.addEventListener('change', updateAll));
+  host.querySelector('#dispatch-title')?.addEventListener('input', () => { draft = readDraft(host); });
+  host.querySelector('#dispatch-content')?.addEventListener('input', () => { draft = readDraft(host); });
+  host.querySelectorAll('input[name="dispatch-pri"]').forEach((radio) => radio.addEventListener('change', () => { draft = readDraft(host); }));
+
+  host.querySelector('#dispatch-submit')?.addEventListener('click', () => {
+    const state = readDraft(host);
+    const title = state?.title.trim();
+    const content = state?.content.trim();
+    const branchIds = state?.branchIds || [];
+    if (!branchIds.length) { showToast('error', '请选择至少一个目标支部'); return; }
     if (!title || !content) { showToast('error', '请填写标题与正文'); return; }
-    branchIds.forEach(branchId => {
-      const b = (mockDB.branches || []).find(x => x.id === branchId);
-      // R-22（2026-09-13）：党委下发为系统派生通知（不再前端自述标记），
-      // 由服务端 kind 注册表复算授权（仅党委组织员）并生成落点（audience/branchId 由 sourceId 派生）
+    branchIds.forEach((branchId) => {
+      const branch = (mockDB.branches || []).find((item) => item.id === branchId);
       NoticeStore.addSystem('committee-dispatch', branchId, {
         title,
         content,
-        priority,
-        branchName: b?.config?.headerTitle || b?.name || branchId,
+        priority: state.pri,
+        branchName: branch?.config?.headerTitle || branch?.name || branchId,
       });
     });
     showToast('success', `已下发至 ${branchIds.length} 个支部的支委层`);
-    el.querySelector('#dispatch-title').value = '';
-    el.querySelector('#dispatch-content').value = '';
+    draft = { branchIds: [], pri: 'normal', title: '', content: '' };
     renderContent();
   });
-  renderHistory(el);
 }
 
-/** 目标支部多选（含全选；回填已选态） */
-function bindBranches(el, selectedIds) {
-  const box = el.querySelector('#dispatch-branches');
-  if (!box) return;
-  const branches = mockDB.branches || [];
-  const sel = new Set(selectedIds);
-  box.innerHTML = [
-    `<label class="cursor-pointer rounded-lg border ${sel.size === branches.length ? 'border-red-300 bg-red-50/40' : 'border-gray-200'} px-3 py-1.5 text-xs text-gray-700 transition-colors">
-       <input type="checkbox" data-dispatch-all class="hidden" ${sel.size === branches.length ? 'checked' : ''} /> 全部支部
-     </label>`,
-    ...branches.map(b => `
-      <label class="cursor-pointer rounded-lg border ${sel.has(b.id) ? 'border-red-300 bg-red-50/40' : 'border-gray-200'} px-3 py-1.5 text-xs text-gray-700 transition-colors">
-        <input type="checkbox" name="dispatch-branch" value="${esc(b.id)}" class="hidden" ${sel.has(b.id) ? 'checked' : ''} /> ${esc(b.config?.headerTitle || b.name)}
-      </label>`),
-  ].join('');
-  const allBox = box.querySelector('[data-dispatch-all]');
-  const refresh = () => {
-    const checked = box.querySelectorAll('input[name="dispatch-branch"]:checked').length;
-    allBox.checked = checked === branches.length;
-    markChips(box);
-  };
-  allBox?.addEventListener('change', () => {
-    box.querySelectorAll('input[name="dispatch-branch"]').forEach(cb => { cb.checked = allBox.checked; });
-    markChips(box);
-  });
-  box.querySelectorAll('input[name="dispatch-branch"]').forEach(cb => cb.addEventListener('change', refresh));
-}
-
-/** 优先级切换高亮 */
-function bindPriority(el, current) {
-  const toggle = (label) => {
-    const on = label.querySelector('input[name="dispatch-pri"]:checked');
-    label.classList.toggle('border-red-300', !!on);
-    label.classList.toggle('bg-red-50/40', !!on);
-    label.classList.toggle('border-gray-200', !on);
-  };
-  el.querySelectorAll('[data-dispatch-pri]').forEach(l => {
-    l.querySelector('input[name="dispatch-pri"]')?.addEventListener('change', () => {
-      el.querySelectorAll('[data-dispatch-pri]').forEach(o => toggle(o));
-    });
-    toggle(l);
-  });
-}
-
-/** 支部选择 chip 视觉 */
-function markChips(box) {
-  box.querySelectorAll('input[name="dispatch-branch"]').forEach(cb => {
-    const label = cb.closest('label');
-    if (!label) return;
-    label.classList.toggle('border-red-300', cb.checked);
-    label.classList.toggle('bg-red-50/40', cb.checked);
-    label.classList.toggle('border-gray-200', !cb.checked);
-  });
-}
-
-/** 下发历史：本院系党委下发的全部记录（按发布时间倒序；支部后续改名以记录快照 branchName 展示）。
- *  2026-10-04 批次 374：受页首「支部筛选」收窄（`branchId` 字段同源）。 */
-function renderHistory(el) {
-  const wrap = el.querySelector('#dispatch-history');
-  if (!wrap) return;
+function historyHtml() {
   const rows = filterByBranch((mockDB.notices || [])
-    .filter(n => n.source === 'committee')
+    .filter((notice) => notice.source === 'committee')
+    .slice()
     .sort((a, b) => String(b.publishDate || '').localeCompare(String(a.publishDate || ''))), BRANCH_FILTER_STATE);
-  if (!rows.length) {
-    wrap.innerHTML = `<div class="rounded-lg border border-gray-200 bg-white p-6 text-center">
-      <p class="text-sm text-gray-500">暂无下发记录</p>
-      <p class="text-xs text-gray-500 mt-1">撰写并下发后，此处留存党委下发历史</p>
-    </div>`;
-    return;
-  }
-  wrap.innerHTML = rows.map(n => `
-    <div class="rounded-lg border border-gray-200 bg-white p-4">
-      <div class="flex items-center gap-2 flex-wrap mb-1">
-        <span class="text-xs px-2 py-0.5 rounded-full ${n.priority === 'urgent' ? 'bg-amber-50 text-amber-700' : 'bg-blue-50 text-blue-600'}">${n.priority === 'urgent' ? '紧急' : '重要'}</span>
-        <span class="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">${esc(n.branchName || n.branchId || '—')}</span>
-        <span class="text-xs text-gray-500 ml-auto">${n.publishDate || ''}</span>
-      </div>
-      <p class="text-sm font-medium text-gray-800">${esc(n.title)}</p>
-      <p class="text-xs text-gray-500 mt-1 leading-5 whitespace-pre-wrap">${esc(n.content)}</p>
-    </div>`).join('');
+  return `
+    <section aria-label="党委通知发送记录" class="card p-5">
+      <div id="pc-dispatch-branch-filter" class="mb-3"></div>
+      ${rows.length ? `<ol class="divide-y divide-gray-200 border-y border-gray-200">
+        ${rows.map((notice) => `
+          <li class="py-4">
+            <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
+              <span class="text-xs font-medium ${notice.priority === 'urgent' ? 'text-amber-800' : 'text-blue-800'}">${notice.priority === 'urgent' ? '紧急' : '重要'}</span>
+              <span class="text-xs text-gray-600">${esc(notice.branchName || notice.branchId || '支部')}</span>
+              <time class="ml-auto text-xs tabular-nums text-gray-500">${esc(notice.publishDate || '')}</time>
+            </div>
+            <h3 class="mt-1 text-sm font-semibold text-gray-900">${esc(notice.title || '无标题')}</h3>
+            <p class="mt-1 whitespace-pre-wrap text-sm leading-6 text-gray-700">${esc(notice.content || '')}</p>
+          </li>`).join('')}
+      </ol>` : `<p class="border-y border-gray-200 py-8 text-sm text-gray-600" role="status">当前筛选下没有已发送通知。</p>`}
+    </section>`;
 }
-

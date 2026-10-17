@@ -31,7 +31,7 @@ test('mock 缓存与草稿迁除旧匿名身份，新增草稿也不持久化真
     }]));
     localStorage.setItem('gsm1921-login-user', JSON.stringify({ personId: 'p5', role: 'participant' }));
 
-    const { IssueStore } = await import('../../docs/src/services/governance/issues.js?v=20261017h');
+    const { IssueStore } = await import('../../docs/src/services/governance/issues.js?v=20261018a');
     await IssueStore.loadAll();
     IssueStore.addDraft({
       type: 'new-issue',

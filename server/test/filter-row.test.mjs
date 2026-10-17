@@ -175,10 +175,9 @@ test('S8 分页控件单一源（禁借 chip 选中态）', () => {
 // §4.13 原写「禁止用 select 下拉罗列人名」，而全站实测有 4 处仍在用下拉列人名，且其中两处是
 //   「支委角色 或 具体成员」的混合指派（分工到人 / 落实责任人），硬换 PersonPicker 会丢掉
 //   「按角色指派」这一档。支书裁定把口径写成**语义两分**（选名单成员 → PersonPicker；
-//   任命 / 指派到人 → 允许下拉），据实登记 4 处例外并锁白名单，禁新代码再长出第 5 处。
-test('S9 选人载体：用 select 列人名的只允许「任命 / 指派到人」四处例外（详见 DESIGN_SYSTEM §4.13）', () => {
+//   任命 / 指派到人 → 允许下拉），据实登记 3 处例外并锁白名单，禁新代码再长出第 4 处。
+test('S9 选人载体：用 select 列人名的只允许「任命 / 指派到人」三处例外（详见 DESIGN_SYSTEM §4.13）', () => {
   const ALLOW = new Set([
-    'entries/tabs/party-committee/branches-tab.js',  // 党委台任命支书
     'components/governance/org-setup-wizard.js',                // 换组织向导内任命
     'entries/tabs/secretary/workforce-panel.js',     // 支书台分工到人（角色 或 到人）
     'components/governance/resolution-followup-manager.js',     // 决议落实责任人（同口径）
@@ -269,6 +268,9 @@ test('S12 手写表格收敛台账：`<table` 只允许出现在登记在案的�
     ['components/ui/relation-matrix.js', '「人 × 项目」矩阵单一源'],
     ['entries/tabs/disc/attendance-tab.js', '考勤明细（导出 / 打印专用明细表；分页已走单一源 pager.js）'],
     ['entries/tabs/secretary/group-progress-tab.js', '党小组清单（行数＝党小组数，天然有界）'],
+    ['entries/tabs/party-committee/monitor-tab.js', '党委支部动态比较表（角色范围固定，行表数据采用统一 .data-table 样式）'],
+    ['entries/tabs/party-committee/branches-tab.js', '党委支部目录（角色范围固定，行表数据采用统一 .data-table 样式）'],
+    ['entries/pages/branch-readonly-entry.js', '党委只读支部名册（规模可达 50 人，统一 .data-table 样式并提供检索分页）'],
   ]);
   const offenders = [];
   for (const f of walkJs(SRC_DIR)) {

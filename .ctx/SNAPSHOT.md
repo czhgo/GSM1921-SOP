@@ -2,13 +2,13 @@
 title: "系统快照"
 type: snapshot
 role: "[AI]"
-last_updated: "2026-10-16"
+last_updated: "2026-10-18"
 status: "ACTIVE"
-date: "2026-10-16"
-version: "v57"
+date: "2026-10-18"
+version: "v59"
 ---
 
-# System Snapshot — v57
+# System Snapshot — v59
 
 > 当前活跃基线。历史快照见 `.ctx/snapshots/`。
 
@@ -28,7 +28,7 @@ GSM1921-SOP/
 ├── LICENSE / CONTRIBUTING.md   ← 开源 License + 贡献指南（**2026-09-28 批次 236 新增 §六「发版（语义化 release）」**）
 ├── CHANGELOG.md                ← 变更日志（Keep a Changelog 体例；**只记「对使用者可见的变更」**——逐批沿革归 `.ctx/logs/**`；起点＝首次语义化发版 `0.1.0` 2026-09-28、不回溯补记）
 ├── CLAUDE.md                   ← 上下文入口（甲部 H10-H100 约束力三层 + H60 提问准则 + 乙部执行 + 丙部待决策）
-├── docs/                       ← 前端代码层（根 HTML + workspace/ 工作台 + ESM 模块化源码；页面实测 23=16 根+7 工作台，清单见 §III，以 docs/ 实况为准）
+├── docs/                       ← 前端代码层（根 HTML + workspace/ 工作台 + ESM 模块化源码；页面实测 25=17 根+8 工作台/只读视图，清单见 §III，以 docs/ 实况为准）
 │   ├── index.html              ← 主页入口（通知/招募/日历/待办四组件）
 │   ├── notice.html             ← 通知独立页（含「党委下发」红标）
 │   ├── about.html              ← 支部的故事
@@ -122,7 +122,7 @@ GSM1921-SOP/
 | `content/03_doc_system/ARCHITECTURE.md` | ✅ | 《架构与单一事实源》（分层架构 + 仓库结构 + 数据模型 + 变更流水线 ＋ **§十 母本注册表 / 同步触发矩阵** ＋ **§十一 统一服务目录（服务清单 + 角色权限矩阵）**；**2026-09-25 批次 179 三份合一**：原 `SSOT_INDEX.md` / `SERVICE_CATALOG.md` 两份并入本文件并删除） |
 | `content/02_institution/SYSTEM_ROLE_PERMISSION.md` | ✅ | 系统角色权限矩阵（角色键全表 §9a0 + 权限矩阵/赋权链，代码键级权威） |
 
-### 前端页面（HTML 实测 22 个：15 根 + 7 工作台；以 docs/ 实况为准——清单以 `docs/*.html` 与 `docs/workspace/*.html` 实测为准）
+### 前端页面（HTML 实测 25 个：17 根 + 8 工作台/只读视图；以 docs/ 实况为准——清单以 `docs/*.html` 与 `docs/workspace/*.html` 实测为准）
 
 | 页面 | 类型 | 说明 |
 |------|------|------|
@@ -139,6 +139,7 @@ GSM1921-SOP/
 | `party-committee-meeting.html` | 公共页 | 支委会会议页（线上召开：选线上召开 / 提取议程（专班报送·意见反馈）/ 委员线上表态 / 支书汇总截止（votesLocked）/ 留存并查阅讨论结果；仅支委可进，批次 105 / D-526） |
 | `taskforce.html` | 公共页 | 专班详情 |
 | `wizard.html` | 公共页 | 换组织向导（支书限本支部/党委任意/他角色无权限卡） |
+| `branch-config.html` | 党委配置页 | 党委组织员在明确选择支部后维护该支部组织信息、名册和配置分区 |
 | `settings.html` | 独立 | 设置中心（侧边栏右下「设置」入口：外观=人人可用/我的工作台=登录用户/支部治理=支书+副支书（副书同权，含支部信息与向导/工作台默认顺序/支部制度参数只读+配置变更记录回滚）+纪检/组织/组长「域参数」卡（各管本域）；访客仅见外观；登录无归属显示「未绑定支部」提示） |
 | `person.html` | 独立 | 成员档案页（完整档案/在册留痕/关联概览计数，`?id=<personId>` 打开） |
 | `thought-report.html` | 独立 | 思想汇报独立阅读页（三模式：`?id=` 单篇 / `?personId=` 按人 / 无参＝提示未指定对象） |
@@ -149,6 +150,7 @@ GSM1921-SOP/
 | `workspace/disc.html` | 子页面 | 纪检委员工作台（考勤管理（含补课分段）+监督复盘+考察管理+知情查看+待办） |
 | `workspace/visitor.html` | 子页面 | 成员工作台（活动动态+专班进展+个人考勤+思想汇报提交+日历/列表切换+待办） |
 | `workspace/party-committee.html` | 子页面 | 党委工作台（党委组织员：支部台账/支部管理/任命/上报审批/下发通知/支部配置） |
+| `workspace/branch-readonly.html` | 只读下钻 | 党委组织员在明确选择支部后查看该支部成员与活动；保留党委身份，不进入支书工作台 |
 
 ## IV. 核心理论
 

@@ -36,14 +36,16 @@ test('书记概况以待处理为主、将异常另区呈现并消除重复计�
   assert.match(source, /待办、待答复汇报、文件确认和周期归档审核/);
 });
 
-test('党委支部配置默认收起，并在用户展开后才挂载配置向导', async () => {
-  const source = await read('../../docs/src/entries/tabs/party-committee/branches-tab.js');
-  assert.ok(/<details id="branch-config-details"/.test(source), 'configuration is a collapsible details section');
-  assert.ok(/configDetails\?\.addEventListener\('toggle',[\s\S]*mountConfigIfOpen\(\)/.test(source), 'opening triggers lazy mount');
-  assert.ok(/if \(!configDetails\?\.open \|\| configDetails\.dataset\.mounted === 'true'\) return/.test(source), 'mount runs only while open and once per render');
-  const mountCall = source.indexOf("mountPartyConfig({ wizardHost: el.querySelector('#pc-wizard-host')");
-  const lazyGuard = source.lastIndexOf('const mountConfigIfOpen', mountCall);
-  assert.ok(mountCall > lazyGuard && lazyGuard >= 0, 'mount call is inside the lazy-mount helper');
+test('党委支部配置按分区导航只显示当前配置面板', async () => {
+  const page = await read('../../docs/branch-config.html');
+  const entry = await read('../../docs/src/entries/pages/branch-config-entry.js');
+  assert.match(page, /id="branch-config-nav"/);
+  assert.match(page, /data-config-panel="organization"/);
+  assert.match(page, /data-config-panel="roster"/);
+  assert.match(page, /data-config-panel="capabilities"/);
+  assert.match(page, /data-config-panel="deployment"/);
+  assert.match(entry, /panel\.hidden = panel\.dataset\.configPanel !== key/);
+  assert.match(entry, /navigationMode: 'sections'/);
 });
 
 test('组织委员工作组页提供专班、活动工作组和报名总表的互斥视图', async () => {
@@ -85,8 +87,8 @@ test('党委支部筛选只纳入明确归属当前支部的记录，监控卡�
   const filter = await read('../../docs/src/components/governance/branch-filter.js');
   const monitor = await read('../../docs/src/entries/tabs/party-committee/monitor-tab.js');
   assert.match(filter, /String\(r\.branchId \|\| 'br-b1'\) === fid/);
-  assert.match(monitor, /\(a\.branchId \|\| 'br-b1'\) === b\.id/);
-  assert.match(monitor, />\$\{escHtml\(termText\)\}<\/p>/);
+  assert.match(monitor, /\(activity\.branchId \|\| 'br-b1'\) === branch\.id/);
+  assert.match(monitor, /escHtml as esc/);
 });
 
 test('党委选中支部后整页数据请求都带同一支部范围，未选择时不出现“全部明细”入口', async () => {
@@ -100,22 +102,25 @@ test('党委选中支部后整页数据请求都带同一支部范围，未选�
   assert.match(adapter, /_request\(_withSelectedBranch\(path\)/);
 });
 
-test('党委全院概览只消费无身份的支部汇总，未选支部的监控卡不显示负责人和活动明细', async () => {
+test('党委全院概览只显示支部汇总，监控页不展示个人身份和活动明细', async () => {
   const overview = await read('../../docs/src/entries/tabs/party-committee/governance-overview-tab.js');
   const monitor = await read('../../docs/src/entries/tabs/party-committee/monitor-tab.js');
-  assert.match(overview, /summary\.memberCount/);
-  assert.match(overview, /summary\.partyMemberCount/);
-  assert.match(monitor, /const aggregateOnly =/);
-  assert.match(monitor, /b\.summary\?\.memberCount/);
-  assert.match(monitor, /选择支部查看明细/);
+  assert.match(overview, /buildPartyOverviewModel/);
+  assert.match(overview, /model\.pending/);
+  assert.match(overview, /model\.exceptions/);
+  assert.doesNotMatch(overview, /getPersonName|partyCount|memberPhone/);
+  assert.match(monitor, /branch\.summary\?\.memberCount/);
+  assert.match(monitor, /apiMode && branch\.summary\?\.memberCount == null/);
+  assert.doesNotMatch(monitor, /getPersonName|submittedBy/);
 });
 
 test('党委未选支部时支部管理只显示目录与汇总，选中后才开放该支部配置操作', async () => {
   const branches = await read('../../docs/src/entries/tabs/party-committee/branches-tab.js');
   assert.match(branches, /const summaryOnly = apiMode && !selectedBranchId/);
   assert.match(branches, /summary\.memberCount/);
-  assert.match(branches, /branch-summary-select/);
-  assert.match(branches, /if \(summaryOnly\)/);
+  assert.match(branches, /branch-config\.html\?branchId=/);
+  assert.match(branches, /summaryOnly \? null/);
+  assert.match(branches, /summaryOnly \? \(summary\.memberCount/);
 });
 
 test('支部附件下载继承党委工作台所选支部，服务端下载不因缺少范围而误伤', async () => {
@@ -155,10 +160,9 @@ test('党委支部筛选与监控台转义支部配置及动态文本，避免�
   assert.match(filter, /import\s*\{\s*escHtml\s*\}\s*from/);
   assert.match(filter, /value="\$\{escHtml\(b\.id\)\}"/);
   assert.match(filter, />\$\{escHtml\(_label\(b\)\)\}<\/option>/);
-  assert.match(monitor, /import\s*\{[^}]*escHtml[^}]*\}\s*from/);
-  assert.match(monitor, /\$\{escHtml\(b\.config\?\.headerTitle\s*\|\|\s*b\.name\)\}/);
-  assert.match(monitor, /data-branch-id="\$\{escHtml\(b\.id\)\}"/);
-  assert.match(monitor, /\$\{escHtml\(a\.title\)\}/);
+  assert.match(monitor, /import\s*\{[^}]*escHtml as esc[^}]*\}\s*from/);
+  assert.match(monitor, /\$\{esc\(branch\.config\?\.headerTitle \|\| branch\.name \|\| branch\.id\)\}/);
+  assert.match(monitor, /data-branch-id="\$\{esc\(branch\.id\)\}"/);
 });
 
 test('工作组结束入口不再保留绕过任务与产出闭合校验的直接归档按钮', async () => {

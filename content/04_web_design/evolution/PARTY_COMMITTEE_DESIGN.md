@@ -3,7 +3,7 @@ title: "院系党委后台——支部多实例两级治理设计定案"
 type: design
 role: "[工程师]+[AI]"
 created: 2026-09-02
-last_updated: 2026-10-05
+last_updated: 2026-10-17
 status: approved-by-secretary
 related_files: [docs/src/core/domain/domain.js, docs/src/data/mock/people.js, docs/src/data/mock/accounts.js, server/seed.js, server/db.js, docs/src/data/data-adapter.js, docs/src/core/domain/constants.js, docs/src/services/core/auth.js, docs/src/capabilities/]
 ---
@@ -19,6 +19,8 @@ related_files: [docs/src/core/domain/domain.js, docs/src/data/mock/people.js, do
 > 定位：光华管理学院党委（**院系级**，非全校）→ 动态支部多实例的两级治理架构。支书 2026-09-02 逐段批准（Part 1 架构 / Part 2 分期），P3 范围与形态 2026-09-03 裁定。
 >
 > **落地状态（P1~P3 代码/测试已入仓）**：党委台 tabs 在 `docs/src/entries/tabs/party-committee/`——monitor-tab.js（P1 支部监控台账）、branches-tab.js（P1 支部管理 + P2 支书任命；任命链 `docs/src/services/branch/appointment.js`）、party-config-tab.js（§2.5 支部配置收拢：config.modules/blocks 启停）、review-tab.js（P3 上报审批）、dispatch-tab.js（P3 下发通知）；测试：`server/test/party-committee.test.mjs`（P1+P2 E2E）、`server/test/party-committee-review.test.mjs`、`server/test/party-committee-dispatch.test.mjs`（P3 双向通道）。
+
+> **界面信息架构更新（2026-10-17）**：党委五个日常标签已按任务层级重组。下文保留 2026-09 分期与原始方向作为沿革；当前页面结构和范围以 §5.1 为准。
 
 ## 0. 方向选择说明（支书 2026-09-02 逐项决策记录）
 
@@ -159,6 +161,26 @@ related_files: [docs/src/core/domain/domain.js, docs/src/data/mock/people.js, do
 - **P3 党委指导审批 + 下发通知**（2026-09-03 范围与形态已裁定，见 §0）：
   - **上报（支部→党委）**：支书/副支书在支书工作台「上报党委」tab 发起——`develop-node`（发展节点）/`activity-report`（活动报备）两类，标题+说明上报（`reviewRequests` 记录，挂 branchId，状态 pending/approved/rejected）；党委在党委工作台「支部上报」tab 逐项批/驳（驳回须附意见，批准可附指导意见）→ 结论（含意见与处理人）回传支部侧同页可见。
   - **下发（党委→支委层）**：党委在「下发通知」tab 选目标支部（支部动态创建后自动可选）撰写下发 → 复用通知实体（`source:'committee'` + `audience:'committee'` + `branchId`），仅目标支部支委层成员在通知入口（铃铛/通知列表）可见并已读反馈，条目带「党委下发」红标；支部自发通知管理区不出现上级下发（只读治理信息，不可删改）。验收：双向通道闭环（上报→批复→回传；下发→支委收件），支部非支委党员不受打扰。
+
+## 5.1 当前党委工作台信息架构与访问边界（2026-10-17）
+
+党委工作台首屏先回答“党委现在要处理什么”。五个标签各自承担不同任务，不能把同一个指标或说明复制到多个页面：
+
+| 标签 | 首要问题 | 信息与动作边界 |
+|---|---|---|
+| 治理总览 | 党委当前要批复什么、哪些支部缺任支书？ | 主队列取真实待批复上报；运行支部缺少支书单独作为组织待补。停用状态不算异常。此页不展示个人档案或思想汇报明细。 |
+| 支部动态 | 各支部运行状态和工作卡点分别怎样？ | 按支部列表对比状态、成员/党员规模、待批复与活动数量；不展开个人级记录。需要查看个案时，先明确选择单一支部，再进入独立只读视图。 |
+| 支部上报 | 哪些发展节点或活动报备待党委决定？ | 待批复与已处理分区切换；决定、意见和回传状态附着在同一上报记录，处理完成后直接显示结果。 |
+| 支部管理 | 现有支部目录与需要进入的支部是哪一个？ | 首屏为目录；目录负责新建和选择。选中后进入 `branch-config.html?branchId=...`，改名、任命、启停、名册初始化与分区配置都在同一支部上下文；部署自检放在次级区。 |
+| 下发通知 | 现在撰写下发，还是查找已发送记录？ | 在“撰写 / 已发送”两个视图间切换。下发仍复用通知实体，收件方通过通知铃铛查看，不与私信混为一谈。 |
+
+党委共享顶栏不提供“我的档案”。党委档案查阅必须来自明确选定的单一支部，并保留 `party-staff` 身份；入口为独立 `workspace/branch-readonly.html?branchId=...`，不能进入支书工作台。只读支部视图可列出该支部成员与活动，并链接到该成员只读档案。
+
+五个日常标签属于同一个“党委治理”导航组。支部目录只呈现名称、运行状态、规模和进入路径；已有支部的改名、任命、状态维护及空支部名册导入集中到选定支部的配置页。这样在目录里先回答“有哪些支部、要进入哪一个”，不把组织维护表单铺在每一行。
+
+**档案服务边界**：不选支部时，党委只读跨支部汇总；选中一个支部后，党委可读取该支部完整档案；请求参数与成员 `branchId` 不一致、缺少选定范围或读取其他支部时由服务端拒绝。前端隐藏入口不构成权限控制。党委组织员不能读取自己的成员档案，也不能通过通用名册接口绕过选定范围。
+
+配置按分区导航与引导式向导共用 `org-setup-wizard.js`。日常配置使用分区入口；首次建支部/逐步核对可进入 `wizard.html?branch=...`，保留草稿续做、复制/创建、配置导入导出和工作单。配置区继续按角色限制写权：党委可维护组织字段和权限范围内的参数；模块/能力包的选择权归支部。
 
 ## 6. 演示与基线
 

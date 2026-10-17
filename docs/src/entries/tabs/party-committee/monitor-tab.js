@@ -1,163 +1,71 @@
-// role: [工程师]+[AI]
-// 党委工作台 Tab：支部监控台账（P1 党委后台，2026-09-02）
-// 党委见全院：各支部运行概览（支部名/支书/成员规模/在册党员/滞留/发展阶段/组织生活台账/近期活动/进入支部）
-// C⑤（2026-09-10 支书裁定）：支部级明细单一源=本台账（治理总览只留全院级汇总数字）。
-// R6（2026-09-28 批次 220）：**字段分层**——单卡原载 8+ 字段属「超载」，
-//   首屏只留「监控一眼要看」（支部名 + 类别/现任支书 + 状态 + 成员规模 / 在册党员 / 滞留党员 三个规模与异常数），
-//   「点进去才看」的明细（支书任期 / 发展阶段分布 / 思想汇报 / 组织生活类型 / 近期活动）折叠进 `<details>`。
-//   折叠体例＝本仓既有 `<details>`（同 makeup-tab「补课范围与归档口径」）；折叠只分层、不减字段与功能。
-// 数源：mockDB.branches（支部实例）+ PEOPLE（成员档案，已挂 branchId）+ ctx.activities（工作台已加载）
+// Branch monitoring: compare organization-level state without exposing member-level records.
+import { mockDB } from '../../../core/domain/domain.js?v=20261018a';
+import { PersonStore } from '../../../services/member/person.js?v=20261018a';
+import { getRosterStats } from '../../../services/member/roster.js?v=20261018a';
+import { listReviewRequests } from '../../../services/governance/review-request.js?v=20261018a';
+import { bindBranchReadOnlyButtons } from '../../../services/core/branch-readonly-nav.js?v=20261018a';
+import { renderBranchFilter, filterByBranch } from '../../../components/governance/branch-filter.js?v=20261018a';
+import { escHtml as esc } from '../../../core/base/utils.js?v=20261018a';
 
-import { mockDB } from '../../../core/domain/domain.js?v=20261017h';
-import { escHtml } from '../../../core/base/utils.js?v=20261017h';
-import { liveMembers, PersonStore } from '../../../services/member/person.js?v=20261017h';
-// C⑤（2026-09-10 支书裁定）：治理总览不再呈支部明细 → 支部党员数/滞留收归本台账，
-// 复用 services/member/roster.js getRosterStats（与治理总览上卷、会议「应到名单」同口径）。
-import { getRosterStats } from '../../../services/member/roster.js?v=20261017h';
-// 数据域接线收口（2026-09-03）：支部成员名单经 services/member/person.js 获取（原直连 mock PEOPLE）
-// 实时视图（非快照）：成员增删即时可见——见 services/member/person.js liveMembers 说明
-const PEOPLE = liveMembers();
-import { getCommitteeName } from '../../../services/branch/branch.js?v=20261017h';
-import { getPersonName } from '../../../services/member/person.js?v=20261017h';
-// P2（2026-09-10）：监控卡补「支书任期」只读行——复用 appointment.js 任期档案（起止/现任）
-import { listAppointments } from '../../../services/branch/appointment.js?v=20261017h';
-// 支部监控卡「进入支部」→ 复用党委既有支部入口（services/core/branch-demo-nav.js）：
-// 只读监控视图（演示形态；本地回环主机放行，本地示例 / API 会话同口径只读），不授予党支部内部事务权限。
-import { bindBranchDemoButtons } from '../../../services/core/branch-demo-nav.js?v=20261017h';
-// 支部筛选共用件（2026-10-04 批次 374 · 支书「按下设支部筛选信息」）——四页复用同一件，不各写一份
-import { renderBranchFilter, filterByBranch } from '../../../components/governance/branch-filter.js?v=20261017h';
-
-/** 本页支部筛选的 stateKey（选择随模块自持，页内重绘不丢） */
 const BRANCH_FILTER_STATE = 'pc-monitor';
 
-const STAGE_ORDER = ['正式党员', '预备党员', '发展对象', '积极分子'];
-
 export async function renderContent(ctx) {
-  const el = document.getElementById('party-committee-tab-content');
-  if (!el) return;
-  el.dataset.currentTab = 'monitor'; // 跨 tab 共享容器约定（同 today/group-progress/insight-view 体例）：登记当前 tab，防 party-config 守卫读到陈旧标记而残留
-  const activities = ctx?.activities || mockDB.activities || [];
-  // 支部筛选（2026-10-04 批次 374 · 支书「按下设支部筛选信息」）：卡片按所选支部收窄；
-  //   页首「支部实例」计数仍取**全部**支部（它是院系规模口径，不随筛选变）。
-  const allBranches = mockDB.branches || [];
-  const branches = filterByBranch(allBranches, BRANCH_FILTER_STATE);
-  const aggregateOnly = document.documentElement.dataset.dataSource === 'api'
-    && !new URLSearchParams(window.location.search).has('branchId');
+  const host = document.getElementById('party-committee-tab-content');
+  if (!host) return;
+  host.dataset.currentTab = 'monitor';
 
-  const cards = branches.map(b => {
-    const members = PEOPLE.filter(p => p.branchId === b.id);
-    // 在册党员 / 滞留（应到口径剔除）：与治理总览上卷同源（roster getRosterStats）
-    const roster = getRosterStats({ branchId: b.id });
-    const stageCounts = {};
-    members.forEach(p => { stageCounts[p.developStage] = (stageCounts[p.developStage] || 0) + 1; });
-    const stageRows = STAGE_ORDER.map(s => ({ s, n: stageCounts[s] || 0 })).filter(r => r.n > 0);
-    const typeCounts = {};
-    activities.forEach(a => { if ((a.branchId || 'br-b1') === b.id) { typeCounts[a.type] = (typeCounts[a.type] || 0) + 1; } });
-    const recent = activities.filter(a => (a.branchId || 'br-b1') === b.id).sort((x, y) => (y.date || '').localeCompare(x.date || '')).slice(0, 5);
-    const secretaryName = aggregateOnly ? '选择支部查看明细' : (b.secretaryId ? getPersonName(b.secretaryId) : '（待任命）');
-    // 支书任期行（只读）：复用 listAppointments（倒序，现任在前）——现任（to null）=「至今（现任）」，
-    // 无在任记录时回退最近一条历史，全无 → 暂无任期记录（起止 = from → to）。
-    const appts = listAppointments(b.id);
-    const term = appts.find(a => !a.to) || appts[0] || null;
-    const termText = term
-      ? `支书任期：${String(term.from || '').slice(0, 10) || '—'}${term.to ? ` → ${String(term.to).slice(0, 10)}` : ' · 至今（现任）'}`
-      : '支书任期：（暂无任期记录）';
-    return {
-      b,
-      members: aggregateOnly ? (b.summary?.memberCount ?? 0) : members.length,
-      stageRows: aggregateOnly ? [] : stageRows,
-      typeCounts: aggregateOnly ? {} : typeCounts,
-      recent: aggregateOnly ? [] : recent,
-      secretaryName,
-      termText: aggregateOnly ? '支部人员与业务明细须选中支部后查看' : termText,
-      partyTotal: aggregateOnly ? (b.summary?.partyMemberCount ?? 0) : roster.partyTotal,
-      detained: aggregateOnly ? (b.summary?.detainedPartyCount ?? 0) : roster.detainedParty,
-      aggregateOnly,
-    };
+  const allBranches = (mockDB.branches || []).filter((branch) => branch && branch.id);
+  const branches = filterByBranch(allBranches, BRANCH_FILTER_STATE);
+  const activities = ctx?.activities || mockDB.activities || [];
+  const pending = listReviewRequests({ status: 'pending' });
+  const apiMode = document.documentElement.dataset.dataSource === 'api';
+
+  const rows = branches.map((branch) => {
+    const branchMembers = apiMode && branch.summary?.memberCount == null
+      ? null
+      : PersonStore.getMembers().filter((person) => person.branchId === branch.id);
+    const roster = getRosterStats({ branchId: branch.id });
+    const memberCount = branch.summary?.memberCount ?? (branchMembers ? branchMembers.length : null);
+    const partyCount = branch.summary?.partyMemberCount ?? (branchMembers ? roster.partyTotal : null);
+    const activityCount = activities.filter((activity) => (activity.branchId || 'br-b1') === branch.id).length;
+    const pendingCount = pending.filter((request) => request.branchId === branch.id).length;
+    return { branch, memberCount, partyCount, activityCount, pendingCount };
   });
 
-  el.innerHTML = `
-    <div class="space-y-5">
-      <div class="card rounded-xl p-4 flex items-center justify-between">
-        <div>
-          <p class="text-xs text-gray-500">院系党组织</p>
-          <p class="font-title-cn text-lg font-bold text-gray-800">${escHtml(getCommitteeName())}</p>
+  host.innerHTML = `
+    <div class="party-page party-page--wide">
+      <header class="party-page__header">
+        <div class="party-page__heading">
+        <p class="text-xs font-medium text-gray-500">党委 · 全院范围</p>
+        <h2 class="mt-1 font-title-cn text-xl font-bold text-gray-900">支部动态</h2>
+        <p class="mt-1 text-sm text-gray-600">按支部查看运行状态、待批复数量和活动记录。个人档案只在选定支部的只读视图中打开。</p>
         </div>
-        <div class="text-right">
-          <p class="text-2xl font-bold text-red-600">${allBranches.length}</p>
-          <p class="text-xs text-gray-500">支部实例</p>
-        </div>
-      </div>
-      <div id="pc-monitor-branch-filter"></div>
-      ${cards.map(({ b, members, partyTotal, detained, stageRows, typeCounts, recent, secretaryName, termText, aggregateOnly }) => `
-        <div class="card rounded-xl p-4">
-          <div class="flex items-center justify-between mb-3">
-            <div>
-              <p class="font-title-cn text-base font-bold text-gray-800">${escHtml(b.config?.headerTitle || b.name)}</p>
-              <p class="text-xs text-gray-500 mt-0.5">${escHtml(b.type || '支部')} · 现任支书：${escHtml(secretaryName)}</p>
-            </div>
-            <span class="text-xs px-2 py-0.5 rounded-full ${b.status === 'active' ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-gray-600'}">${b.status === 'active' ? '运行中' : escHtml(b.status || '—')}</span>
-          </div>
-          <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
-            <div class="rounded-lg bg-gray-50 p-3">
-              <p class="text-xs text-gray-500">成员规模</p>
-              <p class="text-xl font-bold text-gray-800 mt-1">${members}<span class="text-xs font-normal text-gray-500"> 人</span></p>
-            </div>
-            <div class="rounded-lg bg-gray-50 p-3">
-              <p class="text-xs text-gray-500">在册党员（正式+预备）</p>
-              <p class="text-xl font-bold text-gray-800 mt-1">${partyTotal}<span class="text-xs font-normal text-gray-500"> 人</span></p>
-            </div>
-            <div class="rounded-lg bg-gray-50 p-3">
-              <p class="text-xs text-gray-500">滞留党员（应到剔除）</p>
-              <p class="text-xl font-bold text-gray-800 mt-1">${detained}<span class="text-xs font-normal text-gray-500"> 人</span></p>
-            </div>
-          </div>
-          ${aggregateOnly ? '<p class="mt-3 text-xs text-gray-500">这里只显示跨支部数字汇总。选择支部后可查看人员、负责人和活动明细。</p>' : `<details class="mt-3">
-            <summary class="text-xs text-gray-500 cursor-pointer select-none">更多台账明细（支书任期 / 发展阶段 / 思想汇报 / 组织生活类型 / 近期活动）▾</summary>
-            <div class="mt-2 space-y-3">
-              <p class="text-xs text-gray-500">${escHtml(termText)}</p>
-              <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
-                <div class="rounded-lg bg-gray-50 p-3 col-span-1">
-                  <p class="text-xs text-gray-500">发展阶段分布</p>
-                  <p class="text-xs text-gray-600 mt-1.5 leading-5">${stageRows.map(r => `${r.s} ${r.n}`).join(' · ') || '—'}</p>
-                </div>
-                <div class="rounded-lg bg-gray-50 p-3">
-                  <p class="text-xs text-gray-500">思想汇报</p>
-                  <p class="text-xl font-bold text-gray-800 mt-1">${(mockDB.thoughtReports || []).filter(t => !t.branchId || t.branchId === b.id).length}</p>
-                </div>
-                <div class="rounded-lg bg-gray-50 p-3">
-                  <p class="text-xs text-gray-500">组织生活类型</p>
-                  <p class="text-xs text-gray-600 mt-1.5 leading-5">${Object.entries(typeCounts).map(([t, n]) => `${escHtml(t)} ${n}`).join(' · ') || '—'}</p>
-                </div>
-              </div>
-              ${recent.length ? `
-              <div>
-                <p class="text-xs text-gray-500 mb-2">近期活动</p>
-                <div class="flex flex-wrap gap-2">
-                  ${recent.map(a => `<a href="./activity.html?id=${encodeURIComponent(a.id || '')}&branchId=${encodeURIComponent(b.id)}" class="text-xs text-gray-600 bg-gray-50 border border-gray-100 rounded px-2 py-1 hover:bg-gray-100 transition-colors" style="text-decoration:none;" title="查看活动详情（只读）">${escHtml(a.date?.slice(5) || '')} ${escHtml(a.title)}</a>`).join('')}
-                </div>
-              </div>` : ''}
-            </div>
-          </details>`}
-          <div class="mt-3 flex items-center justify-between gap-2 pt-2 border-t border-gray-100">
-            <p class="text-xs text-gray-500">监控只读视图 · 不授予支部内部事务权限</p>
-            ${aggregateOnly
-              ? `<button type="button" class="branch-summary-select btn-accent text-xs px-3 py-1.5 rounded-lg font-medium shrink-0" data-branch-id="${escHtml(b.id)}">查看该支部</button>`
-              : `<button type="button" class="branch-demo-enter btn-accent text-xs px-3 py-1.5 rounded-lg font-medium shrink-0" data-branch-id="${escHtml(b.id)}" title="打开该支部监控只读视图（只读；不授予支部内部事务权限）">进入支部</button>`}
-          </div>
-        </div>`).join('')}
-    </div>
-  `;
-  // 支部筛选（共用件；变更即重渲本页 ⇒ 卡片按所选支部收窄）
-  renderBranchFilter(el.querySelector('#pc-monitor-branch-filter'), {
+      </header>
+      <section class="card p-5" aria-label="支部运行台账">
+        <div id="pc-monitor-branch-filter" class="mb-4"></div>
+        ${rows.length ? `<div class="pc-table-scroll pc-table-scroll--branches">
+          <table class="data-table">
+            <caption class="visually-hidden">支部运行台账：比较支部状态、成员、活动与待批复数量</caption>
+            <thead><tr><th scope="col">支部</th><th scope="col">状态</th><th scope="col">成员</th><th scope="col">在册党员</th><th scope="col">待批复</th><th scope="col">活动</th><th scope="col">查看</th></tr></thead>
+            <tbody>${rows.map(({ branch, memberCount, partyCount, activityCount, pendingCount }) => `
+              <tr>
+                <td><div class="font-medium text-gray-900">${esc(branch.config?.headerTitle || branch.name || branch.id)}</div><div class="mt-0.5 text-xs text-gray-500">${esc(branch.type || '支部')}</div></td>
+                <td><span class="text-sm font-medium ${branch.status === 'inactive' ? 'text-gray-600' : 'text-green-700'}">${branch.status === 'inactive' ? '已停用' : '运行中'}</span></td>
+                <td class="tabular-nums">${memberCount == null ? '—' : `${memberCount} 人`}</td>
+                <td class="tabular-nums">${partyCount == null ? '—' : `${partyCount} 人`}</td>
+                <td class="tabular-nums ${pendingCount ? 'font-semibold text-amber-800' : ''}">${pendingCount} 项</td>
+                <td class="tabular-nums">${activityCount} 项</td>
+                <td><button type="button" class="btn-outline branch-readonly-enter whitespace-nowrap px-3 py-2 text-xs font-medium" data-branch-id="${esc(branch.id)}">查看该支部</button></td>
+              </tr>`).join('')}</tbody>
+          </table>
+        </div>` : `<p class="py-8 text-sm text-gray-600" role="status">当前筛选下没有支部。</p>`}
+      </section>
+      <p class="text-sm leading-6 text-gray-600">只读下钻会显示当前支部范围。党委可查该支部档案，日常事务仍由支部办理。</p>
+    </div>`;
+
+  renderBranchFilter(host.querySelector('#pc-monitor-branch-filter'), {
     stateKey: BRANCH_FILTER_STATE,
     onChange: () => renderContent(ctx),
   });
-  el.querySelectorAll('.branch-summary-select').forEach((button) => button.addEventListener('click', () => {
-    const url = new URL(window.location.href);
-    url.searchParams.set('branchId', button.dataset.branchId);
-    window.location.assign(url.toString());
-  }));
-  bindBranchDemoButtons(el);
+  bindBranchReadOnlyButtons(host);
 }
-

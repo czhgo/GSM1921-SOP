@@ -1,5 +1,5 @@
 /* 组件样式（@import 必须位于文件顶部） */
-@import url('components/person-picker.css?v=20261017h');
+@import url('components/person-picker.css?v=20261018a');
 
 /* ═══════════════════════════════════════════════════════════════
    GSM1921-SOP DESIGN SYSTEM v11.0 — Matte Flat
@@ -325,6 +325,118 @@ body {
 
 .card:hover {
   border-color: var(--primary-300);
+}
+
+/* Responsive content shells: fluid inside a shared max-width. Percentages describe
+   grid share; semantic caps keep forms, governance pages and data tables readable. */
+.layout-shell {
+  width: 100%;
+  min-width: 0;
+  margin-inline: auto;
+}
+.layout-shell--form { max-width: 48rem; }
+.layout-shell--content { max-width: 72rem; }
+.layout-shell--wide { max-width: 80rem; }
+
+.party-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  min-width: 0;
+  max-width: 72rem;
+}
+.party-page--wide { max-width: 80rem; }
+.party-page__header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  justify-content: space-between;
+  gap: 1rem;
+  border-bottom: 1px solid var(--neutral-200);
+  padding-bottom: 1rem;
+}
+.party-page__heading { min-width: 0; }
+.pc-table-scroll { max-width: 100%; overflow-x: auto; }
+.pc-table-scroll--branches > .data-table { min-width: 58rem; }
+.pc-table-scroll--members > .data-table { min-width: 42rem; }
+#branch-secretary-picker .person-picker-wrapper { width: 100%; }
+#branch-secretary-picker .person-picker-trigger { width: 100%; max-width: none; }
+
+.branch-config-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+.branch-config-nav [aria-current="page"] {
+  border-color: var(--primary-700);
+  background: var(--primary-50);
+  color: var(--primary-800);
+  font-weight: 600;
+}
+.branch-config-select { display: none; }
+.org-config-layout {
+  display: grid;
+  grid-template-columns: minmax(12rem, 0.28fr) minmax(0, 1fr);
+  align-items: start;
+  gap: 1.25rem;
+  margin-top: 1rem;
+}
+.org-config-steps {
+  position: sticky;
+  top: 5.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+.org-config-step-select { display: none; }
+.org-config-step-buttons { display: flex; flex-direction: column; gap: 0.4rem; }
+.org-config-steps [data-wz-step] { justify-content: flex-start; width: 100%; }
+.org-config-content { min-width: 0; }
+.org-config-step-panel > .space-y-4 > .rounded-xl.border {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  padding: 0;
+}
+.branch-readonly-nav {
+  position: sticky;
+  top: 4rem;
+  z-index: 2;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  border-bottom: 1px solid var(--neutral-200);
+  background: var(--surface-page);
+  padding-block: 0.75rem;
+}
+.branch-readonly-nav a {
+  border: 1px solid var(--neutral-200);
+  border-radius: var(--radius-sm);
+  background: var(--surface-card);
+  padding: 0.4rem 0.75rem;
+  color: var(--neutral-700);
+  font-size: 0.8125rem;
+}
+.branch-readonly-nav a:focus-visible,
+.branch-config-nav button:focus-visible,
+.pc-table-scroll a:focus-visible {
+  outline: 3px solid var(--primary-500);
+  outline-offset: 2px;
+}
+
+@media (max-width: 768px) {
+  .org-config-layout { grid-template-columns: minmax(0, 1fr); }
+  .org-config-steps { position: static; display: block; }
+  .org-config-step-select { display: block; width: 100%; }
+  .org-config-step-buttons { display: none; }
+  .branch-readonly-nav { position: static; }
+}
+@media (max-width: 640px) {
+  .branch-config-nav { display: none; }
+  .branch-config-select { display: block; width: 100%; margin-bottom: 1rem; }
+  .party-page { gap: 1rem; }
+  .party-page__header { align-items: flex-start; }
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -2420,7 +2532,7 @@ input.login-input:focus-visible,
 
   #sidebar-main.sidebar-collapsed,
   #app-sidebar.sidebar-collapsed {
-    transform: translateY(-110%);
+    transform: translateY(calc(-100% - 56px));
   }
 
   .sidebar-main-content {

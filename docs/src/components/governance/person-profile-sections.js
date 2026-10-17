@@ -1,7 +1,7 @@
 // role: [工程师]+[AI]
 // 个人档案页的自我描述展示：字段顺序与含义沿用自我描述字段单一源。
-import { escHtml as esc } from '../../core/base/utils.js?v=20261017h';
-import { isSelfProfileEmpty, SELF_PROFILE_FIELDS } from '../../core/domain/self-profile.js?v=20261017h';
+import { escHtml as esc } from '../../core/base/utils.js?v=20261018a';
+import { isSelfProfileEmpty, SELF_PROFILE_FIELDS } from '../../core/domain/self-profile.js?v=20261018a';
 
 function fieldValueHtml(field, value) {
   if (field.type === 'bool') {

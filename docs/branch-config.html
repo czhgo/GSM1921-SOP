@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <base href="./">
+  <script src="./src/theme-init.js?v=20261018a"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>支部配置 — GSM1921-SOP</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;800&family=Noto+Serif+SC:wght@400;500;600;700;800&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;800&family=Noto+Serif+SC:wght@400;500;600;700;800&display=swap" rel="stylesheet"></noscript>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="./src/tailwind-config.js?v=20261018a"></script>
+  <link rel="stylesheet" href="./src/styles.css?v=20261018a">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+</head>
+<body>
+  <a href="#main-content" class="visually-hidden skip-link">跳到主要内容</a>
+  <header id="app-header"></header>
+  <div id="sidebar-overlay"></div>
+  <aside id="app-sidebar" class="sidebar-collapsed"></aside>
+  <div class="sidebar-main-content pt-16 min-h-screen">
+    <main id="main-content" class="min-w-0 px-4 py-6 md:px-8">
+      <div class="layout-shell layout-shell--content">
+        <div class="mb-5 flex flex-wrap items-end justify-between gap-3 border-b border-gray-200 pb-4">
+          <div><p id="branch-config-scope" class="text-xs font-medium text-gray-500">党委 · 正在读取支部范围</p><h1 class="mt-1 font-title-cn text-xl font-bold text-gray-900">支部配置</h1></div>
+          <div class="flex flex-wrap gap-2"><a id="branch-config-wizard-link" class="btn-outline inline-flex px-3 py-2 text-sm" href="./wizard.html">引导模式</a><a class="btn-outline inline-flex px-3 py-2 text-sm" href="./workspace/party-committee.html?tab=branches">返回支部目录</a></div>
+        </div>
+        <div id="branch-config-message" role="status" aria-live="polite" class="mb-4 text-sm text-gray-600"></div>
+        <nav id="branch-config-nav" class="branch-config-nav" aria-label="支部设置领域">
+          <button type="button" class="btn-outline px-3 py-2 text-sm" data-config-nav="organization" aria-current="page">组织与任期</button>
+          <button type="button" class="btn-outline px-3 py-2 text-sm" data-config-nav="roster">成员名册</button>
+          <button type="button" class="btn-outline px-3 py-2 text-sm" data-config-nav="capabilities">业务能力与制度</button>
+          <button type="button" class="btn-outline px-3 py-2 text-sm" data-config-nav="deployment">验证与部署</button>
+        </nav>
+        <label class="visually-hidden" for="branch-config-section-select">设置领域</label>
+        <select id="branch-config-section-select" class="input-flat branch-config-select">
+          <option value="organization">组织与任期</option>
+          <option value="roster">成员名册</option>
+          <option value="capabilities">业务能力与制度</option>
+          <option value="deployment">验证与部署</option>
+        </select>
+        <section id="branch-config-controls" data-config-panel="organization" aria-label="支部组织与任期维护"></section>
+        <section id="branch-config-roster-panel" data-config-panel="roster" aria-labelledby="branch-config-roster-heading" hidden>
+          <div class="card p-5">
+            <div class="mb-4 flex flex-wrap items-baseline justify-between gap-2">
+              <h2 id="branch-config-roster-heading" class="font-title-cn text-base font-bold text-gray-900">成员名册</h2>
+              <p class="text-sm text-gray-600">成员归属与在册信息</p>
+            </div>
+            <div id="branch-config-roster"></div>
+          </div>
+        </section>
+        <section id="branch-config-sections" data-config-panel="capabilities" aria-label="业务能力、角色与制度" hidden></section>
+        <section id="branch-config-deploy-panel" data-config-panel="deployment" aria-labelledby="branch-config-deploy-heading" hidden>
+          <div class="card p-5">
+            <h2 id="branch-config-deploy-heading" class="font-title-cn mb-4 text-base font-bold text-gray-900">验证与部署</h2>
+            <div id="branch-config-deploy"></div>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+  <script type="module" src="./src/entries/pages/branch-config-entry.js?v=20261018a"></script>
+</body>
+</html>

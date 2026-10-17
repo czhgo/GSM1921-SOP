@@ -50,7 +50,7 @@ async function loginAs(page, { studentId, expectUrlPart }) {
   ]);
   await page.waitForFunction(() => Boolean(document.getElementById('app-header')), { timeout: 15000 });
   // P0-2 形态断言（2026-09-23 支书裁定「形态必须可断言」）：本文件真机用例必须在 API 形态下跑
-  await page.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20261017h')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
+  await page.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20261018a')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
 }
 
 async function activateTab(page, tabLabel) {
@@ -83,7 +83,7 @@ test('P3 党委下发：支委层收件可见（支书），党委自身/普通�
     // ── ① 党委组织员（p_pc）→ 下发通知 tab → 下发到 br-b1 ──
     await loginAs(partyPage, { studentId: '9000000001', expectUrlPart: 'party-committee.html' });
     await activateTab(partyPage, '下发通知');
-    await page_waitText(partyPage, '撰写下发通知');
+    await page_waitText(partyPage, '撰写一条党委通知');
     await partyPage.evaluate((title) => {
       const t = document.getElementById('dispatch-title');
       const c = document.getElementById('dispatch-content');
@@ -91,7 +91,8 @@ test('P3 党委下发：支委层收件可见（支书），党委自身/普通�
       if (c) { c.value = '请支委会对照落实，重要事项及时向支部大会传达。'; c.dispatchEvent(new Event('input', { bubbles: true })); }
       document.getElementById('dispatch-submit')?.click();
     }, titleD);
-    await page_waitText(partyPage, titleD); // 下发历史出现该条
+    await partyPage.getByRole('tab', { name: /已发送/ }).click();
+    await page_waitText(partyPage, titleD); // 切到已发送后查看记录
 
     // 党委组织员（非支委）自身铃铛看不到下发（audience=committee 过滤）
     const partyBell = await openBell(partyPage);

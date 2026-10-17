@@ -136,7 +136,8 @@ test('成员列表与 bootstrap 只向本人及本支部支委投影自我描述
   const partyBootstrap = await get('p_pc', '/bootstrap?branchId=br-b1');
   assert.ok(partyBootstrap.body.users.every((row) => row.selfProfile === undefined));
 
-  const getProfile = (viewerId, targetId) => get(viewerId, `/members/${targetId}/profile`);
+  const getProfile = (viewerId, targetId, branchId = '') => get(viewerId,
+    `/members/${targetId}/profile${branchId ? `?branchId=${encodeURIComponent(branchId)}` : ''}`);
   const selfProfile = await getProfile('p1', 'p1');
   assert.equal(selfProfile.response.status, 200);
   assert.equal(selfProfile.body.selfProfile.futureDirection, 'protected-p1');
@@ -145,7 +146,14 @@ test('成员列表与 bootstrap 只向本人及本支部支委投影自我描述
   assert.equal(committeeProfile.body.selfProfile.futureDirection, 'protected-p13');
   assert.equal((await getProfile('p1', 'p13')).response.status, 403, '普通成员不能打开他人档案');
   assert.equal((await getProfile('p98', 'p13')).response.status, 403, '其他支部支委不能打开本支部档案');
-  assert.equal((await getProfile('p_pc', 'p13')).response.status, 403, '党委组织员不能打开支部个人档案');
+  assert.equal((await getProfile('p_pc', 'p13')).response.status, 403, '党委未选支部时不能打开个人档案');
+  const selectedPartyProfile = await getProfile('p_pc', 'p13', 'br-b1');
+  assert.equal(selectedPartyProfile.response.status, 200, '党委明确选择所属支部后可只读查看完整档案');
+  assert.equal(selectedPartyProfile.body.selfProfile.futureDirection, 'protected-p13');
+  assert.equal((await getProfile('p_pc', 'p13', 'br-b2')).response.status, 403, '所选支部与成员归属不一致时拒绝');
+  const selectedOtherBranchProfile = await getProfile('p_pc', 'p99', 'br-b2');
+  assert.equal(selectedOtherBranchProfile.response.status, 200, '选择第二支部后只读查看该支部档案');
+  assert.equal(selectedOtherBranchProfile.body.selfProfile.futureDirection, 'protected-p99');
   assert.equal(db.pragma('integrity_check', { simple: true }), 'ok', '只读档案请求不得损坏数据库');
 });
 

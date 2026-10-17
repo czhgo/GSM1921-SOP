@@ -1,7 +1,7 @@
 // role: [工程师]+[AI]
 // 个人档案读取边界的单一纯函数源；服务端强制执行，mock 页面镜像展示状态。
-import { BRANCH_COMMISSION_ROLES, ORG_COMMISSIONER_ROLES } from './constants.js?v=20261017h';
-import { POLICY_DEFAULTS } from './policy-defaults.js?v=20261017h';
+import { BRANCH_COMMISSION_ROLES, ORG_COMMISSIONER_ROLES } from './constants.js?v=20261018a';
+import { POLICY_DEFAULTS } from './policy-defaults.js?v=20261018a';
 
 const DEFAULT_BRANCH_ID = 'br-b1';
 
@@ -12,8 +12,13 @@ export const MEMBER_PROFILE_READ_FIELDS = Object.freeze([
 ]);
 
 /** 档案访问是“本人”或“同支部支委”；支部读取策略仅能由全组织制度裁定修改。 */
-export function canReadMemberProfile(actor, member) {
+export function canReadMemberProfile(actor, member, selectedBranchId = actor?.selectedBranchId) {
   if (!actor?.id || !member?.id) return false;
+  // 党委组织员不属于支部。只有从党委工作台明确选定支部后，才可在该范围内只读查阅档案。
+  // 必须精确匹配显式 branchId，未归属成员与其他支部成员都不进入该视图。
+  if (actor.role === 'party-staff') {
+    return !!selectedBranchId && member.role !== 'party-staff' && member.branchId === selectedBranchId;
+  }
   if (String(actor.id) === String(member.id)) return true;
   if (POLICY_DEFAULTS.profile?.selfProfileReadScope !== 'self-and-branch-committee') return false;
   const actorBranchId = actor.branchId || DEFAULT_BRANCH_ID;

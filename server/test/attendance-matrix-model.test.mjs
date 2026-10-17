@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { buildAttendanceMatrixModel } from '../../docs/src/services/activity/attendance-matrix.js?v=20261017h';
+import { buildAttendanceMatrixModel } from '../../docs/src/services/activity/attendance-matrix.js?v=20261018a';
 
 test('考勤矩阵把冻结应到名单、考勤事实和跨活动人员关系合成一份可解释矩阵', () => {
   const activities = [

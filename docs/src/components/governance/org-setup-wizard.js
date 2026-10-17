@@ -14,34 +14,34 @@
 // 草稿：localStorage `wizard-draft-<branchId>`（当前步 + 每步完成标记 + 完成态），中断可续走。
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../../core/domain/domain.js?v=20261017h';
-import { getCapabilities } from '../../core/boot/registry.js?v=20261017h';
-import { OUTPUT_BLOCK_DEFS, BRANCH_COMMISSION_ROLES, ROLE_LABELS, getAccentColors } from '../../core/domain/constants.js?v=20261017h';
-import { CAPABILITY_PACKAGES } from '../../core/domain/capability-packages.js?v=20261017h';
-import { ORG_SUBJECT_LABELS, isBranchOrgSubject, ownerSubjectType } from '../../core/domain/work-map.js?v=20261017h';
+import { mockDB } from '../../core/domain/domain.js?v=20261018a';
+import { getCapabilities } from '../../core/boot/registry.js?v=20261018a';
+import { OUTPUT_BLOCK_DEFS, BRANCH_COMMISSION_ROLES, ROLE_LABELS, getAccentColors } from '../../core/domain/constants.js?v=20261018a';
+import { CAPABILITY_PACKAGES } from '../../core/domain/capability-packages.js?v=20261018a';
+import { ORG_SUBJECT_LABELS, isBranchOrgSubject, ownerSubjectType } from '../../core/domain/work-map.js?v=20261018a';
 // 副作用：注册支委层工作台能力（配置目录=其 tab 清单，单一源）
-import '../../capabilities/secretary-workspace.js?v=20261017h';
-import { BLOCK_MANIFESTS } from '../../workflow/blocks/manifests.js?v=20261017h';
+import '../../capabilities/secretary-workspace.js?v=20261018a';
+import { BLOCK_MANIFESTS } from '../../workflow/blocks/manifests.js?v=20261018a';
 // L3 流程组合（2026-09-28 批次 246）：把编排内核接进**生产路径**——配置面用它做「组合体检」
-import { composePlan } from '../../workflow/blocks/orchestration.js?v=20261017h';
-import { escHtml as esc, showToast, downloadBlob } from '../../core/base/utils.js?v=20261017h';
-import { WORK_MAP_MODULES } from '../../core/domain/work-map.js?v=20261017h';
+import { composePlan } from '../../workflow/blocks/orchestration.js?v=20261018a';
+import { escHtml as esc, showToast, downloadBlob } from '../../core/base/utils.js?v=20261018a';
+import { WORK_MAP_MODULES } from '../../core/domain/work-map.js?v=20261018a';
 import {
   getBranchById, getBranchOrg, getBranchTabPolicy, getCoreTabIds,
   getBranchOutputBlocks, getBranchCapabilityPackageState, getOutputBlockPolicy, getWorkflowBlockPolicy, orderByIds,
   updateBranchModules, updateBranchCapabilityPackages, getBranchWorkforce, updateBranchWorkforce, updateBranchOrg,
   applyConfigCopy, createBranch, getBranchIdOfPerson,
-} from '../../services/branch/branch.js?v=20261017h';
-import { buildConfigPackage, applyConfigPackage } from '../../services/branch/org-config-package.js?v=20261017h';
+} from '../../services/branch/branch.js?v=20261018a';
+import { buildConfigPackage, applyConfigPackage } from '../../services/branch/org-config-package.js?v=20261018a';
 import {
   buildPreviewTemplate, sanitizePreview, applyPreview, clearPreview, getPreviewState,
   PREVIEW_KIND, PREVIEW_VERSION,
-} from '../../services/branch/org-base-data-preview.js?v=20261017h';
-import { getRosterStats, isDetained } from '../../services/member/roster.js?v=20261017h';
-import { buildOrgWizardReport } from '../../services/branch/org-wizard-report.js?v=20261017h';
-import { PersonStore, getPersonName } from '../../services/member/person.js?v=20261017h';
+} from '../../services/branch/org-base-data-preview.js?v=20261018a';
+import { getRosterStats, isDetained } from '../../services/member/roster.js?v=20261018a';
+import { buildOrgWizardReport } from '../../services/branch/org-wizard-report.js?v=20261018a';
+import { PersonStore, getPersonName } from '../../services/member/person.js?v=20261018a';
 // R5-1（2026-09-06）：建空支部「就地任命首任骨干」——任命编排在 appointment.js 收口（含数据边界登记）
-import { appointInauguralOfficers } from '../../services/branch/appointment.js?v=20261017h';
+import { appointInauguralOfficers } from '../../services/branch/appointment.js?v=20261018a';
 
 // ── 步骤元信息（支书已批口径）────────────────────────────────────
 export const WIZARD_STEPS = [
@@ -159,6 +159,7 @@ export function mountOrgSetupWizard(host, opts) {
     actor,
     canSwitch: !!opts.canSwitchBranch,
     embed: !!opts.embed,
+    navigationMode: opts.navigationMode === 'sections' ? 'sections' : 'guided',
     branchId: null,   // 初始化见下
     view: 'wizard',   // 'wizard' | 'complete' | 'denied'
     step: 1,
@@ -255,18 +256,33 @@ function _render(S) {
     return;
   }
   const org = getBranchOrg(branch.id);
-  host.innerHTML = `
-    ${_headHtml(S, branch, org, isStaff)}
-    ${_stepperHtml(S)}
-    <div class="space-y-4">
-      ${S.view === 'complete' ? _completeHtml(S, branch, org, isStaff) : _stepBodyHtml(S, branch, org, isStaff)}
-      ${S.view === 'wizard' ? _footerHtml(S, isStaff) : ''}
-    </div>`;
+  const stepContent = `
+    ${S.view === 'complete' ? _completeHtml(S, branch, org, isStaff) : _stepBodyHtml(S, branch, org, isStaff)}
+    ${S.view === 'wizard' ? _footerHtml(S, isStaff) : ''}`;
+  host.innerHTML = S.navigationMode === 'sections'
+    ? `<section class="org-config-page">
+        ${_headHtml(S, branch, org, isStaff)}
+        <div class="org-config-layout">
+          <nav class="org-config-steps" aria-label="业务配置步骤">${_stepperHtml(S)}</nav>
+          <div class="org-config-content"><section class="card p-5 org-config-step-panel"><div class="space-y-4">${stepContent}</div></section></div>
+        </div>
+      </section>`
+    : `${_headHtml(S, branch, org, isStaff)}${_stepperHtml(S)}<div class="space-y-4">${stepContent}</div>`;
   // workforce 行回填（select 初始值由当前快照决定；value 可能为 person 位保留项）
   const wfMap = _workforceValueMap(S);
   host.querySelectorAll('[data-wz-wf-sel]').forEach((sel) => {
     const v = wfMap[sel.getAttribute('data-module')];
     if (v) sel.value = v;
+  });
+  host.querySelector('[data-wz-step-select]')?.addEventListener('change', async (event) => {
+    const target = Number(event.currentTarget.value);
+    if (target < 1 || target > 5 || target === S.step) return;
+    if (S.dirty[S.step] && [1, 2, 3].includes(S.step)) {
+      const saved = await _saveStep(S, S.step);
+      if (!saved) return;
+    }
+    if (S.view === 'complete') S.view = 'wizard';
+    _goStep(S, target);
   });
 }
 
@@ -301,7 +317,9 @@ function _headHtml(S, branch, org, isStaff) {
   const branches = (mockDB.branches || []).filter(b => b.id && b.id !== 'pc-gsm');
   const options = branches.map(b =>
     `<option value="${esc(b.id)}" ${b.id === S.branchId ? 'selected' : ''}>${esc(b.name)}</option>`).join('');
-  const whoBadge = S.actor.role === 'deputy-secretary' ? '本副支书' : '现任支书';
+  const whoBadge = S.actor.role === 'party-staff'
+    ? '党委已选定支部'
+    : (S.actor.role === 'deputy-secretary' ? '本副支书' : '现任支书');
   const picker = S.canSwitch
     ? `<div class="flex flex-wrap items-center gap-2">
         <label for="wz-branch-select" class="text-xs text-gray-500 shrink-0">目标支部</label>
@@ -311,18 +329,18 @@ function _headHtml(S, branch, org, isStaff) {
     : `<div class="flex flex-wrap items-center gap-2">
         <span class="text-xs text-gray-500 shrink-0">目标支部</span>
         <span class="text-xs font-medium text-gray-800">${esc(branch.name)}</span>
-        <span class="text-[11px] px-2 py-0.5 rounded-full bg-red-50 text-red-700 border border-red-100 shrink-0">${whoBadge} · 限本支部</span>
+        <span class="text-[11px] px-2 py-0.5 rounded-full shrink-0 ${S.actor.role === 'party-staff' ? 'bg-blue-50 text-blue-700 border border-blue-100' : 'bg-red-50 text-red-700 border border-red-100'}">${whoBadge}${S.actor.role === 'party-staff' ? '' : ' · 限本支部'}</span>
       </div>`;
   return `
-    <div class="rounded-xl border border-gray-200 bg-white p-4 space-y-2">
+    <div class="${S.navigationMode === 'sections' ? 'space-y-2' : 'rounded-xl border border-gray-200 bg-white p-4 space-y-2'}">
       <div class="flex flex-wrap items-center justify-between gap-2">
         <div>
-          <p class="font-title-cn text-base font-bold text-gray-800">换组织向导</p>
-          <p class="text-xs text-gray-500">分步引导式支部配置（吸收合并原「支部配置」）；部署期/调整期使用，改动即时生效并记录变更</p>
+          <p class="font-title-cn text-base font-bold text-gray-800">${S.navigationMode === 'sections' ? '组织与业务配置' : '换组织向导'}</p>
+          <p class="text-xs text-gray-500">${S.navigationMode === 'sections' ? '维护组织信息、能力与流程、角色分工及制度工作单；可按步骤直接跳转。' : '分步引导式配置；适合首次创建或按步骤核对，草稿可续做。'}</p>
         </div>
         <div class="flex items-center gap-2 shrink-0">
-          ${isStaff ? `<button type="button" data-wz-act="toggle-create" class="btn-accent px-2.5 py-1.5">新建支部…</button>` : ''}
-          ${S.embed ? `<a href="./wizard.html?branch=${esc(S.branchId)}" class="text-[13px] text-blue-600 hover:text-blue-800 shrink-0" title="在新页面打开向导（独立 URL 直达）">独立页直达 ↗</a>` : ''}
+          ${isStaff && S.navigationMode === 'guided' ? `<button type="button" data-wz-act="toggle-create" class="btn-accent px-2.5 py-1.5">新建支部…</button>` : ''}
+          ${S.embed ? `<a href="./wizard.html?branch=${esc(S.branchId)}" class="text-[13px] text-blue-600 hover:text-blue-800 shrink-0" title="在独立页面打开引导式配置">${S.navigationMode === 'sections' ? '切换到引导模式 ↗' : '独立页直达 ↗'}</a>` : ''}
         </div>
       </div>
       ${picker}
@@ -522,21 +540,27 @@ function _copyPanelHtml(S, branches) {
     </div>`;
 }
 
-/** 步骤条：done=✓ 可回跳；当前步高亮（theme 色） */
+/** 章节导航：日常配置可直达分区；引导模式仍按已完成步骤解锁。 */
 function _stepperHtml(S) {
   const { accent, accentRgba, accentBorder } = _presetAccent(getBranchOrg(S.branchId).themePreset || 'red');
   const maxReached = Math.max(1, ...Object.keys(S.done).map(Number), S.step);
   const items = WIZARD_STEPS.map((st) => {
     const isDone = !!S.done[st.id];
     const isCur = S.step === st.id;
-    const clickable = isDone || st.id <= maxReached;
+    const clickable = S.navigationMode === 'sections' || isDone || st.id <= maxReached;
     const badge = isDone
       ? '<span class="inline-flex items-center justify-center w-5 h-5 rounded-full text-[11px] font-bold text-white shrink-0" style="background:#16A34A;">✓</span>'
       : `<span class="inline-flex items-center justify-center w-5 h-5 rounded-full text-[11px] font-bold shrink-0 ${isCur ? 'text-white' : 'text-gray-600 bg-gray-100'}" style="${isCur ? `background:${accent};` : ''}">${st.id}</span>`;
-    return `<button type="button" data-wz-step="${st.id}" ${clickable && !isCur ? '' : 'disabled'}
+    return `<button type="button" data-wz-step="${st.id}" ${clickable && !isCur ? '' : 'disabled'} ${isCur ? 'aria-current="step"' : ''}
       class="btn-tab inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs transition-colors ${isCur ? 'font-semibold' : ''} ${clickable && !isCur ? 'hover:bg-gray-100 text-gray-600' : ''} ${!clickable ? 'opacity-45 cursor-not-allowed' : ''}"
       style="${isCur ? `--acc-text-dark:color-mix(in srgb, ${accent} 55%, #fff);background:${accentRgba};color:${accent};border:1px solid ${accentBorder};` : ''}">${badge}${esc(st.label)}</button>`;
   }).join('');
+  if (S.navigationMode === 'sections') {
+    const options = WIZARD_STEPS.map((step) => `<option value="${step.id}" ${step.id === S.step ? 'selected' : ''}>${esc(step.label)}</option>`).join('');
+    return `<label class="visually-hidden" for="org-config-step-select">业务配置步骤</label>
+      <select id="org-config-step-select" data-wz-step-select class="input-flat org-config-step-select">${options}</select>
+      <div class="org-config-step-buttons">${items}</div>`;
+  }
   return `<div class="flex flex-wrap gap-2">${items}</div>`;
 }
 
@@ -880,6 +904,9 @@ function _completeHtml(S, branch, org) {
 
 // ── 页脚（上一步 / 下一步 / 完成）──
 function _footerHtml(S, isStaff) {
+  if (S.navigationMode === 'sections') {
+    return `<p class="text-xs text-gray-500" role="status">分区配置 · 未保存的改动会先保存，再切换分区。</p>`;
+  }
   const last = S.step === 5;
   const nextLabel = last ? '完成向导' : '下一步';
   return `
@@ -890,14 +917,18 @@ function _footerHtml(S, isStaff) {
 }
 
 // ═══ 事件 ═══
-function _onClick(S, e) {
+async function _onClick(S, e) {
   const el = e.target && e.target.closest ? e.target.closest('[data-wz-act],[data-wz-step],[data-wz-chip],[data-wz-move]') : null;
   if (!el) return;
   // 步骤条跳转（已完成步可点击回看；完成报告页点步骤条回到向导视图）
   if (el.hasAttribute('data-wz-step')) {
     const target = Number(el.getAttribute('data-wz-step'));
     const maxReached = Math.max(1, ...Object.keys(S.done).map(Number), S.step);
-    if (target >= 1 && target <= 5 && target <= maxReached && target !== S.step) {
+    if (target >= 1 && target <= 5 && (S.navigationMode === 'sections' || target <= maxReached) && target !== S.step) {
+      if (S.navigationMode === 'sections' && S.dirty[S.step] && [1, 2, 3].includes(S.step)) {
+        const saved = await _saveStep(S, S.step);
+        if (!saved) return;
+      }
       if (S.view === 'complete') S.view = 'wizard';
       _goStep(S, target);
     }

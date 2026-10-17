@@ -20,33 +20,33 @@
 
 
 
-import { STATE, getAppState, setState, registerRenderCallback } from '../../core/base/state.js?v=20261017h';
+import { STATE, getAppState, setState, registerRenderCallback } from '../../core/base/state.js?v=20261018a';
 
-import { bootstrapPage } from '../../core/boot/bootstrap.js?v=20261017h';
-import { renderTabBar, tabContentSkeletonHtml } from './tab-bar.js?v=20261017h';
-import { flashHighlight, escHtml } from '../../core/base/utils.js?v=20261017h';
-import { CrossPageState } from '../../core/session/cross-page-state.js?v=20261017h';
-import { getCapabilities } from '../../core/boot/registry.js?v=20261017h';
-import { loadWorkspaceData } from '../../data/data-loader.js?v=20261017h';
+import { bootstrapPage } from '../../core/boot/bootstrap.js?v=20261018a';
+import { renderTabBar, tabContentSkeletonHtml } from './tab-bar.js?v=20261018a';
+import { flashHighlight, escHtml } from '../../core/base/utils.js?v=20261018a';
+import { CrossPageState } from '../../core/session/cross-page-state.js?v=20261018a';
+import { getCapabilities } from '../../core/boot/registry.js?v=20261018a';
+import { loadWorkspaceData } from '../../data/data-loader.js?v=20261018a';
 // 待批活动的可见性单一源（2026-09-22 批次 151）：种子兜底路径同样按查看者角色收窄（与 data-loader 同判据）
-import { filterActivitiesForViewer } from '../../services/core/visibility.js?v=20261017h';
+import { filterActivitiesForViewer } from '../../services/core/visibility.js?v=20261018a';
 
-import { TodoStore } from '../../services/governance/todo.js?v=20261017h';
-import { AuthStore } from '../../services/core/auth.js?v=20261017h';
-import { BranchService } from '../../services/core/runtime.js?v=20261017h';
-import { applyTabPolicy, getBranchIdOfPerson, getBranchById, getBranchWorkforce } from '../../services/branch/branch.js?v=20261017h';
+import { TodoStore } from '../../services/governance/todo.js?v=20261018a';
+import { AuthStore } from '../../services/core/auth.js?v=20261018a';
+import { BranchService } from '../../services/core/runtime.js?v=20261018a';
+import { applyTabPolicy, getBranchIdOfPerson, getBranchWorkforce } from '../../services/branch/branch.js?v=20261018a';
 // 设置中心批2（2026-09-09 支书批准 v3）：个人 tab 顺序覆盖（个人层；支部层=applyTabPolicy 之上叠加）
-import { applyPersonalTabOrder } from '../../services/core/preferences.js?v=20261017h';
+import { applyPersonalTabOrder } from '../../services/core/preferences.js?v=20261018a';
 // （丁）归属可转移：可转移页签的**判据单一源**（2026-10-05 批次 379 · `D-771`）——模块主责快照派生，
 //   禁前端写死「哪个 tab 长在哪个台」。
-import { TRANSFERABLE_TAB_ROWS, transferRowOf, transferTabDecision, expandWorkforce } from '../../core/domain/work-map.js?v=20261017h';
+import { TRANSFERABLE_TAB_ROWS, transferRowOf, transferTabDecision, expandWorkforce } from '../../core/domain/work-map.js?v=20261018a';
 // 「归属可转移」**原台页签声明单一源**（迁入时取**同一份声明**，勿在本处复制 render）：
 //   ⚠ 台账：`TRANSFERABLE_TAB_ROWS` 的每个 `page` 都必须在此有对应声明（新增行时同批补），
 //     由 `server/test/work-map.test.mjs` 断言 `page ∈ {org, disc, leader}` 守住。
 //   ⚠ 统一取**声明常量**而非各台 `tabs()`：后者是**查看者上下文相关**的（如组长台按「组织者兜底进入」过滤）。
-import { ORG_WORKSPACE_TAB_DECLS } from '../../capabilities/org-workspace.js?v=20261017h';
-import { DISC_WORKSPACE_TAB_DECLS } from '../../capabilities/disc-workspace.js?v=20261017h';
-import { LEADER_WORKSPACE_TAB_DECLS } from '../../capabilities/leader-workspace.js?v=20261017h';
+import { ORG_WORKSPACE_TAB_DECLS } from '../../capabilities/org-workspace.js?v=20261018a';
+import { DISC_WORKSPACE_TAB_DECLS } from '../../capabilities/disc-workspace.js?v=20261018a';
+import { LEADER_WORKSPACE_TAB_DECLS } from '../../capabilities/leader-workspace.js?v=20261018a';
 
 /** 台 → 页签声明（归属可转移迁入取用；单一源＝各台能力模块的声明常量） */
 const TRANSFER_HOME_DECLS = {
@@ -262,44 +262,6 @@ export async function createWorkspaceShell(opts) {
 
 
 
-  // ── 立项⑦ B波：党委「进入支部（演示）」演示只读横幅（2026-09-06；A⑤ 只读放开 2026-09-10）──
-
-  // party-staff 经 core/boot/bootstrap.js 放行门进入支部层工作台（URL 携带 ?branch=）时，
-
-  // 在内容区顶部给出「支部层 × 演示只读」标识与返回党委总览入口。
-
-  // 本地示例 / 真实后端 API 会话同口径（支书 2026-09-10 裁定 A⑤）：横幅一律渲染「只读查看」提示。
-
-  // 仅 party-staff + branch 参数 + 支部层壳（scope ≠ party-committee）触发；其余角色/页面无横幅。
-
-  const _demoBranchId = (user && user.role === 'party-staff' && scope !== 'workspace:party-committee')
-
-    ? CrossPageState.getParam('branch')
-
-    : null;
-
-  const _demoBannerHtml = _demoBranchId
-
-    ? (() => {
-
-        const _b = getBranchById(_demoBranchId);
-
-        const _branchName = _b?.config?.headerTitle || _b?.name || _demoBranchId;
-
-        return `<div class="rounded-xl border border-dashed bg-red-50 text-red-700 px-4 py-2.5 mb-3 flex flex-wrap items-center justify-between gap-2 text-xs" style="border-color:rgba(248,113,113,0.4);">
-
-  <span><b>党委视角 · ${escHtml(_branchName)}</b> — 该支书工作台（branch 上下文）；以党委组织员会话只读查看，写操作按角色权限拒绝</span>
-
-  <a href="./workspace/party-committee.html" class="font-semibold whitespace-nowrap" style="color:var(--party-red);">← 返回党委治理总览</a>
-
-</div>`;
-
-      })()
-
-    : '';
-
-
-
   /** 渲染上下文（供各 tab 模块使用；高亮目标由导航路径 3s 定时器清除，B1-5） */
 
   function _renderCtx(state) {
@@ -392,10 +354,8 @@ export async function createWorkspaceShell(opts) {
 
     // requiredRoles 门禁消费（G1 第①项，2026-09-28）：**先按 viewer 角色查**——`getCapabilities`
     // 的 role 过滤即 requiredRoles 的单一源消费者（core/boot/registry.js:57）；查不到再按 scope **兜底**。
-    // 兜底放行门现状（D-807④ / D-808 · 2026-10-06 起）：仅剩「党委组织员进入支部（演示）」一门
-    //   → services/core/branch-demo-nav.js::isPartyStaffBranchDemoAllowed
-    // （支书「代归档」与「组织者上传位」两处跨台兜底均已撤——各自改在本台/成员本人页面直执。）
-    // 两查皆空 ⇒ **显式拒绝**（渲染可读提示卡），不再静默渲染空壳。
+    // 两查皆空 ⇒ **显式拒绝**（渲染可读提示卡），不再静默渲染空壳。党委只读支部视图是独立页面，
+    // 不通过支书工作台身份门跨台进入。
     const _viewerRole = (() => {
       try { return (typeof AuthStore?.getCurrentUser === 'function' && AuthStore.getCurrentUser()?.role) || null; } catch (_) { return null; }
     })();
@@ -491,7 +451,7 @@ export async function createWorkspaceShell(opts) {
 
 
 
-    container.innerHTML = _demoBannerHtml + _tabBar.html;
+    container.innerHTML = _tabBar.html;
 
     _tabBar.bindEvents(container);
 

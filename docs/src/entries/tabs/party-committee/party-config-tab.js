@@ -10,9 +10,9 @@
 // 权限：党委台仅 party-staff 进入（canSwitchBranch 任意支部）；现任支书走独立页 wizard.html?branch=
 // 写口：branch 服务既有校验语义（config 写口 = party-staff / 本支部现任支书）+ 即时生效留痕。
 
-import { AuthStore } from '../../../services/core/auth.js?v=20261017h';
-import { mountOrgSetupWizard } from '../../../components/governance/org-setup-wizard.js?v=20261017h';
-import { getAuthToken, getApiBaseUrl, getDataSource } from '../../../data/data-adapter.js?v=20261017h';
+import { AuthStore } from '../../../services/core/auth.js?v=20261018a';
+import { mountOrgSetupWizard } from '../../../components/governance/org-setup-wizard.js?v=20261018a';
+import { getAuthToken, getApiBaseUrl, getDataSource } from '../../../data/data-adapter.js?v=20261018a';
 
 // ════════════════════════════════════════════════════════════════
 //  「部署与对接」面板（2026-09-29 批次 273 新增）
@@ -28,26 +28,22 @@ import { getAuthToken, getApiBaseUrl, getDataSource } from '../../../data/data-a
 async function renderDeployPanel(host) {
   if (!host) return;
   if (getDataSource() !== 'api' || !getAuthToken()) {
-    host.innerHTML = `<div class="rounded-lg border border-gray-200 bg-white p-4">
-      <p class="text-xs text-gray-500">部署与对接 · 仅**服务端形态**可用（当前未接服务端）</p></div>`;
+    host.innerHTML = `<p class="text-sm text-gray-600">部署与对接仅在服务端形态可用；当前使用演示数据。</p>`;
     return;
   }
-  host.innerHTML = `<div class="rounded-lg border border-gray-200 bg-white p-4">
-    <p class="text-xs text-gray-500">部署与对接 · 正在读取当前配置…</p></div>`;
+  host.innerHTML = `<p class="text-sm text-gray-600" role="status">正在读取当前配置…</p>`;
   let data;
   try {
     const resp = await fetch(`${getApiBaseUrl()}/api/v1/setup/setup-status`, {
       headers: { Authorization: `Bearer ${getAuthToken()}` },
     });
     if (!resp.ok) {
-      host.innerHTML = `<div class="rounded-lg border border-gray-200 bg-white p-4">
-        <p class="text-xs text-red-600">读取失败（HTTP ${resp.status}）——本面板仅党委组织员可见</p></div>`;
+      host.innerHTML = `<p class="text-sm text-red-700" role="alert">读取失败（HTTP ${resp.status}）。本面板仅党委组织员可见。</p>`;
       return;
     }
     data = await resp.json();
   } catch (e) {
-    host.innerHTML = `<div class="rounded-lg border border-gray-200 bg-white p-4">
-      <p class="text-xs text-red-600">读取失败：${String(e && e.message || e)}</p></div>`;
+    host.innerHTML = `<p class="text-sm text-red-700" role="alert">读取失败：${String(e && e.message || e)}</p>`;
     return;
   }
 
@@ -60,7 +56,7 @@ async function renderDeployPanel(host) {
     + `<span class="text-gray-700">${label}</span>${extra ? `<span class="text-gray-400">${extra}</span>` : ''}</li>`;
 
   host.innerHTML = `
-    <div class="rounded-lg border border-gray-200 bg-white p-4">
+    <div class="space-y-4">
       <p class="text-xs text-gray-500">部署与对接 · 只读自查（密钥一概不回显）</p>
       <p class="font-title-cn text-base font-bold text-gray-800 mt-0.5">
         ${bad.length === 0 ? '全部就绪' : `还需处理 ${bad.length} 项`}</p>
@@ -70,7 +66,7 @@ async function renderDeployPanel(host) {
         ${(data.checklist || []).map((c) => row(c.short || c.label, c.ok)).join('')}
       </ul>
 
-      ${bad.length ? `<details class="mt-3 rounded border border-amber-200 bg-amber-50 p-2">
+      ${bad.length ? `<details class="rounded border border-amber-200 bg-amber-50 p-3">
         <summary class="text-xs font-bold text-amber-800 cursor-pointer">逐项怎么改（${bad.length}）</summary>
         <ol class="text-xs text-amber-900 mt-1 list-decimal pl-5 space-y-1">
           ${bad.map((c) => `<li><b>${c.short || c.label}</b> · ${c.howto}</li>`).join('')}
@@ -79,7 +75,7 @@ async function renderDeployPanel(host) {
       <p class="mt-3 text-xs text-gray-600">库里现状：党委 ${data.db.partyStaff} · 支部 ${data.db.branches} ·
          已归属 ${data.db.members} · 待确认归属 ${data.db.unassigned} · 历史账号残留 ${data.db.demoAccounts} · 库表 v${data.db.schemaVersion}</p>
 
-      <details class="mt-2">
+      <details>
         <summary class="text-xs text-gray-600 cursor-pointer">环境变量模板（可复制）</summary>
         <p class="text-xs text-gray-500 mt-1">${data.codeHint || ''}</p>
         <button id="pc-copy-env" class="btn-outline mt-2 text-xs px-3 py-1.5">
@@ -106,15 +102,16 @@ async function renderDeployPanel(host) {
 /** 段落挂载（**2026-10-04 批次 374 · 支书圈乙**：`支部配置` 并入「支部管理」页内区 ⇒ 本模块**不再注册为 tab**）。
  *  宿主由调用方给（`branches-tab.js` 的「支部配置」卡内）；**`#pc-wizard-host` / `#pc-deploy-panel` id 一字未改**
  *  ⇒ e2e / 台账选择器零改签（只换落点 tab）。部署与对接面板与向导**并列**、挂在最后（不动既有 DOM 顺序）。 */
-export function mountPartyConfig({ wizardHost, deployHost } = {}) {
+export function mountPartyConfig({ wizardHost, deployHost, branchId = null, navigationMode = 'guided', canSwitchBranch = true } = {}) {
   renderDeployPanel(deployHost);
   if (!wizardHost) return;
   // 党委台能力仅 party-staff 可见；组件内再按 actor 角色兜底（非 party-staff 渲染无权限卡）
   const me = (typeof AuthStore?.getCurrentUser === 'function') ? AuthStore.getCurrentUser() : null;
   mountOrgSetupWizard(wizardHost, {
     actor: { personId: me && (me.personId || me.id), role: me ? me.role : '' },
-    canSwitchBranch: true,
-    branchId: null, // 默认首支部
+    canSwitchBranch,
+    branchId,
     embed: true,
+    navigationMode,
   });
 }

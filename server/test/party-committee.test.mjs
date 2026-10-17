@@ -67,29 +67,26 @@ test('党委组织员登录直达党委工作台：台账见支部、可创建�
       return header && header.textContent.includes('光华管理学院党委');
     }, { timeout: 10000 });
     assert.match(await page.title(), /党委工作台/);
+    assert.equal(await page.locator('#header-my-profile').count(), 0, 'Party header must hide own-profile link');
 
-    // 3. C⑤（2026-09-10 支书裁定）：默认落点=治理总览，只留全院级汇总数字，无支部级明细
+    // 3. 治理首页以真实待处理事项为主，不向党委首页暴露个人级明细
     await waitForBodyText(page, '支部监控台账'); // tab 栏存在
     await page.waitForFunction(() => {
       const c = document.getElementById('party-committee-tab-content');
-      return c && c.textContent.includes('光华管理学院党委') && c.textContent.includes('在册党员');
+      return c && c.textContent.includes('党委待处理') && c.textContent.includes('组织待补');
     }, { timeout: 10000 });
     const govText = await page.evaluate(() => document.getElementById('party-committee-tab-content')?.textContent || '');
-    assert.ok(!govText.includes('光华管理学院本科生党支部'), '治理总览不应出现支部名（支部明细收归台账）');
-    assert.ok(!govText.includes('进入支部'), '治理总览不应出现「进入支部」入口（收归台账）');
-    assert.ok(!govText.includes('近期动态') && !govText.includes('近期活动'), '治理总览不应出现支部级近期活动明细');
-    assert.ok(/支部数/.test(govText) && /在册成员合计/.test(govText) && /在册党员/.test(govText) && /滞留党员/.test(govText) && /全院通知/.test(govText),
-      `治理总览应保留全院级汇总数字，实际：${govText.slice(0, 200)}`);
+    assert.ok(!govText.includes('储子禾'), '党委治理首页不得展示个人级档案明细');
+    assert.ok(!govText.includes('思想汇报'), '党委治理首页不得展示思想汇报明细');
+    assert.ok(govText.includes('待批复上报'), '首页队列必须说明任务来源和动作');
 
-    // 3′. 切到「支部监控台账」→ 支部级 8 项字段齐（支部名/支书/成员数/党员数/滞留/近期活动/进入支部）+ 支书任期
+    // 3′. 支部监控按行对比组织状态；查看入口进入独立党委只读视图，不借用支书工作台
     await page.click('.ws-tab-scroll button:has-text("支部监控台账")');
     await waitForBodyText(page, '光华管理学院本科生党支部');
-    await waitForBodyText(page, '储子禾'); // 台账含现任支书（br-b1.secretaryId → p13 储子禾）与阶段分布聚合
-    await waitForBodyText(page, '支书任期');
     const monText = await page.evaluate(() => document.getElementById('party-committee-tab-content')?.textContent || '');
-    assert.ok(/成员规模/.test(monText) && /在册党员/.test(monText) && /滞留党员/.test(monText), '台账应含成员规模 / 在册党员 / 滞留党员支部字段');
-    assert.ok(/进入支部/.test(monText), '台账应含「进入支部」入口');
-    assert.ok(await page.evaluate(() => Boolean(document.querySelector('.branch-demo-enter[data-branch-id="br-b1"]'))), '台账 br-b1 卡「进入支部」按钮可绑定');
+    assert.ok(/成员 · 在册党员/.test(monText) && /待批复 · 活动/.test(monText), '台账应将组织规模与待办/活动动态并列呈现');
+    assert.ok(!monText.includes('储子禾') && !monText.includes('思想汇报'), '全院支部台账不得铺开个人级详情');
+    assert.ok(await page.evaluate(() => Boolean(document.querySelector('.branch-readonly-enter[data-branch-id="br-b1"]'))), '台账应有独立的只读下钻入口');
 
     // 4. 切到「支部管理」tab → 新建支部（支部不预设名字——党委动态录入）
     await page.click('.ws-tab-scroll button:has-text("支部管理")');
@@ -147,9 +144,9 @@ test('P2 支书任命：任命宋佳宁(p5)为支书 → p5 登录直达支书�
       return h && h.textContent.includes('光华管理学院党委');
     }, { timeout: 10000 });
     const appoint = await page.evaluate(async () => {
-      const { appointSecretary } = await import('/src/services/branch/appointment.js?v=20261017h');
+      const { appointSecretary } = await import('/src/services/branch/appointment.js?v=20261018a');
       await appointSecretary({ branchId: 'br-b1', personId: 'p5', note: 'E2E 换届测试' });
-      const { mockDB } = await import('/src/core/domain/domain.js?v=20261017h');
+      const { mockDB } = await import('/src/core/domain/domain.js?v=20261018a');
       const branch = (mockDB.branches || []).find(b => b.id === 'br-b1');
       const recs = (mockDB.appointmentRecords || []).filter(r => r.branchId === 'br-b1');
       return { secretaryId: branch?.secretaryId, recs: recs.length, currentTo: (recs.find(r => !r.to) || {}).secretaryId };
@@ -158,13 +155,13 @@ test('P2 支书任命：任命宋佳宁(p5)为支书 → p5 登录直达支书�
     if (appoint.secretaryId !== 'p5') throw new Error(`任命后 secretaryId 应为 p5，实际 ${appoint.secretaryId}`);
     if (!(appoint.recs >= 1 && appoint.currentTo === 'p5')) throw new Error(`任期记录异常：${JSON.stringify(appoint)}`);
 
-    // ⑧ 监控台账补「支书任期」行：刷新 + 切监控 tab → 卡片显示新支书姓名 + 任期（起止/现任）
+    // 切监控台账验证只呈组织级信息，不在党委台账铺开支书个人档案。
     await page.reload({ waitUntil: 'domcontentloaded' });
     await page.waitForFunction(() => Boolean(document.querySelector('.ws-tab-scroll button')), { timeout: 15000 });
     await page.click('.ws-tab-scroll button:has-text("支部监控台账")');
-    await waitForBodyText(page, '支书任期');
-    await waitForBodyText(page, '宋佳宁');
-    await waitForBodyText(page, '至今');
+    await waitForBodyText(page, '光华管理学院本科生党支部');
+    const monitorText = await page.evaluate(() => document.getElementById('party-committee-tab-content')?.textContent || '');
+    assert.ok(!monitorText.includes('宋佳宁'), '党委支部动态不应展示个人档案明细');
 
     // 3. 新任支书宋佳宁(p5)登录 → 直达支书工作台 secretary.html
     const p5 = await browser.newPage();
@@ -199,13 +196,9 @@ test('P2 支书任命：任命宋佳宁(p5)为支书 → p5 登录直达支书�
 });
 
 // ════════════════════════════════════════════════════════════════
-// A⑤（2026-09-10 支书裁定）：党委「进入支部」放开 API 会话下钻（只读）
-// 旧语义：真实后端登录（API 会话）点击「进入支部」被拒（Toast「真实后端登录暂不支持演示视图」）；
-// 新语义：本地示例 / API 会话同口径放行 → 进入支部只读视图（演示只读横幅 + 无写控件），
-//         写权限不放宽（party-staff 不入 ROLE_PERMISSIONS 键集 → canDo 写操作全 false；requiredRoles 不动）。
-// 依据：content/02_institution/SYSTEM_ROLE_PERMISSION.md（角色矩阵）+ PARTY_COMMITTEE_DESIGN.md（党委监控=只读监督）。
+// 党委查看支部走独立只读页面，显式携带 branchId，且不切换支书工作台身份。
 // ════════════════════════════════════════════════════════════════
-test('A⑤ 党委「进入支部」API 会话下钻：进入支部只读视图（只读提示 + 无写控件 + 写权限未放宽）', async () => {
+test('党委「查看该支部」进入独立只读视图：范围明确、无写控件、身份不切换', async () => {
   const page = await browser.newPage();
   await page.route('**://fonts.googleapis.com/**', (r) => r.abort());
   await page.route('**://fonts.gstatic.com/**', (r) => r.abort());
@@ -227,37 +220,33 @@ test('A⑤ 党委「进入支部」API 会话下钻：进入支部只读视图�
       '党委登录后应为 API 会话（存在 gsm1921-api-token）'
     );
     // P0-2 形态断言（2026-09-23 支书裁定「形态必须可断言」）：真机用例的数据源形态单一源 = data/data-adapter.js::getRuntimeMode()
-    await page.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20261017h')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
+    await page.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20261018a')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
     await page.waitForFunction(() => Boolean(document.getElementById('app-header')), { timeout: 15000 });
 
-    // 2. 「支部监控台账」→ 点 br-b1 卡的「进入支部」
+    // 2. 「支部监控台账」→ 点 br-b1 的「查看该支部」
     await page.waitForFunction(() => Boolean(document.querySelector('.ws-tab-scroll button')), { timeout: 15000 });
     await page.evaluate(() => {
       const b = [...document.querySelectorAll('.ws-tab-scroll button')].find((x) => x.textContent.includes('支部监控台账'));
       if (b) b.click();
     });
-    await page.waitForFunction(() => Boolean(document.querySelector('.branch-demo-enter[data-branch-id="br-b1"]')), { timeout: 15000 });
+    await page.waitForFunction(() => Boolean(document.querySelector('.branch-readonly-enter[data-branch-id="br-b1"]')), { timeout: 15000 });
     await Promise.all([
-      page.waitForURL('**/workspace/secretary.html?branch=br-b1', { timeout: 15000 }),
-      page.evaluate(() => document.querySelector('.branch-demo-enter[data-branch-id="br-b1"]').click()),
+      page.waitForURL('**/workspace/branch-readonly.html?branchId=br-b1', { timeout: 15000 }),
+      page.evaluate(() => document.querySelector('.branch-readonly-enter[data-branch-id="br-b1"]').click()),
     ]);
 
-    // 3. 新语义：API 会话放行下钻（不再拒回党委台）+ 只读提示横幅渲染
-    assert.match(page.url(), /\/workspace\/secretary\.html\?branch=br-b1$/,
-      'API 会话应放行「进入支部」下钻（不再退回党委工作台）');
-    await waitForBodyText(page, '党委视角');
+    // 3. 页面保持党委身份并明确显示所选支部范围
+    assert.match(page.url(), /\/workspace\/branch-readonly\.html\?branchId=br-b1$/);
+    await waitForBodyText(page, '党委只读视图');
+    await waitForBodyText(page, '光华管理学院本科生党支部');
     await waitForBodyText(page, '只读');
-    await waitForBodyText(page, '返回党委治理总览');
 
-    // 4. 只读约束：落点视图无任何可写控件（无表单控件；tab 栏之外无写动词按钮）
-    await page.waitForFunction(() => Boolean(document.querySelector('.secretary-tab-btn')), { timeout: 15000 });
-    await page.waitForTimeout(2500); // 等懒加载 tab（今天·只读速览）渲染完成
+    // 4. 只读约束：落点视图无表单和写操作按钮
     const surface = await page.evaluate(() => {
-      const root = document.getElementById('secretary-content');
+      const root = document.getElementById('branch-readonly-content');
       const writeRe = /发布|新增|保存|提交|删除|创建|发起|赋权|指派|上传|编辑|驳回|批准|回滚|导入/;
       const forms = root.querySelectorAll('form, input, select, textarea').length;
       const writeButtons = [...root.querySelectorAll('button')]
-        .filter((b) => !b.classList.contains('secretary-tab-btn'))
         .filter((b) => writeRe.test((b.textContent || '') + (b.getAttribute('title') || '')))
         .map((b) => (b.textContent || '').trim().slice(0, 20));
       return { forms, writeButtons };
@@ -265,30 +254,18 @@ test('A⑤ 党委「进入支部」API 会话下钻：进入支部只读视图�
     assert.equal(surface.forms, 0, `只读视图不应呈现任何表单控件（input/select/textarea/form），实际 ${surface.forms}`);
     assert.deepEqual(surface.writeButtons, [], `只读视图不应呈现写操作按钮，实际 ${JSON.stringify(surface.writeButtons)}`);
 
-    // 5. 写权限不放宽：party-staff 写权限键仍全关（看≠做）；requiredRoles / 权限键未动
+    // 5. 只读下钻保持 party-staff 身份，不借用支书身份
     const perms = await page.evaluate(async () => {
-      const { AuthStore } = await import('/src/services/core/auth.js?v=20261017h');
+      const { AuthStore } = await import('/src/services/core/auth.js?v=20261018a');
       const me = AuthStore.getCurrentUser();
       return {
         role: me && me.role,
-        createActivity: AuthStore.canDo('p_pc', 'create_activity'),
-        assignTask: AuthStore.canDo('p_pc', 'assign_task'),
-        manageMembers: AuthStore.canDo('p_pc', 'manage_members'),
-        archive: AuthStore.canDo('p_pc', 'archive'),
       };
     });
-    assert.equal(perms.role, 'party-staff', '下钻会话身份应为 party-staff');
-    assert.deepEqual(
-      {
-        createActivity: perms.createActivity, assignTask: perms.assignTask,
-        manageMembers: perms.manageMembers, archive: perms.archive,
-      },
-      { createActivity: false, assignTask: false, manageMembers: false, archive: false },
-      'party-staff 写权限键须保持关闭（只读放开不得放宽任何写权限）'
-    );
+    assert.equal(perms.role, 'party-staff', '只读视图应保持党委组织员身份');
 
-    // 6. 无脚本异常（演示下钻 ReferenceError/白屏回归守护）
-    assert.deepEqual(pageErrors, [], `演示下钻不应有页面异常：${JSON.stringify(pageErrors)}`);
+    // 6. 无脚本异常
+    assert.deepEqual(pageErrors, [], `只读支部页不应有页面异常：${JSON.stringify(pageErrors)}`);
   } finally {
     await page.close();
   }

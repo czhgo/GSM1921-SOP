@@ -11,7 +11,7 @@ const stylesPath = resolve(testDir, '../../docs/src/styles.css');
 
 async function loadPresentation() {
   assert.equal(existsSync(presentationPath), true, '个人档案应有可独立验证的自我描述展示组件');
-  return import(`${pathToFileURL(presentationPath).href}?v=20261017h`);
+  return import(`${pathToFileURL(presentationPath).href}?v=20261018a`);
 }
 
 test('自我描述按字段模型展示，长文本转义且列表结构可读', async () => {

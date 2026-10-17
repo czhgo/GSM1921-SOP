@@ -9,26 +9,26 @@
 //  纪律：人名与字段一律现取 PersonStore / getPersonName；**不得**使用任何记录内姓名快照，
 //        也不得在模块顶层做人员快照（跨表一致性守卫 S1/S2）。
 // ════════════════════════════════════════════════════════════════
-import { renderSidebar } from '../../components/shell/sidebar.js?v=20261017h';
-import { renderHeader } from '../../components/shell/header.js?v=20261017h';
-import { BranchService } from '../../services/core/runtime.js?v=20261017h';
-import { AuthStore } from '../../services/core/auth.js?v=20261017h';
-import { PersonStore, getPersonName } from '../../services/member/person.js?v=20261017h';
-import { getDataSource } from '../../data/data-adapter.js?v=20261017h';
-import { loadMemberProfile } from '../../services/member/profile.js?v=20261017h';
-import { getBranchById } from '../../services/branch/branch.js?v=20261017h';
-import { openPersonEditModal } from '../../components/governance/pickers.js?v=20261017h';
-import { renderSelfDescriptionSection } from '../../components/governance/person-profile-sections.js?v=20261017h';
+import { renderSidebar } from '../../components/shell/sidebar.js?v=20261018a';
+import { renderHeader } from '../../components/shell/header.js?v=20261018a';
+import { BranchService } from '../../services/core/runtime.js?v=20261018a';
+import { AuthStore } from '../../services/core/auth.js?v=20261018a';
+import { PersonStore, getPersonName } from '../../services/member/person.js?v=20261018a';
+import { getDataSource } from '../../data/data-adapter.js?v=20261018a';
+import { loadMemberProfile } from '../../services/member/profile.js?v=20261018a';
+import { getBranchById } from '../../services/branch/branch.js?v=20261018a';
+import { openPersonEditModal } from '../../components/governance/pickers.js?v=20261018a';
+import { renderSelfDescriptionSection } from '../../components/governance/person-profile-sections.js?v=20261018a';
 // Q-21-3 收敛（2026-09-13）：在册状态枚举单一源 = core/domain/constants.js（原经 org-base-data-preview 转出）
-import { ROLE_LABELS, RESIDENCE } from '../../core/domain/constants.js?v=20261017h';
-import { canMaintainMemberProfileFields } from '../../core/domain/profile-access.js?v=20261017h';
-import { getBasePath, escHtml as esc, fmtDt } from '../../core/base/utils.js?v=20261017h';
-import { badgeHtml } from '../../components/ui/badges.js?v=20261017h';
+import { ROLE_LABELS, RESIDENCE } from '../../core/domain/constants.js?v=20261018a';
+import { canMaintainMemberProfileFields } from '../../core/domain/profile-access.js?v=20261018a';
+import { getBasePath, escHtml as esc, fmtDt } from '../../core/base/utils.js?v=20261018a';
+import { badgeHtml } from '../../components/ui/badges.js?v=20261018a';
 // 批次 87：本页必须先 hydrate API 数据源再渲染（成员档案读 + 编辑写）——与 activity.html 标准形同款。
 // 此前本页只调 BranchService.loadDB()（API 模式直接 return）⇒ api 形态下档案读的是本地备份，
 // 且「编辑档案」按 mock 数据源落本机、服务端 users 表不更新。
-import { hydrateDataSource, notifyDataLoaded } from '../../data/data-adapter.js?v=20261017h';
-import { ApiAdapter } from '../../data/api-adapter.js?v=20261017h';
+import { hydrateDataSource, notifyDataLoaded } from '../../data/data-adapter.js?v=20261018a';
+import { ApiAdapter } from '../../data/api-adapter.js?v=20261018a';
 
 renderSidebar('dashboard');
 renderHeader('dashboard');
@@ -57,6 +57,7 @@ backBtn?.addEventListener('click', () => {
 
 const params = new URLSearchParams(window.location.search);
 const viewer = AuthStore.getCurrentUser();
+const selectedBranchId = params.get('branchId') || '';
 // 2026-10-02 批次 347（支书 `#5`「我们是否落地一个 profile 界面【自己看自己】……和既有的 person 界面
 //   可以共用一些代码脚手架」）：**无 `?id=` ⇒ 自己**——复用本页同一套脚手架与只读档案版式；
 //   带 `?id=` 仍是「查阅他人档案」（名册 / 各处链接照旧，行为一字未改）。
@@ -83,11 +84,16 @@ async function render() {
     renderMessage(`未指定成员 · <a class="text-sky-600 hover:underline" href="${getBasePath()}workspace/org.html">去成员名册</a>`);
     return;
   }
+  if (viewer.role === 'party-staff' && !selectedBranchId) {
+    renderMessage('党委查看个人档案前，必须先从支部只读视图选择一个支部。', 'alert');
+    return;
+  }
   let member;
   try {
     member = await loadMemberProfile({
       personId,
       actor: { id: viewer.personId, role: viewer.role, branchId: viewer.branchId },
+      selectedBranchId,
       dataSource: getDataSource(),
       apiGet: (id) => ApiAdapter.members.getProfile(id),
       mockGet: (id) => PersonStore.getById(id),
@@ -127,6 +133,7 @@ async function render() {
         </div>`).join('')}</div>`;
 
   cardEl.innerHTML = `
+    ${viewer.role === 'party-staff' ? `<p class="mb-4 rounded-lg border border-blue-100 bg-blue-50 px-3 py-2 text-xs text-blue-800" role="note">党委只读查看 · ${esc(branchLabel)} · 此页面不提供档案编辑</p>` : ''}
     <!-- 标题区 -->
     <div class="mb-5 pb-5 border-b border-gray-100">
       <div class="flex items-center gap-2.5 mb-2 flex-wrap">
