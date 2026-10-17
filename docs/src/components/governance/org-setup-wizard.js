@@ -14,34 +14,34 @@
 // 草稿：localStorage `wizard-draft-<branchId>`（当前步 + 每步完成标记 + 完成态），中断可续走。
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../../core/domain/domain.js?v=20261017b';
-import { getCapabilities } from '../../core/boot/registry.js?v=20261017b';
-import { OUTPUT_BLOCK_DEFS, BRANCH_COMMISSION_ROLES, ROLE_LABELS, getAccentColors } from '../../core/domain/constants.js?v=20261017b';
-import { CAPABILITY_PACKAGES } from '../../core/domain/capability-packages.js?v=20261017b';
-import { ORG_SUBJECT_LABELS, isBranchOrgSubject, ownerSubjectType } from '../../core/domain/work-map.js?v=20261017b';
+import { mockDB } from '../../core/domain/domain.js?v=20261017g';
+import { getCapabilities } from '../../core/boot/registry.js?v=20261017g';
+import { OUTPUT_BLOCK_DEFS, BRANCH_COMMISSION_ROLES, ROLE_LABELS, getAccentColors } from '../../core/domain/constants.js?v=20261017g';
+import { CAPABILITY_PACKAGES } from '../../core/domain/capability-packages.js?v=20261017g';
+import { ORG_SUBJECT_LABELS, isBranchOrgSubject, ownerSubjectType } from '../../core/domain/work-map.js?v=20261017g';
 // 副作用：注册支委层工作台能力（配置目录=其 tab 清单，单一源）
-import '../../capabilities/secretary-workspace.js?v=20261017b';
-import { BLOCK_MANIFESTS } from '../../workflow/blocks/manifests.js?v=20261017b';
+import '../../capabilities/secretary-workspace.js?v=20261017g';
+import { BLOCK_MANIFESTS } from '../../workflow/blocks/manifests.js?v=20261017g';
 // L3 流程组合（2026-09-28 批次 246）：把编排内核接进**生产路径**——配置面用它做「组合体检」
-import { composePlan } from '../../workflow/blocks/orchestration.js?v=20261017b';
-import { escHtml as esc, showToast, downloadBlob } from '../../core/base/utils.js?v=20261017b';
-import { WORK_MAP_MODULES } from '../../core/domain/work-map.js?v=20261017b';
+import { composePlan } from '../../workflow/blocks/orchestration.js?v=20261017g';
+import { escHtml as esc, showToast, downloadBlob } from '../../core/base/utils.js?v=20261017g';
+import { WORK_MAP_MODULES } from '../../core/domain/work-map.js?v=20261017g';
 import {
   getBranchById, getBranchOrg, getBranchTabPolicy, getCoreTabIds,
   getBranchOutputBlocks, getBranchCapabilityPackageState, getOutputBlockPolicy, getWorkflowBlockPolicy, orderByIds,
   updateBranchModules, updateBranchCapabilityPackages, getBranchWorkforce, updateBranchWorkforce, updateBranchOrg,
   applyConfigCopy, createBranch, getBranchIdOfPerson,
-} from '../../services/branch/branch.js?v=20261017b';
-import { buildConfigPackage, applyConfigPackage } from '../../services/branch/org-config-package.js?v=20261017b';
+} from '../../services/branch/branch.js?v=20261017g';
+import { buildConfigPackage, applyConfigPackage } from '../../services/branch/org-config-package.js?v=20261017g';
 import {
   buildPreviewTemplate, sanitizePreview, applyPreview, clearPreview, getPreviewState,
   PREVIEW_KIND, PREVIEW_VERSION,
-} from '../../services/branch/org-base-data-preview.js?v=20261017b';
-import { getRosterStats, isDetained } from '../../services/member/roster.js?v=20261017b';
-import { buildOrgWizardReport } from '../../services/branch/org-wizard-report.js?v=20261017b';
-import { PersonStore, getPersonName } from '../../services/member/person.js?v=20261017b';
+} from '../../services/branch/org-base-data-preview.js?v=20261017g';
+import { getRosterStats, isDetained } from '../../services/member/roster.js?v=20261017g';
+import { buildOrgWizardReport } from '../../services/branch/org-wizard-report.js?v=20261017g';
+import { PersonStore, getPersonName } from '../../services/member/person.js?v=20261017g';
 // R5-1（2026-09-06）：建空支部「就地任命首任骨干」——任命编排在 appointment.js 收口（含数据边界登记）
-import { appointInauguralOfficers } from '../../services/branch/appointment.js?v=20261017b';
+import { appointInauguralOfficers } from '../../services/branch/appointment.js?v=20261017g';
 
 // ── 步骤元信息（支书已批口径）────────────────────────────────────
 export const WIZARD_STEPS = [

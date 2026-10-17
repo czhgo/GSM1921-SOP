@@ -1,10 +1,11 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { renderWorkgroupMemberEditor } from '../../docs/src/components/governance/workgroup-member-editor.js?v=20261017b';
-import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261017b';
-import { ensureLegacySourceWorkgroups } from '../../docs/src/data/workgroup-seed-sync.js?v=20261017b';
-import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261017b';
-import { workgroupPermissionTemplates } from '../../docs/src/core/domain/workgroup-policy.js?v=20261017b';
+import { renderWorkgroupMemberEditor } from '../../docs/src/components/governance/workgroup-member-editor.js?v=20261017g';
+import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261017g';
+import { ensureLegacySourceWorkgroups } from '../../docs/src/data/workgroup-seed-sync.js?v=20261017g';
+import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261017g';
+import { workgroupPermissionTemplates } from '../../docs/src/core/domain/workgroup-policy.js?v=20261017g';
+import { renderSignupSection, renderSignupList } from '../../docs/src/components/governance/signup-panel.js?v=20261017g';
 
 test('活动成员编辑器把组织者/深度参与者与已通过报名的一般参与者分层展示', () => {
   const html = renderWorkgroupMemberEditor({
@@ -44,6 +45,33 @@ test('只读成员展示不暴露增删、角色编辑或授权表单', () => {
   });
   assert.match(html, /甲/);
   assert.doesNotMatch(html, /保存成员和权限|移除.*甲|data-member-role/);
+  assert.doesNotMatch(html, /<details/, '只读成员卡没有可展开控件，不暗示还有空白身份详情');
+  assert.match(html, /未授予操作权限/, '只读卡直接说明成员的独立授权状态');
+});
+
+test('报名角色和说明控件有可见标签，已通过的主题党日组织者能看见线下意向', () => {
+  const form = renderSignupSection({ sourceType: 'activity', sourceId: 'act-labels', title: '主题党日', source: { type: '主题党日' }, signups: [], myId: 'p1' });
+  assert.match(form, /<label[^>]*>报名角色\s*<select id="signup-role-select"/);
+  assert.match(form, /<label[^>]*>附加说明（选填）\s*<input id="signup-note-input"/);
+  assert.match(form, /id="signup-role-select"/);
+  assert.match(form, /id="signup-note-input"/);
+
+  const approved = renderSignupSection({
+    sourceType: 'activity', sourceId: 'act-labels', title: '主题党日', source: { type: '主题党日' }, myId: 'p1',
+    signups: [{ id: 's1', personId: 'p1', role: 'organizer', status: 'approved', onsite: false }],
+  });
+  assert.match(approved, /已选择不线下参加/);
+
+  const list = renderSignupList({
+    sourceType: 'activity', sourceId: 'act-labels', source: { type: '主题党日' }, myId: null,
+    signups: [
+      { id: 's1', personId: 'p1', role: 'organizer', status: 'approved', onsite: false },
+      { id: 's2', personId: 'p2', role: 'deep', status: 'approved', onsite: true },
+      { id: 's3', personId: 'p3', role: 'organizer', status: 'pending', onsite: true },
+    ],
+  });
+  assert.match(list, /组织者\/深度参与者已通过报名：线下参加 1 人 · 不线下参加 1 人/);
+  assert.doesNotMatch(list, /线下参加 2 人/, '待审核意向不计入已通过报名汇总');
 });
 
 test('旧演示活动和专班补齐稳定工作组映射，participant 保留在原业务记录', () => {

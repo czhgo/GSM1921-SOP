@@ -2,7 +2,7 @@
 title: "网站设计层索引——网站系统的设计想法"
 type: index
 role: "[工程师]+[AI]"
-last_updated: 2026-10-05"
+last_updated: 2026-10-17
 status: active
 ---
 
@@ -66,7 +66,7 @@ status: active
 | [SOP_WEBSITE_GUIDE.md](module/SOP_WEBSITE_GUIDE.md) | SOP-系统联动方法论（SOP 文档优化方法论 + 架构/数据/鉴权权威引用，2026-09-03 精简） | **唯一权威**——SOP 与系统的双向修改指南 |
 | [ABOUT_PAGE_DESIGN.md](module/ABOUT_PAGE_DESIGN.md) | About 页面设计系统（叙事册风：超参数设定原则/防风格疲劳/无竖线红线） | **唯一权威**——about 页设计的超参数设定原则 |
 | [MODULE_UI_DESIGN.md](module/MODULE_UI_DESIGN.md) | 模块界面设计：「党建」Tab 分组界面+日历功能模块（已落地 2026-09-03，设计论证档案） | **已落地**——与 SOP_WEBSITE_GUIDE/DESIGN_SYSTEM 重叠停更，权威源 = [DESIGN_SYSTEM.md](design-system/DESIGN_SYSTEM.md) §四 组件规范 + SOP_WEBSITE_GUIDE |
-| [AGENDA_AND_REFERENCE_DESIGN.md](module/AGENDA_AND_REFERENCE_DESIGN.md) | 会议议程与资料查询联动设计（会前草案关联/会后少重复录入/单一数据源） | **已落地 2026-09-01**（设计论证档案）；权威源 = `references.js`（支部文件/草案）+ `calendar-tab.js`（议程封装）+ `member-change-panel.js`（成员变更）+ `server/db.js`（branch_docs 等表） |
+| [AGENDA_AND_REFERENCE_DESIGN.md](module/AGENDA_AND_REFERENCE_DESIGN.md) | 会议议程与资料查询联动设计（会前草案关联/会后少重复录入/单一数据源） | **已落地的设计论证档案**；当前模型与行为以 `content/04_web_design/data/DATA_MODEL.md`、服务层和服务端路由为准；议程实现入口包括 `vote-config.js`、`vote-widget.js`、`inspector.js`、`vote-summary-panel.js`、`committee-vote.js`、`server/routes/committee.js`，资料入口见 `references.js` 与 `server/db.js` |
 
 ### 演进与校验（evolution/）
 

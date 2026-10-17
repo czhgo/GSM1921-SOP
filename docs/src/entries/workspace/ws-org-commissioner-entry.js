@@ -2,19 +2,19 @@
 // ws-org-commissioner-entry.js — 组织委员工作台入口（T-279 M3 拆分；T-304 代码减负 2026-08-30：骨架并入 workspace-shell）
 // 入口职责：壳配置（注册表 tab 清单 + 导航落点 + 数据加载），角色特有逻辑仅保留。
 
-import { getAppState, setState } from '../../core/base/state.js?v=20261017b';
-import { createWorkspaceShell } from '../../components/shell/workspace-shell.js?v=20261017b';
-import { flashHighlight } from '../../core/base/utils.js?v=20261017b';
-import { loadActivities } from '../../services/activity/activity.js?v=20261017b';
-import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261017b';
-import { SignupStore } from '../../services/activity/signup.js?v=20261017b';
-import { seedTodos } from '../../services/governance/todo.js?v=20261017b';
-import { solidAccentStyle } from '../../core/domain/constants.js?v=20261017b';
-import { AuthStore } from '../../services/core/auth.js?v=20261017b';
-import { getBranchIdOfPerson, getBranchCapabilityPackageState } from '../../services/branch/branch.js?v=20261017b';
-import { openRecruitForm } from '../tabs/org/taskforce-tab.js?v=20261017b';
+import { getAppState, setState } from '../../core/base/state.js?v=20261017g';
+import { createWorkspaceShell } from '../../components/shell/workspace-shell.js?v=20261017g';
+import { flashHighlight } from '../../core/base/utils.js?v=20261017g';
+import { loadActivities } from '../../services/activity/activity.js?v=20261017g';
+import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261017g';
+import { SignupStore } from '../../services/activity/signup.js?v=20261017g';
+import { seedTodos } from '../../services/governance/todo.js?v=20261017g';
+import { solidAccentStyle } from '../../core/domain/constants.js?v=20261017g';
+import { AuthStore } from '../../services/core/auth.js?v=20261017g';
+import { getBranchIdOfPerson, getBranchCapabilityPackageState } from '../../services/branch/branch.js?v=20261017g';
+import { openRecruitForm } from '../tabs/org/taskforce-tab.js?v=20261017g';
 // 副作用导入触发组织委员工作台能力注册（tab 清单；含 立项⑥B波 成员名册 tab）
-import '../../capabilities/org-workspace.js?v=20261017b';
+import '../../capabilities/org-workspace.js?v=20261017g';
 
 await createWorkspaceShell({
   accentRole: 'org-commissioner',

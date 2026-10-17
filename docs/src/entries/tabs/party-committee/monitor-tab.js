@@ -8,23 +8,24 @@
 //   折叠体例＝本仓既有 `<details>`（同 makeup-tab「补课范围与归档口径」）；折叠只分层、不减字段与功能。
 // 数源：mockDB.branches（支部实例）+ PEOPLE（成员档案，已挂 branchId）+ ctx.activities（工作台已加载）
 
-import { mockDB } from '../../../core/domain/domain.js?v=20261017b';
-import { liveMembers, PersonStore } from '../../../services/member/person.js?v=20261017b';
+import { mockDB } from '../../../core/domain/domain.js?v=20261017g';
+import { escHtml } from '../../../core/base/utils.js?v=20261017g';
+import { liveMembers, PersonStore } from '../../../services/member/person.js?v=20261017g';
 // C⑤（2026-09-10 支书裁定）：治理总览不再呈支部明细 → 支部党员数/滞留收归本台账，
 // 复用 services/member/roster.js getRosterStats（与治理总览上卷、会议「应到名单」同口径）。
-import { getRosterStats } from '../../../services/member/roster.js?v=20261017b';
+import { getRosterStats } from '../../../services/member/roster.js?v=20261017g';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/member/person.js 获取（原直连 mock PEOPLE）
 // 实时视图（非快照）：成员增删即时可见——见 services/member/person.js liveMembers 说明
 const PEOPLE = liveMembers();
-import { getCommitteeName } from '../../../services/branch/branch.js?v=20261017b';
-import { getPersonName } from '../../../services/member/person.js?v=20261017b';
+import { getCommitteeName } from '../../../services/branch/branch.js?v=20261017g';
+import { getPersonName } from '../../../services/member/person.js?v=20261017g';
 // P2（2026-09-10）：监控卡补「支书任期」只读行——复用 appointment.js 任期档案（起止/现任）
-import { listAppointments } from '../../../services/branch/appointment.js?v=20261017b';
+import { listAppointments } from '../../../services/branch/appointment.js?v=20261017g';
 // 支部监控卡「进入支部」→ 复用党委既有支部入口（services/core/branch-demo-nav.js）：
 // 只读监控视图（演示形态；本地回环主机放行，本地示例 / API 会话同口径只读），不授予党支部内部事务权限。
-import { bindBranchDemoButtons } from '../../../services/core/branch-demo-nav.js?v=20261017b';
+import { bindBranchDemoButtons } from '../../../services/core/branch-demo-nav.js?v=20261017g';
 // 支部筛选共用件（2026-10-04 批次 374 · 支书「按下设支部筛选信息」）——四页复用同一件，不各写一份
-import { renderBranchFilter, filterByBranch } from '../../../components/governance/branch-filter.js?v=20261017b';
+import { renderBranchFilter, filterByBranch } from '../../../components/governance/branch-filter.js?v=20261017g';
 
 /** 本页支部筛选的 stateKey（选择随模块自持，页内重绘不丢） */
 const BRANCH_FILTER_STATE = 'pc-monitor';
@@ -40,6 +41,8 @@ export async function renderContent(ctx) {
   //   页首「支部实例」计数仍取**全部**支部（它是院系规模口径，不随筛选变）。
   const allBranches = mockDB.branches || [];
   const branches = filterByBranch(allBranches, BRANCH_FILTER_STATE);
+  const aggregateOnly = document.documentElement.dataset.dataSource === 'api'
+    && !new URLSearchParams(window.location.search).has('branchId');
 
   const cards = branches.map(b => {
     const members = PEOPLE.filter(p => p.branchId === b.id);
@@ -49,9 +52,9 @@ export async function renderContent(ctx) {
     members.forEach(p => { stageCounts[p.developStage] = (stageCounts[p.developStage] || 0) + 1; });
     const stageRows = STAGE_ORDER.map(s => ({ s, n: stageCounts[s] || 0 })).filter(r => r.n > 0);
     const typeCounts = {};
-    activities.forEach(a => { if (a.branchId === undefined || (a.branchId || 'br-b1') === b.id) { typeCounts[a.type] = (typeCounts[a.type] || 0) + 1; } });
+    activities.forEach(a => { if ((a.branchId || 'br-b1') === b.id) { typeCounts[a.type] = (typeCounts[a.type] || 0) + 1; } });
     const recent = activities.filter(a => (a.branchId || 'br-b1') === b.id).sort((x, y) => (y.date || '').localeCompare(x.date || '')).slice(0, 5);
-    const secretaryName = b.secretaryId ? getPersonName(b.secretaryId) : '（待任命）';
+    const secretaryName = aggregateOnly ? '选择支部查看明细' : (b.secretaryId ? getPersonName(b.secretaryId) : '（待任命）');
     // 支书任期行（只读）：复用 listAppointments（倒序，现任在前）——现任（to null）=「至今（现任）」，
     // 无在任记录时回退最近一条历史，全无 → 暂无任期记录（起止 = from → to）。
     const appts = listAppointments(b.id);
@@ -60,9 +63,16 @@ export async function renderContent(ctx) {
       ? `支书任期：${String(term.from || '').slice(0, 10) || '—'}${term.to ? ` → ${String(term.to).slice(0, 10)}` : ' · 至今（现任）'}`
       : '支书任期：（暂无任期记录）';
     return {
-      b, members: members.length, stageRows, typeCounts, recent, secretaryName, termText,
-      partyTotal: roster.partyTotal,   // 在册党员（正式+预备）
-      detained: roster.detainedParty,  // 滞留党员（应到剔除）
+      b,
+      members: aggregateOnly ? (b.summary?.memberCount ?? 0) : members.length,
+      stageRows: aggregateOnly ? [] : stageRows,
+      typeCounts: aggregateOnly ? {} : typeCounts,
+      recent: aggregateOnly ? [] : recent,
+      secretaryName,
+      termText: aggregateOnly ? '支部人员与业务明细须选中支部后查看' : termText,
+      partyTotal: aggregateOnly ? (b.summary?.partyMemberCount ?? 0) : roster.partyTotal,
+      detained: aggregateOnly ? (b.summary?.detainedPartyCount ?? 0) : roster.detainedParty,
+      aggregateOnly,
     };
   });
 
@@ -71,7 +81,7 @@ export async function renderContent(ctx) {
       <div class="card rounded-xl p-4 flex items-center justify-between">
         <div>
           <p class="text-xs text-gray-500">院系党组织</p>
-          <p class="font-title-cn text-lg font-bold text-gray-800">${getCommitteeName()}</p>
+          <p class="font-title-cn text-lg font-bold text-gray-800">${escHtml(getCommitteeName())}</p>
         </div>
         <div class="text-right">
           <p class="text-2xl font-bold text-red-600">${allBranches.length}</p>
@@ -79,14 +89,14 @@ export async function renderContent(ctx) {
         </div>
       </div>
       <div id="pc-monitor-branch-filter"></div>
-      ${cards.map(({ b, members, partyTotal, detained, stageRows, typeCounts, recent, secretaryName, termText }) => `
+      ${cards.map(({ b, members, partyTotal, detained, stageRows, typeCounts, recent, secretaryName, termText, aggregateOnly }) => `
         <div class="card rounded-xl p-4">
           <div class="flex items-center justify-between mb-3">
             <div>
-              <p class="font-title-cn text-base font-bold text-gray-800">${b.config?.headerTitle || b.name}</p>
-              <p class="text-xs text-gray-500 mt-0.5">${b.type || '支部'} · 现任支书：${secretaryName}</p>
+              <p class="font-title-cn text-base font-bold text-gray-800">${escHtml(b.config?.headerTitle || b.name)}</p>
+              <p class="text-xs text-gray-500 mt-0.5">${escHtml(b.type || '支部')} · 现任支书：${escHtml(secretaryName)}</p>
             </div>
-            <span class="text-xs px-2 py-0.5 rounded-full ${b.status === 'active' ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-gray-600'}">${b.status === 'active' ? '运行中' : b.status}</span>
+            <span class="text-xs px-2 py-0.5 rounded-full ${b.status === 'active' ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-gray-600'}">${b.status === 'active' ? '运行中' : escHtml(b.status || '—')}</span>
           </div>
           <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
             <div class="rounded-lg bg-gray-50 p-3">
@@ -102,10 +112,10 @@ export async function renderContent(ctx) {
               <p class="text-xl font-bold text-gray-800 mt-1">${detained}<span class="text-xs font-normal text-gray-500"> 人</span></p>
             </div>
           </div>
-          <details class="mt-3">
+          ${aggregateOnly ? '<p class="mt-3 text-xs text-gray-500">这里只显示跨支部数字汇总。选择支部后可查看人员、负责人和活动明细。</p>' : `<details class="mt-3">
             <summary class="text-xs text-gray-500 cursor-pointer select-none">更多台账明细（支书任期 / 发展阶段 / 思想汇报 / 组织生活类型 / 近期活动）▾</summary>
             <div class="mt-2 space-y-3">
-              <p class="text-xs text-gray-500">${termText}</p>
+              <p class="text-xs text-gray-500">${escHtml(termText)}</p>
               <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
                 <div class="rounded-lg bg-gray-50 p-3 col-span-1">
                   <p class="text-xs text-gray-500">发展阶段分布</p>
@@ -117,22 +127,23 @@ export async function renderContent(ctx) {
                 </div>
                 <div class="rounded-lg bg-gray-50 p-3">
                   <p class="text-xs text-gray-500">组织生活类型</p>
-                  <p class="text-xs text-gray-600 mt-1.5 leading-5">${Object.entries(typeCounts).map(([t, n]) => `${t} ${n}`).join(' · ') || '—'}</p>
+                  <p class="text-xs text-gray-600 mt-1.5 leading-5">${Object.entries(typeCounts).map(([t, n]) => `${escHtml(t)} ${n}`).join(' · ') || '—'}</p>
                 </div>
               </div>
               ${recent.length ? `
               <div>
                 <p class="text-xs text-gray-500 mb-2">近期活动</p>
                 <div class="flex flex-wrap gap-2">
-                  ${recent.map(a => `<a href="./activity.html?id=${encodeURIComponent(a.id || '')}" class="text-xs text-gray-600 bg-gray-50 border border-gray-100 rounded px-2 py-1 hover:bg-gray-100 transition-colors" style="text-decoration:none;" title="查看活动详情（只读）">${a.date?.slice(5) || ''} ${a.title}</a>`).join('')}
+                  ${recent.map(a => `<a href="./activity.html?id=${encodeURIComponent(a.id || '')}&branchId=${encodeURIComponent(b.id)}" class="text-xs text-gray-600 bg-gray-50 border border-gray-100 rounded px-2 py-1 hover:bg-gray-100 transition-colors" style="text-decoration:none;" title="查看活动详情（只读）">${escHtml(a.date?.slice(5) || '')} ${escHtml(a.title)}</a>`).join('')}
                 </div>
               </div>` : ''}
             </div>
-          </details>
+          </details>`}
           <div class="mt-3 flex items-center justify-between gap-2 pt-2 border-t border-gray-100">
             <p class="text-xs text-gray-500">监控只读视图 · 不授予支部内部事务权限</p>
-            <button type="button" class="branch-demo-enter btn-accent text-xs px-3 py-1.5 rounded-lg font-medium shrink-0" data-branch-id="${b.id}"
-              title="打开该支部监控只读视图（只读；不授予支部内部事务权限）">进入支部</button>
+            ${aggregateOnly
+              ? `<button type="button" class="branch-summary-select btn-accent text-xs px-3 py-1.5 rounded-lg font-medium shrink-0" data-branch-id="${escHtml(b.id)}">查看该支部</button>`
+              : `<button type="button" class="branch-demo-enter btn-accent text-xs px-3 py-1.5 rounded-lg font-medium shrink-0" data-branch-id="${escHtml(b.id)}" title="打开该支部监控只读视图（只读；不授予支部内部事务权限）">进入支部</button>`}
           </div>
         </div>`).join('')}
     </div>
@@ -142,6 +153,11 @@ export async function renderContent(ctx) {
     stateKey: BRANCH_FILTER_STATE,
     onChange: () => renderContent(ctx),
   });
+  el.querySelectorAll('.branch-summary-select').forEach((button) => button.addEventListener('click', () => {
+    const url = new URL(window.location.href);
+    url.searchParams.set('branchId', button.dataset.branchId);
+    window.location.assign(url.toString());
+  }));
   bindBranchDemoButtons(el);
 }
 

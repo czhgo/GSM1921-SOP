@@ -17,7 +17,7 @@ import { requireAuth } from './auth.js';
 import { aggregateMemberProgress } from '../../docs/src/services/member/member-progress.js';
 // R-26③（2026-10-05 批次 388）：日期口径统一到**本地**（服务端单一源 `services/reporting.js`）
 import { today as todayLocal } from '../services/reporting.js';
-import { actorBranchId, branchSelectionError, resourceRowsForActor } from './resources/branch-scope.js';
+import { actorBranchId, branchSelectionError, resourceRowsForActor, selectedBranchRequiredError } from './resources/branch-scope.js';
 
 /** 取整表全量（键值表：id 主键 + data JSON） */
 const allOf = (db, table) => db.prepare(`SELECT data FROM ${table}`).all().map((r) => JSON.parse(r.data));
@@ -31,6 +31,8 @@ export function createLeaderProgressRouter(db) {
   router.get('/leader/member-progress', requireAuth(db), (req, res) => {
     const scopeDeny = branchSelectionError(req.actor, req.query.branchId);
     if (scopeDeny) return res.status(403).json({ error: scopeDeny });
+    const selectionRequired = selectedBranchRequiredError(req.actor, req.query.branchId);
+    if (selectionRequired) return res.status(400).json({ error: selectionRequired });
     const branchId = actorBranchId(req.actor) || req.query.branchId || null;
     const personIds = String(req.query.personIds || '')
       .split(',')

@@ -5,20 +5,20 @@
 //   统计卡预览 → 确认 → PersonStore.replaceBranchMembers 落库（mock/api 双形态由服务保证），
 //   导入后成员/应到统计即时可见（读链自动）；仅空支部可整表替换（非空支部提示逐人编辑，不提供动作）。
 
-import { mockDB } from '../../../core/domain/domain.js?v=20261017b';
+import { mockDB } from '../../../core/domain/domain.js?v=20261017g';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/member/person.js 获取（原直连 mock PEOPLE）；
 // 每次渲染现读（members 覆盖层即时吃到），不缓存在模块顶层
-import { PersonStore, getPersonName } from '../../../services/member/person.js?v=20261017b';
-import { createBranch, renameBranch, getCommitteeName, setBranchActive } from '../../../services/branch/branch.js?v=20261017b';
-import { appointSecretary, listAppointments } from '../../../services/branch/appointment.js?v=20261017b';
-import { getRosterStats } from '../../../services/member/roster.js?v=20261017b';
+import { PersonStore, getPersonName } from '../../../services/member/person.js?v=20261017g';
+import { createBranch, renameBranch, getCommitteeName, setBranchActive } from '../../../services/branch/branch.js?v=20261017g';
+import { appointSecretary, listAppointments } from '../../../services/branch/appointment.js?v=20261017g';
+import { getRosterStats } from '../../../services/member/roster.js?v=20261017g';
 // 立项⑥ B波：空支部名册导入服务（模板/净化/统计；确认落库直接走 PersonStore.replaceBranchMembers）
-import { buildBranchRosterTemplate, sanitizeBranchRoster } from '../../../services/member/branch-roster-import.js?v=20261017b';
-import { showToast, escHtml as esc, downloadBlob, getBasePath } from '../../../core/base/utils.js?v=20261017b';
+import { buildBranchRosterTemplate, sanitizeBranchRoster } from '../../../services/member/branch-roster-import.js?v=20261017g';
+import { showToast, escHtml as esc, downloadBlob, getBasePath } from '../../../core/base/utils.js?v=20261017g';
 // 立项⑦ B波：支部卡「进入支部（演示）」按钮绑定（与 governance-overview-tab 同源）
-import { bindBranchDemoButtons } from '../../../services/core/branch-demo-nav.js?v=20261017b';
+import { bindBranchDemoButtons } from '../../../services/core/branch-demo-nav.js?v=20261017g';
 // 支部配置（换组织向导 ＋ 部署与对接）——2026-10-04 批次 374：自「支部配置」tab 并入本页内区（实现单一源不变）
-import { mountPartyConfig } from './party-config-tab.js?v=20261017b';
+import { mountPartyConfig } from './party-config-tab.js?v=20261017g';
 
 // HTML 转义统一走 core/base/utils.js escHtml（2026-09-03 去重收口）
 
@@ -43,7 +43,13 @@ export async function renderContent() {
   const el = document.getElementById('party-committee-tab-content');
   if (!el) return;
   el.dataset.currentTab = 'branches'; // 跨 tab 共享容器约定（同 today/group-progress/insight-view 体例）：登记当前 tab，防 party-config 守卫读到陈旧标记而残留
-  const branches = mockDB.branches || [];
+  const apiMode = document.documentElement.dataset.dataSource === 'api';
+  const selectedBranchId = new URLSearchParams(window.location.search).get('branchId') || '';
+  const summaryOnly = apiMode && !selectedBranchId;
+  const allBranches = mockDB.branches || [];
+  const branches = apiMode && selectedBranchId
+    ? allBranches.filter((branch) => branch.id === selectedBranchId)
+    : allBranches;
   const members = PersonStore.getMembers(); // 现读档案（种子 + members 覆盖层），导入落库后即时吃到
 
   el.innerHTML = `
@@ -74,6 +80,27 @@ export async function renderContent() {
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         ${branches.map(b => {
           const bid = b.id;
+          if (summaryOnly) {
+            const summary = b.summary || {};
+            const isActive = (b.status || 'active') === 'active';
+            return `
+          <div class="card rounded-xl p-4" data-branch-card="${esc(bid)}">
+            <div class="flex items-start justify-between gap-2 flex-wrap mb-3">
+              <div class="min-w-0">
+                <p class="font-title-cn text-base font-bold text-gray-800">${esc(b.config?.headerTitle || b.name)}</p>
+                <p class="text-xs text-gray-500 mt-0.5">${esc(b.type || '支部')} · 仅汇总数据</p>
+              </div>
+              <span class="text-xs px-2 py-0.5 rounded-full ${isActive ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-gray-500'} shrink-0">${isActive ? '运行中' : '已停用'}</span>
+            </div>
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-3">
+              <p class="rounded-lg bg-gray-50 p-2 text-xs text-gray-600">成员 <strong class="tabular-nums">${summary.memberCount ?? '—'}</strong></p>
+              <p class="rounded-lg bg-gray-50 p-2 text-xs text-gray-600">在册党员 <strong class="tabular-nums">${summary.partyMemberCount ?? '—'}</strong></p>
+              <p class="rounded-lg bg-gray-50 p-2 text-xs text-gray-600">活动 <strong class="tabular-nums">${summary.activityCount ?? '—'}</strong></p>
+              <p class="rounded-lg bg-gray-50 p-2 text-xs text-gray-600">工作组 <strong class="tabular-nums">${summary.taskforceCount ?? '—'}</strong></p>
+            </div>
+            <button type="button" class="btn-accent branch-summary-select text-xs px-3 py-1.5 font-medium" data-branch-id="${esc(bid)}">选择并管理此支部</button>
+          </div>`;
+          }
           const inBranch = members.filter(p => p.branchId === bid);
           const rStats = getRosterStats({ branchId: bid });
           const isEmpty = inBranch.length === 0;
@@ -129,13 +156,13 @@ export async function renderContent() {
       <p class="text-xs text-gray-500">党委组织：${esc(getCommitteeName())} · 支部 ${branches.length} 个 · 名册导入仅对空支部开放</p>
       <input type="file" id="branch-roster-file" accept=".json,application/json" class="hidden" aria-label="选择成员名册 JSON 文件">
       <!-- 配置低频：目录优先，向导仅在用户展开后加载。 -->
-      <details id="branch-config-details" class="card rounded-xl p-4" ${_branchConfigOpen ? 'open' : ''}>
+      ${summaryOnly ? '<p class="card rounded-xl p-4 text-xs text-gray-500">支部目录只提供跨支部汇总。选择一个支部后，才显示该支部的成员、任期、制度配置与管理操作。</p>' : `<details id="branch-config-details" class="card rounded-xl p-4" ${_branchConfigOpen ? 'open' : ''}>
         <summary class="font-title-cn text-base font-bold text-gray-800 cursor-pointer select-none">支部配置（按需展开）</summary>
         <p class="text-xs text-gray-500 mt-2">部署或调整组织结构时使用；支部目录与日常治理入口保持在首屏。</p>
         <p class="text-xs text-gray-500 mt-1">党委维护目录与模板，支部自主选择能力包；配置向导中的角色分工与支部日常设置共用同一数据。</p>
         <div id="pc-wizard-host" class="mt-3"></div>
         <div id="pc-deploy-panel" class="mt-3"></div>
-      </details>
+      </details>`}
     </div>
   `;
 
@@ -144,6 +171,11 @@ export async function renderContent() {
   const formWrap = el.querySelector('#branch-form-wrap');
   toggle?.addEventListener('click', () => formWrap?.classList.toggle('hidden'));
   el.querySelector('#branch-form-cancel')?.addEventListener('click', () => formWrap?.classList.add('hidden'));
+  el.querySelectorAll('.branch-summary-select').forEach((button) => button.addEventListener('click', () => {
+    const url = new URL(window.location.href);
+    url.searchParams.set('branchId', button.dataset.branchId);
+    window.location.assign(url.toString());
+  }));
 
   // 创建支部（立项⑤ 阶段A：写口升级为 createBranch 空模板双形态——建出的支部为空：
   // config 默认全开、业务域为空、席位空缺待任命；返回 { ok, branch?, reason? }）

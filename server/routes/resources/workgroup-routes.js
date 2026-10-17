@@ -7,7 +7,7 @@ import { POLICY_DEFAULTS } from '../../../docs/src/core/domain/policy-defaults.j
 import { bumpCollectionVersion } from '../../db.js';
 import { CAPABILITY_PACKAGE_BY_ID } from '../../../docs/src/core/domain/capability-packages.js';
 import { _assertCapabilityPackageEnabled } from './gates.js';
-import { actorBranchId, branchSelectionError } from './branch-scope.js';
+import { actorBranchId, branchSelectionError, selectedBranchRequiredError } from './branch-scope.js';
 import { deriveExpectedRosterIds } from '../../../docs/src/services/activity/attendance-roster.js';
 import { isWorkgroupMemberRole, WORKGROUP_MEMBER_ROLES, workgroupMembers } from '../../../docs/src/services/activity/workgroup-members.js';
 import { WORKGROUP_PERMISSION_TEMPLATES_BY_KIND } from '../../../docs/src/core/domain/workgroup-policy.js';
@@ -405,22 +405,35 @@ export function registerWorkgroupRoutes(router, db) {
   router.get('/workgroups', requireAuth(db), (req, res) => {
     const deny = branchSelectionError(req.actor, req.query.branchId);
     if (deny) return res.status(403).json({ error: deny });
+    const selectionRequired = selectedBranchRequiredError(req.actor, req.query.branchId);
+    if (selectionRequired) return res.json([]);
     const branchId = actorBranchId(req.actor) || req.query.branchId || null;
-    const rows = jsonRows(db, 'workgroups').filter((row) => !branchId || row.branchId === branchId);
+    const rows = jsonRows(db, 'workgroups').filter((row) => row.branchId === branchId);
     res.json(rows);
   });
   router.get('/workgroup-members', requireAuth(db), (req, res) => {
     const deny = branchSelectionError(req.actor, req.query.branchId);
     if (deny) return res.status(403).json({ error: deny });
+    const selectionRequired = selectedBranchRequiredError(req.actor, req.query.branchId);
+    if (selectionRequired) return res.json([]);
     const branchId = actorBranchId(req.actor) || req.query.branchId || null;
-    res.json(jsonRows(db, 'workgroup_members').filter((row) => (!branchId || row.branchId === branchId) && row.status !== 'removed'));
+    res.json(jsonRows(db, 'workgroup_members').filter((row) => row.branchId === branchId && row.status !== 'removed'));
   });
   router.get('/workgroup-grants', requireAuth(db), (req, res) => {
-    res.json(jsonRows(db, 'workgroup_grants').filter((row) => row.personId === req.actor.id && row.status === 'active'));
+    const deny = branchSelectionError(req.actor, req.query.branchId);
+    if (deny) return res.status(403).json({ error: deny });
+    const selectionRequired = selectedBranchRequiredError(req.actor, req.query.branchId);
+    if (selectionRequired) return res.json([]);
+    const branchId = actorBranchId(req.actor) || req.query.branchId;
+    res.json(jsonRows(db, 'workgroup_grants').filter((row) =>
+      row.personId === req.actor.id && row.status === 'active' && row.branchId === branchId));
   });
   router.get('/workgroups/:id/members', requireAuth(db), (req, res) => {
     const workgroup = workgroupOf(db, req.params.id);
     if (!workgroup) return res.status(404).json({ error: '工作组不存在' });
+    const selectionRequired = selectedBranchRequiredError(req.actor, req.query.branchId);
+    if (selectionRequired) return res.status(400).json({ error: selectionRequired });
+    if (req.actor.role === 'party-staff' && req.query.branchId !== workgroup.branchId) return res.status(403).json({ error: '无权限：工作组不属于所选支部' });
     if (ownBranch(req.actor) !== workgroup.branchId && req.actor.role !== 'party-staff') return res.status(403).json({ error: '无权限：工作组不属于当前支部' });
     res.json(membersOf(db, workgroup.id));
   });
@@ -634,6 +647,9 @@ export function registerWorkgroupRoutes(router, db) {
   router.get('/workgroups/:id/grants', requireAuth(db), (req, res) => {
     const workgroup = workgroupOf(db, req.params.id);
     if (!workgroup) return res.status(404).json({ error: '工作组不存在' });
+    const selectionRequired = selectedBranchRequiredError(req.actor, req.query.branchId);
+    if (selectionRequired) return res.status(400).json({ error: selectionRequired });
+    if (req.actor.role === 'party-staff' && req.query.branchId !== workgroup.branchId) return res.status(403).json({ error: '无权限：工作组不属于所选支部' });
     if (!canManageWorkgroup(db, req.actor, workgroup) && req.actor.role !== 'party-staff') return res.status(403).json({ error: '无权限：不能查看该工作组的授权留痕' });
     res.json(jsonRows(db, 'workgroup_grants').filter((row) => row.workgroupId === workgroup.id));
   });
@@ -679,6 +695,9 @@ export function registerWorkgroupRoutes(router, db) {
   router.get('/workgroups/:id/tasks', requireAuth(db), (req, res) => {
     const workgroup = workgroupOf(db, req.params.id);
     if (!workgroup) return res.status(404).json({ error: '工作组不存在' });
+    const selectionRequired = selectedBranchRequiredError(req.actor, req.query.branchId);
+    if (selectionRequired) return res.status(400).json({ error: selectionRequired });
+    if (req.actor.role === 'party-staff' && req.query.branchId !== workgroup.branchId) return res.status(403).json({ error: '无权限：工作组不属于所选支部' });
     if (workgroup.branchId !== ownBranch(req.actor) && req.actor.role !== 'party-staff') return res.status(403).json({ error: '无权限：工作组不属于当前支部' });
     ensureTaskforcePurposeTask(db, workgroup); // 兼容旧专班：把原任务字段幂等迁移为可闭合的主任务
     res.json(jsonRows(db, 'workgroup_tasks').filter((row) => row.workgroupId === workgroup.id));
@@ -745,6 +764,9 @@ export function registerWorkgroupRoutes(router, db) {
   router.get('/workgroups/:id/outputs', requireAuth(db), (req, res) => {
     const workgroup = workgroupOf(db, req.params.id);
     if (!workgroup) return res.status(404).json({ error: '工作组不存在' });
+    const selectionRequired = selectedBranchRequiredError(req.actor, req.query.branchId);
+    if (selectionRequired) return res.status(400).json({ error: selectionRequired });
+    if (req.actor.role === 'party-staff' && req.query.branchId !== workgroup.branchId) return res.status(403).json({ error: '无权限：工作组不属于所选支部' });
     if (workgroup.branchId !== ownBranch(req.actor) && req.actor.role !== 'party-staff') return res.status(403).json({ error: '无权限：工作组不属于当前支部' });
     res.json(jsonRows(db, 'workgroup_outputs').filter((row) => row.workgroupId === workgroup.id));
   });
@@ -844,14 +866,19 @@ export function registerWorkgroupRoutes(router, db) {
   router.get('/activities/:id/expected-roster', requireAuth(db), (req, res) => {
     const activity = activityOf(db, req.params.id);
     if (!activity) return res.status(404).json({ error: '活动不存在' });
+    const selectionRequired = selectedBranchRequiredError(req.actor, req.query.branchId);
+    if (selectionRequired) return res.status(400).json({ error: selectionRequired });
+    if (req.actor.role === 'party-staff' && req.query.branchId !== (activity.branchId || 'br-b1')) return res.status(403).json({ error: '无权限：活动不属于所选支部' });
     if ((activity.branchId || 'br-b1') !== ownBranch(req.actor) && req.actor.role !== 'party-staff') return res.status(403).json({ error: '无权限：活动不属于当前支部' });
     res.json(rowOf(db, 'attendance_rosters', `atr-${activity.id}`));
   });
   router.get('/attendance-rosters', requireAuth(db), (req, res) => {
     const deny = branchSelectionError(req.actor, req.query.branchId);
     if (deny) return res.status(403).json({ error: deny });
+    const selectionRequired = selectedBranchRequiredError(req.actor, req.query.branchId);
+    if (selectionRequired) return res.json([]);
     const branchId = actorBranchId(req.actor) || req.query.branchId || null;
-    let rows = jsonRows(db, 'attendance_rosters').filter((row) => !branchId || row.branchId === branchId);
+    let rows = jsonRows(db, 'attendance_rosters').filter((row) => row.branchId === branchId);
     if (req.query.activityId) rows = rows.filter((row) => row.activityId === req.query.activityId);
     res.json(rows);
   });

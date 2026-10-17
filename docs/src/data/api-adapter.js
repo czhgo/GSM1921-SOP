@@ -1,8 +1,8 @@
 // role: [工程师]+[AI]
 // ════════════════════════════════════════════════════════════════
 //  api-adapter.js — REST API 数据适配器
-//  T-142 阶段2：DataAdapter 接口的 REST API 实现（P1：读列表 + snapshot 写穿已就绪；
-//  资源级 CRUD 为 P2）
+//  DataAdapter 的 REST API 实现：资源列表仍供 init() 填充 mockDB 客户端缓存；
+//  写入按资源语义分流到 CRUD 或专用 API，snapshot 仅用于仍允许的兼容快照域。
 //
 //  P1 已实现能力：
 //  1. 35 个资源分组的 list()（供 data-adapter init() 拉取全量数据填充 mockDB；= server 资源名映射 30 + issues / members / memberChangeRequests / committeeBroadcasts / agendaVotes 5 个语义端点组）
@@ -14,7 +14,7 @@
 //         content/04_web_design/data/DATA_ARCHITECTURE.md §8.4
 // ════════════════════════════════════════════════════════════════
 
-import { getApiBaseUrl, getAuthToken } from './data-adapter.js?v=20261017b';
+import { getApiBaseUrl, getAuthToken } from './data-adapter.js?v=20261017g';
 
 // ── HTTP 工具函数 ──────────────────────────────────────────────
 
@@ -97,9 +97,32 @@ async function _request(path, options = {}) {
   return response.json();
 }
 
+/** 为党委已选中的支部附加统一读取范围，避免各资源漏传 branchId。 */
+function _withSelectedBranch(path) {
+  if (typeof window === 'undefined') return path;
+  const branchId = new URLSearchParams(window.location.search).get('branchId');
+  if (!branchId) return path;
+  const [pathname, query = ''] = path.split('?');
+  const params = new URLSearchParams(query);
+  if (!params.has('branchId')) params.set('branchId', branchId);
+  const serialized = params.toString();
+  return serialized ? `${pathname}?${serialized}` : pathname;
+}
+
+/** 附件属于所选支部时，下载路径沿用页面的治理范围，避免二进制接口成为跨支部旁路。 */
+export function withSelectedBranchScope(path) {
+  if (typeof window === 'undefined' || typeof path !== 'string' || !path.startsWith('/api/v1/uploads/')) return path;
+  const branchId = new URLSearchParams(window.location.search).get('branchId');
+  if (!branchId) return path;
+  const [pathname, query = ''] = path.split('?');
+  const params = new URLSearchParams(query);
+  params.set('branchId', branchId);
+  return `${pathname}?${params.toString()}`;
+}
+
 /** GET 请求 */
 function _get(path) {
-  return _request(path, { method: 'GET' });
+  return _request(_withSelectedBranch(path), { method: 'GET' });
 }
 
 /** POST 请求 */

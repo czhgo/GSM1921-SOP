@@ -35,6 +35,7 @@ import express from 'express';
 import { randomUUID } from 'node:crypto';
 import { requireAuth } from './auth.js';
 import { SECRETARY_AND_DEPUTY_ROLES, ORG_COMMISSIONER_ROLES, PARTY_STAFF_ROLE } from '../../docs/src/core/domain/constants.js';
+import { selectedBranchRequiredError } from './resources/branch-scope.js';
 // R-26③（2026-10-05 批次 388）：日期口径统一到**本地**（`services/reporting.js` 是服务端单一源；禁 UTC 切串）
 import { today as todayLocal } from '../services/reporting.js';
 
@@ -203,6 +204,8 @@ export function createIaaaRouter(db) {
   router.get('/pending', requireAuth(db), (req, res) => {
     const actor = req.actor;
     if (!canConfirm(actor)) return res.status(403).json({ error: '无权限：仅支书/副支书/组织委员可看待确认入站' });
+    const selectionRequired = selectedBranchRequiredError(actor, req.query.branchId);
+    if (selectionRequired) return res.status(400).json({ error: selectionRequired });
     const mine = actor.role !== 'party-staff';
     const want = req.query.branchId ? String(req.query.branchId) : null;
     const rows = listUsers(db)

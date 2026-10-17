@@ -106,6 +106,14 @@ test('T4 待确认清单：成员 403；本支部组织委员只看本支部申�
   assert.ok(Array.isArray(list.json));
   assert.ok(list.json.every((r) => r.joinIntent.branchId === 'br-b1'),
     `本支部组织委员只应看到本支部申请，实测：${JSON.stringify(list.json.map((r) => r.joinIntent.branchId))}`);
+
+  const pc = await iaaaLogin('9000000001');
+  const unselected = await api('GET', '/api/v1/auth/iaaa/pending', { token: pc.token });
+  assert.equal(unselected.status, 400, '党委查看待归属申请前必须选择支部');
+  const selected = await api('GET', '/api/v1/auth/iaaa/pending?branchId=br-x', { token: pc.token });
+  assert.equal(selected.status, 200);
+  assert.ok(selected.json.some((row) => row.personId === 'u-app'));
+  assert.ok(selected.json.every((row) => row.joinIntent.branchId === 'br-x'));
 });
 
 test('T5 确认入站：落 branchId ＋ auth_audit 留痕 ＋ 清单移除', async () => {

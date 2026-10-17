@@ -12,14 +12,14 @@
 //   · 全院通知 = mockDB.notices 计数
 // 消费方：party-committee-workspace.js tabs 清单首项；ws-party-committee-entry defaultTab。
 
-import { mockDB } from '../../../core/domain/domain.js?v=20261017b';
-import { PersonStore } from '../../../services/member/person.js?v=20261017b';
-import { getRosterStats, RESIDENCE_KEY } from '../../../services/member/roster.js?v=20261017b';
-import { getCommitteeName } from '../../../services/branch/branch.js?v=20261017b';
-import { escHtml as esc } from '../../../core/base/utils.js?v=20261017b';
-import { tokenOf } from '../../../core/base/version-token.js?v=20261017b'; // P0 域写版本戳（spec §二.4）
-import { PREVIEW_KEY } from '../../../services/branch/org-base-data-preview.js?v=20261017b'; // 基础数据预览 raw 源
-import { memoizeRender } from '../../../components/ui/memoize-render.js?v=20261017b'; // P2 渲染守卫（spec §四.1）
+import { mockDB } from '../../../core/domain/domain.js?v=20261017g';
+import { PersonStore } from '../../../services/member/person.js?v=20261017g';
+import { getRosterStats, RESIDENCE_KEY } from '../../../services/member/roster.js?v=20261017g';
+import { getCommitteeName } from '../../../services/branch/branch.js?v=20261017g';
+import { escHtml as esc } from '../../../core/base/utils.js?v=20261017g';
+import { tokenOf } from '../../../core/base/version-token.js?v=20261017g'; // P0 域写版本戳（spec §二.4）
+import { PREVIEW_KEY } from '../../../services/branch/org-base-data-preview.js?v=20261017g'; // 基础数据预览 raw 源
+import { memoizeRender } from '../../../components/ui/memoize-render.js?v=20261017g'; // P2 渲染守卫（spec §四.1）
 
 // ── P2 渲染守卫 key（2026-09-07 · spec §四.1）─────────────────────
 // 全院汇总数字的数据版本 = member token（PersonStore.getMembers / getRosterStats 口径）
@@ -31,7 +31,7 @@ function _rawStorage(key) {
 }
 function _branchFingerprint(branches) {
   return (branches || []).map(b =>
-    `${b.id}:${b.config?.headerTitle || b.name || ''}:${b.type || ''}:${b.status || ''}`
+    `${b.id}:${b.config?.headerTitle || b.name || ''}:${b.type || ''}:${b.status || ''}:${JSON.stringify(b.summary || {})}`
   ).join('~');
 }
 function _governanceMemoKey(branches, noticeCount) {
@@ -48,7 +48,10 @@ export function renderContent(ctx) {
   el.dataset.currentTab = 'governance-overview'; // 跨 tab 共享容器约定（同 today/group-progress/insight-view 体例）：登记当前 tab，防 party-config 守卫读到陈旧标记而残留
 
   const branches = (mockDB.branches || []).filter(b => b && b.id);
-  const noticeCount = (mockDB.notices || []).length;
+  const hasServerSummaries = branches.length > 0 && branches.every((b) => b.summary && typeof b.summary.memberCount === 'number');
+  const noticeCount = hasServerSummaries
+    ? branches.reduce((sum, b) => sum + b.summary.noticeCount, 0)
+    : (mockDB.notices || []).length;
 
   // P2 渲染守卫：全院汇总数字版本未变且现 DOM 为上次真实产物 → 整卡保留（跳过逐支部统计 / HTML 拼装）。
   memoizeRender(el, _governanceMemoKey(branches, noticeCount), () => {
@@ -64,14 +67,21 @@ export function renderContent(ctx) {
  */
 function _renderGovernance(el, branches, noticeCount) {
   // ── 全院级汇总（逐支部实时统计后上卷；成员/党员增删改后即时刷新）──
-  const totals = branches.reduce((acc, b) => {
-    const roster = getRosterStats({ branchId: b.id });
-    return {
-      members: acc.members + PersonStore.getMembers().filter(p => p.branchId === b.id).length,
-      party: acc.party + roster.partyTotal,      // 在册党员（正式+预备）
-      detained: acc.detained + roster.detainedParty, // 滞留党员（应到口径剔除）
-    };
-  }, { members: 0, party: 0, detained: 0 });
+  const hasServerSummaries = branches.length > 0 && branches.every((b) => b.summary && typeof b.summary.memberCount === 'number');
+  const totals = hasServerSummaries
+    ? branches.reduce((acc, b) => ({
+      members: acc.members + b.summary.memberCount,
+      party: acc.party + b.summary.partyMemberCount,
+      detained: acc.detained + b.summary.detainedPartyCount,
+    }), { members: 0, party: 0, detained: 0 })
+    : branches.reduce((acc, b) => {
+      const roster = getRosterStats({ branchId: b.id });
+      return {
+        members: acc.members + PersonStore.getMembers().filter(p => p.branchId === b.id).length,
+        party: acc.party + roster.partyTotal,
+        detained: acc.detained + roster.detainedParty,
+      };
+    }, { members: 0, party: 0, detained: 0 });
 
   el.innerHTML = `
     <div class="space-y-4" data-ws-memo="governance">

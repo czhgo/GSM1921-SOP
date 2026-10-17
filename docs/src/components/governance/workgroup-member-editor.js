@@ -1,7 +1,7 @@
-import { PersonPicker } from './pickers.js?v=20261017b';
-import { getAdapter } from '../../data/data-adapter.js?v=20261017b';
-import { getPersonById } from '../../services/member/person.js?v=20261017b';
-import { WORKGROUP_PERMISSION_LABELS, WORKGROUP_ROLE_LABELS, workgroupPermissionTemplates } from '../../core/domain/workgroup-policy.js?v=20261017b';
+import { PersonPicker } from './pickers.js?v=20261017g';
+import { getAdapter } from '../../data/data-adapter.js?v=20261017g';
+import { getPersonById } from '../../services/member/person.js?v=20261017g';
+import { WORKGROUP_PERMISSION_LABELS, WORKGROUP_ROLE_LABELS, workgroupPermissionTemplates } from '../../core/domain/workgroup-policy.js?v=20261017g';
 
 const esc = (value) => String(value ?? '').replace(/[&<>"']/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
 const permissionName = (key) => WORKGROUP_PERMISSION_LABELS[key] || key;
@@ -30,11 +30,22 @@ function renderMemberRow(member, grant, kind, canEdit) {
       </div>`
     : `<p class="mt-2 text-xs text-gray-600">${activeKeys.size ? [...activeKeys].map(permissionName).map(esc).join('、') : '未授予操作权限'}</p>`;
 
+  if (!canEdit) {
+    return `<article class="rounded-lg border border-gray-200 bg-white px-3 py-2" aria-label="${esc(name)}的工作组身份">
+      <div class="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm">
+        <span class="font-medium text-gray-800">${esc(name)}</span>
+        <span class="rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-600">${WORKGROUP_ROLE_LABELS[role]}</span>
+        <span class="ml-auto text-xs text-gray-500">只读</span>
+      </div>
+      ${permissionControls}
+    </article>`;
+  }
+
   return `<details class="rounded-lg border border-gray-200 bg-white px-3 py-2" data-wg-member="${esc(personId)}" data-template-key="${esc(grant?.templateKey || '')}">
     <summary class="flex cursor-pointer list-none flex-wrap items-center gap-x-2 gap-y-1 text-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700">
       <span class="font-medium text-gray-800">${esc(name)}</span>
       <span class="rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-600">${WORKGROUP_ROLE_LABELS[role]}</span>
-      <span class="ml-auto text-xs text-gray-500">${canEdit ? `${permissionSummary} · 展开管理` : '查看身份'}</span>
+      <span class="ml-auto text-xs text-gray-500">${permissionSummary} · 展开管理</span>
     </summary>
     <div class="mt-3 border-t border-gray-100 pt-2">
       ${canEdit ? `<label class="block max-w-xs text-xs text-gray-600">工作组分工

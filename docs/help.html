@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
   
-<script src="./src/theme-init.js?v=20261017b"></script>
+<script src="./src/theme-init.js?v=20261017g"></script>
 <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>帮助 — GSM1921-SOP</title>
@@ -13,8 +13,8 @@
   <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;800&family=Noto+Serif+SC:wght@400;500;600;700;800&display=swap" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;800&family=Noto+Serif+SC:wght@400;500;600;700;800&display=swap" rel="stylesheet"></noscript>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="./src/tailwind-config.js?v=20261017b"></script>
-  <link rel="stylesheet" href="./src/styles.css?v=20261017b">
+  <script src="./src/tailwind-config.js?v=20261017g"></script>
+  <link rel="stylesheet" href="./src/styles.css?v=20261017g">
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
@@ -375,7 +375,7 @@
         <ul class="doc-list">
           <li><strong>「今天」置首（登录落点）</strong>：当天到期 / 逾期与近期会议、分工的速览。行内「到期 / 逾期」点击直接去待办处理；「会议 / 分工」点击进对应活动详情；「全部」跳到本台承载活动的 tab。</li>
           <li><strong>「待办」＝ 页顶「未读通知 N 条」轻量条 + 业务域折组</strong>：页顶点开逐条阅读、读后即消；下方待办按工作类型折组——项目（会务 · 活动 · 专班）/ 考勤纪律 / 考察 / 成员发展 / 上报与汇报（决议上报 · 汇报反馈）/ 归档宣传。每条待办卡片写明<strong>「做什么」并带「去处理」跳转</strong>——点按钮直达负责该事的 tab 或详情页（这就是“处理在哪做”的提示），做完自动消。支书 / 纪检等不保存的实时提醒也会并入对应域。卡片行内的「催办」入口一般由<strong>组织委员</strong>发起（材料催缴与审核督办归组织委员）——支书 / 副支书有权催办，但一般不越俎代庖；操作人不是他时，提交前弹确认窗——必须点按钮才能关闭，点「仍由我继续」才放行。</li>
-          <li><strong>「工作概况」三区总览</strong>：汇报 / 卡点 / 在办三区，条线数据按职责注入；支书台为「全局概况」，另含「按人视图」（各角色在办清单，谁在干什么、有无异常）与维度态势。</li>
+          <li><strong>「工作概况」按任务层次呈现</strong>：各角色按职责查看汇报、卡点与在办；支书台「全局概况」以统一待处理队列为主，将待决定/确认与异常/督办分开，责任线概况、指标和趋势可按需展开。</li>
           <li><strong>「我的职责」组各域 tab</strong>：该角色的职责操作都在这组里（写活动、考勤、考察、归档……具体见第 2 章逐台表）。</li>
           <li><strong>「我的处置」</strong>：你经手的反馈 / 上报及处理记录（支书台为「反馈管理」，党委台无此 tab）。</li>
         </ul>
@@ -392,7 +392,7 @@
               <tr><td>个人视角</td><td>每名成员</td><td>自己的考勤 / 考察 / 参与记录、在办与汇报</td></tr>
               <tr><td>块块视角</td><td>党小组组长</td><td>本党小组组员的「组员进展」：进度 / 考勤 / 考察（点开看，不能替做）</td></tr>
               <tr><td>条线视角</td><td>有赋权链的角色（组织委员看专班组织者 / 深度参与者；纪检委员看全员考勤考察）</td><td>被赋权者的条线在办——谁给你赋的权，你在谁的范围内被看见</td></tr>
-              <tr><td>全局视角</td><td>支书 / 副支书</td><td>全局概况“按人视图”（各角色在办、可点击直达）与维度态势；支部分工视图</td></tr>
+              <tr><td>全局视角</td><td>支书 / 副支书</td><td>统一待处理队列与分开的异常/督办；责任线概况、指标可按需展开；支部分工视图</td></tr>
               <tr><td>组织级视角</td><td>党委组织员</td><td>全院支部监控台账 / 上报审批 / 支部配置——跨支部、组织级，不参与任一支部内部事务</td></tr>
             </tbody>
           </table>
@@ -438,7 +438,7 @@
             <tbody>
               <tr><td>今天</td><td>支书 / 副支书</td><td>登录落点速览（1.2）</td><td>打开工作台即此页；行内跳转待办 / 活动详情</td></tr>
               <tr><td>待办</td><td>支书 / 副支书</td><td>未读通知条 + 工作域折组（1.2）</td><td>「工作台」段第 2 位；卡片「去处理」直达</td></tr>
-              <tr><td>全局概况</td><td>支书 / 副支书</td><td>汇报 / 卡点 / 在办三区 + 按人视图（各角色在办，可点击直达）+ 维度态势</td><td>「工作台」段第 3 位；点某人行看其条线在办</td></tr>
+              <tr><td>全局概况</td><td>支书 / 副支书</td><td>统一待处理队列；待决定/确认与异常/督办分开；责任线概况、指标和趋势按需展开</td><td>「工作台」段第 3 位；先处理队列事项，需要时展开责任线信息</td></tr>
               <tr><td>活动管理</td><td>支书 / 副支书</td><td>支部活动日历与写入：三会一课 / 主题党日 / 线上异步表决，可带议程（待讨论名单）与报名；并承接 <strong>「党小组活动」只读列示</strong>（活动方向「自下而上」的党小组活动）与 <strong>「项目赋权」</strong>整卡（给某场活动 / 某个专班赋组织者 / 深度参与者）。</td><td>「我的职责」段；「+ 写入活动」选模板 → 填表单 → 创建；点日历格子进详情 / 记录；党小组活动「+ 新建」复用本页写入浮窗（选「自下而上」）；项目赋权选「活动 / 专班」→ 选被赋权人 / 项目 / 角色 → 确认</td></tr>
               <tr><td>支委会</td><td>支书 / 副支书（页签入口）；支委（会议页内表态）；被扩大进本场的人（可进会议页，但只看得到扩大到他的那些场次，并在该场表态）</td><td>机构构成 + 议事入口两段：① <strong>机构构成</strong>——支委身份配置（组织 / 宣传 / 纪检委员，在本支部在册成员中选人 → 选身份 → 确认授予 / 改派，可撤销；支书 / 副支书身份由<strong>党委</strong>配置，不在本表）；② <strong>支委会会议</strong>——线上召开入口与进行时计数（未截止 / 待记录结论）；点开进「支委会会议」页——选线上召开 → 定本场参会范围（默认支委层，可改为支委扩大会并选定扩大到谁；党小组组长（含代组长）可一键打包）→ 提取议程 → 表态 → 汇总截止 → 留存并查阅讨论结果</td><td>「我的职责」段；「机构构成」段直接授予 / 撤销支委身份；点「打开支委会会议页 →」进独立页 party-committee-meeting.html（支委看全部场次；被扩大的人在该页只看得到扩大到他的场次）</td></tr>
               <!-- 2026-10-02 批次 351（支书 `D-741`「按这个方案推进 V-3 页签建议序」）：本表＝注册序 ⇒ 同批按新序改准
@@ -1806,6 +1806,6 @@
   </main>
 </div>
 
-<script type="module" src="./src/entries/pages/help-entry.js?v=20261017b"></script>
+<script type="module" src="./src/entries/pages/help-entry.js?v=20261017g"></script>
 </body>
 </html>

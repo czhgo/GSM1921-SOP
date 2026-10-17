@@ -99,7 +99,12 @@ test('只有党委可手动触发跨支部推送；未配置 webhook 时提示�
     method: 'POST',
     headers: { Authorization: `Bearer ${partyToken}` },
   });
-  assert.equal(res.status, 409);
-  const body = await res.json();
+  assert.equal(res.status, 400, '党委未选择支部时不得触发明细报表推送');
+  const selected = await fetch(`${base}/api/v1/report/trigger?branchId=br-b1`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${partyToken}` },
+  });
+  assert.equal(selected.status, 409);
+  const body = await selected.json();
   assert.equal(body.pushed, false);
 });

@@ -276,7 +276,7 @@ for (const w of WORKS) {
       }
       await page.waitForTimeout(800);
       // P0-2 形态断言（2026-09-23 支书裁定「形态必须可断言、不许静默降级」）：本文件真机用例必须在 API 形态下跑
-      await page.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20261017b')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
+      await page.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20261017g')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
 
       const labels = await page.$$eval('button[role="tab"]', (els) => els.map((e) => e.textContent.trim()));
       assert.ok(labels.length > 0, `${w.name} 未渲染任何 tab`);
@@ -440,7 +440,7 @@ test('S21 组织台活动深链：?activityId / ?view=activities 落「活动日
     await page.waitForTimeout(800);
     // 取一个真实活动（优先「非当前月」者，顺带验证切月）
     const acts = await page.evaluate(async () => {
-      const m = await import('/src/core/base/state.js?v=20261017b');
+      const m = await import('/src/core/base/state.js?v=20261017g');
       return ((m.getAppState() || {}).activities || []).map((x) => ({ id: x.id, date: x.date }));
     });
     assert.ok(acts.length > 0, '组织台活动深链用例：未取到任何活动（样本不足）');
@@ -492,10 +492,10 @@ test('S1 普查非空转：确实覆盖到「本该分页的列表 / 矩阵人�
   //   支书 12 · 组织 11 · 宣传 9 · 纪检 9 · 组长 10 · 成员 11 · 党委 6 ＝ **68**；
   //   而历次登记的门槛（67 → 66 → 65 → 64 → 63）**长期比实测低约 5**（沿革失真：批次 371 记「65 → 64」
   //   与当时实测 70 → 69 不符 ⇒ 逐批「−1」都建立在失真的基数上）。
-  //   ⚠ 仍留余量的理由：本普查只在七台**登录后**逐一进页面，某台若因数据/角色差异少渲染 1 枚页签不会漏报
-  //   ——留 0 余量会把「数据差异」误判为「普查缩水」；68 已是当前实测值、再降 1 即红。
+  // 2026-10-17 对照当前七台能力入口：旧党委 issue-review 已撤出注册，现为 67 个角色页签位置；
+  //   本断言只守运行时普查的最低覆盖量，不把注册表当行为正确性的裁判。
   console.log(`[普查覆盖] tab=${SWEEP.tabs} 引擎列表=${SWEEP.lists}（其中总数>10 的 ${SWEEP.listsOverPage}）矩阵=${SWEEP.matrices} 手写表格=${SWEEP.tables}`);
-  assert.ok(SWEEP.tabs >= 68, `普查 tab 数少于基线 68（实测 ${SWEEP.tabs}）：普查范围缩水或某台 tab 未渲染`);
+  assert.ok(SWEEP.tabs >= 67, `普查 tab 数少于当前角色入口基线 67（实测 ${SWEEP.tabs}）：普查范围缩水或某台 tab 未渲染`);
   assert.ok(SWEEP.listsOverPage >= 12, `「总数 > 10 的引擎列表」样本少于基线 12（实测 ${SWEEP.listsOverPage}）：分页断言可能恒真`);
   assert.ok(SWEEP.matrices >= 4, `矩阵样本少于基线 4（实测 ${SWEEP.matrices}）：人维分页断言可能恒真`);
   assert.ok(SWEEP.tables >= 2, `手写表格样本少于基线 2（实测 ${SWEEP.tables}）：P3 断言恒真`);

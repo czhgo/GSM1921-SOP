@@ -155,7 +155,7 @@ const PUSH_RETRY_DELAYS_MS = [2_000, 8_000, 30_000]; // 重试 3 次（手动/�
  * - REPORT_WEBHOOK_URL / REPORT_TOKEN 未配置 → 返回 { pushed:false, reason }（拉取模式）
  * - 失败重试 3 次，最终失败：console 告警 + 管理员邮件（REPORT_ADMIN_MAIL，若通道启用）
  */
-export async function pushReport(db, { from, to } = {}) {
+export async function pushReport(db, { from, to, branchId } = {}) {
   const url = process.env.REPORT_WEBHOOK_URL;
   if (!url) return { pushed: false, reason: 'REPORT_WEBHOOK_URL 未配置（拉取模式请用 GET /api/v1/report/:domain）' };
   const payload = {
@@ -166,7 +166,7 @@ export async function pushReport(db, { from, to } = {}) {
     domains: {},
   };
   for (const domain of Object.keys(REPORT_DOMAINS)) {
-    payload.domains[domain] = extractDomain(db, domain, payload.from, payload.to);
+    payload.domains[domain] = extractDomain(db, domain, payload.from, payload.to, { branchId: branchId || null });
   }
   const headers = { 'Content-Type': 'application/json; charset=utf-8' };
   const token = process.env.REPORT_TOKEN;

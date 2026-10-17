@@ -4,20 +4,20 @@
 //  活动详情页（activity-entry.js）与专班详情页（taskforce-entry.js）共用，
 //  避免「活动/专班统一报名逻辑」在两处重复散落（C-2 一改具改巡检，支书 2026-08-11 裁定专班独立页面）。
 // ════════════════════════════════════════════════════════════════
-import { SignupStore, resolveSignupReviewer, SignupStatus, SIGNUP_ROLE_LABELS } from '../../services/activity/signup.js?v=20261017b';
-import { getPersonById, getPersonName } from '../../services/member/person.js?v=20261017b';
-import { getBasePath, showToast, todayLocal } from '../../core/base/utils.js?v=20261017b';
-import { badgeHtml } from '../ui/badges.js?v=20261017b';
+import { SignupStore, resolveSignupReviewer, SignupStatus, SIGNUP_ROLE_LABELS } from '../../services/activity/signup.js?v=20261017g';
+import { getPersonById, getPersonName } from '../../services/member/person.js?v=20261017g';
+import { getBasePath, showToast, todayLocal } from '../../core/base/utils.js?v=20261017g';
+import { badgeHtml } from '../ui/badges.js?v=20261017g';
 // 活动「已归档」口径单一源（2026-09-13 收敛）：替代手写 source.archived
-import { isActivityArchived, BRANCH_COMMISSION_ROLES } from '../../core/domain/constants.js?v=20261017b';
+import { isActivityArchived, BRANCH_COMMISSION_ROLES } from '../../core/domain/constants.js?v=20261017g';
 // 统一检索引擎（2026-09-14 批次 37）：报名名单（已通过）接入关键词 + 分页
-import { renderFilteredList } from '../ui/list-filter.js?v=20261017b';
+import { renderFilteredList } from '../ui/list-filter.js?v=20261017g';
 // 批次 49 口径（「存好了才报成功」）：刷新前先等在途落库结算，见 _reloadAfterSettle
-import { settleWrites } from '../../core/session/pending-writes.js?v=20261017b';
+import { settleWrites } from '../../core/session/pending-writes.js?v=20261017g';
 // 2026-10-03 批次 358（`D-751`）：报名记录「作废（软）」——弹窗**单一源** ＋ 支委层判据单一源
-import { openVoidModal } from '../ui/void-record.js?v=20261017b';
-import { AuthStore } from '../../services/core/auth.js?v=20261017b';
-import { usesFormalMeetingRoster } from '../../core/domain/constants.js?v=20261017b';
+import { openVoidModal } from '../ui/void-record.js?v=20261017g';
+import { AuthStore } from '../../services/core/auth.js?v=20261017g';
+import { usesFormalMeetingRoster } from '../../core/domain/constants.js?v=20261017g';
 
 /**
  * 落库结算后再整页刷新（2026-09-18 批次 83 · SOP-B-2）
@@ -56,6 +56,13 @@ export function canSignup(sourceType, source) {
   return true;
 }
 
+function onsiteSignupLabel(sourceType, source, signup) {
+  if (sourceType !== 'activity' || source?.type !== '主题党日' || !['organizer', 'deep'].includes(signup?.role)) return '';
+  if (signup.onsite === true) return '线下参加';
+  if (signup.onsite === false) return '不线下参加';
+  return '线下意向未记录';
+}
+
 // ════════════════════════════════════════════════════════════════
 //  报名区（本人视角状态机）
 // ════════════════════════════════════════════════════════════════
@@ -82,6 +89,15 @@ export function renderSignupSection({ sourceType, sourceId, source, title, signu
       </div>
       <p class="mt-1 text-xs text-gray-500">此选择用于组织者/深度参与者的应到名单；普通参与者通过报名默认按线下参加计。</p>
     </fieldset>` : '';
+  const signupFields = (noteLabel = '附加说明（选填）') => `
+    <label class="flex min-w-[180px] flex-col gap-1 text-xs text-gray-600">报名角色
+      <select id="signup-role-select" class="input-flat w-full text-sm">
+        ${roleOptions.map(o => `<option value="${o.value}">${o.label}</option>`).join('')}
+      </select>
+    </label>
+    <label class="flex min-w-[200px] flex-1 flex-col gap-1 text-xs text-gray-600">${noteLabel}
+      <input id="signup-note-input" type="text" placeholder="附加说明（选填，如可承担的角色）" class="input-flat w-full text-sm">
+    </label>`;
 
   let body;
   if (!myId) {
@@ -94,19 +110,19 @@ export function renderSignupSection({ sourceType, sourceId, source, title, signu
   } else if (!mySignup) {
     body = `
       <div class="flex items-start gap-3 flex-wrap">
-        <select id="signup-role-select" class="input-flat min-w-[180px]">
-          ${roleOptions.map(o => `<option value="${o.value}">${o.label}</option>`).join('')}
-        </select>
-        <input id="signup-note-input" type="text" placeholder="附加说明（选填，如可承担的角色）"
-          class="input-flat flex-1 min-w-[200px]">
+        ${signupFields()}
         <button id="signup-submit-btn" class="btn-accent inline-flex items-center gap-1 text-sm px-4 py-1.5 font-medium">
           报名
         </button>
       </div>`;
   } else if (mySignup.status === SignupStatus.APPROVED) {
+    const onsiteStatus = requiresOnsiteChoice && ['organizer', 'deep'].includes(mySignup.role)
+      ? `<span class="text-xs text-gray-600">${mySignup.onsite === true ? '已选择线下参加' : mySignup.onsite === false ? '已选择不线下参加' : '线下意向未记录'}</span>`
+      : '';
     body = `
       <div class="flex items-center gap-2.5 flex-wrap">
         ${badgeHtml('已报名 · ' + roleLabel(mySignup.role, sourceType), 'success')}
+        ${onsiteStatus}
         <button id="signup-cancel-btn" class="btn-outline text-xs px-3 py-1.5">取消报名</button>
       </div>`;
   } else if (mySignup.status === SignupStatus.PENDING) {
@@ -119,11 +135,7 @@ export function renderSignupSection({ sourceType, sourceId, source, title, signu
     body = `
       <div class="flex items-start gap-3 flex-wrap">
         ${badgeHtml('已拒绝 · ' + roleLabel(mySignup.role, sourceType), 'danger')}
-        <select id="signup-role-select" class="input-flat min-w-[180px]">
-          ${roleOptions.map(o => `<option value="${o.value}">${o.label}</option>`).join('')}
-        </select>
-        <input id="signup-note-input" type="text" placeholder="附加说明（选填）"
-          class="input-flat flex-1 min-w-[200px]">
+        ${signupFields('重新申请说明（选填）')}
         <button id="signup-submit-btn" class="btn-accent inline-flex items-center gap-1 text-sm px-4 py-1.5 font-medium">
           重新申请
         </button>
@@ -143,7 +155,7 @@ export function renderSignupSection({ sourceType, sourceId, source, title, signu
 //  报名名单（pending 仅审核人可见）
 // ════════════════════════════════════════════════════════════════
 
-export function renderSignupList({ sourceType, sourceId, signups, myId }) {
+export function renderSignupList({ sourceType, sourceId, source, signups, myId }) {
   const reviewerId = resolveSignupReviewer(sourceType, sourceId);
   const isReviewer = myId && reviewerId === myId;
   const approvedList = signups.filter(s => s.status === SignupStatus.APPROVED);
@@ -162,6 +174,7 @@ export function renderSignupList({ sourceType, sourceId, signups, myId }) {
           <span class="w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-semibold text-white flex-shrink-0" style="background:var(--functional-warning);">${(getPersonById(s.personId)?.name || '?').slice(0, 1)}</span>
           <a href="${getBasePath()}person.html?id=${encodeURIComponent(s.personId)}" class="text-sm font-medium text-gray-700 hover:underline hover:text-sky-700 transition-colors" title="查看完整档案">${getPersonName(s.personId)}</a>
           <span class="text-xs text-gray-500">${roleLabel(s.role, sourceType)}</span>
+          ${onsiteSignupLabel(sourceType, source, s) ? `<span class="text-xs text-gray-600">${onsiteSignupLabel(sourceType, source, s)}</span>` : ''}
           ${s.note ? `<span class="text-xs text-gray-500 truncate max-w-[140px]">${s.note}</span>` : ''}
           <span class="ml-auto flex items-center gap-2">
             ${sourceType === 'taskforce' && s.role === 'participant'
@@ -181,9 +194,18 @@ export function renderSignupList({ sourceType, sourceId, signups, myId }) {
     return '';
   }
 
+  const approvedOnsite = approvedList.filter((row) => onsiteSignupLabel(sourceType, source, row));
+  const onsiteCounts = {
+    onsite: approvedOnsite.filter((row) => row.onsite === true).length,
+    offsite: approvedOnsite.filter((row) => row.onsite === false).length,
+    missing: approvedOnsite.filter((row) => typeof row.onsite !== 'boolean').length,
+  };
+  const onsiteSummary = approvedOnsite.length ? `<p class="mb-2 text-xs text-gray-600" aria-label="组织者和深度参与者的已通过线下意向">组织者/深度参与者已通过报名：线下参加 ${onsiteCounts.onsite} 人 · 不线下参加 ${onsiteCounts.offsite} 人${onsiteCounts.missing ? ` · 意向待核 ${onsiteCounts.missing} 人` : ''}</p>` : '';
+
   return `
     <div>
       <h3 class="text-sm font-semibold text-gray-700 mb-3">报名名单（${approvedList.length}）</h3>
+      ${onsiteSummary}
       <div data-signup-list-host></div>
       ${pendingRows}
       ${others ? `<p class="text-[11px] text-gray-500 mt-2">${others}</p>` : ''}
@@ -195,7 +217,7 @@ export function renderSignupList({ sourceType, sourceId, signups, myId }) {
 //  事件绑定（提交/取消/审核）
 // ════════════════════════════════════════════════════════════════
 
-export function bindSignupEvents({ sourceType, sourceId, title, myId, cardEl }) {
+export function bindSignupEvents({ sourceType, sourceId, source, title, myId, cardEl }) {
   const roleSelect = cardEl?.querySelector('#signup-role-select');
   const onsiteChoice = cardEl?.querySelector('#signup-onsite-choice');
   const syncOnsiteChoice = () => {
@@ -271,6 +293,7 @@ export function bindSignupEvents({ sourceType, sourceId, title, myId, cardEl }) 
           <span class="w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-semibold text-white flex-shrink-0" style="background:var(--party-red);">${(getPersonById(s.personId)?.name || '?').slice(0, 1)}</span>
           <a href="${getBasePath()}person.html?id=${encodeURIComponent(s.personId)}" class="text-sm font-medium text-gray-700 hover:underline hover:text-sky-700 transition-colors" title="查看完整档案">${getPersonName(s.personId)}</a>
           <span class="text-xs text-gray-500">${roleLabel(s.role, sourceType)}</span>
+          ${onsiteSignupLabel(sourceType, source, s) ? `<span class="text-xs text-gray-600">${onsiteSignupLabel(sourceType, source, s)}</span>` : ''}
           ${s.note ? `<span class="text-xs text-gray-500 truncate max-w-[160px]">${s.note}</span>` : ''}
           <span class="ml-auto inline-flex items-center gap-2">${badgeHtml('已通过', 'success')}${canVoidSignup ? `<button class="btn-ghost signup-void-btn text-xs px-2 py-0.5" data-signup-id="${s.id}" title="作废（软 · 留痕）">作废</button>` : ''}</span>
         </div>`,

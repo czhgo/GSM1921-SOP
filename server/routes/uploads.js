@@ -6,6 +6,7 @@ import fs from 'node:fs';
 import { randomUUID } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { requireAuth, requireCommissioner } from './auth.js';
+import { selectedBranchRequiredError } from './resources/branch-scope.js';
 // 党委角色单一源（勿手写）：下载做支部隔离时，党委（组织级、不属任何支部）跨支部可见
 import { PARTY_STAFF_ROLE as PARTY_STAFF_KEYS } from '../../docs/src/core/domain/constants.js';
 
@@ -84,16 +85,20 @@ export function createUploadsRouter(db) {
 
   // 受保护静态访问：仅登录用户可下载 + 支部隔离（2026-09-18 批次 80 · 风险-⑤）。
   // 附件表无支部字段，故按「上传人所属支部」判（users.branchId，缺省 'br-b1'，与 resources.js 同口径）；
-  // 党委（party-staff，组织级、不属任何支部）跨支部可见。无该附件记录 → 404。
+  // 党委必须选择支部，且只能下载所选支部上传人名下的附件。
   router.get('/uploads/:name', requireAuth(db), (req, res) => {
     const safe = path.basename(req.params.name);
     const rel = `/api/v1/uploads/${safe}`;
     const row = db.prepare('SELECT uploaded_by FROM attachments WHERE path = ?').get(rel);
     if (!row) return res.status(404).json({ error: '附件不存在' });
     const actor = req.actor;
-    if (!PARTY_STAFF_ROLE_SET.has(actor.role)) {
-      const ownerRow = db.prepare('SELECT data FROM users WHERE id = ?').get(row.uploaded_by);
-      const ownerBranch = (ownerRow ? JSON.parse(ownerRow.data).branchId : null) || 'br-b1';
+    const ownerRow = db.prepare('SELECT data FROM users WHERE id = ?').get(row.uploaded_by);
+    const ownerBranch = (ownerRow ? JSON.parse(ownerRow.data).branchId : null) || 'br-b1';
+    if (PARTY_STAFF_ROLE_SET.has(actor.role)) {
+      const selectionRequired = selectedBranchRequiredError(actor, req.query.branchId);
+      if (selectionRequired) return res.status(400).json({ error: selectionRequired });
+      if (String(req.query.branchId) !== ownerBranch) return res.status(403).json({ error: '无权限：附件不属于所选支部' });
+    } else {
       const actorBranch = actor.branchId || 'br-b1';
       if (ownerBranch !== actorBranch) return res.status(403).json({ error: '无权限：该附件不属于本支部' });
     }

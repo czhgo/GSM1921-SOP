@@ -9,15 +9,19 @@ import { requireAuth, requireRole } from './auth.js';
 import {
   REPORT_DOMAINS, extractDomain, resolveWindow, toCsv, pushReport,
 } from '../services/reporting.js';
-import { actorBranchId, branchSelectionError } from './resources/branch-scope.js';
+import { actorBranchId, branchSelectionError, selectedBranchRequiredError } from './resources/branch-scope.js';
 
 export function createReportRouter(db) {
   const router = Router();
 
-  // 手动触发推送（推送模式）
+  // 手动触发推送（推送模式）：党委须先选定一个支部，推送仍只含该支部明细。
   router.post('/report/trigger', requireRole(db, new Set(['party-staff'])), async (req, res) => {
+    const scopeDeny = branchSelectionError(req.actor, req.query.branchId);
+    if (scopeDeny) return res.status(403).json({ error: scopeDeny });
+    const selectionRequired = selectedBranchRequiredError(req.actor, req.query.branchId);
+    if (selectionRequired) return res.status(400).json({ error: selectionRequired });
     const { from, to } = resolveWindow(req.query);
-    const result = await pushReport(db, { from, to });
+    const result = await pushReport(db, { from, to, branchId: req.query.branchId });
     if (!result.pushed) {
       return res.status(409).json(result); // 409：未配置 webhook（拉取模式指引）
     }
@@ -28,6 +32,8 @@ export function createReportRouter(db) {
   router.get('/report/export', requireAuth(db), (req, res) => {
     const scopeDeny = branchSelectionError(req.actor, req.query.branchId);
     if (scopeDeny) return res.status(403).json({ error: scopeDeny });
+    const selectionRequired = selectedBranchRequiredError(req.actor, req.query.branchId);
+    if (selectionRequired) return res.status(400).json({ error: selectionRequired });
     const { domain } = req.query;
     if (!domain || !REPORT_DOMAINS[domain]) {
       return res.status(400).json({ error: `未知数据域：${domain}（可选 ${Object.keys(REPORT_DOMAINS).join('/')}）` });
@@ -44,6 +50,8 @@ export function createReportRouter(db) {
   router.get('/report/:domain', requireAuth(db), (req, res) => {
     const scopeDeny = branchSelectionError(req.actor, req.query.branchId);
     if (scopeDeny) return res.status(403).json({ error: scopeDeny });
+    const selectionRequired = selectedBranchRequiredError(req.actor, req.query.branchId);
+    if (selectionRequired) return res.status(400).json({ error: selectionRequired });
     const { domain } = req.params;
     if (!REPORT_DOMAINS[domain]) {
       return res.status(400).json({ error: `未知数据域：${domain}（可选 ${Object.keys(REPORT_DOMAINS).join('/')}）` });

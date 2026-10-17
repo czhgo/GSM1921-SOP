@@ -1,6 +1,6 @@
 // role: [工程师]+[AI]
 // 通过档案专用读口加载页面数据；mock 与 API 都必须经过同一档案策略。
-import { canReadMemberProfile } from '../../core/domain/profile-access.js?v=20261017b';
+import { canReadMemberProfile } from '../../core/domain/profile-access.js?v=20261017g';
 
 export async function loadMemberProfile({ personId, actor, dataSource, apiGet, mockGet } = {}) {
   if (!personId) return null;

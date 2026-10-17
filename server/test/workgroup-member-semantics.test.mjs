@@ -1,14 +1,14 @@
 // 工作组角色与报名历史的领域边界；无需启动服务或触碰持久数据库。
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { usesFormalMeetingRoster } from '../../docs/src/core/domain/constants.js?v=20261017b';
+import { usesFormalMeetingRoster } from '../../docs/src/core/domain/constants.js?v=20261017g';
 import {
   WORKGROUP_MEMBER_ROLES,
   isWorkgroupMemberRole,
   workgroupMembers,
   legacyParticipantAssignmentRows,
   removeSignupWorkgroupRole,
-} from '../../docs/src/services/activity/workgroup-members.js?v=20261017b';
+} from '../../docs/src/services/activity/workgroup-members.js?v=20261017g';
 
 test('活动与专班工作组都只把组织者和深度参与者计为成员', () => {
   const rows = [

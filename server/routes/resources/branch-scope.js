@@ -1,6 +1,59 @@
+import { POLICY_DEFAULTS } from '../../../docs/src/core/domain/policy-defaults.js';
+
 const PARTY_STAFF = 'party-staff';
 const DEFAULT_BRANCH = 'br-b1';
 const AGGREGATE_PARENT = Object.freeze({ actSubRecords: ['activities', 'activities'], tfSubRecords: ['taskforces', 'taskforces'] });
+const TERMINAL_ACTIVITY = new Set(['completed', 'executed', 'archived', 'cancelled']);
+const OPEN_TASKFORCE = new Set(['recruiting', 'active', 'in_progress']);
+
+function tableRows(db, table) {
+  try {
+    return db.prepare(`SELECT data FROM ${table}`).all().map((row) => JSON.parse(row.data));
+  } catch {
+    return [];
+  }
+}
+
+function branchSummary(db, branch) {
+  const branchId = String(branch.id);
+  const belongs = (row) => (row.branchId || DEFAULT_BRANCH) === branchId;
+  const users = tableRows(db, 'users').filter((row) => row.role !== PARTY_STAFF && row.branchId === branchId);
+  const rosterPolicy = {
+    ...POLICY_DEFAULTS.attendance.roster,
+    ...(branch.config?.policyOverrides?.attendance?.roster || {}),
+  };
+  const partyMembers = users.filter((row) => rosterPolicy.partyStages.includes(row.developStage));
+  const activities = tableRows(db, 'activities').filter(belongs);
+  const taskforces = tableRows(db, 'taskforces').filter(belongs);
+  const notices = tableRows(db, 'notices').filter(belongs);
+  return {
+    memberCount: users.length,
+    partyMemberCount: partyMembers.length,
+    detainedPartyCount: rosterPolicy.excludeDetained
+      ? partyMembers.filter((row) => row.residenceStatus === '滞留').length
+      : 0,
+    activityCount: activities.length,
+    activeActivityCount: activities.filter((row) => !TERMINAL_ACTIVITY.has(row.status)).length,
+    taskforceCount: taskforces.length,
+    activeTaskforceCount: taskforces.filter((row) => OPEN_TASKFORCE.has(row.status)).length,
+    noticeCount: notices.length,
+  };
+}
+
+function projectBranchDirectoryRow(db, row, selectedBranchId) {
+  const summary = branchSummary(db, row);
+  const selected = selectedBranchId && selectedBranchId === row.id;
+  return {
+    ...(selected ? row : {
+      id: row.id,
+      name: row.name,
+      type: row.type,
+      status: row.status,
+      ...(row.config?.headerTitle ? { config: { headerTitle: row.config.headerTitle } } : {}),
+    }),
+    summary,
+  };
+}
 
 export function actorBranchId(actor) {
   if (!actor || actor.role === PARTY_STAFF) return null;
@@ -11,6 +64,12 @@ export function branchSelectionError(actor, requestedBranchId) {
   const own = actorBranchId(actor);
   return own && requestedBranchId && requestedBranchId !== own
     ? '无权限：支部账号只能读取本支部数据'
+    : null;
+}
+
+export function selectedBranchRequiredError(actor, requestedBranchId) {
+  return actor?.role === PARTY_STAFF && !requestedBranchId
+    ? '党委读取支部明细前须先选择支部'
     : null;
 }
 
@@ -107,7 +166,7 @@ function aggregateRows(db, name, rows, targetBranchId) {
   const parentName = name === 'actSubRecords' ? 'activities' : 'taskforces';
   const root = rows.find((row) => row.id === '__root__');
   if (!root || !root.body || typeof root.body !== 'object' || Array.isArray(root.body)) return rows;
-  if (!targetBranchId) return rows;
+  if (!targetBranchId) return [{ ...root, body: {} }];
   const body = Object.fromEntries(Object.entries(root.body).filter(([id]) => {
     const parentRow = get(db, parentTable, id);
     return parentRow && resourceBranchId(db, parentName, parentRow) === targetBranchId;
@@ -117,6 +176,16 @@ function aggregateRows(db, name, rows, targetBranchId) {
 
 export function resourceRowsForActor(db, name, rows, actor, requestedBranchId) {
   const targetBranchId = selectedBranch(actor, requestedBranchId);
+  if (actor?.role === PARTY_STAFF && !targetBranchId) {
+    if (name === 'branches') {
+      return rows.map((row) => projectBranchDirectoryRow(db, row, null));
+    }
+    if (AGGREGATE_PARENT[name]) return aggregateRows(db, name, rows, null);
+    return [];
+  }
+  if (actor?.role === PARTY_STAFF && name === 'branches') {
+    return rows.map((row) => projectBranchDirectoryRow(db, row, targetBranchId));
+  }
   if (AGGREGATE_PARENT[name]) return aggregateRows(db, name, rows, targetBranchId);
   if (!targetBranchId) return rows;
   return rows.filter((row) => resourceBranchId(db, name, row) === targetBranchId);

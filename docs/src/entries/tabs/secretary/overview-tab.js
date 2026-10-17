@@ -8,30 +8,29 @@
 // 重设计要点：单列进度总览，取消 2x2 四色卡片与四色左边条，主体色统一党建红。
 // 2026-08-10 支书裁定：本页禁用 SVG 图标（不再引入 icon），类别用色点+文字标签区分。
 
-import { showToast, escHtml as esc, todayLocal } from '../../../core/base/utils.js?v=20261017b';
-import { NoticeStore } from '../../../services/governance/notice.js?v=20261017b';
-import { ROLE_LABELS, ROLE_COLORS } from '../../../core/domain/constants.js?v=20261017b';
-import { AuthStore } from '../../../services/core/auth.js?v=20261017b';
-import { dutyCardHtml } from '../../../components/governance/workforce-duty-card.js?v=20261017b';
-import { SecretaryOverviewStore, listPeriodicArchivesPendingReview, reviewPeriodicArchive, PERIODIC_ARCHIVE_REVIEW_STATUS } from '../../../services/governance/secretary-overview.js?v=20261017b';
+import { showToast, escHtml as esc, todayLocal } from '../../../core/base/utils.js?v=20261017g';
+import { NoticeStore } from '../../../services/governance/notice.js?v=20261017g';
+import { ROLE_LABELS, ROLE_COLORS } from '../../../core/domain/constants.js?v=20261017g';
+import { AuthStore } from '../../../services/core/auth.js?v=20261017g';
+import { dutyCardHtml } from '../../../components/governance/workforce-duty-card.js?v=20261017g';
+import { SecretaryOverviewStore, SecretaryTodoDeriver, listPeriodicArchivesPendingReview, reviewPeriodicArchive, PERIODIC_ARCHIVE_REVIEW_STATUS } from '../../../services/governance/secretary-overview.js?v=20261017g';
 // S1–S4 滞留党员设计（2026-09-06 支书已批）：支书复核卡（只读查看徽标/备注/变更留痕）
-import { getRosterStats } from '../../../services/member/roster.js?v=20261017b';
-import { loadActivities } from '../../../services/activity/activity.js?v=20261017b';
-import { loadAttendanceRecords } from '../../../services/activity/attendance.js?v=20261017b';
-import { AttendanceStatus } from '../../../core/domain/domain.js?v=20261017b';
-import { IssueStore, REPORT_CATEGORIES } from '../../../services/governance/issues.js?v=20261017b';
+import { getRosterStats } from '../../../services/member/roster.js?v=20261017g';
+import { loadActivities } from '../../../services/activity/activity.js?v=20261017g';
+import { loadAttendanceRecords } from '../../../services/activity/attendance.js?v=20261017g';
+import { AttendanceStatus } from '../../../core/domain/domain.js?v=20261017g';
+import { IssueStore, REPORT_CATEGORIES } from '../../../services/governance/issues.js?v=20261017g';
 // D2 裁决批二（2026-09-08 支书特批）：按人视图汇报区降级只读摘要 → 「去待办处理」定位跳转（pendingTarget 一次性消费）
-import { PendingTarget } from '../../../core/session/pending-target.js?v=20261017b';
-import { listPendingByReceiver, confirmExternalDispatch } from '../../../services/activity/external-dispatch.js?v=20261017b';
-import { getPersonName } from '../../../services/member/person.js?v=20261017b';
-import { TodoStore } from '../../../services/governance/todo.js?v=20261017b';
+import { PendingTarget } from '../../../core/session/pending-target.js?v=20261017g';
+import { listPendingByReceiver, confirmExternalDispatch } from '../../../services/activity/external-dispatch.js?v=20261017g';
+import { getPersonName } from '../../../services/member/person.js?v=20261017g';
+import { TodoStore } from '../../../services/governance/todo.js?v=20261017g';
 
 const OVERVIEW_TAB_HTML = `
   <div id="secretary-overview-content"></div>
 `;
 
-// 子视图切换状态（按维度 / 按人），同一会话内保持选择
-let _overviewSubView = 'dimension';
+let _dimensionRenderVersion = 0;
 
 /** 渲染全局概况 tab */
 export function renderContent() {
@@ -48,39 +47,22 @@ function renderOverviewContent() {
   const container = document.getElementById('secretary-overview-content');
   if (!container) return;
 
-  // 子视图切换条（按维度 / 按人）——信息密度精确原则（P-012 分工的运行保障·做与看）：
-  // 按维度 = 态势总览；按人 = L1 条线视角，看各角色在办概览（不含操作细节）
-  // 2026-08-10 支书裁定：本页禁用 SVG 图标，切换条为纯文字（避免图标选取丑）
-  const subTabs = [
-    { key: 'dimension', label: '按维度' },
-    { key: 'person', label: '按人' },
-  ];
-  const subTabsHtml = `
-    <div class="inline-flex items-center gap-1 p-1 rounded-full bg-neutral-100">
-      ${subTabs.map(t => `
-        <button type="button"
-          class="btn-tab ov-sub-tab px-4 py-1.5 rounded-full text-xs font-medium transition-all duration-200 ${_overviewSubView === t.key ? 'ov-sub-tab-active' : 'text-gray-600 hover:text-gray-700'} "
-          data-subview="${t.key}">${t.label}</button>
-      `).join('')}
-    </div>
-  `;
+  container.innerHTML = `<div class="space-y-4">
+    <div id="ov-subview-body"></div>
+    <details id="secretary-responsibility-details" class="card rounded-xl p-4">
+      <summary class="cursor-pointer text-sm font-semibold text-gray-700">按责任线查看在办概况</summary>
+      <div id="secretary-responsibility-body" class="pt-3"></div>
+    </details>
+    ${dutyCardHtml('secretary')}
+  </div>`;
 
-  container.innerHTML = `<div class="space-y-4">${dutyCardHtml('secretary')}<div>${subTabsHtml}</div><div id="ov-subview-body"></div></div>`;
-
-  // 绑定子切换
-  container.querySelectorAll('.ov-sub-tab').forEach(btn => {
-    btn.addEventListener('click', () => {
-      _overviewSubView = btn.dataset.subview;
-      renderOverviewContent();
-    });
+  renderDimensionView(document.getElementById('ov-subview-body'));
+  const responsibilityDetails = document.getElementById('secretary-responsibility-details');
+  responsibilityDetails?.addEventListener('toggle', () => {
+    if (!responsibilityDetails.open || responsibilityDetails.dataset.loaded === 'true') return;
+    responsibilityDetails.dataset.loaded = 'true';
+    renderPersonView(document.getElementById('secretary-responsibility-body'));
   });
-
-  const body = document.getElementById('ov-subview-body');
-  if (_overviewSubView === 'person') {
-    renderPersonView(body);
-  } else {
-    renderDimensionView(body);
-  }
 }
 
 /** 按人视图 v2：三区上下排布（问题优先）——2026-08-10 支书裁定重设计
@@ -281,13 +263,25 @@ function renderProgressSection(people) {
 }
 
 /** 按维度视图：四维度态势总览（原内容） */
-function renderDimensionView(container) {
+async function renderDimensionView(container) {
+  const renderVersion = ++_dimensionRenderVersion;
+  container.innerHTML = '<div class="py-8 text-center text-sm text-gray-500" role="status">正在汇总待处理事项…</div>';
+  let reportLoadError = '';
+  try { await IssueStore.loadAll(); }
+  catch (error) { reportLoadError = error?.message || '待答复汇报读取失败'; }
+  if (!container.isConnected || renderVersion !== _dimensionRenderVersion) return;
+
   const data = SecretaryOverviewStore.getOverview();
   const { attendance, inspection, activity, propaganda } = data;
   const todoGroups = TodoStore.getGroupedByAction('secretary');
+  // 与待办页同源纳入实时派生组；此处原先只数持久化待办，导致概况显示 0，待办页仍有确认项。
+  const realtimeTodoGroups = SecretaryTodoDeriver.computeAggregates();
+  const queueTodoGroups = [...todoGroups, ...realtimeTodoGroups];
   const pendingDispatches = listPendingByReceiver('secretary');
   const periodicArchivePending = listPeriodicArchivesPendingReview();
-  const pendingItems = todoGroups.reduce((sum, group) => sum + group.count, 0) + pendingDispatches.length + periodicArchivePending.length;
+  const pendingReports = reportLoadError ? [] : IssueStore.getSecretaryPendingReports();
+  const todoItemCount = queueTodoGroups.reduce((sum, group) => sum + group.count, 0);
+  const pendingItems = todoItemCount + pendingDispatches.length + periodicArchivePending.length + pendingReports.length;
 
   // ════════════════════════════════════════════════════════════
   //  管理科学·执行层仪表盘（支书 2026-08-08 重设计）
@@ -303,8 +297,8 @@ function renderDimensionView(container) {
   const metricStatusOf = (hit, ok = true) => hit ? 'ok' : ok ? 'warn' : 'danger';
   const metricDot = s => s === 'ok' ? '#16A34A' : s === 'warn' ? '#D97706' : '#EF4444';
 
-  // 待办异常总数（异常优先管理：目标 0）
-  const anomalyTotal = attendance.makeupPending + inspection.pendingInspections
+  // 需处理的异常事实总数（异常与待处理队列分开呈现）
+  const anomalyTotal = attendance.absentCount + attendance.makeupPending + inspection.pendingInspections
     + inspection.overdueInspections + activity.pendingAuth + propaganda.pendingArchive;
 
   // 会议应到口径（R-28，2026-09-13 支书裁定）：原「滞留党员复核」只读卡删除 →
@@ -320,8 +314,6 @@ function renderDimensionView(container) {
     { label: '会议应到', value: rosterStats.expected, unit: '人', status: 'ok', title: `在册党员 ${rosterStats.partyTotal} − 滞留剔除 ${rosterStats.detainedParty}（滞留＝组织关系保留但不参加日常会议）` },
     // 2026-08-10 支书裁定：考察积压/待办异常无既定目标值，不设虚假目标（状态由圆点色表达）
     { label: '考察积压', value: inspection.pendingInspections + inspection.overdueInspections, unit: '条', status: inspection.overdueInspections ? 'danger' : inspection.pendingInspections ? 'warn' : 'ok', title: '待确认 + 超期' },
-    { label: '待处理', value: pendingItems, unit: '项', status: pendingItems ? 'warn' : 'ok', title: '书记需要作出决定、确认或督办的事项；含待办、外发确认和周期归档审核' },
-    { label: '异常', value: anomalyTotal, unit: '项', status: anomalyTotal ? 'danger' : 'ok', title: '需要关注的异常事实，和待处理事项分开统计' },
   ];
 
   // 出勤趋势（近 6 场有考勤记录的活动）
@@ -330,7 +322,7 @@ function renderDimensionView(container) {
   // 异常优先队列（按紧急度：超期 3 > 待处理 2 > 常规 1）
   const exceptions = [];
   const pushEx = (level, label, detail, owner, action) => exceptions.push({ level, label, detail, owner, action });
-  if (attendance.absentPeople.length) pushEx(2, '缺勤', attendance.absentPeople.join('、'), '纪检委员', { urge: 'attendance-absent' });
+  if (attendance.absentCount) pushEx(2, '本月缺勤', `${attendance.absentCount} 人：${attendance.absentPeople.join('、')}`, '纪检委员', { urge: 'attendance-absent' });
   if (attendance.makeupPending) pushEx(2, '补课未完成', `${attendance.makeupPending} 人`, '纪检委员', { urge: 'attendance-makeup' });
   if (inspection.overdueInspections) pushEx(3, '考察超期', `${inspection.overdueInspections} 条`, '纪检委员', { urge: 'inspection-overdue' });
   if (inspection.pendingInspections) pushEx(2, '考察待确认', `${inspection.pendingInspections} 条`, '纪检委员', { urge: 'inspection-pending' });
@@ -339,7 +331,6 @@ function renderDimensionView(container) {
   if (activity.pendingAuth) pushEx(1, '赋权待审批', `${activity.pendingAuth} 个活动`, '支书', { direct: 'calendar' });
   if (propaganda.pendingArchive) pushEx(1, '待归档', `${propaganda.pendingArchive} 个活动`, '宣传委员', { urge: 'archive-pending' });
   exceptions.sort((a, b) => b.level - a.level);
-
   // 党员发展阶段分布
   const stages = [
     { label: '积极分子', value: inspection.stageCounts.activist,     color: '#94A3B8' },
@@ -371,7 +362,16 @@ function renderDimensionView(container) {
       <button type="button" class="sec-archive-review-btn btn-accent-soft text-xs px-2.5 py-1" style="--acc-text-dark:color-mix(in srgb, var(--app-accent) 55%, #fff)" data-archive-id="${r.id}" data-archive-decision="returned">退回</button>
     </div>`);
 
-  const todoRows = todoGroups.map((group) => `
+  const reportQueueRow = pendingReports.length ? `
+    <div class="flex items-center gap-3 py-2.5 px-3 rounded-lg hover:bg-gray-50 transition-colors">
+      <span class="w-2 h-2 rounded-full flex-shrink-0" style="background:var(--accent-sky);"></span>
+      <span class="text-sm font-medium text-gray-700 w-24 flex-shrink-0">待答复汇报</span>
+      <span class="text-xs text-gray-500 flex-1 truncate">${pendingReports.length} 条汇报等待书记答复</span>
+      <span class="text-xs text-gray-500 w-16 flex-shrink-0">书记</span>
+      <button type="button" class="sec-report-direct btn-accent-soft text-xs px-2.5 py-1">去待办</button>
+    </div>` : '';
+
+  const todoRows = queueTodoGroups.map((group) => `
     <div class="flex items-center gap-3 py-2.5 px-3 rounded-lg hover:bg-gray-50 transition-colors">
       <span class="w-2 h-2 rounded-full flex-shrink-0" style="background:var(--app-accent);"></span>
       <span class="text-sm font-medium text-gray-700 w-24 flex-shrink-0">${esc(group.title || '待办')}</span>
@@ -380,11 +380,8 @@ function renderDimensionView(container) {
       <button type="button" class="sec-todo-direct btn-accent-soft text-xs px-2.5 py-1">去待办</button>
     </div>`);
 
-  const exceptionsHtml = (exceptions.length === 0 && dispatchRows.length === 0 && periodicArchiveRows.length === 0 && todoRows.length === 0)
-    ? `<div class="flex items-center gap-2 py-3 px-3 rounded-lg bg-green-50 text-green-700 text-xs">
-         <span class="w-2 h-2 rounded-full bg-green-500 flex-shrink-0"></span> 全部正常，无待处理异常
-       </div>`
-    : todoRows.join('') + dispatchRows.join('') + periodicArchiveRows.join('') + exceptions.map(e => {
+  const pendingRows = reportQueueRow + todoRows.join('') + dispatchRows.join('') + periodicArchiveRows.join('');
+  const followUpRows = exceptions.map(e => {
         const dot = e.level === 3 ? '#EF4444' : e.level === 2 ? '#F59E0B' : '#3B82F6';
         const actionHtml = e.action.urge
           ? `<button type="button" class="sec-urge-btn btn-accent-soft text-xs px-2.5 py-1" style="--acc-text-dark:color-mix(in srgb, var(--app-accent) 55%, #fff)" data-urge="${e.action.urge}">催办</button>`
@@ -398,27 +395,38 @@ function renderDimensionView(container) {
             ${actionHtml}
           </div>`;
       }).join('');
+  const pendingQueueHtml = pendingItems > 0
+    ? `<section aria-labelledby="secretary-pending-heading">
+        <h5 id="secretary-pending-heading" class="flex items-center justify-between text-xs font-semibold text-gray-700 mb-1.5">
+          <span>待决定与确认</span><span class="text-gray-500 font-normal">${pendingItems} 项</span>
+        </h5><div class="space-y-1.5">${pendingRows}</div>
+      </section>`
+    : `<div class="flex items-center gap-2 py-3 px-3 rounded-lg bg-green-50 text-green-700 text-xs" role="status">
+         <span class="w-2 h-2 rounded-full bg-green-500 flex-shrink-0"></span> 暂无待决定或确认事项
+       </div>`;
+  const followUpQueueHtml = (anomalyTotal > 0 || exceptions.length > 0)
+    ? `<section aria-labelledby="secretary-follow-up-heading" class="border-t border-gray-100 pt-3">
+        <h5 id="secretary-follow-up-heading" class="flex items-center justify-between text-xs font-semibold text-gray-700 mb-1.5">
+          <span>异常与督办</span><span class="text-gray-500 font-normal" title="异常按问题/提醒条目计数；可能与待处理事项关联">异常 ${anomalyTotal} 项 · ${exceptions.length} 类跟进入口</span>
+        </h5><div class="space-y-1.5">${followUpRows}</div>
+      </section>`
+    : `<div class="flex items-center gap-2 py-3 px-3 rounded-lg bg-green-50 text-green-700 text-xs" role="status">
+         <span class="w-2 h-2 rounded-full bg-green-500 flex-shrink-0"></span> 当前无异常或需督办事项
+       </div>`;
 
   container.innerHTML = `
     <div class="space-y-4">
-      <!-- 必要指标内联统计条（取消 KPI 五连卡；不出勤率 KPI） -->
-      <div class="flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-gray-500 py-2 border-b border-gray-100">
-        ${metrics.map(m => `
-          <span class="inline-flex items-center gap-1.5" title="${esc(m.title)}">
-            <span class="inline-block w-1.5 h-1.5 rounded-full flex-shrink-0" style="background:${metricDot(m.status)};"></span>
-            <span class="font-semibold text-gray-700 tabular-nums">${m.value}</span>
-            <span>${m.label}（${m.unit}）</span>
-          </span>
-        `).join('')}
-      </div>
-
       <!-- 书记统一待处理主队列：工作待办、外发确认、周期归档审核和异常提醒集中呈现 -->
       <div class="card rounded-xl p-4">
         <div class="flex items-center justify-between mb-3">
-          <h4 class="font-title-cn text-sm font-bold text-gray-700">书记待处理</h4>
-          <span class="text-xs text-gray-500">待处理 ${pendingItems} 项 · 异常 ${anomalyTotal} 项</span>
+          <h4 class="font-title-cn text-sm font-bold text-gray-700">书记工作队列</h4>
+          <div class="text-right">
+            <span class="text-xs text-gray-500" title="待处理数包含工作待办、待答复汇报、文件确认和周期归档审核；异常按问题/提醒条目计数，两数不可相加。">待处理 ${pendingItems} 项 · 异常 ${anomalyTotal} 项</span>
+            <p class="text-[11px] text-gray-500 mt-0.5">工作待办 ${todoItemCount} · 待答复汇报 ${pendingReports.length} · 文件确认 ${pendingDispatches.length} · 周期归档审核 ${periodicArchivePending.length}</p>
+          </div>
         </div>
-        <div class="space-y-1.5">${exceptionsHtml}</div>
+        ${reportLoadError ? `<p class="mb-2 text-xs text-amber-700" role="status">待答复汇报读取失败，待处理计数暂不含汇报：${esc(reportLoadError)}</p>` : ''}
+        <div class="space-y-4">${pendingQueueHtml}${followUpQueueHtml}</div>
         <details class="mt-3 pt-3 border-t border-gray-100">
           <summary class="cursor-pointer text-xs text-gray-500">查看出勤趋势</summary>
           <div class="flex items-center justify-between mb-1">
@@ -433,6 +441,20 @@ function renderDimensionView(container) {
           出勤率偏低提示（仅提示，不触发任何处置）：本月 ${attendance.lowSessions.length} 场低于提示线 ${attendance.lowRateHint}% —— ${esc(attendance.lowSessions.map(s => `${s.activity}（${s.rate}%）`).join('、'))}
         </div>` : ''}
       </div>
+
+      <!-- 辅助指标退到队列之后，首屏先回答书记现在要处理什么 -->
+      <details class="rounded-xl border border-gray-100 px-4 py-2">
+        <summary class="cursor-pointer text-xs font-medium text-gray-500">查看工作概况指标</summary>
+        <div class="flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-gray-500 pt-3">
+          ${metrics.map(m => `
+            <span class="inline-flex items-center gap-1.5" title="${esc(m.title)}">
+              <span class="inline-block w-1.5 h-1.5 rounded-full flex-shrink-0" style="background:${metricDot(m.status)};"></span>
+              <span class="font-semibold text-gray-700 tabular-nums">${m.value}</span>
+              <span>${m.label}（${m.unit}）</span>
+            </span>
+          `).join('')}
+        </div>
+      </details>
 
       <!-- R-28（2026-09-13 支书裁定）：原「滞留党员复核」只读卡删除——
            ① 应到口径已降为上方指标条一行（会议应到）；
@@ -493,6 +515,10 @@ function renderDimensionView(container) {
   container.querySelectorAll('.sec-todo-direct').forEach((btn) => btn.addEventListener('click', () => {
     const tabBtn = document.querySelector('.secretary-tab-btn[data-secretary-tab="todo"]');
     if (tabBtn) tabBtn.click();
+  }));
+  container.querySelectorAll('.sec-report-direct').forEach((btn) => btn.addEventListener('click', () => {
+    PendingTarget.set({ tab: 'todo', kind: 'report' });
+    _gotoTodoTab();
   }));
 }
 

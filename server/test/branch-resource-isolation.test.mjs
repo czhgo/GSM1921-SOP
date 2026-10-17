@@ -1,7 +1,10 @@
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import path from 'node:path';
 import { createApp } from '../app.js';
 import { seedDatabase } from '../seed.js';
+import { UPLOAD_DIR } from '../routes/uploads.js';
 
 let app;
 let server;
@@ -41,6 +44,7 @@ before(async () => {
   write('committee_broadcasts', { id: 'cb-b2', branchId: 'br-b2', requestId: 'mcr-b2', recipientId: 'p99', status: 'pending' });
   write('workgroups', { id: 'wg-b2', branchId: 'br-b2', kind: 'taskforce', sourceType: 'taskforce', sourceId: 'tf-b2', status: 'active' });
   write('workgroup_members', { id: 'wgm-b2', branchId: 'br-b2', workgroupId: 'wg-b2', personId: 'p99', status: 'active' });
+  write('workgroup_grants', { id: 'wgg-pc-b2', branchId: 'br-b2', workgroupId: 'wg-b2', personId: 'p_pc', status: 'active' });
   write('attendance_rosters', { id: 'atr-act-b2', branchId: 'br-b2', activityId: 'act-b2', personIds: ['p99'], frozen: true });
   server = app.listen(0);
   base = `http://127.0.0.1:${server.address().port}/api/v1`;
@@ -126,10 +130,10 @@ test('成员列表与 bootstrap 只向本人及本支部支委投影自我描述
   assert.equal(otherCommittee.body.find((row) => row.id === 'p99').selfProfile.futureDirection, 'protected-p99');
   assert.ok(!otherCommittee.body.some((row) => row.id === 'p13'), '支部支委仍受支部范围约束');
 
-  const partyStaff = await get('p_pc', '/users');
-  assert.ok(partyStaff.body.length > 0, '党委组织员保留既有名册读取能力');
+  const partyStaff = await get('p_pc', '/users?branchId=br-b1');
+  assert.ok(partyStaff.body.length > 0, '党委组织员选中支部后读取该支部名册');
   assert.ok(partyStaff.body.every((row) => row.selfProfile === undefined), '党委组织员不得读取支部个人自述');
-  const partyBootstrap = await get('p_pc', '/bootstrap');
+  const partyBootstrap = await get('p_pc', '/bootstrap?branchId=br-b1');
   assert.ok(partyBootstrap.body.users.every((row) => row.selfProfile === undefined));
 
   const getProfile = (viewerId, targetId) => get(viewerId, `/members/${targetId}/profile`);
@@ -145,13 +149,31 @@ test('成员列表与 bootstrap 只向本人及本支部支委投影自我描述
   assert.equal(db.pragma('integrity_check', { simple: true }), 'ok', '只读档案请求不得损坏数据库');
 });
 
-test('党委可按支部筛选，也可读取跨支部汇总', async () => {
+test('党委未选支部时只可读取支部目录，选中后才可读取该支部明细', async () => {
   const all = await get('p_pc', '/activities');
-  assert.ok(all.body.some((row) => row.id === 'act-11'));
-  assert.ok(all.body.some((row) => row.id === 'act-b2'));
+  assert.deepEqual(all.body, [], '无选中支部时不得从通用列表读取任何跨支部活动明细');
+  const directory = await get('p_pc', '/branches');
+  assert.deepEqual(directory.body.map((row) => row.id).sort(), ['br-b1', 'br-b2']);
+  assert.ok(directory.body.every((row) => !row.secretaryId && !row.config?.policyOverrides), '未选择时目录仅保留选支部所需的基本信息');
+  const secondBranchSummary = directory.body.find((row) => row.id === 'br-b2').summary;
+  assert.equal(secondBranchSummary.memberCount, 2);
+  assert.equal(secondBranchSummary.activityCount, 1);
+  assert.ok(Object.values(secondBranchSummary).every((value) => typeof value === 'number'), '跨支部只提供数字汇总，不暴露人员或活动明细');
+  const unselectedBootstrap = await get('p_pc', '/bootstrap');
+  assert.deepEqual(unselectedBootstrap.body.activities, []);
+  assert.deepEqual(unselectedBootstrap.body.users, []);
+  assert.deepEqual(Object.keys(unselectedBootstrap.body.actSubRecords[0].body), [], '聚合子记录也不得绕过支部选择');
+  assert.deepEqual((await get('p_pc', '/workgroups')).body, []);
+  assert.deepEqual((await get('p_pc', '/workgroup-grants')).body, [], '党委未选支部时不能读工作组授权留痕');
+  assert.equal((await get('p_pc', '/workgroups/wg-b2/members')).response.status, 400);
+  assert.equal((await get('p_pc', '/activities/act-b2/expected-roster')).response.status, 400);
 
   const selected = await get('p_pc', '/activities?branchId=br-b2');
   assert.deepEqual(selected.body.map((row) => row.id), ['act-b2']);
+  assert.equal((await get('p_pc', '/workgroups/wg-b2/members?branchId=br-b2')).response.status, 200);
+  assert.equal((await get('p_pc', '/workgroups/wg-b2/members?branchId=br-b1')).response.status, 403);
+  const scopedGrants = await get('p_pc', '/workgroup-grants?branchId=br-b2');
+  assert.deepEqual(scopedGrants.body.map((row) => row.id), ['wgg-pc-b2']);
 
   const bootstrap = await get('p_pc', '/bootstrap?branchId=br-b2');
   assert.deepEqual(bootstrap.body.activities.map((row) => row.id), ['act-b2']);
@@ -169,6 +191,32 @@ test('党委可按支部筛选，也可读取跨支部汇总', async () => {
   assert.equal(foreignProgress.response.status, 403);
   const partyProgress = await get('p_pc', '/leader/member-progress?personIds=p99&branchId=br-b2');
   assert.equal(partyProgress.response.status, 200);
+  const unselectedProgress = await get('p_pc', '/leader/member-progress?personIds=p99');
+  assert.equal(unselectedProgress.response.status, 400, '跨支部个人进展须先选中一个支部');
+  const unselectedReport = await get('p_pc', '/report/activity');
+  assert.equal(unselectedReport.response.status, 400, '明细型报表须先选中一个支部');
+});
+
+test('党委下载附件必须选择其所属支部，不能用文件 URL 绕过支部范围', async () => {
+  const name = `branch-scope-${Date.now()}.pdf`;
+  const rel = `/api/v1/uploads/${name}`;
+  const fullPath = path.join(UPLOAD_DIR, name);
+  fs.writeFileSync(fullPath, 'scope-check');
+  db.prepare('INSERT INTO attachments (id, filename, path, size, uploaded_by, uploaded_at) VALUES (?, ?, ?, ?, ?, ?)')
+    .run(`attachment-${name}`, name, rel, 12, 'p99', new Date().toISOString());
+  try {
+    const download = `${base}/uploads/${name}`;
+    const unselected = await fetch(download, { headers: { Authorization: `Bearer ${tokens.get('p_pc')}` } });
+    assert.equal(unselected.status, 400, '未选支部时不得直接下载跨支部附件');
+    const wrongBranch = await fetch(`${download}?branchId=br-b1`, { headers: { Authorization: `Bearer ${tokens.get('p_pc')}` } });
+    assert.equal(wrongBranch.status, 403, '附件上传人支部与选中支部不同必须拒绝');
+    const correctBranch = await fetch(`${download}?branchId=br-b2`, { headers: { Authorization: `Bearer ${tokens.get('p_pc')}` } });
+    assert.equal(correctBranch.status, 200);
+    assert.equal(await correctBranch.text(), 'scope-check');
+  } finally {
+    db.prepare('DELETE FROM attachments WHERE path = ?').run(rel);
+    fs.rmSync(fullPath, { force: true });
+  }
 });
 
 test('支部账号不能通过查询参数或单行接口跨支部读取、改写', async () => {

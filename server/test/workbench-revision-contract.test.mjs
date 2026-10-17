@@ -15,6 +15,27 @@ test('周期归档界面按期次日期混合排序并显示冻结规则标签',
   assert.ok(/archivePolicySnapshot\?\.periodLabel/.test(overview), 'review queue displays the frozen period label');
 });
 
+test('书记概况以待处理为主、将异常另区呈现并消除重复计数', async () => {
+  const source = await read('../../docs/src/entries/tabs/secretary/overview-tab.js');
+  const dutyCard = source.indexOf("${dutyCardHtml('secretary')}");
+  const queueHost = source.indexOf('id="ov-subview-body"');
+  assert.ok(dutyCard > queueHost, '责任安排退到实际待处理内容之后');
+  assert.match(source, /待决定与确认/);
+  assert.match(source, /异常与督办/);
+  assert.match(source, /attendance\.absentCount \+ attendance\.makeupPending/);
+  assert.match(source, /异常按问题\/提醒条目计数/);
+  const overviewService = await read('../../docs/src/services/governance/secretary-overview.js');
+  assert.match(overviewService, /const absentCount = absentPersonIds\.length/);
+  assert.match(overviewService, /absentCount,/);
+  assert.doesNotMatch(source, /data-subview=/, '默认页不再在按维度与按人两个主视图之间切换');
+  assert.match(source, /按责任线查看在办概况/, '责任线信息作为主队列下方的按需展开内容');
+  assert.ok(source.indexOf('书记工作队列') < source.indexOf('查看工作概况指标'), '队列先于辅助指标');
+  assert.doesNotMatch(source, /label: '待处理', value: pendingItems/);
+  assert.doesNotMatch(source, /label: '异常', value: anomalyTotal/);
+  assert.doesNotMatch(source, /催办\/直达入口/);
+  assert.match(source, /待办、待答复汇报、文件确认和周期归档审核/);
+});
+
 test('党委支部配置默认收起，并在用户展开后才挂载配置向导', async () => {
   const source = await read('../../docs/src/entries/tabs/party-committee/branches-tab.js');
   assert.ok(/<details id="branch-config-details"/.test(source), 'configuration is a collapsible details section');
@@ -36,6 +57,108 @@ test('组织委员工作组页提供专班、活动工作组和报名总表的�
   assert.match(source, /const closedOutputCount = outputs\.filter/);
   assert.match(source, /全部任务与产出闭合后，才可以结束工作组/);
   assert.match(source, /btn-dissolve-tf[\s\S]*?closureReady/);
+});
+
+test('组织委员专班详情只保留共享工作组成员与授权编辑器', async () => {
+  const source = await read('../../docs/src/entries/tabs/org/taskforce-tab.js');
+  assert.match(source, /renderWorkgroupMemberEditor/);
+  assert.match(source, /bindWorkgroupMemberEditor/);
+  assert.doesNotMatch(source, /mountTaskforceProjectAuth/);
+  assert.doesNotMatch(source, /btn-save-tf-roles/);
+  assert.match(source, /btn-transfer-tf-org/, '组织者转交保留为单独的窄操作');
+  assert.match(source, /renderWorkgroupPermissionEditor\('taskforce-create'/, '创建专班时仍可初始分配成员权限');
+});
+
+test('已结束专班的成员与授权历史只读，待办联动写入完成后才刷新', async () => {
+  const org = await read('../../docs/src/entries/tabs/org/taskforce-tab.js');
+  const detail = await read('../../docs/src/entries/pages/activity-entry.js');
+  assert.match(org, /const isClosedHistory = \['completed', 'archived', 'dissolved'\]\.includes\(tf\.status\)/);
+  assert.match(org, /const canEdit = !isClosedHistory/);
+  assert.match(org, /_canTransfer && !isClosedHistory/);
+  assert.match(org, /await settleWrites\(\)[\s\S]*?window\.location\.reload\(\)/, '待办快照必须落库后再刷新');
+  assert.match(detail, /const isClosedTaskforce = \['completed', 'archived', 'dissolved'\]\.includes\(tf\.status\)/);
+  assert.match(detail, /canManageMembers = !!workgroup && !isClosedTaskforce/);
+  assert.match(detail, /isClosedTaskforce \? '<p[^>]*>工作组已结束，成员与授权记录只读保留。<\/p>'/);
+});
+
+test('党委支部筛选只纳入明确归属当前支部的记录，监控卡转义任期动态文本', async () => {
+  const filter = await read('../../docs/src/components/governance/branch-filter.js');
+  const monitor = await read('../../docs/src/entries/tabs/party-committee/monitor-tab.js');
+  assert.match(filter, /String\(r\.branchId \|\| 'br-b1'\) === fid/);
+  assert.match(monitor, /\(a\.branchId \|\| 'br-b1'\) === b\.id/);
+  assert.match(monitor, />\$\{escHtml\(termText\)\}<\/p>/);
+});
+
+test('党委选中支部后整页数据请求都带同一支部范围，未选择时不出现“全部明细”入口', async () => {
+  const filter = await read('../../docs/src/components/governance/branch-filter.js');
+  const adapter = await read('../../docs/src/data/api-adapter.js');
+  assert.match(filter, /url\.searchParams\.set\('branchId',/);
+  assert.match(filter, /window\.location\.assign\(url\.toString\(\)\)/);
+  assert.match(filter, /选择支部查看明细/);
+  assert.match(filter, /apiMode \? '选择支部查看明细' : `全部支部（\$\{branches\.length\}）`/);
+  assert.match(adapter, /function _withSelectedBranch\(path\)/);
+  assert.match(adapter, /_request\(_withSelectedBranch\(path\)/);
+});
+
+test('党委全院概览只消费无身份的支部汇总，未选支部的监控卡不显示负责人和活动明细', async () => {
+  const overview = await read('../../docs/src/entries/tabs/party-committee/governance-overview-tab.js');
+  const monitor = await read('../../docs/src/entries/tabs/party-committee/monitor-tab.js');
+  assert.match(overview, /summary\.memberCount/);
+  assert.match(overview, /summary\.partyMemberCount/);
+  assert.match(monitor, /const aggregateOnly =/);
+  assert.match(monitor, /b\.summary\?\.memberCount/);
+  assert.match(monitor, /选择支部查看明细/);
+});
+
+test('党委未选支部时支部管理只显示目录与汇总，选中后才开放该支部配置操作', async () => {
+  const branches = await read('../../docs/src/entries/tabs/party-committee/branches-tab.js');
+  assert.match(branches, /const summaryOnly = apiMode && !selectedBranchId/);
+  assert.match(branches, /summary\.memberCount/);
+  assert.match(branches, /branch-summary-select/);
+  assert.match(branches, /if \(summaryOnly\)/);
+});
+
+test('支部附件下载继承党委工作台所选支部，服务端下载不因缺少范围而误伤', async () => {
+  const adapter = await read('../../docs/src/data/api-adapter.js');
+  const inspector = await read('../../docs/src/components/record/inspector.js');
+  const archive = await read('../../docs/src/entries/tabs/prop/archive-tab.js');
+  const references = await read('../../docs/src/components/sections/references.js');
+  assert.match(adapter, /export function withSelectedBranchScope\(path\)/);
+  assert.match(inspector, /withSelectedBranchScope\(rec\.filePath\)/);
+  assert.match(archive, /withSelectedBranchScope\(record\.filePath\)/);
+  assert.match(archive, /withSelectedBranchScope\(filePath\)/);
+  assert.match(references, /withSelectedBranchScope\(d\.filePath\)/);
+});
+
+test('专班卡片人数只汇总组织者与深度参与者，不读历史普通参与人', async () => {
+  const source = await read('../../docs/src/entries/tabs/org/taskforce-tab.js');
+  const cardStart = source.indexOf('function _renderTfCard(t, statusLabel, statusColor) {');
+  assert.ok(cardStart >= 0);
+  assert.match(source.slice(cardStart, cardStart + 120), /const filled = _tfAssignsOf\(t\)\.length/);
+});
+
+test('书记概况把待办实时组纳入主队列，并分列确认审核与催办入口', async () => {
+  const source = await read('../../docs/src/entries/tabs/secretary/overview-tab.js');
+  assert.match(source, /SecretaryTodoDeriver\.computeAggregates\(\)/);
+  assert.match(source, /const queueTodoGroups = \[\.\.\.todoGroups, \.\.\.realtimeTodoGroups\]/);
+  assert.match(source, /queueTodoGroups\.map\(\(group\)/);
+  assert.match(source, /IssueStore\.getSecretaryPendingReports\(\)/);
+  assert.match(source, /待答复汇报/);
+  assert.match(source, /待决定与确认/);
+  assert.match(source, /异常与督办/);
+  assert.doesNotMatch(source, /pendingQueueHtml[\s\S]*?催办\/直达入口/);
+});
+
+test('党委支部筛选与监控台转义支部配置及动态文本，避免存储型 XSS', async () => {
+  const filter = await read('../../docs/src/components/governance/branch-filter.js');
+  const monitor = await read('../../docs/src/entries/tabs/party-committee/monitor-tab.js');
+  assert.match(filter, /import\s*\{\s*escHtml\s*\}\s*from/);
+  assert.match(filter, /value="\$\{escHtml\(b\.id\)\}"/);
+  assert.match(filter, />\$\{escHtml\(_label\(b\)\)\}<\/option>/);
+  assert.match(monitor, /import\s*\{[^}]*escHtml[^}]*\}\s*from/);
+  assert.match(monitor, /\$\{escHtml\(b\.config\?\.headerTitle\s*\|\|\s*b\.name\)\}/);
+  assert.match(monitor, /data-branch-id="\$\{escHtml\(b\.id\)\}"/);
+  assert.match(monitor, /\$\{escHtml\(a\.title\)\}/);
 });
 
 test('工作组结束入口不再保留绕过任务与产出闭合校验的直接归档按钮', async () => {
