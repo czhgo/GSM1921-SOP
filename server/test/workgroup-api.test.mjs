@@ -65,6 +65,41 @@ test('组长只能从本人党小组创建组内活动，组内范围不限制�
   assert.equal(crossAsLeader.response.status, 403);
 });
 
+test('工作组成员只登记组织者与深度参与者，普通活动参与者必须留在报名域', async () => {
+  const activity = await createGroupActivity('p1');
+  assert.equal(activity.response.status, 201);
+  const activityParticipant = await request(`workgroups/${activity.data.workgroupId}/members`, 'p1', 'POST', {
+    personId: 'p8', role: 'participant',
+  });
+  assert.equal(activityParticipant.response.status, 400);
+
+  const taskforce = await request('taskforces', 'p11', 'POST', {
+    name: '专班成员边界', task: '只登记做事角色', status: 'recruiting', branchId: 'br-b1', members: [],
+  });
+  assert.equal(taskforce.response.status, 201);
+  const taskforceParticipant = await request(`workgroups/${taskforce.data.workgroupId}/members`, 'p11', 'POST', {
+    personId: 'p8', role: 'participant',
+  });
+  assert.equal(taskforceParticipant.response.status, 400);
+});
+
+test('正式会议保留显式名单，但不把名单成员登记为工作组成员', async () => {
+  const meeting = await request('activities', 'p13', 'POST', {
+    title: '支部党员大会正式名单', type: '支部党员大会', date: '2026-10-23', status: 'published', branchId: 'br-b1',
+    assignments: [{ personId: 'p8', role: 'participant' }],
+  });
+  assert.equal(meeting.response.status, 201);
+  assert.deepEqual(meeting.data.assignments, [{ personId: 'p8', role: 'participant' }]);
+  const membership = db.prepare('SELECT data FROM workgroup_members').all().map((row) => JSON.parse(row.data));
+  assert.equal(membership.some((row) => row.workgroupId === meeting.data.workgroupId && row.personId === 'p8'), false);
+
+  const topicDayParticipant = await request('activities', 'p13', 'POST', {
+    title: '主题党日不得把普通参与人写进角色数组', type: '主题党日', date: '2026-10-24', status: 'published', branchId: 'br-b1',
+    assignments: [{ personId: 'p8', role: 'participant' }],
+  });
+  assert.equal(topicDayParticipant.response.status, 400);
+});
+
 test('党小组会考勤记录人角色仍受活动承办党小组范围限制', async () => {
   const activity = await createGroupActivity('p1');
   assert.equal(activity.response.status, 201);

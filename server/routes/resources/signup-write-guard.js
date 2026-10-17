@@ -1,4 +1,4 @@
-import { BRANCH_COMMISSION_ROLES, SECRETARY_AND_DEPUTY_ROLES } from '../../../docs/src/core/domain/constants.js';
+import { BRANCH_COMMISSION_ROLES, SECRETARY_AND_DEPUTY_ROLES, usesFormalMeetingRoster } from '../../../docs/src/core/domain/constants.js';
 import { today as todayLocal } from '../../services/reporting.js';
 import { actorBranchId, resourceBranchId } from './branch-scope.js';
 import { hasWorkgroupPermission } from './workgroup-routes.js';
@@ -42,6 +42,7 @@ function sourceOpen(source, signup) {
   const today = todayLocal();
   if (signup.sourceType === 'activity') {
     const activity = source.row;
+    if (usesFormalMeetingRoster(activity)) return false;
     if (activity.archived || activity.status === 'cancelled' || activity.signupClosed === true) return false;
     if (activity.status === 'draft' && activity.signupEnabled !== true) return false;
     return !!activity.date && activity.date >= today;
@@ -59,6 +60,14 @@ function sourceAndPersonDeny(db, actor, signup, { creating = false, requireOwner
     : '无权限：不能修改其他人的报名记录';
   const source = sourceOf(db, signup);
   if (!source) return '报名必须关联已存在的活动或专班';
+  if (creating && signup.sourceType === 'taskforce' && signup.role === 'participant') return '专班只设组织者与深度参与者，不接受普通参与报名';
+  if (creating && signup.sourceType === 'activity' && source.row.type === '主题党日'
+    && ['organizer', 'deep'].includes(signup.role) && typeof signup.onsite !== 'boolean') {
+    return '主题党日组织者与深度参与者报名时须明确选择是否线下参加';
+  }
+  if (creating && signup.sourceType === 'activity' && source.row.type !== '主题党日' && signup.onsite !== undefined) {
+    return '线下参加选择仅适用于主题党日报名';
+  }
   const ownBranch = actorBranchId(actor);
   if (ownBranch && source.branchId !== ownBranch) return '无权限：报名来源属于其他支部';
   const person = rowOf(db, 'users', signup.personId);
@@ -86,7 +95,7 @@ export function signupCreateDeny(db, actor, signup) {
 
 export function normalizeSignupCreate(db, actor, signup) {
   const source = sourceOf(db, signup);
-  return {
+  const normalized = {
     ...signup,
     status: signup.role === 'participant' ? 'approved' : 'pending',
     branchId: source?.branchId || actorBranchId(actor),
@@ -97,6 +106,12 @@ export function normalizeSignupCreate(db, actor, signup) {
     voided: null,
     voidRejected: null,
   };
+  if (signup.sourceType === 'activity' && source?.row?.type === '主题党日') {
+    normalized.onsite = signup.role === 'participant' ? true : signup.onsite;
+  } else {
+    delete normalized.onsite;
+  }
+  return normalized;
 }
 
 function changedKeys(previous, next) {
@@ -109,7 +124,7 @@ function transitionSignup(db, actor, previous, submitted) {
   if (identityDeny) return { error: identityDeny };
   const source = sourceOf(db, submitted);
   if (submitted.id !== previous.id) return { error: '报名记录 ID 不可修改' };
-  for (const key of ['sourceType', 'sourceId', 'personId', 'role', 'branchId', 'createdAt', 'note']) {
+  for (const key of ['sourceType', 'sourceId', 'personId', 'role', 'branchId', 'createdAt', 'note', 'onsite']) {
     if (JSON.stringify(submitted[key]) !== JSON.stringify(previous[key])) return { error: `报名字段 ${key} 创建后不可修改` };
   }
   const changed = changedKeys(previous, submitted);
@@ -124,6 +139,9 @@ function transitionSignup(db, actor, previous, submitted) {
       return { row: { ...previous, status: 'cancelled', reviewedBy: actor.id, reviewedAt: new Date().toISOString() } };
     }
     if (['approved', 'rejected'].includes(submitted.status) && previous.status === 'pending') {
+      if (submitted.status === 'approved' && previous.sourceType === 'taskforce' && previous.role === 'participant') {
+        return { error: '专班不设普通参与身份；历史申请不能转为成员' };
+      }
       if (!canReview(db, actor, previous, source)) return { error: '无权限：当前账号不是该报名的审核人或获授权组织者' };
       return { row: { ...previous, status: submitted.status, reviewedBy: actor.id, reviewedAt: new Date().toISOString() } };
     }

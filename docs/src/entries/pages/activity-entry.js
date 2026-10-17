@@ -7,6 +7,7 @@ import { renderHeader } from '../../components/shell/header.js?v=20261016b';
 import { BranchService } from '../../services/core/runtime.js?v=20261016b';
 import { mockDB } from '../../core/domain/domain.js?v=20261016b';
 import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261016b';
+import { legacyParticipantAssignmentRows, workgroupMembers } from '../../services/activity/workgroup-members.js?v=20261016b';
 import { NoticeStore } from '../../services/governance/notice.js?v=20261016b';
 import { SignupStore, canCloseActivitySignup, closeActivitySignup, SignupStatus } from '../../services/activity/signup.js?v=20261016b';
 import { AuthStore } from '../../services/core/auth.js?v=20261016b';
@@ -24,7 +25,7 @@ import { canTransferOrganizer, openOrganizerTransfer } from '../../components/go
 import { reviewRequestOf, isReviewReturned, isReviewRequestEligibleActivity, requestOrganizerReview, withdrawReviewRequest } from '../../services/activity/activity.js?v=20261016b';
 import { loadActivityReviews } from '../../services/governance/review.js?v=20261016b';
 import { getBasePath, escHtml as esc, showToast } from '../../core/base/utils.js?v=20261016b';
-import { getActivityTypeColors } from '../../core/domain/constants.js?v=20261016b';
+import { getActivityTypeColors, usesFormalMeetingRoster } from '../../core/domain/constants.js?v=20261016b';
 import { getAppState } from '../../core/base/state.js?v=20261016b';
 import { badgeHtml } from '../../components/ui/badges.js?v=20261016b';
 // 待批活动的可见性单一源（2026-09-22 批次 151 · 支书裁定「只支委层可见」）：详情页**直按 id 打开**也要守同一判据
@@ -165,7 +166,10 @@ function renderActivity(id) {
   const tagColorDark = { '#CE1126': '#F87171', '#A16207': '#FBBF24', '#FFD700': '#FDE68A' }[tagColor] || '#94A3B8';
   const organizerName = act.organizer ? (getPersonById(act.organizer)?.name || act.organizer) : '—';
   const signups = SignupStore.getAll().filter(s => s.sourceType === 'activity' && s.sourceId === act.id);
-  const assignments = Array.isArray(act.assignments) ? act.assignments : [];
+  const assignmentRows = Array.isArray(act.assignments) ? act.assignments : [];
+  const formalRoster = usesFormalMeetingRoster(act);
+  const assignments = formalRoster ? assignmentRows : workgroupMembers(assignmentRows);
+  const legacyParticipants = formalRoster ? [] : legacyParticipantAssignmentRows(assignmentRows);
   const canSignup = _canSignup('activity', act);
   // 批次 123（支书 2026-09-20 定案）：「不设截止，但组织者可手动关」——**不新增「截止时点」字段**，
   // 只在活动上落布尔 `signupClosed`。关闭入口就在本页既有报名区块旁（不新开页面）；
@@ -249,7 +253,7 @@ function renderActivity(id) {
   // 只对「本人在册（已通过 / 待审核）」渲染报名区（不显示重填入口——重填必被关闭判据挡回，属假入口）。
   const myActiveSignup = myId ? signups.find(s => s.personId === myId
     && (s.status === SignupStatus.APPROVED || s.status === SignupStatus.PENDING)) : null;
-  const showSignupCard = canSignup || (signupClosed && !!myActiveSignup);
+  const showSignupCard = !formalRoster && (canSignup || (signupClosed && !!myActiveSignup));
 
   // 会议议程区（2026-09-06 点验修复①）：渲染条件放宽为「activity.agenda 存在且 length>0」——
   // 此前议程只随线上异步表决区（voteConfig.mode==='async'）渲染，导致「支部党员大会」等
@@ -352,7 +356,7 @@ function renderActivity(id) {
       </div>
     </div>
 
-    ${showSignupCard ? renderSignupSection({ sourceType: 'activity', sourceId: act.id, title: act.title, signups, myId }) : ''}
+    ${showSignupCard ? renderSignupSection({ sourceType: 'activity', sourceId: act.id, source: act, title: act.title, signups, myId }) : ''}
 
     ${signupClosed ? `
     <!-- 报名已关闭（批次 123）：成员侧就地说清为什么报不了名，不静默消失 -->
@@ -375,17 +379,22 @@ function renderActivity(id) {
 
     ${agendaAreaHtml}
 
-    <!-- 参与人员（assignments） -->
+    <!-- 三会一课显示正式名单；其他活动显示活动工作组成员，普通参与者留在报名名单 -->
     <div class="mt-6">
-      <h3 class="text-sm font-semibold text-gray-700 mb-3">参与人员（${assignments.length}）</h3>
+      <h3 class="text-sm font-semibold text-gray-700 mb-3">${formalRoster ? '会议正式名单' : '活动工作组成员'}（${assignments.length}）</h3>
       ${assignments.length === 0
-        ? '<p class="text-sm text-gray-500">暂无参与人员</p>'
+        ? `<p class="text-sm text-gray-500">${formalRoster ? '暂无正式名单' : '暂无工作组成员'}</p>`
         : `<div class="flex flex-wrap gap-2.5">${assignments.map(x => `
             <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-gray-50">
               <span class="w-5 h-5 rounded-full flex items-center justify-center text-[11px] font-semibold text-white flex-shrink-0" style="background:${typeColor.color};">${(getPersonById(x.personId)?.name || '?').slice(0, 1)}</span>
               <span class="text-xs font-medium text-gray-700">${getPersonById(x.personId)?.name || x.personId}</span>
               <span class="text-[11px] text-gray-500">${roleLabel(x.role)}</span>
             </span>`).join('')}</div>`}
+      ${legacyParticipants.length ? `<details class="mt-3 rounded-lg border border-amber-200 bg-amber-50/60 px-3 py-2">
+        <summary class="cursor-pointer text-xs font-medium text-amber-800">旧版普通参与记录待核（${legacyParticipants.length}）</summary>
+        <p class="mt-1 text-xs text-amber-800">普通参与以报名记录为准；这些历史角色缓存不计入工作组成员。</p>
+        <p class="mt-1 text-xs text-gray-600">${legacyParticipants.map((row) => getPersonById(row.personId)?.name || row.personId).join('、')}</p>
+      </details>` : ''}
     </div>
 
     <!-- 工作分工（服务端表 assignments · 2026-10-03 批次 359 · D-750 续答「全 CRUD」）：
@@ -510,7 +519,9 @@ function renderActivity(id) {
 function renderTaskforce(tf) {
   if (!cardEl) return;
   const signups = SignupStore.getAll().filter(s => s.sourceType === 'taskforce' && s.sourceId === tf.id);
-  const members = Array.isArray(tf.members) ? tf.members : [];
+  const allMemberRows = Array.isArray(tf.members) ? tf.members : [];
+  const members = workgroupMembers(allMemberRows);
+  const legacyRows = legacyParticipantAssignmentRows(allMemberRows);
   const canSignup = _canSignup('taskforce', tf);
   const initiatorName = tf.initiator ? (getPersonById(tf.initiator)?.name || tf.initiator) : '—';
   const fullLabel = tf.capacity ? `${members.length} / ${tf.capacity}` : `${members.length}`;
@@ -548,14 +559,14 @@ function renderTaskforce(tf) {
       </div>
     </div>
 
-    ${canSignup ? renderSignupSection({ sourceType: 'taskforce', sourceId: tf.id, title: tf.name, signups, myId }) : ''}
+    ${canSignup ? renderSignupSection({ sourceType: 'taskforce', sourceId: tf.id, source: tf, title: tf.name, signups, myId }) : ''}
 
     <!-- 报名名单 -->
     ${renderSignupList({ sourceType: 'taskforce', sourceId: tf.id, signups, myId })}
 
     <!-- 专班成员 -->
     <div class="mt-6">
-      <h3 class="text-sm font-semibold text-gray-700 mb-3">专班成员（${members.length}）</h3>
+      <h3 class="text-sm font-semibold text-gray-700 mb-3">专班工作组成员（${members.length}）</h3>
       ${members.length === 0
         ? '<p class="text-sm text-gray-500">暂无成员</p>'
         : `<div class="flex flex-wrap gap-2.5">${members.map(x => `
@@ -564,6 +575,11 @@ function renderTaskforce(tf) {
               <span class="text-xs font-medium text-gray-700">${getPersonById(x.personId)?.name || x.personId}</span>
               <span class="text-[11px] text-gray-500">${roleLabel(x.role)}</span>
             </span>`).join('')}</div>`}
+      ${legacyRows.length ? `<details class="mt-3 rounded-lg border border-amber-200 bg-amber-50/60 px-3 py-2">
+        <summary class="cursor-pointer text-xs font-medium text-amber-800">历史普通参与记录待核（${legacyRows.length}）</summary>
+        <p class="mt-1 text-xs text-amber-800">专班不设普通参与成员；这些旧记录保留查看，不计入成员与名额。</p>
+        <p class="mt-1 text-xs text-gray-600">${legacyRows.map((row) => getPersonById(row.personId)?.name || row.personId).join('、')}</p>
+      </details>` : ''}
     </div>
   `;
 

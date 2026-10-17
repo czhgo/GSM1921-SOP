@@ -9,6 +9,7 @@ import { renderSidebar } from '../../components/shell/sidebar.js?v=20261016b';
 import { renderHeader } from '../../components/shell/header.js?v=20261016b';
 import { BranchService } from '../../services/core/runtime.js?v=20261016b';
 import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261016b';
+import { legacyParticipantAssignmentRows, workgroupMembers } from '../../services/activity/workgroup-members.js?v=20261016b';
 import { NoticeStore } from '../../services/governance/notice.js?v=20261016b';
 import { SignupStore } from '../../services/activity/signup.js?v=20261016b';
 import { AuthStore } from '../../services/core/auth.js?v=20261016b';
@@ -103,7 +104,9 @@ const sourceId = params.get('id') || '';
 function renderTaskforce(tf) {
   if (!cardEl) return;
   const signups = SignupStore.getAll().filter(s => s.sourceType === 'taskforce' && s.sourceId === tf.id);
-  const members = Array.isArray(tf.members) ? tf.members : [];
+  const allMemberRows = Array.isArray(tf.members) ? tf.members : [];
+  const members = workgroupMembers(allMemberRows);
+  const legacyRows = legacyParticipantAssignmentRows(allMemberRows);
   const openForSignup = canSignup('taskforce', tf);
   const initiatorName = tf.initiator ? (getPersonById(tf.initiator)?.name || tf.initiator) : '—';
   const fullLabel = tf.capacity ? `${members.length} / ${tf.capacity}` : `${members.length}`;
@@ -141,7 +144,7 @@ function renderTaskforce(tf) {
       </div>
     </div>
 
-    ${openForSignup ? renderSignupSection({ sourceType: 'taskforce', sourceId: tf.id, title: tf.name, signups, myId })
+    ${openForSignup ? renderSignupSection({ sourceType: 'taskforce', sourceId: tf.id, source: tf, title: tf.name, signups, myId })
       : (recruitClosed(tf) ? `<div class="rounded-xl bg-gray-50 px-4 py-3 text-xs text-gray-600">报名已于 ${tf.deadline} 截止，不再接受新报名${myId ? '' : '（登录后可查看自己是否已报名）'}。</div>` : '')}
 
     <!-- 报名名单 -->
@@ -149,7 +152,7 @@ function renderTaskforce(tf) {
 
     <!-- 专班成员 -->
     <div class="mt-6">
-      <h3 class="text-sm font-semibold text-gray-700 mb-3">专班成员（${members.length}）</h3>
+      <h3 class="text-sm font-semibold text-gray-700 mb-3">专班工作组成员（${members.length}）</h3>
       ${members.length === 0
         ? '<p class="text-sm text-gray-500">暂无成员</p>'
         : `<div class="flex flex-wrap gap-2.5">${members.map(x => `
@@ -158,6 +161,11 @@ function renderTaskforce(tf) {
               <span class="text-xs font-medium text-gray-700">${getPersonById(x.personId)?.name || x.personId}</span>
               <span class="text-[11px] text-gray-500">${roleLabel(x.role)}</span>
             </span>`).join('')}</div>`}
+      ${legacyRows.length ? `<details class="mt-3 rounded-lg border border-amber-200 bg-amber-50/60 px-3 py-2">
+        <summary class="cursor-pointer text-xs font-medium text-amber-800">历史普通参与记录待核（${legacyRows.length}）</summary>
+        <p class="mt-1 text-xs text-amber-800">专班不设普通参与成员；这些旧记录保留查看，不计入成员与名额。</p>
+        <p class="mt-1 text-xs text-gray-600">${legacyRows.map((row) => getPersonById(row.personId)?.name || row.personId).join('、')}</p>
+      </details>` : ''}
     </div>
   `;
 

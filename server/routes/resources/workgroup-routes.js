@@ -2,16 +2,18 @@
 // 这些实体不进入 /snapshot；每次写入均在服务端核实支部归属与操作者范围。
 import { randomUUID } from 'node:crypto';
 import { requireAuth } from '../auth.js';
-import { BRANCH_COMMISSION_ROLES, SECRETARY_AND_DEPUTY_ROLES, isActivityEnded } from '../../../docs/src/core/domain/constants.js';
+import { BRANCH_COMMISSION_ROLES, SECRETARY_AND_DEPUTY_ROLES, isActivityEnded, usesFormalMeetingRoster } from '../../../docs/src/core/domain/constants.js';
 import { POLICY_DEFAULTS } from '../../../docs/src/core/domain/policy-defaults.js';
 import { bumpCollectionVersion } from '../../db.js';
 import { CAPABILITY_PACKAGE_BY_ID } from '../../../docs/src/core/domain/capability-packages.js';
 import { _assertCapabilityPackageEnabled } from './gates.js';
 import { actorBranchId, branchSelectionError } from './branch-scope.js';
+import { deriveExpectedRosterIds } from '../../../docs/src/services/activity/attendance-roster.js';
+import { isWorkgroupMemberRole, WORKGROUP_MEMBER_ROLES, workgroupMembers } from '../../../docs/src/services/activity/workgroup-members.js';
 
 const COMMITTEE = new Set(BRANCH_COMMISSION_ROLES);
 const SECRETARY = new Set(SECRETARY_AND_DEPUTY_ROLES);
-const MEMBER_ROLES = new Set(['organizer', 'deep', 'participant']);
+const MEMBER_ROLES = new Set(WORKGROUP_MEMBER_ROLES);
 export const WORKGROUP_PERMISSION_TEMPLATES = {
   organizer: ['activity.edit', 'activity.signup.manage', 'activity.attendance.record', 'workgroup.members.manage', 'task.manage', 'output.submit'],
   deep: ['activity.view', 'task.complete', 'output.submit'],
@@ -133,7 +135,7 @@ export function approvedTaskforceDissolutionWorkgroups(db, payload, actor) {
 }
 
 export function hasWorkgroupPermission(db, workgroupId, personId, permissionKey) {
-  const member = membersOf(db, workgroupId).some((row) => row.personId === personId);
+  const member = workgroupMembers(membersOf(db, workgroupId)).some((row) => row.personId === personId);
   const workgroup = workgroupOf(db, workgroupId);
   return !!workgroup && ['active', 'recruiting'].includes(workgroup.status) && member && jsonRows(db, 'workgroup_grants').some((grant) => grant.workgroupId === workgroupId
     && grant.personId === personId && grant.status === 'active'
@@ -319,12 +321,13 @@ export function snapshotScopeDeny(db, payload, actor) {
   return null;
 }
 
-function validAssignments(db, actor, assignments) {
+function validAssignments(db, actor, assignments, { allowFormalRoster = false } = {}) {
   if (!Array.isArray(assignments)) return { ok: true, value: [] };
   const seen = new Set();
   const rows = [];
   for (const item of assignments) {
-    if (!item || !item.personId || !MEMBER_ROLES.has(item.role)) return { ok: false, status: 400, error: '工作组成员须包含有效 personId 与 organizer/deep/participant 身份' };
+    const roleAllowed = isWorkgroupMemberRole(item?.role) || (allowFormalRoster && item?.role === 'participant');
+    if (!item || !item.personId || !roleAllowed) return { ok: false, status: 400, error: '工作组成员须包含有效 personId 与 organizer/deep 身份' };
     const personId = String(item.personId);
     if (seen.has(personId)) return { ok: false, status: 400, error: '同一人员只能登记一次工作组身份' };
     seen.add(personId);
@@ -344,12 +347,18 @@ export function createActivityWorkgroup(db, actor, activity) {
     hostGroupId: activity.hostGroupId || null, createdBy: actor.id, createdAt: activity.createdAt || new Date().toISOString(),
     migrationState: 'ready',
   };
-  const membership = validAssignments(db, actor, activity.assignments || []);
+  const assignmentRows = Array.isArray(activity.assignments) ? activity.assignments : [];
+  const formalRoster = usesFormalMeetingRoster(activity);
+  if (!formalRoster && assignmentRows.some((row) => row?.role === 'participant')) {
+    return { ok: false, status: 400, error: '活动普通参与者请通过报名登记，不能写入工作组成员' };
+  }
+  const membership = validAssignments(db, actor, assignmentRows, { allowFormalRoster: formalRoster });
   if (!membership.ok) return membership;
+  const members = workgroupMembers(membership.value);
   const run = db.transaction(() => {
     put(db, 'activities', activity);
     put(db, 'workgroups', workgroup);
-    for (const member of membership.value) {
+    for (const member of members) {
       const row = {
         id: memberIdFor(id, member.personId), branchId: activity.branchId, workgroupId: id,
         personId: member.personId, role: member.role, status: 'active',
@@ -424,7 +433,7 @@ export function registerWorkgroupRoutes(router, db) {
     if (isDisabledTaskforceHistory(db, workgroup)) return res.status(409).json({ error: '本支部已停用专班工作组；历史成员记录只读保留' });
     const body = req.body && typeof req.body === 'object' && !Array.isArray(req.body) ? req.body : {};
     const personId = String(body.personId || '');
-    if (!personId || !MEMBER_ROLES.has(body.role)) return res.status(400).json({ error: '须提供 personId 与 organizer/deep/participant 身份' });
+    if (!personId || !MEMBER_ROLES.has(body.role)) return res.status(400).json({ error: '工作组只登记组织者或深度参与者；普通参与者请走活动报名' });
     const person = userOf(db, personId);
     if (!person) return res.status(400).json({ error: '工作组成员不存在' });
     if (memberBranch(person) !== workgroup.branchId) return res.status(403).json({ error: '无权限：工作组成员须属于同一支部' });
@@ -439,7 +448,8 @@ export function registerWorkgroupRoutes(router, db) {
     const source = rowOf(db, sourceTable, workgroup.sourceId);
     if (!source) return res.status(409).json({ error: '工作组所属业务记录不存在' });
     if (workgroup.kind === 'activity') {
-      const assignments = (Array.isArray(source.assignments) ? source.assignments : []).filter((item) => item.personId !== personId);
+      const assignments = (Array.isArray(source.assignments) ? source.assignments : [])
+        .filter((item) => item.personId !== personId || !isWorkgroupMemberRole(item.role));
       assignments.push({ personId, role: body.role });
       source.assignments = assignments;
     } else {
@@ -474,7 +484,7 @@ export function registerWorkgroupRoutes(router, db) {
       ? (Array.isArray(source.assignments) ? source.assignments : [])
       : (Array.isArray(source.members) ? source.members : []);
     if (workgroup.kind === 'activity') {
-      source.assignments = sourceMembers.filter((item) => item.personId !== current.personId);
+      source.assignments = sourceMembers.filter((item) => item.personId !== current.personId || !isWorkgroupMemberRole(item.role));
       source.organizer = source.assignments.find((item) => item.role === 'organizer')?.personId || null;
     } else {
       source.members = sourceMembers.filter((item) => item.personId !== current.personId);
@@ -507,7 +517,7 @@ export function registerWorkgroupRoutes(router, db) {
     if (isDisabledTaskforceHistory(db, workgroup)) return res.status(409).json({ error: '本支部已停用专班工作组；历史授权记录只读保留' });
     const body = req.body && typeof req.body === 'object' && !Array.isArray(req.body) ? req.body : {};
     const personId = String(body.personId || '');
-    const member = membersOf(db, workgroup.id).find((row) => row.personId === personId);
+    const member = workgroupMembers(membersOf(db, workgroup.id)).find((row) => row.personId === personId);
     if (!member) return res.status(400).json({ error: '权限对象须先登记为该工作组成员' });
     const templateKey = typeof body.templateKey === 'string' ? body.templateKey : '';
     const suggested = WORKGROUP_PERMISSION_TEMPLATES[templateKey] || [];
@@ -724,7 +734,8 @@ export function registerWorkgroupRoutes(router, db) {
     if (!canFreeze) return res.status(403).json({ error: '无权限：当前角色不能冻结活动应到名单' });
     const body = req.body && typeof req.body === 'object' && !Array.isArray(req.body) ? req.body : {};
     if (body.frozen !== true || !Array.isArray(body.personIds)) return res.status(400).json({ error: '冻结名单须提供 personIds 并明确 frozen=true' });
-    const personIds = [...new Set(body.personIds.map(String))].sort();
+    let personIds = [...new Set(body.personIds.map(String))].sort();
+    personIds = deriveExpectedRosterIds({ activity, originalPersonIds: personIds, signups: jsonRows(db, 'signups') });
     for (const personId of personIds) {
       const person = userOf(db, personId);
       if (!person) return res.status(400).json({ error: `应到成员不存在：${personId}` });

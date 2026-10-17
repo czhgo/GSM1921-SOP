@@ -725,6 +725,13 @@ export function normalizeActivityType(type) {
   return t;
 }
 
+/** 三会一课（含组织生活会）走正式名单，不走活动报名。 */
+export function usesFormalMeetingRoster(activity) {
+  const type = normalizeActivityType(activity?.type);
+  if (type === ACTIVITY_CLASSIFICATION['three-meetings'].label || classifyActivityType(type) === 'three-meetings') return true;
+  return SCENARIO_WRITE_IDS['three-meetings'].includes(activity?.scenarioId);
+}
+
 /**
  * 获取活动类型颜色映射
  * @param {Object} [opts]

@@ -14,6 +14,8 @@ import { PersonStore, getPersonById, getPersonName } from '../member/person.js?v
 import { getRosterStats } from '../member/roster.js?v=20261016b';
 import { getMeetingRosterIds } from '../member/roster.js?v=20261016b';
 import { loadActivities, isActivityOrganizer } from './activity.js?v=20261016b';
+import { SignupStore } from './signup.js?v=20261016b';
+import { deriveExpectedRosterIds } from './attendance-roster.js?v=20261016b';
 
 export function loadAttendanceRecords() {
   if (mockDB.attendances.length > 0) return [...mockDB.attendances];
@@ -53,7 +55,8 @@ export async function freezeExpectedRosterForActivity(activityId) {
   if (activity.type === '党小组会' && !groupId) {
     throw Object.assign(new Error('党小组会缺少承办党小组，无法冻结应到名单'), { type: 'ValidationError' });
   }
-  const personIds = getMeetingRosterIds({ type: activity.type, groupId, branchId: activity.branchId || undefined });
+  const originalPersonIds = getMeetingRosterIds({ type: activity.type, groupId, branchId: activity.branchId || undefined });
+  const personIds = deriveExpectedRosterIds({ activity, originalPersonIds, signups: SignupStore.getAll() });
   const frozen = await getAdapter().attendanceRosters.freeze(activityId, personIds);
   const rows = Array.isArray(mockDB.attendanceRosters) ? mockDB.attendanceRosters : [];
   mockDB.attendanceRosters = [...rows.filter((row) => row.activityId !== activityId), frozen];

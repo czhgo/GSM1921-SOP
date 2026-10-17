@@ -6,6 +6,7 @@
 import { setState } from '../../../core/base/state.js?v=20261016b';
 import { BranchService } from '../../../services/core/runtime.js?v=20261016b';
 import { TaskForceRecordStore, isTaskforceOrganizer } from '../../../services/activity/taskforce.js?v=20261016b';
+import { legacyParticipantAssignmentRows, workgroupMembers } from '../../../services/activity/workgroup-members.js?v=20261016b';
 import { SignupStore, resolveSignupReviewer, SignupStatus, SIGNUP_ROLE_LABELS, SIGNUP_STATUS_LABELS } from '../../../services/activity/signup.js?v=20261016b';
 import { AuthStore } from '../../../services/core/auth.js?v=20261016b';
 import { loadTaskforceReviews, addTaskforceReview } from '../../../services/governance/review.js?v=20261016b';
@@ -341,7 +342,15 @@ function _tfById(tfId) {
 }
 
 function _tfAssignsOf(tf) {
-  return Array.isArray(tf.members) ? tf.members.filter(m => m && m.personId) : [];
+  return workgroupMembers(tf.members);
+}
+
+function _tfLegacyRowsOf(tf) {
+  return legacyParticipantAssignmentRows(tf.members);
+}
+
+function _tfAllRowsOf(tf) {
+  return Array.isArray(tf.members) ? tf.members.filter((member) => member?.personId) : [];
 }
 
 // 贡献条目兼容两种形态：种子字符串摘要 / B批对象条目 {id,desc,by,at,verifiedStatus?}
@@ -377,6 +386,7 @@ function _openTfDetail(tfId, ctx) {
   panel.classList.remove('hidden');
 
   const filled = _tfAssignsOf(tf).length;
+  const legacyRows = _tfLegacyRowsOf(tf);
   panel.innerHTML = `
     <h3 class="font-title-cn text-base font-semibold text-gray-800 mb-3">${tf.name}</h3>
     <p class="text-xs text-gray-500 mb-2">${tf.task}</p>
@@ -385,7 +395,12 @@ function _openTfDetail(tfId, ctx) {
       ${tf.deadline ? `<span>${tf.deadline}</span>` : ''}
       <span>发起: ${getPersonName(tf.initiator)}</span>
     </div>
-    <div class="text-xs text-gray-500">成员：${_tfAssignsOf(tf).map(m => getPersonName(m.personId)).join('、')}</div>
+    <div class="text-xs text-gray-500">工作组成员：${_tfAssignsOf(tf).map(m => getPersonName(m.personId)).join('、') || '暂无'}</div>
+    ${legacyRows.length ? `<details class="mt-2 rounded-lg border border-amber-200 bg-amber-50/60 px-3 py-2">
+      <summary class="cursor-pointer text-xs font-medium text-amber-800">历史普通参与记录待核（${legacyRows.length}）</summary>
+      <p class="mt-1 text-xs text-amber-800">专班不设普通参与成员；旧记录保留查看，不计入成员与名额。</p>
+      <p class="mt-1 text-xs text-gray-600">${legacyRows.map((member) => esc(getPersonName(member.personId))).join('、')}</p>
+    </details>` : ''}
 
     <!-- E-1 分块刷新：只读信息/状态区之上的各写块独立容器；操作成功仅刷对应容器 -->
     <div id="tf-sec-roles"></div>
@@ -552,7 +567,7 @@ function _tfRenderRolesBlock(panel, tf, ctx) {
   if (_tfDeepPicker) { _tfDeepPicker.destroy(); _tfDeepPicker = null; }
 
   if (ctx.taskforcePackageEnabled === false && ['completed', 'archived', 'dissolved'].includes(tf.status)) {
-    mount.innerHTML = `<div class="mt-4 pt-3 border-t border-gray-100"><h6 class="font-title-cn text-xs font-bold text-gray-600">成员角色</h6><p class="mt-2 text-xs text-gray-500">本支部已停用该能力包；历史成员记录只读保留。</p><p class="mt-1 text-xs text-gray-600">${_tfAssignsOf(tf).map((member) => `${esc(getPersonName(member.personId))}（${member.role === 'organizer' ? '组织者' : member.role === 'deep' ? '深度参与者' : '参与者'}）`).join('、') || '暂无成员记录'}</p></div>`;
+    mount.innerHTML = `<div class="mt-4 pt-3 border-t border-gray-100"><h6 class="font-title-cn text-xs font-bold text-gray-600">成员角色</h6><p class="mt-2 text-xs text-gray-500">本支部已停用该能力包；历史成员记录只读保留。</p><p class="mt-1 text-xs text-gray-600">${_tfAllRowsOf(tf).map((member) => `${esc(getPersonName(member.personId))}（${member.role === 'organizer' ? '组织者' : member.role === 'deep' ? '深度参与者' : '历史普通参与记录待核'}）`).join('、') || '暂无成员记录'}</p></div>`;
     return;
   }
 
@@ -578,6 +593,7 @@ function _tfRenderRolesBlock(panel, tf, ctx) {
           <div id="tf-deep-picker"></div>
         </div>
       </div>
+      ${_tfLegacyRowsOf(tf).length ? `<p class="mt-2 rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-800">另有 ${_tfLegacyRowsOf(tf).length} 条历史普通参与记录待核，已保留在只读历史中，不会自动转为专班成员。</p>` : ''}
       ${renderWorkgroupPermissionEditor('taskforce-detail')}
       <p class="text-[12px] text-gray-500 mt-2">提示：修改将同步到专班，被赋权人将收到通知。</p>
     </div>`;
@@ -688,7 +704,7 @@ function _tfRenderWorkBlock(panel, tf, ctx) {
   if (workHost) {
     renderFilteredList(workHost, {
       stateKey: `org-taskforce-work-${tf.id}`,
-      rows: _tfAssignsOf(tf),
+      rows: _tfAllRowsOf(tf).filter((member) => (member.contributions || []).length > 0 || member.role !== 'participant'),
       keyword: { keys: ['personId'], placeholder: '搜索成员姓名…', get: (m) => getPersonName(m.personId) },
       countUnit: '人',
       listClass: 'space-y-0',
@@ -705,7 +721,7 @@ function _tfRenderWorkBlock(panel, tf, ctx) {
           <div class="flex items-center justify-between">
             <a href="${getBasePath()}person.html?id=${encodeURIComponent(m.personId)}" class="text-xs font-medium text-gray-700 hover:underline hover:text-sky-700 transition-colors" title="查看完整档案">${esc(getPersonName(m.personId))}</a>
             <div class="flex items-center gap-2">
-              ${badgeHtml(m.role || '深度参与者', 'neutral')}
+              ${badgeHtml(m.role === 'participant' ? '历史记录待核' : (m.role || '深度参与者'), m.role === 'participant' ? 'warning' : 'neutral')}
               <span class="text-xs text-gray-500">贡献 ${contribCount} 项</span>
             </div>
           </div>
@@ -837,32 +853,21 @@ function _tfRenderSignupBlock(panel, tf, ctx) {
   const pendingSignups = tfSignups.filter(s => s.status === SignupStatus.PENDING);
   const rejectedSignups = tfSignups.filter(s => s.status === SignupStatus.REJECTED);
   const cancelledSignups = tfSignups.filter(s => s.status === SignupStatus.CANCELLED);
-  const tfToday = todayLocal();
-  const tfOpen = tf.status === 'recruiting' &&
-    (!tf.deadline || tf.deadline >= tfToday) &&
-    (!tf.capacity || filled < tf.capacity);
-  const myApplied = tfSignups.some(s => s.personId === currentUserId &&
-    (s.status === SignupStatus.APPROVED || s.status === SignupStatus.PENDING));
   const otherSignupTxt = [
     ...rejectedSignups.map(s => `${getPersonName(s.personId)}（已拒绝）`),
     ...cancelledSignups.map(s => `${getPersonName(s.personId)}（已取消）`),
   ].join('、');
 
-  const _roleText = (r) => (r === 'participant' ? '普通参与' : r === 'organizer' ? '组织者' : '深度参与');
+  const _roleText = (r) => (r === 'participant' ? '历史身份待核' : r === 'organizer' ? '组织者' : '深度参与');
   // 统一检索引擎行数据：已通过 + （审批人视角）待审核，按人；≤8 行引擎自动不渲染检索条
   const signupListRows = [
     ...approvedSignups.map(s => ({ ...s, name: getPersonName(s.personId), role: _roleText(s.role), _pendingRow: false })),
     ...(isTfReviewer ? pendingSignups.map(s => ({ ...s, name: getPersonName(s.personId), role: _roleText(s.role), _pendingRow: true })) : []),
   ];
-  const applyBtn = tfOpen && currentUserId && !myApplied
-    ? `<button id="tf-signup-apply-btn" class="btn-accent-soft text-xs px-3 py-1.5" >报名加入</button>`
-    : '';
-
   mount.innerHTML = `
     <div class="mt-4 pt-3 border-t border-gray-100">
       <div class="flex items-center justify-between mb-2">
-        <h6 class="font-title-cn text-xs font-bold text-gray-600">报名名单（${approvedSignups.length}）<span class="text-gray-500 font-normal">· 名额 ${filled}/${tf.capacity}</span></h6>
-        ${applyBtn}
+        <h6 class="font-title-cn text-xs font-bold text-gray-600">工作组申请记录（${approvedSignups.length}）<span class="text-gray-500 font-normal">· 成员 ${filled}/${tf.capacity}</span></h6>
       </div>
       <div id="tf-signup-list"></div>
       ${otherSignupTxt ? `<p class="text-[11px] text-gray-500 mt-1">${otherSignupTxt}</p>` : ''}
@@ -885,20 +890,14 @@ function _tfRenderSignupBlock(panel, tf, ctx) {
         ${s.note ? `<span class="text-[11px] text-gray-500 truncate max-w-[120px]">${esc(s.note)}</span>` : ''}
         ${s._pendingRow
           ? `<span class="ml-auto flex items-center gap-1.5">
-              <button class="btn-tab tf-signup-review-btn px-2.5 py-1" data-signup-id="${esc(s.id)}" data-approve="1" style="background:var(--functional-success);">通过</button>
+              ${s.role === 'participant' ? '<span class="text-[11px] text-amber-700">历史身份待核，不得转为成员</span>' : '<button class="btn-tab tf-signup-review-btn px-2.5 py-1" data-signup-id="' + esc(s.id) + '" data-approve="1" style="background:var(--functional-success);">通过</button>'}
               <button class="btn-tab tf-signup-review-btn px-2.5 py-1" data-signup-id="${esc(s.id)}" data-approve="0">拒绝</button>
             </span>`
           : badgeHtml('已通过', 'success')}
       </div>`,
   });
 
-  // 报名/审核（通过后写主源 members → 名额/看板计数变化 → 整页刷新，行为不变）
-  mount.querySelector('#tf-signup-apply-btn')?.addEventListener('click', () => {
-    const res = SignupStore.apply({ sourceType: 'taskforce', sourceId: tf.id, personId: currentUserId, role: 'participant', note: '' });
-    if (!res.ok) { showToast('error', res.reason || '报名失败'); return; }
-    showToast('success', '报名成功，已加入专班名单');
-    setState({});
-  });
+  // 专班的新申请从专班详情页选择组织者/深度参与者；本台只处理已有申请。
   // 审核按钮事件委托（引擎筛选重渲染后仍可点）
   signupHost.addEventListener('click', async (e) => {
     const btn = e.target.closest('.tf-signup-review-btn');

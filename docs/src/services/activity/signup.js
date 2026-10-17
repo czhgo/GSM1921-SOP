@@ -19,9 +19,11 @@ import { getPersonById } from '../member/person.js?v=20261016b';
 import { TodoStore, TodoSourceType, TodoActionType, TodoCategory, TodoStatus } from '../governance/todo.js?v=20261016b';
 import { AuthStore } from '../core/auth.js?v=20261016b';
 import { TaskForceRecordStore } from './taskforce.js?v=20261016b';
+import { isWorkgroupMemberRole, removeSignupWorkgroupRole, workgroupMembers } from './workgroup-members.js?v=20261016b';
 // 组织者身份判据单一源（2026-09-19 批次 91 · SOP-B-17）——「谁能关本场报名」读它，勿另写一份
 import { isActivityOrganizer } from './activity.js?v=20261016b';
 import { todayLocal } from '../../core/base/utils.js?v=20261016b';
+import { usesFormalMeetingRoster } from '../../core/domain/constants.js?v=20261016b';
 
 // ── 枚举 ────────────────────────────────────────────────────────
 const SignupRole = {
@@ -93,6 +95,7 @@ function _sourceOpen(sourceType, sourceId) {
   if (sourceType === 'activity') {
     const act = mockDB.activities.find(a => a.id === sourceId);
     if (!act) return { ok: false, reason: '活动不存在' };
+    if (usesFormalMeetingRoster(act)) return { ok: false, reason: '三会一课与组织生活会使用正式名单，无需报名' };
     if (act.archived || act.status === 'cancelled') return { ok: false, reason: '该活动当前不可报名' };
     // 草稿活动默认不可报名；写入活动时勾「开放报名」（signupEnabled）者例外——
     // 这样「活动可开报名」是写入侧的一次显式动作，而不是把所有草稿一律放开（SOP-B-2）。
@@ -140,72 +143,47 @@ function _createReviewTodo(sourceType, sourceId, signup) {
 
 /** 生成报名人「参与」待办（approved 后） */
 function _createParticipateTodo(sourceType, sourceId, personId) {
+  // 专班成员通过组织者/深度参与者身份进入工作组；后续动作由工作任务与工作考察承接。
+  if (sourceType === 'taskforce') return;
   const person = getPersonById(personId);
   if (!person || person.role !== 'participant') return; // 仅普通成员视角
-  if (sourceType === 'activity') {
-    const act = mockDB.activities.find(a => a.id === sourceId);
-    if (!act || act.date < _today()) return;
-    // dup 检查仅限「参与」类待办：同源 signup-review 等其它待办不得阻止参与待办重建
-    const dup = TodoStore.getBySource(TodoSourceType.ACTIVITY, sourceId)
-      .some(t => t.actionType === TodoActionType.PARTICIPATE && t.status !== TodoStatus.COMPLETED);
-    if (dup) return;
-    TodoStore.create({
-      title: `参与活动「${act.title || '未命名'}」`,
-      description: `活动日期：${act.date}。请按时参与并配合考勤。`,
-      role: 'visitor',
-      category: TodoCategory.TRACK,
-      priority: 'normal',
-      deadline: act.date,
-      sourceType: TodoSourceType.ACTIVITY,
-      sourceId,
-      actionType: TodoActionType.PARTICIPATE,
-      // IA-C1 Task2：与 VisitorTodoDeriver 同键聚合；scenarioId 落 actionData 供域判定
-      actionKey: 'participate',
-      actionData: { activityId: sourceId, scenarioId: act.scenarioId || act.type || null },
-    });
-  } else {
-    const tf = TaskForceRecordStore.getAll().find(t => t.id === sourceId);
-    if (!tf) return;
-    const dup = TodoStore.getBySource(TodoSourceType.TASKFORCE, sourceId)
-      .some(t => t.actionType === TodoActionType.PARTICIPATE && t.status !== TodoStatus.COMPLETED);
-    if (dup) return;
-    TodoStore.create({
-      title: `参与专班「${tf.name || '未命名'}」`,
-      description: `专班：${tf.task || ''}`,
-      role: 'visitor',
-      category: TodoCategory.TRACK,
-      priority: 'normal',
-      deadline: tf.deadline || null,
-      sourceType: TodoSourceType.TASKFORCE,
-      sourceId,
-      actionType: TodoActionType.PARTICIPATE,
-      // IA-C1 Task2：与 VisitorTodoDeriver 同键聚合（专班参与）
-      actionKey: 'participate',
-      actionData: { taskforceId: sourceId },
-    });
-  }
+  const act = mockDB.activities.find(a => a.id === sourceId);
+  if (!act || act.date < _today()) return;
+  // dup 检查仅限「参与」类待办：同源 signup-review 等其它待办不得阻止参与待办重建
+  const dup = TodoStore.getBySource(TodoSourceType.ACTIVITY, sourceId)
+    .some(t => t.actionType === TodoActionType.PARTICIPATE && t.status !== TodoStatus.COMPLETED);
+  if (dup) return;
+  TodoStore.create({
+    title: `参与活动「${act.title || '未命名'}」`,
+    description: `活动日期：${act.date}。请按时参与并配合考勤。`,
+    role: 'visitor',
+    category: TodoCategory.TRACK,
+    priority: 'normal',
+    deadline: act.date,
+    sourceType: TodoSourceType.ACTIVITY,
+    sourceId,
+    actionType: TodoActionType.PARTICIPATE,
+    // IA-C1 Task2：与 VisitorTodoDeriver 同键聚合；scenarioId 落 actionData 供域判定
+    actionKey: 'participate',
+    actionData: { activityId: sourceId, scenarioId: act.scenarioId || act.type || null },
+  });
 }
 
-/** 审核通过后写主源（organizer/deep → assignments/members；participant → assignments/members 兜底） */
+/** 审核通过后只把组织者/深度参与者同步到工作组成员；普通参与者只保留报名事实。 */
 async function _writeSource(sourceType, sourceId, personId, role) {
+  if (!isWorkgroupMemberRole(role)) return;
   if (sourceType === 'activity') {
     const act = mockDB.activities.find(a => a.id === sourceId);
     if (!act) return;
     const cur = Array.isArray(act.assignments) ? act.assignments : [];
-    if (cur.some(x => x.personId === personId)) return;
-    if (role === 'organizer' || role === 'deep') {
-      // 复用三合一机制：写主源 + 审计快照 + 通知
-      const merged = [...cur, { personId, role }];
-      await AuthStore.syncProjectRoles({ scopeRef: sourceId, assignments: merged, actorId: personId });
-    } else {
-      // participant：直接并入 assignments（保留既有条目）
-      const { updateActivity } = await import('../core/mock.js?v=20261016b');
-      await updateActivity(sourceId, { assignments: [...cur, { personId, role }] });
-    }
+    if (cur.some((row) => row.personId === personId && row.role === role)) return;
+    // 复用三合一机制；旧 participant 行不自动转成成员。
+    const merged = [...cur.filter((row) => row.personId !== personId), { personId, role }];
+    await AuthStore.syncProjectRoles({ scopeRef: sourceId, assignments: merged, actorId: personId });
   } else {
     const tf = TaskForceRecordStore.getAll().find(t => t.id === sourceId);
     if (!tf) return;
-    if (tf.members.some(m => m.personId === personId)) return;
+    if ((tf.members || []).some(m => m.personId === personId)) return; // 历史专班 participant 保留待核，不自动转换
     TaskForceRecordStore.addMember(sourceId, { personId, role });
   }
 }
@@ -313,15 +291,25 @@ export const SignupStore = {
    * 提交报名。participant → auto approved；organizer/deep → pending 待审核。
    * @returns {{ ok: boolean, reason?: string, signup?: object }}
    */
-  apply({ sourceType, sourceId, personId, role = SignupRole.PARTICIPANT, note = '' }) {
+  apply({ sourceType, sourceId, personId, role = SignupRole.PARTICIPANT, note = '', onsite }) {
     if (!personId) return { ok: false, reason: '未登录' };
+    if (sourceType === 'taskforce' && role === SignupRole.PARTICIPANT) {
+      return { ok: false, reason: '专班只设组织者与深度参与者，不接受普通参与报名' };
+    }
     const chk = _sourceOpen(sourceType, sourceId);
     if (!chk.ok) return { ok: false, reason: chk.reason };
+    const activity = sourceType === 'activity' ? mockDB.activities.find((row) => row.id === sourceId) : null;
+    if (activity?.type === '主题党日' && ['organizer', 'deep'].includes(role) && typeof onsite !== 'boolean') {
+      return { ok: false, reason: '主题党日组织者与深度参与者报名时须明确选择是否线下参加' };
+    }
+    if (sourceType === 'activity' && activity?.type !== '主题党日' && onsite !== undefined) {
+      return { ok: false, reason: '线下参加选择仅适用于主题党日报名' };
+    }
     if (this.hasApplied(sourceType, sourceId, personId)) return { ok: false, reason: '您已报名，请勿重复提交' };
     // 专班名额校验
     if (sourceType === 'taskforce') {
       const tf = TaskForceRecordStore.getAll().find(t => t.id === sourceId);
-      if (tf && tf.capacity && tf.members.length >= tf.capacity) return { ok: false, reason: '名额已满' };
+      if (tf && tf.capacity && workgroupMembers(tf.members).length >= tf.capacity) return { ok: false, reason: '名额已满' };
     }
     const isAuto = role === SignupRole.PARTICIPANT;
     const record = {
@@ -331,6 +319,7 @@ export const SignupStore = {
       personId,
       role,
       status: isAuto ? SignupStatus.APPROVED : SignupStatus.PENDING,
+      ...(activity?.type === '主题党日' ? { onsite: role === SignupRole.PARTICIPANT ? true : onsite } : {}),
       createdAt: new Date().toISOString(),
       reviewedBy: null,
       reviewedAt: null,
@@ -359,6 +348,9 @@ export const SignupStore = {
     if (idx === -1) return { ok: false, reason: '报名记录不存在' };
     const s = this._signups[idx];
     if (s.status !== SignupStatus.PENDING) return { ok: false, reason: '该报名已处理' };
+    if (approve && s.sourceType === 'taskforce' && s.role === SignupRole.PARTICIPANT) {
+      return { ok: false, reason: '专班不设普通参与身份；历史申请只能保留核查或拒绝，不能转为成员' };
+    }
     const updated = {
       ...s,
       status: approve ? SignupStatus.APPROVED : SignupStatus.REJECTED,
@@ -397,21 +389,24 @@ export const SignupStore = {
       ...this._signups.slice(idx + 1),
     ];
     _saveSignups(this._signups);
-    // 取消 approved 报名：从主源移除（避免参与待办被 deriveFromActivities 重新派生）
+    // 仅取消组织者/深度参与者时同步移除其同角色工作组关系；普通报名不改成员主源。
     if (s.status === SignupStatus.APPROVED) {
       if (s.sourceType === 'activity') {
         const act = mockDB.activities.find(a => a.id === s.sourceId);
-        if (act && Array.isArray(act.assignments) && act.assignments.some(x => x.personId === personId)) {
-          const remaining = act.assignments.filter(x => x.personId !== personId);
-          import('../core/mock.js?v=20261016b').then(({ updateActivity }) => {
-            updateActivity(s.sourceId, { assignments: remaining });
-            persist(); // updateActivity 不自动落盘，须显式 persist
-          });
+        if (act && Array.isArray(act.assignments) && isWorkgroupMemberRole(s.role)) {
+          const remaining = removeSignupWorkgroupRole(act.assignments, s);
+          if (remaining.length !== act.assignments.length) {
+            import('../core/mock.js?v=20261016b').then(({ updateActivity }) => {
+              updateActivity(s.sourceId, { assignments: remaining });
+              persist(); // updateActivity 不自动落盘，须显式 persist
+            });
+          }
         }
       } else {
         const tf = TaskForceRecordStore.getAll().find(t => t.id === s.sourceId);
-        if (tf && Array.isArray(tf.members) && tf.members.some(m => m.personId === personId)) {
-          TaskForceRecordStore.update(s.sourceId, { members: tf.members.filter(m => m.personId !== personId) });
+        if (tf && Array.isArray(tf.members) && isWorkgroupMemberRole(s.role)) {
+          const remaining = removeSignupWorkgroupRole(tf.members, s);
+          if (remaining.length !== tf.members.length) TaskForceRecordStore.update(s.sourceId, { members: remaining });
         }
       }
     }
