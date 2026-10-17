@@ -726,8 +726,8 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/DOC
 
 | ID | 事项 | 引用流程 | 修改对象 | 状态 |
 | --- | --- | --- | --- | --- |
-| T-903 | 落地已确认工作台信息结构、能力包治理字段、全量标签盘点和文案收尾；周报进入周期归档入口 | H20.2 + H25 + DESIGN_SYSTEM + 最小三成本 | `docs/src/entries/`、`docs/src/services/`、`content/04_web_design/` | 进行中（全量工作台标签盘点待续） |
-| T-904 | 按已批准规格改造活动、专班和个人档案：隐私投影、主题党日报名/考勤名单、事务式工作组成员与授权编辑、共享详情组件及文档归档 | H20.2 + H25 | `server/routes/`、`server/test/`、`docs/src/`、`content/` | 已完成（批次 457；全量工作台标签审计 T-903 仍独立待续） |
+| T-903 | 完成工作台标签结构盘点与重点页证据审校；收束已确认的信息结构、能力包治理字段和文案改进 | H20.2 + H25 + DESIGN_SYSTEM + 最小三成本 | `.ctx/WORKBENCH_67_TAB_AUDIT_DRAFT.md`、`README-server.md`、相关工作台实现 | 进行中（67 个活动页签已逐项列出；需核完角色/数据/权限证据与候选建议，并完成未覆盖页面的浏览器检查） |
+| T-905 | 审查批次 447–458 并决定是否将 `codex/agenda-link-voting` 本地整合到 `main` | H20.2 + H25 + H50.1 | `codex/agenda-link-voting`、`.ctx/logs/` | 待审查（提交已在本地 Git 分支；当前按支书决定保留本地、不推送；尚未并入 `main`） |
 
 ***
 

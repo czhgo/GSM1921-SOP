@@ -36,6 +36,7 @@ const HELP = join(ROOT, 'docs', 'help.html');
 const CHECKLIST = join(ROOT, 'content', '05_ai_coding', 'DATA_CONSISTENCY_CHECKLIST.md');
 const SNAPSHOT = join(ROOT, '.ctx', 'SNAPSHOT.md');
 const README = join(ROOT, 'README.md');
+const README_SERVER = join(ROOT, 'README-server.md');
 
 const read = (f) => readFileSync(f, 'utf8');
 
@@ -77,7 +78,7 @@ const WORKS = [
 
 // ── 结构层 ────────────────────────────────────────────────────────────
 
-test('S1 各台 tab 数与代码注册数组一致（help.html §0.1 表 + §2.x 标题两处都核）', () => {
+test('S1 各台及全站 tab 数与代码注册数组一致（help.html 两处 + README-server 总数）', () => {
   const help = read(HELP);
   // §0.1 表：<a href="./workspace/<page>.html">…</a></td><td>…（N 个 tab，见 2.x）
   const counts01 = new Map();
@@ -97,6 +98,11 @@ test('S1 各台 tab 数与代码注册数组一致（help.html §0.1 表 + §2.x
     const b = counts2x.get(w.sec);
     if (a !== real) problems.push(`help.html §0.1「${w.name}」写 ${a ?? '(缺)'} 个 tab，代码 ${w.file} 实为 ${real}`);
     if (b !== real) problems.push(`help.html §${w.sec} 标题写 ${b ?? '(缺)'} tab，代码 ${w.file} 实为 ${real}`);
+  }
+  const totalRegistered = WORKS.reduce((sum, w) => sum + tabsOf(w.file).size, 0);
+  const declaredTotal = Number(/### 3\.2 各工作台页签（共 (\d+) 个）/.exec(read(README_SERVER))?.[1]);
+  if (declaredTotal !== totalRegistered) {
+    problems.push(`README-server.md §3.2 总数写 ${Number.isFinite(declaredTotal) ? declaredTotal : '(缺)'} 个，代码注册表合计 ${totalRegistered} 个`);
   }
   assert.deepEqual(problems, [], `说明文件 tab 数与代码不一致：\n${problems.join('\n')}`);
 });
@@ -598,7 +604,6 @@ const DL_LABEL = DECISION_LOG_NAME.replace(/\.md$/, '');
 const MONTH_INDEX = join(LOGS_DIR, 'DECISION_LOG.md');
 const RULINGS = join(ROOT, '.ctx', 'ACTIVE_RULINGS.md');
 const QUEUE = join(ROOT, '.ctx', 'REVIEW_QUEUE.md');
-const README_SERVER = join(ROOT, 'README-server.md');
 const AGENDA_FORM = join(SRC, 'entries', 'tabs', 'secretary', 'agenda-form.js');
 // 2026-09-28（G2 残余）：独立页入口已按判据分入 entries/pages/（settings 属独立页）
 const SETTINGS_ENTRY = join(SRC, 'entries', 'pages', 'settings-entry.js');
