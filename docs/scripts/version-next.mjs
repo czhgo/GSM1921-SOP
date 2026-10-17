@@ -89,6 +89,23 @@ export const ANY_STAMP_RE = /(\?v=)[0-9]{8}[a-z]/g;
 
 /** import 规格符（含 `/src/` 的 .js 路径）+ 可选既有戳 */
 const SPECIFIER_RE = /(\bimport\(\s*|\bimport\s+|from\s+)(['"`])([^'"`]*\/src\/[^'"`?]*\.js)(\?[^'"`]*)?(['"`])/g;
+const MULTILINE_DYNAMIC_SPECIFIER_RE = /(['"`])([^'"`]*\/src\/[^'"`?]*\.js)(\?[^'"`]*)?(['"`])/g;
+
+function isMultilineDynamicImportOpener(line) {
+  return !isCommentLine(line) && /\bimport\(\s*$/.test(codePartOf(line).trimEnd());
+}
+
+function isMultilineDynamicImportCloser(line) {
+  return /^\)/.test(codePartOf(line).trimStart());
+}
+
+function stampMultilineDynamicSpecifierLine(line, version) {
+  if (isCommentLine(line)) return line;
+  return String(line).replace(
+    MULTILINE_DYNAMIC_SPECIFIER_RE,
+    (m, q1, path, _q, q2) => `${q1}${path}?v=${version}${q2}`
+  );
+}
 
 /**
  * 该行是否处于缓存键语境（整行注释一律不算——注释里的版本号是人工历史注记）。
@@ -125,10 +142,17 @@ export function stampCacheKeyLine(line, version) {
  * @returns {string} 改写后的全文（非缓存键语境行逐字不变）
  */
 export function stampTestFileContent(content, version) {
-  return String(content)
-    .split('\n')
-    .map((line) => stampCacheKeyLine(line, version))
-    .join('\n');
+  let inMultilineDynamicImport = false;
+  return String(content).split('\n').map((line) => {
+    if (inMultilineDynamicImport) {
+      const stamped = stampMultilineDynamicSpecifierLine(line, version);
+      if (isMultilineDynamicImportCloser(line)) inMultilineDynamicImport = false;
+      return stamped;
+    }
+    const stamped = stampCacheKeyLine(line, version);
+    if (isMultilineDynamicImportOpener(line)) inMultilineDynamicImport = true;
+    return stamped;
+  }).join('\n');
 }
 
 /**
@@ -138,9 +162,24 @@ export function stampTestFileContent(content, version) {
  */
 export function cacheKeyStamps(content) {
   const found = [];
+  let inMultilineDynamicImport = false;
   for (const line of String(content).split('\n')) {
+    if (inMultilineDynamicImport) {
+      const code = codePartOf(line);
+      for (const m of code.matchAll(MULTILINE_DYNAMIC_SPECIFIER_RE)) {
+        const stamp = m[3]?.match(/[0-9]{8}[a-z]/)?.[0];
+        if (stamp) found.push(stamp);
+      }
+      if (isMultilineDynamicImportCloser(line)) inMultilineDynamicImport = false;
+      continue;
+    }
+    if (isMultilineDynamicImportOpener(line)) {
+      inMultilineDynamicImport = true;
+      continue;
+    }
     if (!isCacheKeyLine(line)) continue;
-    for (const m of codePartOf(line).matchAll(/\?v=([0-9]{8}[a-z])/g)) found.push(m[1]);
+    const code = codePartOf(line);
+    for (const m of code.matchAll(/\?v=([0-9]{8}[a-z])/g)) found.push(m[1]);
   }
   return [...new Set(found)];
 }

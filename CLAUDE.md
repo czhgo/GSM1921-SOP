@@ -2,7 +2,7 @@
 title: "Org OS — 系统路线图与 Harness"
 type: roadmap
 role: "[工程师]+[AI]"
-last_updated: 2026-10-16
+last_updated: 2026-10-17
 status: active
 related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/DOC_MAP.md, content/01_strategy/SECRETARY_DIRECTIVES.md, content/01_strategy/, content/02_institution/, content/03_doc_system/, content/04_web_design/, content/05_ai_coding/, content/insights/, server/, .ctx/logs/]
 ---
@@ -727,7 +727,7 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/DOC
 | ID | 事项 | 引用流程 | 修改对象 | 状态 |
 | --- | --- | --- | --- | --- |
 | T-903 | 落地已确认工作台信息结构、能力包治理字段、全量标签盘点和文案收尾；周报进入周期归档入口 | H20.2 + H25 + DESIGN_SYSTEM + 最小三成本 | `docs/src/entries/`、`docs/src/services/`、`content/04_web_design/` | 进行中（全量工作台标签盘点待续） |
-| T-904 | 按已批准规格改造活动、专班和个人档案：隐私投影、主题党日报名/考勤名单、事务式工作组成员与授权编辑、共享详情组件及文档归档 | H20.2 + H25 + `.trae/specs/2026-10-17-activity-taskforce-profile-redesign/implementation-plan.md` | `server/routes/`、`server/test/`、`docs/src/`、`content/` | 前三片已落，当前实施第四片 |
+| T-904 | 按已批准规格改造活动、专班和个人档案：隐私投影、主题党日报名/考勤名单、事务式工作组成员与授权编辑、共享详情组件及文档归档 | H20.2 + H25 | `server/routes/`、`server/test/`、`docs/src/`、`content/` | 已完成（批次 457；全量工作台标签审计 T-903 仍独立待续） |
 
 ***
 

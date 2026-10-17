@@ -10,15 +10,14 @@ import { _assertCapabilityPackageEnabled } from './gates.js';
 import { actorBranchId, branchSelectionError } from './branch-scope.js';
 import { deriveExpectedRosterIds } from '../../../docs/src/services/activity/attendance-roster.js';
 import { isWorkgroupMemberRole, WORKGROUP_MEMBER_ROLES, workgroupMembers } from '../../../docs/src/services/activity/workgroup-members.js';
+import { WORKGROUP_PERMISSION_TEMPLATES_BY_KIND } from '../../../docs/src/core/domain/workgroup-policy.js';
 
 const COMMITTEE = new Set(BRANCH_COMMISSION_ROLES);
 const SECRETARY = new Set(SECRETARY_AND_DEPUTY_ROLES);
 const MEMBER_ROLES = new Set(WORKGROUP_MEMBER_ROLES);
-export const WORKGROUP_PERMISSION_TEMPLATES = {
-  organizer: ['activity.edit', 'activity.signup.manage', 'activity.attendance.record', 'workgroup.members.manage', 'task.manage', 'output.submit'],
-  deep: ['activity.view', 'task.complete', 'output.submit'],
-};
-const WORKGROUP_PERMISSION_KEYS = new Set(Object.values(WORKGROUP_PERMISSION_TEMPLATES).flat());
+export const WORKGROUP_PERMISSION_TEMPLATES = WORKGROUP_PERMISSION_TEMPLATES_BY_KIND.activity;
+const WORKGROUP_PERMISSION_KEYS = new Set(Object.values(WORKGROUP_PERMISSION_TEMPLATES_BY_KIND)
+  .flatMap((templates) => Object.values(templates).flat()));
 
 const jsonRows = (db, table) => db.prepare(`SELECT id, data FROM ${table}`).all().map((r) => ({ id: r.id, ...JSON.parse(r.data) }));
 const rowOf = (db, table, id) => {
@@ -452,14 +451,16 @@ export function registerWorkgroupRoutes(router, db) {
       if (!person) return res.status(400).json({ error: `工作组成员不存在：${personId}` });
       if (memberBranch(person) !== workgroup.branchId) return res.status(403).json({ error: `无权限：工作组成员须属于同一支部（${personId}）` });
 
+      const templates = WORKGROUP_PERMISSION_TEMPLATES_BY_KIND[workgroup.kind];
+      const allowedPermissionKeys = new Set(Object.values(templates || {}).flat());
       const templateKey = item.templateKey == null || item.templateKey === '' ? null : String(item.templateKey);
-      if (templateKey && !Object.hasOwn(WORKGROUP_PERMISSION_TEMPLATES, templateKey)) {
+      if (templateKey && !Object.hasOwn(templates || {}, templateKey)) {
         return res.status(400).json({ error: `权限模板无效：${templateKey}` });
       }
       const permissionKeys = item.permissionKeys === undefined
-        ? [...(templateKey ? WORKGROUP_PERMISSION_TEMPLATES[templateKey] : [])]
+        ? [...(templateKey ? templates[templateKey] : [])]
         : item.permissionKeys;
-      if (!Array.isArray(permissionKeys) || permissionKeys.some((key) => typeof key !== 'string' || !WORKGROUP_PERMISSION_KEYS.has(key))) {
+      if (!Array.isArray(permissionKeys) || permissionKeys.some((key) => typeof key !== 'string' || !allowedPermissionKeys.has(key))) {
         return res.status(400).json({ error: `成员权限项无效：${personId}` });
       }
       if (item.reason !== undefined && typeof item.reason !== 'string') return res.status(400).json({ error: `授权说明须为文本：${personId}` });
@@ -646,10 +647,13 @@ export function registerWorkgroupRoutes(router, db) {
     const personId = String(body.personId || '');
     const member = workgroupMembers(membersOf(db, workgroup.id)).find((row) => row.personId === personId);
     if (!member) return res.status(400).json({ error: '权限对象须先登记为该工作组成员' });
+    const templates = WORKGROUP_PERMISSION_TEMPLATES_BY_KIND[workgroup.kind] || {};
     const templateKey = typeof body.templateKey === 'string' ? body.templateKey : '';
-    const suggested = WORKGROUP_PERMISSION_TEMPLATES[templateKey] || [];
+    if (templateKey && !Object.hasOwn(templates, templateKey)) return res.status(400).json({ error: '权限模板无效' });
+    const suggested = templates[templateKey] || [];
     const permissionKeys = body.permissionKeys === undefined ? [...suggested] : body.permissionKeys;
-    if (!Array.isArray(permissionKeys) || permissionKeys.some((key) => !WORKGROUP_PERMISSION_KEYS.has(key))) {
+    const allowedPermissionKeys = new Set(Object.values(templates).flat());
+    if (!Array.isArray(permissionKeys) || permissionKeys.some((key) => !allowedPermissionKeys.has(key))) {
       return res.status(400).json({ error: '权限项无效' });
     }
     const row = {

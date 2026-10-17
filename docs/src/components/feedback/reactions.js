@@ -1,11 +1,11 @@
 // role: [工程师]+[AI]
 // reactions.js — Issue 表态聚合组件
 
-import { IssueStore } from '../../services/governance/issues.js?v=20261016b';
-import { AuthStore } from '../../services/core/auth.js?v=20261016b';
-import { showToast } from '../../core/base/utils.js?v=20261016b';
-import { icon } from '../../core/base/icons.js?v=20261016b';
-import { accDarkParts } from '../../core/domain/constants.js?v=20261016b';
+import { IssueStore } from '../../services/governance/issues.js?v=20261017b';
+import { AuthStore } from '../../services/core/auth.js?v=20261017b';
+import { showToast } from '../../core/base/utils.js?v=20261017b';
+import { icon } from '../../core/base/icons.js?v=20261017b';
+import { accDarkParts } from '../../core/domain/constants.js?v=20261017b';
 
 const REACTIONS = [
   { key: 'thumbsUp', icon: 'thumbsUp', label: '赞同', activeColor: '#059669' },

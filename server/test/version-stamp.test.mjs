@@ -344,3 +344,19 @@ test('D11 语义化只允许前进 ＋ CHANGELOG 解析（占位条目不算是�
   assert.equal(classifyChanges(unknown.unreleased).empty, true, '非 Keep a Changelog 白名单的类别不参与解析');
 });
 
+test('D12 多行动态 import 的路径行随缓存版本更新且进入同一收尾判据', () => {
+  const source = [
+    'const archive = await import(',
+    "  '../../docs/src/services/governance/periodic-archive.js" + '?v=' + OLD_V + "'",
+    ');',
+  ].join('\n');
+  const expected = [
+    'const archive = await import(',
+    "  '../../docs/src/services/governance/periodic-archive.js" + '?v=' + NEW_V + "'",
+    ');',
+  ].join('\n');
+  assert.equal(stampTestFileContent(source, NEW_V), expected);
+  assert.deepEqual(cacheKeyStamps(source), [OLD_V]);
+  assert.deepEqual(cacheKeyStamps(expected), [NEW_V]);
+});
+

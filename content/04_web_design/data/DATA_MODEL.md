@@ -60,7 +60,7 @@ related_files: [content/02_institution/SYSTEM_ROLE_PERMISSION.md, content/02_ins
 | organizingScope | `'party-group'\|'cross-group'` | 是 | -- | 承办责任范围：组内承办或跨组承办。组内由本组组长从组长台创建；跨组由书记/副书记从书记台创建。它不限制其他成员报名或参加 |
 | hostGroupId | string\|null | 条件必填 | `null` | `party-group` 时指向同支部党小组；`cross-group` 时必须为 `null`。旧 `hostGroup` 名称字段暂保留兼容 |
 | workgroupId | string | 是 | `wg-activity-{id}` | 活动工作组主记录 ID；活动记录与统一工作组记录在同一事务中建立 |
-| assignments | `Array<{personId: string, role: 'organizer'\|'deep'\|'participant'}>` | 否 | `[]` | 兼容旧页面与快照的工作组成员镜像；标准主源为 `workgroup_members`。成员身份不自动产生系统授权，授权另存 `workgroup_grants` |
+| assignments | `Array<{personId: string, role: 'organizer'\|'deep'\|'participant'}>` | 否 | `[]` | 兼容旧页面/快照的镜像。新工作组成员主源为 `workgroup_members`，只含组织者/深度参与者；旧 `participant` 行只按其来源事实读取，不转成工作组成员。主题党日一般参与者以报名记录为准；三会一课按正式名单处理。授权另存 `workgroup_grants` |
 | signupEnabled | boolean | 否 | `false` | 开放报名开关（SOP-B-2）：勾选后该活动可被报名；草稿态默认不可报名，须本字段为 `true` 才放开。**与下行的分工**：本字段＝写入活动时的「是否开放报名」，关闭动作见 `signupClosed` |
 | signupClosed | boolean | 否 | `false` | 本场报名是否已**手动关闭**（SOP-B-2 · 支书 2026-09-20 定案「不设截止，但组织者可手动关」）：置 `true` 后成员不能**新报**（判据单一出口 `services/activity/signup.js::_sourceOpen`），**已报名者仍可自行取消**；可关者＝**本场组织者（判据 `isActivityOrganizer`）＋ 支书/副支书**，入口在活动详情页报名区块旁。**不设「报名截止时点」字段** |
 | requireMakeup | boolean | 否 | `false` | 活动级「本次要求补课」（SOP-B-6）：党小组会等**不默认补课**的类型，勾选后才进补课名单（补课范围单一出口 `isMakeupRequired`） |
@@ -184,9 +184,9 @@ ActivityRecord (主记录)
 
 #### 2.1.3 活动工作组与系统授权边界
 
-活动工作组的组织者、深度参与者和普通参与者都用成员关系记录；成员仍保留原党小组归属。组织者身份用于标明本活动责任，不因此自动获得系统操作权。确需代录考勤、管理任务或提交产出时，由有权管理者通过授权语义接口单独授予、调整或撤销，并记录操作者与时间。参加资格、承办范围和系统权限是三个不同维度。
+活动工作组成员关系只记录组织者和深度参与者，成员仍保留原党小组归属。主题党日的一般参与者来自报名记录，与工作组成员可在活动名单视图并列显示，但不合并成同一种数据关系。组织者身份用于标明本活动责任，不因此自动获得系统操作权；确需代录考勤、管理任务或提交产出时，由有权管理者通过授权语义接口单独授予、调整或撤销，并记录操作者与时间。参加资格、承办范围和系统权限是三个不同维度。
 
-活动承办范围是活动数据字段：组内承办由本组组长从组长台创建；跨组承办由支书/副支书从书记台创建并指定工作组组织者。工作组成员不是活动应到名单；活动报名与出席名单可包含本支部其他党小组成员。
+活动承办范围是活动数据字段：组内承办由本组组长从组长台创建；跨组承办由支书/副支书从书记台创建并指定工作组组织者。工作组成员关系不会自动形成报名或应到名单；主题党日按报名状态与线下意向计算，三会一课使用正式应到名单。活动参加范围可包含本支部其他党小组成员。
 
 ### 2.2 角色与权限数据
 
@@ -248,7 +248,7 @@ ActivityRecord (主记录)
 | task | string | 是 | -- | 专班主任务；兼容字段，同时作为 `workgroup_tasks` 的主任务镜像。创建时须登记，旧记录缺失时只由经办人核实后补录 |
 | createdBy | string | 是 | -- | 创建者 ID |
 | createdAt | string (ISO) | 是 | -- | 创建时间 |
-| members | array | 否 | `[]` | 历史兼容镜像。新增和变更通过 `workgroup_members` 语义接口；组织者、深度参与者与普通参与者均属于工作组成员关系 |
+| members | array | 否 | `[]` | 历史兼容镜像。新增和变更通过 `workgroup_members` 语义接口；新专班只登记组织者与深度参与者。遗留 `participant` 行保留为待核历史事实，不转成成员或权限 |
 | description | string | 否 | -- | 专班描述 |
 
 > **字段核对**：mock/seed 另含展示字段 `manager`/`initiator`/`capacity`/`deadline`（见 [data/mock/taskforces.js](../../../docs/src/data/mock/taskforces.js) 样本）。新建专班围绕自己的工作组任务存在，不以 `activityId` 直接挂靠活动。
@@ -258,7 +258,7 @@ ActivityRecord (主记录)
 | 记录 | 核心字段 | 约束 |
 |---|---|---|
 | `WorkGroup` | `id, branchId, kind, sourceType, sourceId, name, status, organizingScope?, hostGroupId?` | `kind` 为 `activity` 或 `taskforce`；活动与专班分别保留自己的业务记录，工作组记录承接共同的组织者/深度参与者结构 |
-| `WorkGroupMember` | `id, branchId, workgroupId, personId, role, status, createdBy, createdAt` | `role` 为 `organizer/deep/participant`；成员须属于同一支部。登记成员不自动授予系统权限 |
+| `WorkGroupMember` | `id, branchId, workgroupId, personId, role, status, createdBy, createdAt` | 活动与专班工作组的 `role` 均为 `organizer/deep`；成员须属于同一支部。活动一般参与者单独记录为报名，不属于工作组成员；专班可有组织者/深度参与者入组申请，但不设一般参与报名或考勤。登记成员不自动授予系统权限 |
 | `WorkGroupGrant` | `id, branchId, workgroupId, personId, templateKey?, permissionKeys[], status, grantedBy, grantedAt, revokedBy?, revokedAt?` | 独立授权留痕；可套用建议模板后调整；服务端按支部、活动与工作组范围校验每项操作 |
 | `WorkGroupTask` | `id, branchId, workgroupId, title, status, activityId?, capabilityPackageId?, isPurpose?` | `status` 为 `open/in_progress/completed/cancelled`；主任务 `isPurpose` 唯一。每个工作组至少有一项经确认的任务才可收尾。关联活动/能力包须同支部 |
 | `WorkGroupOutput` | `id, branchId, workgroupId, taskId?, activityId?, capabilityPackageId?, title, submittedBy, submittedAt, status` | 产出可关联任务、活动与能力包；跨支部或跨工作组引用由服务端拒绝。收尾需所有已登记产出完成登记 |
@@ -323,7 +323,7 @@ taskforce.members:    Array<{ personId, role: 'organizer' | 'deep' | 'participan
 
 **人 × 活动关系**：考勤不是两份互不相关的“人员清单”和“活动清单”，也不是把人员表原样转置；每条考勤事实是一个 `(activityId, personId)` 关系，表达某人在某场活动中的状态。因此矩阵的格子承载关系状态，行列是两个维度的索引。展示人员集取冻结应到人员与已有考勤人员并集，活动集取有冻结名单或考勤事实的活动；应到但未记录显示“未录”，不在冻结名单显示“非应”，没有冻结名单时显示“待冻”。
 
-**活动应到快照与统计口径**：`attendance_rosters` 以活动 ID 唯一保存冻结的原应到人员列表，包含 `branchId, activityId, personIds[], frozen, version, frozenBy, frozenAt`。冻结后不可原位覆盖。考勤事实以活动和人员为唯一组合；实际到场状态为 `present` 或 `made_up`。应到集合按“冻结的原应到名单与实际到场人员去重并集”计算，因此实际到场者即使不在原党小组名单也会计入。请假、缺勤继续留在分母；工作组成员名单不自动成为应到名单。出勤率以该并集为分母、到场/已补为分子；录入覆盖率以已有考勤记录数为分子。未冻结原名单时标注暂估，不把当前名册倒推成历史应到名单。
+**活动应到快照与统计口径**：`attendance_rosters` 以活动 ID 唯一保存冻结的原应到人员列表，包含 `branchId, activityId, personIds[], frozen, version, frozenBy, frozenAt`；冻结后不可原位覆盖。冻结前按活动类型和支部/党小组范围形成原应到名单。主题党日再按报名事实校正：组织者/深度参与者只有在报名已通过、未作废且明确选择线下时纳入；明确选择不线下者从原应到名单移除；一般参与者已通过且未作废的报名默认线下并纳入。三会一课不要求报名，仍按正式应到名单。考勤事实以活动和人员为唯一组合；统计时以冻结名单与实际到场人员去重并集为应到范围，因此实际到场者即使不在原党小组名单也会计入。请假、缺勤继续留在分母；工作组成员身份本身不自动成为应到依据。出勤率以该并集为分母、到场/已补为分子；录入覆盖率以已有考勤记录数为分子。未冻结原名单时标注暂估，不把当前名册倒推成历史应到名单。
 
 **出勤状态枚举：**
 
@@ -1259,10 +1259,12 @@ pending ──用户开始处理──→ in_progress ──完成──→ comp
  └─ 跨活动聚合 ──→ 考勤明细（纪检维护）──→ 个人/支部考勤统计
 
 工作组 WorkGroup（与活动、专班业务记录分别存在）
-  ├─ 成员 WorkGroupMember（organizer / deep / participant）
+  ├─ 成员 WorkGroupMember（organizer / deep；两类工作组适用）
   ├─ 独立授权 WorkGroupGrant（授权/撤销审计，不由成员身份自动派生）
   ├─ 任务 WorkGroupTask（可关联同支部活动或能力包）
   └─ 产出 WorkGroupOutput（可关联任务、活动或能力包）
+
+主题党日一般参与者通过 ActivitySignup 报名；报名状态与线下意向按活动规则形成应到快照，不变成工作组成员。专班只接受组织者/深度参与者入组申请，不生成考勤。
 
 考察（仅在制度、议程或事项明确要求时产生）
   └─ 按事项授权的提交/确认链 ──→ 考察总表 / 人才库依据（§3.3）
@@ -1271,10 +1273,12 @@ pending ──用户开始处理──→ in_progress ──完成──→ comp
 **主线三：工作组成员/独立授权 → 工作台业务 → 归档**
 
 ```
-工作组成员关系 WorkGroupMember（组织者/深度参与者/普通参与者）
+工作组成员关系 WorkGroupMember（组织者/深度参与者）
   ├─→ 显示相关任务与工作台入口
   └─→ 不自动获得系统写权限
        └─→ 经独立授权记录 WorkGroupGrant 授予必要权限并留痕
+
+主题党日一般参与者来自独立报名记录；专班只接受组织者/深度参与者入组申请，不设一般参与报名或考勤。
 ```
 
 **交织关系要点**（挂靠 + 聚合双语义）：
@@ -1309,7 +1313,7 @@ pending ──用户开始处理──→ in_progress ──完成──→ comp
 | **党支部**（支委会统筹决策层） | 党支书+支委 | 统筹决策 | — |
 | **组织者**（分工记录层） | 活动或专班工作组成员 | 协调、分工和责任记录，与深度参与者并列 | 工作组成员/任务关系；按事项要求形成产出 |
 | **深度参与者**（具体执行层） | 有明确分工并实际完成的成员 | 承担具体工作 | 工作组成员/任务关系；按事项要求形成产出 |
-| **普通参与者**（考勤记录层） | 参加但无具体分工 | 出席 | 考勤记录：出勤 |
+| **主题党日一般参与者**（报名记录层） | 通过报名参加、无具体分工 | 出席 | 报名形成应到快照；其他会议按正式名单规则 |
 | **工作组** | 工作组责任人/成员 | 登记成员、任务、产出；必要时另行授权 | 全部登记任务和产出闭合后结束；历史只读保留 |
 | **归档层** | 按具体档案规则分工 | 通用档案复用业务记录；周期档案按策略定期提交 | 考勤按适用场景记录；考察仅在制度/议程/事项明确要求时办理 |
 
@@ -1433,7 +1437,7 @@ pending ──用户开始处理──→ in_progress ──完成──→ comp
 | `taskforces` | TaskForceRecord[] | 专班记录 |
 | `notices` | Notice[] | 通知记录 |
 | `todos` | Todo[] | 待办任务记录（最小三成本原则落地，见 §2.18） |
-| `signups` | SignupRecord[] | 报名记录（活动/专班统一报名渠道） |
+| `signups` | SignupRecord[] | 活动报名及专班组织者/深度参与者入组申请；专班不接受一般参与身份，且申请不生成考勤 |
 | `activityReviews` | ReviewRecord[] | 活动复盘记录 |
 | `taskforceReviews` | ReviewRecord[] | 专班复盘记录 |
 | `propTasks` | Object[] | 宣传任务（prop-commissioner 工作台） |

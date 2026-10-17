@@ -728,3 +728,30 @@ test('停用活动组织能力后阻止新建，并保护已结束活动及其�
   });
   assert.equal(snapshot.response.status, 403, '快照写入口不能绕过历史只读规则');
 });
+
+test('专班工作组批量与兼容授权入口均拒绝活动考勤权限', async () => {
+  const taskforce = { id: 'tf-kind-permissions', name: '专班授权边界', task: '材料审查', status: 'active', branchId: 'br-b1', members: [] };
+  const workgroupId = `wg-taskforce-${taskforce.id}`;
+  db.prepare('INSERT OR REPLACE INTO taskforces (id, data) VALUES (?, ?)').run(taskforce.id, JSON.stringify({ ...taskforce, workgroupId }));
+  db.prepare('INSERT OR REPLACE INTO workgroups (id, data) VALUES (?, ?)').run(workgroupId, JSON.stringify({
+    id: workgroupId, branchId: 'br-b1', kind: 'taskforce', sourceType: 'taskforce', sourceId: taskforce.id, status: 'active',
+  }));
+
+  const valid = await request(`workgroups/${workgroupId}/members`, 'p11', 'PUT', {
+    members: [{ personId: 'p8', role: 'organizer', templateKey: 'organizer', permissionKeys: ['task.manage'], reason: '任务经办' }],
+  });
+  assert.equal(valid.response.status, 200);
+  const invalidBatch = await request(`workgroups/${workgroupId}/members`, 'p11', 'PUT', {
+    members: [{ personId: 'p8', role: 'organizer', permissionKeys: ['activity.attendance.record'] }],
+  });
+  assert.equal(invalidBatch.response.status, 400);
+  assert.deepEqual(invalidBatch.data.error.includes('权限项无效'), true);
+  const grantsAfterFailedBatch = await request(`workgroups/${workgroupId}/grants`, 'p11');
+  assert.equal(grantsAfterFailedBatch.response.status, 200);
+  assert.deepEqual(grantsAfterFailedBatch.data.filter((row) => row.status === 'active').map((row) => row.permissionKeys), [['task.manage']]);
+
+  const invalidLegacy = await request(`workgroups/${workgroupId}/grants`, 'p11', 'POST', {
+    personId: 'p8', templateKey: 'organizer', permissionKeys: ['activity.attendance.record'],
+  });
+  assert.equal(invalidLegacy.response.status, 400);
+});

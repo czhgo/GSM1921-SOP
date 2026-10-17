@@ -2,39 +2,33 @@
 // ════════════════════════════════════════════════════════════════
 //  person-entry.js — 成员档案独立查阅页入口（2026-09-13 支书裁定）
 //  定案：① 只读查阅走**独立 HTML 页**；② 可操作走模态弹窗编辑。
-//  路由：?id=<personId> → 该人完整档案（只读为主 + 关联概览计数）
+//  路由：?id=<personId> → 该人授权投影（本人自我描述 + 组织维护字段）
 //        无 id           → 提示「未指定成员」+ 去成员名册
 //        未登录          → 卡内提示登录
 //        档案 id 查无    → 「成员不存在或已移出」
 //  纪律：人名与字段一律现取 PersonStore / getPersonName；**不得**使用任何记录内姓名快照，
 //        也不得在模块顶层做人员快照（跨表一致性守卫 S1/S2）。
 // ════════════════════════════════════════════════════════════════
-import { renderSidebar } from '../../components/shell/sidebar.js?v=20261016b';
-import { renderHeader } from '../../components/shell/header.js?v=20261016b';
-import { BranchService } from '../../services/core/runtime.js?v=20261016b';
-import { AuthStore } from '../../services/core/auth.js?v=20261016b';
-import { PersonStore, getPersonName } from '../../services/member/person.js?v=20261016b';
-import { getDataSource } from '../../data/data-adapter.js?v=20261016b';
-import { loadMemberProfile } from '../../services/member/profile.js?v=20261016b';
-import { getBranchById } from '../../services/branch/branch.js?v=20261016b';
-import { openPersonEditModal } from '../../components/governance/pickers.js?v=20261016b';
+import { renderSidebar } from '../../components/shell/sidebar.js?v=20261017b';
+import { renderHeader } from '../../components/shell/header.js?v=20261017b';
+import { BranchService } from '../../services/core/runtime.js?v=20261017b';
+import { AuthStore } from '../../services/core/auth.js?v=20261017b';
+import { PersonStore, getPersonName } from '../../services/member/person.js?v=20261017b';
+import { getDataSource } from '../../data/data-adapter.js?v=20261017b';
+import { loadMemberProfile } from '../../services/member/profile.js?v=20261017b';
+import { getBranchById } from '../../services/branch/branch.js?v=20261017b';
+import { openPersonEditModal } from '../../components/governance/pickers.js?v=20261017b';
+import { renderSelfDescriptionSection } from '../../components/governance/person-profile-sections.js?v=20261017b';
 // Q-21-3 收敛（2026-09-13）：在册状态枚举单一源 = core/domain/constants.js（原经 org-base-data-preview 转出）
-import { ROLE_LABELS, RESIDENCE } from '../../core/domain/constants.js?v=20261016b';
-import { canMaintainMemberProfileFields } from '../../core/domain/profile-access.js?v=20261016b';
-import { getBasePath, escHtml as esc, fmtDt } from '../../core/base/utils.js?v=20261016b';
-import { badgeHtml } from '../../components/ui/badges.js?v=20261016b';
-import { countThoughtReportsByPerson } from '../../services/governance/thought-report.js?v=20261016b';
-import { loadActivities } from '../../services/activity/activity.js?v=20261016b';
-// 待批活动的可见性单一源（2026-09-22 批次 151 · 支书裁定「只支委层可见」）：关联概览的「参与活动」计数同样收窄
-import { filterActivitiesForViewer } from '../../services/core/visibility.js?v=20261016b';
-import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261016b';
-import { loadAttendanceRecords } from '../../services/activity/attendance.js?v=20261016b';
-import { loadInspectionRecords } from '../../services/activity/inspection.js?v=20261016b';
+import { ROLE_LABELS, RESIDENCE } from '../../core/domain/constants.js?v=20261017b';
+import { canMaintainMemberProfileFields } from '../../core/domain/profile-access.js?v=20261017b';
+import { getBasePath, escHtml as esc, fmtDt } from '../../core/base/utils.js?v=20261017b';
+import { badgeHtml } from '../../components/ui/badges.js?v=20261017b';
 // 批次 87：本页必须先 hydrate API 数据源再渲染（成员档案读 + 编辑写）——与 activity.html 标准形同款。
 // 此前本页只调 BranchService.loadDB()（API 模式直接 return）⇒ api 形态下档案读的是本地备份，
 // 且「编辑档案」按 mock 数据源落本机、服务端 users 表不更新。
-import { hydrateDataSource, notifyDataLoaded } from '../../data/data-adapter.js?v=20261016b';
-import { ApiAdapter } from '../../data/api-adapter.js?v=20261016b';
+import { hydrateDataSource, notifyDataLoaded } from '../../data/data-adapter.js?v=20261017b';
+import { ApiAdapter } from '../../data/api-adapter.js?v=20261017b';
 
 renderSidebar('dashboard');
 renderHeader('dashboard');
@@ -45,9 +39,10 @@ renderHeader('dashboard');
 async function _hydrateData() {
   try {
     const r = await hydrateDataSource({ apiAdapter: ApiAdapter, loadMock: () => BranchService.loadDB() });
-    if (!r.ok) return; // 错误态已由共享实现渲染
+    return r.ok;
   } catch (e) {
-    console.warn('[person-entry] 数据加载异常（仍尝试内存兜底）', e);
+    console.warn('[person-entry] 数据加载异常，不回退到缓存档案', e);
+    return false;
   } finally {
     try { notifyDataLoaded(); } catch (_) { /* 静默 */ }
   }
@@ -68,55 +63,18 @@ const viewer = AuthStore.getCurrentUser();
 const personId = params.get('id') || (viewer?.personId || '');
 const isSelf = !!personId && String(viewer?.personId || '') === String(personId);
 
-/** 卡内提示（整块替换档案容器内容） */
-function renderMessage(html) {
-  if (cardEl) cardEl.innerHTML = `<p class="text-sm text-gray-500 text-center py-12">${html}</p>`;
-}
-
-/** 关联概览只读计数（各域按 personId 现取；取不到数据源则不显示该项，不编造数字） */
-function relatedCounts(id) {
-  const items = [];
-  items.push({
-    label: '思想汇报',
-    count: countThoughtReportsByPerson(id),
-    href: `thought-report.html?personId=${encodeURIComponent(id)}`,
-  });
-  items.push({
-    label: '参与活动',
-    count: filterActivitiesForViewer(loadActivities(), AuthStore.getCurrentUser()?.role).filter(a =>
-      a.organizer === id || (Array.isArray(a.assignments) && a.assignments.some(x => x && x.personId === id))).length,
-  });
-  items.push({
-    label: '参与专班',
-    count: TaskForceRecordStore.getAll().filter(t =>
-      t.manager === id || t.initiator === id
-      || (Array.isArray(t.members) && t.members.some(m => m && m.personId === id))).length,
-  });
-  items.push({
-    label: '考勤记录',
-    count: loadAttendanceRecords().filter(r => r.personId === id).length,
-  });
-  items.push({
-    label: '考察记录',
-    count: loadInspectionRecords().filter(r => r.personId === id).length,
-  });
-  return items;
-}
-
-/** 关联概览单元格（只读计数；仅思想汇报有真实链接，其余数字不做假按钮） */
-function statCell(item) {
-  const num = `<p class="text-lg font-semibold text-gray-800">${item.count}</p>`;
-  const label = `<p class="text-xs text-gray-500 mb-0.5">${esc(item.label)}</p>`;
-  if (!item.href) return `<div class="rounded-xl bg-gray-50 px-4 py-3">${label}${num}</div>`;
-  return `<a href="${item.href}" class="rounded-xl bg-gray-50 px-4 py-3 block hover:bg-gray-100 transition-colors">
-      ${label}${num}
-      <span class="text-[11px] text-sky-600">查看其思想汇报 →</span>
-    </a>`;
+/** 卡内状态提示（权限失败不会先显示缓存档案，再以遮罩隐藏）。 */
+function renderMessage(html, role = 'status') {
+  if (!cardEl) return;
+  cardEl.setAttribute('aria-busy', 'false');
+  cardEl.innerHTML = `<p role="${role}" aria-live="${role === 'alert' ? 'assertive' : 'polite'}" class="text-sm text-gray-600 text-center py-12">${html}</p>`;
 }
 
 /** 渲染档案页（保存成功后重渲染本页） */
 async function render() {
   if (!cardEl) return;
+  renderMessage('正在加载档案…');
+  cardEl.setAttribute('aria-busy', 'true');
   if (!viewer) {
     renderMessage(`请先登录后查看成员档案 · <a class="text-sky-600 hover:underline" href="${getBasePath()}login.html">去登录</a>`);
     return;
@@ -136,12 +94,12 @@ async function render() {
     });
   } catch (error) {
     if (error?.status === 403) {
-      renderMessage('无权限查看此成员档案。档案仅本人或本支部支委可查看。');
+      renderMessage('无权限查看此成员档案。档案仅本人或本支部支委可查看。', 'alert');
     } else if (error?.status === 404) {
-      renderMessage('成员不存在或已移出');
+      renderMessage('成员不存在或已移出', 'alert');
     } else {
       console.warn('[person-entry] 档案读取失败', error);
-      renderMessage('档案暂时无法加载，请刷新页面重试。');
+      renderMessage('档案暂时无法加载，请检查连接后重试。', 'alert');
     }
     return;
   }
@@ -168,8 +126,6 @@ async function render() {
           ${h.updatedBy ? `<span class="text-gray-400">（记录：${esc(getPersonName(h.updatedBy))}）</span>` : ''}
         </div>`).join('')}</div>`;
 
-  const statsHtml = relatedCounts(member.id).map(statCell).join('');
-
   cardEl.innerHTML = `
     <!-- 标题区 -->
     <div class="mb-5 pb-5 border-b border-gray-100">
@@ -180,59 +136,55 @@ async function render() {
         ${isDetained ? `<span class="inline-flex items-center px-1.5 py-0.5 rounded text-[11px] font-medium text-amber-700 bg-amber-50">${esc(RESIDENCE.DETAINED)}</span>` : ''}
         <span class="ml-auto text-xs text-gray-400">${esc(member.id)}</span>
       </div>
-      <h2 class="text-xl font-semibold text-gray-900">${esc(member.name || '—')}</h2>
+      <h1 class="text-xl font-semibold text-gray-900">${esc(member.name || '—')}</h1>
       ${isDetained && member.residenceNote ? `<p class="text-xs text-amber-700 mt-1">${esc(member.residenceNote)}</p>` : ''}
     </div>
 
-    <!-- 基础档案 -->
-    <div class="mb-6">
-      <h3 class="text-sm font-semibold text-gray-700 mb-3">基础档案</h3>
-      <div class="grid grid-cols-2 gap-3">
-        <div class="rounded-xl bg-gray-50 px-4 py-3">
-          <p class="text-xs text-gray-500 mb-0.5">学号</p>
-          <p class="text-sm font-medium text-gray-800">${esc(member.studentId || '—')}</p>
-        </div>
-        <div class="rounded-xl bg-gray-50 px-4 py-3">
-          <p class="text-xs text-gray-500 mb-0.5">党小组</p>
-          <p class="text-sm font-medium text-gray-800">${esc(member.partyGroup || '—')}</p>
-        </div>
-        <div class="rounded-xl bg-gray-50 px-4 py-3">
-          <p class="text-xs text-gray-500 mb-0.5">角色</p>
-          <p class="text-sm font-medium text-gray-800">${esc(ROLE_LABELS[member.role] || member.role || '—')}</p>
-        </div>
-        <div class="rounded-xl bg-gray-50 px-4 py-3">
-          <p class="text-xs text-gray-500 mb-0.5">所属支部</p>
-          <p class="text-sm font-medium text-gray-800">${esc(branchLabel)}</p>
-        </div>
-      </div>
-    </div>
+    ${renderSelfDescriptionSection(member.selfProfile, { isSelf })}
 
-    <!-- 在册管理 -->
-    <div class="mb-6">
-      <h3 class="text-sm font-semibold text-gray-700 mb-3">在册管理</h3>
-      <div class="rounded-xl bg-gray-50 px-4 py-3 mb-3">
-        <p class="text-xs text-gray-500 mb-0.5">在册状态</p>
+    <!-- 组织维护资料：字段来源和本人自述分区展示，保留现行字段编辑授权。 -->
+    <section aria-labelledby="person-organization-profile-heading" class="mb-6">
+      <div class="mb-3">
+        <h2 id="person-organization-profile-heading" class="text-base font-semibold text-gray-700">组织维护档案</h2>
+        <p class="text-xs text-gray-500 mt-1">由支部按组织职责维护，用于组织关系与在册管理。</p>
+      </div>
+      <dl class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div class="min-w-0 rounded-xl bg-gray-50 px-4 py-3">
+          <dt class="text-xs text-gray-500 mb-1">学号</dt>
+          <dd class="text-sm font-medium text-gray-800 break-words">${esc(member.studentId || '—')}</dd>
+        </div>
+        <div class="min-w-0 rounded-xl bg-gray-50 px-4 py-3">
+          <dt class="text-xs text-gray-500 mb-1">届别</dt>
+          <dd class="text-sm font-medium text-gray-800 break-words">${esc(member.enrollYear || '—')}</dd>
+        </div>
+        <div class="min-w-0 rounded-xl bg-gray-50 px-4 py-3">
+          <dt class="text-xs text-gray-500 mb-1">党小组</dt>
+          <dd class="text-sm font-medium text-gray-800 break-words">${esc(member.partyGroup || '—')}</dd>
+        </div>
+        <div class="min-w-0 rounded-xl bg-gray-50 px-4 py-3">
+          <dt class="text-xs text-gray-500 mb-1">所属支部</dt>
+          <dd class="text-sm font-medium text-gray-800 break-words">${esc(branchLabel)}</dd>
+        </div>
+      </dl>
+      <div class="rounded-xl bg-gray-50 px-4 py-3 mt-3">
+        <h3 class="text-xs font-semibold text-gray-600 mb-1">在册状态</h3>
         <p class="text-sm font-medium text-gray-800">${isDetained
           ? `<span class="inline-flex items-center px-1.5 py-0.5 rounded text-[11px] font-medium text-amber-700 bg-amber-50">${esc(RESIDENCE.DETAINED)}</span>`
           : esc(member.residenceStatus || RESIDENCE.CAMPUS)}</p>
-        <p class="text-xs text-gray-600 mt-1">${member.residenceNote ? esc(member.residenceNote) : '无在册备注'}</p>
+        <p class="text-xs text-gray-600 mt-1 break-words">${member.residenceNote ? esc(member.residenceNote) : '无在册备注'}</p>
       </div>
-      <h4 class="text-xs font-semibold text-gray-600 mb-2">在册变更留痕</h4>
-      ${historyHtml}
-    </div>
+      <div class="mt-3">
+        <h3 class="text-xs font-semibold text-gray-600 mb-2">在册变更留痕</h3>
+        ${historyHtml}
+      </div>
+    </section>
 
-    <!-- 关联概览（只读计数） -->
-    <div class="mb-6">
-      <h3 class="text-sm font-semibold text-gray-700 mb-3">关联概览</h3>
-      <div class="grid grid-cols-2 gap-3">${statsHtml}</div>
-    </div>
-
-    ${(canEdit || isSelf) ? `
-    <div class="pt-5 border-t border-gray-100 flex justify-end gap-2">
-      ${isSelf ? '<button type="button" id="person-self-profile-btn" class="btn-outline text-sm px-4 py-2 rounded-lg">填写我的自我描述</button>' : ''}
-      ${canEdit ? '<button type="button" id="person-edit-btn" class="btn-accent-soft text-sm px-4 py-2 rounded-lg">编辑档案</button>' : ''}
+    ${canEdit ? `
+    <div class="pt-5 border-t border-gray-100 flex flex-wrap justify-end gap-2">
+      ${canEdit ? '<button type="button" id="person-edit-btn" class="btn-accent-soft text-sm px-4 py-2 rounded-lg">编辑组织维护字段</button>' : ''}
     </div>` : ''}
   `;
+  cardEl.setAttribute('aria-busy', 'false');
 
   cardEl.querySelector('#person-edit-btn')?.addEventListener('click', () => {
     openPersonEditModal({
@@ -254,7 +206,10 @@ async function render() {
 
 // 渲染前必须先 hydrate（数据源初始化 + Store init）：否则 api 形态下按本地备份渲染。
 (async () => {
-  await _hydrateData();
-  TaskForceRecordStore.init();
+  const ready = await _hydrateData();
+  if (!ready) {
+    renderMessage('档案数据暂时无法加载，请检查连接后重试。', 'alert');
+    return;
+  }
   render();
 })();
