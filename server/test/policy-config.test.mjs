@@ -705,6 +705,14 @@ test('R1 每个 policy 叶键恰属「白名单」或「固定台账」两类之
     '同一叶键不得同时出现在白名单与固定台账（两表互相冒充）');
 });
 
+test('个人自我描述查阅范围是全组织统一的制度固定项', () => {
+  assert.equal(POLICY_DEFAULTS.profile.selfProfileReadScope, 'self-and-branch-committee');
+  const entry = POLICY_FIXED.find((item) => item.path.join('.') === 'profile.selfProfileReadScope');
+  assert.equal(entry?.kind, 'institutional');
+  assert.ok(entry?.why && entry?.src);
+  assert.ok(!POLICY_OVERRIDABLE.some((item) => item.path.join('.') === 'profile.selfProfileReadScope'));
+});
+
 test('R2 固定台账每项写全 kind / why / src；institutional 不得混入白名单', () => {
   const KINDS = ['institutional', 'branch-default', 'display'];
   for (const o of POLICY_FIXED) {

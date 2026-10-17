@@ -3,7 +3,7 @@ title: "数据模型与数据流"
 type: design
 role: "[工程师]+[AI]"
 version: "1.1"
-last_updated: 2026-10-16
+last_updated: 2026-10-17
 status: active
 related_files: [content/02_institution/SYSTEM_ROLE_PERMISSION.md, content/02_institution/COMMISSIONER_DUTY_FRAMEWORK.md, content/02_institution/sop/纪检委员工作流程指南.md, content/03_doc_system/ARCHITECTURE.md]
 ---
@@ -1097,6 +1097,7 @@ pending ──用户开始处理──→ in_progress ──完成──→ comp
    - **本人自助**：`person.html`（自己看自己）「填写我的自我描述」⇒ 档案模态 `selfOnly`（只出该组、只写 `selfProfile`）。
    - **支委层代录（批量）**：组织委员工作台「成员名册」页的**「导入自我描述（粘贴 / CSV）」**折叠区——解析服务单一源 `docs/src/services/member/self-profile-import.js`（纯函数：表头关键词映射 → `sanitizeSelfProfile` 净化 → 按**学号优先·姓名次之**匹配名册 → 预览）；**只导入 `matched` 行**，逐行走 `PersonStore.saveMember({ id, selfProfile })`（与本人自填同一写口）。
    - **子表文本格式单一源** = 叶子 `selfProfileListToText` / `selfProfileListFromText`（每行一条、子项以 `|` 分隔）：表单输入框、导入链、展示**同用这一格式**，勿各写一套。
+7. **档案读取**：全组织固定范围为本人及本支部支委。单人档案通过 `GET /members/:id/profile` 读取，服务端返回档案字段白名单；`/users` 与 `/bootstrap` 的名册投影向无权查看者移除 `selfProfile`，但保留日常组织工作依赖的基础成员字段。详见 [SYSTEM_ROLE_PERMISSION.md §9h.2](../../../content/02_institution/SYSTEM_ROLE_PERMISSION.md)。
 
 ### 2.27 党小组（PartyGroup）
 

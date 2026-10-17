@@ -1049,6 +1049,9 @@ function branchPolicyLockedCardHtml(branch) {
   const reasonChips = (POLICY_DEFAULTS.attendance.reasons || []).map(r =>
     `<span class="tint-pill" style="--tint:var(--neutral-500)">${esc(r.label)}</span>`).join('');
   const rows = [
+    ['个人自我描述查阅范围', POLICY_DEFAULTS.profile?.selfProfileReadScope === 'self-and-branch-committee'
+      ? '本人 + 本支部支委（组织统一；经制度裁定后方可修改）'
+      : '当前策略未识别，请核对制度配置'],
     ['票决通过门槛', _quorumLabel()],
     ['会议应到名单核对', _rosterLabel()],
     ['会议考勤类型', `<span class="flex flex-wrap gap-1.5 pt-0.5">${meetingChips}</span>`],
@@ -1062,10 +1065,10 @@ function branchPolicyLockedCardHtml(branch) {
         <h2 class="font-title-cn text-base font-bold text-gray-800">支部制度参数</h2>
         ${badgeHtml('制度默认 · 只读', 'neutral')}
       </div>
-      <p class="text-[13px] leading-relaxed text-gray-500 mb-4">下面五组的当前取值集中摆出，供核对；本卡不放控件，改它们要走制度裁决与放行程序（见下）。</p>
+      <p class="text-[13px] leading-relaxed text-gray-500 mb-4">下面制度项的当前取值集中摆出，供核对；本卡不放控件，改动要走制度裁决与放行程序（见下）。</p>
       <dl class="kv-list">${rows}</dl>
       <div class="hint-box mt-3.5">
-        <b>为什么只读</b>：这五组是全支部一致的口径，改动牵动票决、应到与考勤判定，故不随支部各自调整。
+        <b>为什么只读</b>：这些口径关系组织统一的权力边界、票决、应到与考勤判定，故不随支部各自调整。
       </div>
       <div class="hint-box mt-3.5">
         <b>要改，去哪改（放行程序）</b>：① 支书出裁决与依据 → ② 由工程侧登记进可覆盖白名单并改消费点 → ③ 随版本部署生效。本页不提供入口，各支部也不各改一套。参见 <a href="./help.html#card-admin-settings-sections" class="text-sky-600 hover:underline">帮助 · 设置中心分区一览</a>。

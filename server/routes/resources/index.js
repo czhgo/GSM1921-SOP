@@ -17,6 +17,7 @@ import { CAPABILITY_PACKAGE_BY_ID } from '../../../docs/src/core/domain/capabili
 import { POLICY_DEFAULTS, POLICY_OVERRIDE_SECTIONS } from '../../../docs/src/core/domain/policy-defaults.js';
 // P2c（2026-09-03）：授权语义角色集单一源 = docs/src/core/domain/constants.js（勿手写）
 import { BRANCH_COMMISSION_ROLES, hashSubmitterToken, isActivityEnded } from '../../../docs/src/core/domain/constants.js';
+import { projectMemberListRow } from '../../../docs/src/core/domain/profile-access.js';
 import { validateAgendaStructure } from '../../../docs/src/services/activity/agenda-relations.js';
 import { deriveArchivePeriod } from '../../../docs/src/services/governance/periodic-archive.js';
 
@@ -29,7 +30,7 @@ import { _activityApprovalGateDeny, _snapshotActivityApprovalGateDeny, _activity
 import { _snapshotBaseVersions, _snapshotWrites, _snapshotMissingVersions, _allCollectionVersions, _snapshotVersionConflicts, _normalizeSnapshotAliases } from './snapshot-versions.js';
 import { registerExtraSemanticRoutes } from './semantic-routes.js';
 import { activityCreationDeny, activityOperationAllowed, approvedTaskforceDissolutionWorkgroups, attendanceWriteDeny, createActivityWorkgroup, createTaskforceWorkgroup, snapshotScopeDeny } from './workgroup-routes.js';
-import { actorBranchId, aggregateWriteDeny, branchForNewResource, branchSelectionError, mergeAggregateBody, mergeScopedSnapshotWrites, recordBranchWriteDeny, resourceRowsForActor, scopedSnapshotWriteDeny } from './branch-scope.js';
+import { actorBranchId, aggregateWriteDeny, branchForNewResource, branchSelectionError, mergeAggregateBody, mergeScopedSnapshotWrites, recordBranchWriteDeny, resourceRowsForActor, resourceBranchId, scopedSnapshotWriteDeny } from './branch-scope.js';
 import { normalizeSignupCreate, normalizeSignupPatch, signupCreateDeny, signupSnapshotDeny } from './signup-write-guard.js';
 
 function _archiveSnapshotForActor(db, actor, submittedAt, report = {}) {
@@ -77,7 +78,13 @@ function _disabledActivityHistoryReadOnly(db, activity) {
 }
 
 function _resourceRowsForActor(db, name, table, actor, requestedBranchId) {
-  return resourceRowsForActor(db, name, listTable(db, table), actor, requestedBranchId);
+  const rows = resourceRowsForActor(db, name, listTable(db, table), actor, requestedBranchId);
+  if (name !== 'users') return rows;
+  return rows.map((row) => projectMemberListRow(row, {
+    id: actor?.id,
+    role: actor?.role,
+    branchId: actorBranchId(actor) || resourceBranchId(db, 'users', row),
+  }));
 }
 
 export function createResourcesRouter(db) {

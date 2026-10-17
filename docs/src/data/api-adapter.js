@@ -653,6 +653,10 @@ export const ApiAdapter = {
   // R-11（2026-09-14 批次 29，Q-23-5）：撤销流出语义端点 —— 清除 transferOut 软标记使账号恢复；
   //   仅走 profile 补丁不会清除该标记（/login 仍按停用 401），故单列。
   members: {
+    getProfile(id) {
+      return _get(`/api/v1/members/${encodeURIComponent(id)}/profile`);
+    },
+
     setDevelopStage(id, developStage, developStageSince) {
       // developStageSince（进入当前阶段日期）可选：随阶段同笔落档（2026-09-28 服务端化）
       const body = { developStage };

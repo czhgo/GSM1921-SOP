@@ -198,6 +198,11 @@ const _FACTORY = {
     //   services/activity/activity.js 的审批动作与判据（勿在页面另写第二份）。
     mode: 'off',
   },
+  profile: {
+    // 个人自我描述查阅范围（组织统一制度参数；当前仅本人及本支部支委可读）。
+    // kind 'institutional'：任何支部不得单独覆盖；改变须经制度裁定并更新全组织实现。
+    selfProfileReadScope: 'self-and-branch-committee',
+  },
 };
 
 /**
@@ -261,6 +266,9 @@ export const POLICY_OVERRIDABLE = [
  *   **无一条是「技参」** ⇒ 白名单**本批不扩**；G3-2 的实质交付＝**把「为何不可调」从注释升为可机检数据**。
  */
 export const POLICY_FIXED = [
+  // ── profile：个人档案隐私边界（组织统一制度）──
+  { path: ['profile', 'selfProfileReadScope'], kind: 'institutional',
+    why: '个人自我描述仅本人及本支部支委可读；党委、组长与普通成员不得读取他人自述', src: '支书 2026-10-17 裁定；仅可经全组织制度裁决后修改' },
   // ── workforce（票决门槛；制度裁决）──
   { path: ['workforce', 'voteThreshold', 'quorum'], kind: 'institutional',
     why: '支委会票决通过门槛（应到 2/3 且无反对）＝制度裁决，非技参', src: 'REVIEW_QUEUE 附录⑩ S2 R2-3（支书 2026-09-06 裁）' },

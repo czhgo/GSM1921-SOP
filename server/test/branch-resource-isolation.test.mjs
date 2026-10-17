@@ -18,6 +18,11 @@ before(async () => {
   write('branches', { id: 'br-b2', name: '第二支部', status: 'active', config: {} });
   write('users', { id: 'p99', name: '第二支部成员', role: 'participant', branchId: 'br-b2' });
   write('users', { id: 'p98', name: '第二支部书记', role: 'secretary', branchId: 'br-b2' });
+  for (const id of ['p1', 'p11', 'p13', 'p98', 'p99']) {
+    const raw = db.prepare('SELECT data FROM users WHERE id = ?').get(id);
+    const user = raw ? JSON.parse(raw.data) : null;
+    if (user) write('users', { ...user, selfProfile: { futureDirection: `protected-${id}` } });
+  }
   write('activities', { id: 'act-b2', branchId: 'br-b2', title: '第二支部活动', status: 'active', assignments: [] });
   write('taskforces', { id: 'tf-b2', branchId: 'br-b2', name: '第二支部工作组', task: '测试任务', status: 'recruiting', initiator: 'p98', members: [] });
   write('signups', { id: 'signup-b2-fixture', sourceType: 'taskforce', sourceId: 'tf-b2', personId: 'p98', role: 'participant', status: 'approved' });
@@ -39,7 +44,7 @@ before(async () => {
   write('attendance_rosters', { id: 'atr-act-b2', branchId: 'br-b2', activityId: 'act-b2', personIds: ['p99'], frozen: true });
   server = app.listen(0);
   base = `http://127.0.0.1:${server.address().port}/api/v1`;
-  for (const personId of ['p13', 'p98', 'p99', 'p_pc']) {
+  for (const personId of ['p1', 'p11', 'p13', 'p98', 'p99', 'p_pc']) {
     const response = await fetch(`${base}/auth/login`, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ personId, password: '123456' }),
@@ -102,6 +107,42 @@ test('支部资源列表与 bootstrap 只返回本支部数据，关联记录按
   assert.ok(!bootstrap.body.users.some((row) => row.id === 'p99'));
   assert.ok(bootstrap.body.users.some((row) => row.id === 'p13'));
   assert.deepEqual(Object.keys(bootstrap.body.actSubRecords[0].body), ['act-11']);
+});
+
+test('成员列表与 bootstrap 只向本人及本支部支委投影自我描述', async () => {
+  const memberList = await get('p1', '/users');
+  const own = memberList.body.find((row) => row.id === 'p1');
+  const colleague = memberList.body.find((row) => row.id === 'p13');
+  assert.equal(own.selfProfile.futureDirection, 'protected-p1');
+  assert.equal(colleague.selfProfile, undefined, '普通成员不得从通用名册读取他人自我描述');
+  assert.ok(colleague.name, '脱敏不影响组织所需的基础名册字段');
+
+  const committeeList = await get('p11', '/users');
+  assert.equal(committeeList.body.find((row) => row.id === 'p13').selfProfile.futureDirection, 'protected-p13');
+  const committeeBootstrap = await get('p11', '/bootstrap');
+  assert.equal(committeeBootstrap.body.users.find((row) => row.id === 'p1').selfProfile.futureDirection, 'protected-p1');
+
+  const otherCommittee = await get('p98', '/users');
+  assert.equal(otherCommittee.body.find((row) => row.id === 'p99').selfProfile.futureDirection, 'protected-p99');
+  assert.ok(!otherCommittee.body.some((row) => row.id === 'p13'), '支部支委仍受支部范围约束');
+
+  const partyStaff = await get('p_pc', '/users');
+  assert.ok(partyStaff.body.length > 0, '党委组织员保留既有名册读取能力');
+  assert.ok(partyStaff.body.every((row) => row.selfProfile === undefined), '党委组织员不得读取支部个人自述');
+  const partyBootstrap = await get('p_pc', '/bootstrap');
+  assert.ok(partyBootstrap.body.users.every((row) => row.selfProfile === undefined));
+
+  const getProfile = (viewerId, targetId) => get(viewerId, `/members/${targetId}/profile`);
+  const selfProfile = await getProfile('p1', 'p1');
+  assert.equal(selfProfile.response.status, 200);
+  assert.equal(selfProfile.body.selfProfile.futureDirection, 'protected-p1');
+  const committeeProfile = await getProfile('p11', 'p13');
+  assert.equal(committeeProfile.response.status, 200);
+  assert.equal(committeeProfile.body.selfProfile.futureDirection, 'protected-p13');
+  assert.equal((await getProfile('p1', 'p13')).response.status, 403, '普通成员不能打开他人档案');
+  assert.equal((await getProfile('p98', 'p13')).response.status, 403, '其他支部支委不能打开本支部档案');
+  assert.equal((await getProfile('p_pc', 'p13')).response.status, 403, '党委组织员不能打开支部个人档案');
+  assert.equal(db.pragma('integrity_check', { simple: true }), 'ok', '只读档案请求不得损坏数据库');
 });
 
 test('党委可按支部筛选，也可读取跨支部汇总', async () => {

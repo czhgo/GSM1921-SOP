@@ -14,10 +14,13 @@ import { renderHeader } from '../../components/shell/header.js?v=20261016b';
 import { BranchService } from '../../services/core/runtime.js?v=20261016b';
 import { AuthStore } from '../../services/core/auth.js?v=20261016b';
 import { PersonStore, getPersonName } from '../../services/member/person.js?v=20261016b';
+import { getDataSource } from '../../data/data-adapter.js?v=20261016b';
+import { loadMemberProfile } from '../../services/member/profile.js?v=20261016b';
 import { getBranchById } from '../../services/branch/branch.js?v=20261016b';
 import { openPersonEditModal } from '../../components/governance/pickers.js?v=20261016b';
 // Q-21-3 收敛（2026-09-13）：在册状态枚举单一源 = core/domain/constants.js（原经 org-base-data-preview 转出）
-import { ROLE_LABELS, SECRETARY_AND_DEPUTY_ROLES, RESIDENCE } from '../../core/domain/constants.js?v=20261016b';
+import { ROLE_LABELS, RESIDENCE } from '../../core/domain/constants.js?v=20261016b';
+import { canMaintainMemberProfileFields } from '../../core/domain/profile-access.js?v=20261016b';
 import { getBasePath, escHtml as esc, fmtDt } from '../../core/base/utils.js?v=20261016b';
 import { badgeHtml } from '../../components/ui/badges.js?v=20261016b';
 import { countThoughtReportsByPerson } from '../../services/governance/thought-report.js?v=20261016b';
@@ -63,10 +66,7 @@ const viewer = AuthStore.getCurrentUser();
 //   可以共用一些代码脚手架」）：**无 `?id=` ⇒ 自己**——复用本页同一套脚手架与只读档案版式；
 //   带 `?id=` 仍是「查阅他人档案」（名册 / 各处链接照旧，行为一字未改）。
 const personId = params.get('id') || (viewer?.personId || '');
-const isSelf = !params.get('id') && !!personId;
-
-/** 可编辑档案的角色（支书 / 副支书 / 组织委员——与名册写口授权口径一致） */
-const EDIT_ROLES = [...SECRETARY_AND_DEPUTY_ROLES, 'org-commissioner'];
+const isSelf = !!personId && String(viewer?.personId || '') === String(personId);
 
 /** 卡内提示（整块替换档案容器内容） */
 function renderMessage(html) {
@@ -115,7 +115,7 @@ function statCell(item) {
 }
 
 /** 渲染档案页（保存成功后重渲染本页） */
-function render() {
+async function render() {
   if (!cardEl) return;
   if (!viewer) {
     renderMessage(`请先登录后查看成员档案 · <a class="text-sky-600 hover:underline" href="${getBasePath()}login.html">去登录</a>`);
@@ -125,7 +125,26 @@ function render() {
     renderMessage(`未指定成员 · <a class="text-sky-600 hover:underline" href="${getBasePath()}workspace/org.html">去成员名册</a>`);
     return;
   }
-  const member = PersonStore.getById(personId);
+  let member;
+  try {
+    member = await loadMemberProfile({
+      personId,
+      actor: { id: viewer.personId, role: viewer.role, branchId: viewer.branchId },
+      dataSource: getDataSource(),
+      apiGet: (id) => ApiAdapter.members.getProfile(id),
+      mockGet: (id) => PersonStore.getById(id),
+    });
+  } catch (error) {
+    if (error?.status === 403) {
+      renderMessage('无权限查看此成员档案。档案仅本人或本支部支委可查看。');
+    } else if (error?.status === 404) {
+      renderMessage('成员不存在或已移出');
+    } else {
+      console.warn('[person-entry] 档案读取失败', error);
+      renderMessage('档案暂时无法加载，请刷新页面重试。');
+    }
+    return;
+  }
   if (!member) {
     renderMessage('成员不存在或已移出');
     return;
@@ -135,7 +154,9 @@ function render() {
   const branchLabel = branch?.name || member.branchId || '—';
   const isDetained = member.residenceStatus === RESIDENCE.DETAINED;
   const history = Array.isArray(member.residenceHistory) ? member.residenceHistory : [];
-  const canEdit = EDIT_ROLES.includes(viewer.role);
+  const canEdit = canMaintainMemberProfileFields({
+    id: viewer.personId, role: viewer.role, branchId: viewer.branchId,
+  }, member);
 
   const historyHtml = history.length === 0
     ? '<p class="text-xs text-gray-500">暂无变更留痕</p>'
