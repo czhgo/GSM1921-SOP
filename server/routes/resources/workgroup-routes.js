@@ -425,6 +425,133 @@ export function registerWorkgroupRoutes(router, db) {
     if (ownBranch(req.actor) !== workgroup.branchId && req.actor.role !== 'party-staff') return res.status(403).json({ error: '无权限：工作组不属于当前支部' });
     res.json(membersOf(db, workgroup.id));
   });
+  router.put('/workgroups/:id/members', requireAuth(db), (req, res) => {
+    const workgroup = workgroupOf(db, req.params.id);
+    if (!workgroup) return res.status(404).json({ error: '工作组不存在' });
+    if (!canManageWorkgroup(db, req.actor, workgroup)) return res.status(403).json({ error: '无权限：当前角色不能批量保存工作组成员与授权' });
+    if (isClosedWorkgroup(workgroup)) return res.status(409).json({ error: closedWorkgroupError });
+    if (isDisabledTaskforceHistory(db, workgroup)) return res.status(409).json({ error: '本支部已停用专班工作组；历史成员与授权记录只读保留' });
+
+    const body = req.body && typeof req.body === 'object' && !Array.isArray(req.body) ? req.body : {};
+    if (Object.keys(body).some((key) => key !== 'members') || !Array.isArray(body.members)) {
+      return res.status(400).json({ error: '批量保存仅接受完整 members 列表' });
+    }
+    const allowedMemberFields = new Set(['personId', 'role', 'templateKey', 'permissionKeys', 'reason']);
+    const desired = [];
+    const seen = new Set();
+    for (const item of body.members) {
+      if (!item || typeof item !== 'object' || Array.isArray(item)
+        || Object.keys(item).some((key) => !allowedMemberFields.has(key))) {
+        return res.status(400).json({ error: '成员条目包含无效字段；操作者与审计字段由服务端生成' });
+      }
+      const personId = String(item.personId || '');
+      if (!personId || !MEMBER_ROLES.has(item.role)) return res.status(400).json({ error: '工作组成员须提供 personId 与 organizer/deep 身份' });
+      if (seen.has(personId)) return res.status(400).json({ error: `成员重复：${personId}` });
+      seen.add(personId);
+      const person = userOf(db, personId);
+      if (!person) return res.status(400).json({ error: `工作组成员不存在：${personId}` });
+      if (memberBranch(person) !== workgroup.branchId) return res.status(403).json({ error: `无权限：工作组成员须属于同一支部（${personId}）` });
+
+      const templateKey = item.templateKey == null || item.templateKey === '' ? null : String(item.templateKey);
+      if (templateKey && !Object.hasOwn(WORKGROUP_PERMISSION_TEMPLATES, templateKey)) {
+        return res.status(400).json({ error: `权限模板无效：${templateKey}` });
+      }
+      const permissionKeys = item.permissionKeys === undefined
+        ? [...(templateKey ? WORKGROUP_PERMISSION_TEMPLATES[templateKey] : [])]
+        : item.permissionKeys;
+      if (!Array.isArray(permissionKeys) || permissionKeys.some((key) => typeof key !== 'string' || !WORKGROUP_PERMISSION_KEYS.has(key))) {
+        return res.status(400).json({ error: `成员权限项无效：${personId}` });
+      }
+      if (item.reason !== undefined && typeof item.reason !== 'string') return res.status(400).json({ error: `授权说明须为文本：${personId}` });
+      desired.push({
+        personId, role: item.role, templateKey,
+        permissionKeys: [...new Set(permissionKeys)].sort(),
+        reason: (item.reason || '').trim(),
+      });
+    }
+
+    const sourceTable = workgroup.sourceType === 'activity' ? 'activities' : 'taskforces';
+    const source = rowOf(db, sourceTable, workgroup.sourceId);
+    if (!source || (source.branchId || 'br-b1') !== workgroup.branchId) {
+      return res.status(409).json({ error: '工作组所属业务记录缺失或支部归属不一致' });
+    }
+    const sourceKey = workgroup.kind === 'activity' ? 'assignments' : 'members';
+    const originalSourceRows = Array.isArray(source[sourceKey]) ? source[sourceKey] : [];
+    const preservedRows = originalSourceRows.filter((row) => !isWorkgroupMemberRole(row?.role));
+    const priorSourceByPerson = new Map(originalSourceRows
+      .filter((row) => isWorkgroupMemberRole(row?.role))
+      .map((row) => [String(row.personId), row]));
+    const mirroredRows = desired.map((member) => {
+      const previous = priorSourceByPerson.get(member.personId);
+      return workgroup.kind === 'taskforce'
+        ? { personId: member.personId, role: member.role, contributions: previous?.contributions || [] }
+        : { personId: member.personId, role: member.role };
+    });
+    source[sourceKey] = [...preservedRows, ...mirroredRows];
+    if (workgroup.kind === 'activity') source.organizer = mirroredRows.find((row) => row.role === 'organizer')?.personId || null;
+
+    const now = new Date().toISOString();
+    const existingRows = jsonRows(db, 'workgroup_members').filter((row) => row.workgroupId === workgroup.id);
+    const existingByPerson = new Map(existingRows.map((row) => [String(row.personId), row]));
+    const desiredByPerson = new Map(desired.map((row) => [row.personId, row]));
+    const memberWrites = [];
+    for (const current of existingRows.filter((row) => row.status !== 'removed' && !desiredByPerson.has(String(row.personId)))) {
+      memberWrites.push({ ...current, status: 'removed', removedBy: req.actor.id, removedAt: now });
+    }
+    for (const member of desired) {
+      const previous = existingByPerson.get(member.personId);
+      memberWrites.push({
+        id: memberIdFor(workgroup.id, member.personId), branchId: workgroup.branchId,
+        workgroupId: workgroup.id, personId: member.personId, role: member.role, status: 'active',
+        createdBy: previous?.createdBy || req.actor.id, createdAt: previous?.createdAt || now,
+        updatedBy: req.actor.id, updatedAt: now,
+      });
+    }
+
+    const grants = jsonRows(db, 'workgroup_grants').filter((row) => row.workgroupId === workgroup.id);
+    const desiredGrant = new Map(desired.map((member) => [member.personId, member]));
+    const grantWrites = [];
+    const retainedGrantIds = new Set();
+    for (const grant of grants.filter((row) => row.status === 'active')) {
+      const member = desiredGrant.get(String(grant.personId));
+      const sameGrant = member && member.permissionKeys.length > 0
+        && grant.templateKey === member.templateKey
+        && JSON.stringify([...(grant.permissionKeys || [])].sort()) === JSON.stringify(member.permissionKeys)
+        && String(grant.reason || '') === member.reason;
+      if (sameGrant && !retainedGrantIds.has(member.personId)) {
+        retainedGrantIds.add(member.personId);
+        continue;
+      }
+      grantWrites.push({
+        ...grant, status: 'revoked', revokedBy: req.actor.id, revokedAt: now,
+        revocationReason: member ? 'membership-permissions-replaced' : 'membership-removed',
+      });
+    }
+    for (const member of desired) {
+      if (member.permissionKeys.length === 0 || retainedGrantIds.has(member.personId)) continue;
+      grantWrites.push({
+        id: `wgg-${randomUUID().slice(0, 12)}`, branchId: workgroup.branchId,
+        workgroupId: workgroup.id, personId: member.personId, templateKey: member.templateKey,
+        permissionKeys: member.permissionKeys, status: 'active', reason: member.reason,
+        grantedBy: req.actor.id, grantedAt: now,
+      });
+    }
+
+    const sourceCollection = workgroup.sourceType === 'activity' ? 'activities' : 'taskforces';
+    const run = db.transaction(() => {
+      for (const row of memberWrites) put(db, 'workgroup_members', row);
+      for (const row of grantWrites) put(db, 'workgroup_grants', row);
+      put(db, sourceTable, source);
+      bumpCollectionVersion(db, 'workgroup_members');
+      if (grantWrites.length > 0) bumpCollectionVersion(db, 'workgroup_grants');
+      bumpCollectionVersion(db, sourceCollection);
+    });
+    run();
+    res.json({
+      members: membersOf(db, workgroup.id),
+      grants: jsonRows(db, 'workgroup_grants').filter((row) => row.workgroupId === workgroup.id),
+    });
+  });
   router.post('/workgroups/:id/members', requireAuth(db), (req, res) => {
     const workgroup = workgroupOf(db, req.params.id);
     if (!workgroup) return res.status(404).json({ error: '工作组不存在' });

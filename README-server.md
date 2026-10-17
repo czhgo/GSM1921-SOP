@@ -1243,7 +1243,7 @@ npm start                   # 启动服务，默认端口 3000（PORT 可覆盖�
 ## §6 接口一览
 
 > **基础路径**：`/api/v1`（认证路由挂在 `/api/v1/auth`）。**认证方式**：`Authorization: Bearer <token>`（token 由登录接口签发）。
-> **数量口径（展开后总路由数）**：显式声明的路由 81 条＝81 ＋ 115 ＝ 196 条；`router.*` 声明 **83 条**，其中 **4 条在通用资源循环里**（29 个资源名，见 §6.2），循环展开 115 条；`server/app.js` 的 2 条公开辅助路由（不含 Express 中间件）。
+> **数量口径（展开后总路由数）**：显式声明的路由 82 条＝82 ＋ 115 ＝ 197 条；`router.*` 声明 **84 条**，其中 **4 条在通用资源循环里**（29 个资源名，见 §6.2），循环展开 115 条；`server/app.js` 的 2 条公开辅助路由（不含 Express 中间件）。
 
 ### 6.1 认证（`server/routes/auth.js`）
 
@@ -1436,7 +1436,8 @@ npm start                   # 启动服务，默认端口 3000（PORT 可覆盖�
 | 方法 | 路径 | 用途 | 权限门 |
 |---|---|---|---|
 | GET | `/api/v1/workgroups`、`workgroup-members`、`workgroup-grants` | 工作组及成员/授权列表；支部账号只读本支部，党委账号用于跨支部治理查看 | 需登录 |
-| GET/POST/DELETE | `/api/v1/workgroups/:id/members`、`/members/:personId` | 读取、加入、移出工作组成员；工作组成员与活动旧分工字段保持兼容同步 | 需登录 + 本支部工作组管理权或授权 |
+| GET/POST/DELETE | `/api/v1/workgroups/:id/members`、`/members/:personId` | 读取、单个加入、单个移出工作组成员；工作组成员与活动/专班旧字段保持兼容同步 | 需登录 + 本支部工作组管理权或 `workgroup.members.manage` |
+| PUT | `/api/v1/workgroups/:id/members` | 完整替换成员及逐人授权；成员、授权留痕、活动/专班镜像和集合版本在同一事务内提交；移出时撤回全部有效授权 | 需登录 + 本支部工作组管理权 |
 | GET/POST | `/api/v1/workgroups/:id/grants` | 查询/授予具体系统权限；保存授权人、时间与权限键，不接受工作组成员身份自动升权 | 需登录 + 本支部工作组管理权 |
 | POST | `/api/v1/workgroups/:id/grants/:grantId/revoke` | 撤销工作组授权并留痕 | 需登录 + 本支部工作组管理权 |
 | GET/POST/PATCH | `/api/v1/workgroups/:id/tasks`、`/tasks/:taskId` | 登记任务及更新任务状态；关联活动/能力包须属于同一支部 | 需登录 + 本支部工作组管理权或对应任务权限 |

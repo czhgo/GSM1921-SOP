@@ -191,7 +191,7 @@ dynamic_role:
 | server/routes/committee.js | 2026-10-14 | — | [工程师]+[AI] | 议题投票写口；匿名参与记录与 tally 原子提交、重复提交事务内幂等。 |
 | server/routes/resources/index.js | 2026-10-17 | — | [工程师]+[AI] | 资源路由装配；活动物理删除事务清理投票、补充记录及关联业务数据，并返回集合版本。 |
 | server/routes/resources/branch-scope.js | 2026-10-16 | — | [工程师]+[AI] | 通用资源、关联记录、分支查询与快照写入的服务端支部范围判定；局部快照保留其他支部数据。 |
-| server/routes/resources/workgroup-routes.js | 2026-10-17 | — | [工程师]+[AI] | 工作组语义读写接口；成员身份限组织者/深度参与者，正式会议名单不映射成工作组成员；同支部关联校验与撤员撤权留痕。 |
+| server/routes/resources/workgroup-routes.js | 2026-10-17 | — | [工程师]+[AI] | 工作组语义 API；成员与权限全量替换在单事务内校验、写入并更新集合版本；正式名单与工作组成员分开，撤员撤权留痕。 |
 | server/routes/resources/signup-write-guard.js | 2026-10-17 | — | [工程师]+[AI] | 报名创建/状态转换/快照统一校验；主题党日线下选择、普通参与默认线下，正式会议使用名单不开放报名。 |
 | server/routes/resources.js | 2026-09-28 | — | [工程师]+[AI] | 🗑️ **已拆分**（2026-09-28 批次 234）：原 1301 行单文件按内聚拆为 `server/routes/resources/` **六件**——装配在 `index.js`，写门在 `gates.js` / `approval-gates.js`，其余按域。**边界**：本行留**删除抄录**，不再指向活文件（`S13` 认此写法）。 |
 | server/routes/uploads.js | 2026-08-24 | — | [工程师]+[AI] | 附件上传（jpg/png/pdf/docx/xlsx，≤10MB） |
@@ -212,7 +212,8 @@ dynamic_role:
 | server/test/workgroup-member-grant-revoke.test.mjs | 2026-10-16 | — | [工程师]+[AI] | 成员移出时撤回全部有效授权并保留审计信息的纯逻辑回归。 |
 | server/test/periodic-archive-policy.test.mjs | 2026-10-16 | — | [工程师]+[AI] | 周/月策略期次推导、版本快照与排序。 |
 | server/test/workbench-revision-contract.test.mjs | 2026-10-16 | — | [工程师]+[AI] | 已确认的工作台展示与权限合同静态回归。 |
-| server/test/workgroup-api.test.mjs | 2026-10-17 | — | [工程师]+[AI] | 工作组成员、授权、任务、产出与支部校验；拒绝 participant 成员写入，正式会议 participant 名单不映射为成员。 |
+| server/test/workgroup-api.test.mjs | 2026-10-17 | — | [工程师]+[AI] | 工作组 API 支部/角色边界及成员授权原子批量保存、失败回滚、历史留痕。 |
+| server/test/workgroup-batch-adapter.test.mjs | 2026-10-17 | — | [工程师]+[AI] | ApiAdapter 工作组事务式保存请求的 HTTP 方法、编码路径、认证头与请求体回归。 |
 | server/test/b3-1-makeup-writeback.test.mjs | 2026-09-24 | — | [工程师]+[AI] | B3-1 补课完成→考勤回写验证（5 项断言；含 CDN `route.abort` 拦截）。沿革见 `.ctx/logs/`。 |
 | server/test/style-baseline.mjs | 2026-09-28 | — | [工程师]+[AI] | **（批次 236：沿革已整段迁出**——本行的逐批沿革（3832 字）见 `.ctx/logs/archive/2026-09-EXECUTION_LOG.md`「附：TIMESTAMPS 备注列迁出的逐批沿革（批次 236）」；本列只写**现状 / 边界 / 为什么**）** |
 | server/test/form-loop-registry.mjs | 2026-10-16 | — | [工程师]+[AI] | 表单闭环台账；宣传台登记改用通用周期归档字段与校验文案，更新当前代码行锚点。真机覆盖见 `form-loop-sweep.test.mjs`。 |
@@ -258,7 +259,7 @@ dynamic_role:
 | docs/src/data/data-loader.js | 2026-09-29 | — | [工程师]+[AI] | 数据加载 |
 | docs/src/data/data-adapter.js | 2026-09-29 | — | [工程师]+[AI] | **（现状）** 数据源切换与装配（mock / api 双形态同一契约）。**边界**：装配标记 / 回退块的口径以源码注释为准，本列不复述。**为什么**：沿革入 `.ctx/logs/`（`R-89`）。沿革已迁出（git 可溯）。 |
 | docs/src/core/session/login-snapshot.js | 2026-09-29 | — | [工程师]+[AI] | 登录快照轻量读取（零依赖，静态页登录态感知壳用） |
-| docs/src/data/api-adapter.js | 2026-10-17 | — | [工程师]+[AI] | API 模式适配器（资源、档案语义读口 + snapshot） |
+| docs/src/data/api-adapter.js | 2026-10-17 | — | [工程师]+[AI] | API REST 适配器；工作组成员支持事务式全量保存。 |
 | docs/src/data/mock-adapter.js | 2026-10-06 | — | [工程师]+[AI] | Mock 模式适配器（restoreNicheCollections；活动写口动态引 `branch.js` 传分工快照，批次 425） |
 | docs/src/core/domain/domain.js | 2026-10-16 | — | [工程师]+[AI] | 领域模型（2026-09-21 批次 120：`ImageRecord` typedef 按现状改准——文件存上传接口 `filePath` 或旧形态 `base64`，**行数守恒**） |
 | docs/src/core/domain/capability-packages.js | 2026-10-16 | — | [工程师]+[AI] | 业务能力包目录：制度依据、适用范围、配置权与依赖元数据。 |

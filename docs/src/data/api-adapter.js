@@ -855,6 +855,7 @@ export const ApiAdapter = {
         const query = new URLSearchParams(params).toString();
         return _get(`/api/v1/workgroup-members${query ? '?' + query : ''}`);
       },
+      saveAll(id, data) { return _request(`/api/v1/workgroups/${encodeURIComponent(id)}/members`, { method: 'PUT', body: JSON.stringify(data) }); },
       add(id, data) { return _post(`/api/v1/workgroups/${encodeURIComponent(id)}/members`, data); },
       remove(id, personId) { return _delete(`/api/v1/workgroups/${encodeURIComponent(id)}/members/${encodeURIComponent(personId)}`); },
     },

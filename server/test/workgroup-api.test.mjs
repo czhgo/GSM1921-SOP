@@ -35,7 +35,9 @@ async function request(path, personId, method = 'GET', body) {
     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${tokens[personId]}` },
     ...(body === undefined ? {} : { body: JSON.stringify(body) }),
   });
-  return { response, data: response.status === 204 ? null : await response.json() };
+  const contentType = response.headers.get('content-type') || '';
+  const data = response.status === 204 ? null : contentType.includes('application/json') ? await response.json() : await response.text();
+  return { response, data };
 }
 
 async function createGroupActivity(personId, payload = {}) {
@@ -238,6 +240,131 @@ test('工作组成员关系独立于权限；异支部成员与快照伪造授�
   });
   assert.equal(bypass.response.status, 403);
   assert.equal(db.prepare("SELECT COUNT(*) AS n FROM workgroup_grants WHERE id = 'forged'").get().n, 0);
+});
+
+test('成员批量保存会原子替换成员与授权，移除时撤权，重新加入不复活旧授权', async () => {
+  const created = await createGroupActivity('p1');
+  assert.equal(created.response.status, 201);
+  const workgroupId = created.data.workgroupId;
+  const originalGrant = await request(`workgroups/${workgroupId}/grants`, 'p1', 'POST', {
+    personId: 'p5', templateKey: 'deep', permissionKeys: ['task.complete'], reason: '原深度参与授权',
+  });
+  assert.equal(originalGrant.response.status, 201);
+
+  const replaced = await request(`workgroups/${workgroupId}/members`, 'p1', 'PUT', {
+    members: [{ personId: 'p8', role: 'deep', templateKey: 'deep', permissionKeys: ['task.complete'], reason: '承担任务' }],
+  });
+  assert.equal(replaced.response.status, 200);
+  const rows = db.prepare('SELECT data FROM workgroup_members').all().map((row) => JSON.parse(row.data))
+    .filter((row) => row.workgroupId === workgroupId);
+  assert.deepEqual(rows.filter((row) => row.status === 'active').map((row) => [row.personId, row.role]), [['p8', 'deep']]);
+  const mirrored = JSON.parse(db.prepare('SELECT data FROM activities WHERE id = ?').get(created.data.id).data);
+  assert.deepEqual(mirrored.assignments.filter((row) => ['organizer', 'deep'].includes(row.role)), [{ personId: 'p8', role: 'deep' }]);
+  assert.equal(mirrored.organizer, null);
+  const grants = (await request(`workgroups/${workgroupId}/grants`, 'p1')).data;
+  assert.equal(grants.find((row) => row.id === originalGrant.data.id).status, 'revoked');
+  assert.equal(grants.find((row) => row.personId === 'p8' && row.status === 'active').grantedBy, 'p1');
+  const memberIdentityDoesNotGrantUnlistedPermission = await request(`activities/${created.data.id}`, 'p8', 'PATCH', { title: '只获得任务权限' });
+  assert.notEqual(memberIdentityDoesNotGrantUnlistedPermission.response.status, 200);
+
+  const readded = await request(`workgroups/${workgroupId}/members`, 'p1', 'PUT', {
+    members: [{ personId: 'p5', role: 'deep', permissionKeys: [] }],
+  });
+  assert.equal(readded.response.status, 200);
+  const finalGrants = (await request(`workgroups/${workgroupId}/grants`, 'p1')).data;
+  assert.equal(finalGrants.filter((row) => row.personId === 'p5' && row.status === 'active').length, 0);
+  assert.equal(finalGrants.find((row) => row.id === originalGrant.data.id).status, 'revoked');
+});
+
+test('成员批量保存先验证全部条目与审计字段，非法末项不会部分写入', async () => {
+  const created = await createGroupActivity('p1');
+  assert.equal(created.response.status, 201);
+  const workgroupId = created.data.workgroupId;
+  const capture = () => ({
+    activity: db.prepare('SELECT data FROM activities WHERE id = ?').get(created.data.id)?.data,
+    members: db.prepare('SELECT id, data FROM workgroup_members ORDER BY id').all()
+      .filter((row) => JSON.parse(row.data).workgroupId === workgroupId),
+    grants: db.prepare('SELECT id, data FROM workgroup_grants ORDER BY id').all()
+      .filter((row) => JSON.parse(row.data).workgroupId === workgroupId),
+    versions: db.prepare('SELECT name, version FROM collection_versions ORDER BY name').all()
+      .filter((row) => ['activities', 'workgroup_members', 'workgroup_grants'].includes(row.name)),
+  });
+  const before = capture();
+
+  const wrongBranchLast = await request(`workgroups/${workgroupId}/members`, 'p1', 'PUT', {
+    members: [
+      { personId: 'p8', role: 'deep', permissionKeys: ['task.complete'] },
+      { personId: 'p_b2', role: 'deep', permissionKeys: [] },
+    ],
+  });
+  assert.equal(wrongBranchLast.response.status, 403);
+  assert.deepEqual(capture(), before);
+
+  const forgedAudit = await request(`workgroups/${workgroupId}/members`, 'p1', 'PUT', {
+    members: [{ personId: 'p8', role: 'deep', permissionKeys: ['task.complete'], grantedBy: 'p8' }],
+  });
+  assert.equal(forgedAudit.response.status, 400);
+  assert.deepEqual(capture(), before);
+});
+
+test('成员与授权批量保存中的数据库失败会回滚所有表及集合版本', async () => {
+  const created = await createGroupActivity('p1');
+  assert.equal(created.response.status, 201);
+  const workgroupId = created.data.workgroupId;
+  const capture = () => ({
+    activity: db.prepare('SELECT data FROM activities WHERE id = ?').get(created.data.id)?.data,
+    members: db.prepare('SELECT id, data FROM workgroup_members ORDER BY id').all()
+      .filter((row) => JSON.parse(row.data).workgroupId === workgroupId),
+    grants: db.prepare('SELECT id, data FROM workgroup_grants ORDER BY id').all()
+      .filter((row) => JSON.parse(row.data).workgroupId === workgroupId),
+    versions: db.prepare('SELECT name, version FROM collection_versions ORDER BY name').all()
+      .filter((row) => ['activities', 'workgroup_members', 'workgroup_grants'].includes(row.name)),
+  });
+  const before = capture();
+  db.exec(`CREATE TRIGGER force_workgroup_batch_rollback BEFORE INSERT ON workgroup_grants
+    WHEN json_extract(NEW.data, '$.reason') = 'force rollback'
+    BEGIN SELECT RAISE(ABORT, 'forced workgroup batch failure'); END;`);
+  let failed;
+  const oldConsoleError = console.error;
+  console.error = () => {};
+  try {
+    failed = await request(`workgroups/${workgroupId}/members`, 'p1', 'PUT', {
+      members: [{ personId: 'p8', role: 'deep', permissionKeys: ['task.complete'], reason: 'force rollback' }],
+    });
+  } finally {
+    console.error = oldConsoleError;
+    db.exec('DROP TRIGGER IF EXISTS force_workgroup_batch_rollback');
+  }
+  assert.equal(failed.response.status, 500);
+  assert.deepEqual(capture(), before);
+  assert.equal(db.pragma('integrity_check', { simple: true }), 'ok');
+});
+
+test('专班批量保存只接收做事成员，并保留旧 participant 历史行', async () => {
+  const created = await request('taskforces', 'p11', 'POST', {
+    name: '批量编辑专班', task: '专班只做事', status: 'recruiting', branchId: 'br-b1', members: [],
+  });
+  assert.equal(created.response.status, 201);
+  const taskforce = JSON.parse(db.prepare('SELECT data FROM taskforces WHERE id = ?').get(created.data.id).data);
+  taskforce.members = [{ personId: 'p8', role: 'participant', contributions: ['历史贡献待核'] }];
+  db.prepare('UPDATE taskforces SET data = ? WHERE id = ?').run(JSON.stringify(taskforce), taskforce.id);
+
+  const saved = await request(`workgroups/${created.data.workgroupId}/members`, 'p11', 'PUT', {
+    members: [{ personId: 'p11', role: 'organizer', permissionKeys: [] }],
+  });
+  assert.equal(saved.response.status, 200);
+  const mirrored = JSON.parse(db.prepare('SELECT data FROM taskforces WHERE id = ?').get(taskforce.id).data);
+  assert.ok(mirrored.members.some((row) => row.personId === 'p8' && row.role === 'participant'
+    && row.contributions.includes('历史贡献待核')));
+  assert.ok(mirrored.members.some((row) => row.personId === 'p11' && row.role === 'organizer'));
+  const activeParticipantMembers = db.prepare('SELECT data FROM workgroup_members').all().map((row) => JSON.parse(row.data))
+    .filter((row) => row.workgroupId === created.data.workgroupId && row.personId === 'p8' && row.status === 'active');
+  assert.equal(activeParticipantMembers.length, 0, '旧 participant 不会变成权限成员');
+
+  const participantDenied = await request(`workgroups/${created.data.workgroupId}/members`, 'p11', 'PUT', {
+    members: [{ personId: 'p8', role: 'participant', permissionKeys: [] }],
+  });
+  assert.equal(participantDenied.response.status, 400);
 });
 
 test('专班成员、支部归属和工作组映射不能经通用快照绕过语义接口', async () => {
