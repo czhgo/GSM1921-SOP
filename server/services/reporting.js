@@ -4,7 +4,7 @@
 //  设计依据：content/04_web_design/deploy/DEPLOYMENT_GUIDE.md §3.9
 //  - 四类数据域：member(党员信息) / activity(活动记录) / attendance(考勤记录) / study(学习记录)
 //  - 出口：GET /api/v1/report/:domain（JSON 拉取）、GET /api/v1/report/export（CSV 人工导入）
-//  - 推送模式：REPORT_WEBHOOK_URL + REPORT_TOKEN 环境变量；失败重试 3 次，最终失败管理员告警
+//  - 推送模式：REPORT_WEBHOOKS_JSON 按支部配置接收端；失败重试 3 次，最终失败管理员告警
 //  - 原则：仅上报已确认/已归档数据（源头审校+异常驱动——草稿/待确认不外发，§3.9.4）
 //  - 会议提醒（§3.8.1 场景④）：活动当日扫描 + reminderSentAt 持久化防重复
 // ════════════════════════════════════════════════════════════════
@@ -151,13 +151,19 @@ export function toCsv(rows) {
 const PUSH_RETRY_DELAYS_MS = [2_000, 8_000, 30_000]; // 重试 3 次（手动/批量共用，§6.4）
 
 /**
- * 推送模式：POST 四域数据至平台接收端
- * - REPORT_WEBHOOK_URL / REPORT_TOKEN 未配置 → 返回 { pushed:false, reason }（拉取模式）
+ * 推送模式：POST 单支部四域数据至该支部专用接收端
+ * - 缺少 branchId 或支部专用接收端 → 返回 { pushed:false, reason }
  * - 失败重试 3 次，最终失败：console 告警 + 管理员邮件（REPORT_ADMIN_MAIL，若通道启用）
  */
 export async function pushReport(db, { from, to, branchId } = {}) {
-  const url = process.env.REPORT_WEBHOOK_URL;
-  if (!url) return { pushed: false, reason: 'REPORT_WEBHOOK_URL 未配置（拉取模式请用 GET /api/v1/report/:domain）' };
+  if (!branchId) return { pushed: false, reason: '必须指定一个支部，不能推送跨支部明细' };
+  const branch = db.prepare('SELECT id FROM branches WHERE id = ?').get(String(branchId));
+  if (!branch) return { pushed: false, reason: `支部不存在：${branchId}` };
+  const endpoint = parseReportWebhookConfig()[String(branchId)];
+  if (!endpoint || typeof endpoint.url !== 'string' || !endpoint.url.trim()) {
+    return { pushed: false, reason: `支部 ${branchId} 未配置独立上报接收端（REPORT_WEBHOOKS_JSON）` };
+  }
+  const url = endpoint.url.trim();
   const payload = {
     type: 'gsm1921.report',
     generatedAt: new Date().toISOString(),
@@ -169,7 +175,7 @@ export async function pushReport(db, { from, to, branchId } = {}) {
     payload.domains[domain] = extractDomain(db, domain, payload.from, payload.to, { branchId: branchId || null });
   }
   const headers = { 'Content-Type': 'application/json; charset=utf-8' };
-  const token = process.env.REPORT_TOKEN;
+  const token = typeof endpoint.token === 'string' ? endpoint.token : '';
   if (token) headers.Authorization = `Bearer ${token}`;
 
   let lastErr = null;
@@ -207,6 +213,31 @@ export async function pushReport(db, { from, to, branchId } = {}) {
   return { pushed: false, error: lastErr.message };
 }
 
+function parseReportWebhookConfig() {
+  try {
+    const parsed = JSON.parse(process.env.REPORT_WEBHOOKS_JSON || '{}');
+    return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed : {};
+  } catch {
+    console.error('[report] REPORT_WEBHOOKS_JSON 不是有效 JSON；本轮不推送任何支部数据');
+    return {};
+  }
+}
+
+/** 每日排程只遍历已有支部中显式配置了独立接收端的支部。 */
+export function configuredReportBranchIds(db) {
+  const existing = new Set(listTable(db, 'branches').map((branch) => String(branch.id || '')).filter(Boolean));
+  return Object.keys(parseReportWebhookConfig()).filter((branchId) => existing.has(branchId));
+}
+
+/** 逐支部推送。每个请求只携带一个 branchId 的数据与该支部专用凭据。 */
+export async function pushConfiguredBranchReports(db, options = {}) {
+  const results = [];
+  for (const branchId of configuredReportBranchIds(db)) {
+    results.push({ branchId, ...(await pushReport(db, { ...options, branchId })) });
+  }
+  return results;
+}
+
 /** 会议提醒（部署文档 §5.1 场景④）：活动当日提醒参与人，reminderSentAt 持久化防重复发送 */
 export function checkMeetingReminders(db) {
   const dateStr = fmtLocal(new Date());
@@ -235,7 +266,7 @@ export function checkMeetingReminders(db) {
 
 /**
  * 启动定时任务（server.js 调用）：
- * - 每日 03:00 批量上报（§6.4；重启用 pushReport 内建逻辑）
+ * - 每日 03:00 按支部配置逐个上报（§6.4；每个请求只含一个支部）
  * - 每 10 分钟会议提醒扫描（§5.1 场景④）
  */
 export function startScheduler(db) {
@@ -246,8 +277,12 @@ export function startScheduler(db) {
     const hhmm = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
     if (hhmm === '03:00' && lastReportDay !== day) {
       lastReportDay = day;
-      pushReport(db)
-        .then(r => console.log('[report] 每日批量上报:', r.pushed ? '成功' : (r.error ? `失败: ${r.error}` : `跳过: ${r.reason}`)))
+      pushConfiguredBranchReports(db)
+        .then((results) => {
+          const pushed = results.filter((result) => result.pushed).length;
+          const failed = results.filter((result) => !result.pushed && result.error).length;
+          console.log(`[report] 每日逐支部上报：已推送 ${pushed}/${results.length}，失败 ${failed}`);
+        })
         .catch(e => console.error('[report] 每日批量上报异常:', e.message));
     }
   }, 60_000);

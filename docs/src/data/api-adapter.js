@@ -14,7 +14,7 @@
 //         content/04_web_design/data/DATA_ARCHITECTURE.md §8.4
 // ════════════════════════════════════════════════════════════════
 
-import { getApiBaseUrl, getAuthToken } from './data-adapter.js?v=20261017g';
+import { getApiBaseUrl, getAuthToken } from './data-adapter.js?v=20261017h';
 
 // ── HTTP 工具函数 ──────────────────────────────────────────────
 
@@ -1008,7 +1008,11 @@ export const ApiAdapter = {
       return _get('/api/v1/auth-audit');
     },
     create(data) {
-      return _post('/api/v1/auth-audit', data || {});
+      const body = { ...(data || {}) };
+      const branchId = body.branchId;
+      delete body.branchId;
+      const query = branchId ? `?branchId=${encodeURIComponent(branchId)}` : '';
+      return _post(`/api/v1/auth-audit${query}`, body);
     },
   },
 };

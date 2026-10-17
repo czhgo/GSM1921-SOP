@@ -123,7 +123,7 @@
 | 特例 / 边界 | ① **看不到匿名反馈的真实提交人**——匿名反馈只在所属支部内闭环，当前任何角色均无系统揭名入口（`D-824`）；② 支部 config 全量可写，但**不含支部官方名 `name`**（仅 `party-staff` 可改）；③ 党小组管理（新增/改名/解散/归组）仅支书（含副支书）；④ **代归档兜底在本台集成**——待办「宣传材料待归档」组「代归档」按钮**本台浮窗直执**（判据与写口与宣传台归档面同源；原「进宣传工作台只放行档案归档页」的跨台形态已撤，`D-807④`）；⑤ **支委身份配置**：可把**本支部成员**配为组织 / 宣传 / 纪检委员（可改派、可撤销）——**支书本人与副支书的身份由党委配置**，不在此列；**副支书与支书同权**（两者均可配） |
 | 依据 | `docs/src/services/core/auth.js:79`、`:68-75`、`docs/src/core/domain/constants.js:202-204`（`BRANCH_COMMISSION_ROLES`）、`content/02_institution/SYSTEM_ROLE_PERMISSION.md:167-180`（§9j）、`server/routes/resources/gates.js:24-36`（党小组门）、`docs/src/entries/tabs/secretary/todo-tab.js`（代归档本台直执，`D-807④`） |
 
-> **⚠「仍专属支书」的清单**：「**品牌认定**」「**意见处置**」已归支委会 / 支委层，**仍专属支书**的为——① **活动信息编辑**（巡查面板按钮，前端按 `SECRETARY_ROLES` 判：`docs/src/components/record/inspector.js:627`）；② **全支部通知发布**（本组通知发布口的注释明写「全支部通知仍归支书」：`docs/src/components/governance/notice-view.js:182`）；③ **名册成员变更确认链的阶段语义端点**（服务端走 `SECRETARY_AND_DEPUTY_ROLES`，属既有支书写链：`server/routes/member.js:129`）。`SECRETARY_ROLES` 的注释写明「品牌认定、意见处置已移出本集」（`docs/src/core/domain/constants.js:205`）。
+> **⚠「仍专属支书」的清单**：「**品牌认定**」「**意见处置**」已归支委会 / 支委层，**仍专属支书**的为——① **活动信息编辑**（巡查面板按钮，前端按 `SECRETARY_ROLES` 判：`docs/src/components/record/inspector.js:628`）；② **全支部通知发布**（本组通知发布口的注释明写「全支部通知仍归支书」：`docs/src/components/governance/notice-view.js:182`）；③ **名册成员变更确认链的阶段语义端点**（服务端走 `SECRETARY_AND_DEPUTY_ROLES`，属既有支书写链：`server/routes/member.js:129`）。`SECRETARY_ROLES` 的注释写明「品牌认定、意见处置已移出本集」（`docs/src/core/domain/constants.js:205`）。
 
 #### 2.2.2 `deputy-secretary` 副支书
 
@@ -132,7 +132,7 @@
 | 支部身份 | 与支书**同页共台**（`secretary.html`）；示例组织中为 `p14` |
 | 权限键 | 与支书**完全一致**（含意见反馈基础键 7 个 ＋ **处置键 8 个**，两角色同持） |
 | 副书同权范围（制度与代码均已确认） | 成员变更确认、在册状态镜像、发展阶段推进、移出/撤销流出确认、议程结果区与编辑议程、支部 config（modules/blocks/workforce/组织档案/域参数全量）、线上表决截止、党小组管理、成员流动登记、**支委身份配置**（本支部支委身份＝组织 / 宣传 / 纪检委员，支书 / 副支书均可配） |
-| 不能做什么 | ① 改支部官方名 `name`（仅 `party-staff`）；② 不持 `record_attendance` / `summarize_inspection` / `assign_project_role`；③ 不越权「仍专属支书」的前端动作——**活动信息编辑**按钮（`docs/src/components/record/inspector.js:627`（`SECRETARY_ROLES`），前端按它判）与**全支部通知发布**（`docs/src/components/governance/notice-view.js:182`） |
+| 不能做什么 | ① 改支部官方名 `name`（仅 `party-staff`）；② 不持 `record_attendance` / `summarize_inspection` / `assign_project_role`；③ 不越权「仍专属支书」的前端动作——**活动信息编辑**按钮（`docs/src/components/record/inspector.js:628`（`SECRETARY_ROLES`），前端按它判）与**全支部通知发布**（`docs/src/components/governance/notice-view.js:182`） |
 | 特例 | 代码里「副书同权」实现为常量 `SECRETARY_AND_DEPUTY_ROLES = ['secretary','deputy-secretary']`，被成员变更确认、党小组管理、表决截止等多处写门引用 |
 | 依据 | `docs/src/services/core/auth.js:80`、`docs/src/core/domain/constants.js:208`、`server/routes/member.js:129`、`server/routes/committee.js:161`、`server/routes/resources/gates.js:21,63` |
 
@@ -626,7 +626,7 @@
 
 **出勤状态枚举**：`present` 出席 / `absent` 缺席（触发补课机制）/ `leave` 请假 / `made_up` 已补。**请假分事假 / 病假两档在 `absenceReason` 上区分**（时效（事假提前 1 天 / 病假可事后补）**只提示、不校验、不拦提交**）。标因可选项单一源 `docs/src/core/domain/policy-defaults.js:90-94`（`attendance.reasons`，新增须支书裁决）。
 **来源 C · `secretaryConfirmedAt`**（`string`（ISO），可选）：**支书复核标记**——支书台待办「一键确认」写入即销项；**无此字段＝未复核**（§4.6 / §4.17 同名同义）。
-**依据**：`content/04_web_design/data/DATA_MODEL.md:293-328`、`docs/src/core/domain/domain.js:92-108`、`docs/src/core/domain/policy-defaults.js:73-87`、`docs/src/services/governance/secretary-overview.js:580`（`secretaryConfirmedAt` 读）、`docs/src/entries/tabs/secretary/todo-tab.js:720`（写）。
+**依据**：`content/04_web_design/data/DATA_MODEL.md:293-328`、`docs/src/core/domain/domain.js:92-108`、`docs/src/core/domain/policy-defaults.js:73-87`、`docs/src/services/governance/secretary-overview.js:582`（`secretaryConfirmedAt` 读）、`docs/src/entries/tabs/secretary/todo-tab.js:720`（写）。
 
 ### 4.6 考察记录（InspectionRecord）
 
@@ -1103,7 +1103,7 @@
 | platformReportedBy | string | 否 | 上报留痕·操作人 personId（与 `platformReportedAt` 同步写入） |
 
 **服务端种子**：**有**（`server/seed.js:61` 从 `docs/src/data/mock/seed.js::SEED_ARCHIVE_RECORDS` 播种 6 条）。
-**依据**：`docs/src/data/mock/seed.js:37-44`、`docs/src/entries/tabs/prop/archive-tab.js:1069-1131`（运行时新建：`_handleArchiveUpload`）、`docs/src/entries/tabs/prop/archive-tab.js:617-636`（党建平台留痕位：`_markPlatformReported` 写、`_renderPlatformCell` 读）、`docs/src/services/governance/secretary-overview.js:601`（`secretaryConfirmedAt` 读）、`docs/src/entries/tabs/secretary/todo-tab.js:737`（写）、`server/seed.js:61`、`server/routes/resources/store.js:30,56`。
+**依据**：`docs/src/data/mock/seed.js:37-44`、`docs/src/entries/tabs/prop/archive-tab.js:1069-1131`（运行时新建：`_handleArchiveUpload`）、`docs/src/entries/tabs/prop/archive-tab.js:617-636`（党建平台留痕位：`_markPlatformReported` 写、`_renderPlatformCell` 读）、`docs/src/services/governance/secretary-overview.js:603`（`secretaryConfirmedAt` 读）、`docs/src/entries/tabs/secretary/todo-tab.js:737`（写）、`server/seed.js:61`、`server/routes/resources/store.js:30,56`。
 
 ---
 
@@ -1129,7 +1129,7 @@ npm start                   # 启动服务，默认端口 3000（PORT 可覆盖�
 ```
 
 - **无构建步骤**：不需要 `npm run build`，前后端都是源码直接运行。
-- 启动入口 `server/server.js`：初始化数据库 → **空库自动导入示例种子**（`DISABLE_SEED=1` 时跳过；**生产形态 `APP_ENV=production` 下默认不播种**，见 §5.2）→ 起服务 → 启动定时任务（每日 03:00 批量上报 + 每 10 分钟会议提醒扫描）→ 打印 `users` 计数与「演示种子账号」计数自检（核对「库内是否只有真人」）。
+- 启动入口 `server/server.js`：初始化数据库 → **空库自动导入示例种子**（`DISABLE_SEED=1` 时跳过；**生产形态 `APP_ENV=production` 下默认不播种**，见 §5.2）→ 起服务 → 启动定时任务（每日 03:00 按已配置支部逐个上报 + 每 10 分钟会议提醒扫描）→ 打印 `users` 计数与「演示种子账号」计数自检（核对「库内是否只有真人」）。
 - 启动后访问 `http://127.0.0.1:3000/login.html`。
 - **测试**：`npm test`（全量）/ `npm run test:core` / `npm run test:fast` / `npm run clean:tmp`。测试脚本自带 `DISABLE_PASSWORD_CHECK=1` 与 `DEMO_READONLY=0` 注入（后者放行本机可写；手跑 `node --test` 时须自行设置，否则按只读演示运行、写路径用例会红）。
 - **前端 API 形态启用路径**：登录表单 → 本地 Mock 校验（学号 → personId）→ `POST /api/v1/auth/login`（**传 personId + password**）→ 拿到 token → 写入 `sessionStorage['gsm1921-api-token']` → 切换为 API 数据源。**不许静默降级**：**有 token 时**若 `init()` 拉不到服务端数据，页面**显式报错**（「无法连接服务器」+ 重试按钮），**不再**回退可写的本地 mock（旧行为＝用户以为在真系统里操作、实际只写浏览器，下次登录被服务端覆盖 ⇒ **静默丢单**）；**无 token 的本地演示形态保持原样**。运行时形态可用 `docs/src/data/data-adapter.js::getRuntimeMode()` 查（返回 `{source, hasToken, branchId, stage}`）。
@@ -1159,8 +1159,7 @@ npm start                   # 启动服务，默认端口 3000（PORT 可覆盖�
 | 10 | `SMTP_PASS` | SMTP 口令 | 否 | 空 | `server/services/mailer.js:20` |
 | 11 | `SMTP_FROM` | 发件人显示（为空时回退 SMTP_USER） | 否 | 空 | `server/services/mailer.js:21`、`:64` |
 | 12 | `SMTP_TLS` | 是否 SSL/TLS（**除字符串 `'false'` 外一律 true**） | 否 | `true` | `server/services/mailer.js:22` |
-| 13 | `REPORT_WEBHOOK_URL` | 上报平台的 Webhook 地址（**未配置＝仅拉取模式**，`/report/trigger` 返回 409） | 否 | 空 | `server/services/reporting.js:148-149` |
-| 14 | `REPORT_TOKEN` | 上报请求的 Bearer Token（配置则加 `Authorization` 头） | 否 | 空 | `server/services/reporting.js:161-162` |
+| 13 | `REPORT_WEBHOOKS_JSON` | 按支部 id 配置各自 Webhook 与 Bearer Token；缺少当前支部配置时该支部不推送，`/report/trigger` 返回 409；每日任务逐支部发送且请求只含对应支部数据 | 否 | 空（不推送） | `server/services/reporting.js` |
 | 15 | `REPORT_ADMIN_MAIL` | 上报**连续失败**时的管理员告警收件人 | 否 | 空（不告警） | `server/services/reporting.js:188-195` |
 | 16 | `REPORT_BASE_URL` | 邮件正文里追加的「系统入口」基址 | 否 | 空（不加链接） | `server/services/mailer-hooks.js:11`、`server/services/reporting.js:202` |
 | 17 | `REPORT_INCLUDE_CONTACT` | 上报 `member` 域时**是否包含联系方式**（须为字符串 `'true'`；默认**不报**，脱敏） | 否 | 未设置（＝不报） | `server/services/reporting.js:62-69` |
@@ -1169,7 +1168,7 @@ npm start                   # 启动服务，默认端口 3000（PORT 可覆盖�
 | 20 | `SEED_FALLBACK` | **前端空域种子回退开关**（Node 托管形态下由 `server/app.js` 注入进 `/src/config/deploy.js`）：置 `0` ⇒ 注入 `false`，不给「考勤 / 考察 / 待办」三域注入演示种子 | 否 | 未设置（＝`true`，演示形态） | `server/app.js:55-57`、`server/.env.example:15-18` |
 | 21 | `DEMO_READONLY` | **前端演示形态只读开关**（Node 托管形态下由 `server/app.js` 注入进 `/src/config/deploy.js`；静态托管读该文件常量）：置 `0` ⇒ 注入 `false`＝放行本机可写（**仅本地 / 测试**）；缺省 / 其它值 ⇒ `true`＝**无 API 会话时只读**（写操作提示「请登录后使用服务器数据」、数据不落本机浏览器） | 否（**生产不得设置**） | 未设置（＝`true`，只读演示） | `server/app.js:55-57`（`DEMO_READONLY`）、`server/.env.example:59-66`（`DEMO_READONLY`） |
 
-> 另有**部署文档提到但代码中未使用**的变量，**未取证**（不要照抄）：`AI_API_BASE_URL`（AI 推理服务，见 `DEPLOYMENT_GUIDE.md:239`——在代码中未检索到消费点）。另有 `SEED_FALLBACK`（**已进上表第 20 项**）：它是**前端构建期常量**（`docs/src/config/deploy.js`）——**静态托管 / 直接以 `docs/` 为根**时改该常量即生效；**Node 托管形态下 `/src/config/deploy.js` 由 `server/app.js` 动态注入**，注入值改由环境变量 `SEED_FALLBACK` 决定（置 `0` ⇒ `false`，缺省 `true`；见 `server/app.js:55-57`、`server/.env.example`）⇒ 该形态下发 `SEED_FALLBACK=0` 即可关断。消费点＝`docs/src/data/data-adapter.js::init()` 的考勤/考察/待办三域空表回退判据（命名空间读取，缺该导出按 `true`），默认 `true`＝演示形态（**保持既有测试基线不变**）。⚠ 它**只覆盖那三处**，**不替代**关断手段：服务端种子仍靠 `DISABLE_SEED=1`（或生产形态默认不播种）+ `DEPLOYMENT_GUIDE.md` 附录 A.2 的 services 层空表回退清单。
+> 另有**部署文档提到但代码中未使用**的变量，**未取证**（不要照抄）：`AI_API_BASE_URL`（AI 推理服务，见 `content/04_web_design/deploy/DEPLOYMENT_GUIDE.md:239`——在代码中未检索到消费点）。另有 `SEED_FALLBACK`（**已进上表第 20 项**）：它是**前端构建期常量**（`docs/src/config/deploy.js`）——**静态托管 / 直接以 `docs/` 为根**时改该常量即生效；**Node 托管形态下 `/src/config/deploy.js` 由 `server/app.js` 动态注入**，注入值改由环境变量 `SEED_FALLBACK` 决定（置 `0` ⇒ `false`，缺省 `true`；见 `server/app.js:55-57`、`server/.env.example`）⇒ 该形态下发 `SEED_FALLBACK=0` 即可关断。消费点＝`docs/src/data/data-adapter.js::init()` 的考勤/考察/待办三域空表回退判据（命名空间读取，缺该导出按 `true`），默认 `true`＝演示形态（**保持既有测试基线不变**）。⚠ 它**只覆盖那三处**，**不替代**关断手段：服务端种子仍靠 `DISABLE_SEED=1`（或生产形态默认不播种）+ `DEPLOYMENT_GUIDE.md` 附录 A.2 的 services 层空表回退清单。
 
 ### 5.4 数据存储形态
 
@@ -1191,7 +1190,7 @@ npm start                   # 启动服务，默认端口 3000（PORT 可覆盖�
 | 1 | **资源列表读口需登录** | `GET /api/v1/<资源名>`（29 个）与 `GET /api/v1/bootstrap` 默认要登录（未登录 401）；意见反馈 `/api/v1/issues` 也需登录且按支部过滤，党委得到空列表；仅 `GET /api/v1/health` 公开。`users`（含姓名/学号）、考勤、考察、思想汇报、附件元数据等不向匿名访问者开放 | `server/routes/resources/index.js:97-110`（逐表读口）、`:896-903`（issues）、`:562`（bootstrap）、`server/app.js:25`（health） |
 | 2 | **通用资源写口仍有登录即写面** | 资源角色门见 `RESOURCE_WRITE_GATE`；活动、专班工作组、考勤等另有业务写门。未列入角色门且无专门 handler 的通用资源仍只要求登录。跨资源关联与支部归属尚未形成覆盖全部资源的统一写门 | `server/routes/resources/gates.js`、`server/routes/resources/index.js`、`server/routes/resources/workgroup-routes.js` |
 | 3 | **无 CORS 配置** | 未挂载 CORS 中间件 → 只能**同源部署**（前端与 API 同一域名/端口）；跨域调用会被浏览器拦截 | `server/app.js`（无 cors 挂载） |
-| 4 | **无 HTTPS** | 服务自身只提供 HTTP；token 明文传输。真实部署应由反向代理终止 TLS | `server/server.js:21`；HTTPS 为对接前置条件见 `DEPLOYMENT_GUIDE.md:200` |
+| 4 | **无 HTTPS** | 服务自身只提供 HTTP；token 明文传输。真实部署应由反向代理终止 TLS | `server/server.js:21`；HTTPS 为对接前置条件见 `content/04_web_design/deploy/DEPLOYMENT_GUIDE.md:200` |
 | 5 | **token 无过期时间** | `sessions` 表**没有过期字段**，退出登录靠显式 `POST /auth/logout` 删行；账号流出（`transferOut`）会使在途会话失效 | `server/db.js:45-49`、`server/routes/auth.js:74-77` |
 | 6 | **无全局限流** | 只有意见反馈提交按 `tokenHash` 做频率窗口（10 分钟内 20 条）与判重（5 分钟同内容） | `server/routes/resources/index.js:548-550`（窗口与上限）、`server/routes/resources/index.js:599-604`（判重 / 限频判定） |
 | 7 | **单进程 / 单文件库** | `better-sqlite3` 为同步 API；**不支持多实例并行写同一库**（横向扩容需改架构） | `server/db.js:2`、`:62` |
@@ -1199,7 +1198,7 @@ npm start                   # 启动服务，默认端口 3000（PORT 可覆盖�
 | 9 | **请求体上限** | JSON 体 **2MB**；`/snapshot` 原始体 **4MB**（gzip 压缩体）；上传单文件 **10MB** | `server/app.js:22-23`、`server/routes/uploads.js:52` |
 | 10 | **进程须常驻** | 定时任务（每日 03:00 上报 / 每 10 分钟会议提醒）依赖进程长期运行；进程需用 systemd / pm2 / 容器守护 | `server/server.js:22-23`、`server/services/reporting.js:230-250` |
 | 11 | **邮件通道当前恒不生效** | 收件人从成员档案 `email` 字段读取，而**示例数据没有 `email` 字段** → 全部静默跳过（补上字段后自动生效，无需改代码） | `server/services/mailer.js:93-106`、`server/services/mailer-hooks.js:41` |
-| 12 | **上报「默认拉取」** | 未配置 `REPORT_WEBHOOK_URL` 时 `/report/trigger` 返回 **409**（提示改用拉取模式） | `server/routes/report.js:20-22` |
+| 12 | **上报按支部隔离** | 党委手动触发须选定支部，且只能向该支部单独配置的接收端推送；每日任务按已配置支部逐个发送，不存在全局 webhook 回退 | `server/routes/report.js`、`server/services/reporting.js` |
 | 13 | **附件下载需登录 ＋ 支部隔离** | `POST /api/v1/uploads` **＝支委层**（`requireCommissioner`）；`GET /api/v1/uploads/:name` 需要登录、只取 basename（防路径穿越），并按**上传人所属支部**做隔离（党委跨支部可见；无记录 404）。⚠ 隔离判据是「**上传人现在所属支部**」——`attachments` 表**无支部字段**，故同一人换支部后其历史附件会跟着换支部 | `server/routes/uploads.js:69`、`:88-100` |
 | 14 | **删除活动会级联删除子数据** | 删活动在同一 SQLite 事务中清理任务、考勤、考察、分工、复盘、补课、报名、通知、待办、归档/文件/图片记录、议题表态和活动子记录；关联附件仅在无其他记录引用时物理删除。集合版本同步递增；操作**不可撤销** | `server/routes/resources/index.js:659-722` |
 | 15 | **配置写留痕上限 100 条** | 超出后裁剪最早条目（低频可回滚，历史不改写） | `server/routes/resources/index.js:14,422-432` |
@@ -1215,16 +1214,16 @@ npm start                   # 启动服务，默认端口 3000（PORT 可覆盖�
 | # | 要替换的 | 做法 | 依据 |
 |---|---|---|---|
 | 1 | **示例成员与账号** | 换 `docs/src/data/mock/people.js`、`accounts.js`、`branches.js`、`party-groups.js`、`activities.js`、`notices.js`、`taskforces.js`、`seed.js`；或**空库起步**（`DISABLE_SEED=1`）后从系统内录入 | `server/seed.js:41-83`、`README.md:198`。首启播种的表含 15 张（考勤 / 考察 / 活动复盘 / 专班复盘 / 思想汇报 / 宣传周报 / 宣传任务 / 文件流外发确认 / 支书任期记录 / 三委数据交接 / 成员变更确认队列 / 出勤与考察申诉队列 / 反馈未读标记 / 授权审计留痕），使「只有结构、没有数据」的表首启即有真行；另补 `todos`（同为单据型种子，见 §4.19；同源 `docs/src/services/governance/todo.js::SEED_TODOS`）⇒ 合计 16 张。逐表口径见 `server/seed.js` 末尾「待办基线种子」段 |
-| 2 | **登录口令** | 设 `LOGIN_PASSWORD`（**并确认未开 `DISABLE_PASSWORD_CHECK`**）；接入学校统一认证（IAAA）时替换 `POST /auth/login` 的校验逻辑 | `server/routes/auth.js:12-18`、`DEPLOYMENT_GUIDE.md:209,217` |
+| 2 | **登录口令** | 设 `LOGIN_PASSWORD`（**并确认未开 `DISABLE_PASSWORD_CHECK`**）；接入学校统一认证（IAAA）时替换 `POST /auth/login` 的校验逻辑 | `server/routes/auth.js:12-18`、`content/04_web_design/deploy/DEPLOYMENT_GUIDE.md:209,217` |
 | 3 | **演示支委名单 / 默认支部 id** | `COMMITTEE_IDS` 与 `'br-b1'` 兜底常量（见 §5.5 第 16、17 条） | 同上 |
 | 4 | **示例反馈种子** | `docs/data/issues.json`（服务端播种时读取；匿名反馈保持匿名，内部汇报保留业务署名；两类均按登录与支部范围控制读取） | `server/seed.js:19-39`、`:67` |
 | 5 | **组织名称 / 主题 / 术语** | 支部名与 `config.headerTitle`；主题预设 `themePreset`（需支书特批的配色见 `DESIGN_SYSTEM.md` §二 色彩系统）；术语权威源 `content/03_doc_system/OPERATIONS_GUIDE.md` §19（《运行与协作规范》） | `README.md:195-202` |
 | 6 | **制度参数默认值** | `docs/src/core/domain/policy-defaults.js`（支部可调项）；制度固定项勿改 | `docs/src/core/domain/policy-defaults.js:6-15` |
-| 7 | **关闭演示数据回退（防污染真实账本）** | ① 设 **`APP_ENV=production`**（生产形态**默认不播种**，主推做法）；② 仍可显式 `DISABLE_SEED=1`（等价、更直白）；③ 前端空域回退开关 `SEED_FALLBACK` 置 `false`（关的是 `data/data-adapter.js::init()` 里考勤/考察/待办三域的空表回退）——**静态托管 / 直接以 `docs/` 为根** ⇒ 改 `docs/src/config/deploy.js` 常量；**Node 托管** ⇒ 设环境变量 `SEED_FALLBACK=0`（由 `server/app.js:55-57` 注入 `false`；缺省 `true`＝演示形态）；④ 按部署文档附录 A.2 逐项关闭 services 层其余空表回退 | `DEPLOYMENT_GUIDE.md:251`、`docs/src/config/deploy.js`、`server/app.js:55-57`、`server/env.js` |
-| 8 | **平台对接地址** | `REPORT_WEBHOOK_URL` / `REPORT_TOKEN` / `REPORT_BASE_URL` / `REPORT_ADMIN_MAIL`；邮件 `SMTP_*` | `server/.env.example:23-36` |
-| 9 | **API 基址** | 前端切换 API 形态时的 `apiBaseUrl`（`services/core/runtime.js` 的 `setDataSource('api', {...})`），对接计算中心域名 | `DEPLOYMENT_GUIDE.md:124-134` |
-| 10 | **学校侧要提供的环境** | 域名 + ICP 备案、数据库、API 服务器、HTTPS（责任方为支书/计算中心） | `DEPLOYMENT_GUIDE.md:193-202` |
-| 11 | **未接入项（需另行开发）** | ① 北大党校 / 智慧党建平台的数据同步（**规划，无代码**）；② 微信小程序（**规划，无代码**）；③ AI 本地推理（**规划**）；④ 北大 IAAA 单点登录（门控已预留落点，**未接入**） | `DEPLOYMENT_GUIDE.md:47-48,81-84,217-240` |
+| 7 | **关闭演示数据回退（防污染真实账本）** | ① 设 **`APP_ENV=production`**（生产形态**默认不播种**，主推做法）；② 仍可显式 `DISABLE_SEED=1`（等价、更直白）；③ 前端空域回退开关 `SEED_FALLBACK` 置 `false`（关的是 `data/data-adapter.js::init()` 里考勤/考察/待办三域的空表回退）——**静态托管 / 直接以 `docs/` 为根** ⇒ 改 `docs/src/config/deploy.js` 常量；**Node 托管** ⇒ 设环境变量 `SEED_FALLBACK=0`（由 `server/app.js:55-57` 注入 `false`；缺省 `true`＝演示形态）；④ 按部署文档附录 A.2 逐项关闭 services 层其余空表回退 | `content/04_web_design/deploy/DEPLOYMENT_GUIDE.md:251`、`docs/src/config/deploy.js`、`server/app.js:55-57`、`server/env.js` |
+| 8 | **平台对接地址** | `REPORT_WEBHOOKS_JSON`（按支部 id 分别配置地址与密钥）/ `REPORT_BASE_URL` / `REPORT_ADMIN_MAIL`；邮件 `SMTP_*` | `server/.env.example` |
+| 9 | **API 基址** | 前端切换 API 形态时的 `apiBaseUrl`（`services/core/runtime.js` 的 `setDataSource('api', {...})`），对接计算中心域名 | `content/04_web_design/deploy/DEPLOYMENT_GUIDE.md:124-134` |
+| 10 | **学校侧要提供的环境** | 域名 + ICP 备案、数据库、API 服务器、HTTPS（责任方为支书/计算中心） | `content/04_web_design/deploy/DEPLOYMENT_GUIDE.md:193-202` |
+| 11 | **未接入项（需另行开发）** | ① 北大党校 / 智慧党建平台的数据同步（**规划，无代码**）；② 微信小程序（**规划，无代码**）；③ AI 本地推理（**规划**）；④ 北大 IAAA 单点登录（门控已预留落点，**未接入**） | `content/04_web_design/deploy/DEPLOYMENT_GUIDE.md:47-48,81-84,217-240` |
 
 **部署前自检与演示账号清理（可执行）**
 
@@ -1381,7 +1380,7 @@ npm start                   # 启动服务，默认端口 3000（PORT 可覆盖�
 
 | 方法 | 路径 | 用途 | 权限门 |
 |---|---|---|---|
-| POST | `/api/v1/report/trigger` | 手动触发推送（四域）；未配置 webhook → **409** | 需登录 |
+| POST | `/api/v1/report/trigger?branchId=` | 手动触发单一支部的四域推送；未选支部 → **400**，该支部未配置 webhook → **409** | 需党委组织员登录 |
 | GET | `/api/v1/report/export?domain=&from=&to=` | CSV 导出（带 UTF-8 BOM，Excel 中文兼容）；未知域 400 | 需登录 |
 | GET | `/api/v1/report/:domain?from=&to=` | JSON 拉取单域；未知域 400 | 需登录 |
 
@@ -1426,8 +1425,8 @@ npm start                   # 启动服务，默认端口 3000（PORT 可覆盖�
 | PATCH | `/api/v1/inspection-appeals/:id` | 处置（关闭 / 打回）（同上） | 需登录 + **支委层或党小组组长** |
 | GET | `/api/v1/issue-unread?assigneeId=&open=1` | 意见反馈「逐人未读标记」（可按被指派人 / 仅未读过滤） | 需登录 |
 | POST | `/api/v1/issue-unread` | 置未读 / 销项 `{assigneeId, issueId, unread?}`（`unread:false`＝已读）；缺字段 400 | 需登录（**与 mock 形态同口径**：标记是「指派 / 答复」写链的副产品，由派发方替被指派人落未读） |
-| GET | `/api/v1/auth-audit` | 授权审计留痕（只增不改的治理档案；`{id,targetPersonId,role,scopeRef,authorizedBy,authorizedAt,action}`） | 需登录 + **支委层**（`BRANCH_COMMISSION_ROLES`） |
-| POST | `/api/v1/auth-audit` | 追加一条留痕（赋权动作内部调用）；同 id 幂等不重复落 | 需登录 |
+| GET | `/api/v1/auth-audit?branchId=` | 授权审计留痕（只增不改的治理档案；行含 `branchId`） | 需登录 + **支委层**（`BRANCH_COMMISSION_ROLES`）或党委组织员；按支部范围过滤 |
+| POST | `/api/v1/auth-audit?branchId=` | 追加 `{id,targetPersonId,role,scopeRef,action}` 留痕；服务端校验授权链和已发生的同支部角色/成员变更，并写入 `authorizedBy/authorizedAt/branchId`。客户端操作者与时间不采信；党委须显式选支部 | 需登录 + 对应授权权限 |
 
 **依据**：`server/routes/resources/index.js` 末「语义端点：申诉队列 / 反馈未读标记 / 授权审计留痕」段、`server/db.js::SEMANTIC_TABLES`（`attendance_appeals` / `inspection_appeals` / `issue_unread` / `auth_audit`）、`docs/src/data/api-adapter.js`（`attendanceAppeals` / `inspectionAppeals` / `issueUnread` / `authAudit` 四组）、`docs/src/services/{attendance,inspection,issues,auth}.js`（api 形态走服务端 / mock 形态走本地路径）。
 
@@ -1483,8 +1482,8 @@ npm start                   # 启动服务，默认端口 3000（PORT 可覆盖�
 | 12 | **活动字段 `deliverableIds` 已废弃** | 字段仍在模型中（标注为废弃），交付物实际由「文件空间记录」覆盖 | `content/04_web_design/data/DATA_MODEL.md:50` |
 | 13 | **归档材料 `url` 字段当前恒为 null** | 模型写明「阶段 2 后端支持时填充，mock 阶段为 null」 | `content/04_web_design/data/DATA_MODEL.md:903` |
 | 14 | **邮件通道实际不会发出任何邮件** | 三重原因叠加：① 收件人从成员档案 `email` 读取，而**示例数据无该字段**；② 需 `MAIL_ENABLED=true` 且 `SMTP_*` 齐备；③ 即便发出，也只覆盖「通知发布 / 待办提醒 / 汇报」三类触发点，受众解析**只实现了 activity 定向与全体两种**（党小组/角色定向统一按全体处理） | `server/services/mailer.js:93-106`、`server/services/mailer-hooks.js:19-37` |
-| 15 | **`handoffs`（三委数据交接记录）：服务端已有表** | 前端 mockDB 有 `handoffs` 域；**服务端现有同名表 `handoffs`**（语义端点组 = `server/db.js::SEMANTIC_TABLES`，写读口见 §6 末「语义端点」段）⇒ API 形态下该域**已落库**，且 `init()` 会拉取填充 | `docs/src/core/domain/domain.js:339`、`server/db.js:155-159`（`SEMANTIC_TABLES`）、`server/routes/resources/semantic-routes.js:155-194`（handoffs 三端点：列表 / 发起 / 接收确认） |
-| 16 | **`pendingMemberConfirmations`：服务端已有表** | 前端 mockDB 数组承载内存读链；**服务端现有表 `member_confirmations`**（语义端点组 = `server/db.js::SEMANTIC_TABLES`）⇒ API 形态下该队列**已落库**、清浏览器缓存不丢（写读口见 §6 末「语义端点」段）；浏览器 localStorage 键 `gsm1921-member-confirmations` 仍作 mock 形态的持久化通道，两形态并存 | `docs/src/core/domain/domain.js:416`（`pendingMemberConfirmations`）、`server/db.js:155-159`、`server/routes/resources/semantic-routes.js:198-235`（入队 / 支书决策两端点） |
+| 15 | **`handoffs`（三委数据交接记录）：服务端已有表** | 前端 mockDB 有 `handoffs` 域；**服务端现有同名表 `handoffs`**（语义端点组 = `server/db.js::SEMANTIC_TABLES`，写读口见 §6 末「语义端点」段）⇒ API 形态下该域**已落库**，且 `init()` 会拉取填充 | `docs/src/core/domain/domain.js:339`、`server/db.js:155-159`（`SEMANTIC_TABLES`）、`server/routes/resources/semantic-routes.js:256-311`（handoffs 三端点：列表 / 发起 / 接收确认） |
+| 16 | **`pendingMemberConfirmations`：服务端已有表** | 前端 mockDB 数组承载内存读链；**服务端现有表 `member_confirmations`**（语义端点组 = `server/db.js::SEMANTIC_TABLES`）⇒ API 形态下该队列**已落库**、清浏览器缓存不丢（写读口见 §6 末「语义端点」段）；浏览器 localStorage 键 `gsm1921-member-confirmations` 仍作 mock 形态的持久化通道，两形态并存 | `docs/src/core/domain/domain.js:416`（`pendingMemberConfirmations`）、`server/db.js:155-159`、`server/routes/resources/semantic-routes.js:312-359`（入队 / 支书决策两端点） |
 | 17 | **「副组长」身份已落地** | 制度文本规定「每个党小组设 1 名组长 + 1-2 名副组长，副组长可共享同组组长工作台的相关内容」；系统已把 `deputy-leader` 落成**可与组长区分的第二个身份**——**同页同台、同权限集，任务优先给组长、不硬切分正副职责**；**支书台「党小组」清单行内可赋权 / 撤销副组长（与组长同列双身份）** | `content/02_institution/SYSTEM_ROLE_PERMISSION.md:46`、`content/02_institution/sop/支委与党小组定人定责定岗说明.md:40`、`content/02_institution/sop/党小组组长工作手册.md:46-48`；载体名单（`docs/` 内「副组长」命中集）见 `server/test/doc-line-ref.test.mjs:268-275` |
 | 18 | **`party-staff` 无可见性配置** | 「谁能看谁」（`ROLE_VISIBILITY`）表中**没有 `party-staff` 键** ⇒ 该角色的可见目标投影恒为空 | `docs/src/services/core/visibility.js:48-56`、`:99-101` |
 
@@ -1496,7 +1495,7 @@ npm start                   # 启动服务，默认端口 3000（PORT 可覆盖�
 | 20 | 北大智慧党建平台（党旗飘飘）双向协同 | **规划（M0-M4），无代码**；设计稿为待确认稿（七项实施口径未定） | `content/04_web_design/deploy/DEPLOYMENT_GUIDE.md:82`、`content/04_web_design/deploy/DEPLOYMENT_GUIDE.md:879`（§6.9 待确认清单） |
 | 21 | 微信小程序（移动端协同） | **规划阶段、无代码**（设计文档本身状态为 `active`，即设计有效、实现未开始） | `content/04_web_design/deploy/DEPLOYMENT_GUIDE.md:48`、`content/04_web_design/deploy/DEPLOYMENT_GUIDE.md:7` |
 | 22 | AI 本地推理（经验提炼 / 通知智能路由 / 活动建议） | **规划，无代码**；部署文档里写的 `AI_API_BASE_URL` 在代码中**检索不到消费点（未取证）** | `content/04_web_design/deploy/DEPLOYMENT_GUIDE.md:217-240` |
-| 23 | 北大 IAAA 单点登录 | **未接入**：当前登录落点是本地 `login.html`；门控层已把 IAAA 预留为「换登录落点、不改门控条件」 | `content/04_web_design/deploy/DEPLOYMENT_GUIDE.md:454`、`DEPLOYMENT_GUIDE.md:215` |
+| 23 | 北大 IAAA 单点登录 | **未接入**：当前登录落点是本地 `login.html`；门控层已把 IAAA 预留为「换登录落点、不改门控条件」 | `content/04_web_design/deploy/DEPLOYMENT_GUIDE.md:454`、`content/04_web_design/deploy/DEPLOYMENT_GUIDE.md:215` |
 | 24 | API 形态下的「一键重置」 | 前端 `?reset=` 三档**只在无 token 的 mock 形态生效**；API 形态没有对应接口，重置需运维手工删 `data.db` | `server/README.md:19` |
 | 25 | 数据模型文档与部署文档的表数口径过期 | **已对齐**：部署文档原写「32 资源表」，现与代码一致为 **34 张**——后端按 **34 张**实现 | `content/04_web_design/deploy/DEPLOYMENT_GUIDE.md:100,158,178,257,962` vs `server/db.js:9-41` |
 

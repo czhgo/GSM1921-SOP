@@ -2,8 +2,8 @@
 // server/routes/report.js — 数据上报接口（部署文档 §六落地，2026-08-29）
 //  - GET  /api/v1/report/:domain?from=&to=   → JSON 拉取（四域：member/activity/attendance/study）
 //  - GET  /api/v1/report/export?domain=&from=&to= → CSV 导出（人工导入平台用）
-//  - POST /api/v1/report/trigger             → 手动触发推送（推送模式；未配置 webhook 提示拉取模式）
-//  认证：requireAuth（计算中心拉取/触发需会话 token；字段以平台侧映射表适配）
+//  - POST /api/v1/report/trigger?branchId=   → 手动触发所选支部的独立推送
+//  认证：读取需会话 token；手动推送限党委组织员且必须选定单一支部，字段以平台侧映射表适配
 import { Router } from 'express';
 import { requireAuth, requireRole } from './auth.js';
 import {

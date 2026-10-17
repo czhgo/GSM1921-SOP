@@ -248,7 +248,7 @@ ActivityRecord (主记录)
 | task | string | 是 | -- | 专班主任务；兼容字段，同时作为 `workgroup_tasks` 的主任务镜像。创建时须登记，旧记录缺失时只由经办人核实后补录 |
 | createdBy | string | 是 | -- | 创建者 ID |
 | createdAt | string (ISO) | 是 | -- | 创建时间 |
-| members | array | 否 | `[]` | 历史兼容镜像。新增和变更通过 `workgroup_members` 语义接口；新专班只登记组织者与深度参与者。遗留 `participant` 行保留为待核历史事实，不转成成员或权限 |
+| members | array | 否 | `[]` | 历史兼容镜像。新增和变更通过 `workgroup_members` 语义接口；新专班只登记组织者与深度参与者。遗留 `participant` 与旧 `contributions` 保留为待核历史分工事实，不转成成员、权限、结构化任务或产出，不自动迁移 |
 | description | string | 否 | -- | 专班描述 |
 
 > **字段核对**：mock/seed 另含展示字段 `manager`/`initiator`/`capacity`/`deadline`（见 [data/mock/taskforces.js](../../../docs/src/data/mock/taskforces.js) 样本）。新建专班围绕自己的工作组任务存在，不以 `activityId` 直接挂靠活动。
@@ -1226,7 +1226,7 @@ pending ──用户开始处理──→ in_progress ──完成──→ comp
 | 工作流定义 (Definition) | definitions.js (静态代码) | 静态，代码级维护 | 3 套流程定义模板（theme-party-day / short-term / long-term），驱动活动流转（与本文 §2.15 一致） |
 | 应用状态 (appState) | core/base/state.js (内存) | 页面生命周期内 | UI 视图状态，不持久化 |
 | 用户/角色预设 (users) | mockDB.users (内存) | 静态预设 | 11 个 `u_*` 系统账号（支书/副支书/支委/3 组长/执行组长/组织者/深度参与者）；登录账号另见 data/mock/accounts.js `MOCK_ACCOUNTS`（`p*`，含党委组织员 p_pc） |
-| 赋权审计 (AuthRecord) | localStorage `sop_org_os_auth_audit`（审计快照）+ 主源内嵌（活动 `assignments` / 专班 `members`） | 跨会话持久化 | AuthStore.authorize 写主源 + 追加快照（旧键 `sop_org_os_assigned_roles` 已删除） |
+| 赋权审计 (AuthRecord) | API：服务端 `auth_audit`；mock：localStorage `sop_org_os_auth_audit` | 跨会话持久化 | API 写入须对应服务端核验的同支部角色/工作组成员变更；操作者、时间、支部归属由服务端生成，客户端同名字段不采信 |
 | 角色常量 (ROLE_LABELS/COLORS) | core/domain/constants.js (静态代码) | 静态，代码级维护 | 13 键角色（11 业务 + 2 遗留）的中文标签与视觉配色 |
 | 意见反馈 (IssueRecord) | `docs/data/issues.json` + localStorage `gsm1921-issue-drafts` | open->closed->reopened | GitHub Issue 风格开源讨论，双轨数据层，处置归支委会、由支书主持支委会（`issues.json` 权威源） |
 
@@ -1235,6 +1235,8 @@ pending ──用户开始处理──→ in_progress ──完成──→ comp
 一个服务实例可承载同一党委下的多个支部，业务记录以 `branchId` 归属支部。普通支部账号只能读取本支部记录；请求中显式指定其他支部时，服务端返回 403。党委组织员可用 `branchId` 选定支部读取，也可不指定支部读取跨支部数据形成治理汇总；意见反馈是明确例外，始终在支部内闭环，党委读该列表只返回空数组。
 
 读取关联记录时按其所属活动、工作组、专班、党小组或人员解析支部；记录自身与关联对象的支部归属冲突时按无权处理。兼容的无 `branchId` 旧记录按 `br-b1` 读取，新的写入从关联业务记录或操作者取得支部归属。支部局部快照只替换本支部记录并保留其他支部已有行；`users` 与 `branches` 不接受快照写入，必须经过专用接口。跨支部关联写入由服务端逐项拒绝，工作组成员关系也不自动授予操作权限。
+
+活动/工作组分享页对未登录访问者隐藏组织者、工作组成员、报名者、正式名单和负责人姓名，仅展示角色与人数；登录查看仍须处于业务记录所属支部。党委组织员查看姓名前须明确选中对应支部。服务端 API 继续按登录身份和支部范围执行读取授权，页面脱敏不能替代 API 权限。
 
 ### 1.3 端到端数据流交织图
 
@@ -1466,7 +1468,7 @@ pending ──用户开始处理──→ in_progress ──完成──→ comp
 | `gsm1921-tab-id` | sessionStorage | 当前标签页唯一 ID | string `tab-*` | [services/core/auth.js](../../../docs/src/services/core/auth.js)（TAB_KEY） |
 | `gsm1921-session-snap` | sessionStorage | 本标签页登录会话快照（登录被其它页覆盖时回退） | JSON `{personId, role}` | [services/core/auth.js](../../../docs/src/services/core/auth.js)（SESSION_KEY） |
 | `gsm1921-api-token` | sessionStorage | API 认证 token（enableApiMode 写入；登出/开发模式清除） | string | [services/core/auth.js](../../../docs/src/services/core/auth.js)（SESSION_TOKEN_KEY） |
-| `sop_org_os_auth_audit` | localStorage | 赋权审计快照（只增不改；revoke 追加记录，判定取最新一条） | JSON `Array<{id, targetPersonId, role, scopeRef, authorizedBy, authorizedAt, action:'grant'\|'revoke'}>` | [services/core/auth.js](../../../docs/src/services/core/auth.js)（AUDIT_KEY）；主源=活动 assignments / 专班 members |
+| `sop_org_os_auth_audit` | localStorage（mock 模式） | 赋权审计快照（只增不改；revoke 追加记录，判定取最新一条） | JSON `Array<{id, targetPersonId, role, scopeRef, authorizedBy, authorizedAt, action:'grant'\|'revoke'}>` | [services/core/auth.js](../../../docs/src/services/core/auth.js)（AUDIT_KEY）；API 模式以服务端 `auth_audit` 为准，操作者/时间/branchId 由服务端生成 |
 | `gsm1921-issue-cache-v3` / `gsm1921-issue-cache-version` | localStorage | 意见反馈缓存 + 缓存版本号（v3 不匹配强制重拉） | JSON / string | [services/governance/issues.js](../../../docs/src/services/governance/issues.js) |
 | `gsm1921-issue-drafts` | localStorage | 意见反馈草稿（新建/评论/反应） | JSON | [services/governance/issues.js](../../../docs/src/services/governance/issues.js)（DRAFT_KEY） |
 | `sop_org_os_session` | sessionStorage | 跨页面会话状态 | JSON | [core/session/cross-page-state.js](../../../docs/src/core/session/cross-page-state.js) |

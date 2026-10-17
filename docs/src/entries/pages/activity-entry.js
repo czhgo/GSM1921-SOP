@@ -2,60 +2,60 @@
 // activity-entry.js — 活动/专班统一详情页入口（T233 报名渠道）
 //  URL 前缀分流：act-* 渲染活动详情，tf-* 渲染专班详情。
 //  报名区仅在「可报名」时展示（活动 published/ongoing 且日期未过、专班 recruiting 且未截止）。
-import { renderSidebar } from '../../components/shell/sidebar.js?v=20261017g';
-import { renderHeader } from '../../components/shell/header.js?v=20261017g';
-import { BranchService } from '../../services/core/runtime.js?v=20261017g';
-import { mockDB } from '../../core/domain/domain.js?v=20261017g';
-import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261017g';
-import { legacyParticipantAssignmentRows, workgroupMembers } from '../../services/activity/workgroup-members.js?v=20261017g';
-import { NoticeStore } from '../../services/governance/notice.js?v=20261017g';
-import { SignupStore, canCloseActivitySignup, closeActivitySignup, SignupStatus } from '../../services/activity/signup.js?v=20261017g';
-import { AuthStore } from '../../services/core/auth.js?v=20261017g';
-import { getPersonById } from '../../services/member/person.js?v=20261017g';
+import { renderSidebar } from '../../components/shell/sidebar.js?v=20261017h';
+import { renderHeader } from '../../components/shell/header.js?v=20261017h';
+import { BranchService } from '../../services/core/runtime.js?v=20261017h';
+import { mockDB } from '../../core/domain/domain.js?v=20261017h';
+import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261017h';
+import { legacyParticipantAssignmentRows, workgroupMembers } from '../../services/activity/workgroup-members.js?v=20261017h';
+import { NoticeStore } from '../../services/governance/notice.js?v=20261017h';
+import { SignupStore, canCloseActivitySignup, closeActivitySignup, SignupStatus } from '../../services/activity/signup.js?v=20261017h';
+import { AuthStore } from '../../services/core/auth.js?v=20261017h';
+import { getPersonById } from '../../services/member/person.js?v=20261017h';
 // 品牌认定（2026-09-21 批次 132 · 支书口径二「支委/党小组组长均可以提案，支委会通过后确定」）：
 // 判据与写口单一源 = services/activity/activity.js；本页**不再有「点一下即认定」**（提案 / 撤回 / 取消认定三种动作）。
-import { canProposeBrand, brandProposalOf, proposeBrandDesignation, withdrawBrandProposal, revokeBrandDesignation } from '../../services/activity/activity.js?v=20261017g';
+import { canProposeBrand, brandProposalOf, proposeBrandDesignation, withdrawBrandProposal, revokeBrandDesignation } from '../../services/activity/activity.js?v=20261017h';
 // 转交组织者（SOP-G-2-② · 2026-10-01 批次 327 · 支书裁「乙：直接转交 ＋ 留痕」）：
 //   母本《常见工作场景快速指南》`:125`「组织者退出需经支委会确定好接手的组织者并负责地完成工作交接
 //   后方可退出」；可发起＝支书 / 副支书 / 组织委员 / **该场现任组织者本人**。判据与写口单一源＝
 //   `components/governance/organizer-transfer.js`（本页只挂入口）。
-import { canTransferOrganizer, openOrganizerTransfer } from '../../components/governance/organizer-transfer.js?v=20261017g';
+import { canTransferOrganizer, openOrganizerTransfer } from '../../components/governance/organizer-transfer.js?v=20261017h';
 // 追加复盘要求（2026-09-21 批次 135 · 裁定二「按推荐档落」）：支委会可额外要求本场组织者完成复盘；
 // 判据与写口单一源 = services/activity/activity.js；另有「交回状态」须读该场复盘记录（services/governance/review.js）。
-import { reviewRequestOf, isReviewReturned, isReviewRequestEligibleActivity, requestOrganizerReview, withdrawReviewRequest } from '../../services/activity/activity.js?v=20261017g';
-import { loadActivityReviews, loadTaskforceReviews } from '../../services/governance/review.js?v=20261017g';
-import { getBasePath, escHtml as esc, showToast } from '../../core/base/utils.js?v=20261017g';
-import { getActivityTypeColors, usesFormalMeetingRoster, SECRETARY_AND_DEPUTY_ROLES } from '../../core/domain/constants.js?v=20261017g';
-import { getAppState } from '../../core/base/state.js?v=20261017g';
-import { badgeHtml } from '../../components/ui/badges.js?v=20261017g';
+import { reviewRequestOf, isReviewReturned, isReviewRequestEligibleActivity, requestOrganizerReview, withdrawReviewRequest } from '../../services/activity/activity.js?v=20261017h';
+import { loadActivityReviews, loadTaskforceReviews } from '../../services/governance/review.js?v=20261017h';
+import { getBasePath, escHtml as esc, showToast } from '../../core/base/utils.js?v=20261017h';
+import { getActivityTypeColors, usesFormalMeetingRoster, SECRETARY_AND_DEPUTY_ROLES } from '../../core/domain/constants.js?v=20261017h';
+import { getAppState } from '../../core/base/state.js?v=20261017h';
+import { badgeHtml } from '../../components/ui/badges.js?v=20261017h';
 // 待批活动的可见性单一源（2026-09-22 批次 151 · 支书裁定「只支委层可见」）：详情页**直按 id 打开**也要守同一判据
 // （列表里不出现、但链接/历史记录可直达 ⇒ 只靠列表过滤不够）。
-import { isActivityVisibleTo } from '../../services/core/visibility.js?v=20261017g';
+import { isActivityVisibleTo, canRevealActivityMemberNames } from '../../services/core/visibility.js?v=20261017h';
 // 活动生命周期展示态单一源（2026-09-13 收敛）：徽章/文案不得本地另写一套中文状态映射
-import { activityLifecycleBadgeHtml } from '../../components/record/inspector.js?v=20261017g';
-import { enhanceSelects } from '../../components/ui/custom-select.js?v=20261017g';
-import { canSignup as _canSignup, renderSignupSection, renderSignupList, bindSignupEvents, roleLabel } from '../../components/governance/signup-panel.js?v=20261017g';
+import { activityLifecycleBadgeHtml } from '../../components/record/inspector.js?v=20261017h';
+import { enhanceSelects } from '../../components/ui/custom-select.js?v=20261017h';
+import { canSignup as _canSignup, renderSignupSection, renderSignupList, bindSignupEvents, roleLabel } from '../../components/governance/signup-panel.js?v=20261017h';
 // 工作分工（`assignments` 表 · 2026-10-03 批次 359 · `D-750` 续答「全 CRUD」）：落点＝**活动详情页新增一块**；
 //   ⚠ 与活动内联的「参与人员」（`act.assignments`＝**项目角色数组**）**不是同一份数据**；术语用「项目分工 / 事上见」，
 //   **不得**称「常备性分工」（支书明令禁用）。判据与写口单一源＝`services/activity/work-assignment.js`。
-import { canManageWorkAssignments, listWorkAssignments, createWorkAssignment, updateWorkAssignment, removeWorkAssignment, WORK_ASSIGNMENT_STATUS, WORK_ASSIGNMENT_STATUS_LABELS } from '../../services/activity/work-assignment.js?v=20261017g';
+import { canManageWorkAssignments, listWorkAssignments, createWorkAssignment, updateWorkAssignment, removeWorkAssignment, WORK_ASSIGNMENT_STATUS, WORK_ASSIGNMENT_STATUS_LABELS } from '../../services/activity/work-assignment.js?v=20261017h';
 // 选人载体单一源（`DESIGN_SYSTEM §4.13` · `filter-row::S9`）：**「选名单成员」一律 PersonPicker**，
 //   **不得**用自建 `<select>` 罗列人名（`S9` 只放行「任命 / 指派到人」四处例外、且明禁新代码长出第 5 处）——
 //   本块「负责人」属「选名单成员」⇒ 走 PersonPicker（唯一出口 `components/governance/pickers.js`）。
-import { PersonPicker } from '../../components/governance/pickers.js?v=20261017g';
-import { renderShareButtonHtml, bindShareButton } from '../../components/shell/share-button.js?v=20261017g';
-import { renderVoteWidget } from '../../components/governance/vote-widget.js?v=20261017g';
-import { fetchVotes } from '../../services/activity/committee-vote.js?v=20261017g';
+import { PersonPicker } from '../../components/governance/pickers.js?v=20261017h';
+import { renderShareButtonHtml, bindShareButton } from '../../components/shell/share-button.js?v=20261017h';
+import { renderVoteWidget } from '../../components/governance/vote-widget.js?v=20261017h';
+import { fetchVotes } from '../../services/activity/committee-vote.js?v=20261017h';
 // 表态权判据单一源（2026-09-30 批次 304）：本页此前**内联**判过一遍 `voterIds.includes(me)`，
 //   与 inspector.js 的 `isCommittee` 角色门形成两种口径；现统一消费 `isVoterOf`（角色无关）。
-import { isVoterOf } from '../../services/activity/vote-config.js?v=20261017g';
+import { isVoterOf } from '../../services/activity/vote-config.js?v=20261017h';
 // SOP-B-2（批次 83）：本页必须先 hydrate API 数据源再渲染——见 _hydrateData 注释
-import { hydrateDataSource, notifyDataLoaded } from '../../data/data-adapter.js?v=20261017g';
-import { ApiAdapter } from '../../data/api-adapter.js?v=20261017g';
+import { hydrateDataSource, notifyDataLoaded } from '../../data/data-adapter.js?v=20261017h';
+import { ApiAdapter } from '../../data/api-adapter.js?v=20261017h';
 // 批次 123：「关闭报名」后按批次 49「存好了才报成功」同一口径——先结算在途落库再刷新
-import { settleWrites } from '../../core/session/pending-writes.js?v=20261017g';
-import { getAdapter } from '../../data/data-adapter.js?v=20261017g';
-import { renderWorkgroupMemberEditor, bindWorkgroupMemberEditor } from '../../components/governance/workgroup-member-editor.js?v=20261017g';
+import { settleWrites } from '../../core/session/pending-writes.js?v=20261017h';
+import { getAdapter } from '../../data/data-adapter.js?v=20261017h';
+import { renderWorkgroupMemberEditor, bindWorkgroupMemberEditor } from '../../components/governance/workgroup-member-editor.js?v=20261017h';
 
 renderSidebar('dashboard');
 renderHeader('dashboard');
@@ -95,6 +95,7 @@ backBtn?.addEventListener('click', () => {
 const ACTIVITY_TYPE_COLORS = getActivityTypeColors();
 const currentUser = AuthStore.getCurrentUser();
 const myId = currentUser?.personId || '';
+const selectedBranchId = new URLSearchParams(window.location.search).get('branchId') || '';
 
 // HTML 转义统一走 core/base/utils.js escHtml（2026-09-03 去重收口）
 
@@ -166,7 +167,6 @@ async function renderActivity(id) {
   // 活动类型标签色：金系用深金 text（浅底可读），红系回退 dot（_ACTIVITY_TYPE_BASE 无 color 字段）
   const tagColor = typeColor.text || typeColor.dot || '#6B7280';
   const tagColorDark = { '#CE1126': '#F87171', '#A16207': '#FBBF24', '#FFD700': '#FDE68A' }[tagColor] || '#94A3B8';
-  const organizerName = act.organizer ? (getPersonById(act.organizer)?.name || act.organizer) : '—';
   const signups = SignupStore.getAll().filter(s => s.sourceType === 'activity' && s.sourceId === act.id);
   const assignmentRows = Array.isArray(act.assignments) ? act.assignments : [];
   const formalRoster = usesFormalMeetingRoster(act);
@@ -174,11 +174,22 @@ async function renderActivity(id) {
   const legacyParticipants = formalRoster ? [] : legacyParticipantAssignmentRows(assignmentRows);
   const workgroupId = act.workgroupId || `wg-activity-${act.id}`;
   const workgroup = mockDB.workgroups.find((row) => row.id === workgroupId) || null;
+  const canRevealMemberNames = canRevealActivityMemberNames({ ...act, branchId: act.branchId || workgroup?.branchId }, currentUser, selectedBranchId);
+  const organizerName = act.organizer
+    ? (canRevealMemberNames ? (getPersonById(act.organizer)?.name || act.organizer) : '组织者 1 人')
+    : '—';
   const storedMembers = mockDB.workgroupMembers.filter((row) => row.workgroupId === workgroupId && row.status !== 'removed');
   const editorMembers = storedMembers.length ? workgroupMembers(storedMembers) : assignments.filter((row) => row.role === 'organizer' || row.role === 'deep');
   const participantSignups = [...new Map(signups
     .filter((row) => row.role === 'participant' && row.status === SignupStatus.APPROVED && !row.voidedAt && row.personId)
     .map((row) => [String(row.personId), { personId: String(row.personId) }])).values()];
+  const approvedSignupCount = signups.filter((row) => row.status === SignupStatus.APPROVED && !row.voidedAt).length;
+  const pendingSignupCount = signups.filter((row) => row.status === SignupStatus.PENDING && !row.voidedAt).length;
+  const workgroupRoleCounts = editorMembers.reduce((counts, row) => {
+    if (row.role === 'organizer') counts.organizer++;
+    else if (row.role === 'deep') counts.deep++;
+    return counts;
+  }, { organizer: 0, deep: 0 });
   const hostGroup = workgroup?.hostGroupId ? mockDB.partyGroups.find((row) => row.id === workgroup.hostGroupId) : null;
   const canManageMembers = !formalRoster && !!workgroup && (
     SECRETARY_AND_DEPUTY_ROLES.includes(currentUser?.role)
@@ -374,7 +385,7 @@ async function renderActivity(id) {
     <div class="grid grid-cols-2 gap-3 mb-6">
       <div class="rounded-xl bg-gray-50 px-4 py-3">
         <p class="text-xs text-gray-500 mb-0.5">组织者</p>
-        <p class="text-sm font-medium text-gray-800">${organizerName}</p>
+        <p class="text-sm font-medium text-gray-800">${esc(organizerName)}</p>
       </div>
       <div class="rounded-xl bg-gray-50 px-4 py-3">
         <p class="text-xs text-gray-500 mb-0.5">活动方向</p>
@@ -401,7 +412,9 @@ async function renderActivity(id) {
     ${transferCardHtml}
 
     <!-- 报名名单 -->
-    ${renderSignupList({ sourceType: 'activity', sourceId: act.id, source: act, signups, myId })}
+    ${canRevealMemberNames
+      ? renderSignupList({ sourceType: 'activity', sourceId: act.id, source: act, signups, myId })
+      : `<section class="mt-5 border-t border-gray-100 pt-4" aria-label="活动人员数量"><h3 class="text-sm font-semibold text-gray-800">活动人员概况</h3><p class="mt-1 text-xs text-gray-600">工作组：组织者 ${workgroupRoleCounts.organizer} 人、深度参与者 ${workgroupRoleCounts.deep} 人；已通过报名 ${approvedSignupCount} 人；待审核 ${pendingSignupCount} 人。</p><p class="mt-1 text-xs text-gray-500">登录并进入所属支部后可查看人员名单。</p></section>`}
 
     ${agendaAreaHtml}
 
@@ -410,15 +423,17 @@ async function renderActivity(id) {
       <h3 class="text-sm font-semibold text-gray-700 mb-3">会议正式名单（${assignments.length}）</h3>
       ${assignments.length === 0
         ? '<p class="text-sm text-gray-500">暂无正式名单</p>'
-        : `<div class="flex flex-wrap gap-2.5">${assignments.map(x => `
+        : !canRevealMemberNames
+          ? `<p class="text-sm text-gray-600">正式名单 ${assignments.length} 人。登录并进入所属支部后可查看姓名。</p>`
+          : `<div class="flex flex-wrap gap-2.5">${assignments.map(x => `
             <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-gray-50">
               <span class="w-5 h-5 rounded-full flex items-center justify-center text-[11px] font-semibold text-white flex-shrink-0" style="background:${typeColor.color};">${(getPersonById(x.personId)?.name || '?').slice(0, 1)}</span>
-              <span class="text-xs font-medium text-gray-700">${getPersonById(x.personId)?.name || x.personId}</span>
+              <span class="text-xs font-medium text-gray-700">${esc(getPersonById(x.personId)?.name || x.personId)}</span>
             </span>`).join('')}</div>`}
-    </div>` : `${renderWorkgroupMemberEditor({
+    </div>` : (canRevealMemberNames ? `${renderWorkgroupMemberEditor({
       workgroupId, kind: 'activity', canEdit: canEditMembers, members: editorMembers,
       grants: memberGrants, participants: participantSignups, legacyRows: legacyParticipants,
-    })}${memberGrantsError ? `<p class="mt-2 text-xs text-red-700" role="status">${esc(memberGrantsError)}。为避免覆盖现有授权，成员编辑暂不可用。</p>` : ''}`}
+    })}${memberGrantsError ? `<p class="mt-2 text-xs text-red-700" role="status">${esc(memberGrantsError)}。为避免覆盖现有授权，成员编辑暂不可用。</p>` : ''}` : '')}
 
     <!-- 工作分工（服务端表 assignments · 2026-10-03 批次 359 · D-750 续答「全 CRUD」）：
          与上面「参与人员」（活动内联的**项目角色数组**）**不是同一份数据**——本块列**一件件具体工作**。
@@ -439,11 +454,11 @@ async function renderActivity(id) {
   // 工作分工块（批次 359 · `D-750` 续答）：块内**局部重渲染**（编辑态一变只重画本块，不动页面其余部分）
   const waHost = cardEl.querySelector('#work-assignments-host');
   if (waHost) {
-    waHost.innerHTML = _renderWorkAssignments(workRows, canManageWork);
+    waHost.innerHTML = _renderWorkAssignments(workRows, canManageWork, canRevealMemberNames);
     enhanceSelects(waHost);
     _mountWaPicker(waHost, null); // 初始只读态无表单 ⇒ 空转；留着以备将来默认展开新增表单
   }
-  _bindWorkAssignments(cardEl, act, myId, myRole);
+  _bindWorkAssignments(cardEl, act, myId, myRole, canRevealMemberNames);
 
   // 「关闭报名」（批次 123）：二次确认（关闭后无「重新开放」入口，属不可逆动作）→ 落库 → 结算 → 刷新。
   // 放行判据在 closeActivitySignup 内复算一次（呈现/动作同源 canCloseActivitySignup），点了没反应＝放行被挡。
@@ -548,9 +563,12 @@ async function renderTaskforce(tf) {
   if (!cardEl) return;
   const allMemberRows = Array.isArray(tf.members) ? tf.members : [];
   const legacyRows = legacyParticipantAssignmentRows(allMemberRows);
-  const initiatorName = tf.initiator ? (getPersonById(tf.initiator)?.name || tf.initiator) : '—';
   const workgroupId = tf.workgroupId || `wg-taskforce-${tf.id}`;
   const workgroup = mockDB.workgroups.find((row) => row.id === workgroupId) || null;
+  const canRevealMemberNames = canRevealActivityMemberNames({ ...tf, branchId: tf.branchId || workgroup?.branchId }, currentUser, selectedBranchId);
+  const initiatorName = tf.initiator
+    ? (canRevealMemberNames ? (getPersonById(tf.initiator)?.name || tf.initiator) : '组织者 1 人')
+    : '—';
   const isClosedTaskforce = ['completed', 'archived', 'dissolved'].includes(tf.status);
   const storedMembers = mockDB.workgroupMembers.filter((row) => row.workgroupId === workgroupId && row.status !== 'removed');
   const members = storedMembers.length ? workgroupMembers(storedMembers) : workgroupMembers(allMemberRows);
@@ -597,7 +615,9 @@ async function renderTaskforce(tf) {
     </dl>
 
     ${isClosedTaskforce ? '<p class="mb-2 text-xs text-gray-500">工作组已结束，成员与授权记录只读保留。</p>' : ''}
-    ${renderWorkgroupMemberEditor({ workgroupId, kind: 'taskforce', canEdit: canManageMembers && grantsLoaded, members, grants, legacyRows })}
+    ${canRevealMemberNames
+      ? renderWorkgroupMemberEditor({ workgroupId, kind: 'taskforce', canEdit: canManageMembers && grantsLoaded, members, grants, legacyRows })
+      : `<section class="mt-5 border-t border-gray-100 pt-4" aria-label="专班工作组成员数量"><h3 class="text-sm font-semibold text-gray-800">工作组成员</h3><p class="mt-1 text-xs text-gray-600">组织者 ${members.filter((row) => row.role === 'organizer').length} 人、深度参与者 ${members.filter((row) => row.role === 'deep').length} 人；专班成员仅登记工作分工，不纳入活动报名或考勤。</p><p class="mt-1 text-xs text-gray-500">登录并进入所属支部后可查看人员名单。</p></section>`}
     ${grantsError ? `<p class="mt-2 text-xs text-red-700" role="status">${esc(grantsError)}。为避免覆盖现有授权，成员编辑暂不可用。</p>` : ''}
 
     <section class="mt-6 border-t border-gray-100 pt-5" aria-labelledby="taskforce-work-title">
@@ -678,8 +698,8 @@ function _mountWaPicker(scope, row) {
 }
 
 /** 只读行（工作名 / 负责人 · 截止 · 说明 / 状态；管理键按 `canManage` 显隐） */
-function _waRowHtml(row, canManage) {
-  const who = row.assigneeId ? (getPersonById(row.assigneeId)?.name || row.assigneeId) : '未指定';
+function _waRowHtml(row, canManage, canRevealNames = true) {
+  const who = row.assigneeId ? (canRevealNames ? (getPersonById(row.assigneeId)?.name || row.assigneeId) : '负责人已登记') : '未指定';
   const st = WORK_ASSIGNMENT_STATUS_LABELS[row.status] || row.status;
   const stClass = row.status === WORK_ASSIGNMENT_STATUS.COMPLETED ? 'text-green-700 bg-green-50'
     : (row.status === WORK_ASSIGNMENT_STATUS.IN_PROGRESS ? 'text-blue-700 bg-blue-50' : 'text-amber-700 bg-amber-50');
@@ -700,7 +720,7 @@ function _waRowHtml(row, canManage) {
 }
 
 /** 整块 HTML（宿主为 `#work-assignments-host`） */
-function _renderWorkAssignments(rows, canManage) {
+function _renderWorkAssignments(rows, canManage, canRevealNames = true) {
   const formOpen = _waEditing === 'new';
   return `
     <div class="flex items-center justify-between mb-2">
@@ -709,18 +729,18 @@ function _renderWorkAssignments(rows, canManage) {
     </div>
     ${formOpen ? _waFormHtml(null) : ''}
     ${rows.length === 0 && !formOpen ? '<p class="text-sm text-gray-500">本场尚未安排工作分工。</p>' : ''}
-    ${rows.map((r) => (_waEditing === r.id ? _waFormHtml(r) : _waRowHtml(r, canManage))).join('')}
+    ${rows.map((r) => (_waEditing === r.id ? _waFormHtml(r) : _waRowHtml(r, canManage, canRevealNames))).join('')}
   `;
 }
 
 /** 事件委托（宿主上的 `dataset.waBound` 防重复绑定；块内重渲染不影响委托） */
-function _bindWorkAssignments(cardEl, act, myId, role) {
+function _bindWorkAssignments(cardEl, act, myId, role, canRevealNames = true) {
   const host = cardEl.querySelector('#work-assignments-host');
   if (!host || host.dataset.waBound) return;
   host.dataset.waBound = '1';
   const rerender = () => {
     const rows = listWorkAssignments(act.id);
-    host.innerHTML = _renderWorkAssignments(rows, canManageWorkAssignments(act, myId, role));
+    host.innerHTML = _renderWorkAssignments(rows, canManageWorkAssignments(act, myId, role), canRevealNames);
     enhanceSelects(host);
     // 「负责人」选人器随表单重建（`_waEditing` 为某行 id 时预选该行现有负责人）
     _mountWaPicker(host, rows.find((r) => r.id === _waEditing) || null);

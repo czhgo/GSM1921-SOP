@@ -3,7 +3,7 @@ title: "部署与对外对接"
 type: design
 role: "[工程师]+[AI]"
 created: 2026-08-19
-last_updated: 2026-10-16
+last_updated: 2026-10-17
 status: active
 related_files: [docs/src/data/data-adapter.js, docs/src/data/api-adapter.js, docs/src/services/core/runtime.js, docs/src/config/deploy.js, docs/src/core/boot/bootstrap.js, docs/src/components/shell/sidebar.js, docs/src/components/shell/header.js, docs/login.html, docs/src/services/core/auth.js, server/server.js, server/app.js, server/db.js, server/routes/auth.js, server/routes/resources.js, server/routes/uploads.js]
 ---
@@ -167,7 +167,7 @@ UI 层零改动，通过 `getAdapter()` 访问数据自动走 API 适配器。Da
 | 党校系统爬取 | **单向（读）** | 党校 → 我方：培训阶段/课程完成度/成绩/学时/结业评议（只读，不写回） | §6.5 |
 | 智慧党建读 | **单向（读）** | 平台 → 我方：组织生活/民主评议/党费/发展进度记载 | §6.6 |
 | 智慧党建写 | **单向（写，审核后）** | 我方 → 平台：活动记载/考察结论/表决公示（API 或导出导入，默认不做脆弱自动写） | §6.6 |
-| 数据上报出口 | **单向（出）** | 我方 → 智慧党建/党校平台：党员/活动/考勤/学习四域，每日批量 + 手动触发 | §3.9 |
+| 数据上报出口 | **单向（出）** | 我方 → 智慧党建/党校平台：党员/活动/考勤/学习四域，每日按支部推送 + 选定支部手动触发 | §3.9 |
 | 邮件通道 | **单向（出）** | 我方 → 成员邮箱：通知/待办/汇报/会议提醒（SMTP） | §3.8 |
 | 迎检外链 / 归档包 | 人工（出） | 支书生成临时查看链接 / 导出归档包面向上级审查 | §5.3.2 |
 
@@ -334,12 +334,12 @@ AI_API_BASE_URL = 'https://<计算中心提供的域名>/ai/v1'
 #### 3.9.1 协同架构
 
 ```
-┌─────────────┐  每日批量/手动   ┌──────────────────┐
+┌─────────────┐  每日逐支部/选定支部手动   ┌──────────────────┐
 │  本系统 server  │ ──────────────> │ 智慧党建/党校系统  │
 │  /api/v1/report │   数据上报      │  （学校侧接收端）   │
 └─────────────┘                 └──────────────────┘
         │ 上报内容：党员信息 / 活动记录 / 考勤记录 / 学习记录
-        │ 格式：JSON（UTF-8）或 CSV；频率：每日凌晨批量 + 支持手动触发
+        │ 格式：JSON（UTF-8）或 CSV；频率：每日凌晨按支部推送 + 支持选定支部手动触发
 ```
 
 #### 3.9.2 数据域清单（四类，字段定义）
@@ -356,19 +356,19 @@ AI_API_BASE_URL = 'https://<计算中心提供的域名>/ai/v1'
 - **上报出口**（本系统提供，供平台拉取或人工导出）：
   - `GET /api/v1/report/:domain?from=YYYY-MM-DD&to=YYYY-MM-DD` → 返回该时段 JSON 数据
   - `GET /api/v1/report/export?domain=activity&from=...&to=...` → 返回 CSV 文件（人工导入用）
-- **推送模式**（若平台提供接收端）：本系统定时任务 POST 至平台指定 URL，格式 JSON，鉴权用平台下发的 Token（`REPORT_WEBHOOK_URL` / `REPORT_TOKEN` 环境变量）。
+- **推送模式**（若平台提供接收端）：通过 `REPORT_WEBHOOKS_JSON` 按 `branchId` 配置独立 URL 与 Token；每日任务逐支部发送、每个请求只含一个支部的数据。未配置接收端的支部不推送，不提供全局 URL/Token 回退。
 - 两模式任选其一，按平台能力决定；**字段与格式以平台侧需求为准**，本系统出口可按平台字段映射表适配。
 
 #### 3.9.4 同步频率与可靠性
 
-- 默认**每日凌晨 03:00 批量上报**（可配），另支持**手动触发**（界面按钮 / 接口调用）。
+- 默认每日凌晨 **03:00 按支部逐个推送**（可配）；手动触发 `POST /api/v1/report/trigger?branchId=...` 必须先选定支部，且只发送到该支部配置的接收端。
 - 失败重试 3 次；连续失败发管理员通知（站内 + 邮件，若邮件通道已启用）。
 - 上报仅发送**已确认/已归档**数据（源头审校 + 异常驱动原则：草稿/待确认数据不外发）。
 
 #### 3.9.5 计算中心 Checklist（验收标准）
 
 - [ ] 与平台侧确认：上报模式（拉取 or 推送）、接收地址/Token、字段映射表
-- [ ] 配置 `REPORT_WEBHOOK_URL` / `REPORT_TOKEN`（推送模式）或开放 `GET /api/v1/report/*`（拉取模式）
+- [ ] 推送模式按支部配置 `REPORT_WEBHOOKS_JSON` 中的 URL / Token；拉取模式开放 `GET /api/v1/report/*`
 - [ ] 验证：手动触发一次上报 → 平台收到对应时段数据（党员/活动/考勤/学习四域）
 - [ ] 验证：`from/to` 时段过滤正确；`from` 缺省时默认近 7 天
 - [ ] 验证：平台接收失败时本系统重试 3 次并产生管理员告警（不静默丢数据）
@@ -963,7 +963,7 @@ WebView 套壳（短期）→ Taro 跨端（中期），与网页共用后端；
 | API 适配器 | `api-adapter.js` P1 已实现：35 个资源分组 `list()`（供 init 拉全量）+ `snapshot()` 全量写穿 + 8s 超时兜底；路由表见文件头（35 资源分组 + auth/login/logout + snapshot + uploads + health/bootstrap） |
 | 后端服务 | `server/` Express + better-sqlite3：**35 资源表**（id + data JSON 通用结构，含 branch_docs）+ sessions/attachments；routes：auth（login/logout/me）、resources（CRUD + bootstrap + snapshot 写穿）、uploads（jpg/png/pdf/doc/docx/xlsx/mp4 ≤10MB）、report（§3.9）；`npm test` 测试全绿（server/test/ 覆盖单元/E2E/审计/链接完整性） |
 | 邮件双通道（§3.8） | `server/services/mailer.js`（nodemailer 通用 SMTP，env 注入不落库，失败重试 3 次 + 静默降级）+ `services/mailer-hooks.js` 接入通知发布/待办提醒/反馈汇报触发点；成员档案 email 字段预留，补充后通道自动生效 |
-| 数据上报（§3.9） | `server/routes/report.js` + `services/reporting.js`：`GET /api/v1/report/:domain`（JSON 拉取）/ `/report/export`（CSV+BOM 人工导入）/ `POST /report/trigger`（手动推送）+ 每日 03:00 定时批量上报 + 每 10 分钟会议提醒扫描 |
+| 数据上报（§3.9） | `server/routes/report.js` + `services/reporting.js`：`GET /api/v1/report/:domain`（JSON 拉取）/ `/report/export`（CSV+BOM 人工导入）/ `POST /report/trigger?branchId=`（单支部手动推送）+ 每日 03:00 按 `REPORT_WEBHOOKS_JSON` 逐支部推送 + 每 10 分钟会议提醒扫描 |
 | 部署形态区分 | `docs/src/config/deploy.js` `DEPLOY_MODE: 'static' | 'server'`（**浏览器加载即 `static`；Node 由注入覆盖为 `server`——自动判定，无需手改**）；侧边栏「关于」显隐按此区分（静态托管显示 / 有后端隐藏） |
 | 登录门控 | 四层模型已落地（本文件 §4.4）：L1 页面 / L2 功能写入 / L3 身份组件 / L4 下载 |
 

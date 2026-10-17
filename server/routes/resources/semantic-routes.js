@@ -7,13 +7,13 @@
 import { randomUUID } from 'node:crypto';
 import { requireAuth, requireRole } from '../auth.js';
 import { HANDOFF_TYPES as HANDOFF_TYPES_SRC, AUTO_CONFIRM_TYPES } from '../../../docs/src/services/governance/handoff.js';
-import { BRANCH_COMMISSION_ROLES } from '../../../docs/src/core/domain/constants.js';
+import { BRANCH_COMMISSION_ROLES, BRANCH_COMMISSIONER_ASSIGNABLE_ROLES, BRANCH_COMMISSIONER_FALLBACK_ROLE, branchCommissionerWriteDeny } from '../../../docs/src/core/domain/constants.js';
 import { listTable, getRow, writeRow } from './store.js';
 import { ORG_COMMISSIONER_ROLE_SET, SECRETARY_AND_DEPUTY_ROLE_SET } from './gates.js';
 // R-26③（2026-10-05 批次 388）：日期口径统一到**本地**（服务端单一源 `services/reporting.js`）
 import { today as todayLocal } from '../../services/reporting.js';
-import { registerWorkgroupRoutes } from './workgroup-routes.js';
-import { actorBranchId, branchSelectionError, branchForNewResource, recordBranchWriteDeny, resourceRowsForActor } from './branch-scope.js';
+import { canManageWorkgroup, hasWorkgroupPermission, registerWorkgroupRoutes } from './workgroup-routes.js';
+import { actorBranchId, branchSelectionError, selectedBranchRequiredError, branchForNewResource, recordBranchWriteDeny, resourceRowsForActor } from './branch-scope.js';
 
 // ════════════════════════════════════════════════════════════════
 //  语义端点：申诉队列 / 反馈未读标记 / 授权审计留痕（2026-09-24 批次 169）
@@ -136,8 +136,8 @@ export function registerExtraSemanticRoutes(router, db) {
     res.json(row);
   });
   // ── 授权审计留痕（T-190；前端 services/core/auth.js）──
-  // 只增不改的治理档案：读＝支委层（赋权留痕是支委治理记录）；写＝登录用户（赋权动作内部调用，服务端只落不判定）
-  const AUTH_AUDIT_KEYS = ['id', 'targetPersonId', 'role', 'scopeRef', 'authorizedBy', 'authorizedAt', 'action'];
+  // 只增不改的治理档案：身份和时间由服务端生成；每条留痕必须能对应授权者实际完成的同支部授权变更。
+  const AUTH_AUDIT_KEYS = ['id', 'targetPersonId', 'role', 'scopeRef', 'authorizedBy', 'authorizedAt', 'action', 'branchId'];
   router.get('/auth-audit', requireRole(db, new Set([...BRANCH_COMMISSION_ROLES, 'party-staff'])), (req, res) => {
     const deny = branchSelectionError(req.actor, req.query.branchId);
     if (deny) return res.status(403).json({ error: deny });
@@ -147,19 +147,91 @@ export function registerExtraSemanticRoutes(router, db) {
     const body = (req.body && typeof req.body === 'object' && !Array.isArray(req.body)) ? req.body : {};
     const bad = Object.keys(body).find((k) => !AUTH_AUDIT_KEYS.includes(k));
     if (bad) return res.status(400).json({ error: `字段 ${bad} 不在白名单（本端点仅可写 ${AUTH_AUDIT_KEYS.join(' / ')}）` });
+    const targetPersonId = body.targetPersonId ? String(body.targetPersonId) : '';
+    const role = body.role ? String(body.role) : '';
+    const scopeRef = body.scopeRef !== undefined && body.scopeRef !== null ? String(body.scopeRef) : '';
+    const action = body.action;
+    if (!targetPersonId || !role || !['grant', 'revoke'].includes(action)) {
+      return res.status(400).json({ error: '授权留痕须提供 targetPersonId、role 和 grant/revoke action' });
+    }
+    const targetUser = getRow(db, 'users', targetPersonId);
+    if (!targetUser) return res.status(400).json({ error: '授权对象不存在' });
+    const targetBranchId = targetUser.branchId || 'br-b1';
+    const partyStaffSelection = selectedBranchRequiredError(req.actor, req.query.branchId);
+    if (partyStaffSelection) return res.status(400).json({ error: partyStaffSelection });
+    if (req.actor.role === 'party-staff' && req.query.branchId !== targetBranchId) {
+      return res.status(403).json({ error: '无权限：授权留痕对象不属于当前选中的支部' });
+    }
+    if (body.branchId && String(body.branchId) !== targetBranchId) {
+      return res.status(403).json({ error: '无权限：提交的支部与授权对象归属不一致' });
+    }
     const id = body.id ? String(body.id) : `auth-${randomUUID().slice(0, 8)}`;
-    if (db.prepare('SELECT id FROM auth_audit WHERE id = ?').get(id)) return res.json(getRow(db, 'auth_audit', id)); // 幂等：同 id 不重复落
-    const targetUser = body.targetPersonId ? getRow(db, 'users', String(body.targetPersonId)) : null;
-    const scopeBranchId = targetUser?.branchId || (req.actor.role === 'party-staff' ? null : actorBranchId(req.actor));
+    const existing = getRow(db, 'auth_audit', id);
+    if (existing) {
+      const sameEvent = existing.targetPersonId === targetPersonId && existing.role === role
+        && (existing.scopeRef || '') === scopeRef && existing.action === action && existing.authorizedBy === req.actor.id;
+      return sameEvent ? res.json(existing) : res.status(409).json({ error: '该授权留痕 id 已用于其他事件' });
+    }
+
+    let mutationProven = false;
+    if (scopeRef && ['organizer', 'deep'].includes(role)) {
+      const workgroup = listTable(db, 'workgroups').find((row) => String(row.sourceId || '') === scopeRef);
+      if (!workgroup || workgroup.branchId !== targetBranchId) return res.status(403).json({ error: '无权限：工作组不存在或不属于授权对象所在支部' });
+      if (actorBranchId(req.actor) !== workgroup.branchId) return res.status(403).json({ error: '无权限：只能记录本支部工作组授权' });
+      const member = listTable(db, 'workgroup_members').find((row) => row.workgroupId === workgroup.id && row.personId === targetPersonId);
+      const actorCanManage = canManageWorkgroup(db, req.actor, workgroup)
+        || hasWorkgroupPermission(db, workgroup.id, req.actor.id, 'workgroup.members.manage');
+      const latest = listTable(db, 'auth_audit')
+        .filter((row) => row.targetPersonId === targetPersonId && row.role === role && row.scopeRef === scopeRef)
+        .at(-1);
+      if (!member || (action === 'grant' && latest?.action !== 'revoke' && latest)
+        || (action === 'revoke' && latest?.action !== 'grant')) {
+        return res.status(403).json({ error: '无权限：工作组成员变更与授权留痕不匹配' });
+      }
+      mutationProven = action === 'grant'
+        ? member.status === 'active' && member.role === role && (member.updatedBy === req.actor.id || member.createdBy === req.actor.id)
+        : (member.status === 'removed' && member.removedBy === req.actor.id)
+          || (member.status === 'active' && member.role !== role && member.updatedBy === req.actor.id);
+      if (!mutationProven || (!actorCanManage && !(action === 'revoke' && member.removedBy === req.actor.id))) {
+        return res.status(403).json({ error: '无权限：当前操作者没有完成这项工作组成员变更' });
+      }
+    } else if (scopeRef && ['leader', 'deputy-leader'].includes(role)) {
+      const group = listTable(db, 'party_groups').find((row) => String(row.id || '') === scopeRef || row.name === scopeRef);
+      if (!group || group.branchId !== targetBranchId || targetUser.partyGroup !== group.name) {
+        return res.status(403).json({ error: '无权限：党小组长授权对象与党小组归属不一致' });
+      }
+      if (!['secretary', 'deputy-secretary'].includes(req.actor.role) || actorBranchId(req.actor) !== group.branchId) {
+        return res.status(403).json({ error: '无权限：党小组长身份只能由本支部支书或副书记配置' });
+      }
+      const latest = listTable(db, 'auth_audit')
+        .filter((row) => row.targetPersonId === targetPersonId && row.role === role && row.scopeRef === scopeRef)
+        .at(-1);
+      mutationProven = action === 'grant' ? latest?.action !== 'grant' : latest?.action === 'grant';
+      if (!mutationProven) return res.status(403).json({ error: '无权限：党小组长授权状态与留痕动作不匹配' });
+    } else if (!scopeRef && BRANCH_COMMISSIONER_ASSIGNABLE_ROLES.includes(role)) {
+      const branch = getRow(db, 'branches', targetBranchId);
+      if (!branch) return res.status(403).json({ error: '授权对象所属支部不存在' });
+      const expectedCurrentRole = action === 'grant' ? role : null;
+      if ((action === 'grant' && targetUser.role !== expectedCurrentRole)
+        || (action === 'revoke' && targetUser.role === role)) {
+        return res.status(403).json({ error: '无权限：支委身份变更尚未发生或与留痕动作不一致' });
+      }
+      const deny = branchCommissionerWriteDeny({
+        actorRole: req.actor.role, actorId: req.actor.id, actorBranchId: actorBranchId(req.actor) || req.query.branchId,
+        targetId: targetPersonId, targetRole: targetUser.role, targetBranchId,
+        secretaryId: branch.secretaryId,
+        deputySecretaryId: branch.deputySecretaryId || listTable(db, 'users').find((user) => user.role === 'deputy-secretary' && (user.branchId || 'br-b1') === targetBranchId)?.id,
+        role: action === 'grant' ? role : BRANCH_COMMISSIONER_FALLBACK_ROLE,
+      });
+      if (deny) return res.status(403).json({ error: deny });
+      mutationProven = true;
+    } else {
+      return res.status(403).json({ error: '无权限：该授权范围或角色不能通过通用审计接口写入' });
+    }
+    if (!mutationProven) return res.status(403).json({ error: '无权限：未检测到已授权的对应变更' });
     const row = {
-      id,
-      ...(scopeBranchId ? { branchId: scopeBranchId } : {}),
-      targetPersonId: body.targetPersonId ? String(body.targetPersonId) : null,
-      role: body.role ? String(body.role) : null,
-      scopeRef: body.scopeRef !== undefined && body.scopeRef !== null ? String(body.scopeRef) : '',
-      authorizedBy: body.authorizedBy ? String(body.authorizedBy) : (req.actor ? req.actor.id : null),
-      authorizedAt: body.authorizedAt || todayLocal(),
-      action: body.action === 'revoke' ? 'revoke' : 'grant',
+      id, branchId: targetBranchId, targetPersonId, role, scopeRef,
+      authorizedBy: req.actor.id, authorizedAt: todayLocal(), action,
     };
     const scopeDeny = recordBranchWriteDeny(db, 'auth_audit', row, req.actor);
     if (scopeDeny) return res.status(403).json({ error: scopeDeny });

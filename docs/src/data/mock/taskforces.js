@@ -14,7 +14,7 @@ export const MOCK_TASKFORCES = [
       { personId: 'p8', role: 'deep', contributions: [] },
       { personId: 'p9', role: 'deep', contributions: [] },
       // 批次 47-X（2026-09-16，承 47-W 的 R-78 口径）：为「专班查看 · 我的产出填报」
-      //   （`taskforce-view.js:290` 的「请填写产出说明」）补一名**演示账号成员**。
+      //   （`taskforce-view.js` 的结构化产出登记入口）补一名**演示账号成员**。
       // **为什么必须补**：该填报区**只在 `tf.status==='active' && isMember` 时渲染**（同文件 194 行），
       //   而原种子里两只 active 专班（tf-001 成员 p8+p9 / tf-002 成员 p4+p7）**成员全是非演示账号**
       //   ⇒ 任何演示账号登录后都不是「该专班成员」⇒ 该区**结构上恒不渲染**（批 47-L 真机实测

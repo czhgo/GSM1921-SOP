@@ -89,7 +89,7 @@ test('未知数据域返回 400', async () => {
   assert.equal(res.status, 400);
 });
 
-test('只有党委可手动触发跨支部推送；未配置 webhook 时提示拉取模式', async () => {
+test('党委手动推送须选定单一支部；该支部未配置 webhook 时提示拉取模式', async () => {
   const branchRes = await fetch(`${base}/api/v1/report/trigger`, {
     method: 'POST',
     headers: { Authorization: `Bearer ${token}` },
