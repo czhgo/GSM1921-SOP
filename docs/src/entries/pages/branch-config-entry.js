@@ -1,18 +1,19 @@
 // Party-only per-branch configuration. The selected branch remains explicit in the URL.
-import { mockDB } from '../../core/domain/domain.js?v=20261018a';
-import { AuthStore } from '../../services/core/auth.js?v=20261018a';
-import { BranchService } from '../../services/core/runtime.js?v=20261018a';
-import { getPersonName } from '../../services/member/person.js?v=20261018a';
-import { getBranchById, renameBranch, setBranchActive } from '../../services/branch/branch.js?v=20261018a';
-import { appointSecretary, listAppointments } from '../../services/branch/appointment.js?v=20261018a';
-import { ApiAdapter } from '../../data/api-adapter.js?v=20261018a';
-import { hydrateDataSource } from '../../data/data-adapter.js?v=20261018a';
-import { mountPartyConfig } from '../tabs/party-committee/party-config-tab.js?v=20261018a';
-import { renderSidebar } from '../../components/shell/sidebar.js?v=20261018a';
-import { renderHeader } from '../../components/shell/header.js?v=20261018a';
-import { mountBranchRosterImport } from '../../components/governance/branch-roster-import-panel.js?v=20261018a';
-import { PersonPicker } from '../../components/governance/person-picker.js?v=20261018a';
-import { escHtml as esc, showToast, getBasePath } from '../../core/base/utils.js?v=20261018a';
+import { mockDB } from '../../core/domain/domain.js?v=20261018d';
+import { AuthStore } from '../../services/core/auth.js?v=20261018d';
+import { BranchService } from '../../services/core/runtime.js?v=20261018d';
+import { getPersonName } from '../../services/member/person.js?v=20261018d';
+import { getBranchById, renameBranch, setBranchActive } from '../../services/branch/branch.js?v=20261018d';
+import { appointSecretary, listAppointments } from '../../services/branch/appointment.js?v=20261018d';
+import { ApiAdapter } from '../../data/api-adapter.js?v=20261018d';
+import { hydrateDataSource } from '../../data/data-adapter.js?v=20261018d';
+import { mountPartyConfig } from '../tabs/party-committee/party-config-tab.js?v=20261018d';
+import { renderSidebar } from '../../components/shell/sidebar.js?v=20261018d';
+import { renderHeader } from '../../components/shell/header.js?v=20261018d';
+import { mountBranchRosterImport } from '../../components/governance/branch-roster-import-panel.js?v=20261018d';
+import { PersonPicker } from '../../components/governance/person-picker.js?v=20261018d';
+import { escHtml as esc, showToast, getBasePath } from '../../core/base/utils.js?v=20261018d';
+import { renderSectionHeader } from '../../components/shell/page-frame.js?v=20261018d';
 
 renderSidebar('workspace');
 renderHeader('workspace');
@@ -66,8 +67,11 @@ function renderControls() {
   controls.innerHTML = `
     <div class="card p-5">
     <div class="mb-4">
-      <h2 class="font-title-cn text-base font-bold text-gray-900">组织与任期</h2>
-      <p class="mt-1 text-sm text-gray-600">当前支书：${esc(currentSecretary)} · 支部状态：${branch.status === 'inactive' ? '已停用' : '运行中'}</p>
+      ${renderSectionHeader({
+        title: '组织与任期',
+        description: `当前支书：${currentSecretary} · 支部状态：${branch.status === 'inactive' ? '已停用' : '运行中'}`,
+        level: 2,
+      })}
     </div>
     <div class="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,0.75fr)]">
       <section aria-labelledby="branch-admin-heading">

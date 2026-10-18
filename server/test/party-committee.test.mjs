@@ -70,7 +70,7 @@ test('党委组织员登录直达党委工作台：台账见支部、可创建�
     assert.equal(await page.locator('#header-my-profile').count(), 0, 'Party header must hide own-profile link');
 
     // 3. 治理首页以真实待处理事项为主，不向党委首页暴露个人级明细
-    await waitForBodyText(page, '支部监控台账'); // tab 栏存在
+    await waitForBodyText(page, '支部动态'); // tab 栏存在
     await page.waitForFunction(() => {
       const c = document.getElementById('party-committee-tab-content');
       return c && c.textContent.includes('党委待处理') && c.textContent.includes('组织待补');
@@ -81,10 +81,10 @@ test('党委组织员登录直达党委工作台：台账见支部、可创建�
     assert.ok(govText.includes('待批复上报'), '首页队列必须说明任务来源和动作');
 
     // 3′. 支部监控按行对比组织状态；查看入口进入独立党委只读视图，不借用支书工作台
-    await page.click('.ws-tab-scroll button:has-text("支部监控台账")');
-    await waitForBodyText(page, '光华管理学院本科生党支部');
+    await page.click('.ws-tab-scroll button:has-text("支部动态")');
+    await waitForBodyText(page, '支部运行台账');
     const monText = await page.evaluate(() => document.getElementById('party-committee-tab-content')?.textContent || '');
-    assert.ok(/成员 · 在册党员/.test(monText) && /待批复 · 活动/.test(monText), '台账应将组织规模与待办/活动动态并列呈现');
+    assert.ok(/成员\s*在册党员/.test(monText) && /待批复\s*活动/.test(monText), '台账应将组织规模与待办/活动动态并列呈现');
     assert.ok(!monText.includes('储子禾') && !monText.includes('思想汇报'), '全院支部台账不得铺开个人级详情');
     assert.ok(await page.evaluate(() => Boolean(document.querySelector('.branch-readonly-enter[data-branch-id="br-b1"]'))), '台账应有独立的只读下钻入口');
 
@@ -116,10 +116,92 @@ test('党委组织员登录直达党委工作台：台账见支部、可创建�
 
     // 5. 持久化：reload 后新支部仍在（API 模式 → server branches 表）
     await page.reload({ waitUntil: 'domcontentloaded' });
-    // reload 后回到默认 tab（治理总览，不含支部明细）→ 切「支部监控台账」应列出新支部
+    // reload 后回到默认 tab（治理总览，不含支部明细）→ 切「支部动态」应列出新支部
     await page.waitForFunction(() => Boolean(document.querySelector('.ws-tab-scroll button')), { timeout: 15000 });
-    await page.click('.ws-tab-scroll button:has-text("支部监控台账")');
+    await page.click('.ws-tab-scroll button:has-text("支部动态")');
     await waitForBodyText(page, branchName);
+  } finally {
+    await page.close();
+  }
+});
+
+// ════════════════════════════════════════════════════════════════
+// 党委未选支部时，下发通知的「已发送」记录必须仍可读取（刷新后不丢）；
+// 支部内其他通知不因此进入党委视野。
+// ════════════════════════════════════════════════════════════════
+test('党委未选支部时只看党委下发通知，支部内其他通知不可见', async () => {
+  const { resourceRowsForActor } = await import('../routes/resources/branch-scope.js');
+  const actor = { role: 'party-staff', branchId: null };
+  const rows = [
+    { id: 'n1', branchId: 'br-b2', source: 'committee', title: '党委下发' },
+    { id: 'n2', branchId: 'br-b2', source: 'branch', title: '支部自建' },
+    { id: 'n3', branchId: 'br-b1', title: '无来源标记' },
+  ];
+  const visible = resourceRowsForActor(null, 'notices', rows, actor, null);
+  assert.deepEqual(visible.map((row) => row.id), ['n1'], '仅党委下发通知可见');
+  const other = resourceRowsForActor(null, 'attendances', rows, actor, null);
+  assert.deepEqual(other, [], '其他支部业务记录仍不放开');
+  const scoped = resourceRowsForActor(null, 'notices', rows, actor, 'br-b2');
+  assert.deepEqual(scoped.map((row) => row.id), ['n1', 'n2'], '选定支部后按原有支部范围读取');
+});
+
+test('设置页主题色色块与页面 --app-accent 同源，默认显示金（默认）', async () => {
+  const page = await browser.newPage();
+  await page.route('**://fonts.googleapis.com/**', (r) => r.abort());
+  await page.route('**://fonts.gstatic.com/**', (r) => r.abort());
+  await page.route('**://cdn.tailwindcss.com/**', (r) => r.abort());
+  try {
+    await page.goto(`${base}/login.html`, { waitUntil: 'domcontentloaded' });
+    await page.fill('#student-id', '9000000001');
+    await page.fill('#password', '123456');
+    await Promise.all([
+      page.waitForURL('**/workspace/party-committee.html', { timeout: 10000 }),
+      page.click('button[type="submit"]'),
+    ]);
+    await page.goto(`${base}/settings.html#appearance`, { waitUntil: 'domcontentloaded' });
+    await page.waitForFunction(() => Boolean(document.querySelector('#appearance-accent-swatch')), { timeout: 15000 });
+    const actual = await page.evaluate(() => {
+      const swatch = document.querySelector('#appearance-accent-swatch');
+      return {
+        swatch: getComputedStyle(swatch).backgroundColor,
+        pageAccent: getComputedStyle(document.documentElement).getPropertyValue('--app-accent').trim().toLowerCase(),
+        text: document.getElementById('settings-panel')?.textContent || '',
+        current: swatch.dataset.currentRole,
+      };
+    });
+    assert.equal(actual.swatch, 'rgb(161, 98, 7)', '主题色色块取实际生效的深金色');
+    assert.equal(actual.pageAccent, '#a16207', '页面 --app-accent 与色块同源');
+    assert.equal(actual.current, 'participant', '色块 data-current-role 应为实际解析键');
+    assert.ok(actual.text.includes('金（默认）'), '设置页标签应显示「金（默认）」');
+    assert.ok(actual.text.includes('主题色'), '设置页用户可见文案应为「主题色」');
+  } finally {
+    await page.close();
+  }
+});
+
+test('支部主题预设只做预览，不覆盖登录用户主题色', async () => {
+  const page = await browser.newPage();
+  await page.route('**://fonts.googleapis.com/**', (r) => r.abort());
+  await page.route('**://fonts.gstatic.com/**', (r) => r.abort());
+  await page.route('**://cdn.tailwindcss.com/**', (r) => r.abort());
+  try {
+    await page.goto(`${base}/login.html`, { waitUntil: 'domcontentloaded' });
+    await page.fill('#student-id', '2300010001'); // p13 支书
+    await page.fill('#password', '123456');
+    await Promise.all([
+      page.waitForURL('**/workspace/secretary.html', { timeout: 10000 }),
+      page.click('button[type="submit"]'),
+    ]);
+    await page.goto(`${base}/settings.html#branch-info-wizard`, { waitUntil: 'domcontentloaded' });
+    await page.waitForSelector('[data-gov="wizard-open"]', { timeout: 15000 });
+    await page.click('[data-gov="wizard-open"]');
+    await page.waitForSelector('input[name="wz-theme"][value="green"]', { timeout: 15000 });
+    const before = await page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--app-accent').trim().toLowerCase());
+    await page.evaluate(() => document.querySelector('input[name="wz-theme"][value="green"]').click());
+    await page.waitForTimeout(300);
+    const after = await page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--app-accent').trim().toLowerCase());
+    assert.equal(before, '#a16207', '登录用户默认主题色为金');
+    assert.equal(after, before, '支部主题预设不得写全局 --app-accent');
   } finally {
     await page.close();
   }
@@ -144,9 +226,9 @@ test('P2 支书任命：任命宋佳宁(p5)为支书 → p5 登录直达支书�
       return h && h.textContent.includes('光华管理学院党委');
     }, { timeout: 10000 });
     const appoint = await page.evaluate(async () => {
-      const { appointSecretary } = await import('/src/services/branch/appointment.js?v=20261018a');
+      const { appointSecretary } = await import('/src/services/branch/appointment.js?v=20261018d');
       await appointSecretary({ branchId: 'br-b1', personId: 'p5', note: 'E2E 换届测试' });
-      const { mockDB } = await import('/src/core/domain/domain.js?v=20261018a');
+      const { mockDB } = await import('/src/core/domain/domain.js?v=20261018d');
       const branch = (mockDB.branches || []).find(b => b.id === 'br-b1');
       const recs = (mockDB.appointmentRecords || []).filter(r => r.branchId === 'br-b1');
       return { secretaryId: branch?.secretaryId, recs: recs.length, currentTo: (recs.find(r => !r.to) || {}).secretaryId };
@@ -158,7 +240,7 @@ test('P2 支书任命：任命宋佳宁(p5)为支书 → p5 登录直达支书�
     // 切监控台账验证只呈组织级信息，不在党委台账铺开支书个人档案。
     await page.reload({ waitUntil: 'domcontentloaded' });
     await page.waitForFunction(() => Boolean(document.querySelector('.ws-tab-scroll button')), { timeout: 15000 });
-    await page.click('.ws-tab-scroll button:has-text("支部监控台账")');
+    await page.click('.ws-tab-scroll button:has-text("支部动态")');
     await waitForBodyText(page, '光华管理学院本科生党支部');
     const monitorText = await page.evaluate(() => document.getElementById('party-committee-tab-content')?.textContent || '');
     assert.ok(!monitorText.includes('宋佳宁'), '党委支部动态不应展示个人档案明细');
@@ -220,13 +302,13 @@ test('党委「查看该支部」进入独立只读视图：范围明确、无�
       '党委登录后应为 API 会话（存在 gsm1921-api-token）'
     );
     // P0-2 形态断言（2026-09-23 支书裁定「形态必须可断言」）：真机用例的数据源形态单一源 = data/data-adapter.js::getRuntimeMode()
-    await page.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20261018a')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
+    await page.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20261018d')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
     await page.waitForFunction(() => Boolean(document.getElementById('app-header')), { timeout: 15000 });
 
-    // 2. 「支部监控台账」→ 点 br-b1 的「查看该支部」
+    // 2. 「支部动态」→ 点 br-b1 的「查看该支部」
     await page.waitForFunction(() => Boolean(document.querySelector('.ws-tab-scroll button')), { timeout: 15000 });
     await page.evaluate(() => {
-      const b = [...document.querySelectorAll('.ws-tab-scroll button')].find((x) => x.textContent.includes('支部监控台账'));
+      const b = [...document.querySelectorAll('.ws-tab-scroll button')].find((x) => x.textContent.includes('支部动态'));
       if (b) b.click();
     });
     await page.waitForFunction(() => Boolean(document.querySelector('.branch-readonly-enter[data-branch-id="br-b1"]')), { timeout: 15000 });
@@ -235,28 +317,36 @@ test('党委「查看该支部」进入独立只读视图：范围明确、无�
       page.evaluate(() => document.querySelector('.branch-readonly-enter[data-branch-id="br-b1"]').click()),
     ]);
 
-    // 3. 页面保持党委身份并明确显示所选支部范围
+    // 3. 页面保持党委身份并明确显示所选支部范围（2026-10-18：页面级眉题已移除，范围落在支部概况卡）
     assert.match(page.url(), /\/workspace\/branch-readonly\.html\?branchId=br-b1$/);
-    await waitForBodyText(page, '党委只读视图');
+    await waitForBodyText(page, '支部概况');
     await waitForBodyText(page, '光华管理学院本科生党支部');
     await waitForBodyText(page, '只读');
 
-    // 4. 只读约束：落点视图无表单和写操作按钮
+    // 4. 只读约束：落点视图无表单、无写操作按钮；名册搜索与筛选控件属于只读查询，不计入写控件
     const surface = await page.evaluate(() => {
       const root = document.getElementById('branch-readonly-content');
       const writeRe = /发布|新增|保存|提交|删除|创建|发起|赋权|指派|上传|编辑|驳回|批准|回滚|导入/;
-      const forms = root.querySelectorAll('form, input, select, textarea').length;
+      const forms = root.querySelectorAll('form, textarea').length;
+      const submitControls = root.querySelectorAll('button[type="submit"], input[type="submit"]').length;
+      const editableInputs = [...root.querySelectorAll('input, select')].filter((el) => {
+        if (el.tagName === 'SELECT') return false; // 筛选下拉是只读查询控件
+        const type = String(el.getAttribute('type') || 'text').toLowerCase();
+        return !['search', 'hidden'].includes(type);
+      }).length;
       const writeButtons = [...root.querySelectorAll('button')]
         .filter((b) => writeRe.test((b.textContent || '') + (b.getAttribute('title') || '')))
         .map((b) => (b.textContent || '').trim().slice(0, 20));
-      return { forms, writeButtons };
+      return { forms, submitControls, editableInputs, writeButtons };
     });
-    assert.equal(surface.forms, 0, `只读视图不应呈现任何表单控件（input/select/textarea/form），实际 ${surface.forms}`);
+    assert.equal(surface.forms, 0, `只读视图不应呈现 form / textarea，实际 ${surface.forms}`);
+    assert.equal(surface.submitControls, 0, `只读视图不应呈现提交控件，实际 ${surface.submitControls}`);
+    assert.equal(surface.editableInputs, 0, `只读视图不应呈现可编辑输入框，实际 ${surface.editableInputs}`);
     assert.deepEqual(surface.writeButtons, [], `只读视图不应呈现写操作按钮，实际 ${JSON.stringify(surface.writeButtons)}`);
 
     // 5. 只读下钻保持 party-staff 身份，不借用支书身份
     const perms = await page.evaluate(async () => {
-      const { AuthStore } = await import('/src/services/core/auth.js?v=20261018a');
+      const { AuthStore } = await import('/src/services/core/auth.js?v=20261018d');
       const me = AuthStore.getCurrentUser();
       return {
         role: me && me.role,

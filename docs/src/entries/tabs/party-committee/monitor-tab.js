@@ -1,11 +1,12 @@
 // Branch monitoring: compare organization-level state without exposing member-level records.
-import { mockDB } from '../../../core/domain/domain.js?v=20261018a';
-import { PersonStore } from '../../../services/member/person.js?v=20261018a';
-import { getRosterStats } from '../../../services/member/roster.js?v=20261018a';
-import { listReviewRequests } from '../../../services/governance/review-request.js?v=20261018a';
-import { bindBranchReadOnlyButtons } from '../../../services/core/branch-readonly-nav.js?v=20261018a';
-import { renderBranchFilter, filterByBranch } from '../../../components/governance/branch-filter.js?v=20261018a';
-import { escHtml as esc } from '../../../core/base/utils.js?v=20261018a';
+import { mockDB } from '../../../core/domain/domain.js?v=20261018d';
+import { PersonStore } from '../../../services/member/person.js?v=20261018d';
+import { getRosterStats } from '../../../services/member/roster.js?v=20261018d';
+import { listReviewRequests } from '../../../services/governance/review-request.js?v=20261018d';
+import { bindBranchReadOnlyButtons } from '../../../services/core/branch-readonly-nav.js?v=20261018d';
+import { renderBranchFilter, filterByBranch } from '../../../components/governance/branch-filter.js?v=20261018d';
+import { escHtml as esc } from '../../../core/base/utils.js?v=20261018d';
+import { renderSectionHeader } from '../../../components/shell/page-frame.js?v=20261018d';
 
 const BRANCH_FILTER_STATE = 'pc-monitor';
 
@@ -33,18 +34,12 @@ export async function renderContent(ctx) {
   });
 
   host.innerHTML = `
-    <div class="party-page party-page--wide">
-      <header class="party-page__header">
-        <div class="party-page__heading">
-        <p class="text-xs font-medium text-gray-500">党委 · 全院范围</p>
-        <h2 class="mt-1 font-title-cn text-xl font-bold text-gray-900">支部动态</h2>
-        <p class="mt-1 text-sm text-gray-600">按支部查看运行状态、待批复数量和活动记录。个人档案只在选定支部的只读视图中打开。</p>
-        </div>
-      </header>
+    <div class="page-section-stack">
       <section class="card p-5" aria-label="支部运行台账">
-        <div id="pc-monitor-branch-filter" class="mb-4"></div>
+        ${renderSectionHeader({ title: '支部运行台账', description: '按支部对比运行状态与待批复数量' })}
+        <div id="pc-monitor-branch-filter" class="mb-4 mt-4"></div>
         ${rows.length ? `<div class="pc-table-scroll pc-table-scroll--branches">
-          <table class="data-table">
+          <table class="data-table data-table--compare">
             <caption class="visually-hidden">支部运行台账：比较支部状态、成员、活动与待批复数量</caption>
             <thead><tr><th scope="col">支部</th><th scope="col">状态</th><th scope="col">成员</th><th scope="col">在册党员</th><th scope="col">待批复</th><th scope="col">活动</th><th scope="col">查看</th></tr></thead>
             <tbody>${rows.map(({ branch, memberCount, partyCount, activityCount, pendingCount }) => `

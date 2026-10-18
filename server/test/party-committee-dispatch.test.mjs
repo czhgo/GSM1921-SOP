@@ -50,7 +50,7 @@ async function loginAs(page, { studentId, expectUrlPart }) {
   ]);
   await page.waitForFunction(() => Boolean(document.getElementById('app-header')), { timeout: 15000 });
   // P0-2 形态断言（2026-09-23 支书裁定「形态必须可断言」）：本文件真机用例必须在 API 形态下跑
-  await page.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20261018a')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
+  await page.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20261018d')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
 }
 
 async function activateTab(page, tabLabel) {
@@ -87,6 +87,12 @@ test('P3 党委下发：支委层收件可见（支书），党委自身/普通�
     await partyPage.evaluate((title) => {
       const t = document.getElementById('dispatch-title');
       const c = document.getElementById('dispatch-content');
+      // 2026-10-18：目标支部默认不选，成功下发前须主动勾选（同 form-loop 成功路径口径）。
+      const branch = document.querySelector('input[name="dispatch-branch"]');
+      if (branch && !branch.checked) {
+        branch.checked = true;
+        branch.dispatchEvent(new Event('change', { bubbles: true }));
+      }
       if (t) { t.value = title; t.dispatchEvent(new Event('input', { bubbles: true })); }
       if (c) { c.value = '请支委会对照落实，重要事项及时向支部大会传达。'; c.dispatchEvent(new Event('input', { bubbles: true })); }
       document.getElementById('dispatch-submit')?.click();

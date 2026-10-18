@@ -94,3 +94,29 @@ export function ensureLegacySourceWorkgroups(db) {
   ensure(db.taskforces, 'taskforce');
   return changed;
 }
+
+// ── 演示成员产出授权种子（2026-10-18）────────────────────────────
+// 工作组成员身份不自动带来写权限（AuthStore.canDo 走 workgroupGrants）。
+// p5 是 tf-001 的深度参与者、也是成员台「专班动态 · 我的产出填报」演示账号；
+// 这条种子只补该演示账号在演示专班的 output.submit（deep 模板），不改角色权限矩阵。
+export const DEMO_WORKGROUP_GRANTS = Object.freeze([
+  {
+    id: 'wgg-seed-tf-001-p5', branchId: 'br-b1', workgroupId: 'wg-taskforce-tf-001', personId: 'p5',
+    templateKey: 'deep', permissionKeys: ['output.submit', 'task.complete'], status: 'active',
+    reason: '演示成员产出登记基线（成员台专班动态）', grantedBy: 'p_pc', grantedAt: '2026-09-01T00:00:00.000Z',
+  },
+]);
+
+/** 幂等补演示工作组成员授权（mock 种子与 server 种子共用同一清单，勿各自手写） */
+export function ensureDemoWorkgroupGrants(db) {
+  const grants = Array.isArray(db.workgroupGrants) ? [...db.workgroupGrants] : [];
+  let changed = false;
+  for (const grant of DEMO_WORKGROUP_GRANTS) {
+    if (!grants.some((row) => row.id === grant.id)) {
+      grants.push({ ...grant, permissionKeys: [...grant.permissionKeys] });
+      changed = true;
+    }
+  }
+  db.workgroupGrants = grants;
+  return changed;
+}

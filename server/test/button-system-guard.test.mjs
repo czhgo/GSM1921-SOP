@@ -183,6 +183,7 @@ const HANDWRITTEN_BUTTON_BASELINE = 0;
  */
 const COMPONENT_STATE_EXEMPT = [
   '-tab-btn', // 页头 tab（`components/shell/tab-bar.js` 单一源）：选中态＝`.tab-btn-active` ＋ 内联 `--tab-accent`
+  'subtab', // 页内二级切换（党委上报/下发通知共用）：选中态＝`.subtab[aria-selected="true"]`，2026-10-18 工作台提质
 ];
 
 test('B4 按钮族棘轮：未入语义族的 <button> 只许降不许升（「全面归一」的进度表）', () => {

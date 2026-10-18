@@ -6,4 +6,4 @@ export {
   bindBranchReadOnlyButtons as bindBranchDemoButtons,
   isPartyStaffBranchReadOnlyAllowed as isPartyStaffBranchDemoAllowed,
   isReadonlyBranchDrilldown,
-} from './branch-readonly-nav.js?v=20261018a';
+} from './branch-readonly-nav.js?v=20261018d';

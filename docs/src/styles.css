@@ -1,5 +1,5 @@
 /* 组件样式（@import 必须位于文件顶部） */
-@import url('components/person-picker.css?v=20261018a');
+@import url('components/person-picker.css?v=20261018d');
 
 /* ═══════════════════════════════════════════════════════════════
    GSM1921-SOP DESIGN SYSTEM v11.0 — Matte Flat
@@ -91,16 +91,21 @@
   --functional-error:   #EF4444;
   --functional-info:    #3B82F6;
 
+  /* ── 默认主题色（金色，2026-10-18 工作台提质）──
+     所有角色无个人主题色时回退到金色；--accent-participant 是角色语义色（红），
+     不随主题变化，故默认金使用独立令牌，不复用角色令牌。 */
+  --accent-default:        #A16207;
+  --accent-default-bg:     rgba(255, 215, 0, 0.12);
+  --accent-default-border: rgba(255, 215, 0, 0.35);
+
   /* ── 主题色运行时令牌（--app-accent 三件套）· 正式默认值（2026-09-28）──
      7 个工作台由 bootstrapPage（core/boot/bootstrap.js）/ theme.js 在 <html> 上注入当前用户主题色，
      覆盖此处默认值；归档 / 反馈 / 通知 / 帮助 / 关于等非工作台页**不注入** ⇒ 此前每个组件各自写
      `var(--app-accent, <党建红 hex>)` 硬编码兜底（DESIGN_SYSTEM §2.8 兜底规则），兜底值散落各处。
-     此处给三件套**正式默认值**（＝党建红三件套，与旧兜底逐字等值 ⇒ 观感零变化）：
-     组件此后可直接写 var(--app-accent) / var(--app-accent-bg) / var(--app-accent-border)，
-     不须再带硬编码兜底。⚠ 取 `var(--accent-secretary)` 而非再写 hex（二者同值）。 */
-  --app-accent:        var(--accent-secretary);
-  --app-accent-bg:     rgba(185, 28, 28, 0.1);
-  --app-accent-border: rgba(185, 28, 28, 0.3);
+     2026-10-18 起默认值改取金色令牌（无个人偏好 / 非法回退统一到金色）。 */
+  --app-accent:        var(--accent-default);
+  --app-accent-bg:     var(--accent-default-bg);
+  --app-accent-border: var(--accent-default-border);
 
   /* ── Shape — 圆角 ── */
   --radius-sm: 8px;
@@ -356,6 +361,110 @@ body {
   padding-bottom: 1rem;
 }
 .party-page__heading { min-width: 0; }
+
+/* 工作台页面骨架（2026-10-18）：一个页面一个标题，分区从任务标题开始 */
+.page-frame {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  width: 100%;
+  min-width: 0;
+  margin-inline: auto;
+  max-width: 80rem;
+}
+.page-frame--content { max-width: 72rem; }
+.page-frame--wide { max-width: 80rem; }
+.page-frame__header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+  border-bottom: 1px solid var(--neutral-200);
+  padding-bottom: 1rem;
+}
+.page-frame__heading { min-width: 0; }
+.page-frame__title {
+  margin-top: 0.25rem;
+  font-family: 'STZhongsong', '华文中宋', 'STSong', 'SimSun', 'PingFang SC', serif;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--neutral-900);
+}
+.page-scope {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.25rem 0.625rem;
+  border: 1px solid var(--neutral-200);
+  border-radius: 999px;
+  background: var(--neutral-50);
+  color: var(--neutral-600);
+  font-size: 0.75rem;
+}
+.page-frame__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+.page-section-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  min-width: 0;
+}
+.page-section { min-width: 0; }
+.page-section--reading { max-width: 72rem; }
+.page-section--form { width: 70%; max-width: none; }
+.page-section__header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+.page-section__heading { min-width: 0; }
+.page-section__title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--neutral-900);
+}
+.page-section__description {
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--neutral-500);
+}
+.page-section__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+/* 二级切换（待批复/已处理、撰写/已发送）：从属于一级页签，用中性深色表示选中 */
+.subtabs {
+  display: flex;
+  gap: 0.25rem;
+  border-bottom: 1px solid var(--neutral-200);
+}
+.subtab {
+  padding: 0.5rem 0.75rem;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  color: var(--neutral-600);
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+.subtab[aria-selected="true"] {
+  border-bottom-color: var(--neutral-900);
+  color: var(--neutral-900);
+  font-weight: 600;
+}
+.subtab:focus-visible {
+  outline: 3px solid var(--primary-500);
+  outline-offset: 2px;
+}
 .pc-table-scroll { max-width: 100%; overflow-x: auto; }
 .pc-table-scroll--branches > .data-table { min-width: 58rem; }
 .pc-table-scroll--members > .data-table { min-width: 42rem; }
@@ -429,6 +538,8 @@ body {
   .org-config-layout { grid-template-columns: minmax(0, 1fr); }
   .org-config-steps { position: static; display: block; }
   .org-config-step-select { display: block; width: 100%; }
+  .page-section--form { width: 100%; }
+  .page-scope { flex-wrap: wrap; max-width: 100%; }
   .org-config-step-buttons { display: none; }
   .branch-readonly-nav { position: static; }
 }
@@ -437,6 +548,8 @@ body {
   .branch-config-select { display: block; width: 100%; margin-bottom: 1rem; }
   .party-page { gap: 1rem; }
   .party-page__header { align-items: flex-start; }
+  .page-frame { gap: 1rem; }
+  .page-frame__header { align-items: flex-start; }
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -1071,6 +1184,11 @@ html.theme-dark .accent-avatar {
 .data-table.rm-table td {
   padding-left: 8px;
   padding-right: 8px;
+}
+/* 支部对比表：列按内容定宽，避免低密度列（状态/人数/操作）被拉伸填满 */
+.data-table--compare {
+  width: auto;
+  min-width: 58rem;
 }
 
 .data-table td {

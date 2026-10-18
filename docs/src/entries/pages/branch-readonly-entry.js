@@ -1,14 +1,15 @@
 // 党委所选支部只读视图：页面身份不切换到支部工作台。
-import { renderSidebar } from '../../components/shell/sidebar.js?v=20261018a';
-import { renderHeader } from '../../components/shell/header.js?v=20261018a';
-import { AuthStore } from '../../services/core/auth.js?v=20261018a';
-import { BranchService } from '../../services/core/runtime.js?v=20261018a';
-import { PersonStore, getPersonName } from '../../services/member/person.js?v=20261018a';
-import { getBranchById } from '../../services/branch/branch.js?v=20261018a';
-import { ApiAdapter } from '../../data/api-adapter.js?v=20261018a';
-import { hydrateDataSource } from '../../data/data-adapter.js?v=20261018a';
-import { getBasePath, escHtml as esc } from '../../core/base/utils.js?v=20261018a';
-import { ROLE_LABELS } from '../../core/domain/constants.js?v=20261018a';
+import { renderSidebar } from '../../components/shell/sidebar.js?v=20261018d';
+import { renderHeader } from '../../components/shell/header.js?v=20261018d';
+import { AuthStore } from '../../services/core/auth.js?v=20261018d';
+import { BranchService } from '../../services/core/runtime.js?v=20261018d';
+import { PersonStore, getPersonName } from '../../services/member/person.js?v=20261018d';
+import { getBranchById } from '../../services/branch/branch.js?v=20261018d';
+import { ApiAdapter } from '../../data/api-adapter.js?v=20261018d';
+import { hydrateDataSource } from '../../data/data-adapter.js?v=20261018d';
+import { getBasePath, escHtml as esc } from '../../core/base/utils.js?v=20261018d';
+import { ROLE_LABELS } from '../../core/domain/constants.js?v=20261018d';
+import { renderPageHeader } from '../../components/shell/page-frame.js?v=20261018d';
 
 renderSidebar('workspace');
 renderHeader('workspace');
@@ -54,25 +55,23 @@ async function render() {
 
   host.setAttribute('aria-busy', 'false');
   host.innerHTML = `
-    <div class="party-page party-page--wide" data-branch-readonly="${esc(branchId)}">
-      <header class="party-page__header">
-        <div class="min-w-0">
-          <p class="text-xs font-medium text-blue-700">党委只读视图 · 当前范围：${esc(branchName)}</p>
-          <h1 class="mt-1 font-title-cn text-2xl font-bold text-gray-900">${esc(branchName)}</h1>
-          <p class="mt-1 text-sm text-gray-600">${esc(branch.type || '支部')} · 支书：${esc(secretaryName)}</p>
-        </div>
-        <a class="btn-outline inline-flex shrink-0 px-3 py-2 text-sm" href="${getBasePath()}workspace/party-committee.html?tab=monitor">返回支部台账</a>
-      </header>
+    <div class="page-frame page-frame--wide" data-branch-readonly="${esc(branchId)}">
+      ${renderPageHeader({
+        title: branchName,
+        actions: `<a class="btn-outline inline-flex shrink-0 px-3 py-2 text-sm" href="${getBasePath()}workspace/party-committee.html?tab=monitor">返回支部台账</a>`,
+      })}
 
       <section id="branch-overview" class="card p-5" aria-labelledby="branch-state-heading">
         <div class="flex flex-wrap items-start justify-between gap-3">
-          <div><h2 id="branch-state-heading" class="font-title-cn text-base font-bold text-gray-900">支部概况</h2><p class="mt-1 text-sm text-gray-600">当前范围：${esc(branchName)} · 只读</p></div>
+          <div>
+            <p class="text-xs text-gray-500">${esc(branch.type || '支部')} · 支书：${esc(secretaryName)}</p>
+            <h2 id="branch-state-heading" class="mt-1 font-title-cn text-base font-bold text-gray-900">支部概况</h2>
+          </div>
         </div>
-        <dl class="mt-4 grid grid-cols-2 gap-x-6 gap-y-3 border-t border-gray-200 pt-4 sm:grid-cols-4">
+        <dl class="mt-4 grid grid-cols-2 gap-x-6 gap-y-3 border-t border-gray-200 pt-4 sm:grid-cols-3">
           <div><dt class="text-xs text-gray-500">状态</dt><dd class="mt-1 text-sm font-medium text-gray-800">${branch.status === 'inactive' ? '已停用' : '运行中'}</dd></div>
           <div><dt class="text-xs text-gray-500">成员</dt><dd class="mt-1 text-sm font-medium tabular-nums text-gray-800">${rows.length} 人</dd></div>
           <div><dt class="text-xs text-gray-500">近期活动</dt><dd class="mt-1 text-sm font-medium tabular-nums text-gray-800">${branchActivities.length} 项</dd></div>
-          <div><dt class="text-xs text-gray-500">查看权限</dt><dd class="mt-1 text-sm font-medium text-gray-800">只读</dd></div>
         </dl>
       </section>
 
@@ -82,7 +81,7 @@ async function render() {
 
       <section id="branch-roster" class="card p-5" aria-labelledby="branch-members-heading">
         <div class="flex flex-wrap items-baseline justify-between gap-2">
-          <div><h2 id="branch-members-heading" class="font-title-cn text-base font-bold text-gray-900">成员名册</h2><p class="mt-1 text-sm text-gray-600">姓名可进入该成员的只读档案。</p></div>
+          <div><h2 id="branch-members-heading" class="font-title-cn text-base font-bold text-gray-900">成员名册</h2></div>
           <span id="branch-member-count" class="text-sm tabular-nums text-gray-600">${rows.length} 人</span>
         </div>
         <div class="mt-4 grid grid-cols-1 gap-3 md:grid-cols-[minmax(15rem,1fr)_minmax(10rem,0.45fr)_minmax(10rem,0.45fr)]">
@@ -104,7 +103,7 @@ async function render() {
       </section>
 
       <section id="branch-activities" class="card p-5" aria-labelledby="branch-activity-heading">
-        <div class="flex flex-wrap items-baseline justify-between gap-2"><div><h2 id="branch-activity-heading" class="font-title-cn text-base font-bold text-gray-900">活动动态</h2><p class="mt-1 text-sm text-gray-600">与成员名册分开查看的本支部活动记录。</p></div><span class="text-sm text-gray-600">${branchActivities.length} 项</span></div>
+        <div class="flex flex-wrap items-baseline justify-between gap-2"><div><h2 id="branch-activity-heading" class="font-title-cn text-base font-bold text-gray-900">活动动态</h2></div><span class="text-sm text-gray-600">${branchActivities.length} 项</span></div>
         ${branchActivities.length ? `<ol class="mt-4 divide-y divide-gray-200 border-y border-gray-200">
           ${branchActivities.slice(0, 10).map((activity) => `<li class="grid grid-cols-[6rem_minmax(0,1fr)_auto] items-baseline gap-3 py-3">
             <time class="text-sm tabular-nums text-gray-500">${esc(String(activity.date || '未定').slice(0, 10))}</time><span class="min-w-0 text-sm font-medium text-gray-800">${esc(activity.title || '未命名活动')}</span><span class="text-sm text-gray-500">${esc(activity.status || '未标注状态')}</span>

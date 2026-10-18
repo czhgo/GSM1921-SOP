@@ -18,9 +18,9 @@
 //     登录人页面在冻结读取点取到的是全局键残留/默认 → 首帧小闪烁为已接受局限（5c 前记录，不变），
 //     DOMContentLoaded 二次 sync 以本人 person 值作最终覆盖。主题算法与 CSS 变量体系不变。
 
-import { readLoginSnapshot } from '../session/login-snapshot.js?v=20261018a';
+import { readLoginSnapshot } from '../session/login-snapshot.js?v=20261018d';
 // 强调色 DOM 生效（person 覆盖 → --app-accent 三件套）与解析复用 constants 纯静态表；constants 零依赖，无环
-import { ACCENT_COLORS, getAccentColors } from '../domain/constants.js?v=20261018a';
+import { ACCENT_COLORS, getAccentColors } from '../domain/constants.js?v=20261018d';
 
 const THEME_KEY = 'workflowos_theme';        // 主题（历史全局键；访客回落 / theme-init 首帧读取）
 const FONT_KEY = 'workflowos_font_size';     // 字号（历史全局键；bootstrap.js 启动读取）
@@ -175,14 +175,14 @@ export function setAccentRolePreference(roleKey) {
 /**
  * 当前作用域生效强调色角色键解析（R1-A person-aware 版；替代消费方对 constants
  * resolveAccentRole 的直接调用——resolveAccentRole 只读全局键、仅服务访客/冻结读取点）：
- *   · 登录用户：person 覆盖键合法（ACCENT_COLORS 内）→ 用之；无/非法 → roleFallback（角色默认）；
- *   · 访客：全局键合法 → 用之；无/非法 → roleFallback（与既有 resolveAccentRole 语义一致）。
- * @param {string} roleFallback 页面默认角色键（访客/无覆盖时回落）
+ *   · 登录用户：person 覆盖键合法（ACCENT_COLORS 内）→ 用之；无/非法 → 默认金色；
+ *   · 访客：全局键合法 → 用之；无/非法 → 默认金色（2026-10-18：默认金色，不再取角色固有色）。
+ * @param {string} roleFallback 页面默认角色键（保留以兼容调用方；默认值不再取角色色）
  * @returns {string} 生效的角色键
  */
 export function resolveAppliedAccentRole(roleFallback) {
   const override = getAccentRolePreference();
-  return override && ACCENT_COLORS[override] ? override : (roleFallback || '');
+  return override && ACCENT_COLORS[override] ? override : 'participant';
 }
 
 /**
@@ -200,13 +200,13 @@ export function getAppliedAccentColors(roleFallback, bgAlpha = 0.1, borderAlpha 
   return getAccentColors(resolveAppliedAccentRole(roleFallback), bgAlpha, borderAlpha);
 }
 
-/** 登录用户 person 强调色覆盖 → --app-accent 三件套（无覆盖/非法/访客 = 不动，交由页面角色默认逻辑） */
+/** 登录用户主题色 → --app-accent 三件套：无覆盖/非法也写默认金色（避免支部主题预设残留覆盖） */
 function applyPersonAccent() {
   if (typeof document === 'undefined' || !document.documentElement) return;
   if (!getActivePersonId()) return; // 访客：accent 变量由页面既有 resolveAccentRole 路径负责
   const override = getAccentRolePreference();
-  if (!override || !ACCENT_COLORS[override]) return;
-  const { accent, accentRgba, accentBorder } = getAccentColors(override);
+  const key = override && ACCENT_COLORS[override] ? override : 'participant';
+  const { accent, accentRgba, accentBorder } = getAccentColors(key);
   const root = document.documentElement;
   root.style.setProperty('--app-accent', accent);
   root.style.setProperty('--app-accent-bg', accentRgba);

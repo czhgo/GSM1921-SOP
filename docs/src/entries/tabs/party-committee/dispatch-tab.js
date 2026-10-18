@@ -1,14 +1,23 @@
 // Party dispatch reuses the notice domain; this page separates composing from sent history.
-import { mockDB } from '../../../core/domain/domain.js?v=20261018a';
-import { AuthStore } from '../../../services/core/auth.js?v=20261018a';
-import { NoticeStore } from '../../../services/governance/notice.js?v=20261018a';
-import { textField, textareaField } from '../../../components/ui/forms.js?v=20261018a';
-import { showToast, escHtml as esc } from '../../../core/base/utils.js?v=20261018a';
-import { renderBranchFilter, filterByBranch } from '../../../components/governance/branch-filter.js?v=20261018a';
+import { mockDB } from '../../../core/domain/domain.js?v=20261018d';
+import { AuthStore } from '../../../services/core/auth.js?v=20261018d';
+import { NoticeStore } from '../../../services/governance/notice.js?v=20261018d';
+import { textField, textareaField } from '../../../components/ui/forms.js?v=20261018d';
+import { showToast, escHtml as esc } from '../../../core/base/utils.js?v=20261018d';
+import { renderBranchFilter, filterByBranch } from '../../../components/governance/branch-filter.js?v=20261018d';
+import { renderSectionHeader } from '../../../components/shell/page-frame.js?v=20261018d';
 
 const BRANCH_FILTER_STATE = 'pc-dispatch';
-let dispatchView = 'compose';
+const initialView = new URLSearchParams(window.location.search).get('view');
+let dispatchView = initialView === 'history' ? 'history' : 'compose';
 let draft = null;
+
+function setDispatchView(view) {
+  dispatchView = view === 'history' ? 'history' : 'compose';
+  const url = new URL(window.location.href);
+  url.searchParams.set('view', dispatchView);
+  window.history.replaceState({}, '', url);
+}
 
 function readDraft(el) {
   const title = el?.querySelector('#dispatch-title');
@@ -29,22 +38,15 @@ export function renderContent() {
   const actor = AuthStore.getCurrentUser();
   if (!actor) return;
   draft = readDraft(host) || draft || {
-    branchIds: (mockDB.branches || []).map((branch) => branch.id),
+    branchIds: [],
     pri: 'normal', title: '', content: '',
   };
 
   host.innerHTML = `
-    <div class="party-page">
-      <header class="party-page__header">
-        <div class="party-page__heading">
-        <p class="text-xs font-medium text-gray-500">党委 · 支委层收件</p>
-        <h2 class="mt-1 font-title-cn text-xl font-bold text-gray-900">下发通知</h2>
-        <p class="mt-1 text-sm text-gray-600">通知送达所选支部的支委层；收件人在通知铃铛中查看。</p>
-        </div>
-      </header>
-      <div class="flex gap-1 border-b border-gray-200" role="tablist" aria-label="通知工作区">
-        <button id="pc-dispatch-tab-compose" type="button" class="px-3 py-2 text-sm ${dispatchView === 'compose' ? 'border-b-2 border-red-700 font-semibold text-gray-900' : 'text-gray-600'}" data-dispatch-view="compose" role="tab" aria-controls="pc-dispatch-panel" aria-selected="${dispatchView === 'compose'}" tabindex="${dispatchView === 'compose' ? '0' : '-1'}">撰写</button>
-        <button id="pc-dispatch-tab-history" type="button" class="px-3 py-2 text-sm ${dispatchView === 'history' ? 'border-b-2 border-red-700 font-semibold text-gray-900' : 'text-gray-600'}" data-dispatch-view="history" role="tab" aria-controls="pc-dispatch-panel" aria-selected="${dispatchView === 'history'}" tabindex="${dispatchView === 'history' ? '0' : '-1'}">已发送 <span class="ml-1 tabular-nums">${(mockDB.notices || []).filter((notice) => notice.source === 'committee').length}</span></button>
+    <div class="page-section-stack">
+      <div class="subtabs" role="tablist" aria-label="通知工作区">
+        <button id="pc-dispatch-tab-compose" type="button" class="subtab" data-dispatch-view="compose" role="tab" aria-controls="pc-dispatch-panel" aria-selected="${dispatchView === 'compose'}" tabindex="${dispatchView === 'compose' ? '0' : '-1'}">撰写</button>
+        <button id="pc-dispatch-tab-history" type="button" class="subtab" data-dispatch-view="history" role="tab" aria-controls="pc-dispatch-panel" aria-selected="${dispatchView === 'history'}" tabindex="${dispatchView === 'history' ? '0' : '-1'}">已发送 <span class="ml-1 tabular-nums">${(mockDB.notices || []).filter((notice) => notice.source === 'committee').length}</span></button>
       </div>
       <section id="pc-dispatch-panel" role="tabpanel" aria-labelledby="${dispatchView === 'compose' ? 'pc-dispatch-tab-compose' : 'pc-dispatch-tab-history'}" tabindex="0">
         ${dispatchView === 'compose' ? composeHtml(draft) : historyHtml()}
@@ -55,7 +57,7 @@ export function renderContent() {
   dispatchTabs.forEach((button, index) => {
     button.addEventListener('click', () => {
       draft = readDraft(host) || draft;
-      dispatchView = button.dataset.dispatchView === 'history' ? 'history' : 'compose';
+      setDispatchView(button.dataset.dispatchView);
       renderContent();
     });
     button.addEventListener('keydown', (event) => {
@@ -81,15 +83,15 @@ function composeHtml(state) {
   const branches = mockDB.branches || [];
   const selected = new Set(state.branchIds || []);
   return `
-    <section aria-labelledby="dispatch-compose-title" class="card layout-shell layout-shell--form p-5">
-      <h3 id="dispatch-compose-title" class="font-title-cn text-base font-bold text-gray-900">撰写一条党委通知</h3>
-      <fieldset class="mt-4">
+    <section aria-labelledby="dispatch-compose-title" class="card page-section page-section--form p-5">
+      ${renderSectionHeader({ titleId: 'dispatch-compose-title', title: '撰写一条党委通知', description: '通知送达所选支部的支委层；收件人在通知铃铛中查看。', level: 3 })}
+      <fieldset id="dispatch-branches" class="mt-4">
         <legend class="text-sm font-medium text-gray-800">目标支部 <span class="text-red-700">*</span></legend>
         <div class="mt-2 flex flex-wrap gap-x-5 gap-y-2">
           <label class="inline-flex items-center gap-2 py-1 text-sm text-gray-700"><input type="checkbox" data-dispatch-all ${selected.size === branches.length && branches.length ? 'checked' : ''}>全部支部</label>
           ${branches.map((branch) => `<label class="inline-flex items-center gap-2 py-1 text-sm text-gray-700"><input type="checkbox" name="dispatch-branch" value="${esc(branch.id)}" ${selected.has(branch.id) ? 'checked' : ''}>${esc(branch.config?.headerTitle || branch.name)}</label>`).join('')}
         </div>
-        <p class="mt-1 text-xs text-gray-500">发送前请核对收件支部。</p>
+        <p class="mt-1 text-xs text-gray-500">默认不选；请主动勾选目标支部后再发送。</p>
       </fieldset>
       <div class="mt-4 space-y-3">
         ${textField({ id: 'dispatch-title', label: '标题', required: true, value: state.title, placeholder: '通知主题', autocomplete: 'off', compact: false })}
@@ -142,6 +144,7 @@ function bindComposer(host) {
     });
     showToast('success', `已下发至 ${branchIds.length} 个支部的支委层`);
     draft = { branchIds: [], pri: 'normal', title: '', content: '' };
+    setDispatchView('history');
     renderContent();
   });
 }
@@ -152,8 +155,9 @@ function historyHtml() {
     .slice()
     .sort((a, b) => String(b.publishDate || '').localeCompare(String(a.publishDate || ''))), BRANCH_FILTER_STATE);
   return `
-    <section aria-label="党委通知发送记录" class="card p-5">
-      <div id="pc-dispatch-branch-filter" class="mb-3"></div>
+    <section id="dispatch-history" aria-label="党委通知发送记录" class="card p-5">
+      ${renderSectionHeader({ title: '发送记录', level: 3 })}
+      <div id="pc-dispatch-branch-filter" class="mb-3 mt-4"></div>
       ${rows.length ? `<ol class="divide-y divide-gray-200 border-y border-gray-200">
         ${rows.map((notice) => `
           <li class="py-4">

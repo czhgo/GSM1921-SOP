@@ -58,7 +58,7 @@ function seedMilestones() {
 }
 
 export async function seedDatabase(db) {
-  const [peopleMod, activitiesMod, noticesMod, taskforcesMod, seedMod, branchesMod, partyGroupsMod] = await Promise.all([
+  const [peopleMod, activitiesMod, noticesMod, taskforcesMod, seedMod, branchesMod, partyGroupsMod, workgroupSyncMod] = await Promise.all([
     import('../docs/src/data/mock/people.js'),
     import('../docs/src/data/mock/activities.js'),
     import('../docs/src/data/mock/notices.js'),
@@ -66,13 +66,33 @@ export async function seedDatabase(db) {
     import('../docs/src/data/mock/seed.js'),
     import('../docs/src/data/mock/branches.js'),
     import('../docs/src/data/mock/party-groups.js'),
+    import('../docs/src/data/workgroup-seed-sync.js'),
   ]);
+
+  // 2026-10-18：活动/专班 → 工作组/成员的既有映射，在播种阶段一并落库。
+  // 原迁移 v3 在 seed 之前执行（新库此时活动/专班为空）⇒ 播种后工作组缺失；
+  // 这里用同一迁移函数（单一源）补齐，并追加演示成员产出授权种子。
+  const workgroupSeed = {
+    activities: activitiesMod.ACTIVITIES.map((row) => ({ ...row })),
+    taskforces: taskforcesMod.MOCK_TASKFORCES.map((row) => ({ ...row })),
+    workgroups: [], workgroupMembers: [], workgroupGrants: [],
+  };
+  workgroupSyncMod.ensureLegacySourceWorkgroups(workgroupSeed);
+  workgroupSyncMod.ensureDemoWorkgroupGrants(workgroupSeed);
+  const replaceWorkgroupTable = (table, rows) => {
+    db.exec(`DELETE FROM ${table}`);
+    const stmt = db.prepare(`INSERT OR REPLACE INTO ${table} (id, data) VALUES (?, ?)`);
+    for (const row of rows) stmt.run(row.id, JSON.stringify(row));
+  };
+  replaceWorkgroupTable('workgroups', workgroupSeed.workgroups);
+  replaceWorkgroupTable('workgroup_members', workgroupSeed.workgroupMembers);
+  replaceWorkgroupTable('workgroup_grants', workgroupSeed.workgroupGrants);
 
   replaceCollection(db, 'users', peopleMod.PEOPLE);
   replaceCollection(db, 'branches', branchesMod.BRANCHES);
-  replaceCollection(db, 'activities', activitiesMod.ACTIVITIES);
+  replaceCollection(db, 'activities', workgroupSeed.activities);
   replaceCollection(db, 'notices', noticesMod.MOCK_NOTICES);
-  replaceCollection(db, 'taskforces', taskforcesMod.MOCK_TASKFORCES);
+  replaceCollection(db, 'taskforces', workgroupSeed.taskforces);
   replaceCollection(db, 'tasks', seedMod.SEED_TASKS);
   replaceCollection(db, 'assignments', seedMod.SEED_ASSIGNMENTS);
   // T-209 全栈同步：档案归档/报名记录补种（与 mock-adapter.js _seedInitialData 对齐），

@@ -8,23 +8,23 @@
 // 重设计要点：单列进度总览，取消 2x2 四色卡片与四色左边条，主体色统一党建红。
 // 2026-08-10 支书裁定：本页禁用 SVG 图标（不再引入 icon），类别用色点+文字标签区分。
 
-import { showToast, escHtml as esc, todayLocal } from '../../../core/base/utils.js?v=20261018a';
-import { NoticeStore } from '../../../services/governance/notice.js?v=20261018a';
-import { ROLE_LABELS, ROLE_COLORS } from '../../../core/domain/constants.js?v=20261018a';
-import { AuthStore } from '../../../services/core/auth.js?v=20261018a';
-import { dutyCardHtml } from '../../../components/governance/workforce-duty-card.js?v=20261018a';
-import { SecretaryOverviewStore, SecretaryTodoDeriver, listPeriodicArchivesPendingReview, reviewPeriodicArchive, PERIODIC_ARCHIVE_REVIEW_STATUS } from '../../../services/governance/secretary-overview.js?v=20261018a';
+import { showToast, escHtml as esc, todayLocal } from '../../../core/base/utils.js?v=20261018d';
+import { NoticeStore } from '../../../services/governance/notice.js?v=20261018d';
+import { ROLE_LABELS, ROLE_COLORS } from '../../../core/domain/constants.js?v=20261018d';
+import { AuthStore } from '../../../services/core/auth.js?v=20261018d';
+import { dutyCardHtml } from '../../../components/governance/workforce-duty-card.js?v=20261018d';
+import { SecretaryOverviewStore, SecretaryTodoDeriver, listPeriodicArchivesPendingReview, reviewPeriodicArchive, PERIODIC_ARCHIVE_REVIEW_STATUS } from '../../../services/governance/secretary-overview.js?v=20261018d';
 // S1–S4 滞留党员设计（2026-09-06 支书已批）：支书复核卡（只读查看徽标/备注/变更留痕）
-import { getRosterStats } from '../../../services/member/roster.js?v=20261018a';
-import { loadActivities } from '../../../services/activity/activity.js?v=20261018a';
-import { loadAttendanceRecords } from '../../../services/activity/attendance.js?v=20261018a';
-import { AttendanceStatus } from '../../../core/domain/domain.js?v=20261018a';
-import { IssueStore, REPORT_CATEGORIES } from '../../../services/governance/issues.js?v=20261018a';
+import { getRosterStats } from '../../../services/member/roster.js?v=20261018d';
+import { loadActivities } from '../../../services/activity/activity.js?v=20261018d';
+import { loadAttendanceRecords } from '../../../services/activity/attendance.js?v=20261018d';
+import { AttendanceStatus } from '../../../core/domain/domain.js?v=20261018d';
+import { IssueStore, REPORT_CATEGORIES } from '../../../services/governance/issues.js?v=20261018d';
 // D2 裁决批二（2026-09-08 支书特批）：按人视图汇报区降级只读摘要 → 「去待办处理」定位跳转（pendingTarget 一次性消费）
-import { PendingTarget } from '../../../core/session/pending-target.js?v=20261018a';
-import { listPendingByReceiver, confirmExternalDispatch } from '../../../services/activity/external-dispatch.js?v=20261018a';
-import { getPersonName } from '../../../services/member/person.js?v=20261018a';
-import { TodoStore } from '../../../services/governance/todo.js?v=20261018a';
+import { PendingTarget } from '../../../core/session/pending-target.js?v=20261018d';
+import { listPendingByReceiver, confirmExternalDispatch } from '../../../services/activity/external-dispatch.js?v=20261018d';
+import { getPersonName } from '../../../services/member/person.js?v=20261018d';
+import { TodoStore } from '../../../services/governance/todo.js?v=20261018d';
 
 const OVERVIEW_TAB_HTML = `
   <div id="secretary-overview-content"></div>
@@ -85,8 +85,8 @@ async function renderPersonView(container) {
       ${renderBlockerSection(people, today)}
       ${renderProgressSection(people)}
     </div>
-    <p class="text-[11px] text-gray-500 mt-3">
-      按人视图 = L1 条线视角：支书看各角色在办与汇报（知情边界，看 ≠ 做）。汇报为只读摘要（答复到「待办」）；卡点行内可温和了解进展，不跳转他人工作台。
+    <p class="text-xs text-gray-500 mt-3">
+      按人视图是 L1 条线视角：支书看各角色在办与汇报（知情边界，看与做分开）。汇报为只读摘要（答复到「待办」）；卡点行内可温和了解进展，不跳转他人工作台。
     </p>
   `;
   bindReportSection(container);

@@ -8,16 +8,17 @@
 // 数据源：reviewRequests（services/governance/review-request.js，mock 与 API 双引擎同源）
 // 设计权威源：content/04_web_design/evolution/PARTY_COMMITTEE_DESIGN.md §5 P3
 
-import { mockDB } from '../../../core/domain/domain.js?v=20261018a';
-import { AuthStore } from '../../../services/core/auth.js?v=20261018a';
-import { getPersonName } from '../../../services/member/person.js?v=20261018a';
-import { getBranchById } from '../../../services/branch/branch.js?v=20261018a';
-import { decideReviewRequest, listReviewRequests } from '../../../services/governance/review-request.js?v=20261018a';
-import { showToast, escHtml as esc, fmtDt } from '../../../core/base/utils.js?v=20261018a';
+import { mockDB } from '../../../core/domain/domain.js?v=20261018d';
+import { AuthStore } from '../../../services/core/auth.js?v=20261018d';
+import { getPersonName } from '../../../services/member/person.js?v=20261018d';
+import { getBranchById } from '../../../services/branch/branch.js?v=20261018d';
+import { decideReviewRequest, listReviewRequests } from '../../../services/governance/review-request.js?v=20261018d';
+import { showToast, escHtml as esc, fmtDt } from '../../../core/base/utils.js?v=20261018d';
 // 统一检索引擎（2026-09-14 批次 37）：待批复 / 已处理两区各接一个实例（关键词 + 类型/状态分面 + 分页）
-import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261018a';
+import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261018d';
 // 支部筛选共用件（2026-10-04 批次 374 · 支书「按下设支部筛选信息」）——三页复用同一件，不各写一份
-import { renderBranchFilter, filterByBranch } from '../../../components/governance/branch-filter.js?v=20261018a';
+import { renderBranchFilter, filterByBranch } from '../../../components/governance/branch-filter.js?v=20261018d';
+import { renderSectionHeader } from '../../../components/shell/page-frame.js?v=20261018d';
 
 /** 本页支部筛选的 stateKey（选择随模块自持，页内重绘不丢） */
 const BRANCH_FILTER_STATE = 'pc-review';
@@ -48,7 +49,6 @@ export function renderContent() {
 
   // 支部筛选（2026-10-04 批次 374 · 支书「按下设支部筛选信息」）：过滤后待批复 / 已处理两区与页首计数同步收窄
   const rows = filterByBranch(listReviewRequests({}), BRANCH_FILTER_STATE);
-  const n = s => rows.filter(r => r.status === s).length;
   const highlightId = new URLSearchParams(window.location.search).get('highlight') || '';
   let pending = rows.filter(r => r.status === 'pending');
   let done = rows.filter(r => r.status !== 'pending');
@@ -61,20 +61,13 @@ export function renderContent() {
   else if (highlightId) reviewMode = 'pending';
 
   el.innerHTML = `
-    <div class="party-page">
-      <header class="party-page__header">
-        <div class="party-page__heading">
-        <p class="text-xs font-medium text-gray-500">党委 · 全院范围</p>
-        <h2 class="mt-1 font-title-cn text-xl font-bold text-gray-900">支部上报</h2>
-        <p class="mt-1 text-sm text-gray-600">党委逐项批复，决定和意见会回传提交支部。</p>
-        <p class="mt-2 text-xs text-gray-500">待批复 ${n('pending')} 项 · 已处理 ${done.length} 项</p>
-        </div>
-      </header>
+    <div class="page-section-stack">
       <section class="card p-5" aria-label="支部上报处理">
-      <div id="pc-review-branch-filter" class="mb-4"></div>
-      <div class="flex gap-1 border-b border-gray-200" role="tablist" aria-label="上报状态">
-        <button id="pc-review-tab-pending" type="button" class="px-3 py-2 text-sm ${reviewMode === 'pending' ? 'border-b-2 border-red-700 font-semibold text-gray-900' : 'text-gray-600'}" data-review-view="pending" role="tab" aria-controls="pc-review-pending-section" aria-selected="${reviewMode === 'pending'}" tabindex="${reviewMode === 'pending' ? '0' : '-1'}">待批复 <span class="ml-1 tabular-nums">${pending.length}</span></button>
-        <button id="pc-review-tab-done" type="button" class="px-3 py-2 text-sm ${reviewMode === 'done' ? 'border-b-2 border-red-700 font-semibold text-gray-900' : 'text-gray-600'}" data-review-view="done" role="tab" aria-controls="pc-review-done-section" aria-selected="${reviewMode === 'done'}" tabindex="${reviewMode === 'done' ? '0' : '-1'}">已处理 <span class="ml-1 tabular-nums">${done.length}</span></button>
+      ${renderSectionHeader({ title: '支部上报处理', description: '党委逐项批复，决定和意见会回传提交支部。' })}
+      <div id="pc-review-branch-filter" class="mb-4 mt-4"></div>
+      <div class="subtabs" role="tablist" aria-label="上报状态">
+        <button id="pc-review-tab-pending" type="button" class="subtab" data-review-view="pending" role="tab" aria-controls="pc-review-pending-section" aria-selected="${reviewMode === 'pending'}" tabindex="${reviewMode === 'pending' ? '0' : '-1'}">待批复 <span class="ml-1 tabular-nums">${pending.length}</span></button>
+        <button id="pc-review-tab-done" type="button" class="subtab" data-review-view="done" role="tab" aria-controls="pc-review-done-section" aria-selected="${reviewMode === 'done'}" tabindex="${reviewMode === 'done' ? '0' : '-1'}">已处理 <span class="ml-1 tabular-nums">${done.length}</span></button>
       </div>
       <section id="pc-review-pending-section" role="tabpanel" aria-labelledby="pc-review-tab-pending" tabindex="0" ${reviewMode !== 'pending' ? 'hidden' : ''} aria-label="待批复上报"><div id="pc-review-pending-host"></div></section>
       <section id="pc-review-done-section" role="tabpanel" aria-labelledby="pc-review-tab-done" tabindex="0" ${reviewMode !== 'done' ? 'hidden' : ''} aria-label="已处理上报"><div id="pc-review-done-host"></div></section>

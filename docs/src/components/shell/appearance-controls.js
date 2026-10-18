@@ -7,8 +7,8 @@
 // 生效强调色 = resolveAppliedAccentRole（person-aware：覆盖仅取当前作用域键，绝不跨空间回落），
 // 由 settings 页调用方传入 accentFallbackRole（当前常设角色，访客 ''）计算。
 
-import { icon } from '../../core/base/icons.js?v=20261018a';
-import { ACCENT_COLORS, ACCENT_PALETTE } from '../../core/domain/constants.js?v=20261018a';
+import { icon } from '../../core/base/icons.js?v=20261018d';
+import { ACCENT_PALETTE, getAccentColors } from '../../core/domain/constants.js?v=20261018d';
 import {
   getFontSizePreference,
   setFontSizePreference,
@@ -16,7 +16,7 @@ import {
   setThemePreference,
   setAccentRolePreference,
   resolveAppliedAccentRole,
-} from '../../core/boot/theme.js?v=20261018a';
+} from '../../core/boot/theme.js?v=20261018d';
 
 // ── 按钮态样式（与迁移前侧边栏一致；gray 系类随 html.theme-dark 自动翻转）──
 const _base = 'btn-tab px-2.5 py-1 text-xs ';
@@ -47,12 +47,12 @@ const THEME_OPTIONS = [
   { value: 'dark', icon: 'moon', title: '深色模式' },
 ];
 
-/** 当前生效强调色信息（存储覆盖优先（登录=person 键 / 访客=全局键），未设置回落传入角色默认） */
+/** 当前生效主题色信息（存储覆盖优先（登录=person 键 / 访客=全局键），未设置回落默认金色） */
 function _effectiveAccent(fallbackRole) {
   const key = resolveAppliedAccentRole(fallbackRole || '');
   const paletteEntry = ACCENT_PALETTE.find(c => c.key === key);
-  const hex = paletteEntry?.hex || ACCENT_COLORS[key]?.hex || '#B91C1C';
-  const label = paletteEntry?.label || '红';
+  const hex = getAccentColors(key).accent;
+  const label = paletteEntry?.label || '金（默认）';
   return { key, hex, label };
 }
 
@@ -92,10 +92,10 @@ export function appearanceControlsHTML(opts = {}) {
         </div>
       </div>
       <div class="appearance-row">
-        <div class="appearance-row-label">强调色</div>
+        <div class="appearance-row-label">主题色</div>
         <div class="flex items-center gap-2">
-          <button type="button" id="appearance-accent-swatch" class="btn-ghost accent-swatch" style="width:24px;height:24px;background:${accent.hex}" data-current-role="${accentFallbackRole || ''}" data-label="主题：${accent.label}" title="主题：${accent.label}（点击更换）"></button>
-          <span class="text-xs text-gray-500">全站按钮/标签/选中态的强调颜色 · 当前：${accent.label}</span>
+          <button type="button" id="appearance-accent-swatch" class="btn-ghost accent-swatch" style="width:24px;height:24px;background:${accent.hex}" data-current-role="${accent.key}" data-label="主题：${accent.label}" title="主题：${accent.label}（点击更换）"></button>
+          <span class="text-xs text-gray-500">全站按钮/标签/选中态的主题颜色 · 当前：${accent.label}</span>
         </div>
       </div>
       ${scopeNote ? `<div class="appearance-note">${scopeNote}</div>` : ''}

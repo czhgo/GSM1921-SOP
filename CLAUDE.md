@@ -2,7 +2,7 @@
 title: "Org OS — 系统路线图与 Harness"
 type: roadmap
 role: "[工程师]+[AI]"
-last_updated: 2026-10-17
+last_updated: 2026-10-18
 status: active
 related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/DOC_MAP.md, content/01_strategy/SECRETARY_DIRECTIVES.md, content/01_strategy/, content/02_institution/, content/03_doc_system/, content/04_web_design/, content/05_ai_coding/, content/insights/, server/, .ctx/logs/]
 ---
@@ -726,7 +726,7 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/DOC
 
 | ID | 事项 | 引用流程 | 修改对象 | 状态 |
 | --- | --- | --- | --- | --- |
-| T-903 | 完成工作台标签结构盘点与重点页证据审校；收束已确认的信息结构、能力包治理字段和文案改进 | H20.2 + H25 + DESIGN_SYSTEM + 最小三成本 | `.ctx/WORKBENCH_67_TAB_AUDIT_DRAFT.md`、`README-server.md`、相关工作台实现 | 进行中（67 个活动页签均已完成结构索引；书记、纪检、工作组、党委重点页已做代码/API与浏览器审查；党委标杆五页、支部配置和只读名册完成桌面与窄屏复核；仍待正式数据环境复核、其他工作台的完整问题清单收束与用户视觉评审） |
+| T-903 | 完成工作台标签结构盘点与重点页证据审校；收束已确认的信息结构、能力包治理字段和文案改进 | H20.2 + H25 + DESIGN_SYSTEM + 最小三成本 | `.ctx/WORKBENCH_67_TAB_AUDIT_DRAFT.md`、`README-server.md`、相关工作台实现 | 进行中（批次 464 完成党委批次 0：返回主页/缀词/下发通知前移/金色默认/设置同源/70% 卡宽/两条真机缺口；批次 465 完成本轮验证收尾：合并组 84/84、桌面真机复核通过；批次 466 按支书否定的“信息平铺”重排个人档案设计为 L0 结论带 + 3 分区 + 默认折叠，最小三成本量化对照与 14 条验收标准已定，支书复核通过。脏专项 67/67 深审完成，合格 24、需修 38、阻塞 5；繁能力地图与乱个人档案设计已出。脏只审未改，下一批先清 5 个阻塞，再处理需修清单与个人档案实现） |
 
 ***
 

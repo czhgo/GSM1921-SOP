@@ -49,6 +49,9 @@ function projectBranchDirectoryRow(db, row, selectedBranchId) {
       name: row.name,
       type: row.type,
       status: row.status,
+      // 党委目录需要判断“运行中但未任命支书”；只给 id/name/type/status 会让
+      // 客户端把已有支书的支部误判为组织待补，任命链也拿不到原支书做降级。
+      secretaryId: row.secretaryId || null,
       ...(row.config?.headerTitle ? { config: { headerTitle: row.config.headerTitle } } : {}),
     }),
     summary,
@@ -179,6 +182,11 @@ export function resourceRowsForActor(db, name, rows, actor, requestedBranchId) {
   if (actor?.role === PARTY_STAFF && !targetBranchId) {
     if (name === 'branches') {
       return rows.map((row) => projectBranchDirectoryRow(db, row, null));
+    }
+    // 2026-10-18：党委未选支部时只放开「党委下发通知」的读取（发送记录跨支部留档），
+    // 支部内其他通知仍不进入党委视野。
+    if (name === 'notices') {
+      return rows.filter((row) => row?.source === 'committee');
     }
     if (AGGREGATE_PARENT[name]) return aggregateRows(db, name, rows, null);
     return [];

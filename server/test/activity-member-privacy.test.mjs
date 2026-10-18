@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import * as visibility from '../../docs/src/services/core/visibility.js?v=20261018a';
+import * as visibility from '../../docs/src/services/core/visibility.js?v=20261018d';
 
 test('活动与工作组姓名仅向登录且处于本支部或明确选中支部的查看者开放', () => {
   assert.equal(typeof visibility.canRevealActivityMemberNames, 'function', '应存在活动成员姓名可见性单一判据');

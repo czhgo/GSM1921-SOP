@@ -40,7 +40,7 @@ dynamic_role:
 | README.md | 2026-10-17 | — | [用户]+[AI] | 全站门面（定位 / 快速开始〔2026-10-07 批次 437 新增：三命令跑起来＋演示账号＋局域网免域名直连＋真实数据空库起步〕 / 页面与页签清单 / 支部分工覆盖面 / 测试与发版清单）；会议表决规则改为按场景说明，概况入口说明统一待处理队列；页签总数校准为 67。**边界**：逐枚页面与逐枚页签的权威源是 `README-server.md` §3.1–§3.2 与 `docs/help.html` §0 / §2，本件只给概览与入口。守卫清单列在此处是 `doc-consistency::S10` 的硬要求。沿革已迁出（git 可溯）。 |
 | README-members.md | 2026-10-16 | — | [用户]+[AI] | 支部成员版说明；匿名反馈为登录后的支部内闭环，处置权不含揭名权（`D-824`）。 |
 | README-server.md | 2026-10-17 | — | [用户]+[AI] | 面向**外部后端对接团队**的对接说明书（背景 / 角色 / 板块 / 字段〔**指针**〕/ 部署 / 接口 / 已知限制）。**边界**：**字段级清单的唯一权威源＝母本 `content/04_web_design/data/DATA_MODEL.md`**——§4 只留「**指针 ＋ 后端增量**」（服务端专有表 ＋ 来源 C 字段 ＋ 行为口径），**不再逐表复刻**。正文 **≥370 处 `文件:行号` 引用**由 `doc-line-ref` 守卫常驻核对（行号随代码位移须**同批改签**）。本批同步工作组、考勤、逐支部上报与服务端授权审计说明，并改签引用。沿革见 `.ctx/logs/`。 |
-| CLAUDE.md | 2026-10-17 | — | [工程师]+[AI] | AI 协作总纲：甲部（通用流程 / 指导思想，`H10`–`H100`）＋ 乙部（具体执行事项）＋ 丙部（待决策事项）。**边界**：过程 / 沿革 / 决议**各有其位**（`H26.2` 分工表）；乙部只留在办事项索引。**为什么**：本文件是最高治理文件，只承载规矩与在办项。 |
+| CLAUDE.md | 2026-10-18 | — | [工程师]+[AI] | AI 协作总纲：甲部（通用流程 / 指导思想，`H10`–`H100`）＋ 乙部（具体执行事项）＋ 丙部（待决策事项）。**边界**：过程 / 沿革 / 决议**各有其位**（`H26.2` 分工表）；乙部只留在办事项索引。**为什么**：本文件是最高治理文件，只承载规矩与在办项。 |
 | CHECKLIST.md | — | — | — | 🗑️ 已删除（迁移至 content/05_ai_coding/DATA_CONSISTENCY_CHECKLIST.md） |
 | LICENSE | 2026-05-18 | — | [用户] | 开源许可 |
 | .gitignore | 2026-09-10 | — | [工具] | Git 忽略 |
@@ -95,7 +95,7 @@ dynamic_role:
 
 | 文件路径 | last_updated | 移入归档日 | 角色 | 备注 |
 |---------|-------------|--------|------|------|
-| content/02_institution/COMMISSIONER_DUTY_FRAMEWORK.md | 2026-10-16 | — | [用户]+[AI] | 支部组织与委员体系（组织层级 / 委员职责矩阵 / 赋权三情景 / 上传与闭环分工）。**边界**：赋权入口与系统的对应关系以 `docs/src/core/domain/work-map.js` 与 `docs/src/entries/tabs/**` 实读为准；本件是母本，系统侧不得先于母本改。沿革已迁出（git 可溯）。 |
+| content/02_institution/COMMISSIONER_DUTY_FRAMEWORK.md | 2026-10-18 | — | [用户]+[AI] | 支部组织与委员体系（组织层级 / 委员职责矩阵 / 赋权三情景 / 上传与闭环分工）。**边界**：赋权入口与系统的对应关系以 `docs/src/core/domain/work-map.js` 与 `docs/src/entries/tabs/**` 实读为准；本件是母本，系统侧不得先于母本改。沿革已迁出（git 可溯）。 |
 | content/02_institution/FLAT_ORGANIZATION_DESIGN.md | 2026-09-22 | — | [工程师]+[AI] | 🗑️ **已删除**（**2026-09-26 批次 201**：正文**整体并入** `content/02_institution/COMMISSIONER_DUTY_FRAMEWORK.md` 的 **§G 组织者与深度参与者的扁平化设计**〔原一~八 → **G.1~G.8 逐字**；该文件**标题改《支部组织与委员体系》**〕⇒ **两份 → 一份**；`D-660`）（原：扁平化设计（**2026-09-22 批次 153 母本降级**：移去沿革注记 3 处——`:23`「（支书 2026-09-17 裁定）」· `:37`「（支书 2026-08-09 裁决：…）」→「（支书原话：…）」· 末尾「反论处置记录」整块 2 行移出；frontmatter 同步；`D-595`） |
 | content/02_institution/ROLE_CLASSIFICATION.md | 2026-09-05 | — | [工程师]+[AI] | 🗑️ **已删除**（**2026-09-26 批次 202**：**自 `02_institution` 迁入 `03_doc_system`**——正文**整体并入** `content/03_doc_system/OPERATIONS_GUIDE.md`《运行与协作规范》的 **§24–§31**〔原 §一 三分类定义 → §24 · §二 复合标记规则 → §25 · §三 目录到角色映射 → §26 · §四 协作方式 → §27 · §五 存储与读取机制 → §28 · §六 与现有文档的一致性 → §29 · §七 可扩展性评估 → §30 · §八 变更历史 → §31〕⇒ **该文件为「迁类 ＋ 并入」双动作**）（原：文件角色分类（2026-09-05 §九 系统角色权限矩阵拆出，本文档回归纯文件角色分类）） |
 | content/02_institution/SYSTEM_ROLE_PERMISSION.md | 2026-10-17 | — | [工程师]+[AI] | 角色 × 权限母本；含工作组事务保存/撤权边界与本人+本支部支委档案读取策略。**边界**：可调制度项登记 `POLICY_OVERRIDABLE`；其余权限以本文件和服务端校验为准。 |
@@ -134,7 +134,7 @@ dynamic_role:
 | content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md | 2026-09-27 | — | [工程师]+[AI] | 架构演进（组件化落地评估 ＋ 轻量插件化「能力注册表」设计 ＋ 迭代机制 ＋ 实施路径；无人称文体）。**边界**：「操作位收口」细节以 `PARTY_COMMITTEE_DESIGN.md` §2.5/§2.6 为准（本件只留一行指针）。沿革见 `.ctx/logs/`。 |
 | content/04_web_design/evolution/BRANCH_WORK_MAP.md | 2026-10-16 | — | [工程师]+[AI] | **（2026-09-26 批次 205 补行**：本表原无其行——历批按「覆盖缺口如实登记、**不补行**」处置，本批改为**补行**；日期＝该文件 frontmatter `last_updated` 实读值，与表行同值 ⇒ `S13` 绿；`git log -1 --format=%ad --date=short` 亦为 2026-09-26**）** 支部工作地图设计稿（平铺模块 ＋ 按人双视图） |
 | content/04_web_design/evolution/DESIGN_METHODOLOGY.md | 2026-10-18 | — | [工程师]+[AI] | **（2026-09-26 批次 205 补行**：本表原无其行，本批补行；日期＝frontmatter `last_updated` 实读值（与表行同值 ⇒ `S13` 绿）；`git log` 亦 2026-09-26**）** 设计理念与方法论承接（设计论证与方法档案） |
-| content/04_web_design/evolution/PARTY_COMMITTEE_DESIGN.md | 2026-10-17 | — | [工程师]+[AI] | 院系党委后台——支部多实例两级治理设计定案（§2.5 远期形态只留指针指 `ARCHITECTURE_EVOLUTION.md §八`；§2.6 ⑤ 域参数白名单已扩表并留放行登记）。沿革见 `.ctx/logs/`。 |
+| content/04_web_design/evolution/PARTY_COMMITTEE_DESIGN.md | 2026-10-18 | — | [工程师]+[AI] | 院系党委后台——支部多实例两级治理设计定案（§2.5 远期形态只留指针指 `ARCHITECTURE_EVOLUTION.md §八`；§2.6 ⑤ 域参数白名单已扩表并留放行登记）。沿革见 `.ctx/logs/`。 |
 | content/04_web_design/evolution/ROLE_PERMISSION_DESIGN.md | 2026-09-29 | — | [工程师]+[AI] | **（2026-09-26 批次 205 补行**：本表原无其行，本批补行；日期＝frontmatter `last_updated` 实读值（与表行同值 ⇒ `S13` 绿）；`git log` 亦 2026-09-26**）** 权限功能合一收敛设计 |
 | content/04_web_design/evolution/WORKFLOW_BLOCK_CONTRACT.md | 2026-10-05 | — | [工程师]+[AI] | **（2026-09-26 批次 205 补行**：本表原无其行，本批补行；日期＝frontmatter `last_updated` 实读值（与表行同值 ⇒ `S13` 绿）；`git log` 亦 2026-09-26**）** 工作流块封装契约 |
 | content/04_web_design/deploy/WECHAT_INTEGRATION.md | 2026-09-05 | — | [工程师]+[AI] | 🗑️ **已删除**：正文**整体并入** `content/04_web_design/deploy/DEPLOYMENT_GUIDE.md` 的 **§五 微信协同与小程序设计**〔内部 §一–§八 → 5.1–5.8〕⇒ **四份 → 一份**。（原：微信协同与小程序设计方案；§八 新增北大对接数据展示；小程序独立问题归位本文档。）沿革见 `.ctx/logs/`。 |

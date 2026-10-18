@@ -3,7 +3,7 @@
 // 2026-09-04 模块化扎口：org/leader/prop/visitor/secretary 五份 todo-tab 曾各自复制同源段，现收敛于此。
 // 兼容聚合卡（items[0] 取首条）与单条待办；命中并执行跳转返回 true，未命中返回 false（交调用方继续 tabMap 处理）。
 
-import { resolveDocumentUrl } from '../../core/base/page-url.js?v=20261018a';
+import { resolveDocumentUrl } from '../../core/base/page-url.js?v=20261018d';
 
 export function tryDirectJump(todo) {
   // 通知阅读待办（T-234 F1）：直达通知详情页（聚合时取首条 noticeId）

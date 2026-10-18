@@ -578,7 +578,6 @@ export const P_TEXT_TIER_BASELINE = {
   'docs/src/entries/tabs/org/roster-tab.js': { c: 1, v: [11] },
   'docs/src/entries/tabs/org/talent-tab.js': { c: 1, v: [11] },
   'docs/src/entries/tabs/org/taskforce-tab.js': { c: 4, v: [11] },
-  'docs/src/entries/tabs/party-committee/branches-tab.js': { c: 6, v: [11] },
   'docs/src/entries/tabs/prop/archive-tab.js': { c: 3, v: [11] },
   'docs/src/entries/tabs/secretary/assign-tab.js': { c: 4, v: [11] },
   'docs/src/entries/tabs/secretary/calendar-tab.js': { c: 6, v: [11] },
@@ -597,11 +596,13 @@ export const P_TEXT_TIER_BASELINE = {
  *    「今天页收成单一轴」（逾期不再单开段）**清零** ⇒ 收基线删条目（`c:1`）：
  *    文件数 **26 → 25**、处数 **81 → 80**。
  *  ⚠ 2026-10-15 批次 447：复核发现 `disc/attendance-tab.js` 仅有小字控件、没有 11px `<p>`，
- *    该文件条目是误登记；按收基线纪律删除 ⇒ 文件数 **25 → 24**、段落处数 **80 → 79**。 */
-export const P_TEXT_TIER_TOTAL_BASELINE = 79;
-export const P_TEXT_TIER_FILE_BASELINE = 24;
-/** 按值台账（只报不判；9/10px 是禁止档，恒为 0）——11 档总数为 79（2026-10-15 批次 447 复核误登记后） */
-export const P_TEXT_TIER_BY_VALUE_BASELINE = { 11: 79, 10: 0, 9: 0 };
+ *    该文件条目是误登记；按收基线纪律删除 ⇒ 文件数 **25 → 24**、段落处数 **80 → 79**。
+ *  ⚠ 2026-10-18 工作台提质：党委 `branches-tab.js` 页头说明移除后 11px `<p>` 清零，
+ *    按收基线纪律删除条目 ⇒ 文件数 **24 → 23**、段落处数 **79 → 73**。 */
+export const P_TEXT_TIER_TOTAL_BASELINE = 73;
+export const P_TEXT_TIER_FILE_BASELINE = 23;
+/** 按值台账（只报不判；9/10px 是禁止档，恒为 0）——11 档总数为 73（2026-10-18 党委页头说明移除后） */
+export const P_TEXT_TIER_BY_VALUE_BASELINE = { 11: 73, 10: 0, 9: 0 };
 
 /** 「零引用类」台账（2026-09-28 死码清理批，给 `server/test/dead-selector-guard.test.mjs` 消费）
  *

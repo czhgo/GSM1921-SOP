@@ -3,7 +3,7 @@ title: "院系党委后台——支部多实例两级治理设计定案"
 type: design
 role: "[工程师]+[AI]"
 created: 2026-09-02
-last_updated: 2026-10-17
+last_updated: 2026-10-18
 status: approved-by-secretary
 related_files: [docs/src/core/domain/domain.js, docs/src/data/mock/people.js, docs/src/data/mock/accounts.js, server/seed.js, server/db.js, docs/src/data/data-adapter.js, docs/src/core/domain/constants.js, docs/src/services/core/auth.js, docs/src/capabilities/]
 ---
@@ -18,7 +18,7 @@ related_files: [docs/src/core/domain/domain.js, docs/src/data/mock/people.js, do
 
 > 定位：光华管理学院党委（**院系级**，非全校）→ 动态支部多实例的两级治理架构。支书 2026-09-02 逐段批准（Part 1 架构 / Part 2 分期），P3 范围与形态 2026-09-03 裁定。
 >
-> **落地状态（P1~P3 代码/测试已入仓）**：党委台 tabs 在 `docs/src/entries/tabs/party-committee/`——monitor-tab.js（P1 支部监控台账）、branches-tab.js（P1 支部管理 + P2 支书任命；任命链 `docs/src/services/branch/appointment.js`）、party-config-tab.js（§2.5 支部配置收拢：config.modules/blocks 启停）、review-tab.js（P3 上报审批）、dispatch-tab.js（P3 下发通知）；测试：`server/test/party-committee.test.mjs`（P1+P2 E2E）、`server/test/party-committee-review.test.mjs`、`server/test/party-committee-dispatch.test.mjs`（P3 双向通道）。
+> **落地状态（P1~P3 代码/测试已入仓）**：党委台 tabs 在 `docs/src/entries/tabs/party-committee/`——monitor-tab.js（P1 支部动态）、branches-tab.js（P1 支部管理 + P2 支书任命；任命链 `docs/src/services/branch/appointment.js`）、party-config-tab.js（§2.5 支部配置收拢：config.modules/blocks 启停）、review-tab.js（P3 上报审批）、dispatch-tab.js（P3 下发通知）；测试：`server/test/party-committee.test.mjs`（P1+P2 E2E）、`server/test/party-committee-review.test.mjs`、`server/test/party-committee-dispatch.test.mjs`（P3 双向通道）。
 
 > **界面信息架构更新（2026-10-17）**：党委五个日常标签已按任务层级重组。下文保留 2026-09 分期与原始方向作为沿革；当前页面结构和范围以 §5.1 为准。
 
@@ -173,6 +173,8 @@ related_files: [docs/src/core/domain/domain.js, docs/src/data/mock/people.js, do
 | 支部上报 | 哪些发展节点或活动报备待党委决定？ | 待批复与已处理分区切换；决定、意见和回传状态附着在同一上报记录，处理完成后直接显示结果。 |
 | 支部管理 | 现有支部目录与需要进入的支部是哪一个？ | 首屏为目录；目录负责新建和选择。选中后进入 `branch-config.html?branchId=...`，改名、任命、启停、名册初始化与分区配置都在同一支部上下文；部署自检放在次级区。 |
 | 下发通知 | 现在撰写下发，还是查找已发送记录？ | 在“撰写 / 已发送”两个视图间切换。下发仍复用通知实体，收件方通过通知铃铛查看，不与私信混为一谈。 |
+
+**页面骨架与版心（2026-10-18 工作台提质）**：五个页签共用一个页面标题“党委工作台”，页签栏承担视图切换；页签内首个标题是任务名，不重复页签名。页面级版心固定为 80rem；阅读区不超过 72rem，表单区不超过 48rem；宽表在自身容器内横向滚动。页面级动作在页头，分区级动作在分区标题右侧，行级动作在行末；二级切换用中性样式，不与一级页签争夺强调色。
 
 党委共享顶栏不提供“我的档案”。党委档案查阅必须来自明确选定的单一支部，并保留 `party-staff` 身份；入口为独立 `workspace/branch-readonly.html?branchId=...`，不能进入支书工作台。只读支部视图可列出该支部成员与活动，并链接到该成员只读档案。
 

@@ -5,7 +5,7 @@
 // R-26③（2026-10-05 批次 388）：本件**只引一个零依赖叶子** `core/base/date.js`（取本地「今天」）——
 //   不成环、双端可载；**不得**引 `core/base/utils.js`（那会牵 `core/session/pending-writes.js`）。
 
-import { todayLocal } from '../base/date.js?v=20261018a';
+import { todayLocal } from '../base/date.js?v=20261018d';
 
 // ── 内联标签深色适配：深色三件套自动生成 ──────────────────────────
 // 深色模式下内联样式（background/color/border 浅底深字）不随主题反转，按「同色系提亮一档」为每个颜色条目
@@ -431,7 +431,7 @@ export const ACCENT_COLORS = {
 export const ACCENT_PALETTE = [
   { key: 'secretary',          hex: ACCENT_COLORS.secretary.hex,            label: '红' },
   { key: 'disc-commissioner',  hex: ACCENT_COLORS['disc-commissioner'].hex, label: '橙' },
-  { key: 'participant',        hex: _C.partyGold,            label: '金' },
+  { key: 'participant',        hex: ACCENT_COLORS.participant.hex, label: '金（默认）' },
   { key: 'leader',             hex: ACCENT_COLORS.leader.hex,               label: '绿' },
   { key: 'all',                hex: ACCENT_COLORS.all.hex,                  label: '青' },
   { key: 'org-commissioner',   hex: ACCENT_COLORS['org-commissioner'].hex,  label: '天蓝' },
@@ -444,14 +444,15 @@ export const ACCENT_PALETTE = [
 /**
  * 解析当前生效的强调色角色键（主题色个性化覆盖）
  * 优先读取 localStorage workflowos_accent_role（侧边栏「主题色」写入），
- * 未设置或键无效时回退到传入的 preferredRole。
- * @param {string} preferredRole — 页面默认角色键
+ * 未设置或键无效时回退到默认金色（participant 键）。
+ * @param {string} preferredRole — 页面默认角色键（保留以兼容调用方；默认值不再取角色色）
  * @returns {string} 生效的角色键
  */
 export function resolveAccentRole(preferredRole) {
   const stored = localStorage.getItem('workflowos_accent_role');
   if (stored && ACCENT_COLORS[stored]) return stored;
-  return preferredRole;
+  // 2026-10-18：无有效全局键 → 默认金色（participant 键），不再按角色固有色回退。
+  return 'participant';
 }
 
 /**
@@ -462,7 +463,8 @@ export function resolveAccentRole(preferredRole) {
  * @returns {{ accent: string, accentRgba: string, accentBorder: string }}
  */
 export function getAccentColors(role, bgAlpha = 0.1, borderAlpha = 0.3) {
-  const entry = ACCENT_COLORS[role] || ACCENT_COLORS.all;
+  // 2026-10-18：无匹配 → 默认金色（participant 主题），不再回退 all 青。
+  const entry = ACCENT_COLORS[role] || ACCENT_COLORS.participant;
   return {
     accent: entry.hex,
     // 覆盖字段优先：participant「金」主题色 = 主题党日胶囊（亮金底 + 深金字 + 亮金边框，

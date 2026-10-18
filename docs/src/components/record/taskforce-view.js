@@ -4,18 +4,18 @@
 // 专班列表（状态分组）+ 只读详情（成员/角色/贡献）。依据支书第五轮裁定「新建专班查看组件（列表+详情）」。
 // 支书设计原则：「无职责 不代表 没有知情权」。
 
-import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261018a';
-import { getPersonName } from '../../services/member/person.js?v=20261018a';
-import { mockDB } from '../../core/domain/domain.js?v=20261018a';
-import { AuthStore } from '../../services/core/auth.js?v=20261018a';
-import { canRevealActivityMemberNames } from '../../services/core/visibility.js?v=20261018a';
-import { badgeHtml } from '../ui/badges.js?v=20261018a';
-import { dotDarkVars } from '../../core/domain/constants.js?v=20261018a';
-import { flashHighlight, showToast, escHtml as esc } from '../../core/base/utils.js?v=20261018a';
-import { anchorDetailToTrigger } from '../ui/detail-anchor.js?v=20261018a';
+import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261018d';
+import { getPersonName } from '../../services/member/person.js?v=20261018d';
+import { mockDB } from '../../core/domain/domain.js?v=20261018d';
+import { AuthStore } from '../../services/core/auth.js?v=20261018d';
+import { canRevealActivityMemberNames } from '../../services/core/visibility.js?v=20261018d';
+import { badgeHtml } from '../ui/badges.js?v=20261018d';
+import { dotDarkVars } from '../../core/domain/constants.js?v=20261018d';
+import { flashHighlight, showToast, escHtml as esc } from '../../core/base/utils.js?v=20261018d';
+import { anchorDetailToTrigger } from '../ui/detail-anchor.js?v=20261018d';
 // 统一检索引擎（2026-09-14 裁定）：只读详情「成员贡献」（第一列是人 → 配姓名关键词）与
 // 「中间进度」（时间线 → 只给分页：keyword null + facets []）各接一个实例
-import { renderFilteredList } from '../ui/list-filter.js?v=20261018a';
+import { renderFilteredList } from '../ui/list-filter.js?v=20261018d';
 
 // 附录⑩ B批：状态词对齐「支委会表决」语义（pending_review=待支委会表决；dissolved=表决通过解散）
 const STATUS_LABEL = { draft: '草稿', pending_review: '待支委会表决', recruiting: '招募中', active: '运行中', completed: '已完结', archived: '已归档', dissolved: '已解散' };
@@ -246,7 +246,7 @@ async function _renderTfDetail(container, tf, highlightId) {
       ${outputs.length ? `<ul class="space-y-2">${outputs.map((output) => `
         <li class="rounded-lg bg-gray-50 px-3 py-2">
           <div class="flex flex-wrap items-center gap-2"><span class="text-xs font-medium text-gray-800">${esc(output.title || '未命名产出')}</span><span class="rounded-full bg-white px-2 py-0.5 text-[11px] text-gray-600">${esc(outputStatus[output.status] || output.status || '已登记')}</span></div>
-          ${output.taskId ? `<p class="mt-1 text-[11px] text-gray-500">任务：${esc(tasks.find((task) => task.id === output.taskId)?.title || output.taskId)}</p>` : ''}
+          ${output.taskId ? `<p class="mt-1 text-xs text-gray-500">任务：${esc(tasks.find((task) => task.id === output.taskId)?.title || output.taskId)}</p>` : ''}
           ${output.description ? `<p class="mt-1 whitespace-pre-wrap text-xs text-gray-600">${esc(output.description)}</p>` : ''}
         </li>`).join('')}</ul>` : '<p class="text-xs text-gray-500">暂无结构化工作产出。</p>'}
     </div>`;
@@ -265,7 +265,7 @@ async function _renderTfDetail(container, tf, highlightId) {
     ${myFillHtml}
     <div class="pt-3 border-t border-gray-100">
       <h5 class="font-title-cn text-xs font-bold text-gray-600 mb-1">历史分工记录（旧版工作量）</h5>
-      <p class="mb-2 text-[11px] leading-5 text-gray-500">旧成员贡献仅作历史分工记录保留，不自动迁移为任务或产出；新登记的工作内容单独保存在下方“工作产出”。${canRevealNames ? '' : '登录并进入所属支部后可查看历史分工明细。'}</p>
+      <p class="mb-2 text-xs leading-5 text-gray-500">旧成员贡献仅作历史分工记录保留，不自动迁移为任务或产出；新登记的工作内容单独保存在下方“工作产出”。${canRevealNames ? '' : '登录并进入所属支部后可查看历史分工明细。'}</p>
       ${memberRows}
     </div>
     ${outputHtml}

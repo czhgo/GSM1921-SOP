@@ -14,34 +14,35 @@
 // 草稿：localStorage `wizard-draft-<branchId>`（当前步 + 每步完成标记 + 完成态），中断可续走。
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../../core/domain/domain.js?v=20261018a';
-import { getCapabilities } from '../../core/boot/registry.js?v=20261018a';
-import { OUTPUT_BLOCK_DEFS, BRANCH_COMMISSION_ROLES, ROLE_LABELS, getAccentColors } from '../../core/domain/constants.js?v=20261018a';
-import { CAPABILITY_PACKAGES } from '../../core/domain/capability-packages.js?v=20261018a';
-import { ORG_SUBJECT_LABELS, isBranchOrgSubject, ownerSubjectType } from '../../core/domain/work-map.js?v=20261018a';
+import { mockDB } from '../../core/domain/domain.js?v=20261018d';
+import { getCapabilities } from '../../core/boot/registry.js?v=20261018d';
+import { OUTPUT_BLOCK_DEFS, BRANCH_COMMISSION_ROLES, ROLE_LABELS, getAccentColors } from '../../core/domain/constants.js?v=20261018d';
+import { CAPABILITY_PACKAGES } from '../../core/domain/capability-packages.js?v=20261018d';
+import { ORG_SUBJECT_LABELS, isBranchOrgSubject, ownerSubjectType } from '../../core/domain/work-map.js?v=20261018d';
 // 副作用：注册支委层工作台能力（配置目录=其 tab 清单，单一源）
-import '../../capabilities/secretary-workspace.js?v=20261018a';
-import { BLOCK_MANIFESTS } from '../../workflow/blocks/manifests.js?v=20261018a';
+import '../../capabilities/secretary-workspace.js?v=20261018d';
+import { BLOCK_MANIFESTS } from '../../workflow/blocks/manifests.js?v=20261018d';
 // L3 流程组合（2026-09-28 批次 246）：把编排内核接进**生产路径**——配置面用它做「组合体检」
-import { composePlan } from '../../workflow/blocks/orchestration.js?v=20261018a';
-import { escHtml as esc, showToast, downloadBlob } from '../../core/base/utils.js?v=20261018a';
-import { WORK_MAP_MODULES } from '../../core/domain/work-map.js?v=20261018a';
+import { composePlan } from '../../workflow/blocks/orchestration.js?v=20261018d';
+import { escHtml as esc, showToast, downloadBlob } from '../../core/base/utils.js?v=20261018d';
+import { readLoginSnapshot } from '../../core/session/login-snapshot.js?v=20261018d';
+import { WORK_MAP_MODULES } from '../../core/domain/work-map.js?v=20261018d';
 import {
   getBranchById, getBranchOrg, getBranchTabPolicy, getCoreTabIds,
   getBranchOutputBlocks, getBranchCapabilityPackageState, getOutputBlockPolicy, getWorkflowBlockPolicy, orderByIds,
   updateBranchModules, updateBranchCapabilityPackages, getBranchWorkforce, updateBranchWorkforce, updateBranchOrg,
   applyConfigCopy, createBranch, getBranchIdOfPerson,
-} from '../../services/branch/branch.js?v=20261018a';
-import { buildConfigPackage, applyConfigPackage } from '../../services/branch/org-config-package.js?v=20261018a';
+} from '../../services/branch/branch.js?v=20261018d';
+import { buildConfigPackage, applyConfigPackage } from '../../services/branch/org-config-package.js?v=20261018d';
 import {
   buildPreviewTemplate, sanitizePreview, applyPreview, clearPreview, getPreviewState,
   PREVIEW_KIND, PREVIEW_VERSION,
-} from '../../services/branch/org-base-data-preview.js?v=20261018a';
-import { getRosterStats, isDetained } from '../../services/member/roster.js?v=20261018a';
-import { buildOrgWizardReport } from '../../services/branch/org-wizard-report.js?v=20261018a';
-import { PersonStore, getPersonName } from '../../services/member/person.js?v=20261018a';
+} from '../../services/branch/org-base-data-preview.js?v=20261018d';
+import { getRosterStats, isDetained } from '../../services/member/roster.js?v=20261018d';
+import { buildOrgWizardReport } from '../../services/branch/org-wizard-report.js?v=20261018d';
+import { PersonStore, getPersonName } from '../../services/member/person.js?v=20261018d';
 // R5-1（2026-09-06）：建空支部「就地任命首任骨干」——任命编排在 appointment.js 收口（含数据边界登记）
-import { appointInauguralOfficers } from '../../services/branch/appointment.js?v=20261018a';
+import { appointInauguralOfficers } from '../../services/branch/appointment.js?v=20261018d';
 
 // ── 步骤元信息（支书已批口径）────────────────────────────────────
 export const WIZARD_STEPS = [
@@ -82,10 +83,12 @@ function _presetAccent(presetId) {
 /**
  * 应用主题预设：运行时写 :root CSS 变量（仅可调令牌集 = --app-accent 三件套）；
  * 固定令牌（--party-red/--party-gold 等品牌统一层/状态层/中性层）不动。
+ * 2026-10-18：支部主题预设降为访客默认——登录用户主题色在设置中个人调整，预设不得覆盖。
  * @param {string} presetId
  */
 export function applyThemePreset(presetId) {
   if (typeof document === 'undefined') return;
+  if (readLoginSnapshot()) return; // 登录用户：主题色以个人偏好/默认金色为准，预设只做预览
   const { accent, accentRgba, accentBorder } = _presetAccent(presetId);
   const root = document.documentElement;
   root.style.setProperty('--app-accent', accent);
@@ -620,6 +623,7 @@ function _step1Html(S, branch, org, isStaff) {
       </label>
       <div>
         <p class="text-xs font-semibold text-gray-600 mb-1.5">主题预设 <span class="text-[11px] font-normal text-gray-500">（仅可调令牌=强调色 --app-accent 三件套；固定红/金不可提供更改）</span></p>
+        <p class="text-xs text-gray-500 mb-2">主题预设只影响未登录访客页；登录用户主题色在设置中个人调整，预设卡片仅作预览。</p>
         <div class="flex flex-wrap items-center gap-1.5 mb-2">${fixedChips}</div>
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">${presetCards}</div>
       </div>
@@ -693,7 +697,7 @@ function _step2Html(S, branch, isStaff = false) {
     return `<div class="rounded-lg border border-gray-200 bg-white px-3 py-2.5">
       <div class="flex items-start justify-between gap-3">
         <div class="min-w-0">
-          <p class="text-xs font-semibold text-gray-700">${esc(item.name)} <span class="ml-1 text-[10px] font-normal text-gray-500">v${esc(item.version)} · ${applicabilityLabel[item.applicability] || item.applicability}</span></p>
+          <p class="text-xs font-semibold text-gray-700">${esc(item.name)} <span class="ml-1 text-[11px] font-normal text-gray-500">v${esc(item.version)} · ${applicabilityLabel[item.applicability] || item.applicability}</span></p>
           <p class="mt-1 text-xs leading-4 text-gray-500">${esc(children.join('、') || '待关联子能力')} · 制度依据：${esc(item.basisStatus)}（${esc(basis)}）</p>
           ${item.dependencies?.length ? `<p class="mt-0.5 text-xs text-gray-500">依赖：${esc(item.dependencies.join('、'))}</p>` : ''}
         </div>

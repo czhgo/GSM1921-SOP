@@ -3,17 +3,17 @@
 // 变化: 去掉 mode 标签与只读视角切换；2026-08-10 支书裁定（原则12 工作台集成制）：
 // 「切换工作台」下拉为冗余要素（每个人就是每个人，任务集成在工作台，跨台经待办/通知直达）→ 删除
 
-import { getAccentColors, ROLE_LABELS, relativeLuminance } from '../../core/domain/constants.js?v=20261018a';
+import { getAccentColors, ROLE_LABELS, relativeLuminance } from '../../core/domain/constants.js?v=20261018d';
 // R1-A 点⑤（2026-09-09）：身份标签取色走 person-aware 解析（登录 person 覆盖 / 访客全局键 / 角色默认），
 // 替代 constants resolveAccentRole（只读全局键=旧残留/默认）——支书改强调色后 header 角色标签同金。
-import { resolveAppliedAccentRole } from '../../core/boot/theme.js?v=20261018a';
-import { getBasePath } from '../../core/base/utils.js?v=20261018a';
-import { icon } from '../../core/base/icons.js?v=20261018a';
-import { DATA_CHANGED_EVENT, DATA_LOADED_EVENT } from '../../data/data-adapter.js?v=20261018a';
-import { badgeHtml } from '../ui/badges.js?v=20261018a';
-import { readLoginSnapshot } from '../../core/session/login-snapshot.js?v=20261018a';
+import { resolveAppliedAccentRole } from '../../core/boot/theme.js?v=20261018d';
+import { getBasePath } from '../../core/base/utils.js?v=20261018d';
+import { icon } from '../../core/base/icons.js?v=20261018d';
+import { DATA_CHANGED_EVENT, DATA_LOADED_EVENT } from '../../data/data-adapter.js?v=20261018d';
+import { badgeHtml } from '../ui/badges.js?v=20261018d';
+import { readLoginSnapshot } from '../../core/session/login-snapshot.js?v=20261018d';
 // P1 党委后台（2026-09-02）：header 品牌软编码——标题随支部配置档案更换（person→branchId→branches.config.headerTitle）
-import { getHeaderTitle } from '../../services/branch/branch.js?v=20261018a';
+import { getHeaderTitle } from '../../services/branch/branch.js?v=20261018d';
 
 // ── 数据层按需加载（静态页隔离，2026-08-12）──
 // about/help 等纯静态文档页以 staticShell 渲染 header：不加载 auth/notice 数据链
@@ -22,18 +22,18 @@ import { getHeaderTitle } from '../../services/branch/branch.js?v=20261018a';
 let _authModule = null;
 let _noticeModule = null;
 function loadAuth() {
-  if (!_authModule) _authModule = import('../../services/core/auth.js?v=20261018a');
+  if (!_authModule) _authModule = import('../../services/core/auth.js?v=20261018d');
   return _authModule;
 }
 function loadNotice() {
-  if (!_noticeModule) _noticeModule = import('../../services/governance/notice.js?v=20261018a');
+  if (!_noticeModule) _noticeModule = import('../../services/governance/notice.js?v=20261018d');
   return _noticeModule;
 }
 // 2026-09-30 批次 297-2：跨台通用动作「一键汇报」收进顶栏唯一固定位 ⇒ 顶栏按需加载其入口模块
 // （与 auth / notice 同一策略：静态壳页不加载，app 模式渲染后加载，模块缓存后即时）
 let _reportEntryModule = null;
 function loadReportEntry() {
-  if (!_reportEntryModule) _reportEntryModule = import('../record/report-entry.js?v=20261018a');
+  if (!_reportEntryModule) _reportEntryModule = import('../record/report-entry.js?v=20261018d');
   return _reportEntryModule;
 }
 
@@ -154,17 +154,20 @@ async function _renderNotificationBadge() {
  */
 async function _refreshHeaderTitle() {
   const header = document.getElementById('app-header');
-  const h1 = header?.querySelector('.header-title h1');
-  if (!h1) return;
+  const titleEl = header?.querySelector('.header-title h1');
+  if (!titleEl) return;
   let personId = '';
+  let role = '';
   try {
     const { AuthStore } = await loadAuth();
-    personId = AuthStore.getCurrentUser()?.personId || '';
+    const user = AuthStore.getCurrentUser();
+    personId = user?.personId || '';
+    role = user?.role || '';
   } catch (e) {
     return; // 静态页未加载数据链时静默（无 h1 可判定）
   }
-  const title = getHeaderTitle(personId || undefined);
-  if (h1.textContent !== title) h1.textContent = title;
+  const title = getHeaderTitle(personId || undefined, { role });
+  if (titleEl.textContent !== title) titleEl.textContent = title;
   _applyDocumentTitle(title);
 }
 
@@ -230,7 +233,7 @@ export async function renderHeader(activeModule, opts = {}) {
   //   登录但无有效归属支部（branchId 空/查无）→ 中性占位「未绑定支部」（不再泄漏示例支部名）；
   //   分支数据尚未加载（时序）→ 静态兜底名（getHeaderTitle 内处理），数据到达后由 _refreshHeaderTitle 归还真实支部名；
   //   未登录静态壳（personId 缺省）→ 中性占位「示例组织（未登录）」。
-  const headerTitle = getHeaderTitle(personId || undefined);
+  const headerTitle = getHeaderTitle(personId || undefined, { role });
   // 2026-09-23：浏览器标签页标题同源刷新（渲染路径；未登录/登出后重绘即回到「示例组织（未登录）」）
   _applyDocumentTitle(headerTitle);
 
