@@ -14,22 +14,22 @@
 // 视觉沿用 card/rounded/折叠既有体系（域折组渲染在 components/record/todo-list.js renderDomainTodoList）。
 // 设计权威源：content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md §六 M6（共性抽象净减）
 
-import { TodoStore, urgeRolesOf, WORK_DOMAIN, WORK_DOMAIN_LABELS, realtimeGroupDomainOf, buildModuleCycleRemindGroup } from '../../services/governance/todo.js?v=20261018d';
+import { TodoStore, urgeRolesOf, WORK_DOMAIN, WORK_DOMAIN_LABELS, realtimeGroupDomainOf, buildModuleCycleRemindGroup } from '../../services/governance/todo.js?v=20261018e';
 // S3②（2026-09-12）：未读通知计数单一来源——与顶栏角标/首页同源（NoticeStore activeOnly+read 过滤），
 // 不再用「通知类待办」现算（口径不同致三处不一致）。
-import { NoticeStore, NOTICE_MODULE_ROLE_PAGES } from '../../services/governance/notice.js?v=20261018d';
-import { renderDomainTodoList } from './todo-list.js?v=20261018d';
-import { badgeHtml } from '../ui/badges.js?v=20261018d';
-import { showToast, escHtml, todayLocal } from '../../core/base/utils.js?v=20261018d';
-import { solidAccentStyle, ROLE_LABELS, BRANCH_COMMISSION_ROLES } from '../../core/domain/constants.js?v=20261018d';
-import { openModal, closeModal } from '../ui/modal.js?v=20261018d';
-import { AuthStore } from '../../services/core/auth.js?v=20261018d';
-import { mockDB } from '../../core/domain/domain.js?v=20261018d';
-import { tokenOf } from '../../core/base/version-token.js?v=20261018d'; // P0 域写版本戳（spec §二.4）
-import { resolveDocumentUrl } from '../../core/base/page-url.js?v=20261018d';
-import { memoizeRender } from '../ui/memoize-render.js?v=20261018d'; // P2 渲染守卫（spec §四.1）
+import { NoticeStore, NOTICE_MODULE_ROLE_PAGES } from '../../services/governance/notice.js?v=20261018e';
+import { renderDomainTodoList } from './todo-list.js?v=20261018e';
+import { badgeHtml } from '../ui/badges.js?v=20261018e';
+import { showToast, escHtml, todayLocal } from '../../core/base/utils.js?v=20261018e';
+import { solidAccentStyle, ROLE_LABELS, BRANCH_COMMISSION_ROLES } from '../../core/domain/constants.js?v=20261018e';
+import { openModal, closeModal } from '../ui/modal.js?v=20261018e';
+import { AuthStore } from '../../services/core/auth.js?v=20261018e';
+import { mockDB } from '../../core/domain/domain.js?v=20261018e';
+import { tokenOf } from '../../core/base/version-token.js?v=20261018e'; // P0 域写版本戳（spec §二.4）
+import { resolveDocumentUrl } from '../../core/base/page-url.js?v=20261018e';
+import { memoizeRender } from '../ui/memoize-render.js?v=20261018e'; // P2 渲染守卫（spec §四.1）
 // 模块周期提醒（`R-29⑤` · `D-804`）：分工快照取法与 `components/governance/workforce-duty-card.js` 同口径
-import { getBranchIdOfPerson, getBranchWorkforce } from '../../services/branch/branch.js?v=20261018d';
+import { getBranchIdOfPerson, getBranchWorkforce } from '../../services/branch/branch.js?v=20261018e';
 
 // ── P0 组合数据复合键（2026-09-07 · spec §二.4）──────────────────
 // 组合点（buildRealtimeGroups + mergeRealtimeDomains + getUnreadNotices）以
@@ -184,6 +184,15 @@ export function createTodoTab(opts) {
   function _renderTodoDetail(todo, ctx) {
     const btnStyle = detailBtnStyle || solidAccentStyle(ctx.accent, ctx.accentBorder);
     if (todo.groupKey) {
+      // 组详情动作按组真实下一步渲染（2026-10-18 繁专项 Task 14）：
+      //   · group.detailAction → 渲染真实落点（如「去录入考察」跳人才库并展开考察位）；
+      //   · hideActionBtn 且无 detailAction → **不渲染按钮**（行尾都没有的动作，详情不得空转）；
+      //   · 其余 → 与行尾同源调用 onAction（既有行为）。
+      const action = todo.detailAction;
+      const actionLabel = action && action.label ? action.label : (todo.hideActionBtn ? '' : '去处理');
+      const actionBtn = actionLabel
+        ? `<button type="button" class="btn-accent-soft ${detailBtnClass} text-xs px-3 py-1.5 rounded-lg text-white transition-colors hover:opacity-90" style="${btnStyle}" aria-label="${escHtml(actionLabel)}：${escHtml(todo.title || '')}">${escHtml(actionLabel)}</button>`
+        : '';
       return `
         <div class="space-y-3">
           <div class="flex items-center gap-2">
@@ -193,9 +202,7 @@ export function createTodoTab(opts) {
           <p class="font-title-cn text-sm font-bold text-gray-800">${todo.title}</p>
           ${todo.flow ? `<p class="text-xs text-gray-600 leading-relaxed">${todo.flow}</p>` : ''}
           ${todo.deadline ? `<div class="text-xs text-gray-500">最早截止：${todo.deadline}</div>` : ''}
-          <div class="pt-3 border-t border-gray-100 flex gap-2">
-            <button class="btn-accent-soft ${detailBtnClass} text-xs px-3 py-1.5 rounded-lg text-white transition-colors hover:opacity-90" style="${btnStyle}">去处理</button>
-          </div>
+          ${actionBtn ? `<div class="pt-3 border-t border-gray-100 flex gap-2">${actionBtn}</div>` : ''}
         </div>
       `;
     }
@@ -452,7 +459,15 @@ export function createTodoTab(opts) {
       container.querySelector(`.${detailBtnClass}`)?.addEventListener('click', () => {
         if (!_selectedTodoId) return;
         const group = allGroups.find(g => g.groupKey === _selectedTodoId);
-        if (group) { onAction(group, ctx); return; }
+        if (group) {
+          // 组提供 detailAction → 执行真实落点；否则沿用角色 onAction（与行尾同一入口）
+          if (group.detailAction && typeof group.detailAction.run === 'function') {
+            group.detailAction.run(group, ctx);
+            return;
+          }
+          onAction(group, ctx);
+          return;
+        }
         const todo = TodoStore.getById(_selectedTodoId);
         if (todo) onAction(todo, ctx);
       });

@@ -17,14 +17,14 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 
-import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261018d';
-import { POLICY_DEFAULTS } from '../../docs/src/core/domain/policy-defaults.js?v=20261018d';
+import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261018e';
+import { POLICY_DEFAULTS } from '../../docs/src/core/domain/policy-defaults.js?v=20261018e';
 import {
   upsertMeetingAttendance,
   MEETING_ATTENDANCE_TYPES,
   canUploadAttendance,
   loadAttendanceRecords,
-} from '../../docs/src/services/activity/attendance.js?v=20261018d';
+} from '../../docs/src/services/activity/attendance.js?v=20261018e';
 
 // ── 测试身份（demo 单源）────────────────────────────────────
 // 被操作人 = 'p10'（role 'disc-commissioner'；DISC_COMMISSIONER_ID 单源在
@@ -239,4 +239,18 @@ test('待确认队列默认不选；全选限当前可见项；清空移除所�
   assert.match(source, /#att-queue-clear[\s\S]{0,260}_queueChecked\.clear\(\)/,
     '清空操作也清除折叠后不可见项的已选状态');
   assert.match(source, /btn\.disabled = n === 0;/, '没有显式选择时批量确认按钮禁用');
+});
+
+// ── i) Task 15：队列 / 矩阵 / 总表的确认动作落到同一位置 ──
+test('纪检考勤：队列行与矩阵单元格共用同一确认落点，已打回行不再给「去打包确认」', () => {
+  const source = readFileSync(new URL('../../docs/src/entries/tabs/disc/attendance-tab.js', import.meta.url), 'utf8');
+  assert.match(source, /data-att-record-row="\$\{r\.id\}"/, '队列行须带统一确认位锚点');
+  assert.match(source, /data-att-record-id="\$\{esc\(state\.recordId\)\}"[\s\S]{0,120}点此到待确认队列/,
+    '矩阵可确认单元格须指向同一确认位');
+  assert.match(source, /data-record-id="\$\{a\.id\}"[\s\S]{0,120}到「待确认考勤」队列确认该条/,
+    '总表「去打包确认」须带记录 id 并落到队列');
+  assert.match(source, /function _consumePendingFocus\(container\)/, '须有统一确认位定位函数');
+  assert.match(source, /function _consumePendingFocus\(container\)[\s\S]{0,900}_syncBatchBar\(container\)/,
+    '定位后须勾选该条并同步批量汇总条');
+  assert.match(source, /: \(returned[\s\S]{0,140}已打回 · 待组织方重新确认/, '已打回记录在总表只读，不再给确认入口');
 });

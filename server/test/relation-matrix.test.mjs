@@ -126,6 +126,13 @@ test('S6 思想汇报台账＝人 × 期次宽表（单一源矩阵；不得回�
   assert.match(src, /data-trview="period"/, '台账须提供「按期次」转置视图钮');
   assert.match(src, /mode: _view === 'period' \? 'byItem' : 'byPerson'/, '转置视图须经组件 mode 切换（不得自造第二套渲染）');
   assert.ok(!/groupMap|tr-browse-host/.test(src), '不得回潮「按人分组 + 组内每篇一行」的自建列表（应走矩阵）');
+  // 2026-10-18 繁专项 Task 14：状态不能只靠颜色——须有可见图例 + 状态筛选；留痕行集须含已移出
+  assert.match(src, /function _legendHtml\(\)/, '状态须有可见图例（颜色 + 文字）');
+  assert.match(src, /data-trfilter="\$\{key\}" aria-pressed=/, '状态须提供可访问的筛选钮');
+  assert.match(src, /needs_revision', '待补充'\],\s*\n\s*\['archived', '已入库'\]/, '筛选至少覆盖待补充 / 已入库');
+  assert.match(src, /aria-label="\$\{esc\(tip\)\}"/, '色块链接须有 aria-label 可读状态');
+  assert.match(src, /const movedOut = \[\.\.\.new Set\(allRecs\.map/, '「留痕台账」行集须并入有汇报的已移出成员');
+  assert.match(src, /含已移出 \$\{movedOutShown\} 人/, '已移出成员须在页面上标注');
 });
 
 // ── 真机层 ────────────────────────────────────────────────────────────
@@ -161,7 +168,7 @@ async function loginDisc() {
   ]);
   await page.waitForFunction(() => document.querySelectorAll('button[role="tab"]').length > 0, { timeout: 20000 });
   // P0-2 形态断言（2026-09-23 支书裁定「形态必须可断言」）：本文件真机用例必须在 API 形态下跑
-  await page.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20261018d')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
+  await page.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20261018e')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
   await page.waitForTimeout(600);
   return { page, errs };
 }
@@ -185,7 +192,7 @@ async function loginOrg() {
   ]);
   await page.waitForFunction(() => document.querySelectorAll('button[role="tab"]').length > 0, { timeout: 20000 });
   // P0-2 形态断言（2026-09-23 支书裁定「形态必须可断言」）：本文件真机用例必须在 API 形态下跑
-  await page.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20261018d')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
+  await page.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20261018e')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
   await page.waitForTimeout(600);
   return { page, errs };
 }

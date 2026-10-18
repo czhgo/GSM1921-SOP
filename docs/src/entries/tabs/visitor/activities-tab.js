@@ -3,22 +3,22 @@
 // 三视图：列表（分页）/ 日历 / 查询；列表与日历为纯展示，查询复用全局查询组件。
 // URL 落点高亮（?activityId=）经 ctx.highlightId 一次性消费（对齐单体版参数清除后的行为）。
 
-import { icon } from '../../../core/base/icons.js?v=20261018d';
-import { renderQueryView } from '../../../components/governance/query-view.js?v=20261018d';
-import { flashHighlight } from '../../../core/base/utils.js?v=20261018d';
-import { getActivityTypeColors } from '../../../core/domain/constants.js?v=20261018d';
+import { icon } from '../../../core/base/icons.js?v=20261018e';
+import { renderQueryView } from '../../../components/governance/query-view.js?v=20261018e';
+import { flashHighlight } from '../../../core/base/utils.js?v=20261018e';
+import { getActivityTypeColors } from '../../../core/domain/constants.js?v=20261018e';
 // 活动「仍在办」口径单一源（2026-09-13 收敛）：替代手写 !archived && status!=='cancelled'
-import { isActivityLive } from '../../../core/domain/constants.js?v=20261018d';
-import { canSignup } from '../../../components/governance/signup-panel.js?v=20261018d';
-import { AuthStore } from '../../../services/core/auth.js?v=20261018d';
+import { isActivityLive } from '../../../core/domain/constants.js?v=20261018e';
+import { canSignup } from '../../../components/governance/signup-panel.js?v=20261018e';
+import { AuthStore } from '../../../services/core/auth.js?v=20261018e';
 // 组织者按活动身份读（2026-09-19 批次 91 · SOP-B-17）：本人被指定为某场活动的组织者时，
 // 该场的发布口与上传位从该行可达——「组织者是这场事上被指定的人」，不是静态角色。
-import { isActivityOrganizer, findActivityById } from '../../../services/activity/activity.js?v=20261018d';
-import { openGroupNoticeComposer } from '../../../components/governance/notice-view.js?v=20261018d';
+import { isActivityOrganizer, findActivityById } from '../../../services/activity/activity.js?v=20261018e';
+import { openGroupNoticeComposer } from '../../../components/governance/notice-view.js?v=20261018e';
 // 翻页控件单一源（批次 38：全站手写翻页一律并轨 pagerHtml）
-import { pagerHtml } from '../../../components/ui/pager.js?v=20261018d';
-import { getAppState } from '../../../core/base/state.js?v=20261018d';
-import { renderContent as renderSharedActivityCalendar } from '../shared/activity-calendar-tab.js?v=20261018d';
+import { pagerHtml } from '../../../components/ui/pager.js?v=20261018e';
+import { getAppState } from '../../../core/base/state.js?v=20261018e';
+import { renderContent as renderSharedActivityCalendar } from '../shared/activity-calendar-tab.js?v=20261018e';
 
 const ACTIVITY_TYPE_COLORS = getActivityTypeColors();
 
@@ -81,6 +81,46 @@ let _visitorActPage = 1; // 当前页（模块级，切换 列表/日历/查询 
 let _pendingView = null;
 let _viewParamConsumed = false;
 let _programmaticViewClick = false;
+// 日历视图内层「月/周/日」工具条的降级守卫（共享日历每次切视图会重绘该工具条）
+let _calToolbarObserver = null;
+
+const _VIEW_ACTIVE = { background: 'var(--app-accent-bg)', color: 'var(--app-accent)', border: '1px solid var(--app-accent)' };
+const _VIEW_IDLE = { background: 'var(--surface-card)', color: 'var(--neutral-500)', border: '1px solid var(--neutral-200)' };
+
+function _paintViewButtons(tc, active) {
+  tc.querySelectorAll('.visitor-view-btn').forEach((btn) => {
+    const s = btn.dataset.vview === active ? _VIEW_ACTIVE : _VIEW_IDLE;
+    btn.style.background = s.background;
+    btn.style.color = s.color;
+    btn.style.border = s.border;
+    btn.setAttribute('aria-selected', btn.dataset.vview === active ? 'true' : 'false');
+  });
+}
+
+// 日历视图只保留「月 / 周 / 日」粒度；移除内层「列表」并降为次级工具条（不和主视图切换抢主位）。
+function _demoteCalendarToolbar(vc) {
+  const switcher = vc.querySelector('#cal-view-switcher');
+  if (!switcher) return;
+  switcher.querySelector('[data-view="list"]')?.remove();
+  if (!switcher.querySelector('.visitor-cal-granularity-label')) {
+    const label = document.createElement('span');
+    label.className = 'visitor-cal-granularity-label text-xs text-gray-500';
+    label.textContent = '日历粒度';
+    switcher.prepend(label);
+  }
+  switcher.querySelectorAll('.cal-view-btn').forEach((btn) => {
+    btn.style.padding = '4px 8px';
+    btn.style.fontSize = '12px';
+  });
+}
+
+function _watchCalendarToolbar(vc) {
+  _calToolbarObserver?.disconnect();
+  const switcher = vc.querySelector('#cal-view-switcher');
+  if (!switcher || typeof MutationObserver === 'undefined') return;
+  _calToolbarObserver = new MutationObserver(() => _demoteCalendarToolbar(vc));
+  _calToolbarObserver.observe(switcher, { childList: true });
+}
 
 export function renderContent(ctx) {
   const tc = document.getElementById('visitor-tab-content');
@@ -92,40 +132,41 @@ export function renderContent(ctx) {
 
   if (!_viewParamConsumed) {
     _viewParamConsumed = true;
-    const v = new URLSearchParams(location.search).get('subview');
+    // `?subview=` 是既有深链协议；同时接受 `?view=`（活动动态被作为落点时的同义写法）。
+    const params = new URLSearchParams(location.search);
+    const v = params.get('subview') || params.get('view');
     if (v && ['list', 'calendar', 'query'].includes(v)) _pendingView = v;
   }
 
+  // 唯一主视图切换（列表 / 日历 / 查询）；日历内的「月/周/日」只是次级粒度工具条。
   tc.innerHTML = `
-    <div class="flex items-center justify-between mb-3">
+    <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
       <span class="text-xs text-gray-500">${sorted.length} 条活动</span>
-      <div class="flex gap-1">
-        <button class="btn-tab visitor-view-btn px-3 py-1.5 text-xs" data-vview="list" style="background:rgba(206,17,38,0.08);color:var(--primary-700);border:1px solid rgba(206,17,38,0.2);--acc-bg-dark:rgba(239,68,68,0.12);--acc-text-dark:#FCA5A5;--acc-border-dark:rgba(239,68,68,0.35);">
+      <div class="flex gap-1" role="tablist" aria-label="活动视图">
+        <button class="btn-tab visitor-view-btn px-3 py-1.5 text-[13px] font-medium" data-vview="list" role="tab">
           ${icon('list', { className: 'w-3.5 h-3.5' })} 列表
         </button>
-        <button class="btn-tab visitor-view-btn px-3 py-1.5 text-xs" data-vview="calendar" style="background:var(--surface-card);color:var(--neutral-500);border:1px solid var(--neutral-200);">
+        <button class="btn-tab visitor-view-btn px-3 py-1.5 text-[13px] font-medium" data-vview="calendar" role="tab">
           ${icon('calendar', { className: 'w-3.5 h-3.5' })} 日历
         </button>
-        <button class="btn-tab visitor-view-btn px-3 py-1.5 text-xs" data-vview="query" style="background:var(--surface-card);color:var(--neutral-500);border:1px solid var(--neutral-200);">
+        <button class="btn-tab visitor-view-btn px-3 py-1.5 text-[13px] font-medium" data-vview="query" role="tab">
           ${icon('search', { className: 'w-3.5 h-3.5' })} 查询
         </button>
       </div>
     </div>
     <div id="visitor-act-view"></div>
   `;
+  _paintViewButtons(tc, 'list');
 
   tc.querySelectorAll('.visitor-view-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       // 用户手动切视图 ⇒ 深链粘住的视图让位（见 `_pendingView` 说明）
       if (!_programmaticViewClick) _pendingView = null;
-      tc.querySelectorAll('.visitor-view-btn').forEach(b => {
-        b.style.background = 'var(--surface-card)'; b.style.color = 'var(--neutral-500)'; b.style.border = '1px solid var(--neutral-200)';
-      });
-      btn.style.background = 'rgba(206,17,38,0.08)'; btn.style.color = 'var(--primary-700)'; btn.style.border = '1px solid rgba(206,17,38,0.2)';
       const view = btn.dataset.vview;
-      if (view === 'list') _renderActListView(sorted, highlightId);
+      _paintViewButtons(tc, view);
+      if (view === 'list') { _calToolbarObserver?.disconnect(); _renderActListView(sorted, highlightId); }
       else if (view === 'calendar') _renderActCalendarView(sorted, highlightId);
-      else _renderActQueryView(sorted, highlightId);
+      else { _calToolbarObserver?.disconnect(); _renderActQueryView(sorted, highlightId); }
     });
   });
 
@@ -208,7 +249,15 @@ function _renderActCalendarView(sorted, highlightId) {
     return;
   }
   const state = getAppState() || {};
-  renderSharedActivityCalendar(vc, { ...state, activities: sorted });
+  // 日历是本页的一个视图：内层只保留「月 / 周 / 日」粒度，不再出现第二个「列表」抢主位。
+  // 若全局记忆停在内层「列表」，进入本视图时回落到月视图（否则会出现没有切换钮的列表）。
+  renderSharedActivityCalendar(vc, {
+    ...state,
+    activities: sorted,
+    calendarView: state.calendarView === 'list' ? 'month' : (state.calendarView || 'month'),
+  });
+  _demoteCalendarToolbar(vc);
+  _watchCalendarToolbar(vc);
   if (highlightId) {
     const el = [...vc.querySelectorAll('.cal-activity-item')].find((item) => item.dataset.actId === highlightId);
     if (el) {

@@ -276,7 +276,7 @@ for (const w of WORKS) {
       }
       await page.waitForTimeout(800);
       // P0-2 形态断言（2026-09-23 支书裁定「形态必须可断言、不许静默降级」）：本文件真机用例必须在 API 形态下跑
-      await page.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20261018d')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
+      await page.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20261018e')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
 
       const labels = await page.$$eval('button[role="tab"]', (els) => els.map((e) => e.textContent.trim()));
       assert.ok(labels.length > 0, `${w.name} 未渲染任何 tab`);
@@ -440,7 +440,7 @@ test('S21 组织台活动深链：?activityId / ?view=activities 落「活动日
     await page.waitForTimeout(800);
     // 取一个真实活动（优先「非当前月」者，顺带验证切月）
     const acts = await page.evaluate(async () => {
-      const m = await import('/src/core/base/state.js?v=20261018d');
+      const m = await import('/src/core/base/state.js?v=20261018e');
       return ((m.getAppState() || {}).activities || []).map((x) => ({ id: x.id, date: x.date }));
     });
     assert.ok(acts.length > 0, '组织台活动深链用例：未取到任何活动（样本不足）');
@@ -507,6 +507,27 @@ test('S1 普查非空转：确实覆盖到「本该分页的列表 / 矩阵人�
   const zombie = CARD_LIST_PENDING.filter((p) => !PENDING_SEEN.has(p.sig));
   assert.deepEqual(zombie.map((p) => p.where), [],
     `P11 待修台账僵尸：以下条目在真机里再也命中不到——已修好则应删条目，否则说明选择器失配：\n  ${zombie.map((p) => `${p.where} [${p.sig}]`).join('\n  ')}`);
+});
+
+// S22（2026-10-18 繁专项 Task 14）：组织台深度审阅后的三个落点/文案守卫（静态层，随普查同文件收口）。
+test('S22 组织台概况缺口有真实落点，履职卡不再指向已摘除的 development', () => {
+  const src = readFileSync(join(import.meta.dirname, '..', '..', 'docs', 'src', 'entries', 'tabs', 'org', 'overview-tab.js'), 'utf8');
+  assert.match(src, /\.wfd-duty\[data-tab="development"\]/, '须定位旧履职落点');
+  assert.match(src, /setAttribute\('data-tab', 'talent'\)/, '发展党员改落人才库');
+  assert.match(src, /data-org-gap-tab/, '条线缺口行须补动作');
+  assert.match(src, /_gotoOrgTab\(action\.tab\)/, '缺口动作须切到真实页签');
+  for (const tab of ['taskforce', 'calendar', 'roster', 'talent', 'thought-review']) {
+    assert.ok(src.includes(`tab: '${tab}'`), `缺口动作缺少真实页签：${tab}`);
+  }
+});
+
+test('S23 人才库考察/汇报提示分离，录入考察文案归一', () => {
+  const src = readFileSync(join(import.meta.dirname, '..', '..', 'docs', 'src', 'entries', 'tabs', 'org', 'talent-tab.js'), 'utf8');
+  assert.match(src, /function _devTips\(/, '提示须返回可并存的数组');
+  assert.match(src, /label: '考察'/, '考察缺口须独立标注');
+  assert.match(src, /label: '汇报'/, '汇报缺口须独立标注');
+  assert.match(src, /收起录入' : '录入考察'/, '外层动作统一为「录入考察」');
+  assert.match(src, /_normalizeInspectionCopy/, '内嵌考察子页文案须归一');
 });
 
 // S19（2026-10-05 批次 382）：**台账对账**——`README-server.md §3.2` 标题的「共 N 个」与各台

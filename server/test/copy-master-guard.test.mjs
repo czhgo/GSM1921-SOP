@@ -186,9 +186,9 @@ const BASELINE = {
   // `docs/src/entries/tabs/disc/attendance-tab.js` 条目已于 2026-09-25「文案存量清理」批移除（收基线）：
   //   该文件两条同句（考勤上传位 / 录入即确认）已改为「一行摘要 ＋ help 深链 #card-copy-attendance-record」
   //   ⇒ 界面不再复述制度母本，按本守卫自身纪律（收基线＝删条目）删去。
-  'docs/src/entries/tabs/org/inspection-tab.js': [
-    '自动投递：纪检确认→考察总表（组织委员建档），无需',          // 考察自动投递口径（与 §3.4 同句）
-  ],
+  // `docs/src/entries/tabs/org/inspection-tab.js` 条目已于 2026-10-18「工作台提质」批移除（收基线）：
+  //   该文件的「自动投递：纪检确认→考察总表…」长说明已改为一行摘要，界面与母本不再有 ≥20 字连续重合
+  //   ⇒ 按收基线纪律删条目；`BASELINE_FILE_COUNT` 8 → 7、`BASELINE_TOTAL` 10 → 9，N3 下限同批下调。
   'docs/src/entries/tabs/secretary/calendar-tab.js': [
     '人数按现时「在校/滞留」状态自动剔除滞留成员，创建时',          // 活动写入人数口径（与 §3.2 同句）
   ],
@@ -208,8 +208,8 @@ const BASELINE = {
  *  2026-10-11（批次 441）：收 `about-entry.js` 条目（该平台化小字已从关于页 / 帮助页 / 首页三处删除，
  *    母本与界面侧重合同时清零）⇒ 文件 9 → 8、条数 11 → 10；N3 两处硬下限同批下调为 `>= 8` / `>= 10`
  *    （与上一条同规矩：只降不升、同批说明）。 */
-const BASELINE_FILE_COUNT = 8;
-const BASELINE_TOTAL = 10;
+const BASELINE_FILE_COUNT = 7;
+const BASELINE_TOTAL = 9;
 
 /** 定点登记表（help.html 里 data-copy-key 卡片数）的下限，防台账被删空
  *  2026-09-25「文案存量清理」批：本批新增 4 张定点（issue-reveal / pcm-scope / attendance-record / makeup-scope）
@@ -269,8 +269,8 @@ test('N3 非空转：抽取口径可用（含 20/19 字边界）+ 基线规模�
 
   // ② 基线规模下限（低于此值说明台账被删减或口径失效）
   const baseFiles = Object.keys(BASELINE);
-  assert.ok(BASELINE_FILE_COUNT >= 8, `基线文件数过少（声明 ${BASELINE_FILE_COUNT}，下限 8）——台账被删减或抽取口径失效`);
-  assert.ok(BASELINE_TOTAL >= 10, `基线条数过少（声明 ${BASELINE_TOTAL}，下限 10）——台账被删减或抽取口径失效`);
+  assert.ok(BASELINE_FILE_COUNT >= 7, `基线文件数过少（声明 ${BASELINE_FILE_COUNT}，下限 7）——台账被删减或抽取口径失效`);
+  assert.ok(BASELINE_TOTAL >= 9, `基线条数过少（声明 ${BASELINE_TOTAL}，下限 9）——台账被删减或抽取口径失效`);
   assert.equal(baseFiles.length, BASELINE_FILE_COUNT,
     `基线条目数与声明的文件数不一致（实测 ${baseFiles.length} / 声明 ${BASELINE_FILE_COUNT}）`);
   assert.equal(baseFiles.reduce((a, f) => a + BASELINE[f].length, 0), BASELINE_TOTAL,

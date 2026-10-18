@@ -9,21 +9,21 @@
 //   · 读侧数据不动写（除页面跳转外无任何保存/报送控件）。
 // 保留「人才库=只读画像、名册=档案维护」页内注释与引导文案。
 
-import { loadInspectionRecords } from '../../../services/activity/inspection.js?v=20261018d';
+import { loadInspectionRecords } from '../../../services/activity/inspection.js?v=20261018e';
 // ⚠ 2026-10-01 批次 321（支书 V-10 取「乙：整页并入人才库」）：原「发展数据」tab 的**活动参与汇总**卡
 //   并入本页——「参与工作情况」正是**考察**的主体，支书原话「**考察就是维护人才库的过程！！**」。
-import { listActivityParticipationByPerson } from '../../../services/activity/attendance.js?v=20261018d';
-import { loadThoughtReports } from '../../../services/governance/thought-report.js?v=20261018d';
-import { PersonStore, getPersonName } from '../../../services/member/person.js?v=20261018d';
+import { listActivityParticipationByPerson } from '../../../services/activity/attendance.js?v=20261018e';
+import { loadThoughtReports } from '../../../services/governance/thought-report.js?v=20261018e';
+import { PersonStore, getPersonName } from '../../../services/member/person.js?v=20261018e';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/member/person.js 获取（原直连 mock PEOPLE）
-import { getResidenceOf } from '../../../services/member/roster.js?v=20261018d';
+import { getResidenceOf } from '../../../services/member/roster.js?v=20261018e';
 // Q-21-3 收敛（2026-09-13）：在册状态枚举单一源 = core/domain/constants.js（原经 roster.js 转出）
-import { RESIDENCE } from '../../../core/domain/constants.js?v=20261018d';
+import { RESIDENCE } from '../../../core/domain/constants.js?v=20261018e';
 // B5（2026-09-12）：搜索 + 阶段/党小组筛选已统一接入 components/ui/list-filter.js（分面枚举由引擎 auto 派生）
-import { listPendingConfirmations, lastApprovedStageChange } from '../../../services/member/member-confirmation.js?v=20261018d';
-import { escHtml as esc, getBasePath } from '../../../core/base/utils.js?v=20261018d';
+import { listPendingConfirmations, lastApprovedStageChange } from '../../../services/member/member-confirmation.js?v=20261018e';
+import { escHtml as esc, getBasePath } from '../../../core/base/utils.js?v=20261018e';
 // 统一检索引擎（2026-09-13 表格统一化批次 A）：成员卡列表接入关键词 + 分面（替代原手写三控件显隐过滤）
-import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261018d';
+import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261018e';
 
 // 发展阶段顺序（发展流程正向：入党申请人 → 积极分子 → 发展对象 → 预备党员 → 正式党员）
 const STAGE_ORDER = ['积极分子', '发展对象', '预备党员', '正式党员'];
@@ -60,41 +60,42 @@ function _monthsSince(dateStr, now = new Date()) {
 }
 
 /**
- * 发展提示（按 member-confirmation / thought-report / inspection 数据推算；无依据返回 null）
- * 规则（全部可解释、不造假）：
+ * 发展提示（按 member-confirmation / thought-report / inspection 数据推算；无依据返回空数组）
+ * 规则（全部可解释、不造假；**考察与汇报各占一条，不再互相遮蔽**，2026-10-18 繁专项 Task 14）：
  *  1. 有待支书确认的阶段/在册变更 → 「{…}变更待支书确认（from → to）」
- *  2. 发展中（非正式党员）且无考察记录 → 「尚无考察记录，发展材料待积累」
- *  3. 发展中且无思想汇报归档 → 「尚未归档思想汇报」
- *  4. 预备党员：最后一次经成员变更确认进入预备党员阶段满一年 → 「预备期已满（起算日满一年），可启动转正流程」；
- *     满 9 个月未满一年 → 「预备期将满（起算日），可筹备转正申请」
+ *  2. 发展中（非正式党员）且无考察记录 → 「考察：尚无考察记录，发展材料待积累」
+ *  3. 发展中且无思想汇报归档 → 「汇报：尚未归档思想汇报」
+ *  4. 预备党员：最后一次经成员变更确认进入预备党员阶段满一年 → 「预备期已满…，可启动转正流程」；
+ *     满 9 个月未满一年 → 「预备期将满…，可筹备转正申请」
+ * @returns {Array<{cls:string,label?:string,text:string,jump?:boolean}>}
  */
-function _devTip(person, counts, ctx) {
+function _devTips(person, counts, ctx) {
+  const tips = [];
   const mc = ctx.pendingByPerson.get(person.id);
   if (mc) {
-    return {
+    tips.push({
       cls: 'bg-amber-50 text-amber-700 border border-amber-100',
       text: `${mc.action === 'residence' ? '在册状态' : '发展阶段'}变更待支书确认（${mc.from || ''} → ${mc.to || ''}）`,
-    };
+    });
   }
   const inspCount = counts.insp[person.id] || 0;
   const thoughtCount = counts.thought[person.id] || 0;
   if (person.developStage && person.developStage !== '正式党员') {
-    if (inspCount === 0) return { cls: 'bg-gray-50 text-gray-500', text: '尚无考察记录，发展材料待积累' };
-    if (thoughtCount === 0) return { cls: 'bg-gray-50 text-gray-500', text: '尚未归档思想汇报' };
+    if (inspCount === 0) tips.push({ cls: 'bg-gray-50 text-gray-500 border border-gray-100', label: '考察', text: '尚无考察记录，发展材料待积累' });
+    if (thoughtCount === 0) tips.push({ cls: 'bg-gray-50 text-gray-500 border border-gray-100', label: '汇报', text: '尚未归档思想汇报' });
   }
   if (person.developStage === '预备党员') {
     const ch = lastApprovedStageChange(person.id);
     if (ch && ch.at) {
       const months = _monthsSince(ch.at);
       if (months >= 12) {
-        return { cls: 'bg-green-50 text-green-700 border border-green-100', text: `预备期已满（${String(ch.at).slice(0, 10)} 起满一年），可启动转正流程`, jump: true };
-      }
-      if (months >= 9) {
-        return { cls: 'bg-green-50 text-green-700 border border-green-100', text: `预备期将满（${String(ch.at).slice(0, 10)} 起），可筹备转正申请`, jump: true };
+        tips.push({ cls: 'bg-green-50 text-green-700 border border-green-100', text: `预备期已满（${String(ch.at).slice(0, 10)} 起满一年），可启动转正流程`, jump: true });
+      } else if (months >= 9) {
+        tips.push({ cls: 'bg-green-50 text-green-700 border border-green-100', text: `预备期将满（${String(ch.at).slice(0, 10)} 起），可筹备转正申请`, jump: true });
       }
     }
   }
-  return null;
+  return tips;
 }
 
 // ════════════════════════════════════════════════════════════════
@@ -174,9 +175,10 @@ export function renderContent(ctx) {
   const rows = [...people].sort((a, b) => stageRank(a) - stageRank(b));
 
   // 发展提示一次性推算（顶部统计条「提示计数」与卡片共用，避免重复计算）
+  // 2026-10-18 Task 14：每人可同时有考察缺口与汇报缺口两条提示（不再互斥遮蔽）
   const tipByPerson = new Map();
-  for (const p of people) tipByPerson.set(p.id, _devTip(p, { insp: inspCount, thought: thoughtCount }, { pendingByPerson }));
-  const tipCount = [...tipByPerson.values()].filter(Boolean).length;
+  for (const p of people) tipByPerson.set(p.id, _devTips(p, { insp: inspCount, thought: thoughtCount }, { pendingByPerson }));
+  const tipCount = [...tipByPerson.values()].filter((tips) => tips.length > 0).length;
 
   // 活动参与汇总（自「发展数据」并入，见上方注释块）：与考勤同源，随记录即时更新
   const part = listActivityParticipationByPerson();
@@ -187,7 +189,9 @@ export function renderContent(ctx) {
         // 深色适配（R-11）：bg-cyan-50 无深色分支（styles.css 未覆盖），补内联深色三件套
         const badgeDark = p.developStage === '积极分子' ? ' --acc-bg-dark:rgba(6,182,212,0.16);--acc-text-dark:#67E8F9;--acc-border-dark:rgba(6,182,212,0.35);' : '';
         const last = lastInsp[p.id];
-        const tip = tipByPerson.get(p.id);
+        const tips = tipByPerson.get(p.id) || [];
+        const inlineTips = tips.filter((tip) => !tip.jump);
+        const jumpTips = tips.filter((tip) => tip.jump);
         // 姓名 → 成员档案独立页（同标签页；人名现取 getPersonName）
         const archiveHref = `${getBasePath()}person.html?id=${encodeURIComponent(p.id)}`;
         // 实体条目可点（2026-09-12 支书裁定）：成员卡 = 成员实体 → 点击 1 跳直达「成员名册」并高亮该成员
@@ -206,11 +210,9 @@ export function renderContent(ctx) {
                 <div class="text-[11px] text-gray-500 mt-1 truncate" title="${esc(last.content || '')}${last.recordedAt ? '（' + esc(String(last.recordedAt).slice(0, 10)) + '）' : ''}">
                   最近考察：${esc(_truncate(last.content || last.role || '', 28))}${last.recordedAt ? `（${esc(String(last.recordedAt).slice(0, 10))}）` : ''}
                 </div>` : ''}
-              ${tip && !tip.jump ? `<div class="mt-1.5 text-[11px] px-2 py-1 rounded-lg border ${tip.cls}">${esc(tip.text)}</div>` : ''}
+              ${inlineTips.map((tip) => `<div class="mt-1.5 text-xs leading-5 px-2 py-1 rounded-lg border ${tip.cls}">${tip.label ? `<span class="font-medium">${esc(tip.label)}</span>：` : ''}${esc(tip.text)}</div>`).join('')}
             </div>
-            ${tip && tip.jump
-              ? `<button type="button" class="btn-outline talent-person-jump mt-1.5 text-[13px] px-2 py-1 rounded-lg border w-full text-left ${tip.cls} hover:opacity-90 transition-opacity" data-person-id="${p.id}" style="cursor:pointer;">${esc(tip.text)} · 去个人总表 →</button>`
-              : ''}
+            ${jumpTips.map((tip) => `<button type="button" class="btn-outline talent-person-jump mt-1.5 text-[13px] px-2 py-1 rounded-lg border w-full text-left ${tip.cls} hover:opacity-90 transition-opacity" data-person-id="${p.id}" style="cursor:pointer;">${esc(tip.text)} · 去个人总表 →</button>`).join('')}
           </div>`;
   };
 
@@ -301,7 +303,7 @@ function _renderInspectionSlot(container, ctx) {
     <div class="card rounded-xl p-5">
       <div class="flex items-center justify-between flex-wrap gap-2">
         <h3 class="font-title-cn text-base font-semibold text-gray-800">录入考察</h3>
-        <button type="button" class="btn-outline px-3 py-1.5 text-xs" id="talent-insp-toggle">${_inspSlotOpen ? '收起' : '展开'}</button>
+        <button type="button" class="btn-outline px-3 py-1.5 text-xs" id="talent-insp-toggle">${_inspSlotOpen ? '收起录入' : '录入考察'}</button>
       </div>
       <div id="talent-insp-body" class="${_inspSlotOpen ? 'mt-3' : 'hidden'}"></div>
     </div>`;
@@ -310,6 +312,32 @@ function _renderInspectionSlot(container, ctx) {
     _renderInspectionSlot(container, ctx);
   });
   if (_inspSlotOpen) {
-    import('./inspection-tab.js?v=20261018d').then((m) => m.renderContent(ctx, host.querySelector('#talent-insp-body')));
+    import('./inspection-tab.js?v=20261018e').then((m) => {
+      const body = host.querySelector('#talent-insp-body');
+      m.renderContent(ctx, body);
+      _normalizeInspectionCopy(body);
+    });
   }
+}
+
+/**
+ * 统一内嵌考察子页的动作文案（2026-10-18 Task 14）：
+ * 外层已叫「录入考察」，内层 `inspection-tab.js` 的「录入事项考察 / 收起表单 / 上传考察表单」属于同一动作的三种写法。
+ * 这里只在**渲染后**把可见文案归一到「录入考察 / 收起录入」（不改子页实现、不复制表单）。
+ * @param {HTMLElement|null} body 内嵌考察宿主
+ */
+function _normalizeInspectionCopy(body) {
+  if (!body) return;
+  const btn = body.querySelector('#btn-org-upload-insp');
+  if (!btn) return;
+  const sync = () => {
+    const panel = body.querySelector('#org-insp-form-panel');
+    const open = !!panel && !panel.classList.contains('hidden');
+    const label = open ? '收起录入' : '录入考察';
+    if (btn.textContent !== label) btn.textContent = label;
+  };
+  sync();
+  if (body.dataset.inspCopyObserved) return;
+  body.dataset.inspCopyObserved = '1';
+  new MutationObserver(sync).observe(body, { childList: true, subtree: true, characterData: true });
 }

@@ -2,33 +2,40 @@
 // 组长工作台 Tab：考察管理（T-279 M2 拆分；2026-10-04 批次 369 页签名由「考察上传」改「考察管理」——对象轴，与纪检台同名同轴）
 // 党小组活动考察：组织者上传 → 纪检委员确认 → 录入考察总表。
 
-import { loadInspectionRecords, saveInspectionRecords, canUploadInspection } from '../../../services/activity/inspection.js?v=20261018d';
-import { loadInspectionAppeals, reconfirmReturnedInspectionRecord, resolveInspectionAppeal, isInspectionHomePosition } from '../../../services/activity/inspection.js?v=20261018d';
-import { loadActivities } from '../../../services/activity/activity.js?v=20261018d';
+import { loadInspectionRecords, saveInspectionRecords, canUploadInspection } from '../../../services/activity/inspection.js?v=20261018e';
+import { loadInspectionAppeals, reconfirmReturnedInspectionRecord, resolveInspectionAppeal, isInspectionHomePosition } from '../../../services/activity/inspection.js?v=20261018e';
+import { loadActivities, getOrganizedActivities } from '../../../services/activity/activity.js?v=20261018e';
 // 待批活动的可见性单一源（2026-09-22 批次 151）：组长台为非支委层 ⇒ 待批活动不进本页来源下拉
-import { filterActivitiesForViewer } from '../../../services/core/visibility.js?v=20261018d';
-import { TaskForceRecordStore } from '../../../services/activity/taskforce.js?v=20261018d';
-import { PersonPicker } from '../../../components/governance/pickers.js?v=20261018d';
+import { filterActivitiesForViewer } from '../../../services/core/visibility.js?v=20261018e';
+import { TaskForceRecordStore, isTaskforceOrganizer } from '../../../services/activity/taskforce.js?v=20261018e';
+import { AuthStore } from '../../../services/core/auth.js?v=20261018e';
+import { PersonPicker } from '../../../components/governance/pickers.js?v=20261018e';
 // 「本位」nudge 确认弹窗（2026-09-23 支书裁定 · 单一源 = components/ui/modal.js::confirmNudge）
-import { confirmNudge } from '../../../components/ui/modal.js?v=20261018d';
-import { inspectionToLong } from '../../../services/activity/inspection.js?v=20261018d';
-import { getPersonById, getPersonName } from '../../../services/member/person.js?v=20261018d';
-import { SourceType, ParticipationLevel } from '../../../core/domain/domain.js?v=20261018d';
-import { showToast, escHtml as esc, getBasePath } from '../../../core/base/utils.js?v=20261018d';
-import { solidAccentStyle, accDarkVars } from '../../../core/domain/constants.js?v=20261018d';
-import { currentLeaderGroup } from './_shared.js?v=20261018d';
-import { generateId } from '../../../core/base/id.js?v=20261018d';
+import { confirmNudge } from '../../../components/ui/modal.js?v=20261018e';
+import { inspectionToLong } from '../../../services/activity/inspection.js?v=20261018e';
+import { getPersonById, getPersonName } from '../../../services/member/person.js?v=20261018e';
+import { SourceType, ParticipationLevel } from '../../../core/domain/domain.js?v=20261018e';
+import { showToast, escHtml as esc, getBasePath } from '../../../core/base/utils.js?v=20261018e';
+import { solidAccentStyle, accDarkVars } from '../../../core/domain/constants.js?v=20261018e';
+import { currentLeaderGroup } from './_shared.js?v=20261018e';
+import { generateId } from '../../../core/base/id.js?v=20261018e';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是人的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
-import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261018d';
+import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261018e';
 
 // 私有状态（随模块自持，不污染入口）
 let _inspFormVisible = false;
 let _inspPickerInstance = null;
 
-export function renderContent(ctx, host) {
+export function renderContent(ctx, host, opts = {}) {
   // host（D-808 · 2026-10-06）：成员台「由我组织的活动」区以宿主容器复用本页（实现单一源，不复制表单）；
+  // opts.scope='organizer'（2026-10-18 · 成员台组织者投影）：只渲染「由我组织的活动」的上传面，
+  //   身份取当前登录人（不是组长身份），并隐藏全支部考察明细 / 人员检索等他人数据区块。
   const container = host || document.getElementById('leader-tab-content');
   if (!container) return;
+
+  const isOrganizerScope = opts.scope === 'organizer';
+  // 投影模式的重渲染必须带同一宿主与 scope（否则会回落到组长台容器或丢掉投影边界）
+  const rerender = () => renderContent(ctx, host, opts);
 
   const { accent, accentRgba, accentBorder } = ctx;
   const _accVars = accDarkVars(accent);
@@ -37,34 +44,46 @@ export function renderContent(ctx, host) {
   if (_inspPickerInstance) { _inspPickerInstance.destroy(); _inspPickerInstance = null; }
 
   const allRecords = loadInspectionRecords();
-  const myInspection = allRecords.filter(r => r.sourceType === SourceType.ACTIVITY);
-  // 当前组长身份先取出（批次 119 的回退态过滤要用；原声明在下方「来源类型选项」处，
-  // 顺序在新代码之前 → TDZ ReferenceError，本批修正为本行声明、下方复用）
-  const { leaderId } = currentLeaderGroup();
-
+  // 当前组长身份先取出（批次 119 回退态过滤要用；原声明下方会 TDZ ReferenceError）
+  const { leaderId, group: leaderGroup } = currentLeaderGroup();
+  // 2026-10-18 脏专项：明细收窄到「本组活动」（承办组 / 组织者属组 / 本人创建）——上传范围与展示范围同一口径。
+  const groupActivityIds = new Set(loadActivities().filter((a) => {
+    const organizer = a && getPersonById(a.organizer);
+    return a && ((a.hostGroup && a.hostGroup === leaderGroup) || (organizer && organizer.partyGroup === leaderGroup) || a.createdBy === leaderId);
+  }).map((a) => a.id));
+  // 投影模式不取明细（全支部考察明细属他人数据，只保留上传面）
+  const myInspection = isOrganizerScope ? [] : allRecords.filter(r => r.sourceType === SourceType.ACTIVITY && groupActivityIds.has(r.activityId));
+  const actorId = isOrganizerScope ? (AuthStore.getCurrentUser()?.personId || '') : leaderId; // 投影＝当前登录人本人
+  // 来源选项（T223：来源活动 date 降序，专班 createdAt 降序）
+  // A1-2026-09-05 上传位门禁：活动类仅列本组长可上传（本组党小组会 / 本人为该活动组织者）且未归档者；专班类暂放行（负责人位待身份编码）
+  // 投影模式：活动只取「由我组织」且本人可上传（未归档、未取消）；专班只保留本人负责 / 被授权的专班。
+  const sourceActivities = (isOrganizerScope
+    ? getOrganizedActivities(actorId)
+    : filterActivitiesForViewer(loadActivities(), 'leader'))
+    .filter(a => isOrganizerScope
+      ? (a.status !== 'cancelled' && a.archived !== true && canUploadInspection(actorId, SourceType.ACTIVITY, a.id))
+      : ((a.type === '党小组会' || a.type === '主题党日' || a.type === '党课' || a.type === '支部党员大会')
+        && a.status !== 'cancelled' // dogfood 组长#5（2026-09-12）：已取消活动不再出现在上传下拉（此前可选中提交，落为无效考察）
+        && canUploadInspection(actorId, SourceType.ACTIVITY, a.id)))
+    .sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+  const scopeActivityIds = new Set(sourceActivities.map(a => a.id));
+  const inScopeActivity = (activityId) => !isOrganizerScope || scopeActivityIds.has(activityId);
+  const sourceTaskforces = TaskForceRecordStore.getAll()
+    .filter(tf => !isOrganizerScope || tf.manager === actorId || isTaskforceOrganizer(actorId, tf.id))
+    .sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
+  // 「已上传」标记：投影模式按活动记录判定（不读全支部明细）；组长台沿用原口径。
+  const uploadedActivityIds = new Set((isOrganizerScope ? allRecords : myInspection).map(r => r.activityId).filter(Boolean));
   // 批次 119（支书定案二「与纪检对齐，可打回」）：纪检打回 / 考察申诉 → 交上传方（本组长为上传位）核实确认。
   // 回退态两条来源（与组长台考勤上传同规）：① 考察申诉（成员报「我参与了但没记上」，纪检查实后打回）；
   //                                          ② 纪检对已确认考察记录直接打回。两者都在此处回到上传方手里。
+  // 投影模式只保留属于本人组织活动的条目（不越界到本组其他人 / 全支部）。
   const returnedAppeals = loadInspectionAppeals()
-    .filter(a => a.status === 'returned' && canUploadInspection(leaderId, SourceType.ACTIVITY, a.activityId));
+    .filter(a => a.status === 'returned' && inScopeActivity(a.activityId) && canUploadInspection(actorId, SourceType.ACTIVITY, a.activityId));
   const pendingConfirm = [
     ...returnedAppeals.map(a => ({ kind: 'appeal', id: a.id, personId: a.personId, activityId: a.activityId, reason: a.returnNote || '' })),
-    ...allRecords.filter(r => r.returnedBy && canUploadInspection(leaderId, SourceType.ACTIVITY, r.activityId))
+    ...allRecords.filter(r => r.returnedBy && inScopeActivity(r.activityId) && canUploadInspection(actorId, SourceType.ACTIVITY, r.activityId))
       .map(r => ({ kind: 'record', id: r.id, personId: r.personId, activityId: r.activityId, reason: r.returnReason || '' })),
   ];
-
-  // 来源类型选项
-  // T223 排序统一：来源活动 date 降序（新者在前），专班 createdAt 降序
-  // A1-2026-09-05 上传位门禁：活动类仅列本组长可上传（本组党小组会 / 本人为该活动组织者）且未归档者；专班类暂放行（负责人位待身份编码）
-  const sourceActivities = filterActivitiesForViewer(loadActivities(), 'leader')
-    .filter(a =>
-      (a.type === '党小组会' || a.type === '主题党日' || a.type === '党课' || a.type === '支部党员大会') &&
-      a.status !== 'cancelled' && // dogfood 组长#5（2026-09-12）：已取消活动不再出现在上传下拉（此前可选中提交，落为无效考察）
-      canUploadInspection(leaderId, SourceType.ACTIVITY, a.id)
-    )
-    .sort((a, b) => (b.date || '').localeCompare(a.date || ''));
-  const sourceTaskforces = TaskForceRecordStore.getAll()
-    .sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
 
   // 统一检索引擎（table 模式）：明细行按人检索——关键词（姓名/学号）+ 分面（党小组/发展阶段/角色/在册），
   // 行数据按 personId 现取档案补齐分面字段（人名一律 getPersonName(id)）
@@ -113,18 +132,21 @@ export function renderContent(ctx, host) {
       </div>
     </div>
   ` : '';
-
   container.innerHTML = `
     <div class="card rounded-xl p-5">
       <div class="flex items-center justify-between mb-4">
-        <h3 class="font-title-cn text-base font-semibold text-gray-800">考察管理</h3>
+        <h3 class="font-title-cn text-base font-semibold text-gray-800">${isOrganizerScope ? '考察上传位' : '考察管理'}</h3>
         <button class="btn-md" id="btn-leader-upload-insp" style="${_accVars}background:${accentRgba};color:color-mix(in srgb, ${accent} 60%, #000);border:1px solid ${accentBorder};">${_inspFormVisible ? '收起表单' : '上传考察表单'}</button>
       </div>
-      <div class="text-xs text-gray-500 mb-3">党小组活动考察：组织者上传 → 纪检委员确认 → 录入考察总表。只列本组党小组会与本人组织的活动（其余归该活动组织者上传，组长为监督位）。专班考察见组织台「考察上传」。</div>
+      <div class="text-xs text-gray-500 mb-3">${isOrganizerScope
+        ? '考察上传：仅显示由我组织的活动与本人负责的专班。组织者上传 → 纪检委员确认 → 录入考察总表。'
+        : '本组活动的考察上传：组织者上传 → 纪检委员确认 → 录入考察总表。活动来源仅列本组党小组会与本人组织的活动（其余归该活动组织者上传，组长为监督位）；明细仅显示本组活动的考察记录。专班考察按专班负责人位上传（本页保留专班来源，也可从组织台「考察上传」办理）。'}</div>
       ${formHtml}
-      <div class="overflow-x-auto ${_inspFormVisible ? 'mt-4 pt-3 border-t border-gray-100' : ''}">
-        <div id="insp-list-host"></div>
-      </div>
+      ${isOrganizerScope ? '' : `
+      <div class="${_inspFormVisible ? 'mt-4 pt-3 border-t border-gray-100' : ''}">
+        <div class="flex items-center justify-between mb-2"><h4 class="font-title-cn text-base font-semibold text-gray-800">本组活动考察明细</h4><span class="text-xs text-gray-500">仅本组活动 · ${inspRows.length} 条</span></div>
+        <div class="overflow-x-auto"><div id="insp-list-host"></div></div>
+      </div>`}
       ${pendingConfirm.length > 0 ? `
       <div class="mt-4 pt-3 border-t border-gray-100">
         <div class="text-xs font-bold text-gray-600 mb-2">纪检打回 · 待你确认（${pendingConfirm.length}）</div>
@@ -153,31 +175,34 @@ export function renderContent(ctx, host) {
 
   // 统一检索引擎（table 模式：rowHtml 返回 <tr>，表格样式由 styles.css::.data-table 单一源提供）：
   // 关键词（姓名/学号）+ 分面（党小组/发展阶段/角色/在册）；行数 ≤8 时引擎自动不渲染检索条。
-  renderFilteredList(container.querySelector('#insp-list-host'), {
-    stateKey: 'leader-inspection-list',
-    rows: inspRows,
-    keyword: personKeyword(),
-    facets: personFacets({ roleLabel: roleLabelOf }),
-    facetStyle: 'chip',
-    countUnit: '人',
-    emptyMessage: '暂无考察明细',
-    table: {
-      colSpan: 4,
-      headHtml: `<tr>
-            <th>姓名</th>
-            <th>活动</th>
-            <th>考察内容</th>
-            <th>确认状态</th>
-          </tr>`,
-    },
-    rowHtml: (i) => `
-            <tr>
-              <td class="font-medium text-gray-800"><a href="${getBasePath()}person.html?id=${encodeURIComponent(i.personId)}" class="hover:underline hover:text-sky-700 transition-colors" title="查看完整档案">${esc(getPersonName(i.personId))}</a></td>
-              <td class="text-gray-600">${i.activityId ? `<a class="text-blue-600 hover:underline" href="./activity.html?id=${i.activityId}">${esc(i.source)}</a>` : esc(i.source)}</td>
-              <td class="text-gray-600">${esc(i.content || i.role)}</td>
-              <td><span class="px-1.5 py-0.5 rounded-full text-xs ${i.status === 'confirmed' ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'}">${i.status === 'confirmed' ? '已确认' : '待确认'}</span></td>
+  // 投影模式不渲染全支部考察明细表 / 人员检索表（只保留上传面；明细属他人数据）
+  if (!isOrganizerScope) {
+    renderFilteredList(container.querySelector('#insp-list-host'), {
+      stateKey: 'leader-inspection-list',
+      rows: inspRows,
+      keyword: personKeyword(),
+      facets: personFacets({ roleLabel: roleLabelOf }),
+      facetStyle: 'chip',
+      countUnit: '人',
+      emptyMessage: '暂无考察明细',
+      table: {
+        colSpan: 4,
+        headHtml: `<tr>
+              <th>姓名</th>
+              <th>活动</th>
+              <th>考察内容</th>
+              <th>确认状态</th>
             </tr>`,
-  });
+      },
+      rowHtml: (i) => `
+              <tr>
+                <td class="font-medium text-gray-800"><a href="${getBasePath()}person.html?id=${encodeURIComponent(i.personId)}" class="hover:underline hover:text-sky-700 transition-colors" title="查看完整档案">${esc(getPersonName(i.personId))}</a></td>
+                <td class="text-gray-600">${i.activityId ? `<a class="text-blue-600 hover:underline" href="./activity.html?id=${i.activityId}">${esc(i.source)}</a>` : esc(i.source)}</td>
+                <td class="text-gray-600">${esc(i.content || i.role)}</td>
+                <td><span class="px-1.5 py-0.5 rounded-full text-xs ${i.status === 'confirmed' ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'}">${i.status === 'confirmed' ? '已确认' : '待确认'}</span></td>
+              </tr>`,
+    });
+  }
 
   // 绑定上传按钮（保态折叠 2026-09-08：对齐纪检会议考勤录入/组长考勤表单判例——表单已渲染
   //（#insp-form-panel 在 DOM）时，收起/展开只切该容器 hidden，不销毁 _inspPickerInstance、
@@ -188,7 +213,7 @@ export function renderContent(ctx, host) {
     const btn = container.querySelector('#btn-leader-upload-insp');
     if (!panel) { // 首次打开（表单未渲染）：走 _inspFormVisible 渲染表单 + 创建 picker
       _inspFormVisible = true;
-      renderContent(ctx);
+      rerender();
       return;
     }
     const collapsed = panel.classList.toggle('hidden');
@@ -201,7 +226,6 @@ export function renderContent(ctx, host) {
     btn.addEventListener('click', () => {
       const kind = btn.dataset.kind;
       const id = btn.dataset.id;
-      const { leaderId } = currentLeaderGroup();
       let res;
       if (kind === 'appeal') {
         const sel = container.querySelector(`.leader-return-level[data-id="${id}"]`);
@@ -209,24 +233,28 @@ export function renderContent(ctx, host) {
         const level = sel ? sel.value : ParticipationLevel.ORGANIZE;
         const content = input ? input.value.trim() : '';
         if (!content) { showToast('error', '请填写考察内容'); return; }
-        res = resolveInspectionAppeal({ appealId: id, actorId: leaderId, level, content });
+        res = resolveInspectionAppeal({ appealId: id, actorId, level, content });
       } else {
-        res = reconfirmReturnedInspectionRecord(id, { actorId: leaderId });
+        res = reconfirmReturnedInspectionRecord(id, { actorId });
       }
       if (!res.ok) { showToast('error', '确认失败：该记录不存在'); return; }
       showToast('success', '已重新提交，等待纪检复核');
-      renderContent(ctx);
+      rerender();
     });
   });
 
   // 如果表单可见，初始化事件绑定
   if (_inspFormVisible) {
-    _initInspForm(container, sourceActivities, sourceTaskforces, ctx, myInspection);
+    _initInspForm(container, sourceActivities, sourceTaskforces, ctx, opts, uploadedActivityIds);
   }
 }
 
-function _initInspForm(container, sourceActivities, sourceTaskforces, ctx, myInspection) {
+function _initInspForm(container, sourceActivities, sourceTaskforces, ctx, opts = {}, uploadedActivityIds = new Set()) {
   const { accent } = ctx;
+  const isOrganizerScope = opts.scope === 'organizer';
+  const { leaderId } = currentLeaderGroup();
+  // 投影身份＝当前登录人本人；组长台仍用原组长身份
+  const actorId = isOrganizerScope ? (AuthStore.getCurrentUser()?.personId || '') : leaderId;
 
   // 初始化 PersonPicker
   const pickerContainer = container.querySelector('#insp-person-picker-container');
@@ -254,8 +282,8 @@ function _initInspForm(container, sourceActivities, sourceTaskforces, ctx, myIns
       sourceSelect.disabled = !type;
       if (type === 'activity') {
         sourceSelect.innerHTML = `<option value="">请选择活动</option>` +
-          (sourceActivities.length === 0 ? '<option value="" disabled>本组暂无可上传活动（仅本组党小组会与本组承办活动可上传）</option>' : '') +
-          sourceActivities.map(a => `<option value="${a.id}" data-name="${a.title}">${a.title}（${a.date}）${myInspection.some(r => r.activityId === a.id) ? ' · 已上传' : ''}</option>`).join('');
+          (sourceActivities.length === 0 ? `<option value="" disabled>${isOrganizerScope ? '暂无可上传活动（仅由我组织的活动可上传）' : '本组暂无可上传活动（仅本组党小组会与本组承办活动可上传）'}</option>` : '') +
+          sourceActivities.map(a => `<option value="${a.id}" data-name="${a.title}">${a.title}（${a.date}）${uploadedActivityIds.has(a.id) ? ' · 已上传' : ''}</option>`).join('');
       } else if (type === 'taskforce') {
         sourceSelect.innerHTML = `<option value="">请选择专班</option>` +
           sourceTaskforces.map(tf => `<option value="${tf.id}" data-name="${tf.name}">${tf.name}</option>`).join('');
@@ -286,8 +314,7 @@ function _initInspForm(container, sourceActivities, sourceTaskforces, ctx, myIns
     if (selectedIds.length === 0) { showToast('error', '请选择人员'); return; }
 
     // A1-2026-09-05 上传位守卫：活动类须为本人可上传（本组党小组会 / 本人为该活动组织者）；专班类暂放行（负责人位待身份编码）
-    const { leaderId } = currentLeaderGroup();
-    if (sourceType === 'activity' && !canUploadInspection(leaderId, SourceType.ACTIVITY, sourceId)) {
+    if (sourceType === 'activity' && !canUploadInspection(actorId, SourceType.ACTIVITY, sourceId)) {
       showToast('error', '该活动不在您的考察上传位内（仅本组党小组会/本人组织的活动可上传）'); return;
     }
 
@@ -307,7 +334,7 @@ function _initInspForm(container, sourceActivities, sourceTaskforces, ctx, myIns
         level: ParticipationLevel.ORGANIZE, // 默认组织层级，可由用户选择
         content,   // P1-5 修复：考察内容入 content 字段
         role: '组织者', // role 字段恢复为角色职责标签
-        recordedBy: leaderId, // A1-2026-09-05：recordedBy 记真实操作人（组长），弃幽灵 u_exec
+        recordedBy: actorId, // A1-2026-09-05：recordedBy 记真实操作人（组长台＝组长；投影模式＝当前组织者本人），弃幽灵 u_exec
         recordedAt: new Date().toISOString(),
         status: 'pending',
       };
@@ -320,7 +347,7 @@ function _initInspForm(container, sourceActivities, sourceTaskforces, ctx, myIns
     //   专班见 CF §D「专班考察：上传=专班实际负责人」）⇒ 本台若**不是该场组织者**（本组组长非组织者＝
     //   监督位；或专班上传方非该专班组织者）则属**例外代办** ⇒ **写库前**弹一次确认。
     //   本位操作人（本人即该场组织者）走原路径、零打扰。弹窗**必须点按钮才能关**；「取消」＝放弃本次上传。
-    if (!isInspectionHomePosition(leaderId, sourceType === 'activity' ? SourceType.ACTIVITY : SourceType.TASKFORCE, sourceId)) {
+    if (!isInspectionHomePosition(actorId, sourceType === 'activity' ? SourceType.ACTIVITY : SourceType.TASKFORCE, sourceId)) {
       const _homeOk = await confirmNudge({ nudgeKey: 'inspection-upload', context: sourceOption?.dataset.name || '' });
       if (!_homeOk) return;
     }
@@ -335,7 +362,7 @@ function _initInspForm(container, sourceActivities, sourceTaskforces, ctx, myIns
     // 清理并刷新
     _inspFormVisible = false;
     if (_inspPickerInstance) { _inspPickerInstance.destroy(); _inspPickerInstance = null; }
-    renderContent(ctx);
+    renderContent(ctx, container, opts);
   });
 }
 

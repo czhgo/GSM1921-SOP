@@ -1,12 +1,14 @@
 // Party governance home: show real work first, then organizational exceptions.
-import { mockDB } from '../../../core/domain/domain.js?v=20261018d';
-import { buildPartyOverviewModel } from '../../../core/domain/party-overview.js?v=20261018d';
-import { listReviewRequests } from '../../../services/governance/review-request.js?v=20261018d';
-import { getBranchById } from '../../../services/branch/branch.js?v=20261018d';
-import { escHtml as esc, fmtDt, getBasePath } from '../../../core/base/utils.js?v=20261018d';
-import { renderSectionHeader } from '../../../components/shell/page-frame.js?v=20261018d';
+import { mockDB } from '../../../core/domain/domain.js?v=20261018e';
+import { buildPartyOverviewModel } from '../../../core/domain/party-overview.js?v=20261018e';
+import { listReviewRequests } from '../../../services/governance/review-request.js?v=20261018e';
+import { getBranchById } from '../../../services/branch/branch.js?v=20261018e';
+import { escHtml as esc, fmtDt, getBasePath } from '../../../core/base/utils.js?v=20261018e';
+import { renderSectionHeader } from '../../../components/shell/page-frame.js?v=20261018e';
 
 const TYPE_LABELS = { 'develop-node': '发展节点', 'activity-report': '活动报备' };
+// 2026-10-18 繁专项（Top 7）：总览只预览待批复前 N 条，完整队列回「支部上报」页
+const PENDING_PREVIEW_LIMIT = 5;
 
 export function renderContent() {
   const host = document.getElementById('party-committee-tab-content');
@@ -15,6 +17,7 @@ export function renderContent() {
 
   const branches = (mockDB.branches || []).filter((branch) => branch && branch.id);
   const model = buildPartyOverviewModel({ branches, reviewRequests: listReviewRequests({}) });
+  const pendingPreview = model.pending.slice(0, PENDING_PREVIEW_LIMIT);
   const branchLabel = (id) => {
     const branch = getBranchById(id);
     return branch?.config?.headerTitle || branch?.name || id || '所属支部未标注';
@@ -26,11 +29,11 @@ export function renderContent() {
         ${renderSectionHeader({
           titleId: 'party-action-queue-title',
           title: '党委待处理',
-          description: `待批复上报 · ${model.pendingCount} 项`,
+          description: `待批复上报 · 共 ${model.pendingCount} 项`,
           actions: `<a class="btn-outline px-3 py-1.5 text-xs" href="${getBasePath()}workspace/party-committee.html?tab=review">查看全部上报</a>`,
         })}
-        ${model.pending.length ? `<ol class="mt-4 divide-y divide-gray-200 border-y border-gray-200">
-          ${model.pending.map((row) => `
+        ${pendingPreview.length ? `<ol class="mt-4 divide-y divide-gray-200 border-y border-gray-200">
+          ${pendingPreview.map((row) => `
             <li class="flex flex-wrap items-center gap-x-4 gap-y-2 py-3">
               <div class="min-w-0 flex-1">
                 <div class="flex flex-wrap items-center gap-x-2 gap-y-1">

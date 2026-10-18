@@ -5,10 +5,10 @@
 // 动画：Lenis 平滑滚动 + CSS 滚动驱动（animation-timeline: view()）+ 原生 JS 驱动
 // 签名元素：收束致谢（三层小字）+ 探索区 SVG 关系网络 + 对话卡日出日落公转（文字正立）
 
-import { renderSidebar } from '../../components/shell/sidebar.js?v=20261018d';
-import { renderHeader } from '../../components/shell/header.js?v=20261018d';
-import { getBasePath } from '../../core/base/utils.js?v=20261018d';
-import { icon } from '../../core/base/icons.js?v=20261018d';
+import { renderSidebar } from '../../components/shell/sidebar.js?v=20261018e';
+import { renderHeader } from '../../components/shell/header.js?v=20261018e';
+import { getBasePath } from '../../core/base/utils.js?v=20261018e';
+import { icon } from '../../core/base/icons.js?v=20261018e';
 
 // ── 公开访问：不检查登录 ──
 // 静态壳模式（2026-08-12）：about 为纯静态文档，不加载 auth/notice 数据链（约 50 模块），
@@ -56,14 +56,16 @@ const REVIEW_DIMENSIONS = [
 //   工作流图节点辨识色对齐 DESIGN_SYSTEM §2.3.2 角色识别色系（organizer=天蓝系 / disc-commissioner=深橙 / org-commissioner=天蓝 / prop-commissioner=海蓝）；
 //   职能色——发起方党建红 / 审批方深绿 / 执行核心深青 / 参与层灰 / 动作节点紫。
 //   注：此处为「身份标识场景」默认辨识色；工作台内强调一律走主题色（可自选），见 DESIGN_SYSTEM §2.7/§2.8。
+const WF_APPROVAL_COLOR = '#15803D'; // 深绿：审批 / 活动主色
+const WF_EXEC_COLOR = '#0E7490';     // 深青：执行核心（组织者 / 工作组 / 登记任务）
 const WORKFLOW_ROLES = {
-  leader:    { name: '党小组组长',   short: '党小组组长', color: '#15803D' }, // 深绿·审批/赋权
-  organizer: { name: '组织者',       short: '组织者',     color: '#0E7490' }, // 深青·执行核心
+  leader:    { name: '党小组组长',   short: '党小组组长', color: WF_APPROVAL_COLOR }, // 深绿·审批/赋权
+  organizer: { name: '组织者',       short: '组织者',     color: WF_EXEC_COLOR }, // 深青·执行核心
   deep:      { name: '深度参与者',   short: '深度参与者', color: '#64748B' }, // 灰蓝·参与
-  workgroup: { name: '工作组',       short: '工作组',     color: '#0F766E' },
-  activity:  { name: '活动',         short: '活动',       color: '#15803D' },
-  permission:{ name: '系统权限',     short: '系统权限',   color: '#475569' },
-  tasks:     { name: '登记任务',     short: '登记任务',   color: '#0E7490' },
+  workgroup: { name: '工作组',       short: '工作组',     color: WF_EXEC_COLOR },
+  activity:  { name: '活动',         short: '活动',       color: WF_APPROVAL_COLOR },
+  permission:{ name: '系统权限',     short: '系统权限',   color: '#64748B' },
+  tasks:     { name: '登记任务',     short: '登记任务',   color: WF_EXEC_COLOR },
   outputs:   { name: '登记产出',     short: '登记产出',   color: '#2563EB' },
   normal:    { name: '普通参与者',   short: '普通参与者', color: '#6B7280' }, // 灰·参与
   orgComm:   { name: '组织委员',     short: '组织委员',   color: '#0EA5E9' }, // 天蓝·组织协调（DESIGN_SYSTEM §2.3.2）
@@ -73,6 +75,8 @@ const WORKFLOW_ROLES = {
   committee: { name: '支委会',       short: '支委会',     color: '#B91C1C' }, // 党建红·制度、议程明确要求时作集体决策
   expanded:  { name: '支委扩大群',   short: '支委扩大群', color: '#B91C1C' }, // 党建红·活动报备（群内知悉，不另加审批门）
 };
+// 未命中工作流角色时的连线兜底色（单点定义，避免同一字面量重复四份）
+const WF_FALLBACK_COLOR = '#64748B';
 
 // 活动场景：5 镜组（flow 底账对齐 SOP 主题党日详细步骤 + 组织者两种情况）
 const ACTIVITY_SCENE = {
@@ -619,8 +623,8 @@ function renderSceneSVG(scene) {
   const defs = svgEl('defs');
   edgeList.forEach((e, i) => {
     const grad = svgEl('linearGradient', { id: `ab-grad-${i}`, gradientUnits: 'userSpaceOnUse' });
-    grad.appendChild(svgEl('stop', { offset: '0%', 'stop-color': (WORKFLOW_ROLES[e.from] || {}).color || '#64748B' }));
-    grad.appendChild(svgEl('stop', { offset: '100%', 'stop-color': (WORKFLOW_ROLES[e.to] || {}).color || '#64748B' }));
+    grad.appendChild(svgEl('stop', { offset: '0%', 'stop-color': (WORKFLOW_ROLES[e.from] || {}).color || WF_FALLBACK_COLOR }));
+    grad.appendChild(svgEl('stop', { offset: '100%', 'stop-color': (WORKFLOW_ROLES[e.to] || {}).color || WF_FALLBACK_COLOR }));
     defs.appendChild(grad);
   });
   svg.appendChild(defs);
@@ -632,7 +636,7 @@ function renderSceneSVG(scene) {
     const toPos = nodeMap.get(e.to);
     if (!fromPos || !toPos) return;
     const path = edgePath(fromPos, toPos, 52, 0.5, e.curve);
-    const toColor = (WORKFLOW_ROLES[e.to] || {}).color || '#64748B';
+    const toColor = (WORKFLOW_ROLES[e.to] || {}).color || WF_FALLBACK_COLOR;
 
     const g = svgEl('g', {
       class: `ab-edge ab-edge--${e.type}`,

@@ -19,9 +19,9 @@ import { chromium } from 'playwright';
 import { createApp } from '../app.js';
 import { seedDatabase } from '../seed.js';
 // `D-787`（2026-10-05 · 9 → 6 合并）：业务域识别色的单一源 —— 非空转断言用它（现行**恰一键 `project`**）
-import { WORK_DOMAIN_COLORS } from '../../docs/src/core/domain/constants.js?v=20261018d';
+import { WORK_DOMAIN_COLORS } from '../../docs/src/core/domain/constants.js?v=20261018e';
 // `D-787`：6 类域值（色键须落其中）
-import { DOMAIN_ORDER } from '../../docs/src/services/governance/todo.js?v=20261018d';
+import { DOMAIN_ORDER } from '../../docs/src/services/governance/todo.js?v=20261018e';
 
 let server, base, browser;
 
@@ -83,6 +83,7 @@ test('S12 今天页左卡＝动作性质分组（七类）；旧「本岗待办�
         text: wrap.textContent,
         hasHeadBtn: !!headBtn,
         rowCount: rows.length,
+        rowDates: rows.map((r) => (r.querySelector('span.tabular-nums')?.textContent || '').trim()),
         h4s,
         groupLabels,
         withDomainChip,
@@ -103,23 +104,31 @@ test('S12 今天页左卡＝动作性质分组（七类）；旧「本岗待办�
     const OLD_SEG_HEADS = ['今日分工', '待我表态', '未读通知', '待我处理的汇报'];
     assert.deepEqual(probe.h4s.filter((t) => OLD_SEG_HEADS.includes(t)), [],
       `旧段头（${OLD_SEG_HEADS.join(' / ')}）须已收进动作性质七类组；实得 h4＝${JSON.stringify(probe.h4s)}`);
-    // ③ 种子里本岗确有在办待办 ⇒ **必须**见到动作性质组（不用 if 兜底：兜底会让「一条待办都没有」
-    //    这种退化也判绿，等于没证）
-    assert.ok(probe.rowCount > 0, `支书台今天页须有本岗在办待办行；实得 ${probe.rowCount} 行`);
-    {
+    // ③ 2026-10-18 繁专项 Task 7：今天页只列「今日到期 / 逾期」待办（不再列全量未完成）。
+    //    每行截止必须 ≤ 今天；若本次种子没有今日/逾期待办，则不列待办行，且**无截止待办不得露头**。
+    const now = new Date();
+    const pad = (n) => String(n).padStart(2, '0');
+    const todayStr = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+    assert.ok(probe.rowDates.every((d) => d && d <= todayStr),
+      `今天页待办行的截止必须 ≤ ${todayStr}；实得 ${JSON.stringify(probe.rowDates)}`);
+    if (probe.rowCount > 0) {
       assert.ok(probe.groupLabels.length >= 1,
         `有待办行（${probe.rowCount}）⇒ 须见动作性质组标题之一；实得 h4＝${JSON.stringify(probe.h4s)}`);
       assert.ok(probe.groupLabels.every((t) => ACTION_LABELS.includes(t)), '组标题只许七类动作性质之一');
       assert.ok(probe.withDomainChip >= 1, '分组行须带业务域小胶囊（九域降为行内胶囊）');
+    } else {
+      assert.ok(!probe.text.includes('设置第三党小组组长'), '无截止待办（如「设置第三党小组组长」）不得列在今天页');
     }
 
     // ④ `D-787` 续（2026-10-05 · 支书圈乙「**只给『项目』配红金**」）：**只有「项目」域上色**，其余五类中性。
     //    条件式取数：凡带 `data-domain` 的域胶囊须带内联底色、且域键**只许 `project`**；不带者不得有底色。
-    assert.ok(probe.chipsTotal >= 1, '分组行须带业务域小胶囊（合并后 6 类，降为行内胶囊）');
-    assert.ok(probe.domainAllInlineBg, '若存在带 `data-domain` 的域胶囊则必须带内联底色');
-    assert.ok(probe.domainKeys.every((k) => k === 'project'),
-      `只许「项目」域上色；实得 ${JSON.stringify(probe.domainKeys)}`);
-    assert.ok(probe.neutralNoInlineBg, '未上色的域胶囊不得带内联底色（其余五类保持中性）');
+    if (probe.rowCount > 0) {
+      assert.ok(probe.chipsTotal >= 1, '分组行须带业务域小胶囊（合并后 6 类，降为行内胶囊）');
+      assert.ok(probe.domainAllInlineBg, '若存在带 `data-domain` 的域胶囊则必须带内联底色');
+      assert.ok(probe.domainKeys.every((k) => k === 'project'),
+        `只许「项目」域上色；实得 ${JSON.stringify(probe.domainKeys)}`);
+      assert.ok(probe.neutralNoInlineBg, '未上色的域胶囊不得带内联底色（其余五类保持中性）');
+    }
 
     // ⑤ 非空转（**不依赖演示数据**）：`WORK_DOMAIN_COLORS` **恰一键 ＝ `project`**（支书 2026-10-05 圈乙
     //    「只给『项目』配红金」）⇒ 证明「只有项目域配色」不是「碰巧演示库里没有项目域待办」。

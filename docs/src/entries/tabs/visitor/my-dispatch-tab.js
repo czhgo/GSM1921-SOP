@@ -4,8 +4,8 @@
 // id/label 与组织/宣传/纪检/组长四台同名（同一功能不设两个名字）；
 // 成员能否查看/答复由 services/governance/issues.js（另一工作流 C）定权限，本薄壳只登记渲染入口。
 
-import { renderMyDispatchTab, bindMyDispatchEvents } from '../../../components/feedback/issue-dispatch-view.js?v=20261018d';
-import { AuthStore } from '../../../services/core/auth.js?v=20261018d';
+import { renderMyDispatchTab, bindMyDispatchEvents } from '../../../components/feedback/issue-dispatch-view.js?v=20261018e';
+import { AuthStore } from '../../../services/core/auth.js?v=20261018e';
 
 export function renderContent() {
   const el = document.getElementById('visitor-tab-content');
@@ -13,6 +13,8 @@ export function renderContent() {
   // 身份取真实登录成员 personId（与其余四台同口径，不用演示占位 ID）
   const uid = AuthStore.getCurrentUser()?.personId;
   if (!uid) { el.innerHTML = '<p class="text-xs text-gray-500 text-center py-6">请先登录</p>'; return; }
-  el.innerHTML = renderMyDispatchTab('participant', uid);
-  bindMyDispatchEvents(el, 'participant', uid);
+  // 2026-10-18 脏专项：成员台主对象「我提交 / 参与的反馈」置首（只调段序，不改数据范围与提交）。
+  const opts = { myIssuesFirst: true };
+  el.innerHTML = renderMyDispatchTab('participant', uid, opts);
+  bindMyDispatchEvents(el, 'participant', uid, opts);
 }

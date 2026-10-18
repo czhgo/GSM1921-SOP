@@ -269,9 +269,8 @@ const BASELINE_C2 = {
   'docs/src/entries/tabs/leader/attendance-tab.js': [
     '考勤上传：组织者上传→纪检委员确认→录入考勤明细。仅列本组党小组会与本人为组织者的活动（主题党日/组织生活会等）；党课/支部党员大会的上传位在纪检委员（纪检台「会议考勤录入」），支委会不考勤；组长非组织者=本组监督位，督促上传',
   ],
-  'docs/src/entries/tabs/party-committee/branches-tab.js': [
-    '仅空支部可整体替换：下载「成员名册模板(JSON)」→保留要迁入本支部的成员行、删去其余→「选择名册文件」导入：净化后先核对下方统计卡，确认后一次保存——成员/应到统计即时更新。有成员/历史的支部不可整表替换，成员调整由本支部组织委员在「成员名册」逐人维护。',
-  ],
+  // 2026-10-18 工作台提质：党委 `branches-tab.js` 的整表替换长说明已改为一行摘要
+  //   ⇒ 该文件 C2 归零、条目移除（收基线）；`BASE_C2_FILES` 7 → 6、`BASE_C2_TOTAL` 10 → 9。
   // 2026-10-04 批次 373（`#10` 按对象归位 · 支书圈乙）：「党小组活动」分区整段自 `group-progress-tab.js`
   //   迁 `calendar-tab.js`，原长说明**改写为本页卡片一行导语 + 条目空态**（均 ≤80）⇒ 该文件 C2 归零、
   //   条目移除（收基线）；`BASE_C2_FILES` 8 → 7、`BASE_C2_TOTAL` 11 → 10。
@@ -319,8 +318,8 @@ const BASELINE_C6 = {
  *    两处 C2 命中 ⇒ C2 14→12（文件 8 不变）。 */
 const BASE_C1_FILES = 0;
 const BASE_C1_TOTAL = 0;
-const BASE_C2_FILES = 7;
-const BASE_C2_TOTAL = 10;
+const BASE_C2_FILES = 6;
+const BASE_C2_TOTAL = 9;
 const BASE_C5_FILES = 3;
 const BASE_C5_TOTAL = 3;
 const BASE_C6_FILES = 3;

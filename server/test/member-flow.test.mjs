@@ -12,7 +12,7 @@ import { readFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const V = '?v=20261018d';
+const V = '?v=20261018e';
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const SRC_DIR = join(ROOT, 'docs', 'src');
 const read = (f) => readFileSync(f, 'utf8');
@@ -86,6 +86,15 @@ test('S2 enrollYear 字段两侧白名单齐备（前端字段白名单 + server
   assert.match(roster, /enrollYear/, '新增成员校验须采集/校验 enrollYear');
   const modal = read(join(SRC_DIR, 'components', 'governance', 'person-edit-modal.js'));
   assert.match(modal, /enrollYear/, '完整档案展示须含 enrollYear（只读）');
+  // 2026-10-18 繁专项 Task 14：届别补进「立即生效」可改组（服务端白名单已含 enrollYear）
+  assert.match(modal, /data-field="enrollYear"/, '编辑模态须提供届别输入');
+  assert.match(modal, /INSTANT_FIELDS = \['name', 'studentId', 'enrollYear', 'partyGroup'\]/, '届别须随立即生效字段提交');
+});
+
+test('S5 成员流动页首文案中性，不再写死「成员名册」', () => {
+  const src = read(join(SRC_DIR, 'entries', 'tabs', 'org', 'member-flow-tab.js'));
+  assert.doesNotMatch(src, /在册成员与档案状态见「成员名册」/, '共享组件不得写死支书台不存在的页签名');
+  assert.match(src, /在册成员与档案状态以成员档案为准/, '页首改为角色中性的档案指引');
 });
 
 test('S3 写门角色集来自单一源（不得手写角色字符串）', () => {

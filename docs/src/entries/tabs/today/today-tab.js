@@ -32,40 +32,43 @@
 // 注入防护：标题/内容/截止等用户可控数据一律经 escHtml 后入 innerHTML。
 // ════════════════════════════════════════════════════════════════
 
-import { escHtml as esc, _fmtDate } from '../../../core/base/utils.js?v=20261018d';
-import { icon } from '../../../core/base/icons.js?v=20261018d';
-import { buildTodaySummary, TODO_ACTION_ORDER, TODO_ACTION_LABELS } from '../../../services/governance/today-summary.js?v=20261018d';
+import { escHtml as esc, _fmtDate } from '../../../core/base/utils.js?v=20261018e';
+import { icon } from '../../../core/base/icons.js?v=20261018e';
+import { buildTodaySummary, TODO_ACTION_ORDER, TODO_ACTION_LABELS } from '../../../services/governance/today-summary.js?v=20261018e';
 // 批次 47-I（Q-23-41 ②，支书 2026-09-15 裁定）：本组组员进展**由服务端汇总**——
 // api 态打服务端汇总接口、mock 态调同一纯函数（单一入口 `loadMemberProgress`）。
-import { loadMemberProgress } from '../../../services/member/member-progress.js?v=20261018d';
-import { resolveVisibleTargets } from '../../../services/core/visibility.js?v=20261018d';
-import { mockDB } from '../../../core/domain/domain.js?v=20261018d';
-import { tokenOf } from '../../../core/base/version-token.js?v=20261018d'; // P0 域写版本戳（spec §二.4）
-import { RESIDENCE_KEY } from '../../../services/member/roster.js?v=20261018d'; // 滞留覆盖 raw 源（roster 禁改不内改）
-import { PREVIEW_KEY } from '../../../services/branch/org-base-data-preview.js?v=20261018d'; // 基础数据预览 raw 源
-import { memoizeRender } from '../../../components/ui/memoize-render.js?v=20261018d'; // P2 渲染守卫（spec §四.1）
+import { loadMemberProgress } from '../../../services/member/member-progress.js?v=20261018e';
+import { resolveVisibleTargets } from '../../../services/core/visibility.js?v=20261018e';
+import { mockDB } from '../../../core/domain/domain.js?v=20261018e';
+import { tokenOf } from '../../../core/base/version-token.js?v=20261018e'; // P0 域写版本戳（spec §二.4）
+import { RESIDENCE_KEY } from '../../../services/member/roster.js?v=20261018e'; // 滞留覆盖 raw 源（roster 禁改不内改）
+import { PREVIEW_KEY } from '../../../services/branch/org-base-data-preview.js?v=20261018e'; // 基础数据预览 raw 源
+import { memoizeRender } from '../../../components/ui/memoize-render.js?v=20261018e'; // P2 渲染守卫（spec §四.1）
 // 批4（2026-09-09 支书批「域参数」）：组长学期组员进展归集提醒开关（读侧注入后 = 当前支部有效默认）
-import { POLICY_DEFAULTS } from '../../../core/domain/policy-defaults.js?v=20261018d';
+import { POLICY_DEFAULTS } from '../../../core/domain/policy-defaults.js?v=20261018e';
 // 批次 299「待我处理」两源——**单一源复用**，不另立取数口径：
 //   · 未读通知 ＝ 顶栏铃铛同一取数（NoticeStore.list retention:'visible'）＋ 同一跳转解析（resolveNoticeUrl）
 //   · 待处理汇报 ＝ 顶栏「一键汇报」角标同一集合（IssueNotify.getUnread(我)）
-import { NoticeStore, resolveNoticeUrl } from '../../../services/governance/notice.js?v=20261018d';
-import { IssueStore, IssueNotify } from '../../../services/governance/issues.js?v=20261018d';
+import { NoticeStore, resolveNoticeUrl } from '../../../services/governance/notice.js?v=20261018e';
+import { IssueStore, IssueNotify } from '../../../services/governance/issues.js?v=20261018e';
 // 批次 304「待我表态」三件——**判据与读口皆单一源**，不在本文件重写投票规则：
 //   · 我是否应到表决人 ＝ `vote-config.js::isVoterOf`（角色无关，只看固化名单）
 //   · 我是否已对某议程项表态 ＝ `committee-vote.js::hasVoted`
 //   · 当前登录人 ＝ `AuthStore.getCurrentUser()`
-import { AuthStore } from '../../../services/core/auth.js?v=20261018d';
-import { isVoterOf } from '../../../services/activity/vote-config.js?v=20261018d';
-import { hasVoted } from '../../../services/activity/committee-vote.js?v=20261018d';
+import { AuthStore } from '../../../services/core/auth.js?v=20261018e';
+import { isVoterOf } from '../../../services/activity/vote-config.js?v=20261018e';
+import { hasVoted } from '../../../services/activity/committee-vote.js?v=20261018e';
 // 活动类型胶囊（批次 301）：变体判据＝单一源 `activityTypeBadgeVariant`（三会一课＝brand 红 / 主题党日＝gold 金），
 //   渲染唯一源＝`components/ui/badge.js`；**本文件不手写类型色值**。
-import { activityTypeBadgeVariant, WORK_DOMAIN_COLORS, accDarkVars } from '../../../core/domain/constants.js?v=20261018d';
-import { resolveDocumentUrl } from '../../../core/base/page-url.js?v=20261018d';
+import { activityTypeBadgeVariant, WORK_DOMAIN_COLORS, accDarkVars } from '../../../core/domain/constants.js?v=20261018e';
+import { resolveDocumentUrl } from '../../../core/base/page-url.js?v=20261018e';
 // 徽章扎口出口（2026-09-30 批次 304 改准）：`components/ui/badges.js` 是**唯一调用口**
 //   （其文件头明写「调用方一律 import badges.js；内部实现文件 badge.js / status-badge.js 可各自演进」）；
 //   批次 301 我直连了实现文件 `badge.js` ⇒ 本批收回归口，**零行为变化**。
-import { badgeHtml } from '../../../components/ui/badges.js?v=20261018d';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20261018e';
+// 2026-10-18 繁专项 Task 7：汇报类行统一落到待办「待答复」收件箱（PendingTarget 一次性定位）。
+// 提交入口只在「我的处置」；今天页只读、不重复提供提交位。
+import { PendingTarget } from '../../../core/session/pending-target.js?v=20261018e';
 
 // 工作台主题色走 CSS 变量（各台 bootstrap 已按 accent 注入；缺省兜底党建红），同 overview/统计卡用法
 const ACCENT = 'var(--app-accent)';
@@ -225,14 +228,14 @@ function _noticeEntry(n) {
   };
 }
 
-/** 待处理汇报 → 审核类行（与顶栏「一键汇报」角标同一集合；点击进「我的处置」） */
+/** 待处理汇报 → 审核类行（与顶栏「一键汇报」角标同一集合；点击进待办「待答复」并定位该条） */
 function _reportEntry(i) {
   return {
     key: '9999-12-31',
     bar: 'var(--neutral-400)',
     inner: `<span class="text-sm text-gray-800 flex-1 min-w-0 truncate">${esc(i.title || i.body || '待处理汇报')}</span>
        <span class="text-xs text-gray-500 flex-shrink-0">›</span>`,
-    attrs: 'data-go="my-dispatch" title="前往我的处置处理"',
+    attrs: `data-go="todo" data-report-id="${esc(i.id)}" title="前往待办「待答复」处理"`,
   };
 }
 
@@ -266,9 +269,13 @@ function _actionGroupsBlock(s) {
   const byType = new Map();
   const push = (at, e) => { if (!byType.has(at)) byType.set(at, []); byType.get(at).push(e); };
 
-  // 主源：本岗在办待办（`byAction` 已按动作性质分好组，含**逾期 ＋ 今天到期 ＋ 无截止**）
+  // 主源：本岗在办待办（`byAction` 已按动作性质分好组）——**今天页只留今日到期与逾期**，
+  // 不列全量未完成待办（2026-10-18 繁专项 Task 7；无截止/未来截止项留在待办 tab 查看）。
   for (const g of (Array.isArray(s.byAction) ? s.byAction : [])) {
-    for (const it of (g.items || [])) push(g.actionType, _todoEntry(it, today));
+    for (const it of (g.items || [])) {
+      if (!today || !it.deadline || it.deadline > today) continue;
+      push(g.actionType, _todoEntry(it, today));
+    }
   }
   // 并入：今日分工 / 待我表态 → 参与；未读通知 → 阅读（汇报为异步，见 `_fillPendingReports`）
   for (const d of (Array.isArray(s.myDuties) ? s.myDuties : [])) push(SOURCE_ACTION.duty, _dutyEntry(d));
@@ -358,9 +365,12 @@ async function _fillPendingReports(container, personId, onNav) {
   if (emptyHint) emptyHint.remove();
 }
 
-/** 「我的处置」跳转（onNav 未提供时为空操作，便于独立预览） */
+/** 待处理汇报的落点：待办「待答复」收件箱（PendingTarget 一次性定位；onNav 未提供时为空操作） */
 function _navPending(btn, onNav) {
-  if (btn.dataset.go === 'my-dispatch' && typeof onNav === 'function') onNav('my-dispatch');
+  if (btn.dataset.go !== 'todo') return;
+  const id = btn.dataset.reportId || '';
+  PendingTarget.set(id ? { tab: 'todo', kind: 'report', id } : { tab: 'todo', kind: 'report' });
+  if (typeof onNav === 'function') onNav('todo');
 }
 
 // ── 右卡：我的日程 ───────────────────────────────────────────────
@@ -554,8 +564,8 @@ function bindLeaderSemesterRemind(container, personId, onNav) {
  * @param {string} params.personId — 当前登录人成员档案 id（如 p1/p13）
  * @param {string} params.role     — 待办角色键（如 secretary/org-commissioner/…）
  * @param {(tabId:string)=>void} [params.onNav] — 可空：切 tab 回调；到期/逾期行与「全部」跳转用
- *   （未提供则相关点击为空操作，组件仍可独立预览）。tabId 语义：'todo'=待办；'my-dispatch'=我的处置（待处理汇报）；
- *   'calendar'=各台同 id 的只读「活动日历」页签（2026-09-30 批次 310：全角色「看日历」落点）；
+ *   （未提供则相关点击为空操作，组件仍可独立预览）。tabId 语义：'todo'=待办（含「待答复」汇报收件箱，
+ *   汇报行另写 PendingTarget 定位）；'calendar'=各台同 id 的只读「活动日历」页签（2026-09-30 批次 310：全角色「看日历」落点）；
  *   会议「全部」用 'activities'（各工作台活动列表所在 tab 的语义 id，接线时按台映射/无则忽略）。
  * @param {()=>void} [params.onCreateActivity] — 可空：活动管理快捷入口「建活动」回调（直达既有「写入活动」入口）。
  *   仅接线的工作台传入（当前＝支书台）；未传入则不渲染该快捷入口（其余台的今日页形态不变）。
@@ -639,15 +649,14 @@ export function renderTodayTab(container, { personId, role, onNav, onCreateActiv
           const id = btn.dataset.actId;
           if (id) window.location = 'activity.html?id=' + encodeURIComponent(id);
         } else if (go === 'todo' && typeof onNav === 'function') {
-          onNav('todo');
+          if (btn.dataset.reportId) _navPending(btn, onNav);
+          else onNav('todo');
         } else if (go === 'create-activity' && typeof onCreateActivity === 'function') {
           onCreateActivity();
         } else if (go === 'calendar' && typeof onNav === 'function') {
           onNav('calendar');
         } else if (go === 'notice') {
           _openNotice(btn.dataset.noticeId);
-        } else if (go === 'my-dispatch') {
-          _navPending(btn, onNav);
         }
       });
     });

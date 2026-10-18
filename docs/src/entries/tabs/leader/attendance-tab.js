@@ -11,44 +11,54 @@
 //   下拉按 `MEETING_ATTENDANCE_TYPES ∪ {党小组会, 主题党日}`
 //   列活动，写口仍逐场由 `canUploadAttendance` 判定（非本页可传者即便在类型清单里也传不了）。
 
-import { loadActiveAttendanceRecords, canUploadAttendance, appendAttendanceRecords, loadAttendanceAppeals, resolveAttendanceAppeal, reconfirmReturnedRecord, MEETING_ATTENDANCE_TYPES, isAttendanceHomePosition, freezeExpectedRosterForActivity } from '../../../services/activity/attendance.js?v=20261018d';
-import { loadMakeupTasks } from '../../../services/activity/makeup.js?v=20261018d';
-import { loadActivities } from '../../../services/activity/activity.js?v=20261018d';
+import { loadActiveAttendanceRecords, canUploadAttendance, appendAttendanceRecords, loadAttendanceAppeals, resolveAttendanceAppeal, reconfirmReturnedRecord, MEETING_ATTENDANCE_TYPES, isAttendanceHomePosition, freezeExpectedRosterForActivity } from '../../../services/activity/attendance.js?v=20261018e';
+import { loadMakeupTasks } from '../../../services/activity/makeup.js?v=20261018e';
+import { loadActivities, getOrganizedActivities } from '../../../services/activity/activity.js?v=20261018e';
+import { AuthStore } from '../../../services/core/auth.js?v=20261018e';
 // 待批活动的可见性单一源（2026-09-22 批次 151 · 支书裁定「只支委层可见」）：组长台非支委层 ⇒ 待批活动
 // 不出现在本页的活动下拉与考勤关联行里（与各台列表同一判据）。
-import { filterActivitiesForViewer } from '../../../services/core/visibility.js?v=20261018d';
+import { filterActivitiesForViewer } from '../../../services/core/visibility.js?v=20261018e';
 // SOP-B-2（D-288）：考勤候选默认选中「已通过报名者」——报名名单的来源单一源 = SignupStore
-import { getApprovedSignupPersonIds } from '../../../services/activity/signup.js?v=20261018d';
-import { PersonPicker } from '../../../components/governance/pickers.js?v=20261018d';
+import { getApprovedSignupPersonIds } from '../../../services/activity/signup.js?v=20261018e';
+import { PersonPicker } from '../../../components/governance/pickers.js?v=20261018e';
 // 「本位」nudge 确认弹窗（2026-09-23 支书裁定 · 单一源 = components/ui/modal.js::confirmNudge）
-import { confirmNudge } from '../../../components/ui/modal.js?v=20261018d';
-import { liveMembers, PersonStore } from '../../../services/member/person.js?v=20261018d';
+import { confirmNudge } from '../../../components/ui/modal.js?v=20261018e';
+import { liveMembers, PersonStore } from '../../../services/member/person.js?v=20261018e';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/member/person.js 获取（原直连 mock PEOPLE）
 // 实时视图（非快照）：成员增删即时可见——见 services/member/person.js liveMembers 说明
 const PEOPLE = liveMembers();
-import { attendanceToLong } from '../../../services/activity/attendance.js?v=20261018d';
-import { getPersonById, getPersonName } from '../../../services/member/person.js?v=20261018d';
-import { AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../../core/domain/domain.js?v=20261018d';
-import { generateId } from '../../../core/base/id.js?v=20261018d';
-import { badgeHtml } from '../../../components/ui/badges.js?v=20261018d';
-import { showToast, escHtml as esc, getBasePath } from '../../../core/base/utils.js?v=20261018d';
+import { attendanceToLong } from '../../../services/activity/attendance.js?v=20261018e';
+import { getPersonById, getPersonName } from '../../../services/member/person.js?v=20261018e';
+import { AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../../core/domain/domain.js?v=20261018e';
+import { generateId } from '../../../core/base/id.js?v=20261018e';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20261018e';
+import { showToast, escHtml as esc, getBasePath } from '../../../core/base/utils.js?v=20261018e';
 // ③批（支书 2026-09-06）：党小组会考勤候选 = 本组应到名单（党员非滞留）；
 // 滞留者「可见但不可选」（灰态 + 「滞留」徽标 + title 备注，同纪检口径）
-import { getMeetingRosterCandidates, getRosterStats } from '../../../services/member/roster.js?v=20261018d';
-import { solidAccentStyle, accDarkVars } from '../../../core/domain/constants.js?v=20261018d';
-import { currentLeaderGroup } from './_shared.js?v=20261018d';
-import { autoGenerateMakeupTask } from '../../../services/activity/makeup.js?v=20261018d';
+import { getMeetingRosterCandidates, getRosterStats } from '../../../services/member/roster.js?v=20261018e';
+import { solidAccentStyle, accDarkVars } from '../../../core/domain/constants.js?v=20261018e';
+import { currentLeaderGroup } from './_shared.js?v=20261018e';
+import { autoGenerateMakeupTask } from '../../../services/activity/makeup.js?v=20261018e';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是人的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
-import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261018d';
+import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261018e';
 
 // 私有状态（随模块自持，不污染入口）
 let _attFormVisible = false;
 let _attPickerInstance = null;
 
-export function renderContent(ctx, host) {
+// 组长台导语（单一源；非投影模式逐字保留原文案，投影模式另给一行短说明）
+const LEADER_SCOPE_DESC_HTML = `考勤上传：组织者上传 → 纪检委员确认 → 录入考勤明细。仅列<b>本组党小组会</b>与<b>本人为组织者的活动</b>（<b>主题党日 / 组织生活会</b>等）；<b>党课 / 支部党员大会</b>的上传位在纪检委员（纪检台「会议考勤录入」），<b>支委会不考勤</b>；组长非组织者=本组监督位，督促上传`;
+
+export function renderContent(ctx, host, opts = {}) {
   // host（D-808 · 2026-10-06）：成员台「由我组织的活动」区以宿主容器复用本页（实现单一源，不复制表单）；
+  // opts.scope='organizer'（2026-10-18 · 成员台组织者投影）：只渲染「由我组织的活动」的上传面，
+  //   身份取当前登录人（不是组长身份），并隐藏本组考勤明细 / 补课名单 / 摘要统计等他人数据区块。
   const container = host || document.getElementById('leader-tab-content');
   if (!container) return;
+
+  const isOrganizerScope = opts.scope === 'organizer';
+  // 投影模式的重渲染必须带同一宿主与 scope（否则会回落到组长台容器或丢掉投影边界）
+  const rerender = () => renderContent(ctx, host, opts);
 
   const { accent, accentRgba, accentBorder } = ctx;
   const _accVars = accDarkVars(accent);
@@ -56,12 +66,16 @@ export function renderContent(ctx, host) {
   // 清理旧的 PersonPicker 实例
   if (_attPickerInstance) { _attPickerInstance.destroy(); _attPickerInstance = null; }
 
+  const { group: myGroup, leaderId } = currentLeaderGroup();
+  // 投影身份＝当前登录人本人（D-808：组织者是「这场事上被指定的人」，不是组长席位）
+  const actorId = isOrganizerScope ? (AuthStore.getCurrentUser()?.personId || '') : leaderId;
+
   // 本组人员 + 实际上传活动（T-304 第5轮 P9：不再限定「党小组会」类型，按实际上传展示）
-  const { group: myGroup } = currentLeaderGroup();
-  const myGroupMembers = PEOPLE.filter(p => p.partyGroup === myGroup);
+  // 投影模式不取本组数据：本组明细 / 补课名单 / 摘要均属他人数据，一律不进入渲染。
+  const myGroupMembers = isOrganizerScope ? [] : PEOPLE.filter(p => p.partyGroup === myGroup);
   const myGroupMemberIds = myGroupMembers.map(p => p.id);
   const allRecords = loadActiveAttendanceRecords();
-  const myAttendance = allRecords.filter(r =>
+  const myAttendance = isOrganizerScope ? [] : allRecords.filter(r =>
     myGroupMemberIds.includes(r.personId) && r.activityId && filterActivitiesForViewer(loadActivities(), 'leader').find(a => a.id === r.activityId)
   );
 
@@ -70,17 +84,23 @@ export function renderContent(ctx, host) {
   // A1-2026-09-05 上传位门禁：列表仅保留本人可上传（本组党小组会 / 本人为该活动组织者）且未归档的活动
   // （2026-09-21 批次 132：党课 / 支部党员大会的判据是「纪检委员」，本页角色非纪检时自然不在列）
   const UPLOADABLE_ACTIVITY_TYPES = [...MEETING_ATTENDANCE_TYPES, '党小组会', '主题党日'];
-  const { leaderId } = currentLeaderGroup();
-  const eligibleActivities = filterActivitiesForViewer(loadActivities(), 'leader')
-    .filter(a =>
-      UPLOADABLE_ACTIVITY_TYPES.includes(a.type) &&
-      a.status !== 'cancelled' && // dogfood 组长#5（2026-09-12）：已取消活动不再出现在上传下拉（此前可选中提交，落为无效考勤）
-      canUploadAttendance(leaderId, a.id)
-    )
+  // 投影模式只列「由我组织」且本人可上传的活动（未归档、未取消）；不列本组其他人的活动。
+  const eligibleActivities = (isOrganizerScope
+    ? getOrganizedActivities(actorId)
+    : filterActivitiesForViewer(loadActivities(), 'leader'))
+    .filter(a => isOrganizerScope
+      ? (a.status !== 'cancelled' && a.archived !== true && canUploadAttendance(actorId, a.id))
+      : (UPLOADABLE_ACTIVITY_TYPES.includes(a.type)
+        && a.status !== 'cancelled' // dogfood 组长#5（2026-09-12）：已取消活动不再出现在上传下拉（此前可选中提交，落为无效考勤）
+        && canUploadAttendance(actorId, a.id)))
     .sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+  const scopeActivityIds = new Set(eligibleActivities.map(a => a.id));
+  const inScopeActivity = (activityId) => !isOrganizerScope || scopeActivityIds.has(activityId);
+  // 「已上传」标记：投影模式按活动记录判定（不读本组明细）；组长台沿用原口径。
+  const uploadedActivityIds = new Set((isOrganizerScope ? allRecords : myAttendance).map(r => r.activityId).filter(Boolean));
 
-  // 获取本组待补课人员
-  const makeupTasks = loadMakeupTasks();
+  // 获取本组待补课人员（投影模式隐藏：补课名单属他人数据）
+  const makeupTasks = isOrganizerScope ? [] : loadMakeupTasks();
   const myGroupMakeupTasks = makeupTasks.filter(t =>
     myGroupMemberIds.includes(t.personId) && t.status !== 'completed'
   );
@@ -88,8 +108,13 @@ export function renderContent(ctx, host) {
   // SOP-B-42（D-456）：纪检打回 / 出勤申诉 → 交活动组织方（本组长为上传位）核实确认。
   // 回退态两条来源：① 出勤申诉（成员报「我参加了但没记上」，纪检查实后打回）；
   //                 ② 纪检对已确认考勤直接打回的记录。两者都在此处回到组织者手里。
-  const returnedAppeals = loadAttendanceAppeals().filter(a => a.status === 'returned' && canUploadAttendance(leaderId, a.activityId));
-  const returnedRecords = loadActiveAttendanceRecords().filter(r => r.returnedBy && canUploadAttendance(leaderId, r.activityId));
+  // 投影模式只保留属于本人组织活动的条目（不越界到本组其他人 / 全支部）。
+  const returnedAppeals = loadAttendanceAppeals().filter(a =>
+    a.status === 'returned' && inScopeActivity(a.activityId) && canUploadAttendance(actorId, a.activityId)
+  );
+  const returnedRecords = loadActiveAttendanceRecords().filter(r =>
+    r.returnedBy && inScopeActivity(r.activityId) && canUploadAttendance(actorId, r.activityId)
+  );
   const pendingConfirm = [
     ...returnedAppeals.map(a => ({ kind: 'appeal', id: a.id, personId: a.personId, activityId: a.activityId, reason: a.returnNote || '', suggest: 'present' })),
     ...returnedRecords.map(r => ({ kind: 'record', id: r.id, personId: r.personId, activityId: r.activityId, reason: r.returnReason || '', suggest: (r.status === 'leave') ? 'leave' : ((r.status === 'present' || r.status === 'made_up') ? 'present' : 'absent') })),
@@ -120,8 +145,8 @@ export function renderContent(ctx, host) {
           <label class="text-xs text-gray-500 mb-1.5 block font-medium">选择活动 <span class="text-red-600">*</span></label>
           <select id="att-activity-select" class="input-flat w-full">
             <option value="">请选择活动</option>
-            ${eligibleActivities.length === 0 ? '<option value="" disabled>暂无可上传活动（仅本组党小组会与本人为组织者的活动可上传）</option>' : ''}
-            ${eligibleActivities.map(a => `<option value="${a.id}">${a.title}（${a.date}）${myAttendance.some(r => r.activityId === a.id) ? ' · 已上传' : ''}</option>`).join('')}
+            ${eligibleActivities.length === 0 ? `<option value="" disabled>${isOrganizerScope ? '暂无可上传活动（仅由我组织的活动可上传）' : '暂无可上传活动（仅本组党小组会与本人为组织者的活动可上传）'}</option>` : ''}
+            ${eligibleActivities.map(a => `<option value="${a.id}">${a.title}（${a.date}）${uploadedActivityIds.has(a.id) ? ' · 已上传' : ''}</option>`).join('')}
           </select>
         </div>
       </div>
@@ -145,14 +170,17 @@ export function renderContent(ctx, host) {
   container.innerHTML = `
     <div class="card rounded-xl p-5">
       <div class="flex items-center justify-between mb-4">
-        <h3 class="font-title-cn text-base font-semibold text-gray-800">考勤管理</h3>
+        <h3 class="font-title-cn text-base font-semibold text-gray-800">${isOrganizerScope ? '考勤上传位' : '考勤管理'}</h3>
         <button class="btn-md" id="btn-leader-upload-att" style="${_accVars}background:${accentRgba};color:color-mix(in srgb, ${accent} 60%, #000);border:1px solid ${accentBorder};">${_attFormVisible ? '收起表单' : '上传考勤表单'}</button>
       </div>
-      <div class="text-xs text-gray-500 mb-3">考勤上传：组织者上传 → 纪检委员确认 → 录入考勤明细。仅列<b>本组党小组会</b>与<b>本人为组织者的活动</b>（<b>主题党日 / 组织生活会</b>等）；<b>党课 / 支部党员大会</b>的上传位在纪检委员（纪检台「会议考勤录入」），<b>支委会不考勤</b>；组长非组织者=本组监督位，督促上传</div>
+      <div class="text-xs text-gray-500 mb-3">${isOrganizerScope
+        ? '考勤上传：仅显示由我组织的活动。组织者上传 → 纪检委员确认 → 录入考勤明细。'
+        : LEADER_SCOPE_DESC_HTML}</div>
       ${formHtml}
+      ${isOrganizerScope ? '' : `
       <div class="overflow-x-auto ${_attFormVisible ? 'mt-4 pt-3 border-t border-gray-100' : ''}">
         <div id="att-list-host"></div>
-      </div>
+      </div>`}
       ${pendingConfirm.length > 0 ? `
       <div class="mt-4 pt-3 border-t border-gray-100">
         <div class="text-xs font-bold text-gray-600 mb-2">纪检打回 · 待你确认（${pendingConfirm.length}）</div>
@@ -175,7 +203,7 @@ export function renderContent(ctx, host) {
         </div>
       </div>
       ` : ''}
-      ${myGroupMakeupTasks.length > 0 ? `
+      ${!isOrganizerScope && myGroupMakeupTasks.length > 0 ? `
       <div class="mt-4 pt-3 border-t border-gray-100">
         <div class="text-xs font-bold text-gray-600 mb-2">待补课人员（${myGroup}）</div>
         <div class="text-xs text-gray-500 mb-2">本组有 ${myGroupMakeupTasks.length} 人缺勤，已生成补课任务</div>
@@ -206,32 +234,35 @@ export function renderContent(ctx, host) {
 
   // 统一检索引擎（table 模式：rowHtml 返回 <tr>，表格样式由 styles.css::.data-table 单一源提供）：
   // 关键词（姓名/学号）+ 分面（党小组/发展阶段/角色/在册）；行数 ≤8 时引擎自动不渲染检索条。
-  renderFilteredList(container.querySelector('#att-list-host'), {
-    stateKey: 'leader-attendance-list',
-    rows: attRows,
-    keyword: personKeyword(),
-    facets: personFacets({ roleLabel: roleLabelOf }),
-    facetStyle: 'chip',
-    countUnit: '人',
-    emptyMessage: '暂无考勤明细',
-    table: {
-      colSpan: 4,
-      headHtml: `<tr>
-            <th>姓名</th>
-            <th>活动</th>
-            <th>状态</th>
-            <th>确认状态</th>
-          </tr>`,
-    },
-    // 状态色按 statusKey（英文枚举）判定——attendanceToLong 的 status 为中文标签
-    rowHtml: (a) => `
-            <tr>
-              <td class="font-medium text-gray-800"><a href="${getBasePath()}person.html?id=${encodeURIComponent(a.personId)}" class="hover:underline hover:text-sky-700 transition-colors" title="查看完整档案">${esc(getPersonName(a.personId))}</a></td>
-              <td class="text-gray-600">${a.activityId ? `<a class="text-blue-600 hover:underline" href="./activity.html?id=${a.activityId}">${esc(a.activity)}</a>` : esc(a.activity)}</td>
-              <td><span class="px-1.5 py-0.5 rounded-full text-xs ${a.statusKey === AttendanceStatus.PRESENT ? 'bg-green-100 text-green-700' : a.statusKey === AttendanceStatus.ABSENT ? 'bg-red-100 text-red-700' : a.statusKey === AttendanceStatus.MADE_UP ? 'bg-emerald-100 text-emerald-700' : 'bg-orange-100 text-orange-700'}">${esc(a.status)}</span></td>
-              <td class="text-gray-500">${a.confirmer === '—' ? '<span class="text-orange-700">待确认</span>' : '<span class="text-green-700">已确认</span>'}</td>
+  // 投影模式不渲染本组考勤明细表（只保留上传面；明细属他人数据）
+  if (!isOrganizerScope) {
+    renderFilteredList(container.querySelector('#att-list-host'), {
+      stateKey: 'leader-attendance-list',
+      rows: attRows,
+      keyword: personKeyword(),
+      facets: personFacets({ roleLabel: roleLabelOf }),
+      facetStyle: 'chip',
+      countUnit: '人',
+      emptyMessage: '暂无考勤明细',
+      table: {
+        colSpan: 4,
+        headHtml: `<tr>
+              <th>姓名</th>
+              <th>活动</th>
+              <th>状态</th>
+              <th>确认状态</th>
             </tr>`,
-  });
+      },
+      // 状态色按 statusKey（英文枚举）判定——attendanceToLong 的 status 为中文标签
+      rowHtml: (a) => `
+              <tr>
+                <td class="font-medium text-gray-800"><a href="${getBasePath()}person.html?id=${encodeURIComponent(a.personId)}" class="hover:underline hover:text-sky-700 transition-colors" title="查看完整档案">${esc(getPersonName(a.personId))}</a></td>
+                <td class="text-gray-600">${a.activityId ? `<a class="text-blue-600 hover:underline" href="./activity.html?id=${a.activityId}">${esc(a.activity)}</a>` : esc(a.activity)}</td>
+                <td><span class="px-1.5 py-0.5 rounded-full text-xs ${a.statusKey === AttendanceStatus.PRESENT ? 'bg-green-100 text-green-700' : a.statusKey === AttendanceStatus.ABSENT ? 'bg-red-100 text-red-700' : a.statusKey === AttendanceStatus.MADE_UP ? 'bg-emerald-100 text-emerald-700' : 'bg-orange-100 text-orange-700'}">${esc(a.status)}</span></td>
+                <td class="text-gray-500">${a.confirmer === '—' ? '<span class="text-orange-700">待确认</span>' : '<span class="text-green-700">已确认</span>'}</td>
+              </tr>`,
+    });
+  }
 
   // 绑定上传按钮（保态折叠 2026-09-06：对齐纪检会议考勤录入判例——表单已渲染
   //（#att-form-panel 在 DOM）时，收起/展开只切该容器 hidden，不销毁
@@ -242,7 +273,7 @@ export function renderContent(ctx, host) {
     const btn = container.querySelector('#btn-leader-upload-att');
     if (!panel) { // 首次打开（表单未渲染）：走 _attFormVisible 渲染表单 + 创建 picker
       _attFormVisible = true;
-      renderContent(ctx);
+      rerender();
       return;
     }
     const collapsed = panel.classList.toggle('hidden');
@@ -260,37 +291,51 @@ export function renderContent(ctx, host) {
       // SOP-B-16⑤（2026-09-19 批次 94）：此处**只认状态**——「请假」写通用键 `leave`（显示「请假」），
       // 事假 / 病假的档别由纪检复核时认定（R1-2：标因由纪检认定），本处不代认档。
       const absenceReason = status === 'absent' ? 'unexcused' : 'leave';
-      const { leaderId } = currentLeaderGroup();
       const res = kind === 'appeal'
-        ? resolveAttendanceAppeal({ appealId: id, actorId: leaderId, status, absenceReason })
-        : reconfirmReturnedRecord(id, { actorId: leaderId, status, absenceReason });
+        ? resolveAttendanceAppeal({ appealId: id, actorId, status, absenceReason })
+        : reconfirmReturnedRecord(id, { actorId, status, absenceReason });
       if (!res.ok) { showToast('error', '确认失败：该记录不存在'); return; }
       showToast('success', status === 'present' ? '已确认出勤，考勤已更新（修改痕迹留存）' : '已重新提交，等待纪检复核');
-      renderContent(ctx);
+      rerender();
     });
   });
 
   // 如果表单可见，初始化 PersonPicker 和绑定事件
   if (_attFormVisible) {
-    _initAttForm(container, eligibleActivities, ctx);
+    _initAttForm(container, eligibleActivities, ctx, opts);
   }
 }
 
-function _initAttForm(container, eligibleActivities, ctx) {
+/** 活动归属党小组（与 services/activity/attendance.js::_activityPartyGroup 同判据；该函数未导出） */
+function _activityGroupOf(activity) {
+  if (!activity) return '';
+  if (activity.hostGroup) return activity.hostGroup;
+  const orgId = activity.organizer
+    || (Array.isArray(activity.assignments) ? (activity.assignments.find(x => x.role === 'organizer') || {}).personId : null);
+  return orgId ? ((getPersonById(orgId) || {}).partyGroup || '') : '';
+}
+
+function _initAttForm(container, eligibleActivities, ctx, opts = {}) {
   const { accent } = ctx;
   const pickerContainer = container.querySelector('#att-person-picker-container');
   const activitySelect = container.querySelector('#att-activity-select');
-  const { group: myGroup } = currentLeaderGroup();
+  const isOrganizerScope = opts.scope === 'organizer';
+  const { group: myGroup, leaderId } = currentLeaderGroup();
+  // 投影身份＝当前登录人本人；组长台仍用原组长身份
+  const actorId = isOrganizerScope ? (AuthStore.getCurrentUser()?.personId || '') : leaderId;
 
   /** 党小组会 → 本组应到候选语境（组内党员 + 滞留者禁用）；其余/未选活动 → null（全成员，上传位语义不变） */
   function rosterCtxFor(activity) {
     if (!activity || activity.type !== '党小组会') return null;
-    const { candidates, disabledIds } = getMeetingRosterCandidates({ type: '党小组会', groupId: myGroup });
+    // 投影模式下「本组」取活动自身归属小组（成员本人页面不能按组长席位取组）
+    const groupId = isOrganizerScope ? _activityGroupOf(activity) : myGroup;
+    const { candidates, disabledIds } = getMeetingRosterCandidates({ type: '党小组会', groupId });
     return {
       candidateIds: new Set(candidates.map(p => p.id)),
       disabledIds,
       candidates,
-      stats: getRosterStats({ type: '党小组会', groupId: myGroup }),
+      groupId,
+      stats: getRosterStats({ type: '党小组会', groupId }),
     };
   }
 
@@ -335,7 +380,7 @@ function _initAttForm(container, eligibleActivities, ctx) {
       }
     });
     _attPickerInstance.render(pickerContainer);
-    _renderAttRosterHint(activity, rosterCtx, myGroup);
+    _renderAttRosterHint(activity, rosterCtx, rosterCtx ? rosterCtx.groupId : myGroup);
     // SOP-B-2 / D-288：默认选中本场已通过的报名者（保留组织者的调整空间）
     const defaultIds = signupDefaultIds(activity, rosterCtx);
     if (defaultIds.length > 0) _attPickerInstance.setSelected(defaultIds);
@@ -378,7 +423,6 @@ function _initAttForm(container, eligibleActivities, ctx) {
 
     // 收集每人的出勤状态
     const records = [];
-    const { leaderId } = currentLeaderGroup();
     for (const personId of selectedIds) {
       const statusEl = container.querySelector(`#att-status-${personId}`);
       const status = statusEl ? statusEl.value : AttendanceStatus.PRESENT;
@@ -387,8 +431,8 @@ function _initAttForm(container, eligibleActivities, ctx) {
         personId: personId,
         activityId,
         status,
-        // T-304 第5轮 P7 源头审校：submittedBy=组长（上传即审校）；recordedBy 留纪检复核异常
-        submittedBy: leaderId,
+        // T-304 第5轮 P7 源头审校：submittedBy=上传人（组长台＝组长；投影模式＝当前组织者本人）；recordedBy 留纪检复核异常
+        submittedBy: actorId,
         recordedBy: null,
         overdue: false,
       });
@@ -401,7 +445,7 @@ function _initAttForm(container, eligibleActivities, ctx) {
     //   本场组织者＝监督位）属**例外代办** ⇒ **写库前**弹一次确认。本位操作人走原路径、零打扰。
     //   ⚠ 本台登录人（组长）在上传位内通常就是本场组织者 ⇒ 常规路径**不弹**。
     //   弹窗**必须点按钮才能关**；「取消」＝放弃本次上传（表单与已选人员保留）。
-    if (!isAttendanceHomePosition(leaderId, activityId)) {
+    if (!isAttendanceHomePosition(actorId, activityId)) {
       const _homeOk = await confirmNudge({ nudgeKey: 'attendance-upload', context: eligibleActivities.find(a => a.id === activityId)?.title || '' });
       if (!_homeOk) return;
     }
@@ -414,7 +458,7 @@ function _initAttForm(container, eligibleActivities, ctx) {
     }
 
     // A1-2026-09-05 追加提交语义：新增记录；同人同活动已闭环（出勤/已补/纪检已复核）→ 跳过；待复核异常 → 拦截走纪检确认
-    const { added, skipped, blocked } = appendAttendanceRecords({ actorId: leaderId, records });
+    const { added, skipped, blocked } = appendAttendanceRecords({ actorId, records });
 
     // T-304 第5轮 P7 真实补课：上传时即生成补课任务（防重复：同人同活动已有任务则跳过），
     // 消除「提示已生成但实际未生成」的虚假反馈；出勤/已补源头审校即确认，异常留纪检复核。
@@ -440,7 +484,7 @@ function _initAttForm(container, eligibleActivities, ctx) {
     // 清理并刷新
     _attFormVisible = false;
     if (_attPickerInstance) { _attPickerInstance.destroy(); _attPickerInstance = null; }
-    renderContent(ctx);
+    renderContent(ctx, container, opts);
   });
 }
 

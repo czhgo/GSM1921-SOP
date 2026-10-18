@@ -13,7 +13,7 @@ import { readFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const V = '?v=20261018d';
+const V = '?v=20261018e';
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const SRC_DIR = join(ROOT, 'docs', 'src');
 const ISSUES_JSON = join(ROOT, 'docs', 'data', 'issues.json');
@@ -116,6 +116,20 @@ test('S4 成员参与接线：getMyIssues 出口 + 我的处置 tab「我提交/
   const seg = view.slice(view.indexOf('function _renderMyIssueDetail('));
   assert.match(seg, /addComment\(issueId, userId, role, body, 'comment'\)/, '成员仅能追加说明（kind=comment）');
   assert.ok(!/submit-result/.test(seg), '成员参与详情不得提供「提交处置结果」（写权不外扩）');
+});
+
+test('S5 组长/成员「我的处置」：我提交/参与段前移，提交与已读逻辑不变', () => {
+  const view = read(join(SRC_DIR, 'components', 'feedback', 'issue-dispatch-view.js'));
+  assert.match(view, /renderMyDispatchTab\(role, userId, opts = \{\}\)/, '渲染入口须接受段序选项');
+  assert.match(view, /bindMyDispatchEvents\(container, role, userId, opts = \{\}\)/, '事件绑定须透传段序选项');
+  assert.match(view, /opts\.myIssuesFirst[\s\S]{0,140}\[myIssuesHtml, reqHtml, myReportsHtml, assignedHtml\]/, '我提交/参与段须可前移为第一段');
+  assert.match(view, /unread\.forEach\(id => IssueNotify\.markRead\(userId, id\)\);/, '整批标已读逻辑不得改动');
+  for (const role of ['leader', 'visitor']) {
+    const tab = read(join(SRC_DIR, 'entries', 'tabs', role, 'my-dispatch-tab.js'));
+    assert.match(tab, /myIssuesFirst: true/, `${role} 台须声明我提交/参与段前置`);
+    assert.match(tab, /renderMyDispatchTab\('(?:leader|participant)', uid, opts\)/, `${role} 台须把选项传入渲染入口`);
+    assert.match(tab, /bindMyDispatchEvents\(el, '(?:leader|participant)', uid, opts\)/, `${role} 台须把选项传入事件绑定`);
+  }
 });
 
 // ═══════════════ 数据层 ═══════════════

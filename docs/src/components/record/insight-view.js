@@ -43,6 +43,7 @@ function _syncSegBtns(container, view) {
  * @param {string} [opts.highlightActId] — URL 携带的 activityId（命中则切到「活动」分段并定位+高亮）
  * @param {string} [opts.highlightTfId]  — URL 携带的 taskforceId（命中则切到「专班」分段并定位+高亮）
  * @param {boolean} [opts.readonly] — 活动分段只读（缺省 true，知情查看=只读形态）
+ * @param {Array} [opts.taskforces] — 专班分段的数据集合（缺省回退 `TaskForceRecordStore.getAll()`；组织台传对象级下游）
  * @param {Array<'activity'|'taskforce'|'group'>} [opts.views] — **允许的分段集合**（缺省＝活动/专班两段；由「赋权下游」派生时只出命中段；组长台额外并入 `group`「其他组」，见 2026-10-04 批次 373）
  * @param {Function} [opts.onLocated] — 定位完成后回调（调用方据此清除导航目标）
  * @returns {Promise} 分段内容懒加载完成的 Promise（供 tab-bar 占位收尾）
@@ -106,15 +107,16 @@ export function renderInsightView(container, opts = {}) {
 
   if (view === 'group') {
     // 「其他组」只读一览（组长台；见组件头注：看≠做、判据单一源＝group-view.js）
-    return import('./other-groups-view.js?v=20261018d').then(m => m.renderOtherGroupsView(body));
+    return import('./other-groups-view.js?v=20261018e').then(m => m.renderOtherGroupsView(body));
   }
   if (view === 'taskforce') {
-    return import('./taskforce-view.js?v=20261018d').then(m => m.renderTaskforceView(body, {
+    return import('./taskforce-view.js?v=20261018e').then(m => m.renderTaskforceView(body, {
       highlightId: opts.highlightTfId || null,
+      taskforces: opts.taskforces,
       onLocated: opts.onLocated,
     }));
   }
-  return import('./activity-view.js?v=20261018d').then(m => m.renderActivityView(body, {
+  return import('./activity-view.js?v=20261018e').then(m => m.renderActivityView(body, {
     highlightId: opts.highlightActId || null,
     // 知情查看 = 只读形态（组织台原「活动查看（只读）」的 readonly:true 合并后保持不变）
     readonly: opts.readonly !== false,

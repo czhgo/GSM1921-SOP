@@ -10,12 +10,12 @@
 //  打回（事后反馈）、正文阅读均在该页完成，本 tab 不再行内展开。
 // 角色自 AuthStore.getCurrentUser() 取（勿自由传参）；非组织委员（org-commissioner）防御：仅提示无权限。
 
-import { listAllThoughtReports, comparePeriodDesc } from '../../../services/governance/thought-report.js?v=20261018d';
-import { getPersonName, liveMembers } from '../../../services/member/person.js?v=20261018d';
-import { AuthStore } from '../../../services/core/auth.js?v=20261018d';
-import { escHtml as esc } from '../../../core/base/utils.js?v=20261018d';
+import { listAllThoughtReports, comparePeriodDesc } from '../../../services/governance/thought-report.js?v=20261018e';
+import { getPersonName, liveMembers } from '../../../services/member/person.js?v=20261018e';
+import { AuthStore } from '../../../services/core/auth.js?v=20261018e';
+import { escHtml as esc } from '../../../core/base/utils.js?v=20261018e';
 // 人×期次矩阵单一源（2026-09-14 批次 35/38；批次 41 本域接入）
-import { renderRelationMatrix } from '../../../components/ui/relation-matrix.js?v=20261018d';
+import { renderRelationMatrix } from '../../../components/ui/relation-matrix.js?v=20261018e';
 
 // ── 审阅状态：徽标样式 + 中文标签 + 就高不就低的优先级 ──
 // 读取侧归一由服务层 _effective 保证（无状态 / 状态非法 / 旧 'pending' → 已入库）
@@ -47,11 +47,47 @@ function _syncViewBtns(container) {
   });
 }
 
-/** 台账单元格＝**状态小色块**（2026-09-29 批次 295 紧凑化：格内不再放文字徽标，全文进 title——支书评「每一列这么宽」） */
+/** 台账单元格＝**状态小色块**（2026-09-29 批次 295 紧凑化：格内不再放文字徽标，全文进 title——支书评「每一列这么宽」）
+ *  2026-10-18 Task 14：色块本身 `aria-hidden`，语义由外层链接的 aria-label / 可见图例承担（不再只靠颜色）。 */
 const _statusDotHtml = (status) => {
   const m = STATUS_META[status] || STATUS_META.archived;
-  return `<span class="inline-block w-2.5 h-2.5 rounded-sm ${m.dot}"></span>`;
+  return `<span class="inline-block w-2.5 h-2.5 rounded-sm ${m.dot}" aria-hidden="true"></span>`;
 };
+
+// 状态筛选（2026-10-18 Task 14）：'all'＝全量留痕；'needs_revision'＝待补充；'archived'＝已入库
+let _filter = 'all';
+
+/** 状态图例（颜色 + 文字并列，屏幕阅读器与色觉障碍用户都能读） */
+function _legendHtml() {
+  return `
+    <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-gray-600" aria-label="状态图例">
+      <span class="inline-flex items-center gap-1.5"><span class="inline-block w-2.5 h-2.5 rounded-sm ${STATUS_META.needs_revision.dot}" aria-hidden="true"></span>${esc(STATUS_META.needs_revision.label)}</span>
+      <span class="inline-flex items-center gap-1.5"><span class="inline-block w-2.5 h-2.5 rounded-sm ${STATUS_META.archived.dot}" aria-hidden="true"></span>${esc(STATUS_META.archived.label)}</span>
+      <span class="text-gray-500">状态＝该期次汇总（就高不就低）</span>
+    </div>`;
+}
+
+/** 筛选钮（互斥；选中态复用视图钮的 SEG 类） */
+function _filterBtnsHtml() {
+  const opts = [
+    ['all', '全部'],
+    ['needs_revision', '待补充'],
+    ['archived', '已入库'],
+  ];
+  return `
+    <div class="flex items-center gap-1.5" role="group" aria-label="按状态筛选">
+      ${opts.map(([key, label]) => `<button type="button" class="btn-tab tr-filter-btn px-2.5 py-1.5 text-xs font-medium" data-trfilter="${key}" aria-pressed="${_filter === key ? 'true' : 'false'}">${label}</button>`).join('')}
+    </div>`;
+}
+
+function _syncFilterBtns(container) {
+  container.querySelectorAll('.tr-filter-btn').forEach((btn) => {
+    const on = btn.dataset.trfilter === _filter;
+    SEG_ON_CLASSES.forEach(c => btn.classList.toggle(c, on));
+    SEG_OFF_CLASSES.forEach(c => btn.classList.toggle(c, !on));
+    btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+  });
+}
 
 export function renderContent(ctx) { // ctx 对齐 org 其它 tab（accent 等共享只读配置；本 tab 不需消费）
   const container = document.getElementById('org-tab-content');
@@ -73,7 +109,11 @@ export function renderContent(ctx) { // ctx 对齐 org 其它 tab（accent 等�
 
   function render() {
     // 台账矩阵数据（服务层已归一：期次/状态字段完整）：全量记录 + 人 × 期次分桶
-    const recs = listAllThoughtReports();
+    // 2026-10-18 Task 14：筛选只缩小「当前展示的记录集」，不改变 cell 语义。
+    const allRecs = listAllThoughtReports();
+    const recs = _filter === 'all'
+      ? allRecs
+      : allRecs.filter(r => (r.reviewStatus || 'archived') === _filter);
     const periods = [...new Set(recs.map(r => r.period))].sort(comparePeriodDesc); // 期次倒序（新→旧）
     const bucket = new Map(); // `${personId}|${period}` → 该人该期次的篇目
     recs.forEach(r => {
@@ -82,11 +122,22 @@ export function renderContent(ctx) { // ctx 对齐 org 其它 tab（accent 等�
       bucket.get(k).push(r);
     });
     // 行＝支部在册成员（实时视图：名册新增/移出即时反映；未提交者整格「—」＝漏交可见）
-    const members = [...liveMembers()].map(p => ({ id: p.id, name: getPersonName(p.id) || p.name || p.id }));
+    const live = [...liveMembers()].map(p => ({ id: p.id, name: getPersonName(p.id) || p.name || p.id }));
+    const liveIds = new Set(live.map(m => m.id));
+    // 留痕口径（2026-10-18 Task 14）：有汇报但已移出的人**并入行集并标注**，不再静默少人。
+    const movedOut = [...new Set(allRecs.map(r => r.personId).filter(Boolean))]
+      .filter(id => !liveIds.has(id))
+      .map(id => ({ id, name: `${getPersonName(id)}（已移出）`, movedOut: true }));
+    let members = [...live, ...movedOut];
+    if (_filter !== 'all') {
+      const visible = new Set(recs.map(r => r.personId));
+      members = members.filter(m => visible.has(m.id));
+    }
+    const movedOutShown = members.filter(m => m.movedOut).length;
 
     container.innerHTML = `
       <div class="card rounded-xl p-5">
-        <div class="flex items-center justify-between mb-3">
+        <div class="flex items-center justify-between flex-wrap gap-2 mb-3">
           <h3 class="font-title-cn text-base font-semibold text-gray-800">思想汇报台账（人 × 期次）</h3>
           <div class="flex items-center gap-2">
             <button type="button" class="btn-tab tr-view-btn px-3 py-1.5 text-xs font-medium" data-trview="person">按人</button>
@@ -94,7 +145,11 @@ export function renderContent(ctx) { // ctx 对齐 org 其它 tab（accent 等�
             <span class="text-xs text-gray-500">${members.length} 人 · ${periods.length} 期</span>
           </div>
         </div>
-        <div class="text-xs text-gray-500 mb-3">留痕台账 · 不提供删除（打回 / 重交走状态）</div>
+        <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+          ${_legendHtml()}
+          ${_filterBtnsHtml()}
+        </div>
+        <div class="text-xs text-gray-500 mb-3">留痕台账${movedOutShown ? ` · 含已移出 ${movedOutShown} 人` : ''} · 不提供删除（打回 / 重交走状态）</div>
         <div id="tr-ledger-host"></div>
       </div>
     `;
@@ -124,7 +179,7 @@ export function renderContent(ctx) { // ctx 对齐 org 其它 tab（accent 等�
           ? `thought-report.html?id=${latest.id}`
           : `thought-report.html?personId=${encodeURIComponent(personId)}`;
         const tip = `${STATUS_META[status].label}${n > 1 ? ` · 共 ${n} 篇` : ''}`;
-        return `<a href="${href}" class="inline-flex items-center hover:opacity-80 transition-opacity" title="${esc(tip)}">${_statusDotHtml(status)}</a>`;
+        return `<a href="${href}" class="inline-flex items-center hover:opacity-80 transition-opacity" title="${esc(tip)}" aria-label="${esc(tip)}">${_statusDotHtml(status)}</a>`;
       },
     });
 
@@ -134,6 +189,16 @@ export function renderContent(ctx) { // ctx 对齐 org 其它 tab（accent 等�
       btn.addEventListener('click', () => {
         if (btn.dataset.trview === _view) return;
         _view = btn.dataset.trview;
+        render();
+      });
+    });
+
+    // 状态筛选：只换展示记录集（全部 / 待补充 / 已入库），不改变台账语义
+    _syncFilterBtns(container);
+    container.querySelectorAll('.tr-filter-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        if (btn.dataset.trfilter === _filter) return;
+        _filter = btn.dataset.trfilter;
         render();
       });
     });

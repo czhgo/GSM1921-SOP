@@ -18,7 +18,7 @@
 //  ════════════════════════════════════════════════════════════════
 //  模态内「按字段分流」（支书 2026-09-13 grill-me 面谈定案）：
 //    同一模态里两类字段各走各的写路径，界面显式分组 + 逐行小标区分——
-//      · 立即生效组（档案资料）name / studentId / partyGroup：
+//      · 立即生效组（档案资料）name / studentId / enrollYear / partyGroup：
 //        组织委员维护的档案属性，直改 `PersonStore.saveMember`，保存后即时写入档案；
 //      · 报支书确认组（制度变更）developStage / residenceStatus / residenceNote：
 //        走制度链 `submitMemberChange(...)` 提交申请 → 支书确认才生效，生效前保持现值。
@@ -28,19 +28,19 @@
 //      to ≠ from），明确提示随在册状态变更一并报送，不静默丢弃。
 // ════════════════════════════════════════════════════════════════
 
-import { openModal, closeModal } from '../ui/modal.js?v=20261018d';
-import { PersonStore } from '../../services/member/person.js?v=20261018d';
-import { getBranchById } from '../../services/branch/branch.js?v=20261018d';
+import { openModal, closeModal } from '../ui/modal.js?v=20261018e';
+import { PersonStore } from '../../services/member/person.js?v=20261018e';
+import { getBranchById } from '../../services/branch/branch.js?v=20261018e';
 // Q-21-3 收敛（2026-09-13）：在册状态枚举单一源 = core/domain/constants.js（原经 org-base-data-preview 转出）
-import { ROLE_LABELS, DEVELOP_STAGES, RESIDENCE } from '../../core/domain/constants.js?v=20261018d';
-import { submitMemberChange } from '../../services/member/member-confirmation.js?v=20261018d';
-import { AuthStore } from '../../services/core/auth.js?v=20261018d';
-import { showToast, escHtml as esc, getBasePath, todayLocal } from '../../core/base/utils.js?v=20261018d';
+import { ROLE_LABELS, DEVELOP_STAGES, RESIDENCE } from '../../core/domain/constants.js?v=20261018e';
+import { submitMemberChange } from '../../services/member/member-confirmation.js?v=20261018e';
+import { AuthStore } from '../../services/core/auth.js?v=20261018e';
+import { showToast, escHtml as esc, getBasePath, todayLocal } from '../../core/base/utils.js?v=20261018e';
 // `D-788`（2026-10-05 · `V-10b`）：成员「自我描述」字段模型（**零依赖叶子**）——表单控件由它逐字段生成（单一源）
 import {
   SELF_PROFILE_FIELDS, sanitizeSelfProfile,
   selfProfileListToText, selfProfileListFromText,
-} from '../../core/domain/self-profile.js?v=20261018d';
+} from '../../core/domain/self-profile.js?v=20261018e';
 
 /** 模态 id（openModal / closeModal 定位键） */
 const MODAL_ID = 'person-edit-modal';
@@ -224,7 +224,6 @@ export function openPersonEditModal(opts = {}) {
     archiveRow({ label: '在册备注', valueHtml: esc(member.residenceNote || '—'), field: 'residenceNote', highlight: hits('residenceNote') }),
     archiveRow({ label: '在册变更留痕', valueHtml: `<span class="text-gray-800">${history.length} 条</span>`, field: 'residenceHistory', highlight: hits('residenceHistory') }),
   ].join('');
-
   // ③ 下区「可改字段」（按写路径分组：档案属性立即生效 / 自我描述本人可填 / 制度变更报支书确认）
   //    ⚠ `selfOnly`（本人自助）：只出「自我描述」一组；其余组与治理字段说明不出（本人无权写）。
   const formHtml = `
@@ -235,6 +234,7 @@ export function openPersonEditModal(opts = {}) {
         rows: [
           formRow('姓名', `<input data-field="name" type="text" class="input-flat text-xs w-full" value="${esc(member.name || '')}" placeholder="成员姓名" />`, { required: true, tag: TAG_INSTANT }),
           formRow('学号', `<input data-field="studentId" type="text" class="input-flat text-xs w-full" value="${esc(member.studentId || '')}" placeholder="学号（可空）" />`, { tag: TAG_INSTANT }),
+          formRow('届别', `<input data-field="enrollYear" type="text" class="input-flat text-xs w-full" value="${esc(member.enrollYear || '')}" placeholder="入学年份 / 届别（如 2026，可空）" />`, { tag: TAG_INSTANT }),
           formRow('党小组', `<input data-field="partyGroup" type="text" class="input-flat text-xs w-full" value="${esc(member.partyGroup || '')}" placeholder="党小组归属（可空）" />`, { tag: TAG_INSTANT }),
         ].join(''),
       })}
@@ -324,7 +324,7 @@ export function openPersonEditModal(opts = {}) {
     // `selfOnly`（本人自助）：无档案控件 ⇒ 跳过姓名校验与档案差异，只算「自我描述」
     const next = selfOnly ? null : {
       name: String(read('name')).trim(),
-      studentId: String(read('studentId')).trim(),
+      studentId: String(read('studentId')).trim(), enrollYear: String(read('enrollYear')).trim(),
       partyGroup: String(read('partyGroup')).trim(),
       developStage: read('developStage'),
       residenceStatus: read('residenceStatus'),
@@ -353,7 +353,7 @@ export function openPersonEditModal(opts = {}) {
     }
 
     // 按写路径分组：档案资料立即生效 / 制度变更报支书确认
-    const INSTANT_FIELDS = ['name', 'studentId', 'partyGroup'];
+    const INSTANT_FIELDS = ['name', 'studentId', 'enrollYear', 'partyGroup'];
     const instantPatch = {};
     for (const f of INSTANT_FIELDS) if (f in patch) instantPatch[f] = patch[f];
     if ('selfProfile' in patch) instantPatch.selfProfile = patch.selfProfile; // `D-788`：自我描述同走成员档案写口

@@ -204,3 +204,154 @@ test('工作组成员不再自动出现在纪检考察清单中', async () => {
   assert.match(org, /仅制度、议程或具体事项明确要求时录入/);
   assert.match(org, /工作组成员名单不会自动生成考察名单/);
 });
+
+test('宣传看板归档判据统一为 isActivityArchived，已结束活动进入待归档', async () => {
+  const source = await read('../../docs/src/entries/tabs/prop/kanban-tab.js');
+  assert.match(source, /import\s*\{\s*isActivityArchived\s*\}\s*from\s*'\.\.\/\.\.\/\.\.\/core\/domain\/constants\.js\?v=\d{8}[a-z]'/);
+  assert.doesNotMatch(source, /activities\.filter\(a => a\.status === 'completed'\)/, '不得再把 status=completed 当作已归档集合');
+  assert.match(source, /activities\.filter\(a => isActivityArchived\(a\)\)/);
+  assert.match(source, /!isActivityArchived\(a\) && a\.status === 'completed'|unarchivedActs\.filter\(a => a\.status === 'completed'\)/);
+  assert.match(source, /resolveDocumentUrl\('archive\.html'\)/);
+  assert.match(source, /去归档/);
+  assert.doesNotMatch(source, /已完成并归档/);
+  assert.match(source, /已标记结束，待档案归档/);
+});
+
+test('成员台组织者上传位以 scope=organizer 投影，个人考勤与考察记录在页首', async () => {
+  const att = await read('../../docs/src/entries/tabs/visitor/attendance-tab.js');
+  assert.match(att, /m\.renderContent\(ctx, _orgAttHost, \{ scope: 'organizer' \}\)/);
+  assert.ok(att.indexOf('id="visitor-att-mine"') < att.indexOf('id="visitor-org-att-host"'), '本人出勤率在组织者上传位之前');
+  assert.ok(att.indexOf('id="visitor-att-list"') < att.indexOf('id="visitor-org-att-host"'), '本人考勤明细 / 补课入口在组织者上传位之前');
+  assert.match(att, /myOrgActs\.length \? `/, '没有组织者身份时不渲染上传位');
+
+  const insp = await read('../../docs/src/entries/tabs/visitor/inspection-tab.js');
+  assert.match(insp, /m\.renderContent\(ctx, _orgInspHost, \{ scope: 'organizer' \}\)/);
+  assert.ok(insp.indexOf('我的考察记录') < insp.indexOf('id="visitor-org-insp-host"'), '本人考察记录在组织者上传位之前');
+  assert.ok(insp.indexOf('id="visitor-insp-list"') < insp.indexOf('id="visitor-org-insp-host"'), '本人考察明细在组织者上传位之前');
+  assert.match(insp, /myOrgActs\.length \? `/, '没有组织者身份时不渲染上传位');
+});
+
+test('组长台考勤/考察页的组织者投影只保留本人上传面，不渲染全组/全支部明细', async () => {
+  const att = await read('../../docs/src/entries/tabs/leader/attendance-tab.js');
+  assert.match(att, /export function renderContent\(ctx, host, opts = \{\}\)/);
+  assert.match(att, /const isOrganizerScope = opts\.scope === 'organizer'/);
+  assert.match(att, /const actorId = isOrganizerScope \? \(AuthStore\.getCurrentUser\(\)\?\.personId \|\| ''\) : leaderId/);
+  assert.match(att, /getOrganizedActivities\(actorId\)/);
+  assert.match(att, /if \(!isOrganizerScope\) \{\s*renderFilteredList\(container\.querySelector\('#att-list-host'\)/, '投影分支不渲染本组考勤明细');
+  assert.match(att, /\$\{!isOrganizerScope && myGroupMakeupTasks\.length > 0 \?/, '投影分支不渲染本组补课名单');
+
+  const insp = await read('../../docs/src/entries/tabs/leader/inspection-tab.js');
+  assert.match(insp, /export function renderContent\(ctx, host, opts = \{\}\)/);
+  assert.match(insp, /const isOrganizerScope = opts\.scope === 'organizer'/);
+  assert.match(insp, /const actorId = isOrganizerScope \? \(AuthStore\.getCurrentUser\(\)\?\.personId \|\| ''\) : leaderId/);
+  assert.match(insp, /getOrganizedActivities\(actorId\)/);
+  assert.match(insp, /isTaskforceOrganizer\(actorId, tf\.id\)/, '专班来源只保留本人负责/被授权');
+  assert.match(insp, /if \(!isOrganizerScope\) \{\s*renderFilteredList\(container\.querySelector\('#insp-list-host'\)/, '投影分支不渲染全支部考察明细');
+});
+
+test('宣传任务页提供登记表单并写入 propTasks', async () => {
+  const source = await read('../../docs/src/entries/tabs/prop/tasks-tab.js');
+  assert.match(source, /登记宣传任务/);
+  assert.match(source, /id="prop-task-type"/);
+  assert.match(source, /id="prop-task-summary"/);
+  assert.match(source, /id="prop-task-activity"/);
+  assert.match(source, /mockDB\.propTasks\.push/);
+  assert.match(source, /generateId\('pt'\)/);
+  assert.match(source, /todayLocal\(\)/);
+  assert.match(source, /activityId/);
+});
+
+test('五台注册序：我的处置位于工作台之后、我的职责之前', async () => {
+  const files = [
+    'org-workspace.js',
+    'prop-workspace.js',
+    'disc-workspace.js',
+    'leader-workspace.js',
+    'visitor-workspace.js',
+  ];
+  for (const file of files) {
+    const source = await read(`../../docs/src/capabilities/${file}`);
+    const tabs = source.split(/\r?\n/)
+      .map((line) => line.trimStart())
+      .filter((line) => line.startsWith('{ id: '))
+      .map((line) => ({
+        id: /id: '([^']+)'/.exec(line)?.[1],
+        group: /groupLabel: '([^']+)'/.exec(line)?.[1],
+      }));
+    const dispatch = tabs.findIndex((tab) => tab.id === 'my-dispatch');
+    const workEnd = tabs.findLastIndex((tab) => tab.group === '工作台');
+    const dutyStart = tabs.findIndex((tab) => tab.group === '我的职责');
+    assert.ok(dispatch > -1, `${file} 未注册 my-dispatch`);
+    assert.ok(workEnd > -1, `${file} 未注册工作台分组`);
+    assert.ok(dutyStart > -1, `${file} 未注册我的职责分组`);
+    assert.ok(dispatch > workEnd,
+      `${file}：我的处置应位于工作台分组之后（下标 ${dispatch} ≤ 工作台末位 ${workEnd}）`);
+    assert.ok(dispatch < dutyStart,
+      `${file}：我的处置应位于我的职责分组之前（下标 ${dispatch} ≥ 我的职责首位 ${dutyStart}）`);
+  }
+});
+
+test('知情查看只保留有新增对象的段：宣传/纪检/支书不再渲染活动段', async () => {
+  for (const page of ['prop', 'disc']) {
+    const source = await read(`../../docs/src/entries/tabs/${page}/tf-view-tab.js`);
+    assert.doesNotMatch(source, /\['activity'\]/, `${page} 不再回退活动段`);
+    assert.doesNotMatch(source, /highlightActId/, `${page} 不透传活动定位`);
+    assert.match(source, /filter\(\(v\) => v !== 'activity'\)/);
+    assert.match(source, /暂无需要知情查看的专班/);
+    assert.match(source, /去活动日历/);
+  }
+  const registry = await read('../../docs/src/capabilities/secretary-workspace.js');
+  const row = registry.split('\n').find((line) => line.includes("id: 'tf-view'")) || '';
+  assert.match(row, /views: \['taskforce'\]/, '支书知情查看只出专班段');
+  assert.doesNotMatch(row, /activity/, '支书知情查看不再渲染活动段');
+
+  const org = await read('../../docs/src/entries/tabs/org/tf-view-tab.js');
+  assert.match(org, /TaskForceRecordStore\.getAll\(\)\.filter/, '组织台只取对象级下游专班而非全量');
+  assert.match(org, /workgroupGrants/, '组织台把本人授权纳入对象级下游判据');
+  assert.match(org, /taskforces,\s*\n\s*\/\/ B6/, '组织台把收窄后的集合传给只读视图');
+});
+
+test('党委总览待批复预览上限为 5，完整队列回支部上报', async () => {
+  const overview = await read('../../docs/src/entries/tabs/party-committee/governance-overview-tab.js');
+  assert.match(overview, /const PENDING_PREVIEW_LIMIT = 5;/);
+  assert.match(overview, /model\.pending\.slice\(0, PENDING_PREVIEW_LIMIT\)/);
+  assert.match(overview, /共 \$\{model\.pendingCount\} 项/);
+  assert.match(overview, /workspace\/party-committee\.html\?tab=review/);
+  assert.match(overview, /查看全部上报/);
+});
+
+test('支部动态待批复计数带 branchId 深链，支部管理按 secretaryId 恢复组织提醒', async () => {
+  const monitor = await read('../../docs/src/entries/tabs/party-committee/monitor-tab.js');
+  assert.match(monitor, /\?tab=review&amp;branchId=\$\{encodeURIComponent\(branch\.id\)\}/);
+
+  const branches = await read('../../docs/src/entries/tabs/party-committee/branches-tab.js');
+  assert.match(branches, /const missingSecretary = isActive && !b\.secretaryId/);
+  assert.doesNotMatch(branches, /!summaryOnly && !b\.secretaryId/, '组织提醒不再被 summaryOnly 抑制');
+  assert.match(branches, /待任命支书/);
+});
+
+test('反馈管理只留反馈：列表与合并目标排除 kind=report', async () => {
+  const source = await read('../../docs/src/entries/tabs/secretary/feedback-tab.js');
+  assert.match(source, /!i\.hidden && !i\.mergedInto && i\.kind !== 'report'/, '反馈列表须排除工作汇报');
+  assert.match(source, /const mergeTargets = IssueStore\.getAll\(\)\.filter\(i => i\.id !== issueId && !i\.hidden && !i\.mergedInto && i\.kind !== 'report'\)/, '合并目标同样不得混入工作汇报');
+  assert.match(source, /无匹配反馈/);
+  assert.match(source, />反馈管理</);
+});
+
+test('工作概况汇报区只读：无提交入口，唯一动作跳「我的处置」', async () => {
+  const source = await read('../../docs/src/components/governance/work-overview.js');
+  assert.match(source, /getReportRequestsFor\(personId\)/);
+  assert.doesNotMatch(source, /wo-req-submit|data-report-submit|请填写汇报内容|renderFilteredList/, '概况不得保留汇报行内提交/校验载体');
+  assert.match(source, /data-wo-go-dispatch/, '汇报摘要须给出唯一动作按钮');
+  assert.match(source, /data-\$\{prefix\}-tab="my-dispatch"/, '唯一动作须跳「我的处置」');
+});
+
+test('今天页汇报行落到待办「待答复」，不再指向反馈/我的处置', async () => {
+  const source = await read('../../docs/src/entries/tabs/today/today-tab.js');
+  assert.match(source, /attrs: `data-go="todo" data-report-id="\$\{esc\(i\.id\)\}"/, '汇报行目标须为待办并带定位 id');
+  assert.match(source, /PendingTarget\.set\(id \? \{ tab: 'todo', kind: 'report', id \}/, '汇报行须写待办「待答复」定位目标');
+  assert.doesNotMatch(source, /my-dispatch/, '今天页不再把汇报行指向「我的处置」');
+  assert.doesNotMatch(source, /onNav\('feedback'\)/, '今天页不再把汇报行指向反馈管理');
+  assert.match(source, /onNav\(btn\.dataset\.todayAll === 'todo' \? 'todo' : 'activities'\)/, '「今天有会 · 全部」保持 activities');
+  assert.match(source, /it\.deadline > today\) continue/, '今天页只列今日到期与逾期事项');
+});

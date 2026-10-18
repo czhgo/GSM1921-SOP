@@ -12,10 +12,10 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
-import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261018d';
-import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261018d';
-import { setDataSource } from '../../docs/src/data/data-adapter.js?v=20261018d';
-import { TodoStore, TodoCategory } from '../../docs/src/services/governance/todo.js?v=20261018d';
+import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261018e';
+import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261018e';
+import { setDataSource } from '../../docs/src/data/data-adapter.js?v=20261018e';
+import { TodoStore, TodoCategory } from '../../docs/src/services/governance/todo.js?v=20261018e';
 
 const ROOT = join(import.meta.dirname, '..', '..');
 
@@ -145,4 +145,16 @@ test('V5 防回潮：硬删只在支委层渲染；作废/删除只对落库组�
   assert.match(list, /const canDelete = g\.persisted && typeof onDeleteTodo === 'function'/, '硬删键应只在落库待办组渲染（实时组无 id，渲染即空转）');
   assert.match(list, /const canVoid = g\.persisted && typeof onVoidTodo === 'function'/, '作废键应只在落库待办组渲染');
   assert.match(list, /-todo-void-btn/, '作废键应有点击委托');
+});
+
+// ── V6（2026-10-18 繁专项 Task 14）：详情动作与行尾一致，不得空转 ──────
+test('V6 待办详情：hideActionBtn 组不再渲染空转「去处理」；detailAction 走真实落点', () => {
+  const shell = readFileSync(join(ROOT, 'docs/src/components/record/todo-tab-shell.js'), 'utf8');
+  assert.match(shell, /todo\.hideActionBtn \? '' : '去处理'/, '行尾隐藏动作的组，详情不得再出「去处理」');
+  assert.match(shell, /group\.detailAction && typeof group\.detailAction\.run === 'function'/, '详情按钮须支持组自带真实落点');
+  assert.match(shell, /aria-label="\$\{escHtml\(actionLabel\)\}/, '详情按钮保留无障碍名称');
+
+  const org = readFileSync(join(ROOT, 'docs/src/entries/tabs/org/todo-tab.js'), 'utf8');
+  assert.match(org, /detailAction: \{ label: '去录入考察'/, '考察线缺口详情须跳到「录入考察」真实页签');
+  assert.match(org, /hideActionBtn: true,\s*\n\s*\/\/ 考察线缺口/, '考察线缺口行尾仍不渲染单键动作');
 });

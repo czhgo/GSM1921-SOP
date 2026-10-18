@@ -1,14 +1,14 @@
 // Party committee branch directory: create and select; maintenance is in branch-config.html.
 
-import { mockDB } from '../../../core/domain/domain.js?v=20261018d';
+import { mockDB } from '../../../core/domain/domain.js?v=20261018e';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/member/person.js 获取（原直连 mock PEOPLE）；
 // 每次渲染现读（members 覆盖层即时吃到），不缓存在模块顶层
-import { PersonStore } from '../../../services/member/person.js?v=20261018d';
-import { createBranch } from '../../../services/branch/branch.js?v=20261018d';
-import { getRosterStats } from '../../../services/member/roster.js?v=20261018d';
-import { showToast, escHtml as esc, getBasePath } from '../../../core/base/utils.js?v=20261018d';
-import { bindBranchReadOnlyButtons } from '../../../services/core/branch-readonly-nav.js?v=20261018d';
-import { renderSectionHeader } from '../../../components/shell/page-frame.js?v=20261018d';
+import { PersonStore } from '../../../services/member/person.js?v=20261018e';
+import { createBranch } from '../../../services/branch/branch.js?v=20261018e';
+import { getRosterStats } from '../../../services/member/roster.js?v=20261018e';
+import { showToast, escHtml as esc, getBasePath } from '../../../core/base/utils.js?v=20261018e';
+import { bindBranchReadOnlyButtons } from '../../../services/core/branch-readonly-nav.js?v=20261018e';
+import { renderSectionHeader } from '../../../components/shell/page-frame.js?v=20261018e';
 
 export async function renderContent() {
   const el = document.getElementById('party-committee-tab-content');
@@ -49,11 +49,14 @@ export async function renderContent() {
           const inBranch = summaryOnly ? null : members.filter((person) => person.branchId === bid);
           const memberCount = summaryOnly ? (summary.memberCount ?? '—') : inBranch.length;
           const partyCount = summaryOnly ? (summary.partyMemberCount ?? '—') : getRosterStats({ branchId: bid }).partyTotal;
+          // 2026-10-18 繁专项（Top 8）：组织提醒按目录行 `secretaryId` 判断（服务端目录投影已补该字段），
+          //   不再被 `summaryOnly` 抑制；口径与治理总览一致＝运行中且未任命支书。
+          const missingSecretary = isActive && !b.secretaryId;
           return `<tr data-branch-card="${esc(bid)}">
             <td><div class="font-semibold text-gray-900">${esc(b.config?.headerTitle || b.name)}</div><div class="mt-0.5 text-xs text-gray-500">${esc(b.type || '支部')}</div></td>
             <td><span class="text-sm ${isActive ? 'text-green-700' : 'text-gray-500'}">${isActive ? '运行中' : '已停用'}</span></td>
             <td class="tabular-nums">${memberCount}${memberCount === '—' ? '' : ' 人'}</td><td class="tabular-nums">${partyCount}${partyCount === '—' ? '' : ' 人'}</td>
-            <td>${!summaryOnly && !b.secretaryId ? '<span class="text-sm text-amber-800">待任命支书</span>' : '<span class="text-sm text-gray-500">—</span>'}</td>
+            <td>${missingSecretary ? '<span class="text-sm text-amber-800">待任命支书</span>' : '<span class="text-sm text-gray-500">—</span>'}</td>
             <td><div class="flex flex-wrap gap-2"><a class="btn-accent inline-flex whitespace-nowrap px-3 py-2 text-sm font-medium" href="${configureUrl}">支部设置</a><button type="button" class="btn-outline branch-readonly-enter whitespace-nowrap px-3 py-2 text-sm" data-branch-id="${esc(bid)}">查看该支部</button></div></td>
           </tr>`;
         }).join('')}

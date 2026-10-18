@@ -11,18 +11,23 @@
 //   分区——**写侧默认折叠**（`_toolOpen`，同 group-progress `_progressOpen` 体例），首屏只留读侧；展开后功能一字不减。
 // 2026-09-03 裁定沿用：本页禁 SVG 图标，类别/视图用文字与色点区分。
 
-import { escHtml as esc } from '../../../core/base/utils.js?v=20261018d';
-import { WORK_MAP_MODULES, ORG_SUBJECT_LABELS, isBranchOrgSubject } from '../../../core/domain/work-map.js?v=20261018d';
-import { ROLE_LABELS } from '../../../core/domain/constants.js?v=20261018d';
-import { AuthStore } from '../../../services/core/auth.js?v=20261018d';
-import { getBranchIdOfPerson, getBranchWorkforce } from '../../../services/branch/branch.js?v=20261018d';
-import { getPersonName } from '../../../services/member/person.js?v=20261018d';
+import { escHtml as esc } from '../../../core/base/utils.js?v=20261018e';
+import { WORK_MAP_MODULES, ORG_SUBJECT_LABELS, isBranchOrgSubject } from '../../../core/domain/work-map.js?v=20261018e';
+import { ROLE_LABELS } from '../../../core/domain/constants.js?v=20261018e';
+import { AuthStore } from '../../../services/core/auth.js?v=20261018e';
+import { getBranchIdOfPerson, getBranchWorkforce } from '../../../services/branch/branch.js?v=20261018e';
+import { getPersonName } from '../../../services/member/person.js?v=20261018e';
 // 人×工作项矩阵单一源（2026-09-14 批次 35）：按人 / 按项目 互为转置，勿自造表格与翻页
-import { renderRelationMatrix } from '../../../components/ui/relation-matrix.js?v=20261018d';
+import { renderRelationMatrix } from '../../../components/ui/relation-matrix.js?v=20261018e';
+// 责任关系表（2026-10-18 脏专项 Task 17）：逐项「模块 → 责任人 → 责任角色 → 责任说明」，
+// 表头与分页走统一检索引擎（勿在本文件手写 <table>，S12 台账只认引擎 / 矩阵两处单一源）。
+import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261018e';
 // L4 M2（2026-09-03）：分工调整工具（发起支委会议题 / 跟踪 / 采纳生效），仅支书/副支书可见
-import { mountWorkforcePanel } from './workforce-panel.js?v=20261018d';
+import { mountWorkforcePanel } from './workforce-panel.js?v=20261018e';
 
-let _view = 'persons'; // 视图：平铺模块 / 按人 / 按项目（宽表默认「按人」；同一会话内保持）
+// 2026-10-18 脏专项 Task 17：默认落「责任关系表」——14 项模块是 1:1 分派，
+// 逐行读出「谁负责什么」比 14×N 的稀疏矩阵直接；矩阵（按人 / 按项目）保留为可选视图。
+let _view = 'relations'; // 视图：责任关系表 / 平铺模块 / 按人 / 按项目（同一会话内保持）
 // R5（2026-09-28 批次 220）：分工调整工具（写）默认折叠——本 tab 主问「每项工作归谁负责？」＝看分工（读），
 //   分工调整（发起议题/跟踪/采纳）属「偶尔要用的工具」（判定＝一 tab 一问：「支部分工」混装读/写两件事，
 //   写侧折叠为按钮；原 MODULE_UI_DESIGN.md §四 规划稿已清出，出处见 .ctx/logs/archive/2026-09-DECISION_LOG.md）。折叠体例照本仓既有 `_progressOpen`（group-progress-tab.js）：模块级布尔 + 卡片 + 单钮，
@@ -71,6 +76,54 @@ function _modulesHtml(workforce) {
         </div>`;
       }).join('')}
     </div>`;
+}
+
+/** 视图 A0：责任关系表（14 项工作 → 责任人 / 责任角色 / 责任说明）——
+ *  2026-10-18 脏专项 Task 17：原矩阵缺「责任角色 / 责任说明」列，读者只看得到「主责」标记，
+ *  读不出「谁负责什么」；本表把同一份 `getBranchWorkforce` 快照逐项摊平（不改数据、不改权限）。 */
+function _relationRows(workforce) {
+  return WORK_MAP_MODULES.map((m) => {
+    const assign = workforce[m.id];
+    const superior = _isSuperiorOwner(assign);
+    const disabled = !!assign && assign.ownerType === 'none';
+    return {
+      id: m.id,
+      module: m.name,
+      owner: disabled ? '未指派' : (superior ? `上级${_ownerLabel(assign)}` : _ownerLabel(assign)),
+      role: disabled ? '停用' : (superior ? '上级主导' : '主责'),
+      note: disabled
+        ? '本支部不开展该项工作方法（可由支部重新启用）'
+        : (superior ? '由上级组织主导，支部按上级渠道对接' : (m.desc || '')),
+    };
+  });
+}
+
+/** 责任关系表渲染（表头 / 空态 / 分页均由统一检索引擎产出） */
+function _renderRelations(workforce) {
+  const host = document.getElementById('work-map-relations');
+  if (!host) return;
+  renderFilteredList(host, {
+    stateKey: 'secretary-work-map-relations',
+    rows: _relationRows(workforce),
+    keyword: { keys: ['module', 'owner', 'role', 'note'], placeholder: '搜索模块或责任人…' },
+    facets: [{ key: 'role', label: '责任角色' }],
+    pageSize: 20,
+    countUnit: '项',
+    emptyMessage: '暂无分工数据（支部尚未配置工作模块）',
+    table: {
+      headHtml: '<tr><th>工作模块</th><th>责任人</th><th>责任角色</th><th>责任说明</th></tr>',
+      colSpan: 4,
+    },
+    rowHtml: (r) => {
+      const roleCls = r.role === '主责' ? 'bg-red-50 text-red-700 border-red-100' : 'bg-neutral-100 text-neutral-600';
+      return `<tr>
+        <td class="text-gray-800 font-medium">${esc(r.module)}</td>
+        <td class="text-gray-700">${esc(r.owner)}</td>
+        <td><span class="text-xs px-1.5 py-0.5 rounded border ${roleCls}">${esc(r.role)}</span></td>
+        <td class="text-gray-600">${esc(r.note)}</td>
+      </tr>`;
+    },
+  });
 }
 
 /** 视图 B/C：人 × 工作项宽表（按人＝行=负责人、列=工作项；按项目＝转置，行=工作项、列=负责人） */
@@ -166,6 +219,7 @@ export function renderContent() {
     <div class="flex items-center gap-2 mb-3">
       <div class="flex items-center gap-2">
         ${[
+          { key: 'relations', label: '责任关系' },
           { key: 'modules', label: '平铺模块' },
           { key: 'persons', label: '按人' },
           { key: 'items', label: '按项目' },
@@ -177,11 +231,23 @@ export function renderContent() {
       </div>
       <p class="text-xs text-gray-500 ml-auto">分工由本支部自行调整（缺省按 SOP 责任人，改派走支委会议题）</p>
     </div>`;
-  const body = _view === 'modules' ? _modulesHtml(workforce) : `<div id="work-map-matrix"></div>`;
+  const body = _view === 'modules'
+    ? _modulesHtml(workforce)
+    : _view === 'relations'
+      ? `<div class="card rounded-xl p-4">
+          <div class="flex items-center justify-between mb-1">
+            <h4 class="font-title-cn text-base font-semibold text-gray-800">责任关系表</h4>
+            <span class="text-xs text-gray-500">${WORK_MAP_MODULES.length} 项工作 · 一项一名主责</span>
+          </div>
+          <p class="text-xs text-gray-500 mb-2.5">每行读法：工作模块 → 责任人 → 责任角色 → 责任说明。</p>
+          <div id="work-map-relations"></div>
+        </div>`
+      : `<div id="work-map-matrix"></div>`;
 
   root.innerHTML = `${switchBar}${body}${editable ? _toolFoldHtml() : ''}`;
-  // 宽表视图（按人 / 按项目）：矩阵挂到宿主容器（_view → mode 映射在 _renderMatrix 内）
-  if (_view !== 'modules') _renderMatrix(workforce);
+  // 责任关系表 / 矩阵分别挂到各自宿主（_view → mode 映射在 _renderMatrix 内）
+  if (_view === 'relations') _renderRelations(workforce);
+  if (_view === 'persons' || _view === 'items') _renderMatrix(workforce);
   // 视图切换（纯排列切换，不换数据）；复用 overview 的 ov-sub-tab 激活样式
   root.querySelectorAll('.ov-sub-tab').forEach(btn => {
     btn.addEventListener('click', () => {

@@ -6,19 +6,19 @@
 //     （org-commissioner:member-approve，议程派生审批=通过）+ 「考察」域交接行「确认接收」；
 //   · org 无队列顶卡：仅保留页顶补课发起小操作条（非队列卡，发起闭环不丢）。
 
-import { showToast, flashHighlight, getBasePath } from '../../../core/base/utils.js?v=20261018d';
-import { createTodoTab, createUrgeController } from '../../../components/record/todo-tab-shell.js?v=20261018d';
-import { tryDirectJump } from '../../../components/record/todo-jump.js?v=20261018d';
-import { REALTIME_GROUP_DOMAIN, buildDevelopNodeRemindGroup, buildHalfYearInspectionRemindGroup } from '../../../services/governance/todo.js?v=20261018d';
-import { SecretaryTodoDeriver } from '../../../services/governance/secretary-overview.js?v=20261018d';
-import { HandoffStore } from '../../../services/governance/handoff.js?v=20261018d';
-import { PersonStore } from '../../../services/member/person.js?v=20261018d';
-import { loadActivities } from '../../../services/activity/activity.js?v=20261018d';
-import { loadInspectionRecords } from '../../../services/activity/inspection.js?v=20261018d';
-import { preloadMemberChangeRequests, getCachedMemberChangeRequests, buildMcBulkRows, renderMcBulkRowsHtml, bindMcBulk } from '../../../components/governance/member-change-panel.js?v=20261018d';
+import { showToast, flashHighlight, getBasePath } from '../../../core/base/utils.js?v=20261018e';
+import { createTodoTab, createUrgeController } from '../../../components/record/todo-tab-shell.js?v=20261018e';
+import { tryDirectJump } from '../../../components/record/todo-jump.js?v=20261018e';
+import { REALTIME_GROUP_DOMAIN, buildDevelopNodeRemindGroup, buildHalfYearInspectionRemindGroup } from '../../../services/governance/todo.js?v=20261018e';
+import { SecretaryTodoDeriver } from '../../../services/governance/secretary-overview.js?v=20261018e';
+import { HandoffStore } from '../../../services/governance/handoff.js?v=20261018e';
+import { PersonStore } from '../../../services/member/person.js?v=20261018e';
+import { loadActivities } from '../../../services/activity/activity.js?v=20261018e';
+import { loadInspectionRecords } from '../../../services/activity/inspection.js?v=20261018e';
+import { preloadMemberChangeRequests, getCachedMemberChangeRequests, buildMcBulkRows, renderMcBulkRowsHtml, bindMcBulk } from '../../../components/governance/member-change-panel.js?v=20261018e';
 // 发展推进「进入当前阶段日期」读口：单一源＝成员档案字段 `developStageSince`（2026-09-28 服务端化，
 // 原为本机键 gsm1921-dev-stage-overrides；读口形状不变）
-import { loadStageEntryDates } from '../../../services/member/member-confirmation.js?v=20261018d';
+import { loadStageEntryDates } from '../../../services/member/member-confirmation.js?v=20261018e';
 
 // ── 逐条催办（SOP-B-29 / D-391 · 2026-09-18 批次 88）────────────────────────
 // **主位在组织委员**：材料催缴与审核督办归组织委员（母本《常见工作场景快速指南》:369），
@@ -29,6 +29,33 @@ const _urge = createUrgeController({
   context: () => ({ activities: loadActivities(), people: PersonStore.getAll() }),
   onDone: (ctx) => renderContent(ctx),
 });
+
+/** 切到本台页签（组织台页签按钮 = `.org-tab-btn[data-org-tab]`） */
+function _clickOrgTab(tabId) {
+  document.querySelector(`.org-tab-btn[data-org-tab="${tabId}"]`)?.click();
+}
+
+/**
+ * 「考察线缺口」详情的真实下一步（2026-10-18 繁专项 Task 14）：
+ * 直达人才库页底「录入考察」并展开考察位——不再只弹「请处理」提示。
+ * 人才库是动态 import，页签切换后轮询等待宿主出现；已展开则不重复点。
+ */
+function _gotoTalentInspection() {
+  _clickOrgTab('talent');
+  let tries = 0;
+  const tick = () => {
+    const host = document.getElementById('talent-insp-host');
+    if (!host) {
+      if (tries++ < 40) setTimeout(tick, 100);
+      return;
+    }
+    const body = host.querySelector('#talent-insp-body');
+    if (body && body.classList.contains('hidden')) host.querySelector('#talent-insp-toggle')?.click();
+    (host.querySelector('#talent-insp-body') || host).scrollIntoView({ behavior: 'smooth', block: 'center' });
+    host.querySelector('#btn-org-upload-insp')?.focus();
+  };
+  tick();
+}
 
 function _handleTodoAction(todo, ctx) {
   // 直达跳转（通知阅读 T-234 F1 / 报名审核 T-233）已收敛于 components/record/todo-jump.js（2026-09-04）
@@ -139,7 +166,13 @@ function _buildOrgRealtimeGroups(ctx) {
   // 组织委员在此**催**纪检委员（催办责任人解析仍走 `urgeRolesOf`，未改）。其余材料走线下（`D-444`），系统无落点。
   const inspectionGap = SecretaryTodoDeriver.computeAggregates().find(g => g.actionKey === 'inspection-remind');
   if (inspectionGap) {
-    groups.push({ ...inspectionGap, groupKey: 'org-commissioner:inspection-remind', hideActionBtn: true });
+    groups.push({
+      ...inspectionGap,
+      groupKey: 'org-commissioner:inspection-remind',
+      hideActionBtn: true,
+      // 考察线缺口不能就地办结：详情给真实落点 = 人才库页底「录入考察」（2026-10-18 Task 14）
+      detailAction: { label: '去录入考察', run: () => _gotoTalentInspection() },
+    });
   }
   return groups;
 }

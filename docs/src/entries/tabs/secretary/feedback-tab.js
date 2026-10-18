@@ -3,17 +3,17 @@
 // 2026-08-07 自 ws-secretary-entry.js 拆分。
 // GitHub Issue 风格反馈管理面板：草稿审核（通过/驳回）全部反馈列表 + 导出/清除 + 详情处置（指派/状态/评论/隐藏/合并）。
 
-import { IssueStore, deriveIssueDisplayState, IssueNotify, issueDomainLabel, issueDomainSuggest, issueDomainReplyHint } from '../../../services/governance/issues.js?v=20261018d';
-import { showToast, todayLocal } from '../../../core/base/utils.js?v=20261018d';
-import { scrollDetailIntoView } from '../../../components/ui/detail-anchor.js?v=20261018d';
-import { icon } from '../../../core/base/icons.js?v=20261018d';
-import { AuthStore } from '../../../services/core/auth.js?v=20261018d';
-import { ROLE_LABELS, DRAFT_TYPE_LABELS } from '../../../core/domain/constants.js?v=20261018d';
-import { getPersonName } from '../../../services/member/person.js?v=20261018d';
-import { PersonStore } from '../../../services/member/person.js?v=20261018d';
-import { badgeHtml, badgeVariantClass } from '../../../components/ui/badges.js?v=20261018d';
+import { IssueStore, deriveIssueDisplayState, IssueNotify, issueDomainLabel, issueDomainSuggest, issueDomainReplyHint } from '../../../services/governance/issues.js?v=20261018e';
+import { showToast, todayLocal } from '../../../core/base/utils.js?v=20261018e';
+import { scrollDetailIntoView } from '../../../components/ui/detail-anchor.js?v=20261018e';
+import { icon } from '../../../core/base/icons.js?v=20261018e';
+import { AuthStore } from '../../../services/core/auth.js?v=20261018e';
+import { ROLE_LABELS, DRAFT_TYPE_LABELS } from '../../../core/domain/constants.js?v=20261018e';
+import { getPersonName } from '../../../services/member/person.js?v=20261018e';
+import { PersonStore } from '../../../services/member/person.js?v=20261018e';
+import { badgeHtml, badgeVariantClass } from '../../../components/ui/badges.js?v=20261018e';
 // 翻页控件单一源（批次 38：全站手写翻页一律并轨 pagerHtml）
-import { pagerHtml } from '../../../components/ui/pager.js?v=20261018d';
+import { pagerHtml } from '../../../components/ui/pager.js?v=20261018e';
 
 const FEEDBACK_TAB_HTML = `
   <!-- 列表面板 -->
@@ -126,8 +126,10 @@ function renderIssueManagement() {
   const pillEl = document.getElementById('issue-summary-pill');
   if (listEl) {
     // 支书规则（2026-08-01）：带时间字段的列示按提交时间倒序（最新在前）
+    // 纯反馈口径（2026-10-18 繁专项 Task 6）：本页只留匿名/实名反馈，工作汇报（kind='report'）
+    // 统一到待办「待答复」/「我的处置」处理，不得混入反馈列表与计数。
     let issues = IssueStore.getAll()
-      .filter(i => !i.hidden && !i.mergedInto)
+      .filter(i => !i.hidden && !i.mergedInto && i.kind !== 'report')
       .sort((a, b) => (b.submittedAt || '').localeCompare(a.submittedAt || ''));
     // 筛选
     const filterStatus = document.getElementById('issue-filter-status')?.value || 'all';
@@ -428,7 +430,7 @@ function renderIssueDetail(issueId) {
     // 合并选择器（默认隐藏）
     html += `<div id="issue-merge-selector" class="hidden mt-2 p-3 rounded-lg bg-gray-50 border border-gray-200">`;
     html += `<p class="text-xs text-gray-600 mb-2">选择合并目标</p>`;
-    const mergeTargets = IssueStore.getAll().filter(i => i.id !== issueId && !i.hidden && !i.mergedInto);
+    const mergeTargets = IssueStore.getAll().filter(i => i.id !== issueId && !i.hidden && !i.mergedInto && i.kind !== 'report');
     if (mergeTargets.length > 0) {
       html += `<div class="space-y-1 max-h-32 overflow-y-auto">`;
       mergeTargets.forEach(t => {

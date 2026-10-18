@@ -4,6 +4,7 @@
 //       ④ HTTP PATCH /branches/:id/config 写 config.workforce（支书登录；含净化与恢复默认）。
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import { createApp } from '../app.js';
 import { seedDatabase } from '../seed.js';
 import {
@@ -11,9 +12,9 @@ import {
   ORG_SUBJECT_IDS, ORG_SUBJECT_LABELS, BRANCH_ORG_SUBJECT_IDS, isOrgSubject, isBranchOrgSubject,
   INSTITUTION_DOMAINS, INSTITUTION_DOMAIN_IDS, INSTITUTION_COLLECTIVE_SUBJECTS, institutionSubjectOfDomain,
   transferRowOf, transferTabDecision, TRANSFERABLE_TAB_ROWS,
-} from '../../docs/src/core/domain/work-map.js?v=20261018d';
-import { sanitizeConfigWorkforce } from '../../docs/src/services/branch/config-clean.js?v=20261018d';
-import { ROLE_KEYS, ROLE_PAGE_MAP } from '../../docs/src/core/domain/constants.js?v=20261018d';
+} from '../../docs/src/core/domain/work-map.js?v=20261018e';
+import { sanitizeConfigWorkforce } from '../../docs/src/services/branch/config-clean.js?v=20261018e';
+import { ROLE_KEYS, ROLE_PAGE_MAP } from '../../docs/src/core/domain/constants.js?v=20261018e';
 
 let server, base, token;
 
@@ -160,6 +161,19 @@ test('分层与停用（2026-09-13 支书裁定）：tier ∈ {norm,method}；�
     }),
     { taskforce: { ownerType: 'none', ownerId: '' } },
   );
+});
+
+// 2026-10-18 脏专项 Task 17：支部分工页「关系表缺表头/责任列」回修守卫
+const WORK_MAP_UI = readFileSync(new URL('../../docs/src/entries/tabs/secretary/work-map-tab.js', import.meta.url), 'utf8');
+
+test('UI 责任关系表：表头与责任列齐全（模块 / 责任人 / 责任角色 / 责任说明），空态明确', () => {
+  assert.match(WORK_MAP_UI, /let _view = 'relations'/, '默认视图须落「责任关系表」');
+  for (const th of ['工作模块', '责任人', '责任角色', '责任说明']) {
+    assert.ok(WORK_MAP_UI.includes(`<th>${th}</th>`), `关系表须有表头「${th}」`);
+  }
+  assert.match(WORK_MAP_UI, /renderFilteredList\(/, '关系表须走统一检索引擎（表头/空态/分页单一源）');
+  assert.match(WORK_MAP_UI, /emptyMessage: '暂无分工数据/, '关系表须有明确空态');
+  assert.match(WORK_MAP_UI, /role: disabled \? '停用'/, '停用项须给出责任角色（不得空白）');
 });
 
 test('HTTP：支书 PATCH config.workforce 落库（净化生效），null 恢复默认', async () => {

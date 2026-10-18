@@ -162,7 +162,8 @@ test('党委未选支部时只可读取支部目录，选中后才可读取该�
   assert.deepEqual(all.body, [], '无选中支部时不得从通用列表读取任何跨支部活动明细');
   const directory = await get('p_pc', '/branches');
   assert.deepEqual(directory.body.map((row) => row.id).sort(), ['br-b1', 'br-b2']);
-  assert.ok(directory.body.every((row) => !row.secretaryId && !row.config?.policyOverrides), '未选择时目录仅保留选支部所需的基本信息');
+  assert.ok(directory.body.every((row) => Object.prototype.hasOwnProperty.call(row, 'secretaryId')), '未选择时目录行仍需带 secretaryId 供「组织提醒」判断');
+  assert.ok(directory.body.every((row) => !row.config?.policyOverrides), '未选择时目录仅保留选支部所需的基本信息，不暴露支部配置明细');
   const secondBranchSummary = directory.body.find((row) => row.id === 'br-b2').summary;
   assert.equal(secondBranchSummary.memberCount, 2);
   assert.equal(secondBranchSummary.activityCount, 1);

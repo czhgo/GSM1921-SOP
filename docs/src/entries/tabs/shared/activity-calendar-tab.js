@@ -29,9 +29,9 @@
 //   容器内容却没登记标记」时会把本页判成「已在位」而跳过骨架重建，留下空白（同 today-tab 2026-09-25
 //   真机实测的残留病）。
 
-import { getAppState } from '../../../core/base/state.js?v=20261018d';
-import { populateMonthSelector, renderCalendarByActivities } from '../../../components/record/calendar.js?v=20261018d';
-import { renderInspectorFromState } from '../../../components/record/inspector.js?v=20261018d';
+import { getAppState } from '../../../core/base/state.js?v=20261018e';
+import { populateMonthSelector, renderCalendarByActivities } from '../../../components/record/calendar.js?v=20261018e';
+import { renderInspectorFromState } from '../../../components/record/inspector.js?v=20261018e';
 
 const TAB_HTML = `
   <div class="card rounded-xl p-5">
@@ -89,4 +89,35 @@ export function renderContent(container, state) {
   //   但不引入支委侧写侧能力。日期选中由引擎 `setState({ selectedDate / viewMode })` 驱动，
   //   本页随之重渲染即刷新右栏。
   renderInspectorFromState({ ...st, activities, viewType: 'participant' });
+  _bindActivityDetailLinks(container);
+}
+
+/**
+ * 右栏活动卡补「查看活动详情」出口（2026-10-18 繁专项 Task 14）：
+ * 只读 inspector 的参与者卡片原先只弹摘要浮层、没有下一步；此处复用左栏同一条落点
+ * `./activity.html?id=…`。用 MutationObserver 跟随日期切换后的卡片重绘（不碰 inspector 共享实现）。
+ * @param {HTMLElement} container 本台页签内容容器
+ */
+function _bindActivityDetailLinks(container) {
+  const cards = container.querySelector('#inspector-cards');
+  if (!cards) return;
+  const enhance = () => {
+    cards.querySelectorAll('.inspector-card[data-act-id]').forEach((card) => {
+      if (card.querySelector('.cal-activity-detail-link')) return;
+      const id = card.dataset.actId;
+      if (!id) return;
+      const link = document.createElement('a');
+      link.className = 'cal-activity-detail-link inline-flex items-center gap-1 mt-2 text-xs text-sky-700 hover:text-sky-800 hover:underline transition-colors';
+      link.href = `./activity.html?id=${encodeURIComponent(id)}`;
+      link.textContent = '查看活动详情 →';
+      // 右栏卡片自身绑定了「打开摘要浮层」——链接点击不冒泡，直接走详情页。
+      link.addEventListener('click', (e) => e.stopPropagation());
+      card.appendChild(link);
+    });
+  };
+  enhance();
+  if (!cards.dataset.calDetailObserved) {
+    cards.dataset.calDetailObserved = '1';
+    new MutationObserver(enhance).observe(cards, { childList: true });
+  }
 }

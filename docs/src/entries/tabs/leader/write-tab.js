@@ -3,32 +3,32 @@
 // 党小组组长可创建党小组会、主题党日活动，写入后自动生成SOP任务节点。
 // 含决策树引导式写入（DecisionTreeState）+ 活动详情/子记录内联编辑 + 活动角色赋权。
 
-import { setState, getAppState } from '../../../core/base/state.js?v=20261018d';
-import { BranchService } from '../../../services/core/runtime.js?v=20261018d';
-import { DecisionTreeState, DECISION_TREE_CONFIGS, renderWorkflowPanel, writeActivityWithSOP, hostGroups as buildHostGroupOptions } from '../../../services/activity/decision-tree.js?v=20261018d';
+import { setState, getAppState } from '../../../core/base/state.js?v=20261018e';
+import { BranchService } from '../../../services/core/runtime.js?v=20261018e';
+import { DecisionTreeState, DECISION_TREE_CONFIGS, renderWorkflowPanel, writeActivityWithSOP, hostGroups as buildHostGroupOptions } from '../../../services/activity/decision-tree.js?v=20261018e';
 // 党小组常态清单唯一来源（活组、按 seq 升序）——承办党小组选项不再写死
-import { groupOptions, loadPartyGroups } from '../../../services/member/party-group.js?v=20261018d';
-import { AuthStore } from '../../../services/core/auth.js?v=20261018d';
-import { TodoStore, TodoSourceType } from '../../../services/governance/todo.js?v=20261018d';
-import { mockDB, OutputType, deriveOutputRoute } from '../../../core/domain/domain.js?v=20261018d';
-import { persist } from '../../../data/data-adapter.js?v=20261018d';
-import { PersonPicker } from '../../../components/governance/pickers.js?v=20261018d';
-import { renderWorkgroupPermissionEditor, readWorkgroupPermissionEditor } from '../../../components/governance/workgroup-permissions.js?v=20261018d';
-import { recordFormShell } from '../../../components/ui/forms.js?v=20261018d';
-import { getBranchIdOfPerson, getBranchOutputBlocks, applyOutputBlockPolicy } from '../../../services/branch/branch.js?v=20261018d';
-import { badgeHtml } from '../../../components/ui/badges.js?v=20261018d';
+import { groupOptions, loadPartyGroups } from '../../../services/member/party-group.js?v=20261018e';
+import { AuthStore } from '../../../services/core/auth.js?v=20261018e';
+import { TodoStore, TodoSourceType } from '../../../services/governance/todo.js?v=20261018e';
+import { mockDB, OutputType, deriveOutputRoute } from '../../../core/domain/domain.js?v=20261018e';
+import { persist } from '../../../data/data-adapter.js?v=20261018e';
+import { PersonPicker } from '../../../components/governance/pickers.js?v=20261018e';
+import { renderWorkgroupPermissionEditor, readWorkgroupPermissionEditor } from '../../../components/governance/workgroup-permissions.js?v=20261018e';
+import { recordFormShell } from '../../../components/ui/forms.js?v=20261018e';
+import { getBranchIdOfPerson, getBranchOutputBlocks, applyOutputBlockPolicy } from '../../../services/branch/branch.js?v=20261018e';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20261018e';
 // 活动生命周期展示态单一源（草稿/已发布/进行中/待归档/已执行/已归档/已取消）——勿在本文件另造中文标签
-import { activityLifecycleBadgeHtml } from '../../../components/record/inspector.js?v=20261018d';
-import { showToast, escHtml, todayLocal } from '../../../core/base/utils.js?v=20261018d';
+import { activityLifecycleBadgeHtml } from '../../../components/record/inspector.js?v=20261018e';
+import { showToast, escHtml, todayLocal } from '../../../core/base/utils.js?v=20261018e';
 // 组织者的发布口（2026-09-19 批次 91 · SOP-B-17）：本人被指定为该场组织者时，本台即可发布本组通知
-import { isActivityOrganizer, findActivityById, OUTDOOR_CHECKLIST, isOutdoorActivity, PUBLICITY_DRAFT_STATUS, PUBLICITY_DRAFT_LABELS, publicityDraftStatusOf, setPublicityDraftStatus, DEEP_WORK_MODE } from '../../../services/activity/activity.js?v=20261018d';
-import { openModal, closeModal } from '../../../components/ui/modal.js?v=20261018d';
-import { openGroupNoticeComposer } from '../../../components/governance/notice-view.js?v=20261018d';
-import { solidAccentStyle, accDarkVars, accDarkParts, OUTPUT_BLOCK_DEFS, isActivityEnded, ACTIVITY_SUBTYPES, normalizeActivityType } from '../../../core/domain/constants.js?v=20261018d';
-import { filterByRole, getCurrentLeaderId, currentLeaderGroup } from './_shared.js?v=20261018d';
-import { anchorDetailToTrigger } from '../../../components/ui/detail-anchor.js?v=20261018d';
+import { isActivityOrganizer, findActivityById, OUTDOOR_CHECKLIST, isOutdoorActivity, PUBLICITY_DRAFT_STATUS, PUBLICITY_DRAFT_LABELS, publicityDraftStatusOf, setPublicityDraftStatus, DEEP_WORK_MODE } from '../../../services/activity/activity.js?v=20261018e';
+import { openModal, closeModal } from '../../../components/ui/modal.js?v=20261018e';
+import { openGroupNoticeComposer } from '../../../components/governance/notice-view.js?v=20261018e';
+import { solidAccentStyle, accDarkVars, accDarkParts, OUTPUT_BLOCK_DEFS, isActivityEnded, ACTIVITY_SUBTYPES, normalizeActivityType } from '../../../core/domain/constants.js?v=20261018e';
+import { filterByRole, getCurrentLeaderId, currentLeaderGroup } from './_shared.js?v=20261018e';
+import { anchorDetailToTrigger } from '../../../components/ui/detail-anchor.js?v=20261018e';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是活动的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
-import { renderFilteredList, activityKeyword, activityFacets } from '../../../components/ui/list-filter.js?v=20261018d';
+import { renderFilteredList, activityKeyword, activityFacets } from '../../../components/ui/list-filter.js?v=20261018e';
 
 /**
  * 活动角色可编辑性（dogfood 权限专项 2026-09-13）
@@ -167,56 +167,56 @@ export function renderContent(ctx) {
   const isDone = a => isActivityEnded(a) || a.status === 'cancelled';
   const sorted = [...activities].sort((a, b) => (b.date || '').localeCompare(a.date || ''));
   const display = [...sorted.filter(a => !isDone(a)), ...sorted.filter(a => isDone(a))];
-
-  // 活动状态徽标：单一源 = components/record/inspector.js 的活动生命周期展示态
-  // （草稿/已发布/进行中/待归档/已执行/已归档/已取消；执行态由任务进度派生）。
+  // 2026-10-18 脏专项 Top 4：按活动归属拆两组（判据与详情角色编辑权同源 `_canEditActivityRoles`）。
+  const _me = AuthStore.getCurrentUser();
+  const writableActs = display.filter(a => _canEditActivityRoles(a, _me));
+  const readonlyActs = display.filter(a => !_canEditActivityRoles(a, _me));
+  // 活动状态徽标：单一源 = components/record/inspector.js 的活动生命周期展示态（执行态由任务进度派生）。
   // 2026-09-13 收敛：原为本地二档「已发布/草稿」，属口径未同步（与 DATA_MODEL §2.1 全站徽章统一要求不符）。
   const _lifecycleBadge = (a) => activityLifecycleBadgeHtml(a, getAppState()?.tasks || []);
-
   const panelVisible = dt.showPanel;
-
   container.innerHTML = `
     <div class="card rounded-xl p-5">
       <div class="flex items-center justify-between mb-4">
-        <h3 class="font-title-cn text-base font-semibold text-gray-800">活动写入</h3>
+        <h3 class="font-title-cn text-base font-semibold text-gray-800">本组活动</h3>
         <button class="btn-md" id="btn-leader-create" style="${_accVars}background:${accentRgba};color:color-mix(in srgb, ${accent} 60%, #000);border:1px solid ${accentBorder};">${panelVisible ? '收起面板' : '创建活动'}</button>
       </div>
-      <div class="text-xs text-gray-500 mb-3">可创建党小组会与主题党日活动，创建后自动生成后续待办；本组写入，全支部日历与写入主线见支书台「活动管理」。</div>
-
+      <div class="text-xs text-gray-500 mb-3">创建本组活动并登记责任 / 产出；本组创建 / 承办的活动可写入，支部级（定向）活动只读。</div>
       <div id="dt-panel-wrap" class="${panelVisible ? '' : 'hidden'}">
         ${_renderDecisionTreePanel({ accent, accentRgba, accentBorder, _dtBtnStyle, _dtSelDark })}
       </div>
-
       <div class="mt-4 pt-3 border-t border-gray-100">
-        <div class="text-xs text-gray-500 mb-2">已有关联活动</div>
-        <div class="space-y-2" id="leader-activity-list"></div>
+        <div id="leader-activity-lists">
+          <div class="flex items-center justify-between mb-2"><h4 class="font-title-cn text-base font-semibold text-gray-800">本组创建 / 承办</h4><span class="text-xs text-gray-500">可写入 · ${writableActs.length} 条</span></div>
+          <div class="space-y-2" id="leader-activity-list"></div>
+          <div class="mt-4 pt-3 border-t border-dashed border-gray-100">
+            <div class="flex items-center justify-between mb-2"><h4 class="font-title-cn text-base font-semibold text-gray-800">可见活动（只读）</h4><span class="text-xs text-gray-500">支部级 / 定向下发 · ${readonlyActs.length} 条</span></div>
+            <div class="space-y-2" id="leader-activity-readonly-list"></div>
+          </div>
+        </div>
         <div id="leader-act-detail" class="hidden mt-3 rounded-lg p-4"></div>
       </div>
     </div>
   `;
-
   // 统一检索引擎（活动列表：关键词 名称/地点 + 分面 月份/类别/类型/状态；行数 ≤8 时自动不渲染检索条）
-  renderFilteredList(container.querySelector('#leader-activity-list'), {
-    stateKey: 'leader-write-activity-list',
-    rows: display,
-    keyword: activityKeyword(),
-    facets: activityFacets(),
-    countUnit: '条',
-    listClass: 'space-y-2',
-    emptyMessage: '暂无关联活动',
-    rowHtml: (a) => `
+  // 2026-10-18 脏专项 Top 4：列表按「本组创建/承办（可写）」与「可见活动（只读）」分组，
+  // 支部级（top-down）活动不再混进写入列表；两组共用同一行模板与同一事件委托宿主。
+  const _actRowHtml = (a) => `
               <div class="leader-act-item flex items-center justify-between p-3 rounded-xl bg-white hover:bg-gray-50 transition-colors cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#CE1126]" role="button" tabindex="0" aria-label="展开 ${escHtml(a.title || '未命名')} 详情与子记录" data-act-id="${a.id}">
                 <div class="flex-1 min-w-0">
                   <div class="text-sm font-medium text-gray-800">${escHtml(a.title || '未命名')}</div>
                   <div class="text-xs text-gray-500 mt-0.5">${a.date || ''} ${a.type ? '· ' + a.type : ''}</div>
                   ${_outdoorChecklistDetailsHtml(a)}
                 </div>
-                ${isActivityOrganizer(AuthStore.getCurrentUser()?.personId, a.id)
-                  ? `<button type="button" class="btn-outline leader-group-notice-btn text-xs px-3 py-1.5 font-medium flex-shrink-0 mr-2" data-act-id="${a.id}" style="cursor:pointer;">发布本组通知</button>`
-                  : ''}
+                ${isActivityOrganizer(AuthStore.getCurrentUser()?.personId, a.id) ? `<button type="button" class="btn-outline leader-group-notice-btn text-xs px-3 py-1.5 font-medium flex-shrink-0 mr-2" data-act-id="${a.id}" style="cursor:pointer;">发布本组通知</button>` : ''}
                 ${_lifecycleBadge(a)}
-              </div>`,
+              </div>`;
+  const _renderActList = (hostId, rows, stateKey, emptyMessage) => renderFilteredList(container.querySelector(hostId), {
+    stateKey, rows, keyword: activityKeyword(), facets: activityFacets(), countUnit: '条',
+    listClass: 'space-y-2', emptyMessage, rowHtml: _actRowHtml,
   });
+  _renderActList('#leader-activity-list', writableActs, 'leader-write-activity-list', '暂无本组创建 / 承办的活动');
+  _renderActList('#leader-activity-readonly-list', readonlyActs, 'leader-write-activity-readonly-list', '暂无可见的只读活动');
 
   _bindDecisionTreeEvents(container, { accent, accentRgba, accentBorder, _dtBtnStyle, _dtSelDark });
 
@@ -259,6 +259,8 @@ export function renderContent(ctx) {
           materials: { label: '材料记录', color: '#3B82F6', fields: [{ key: 'name', label: '材料名称' }, { key: 'author', label: '提交人' }, { key: 'note', label: '备注' }, { key: 'time', label: '时间' }] },
         };
         const cfg = configs[type];
+        // 2026-10-18 脏专项 Top 4：roleEditable=false（支部级 top-down）关闭子记录写口，判据同角色保存。
+        const effectiveReadOnly = readOnly || !roleEditable;
         const cellOf = (item, key) => {
           if (key === 'time') return (item.recordedAt || '').slice(0, 16).replace('T', ' ') || '-';
           // SOP-B-38：宣传初稿的状态位（标签单一源 = services/activity/activity.js；缺省即「初稿」）；
@@ -276,8 +278,8 @@ export function renderContent(ctx) {
           <div class="mt-3">
             <div class="flex items-center justify-between gap-2 mb-1.5">
               <h5 class="text-xs font-bold font-title-cn" style="color:${cfg.color}">${cfg.label} (${items.length})</h5>
-              ${readOnly
-                ? `<span class="text-[11px] text-amber-700 text-right">${type === 'attendance' ? '考勤请到「考勤管理」录入' : '考察请到「考察管理」录入'}</span>`
+              ${effectiveReadOnly
+                ? `<span class="text-[11px] text-amber-700 text-right">${type === 'attendance' ? '考勤请到「考勤管理」录入' : type === 'inspection' ? '考察请到「考察管理」录入' : '支部级（定向）活动由支书侧维护，本页只读'}</span>`
                 : `<button class="btn-outline act-sub-add-btn text-xs px-3 py-1.5" style="color:${cfg.color};border-color:${cfg.color}40" data-type="${type}">+ 添加</button>`}
             </div>
             <div class="act-sub-table-host"></div>
@@ -289,12 +291,11 @@ export function renderContent(ctx) {
           countUnit: '条',
           emptyMessage: '暂无记录',
           table: {
-            headHtml: `<tr>${cfg.fields.map(f => `<th>${f.label}</th>`).join('')}${readOnly ? '' : '<th class="w-12"></th>'}</tr>`,
-            colSpan: cfg.fields.length + (readOnly ? 0 : 1),
+            headHtml: `<tr>${cfg.fields.map(f => `<th>${f.label}</th>`).join('')}${effectiveReadOnly ? '' : '<th class="w-12"></th>'}</tr>`,
+            colSpan: cfg.fields.length + (effectiveReadOnly ? 0 : 1),
           },
           rowHtml: (item) => {
-            // 删除按全量下标（分页切片下 i 只是页内序，故用 indexOf 取原下标，语义与改前一致）
-            const idx = items.indexOf(item);
+            const idx = items.indexOf(item); // 删除按全量下标（分页切片下 i 只是页内序）
             // SOP-B-38：宣传子记录的「初稿 → 提交审核」动作（审核/定稿位在宣传委员台「档案归档」）
             const draftBtn = (type === 'publicity' && publicityDraftStatusOf(item) === PUBLICITY_DRAFT_STATUS.DRAFT)
               ? `<button class="btn-tab act-sub-review-btn text-xs mr-2" data-type="${type}" data-idx="${idx}">提交审核</button>`
@@ -302,22 +303,22 @@ export function renderContent(ctx) {
             return `
               <tr>
                 ${cfg.fields.map(f => `<td class="text-gray-700">${cellOf(item, f.key)}</td>`).join('')}
-                ${readOnly ? '' : `<td class="text-center whitespace-nowrap">${draftBtn}<button class="btn-ghost act-sub-del-btn text-xs" data-type="${type}" data-idx="${idx}">删除</button></td>`}
+                ${effectiveReadOnly ? '' : `<td class="text-center whitespace-nowrap">${draftBtn}<button class="btn-ghost act-sub-del-btn text-xs" data-type="${type}" data-idx="${idx}">删除</button></td>`}
               </tr>
             `;
           },
         });
       }
-
       // dogfood 权限专项 2026-09-13：角色编辑权（支部级定向活动组长只读，与按钮禁用同源）
       const roleEditable = _canEditActivityRoles(activity, AuthStore.getCurrentUser());
       detailPanel.innerHTML = `
-        <div class="flex items-center justify-between mb-3">
-          <h5 class="font-title-cn text-sm font-bold text-gray-700">${activity.title || '未命名'}</h5>
+        <div class="flex items-center justify-between gap-2 mb-3">
+          <div class="flex items-center gap-2 min-w-0">
+            <h5 class="font-title-cn text-sm font-bold text-gray-700 truncate">${activity.title || '未命名'}</h5>${roleEditable ? '' : '<span class="text-[11px] px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-600 flex-shrink-0">支部级 · 只读</span>'}
+          </div>
           <button id="btn-close-act-detail" class="btn-ghost text-xs">收起</button>
         </div>
         <div class="text-xs text-gray-500 mb-2">${activity.date || ''} ${activity.type ? '· ' + activity.type : ''}</div>
-
         <!-- T-190 活动角色内联编辑：主源 assignments 预填，保存走 syncProjectRoles 三合一 -->
         <!-- dogfood 权限专项 2026-09-13：支部级(top-down)活动角色由支书侧确定 → 组长只读（按钮禁用 + 明示） -->
         <div class="mt-3 pt-3 border-t border-gray-100">
@@ -338,7 +339,6 @@ export function renderContent(ctx) {
           ${renderWorkgroupPermissionEditor('activity-detail')}
           <p class="text-[12px] text-gray-500 mt-2">提示：修改将同步到活动，被赋权人将收到通知。</p>
         </div>
-
         <div class="mt-3 pt-3 border-t border-gray-100">
           <h6 class="font-title-cn text-xs font-bold text-gray-600 mb-1">子记录</h6>
           ${visBlocks.length === 0
@@ -346,7 +346,6 @@ export function renderContent(ctx) {
             : '<div id="act-subs-host"></div>'}
         </div>
       `;
-
       // 子记录表逐块接入统一检索引擎（每块一实例，stateKey 带活动+类型 → 跨重渲染保筛选/页码）
       const subsHost = detailPanel.querySelector('#act-subs-host');
       if (subsHost) {
@@ -497,7 +496,8 @@ export function renderContent(ctx) {
         });
       });
   };
-  const actListHost = container.querySelector('#leader-activity-list');
+  // 两组活动列表共用一个事件委托宿主（#leader-activity-lists 包住可写 / 只读两段）
+  const actListHost = container.querySelector('#leader-activity-lists');
   actListHost?.addEventListener('click', (e) => {
     // 组织者的发布口（2026-09-19 批次 91 · SOP-B-17）：该行按钮优先于「展开详情」，
     // 点它开「发布本组通知」浮窗（发布权 = 本人是该场组织者，见 components/governance/notice-view.js::openGroupNoticeComposer）

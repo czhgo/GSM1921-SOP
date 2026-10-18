@@ -6,18 +6,18 @@
 // SOP-B-15 当事人可见侧（2026-09-20 批次 116 支书定案「支委会 ＋ 当事人本人」）：顶部一块
 //   「本月我的出勤率」——只算当前登录人（当事人只能看到自己的），偏低时按同一提示线给一句提示。
 
-import { loadActiveAttendanceRecords, absenceReasonLabel, createAttendanceAppeal, summarizePersonAttendance } from '../../../services/activity/attendance.js?v=20261018d';
-import { getOrganizedActivities } from '../../../services/activity/activity.js?v=20261018d';
-import { loadMakeupTasks, saveMakeupTasks } from '../../../services/activity/makeup.js?v=20261018d';
-import { AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../../core/domain/domain.js?v=20261018d';
-import { POLICY_DEFAULTS } from '../../../core/domain/policy-defaults.js?v=20261018d';
-import { AuthStore } from '../../../services/core/auth.js?v=20261018d';
-import { openFormModal } from '../../../components/ui/modal.js?v=20261018d';
-import { showToast } from '../../../core/base/utils.js?v=20261018d';
+import { loadActiveAttendanceRecords, absenceReasonLabel, createAttendanceAppeal, summarizePersonAttendance } from '../../../services/activity/attendance.js?v=20261018e';
+import { getOrganizedActivities } from '../../../services/activity/activity.js?v=20261018e';
+import { loadMakeupTasks, saveMakeupTasks } from '../../../services/activity/makeup.js?v=20261018e';
+import { AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../../core/domain/domain.js?v=20261018e';
+import { POLICY_DEFAULTS } from '../../../core/domain/policy-defaults.js?v=20261018e';
+import { AuthStore } from '../../../services/core/auth.js?v=20261018e';
+import { openFormModal } from '../../../components/ui/modal.js?v=20261018e';
+import { showToast } from '../../../core/base/utils.js?v=20261018e';
 // 活动「已归档」口径单一源（2026-09-13 收敛）：替代手写 !a.archived
-import { isActivityArchived } from '../../../core/domain/constants.js?v=20261018d';
+import { isActivityArchived } from '../../../core/domain/constants.js?v=20261018e';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是活动的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
-import { renderFilteredList, activityKeyword, activityFacets } from '../../../components/ui/list-filter.js?v=20261018d';
+import { renderFilteredList, activityKeyword, activityFacets } from '../../../components/ui/list-filter.js?v=20261018e';
 
 export function renderContent(ctx) {
   const tc = document.getElementById('visitor-tab-content');
@@ -38,24 +38,26 @@ export function renderContent(ctx) {
     !isActivityArchived(a) && ((a.date || '').startsWith(thisMonth) || myPendingMakeupActIds.has(a.id)),
   );
   // D-808（2026-10-06 支书圈甲「组长和组织者是两个概念」）：被指定为组织者的成员，考勤上传位长在
-  // 【本人】页面——顶部挂「由我组织的活动 · 考勤上传位」（实现单一源＝leader/attendance-tab.js，
+  // 【本人】页面——个人考勤内容之后挂「由我组织的活动 · 考勤上传位」（实现单一源＝leader/attendance-tab.js，
   // host 宿主复用、不复制表单）；原「组织者兜底进组长台」跨台形态已同批撤除（bootstrap 放行门一并撤）。
   const myOrgActs = getOrganizedActivities(meId).filter(a => a.archived !== true);
 
+  // 2026-10-18 成员台组织者投影：个人考勤内容（我的出勤率 / 本人明细 / 补课入口）在页首，
+  // 组织者上传位放在个人内容之后；只渲染「由我组织」的活动，不再整页复用组长台的全组视图。
   tc.innerHTML = `
+    <div id="visitor-att-mine"></div>
+    <div id="visitor-att-list"></div>
     ${myOrgActs.length ? `
-    <div class="mb-4">
+    <div class="mt-4">
       <div class="text-xs text-gray-500 mb-1.5">由我组织的活动 · 考勤上传位（会议考勤由组织者上传；此处即你的上传面）</div>
       <div id="visitor-org-att-host"></div>
     </div>` : ''}
-    <div id="visitor-att-mine"></div>
-    <div id="visitor-att-list"></div>
   `;
 
-  // 挂「由我组织的活动」上传位（实现单一源＝leader/attendance-tab，host 复用）
+  // 挂「由我组织的活动」上传位（实现单一源＝leader/attendance-tab，host 复用；scope=organizer 只投影本人活动）
   const _orgAttHost = document.getElementById('visitor-org-att-host');
   if (_orgAttHost) {
-    import('../leader/attendance-tab.js?v=20261018d').then(m => { if (_orgAttHost.isConnected) m.renderContent(ctx, _orgAttHost); });
+    import('../leader/attendance-tab.js?v=20261018e').then(m => { if (_orgAttHost.isConnected) m.renderContent(ctx, _orgAttHost, { scope: 'organizer' }); });
   }
 
   // SOP-B-15 当事人可见侧（2026-09-20 批次 116 支书定案「支委会 ＋ 当事人本人」）：

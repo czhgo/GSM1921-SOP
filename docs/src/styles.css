@@ -1,5 +1,5 @@
 /* 组件样式（@import 必须位于文件顶部） */
-@import url('components/person-picker.css?v=20261018d');
+@import url('components/person-picker.css?v=20261018e');
 
 /* ═══════════════════════════════════════════════════════════════
    GSM1921-SOP DESIGN SYSTEM v11.0 — Matte Flat
@@ -339,28 +339,8 @@ body {
   min-width: 0;
   margin-inline: auto;
 }
-.layout-shell--form { max-width: 48rem; }
 .layout-shell--content { max-width: 72rem; }
 .layout-shell--wide { max-width: 80rem; }
-
-.party-page {
-  display: flex;
-  flex-direction: column;
-  gap: 1.25rem;
-  min-width: 0;
-  max-width: 72rem;
-}
-.party-page--wide { max-width: 80rem; }
-.party-page__header {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: end;
-  justify-content: space-between;
-  gap: 1rem;
-  border-bottom: 1px solid var(--neutral-200);
-  padding-bottom: 1rem;
-}
-.party-page__heading { min-width: 0; }
 
 /* 工作台页面骨架（2026-10-18）：一个页面一个标题，分区从任务标题开始 */
 .page-frame {
@@ -415,7 +395,6 @@ body {
   min-width: 0;
 }
 .page-section { min-width: 0; }
-.page-section--reading { max-width: 72rem; }
 .page-section--form { width: 70%; max-width: none; }
 .page-section__header {
   display: flex;
@@ -546,8 +525,6 @@ body {
 @media (max-width: 640px) {
   .branch-config-nav { display: none; }
   .branch-config-select { display: block; width: 100%; margin-bottom: 1rem; }
-  .party-page { gap: 1rem; }
-  .party-page__header { align-items: flex-start; }
   .page-frame { gap: 1rem; }
   .page-frame__header { align-items: flex-start; }
 }

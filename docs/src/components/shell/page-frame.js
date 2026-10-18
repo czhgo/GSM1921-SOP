@@ -3,7 +3,7 @@
 // components/shell/page-frame.js — 工作台页面骨架与分区标题（2026-10-18 工作台提质）
 // 页面只保留一个标题；页签内容从任务型分区标题开始。
 
-import { escHtml as esc } from '../../core/base/utils.js?v=20261018d';
+import { escHtml as esc } from '../../core/base/utils.js?v=20261018e';
 
 /** 页面级页头：页面标题与页面动作；眉题、说明缀词已移除（2026-10-18 工作台提质）。 */
 export function renderPageHeader({ title, actions = '' }) {

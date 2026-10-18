@@ -2,22 +2,22 @@
 // 纪检委员工作台 Tab：复盘（T-279 M3 拆分；2026-10-04 批次 368 页签名由「活动监督复盘」改「复盘」——原名＝动作＋对象混轴）
 // 活动流程监督（超时提醒）+ 活动复盘监督（批注/打回/确认）+ 经验沉淀督促清单。
 
-import { mockDB, ReviewStatus } from '../../../core/domain/domain.js?v=20261018d';
-import { persist } from '../../../data/data-adapter.js?v=20261018d';
-import { reviewToDisplay } from '../../../services/governance/review.js?v=20261018d';
-import { loadActiveActivityReviews, loadTaskforceReviews, updateReviewById } from '../../../services/governance/review.js?v=20261018d';
-import { loadActivities } from '../../../services/activity/activity.js?v=20261018d';
-import { showToast, escHtml } from '../../../core/base/utils.js?v=20261018d';
-import { openFormModal } from '../../../components/ui/modal.js?v=20261018d';
+import { mockDB, ReviewStatus } from '../../../core/domain/domain.js?v=20261018e';
+import { persist } from '../../../data/data-adapter.js?v=20261018e';
+import { reviewToDisplay } from '../../../services/governance/review.js?v=20261018e';
+import { loadActiveActivityReviews, loadTaskforceReviews, updateReviewById } from '../../../services/governance/review.js?v=20261018e';
+import { loadActivities } from '../../../services/activity/activity.js?v=20261018e';
+import { showToast, escHtml } from '../../../core/base/utils.js?v=20261018e';
+import { openFormModal } from '../../../components/ui/modal.js?v=20261018e';
 // 批次 352（`D-746` · `D-744`② 业务过程类余项）：经验沉淀「作废（软）」——统一写口 ＋ 支委层判据
-import * as SoftVoid from '../../../services/governance/soft-void.js?v=20261018d';
-import { openVoidModal } from '../../../components/ui/void-record.js?v=20261018d';
-import { NoticeStore } from '../../../services/governance/notice.js?v=20261018d';
-import { generateId } from '../../../core/base/id.js?v=20261018d';
-import { getPersonById } from '../../../services/member/person.js?v=20261018d';
-import { DISC_COMMISSIONER_ID } from './_shared.js?v=20261018d';
+import * as SoftVoid from '../../../services/governance/soft-void.js?v=20261018e';
+import { openVoidModal } from '../../../components/ui/void-record.js?v=20261018e';
+import { NoticeStore } from '../../../services/governance/notice.js?v=20261018e';
+import { generateId } from '../../../core/base/id.js?v=20261018e';
+import { getPersonById } from '../../../services/member/person.js?v=20261018e';
+import { DISC_COMMISSIONER_ID } from './_shared.js?v=20261018e';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是活动的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
-import { renderFilteredList, activityKeyword, activityFacets } from '../../../components/ui/list-filter.js?v=20261018d';
+import { renderFilteredList, activityKeyword, activityFacets } from '../../../components/ui/list-filter.js?v=20261018e';
 
 // ── 超期提醒真实触达（2026-09-10）───────────────────────────────
 // 依据：纪检委员工作流程指南 §3.1「超时确认后可触发邮件提醒」、党小组组长工作手册
@@ -91,9 +91,10 @@ export function renderContent(ctx) {
   const reviewData = reviewToDisplay(loadActiveActivityReviews(), loadTaskforceReviews());
 
   // 批量勾选去重（2026-09-06）：仅在批量模式下生效——行被单行确认/打回或消失后，
-  // 已非「已上传」可确认态，自动移出勾选集合，避免批量确认误写已完结行。
+  // 已非「批注中」可确认态，自动移出勾选集合，避免批量确认误写已完结行。
+  // 2026-10-18 繁专项 Task 15：批量确认与单行状态一致——「待批注」只可批注，确认只对「批注中」开放。
   if (_batchModeOn) {
-    const confirmableIds = new Set(reviewData.filter(r => r.reviewStatus === ReviewStatus.UPLOADED).map(r => r.id));
+    const confirmableIds = new Set(reviewData.filter(r => r.reviewStatus === ReviewStatus.ANNOTATING).map(r => r.id));
     [..._batchCheckedIds].forEach(id => { if (!confirmableIds.has(id)) _batchCheckedIds.delete(id); });
   }
 
@@ -136,9 +137,9 @@ export function renderContent(ctx) {
               </div>
             </div>`;
 
-  /** 活动复盘监督行（可确认口径与单行「确认」按钮一致：仅「已上传」行可勾） */
+  /** 活动复盘监督行（可确认口径与单行「确认」按钮一致：仅「批注中」行可勾） */
   const itemRowHtml = (r) => {
-    const confirmable = r.reviewStatus === ReviewStatus.UPLOADED;
+    const confirmable = r.reviewStatus === ReviewStatus.ANNOTATING;
     const checked = _batchCheckedIds.has(r.id);
     return `
             <div class="p-3 rounded-xl bg-white">
@@ -147,7 +148,7 @@ export function renderContent(ctx) {
                   ${_batchModeOn ? `
                   <input type="checkbox" class="js-batch-check w-3.5 h-3.5 rounded shrink-0"
                     data-review-id="${r.id}" ${checked ? 'checked' : ''} ${confirmable ? '' : 'disabled'}
-                    title="${confirmable ? '勾选后可由「批量确认所选」统一确认' : '仅「已上传」复盘可勾选确认'}"
+                    title="${confirmable ? '勾选后可由「批量确认所选」统一确认' : '仅「批注中」复盘可勾选确认'}"
                     style="accent-color:${ctx.accent || 'var(--accent-disc-commissioner)'};cursor:${confirmable ? 'pointer' : 'not-allowed'};${confirmable ? '' : 'opacity:0.45;'}" />` : ''}
                   <div class="text-sm font-medium text-gray-800">${r.activity}</div>
                 </div>
@@ -162,15 +163,17 @@ export function renderContent(ctx) {
                 <ul class="space-y-0.5">${r.issues.map(i => `<li class="text-xs text-amber-800" style="--acc-text-dark:#FBBF24;">· ${i}</li>`).join('')}</ul>
               </div>` : ''}
               <div class="flex gap-2">
-                ${r.reviewStatus === '已上传' ? `
+                ${r.reviewStatus === ReviewStatus.UPLOADED ? `
                   <button class="btn-action btn-action-orange btn-disc-annotate" data-review-id="${r.id}">批注</button>
+                ` : ''}
+                ${r.reviewStatus === ReviewStatus.ANNOTATING ? `
                   <button class="btn-action btn-action-red btn-disc-reject" data-review-id="${r.id}">打回</button>
                   <button class="btn-action btn-action-green btn-disc-confirm" data-review-id="${r.id}">确认</button>
                 ` : ''}
-                ${r.reviewStatus === '未提交' ? `
+                ${r.reviewStatus === ReviewStatus.NOT_SUBMITTED ? `
                   <button class="btn-action btn-action-red btn-disc-remind-review" data-review-id="${r.id}">站内通知</button>
                 ` : ''}
-                ${r.reviewStatus === '已确认' && !hasDeposit(r) ? `
+                ${r.reviewStatus === ReviewStatus.CONFIRMED && !hasDeposit(r) ? `
                   <button class="btn-action btn-action-amber btn-disc-urge-deposit" data-review-id="${r.id}" data-activity-name="${r.sourceName || r.activity}" data-organizer="${r.organizer}">督促沉淀</button>
                 ` : ''}
               </div>
@@ -197,13 +200,13 @@ export function renderContent(ctx) {
       <div class="card rounded-xl p-5">
         <div class="flex items-center justify-between gap-2 mb-1">
           <h3 class="font-title-cn text-base font-semibold text-gray-800">活动复盘监督</h3>
-          ${(_batchModeOn || reviewData.some(r => r.reviewStatus === ReviewStatus.UPLOADED)) ? `
+          ${(_batchModeOn || reviewData.some(r => r.reviewStatus === ReviewStatus.ANNOTATING)) ? `
           <button class="btn-action btn-action-gray js-batch-toggle" style="cursor:pointer;">${_batchModeOn ? '退出批量模式' : '批量确认'}</button>` : ''}
         </div>
         <div class="text-xs text-gray-500 mb-3">复盘流转：已上传 → 批注中 → 确认/打回 · 留痕台账不提供删除</div>
         ${_batchModeOn ? `
         <div class="flex flex-wrap items-center justify-between gap-2 rounded-lg bg-gray-50 px-3 py-2 mb-3 text-xs text-gray-600">
-          <span>已勾选 <b class="js-batch-count tabular-nums">${_batchCheckedIds.size}</b> 条「已上传」复盘（已确认/打回/批注中/未提交行置灰不可勾）</span>
+          <span>已勾选 <b class="js-batch-count tabular-nums">${_batchCheckedIds.size}</b> 条「批注中」复盘（已确认/打回/待批注/未提交行置灰不可勾）</span>
           <button class="btn-action btn-action-green js-batch-confirm" style="cursor:${_batchCheckedIds.size ? 'pointer' : 'not-allowed'};${_batchCheckedIds.size ? '' : 'opacity:0.5;'}" ${_batchCheckedIds.size ? '' : 'disabled'}>批量确认所选（${_batchCheckedIds.size}）</button>
         </div>` : ''}
         <div id="disc-review-items-list"></div>
@@ -460,8 +463,8 @@ export function renderContent(ctx) {
   container.querySelectorAll('.js-batch-confirm').forEach(btn => btn.addEventListener('click', () => {
     if (_batchCheckedIds.size === 0) return;
     const now = new Date().toISOString();
-    // 落库前二次校验：行仍为「已上传」才确认，否则计为跳过
-    const confirmableIds = new Set(reviewData.filter(r => r.reviewStatus === ReviewStatus.UPLOADED).map(r => r.id));
+    // 落库前二次校验：行仍为「批注中」才确认，否则计为跳过
+    const confirmableIds = new Set(reviewData.filter(r => r.reviewStatus === ReviewStatus.ANNOTATING).map(r => r.id));
     let ok = 0, skip = 0;
     for (const id of [..._batchCheckedIds]) {
       if (!confirmableIds.has(id)) { skip++; continue; }

@@ -7,13 +7,13 @@
 // 文案由 components/record/todo-list.js actionLabels 收敛为「去考勤管理/去考察管理」（跳管理页队列，
 // 确认唯一位=考勤管理/考察管理页），补课回执交接行=「去补课制度」跳转——本文件无逻辑改动。
 
-import { showToast } from '../../../core/base/utils.js?v=20261018d';
-import { TodoSourceType, TodoCategory, TodoActionType, seedTodos, REALTIME_GROUP_DOMAIN } from '../../../services/governance/todo.js?v=20261018d';
-import { createTodoTab } from '../../../components/record/todo-tab-shell.js?v=20261018d';
-import { loadActiveAttendanceRecords } from '../../../services/activity/attendance.js?v=20261018d';
-import { AttendanceStatus } from '../../../core/domain/domain.js?v=20261018d';
-import { loadActiveInspectionRecords } from '../../../services/activity/inspection.js?v=20261018d';
-import { getPersonName } from '../../../services/member/person.js?v=20261018d';
+import { showToast } from '../../../core/base/utils.js?v=20261018e';
+import { TodoSourceType, TodoCategory, TodoActionType, seedTodos, REALTIME_GROUP_DOMAIN } from '../../../services/governance/todo.js?v=20261018e';
+import { createTodoTab } from '../../../components/record/todo-tab-shell.js?v=20261018e';
+import { loadActiveAttendanceRecords } from '../../../services/activity/attendance.js?v=20261018e';
+import { AttendanceStatus } from '../../../core/domain/domain.js?v=20261018e';
+import { loadActiveInspectionRecords } from '../../../services/activity/inspection.js?v=20261018e';
+import { getPersonName } from '../../../services/member/person.js?v=20261018e';
 
 // ── 纪检实时聚合组（2026-08-07 闭环化） ────────────────────────
 // 真实闭环：考勤/考察待确认数量由业务数据实时计算，确认后数量自动下降，
@@ -25,7 +25,10 @@ function _buildDiscRealtimeGroups() {
   const dynamic = [];
   // 动态组1：考勤待确认（T-304 第5轮 · 源头审校+异常驱动：出勤/已补上传方已审校自动确认，
   // 纪检只处理异常=缺勤/请假未确认；仅活跃活动，归档活动退出工作区）
-  const pendingAtt = loadActiveAttendanceRecords().filter(r => !r.recordedBy && r.status !== AttendanceStatus.PRESENT && r.status !== AttendanceStatus.MADE_UP);
+  // 2026-10-18 繁专项 Task 15：与管理页队列同口径——**已打回**记录交组织方重新确认，不计入纪检待确认。
+  const pendingAtt = loadActiveAttendanceRecords().filter(r =>
+    !r.recordedBy && !r.returnedBy && r.status !== AttendanceStatus.PRESENT && r.status !== AttendanceStatus.MADE_UP
+  );
   if (pendingAtt.length > 0) {
     dynamic.push({
       groupKey: 'disc-commissioner:attendance-confirm',
@@ -42,7 +45,8 @@ function _buildDiscRealtimeGroups() {
     });
   }
   // 动态组2：考察待确认（status 非 confirmed；仅活跃活动，专班类保留）
-  const pendingInsp = loadActiveInspectionRecords().filter(r => r.status !== 'confirmed');
+  // 2026-10-18 繁专项 Task 15：**已打回**记录交上传方重新确认，不再计入「考察待确认」。
+  const pendingInsp = loadActiveInspectionRecords().filter(r => r.status !== 'confirmed' && !r.returnedBy);
   if (pendingInsp.length > 0) {
     dynamic.push({
       groupKey: 'disc-commissioner:inspection-confirm',
@@ -71,7 +75,7 @@ function _handleTodoAction(todo) {
     'attendance-confirm': { tab: 'attendance', label: '考勤管理' },
     'inspection-confirm': { tab: 'inspection', label: '考察管理' },
     'handoff-material-shortage': { tab: 'attendance', label: '考勤管理', segment: 'makeup' },
-    review:   { tab: 'review', label: '活动监督复盘' },
+    review:   { tab: 'review', label: '复盘' },
   };
   const target = jump[todo.actionKey] || jump[todo.actionType];
   if (target) {
@@ -82,7 +86,7 @@ function _handleTodoAction(todo) {
     };
     if (target.segment) {
       // 先置一级分段再切 tab（分段由 attendance-tab 模块级记忆，见其 focusSegment 导出）
-      import('../../../entries/tabs/disc/attendance-tab.js?v=20261018d')
+      import('../../../entries/tabs/disc/attendance-tab.js?v=20261018e')
         .then(m => { m.focusSegment(target.segment); go(); })
         .catch(go);
     } else {

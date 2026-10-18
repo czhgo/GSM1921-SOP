@@ -1,12 +1,12 @@
 // Branch monitoring: compare organization-level state without exposing member-level records.
-import { mockDB } from '../../../core/domain/domain.js?v=20261018d';
-import { PersonStore } from '../../../services/member/person.js?v=20261018d';
-import { getRosterStats } from '../../../services/member/roster.js?v=20261018d';
-import { listReviewRequests } from '../../../services/governance/review-request.js?v=20261018d';
-import { bindBranchReadOnlyButtons } from '../../../services/core/branch-readonly-nav.js?v=20261018d';
-import { renderBranchFilter, filterByBranch } from '../../../components/governance/branch-filter.js?v=20261018d';
-import { escHtml as esc } from '../../../core/base/utils.js?v=20261018d';
-import { renderSectionHeader } from '../../../components/shell/page-frame.js?v=20261018d';
+import { mockDB } from '../../../core/domain/domain.js?v=20261018e';
+import { PersonStore } from '../../../services/member/person.js?v=20261018e';
+import { getRosterStats } from '../../../services/member/roster.js?v=20261018e';
+import { listReviewRequests } from '../../../services/governance/review-request.js?v=20261018e';
+import { bindBranchReadOnlyButtons } from '../../../services/core/branch-readonly-nav.js?v=20261018e';
+import { renderBranchFilter, filterByBranch } from '../../../components/governance/branch-filter.js?v=20261018e';
+import { escHtml as esc } from '../../../core/base/utils.js?v=20261018e';
+import { renderSectionHeader } from '../../../components/shell/page-frame.js?v=20261018e';
 
 const BRANCH_FILTER_STATE = 'pc-monitor';
 
@@ -48,7 +48,9 @@ export async function renderContent(ctx) {
                 <td><span class="text-sm font-medium ${branch.status === 'inactive' ? 'text-gray-600' : 'text-green-700'}">${branch.status === 'inactive' ? '已停用' : '运行中'}</span></td>
                 <td class="tabular-nums">${memberCount == null ? '—' : `${memberCount} 人`}</td>
                 <td class="tabular-nums">${partyCount == null ? '—' : `${partyCount} 人`}</td>
-                <td class="tabular-nums ${pendingCount ? 'font-semibold text-amber-800' : ''}">${pendingCount} 项</td>
+                <td class="tabular-nums ${pendingCount ? 'font-semibold text-amber-800' : ''}">${pendingCount
+                  ? `<a class="hover:underline" href="?tab=review&amp;branchId=${encodeURIComponent(branch.id)}" title="查看该支部待批复上报">${pendingCount} 项</a>`
+                  : '0 项'}</td>
                 <td class="tabular-nums">${activityCount} 项</td>
                 <td><button type="button" class="btn-outline branch-readonly-enter whitespace-nowrap px-3 py-2 text-xs font-medium" data-branch-id="${esc(branch.id)}">查看该支部</button></td>
               </tr>`).join('')}</tbody>

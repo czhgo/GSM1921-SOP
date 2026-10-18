@@ -12,38 +12,38 @@
 //   - 活动无上限 → 必须提供活动筛选（含时间区间）便于考察
 //   - 条目不得使用浅色底板（支书反感）→ 白底 + 左侧状态色条
 
-import { AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../../core/domain/domain.js?v=20261018d';
-import { generateId } from '../../../core/base/id.js?v=20261018d';
-import { attendanceToLong, loadAttendanceRecords, loadActiveAttendanceRecords, loadAttendanceRosterSnapshots, saveAttendanceRecords, canUploadAttendance, upsertMeetingAttendance, MEETING_ATTENDANCE_TYPES as MEETING_TYPES, ABSENCE_REASONS, absenceReasonLabel, absenceReasonNote, recorderRolesOf, listGroupMeetingAttendance, loadAttendanceAppeals, returnAttendanceAppeal, closeAttendanceAppeal, returnAttendanceRecord, summarizeAttendanceByActivity, isAttendanceHomePosition, freezeExpectedRosterForActivity } from '../../../services/activity/attendance.js?v=20261018d';
-import { buildAttendanceMatrixModel } from '../../../services/activity/attendance-matrix.js?v=20261018d';
-import { getPersonName } from '../../../services/member/person.js?v=20261018d';
+import { AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../../core/domain/domain.js?v=20261018e';
+import { generateId } from '../../../core/base/id.js?v=20261018e';
+import { attendanceToLong, loadAttendanceRecords, loadActiveAttendanceRecords, loadAttendanceRosterSnapshots, saveAttendanceRecords, canUploadAttendance, upsertMeetingAttendance, MEETING_ATTENDANCE_TYPES as MEETING_TYPES, ABSENCE_REASONS, absenceReasonLabel, absenceReasonNote, recorderRolesOf, listGroupMeetingAttendance, loadAttendanceAppeals, returnAttendanceAppeal, closeAttendanceAppeal, returnAttendanceRecord, summarizeAttendanceByActivity, isAttendanceHomePosition, freezeExpectedRosterForActivity } from '../../../services/activity/attendance.js?v=20261018e';
+import { buildAttendanceMatrixModel } from '../../../services/activity/attendance-matrix.js?v=20261018e';
+import { getPersonName } from '../../../services/member/person.js?v=20261018e';
 // S1–S4 滞留党员设计（2026-09-06 支书已批）：会议考勤「应到清点/全选范围」= 应到名单口径
 // （党员 正式+预备 且非滞留；滞留者「可见但禁用」、党课列席不计应到），不再全支部 50 人候选
 // 附录⑩ A批·S1（2026-09-06 支书裁定）：滞留线下到场可「到场补录」计入到席（实际应到=预应到 K + 补录 L）
-import { getMeetingRoster, getRosterStats, getMeetingRosterCandidates } from '../../../services/member/roster.js?v=20261018d';
-import { solidAccentStyle, ROLE_LABELS, isActivityArchived, isActivityLive } from '../../../core/domain/constants.js?v=20261018d';
-import { loadActivities } from '../../../services/activity/activity.js?v=20261018d';
+import { getMeetingRoster, getRosterStats, getMeetingRosterCandidates } from '../../../services/member/roster.js?v=20261018e';
+import { solidAccentStyle, ROLE_LABELS, isActivityArchived, isActivityLive } from '../../../core/domain/constants.js?v=20261018e';
+import { loadActivities } from '../../../services/activity/activity.js?v=20261018e';
 // SOP-B-2（D-288）：考勤候选默认选中「已通过报名者」——报名名单的来源单一源 = SignupStore
-import { getApprovedSignupPersonIds } from '../../../services/activity/signup.js?v=20261018d';
-import { autoGenerateMakeupTask } from '../../../services/activity/makeup.js?v=20261018d';
-import { TodoStore, TodoSourceType } from '../../../services/governance/todo.js?v=20261018d';
-import { NoticeStore } from '../../../services/governance/notice.js?v=20261018d';
-import { enhanceSelects } from '../../../components/ui/custom-select.js?v=20261018d';
-import { badgeHtml } from '../../../components/ui/badges.js?v=20261018d';
+import { getApprovedSignupPersonIds } from '../../../services/activity/signup.js?v=20261018e';
+import { autoGenerateMakeupTask } from '../../../services/activity/makeup.js?v=20261018e';
+import { TodoStore, TodoSourceType } from '../../../services/governance/todo.js?v=20261018e';
+import { NoticeStore } from '../../../services/governance/notice.js?v=20261018e';
+import { enhanceSelects } from '../../../components/ui/custom-select.js?v=20261018e';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20261018e';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是人的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
 // pagerHtml = 翻页控件单一源（批次 38：全站手写翻页一律并轨；叶子件，避免与矩阵相互成环）
-import { pagerHtml } from '../../../components/ui/pager.js?v=20261018d';
+import { pagerHtml } from '../../../components/ui/pager.js?v=20261018e';
 // 人×项目矩阵单一源（支书 2026-09-14 批次 35 裁定：宽表默认 + 矩阵推广）
-import { renderRelationMatrix } from '../../../components/ui/relation-matrix.js?v=20261018d';
-import { showToast, downloadCSV, triggerPrint, _fmtDate, escHtml as esc, getBasePath } from '../../../core/base/utils.js?v=20261018d';
-import { DISC_COMMISSIONER_ID } from './_shared.js?v=20261018d';
-import { HandoffStore } from '../../../services/governance/handoff.js?v=20261018d';
-import { AuthStore } from '../../../services/core/auth.js?v=20261018d';
-import { PersonPicker } from '../../../components/governance/pickers.js?v=20261018d';
+import { renderRelationMatrix } from '../../../components/ui/relation-matrix.js?v=20261018e';
+import { showToast, downloadCSV, triggerPrint, _fmtDate, escHtml as esc, getBasePath, flashHighlight } from '../../../core/base/utils.js?v=20261018e';
+import { DISC_COMMISSIONER_ID } from './_shared.js?v=20261018e';
+import { HandoffStore } from '../../../services/governance/handoff.js?v=20261018e';
+import { AuthStore } from '../../../services/core/auth.js?v=20261018e';
+import { PersonPicker } from '../../../components/governance/pickers.js?v=20261018e';
 // 「本位」nudge 确认弹窗（2026-09-23 支书裁定 · 单一源 = components/ui/modal.js::confirmNudge）
-import { confirmNudge } from '../../../components/ui/modal.js?v=20261018d';
+import { confirmNudge } from '../../../components/ui/modal.js?v=20261018e';
 // 「补课」分段整段复用原独立 tab 的渲染（2026-09-15 支书裁定：补课并入考勤管理，内部逻辑不改写）
-import { renderContent as renderMakeupContent } from './makeup-tab.js?v=20261018d';
+import { renderContent as renderMakeupContent } from './makeup-tab.js?v=20261018e';
 
 const PAGE_SIZE = 20; // 分页铁律：全量总表每页 20 条
 let _page = 1;        // 模块级分页状态（随模块自持）
@@ -106,7 +106,7 @@ const CELL_META = {
 
 export function renderContent(ctx) {
   const container = document.getElementById('disc-tab-content');
-  if (!container) return;
+  if (!container) return; _lastCtx = ctx;
 
   // 深链兼容（?tab=makeup，补课原为独立 tab）：一次性消费导航目标 → 直落「补课」分段。
   const navObj = ctx && ctx.navTarget;
@@ -391,7 +391,7 @@ export function renderContent(ctx) {
   // ── 矩阵转置切换 + 活动名/时间区间筛选 ──
   // 批次 35（支书 2026-09-14 裁定「宽表默认」）：默认「按人」——一进 tab 先看「谁参加了哪些活动」
   let matrixView = 'byPerson'; // byPerson（行=人，列=活动，宽表默认）| byActivity（行=活动，列=人）
-  const renderMatrix = () => _renderMatrix(matrixView, matrixModel, actById, ctx, accent, accentBorder);
+  const renderMatrix = () => _renderMatrix(matrixView, matrixModel, actById, allRecords, ctx, accent, accentBorder);
   container.querySelectorAll('.att-mtx-view-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       // UI-A（2026-09-07）：激活态=主题浅底+主题色字/边框（独立小圆角钮，无衬不再用 ov-sub-tab-active）
@@ -504,6 +504,9 @@ let _queueExpanded = false;
 // 打包确认（SOP-B-41 / `D-455`）：纪检勾一批 → 一次确认（不逐条）。
 // 2026-10-15 支书确认：默认不选；只记录主动选择的记录，降低误批量确认风险。
 let _queueChecked = new Set();
+// 2026-10-18 繁专项 Task 15：队列 / 矩阵 / 总表共用同一确认落点——矩阵单元格点按后回到队列并定位。
+let _pendingFocusRecordId = null;
+let _lastCtx = null;
 // A1-2026-09-05：会议考勤录入（2026-09-21 批次 124：上传位＝该场会议组织者；CF §C.1a 会议考勤）
 // 保态折叠（2026-09-05 quick-fix）：收起/取消只切 #disc-meet-body 的 hidden——
 // 不销毁 _meetPickerInstance、不重建 innerHTML，已选活动/人员/逐人状态保留；
@@ -550,7 +553,7 @@ function _buildQueueHTML(items, returnedRecs, leaveCount, absentCount, overdueCo
     const color = r.status === AttendanceStatus.ABSENT ? '#EF4444' : '#F59E0B';
     const checked = _queueChecked.has(r.id);
     return `
-        <div class="flex items-center gap-3 py-2 rounded-xl hover:bg-gray-50 transition-colors">
+        <div class="flex items-center gap-3 py-2 rounded-xl hover:bg-gray-50 transition-colors cursor-pointer" data-att-record-row="${r.id}" title="点按整行勾选；矩阵中点按状态也回到这里">
           <input type="checkbox" class="att-queue-check w-3.5 h-3.5 rounded shrink-0" data-record-id="${r.id}"${checked ? ' checked' : ''} aria-label="选择本条考勤">
           <span class="w-2 h-2 rounded-full flex-shrink-0" style="background:${color}"></span>
           <div class="flex-1 min-w-0">
@@ -646,7 +649,8 @@ function _confirmAttendanceBatch(recordIds, actById) {
   return picked.length;
 }
 
-/** 队列勾选：只维护显式「已勾选」集合并刷新汇总条（不整块重渲染，避免丢滚动位置） */
+/** 队列勾选：只维护显式「已勾选」集合并刷新汇总条（不整块重渲染，避免丢滚动位置）
+ *  2026-10-18 繁专项 Task 15：整行可点（与矩阵单元格同一落点/同一勾选语义）。 */
 function _bindQueueCheckboxes(container) {
   container.querySelectorAll('.att-queue-check').forEach(cb => {
     cb.addEventListener('change', () => {
@@ -656,6 +660,50 @@ function _bindQueueCheckboxes(container) {
       _syncBatchBar(container);
     });
   });
+  container.querySelector('#att-queue')?.addEventListener('click', (e) => {
+    if (e.target.closest('a,button,input,label')) return;
+    const row = e.target.closest('[data-att-record-row]');
+    if (!row) return;
+    const cb = row.querySelector('.att-queue-check');
+    if (!cb) return;
+    cb.checked = !cb.checked;
+    const id = cb.dataset.recordId;
+    if (id) { if (cb.checked) _queueChecked.add(id); else _queueChecked.delete(id); }
+    _syncBatchBar(container);
+  });
+  _consumePendingFocus(container);
+}
+
+/** 矩阵/总表点击后回到队列同一确认位：展开队列、勾选该条、滚动高亮。 */
+function _consumePendingFocus(container) {
+  if (!_pendingFocusRecordId) return;
+  const id = _pendingFocusRecordId;
+  _pendingFocusRecordId = null;
+  const row = [...container.querySelectorAll('[data-att-record-row]')]
+    .find(el => el.dataset.attRecordRow === id);
+  if (!row) return;
+  const cb = row.querySelector('.att-queue-check');
+  if (cb && !cb.checked) {
+    cb.checked = true;
+    if (cb.dataset.recordId) _queueChecked.add(cb.dataset.recordId);
+    _syncBatchBar(container);
+  }
+  row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  flashHighlight(row);
+}
+
+/** 统一下钻：矩阵单元格 / 总表「去打包确认」都落到队列的同一确认位。 */
+function _focusRecord(recordId) {
+  if (!recordId) return;
+  _pendingFocusRecordId = recordId;
+  _attendanceView = 'process';
+  _queueExpanded = true;
+  if (_lastCtx) renderContent(_lastCtx);
+}
+
+/** 供其它入口（待办/外部跳转）定位到某条考勤的确认位。 */
+export function focusAttendanceRecord(recordId) {
+  _focusRecord(recordId);
 }
 
 /** 刷新队列汇总条（已勾选数 / 按钮可用态 / 全选字样），不改列表本身 */
@@ -1066,7 +1114,7 @@ function _filterActivities(acts, actById) {
   });
 }
 
-function _renderMatrix(matrixView, matrixModel, actById, ctx, accent, accentBorder) {
+function _renderMatrix(matrixView, matrixModel, actById, allRecords, ctx, accent, accentBorder) {
   const tc = document.getElementById('att-matrix-container');
   if (!tc) return;
   // 时间降序：活动按日期最新在前（按活动视图最新在最上；按人视图最新在最左＝矩阵列的上限口径）
@@ -1075,8 +1123,10 @@ function _renderMatrix(matrixView, matrixModel, actById, ctx, accent, accentBord
     .sort((a, b) => (b.date || '').localeCompare(a.date || ''));
   const visibleActs = _filterActivities(acts, actById);
   const personIds = matrixModel.personIds;
+  const recordById = new Map((allRecords || []).map(r => [r.id, r]));
 
-  // T-304 第5轮：矩阵回归只读分析（去确认操作/去待确认标记，职责单一化）
+  // 矩阵保持分析口径；仅「轮到自己确认的异常记录」多给一个到队列同一确认位的入口
+  // （2026-10-18 繁专项 Task 15：矩阵 / 队列 / 总表动作落点一致）。
   const cellHtml = (personId, activityId) => {
     const state = matrixModel.cell(personId, activityId);
     if (state.kind === 'unrecorded') {
@@ -1090,13 +1140,19 @@ function _renderMatrix(matrixView, matrixModel, actById, ctx, accent, accentBord
     }
     const m = CELL_META[state.status];
     if (!m) return `<span class="text-xs text-gray-500" title="未知状态">${esc(state.status || '—')}</span>`;
-    return `<span class="inline-flex items-center gap-1" title="${esc(getPersonName(personId))} · ${esc(ATTENDANCE_STATUS_LABELS[state.status] || state.status)}">
-      <span class="w-2 h-2 rounded-full" style="background:${m.dot}"></span><span class="text-xs text-gray-600">${m.label}</span>
-    </span>`;
+    const rec = state.recordId ? recordById.get(state.recordId) : null;
+    const actionable = rec && !rec.recordedBy && !rec.returnedBy
+      && rec.status !== AttendanceStatus.PRESENT && rec.status !== AttendanceStatus.MADE_UP;
+    const label = `${esc(getPersonName(personId))} · ${esc(ATTENDANCE_STATUS_LABELS[state.status] || state.status)}`;
+    const inner = `<span class="w-2 h-2 rounded-full" style="background:${m.dot}"></span><span class="text-xs text-gray-600">${m.label}</span>`;
+    if (actionable) {
+      return `<button type="button" class="btn-ghost inline-flex items-center gap-1 rounded px-1 hover:bg-gray-100 transition-colors" data-att-record-id="${esc(state.recordId)}" title="${label} · 点此到待确认队列">${inner}</button>`;
+    }
+    return `<span class="inline-flex items-center gap-1" title="${label}">${inner}</span>`;
   };
 
   // 二元关系矩阵单一源（批次 35）：byItem＝行=活动、列=人；byPerson＝行=人、列=活动（互为转置）
-  return renderRelationMatrix(tc, {
+  const handle = renderRelationMatrix(tc, {
     stateKey: 'disc-attendance-matrix',
     mode: matrixView === 'byActivity' ? 'byItem' : 'byPerson',
     persons: personIds.map(id => ({ id, name: getPersonName(id) })),
@@ -1106,6 +1162,10 @@ function _renderMatrix(matrixView, matrixModel, actById, ctx, accent, accentBord
     itemLabel: '活动',
     emptyText: matrixView === 'byActivity' ? '无匹配活动（请调整筛选）' : '无考勤数据',
   });
+  tc.querySelectorAll('[data-att-record-id]').forEach(btn => {
+    btn.addEventListener('click', () => _focusRecord(btn.dataset.attRecordId));
+  });
+  return handle;
 }
 
 // ════════════════════════════════════════════════════════════════
@@ -1115,7 +1175,7 @@ function _buildTableCardHTML(ctx, allRecords, longData, actById, filterActivityI
   const total = longData.length;
   // 待确认 = 仅异常（缺勤/请假）未确认；出勤/已补源头审校自动确认不计入
   const isRegular = r => r.status === AttendanceStatus.PRESENT || r.status === AttendanceStatus.MADE_UP;
-  const totalPending = allRecords.filter(r => !r.recordedBy && !isRegular(r)).length;
+  const totalPending = allRecords.filter(r => !r.recordedBy && !r.returnedBy && !isRegular(r)).length;
   const totalAuto = allRecords.filter(r => !r.recordedBy && isRegular(r)).length;
   return `
     <div class="card rounded-xl p-5">
@@ -1225,11 +1285,13 @@ function _renderTable(longData, allRecords, actById, accent, accentBorder, ctx, 
             <td class="text-gray-500">${returned ? '<span class="text-amber-700" title="已打回，待活动组织方重新确认">已打回</span>' : (autoConfirmed ? '<span class="text-green-700">自动确认</span>' : (isPending ? '<span class="text-orange-700">待确认</span>' : `<span class="text-green-700">${a.confirmer}</span>`))}</td>
             <td>${groupMeetingView && a.type === '党小组会'
               ? '<span class="text-xs text-gray-500" aria-label="只读">只读</span>'
+              : (returned
+              ? '<span class="text-xs text-amber-700" title="已打回，待活动组织方重新确认">已打回 · 待组织方重新确认</span>'
               : (isPending && !autoConfirmed
-              ? `<button class="btn-outline att-jump-queue text-xs px-2.5 py-1" style="cursor:pointer;" title="打包确认在「待确认考勤」处整批进行">去打包确认</button>`
+              ? `<button class="btn-outline att-jump-queue text-xs px-2.5 py-1" data-record-id="${a.id}" style="cursor:pointer;" title="到「待确认考勤」队列确认该条">去打包确认</button>`
               : (canReturn
                 ? `<button class="btn-outline att-return-btn text-xs px-2.5 py-1" data-record-id="${a.id}" style="cursor:pointer;" title="打回后交活动组织方重新确认">打回</button>`
-                : (autoConfirmed ? '<span class="text-xs text-gray-500">自动</span>' : '<span class="text-xs text-green-700">✓</span>')))}</td>
+                : (autoConfirmed ? '<span class="text-xs text-gray-500">自动</span>' : '<span class="text-xs text-green-700">✓</span>'))))}</td>
           </tr>`;
         }).join('') : `<tr><td colspan="${groupMeetingView ? 10 : 9}" class="text-center text-gray-500 py-6">暂无匹配的考勤记录</td></tr>`}</tbody>
       </table>
@@ -1239,9 +1301,11 @@ function _renderTable(longData, allRecords, actById, accent, accentBorder, ctx, 
   const pagerEl = document.getElementById('att-table-pager');
   if (pagerEl) pagerEl.innerHTML = pagerHtml({ page: _page, pages: totalPages, total: display.length, unit: '条' });
 
-  // 待确认行「去打包确认」：滚到队列区（确认动作一律在队列整批进行，SOP-B-41 / D-455）
+  // 待确认行「去打包确认」：回到队列同一确认位（展开并勾选该条，SOP-B-41 / D-455）
   tc.querySelectorAll('.att-jump-queue').forEach(btn => {
     btn.addEventListener('click', () => {
+      const id = btn.dataset.recordId;
+      if (id) { _focusRecord(id); return; }
       document.getElementById('att-queue')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     });
   });

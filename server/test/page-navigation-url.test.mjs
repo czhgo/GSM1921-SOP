@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync } from 'node:fs';
-import { resolveDocumentUrl } from '../../docs/src/core/base/page-url.js?v=20261018d';
+import { resolveDocumentUrl } from '../../docs/src/core/base/page-url.js?v=20261018e';
 
 const adapterSource = readFileSync(new URL('../../docs/src/data/data-adapter.js', import.meta.url), 'utf8');
 const todaySource = readFileSync(new URL('../../docs/src/entries/tabs/today/today-tab.js', import.meta.url), 'utf8');
