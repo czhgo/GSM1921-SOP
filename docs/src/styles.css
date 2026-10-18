@@ -1,5 +1,5 @@
 /* 组件样式（@import 必须位于文件顶部） */
-@import url('components/person-picker.css?v=20261018g');
+@import url('components/person-picker.css?v=20261018h');
 
 /* ═══════════════════════════════════════════════════════════════
    GSM1921-SOP DESIGN SYSTEM v11.0 — Matte Flat
@@ -346,6 +346,11 @@ body {
 
 .card:hover {
   border-color: var(--primary-300);
+}
+
+/* 纯展示卡：hover 不改变边框（DESIGN_SYSTEM §4.2「纯展示卡不加 hover 伪装」） */
+.card.card--static:hover {
+  border-color: var(--neutral-200);
 }
 
 /* Responsive content shells: fluid inside a shared max-width. Percentages describe
@@ -3635,12 +3640,12 @@ html.theme-dark [style*="--acc-dot-dark"] {
      .page-btn / .page-num 单一源，颜色取主题变量，深色主题自动跟随）
    ═══════════════════════════════════════════════════════════════ */
 .agg-count-badge {
-  background: #FEE2E2;
-  color: #B91C1C;
+  background: var(--neutral-100);
+  color: var(--neutral-600);
 }
 html.theme-dark .agg-count-badge {
-  background: rgba(248, 113, 113, 0.16);
-  color: var(--functional-error);
+  background: var(--neutral-100);
+  color: var(--neutral-400);
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -4062,31 +4067,6 @@ html.theme-dark .settings-group-item.active {
    ── 结论带 = 一条横向带，不是四张 KPI 小卡；数值 tabular-nums，逾期取功能红。
    ── 条线表 = .data-table 一套；窄屏只让表体横向滚动，首列 sticky，页面不横向溢出。
    ── 间距只取 --space-*，与 §4.21 五档一致。 */
-.wo-summary {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: var(--space-4);
-}
-.wo-summary__item {
-  display: inline-flex;
-  align-items: baseline;
-  gap: var(--space-1);
-}
-.wo-summary__label {
-  font-size: var(--text-sm);
-  color: var(--neutral-500);
-}
-.wo-summary__value {
-  font-size: 18px;
-  font-weight: 600;
-  line-height: 1;
-  color: var(--neutral-800);
-  font-variant-numeric: tabular-nums;
-}
-.wo-summary__value--danger {
-  color: var(--functional-error);
-}
 .wo-lines-scroll {
   max-width: 100%;
   overflow-x: auto;
@@ -4108,10 +4088,6 @@ html.theme-dark .settings-group-item.active {
   font-weight: 500;
   color: var(--neutral-800);
   white-space: nowrap;
-}
-.wo-line-overdue {
-  color: var(--functional-error);
-  font-weight: 600;
 }
 .wo-line-gap {
   max-width: 16rem;
@@ -4205,45 +4181,31 @@ html.theme-dark .settings-group-item.active {
 
 /* ═══════════════════════════════════════════════════════════════
    待办四档摘要与分组（2026-10-18 · 工作台密度重组 Task 5）
-   ── 摘要 = 一条横向带（逾期 / 今日 / 本周 / 待处理），不是四张 KPI 卡；
-      数值 tabular-nums，逾期取功能红，其余中性。
-   ── 组头 = 组名 + 条数；逾期组用功能红，其余中性。
-   ── 行结构复用 .list-group / .list-row；行尾「更多」为轻量浮层菜单。 */
-.todo-summary {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: var(--space-4);
-  padding-bottom: var(--space-3);
-  margin-bottom: var(--space-3);
-  border-bottom: 1px solid var(--neutral-100);
-}
-.todo-summary__item {
-  display: inline-flex;
-  align-items: baseline;
-  gap: var(--space-1);
-}
-.todo-summary__label {
-  font-size: var(--text-sm);
-  color: var(--neutral-500);
-}
-.todo-summary__value {
-  font-size: 18px;
-  font-weight: 600;
-  line-height: 1;
-  color: var(--neutral-800);
-  font-variant-numeric: tabular-nums;
-}
-.todo-summary__value--danger {
-  color: var(--functional-error);
-}
-
+   ── 摘要 = .metric-band（数字 26px/600 + 标签 12px + 细竖线），不是四张 KPI 卡；
+      逾期 warning、待处理 accent、其余中性。
+   ── 组头 = 状态点 + 组名（14px/600）+ 计数徽章；逾期 warning，其余中性。
+   ── 行结构复用 .list-group / .list-row；行高 44，行尾「更多」为轻量浮层菜单。 */
 .todo-urgency-group + .todo-urgency-group {
   margin-top: var(--space-4);
 }
-/* 待办行：标题与说明各守一行，行尾动作纵向居中；不改变 list-row 的其他采用点。 */
+/* 待办行：固定 44 档；收掉行内纵向余量，让「标题 + 说明」两行也落在 44。
+   覆盖关系：`.todo-row.list-row`（0,2,0）写在 `.list-row.btn-ghost`（0,2,0）之后，
+   并以 !important 压住该族的 8px 纵向内边距。 */
+.todo-row.list-row {
+  --row-standard: 44px;
+  align-items: center;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+}
+.todo-row .list-row__main {
+  gap: 0;
+}
+.todo-row .list-row__meta {
+  line-height: 1.33;
+}
 .todo-row > .list-row__trailing {
   align-self: center;
+  gap: var(--space-1);
 }
 .todo-row .list-row__title,
 .todo-row .list-row__meta {
@@ -4257,21 +4219,20 @@ html.theme-dark .settings-group-item.active {
   gap: var(--space-2);
   padding: 0 var(--space-3) var(--space-1);
 }
+.todo-urgency-header__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  flex: none;
+  background: var(--neutral-400);
+}
+.todo-urgency-header__dot--warning {
+  background: var(--functional-warning);
+}
 .todo-urgency-header__label {
-  font-size: var(--text-sm);
+  font-size: var(--text-base);
   font-weight: 600;
   color: var(--neutral-600);
-}
-.todo-urgency-header__label--danger {
-  color: var(--functional-error);
-}
-.todo-urgency-header__count {
-  font-size: var(--text-sm);
-  color: var(--neutral-500);
-  font-variant-numeric: tabular-nums;
-}
-.todo-urgency-header__count--danger {
-  color: var(--functional-error);
 }
 
 .todo-more {
@@ -4347,5 +4308,225 @@ html.theme-dark .settings-group-item.active {
   display: flex;
   align-items: center;
   gap: var(--space-2);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   静雅公文 · 基础视觉类（2026-10-18 立 · Spec「工作台视觉语言」Task 1）
+   ── 口径单一源：DESIGN_SYSTEM.md §2.10 颜色四问 / §4.21 间距五档 /
+      §4.23 视觉语法。本段只新增类，不改写既有 .card / .list-row 基类。
+   ── 色值全部取 :root 既有令牌（--neutral-* / --functional-* / --app-accent-*），
+      不新增硬编码 hex（守卫 server/test/hex-hardcode-guard.test.mjs）。
+   ── 采用点：后续页面任务按 §4.23 取用；本节的选择器写在既有段之后，
+      需要覆盖既有规则时以更高特异性声明，并在行内注释说明覆盖关系。 */
+
+/* ── 章节头：标题 14px 宋体 + 右侧计数 / 说明（§4.23 字号档）── */
+.section-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding-bottom: var(--space-2);
+  border-bottom: 1px solid var(--neutral-100);
+  margin-bottom: var(--space-3);
+}
+.section-head__title {
+  /* 标题才用宋体（DESIGN_METHODOLOGY §1.5「小字衬线曾全仓撤回」） */
+  font-family: 'STZhongsong', '华文中宋', 'STSong', 'SimSun', serif;
+  font-size: var(--text-base);
+  font-weight: 700;
+  color: var(--neutral-800);
+}
+.section-head__meta {
+  font-size: var(--text-sm);
+  color: var(--neutral-500);
+}
+.section-head__count {
+  font-size: var(--text-sm);
+  color: var(--neutral-600);
+  background: var(--neutral-100);
+  border-radius: 999px;
+  padding: 0 var(--space-2);
+  line-height: 20px;
+}
+
+/* ── 数据表视觉档（覆盖关系：以下选择器写在既有 .data-table 段之后；
+      `.data-table thead th`（0,1,2）覆盖上方 `.data-table th`（0,1,1）的底色 / 字号 / 字重；
+      `.data-table tbody td:first-child`（0,2,2）覆盖 `.data-table td`（0,1,1）的字号字重。
+      既有 hover / 空结果 / sticky 规则不动。 ── */
+.data-table thead th {
+  background: var(--neutral-50);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--neutral-600);
+  padding: var(--space-2) var(--space-3);
+  border-bottom: 1px solid var(--neutral-200);
+}
+.data-table tbody td {
+  /* 表格正文 13px，档位外唯一表格专用（§4.23 正文档为 13px；13px 仍与本表既有单档一致） */
+  font-size: 0.8125rem;
+}
+.data-table tbody td:first-child {
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+.data-table tbody tr {
+  min-height: 44px;
+}
+
+/* ── 结论带：一条横向带，不是四张 KPI 小卡（数字 26px/600 + 标签 12px）── */
+.metric-band {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0;
+  padding: var(--space-3) var(--space-4);
+  background: var(--neutral-50);
+  border: 1px solid var(--neutral-200);
+  border-radius: var(--radius-md);
+}
+.metric-band__item {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  padding: 0 var(--space-4);
+  border-left: 1px solid var(--neutral-100);
+}
+.metric-band__item:first-child {
+  border-left: 0;
+  padding-left: 0;
+}
+.metric-band__value {
+  font-size: 1.625rem;
+  font-weight: 600;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  color: var(--neutral-800);
+}
+.metric-band__label {
+  font-size: var(--text-sm);
+  color: var(--neutral-500);
+}
+.metric-band__value--warning {
+  color: var(--functional-warning);
+}
+.metric-band__value--accent {
+  color: var(--app-accent);
+}
+
+/* ── 状态徽章：统一淡底深字（§2.10 明暗档「状态」行）──
+   11px 属 §3.2 标签档；只承担状态识别，不承担动作或身份。 */
+.state-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 1px var(--space-2);
+  border-radius: 999px;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  line-height: 18px;
+  white-space: nowrap;
+  border: 1px solid transparent;
+}
+.state-badge--neutral {
+  background: var(--neutral-100);
+  color: var(--neutral-600);
+  border-color: var(--neutral-200);
+}
+.state-badge--success {
+  background: color-mix(in srgb, var(--functional-success) 12%, transparent);
+  /* 深字 = 功能色 70% + 中性最深档；深色模式下 --neutral-900 反转为近白 ⇒ 自动提亮 */
+  color: color-mix(in srgb, var(--functional-success) 70%, var(--neutral-900));
+  border-color: color-mix(in srgb, var(--functional-success) 28%, transparent);
+}
+.state-badge--warning {
+  background: color-mix(in srgb, var(--functional-warning) 12%, transparent);
+  color: color-mix(in srgb, var(--functional-warning) 70%, var(--neutral-900));
+  border-color: color-mix(in srgb, var(--functional-warning) 28%, transparent);
+}
+.state-badge--info {
+  background: color-mix(in srgb, var(--functional-info) 12%, transparent);
+  color: color-mix(in srgb, var(--functional-info) 70%, var(--neutral-900));
+  border-color: color-mix(in srgb, var(--functional-info) 28%, transparent);
+}
+.state-badge--accent {
+  background: var(--app-accent-bg);
+  color: var(--app-accent);
+  border-color: var(--app-accent-border);
+}
+/* 深色模式：底色略加深、文字提亮，保证浅底深字在深色底上仍可读（§7.2）。
+   提亮基色取 --neutral-900：深色模式下它反转为近白（--neutral-0 反而变深）。 */
+html.theme-dark .state-badge--success {
+  background: color-mix(in srgb, var(--functional-success) 18%, transparent);
+  color: color-mix(in srgb, var(--functional-success) 78%, var(--neutral-900));
+  border-color: color-mix(in srgb, var(--functional-success) 38%, transparent);
+}
+html.theme-dark .state-badge--warning {
+  background: color-mix(in srgb, var(--functional-warning) 18%, transparent);
+  color: color-mix(in srgb, var(--functional-warning) 78%, var(--neutral-900));
+  border-color: color-mix(in srgb, var(--functional-warning) 38%, transparent);
+}
+html.theme-dark .state-badge--info {
+  background: color-mix(in srgb, var(--functional-info) 18%, transparent);
+  color: color-mix(in srgb, var(--functional-info) 78%, var(--neutral-900));
+  border-color: color-mix(in srgb, var(--functional-info) 38%, transparent);
+}
+html.theme-dark .state-badge--neutral {
+  background: var(--neutral-100);
+  color: var(--neutral-600);
+  border-color: var(--neutral-200);
+}
+html.theme-dark .state-badge--accent {
+  background: color-mix(in srgb, var(--app-accent) 18%, transparent);
+  color: color-mix(in srgb, var(--app-accent) 70%, var(--neutral-900));
+  border-color: color-mix(in srgb, var(--app-accent) 40%, transparent);
+}
+
+/* ── 空席 / 风险行：左侧 2px 单色规则（§2.10 反例「整圈红边」的替代）──
+   只用于空席 / 风险行，不做分区装饰（DESIGN_METHODOLOGY §1.5「同页左边条不得多色」）。 */
+.section-accent-left {
+  border-left: 2px solid var(--functional-warning);
+  padding-left: var(--space-3);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   行型交互（2026-10-18 立 · §10.4 五类行型矩阵的样式面）
+   ── 单一源：components/ui/list-row.js 的 rowType → data-row-type。
+   ── 口径：默认不可点；只有 data-interactive="true" 才 pointer / hover / focus-visible；
+      动作行（action）与展示行（display）不得有 cursor:pointer 或 hover 变底。
+   ── 覆盖关系：本段写在既有 .list-row 段之后，以同特异性 + 后置覆盖 hover 兜底。 */
+.list-row {
+  cursor: default;
+}
+.list-row[data-interactive="true"] {
+  cursor: pointer;
+}
+.list-row[data-row-type="display"] {
+  cursor: default;
+  transition: none;
+}
+.list-row[data-row-type="display"]:hover {
+  background: transparent;
+}
+.list-row[data-row-type="action"] {
+  cursor: default;
+  transition: none;
+}
+.list-row[data-row-type="action"]:hover {
+  background: transparent;
+}
+.list-row[data-interactive="true"]:focus-visible {
+  outline: 2px solid var(--app-accent);
+  outline-offset: -2px;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   首页工作组进展（2026-10-18 · Spec Task 7）
+   ── 行型：导航行（rowType: nav），状态与「进入 →」放行尾；
+      meta（成员 · 任务进度 / 日期 / 截止）守一行，390px 以省略号收尾不换行错位。
+   ── 覆盖范围仅 .taskforce-row，不改变 .list-row 的其他采用点。 */
+.taskforce-row .list-row__meta {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 

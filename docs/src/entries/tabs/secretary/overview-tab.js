@@ -5,8 +5,8 @@
 // 原「汇报 / 卡点 / 进度」三卡与按人视图、书记工作队列随本次统一骨架下线；
 // 待办定位、活动/专班只读详情、文件外发确认、「去我的处置」等既有下钻由共享渲染保留。
 
-import { AuthStore } from '../../../services/core/auth.js?v=20261018g';
-import { renderWorkOverview } from '../../../components/governance/work-overview.js?v=20261018g';
+import { AuthStore } from '../../../services/core/auth.js?v=20261018h';
+import { renderWorkOverview } from '../../../components/governance/work-overview.js?v=20261018h';
 
 const OVERVIEW_TAB_HTML = `
   <div id="secretary-overview-content"></div>

@@ -8,13 +8,13 @@
 //  本组件禁用 SVG 图标（支书 2026-08-10 裁定），类别用色点+文字标签区分
 // ════════════════════════════════════════════════════════════════
 
-import { IssueStore, deriveIssueDisplayState, REPORT_CATEGORIES } from '../../services/governance/issues.js?v=20261018g';
-import { AuthStore } from '../../services/core/auth.js?v=20261018g';
-import { showToast, escHtml } from '../../core/base/utils.js?v=20261018g';
-import { getPersonName } from '../../services/member/person.js?v=20261018g';
-import { solidAccentStyle } from '../../core/domain/constants.js?v=20261018g';
+import { IssueStore, deriveIssueDisplayState, REPORT_CATEGORIES } from '../../services/governance/issues.js?v=20261018h';
+import { AuthStore } from '../../services/core/auth.js?v=20261018h';
+import { showToast, escHtml } from '../../core/base/utils.js?v=20261018h';
+import { getPersonName } from '../../services/member/person.js?v=20261018h';
+import { solidAccentStyle } from '../../core/domain/constants.js?v=20261018h';
 // 统一检索引擎（2026-09-14 批次 37）：待答复汇报列表接入（关键词 事项/汇报人 + 引擎内置分页）
-import { renderFilteredList } from '../ui/list-filter.js?v=20261018g';
+import { renderFilteredList } from '../ui/list-filter.js?v=20261018h';
 
 // ── E-3（2026-09-09 · H60.7 面板保态复查③）：列表瞬态草稿互扰兜底 ──────
 // 某行正式答复成功 → onAnswered → 调用方整块重渲染（支书待办/组长组员汇报），
@@ -31,6 +31,16 @@ const _rowUi = new Map(); // reportId → { open: boolean, draft: string }
 //（render 出 HTML 串 → 调用方 innerHTML → bind 才拿到容器）。bind 侧调用方只传 role，拿不到 reports，
 // 故 render 按 role 暂存本轮「排序后行 + 强调色」，bind 取回后即挂载（同 role 不会同屏两份收件箱）。
 const _listPayload = new Map(); // role → { accent, rows }
+
+/** 派生状态 → 状态徽章档（颜色四问：状态用功能色淡底深字，不借用主题色） */
+const STATE_BADGE_VARIANT = {
+  closed: 'neutral',
+  'to-report': 'info',
+  'pending-review': 'warning',
+  open: 'success',
+  assigned: 'info',
+  unknown: 'neutral',
+};
 
 /**
  * 待答复收件箱 HTML
@@ -110,14 +120,14 @@ function _renderInboxDetail(r, accent, draft = '') {
   const comments = (r.comments || []).filter(c => !c.hidden).map(c => {
     const icon = c.kind === 'dispatch' ? '→' : c.kind === 'reply' ? '答'
       : c.kind === 'result' ? '✓' : c.kind === 'verdict' ? '★' : '';
-    const bg = c.kind === 'reply' ? 'bg-red-50/70' : c.kind === 'result' ? 'bg-green-50'
+    const bg = c.kind === 'reply' ? 'bg-gray-50' : c.kind === 'result' ? 'bg-green-50'
       : c.kind === 'dispatch' ? 'bg-blue-50' : c.kind === 'verdict' ? 'bg-amber-50' : 'bg-gray-50';
-    const bgDark = c.kind === 'reply' ? ' style="--acc-bg-dark:rgba(239,68,68,0.12);"' : '';
+    const bgDark = '';
     return `
       <div class="rounded-lg p-2 ${bg}"${bgDark}>
         <div class="flex items-center gap-1.5 mb-1">
           <span class="text-xs font-medium text-gray-700">${icon} ${getPersonName(c.author) || '匿名'}</span>
-          ${c.kind === 'reply' ? '<span class="text-xs px-1 py-0.5 rounded font-medium" style="--acc-bg-dark:rgba(248,113,113,0.16);--acc-text-dark:#F87171;background:rgba(185,28,28,0.1);color:var(--accent-secretary);">正式答复</span>' : ''}
+          ${c.kind === 'reply' ? '<span class="state-badge state-badge--neutral">正式答复</span>' : ''}
           <span class="text-xs text-gray-500">${c.createdAt}</span>
         </div>
         <p class="text-xs text-gray-600 whitespace-pre-wrap">${c.body}</p>
@@ -174,23 +184,30 @@ export function bindReportInbox(container, { role = 'secretary', onAnswered = ()
         const catColor = r.reportCategory === 'blocked' ? '#EF4444'
           : r.reportCategory === 'ask' ? '#F59E0B' : '#16A34A';
         const ds = deriveIssueDisplayState(r);
-        const requester = r.requestedBy
-          ? '<span class="text-xs px-1.5 py-0.5 rounded-full bg-blue-50 text-blue-600 flex-shrink-0">了解进展</span>'
-          : '';
+        const badgeVariant = STATE_BADGE_VARIANT[ds.key] || 'neutral';
+        const metaParts = [
+          r.requestedBy ? '了解进展' : '',
+          getPersonName(r.submittedBy) || '匿名',
+          r.submittedAt || '—',
+        ].filter(Boolean);
         // E-3：模块态回填（引擎重绘后仍保持展开/输入；只保留仍在列表中的行）
         const ui = _rowUi.get(r.id);
         const rowOpen = !!(ui && ui.open);
         return `
       <div class="rounded-lg border ${r.reportCategory === 'blocked' ? 'border-red-200' : 'border-gray-100'} overflow-hidden">
-        <button type="button" class="btn-ghost rep-inbox-toggle w-full flex items-center gap-3 px-3 py-2.5" data-report-id="${r.id}">
-          <span class="w-2 h-2 rounded-full flex-shrink-0" style="background:${catColor};"></span>
-          <span class="text-xs font-medium flex-shrink-0" style="color:${catColor};">${cat}</span>
-          <span class="text-sm text-gray-800 font-medium flex-1 min-w-0 truncate">${r.title}</span>
-          <span class="text-xs text-gray-500 flex-shrink-0">${getPersonName(r.submittedBy) || '匿名'}</span>
-          <span class="text-xs text-gray-500 flex-shrink-0">${r.submittedAt || '—'}</span>
-          ${requester}
-          <span class="text-xs px-1.5 py-0.5 rounded-full ${ds.badgeClass} flex-shrink-0">${ds.label}</span>
-        </button>
+        <div class="notice-row px-3">
+          <span class="w-2 h-2 rounded-full flex-shrink-0 mt-1.5" style="background:${catColor};" title="${cat}" role="img" aria-label="${cat}"></span>
+          <div class="notice-row__main">
+            <p class="notice-row__title">${r.title}</p>
+            <p class="notice-row__meta flex items-center gap-2 min-w-0">
+              <span class="truncate">${metaParts.join(' · ')}</span>
+              <span class="state-badge state-badge--${badgeVariant} flex-shrink-0">${ds.label}</span>
+            </p>
+          </div>
+          <div class="notice-row__actions">
+            <button type="button" class="btn-accent-soft rep-inbox-toggle" data-report-id="${r.id}">去处理</button>
+          </div>
+        </div>
         <div id="rep-inbox-detail-${r.id}" class="px-3 pb-3 border-t border-gray-100${rowOpen ? '' : ' hidden'}">
           ${_renderInboxDetail(r, payload.accent, (ui && ui.draft) || '')}
         </div>

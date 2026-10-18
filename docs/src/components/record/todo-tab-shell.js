@@ -16,22 +16,22 @@
 // 视觉沿用 card/rounded 既有体系（四档列表渲染在 components/record/todo-list.js renderUrgencyTodoList）。
 // 设计权威源：content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md §六 M6（共性抽象净减）
 
-import { TodoStore, urgeRolesOf, WORK_DOMAIN, WORK_DOMAIN_LABELS, realtimeGroupDomainOf, buildModuleCycleRemindGroup } from '../../services/governance/todo.js?v=20261018g';
+import { TodoStore, urgeRolesOf, WORK_DOMAIN, WORK_DOMAIN_LABELS, realtimeGroupDomainOf, buildModuleCycleRemindGroup } from '../../services/governance/todo.js?v=20261018h';
 // S3②（2026-09-12）：未读通知计数单一来源——与顶栏角标/首页同源（NoticeStore activeOnly+read 过滤），
 // 不再用「通知类待办」现算（口径不同致三处不一致）。
-import { NoticeStore, NOTICE_MODULE_ROLE_PAGES } from '../../services/governance/notice.js?v=20261018g';
-import { buildUrgencySections, renderUrgencyTodoList } from './todo-list.js?v=20261018g';
-import { badgeHtml } from '../ui/badges.js?v=20261018g';
-import { showToast, escHtml, todayLocal } from '../../core/base/utils.js?v=20261018g';
-import { solidAccentStyle, ROLE_LABELS, BRANCH_COMMISSION_ROLES } from '../../core/domain/constants.js?v=20261018g';
-import { openModal, closeModal } from '../ui/modal.js?v=20261018g';
-import { AuthStore } from '../../services/core/auth.js?v=20261018g';
-import { mockDB } from '../../core/domain/domain.js?v=20261018g';
-import { tokenOf } from '../../core/base/version-token.js?v=20261018g'; // P0 域写版本戳（spec §二.4）
-import { resolveDocumentUrl } from '../../core/base/page-url.js?v=20261018g';
-import { memoizeRender } from '../ui/memoize-render.js?v=20261018g'; // P2 渲染守卫（spec §四.1）
+import { NoticeStore, NOTICE_MODULE_ROLE_PAGES } from '../../services/governance/notice.js?v=20261018h';
+import { buildUrgencySections, renderUrgencyTodoList } from './todo-list.js?v=20261018h';
+import { badgeHtml } from '../ui/badges.js?v=20261018h';
+import { showToast, escHtml, todayLocal } from '../../core/base/utils.js?v=20261018h';
+import { solidAccentStyle, ROLE_LABELS, BRANCH_COMMISSION_ROLES } from '../../core/domain/constants.js?v=20261018h';
+import { openModal, closeModal } from '../ui/modal.js?v=20261018h';
+import { AuthStore } from '../../services/core/auth.js?v=20261018h';
+import { mockDB } from '../../core/domain/domain.js?v=20261018h';
+import { tokenOf } from '../../core/base/version-token.js?v=20261018h'; // P0 域写版本戳（spec §二.4）
+import { resolveDocumentUrl } from '../../core/base/page-url.js?v=20261018h';
+import { memoizeRender } from '../ui/memoize-render.js?v=20261018h'; // P2 渲染守卫（spec §四.1）
 // 模块周期提醒（`R-29⑤` · `D-804`）：分工快照取法与 `components/governance/workforce-duty-card.js` 同口径
-import { getBranchIdOfPerson, getBranchWorkforce } from '../../services/branch/branch.js?v=20261018g';
+import { getBranchIdOfPerson, getBranchWorkforce } from '../../services/branch/branch.js?v=20261018h';
 
 // ── P0 组合数据复合键（2026-09-07 · spec §二.4）──────────────────
 // 组合点（buildRealtimeGroups + mergeRealtimeDomains + getUnreadNotices）以
@@ -109,19 +109,20 @@ function _flattenDomainGroups(domains) {
 /**
  * 顶部四数摘要带（逾期 / 今日 / 本周 / 待处理）——一条横向带，不拆四张 KPI 卡。
  * 数值由 buildUrgencySections 与列表共用同一批分组数据算出，不另立口径。
+ * 视觉：.metric-band（数字 26px/600 + 标签 12px + 细竖线）；逾期 warning、待处理 accent。
  */
 function _urgencySummaryHtml(summary) {
-  const item = (label, value, danger) => `
-    <span class="todo-summary__item">
-      <span class="todo-summary__label">${label}</span>
-      <span class="todo-summary__value${danger ? ' todo-summary__value--danger' : ''}">${value || 0}</span>
+  const item = (label, value, tone) => `
+    <span class="metric-band__item">
+      <span class="metric-band__value${tone ? ` metric-band__value--${tone}` : ''}">${value || 0}</span>
+      <span class="metric-band__label">${label}</span>
     </span>`;
   return `
-    <div class="todo-summary" role="group" aria-label="待办摘要">
-      ${item('逾期', summary.overdue, true)}
-      ${item('今日', summary.today, false)}
-      ${item('本周', summary.week, false)}
-      ${item('待处理', summary.pending, false)}
+    <div class="metric-band mb-4" role="group" aria-label="待办摘要">
+      ${item('逾期', summary.overdue, 'warning')}
+      ${item('今日', summary.today, '')}
+      ${item('本周', summary.week, '')}
+      ${item('待处理', summary.pending, 'accent')}
     </div>`;
 }
 
@@ -228,12 +229,20 @@ export function createTodoTab(opts) {
       return `
         <div class="space-y-3">
           <div class="flex items-center gap-2">
-            <span class="agg-count-badge text-xs px-1.5 py-0.5 rounded-full font-semibold tabular-nums">${todo.count} 条待处理</span>
             ${todo.priority === 'urgent' ? badgeHtml('紧急', 'warning') : ''}
           </div>
-          <p class="font-title-cn text-sm font-bold text-gray-800">${todo.title}</p>
+          <p class="font-title-cn text-base font-semibold text-gray-800">${todo.title}</p>
+          <dl class="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
+            <div>
+              <dt class="text-gray-500">条数</dt>
+              <dd class="text-gray-700 tabular-nums">${todo.count} 条</dd>
+            </div>
+            ${todo.deadline ? `<div>
+              <dt class="text-gray-500">最早截止</dt>
+              <dd class="text-gray-700 tabular-nums">${todo.deadline}</dd>
+            </div>` : ''}
+          </dl>
           ${todo.flow ? `<p class="text-xs text-gray-600 leading-relaxed">${todo.flow}</p>` : ''}
-          ${todo.deadline ? `<div class="text-xs text-gray-500">最早截止：${todo.deadline}</div>` : ''}
           ${actionBtn ? `<div class="pt-3 border-t border-gray-100 flex gap-2">${actionBtn}</div>` : ''}
         </div>
       `;
@@ -246,27 +255,36 @@ export function createTodoTab(opts) {
       expired: '已过期',
     }[todo.status] || todo.status;
 
-    const statusColor = {
-      pending: 'bg-orange-100 text-orange-700',
-      in_progress: 'bg-blue-100 text-blue-700',
-      completed: 'bg-green-100 text-green-700',
-      expired: 'bg-red-100 text-red-700',
-    }[todo.status] || 'bg-gray-100 text-gray-600';
+    const statusVariant = {
+      pending: 'neutral',
+      in_progress: 'info',
+      completed: 'success',
+      expired: 'warning',
+    }[todo.status] || 'neutral';
 
     return `
       <div class="space-y-3">
         <div>
-          <div class="flex items-center gap-2 mb-2">
-            <span class="text-xs px-1.5 py-0.5 rounded-full ${statusColor}">${statusLabel}</span>
-            ${todo.priority === 'urgent' ? badgeHtml('紧急', 'warning') : ''}
-          </div>
-          <p class="font-title-cn text-sm font-bold text-gray-800">${todo.title}</p>
+          ${todo.priority === 'urgent' ? `<div class="flex items-center gap-2 mb-2">${badgeHtml('紧急', 'warning')}</div>` : ''}
+          <p class="font-title-cn text-base font-semibold text-gray-800">${todo.title}</p>
         </div>
+        <dl class="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
+          <div>
+            <dt class="text-gray-500">状态</dt>
+            <dd><span class="state-badge state-badge--${statusVariant}">${statusLabel}</span></dd>
+          </div>
+          ${todo.deadline ? `<div>
+            <dt class="text-gray-500">截止</dt>
+            <dd class="text-gray-700 tabular-nums">${todo.deadline}</dd>
+          </div>` : ''}
+          <div class="col-span-2">
+            <dt class="text-gray-500">创建</dt>
+            <dd class="text-gray-700 tabular-nums">${(todo.createdAt || '').slice(0, 16).replace('T', ' ')}</dd>
+          </div>
+        </dl>
         ${todo.description ? `<p class="text-xs text-gray-600 leading-relaxed">${todo.description}</p>` : ''}
-        ${todo.deadline ? `<div class="text-xs text-gray-500">截止：${todo.deadline}</div>` : ''}
-        <div class="text-xs text-gray-500">创建：${(todo.createdAt || '').slice(0, 16).replace('T', ' ')}</div>
         <div class="pt-3 border-t border-gray-100 flex gap-2">
-          ${todo.actionType ? `<button class="btn-accent-soft ${detailBtnClass} text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors">处理</button>` : ''}
+          ${todo.actionType ? `<button type="button" class="btn-accent-soft ${detailBtnClass}">处理</button>` : ''}
         </div>
       </div>
     `;
@@ -451,7 +469,7 @@ export function createTodoTab(opts) {
         ${unreadHtml}
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-4" data-ws-memo="todo-shell">
           <div class="lg:col-span-2">
-            <div class="card rounded-xl p-5">
+            <div class="card rounded-xl p-5 card--static">
               <div class="flex items-center justify-between mb-4">
                 <h3 class="font-title-cn text-base font-semibold text-gray-800">我的待办</h3>
               </div>
@@ -460,7 +478,7 @@ export function createTodoTab(opts) {
             </div>
           </div>
           <div class="lg:col-span-1">
-            <div class="card rounded-xl p-5 sticky top-20">
+            <div class="card rounded-xl p-5 sticky top-20 card--static">
               <h3 class="font-title-cn text-base font-semibold text-gray-800 mb-4">${detailTitle}</h3>
               ${detailHtml}
             </div>

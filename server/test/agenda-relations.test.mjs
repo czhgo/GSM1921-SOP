@@ -1,7 +1,7 @@
 // agenda-relations.test.mjs — 活动议程步骤、讨论/表决关联及表态目标的共同校验
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { agendaDecisionSource, validateAgendaStructure, validateAgendaVoteTarget } from '../../docs/src/services/activity/agenda-relations.js?v=20261018g';
+import { agendaDecisionSource, validateAgendaStructure, validateAgendaVoteTarget } from '../../docs/src/services/activity/agenda-relations.js?v=20261018h';
 
 test('兼容未标步骤的历史议程与普通议题表态', () => {
   const agenda = [{ item: '历史议题' }, { id: 'ag-current', item: '普通议题' }];

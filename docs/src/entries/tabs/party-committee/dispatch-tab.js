@@ -1,11 +1,11 @@
 // Party dispatch reuses the notice domain; this page separates composing from sent history.
-import { mockDB } from '../../../core/domain/domain.js?v=20261018g';
-import { AuthStore } from '../../../services/core/auth.js?v=20261018g';
-import { NoticeStore } from '../../../services/governance/notice.js?v=20261018g';
-import { textField, textareaField } from '../../../components/ui/forms.js?v=20261018g';
-import { showToast, escHtml as esc } from '../../../core/base/utils.js?v=20261018g';
-import { renderBranchFilter, filterByBranch } from '../../../components/governance/branch-filter.js?v=20261018g';
-import { renderSectionHeader } from '../../../components/shell/page-frame.js?v=20261018g';
+import { mockDB } from '../../../core/domain/domain.js?v=20261018h';
+import { AuthStore } from '../../../services/core/auth.js?v=20261018h';
+import { NoticeStore } from '../../../services/governance/notice.js?v=20261018h';
+import { textField, textareaField } from '../../../components/ui/forms.js?v=20261018h';
+import { showToast, escHtml as esc } from '../../../core/base/utils.js?v=20261018h';
+import { renderBranchFilter, filterByBranch } from '../../../components/governance/branch-filter.js?v=20261018h';
+import { renderSectionHeader } from '../../../components/shell/page-frame.js?v=20261018h';
 
 const BRANCH_FILTER_STATE = 'pc-dispatch';
 const initialView = new URLSearchParams(window.location.search).get('view');

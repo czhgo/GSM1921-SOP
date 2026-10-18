@@ -37,7 +37,7 @@ import { join } from 'node:path';
 import { createApp } from '../app.js';
 import { seedDatabase } from '../seed.js';
 // 前后端同源哈希（服务端与前端共用；测试据此证明 tokenHash 由随机 token 派生、不含 personId）
-import { hashSubmitterToken } from '../../docs/src/core/domain/constants.js?v=20261018g';
+import { hashSubmitterToken } from '../../docs/src/core/domain/constants.js?v=20261018h';
 import { chromium } from 'playwright';
 
 let app, server, base;
@@ -364,8 +364,8 @@ test('mock 形态：浏览器存储不保留真身（含旧缓存迁移）；党
     await page.route('**://cdn.tailwindcss.com/**', (r) => r.abort());
     await page.goto(`${base}/index.html`, { waitUntil: 'domcontentloaded', timeout: 15000 });
     const out = await page.evaluate(async () => {
-      const { IssueStore } = await import('/src/services/governance/issues.js?v=20261018g');
-      const { PersonStore } = await import('/src/services/member/person.js?v=20261018g');
+      const { IssueStore } = await import('/src/services/governance/issues.js?v=20261018h');
+      const { PersonStore } = await import('/src/services/member/person.js?v=20261018h');
       localStorage.clear();
       // 模拟升级前浏览器残留：读取时应去除真身并回写，不把身份继续留在客户端持久存储。
       localStorage.setItem('gsm1921-issue-cache-version', '4');
@@ -410,7 +410,7 @@ test('mock 形态：浏览器存储不保留真身（含旧缓存迁移）；党
       const tc = document.createElement('div');
       tc.id = 'secretary-tab-content';
       document.body.appendChild(tc);
-      const fb = await import('/src/entries/tabs/secretary/feedback-tab.js?v=20261018g');
+      const fb = await import('/src/entries/tabs/secretary/feedback-tab.js?v=20261018h');
       fb.renderContent();
       const listRow = document.querySelector(`[data-issue-id="${anon.id}"]`);
       const listRowHtml = listRow ? listRow.innerHTML : '';
@@ -422,7 +422,7 @@ test('mock 形态：浏览器存储不保留真身（含旧缓存迁移）；党
       const pc = document.createElement('div');
       pc.id = 'party-committee-tab-content';
       document.body.appendChild(pc);
-      const pcTab = await import('/src/entries/tabs/party-committee/issue-review-tab.js?v=20261018g');
+      const pcTab = await import('/src/entries/tabs/party-committee/issue-review-tab.js?v=20261018h');
       await pcTab.renderContent();
       const asSecretaryHtml = pc.innerHTML;
       // …党委同样只看到边界说明

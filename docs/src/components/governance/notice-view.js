@@ -10,14 +10,14 @@
 //  依赖方向正确：组件 → 服务（不是服务 → 组件）。守卫见 notice-audience / doc-consistency。
 // ════════════════════════════════════════════════════════════════
 
-import { badgeHtml } from '../ui/badges.js?v=20261018g';
-import { openFormModal } from '../ui/modal.js?v=20261018g';
-import { showToast, getBasePath, todayLocal } from '../../core/base/utils.js?v=20261018g';
-import { ROLE_LABELS } from '../../core/domain/constants.js?v=20261018g';
-import { AuthStore } from '../../services/core/auth.js?v=20261018g';
-import { getPersonById, liveMembers } from '../../services/member/person.js?v=20261018g';
-import { isActivityOrganizer } from '../../services/activity/activity.js?v=20261018g';
-import { NoticeStore, NoticePermission, resolveNoticeUrl } from '../../services/governance/notice.js?v=20261018g';
+import { badgeHtml } from '../ui/badges.js?v=20261018h';
+import { openFormModal } from '../ui/modal.js?v=20261018h';
+import { showToast, getBasePath, todayLocal } from '../../core/base/utils.js?v=20261018h';
+import { ROLE_LABELS } from '../../core/domain/constants.js?v=20261018h';
+import { AuthStore } from '../../services/core/auth.js?v=20261018h';
+import { getPersonById, liveMembers } from '../../services/member/person.js?v=20261018h';
+import { isActivityOrganizer } from '../../services/activity/activity.js?v=20261018h';
+import { NoticeStore, NoticePermission, resolveNoticeUrl } from '../../services/governance/notice.js?v=20261018h';
 
 function committeeSourceChip() {
   return '<span style="display:inline-flex;align-items:center;padding:0 6px;border-radius:9999px;background:var(--party-red);color:#fff;font-size:10px;line-height:16px;flex-shrink:0;">党委下发</span>';
@@ -81,24 +81,28 @@ export function renderNoticeList(containerId, limit = 5, opts = {}) {
     normal: badgeHtml('重要', 'info'),
   };
 
-  /** 单条通知行（列表与聚合展开共用，避免落第二份标记） */
+  /**
+   * 单条通知行（列表与聚合展开共用，避免落第二份标记）。
+   * 导航行：整行可点，阅读详情即已读；不再单设「确认读取」第二动作。
+   * 用原生 <a> 承载整行，保留 data-notice-id / data-target / data-target-url 落点；
+   * 真实去向仍由统一的点击处理决定（resolveNoticeUrl）。
+   */
   const rowHtml = (n) => `
-    <div class="notice-item notice-row row-quiet px-2 -mx-2 cursor-pointer hover:bg-gray-50 hover:shadow-sm rounded-lg transition-all duration-200 group"
+    <a href="${n.targetUrl || `${getBasePath()}notice.html?id=${encodeURIComponent(n.id)}`}" class="notice-item notice-row row-quiet w-full p-0 text-left cursor-pointer hover:bg-gray-50 rounded-lg transition-colors group"
          data-target="${n.targetModule || ''}" data-notice-id="${n.id}" data-target-url="${n.targetUrl || ''}"
          title="${n.title} — ${n.content}">
       ${priorityBadge[n.priority] || ''}
       <div class="notice-row__main">
         <div class="flex items-center gap-1.5 min-w-0">
           ${n.source === 'committee' ? committeeSourceChip() : ''}
-          <p class="notice-row__title group-hover:text-blue-700 transition-colors">${n.title}</p>
+          <span class="notice-row__title group-hover:text-blue-700 transition-colors">${n.title}</span>
         </div>
-        <p class="notice-row__meta line-clamp-2">${n.content}</p>
+        <span class="notice-row__meta line-clamp-2">${n.content}</span>
       </div>
       <div class="notice-row__actions">
-        ${!n.read ? `<button class="btn-outline notice-confirm-read" data-notice-id="${n.id}">确认读取</button>` : ''}
         <span class="notice-row__meta notice-row__meta--flush">${n.publishDate}</span>
       </div>
-    </div>`;
+    </a>`;
 
   // ── 同类：按「类」（通知标题）归并 ──
   // 2026-09-29 批次 286（支书第二轮评议）：
@@ -129,118 +133,20 @@ export function renderNoticeList(containerId, limit = 5, opts = {}) {
     : '<p class="text-sm text-gray-500">暂无新通知</p>';
   container.innerHTML = summaryHtml + listHtml;
 
-  // 绑定确认读取按钮：先弹出完整消息浮窗，浮窗中确认已读
-  container.querySelectorAll('.notice-confirm-read').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const id = btn.dataset.noticeId;
-      const notice = NoticeStore._notices.find(n => n.id === id);
-      if (!notice) return;
-      _showNoticePopover(notice, btn);
-    });
-  });
-
-  // 绑定点击：标记已读 + 统一跳转（resolveNoticeUrl 业务页直达优先）
+  // 整行为导航动作：阅读详情即已读（与工作台未读条同口径），不再设「确认读取」第二动作
   container.querySelectorAll('.notice-item').forEach(item => {
-    item.addEventListener('click', () => {
+    item.addEventListener('click', (e) => {
+      e.preventDefault();
       const id = item.dataset.noticeId;
       const notice = NoticeStore._notices.find(n => n.id === id);
       if (id) NoticeStore.markRead(id);
       // 视觉反馈：点击后标题颜色变浅
-      item.querySelector('p.text-sm')?.classList.add('text-gray-500');
+      item.querySelector('.notice-row__title')?.classList.add('text-gray-500');
       const dest = resolveNoticeUrl(notice);
       const finalUrl = dest.direct ? dest.url : `${getBasePath()}notice.html?id=${id}`;
       window.location.href = finalUrl;
     });
   });
-}
-
-/**
- * 通知浮窗：展示完整消息内容 + 确认已读按钮
- * 点击"确认读取"时弹出，确认后标记已读并关闭浮窗
- */
-function _showNoticePopover(notice, triggerBtn) {
-  // 移除已有浮窗
-  const existing = document.getElementById('notice-read-popover');
-  if (existing) existing.remove();
-
-  const priorityBadge = {
-    urgent: badgeHtml('紧急', 'gold'),
-    normal: badgeHtml('重要', 'info'),
-  };
-
-  const popover = document.createElement('div');
-  popover.id = 'notice-read-popover';
-  popover.style.cssText = 'position:fixed;z-index:100;background:var(--surface-card);border-radius:12px;box-shadow:0 12px 36px rgba(0,0,0,0.15);border:1px solid var(--neutral-200);padding:16px;width:360px;max-height:80vh;overflow-y:auto;';
-
-  popover.innerHTML = `
-    <div class="flex items-center justify-between mb-3 pb-2 border-b border-gray-100">
-        <div class="flex items-center gap-2">
-          ${priorityBadge[notice.priority] || ''}
-          ${notice.source === 'committee' ? committeeSourceChip() : ''}
-          <h3 class="font-title-cn text-sm font-semibold text-gray-800">${notice.title}</h3>
-        </div>
-      <button id="notice-popover-close" class="btn-ghost text-sm leading-none">&times;</button>
-    </div>
-    <div class="text-xs text-gray-500 mb-3">${notice.publishDate || ''}</div>
-    <div class="text-sm text-gray-700 leading-relaxed mb-4 whitespace-pre-wrap">${notice.content || '无内容'}</div>
-    ${notice.meetingActivityId
-      // SOP-B-5（D-293）：会议通知的「能否线上参会」在**详情页**确认时填——浮窗只作指路，
-      // 不在此再放一份填写位（同一件事两处填＝两套口径）。
-      ? '<div class="text-[11px] text-gray-500 mb-3 leading-5">本次会议可申报<b>能否线上参会</b>——请点通知标题打开详情页，在「确认读取」时填写（线上参会记请假、不计出席、不补课）。</div>'
-      : ''}
-    <div class="flex justify-end gap-2 pt-2 border-t border-gray-100">
-      <button id="notice-popover-cancel" class="btn-ghost text-xs px-3 py-1.5">取消</button>
-      <button id="notice-popover-confirm" class="btn-accent-soft text-xs px-3 py-1.5">确认已读</button>
-    </div>
-  `;
-
-  document.body.appendChild(popover);
-
-  // 定位：在触发按钮附近
-  const rect = triggerBtn.getBoundingClientRect();
-  const popoverRect = popover.getBoundingClientRect();
-  let top = rect.bottom + 8;
-  let left = rect.left;
-  // 防止溢出视口
-  if (top + popoverRect.height > window.innerHeight) top = Math.max(8, rect.top - popoverRect.height - 8);
-  if (left + 360 > window.innerWidth) left = Math.max(8, window.innerWidth - 368);
-  popover.style.top = top + 'px';
-  popover.style.left = left + 'px';
-
-  // 关闭浮窗
-  const closePopover = () => popover.remove();
-
-  popover.querySelector('#notice-popover-close')?.addEventListener('click', closePopover);
-  popover.querySelector('#notice-popover-cancel')?.addEventListener('click', closePopover);
-
-  // 确认已读
-  popover.querySelector('#notice-popover-confirm')?.addEventListener('click', () => {
-    NoticeStore.markRead(notice.id);
-    // 视觉反馈：列表项标题变浅 + 移除"确认读取"按钮
-    const item = triggerBtn.closest('.notice-item');
-    if (item) {
-      item.querySelector('p.text-sm')?.classList.add('text-gray-500');
-      triggerBtn.remove();
-    }
-    closePopover();
-    showToast('success', '已确认读取');
-  });
-
-  // 点击外部关闭
-  const outsideHandler = (e) => {
-    if (!popover.contains(e.target) && !triggerBtn.contains(e.target)) {
-      closePopover();
-      document.removeEventListener('click', outsideHandler, true);
-    }
-  };
-  setTimeout(() => document.addEventListener('click', outsideHandler, true), 0);
-
-  // ESC 关闭
-  const escHandler = (e) => {
-    if (e.key === 'Escape') { closePopover(); document.removeEventListener('keydown', escHandler); }
-  };
-  document.addEventListener('keydown', escHandler);
 }
 
 // ════════════════════════════════════════════════════════════════

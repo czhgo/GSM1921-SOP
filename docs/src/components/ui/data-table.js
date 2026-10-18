@@ -10,8 +10,8 @@
 //   · 检索条阈值 = components/ui/filter-bar.js（行数 > 8 才出现）。
 // 采用口径：首列 sticky 由调用方在 headHtml / rowHtml 的 className 中声明；
 //   末列动作由 rowHtml 提供；不得在调用方另写 <table> 或表头内边距。
-import { escHtml as esc } from '../../core/base/utils.js?v=20261018g';
-import { renderFilteredList } from './list-filter.js?v=20261018g';
+import { escHtml as esc } from '../../core/base/utils.js?v=20261018h';
+import { renderFilteredList } from './list-filter.js?v=20261018h';
 
 /**
  * 生成表头行。

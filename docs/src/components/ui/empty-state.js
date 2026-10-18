@@ -6,7 +6,7 @@
 //   · 样式 = docs/src/styles.css 的 .empty-state / .empty-state__text / .empty-state__action 段；
 //   · 文案转义 = core/base/utils.js 的 escHtml；
 //   · 数据表空态仍由 list-filter 的 table 模式自带空行，本件用于列表 / 卡片 / 页面级空态。
-import { escHtml as esc } from '../../core/base/utils.js?v=20261018g';
+import { escHtml as esc } from '../../core/base/utils.js?v=20261018h';
 
 /**
  * 生成空态 HTML。

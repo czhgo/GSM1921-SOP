@@ -14,11 +14,10 @@
 //    催办状态、作废审批门、删除权限门（均由壳体注入回调，本件只渲染与转交）。
 // ════════════════════════════════════════════════════════════════
 
-import { badgeHtml } from '../ui/badges.js?v=20261018g';
-import { listRowHtml } from '../ui/list-row.js?v=20261018g';
-import { emptyStateHtml } from '../ui/empty-state.js?v=20261018g';
-import { isTodoExpired } from '../../services/governance/todo.js?v=20261018g';
-import { escHtml, todayLocal } from '../../core/base/utils.js?v=20261018g';
+import { listRowHtml } from '../ui/list-row.js?v=20261018h';
+import { emptyStateHtml } from '../ui/empty-state.js?v=20261018h';
+import { isTodoExpired } from '../../services/governance/todo.js?v=20261018h';
+import { escHtml, todayLocal } from '../../core/base/utils.js?v=20261018h';
 
 /** 四档展示顺序与组名（纯中文；空组由渲染层跳过） */
 const URGENCY_LEVELS = [
@@ -137,7 +136,7 @@ function _moreMenuHtml(prefix, g, urge, canVoid, canDelete) {
   if (!items.length) return '';
   return `
     <div class="todo-more">
-      <button type="button" class="btn-outline todo-more__btn text-xs px-2.5 py-1.5 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 transition-colors" aria-haspopup="true" aria-expanded="false" aria-label="更多操作：${escHtml(g.title || '')}">更多</button>
+      <button type="button" class="btn-ghost todo-more__btn text-xs text-gray-500" aria-haspopup="true" aria-expanded="false" aria-label="更多操作：${escHtml(g.title || '')}">更多</button>
       <div class="todo-more__menu hidden" role="menu">${items.join('')}</div>
     </div>`;
 }
@@ -166,7 +165,8 @@ function _renderUrgencyRow(prefix, g, opts, today, selectedTodoId) {
   if (g.deadline) metaParts.push(`截止 ${g.deadline}`);
 
   const row = listRowHtml({
-    leading: hasVoidPending ? badgeHtml('待支委会确认', 'warning') : '',
+    rowType: 'master',
+    leading: hasVoidPending ? '<span class="state-badge state-badge--warning">待支委会确认</span>' : '',
     title: g.title || '未命名待办',
     meta: metaParts.join(' · '),
     trailing,
@@ -174,8 +174,6 @@ function _renderUrgencyRow(prefix, g, opts, today, selectedTodoId) {
     dataAttrs: {
       'data-group-key': g.groupKey,
       'data-selected': isSelected ? 'true' : undefined,
-      tabindex: '0',
-      role: 'button',
       'aria-current': isSelected ? 'true' : undefined,
       'aria-label': `查看详情：${g.title || ''}`,
     },
@@ -251,14 +249,18 @@ export function renderUrgencyTodoList(opts) {
     if (!groups.length) return '';
     total += groups.length;
     const danger = section.key === 'overdue';
+    const tone = danger ? 'warning' : 'neutral';
+    const dotClass = danger ? 'todo-urgency-header__dot todo-urgency-header__dot--warning' : 'todo-urgency-header__dot';
+    const count = groups.reduce((sum, g) => sum + _groupCount(g), 0);
     const rows = groups
       .map(g => _renderUrgencyRow(prefix, g, { onActionTodo, onDeleteTodo, onVoidTodo, urgeStateOf, actionBtnStyle }, today, selectedTodoId))
       .join('');
     return `
       <section class="todo-urgency-group ${prefix}-todo-urgency-group" data-urgency="${section.key}">
         <div class="todo-urgency-header ${prefix}-todo-urgency-header">
-          <span class="todo-urgency-header__label${danger ? ' todo-urgency-header__label--danger' : ''}">${section.label}</span>
-          <span class="todo-urgency-header__count${danger ? ' todo-urgency-header__count--danger' : ''}">${groups.reduce((sum, g) => sum + _groupCount(g), 0)}</span>
+          <span class="${dotClass}" aria-hidden="true"></span>
+          <span class="todo-urgency-header__label">${section.label}</span>
+          <span class="state-badge state-badge--${tone} tabular-nums">${count}</span>
         </div>
         <div class="list-group">${rows}</div>
       </section>`;

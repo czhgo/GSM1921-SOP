@@ -6,16 +6,20 @@
 //  单一源关系：
 //   · 数据 = core/domain/domain.js 的 mockDB（hydrate 后与当前数据源同步，不新增接口）；
 //   · 行结构 = components/ui/list-row.js 的 listRowHtml / listGroupHtml（分隔线由 .list-group 出）；
-//   · 样式 = docs/src/styles.css 的 .list-row / .list-group 段与间距令牌。
+//     行型为导航行（rowType: 'nav'），状态以行尾 .state-badge 呈现（运行中 success / 招募中 info）；
+//   · 样式 = docs/src/styles.css 的 .list-row / .list-group / .state-badge 段与间距令牌。
 //  口径：仅取 status 为 active / recruiting 的工作组；成员数＝status !== 'removed' 的成员行；
 //  任务完成数＝completed 数 / 非 cancelled 任务总数，无任务显示「—」；两类皆空则整卡隐藏。
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../../core/domain/domain.js?v=20261018g';
-import { listRowHtml, listGroupHtml } from '../ui/list-row.js?v=20261018g';
+import { mockDB } from '../../core/domain/domain.js?v=20261018h';
+import { listRowHtml, listGroupHtml } from '../ui/list-row.js?v=20261018h';
 
 const GROUP_LIMIT = 3;
-const STATUS_LABEL = { active: '运行中', recruiting: '招募中' };
+const STATUS_BADGE = {
+  active: { label: '运行中', tone: 'success' },
+  recruiting: { label: '招募中', tone: 'info' },
+};
 
 /** 某工作组的任务口径：completed / 非 cancelled 总数（无任务时 total 为 0） */
 function taskStats(workgroupId) {
@@ -35,7 +39,7 @@ function memberCount(workgroupId) {
   ).length;
 }
 
-/** 单条工作组行：组名 + 成员/进度/状态 + 行尾「进入」；整行可点，落对应详情 */
+/** 单条工作组行：组名 + 成员/进度（meta）+ 行尾状态徽章与「进入 →」；整行可点，落对应详情 */
 function groupRowHtml(group, sourceById) {
   const { total, completed } = taskStats(group.id);
   const source = sourceById.get(group.sourceId) || null;
@@ -43,11 +47,12 @@ function groupRowHtml(group, sourceById) {
   if (total > 0) progress = `任务 ${completed}/${total}`;
   else if (group.kind === 'activity') progress = source?.date ? `日期 ${source.date}` : '任务 —';
   else progress = source?.deadline ? `截止 ${source.deadline}` : '任务 —';
-  const meta = [
-    `成员 ${memberCount(group.id)} 人`,
-    progress,
-    STATUS_LABEL[group.status],
-  ].filter(Boolean).join(' · ');
+  const meta = [`成员 ${memberCount(group.id)} 人`, progress].join(' · ');
+  const status = STATUS_BADGE[group.status];
+  const trailing = [
+    status ? `<span class="state-badge state-badge--${status.tone}">${status.label}</span>` : '',
+    '<span class="text-xs text-accent whitespace-nowrap">进入 →</span>',
+  ].join('');
   const detailAttr = group.kind === 'activity'
     ? { 'data-activity-id': group.sourceId }
     : { 'data-tf-id': group.sourceId };
@@ -55,17 +60,19 @@ function groupRowHtml(group, sourceById) {
   return listRowHtml({
     title: group.name,
     meta,
-    trailing: '<span class="text-xs text-blue-600 whitespace-nowrap">进入</span>',
+    trailing,
+    rowType: 'nav',
     interactive: true,
     dataAttrs: detailAttr,
+    className: 'taskforce-row',
   });
 }
 
-/** 组头：组名 + 该组总数（行只展示前 3 条） */
+/** 组头：「组名 ·」+ 中性计数徽章；非首组用 1px hairline 与上一组分隔 */
 function groupHeadHtml(label, count, isFirst) {
-  return `<div class="flex items-center gap-2 px-3 ${isFirst ? '' : 'mt-3'} pb-1">
-    <span class="text-xs font-semibold text-gray-600">${label}</span>
-    <span class="text-xs text-gray-500">${count}</span>
+  return `<div class="flex items-center gap-2 px-3 pb-2 ${isFirst ? '' : 'mt-4 pt-4 border-t border-neutral-100'}">
+    <span class="section-head__title">${label}</span>
+    <span class="state-badge state-badge--neutral">${count}</span>
   </div>`;
 }
 

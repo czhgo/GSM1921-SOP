@@ -10,20 +10,20 @@
 //   · 会议实体 = mockDB.activities（type==='支委会' 或 scenarioId==='branch-committee'）；
 //     应到人数 = services/activity/vote-config.js::resolveVoterIds('committee')（与本场应到名单同一口径）。
 //   · 表格 = components/ui/data-table.js（.data-table 单一源）；行内选人 = components/governance/pickers.js::PersonPicker。
-import { mockDB } from '../../../core/domain/domain.js?v=20261018g';
-import { AuthStore } from '../../../services/core/auth.js?v=20261018g';
-import { PersonStore, getPersonById } from '../../../services/member/person.js?v=20261018g';
+import { mockDB } from '../../../core/domain/domain.js?v=20261018h';
+import { AuthStore } from '../../../services/core/auth.js?v=20261018h';
+import { PersonStore, getPersonById } from '../../../services/member/person.js?v=20261018h';
 import {
   listBranchCommissioners,
   appointBranchCommissioner,
   revokeBranchCommissioner,
-} from '../../../services/branch/appointment.js?v=20261018g';
-import { ROLE_LABELS, BRANCH_COMMISSIONER_ASSIGNABLE_ROLES } from '../../../core/domain/constants.js?v=20261018g';
-import { resolveVoterIds } from '../../../services/activity/vote-config.js?v=20261018g';
-import { renderDataTable, tableHeadHtml } from '../../../components/ui/data-table.js?v=20261018g';
-import { PersonPicker } from '../../../components/governance/pickers.js?v=20261018g';
-import { getAppliedAccentColors } from '../../../core/boot/theme.js?v=20261018g';
-import { showToast, escHtml as esc } from '../../../core/base/utils.js?v=20261018g';
+} from '../../../services/branch/appointment.js?v=20261018h';
+import { ROLE_LABELS, BRANCH_COMMISSIONER_ASSIGNABLE_ROLES } from '../../../core/domain/constants.js?v=20261018h';
+import { resolveVoterIds } from '../../../services/activity/vote-config.js?v=20261018h';
+import { renderDataTable, tableHeadHtml } from '../../../components/ui/data-table.js?v=20261018h';
+import { PersonPicker } from '../../../components/governance/pickers.js?v=20261018h';
+import { getAppliedAccentColors } from '../../../core/boot/theme.js?v=20261018h';
+import { showToast, escHtml as esc } from '../../../core/base/utils.js?v=20261018h';
 
 /** 本支部 id（登录人归属；缺省 br-b1，与全仓同口径） */
 function branchId() {
@@ -64,19 +64,25 @@ function rosterRows() {
   return rows;
 }
 
+/** 状态徽章（视觉口径 = styles.css::.state-badge；状态不写裸文字） */
+function statusBadge(label, variant) {
+  return `<span class="state-badge state-badge--${variant}">${esc(label)}</span>`;
+}
+
 /** 支委构成行：末列动作只在本行内展开选人面板，不再出现全局「选人 → 选身份 → 确认」表单 */
 function rosterRowHtml(r) {
-  const personCell = r.name ? esc(r.name) : '<span class="text-gray-400">空缺</span>';
-  const statusCell = r.name ? '在任' : '<span class="text-gray-400">空缺</span>';
+  const vacant = !r.name;
+  const personCell = vacant ? '<span class="text-gray-400">空缺</span>' : esc(r.name);
+  const statusCell = vacant ? statusBadge('空缺', 'warning') : statusBadge('在任', 'neutral');
   let action = '<span class="text-gray-400">党委配置</span>';
-  if (r.editable && r.name) {
-    action = `<button type="button" class="btn-ghost" data-cm-replace="${esc(r.role)}">改派</button>
+  if (r.editable && !vacant) {
+    action = `<button type="button" class="btn-ghost text-accent" data-cm-replace="${esc(r.role)}">改派</button>
       <button type="button" class="btn-ghost text-red-600" data-cm-revoke="${esc(r.role)}" data-person-id="${esc(r.personId)}">撤销</button>`;
   } else if (r.editable) {
-    action = `<button type="button" class="btn-ghost" data-cm-replace="${esc(r.role)}">补选</button>`;
+    action = `<button type="button" class="btn-ghost text-accent" data-cm-replace="${esc(r.role)}">补选</button>`;
   }
   return `<tr>
-    <td>${personCell}</td>
+    <td${vacant ? ' class="section-accent-left"' : ''}>${personCell}</td>
     <td>${esc(r.label)}</td>
     <td>${esc(r.source)}</td>
     <td>${statusCell}</td>
@@ -91,6 +97,14 @@ function meetingRows() {
     .sort((a, b) => String(b.date || '').localeCompare(String(a.date || '')))
     .slice(0, 8);
 }
+
+/** 会议状态 → 徽章档（四选一：待召开 / 线上表态中 / 已截止 / 已留存） */
+const MEETING_STATUS_VARIANT = {
+  '待召开': 'info',
+  '线上表态中': 'accent',
+  '已截止': 'neutral',
+  '已留存': 'success',
+};
 
 /** 会议状态四选一：待召开 / 线上表态中 / 已截止 / 已留存（判据只用既有字段） */
 function meetingStatus(act) {
@@ -111,12 +125,13 @@ function attendeeCount(act) {
 }
 
 function meetingRowHtml(act) {
+  const status = meetingStatus(act);
   return `<tr>
     <td class="whitespace-nowrap">${esc(act.date || '—')}</td>
     <td>${esc(act.title || '未命名会议')}</td>
-    <td>${esc(meetingStatus(act))}</td>
+    <td>${statusBadge(status, MEETING_STATUS_VARIANT[status] || 'neutral')}</td>
     <td>${attendeeCount(act)}</td>
-    <td><a href="./party-committee-meeting.html?id=${encodeURIComponent(act.id)}" class="btn-ghost" style="text-decoration:none;">进入</a></td>
+    <td><a href="./party-committee-meeting.html?id=${encodeURIComponent(act.id)}" class="text-accent" style="text-decoration:none;">进入 ›</a></td>
   </tr>`;
 }
 
@@ -205,8 +220,8 @@ export function renderContent() {
     <div class="stack-page">
       <header class="flex items-start justify-between gap-3 flex-wrap">
         <div class="min-w-0">
-          <h2 class="font-title-cn text-base font-bold text-gray-800">支委会</h2>
-          <p class="text-xs text-gray-500 mt-1">支委身份由支书配置；支书 / 副支书由党委配置。<a href="./help.html#card-copy-pcm-scope" class="text-sky-600 hover:underline">见帮助</a></p>
+          <h2 class="font-title-cn text-xl font-bold text-gray-800">支委会</h2>
+          <p class="text-xs text-gray-500 mt-1">支委身份由支书配置；支书 / 副支书由党委配置。<a href="./help.html#card-copy-pcm-scope" class="text-gray-500 underline hover:text-gray-700">见帮助</a></p>
         </div>
         <a href="./party-committee-meeting.html?action=new" class="btn-accent" style="text-decoration:none;">新建线上支委会 →</a>
       </header>
@@ -214,7 +229,7 @@ export function renderContent() {
         <h3 class="font-title-cn text-sm font-bold text-gray-700">支委构成</h3>
         <div id="cm-roster-table" class="overflow-x-auto"></div>
       </section>
-      <section class="card rounded-xl card-standard stack-card">
+      <section class="card card--static rounded-xl card-standard stack-card">
         <h3 class="font-title-cn text-sm font-bold text-gray-700">支委会会议</h3>
         <div id="cm-meeting-table" class="overflow-x-auto"></div>
       </section>
