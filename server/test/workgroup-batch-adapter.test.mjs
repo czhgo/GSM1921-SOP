@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { ApiAdapter } from '../../docs/src/data/api-adapter.js?v=20261018h';
-import { setDataSource } from '../../docs/src/data/data-adapter.js?v=20261018h';
+import { ApiAdapter } from '../../docs/src/data/api-adapter.js?v=20261018i';
+import { setDataSource } from '../../docs/src/data/data-adapter.js?v=20261018i';
 
 test('ApiAdapter exposes the transactional workgroup member save-all request', async () => {
   const oldFetch = globalThis.fetch;

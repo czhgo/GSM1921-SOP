@@ -18,7 +18,7 @@ import { join } from 'node:path';
 import {
   buildUrgencySections,
   renderUrgencyTodoList,
-} from '../../docs/src/components/record/todo-list.js?v=20261018h';
+} from '../../docs/src/components/record/todo-list.js?v=20261018i';
 
 const ROOT = join(import.meta.dirname, '..', '..');
 const read = (rel) => readFileSync(join(ROOT, rel), 'utf8');
@@ -98,11 +98,17 @@ test('④ 行内只保留标题/说明/主行动，作废等次要动作进入�
   assert.match(html, /class="list-row /, '行结构应复用 list-row');
   assert.match(html, /成员发展/, '业务域应降为行内 12px 次级标签');
   assert.match(html, /data-group-key="secretary:member-confirm"/, '深链锚点应保留');
-  assert.match(html, /secretary-todo-action-btn/, '行内应保留一个主行动');
-  assert.match(html, /todo-more__btn[^>]*aria-expanded="false"/, '更多菜单默认收起且键盘可达');
+  assert.match(html, /class="btn-accent-soft btn-sm secretary-todo-action-btn"/, '行内主行动用紧凑强调次操作');
+  assert.match(html, /class="btn-outline btn-sm todo-more__btn"[^>]*aria-expanded="false"/, '「更多」用紧凑次操作且默认收起');
+  assert.doesNotMatch(html, /btn-ghost/, '行内不得再出现无底色无边框按钮');
   assert.match(html, /secretary-todo-void-btn/, '作废应收进更多菜单');
   assert.match(html, /secretary-todo-del-btn/, '删除应收进更多菜单');
   assert.match(html, /secretary-todo-urge-btn/, '催办应收进更多菜单');
+
+  // 组头只留组名 + 状态点：计数只在四数摘要出现，组头不得再挂徽章
+  const headers = [...html.matchAll(/<div class="todo-urgency-header[^"]*">([\s\S]*?)<\/div>/g)].map(m => m[1]);
+  assert.equal(headers.length, 1, '应渲染一个四档组头');
+  assert.doesNotMatch(headers[0], /state-badge|tabular-nums|\d/, '组头不得重复计数');
 });
 
 test('⑤ 六台 todo-tab 仍共用 createTodoTab（不逐台复制四档渲染）', () => {
@@ -127,4 +133,19 @@ test('⑦ 深链定位逻辑仍在：data-group-key 锚点 + groupKey 查找', (
   const list = read('docs/src/components/record/todo-list.js');
   assert.match(list, /'data-group-key': g\.groupKey/, '行根应保留 data-group-key（?tab=todo&highlight=<groupKey> 定位）');
   assert.match(list, /_findGroup\(sections, row\.dataset\.groupKey\)/, '点行应按 groupKey 找回分组');
+});
+
+test('⑧ 首屏顺序：待答复与未读通知合并为默认收起的折叠条，主对象「我的待办」紧随其后', () => {
+  const shell = read('docs/src/components/record/todo-tab-shell.js');
+  assert.match(shell, /<details class="todo-strip[^"]*"/, '页顶应使用原生 details 折叠条');
+  assert.match(shell, /\$\{_stripOpen \? ' open' : ''\}/, '折叠条默认收起（open 仅由用户展开态决定）');
+  assert.match(shell, /待答复与未读通知/, '摘要只显示合并后的条名');
+  assert.match(shell, /const stripHtml = _todoStripHtml\(extraHtml, unreadHtml, stripCount\)/, '收件箱与未读行应合并为一条');
+  const detailsStart = shell.indexOf('<details class="todo-strip');
+  const detailsEnd = shell.indexOf('</details>', detailsStart);
+  const body = shell.slice(detailsStart, detailsEnd);
+  assert.ok(body.includes('${extraHtml}') && body.includes('${unreadHtml}'), '展开区应同时承载待答复与未读通知行');
+  const stripInsert = shell.indexOf('${stripHtml}');
+  const mainObject = shell.indexOf('>我的待办</h3>');
+  assert.ok(stripInsert >= 0 && mainObject > stripInsert, '首屏顺序：折叠条在「我的待办」之前，收起只占一行');
 });

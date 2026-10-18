@@ -73,3 +73,18 @@ test('T4 五类支委身份词齐备', () => {
 test('T5 含「新建线上支委会」入口', () => {
   assert.ok(RAW.includes('新建线上支委会'), '支委会 tab 缺「新建线上支委会」入口');
 });
+
+test('T6 帮助注释在两张表之后（说明后置）', () => {
+  const helpIdx = RAW.indexOf('help-note');
+  const rosterIdx = RAW.indexOf('cm-roster-table');
+  const meetingIdx = RAW.indexOf('cm-meeting-table');
+  assert.ok(helpIdx > rosterIdx && helpIdx > meetingIdx,
+    '帮助注释应后置到两张表之后，不再压在标题下');
+});
+
+test('T7 标题区只有一个主操作按钮，且行内不再出现 btn-ghost', () => {
+  const header = RAW.slice(RAW.indexOf('<header'), RAW.indexOf('</header>'));
+  const accentCount = (header.match(/btn-accent(?![\w-])/g) || []).length;
+  assert.equal(accentCount, 1, `标题区 btn-accent 应为 1 个（新建 CTA），实测 ${accentCount}`);
+  assert.ok(!/\bbtn-ghost\b/.test(RAW), '支委会 tab 行内动作仍在使用 btn-ghost');
+});

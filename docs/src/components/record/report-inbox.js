@@ -8,13 +8,13 @@
 //  本组件禁用 SVG 图标（支书 2026-08-10 裁定），类别用色点+文字标签区分
 // ════════════════════════════════════════════════════════════════
 
-import { IssueStore, deriveIssueDisplayState, REPORT_CATEGORIES } from '../../services/governance/issues.js?v=20261018h';
-import { AuthStore } from '../../services/core/auth.js?v=20261018h';
-import { showToast, escHtml } from '../../core/base/utils.js?v=20261018h';
-import { getPersonName } from '../../services/member/person.js?v=20261018h';
-import { solidAccentStyle } from '../../core/domain/constants.js?v=20261018h';
+import { IssueStore, deriveIssueDisplayState, REPORT_CATEGORIES } from '../../services/governance/issues.js?v=20261018i';
+import { AuthStore } from '../../services/core/auth.js?v=20261018i';
+import { showToast, escHtml } from '../../core/base/utils.js?v=20261018i';
+import { getPersonName } from '../../services/member/person.js?v=20261018i';
+import { solidAccentStyle } from '../../core/domain/constants.js?v=20261018i';
 // 统一检索引擎（2026-09-14 批次 37）：待答复汇报列表接入（关键词 事项/汇报人 + 引擎内置分页）
-import { renderFilteredList } from '../ui/list-filter.js?v=20261018h';
+import { renderFilteredList } from '../ui/list-filter.js?v=20261018i';
 
 // ── E-3（2026-09-09 · H60.7 面板保态复查③）：列表瞬态草稿互扰兜底 ──────
 // 某行正式答复成功 → onAnswered → 调用方整块重渲染（支书待办/组长组员汇报），
@@ -51,6 +51,7 @@ const STATE_BADGE_VARIANT = {
  * @param {string} [opts.role]   — 答复人角色键（'secretary' | 'leader'）
  * @param {string} [opts.accent] — 强调色
  * @param {string} [opts.emptyMsg] — 空态文案
+ * @param {boolean} [opts.embedded] — 嵌入折叠条时为 true：不画独立卡片与标题，只出检索宿主
  * @returns {string}
  */
 export function renderReportInboxHtml({
@@ -60,6 +61,7 @@ export function renderReportInboxHtml({
   role = 'secretary',
   accent = '#B91C1C',
   emptyMsg = '暂无待答复汇报',
+  embedded = false,
 } = {}) {
   // 2026-09-08 顶卡排布统一：空态并入统一形态（text-xs text-gray-500 py-1），
   // 保留绿色圆点「已全部答复」语义（不突兀：与相邻卡空态行同高，无底色整条）
@@ -70,6 +72,7 @@ export function renderReportInboxHtml({
 
   if (!reports.length) {
     _rowUi.clear(); // 无行可展示：清模块态，防陈旧草稿/展开态残留下次渲染
+    if (embedded) return ''; // 折叠条内无待答复 → 不占位（条内还有未读通知行）
     return `
       <div class="card rounded-xl p-4 mb-4">
         <div class="flex items-center justify-between mb-3">
@@ -100,6 +103,14 @@ export function renderReportInboxHtml({
   // 行内容迁至统一检索引擎（rowHtml 见 bindReportInbox——引擎须 DOM 就位后才可挂载）；
   // 本轮排序后行与强调色按 role 交接给 bind（行 HTML 原样保留，仅换承载）
   _listPayload.set(role, { accent, rows: sorted });
+
+  if (embedded) {
+    return `
+      <div class="todo-strip__section">
+        <p class="text-xs font-medium text-gray-500 pt-2 pb-1">待答复</p>
+        <div id="rep-inbox-list-host"></div>
+      </div>`;
+  }
 
   return `
     <div class="card rounded-xl p-4 mb-4">
@@ -142,7 +153,7 @@ function _renderInboxDetail(r, accent, draft = '') {
     ${r.status === 'open' ? `
       <div class="flex gap-2 mt-2">
         <input type="text" id="rep-inbox-input-${r.id}" class="input-flat flex-1" value="${escHtml(draft)}" placeholder="添加答复…" aria-label="答复内容">
-        <button type="button" class="btn-accent-soft rep-inbox-reply text-xs px-3 py-2 flex-shrink-0" data-report-id="${r.id}" >正式答复</button>
+        <button type="button" class="btn-accent-soft btn-sm rep-inbox-reply flex-shrink-0" data-report-id="${r.id}" >正式答复</button>
       </div>` : ''}
   `;
 }
@@ -205,7 +216,7 @@ export function bindReportInbox(container, { role = 'secretary', onAnswered = ()
             </p>
           </div>
           <div class="notice-row__actions">
-            <button type="button" class="btn-accent-soft rep-inbox-toggle" data-report-id="${r.id}">去处理</button>
+            <button type="button" class="btn-accent-soft btn-sm rep-inbox-toggle" data-report-id="${r.id}">去处理</button>
           </div>
         </div>
         <div id="rep-inbox-detail-${r.id}" class="px-3 pb-3 border-t border-gray-100${rowOpen ? '' : ' hidden'}">

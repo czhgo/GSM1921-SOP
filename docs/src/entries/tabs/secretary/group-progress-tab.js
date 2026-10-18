@@ -44,41 +44,41 @@
 //   ⚠ **只动渲染顺序 / 分层与落点**，不改任何功能、权限判定与写口——DOM ID 全保留，真机流程不失配。
 // ════════════════════════════════════════════════════════════════
 
-import { AuthStore } from '../../../services/core/auth.js?v=20261018h';
-import { PersonStore, getPersonName } from '../../../services/member/person.js?v=20261018h';
-import { getBranchIdOfPerson } from '../../../services/branch/branch.js?v=20261018h';
-import { IssueStore } from '../../../services/governance/issues.js?v=20261018h';
-import { loadActivities } from '../../../services/activity/activity.js?v=20261018h';
-import { loadActivityReviews } from '../../../services/governance/review.js?v=20261018h';
-import { loadAttendanceRecords } from '../../../services/activity/attendance.js?v=20261018h';
-import { AttendanceStatus, ReviewStatus, REVIEW_STATUS_LABELS } from '../../../core/domain/domain.js?v=20261018h';
-import { getMeetingRosterIds } from '../../../services/member/roster.js?v=20261018h';
-import { showToast, escHtml as esc, getBasePath, todayLocal } from '../../../core/base/utils.js?v=20261018h';
+import { AuthStore } from '../../../services/core/auth.js?v=20261018i';
+import { PersonStore, getPersonName } from '../../../services/member/person.js?v=20261018i';
+import { getBranchIdOfPerson } from '../../../services/branch/branch.js?v=20261018i';
+import { IssueStore } from '../../../services/governance/issues.js?v=20261018i';
+import { loadActivities } from '../../../services/activity/activity.js?v=20261018i';
+import { loadActivityReviews } from '../../../services/governance/review.js?v=20261018i';
+import { loadAttendanceRecords } from '../../../services/activity/attendance.js?v=20261018i';
+import { AttendanceStatus, ReviewStatus, REVIEW_STATUS_LABELS } from '../../../core/domain/domain.js?v=20261018i';
+import { getMeetingRosterIds } from '../../../services/member/roster.js?v=20261018i';
+import { showToast, escHtml as esc, getBasePath, todayLocal } from '../../../core/base/utils.js?v=20261018i';
 // 统一检索引擎（2026-09-13 表格统一化批次 A）：组员进展摘要（按人）接入关键词 + 分面
-import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261018h';
+import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261018i';
 // 活动类型胶囊（批次 301）：变体判据＝单一源 `activityTypeBadgeVariant`（三会一课＝brand 红 / 主题党日＝gold 金），
 //   渲染唯一源＝`components/ui/badge.js`；**不在本文件手写色值**（支书 2026-09-30：颜色是最好的信息展示方式）。
-import { activityTypeBadgeVariant } from '../../../core/domain/constants.js?v=20261018h';
-import { badgeHtml } from '../../../components/ui/badges.js?v=20261018h'; // 扎口出口（批次 304 收回，勿直连 badge.js）
-import { openModal, closeModal } from '../../../components/ui/modal.js?v=20261018h';
+import { activityTypeBadgeVariant } from '../../../core/domain/constants.js?v=20261018i';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20261018i'; // 扎口出口（批次 304 收回，勿直连 badge.js）
+import { openModal, closeModal } from '../../../components/ui/modal.js?v=20261018i';
 // 党小组一等实体服务层（组清单 / 写口 / 权限门 / 留痕——组名唯一来源，禁本文件手写组名数组）
 import {
   loadPartyGroups, groupOptions, defaultGroupName, nextGroupSeq,
   addGroup, renameGroup, dissolveGroup, assignMemberToGroup, ungroupedMembers,
   canManagePartyGroups, listGroupHistory,
-} from '../../../services/member/party-group.js?v=20261018h';
+} from '../../../services/member/party-group.js?v=20261018i';
 import {
   listPartyGroups, memberScopeOfGroup, countOpenReportsByGroup,
   groupActivitiesOf, reviewBucketOf, GROUP_REVIEW_COLOR, groupLeadershipOf,
   groupReportRowsOf, reportRowStateOf,
-} from '../../../services/member/group-view.js?v=20261018h';
+} from '../../../services/member/group-view.js?v=20261018i';
 // 赋权分块（2026-09-25 支书裁「全按对象归位」）：情景①a（设党小组组长 / 副组长）由本 tab「党小组清单」卡内
 //   行内管理（2026-10-04 批次 373 去冗余：撤独立「组长指派」块，改由清单行内「设/改」开同一面板）；
 //   **情景①b 支委身份配置已按 2026-09-27 支书裁定迁「支委会」**；**情景②③ 项目赋权整卡按 2026-10-04
 //   批次 373 迁「活动管理」页**（`calendar-tab.js`）。
 //   实现单一源＝entries/tabs/secretary/assign-tab.js（该文件已不注册为 tab，仅余 mount* 分块）
 //   ⇒ **不新造第二套视觉/表单**，只把既有分块挂到本 tab 的落点。
-import { mountLeaderAssign, openLeaderAssignPanel } from './assign-tab.js?v=20261018h';
+import { mountLeaderAssign, openLeaderAssignPanel } from './assign-tab.js?v=20261018i';
 
 /** 缺省支部（与 services/member/party-group.js / mock/domain 既有兼容口径一致：老数据无 branchId 视为 br-b1） */
 const DEFAULT_BRANCH_ID = 'br-b1';
@@ -221,26 +221,23 @@ function _ungroupedRowHtml(p, options, canAssign) {
 function _manageCardHtml(entities, statOf, leaderAssign, canManage) {
   const rows = entities.length
     ? entities.map(g => _manageRowHtml(g, statOf.get(g.name), leaderAssign.get(g.name), canManage)).join('')
-    : `<tr><td colspan="7" class="py-2 px-3 text-gray-500">支部暂无党小组，点右上「新增党小组」建立第一组</td></tr>`;
+    : `<tr><td colspan="5" class="py-2 px-3 text-gray-500">支部暂无党小组，点右上「新增党小组」建立第一组</td></tr>`;
   return `
-    <div class="card rounded-xl p-4">
+    <div class="card rounded-xl p-4 card--static">
       <div class="flex items-center justify-between mb-1">
         <h4 class="font-title-cn text-sm font-bold text-gray-700">党小组清单</h4>
         <div class="flex items-center gap-2">
           <span class="text-xs text-gray-500">${canManage ? '支书/副支书可管理' : '只读查看'}</span>
-          ${canManage ? '<button type="button" class="btn-accent gp-add-group text-xs px-3 py-1.5">+ 新增党小组</button>' : ''}
+          ${canManage ? '<button type="button" class="btn-accent gp-add-group">+ 新增党小组</button>' : ''}
         </div>
       </div>
-      <p class="text-xs text-gray-500 mb-2.5">组长 / 副组长由成员档案派生：行内「设 / 改」任命、「撤销」回收；改名同步归属、解散转「未分组」。<a href="./help.html#card-copy-party-group" class="text-sky-600 hover:underline" title="见帮助：党小组与组长（组长派生 / 改名 / 解散的完整口径与边界）">见帮助 · 党小组与组长</a></p>
       <div class="overflow-x-auto">
         <table class="data-table">
           <thead>
             <tr>
-              <th>组名</th>
-              <th>序号</th>
-              <th>组长 / 副组长</th>
-              <th>人数</th>
-              <th>党员数</th>
+              <th>党小组</th>
+              <th>负责人</th>
+              <th>人数（含党员）</th>
               <th>状态</th>
               <th>操作</th>
             </tr>
@@ -248,29 +245,30 @@ function _manageCardHtml(entities, statOf, leaderAssign, canManage) {
           <tbody>${rows}</tbody>
         </table>
       </div>
+      <p class="help-note" style="margin-top:10px;">组长 / 副组长由成员档案派生；行内「设 / 改」任命或撤销。<a href="./help.html#card-copy-party-group" class="help-note__link" title="见帮助：党小组与组长（组长派生 / 改名 / 解散的完整口径与边界）">见帮助 · 党小组与组长</a></p>
       <div id="gp-leader-assign-host"></div>
     </div>`;
 }
 
 function _manageRowHtml(g, stat, assign, canManage) {
   const active = g.status === 'active';
-  // 2026-09-30 批次 297-2 续③（支书裁「这些有操作能力的字段应该有一定的设计，如果不是边框，
-  //   就应该用一定的颜色」）：行内实体操作**不得裸文字** —— 改名＝中性描边、解散＝功能红软底。
+  // 行内动作收敛为 1 强调次操作（设 / 改）＋ 1 次操作（改名）＋ 1 危险（解散）；
+  //   尺寸走紧凑档 `.btn-sm`，不再用 `text-xs px-* py-*` 手写尺寸。
   const actions = (canManage && active)
-    ? `<div class="flex items-center gap-2">
-        <button type="button" class="btn-outline gp-rename text-xs px-3 py-1.5" data-id="${esc(g.id)}">改名</button>
-        <button type="button" class="btn-danger gp-dissolve text-xs px-3 py-1.5" data-id="${esc(g.id)}">解散</button>
+    ? `<div class="flex items-center gap-1.5">
+        <button type="button" class="gp-assign-leader btn-accent-soft btn-sm" data-group="${esc(g.name)}" title="设 / 改本组组长或副组长">设 / 改</button>
+        <button type="button" class="gp-rename btn-outline btn-sm" data-id="${esc(g.id)}">改名</button>
+        <button type="button" class="gp-dissolve btn-danger btn-sm" data-id="${esc(g.id)}">解散</button>
       </div>`
     : '<span class="text-gray-500">—</span>';
   const leaderCell = active ? _leaderCellHtml(g, assign, canManage) : '<span class="text-gray-500">—</span>';
+  const headCount = stat ? `${stat.memberCount} 人 · 党员 ${stat.partyCount}` : '0 人 · 党员 0';
   return `
     <tr>
-      <td class="text-gray-800 font-medium">${esc(g.name)}</td>
-      <td class="text-gray-600 tabular-nums">${Number(g.seq) || 0}</td>
+      <td class="text-gray-800 font-medium whitespace-nowrap">${esc(g.name)}</td>
       <td>${leaderCell}</td>
-      <td class="text-gray-600 tabular-nums">${stat ? stat.memberCount : 0}</td>
-      <td class="text-gray-600 tabular-nums">${stat ? stat.partyCount : 0}</td>
-      <td><span class="text-xs px-1.5 py-0.5 rounded-full ${active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}">${active ? '在册' : '已解散'}</span></td>
+      <td class="text-gray-600 tabular-nums whitespace-nowrap">${headCount}</td>
+      <td class="whitespace-nowrap"><span class="text-xs px-1.5 py-0.5 rounded-full ${active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}">${active ? '在册' : '已解散'}</span></td>
       <td>${actions}</td>
     </tr>`;
 }
@@ -284,19 +282,16 @@ function _leaderCellHtml(g, assign, canManage) {
   const leaders = (assign && assign.leaders) || [];
   const deputies = (assign && assign.deputies) || [];
   const chips = (persons) => persons.length
-    ? persons.map(p => `<span class="inline-flex items-center gap-1">
-        <a href="${getBasePath()}person.html?id=${encodeURIComponent(p.personId)}" class="text-xs text-gray-800 hover:underline hover:text-sky-700 transition-colors" title="查看完整档案">${esc(getPersonName(p.personId))}</a>
-        ${canManage && p.recordId ? `<button type="button" class="gp-revoke-leader btn-ghost text-xs px-1.5 py-0.5 text-red-600" data-record-id="${esc(p.recordId)}" data-group="${esc(g.name)}" title="撤销该赋权（回落普通成员）">撤销</button>` : ''}
-      </span>`).join('')
+    ? persons.map(p => `<span class="inline-flex items-center gap-1 min-w-0">
+        <a href="${getBasePath()}person.html?id=${encodeURIComponent(p.personId)}" class="text-xs text-gray-800 min-w-0 truncate hover:underline hover:text-sky-700 transition-colors" title="查看完整档案">${esc(getPersonName(p.personId))}</a>
+        ${canManage && p.recordId ? `<button type="button" class="gp-revoke-leader btn-danger btn-sm" data-record-id="${esc(p.recordId)}" data-group="${esc(g.name)}" title="撤销该赋权（回落普通成员）">撤销</button>` : ''}
+      </span>`).join('、')
     : '<span class="text-xs text-gray-500">未设</span>';
-  const btn = canManage
-    ? `<button type="button" class="gp-assign-leader btn-outline text-xs px-2 py-0.5" data-group="${esc(g.name)}" title="设 / 改本组组长或副组长">设 / 改</button>`
-    : '';
   return `
-    <div class="space-y-1.5 min-w-[180px]">
-      <div class="flex items-center gap-2 flex-wrap"><span class="text-[11px] text-gray-500 shrink-0 w-8">组长</span>${chips(leaders)}</div>
-      <div class="flex items-center gap-2 flex-wrap"><span class="text-[11px] text-gray-500 shrink-0 w-8">副组长</span>${chips(deputies)}</div>
-      ${btn ? `<div>${btn}</div>` : ''}
+    <div class="flex items-center gap-x-1.5 gap-y-1 flex-wrap min-w-[200px] max-w-[240px]">
+      <span class="text-[11px] text-gray-500 shrink-0 whitespace-nowrap">组长</span>${chips(leaders)}
+      <span class="text-xs text-gray-300 shrink-0">·</span>
+      <span class="text-[11px] text-gray-500 shrink-0 whitespace-nowrap">副组长</span>${chips(deputies)}
     </div>`;
 }
 
@@ -334,10 +329,10 @@ function _leaderAssignMap(branchId) {
 function _historyCardHtml(history) {
   const rows = history.slice(0, 10);
   return `
-    <div class="card rounded-xl p-4">
+    <div class="card rounded-xl p-4 card--static">
       <div class="flex items-center justify-between">
         <h4 class="font-title-cn text-sm font-bold text-gray-700">变更留痕 <span class="text-xs text-gray-500 font-normal">${history.length} 条</span></h4>
-        <button type="button" class="btn-ghost gp-history-toggle text-xs">${_historyOpen ? '收起' : '展开最近 10 条'}</button>
+        <button type="button" class="btn-outline btn-sm gp-history-toggle">${_historyOpen ? '收起' : '展开最近 10 条'}</button>
       </div>
       ${_historyOpen ? `<div class="mt-2.5 pt-2.5 border-t border-gray-100 divide-y divide-gray-50">
         ${rows.map(_historyRowHtml).join('')}
@@ -368,12 +363,12 @@ function _historyRowHtml(h) {
  *  故随区一并折叠、不单独留守首屏。 */
 function _progressSectionHtml(viewGroups, group, members, activities, reviews, attRecords, branchId, issues) {
   return `
-    <div class="card rounded-xl p-4">
+    <div class="card rounded-xl p-4 card--static">
       <div class="flex items-center justify-between mb-1">
         <h4 class="font-title-cn text-sm font-bold text-gray-700">跨组进展（只读知情）</h4>
-        <button type="button" class="btn-ghost gp-progress-toggle text-xs">${_progressOpen ? '收起' : '展开跨组进展'}</button>
+        <button type="button" class="btn-outline btn-sm gp-progress-toggle">${_progressOpen ? '收起' : '展开跨组进展'}</button>
       </div>
-      <p class="text-xs text-gray-500 mb-2.5">支书跨组只读掌握（知情≠操作）：组员汇报 / 复盘状态 / 活动与考勤。点右上「展开跨组进展」查看。</p>
+      <p class="help-note mb-2.5">只读知情：组员汇报 / 复盘状态 / 活动与考勤。</p>
       ${_progressOpen ? `<div class="space-y-4">
         ${_groupSwitchHtml(viewGroups, group, issues)}
         ${_memberProgressCardHtml(group, issues)}
@@ -410,7 +405,7 @@ function _groupCardHtml(g, activeGroup, issues) {
   const isActive = g.groupName === activeGroup.groupName;
   const openCount = _issuesLoaded ? countOpenReportsByGroup(issues, g) : null;
   return `
-    <button type="button" class="btn-ghost gp-group-card text-left rounded-xl border p-3 transition-colors ${isActive ? '' : 'bg-white hover:bg-gray-50'}"
+    <button type="button" class="gp-group-card text-left rounded-xl border p-3 transition-colors ${isActive ? '' : 'bg-white hover:bg-gray-50'}"
       data-group="${esc(g.groupName)}"
       style="${isActive ? 'border-color:var(--app-accent-border);background:var(--app-accent-bg);' : 'border-color:var(--neutral-100);'}">
       <div class="flex items-center justify-between gap-2">
@@ -448,6 +443,27 @@ function _reportsLoadingHtml() {
     </div>`;
 }
 
+/** 汇报加载失败：可见错误 ＋ 重试（不静默置空） */
+function _renderReportsError(container) {
+  const listEl = container.querySelector('#gp-reports');
+  if (!listEl) return;
+  listEl.innerHTML = `
+    <div class="flex items-center gap-2.5 px-3 py-2 rounded-lg bg-amber-50 border border-amber-100">
+      <span class="text-xs text-amber-800">跨组进展加载失败</span>
+      <button type="button" class="gp-reports-retry btn-outline btn-sm">重试</button>
+    </div>`;
+}
+
+/** 重试汇报加载（先还原加载行，再走同一 _fillReports 通道） */
+async function _onReportsRetry(container) {
+  const listEl = container.querySelector('#gp-reports');
+  if (listEl) listEl.innerHTML = _reportsLoadingHtml();
+  const members = PersonStore.getMembers();
+  const group = listPartyGroups({ members, branchId: _branchId() })
+    .find(x => x.groupName === _selectedGroup);
+  if (group) await _fillReports(container, group, members);
+}
+
 // 组员相关汇报行集合 / 行状态 / 色点 —— 2026-10-04 批次 373 判据**上移** `services/member/group-view.js`
 //   （`groupReportRowsOf` / `reportRowStateOf` / `REPORT_DOT_COLOR`）⇒ 支书台「跨组进展」与组长台「其他组」复用同一份。
 
@@ -473,7 +489,7 @@ function _renderReportsList(hostEl, group, allIssues) {
       const st = reportRowStateOf(r);
       const submitterName = getPersonName(r.submittedBy) || '匿名';
       const askBtn = _canAskLeader(r, group)
-        ? `<button type="button" class="btn-accent-soft gp-ask-leader text-xs px-2.5 py-1 shrink-0"
+        ? `<button type="button" class="btn-accent-soft btn-sm gp-ask-leader shrink-0"
              data-note="${esc(`本组组员汇报待跟进：${submitterName} · ${r.title}`)}">请组长关注</button>`
         : '';
       return `
@@ -501,14 +517,16 @@ function _reportDot(issue) {
   return `<span class="w-2 h-2 rounded-full flex-shrink-0 mt-1.5" style="background:${color};"></span>`;
 }
 
-/** issues 首拉/增量刷新：组卡徽标 + 汇报行（幂等；DOM 已同步渲染则内容相同） */
+/** issues 首拉/增量刷新：组卡徽标 + 汇报行（幂等；DOM 已同步渲染则内容相同）。
+ *  失败不静默置空：汇报宿主给出可见错误 ＋ 重试（2026-10-19 Task 3）。 */
 async function _fillReports(container, group, members) {
   let issues;
   try {
     await IssueStore.loadAll();
     issues = IssueStore.getAll();
   } catch (_) {
-    issues = IssueStore.getAll() || [];
+    _renderReportsError(container);
+    return;
   }
   _issuesLoaded = true;
   const branchId = _branchId();
@@ -580,7 +598,7 @@ function _reviewStatusCardHtml(group, members, activities, reviews) {
         <h4 class="font-title-cn text-sm font-bold text-gray-700">本组活动复盘状态</h4>
         <span class="text-xs text-gray-500">待复盘 ${pending.length} · 已复盘 ${completed.length}</span>
       </div>
-      <p class="text-xs text-gray-500 mb-3">复盘由活动组织者 / 深度参与者提交（入口：成员端「我的复盘」）；支书只读，点开看详情。<a href="./help.html#card-copy-review-submit" class="text-sky-600 hover:underline" title="见帮助：活动复盘提交位（谁提交 / 哪里只读 / 待复盘与打回口径）">见帮助 · 活动复盘</a></p>
+      <p class="help-note" style="margin-bottom:12px;">复盘由活动组织者 / 深度参与者提交；支书只读，点开看详情。<a href="./help.html#card-copy-review-submit" class="help-note__link" title="见帮助：活动复盘提交位（谁提交 / 哪里只读 / 待复盘与打回口径）">见帮助 · 活动复盘</a></p>
       <div class="mb-3">
         <div class="text-xs font-bold text-gray-600 mb-1.5">待复盘 <span class="text-gray-500 font-normal">(${pending.length})</span></div>
         <div class="space-y-1.5">${pendingRows}</div>
@@ -701,6 +719,8 @@ function _bindDelegated(container) {
   container.dataset.gpDelegated = '1';
 
   container.addEventListener('click', (e) => {
+    const retry = e.target.closest('.gp-reports-retry');
+    if (retry) { _onReportsRetry(container); return; }
     const ask = e.target.closest('.gp-ask-leader');
     if (ask) { _onAskLeader(container, ask); return; }
     // 组长 / 副组长：行内「设 / 改」开同一面板（2026-10-04 批次 373 去冗余）
@@ -772,8 +792,6 @@ async function _onRevokeLeader(container, btn) {
 }
 
 // ── 管理动作（新增 / 改名 / 解散；权限门 = canManagePartyGroups 单一源） ──
-const BTN_CANCEL = 'btn-neutral text-xs px-3 py-1.5 transition-colors';
-const BTN_PRIMARY = 'btn-accent text-xs px-3 py-1.5 transition-colors';
 
 function _openAddGroupModal(container) {
   const defName = defaultGroupName(nextGroupSeq()); // 默认名与服务层同源（第 N 党小组）
@@ -791,8 +809,8 @@ function _openAddGroupModal(container) {
         <p class="text-xs text-gray-500">同一支部内活组组名不得重复；成立后可在清单行「改名」，成员在页面顶部「未分组」一行逐个归组。</p>
       </div>
       <div class="flex justify-end gap-2 mt-4">
-        <button type="button" id="gp-add-cancel" class="btn-neutral ${BTN_CANCEL}" style="cursor:pointer;">取消</button>
-        <button type="button" id="gp-add-confirm" class="btn-accent ${BTN_PRIMARY}" style="background:var(--party-red);cursor:pointer;">新增</button>
+        <button type="button" id="gp-add-cancel" class="btn-outline btn-sm" style="cursor:pointer;">取消</button>
+        <button type="button" id="gp-add-confirm" class="btn-accent">新增</button>
       </div>`,
     onMount: (panel) => {
       panel.querySelector('#gp-add-cancel')?.addEventListener('click', () => closeModal('gp-add-group'));
@@ -826,8 +844,8 @@ function _openRenameModal(container, id) {
         <p class="text-xs text-gray-500">改名将同步改写该组全部成员的档案归属（原「${esc(g.name)}」下的成员一并改为新组名），相关活动与考勤口径随之对齐。</p>
       </div>
       <div class="flex justify-end gap-2 mt-4">
-        <button type="button" id="gp-rename-cancel" class="btn-neutral ${BTN_CANCEL}" style="cursor:pointer;">取消</button>
-        <button type="button" id="gp-rename-confirm" class="btn-accent ${BTN_PRIMARY}" style="background:var(--party-red);cursor:pointer;">保存</button>
+        <button type="button" id="gp-rename-cancel" class="btn-outline btn-sm" style="cursor:pointer;">取消</button>
+        <button type="button" id="gp-rename-confirm" class="btn-accent">保存</button>
       </div>`,
     onMount: (panel) => {
       panel.querySelector('#gp-rename-cancel')?.addEventListener('click', () => closeModal('gp-rename'));
@@ -866,8 +884,8 @@ function _openDissolveModal(container, id) {
         <input type="text" id="gp-dissolve-note" class="input-flat w-full" placeholder="如：并入其它党小组 / 成员重新分组">
       </div>
       <div class="flex justify-end gap-2 mt-4">
-        <button type="button" id="gp-dissolve-cancel" class="btn-neutral ${BTN_CANCEL}" style="cursor:pointer;">取消</button>
-        <button type="button" id="gp-dissolve-confirm" class="btn-accent ${BTN_PRIMARY}" style="background:var(--party-red);cursor:pointer;">确认解散</button>
+        <button type="button" id="gp-dissolve-cancel" class="btn-outline btn-sm" style="cursor:pointer;">取消</button>
+        <button type="button" id="gp-dissolve-confirm" class="btn-danger-solid">确认解散</button>
       </div>`,
     onMount: (panel) => {
       panel.querySelector('#gp-dissolve-cancel')?.addEventListener('click', () => closeModal('gp-dissolve'));

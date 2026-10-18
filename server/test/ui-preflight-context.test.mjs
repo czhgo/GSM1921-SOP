@@ -24,7 +24,8 @@ const DESIGN = join(ROOT, 'content', '04_web_design', 'design-system', 'DESIGN_S
 
 /** 10 问的关键词（与 spec / 两处文档同一组；逐条取自 10 问原文） */
 const QUESTION_KEYWORDS = [
-  '唯一的主动作',
+  '第一眼看到什么',
+  '唯一主动作',
   '行动 / 状态 / 身份 / 结构',
   '实底还是淡底',
   '导航 / 动作 / 选择 / 展示 / 主从',

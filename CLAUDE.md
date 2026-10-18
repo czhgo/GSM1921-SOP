@@ -329,7 +329,7 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/DOC
 > 任何改界面的任务，动笔前逐条回答下表 10 问；**答不出第 1/2/4 问不得动笔；实现后在回复中给出答案**。
 > 同源文字：content/04_web_design/design-system/DESIGN_SYSTEM.md §0（文档版）；缺一由 `server/test/ui-preflight-context.test.mjs` 判红。
 
-1. 这一屏唯一的主动作是什么？有没有第二个同等权重的主按钮？
+1. 这一屏第一眼看到什么？唯一主动作是什么？
 2. 每个颜色属于哪一层：行动 / 状态 / 身份 / 结构？
 3. 每个色块是实底还是淡底？为什么？
 4. 每个条目是哪一种行型：导航 / 动作 / 选择 / 展示 / 主从？

@@ -14,10 +14,10 @@
 //    催办状态、作废审批门、删除权限门（均由壳体注入回调，本件只渲染与转交）。
 // ════════════════════════════════════════════════════════════════
 
-import { listRowHtml } from '../ui/list-row.js?v=20261018h';
-import { emptyStateHtml } from '../ui/empty-state.js?v=20261018h';
-import { isTodoExpired } from '../../services/governance/todo.js?v=20261018h';
-import { escHtml, todayLocal } from '../../core/base/utils.js?v=20261018h';
+import { listRowHtml } from '../ui/list-row.js?v=20261018i';
+import { emptyStateHtml } from '../ui/empty-state.js?v=20261018i';
+import { isTodoExpired } from '../../services/governance/todo.js?v=20261018i';
+import { escHtml, todayLocal } from '../../core/base/utils.js?v=20261018i';
 
 /** 四档展示顺序与组名（纯中文；空组由渲染层跳过） */
 const URGENCY_LEVELS = [
@@ -136,7 +136,7 @@ function _moreMenuHtml(prefix, g, urge, canVoid, canDelete) {
   if (!items.length) return '';
   return `
     <div class="todo-more">
-      <button type="button" class="btn-ghost todo-more__btn text-xs text-gray-500" aria-haspopup="true" aria-expanded="false" aria-label="更多操作：${escHtml(g.title || '')}">更多</button>
+      <button type="button" class="btn-outline btn-sm todo-more__btn" aria-haspopup="true" aria-expanded="false" aria-label="更多操作：${escHtml(g.title || '')}">更多</button>
       <div class="todo-more__menu hidden" role="menu">${items.join('')}</div>
     </div>`;
 }
@@ -155,7 +155,7 @@ function _renderUrgencyRow(prefix, g, opts, today, selectedTodoId) {
   const actionLabel = ACTION_LABELS[g.actionKey] || ACTION_LABELS[g.actionType] || '去处理';
 
   const primaryBtn = g.hideActionBtn ? '' : `
-    <button type="button" class="btn-accent-soft ${prefix}-todo-action-btn text-xs px-3 py-1.5 rounded-lg transition-colors hover:opacity-90" data-group-key="${escHtml(g.groupKey)}" style="${actionBtnStyle}">${actionLabel}</button>`;
+    <button type="button" class="btn-accent-soft btn-sm ${prefix}-todo-action-btn" data-group-key="${escHtml(g.groupKey)}" style="${actionBtnStyle}">${actionLabel}</button>`;
   const trailing = `${primaryBtn}${_moreMenuHtml(prefix, g, urge, canVoid, canDelete)}`;
 
   const metaParts = [];
@@ -249,9 +249,7 @@ export function renderUrgencyTodoList(opts) {
     if (!groups.length) return '';
     total += groups.length;
     const danger = section.key === 'overdue';
-    const tone = danger ? 'warning' : 'neutral';
     const dotClass = danger ? 'todo-urgency-header__dot todo-urgency-header__dot--warning' : 'todo-urgency-header__dot';
-    const count = groups.reduce((sum, g) => sum + _groupCount(g), 0);
     const rows = groups
       .map(g => _renderUrgencyRow(prefix, g, { onActionTodo, onDeleteTodo, onVoidTodo, urgeStateOf, actionBtnStyle }, today, selectedTodoId))
       .join('');
@@ -260,7 +258,6 @@ export function renderUrgencyTodoList(opts) {
         <div class="todo-urgency-header ${prefix}-todo-urgency-header">
           <span class="${dotClass}" aria-hidden="true"></span>
           <span class="todo-urgency-header__label">${section.label}</span>
-          <span class="state-badge state-badge--${tone} tabular-nums">${count}</span>
         </div>
         <div class="list-group">${rows}</div>
       </section>`;

@@ -10,20 +10,20 @@
 //   · 会议实体 = mockDB.activities（type==='支委会' 或 scenarioId==='branch-committee'）；
 //     应到人数 = services/activity/vote-config.js::resolveVoterIds('committee')（与本场应到名单同一口径）。
 //   · 表格 = components/ui/data-table.js（.data-table 单一源）；行内选人 = components/governance/pickers.js::PersonPicker。
-import { mockDB } from '../../../core/domain/domain.js?v=20261018h';
-import { AuthStore } from '../../../services/core/auth.js?v=20261018h';
-import { PersonStore, getPersonById } from '../../../services/member/person.js?v=20261018h';
+import { mockDB } from '../../../core/domain/domain.js?v=20261018i';
+import { AuthStore } from '../../../services/core/auth.js?v=20261018i';
+import { PersonStore, getPersonById } from '../../../services/member/person.js?v=20261018i';
 import {
   listBranchCommissioners,
   appointBranchCommissioner,
   revokeBranchCommissioner,
-} from '../../../services/branch/appointment.js?v=20261018h';
-import { ROLE_LABELS, BRANCH_COMMISSIONER_ASSIGNABLE_ROLES } from '../../../core/domain/constants.js?v=20261018h';
-import { resolveVoterIds } from '../../../services/activity/vote-config.js?v=20261018h';
-import { renderDataTable, tableHeadHtml } from '../../../components/ui/data-table.js?v=20261018h';
-import { PersonPicker } from '../../../components/governance/pickers.js?v=20261018h';
-import { getAppliedAccentColors } from '../../../core/boot/theme.js?v=20261018h';
-import { showToast, escHtml as esc } from '../../../core/base/utils.js?v=20261018h';
+} from '../../../services/branch/appointment.js?v=20261018i';
+import { ROLE_LABELS, BRANCH_COMMISSIONER_ASSIGNABLE_ROLES } from '../../../core/domain/constants.js?v=20261018i';
+import { resolveVoterIds } from '../../../services/activity/vote-config.js?v=20261018i';
+import { renderDataTable, tableHeadHtml } from '../../../components/ui/data-table.js?v=20261018i';
+import { PersonPicker } from '../../../components/governance/pickers.js?v=20261018i';
+import { getAppliedAccentColors } from '../../../core/boot/theme.js?v=20261018i';
+import { showToast, escHtml as esc } from '../../../core/base/utils.js?v=20261018i';
 
 /** 本支部 id（登录人归属；缺省 br-b1，与全仓同口径） */
 function branchId() {
@@ -76,10 +76,10 @@ function rosterRowHtml(r) {
   const statusCell = vacant ? statusBadge('空缺', 'warning') : statusBadge('在任', 'neutral');
   let action = '<span class="text-gray-400">党委配置</span>';
   if (r.editable && !vacant) {
-    action = `<button type="button" class="btn-ghost text-accent" data-cm-replace="${esc(r.role)}">改派</button>
-      <button type="button" class="btn-ghost text-red-600" data-cm-revoke="${esc(r.role)}" data-person-id="${esc(r.personId)}">撤销</button>`;
+    action = `<button type="button" class="btn-accent-soft btn-sm" data-cm-replace="${esc(r.role)}">改派</button>
+      <button type="button" class="btn-danger btn-sm" data-cm-revoke="${esc(r.role)}" data-person-id="${esc(r.personId)}">撤销</button>`;
   } else if (r.editable) {
-    action = `<button type="button" class="btn-ghost text-accent" data-cm-replace="${esc(r.role)}">补选</button>`;
+    action = `<button type="button" class="btn-accent-soft btn-sm" data-cm-replace="${esc(r.role)}">补选</button>`;
   }
   return `<tr>
     <td${vacant ? ' class="section-accent-left"' : ''}>${personCell}</td>
@@ -131,7 +131,7 @@ function meetingRowHtml(act) {
     <td>${esc(act.title || '未命名会议')}</td>
     <td>${statusBadge(status, MEETING_STATUS_VARIANT[status] || 'neutral')}</td>
     <td>${attendeeCount(act)}</td>
-    <td><a href="./party-committee-meeting.html?id=${encodeURIComponent(act.id)}" class="text-accent" style="text-decoration:none;">进入 ›</a></td>
+    <td><a href="./party-committee-meeting.html?id=${encodeURIComponent(act.id)}" class="btn-outline btn-sm" style="text-decoration:none;">进入 ›</a></td>
   </tr>`;
 }
 
@@ -149,7 +149,7 @@ function openRowPicker(role) {
   destroyRowPicker();
   cell.innerHTML = `<div class="flex items-center gap-2">
     <div id="cm-row-picker" class="w-56"></div>
-    <button type="button" class="btn-ghost" data-cm-cancel>取消</button>
+    <button type="button" class="btn-outline btn-sm" data-cm-cancel>取消</button>
   </div>`;
   _rowPicker = new PersonPicker({
     mode: 'single',
@@ -221,11 +221,11 @@ export function renderContent() {
       <header class="flex items-start justify-between gap-3 flex-wrap">
         <div class="min-w-0">
           <h2 class="font-title-cn text-xl font-bold text-gray-800">支委会</h2>
-          <p class="text-xs text-gray-500 mt-1">支委身份由支书配置；支书 / 副支书由党委配置。<a href="./help.html#card-copy-pcm-scope" class="text-gray-500 underline hover:text-gray-700">见帮助</a></p>
+          <p class="text-xs text-gray-500 mt-1">支委身份由支书配置；支书 / 副支书由党委配置。</p>
         </div>
         <a href="./party-committee-meeting.html?action=new" class="btn-accent" style="text-decoration:none;">新建线上支委会 →</a>
       </header>
-      <section class="card rounded-xl card-standard stack-card">
+      <section class="card card--static rounded-xl card-standard stack-card">
         <h3 class="font-title-cn text-sm font-bold text-gray-700">支委构成</h3>
         <div id="cm-roster-table" class="overflow-x-auto"></div>
       </section>
@@ -233,6 +233,7 @@ export function renderContent() {
         <h3 class="font-title-cn text-sm font-bold text-gray-700">支委会会议</h3>
         <div id="cm-meeting-table" class="overflow-x-auto"></div>
       </section>
+      <p class="help-note">授予、改派与撤销的完整口径与权限边界，详见<a href="./help.html#card-copy-pcm-scope" class="help-note__link" title="见帮助：支委身份的授予、改派与撤销">帮助 · 支委身份</a>。</p>
     </div>`;
   bindEvents(tc);
 

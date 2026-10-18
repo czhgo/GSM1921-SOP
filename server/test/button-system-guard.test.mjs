@@ -186,6 +186,8 @@ const COMPONENT_STATE_EXEMPT = [
   'subtab', // 页内二级切换（党委上报/下发通知共用）：选中态＝`.subtab[aria-selected="true"]`，2026-10-18 工作台提质
   'sidebar-footer-action', // 侧栏页脚动作（帮助/设置/登录/退出）：尺寸单一源＝styles.css 同名类，低频紧凑档 28px
   'todo-more__item', // 待办行尾更多菜单项：尺寸单一源＝styles.css 同名类，菜单项不是独立动作按钮
+  'metric-band__item', // 概况结论带指标（筛选/定位控件，不是动作按钮）：选中态＝`.is-active` ＋ `--app-accent-bg`，尺寸由 styles.css 同名类定
+  'gp-group-card', // 党小组选择卡（整卡可点，视觉由卡片边框/底色承担；不是动作按钮）
 ];
 
 test('B4 按钮族棘轮：未入语义族的 <button> 只许降不许升（「全面归一」的进度表）', () => {
@@ -281,7 +283,7 @@ function cssRules(css) {
   return out;
 }
 
-test('B6 按钮尺寸归一：styles.css 单源锁定 8 族尺寸（34/32/30/26px）', () => {
+test('B6 按钮尺寸归一：四类动作按钮 32px ＋ 紧凑 28px（.btn-tab 30px 豁免 · .btn-action 26px 存量）', () => {
   const start = CSS_SRC.indexOf(SIZE_NORMALIZE_MARKER);
   assert.ok(start >= 0,
     `styles.css 缺少「${SIZE_NORMALIZE_MARKER}」段 ⇒ 按钮尺寸仍会被页面工具类零散决定（厚薄不一的老病）。`);
@@ -292,7 +294,8 @@ test('B6 按钮尺寸归一：styles.css 单源锁定 8 族尺寸（34/32/30/26p
   const tierRuleOf = (token) => rules.find((r) => new RegExp(`\\.${token}(?![\\w-])`).test(r.selector)
     && /min-height/.test(r.body));
 
-  // ② 四档 ＋ 字号（26px 档是微操作，12px；其余 13px 正文档）
+  // ② 四类动作按钮常规 32px；`.btn-sm` 紧凑 28px；`.btn-tab` 30px（页签豁免）；
+  //    `.btn-action` 26px 为存量。`.btn-ghost` / `.btn-neutral` 亦为存量（新代码不得使用）。
   const expectTier = (token, minHeight, fontSize) => {
     const r = tierRuleOf(token);
     assert.ok(r, `「${SIZE_NORMALIZE_MARKER}」段缺少 .${token} 的尺寸档（页面会退回零散工具类）`);
@@ -303,16 +306,21 @@ test('B6 按钮尺寸归一：styles.css 单源锁定 8 族尺寸（34/32/30/26p
     assert.match(r.body, new RegExp(`font-size:\\s*${fontSize}px\\s*!important`),
       `.${token} 的字号应为 ${fontSize}px !important`);
   };
-  expectTier('btn-accent', 34, 13);
-  expectTier('btn-accent-soft', 34, 13);
-  expectTier('btn-md', 34, 13);
-  expectTier('btn-neutral', 32, 13);
+  // 四类动作按钮（常规档 32px）
+  expectTier('btn-accent', 32, 13);
   expectTier('btn-outline', 32, 13);
+  expectTier('btn-accent-soft', 32, 13);
   expectTier('btn-danger', 32, 13);
-  expectTier('btn-danger-solid', 32, 13);
-  expectTier('btn-ghost', 30, 13);
+  expectTier('btn-danger-solid', 32, 13); // 只给确认弹窗
+  expectTier('btn-md', 32, 13);            // 常规尺寸别名（不是独立视觉族）
+  // 紧凑档 28px
+  expectTier('btn-sm', 28, 12);
+  // 页签 / 分段控件（30px，豁免：不属于动作按钮）
   expectTier('btn-tab', 30, 13);
+  // 存量类（只降不升）
   expectTier('btn-action', 26, 12);
+  expectTier('btn-ghost', 30, 13);
+  expectTier('btn-neutral', 32, 13);
 
   // ③ 通用排布单一源（排布属性**不加** `!important`：行式载体的 `justify-between` /
   //    `items-start` / `border-0` 等工具类须能后加载覆盖；只锁尺寸属性）
@@ -332,19 +340,25 @@ test('B6 按钮尺寸归一：styles.css 单源锁定 8 族尺寸（34/32/30/26p
 });
 
 /**
- * B7【族内不得再写尺寸】（2026-10-18 立，棘轮）
+ * B7【族内不得再写尺寸】（2026-10-18 立，棘轮；2026-10-19 排除页签）
  *   问题：归一后尺寸已由 `styles.css` 用 `!important` 锁死，但页面里仍有
  *   `<button class="btn-outline … text-sm py-1.5">` 这类「族类 ＋ 尺寸工具类」——
  *   既不生效、又让读码者误以为尺寸还归页面管。
  *   存量约 491 处，**本批不清**（支书要求「不要一次清 400 处」），只锁「不得新增」。
- *   判据＝`<button class>` 同时命中 8 族令牌 与 尺寸工具类令牌（字号 / 内边距 / 高度）。
+ *   判据＝`<button class>` 同时命中**动作按钮族令牌** 与 尺寸工具类令牌（字号 / 内边距 / 高度）。
+ *   **排除**：`tab-btn` / 页签 `btn-tab` —— 它们是导航 / 分段控件，不是动作按钮，
+ *   不计入「动作按钮尺寸工具类」统计，也不参与四类迁移。
  *   基线＝2026-10-18 实测 **488**（只许降不许升；每迁完一屏一并下调）。
+ *   2026-10-19 排除 `tab-btn` / 页签 `btn-tab` 后实测 **413** ⇒ 基线下调为 413。
  */
-const FAMILY_SIZE_OVERRIDE_BASELINE = 488;
+const FAMILY_SIZE_OVERRIDE_BASELINE = 413;
 const SIZE_TOKEN_RE = /^(?:text-(?:xs|sm|base|lg|xl)|text-\[\d+px\]|p-\d+(?:\.\d+)?|px-\d+(?:\.\d+)?|py-\d+(?:\.\d+)?|h-\d+(?:\.\d+)?|min-h-\S+)$/;
-const FAMILY_TOKEN_RE = /(^|\s)(btn-accent-soft|btn-accent|btn-action|btn-md|btn-tab|btn-neutral|btn-outline|btn-ghost|btn-danger)/;
+// 动作按钮族令牌；**不含** `btn-tab`（页签 / 分段控件豁免，见 B7 注释）
+const FAMILY_TOKEN_RE = /(^|\s)(btn-accent-soft|btn-accent|btn-action|btn-md|btn-neutral|btn-outline|btn-ghost|btn-danger)/;
+/** 页签 / 分段控件：（`tab-btn` 页头 tab ＋ `btn-tab` 页签）一律排除 */
+const TAB_EXEMPT_RE = /(^|\s)(tab-btn|btn-tab)(?![\w-])/;
 
-test('B7 族内不得再写尺寸：语义族按钮上的 text-*/py-*/px-*/h-* 只许降不许升', () => {
+test('B7 族内不得再写尺寸：动作按钮族上的 text-*/py-*/px-*/h-* 只许降不许升（tab-btn / btn-tab 豁免）', () => {
   let total = 0;
   const perFile = new Map();
   const re = /<button[^>]*\bclass="([^"]*)"/g;
@@ -353,6 +367,7 @@ test('B7 族内不得再写尺寸：语义族按钮上的 text-*/py-*/px-*/h-* �
     let m;
     while ((m = re.exec(src)) !== null) {
       const cls = m[1];
+      if (TAB_EXEMPT_RE.test(cls)) continue;
       if (!FAMILY_TOKEN_RE.test(cls)) continue;
       if (!cls.split(/\s+/).some((t) => SIZE_TOKEN_RE.test(t))) continue;
       total += 1;
@@ -361,9 +376,43 @@ test('B7 族内不得再写尺寸：语义族按钮上的 text-*/py-*/px-*/h-* �
   }
   const ledger = [...perFile.entries()].sort((a, b) => b[1] - a[1])
     .map(([f, n]) => `  ${String(n).padStart(3)}  ${relative(join(__dirname, '..', '..'), f)}`);
-  console.log(`[button-system-guard] 语义族按钮仍写尺寸工具类 ${total} 个（棘轮上限 ${FAMILY_SIZE_OVERRIDE_BASELINE}）：\n${ledger.join('\n')}`);
+  console.log(`[button-system-guard] 动作按钮族仍写尺寸工具类 ${total} 个（棘轮上限 ${FAMILY_SIZE_OVERRIDE_BASELINE}；tab-btn / btn-tab 已排除）：\n${ledger.join('\n')}`);
   assert.ok(
     total <= FAMILY_SIZE_OVERRIDE_BASELINE,
-    `语义族按钮上的尺寸工具类由 ${FAMILY_SIZE_OVERRIDE_BASELINE} 升到 ${total} 个 ⇒ 尺寸已由 styles.css「${SIZE_NORMALIZE_MARKER}」统一，新按钮不要再写 text-*/py-*/px-*/h-*；迁移一屏请一并下调基线。`,
+    `动作按钮族上的尺寸工具类由 ${FAMILY_SIZE_OVERRIDE_BASELINE} 升到 ${total} 个 ⇒ 尺寸已由 styles.css「${SIZE_NORMALIZE_MARKER}」统一，新按钮不要再写 text-*/py-*/px-*/h-*；迁移一屏请一并下调基线。`,
+  );
+});
+
+/**
+ * B8【btn-ghost 存量只降不升】（2026-10-19 立）
+ *   来源：Spec「最小三成本」——`btn-ghost` 无底色无边框，读者无法判断可点性；
+ *   新代码**不得**再用它作为动作按钮类型（行内动作改 `.btn-outline` / `.btn-accent-soft`，
+ *   危险改 `.btn-danger`，纯导航/帮助用 `<a>`）。
+ *   本批只锁**全站存量**（四页重点的页面级归零由 Task 9 `ui-button-four-types.test.mjs` 收紧）。
+ *   基线＝2026-10-19 实测（只许降不许升；每迁完一屏一并下调）。
+ */
+const GHOST_BUTTON_BASELINE = 106; // 2026-10-19 实测 106（只许降不许升）
+
+test('B8 btn-ghost 作为动作按钮的存量只许降不许升（新代码不得使用）', () => {
+  let total = 0;
+  const perFile = new Map();
+  const re = /<button[^>]*\bclass="([^"]*)"/g;
+  for (const f of FILES) {
+    const src = readFileSync(f, 'utf8');
+    let m;
+    while ((m = re.exec(src)) !== null) {
+      const cls = m[1];
+      if (!/(^|\s)btn-ghost(?![\w-])/.test(cls)) continue;
+      total += 1;
+      const rel = relative(join(__dirname, '..', '..'), f).replace(/\\/g, '/');
+      perFile.set(rel, (perFile.get(rel) || 0) + 1);
+    }
+  }
+  const ledger = [...perFile.entries()].sort((a, b) => b[1] - a[1])
+    .map(([f, n]) => `  ${String(n).padStart(3)}  ${f}`);
+  console.log(`[button-system-guard] 以 btn-ghost 作动作按钮的 <button> 共 ${total} 个（棘轮上限 ${GHOST_BUTTON_BASELINE}）：\n${ledger.join('\n')}`);
+  assert.ok(
+    total <= GHOST_BUTTON_BASELINE,
+    `btn-ghost 动作按钮由 ${GHOST_BUTTON_BASELINE} 升到 ${total} 个 ⇒ 新代码不得再用 btn-ghost；行内动作用 .btn-outline / .btn-accent-soft，危险用 .btn-danger。`,
   );
 });

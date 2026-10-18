@@ -15,12 +15,12 @@ export function renderContent(ctx) {
   const el = document.getElementById('org-tab-content');
   if (!el) return null;
   return Promise.all([
-    import('../../../components/record/insight-view.js?v=20261018h'),
-    import('../../../core/domain/work-map.js?v=20261018h'),
-    import('../../../services/branch/branch.js?v=20261018h'),
-    import('../../../services/core/auth.js?v=20261018h'),
-    import('../../../services/activity/taskforce.js?v=20261018h'),
-    import('../../../core/domain/domain.js?v=20261018h'),
+    import('../../../components/record/insight-view.js?v=20261018i'),
+    import('../../../core/domain/work-map.js?v=20261018i'),
+    import('../../../services/branch/branch.js?v=20261018i'),
+    import('../../../services/core/auth.js?v=20261018i'),
+    import('../../../services/activity/taskforce.js?v=20261018i'),
+    import('../../../core/domain/domain.js?v=20261018i'),
   ]).then(([iv, wm, br, auth, tf, domain]) => {
     const me = auth.AuthStore.getCurrentUser() || {};
     const personId = me.personId || me.id || '';

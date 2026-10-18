@@ -1,5 +1,5 @@
 /* 组件样式（@import 必须位于文件顶部） */
-@import url('components/person-picker.css?v=20261018h');
+@import url('components/person-picker.css?v=20261018i');
 
 /* ═══════════════════════════════════════════════════════════════
    GSM1921-SOP DESIGN SYSTEM v11.0 — Matte Flat
@@ -855,13 +855,19 @@ button:disabled { cursor: not-allowed; }
 }
 .btn-accent-soft:hover { filter: brightness(0.96); }
 
-/* ── 按钮族谱补全（2026-09-30 批次 297-1 · 支书裁「**新立 4 族**：中性 / 描边 / 文字 / 危险」）──
-   目标：**全站按钮只准用这 8 族**——主操作 `.btn-accent` · 次主操作 `.btn-accent-soft` ·
-   微操作 `.btn-action*` · **中性 `.btn-neutral`** · **描边 `.btn-outline`** · **文字 `.btn-ghost`** ·
-   **危险 `.btn-danger`** · 命名族 `.btn-md*` / `.btn-tab*`。
-   本组只管**语义外观**；**尺寸**仍由各页按 `DESIGN_SYSTEM §4.1` 四档/五档给出。**色一律走令牌**（不落 hex）。
-   ⚠ 本批只立**族谱基线**（类已入 CSS ＋ 进 `DYNAMIC_SELECTOR_WHITELIST` 并写明理由「待迁移启用」），
-   实际逐屏迁移见批次 297-2…；迁移时如需变体（如「危险·实底」）**按需增补、同受 `button-system-guard` 族棘轮约束**。 */
+/* ── 动作按钮四类（2026-10-19 收口 · 单一源＝`DESIGN_SYSTEM §4.1.1`）──
+   **新代码只准用这四类**：
+     · 主操作 `.btn-accent`（实底主题色白字；每屏最多 1 个）
+     · 次操作 `.btn-outline`（白底中性描边；普通动作 / 取消 / 展开 / 管理 / 筛选）
+     · 强调次操作 `.btn-accent-soft`（主题色淡底描边深字；高频但非页面主路径的行内动作）
+     · 危险 `.btn-danger`（红淡底描边；撤销 / 删除 / 解散 / 驳回）
+   `.btn-danger-solid` 只给确认弹窗（危险操作的最终确认，不用于普通页面动作）。
+   尺寸两档：常规 32px（`.btn-md` 为别名）· 紧凑 28px（`.btn-sm`，用于行内紧凑动作）。
+   **存量类（新代码不得使用）**：
+     · `.btn-ghost` —— 不再作为动作按钮类型（无底色无边框不可辨识；纯导航 / 帮助改用 `<a>` 链接）
+     · `.btn-neutral` —— 并入次操作（`.btn-outline`）
+     · `.btn-action-*` —— 并入次操作 / 危险（`.btn-outline` / `.btn-danger`）
+   色一律走令牌（不落 hex）；外观在下面各族，尺寸只在「按钮尺寸归一（2026-10-18）」段定义一次。 */
 .btn-neutral {
   background: var(--neutral-100);
   color: var(--neutral-700);
@@ -1288,7 +1294,9 @@ html.theme-dark .accent-avatar {
 .btn-action-orange{ background: #FFF7ED; color: #C2410C; border-color: #FED7AA; }
 .btn-action-gray  { background: #F9FAFB; color: #4B5563; border-color: #E5E7EB; }
 
-/* ── Tab Button — Tab 切换按钮 ── */
+/* ── Tab Button — 页签 / 分段控件（**不属于动作按钮**；六台工作台顶部 tab 豁免）──
+   只做导航与视图切换，不参与四类动作按钮迁移；尺寸 / 底色 / 选中态保持现状。
+   六台顶部 tab 使用 `.tab-btn`（`components/shell/tab-bar.js`），同样豁免、不改任何规则。 */
 .btn-tab {
   padding: 8px 16px;
   font-size: 0.75rem;
@@ -3870,11 +3878,13 @@ html.theme-dark .settings-group-item.active {
       （行式载体的 `justify-between` / `items-start` / `border-0` 等）后加载覆盖。
       **不压**颜色、圆角、hover、disabled——族语义外观仍归上方各 `.btn-*` 段。
    分档（高度 = 内容行高 + 上下内边距 + 边框 2px）：
-     34px  .btn-accent / .btn-accent-soft / .btn-md   主操作 / 次主操作 / 中等操作
-     32px  .btn-neutral / .btn-outline / .btn-danger / .btn-danger-solid
-                                                     中性 / 描边 / 危险（含实底）
-     30px  .btn-ghost / .btn-tab                      文字动作 / Tab 切换
-     26px  .btn-action                                表格行内 / 列表项内微操作
+     32px  .btn-accent / .btn-outline / .btn-accent-soft / .btn-danger /
+           .btn-danger-solid（仅确认弹窗）/ .btn-md（常规尺寸别名）
+                                                     四类动作按钮的常规档
+     28px  .btn-sm                                  紧凑档（行内紧凑动作）
+     30px  .btn-tab                                 页签 / 分段控件（豁免，不算动作按钮）
+     26px  .btn-action                              存量微操作（新代码不得使用）
+     30px  .btn-ghost / 32px .btn-neutral           存量类（新代码不得使用）
    ═══════════════════════════════════════════════════════════════ */
 .btn-accent,
 .btn-accent-soft,
@@ -3885,6 +3895,7 @@ html.theme-dark .settings-group-item.active {
 .btn-danger-solid,
 .btn-action,
 .btn-md,
+.btn-sm,
 .btn-tab {
   display: inline-flex;
   align-items: center;
@@ -3895,38 +3906,48 @@ html.theme-dark .settings-group-item.active {
   border-width: 1px;
 }
 
-/* 34px 档：主操作 / 次主操作 / 中等操作 */
+/* 32px 常规档：四类动作按钮（`.btn-md` 为常规尺寸别名，不是独立视觉族） */
 .btn-accent,
 .btn-accent-soft,
-.btn-md {
-  min-height: 34px !important;
-  padding: 0 14px !important;
-  font-size: 13px !important;
-}
-
-/* 32px 档：中性 / 描边 / 危险（`.btn-danger-solid` 与 `.btn-danger` 同高） */
-.btn-neutral,
 .btn-outline,
 .btn-danger,
-.btn-danger-solid {
+.btn-danger-solid,
+.btn-md {
   min-height: 32px !important;
   padding: 0 12px !important;
   font-size: 13px !important;
 }
 
-/* 30px 档：文字动作 / Tab 切换（两者内边距不同，故分开写） */
+/* 28px 紧凑档：行内紧凑动作（`.btn-sm`） */
+.btn-sm {
+  min-height: 28px !important;
+  padding: 0 10px !important;
+  font-size: 12px !important;
+  gap: 4px !important;
+}
+
+/* 存量类：`.btn-neutral` 并入次操作（`.btn-outline`）；尺寸保持不变，仅待迁移 */
+.btn-neutral {
+  min-height: 32px !important;
+  padding: 0 12px !important;
+  font-size: 13px !important;
+}
+
+/* 存量类：`.btn-ghost` 不再作为动作按钮类型；尺寸保持不变，仅待迁移 */
 .btn-ghost {
   min-height: 30px !important;
   padding: 0 8px !important;
   font-size: 13px !important;
 }
+
+/* 30px 档：页签 / 分段控件（**豁免**：不属于动作按钮，六台顶部 tab 保持现状） */
 .btn-tab {
   min-height: 30px !important;
   padding: 0 10px !important;
   font-size: 13px !important;
 }
 
-/* 26px 档：微操作（表格行内 / 列表项内） */
+/* 26px 档：存量微操作（`.btn-action*` 已并入次操作 / 危险，新代码不得使用） */
 .btn-action {
   min-height: 26px !important;
   padding: 0 8px !important;
@@ -3966,6 +3987,28 @@ html.theme-dark .settings-group-item.active {
   gap: 0 !important;
   flex: none;
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   帮助注释（2026-10-19）
+   口径（DESIGN_SYSTEM §4.24）：一句正文 + 一个蓝链。
+   正文 12px 中性灰；链走信息蓝（不用 sky-600 手写链）。
+   长口径进 `help.html`，页面不再展开长篇说明。
+   ═══════════════════════════════════════════════════════════════ */
+.help-note {
+  display: block;
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--neutral-500);
+  margin: 0;
+}
+.help-note__link {
+  color: var(--functional-info);
+  text-decoration: none;
+  margin-left: var(--space-1);
+  white-space: nowrap;
+}
+.help-note__link:hover { text-decoration: underline; }
+html.theme-dark .help-note__link { color: color-mix(in srgb, var(--functional-info) 80%, #fff); }
 
 /* ═══════════════════════════════════════════════════════════════
    列表行边框收敛（2026-10-18）
@@ -4391,6 +4434,28 @@ html.theme-dark .settings-group-item.active {
   padding: 0 var(--space-4);
   border-left: 1px solid var(--neutral-100);
 }
+/* 结论带指标是可点按钮：保留 metric 的排版，补 hover / focus / 选中态。 */
+button.metric-band__item {
+  background: transparent;
+  border-top: 0;
+  border-right: 0;
+  border-bottom: 0;
+  border-radius: var(--radius-sm);
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  transition: background-color var(--transition-fast);
+}
+button.metric-band__item:hover { background: var(--neutral-100); }
+button.metric-band__item:focus-visible {
+  outline: 2px solid var(--app-accent);
+  outline-offset: 2px;
+}
+button.metric-band__item.is-active {
+  background: transparent;
+  box-shadow: inset 0 -2px 0 var(--app-accent);
+}
+button.metric-band__item.is-active .metric-band__label { color: var(--app-accent); }
 .metric-band__item:first-child {
   border-left: 0;
   padding-left: 0;
