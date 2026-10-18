@@ -184,6 +184,7 @@ const HANDWRITTEN_BUTTON_BASELINE = 0;
 const COMPONENT_STATE_EXEMPT = [
   '-tab-btn', // 页头 tab（`components/shell/tab-bar.js` 单一源）：选中态＝`.tab-btn-active` ＋ 内联 `--tab-accent`
   'subtab', // 页内二级切换（党委上报/下发通知共用）：选中态＝`.subtab[aria-selected="true"]`，2026-10-18 工作台提质
+  'sidebar-footer-action', // 侧栏页脚动作（帮助/设置/登录/退出）：尺寸单一源＝styles.css 同名类，低频紧凑档 28px
 ];
 
 test('B4 按钮族棘轮：未入语义族的 <button> 只许降不许升（「全面归一」的进度表）', () => {
@@ -336,9 +337,9 @@ test('B6 按钮尺寸归一：styles.css 单源锁定 8 族尺寸（34/32/30/26p
  *   既不生效、又让读码者误以为尺寸还归页面管。
  *   存量约 491 处，**本批不清**（支书要求「不要一次清 400 处」），只锁「不得新增」。
  *   判据＝`<button class>` 同时命中 8 族令牌 与 尺寸工具类令牌（字号 / 内边距 / 高度）。
- *   基线＝2026-10-18 实测 **491**（只许降不许升；每迁完一屏一并下调）。
+ *   基线＝2026-10-18 实测 **488**（只许降不许升；每迁完一屏一并下调）。
  */
-const FAMILY_SIZE_OVERRIDE_BASELINE = 491;
+const FAMILY_SIZE_OVERRIDE_BASELINE = 488;
 const SIZE_TOKEN_RE = /^(?:text-(?:xs|sm|base|lg|xl)|text-\[\d+px\]|p-\d+(?:\.\d+)?|px-\d+(?:\.\d+)?|py-\d+(?:\.\d+)?|h-\d+(?:\.\d+)?|min-h-\S+)$/;
 const FAMILY_TOKEN_RE = /(^|\s)(btn-accent-soft|btn-accent|btn-action|btn-md|btn-tab|btn-neutral|btn-outline|btn-ghost|btn-danger)/;
 

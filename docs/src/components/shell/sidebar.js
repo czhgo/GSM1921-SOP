@@ -41,9 +41,8 @@ function loadAuth() {
 // 支部层各角色（支书/副支书/三委员/组长/成员）导航行为不变。
 const PARTY_STAFF_HIDDEN_NAV = new Set(['dashboard', 'search', 'feedback', 'archive', 'messages']);
 
-// 页脚动作（帮助/关于/设置/登录/退出）共用一档：Caption 12px、可点高度 ≥36px。
-// 原内联 0.7rem（11.2px）不在 DESIGN_SYSTEM §3.2 档位表内，登记为待收敛离群项，此处一并归位。
-const FOOTER_ACTION_STYLE = 'display:flex;align-items:center;gap:6px;padding:4px 8px;min-height:36px;font-size:0.75rem;color:var(--neutral-500);text-decoration:none;border:none;background:none;cursor:pointer;';
+// 页脚动作（帮助/关于/设置/登录/退出）共用一档：Caption 12px、紧凑 28px（2026-10-18 支书实报
+// 「间距太大」后由 36px 收紧）。样式单一源＝styles.css `.sidebar-footer-action`，此处不再写内联样式。
 
 function getNavItems() {
   const base = getBasePath();
@@ -136,7 +135,7 @@ export async function renderSidebar(activeModule, opts = {}) {
 
   const footerItems = getFooterItems();
   const footerHTML = footerItems.map(item => `
-    <a href="${item.href}" data-module="${item.module}" style="${FOOTER_ACTION_STYLE}">
+    <a href="${item.href}" data-module="${item.module}" class="sidebar-footer-action">
       ${_footerIcon(item.module)}
       <span>${item.label}</span>
     </a>
@@ -145,12 +144,12 @@ export async function renderSidebar(activeModule, opts = {}) {
   // 登录态对偶入口（支书 2026-09-07 U1 批准）：已登录=「退出登录」；访客/未登录=「登录」→ login.html
   // （同位同样式同 hover；图标为 logout 镜像 → 「进入」感，不新增图标字典项）
   const authEntryHTML = user ? `
-      <button id="sidebar-logout" type="button" style="${FOOTER_ACTION_STYLE}">
+      <button id="sidebar-logout" type="button" class="sidebar-footer-action">
         ${icon('logout', { stroke: 'var(--neutral-500)', extra: ' aria-hidden="true"' })}
         <span>退出登录</span>
       </button>` : `
-      <a href="${getBasePath()}login.html" id="sidebar-login" style="${FOOTER_ACTION_STYLE}">
-        <span style="display:inline-block;transform:scaleX(-1);">${icon('logout', { stroke: 'var(--neutral-500)', extra: ' aria-hidden="true"' })}</span>
+      <a href="${getBasePath()}login.html" id="sidebar-login" class="sidebar-footer-action">
+        <span class="sidebar-footer-action__mirror">${icon('logout', { stroke: 'var(--neutral-500)', extra: ' aria-hidden="true"' })}</span>
         <span>登录</span>
       </a>`;
 
@@ -159,7 +158,7 @@ export async function renderSidebar(activeModule, opts = {}) {
       <div class="flex flex-col gap-2 mb-2">${navHTML}</div>
     </nav>
     <div class="sidebar-footer">
-      <nav class="flex flex-col gap-1 mb-2" aria-label="辅助导航">${footerHTML}</nav>
+      <nav class="flex flex-col gap-0.5 mb-2" aria-label="辅助导航">${footerHTML}</nav>
       ${authEntryHTML}
     </div>
   `;

@@ -1,6 +1,7 @@
 // role: [工程师]+[AI]
 // 组长工作台 Tab：考察管理（T-279 M2 拆分；2026-10-04 批次 369 页签名由「考察上传」改「考察管理」——对象轴，与纪检台同名同轴）
 // 党小组活动考察：组织者上传 → 纪检委员确认 → 录入考察总表。
+// 业务口径：考察依托工作组——考察记录挂工作组，考察对象为该工作组成员；sourceType/activityId/taskforceId 是工作组类型的投影。
 
 import { loadInspectionRecords, saveInspectionRecords, canUploadInspection } from '../../../services/activity/inspection.js?v=20261018f';
 import { loadInspectionAppeals, reconfirmReturnedInspectionRecord, resolveInspectionAppeal, isInspectionHomePosition } from '../../../services/activity/inspection.js?v=20261018f';

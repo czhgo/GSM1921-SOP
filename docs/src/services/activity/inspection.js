@@ -1,6 +1,8 @@
 // role: [工程师]+[AI]
 // ════════════════════════════════════════════════════════════════
 //  inspection.js — 考察记录 CRUD 服务
+//  业务口径（2026-10-18 支书裁定）：考察依托工作组——考察记录挂活动工作组或专班工作组，
+//    考察对象为该工作组成员；sourceType/activityId/taskforceId 只是工作组类型的投影，不是独立父对象。
 // ════════════════════════════════════════════════════════════════
 
 import { mockDB, SourceType, SOURCE_TYPE_LABELS, PARTICIPATION_LEVEL_LABELS, ParticipationLevel } from '../../core/domain/domain.js?v=20261018f';

@@ -1,6 +1,7 @@
 // role: [工程师]+[AI]
 // 纪检委员工作台 Tab：考察管理（T-279 M3 拆分）
 // 仅展示已登记的考察事项；工作组成员名单不自动生成考察清单。
+// 业务口径：考察依托工作组——考察记录挂工作组，考察对象为该工作组成员；sourceType/activityId/taskforceId 是工作组类型的投影。
 
 import { loadActiveInspectionRecords, getOverdueRecords, confirmInspectionRecord, deleteInspectionRecord, listInspectionSupervision } from '../../../services/activity/inspection.js?v=20261018f';
 import { loadInspectionRecords, saveInspectionRecords, isInspectionHomePosition } from '../../../services/activity/inspection.js?v=20261018f';

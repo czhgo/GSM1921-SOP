@@ -1088,3 +1088,32 @@ test('S20 设计权威文档：表格四类术语齐备；信息计算口径文�
   }
 });
 
+// ─────────────────────────────────────────────────────────────────────────────
+// S21 考察依托工作组（2026-10-18 支书裁定：考察依托工作组）
+//   病灶：考察曾被写成按活动/按人的独立记录，与工作组父对象脱钩。
+//   判据：① 制度母本必须明确「考察依托 / 依托于工作组」；
+//        ② 数据模型必须把工作组写成考察的父对象（同段出现「父对象」或「依托」）；
+//        ③ 信息计算的考察章节必须按工作组口径出现「工作组」。
+// ─────────────────────────────────────────────────────────────────────────────
+test('S21 考察依托工作组：制度 / 数据模型 / 信息计算三处口径一致', () => {
+  const cf = read(join(ROOT, 'content', '02_institution', 'COMMISSIONER_DUTY_FRAMEWORK.md'));
+  assert.ok(cf.includes('考察') && cf.includes('工作组'),
+    'COMMISSIONER_DUTY_FRAMEWORK.md 必须同时出现「考察」与「工作组」');
+  assert.ok(cf.includes('考察依托') || cf.includes('依托于工作组'),
+    'COMMISSIONER_DUTY_FRAMEWORK.md 必须出现「考察依托」或「依托于工作组」');
+
+  const dm = read(join(ROOT, 'content', '04_web_design', 'data', 'DATA_MODEL.md'));
+  const dmParas = dm.split(/\r?\n\s*\r?\n/);
+  assert.ok(dmParas.some((p) => p.includes('考察') && p.includes('工作组')),
+    'DATA_MODEL.md 必须有同一段落同时出现「考察」与「工作组」');
+  assert.ok(dmParas.some((p) => p.includes('考察') && p.includes('工作组') && (p.includes('父对象') || p.includes('依托'))),
+    'DATA_MODEL.md 的考察段落必须出现「父对象」或「依托」');
+
+  const info = read(join(ROOT, 'content', '03_doc_system', 'INFORMATION_COMPUTATION.md'));
+  const secAt = info.indexOf('## 六、考勤 / 考察');
+  assert.ok(secAt >= 0, 'INFORMATION_COMPUTATION.md 缺「## 六、考勤 / 考察」章节');
+  const nextSec = info.indexOf('\n## ', secAt + 1);
+  const sec = info.slice(secAt, nextSec === -1 ? info.length : nextSec);
+  assert.ok(sec.includes('工作组'), 'INFORMATION_COMPUTATION.md 的考察章节必须出现「工作组」');
+});
+

@@ -1,6 +1,7 @@
 // role: [工程师]+[AI]
 // 组织委员工作台 Tab：考察上传（T-279 M3 拆分，照 M2 样板）
 // 专班考察：专班负责人/组织委员上传 → 纪检委员确认 → 录入考察总表。
+// 业务口径：考察依托工作组——考察记录挂工作组，考察对象为该工作组成员；sourceType/activityId/taskforceId 是工作组类型的投影。
 
 import { loadInspectionRecords, saveInspectionRecords } from '../../../services/activity/inspection.js?v=20261018f';
 import { reconfirmReturnedInspectionRecord, isInspectionHomePosition } from '../../../services/activity/inspection.js?v=20261018f';

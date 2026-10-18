@@ -83,20 +83,20 @@ export function renderNoticeList(containerId, limit = 5, opts = {}) {
 
   /** 单条通知行（列表与聚合展开共用，避免落第二份标记） */
   const rowHtml = (n) => `
-    <div class="notice-item row-quiet flex items-start gap-3 py-2.5 cursor-pointer hover:bg-gray-50 hover:shadow-sm rounded-lg px-2 -mx-2 transition-all duration-200 group"
+    <div class="notice-item notice-row row-quiet px-2 -mx-2 cursor-pointer hover:bg-gray-50 hover:shadow-sm rounded-lg transition-all duration-200 group"
          data-target="${n.targetModule || ''}" data-notice-id="${n.id}" data-target-url="${n.targetUrl || ''}"
          title="${n.title} — ${n.content}">
       ${priorityBadge[n.priority] || ''}
-      <div class="flex-1 min-w-0">
+      <div class="notice-row__main">
         <div class="flex items-center gap-1.5 min-w-0">
           ${n.source === 'committee' ? committeeSourceChip() : ''}
-          <p class="text-sm font-medium text-gray-800 truncate group-hover:text-blue-700 transition-colors">${n.title}</p>
+          <p class="notice-row__title group-hover:text-blue-700 transition-colors">${n.title}</p>
         </div>
-        <p class="text-xs text-gray-500 mt-0.5 line-clamp-2">${n.content}</p>
+        <p class="notice-row__meta line-clamp-2">${n.content}</p>
       </div>
-      <div class="flex items-center gap-1 whitespace-nowrap mt-0.5">
-        ${!n.read ? `<button class="btn-outline notice-confirm-read text-xs px-2.5 py-1" data-notice-id="${n.id}">确认读取</button>` : ''}
-        <span class="text-xs text-gray-500">${n.publishDate}</span>
+      <div class="notice-row__actions">
+        ${!n.read ? `<button class="btn-outline notice-confirm-read" data-notice-id="${n.id}">确认读取</button>` : ''}
+        <span class="notice-row__meta notice-row__meta--flush">${n.publishDate}</span>
       </div>
     </div>`;
 

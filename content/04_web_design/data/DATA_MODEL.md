@@ -257,7 +257,7 @@ ActivityRecord (主记录)
 
 | 记录 | 核心字段 | 约束 |
 |---|---|---|
-| `WorkGroup` | `id, branchId, kind, sourceType, sourceId, name, status, organizingScope?, hostGroupId?` | `kind` 为 `activity` 或 `taskforce`；活动与专班分别保留自己的业务记录，工作组记录是二者之上的协作结构、不是独立业务对象 |
+| `WorkGroup` | `id, branchId, kind, sourceType, sourceId, name, status, organizingScope?, hostGroupId?` | `kind` 为 `activity` 或 `taskforce`；活动与专班分别保留自己的业务记录，工作组记录是二者之上的协作结构、不是独立业务对象。**考察记录以工作组为父对象（活动工作组/专班工作组）；`sourceType` 只是工作组类型的投影，不是独立父对象** |
 | `WorkGroupMember` | `id, branchId, workgroupId, personId, role, status, createdBy, createdAt` | 活动与专班工作组的 `role` 均为 `organizer/deep`；成员须属于同一支部。活动一般参与者单独记录为报名，不属于工作组成员；专班可有组织者/深度参与者入组申请，但不设一般参与报名或考勤。登记成员不自动授予系统权限 |
 | `WorkGroupGrant` | `id, branchId, workgroupId, personId, templateKey?, permissionKeys[], status, grantedBy, grantedAt, revokedBy?, revokedAt?` | 独立授权留痕；可套用建议模板后调整；服务端按支部、活动与工作组范围校验每项操作 |
 | `WorkGroupTask` | `id, branchId, workgroupId, title, status, activityId?, capabilityPackageId?, isPurpose?` | `status` 为 `open/in_progress/completed/cancelled`；主任务 `isPurpose` 唯一。每个工作组至少有一项经确认的任务才可收尾。关联活动/能力包须同支部 |
@@ -265,7 +265,7 @@ ActivityRecord (主记录)
 
 **工作组创建、权限与生命周期**：活动工作组随活动创建；专班工作组围绕自身任务创建，专班可由能力包承载，也可由一次性任务触发。活动工作组不是独立业务对象，活动记录仍是活动业务的唯一载体；活动承办范围 (`party-group/cross-group`)、参加资格和系统授权是不同维度。党小组组长只能创建本组活动；跨组活动由支书/副书记创建。组织者与深度参与者是并列成员角色；具体操作权限经独立授权接口授予并留痕。活动、成员、任务和产出等跨记录写入都须由服务端校验支部归属。
 
-工作组收尾以全部登记任务和产出闭合为准，不要求每个工作组都产生考察记录；纪检考察与支委会表决只在制度、议程或该事项明确要求时触发。能力包停用后禁止新建事项，在办事项可以完成，历史只读保留。党委负责目录/模板，支部自主采纳模板版本。
+工作组收尾以全部登记任务和产出闭合为准；考察依托工作组存在，是否要求提交按事项规则，不因建组自动触发。纪检考察与支委会表决只在制度、议程或该事项明确要求时触发。能力包停用后禁止新建事项，在办事项可以完成，历史只读保留。党委负责目录/模板，支部自主采纳模板版本。
 
 **能力包目录**：`docs/src/core/domain/capability-packages.js` 是当前静态目录入口。能力包记录所属页面、工作流块、产出块、制度依据状态、适用范围、配置权、依赖和版本。`required/optional/local/pending` 是适用范围属性；制度依据尚未核实时保留 `pending`。党委维护目录与模板，支部自主选择并采纳模板版本。目录编辑和模板发布的专用管理界面尚未建立。T1–T3 是术语授权层级，不作为功能等级。
 
@@ -347,7 +347,7 @@ taskforce.members:    Array<{ personId, role: 'organizer' | 'deep' | 'participan
 
 #### 2.5.1 考察数据 (InspectionRecord)
 
-> 类型定义位于 [domain.js](../../../docs/src/core/domain/domain.js#L165-L177)（InspectionRecord typedef），持久化域 `mockDB.inspections`（`domain.js:245`，随全量键 `workflowos_branch_db_v1` 持久化）。考察记录用于记录制度、议程或具体事项明确要求的考察工作，不是所有工作组/活动的通用必经步骤；组织者/深度参与者与考勤事实分开建模（见本文 §3.3）。
+> 类型定义位于 [domain.js](../../../docs/src/core/domain/domain.js#L165-L177)（InspectionRecord typedef），持久化域 `mockDB.inspections`（`domain.js:245`，随全量键 `workflowos_branch_db_v1` 持久化）。考察记录用于记录制度、议程或具体事项明确要求的考察工作，不是所有工作组/活动的通用必经步骤；**考察记录以工作组为父对象（活动工作组/专班工作组），`sourceType` 只是工作组类型的投影，不是独立父对象**；组织者/深度参与者与考勤事实分开建模（见本文 §3.3）。
 
 | 字段名 | 类型 | 必填 | 默认值 | 说明 |
 |---|---|---|---|---|
@@ -355,14 +355,14 @@ taskforce.members:    Array<{ personId, role: 'organizer' | 'deep' | 'participan
 | sourceType | `'activity'\|'taskforce'` | 是 | -- | 考察来源类型：活动 or 专班 |
 | activityId | string | 是 | -- | 关联活动 ID（sourceType='activity' 时必填） |
 | sourceName | string | 否 | -- | 来源名称（sourceType='taskforce' 时为专班名称） |
-| personId | string | 是 | -- | 人员 ID（引用 people.js） |
+| personId | string | 是 | -- | 人员 ID（引用 people.js）；必须是该考察所挂工作组的成员 |
 | level | `'organize'\|'deep'` | 是 | -- | 考察层级（仅组织者与深度参与者有考察记录） |
 | role | string | 是 | -- | 分工角色+描述（如：策划+全流程统筹、视频制作、PPT 设计） |
 | recordedBy | string | 是 | -- | 记录人 personId |
 | recordedAt | string (ISO) | 是 | -- | 记录时间 |
 | status | `'pending'\|'confirmed'` | 否 | `'pending'` | 考察确认状态（纪检委员确认后录入考察总表） |
 
-> **写入/确认链路**：仅在事项明确要求考察时，按其授权流程写入并由纪检委员处理；不得仅因建立工作组而自动派生考察要求。既有党小组活动/专班考察数据与入口保留，具体流程见纪检委员指南。
+> **写入/确认链路**：仅在事项明确要求考察时，按其授权流程写入并由纪检委员处理；不得仅因建立工作组而自动派生考察要求。既有党小组活动/专班考察数据与入口保留，具体流程见纪检委员指南。考察依托工作组：活动工作组的考察挂活动工作组，专班工作组的考察挂专班工作组；没有工作组就没有考察对象。
 
 ### 2.6 分工数据 (AssignmentRecord)
 

@@ -240,34 +240,41 @@ export function createTodoTab(opts) {
     `;
   }
 
-  /** 页顶「未读通知 N 条」轻量条（IA-C1：通知移出待办主列；无未读整条隐藏） */
+  /** 页顶「未读通知 N 条」轻量条（IA-C1：通知移出待办主列；无未读整条隐藏）
+   *  2026-10-18：与首页通知列表共用 `.notice-row` 视觉语言（标题/摘要/动作同字号与间距）；
+   *  去掉「标记已读」第二动作——阅读详情即已读，同一决定不再给两个按钮。 */
   function _unreadBarHtml(notices) {
     const rows = notices.map(n => {
       const timeText = n.deadline
         ? `截止 ${n.deadline}`
         : (n.expireDate ? `截止 ${n.expireDate}` : (n.publishDate || String(n.createdAt || '').slice(0, 16).replace('T', ' ')));
+      const priorityBadge = n.priority === 'urgent'
+        ? badgeHtml('紧急', 'gold')
+        : (n.priority === 'normal' ? badgeHtml('重要', 'info') : '');
       return `
-        <div class="flex items-center gap-2 px-3 py-2 border-t border-gray-100">
-          <span class="flex-1 min-w-0">
-            <span class="block text-sm text-gray-800 truncate">${n.title || '未命名通知'}</span>
-            <span class="block text-[11px] text-gray-500">${timeText}</span>
+        <div class="notice-row">
+          ${priorityBadge}
+          <span class="notice-row__main">
+            <span class="notice-row__title block">${n.title || '未命名通知'}</span>
+            <span class="notice-row__meta block">${timeText}</span>
           </span>
-          <button type="button" class="btn-outline ${prefix}-unread-open-btn text-xs px-2.5 py-2 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 transition-colors flex-shrink-0" data-notice-id="${n.id}" style="cursor:pointer;">阅读</button>
-          <button type="button" class="btn-accent-soft ${prefix}-unread-read-btn text-xs px-2.5 py-2 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors flex-shrink-0" data-notice-id="${n.id}" style="cursor:pointer;">标记已读</button>
+          <div class="notice-row__actions">
+            <button type="button" class="btn-outline ${prefix}-unread-open-btn" data-notice-id="${n.id}">阅读</button>
+          </div>
         </div>`;
     }).join('');
     return `
       <div class="card rounded-xl px-4 py-2.5 mb-4">
-        <button type="button" class="btn-ghost ${prefix}-unread-toggle w-full flex items-center justify-between text-left px-1 py-1.5 rounded-lg hover:bg-gray-50 transition-colors">
+        <button type="button" class="btn-ghost ${prefix}-unread-toggle w-full flex items-center justify-between text-left px-0 py-1 rounded-lg hover:bg-gray-50 transition-colors">
           <span class="flex items-center gap-2">
             <svg class="${prefix}-unread-arrow w-3 h-3 text-gray-500 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/>
             </svg>
-            <span class="inline-block w-1.5 h-1.5 rounded-full bg-red-500 flex-shrink-0"></span>
-            <span class="font-title-cn text-sm font-bold text-gray-800">未读通知 <span class="tabular-nums">${notices.length}</span> 条</span>
+            <span class="font-title-cn text-sm font-bold text-gray-800">未读通知</span>
+            <span class="badge badge--danger tabular-nums">${notices.length}</span>
           </span>
         </button>
-        <div class="${prefix}-unread-items hidden">
+        <div class="${prefix}-unread-items hidden divide-y divide-gray-100">
           ${rows}
         </div>
       </div>
@@ -427,7 +434,7 @@ export function createTodoTab(opts) {
       // 域折组折叠 / 组行选中 / 行动按钮 / 删除
       bindEvents(container);
 
-      // 未读条：展开阅读列表 + 标记已读（读后即消，重渲染）
+      // 未读条：阅读即已读（第二动作「标记已读」已撤，同一决定不再给两个按钮）
       container.querySelector(`.${prefix}-unread-toggle`)?.addEventListener('click', () => {
         const items = container.querySelector(`.${prefix}-unread-items`);
         const arrow = container.querySelector(`.${prefix}-unread-arrow`);
@@ -442,16 +449,6 @@ export function createTodoTab(opts) {
           // 直达通知详情页（T-234 F1 同款）；notice 页内已读自动销「通知阅读」待办
           const noticeId = notice.actionData?.noticeId || notice.sourceId || notice.id;
           window.location.href = resolveDocumentUrl('notice.html', { searchParams: { id: noticeId } });
-        });
-      });
-      container.querySelectorAll(`.${prefix}-unread-read-btn`).forEach(btn => {
-        btn.addEventListener('click', () => {
-          const id = btn.dataset.noticeId;
-          if (!id) return;
-          // S3②：标记已读走 NoticeStore 单一写口（并联动销对应通知阅读待办）
-          NoticeStore.markRead(id);
-          showToast('success', '已标记已读');
-          renderContent(ctx);
         });
       });
 

@@ -1547,6 +1547,33 @@ html.theme-dark .accent-avatar {
   margin-top: auto;
 }
 
+/* 页脚动作（帮助/关于/设置/登录/退出）：单一视觉源。
+   2026-10-18 支书复核「原先的设置最舒服」——恢复历史间距（padding 4px 8px、gap 6px、行间 2px），
+   仅把 0.7rem 提到 12px 下限；不再设 28/36px 的强制行高。 */
+.sidebar-footer-action {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  font-size: 12px;
+  line-height: 1.2;
+  color: var(--neutral-500);
+  text-decoration: none;
+  border: none;
+  background: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background-color var(--transition-fast), color var(--transition-fast);
+}
+.sidebar-footer-action:hover {
+  background: var(--surface-hover);
+  color: var(--neutral-700);
+}
+.sidebar-footer-action__mirror {
+  display: inline-block;
+  transform: scaleX(-1);
+}
+
 .accent-swatch {
   position: relative;
   width: 20px;
@@ -3289,7 +3316,6 @@ input.login-input:focus-visible,
   html.theme-dark .bg-sky-100     { background-color: rgba(56, 189, 248, 0.16) !important; }
   html.theme-dark .bg-cyan-100    { background-color: rgba(6, 182, 212, 0.16) !important; }
   html.theme-dark .hover\:bg-red-100:hover    { background-color: rgba(239, 68, 68, 0.16) !important; }
-  html.theme-dark .hover\:bg-blue-100:hover   { background-color: rgba(96, 165, 250, 0.16) !important; }
   html.theme-dark .hover\:bg-sky-100:hover    { background-color: rgba(56, 189, 248, 0.16) !important; }
   html.theme-dark .text-red-600    { color: var(--functional-error) !important; }
   html.theme-dark .text-blue-600   { color: var(--functional-info) !important; }
@@ -3941,5 +3967,43 @@ html.theme-dark .settings-group-item.active {
 }
 .row-divider:first-child {
   border-top: 0;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   通知行单一视觉语言（2026-10-18）
+   ── 支书实报「同样的未读通知，首页和工作台显示方式/配色不一样」──
+   口径：首页通知列表与工作台「未读通知」条共用这一套行结构：
+     行 = [徽章?] + 主区（标题 / 一句摘要）+ 右侧动作区
+   间距一律 10px 0 / 12px gap；标题 14px medium；摘要 12px；
+   行间分隔由父容器 `divide-y` 负责，行本身不画完整边框。
+   ⚠ 只定义视觉，不接管事件；两处渲染仍各自绑定（单一视觉源，不是单一 JS 源）。 */
+.notice-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 10px 0;
+  min-width: 0;
+}
+.notice-row__main { flex: 1; min-width: 0; }
+.notice-row__title {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--neutral-800);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.notice-row__meta {
+  font-size: 12px;
+  color: var(--neutral-500);
+  margin-top: 2px;
+}
+.notice-row__meta--flush { margin-top: 0; }
+.notice-row__actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex: none;
+  white-space: nowrap;
 }
 
