@@ -1,10 +1,10 @@
 // role: [工程师]+[AI]
 // 个人档案页的「本人自述」展示：折叠摘要 + 5 个子组。
 // 字段顺序与含义沿用自我描述字段单一源（core/domain/self-profile.js）。
-import { escHtml as esc } from '../../core/base/utils.js?v=20261018f';
+import { escHtml as esc } from '../../core/base/utils.js?v=20261018g';
 import {
   isSelfProfileEmpty, SELF_PROFILE_FIELDS,
-} from '../../core/domain/self-profile.js?v=20261018f';
+} from '../../core/domain/self-profile.js?v=20261018g';
 
 /** 15 个自述字段的展示子组（顺序＝展开后的阅读顺序；键集≡SELF_PROFILE_FIELDS） */
 export const SELF_PROFILE_GROUPS = [
@@ -77,9 +77,9 @@ function listTableHtml(field, value, emptyText) {
   if (!rows.length) return esc(emptyText);
   const cols = field.itemFields || [];
   return `<div class="overflow-x-auto">
-    <table class="w-full text-sm">
-      <thead><tr>${cols.map((col) => `<th scope="col" class="text-left text-[11px] font-normal text-gray-500 pb-1 pr-3 whitespace-nowrap">${esc(col.label)}</th>`).join('')}</tr></thead>
-      <tbody>${rows.map((row) => `<tr class="border-t border-gray-100 align-top">${cols.map((col) => `<td class="py-1.5 pr-3 text-gray-800 break-words whitespace-pre-wrap">${esc(row[col.key] || '—')}</td>`).join('')}</tr>`).join('')}</tbody>
+    <table class="data-table">
+      <thead><tr>${cols.map((col) => `<th scope="col">${esc(col.label)}</th>`).join('')}</tr></thead>
+      <tbody>${rows.map((row) => `<tr class="border-t border-gray-100 align-top">${cols.map((col) => `<td class="break-words whitespace-pre-wrap">${esc(row[col.key] || '—')}</td>`).join('')}</tr>`).join('')}</tbody>
     </table>
   </div>`;
 }

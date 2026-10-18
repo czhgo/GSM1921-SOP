@@ -13,16 +13,16 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261018f';
-import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261018f';
-import { setDataSource } from '../../docs/src/data/data-adapter.js?v=20261018f';
+import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261018g';
+import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261018g';
+import { setDataSource } from '../../docs/src/data/data-adapter.js?v=20261018g';
 // 日历日索引纯分组 helper（calendar.js 现为 node 可导：resize 监听已 typeof 守卫）
-import { buildCalendarDayIndex } from '../../docs/src/components/record/calendar.js?v=20261018f';
-import { SecretaryTodoDeriver } from '../../docs/src/services/governance/secretary-overview.js?v=20261018f';
+import { buildCalendarDayIndex } from '../../docs/src/components/record/calendar.js?v=20261018g';
+import { SecretaryTodoDeriver } from '../../docs/src/services/governance/secretary-overview.js?v=20261018g';
 import {
   buildApprovedSignupIndex, approvedSignupHit,
-} from '../../docs/src/services/governance/today-summary.js?v=20261018f';
-import { TodoStatus, isTodoExpired } from '../../docs/src/services/governance/todo.js?v=20261018f';
+} from '../../docs/src/services/governance/today-summary.js?v=20261018g';
+import { TodoStatus, isTodoExpired } from '../../docs/src/services/governance/todo.js?v=20261018g';
 // R-26③（2026-10-05 批次 388）：与生产同口径＝**本地**「今天」（服务端单一源）
 import { today as todayLocal } from '../services/reporting.js';
 

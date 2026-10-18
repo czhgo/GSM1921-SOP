@@ -53,7 +53,7 @@ function _watchTfView(container) {
 export function renderContent(ctx) {
   const el = document.getElementById('visitor-tab-content');
   if (!el) return null;
-  return import('../../../components/record/insight-view.js?v=20261018f').then(m => m.renderInsightView(el, {
+  return import('../../../components/record/insight-view.js?v=20261018g').then(m => m.renderInsightView(el, {
     // 只出专班段（活动一览在「活动动态」——见头注）
     views: ['taskforce'],
     defaultView: 'taskforce',

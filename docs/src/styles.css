@@ -1,5 +1,5 @@
 /* 组件样式（@import 必须位于文件顶部） */
-@import url('components/person-picker.css?v=20261018f');
+@import url('components/person-picker.css?v=20261018g');
 
 /* ═══════════════════════════════════════════════════════════════
    GSM1921-SOP DESIGN SYSTEM v11.0 — Matte Flat
@@ -112,6 +112,22 @@
   --radius-md: 12px;
   --radius-lg: 16px;
   --radius-xl: 20px;
+
+  /* ── Spacing — 间距五档（2026-10-18 立 · 单一源）──
+     只用 4 / 8 / 12 / 16 / 24 五档：4 行内 · 8 行内与行纵向 · 12 卡片内 ·
+     16 标准卡内边距与区块 · 24 页面区块。采用矩阵见 DESIGN_SYSTEM.md §4.21；
+     新代码不得再写任意值内边距 / 间距（如 14px 内边距、10px 间隙）。 */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+
+  /* ── Row height — 语义行高（列表行 / 表格行）──
+     字号不另造第二套：标题 14px / 次级 12px 复用下方 --text-base / --text-sm。 */
+  --row-compact: 32px;
+  --row-standard: 40px;
+  --row-comfortable: 48px;
 
   /* ── Motion — 过渡 ── */
   --transition-fast:   150ms ease-out;
@@ -4005,5 +4021,331 @@ html.theme-dark .settings-group-item.active {
   gap: 4px;
   flex: none;
   white-space: nowrap;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   间距语义工具类（2026-10-18 立 · 单一源）
+   ── 来源：Spec「工作台密度与组件重组」Task 1；档位定义见
+      styles.css :root 的 --space-* 与 DESIGN_SYSTEM.md §4.21。
+   ── 用途：只供新页面 / 新模块采用，不做存量批量替换。
+      页面骨架 .stack-page（24）→ 区块 .stack-section（16）
+      → 卡内 .stack-card（12）；标准卡 16、紧凑卡 12。
+   ── 采用点：components/ui/list-row.js 头注（供后续页面按图索骥）。 */
+.stack-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+.stack-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+.stack-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+.card-standard {
+  padding: var(--space-4);
+}
+.card-compact {
+  padding: var(--space-3);
+}
+.gap-inline {
+  gap: var(--space-1);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   COMPONENT: Work Overview（六台工作概况三层骨架）
+   ── 单一源：components/governance/work-overview.js（结论带 / 条线表 / 待我处理）。
+   ── 结论带 = 一条横向带，不是四张 KPI 小卡；数值 tabular-nums，逾期取功能红。
+   ── 条线表 = .data-table 一套；窄屏只让表体横向滚动，首列 sticky，页面不横向溢出。
+   ── 间距只取 --space-*，与 §4.21 五档一致。 */
+.wo-summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-4);
+}
+.wo-summary__item {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--space-1);
+}
+.wo-summary__label {
+  font-size: var(--text-sm);
+  color: var(--neutral-500);
+}
+.wo-summary__value {
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1;
+  color: var(--neutral-800);
+  font-variant-numeric: tabular-nums;
+}
+.wo-summary__value--danger {
+  color: var(--functional-error);
+}
+.wo-lines-scroll {
+  max-width: 100%;
+  overflow-x: auto;
+}
+.wo-lines-table {
+  min-width: 44rem;
+}
+.wo-lines-table th:first-child,
+.wo-lines-table td:first-child {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  background: var(--surface-card);
+}
+.wo-lines-table tbody tr:hover td:first-child {
+  background: var(--neutral-50);
+}
+.wo-line-name {
+  font-weight: 500;
+  color: var(--neutral-800);
+  white-space: nowrap;
+}
+.wo-line-overdue {
+  color: var(--functional-error);
+  font-weight: 600;
+}
+.wo-line-gap {
+  max-width: 16rem;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   COMPONENT: List Row（重复列表行）——单一源，2026-10-18 立
+   ── 职责：标题 + 次级 + 描述 + 行尾动作的重复行；标记由
+      components/ui/list-row.js 产出，样式只在本段声明。
+   ── 边框：行本身不画完整边框；父容器 .list-group 在行间出 1px hairline。
+   ── 间距：行内边距 8/12、行间距 12；行高取 --row-standard（40px）。
+   ── 字号：标题 14px/500（--text-base）、次级与描述 12px（--text-sm）。 */
+.list-group {
+  display: flex;
+  flex-direction: column;
+}
+.list-group > * + * {
+  border-top: 1px solid var(--neutral-100);
+}
+.list-row {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  width: 100%;
+  min-height: var(--row-standard);
+  padding: var(--space-2) var(--space-3);
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  text-decoration: none;
+}
+.list-row[data-interactive="true"] {
+  cursor: pointer;
+  transition: background-color var(--transition-fast);
+}
+.list-row[data-interactive="true"]:hover {
+  background: var(--surface-hover);
+}
+.list-row:focus-visible {
+  outline: 2px solid var(--app-accent);
+  outline-offset: -2px;
+}
+/* 可交互行用 <button> 时挂 btn-ghost 语义族；此处按行载体覆盖该族的紧凑尺寸。
+   覆盖率高于 .btn-ghost 的 !important 档，只作用于本行。 */
+.list-row.btn-ghost {
+  justify-content: flex-start;
+  gap: var(--space-3) !important;
+  min-height: var(--row-standard) !important;
+  padding: var(--space-2) var(--space-3) !important;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: inherit;
+  white-space: normal;
+}
+.list-row__main {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+}
+.list-row__title {
+  font-size: var(--text-base);
+  font-weight: 500;
+  line-height: var(--leading-tight);
+  color: var(--neutral-800);
+}
+.list-row__meta {
+  font-size: var(--text-sm);
+  line-height: var(--leading-normal);
+  color: var(--neutral-500);
+}
+.list-row__desc {
+  font-size: var(--text-sm);
+  line-height: var(--leading-normal);
+  color: var(--neutral-600);
+}
+.list-row__trailing {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: var(--space-2);
+  margin-left: auto;
+}
+.list-row[data-selected="true"] {
+  background: var(--surface-hover);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   待办四档摘要与分组（2026-10-18 · 工作台密度重组 Task 5）
+   ── 摘要 = 一条横向带（逾期 / 今日 / 本周 / 待处理），不是四张 KPI 卡；
+      数值 tabular-nums，逾期取功能红，其余中性。
+   ── 组头 = 组名 + 条数；逾期组用功能红，其余中性。
+   ── 行结构复用 .list-group / .list-row；行尾「更多」为轻量浮层菜单。 */
+.todo-summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-4);
+  padding-bottom: var(--space-3);
+  margin-bottom: var(--space-3);
+  border-bottom: 1px solid var(--neutral-100);
+}
+.todo-summary__item {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--space-1);
+}
+.todo-summary__label {
+  font-size: var(--text-sm);
+  color: var(--neutral-500);
+}
+.todo-summary__value {
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1;
+  color: var(--neutral-800);
+  font-variant-numeric: tabular-nums;
+}
+.todo-summary__value--danger {
+  color: var(--functional-error);
+}
+
+.todo-urgency-group + .todo-urgency-group {
+  margin-top: var(--space-4);
+}
+/* 待办行：标题与说明各守一行，行尾动作纵向居中；不改变 list-row 的其他采用点。 */
+.todo-row > .list-row__trailing {
+  align-self: center;
+}
+.todo-row .list-row__title,
+.todo-row .list-row__meta {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.todo-urgency-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 0 var(--space-3) var(--space-1);
+}
+.todo-urgency-header__label {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--neutral-600);
+}
+.todo-urgency-header__label--danger {
+  color: var(--functional-error);
+}
+.todo-urgency-header__count {
+  font-size: var(--text-sm);
+  color: var(--neutral-500);
+  font-variant-numeric: tabular-nums;
+}
+.todo-urgency-header__count--danger {
+  color: var(--functional-error);
+}
+
+.todo-more {
+  position: relative;
+  display: inline-flex;
+}
+.todo-more__btn {
+  cursor: pointer;
+  white-space: nowrap;
+}
+.todo-more__menu {
+  position: absolute;
+  top: calc(100% + var(--space-1));
+  right: 0;
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  min-width: 120px;
+  padding: var(--space-1);
+  background: var(--surface-elevated);
+  border: 1px solid var(--neutral-200);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-dropdown);
+}
+.todo-more__menu.hidden {
+  display: none;
+}
+.todo-more__item {
+  display: block;
+  width: 100%;
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--text-sm);
+  text-align: left;
+  white-space: nowrap;
+  color: var(--neutral-700);
+  background: transparent;
+  border: 0;
+  border-radius: calc(var(--radius-sm) - 2px);
+  cursor: pointer;
+}
+.todo-more__item:hover {
+  background: var(--surface-hover);
+}
+.todo-more__item:focus-visible {
+  outline: 2px solid var(--app-accent);
+  outline-offset: -2px;
+}
+.todo-more__item:disabled {
+  color: var(--neutral-400);
+  cursor: not-allowed;
+}
+.todo-more__item--danger {
+  color: var(--functional-error);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   COMPONENT: Empty State（空态）——单一源，2026-10-18 立
+   ── 职责：一句话 + 至多一个动作；标记由 components/ui/empty-state.js 产出。
+   ── 禁用：插图、长说明、多个并列动作。 */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-6) var(--space-3);
+  text-align: center;
+}
+.empty-state__text {
+  font-size: var(--text-sm);
+  color: var(--neutral-500);
+}
+.empty-state__action {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
 }
 

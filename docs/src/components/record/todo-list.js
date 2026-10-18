@@ -1,61 +1,238 @@
 // role: [工程师]+[AI]
 // ════════════════════════════════════════════════════════════════
-//  todo-list.js — 待办列表组件
-//  最小三成本原则落地：进入工作台第一眼即见待办
-//  2026-09-07 IA-C1 Task4：新增 renderDomainTodoList（**6 类**业务域折组列表，六台待办页主列；
-//  数据源=TodoStore.getDomainsWithGroups/mergeRealtimeDomains，域头=域名+计数+逾期红点）
-//  2026-09-07 IA-C1 Task5：旧 renderTodoList（按分类/actionType 大列表）已无调用者移除
-//  （六台待办页 C1 Task4 已改挂 renderDomainTodoList）；按钮文案表去无生产者死键
-//  （taskforce-archive/notice-read/review-submit，详见 _renderAggregateItem 登记注释）
-//  2026-09-14 支书裁定：域折组「组内行」接入统一检索引擎（list-filter.js）——每域一个实例，
-//  只给分页（keyword null + facets [] → 引擎不渲染检索条；组内行数 ≤8 的域不出翻页控件，观感不变）；
-//  行 HTML（含 bulk 批量块）逐字保留，行内按钮改事件委托挂域列表根（引擎翻页重绘行后绑定仍有效）。
-//  Source: content/04_web_design/data/DATA_ARCHITECTURE.md §2.18.2
-//         content/04_web_design/design-system/DESIGN_SYSTEM.md §一 第6条
+//  todo-list.js — 待办列表组件（四档紧迫度 · 2026-10-18 工作台密度重组 Task 5）
+//
+//  职责：把待办聚合组按「逾期 / 今日 / 本周 / 以后」四档分组渲染；
+//    每行只出「标题 + 一句说明 + 一个主行动」，作废 / 删除 / 催办收进行尾「更多」菜单。
+//  单一源关系：
+//    · 四档口径 = 本文件 buildUrgencySections（壳体摘要与列表共用同一批分组数据，不另算一套）；
+//    · 行结构 = components/ui/list-row.js 的 listRowHtml（本件不手写行容器）；
+//    · 空态 = components/ui/empty-state.js 的 emptyStateHtml；
+//    · 逾期判定 = services/governance/todo.js 的 isTodoExpired（status=expired 亦计入）；
+//    · 样式 = styles.css 的 .list-group / .list-row 与 .todo-urgency-* / .todo-more__* 段。
+//  保留：bulkHtml 批量块、selectedTodoId 选中态、data-group-key 深链锚点、
+//    催办状态、作废审批门、删除权限门（均由壳体注入回调，本件只渲染与转交）。
 // ════════════════════════════════════════════════════════════════
 
-import { badgeHtml } from '../ui/badges.js?v=20261018f';
-import { renderFilteredList } from '../ui/list-filter.js?v=20261018f';
-import { solidAccentStyle } from '../../core/domain/constants.js?v=20261018f';
-// P1（2026-09-07）：渲染层过期红点收敛于 todo.js isTodoExpired（单一过期判定实现 · spec §三.6）
-import { isTodoExpired } from '../../services/governance/todo.js?v=20261018f';
-import { todayLocal } from '../../core/base/utils.js?v=20261018f';
+import { badgeHtml } from '../ui/badges.js?v=20261018g';
+import { listRowHtml } from '../ui/list-row.js?v=20261018g';
+import { emptyStateHtml } from '../ui/empty-state.js?v=20261018g';
+import { isTodoExpired } from '../../services/governance/todo.js?v=20261018g';
+import { escHtml, todayLocal } from '../../core/base/utils.js?v=20261018g';
+
+/** 四档展示顺序与组名（纯中文；空组由渲染层跳过） */
+const URGENCY_LEVELS = [
+  { key: 'overdue', label: '逾期' },
+  { key: 'today', label: '今日' },
+  { key: 'week', label: '本周' },
+  { key: 'later', label: '以后' },
+];
+
+/** 组内条数（持久化组与实时组同口径：count 优先，缺省按 items 长度） */
+function _groupCount(g) {
+  if (!g) return 0;
+  if (typeof g.count === 'number') return g.count;
+  return Array.isArray(g.items) ? g.items.length : 0;
+}
+
+/** 组是否逾期：截止日早于今天，或组内任一 entry 为 expired 显式态 */
+function _isGroupOverdue(g, today) {
+  if (!g) return false;
+  if (g.deadline && g.deadline < today) return true;
+  return Array.isArray(g.items) && g.items.some(it => it && isTodoExpired(it, today));
+}
+
+/** 本周日日期键（周一为一周之始；今天为周日时返回今天） */
+function _weekEndKey(today) {
+  const parts = String(today || '').split('-').map(Number);
+  if (parts.length !== 3 || parts.some(n => !Number.isFinite(n))) return today;
+  const d = new Date(parts[0], parts[1] - 1, parts[2]);
+  const add = (7 - d.getDay()) % 7; // getDay: 0=周日
+  d.setDate(d.getDate() + add);
+  const pad = n => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+}
+
+/** 单组归入哪一档（单一判定，摘要与列表共用） */
+function _urgencyKeyOf(g, today, weekEnd) {
+  if (_isGroupOverdue(g, today)) return 'overdue';
+  if (g.deadline === today) return 'today';
+  if (g.deadline && g.deadline > today && g.deadline <= weekEnd) return 'week';
+  return 'later';
+}
 
 /**
- * 渲染「**6 类**业务域折组」待办列表（IA 收敛 C1 Task4 六台待办页主列；替代旧按分类/actionType 大列表）。
- *
- * 数据源 = TodoStore.getDomainsWithGroups(role) / mergeRealtimeDomains(role, realtimeGroups) 输出：
- *   [{ domain, label, count, expiredCount, groups: [{ groupKey, actionKey, title, deadline, count, items }] }]
- * 呈现（spec 一）：域有活才显；域头=域名 + 计数 + 逾期红点；组行沿用聚合卡行（标题/截止/处理按钮），
- * 域内组顺序由数据源保证（先逾期 → deadline → actionKey 稳定）。
- * 默认展开：含逾期域全部展开；无逾期 → count 最大 1-2 个域展开（并列取 2），其余折叠；
- * 组头点击展开/收起（与既有分类折叠同交互）。
- *
+ * 把展平后的待办组分成四档，并算出摘要四数（同一批数据，不重复口径）。
+ * @param {Array<Object>} groups 展平组（可带 domainLabel）
+ * @param {string} [today] 日期键 YYYY-MM-DD（缺省=本机今天）
+ * @returns {{sections: Array<{key:string,label:string,groups:Array}>, summary: {overdue:number,today:number,week:number,pending:number}}}
+ */
+export function buildUrgencySections(groups, today = todayLocal()) {
+  const weekEnd = _weekEndKey(today);
+  const sections = URGENCY_LEVELS.map(level => ({ ...level, groups: [] }));
+  const byKey = new Map(sections.map(s => [s.key, s]));
+
+  for (const g of groups || []) {
+    if (!g || typeof g !== 'object') continue;
+    byKey.get(_urgencyKeyOf(g, today, weekEnd)).groups.push(g);
+  }
+
+  // 档内排序：截止升序（无截止末位），再按 groupKey 稳定兜底
+  for (const section of sections) {
+    section.groups.sort((a, b) => {
+      const dc = (a.deadline || '9999').localeCompare(b.deadline || '9999');
+      return dc || String(a.groupKey || '').localeCompare(String(b.groupKey || ''));
+    });
+  }
+
+  const summary = { overdue: 0, today: 0, week: 0, pending: 0 };
+  for (const section of sections) {
+    const count = section.groups.reduce((sum, g) => sum + _groupCount(g), 0);
+    if (section.key !== 'later') summary[section.key] = count;
+    summary.pending += count;
+  }
+  return { sections, summary };
+}
+
+/** 主行动文案（沿用原 actionKey 语义；无生产者死键不恢复） */
+const ACTION_LABELS = {
+  'attendance-confirm': '去考勤管理',
+  'inspection-confirm': '去考察管理',
+  'activity-archive': '去归档',
+  'review-confirm': '去复核',
+  'signup-review': '去审核',
+  authorize: '去赋权',
+  archive: '去归档',
+  review: '去审核',
+  read: '去阅读',
+  submit: '去提交',
+  track: '去追踪',
+  participate: '去参与',
+  'handoff-attendance-archival': '确认接收',
+  'handoff-inspection-report': '确认接收',
+  'handoff-material-shortage': '去补课',
+};
+
+/** 在四档分组中按 groupKey 找组 */
+function _findGroup(sections, groupKey) {
+  for (const section of sections || []) {
+    const found = (section.groups || []).find(g => g.groupKey === groupKey);
+    if (found) return found;
+  }
+  return null;
+}
+
+/** 行尾「更多」菜单（默认收起；button + aria-expanded；菜单项按权限渲染） */
+function _moreMenuHtml(prefix, g, urge, canVoid, canDelete) {
+  const items = [];
+  if (urge) {
+    items.push(`<button type="button" role="menuitem" class="todo-more__item ${prefix}-todo-urge-btn" data-group-key="${escHtml(g.groupKey)}" ${urge.state === 'urged' ? 'disabled' : ''} title="${escHtml(urge.title || '催办责任人')}">${escHtml(urge.label)}</button>`);
+  }
+  if (canVoid) {
+    items.push(`<button type="button" role="menuitem" class="todo-more__item todo-more__item--danger ${prefix}-todo-void-btn" data-group-key="${escHtml(g.groupKey)}" title="作废该待办（不办了；需填原因）">作废</button>`);
+  }
+  if (canDelete) {
+    items.push(`<button type="button" role="menuitem" class="todo-more__item todo-more__item--danger ${prefix}-todo-del-btn" data-group-key="${escHtml(g.groupKey)}" title="删除该组待办（不可恢复，仅支委层）">删除</button>`);
+  }
+  if (!items.length) return '';
+  return `
+    <div class="todo-more">
+      <button type="button" class="btn-outline todo-more__btn text-xs px-2.5 py-1.5 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 transition-colors" aria-haspopup="true" aria-expanded="false" aria-label="更多操作：${escHtml(g.title || '')}">更多</button>
+      <div class="todo-more__menu hidden" role="menu">${items.join('')}</div>
+    </div>`;
+}
+
+/** 渲染一条待办组行（标题 + 一句说明 + 一个主行动 + 行尾更多） */
+function _renderUrgencyRow(prefix, g, opts, today, selectedTodoId) {
+  const {
+    onActionTodo, onDeleteTodo, onVoidTodo, urgeStateOf, actionBtnStyle = '',
+  } = opts;
+  const isSelected = g.groupKey === selectedTodoId;
+  const hasVoidPending = Array.isArray(g.items) && g.items.some(t => t && t.voidPending);
+  // 作废 / 删除只对落库待办组有意义（实时组无 id；审批门与角色门由壳体回调决定）
+  const canVoid = g.persisted && typeof onVoidTodo === 'function';
+  const canDelete = g.persisted && typeof onDeleteTodo === 'function';
+  const urge = typeof urgeStateOf === 'function' ? urgeStateOf(g) : null;
+  const actionLabel = ACTION_LABELS[g.actionKey] || ACTION_LABELS[g.actionType] || '去处理';
+
+  const primaryBtn = g.hideActionBtn ? '' : `
+    <button type="button" class="btn-accent-soft ${prefix}-todo-action-btn text-xs px-3 py-1.5 rounded-lg transition-colors hover:opacity-90" data-group-key="${escHtml(g.groupKey)}" style="${actionBtnStyle}">${actionLabel}</button>`;
+  const trailing = `${primaryBtn}${_moreMenuHtml(prefix, g, urge, canVoid, canDelete)}`;
+
+  const metaParts = [];
+  if (g.domainLabel) metaParts.push(g.domainLabel);
+  const count = _groupCount(g);
+  if (count > 1) metaParts.push(`${count} 条`);
+  if (g.deadline) metaParts.push(`截止 ${g.deadline}`);
+
+  const row = listRowHtml({
+    leading: hasVoidPending ? badgeHtml('待支委会确认', 'warning') : '',
+    title: g.title || '未命名待办',
+    meta: metaParts.join(' · '),
+    trailing,
+    className: `todo-row ${prefix}-todo-item ${prefix}-todo-item-main${isSelected ? ' list-row--selected' : ''}`,
+    dataAttrs: {
+      'data-group-key': g.groupKey,
+      'data-selected': isSelected ? 'true' : undefined,
+      tabindex: '0',
+      role: 'button',
+      'aria-current': isSelected ? 'true' : undefined,
+      'aria-label': `查看详情：${g.title || ''}`,
+    },
+  });
+
+  // 批量块（成员确认等）跟在组行之后，保持原有勾选批量与逐项详情并行
+  return g.bulkHtml
+    ? `${row}<div class="${prefix}-todo-bulk rounded-b-lg bg-gray-50/40">${g.bulkHtml}</div>`
+    : row;
+}
+
+/** 关闭容器内全部「更多」菜单（点击外部 / Esc 共用） */
+function _closeMoreMenus(container) {
+  container.querySelectorAll('.todo-more__menu').forEach(menu => {
+    menu.classList.add('hidden');
+    const btn = menu.closest('.todo-more')?.querySelector('.todo-more__btn');
+    btn?.setAttribute('aria-expanded', 'false');
+  });
+}
+
+// 文档级「点击外部关闭」每个容器只挂一次（容器跨重建复用，避免重复绑定累积）
+const _menuDismissBound = new WeakSet();
+function _bindMenuDismiss(container) {
+  if (_menuDismissBound.has(container)) return;
+  _menuDismissBound.add(container);
+  document.addEventListener('click', (e) => {
+    if (!container.isConnected) return;
+    if (e.target.closest('.todo-more')) return;
+    _closeMoreMenus(container);
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Escape' || !container.isConnected) return;
+    _closeMoreMenus(container);
+  });
+}
+
+/**
+ * 渲染四档紧迫度待办列表（六台待办页主列）。
  * @param {Object} opts
- * @param {string} opts.prefix          — 命名前缀（如 'leader'/'secretary'）
- * @param {Array}  opts.domains         — 域视图数组（getDomainsWithGroups/mergeRealtimeDomains 返回）
- * @param {string} opts.accent          — 强调色
- * @param {string} [opts.selectedTodoId]— 当前选中组 groupKey
- * @param {Function} [opts.onSelectTodo]— 点击组行回调 (group) => void（进详情）
- * @param {Function} [opts.onActionTodo]— 行动按钮回调 (group) => void
- * @param {Function|null} [opts.onDeleteTodo] — 删除组回调（null=不渲染删除键；实时组台禁用）
- * @param {Function|null} [opts.onVoidTodo] — 作废组回调（`#1`/`D-742`；null=不渲染作废键）。
- *        仅**落库待办组**（`g.persisted`）渲染「作废 / 删除」——实时组无 id、无 `voidPending`，
- *        渲染了也只是空转（硬删键按此收口，见 todo.js `_aggregateByAction` 的 `persisted` 标记）。
- *        「删除」是否出现由调用方（壳）按角色决定：**硬删只留支委层**。
+ * @param {string} opts.prefix — 命名前缀
+ * @param {Array} opts.sections — buildUrgencySections 输出的四档分组
+ * @param {string} [opts.selectedTodoId] — 当前选中组 groupKey
+ * @param {Function} [opts.onSelectTodo] — 点行进详情 (group) => void
+ * @param {Function} [opts.onActionTodo] — 主行动回调 (group) => void
+ * @param {Function|null} [opts.onDeleteTodo] — 删除回调（null=不渲染）
+ * @param {Function|null} [opts.onVoidTodo] — 作废回调（null=不渲染；审批门在壳体）
  * @param {(group:Object)=>({state:'available'|'urged',label:string,title?:string}|null)} [opts.urgeStateOf]
- *        — 催办入口状态解析（2026-09-10 支书/副支书待办页逐条催办）：返回 null 不渲染；
- *          仅支书台传入（opt-in），其余工作台缺省 undefined → 无催办入口。
- * @param {(group:Object)=>void} [opts.onUrgeTodo] — 催办按钮回调
- * @param {string} [opts.actionBtnStyle]— 行动按钮自定义内联样式（visitor 金色系）
- * @param {string} [opts.emptyHint]     — 空态引导文案
+ *        — 催办入口状态（null/缺省=不渲染）
+ * @param {(group:Object)=>void} [opts.onUrgeTodo] — 催办回调
+ * @param {string} [opts.actionBtnStyle] — 主行动自定义内联样式
+ * @param {string} [opts.emptyHint] — 空态一句话
  * @returns {{ html: string, bindEvents: (container: HTMLElement) => void }}
  */
-export function renderDomainTodoList(opts) {
+export function renderUrgencyTodoList(opts) {
   const {
     prefix,
-    domains,
-    accent,
+    sections = [],
     selectedTodoId = null,
     onSelectTodo = () => {},
     onActionTodo = () => {},
@@ -68,227 +245,108 @@ export function renderDomainTodoList(opts) {
   } = opts;
 
   const today = todayLocal();
-  const list = Array.isArray(domains) ? domains : [];
-
-  // 默认展开域：含逾期 → 全部展开；否则 count 最大 1-2 个域（count 并列取 2）
-  const expandedDomains = new Set();
-  const expiredDomains = list.filter(d => (d.expiredCount || 0) > 0);
-  if (expiredDomains.length > 0) {
-    expiredDomains.forEach(d => expandedDomains.add(d.domain));
-  } else {
-    const sorted = [...list].sort((a, b) => (b.count || 0) - (a.count || 0));
-    const take = (sorted.length > 1 && sorted[0] && sorted[0].count === sorted[1].count) ? 2 : 1;
-    sorted.slice(0, take).forEach(d => expandedDomains.add(d.domain));
-  }
-
-  const groupsHtml = list.map(domain => {
-    const isExpanded = expandedDomains.has(domain.domain);
-    // 组内行不再在此处 map+join：改由统一检索引擎在 bindEvents 时渲染进
-    // `${prefix}-todo-group-items` 宿主（域头/折叠/组内层级结构逐字保留）。
+  let total = 0;
+  const sectionsHtml = (sections || []).map(section => {
+    const groups = section.groups || [];
+    if (!groups.length) return '';
+    total += groups.length;
+    const danger = section.key === 'overdue';
+    const rows = groups
+      .map(g => _renderUrgencyRow(prefix, g, { onActionTodo, onDeleteTodo, onVoidTodo, urgeStateOf, actionBtnStyle }, today, selectedTodoId))
+      .join('');
     return `
-      <div class="${prefix}-todo-group mb-3" data-domain="${domain.domain}">
-        <button type="button" class="btn-ghost ${prefix}-todo-group-header w-full text-left flex items-center justify-between px-3 py-2 rounded-t-lg cursor-pointer bg-transparent border-0 hover:bg-gray-50 transition-colors">
-          <div class="flex items-center gap-2">
-            <svg class="${prefix}-todo-arrow w-3 h-3 text-gray-500 transition-transform" style="transform:${isExpanded ? 'rotate(0deg)' : 'rotate(-90deg)'};" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/>
-            </svg>
-            <span class="font-title-cn text-sm font-bold text-gray-700">${domain.label || domain.domain}</span>
-            ${(domain.expiredCount || 0) > 0 ? badgeHtml(`${domain.expiredCount} 条逾期`, 'danger') : ''}
-          </div>
-          <span class="text-xs text-gray-500 tabular-nums">${domain.count || 0}</span>
-        </button>
-        <div class="${prefix}-todo-group-items ${isExpanded ? '' : 'hidden'} rounded-b-lg"></div>
-      </div>
-    `;
+      <section class="todo-urgency-group ${prefix}-todo-urgency-group" data-urgency="${section.key}">
+        <div class="todo-urgency-header ${prefix}-todo-urgency-header">
+          <span class="todo-urgency-header__label${danger ? ' todo-urgency-header__label--danger' : ''}">${section.label}</span>
+          <span class="todo-urgency-header__count${danger ? ' todo-urgency-header__count--danger' : ''}">${groups.reduce((sum, g) => sum + _groupCount(g), 0)}</span>
+        </div>
+        <div class="list-group">${rows}</div>
+      </section>`;
   }).join('');
 
-  const emptyHtml = list.length === 0 ? `
-    <div class="text-center py-12 text-gray-500">
-      <p class="text-sm">${emptyHint}</p>
-    </div>
-  ` : '';
-
   const html = `
-    <div class="${prefix}-todo-domain-list">
-      ${groupsHtml}
-      ${emptyHtml}
+    <div class="${prefix}-todo-urgency-list">
+      ${sectionsHtml}
+      ${total === 0 ? emptyStateHtml(emptyHint) : ''}
     </div>
   `;
 
   function bindEvents(container) {
     if (!container) return;
+    _bindMenuDismiss(container);
 
-    // 域折组展开/收起（与既有分类折叠同交互）——域头不属引擎重绘范围，绑定方式不变
-    container.querySelectorAll(`.${prefix}-todo-group-header`).forEach(header => {
-      header.addEventListener('click', () => {
-        const group = header.closest(`.${prefix}-todo-group`);
-        const items = group?.querySelector(`.${prefix}-todo-group-items`);
-        const arrow = header.querySelector(`.${prefix}-todo-arrow`);
-        if (items) {
-          items.classList.toggle('hidden');
-          if (arrow) arrow.style.transform = items.classList.contains('hidden') ? 'rotate(-90deg)' : 'rotate(0deg)';
+    // 行选择（点行进入右栏详情；行动按钮 / 更多菜单不触发选中）
+    container.querySelectorAll(`.${prefix}-todo-item[data-group-key]`).forEach(row => {
+      row.addEventListener('click', (e) => {
+        if (e.target.closest('button, .todo-more')) return;
+        const g = _findGroup(sections, row.dataset.groupKey);
+        if (g) onSelectTodo(g);
+      });
+      row.addEventListener('keydown', (e) => {
+        if (e.target !== row || (e.key !== 'Enter' && e.key !== ' ')) return;
+        e.preventDefault();
+        const g = _findGroup(sections, row.dataset.groupKey);
+        if (g) onSelectTodo(g);
+      });
+    });
+
+    // 「更多」展开 / 收起（键盘可达：原生 button + aria-expanded）
+    container.querySelectorAll('.todo-more__btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const menu = btn.closest('.todo-more')?.querySelector('.todo-more__menu');
+        if (!menu) return;
+        const willOpen = menu.classList.contains('hidden');
+        _closeMoreMenus(container);
+        if (willOpen) {
+          menu.classList.remove('hidden');
+          btn.setAttribute('aria-expanded', 'true');
         }
       });
     });
 
-    // 每域一个统一检索引擎实例（2026-09-14 裁定）：keyword null + facets [] →
-    // 引擎不渲染检索条，只出分页；组内行数 ≤8 的域不出翻页控件（短列表观感与改前一致）。
-    // 组内行 HTML 逐字保留（原 map+join 只改写为 rowHtml）。
-    container.querySelectorAll(`.${prefix}-todo-group[data-domain]`).forEach(groupEl => {
-      const host = groupEl.querySelector(`.${prefix}-todo-group-items`);
-      const domain = list.find(d => d.domain === groupEl.dataset.domain);
-      if (!host || !domain) return;
-      renderFilteredList(host, {
-        stateKey: `${prefix}-todo-domain-${domain.domain}`,
-        rows: domain.groups || [],
-        keyword: null,
-        facets: [],
-        countUnit: '条',
-        listClass: 'divide-y divide-gray-100',
-        emptyMessage: '该业务域暂无待办',
-        rowHtml: (g) => {
-          // 2026-09-08 裁决批一（D6/D1 接入点）：组带 bulkHtml（成员变更域内批量块等）→ 组行下直接内嵌
-          // （勾选批量与逐项详情并行：组行点击仍进详情逐项确认/退回，bulk 块负责批量确认/通过）。
-          const row = _renderAggregateItem(prefix, g, accent, today, selectedTodoId, actionBtnStyle, onDeleteTodo, urgeStateOf, onVoidTodo);
-          return g.bulkHtml
-            ? `${row}<div class="${prefix}-todo-bulk rounded-b-lg bg-gray-50/40">${g.bulkHtml}</div>`
-            : row;
-        },
+    // 主行动
+    container.querySelectorAll(`.${prefix}-todo-action-btn[data-group-key]`).forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const g = _findGroup(sections, btn.dataset.groupKey);
+        if (g) onActionTodo(g);
       });
     });
 
-    // 组行选中 / 处理 / 删除 / 催办：事件委托挂「不随列表重绘」的域列表根
-    // （引擎翻页重绘组内行后原先的逐元素绑定会失效；域列表根每次重建为新元素，不会累积重复绑定）
-    const listRoot = container.querySelector(`.${prefix}-todo-domain-list`);
-    listRoot?.addEventListener('click', (e) => {
-      // 催办入口（支书/副支书待办页逐条催办；opt-in——未传 onUrgeTodo 不渲染）
-      const urgeBtn = e.target.closest(`.${prefix}-todo-urge-btn[data-group-key]`);
-      if (urgeBtn) {
+    // 催办（菜单项）
+    container.querySelectorAll(`.${prefix}-todo-urge-btn[data-group-key]`).forEach(btn => {
+      btn.addEventListener('click', (e) => {
         e.stopPropagation();
-        if (urgeBtn.disabled) return;
-        const g = _findGroupInDomains(list, urgeBtn.dataset.groupKey);
+        if (btn.disabled) return;
+        _closeMoreMenus(container);
+        const g = _findGroup(sections, btn.dataset.groupKey);
         if (g && typeof onUrgeTodo === 'function') onUrgeTodo(g);
-        return;
-      }
+      });
+    });
 
-      // 组行动按钮（"处理"）
-      const actionBtn = e.target.closest(`.${prefix}-todo-action-btn[data-group-key]`);
-      if (actionBtn) {
+    // 作废（菜单项；审批门在壳体）
+    container.querySelectorAll(`.${prefix}-todo-void-btn[data-group-key]`).forEach(btn => {
+      btn.addEventListener('click', (e) => {
         e.stopPropagation();
-        const g = _findGroupInDomains(list, actionBtn.dataset.groupKey);
-        if (g) onActionTodo(g);
-        return;
-      }
-
-      // 作废按钮（`#1`/`D-742`：落库待办组；支书／非支书两种口径由壳注入的回调决定）
-      const voidBtn = e.target.closest(`.${prefix}-todo-void-btn[data-group-key]`);
-      if (voidBtn) {
-        e.stopPropagation();
+        _closeMoreMenus(container);
         if (typeof onVoidTodo !== 'function') return;
-        const g = _findGroupInDomains(list, voidBtn.dataset.groupKey);
+        const g = _findGroup(sections, btn.dataset.groupKey);
         if (g) onVoidTodo(g);
-        return;
-      }
+      });
+    });
 
-      // 删除按钮（域折组内删除 = 删除整组；实时组台 onDeleteTodo=null 不渲染）
-      const delBtn = e.target.closest(`.${prefix}-todo-del-btn[data-group-key]`);
-      if (delBtn) {
+    // 删除（菜单项；权限门在壳体）
+    container.querySelectorAll(`.${prefix}-todo-del-btn[data-group-key]`).forEach(btn => {
+      btn.addEventListener('click', (e) => {
         e.stopPropagation();
+        _closeMoreMenus(container);
         if (typeof onDeleteTodo !== 'function') return;
-        const g = _findGroupInDomains(list, delBtn.dataset.groupKey);
+        const g = _findGroup(sections, btn.dataset.groupKey);
         if (g) onDeleteTodo(g);
-        return;
-      }
-
-      // 组行点击 → 选中进详情
-      const main = e.target.closest(`.${prefix}-todo-item-main[data-group-key]`);
-      if (main) {
-        const g = _findGroupInDomains(list, main.dataset.groupKey);
-        if (g) onSelectTodo(g);
-      }
+      });
     });
   }
 
   return { html, bindEvents };
 }
-
-/** 域视图（展平）中按 groupKey 找组 */
-function _findGroupInDomains(domains, groupKey) {
-  for (const d of domains || []) {
-    const g = (d.groups || []).find(x => x.groupKey === groupKey);
-    if (g) return g;
-  }
-  return null;
-}
-
-// ── 渲染单个聚合卡（同跳转目标合并，数量角标 + 处理按钮）──
-function _renderAggregateItem(prefix, g, accent, today, selectedTodoId, actionBtnStyle, onDeleteTodo, urgeStateOf, onVoidTodo) {
-  const isSelected = g.groupKey === selectedTodoId;
-  const hasExpired = g.items.some(t => isTodoExpired(t, today));
-  // 待支委会确认（`#1`/`D-742`）：责任人已 `requestVoid`、支委尚未裁决 ⇒ 照常出列并挂胶囊。
-  const voidPending = Array.isArray(g.items) && g.items.some(t => t && t.voidPending);
-  // 作废 / 删除只对**落库待办组**有意义（实时组无 id、无 voidPending；见 todo.js `persisted`）。
-  const canVoid = g.persisted && typeof onVoidTodo === 'function';
-  const canDelete = g.persisted && typeof onDeleteTodo === 'function';
-
-  // 2026-08-07 闭环化：actionKey 优先决定按钮文案（同 actionType 不同业务域区分），actionType 兜底
-  // 无生产者死键（IA-C1 Task5 登记 2026-09-06）：
-  //   taskforce-archive —— 专班归档待办无派生（专班生命周期已改支委会表决/解散闭环，无归档动作待办）
-  //   notice-read       —— 通知阅读已移页顶「未读 N 条」轻量条（domain=NONE 不入域折组），条内自带阅读键
-  //   review-submit     —— 复盘提交不派生待办（组织者/深度在复盘 tab 内直接提交，无 todo 生产者）
-  // 该三键对应旧按钮文案「去归档/去阅读/去提交」随之移除；未知 actionKey 落入 actionType 兜底或 '处理'。
-  const actionLabels = {
-    // 2026-09-08 裁决批一（D6 纪检折组行仅提示+跳转）：考勤/考察待确认行尾=跳管理页队列
-    // （确认唯一位=考勤管理/考察管理页），不再用「去确认」暗示行内确认。
-    'attendance-confirm': '去考勤管理',
-    'inspection-confirm': '去考察管理',
-    'activity-archive': '去归档',
-    'review-confirm': '去复核',
-    'signup-review': '去审核',
-    authorize: '去赋权',
-    archive: '去归档',
-    review: '去审核',
-    read: '去阅读',
-    submit: '去提交',
-    track: '去追踪',
-    participate: '去参与',
-    // 2026-09-08 裁决批一（D3/D6 交接去顶卡入域折组）：数据交接行内确认/跳转
-    'handoff-attendance-archival': '确认接收',
-    'handoff-inspection-report': '确认接收',
-    'handoff-material-shortage': '去补课',
-  };
-  const actionLabel = actionLabels[g.actionKey] || actionLabels[g.actionType] || '处理';
-
-  // 催办入口状态（支书/副支书待办页；urgeStateOf 缺省 → 不渲染）
-  const urge = typeof urgeStateOf === 'function' ? urgeStateOf(g) : null;
-  const urgeBtn = urge ? `
-        <button type="button" class="btn-outline ${prefix}-todo-urge-btn text-xs px-2.5 py-1.5 rounded-lg border transition-colors ${urge.state === 'urged' ? 'border-gray-100 text-gray-500 cursor-not-allowed' : 'border-gray-200 text-gray-500 hover:bg-gray-50'}" data-group-key="${g.groupKey}" ${urge.state === 'urged' ? 'disabled' : ''} title="${urge.title || '催办责任人'}" style="cursor:${urge.state === 'urged' ? 'not-allowed' : 'pointer'};">${urge.label}</button>` : '';
-
-  return `
-    <div class="${prefix}-todo-item flex items-center" data-group-key="${g.groupKey}">
-      <button type="button" class="btn-ghost ${prefix}-todo-item-main flex-1 min-w-0 flex items-center gap-2 px-3 py-2.5 text-left bg-transparent border-0 transition-colors hover:bg-gray-50 ${isSelected ? 'bg-gray-50' : ''}" data-group-key="${g.groupKey}">
-        <span class="flex flex-col items-start gap-0.5 min-w-0 flex-1">
-          <span class="flex items-center gap-1.5 min-w-0 w-full">
-            ${hasExpired ? badgeHtml('含过期', 'danger') : ''}
-            ${voidPending ? badgeHtml('待支委会确认', 'warning') : ''}
-            <span class="text-sm font-medium text-gray-800 truncate">${g.title}</span>
-            <span class="agg-count-badge text-xs px-1.5 py-0.5 rounded-full font-semibold tabular-nums flex-shrink-0">${g.count}</span>
-          </span>
-          ${g.flow ? `<span class="block text-[11px] text-gray-500 truncate">${g.flow}</span>` : ''}
-        </span>
-        <span class="flex items-center gap-2 flex-shrink-0">
-          ${g.deadline ? `<span class="text-xs ${isTodoExpired({ status: 'pending', deadline: g.deadline }, today) ? 'text-red-600' : 'text-gray-500'}">${g.deadline}</span>` : ''}
-        </span>
-      </button>
-      <div class="flex items-center gap-1.5 ml-2 pr-3 flex-shrink-0">
-        ${urgeBtn}
-        ${g.hideActionBtn ? '' : `<button type="button" class="btn-accent-soft ${prefix}-todo-action-btn text-xs px-3 py-1.5 rounded-lg transition-colors hover:opacity-90" data-group-key="${g.groupKey}" style="${actionBtnStyle || ''}">${actionLabel}</button>`}
-        ${canVoid ? `<button type="button" class="btn-outline ${prefix}-todo-void-btn text-xs px-2.5 py-1.5 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 transition-colors" data-group-key="${g.groupKey}" title="作废该待办（不办了；需填原因）">作废</button>` : ''}
-        ${canDelete ? `<button type="button" class="btn-danger ${prefix}-todo-del-btn text-xs px-1.5 py-1" data-group-key="${g.groupKey}" title="删除该组待办（不可恢复，仅支委层）">✕</button>` : ''}
-      </div>
-    </div>
-  `;
-}
-
-// ── 工具函数 ──────────────────────────────────────────────────
-// P1：过期判定已收敛于 services/governance/todo.js isTodoExpired（2026-09-07）；本地实现移除

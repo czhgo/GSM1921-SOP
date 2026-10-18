@@ -12,28 +12,21 @@ test('周期归档界面按期次日期混合排序并显示冻结规则标签',
   const archive = await read('../../docs/src/entries/tabs/prop/archive-tab.js');
   assert.ok(/周期归档/.test(archive), 'archive view identifies periodic reporting as part of the archive capability');
   const overview = await read('../../docs/src/entries/tabs/secretary/overview-tab.js');
-  assert.ok(/archivePolicySnapshot\?\.periodLabel/.test(overview), 'review queue displays the frozen period label');
+  assert.match(overview, /renderWorkOverview/, '支书概况须走六台共享三层骨架');
 });
 
-test('书记概况以待处理为主、将异常另区呈现并消除重复计数', async () => {
-  const source = await read('../../docs/src/entries/tabs/secretary/overview-tab.js');
-  const dutyCard = source.indexOf("${dutyCardHtml('secretary')}");
-  const queueHost = source.indexOf('id="ov-subview-body"');
-  assert.ok(dutyCard > queueHost, '责任安排退到实际待处理内容之后');
-  assert.match(source, /待决定与确认/);
-  assert.match(source, /异常与督办/);
-  assert.match(source, /attendance\.absentCount \+ attendance\.makeupPending/);
-  assert.match(source, /异常按问题\/提醒条目计数/);
-  const overviewService = await read('../../docs/src/services/governance/secretary-overview.js');
-  assert.match(overviewService, /const absentCount = absentPersonIds\.length/);
-  assert.match(overviewService, /absentCount,/);
-  assert.doesNotMatch(source, /data-subview=/, '默认页不再在按维度与按人两个主视图之间切换');
-  assert.match(source, /按责任线查看在办概况/, '责任线信息作为主队列下方的按需展开内容');
-  assert.ok(source.indexOf('书记工作队列') < source.indexOf('查看工作概况指标'), '队列先于辅助指标');
-  assert.doesNotMatch(source, /label: '待处理', value: pendingItems/);
-  assert.doesNotMatch(source, /label: '异常', value: anomalyTotal/);
-  assert.doesNotMatch(source, /催办\/直达入口/);
-  assert.match(source, /待办、待答复汇报、文件确认和周期归档审核/);
+test('书记概况统一三层：结论带 / 条线表 / 待我处理，不再保留三卡', async () => {
+  const shell = await read('../../docs/src/entries/tabs/secretary/overview-tab.js');
+  assert.match(shell, /renderWorkOverview/);
+  const source = await read('../../docs/src/components/governance/work-overview.js');
+  assert.match(source, /data-wo-layer="summary"/);
+  assert.match(source, /data-wo-layer="lines"/);
+  assert.match(source, /data-wo-layer="actions"/);
+  assert.doesNotMatch(source, /<h4[^>]*>\s*汇报\s*<\/h4>/, '不再保留独立「汇报」卡');
+  assert.doesNotMatch(source, /dutyCardHtml/, '职责卡不再占一张卡');
+  assert.match(source, /SecretaryTodoDeriver\.computeAggregates\(\)/, '实时派生组须并入待我处理');
+  assert.match(source, /getSecretaryPendingReports\(\)/, '待答复须与支书答复收件箱同源');
+  assert.match(source, /待办、待答复汇报|待我处理/, '待办与待答复仍须可见');
 });
 
 test('党委支部配置按分区导航只显示当前配置面板', async () => {
@@ -142,16 +135,13 @@ test('专班卡片人数只汇总组织者与深度参与者，不读历史普�
   assert.match(source.slice(cardStart, cardStart + 120), /const filled = _tfAssignsOf\(t\)\.length/);
 });
 
-test('书记概况把待办实时组纳入主队列，并分列确认审核与催办入口', async () => {
-  const source = await read('../../docs/src/entries/tabs/secretary/overview-tab.js');
+test('共享概况把支书实时派生组并入待办，待答复与答复收件箱同源', async () => {
+  const source = await read('../../docs/src/components/governance/work-overview.js');
   assert.match(source, /SecretaryTodoDeriver\.computeAggregates\(\)/);
-  assert.match(source, /const queueTodoGroups = \[\.\.\.todoGroups, \.\.\.realtimeTodoGroups\]/);
-  assert.match(source, /queueTodoGroups\.map\(\(group\)/);
+  assert.match(source, /const seen = new Set\(ctx\.todoGroups\.map/, '实时组须按 groupKey 去重后并入');
+  assert.match(source, /realtime\.filter\(\(group\) => !seen\.has\(group\.groupKey\)\)/);
   assert.match(source, /IssueStore\.getSecretaryPendingReports\(\)/);
-  assert.match(source, /待答复汇报/);
-  assert.match(source, /待决定与确认/);
-  assert.match(source, /异常与督办/);
-  assert.doesNotMatch(source, /pendingQueueHtml[\s\S]*?催办\/直达入口/);
+  assert.match(source, /待答复/);
 });
 
 test('党委支部筛选与监控台转义支部配置及动态文本，避免存储型 XSS', async () => {

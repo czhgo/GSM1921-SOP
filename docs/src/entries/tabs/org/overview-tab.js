@@ -9,9 +9,9 @@
 //   · 履职卡「发展党员」原映射到已摘除的 `development` 页签 ⇒ 改落 `talent`（人才库 / 阶段推进写位）；
 //   · 条线缺口行原为纯文本 ⇒ 按缺口语义补真实页签动作（专班管理 / 活动日历等）。
 
-import { renderWorkOverview } from '../../../components/governance/work-overview.js?v=20261018f';
-import { AuthStore } from '../../../services/core/auth.js?v=20261018f';
-import { beginOverviewShell } from '../../../components/governance/overview-dispatch-bar.js?v=20261018f';
+import { renderWorkOverview } from '../../../components/governance/work-overview.js?v=20261018g';
+import { AuthStore } from '../../../services/core/auth.js?v=20261018g';
+import { beginOverviewShell } from '../../../components/governance/overview-dispatch-bar.js?v=20261018g';
 
 /** 组织台条线缺口 → 真实页签（缺口文案含关键词即命中；均为本台已注册页签） */
 const ORG_GAP_ACTIONS = [

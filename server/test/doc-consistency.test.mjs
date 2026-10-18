@@ -646,9 +646,9 @@ function enumCount(line) {
 
 test('S14 可数事实对账：文档里的「枚举 / 计数」必须等于代码 / 数据的实然值', async () => {
   const problems = [];
-  const { WORK_MAP_MODULES } = await import('../../docs/src/core/domain/work-map.js?v=20261018f');
-  const { sopDatabase } = await import('../../docs/src/workflow/sopData.js?v=20261018f');
-  const { ROLE_KEYS, ROLE_LEGACY_KEYS } = await import('../../docs/src/core/domain/constants.js?v=20261018f');
+  const { WORK_MAP_MODULES } = await import('../../docs/src/core/domain/work-map.js?v=20261018g');
+  const { sopDatabase } = await import('../../docs/src/workflow/sopData.js?v=20261018g');
+  const { ROLE_KEYS, ROLE_LEGACY_KEYS } = await import('../../docs/src/core/domain/constants.js?v=20261018g');
   const { SYSTEM_NOTICE_KIND_NAMES } = await import('../system-notice-kinds.js');
 
   /** 对账一条：`got` 为文档里抽出的数（null＝抽不出，判红并提示是判据失效而非「文档错」） */
@@ -968,8 +968,9 @@ test('S17 真机流 tab 名必须命中该台注册页签（漏改即红；带 p
   }
   // 非空转：受检 flow 数与页签总量都要有规模（解析写坏 ⇒ 判据恒真 ⇒ 漏改也绿）
   const labelTotal = [...labelsOf.values()].reduce((n, s) => n + s.size, 0);
-  assert.ok(checked >= 45 && exempt >= 10 && labelTotal >= 60,
-    `解析面不足（受检 ${checked} / 豁免 ${exempt} / 页签总量 ${labelTotal}，下限 45 / 10 / 60）：台账或注册解析被写坏`);
+  // 2026-10-18 支委会行内改派退役一条表单 flow（59→58），受检面带减 1；下限随实然值下调，其余下限不变
+  assert.ok(checked >= 44 && exempt >= 10 && labelTotal >= 60,
+    `解析面不足（受检 ${checked} / 豁免 ${exempt} / 页签总量 ${labelTotal}，下限 44 / 10 / 60）：台账或注册解析被写坏`);
   assert.deepEqual(problems, [],
     '真机流 `tab` 名与该台注册页签不一致（**改页签名必须同批改 `flow.tab`**，否则该 flow 切 tab 超时或静默归零）：\n'
     + `  ${problems.join('\n  ')}`);

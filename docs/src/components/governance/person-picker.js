@@ -7,15 +7,15 @@
 //  样式：提取至 person-picker.css，主题色通过 CSS 变量 --pp-* 注入
 // ════════════════════════════════════════════════════════════════
 
-import { liveMembers, PersonStore } from '../../services/member/person.js?v=20261018f';
+import { liveMembers, PersonStore } from '../../services/member/person.js?v=20261018g';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/member/person.js 获取（原直连 mock PEOPLE）
 // 实时视图（非快照）：成员增删即时可见——见 services/member/person.js liveMembers 说明
 const PEOPLE = liveMembers();
-import { getPersonById } from '../../services/member/person.js?v=20261018f';
+import { getPersonById } from '../../services/member/person.js?v=20261018g';
 // 党小组清单单一源（活组按 seq 升序；2026-09-14 批次 29 收敛——见文件头「党小组清单」说明）
-import { groupOptions } from '../../services/member/party-group.js?v=20261018f';
-import { icon } from '../../core/base/icons.js?v=20261018f';
-import { ROLE_LABELS, ACCENT_COLORS, applyDark } from '../../core/domain/constants.js?v=20261018f';
+import { groupOptions } from '../../services/member/party-group.js?v=20261018g';
+import { icon } from '../../core/base/icons.js?v=20261018g';
+import { ROLE_LABELS, ACCENT_COLORS, applyDark } from '../../core/domain/constants.js?v=20261018g';
 
 // ── 辅助：从 hex 生成 rgba 字符串 ──────────────────────────────
 function hexToRgba(hex, alpha) {
@@ -489,19 +489,18 @@ export class PersonPicker {
       const stageLabel = STAGE_LABELS[person.developStage] || person.developStage;
       const roleLabel = person.role ? (ROLE_LABELS[person.role] || person.role) : '';
 
+      // 行结构（2026-10-18 Task 6）：无头像；姓名主（14px/500）+ 学号/党小组/角色次（12px）；
+      // 阶段徽章仅为弱化标签（无边框），选中态由整行底色 + 右侧勾表达。
       return `
         <button type="button" class="btn-tab person-picker-item ${isSelected ? 'selected' : ''}${isDisabled ? ' disabled' : ''}"
              data-person-id="${person.id}"
              aria-pressed="${isSelected}"
              ${isDisabled ? `aria-disabled="true" title="${_escAttr(disabledTitle)}"` : ''}>
-          <span class="person-picker-item-avatar" aria-hidden="true">
-            ${person.name.charAt(0)}
-          </span>
           <span class="person-picker-item-info">
             <span class="person-picker-item-name-row">
               <span class="person-picker-item-name">${person.name}</span>
               ${isDisabled ? `<span class="person-picker-item-lock">${_escAttr(disabledLabel)}</span>` : ''}
-              <span class="person-picker-item-stage" style="--acc-bg-dark:${stageColor.bgDark};--acc-text-dark:${stageColor.textDark};--acc-border-dark:${stageColor.borderDark};background:${stageColor.bg};color:color-mix(in srgb, ${stageColor.text} 60%, #000);border:1px solid ${stageColor.border};">${stageLabel}</span>
+              <span class="person-picker-item-stage" style="--acc-bg-dark:${stageColor.bgDark};--acc-text-dark:${stageColor.textDark};background:${stageColor.bg};color:color-mix(in srgb, ${stageColor.text} 60%, #000);">${stageLabel}</span>
             </span>
             <span class="person-picker-item-meta">
               <span class="person-picker-item-meta-text">${person.studentId}</span>

@@ -185,6 +185,7 @@ const COMPONENT_STATE_EXEMPT = [
   '-tab-btn', // 页头 tab（`components/shell/tab-bar.js` 单一源）：选中态＝`.tab-btn-active` ＋ 内联 `--tab-accent`
   'subtab', // 页内二级切换（党委上报/下发通知共用）：选中态＝`.subtab[aria-selected="true"]`，2026-10-18 工作台提质
   'sidebar-footer-action', // 侧栏页脚动作（帮助/设置/登录/退出）：尺寸单一源＝styles.css 同名类，低频紧凑档 28px
+  'todo-more__item', // 待办行尾更多菜单项：尺寸单一源＝styles.css 同名类，菜单项不是独立动作按钮
 ];
 
 test('B4 按钮族棘轮：未入语义族的 <button> 只许降不许升（「全面归一」的进度表）', () => {

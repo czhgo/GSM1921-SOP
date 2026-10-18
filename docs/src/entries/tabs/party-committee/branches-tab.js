@@ -1,14 +1,14 @@
 // Party committee branch directory: create and select; maintenance is in branch-config.html.
 
-import { mockDB } from '../../../core/domain/domain.js?v=20261018f';
+import { mockDB } from '../../../core/domain/domain.js?v=20261018g';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/member/person.js 获取（原直连 mock PEOPLE）；
 // 每次渲染现读（members 覆盖层即时吃到），不缓存在模块顶层
-import { PersonStore } from '../../../services/member/person.js?v=20261018f';
-import { createBranch } from '../../../services/branch/branch.js?v=20261018f';
-import { getRosterStats } from '../../../services/member/roster.js?v=20261018f';
-import { showToast, escHtml as esc, getBasePath } from '../../../core/base/utils.js?v=20261018f';
-import { bindBranchReadOnlyButtons } from '../../../services/core/branch-readonly-nav.js?v=20261018f';
-import { renderSectionHeader } from '../../../components/shell/page-frame.js?v=20261018f';
+import { PersonStore } from '../../../services/member/person.js?v=20261018g';
+import { createBranch } from '../../../services/branch/branch.js?v=20261018g';
+import { getRosterStats } from '../../../services/member/roster.js?v=20261018g';
+import { showToast, escHtml as esc, getBasePath } from '../../../core/base/utils.js?v=20261018g';
+import { bindBranchReadOnlyButtons } from '../../../services/core/branch-readonly-nav.js?v=20261018g';
+import { renderSectionHeader } from '../../../components/shell/page-frame.js?v=20261018g';
 
 export async function renderContent() {
   const el = document.getElementById('party-committee-tab-content');

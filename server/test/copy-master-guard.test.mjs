@@ -171,9 +171,10 @@ const BASELINE = {
   //   关于页 / 帮助页 / 首页三处一并删除（母本侧与界面侧重合同时消失）⇒ 按本守卫自身
   //   纪律（收基线＝删条目）删去，并同批下调 BASELINE_FILE_COUNT / BASELINE_TOTAL
   //   与 N3 两处硬下限（只降不升，见下方常量注释）。
-  'docs/src/entries/pages/party-committee-meeting-entry.js': [
-    '线上表决与线上记录的讨论结果即终局，不需线下追认',            // 支委会会议页效力口径（与 §0.1 同句）
-  ],
+  // `docs/src/entries/pages/party-committee-meeting-entry.js` 条目已于 2026-10-18（Task 4 去说明化）收基线：
+  //   原「线上表决与线上记录的讨论结果即终局，不需线下追认」长说明已改为一句短提示 + help 深链，
+  //   界面与母本不再有 ≥20 字连续重合 ⇒ 按收基线纪律删条目；文件数 7 → 6、条数 9 → 8，
+  //   N3 两处硬下限同批下调为 `>= 6` / `>= 8`。
   'docs/src/entries/pages/settings-entry.js': [
     '未找到您所属支部——请先由党委在『支部管理』中确认归属',        // 设置页未绑定支部提示（与 §5.4 同句）
     // ⚠ 2026-10-01 批次 326 实跑发现（**只登记、本批不动**）：本条系**存量僵尸条目**——
@@ -208,8 +209,8 @@ const BASELINE = {
  *  2026-10-11（批次 441）：收 `about-entry.js` 条目（该平台化小字已从关于页 / 帮助页 / 首页三处删除，
  *    母本与界面侧重合同时清零）⇒ 文件 9 → 8、条数 11 → 10；N3 两处硬下限同批下调为 `>= 8` / `>= 10`
  *    （与上一条同规矩：只降不升、同批说明）。 */
-const BASELINE_FILE_COUNT = 7;
-const BASELINE_TOTAL = 9;
+const BASELINE_FILE_COUNT = 6;
+const BASELINE_TOTAL = 8;
 
 /** 定点登记表（help.html 里 data-copy-key 卡片数）的下限，防台账被删空
  *  2026-09-25「文案存量清理」批：本批新增 4 张定点（issue-reveal / pcm-scope / attendance-record / makeup-scope）
@@ -269,8 +270,8 @@ test('N3 非空转：抽取口径可用（含 20/19 字边界）+ 基线规模�
 
   // ② 基线规模下限（低于此值说明台账被删减或口径失效）
   const baseFiles = Object.keys(BASELINE);
-  assert.ok(BASELINE_FILE_COUNT >= 7, `基线文件数过少（声明 ${BASELINE_FILE_COUNT}，下限 7）——台账被删减或抽取口径失效`);
-  assert.ok(BASELINE_TOTAL >= 9, `基线条数过少（声明 ${BASELINE_TOTAL}，下限 9）——台账被删减或抽取口径失效`);
+  assert.ok(BASELINE_FILE_COUNT >= 6, `基线文件数过少（声明 ${BASELINE_FILE_COUNT}，下限 6）——台账被删减或抽取口径失效`);
+  assert.ok(BASELINE_TOTAL >= 8, `基线条数过少（声明 ${BASELINE_TOTAL}，下限 8）——台账被删减或抽取口径失效`);
   assert.equal(baseFiles.length, BASELINE_FILE_COUNT,
     `基线条目数与声明的文件数不一致（实测 ${baseFiles.length} / 声明 ${BASELINE_FILE_COUNT}）`);
   assert.equal(baseFiles.reduce((a, f) => a + BASELINE[f].length, 0), BASELINE_TOTAL,

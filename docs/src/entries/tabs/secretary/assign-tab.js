@@ -10,8 +10,8 @@
 //        import `mountLeaderAssign`；**2026-10-04 批次 373 去冗余**——撤独立「组长指派」块与其列表，
 //        面板改由清单行内「设 / 改」触发（`openLeaderAssignPanel`），**清单表即唯一列表＋管理面**；
 //        身份可选**组长 / 副组长**（支书新诉求：副组长赋权，1..N 人）
-//     ①b 支委身份配置（**支部层**）：宿主 `#cm-commissioner-host`（**支书台「支委会」tab 的「机构构成」段**，
-//        由 committee-meeting-tab.js 提供），import `mountCommissionerAssign`——同一写口与 ID 不变，仅落点迁移
+//     ①b 支委身份配置（**支部层**）：2026-10-18 起支书台「支委会」tab 改为**委员表行内改派**
+//        （写口仍为 services/branch/appointment.js；本块导出保留、不再从任何 tab 挂载）
 //   · 情景②（活动项目赋权）⇒ **本位入口**＝组长台「本组活动」内联（`entries/tabs/leader/write-tab.js`）
 //     ＋ **支书台「活动管理」** 同项入口（`calendar-tab.js` import `mountActivityProjectAuth`——
 //     **2026-10-04 批次 373 整卡由「党小组与活动」迁入**，支书圈乙）
@@ -33,27 +33,27 @@
 // 制度口径（各情景「本位＝谁」与 2 处折叠说明）已搬入 `docs/help.html` 定点（`#card-copy-assign-*`），
 //   界面只留一行 + 深链（DESIGN_SYSTEM §4.18 C7：制度原文不进界面）。
 
-import { showToast, getBasePath, escHtml as esc } from '../../../core/base/utils.js?v=20261018f';
-import { AuthStore } from '../../../services/core/auth.js?v=20261018f';
+import { showToast, getBasePath, escHtml as esc } from '../../../core/base/utils.js?v=20261018g';
+import { AuthStore } from '../../../services/core/auth.js?v=20261018g';
 // 成员档案读链（2026-09-03 数据域接线收口）：一律经 services/member/person.js（原直连 mock PEOPLE 已收口）
-import { getPersonById, getPersonName } from '../../../services/member/person.js?v=20261018f';
+import { getPersonById, getPersonName } from '../../../services/member/person.js?v=20261018g';
 // 党小组常态清单唯一来源（活组、按 seq 升序；新增/改名/解散后随渲染即时可见）——禁再手写组名数组
-import { groupOptions } from '../../../services/member/party-group.js?v=20261018f';
-import { TaskForceRecordStore } from '../../../services/activity/taskforce.js?v=20261018f';
-import { PersonPicker } from '../../../components/governance/pickers.js?v=20261018f';
+import { groupOptions } from '../../../services/member/party-group.js?v=20261018g';
+import { TaskForceRecordStore } from '../../../services/activity/taskforce.js?v=20261018g';
+import { PersonPicker } from '../../../components/governance/pickers.js?v=20261018g';
 // 本位 nudge 单一源（2026-09-27：赋权三情景各自本位不同——非本位操作人写库前弹确认）
-import { confirmNudge } from '../../../components/ui/modal.js?v=20261018f';
-import { ROLE_LABELS, PROJECT_ROLES, BRANCH_COMMISSIONER_ASSIGNABLE_ROLES } from '../../../core/domain/constants.js?v=20261018f';
+import { confirmNudge } from '../../../components/ui/modal.js?v=20261018g';
+import { ROLE_LABELS, PROJECT_ROLES, BRANCH_COMMISSIONER_ASSIGNABLE_ROLES } from '../../../core/domain/constants.js?v=20261018g';
 // 2026-09-23 支书裁定（情景①）：支委身份配置写口单一源 = services/branch/appointment.js
 //（本 tab 只做表单/列表渲染，不直接改 mockDB；白名单与写门判据同源 core/domain/constants.js）
-import { appointBranchCommissioner, revokeBranchCommissioner, listBranchCommissioners } from '../../../services/branch/appointment.js?v=20261018f';
+import { appointBranchCommissioner, revokeBranchCommissioner, listBranchCommissioners } from '../../../services/branch/appointment.js?v=20261018g';
 // R1-A 点⑤（2026-09-09）：强调色渲染统一 person-aware 动态解析（替代模块级 resolveAccentRole 快照）
-import { getAppliedAccentColors } from '../../../core/boot/theme.js?v=20261018f';
-import { loadActivities } from '../../../services/activity/activity.js?v=20261018f';
-import { badgeHtml } from '../../../components/ui/badges.js?v=20261018f';
-import { TodoStore } from '../../../services/governance/todo.js?v=20261018f';
+import { getAppliedAccentColors } from '../../../core/boot/theme.js?v=20261018g';
+import { loadActivities } from '../../../services/activity/activity.js?v=20261018g';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20261018g';
+import { TodoStore } from '../../../services/governance/todo.js?v=20261018g';
 // 统一检索引擎（2026-09-13 表格统一化批次 A）：赋权记录列表（第一列是人）接入关键词 + 分面
-import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261018f';
+import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261018g';
 
 // 生效强调色 hex（R1-A 点⑤：登录人强调色=person 键覆盖，禁止模块加载期快照写死——
 // 一律渲染时经 getAppliedAccentColors 动态解析，改色后随重渲染/刷新生效，与 --app-accent 同源）

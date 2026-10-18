@@ -271,6 +271,8 @@ test('S12 手写表格收敛台账：`<table` 只允许出现在登记在案的�
     ['entries/tabs/party-committee/monitor-tab.js', '党委支部动态比较表（角色范围固定，行表数据采用统一 .data-table 样式）'],
     ['entries/tabs/party-committee/branches-tab.js', '党委支部目录（角色范围固定，行表数据采用统一 .data-table 样式）'],
     ['entries/pages/branch-readonly-entry.js', '党委只读支部名册（规模可达 50 人，统一 .data-table 样式并提供检索分页）'],
+    ['components/governance/person-profile-sections.js', '档案内嵌 list 字段表：字段级嵌套表，非独立数据视图；使用 .data-table 单一源类'],
+    ['components/governance/work-overview.js', '工作概况条线表：六行固定条线，天然有界；使用 .data-table + tableHeadHtml'],
   ]);
   const offenders = [];
   for (const f of walkJs(SRC_DIR)) {

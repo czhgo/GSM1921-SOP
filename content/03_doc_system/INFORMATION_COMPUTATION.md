@@ -225,6 +225,22 @@ related_files: [docs/src/services/governance/notice.js, docs/src/components/shel
 2. 「结束工作组」在任务与产出全部闭合前禁用；若解散事项需要表决，则先进入「待事项表决」状态，不直接结束。
 3. 成员数不等于报名人数：报名审核通过且角色为 `organizer` / `deep` 才计入；`participant` 属历史兼容行，只读保留、不计入成员与名额。
 
+### 5.2 首页工作组进展（2026-10-18）
+
+> 首页卡片已由「专班进展」改为「工作组进展」；进度口径由报名人数填充率改为任务完成数。数据为 `workgroups` / `workgroup_members` / `workgroup_tasks` 的派生视图，不新增持久化字段。
+
+| 信息项 | 计算方式 | 数据源（文件） | 呈现位置 | 权限 |
+|---|---|---|---|---|
+| 入卡工作组 | 取 `mockDB.workgroups` 中 `status` 为 `active` 或 `recruiting` 的记录；活动工作组另按业务记录复核：来源活动已归档或已取消的不进卡（工作组 `status` 是建组时投影，不能单独作准） | `docs/src/core/domain/domain.js` + `docs/src/components/dashboard/taskforce-list.js` | 首页「工作组进展」 | 公共可看 |
+| 两类分组 | `kind === 'activity'` → 「活动工作组」；`kind === 'taskforce'` → 「专班工作组」；只有一类时只渲染该类，不保留另一类空标题 | 同上 | 同上 | 公共可看 |
+| 组内排序与条数 | 组内按 `createdAt` 降序（新者在前），同时间按组名升序；每组只显示前 3 条，组头数字为该组总数 | 同上 | 同上 | 公共可看 |
+| 成员数 | 按 `workgroupId` 取 `workgroupMembers` 中 `status !== 'removed'` 的条数（含 `participant`；不按角色二次筛选） | 同上 | 行内「成员 N 人」 | 公共可看 |
+| 任务完成数 | 按 `workgroupId` 取 `workgroupTasks`，分母排除 `status === 'cancelled'`，分子为 `status === 'completed'`；无任务时活动工作组回落显示活动日期、专班工作组回落显示截止日，两者都没有才显示「任务 —」 | 同上 | 行内「任务 M/K」或日期 | 公共可看 |
+| 状态 | `active` → 运行中；`recruiting` → 招募中；其它状态不显示 | 同上 | 行内次级信息 | 公共可看 |
+| 空态 | 两类工作组均无 `active` / `recruiting` 记录时，整卡隐藏（含标题与「查看全部」），不保留空态占位 | 同上 | 首页 | 公共可看 |
+
+**不做什么**：不再使用 `capacity` 与报名人数计算填充率，不再渲染进度条；成员数与任务数均按工作组成员 / 任务关系表现算。
+
 ---
 
 ## 六、考勤 / 考察

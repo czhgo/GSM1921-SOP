@@ -3,33 +3,35 @@
 // 背景：6 个工作台 todo-tab 骨架逐字重复（选中首条 / renderTodoList / 两栏 HTML / 删除 / 详情按钮绑定），
 //       支书 2026-08-30：「模块化只见代码增多少见代码减少」→ 共性抽壳。
 // 设计：createTodoTab(opts) 工厂，每个角色一个实例（状态自持，与原模块级私有状态等价）。
-// IA-C1 Task4（按工作类型 **6 类**域折组，`D-787` 由 9 域合并；原 spec .trae/specs/2026-09-06-ia-todo-cards/spec.md）：
+// 2026-10-18 工作台密度重组 Task 5（四档紧迫度；spec .trae/specs/rebuild-workbench-density-and-composition）：
 //   输出区 = ① 页顶「未读通知 N 条」轻量条（getUnreadNotices；点击展开阅读列表，点读即消）
-//          ② 6 类业务域折组列表（getDomainsWithGroups + buildRealtimeGroups 实时组经
-//            mergeRealtimeDomains 并入对应域；域头=域名+计数+逾期红点，有活才显）
-//          ③ 各角色自定义渲染区（extraTopHtml/bindExtras）照旧挂载
+//          ② 四数摘要带「逾期 / 今日 / 本周 / 待处理」——与列表共用 buildUrgencySections
+//            的同一批分组数据，不另算口径；
+//          ③ 四档列表「逾期 / 今日 / 本周 / 以后」（domains 展平为组后按截止日/状态归类；
+//            业务域降为行内标签；实时组经 mergeRealtimeDomains 照旧并入）；
+//          ④ 各角色自定义渲染区（extraTopHtml/bindExtras）照旧挂载
 //   角色差异经参数注入：containerId/prefix/role/onAction/buildRealtimeGroups/renderDetail/
 //       onBeforeRender/onAfterRender/extraTopHtml/bindExtras/emptyHint/detailTitle/
 //       detailBtnClass/detailBtnStyle/onDeleteTodo。
-// 视觉沿用 card/rounded/折叠既有体系（域折组渲染在 components/record/todo-list.js renderDomainTodoList）。
+// 视觉沿用 card/rounded 既有体系（四档列表渲染在 components/record/todo-list.js renderUrgencyTodoList）。
 // 设计权威源：content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md §六 M6（共性抽象净减）
 
-import { TodoStore, urgeRolesOf, WORK_DOMAIN, WORK_DOMAIN_LABELS, realtimeGroupDomainOf, buildModuleCycleRemindGroup } from '../../services/governance/todo.js?v=20261018f';
+import { TodoStore, urgeRolesOf, WORK_DOMAIN, WORK_DOMAIN_LABELS, realtimeGroupDomainOf, buildModuleCycleRemindGroup } from '../../services/governance/todo.js?v=20261018g';
 // S3②（2026-09-12）：未读通知计数单一来源——与顶栏角标/首页同源（NoticeStore activeOnly+read 过滤），
 // 不再用「通知类待办」现算（口径不同致三处不一致）。
-import { NoticeStore, NOTICE_MODULE_ROLE_PAGES } from '../../services/governance/notice.js?v=20261018f';
-import { renderDomainTodoList } from './todo-list.js?v=20261018f';
-import { badgeHtml } from '../ui/badges.js?v=20261018f';
-import { showToast, escHtml, todayLocal } from '../../core/base/utils.js?v=20261018f';
-import { solidAccentStyle, ROLE_LABELS, BRANCH_COMMISSION_ROLES } from '../../core/domain/constants.js?v=20261018f';
-import { openModal, closeModal } from '../ui/modal.js?v=20261018f';
-import { AuthStore } from '../../services/core/auth.js?v=20261018f';
-import { mockDB } from '../../core/domain/domain.js?v=20261018f';
-import { tokenOf } from '../../core/base/version-token.js?v=20261018f'; // P0 域写版本戳（spec §二.4）
-import { resolveDocumentUrl } from '../../core/base/page-url.js?v=20261018f';
-import { memoizeRender } from '../ui/memoize-render.js?v=20261018f'; // P2 渲染守卫（spec §四.1）
+import { NoticeStore, NOTICE_MODULE_ROLE_PAGES } from '../../services/governance/notice.js?v=20261018g';
+import { buildUrgencySections, renderUrgencyTodoList } from './todo-list.js?v=20261018g';
+import { badgeHtml } from '../ui/badges.js?v=20261018g';
+import { showToast, escHtml, todayLocal } from '../../core/base/utils.js?v=20261018g';
+import { solidAccentStyle, ROLE_LABELS, BRANCH_COMMISSION_ROLES } from '../../core/domain/constants.js?v=20261018g';
+import { openModal, closeModal } from '../ui/modal.js?v=20261018g';
+import { AuthStore } from '../../services/core/auth.js?v=20261018g';
+import { mockDB } from '../../core/domain/domain.js?v=20261018g';
+import { tokenOf } from '../../core/base/version-token.js?v=20261018g'; // P0 域写版本戳（spec §二.4）
+import { resolveDocumentUrl } from '../../core/base/page-url.js?v=20261018g';
+import { memoizeRender } from '../ui/memoize-render.js?v=20261018g'; // P2 渲染守卫（spec §四.1）
 // 模块周期提醒（`R-29⑤` · `D-804`）：分工快照取法与 `components/governance/workforce-duty-card.js` 同口径
-import { getBranchIdOfPerson, getBranchWorkforce } from '../../services/branch/branch.js?v=20261018f';
+import { getBranchIdOfPerson, getBranchWorkforce } from '../../services/branch/branch.js?v=20261018g';
 
 // ── P0 组合数据复合键（2026-09-07 · spec §二.4）──────────────────
 // 组合点（buildRealtimeGroups + mergeRealtimeDomains + getUnreadNotices）以
@@ -91,6 +93,36 @@ function _moduleCycleGroupsFor(role) {
     snapshot,
   });
   return group ? [group] : [];
+}
+
+/** 把域视图展平为待办组（业务域标签随组带出，供行内 12px 次级标签使用） */
+function _flattenDomainGroups(domains) {
+  const groups = [];
+  for (const d of domains || []) {
+    for (const g of d.groups || []) {
+      groups.push({ ...g, domain: g.domain || d.domain, domainLabel: g.domainLabel || d.label });
+    }
+  }
+  return groups;
+}
+
+/**
+ * 顶部四数摘要带（逾期 / 今日 / 本周 / 待处理）——一条横向带，不拆四张 KPI 卡。
+ * 数值由 buildUrgencySections 与列表共用同一批分组数据算出，不另立口径。
+ */
+function _urgencySummaryHtml(summary) {
+  const item = (label, value, danger) => `
+    <span class="todo-summary__item">
+      <span class="todo-summary__label">${label}</span>
+      <span class="todo-summary__value${danger ? ' todo-summary__value--danger' : ''}">${value || 0}</span>
+    </span>`;
+  return `
+    <div class="todo-summary" role="group" aria-label="待办摘要">
+      ${item('逾期', summary.overdue, true)}
+      ${item('今日', summary.today, false)}
+      ${item('本周', summary.week, false)}
+      ${item('待处理', summary.pending, false)}
+    </div>`;
 }
 
 /**
@@ -325,9 +357,14 @@ export function createTodoTab(opts) {
     }
     const { domains, allGroups, unreadNotices } = combo;
 
-    // 自动选中首条（支书 2026-08-10 裁定推广）：进入待办即见第一条详情，减一次点击
-    if (!_selectedTodoId && allGroups.length > 0) {
-      _selectedTodoId = allGroups[0].groupKey;
+    // 四档分组单一源：域视图展平 → buildUrgencySections；摘要与列表共用此结果
+    const urgencyGroups = _flattenDomainGroups(domains);
+    const urgency = buildUrgencySections(urgencyGroups);
+
+    // 自动选中首条（支书 2026-08-10 裁定推广）：进入待办即见首屏第一条，减一次点击
+    const firstVisible = urgency.sections.find(s => s.groups.length > 0)?.groups[0];
+    if (!_selectedTodoId && firstVisible) {
+      _selectedTodoId = firstVisible.groupKey;
     }
     const selectedTodo = _selectedTodoId
       ? (allGroups.find(g => g.groupKey === _selectedTodoId) || TodoStore.getById(_selectedTodoId) || null)
@@ -379,10 +416,9 @@ export function createTodoTab(opts) {
         voidHandler = (todo) => _openVoidModal(todo, { isCommittee, onDone: () => renderContent(ctx) });
       }
 
-      const { html: domainListHtml, bindEvents } = renderDomainTodoList({
+      const { html: listHtml, bindEvents } = renderUrgencyTodoList({
         prefix,
-        domains,
-        accent: ctx.accent,
+        sections: urgency.sections,
         selectedTodoId: _selectedTodoId,
         onSelectTodo: (todo) => {
           _selectedTodoId = todo.groupKey || todo.id;
@@ -419,7 +455,8 @@ export function createTodoTab(opts) {
               <div class="flex items-center justify-between mb-4">
                 <h3 class="font-title-cn text-base font-semibold text-gray-800">我的待办</h3>
               </div>
-              ${domainListHtml}
+              ${_urgencySummaryHtml(urgency.summary)}
+              ${listHtml}
             </div>
           </div>
           <div class="lg:col-span-1">

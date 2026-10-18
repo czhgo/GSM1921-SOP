@@ -318,10 +318,6 @@ export const HEX_BASELINE = {
   'docs/src/entries/tabs/secretary/notification-tab.js': { c: 4, v: [
       '#ce1126', '#fff'
   ] },
-  'docs/src/entries/tabs/secretary/overview-tab.js': { c: 19, v: [
-      '#16a34a', '#38bdf8', '#3b82f6', '#94a3b8', '#d97706', '#ef4444',
-      '#f59e0b', '#fbbf24', '#fff'
-  ] },
   'docs/src/entries/tabs/secretary/report-up-tab.js': { c: 3, v: [
       '#16a34a', '#6b7280', '#d97706'
   ] },
@@ -456,7 +452,9 @@ export const HEX_TOTAL_BASELINE = 2025;
 //   `#3b82f6` 在其它 10+ 文件仍存（`utils.js` / `stats.js` / `notice-view.js` 等）⇒ distinct 值仍 167。
 // ⚠ 2026-10-01 批次 321：`docs/src/entries/tabs/org/development-tab.js` 按支书 V-10 裁定「整页并入人才库」
 //   **删除** ⇒ 其 hex 条目一并删、**文件数声明 77 → 76**（与实况同值；`H3` 的非空转下限同步下沉到 76）。
-export const HEX_FILE_BASELINE = 75;
+// ⚠ 2026-10-18 Task 7：`secretary/overview-tab.js` 改为六台共享概况外壳（不再直写主题色）
+//   ⇒ 该文件 hex 清零，按收基线纪律删条目、文件数声明 75 → 74（与实况同值；H3 防呆下限同步下沉）。
+export const HEX_FILE_BASELINE = 74;
 export const HEX_VALUE_BASELINE = 167;
 
 /** 搬移例外台账（**人工填写**；守卫**不自动放宽**）——2026-09-25 支书裁定「开搬移例外」。
@@ -570,7 +568,6 @@ export const P_TEXT_TIER_BASELINE = {
   'docs/src/components/governance/resolution-followup-manager.js': { c: 2, v: [11] },
   'docs/src/components/governance/signup-panel.js': { c: 1, v: [11] },
   'docs/src/entries/pages/notice-entry.js': { c: 1, v: [11] },
-  'docs/src/entries/pages/party-committee-meeting-entry.js': { c: 9, v: [11] },
   'docs/src/entries/tabs/leader/review-tab.js': { c: 1, v: [11] },
   'docs/src/entries/tabs/leader/write-tab.js': { c: 1, v: [11] },
   // ⚠ 2026-10-01 批次 321：`org/development-tab.js` 条目已删（文件随「并入人才库」删除）。
@@ -582,7 +579,6 @@ export const P_TEXT_TIER_BASELINE = {
   'docs/src/entries/tabs/secretary/assign-tab.js': { c: 4, v: [11] },
   'docs/src/entries/tabs/secretary/calendar-tab.js': { c: 6, v: [11] },
   'docs/src/entries/tabs/secretary/notification-tab.js': { c: 1, v: [11] },
-  'docs/src/entries/tabs/secretary/overview-tab.js': { c: 1, v: [11] },
   'docs/src/entries/tabs/secretary/todo-tab.js': { c: 1, v: [11] },
   'docs/src/entries/tabs/secretary/workforce-panel.js': { c: 4, v: [11] },
   'docs/src/entries/tabs/visitor/thought-report-tab.js': { c: 1, v: [11] },
@@ -598,11 +594,15 @@ export const P_TEXT_TIER_BASELINE = {
  *  ⚠ 2026-10-15 批次 447：复核发现 `disc/attendance-tab.js` 仅有小字控件、没有 11px `<p>`，
  *    该文件条目是误登记；按收基线纪律删除 ⇒ 文件数 **25 → 24**、段落处数 **80 → 79**。
  *  ⚠ 2026-10-18 工作台提质：党委 `branches-tab.js` 页头说明移除后 11px `<p>` 清零，
- *    按收基线纪律删除条目 ⇒ 文件数 **24 → 23**、段落处数 **79 → 73**。 */
-export const P_TEXT_TIER_TOTAL_BASELINE = 73;
-export const P_TEXT_TIER_FILE_BASELINE = 23;
-/** 按值台账（只报不判；9/10px 是禁止档，恒为 0）——11 档总数为 73（2026-10-18 党委页头说明移除后） */
-export const P_TEXT_TIER_BY_VALUE_BASELINE = { 11: 73, 10: 0, 9: 0 };
+ *    按收基线纪律删除条目 ⇒ 文件数 **24 → 23**、段落处数 **79 → 73**。
+ *  ⚠ 2026-10-18 Task 7：`secretary/overview-tab.js` 改为共享三层概况外壳，原 11px 元信息段随三卡下线
+ *    ⇒ 按收基线纪律删除条目，文件数 **23 → 22**、段落处数 **73 → 72**。
+ *  ⚠ 2026-10-18 Task 4：`party-committee-meeting-entry.js` 的 9 处 `<p>` 11px 改 12px 后清零
+ *    ⇒ 按收基线纪律删除条目，文件数 **22 → 21**、段落处数 **72 → 63**。 */
+export const P_TEXT_TIER_TOTAL_BASELINE = 63;
+export const P_TEXT_TIER_FILE_BASELINE = 21;
+/** 按值台账（只报不判；9/10px 是禁止档，恒为 0）——11 档总数为 63（2026-10-18 Task 4 会议页收基线） */
+export const P_TEXT_TIER_BY_VALUE_BASELINE = { 11: 63, 10: 0, 9: 0 };
 
 /** 「零引用类」台账（2026-09-28 死码清理批，给 `server/test/dead-selector-guard.test.mjs` 消费）
  *

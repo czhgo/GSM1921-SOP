@@ -17,17 +17,17 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261018f';
+import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261018g';
 import {
   MockAdapter,
-} from '../../docs/src/data/mock-adapter.js?v=20261018f';
-import { setDataSource } from '../../docs/src/data/data-adapter.js?v=20261018f';
+} from '../../docs/src/data/mock-adapter.js?v=20261018g';
+import { setDataSource } from '../../docs/src/data/data-adapter.js?v=20261018g';
 import {
   WORK_DOMAIN, WORK_DOMAIN_LABELS, DOMAIN_ORDER,
   TodoStore, TodoCategory, TodoStatus,
   realtimeGroupDomainOf,
   urgeRolesOf,
-} from '../../docs/src/services/governance/todo.js?v=20261018f';
+} from '../../docs/src/services/governance/todo.js?v=20261018g';
 // A① 通知对象级深链守卫（2026-09-10）：静态扫描 docs/src 全部通知生产点（纯 fs，无需浏览器）
 import { readFileSync, readdirSync } from 'node:fs';
 import { join, relative } from 'node:path';
@@ -456,10 +456,12 @@ test('⑨ 演示下钻放行门 + 代提交复盘表单复用（防未定义引�
 
   // ① 放行门单一源导出；bootstrap 引用导入项（不再调用未定义函数）
   const nav = read('services/core/branch-demo-nav.js');
-  assert.match(nav, /export function isPartyStaffBranchDemoAllowed\(/, 'branch-demo-nav 应导出演示放行门');
+  assert.match(nav, /export function isPartyStaffBranchDemoAllowed\(|as isPartyStaffBranchDemoAllowed/,
+    'branch-demo-nav 应导出演示放行门（直接导出或兼容再导出均可）');
   const bootstrap = read('core/boot/bootstrap.js');
-  assert.match(bootstrap, /import \{ isPartyStaffBranchDemoAllowed \} from '(\.\.\/)+services\/core\/branch-demo-nav\.js/,
-    'bootstrap 应导入放行门（单一源）');
+  // 2026-10-18：演示下钻能力已退役，断言随实然值改为不得回潮。
+  assert.doesNotMatch(bootstrap, /isPartyStaffBranchDemoAllowed|_partyStaffBranchDemoAllowed\s*\(/,
+    'bootstrap 不得再引用已退役的演示下钻放行门');
   assert.doesNotMatch(bootstrap, /[^.\w]_partyStaffBranchDemoAllowed\s*\(/,
     'bootstrap 不得再调用未定义的 _partyStaffBranchDemoAllowed（演示下钻 ReferenceError 回归）');
 

@@ -148,10 +148,11 @@ test('requiredRoles 门禁被 workspace-shell 消费（先按角色查；两查�
     '能力两查皆空须渲染显式提示（不得静默空壳）');
   // 兜底放行门须在注释里指名单一源（防后来者误当「绕过门禁」而删）。
   // 2026-10-06 批次 433/436（D-807④ / D-808）：isArchiveFallbackPage 与 isOrganizerFallbackPage
-  // 均已随「跨台兜底撤除」撤走（代归档→支书本台浮窗；组织者上传位→成员本人页面）⇒ 清单只剩党委演示门。
-  for (const gate of ['isPartyStaffBranchDemoAllowed']) {
-    assert.ok(src.includes(gate), `兜底放行门须指名单一源 ${gate}（不另立第二套判定）`);
-  }
+  // 均已随「跨台兜底撤除」撤走（代归档→支书本台浮窗；组织者上传位→成员本人页面）。
+  // 2026-10-18：党委演示下钻门 isPartyStaffBranchDemoAllowed 亦已在上游退役，
+  // workspace-shell 不再引用；此处改为「不得回潮」断言。
+  assert.ok(!src.includes('isPartyStaffBranchDemoAllowed'),
+    'isPartyStaffBranchDemoAllowed 已退役——workspace-shell 不得再引用演示下钻放行门');
   assert.ok(!src.includes('isArchiveFallbackPage'), 'isArchiveFallbackPage 已撤（D-807④）——不得残留跨台代归档放行门');
   assert.ok(!src.includes('isOrganizerFallbackPage'), 'isOrganizerFallbackPage 已撤（D-808）——不得残留组织者跨台放行门');
 });

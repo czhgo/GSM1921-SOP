@@ -19,35 +19,35 @@
 //
 // 数据源装配：与 activity-entry.js / notice-entry.js 同款——有 API 会话时先切数据源并 init() 拉全量
 //   再渲染（`module-load.test.mjs::E2` 独立页装配断言要求）。
-import { renderSidebar } from '../../components/shell/sidebar.js?v=20261018f';
-import { renderHeader } from '../../components/shell/header.js?v=20261018f';
-import { hydrateDataSource, notifyDataLoaded, getAdapter, persist } from '../../data/data-adapter.js?v=20261018f';
-import { ApiAdapter } from '../../data/api-adapter.js?v=20261018f';
-import { mockDB } from '../../core/domain/domain.js?v=20261018f';
-import { AuthStore } from '../../services/core/auth.js?v=20261018f';
-import { PersonStore, getPersonName } from '../../services/member/person.js?v=20261018f';
-import { BranchService } from '../../services/core/runtime.js?v=20261018f';
-import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261018f';
-import { IssueStore } from '../../services/governance/issues.js?v=20261018f';
-import { resolveVoterIds, defaultVoteConfig, optionSetOf, isAnonymousActivity } from '../../services/activity/vote-config.js?v=20261018f';
-import { fetchVotes, tallyForItem } from '../../services/activity/committee-vote.js?v=20261018f';
-import { agendaDecisionSource } from '../../services/activity/agenda-relations.js?v=20261018f';
-import { renderVoteWidget } from '../../components/governance/vote-widget.js?v=20261018f';
-import { renderVoteSummary } from '../../components/governance/vote-summary-panel.js?v=20261018f';
-import { recordAgendaResultForActivity } from '../../services/activity/agenda-follow-up.js?v=20261018f';
+import { renderSidebar } from '../../components/shell/sidebar.js?v=20261018g';
+import { renderHeader } from '../../components/shell/header.js?v=20261018g';
+import { hydrateDataSource, notifyDataLoaded, getAdapter, persist } from '../../data/data-adapter.js?v=20261018g';
+import { ApiAdapter } from '../../data/api-adapter.js?v=20261018g';
+import { mockDB } from '../../core/domain/domain.js?v=20261018g';
+import { AuthStore } from '../../services/core/auth.js?v=20261018g';
+import { PersonStore, getPersonName } from '../../services/member/person.js?v=20261018g';
+import { BranchService } from '../../services/core/runtime.js?v=20261018g';
+import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261018g';
+import { IssueStore } from '../../services/governance/issues.js?v=20261018g';
+import { resolveVoterIds, defaultVoteConfig, optionSetOf, isAnonymousActivity } from '../../services/activity/vote-config.js?v=20261018g';
+import { fetchVotes, tallyForItem } from '../../services/activity/committee-vote.js?v=20261018g';
+import { agendaDecisionSource } from '../../services/activity/agenda-relations.js?v=20261018g';
+import { renderVoteWidget } from '../../components/governance/vote-widget.js?v=20261018g';
+import { renderVoteSummary } from '../../components/governance/vote-summary-panel.js?v=20261018g';
+import { recordAgendaResultForActivity } from '../../services/activity/agenda-follow-up.js?v=20261018g';
 // 「拟上会」清单单一源（2026-09-21 批次 127 · `SOP-B-33` 取（乙）档）：本页的「提取议程」
 // 与写入活动的议程区块共用**同一张清单**（agenda-form.js::buildAgendaCandidates）——
 // 原按来源分两块的呈现（专班报送 / 意见反馈）已按乙档收为一张清单（不按来源各做导入口）。
-import { buildAgendaCandidates, AGENDA_CANDIDATE_GROUPS } from '../tabs/secretary/agenda-form.js?v=20261018f';
-import { listDocs as listBranchDocs, isAgendaDraftDoc, isInstitutionDraftAgendaItem } from '../../services/branch/branch-doc.js?v=20261018f';
+import { buildAgendaCandidates, AGENDA_CANDIDATE_GROUPS } from '../tabs/secretary/agenda-form.js?v=20261018g';
+import { listDocs as listBranchDocs, isAgendaDraftDoc, isInstitutionDraftAgendaItem } from '../../services/branch/branch-doc.js?v=20261018g';
 // 党小组组长（含代组长）清单单一源——2026-09-23 支书裁定甲「支委扩大会…党小组组长（代组长）是可以
 //   打包的」；**不另造组长名单**（同 services/member/party-group.js 的组清单同源；组内无组长时由该源回落次选身份）
-import { listPartyGroups } from '../../services/member/group-view.js?v=20261018f';
-import { loadStageEntryDates } from '../../services/member/member-confirmation.js?v=20261018f';
+import { listPartyGroups } from '../../services/member/group-view.js?v=20261018g';
+import { loadStageEntryDates } from '../../services/member/member-confirmation.js?v=20261018g';
 // 品牌认定提案（2026-09-21 批次 132 · 支书口径二「提案 → 支委会通过后确定」）——判据单一源
-import { listBrandProposals } from '../../services/activity/activity.js?v=20261018f';
-import { showToast, escHtml as esc, todayLocal } from '../../core/base/utils.js?v=20261018f';
-import { generateId } from '../../core/base/id.js?v=20261018f';
+import { listBrandProposals } from '../../services/activity/activity.js?v=20261018g';
+import { showToast, escHtml as esc, todayLocal } from '../../core/base/utils.js?v=20261018g';
+import { generateId } from '../../core/base/id.js?v=20261018g';
 
 renderSidebar('dashboard');
 renderHeader('dashboard');
@@ -106,6 +106,42 @@ function isSecretaryOrDeputy() {
 function isAsync(act) { return !!act && !!act.voteConfig && act.voteConfig.mode === 'async'; }
 function isOnlineMeeting(act) { return isAsync(act) && Array.isArray(act.agenda) && act.agenda.some((x) => x && x.id); }
 
+// ── 步骤条（单一源）──────────────────────────────────────────────────────
+// 五步固定为「范围 → 议程 → 表态 → 截止 → 留存」；当前步只由既有会议数据派生，
+// 不新增状态字段：无会议＝范围；有会议无议程＝议程；有议程未截止＝表态（尚未收到表态）
+// 或截止（已收到表态）；已截止＝留存。步骤顺序是页面结构的唯一出处，章节标题只引用它。
+const PCM_STEPS = ['范围', '议程', '表态', '截止', '留存'];
+
+function currentStepOf(act, votes) {
+  if (!act) return 0;
+  const items = (act.agenda || []).filter((x) => x && x.item);
+  if (!items.length) return 1;
+  if (act.votesLocked === true) return 4;
+  const voteItems = items.filter((x) => x && x.id && x.agendaStep !== 'discussion');
+  if (!voteItems.length) return 3;
+  return Array.isArray(votes) && votes.length > 0 ? 3 : 2;
+}
+
+/** 步骤条：只做状态显示，不另造组件；当前步用深色序号 + 深色文字，其余降为灰色 */
+function stepBarHtml(step) {
+  const parts = PCM_STEPS.map((label, i) => {
+    const on = i === step;
+    const numClass = on ? 'bg-gray-800 text-white' : 'bg-gray-100 text-gray-500';
+    return `<span class="inline-flex items-center gap-1 ${on ? 'font-medium text-gray-800' : 'text-gray-400'}">
+      <span class="inline-flex h-5 w-5 items-center justify-center rounded-full ${numClass}">${i + 1}</span>${label}
+    </span>`;
+  });
+  return `<div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs" aria-label="支委会流程">${parts.join('<span class="text-gray-300" aria-hidden="true">→</span>')}</div>`;
+}
+
+/** 当前步只留一个主按钮；其余动作一律降为次按钮（先按次按钮渲染，渲染后再提升当前步） */
+function applyPrimaryButtons() {
+  ROOT.querySelectorAll('[data-pcm-primary="1"]').forEach((btn) => {
+    btn.classList.remove('btn-outline');
+    btn.classList.add('btn-accent');
+  });
+}
+
 // 页面状态
 let currentId = null;
 
@@ -120,11 +156,7 @@ function renderShellDenied() {
   ROOT.innerHTML = `
     <div class="card rounded-xl p-5 text-center">
       <p class="font-title-cn text-base font-bold text-gray-800">你在支委会会议页没有可见的会议</p>
-      <p class="text-sm text-gray-500 mt-2">你不在此页可见范围内；可用范围口径见下。</p>
-      <details class="mt-2 text-left">
-        <summary class="text-xs text-gray-500 cursor-pointer select-none">谁能进本页 ▾</summary>
-        <div class="text-xs text-gray-500 leading-5 mt-1">支委（支书 / 副支书 / 组织 / 宣传 / 纪检委员）看得到全部支委会场次；被扩大进某场支委扩大会的人也能进（但只看得到扩大到他的那一场，并在该场表态）。<a href="./help.html#card-copy-pcm-scope" class="text-sky-600 hover:underline">见帮助 · 支委会页可见范围</a></div>
-      </details>
+      <p class="text-sm text-gray-500 mt-2">你不在此页可见范围内。<a href="./help.html#card-copy-pcm-scope" class="text-sky-600 hover:underline">见帮助 · 支委会页可见范围</a></p>
       <p class="text-sm mt-4"><a href="./workspace/${esc(page)}" class="text-blue-600 hover:underline">← 返回我的工作台</a></p>
     </div>`;
 }
@@ -150,16 +182,12 @@ function expandedScopeNoticeHtml(n) {
   return `
     <div class="rounded-xl border border-blue-100 bg-blue-50/50 p-4">
       <p class="text-xs font-semibold text-blue-800">你被扩大进 ${n} 场支委会（支委扩大会）</p>
-      <p class="text-[11px] text-blue-800 mt-1.5 leading-relaxed">本页只列扩大到你的那些场次（其余不进列表、直指也打不开）。<a href="./help.html#card-copy-pcm-scope" class="text-sky-600 hover:underline">见帮助 · 支委会页可见范围</a></p>
-      <details class="mt-1">
-        <summary class="text-[11px] text-blue-800 cursor-pointer select-none">被扩大者的可见与可做 ▾</summary>
-        <div class="text-[11px] text-blue-800 leading-5 mt-1">在这几场里你可按应到名单表态、查阅议程与讨论结果；议程提取与范围调整、汇总截止与记录讨论结果归支委侧，不在你的范围内。</div>
-      </details>
+      <p class="text-xs text-blue-800 mt-1.5 leading-relaxed">本页只列扩大到你的场次。<a href="./help.html#card-copy-pcm-scope" class="text-sky-600 hover:underline">见帮助 · 支委会页可见范围</a></p>
     </div>`;
 }
 
 /** 会议选择区（本人可见的支委会场次 + 新建线上支委会——新建位仅支委） */
-function selectSectionHtml() {
+function selectSectionHtml(hasMeeting) {
   const me = AuthStore.getCurrentUser();
   const committeeViewer = isCommitteeMember(me?.personId);
   // 场次下拉＝本人可见场次单一源（被扩大者只列扩大到他的那些场次）
@@ -170,7 +198,7 @@ function selectSectionHtml() {
   }).join('');
   return `
     <div class="card rounded-xl p-5">
-      <p class="text-sm font-semibold text-gray-700 mb-3">① 选一场支委会（线上召开）</p>
+      <p class="text-sm font-semibold text-gray-700 mb-3">范围 · 选一场支委会</p>
       <div class="flex flex-wrap items-end gap-2">
         <label class="text-xs text-gray-500">现有支委会场次
           <select id="pcm-pick" class="input-flat text-xs mt-1 block" style="min-width:320px">
@@ -181,11 +209,11 @@ function selectSectionHtml() {
         <label class="text-xs text-gray-500">新建线上支委会名称（可留空）
           <input id="pcm-new-title" class="input-flat text-xs mt-1 block" style="min-width:240px" placeholder="如：9 月支委会（线上）">
         </label>
-        <button id="pcm-create" type="button" class="btn-accent text-xs px-3 py-1.5 font-medium">新建线上支委会</button>` : ''}
+        <button id="pcm-create" type="button" class="btn-outline" data-pcm-primary="${!hasMeeting ? '1' : '0'}">新建线上支委会</button>` : ''}
       </div>
-      <p class="text-[11px] text-gray-500 mt-2">${committeeViewer
-        ? '「线上召开」＝沿用既有活动的异步表决配置（支委为应到名单，委员线上表态）。本页不改动活动本身的线下流程设置。'
-        : '你是被扩大进本场的人：这里只列<strong>扩大到你的</strong>支委会场次（其余场次不进列表、直指也打不开）。'}</p>
+      <p class="text-xs text-gray-500 mt-2">${committeeViewer
+        ? '线上召开沿用本场活动的异步表决配置。<a href="./help.html#card-dom31-vote" class="text-sky-600 hover:underline">见帮助 · 线上异步表决</a>'
+        : '这里只列扩大到你的支委会场次。<a href="./help.html#card-copy-pcm-scope" class="text-sky-600 hover:underline">见帮助 · 支委会页可见范围</a>'}</p>
     </div>`;
 }
 
@@ -209,7 +237,7 @@ function groupLeaderOptions() {
  * 未勾「扩大会」时保存回 = 支委层名单，与现状逐字一致。
  * 可编辑面**仅支委**（既有渲染条件保持不变）：被扩大进本场的人只能看范围与表态，改不了名单。
  */
-function scopeSectionHtml(act) {
+function scopeSectionHtml(act, step) {
   const voterIds = Array.isArray(act.voteConfig?.voterIds) ? act.voteConfig.voterIds : [];
   const committee = committeeIds();
   const expandedIds = voterIds.filter((id) => !committee.includes(id));
@@ -227,12 +255,8 @@ function scopeSectionHtml(act) {
     + (expandedIds.length ? ` ＋ 扩大到 ${expandedIds.length} 人（${expandedIds.map((id) => getPersonName(id) || id).join('、')}）` : '');
   return `
     <div class="card rounded-xl p-5">
-      <p class="text-sm font-semibold text-gray-700 mb-1">本场参会范围（支委层 / 支委扩大会）</p>
-      <p class="text-[11px] text-gray-500 mb-3">支委会与支委扩大会都是法人性质；默认支委层，可扩大到党小组组长（代组长）。<a href="./help.html#card-copy-pcm-scope" class="text-sky-600 hover:underline">见帮助 · 支委会页可见范围</a></p>
-      <details class="mb-3">
-        <summary class="text-[11px] text-gray-500 cursor-pointer select-none">参会范围口径 ▾</summary>
-        <div class="text-[11px] text-gray-500 leading-5 mt-1">同一场支委会可按需选扩大到谁：勾「扩大会」后逐位选，或一键勾全体党小组组长（代组长）；未勾＝维持支委层现状。名单落在本场活动既有应到名单字段（与线上表态门同一口径），不新增字段。</div>
-      </details>
+      <p class="text-sm font-semibold text-gray-700 mb-1">范围 · 本场参会范围</p>
+      <p class="text-xs text-gray-500 mb-3">默认支委层，可扩大到党小组组长（代组长）。<a href="./help.html#card-copy-pcm-scope" class="text-sky-600 hover:underline">见帮助 · 支委会页可见范围</a></p>
       ${editable ? `
       <label class="flex items-center gap-2 text-sm text-gray-700">
         <input type="checkbox" id="pcm-expanded"${expandedIds.length ? ' checked' : ''}>
@@ -247,11 +271,11 @@ function scopeSectionHtml(act) {
         <div class="mt-1">${leaderRows}</div>
       </div>
       <div class="mt-3 flex items-center gap-3 flex-wrap">
-        <button id="pcm-save-scope" type="button" class="btn-accent text-xs px-3 py-1.5 font-medium">保存本场参会范围</button>
+        <button id="pcm-save-scope" type="button" class="btn-outline" data-pcm-primary="${step === 0 ? '1' : '0'}">保存本场参会范围</button>
         <span class="text-[11px] text-gray-500">${esc(rangeText)}</span>
       </div>` : `
       <p class="text-xs text-gray-600">${esc(rangeText)}</p>
-      <p class="text-[11px] text-gray-500 mt-1.5">你是被扩大进本场的人：本场参会范围只读（调整归支委侧），你在本场按应到名单表态。</p>`}
+      <p class="text-xs text-gray-500 mt-1.5">本场参会范围只读；你在本场按应到名单表态。</p>`}
     </div>`;
 }
 
@@ -281,7 +305,7 @@ async function loadCandidates() {
 }
 
 /** 议程提取区（**一张「拟上会」清单**：按类目分组，勾谁上会；已在议程中的置灰） */
-function extractSectionHtml(act, candidates = []) {
+function extractSectionHtml(act, candidates = [], step = 1) {
   // 提取议程＝支委侧的写入位（**既有渲染条件不变**）：被扩大进本场的人只表态与查阅，
   //   这里不呈现「加入本场议程」的入口——本次改动不得让新放行的这一类拿到它。
   if (!isCommitteeMember(AuthStore.getCurrentUser()?.personId)) return '';
@@ -310,11 +334,11 @@ function extractSectionHtml(act, candidates = []) {
     : `<p class="text-xs text-gray-400">当前没有待上会的事项（专班报送 / 归口支委会的意见反馈 / 制度草案 / 待报送党员大会表决的制度 / 待推荐的发展对象 / 品牌认定提案）。</p>`;
   return `
     <div class="card rounded-xl p-5">
-      <p class="text-sm font-semibold text-gray-700 mb-1">② 提取支委会议程</p>
-      <p class="text-[11px] text-gray-500 mb-3">一张「拟上会」清单（不按来源各做入口）：勾选后加入本场议程，只在议程项上留回指，不改动来源本身。</p>
+      <p class="text-sm font-semibold text-gray-700 mb-1">议程 · 提取议程</p>
+      <p class="text-xs text-gray-500 mb-3">勾选后加入本场议程，不改动来源本身。<a href="./help.html#card-dom31-vote" class="text-sky-600 hover:underline">见帮助 · 线上异步表决</a></p>
       <div class="space-y-3">${groupsHtml}</div>
       <div class="mt-3 flex items-center gap-3">
-        <button id="pcm-extract" type="button" class="btn-accent text-xs px-3 py-1.5 font-medium">加入本场议程</button>
+        <button id="pcm-extract" type="button" class="btn-outline" data-pcm-primary="${step === 1 ? '1' : '0'}">加入本场议程</button>
         <span class="text-[11px] text-gray-500">勾选后可一次加入多条</span>
       </div>
     </div>`;
@@ -332,8 +356,8 @@ function agendaSectionHtml(act) {
   if (!items.length) {
     return `
       <div class="card rounded-xl p-5">
-        <p class="text-sm font-semibold text-gray-700 mb-1">③ 议程与表态</p>
-        <p class="text-sm text-gray-500">本场议程为空：先在上一步提取议程，或到「活动管理」手工补充议程。</p>
+        <p class="text-sm font-semibold text-gray-700 mb-1">表态 · 议程与表态</p>
+        <p class="text-sm text-gray-500">本场议程为空：先在上一步提取议程。</p>
       </div>`;
   }
   const rows = items.map((a, i) => `
@@ -355,8 +379,8 @@ function agendaSectionHtml(act) {
     </div>`).join('');
   return `
     <div class="card rounded-xl p-5">
-      <p class="text-sm font-semibold text-gray-700 mb-1">③ 议程与表态</p>
-      <p class="text-[11px] text-gray-500 mb-3">${canVote ? '你是本场应到表决人，可就表决项表态（同意 / 异议 / 附言，可改票）。讨论项用于记录讨论过程。' : '你不在本场应到表决名单内，以下为只读议程。'}</p>
+      <p class="text-sm font-semibold text-gray-700 mb-1">表态 · 议程与表态</p>
+      <p class="text-xs text-gray-500 mb-3">${canVote ? '你是本场应到表决人，可就表决项表态。<a href="./help.html#card-dom31-vote" class="text-sky-600 hover:underline">见帮助 · 线上异步表决</a>' : '你不在本场应到表决名单内，以下为只读议程。'}</p>
       <div class="space-y-3">${rows}</div>
     </div>`;
 }
@@ -366,7 +390,8 @@ function summarySectionHtml(act) {
   if (!isSecretaryOrDeputy()) return '';
   return `
     <div class="card rounded-xl p-5">
-      <p class="text-sm font-semibold text-gray-700 mb-3">④ 汇总与截止（支书 / 副支书）</p>
+      <p class="text-sm font-semibold text-gray-700 mb-1">截止 · 汇总与截止</p>
+      <p class="text-xs text-gray-500 mb-3">汇总本场表态；截止后进入留存。</p>
       <div id="pcm-summary"></div>
     </div>`;
 }
@@ -424,22 +449,10 @@ function resultSectionHtml(act, votes) {
   }).join('') : '<p class="text-sm text-gray-500">本场暂无带编号的议程，暂无可查阅的讨论结果。</p>';
   return `
     <div class="card rounded-xl p-5">
-      <p class="text-sm font-semibold text-gray-700 mb-1">⑤ 讨论结果（留存 / 查阅）</p>
-      <p class="text-[11px] text-gray-500 mb-3">留存口径＝议程项结果（与「活动详情」的记录会议结果同一处）+ 委员表态记录。效力（2026-09-20 定案）：线上与线下完全同等效力，这里记录的讨论结果即终局。</p>
+      <p class="text-sm font-semibold text-gray-700 mb-1">留存 · 讨论结果</p>
+      <p class="text-xs text-gray-500 mb-3">留存＝议程结果＋表态记录。<a href="./help.html#card-copy-pcm-scope" class="text-sky-600 hover:underline">见帮助 · 支委会页可见范围</a></p>
       <div class="space-y-3" id="pcm-result">${body}</div>
-      <p class="text-[11px] text-gray-500 mt-3">也可在 <a href="./activity.html?id=${encodeURIComponent(act.id)}" class="text-blue-600 hover:underline">活动详情</a> 查看该场会议的全部记录。</p>
-    </div>`;
-}
-
-/** 效力口径（已定）＋ 由它推导、尚待确认的三条（D-538） */
-function rulingNoticeHtml() {
-  return `
-    <div class="rounded-xl border border-amber-100 bg-amber-50/50 p-4">
-      <p class="text-xs font-semibold text-amber-800">效力口径（已定）· 线上与线下完全同等效力（2026-09-20 定案）：线上表决与线上记录的讨论结果即终局，不需线下追认。</p>
-      <details class="mt-1.5">
-        <summary class="text-[11px] text-amber-800 cursor-pointer select-none">由该口径推导、尚待确认的三条 ▾</summary>
-        <div class="text-[11px] text-amber-800 leading-5 mt-1">以下三条由上面这条口径推出，尚未逐条明答，请支书确认或推翻：其一 讨论结果可见范围与线下一致（支委会内部）；其二 支委缺席按线下同一规则；其三 线上支委会也走线下那套任务（两条线合流）。确认前本页不代作判定，只如实呈现已存记录（锁定 / 结果 / 表态）。<a href="./help.html#card-copy-pcm-scope" class="text-sky-600 hover:underline">见帮助 · 支委会页可见范围</a></div>
-      </details>
+      <p class="text-xs text-gray-500 mt-3">也可在 <a href="./activity.html?id=${encodeURIComponent(act.id)}" class="text-blue-600 hover:underline">活动详情</a> 查看全部记录。</p>
     </div>`;
 }
 
@@ -465,6 +478,7 @@ async function render() {
   const act = currentId ? findAct(currentId) : null;
   const votes = act ? await fetchVotes(act.id) : [];
   const candidates = (act && committeeViewer) ? await loadCandidates() : [];
+  const step = currentStepOf(act, votes);
 
   const currentBlock = !act
     ? `<div class="card rounded-xl p-5"><p class="text-sm text-gray-500">暂无支委会场次：可在上方新建一场线上支委会。</p></div>`
@@ -476,10 +490,10 @@ async function render() {
            </div>
            <a href="./activity.html?id=${encodeURIComponent(act.id)}" class="text-xs text-blue-600 hover:underline flex-shrink-0">活动详情 →</a>
          </div>
-         ${isAsync(act) ? '' : '<p class="text-[11px] text-amber-700 bg-amber-50 rounded-lg px-3 py-2 mt-3">本场未启用线上表决配置：如需委员线上表态，可在「活动管理」写入线上异步表决，或上方新建一场线上支委会。</p>'}
+         ${isAsync(act) ? '' : '<p class="text-xs text-amber-700 bg-amber-50 rounded-lg px-3 py-2 mt-3">本场未启用线上表决配置：如需委员线上表态，可在「活动管理」写入线上异步表决，或上方新建一场线上支委会。</p>'}
        </div>
-       ${isAsync(act) ? scopeSectionHtml(act) : ''}
-       ${extractSectionHtml(act, candidates)}
+       ${isAsync(act) ? scopeSectionHtml(act, step) : ''}
+       ${extractSectionHtml(act, candidates, step)}
        ${agendaSectionHtml(act)}
        ${summarySectionHtml(act)}
        ${resultSectionHtml(act, votes)}`;
@@ -491,22 +505,27 @@ async function render() {
   ROOT.innerHTML = `
     <div class="space-y-5">
       <div class="card rounded-xl p-5">
-        <h2 class="font-title-cn text-xl font-bold text-gray-800">支委会会议（线上召开）</h2>
-        <p class="text-sm text-gray-500 mt-1.5">一条链：选线上召开 → 定本场参会范围（默认支委层，可扩大为支委扩大会、选定扩大到谁）→ 提取/整理议程 → 委员表态 → 汇总并截止 → 留存、查阅讨论结果。</p>
-        <p class="text-sm mt-4"><a href="./workspace/${esc(page)}" class="text-blue-600 hover:underline">← 返回我的工作台</a></p>
+        <div class="flex items-start justify-between gap-3 flex-wrap">
+          <div class="min-w-0">
+            <h2 class="font-title-cn text-xl font-bold text-gray-800">支委会会议（线上召开）</h2>
+            <p class="text-xs text-gray-500 mt-1">线上与线下同等效力；记录即终局。<a href="./help.html#card-copy-pcm-scope" class="text-sky-600 hover:underline">见帮助 · 支委会页可见范围</a></p>
+          </div>
+          <a href="./workspace/${esc(page)}" class="text-sm text-blue-600 hover:underline flex-shrink-0">← 返回我的工作台</a>
+        </div>
+        <div class="mt-3">${stepBarHtml(step)}</div>
       </div>
-      ${rulingNoticeHtml()}
       ${committeeViewer ? '' : expandedScopeNoticeHtml(list.length)}
-      ${selectSectionHtml()}
+      ${selectSectionHtml(!!act)}
       ${currentBlock}
     </div>`;
+  applyPrimaryButtons();
 
   bindSelectSection();
   if (act) {
     bindScope(act);
     bindExtract(act, candidates);
     await bindAgenda(act);
-    bindSummary(act);
+    bindSummary(act, step);
     bindRecord(act);
   }
 }
@@ -707,7 +726,7 @@ async function bindAgenda(act) {
 }
 
 /** 汇总与截止：复用既有支书端汇总组件（含截止按钮 → votesLocked 锁定） */
-function bindSummary(act) {
+function bindSummary(act, step = 0) {
   const host = document.getElementById('pcm-summary');
   if (!host) return;
   const cfgIds = (Array.isArray(act.voteConfig?.voterIds) && act.voteConfig.voterIds.length > 0)
@@ -716,6 +735,14 @@ function bindSummary(act) {
   const memberIds = new Set(cfgIds);
   const committeeMembers = PersonStore.getAll().filter((p) => memberIds.has(p.id));
   renderVoteSummary(host, { activity: act, committeeMembers, canLock: true })
+    .then(() => {
+      // 当前步＝截止时，把汇总组件的截止按钮提升为本页唯一主按钮（其余动作已降为次按钮）
+      if (step !== 3) return;
+      const lock = host.querySelector('.vs-lock');
+      if (!lock) return;
+      lock.classList.remove('btn-ghost');
+      lock.classList.add('btn-accent');
+    })
     .catch((e) => console.warn('[party-committee-meeting] 表态汇总加载失败：', e));
   host.addEventListener('votes-locked', () => {
     showToast('success', '表态已截止，可查阅并记录讨论结果');
@@ -774,4 +801,12 @@ function bindRecord(act) {
   const params = new URLSearchParams(window.location.search);
   currentId = params.get('id') || null;
   await render();
+  // 支委会 tab 的「新建线上支委会 →」深链（?action=new）：落到创建位并聚焦，不自动建场。
+  if (params.get('action') === 'new') {
+    const title = document.getElementById('pcm-new-title');
+    if (title) {
+      title.focus();
+      title.closest('.card')?.scrollIntoView({ block: 'start' });
+    }
+  }
 })();

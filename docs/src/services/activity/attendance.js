@@ -3,19 +3,19 @@
 //  attendance.js — 考勤记录 CRUD 服务
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB, AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../core/domain/domain.js?v=20261018f';
-import { POLICY_DEFAULTS } from '../../core/domain/policy-defaults.js?v=20261018f';
-import { persist, getDataSource, getAdapter } from '../../data/data-adapter.js?v=20261018f';
-import { generateId } from '../../core/base/id.js?v=20261018f';
-import { bumpToken } from '../../core/base/version-token.js?v=20261018f'; // P0 域缓存失效（spec §二.3）
-import { ATTENDANCE_RECORDS } from '../../data/mock/index.js?v=20261018f';
-import { isInitStateActive } from '../core/init-reset.js?v=20261018f'; // C2 修复（2026-09-08）：init 态空态不回退演示种子
-import { PersonStore, getPersonById, getPersonName } from '../member/person.js?v=20261018f';
-import { getRosterStats } from '../member/roster.js?v=20261018f';
-import { getMeetingRosterIds } from '../member/roster.js?v=20261018f';
-import { loadActivities, isActivityOrganizer } from './activity.js?v=20261018f';
-import { SignupStore } from './signup.js?v=20261018f';
-import { deriveExpectedRosterIds } from './attendance-roster.js?v=20261018f';
+import { mockDB, AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../core/domain/domain.js?v=20261018g';
+import { POLICY_DEFAULTS } from '../../core/domain/policy-defaults.js?v=20261018g';
+import { persist, getDataSource, getAdapter } from '../../data/data-adapter.js?v=20261018g';
+import { generateId } from '../../core/base/id.js?v=20261018g';
+import { bumpToken } from '../../core/base/version-token.js?v=20261018g'; // P0 域缓存失效（spec §二.3）
+import { ATTENDANCE_RECORDS } from '../../data/mock/index.js?v=20261018g';
+import { isInitStateActive } from '../core/init-reset.js?v=20261018g'; // C2 修复（2026-09-08）：init 态空态不回退演示种子
+import { PersonStore, getPersonById, getPersonName } from '../member/person.js?v=20261018g';
+import { getRosterStats } from '../member/roster.js?v=20261018g';
+import { getMeetingRosterIds } from '../member/roster.js?v=20261018g';
+import { loadActivities, isActivityOrganizer } from './activity.js?v=20261018g';
+import { SignupStore } from './signup.js?v=20261018g';
+import { deriveExpectedRosterIds } from './attendance-roster.js?v=20261018g';
 
 export function loadAttendanceRecords() {
   if (mockDB.attendances.length > 0) return [...mockDB.attendances];
