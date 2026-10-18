@@ -254,3 +254,114 @@ test('B5 族·语义一致：.btn-ghost 不得带内联实底（借文字族形�
     `'.btn-ghost' 带内联实底的 <button> 有 ${offenders.length} 个（上限 ${GHOST_SOLID_BASELINE}）⇒ 实底须归主操作 / 危险 / 中性族，勿借文字族形状。`,
   );
 });
+
+/**
+ * B6【尺寸归一单一源】（2026-10-18 立）
+ *   来源：支书反馈「有的厚、有的薄；有的字大、有的字小」⇒ 裁定**全局 CSS 归一**：
+ *   8 个语义族的高度 / 字号 / 内边距只由 `styles.css` 的「按钮尺寸归一（2026-10-18）」段决定，
+ *   页面不再用 `text-* / py-* / px-* / h-*` 零散决定厚薄。
+ *   判据：
+ *     ① 该段存在；
+ *     ② 34/32/30/26px 四档与正文档 13px（微操作 12px）**带 `!important`** 落在各族上
+ *        ——Tailwind 工具类可能后加载，不带 `!important` 压不住；
+ *     ③ 通用排布（inline-flex / 居中 / 不换行 / 1px 边框）存在；
+ *     ④ `.btn-icon` 例外存在（32×32、padding 0）。
+ */
+const SIZE_NORMALIZE_MARKER = '按钮尺寸归一（2026-10-18）';
+const ROW_QUIET_MARKER = '列表行边框收敛（2026-10-18）';
+
+/** 极简规则切分：只取「选择器 { 声明 }」（本段无嵌套 at-rule；先剥注释，避免注释里的示例类串段） */
+function cssRules(css) {
+  const out = [];
+  const re = /([^{}]+)\{([^{}]*)\}/g;
+  let m;
+  while ((m = re.exec(css)) !== null) out.push({ selector: m[1].trim(), body: m[2] });
+  return out;
+}
+
+test('B6 按钮尺寸归一：styles.css 单源锁定 8 族尺寸（34/32/30/26px）', () => {
+  const start = CSS_SRC.indexOf(SIZE_NORMALIZE_MARKER);
+  assert.ok(start >= 0,
+    `styles.css 缺少「${SIZE_NORMALIZE_MARKER}」段 ⇒ 按钮尺寸仍会被页面工具类零散决定（厚薄不一的老病）。`);
+  const rowStart = CSS_SRC.indexOf(ROW_QUIET_MARKER, start);
+  const section = CSS_SRC.slice(start, rowStart > start ? rowStart : undefined)
+    .replace(/\/\*[\s\S]*?\*\//g, '');
+  const rules = cssRules(section);
+  const tierRuleOf = (token) => rules.find((r) => new RegExp(`\\.${token}(?![\\w-])`).test(r.selector)
+    && /min-height/.test(r.body));
+
+  // ② 四档 ＋ 字号（26px 档是微操作，12px；其余 13px 正文档）
+  const expectTier = (token, minHeight, fontSize) => {
+    const r = tierRuleOf(token);
+    assert.ok(r, `「${SIZE_NORMALIZE_MARKER}」段缺少 .${token} 的尺寸档（页面会退回零散工具类）`);
+    assert.match(r.body, new RegExp(`min-height:\\s*${minHeight}px\\s*!important`),
+      `.${token} 应为 min-height: ${minHeight}px !important`);
+    assert.match(r.body, /padding:\s*0\s+\d+px\s*!important/,
+      `.${token} 的 padding 应为「0 Npx !important」`);
+    assert.match(r.body, new RegExp(`font-size:\\s*${fontSize}px\\s*!important`),
+      `.${token} 的字号应为 ${fontSize}px !important`);
+  };
+  expectTier('btn-accent', 34, 13);
+  expectTier('btn-accent-soft', 34, 13);
+  expectTier('btn-md', 34, 13);
+  expectTier('btn-neutral', 32, 13);
+  expectTier('btn-outline', 32, 13);
+  expectTier('btn-danger', 32, 13);
+  expectTier('btn-danger-solid', 32, 13);
+  expectTier('btn-ghost', 30, 13);
+  expectTier('btn-tab', 30, 13);
+  expectTier('btn-action', 26, 12);
+
+  // ③ 通用排布单一源（排布属性**不加** `!important`：行式载体的 `justify-between` /
+  //    `items-start` / `border-0` 等工具类须能后加载覆盖；只锁尺寸属性）
+  const common = rules.find((r) => /display:\s*inline-flex/.test(r.body)
+    && /align-items:\s*center/.test(r.body)
+    && /justify-content:\s*center/.test(r.body)
+    && /gap:\s*0\.375rem\s*!important/.test(r.body)
+    && /line-height:\s*1\s*!important/.test(r.body)
+    && /white-space:\s*nowrap/.test(r.body)
+    && /border-width:\s*1px/.test(r.body));
+  assert.ok(common, `「${SIZE_NORMALIZE_MARKER}」段缺少通用排布规则（inline-flex / 居中 / gap:0.375rem!important / line-height:1!important / nowrap / border-width:1px）`);
+
+  // ④ 图标型例外
+  const icon = rules.find((r) => /\.btn-icon(?![\w-])/.test(r.selector) && /width:\s*32px/.test(r.body));
+  assert.ok(icon, `「${SIZE_NORMALIZE_MARKER}」段缺少 .btn-icon 例外（图标按钮 32×32）`);
+  assert.match(icon.body, /padding:\s*0\s*!important/, '.btn-icon 的 padding 应为 0 !important');
+});
+
+/**
+ * B7【族内不得再写尺寸】（2026-10-18 立，棘轮）
+ *   问题：归一后尺寸已由 `styles.css` 用 `!important` 锁死，但页面里仍有
+ *   `<button class="btn-outline … text-sm py-1.5">` 这类「族类 ＋ 尺寸工具类」——
+ *   既不生效、又让读码者误以为尺寸还归页面管。
+ *   存量约 491 处，**本批不清**（支书要求「不要一次清 400 处」），只锁「不得新增」。
+ *   判据＝`<button class>` 同时命中 8 族令牌 与 尺寸工具类令牌（字号 / 内边距 / 高度）。
+ *   基线＝2026-10-18 实测 **491**（只许降不许升；每迁完一屏一并下调）。
+ */
+const FAMILY_SIZE_OVERRIDE_BASELINE = 491;
+const SIZE_TOKEN_RE = /^(?:text-(?:xs|sm|base|lg|xl)|text-\[\d+px\]|p-\d+(?:\.\d+)?|px-\d+(?:\.\d+)?|py-\d+(?:\.\d+)?|h-\d+(?:\.\d+)?|min-h-\S+)$/;
+const FAMILY_TOKEN_RE = /(^|\s)(btn-accent-soft|btn-accent|btn-action|btn-md|btn-tab|btn-neutral|btn-outline|btn-ghost|btn-danger)/;
+
+test('B7 族内不得再写尺寸：语义族按钮上的 text-*/py-*/px-*/h-* 只许降不许升', () => {
+  let total = 0;
+  const perFile = new Map();
+  const re = /<button[^>]*\bclass="([^"]*)"/g;
+  for (const f of FILES) {
+    const src = readFileSync(f, 'utf8');
+    let m;
+    while ((m = re.exec(src)) !== null) {
+      const cls = m[1];
+      if (!FAMILY_TOKEN_RE.test(cls)) continue;
+      if (!cls.split(/\s+/).some((t) => SIZE_TOKEN_RE.test(t))) continue;
+      total += 1;
+      perFile.set(f, (perFile.get(f) || 0) + 1);
+    }
+  }
+  const ledger = [...perFile.entries()].sort((a, b) => b[1] - a[1])
+    .map(([f, n]) => `  ${String(n).padStart(3)}  ${relative(join(__dirname, '..', '..'), f)}`);
+  console.log(`[button-system-guard] 语义族按钮仍写尺寸工具类 ${total} 个（棘轮上限 ${FAMILY_SIZE_OVERRIDE_BASELINE}）：\n${ledger.join('\n')}`);
+  assert.ok(
+    total <= FAMILY_SIZE_OVERRIDE_BASELINE,
+    `语义族按钮上的尺寸工具类由 ${FAMILY_SIZE_OVERRIDE_BASELINE} 升到 ${total} 个 ⇒ 尺寸已由 styles.css「${SIZE_NORMALIZE_MARKER}」统一，新按钮不要再写 text-*/py-*/px-*/h-*；迁移一屏请一并下调基线。`,
+  );
+});

@@ -11,9 +11,9 @@
 //  依赖方向正确：组件 → 服务（不是服务 → 组件）。守卫：issue-branch.test.mjs（结构层）。
 // ════════════════════════════════════════════════════════════════
 
-import { renderFilteredList } from '../ui/list-filter.js?v=20261018e';
-import { escHtml, showToast } from '../../core/base/utils.js?v=20261018e';
-import { IssueStore, IssueNotify, deriveIssueDisplayState, REPORT_CATEGORIES, displayNameOf as _displayName } from '../../services/governance/issues.js?v=20261018e';
+import { renderFilteredList } from '../ui/list-filter.js?v=20261018f';
+import { escHtml, showToast } from '../../core/base/utils.js?v=20261018f';
+import { IssueStore, IssueNotify, deriveIssueDisplayState, REPORT_CATEGORIES, displayNameOf as _displayName } from '../../services/governance/issues.js?v=20261018f';
 
 // ════════════════════════════════════════════════════════════════
 //  「我的处置」Tab 渲染工具（各角色工作台复用）
@@ -53,7 +53,7 @@ export function renderMyDispatchTab(role, userId, opts = {}) {
   // ② 我发起的汇报（追踪 + 详情 + 确认收到）
   let myReportsHtml = '';
   if (myReports.length) {
-    myReportsHtml += `<div class="rounded-xl border border-gray-100 bg-white p-3">`;
+    myReportsHtml += `<div class="rounded-xl bg-white p-3">`;
     myReportsHtml += `<p class="text-xs font-medium text-gray-700 mb-2">我发起的汇报 · ${myReports.length}</p>`;
     myReportsHtml += `<div id="mydispatch-myreports-host"></div>`;
     myReportsHtml += `</div>`;
@@ -71,7 +71,7 @@ export function renderMyDispatchTab(role, userId, opts = {}) {
   //   提交时带与 personId 无关的令牌，服务端只存哈希 ⇒ 浏览器认得出「我提交过哪几条」，tokenHash 推不出提交人。
   //   边界：换设备/清浏览器数据后认不回（真身另存 `_realPersonId`，当前无系统揭名入口；见 D-824）。
   let myIssuesHtml = '';
-  myIssuesHtml += `<div class="rounded-xl border border-gray-100 bg-white p-3 mt-3">`;
+  myIssuesHtml += `<div class="rounded-xl bg-white p-3 mt-3">`;
   myIssuesHtml += `<p class="text-xs font-medium text-gray-700 mb-1">我提交 / 参与的反馈 · ${myIssues.length}</p>`;
   myIssuesHtml += `<p class="text-xs text-gray-500 mb-2">本浏览器提交的反馈可在此回看（按提交时的随机令牌比对，不以提交人身份为判据；换设备或清除浏览器数据后无法回认）</p>`;
   myIssuesHtml += `<div id="mydispatch-myissues-host"></div>`;
@@ -161,7 +161,7 @@ export function bindMyDispatchEvents(container, role, userId, opts = {}) {
       keyword: { keys: ['title', 'body'], placeholder: '搜索汇报事项…' },
       sort: bySubmittedDesc,
       countUnit: '条',
-      listClass: 'space-y-0', // 原行间无间距
+      listClass: 'divide-y divide-gray-100', // 纯展示行只用分隔线，不加外框
       emptyMessage: '暂无我发起的汇报',
       rowHtml: (r) => {
         const ds = deriveIssueDisplayState(r);
@@ -227,7 +227,7 @@ export function bindMyDispatchEvents(container, role, userId, opts = {}) {
       keyword: { keys: ['title', 'body'], placeholder: '搜索反馈标题…' },
       sort: bySubmittedDesc,
       countUnit: '条',
-      listClass: 'space-y-0', // 原行间无间距
+      listClass: 'divide-y divide-gray-100', // 纯展示行只用分隔线，不加外框
       emptyMessage: '暂无我提交或参与的反馈',
       rowHtml: (issue) => {
         const ds = deriveIssueDisplayState(issue);

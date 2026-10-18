@@ -6,9 +6,9 @@
 // 顶部直达条属重复动作 ⇒ 外壳不再挂条，只保留骨架占位。
 // U3（2026-09-07）：先 beginOverviewShell 骨架/槽位占位 → 原地渲染概况（不推挤正文）。
 
-import { renderWorkOverview } from '../../../components/governance/work-overview.js?v=20261018e';
-import { getDiscCommissionerId } from './_shared.js?v=20261018e';
-import { beginOverviewShell } from '../../../components/governance/overview-dispatch-bar.js?v=20261018e';
+import { renderWorkOverview } from '../../../components/governance/work-overview.js?v=20261018f';
+import { getDiscCommissionerId } from './_shared.js?v=20261018f';
+import { beginOverviewShell } from '../../../components/governance/overview-dispatch-bar.js?v=20261018f';
 
 /**
  * 条线缺口行补真实动作（2026-10-18 繁专项 Task 15）。
@@ -23,7 +23,7 @@ const DISC_GAP_TARGETS = [
 async function _goGapTarget(tab, segment) {
   if (segment === 'makeup') {
     try {
-      const m = await import('./attendance-tab.js?v=20261018e');
+      const m = await import('./attendance-tab.js?v=20261018f');
       m.focusSegment('makeup');
     } catch (_) { /* 分段记忆失败时仍进考勤页 */ }
   }

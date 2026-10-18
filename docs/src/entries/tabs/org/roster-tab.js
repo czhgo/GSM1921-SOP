@@ -42,33 +42,33 @@
 //    支书确认生效时先 roster.saveResidenceChange（RESIDENCE_KEY 覆盖 + 留痕）→ 再 saveMember 镜像进档案。
 // ════════════════════════════════════════════════════════════════
 
-import { PersonStore, getPersonName } from '../../../services/member/person.js?v=20261018e';
-import { getRosterStats, getResidenceOf } from '../../../services/member/roster.js?v=20261018e';
-import { listPendingConfirmations } from '../../../services/member/member-confirmation.js?v=20261018e';
-import { DEVELOP_STAGE_OPTIONS } from '../../../services/branch/org-base-data-preview.js?v=20261018e';
+import { PersonStore, getPersonName } from '../../../services/member/person.js?v=20261018f';
+import { getRosterStats, getResidenceOf } from '../../../services/member/roster.js?v=20261018f';
+import { listPendingConfirmations } from '../../../services/member/member-confirmation.js?v=20261018f';
+import { DEVELOP_STAGE_OPTIONS } from '../../../services/branch/org-base-data-preview.js?v=20261018f';
 // 党小组常态清单唯一来源（活组、按 seq 升序；新增/改名/解散后随渲染即时可见）
-import { groupOptions } from '../../../services/member/party-group.js?v=20261018e';
-import { AuthStore } from '../../../services/core/auth.js?v=20261018e';
+import { groupOptions } from '../../../services/member/party-group.js?v=20261018f';
+import { AuthStore } from '../../../services/core/auth.js?v=20261018f';
 // Q-21-3 收敛（2026-09-13）：在册状态枚举单一源 = core/domain/constants.js（原经 roster.js 转出）
-import { ROLE_LABELS, RESIDENCE } from '../../../core/domain/constants.js?v=20261018e';
-import { showToast, escHtml as esc, getBasePath } from '../../../core/base/utils.js?v=20261018e';
-import { openModal, closeModal, openFormModal } from '../../../components/ui/modal.js?v=20261018e';
+import { ROLE_LABELS, RESIDENCE } from '../../../core/domain/constants.js?v=20261018f';
+import { showToast, escHtml as esc, getBasePath } from '../../../core/base/utils.js?v=20261018f';
+import { openModal, closeModal, openFormModal } from '../../../components/ui/modal.js?v=20261018f';
 // 统一成员档案编辑模态（成员名册行内「编辑」入口；模态内按字段分流：档案属性立即生效 / 制度变更报支书确认）
-import { openPersonEditModal } from '../../../components/governance/pickers.js?v=20261018e';
+import { openPersonEditModal } from '../../../components/governance/pickers.js?v=20261018f';
 // 纯逻辑（可单测）：新增表单校验
-import { validateMemberForm } from '../../../services/member/roster-ui-logic.js?v=20261018e';
+import { validateMemberForm } from '../../../services/member/roster-ui-logic.js?v=20261018f';
 // `D-788` / `V-10b` 第三批（2026-10-05 · 支书圈「甲：粘贴/CSV ＋ 预览」）：自我描述批量导入服务
 //   （纯函数：解析 → 表头关键词映射 → 净化 → 与名册匹配 → 预览；本模块不落库，确认由本 tab 逐行走 saveMember）
-import { buildSelfProfileImport } from '../../../services/member/self-profile-import.js?v=20261018e';
+import { buildSelfProfileImport } from '../../../services/member/self-profile-import.js?v=20261018f';
 // 统一检索引擎（2026-09-13 表格统一化批次 A）：名册列表接入关键词 + 分面（≤8 行引擎自动不渲染检索条）
-import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261018e';
+import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261018f';
 // 成员流出登记（行内「移出」＝登记即生效）：2026-09-28 批次 220 · R10 拆分后，本 tab 只留「移出」这一
 //   行操作；「成员流动」面板（登记流入 / 登记流出 / 对账行 / 台账表 / 撤销）已拆到独立 tab（org/member-flow-tab.js）。
-import { registerOutflow } from '../../../services/member/member-flow.js?v=20261018e';
+import { registerOutflow } from '../../../services/member/member-flow.js?v=20261018f';
 // 支部归属解析（当前操作人 → 支部 id）：台账/对账/登记同支部口径
-import { getBranchIdOfPerson } from '../../../services/branch/branch.js?v=20261018e';
+import { getBranchIdOfPerson } from '../../../services/branch/branch.js?v=20261018f';
 // 自定义圆角下拉增强（select.input-flat.text-xs → cs-trigger；与全局 observer 幂等）
-import { enhanceSelects } from '../../../components/ui/custom-select.js?v=20261018e';
+import { enhanceSelects } from '../../../components/ui/custom-select.js?v=20261018f';
 
 // 模块级 ctx 缓存：行内保存/删除/新增后整页刷新复用首次渲染的 accent
 let _ctx = null;
@@ -184,7 +184,7 @@ export function renderContent(ctx) {
     facets: personFacets({ roleLabel: roleLabelOf }),
     facetStyle: 'chip',
     countUnit: '人',
-    listClass: 'space-y-1',
+    listClass: 'divide-y divide-gray-100',
     emptyMessage: members.length ? '无匹配成员' : '名册暂无成员，点右上角「新增成员」录入',
     rowHtml: (p) => _rowHtml(p, _pendingMap()),
   });
@@ -217,7 +217,7 @@ function _rowHtml(p, pend) {
   const resPend = pend.res.has(p.id);
   const outPend = pend.out.has(p.id);
   return `
-    <div class="roster-row grid grid-cols-1 gap-1.5 py-2 border-b border-gray-50 last:border-b-0 md:gap-2 md:items-center md:[grid-template-columns:minmax(120px,1.6fr)_132px_132px_96px_minmax(140px,2fr)_168px]" data-person-id="${esc(p.id)}">
+    <div class="roster-row grid grid-cols-1 gap-1.5 py-2 md:gap-2 md:items-center md:[grid-template-columns:minmax(120px,1.6fr)_132px_132px_96px_minmax(140px,2fr)_168px]" data-person-id="${esc(p.id)}">
       <div class="min-w-0">
         <div class="text-sm font-medium text-gray-800 flex items-center gap-1.5 min-w-0">
           <span class="truncate">${esc(getPersonName(p.id))}</span>

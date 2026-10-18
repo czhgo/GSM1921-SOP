@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { loadMemberProfile } from '../../docs/src/services/member/profile.js?v=20261018e';
-import { canMaintainMemberProfileFields } from '../../docs/src/core/domain/profile-access.js?v=20261018e';
+import { loadMemberProfile } from '../../docs/src/services/member/profile.js?v=20261018f';
+import { canMaintainMemberProfileFields } from '../../docs/src/core/domain/profile-access.js?v=20261018f';
 
 const member = { id: 'p-target', branchId: 'br-b1', name: '目标成员', selfProfile: { phone: 'protected' } };
 

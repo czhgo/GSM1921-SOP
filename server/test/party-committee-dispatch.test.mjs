@@ -2,7 +2,8 @@
 // 验收（设计 §5 P3 双向通道下发半侧 + 支书裁定「复用通知」）：
 //   ① 党委组织员在党委工作台「下发通知」选支部下发 → 下发历史即时可见
 //   ② 目标支部的支委层成员（支书储子禾 p13）在通知铃铛看到该条（标「党委下发」）
-//   ③ 非支委不打扰：党委组织员自身（非支委）铃铛不可见；普通成员（宋佳宁 p5）铃铛不可见
+//   ③ 党委台铃铛只取党委级：党委组织员自身可见该条（Task 28 · 2026-10-18）；
+//      普通成员（宋佳宁 p5）铃铛不可见
 //
 // 自包含：createApp(:memory:) + seedDatabase；三账号（p_pc / p13 / p5）。
 
@@ -50,7 +51,7 @@ async function loginAs(page, { studentId, expectUrlPart }) {
   ]);
   await page.waitForFunction(() => Boolean(document.getElementById('app-header')), { timeout: 15000 });
   // P0-2 形态断言（2026-09-23 支书裁定「形态必须可断言」）：本文件真机用例必须在 API 形态下跑
-  await page.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20261018e')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
+  await page.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20261018f')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
 }
 
 async function activateTab(page, tabLabel) {
@@ -73,7 +74,7 @@ async function openBell(page) {
   return page.evaluate(() => document.getElementById('notif-dropdown')?.textContent || '');
 }
 
-test('P3 党委下发：支委层收件可见（支书），党委自身/普通成员不可见', async () => {
+test('P3 党委下发：支委层与党委台可见，普通成员不可见', async () => {
   const titleD = `P3党委下发-${Date.now()}`;
   const partyPage = await newPage();
   const secPage = await newPage();
@@ -100,9 +101,10 @@ test('P3 党委下发：支委层收件可见（支书），党委自身/普通�
     await partyPage.getByRole('tab', { name: /已发送/ }).click();
     await page_waitText(partyPage, titleD); // 切到已发送后查看记录
 
-    // 党委组织员（非支委）自身铃铛看不到下发（audience=committee 过滤）
+    // 党委台铃铛只取党委级通知（Task 28 · 2026-10-18）：党委下发属党委级，组织员自身可见；
+    // 支部内部广播仍不出现（不传/不命中 scope:'committee'）。
     const partyBell = await openBell(partyPage);
-    assert.ok(!partyBell.includes(titleD), '党委组织员（非支委）不应在自己的通知铃铛看到支委层下发');
+    assert.ok(partyBell.includes(titleD), '党委组织员应在党委台铃铛看到党委下发（党委级通知）');
 
     // ── ② 支书储子禾（p13，br-b1 支委层）铃铛可见该下发 ──
     await loginAs(secPage, { studentId: '2300010001', expectUrlPart: 'secretary.html' });

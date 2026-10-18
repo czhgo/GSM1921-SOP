@@ -3,17 +3,17 @@
 // 变化: 去掉 mode 标签与只读视角切换；2026-08-10 支书裁定（原则12 工作台集成制）：
 // 「切换工作台」下拉为冗余要素（每个人就是每个人，任务集成在工作台，跨台经待办/通知直达）→ 删除
 
-import { getAccentColors, ROLE_LABELS, relativeLuminance } from '../../core/domain/constants.js?v=20261018e';
+import { getAccentColors, ROLE_LABELS, relativeLuminance } from '../../core/domain/constants.js?v=20261018f';
 // R1-A 点⑤（2026-09-09）：身份标签取色走 person-aware 解析（登录 person 覆盖 / 访客全局键 / 角色默认），
 // 替代 constants resolveAccentRole（只读全局键=旧残留/默认）——支书改强调色后 header 角色标签同金。
-import { resolveAppliedAccentRole } from '../../core/boot/theme.js?v=20261018e';
-import { getBasePath } from '../../core/base/utils.js?v=20261018e';
-import { icon } from '../../core/base/icons.js?v=20261018e';
-import { DATA_CHANGED_EVENT, DATA_LOADED_EVENT } from '../../data/data-adapter.js?v=20261018e';
-import { badgeHtml } from '../ui/badges.js?v=20261018e';
-import { readLoginSnapshot } from '../../core/session/login-snapshot.js?v=20261018e';
+import { resolveAppliedAccentRole } from '../../core/boot/theme.js?v=20261018f';
+import { getBasePath } from '../../core/base/utils.js?v=20261018f';
+import { icon } from '../../core/base/icons.js?v=20261018f';
+import { DATA_CHANGED_EVENT, DATA_LOADED_EVENT } from '../../data/data-adapter.js?v=20261018f';
+import { badgeHtml } from '../ui/badges.js?v=20261018f';
+import { readLoginSnapshot } from '../../core/session/login-snapshot.js?v=20261018f';
 // P1 党委后台（2026-09-02）：header 品牌软编码——标题随支部配置档案更换（person→branchId→branches.config.headerTitle）
-import { getHeaderTitle } from '../../services/branch/branch.js?v=20261018e';
+import { getHeaderTitle } from '../../services/branch/branch.js?v=20261018f';
 
 // ── 数据层按需加载（静态页隔离，2026-08-12）──
 // about/help 等纯静态文档页以 staticShell 渲染 header：不加载 auth/notice 数据链
@@ -22,18 +22,18 @@ import { getHeaderTitle } from '../../services/branch/branch.js?v=20261018e';
 let _authModule = null;
 let _noticeModule = null;
 function loadAuth() {
-  if (!_authModule) _authModule = import('../../services/core/auth.js?v=20261018e');
+  if (!_authModule) _authModule = import('../../services/core/auth.js?v=20261018f');
   return _authModule;
 }
 function loadNotice() {
-  if (!_noticeModule) _noticeModule = import('../../services/governance/notice.js?v=20261018e');
+  if (!_noticeModule) _noticeModule = import('../../services/governance/notice.js?v=20261018f');
   return _noticeModule;
 }
 // 2026-09-30 批次 297-2：跨台通用动作「一键汇报」收进顶栏唯一固定位 ⇒ 顶栏按需加载其入口模块
 // （与 auth / notice 同一策略：静态壳页不加载，app 模式渲染后加载，模块缓存后即时）
 let _reportEntryModule = null;
 function loadReportEntry() {
-  if (!_reportEntryModule) _reportEntryModule = import('../record/report-entry.js?v=20261018e');
+  if (!_reportEntryModule) _reportEntryModule = import('../record/report-entry.js?v=20261018f');
   return _reportEntryModule;
 }
 
@@ -112,6 +112,17 @@ async function _refreshReportEntryBadge() {
 }
 
 /**
+ * 顶栏铃铛取数参数（Task 28 · 2026-10-18）：
+ * 党委组织员（party-staff）只取党委级通知（党委下发 / 系统通知 / 发给本人的私信），
+ * 支部内部广播不出现、不计入角标；其它角色维持原样（不传 scope）。
+ */
+function _noticeListFilter(extra = {}) {
+  return readLoginSnapshot()?.role === 'party-staff'
+    ? { ...extra, scope: 'committee' }
+    : extra;
+}
+
+/**
  * 即时刷新通知角标（只更新角标 DOM，不整页重渲染）
  * 数据变更（markRead/markAllRead/add/remove）或 loadDB 完成后调用，
  * 修复角标停留在 seed 快照/点击已读后不更新的问题。
@@ -128,7 +139,7 @@ async function _renderNotificationBadge() {
   const old = bell.querySelector('#notif-badge');
   if (old) old.remove();
   // 只统计未过期的未读通知，与 index 首页通知栏数据一致
-  const activeNotices = NoticeStore.list({ activeOnly: true });
+  const activeNotices = NoticeStore.list(_noticeListFilter({ activeOnly: true }));
   const unread = activeNotices.filter(n => !n.read).length;
   if (unread > 0) {
     const badge = document.createElement('span');
@@ -201,7 +212,7 @@ function _notificationBellHTML() {
   // （静态壳页不加载数据链 → 无角标；app 页渲染后即时补上，无感知延迟）
   return `
     <div id="notification-bell" style="position:relative;">
-      <button id="notif-btn" aria-label="通知" aria-haspopup="true" aria-expanded="false" style="width:40px;height:40px;border-radius:var(--radius-sm);background:rgba(255,255,255,0.1);border:1.5px solid rgba(255,255,255,0.25);display:flex;align-items:center;justify-content:center;cursor:pointer;">
+      <button id="notif-btn" class="btn-neutral btn-icon" aria-label="通知" aria-haspopup="true" aria-expanded="false" style="width:40px;height:40px;border-radius:var(--radius-sm);background:rgba(255,255,255,0.1);border:1.5px solid rgba(255,255,255,0.25);display:flex;align-items:center;justify-content:center;cursor:pointer;">
         ${icon('bell', { stroke: '#FFFFFF', className: 'w-4 h-4', extra: ' aria-hidden="true"' })}
       </button>
       <div id="notif-dropdown" class="hidden" style="position:absolute;top:calc(100% + 4px);right:0;width:320px;background:var(--surface-card);border-radius:var(--radius-sm);box-shadow:var(--shadow-dropdown);z-index:100;overflow:hidden;border:1px solid var(--neutral-200);"></div>
@@ -337,7 +348,7 @@ function _bindNotificationBell(header) {
         return;
       }
       // 保留策略（支书 2026-08-05）：紧急通知全部展示，重要通知仅展示未读
-      const notices = NoticeStore.list({ activeOnly: true, sortBy: 'date', retention: 'visible' });
+      const notices = NoticeStore.list(_noticeListFilter({ activeOnly: true, sortBy: 'date', retention: 'visible' }));
       if (notices.length === 0) {
         dropdown.innerHTML = '<div style="padding:16px;text-align:center;color:var(--neutral-500);" class="text-sm">暂无通知</div>';
         return;
@@ -348,10 +359,10 @@ function _bindNotificationBell(header) {
         normal: badgeHtml('重要', 'info'),
       };
 
-      dropdown.innerHTML = notices.slice(0, 10).map(n => `
+      dropdown.innerHTML = `<div class="divide-y divide-gray-100">${notices.slice(0, 10).map(n => `
         <div class="notif-dropdown-item" data-notice-id="${n.id}" data-target="${n.targetModule || ''}" data-target-url="${n.targetUrl || ''}"
              role="button" tabindex="0" aria-label="查看通知：${n.title || n.content || ''}"
-             style="padding:12px;border-bottom:1px solid var(--neutral-200);cursor:pointer;transition:background 0.15s;">
+             style="padding:12px;cursor:pointer;transition:background 0.15s;">
           <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
             ${priorityBadge[n.priority] || ''}
             ${n.source === 'committee' ? '<span style="display:inline-flex;align-items:center;padding:0 6px;border-radius:9999px;background:var(--party-red);color:#fff;font-size:10px;line-height:16px;flex-shrink:0;">党委下发</span>' : ''}
@@ -361,7 +372,7 @@ function _bindNotificationBell(header) {
           </div>
           <p style="color:var(--neutral-500);margin:0;" class="text-[12px]">${n.publishDate || n.date || ''}</p>
         </div>
-      `).join('');
+      `).join('')}</div>`;
 
       // 绑定"已读"按钮：stopPropagation 防止触发外层跳转
       dropdown.querySelectorAll('.notif-mark-read').forEach(btn => {

@@ -5,9 +5,9 @@
 // 2026-10-18 繁专项 Task 6：概况汇报区降为只读摘要，唯一动作「去我的处置」；提交入口只在「我的处置」。
 // U3（2026-09-07）：进入概况先骨架占位（内容容器兜底等高骨架卡，防首帧 0 高弹跳）。
 
-import { renderWorkOverview } from '../../../components/governance/work-overview.js?v=20261018e';
-import { AuthStore } from '../../../services/core/auth.js?v=20261018e';
-import { beginOverviewShell } from '../../../components/governance/overview-dispatch-bar.js?v=20261018e';
+import { renderWorkOverview } from '../../../components/governance/work-overview.js?v=20261018f';
+import { AuthStore } from '../../../services/core/auth.js?v=20261018f';
+import { beginOverviewShell } from '../../../components/governance/overview-dispatch-bar.js?v=20261018f';
 
 export function renderContent(ctx) {
   const el = document.getElementById('visitor-tab-content');

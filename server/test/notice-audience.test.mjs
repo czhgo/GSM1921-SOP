@@ -29,13 +29,15 @@
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 
-import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261018e';
-import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261018e';
-import { setDataSource, registerMockAdapter } from '../../docs/src/data/data-adapter.js?v=20261018e';
-import { MOCK_NOTICES } from '../../docs/src/data/mock/index.js?v=20261018e';
-import { NOTICE_AUDIENCE_OPTIONS } from '../../docs/src/core/domain/constants.js?v=20261018e';
-import { NoticeStore, canReadNotice } from '../../docs/src/services/governance/notice.js?v=20261018e';
+import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261018f';
+import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261018f';
+import { setDataSource, registerMockAdapter } from '../../docs/src/data/data-adapter.js?v=20261018f';
+import { MOCK_NOTICES } from '../../docs/src/data/mock/index.js?v=20261018f';
+import { NOTICE_AUDIENCE_OPTIONS } from '../../docs/src/core/domain/constants.js?v=20261018f';
+import { NoticeStore, canReadNotice } from '../../docs/src/services/governance/notice.js?v=20261018f';
 
 // ── localStorage 内存桩 + sessionStorage 空桩（与 thought-report-panel.test.mjs 同做法）──
 // getCurrentUser 走 localStorage；A-11 防串扰仅在登录对象带 tabId 时才校验，本桩不带 tabId → 直取。
@@ -201,4 +203,47 @@ test('N8 actionRoles 路径不受影响：仅 actionRoles:[leader] 的通知，�
   loginAs('p1', 'leader');      assert.ok(visibleIds().includes('notice-n8'), '目标角色（组长）可见');
   loginAs('p3', 'participant'); assert.ok(!visibleIds().includes('notice-n8'), '普通成员不可见');
   loginAs('p13', 'secretary');  assert.ok(!visibleIds().includes('notice-n8'), '非目标角色（支书）不可见');
+});
+
+// ════════════════════════════════════════════════════════════════
+//  N9 党委台铃铛视野（Task 28 · 2026-10-18）
+//  口径：party-staff 传 scope:'committee' 只取党委级通知（党委下发 / 系统通知 / 本人私信），
+//  支部内部广播不返回、不计入角标；其它角色传或不传 scope 行为不变。
+// ════════════════════════════════════════════════════════════════
+
+test('N9 scope committee：党委台铃铛只取党委级与本人私信，支部广播不返回', () => {
+  beginCase([
+    { ...BASE, id: 'n9-source', source: 'committee', audience: ['all'] },
+    { ...BASE, id: 'n9-aud-str', audience: 'committee', branchId: 'br-b1' },
+    { ...BASE, id: 'n9-aud-arr', audience: ['committee'], branchId: 'br-b1' },
+    { ...BASE, id: 'n9-dm-me', noticeType: 'message', audiencePersons: ['p_pc'], fromPersonId: 'p13' },
+    { ...BASE, id: 'n9-dm-other', noticeType: 'message', audiencePersons: ['p3'], fromPersonId: 'p13' },
+    { ...BASE, id: 'n9-broadcast', audience: ['all'] },
+    { ...BASE, id: 'n9-role', audience: ['leaders'] },
+  ]);
+
+  loginAs('p_pc', 'party-staff');
+  const ids = NoticeStore.list({ scope: 'committee' }).map((n) => n.id);
+  for (const id of ['n9-source', 'n9-aud-str', 'n9-aud-arr', 'n9-dm-me']) {
+    assert.ok(ids.includes(id), `党委台应保留党委级通知 ${id}`);
+  }
+  for (const id of ['n9-dm-other', 'n9-broadcast', 'n9-role']) {
+    assert.ok(!ids.includes(id), `党委台不应出现非党委级通知 ${id}`);
+  }
+
+  // 普通支部角色：传 scope 或不传 scope 行为不变（scope 仅对 party-staff 生效）
+  loginAs('p13', 'secretary');
+  assert.deepEqual(
+    NoticeStore.list({ scope: 'committee' }).map((n) => n.id).sort(),
+    NoticeStore.list().map((n) => n.id).sort(),
+    '普通支部角色传 scope 与不传 scope 结果必须一致',
+  );
+});
+
+test('N10 顶栏源码：party-staff 分支给铃铛与角标传 scope:committee', () => {
+  const src = readFileSync(join(import.meta.dirname, '..', '..', 'docs', 'src', 'components', 'shell', 'header.js'), 'utf8');
+  assert.match(src, /readLoginSnapshot\(\)\?\.role === 'party-staff'/, 'header 须按登录快照判定 party-staff');
+  assert.match(src, /scope:\s*'committee'/, 'header 须向 NoticeStore.list 传 scope:committee');
+  const uses = (src.match(/_noticeListFilter\(/g) || []).length;
+  assert.ok(uses >= 3, `铃铛下拉与角标须共用 _noticeListFilter（实得 ${uses} 处，含定义至少 3 处）`);
 });

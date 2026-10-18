@@ -14,12 +14,12 @@
 //         content/04_web_design/design-system/DESIGN_SYSTEM.md §一 第6条
 // ════════════════════════════════════════════════════════════════
 
-import { badgeHtml } from '../ui/badges.js?v=20261018e';
-import { renderFilteredList } from '../ui/list-filter.js?v=20261018e';
-import { solidAccentStyle } from '../../core/domain/constants.js?v=20261018e';
+import { badgeHtml } from '../ui/badges.js?v=20261018f';
+import { renderFilteredList } from '../ui/list-filter.js?v=20261018f';
+import { solidAccentStyle } from '../../core/domain/constants.js?v=20261018f';
 // P1（2026-09-07）：渲染层过期红点收敛于 todo.js isTodoExpired（单一过期判定实现 · spec §三.6）
-import { isTodoExpired } from '../../services/governance/todo.js?v=20261018e';
-import { todayLocal } from '../../core/base/utils.js?v=20261018e';
+import { isTodoExpired } from '../../services/governance/todo.js?v=20261018f';
+import { todayLocal } from '../../core/base/utils.js?v=20261018f';
 
 /**
  * 渲染「**6 类**业务域折组」待办列表（IA 收敛 C1 Task4 六台待办页主列；替代旧按分类/actionType 大列表）。
@@ -144,14 +144,14 @@ export function renderDomainTodoList(opts) {
         keyword: null,
         facets: [],
         countUnit: '条',
-        listClass: '',
+        listClass: 'divide-y divide-gray-100',
         emptyMessage: '该业务域暂无待办',
         rowHtml: (g) => {
           // 2026-09-08 裁决批一（D6/D1 接入点）：组带 bulkHtml（成员变更域内批量块等）→ 组行下直接内嵌
           // （勾选批量与逐项详情并行：组行点击仍进详情逐项确认/退回，bulk 块负责批量确认/通过）。
           const row = _renderAggregateItem(prefix, g, accent, today, selectedTodoId, actionBtnStyle, onDeleteTodo, urgeStateOf, onVoidTodo);
           return g.bulkHtml
-            ? `${row}<div class="${prefix}-todo-bulk rounded-b-lg bg-gray-50/40 border-t border-gray-50">${g.bulkHtml}</div>`
+            ? `${row}<div class="${prefix}-todo-bulk rounded-b-lg bg-gray-50/40">${g.bulkHtml}</div>`
             : row;
         },
       });
@@ -265,7 +265,7 @@ function _renderAggregateItem(prefix, g, accent, today, selectedTodoId, actionBt
         <button type="button" class="btn-outline ${prefix}-todo-urge-btn text-xs px-2.5 py-1.5 rounded-lg border transition-colors ${urge.state === 'urged' ? 'border-gray-100 text-gray-500 cursor-not-allowed' : 'border-gray-200 text-gray-500 hover:bg-gray-50'}" data-group-key="${g.groupKey}" ${urge.state === 'urged' ? 'disabled' : ''} title="${urge.title || '催办责任人'}" style="cursor:${urge.state === 'urged' ? 'not-allowed' : 'pointer'};">${urge.label}</button>` : '';
 
   return `
-    <div class="${prefix}-todo-item flex items-center border-b border-gray-50 last:border-b-0" data-group-key="${g.groupKey}">
+    <div class="${prefix}-todo-item flex items-center" data-group-key="${g.groupKey}">
       <button type="button" class="btn-ghost ${prefix}-todo-item-main flex-1 min-w-0 flex items-center gap-2 px-3 py-2.5 text-left bg-transparent border-0 transition-colors hover:bg-gray-50 ${isSelected ? 'bg-gray-50' : ''}" data-group-key="${g.groupKey}">
         <span class="flex flex-col items-start gap-0.5 min-w-0 flex-1">
           <span class="flex items-center gap-1.5 min-w-0 w-full">

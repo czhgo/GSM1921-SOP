@@ -32,7 +32,7 @@ export const INIT_BLOB_KEY = 'workflowos_branch_db_v1';
 // 语义：?reset=init 是「有意的初始化」，产出的库已是「当前种子版本的空业务态」；
 // 若不盖戳（尤其是旧访客的库本就无该字段），下一次 loadDB 会被「旧本地演示数据自动失效」
 // 判据误判为旧版本演示库 → 整库丢弃回种子 → 连 init 有意保留的支部 config（分工/header）也会丢。
-import { SEED_DATA_VERSION } from '../../core/domain/domain.js?v=20261018e';
+import { SEED_DATA_VERSION } from '../../core/domain/domain.js?v=20261018f';
 
 /**
  * init 档保留的主库字段（白名单 = 组织骨架；键名与 mock-adapter _saveToStorage 一致）：

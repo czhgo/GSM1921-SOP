@@ -1,5 +1,5 @@
 /* 组件样式（@import 必须位于文件顶部） */
-@import url('components/person-picker.css?v=20261018e');
+@import url('components/person-picker.css?v=20261018f');
 
 /* ═══════════════════════════════════════════════════════════════
    GSM1921-SOP DESIGN SYSTEM v11.0 — Matte Flat
@@ -3810,5 +3810,136 @@ html.theme-dark .settings-group-item.active {
 }
 @media (max-width: 820px) {
   .appearance-row { align-items: flex-start; flex-direction: column; gap: 8px; }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   按钮尺寸归一（2026-10-18）
+   ── 支书反馈「有的厚、有的薄；有的字大、有的字小」──
+   口径：**8 个语义族的尺寸只在 `styles.css` 定义一次**。此前高度由页面上的
+   `text-xs / text-sm / py-1.5 / px-3 / h-8` 零散决定 ⇒ 同族按钮厚薄不一。
+   ⚠ 尺寸属性一律 `!important`：Tailwind 工具类可能在本文件之后加载，不加压不住。
+   ⚠ **只压尺寸**（min-height / padding / font-size / line-height / gap）；排布
+      （display / 对齐 / 不换行 / border-width）**不加 `!important`**——留给页面工具类
+      （行式载体的 `justify-between` / `items-start` / `border-0` 等）后加载覆盖。
+      **不压**颜色、圆角、hover、disabled——族语义外观仍归上方各 `.btn-*` 段。
+   分档（高度 = 内容行高 + 上下内边距 + 边框 2px）：
+     34px  .btn-accent / .btn-accent-soft / .btn-md   主操作 / 次主操作 / 中等操作
+     32px  .btn-neutral / .btn-outline / .btn-danger / .btn-danger-solid
+                                                     中性 / 描边 / 危险（含实底）
+     30px  .btn-ghost / .btn-tab                      文字动作 / Tab 切换
+     26px  .btn-action                                表格行内 / 列表项内微操作
+   ═══════════════════════════════════════════════════════════════ */
+.btn-accent,
+.btn-accent-soft,
+.btn-neutral,
+.btn-outline,
+.btn-ghost,
+.btn-danger,
+.btn-danger-solid,
+.btn-action,
+.btn-md,
+.btn-tab {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem !important;
+  line-height: 1 !important;
+  white-space: nowrap;
+  border-width: 1px;
+}
+
+/* 34px 档：主操作 / 次主操作 / 中等操作 */
+.btn-accent,
+.btn-accent-soft,
+.btn-md {
+  min-height: 34px !important;
+  padding: 0 14px !important;
+  font-size: 13px !important;
+}
+
+/* 32px 档：中性 / 描边 / 危险（`.btn-danger-solid` 与 `.btn-danger` 同高） */
+.btn-neutral,
+.btn-outline,
+.btn-danger,
+.btn-danger-solid {
+  min-height: 32px !important;
+  padding: 0 12px !important;
+  font-size: 13px !important;
+}
+
+/* 30px 档：文字动作 / Tab 切换（两者内边距不同，故分开写） */
+.btn-ghost {
+  min-height: 30px !important;
+  padding: 0 8px !important;
+  font-size: 13px !important;
+}
+.btn-tab {
+  min-height: 30px !important;
+  padding: 0 10px !important;
+  font-size: 13px !important;
+}
+
+/* 26px 档：微操作（表格行内 / 列表项内） */
+.btn-action {
+  min-height: 26px !important;
+  padding: 0 8px !important;
+  font-size: 12px !important;
+}
+
+/* 组件级例外（沿用组件**既有已裁定的尺寸口径**，字号仍随归一为 13px；颜色 / hover 不动）：
+   ① 顶栏动作 `.header-action-btn`：2026-10-18 已定「可点高度不低于 36px」，
+      与 `.btn-ghost` 组合时不得被 30px 档压回（`components/record/report-entry.js` /
+      `entries/workspace/ws-secretary-entry.js`）。
+   ② 筛选行 `.lf-btn`：批次 47-B 裁定「与同排输入框精确同高 38px × 13px」（见上方 `.btn-tab.lf-btn` 注释），
+      内边距保持 12px。 */
+.btn-ghost.header-action-btn {
+  min-height: 36px !important;
+  padding: 0 14px !important;
+  font-size: 13px !important;
+}
+.btn-tab.lf-btn {
+  min-height: 38px !important;
+  padding: 0 12px !important;
+  font-size: 13px !important;
+}
+
+/* 图标型按钮例外（**本批只立类、不迁移存量**；后续批次再逐个改类）：
+   用法＝族类 + `.btn-icon`，且**只含一个 svg、无文字**——
+     <button class="btn-ghost btn-icon" aria-label="关闭"><svg …></svg></button>
+   作用：把各档 padding 归零并锁成 32×32 方形，避免图标被横向内边距撑成椭圆。
+   不改颜色 / hover / 圆角；无文字的图标钮记得自带 `aria-label`。 */
+.btn-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  min-height: 32px !important;
+  padding: 0 !important;
+  gap: 0 !important;
+  flex: none;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   列表行边框收敛（2026-10-18）
+   ── 支书反馈「每一个条目的边框让视觉效果很脏」──
+   口径：**仅可交互卡片保留完整边框**——`.card` / `.kanban-card` 等维持原样，本段不覆盖；
+   纯展示列表行去掉四边框，只在**分组之间**保留 1px hairline。
+   用法：
+     · `.row-quiet`    纯展示行（无 hover / 不可点击）——四边框归零、底色透明；
+     · `.row-divider`  行间顶部 hairline（首行自动不加）；
+     · 可叠加：<div class="row-quiet row-divider">…</div>。
+   ⚠ 不写全局 `div { border: 0 }`：那会连带杀掉 `.card` 等可交互卡片的边框。
+   ═══════════════════════════════════════════════════════════════ */
+.row-quiet {
+  border: 0 !important;
+  border-radius: 0;
+  background: transparent;
+}
+.row-divider {
+  border-top: 1px solid var(--neutral-100);
+}
+.row-divider:first-child {
+  border-top: 0;
 }
 

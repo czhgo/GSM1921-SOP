@@ -390,6 +390,57 @@ test('今天页汇报行落到待办「待答复」，不再指向反馈/我的�
   assert.match(source, /it\.deadline > today\) continue/, '今天页只列今日到期与逾期事项');
 });
 
+test('纯展示列表行只用分隔线，整卡可点的交互卡片仍保留外框', async () => {
+  // 2026-10-18 Task 26：列表条目收敛为「分组间 hairline 分隔线」，不再逐行一圈完整边框。
+  // 判定口径：
+  //  · 纯展示行 = <div> 上出现 `border border-gray-100/200` 完整框，且不属于交互卡片；
+  //  · 交互卡片 = 含 kanban-card，或 role="button"/cursor-pointer 且为整卡圆角容器；
+  //  · 通知下拉条目是整条可点的行（决议第 4 条），显式豁免外框要求。
+  // 基线只降不升：当前命中数已清零，后续新增完整框或删掉交互卡边框都会失败。
+  const rowFiles = [
+    '../../docs/src/components/shell/header.js',
+    '../../docs/src/components/governance/notice-view.js',
+    '../../docs/src/components/record/todo-list.js',
+    '../../docs/src/components/feedback/issue-dispatch-view.js',
+    '../../docs/src/components/feedback/issue-list.js',
+    '../../docs/src/entries/tabs/org/roster-tab.js',
+    '../../docs/src/components/ui/list-filter.js',
+  ];
+  const FULL_BORDER = /\bborder\s+border-gray-(?:100|200)\b/;
+  const HAS_BORDER = /(?:^|\s)border(?:\s|$)/;
+  const isInteractiveCard = (tag, cls) => {
+    if (/\bkanban-card\b/.test(cls)) return true;
+    if (/\bnotif-dropdown-item\b/.test(cls)) return false;
+    if (/\brole="button"/.test(tag) && /\brounded-(?:xl|lg)\b/.test(cls)) return true;
+    return /\bcursor-pointer\b/.test(cls) && /\brounded-xl\b/.test(cls);
+  };
+
+  const violations = [];
+  const missingCardBorder = [];
+  for (const rel of rowFiles) {
+    const source = await read(rel);
+    for (const match of source.matchAll(/<div\b[^>]*>/g)) {
+      const tag = match[0];
+      const cls = /class="([^"]*)"/.exec(tag)?.[1] || '';
+      const card = isInteractiveCard(tag, cls);
+      if (!card && FULL_BORDER.test(cls)) {
+        violations.push(`${rel.replace('../../docs/src/', '')}: ${tag.slice(0, 100).replace(/\s+/g, ' ')}`);
+      }
+      if (card && !HAS_BORDER.test(cls)) {
+        missingCardBorder.push(`${rel.replace('../../docs/src/', '')}: ${tag.slice(0, 100).replace(/\s+/g, ' ')}`);
+      }
+    }
+  }
+
+  // 当前命中数 = 0；基线 0（只降不升）。
+  const FULL_BORDER_BASELINE = 0;
+  const CARD_BORDER_BASELINE = 0;
+  assert.ok(violations.length <= FULL_BORDER_BASELINE,
+    `纯展示行仍带完整边框 ${violations.length} 处（基线 ${FULL_BORDER_BASELINE}）：\n${violations.join('\n')}`);
+  assert.ok(missingCardBorder.length <= CARD_BORDER_BASELINE,
+    `交互卡片缺少边框 ${missingCardBorder.length} 处（基线 ${CARD_BORDER_BASELINE}）：\n${missingCardBorder.join('\n')}`);
+});
+
 test('侧栏导航图标语义唯一：我的私信=mail、意见反馈=message，同一导航数组不得复用图标', async () => {
   const source = await read('../../docs/src/components/shell/sidebar.js');
   const start = source.indexOf('function getNavItems()');

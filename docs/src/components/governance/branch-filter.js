@@ -7,8 +7,8 @@
 // **组件复用律**（`D-765` ⑤）：当前支部筛选由党委台「支部审核」「下发通知」「支部监控」三页共用——不各写一份。
 // 体例：筛选一律用**下拉**（禁 chip，规范 §筛选）；选择随模块自持（同 `list-filter` 的 `stateKey` 体例）
 //   ⇒ 页内重绘不丢选择。支部管理页自身就是支部目录，因此不重复挂筛选。
-import { mockDB } from '../../core/domain/domain.js?v=20261018e';
-import { escHtml } from '../../core/base/utils.js?v=20261018e';
+import { mockDB } from '../../core/domain/domain.js?v=20261018f';
+import { escHtml } from '../../core/base/utils.js?v=20261018f';
 
 /** `stateKey` → 当前选中支部 id。API 模式的范围放在 URL，便于整页共用。 */
 const _selected = new Map();

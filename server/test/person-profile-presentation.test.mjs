@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { existsSync, readFileSync } from 'node:fs';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { dirname, resolve } from 'node:path';
-import { SELF_PROFILE_FIELDS } from '../../docs/src/core/domain/self-profile.js?v=20261018e';
+import { SELF_PROFILE_FIELDS } from '../../docs/src/core/domain/self-profile.js?v=20261018f';
 
 const testDir = dirname(fileURLToPath(import.meta.url));
 const presentationPath = resolve(testDir, '../../docs/src/components/governance/person-profile-sections.js');
@@ -45,7 +45,7 @@ const FULL_SELF_PROFILE = {
 
 async function loadPresentation() {
   assert.equal(existsSync(presentationPath), true, '个人档案应有可独立验证的自我描述展示组件');
-  return import(`${pathToFileURL(presentationPath).href}?v=20261018e`);
+  return import(`${pathToFileURL(presentationPath).href}?v=20261018f`);
 }
 
 function dataFields(html) {

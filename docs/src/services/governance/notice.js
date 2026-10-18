@@ -5,23 +5,23 @@
 //  独立于 mockDB 内存结构，通过 mockDB.notices 统一持久化
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../../core/domain/domain.js?v=20261018e';
-import { generateId } from '../../core/base/id.js?v=20261018e';
-import { persist, getDataSource, getApiBaseUrl, getAuthToken } from '../../data/data-adapter.js?v=20261018e';
-import { buildSystemNotice } from '../../core/domain/system-notice-templates.js?v=20261018e';
-import { bumpToken } from '../../core/base/version-token.js?v=20261018e'; // P0 域缓存失效（spec §二.3）
-import { MOCK_NOTICES } from '../../data/mock/index.js?v=20261018e';
-import { isInitStateActive } from '../core/init-reset.js?v=20261018e'; // C2 修复（2026-09-08）：init 态跳过演示种子兜底
-import { getBasePath, todayLocal } from '../../core/base/utils.js?v=20261018e';
-import { AuthStore } from '../core/auth.js?v=20261018e';
-import {  getPersonById } from '../member/person.js?v=20261018e';
-import { NoticeTodoDeriver, TodoStore, TodoSourceType, TodoStatus } from './todo.js?v=20261018e';
+import { mockDB } from '../../core/domain/domain.js?v=20261018f';
+import { generateId } from '../../core/base/id.js?v=20261018f';
+import { persist, getDataSource, getApiBaseUrl, getAuthToken } from '../../data/data-adapter.js?v=20261018f';
+import { buildSystemNotice } from '../../core/domain/system-notice-templates.js?v=20261018f';
+import { bumpToken } from '../../core/base/version-token.js?v=20261018f'; // P0 域缓存失效（spec §二.3）
+import { MOCK_NOTICES } from '../../data/mock/index.js?v=20261018f';
+import { isInitStateActive } from '../core/init-reset.js?v=20261018f'; // C2 修复（2026-09-08）：init 态跳过演示种子兜底
+import { getBasePath, todayLocal } from '../../core/base/utils.js?v=20261018f';
+import { AuthStore } from '../core/auth.js?v=20261018f';
+import {  getPersonById } from '../member/person.js?v=20261018f';
+import { NoticeTodoDeriver, TodoStore, TodoSourceType, TodoStatus } from './todo.js?v=20261018f';
 // 组织者身份读取单一源（2026-09-19 批次 91 · SOP-B-17）——发布权随「被指定为该场组织者」动态获得
-import {  getOrganizedActivities } from '../activity/activity.js?v=20261018e';
+import {  getOrganizedActivities } from '../activity/activity.js?v=20261018f';
 import {
   NOTICE_PUBLISH_ROLES, NOTICE_MANAGE_ROLES, BRANCH_COMMISSION_ROLES,
   NOTICE_AUDIENCE_SENTINELS, ROLE_LABELS,
-} from '../../core/domain/constants.js?v=20261018e';
+} from '../../core/domain/constants.js?v=20261018f';
 
 function _loadNotices() {
   try {
@@ -265,13 +265,35 @@ export const NoticeStore = {
       const _hitPersons = (n) => _audiencePersonsHit(n, _ctx);
       const _hitRoles = (n) => _audienceHit(n, _ctx);
       const _hitActions = (n) => _audienceActionRolesHit(n, _ctx);
+      // 党委台铃铛（scope:'committee'）下，党委组织员可读党委下发通道（audience==='committee' 或其数组写法）——
+      // 该角色不属于任何支部（branchId:null），故不做本支部比对；默认不传 scope 时保持原行为（列表页不变）。
+      const _staffCommitteeScope = filter.scope === 'committee' && _role === 'party-staff';
       result = result.filter((n) => {
         if (!_hasAudience(n)) return true;   // 广播
         if (!_role) return true;         // 无会话：不按受众收窄（保持既有行为）
+        if (_staffCommitteeScope
+          && (n.audience === 'committee' || (Array.isArray(n.audience) && n.audience.includes('committee')))) return true;
         if (n.audience === 'committee' && _isComm && !!_myBranch && (n.branchId || 'br-b1') === _myBranch) return true;
         if (_hitPersons(n) || _hitRoles(n) || _hitActions(n)) return true;
         return false;
       });
+    }
+
+    // ── 党委台视野（Task 28 · 2026-10-18）：顶栏铃铛与角标只取党委级通知 ─────────────
+    // 口径（Task 28 · 2026-10-18）：党委下发 / 系统通知 / 发给本人的私信；支部内部广播不出现、不计入角标。
+    // 仅对 party-staff 生效——其它角色即便误传 scope 也保持原行为（默认不传 = 原行为）。
+    // 位置：受众门之后、retention 之前（先按可见性收窄，再做展示保留策略）。
+    if (filter.scope === 'committee') {
+      const _meScope = AuthStore.getCurrentUser();
+      if (_meScope && _meScope.role === 'party-staff') {
+        const _ctxScope = _noticeViewerCtx(_meScope);
+        result = result.filter((n) => (
+          n.source === 'committee'
+          || n.audience === 'committee'
+          || (Array.isArray(n.audience) && n.audience.includes('committee'))
+          || _audiencePersonsHit(n, _ctxScope) // 发给本人的私信
+        ));
+      }
     }
 
     if (filter.activeOnly !== false) {
@@ -552,10 +574,11 @@ export const NoticeStore = {
  * 规则：
  *   ① 无受众 / 广播 sentinel（all）→ 人人可读（含无登录会话）；
  *   ② 无登录会话 → 仅广播/无受众可读（上一步已返回）；
- *   ③ 发布者恒可读（签发人不应被自己的定向通知挡在门外）；
- *   ④ 支委层（BRANCH_COMMISSION_ROLES）可读（治理信息）；
- *   ⑤ 命中受众（audience sentinel / 裸角色键 / audiencePersons / actionRoles）可读；
- *   ⑥ 其余不可读。
+ *   ③ 党委组织员（party-staff）可读党委级通知（source/audience 命中 committee）；
+ *   ④ 发布者恒可读（签发人不应被自己的定向通知挡在门外）；
+ *   ⑤ 支委层（BRANCH_COMMISSION_ROLES）可读（治理信息）；
+ *   ⑥ 命中受众（audience sentinel / 裸角色键 / audiencePersons / actionRoles）可读；
+ *   ⑦ 其余不可读。
  * 判定复用 list() 受众门**同一套** sentinel 判定（_audienceHit 等，勿写第二套规则）。
  * 注：本函数与 getById() 分工——getById 只取数、本函数判可见性（详情页渲染前调用）。
  * @param {Object} notice 通知对象
@@ -576,9 +599,14 @@ export function canReadNotice(notice, viewer) {
   }
   if (!_hasAudience(n) || _isBroadcastAudience(n)) return true; // ① 无受众 / 广播 → 人人可读
   if (!ctx.role) return false;                                  // ② 无登录会话：仅广播/无受众
-  if (_isPublisher(n, ctx)) return true;                        // ③ 发布者恒可读
-  if (BRANCH_COMMISSION_ROLES.includes(ctx.role)) return true;  // ④ 支委层可读
-  return _audiencePersonsHit(n, ctx)                            // ⑤ 命中受众可读
+  // ③ 党委组织员（party-staff）可读党委下发通道（audience==='committee' 或其数组写法）——
+  //    与 list() 受众门同口径；否则顶栏铃铛可见、点开详情却「不可读」。
+  if (ctx.role === 'party-staff'
+    && (n.source === 'committee' || n.audience === 'committee'
+      || (Array.isArray(n.audience) && n.audience.includes('committee')))) return true;
+  if (_isPublisher(n, ctx)) return true;                        // ④ 发布者恒可读
+  if (BRANCH_COMMISSION_ROLES.includes(ctx.role)) return true;  // ⑤ 支委层可读
+  return _audiencePersonsHit(n, ctx)                            // ⑥ 命中受众可读
     || _audienceHit(n, ctx)
     || _audienceActionRolesHit(n, ctx);
 }

@@ -10,14 +10,14 @@
 //  依赖方向正确：组件 → 服务（不是服务 → 组件）。守卫见 notice-audience / doc-consistency。
 // ════════════════════════════════════════════════════════════════
 
-import { badgeHtml } from '../ui/badges.js?v=20261018e';
-import { openFormModal } from '../ui/modal.js?v=20261018e';
-import { showToast, getBasePath, todayLocal } from '../../core/base/utils.js?v=20261018e';
-import { ROLE_LABELS } from '../../core/domain/constants.js?v=20261018e';
-import { AuthStore } from '../../services/core/auth.js?v=20261018e';
-import { getPersonById, liveMembers } from '../../services/member/person.js?v=20261018e';
-import { isActivityOrganizer } from '../../services/activity/activity.js?v=20261018e';
-import { NoticeStore, NoticePermission, resolveNoticeUrl } from '../../services/governance/notice.js?v=20261018e';
+import { badgeHtml } from '../ui/badges.js?v=20261018f';
+import { openFormModal } from '../ui/modal.js?v=20261018f';
+import { showToast, getBasePath, todayLocal } from '../../core/base/utils.js?v=20261018f';
+import { ROLE_LABELS } from '../../core/domain/constants.js?v=20261018f';
+import { AuthStore } from '../../services/core/auth.js?v=20261018f';
+import { getPersonById, liveMembers } from '../../services/member/person.js?v=20261018f';
+import { isActivityOrganizer } from '../../services/activity/activity.js?v=20261018f';
+import { NoticeStore, NoticePermission, resolveNoticeUrl } from '../../services/governance/notice.js?v=20261018f';
 
 function committeeSourceChip() {
   return '<span style="display:inline-flex;align-items:center;padding:0 6px;border-radius:9999px;background:var(--party-red);color:#fff;font-size:10px;line-height:16px;flex-shrink:0;">党委下发</span>';
@@ -83,7 +83,7 @@ export function renderNoticeList(containerId, limit = 5, opts = {}) {
 
   /** 单条通知行（列表与聚合展开共用，避免落第二份标记） */
   const rowHtml = (n) => `
-    <div class="notice-item flex items-start gap-3 py-2.5 border-b border-gray-100 last:border-b-0 cursor-pointer hover:bg-gray-50 hover:shadow-sm rounded-lg px-2 -mx-2 transition-all duration-200 group"
+    <div class="notice-item row-quiet flex items-start gap-3 py-2.5 cursor-pointer hover:bg-gray-50 hover:shadow-sm rounded-lg px-2 -mx-2 transition-all duration-200 group"
          data-target="${n.targetModule || ''}" data-notice-id="${n.id}" data-target-url="${n.targetUrl || ''}"
          title="${n.title} — ${n.content}">
       ${priorityBadge[n.priority] || ''}
@@ -121,11 +121,11 @@ export function renderNoticeList(containerId, limit = 5, opts = {}) {
         <summary class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg cursor-pointer text-sm text-gray-800 hover:bg-gray-50 transition-colors">
           <span class="font-medium">${label}</span>${countCircle(list.length)}
         </summary>
-        <div class="notice-group-body">${list.map(rowHtml).join('')}</div>
+        <div class="notice-group-body row-divider divide-y divide-gray-100">${list.map(rowHtml).join('')}</div>
       </details>`).join('')}</div>`;
   }
 
-  const listHtml = shown.length ? shown.map(rowHtml).join('')
+  const listHtml = shown.length ? `<div class="row-divider divide-y divide-gray-100">${shown.map(rowHtml).join('')}</div>`
     : '<p class="text-sm text-gray-500">暂无新通知</p>';
   container.innerHTML = summaryHtml + listHtml;
 

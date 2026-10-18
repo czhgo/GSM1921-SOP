@@ -646,9 +646,9 @@ function enumCount(line) {
 
 test('S14 可数事实对账：文档里的「枚举 / 计数」必须等于代码 / 数据的实然值', async () => {
   const problems = [];
-  const { WORK_MAP_MODULES } = await import('../../docs/src/core/domain/work-map.js?v=20261018e');
-  const { sopDatabase } = await import('../../docs/src/workflow/sopData.js?v=20261018e');
-  const { ROLE_KEYS, ROLE_LEGACY_KEYS } = await import('../../docs/src/core/domain/constants.js?v=20261018e');
+  const { WORK_MAP_MODULES } = await import('../../docs/src/core/domain/work-map.js?v=20261018f');
+  const { sopDatabase } = await import('../../docs/src/workflow/sopData.js?v=20261018f');
+  const { ROLE_KEYS, ROLE_LEGACY_KEYS } = await import('../../docs/src/core/domain/constants.js?v=20261018f');
   const { SYSTEM_NOTICE_KIND_NAMES } = await import('../system-notice-kinds.js');
 
   /** 对账一条：`got` 为文档里抽出的数（null＝抽不出，判红并提示是判据失效而非「文档错」） */
@@ -1065,5 +1065,26 @@ test('S19 工作组概念口径：四个核心术语齐备、§G 开篇先讲载
     });
   }
   assert.deepEqual(hits, [], `核心文档仍出现旧词「项目组」（应统一为活动工作组/专班工作组）：\n  ${hits.join('\n  ')}`);
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// S20 设计权威文档：表格四类术语齐备；信息计算口径文件存在且五关键词齐全（Task 27/28 · 2026-10-18）
+//   病灶：表格/列表的选型只散落在 §4.10 / §4.10.1，没有「四类载体」的统一章节；
+//   信息怎么算、怎么呈现没有专门文件，同一数字跨页面各算一套时无人可查。
+//   判据：① DESIGN_SYSTEM 必须含四类载体术语；② INFORMATION_COMPUTATION.md 必须存在，
+//   且覆盖「通知可见性 / 铃铛 / 待办派生 / 概况 / 考勤」五个主题词。
+// ─────────────────────────────────────────────────────────────────────────────
+test('S20 设计权威文档：表格四类术语齐备；信息计算口径文件存在且五关键词齐全', () => {
+  const design = read(join(ROOT, 'content', '04_web_design', 'design-system', 'DESIGN_SYSTEM.md'));
+  for (const term of ['数据表', '关系矩阵', '台账', '卡片列表']) {
+    assert.ok(design.includes(term), `DESIGN_SYSTEM.md 缺表格/列表四类载体术语「${term}」`);
+  }
+
+  const compPath = join(ROOT, 'content', '03_doc_system', 'INFORMATION_COMPUTATION.md');
+  assert.ok(existsSync(compPath), 'content/03_doc_system/INFORMATION_COMPUTATION.md 不存在——信息计算与呈现须有专门文件');
+  const comp = read(compPath);
+  for (const term of ['通知可见性', '铃铛', '待办派生', '概况', '考勤']) {
+    assert.ok(comp.includes(term), `INFORMATION_COMPUTATION.md 缺主题词「${term}」`);
+  }
 });
 
