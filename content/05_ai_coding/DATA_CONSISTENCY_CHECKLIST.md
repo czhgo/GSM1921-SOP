@@ -2,7 +2,7 @@
 title: "数据同源一致性校验手册"
 type: governance
 role: "[工程师]+[AI]"
-last_updated: 2026-10-16
+last_updated: 2026-10-18
 status: active
 related_files: [DATA_MODEL.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 ---
@@ -280,7 +280,7 @@ related_files: [DATA_MODEL.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 | 页面 | 展示方式 | 角色 |
 |------|---------|------|
 | index.html | 首页日历中的组织者信息 | 全部 |
-| workspace/secretary.html | 赋权管理 tab：常设赋权（设组长）+项目赋权（organizer/deep）；人员选择器、统计卡片 | 支书 |
+| workspace/secretary.html | 赋权管理 tab：常设赋权（设组长）+工作组成员授权（organizer/deep，原「项目赋权」）；人员选择器、统计卡片 | 支书 |
 | workspace/org.html | 人员选择器、发展党员追踪 | 组织委员 |
 | workspace/prop.html | 宣传任务关联人员 | 宣传委员 |
 | workspace/disc.html | 考勤/考察/补课涉及人员 | 纪检委员 |
@@ -352,7 +352,7 @@ related_files: [DATA_MODEL.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 | 页面 | 展示方式 | 角色 |
 |------|---------|------|
 | index.html | 首页招募区（recruiting 状态专班） | 全部 |
-| workspace/secretary.html | 专班总览+赋权管理 tab（专班成员赋权记录） | 支书 |
+| workspace/secretary.html | 专班总览+赋权管理 tab（专班工作组成员授权记录） | 支书 |
 | workspace/org.html | 专班看板（待启动/进行中/已完成）+发布招募 | 组织委员 |
 | workspace/prop.html | 专班看板 | 宣传委员 |
 | workspace/disc.html | 专班考察记录 | 纪检委员 |
@@ -362,7 +362,7 @@ related_files: [DATA_MODEL.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 
 - [ ] 首页招募区的专班 = MOCK_TASKFORCES 中 status='recruiting' 的记录（tf-005/tf-006）
 - [ ] 组织委员看板中的专班分类与 MOCK_TASKFORCES 的 status 字段一致
-- [ ] 专班成员 personId 在 PEOPLE 中存在
+- [ ] 专班工作组成员 personId 在 PEOPLE 中存在
 - [ ] 已解散专班（tf-008 status='dissolved'）在各工作台不显示为活跃专班
 - [ ] 首页通知"五四主题党日筹备专班已组建"→ 组织委员看板可见 tf-003（completed）
 
@@ -473,7 +473,7 @@ related_files: [DATA_MODEL.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 ## 8. 赋权数据
 
 **架构（T-190 赋权整合闭环）**：一主源 + 一审计快照 + 双写 + 单读
-- **主源**：活动角色 `mockDB.activities[].assignments` / 专班成员 `mockDB.taskforces[].members`（统一英文编码 `organizer`/`deep`）
+- **主源**：活动角色 `mockDB.activities[].assignments` / 专班工作组成员 `mockDB.taskforces[].members`（统一英文编码 `organizer`/`deep`）
 - **审计快照**：localStorage `sop_org_os_auth_audit`（只增不改；revoke 为追加记录，判定取最新一条）
 - **常设赋权**（党小组组长 leader）：AuthStore 赋权链（AUTHORIZE_CHAIN），快照同样记录
 - **Service**：`docs/src/services/core/auth.js` → `AuthStore`（authorize / revokeAuthorization / syncProjectRoles 三合一：写主源 + 追加快照 + 通知）
@@ -482,14 +482,14 @@ related_files: [DATA_MODEL.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 
 | 页面 | 展示方式 | 角色 |
 |------|---------|------|
-| workspace/secretary.html | 赋权管理 tab：常设赋权（设为/取消组长）+项目赋权（organizer/deep） | 支书 |
+| workspace/secretary.html | 赋权管理 tab：常设赋权（设为/取消组长）+工作组成员授权（organizer/deep，原「项目赋权」） | 支书 |
 | workspace/leader.html | 活动详情内联编辑角色（保存走 syncProjectRoles） | 组长 |
 | workspace/org.html | 专班详情内联编辑成员角色（保存走 syncProjectRoles） | 组织委员 |
 
 **同源校验点**：
 
 - [ ] 支书工作台赋权管理 tab 的「已赋权记录」= 审计快照 `sop_org_os_auth_audit`
-- [ ] 活动/专班项目角色（organizer/deep）主源 = `activity.assignments` / `taskforce.members`，新建数据在主源可查
+- [ ] 活动/专班工作组成员角色（organizer/deep）主源 = `activity.assignments` / `taskforce.members`，新建数据在主源可查
 - [ ] 赋权记录中 targetPersonId 在 PEOPLE 中存在
 - [ ] 被赋权角色（organizer/deep/leader）在 auth.js AUTHORIZE_CHAIN 中有赋权链定义
 - [ ] 赋权后，被赋权者工作台出现对应角色页面，AuthStore.canDo() 返回 true
@@ -651,7 +651,7 @@ related_files: [DATA_MODEL.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 - [ ] 活动/专班→待办派生：状态变更（新建/到期/超时）自动派生审核类/归档类待办
 - [ ] 活动 assignments → 考察记录：assignments 中 role=organizer/deep 的人员**应有**对应考察记录（业务期望，手工录入；非自动派生）
 - [ ] 发展党员候选人 stage ↔ people.js developStage：候选人阶段与人员发展阶段一致
-- [ ] 专班成员 personId ↔ people.js：专班 members 数组中 personId 在 PEOPLE 中存在
+- [ ] 专班工作组成员 personId ↔ people.js：专班 members 数组中 personId 在 PEOPLE 中存在
 - [ ] 活动写入→日历/统计联动：支书/组长写入活动后，首页日历和统计卡片同步更新
 - [ ] 首页统计卡口径（main-entry `_renderStats`）：本月活动=未归档且属本月 / 活跃专班=active+recruiting / 未读通知=activeOnly 且未读 / 个人考勤率=(present+made_up)/total（90/70 阈值三色）
 - [ ] 活动生命周期展示态（deriveActivityLifecycleStatus）：草稿→已发布→进行中→已执行/待归档→已归档（+已取消）；全站徽章统一按此展示，不直接读 status 字面值（**单一源位置＝`components/record/inspector.js` 的 `ACTIVITY_LIFECYCLE` + `deriveActivityLifecycleStatus` + `activityLifecycleBadgeHtml`，2026-09-13 确认唯一**）

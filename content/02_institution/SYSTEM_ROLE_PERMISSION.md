@@ -2,14 +2,14 @@
 title: "系统角色权限矩阵（代码键级权威）"
 type: governance
 role: "[工程师]+[AI]"
-last_updated: 2026-10-17
+last_updated: 2026-10-18
 status: active
 related_files: [content/03_doc_system/OPERATIONS_GUIDE.md, docs/src/core/domain/constants.js]
 ---
 
 # 系统角色权限矩阵（代码键级权威）
 
-> **定位：** 本文件为**系统运行角色**（登录态/权限键/赋权链）的键级权威——角色键全表对齐 `docs/src/core/domain/constants.js` 的 `ROLE_KEYS`/`ROLE_LEGACY_KEYS`，权限矩阵与赋权链对齐 `docs/src/services/core/auth.js` 的 `ROLE_PERMISSIONS`/`PROJECT_PERMISSIONS`/`AUTHORIZE_CHAIN`（`AuthStore.canDo`）。
+> **定位：** 本文件为**系统运行角色**（登录态/权限键/授权链）的键级权威——角色键全表对齐 `docs/src/core/domain/constants.js` 的 `ROLE_KEYS`/`ROLE_LEGACY_KEYS`，权限矩阵与授权链对齐 `docs/src/services/core/auth.js` 的 `ROLE_PERMISSIONS`/`PROJECT_PERMISSIONS`/`AUTHORIZE_CHAIN`（`AuthStore.canDo`）。
 > **文件角色分类体系**（[用户]/[工程师]/[AI] 标记）见 [OPERATIONS_GUIDE.md §24–§31](../03_doc_system/OPERATIONS_GUIDE.md)（《运行与协作规范》文件角色分类体系；原 `ROLE_CLASSIFICATION.md` 已于 2026-09-26 批次 202 迁入并删除），两者为不同维度、勿混读。
 > **双轨约定**：[COMMISSIONER_DUTY_FRAMEWORK.md](./COMMISSIONER_DUTY_FRAMEWORK.md) §C 为**逐操作位视图**（上传/确认/监督/备案），本文件为**权限键级视图**——详见 §9f 说明。
 >
@@ -40,7 +40,7 @@ related_files: [content/03_doc_system/OPERATIONS_GUIDE.md, docs/src/core/domain/
 **语义约定**：
 - **`all` 不是角色键**：`all`（全体相关）解析不到具体人，已从 `constants.js` 的 `ROLE_LEGACY_KEYS` 撤除；**「全体党员」语义不在角色键上**，由通知受众 sentinel（`constants.js` 的 `NOTICE_AUDIENCE_SENTINELS.all`）承载；`all` 仍作为参与者视角的参考指南展示键（`core/base/state.js`）使用，标签/色值保留。
 - **访客非角色**：未登录即访客（无角色键），`visitor` 仅为参与者工作台页面的 tab 前缀/待办聚合键，勿与「访客（未登录）」混淆。
-- **`COMMISSIONER_ROLES` 两处语义区分**：constants.js 版指条条委员（三委员，不含支书/副支书，业务判定用）；auth.js 版指授权语义（含支书/副支书，赋权候选人排除支委用）。勿混用。
+- **`COMMISSIONER_ROLES` 两处语义区分**：constants.js 版指条条委员（三委员，不含支书/副支书，业务判定用）；auth.js 版指授权语义（含支书/副支书，授权候选人排除支委用）。勿混用。
 - **组织级角色（`party-staff`）**：党委组织员/党务老师——院系党委组织级角色，监控全院各支部、管理支部实例，**不属于任一支部、不参与支部内部活动闭环**；因此不落入 §9b（支部常设 6 角色）与 §9c（项目角色）矩阵——矩阵为支部业务角色视图。其能力模块为 `party-committee-workspace`（工作台 `party-committee.html`）。匿名意见反馈不构成例外；党委不得读取、提交或揭名，见 **§9j（D-824）**。
 - **遗留键**仅保留兼容兜底，不参与权限判定；新功能不得新增遗留键。
 - **副组长（`deputy-leader`）**：每个党小组可设副组长；**副组长可共享同组组长工作台的相关内容**，其关系类似副支书与支书。
@@ -70,7 +70,7 @@ related_files: [content/03_doc_system/OPERATIONS_GUIDE.md, docs/src/core/domain/
 
 ## 9c. 项目角色权限矩阵（2 角色 × 7 操作）
 
-> 本矩阵对齐 `auth.js` 的 PROJECT_PERMISSIONS。项目角色仅在 `canDo(userId, action, {projectId})` 上下文中生效。
+> 本矩阵对齐 `auth.js` 的 PROJECT_PERMISSIONS。`organizer`/`deep` 的承载对象是活动工作组或专班工作组，并非独立的「项目组」；项目角色权限仅在 `canDo(userId, action, {projectId})` 上下文中生效。
 
 | 角色 | view_project | assign_task | modify_assignment | mark_complete | fill_review | record_inspection | assign_project_role |
 |------|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
@@ -83,11 +83,11 @@ related_files: [content/03_doc_system/OPERATIONS_GUIDE.md, docs/src/core/domain/
 |------|:---:|:---:|
 | 普通参与者 | Y | --（本人素材走活动参与记录，2026-09-05 收敛） |
 
-## 9e. 赋权链（AUTHORIZE_CHAIN）
+## 9e. 授权链（AUTHORIZE_CHAIN）
 
-> 本表对齐 `auth.js` 的 AUTHORIZE_CHAIN + AUTHORIZE_CHAIN 关联的权限名。
+> 本表对齐 `auth.js` 的 AUTHORIZE_CHAIN + AUTHORIZE_CHAIN 关联的权限名。历史沿革中的「赋权」与「授权」同义；系统权限统一表述为「授权」，权限名中的 `authorize_*` 保留代码原键。
 
-| 授权人 | 可赋权角色 | 权限名 |
+| 授权人 | 可授权角色 | 权限名 |
 |--------|-----------|--------|
 | 支书/副支书 | 党小组组长（常设） | `authorize` |
 | 支书 / 副支书（本支部现任） | **本支部支委身份**：组织 / 宣传 / 纪检委员（常设；撤销＝回落普通参与者）——**不含支书 / 副支书**（一把手层归党委，`D-585`） | 写层业务守卫（`services/branch/appointment.js::appointBranchCommissioner`） |
@@ -100,7 +100,7 @@ related_files: [content/03_doc_system/OPERATIONS_GUIDE.md, docs/src/core/domain/
 | 权限名 | 语义 |
 |--------|------|
 | `view_all` | 查看所有活动（含考勤、考察） |
-| `view_project` | 查看被赋权的项目（活动/专班） |
+| `view_project` | 查看被授权的项目（活动/专班） |
 | `view_public` | 查看公开信息 |
 | `create_activity` | 创建新活动 |
 | `assign_task` | 分配任务给成员 |
@@ -112,16 +112,16 @@ related_files: [content/03_doc_system/OPERATIONS_GUIDE.md, docs/src/core/domain/
 | `record_inspection` | 记录/导入/建档考察记录（按角色细分：导入/建档/汇总/自己的/审阅） |
 | `manage_taskforce` | 修改/解散专班本身（非"作为组织者操作"） |
 | `initiate_taskforce` | 创建新专班 |
-| `authorize_taskforce` | 赋权专班成员（organizer/deep） |
-| `authorize` | 赋权常设角色 leader |
-| `assign_project_role` | 赋权项目角色 organizer/deep |
+| `authorize_taskforce` | 授权专班工作组成员（organizer/deep） |
+| `authorize` | 授权常设角色 leader |
+| `assign_project_role` | 授权活动/专班工作组成员（organizer/deep） |
 | `archive` | 归档操作 |
 | `manage_members` | 管理成员（设为/取消组长） |
 | `dispatch_line` | 条线下发（组织线/宣传线/纪检线职能任务下发，授予对应支委；与 `assign_task` 分两类；交互流消费侧待建） |
 
 > 另设「条线下发」（组织线/宣传线/纪检线职能任务下发，授予对应支委；与 `assign_task`（支书/副支书/组长派执行）分两类）。**键已入集**：`dispatch_line` 授予组织/宣传/纪检三委员（auth.js `ROLE_PERMISSIONS`，canDo 可判定）；交互流（下发→上报→审核）消费侧待建，见本表 `dispatch_line` 行。
 
-> **双轨约定**：[COMMISSIONER_DUTY_FRAMEWORK.md](./COMMISSIONER_DUTY_FRAMEWORK.md) §C = **逐操作位视图**（上传/确认/监督/备案等支部运行操作位，用户侧理解「谁在哪个环节做什么」）；本文件 = **权限键级视图**（角色键/权限键/矩阵/赋权链，代码侧判定依据）。两轨互补、以本文件键级为准。操作位 ↔ 权限键的完整映射属后续编码——「条线下发」键已入集（见上注 `dispatch_line`）；其余操作位位限定（建档/监督/导入/自己的/配合等）依赖写层业务守卫而非裸键，不硬凑缺键。
+> **双轨约定**：[COMMISSIONER_DUTY_FRAMEWORK.md](./COMMISSIONER_DUTY_FRAMEWORK.md) §C = **逐操作位视图**（上传/确认/监督/备案等支部运行操作位，用户侧理解「谁在哪个环节做什么」）；本文件 = **权限键级视图**（角色键/权限键/矩阵/授权链〔历史称赋权链〕，代码侧判定依据）。两轨互补、以本文件键级为准。操作位 ↔ 权限键的完整映射属后续编码——「条线下发」键已入集（见上注 `dispatch_line`）；其余操作位位限定（建档/监督/导入/自己的/配合等）依赖写层业务守卫而非裸键，不硬凑缺键。
 
 ## 9g. 权限矩阵标记说明
 
@@ -158,7 +158,7 @@ related_files: [content/03_doc_system/OPERATIONS_GUIDE.md, docs/src/core/domain/
 | 维护工作组成员 | 具备对应业务范围的负责人 | 成员关系不自动授予系统权限；组织者与深度参与者是并列分工 |
 | 授予/撤销系统权限 | 具备独立授权权的负责人 | 单独留痕授权人、时间和权限键；服务端按支部、活动及工作组逐项核验 |
 
-活动工作组随活动建立；专班工作组围绕任务建立。一个党委可管理多个支部，但每个写入关联都须核验同支部归属，不能用成员关系或前端隐藏代替服务端授权。
+活动工作组随活动建立；专班工作组围绕任务建立；两者都是活动/专班业务记录之上的协作结构，不是独立业务对象。一个党委可管理多个支部，但每个写入关联都须核验同支部归属，不能用成员关系或前端隐藏代替服务端授权。
 
 活动与专班工作组均只登记组织者、深度参与者；活动一般参与者走活动报名，专班可受理组织者/深度参与者入组申请，但不设一般参与报名或考勤。工作组成员与授权通过一次事务式保存：增加/调整成员及权限同批提交，移出成员时撤销其全部有效工作组授权并保留撤权记录。主题党日线下报名及考勤范围见 [DATA_MODEL.md §2.1.3 / §2.5](../04_web_design/data/DATA_MODEL.md)。
 

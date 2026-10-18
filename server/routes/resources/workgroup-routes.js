@@ -194,9 +194,15 @@ export function attendanceOperationAllowed(db, actor, activity, personId) {
   const workgroupId = activity.workgroupId || workgroupIdFor('activity', activity.id);
   if (hasWorkgroupPermission(db, workgroupId, actor.id, 'activity.attendance.record')) return true;
   const group = activity.hostGroupId && groupOf(db, activity.hostGroupId);
+  // 承办小组口径与前端 `attendance.js::_activityPartyGroup` 完全同源：
+  // 优先活动固化的 hostGroup 名称，其次工作组指向的小组名，最后回退组织者所属小组。
+  const hostGroupName = activity.hostGroup
+    || (group ? group.name : null)
+    || (activity.organizer ? (userOf(db, activity.organizer)?.partyGroup || null) : null);
   const policyRoles = POLICY_DEFAULTS.attendance.recorderByType[activity.type] || [];
   const isHostGroupLeader = actor.role === 'leader'
-    && !!group && group.branchId === ownBranch(actor) && actor.partyGroup === group.name;
+    && !!hostGroupName && actor.partyGroup === hostGroupName
+    && (!!group ? group.branchId === ownBranch(actor) : true);
   const isActivityOrganizer = activity.organizer === actor.id
     || (Array.isArray(activity.assignments)
       && activity.assignments.some((item) => item?.personId === actor.id && item.role === 'organizer'));
@@ -887,8 +893,10 @@ export function registerWorkgroupRoutes(router, db) {
     if (!activity) return res.status(404).json({ error: '活动不存在' });
     if ((activity.branchId || 'br-b1') !== ownBranch(req.actor)) return res.status(403).json({ error: '无权限：活动不属于当前支部' });
     if (isDisabledActivityHistory(db, activity)) return res.status(409).json({ error: '本支部已停用活动组织能力；已结束活动的应到名单只读保留' });
+    // 冻结口径与考勤写入同源：能录入该场考勤的人，才应能冻结该场应到名单。
+    // 旧判据只认 organizingScope='party-group'，会让历史活动（仅有 hostGroup 名称）的组织者 403。
     const canFreeze = COMMITTEE.has(req.actor.role)
-      || (req.actor.role === 'leader' && activityOperationAllowed(db, req.actor, activity, 'activity.attendance.record'));
+      || attendanceOperationAllowed(db, req.actor, activity, req.actor.id);
     if (!canFreeze) return res.status(403).json({ error: '无权限：当前角色不能冻结活动应到名单' });
     const body = req.body && typeof req.body === 'object' && !Array.isArray(req.body) ? req.body : {};
     if (body.frozen !== true || !Array.isArray(body.personIds)) return res.status(400).json({ error: '冻结名单须提供 personIds 并明确 frozen=true' });

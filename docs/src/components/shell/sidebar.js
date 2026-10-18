@@ -41,38 +41,44 @@ function loadAuth() {
 // 支部层各角色（支书/副支书/三委员/组长/成员）导航行为不变。
 const PARTY_STAFF_HIDDEN_NAV = new Set(['dashboard', 'search', 'feedback', 'archive', 'messages']);
 
+// 页脚动作（帮助/关于/设置/登录/退出）共用一档：Caption 12px、可点高度 ≥36px。
+// 原内联 0.7rem（11.2px）不在 DESIGN_SYSTEM §3.2 档位表内，登记为待收敛离群项，此处一并归位。
+const FOOTER_ACTION_STYLE = 'display:flex;align-items:center;gap:6px;padding:4px 8px;min-height:36px;font-size:0.75rem;color:var(--neutral-500);text-decoration:none;border:none;background:none;cursor:pointer;';
+
 function getNavItems() {
   const base = getBasePath();
   return [
-    { module: 'dashboard', label: '首页', href: base + 'index.html', icon: icon('home') },
-    { module: 'workspace', label: '工作台', icon: icon('calendar') },
+    { module: 'dashboard', label: '首页', href: base + 'index.html', icon: icon('home', { extra: ' aria-hidden="true"' }) },
+    { module: 'workspace', label: '工作台', icon: icon('calendar', { extra: ' aria-hidden="true"' }) },
     // 「我的私信」（2026-10-03 批次 353 · 支书 `D-748`）：站内信收件箱（点对点私信聚合面）
-    { module: 'messages', label: '我的私信', href: base + 'messages.html', icon: icon('message') },
-    { module: 'search', label: '资料查询', href: base + 'search.html', icon: icon('search') },
-    { module: 'feedback', label: '意见反馈', href: base + 'feedback.html', icon: icon('message') },
-    { module: 'archive', label: '归档库', href: base + 'archive.html', icon: icon('archive') },
+    // 2026-10-18：私信用信封（mail），把对话气泡（message）留给「意见反馈」——同一图标不再承担两种语义。
+    { module: 'messages', label: '我的私信', href: base + 'messages.html', icon: icon('mail', { extra: ' aria-hidden="true"' }) },
+    { module: 'search', label: '资料查询', href: base + 'search.html', icon: icon('search', { extra: ' aria-hidden="true"' }) },
+    { module: 'feedback', label: '意见反馈', href: base + 'feedback.html', icon: icon('message', { extra: ' aria-hidden="true"' }) },
+    { module: 'archive', label: '归档库', href: base + 'archive.html', icon: icon('archive', { extra: ' aria-hidden="true"' }) },
   ];
 }
 
 function getFooterItems() {
   const base = getBasePath();
+  // 图标由下方 _footerIcon(module) 单点决定，此处不再重复声明 icon 字段。
   const items = [
-    { module: 'help', label: '帮助', href: base + 'help.html', icon: icon('book') },
+    { module: 'help', label: '帮助', href: base + 'help.html' },
   ];
   // 「关于」仅在静态托管（GitHub Pages）显示——有后端（内部工具）无公开门面
   // 依据 content/04_web_design/deploy/AUTHENTICATION_MODEL.md §三
   if (DEPLOY_MODE === 'static') {
-    items.push({ module: 'about', label: '关于', href: base + 'about.html', icon: icon('info') });
+    items.push({ module: 'about', label: '关于', href: base + 'about.html' });
   }
   // 「设置」入口（设置中心批1，2026-09-09）：全形态可见——访客进设置页仅外观，登录人按角色分组
-  items.push({ module: 'settings', label: '设置', href: base + 'settings.html', icon: icon('gear') });
+  items.push({ module: 'settings', label: '设置', href: base + 'settings.html' });
   return items;
 }
 
 // footer 图标按模块取（stroke 随 footer 弱化色；设置=齿轮）
 function _footerIcon(module) {
   const name = module === 'help' ? 'book' : module === 'settings' ? 'gear' : 'info';
-  return icon(name, { stroke: 'var(--neutral-500)' });
+  return icon(name, { stroke: 'var(--neutral-500)', extra: ' aria-hidden="true"' });
 }
 
 export async function renderSidebar(activeModule, opts = {}) {
@@ -121,7 +127,7 @@ export async function renderSidebar(activeModule, opts = {}) {
     }
 
     return `
-      <a href="${href}" class="module-tab ${item.module === activeModule ? 'active' : ''}" data-module="${item.module}">
+      <a href="${href}" class="module-tab ${item.module === activeModule ? 'active' : ''}" data-module="${item.module}"${item.module === activeModule ? ' aria-current="page"' : ''}>
         ${item.icon}
         <span class="font-title-cn">${item.label}</span>
       </a>
@@ -130,7 +136,7 @@ export async function renderSidebar(activeModule, opts = {}) {
 
   const footerItems = getFooterItems();
   const footerHTML = footerItems.map(item => `
-    <a href="${item.href}" data-module="${item.module}" style="display:flex;align-items:center;gap:6px;padding:4px 8px;font-size:0.7rem;color:var(--neutral-500);text-decoration:none;border:none;">
+    <a href="${item.href}" data-module="${item.module}" style="${FOOTER_ACTION_STYLE}">
       ${_footerIcon(item.module)}
       <span>${item.label}</span>
     </a>
@@ -139,21 +145,21 @@ export async function renderSidebar(activeModule, opts = {}) {
   // 登录态对偶入口（支书 2026-09-07 U1 批准）：已登录=「退出登录」；访客/未登录=「登录」→ login.html
   // （同位同样式同 hover；图标为 logout 镜像 → 「进入」感，不新增图标字典项）
   const authEntryHTML = user ? `
-      <button id="sidebar-logout" style="display:flex;align-items:center;gap:6px;padding:4px 8px;font-size:0.7rem;color:var(--neutral-500);cursor:pointer;border:none;background:none;">
-        ${icon('logout', { stroke: 'var(--neutral-500)' })}
+      <button id="sidebar-logout" type="button" style="${FOOTER_ACTION_STYLE}">
+        ${icon('logout', { stroke: 'var(--neutral-500)', extra: ' aria-hidden="true"' })}
         <span>退出登录</span>
       </button>` : `
-      <a href="${getBasePath()}login.html" id="sidebar-login" style="display:flex;align-items:center;gap:6px;padding:4px 8px;font-size:0.7rem;color:var(--neutral-500);cursor:pointer;border:none;background:none;text-decoration:none;">
-        <span style="display:inline-block;transform:scaleX(-1);">${icon('logout', { stroke: 'var(--neutral-500)' })}</span>
+      <a href="${getBasePath()}login.html" id="sidebar-login" style="${FOOTER_ACTION_STYLE}">
+        <span style="display:inline-block;transform:scaleX(-1);">${icon('logout', { stroke: 'var(--neutral-500)', extra: ' aria-hidden="true"' })}</span>
         <span>登录</span>
       </a>`;
 
   sidebar.innerHTML = `
-    <nav class="sidebar-nav">
+    <nav class="sidebar-nav" aria-label="主导航">
       <div class="flex flex-col gap-2 mb-2">${navHTML}</div>
     </nav>
     <div class="sidebar-footer">
-      <div class="flex flex-col gap-0.5 mb-2">${footerHTML}</div>
+      <nav class="flex flex-col gap-1 mb-2" aria-label="辅助导航">${footerHTML}</nav>
       ${authEntryHTML}
     </div>
   `;

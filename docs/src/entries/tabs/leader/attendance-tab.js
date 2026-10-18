@@ -366,7 +366,11 @@ function _initAttForm(container, eligibleActivities, ctx, opts = {}) {
       placeholder: '选择参会人员',
       accentColor: accent,
       filter: activity
-        ? (rosterCtx ? (p) => rosterCtx.candidateIds.has(p.id) : undefined)
+        ? (rosterCtx
+          ? (p) => rosterCtx.candidateIds.has(p.id)
+          // 非党小组会活动也必须收在本支部：跨支部人员即使出现在通讯录里，
+          // 服务端也会按支部拒绝；候选面与写入口径保持一致。
+          : (p) => (p.branchId || 'br-b1') === (activity.branchId || 'br-b1'))
         : () => false,
       disabledIds: rosterCtx ? rosterCtx.disabledIds : [],
       ...(rosterCtx && rosterCtx.disabledIds.length > 0

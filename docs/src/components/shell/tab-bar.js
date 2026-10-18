@@ -234,7 +234,7 @@ export function renderTabBar({ prefix, tabs, accentColor, defaultTab, extraRight
 
         : `<span style="--acc-bg-dark:#334155;width:1px;height:14px;background:var(--neutral-200);display:inline-block;margin-right:4px;vertical-align:middle;"></span>`;
 
-      groupHtml = `<span class="tab-group-label shrink-0 inline-flex items-center gap-1.5" style="pointer-events:none;user-select:none;">${divider}<span style="padding:1px 5px;border-radius:3px;--acc-bg-dark:${_grpDark.bg};--acc-text-dark:${_grpDark.text};--acc-border-dark:${_grpDark.border};background:${accentRgba};color:color-mix(in srgb, ${accent} 60%, #000);font-weight:600;letter-spacing:0.5px;vertical-align:middle;" class="text-[11px]">${groupLabel}</span></span>`;
+      groupHtml = `<span class="tab-group-label shrink-0 inline-flex items-center gap-1.5" role="presentation" style="pointer-events:none;user-select:none;">${divider}<span style="padding:1px 5px;border-radius:3px;--acc-bg-dark:${_grpDark.bg};--acc-text-dark:${_grpDark.text};--acc-border-dark:${_grpDark.border};background:${accentRgba};color:color-mix(in srgb, ${accent} 60%, #000);font-weight:600;letter-spacing:0.5px;vertical-align:middle;" class="text-[11px]">${groupLabel}</span></span>`;
 
       isFirstGroup = false;
 
@@ -244,12 +244,13 @@ export function renderTabBar({ prefix, tabs, accentColor, defaultTab, extraRight
     //   页头 tab **自带选中态强调色**（`.tab-btn-active` ＋ 内联 `--tab-accent`）⇒ **不并入通用族**，
     //   回到迁移前 markup。此处把 `${btnClass}` **内联成字面**（DOM 输出不变），
     //   使 `button-system-guard::B4` 的字面扫描能认出这是「组件自有类」并豁免（见该守卫 COMPONENT_STATE_EXEMPT）。
-    return `${groupHtml}<button type="button" role="tab" aria-selected="${isActive ? 'true' : 'false'}" tabindex="${isActive ? 0 : -1}" class="${prefix}-tab-btn${activeClass} shrink-0 px-4 py-2 text-xs font-medium rounded-lg transition-colors" ${dataAttr}="${id}"${activeStyle}>${label}</button>`;
+    return `${groupHtml}<button type="button" id="${prefix}-tab-${id}" role="tab" aria-selected="${isActive ? 'true' : 'false'}" aria-controls="${contentId}" tabindex="${isActive ? 0 : -1}" class="${prefix}-tab-btn${activeClass} shrink-0 min-h-9 px-4 py-2 text-xs font-medium rounded-lg transition-colors" ${dataAttr}="${id}"${activeStyle}>${label}</button>`;
 
   }).join('\n');
 
 
 
+  // 右侧动作不属于页签集合：放在 tablist 外，避免读屏把「发布招募」等动作当成页签。
   const extraHtml = extraRightHtml ? `<div class="ml-auto shrink-0">${extraRightHtml}</div>` : '';
 
 
@@ -260,7 +261,7 @@ export function renderTabBar({ prefix, tabs, accentColor, defaultTab, extraRight
 
   // （隐藏滚动条 + scroll-behavior:smooth + 溢出时两侧渐隐遮罩）。
 
-  const html = `<div class="ws-tab-scroll flex flex-nowrap gap-2 mb-4 overflow-x-auto">${btnsHtml}${extraHtml}</div><div id="${contentId}"></div>`;
+  const html = `<div class="ws-tab-scroll flex flex-nowrap gap-2 mb-4 overflow-x-auto"><div class="flex flex-nowrap gap-2 shrink-0" role="tablist" aria-label="工作台页签">${btnsHtml}</div>${extraHtml}</div><div id="${contentId}" role="tabpanel"></div>`;
 
 
 
@@ -411,6 +412,9 @@ export function renderTabBar({ prefix, tabs, accentColor, defaultTab, extraRight
       b.setAttribute('aria-selected', on ? 'true' : 'false');
       b.setAttribute('tabindex', on ? '0' : '-1');
     });
+    // 内容区 = tabpanel：用当前页签的名字作为可访问名称（与 aria-controls 成对）。
+    const panel = _tabContentEl();
+    if (panel) panel.setAttribute('aria-labelledby', `${prefix}-tab-${tabId}`);
   }
 
   function bindEvents(container) {

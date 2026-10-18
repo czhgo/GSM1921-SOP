@@ -28,9 +28,16 @@ registerCapability({
         personId: ctx?.personId || AuthStore.getCurrentUser()?.personId,
         role: 'visitor', // 待办键对齐本台待办 tab（participant 角色 → visitor 聚合键，todo.js S9 登记）
         onNav: (tabId) => {
-          // 'activities' 即本台活动动态 tab id，无需映射
-          const btn = document.querySelector(`.visitor-tab-btn[data-visitor-tab="${tabId}"]`);
+          // 'activities' 即本台活动动态 tab id；'calendar' 是 today「看日历」的语义落点，
+          // 本台无独立日历页签（2026-10-04 已并入活动动态）⇒ 切到 activities 并落到日历视图。
+          const target = tabId === 'calendar' ? 'activities' : tabId;
+          const btn = document.querySelector(`.visitor-tab-btn[data-visitor-tab="${target}"]`);
           if (btn) btn.click();
+          if (tabId === 'calendar') {
+            import('../entries/tabs/visitor/activities-tab.js?v=20261018e')
+              .then(m => m.showCalendarView())
+              .catch(() => {});
+          }
         },
       });
     }) },

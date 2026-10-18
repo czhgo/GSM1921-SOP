@@ -3,7 +3,7 @@ title: "架构演进——组件化落地评估与轻量插件化设计"
 type: design
 role: "[工程师]+[AI]"
 created: 2026-08-22
-last_updated: "2026-09-27"
+last_updated: "2026-10-18"
 status: active
 related_files: [DATA_MODEL.md, SOP_WEBSITE_GUIDE.md, DEPLOYMENT_GUIDE.md, ../../03_doc_system/ARCHITECTURE.md, ../../05_ai_coding/README.md]
 ---
@@ -73,6 +73,8 @@ related_files: [DATA_MODEL.md, SOP_WEBSITE_GUIDE.md, DEPLOYMENT_GUIDE.md, ../../
 - **块 = 注册表中的能力/场景 + 元数据**（块并不独立于现有机制存在）；拖拽产物 = 一段受版本控制的 workflow definitions 数据，继续交给既有 WorkflowEngine/决策树执行，不引入第二套执行引擎。
 - **权限与数据同源不因可视化而改变**：块可拖范围仍受角色与支部 config 约束；数据写入仍走 services 层收敛与 persist，界面只是"编排者"而非"新数据通道"。
 - **原则：可视化是编辑器形态，不是目的**——目的是降低「把工作流交给代码」的门槛。若某编排超出注册块的能力边界，退回"提需求→代码封装新块"的既有闭环，不追求万能低代码平台（YAGNI）。
+
+**工作组的分层位置与创建入口**：工作组不是新的执行引擎，也不是独立业务对象——它是活动/专班业务记录之上的协作结构。活动工作组随活动创建，入口分两处：组内承办由所属党小组组长从组长工作台创建，跨组承办由支书/副书记从支书工作台创建并指定成员；专班工作组围绕事项、任务或产出建立，入口在组织委员工作台（默认扎口，支部制度参数可调整）。两类工作组只登记组织者与深度参与者，成员关系不自动授予系统权限。制度与数据边界见 [COMMISSIONER_DUTY_FRAMEWORK.md §A.4–A.7](../../02_institution/COMMISSIONER_DUTY_FRAMEWORK.md)、[SYSTEM_ROLE_PERMISSION.md §9h.1](../../02_institution/SYSTEM_ROLE_PERMISSION.md)、[DATA_MODEL.md §2.3.1](../data/DATA_MODEL.md)。
 
 ### 8.4 与支部配置档案的衔接
 

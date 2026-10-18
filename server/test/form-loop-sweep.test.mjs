@@ -109,6 +109,15 @@ async function resetClientState(session) {
 /** 建会话页（**每个账号只做一次**）：登录 → 等壳层就位 → 记下存储快照 */
 async function createSession(studentId, pageName) {
   const page = await browser.newPage();
+  page.__errs = [];
+  // 失败诊断：把 4xx/5xx 响应记进同一错误袋（成功路径失败时常只看到“未保存成功”，
+  // 真正被拒的请求在这里一眼可见）。
+  page.on('response', async (r) => {
+    if (r.status() >= 400) {
+      const body = await r.text().catch(() => '');
+      page.__errs.push(`HTTP ${r.status()} ${r.request().method()} ${r.url()} ${body.slice(0, 180)}`);
+    }
+  });
   await page.route('**://fonts.googleapis.com/**', (r) => r.abort());
   await page.route('**://fonts.gstatic.com/**', (r) => r.abort());
   await page.route('**://cdn.tailwindcss.com/**', (r) => r.abort());
@@ -899,7 +908,9 @@ test('S7 降频开关不得让真机用例静默归零：每个请求的 tab 名
  *  `pageerror` 直接把成因摆在眼前 ⇒ 这类病灶从此**一律红灯**，不必再靠人去猜为什么静默。
  *  ⚠ 只算 `pageerror`（真·未捕获异常），**不含** console 噪声与资源加载失败（字体被 abort 是普查故意为之）。 */
 function uncaughtErrors(page) {
-  return (page.__errs || []).filter((m) => /ReferenceError|TypeError|is not a function|is not defined|Cannot read/.test(m));
+  // 既收未捕获脚本错误，也收被服务端拒绝的请求（4xx/5xx）——后者是「未保存成功」类
+  // 静默失败最直接的证据，不能只留在控制台。
+  return (page.__errs || []).filter((m) => /ReferenceError|TypeError|is not a function|is not defined|Cannot read/.test(m) || /^HTTP [45]\d\d/.test(m));
 }
 
 for (const flow of MACHINE_IN_SCOPE) {

@@ -1013,3 +1013,57 @@ test('S18 help.html §2.x 表行序必须等于台注册序（V-3 页签序；�
     `help.html §2.x 表行**序**与台注册**序**不一致（V-3 页签序；**改注册序必须同批排本表**）：\n  ${problems.join('\n  ')}`);
 });
 
+// ─────────────────────────────────────────────────────────────────────────────
+// S19 工作组概念口径守卫（Task 21 · 2026-10-18）
+//   病灶：引入工作组后，文档若仍把「组织者/深度参与者」写成独立项目角色、或用旧词「项目组」，
+//   会把「活动工作组 / 专班工作组 / 组内承办 / 跨组承办」这组概念重新冲散。
+//   判据：
+//     ① COMMISSIONER_DUTY_FRAMEWORK.md 必须同时出现四个核心术语；
+//     ② §G 开篇（`## G.` → `### G.1`）必须有同一段落同时出现「扁平参与」与「工作组」——
+//        防「先讲平等协作哲学、后补工作组载体」的顺序倒置；
+//     ③ 核心文档不得出现旧词「项目组」；**否定式口径**（如「不是独立的项目组」）与历史引文按白名单放行。
+// ─────────────────────────────────────────────────────────────────────────────
+const WG_CORE_DOCS = [
+  'content/02_institution/COMMISSIONER_DUTY_FRAMEWORK.md',
+  'content/02_institution/SYSTEM_ROLE_PERMISSION.md',
+  'content/04_web_design/data/DATA_MODEL.md',
+  'content/03_doc_system/ARCHITECTURE.md',
+  'content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md',
+  'content/03_doc_system/OPERATIONS_GUIDE.md',
+  'content/04_web_design/design-system/DESIGN_SYSTEM.md',
+  'content/02_institution/sop/INDEX.md',
+  'content/02_institution/sop/支委与党小组定人定责定岗说明.md',
+  'content/02_institution/sop/组织委员工作流程指南.md',
+  'content/02_institution/sop/纪检委员工作流程指南.md',
+  'content/02_institution/sop/宣传委员工作流程指南.md',
+  'content/02_institution/sop/党小组组长工作手册.md',
+  'content/02_institution/sop/常见工作场景快速指南.md',
+];
+
+test('S19 工作组概念口径：四个核心术语齐备、§G 开篇先讲载体、核心文档不回流「项目组」', () => {
+  const cf = read(join(ROOT, 'content', '02_institution', 'COMMISSIONER_DUTY_FRAMEWORK.md'));
+  for (const term of ['活动工作组', '专班工作组', '组内承办', '跨组承办']) {
+    assert.ok(cf.includes(term), `COMMISSIONER_DUTY_FRAMEWORK.md 缺工作组核心术语「${term}」`);
+  }
+
+  const gAt = cf.indexOf('## G. ');
+  const g1At = cf.indexOf('### G.1 ', gAt);
+  assert.ok(gAt >= 0 && g1At > gAt, 'COMMISSIONER_DUTY_FRAMEWORK.md 未找到 §G → §G.1 的章节结构');
+  const paragraphs = cf.slice(gAt, g1At).split(/\r?\n\s*\r?\n/).map((s) => s.trim()).filter(Boolean);
+  assert.ok(paragraphs.some((p) => p.includes('扁平参与') && p.includes('工作组')),
+    '§G 开篇没有同一段落同时出现「扁平参与」与「工作组」——必须先说明工作组是扁平参与的载体，再进入平等协作哲学');
+
+  const hits = [];
+  for (const rel of WG_CORE_DOCS) {
+    const abs = join(ROOT, rel);
+    if (!existsSync(abs)) { hits.push(`${rel}（文件不存在）`); continue; }
+    read(abs).split(/\r?\n/).forEach((line, i) => {
+      if (!line.includes('项目组')) return;
+      // 白名单：否定式口径与历史引文（如「不是独立的『项目组』」「原『项目组』」）
+      if (/不是独立的「项目组」|并非独立的「项目组」|历史|旧称|原「项目组」/.test(line)) return;
+      hits.push(`${rel}:${i + 1} 仍使用旧词「项目组」`);
+    });
+  }
+  assert.deepEqual(hits, [], `核心文档仍出现旧词「项目组」（应统一为活动工作组/专班工作组）：\n  ${hits.join('\n  ')}`);
+});
+

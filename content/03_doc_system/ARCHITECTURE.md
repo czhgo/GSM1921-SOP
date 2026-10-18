@@ -2,7 +2,7 @@
 title: "架构与单一事实源"
 type: architecture
 role: "[工程师]+[AI]"
-last_updated: 2026-10-17
+last_updated: 2026-10-18
 version: "7.4"
 status: active
 related_files: [CLAUDE.md, content/03_doc_system/DOC_MAP.md, content/02_institution/SYSTEM_ROLE_PERMISSION.md, content/04_web_design/]
@@ -32,6 +32,14 @@ Org OS 是光华管理学院本科生党支部的组织运行操作系统。它�
 
 - **条条**： 功能委员线（组织委员 / 宣传委员 / 纪检委员）
 - **块块**： 党小组组长线（group1 / group2 / group3）
+
+### 工作组概念
+
+- **分层位置**：工作组是活动/专班业务记录之上的协作结构，**不是独立业务对象**。活动记录仍是活动业务的唯一载体，专班记录仍是专班业务的唯一载体；工作组只承接组织者/深度参与者、任务、产出与授权。
+- **活动工作组**：随活动创建。**组内承办**由所属党小组组长从组长工作台创建；**跨组承办**由支书/副书记从支书工作台创建并指定成员。承办范围是责任字段，不限制其他成员报名或参加。
+- **专班工作组**：围绕事项、任务或产出建立；组织委员默认扎口协调，支部制度参数可调整。
+- **权限边界**：两类工作组均只登记组织者与深度参与者，成员关系不自动授予系统权限；确需系统操作能力时另行授权并留痕。
+- **权威源**：制度定义见 [COMMISSIONER_DUTY_FRAMEWORK.md §A.4–A.7](../02_institution/COMMISSIONER_DUTY_FRAMEWORK.md)、权限边界见 [SYSTEM_ROLE_PERMISSION.md §9h.1](../02_institution/SYSTEM_ROLE_PERMISSION.md)、数据模型见 [DATA_MODEL.md §2.3.1](../04_web_design/data/DATA_MODEL.md)。
 
 ---
 

@@ -115,7 +115,26 @@ function _withDelay(fn) {
  * @param {Omit<import('../../core/domain/domain.js').Activity,'id'|'createdAt'>} data
  * @returns {Promise<import('../../core/domain/domain.js').Activity>}
  */
-export function createActivity(data) {
+export async function createActivity(data) {
+  // API 形态必须走活动语义写入口：服务端在 POST /activities 内同步建立
+  // `wg-activity-<id>` 工作组（routes/resources/index.js::createActivityWorkgroup）。
+  // 不能先写本地再由 saveDB()/persist() 整库快照新增——snapshotScopeDeny 明确拒绝
+  // 「新增活动须走活动语义写入口，以同时建立活动工作组」，否则后续赋权
+  // （/workgroups/wg-activity-<id>/grants）会因工作组不存在而 404。
+  if (typeof window !== 'undefined' && getDataSource() === 'api') {
+    const created = await getAdapter().activities.create(data);
+    // 服务端 POST 不回填 createdAt；补齐与 mock 分支一致的创建时间，
+    // 否则依赖 createdAt 的读端（如 findTaskforceVoteActivity 的时效过滤）会判空。
+    if (!created.createdAt) created.createdAt = data.createdAt || new Date().toISOString();
+    // 合并服务端权威行（含 workgroupId/createdBy/branchId），按 id 去重；
+    // 后续 createTask / recordProjectGrants 依赖这些字段定位活动工作组。
+    mockDB.activities = [...mockDB.activities.filter((row) => row.id !== created.id), created];
+    bumpToken('activity');
+    notifyDataLoaded();
+    console.info('[MockAdapter] createActivity 经语义 API 创建，id=' + created.id
+      + '，workgroupId=' + (created.workgroupId || ''));
+    return created;
+  }
   return _withDelay(() => {
     const newItem = {
       ...data,

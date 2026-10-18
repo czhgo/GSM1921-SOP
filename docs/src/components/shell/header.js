@@ -202,7 +202,7 @@ function _notificationBellHTML() {
   return `
     <div id="notification-bell" style="position:relative;">
       <button id="notif-btn" aria-label="通知" aria-haspopup="true" aria-expanded="false" style="width:40px;height:40px;border-radius:var(--radius-sm);background:rgba(255,255,255,0.1);border:1.5px solid rgba(255,255,255,0.25);display:flex;align-items:center;justify-content:center;cursor:pointer;">
-        ${icon('bell', { stroke: '#FFFFFF', className: 'w-4 h-4' })}
+        ${icon('bell', { stroke: '#FFFFFF', className: 'w-4 h-4', extra: ' aria-hidden="true"' })}
       </button>
       <div id="notif-dropdown" class="hidden" style="position:absolute;top:calc(100% + 4px);right:0;width:320px;background:var(--surface-card);border-radius:var(--radius-sm);box-shadow:var(--shadow-dropdown);z-index:100;overflow:hidden;border:1px solid var(--neutral-200);"></div>
     </div>
@@ -239,11 +239,11 @@ export async function renderHeader(activeModule, opts = {}) {
 
   header.innerHTML = `
     <div class="header-content">
-      <button id="hamburger-btn" aria-label="打开导航菜单" class="btn-ghost hamburger-btn">
+      <button id="hamburger-btn" aria-label="打开导航菜单" aria-controls="app-sidebar" aria-expanded="false" class="btn-ghost hamburger-btn">
         <span></span><span></span><span></span>
       </button>
       <div class="party-emblem-wrapper">
-        <img src="${getBasePath()}assets/images/party_emblem.png" alt="党徽" class="party-emblem" draggable="false" onerror="this.style.display='none';">
+        <img src="${getBasePath()}assets/images/party_emblem.png" alt="党徽" width="28" height="28" class="party-emblem" draggable="false" onerror="this.style.display='none';">
       </div>
       <div class="header-title">
         <!-- h1 无归属态即显示「未绑定支部」中性占位（getHeaderTitle 收敛）；不加点击引导（二期候选 b 登记：可考虑引导去党委确认归属） -->
@@ -289,7 +289,11 @@ function _bindHamburger(header) {
   // 8 条导航链接**全部留在 Tab 序列**（DOM 顺序 header → 侧栏 → main ⇒ 键盘用户前 8 个 Tab 停在看不见的控件上）。
   // 故折叠/展开时同步 `inert`（属性不是 CSS，必须在此切换）：折叠＝不可聚焦不可读，展开＝恢复。
   const syncSidebarInert = () => {
-    sidebar.inert = sidebar.classList.contains('sidebar-collapsed');
+    const expanded = !sidebar.classList.contains('sidebar-collapsed');
+    sidebar.inert = !expanded;
+    // 2026-10-18：汉堡按钮同步展开态，读屏可感知「打开/关闭」而非固定文案。
+    hamburger.setAttribute('aria-expanded', String(expanded));
+    hamburger.setAttribute('aria-label', expanded ? '关闭导航菜单' : '打开导航菜单');
   };
   syncSidebarInert(); // 首屏：模板里侧栏自带 `sidebar-collapsed` ⇒ 页面一进来即为 inert
 
@@ -416,6 +420,7 @@ function _bindNotificationBell(header) {
   document.addEventListener('click', (e) => {
     if (!dropdown.contains(e.target) && !btn.contains(e.target)) {
       dropdown.classList.add('hidden');
+      btn.setAttribute('aria-expanded', 'false');
     }
   });
 
@@ -423,6 +428,7 @@ function _bindNotificationBell(header) {
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && !dropdown.classList.contains('hidden')) {
       dropdown.classList.add('hidden');
+      btn.setAttribute('aria-expanded', 'false');
     }
   });
 }

@@ -186,6 +186,40 @@ test('专班招募创建走工作组语义 API，原始快照只承载后续可�
   assert.match(service, /async create\(record\)[\s\S]*?getAdapter\(\)\.taskforces\.create\(payload\)/);
 });
 
+test('API 形态活动与专班创建走语义写口并合并服务端返回行', async () => {
+  const mock = await read('../../docs/src/services/core/mock.js');
+  const activityCreate = mock.slice(
+    mock.indexOf('export async function createActivity'),
+    mock.indexOf('\nexport function listActivities'),
+  );
+  assert.match(activityCreate, /typeof window !== 'undefined' && getDataSource\(\) === 'api'/,
+    '活动创建必须区分 API 形态');
+  assert.match(activityCreate, /getAdapter\(\)\.activities\.create\(data\)/,
+    'API 形态活动创建须走活动语义 API，以同步建立活动工作组');
+  assert.match(activityCreate, /mockDB\.activities = \[\.\.\.mockDB\.activities\.filter\(\(row\) => row\.id !== created\.id\), created\]/,
+    '本地按 id 去重合并服务端返回行（含 workgroupId/createdBy/branchId）');
+  const activityApiBranch = activityCreate.slice(
+    activityCreate.indexOf("typeof window !== 'undefined' && getDataSource() === 'api'"),
+    activityCreate.indexOf('return _withDelay'),
+  );
+  assert.doesNotMatch(activityApiBranch, /\bsaveDB\(\)|\bpersist\(\)/,
+    'API 分支新增活动不得再靠整库快照写穿；mock 分支保持原行为');
+
+  // mock.js 没有 createTaskforce：专班创建的语义入口是 TaskForceRecordStore.create
+  // （services/activity/taskforce.js）。此处守住该入口同样不得用快照新增。
+  const service = await read('../../docs/src/services/activity/taskforce.js');
+  const taskforceCreate = service.slice(
+    service.indexOf('async create(record)'),
+    service.indexOf('\n  update(id, patch'),
+  );
+  assert.match(taskforceCreate, /getAdapter\(\)\.taskforces\.create\(payload\)/);
+  assert.match(taskforceCreate, /mockDB\.taskforces = \[\.\.\.mockDB\.taskforces\.filter\(\(row\) => row\.id !== created\.id\), created\]/,
+    '本地按 id 去重合并服务端返回行（含 workgroupId/createdBy/branchId）');
+  assert.doesNotMatch(taskforceCreate, /\bsaveDB\(\)|\bpersist\(\)/,
+    '新增专班不得再靠整库快照写穿');
+});
+
+
 test('支委会批准收尾后统一工作组主记录同步为已结束', async () => {
   const service = await read('../../docs/src/services/activity/taskforce.js');
   const start = service.indexOf('applyCommitteeDecision(tfId');
@@ -354,4 +388,17 @@ test('今天页汇报行落到待办「待答复」，不再指向反馈/我的�
   assert.doesNotMatch(source, /onNav\('feedback'\)/, '今天页不再把汇报行指向反馈管理');
   assert.match(source, /onNav\(btn\.dataset\.todayAll === 'todo' \? 'todo' : 'activities'\)/, '「今天有会 · 全部」保持 activities');
   assert.match(source, /it\.deadline > today\) continue/, '今天页只列今日到期与逾期事项');
+});
+
+test('侧栏导航图标语义唯一：我的私信=mail、意见反馈=message，同一导航数组不得复用图标', async () => {
+  const source = await read('../../docs/src/components/shell/sidebar.js');
+  const start = source.indexOf('function getNavItems()');
+  const end = source.indexOf('function getFooterItems()');
+  assert.ok(start >= 0 && end > start, '未找到 sidebar 导航数组');
+  const navBlock = source.slice(start, end);
+  assert.match(navBlock, /label: '我的私信'[^}]*icon: icon\('mail'/, '「我的私信」须使用信封图标 mail');
+  assert.match(navBlock, /label: '意见反馈'[^}]*icon: icon\('message'/, '「意见反馈」须保留对话气泡图标 message');
+  const icons = [...navBlock.matchAll(/icon\('([A-Za-z]+)'/g)].map((m) => m[1]);
+  assert.ok(icons.length >= 5, `导航图标抽取过少（${icons.length}），守卫可能空转`);
+  assert.equal(new Set(icons).size, icons.length, `同一导航数组内出现重复图标：${icons.join(', ')}`);
 });

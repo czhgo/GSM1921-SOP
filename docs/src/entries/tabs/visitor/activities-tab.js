@@ -122,6 +122,17 @@ function _watchCalendarToolbar(vc) {
   _calToolbarObserver.observe(switcher, { childList: true });
 }
 
+/** 外部落点：切到日历视图（成员台 today「看日历」用；不另写一套日历渲染）。 */
+export function showCalendarView() {
+  _pendingView = 'calendar';
+  const btn = document.querySelector('.visitor-view-btn[data-vview="calendar"]');
+  if (btn) {
+    _programmaticViewClick = true;
+    btn.click();
+    _programmaticViewClick = false;
+  }
+}
+
 export function renderContent(ctx) {
   const tc = document.getElementById('visitor-tab-content');
   if (!tc) return;

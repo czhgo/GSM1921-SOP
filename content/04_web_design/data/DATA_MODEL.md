@@ -3,7 +3,7 @@ title: "数据模型与数据流"
 type: design
 role: "[工程师]+[AI]"
 version: "1.1"
-last_updated: 2026-10-17
+last_updated: 2026-10-18
 status: active
 related_files: [content/02_institution/SYSTEM_ROLE_PERMISSION.md, content/02_institution/COMMISSIONER_DUTY_FRAMEWORK.md, content/02_institution/sop/纪检委员工作流程指南.md, content/03_doc_system/ARCHITECTURE.md]
 ---
@@ -257,19 +257,19 @@ ActivityRecord (主记录)
 
 | 记录 | 核心字段 | 约束 |
 |---|---|---|
-| `WorkGroup` | `id, branchId, kind, sourceType, sourceId, name, status, organizingScope?, hostGroupId?` | `kind` 为 `activity` 或 `taskforce`；活动与专班分别保留自己的业务记录，工作组记录承接共同的组织者/深度参与者结构 |
+| `WorkGroup` | `id, branchId, kind, sourceType, sourceId, name, status, organizingScope?, hostGroupId?` | `kind` 为 `activity` 或 `taskforce`；活动与专班分别保留自己的业务记录，工作组记录是二者之上的协作结构、不是独立业务对象 |
 | `WorkGroupMember` | `id, branchId, workgroupId, personId, role, status, createdBy, createdAt` | 活动与专班工作组的 `role` 均为 `organizer/deep`；成员须属于同一支部。活动一般参与者单独记录为报名，不属于工作组成员；专班可有组织者/深度参与者入组申请，但不设一般参与报名或考勤。登记成员不自动授予系统权限 |
 | `WorkGroupGrant` | `id, branchId, workgroupId, personId, templateKey?, permissionKeys[], status, grantedBy, grantedAt, revokedBy?, revokedAt?` | 独立授权留痕；可套用建议模板后调整；服务端按支部、活动与工作组范围校验每项操作 |
 | `WorkGroupTask` | `id, branchId, workgroupId, title, status, activityId?, capabilityPackageId?, isPurpose?` | `status` 为 `open/in_progress/completed/cancelled`；主任务 `isPurpose` 唯一。每个工作组至少有一项经确认的任务才可收尾。关联活动/能力包须同支部 |
 | `WorkGroupOutput` | `id, branchId, workgroupId, taskId?, activityId?, capabilityPackageId?, title, submittedBy, submittedAt, status` | 产出可关联任务、活动与能力包；跨支部或跨工作组引用由服务端拒绝。收尾需所有已登记产出完成登记 |
 
-**工作组创建、权限与生命周期**：活动工作组随活动创建；专班工作组围绕自身任务创建，专班可由能力包承载，也可由一次性任务触发。活动承办范围 (`party-group/cross-group`)、参加资格和系统授权是不同维度。党小组组长只能创建本组活动；跨组活动由支书/副书记创建。组织者与深度参与者是并列成员角色；具体操作权限经独立授权接口授予并留痕。活动、成员、任务和产出等跨记录写入都须由服务端校验支部归属。
+**工作组创建、权限与生命周期**：活动工作组随活动创建；专班工作组围绕自身任务创建，专班可由能力包承载，也可由一次性任务触发。活动工作组不是独立业务对象，活动记录仍是活动业务的唯一载体；活动承办范围 (`party-group/cross-group`)、参加资格和系统授权是不同维度。党小组组长只能创建本组活动；跨组活动由支书/副书记创建。组织者与深度参与者是并列成员角色；具体操作权限经独立授权接口授予并留痕。活动、成员、任务和产出等跨记录写入都须由服务端校验支部归属。
 
 工作组收尾以全部登记任务和产出闭合为准，不要求每个工作组都产生考察记录；纪检考察与支委会表决只在制度、议程或该事项明确要求时触发。能力包停用后禁止新建事项，在办事项可以完成，历史只读保留。党委负责目录/模板，支部自主采纳模板版本。
 
 **能力包目录**：`docs/src/core/domain/capability-packages.js` 是当前静态目录入口。能力包记录所属页面、工作流块、产出块、制度依据状态、适用范围、配置权、依赖和版本。`required/optional/local/pending` 是适用范围属性；制度依据尚未核实时保留 `pending`。党委维护目录与模板，支部自主选择并采纳模板版本。目录编辑和模板发布的专用管理界面尚未建立。T1–T3 是术语授权层级，不作为功能等级。
 
-**项目角色与系统授权分离**：遗留键 `sop_org_os_assigned_roles` 已删除。活动 `assignments` 与专班 `members` 仍为兼容镜像；规范成员关系存于 `workgroup_members`，系统权限另存于 `workgroup_grants`。任何工作组成员身份都不会自动扩大系统权限。授权与撤销均写明操作人和时间。
+**项目角色与系统授权分离**：遗留键 `sop_org_os_assigned_roles` 已删除。活动 `assignments` 与专班 `members` 仍为兼容镜像；规范成员关系存于 `workgroup_members`，系统权限另存于 `workgroup_grants`。任何工作组成员身份都不会自动扩大系统权限。授权与撤销均写明操作人和时间；历史文本中的「赋权」与「授权」同义。
 
 ```js
 // 兼容镜像（运行时仍同步，逐步转由标准化成员关系表提供成员主源）
@@ -278,7 +278,7 @@ taskforce.members:    Array<{ personId, role: 'organizer' | 'deep' | 'participan
 // 标准主源：workgroup_members；权限主源：workgroup_grants
 ```
 
-**专班成员展示**：由 `workgroup_members` 渲染；组织委员工作组页按专班工作组为主对象展示，报名、活动任务与产出作为关联视图。
+**专班工作组成员展示**：由 `workgroup_members` 渲染；组织委员工作组页按专班工作组为主对象展示，报名、活动任务与产出作为关联视图。
 
 ### 2.4 系列活动数据 (SeriesRecord)
 

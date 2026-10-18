@@ -2,7 +2,7 @@
 title: "全局文档导航映射"
 type: governance
 role: "[工程师]+[AI]"
-last_updated: 2026-10-14
+last_updated: 2026-10-18
 version: "2.5"
 status: active
 related_files: [OPERATIONS_GUIDE.md, CLAUDE.md, ARCHITECTURE.md, .ctx/REVIEW_QUEUE.md, .ctx/ENGINEERING_ASSESSMENT.md, content/insights/README.md]
@@ -83,8 +83,8 @@ related_files: [OPERATIONS_GUIDE.md, CLAUDE.md, ARCHITECTURE.md, .ctx/REVIEW_QUE
 
 | 文件 | 受众 | 内容 | 被引用方 |
 |------|------|------|---------|
-| `content/02_institution/COMMISSIONER_DUTY_FRAMEWORK.md` | [用户]+[AI] | 支部组织与委员体系（支部组织形态 + 委员系统设计 + 专班、赋权关系链 + §G 扁平化设计〔组织者 / 深度参与者〕+ §审批流程规范；2026-09-26 原 `FLAT_ORGANIZATION_DESIGN.md` 全文并入 §G） | SECRETARY_DIRECTIVES.md |
-| `content/02_institution/SYSTEM_ROLE_PERMISSION.md` | [工程师]+[AI] | 系统角色权限矩阵（角色键全表 9a0 + 权限矩阵/赋权链，代码键级权威；2026-09-05 自 `ROLE_CLASSIFICATION.md` §九 迁出——该文件已于 2026-09-26 批次 202 并入 [OPERATIONS_GUIDE.md](./OPERATIONS_GUIDE.md) §24–§31） | ARCHITECTURE.md §十一、DATA_MODEL.md、COMMISSIONER_DUTY_FRAMEWORK.md |
+| `content/02_institution/COMMISSIONER_DUTY_FRAMEWORK.md` | [用户]+[AI] | 支部组织与委员体系（支部组织形态 + 委员系统设计 + 工作组与专班、授权关系链 + §G 扁平化设计〔组织者 / 深度参与者〕+ §审批流程规范；2026-09-26 原 `FLAT_ORGANIZATION_DESIGN.md` 全文并入 §G） | SECRETARY_DIRECTIVES.md |
+| `content/02_institution/SYSTEM_ROLE_PERMISSION.md` | [工程师]+[AI] | 系统角色权限矩阵（角色键全表 9a0 + 权限矩阵/授权链〔历史称赋权链〕，代码键级权威；2026-09-05 自 `ROLE_CLASSIFICATION.md` §九 迁出——该文件已于 2026-09-26 批次 202 并入 [OPERATIONS_GUIDE.md](./OPERATIONS_GUIDE.md) §24–§31） | ARCHITECTURE.md §十一、DATA_MODEL.md、COMMISSIONER_DUTY_FRAMEWORK.md |
 | `content/02_institution/sop/INDEX.md` | [用户]+[AI] | SOP 导航目录 | ARCHITECTURE.md |
 | `content/02_institution/sop/常见工作场景快速指南.md` | [用户]+[AI] | 快速使用指南 | INDEX |
 | `content/02_institution/sop/支委与党小组定人定责定岗说明.md` | [用户]+[AI] | 职责分工文档 | INDEX |

@@ -2587,3 +2587,25 @@ $body
 - `form-loop-sweep` 仍有 7 条真机流红：`leader-write-activity-save`（活动创建走 snapshot 写穿，组长账号 403 → 后续 `/workgroups/:id/grants` 404）、`leader-attendance-upload-submit`（同上，应到名单冻结 403）、`wizard-create-panel` / `wizard-branch-create-empty`（向导「首任支书」校验与 `#wz-create-appoint` 选择器漂移）、`pc-review-reject-note`（独立跑时种子无待批复，属前置数据依赖）。
 - 这些不是本轮 5 个阻塞，但确属真机写链缺口；已另立 Task 19，未写入「已修复」。
 - 本轮未改权限矩阵与业务状态流；宣传任务 `activityId` 为可空新增字段；未写日常 `server/data.db`。
+
+## 批次 472（2026-10-18 · API 写链、工作组概念对齐、图标去重与提交规范）
+
+**为什么**：支书指出三件事：① commit 只剩一句话，是否还承担 log；② 侧边栏图标重复；③ 引入工作组后，content 是否把活动工作组/专班工作组/组内承办/跨组承办讲清楚；④ 需修继续推进，且数据必须走 API 可用。本轮按这四条落地，并把 commit 正文恢复为可独立阅读的执行日志。
+
+**已落**：
+- **API 语义写链**：`mock.js::createActivity` 在 API 形态改走 `getAdapter().activities.create` 并合并服务端返回行（带 `workgroupId`/`createdBy`/`branchId`），不再依赖会被 `snapshotScopeDeny` 拒绝的整库快照；专班创建入口 `TaskForceRecordStore.create` 已走 `taskforces.create`，本轮补守卫。组长创建活动、组织委员发布专班两条真机成功路径转绿，`/workgroups/:id/grants` 404 消失。
+- **考勤冻结口径对齐**：`PUT /activities/:id/expected-roster` 改用 `attendanceOperationAllowed`，与考勤写入同源；承办小组口径与前端 `_activityPartyGroup` 同源（hostGroup 名称 → 工作组小组名 → 组织者小组）。组长台考勤候选人收在本支部，避免跨支部人员被服务端拒绝。
+- **工作组概念内容对齐**：`COMMISSIONER_DUTY_FRAMEWORK.md` §G 新增「扁平参与的载体」开篇（先讲活动/专班工作组、组内/跨组承办，再讲平等协作）；同步 `SYSTEM_ROLE_PERMISSION`、`DATA_MODEL`、`ARCHITECTURE`、`ARCHITECTURE_EVOLUTION`、`OPERATIONS_GUIDE` 术语、`DESIGN_SYSTEM`、SOP 五份指南、`DOC_MAP`、`DEVELOPMENT_PATH`、`DATA_CONSISTENCY_CHECKLIST`；系统权限统一称「授权」，「赋权」保留为历史界面专名并注明同义。新增 doc-consistency `S19` 守卫四个核心术语与「项目组」回流。
+- **图标语义**：侧边栏「我的私信」改 `mail`，「意见反馈」保留 `message`；补 `aria-current`、页签 `role=tablist`、焦点内描边，页脚动作统一 12px/36px 点击区；新增图标唯一性守卫。
+- **成员今天看日历**：`onNav('calendar')` 映射到活动动态并调用 `showCalendarView()`，不再指向不存在的页签。
+
+**读数**：
+- 静态/文档/守卫组 **119/119 通过**（含 module-load 198/198、doc-consistency 19 项、S19、版本戳 24 项）。
+- 真机成功路径：`leader-write-activity-save`、`org-taskforce-recruit-publish` 通过。
+- `leader-attendance-upload-submit` 仍红：种子中已无「未上传的党小组会」可选项，流程回退选中 `act-2`（支委会，制度上不考勤），服务端按 `noAttendanceTypes` 拒绝。属**真机流程前置数据失效**，不是本轮写链回归；未改种子以避开计数连锁。
+
+**边界**：
+- 向导 `wizard-create-panel` / `wizard-branch-create-empty` 仍红：`appointable` 为假时 `#wz-create-appoint` 不渲染，流程选择器与前置未改；待 Task 19.3。
+- `pc-review-reject-note` 仍红：独立跑时种子无待批复，属前置数据依赖；待 Task 19.4。
+- commit 正文规范从本批起执行：`批次 NNN：短标题` + Why / What / Verification / Boundaries；历史 commit 不回写。
+- 未改权限矩阵与业务状态流；未写日常 `server/data.db`。
