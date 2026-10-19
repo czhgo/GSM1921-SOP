@@ -12,10 +12,10 @@
 //  任务完成数＝completed 数 / 非 cancelled 任务总数，无任务显示「—」；两类皆空则整卡隐藏。
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../../core/domain/domain.js?v=20261018r';
-import { listRowHtml, listGroupHtml } from '../ui/list-row.js?v=20261018r';
-import { AuthStore } from '../../services/core/auth.js?v=20261018r';
-import { getBasePath } from '../../core/base/utils.js?v=20261018r';
+import { mockDB } from '../../core/domain/domain.js?v=20261018s';
+import { listRowHtml, listGroupHtml } from '../ui/list-row.js?v=20261018s';
+import { AuthStore } from '../../services/core/auth.js?v=20261018s';
+import { getBasePath } from '../../core/base/utils.js?v=20261018s';
 
 const GROUP_LIMIT = 3;
 const STATUS_BADGE = {

@@ -92,7 +92,7 @@ const GROUP = 'docs/src/entries/tabs/secretary/group-progress-tab.js';
 const INDEX = 'docs/index.html';
 const FOUR_PAGES = [OVERVIEW, TODO_SHELL, COMMITTEE, INDEX];
 
-test('U8 页标题层级：四页重点各一个 H2，卡头 H3，首页不再重复组织名', () => {
+test('U8 页标题层级：四页重点各一个 H2，卡头 H3，首页抬头块按裁定恢复', () => {
   const frame = read('docs/src/components/shell/page-frame.js');
   assert.match(frame, /export function renderTabHeader/, 'page-frame 应提供 renderTabHeader');
   assert.match(frame, /<h2 class="page-frame__title">/, 'renderTabHeader 应输出 H2');
@@ -111,11 +111,12 @@ test('U8 页标题层级：四页重点各一个 H2，卡头 H3，首页不再�
   assert.match(cm, /renderTabHeader\(\{[\s\S]*?title: '支委会'/, '支委会 H2 应走统一组件');
   assert.doesNotMatch(cm, /<h2 class="font-title-cn/, '支委会不得再手写第二套 H2');
 
+  // 2026-10-19 支书裁定：首页恢复抬头式品牌块（党徽 + 工作台标题），标题文案由 JS 按登录态写入。
   const html = read(INDEX);
-  assert.doesNotMatch(html, /光华管理学院本科生党支部/, '首页不得再出现与 H1 同名的组织名标题');
-  assert.doesNotMatch(html, /party_emblem\.png/, '首页不得再重复党徽（顶栏已有一个）');
+  assert.doesNotMatch(html, /光华管理学院本科生党支部/, '首页不得出现硬编码示例支部名');
+  assert.match(html, /id="dashboard-hero-title"/, '首页抬头标题须走专属 id');
   assert.doesNotMatch(html, /<h3/, '首页区块标题应升为 H2，不再保留 H3');
-  assert.equal((html.match(/<h2/g) || []).length, 4, '首页应有 4 个区块 H2');
+  assert.equal((html.match(/<h2/g) || []).length, 5, '首页应有 4 个区块 H2 + 1 个抬头 H2');
 
   const gallery = read('docs/src/components/dashboard/gallery.js');
   assert.match(gallery, /<h3 class="gallery-card__title">/, '风采卡标题应为 H3');

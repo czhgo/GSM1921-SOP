@@ -10,18 +10,18 @@
 //  收录权与排序不变（`galleryFeatured` / `galleryPinned` 单一源仍来自 activity.js）。
 // ════════════════════════════════════════════════════════════════
 
-import { getAppState } from '../../core/base/state.js?v=20261018r';
-import { _fmtDate, escHtml } from '../../core/base/utils.js?v=20261018r';
-import { getPersonName } from '../../services/member/person.js?v=20261018r';
-import { getActivityTypeColors } from '../../core/domain/constants.js?v=20261018r';
-import { icon } from '../../core/base/icons.js?v=20261018r';
-import { mockDB } from '../../core/domain/domain.js?v=20261018r';
-import { getAuthToken, getApiBaseUrl } from '../../data/data-adapter.js?v=20261018r';
-import { withSelectedBranchScope } from '../../data/api-adapter.js?v=20261018r';
+import { getAppState } from '../../core/base/state.js?v=20261018s';
+import { _fmtDate, escHtml } from '../../core/base/utils.js?v=20261018s';
+import { getPersonName } from '../../services/member/person.js?v=20261018s';
+import { getActivityTypeColors } from '../../core/domain/constants.js?v=20261018s';
+import { icon } from '../../core/base/icons.js?v=20261018s';
+import { mockDB } from '../../core/domain/domain.js?v=20261018s';
+import { getAuthToken, getApiBaseUrl } from '../../data/data-adapter.js?v=20261018s';
+import { withSelectedBranchScope } from '../../data/api-adapter.js?v=20261018s';
 // 2026-09-29 批次 294（支书裁：收录权归宣传委员）：本页收录改**人工**——判据单一源 = 活动主源 `galleryFeatured`。
-import { isGalleryFeatured, isGalleryPinned } from '../../services/activity/activity.js?v=20261018r';
-import { badgeHtml } from '../ui/badges.js?v=20261018r';
-import { deriveActivityLifecycleStatus, ACTIVITY_LIFECYCLE } from '../record/inspector.js?v=20261018r';
+import { isGalleryFeatured, isGalleryPinned } from '../../services/activity/activity.js?v=20261018s';
+import { badgeHtml } from '../ui/badges.js?v=20261018s';
+import { deriveActivityLifecycleStatus, ACTIVITY_LIFECYCLE } from '../record/inspector.js?v=20261018s';
 
 const ACTIVITY_TYPE_COLORS = getActivityTypeColors({ withLabel: true });
 

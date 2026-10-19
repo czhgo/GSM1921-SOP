@@ -12,21 +12,21 @@
 //   · 材料读取：`mockDB.imageRecords` / `loadAttendanceRecords` / `mockDB.inspections` / `loadActivityReviews`；
 //   · 归档写口：`services/core/mock.js::archiveActivity`（经 BranchService 暴露，与宣传台 / 支书台同源）；
 //   · 空态：`components/ui/empty-state.js`；浮窗：`components/ui/modal.js`；版本戳：`core/base/version-token.js`。
-import { renderSidebar } from '../../components/shell/sidebar.js?v=20261018r';
-import { renderHeader } from '../../components/shell/header.js?v=20261018r';
-import { BranchService } from '../../services/core/runtime.js?v=20261018r';
-import { mockDB, ReviewStatus } from '../../core/domain/domain.js?v=20261018r';
-import { loadAttendanceRecords } from '../../services/activity/attendance.js?v=20261018r';
-import { loadActivityReviews } from '../../services/governance/review.js?v=20261018r';
-import { AuthStore } from '../../services/core/auth.js?v=20261018r';
-import { isActivityArchived } from '../../core/domain/constants.js?v=20261018r';
-import { getBasePath, escHtml as esc, showToast } from '../../core/base/utils.js?v=20261018r';
-import { emptyStateHtml } from '../../components/ui/empty-state.js?v=20261018r';
-import { openModal, closeModal } from '../../components/ui/modal.js?v=20261018r';
-import { bumpToken } from '../../core/base/version-token.js?v=20261018r';
-import { hydrateDataSource, notifyDataLoaded } from '../../data/data-adapter.js?v=20261018r';
-import { ApiAdapter } from '../../data/api-adapter.js?v=20261018r';
-import { settleWrites } from '../../core/session/pending-writes.js?v=20261018r';
+import { renderSidebar } from '../../components/shell/sidebar.js?v=20261018s';
+import { renderHeader } from '../../components/shell/header.js?v=20261018s';
+import { BranchService } from '../../services/core/runtime.js?v=20261018s';
+import { mockDB, ReviewStatus } from '../../core/domain/domain.js?v=20261018s';
+import { loadAttendanceRecords } from '../../services/activity/attendance.js?v=20261018s';
+import { loadActivityReviews } from '../../services/governance/review.js?v=20261018s';
+import { AuthStore } from '../../services/core/auth.js?v=20261018s';
+import { isActivityArchived } from '../../core/domain/constants.js?v=20261018s';
+import { getBasePath, escHtml as esc, showToast } from '../../core/base/utils.js?v=20261018s';
+import { emptyStateHtml } from '../../components/ui/empty-state.js?v=20261018s';
+import { openModal, closeModal } from '../../components/ui/modal.js?v=20261018s';
+import { bumpToken } from '../../core/base/version-token.js?v=20261018s';
+import { hydrateDataSource, notifyDataLoaded } from '../../data/data-adapter.js?v=20261018s';
+import { ApiAdapter } from '../../data/api-adapter.js?v=20261018s';
+import { settleWrites } from '../../core/session/pending-writes.js?v=20261018s';
 
 renderSidebar('dashboard');
 renderHeader('dashboard');

@@ -1,5 +1,5 @@
 /* 组件样式（@import 必须位于文件顶部） */
-@import url('components/person-picker.css?v=20261018r');
+@import url('components/person-picker.css?v=20261018s');
 
 /* ═══════════════════════════════════════════════════════════════
    GSM1921-SOP DESIGN SYSTEM v11.0 — Matte Flat
@@ -94,9 +94,9 @@
   /* ── 默认主题色（金色，2026-10-18 工作台提质）──
      所有角色无个人主题色时回退到金色；--accent-participant 是角色语义色（红），
      不随主题变化，故默认金使用独立令牌，不复用角色令牌。 */
-  --accent-default:        #A16207;
-  --accent-default-bg:     rgba(255, 215, 0, 0.12);
-  --accent-default-border: rgba(255, 215, 0, 0.35);
+  --accent-default:        #F5C518;
+  --accent-default-bg:     rgba(245, 197, 24, 0.14);
+  --accent-default-border: rgba(245, 197, 24, 0.45);
 
   /* ── 主题色运行时令牌（--app-accent 三件套）· 正式默认值（2026-09-28）──
      7 个工作台由 bootstrapPage（core/boot/bootstrap.js）/ theme.js 在 <html> 上注入当前用户主题色，
@@ -106,10 +106,11 @@
   --app-accent:        var(--accent-default);
   --app-accent-bg:     var(--accent-default-bg);
   --app-accent-border: var(--accent-default-border);
-  /* 主 CTA 实底专用：白字对比度不足的亮色角色（翠绿 / 天蓝 / 雾紫 / 亮蓝）压深一档，
-     仍保持角色色相；深色角色同步压深但观感仍是「角色色实底」，不再与深灰混成泥褐。
-     58% 实测调色板全色白字 ≥ 4.5:1（最差亮蓝 organizer ≈ 4.7:1）。 */
-  --app-accent-strong: color-mix(in srgb, var(--app-accent) 58%, black);
+  /* 主 CTA 实底专用：默认金用本色底 + 深字（accentButtonColors 按亮度分流；
+     暗色 accent 运行时注入 58% 压深底 + 白字，亮色保持本色 + 深字）。 */
+  --app-accent-strong: var(--app-accent);
+  --app-accent-ink: #1F2937;
+  --app-accent-text: #1F2937;
 
   /* ── Shape — 圆角 ── */
   --radius-sm: 8px;
@@ -864,7 +865,7 @@ button:disabled { cursor: not-allowed; }
 
 .btn-accent {
   background: var(--app-accent-strong);
-  color: #fff;
+  color: var(--app-accent-ink, #fff);
   border-radius: var(--radius-sm);
   transition: filter var(--transition-fast), opacity var(--transition-fast);
 }
@@ -873,7 +874,7 @@ button:disabled { cursor: not-allowed; }
 
 .btn-accent-soft {
   background: var(--app-accent-bg);
-  color: var(--app-accent);
+  color: var(--app-accent-text, var(--app-accent));
   border: 1px solid var(--app-accent-border);
   border-radius: var(--radius-sm);
   transition: background-color var(--transition-fast), filter var(--transition-fast);

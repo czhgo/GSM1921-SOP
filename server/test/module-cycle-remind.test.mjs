@@ -11,18 +11,18 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261018r';
-import { setDataSource } from '../../docs/src/data/data-adapter.js?v=20261018r';
-import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261018r';
+import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261018s';
+import { setDataSource } from '../../docs/src/data/data-adapter.js?v=20261018s';
+import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261018s';
 import {
   WORK_MAP_MODULES, ownerOfModule, moduleIdOfActivity, modulesWithCycle, cycleOfModule, expandWorkforce,
-} from '../../docs/src/core/domain/work-map.js?v=20261018r';
+} from '../../docs/src/core/domain/work-map.js?v=20261018s';
 import {
   CYCLE_UNITS, CYCLE_UNIT_LABELS, cyclePeriodOf, cyclePeriodLabel,
-} from '../../docs/src/core/base/period.js?v=20261018r';
+} from '../../docs/src/core/base/period.js?v=20261018s';
 import {
   REALTIME_GROUP_DOMAIN, MODULE_CYCLE_ACTION_KEY, buildModuleCycleRemindGroup,
-} from '../../docs/src/services/governance/todo.js?v=20261018r';
+} from '../../docs/src/services/governance/todo.js?v=20261018s';
 
 // ── localStorage 内存桩（与 todo-deriver-domain 同款）─────────────
 const _store = new Map();

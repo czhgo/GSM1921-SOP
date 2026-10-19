@@ -5,7 +5,7 @@
 // R-26③（2026-10-05 批次 388）：本件**只引一个零依赖叶子** `core/base/date.js`（取本地「今天」）——
 //   不成环、双端可载；**不得**引 `core/base/utils.js`（那会牵 `core/session/pending-writes.js`）。
 
-import { todayLocal } from '../base/date.js?v=20261018r';
+import { todayLocal } from '../base/date.js?v=20261018s';
 
 // ── 内联标签深色适配：深色三件套自动生成 ──────────────────────────
 // 深色模式下内联样式（background/color/border 浅底深字）不随主题反转，按「同色系提亮一档」为每个颜色条目
@@ -412,7 +412,7 @@ export const ACCENT_COLORS = {
   commissioner:        { hex: _C.orange700 },  // 同纪检（遗留键）
   organizer:           { hex: _C.sky300 },  // 亮天蓝 = 语义色 #0369A1（sky-700）同色系提亮（sky-300），同源（S6）
   deep:                { hex: _C.violet400 },  // 雾紫 = 语义色 #7C3AED（violet-600）同色系提亮（violet-400），同源（S6）
-  participant:         { hex: _C.yellow700, bg: 'rgba(255,215,0,0.12)', border: 'rgba(255,215,0,0.35)' },  // 金（主题党日胶囊三件套：亮金底+深金字+亮金边框，2026-08-08 四审改，与主题活动色同源）
+  participant:         { hex: '#F5C518', bg: 'rgba(245,197,24,0.14)', border: 'rgba(245,197,24,0.45)' },  // 金（现代金 #F5C518，2026-10-19 支书圈定；亮金底+深金字+亮金边框）
   all:                 { hex: _C.cyan700 },  // 深青
   purple:              { hex: _C.violet600 },  // 紫罗兰 = deep 语义色本身；色板专用别名键（非角色键，S8），供主题色选色板取用
 };
@@ -562,6 +562,25 @@ function _rgba(hex, alpha) {
   const g = parseInt(hex.slice(3, 5), 16);
   const b = parseInt(hex.slice(5, 7), 16);
   return `rgba(${r},${g},${b},${alpha})`;
+}
+
+/**
+ * accent hex → 实底按钮三件套（底 / 字 / 次操作淡底字）。
+ * 亮色（金/黄，WCAG 相对亮度 > 0.42）用本色底 + 深字；暗色用 58% 压深底 + 白字，
+ * 保证主 CTA 与淡底次操作在两种色相下都可读。
+ * @param {string} hex — 强调色 hex（如 '#F5C518'）
+ * @returns {{ strong:string, ink:string, text:string }}
+ */
+export function accentButtonColors(hex) {
+  const h = String(hex || '').replace('#', '');
+  if (h.length !== 6) return { strong: 'var(--app-accent)', ink: '#fff', text: 'var(--app-accent)' };
+  const r = parseInt(h.slice(0, 2), 16), g = parseInt(h.slice(2, 4), 16), b = parseInt(h.slice(4, 6), 16);
+  const rel = (c) => { c /= 255; return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4; };
+  const L = 0.2126 * rel(r) + 0.7152 * rel(g) + 0.0722 * rel(b);
+  // 亮色（金/黄）用本色底 + 深字；暗色用 58% 压深底 + 白字
+  return L > 0.42
+    ? { strong: hex, ink: '#1F2937', text: '#1F2937' }
+    : { strong: `color-mix(in srgb, ${hex} 58%, black)`, ink: '#fff', text: `color-mix(in srgb, ${hex} 60%, black)` };
 }
 
 /**

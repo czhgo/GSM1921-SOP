@@ -19,7 +19,7 @@ test('治理页面使用受约束的流动版心和共享卡片节奏', async ()
   assert.match(styles, /\.layout-shell\s*\{[\s\S]*?width:\s*100%[\s\S]*?margin-inline:\s*auto/);
   assert.match(styles, /layout-shell--content[\s\S]*?72rem/);
   assert.match(styles, /layout-shell--wide[\s\S]*?80rem/);
-  assert.match(styles, /layout-shell--form[\s\S]*?48rem/);
+  // 2026-10-19 口径同步：批次 467-471 已撤 `.layout-shell--form`（表单宽度改由 `.page-section--form` 承担）。
   assert.match(partyPage, /layout-shell layout-shell--wide/);
 });
 
@@ -73,10 +73,14 @@ test('党委五页共用页面骨架且不切换页面级版心', async () => {
     }
   }
   const styles = await read('../../docs/src/styles.css');
-  assert.match(styles, /\.page-frame\s*\{[^}]*max-width:\s*80rem/);
+  // 2026-10-19 口径同步（批次 467-471 已撤 `.party-page*` / `.page-section--reading`）：
+  //   党委五页共用工作台骨架，版心单一源改为 `.layout-shell--content` / `.page-frame--content` 72rem；
+  //   不再断言已不存在的 `.page-frame { max-width: 80rem }` 与 `.page-section--reading`。
+  assert.match(styles, /\.layout-shell--content\s*\{[^}]*max-width:\s*72rem/);
+  assert.match(styles, /\.page-frame--content\s*\{[^}]*max-width:\s*72rem/);
+  assert.doesNotMatch(styles, /\.page-section--reading/, '旧版心类已撤，不得回潮');
   assert.match(styles, /\.page-section--form\s*\{[^}]*width:\s*70%[^}]*max-width:\s*none/);
   assert.match(styles, /@media \(max-width: 768px\) \{[\s\S]*?\.page-section--form\s*\{\s*width:\s*100%/);
-  assert.match(styles, /\.page-section--reading\s*\{[^}]*72rem/);
   assert.match(styles, /\.data-table--compare\s*\{[^}]*width:\s*auto/);
 });
 

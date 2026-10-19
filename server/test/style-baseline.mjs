@@ -146,6 +146,10 @@ export const HEX_BASELINE = {
       '#059669', '#3b82f6', '#94a3b8', '#9ca3af', '#d1d5db', '#d97706',
       '#dc2626', '#f59e0b', '#f97316'
   ] },
+  // 2026-10-19 补齐历史漏登记（批次 485 新增文件未入基线）：3 处内联 `#1F2937` / `#fff`。
+  'docs/src/components/ui/relation-matrix.js': { c: 3, v: [
+      '#1f2937', '#fff'
+  ] },
   'docs/src/components/shell/header.js': { c: 5, v: [
       '#000', '#7a0010', '#fff', '#ffffff'
   ] },
@@ -212,15 +216,15 @@ export const HEX_BASELINE = {
       '#0ea5e9', '#16a34a', '#4f46e5', '#60a5fa', '#94a3b8', '#b91c1c',
       '#cbd5e1', '#ef4444', '#f59e0b'
   ] },
-  'docs/src/core/domain/constants.js': { c: 67, v: [
+  'docs/src/core/domain/constants.js': { c: 74, v: [
       '#000', '#0369a1', '#047857', '#059669', '#0e7490', '#0ea5e9',
-      '#10b981', '#16a34a', '#1d4ed8', '#22c55e', '#22d3ee', '#2563eb',
+      '#10b981', '#16a34a', '#1d4ed8', '#1f2937', '#22c55e', '#22d3ee', '#2563eb',
       '#34d399', '#38bdf8', '#3b82f6', '#4ade80', '#4b5563', '#4f46e5',
       '#60a5fa', '#6b7280', '#7c3aed', '#7dd3fc', '#92400e', '#94a3b8',
       '#991b1b', '#9b0000', '#a16207', '#a5b4fc', '#a78bfa', '#b91c1c',
       '#c2410c', '#c4b5fd', '#cbd5e1', '#ce1126', '#d4af37', '#d97706',
-      '#dc2626', '#f87171', '#fb923c', '#fbbf24', '#fee2e2', '#fef2f2',
-      '#fefce8', '#ffd700', '#fff'
+      '#dc2626', '#f5c518', '#f87171', '#fb923c', '#fbbf24', '#fee2e2',
+      '#fef2f2', '#fefce8', '#ffd700', '#fff'
   ] },
   'docs/src/data/data-adapter.js': { c: 7, v: [
       '#111827', '#374151', '#6b7280', '#9ca3af', '#d1d5db', '#f9fafb',
@@ -378,7 +382,7 @@ export const HEX_BASELINE = {
       '#cbd5e1', '#ce1126', '#d1d5db', '#d1fae5', '#d4af37', '#d8b4fe',
       '#d97706', '#dbeafe', '#dc2626', '#dcfce7', '#e0f2fe', '#e2e8f0',
       '#e5e7eb', '#ede9fe', '#ef4444', '#eff6ff', '#f0fdf4', '#f1f5f9',
-      '#f3f4f6', '#f59e0b', '#f87171', '#f8f9fa', '#f8fafc', '#f9fafb',
+      '#f3f4f6', '#f59e0b', '#f5c518', '#f87171', '#f8f9fa', '#f8fafc', '#f9fafb',
       '#facc15', '#fafaf5', '#fb923c', '#fbbf24', '#fca5a5', '#fcd34d',
       '#fda4af', '#fdba74', '#fde047', '#fde68a', '#fecaca', '#fed7aa',
       '#fee2e2', '#fef2f2', '#fef3c7', '#ffd700', '#fff', '#fff7ed',
@@ -422,6 +426,13 @@ export const HEX_TOTAL_BASELINE = 2025;
 //   6 个文件 c 下调（header 6→5 · org-setup-wizard 18→8 · references 17→16 · disc/inspection-tab 12→11 ·
 //   report-up-tab 5→3 · notice.js 3→2）。全站 distinct 值 168→167（`#c8102e` 全站消失）。
 //   `HEX_TOTAL_BASELINE` 有意保持 2025（存量起点）。
+//   2026-10-19 支书圈定现代金 #F5C518（默认金由深棕 #A16207 改回真金）：
+//   ① `core/domain/constants.js` 的 participant.hex 改 `#F5C518`，并新增 `accentButtonColors` 的深字
+//     `#1F2937`（两处）⇒ 该文件 c 由 67 按**实况**校准为 74（含历史未随注的 4 处），v 增补 `#f5c518`；
+//   ② `styles.css` 的 `--accent-default` / `--app-accent-ink` / `--app-accent-text` 增补 `#f5c518` / `#1F2937`
+//     ⇒ v 增补 `#f5c518`（c 维持 304，实测更低，H2 只判上涨）；
+//   ③ 同批补齐历史漏登记：`components/ui/relation-matrix.js`（批次 485 新增文件，3 处 `#1f2937`/`#fff`）
+//     ⇒ 文件数 74 → 75；全站 distinct 值 167 → 168。
 //   2026-09-28 色彩二分批（支书三条裁定：状态 vs 强调二分 + 存量全清含 Tailwind 耦合）：
 //   `docs/src/**` 内联样式的 `var(--tok, <硬编码兜底>)` 中，**`--tok` 已在 `:root` 有正式默认值者删兜底**
 //   （＝`var(--app-accent,#B91C1C)` / `var(--app-accent, #B91C1C)` / `var(--app-accent-bg,rgba(185,28,28,0.1))` 等
@@ -454,8 +465,8 @@ export const HEX_TOTAL_BASELINE = 2025;
 //   **删除** ⇒ 其 hex 条目一并删、**文件数声明 77 → 76**（与实况同值；`H3` 的非空转下限同步下沉到 76）。
 // ⚠ 2026-10-18 Task 7：`secretary/overview-tab.js` 改为六台共享概况外壳（不再直写主题色）
 //   ⇒ 该文件 hex 清零，按收基线纪律删条目、文件数声明 75 → 74（与实况同值；H3 防呆下限同步下沉）。
-export const HEX_FILE_BASELINE = 74;
-export const HEX_VALUE_BASELINE = 167;
+export const HEX_FILE_BASELINE = 75;
+export const HEX_VALUE_BASELINE = 168;
 
 /** 搬移例外台账（**人工填写**；守卫**不自动放宽**）——2026-09-25 支书裁定「开搬移例外」。
  *

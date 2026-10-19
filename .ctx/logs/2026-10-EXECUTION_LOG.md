@@ -2779,3 +2779,32 @@ $body
 - 转 Round 3：L-A01/A02/A04/A05/A06/A07/A10/A11/A12、L-B01/B04/B07/B08/B10/B12、L-C02/C03/C04/C05/C06/C07/C08/C09。
 - 转 Round 4：L-A03/A08、L-B02、L-C11。
 - 未启动 Round 3/4；未改后端 API / 数据模型 / 权限链；未实施 U-53；未为 P7 改 DESIGN_SYSTEM 的 13px 单档契约。
+
+## 批次 486（2026-10-19）：首页抬头、金色与按钮体例回归修复 ＋ 党委台支部摘要/名册
+
+### 一、判据
+
+- 支书实机审查：首页组织名与党徽消失；按钮变丑、半透明主题底消失；金色变成深棕；党委台支部数据疑似未同步。
+- 支书裁定：首页恢复「党徽 + 动态支部名」；按钮恢复半透明主题底；默认金改 `#F5C518`；党委台「摘要列 + 行内名册」两者都做。
+- 支书要求 Round 3 / Round 4 合并为 1 轮；另行落盘 Part B。
+
+### 二、动作
+
+- **首页抬头**：`index.html` 恢复党徽 48px + `#dashboard-hero-title` + 副标题；`main-entry.js` 用 `getHeaderTitle` 按登录态写动态支部名，不写死示例名。
+- **金色**：默认金 `#A16207` → `#F5C518`；新增 `accentButtonColors(hex)`，亮色（金）用本色底 + `#1F2937` 深字，暗色（红/绿/蓝）用 58% 压深底 + 白字；四个注入点同步写 `--app-accent-strong` / `--app-accent-ink` / `--app-accent-text`。
+- **按钮体例**：`.btn-accent` 用 `--app-accent-ink`；`.btn-accent-soft` 用 `--app-accent-text`；恢复 4 处高频动作（支书代归档/代提交复盘、组长发布本组通知、成员勾掉）为半透明主题底。
+- **党委台**：`branches-tab.js` 补「活动 / 专班 / 通知」三列（`11 / 35`、`4 / 8`、`14`），每行「名册」行内展开 50 人；保留「查看该支部」。实测确认无计算盲区：API summary 已含 50/21/35/8/14。
+- **守卫**：新增 `ui-home-hero`、`gold-accent-guard`、`party-branch-directory-guard`；同步批次 480 的 U8（允许抬头 H2/党徽）与批次 467-471 遗留的 `party-workbench-layout` 版心断言。
+- 版本戳 `20261018r → 20261018s`。
+
+### 三、读数
+
+- 静态 + a11y 组 **97/97 通过**（version-stamp 28、doc-consistency S1–S21、module-load 202/202、a11y A1–A6、hex H1–H5、button B1–B8、three new guards）。
+- 首页 1440 / 390：党徽在、标题「光华管理学院本科生党支部」、副标题「组织生活与工作台账」；`:root --app-accent=#F5C518 / --app-accent-ink=#1F2937`；无横向溢出。
+- 党委台 e2e：表头 9 列；行文本 `50 人 / 21 人 / 11 / 35 / 4 / 8 / 14`；名册展开 50 行，100 个档案链接。
+- 证据：`.ctx/evidence/2026-10-19/part-a-home-1440.png`、`part-a-home-390.png`、`part-a-workbench-1440.png`。
+
+### 四、边界
+
+- 本批只修回归与党委台摘要/名册；Part B（Round 3+4 合并审查）另行推进。
+- 未改后端 API / 数据模型 / 权限链；党委台只读边界不变；未撤销四类按钮体系；未改首页区块顺序。
