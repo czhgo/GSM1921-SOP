@@ -2,7 +2,7 @@
 title: "AI coding 技术层索引——网站系统的 AI coding 技术方法"
 type: index
 role: "[工程师]+[AI]"
-last_updated: "2026-09-26"
+last_updated: "2026-10-19"
 status: active
 ---
 
@@ -24,6 +24,7 @@ status: active
 | [CONTEXT_MANAGEMENT.md](CONTEXT_MANAGEMENT.md) | 上下文丢失后制度推断 / 上下文丢失教训 / 对话总结虚假完成 + 减负审查/只留当前/决策三分/看板归档/上下文工程/轮值推定/丙部触发（原 insights §2.1/§2.2/§2.5/§2.6/§3.1/§3.2/§3.3/§6.1/§6.5/§6.11 并入）；含支书裁决落活层闭环规则 | active |
 | [REVIEW_AND_EXPRESSION.md](REVIEW_AND_EXPRESSION.md) | 经验沉淀位置（insights 与 CLAUDE.md 分工）+ 内容归属/沉淀闭环/复盘理念/反论纪律/表达可读性/讲解三层/T3 行话/Skill 检验（原 insights §1.6/§3.4/§3.7/§4.5-§4.8/§4.12.6/§4.15/§5.10/§6.2/§6.18/§7.1-§7.5 并入） | on-demand |
 | [DATA_CONSISTENCY_CHECKLIST.md](DATA_CONSISTENCY_CHECKLIST.md) | 数据同源一致性校验手册（工程质检流程，按数据类别逐步检查；机器检查+人工检查分工）——测试验证纪律域**配套手册**，被 [TEST_AND_VERIFICATION.md](TEST_AND_VERIFICATION.md)「数据同源一致性校验」节引用 | on-demand |
+| [PARALLEL_SKILL_AUDIT.md](PARALLEL_SKILL_AUDIT.md) | 多代理独立审查操作手册（H21 详版；提示词模板 / 输出 schema / 汇总模板 / 决策记录 / 反模式 / 四轮路线图） | on-demand |
 
 > 各分篇小节标题保留「原 §N」出处备注以溯源（如「一改具改执行陷阱（原 KNOWN_PITFALLS §2）」）；篇内正文对原编号的交叉引用仅在本篇范围内保留原义；**跨篇互引必须带篇名 + 原编号**（如 FILE_OPERATION_RULES.md『同区域连续编辑相互覆盖陷阱』节（原 §14）），禁止裸「§N」。
 

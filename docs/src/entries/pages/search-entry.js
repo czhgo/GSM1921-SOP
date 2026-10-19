@@ -1,11 +1,11 @@
 // role: [工程师]+[AI]
 // search-entry.js — 资料查询独立入口（保持匿名可访：不强制登录，仅恢复数据源）
-import { ReferencesModule } from '../../components/sections/references.js?v=20261018o';
-import { renderSidebar } from '../../components/shell/sidebar.js?v=20261018o';
-import { renderHeader } from '../../components/shell/header.js?v=20261018o';
-import { BranchService } from '../../services/core/runtime.js?v=20261018o'; // 注册 mock/api 适配器 + BranchService 绑定（loadDB）
-import { hydrateDataSource } from '../../data/data-adapter.js?v=20261018o';
-import { ApiAdapter } from '../../data/api-adapter.js?v=20261018o';
+import { ReferencesModule } from '../../components/sections/references.js?v=20261018p';
+import { renderSidebar } from '../../components/shell/sidebar.js?v=20261018p';
+import { renderHeader } from '../../components/shell/header.js?v=20261018p';
+import { BranchService } from '../../services/core/runtime.js?v=20261018p'; // 注册 mock/api 适配器 + BranchService 绑定（loadDB）
+import { hydrateDataSource } from '../../data/data-adapter.js?v=20261018p';
+import { ApiAdapter } from '../../data/api-adapter.js?v=20261018p';
 
 renderSidebar('search');
 renderHeader('search');

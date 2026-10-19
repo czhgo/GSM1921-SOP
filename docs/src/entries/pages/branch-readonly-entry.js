@@ -1,15 +1,15 @@
 // 党委所选支部只读视图：页面身份不切换到支部工作台。
-import { renderSidebar } from '../../components/shell/sidebar.js?v=20261018o';
-import { renderHeader } from '../../components/shell/header.js?v=20261018o';
-import { AuthStore } from '../../services/core/auth.js?v=20261018o';
-import { BranchService } from '../../services/core/runtime.js?v=20261018o';
-import { PersonStore, getPersonName } from '../../services/member/person.js?v=20261018o';
-import { getBranchById } from '../../services/branch/branch.js?v=20261018o';
-import { ApiAdapter } from '../../data/api-adapter.js?v=20261018o';
-import { hydrateDataSource } from '../../data/data-adapter.js?v=20261018o';
-import { getBasePath, escHtml as esc } from '../../core/base/utils.js?v=20261018o';
-import { ROLE_LABELS } from '../../core/domain/constants.js?v=20261018o';
-import { renderPageHeader } from '../../components/shell/page-frame.js?v=20261018o';
+import { renderSidebar } from '../../components/shell/sidebar.js?v=20261018p';
+import { renderHeader } from '../../components/shell/header.js?v=20261018p';
+import { AuthStore } from '../../services/core/auth.js?v=20261018p';
+import { BranchService } from '../../services/core/runtime.js?v=20261018p';
+import { PersonStore, getPersonName } from '../../services/member/person.js?v=20261018p';
+import { getBranchById } from '../../services/branch/branch.js?v=20261018p';
+import { ApiAdapter } from '../../data/api-adapter.js?v=20261018p';
+import { hydrateDataSource } from '../../data/data-adapter.js?v=20261018p';
+import { getBasePath, escHtml as esc } from '../../core/base/utils.js?v=20261018p';
+import { ROLE_LABELS } from '../../core/domain/constants.js?v=20261018p';
+import { renderPageHeader } from '../../components/shell/page-frame.js?v=20261018p';
 
 renderSidebar('workspace');
 renderHeader('workspace');

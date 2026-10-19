@@ -8,13 +8,13 @@
 
 
 
-import { accDarkParts } from '../../core/domain/constants.js?v=20261018o';
+import { accDarkParts } from '../../core/domain/constants.js?v=20261018p';
 
-import { icon } from '../../core/base/icons.js?v=20261018o';
+import { icon } from '../../core/base/icons.js?v=20261018p';
 
 // R6 导航守卫（2026-09-03 P2a）：初始/目标 tab 决策收敛到纯函数 tab-nav.js（防「被支部隐藏后静默白屏」）
 
-import { resolveInitialTab, resolveTargetTab } from '../../core/boot/tab-nav.js?v=20261018o';
+import { resolveInitialTab, resolveTargetTab } from '../../core/boot/tab-nav.js?v=20261018p';
 
 
 

@@ -12,10 +12,10 @@
 //  任务完成数＝completed 数 / 非 cancelled 任务总数，无任务显示「—」；两类皆空则整卡隐藏。
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../../core/domain/domain.js?v=20261018o';
-import { listRowHtml, listGroupHtml } from '../ui/list-row.js?v=20261018o';
-import { AuthStore } from '../../services/core/auth.js?v=20261018o';
-import { getBasePath } from '../../core/base/utils.js?v=20261018o';
+import { mockDB } from '../../core/domain/domain.js?v=20261018p';
+import { listRowHtml, listGroupHtml } from '../ui/list-row.js?v=20261018p';
+import { AuthStore } from '../../services/core/auth.js?v=20261018p';
+import { getBasePath } from '../../core/base/utils.js?v=20261018p';
 
 const GROUP_LIMIT = 3;
 const STATUS_BADGE = {
@@ -59,7 +59,10 @@ const TASKFORCE_TAB = {
 };
 
 function _viewAllHref(kind) {
-  const role = AuthStore.getCurrentUser()?.role || 'participant';
+  const user = AuthStore.getCurrentUser();
+  // 未登录：与其他首页入口同口径，直达登录页（不保留工作台直达链接）。
+  if (!user) return `${getBasePath()}login.html`;
+  const role = user.role || 'participant';
   const page = ROLE_PAGE[role] || 'visitor.html';
   const tab = (kind === 'activity' ? ACTIVITY_TAB : TASKFORCE_TAB)[role] || 'tf-view';
   return `${getBasePath()}workspace/${page}?tab=${tab}`;

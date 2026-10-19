@@ -2,7 +2,7 @@
 title: "Org OS — 系统路线图与 Harness"
 type: roadmap
 role: "[工程师]+[AI]"
-last_updated: 2026-10-18
+last_updated: 2026-10-19
 status: active
 related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/DOC_MAP.md, content/01_strategy/SECRETARY_DIRECTIVES.md, content/01_strategy/, content/02_institution/, content/03_doc_system/, content/04_web_design/, content/05_ai_coding/, content/insights/, server/, .ctx/logs/]
 ---
@@ -69,7 +69,10 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/DOC
 
 > 🟡 **以下 4 步按顺序执行。**
 
+> 🔴 **多视角审查前置**：涉及脏乱繁 / 最小三成本 / 功能与美观 / 全栈数据结构设计的审查，先按 H21 完成独立审查与支书裁定，再进入实施。
+
 1. **Blueprint**：输出任务拆解计划与执行路径
+
 2. **实施**：调用对应工具执行任务
 3. **验收**：自动运行 `GetDiagnostics`；**涉及代码改动必须按 H25 测试系统运行相关测试**（前端多文件改动必跑 `server/test/module-load.test.mjs`，改动链接跑 link-integrity，改动 mock 数据跑 mock-integrity，改动活动/工作流/登录跑 agenda-flow + e2e-login），**不得仅以 GetDiagnostics 零错误代替运行验证**（语法对≠运行对，content/05_ai_coding/TEST_AND_VERIFICATION.md §17 子代理交付三查判例）
 4. **记录**：追加至 `.ctx/logs/YYYY-MM-EXECUTION_LOG.md`
@@ -215,6 +218,43 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/DOC
 - **E5 验证无闭环**：无「完成后如何证明」（可执行命令/检查清单）
 
 **流程**：扫描 → 逃逸点清单（位置+原文+E 分类+修复建议）→ 修复（软→硬）→ 检查要点库登记 → 支书复核。要点与判例见 REVIEW_QUEUE 附录⑦「AI逃逸捕捉」。
+
+***
+
+## H21. 多代理独立审查协议（2026-10-19 立 · 判例见 §H21.1）
+
+> 🔴 **何时用**：需要对同一批页面/代码做多视角批判性审查时（脏乱繁、最小三成本、功能与美观、全栈数据结构设计）。单视角任务不走本协议。
+
+**协议八条**：
+
+1. **定题**：主代理写清范围、文件/页面清单、四个待回答问题；一轮只审一个范围。
+2. **独立审查**：并行启动 N 个子代理；**每个代理只加载一个 skill**，不读其他代理报告，不共享中间结论。
+3. **证据**：每条发现必须带 `file:line`、DOM/计算样式、截图或运行结果；禁止只有形容词。
+4. **输出 schema**：现象 / 证据 / 影响 / 建议方向 / 严重度 / 是否可能与其他 lens 冲突。
+5. **汇总**：主代理只输出**共识 / 分歧 / 待裁定**；不得平均意见，不得替支书决定。
+6. **人类裁定**：每个分歧用 `AskUserQuestion` 给 2–4 个互斥选项；记录支书原话选择与日期；支书选择优先。
+7. **落 spec**：裁定转成 `spec.md` / `tasks.md` / `checklist.md`，再实施与验证。
+8. **复盘**：按 `sample-diff-learning` 记录「AI 假设 vs 人类意图」；可泛化规则写入 DESIGN_SYSTEM 或本判例，不造第二套。
+
+**反模式**：同一 skill 给两个代理；代理互读报告；主代理平均意见；无证据的「很脏/不美」；AI 替支书拍板；四轮同时开。
+
+### H21.1 判例：2026-10-19 脏乱繁三路审计
+
+- lens：`web-design-guidelines` / `design-with-taste` / `frontend-design`。
+- 结果：6 项共识（390 表格失守、页签被裁、待答复被折叠、指标重复、选人假模态、行内动作等权）；5 项分歧（移动表格卡式行 vs 冻结列、待答复露几条、主 CTA 颜色、活动风采去留、页签渐隐 vs 更多菜单）。
+- 支书四项裁定：390 表格卡式行；主 CTA 角色色全强度；待答复默认露 2 条；页签渐隐 + 箭头。
+- 落点：`.trae/specs/harden-mobile-and-primary-actions/`。
+
+### H21.2 四轮路线图（逐轮启动，不得同时开四轮）
+
+| 轮次 | 三路 lens | 状态 |
+|---|---|---|
+| Round 1 脏乱繁复审计 | `web-design-guidelines` / `design-with-taste` / `frontend-design` | 协议批准后启动 |
+| Round 2 最小三成本 | 信息 / 操作 / 学习成本三路，skill 待发现 | 待确认 |
+| Round 3 功能与美观 | 功能完整性 / 视觉主张 / 交互手感；前端 skill ≥3 | 待确认 |
+| Round 4 全栈数据结构设计 | 前端呈现 / 服务端 API / 数据模型 | 待确认 |
+
+> 详版：`content/05_ai_coding/PARALLEL_SKILL_AUDIT.md`（提示词模板 / 输出 schema / 汇总模板 / 决策记录 / 反模式）。
 
 ***
 
