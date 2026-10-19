@@ -20,33 +20,33 @@
 
 
 
-import { STATE, getAppState, setState, registerRenderCallback } from '../../core/base/state.js?v=20261018u';
+import { STATE, getAppState, setState, registerRenderCallback } from '../../core/base/state.js?v=20261019a';
 
-import { bootstrapPage } from '../../core/boot/bootstrap.js?v=20261018u';
-import { renderTabBar, tabContentSkeletonHtml } from './tab-bar.js?v=20261018u';
-import { flashHighlight, escHtml } from '../../core/base/utils.js?v=20261018u';
-import { CrossPageState } from '../../core/session/cross-page-state.js?v=20261018u';
-import { getCapabilities } from '../../core/boot/registry.js?v=20261018u';
-import { loadWorkspaceData } from '../../data/data-loader.js?v=20261018u';
+import { bootstrapPage } from '../../core/boot/bootstrap.js?v=20261019a';
+import { renderTabBar, tabContentSkeletonHtml } from './tab-bar.js?v=20261019a';
+import { flashHighlight, escHtml } from '../../core/base/utils.js?v=20261019a';
+import { CrossPageState } from '../../core/session/cross-page-state.js?v=20261019a';
+import { getCapabilities } from '../../core/boot/registry.js?v=20261019a';
+import { loadWorkspaceData } from '../../data/data-loader.js?v=20261019a';
 // 待批活动的可见性单一源（2026-09-22 批次 151）：种子兜底路径同样按查看者角色收窄（与 data-loader 同判据）
-import { filterActivitiesForViewer } from '../../services/core/visibility.js?v=20261018u';
+import { filterActivitiesForViewer } from '../../services/core/visibility.js?v=20261019a';
 
-import { TodoStore } from '../../services/governance/todo.js?v=20261018u';
-import { AuthStore } from '../../services/core/auth.js?v=20261018u';
-import { BranchService } from '../../services/core/runtime.js?v=20261018u';
-import { applyTabPolicy, getBranchIdOfPerson, getBranchWorkforce } from '../../services/branch/branch.js?v=20261018u';
+import { TodoStore } from '../../services/governance/todo.js?v=20261019a';
+import { AuthStore } from '../../services/core/auth.js?v=20261019a';
+import { BranchService } from '../../services/core/runtime.js?v=20261019a';
+import { applyTabPolicy, getBranchIdOfPerson, getBranchWorkforce } from '../../services/branch/branch.js?v=20261019a';
 // 设置中心批2（2026-09-09 支书批准 v3）：个人 tab 顺序覆盖（个人层；支部层=applyTabPolicy 之上叠加）
-import { applyPersonalTabOrder } from '../../services/core/preferences.js?v=20261018u';
+import { applyPersonalTabOrder } from '../../services/core/preferences.js?v=20261019a';
 // （丁）归属可转移：可转移页签的**判据单一源**（2026-10-05 批次 379 · `D-771`）——模块主责快照派生，
 //   禁前端写死「哪个 tab 长在哪个台」。
-import { TRANSFERABLE_TAB_ROWS, transferRowOf, transferTabDecision, expandWorkforce } from '../../core/domain/work-map.js?v=20261018u';
+import { TRANSFERABLE_TAB_ROWS, transferRowOf, transferTabDecision, expandWorkforce } from '../../core/domain/work-map.js?v=20261019a';
 // 「归属可转移」**原台页签声明单一源**（迁入时取**同一份声明**，勿在本处复制 render）：
 //   ⚠ 台账：`TRANSFERABLE_TAB_ROWS` 的每个 `page` 都必须在此有对应声明（新增行时同批补），
 //     由 `server/test/work-map.test.mjs` 断言 `page ∈ {org, disc, leader}` 守住。
 //   ⚠ 统一取**声明常量**而非各台 `tabs()`：后者是**查看者上下文相关**的（如组长台按「组织者兜底进入」过滤）。
-import { ORG_WORKSPACE_TAB_DECLS } from '../../capabilities/org-workspace.js?v=20261018u';
-import { DISC_WORKSPACE_TAB_DECLS } from '../../capabilities/disc-workspace.js?v=20261018u';
-import { LEADER_WORKSPACE_TAB_DECLS } from '../../capabilities/leader-workspace.js?v=20261018u';
+import { ORG_WORKSPACE_TAB_DECLS } from '../../capabilities/org-workspace.js?v=20261019a';
+import { DISC_WORKSPACE_TAB_DECLS } from '../../capabilities/disc-workspace.js?v=20261019a';
+import { LEADER_WORKSPACE_TAB_DECLS } from '../../capabilities/leader-workspace.js?v=20261019a';
 
 /** 台 → 页签声明（归属可转移迁入取用；单一源＝各台能力模块的声明常量） */
 const TRANSFER_HOME_DECLS = {
@@ -274,6 +274,10 @@ export async function createWorkspaceShell(opts) {
 
       highlightTfId: _highlightId,
 
+      // 材料页深链（2026-10-20 IA 修复）：目标活动 id，各页签渲染后自行滚到对应行 / 卡片。
+      // 与 legacy activityId 分开：不被各台 onNavTarget 劫持（只做定位，不切详情）。
+      focusActivityId: _navTarget ? (_navTarget.focusActivityId || null) : null,
+
       onNavLocated: () => { /* 高亮目标存活至抑制窗口结束（B1-5） */ },
 
     };
@@ -283,7 +287,22 @@ export async function createWorkspaceShell(opts) {
   }
 
   // A① 对象级深链锚点选择器（2026-09-10）：覆盖各承载 tab 已有的 data-* 锚点，data-id 兜底。
-  function _objectHighlightSelector(id) {
+  // F09（2026-10-20）：带 highlightType 时**只匹配该类型的锚点**，避免同一个 id 在别的语义里串味；
+  //   未给类型时保持原有全选择器兜底（零行为变化），并补 [data-act-id]（材料页 / 复盘卡需要）。
+  const HIGHLIGHT_TYPE_SELECTORS = {
+    p: (id) => [`[data-person-id="${id}"]`],
+    a: (id) => [`[data-act-id="${id}"]`],
+    t: (id) => [`[data-id="${id}"]`, `[data-tf-id="${id}"]`],
+    rq: (id) => [`[data-rq-id="${id}"]`, `[data-rq-card="${id}"]`],
+    tr: (id) => [`[data-tr-id="${id}"]`],
+    mcr: (id) => [`[data-mc-request-id="${id}"]`],
+    group: (id) => [`[data-group-key="${id}"]`],
+  };
+
+  function _objectHighlightSelector(id, type) {
+
+    const typed = HIGHLIGHT_TYPE_SELECTORS[type];
+    if (typed) return typed(id).join(',');
 
     return [
       `[data-group-key="${id}"]`,
@@ -293,6 +312,8 @@ export async function createWorkspaceShell(opts) {
       `[data-rq-card="${id}"]`,
 
       `[data-archive-id="${id}"]`,
+
+      `[data-act-id="${id}"]`,
 
       `[data-person-id="${id}"]`,
 
@@ -409,7 +430,14 @@ export async function createWorkspaceShell(opts) {
     // tab 合并/改名后的旧深链兼容（2026-09-15 纪检台：「补课」并入「考勤管理」）：
     // 旧 ?tab=<旧id> 落到承接 tab；仅当清单不含该 id 时按别名解析（清单命中优先，零影响现行 id）。
     // 已废止的旧 id（如纪检台「制度与文本」mailbox）不设别名。
-    const _legacyTabAliases = { 'workspace:disc': { makeup: 'attendance' } }[scope] || {};
+    // 2026-10-20 IA 修复批次：四台旧 id 一次性补齐（A04 org / A05-A06 党委 / 宣传 tf-view）；
+    //   disc/prop 的 tf-view 由其他批次承接，此处只登记其落点，不改其能力文件。
+    const _legacyTabAliases = {
+      'workspace:disc': { makeup: 'attendance', 'tf-view': 'calendar' },
+      'workspace:prop': { 'tf-view': 'kanban' },
+      'workspace:org': { 'tf-view': 'taskforce' },
+      'workspace:party-committee': { monitor: 'branches', 'governance-overview': 'review' },
+    }[scope] || {};
     const _resolveTabId = (id) => {
       if (!id) return id;
       if (tabs.some(t => t && t.id === id)) return id;
@@ -421,6 +449,9 @@ export async function createWorkspaceShell(opts) {
     const navTab = (navTabId && tabs.some(t => t && t.id === navTabId))
       ? navTabId
       : undefined;
+    // F08（2026-10-20）：?tab= 在别名解析后仍不在本台可见清单 → **不静默落默认 tab**，
+    // 在内容区上方给一条可见提示（否则用户会以为链接坏了）。
+    const navTabMissing = !!(navTabId && !navTab);
     const priorityTab = navTab || (defaultTab === 'today'
       ? undefined
       : (loadOptions.role && TodoStore.getGroupedByAction(loadOptions.role).length > 0 ? 'todo' : undefined));
@@ -463,6 +494,29 @@ export async function createWorkspaceShell(opts) {
 
     _currentTab = _tabBar.currentTab;
 
+    if (navTabMissing) _renderMissingTabNotice(container, _navTarget ? _navTarget.tab : '', tabs);
+
+  }
+
+  /**
+   * F08：URL ?tab= 不可用时的可见提示（＋「回今天」）。
+   * 提示放在页签栏与内容容器之间——各 tab 的 render 只重写自己的内容容器，不会把提示冲掉。
+   */
+  function _renderMissingTabNotice(container, requestedTab, tabs) {
+    if (!container || container.querySelector('[data-ws-tab-notice]')) return;
+    console.warn(`[ws-shell] ?tab=${requestedTab} 不在本台可见页签（含别名解析后），已回退默认页签并显示提示`);
+    const fallbackTab = tabs.some(t => t && t.id === 'today') ? 'today' : (tabs[0] && tabs[0].id);
+    const html = `<div data-ws-tab-notice role="status" class="card rounded-xl px-4 py-3 mb-3 flex items-center justify-between gap-3 flex-wrap">
+      <p class="text-xs text-amber-700">该页签已调整或对本角色不可用。</p>
+      <button type="button" class="btn-outline text-xs px-3 py-1.5" data-ws-tab-notice-home style="cursor:pointer;">回今天</button>
+    </div>`;
+    const contentEl = container.querySelector(`#${prefix}-tab-content`);
+    if (contentEl) contentEl.insertAdjacentHTML('beforebegin', html);
+    else container.insertAdjacentHTML('afterbegin', html);
+    container.querySelector('[data-ws-tab-notice-home]')?.addEventListener('click', () => {
+      container.querySelector('[data-ws-tab-notice]')?.remove();
+      if (fallbackTab && _tabBar) _tabBar.activate(fallbackTab, _renderCtx(getAppState()));
+    });
   }
 
 
@@ -547,9 +601,16 @@ export async function createWorkspaceShell(opts) {
 
       const hl = urlParams.highlight || null;
 
-      if (tfId || actId || urlParams.view === 'activities' || tab || hl) {
+      // F09：对象类型（p/a/t/rq/tr/mcr/group）；缺省＝沿用全选择器兜底。
+      const highlightType = urlParams.highlightType || null;
 
-        _navTarget = { tfId, actId, view: urlParams.view === 'activities', tab, hl };
+      // 材料闭环深链（2026-10-20）：focusActivityId 只做「滚到本场并闪烁」，**不进 legacy 导航分支**，
+      // 免得被各台 onNavTarget 当成 activityId 打开详情。
+      const focusActivityId = urlParams.focusActivityId || null;
+
+      if (tfId || actId || urlParams.view === 'activities' || tab || hl || focusActivityId) {
+
+        _navTarget = { tfId, actId, view: urlParams.view === 'activities', tab, hl, highlightType, focusActivityId };
 
         CrossPageState.clearParam('activityId');
 
@@ -560,6 +621,10 @@ export async function createWorkspaceShell(opts) {
         CrossPageState.clearParam('tab');
 
         CrossPageState.clearParam('highlight');
+
+        CrossPageState.clearParam('highlightType');
+
+        CrossPageState.clearParam('focusActivityId');
 
       }
 
@@ -586,11 +651,16 @@ export async function createWorkspaceShell(opts) {
 
       if (_navTarget.hl) {
 
-        _highlightId = _navTarget.hl;
+        const hlId = _navTarget.hl;
 
-        _highlightSel = _objectHighlightSelector(_navTarget.hl);
+        _highlightId = hlId;
+
+        _highlightSel = _objectHighlightSelector(hlId, _navTarget.highlightType);
 
         _locateHighlightObject(_highlightSel);
+
+        // F09：高亮只服务首屏定位——3 秒后清掉快照，避免后续重渲染仍把旧对象当落点。
+        setTimeout(() => { if (_highlightId === hlId) { _highlightId = null; _highlightSel = null; } }, NAV_SUPPRESS_MS);
 
       }
 

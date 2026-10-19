@@ -2,34 +2,36 @@
 // 宣传委员工作台 Tab：档案归档（T-279 M3 拆分，照 M2 样板）
 // 归档记录纯读 + 材料标准/模板 + 归档推进浮窗（材料确认清单）+ 上传宣传材料（attachments 双模式）。
 
-import { icon } from '../../../core/base/icons.js?v=20261018u';
-import { solidAccentStyle, activityTypeBadgeVariant, isActivityArchived } from '../../../core/domain/constants.js?v=20261018u';
-import { POLICY_DEFAULTS } from '../../../core/domain/policy-defaults.js?v=20261018u';
+import { icon } from '../../../core/base/icons.js?v=20261019a';
+import { solidAccentStyle, activityTypeBadgeVariant, isActivityArchived } from '../../../core/domain/constants.js?v=20261019a';
+import { POLICY_DEFAULTS } from '../../../core/domain/policy-defaults.js?v=20261019a';
 // 活动类型胶囊（批次 301）：类别色走单一源（三会一课＝brand 红 / 主题党日＝gold 金），渲染唯一源 badge.js
-import { badgeHtml } from '../../../components/ui/badges.js?v=20261018u'; // 扎口出口（批次 304 收回，勿直连 badge.js）
-import { showToast, downloadCSV, downloadBlob, downloadUrl, _fmtDate, escHtml, todayLocal } from '../../../core/base/utils.js?v=20261018u';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20261019a'; // 扎口出口（批次 304 收回，勿直连 badge.js）
+import { showToast, downloadCSV, downloadBlob, downloadUrl, _fmtDate, escHtml, todayLocal } from '../../../core/base/utils.js?v=20261019a';
 // 2026-09-21 批次 139：本 tab 的浮层是**自建浮层**（不走 components/ui/modal.js），页脚那条「相关设置」
 //   深链用 modal.js 导出的同一段标记（`settingsLinkHTML`）——不落第二份 HTML（仍是单一源）。
-import { settingsLinkHTML } from '../../../components/ui/modal.js?v=20261018u';
-import { persist, getAuthToken, getApiBaseUrl, getAdapter } from '../../../data/data-adapter.js?v=20261018u';
-import { withSelectedBranchScope } from '../../../data/api-adapter.js?v=20261018u';
-import { mockDB } from '../../../core/domain/domain.js?v=20261018u';
-import { bumpToken } from '../../../core/base/version-token.js?v=20261018u'; // P0 域缓存失效（spec §二.3）
-import { loadActivities, listPublicityDrafts, setPublicityDraftStatus, PUBLICITY_DRAFT_STATUS, listGalleryCandidates, setGalleryFeatured, setGalleryPinned, isGalleryFeatured, isGalleryPinned } from '../../../services/activity/activity.js?v=20261018u';
-import { isApiMode } from '../../../services/core/runtime.js?v=20261018u';
-import { AuthStore } from '../../../services/core/auth.js?v=20261018u';
-import { getPersonName } from '../../../services/member/person.js?v=20261018u';
+import { settingsLinkHTML } from '../../../components/ui/modal.js?v=20261019a';
+import { persist, getAuthToken, getApiBaseUrl, getAdapter } from '../../../data/data-adapter.js?v=20261019a';
+import { withSelectedBranchScope } from '../../../data/api-adapter.js?v=20261019a';
+import { mockDB } from '../../../core/domain/domain.js?v=20261019a';
+import { bumpToken } from '../../../core/base/version-token.js?v=20261019a'; // P0 域缓存失效（spec §二.3）
+import { loadActivities, listPublicityDrafts, setPublicityDraftStatus, PUBLICITY_DRAFT_STATUS, listGalleryCandidates, setGalleryFeatured, setGalleryPinned, isGalleryFeatured, isGalleryPinned } from '../../../services/activity/activity.js?v=20261019a';
+import { isApiMode } from '../../../services/core/runtime.js?v=20261019a';
+import { AuthStore } from '../../../services/core/auth.js?v=20261019a';
+import { getPersonName } from '../../../services/member/person.js?v=20261019a';
 // 批次 352（`D-746` · `D-744`② 业务过程类余项）：照片记录「作废（软）」——统一写口 ＋ 支委层判据
-import * as SoftVoid from '../../../services/governance/soft-void.js?v=20261018u';
-import { openVoidModal } from '../../../components/ui/void-record.js?v=20261018u';
-import { generateId } from '../../../core/base/id.js?v=20261018u';
-import { addExternalDispatch, loadExternalDispatches, loadActiveDispatches } from '../../../services/activity/external-dispatch.js?v=20261018u';
+import * as SoftVoid from '../../../services/governance/soft-void.js?v=20261019a';
+import { openVoidModal } from '../../../components/ui/void-record.js?v=20261019a';
+import { generateId } from '../../../core/base/id.js?v=20261019a';
+import { addExternalDispatch, loadExternalDispatches, loadActiveDispatches } from '../../../services/activity/external-dispatch.js?v=20261019a';
 // A② 归档缺口判据单一源（支书台「宣传材料待归档」实时组同源）：已归档但无归档记录的活动
-import { getArchiveGapActivities, getEndedUnarchivedActivities } from '../../../services/governance/secretary-overview.js?v=20261018u';
+import { getArchiveGapActivities, getEndedUnarchivedActivities } from '../../../services/governance/secretary-overview.js?v=20261019a';
 // 活动归档写口（与支书台活动管理同源：软删 archived=true + 级联完成下属任务）
-import { BranchService } from '../../../services/core/runtime.js?v=20261018u';
+import { BranchService } from '../../../services/core/runtime.js?v=20261019a';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是活动的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
-import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261018u';
+import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261019a';
+// 材料页深链 focusActivityId 的通用定位（只滚动 + 闪烁，不另造筛选器）
+import { focusActivityAnchor } from '../../../components/ui/detail-anchor.js?v=20261019a';
 
 // ── 档案归档 ─────────────────────────────────────────────
 // 种子数据已提升为全局（data/mock/seed.js SEED_ARCHIVE_RECORDS，loadDB 时注入），
@@ -73,6 +75,12 @@ export function renderContent(ctx) {
   const pendingArchives = getArchiveGapActivities().filter(isActivityArchived);
   // B4（2026-09-12）：宣传概况「待归档活动 N 个」判据 = 已结束未归档活动 → 归档页同判据列明细并可直接归档；2026-10-18 繁专项 Task 15：活动归档判据统一走 isActivityArchived（不再用活动状态判断已归档）。
   const endedUnarchived = getEndedUnarchivedActivities().filter(a => !isActivityArchived(a));
+  // B07（2026-10-20）：首屏只留「动作面」——待归档活动 / 宣传初稿 / 待补材料按处理先后前置；
+  //   归档记录 / 活动风采 / 照片墙属「已归档展示」，同屏会与动作面争首屏 ⇒ 合并进一张折叠区；
+  //   模板与材料标准说明是低频查阅 ⇒ 页尾折叠并给 help.html 深链（不占首屏）。
+  const archivedRecordCount = _loadArchiveRecords().length;
+  const galleryCount = listGalleryCandidates().length;
+  const photoCount = _loadImageRecords().length;
   container.innerHTML = `
     ${_renderWeeklySlot()}
 
@@ -87,23 +95,31 @@ export function renderContent(ctx) {
 
     ${_renderPublicityDraftSection(listPublicityDrafts())}
 
-    ${_renderGallerySection()}
-
     ${_renderPendingArchiveSection(pendingArchives)}
 
-    <div class="flex items-center gap-2 mb-2">
-      <h4 class="text-sm font-bold text-gray-700">归档记录</h4>
-    </div>
-    <div id="archive-list" class="mb-6"></div>
-
-    ${_renderPhotoWallSection(ctx)}
-
-    <div class="card rounded-xl p-5">
-      <div class="flex items-center gap-2 mb-3">
-        ${icon('download', { className: 'w-4 h-4 text-purple-600' })}
-        <h4 class="text-sm font-bold text-gray-700">模板下载</h4>
+    <details class="card rounded-xl p-4 mb-6" id="archive-display-fold">
+      <summary class="font-title-cn text-sm font-bold text-gray-700 cursor-pointer select-none">
+        已归档展示
+        <span class="text-xs font-normal text-gray-500 ml-1.5">归档记录 ${archivedRecordCount} · 活动风采 ${galleryCount} · 照片 ${photoCount}</span>
+      </summary>
+      <div class="mt-4 space-y-6">
+        <div>
+          <div class="flex items-center gap-2 mb-2">
+            <h4 class="text-sm font-bold text-gray-700">归档记录</h4>
+          </div>
+          <div id="archive-list"></div>
+        </div>
+        ${_renderGallerySection()}
+        ${_renderPhotoWallSection(ctx)}
       </div>
-      <div class="space-y-2">
+    </details>
+
+    <details class="card rounded-xl p-4" id="archive-template-fold">
+      <summary class="font-title-cn text-sm font-bold text-gray-700 cursor-pointer select-none">
+        归档模板与材料标准
+        <span class="text-xs font-normal text-gray-500 ml-1.5">下载 / 口径说明</span>
+      </summary>
+      <div class="mt-3 space-y-2">
         ${ARCHIVE_TEMPLATES.map(t => `
           <div class="flex items-center justify-between p-2.5 rounded-lg bg-gray-50">
             <div>
@@ -113,8 +129,11 @@ export function renderContent(ctx) {
             <button class="btn-outline archive-tpl-btn text-xs px-3 py-1.5" data-tpl-name="${t.name}">下载</button>
           </div>
         `).join('')}
+        <p class="text-xs text-gray-500 pt-1">材料标准（新闻稿 / 照片 / 视频 / 其他）与归档口径见
+          <a href="./help.html#card-dom38-archive" class="text-sky-600 hover:underline" title="见帮助：档案归档（材料标准 / 模板 / 上传与下载）">帮助 · 档案归档</a>。
+        </p>
       </div>
-    </div>
+    </details>
   `;
 
   // 周报（归档特例）折叠区：懒挂 `weekly-tab.js`（实现单一源，本页只提供宿主容器）
@@ -362,6 +381,9 @@ export function renderContent(ctx) {
   container.querySelector('#archive-upload-btn')?.addEventListener('click', () => {
     _showArchiveUploadModal(ctx);
   });
+
+  // 材料页深链（2026-10-20）：本场活动的归档行 / 待归档卡滚到视野（找不到则静默）。
+  focusActivityAnchor(container, ctx?.focusActivityId);
 }
 
 /** 活动风采「收录」管理（2026-09-29 批次 294 · 支书裁：「活动是否上传到活动风采」＝宣传委员之权）。
@@ -412,7 +434,7 @@ let _weeklyOpen = false;
 /** 懒挂周报内容到宿主容器（`weekly-tab.js` 的 `renderContent(ctx, host)` 已支持传入宿主） */
 function _mountWeekly(host, ctx) {
   host.dataset.weeklyMounted = '1';
-  import('./weekly-tab.js?v=20261018u').then(m => {
+  import('./weekly-tab.js?v=20261019a').then(m => {
     if (host.isConnected) m.renderContent(ctx, host);
   });
 }

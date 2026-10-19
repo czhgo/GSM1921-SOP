@@ -3,7 +3,7 @@
 <html lang="zh-CN">
 <head>
   
-<script src="./src/theme-init.js?v=20261018u"></script>
+<script src="./src/theme-init.js?v=20261019a"></script>
 <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>首页 — GSM1921-SOP</title>
@@ -15,9 +15,9 @@
   <noscript><link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;800&family=Noto+Serif+SC:wght@400;500;600;700;800&display=swap" rel="stylesheet"></noscript>
 
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="./src/tailwind-config.js?v=20261018u"></script>
+  <script src="./src/tailwind-config.js?v=20261019a"></script>
 
-  <link rel="stylesheet" href="./src/styles.css?v=20261018u">
+  <link rel="stylesheet" href="./src/styles.css?v=20261019a">
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
@@ -68,11 +68,11 @@
                      支书/组织/宣传/纪检/组长台 → `calendar`（活动管理/活动日历）；
                      成员台 → `activities` ＋ `data-ws-view=\"calendar\"`（`?tab=activities&subview=calendar`；
                      **参数名用 `subview`**：`view` 是工作台壳的既有协议参数、会被它消费清掉）；
-                     党委台无日历页签 → 最近的 `monitor`（支部动态）。禁止落到不存在的 id 后静默回「今天」。 -->
+                     党委台无日历页签 → 最近的 `branches`（支部管理；2026-10-20 批次 489 已撤「支部动态」）。禁止落到不存在的 id 后静默回「今天」。 -->
                 <a href="./workspace/visitor.html"
                    data-ws-tab="calendar"
                    data-ws-tab-visitor="activities"
-                   data-ws-tab-party-committee="monitor"
+                   data-ws-tab-party-committee="branches"
                    data-ws-view="calendar"
                    class="text-xs text-blue-600 hover:text-blue-800">完整日历 →</a>
               </div>
@@ -132,7 +132,7 @@
 
 
 
-<script type="module" src="./src/entries/pages/main-entry.js?v=20261018u"></script>
+<script type="module" src="./src/entries/pages/main-entry.js?v=20261019a"></script>
 
 </body>
 </html>

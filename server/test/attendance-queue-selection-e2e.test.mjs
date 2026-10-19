@@ -92,6 +92,8 @@ test('党小组会考勤并入总表筛选视图并保持只读', async () => {
       page.click('button[type="submit"]'),
     ]);
     await page.locator('.disc-tab-btn[data-disc-tab="attendance"]').click();
+    // 考勤页自批次 369 起分「确认与录入 / 数据查看」两视图；总表在「数据查看」内。
+    await page.locator('.att-view-btn[data-att-view="data"]').click();
     await page.locator('#att-table-container table tbody tr').first().waitFor({ state: 'visible', timeout: 15000 });
 
     assert.equal(await page.getByRole('heading', { name: '党小组会考勤（纪检只读掌握）' }).count(), 0,

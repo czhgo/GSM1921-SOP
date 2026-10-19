@@ -15,9 +15,9 @@ import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { createApp } from '../app.js';
 import { seedDatabase } from '../seed.js';
-import { resolveVoterIds, resolveParticipantIds } from '../../docs/src/services/activity/vote-config.js?v=20261018u';
-import { cleanParticipantPolicies } from '../../docs/src/services/branch/config-clean.js?v=20261018u';
-import { getWorkflowBlockParticipantPolicy } from '../../docs/src/services/branch/branch.js?v=20261018u';
+import { resolveVoterIds, resolveParticipantIds } from '../../docs/src/services/activity/vote-config.js?v=20261019a';
+import { cleanParticipantPolicies } from '../../docs/src/services/branch/config-clean.js?v=20261019a';
+import { getWorkflowBlockParticipantPolicy } from '../../docs/src/services/branch/branch.js?v=20261019a';
 
 let server, base;
 
@@ -119,11 +119,16 @@ test('③ HTTP：participantPolicies 净化往返 / 未写不引入该段 / bloc
   assert.equal(wp1.participantPolicies.bad, undefined, '非法空壳被丢弃');
   assert.ok(!Object.prototype.hasOwnProperty.call(wp1.participantPolicies[BLOCK], 'personIds'), '不含任何具体人名字段');
 
-  const r2 = await patchConfig(staff, { config: { blocks: { workflowBlocks: { hiddenBlockIds: [] } } } });
+  const r2 = await patchConfig(sec, { config: { blocks: { workflowBlocks: { hiddenBlockIds: [] } } } });
   assert.equal(r2.status, 200, '仅 workflowBlocks 合法');
   assert.equal((await r2.json()).config.blocks.workflowBlocks.participantPolicies, undefined, '未写则不引入该段');
 
-  const r3 = await patchConfig(staff, { config: { blocks: null } });
+  const r3 = await patchConfig(sec, { config: { blocks: null } });
   assert.equal(r3.status, 200, 'blocks=null 恢复默认');
   assert.equal((await r3.json()).config.blocks, null, 'blocks 全清');
+
+  // 党委不代支部选配（routes/resources/index.js:827）：写 blocks 一律 403
+  assert.equal((await patchConfig(staff, { config: { blocks: { workflowBlocks: { hiddenBlockIds: [] } } } })).status, 403,
+    '党委不得写 config.blocks');
+  assert.equal((await patchConfig(staff, { config: { blocks: null } })).status, 403, '党委不得恢复支部 blocks 默认');
 });

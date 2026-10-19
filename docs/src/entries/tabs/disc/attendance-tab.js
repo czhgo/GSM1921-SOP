@@ -12,39 +12,41 @@
 //   - 活动无上限 → 必须提供活动筛选（含时间区间）便于考察
 //   - 条目不得使用浅色底板（支书反感）→ 白底 + 左侧状态色条
 
-import { AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../../core/domain/domain.js?v=20261018u';
-import { generateId } from '../../../core/base/id.js?v=20261018u';
-import { attendanceToLong, loadAttendanceRecords, loadActiveAttendanceRecords, loadAttendanceRosterSnapshots, saveAttendanceRecords, canUploadAttendance, upsertMeetingAttendance, MEETING_ATTENDANCE_TYPES as MEETING_TYPES, ABSENCE_REASONS, absenceReasonLabel, absenceReasonNote, recorderRolesOf, listGroupMeetingAttendance, loadAttendanceAppeals, returnAttendanceAppeal, closeAttendanceAppeal, returnAttendanceRecord, summarizeAttendanceByActivity, isAttendanceHomePosition, freezeExpectedRosterForActivity } from '../../../services/activity/attendance.js?v=20261018u';
-import { buildAttendanceMatrixModel } from '../../../services/activity/attendance-matrix.js?v=20261018u';
-import { getPersonName } from '../../../services/member/person.js?v=20261018u';
+import { AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../../core/domain/domain.js?v=20261019a';
+import { generateId } from '../../../core/base/id.js?v=20261019a';
+import { attendanceToLong, loadAttendanceRecords, loadActiveAttendanceRecords, loadAttendanceRosterSnapshots, saveAttendanceRecords, canUploadAttendance, upsertMeetingAttendance, MEETING_ATTENDANCE_TYPES as MEETING_TYPES, ABSENCE_REASONS, absenceReasonLabel, absenceReasonNote, recorderRolesOf, listGroupMeetingAttendance, loadAttendanceAppeals, returnAttendanceAppeal, closeAttendanceAppeal, returnAttendanceRecord, summarizeAttendanceByActivity, isAttendanceHomePosition, freezeExpectedRosterForActivity, isAttendancePendingConfirm } from '../../../services/activity/attendance.js?v=20261019a';
+import { buildAttendanceMatrixModel } from '../../../services/activity/attendance-matrix.js?v=20261019a';
+import { getPersonName } from '../../../services/member/person.js?v=20261019a';
 // S1–S4 滞留党员设计（2026-09-06 支书已批）：会议考勤「应到清点/全选范围」= 应到名单口径
 // （党员 正式+预备 且非滞留；滞留者「可见但禁用」、党课列席不计应到），不再全支部 50 人候选
 // 附录⑩ A批·S1（2026-09-06 支书裁定）：滞留线下到场可「到场补录」计入到席（实际应到=预应到 K + 补录 L）
-import { getMeetingRoster, getRosterStats, getMeetingRosterCandidates } from '../../../services/member/roster.js?v=20261018u';
-import { solidAccentStyle, ROLE_LABELS, isActivityArchived, isActivityLive } from '../../../core/domain/constants.js?v=20261018u';
-import { loadActivities } from '../../../services/activity/activity.js?v=20261018u';
+import { getMeetingRoster, getRosterStats, getMeetingRosterCandidates } from '../../../services/member/roster.js?v=20261019a';
+import { solidAccentStyle, ROLE_LABELS, isActivityArchived, isActivityLive } from '../../../core/domain/constants.js?v=20261019a';
+import { loadActivities } from '../../../services/activity/activity.js?v=20261019a';
 // SOP-B-2（D-288）：考勤候选默认选中「已通过报名者」——报名名单的来源单一源 = SignupStore
-import { getApprovedSignupPersonIds } from '../../../services/activity/signup.js?v=20261018u';
-import { autoGenerateMakeupTask } from '../../../services/activity/makeup.js?v=20261018u';
-import { TodoStore, TodoSourceType } from '../../../services/governance/todo.js?v=20261018u';
-import { NoticeStore } from '../../../services/governance/notice.js?v=20261018u';
-import { enhanceSelects } from '../../../components/ui/custom-select.js?v=20261018u';
-import { badgeHtml } from '../../../components/ui/badges.js?v=20261018u';
+import { getApprovedSignupPersonIds } from '../../../services/activity/signup.js?v=20261019a';
+import { autoGenerateMakeupTask } from '../../../services/activity/makeup.js?v=20261019a';
+import { TodoStore, TodoSourceType } from '../../../services/governance/todo.js?v=20261019a';
+import { NoticeStore } from '../../../services/governance/notice.js?v=20261019a';
+import { enhanceSelects } from '../../../components/ui/custom-select.js?v=20261019a';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20261019a';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是人的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
 // pagerHtml = 翻页控件单一源（批次 38：全站手写翻页一律并轨；叶子件，避免与矩阵相互成环）
-import { pagerHtml } from '../../../components/ui/pager.js?v=20261018u';
+import { pagerHtml } from '../../../components/ui/pager.js?v=20261019a';
 // 人×项目矩阵单一源（支书 2026-09-14 批次 35 裁定：宽表默认 + 矩阵推广）
-import { renderRelationMatrix } from '../../../components/ui/relation-matrix.js?v=20261018u';
-import { showToast, downloadCSV, triggerPrint, _fmtDate, escHtml as esc, getBasePath, flashHighlight } from '../../../core/base/utils.js?v=20261018u';
-import { DISC_COMMISSIONER_ID } from './_shared.js?v=20261018u';
-import { HandoffStore } from '../../../services/governance/handoff.js?v=20261018u';
-import { AuthStore } from '../../../services/core/auth.js?v=20261018u';
-import { PersonPicker } from '../../../components/governance/pickers.js?v=20261018u';
+import { renderRelationMatrix } from '../../../components/ui/relation-matrix.js?v=20261019a';
+import { showToast, downloadCSV, triggerPrint, _fmtDate, escHtml as esc, getBasePath, flashHighlight } from '../../../core/base/utils.js?v=20261019a';
+import { DISC_COMMISSIONER_ID } from './_shared.js?v=20261019a';
+import { HandoffStore } from '../../../services/governance/handoff.js?v=20261019a';
+import { AuthStore } from '../../../services/core/auth.js?v=20261019a';
+import { PersonPicker } from '../../../components/governance/pickers.js?v=20261019a';
 // 通用浮窗 + 「本位」nudge 确认弹窗（2026-09-23 支书裁定 · 单一源 = components/ui/modal.js）
 // U-04：申诉打回原用 `window.prompt`（无对话框语义、无焦点接管、移动端样式原生）→ 换本组件 openModal。
-import { confirmNudge, openModal, closeModal } from '../../../components/ui/modal.js?v=20261018u';
+import { confirmNudge, openModal, closeModal } from '../../../components/ui/modal.js?v=20261019a';
 // 「补课」分段整段复用原独立 tab 的渲染（2026-09-15 支书裁定：补课并入考勤管理，内部逻辑不改写）
-import { renderContent as renderMakeupContent } from './makeup-tab.js?v=20261018u';
+import { renderContent as renderMakeupContent } from './makeup-tab.js?v=20261019a';
+// 材料页深链 focusActivityId 的通用定位（只滚动 + 闪烁，不另造筛选器）
+import { focusActivityAnchor } from '../../../components/ui/detail-anchor.js?v=20261019a';
 
 const PAGE_SIZE = 20; // 分页铁律：全量总表每页 20 条
 let _page = 1;        // 模块级分页状态（随模块自持）
@@ -125,6 +127,12 @@ export function renderContent(ctx) {
   }
 
   const { accent, accentRgba, accentBorder } = ctx;
+  // 材料页深链（2026-10-20）：本场活动预选进既有活动筛选（只在未设置时写一次，用户「清除聚焦」后不再回填）；
+  // 同时落到「数据查看」视图——只有该视图才渲染活动行/矩阵，否则深链到了也看不到本场。
+  if (ctx?.focusActivityId && ctx.attendanceFilterActId === undefined) {
+    ctx.attendanceFilterActId = ctx.focusActivityId;
+    _attendanceView = 'data';
+  }
   const filterActivityId = ctx?.attendanceFilterActId || null;
 
   const allRecords = loadActiveAttendanceRecords();
@@ -141,11 +149,11 @@ export function renderContent(ctx) {
   // ── 待确认集合（队列）：异常驱动（T-304 第5轮 · 源头审校+异常驱动）
   // 准则：出勤/已补视为上传方已审校（自动确认，不进队列）；纪检只处理异常（缺勤/请假，含超期）。
   // SOP-B-42（`D-456`）：**已打回**的记录不进纪检队列——回退态交活动组织方重新确认（见队列卡下方只读区）。
+  // D06（方案 b）：会议考勤「录入即确认」（recordedBy=录入人）⇒ 自己刚录的记录不会出现在本队列；
+  //   判据单一源 = services/activity/attendance.js::isAttendancePendingConfirm。
   const isRegular = r => r.status === AttendanceStatus.PRESENT || r.status === AttendanceStatus.MADE_UP;
   const now = new Date();
-  const pendingRecs = allRecords.filter(r =>
-    !r.recordedBy && !isRegular(r) && !r.returnedBy
-  );
+  const pendingRecs = allRecords.filter(isAttendancePendingConfirm);
   const overdueRecs = allRecords.filter(r => {
     if (r.recordedBy || isRegular(r) || r.returnedBy) return false;
     const act = actById.get(r.activityId);
@@ -384,7 +392,7 @@ export function renderContent(ctx) {
     if (res.added > 0 || res.updated > 0) {
       records.forEach(r => autoGenerateMakeupTask(r));
       const makeupNote = makeupIds.length > 0 ? ` · 滞留到场补录 ${makeupIds.length}` : '';
-      showToast('success', `会议考勤提交成功：新增 ${res.added} · 更正 ${res.updated} · 跳过 ${res.skipped}${makeupNote}（录入即确认/更正）`);
+      showToast('success', `会议考勤已录入：新增 ${res.added} · 更正 ${res.updated} · 跳过 ${res.skipped}${makeupNote}（录入即确认，不进待确认队列）`);
       // 提交成功后才重置会话（收起表单、销毁 picker、清空已选与补录勾选）
       _meetFormVisible = false;
       _meetMakeupIds.clear();
@@ -448,7 +456,7 @@ export function renderContent(ctx) {
     const rows = applyTableFilter(longData, allRecords, actById).map(a => {
       const rec = allRecords.find(r => r.id === a.id);
       const autoConfirmed = rec && !rec.recordedBy && (rec.status === AttendanceStatus.PRESENT || rec.status === AttendanceStatus.MADE_UP);
-      return [a.name, a.studentId, a.developStage, a.partyGroup, a.activity, a.type, a.status, autoConfirmed ? '自动确认' : a.confirmer];
+      return [a.name, a.studentId, a.developStage, a.partyGroup, a.activity, a.type, a.status, autoConfirmed ? '已录入（源头审校）' : a.confirmer];
     });
     downloadCSV(`考勤汇总_${stamp}.csv`, ['姓名', '学号', '发展阶段', '所属党小组', '活动', '类别', '状态', '确认人'], rows);
     showToast('success', `考勤汇总已导出（${rows.length} 条）`);
@@ -466,8 +474,9 @@ export function renderContent(ctx) {
     showToast('success', `本月出勤率汇总已导出（支委会内部使用，${sum.rows.length} 场 · 合计 ${sum.rate}%）`);
   });
   container.querySelector('.att-handoff-btn')?.addEventListener('click', () => {
-    if (HandoffStore.hasPendingFor('attendance-archival', 'attendance')) {
-      showToast('info', '考勤统计已提交待支委会接收，请勿重复提交');
+    // D04：考勤统计是 auto 类交接——发起即送达，不再有「待接收」。
+    if (HandoffStore.hasFor('attendance-archival', 'attendance')) {
+      showToast('info', '考勤统计已自动送达组织委员，无需重复提交');
       return;
     }
     // 未确认口径与队列/总表**同源**（D-455：出勤/已补＝源头审校自动确认，不进待确认）——
@@ -487,7 +496,7 @@ export function renderContent(ctx) {
       // 不再提交宣传备案；补课记录随考勤一并归档（系统自动同步，不另设个人「归档审查」动作）。
       note: `考勤统计共 ${allRecords.length} 条（含补课记录，随考勤一并归档），提交支委会`,
     });
-    showToast('success', '考勤统计已提交至支委会，等待组织委员接收');
+    showToast('success', '考勤统计已自动送达组织委员（台账留痕，无需接收确认）');
     renderContent(ctx);
   });
 
@@ -500,6 +509,8 @@ export function renderContent(ctx) {
     const tEl = document.getElementById('att-table-container');
     if (mEl && mEl.isConnected) renderMatrix();
     if (tEl && tEl.isConnected) renderTable();
+    // 材料页深链：表格/矩阵填充后再定位本场活动（首帧骨架期找不到行）。
+    focusActivityAnchor(container, ctx?.focusActivityId);
   });
 }
 
@@ -578,7 +589,7 @@ function _buildQueueHTML(items, returnedRecs, leaveCount, absentCount, overdueCo
   const listHtml = total === 0
     ? `<div class="py-5 text-center">
         <div class="text-sm font-medium text-gray-700 mb-1">无待处理异常 ✓</div>
-        <div class="text-xs text-gray-500">出勤/已补已源头审校自动确认${autoConfirmedCount > 0 ? `（${autoConfirmedCount} 条）` : ''}，缺勤/请假已全部确认</div>
+        <div class="text-xs text-gray-500">出勤/已补已源头审校自动确认${autoConfirmedCount > 0 ? `（${autoConfirmedCount} 条）` : ''}，缺勤/请假已全部处理；会议考勤录入即确认，不会回落到本队列</div>
       </div>`
     : `<div class="space-y-1.5">${visible.map(rowHtml).join('')}
       ${total > QUEUE_VISIBLE ? `
@@ -619,10 +630,10 @@ function _buildQueueHTML(items, returnedRecs, leaveCount, absentCount, overdueCo
           <span class="text-gray-600">请假 <span class="font-bold text-orange-700">${leaveCount}</span></span>
           <span class="text-gray-600">缺勤 <span class="font-bold text-red-700">${absentCount}</span></span>
           <span class="text-gray-600">超期 <span class="font-bold text-amber-700">${overdueCount}</span></span>
-          ${autoConfirmedCount > 0 ? `<span class="text-gray-500">出勤自动确认 <span class="font-bold text-green-700">${autoConfirmedCount}</span></span>` : ''}
+          ${autoConfirmedCount > 0 ? `<span class="text-gray-500">出勤已录入 <span class="font-bold text-green-700">${autoConfirmedCount}</span></span>` : ''}
         </div>
       </div>
-      <div class="text-xs text-gray-500 mb-2">打包确认：先勾选本次要确认的记录，再一次确认；单条有误可「打回」交活动组织方重新确认。</div>
+      <div class="text-xs text-gray-500 mb-2">打包确认：先勾选本次要确认的记录，再一次确认；单条有误可「打回」交活动组织方重新确认。<br>本队列只列<b>他人上传、尚未确认</b>的异常记录；「会议考勤录入」为<b>录入即确认</b>（录入人本人记名），录入后不进入本队列。</div>
       ${listHtml}
       ${returnedHtml}
     </div>
@@ -846,7 +857,7 @@ function _buildMeetingCardHTML(ctx, accent, accentBorder, actById) {
         <button id="disc-meet-submit" class="btn-accent text-sm px-4 py-[7px]">提交录入</button>
         <button id="disc-meet-cancel" class="btn-outline text-sm px-4 py-1.5">取消</button>
       </div>
-      <div class="mt-3 text-[11px] text-gray-500">录入即确认（录入人本人记名；缺勤 / 请假须选标因）。<a href="./help.html#card-copy-attendance-record" class="text-sky-600 hover:underline">见帮助 · 考勤录入口径</a>
+      <div class="mt-3 text-[11px] text-gray-500">录入即确认：提交后记录人即确认人，<b>不再进入「待确认考勤」队列</b>（缺勤 / 请假须选标因）。<a href="./help.html#card-copy-attendance-record" class="text-sky-600 hover:underline">见帮助 · 考勤录入口径</a>
         <details class="mt-1">
           <summary class="text-[11px] text-gray-500 cursor-pointer select-none">标注原因与更正口径 ▾</summary>
           <div class="leading-5 mt-1">标因：事假 / 病假 / 无故 / 其它（纪检认定）；时效为提示、非校验。滞留到场勾「到场补录」；已录由本人更正。详见帮助。</div>
@@ -1211,7 +1222,7 @@ function _buildTableCardHTML(ctx, allRecords, longData, actById, filterActivityI
   const total = longData.length;
   // 待确认 = 仅异常（缺勤/请假）未确认；出勤/已补源头审校自动确认不计入
   const isRegular = r => r.status === AttendanceStatus.PRESENT || r.status === AttendanceStatus.MADE_UP;
-  const totalPending = allRecords.filter(r => !r.recordedBy && !r.returnedBy && !isRegular(r)).length;
+  const totalPending = allRecords.filter(isAttendancePendingConfirm).length;
   const totalAuto = allRecords.filter(r => !r.recordedBy && isRegular(r)).length;
   return `
     <div class="card rounded-xl p-5">
@@ -1221,8 +1232,8 @@ function _buildTableCardHTML(ctx, allRecords, longData, actById, filterActivityI
           <div class="flex gap-2 text-xs">
             <span class="text-gray-600">共 <span class="font-bold text-gray-800">${total}</span> 条</span>
             <span class="text-gray-600">待确认 <span class="font-bold text-orange-700">${totalPending}</span></span>
-            ${totalAuto > 0 ? `<span class="text-gray-500">自动确认 <span class="font-bold text-green-700">${totalAuto}</span></span>` : ''}
-            ${HandoffStore.hasPendingFor('attendance-archival', 'attendance') ? '<span class="text-teal-600 font-medium">待支委会接收</span>' : ''}
+            ${totalAuto > 0 ? `<span class="text-gray-500">已录入 <span class="font-bold text-green-700">${totalAuto}</span></span>` : ''}
+            ${HandoffStore.hasFor('attendance-archival', 'attendance') ? '<span class="text-teal-600 font-medium">已自动送达</span>' : ''}
           </div>
         </div>
         <!-- U5b（2026-09-07）：低频操作钮统一 32px 圆角（与分页钮/下拉同高同 border 家族，hover 统一 bg-gray-50） -->

@@ -12,10 +12,10 @@
 //  任务完成数＝completed 数 / 非 cancelled 任务总数，无任务显示「—」；两类皆空则整卡隐藏。
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../../core/domain/domain.js?v=20261018u';
-import { listRowHtml, listGroupHtml } from '../ui/list-row.js?v=20261018u';
-import { AuthStore } from '../../services/core/auth.js?v=20261018u';
-import { getBasePath } from '../../core/base/utils.js?v=20261018u';
+import { mockDB } from '../../core/domain/domain.js?v=20261019a';
+import { listRowHtml, listGroupHtml } from '../ui/list-row.js?v=20261019a';
+import { AuthStore } from '../../services/core/auth.js?v=20261019a';
+import { getBasePath } from '../../core/base/utils.js?v=20261019a';
 
 const GROUP_LIMIT = 3;
 const STATUS_BADGE = {
@@ -45,17 +45,26 @@ const ACTIVITY_TAB = {
   'disc-commissioner': 'calendar',
   leader: 'calendar',
   participant: 'activities',
-  'party-staff': 'monitor',
+  // 2026-10-20 批次 489：党委台无活动日历页签，活动工作组「查看全部」落支部管理（汇总面）。
+  'party-staff': 'branches',
+};
+// 2026-10-20 批次 489（IA-A01/A03 裁定）：纪检/组长台已不再用「知情查看」承载专班
+//   ⇒ 专班「查看全部」改落专班详情页；下表仍保留两键（`tf-view`）只为活动/未知分支兜底，
+//   实际命中由上方 TASKFORCE_HREF 覆盖。
+const TASKFORCE_HREF = {
+  'disc-commissioner': 'taskforce.html',
+  leader: 'taskforce.html',
 };
 const TASKFORCE_TAB = {
   secretary: 'tf-view',
   'deputy-secretary': 'tf-view',
   'org-commissioner': 'taskforce',
-  'prop-commissioner': 'tf-view',
+  'prop-commissioner': 'kanban',
   'disc-commissioner': 'tf-view',
   leader: 'tf-view',
   participant: 'tf-view',
-  'party-staff': 'monitor',
+  // 2026-10-20 批次 489：党委台无专班页签，专班工作组「查看全部」落支部管理（汇总面）。
+  'party-staff': 'branches',
 };
 
 function _viewAllHref(kind) {
@@ -63,6 +72,8 @@ function _viewAllHref(kind) {
   // 未登录：与其他首页入口同口径，直达登录页（不保留工作台直达链接）。
   if (!user) return `${getBasePath()}login.html`;
   const role = user.role || 'participant';
+  // 纪检/组长的专班知情已改由详情页承载（页签已删/不再出专班段）。
+  if (kind === 'taskforce' && TASKFORCE_HREF[role]) return `${getBasePath()}${TASKFORCE_HREF[role]}`;
   const page = ROLE_PAGE[role] || 'visitor.html';
   const tab = (kind === 'activity' ? ACTIVITY_TAB : TASKFORCE_TAB)[role] || 'tf-view';
   return `${getBasePath()}workspace/${page}?tab=${tab}`;

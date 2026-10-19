@@ -9,18 +9,18 @@
 //（listPeriodicArchivesPendingReview / reviewPeriodicArchive / PERIODIC_ARCHIVE_REVIEW_STATUS），
 // 本页只做呈现与交互，不另写状态名、不改后端 API/数据模型/权限链。
 
-import { AuthStore } from '../../../services/core/auth.js?v=20261018u';
-import { renderWorkOverview } from '../../../components/governance/work-overview.js?v=20261018u';
+import { AuthStore } from '../../../services/core/auth.js?v=20261019a';
+import { renderWorkOverview } from '../../../components/governance/work-overview.js?v=20261019a';
 import {
   listPeriodicArchivesPendingReview, reviewPeriodicArchive,
-} from '../../../services/governance/secretary-overview.js?v=20261018u';
-import { getPersonName } from '../../../services/member/person.js?v=20261018u';
-import { listRowHtml, listGroupHtml } from '../../../components/ui/list-row.js?v=20261018u';
-import { emptyStateHtml } from '../../../components/ui/empty-state.js?v=20261018u';
-import { openModal, closeModal } from '../../../components/ui/modal.js?v=20261018u';
+} from '../../../services/governance/secretary-overview.js?v=20261019a';
+import { getPersonName } from '../../../services/member/person.js?v=20261019a';
+import { listRowHtml, listGroupHtml } from '../../../components/ui/list-row.js?v=20261019a';
+import { emptyStateHtml } from '../../../components/ui/empty-state.js?v=20261019a';
+import { openModal, closeModal } from '../../../components/ui/modal.js?v=20261019a';
 import {
   showToast, flashHighlight, getBasePath, escHtml as esc,
-} from '../../../core/base/utils.js?v=20261018u';
+} from '../../../core/base/utils.js?v=20261019a';
 
 const OVERVIEW_TAB_HTML = `
   <div id="secretary-overview-content"></div>
@@ -102,7 +102,9 @@ function _periodicReviewSectionHtml(reports) {
     ${rows.length
       ? listGroupHtml(rows)
       : emptyStateHtml('暂无待审周期归档', {
-        actionHtml: `<a class="btn-outline btn-sm text-accent" href="${getBasePath()}workspace/prop.html?tab=archive">去宣传台查看<span aria-hidden="true">›</span></a>`,
+        // C07（2026-10-20）：支书/副支书已不进宣传台（D-807④，跨台会被身份门弹回）——
+        // 改为落本台待办（代归档口径），不再指向 prop.html。
+        actionHtml: `<a class="btn-outline btn-sm text-accent" href="${getBasePath()}workspace/secretary.html?tab=todo">去待办（代归档）<span aria-hidden="true">›</span></a>`,
       })}
   </section>`;
 }

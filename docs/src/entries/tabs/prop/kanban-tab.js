@@ -2,17 +2,17 @@
 // 宣传委员工作台 Tab：项目看板（T-279 M3 拆分，照 M2 样板）
 // 活动/专班合并看板（活动+专班分桶）+ 专班工作量区块；从 TaskForceRecordStore 动态派生（H-1 数据断裂修复）。
 
-import { badgeHtml } from '../../../components/ui/badges.js?v=20261018u';
-import { BranchService } from '../../../services/core/runtime.js?v=20261018u';
-import { TodoStore, TodoSourceType } from '../../../services/governance/todo.js?v=20261018u';
-import { persist } from '../../../data/data-adapter.js?v=20261018u';
-import { showToast, escHtml as esc } from '../../../core/base/utils.js?v=20261018u';
-import { setState } from '../../../core/base/state.js?v=20261018u';
-import { resolveDocumentUrl } from '../../../core/base/page-url.js?v=20261018u';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20261019a';
+import { BranchService } from '../../../services/core/runtime.js?v=20261019a';
+import { TodoStore, TodoSourceType } from '../../../services/governance/todo.js?v=20261019a';
+import { persist } from '../../../data/data-adapter.js?v=20261019a';
+import { showToast, escHtml as esc } from '../../../core/base/utils.js?v=20261019a';
+import { setState } from '../../../core/base/state.js?v=20261019a';
+import { resolveDocumentUrl } from '../../../core/base/page-url.js?v=20261019a';
 // 「已归档」判据单一源（只看 archived === true；不得再把 status === 'completed' 当归档）
-import { isActivityArchived } from '../../../core/domain/constants.js?v=20261018u';
+import { isActivityArchived } from '../../../core/domain/constants.js?v=20261019a';
 // 统一检索引擎（2026-09-14 批次 37）：三桶各接一个实例（keyword null + facets [] → 仅分页，保持三桶观感）
-import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261018u';
+import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261019a';
 
 export function renderContent(ctx) {
   const container = document.getElementById('prop-tab-content');
@@ -22,17 +22,16 @@ export function renderContent(ctx) {
   const propTf = ctx.propTf || [];
 
   // ── 从 TaskForceRecordStore 动态派生看板数据（H-1 数据断裂修复） ──
-  // 活动分桶：已归档只看单一源 isActivityArchived；status='completed' 只表示「已结束、待归档」。
+  // A07（2026-10-20 IA 修复批次）：本页**不再保留归档桶**——归档动作统一落「档案归档」页签
+  //   （`?tab=archive`）。已归档活动仍按单一源 isActivityArchived 挡在在办视图之外，
+  //   但不再于本页列出（避免与 archive 页形成第二个同构入口）。
   const unarchivedActs = activities.filter(a => !isActivityArchived(a));
-  const archivedActs = activities.filter(a => isActivityArchived(a));
-  const pendingArchiveActs = unarchivedActs.filter(a => a.status === 'completed');
   const pendingActs = unarchivedActs.filter(a => a.status === 'draft');
   const activeActs = unarchivedActs.filter(a => a.status === 'published' || a.status === 'ongoing');
 
   // 专班按状态分桶（宣传相关；专班无 archived 活动判据，保持现状）
   const pendingTf = propTf.filter(t => t.status === 'draft' || t.status === 'pending_review' || t.status === 'recruiting');
   const activeTf = propTf.filter(t => t.status === 'active');
-  const completedTf = propTf.filter(t => t.status === 'completed' || t.status === 'archived' || t.status === 'dissolved');
 
   // 合并待启动：活动 + 专班（T223 桶内新者在前）
   const pending = [
@@ -43,15 +42,6 @@ export function renderContent(ctx) {
   const active = [
     ...activeActs.map(a => ({ _type: 'activity', ...a })),
     ...activeTf.map(t => ({ _type: 'taskforce', id: t.id, title: t.name, date: t.deadline || t.createdAt, type: '专班', status: t.status, task: t.task, capacity: t.capacity, filled: t.members.filter(m => m.personId).length, contributions: t.members.reduce((s, m) => s + ((m.contributions || []).length), 0) })),
-  ].sort((a, b) => (b.date || '').localeCompare(a.date || ''));
-  // 待归档：已结束但未归档的活动（不混入已归档；专班无此判据）
-  const pendingArchive = pendingArchiveActs
-    .map(a => ({ _type: 'activity', ...a }))
-    .sort((a, b) => (b.date || '').localeCompare(a.date || ''));
-  // 合并已归档：已归档活动 + 已结束专班（T223 桶内新者在前）
-  const archived = [
-    ...archivedActs.map(a => ({ _type: 'activity', ...a })),
-    ...completedTf.map(t => ({ _type: 'taskforce', id: t.id, title: t.name, date: t.deadline || t.createdAt, type: '专班', status: t.status, task: t.task, capacity: t.capacity, filled: t.members.filter(m => m.personId).length, contributions: t.members.reduce((s, m) => s + ((m.contributions || []).length), 0) })),
   ].sort((a, b) => (b.date || '').localeCompare(a.date || ''));
 
   container.innerHTML = `
@@ -65,26 +55,20 @@ export function renderContent(ctx) {
         <div class="p-3 space-y-2 min-h-[120px]" id="kanban-active-host"></div>
       </div>
     </div>
-    ${pendingArchive.length > 0 ? `
-    <details open class="card rounded-xl p-0 overflow-hidden mb-4">
-      <summary class="px-4 py-3 font-title-cn text-sm font-bold cursor-pointer select-none bg-amber-50 text-amber-700">待归档 (${pendingArchive.length})</summary>
-      <div class="p-3 space-y-2" id="kanban-pending-archive-host"></div>
-    </details>` : ''}
-    ${archived.length > 0 ? `
-    <details class="card rounded-xl p-0 overflow-hidden">
-      <summary class="px-4 py-3 font-title-cn text-sm font-bold cursor-pointer select-none" style="--acc-bg-dark:rgba(148,163,184,0.10);--acc-text-dark:#94A3B8;--acc-border-dark:rgba(148,163,184,0.25);background:rgba(107,114,128,0.06);color:var(--neutral-600);border-bottom:2px solid rgba(107,114,128,0.15);">已归档 (${archived.length})</summary>
-      <div class="p-3 space-y-2" id="kanban-completed-host"></div>
-    </details>` : ''}
+    <!-- A07：归档统一落「档案归档」页签；本页只承接待启动 / 进行中，不再设归档桶。 -->
+    <p class="mb-4 text-xs text-gray-500">
+      <a class="font-medium text-sky-700 hover:underline" href="?tab=archive">去档案归档</a>
+      <span class="ml-1">（活动结束后的正式归档统一在档案归档页办理）</span>
+    </p>
   `;
 
   // 各桶各接一个引擎实例（keyword null + facets [] → 引擎不渲染检索条，只出分页；≤8 行不出翻页控件）。
-  // 活动结束沿活动流程（结束后进入待归档，正式归档在档案归档页）；工作组收尾由组织委员统一办理，宣传看板仅提供详情入口。
+  // A07：活动结束沿活动流程（结束后状态为 completed，正式归档在档案归档页）；本页不再承载归档桶。
+  //   工作组收尾由组织委员统一办理，宣传看板仅提供详情入口。
   [
-    { host: container.querySelector('#kanban-pending-host'), stateKey: 'prop-kanban-pending', rows: pending, emptyMessage: '暂无待启动项目', showComplete: false, showArchiveLink: false },
-    { host: container.querySelector('#kanban-active-host'), stateKey: 'prop-kanban-active', rows: active, emptyMessage: '暂无进行中项目', showComplete: true, showArchiveLink: false },
-    { host: container.querySelector('#kanban-pending-archive-host'), stateKey: 'prop-kanban-pending-archive', rows: pendingArchive, emptyMessage: '暂无待归档项目', showComplete: false, showArchiveLink: true },
-    { host: container.querySelector('#kanban-completed-host'), stateKey: 'prop-kanban-completed', rows: archived, emptyMessage: '暂无已归档项目', showComplete: false, showArchiveLink: false },
-  ].forEach(({ host, stateKey, rows, emptyMessage, showComplete, showArchiveLink }) => {
+    { host: container.querySelector('#kanban-pending-host'), stateKey: 'prop-kanban-pending', rows: pending, emptyMessage: '暂无待启动项目', showComplete: false },
+    { host: container.querySelector('#kanban-active-host'), stateKey: 'prop-kanban-active', rows: active, emptyMessage: '暂无进行中项目', showComplete: true },
+  ].forEach(({ host, stateKey, rows, emptyMessage, showComplete }) => {
     if (!host) return;
     renderFilteredList(host, {
       stateKey,
@@ -94,9 +78,9 @@ export function renderContent(ctx) {
       countUnit: '个',
       listClass: 'space-y-2',
       emptyMessage,
-      rowHtml: (item) => _renderKanbanItem(item, showComplete, showArchiveLink),
+      rowHtml: (item) => _renderKanbanItem(item, showComplete),
     });
-    // 卡内「确认完成 / 归档」按钮自带 inline onclick stopPropagation（行 HTML 逐字保留，不改），
+    // 卡内「确认完成」按钮自带 inline onclick stopPropagation（行 HTML 逐字保留，不改），
     // 故用捕获阶段委托挂宿主：在按钮目标阶段 stopPropagation 前先拦到点击；再判整卡跳转。
     host.addEventListener('click', (e) => {
       const actBtn = e.target.closest('.activity-complete-btn');
@@ -104,7 +88,7 @@ export function renderContent(ctx) {
         const actId = actBtn.dataset.actId;
         const activity = activities.find(a => a.id === actId);
         if (!activity) return;
-        const confirmed = window.confirm(`确认结束活动「${activity.title || '未命名'}」？标记结束后将进入「待归档」，还需在档案归档页完成归档。`);
+        const confirmed = window.confirm(`确认结束活动「${activity.title || '未命名'}」？标记结束后请到「档案归档」页签完成正式归档。`);
         if (!confirmed) return;
         activity.status = 'completed';
         BranchService.updateActivity(actId, { status: 'completed' });
@@ -127,7 +111,7 @@ export function renderContent(ctx) {
     // dogfood #13（2026-09-12）：卡片为 role=button 的 div，补 Enter/Space 键盘激活
     host.addEventListener('keydown', (e) => {
       if (e.key !== 'Enter' && e.key !== ' ') return;
-      // 内层按钮 / 链接 / 表单件自有原生键盘激活，勿连带触发整卡跳转（「确认完成」「去归档」回车执行自身动作）
+      // 内层按钮 / 链接 / 表单件自有原生键盘激活，勿连带触发整卡跳转（「确认完成」回车执行自身动作）
       if (e.target.closest('button,a,input,textarea,select')) return;
       const card = e.target.closest('.kanban-card');
       if (!card) return;
@@ -137,7 +121,7 @@ export function renderContent(ctx) {
   });
 }
 
-function _renderKanbanItem(item, showCompleteBtn = false, showArchiveLink = false) {
+function _renderKanbanItem(item, showCompleteBtn = false) {
   const isTf = item._type === 'taskforce';
   const typeTag = isTf
     ? badgeHtml('专班', 'success')
@@ -148,10 +132,6 @@ function _renderKanbanItem(item, showCompleteBtn = false, showArchiveLink = fals
   const completeBtn = showCompleteBtn && !isTf
     ? `<button class="btn-accent-soft activity-complete-btn text-xs px-3 py-1.5 mt-1" data-act-id="${item.id}" onclick="event.stopPropagation();">确认完成</button>`
     : (showCompleteBtn && isTf ? '<span class="text-xs text-gray-500">收尾由组织委员办理</span>' : '');
-  // 待归档卡：给出档案归档入口（结束后仍需正式归档，不能只靠 status='completed'）
-  const archiveLink = showArchiveLink && !isTf
-    ? `<a class="btn-outline text-xs px-3 py-1.5 mt-1 inline-block" href="${resolveDocumentUrl('archive.html')}" onclick="event.stopPropagation();">去归档</a>`
-    : '';
   return `
     <div class="kanban-card p-3 rounded-xl bg-white hover:bg-gray-200 transition-colors cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#CE1126]" role="button" tabindex="0" aria-label="查看 ${esc(item.title || '未命名')} 详情" data-kt="${item._type}" data-ki="${item.id}">
       <div class="flex items-center gap-2 mb-0.5">
@@ -160,6 +140,6 @@ function _renderKanbanItem(item, showCompleteBtn = false, showArchiveLink = fals
       </div>
       <div class="text-xs text-gray-500 mt-0.5">${item.date || ''} ${subInfo}</div>
       ${isTf && item.task ? `<div class="text-[12px] text-gray-500 mt-0.5 line-clamp-1">${item.task}</div>` : ''}
-      ${completeBtn}${archiveLink}
+      ${completeBtn}
     </div>`;
 }

@@ -3,25 +3,27 @@
 // 党小组活动考察：组织者上传 → 纪检委员确认 → 录入考察总表。
 // 业务口径：考察依托工作组——考察记录挂工作组，考察对象为该工作组成员；sourceType/activityId/taskforceId 是工作组类型的投影。
 
-import { loadInspectionRecords, saveInspectionRecords, canUploadInspection } from '../../../services/activity/inspection.js?v=20261018u';
-import { loadInspectionAppeals, reconfirmReturnedInspectionRecord, resolveInspectionAppeal, isInspectionHomePosition } from '../../../services/activity/inspection.js?v=20261018u';
-import { loadActivities, getOrganizedActivities } from '../../../services/activity/activity.js?v=20261018u';
+import { loadInspectionRecords, saveInspectionRecords, canUploadInspection } from '../../../services/activity/inspection.js?v=20261019a';
+import { loadInspectionAppeals, reconfirmReturnedInspectionRecord, resolveInspectionAppeal, isInspectionHomePosition } from '../../../services/activity/inspection.js?v=20261019a';
+import { loadActivities, getOrganizedActivities } from '../../../services/activity/activity.js?v=20261019a';
 // 待批活动的可见性单一源（2026-09-22 批次 151）：组长台为非支委层 ⇒ 待批活动不进本页来源下拉
-import { filterActivitiesForViewer } from '../../../services/core/visibility.js?v=20261018u';
-import { TaskForceRecordStore, isTaskforceOrganizer } from '../../../services/activity/taskforce.js?v=20261018u';
-import { AuthStore } from '../../../services/core/auth.js?v=20261018u';
-import { PersonPicker } from '../../../components/governance/pickers.js?v=20261018u';
+import { filterActivitiesForViewer } from '../../../services/core/visibility.js?v=20261019a';
+import { TaskForceRecordStore, isTaskforceOrganizer } from '../../../services/activity/taskforce.js?v=20261019a';
+import { AuthStore } from '../../../services/core/auth.js?v=20261019a';
+import { PersonPicker } from '../../../components/governance/pickers.js?v=20261019a';
 // 「本位」nudge 确认弹窗（2026-09-23 支书裁定 · 单一源 = components/ui/modal.js::confirmNudge）
-import { confirmNudge } from '../../../components/ui/modal.js?v=20261018u';
-import { inspectionToLong } from '../../../services/activity/inspection.js?v=20261018u';
-import { getPersonById, getPersonName } from '../../../services/member/person.js?v=20261018u';
-import { SourceType, ParticipationLevel } from '../../../core/domain/domain.js?v=20261018u';
-import { showToast, escHtml as esc, getBasePath } from '../../../core/base/utils.js?v=20261018u';
-import { solidAccentStyle, accDarkVars } from '../../../core/domain/constants.js?v=20261018u';
-import { currentLeaderGroup } from './_shared.js?v=20261018u';
-import { generateId } from '../../../core/base/id.js?v=20261018u';
+import { confirmNudge } from '../../../components/ui/modal.js?v=20261019a';
+import { inspectionToLong } from '../../../services/activity/inspection.js?v=20261019a';
+import { getPersonById, getPersonName } from '../../../services/member/person.js?v=20261019a';
+import { SourceType, ParticipationLevel } from '../../../core/domain/domain.js?v=20261019a';
+import { showToast, escHtml as esc, getBasePath } from '../../../core/base/utils.js?v=20261019a';
+import { solidAccentStyle, accDarkVars } from '../../../core/domain/constants.js?v=20261019a';
+import { currentLeaderGroup } from './_shared.js?v=20261019a';
+import { generateId } from '../../../core/base/id.js?v=20261019a';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是人的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
-import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261018u';
+import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261019a';
+// 材料页深链 focusActivityId 的通用定位（只滚动 + 闪烁，不另造筛选器）
+import { focusActivityAnchor } from '../../../components/ui/detail-anchor.js?v=20261019a';
 
 // 私有状态（随模块自持，不污染入口）
 let _inspFormVisible = false;
@@ -195,13 +197,19 @@ export function renderContent(ctx, host, opts = {}) {
               <th>确认状态</th>
             </tr>`,
       },
-      rowHtml: (i) => `
-              <tr>
+      rowHtml: (i) => {
+        // D01：本人提交的记录不提供确认位（本页本无确认按钮），只把「等一下」的原因写清楚，
+        // 避免上传方误以为需要自己点确认。
+        const selfRecorded = !!i.recordedBy && i.recordedBy === actorId;
+        const statusLabel = i.status === 'confirmed' ? '已确认' : (selfRecorded ? '待确认 · 本人提交' : '待确认');
+        return `
+              <tr data-act-id="${esc(i.activityId || '')}">
                 <td class="font-medium text-gray-800"><a href="${getBasePath()}person.html?id=${encodeURIComponent(i.personId)}" class="hover:underline hover:text-sky-700 transition-colors" title="查看完整档案">${esc(getPersonName(i.personId))}</a></td>
                 <td class="text-gray-600">${i.activityId ? `<a class="text-blue-600 hover:underline" href="./activity.html?id=${i.activityId}">${esc(i.source)}</a>` : esc(i.source)}</td>
                 <td class="text-gray-600">${esc(i.content || i.role)}</td>
-                <td><span class="px-1.5 py-0.5 rounded-full text-xs ${i.status === 'confirmed' ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'}">${i.status === 'confirmed' ? '已确认' : '待确认'}</span></td>
-              </tr>`,
+                <td><span class="px-1.5 py-0.5 rounded-full text-xs ${i.status === 'confirmed' ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'}"${selfRecorded && i.status !== 'confirmed' ? ' title="本人提交的记录不能由本人确认，待纪检/支书/副支书确认"' : ''}>${statusLabel}</span></td>
+              </tr>`;
+      },
     });
   }
 
@@ -248,6 +256,9 @@ export function renderContent(ctx, host, opts = {}) {
   if (_inspFormVisible) {
     _initInspForm(container, sourceActivities, sourceTaskforces, ctx, opts, uploadedActivityIds);
   }
+
+  // 材料页深链（2026-10-20）：把本场活动的考察行滚到视野。
+  focusActivityAnchor(container, ctx?.focusActivityId);
 }
 
 function _initInspForm(container, sourceActivities, sourceTaskforces, ctx, opts = {}, uploadedActivityIds = new Set()) {

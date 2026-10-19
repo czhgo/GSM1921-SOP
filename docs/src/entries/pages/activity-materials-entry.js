@@ -12,21 +12,24 @@
 //   · 材料读取：`mockDB.imageRecords` / `loadAttendanceRecords` / `mockDB.inspections` / `loadActivityReviews`；
 //   · 归档写口：`services/core/mock.js::archiveActivity`（经 BranchService 暴露，与宣传台 / 支书台同源）；
 //   · 空态：`components/ui/empty-state.js`；浮窗：`components/ui/modal.js`；版本戳：`core/base/version-token.js`。
-import { renderSidebar } from '../../components/shell/sidebar.js?v=20261018u';
-import { renderHeader } from '../../components/shell/header.js?v=20261018u';
-import { BranchService } from '../../services/core/runtime.js?v=20261018u';
-import { mockDB, ReviewStatus } from '../../core/domain/domain.js?v=20261018u';
-import { loadAttendanceRecords } from '../../services/activity/attendance.js?v=20261018u';
-import { loadActivityReviews } from '../../services/governance/review.js?v=20261018u';
-import { AuthStore } from '../../services/core/auth.js?v=20261018u';
-import { isActivityArchived } from '../../core/domain/constants.js?v=20261018u';
-import { getBasePath, escHtml as esc, showToast } from '../../core/base/utils.js?v=20261018u';
-import { emptyStateHtml } from '../../components/ui/empty-state.js?v=20261018u';
-import { openModal, closeModal } from '../../components/ui/modal.js?v=20261018u';
-import { bumpToken } from '../../core/base/version-token.js?v=20261018u';
-import { hydrateDataSource, notifyDataLoaded } from '../../data/data-adapter.js?v=20261018u';
-import { ApiAdapter } from '../../data/api-adapter.js?v=20261018u';
-import { settleWrites } from '../../core/session/pending-writes.js?v=20261018u';
+import { renderSidebar } from '../../components/shell/sidebar.js?v=20261019a';
+import { renderHeader } from '../../components/shell/header.js?v=20261019a';
+import { BranchService } from '../../services/core/runtime.js?v=20261019a';
+import { mockDB, ReviewStatus } from '../../core/domain/domain.js?v=20261019a';
+import { loadAttendanceRecords } from '../../services/activity/attendance.js?v=20261019a';
+import { loadActivityReviews } from '../../services/governance/review.js?v=20261019a';
+import { AuthStore } from '../../services/core/auth.js?v=20261019a';
+import { isActivityArchived } from '../../core/domain/constants.js?v=20261019a';
+import { getBasePath, escHtml as esc, showToast } from '../../core/base/utils.js?v=20261019a';
+import { resolveMaterialHref, resolveMaterialHandoff, resolveMaterialRoleNote } from '../../core/domain/material-links.js?v=20261019a';
+// 材料页可见性单一源（C11）：与活动列表 / 详情页同判据，待批活动不能凭 id 被非支委层读到
+import { isActivityVisibleTo } from '../../services/core/visibility.js?v=20261019a';
+import { emptyStateHtml } from '../../components/ui/empty-state.js?v=20261019a';
+import { openModal, closeModal } from '../../components/ui/modal.js?v=20261019a';
+import { bumpToken } from '../../core/base/version-token.js?v=20261019a';
+import { hydrateDataSource, notifyDataLoaded } from '../../data/data-adapter.js?v=20261019a';
+import { ApiAdapter } from '../../data/api-adapter.js?v=20261019a';
+import { settleWrites } from '../../core/session/pending-writes.js?v=20261019a';
 
 renderSidebar('dashboard');
 renderHeader('dashboard');
@@ -36,8 +39,17 @@ const backBtn = document.getElementById('materials-back-btn');
 const params = new URLSearchParams(window.location.search);
 const activityId = params.get('id') || '';
 
-// 返回：有活动 id 回活动详情；否则回上一页 / 首页（与 activity.html 同一体例）
+// 返回（C10）：从工作台进来时原路返回，保住来路的 tab / 筛选上下文；否则回本场活动详情。
+// 判据：referrer 同源且路径含 `/workspace/`——只有工作台来的返回才具有效上下文，外部来源不盲退。
 backBtn?.addEventListener('click', () => {
+  const ref = document.referrer || '';
+  try {
+    const refUrl = new URL(ref);
+    if (refUrl.origin === window.location.origin && /\/workspace\//.test(refUrl.pathname) && window.history.length > 1) {
+      window.history.back();
+      return;
+    }
+  } catch (_) { /* 空 / 非法 referrer：走下方活动详情兜底 */ }
   if (activityId) { window.location.href = getBasePath() + `activity.html?id=${encodeURIComponent(activityId)}`; return; }
   if (window.history.length > 1) window.history.back();
   else window.location.href = getBasePath() + 'index.html';
@@ -70,10 +82,19 @@ function render() {
     return;
   }
   const act = mockDB.activities.find(a => a.id === activityId);
-  if (!act) {
+  // C11：不可见与不存在同口径——不提示「待批」，避免从这一行反推出「有这么一场还没批的活动」。
+  if (!act || !isActivityVisibleTo(act, me.role, me.personId)) {
     _renderMessage('活动不存在或尚未公开', `<a class="btn-outline text-xs px-3 py-1.5" href="${getBasePath()}index.html">回首页</a>`);
     return;
   }
+
+  const isOrganizer = act.organizer === me.personId;
+  /** 本角色在本材料行的本位落点（null＝只渲染纯文本交接，不造假按钮） */
+  const hrefOf = (row) => {
+    const rel = resolveMaterialHref({ role: me.role, isOrganizer, actId: activityId, row });
+    return rel ? getBasePath() + rel : null;
+  };
+  const handoffOf = (row) => resolveMaterialHandoff({ role: me.role, isOrganizer, row });
 
   // ── 材料读取（全部复用既有数据源，不新造表 / 不新增 API）──
   const photos = (mockDB.imageRecords || []).filter(r => r.activityId === activityId && !r.voided);
@@ -86,6 +107,10 @@ function render() {
   const archived = isActivityArchived(act);
   const coreReady = photos.length > 0 && attendance.length > 0 && inspections.length > 0;
   const hasAnyMaterial = photos.length + attendance.length + inspections.length + reviews.length > 0;
+  // C04/C12：档案归档台只对宣传委员开放（其他角色跨台会被身份门弹回）——不渲染即不产生假入口。
+  const propArchiveHref = me.role === 'prop-commissioner'
+    ? `${getBasePath()}workspace/prop.html?tab=archive&focusActivityId=${encodeURIComponent(activityId)}`
+    : '';
 
   // 归档动作的放行：支委层（含宣传 / 组织 / 纪检）或本场组织者。
   // 说明：mock 写口本身不设门，本页按既有台面口径只对本位人 / 支委层呈现动作，避免"人人可归档"的假入口。
@@ -102,7 +127,7 @@ function render() {
       <p class="text-sm text-gray-500 mt-1">${esc(act.date || '—')}${act.location ? ' · ' + esc(act.location) : ''}</p>
       <div class="mt-3 flex items-center gap-3">
         <a class="text-xs text-sky-700 hover:underline" href="${getBasePath()}activity.html?id=${encodeURIComponent(activityId)}">查看活动详情 →</a>
-        <a class="text-xs text-gray-500 hover:underline" href="${getBasePath()}workspace/prop.html?tab=archive">宣传台 · 档案归档 →</a>
+        ${propArchiveHref ? `<a class="text-xs text-gray-500 hover:underline" href="${propArchiveHref}">宣传台 · 档案归档 →</a>` : ''}
       </div>
     </div>
 
@@ -114,15 +139,16 @@ function render() {
         <span class="text-xs text-gray-500">按类核对，缺项直接去补充</span>
       </div>
       <div class="space-y-2">
-        ${_materialRowHtml({ label: '宣传材料（照片）', count: photos.length, unit: '张', hint: '原图为主，含全景 + 特写', href: `${getBasePath()}workspace/prop.html?tab=archive` })}
-        ${_materialRowHtml({ label: '考勤', count: attendance.length, unit: '条', hint: '按会议类型由组织者 / 纪检上传', href: `${getBasePath()}workspace/disc.html?tab=attendance` })}
-        ${_materialRowHtml({ label: '考察', count: inspections.length, unit: '条', hint: '考察记录由该场组织者提交、纪检确认', href: `${getBasePath()}workspace/disc.html?tab=inspection` })}
+        ${_materialRowHtml({ label: '宣传材料（照片）', count: photos.length, unit: '张', hint: '原图为主，含全景 + 特写', href: hrefOf('photos'), handoff: handoffOf('photos') })}
+        ${_materialRowHtml({ label: '考勤', count: attendance.length, unit: '条', hint: '按会议类型由组织者 / 纪检上传', href: hrefOf('attendance'), handoff: handoffOf('attendance') })}
+        ${_materialRowHtml({ label: '考察', count: inspections.length, unit: '条', hint: '考察记录由该场组织者提交、纪检确认', href: hrefOf('inspection'), handoff: handoffOf('inspection') })}
         ${_materialRowHtml({
           label: '复盘',
           count: reviews.length,
           unit: '份',
           hint: reviewReturned ? '复盘被退回，需组织者更新后重新提交' : '组织者提交；支委会可额外要求',
-          href: `${getBasePath()}workspace/visitor.html?tab=review`,
+          href: hrefOf('review'),
+          handoff: handoffOf('review'),
           extra: reviewReturned ? '<span class="text-[11px] text-red-700">已退回</span>' : '',
         })}
       </div>
@@ -131,9 +157,8 @@ function render() {
     <section class="mt-6" aria-labelledby="materials-check-title">
       <h3 id="materials-check-title" class="text-sm font-semibold text-gray-800 mb-2">② 核对材料</h3>
       <div class="rounded-xl border border-gray-100 bg-gray-50/60 px-4 py-3 text-xs text-gray-600 leading-6">
-        本页集中<b>核对材料</b>，上传仍走各自本位：宣传材料 → 宣传台「档案归档」；考勤 → 纪检台「考勤管理」；
-        考察 → 纪检台「考察管理」；复盘 → 成员台「我的复盘」。三类核心材料（宣传材料 / 考勤 / 考察）齐全后即可提交归档；
-        归档后仍可在宣传台补交材料。
+        ${esc(resolveMaterialRoleNote({ role: me.role, isOrganizer }))}
+        三类核心材料（宣传材料 / 考勤 / 考察）齐全后即可提交归档；归档后仍可补交材料。
       </div>
       <div class="mt-2 text-xs ${coreReady ? 'text-green-700' : 'text-amber-700'}">
         ${coreReady ? '核心材料已齐（宣传材料 / 考勤 / 考察）。' : `核心材料待补：${_missingText({ photos, attendance, inspections })}`}
@@ -187,9 +212,12 @@ function _stepperHtml(archived, coreReady, hasAnyMaterial) {
     </ol>`;
 }
 
-/** 单类材料行（计数 + 状态 + 去补充） */
-function _materialRowHtml({ label, count, unit, hint, href, extra = '' }) {
+/** 单类材料行（计数 + 状态 + 本位落点）；无本位落点时只给纯文本交接，不渲染假按钮 */
+function _materialRowHtml({ label, count, unit, hint, href, handoff = '', extra = '' }) {
   const ready = count > 0;
+  const actionHtml = href
+    ? `<a class="btn-outline text-xs px-3 py-1.5 flex-shrink-0" href="${href}">${ready ? '去核对' : '去补充'}</a>`
+    : `<span class="text-xs text-gray-500 flex-shrink-0 text-right max-w-[180px]">${esc(handoff)}</span>`;
   return `
     <div class="flex items-center justify-between gap-3 rounded-xl border border-gray-100 px-4 py-3">
       <div class="min-w-0">
@@ -200,7 +228,7 @@ function _materialRowHtml({ label, count, unit, hint, href, extra = '' }) {
         </div>
         <p class="text-xs text-gray-500 mt-0.5">${esc(hint)}</p>
       </div>
-      <a class="btn-outline text-xs px-3 py-1.5 flex-shrink-0" href="${href}">${ready ? '去核对' : '去补充'}</a>
+      ${actionHtml}
     </div>`;
 }
 

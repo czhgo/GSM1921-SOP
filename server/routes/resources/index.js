@@ -30,7 +30,7 @@ import { canReadThoughtReport } from '../../../docs/src/services/governance/thou
 // T-218：新增 4 张 niche 表（键名与前端快照 payload 键名完全一致）
 // T-209 全栈同步：补齐前端 mockDB 全部持久化域，使 API 模式全链路可用
 import { RESOURCE_TABLES, ID_PREFIX, listTable, getRow, writeRow } from './store.js';
-import { RESOURCE_WRITE_GATE, COMMISSIONER_WRITE_RESOURCES, _assertResourceWrite, _writeDenyMsg, ACTIVITY_WRITE_DENY_MSG, _assertActivityWrite, _ballotModeReject, BRANCH_COMMITTEE_ROLES, PARTY_STAFF_ROLE, _assertActivityBlockEnabled, _assertWorkflowBlockEnabled, _assertCapabilityPackageEnabled, activityBlockDisabledMsg, workflowBlockDisabledMsg, _snapshotNoticeMessageGateDeny, _snapshotResourceWriteGateDeny, _retainUngatedSnapshotRows } from './gates.js';
+import { RESOURCE_WRITE_GATE, COMMISSIONER_WRITE_RESOURCES, _assertResourceWrite, _writeDenyMsg, ACTIVITY_WRITE_DENY_MSG, _assertActivityWrite, _ballotModeReject, BRANCH_COMMITTEE_ROLES, PARTY_STAFF_ROLE, _assertActivityBlockEnabled, _assertWorkflowBlockEnabled, _assertCapabilityPackageEnabled, activityBlockDisabledMsg, workflowBlockDisabledMsg, _snapshotNoticeMessageGateDeny, _snapshotResourceWriteGateDeny, _retainUngatedSnapshotRows, _inspectionDecisionDeny } from './gates.js';
 import { _activityApprovalGateDeny, _snapshotActivityApprovalGateDeny, _activityCreateGatePatch } from './approval-gates.js';
 import { _snapshotBaseVersions, _snapshotWrites, _snapshotMissingVersions, _allCollectionVersions, _snapshotVersionConflicts, _normalizeSnapshotAliases } from './snapshot-versions.js';
 import { registerExtraSemanticRoutes } from './semantic-routes.js';
@@ -235,6 +235,13 @@ export function createResourcesRouter(db) {
           return res.status(403).json({ error: _writeDenyMsg(name) });
         }
         let row = req.body;
+        // D01：新增考察不得自带「确认/打回」态——recordedBy 由会话落定，自确认在 PATCH 面复算，
+        // 这里统一拒收，防「上传即已确认」绕过确认白名单。
+        if (name === 'inspections' && row && typeof row === 'object'
+          && (row.status === 'confirmed' || row.confirmedBy !== undefined
+            || row.returnedBy !== undefined || row.returnedAt !== undefined)) {
+          return res.status(403).json({ error: '不允许在上传考察时自带确认/打回状态' });
+        }
         if (!row || typeof row !== 'object' || Array.isArray(row)) {
           return res.status(400).json({ error: 'body 须为单条数据对象' });
         }
@@ -375,6 +382,12 @@ export function createResourcesRouter(db) {
         && req.body.recordedBy !== previousRecord.recordedBy) {
         return res.status(403).json({ error: '无权限：不能伪造考察记录人' });
       }
+      // D01：确认/打回另设白名单（纪检/支书/副支书）且禁止自确认——
+      // 写门只判「能否改考察」，这里判「能否以确认人身份落库」。
+      if (name === 'inspections') {
+        const decisionDeny = _inspectionDecisionDeny(req.actor, previousRecord, req.body);
+        if (decisionDeny) return res.status(403).json({ error: decisionDeny });
+      }
       if (name === 'signups') {
         const transition = normalizeSignupPatch(db, req.actor, previousRecord, req.body || {});
         if (transition.error) return res.status(403).json({ error: transition.error });
@@ -434,6 +447,17 @@ export function createResourcesRouter(db) {
         if (ballotErr) return res.status(400).json({ error: ballotErr });
       }
       const merged = { ...previousRecord, ...(req.body || {}), id };
+      // D01：确认人/打回人一律取会话（不采信客户端自述），并落时间戳。
+      if (name === 'inspections' && req.body) {
+        if (req.body.status === 'confirmed') {
+          merged.confirmedBy = req.actor.id;
+          merged.confirmedAt = new Date().toISOString();
+        }
+        if (Object.prototype.hasOwnProperty.call(req.body, 'returnedBy')) {
+          merged.returnedBy = req.actor.id;
+          merged.returnedAt = new Date().toISOString();
+        }
+      }
       if (name === 'periodicArchives') {
         delete merged.archivePolicySnapshot;
         if (previousRecord.archivePolicySnapshot) {

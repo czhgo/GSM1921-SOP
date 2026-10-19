@@ -1,15 +1,15 @@
 // 党委所选支部只读视图：页面身份不切换到支部工作台。
-import { renderSidebar } from '../../components/shell/sidebar.js?v=20261018u';
-import { renderHeader } from '../../components/shell/header.js?v=20261018u';
-import { AuthStore } from '../../services/core/auth.js?v=20261018u';
-import { BranchService } from '../../services/core/runtime.js?v=20261018u';
-import { PersonStore, getPersonName } from '../../services/member/person.js?v=20261018u';
-import { getBranchById } from '../../services/branch/branch.js?v=20261018u';
-import { ApiAdapter } from '../../data/api-adapter.js?v=20261018u';
-import { hydrateDataSource } from '../../data/data-adapter.js?v=20261018u';
-import { getBasePath, escHtml as esc } from '../../core/base/utils.js?v=20261018u';
-import { ROLE_LABELS } from '../../core/domain/constants.js?v=20261018u';
-import { renderPageHeader } from '../../components/shell/page-frame.js?v=20261018u';
+import { renderSidebar } from '../../components/shell/sidebar.js?v=20261019a';
+import { renderHeader } from '../../components/shell/header.js?v=20261019a';
+import { AuthStore } from '../../services/core/auth.js?v=20261019a';
+import { BranchService } from '../../services/core/runtime.js?v=20261019a';
+import { PersonStore, getPersonName } from '../../services/member/person.js?v=20261019a';
+import { getBranchById } from '../../services/branch/branch.js?v=20261019a';
+import { ApiAdapter } from '../../data/api-adapter.js?v=20261019a';
+import { hydrateDataSource } from '../../data/data-adapter.js?v=20261019a';
+import { getBasePath, escHtml as esc } from '../../core/base/utils.js?v=20261019a';
+import { ROLE_LABELS } from '../../core/domain/constants.js?v=20261019a';
+import { renderPageHeader } from '../../components/shell/page-frame.js?v=20261019a';
 
 renderSidebar('workspace');
 renderHeader('workspace');
@@ -58,7 +58,7 @@ async function render() {
     <div class="page-frame page-frame--wide" data-branch-readonly="${esc(branchId)}">
       ${renderPageHeader({
         title: branchName,
-        actions: `<a class="btn-outline inline-flex shrink-0 px-3 py-2 text-sm" href="${getBasePath()}workspace/party-committee.html?tab=monitor">返回支部台账</a>`,
+        actions: `<a class="btn-outline inline-flex shrink-0 px-3 py-2 text-sm" href="${getBasePath()}workspace/party-committee.html?tab=branches">返回支部台账</a>`,
       })}
 
       <section id="branch-overview" class="card p-5" aria-labelledby="branch-state-heading">

@@ -19,22 +19,22 @@
 // 视觉沿用 card/rounded 既有体系（四档列表渲染在 components/record/todo-list.js renderUrgencyTodoList）。
 // 设计权威源：content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md §六 M6（共性抽象净减）
 
-import { TodoStore, urgeRolesOf, WORK_DOMAIN, WORK_DOMAIN_LABELS, realtimeGroupDomainOf, buildModuleCycleRemindGroup } from '../../services/governance/todo.js?v=20261018u';
+import { TodoStore, urgeRolesOf, WORK_DOMAIN, WORK_DOMAIN_LABELS, realtimeGroupDomainOf, buildModuleCycleRemindGroup } from '../../services/governance/todo.js?v=20261019a';
 // S3②（2026-09-12）：未读通知计数单一来源——与顶栏角标/首页同源（NoticeStore activeOnly+read 过滤），
 // 不再用「通知类待办」现算（口径不同致三处不一致）。
-import { NoticeStore, NOTICE_MODULE_ROLE_PAGES } from '../../services/governance/notice.js?v=20261018u';
-import { buildUrgencySections, renderUrgencyTodoList } from './todo-list.js?v=20261018u';
-import { badgeHtml } from '../ui/badges.js?v=20261018u';
-import { showToast, escHtml, todayLocal } from '../../core/base/utils.js?v=20261018u';
-import { ROLE_LABELS, BRANCH_COMMISSION_ROLES } from '../../core/domain/constants.js?v=20261018u';
-import { openModal, closeModal } from '../ui/modal.js?v=20261018u';
-import { AuthStore } from '../../services/core/auth.js?v=20261018u';
-import { mockDB } from '../../core/domain/domain.js?v=20261018u';
-import { tokenOf } from '../../core/base/version-token.js?v=20261018u'; // P0 域写版本戳（spec §二.4）
-import { resolveDocumentUrl } from '../../core/base/page-url.js?v=20261018u';
-import { memoizeRender } from '../ui/memoize-render.js?v=20261018u'; // P2 渲染守卫（spec §四.1）
+import { NoticeStore, NOTICE_MODULE_ROLE_PAGES } from '../../services/governance/notice.js?v=20261019a';
+import { buildUrgencySections, renderUrgencyTodoList } from './todo-list.js?v=20261019a';
+import { badgeHtml } from '../ui/badges.js?v=20261019a';
+import { showToast, escHtml, todayLocal, flashHighlight } from '../../core/base/utils.js?v=20261019a';
+import { ROLE_LABELS, BRANCH_COMMISSION_ROLES } from '../../core/domain/constants.js?v=20261019a';
+import { openModal, closeModal } from '../ui/modal.js?v=20261019a';
+import { AuthStore } from '../../services/core/auth.js?v=20261019a';
+import { mockDB } from '../../core/domain/domain.js?v=20261019a';
+import { tokenOf } from '../../core/base/version-token.js?v=20261019a'; // P0 域写版本戳（spec §二.4）
+import { resolveDocumentUrl } from '../../core/base/page-url.js?v=20261019a';
+import { memoizeRender } from '../ui/memoize-render.js?v=20261019a'; // P2 渲染守卫（spec §四.1）
 // 模块周期提醒（`R-29⑤` · `D-804`）：分工快照取法与 `components/governance/workforce-duty-card.js` 同口径
-import { getBranchIdOfPerson, getBranchWorkforce } from '../../services/branch/branch.js?v=20261018u';
+import { getBranchIdOfPerson, getBranchWorkforce } from '../../services/branch/branch.js?v=20261019a';
 
 // ── P0 组合数据复合键（2026-09-07 · spec §二.4）──────────────────
 // 组合点（buildRealtimeGroups + mergeRealtimeDomains + getUnreadNotices）以
@@ -107,6 +107,52 @@ function _flattenDomainGroups(domains) {
     }
   }
   return groups;
+}
+
+/**
+ * 通知深链 highlight 读取（F03/F07 · 2026-10-20 IA 修复）。
+ * 工作台壳在首个渲染前已把 `?highlight=` 读进 `ctx.navTarget` 并清掉 URL 参数 ——
+ * tab 内再读 `location.search` 恒为空。故优先 `ctx.navTarget.hl`，URL 仅作未经壳时的兜底。
+ */
+function _resolveNavHighlightId(ctx) {
+  let fromUrl = '';
+  try { fromUrl = new URLSearchParams(window.location.search).get('highlight') || ''; } catch (_) { /* 非浏览器环境忽略 */ }
+  return fromUrl || ctx?.navTarget?.hl || '';
+}
+
+/**
+ * 深链定位执行（F03/F07）：按 groupKey / 成员变更申请 id 找 DOM 锚点。
+ * 命中 → 滚动 + 闪烁；未命中 → 页内可见提示（不得静默落默认列表）。
+ * @param {HTMLElement} container 待办容器
+ * @param {string} id 深链 highlight 值
+ * @param {Object|null} matchedGroup 数据侧匹配到的聚合组（用于更准确的失败文案）
+ */
+function _applyNavHighlight(container, id, matchedGroup) {
+  const selectors = [
+    `[data-group-key="${id}"]`,
+    `[data-mc-request-id="${id}"]`,
+    `[data-mc-card="${id}"]`,
+    `[data-id="${id}"]`,
+  ];
+  let target = null;
+  for (const sel of selectors) {
+    try { target = container.querySelector(sel); } catch (_) { target = null; }
+    if (target) break;
+  }
+  if (target) {
+    const row = target.closest('[data-group-key]') || target;
+    row.scrollIntoView?.({ behavior: 'smooth', block: 'center' });
+    flashHighlight(target);
+    return;
+  }
+  const hint = document.createElement('div');
+  hint.dataset.navHighlightMissing = '1';
+  hint.setAttribute('role', 'status');
+  hint.className = 'card rounded-xl p-3 mb-4 text-xs text-amber-800 bg-amber-50 border border-amber-200';
+  hint.textContent = matchedGroup
+    ? `已定位到「${matchedGroup.title}」，但该条明细已处理或已移出列表。`
+    : '未找到该待办（可能已处理）。';
+  container.prepend(hint);
 }
 
 /**
@@ -199,6 +245,7 @@ export function createTodoTab(opts) {
   let _lastComboKey = null;
   let _lastCombo = null; // { domains, allGroups, unreadNotices }
   let _stripOpen = true; // 页顶折叠条展开态（默认展开；重渲染后保留用户折叠）
+  let _navHighlightDone = false; // 深链 highlight 一次性消费（重渲染不再重复定位/提示）
 
   /** U3（2026-09-07）待办两栏等高骨架（await onBeforeRender/数据聚合期间占位；styles.css 禁改不碰） */
   function _todoShellSkeletonHtml() {
@@ -397,6 +444,19 @@ export function createTodoTab(opts) {
     }
     const { domains, allGroups, unreadNotices } = combo;
 
+    // F03/F07：通知深链 ?highlight=<groupKey|条目 id> —— 壳已清 URL，只能从 ctx.navTarget.hl 读。
+    // 先按数据侧命中（groupKey 或组内条目 id），把目标组置于选中态；DOM 命中在重建后执行。
+    const navHlId = _navHighlightDone ? '' : _resolveNavHighlightId(ctx);
+    let navMatchedGroup = null;
+    if (navHlId) {
+      navMatchedGroup = allGroups.find(g => g.groupKey === navHlId)
+        || allGroups.find(g => Array.isArray(g.items) && g.items.some(it => it && (it.id === navHlId || it.groupKey === navHlId)))
+        // 批量块（成员变更等）的行 id 只存在于 bulkHtml 字符串里，也据此选中其所属组
+        || allGroups.find(g => typeof g.bulkHtml === 'string' && g.bulkHtml.includes(navHlId))
+        || null;
+      if (navMatchedGroup) _selectedTodoId = navMatchedGroup.groupKey;
+    }
+
     // 四档分组单一源：域视图展平 → buildUrgencySections；摘要与列表共用此结果
     const urgencyGroups = _flattenDomainGroups(domains);
     const urgency = buildUrgencySections(urgencyGroups);
@@ -555,9 +615,12 @@ export function createTodoTab(opts) {
 
     // 命中（返回 false）→ 整卡保留、异步面板不再重跑（其内容随 renderKey 未变而正确）
     if (!memoizeRender(container, renderKey, rebuild, { marker: '[data-ws-memo="todo-shell"]' })) {
+      if (navHlId) { _navHighlightDone = true; _applyNavHighlight(container, navHlId, navMatchedGroup); }
       return;
     }
     if (onAfterRender) await onAfterRender(container, ctx, api);
+    // F03/F07：重建后定位（失败给页内可见提示；一次性消费，换 tab/重渲染不再重复）
+    if (navHlId) { _navHighlightDone = true; _applyNavHighlight(container, navHlId, navMatchedGroup); }
   }
 
   return { renderContent };
@@ -725,7 +788,13 @@ export function createUrgeController({ selfRoles = [], context, onDone, titleSuf
         content: `关于「${_urgeSubject(group)}」，请及时跟进${_urgeDueText(group) ? `（截止 ${_urgeDueText(group)}）` : '（无明确时限）'}。`,
         priority: 'urgent',
         targetModule,
-        targetUrl: (page && hlId) ? `${page}?tab=todo&highlight=${encodeURIComponent(hlId)}` : undefined,
+        // F07（IA-F07）：只有 `workspace/*.html` 消费 `?tab=`；`index.html`（映射 `'*'`）不消费，
+        //   拼上 `?tab=todo` 只会制造假深链（highlight 也无人消费）⇒ 非工作台页只给裸页面。
+        targetUrl: page
+          ? (page.startsWith('workspace/')
+            ? `${page}?tab=todo${hlId ? `&highlight=${encodeURIComponent(hlId)}` : ''}`
+            : page)
+          : undefined,
         actionable: true,
         actionRoles: [role],
         actionTask: group.title,

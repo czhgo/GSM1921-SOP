@@ -163,7 +163,7 @@ dynamic_role:
 |---------|-------------|--------|------|------|
 | content/05_ai_coding/KNOWN_PITFALLS.md | 2026-09-04 | — | [工程师]+[AI] | 🗑️ 已删除（拆为 05_ai_coding 六篇纪律件） |
 | content/05_ai_coding/README.md | 2026-10-19 | — | [工程师]+[AI] | 05_ai_coding 目录索引 |
-| content/05_ai_coding/PARALLEL_SKILL_AUDIT.md | 2026-10-19 | — | [工程师]+[AI] | 多代理独立审查操作手册（H21 详版；提示词模板 / 输出 schema / 汇总模板 / 决策记录 / 反模式 / 四轮路线图） |
+| content/05_ai_coding/PARALLEL_SKILL_AUDIT.md | 2026-10-20 | — | [工程师]+[AI] | 多代理独立审查操作手册（H21 详版；提示词模板 / 输出 schema / 汇总模板 / 决策记录 / 反模式 / 四轮路线图）；2026-10-20 批次 488 补 IA 批判性审查协议 §11。 |
 | content/05_ai_coding/CONTEXT_MANAGEMENT.md | 2026-09-26 | — | [工程师]+[AI] | （**批次 205 补行**：本表原无其行，本批补行；日期＝其 frontmatter `last_updated` 实读值，与表行同值 ⇒ `S13` 绿。**2026-09-26 已清偿 `R-83` 债**：frontmatter 与表行同刷为该文件最后一次提交日 `2026-09-26`） 上下文管理与防失忆 |
 | content/05_ai_coding/DOCUMENT_GOVERNANCE.md | 2026-09-29 | — | [工程师]+[AI] | **（2026-09-26 批次 205 补行**：本表原无其行，本批补行；日期＝frontmatter `last_updated` 实读值（与表行同值 ⇒ `S13` 绿）；`git log` 亦 2026-09-26**）** 文档治理与一改具改 |
 | content/05_ai_coding/FILE_OPERATION_RULES.md | 2026-09-29 | — | [工程师]+[AI] | （**批次 205 补行**：本表原无其行，本批补行；日期＝其 frontmatter `last_updated` 实读值，与表行同值 ⇒ `S13` 绿。**2026-09-26 已清偿 `R-83` 债**：frontmatter 与表行同刷为该文件最后一次提交日 `2026-09-26`） 文件操作纪律 |
@@ -384,6 +384,7 @@ dynamic_role:
 | docs/src/entries/tabs/org/taskforce-tab.js | 2026-10-17 | — | [工程师]+[AI] | 组织委员工作组管理；名额和授权主体只计组织者/深度参与者，旧 participant 行留在历史/产出查看。 |
 | docs/src/entries/tabs/org/talent-tab.js | 2026-10-04 | — | [工程师]+[AI] | 组织委员「人才库」tab（含「活动参与汇总」卡）。沿革见 `.ctx/logs/`。 |
 | docs/src/entries/tabs/org/development-tab.js | 2026-10-01 | — | [工程师]+[AI] | 🗑️ 已删除（整页并入「人才库」；发展阶段变更写入位改 `person.html`）。沿革见 `.ctx/logs/`。 |
+| docs/src/entries/tabs/org/tf-view-tab.js | 2026-10-20 | — | [工程师]+[AI] | 🗑️ 已删除（2026-10-20 IA-A04：并入「专班管理」的「只看我参与的」筛选）。沿革见 `.ctx/logs/`。 |
 | docs/src/entries/tabs/org/my-dispatch-tab.js | 2026-08-23 | — | [工程师]+[AI] | 组织委员「我的处置」tab。沿革见 `.ctx/logs/`。 |
 | docs/src/entries/tabs/org/roster-tab.js | 2026-09-28 | — | [工程师]+[AI] | **（2026-09-28 批次 227：R10「成员流动」拆 tab——删流动面板与其函数 / 导入〔**保留**行内「移出」〕；名册 **119 → 107 div**；`style-baseline` 删本文件 hex 条 ＋ `HEX_MOVE_LEDGER` 1 条〔→ `member-flow-tab.js`，`#cbd5e1`〕；`D-675`）** **2026-09-25 批次 196：hex 清 13 处（15 → 2）**（同一「等价令牌」选面原则）；组织委员成员名册 tab（**2026-09-21 批次 138 补登**——本表原先无此行；本批「登记流入」浮窗页脚加一条设置入口，`settingsLink` 单一源 → 组织职责参数） |
 
@@ -398,6 +399,7 @@ dynamic_role:
 | docs/src/entries/tabs/prop/weekly-tab.js | 2026-10-16 | — | [工程师]+[AI] | 通用周期归档填写、审核与历史展示实现。**边界**：文件名和选择器保留兼容；已非独立页签，由「档案归档」页内折叠区挂载。 |
 | docs/src/entries/tabs/prop/archive-tab.js | 2026-10-05 | — | [工程师]+[AI] | 档案归档 tab（含**照片墙**：上传 / 标注 / 按拍摄日期分组；周报报送作为**归档特例**落在页内折叠区；归档行两枚留痕位「标记已发送（微信 / 对外）」与「标记已上报党建平台」分开记）。沿革见 `.ctx/logs/`。 |
 | docs/src/entries/tabs/prop/my-dispatch-tab.js | 2026-08-23 | — | [工程师]+[AI] | 宣传委员「我的处置」tab。沿革见 `.ctx/logs/`。 |
+| docs/src/entries/tabs/prop/tf-view-tab.js | 2026-10-20 | — | [工程师]+[AI] | 🗑️ 已删除（2026-10-20 IA-A02：并入「项目看板」）。沿革见 `.ctx/logs/`。 |
 
 ### docs/src/entries/tabs/disc/ (纪检委员工作台 Tab 模块层)
 
@@ -410,7 +412,7 @@ dynamic_role:
 | docs/src/entries/tabs/disc/review-tab.js | 2026-10-04 | — | [工程师]+[AI] | 「复盘」tab（由「活动监督复盘」改名）。沿革见 `.ctx/logs/`。 |
 | docs/src/entries/tabs/disc/inspection-tab.js | 2026-09-28 | — | [工程师]+[AI] | 考察管理 tab。沿革见 `.ctx/logs/`。 |
 | docs/src/entries/tabs/disc/makeup-tab.js | 2026-10-03 | — | [工程师]+[AI] | 补课制度 tab（范围段与归档段走折叠摘要）。沿革见 `.ctx/logs/`。 |
-| docs/src/entries/tabs/disc/tf-view-tab.js | 2026-10-04 | — | [工程师]+[AI] | 纪检委员「知情查看」tab（只出「活动」段）。沿革见 `.ctx/logs/`。 |
+| docs/src/entries/tabs/disc/tf-view-tab.js | 2026-10-20 | — | [工程师]+[AI] | 🗑️ 已删除（2026-10-20 IA-A01：专班改 `taskforce.html?id=`，活动改「活动日历」）。沿革见 `.ctx/logs/`。 |
 | docs/src/entries/tabs/disc/my-dispatch-tab.js | 2026-08-23 | — | [工程师]+[AI] | 纪检委员「我的处置」tab。沿革见 `.ctx/logs/`。 |
 
 ### docs/src/entries/tabs/visitor/ (成员工作台 Tab 模块层)
@@ -424,6 +426,13 @@ dynamic_role:
 | docs/src/entries/tabs/visitor/attendance-tab.js | 2026-09-21 | — | [工程师]+[AI] | 考勤概况 tab（「补课说明」浮窗含相关设置深链）。沿革见 `.ctx/logs/`。 |
 | docs/src/entries/tabs/visitor/inspection-tab.js | 2026-09-28 | — | [工程师]+[AI] | 「我的考察」tab。沿革见 `.ctx/logs/`。 |
 | docs/src/entries/tabs/visitor/review-tab.js | 2026-09-21 | — | [工程师]+[AI] | 成员台「我的复盘」tab（卡片带「支委会要求」来源标记；**不开**「交回后自行更新」入口）。沿革见 `.ctx/logs/`。 |
+
+### docs/src/entries/tabs/party-committee/ (党委工作台 Tab 模块层)
+
+| 文件路径 | last_updated | 移入归档日 | 角色 | 备注 |
+|---------|-------------|--------|------|------|
+| docs/src/entries/tabs/party-committee/monitor-tab.js | 2026-10-20 | — | [工程师]+[AI] | 🗑️ 已删除（2026-10-20 IA-A05：待批复列 / 筛选并入「支部管理」）。沿革见 `.ctx/logs/`。 |
+| docs/src/entries/tabs/party-committee/governance-overview-tab.js | 2026-10-20 | — | [工程师]+[AI] | 🗑️ 已删除（2026-10-20 IA-A06：并入「支部管理」组织提醒，登录落点改「支部上报」）。沿革见 `.ctx/logs/`。 |
 
 ### docs/src/services/ (服务层)
 
@@ -490,8 +499,8 @@ dynamic_role:
 | docs/src/capabilities/secretary-workspace.js | 2026-10-03 | — | [工程师]+[AI] | 支书工作台能力声明（tab 清单自注册，scope='workspace:secretary'；本行 2026-10-03 批次 351 **补登**——本表原先无此行） |
 | docs/src/capabilities/leader-workspace.js | 2026-10-05 | — | [工程师]+[AI] | 组长工作台能力声明（tab 清单自注册，scope='workspace:leader'）。沿革见 `.ctx/logs/`。 |
 | docs/src/capabilities/org-workspace.js | 2026-10-05 | — | [工程师]+[AI] | 组织委员工作台能力声明（tab 清单自注册，scope='workspace:org'）。**边界**：含 `{ id:'member-flow', label:'成员流动' }`（在 `roster` 之后注册）。沿革见 `.ctx/logs/`。 |
-| docs/src/capabilities/prop-workspace.js | 2026-10-04 | — | [工程师]+[AI] | 宣传委员工作台能力声明（tab 清单自注册，scope='workspace:prop'）。**边界**：tab 数 9；改 tab 结构须同批改 `help.html §0.1/§2.3` 与 `README-server.md §3.2.3`。沿革见 `.ctx/logs/`。 |
-| docs/src/capabilities/disc-workspace.js | 2026-10-05 | — | [工程师]+[AI] | 纪检委员工作台能力声明（tab 清单自注册，`scope='workspace:disc'`；tab 数 9）。沿革见 `.ctx/logs/`。 |
+| docs/src/capabilities/prop-workspace.js | 2026-10-04 | — | [工程师]+[AI] | 宣传委员工作台能力声明。**边界**：tab 数 8（IA-A02 撤「知情查看」）；改 tab 须同批改 `help.html` 与 `README-server.md §3.2.3`。 |
+| docs/src/capabilities/disc-workspace.js | 2026-10-05 | — | [工程师]+[AI] | 纪检委员工作台能力声明（tab 数 8——IA-A01 撤「知情查看」）。 |
 | docs/src/capabilities/visitor-workspace.js | 2026-10-04 | — | [工程师]+[AI] | 成员工作台能力声明（tab 清单自注册，scope='workspace:visitor'）。沿革见 `.ctx/logs/`。 |
 | docs/src/capabilities/taskforce.js | 2026-09-29 | — | [工程师]+[AI] | 专班运行能力声明（自注册；**2026-09-29 批次 268：解析 `REVIEW_QUEUE H-10` 推荐档 ①——把 `taskforce` 落成真能力 ⇒ 契约 §二「blockId 与 capability / scenario id 一一对应」恢复唯一口径，`block-manifest::S5` 的例外台账**清零**） |
 | docs/src/components/sections/help-catalog.js | 2026-10-14 | — | [工程师]+[AI] | Help 全文搜索索引、摘要、角色筛选与常见任务入口。 |

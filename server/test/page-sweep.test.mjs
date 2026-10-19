@@ -276,9 +276,12 @@ for (const w of WORKS) {
       }
       await page.waitForTimeout(800);
       // P0-2 形态断言（2026-09-23 支书裁定「形态必须可断言、不许静默降级」）：本文件真机用例必须在 API 形态下跑
-      await page.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20261018u')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
+      await page.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20261019a')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
 
-      const labels = await page.$$eval('button[role="tab"]', (els) => els.map((e) => e.textContent.trim()));
+      // 只数**工作台页签条**（`aria-label="工作台页签"`）里的 role=tab；页面内二级分段
+      //   （党委台「撰写 / 已发送」「待批复 / 已处理」、成员台「列表 / 日历 / 查询」）同样是 role=tab，
+      //   若一并计数，默认落点带二级分段的台会被虚增（2026-10-20：党委台默认改「支部上报」后即虚增 2）。
+      const labels = await page.$$eval('[aria-label="工作台页签"] button[role="tab"]', (els) => els.map((e) => e.textContent.trim()));
       assert.ok(labels.length > 0, `${w.name} 未渲染任何 tab`);
       // 逐台实测页签数（供 `S19` 与 `README-server §3.2.x` 台账对账；单一源＝各台能力注册）
       SWEEP.byPage[w.page] = labels.length;
@@ -299,7 +302,7 @@ for (const w of WORKS) {
       for (const label of labels) {
         // 用 evaluate 点击（避免浮层遮挡），再等内容渲染
         await page.evaluate((l) => {
-          [...document.querySelectorAll('button[role="tab"]')].find((x) => x.textContent.includes(l))?.click();
+          [...document.querySelectorAll('[aria-label="工作台页签"] button[role="tab"]')].find((x) => x.textContent.includes(l))?.click();
         }, label);
         await page.waitForTimeout(1100);
         SWEEP.tabs += 1;
@@ -440,7 +443,7 @@ test('S21 组织台活动深链：?activityId / ?view=activities 落「活动日
     await page.waitForTimeout(800);
     // 取一个真实活动（优先「非当前月」者，顺带验证切月）
     const acts = await page.evaluate(async () => {
-      const m = await import('/src/core/base/state.js?v=20261018u');
+      const m = await import('/src/core/base/state.js?v=20261019a');
       return ((m.getAppState() || {}).activities || []).map((x) => ({ id: x.id, date: x.date }));
     });
     assert.ok(acts.length > 0, '组织台活动深链用例：未取到任何活动（样本不足）');
@@ -492,12 +495,16 @@ test('S1 普查非空转：确实覆盖到「本该分页的列表 / 矩阵人�
   //   支书 12 · 组织 11 · 宣传 9 · 纪检 9 · 组长 10 · 成员 11 · 党委 6 ＝ **68**；
   //   而历次登记的门槛（67 → 66 → 65 → 64 → 63）**长期比实测低约 5**（沿革失真：批次 371 记「65 → 64」
   //   与当时实测 70 → 69 不符 ⇒ 逐批「−1」都建立在失真的基数上）。
-  // 2026-10-17 对照当前七台能力入口：旧党委 issue-review 已撤出注册，现为 67 个角色页签位置；
+  // 2026-10-17 对照当前七台能力入口：旧党委 issue-review 已撤出注册，现为 62 个角色页签位置；
   //   本断言只守运行时普查的最低覆盖量，不把注册表当行为正确性的裁判。
+  // 2026-10-20 IA 修复批次：A01 纪检台 / A02 宣传台 / A04 组织台分别撤「知情查看」页签（各 −1）；
+  //   A05 党委台撤「支部动态」、A06 党委台撤「治理总览」（各 −1）；A03（组长台）/ A07（成员台）不减页签
+  //   （前者只改组内段、后者只改页内区）⇒ 合计 **67 → 62**。
+  //   逐台实测：支书 12 · 组织 10 · 宣传 8 · 纪检 8 · 组长 10 · 成员 11 · 党委 3 ＝ 62。
   // 2026-10-19 实测 tab=67 / 矩阵=2：2026-10 单一轴整并后考勤矩阵移入「数据查看」、专班矩阵移入「报名总表」
   //   二级视图 ⇒ 矩阵门槛按实测值下调为 **2**（P2 的「人维 ≤10」判据不变；范围未缩水：七台全部 tab 仍逐一进页面）。
   console.log(`[普查覆盖] tab=${SWEEP.tabs} 引擎列表=${SWEEP.lists}（其中总数>10 的 ${SWEEP.listsOverPage}）矩阵=${SWEEP.matrices} 手写表格=${SWEEP.tables}`);
-  assert.ok(SWEEP.tabs >= 67, `普查 tab 数少于当前角色入口基线 67（实测 ${SWEEP.tabs}）：普查范围缩水或某台 tab 未渲染`);
+  assert.ok(SWEEP.tabs >= 62, `普查 tab 数少于当前角色入口基线 62（实测 ${SWEEP.tabs}）：普查范围缩水或某台 tab 未渲染`);
   assert.ok(SWEEP.listsOverPage >= 12, `「总数 > 10 的引擎列表」样本少于基线 12（实测 ${SWEEP.listsOverPage}）：分页断言可能恒真`);
   assert.ok(SWEEP.matrices >= 2, `矩阵样本少于基线 2（实测 ${SWEEP.matrices}）：人维分页断言可能恒真`);
   assert.ok(SWEEP.tables >= 2, `手写表格样本少于基线 2（实测 ${SWEEP.tables}）：P3 断言恒真`);
@@ -537,6 +544,7 @@ test('S23 人才库考察/汇报提示分离，录入考察文案归一', () => 
 // 来源：批次 375 登记的「`README-server §3.2.x` 三张表**未立机器判据**」——本批机械化，
 //   防「改一个台、忘了改 README 台账」这类漂移（S17/S18 只守 `help.html` 侧，README 侧此前是空白）。
 // ⚠ **只对「计数」对账**：表内页签名逐字比照因写法而异（★ 标记 / `1-3` 合并行 / 特例段）⇒ 另计、不在本断言内。
+// 2026-10-20 IA 修复批次后实测：支书 12 · 组织 10 · 宣传 8 · 纪检 8 · 组长 10 · 成员 11 · 党委 3 ＝ **62**。
 // ⚠ 依赖顶层串行（本仓 `npm test` 固定 `--test-concurrency=1`），故能读到上一跑累积的 `SWEEP.byPage`。
 test('S19 台账对账：README-server §3.2 各台页签数与真机实测一致（计数同源）', () => {
   const doc = readFileSync(join(import.meta.dirname, '..', '..', 'README-server.md'), 'utf8');

@@ -5,20 +5,22 @@
 //    考察对象为该工作组成员；sourceType/activityId/taskforceId 只是工作组类型的投影，不是独立父对象。
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB, SourceType, SOURCE_TYPE_LABELS, PARTICIPATION_LEVEL_LABELS, ParticipationLevel } from '../../core/domain/domain.js?v=20261018u';
-import { POLICY_DEFAULTS } from '../../core/domain/policy-defaults.js?v=20261018u';
-import { persist, getDataSource, getAdapter } from '../../data/data-adapter.js?v=20261018u';
-import { generateId } from '../../core/base/id.js?v=20261018u';
-import { bumpToken } from '../../core/base/version-token.js?v=20261018u'; // P0 域缓存失效（spec §二.3）
-import { INSPECTION_RECORDS } from '../../data/mock/index.js?v=20261018u';
-import { isInitStateActive } from '../core/init-reset.js?v=20261018u'; // C2 修复（2026-09-08）：init 态空态不回退演示种子
-import { getPersonById, getPersonName } from '../member/person.js?v=20261018u';
-import { TodoStore, TodoSourceType } from '../governance/todo.js?v=20261018u';
-import { loadActivities, isActivityOrganizer } from './activity.js?v=20261018u';
+import { mockDB, SourceType, SOURCE_TYPE_LABELS, PARTICIPATION_LEVEL_LABELS, ParticipationLevel } from '../../core/domain/domain.js?v=20261019a';
+import { POLICY_DEFAULTS } from '../../core/domain/policy-defaults.js?v=20261019a';
+import { persist, getDataSource, getAdapter } from '../../data/data-adapter.js?v=20261019a';
+import { generateId } from '../../core/base/id.js?v=20261019a';
+import { bumpToken } from '../../core/base/version-token.js?v=20261019a'; // P0 域缓存失效（spec §二.3）
+import { INSPECTION_RECORDS } from '../../data/mock/index.js?v=20261019a';
+import { isInitStateActive } from '../core/init-reset.js?v=20261019a'; // C2 修复（2026-09-08）：init 态空态不回退演示种子
+import { getPersonById, getPersonName } from '../member/person.js?v=20261019a';
+import { TodoStore, TodoSourceType } from '../governance/todo.js?v=20261019a';
+import { loadActivities, isActivityOrganizer } from './activity.js?v=20261019a';
 // 专班「组织者」判据单一源（2026-09-23 · 专班考察上传位的本位判据要读它）
-import { isTaskforceOrganizer, TaskForceRecordStore } from './taskforce.js?v=20261018u';
+import { isTaskforceOrganizer, TaskForceRecordStore } from './taskforce.js?v=20261019a';
 // R4-D05：删除/确认的默认操作人 = 当前登录人（调用方未显式传 actorId 时）
-import { AuthStore } from '../core/auth.js?v=20261018u';
+import { AuthStore } from '../core/auth.js?v=20261019a';
+// D01/D08：考察写角色与确认角色单一源（server gates.js 同读，防两端一个放一个拦）
+import { INSPECTION_WRITE_ROLES, INSPECTION_CONFIRM_ROLES } from '../../core/domain/constants.js?v=20261019a';
 
 export function loadInspectionRecords() {
   if (mockDB.inspections.length > 0) return [...mockDB.inspections];
@@ -55,8 +57,13 @@ export function saveInspectionRecords(records) {
  * 其余角色一律拒绝——不再有「专班一律放行」「本组组长按类型放行」的宽口。
  */
 
-/** 前端可写考察的角色（与任务裁定一致：支书/副支书/纪检；勿在此扩到其它支委） */
-const INSPECTION_ROLE_WRITE = new Set(['secretary', 'deputy-secretary', 'disc-commissioner']);
+/**
+ * 前端可写考察的角色（D08 正式纳入：支委层含组织委员「建档代录」；角色名单单一源 = constants.js）。
+ * D01 的确认白名单不在此集：确认只看 `INSPECTION_CONFIRM_ROLES`，且禁止自确认。
+ */
+export const INSPECTION_ROLE_WRITE = new Set(INSPECTION_WRITE_ROLES);
+/** 前端可确认/打回考察的角色（D01：纪检/支书/副支书） */
+export const INSPECTION_ROLE_CONFIRM = new Set(INSPECTION_CONFIRM_ROLES);
 
 /** 本场活动是否为该人的组织位（组织者 / deep 协作者） */
 function _isInspectionSourceOrganizer(personId, sourceType, sourceId) {
@@ -101,6 +108,31 @@ function _currentPersonId() {
   try { return (AuthStore.getCurrentUser() || {}).personId || null; } catch (_) { return null; }
 }
 
+/**
+ * 考察「确认 / 打回」授权判据（D01）：允许 → null，拒绝 → 原因。
+ * 两件事都必须同时成立：
+ *   ① 角色在 `INSPECTION_CONFIRM_ROLES`（纪检 / 支书 / 副支书）——组织委员等写角色**不能**确认；
+ *   ② actorId !== recordedBy——禁止自确认（「谁提交谁确认」会让闭环形同虚设）。
+ */
+function _inspectionDecisionDeny(actorId, record, action) {
+  const personId = actorId || _currentPersonId();
+  if (!personId) return `无法识别当前用户，不能${action}考察`;
+  const role = (getPersonById(personId) || {}).role;
+  if (!INSPECTION_ROLE_CONFIRM.has(role)) return `仅纪检委员或支书/副支书可${action}考察`;
+  if (record && record.recordedBy && record.recordedBy === personId) return '不能确认自己提交的考察';
+  return null;
+}
+
+/** 确认授权判据（供页面预判按钮态与服务层共用） */
+export function inspectionConfirmDenyReason(actorId, record) {
+  return _inspectionDecisionDeny(actorId, record, '确认');
+}
+
+/** 打回授权判据（D01：与确认同一白名单 + 同一自确认禁令） */
+export function inspectionReturnDenyReason(actorId, record) {
+  return _inspectionDecisionDeny(actorId, record, '打回');
+}
+
 /** 删除/确认的授权判据：与本场组织者/纪检同一口径（允许 → null，拒绝 → 原因） */
 function _inspectionMutationDeny(actorId, record, action) {
   const personId = actorId || _currentPersonId();
@@ -141,15 +173,21 @@ export function deleteInspectionRecord(id, { actorId } = {}) {
 }
 
 /**
- * 确认考察记录（纪检委员操作；R4-D05 同口径校验）
+ * 确认考察记录（D01：纪检/支书/副支书；禁止自确认）
+ * 落 `confirmedBy / confirmedAt`，使「谁确认的」可追溯（此前只改 status）。
  * @returns {{ok:boolean, reason?:string}}
  */
 export function confirmInspectionRecord(id, { actorId } = {}) {
   const rec = loadInspectionRecords().find(r => r.id === id);
   if (!rec) return { ok: false, reason: '考察记录不存在' };
-  const deny = _inspectionMutationDeny(actorId, rec, '确认');
+  const personId = actorId || _currentPersonId();
+  const deny = _inspectionDecisionDeny(personId, rec, '确认');
   if (deny) return { ok: false, reason: deny };
-  updateInspectionRecord(id, { status: 'confirmed' });
+  updateInspectionRecord(id, {
+    status: 'confirmed',
+    confirmedBy: personId,
+    confirmedAt: new Date().toISOString(),
+  });
   // 做事即销待办：确认考察 → 销「考察超期/待确认」待办
   try { TodoStore.completeBySource(TodoSourceType.ACTIVITY, `insp_${id}`); } catch (e) { console.warn('[inspection] 销待办失败', e); }
   return { ok: true };
@@ -209,7 +247,12 @@ export function inspectionToDisplay(records) {
     content: r.content || r.role, // P1-5：content 优先，旧数据以 role 兜底
     role: r.role,
     recordedByName: _personName(r.recordedBy),
+    recordedBy: r.recordedBy || null, // D01：页面据此判定「本人提交」（不得自确认）
     recordedAt: r.recordedAt,
+    confirmedBy: r.confirmedBy || null,
+    confirmedAt: r.confirmedAt || null,
+    returnedBy: r.returnedBy || null,
+    returnedAt: r.returnedAt || null,
     status: r.status || 'pending',
   }));
 }
@@ -233,6 +276,11 @@ export function inspectionToLong(records) {
     content: r.content || r.role, // P1-5：content 优先，旧数据以 role 兜底
     status: r.status,
     recordedByName: r.recordedBy ? _personName(r.recordedBy) : '',
+    recordedBy: r.recordedBy || null, // D01：本人提交的行不渲染确认按钮
+    confirmedBy: r.confirmedBy || null,
+    confirmedAt: r.confirmedAt || null,
+    returnedBy: r.returnedBy || null,
+    returnedAt: r.returnedAt || null,
   }));
 }
 
@@ -315,8 +363,8 @@ export function inspectionToWide(records) {
 // 「同一套语义」＝① **可恢复的回退态**（记录回「待确认」＋ 打回留痕可见）
 //                ＋ ② **申诉入口**（当事人报「没记上」→ 纪检先核实 → 属实按打回处理）。
 // ⚠ 一处差异（如实登记，未自创第二套）：考勤的 `recordedBy` ＝ **确认人**（纪检），
-//   考察的 `recordedBy` ＝ **上传人**（组织者 / 组长 / 组织委员），确认人不落字段
-//   （`confirmInspectionRecord` 只改 `status`）——故考察打回的回退态由「`status` 回 `pending`」
+//   考察的 `recordedBy` ＝ **上传人**（组织者 / 组长 / 组织委员）——D01 起确认人另落
+//   `confirmedBy / confirmedAt`（不再只改 `status`）；打回的回退态仍由「`status` 回 `pending`」
 //   ＋ `returnedBy / returnedAt / returnReason` 表达（字段名与考勤打回逐字一致，便于同一套读法）。
 // 存储：申诉队列＝`mockDB.inspectionAppeals`（内存读链）＋ 双形态持久（2026-09-24 批次 169 收口）：
 //   mock 形态自管 localStorage 键（`gsm1921-` 前缀 → `?reset=demo` 自动清理，做法同 services/activity/attendance.js
@@ -411,22 +459,28 @@ export function closeInspectionAppeal(appealId, { by, note, status = 'closed' } 
  * ② 若该人该场**已有考察记录**，记录一并置回退态（回「待确认」＋ 写 returnedBy/returnedAt/returnReason）。
  * @returns {{ok:boolean, hadRecord:boolean}}
  */
-export function returnInspectionAppeal(appealId, { by, note } = {}) {
+export function returnInspectionAppeal(appealId, { by, note, actorId } = {}) {
   const all = loadInspectionAppeals();
   const it = all.find(a => a.id === appealId);
   if (!it || it.status !== 'pending') return { ok: false, hadRecord: false };
+  // D01：打回与确认同一白名单 + 自确认禁令（申诉打回也会改记录回退态）
+  const personId = actorId || by || _currentPersonId();
+  const recordsForCheck = loadInspectionRecords();
+  const targetRec = recordsForCheck.find(r => r.personId === it.personId && r.activityId === it.activityId);
+  const deny = _inspectionDecisionDeny(personId, targetRec, '打回');
+  if (deny) return { ok: false, hadRecord: false, reason: deny };
   const at = new Date().toISOString();
   it.status = 'returned';
-  it.returnedBy = by || null;
+  it.returnedBy = personId;
   it.returnedAt = at;
   it.returnNote = String(note || '').trim();
   _saveInspectionAppeals(all);
   _syncAppealToServer(a => (a.inspectionAppeals ? a.inspectionAppeals.patch(appealId, { status: 'returned', note: it.returnNote }) : null), '申诉打回');
-  const records = loadInspectionRecords();
-  const rec = records.find(r => r.personId === it.personId && r.activityId === it.activityId);
+  const records = recordsForCheck;
+  const rec = targetRec;
   if (rec) {
     rec.status = 'pending';
-    rec.returnedBy = by || null;
+    rec.returnedBy = personId;
     rec.returnedAt = at;
     rec.returnReason = it.returnNote || '考察申诉核实';
     saveInspectionRecords(records);
@@ -439,12 +493,16 @@ export function returnInspectionAppeal(appealId, { by, note } = {}) {
  * ⚠ 与考勤打回同语义：**不是替上传方改数**，而是把更正责任交回上传方重新确认。
  * @returns {{ok:boolean}}
  */
-export function returnInspectionRecord(recordId, { by, note } = {}) {
+export function returnInspectionRecord(recordId, { by, note, actorId } = {}) {
   const records = loadInspectionRecords();
   const rec = records.find(r => r.id === recordId);
-  if (!rec) return { ok: false };
+  if (!rec) return { ok: false, reason: '考察记录不存在' };
+  // D01：打回与确认同一白名单；`by` 仅兼容旧调用（真实操作人优先取 actorId/会话）
+  const personId = actorId || by || _currentPersonId();
+  const deny = _inspectionDecisionDeny(personId, rec, '打回');
+  if (deny) return { ok: false, reason: deny };
   rec.status = 'pending';
-  rec.returnedBy = by || null;
+  rec.returnedBy = personId;
   rec.returnedAt = new Date().toISOString();
   rec.returnReason = String(note || '').trim() || '纪检打回';
   saveInspectionRecords(records);

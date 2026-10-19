@@ -20,16 +20,16 @@
 //     预载后经缓存读取（签名未变秒回、变才 await 拉取）——todo-tab-shell _comboKeyOf 已并入
 //     该 token+长度指纹 → 确认/审批后渲染守卫键变化 → 重建而非命中跳过。
 
-import { getAdapter } from '../../data/data-adapter.js?v=20261018u';
-import { mockDB } from '../../core/domain/domain.js?v=20261018u';
-import { bumpToken } from '../../core/base/version-token.js?v=20261018u';
-import { getPersonById, getPersonName } from '../../services/member/person.js?v=20261018u';
-import { loadActivities } from '../../services/activity/activity.js?v=20261018u';
-import { showToast, escHtml as esc, getBasePath } from '../../core/base/utils.js?v=20261018u';
-import { NoticeStore } from '../../services/governance/notice.js?v=20261018u';
-import { AuthStore } from '../../services/core/auth.js?v=20261018u';
+import { getAdapter } from '../../data/data-adapter.js?v=20261019a';
+import { mockDB } from '../../core/domain/domain.js?v=20261019a';
+import { bumpToken } from '../../core/base/version-token.js?v=20261019a';
+import { getPersonById, getPersonName } from '../../services/member/person.js?v=20261019a';
+import { loadActivities } from '../../services/activity/activity.js?v=20261019a';
+import { showToast, escHtml as esc, getBasePath } from '../../core/base/utils.js?v=20261019a';
+import { NoticeStore } from '../../services/governance/notice.js?v=20261019a';
+import { AuthStore } from '../../services/core/auth.js?v=20261019a';
 // roster=名册报送确认链（组织委员发起 → 支书确认/退回；bulk 行仅确认，退回留在详情逐项）
-import { listPendingConfirmations, decideConfirmation, MC_ACTION_LABEL } from '../../services/member/member-confirmation.js?v=20261018u';
+import { listPendingConfirmations, decideConfirmation, MC_ACTION_LABEL } from '../../services/member/member-confirmation.js?v=20261019a';
 
 const _pendingStatusOf = (mode) => (mode === 'org-approve' ? 'pending-org-approval' : 'pending-secretary');
 
@@ -121,7 +121,7 @@ export function renderMcBulkRowsHtml(rows, { mode = 'secretary-confirm', accent 
     ? '<span class="text-[11px] px-1.5 py-0.5 rounded-full bg-sky-50 text-sky-700 flex-shrink-0">议程</span>'
     : '<span class="text-[11px] px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-700 flex-shrink-0">名册</span>');
   const rowsHtml = list.map(r => `
-    <label class="flex items-center gap-2 px-1 py-1.5 rounded-lg hover:bg-white transition-colors cursor-pointer" data-mcb-row>
+    <label class="flex items-center gap-2 px-1 py-1.5 rounded-lg hover:bg-white transition-colors cursor-pointer" data-mcb-row data-mc-request-id="${esc(r.id)}">
       <input type="checkbox" class="mcb-check shrink-0" style="cursor:pointer;" data-mcb-source="${r.source}" data-mcb-id="${esc(r.id)}" />
       <span class="flex flex-col items-start gap-0.5 min-w-0 flex-1">
         <span class="flex items-center gap-1.5 min-w-0 w-full">

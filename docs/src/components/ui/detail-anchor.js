@@ -17,6 +17,33 @@
  *   anchorDetailToTrigger(detailEl, triggerEl, { block: 'center', smooth: true });
  */
 
+import { flashHighlight } from '../../core/base/utils.js?v=20261019a';
+
+/**
+ * 材料页深链 `focusActivityId` 的通用落点（2026-10-20 IA 修复）：
+ * 各承载 tab 渲染后调用——先找 `[data-act-id]` / `[data-archive-id]` 活动行/卡片，
+ * 找不到再退回「指向 activity.html?id=」的链接，滚到视野并闪烁。
+ * 只做定位，不改各 tab 的筛选与数据口径（不复制第二套筛选器）。
+ * @param {HTMLElement} root 页签内容容器
+ * @param {string} actId 目标活动 id
+ * @returns {boolean} 是否找到并定位
+ */
+export function focusActivityAnchor(root, actId) {
+  if (!root || !actId) return false;
+  const id = String(actId);
+  let anchor = root.querySelector(`[data-act-id="${id}"]`) || root.querySelector(`[data-archive-id="${id}"]`);
+  if (!anchor) {
+    anchor = [...root.querySelectorAll('a[href*="activity.html"]')].find((a) => {
+      try { return new URL(a.getAttribute('href'), window.location.href).searchParams.get('id') === id; } catch (_) { return false; }
+    }) || null;
+  }
+  if (!anchor) return false;
+  const target = anchor.closest('tr, [data-act-id], [data-archive-id], .card, .rounded-xl') || anchor;
+  scrollDetailIntoView(target, { block: 'center', smooth: true });
+  flashHighlight(target);
+  return true;
+}
+
 /**
  * 仅把已在 DOM 中的详情/展开区滚入视野（**视图切换类**与**行内已锚定类**使用）：
  *  - 视图切换类：列表整体被详情替换（如反馈管理、公共反馈页），详情 DOM 位置固定在列表上方，

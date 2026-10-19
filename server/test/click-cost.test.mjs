@@ -35,9 +35,11 @@ async function loginAs(page, role) {
   return page;
 }
 
-// 场景 A：支书创建三会一课（党小组会）活动
+// 场景 A：支书创建三会一课（支部党员大会）活动
 // 2026-09-23 支书裁定「一般由谁写入」nudge 落地后：支书写入活动**多一次确认点击**（「仍由我继续」）⇒ 基线 ≤5 → ≤6。
-test('C1 支书创建三会一课活动：点击次数统计（含 nudge 确认，目标 ≤6 次）', async () => {
+// 2026-10-16 批次 448 起「党小组会」不再出现在支书写入模板（campaign：活动由组长写入，模板 filter 掉
+//   `party-group-meeting`），故本用例改测同属三会一课的「支部党员大会」——点击成本判据（≤6 次）不变。
+test('C1 支书创建三会一课活动（支部党员大会）：点击次数统计（含 nudge 确认，目标 ≤6 次）', async () => {
   const { context, page } = await newIsolatedPage();
   try {
     await loginAs(page, 'secretary');
@@ -52,8 +54,8 @@ test('C1 支书创建三会一课活动：点击次数统计（含 nudge 确认�
     await click(page.locator('#ws-sec-write-btn'), '按钮「写入活动」');
     await page.waitForSelector('[data-action="select-template"]', { timeout: 10000 });
 
-    // 3. 选模板：三会一课 → 党小组会（一个按钮直达）
-    await click(page.locator('[data-action="select-template"][data-category="three-meetings"][data-subtype="party-group-meeting"]'), '模板「党小组会」');
+    // 3. 选模板：三会一课 → 支部党员大会（一个按钮直达；党小组会模板自 2026-10-16 批次 448 起不在支书写入位）
+    await click(page.locator('[data-action="select-template"][data-category="three-meetings"][data-subtype="branch-party-meeting"]'), '模板「支部党员大会」');
 
     // 4. 填表单（输入不算点击）
     const uniqueTitle = `T283议程实测-${Date.now().toString().slice(-5)}`;
@@ -98,7 +100,7 @@ test('C1 支书创建三会一课活动：点击次数统计（含 nudge 确认�
       };
     }, uniqueTitle);
     const st = await page.evaluate(async (u) => {
-      const m = await import('/src/core/base/state.js?v=20261018u');
+      const m = await import('/src/core/base/state.js?v=20261019a');
       const acts = m.getAppState().activities || [];
       return {
         appStateCount: acts.length,
@@ -216,7 +218,7 @@ test('C4 组长建活动（默认预选）：决策点选 0 次、首屏无 L1�
       (document.getElementById('dt-panel-wrap').innerText.split('\n').find(l => l.includes('当前设置')) || '').trim());
     console.log(`[C4] 首屏默认摘要：${summary}`);
     const myGroup = await page.evaluate(async () => {
-      const m = await import('/src/entries/tabs/leader/_shared.js?v=20261018u');
+      const m = await import('/src/entries/tabs/leader/_shared.js?v=20261019a');
       return m.currentLeaderGroup().group;
     });
     assert.ok(summary.includes('活动类型'), '首屏应显示白话「活动类型」摘要');
@@ -272,7 +274,7 @@ test('C5 组长建活动（高级层展开）：仍可改 活动类型/形式/�
     await page.locator('.dt-l4-btn[data-value="top-down"]').click();
     // L1 变更会重置承办党小组 → 回选组长本组
     const myGroup = await page.evaluate(async () => {
-      const m = await import('/src/entries/tabs/leader/_shared.js?v=20261018u');
+      const m = await import('/src/entries/tabs/leader/_shared.js?v=20261019a');
       return m.currentLeaderGroup().group;
     });
     await page.waitForSelector(`.dt-host-btn[data-value="${myGroup}"]`, { timeout: 5000 });

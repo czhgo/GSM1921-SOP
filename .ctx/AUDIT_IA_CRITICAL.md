@@ -10,7 +10,7 @@ related_files: [.ctx/IA_INVENTORY.md, .ctx/IA_LINK_TRUTH.md, .trae/specs/audit-i
 # 信息架构批判性专项审查报告
 
 > 口径：先问「该不该存在」，再问「好不好」。六路 lens 各自只加载一个视角、不互读报告。
-> 矩阵：`.ctx/IA_INVENTORY.md`（7 台 / 67 tab / 100 卡片 / 124 链接 / 28 深链）。
+> 矩阵：`.ctx/IA_INVENTORY.md`（7 台 / **修复前 67 tab → 修复后 62 tab**；审查时读数 100 卡片 / 124 链接 / 28 深链，修复后重跑为 91 卡片 / 117 链接 / 20 深链）。
 > 链接真值：`.ctx/IA_LINK_TRUTH.md`。
 
 ## 一、六路结果

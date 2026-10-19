@@ -268,7 +268,6 @@ test('S12 手写表格收敛台账：`<table` 只允许出现在登记在案的�
     ['components/ui/relation-matrix.js', '「人 × 项目」矩阵单一源'],
     ['entries/tabs/disc/attendance-tab.js', '考勤明细（导出 / 打印专用明细表；分页已走单一源 pager.js）'],
     ['entries/tabs/secretary/group-progress-tab.js', '党小组清单（行数＝党小组数，天然有界）'],
-    ['entries/tabs/party-committee/monitor-tab.js', '党委支部动态比较表（角色范围固定，行表数据采用统一 .data-table 样式）'],
     ['entries/tabs/party-committee/branches-tab.js', '党委支部目录（角色范围固定，行表数据采用统一 .data-table 样式）'],
     ['entries/pages/branch-readonly-entry.js', '党委只读支部名册（规模可达 50 人，统一 .data-table 样式并提供检索分页）'],
     ['components/governance/person-profile-sections.js', '档案内嵌 list 字段表：字段级嵌套表，非独立数据视图；使用 .data-table 单一源类'],

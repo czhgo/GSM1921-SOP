@@ -19,18 +19,18 @@
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { PEOPLE } from '../../docs/src/data/mock/people.js?v=20261018u';
-import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261018u';
+import { PEOPLE } from '../../docs/src/data/mock/people.js?v=20261019a';
+import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261019a';
 import {
   MockAdapter, collectResetKeys, handleResetIfRequested,
-} from '../../docs/src/data/mock-adapter.js?v=20261018u';
+} from '../../docs/src/data/mock-adapter.js?v=20261019a';
 import {
   PersonStore, MEMBER_OVERLAY_KEY, getBaseMemberRecords, findMemberRefs,
-} from '../../docs/src/services/member/person.js?v=20261018u';
-import { getRosterStats } from '../../docs/src/services/member/roster.js?v=20261018u';
-import { setDataSource } from '../../docs/src/data/data-adapter.js?v=20261018u';
+} from '../../docs/src/services/member/person.js?v=20261019a';
+import { getRosterStats } from '../../docs/src/services/member/roster.js?v=20261019a';
+import { setDataSource } from '../../docs/src/data/data-adapter.js?v=20261019a';
 // Q-23-10（批次 30）实证：成员流动流入登记在 api 形态走 /members/intake（支书/副支书亦可）
-import { registerIntake } from '../../docs/src/services/member/member-flow.js?v=20261018u';
+import { registerIntake } from '../../docs/src/services/member/member-flow.js?v=20261019a';
 import { createApp } from '../app.js';
 import { seedDatabase } from '../seed.js';
 
@@ -247,8 +247,9 @@ async function login(personId) {
 function auth(token) {
   return { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` };
 }
-async function getUsers(token) {
-  const res = await fetch(`${base}/api/v1/users`, { headers: auth(token) });
+async function getUsers(token, branchId = 'br-b1') {
+  // 产品口径（2026-10-18）：党委未选支部时支部资源读口为空集 ⇒ 读回名册须显式选定支部。
+  const res = await fetch(`${base}/api/v1/users?branchId=${encodeURIComponent(branchId)}`, { headers: auth(token) });
   assert.equal(res.status, 200);
   return res.json();
 }

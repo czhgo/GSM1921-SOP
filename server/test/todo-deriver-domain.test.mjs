@@ -19,24 +19,24 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261018u';
+import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261019a';
 import {
   MockAdapter,
-} from '../../docs/src/data/mock-adapter.js?v=20261018u';
-import { setDataSource } from '../../docs/src/data/data-adapter.js?v=20261018u';
+} from '../../docs/src/data/mock-adapter.js?v=20261019a';
+import { setDataSource } from '../../docs/src/data/data-adapter.js?v=20261019a';
 import {
   WORK_DOMAIN, TodoStore, TodoSourceType,
   LifecycleTodoDeriver, VisitorTodoDeriver, NoticeTodoDeriver,
   REALTIME_GROUP_DOMAIN, realtimeGroupDomainOf,
   buildDevelopNodeRemindGroup,
-} from '../../docs/src/services/governance/todo.js?v=20261018u';
-import { HandoffStore } from '../../docs/src/services/governance/handoff.js?v=20261018u';
-import { SignupStore } from '../../docs/src/services/activity/signup.js?v=20261018u';
-import { TaskForceRecordStore } from '../../docs/src/services/activity/taskforce.js?v=20261018u';
+} from '../../docs/src/services/governance/todo.js?v=20261019a';
+import { HandoffStore } from '../../docs/src/services/governance/handoff.js?v=20261019a';
+import { SignupStore } from '../../docs/src/services/activity/signup.js?v=20261019a';
+import { TaskForceRecordStore } from '../../docs/src/services/activity/taskforce.js?v=20261019a';
 import {
   saveFollowups, buildOverdueRemindGroup,
-} from '../../docs/src/services/governance/resolution-followup.js?v=20261018u';
-import { SecretaryTodoDeriver } from '../../docs/src/services/governance/secretary-overview.js?v=20261018u';
+} from '../../docs/src/services/governance/resolution-followup.js?v=20261019a';
+import { SecretaryTodoDeriver } from '../../docs/src/services/governance/secretary-overview.js?v=20261019a';
 
 // ── localStorage 内存桩（member-persist 同款）─────────────────────
 const _store = new Map();
@@ -180,23 +180,18 @@ test('④ 通知派生（NoticeTodoDeriver / Visitor 通知扫描）：domain=NO
 
 // ═══════════════ ⑤ handoff 三型 ═══════════════
 
-test('⑤ handoff 三型：考勤备案/补课回执→考勤纪律，考察提交→考察（稳定 handoff-* 键已设）', () => {
+test('⑤ handoff 三型：auto 类不派生待办；补课回执→考勤纪律（D04）', () => {
   beginMockCase();
   HandoffStore.create({ type: 'attendance-archival', refType: 'activity', refLabel: '考勤备案', refId: 'act-1' });
   HandoffStore.create({ type: 'inspection-report', refType: 'activity', refLabel: '考察记录', refId: 'act-2' });
   HandoffStore.create({ type: 'material-shortage', refType: 'activity', refLabel: '补课需求', refId: 'act-3' });
 
   const byKey = (k) => TodoStore.getAll().find(t => t.actionKey === k);
-  const h1 = byKey('handoff-attendance-archival');
-  // SOP-B-36（`D-429`）：考勤全周期统计交付对象＝支委会，接收位＝组织委员（不再提交宣传备案）——
-  // 原期望 'prop-commissioner' 系改裁前的旧口径，随 `handoff.js:23` 改准为 'org-commissioner'。
-  assert.equal(h1.role, 'org-commissioner');
-  assert.equal(h1.domain, 'attendance', '考勤统计（纪检→组织委员 / 支委会接收位，`D-429`）归考勤纪律域（spec 三节）');
+  // D04（AP-IA-04）：考勤统计 / 考察记录提交属 auto 类（发起即送达）⇒ **不派生接收方待办**。
+  assert.equal(byKey('handoff-attendance-archival'), undefined, 'auto 交接不得派生待办');
+  assert.equal(byKey('handoff-inspection-report'), undefined, 'auto 交接不得派生待办');
 
-  const h2 = byKey('handoff-inspection-report');
-  assert.equal(h2.role, 'org-commissioner');
-  assert.equal(h2.domain, 'inspection', '考察记录提交（纪检→组织）归考察域');
-
+  // material-shortage 是「要纪检去补课」的真待办 ⇒ 仍派生，并归考勤纪律域。
   const h3 = byKey('handoff-material-shortage');
   assert.equal(h3.role, 'disc-commissioner');
   assert.equal(h3.domain, 'attendance', '补课需求回执（组织→纪检）归考勤纪律域（补课相关）');

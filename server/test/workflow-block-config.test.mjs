@@ -1,5 +1,6 @@
 // server/test/workflow-block-config.test.mjs — L3 S3 工作流块配置（2026-09-03）
-// 支书裁定：config.blocks 增 workflowBlocks（与 outputBlocks 平级）；PATCH /branches/:id/config 仅支书/party-staff
+// 支书裁定：config.blocks 增 workflowBlocks（与 outputBlocks 平级）；PATCH /branches/:id/config 仅支书/副支书
+// （党委维护能力目录与模板、不代支部选配，见 routes/resources/index.js:827 ⇒ 党委写 blocks 403）
 // 覆盖：① 纯函数 policy（默认全开/隐藏过滤/兼容缺段） ② HTTP 写回/结构校验/恢复默认
 // 运行：node --test server/test/workflow-block-config.test.mjs（自包含 server）
 
@@ -39,7 +40,7 @@ async function patchConfig(token, body) {
   });
 }
 
-const V = '?v=20261018u';
+const V = '?v=20261019a';
 const BLOCK_IDS = ['theme-party-day', 'taskforce'];
 
 test('S3 工作流块策略（纯函数）：默认全开 / 隐藏过滤 / 缺段兼容', async () => {
@@ -92,7 +93,7 @@ test('S3 HTTP：workflowBlocks 写回/结构校验/恢复默认', async () => {
   assert.ok(b1.config.blocks.outputBlocks, 'outputBlocks 保留');
 
   // ② 单写 workflowBlocks（无 outputBlocks）→ 200（结构允许至少其一）
-  const r2 = await patchConfig(staff, { config: { blocks: { workflowBlocks: { hiddenBlockIds: ['taskforce'] } } } });
+  const r2 = await patchConfig(sec, { config: { blocks: { workflowBlocks: { hiddenBlockIds: ['taskforce'] } } } });
   assert.equal(r2.status, 200, '仅 workflowBlocks 合法');
   const b2 = await r2.json();
   assert.deepEqual(b2.config.blocks.workflowBlocks.hiddenBlockIds, ['taskforce'], '仅 workflowBlocks 落库');
@@ -111,7 +112,12 @@ test('S3 HTTP：workflowBlocks 写回/结构校验/恢复默认', async () => {
   assert.equal((await patchConfig(sec, { config: { blocks: 'nope' } })).status, 400, 'blocks 非对象 → 400');
 
   // ⑤ 恢复默认：blocks=null → 全清
-  const r5 = await patchConfig(staff, { config: { blocks: null } });
+  const r5 = await patchConfig(sec, { config: { blocks: null } });
   assert.equal(r5.status, 200, 'blocks=null 恢复默认');
   assert.equal((await r5.json()).config.blocks, null, 'workflowBlocks/outputBlocks（含顺序）全清');
+
+  // ⑥ 党委不得写 blocks（产品规则见 routes/resources/index.js:827；守卫不弱化）
+  assert.equal((await patchConfig(staff, { config: { blocks: null } })).status, 403, '党委不得经 blocks=null 恢复支部默认');
+  assert.equal((await patchConfig(staff, { config: { blocks: { workflowBlocks: { hiddenBlockIds: [] } } } })).status, 403,
+    '党委不得写 workflowBlocks');
 });

@@ -100,10 +100,11 @@ test('纪检（disc-commissioner）：POST / PATCH / DELETE → 201 / 200 / 204'
   assert.equal(post.status, 201, `纪检应可新增（实得 ${post.status}：${text}）`);
   const created = JSON.parse(text);
 
+  // D01：纪检不能确认自己刚上传的记录（自确认禁令）——本用例只验写门，故改内容字段。
   const patch = await fetch(`${base}/api/v1/inspections/${created.id}`, {
-    method: 'PATCH', headers: headers(token), body: JSON.stringify({ status: 'confirmed' }),
+    method: 'PATCH', headers: headers(token), body: JSON.stringify({ content: '纪检修订考察' }),
   });
-  assert.equal(patch.status, 200, `纪检应可确认（实得 ${patch.status}：${await patch.text()}）`);
+  assert.equal(patch.status, 200, `纪检应可修改（实得 ${patch.status}：${await patch.text()}）`);
 
   const del = await fetch(`${base}/api/v1/inspections/${created.id}`, {
     method: 'DELETE', headers: headers(token),

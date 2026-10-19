@@ -63,7 +63,8 @@ async function openWriteForm(page) {
   await page.waitForSelector('#ws-sec-write-btn', { timeout: 10000 });
   await page.click('#ws-sec-write-btn');
   await page.waitForSelector('[data-action="select-template"]', { timeout: 10000 });
-  await page.click('[data-action="select-template"][data-category="three-meetings"][data-subtype="party-group-meeting"]');
+  // 产品口径：支书写入面板的三会课子类不含「党小组会」（由组长台承载）⇒ 取支部党员大会模板。
+  await page.click('[data-action="select-template"][data-category="three-meetings"][data-subtype="branch-party-meeting"]');
   await page.waitForSelector('#wp-title', { timeout: 10000 });
   await page.waitForSelector('#wp-auth-slot', { timeout: 10000 });
 }

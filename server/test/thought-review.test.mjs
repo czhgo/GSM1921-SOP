@@ -19,11 +19,11 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261018u';
-import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261018u';
-import { setDataSource, registerMockAdapter } from '../../docs/src/data/data-adapter.js?v=20261018u';
+import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261019a';
+import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261019a';
+import { setDataSource, registerMockAdapter } from '../../docs/src/data/data-adapter.js?v=20261019a';
 // namespace 导入：红阶段（新 API 未实现）以 per-test 失败呈现而非整文件链接失败
-import * as TR from '../../docs/src/services/governance/thought-report.js?v=20261018u';
+import * as TR from '../../docs/src/services/governance/thought-report.js?v=20261019a';
 
 // ── localStorage 内存桩（含 key/length）──
 const _store = new Map();
@@ -87,11 +87,12 @@ test('① addThoughtReport 新提交 → 提交即入库归档（archived）+ �
   assert.ok(notice, '提交后应广播站内通知');
   assert.ok(notice.content.includes('已自动归档归集'), '通知文案应说明已归档归集：' + (notice && notice.content));
   assert.ok(!notice.content.includes('待组织初阅'), '不再出现「待组织初阅」：' + (notice && notice.content));
-  // A① 对象级深链（2026-09-10）：直达组织委员工作台「思想汇报」tab 并定位该条（data-tr-id 锚点）
+  // F02（IA-F02 · 2026-10-20）：思想汇报改落**独立详情页**（单一承载面），不再依赖
+  //   「tab=thought-review&highlight」——壳会先清 URL 参数，原深链在 tab 内无人消费。
   assert.equal(
     notice.targetUrl,
-    `workspace/org.html?tab=thought-review&highlight=${rec.id}`,
-    '通知对象级深链：直达组织委员工作台「思想汇报」tab 并定位该条'
+    `thought-report.html?id=${rec.id}`,
+    '通知对象级深链：直达思想汇报详情页（?id=<trId>）'
   );
 });
 

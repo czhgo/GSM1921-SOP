@@ -1,11 +1,11 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { renderWorkgroupMemberEditor } from '../../docs/src/components/governance/workgroup-member-editor.js?v=20261018u';
-import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261018u';
-import { ensureLegacySourceWorkgroups } from '../../docs/src/data/workgroup-seed-sync.js?v=20261018u';
-import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261018u';
-import { workgroupPermissionTemplates } from '../../docs/src/core/domain/workgroup-policy.js?v=20261018u';
-import { renderSignupSection, renderSignupList } from '../../docs/src/components/governance/signup-panel.js?v=20261018u';
+import { renderWorkgroupMemberEditor } from '../../docs/src/components/governance/workgroup-member-editor.js?v=20261019a';
+import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261019a';
+import { ensureLegacySourceWorkgroups } from '../../docs/src/data/workgroup-seed-sync.js?v=20261019a';
+import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261019a';
+import { workgroupPermissionTemplates } from '../../docs/src/core/domain/workgroup-policy.js?v=20261019a';
+import { renderSignupSection, renderSignupList } from '../../docs/src/components/governance/signup-panel.js?v=20261019a';
 
 test('活动成员编辑器把组织者/深度参与者与已通过报名的一般参与者分层展示', () => {
   const html = renderWorkgroupMemberEditor({

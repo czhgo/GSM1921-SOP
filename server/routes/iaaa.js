@@ -187,6 +187,14 @@ export function createIaaaRouter(db) {
     return res.redirect(`/login.html#iaaa=${encodeURIComponent(session)}`);
   });
 
+  // 待归属者选支部所需的目录（只读最小字段）。
+  // 待归属账号被资源读口的 `requireAssignedBranch` 挡住（见 routes/resources/index.js），
+  // 而「选择支部」是入站必经步骤 ⇒ 由 IAAA 独立路由提供目录，不放大支部资源读权。
+  router.get('/branches', requireAuth(db), (req, res) => {
+    const rows = db.prepare('SELECT data FROM branches').all().map((r) => JSON.parse(r.data));
+    res.json(rows.map((b) => ({ id: b.id, name: b.name, type: b.type, status: b.status })));
+  });
+
   // 本人选支部（须已登录且尚未归属）
   router.post('/bind-branch', requireAuth(db), (req, res) => {
     const actor = req.actor;

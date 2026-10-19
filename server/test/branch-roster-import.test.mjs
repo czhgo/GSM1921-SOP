@@ -15,18 +15,18 @@
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261018u';
-import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261018u';
+import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261019a';
+import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261019a';
 import {
   PersonStore, getBaseMemberRecords,
-} from '../../docs/src/services/member/person.js?v=20261018u';
-import { getRosterStats } from '../../docs/src/services/member/roster.js?v=20261018u';
+} from '../../docs/src/services/member/person.js?v=20261019a';
+import { getRosterStats } from '../../docs/src/services/member/roster.js?v=20261019a';
 import {
   BRANCH_ROSTER_KIND, BRANCH_ROSTER_VERSION,
   buildBranchRosterTemplate, sanitizeBranchRoster,
-} from '../../docs/src/services/member/branch-roster-import.js?v=20261018u';
-import { buildPreviewTemplate } from '../../docs/src/services/branch/org-base-data-preview.js?v=20261018u';
-import { setDataSource } from '../../docs/src/data/data-adapter.js?v=20261018u';
+} from '../../docs/src/services/member/branch-roster-import.js?v=20261019a';
+import { buildPreviewTemplate } from '../../docs/src/services/branch/org-base-data-preview.js?v=20261019a';
+import { setDataSource } from '../../docs/src/data/data-adapter.js?v=20261019a';
 import { createApp } from '../app.js';
 import { seedDatabase } from '../seed.js';
 
@@ -249,8 +249,9 @@ async function login(personId) {
 function auth(token) {
   return { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` };
 }
-async function getUsers(token) {
-  const res = await fetch(`${base}/api/v1/users`, { headers: auth(token) });
+async function getUsers(token, branchId) {
+  const qs = branchId ? `?branchId=${encodeURIComponent(branchId)}` : '';
+  const res = await fetch(`${base}/api/v1/users${qs}`, { headers: auth(token) });
   assert.equal(res.status, 200);
   return res.json();
 }
@@ -271,6 +272,9 @@ test('api ⑥：replaceBranchMembers（api 形态）整支部替换落 server us
   mockDB.branches = [...(mockDB.branches || []), branch];
 
   setDataSource('api', { apiBaseUrl: base, authToken: staffToken });
+  // 党委按支部作业（产品口径：党委未选支部时资源读口为空集；浏览器场景由 ?branchId= 选定支部）。
+  // ApiAdapter 的读请求从 window.location.search 附加 branchId，故此处模拟「已选中目标支部」。
+  globalThis.window = { location: { search: `?branchId=${encodeURIComponent(branch.id)}` } };
   try {
     // 净化（本地档案白名单与 mock 形态同规则）→ api 形态落库
     const clean = sanitizeBranchRoster([
@@ -278,23 +282,31 @@ test('api ⑥：replaceBranchMembers（api 形态）整支部替换落 server us
       { id: 'p24', name: '曹雅婷' },
     ]);
     assert.equal(clean.valid, true, JSON.stringify(clean));
+    // 服务器 users 是全局 id 表：整表替换走「先移出（DELETE）再在目标支部建号」，
+    // 否则 create 会撞既有 id（409）。删除仅作用于本用例的 :memory: 现场。
+    for (const id of ['p31', 'p24']) {
+      const del = await fetch(`${base}/api/v1/users/${id}`, { method: 'DELETE', headers: auth(staffToken) });
+      assert.equal(del.status, 204, `前置：移出 ${id} 以腾出全局 id`);
+    }
     const r = await PersonStore.replaceBranchMembers(clean.people, { branchId: branch.id, by: 'p_pc' });
     assert.equal(r.ok, true, JSON.stringify(r));
     assert.equal(r.count, 2);
 
     // server users 落库断言：p31/p24 branchId = 目标空支部；净化行带全字段（重建整行完整）
-    const users = await getUsers(staffToken);
+    const users = await getUsers(staffToken, branch.id);
     const u31 = users.find(u => u.id === 'p31');
     assert.equal(u31.branchId, branch.id, 'p31 归属目标支部（server users 落库）');
     assert.equal(u31.name, '刘子昂');
     assert.equal(u31.developStage, '预备党员', '净化行携带档案字段 → api 重建不丢发展阶段');
     assert.equal(u31.partyGroup, '第一党小组');
     assert.equal(users.filter(u => u.branchId === branch.id).length, 2, '目标支部恰 2 名成员');
-    assert.equal(users.filter(u => (u.branchId || 'br-b1') === 'br-b1').length, 49,
-      '源支部 br-b1 桶减员 2（PEOPLE 51 − p31/p24；p_pc branchId null 兜底归 br-b1 桶）');
+    // 源支部 br-b1 桶减员 2（PEOPLE 51 中含党委组织员 p_pc，其 branchId null 不属任何支部 ⇒ 支部读口 50 − 2 = 48）
+    assert.equal((await getUsers(staffToken, 'br-b1')).length, 48,
+      '源支部 br-b1 桶减员 2（p31/p24 已迁出；党委组织员不属支部，不计入支部桶）');
     // mockDB.users 缓存同步（_apiReplaceBranchMembers 整支部维度重拉）
     assert.equal((mockDB.users || []).find(u => u.id === 'p31')?.branchId, branch.id, 'mockDB.users 缓存同步 p31 归属');
   } finally {
     setDataSource('mock');
+    delete globalThis.window;
   }
 });

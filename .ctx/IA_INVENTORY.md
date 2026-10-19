@@ -8,25 +8,25 @@
 | 指标 | 读数 |
 | --- | ---: |
 | 工作台数 | 7 |
-| tab 数 | 67 |
+| tab 数 | 62 |
 | core tab 数 | 18 |
-| 卡片数（card 容器，文件去重） | 100 |
+| 卡片数（card 容器，文件去重） | 91 |
 | 区块标题数（h2/h3 + renderTabHeader） | 74 |
-| 链接数（源码位置去重） | 124 |
-| 深链参数出现次数 | 28 |
-| 扫描文件数 | 73 |
+| 链接数（源码位置去重） | 117 |
+| 深链参数出现次数 | 20 |
+| 扫描文件数 | 68 |
 
-深链参数分布：`tab`=16 · `highlight`=4 · `activityId`=0 · `branchId`=6 · `subview`=2
+深链参数分布：`tab`=11 · `highlight`=3 · `activityId`=0 · `branchId`=4 · `subview`=2
 
 ## 工作台概览
 
 | 工作台 | 页面 | 能力文件 | tab 数 | core | 卡片数（台内文件去重） | 链接数（台内文件去重） |
 | --- | --- | --- | ---: | ---: | ---: | ---: |
-| 纪检委员工作台 | `workspace/disc.html` | `docs/src/capabilities/disc-workspace.js` | 9 | 3 | 22 | 20 |
+| 纪检委员工作台 | `workspace/disc.html` | `docs/src/capabilities/disc-workspace.js` | 8 | 3 | 21 | 19 |
 | 组长工作台 | `workspace/leader.html` | `docs/src/capabilities/leader-workspace.js` | 10 | 3 | 16 | 13 |
-| 组织委员工作台 | `workspace/org.html` | `docs/src/capabilities/org-workspace.js` | 11 | 3 | 26 | 19 |
-| 党委工作台 | `workspace/party-committee.html` | `docs/src/capabilities/party-committee-workspace.js` | 5 | 0 | 7 | 7 |
-| 宣传委员工作台 | `workspace/prop.html` | `docs/src/capabilities/prop-workspace.js` | 9 | 3 | 19 | 15 |
+| 组织委员工作台 | `workspace/org.html` | `docs/src/capabilities/org-workspace.js` | 10 | 3 | 24 | 17 |
+| 党委工作台 | `workspace/party-committee.html` | `docs/src/capabilities/party-committee-workspace.js` | 3 | 0 | 4 | 4 |
+| 宣传委员工作台 | `workspace/prop.html` | `docs/src/capabilities/prop-workspace.js` | 8 | 3 | 16 | 14 |
 | 支书工作台 | `workspace/secretary.html` | `docs/src/capabilities/secretary-workspace.js` | 12 | 3 | 32 | 26 |
 | 成员工作台 | `workspace/visitor.html` | `docs/src/capabilities/visitor-workspace.js` | 11 | 3 | 8 | 11 |
 
@@ -42,7 +42,6 @@
 | `attendance` | 考勤管理 | 我的职责 | 否 | `docs/src/entries/tabs/disc/attendance-tab.js` | 5（节标题 5） | 一次确认所选（${…}） | activity.html<br>help.html<br>person.html |
 | `review` | 复盘 | 我的职责 | 否 | `docs/src/entries/tabs/disc/review-tab.js` | 4（节标题 4） | 督促沉淀 | activity.html<br>settings.html |
 | `inspection` | 考察管理 | 我的职责 | 否 | `docs/src/entries/tabs/disc/inspection-tab.js` | 4（节标题 4） | 确认 | activity.html<br>person.html<br>settings.html |
-| `tf-view` | 知情查看 | 知情查看 | 否 | `docs/src/entries/tabs/disc/tf-view-tab.js` | 1 | — | workspace/disc.html?tab=calendar |
 
 ## 组长工作台（`workspace/leader.html`）
 
@@ -73,17 +72,14 @@
 | `thought-review` | 思想汇报 | 我的职责 | 否 | `docs/src/entries/tabs/org/thought-review-tab.js` | 3（节标题 1） | — | 动态 |
 | `taskforce` | 专班管理 | 我的职责 | 否 | `docs/src/entries/tabs/org/taskforce-tab.js` | 5（节标题 4） | 标记完成 | activity-materials.html<br>person.html |
 | `member-flow` | 成员流动 | 我的职责 | 否 | `docs/src/entries/tabs/org/member-flow-tab.js` | 2（节标题 2） | ＋ 登记流入 | settings.html |
-| `tf-view` | 知情查看 | 知情查看 | 否 | `docs/src/entries/tabs/org/tf-view-tab.js` | 2 | — | workspace/org.html?tab=calendar<br>workspace/org.html?tab=taskforce |
 
 ## 党委工作台（`workspace/party-committee.html`）
 
 | tab id | 显示名 | 分组 | core | 对应文件 | 卡片数 | 主行动（若有） | 链接目标清单 |
 | --- | --- | --- | :---: | --- | --- | --- | --- |
-| `governance-overview` | 治理总览 | 党委治理 | 否 | `docs/src/entries/tabs/party-committee/governance-overview-tab.js` | 2 | 处理上报 | branch-config.html<br>workspace/party-committee.html?tab=review |
 | `dispatch` | 下发通知 | 党委治理 | 否 | `docs/src/entries/tabs/party-committee/dispatch-tab.js` | 2（节标题 1） | 下发通知 | — |
-| `monitor` | 支部动态 | 党委治理 | 否 | `docs/src/entries/tabs/party-committee/monitor-tab.js` | 1 | — | workspace/party-committee.html?tab=review |
 | `review` | 支部上报 | 党委治理 | 否 | `docs/src/entries/tabs/party-committee/review-tab.js` | 1 | 批准 | — |
-| `branches` | 支部管理 | 党委治理 | 否 | `docs/src/entries/tabs/party-committee/branches-tab.js` | 1 | 新建支部 | 动态 |
+| `branches` | 支部管理 | 党委治理 | 否 | `docs/src/entries/tabs/party-committee/branches-tab.js` | 1 | 新建支部 | workspace/party-committee.html?tab=review<br>动态 |
 
 ## 宣传委员工作台（`workspace/prop.html`）
 
@@ -95,9 +91,8 @@
 | `calendar` | 活动日历 | 工作台 | 否 | `docs/src/entries/tabs/shared/activity-calendar-tab.js` | 1（节标题 1） | — | activity.html |
 | `my-dispatch` | 我的处置 | 制度与答复 | 否 | `docs/src/entries/tabs/prop/my-dispatch-tab.js` | 0 | — | — |
 | `tasks` | 宣传任务 | 我的职责 | 否 | `docs/src/entries/tabs/prop/tasks-tab.js` | 4（节标题 1） | 登记 | — |
-| `kanban` | 项目看板 | 我的职责 | 否 | `docs/src/entries/tabs/prop/kanban-tab.js` | 4 | 确认完成 | archive.html<br>动态 |
+| `kanban` | 项目看板 | 我的职责 | 否 | `docs/src/entries/tabs/prop/kanban-tab.js` | 2 | 确认完成 | workspace/prop.html?tab=archive<br>动态 |
 | `archive` | 档案归档 | 我的职责 | 否 | `docs/src/entries/tabs/prop/archive-tab.js` | 2（节标题 5） | 归档 | activity.html<br>settings.html<br>动态 |
-| `tf-view` | 知情查看 | 知情查看 | 否 | `docs/src/entries/tabs/prop/tf-view-tab.js` | 1 | — | workspace/prop.html?tab=calendar |
 
 ## 支书工作台（`workspace/secretary.html`）
 
@@ -182,7 +177,6 @@
 | `docs/src/entries/tabs/disc/makeup-tab.js:94` | 见帮助 · 补课范围与归档 | help.html | — | — | — | 待真机（页面级门控） |
 | `docs/src/entries/tabs/disc/review-tab.js:126` | 查看活动详情 | activity.html | — | ${…} | — | 待真机（页面级门控） |
 | `docs/src/entries/tabs/disc/review-tab.js:325` | 纪检职责参数（考察确认超期天数）→ 设置 | settings.html | — | — | — | 待真机（页面级门控） |
-| `docs/src/entries/tabs/disc/tf-view-tab.js:33` | 去活动日历 | workspace/disc.html | calendar | — | tab=calendar | 可达：纪检委员工作台·活动日历 |
 | `docs/src/entries/tabs/leader/attendance-tab.js:259` | 查看完整档案 | person.html | — | ${…} | — | 待真机（页面级门控） |
 | `docs/src/entries/tabs/leader/attendance-tab.js:260` | （动态文本） | activity.html | — | ${…} | — | 待真机（页面级门控） |
 | `docs/src/entries/tabs/leader/inspection-tab.js:200` | 查看完整档案 | person.html | — | ${…} | — | 待真机（页面级门控） |
@@ -200,24 +194,19 @@
 | `docs/src/entries/tabs/org/member-flow-tab.js:280` | 组织职责参数（学期末滞留集中复核窗口）→ 设置 | settings.html | — | — | — | 待真机（页面级门控） |
 | `docs/src/entries/tabs/org/roster-tab.js:155` | 滞留集中复核窗口 → 组织职责参数（设置） | settings.html | — | — | — | 待真机（页面级门控） |
 | `docs/src/entries/tabs/org/roster-tab.js:240` | 档案 | person.html | — | ${…} | — | 待真机（页面级门控） |
-| `docs/src/entries/tabs/org/talent-tab.js:136` | 查看完整档案 | person.html | — | ${…} | — | 待真机（页面级门控） |
-| `docs/src/entries/tabs/org/talent-tab.js:204` | 查看完整档案 | 动态 | — | — | — | 待真机（动态目标） |
-| `docs/src/entries/tabs/org/talent-tab.js:279` | [JS] window.location | person.html | — | ${…} | — | 待真机（页面级门控） |
-| `docs/src/entries/tabs/org/talent-tab.js:286` | [JS] window.location.href | workspace/org.html | roster | — | tab=roster<br>highlight= | 可达：组织委员工作台·成员名册 |
-| `docs/src/entries/tabs/org/taskforce-tab.js:718` | 查看完整档案 | person.html | — | ${…} | — | 待真机（页面级门控） |
-| `docs/src/entries/tabs/org/taskforce-tab.js:907` | 查看完整档案 | person.html | — | ${…} | — | 待真机（页面级门控） |
-| `docs/src/entries/tabs/org/taskforce-tab.js:1684` | 材料闭环 | activity-materials.html | — | ${…} | — | 待真机（页面级门控） |
-| `docs/src/entries/tabs/org/tf-view-tab.js:46` | 去活动日历 | workspace/org.html | calendar | — | tab=calendar | 可达：组织委员工作台·活动日历 |
-| `docs/src/entries/tabs/org/tf-view-tab.js:55` | 专班管理在「专班管理」页 | workspace/org.html | taskforce | — | tab=taskforce | 可达：组织委员工作台·专班管理 |
+| `docs/src/entries/tabs/org/talent-tab.js:138` | 查看完整档案 | person.html | — | ${…} | — | 待真机（页面级门控） |
+| `docs/src/entries/tabs/org/talent-tab.js:208` | 查看完整档案 | 动态 | — | — | — | 待真机（动态目标） |
+| `docs/src/entries/tabs/org/talent-tab.js:284` | [JS] window.location | person.html | — | ${…} | — | 待真机（页面级门控） |
+| `docs/src/entries/tabs/org/talent-tab.js:291` | [JS] window.location.href | workspace/org.html | roster | — | tab=roster<br>highlight= | 可达：组织委员工作台·成员名册 |
+| `docs/src/entries/tabs/org/taskforce-tab.js:779` | 查看完整档案 | person.html | — | ${…} | — | 待真机（页面级门控） |
+| `docs/src/entries/tabs/org/taskforce-tab.js:968` | 查看完整档案 | person.html | — | ${…} | — | 待真机（页面级门控） |
+| `docs/src/entries/tabs/org/taskforce-tab.js:1745` | 材料闭环 | activity-materials.html | — | ${…} | — | 待真机（页面级门控） |
 | `docs/src/entries/tabs/org/thought-review-tab.js:182` | （动态文本） | 动态 | — | — | — | 待真机（动态目标） |
 | `docs/src/entries/tabs/org/todo-tab.js:87` | [JS] window.location | person.html | — | ${…} | — | 待真机（页面级门控） |
-| `docs/src/entries/tabs/party-committee/branches-tab.js:63` | （动态文本） | 动态 | — | — | — | 待真机（动态目标） |
-| `docs/src/entries/tabs/party-committee/branches-tab.js:63` | 查看档案 | 动态 | — | — | — | 待真机（动态目标） |
-| `docs/src/entries/tabs/party-committee/branches-tab.js:155` | 支部设置 | 动态 | — | — | — | 待真机（动态目标） |
-| `docs/src/entries/tabs/party-committee/governance-overview-tab.js:33` | 查看全部上报 | workspace/party-committee.html | review | — | tab=review | 可达：党委工作台·支部上报 |
-| `docs/src/entries/tabs/party-committee/governance-overview-tab.js:47` | 处理上报 | workspace/party-committee.html | review | — | tab=review<br>highlight=${…} | 可达：党委工作台·支部上报 |
-| `docs/src/entries/tabs/party-committee/governance-overview-tab.js:64` | 去任命 | branch-config.html | — | ${…} | branchId=${…} | 待真机（页面级门控） |
-| `docs/src/entries/tabs/party-committee/monitor-tab.js:52` | 查看该支部待批复上报 | workspace/party-committee.html | review | ${…} | tab=review<br>branchId=${…} | 可达：党委工作台·支部上报 |
+| `docs/src/entries/tabs/party-committee/branches-tab.js:69` | （动态文本） | 动态 | — | — | — | 待真机（动态目标） |
+| `docs/src/entries/tabs/party-committee/branches-tab.js:69` | 查看档案 | 动态 | — | — | — | 待真机（动态目标） |
+| `docs/src/entries/tabs/party-committee/branches-tab.js:159` | 查看该支部待批复上报 | workspace/party-committee.html | review | ${…} | tab=review<br>branchId=${…} | 可达：党委工作台·支部上报 |
+| `docs/src/entries/tabs/party-committee/branches-tab.js:171` | 支部设置 | 动态 | — | — | — | 待真机（动态目标） |
 | `docs/src/entries/tabs/prop/archive-tab.js:395` | （动态文本） | activity.html | — | ${…} | — | 待真机（页面级门控） |
 | `docs/src/entries/tabs/prop/archive-tab.js:460` | 查看活动详情 | activity.html | — | ${…} | — | 待真机（页面级门控） |
 | `docs/src/entries/tabs/prop/archive-tab.js:479` | 查看活动详情 | activity.html | — | ${…} | — | 待真机（页面级门控） |
@@ -225,9 +214,8 @@
 | `docs/src/entries/tabs/prop/archive-tab.js:574` | 查看关联活动详情 | activity.html | — | ${…} | — | 待真机（页面级门控） |
 | `docs/src/entries/tabs/prop/archive-tab.js:672` | [JS] a.href | 动态 | — | — | — | 待真机（动态目标） |
 | `docs/src/entries/tabs/prop/archive-tab.js:914` | 设置首页（宣传台无支部治理分区） | settings.html | — | — | — | 待真机（页面级门控） |
-| `docs/src/entries/tabs/prop/kanban-tab.js:125` | [JS] window.location.href | 动态 | — | ${…} | — | 待真机（动态目标） |
-| `docs/src/entries/tabs/prop/kanban-tab.js:153` | 去归档 | archive.html | — | — | — | 待真机（页面级门控） |
-| `docs/src/entries/tabs/prop/tf-view-tab.js:31` | 去活动日历 | workspace/prop.html | calendar | — | tab=calendar | 可达：宣传委员工作台·活动日历 |
+| `docs/src/entries/tabs/prop/kanban-tab.js:60` | 去档案归档 | workspace/prop.html | archive | — | tab=archive | 可达：宣传委员工作台·档案归档 |
+| `docs/src/entries/tabs/prop/kanban-tab.js:109` | [JS] window.location.href | 动态 | — | ${…} | — | 待真机（动态目标） |
 | `docs/src/entries/tabs/secretary/assign-tab.js:121` | 见帮助 · 项目赋权 | help.html | — | — | — | 待真机（页面级门控） |
 | `docs/src/entries/tabs/secretary/assign-tab.js:134` | 见帮助 · 专班赋权 | help.html | — | — | — | 待真机（页面级门控） |
 | `docs/src/entries/tabs/secretary/assign-tab.js:390` | 查看完整档案 | person.html | — | ${…} | — | 待真机（页面级门控） |
@@ -268,7 +256,7 @@
 | `docs/src/entries/tabs/visitor/activities-tab.js:63` | 查看活动详情：${…} | 动态 | — | — | — | 待真机（动态目标） |
 | `docs/src/entries/tabs/visitor/attendance-tab.js:164` | 设置首页（外观 / 我的工作台） | settings.html | — | — | — | 待真机（页面级门控） |
 | `docs/src/entries/tabs/visitor/inspection-tab.js:158` | 查看活动详情 | activity.html | — | ${…} | — | 待真机（页面级门控） |
-| `docs/src/entries/tabs/visitor/projects-tab.js:261` | [JS] window.location.href | 动态 | — | tfId \|\| actId | — | 待真机（动态目标） |
+| `docs/src/entries/tabs/visitor/projects-tab.js:262` | [JS] window.location.href | 动态 | — | tfId \|\| actId | — | 待真机（动态目标） |
 | `docs/src/entries/tabs/visitor/thought-report-tab.js:100` | （动态文本） | thought-report.html | — | ${…} | — | 待真机（页面级门控） |
 
 ## 口径说明

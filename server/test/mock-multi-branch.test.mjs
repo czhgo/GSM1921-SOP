@@ -30,15 +30,15 @@ globalThis.localStorage = storage;
 
 import { createApp } from '../app.js';
 import { seedDatabase } from '../seed.js';
-import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261018u';
-import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261018u';
-import { PEOPLE } from '../../docs/src/data/mock/people.js?v=20261018u';
-import { ACTIVITIES } from '../../docs/src/data/mock/activities.js?v=20261018u';
-import { MOCK_NOTICES } from '../../docs/src/data/mock/notices.js?v=20261018u';
-import { ATTENDANCE_RECORDS } from '../../docs/src/data/mock/attendance.js?v=20261018u';
-import { SEED_ASSIGNMENTS } from '../../docs/src/data/mock/seed.js?v=20261018u';
-import { SEED_TODOS } from '../../docs/src/services/governance/todo.js?v=20261018u';
-import { ensureLegacySourceWorkgroups } from '../../docs/src/data/workgroup-seed-sync.js?v=20261018u';
+import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261019a';
+import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261019a';
+import { PEOPLE } from '../../docs/src/data/mock/people.js?v=20261019a';
+import { ACTIVITIES } from '../../docs/src/data/mock/activities.js?v=20261019a';
+import { MOCK_NOTICES } from '../../docs/src/data/mock/notices.js?v=20261019a';
+import { ATTENDANCE_RECORDS } from '../../docs/src/data/mock/attendance.js?v=20261019a';
+import { SEED_ASSIGNMENTS } from '../../docs/src/data/mock/seed.js?v=20261019a';
+import { SEED_TODOS } from '../../docs/src/services/governance/todo.js?v=20261019a';
+import { ensureLegacySourceWorkgroups } from '../../docs/src/data/workgroup-seed-sync.js?v=20261019a';
 
 const BRANCH_B1 = 'br-b1';
 const BRANCH_B2 = 'br-b2';

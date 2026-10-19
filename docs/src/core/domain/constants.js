@@ -5,7 +5,7 @@
 // R-26③（2026-10-05 批次 388）：本件**只引一个零依赖叶子** `core/base/date.js`（取本地「今天」）——
 //   不成环、双端可载；**不得**引 `core/base/utils.js`（那会牵 `core/session/pending-writes.js`）。
 
-import { todayLocal } from '../base/date.js?v=20261018u';
+import { todayLocal } from '../base/date.js?v=20261019a';
 
 // ── 内联标签深色适配：深色三件套自动生成 ──────────────────────────
 // 深色模式下内联样式（background/color/border 浅底深字）不随主题反转，按「同色系提亮一档」为每个颜色条目
@@ -219,6 +219,13 @@ export const ORG_COMMISSIONER_ROLES = ['org-commissioner'];
 // 由既有角色集派生（勿另写角色名单数组——roles-sync 守卫拦「5 支委授权列表」副本）。
 // 消费方：server/routes/resources.js 写门（memberFlows）与前端 services/member/member-flow.js::canRegisterFlow 同源。
 export const MEMBER_FLOW_ROLES = [...SECRETARY_AND_DEPUTY_ROLES, ...ORG_COMMISSIONER_ROLES];
+
+// ── 考察写角色 / 确认角色（D01/D08 单一源，前端 services/activity/inspection.js 与 server gates.js 同读）──
+// D08：写＝支委层（含组织委员，正式纳入「建档代录」；recordedBy 一律落操作人本人）。
+// D01：确认/打回＝纪检委员 + 支书/副支书；**禁止自确认**（actorId === recordedBy 一律拒绝）——
+//   白名单与自确认禁令在服务层与写门两侧都复算，不采信前端按钮是否渲染。
+export const INSPECTION_WRITE_ROLES = [...BRANCH_COMMISSION_ROLES];
+export const INSPECTION_CONFIRM_ROLES = ['disc-commissioner', ...SECRETARY_AND_DEPUTY_ROLES];
 
 // ── 名单检索条出现门槛（单一源，2026-09-13 支书裁定）──────────────────
 // 语义：第一列是人/活动的表格，**当前视图行数 > 本阈值**才渲染「关键词 + 分面 chips」检索条；

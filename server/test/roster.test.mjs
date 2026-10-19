@@ -54,21 +54,21 @@ globalThis.localStorage = makeStorage();
 
 import { createApp } from '../app.js';
 import { seedDatabase } from '../seed.js';
-import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261018u';
-import { PersonStore } from '../../docs/src/services/member/person.js?v=20261018u';
-import { POLICY_DEFAULTS } from '../../docs/src/core/domain/policy-defaults.js?v=20261018u';
+import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261019a';
+import { PersonStore } from '../../docs/src/services/member/person.js?v=20261019a';
+import { POLICY_DEFAULTS } from '../../docs/src/core/domain/policy-defaults.js?v=20261019a';
 import {
   getMeetingRoster, getMeetingRosterIds, getMeetingRosterCandidates, getDetainedMembers,
   getRosterStats, getResidenceOf, saveResidenceChange, getRosterConfig, RESIDENCE_KEY,
-} from '../../docs/src/services/member/roster.js?v=20261018u';
+} from '../../docs/src/services/member/roster.js?v=20261019a';
 // Q-21-3（2026-09-13）：在册状态枚举单一源 = core/domain/constants.js（原经 roster.js 转出）
-import { RESIDENCE } from '../../docs/src/core/domain/constants.js?v=20261018u';
-import { defaultVoteConfig, resolveVoterIds } from '../../docs/src/services/activity/vote-config.js?v=20261018u';
-import { getRuntimeMode, init, setDataSource } from '../../docs/src/data/data-adapter.js?v=20261018u';
+import { RESIDENCE } from '../../docs/src/core/domain/constants.js?v=20261019a';
+import { defaultVoteConfig, resolveVoterIds } from '../../docs/src/services/activity/vote-config.js?v=20261019a';
+import { getRuntimeMode, init, setDataSource } from '../../docs/src/data/data-adapter.js?v=20261019a';
 // mock 形态对照源（**仅 S1「两形态同源」断言用**；其余用例的断言对象一律是服务端数据）：
 //   前端静态种子 PEOPLE / ACTIVITIES 与服务端种子是同源两份，S1 即断言二者读数逐值一致。
-import { PEOPLE } from '../../docs/src/data/mock/people.js?v=20261018u';
-import { ACTIVITIES } from '../../docs/src/data/mock/activities.js?v=20261018u';
+import { PEOPLE } from '../../docs/src/data/mock/people.js?v=20261019a';
+import { ACTIVITIES } from '../../docs/src/data/mock/activities.js?v=20261019a';
 
 // ════════════════════════════════════════════════════════════════
 //  B 类现场（api 形态）：内存服务 + 真登录取 token + init() 把服务端全量灌进 mockDB 缓存
@@ -105,7 +105,9 @@ test('S0 形态：api 形态 + 有会话 token（数据来自服务端，不是�
 // 同时证明「api 读链读的确实是服务端数据」（否则空集/错集会立刻与 mock 形态读数不等）。
 test('S1 两形态同源：api 形态读数与原 mock 形态（静态种子）逐值一致（= mock-integrity 所守等价性）', () => {
   const read = () => ({
-    members: PersonStore.getMembers().map(p => [p.id, p.name, p.developStage, p.partyGroup, p.role, p.branchId]),
+    // 支部名册视角不含党委组织员（党委不属于任何支部；服务端支部读口按 branchId 收口）
+    members: PersonStore.getMembers().filter(p => p.role !== 'party-staff')
+      .map(p => [p.id, p.name, p.developStage, p.partyGroup, p.role, p.branchId]),
     detained: getDetainedMembers().map(p => [p.id, getResidenceOf(p).residenceStatus, p.residenceNote]),
     branchRoster: getMeetingRosterIds({ type: '支部党员大会' }),
     lessonRoster: getMeetingRosterIds({ type: '党课' }),
@@ -130,8 +132,12 @@ test('S1 两形态同源：api 形态读数与原 mock 形态（静态种子）�
   }
   assert.deepEqual(apiRead, mockRead, 'api 形态读数须与 mock 形态逐值一致（前端种子 = 服务端种子）');
   assert.equal(apiRead.branchRoster.length, 19, '且 api 形态确读到服务端数据（非空集冒充）');
-  // 人员域同源（直比 id 集）：服务端 users ≡ 前端静态 PEOPLE
-  assert.deepEqual(PersonStore.getMembers().map(p => p.id), PEOPLE.map(p => p.id), '服务端 users id 集 ≡ 前端 PEOPLE');
+  // 人员域同源（直比 id 集）：服务端 users（支部视角）≡ 前端静态 PEOPLE 的支部成员；
+  //   党委组织员 p_pc（branchId null）不属任何支部 ⇒ 不在支部读口（产品支部范围口径）。
+  const apiMemberIds = PersonStore.getMembers().map(p => p.id);
+  assert.deepEqual(apiMemberIds, PEOPLE.filter(p => p.role !== 'party-staff').map(p => p.id),
+    '服务端 users 的支部成员 id 集 ≡ 前端 PEOPLE 支部成员（党委组织员不属支部）');
+  assert.ok(!apiMemberIds.includes('p_pc'), '党委组织员不进入支部名册读口');
   // 活动域同源：服务端 activities（mockDB 缓存）与原静态种子逐值一致（历史快照 act-31 取值）
   const apiAct31 = (mockDB.activities || []).find(a => a.id === 'act-31');
   const mockAct31 = ACTIVITIES.find(a => a.id === 'act-31');

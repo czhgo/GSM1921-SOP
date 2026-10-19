@@ -1,4 +1,4 @@
-﻿﻿// role: [工程师]+[AI]
+﻿// role: [工程师]+[AI]
 // 党委工作台 Tab：支部上报（P3 党委后台，2026-09-02；**2026-10-04 批次 374 由「上报审批」改名**）
 // 党委侧处理端（双向通道党委半侧）：各支部上报（发展节点/活动报备）在此逐项批/驳，
 // 意见随结论回传支部侧；已处理历史可查。
@@ -8,21 +8,32 @@
 // 数据源：reviewRequests（services/governance/review-request.js，mock 与 API 双引擎同源）
 // 设计权威源：content/04_web_design/evolution/PARTY_COMMITTEE_DESIGN.md §5 P3
 
-import { mockDB } from '../../../core/domain/domain.js?v=20261018u';
-import { AuthStore } from '../../../services/core/auth.js?v=20261018u';
-import { getPersonName } from '../../../services/member/person.js?v=20261018u';
-import { getBranchById } from '../../../services/branch/branch.js?v=20261018u';
-import { decideReviewRequest, listReviewRequests } from '../../../services/governance/review-request.js?v=20261018u';
-import { showToast, escHtml as esc, fmtDt } from '../../../core/base/utils.js?v=20261018u';
+import { mockDB } from '../../../core/domain/domain.js?v=20261019a';
+import { AuthStore } from '../../../services/core/auth.js?v=20261019a';
+import { getPersonName } from '../../../services/member/person.js?v=20261019a';
+import { getBranchById } from '../../../services/branch/branch.js?v=20261019a';
+import { decideReviewRequest, listReviewRequests } from '../../../services/governance/review-request.js?v=20261019a';
+import { showToast, escHtml as esc, fmtDt } from '../../../core/base/utils.js?v=20261019a';
 // 统一检索引擎（2026-09-14 批次 37）：待批复 / 已处理两区各接一个实例（关键词 + 类型/状态分面 + 分页）
-import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261018u';
+import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261019a';
 // 支部筛选共用件（2026-10-04 批次 374 · 支书「按下设支部筛选信息」）——三页复用同一件，不各写一份
-import { renderBranchFilter, filterByBranch } from '../../../components/governance/branch-filter.js?v=20261018u';
-import { renderSectionHeader } from '../../../components/shell/page-frame.js?v=20261018u';
+import { renderBranchFilter, filterByBranch } from '../../../components/governance/branch-filter.js?v=20261019a';
+import { renderSectionHeader } from '../../../components/shell/page-frame.js?v=20261019a';
 
 /** 本页支部筛选的 stateKey（选择随模块自持，页内重绘不丢） */
 const BRANCH_FILTER_STATE = 'pc-review';
 let reviewMode = 'pending';
+
+// F01（IA-F01 · 2026-10-20）：工作台壳（components/shell/workspace-shell.js）在首个渲染前
+// 已把 ?highlight= 读进 `ctx.navTarget` 并清掉 URL 参数 —— tab 内再读 `location.search` 恒为空，
+// 通知深链因此失效。故优先读 `ctx.navTarget.hl`，URL 仅作「未经过壳」时的兜底。
+// 一次性消费：本页批准/驳回后的重渲染不得再定位或重复提示。
+let _highlightConsumed = false;
+function _resolveHighlightId(ctx) {
+  let fromUrl = '';
+  try { fromUrl = new URLSearchParams(window.location.search).get('highlight') || ''; } catch (_) { /* 非浏览器环境忽略 */ }
+  return fromUrl || ctx?.navTarget?.hl || '';
+}
 
 const TYPE_META = {
   'develop-node': { label: '发展节点' },
@@ -49,7 +60,7 @@ export function renderContent() {
 
   // 支部筛选（2026-10-04 批次 374 · 支书「按下设支部筛选信息」）：过滤后待批复 / 已处理两区与页首计数同步收窄
   const rows = filterByBranch(listReviewRequests({}), BRANCH_FILTER_STATE);
-  const highlightId = new URLSearchParams(window.location.search).get('highlight') || '';
+  const highlightId = _highlightConsumed ? '' : _resolveHighlightId(ctx);
   let pending = rows.filter(r => r.status === 'pending');
   let done = rows.filter(r => r.status !== 'pending');
   const highlightFirst = (list) => highlightId
@@ -64,6 +75,7 @@ export function renderContent() {
     <div class="page-section-stack">
       <section class="card p-5" aria-label="支部上报处理">
       ${renderSectionHeader({ title: '支部上报处理', description: '党委逐项批复，决定和意见会回传提交支部。' })}
+      <div id="pc-review-hl-hint" class="mt-4" role="status" aria-live="polite"></div>
       <div id="pc-review-branch-filter" class="mb-4 mt-4"></div>
       <div class="subtabs" role="tablist" aria-label="上报状态">
         <button id="pc-review-tab-pending" type="button" class="subtab" data-review-view="pending" role="tab" aria-controls="pc-review-pending-section" aria-selected="${reviewMode === 'pending'}" tabindex="${reviewMode === 'pending' ? '0' : '-1'}">待批复 <span class="ml-1 tabular-nums">${pending.length}</span></button>
@@ -156,16 +168,24 @@ export function renderContent() {
     emptyMessage: '暂无已处理的上报',
     rowHtml: (row) => cardHtml(row, row.id === highlightId),
   });
-  const focused = highlightId
-    ? [...el.querySelectorAll('[data-rq-card]')].find((card) => card.dataset.rqCard === highlightId)
-    : null;
-  if (focused && !focused.closest('[hidden]')) {
-    focused.tabIndex = -1;
-    focused.focus({ preventScroll: true });
-    focused.scrollIntoView?.({ block: 'nearest' });
-    const nextUrl = new URL(window.location.href);
-    nextUrl.searchParams.delete('highlight');
-    window.history.replaceState(null, '', nextUrl.toString());
+  // F01：深链定位（失败必须可见，不得静默落默认列表）
+  if (highlightId) {
+    _highlightConsumed = true;
+    const focused = [...el.querySelectorAll('[data-rq-card]')].find((card) => card.dataset.rqCard === highlightId);
+    if (focused && !focused.closest('[hidden]')) {
+      focused.tabIndex = -1;
+      focused.focus({ preventScroll: true });
+      focused.scrollIntoView?.({ block: 'nearest' });
+      const nextUrl = new URL(window.location.href);
+      nextUrl.searchParams.delete('highlight');
+      window.history.replaceState(null, '', nextUrl.toString());
+    } else {
+      const exists = listReviewRequests({}).some((row) => row.id === highlightId);
+      const hint = el.querySelector('#pc-review-hl-hint');
+      if (hint) {
+        hint.innerHTML = `<div class="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">未找到该上报（可能已处理）${exists ? '，或不在当前支部筛选内' : ''}。</div>`;
+      }
+    }
   }
 }
 

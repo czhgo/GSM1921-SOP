@@ -444,12 +444,15 @@ const KINDS = {
     },
     build(ctx) {
       const row = rowOf(ctx.db, 'makeup_tasks', ctx.sourceId) || {};
+      // F12（IA-F12）：补课落点按当事人角色本位生成——服务端按名册表复算角色，不信客户端自述。
+      const person = row.personId ? (rowOf(ctx.db, RESOURCE_TABLES.users, row.personId) || {}) : {};
       return buildSystemNotice('makeup-remind', {
         sourceId: ctx.sourceId,
         personId: row.personId,
         personName: row.personName,
         activityName: row.activityName,
         deadline: row.deadline,
+        role: person.role || undefined,
       });
     },
   },
@@ -518,6 +521,9 @@ const KINDS = {
         decision: p.decision === 'rejected' || row.voidRejected ? 'rejected' : 'confirmed',
         reason: p.reason || (row.voided && row.voided.reason) || (row.voidRejected && row.voidRejected.reason) || '',
         audience: row.role ? [row.role] : undefined,
+        // F05（IA-F05）：落点按接收人角色生成本位工作台——服务端把行上的角色显式传入模板，
+        //   不再让模板固定落支书台（组织/宣传/纪检/组长接收时会被身份门弹回）。
+        role: row.role || undefined,
       });
     },
   },

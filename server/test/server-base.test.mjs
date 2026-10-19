@@ -158,7 +158,7 @@ async function versionsOf(token) {
   return (await (await fetch(`${base}/api/v1/snapshot/versions`, { headers: { Authorization: `Bearer ${token}` } })).json()).versions;
 }
 
-test('snapshot 全量覆盖保存后能读回新增活动', async () => {
+test('snapshot 全量覆盖保存后能读回字段修改（新增活动须走语义写入口）', async () => {
   const tokenRes = await fetch(`${base}/api/v1/auth/login`, {
     method: 'POST', headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ personId: 'p13' }),
@@ -166,7 +166,11 @@ test('snapshot 全量覆盖保存后能读回新增活动', async () => {
   const { token } = await tokenRes.json();
 
   const activities = await (await fetch(`${base}/api/v1/activities`, { headers: { Authorization: `Bearer ${token}` } })).json();
-  activities.push({ id: 'act-new', title: '新增测试活动', date: '2026-08-30' });
+  // P0 语义门（snapshotScopeDeny）：**新增活动**须走活动语义写入口（同时建工作组），不得经整库快照直插；
+  // 本用例守的是「快照全量覆盖能持久化字段修改」，故改既有活动的可写字段。
+  const target = activities[0];
+  const nextTitle = `${target.title}·快照更新`;
+  target.title = nextTitle;
 
   // T5（2026-09-23 批次 163）：payload 里出现的集合必须随 `_versions` 带上基线版本，否则整批 428
   const versions = await versionsOf(token);
@@ -179,7 +183,7 @@ test('snapshot 全量覆盖保存后能读回新增活动', async () => {
 
   // 原变量名 `after` 遮蔽了 node:test 的 `after`（合并后成陷阱）⇒ 改名，判据不变。
   const afterList = await (await fetch(`${base}/api/v1/activities`, { headers: { Authorization: `Bearer ${token}` } })).json();
-  assert.ok(afterList.some(a => a.id === 'act-new'), '快照保存后应能读回新增活动');
+  assert.equal(afterList.find(a => a.id === target.id)?.title, nextTitle, '快照保存后应能读回字段修改');
 });
 
 test('snapshot 缺集合版本号 ⇒ 整批 428（不再无条件写）', async () => {
@@ -191,7 +195,8 @@ test('snapshot 缺集合版本号 ⇒ 整批 428（不再无条件写）', async
   const res = await fetch(`${base}/api/v1/snapshot`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-    body: JSON.stringify({ activities: [{ id: 'act-forged', title: '缺版本直写' }] }),
+    // 用既有集合原样（新增/删除活动会先被语义门拒绝，测不到版本号协议）
+    body: JSON.stringify({ activities: before }),
   });
   assert.equal(res.status, 428, '缺 `_versions` 的集合须被拒（原「无条件写」旁路已封）');
   const body = await res.json();

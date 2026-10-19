@@ -12,15 +12,15 @@
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261018u';
-import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261018u';
-import { setDataSource, registerMockAdapter } from '../../docs/src/data/data-adapter.js?v=20261018u';
-import { CONFIG_HISTORY_MAX, CONFIG_ROLLBACK_WHAT } from '../../docs/src/services/branch/config-clean.js?v=20261018u';
+import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261019a';
+import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261019a';
+import { setDataSource, registerMockAdapter } from '../../docs/src/data/data-adapter.js?v=20261019a';
+import { CONFIG_HISTORY_MAX, CONFIG_ROLLBACK_WHAT } from '../../docs/src/services/branch/config-clean.js?v=20261019a';
 import {
   getBranchById, updateBranchModules, updateBranchBlocks, updateBranchWorkforce,
   savePolicyOverrides, updateBranchOrg, createBranch,
   canRollbackBranchConfig, rollbackBranchConfig,
-} from '../../docs/src/services/branch/branch.js?v=20261018u';
+} from '../../docs/src/services/branch/branch.js?v=20261019a';
 // HTTP 域
 import { createApp } from '../app.js';
 import { seedDatabase } from '../seed.js';
@@ -76,8 +76,11 @@ test('① why 透传：modules/blocks/workforce/policyOverrides/org 写口留痕
   assert.equal(lastRow().why, '依据 B', 'updateBranchBlocks why 透传');
 
   await savePolicyOverrides('br-b1', { inspection: { overdueDays: 8 } }, { actor: { personId: 'p13', role: 'secretary' }, why: '依据 P' });
-  assert.equal(lastRow().what, 'policyOverrides');
-  assert.equal(lastRow().why, '依据 P', 'savePolicyOverrides why 透传');
+  // savePolicyOverrides 同批写 policyOverrides 与派生 periodicArchiveVersion 两条留痕（后者为末条），
+  // 断言按 what 定位 policyOverrides 行而不是假定它必为末条。
+  const poRow = [...hist()].reverse().find(r => r.what === 'policyOverrides');
+  assert.ok(poRow, 'policyOverrides 留痕已写入');
+  assert.equal(poRow.why, '依据 P', 'savePolicyOverrides why 透传');
 
   await updateBranchOrg('br-b1', { themePreset: 'sky' }, { by: 'p13', why: '依据 O' });
   assert.equal(lastRow().what, 'themePreset');
@@ -171,7 +174,7 @@ test('② rollback：跨键/聚合留痕（branch-created/config-copied 等）�
   // 注入聚合留痕场景：复制配置到 br-b1 前先建一个源支部（applyConfigCopy 会写 config-copied 聚合行）
   const src = await createBranch({ name: '源支部（复制）', by: 'p_pc', actorRole: 'party-staff' });
   assert.equal(src.ok, true);
-  const { applyConfigCopy } = await import('../../docs/src/services/branch/branch.js?v=20261018u');
+  const { applyConfigCopy } = await import('../../docs/src/services/branch/branch.js?v=20261019a');
   const rCopy = await applyConfigCopy(src.branch.id, ['br-b1'], { by: 'p13' });
   assert.equal(rCopy[0].ok, true);
   const copiedRow = lastRow();

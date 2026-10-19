@@ -17,7 +17,7 @@
 //     角色分工 / 事项来源」**四条轴混在同一层 h4 上**，读不出统一逻辑 ⇒ 收成一条轴。
 //     每组**组标题＝动作性质＋计数**、**行内右端＝业务域小胶囊**（九域降为胶囊）——原「今天到期 / 本岗待办」
 //     两段已由分组取代（支书评「信息量居然这么少…第一次进入的界面居然只是一个花瓶」）。
-//   右 1/3「我的日程」＝ 今天的会议 ＋ 活动管理入口；其下「近期安排」（未来 7 天）。
+//   右 1/3「日程」＝ 今天（会议）→ 接下来（未来 7 天）一条时间轴 ＋ 活动管理入口（B02 合卡，单一卡头 / 单一空态）。
 //   **信息自陈（形轴·2026-10-01 批次 329 收窄）**：**行左 3px 竖色条只表「紧迫度」**——红＝逾期 /
 //   金＝今天到期 / 灰＝随时（**不再兼表角色分工 / 会议 / 通知**——同一形状只承担一件事）；**分类走胶囊**
 //   （活动类型 / 业务域 / 来源标签）；有时间者走「时间轴行」（时间 ＋ 标题 ＋ 类型胶囊）。
@@ -32,43 +32,43 @@
 // 注入防护：标题/内容/截止等用户可控数据一律经 escHtml 后入 innerHTML。
 // ════════════════════════════════════════════════════════════════
 
-import { escHtml as esc, _fmtDate } from '../../../core/base/utils.js?v=20261018u';
-import { icon } from '../../../core/base/icons.js?v=20261018u';
-import { buildTodaySummary, TODO_ACTION_ORDER, TODO_ACTION_LABELS } from '../../../services/governance/today-summary.js?v=20261018u';
+import { escHtml as esc, _fmtDate } from '../../../core/base/utils.js?v=20261019a';
+import { icon } from '../../../core/base/icons.js?v=20261019a';
+import { buildTodaySummary, TODO_ACTION_ORDER, TODO_ACTION_LABELS } from '../../../services/governance/today-summary.js?v=20261019a';
 // 批次 47-I（Q-23-41 ②，支书 2026-09-15 裁定）：本组组员进展**由服务端汇总**——
 // api 态打服务端汇总接口、mock 态调同一纯函数（单一入口 `loadMemberProgress`）。
-import { loadMemberProgress } from '../../../services/member/member-progress.js?v=20261018u';
-import { resolveVisibleTargets } from '../../../services/core/visibility.js?v=20261018u';
-import { mockDB } from '../../../core/domain/domain.js?v=20261018u';
-import { tokenOf } from '../../../core/base/version-token.js?v=20261018u'; // P0 域写版本戳（spec §二.4）
-import { RESIDENCE_KEY } from '../../../services/member/roster.js?v=20261018u'; // 滞留覆盖 raw 源（roster 禁改不内改）
-import { PREVIEW_KEY } from '../../../services/branch/org-base-data-preview.js?v=20261018u'; // 基础数据预览 raw 源
-import { memoizeRender } from '../../../components/ui/memoize-render.js?v=20261018u'; // P2 渲染守卫（spec §四.1）
+import { loadMemberProgress } from '../../../services/member/member-progress.js?v=20261019a';
+import { resolveVisibleTargets } from '../../../services/core/visibility.js?v=20261019a';
+import { mockDB } from '../../../core/domain/domain.js?v=20261019a';
+import { tokenOf } from '../../../core/base/version-token.js?v=20261019a'; // P0 域写版本戳（spec §二.4）
+import { RESIDENCE_KEY } from '../../../services/member/roster.js?v=20261019a'; // 滞留覆盖 raw 源（roster 禁改不内改）
+import { PREVIEW_KEY } from '../../../services/branch/org-base-data-preview.js?v=20261019a'; // 基础数据预览 raw 源
+import { memoizeRender } from '../../../components/ui/memoize-render.js?v=20261019a'; // P2 渲染守卫（spec §四.1）
 // 批4（2026-09-09 支书批「域参数」）：组长学期组员进展归集提醒开关（读侧注入后 = 当前支部有效默认）
-import { POLICY_DEFAULTS } from '../../../core/domain/policy-defaults.js?v=20261018u';
+import { POLICY_DEFAULTS } from '../../../core/domain/policy-defaults.js?v=20261019a';
 // 批次 299「待我处理」两源——**单一源复用**，不另立取数口径：
 //   · 未读通知 ＝ 顶栏铃铛同一取数（NoticeStore.list retention:'visible'）＋ 同一跳转解析（resolveNoticeUrl）
 //   · 待处理汇报 ＝ 顶栏「一键汇报」角标同一集合（IssueNotify.getUnread(我)）
-import { NoticeStore, resolveNoticeUrl } from '../../../services/governance/notice.js?v=20261018u';
-import { IssueStore, IssueNotify } from '../../../services/governance/issues.js?v=20261018u';
+import { NoticeStore, resolveNoticeUrl } from '../../../services/governance/notice.js?v=20261019a';
+import { IssueStore, IssueNotify } from '../../../services/governance/issues.js?v=20261019a';
 // 批次 304「待我表态」三件——**判据与读口皆单一源**，不在本文件重写投票规则：
 //   · 我是否应到表决人 ＝ `vote-config.js::isVoterOf`（角色无关，只看固化名单）
 //   · 我是否已对某议程项表态 ＝ `committee-vote.js::hasVoted`
 //   · 当前登录人 ＝ `AuthStore.getCurrentUser()`
-import { AuthStore } from '../../../services/core/auth.js?v=20261018u';
-import { isVoterOf } from '../../../services/activity/vote-config.js?v=20261018u';
-import { hasVoted } from '../../../services/activity/committee-vote.js?v=20261018u';
+import { AuthStore } from '../../../services/core/auth.js?v=20261019a';
+import { isVoterOf } from '../../../services/activity/vote-config.js?v=20261019a';
+import { hasVoted } from '../../../services/activity/committee-vote.js?v=20261019a';
 // 活动类型胶囊（批次 301）：变体判据＝单一源 `activityTypeBadgeVariant`（三会一课＝brand 红 / 主题党日＝gold 金），
 //   渲染唯一源＝`components/ui/badge.js`；**本文件不手写类型色值**。
-import { activityTypeBadgeVariant, WORK_DOMAIN_COLORS, accDarkVars } from '../../../core/domain/constants.js?v=20261018u';
-import { resolveDocumentUrl } from '../../../core/base/page-url.js?v=20261018u';
+import { activityTypeBadgeVariant, WORK_DOMAIN_COLORS, accDarkVars } from '../../../core/domain/constants.js?v=20261019a';
+import { resolveDocumentUrl } from '../../../core/base/page-url.js?v=20261019a';
 // 徽章扎口出口（2026-09-30 批次 304 改准）：`components/ui/badges.js` 是**唯一调用口**
 //   （其文件头明写「调用方一律 import badges.js；内部实现文件 badge.js / status-badge.js 可各自演进」）；
 //   批次 301 我直连了实现文件 `badge.js` ⇒ 本批收回归口，**零行为变化**。
-import { badgeHtml } from '../../../components/ui/badges.js?v=20261018u';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20261019a';
 // 2026-10-18 繁专项 Task 7：汇报类行统一落到待办「待答复」收件箱（PendingTarget 一次性定位）。
 // 提交入口只在「我的处置」；今天页只读、不重复提供提交位。
-import { PendingTarget } from '../../../core/session/pending-target.js?v=20261018u';
+import { PendingTarget } from '../../../core/session/pending-target.js?v=20261019a';
 
 // 工作台主题色走 CSS 变量（各台 bootstrap 已按 accent 注入；缺省兜底党建红），同 overview/统计卡用法
 const ACCENT = 'var(--app-accent)';
@@ -387,9 +387,12 @@ function _meetingRow(m) {
 
 function _meetingBlock(s) {
   const rows = s.hasMeeting.map(_meetingRow).join('');
+  // B02（2026-10-20）：原「今天有会」独立卡并入「日程」卡，本段只出小标题；
+  // 空态不在段内各说一遍（同屏只留卡级一个空态，见 renderTodayTab 右卡）。
+  if (!rows) return '';
   return `
-    ${_segHead('今天有会', s.hasMeeting.length, 'meeting')}
-    ${rows ? `<div class="space-y-1.5">${rows}</div>` : '<p class="text-xs text-gray-500 px-1 py-1.5">今日无会</p>'}`;
+    ${_segHead('今天', s.hasMeeting.length, 'meeting')}
+    <div class="space-y-1.5">${rows}</div>`;
 }
 
 /** 活动管理快捷入口（2026-09-25 立；2026-09-30 批次 310 扩到全角色）：
@@ -415,12 +418,15 @@ function _upcomingBlock(s) {
      <span class="text-sm text-gray-800 flex-1 min-w-0 truncate">${esc(u.title || '未命名活动')}</span>
      ${_typeChip(u.type)}`,
     `data-go="activity" data-act-id="${esc(u.activityId)}" title="${esc(u.title || '')}"`)).join('');
+  // B02：与「今天」同属一条时间轴，作为「日程」卡的后续小节；空态留到卡级统一说。
+  if (!rows) return '';
   return `
-    ${_segHead('近期安排', items.length)}
-    ${rows ? `<div class="space-y-1.5">${rows}</div>` : '<p class="text-xs text-gray-500 px-1 py-1.5">近 7 天暂无安排</p>'}`;
+    ${_segHead('接下来', items.length)}
+    <div class="space-y-1.5">${rows}</div>`;
 }
 
-/** 全空 → 两卡不消失、仅各示一句空态（若接了活动管理快捷入口，右卡底部仍留住入口，防空日把写操作埋掉） */
+/** 全空 → 两卡不消失、仅各示一句空态（若接了活动管理快捷入口，右卡底部仍留住入口，防空日把写操作埋掉）。
+ *  B02：右卡与常规态同名「日程」，避免同一屏出现两种卡名。 */
 function _allEmptyHtml(activityEntry = '') {
   return `
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
@@ -432,7 +438,7 @@ function _allEmptyHtml(activityEntry = '') {
         </div>
       </section>
       <section class="lg:col-span-1 card rounded-xl p-5">
-        <h3 class="font-title-cn text-base font-semibold text-gray-800 mb-3">我的日程</h3>
+        <h3 class="font-title-cn text-base font-semibold text-gray-800 mb-3">日程</h3>
         <div class="flex items-center gap-2 py-6">
           <span class="w-2 h-2 rounded-full bg-gray-300 flex-shrink-0"></span>
           <p class="text-sm text-gray-500">今天暂无安排</p>
@@ -624,16 +630,15 @@ export function renderTodayTab(container, { personId, role, onNav, onCreateActiv
         <div data-today-groups class="space-y-5">${actionGroupsHtml}</div>
         ${actionGroupsHtml ? '' : '<p data-today-empty class="text-xs text-gray-500 px-1 py-1.5">今日暂无待办</p>'}
       </section>`;
-    // 右卡「我的日程」＝ 今天有会 → 活动管理入口 ＋ 「近期安排」（未来 7 天）
+    // 右卡「日程」（B02）：今天与未来 7 天同属一条时间轴 ⇒ 合成一张卡（一个小标题在前、一个在后），
+    //   同屏只保留一个卡头与一个空态；活动管理入口仍留在卡尾（写入口不并入时间轴）。
+    const scheduleBlocks = `${_meetingBlock(summary)}${_upcomingBlock(summary)}`;
     const rightCard = `
       <div class="lg:col-span-1 space-y-5 min-w-0">
         <section class="card rounded-xl p-5 space-y-5">
-          <h3 class="font-title-cn text-base font-semibold text-gray-800">我的日程</h3>
-          <div>${_meetingBlock(summary)}</div>
+          <h3 class="font-title-cn text-base font-semibold text-gray-800">日程</h3>
+          ${scheduleBlocks || '<p class="text-xs text-gray-500 px-1 py-1.5">今天暂无安排</p>'}
           ${activityEntry ? `<div>${activityEntry}</div>` : ''}
-        </section>
-        <section class="card rounded-xl p-5">
-          ${_upcomingBlock(summary)}
         </section>
       </div>`;
 

@@ -2911,3 +2911,50 @@ $body
 - D04 workgroupId 迁移只落 spec，未改数据结构。
 - 宽表卡式化未提前做；A08 / B01/B03/B04/B05/B09/B11 / D02/D03/D05/D07/D09/D12 留后续。
 - 未改表结构；未重写 68 页签；临时脚本已删除。
+
+## 批次 489（2026-10-20）：IA 批判性修复落地（tab 合并 / 链接真值 / 交接 / 卡片）
+
+### 一、判据
+
+- 执行 `.trae/specs/ia-critical-remediation/`：tab 合并、链接真值契约、通知深链、跨角色交接、卡片顺序五组一次落地。
+- 数据适配功能原则继续生效：页签与落点以角色职责为准，mock / 旧数据不为保留而削足适履。
+- 实测修正：A 项实际减 5 个页签（67 → 62）；A03 只收段、A07 只并页内区，不减页签（原估 60 已改准）。
+
+### 二、Tab 合并（67 → 62）
+
+- A01 纪检撤 `tf-view`（9→8）：专班深链改 `taskforce.html?id=`；旧 `?tab=tf-view` → `calendar`。
+- A02 宣传撤 `tf-view`（9→8）：旧 id → `kanban`；专班查看入口改项目看板。
+- A03 组长 `tf-view` 只留「其他党小组」只读段；活动深链仍落 `write`。
+- A04 组织撤 `tf-view`（11→10）：对象级专班并「专班管理」，加「只看我参与的」筛选并消费 `highlightTfId`。
+- A05 党委撤 `monitor`：待批复列 + 支部筛选并入「支部管理」，隐私边界（不展示个人档案）保留。
+- A06 党委撤 `governance-overview`：登录落点改 `review`；「组织待补」并「支部管理」组织提醒列。
+- A07 宣传看板归档桶并「档案归档」；看板只留在办。
+- 别名单一源 `workspace-shell.js::_legacyTabAliases`；新增 `tab-alias-guard` 3/3。
+
+### 三、链接真值
+
+- 新增 `docs/src/core/domain/material-links.js`：`resolveMaterialHref` 四行 × 七类角色；`null` 行只出纯文本交接，不造假入口。
+- 壳新增 `focusActivityId` 契约 + `[data-act-id]` 锚点 + `highlightType`（p/a/t/rq/tr/mcr/group）+ 3s 清理；隐藏/失效 tab 出可见提示。
+- 材料页：C10 referrer 返回、C11 复用 `isActivityVisibleTo`、C12 入口只对支委/本场组织者；C06/C07/C08/C09 按角色或详情页落点。
+- 通知深链：F01 读 `ctx.navTarget.hl`；F02 落 `thought-report.html?id=`；F03 补 `data-mc-request-id`；F04/F05 受众与落点按角色；F06 明确「类型优先、targetUrl 兜底」；F07 首页不拼 `tab`；F12 跨台按接收人角色。
+
+### 四、交接与卡片
+
+- D01 考察确认白名单 + 禁止自确认 + `confirmedBy/At`；服务端快照写穿复算。
+- D06 会议考勤明确「录入即确认」，自录不再回待确认队列；异常记录仍进队列。
+- D04 auto 交接不派生待办、confirm 幂等、徽章改「已自动送达」。
+- D08 组织委员正式纳入考察写门（建档代录），前端与服务端同源。
+- B02 今天日程合卡；B06 待赋权可点；B07 归档动作前置 / 展示下沉；B08 已提交折叠；B10 复盘并卡；B12 名册统计进卡头。
+
+### 五、读数
+
+- `npm run test:daily`：**1239 / 1239 通过，0 断言失败**。
+- page-sweep：16/16，**SWEEP.tabs=62**（12/10/8/8/10/11/3）。
+- doc-consistency 21/21；a11y-tree 6/6；material-link-truth 6/6；notice-deeplink-guard 通过；handoff-state-guard 10/10；tab-alias-guard 3/3。
+- 版本戳 `20261018u → 20261019a`。
+
+### 六、边界
+
+- 未改表结构；未重写全部页签；宽表卡式化未提前做。
+- 留后续：A08、B01/B03/B04/B05/B09/B11、D02/D03/D05/D07/D09/D12。
+- 既有 `doc-line-ref` 漂移与 27 条 test:daily 存量红灯同批归因并修复（含 IAAA 待归属目录端点、登录前置守卫 2 处真实缺陷）。

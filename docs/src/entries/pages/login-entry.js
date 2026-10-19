@@ -2,9 +2,24 @@
 // login-entry.js — 登录页入口（重构版）
 // 支持: 账号密码 Mock 校验 + 开发模式直接选身份
 
-import { AuthStore } from '../../services/core/auth.js?v=20261018u';
-import { getAccentColors, solidAccentStyle, dotDarkVars, isBranchPendingUser } from '../../core/domain/constants.js?v=20261018u';
-import { escHtml } from '../../core/base/utils.js?v=20261018u';
+import { AuthStore } from '../../services/core/auth.js?v=20261019a';
+import { getAccentColors, solidAccentStyle, dotDarkVars, isBranchPendingUser } from '../../core/domain/constants.js?v=20261019a';
+import { escHtml } from '../../core/base/utils.js?v=20261019a';
+
+// C09（2026-10-20）：登录链接可带 `next`（目标页 URL）——登录成功后按 next 回跳，
+// 「未登录点活动 / 专班」不再只进工作台、丢掉原对象。只接受**同源** URL（防开放重定向），
+// 且 next 不得又指回登录页本身（防自循环）。
+// ⚠ 必须在下方「已登录直接跳工作台」之前求值：_goToWorkspace 首次调用就会读它（否则 TDZ）。
+function _safeNextUrl(raw) {
+  if (!raw) return '';
+  try {
+    const u = new URL(raw, window.location.href);
+    if (u.origin !== window.location.origin) return '';
+    if (/\/login\.html$/.test(u.pathname)) return '';
+    return u.href;
+  } catch (_) { return ''; }
+}
+const _NEXT_URL = _safeNextUrl(new URLSearchParams(window.location.search).get('next'));
 
 // 2026-09-29 批次 277（IAAA 入站）：带 `#iaaa=<会话 token>` 回跳时先走落地流程，
 //   不走「已登录直接跳工作台」；**待归属支部**者也不跳（由选支部面板承接）。
@@ -19,6 +34,10 @@ if (!_IAAA_HASH && !isBranchPendingUser(_user)) {
 // 2026-08-24 最小三成本专项评议 P2 修复：原固定跳首页，改为直达角色工作台
 // 2026-08-29 T-304 遗留修复：page 规范化补 .html 后缀（防御内嵌视图剥后缀导致的 404）
 function _goToWorkspace(role) {
+  // C09 的 next 回跳只服务「普通登录」；IAAA 落地与待归属选支部流程必须按角色/选支部面板走，
+  // 不得被 next 提前带走（否则选支部面板来不及呈现）。
+  const current = AuthStore.getCurrentUser();
+  if (_NEXT_URL && !_IAAA_HASH && !isBranchPendingUser(current)) { window.location.href = _NEXT_URL; return; }
   const raw = AuthStore.getPageForRole('workspace', role);
   const page = raw && !raw.endsWith('.html') ? raw + '.html' : raw;
   if (page) {
@@ -188,7 +207,9 @@ async function _loadBranches() {
   if (!_token()) { list.innerHTML = '<p class="text-xs text-gray-500">会话已失效，请重新登录。</p>'; return; }
   list.innerHTML = '<p class="text-xs text-gray-500">正在加载…</p>';
   try {
-    const r = await fetch('./api/v1/branches', { headers: _authHeaders() });
+    // 待归属者尚未获得支部资源读权（服务端 requireAssignedBranch 对支部资源读口 403），
+    // 选支部目录走 IAAA 独立路由的只读最小字段端点。
+    const r = await fetch('./api/v1/auth/iaaa/branches', { headers: _authHeaders() });
     if (!r.ok) throw new Error('HTTP ' + r.status);
     const body = await r.json();
     const rows = Array.isArray(body) ? body : (body && body.data) || [];

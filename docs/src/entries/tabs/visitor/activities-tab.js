@@ -3,22 +3,22 @@
 // 三视图：列表（分页）/ 日历 / 查询；列表与日历为纯展示，查询复用全局查询组件。
 // URL 落点高亮（?activityId=）经 ctx.highlightId 一次性消费（对齐单体版参数清除后的行为）。
 
-import { icon } from '../../../core/base/icons.js?v=20261018u';
-import { renderQueryView } from '../../../components/governance/query-view.js?v=20261018u';
-import { flashHighlight } from '../../../core/base/utils.js?v=20261018u';
-import { getActivityTypeColors } from '../../../core/domain/constants.js?v=20261018u';
+import { icon } from '../../../core/base/icons.js?v=20261019a';
+import { renderQueryView } from '../../../components/governance/query-view.js?v=20261019a';
+import { flashHighlight } from '../../../core/base/utils.js?v=20261019a';
+import { getActivityTypeColors } from '../../../core/domain/constants.js?v=20261019a';
 // 活动「仍在办」口径单一源（2026-09-13 收敛）：替代手写 !archived && status!=='cancelled'
-import { isActivityLive } from '../../../core/domain/constants.js?v=20261018u';
-import { canSignup } from '../../../components/governance/signup-panel.js?v=20261018u';
-import { AuthStore } from '../../../services/core/auth.js?v=20261018u';
+import { isActivityLive } from '../../../core/domain/constants.js?v=20261019a';
+import { canSignup } from '../../../components/governance/signup-panel.js?v=20261019a';
+import { AuthStore } from '../../../services/core/auth.js?v=20261019a';
 // 组织者按活动身份读（2026-09-19 批次 91 · SOP-B-17）：本人被指定为某场活动的组织者时，
 // 该场的发布口与上传位从该行可达——「组织者是这场事上被指定的人」，不是静态角色。
-import { isActivityOrganizer, findActivityById } from '../../../services/activity/activity.js?v=20261018u';
-import { openGroupNoticeComposer } from '../../../components/governance/notice-view.js?v=20261018u';
+import { isActivityOrganizer, findActivityById } from '../../../services/activity/activity.js?v=20261019a';
+import { openGroupNoticeComposer } from '../../../components/governance/notice-view.js?v=20261019a';
 // 翻页控件单一源（批次 38：全站手写翻页一律并轨 pagerHtml）
-import { pagerHtml } from '../../../components/ui/pager.js?v=20261018u';
-import { getAppState } from '../../../core/base/state.js?v=20261018u';
-import { renderContent as renderSharedActivityCalendar } from '../shared/activity-calendar-tab.js?v=20261018u';
+import { pagerHtml } from '../../../components/ui/pager.js?v=20261019a';
+import { getAppState } from '../../../core/base/state.js?v=20261019a';
+import { renderContent as renderSharedActivityCalendar } from '../shared/activity-calendar-tab.js?v=20261019a';
 
 const ACTIVITY_TYPE_COLORS = getActivityTypeColors();
 
@@ -48,9 +48,17 @@ function _actEntryHtml(a, href) {
 function _organizerEntryHtml(a) {
   const me = AuthStore.getCurrentUser();
   if (!me || !isActivityOrganizer(me.personId, a.id)) return '';
+  // C06（2026-10-20）：考勤上传位按角色落——成员组织者在本台（成员页上传位），组长才进组长台；
+  // 其他角色（支委）没有本台考勤上传位，只给纯文本，不再统一指向 leader.html 被身份门弹回。
+  const leaderRoles = ['leader', 'deputy-leader'];
+  let attendanceHref = '';
+  if (leaderRoles.includes(me.role)) attendanceHref = './workspace/leader.html?tab=attendance';
+  else if (me.role === 'participant') attendanceHref = './workspace/visitor.html?tab=attendance#org-host';
   return `<div class="flex flex-wrap justify-end items-center gap-1.5 flex-shrink-0">
       <button type="button" class="btn-outline visitor-group-notice-btn text-xs px-3 py-1.5 font-medium" data-act-id="${a.id}" style="cursor:pointer;">发布本组通知</button>
-      <a href="./workspace/leader.html?tab=attendance" class="text-xs px-3 py-1.5 rounded-lg font-medium border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#CE1126]" style="text-decoration:none;" title="本场组织者的上传位：考勤上传与纪检打回后的待确认项">考勤管理 / 打回确认</a>
+      ${attendanceHref
+        ? `<a href="${attendanceHref}" class="text-xs px-3 py-1.5 rounded-lg font-medium border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#CE1126]" style="text-decoration:none;" title="本场组织者的上传位：考勤上传与纪检打回后的待确认项">考勤管理 / 打回确认</a>`
+        : '<span class="text-xs text-gray-500">考勤由本场组织者按本位上传</span>'}
     </div>`;
 }
 

@@ -166,13 +166,22 @@ test('宣传/纪检台 Task 15：条线缺口有动作、归档单一源、实�
   assert.match(annotatingBlock, /btn-disc-reject/, '已批注须有打回');
   assert.match(annotatingBlock, /btn-disc-confirm/, '已批注须有确认');
 
-  // ⑤ 纪检考察：已确认行只出「打回」不出「确认」；督办行动作落到同一份明细列表
+  // ⑤ 纪检考察：已确认行只出「打回」不出「确认」；督办行动作落到同一份明细列表。
+  //   D01（2026-10-20）起两个分支都按 decisionDeny（本人提交 / 无权限）二选一，
+  //   打回与确认不再相邻 ⇒ 改为按「已确认 / 非已确认」两分支切片断言；判据本身不变。
   const discInspection = read('docs/src/entries/tabs/disc/inspection-tab.js');
-  assert.match(
-    discInspection,
-    /i\.status === 'confirmed'[\s\S]{0,260}已确认[\s\S]{0,260}btn-disc-return-insp[\s\S]{0,120}: `<button[\s\S]{0,120}btn-disc-confirm-insp/,
-    '已确认行只出打回；确认只在非已确认分支',
-  );
+  const confirmedAt = discInspection.indexOf("i.status === 'confirmed'");
+  const pendingAt = discInspection.indexOf(': decisionDeny', confirmedAt);
+  assert.ok(confirmedAt > -1 && pendingAt > confirmedAt, '考察行须有「已确认 / 非已确认」两分支');
+  const confirmedBranch = discInspection.slice(confirmedAt, pendingAt);
+  assert.match(confirmedBranch, /已确认/, '已确认行须标已确认');
+  assert.match(confirmedBranch, /btn-disc-return-insp/, '已确认行须有打回');
+  assert.doesNotMatch(confirmedBranch, /btn-disc-confirm-insp/, '已确认行不得再出确认');
+  assert.match(discInspection.slice(pendingAt), /btn-disc-confirm-insp/, '非已确认行须有确认');
+  // D01：本人提交 / 非确认角色不得渲染可用确认/打回（前端读同一判据 + 禁用态 + 可懂 title）
+  assert.match(discInspection, /const decisionDeny = inspectionConfirmDenyReason\(actorId, i\);/, 'D01：前端须读服务层同一确认判据');
+  assert.match(discInspection, /decisionDeny[\s\S]{0,220}disabled title="\$\{esc\(decisionDeny\)\}/, 'D01：有拒绝原因时按钮须禁用并写明原因');
+  assert.match(discInspection, /isSelfRecorded \? '（本人提交）'/, 'D01：本人提交须有可见标记');
   assert.match(discInspection, /insp-sup-goto/, '督办清单须有去确认入口');
   assert.match(discInspection, /data-insp-person-id=/, '明细行须可被督办入口定位');
   assert.match(discInspection, /function _bindSupervisionGoto/, '督办入口须绑定到明细列表');
@@ -198,10 +207,10 @@ test('组长/成员台 Task 16：写入口径、考察范围、组员进度与�
   assert.match(insp, /本组活动考察明细/, '明细区须有本组范围标题');
   assert.match(insp, /if \(!isOrganizerScope\) \{\s*renderFilteredList\(container\.querySelector\('#insp-list-host'\)/, 'organizer 投影分支不得渲染全量明细');
 
-  // ③ 组长 members：进度前置；逐人指标为带表头的紧凑表
+  // ③ 组长 members：卡点前置（R3-F09 新裁定），逐人指标为带表头的紧凑表
   const members = read('docs/src/entries/tabs/leader/members-tab.js');
+  assert.ok(members.indexOf('id="leader-blockers-list"') < members.indexOf('id="leader-progress-list"'), '卡点须排在进度之前（R3-F09）');
   assert.ok(members.indexOf('id="leader-progress-list"') < members.indexOf('${reportInboxHtml}'), '进度须排在组员汇报之前');
-  assert.ok(members.indexOf('id="leader-progress-list"') < members.indexOf('id="leader-blockers-list"'), '进度须排在卡点之前');
   assert.match(members, /table:\s*\{[\s\S]{0,400}<th>姓名<\/th>[\s\S]{0,200}<th>考勤<\/th>[\s\S]{0,200}<th>考察<\/th>[\s\S]{0,200}<th>汇报<\/th>[\s\S]{0,200}<th>阶段<\/th>/, '逐人指标须为有表头的紧凑表');
 
   // ④ 成员 activities：唯一主切换；日历内层移除「列表」并降级

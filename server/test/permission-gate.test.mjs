@@ -226,7 +226,7 @@ test('系统派生通知端点：合法 kind 201（服务端生成文案/落点�
   assert.equal(okRes.status, 201, '提交人本人可触发思想汇报系统通知（表内存在该汇报）');
   const okNotice = await okRes.json();
   assert.equal(okNotice.title, '思想汇报已提交', '标题来自服务端 build（不采信 payload 的 title）');
-  assert.equal(okNotice.targetUrl, `workspace/org.html?tab=thought-review&highlight=${trId}`, '落点由服务端按 sourceId 派生');
+  assert.equal(okNotice.targetUrl, `thought-report.html?id=${trId}`, '落点由服务端按 sourceId 派生（F02：直达思想汇报详情页）');
   assert.deepEqual(okNotice.audience, ['org-commissioner'], 'R-23：受众锁定组织委员（阅处功能位），不再全站广播');
   // 落库核对（非仅响应）
   const list2 = await (await fetch(`${base}/api/v1/notices`, { headers: authHeaders(partTok) })).json();
@@ -766,7 +766,11 @@ test('分工自动传递（2026-09-13 支书裁定）：分工生效通知的受
   assert.deepEqual(n.audiencePersons, ['p3'], '到人负责人按 personId 定向送达（覆盖客户端自述）');
   assert.deepEqual(n.actionRoles, ['leader'], '角色负责人进 actionRoles（覆盖客户端自述）→ 派生履职待办');
   assert.equal(n.actionable, true, '标记可行动（供待办派生）');
-  assert.equal(n.targetUrl, 'workspace/secretary.html?tab=work-map', '落点指向支部分工');
+  // F06（2026-10-20）：`targetType+targetId` 优先 ⇒ 原固定支书台 targetUrl 已删除（写了也永不生效）；
+  //   支委层各角色按活动详情直达，不跨台。
+  assert.equal(n.targetUrl, undefined, '不再保留永不生效的固定支书台 targetUrl');
+  assert.equal(n.targetType, 'activity', '按活动详情页落点');
+  assert.equal(n.targetId, act.id, '对象 id 由 sourceId 派生');
 });
 
 // 2026-09-23 支书裁定（情景①）：「赋权给党小组组长/支委（最初的人员配置只有党委给支书配置，剩下的身份

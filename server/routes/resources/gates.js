@@ -5,7 +5,7 @@
 // ════════════════════════════════════════════════════════════════
 
 import { requireAuth, requireCommissioner } from '../auth.js';
-import { BRANCH_COMMISSION_ROLES, PARTY_STAFF_ROLE as PARTY_STAFF_KEYS, SECRETARY_AND_DEPUTY_ROLES, NOTICE_PUBLISH_ROLES, NOTICE_MANAGE_ROLES, MEMBER_FLOW_ROLES, ORG_COMMISSIONER_ROLES, branchCommissionerWriteDeny, isAnonymousForced } from '../../../docs/src/core/domain/constants.js';
+import { BRANCH_COMMISSION_ROLES, PARTY_STAFF_ROLE as PARTY_STAFF_KEYS, SECRETARY_AND_DEPUTY_ROLES, NOTICE_PUBLISH_ROLES, NOTICE_MANAGE_ROLES, MEMBER_FLOW_ROLES, ORG_COMMISSIONER_ROLES, INSPECTION_WRITE_ROLES, INSPECTION_CONFIRM_ROLES, branchCommissionerWriteDeny, isAnonymousForced } from '../../../docs/src/core/domain/constants.js';
 import { RESOURCE_TABLES, listTable } from './store.js';
 import { actorBranchId, resourceBranchId } from './branch-scope.js';
 import { CAPABILITY_PACKAGES } from '../../../docs/src/core/domain/capability-packages.js';
@@ -120,7 +120,7 @@ export function _writeDenyMsg(name) {
   if (name === 'memberFlows') {
     return '无权限：成员流入/流出登记仅限组织委员或支书/副支书';
   }
-  return name === 'inspections' ? '无权限：考察记录仅限支委层/党委，或本场活动（专班）组织者写入' : '无权限：该写操作仅限党委组织员/党务老师或本支部支委层';
+  return name === 'inspections' ? '无权限：考察记录仅限支委层（含组织委员建档代录）/党委，或本场活动（专班）组织者写入' : '无权限：该写操作仅限党委组织员/党务老师或本支部支委层';
 }
 
 // ── 活动写门（dogfood 权限专项 2026-09-13 实证缺口）──────────────────────────
@@ -200,6 +200,9 @@ function _branchCommissionerGateDeny(db, actor, targetId, body) {
 }
 
 export const ORG_COMMISSIONER_ROLE_SET = new Set(ORG_COMMISSIONER_ROLES);
+// D01/D08：考察写角色与确认角色（单一源 = constants.js；前端 services/activity/inspection.js 同读）
+export const INSPECTION_WRITE_ROLE_SET = new Set(INSPECTION_WRITE_ROLES);
+export const INSPECTION_CONFIRM_ROLE_SET = new Set(INSPECTION_CONFIRM_ROLES);
 
 // ════════════════════════════════════════════════════════════════
 //  批次 274（2026-09-29）：运行时面 —— **「支部停用某块」服务端硬执行**（契约 §8.1，`D-685`）
@@ -440,6 +443,11 @@ export function _snapshotResourceWriteGateDeny(db, writes, actor) {
         continue;
       }
       const method = prev ? 'patch' : 'post';
+      // D01：快照写穿同样复算「确认/打回」白名单与自确认禁令（前端服务层经 persist 走本口）
+      if (name === 'inspections') {
+        const decisionDeny = _inspectionDecisionDeny(actor, prev, row);
+        if (decisionDeny) return decisionDeny;
+      }
       if (!_assertResourceWrite(actor, name, method, row, row.id, db)) return _writeDenyMsg(name);
     }
   }
@@ -501,7 +509,8 @@ function _isInspectionSourceOrganizer(db, actor, record) {
  */
 function _inspectionWriteAllowed(db, actor, method, body, targetId) {
   if (!actor || !actor.id) return false;
-  if (PARTY_STAFF_ROLE.has(actor.role) || BRANCH_COMMITTEE_ROLES.has(actor.role)) return true;
+  // D08：支委层（含组织委员「建档代录」）与党委可写；普通成员仅限本场组织者（下段）
+  if (PARTY_STAFF_ROLE.has(actor.role) || INSPECTION_WRITE_ROLE_SET.has(actor.role)) return true;
 
   if (method === 'post') return _isInspectionSourceOrganizer(db, actor, body);
 
@@ -518,4 +527,41 @@ function _inspectionWriteAllowed(db, actor, method, body, targetId) {
     return _isInspectionSourceOrganizer(db, actor, { ...prev, ...body });
   }
   return true;
+}
+
+// ════════════════════════════════════════════════════════════════
+//  考察「确认 / 打回」判定（D01，2026-10-20）
+// ════════════════════════════════════════════════════════════════
+// 为什么：写门（`inspection`）只管「谁能改考察」，不区分「确认」这一动作 ⇒ 组织委员/上传人自己
+//   也能把 status 改成 confirmed（前端按钮藏了也能直连 API）。D01 要求确认白名单与自确认禁令
+//   落在 api 面（`D-677`），故对 PATCH 里的确认/打回字段单独复算。
+// 判据单一源 = constants.js::INSPECTION_CONFIRM_ROLES；打回留痕字段沿用既有的 returnedBy/returnedAt。
+/**
+ * 确认/打回 PATCH 的角色与自确认判定。
+ * @param {{id?:string, role?:string}} actor
+ * @param {Object} prev 既有考察记录（含 recordedBy）
+ * @param {Object} body 本次补丁
+ * @returns {string|null} 403 文案；非确认/打回补丁或放行 → null
+ */
+export function _inspectionDecisionDeny(actor, prev, body) {
+  if (!body || typeof body !== 'object') return null;
+  // 只在「状态/留痕真的发生变化」时按确认/打回复算——避免编辑已确认记录的内容被误判为再次确认
+  const isConfirm = (body.status === 'confirmed' && (!prev || prev.status !== 'confirmed'))
+    || (Object.prototype.hasOwnProperty.call(body, 'confirmedBy')
+      && (!prev || body.confirmedBy !== prev.confirmedBy));
+  const isReturn = ['returnedBy', 'returnedAt', 'returnReason']
+    .some((key) => Object.prototype.hasOwnProperty.call(body, key)
+      && body[key] !== undefined
+      && (!prev || body[key] !== prev[key]));
+  if (!isConfirm && !isReturn) return null;
+  // D01：自确认禁令优先（「一律拒绝」）——即使操作人不在确认白名单，也给出同一可懂原因
+  // 新增行（prev 缺失）也按 body.recordedBy 判自确认——防「上传即确认」经快照口落库
+  const recordedBy = body.recordedBy || (prev && prev.recordedBy);
+  if (actor && recordedBy && recordedBy === actor.id) {
+    return '不能确认自己提交的考察';
+  }
+  if (!actor || !INSPECTION_CONFIRM_ROLE_SET.has(actor.role)) {
+    return '无权限：考察确认/打回仅限纪检委员或支书/副支书';
+  }
+  return null;
 }

@@ -2,19 +2,19 @@
 // 宣传委员工作台 Tab：宣传任务（T-279 M3 拆分，照 M2 样板）
 // 任务状态流转：待接收 → 进行中 → 已提交（seed 常量 + mockDB 持久化，刷新不再丢失）。
 
-import { mockDB } from '../../../core/domain/domain.js?v=20261018u';
-import { persist } from '../../../data/data-adapter.js?v=20261018u';
-import { showToast, downloadCSV, _fmtDate, todayLocal, escHtml } from '../../../core/base/utils.js?v=20261018u';
-import { generateId } from '../../../core/base/id.js?v=20261018u';
-import { isActivityLive } from '../../../core/domain/constants.js?v=20261018u';
+import { mockDB } from '../../../core/domain/domain.js?v=20261019a';
+import { persist } from '../../../data/data-adapter.js?v=20261019a';
+import { showToast, downloadCSV, _fmtDate, todayLocal, escHtml } from '../../../core/base/utils.js?v=20261019a';
+import { generateId } from '../../../core/base/id.js?v=20261019a';
+import { isActivityLive } from '../../../core/domain/constants.js?v=20261019a';
 // 2026-10-03 批次 358（`D-751`）：宣传任务「作废（软）」——弹窗**单一源**（原因必填那句校验只此一处）
-import { openVoidModal } from '../../../components/ui/void-record.js?v=20261018u';
-import { filterActive } from '../../../services/governance/soft-void.js?v=20261018u';
+import { openVoidModal } from '../../../components/ui/void-record.js?v=20261019a';
+import { filterActive } from '../../../services/governance/soft-void.js?v=20261019a';
 
 // ── 宣传任务 mock 数据（2026-08-05：seed 常量 + mockDB 持久化，刷新不再丢失）──
 // 2026-09-28 批次 234：常量**搬到内容单一源** `docs/src/data/mock/prop.js`（服务端 `server/seed.js` 同源 import，
 //   原先此处私有常量被服务端逐字复刻一份 ⇒ 两份字面量，本批收成一份；取值与顺序一字未改）。
-import { PROP_TASKS_SEED } from '../../../data/mock/prop.js?v=20261018u';
+import { PROP_TASKS_SEED } from '../../../data/mock/prop.js?v=20261019a';
 
 // 从 mockDB 读取（seed 兜底注入一次）；写操作须更新 mockDB.propTasks 后调用 persist()
 function _loadPropTasks() {
@@ -64,7 +64,7 @@ export function renderContent(ctx = {}) {
       <h3 class="font-title-cn text-base font-semibold text-gray-800">宣传任务</h3>
       <button class="prop-task-export-btn btn-tab" style="cursor:pointer;">导出 CSV</button>
     </div>
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
       <div class="card rounded-xl p-0 overflow-hidden">
         <div class="px-4 py-3 font-title-cn text-sm font-bold" style="--acc-bg-dark:rgba(251,191,36,0.10);--acc-text-dark:#FBBF24;--acc-border-dark:rgba(251,191,36,0.25);background:rgba(245,158,11,0.06);color:color-mix(in srgb, var(--accent-amber) 60%, #000);border-bottom:2px solid rgba(245,158,11,0.15);">待接收 (${pending.length})</div>
         <div class="p-3 space-y-2 min-h-[120px]">
@@ -79,14 +79,15 @@ export function renderContent(ctx = {}) {
             inProgress.map(t => _renderTaskCard(t, activityMap)).join('')}
         </div>
       </div>
-      <div class="card rounded-xl p-0 overflow-hidden">
-        <div class="px-4 py-3 font-title-cn text-sm font-bold" style="--acc-bg-dark:rgba(52,211,153,0.10);--acc-text-dark:#34D399;--acc-border-dark:rgba(52,211,153,0.25);background:rgba(16,185,129,0.06);color:color-mix(in srgb, var(--functional-success) 60%, #000);border-bottom:2px solid rgba(16,185,129,0.15);">已提交 (${submitted.length})</div>
-        <div class="p-3 space-y-2 min-h-[120px]">
-          ${submitted.length === 0 ? '<p class="text-xs text-gray-500 text-center py-6">暂无已提交任务</p>' :
-            submitted.map(t => _renderTaskCard(t, activityMap)).join('')}
-        </div>
-      </div>
     </div>
+    <!-- B08（2026-10-20）：终态「已提交」不再与两个行动列等权——进行中/待接收在前，已提交默认折叠（标题保留条数）。 -->
+    <details class="card rounded-xl p-0 overflow-hidden mb-4" id="prop-task-submitted-fold">
+      <summary class="px-4 py-3 font-title-cn text-sm font-bold cursor-pointer select-none" style="--acc-bg-dark:rgba(52,211,153,0.10);--acc-text-dark:#34D399;--acc-border-dark:rgba(52,211,153,0.25);background:rgba(16,185,129,0.06);color:color-mix(in srgb, var(--functional-success) 60%, #000);border-bottom:2px solid rgba(16,185,129,0.15);">已提交 (${submitted.length})</summary>
+      <div class="p-3 space-y-2">
+        ${submitted.length === 0 ? '<p class="text-xs text-gray-500 text-center py-6">暂无已提交任务</p>' :
+          submitted.map(t => _renderTaskCard(t, activityMap)).join('')}
+      </div>
+    </details>
   `;
 
   // 登记宣传任务：写 mockDB.propTasks（关联活动可空；来源空则回落到默认值）

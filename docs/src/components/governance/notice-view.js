@@ -10,14 +10,14 @@
 //  依赖方向正确：组件 → 服务（不是服务 → 组件）。守卫见 notice-audience / doc-consistency。
 // ════════════════════════════════════════════════════════════════
 
-import { badgeHtml } from '../ui/badges.js?v=20261018u';
-import { openFormModal } from '../ui/modal.js?v=20261018u';
-import { showToast, getBasePath, todayLocal } from '../../core/base/utils.js?v=20261018u';
-import { ROLE_LABELS } from '../../core/domain/constants.js?v=20261018u';
-import { AuthStore } from '../../services/core/auth.js?v=20261018u';
-import { getPersonById, liveMembers } from '../../services/member/person.js?v=20261018u';
-import { isActivityOrganizer } from '../../services/activity/activity.js?v=20261018u';
-import { NoticeStore, NoticePermission, resolveNoticeUrl } from '../../services/governance/notice.js?v=20261018u';
+import { badgeHtml } from '../ui/badges.js?v=20261019a';
+import { openFormModal } from '../ui/modal.js?v=20261019a';
+import { showToast, getBasePath, todayLocal } from '../../core/base/utils.js?v=20261019a';
+import { ROLE_LABELS } from '../../core/domain/constants.js?v=20261019a';
+import { AuthStore } from '../../services/core/auth.js?v=20261019a';
+import { getPersonById, liveMembers } from '../../services/member/person.js?v=20261019a';
+import { isActivityOrganizer } from '../../services/activity/activity.js?v=20261019a';
+import { NoticeStore, NoticePermission, resolveNoticeUrl } from '../../services/governance/notice.js?v=20261019a';
 
 function committeeSourceChip() {
   return '<span style="display:inline-flex;align-items:center;padding:0 6px;border-radius:9999px;background:var(--party-red);color:#fff;font-size:10px;line-height:16px;flex-shrink:0;">党委下发</span>';
@@ -86,9 +86,15 @@ export function renderNoticeList(containerId, limit = 5, opts = {}) {
    * 导航行：整行可点，阅读详情即已读；不再单设「确认读取」第二动作。
    * 用原生 <a> 承载整行，保留 data-notice-id / data-target / data-target-url 落点；
    * 真实去向仍由统一的点击处理决定（resolveNoticeUrl）。
+   * F06（2026-10-20）：href 也必须走同一解析（targetType+targetId 优先，targetUrl 仅兜底）——
+   *   原 href 直取 n.targetUrl，中键/新标签打开会绕过点击处理，出现「写了 targetUrl 却跳过类型详情」。
    */
+  const noticeHref = (n) => {
+    const dest = resolveNoticeUrl(n);
+    return dest.direct && dest.url ? dest.url : `${getBasePath()}notice.html?id=${encodeURIComponent(n.id)}`;
+  };
   const rowHtml = (n) => `
-    <a href="${n.targetUrl || `${getBasePath()}notice.html?id=${encodeURIComponent(n.id)}`}" class="notice-item notice-row row-quiet w-full p-0 text-left cursor-pointer hover:bg-gray-50 rounded-lg transition-colors group"
+    <a href="${noticeHref(n)}" class="notice-item notice-row row-quiet w-full p-0 text-left cursor-pointer hover:bg-gray-50 rounded-lg transition-colors group"
          data-target="${n.targetModule || ''}" data-notice-id="${n.id}" data-target-url="${n.targetUrl || ''}"
          title="${n.title} — ${n.content}">
       ${priorityBadge[n.priority] || ''}

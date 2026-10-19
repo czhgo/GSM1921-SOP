@@ -2,22 +2,24 @@
 // 纪检委员工作台 Tab：复盘（T-279 M3 拆分；2026-10-04 批次 368 页签名由「活动监督复盘」改「复盘」——原名＝动作＋对象混轴）
 // 活动流程监督（超时提醒）+ 活动复盘监督（批注/打回/确认）+ 经验沉淀督促清单。
 
-import { mockDB, ReviewStatus } from '../../../core/domain/domain.js?v=20261018u';
-import { persist } from '../../../data/data-adapter.js?v=20261018u';
-import { reviewToDisplay } from '../../../services/governance/review.js?v=20261018u';
-import { loadActiveActivityReviews, loadTaskforceReviews, updateReviewById } from '../../../services/governance/review.js?v=20261018u';
-import { loadActivities } from '../../../services/activity/activity.js?v=20261018u';
-import { showToast, escHtml } from '../../../core/base/utils.js?v=20261018u';
-import { openFormModal } from '../../../components/ui/modal.js?v=20261018u';
+import { mockDB, ReviewStatus } from '../../../core/domain/domain.js?v=20261019a';
+import { persist } from '../../../data/data-adapter.js?v=20261019a';
+import { reviewToDisplay } from '../../../services/governance/review.js?v=20261019a';
+import { loadActiveActivityReviews, loadTaskforceReviews, updateReviewById } from '../../../services/governance/review.js?v=20261019a';
+import { loadActivities } from '../../../services/activity/activity.js?v=20261019a';
+import { showToast, escHtml } from '../../../core/base/utils.js?v=20261019a';
+import { openFormModal } from '../../../components/ui/modal.js?v=20261019a';
 // 批次 352（`D-746` · `D-744`② 业务过程类余项）：经验沉淀「作废（软）」——统一写口 ＋ 支委层判据
-import * as SoftVoid from '../../../services/governance/soft-void.js?v=20261018u';
-import { openVoidModal } from '../../../components/ui/void-record.js?v=20261018u';
-import { NoticeStore } from '../../../services/governance/notice.js?v=20261018u';
-import { generateId } from '../../../core/base/id.js?v=20261018u';
-import { getPersonById } from '../../../services/member/person.js?v=20261018u';
-import { DISC_COMMISSIONER_ID } from './_shared.js?v=20261018u';
+import * as SoftVoid from '../../../services/governance/soft-void.js?v=20261019a';
+import { openVoidModal } from '../../../components/ui/void-record.js?v=20261019a';
+import { NoticeStore } from '../../../services/governance/notice.js?v=20261019a';
+import { generateId } from '../../../core/base/id.js?v=20261019a';
+import { getPersonById } from '../../../services/member/person.js?v=20261019a';
+import { DISC_COMMISSIONER_ID } from './_shared.js?v=20261019a';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是活动的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
-import { renderFilteredList, activityKeyword, activityFacets } from '../../../components/ui/list-filter.js?v=20261018u';
+import { renderFilteredList, activityKeyword, activityFacets } from '../../../components/ui/list-filter.js?v=20261019a';
+// 材料页深链 focusActivityId 的通用定位（只滚动 + 闪烁，不另造筛选器）
+import { focusActivityAnchor } from '../../../components/ui/detail-anchor.js?v=20261019a';
 
 // ── 超期提醒真实触达（2026-09-10）───────────────────────────────
 // 依据：纪检委员工作流程指南 §3.1「超时确认后可触发邮件提醒」、党小组组长工作手册
@@ -121,7 +123,7 @@ export function renderContent(ctx) {
 
   /** 活动流程监督行 */
   const flowRowHtml = (r) => `
-            <div class="flex items-center justify-between p-3 rounded-xl bg-white ${r.overdue ? 'border border-red-100' : ''}">
+            <div class="flex items-center justify-between p-3 rounded-xl bg-white ${r.overdue ? 'border border-red-100' : ''}" data-act-id="${escHtml(r.activityId || '')}">
               ${r.activityId
                 ? `<a href="./activity.html?id=${encodeURIComponent(r.activityId)}" class="flex-1 min-w-0" style="text-decoration:none;color:inherit;" title="查看活动详情">
                      <div class="text-sm font-medium text-gray-800">${r.activity}</div>
@@ -142,7 +144,7 @@ export function renderContent(ctx) {
     const confirmable = r.reviewStatus === ReviewStatus.ANNOTATING;
     const checked = _batchCheckedIds.has(r.id);
     return `
-            <div class="p-3 rounded-xl bg-white">
+            <div class="p-3 rounded-xl bg-white" data-act-id="${escHtml(r.activityId || '')}">
               <div class="flex items-center justify-between gap-2 mb-2">
                 <div class="flex items-center gap-2 min-w-0">
                   ${_batchModeOn ? `
@@ -190,26 +192,32 @@ export function renderContent(ctx) {
               <button class="btn-accent-soft text-xs px-3 py-1.5 btn-disc-urge-deposit" style="cursor:pointer;" data-activity-name="${r.sourceName || r.activity}" data-organizer="${r.organizer}">督促沉淀</button>
             </div>`;
 
+  // B10（2026-10-20）：「流程监督」与「复盘监督」原为两张并列卡，但同一批复盘先看流程进度、
+  //   再批注/确认，属同一任务的先后两段 ⇒ 合并为一张「复盘监督」卡：一个卡头、两个小节；
+  //   两个列表宿主 id 与全部按钮/勾选行为原样保留（清单与动作零丢失）。
   container.innerHTML = `
     <div class="space-y-4">
       <div class="card rounded-xl p-5">
-        <h3 class="font-title-cn text-base font-semibold text-gray-800 mb-3">活动流程监督</h3>
-        <div class="text-xs text-gray-500 mb-3">阅览党小组活动/专班工作时间流 · 超时确认后站内通知</div>
-        <div id="disc-review-flow-list"></div>
-      </div>
-      <div class="card rounded-xl p-5">
-        <div class="flex items-center justify-between gap-2 mb-1">
-          <h3 class="font-title-cn text-base font-semibold text-gray-800">活动复盘监督</h3>
+        <div class="flex items-center justify-between gap-2 mb-3">
+          <h3 class="font-title-cn text-base font-semibold text-gray-800">复盘监督</h3>
           ${(_batchModeOn || reviewData.some(r => r.reviewStatus === ReviewStatus.ANNOTATING)) ? `
           <button class="btn-action btn-action-gray js-batch-toggle" style="cursor:pointer;">${_batchModeOn ? '退出批量模式' : '批量确认'}</button>` : ''}
         </div>
-        <div class="text-xs text-gray-500 mb-3">复盘流转：已上传 → 批注中 → 确认/打回 · 留痕台账不提供删除</div>
-        ${_batchModeOn ? `
-        <div class="flex flex-wrap items-center justify-between gap-2 rounded-lg bg-gray-50 px-3 py-2 mb-3 text-xs text-gray-600">
-          <span>已勾选 <b class="js-batch-count tabular-nums">${_batchCheckedIds.size}</b> 条「批注中」复盘（已确认/打回/待批注/未提交行置灰不可勾）</span>
-          <button class="btn-action btn-action-green js-batch-confirm" style="cursor:${_batchCheckedIds.size ? 'pointer' : 'not-allowed'};${_batchCheckedIds.size ? '' : 'opacity:0.5;'}" ${_batchCheckedIds.size ? '' : 'disabled'}>批量确认所选（${_batchCheckedIds.size}）</button>
-        </div>` : ''}
-        <div id="disc-review-items-list"></div>
+        <section class="mb-5" aria-label="流程监督">
+          <h4 class="font-title-cn text-sm font-bold text-gray-700 mb-1">流程监督</h4>
+          <div class="text-xs text-gray-500 mb-3">阅览党小组活动/专班工作时间流 · 超时确认后站内通知</div>
+          <div id="disc-review-flow-list"></div>
+        </section>
+        <section aria-label="复盘处理">
+          <h4 class="font-title-cn text-sm font-bold text-gray-700 mb-1">复盘处理</h4>
+          <div class="text-xs text-gray-500 mb-3">复盘流转：已上传 → 批注中 → 确认/打回 · 留痕台账不提供删除</div>
+          ${_batchModeOn ? `
+          <div class="flex flex-wrap items-center justify-between gap-2 rounded-lg bg-gray-50 px-3 py-2 mb-3 text-xs text-gray-600">
+            <span>已勾选 <b class="js-batch-count tabular-nums">${_batchCheckedIds.size}</b> 条「批注中」复盘（已确认/打回/待批注/未提交行置灰不可勾）</span>
+            <button class="btn-action btn-action-green js-batch-confirm" style="cursor:${_batchCheckedIds.size ? 'pointer' : 'not-allowed'};${_batchCheckedIds.size ? '' : 'opacity:0.5;'}" ${_batchCheckedIds.size ? '' : 'disabled'}>批量确认所选（${_batchCheckedIds.size}）</button>
+          </div>` : ''}
+          <div id="disc-review-items-list"></div>
+        </section>
       </div>
       ${unDepositedReviews.length > 0 ? `
       <div class="card rounded-xl p-5">
@@ -484,4 +492,7 @@ export function renderContent(ctx) {
     }
     renderContent(ctx);
   }));
+
+  // 材料页深链：渲染后把本场活动的复盘卡片滚到视野。
+  focusActivityAnchor(container, ctx?.focusActivityId);
 }

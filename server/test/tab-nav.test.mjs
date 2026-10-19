@@ -3,7 +3,12 @@
 // 空清单兜底。消费方 = docs/src/components/shell/tab-bar.js（浏览器侧），本文件直测纯决策。
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { resolveInitialTab, resolveTargetTab } from '../../docs/src/core/boot/tab-nav.js?v=20261018u';
+import { readFileSync } from 'node:fs';
+import { resolveInitialTab, resolveTargetTab } from '../../docs/src/core/boot/tab-nav.js?v=20261019a';
+
+const shellSrc = readFileSync(new URL('../../docs/src/components/shell/workspace-shell.js', import.meta.url), 'utf8');
+const branchFilterSrc = readFileSync(new URL('../../docs/src/components/governance/branch-filter.js', import.meta.url), 'utf8');
+const materialsEntrySrc = readFileSync(new URL('../../docs/src/entries/pages/activity-materials-entry.js', import.meta.url), 'utf8');
 
 const TABS = [{ id: 'todo' }, { id: 'calendar' }, { id: 'feedback' }];
 
@@ -39,4 +44,69 @@ test('目标 tab 回退：可见命中原样返回；被隐藏回退首位并标
   assert.deepEqual(resolveTargetTab(TABS, 'hidden-tab'), { id: 'todo', fellBack: true });
   assert.deepEqual(resolveTargetTab(TABS, null), { id: 'todo', fellBack: false });
   assert.deepEqual(resolveTargetTab([], 'anything'), { id: null, fellBack: true });
+});
+
+// ════════════════════════════════════════════════════════════════
+//  IA 深链契约（2026-10-20 IA 修复 Task 2/3 · 静态守卫）
+// ════════════════════════════════════════════════════════════════
+
+test('壳：focusActivityId 只做定位，不进 legacy onNavTarget 分支', () => {
+  assert.match(shellSrc, /const focusActivityId = urlParams\.focusActivityId \|\| null;/, '须读取 ?focusActivityId=');
+  assert.match(shellSrc, /focusActivityId,? \}/, '须写入 _navTarget.focusActivityId');
+  assert.match(shellSrc, /focusActivityId: _navTarget \? \(_navTarget\.focusActivityId \|\| null\) : null,/, '_renderCtx 须暴露 focusActivityId');
+  assert.match(shellSrc, /CrossPageState\.clearParam\('focusActivityId'\)/, '须清理 URL 参数');
+  const legacyLine = shellSrc.match(/const hasLegacyNav = .*;/);
+  assert.ok(legacyLine, '须保留 hasLegacyNav 判据');
+  assert.doesNotMatch(legacyLine[0], /focusActivityId/, 'focusActivityId 不得进入 legacy 分支');
+});
+
+test('壳：对象级高亮选择器含 [data-act-id]，且 highlightType 按类型收窄', () => {
+  assert.match(shellSrc, /\[data-act-id="\$\{id\}"\]/, '选择器须含 [data-act-id]');
+  assert.match(shellSrc, /HIGHLIGHT_TYPE_SELECTORS/);
+  for (const key of ['p:', 'a:', 't:', 'rq:', 'tr:', 'mcr:', 'group:']) {
+    assert.ok(shellSrc.includes(key), `highlightType 缺少 ${key} 映射`);
+  }
+  assert.match(shellSrc, /_objectHighlightSelector\(hlId, _navTarget\.highlightType\)/);
+  assert.match(shellSrc, /setTimeout\(\(\) => \{ if \(_highlightId === hlId\)/, '高亮 3 秒后须清理快照');
+});
+
+test('壳：F08 目标页签不可用时给可见提示 + 回今天（不静默）', () => {
+  assert.match(shellSrc, /navTabMissing/);
+  assert.match(shellSrc, /data-ws-tab-notice/);
+  assert.match(shellSrc, /该页签已调整或对本角色不可用/);
+  assert.match(shellSrc, /回今天/);
+  assert.match(shellSrc, /console\.warn\(`\[ws-shell\] \?tab=/);
+});
+
+test('F11：branch-filter 空值不得被 || 回退，清除时删 URL 参数', () => {
+  assert.match(branchFilterSrc, /_selected\.has\(stateKey\)/, '须用 Map.has 判空值');
+  assert.doesNotMatch(branchFilterSrc, /_selected\.get\(stateKey\) \|\|/, '不得用 || 回退空值');
+  assert.match(branchFilterSrc, /url\.searchParams\.delete\('branchId'\)/, '清除筛选时须删 URL 参数');
+});
+
+test('材料页：消费契约 + 可见性 + referrer 返回 + 角色化交接', () => {
+  assert.match(materialsEntrySrc, /resolveMaterialHref\(/);
+  assert.match(materialsEntrySrc, /resolveMaterialHandoff\(/);
+  assert.match(materialsEntrySrc, /isActivityVisibleTo\(act, me\.role, me\.personId\)/);
+  assert.match(materialsEntrySrc, /document\.referrer/);
+  assert.match(materialsEntrySrc, /test\(refUrl\.pathname\)/, 'referrer 须判同源且含 /workspace/ 路径');
+});
+
+test('材料页深链：十处承载页签均消费 ctx.focusActivityId', () => {
+  const consumers = [
+    '../../docs/src/entries/tabs/disc/attendance-tab.js',
+    '../../docs/src/entries/tabs/disc/inspection-tab.js',
+    '../../docs/src/entries/tabs/disc/review-tab.js',
+    '../../docs/src/entries/tabs/leader/attendance-tab.js',
+    '../../docs/src/entries/tabs/leader/inspection-tab.js',
+    '../../docs/src/entries/tabs/leader/members-tab.js',
+    '../../docs/src/entries/tabs/visitor/attendance-tab.js',
+    '../../docs/src/entries/tabs/visitor/inspection-tab.js',
+    '../../docs/src/entries/tabs/visitor/review-tab.js',
+    '../../docs/src/entries/tabs/prop/archive-tab.js',
+  ];
+  for (const rel of consumers) {
+    const src = readFileSync(new URL(rel, import.meta.url), 'utf8');
+    assert.match(src, /focusActivityAnchor\([^)]*ctx\?\.focusActivityId/, `${rel} 未消费 focusActivityId`);
+  }
 });

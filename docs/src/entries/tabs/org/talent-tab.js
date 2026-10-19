@@ -9,21 +9,21 @@
 //   · 读侧数据不动写（除页面跳转外无任何保存/报送控件）。
 // 保留「人才库=只读画像、名册=档案维护」页内注释与引导文案。
 
-import { loadInspectionRecords } from '../../../services/activity/inspection.js?v=20261018u';
+import { loadInspectionRecords } from '../../../services/activity/inspection.js?v=20261019a';
 // ⚠ 2026-10-01 批次 321（支书 V-10 取「乙：整页并入人才库」）：原「发展数据」tab 的**活动参与汇总**卡
 //   并入本页——「参与工作情况」正是**考察**的主体，支书原话「**考察就是维护人才库的过程！！**」。
-import { listActivityParticipationByPerson } from '../../../services/activity/attendance.js?v=20261018u';
-import { loadThoughtReports } from '../../../services/governance/thought-report.js?v=20261018u';
-import { PersonStore, getPersonName } from '../../../services/member/person.js?v=20261018u';
+import { listActivityParticipationByPerson } from '../../../services/activity/attendance.js?v=20261019a';
+import { loadThoughtReports } from '../../../services/governance/thought-report.js?v=20261019a';
+import { PersonStore, getPersonName } from '../../../services/member/person.js?v=20261019a';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/member/person.js 获取（原直连 mock PEOPLE）
-import { getResidenceOf } from '../../../services/member/roster.js?v=20261018u';
+import { getResidenceOf } from '../../../services/member/roster.js?v=20261019a';
 // Q-21-3 收敛（2026-09-13）：在册状态枚举单一源 = core/domain/constants.js（原经 roster.js 转出）
-import { RESIDENCE } from '../../../core/domain/constants.js?v=20261018u';
+import { RESIDENCE } from '../../../core/domain/constants.js?v=20261019a';
 // B5（2026-09-12）：搜索 + 阶段/党小组筛选已统一接入 components/ui/list-filter.js（分面枚举由引擎 auto 派生）
-import { listPendingConfirmations, lastApprovedStageChange } from '../../../services/member/member-confirmation.js?v=20261018u';
-import { escHtml as esc, getBasePath } from '../../../core/base/utils.js?v=20261018u';
+import { listPendingConfirmations, lastApprovedStageChange } from '../../../services/member/member-confirmation.js?v=20261019a';
+import { escHtml as esc, getBasePath } from '../../../core/base/utils.js?v=20261019a';
 // 统一检索引擎（2026-09-13 表格统一化批次 A）：成员卡列表接入关键词 + 分面（替代原手写三控件显隐过滤）
-import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261018u';
+import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261019a';
 
 // 发展阶段顺序（发展流程正向：入党申请人 → 积极分子 → 发展对象 → 预备党员 → 正式党员）
 const STAGE_ORDER = ['积极分子', '发展对象', '预备党员', '正式党员'];
@@ -63,7 +63,7 @@ function _monthsSince(dateStr, now = new Date()) {
  * 发展提示（按 member-confirmation / thought-report / inspection 数据推算；无依据返回空数组）
  * 规则（全部可解释、不造假；**考察与汇报各占一条，不再互相遮蔽**，2026-10-18 繁专项 Task 14）：
  *  1. 有待支书确认的阶段/在册变更 → 「{…}变更待支书确认（from → to）」
- *  2. 发展中（非正式党员）且无考察记录 → 「考察：尚无考察记录，发展材料待积累」
+ *  2. 发展中（非正式党员）且无考察记录 → 行内短标签「考察：待积累」（整句空态在页首汇总一次）
  *  3. 发展中且无思想汇报归档 → 「汇报：尚未归档思想汇报」
  *  4. 预备党员：最后一次经成员变更确认进入预备党员阶段满一年 → 「预备期已满…，可启动转正流程」；
  *     满 9 个月未满一年 → 「预备期将满…，可筹备转正申请」
@@ -81,7 +81,9 @@ function _devTips(person, counts, ctx) {
   const inspCount = counts.insp[person.id] || 0;
   const thoughtCount = counts.thought[person.id] || 0;
   if (person.developStage && person.developStage !== '正式党员') {
-    if (inspCount === 0) tips.push({ cls: 'bg-gray-50 text-gray-500 border border-gray-100', label: '考察', text: '尚无考察记录，发展材料待积累' });
+    // 2026-10-20：无考察记录改出行内短标签——整句空态改由页首汇总**只出现一次**
+    //   （同句在多人卡上各渲染一遍属同屏复述，见 copy-screen-guard C3）。
+    if (inspCount === 0) tips.push({ cls: 'bg-gray-50 text-gray-500 border border-gray-100', label: '考察', text: '待积累' });
     if (thoughtCount === 0) tips.push({ cls: 'bg-gray-50 text-gray-500 border border-gray-100', label: '汇报', text: '尚未归档思想汇报' });
   }
   if (person.developStage === '预备党员') {
@@ -179,6 +181,8 @@ export function renderContent(ctx) {
   const tipByPerson = new Map();
   for (const p of people) tipByPerson.set(p.id, _devTips(p, { insp: inspCount, thought: thoughtCount }, { pendingByPerson }));
   const tipCount = [...tipByPerson.values()].filter((tips) => tips.length > 0).length;
+  // 无考察记录的发展中成员：整句空态在页首汇总一次（避免逐卡复述同一句）
+  const inspGapCount = people.filter((p) => p.developStage && p.developStage !== '正式党员' && !inspCount[p.id]).length;
 
   // 活动参与汇总（自「发展数据」并入，见上方注释块）：与考勤同源，随记录即时更新
   const part = listActivityParticipationByPerson();
@@ -234,6 +238,7 @@ export function renderContent(ctx) {
            在册成员的取值本不含非本支部人员，多这一句只是把界面上本已成立的事再讲一遍。 -->
 
       <p class="text-[11px] text-gray-400 mb-1">† 口径：本支部在册成员（全量列出，不按发展阶段筛）；**发展阶段变更的写入位＝个人总表**（点姓名或提示行直达）。</p>
+      ${inspGapCount ? `<p class="text-xs text-gray-500 mb-1">${inspGapCount} 人尚无考察记录，发展材料待积累</p>` : ''}
       <div id="talent-list"></div>
     </div>
     ${_participationCardHtml(part)}
@@ -312,7 +317,7 @@ function _renderInspectionSlot(container, ctx) {
     _renderInspectionSlot(container, ctx);
   });
   if (_inspSlotOpen) {
-    import('./inspection-tab.js?v=20261018u').then((m) => {
+    import('./inspection-tab.js?v=20261019a').then((m) => {
       const body = host.querySelector('#talent-insp-body');
       m.renderContent(ctx, body);
       _normalizeInspectionCopy(body);

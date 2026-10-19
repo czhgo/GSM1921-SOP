@@ -13,11 +13,12 @@ test('S 支部目录：活动/专班/通知三列 + 行内名册展开', async (
   assert.ok(source.length > 3000, `支部目录源码过短（${source.length} 字节），守卫不得空转`);
   assert.match(source, /data-branch-card/, '守卫目标应为支部目录行');
 
-  // ① 表头：在「在册党员」之后、「组织提醒」之前插入活动/专班/通知三列
+  // ① 表头：在「在册党员」之后、「组织提醒」之前插入活动/专班/通知三列；
+  //    2026-10-20 A05：支部动态撤页后，「待批复」列并入本表（与 review 深链同口径）。
   const head = /<table class="data-table data-table--compare">[\s\S]*?<thead>([\s\S]*?)<\/thead>/.exec(source)?.[1] || '';
-  assert.match(head, /<th scope="col">在册党员<\/th><th scope="col">活动<\/th><th scope="col">专班<\/th><th scope="col">通知<\/th><th scope="col">组织提醒<\/th>/,
-    '表头须按「在册党员 → 活动 → 专班 → 通知 → 组织提醒」排列');
-  assert.equal((head.match(/<th scope="col">/g) || []).length, 9, '支部目录应为 9 列（含行内名册的 colspan 对齐）');
+  assert.match(head, /<th scope="col">在册党员<\/th><th scope="col">活动<\/th><th scope="col">专班<\/th><th scope="col">通知<\/th><th scope="col">待批复<\/th><th scope="col">组织提醒<\/th>/,
+    '表头须按「在册党员 → 活动 → 专班 → 通知 → 待批复 → 组织提醒」排列');
+  assert.equal((head.match(/<th scope="col">/g) || []).length, 10, '支部目录应为 10 列（含行内名册的 colspan 对齐）');
 
   // ② 行内取值：活动 active/total、专班 active/total、通知总数
   assert.match(source, /summary\.activeActivityCount/, '活动列须读 summary.activeActivityCount');
@@ -35,7 +36,7 @@ test('S 支部目录：活动/专班/通知三列 + 行内名册展开', async (
   // ④ 行内名册：按钮、展开行、列宽、滚动与无障碍状态
   assert.match(source, /data-branch-roster-toggle/, '操作列须有「名册」按钮');
   assert.match(source, /branch-roster-row/, '展开行须带 branch-roster-row 标识');
-  assert.match(source, /colspan="9"/, '展开行须跨满 9 列');
+  assert.match(source, /colspan="10"/, '展开行须跨满 10 列');
   assert.match(source, /aria-expanded/, '名册按钮须同步 aria-expanded');
   assert.match(source, /max-h-80/, '名册区须限制最大高度');
   assert.match(source, /overflow-y-auto/, '名册区须纵向滚动');

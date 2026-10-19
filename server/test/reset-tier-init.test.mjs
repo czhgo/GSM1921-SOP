@@ -27,11 +27,14 @@ const {
   INIT_BLOB_KEY, INIT_BLOB_CLEAR_DEFAULTS, INIT_WHITELIST_STANDALONE_KEYS,
   INIT_STATE_KEY, stripSeedRecordsIfInitState,
   collectInitKeys, trimInitBlob, handleInitResetIfRequested,
-} = await import('../../docs/src/services/core/init-reset.js?v=20261018u');
+} = await import('../../docs/src/services/core/init-reset.js?v=20261019a');
 // 接线冒烟（⑤）：走 services/core/mock.js loadDB 可改 reset 链（数据源默认 mock）
-const { loadDB, saveDB } = await import('../../docs/src/services/core/mock.js?v=20261018u');
+const { loadDB, saveDB } = await import('../../docs/src/services/core/mock.js?v=20261019a');
 // C2 修复（⑥）：浏览器加载链多轮 loadDB 稳态断言（内存 mockDB 与浏览器同源单例）
-const { mockDB } = await import('../../docs/src/core/domain/domain.js?v=20261018u');
+const { mockDB } = await import('../../docs/src/core/domain/domain.js?v=20261019a');
+// 专班域在 mock-adapter 中按「空即回种子」的恒常口径装载（不属于 init 可清空的业务过程域），
+// 断言取种子常量长度而非写死 0 —— 种子增删时本断言随单源自洽。
+const { MOCK_TASKFORCES } = await import('../../docs/src/data/mock/taskforces.js?v=20261019a');
 
 // ── 内存桩（与 reset-tier.test.mjs 同构）────────────────────────
 function makeStorage(seed = {}) {
@@ -359,7 +362,8 @@ test('C2 修复：init 后浏览器加载链多轮 loadDB——业务域空 / �
   for (const key of SEED_BACKFILL_KEYS) {
     assert.equal(mockDB[key].length, 0, `第 2 轮 loadDB 后 ${key} 为空（不被种子回填）`);
   }
-  assert.equal(mockDB.taskforces.length, 0, 'taskforces 为空');
+  assert.equal(mockDB.taskforces.length, MOCK_TASKFORCES.length,
+    'taskforces 读数与种子单源一致（专班域按种子装载，不写死 0）');
   assert.ok(mockDB.users.some(u => u.id === 'u_sec'), '账号结构保留（空支部起步登录可用）');
   assert.ok(mockDB.branches.some(b => b.id === 'br-b1'), '支部实例 br-b1 保留');
   assert.ok(mockDB.branches[0].config.headerTitle && mockDB.branches[0].config.workforce, '支部 config（header/分工）保留');
@@ -457,7 +461,7 @@ test('C2 修复：stripSeedRecordsIfInitState——有哨兵只剔种子留用�
 });
 
 test('C2 修复：loadActivities 读兜底——init 态空态返回 []（不回退演示种子）；无哨兵保持原回退', async () => {
-  const { loadActivities } = await import('../../docs/src/services/activity/activity.js?v=20261018u');
+  const { loadActivities } = await import('../../docs/src/services/activity/activity.js?v=20261019a');
   const { ls } = stubGlobals({ search: '', href: 'http://127.0.0.1:3000/index.html', store: { page_pref: 'x' } });
   // 无哨兵（正常演示态）：mockDB 空 → 回退演示种子（首屏早期/未加载语义不变）
   mockDB.activities = [];

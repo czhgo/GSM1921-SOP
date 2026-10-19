@@ -3,19 +3,19 @@
 //  attendance.js — 考勤记录 CRUD 服务
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB, AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../core/domain/domain.js?v=20261018u';
-import { POLICY_DEFAULTS } from '../../core/domain/policy-defaults.js?v=20261018u';
-import { persist, getDataSource, getAdapter } from '../../data/data-adapter.js?v=20261018u';
-import { generateId } from '../../core/base/id.js?v=20261018u';
-import { bumpToken } from '../../core/base/version-token.js?v=20261018u'; // P0 域缓存失效（spec §二.3）
-import { ATTENDANCE_RECORDS } from '../../data/mock/index.js?v=20261018u';
-import { isInitStateActive } from '../core/init-reset.js?v=20261018u'; // C2 修复（2026-09-08）：init 态空态不回退演示种子
-import { PersonStore, getPersonById, getPersonName } from '../member/person.js?v=20261018u';
-import { getRosterStats } from '../member/roster.js?v=20261018u';
-import { getMeetingRosterIds } from '../member/roster.js?v=20261018u';
-import { loadActivities, isActivityOrganizer } from './activity.js?v=20261018u';
-import { SignupStore } from './signup.js?v=20261018u';
-import { deriveExpectedRosterIds } from './attendance-roster.js?v=20261018u';
+import { mockDB, AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../core/domain/domain.js?v=20261019a';
+import { POLICY_DEFAULTS } from '../../core/domain/policy-defaults.js?v=20261019a';
+import { persist, getDataSource, getAdapter } from '../../data/data-adapter.js?v=20261019a';
+import { generateId } from '../../core/base/id.js?v=20261019a';
+import { bumpToken } from '../../core/base/version-token.js?v=20261019a'; // P0 域缓存失效（spec §二.3）
+import { ATTENDANCE_RECORDS } from '../../data/mock/index.js?v=20261019a';
+import { isInitStateActive } from '../core/init-reset.js?v=20261019a'; // C2 修复（2026-09-08）：init 态空态不回退演示种子
+import { PersonStore, getPersonById, getPersonName } from '../member/person.js?v=20261019a';
+import { getRosterStats } from '../member/roster.js?v=20261019a';
+import { getMeetingRosterIds } from '../member/roster.js?v=20261019a';
+import { loadActivities, isActivityOrganizer } from './activity.js?v=20261019a';
+import { SignupStore } from './signup.js?v=20261019a';
+import { deriveExpectedRosterIds } from './attendance-roster.js?v=20261019a';
 
 export function loadAttendanceRecords() {
   if (mockDB.attendances.length > 0) return [...mockDB.attendances];
@@ -43,6 +43,25 @@ export function saveAttendanceRecords(records) {
   mockDB.attendances = [...records];
   bumpToken('attendance'); // P0：考勤写口统一 bump（纪检确认/组织者上传/纪检录入等均经本函数落库）
   persist();
+}
+
+/**
+ * 考勤「待确认」判据（D06 单一源）：待纪检确认＝**尚未落确认人**、非出勤/已补、且不在打回回退态。
+ * 会议考勤（党课/党员大会）走 `upsertMeetingAttendance` 时 `recordedBy` 即录入人本人 ⇒
+ * 「录入即确认」，**不会**进入本判据/待确认队列；组织者经 `appendAttendanceRecords` 上传的记录
+ * `recordedBy: null` ⇒ 才进队列等纪检确认。页面与单测同读本函数，勿各写一份条件。
+ */
+export function isAttendancePendingConfirm(record) {
+  if (!record) return false;
+  if (record.recordedBy) return false;               // 已有确认人（含会议考勤录入即确认）
+  if (record.returnedBy) return false;               // 打回回退态交上传方，不在纪检待确认
+  return record.status !== AttendanceStatus.PRESENT && record.status !== AttendanceStatus.MADE_UP;
+}
+
+/** 列出待确认考勤（缺省＝活跃记录；D06 待确认队列数据源） */
+export function listPendingAttendanceConfirm(records) {
+  const src = records || loadActiveAttendanceRecords();
+  return src.filter(isAttendancePendingConfirm);
 }
 
 /** 冻结一场活动创建时适用的「原应到名单」；实际到场名单在汇总时与其去重并集。 */
@@ -137,7 +156,11 @@ export function canUploadAttendance(personId, activityId) {
 }
 
 /**
- * 会议考勤录入（**上传位即确认**，recordedBy=上传者本人；CF §C.1a 会议考勤）
+ * 会议考勤录入（**录入即确认**，recordedBy=录入人本人；CF §C.1a 会议考勤）
+ * D06 明确口径（2026-10-20，取方案 b）：本入口的录入人同时就是确认人——不另设「另一名支委确认」，
+ * 也不把自己刚录的记录再扔回「待确认队列」（判据见 `isAttendancePendingConfirm`）。
+ * 因此本函数落 `recordedBy: actorId` 是**语义本身**（不是自确认漏洞）：待确认队列只服务
+ * 组织者上传的异常记录（`appendAttendanceRecords` 落 `recordedBy: null`）。
  * 上传主体（2026-09-21 批次 132 · 支书口径一，**修正批次 124 · `D-548` 的「一刀切」**）＝**按会议类型分**：
  *   **党课 / 支部党员大会＝纪检委员**（支书 / 副支书照例可代上传）· **党小组会＝该场会议的组织者**·
  *   组织生活会 / 主题党日 / 其余＝该场组织者 · **支委会不考勤**——门禁一律走 `canUploadAttendance`。

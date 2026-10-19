@@ -67,21 +67,26 @@ test('组织委员专班详情只保留共享工作组成员与授权编辑器',
 test('已结束专班的成员与授权历史只读，待办联动写入完成后才刷新', async () => {
   const org = await read('../../docs/src/entries/tabs/org/taskforce-tab.js');
   const detail = await read('../../docs/src/entries/pages/activity-entry.js');
-  assert.match(org, /const isClosedHistory = \['completed', 'archived', 'dissolved'\]\.includes\(tf\.status\)/);
+  // Phase 0 已把「终态」收敛为 domain.js 单一源（TASKFORCE_TERMINAL_STATUSES / isTaskforceTerminalStatus）；
+  // 断言接受枚举等价实现，但仍要求「终态判定」只认这一单一源（内联三值列表为等价兜底）。
+  const TERMINAL_CLOSED = /(?:isTaskforceTerminalStatus\(\w+\.status\)|TASKFORCE_TERMINAL_STATUSES\.includes\(\w+\.status\)|\[\s*'completed',\s*'archived',\s*'dissolved'\s*\]\.includes\(\w+\.status\))/;
+  assert.match(org, /import \{[^}]*isTaskforceTerminalStatus[^}]*\} from '\.\.\/\.\.\/\.\.\/core\/domain\/domain\.js/, '终态判定须来自 domain.js 单一源');
+  assert.match(org, new RegExp(`const isClosedHistory = ${TERMINAL_CLOSED.source}`));
   assert.match(org, /const canEdit = !isClosedHistory/);
   assert.match(org, /_canTransfer && !isClosedHistory/);
   assert.match(org, /await settleWrites\(\)[\s\S]*?window\.location\.reload\(\)/, '待办快照必须落库后再刷新');
-  assert.match(detail, /const isClosedTaskforce = \['completed', 'archived', 'dissolved'\]\.includes\(tf\.status\)/);
+  assert.match(detail, /import \{[^}]*isTaskforceTerminalStatus[^}]*\} from '\.\.\/\.\.\/core\/domain\/domain\.js/, '终态判定须来自 domain.js 单一源');
+  assert.match(detail, new RegExp(`const isClosedTaskforce = ${TERMINAL_CLOSED.source}`));
   assert.match(detail, /canManageMembers = !!workgroup && !isClosedTaskforce/);
   assert.match(detail, /isClosedTaskforce \? '<p[^>]*>工作组已结束，成员与授权记录只读保留。<\/p>'/);
 });
 
-test('党委支部筛选只纳入明确归属当前支部的记录，监控卡转义任期动态文本', async () => {
+test('党委支部筛选只纳入明确归属当前支部的记录，支部管理转义支部配置文本', async () => {
   const filter = await read('../../docs/src/components/governance/branch-filter.js');
-  const monitor = await read('../../docs/src/entries/tabs/party-committee/monitor-tab.js');
+  const branches = await read('../../docs/src/entries/tabs/party-committee/branches-tab.js');
   assert.match(filter, /String\(r\.branchId \|\| 'br-b1'\) === fid/);
-  assert.match(monitor, /\(activity\.branchId \|\| 'br-b1'\) === branch\.id/);
-  assert.match(monitor, /escHtml as esc/);
+  assert.match(branches, /esc\(b\.config\?\.headerTitle \|\| b\.name\)/);
+  assert.match(branches, /import \{ showToast, escHtml as esc, getBasePath \}/);
 });
 
 test('党委选中支部后整页数据请求都带同一支部范围，未选择时不出现“全部明细”入口', async () => {
@@ -95,16 +100,12 @@ test('党委选中支部后整页数据请求都带同一支部范围，未选�
   assert.match(adapter, /_request\(_withSelectedBranch\(path\)/);
 });
 
-test('党委全院概览只显示支部汇总，监控页不展示个人身份和活动明细', async () => {
-  const overview = await read('../../docs/src/entries/tabs/party-committee/governance-overview-tab.js');
-  const monitor = await read('../../docs/src/entries/tabs/party-committee/monitor-tab.js');
-  assert.match(overview, /buildPartyOverviewModel/);
-  assert.match(overview, /model\.pending/);
-  assert.match(overview, /model\.exceptions/);
-  assert.doesNotMatch(overview, /getPersonName|partyCount|memberPhone/);
-  assert.match(monitor, /branch\.summary\?\.memberCount/);
-  assert.match(monitor, /apiMode && branch\.summary\?\.memberCount == null/);
-  assert.doesNotMatch(monitor, /getPersonName|submittedBy/);
+test('党委支部管理只显示支部汇总，不展示个人身份和活动明细', async () => {
+  const branches = await read('../../docs/src/entries/tabs/party-committee/branches-tab.js');
+  assert.match(branches, /const summaryOnly = apiMode && !selectedBranchId/);
+  assert.match(branches, /const summary = b\.summary \|\| \{\}/);
+  assert.match(branches, /summary\.memberCount/);
+  assert.doesNotMatch(branches, /getPersonName|submittedBy|memberPhone/);
 });
 
 test('党委未选支部时支部管理只显示目录与汇总，选中后才开放该支部配置操作', async () => {
@@ -144,15 +145,15 @@ test('共享概况把支书实时派生组并入待办，待答复与答复收�
   assert.match(source, /待答复/);
 });
 
-test('党委支部筛选与监控台转义支部配置及动态文本，避免存储型 XSS', async () => {
+test('党委支部筛选与支部目录转义支部配置文本，避免存储型 XSS', async () => {
   const filter = await read('../../docs/src/components/governance/branch-filter.js');
-  const monitor = await read('../../docs/src/entries/tabs/party-committee/monitor-tab.js');
+  const branches = await read('../../docs/src/entries/tabs/party-committee/branches-tab.js');
   assert.match(filter, /import\s*\{\s*escHtml\s*\}\s*from/);
   assert.match(filter, /value="\$\{escHtml\(b\.id\)\}"/);
   assert.match(filter, />\$\{escHtml\(_label\(b\)\)\}<\/option>/);
-  assert.match(monitor, /import\s*\{[^}]*escHtml as esc[^}]*\}\s*from/);
-  assert.match(monitor, /\$\{esc\(branch\.config\?\.headerTitle \|\| branch\.name \|\| branch\.id\)\}/);
-  assert.match(monitor, /data-branch-id="\$\{esc\(branch\.id\)\}"/);
+  assert.match(branches, /import\s*\{[^}]*escHtml as esc[^}]*\}\s*from/);
+  assert.match(branches, /\$\{esc\(b\.config\?\.headerTitle \|\| b\.name\)\}/);
+  assert.match(branches, /data-branch-card="\$\{esc\(bid\)\}"/);
 });
 
 test('工作组结束入口不再保留绕过任务与产出闭合校验的直接归档按钮', async () => {
@@ -161,12 +162,21 @@ test('工作组结束入口不再保留绕过任务与产出闭合校验的直�
   const taskforceService = await read('../../docs/src/services/activity/taskforce.js');
   assert.doesNotMatch(org, /tf-archive-btn|updateStatus\(tf\.id, 'archived'\)/);
   assert.doesNotMatch(prop, /tf-complete-btn|updateStatus\(tfId, 'archived'\)/);
-  const transitionBlock = taskforceService.match(/const validTransitions = \{([\s\S]*?)\n    \};/)?.[1] || '';
-  assert.match(transitionBlock, /recruiting:\s*\['active'\]/, 'ordinary flow can only start a recruiting group');
-  assert.match(transitionBlock, /active:\s*\[\]/, 'running groups cannot bypass semantic close through updateStatus');
-  const activeTransition = transitionBlock.match(/active:\s*\[([^\]]*)\]/)?.[1] || '';
-  assert.doesNotMatch(activeTransition, /archived|dissolved/);
-  assert.match(taskforceService, /update\(id, patch,[\s\S]*?status[\s\S]*?dissolved/, 'generic store updates also guard terminal transitions in mock mode');
+  // Phase 0 起「直接状态流转」单一源 = domain.js::TASKFORCE_DIRECT_TRANSITIONS（updateStatus 只读该表）；
+  // 断言改为校验单一源的语义：仅 recruiting → active，其余状态一律无直接流转（抓「乱加状态流转」的回归）。
+  const domain = await read('../../docs/src/core/domain/domain.js');
+  assert.match(taskforceService, /updateStatus\(id, newStatus\) \{[\s\S]*?TASKFORCE_DIRECT_TRANSITIONS\[tf\.status\]/,
+    'updateStatus 必须走 domain.js 的直接流转表');
+  const transitionBlock = domain.match(/export const TASKFORCE_DIRECT_TRANSITIONS = Object\.freeze\(\{([\s\S]*?)\n\}\);/)?.[1] || '';
+  assert.ok(transitionBlock, '未找到专班直接流转单一源 TASKFORCE_DIRECT_TRANSITIONS');
+  const directEdges = [...transitionBlock.matchAll(/\[TaskforceStatus\.([A-Z_]+)\]: Object\.freeze\(\[([^\]]*)\]\)/g)]
+    .filter(([, , to]) => to.trim())
+    .map(([, from, to]) => `${from}->${to.replace(/TaskforceStatus\./g, '').trim()}`);
+  assert.deepEqual(directEdges, ['RECRUITING->ACTIVE'], '普通状态流转只允许 recruiting → active');
+  assert.match(transitionBlock, /\[TaskforceStatus\.ACTIVE\]: Object\.freeze\(\[\]\)/,
+    '运行中工作组不得经 updateStatus 绕过语义收尾');
+  assert.match(taskforceService, /if \(TASKFORCE_TERMINAL_STATUSES\.includes\(updated\.status\) && updated\.status !== current\.status\) \{[\s\S]*?COMMITTEE_DISSOLUTION_WRITE[\s\S]*?if \(!approvedDissolution\) return null;/,
+    '通用 store 更新同样需拦截终态（仅解散写口放行）');
 });
 
 test('专班招募创建走工作组语义 API，原始快照只承载后续可编辑字段', async () => {
@@ -217,7 +227,7 @@ test('支委会批准收尾后统一工作组主记录同步为已结束', async
   const method = service.slice(start, end);
   assert.match(method, /decision === 'approved'/);
   assert.match(method, /mockDB\.workgroups = mockDB\.workgroups\.map/);
-  assert.match(method, /status:\s*'dissolved'/);
+  assert.match(method, /patch\.status\s*=\s*TaskforceStatus\.DISSOLVED/, '批准解散须经 TaskforceStatus 枚举单一源落终态');
 });
 
 test('工作组成员不再自动出现在纪检考察清单中', async () => {
@@ -229,14 +239,16 @@ test('工作组成员不再自动出现在纪检考察清单中', async () => {
   assert.match(org, /工作组成员名单不会自动生成考察名单/);
 });
 
-test('宣传看板归档判据统一为 isActivityArchived，已结束活动进入待归档', async () => {
+test('宣传看板只承接在办项目，归档统一落档案归档页', async () => {
+  // A07（2026-10-20 IA 修复批次）：看板撤归档桶，归档动作统一落 ?tab=archive（单一源仍在 archive-tab）。
   const source = await read('../../docs/src/entries/tabs/prop/kanban-tab.js');
   assert.match(source, /import\s*\{\s*isActivityArchived\s*\}\s*from\s*'\.\.\/\.\.\/\.\.\/core\/domain\/constants\.js\?v=\d{8}[a-z]'/);
   assert.doesNotMatch(source, /activities\.filter\(a => a\.status === 'completed'\)/, '不得再把 status=completed 当作已归档集合');
-  assert.match(source, /activities\.filter\(a => isActivityArchived\(a\)\)/);
-  assert.match(source, /!isActivityArchived\(a\) && a\.status === 'completed'|unarchivedActs\.filter\(a => a\.status === 'completed'\)/);
-  assert.match(source, /resolveDocumentUrl\('archive\.html'\)/);
-  assert.match(source, /去归档/);
+  assert.match(source, /activities\.filter\(a => !isActivityArchived\(a\)\)/);
+  assert.doesNotMatch(source, /已归档 \(\$\{/, '看板不再保留已归档桶');
+  assert.doesNotMatch(source, /待归档 \(\$\{/, '看板不再保留待归档桶');
+  assert.match(source, /\?tab=archive/, '归档出口统一落档案归档页签');
+  assert.match(source, /去档案归档/);
   assert.doesNotMatch(source, /已完成并归档/);
   assert.match(source, /已标记结束，待档案归档/);
 });
@@ -315,40 +327,40 @@ test('五台注册序：我的处置位于工作台之后、我的职责之前',
   }
 });
 
-test('知情查看只保留有新增对象的段：宣传/纪检/支书不再渲染活动段', async () => {
+test('知情查看只保留有新增对象的段：宣传/纪检不再保留空壳页签，支书只出专班段', async () => {
+  // 2026-10-20 批次 489（IA-A01/A02）：纪检/宣传的「知情查看」空壳页签已删除（文件随之移除）
+  //   ——专班知情改由 taskforce.html 承载，活动知情由活动日历承载。
   for (const page of ['prop', 'disc']) {
-    const source = await read(`../../docs/src/entries/tabs/${page}/tf-view-tab.js`);
-    assert.doesNotMatch(source, /\['activity'\]/, `${page} 不再回退活动段`);
-    assert.doesNotMatch(source, /highlightActId/, `${page} 不透传活动定位`);
-    assert.match(source, /filter\(\(v\) => v !== 'activity'\)/);
-    assert.match(source, /暂无需要知情查看的专班/);
-    assert.match(source, /去活动日历/);
+    const source = await read(`../../docs/src/capabilities/${page}-workspace.js`);
+    assert.doesNotMatch(source, /id:\s*'tf-view'/, `${page} 台能力注册不应再含 tf-view 页签`);
   }
   const registry = await read('../../docs/src/capabilities/secretary-workspace.js');
   const row = registry.split('\n').find((line) => line.includes("id: 'tf-view'")) || '';
   assert.match(row, /views: \['taskforce'\]/, '支书知情查看只出专班段');
   assert.doesNotMatch(row, /activity/, '支书知情查看不再渲染活动段');
 
-  const org = await read('../../docs/src/entries/tabs/org/tf-view-tab.js');
-  assert.match(org, /TaskForceRecordStore\.getAll\(\)\.filter/, '组织台只取对象级下游专班而非全量');
-  assert.match(org, /workgroupGrants/, '组织台把本人授权纳入对象级下游判据');
-  assert.match(org, /taskforces,\s*\n\s*\/\/ B6/, '组织台把收窄后的集合传给只读视图');
+  // A04（2026-10-20 IA 修复批次）：组织台「知情查看」页签撤页，能力并入「专班管理」页。
+  const orgRegistry = await read('../../docs/src/capabilities/org-workspace.js');
+  assert.doesNotMatch(orgRegistry, /id: 'tf-view'/, '组织台能力注册不再含 tf-view');
+  const orgTaskforce = await read('../../docs/src/entries/tabs/org/taskforce-tab.js');
+  assert.match(orgTaskforce, /只看我参与的/, '原知情查看集合由「只看我参与的」筛选承接');
 });
 
-test('党委总览待批复预览上限为 5，完整队列回支部上报', async () => {
-  const overview = await read('../../docs/src/entries/tabs/party-committee/governance-overview-tab.js');
-  assert.match(overview, /const PENDING_PREVIEW_LIMIT = 5;/);
-  assert.match(overview, /model\.pending\.slice\(0, PENDING_PREVIEW_LIMIT\)/);
-  assert.match(overview, /共 \$\{model\.pendingCount\} 项/);
-  assert.match(overview, /workspace\/party-committee\.html\?tab=review/);
-  assert.match(overview, /查看全部上报/);
+test('党委待批复完整队列由支部上报页承担（治理总览已撤）', async () => {
+  // A06：治理总览撤页后，不再有「前 5 条预览 + 查看全部」两段式；完整队列只在 review 页。
+  const registry = await read('../../docs/src/capabilities/party-committee-workspace.js');
+  assert.doesNotMatch(registry, /\{ id: 'governance-overview'/, '能力注册不再含治理总览');
+  const review = await read('../../docs/src/entries/tabs/party-committee/review-tab.js');
+  assert.match(review, /data-review-view="pending"/, '支部上报页保留待批复队列');
+  assert.match(review, /待批复 <span class="ml-1 tabular-nums">\$\{pending\.length\}<\/span>/, '待批复计数按完整队列渲染');
+  assert.doesNotMatch(review, /PENDING_PREVIEW_LIMIT|slice\(0, 5\)/, '完整队列不在前端截断');
 });
 
-test('支部动态待批复计数带 branchId 深链，支部管理按 secretaryId 恢复组织提醒', async () => {
-  const monitor = await read('../../docs/src/entries/tabs/party-committee/monitor-tab.js');
-  assert.match(monitor, /\?tab=review&amp;branchId=\$\{encodeURIComponent\(branch\.id\)\}/);
-
+test('支部管理待批复计数带 branchId 深链，按 secretaryId 恢复组织提醒', async () => {
+  // A05：原「支部动态」撤页后，待批复计数列 + 深链并入「支部管理」。
   const branches = await read('../../docs/src/entries/tabs/party-committee/branches-tab.js');
+  assert.match(branches, /\?tab=review&amp;branchId=\$\{encodeURIComponent\(bid\)\}/);
+
   assert.match(branches, /const missingSecretary = isActive && !b\.secretaryId/);
   assert.doesNotMatch(branches, /!summaryOnly && !b\.secretaryId/, '组织提醒不再被 summaryOnly 抑制');
   assert.match(branches, /待任命支书/);

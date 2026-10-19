@@ -16,8 +16,8 @@ export function recordFormShell({ title, body, saveText = '提交', accentBorder
       <div class="font-title-cn text-xs font-bold text-gray-600 mb-2">${title}</div>
       ${body}
       <div class="flex gap-2 justify-end">
-        <button type="button" class="btn-outline record-cancel-btn text-sm px-4 py-[7px]">取消</button>
-        <button type="button" class="btn-accent record-save-btn text-sm px-4 py-[7px] font-medium"${accentBorder ? ` style="border:1px solid ${accentBorder};"` : ''}>${saveText}</button>
+        <button type="button" class="btn-outline record-cancel-btn text-sm px-4 py-1.5">取消</button>
+        <button type="button" class="btn-accent record-save-btn text-sm px-4 py-1.5 font-medium"${accentBorder ? ` style="border:1px solid ${accentBorder};"` : ''}>${saveText}</button>
       </div>
     </div>`;
 }

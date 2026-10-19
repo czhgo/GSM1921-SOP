@@ -3,31 +3,33 @@
 // 仅展示已登记的考察事项；工作组成员名单不自动生成考察清单。
 // 业务口径：考察依托工作组——考察记录挂工作组，考察对象为该工作组成员；sourceType/activityId/taskforceId 是工作组类型的投影。
 
-import { loadActiveInspectionRecords, getOverdueRecords, confirmInspectionRecord, deleteInspectionRecord, listInspectionSupervision } from '../../../services/activity/inspection.js?v=20261018u';
-import { loadInspectionRecords, saveInspectionRecords, isInspectionHomePosition } from '../../../services/activity/inspection.js?v=20261018u';
-import { returnInspectionRecord, loadInspectionAppeals, returnInspectionAppeal, closeInspectionAppeal } from '../../../services/activity/inspection.js?v=20261018u';
-import { inspectionToLong, inspectionToWide } from '../../../services/activity/inspection.js?v=20261018u';
-import { getPersonById, getPersonName } from '../../../services/member/person.js?v=20261018u';
-import { SourceType, ParticipationLevel } from '../../../core/domain/domain.js?v=20261018u';
+import { loadActiveInspectionRecords, getOverdueRecords, confirmInspectionRecord, deleteInspectionRecord, listInspectionSupervision } from '../../../services/activity/inspection.js?v=20261019a';
+import { loadInspectionRecords, saveInspectionRecords, isInspectionHomePosition, inspectionConfirmDenyReason } from '../../../services/activity/inspection.js?v=20261019a';
+import { returnInspectionRecord, loadInspectionAppeals, returnInspectionAppeal, closeInspectionAppeal } from '../../../services/activity/inspection.js?v=20261019a';
+import { inspectionToLong, inspectionToWide } from '../../../services/activity/inspection.js?v=20261019a';
+import { getPersonById, getPersonName } from '../../../services/member/person.js?v=20261019a';
+import { SourceType, ParticipationLevel } from '../../../core/domain/domain.js?v=20261019a';
 // P3c 单一源（批4 副本收编 2026-09-09）：超期天数与文案由 policy 派生，勿在此写字面量
-import { POLICY_DEFAULTS } from '../../../core/domain/policy-defaults.js?v=20261018u';
-import { badgeHtml } from '../../../components/ui/badges.js?v=20261018u';
-import { showToast, downloadCSV, triggerPrint, _fmtDate, escHtml as esc, getBasePath, flashHighlight } from '../../../core/base/utils.js?v=20261018u';
-import { HandoffStore } from '../../../services/governance/handoff.js?v=20261018u';
-import { DISC_COMMISSIONER_ID, getDiscCommissionerId } from './_shared.js?v=20261018u';
+import { POLICY_DEFAULTS } from '../../../core/domain/policy-defaults.js?v=20261019a';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20261019a';
+import { showToast, downloadCSV, triggerPrint, _fmtDate, escHtml as esc, getBasePath, flashHighlight } from '../../../core/base/utils.js?v=20261019a';
+import { HandoffStore } from '../../../services/governance/handoff.js?v=20261019a';
+import { DISC_COMMISSIONER_ID, getDiscCommissionerId } from './_shared.js?v=20261019a';
 // 统一检索引擎（支书 2026-09-13 裁定）：可搜索表一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
-import { renderFilteredList, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261018u';
+import { renderFilteredList, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261019a';
 // 人×项目矩阵单一源（支书 2026-09-14 批次 35 裁定：宽表默认 + 矩阵推广到其它二元关系域）
-import { renderRelationMatrix, MATRIX_COL_LIMIT } from '../../../components/ui/relation-matrix.js?v=20261018u';
+import { renderRelationMatrix, MATRIX_COL_LIMIT } from '../../../components/ui/relation-matrix.js?v=20261019a';
 // 考察代录位（2026-09-23 支书追裁「开一个代录位」）：写口与字段**完全复用**组长台「考察上传」，
 //   本位判据单一源 `services/activity/inspection.js::isInspectionHomePosition`，非本位代录走既有 nudge。
-import { loadActivities } from '../../../services/activity/activity.js?v=20261018u';
-import { filterActivitiesForViewer } from '../../../services/core/visibility.js?v=20261018u';
-import { AuthStore } from '../../../services/core/auth.js?v=20261018u';
-import { PersonPicker } from '../../../components/governance/pickers.js?v=20261018u';
+import { loadActivities } from '../../../services/activity/activity.js?v=20261019a';
+import { filterActivitiesForViewer } from '../../../services/core/visibility.js?v=20261019a';
+import { AuthStore } from '../../../services/core/auth.js?v=20261019a';
+import { PersonPicker } from '../../../components/governance/pickers.js?v=20261019a';
 // 「本位」nudge 确认弹窗（单一源 = components/ui/modal.js::confirmNudge）
-import { confirmNudge } from '../../../components/ui/modal.js?v=20261018u';
-import { generateId } from '../../../core/base/id.js?v=20261018u';
+import { confirmNudge } from '../../../components/ui/modal.js?v=20261019a';
+import { generateId } from '../../../core/base/id.js?v=20261019a';
+// 材料页深链 focusActivityId 的通用定位（只滚动 + 闪烁，不另造筛选器）
+import { focusActivityAnchor } from '../../../components/ui/detail-anchor.js?v=20261019a';
 
 // 考察代录表单状态（随模块自持，不污染入口；与组长 / 组织台考察上传同规）
 let _discInspFormVisible = false;
@@ -38,6 +40,8 @@ export function renderContent(ctx) {
   if (!container) return;
 
   const allRecords = loadActiveInspectionRecords();
+  // D01：本人提交的行不渲染可用「确认/打回」按钮（服务端同样拒绝，前端先给出可见原因）
+  const actorId = AuthStore.getCurrentUser()?.personId || DISC_COMMISSIONER_ID;
   const longData = inspectionToLong(allRecords);
   const wideData = inspectionToWide(allRecords);
   const overdueRecords = getOverdueRecords(); // 缺省阈值 = POLICY_DEFAULTS.inspection.overdueDays（批4 单一源）
@@ -88,7 +92,7 @@ export function renderContent(ctx) {
           <button class="btn-outline insp-print-btn h-8 px-3 text-xs font-medium">打印</button>
           <!-- 2026-08-29 T-304 C2 数据交接协议：纪检→组织 考察记录提交 -->
           <button class="btn-outline insp-handoff-btn h-8 px-3 text-xs font-medium">提交考察至支委会</button>
-          ${HandoffStore.hasPendingFor('inspection-report', 'inspection') ? '<span class="text-xs text-teal-600 font-medium">待组织接收</span>' : ''}
+          ${HandoffStore.hasFor('inspection-report', 'inspection') ? '<span class="text-xs text-teal-600 font-medium">已自动送达</span>' : ''}
         </div>
       </div>
       <div class="text-xs text-gray-500 mb-3">纪检委员管理考察记录，党小组组长/组织委员上传 → 纪检确认 → 录入考察总表</div>
@@ -205,10 +209,14 @@ export function renderContent(ctx) {
         const isReturned = returnedIds.has(i.id);
         const isPending = i.status === 'pending';
         const isOverdue = overdueIds.has(i.id);
+        // D01：确认白名单 + 禁止自确认由服务层同一判据给出；本人提交时按钮必须禁用并写明原因
+        //（不得只靠后端 403——前端先给出可见的「为什么」）。
+        const decisionDeny = inspectionConfirmDenyReason(actorId, i);
+        const isSelfRecorded = !!i.recordedBy && i.recordedBy === actorId;
         const rowBg = isReturned ? 'bg-amber-50/40' : isOverdue ? 'bg-red-50/40' : isPending ? 'bg-orange-50/30' : '';
         const statusCls = isReturned ? 'bg-amber-100 text-amber-700' : (isOverdue ? statusColor.overdue : statusColor[i.status] || 'bg-gray-100 text-gray-600');
         return `
-            <tr data-insp-person-id="${esc(i.personId)}"${rowBg ? ` class="${rowBg}"` : ''}>
+            <tr data-act-id="${esc(i.activityId || '')}" data-insp-person-id="${esc(i.personId)}"${rowBg ? ` class="${rowBg}"` : ''}>
               <td class="font-medium text-gray-800"><a href="${getBasePath()}person.html?id=${encodeURIComponent(i.personId)}" class="hover:underline hover:text-sky-700 transition-colors" title="查看完整档案">${esc(getPersonName(i.personId))}</a></td>
               <td class="text-gray-600">${i.activityId ? `<a class="text-blue-600 hover:underline" href="./activity.html?id=${i.activityId}">${i.source}</a>` : i.source}</td>
               <td><span class="px-1.5 py-0.5 rounded text-xs ${i.sourceType === '活动' ? tagColor.activity : tagColor.taskforce}">${i.sourceType === '活动' ? '活动' : '专班'}</span></td>
@@ -218,8 +226,12 @@ export function renderContent(ctx) {
               <td>${isReturned
                 ? '<span class="text-xs text-amber-700" title="已打回，待上传方重新确认（修改痕迹留存）">已打回 · 待上传方确认</span>'
                 : (i.status === 'confirmed'
-                  ? `<span class="text-xs text-green-700 mr-2">已确认</span><button class="btn-outline text-xs px-2.5 py-1 btn-disc-return-insp" data-record-id="${i.id}" style="cursor:pointer;" title="打回后交上传方重新确认">打回</button>`
-                  : `<button class="btn-accent-soft text-xs px-3 py-1.5 btn-disc-confirm-insp" data-record-id="${i.id}" style="cursor:pointer;">确认</button> <button class="btn-danger text-xs px-3 py-1.5 btn-disc-delete-insp" data-record-id="${i.id}" style="cursor:pointer;">删除</button>`)}</td>
+                  ? `<span class="text-xs text-green-700 mr-2"${i.confirmedBy ? ` title="确认人：${esc(getPersonName(i.confirmedBy))}"` : ''}>已确认</span>${decisionDeny
+                    ? `<button type="button" class="btn-outline text-xs px-2.5 py-1" disabled title="${esc(decisionDeny)}；请由其他支委处理">打回</button>`
+                    : `<button class="btn-outline text-xs px-2.5 py-1 btn-disc-return-insp" data-record-id="${i.id}" style="cursor:pointer;" title="打回后交上传方重新确认">打回</button>`}`
+                  : decisionDeny
+                    ? `<button type="button" class="btn-accent-soft text-xs px-3 py-1.5" disabled title="${esc(decisionDeny)}${isSelfRecorded ? '；请由纪检/支书/副支书中的另一位确认' : ''}">确认${isSelfRecorded ? '（本人提交）' : ''}</button> <button class="btn-danger text-xs px-3 py-1.5 btn-disc-delete-insp" data-record-id="${i.id}" style="cursor:pointer;">删除</button>`
+                    : `<button class="btn-accent-soft text-xs px-3 py-1.5 btn-disc-confirm-insp" data-record-id="${i.id}" style="cursor:pointer;">确认</button> <button class="btn-danger text-xs px-3 py-1.5 btn-disc-delete-insp" data-record-id="${i.id}" style="cursor:pointer;">删除</button>`)}</td>
             </tr>`;
       },
     });
@@ -229,8 +241,9 @@ export function renderContent(ctx) {
   document.getElementById('insp-table-container')?.addEventListener('click', (e) => {
     const confirmBtn = e.target.closest('.btn-disc-confirm-insp');
     if (confirmBtn) {
-      confirmInspectionRecord(confirmBtn.dataset.recordId);
-      showToast('success', '考察记录已确认');
+      const res = confirmInspectionRecord(confirmBtn.dataset.recordId, { actorId });
+      if (res.ok) showToast('success', '考察记录已确认');
+      else showToast('error', res.reason || '确认失败');
       renderContent(ctx);
       return;
     }
@@ -253,9 +266,9 @@ export function renderContent(ctx) {
       const who = getPersonName(longRows.find(r => r.id === recordId)?.personId) || '该同志';
       const reason = window.prompt(`打回「${who}」的考察记录？写一句打回原因（将交上传方重新确认）：`, '');
       if (reason === null) return; // 取消
-      const res = returnInspectionRecord(recordId, { by: DISC_COMMISSIONER_ID, note: reason });
+      const res = returnInspectionRecord(recordId, { actorId, note: reason });
       if (res.ok) showToast('success', '已打回，交上传方重新确认');
-      else showToast('error', '打回失败：记录不存在');
+      else showToast('error', `打回失败：${res.reason || '记录不存在'}`);
       renderContent(ctx);
       return;
     }
@@ -269,9 +282,9 @@ export function renderContent(ctx) {
     if (appealReturnBtn) {
       const note = window.prompt('打回说明（可留空）——属实漏记将交上传方核实补录：', '');
       if (note === null) return;
-      const res = returnInspectionAppeal(appealReturnBtn.dataset.appealId, { by: DISC_COMMISSIONER_ID, note });
+      const res = returnInspectionAppeal(appealReturnBtn.dataset.appealId, { actorId, note });
       if (res.ok) showToast('success', res.hadRecord ? '已打回该考察记录，交上传方重新确认' : '已打回，交上传方核实补录');
-      else showToast('error', '该申诉已处理');
+      else showToast('error', res.reason || '该申诉已处理');
       renderContent(ctx);
       return;
     }
@@ -382,8 +395,9 @@ export function renderContent(ctx) {
   // T-304 第5轮 P6 源头审校+抽查：不再要求全部确认才可提交——按已确认部分按需提交，
   // 未确认/历史超期不再阻塞已确认记录的流转（每考察记录含 recordedBy 上传人=源头审校人）。
   container.querySelector('.insp-handoff-btn')?.addEventListener('click', () => {
-    if (HandoffStore.hasPendingFor('inspection-report', 'inspection')) {
-      showToast('info', '考察记录已提交待组织接收，请勿重复提交');
+    // D04：考察提交是 auto 类交接——发起即送达，不再有「待接收」。
+    if (HandoffStore.hasFor('inspection-report', 'inspection')) {
+      showToast('info', '考察记录已自动送达组织委员，无需重复提交');
       return;
     }
     const confirmedCount = longData.filter(r => r.status === 'confirmed').length;
@@ -398,7 +412,7 @@ export function renderContent(ctx) {
       refId: 'inspection',
       note: `考察总表共 ${longData.length} 条，已确认 ${confirmedCount} 条提交建档（未确认 ${longData.length - confirmedCount} 条可后续补提）`,
     });
-    showToast('success', `考察记录（已确认 ${confirmedCount} 条）已提交至支委会，等待组织委员接收`);
+    showToast('success', `考察记录（已确认 ${confirmedCount} 条）已自动送达组织委员（台账留痕，无需接收确认）`);
     renderContent(ctx);
   });
 
@@ -418,6 +432,8 @@ export function renderContent(ctx) {
   if (_discInspFormVisible) _initDiscInspForm(container, ctx);
 
   renderWide(); _bindSupervisionGoto(container);
+  // 材料页深链：渲染后把本场活动的考察行滚到视野（找不到则静默，不影响本页）。
+  focusActivityAnchor(container, ctx?.focusActivityId);
 }
 
 // ── 考察代录位（2026-09-23 支书追裁「开一个代录位」）──

@@ -5,11 +5,9 @@ import { readFile } from 'node:fs/promises';
 const read = (path) => readFile(new URL(path, import.meta.url), 'utf8');
 
 const PARTY_TABS = [
-  'governance-overview-tab.js',
-  'monitor-tab.js',
+  'dispatch-tab.js',
   'review-tab.js',
   'branches-tab.js',
-  'dispatch-tab.js',
 ];
 const partyTab = (name) => `../../docs/src/entries/tabs/party-committee/${name}`;
 
@@ -32,7 +30,7 @@ test('党委台只有一个页面标题，页签内容不重复页面标题', as
   assert.doesNotMatch(page, /返回主页/, '党委侧边栏无首页入口，页面不得出现指向首页的动作');
   assert.doesNotMatch(page, /page-frame__eyebrow|page-frame__description/, '页面级眉题与说明缀词已移除');
 
-  const duplicatePageHeading = /<h2[^>]*>\s*(?:治理总览|支部动态|支部上报|支部管理|下发通知)\s*<\/h2>/;
+  const duplicatePageHeading = /<h2[^>]*>\s*(?:支部上报|支部管理|下发通知)\s*<\/h2>/;
   for (const name of PARTY_TABS) {
     const source = await read(partyTab(name));
     assert.doesNotMatch(source, /party-page/, `${name} 不再使用旧页面层级类`);
@@ -41,10 +39,10 @@ test('党委台只有一个页面标题，页签内容不重复页面标题', as
   }
 });
 
-test('党委页签顺序为治理总览、下发通知、支部动态、支部上报、支部管理', async () => {
+test('党委页签顺序为下发通知、支部上报、支部管理（A05/A06 合并后三项）', async () => {
   const registry = await read('../../docs/src/capabilities/party-committee-workspace.js');
   const order = [...registry.matchAll(/\{ id: '([^']+)', label: '([^']+)'/g)].map((m) => m[1]);
-  assert.deepEqual(order, ['governance-overview', 'dispatch', 'monitor', 'review', 'branches']);
+  assert.deepEqual(order, ['dispatch', 'review', 'branches']);
 });
 
 test('党委页头不提供个人档案入口', async () => {
@@ -52,20 +50,24 @@ test('党委页头不提供个人档案入口', async () => {
   assert.match(header, /role !== 'party-staff'/, '党委 does not get a personal-profile entry');
 });
 
-test('党委页签名与页面身份一致', async () => {
+test('党委页签名与页面身份一致（A05/A06 撤页后只剩三项）', async () => {
   const registry = await read('../../docs/src/capabilities/party-committee-workspace.js');
-  assert.match(registry, /id: 'monitor', label: '支部动态'/);
+  assert.match(registry, /id: 'dispatch', label: '下发通知'/);
+  assert.match(registry, /id: 'review', label: '支部上报'/);
+  assert.match(registry, /id: 'branches', label: '支部管理'/);
+  assert.doesNotMatch(registry, /id: 'monitor'/);
+  assert.doesNotMatch(registry, /id: 'governance-overview'/);
   assert.doesNotMatch(registry, /支部监控台账/);
 
-  const monitor = await read(partyTab('monitor-tab.js'));
-  assert.match(monitor, /renderSectionHeader/);
-  assert.match(monitor, /renderSectionHeader\(\{\s*title: '支部运行台账'/);
+  const branches = await read(partyTab('branches-tab.js'));
+  assert.match(branches, /renderSectionHeader/);
+  assert.match(branches, /title: '支部目录'/);
 
   const page = await read('../../docs/workspace/party-committee.html');
   assert.doesNotMatch(page, /支部监控台账/);
 });
 
-test('党委五页共用页面骨架且不切换页面级版心', async () => {
+test('党委三页共用页面骨架且不切换页面级版心', async () => {
   for (const name of PARTY_TABS) {
     const source = await read(partyTab(name));
     for (const legacy of ['page-frame--wide', 'page-frame--content', 'party-page--wide']) {
@@ -85,11 +87,12 @@ test('党委五页共用页面骨架且不切换页面级版心', async () => {
 });
 
 test('党委异常行有明确动作，页头不重复页签导航', async () => {
-  const overview = await read(partyTab('governance-overview-tab.js'));
-  assert.match(overview, /branch-config\.html\?branchId=/);
-  assert.match(overview, />去任命</);
-  assert.doesNotMatch(overview, /党委治理入口/);
-  assert.doesNotMatch(overview, /\?tab=monitor/, '旧页头导航已删除');
+  // A06：原「治理总览」的组织待补已并入支部管理的「组织提醒」列（不另建页）。
+  const branches = await read(partyTab('branches-tab.js'));
+  assert.match(branches, /branch-config\.html\?branchId=/);
+  assert.match(branches, /待任命支书/);
+  assert.doesNotMatch(branches, /党委治理入口/);
+  assert.doesNotMatch(branches, /\?tab=monitor/, '旧页头导航已删除');
 });
 
 test('党委二级切换使用从属样式', async () => {
@@ -116,15 +119,11 @@ test('党委页内标签具备面板关联与方向键切换', async () => {
   }
 });
 
-test('党委支部动态和目录用表格比较同类支部数据', async () => {
-  const monitor = await read(partyTab('monitor-tab.js'));
+test('党委支部管理用表格比较同类支部数据', async () => {
   const branches = await read(partyTab('branches-tab.js'));
-  assert.match(monitor, /<table class="data-table data-table--compare"[\s\S]*?支部运行台账/);
   assert.match(branches, /<table class="data-table data-table--compare"[\s\S]*?支部目录/);
-  for (const source of [monitor, branches]) {
-    assert.match(source, /class="pc-table-scroll(?:\s|")/);
-    assert.match(source, /<th scope="col"/);
-  }
+  assert.match(branches, /class="pc-table-scroll(?:\s|")/);
+  assert.match(branches, /<th scope="col"/);
   assert.match(await read('../../docs/src/styles.css'), /\.pc-table-scroll\s*\{[^}]*overflow-x:\s*auto/);
 });
 

@@ -6,18 +6,20 @@
 // SOP-B-15 当事人可见侧（2026-09-20 批次 116 支书定案「支委会 ＋ 当事人本人」）：顶部一块
 //   「本月我的出勤率」——只算当前登录人（当事人只能看到自己的），偏低时按同一提示线给一句提示。
 
-import { loadActiveAttendanceRecords, absenceReasonLabel, createAttendanceAppeal, summarizePersonAttendance } from '../../../services/activity/attendance.js?v=20261018u';
-import { getOrganizedActivities } from '../../../services/activity/activity.js?v=20261018u';
-import { loadMakeupTasks, saveMakeupTasks } from '../../../services/activity/makeup.js?v=20261018u';
-import { AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../../core/domain/domain.js?v=20261018u';
-import { POLICY_DEFAULTS } from '../../../core/domain/policy-defaults.js?v=20261018u';
-import { AuthStore } from '../../../services/core/auth.js?v=20261018u';
-import { openFormModal } from '../../../components/ui/modal.js?v=20261018u';
-import { showToast } from '../../../core/base/utils.js?v=20261018u';
+import { loadActiveAttendanceRecords, absenceReasonLabel, createAttendanceAppeal, summarizePersonAttendance } from '../../../services/activity/attendance.js?v=20261019a';
+import { getOrganizedActivities } from '../../../services/activity/activity.js?v=20261019a';
+import { loadMakeupTasks, saveMakeupTasks } from '../../../services/activity/makeup.js?v=20261019a';
+import { AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../../core/domain/domain.js?v=20261019a';
+import { POLICY_DEFAULTS } from '../../../core/domain/policy-defaults.js?v=20261019a';
+import { AuthStore } from '../../../services/core/auth.js?v=20261019a';
+import { openFormModal } from '../../../components/ui/modal.js?v=20261019a';
+import { showToast } from '../../../core/base/utils.js?v=20261019a';
 // 活动「已归档」口径单一源（2026-09-13 收敛）：替代手写 !a.archived
-import { isActivityArchived } from '../../../core/domain/constants.js?v=20261018u';
+import { isActivityArchived } from '../../../core/domain/constants.js?v=20261019a';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是活动的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
-import { renderFilteredList, activityKeyword, activityFacets } from '../../../components/ui/list-filter.js?v=20261018u';
+import { renderFilteredList, activityKeyword, activityFacets } from '../../../components/ui/list-filter.js?v=20261019a';
+// 材料页深链 focusActivityId 的通用定位（只滚动 + 闪烁，不另造筛选器）
+import { focusActivityAnchor } from '../../../components/ui/detail-anchor.js?v=20261019a';
 
 export function renderContent(ctx) {
   const tc = document.getElementById('visitor-tab-content');
@@ -50,6 +52,8 @@ export function renderContent(ctx) {
     ${myOrgActs.length ? `
     <div class="mt-4">
       <div class="text-xs text-gray-500 mb-1.5">由我组织的活动 · 考勤上传位（会议考勤由组织者上传；此处即你的上传面）</div>
+      <!-- 材料页「成员组织者」深链锚点（visitor.html?tab=attendance#org-host） -->
+      <span id="org-host" aria-hidden="true"></span>
       <div id="visitor-org-att-host"></div>
     </div>` : ''}
   `;
@@ -57,7 +61,7 @@ export function renderContent(ctx) {
   // 挂「由我组织的活动」上传位（实现单一源＝leader/attendance-tab，host 复用；scope=organizer 只投影本人活动）
   const _orgAttHost = document.getElementById('visitor-org-att-host');
   if (_orgAttHost) {
-    import('../leader/attendance-tab.js?v=20261018u').then(m => { if (_orgAttHost.isConnected) m.renderContent(ctx, _orgAttHost, { scope: 'organizer' }); });
+    import('../leader/attendance-tab.js?v=20261019a').then(m => { if (_orgAttHost.isConnected) m.renderContent(ctx, _orgAttHost, { scope: 'organizer' }); });
   }
 
   // SOP-B-15 当事人可见侧（2026-09-20 批次 116 支书定案「支委会 ＋ 当事人本人」）：
@@ -97,7 +101,7 @@ export function renderContent(ctx) {
     // 本人待补课任务（按活动索引；补课入口出现条件）
     const myMakeup = loadMakeupTasks().find(t => t.personId === meId && t.activityId === act.id && t.status === 'pending');
     return `
-      <div class="rounded-lg bg-white">
+      <div class="rounded-lg bg-white" data-act-id="${act.id}">
         <div class="flex items-center justify-between p-3">
           <div class="flex-1 min-w-0">
             <p class="text-sm font-medium text-gray-800">${act.title}</p>
@@ -206,4 +210,7 @@ export function renderContent(ctx) {
   });
 
   renderList();
+
+  // 材料页深链：本场活动的考勤行滚到视野（找不到则静默）。
+  focusActivityAnchor(tc, ctx?.focusActivityId);
 }

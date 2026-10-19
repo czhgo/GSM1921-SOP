@@ -5,23 +5,23 @@
 //  独立于 mockDB 内存结构，通过 mockDB.notices 统一持久化
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../../core/domain/domain.js?v=20261018u';
-import { generateId } from '../../core/base/id.js?v=20261018u';
-import { persist, getDataSource, getApiBaseUrl, getAuthToken } from '../../data/data-adapter.js?v=20261018u';
-import { buildSystemNotice } from '../../core/domain/system-notice-templates.js?v=20261018u';
-import { bumpToken } from '../../core/base/version-token.js?v=20261018u'; // P0 域缓存失效（spec §二.3）
-import { MOCK_NOTICES } from '../../data/mock/index.js?v=20261018u';
-import { isInitStateActive } from '../core/init-reset.js?v=20261018u'; // C2 修复（2026-09-08）：init 态跳过演示种子兜底
-import { getBasePath, todayLocal } from '../../core/base/utils.js?v=20261018u';
-import { AuthStore } from '../core/auth.js?v=20261018u';
-import {  getPersonById } from '../member/person.js?v=20261018u';
-import { NoticeTodoDeriver, TodoStore, TodoSourceType, TodoStatus } from './todo.js?v=20261018u';
+import { mockDB } from '../../core/domain/domain.js?v=20261019a';
+import { generateId } from '../../core/base/id.js?v=20261019a';
+import { persist, getDataSource, getApiBaseUrl, getAuthToken } from '../../data/data-adapter.js?v=20261019a';
+import { buildSystemNotice } from '../../core/domain/system-notice-templates.js?v=20261019a';
+import { bumpToken } from '../../core/base/version-token.js?v=20261019a'; // P0 域缓存失效（spec §二.3）
+import { MOCK_NOTICES } from '../../data/mock/index.js?v=20261019a';
+import { isInitStateActive } from '../core/init-reset.js?v=20261019a'; // C2 修复（2026-09-08）：init 态跳过演示种子兜底
+import { getBasePath, todayLocal } from '../../core/base/utils.js?v=20261019a';
+import { AuthStore } from '../core/auth.js?v=20261019a';
+import {  getPersonById } from '../member/person.js?v=20261019a';
+import { NoticeTodoDeriver, TodoStore, TodoSourceType, TodoStatus } from './todo.js?v=20261019a';
 // 组织者身份读取单一源（2026-09-19 批次 91 · SOP-B-17）——发布权随「被指定为该场组织者」动态获得
-import {  getOrganizedActivities } from '../activity/activity.js?v=20261018u';
+import {  getOrganizedActivities } from '../activity/activity.js?v=20261019a';
 import {
   NOTICE_PUBLISH_ROLES, NOTICE_MANAGE_ROLES, BRANCH_COMMISSION_ROLES,
   NOTICE_AUDIENCE_SENTINELS, ROLE_LABELS,
-} from '../../core/domain/constants.js?v=20261018u';
+} from '../../core/domain/constants.js?v=20261019a';
 
 function _loadNotices() {
   try {
@@ -766,13 +766,15 @@ export function resolveNoticeUrl(n, currentRole = null) {
     }
   }
   // 0. T233 targetType/targetId 显式定位 → 直达详情页（招募/报名类通知，活动/专班分页）
+  //    F06 优先契约（2026-10-20）：**targetType+targetId 优先，targetUrl 仅作无类型兜底**。
+  //    本步骤必须先于步骤 1；templates 文件头同源声明。新增跳转入口一律复用本函数。
   if (n.targetType && n.targetId) {
     const detailFile = n.targetType === 'taskforce' ? 'taskforce.html' : n.targetType === 'activity' ? 'activity.html' : null;
     if (detailFile) {
       return { url: getBasePath() + `${detailFile}?id=${n.targetId}`, direct: true };
     }
   }
-  // 1. targetUrl 直达（显式指定，不做同页回退）
+  // 1. targetUrl 兜底（无类型 / 该类型无详情页；显式指定，不做同页回退）
   if (n.targetUrl) {
     return { url: getBasePath() + n.targetUrl, direct: true };
   }

@@ -1,16 +1,22 @@
 // Party committee branch directory: create and select; maintenance is in branch-config.html.
 
-import { mockDB } from '../../../core/domain/domain.js?v=20261018u';
+import { mockDB } from '../../../core/domain/domain.js?v=20261019a';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/member/person.js 获取（原直连 mock PEOPLE）；
 // 每次渲染现读（members 覆盖层即时吃到），不缓存在模块顶层
-import { PersonStore } from '../../../services/member/person.js?v=20261018u';
-import { createBranch } from '../../../services/branch/branch.js?v=20261018u';
-import { getRosterStats } from '../../../services/member/roster.js?v=20261018u';
-import { showToast, escHtml as esc, getBasePath } from '../../../core/base/utils.js?v=20261018u';
-import { bindBranchReadOnlyButtons } from '../../../services/core/branch-readonly-nav.js?v=20261018u';
-import { renderSectionHeader } from '../../../components/shell/page-frame.js?v=20261018u';
-import { ROLE_LABELS } from '../../../core/domain/constants.js?v=20261018u';
-import { getApiBaseUrl, getAuthToken, getDataSource } from '../../../data/data-adapter.js?v=20261018u';
+import { PersonStore } from '../../../services/member/person.js?v=20261019a';
+import { createBranch } from '../../../services/branch/branch.js?v=20261019a';
+import { getRosterStats } from '../../../services/member/roster.js?v=20261019a';
+import { showToast, escHtml as esc, getBasePath } from '../../../core/base/utils.js?v=20261019a';
+import { bindBranchReadOnlyButtons } from '../../../services/core/branch-readonly-nav.js?v=20261019a';
+import { renderSectionHeader } from '../../../components/shell/page-frame.js?v=20261019a';
+import { ROLE_LABELS } from '../../../core/domain/constants.js?v=20261019a';
+import { getAdapter, getDataSource } from '../../../data/data-adapter.js?v=20261019a';
+// A05（2026-10-20 IA 修复批次）：「支部动态」撤页后，其「待批复数量列 + 支部筛选」并入本页。
+//   数据与筛选件一律复用既有单一源（review-request 服务 + branch-filter 共用件），不另写一份。
+import { listReviewRequests } from '../../../services/governance/review-request.js?v=20261019a';
+import { renderBranchFilter, getBranchFilter } from '../../../components/governance/branch-filter.js?v=20261019a';
+
+const BRANCH_FILTER_STATE = 'pc-branches';
 
 const rosterLoadAttempts = new Set();
 const rosterLoadPromises = new Map();
@@ -28,15 +34,10 @@ function ensureBranchMembersLoaded(branchId) {
     rosterLoadAttempts.add(branchId);
     return Promise.resolve();
   }
-  const token = getAuthToken();
-  if (!token) return Promise.resolve();
   const load = (async () => {
     try {
-      const response = await fetch(`${getApiBaseUrl()}/api/v1/users?branchId=${encodeURIComponent(branchId)}`, {
-        headers: { authorization: `Bearer ${token}` },
-      });
-      if (!response.ok) return;
-      const list = await response.json();
+      // W1（批次 343 · D-744 D 档）：通用资源端点不得直连 fetch ⇒ 走适配器同一读链
+      const list = await getAdapter().users.list({ branchId });
       const byId = new Map((mockDB.users || []).map((person) => [person.id, person]));
       for (const person of Array.isArray(list) ? list : []) {
         if (person?.id) byId.set(person.id, person);
@@ -75,7 +76,7 @@ function branchRosterRow(branchId) {
   const row = document.createElement('tr');
   row.className = 'branch-roster-row';
   row.dataset.branchRosterFor = branchId;
-  row.innerHTML = `<td colspan="9" class="bg-gray-50 p-3">${renderBranchRosterRows(branchId)}</td>`;
+  row.innerHTML = `<td colspan="10" class="bg-gray-50 p-3">${renderBranchRosterRows(branchId)}</td>`;
   return row;
 }
 
@@ -102,13 +103,16 @@ export async function renderContent() {
   if (!el) return;
   el.dataset.currentTab = 'branches'; // 跨 tab 共享容器约定（同 today/group-progress/insight-view 体例）：登记当前 tab，防 party-config 守卫读到陈旧标记而残留
   const apiMode = document.documentElement.dataset.dataSource === 'api';
-  const selectedBranchId = new URLSearchParams(window.location.search).get('branchId') || '';
+  // 支部筛选共用件（stateKey=pc-branches）：API 模式选择随 URL 走，mock 模式随模块自持。
+  const selectedBranchId = getBranchFilter(BRANCH_FILTER_STATE);
   const summaryOnly = apiMode && !selectedBranchId;
   const allBranches = mockDB.branches || [];
-  const branches = apiMode && selectedBranchId
+  const branches = selectedBranchId
     ? allBranches.filter((branch) => branch.id === selectedBranchId)
     : allBranches;
   const members = PersonStore.getMembers(); // 现读档案（种子 + members 覆盖层），导入落库后即时吃到
+  // A05：待批复计数与「支部上报」页同口径（listReviewRequests status='pending'），按 branchId 计数。
+  const pendingRequests = listReviewRequests({ status: 'pending' });
 
   el.innerHTML = `
     <div class="page-section-stack">
@@ -118,6 +122,7 @@ export async function renderContent() {
         description: `${branches.length} 个支部`,
         actions: '<button id="branch-add-toggle" type="button" class="btn-accent px-3 py-2 text-sm font-medium">新建支部</button>',
       })}
+      <div id="pc-branches-branch-filter" class="mb-4 mt-4"></div>
       <section id="branch-form-wrap" class="mt-4 hidden rounded-lg border border-gray-200 bg-gray-50 p-4" aria-label="新建支部">
         <div class="grid grid-cols-1 gap-3 md:grid-cols-2">
           <div><label class="mb-1 block text-xs text-gray-600" for="branch-name-input">支部名称</label><input id="branch-name-input" type="text" class="input-flat w-full" placeholder="支部全称" /></div>
@@ -127,7 +132,7 @@ export async function renderContent() {
       </section>
       ${branches.length ? `<div class="pc-table-scroll pc-table-scroll--branches mt-4"><table class="data-table data-table--compare">
         <caption class="visually-hidden">支部目录：按支部比较运行状态、在册人数和维护入口</caption>
-        <thead><tr><th scope="col">支部</th><th scope="col">状态</th><th scope="col">成员</th><th scope="col">在册党员</th><th scope="col">活动</th><th scope="col">专班</th><th scope="col">通知</th><th scope="col">组织提醒</th><th scope="col">操作</th></tr></thead><tbody>
+        <thead><tr><th scope="col">支部</th><th scope="col">状态</th><th scope="col">成员</th><th scope="col">在册党员</th><th scope="col">活动</th><th scope="col">专班</th><th scope="col">通知</th><th scope="col">待批复</th><th scope="col">组织提醒</th><th scope="col">操作</th></tr></thead><tbody>
         ${branches.map((b) => {
           const bid = b.id;
           const isActive = (b.status || 'active') === 'active';
@@ -143,14 +148,20 @@ export async function renderContent() {
           const activityText = activeActivities === null || totalActivities === null ? '—' : `${activeActivities} / ${totalActivities}`;
           const taskforceText = activeTaskforces === null || totalTaskforces === null ? '—' : `${activeTaskforces} / ${totalTaskforces}`;
           const noticeText = summary.noticeCount ?? '—';
+          // A05：待批复数量列（与旧「支部动态」同口径：pending 按 branchId 计数，链接带支部筛选）。
+          const pendingCount = pendingRequests.filter((request) => request.branchId === bid).length;
+          const pendingCell = pendingCount
+            ? `<a class="font-semibold text-amber-800 underline-offset-2 hover:underline" href="?tab=review&amp;branchId=${encodeURIComponent(bid)}" title="查看该支部待批复上报">${pendingCount} 项</a>`
+            : '<span class="text-gray-500">0 项</span>';
           // 2026-10-18 繁专项（Top 8）：组织提醒按目录行 `secretaryId` 判断（服务端目录投影已补该字段），
-          //   不再被 `summaryOnly` 抑制；口径与治理总览一致＝运行中且未任命支书。
+          //   不再被 `summaryOnly` 抑制；口径＝运行中且未任命支书（A06 治理总览撤页后，原「组织待补」只此一处）。
           const missingSecretary = isActive && !b.secretaryId;
           return `<tr data-branch-card="${esc(bid)}">
             <td><div class="font-semibold text-gray-900">${esc(b.config?.headerTitle || b.name)}</div><div class="mt-0.5 text-xs text-gray-500">${esc(b.type || '支部')}</div></td>
             <td><span class="text-sm ${isActive ? 'text-green-700' : 'text-gray-500'}">${isActive ? '运行中' : '已停用'}</span></td>
             <td class="tabular-nums">${memberCount}${memberCount === '—' ? '' : ' 人'}</td><td class="tabular-nums">${partyCount}${partyCount === '—' ? '' : ' 人'}</td>
             <td class="tabular-nums">${activityText}</td><td class="tabular-nums">${taskforceText}</td><td class="tabular-nums">${noticeText}</td>
+            <td class="tabular-nums">${pendingCell}</td>
             <td>${missingSecretary ? '<span class="text-sm text-amber-800">待任命支书</span>' : '<span class="text-sm text-gray-500">—</span>'}</td>
             <td><div class="flex flex-wrap gap-2"><button type="button" class="btn-outline whitespace-nowrap px-3 py-2 text-sm" data-branch-roster-toggle data-branch-id="${esc(bid)}" aria-expanded="false">名册</button><a class="btn-accent inline-flex whitespace-nowrap px-3 py-2 text-sm font-medium" href="${configureUrl}">支部设置</a><button type="button" class="btn-outline branch-readonly-enter whitespace-nowrap px-3 py-2 text-sm" data-branch-id="${esc(bid)}">查看该支部</button></div></td>
           </tr>`;
@@ -158,6 +169,13 @@ export async function renderContent() {
         </tbody></table></div>` : `<p class="mt-4 py-8 text-sm text-gray-600" role="status">尚无支部。创建支部后，再进入其配置页完成组织设置。</p>`}
       </section>
     </div>`;
+
+  // 支部筛选（A05 自「支部动态」迁入）：选中后只出该支部的目录行；变更即重渲本页。
+  renderBranchFilter(el.querySelector('#pc-branches-branch-filter'), {
+    stateKey: BRANCH_FILTER_STATE,
+    tabId: 'branches', // API 模式整页跳转后仍留在本页（登录缺省 tab 已是 review）
+    onChange: () => renderContent(),
+  });
 
   // 新建表单开关
   const toggle = el.querySelector('#branch-add-toggle');

@@ -14,11 +14,11 @@
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261018u';
+import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261019a';
 import {
   EMPTY_BRANCH_TEMPLATE, buildNewBranchRecord,
   createBranch, getBranchById, getBranchOrg, auditEmptyBranchRecord,
-} from '../../docs/src/services/branch/branch.js?v=20261018u';
+} from '../../docs/src/services/branch/branch.js?v=20261019a';
 import { createApp } from '../app.js';
 import { seedDatabase } from '../seed.js';
 
@@ -317,7 +317,7 @@ test('HTTP：copy 创建与前端本地构造双形态一致；源 br-b1 不被�
   assert.deepEqual(_norm(branch), _norm(localExpected), 'server 与前端 copy 构造一致');
 });
 
-test('HTTP：POST /branches 后 GET /branches 全字段透传（headerTitle/themePreset 等新字段零丢失，前端消费口径对齐）', async () => {
+test('HTTP：POST /branches 后 GET /branches 为目录投影；选中支部明细回读全字段（config 以明细/POST 为准）', async () => {
   const staff = await login('p_pc');
   const posted = [];
   for (const body of [
@@ -328,22 +328,40 @@ test('HTTP：POST /branches 后 GET /branches 全字段透传（headerTitle/them
     assert.equal(r.status, 201);
     posted.push((await r.json()).branch);
   }
-  // GET /branches 回读：与 POST 响应逐位相等（branches 表整记录 JSON 存储，config 新字段天然透传）
+  // GET /branches（党委未选支部）＝目录投影（API 性能设计）：含 id/name/type/status/secretaryId 与 summary，
+  //   不携带完整 config（config 以 POST 响应或选中支部回读为准）。
   const list = await (await fetch(`${base}/api/v1/branches`, { headers: auth(staff) })).json();
   for (const b of posted) {
     const row = list.find(x => x.id === b.id);
     assert.ok(row, `GET /branches 含新建支部 ${b.id}`);
-    assert.deepEqual(JSON.parse(JSON.stringify(row)), JSON.parse(JSON.stringify(b)), 'GET 回读 = POST 响应（headerTitle/themePreset/secretaryId 等不丢）');
-    assert.ok(Object.prototype.hasOwnProperty.call(row.config, 'headerTitle'), 'config.headerTitle 在 GET 列表透传');
-    assert.ok(Object.prototype.hasOwnProperty.call(row.config, 'themePreset'), 'config.themePreset 在 GET 列表透传');
+    for (const key of ['id', 'name', 'type', 'status', 'secretaryId']) {
+      assert.equal(row[key] ?? null, b[key] ?? null, `目录投影透传 ${key}`);
+    }
+    assert.ok(row.summary && typeof row.summary === 'object', '目录投影含 summary（支部目录读数）');
+    assert.ok(!row.config || !Object.prototype.hasOwnProperty.call(row.config, 'modules'),
+      '目录投影不携带完整 config（列表是性能设计，config 不以列表为准）');
   }
-  // 前端消费口径（阶段B 核对结论：无补齐缺口）——模拟 API 模式 init() 以 GET 列表填充 mockDB.branches，
-  // 前端 getBranchOrg/getBranchById 直接读该行即可取到新字段，无需服务端再透传
-  mockDB.branches = list;
+  // 明细回读（党委选定该支部）：与 POST 响应逐位相等（headerTitle/themePreset/secretaryId 等零丢失；
+  //   附加的 summary 为目录读数，比较时剥离）。
+  const fullRows = [];
+  for (const b of posted) {
+    const rows = await (await fetch(`${base}/api/v1/branches?branchId=${encodeURIComponent(b.id)}`, { headers: auth(staff) })).json();
+    const row = rows.find(x => x.id === b.id);
+    assert.ok(row && row.config, `选中支部 ${b.id} 明细回读应含 config`);
+    const { summary: _summary, ...full } = row;
+    assert.deepEqual(JSON.parse(JSON.stringify(full)), JSON.parse(JSON.stringify(b)),
+      '选中支部明细回读 = POST 响应（headerTitle/themePreset/secretaryId 等不丢）');
+    assert.ok(Object.prototype.hasOwnProperty.call(row.config, 'headerTitle'), 'config.headerTitle 在明细透传');
+    assert.ok(Object.prototype.hasOwnProperty.call(row.config, 'themePreset'), 'config.themePreset 在明细透传');
+    fullRows.push(row);
+  }
+  // 前端消费口径（阶段B 核对结论：无补齐缺口）——模拟 API 模式 init() 以支部明细填充 mockDB.branches，
+  // 前端 getBranchOrg/getBranchById 直接读该行即可取到新字段。
+  mockDB.branches = fullRows;
   const org0 = getBranchOrg(posted[0].id);
   assert.equal(org0.headerTitle, posted[0].config.headerTitle || posted[0].name);
   assert.equal(org0.themePreset, posted[0].config.themePreset ?? null);
-  assert.equal(org0.secretaryId, null, '席位空缺在列表透传');
+  assert.equal(org0.secretaryId, null, '席位空缺在明细回读透传');
   const org1 = getBranchOrg(posted[1].id);
   assert.equal(org1.headerTitle, 'GET透传复制支部');
   assert.equal(org1.themePreset, null);

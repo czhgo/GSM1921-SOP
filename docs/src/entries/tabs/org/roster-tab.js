@@ -42,33 +42,33 @@
 //    支书确认生效时先 roster.saveResidenceChange（RESIDENCE_KEY 覆盖 + 留痕）→ 再 saveMember 镜像进档案。
 // ════════════════════════════════════════════════════════════════
 
-import { PersonStore, getPersonName } from '../../../services/member/person.js?v=20261018u';
-import { getRosterStats, getResidenceOf } from '../../../services/member/roster.js?v=20261018u';
-import { listPendingConfirmations } from '../../../services/member/member-confirmation.js?v=20261018u';
-import { DEVELOP_STAGE_OPTIONS } from '../../../services/branch/org-base-data-preview.js?v=20261018u';
+import { PersonStore, getPersonName } from '../../../services/member/person.js?v=20261019a';
+import { getRosterStats, getResidenceOf } from '../../../services/member/roster.js?v=20261019a';
+import { listPendingConfirmations } from '../../../services/member/member-confirmation.js?v=20261019a';
+import { DEVELOP_STAGE_OPTIONS } from '../../../services/branch/org-base-data-preview.js?v=20261019a';
 // 党小组常态清单唯一来源（活组、按 seq 升序；新增/改名/解散后随渲染即时可见）
-import { groupOptions } from '../../../services/member/party-group.js?v=20261018u';
-import { AuthStore } from '../../../services/core/auth.js?v=20261018u';
+import { groupOptions } from '../../../services/member/party-group.js?v=20261019a';
+import { AuthStore } from '../../../services/core/auth.js?v=20261019a';
 // Q-21-3 收敛（2026-09-13）：在册状态枚举单一源 = core/domain/constants.js（原经 roster.js 转出）
-import { ROLE_LABELS, RESIDENCE } from '../../../core/domain/constants.js?v=20261018u';
-import { showToast, escHtml as esc, getBasePath } from '../../../core/base/utils.js?v=20261018u';
-import { openModal, closeModal, openFormModal } from '../../../components/ui/modal.js?v=20261018u';
+import { ROLE_LABELS, RESIDENCE } from '../../../core/domain/constants.js?v=20261019a';
+import { showToast, escHtml as esc, getBasePath } from '../../../core/base/utils.js?v=20261019a';
+import { openModal, closeModal, openFormModal } from '../../../components/ui/modal.js?v=20261019a';
 // 统一成员档案编辑模态（成员名册行内「编辑」入口；模态内按字段分流：档案属性立即生效 / 制度变更报支书确认）
-import { openPersonEditModal } from '../../../components/governance/pickers.js?v=20261018u';
+import { openPersonEditModal } from '../../../components/governance/pickers.js?v=20261019a';
 // 纯逻辑（可单测）：新增表单校验
-import { validateMemberForm } from '../../../services/member/roster-ui-logic.js?v=20261018u';
+import { validateMemberForm } from '../../../services/member/roster-ui-logic.js?v=20261019a';
 // `D-788` / `V-10b` 第三批（2026-10-05 · 支书圈「甲：粘贴/CSV ＋ 预览」）：自我描述批量导入服务
 //   （纯函数：解析 → 表头关键词映射 → 净化 → 与名册匹配 → 预览；本模块不落库，确认由本 tab 逐行走 saveMember）
-import { buildSelfProfileImport } from '../../../services/member/self-profile-import.js?v=20261018u';
+import { buildSelfProfileImport } from '../../../services/member/self-profile-import.js?v=20261019a';
 // 统一检索引擎（2026-09-13 表格统一化批次 A）：名册列表接入关键词 + 分面（≤8 行引擎自动不渲染检索条）
-import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261018u';
+import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261019a';
 // 成员流出登记（行内「移出」＝登记即生效）：2026-09-28 批次 220 · R10 拆分后，本 tab 只留「移出」这一
 //   行操作；「成员流动」面板（登记流入 / 登记流出 / 对账行 / 台账表 / 撤销）已拆到独立 tab（org/member-flow-tab.js）。
-import { registerOutflow } from '../../../services/member/member-flow.js?v=20261018u';
+import { registerOutflow } from '../../../services/member/member-flow.js?v=20261019a';
 // 支部归属解析（当前操作人 → 支部 id）：台账/对账/登记同支部口径
-import { getBranchIdOfPerson } from '../../../services/branch/branch.js?v=20261018u';
+import { getBranchIdOfPerson } from '../../../services/branch/branch.js?v=20261019a';
 // 自定义圆角下拉增强（select.input-flat.text-xs → cs-trigger；与全局 observer 幂等）
-import { enhanceSelects } from '../../../components/ui/custom-select.js?v=20261018u';
+import { enhanceSelects } from '../../../components/ui/custom-select.js?v=20261019a';
 
 // 模块级 ctx 缓存：行内保存/删除/新增后整页刷新复用首次渲染的 accent
 let _ctx = null;
@@ -134,35 +134,36 @@ export function renderContent(ctx) {
   if (pend.res.size) pendParts.push(`在册状态 ×${pend.res.size}`);
   if (pend.out.size) pendParts.push(`移出 ×${pend.out.size}`);
 
+  // B12（2026-10-20）：原顶部独立统计卡与名册列表卡分离 ⇒ 统计并入列表卡头，只留一行摘要
+  //   （在册 / 党员 / 待办），名册列表首屏可见；应到与分组明细收进卡头折叠区，低频查阅不占首屏。
+  //   导入入口（_spImportHtml）仍在卡尾、默认收起，不进入首屏。
   container.innerHTML = `
     <div class="space-y-4">
-      <div class="card rounded-xl p-5">
-        <div class="flex items-center justify-between flex-wrap gap-2 mb-3">
-          <div class="flex items-center gap-3">
-            <h3 class="font-title-cn text-base font-semibold text-gray-800">成员名册</h3>
-            <span class="text-xs text-gray-500" title="统计范围：本支部在册成员（branchId 非空），不含党委组织员等非本支部人员">${members.length} 人 · 本支部在册</span>
-          </div>
-          <div class="flex items-center gap-2">
-            <button id="roster-add-btn" type="button" class="btn-accent-soft text-xs px-3 py-1.5 whitespace-nowrap" style="cursor:pointer;">＋ 新增成员</button>
-          </div>
-        </div>
-        <p class="text-xs text-gray-500 mb-3">成员名册逐人「新增 / 编辑 / 移出」：点行内「编辑」打开档案编辑模态——姓名 / 学号 / 党小组立即生效，发展阶段 / 在册状态变更报支书确认后生效。</p>
-        <div class="flex items-center gap-x-4 gap-y-1 flex-wrap text-xs">
-          <span class="px-2 py-1 rounded-full bg-gray-50 border border-gray-100"><span class="font-medium text-gray-700">支部应到 ${stats.expected} 人</span><span class="text-gray-500">＝在册党员 ${stats.partyTotal} − 滞留剔除 ${stats.detainedParty}</span></span>
-          ${groupStats.map(x => `<span class="text-gray-500">${esc(x.g)}应到 <span class="text-gray-700 font-medium">${x.s.expected}</span><span class="text-gray-500">/${x.s.partyTotal}</span></span>`).join('')}
-          <span class="text-gray-500">未分组 <span class="text-gray-700 font-medium">${ungroupedCount}</span> 人</span>
-          <!-- 就近深链（2026-09-17 支书已裁）：滞留的学期末集中复核窗口就是本域可调参数，就地给去设置该分区的入口 -->
-          <a href="${getBasePath()}settings.html#domain-org" class="text-gray-500 hover:text-gray-700 underline transition-colors">滞留集中复核窗口 → 组织职责参数（设置）</a>
-        </div>
-        ${pendParts.length ? `
-        <div class="flex items-center gap-1.5 flex-wrap mt-2">
-          <span class="text-[11px] text-gray-500">待支书确认：</span>
-          ${pendParts.map(t => `<span class="text-[11px] px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-100">${t}</span>`).join('')}
-          <span class="text-[11px] text-gray-500">确认或退回在支书「待办」页处理</span>
-        </div>` : ''}
-      </div>
-
       <div class="card rounded-xl p-4 overflow-x-auto" id="roster-list-card">
+        <div class="flex items-center justify-between flex-wrap gap-2 mb-3">
+          <div class="flex items-center gap-3 flex-wrap">
+            <h3 class="font-title-cn text-base font-semibold text-gray-800">成员名册</h3>
+            <span class="text-xs text-gray-500" title="在册＝本支部在册成员（branchId 非空）；党员＝应到口径的在册党员；待办＝待支书确认的成员事项">在册 ${members.length} · 党员 ${stats.partyTotal} · 待办 ${pend.list.length}</span>
+          </div>
+          <button id="roster-add-btn" type="button" class="btn-accent-soft text-xs px-3 py-1.5 whitespace-nowrap" style="cursor:pointer;">＋ 新增成员</button>
+        </div>
+        <details class="mb-3 rounded-lg border border-gray-100 bg-gray-50/50 px-3 py-2">
+          <summary class="text-xs text-gray-600 cursor-pointer select-none">应到与待确认明细</summary>
+          <p class="text-xs text-gray-500 mt-2 mb-2">成员名册逐人「新增 / 编辑 / 移出」：点行内「编辑」打开档案编辑模态——姓名 / 学号 / 党小组立即生效，发展阶段 / 在册状态变更报支书确认后生效。</p>
+          <div class="flex items-center gap-x-4 gap-y-1 flex-wrap text-xs">
+            <span class="px-2 py-1 rounded-full bg-white border border-gray-100"><span class="font-medium text-gray-700">支部应到 ${stats.expected} 人</span><span class="text-gray-500">＝在册党员 ${stats.partyTotal} − 滞留剔除 ${stats.detainedParty}</span></span>
+            ${groupStats.map(x => `<span class="text-gray-500">${esc(x.g)}应到 <span class="text-gray-700 font-medium">${x.s.expected}</span><span class="text-gray-500">/${x.s.partyTotal}</span></span>`).join('')}
+            <span class="text-gray-500">未分组 <span class="text-gray-700 font-medium">${ungroupedCount}</span> 人</span>
+            <!-- 就近深链（2026-09-17 支书已裁）：滞留的学期末集中复核窗口就是本域可调参数，就地给去设置该分区的入口 -->
+            <a href="${getBasePath()}settings.html#domain-org" class="text-gray-500 hover:text-gray-700 underline transition-colors">滞留集中复核窗口 → 组织职责参数（设置）</a>
+          </div>
+          ${pendParts.length ? `
+          <div class="flex items-center gap-1.5 flex-wrap mt-2">
+            <span class="text-[11px] text-gray-500">待支书确认：</span>
+            ${pendParts.map(t => `<span class="text-[11px] px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-100">${t}</span>`).join('')}
+            <span class="text-[11px] text-gray-500">确认或退回在支书「待办」页处理</span>
+          </div>` : ''}
+        </details>
         ${_listHeaderHtml()}
         <div id="roster-list-host"></div>
       </div>
