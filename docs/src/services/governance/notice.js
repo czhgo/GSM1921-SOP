@@ -5,23 +5,23 @@
 //  独立于 mockDB 内存结构，通过 mockDB.notices 统一持久化
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../../core/domain/domain.js?v=20261018s';
-import { generateId } from '../../core/base/id.js?v=20261018s';
-import { persist, getDataSource, getApiBaseUrl, getAuthToken } from '../../data/data-adapter.js?v=20261018s';
-import { buildSystemNotice } from '../../core/domain/system-notice-templates.js?v=20261018s';
-import { bumpToken } from '../../core/base/version-token.js?v=20261018s'; // P0 域缓存失效（spec §二.3）
-import { MOCK_NOTICES } from '../../data/mock/index.js?v=20261018s';
-import { isInitStateActive } from '../core/init-reset.js?v=20261018s'; // C2 修复（2026-09-08）：init 态跳过演示种子兜底
-import { getBasePath, todayLocal } from '../../core/base/utils.js?v=20261018s';
-import { AuthStore } from '../core/auth.js?v=20261018s';
-import {  getPersonById } from '../member/person.js?v=20261018s';
-import { NoticeTodoDeriver, TodoStore, TodoSourceType, TodoStatus } from './todo.js?v=20261018s';
+import { mockDB } from '../../core/domain/domain.js?v=20261018t';
+import { generateId } from '../../core/base/id.js?v=20261018t';
+import { persist, getDataSource, getApiBaseUrl, getAuthToken } from '../../data/data-adapter.js?v=20261018t';
+import { buildSystemNotice } from '../../core/domain/system-notice-templates.js?v=20261018t';
+import { bumpToken } from '../../core/base/version-token.js?v=20261018t'; // P0 域缓存失效（spec §二.3）
+import { MOCK_NOTICES } from '../../data/mock/index.js?v=20261018t';
+import { isInitStateActive } from '../core/init-reset.js?v=20261018t'; // C2 修复（2026-09-08）：init 态跳过演示种子兜底
+import { getBasePath, todayLocal } from '../../core/base/utils.js?v=20261018t';
+import { AuthStore } from '../core/auth.js?v=20261018t';
+import {  getPersonById } from '../member/person.js?v=20261018t';
+import { NoticeTodoDeriver, TodoStore, TodoSourceType, TodoStatus } from './todo.js?v=20261018t';
 // 组织者身份读取单一源（2026-09-19 批次 91 · SOP-B-17）——发布权随「被指定为该场组织者」动态获得
-import {  getOrganizedActivities } from '../activity/activity.js?v=20261018s';
+import {  getOrganizedActivities } from '../activity/activity.js?v=20261018t';
 import {
   NOTICE_PUBLISH_ROLES, NOTICE_MANAGE_ROLES, BRANCH_COMMISSION_ROLES,
   NOTICE_AUDIENCE_SENTINELS, ROLE_LABELS,
-} from '../../core/domain/constants.js?v=20261018s';
+} from '../../core/domain/constants.js?v=20261018t';
 
 function _loadNotices() {
   try {
@@ -170,18 +170,25 @@ export const NoticePermission = {
    *      指定即赋权、解除即收回（判据单一源 = `services/activity/activity.js::getOrganizedActivities`）。
    * @param {string} role 常设角色键
    * @param {string} [personId] 当前人（缺省＝只按角色白名单判定，保持既有调用点行为）
+   * @param {Object|null} [notice] 待发布通知；给定则组织者例外只放行「**本场**活动通知」
+   *   （与服务端 `routes/resources/gates.js::_isActivityOrganizer` 同一判据，R4-F03）
    */
-  canPublish(role, personId) {
+  canPublish(role, personId, notice = null) {
     if (PUBLISH_NOTICE_ROLES.has(role)) return true;
-    return getOrganizedActivities(personId).length > 0;
+    if (!personId) return false;
+    const organized = getOrganizedActivities(personId);
+    if (organized.length === 0) return false;
+    if (!notice) return true; // 无通知上下文（如按钮显隐）保持既有判据
+    const activityId = notice.targetType === 'activity' ? notice.targetId : (notice.activityId || null);
+    return !!activityId && organized.some((activity) => activity.id === activityId);
   },
 
   canManage(role) {
     return MANAGE_NOTICE_ROLES.has(role);
   },
 
-  check(role, action = 'read', personId = null) {
-    if (action === 'publish' || action === 'add') return this.canPublish(role, personId);
+  check(role, action = 'read', personId = null, notice = null) {
+    if (action === 'publish' || action === 'add') return this.canPublish(role, personId, notice);
     if (action === 'edit' || action === 'update' || action === 'remove') return this.canManage(role);
     return true; // read — 全员可读
   },
@@ -329,7 +336,7 @@ export const NoticeStore = {
     const _isDirect = !!(notice && notice.noticeType === 'message');
     const _gate = _isDirect
       ? canSendDirectMessage(actorRole)
-      : NoticePermission.check(actorRole, 'add', actorPersonId);
+      : NoticePermission.check(actorRole, 'add', actorPersonId, notice);
     if (actorRole && !_gate) {
       console.warn(`[NoticeStore] 权限不足：角色 ${actorRole}（${actorPersonId || '未带 personId'}）无权${_isDirect ? '发站内信' : '发布通知'}`);
       return null;
@@ -394,7 +401,10 @@ export const NoticeStore = {
       this._syncWithStore();
       this._notices = [...this._notices, mirror];
       mockDB.notices = [...(mockDB.notices || []), mirror];
-      _saveNotices(this._notices);
+      // R4-F03/F02（2026-10-19）：**本地镜像不落快照**。系统派生通知的权威写口是
+      //   POST /api/v1/system-notices（R-22 服务端复算授权）；镜像若随 persist() 整表写穿，
+      //   会被快照 notices 写门按「非发布者新增通知」拒绝（普通成员提交思想汇报等正常路径会被连带卡住）。
+      //   服务端回包后由下方以服务端记录替换镜像（该行在库里已存在，快照门自然放行）。
       bumpToken('notice');
     }
     // ② API 模式：服务端为权威（按 kind 复算授权、生成落点），失败则回收本地镜像

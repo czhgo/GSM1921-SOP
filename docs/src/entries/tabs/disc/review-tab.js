@@ -2,22 +2,22 @@
 // 纪检委员工作台 Tab：复盘（T-279 M3 拆分；2026-10-04 批次 368 页签名由「活动监督复盘」改「复盘」——原名＝动作＋对象混轴）
 // 活动流程监督（超时提醒）+ 活动复盘监督（批注/打回/确认）+ 经验沉淀督促清单。
 
-import { mockDB, ReviewStatus } from '../../../core/domain/domain.js?v=20261018s';
-import { persist } from '../../../data/data-adapter.js?v=20261018s';
-import { reviewToDisplay } from '../../../services/governance/review.js?v=20261018s';
-import { loadActiveActivityReviews, loadTaskforceReviews, updateReviewById } from '../../../services/governance/review.js?v=20261018s';
-import { loadActivities } from '../../../services/activity/activity.js?v=20261018s';
-import { showToast, escHtml } from '../../../core/base/utils.js?v=20261018s';
-import { openFormModal } from '../../../components/ui/modal.js?v=20261018s';
+import { mockDB, ReviewStatus } from '../../../core/domain/domain.js?v=20261018t';
+import { persist } from '../../../data/data-adapter.js?v=20261018t';
+import { reviewToDisplay } from '../../../services/governance/review.js?v=20261018t';
+import { loadActiveActivityReviews, loadTaskforceReviews, updateReviewById } from '../../../services/governance/review.js?v=20261018t';
+import { loadActivities } from '../../../services/activity/activity.js?v=20261018t';
+import { showToast, escHtml } from '../../../core/base/utils.js?v=20261018t';
+import { openFormModal } from '../../../components/ui/modal.js?v=20261018t';
 // 批次 352（`D-746` · `D-744`② 业务过程类余项）：经验沉淀「作废（软）」——统一写口 ＋ 支委层判据
-import * as SoftVoid from '../../../services/governance/soft-void.js?v=20261018s';
-import { openVoidModal } from '../../../components/ui/void-record.js?v=20261018s';
-import { NoticeStore } from '../../../services/governance/notice.js?v=20261018s';
-import { generateId } from '../../../core/base/id.js?v=20261018s';
-import { getPersonById } from '../../../services/member/person.js?v=20261018s';
-import { DISC_COMMISSIONER_ID } from './_shared.js?v=20261018s';
+import * as SoftVoid from '../../../services/governance/soft-void.js?v=20261018t';
+import { openVoidModal } from '../../../components/ui/void-record.js?v=20261018t';
+import { NoticeStore } from '../../../services/governance/notice.js?v=20261018t';
+import { generateId } from '../../../core/base/id.js?v=20261018t';
+import { getPersonById } from '../../../services/member/person.js?v=20261018t';
+import { DISC_COMMISSIONER_ID } from './_shared.js?v=20261018t';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是活动的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
-import { renderFilteredList, activityKeyword, activityFacets } from '../../../components/ui/list-filter.js?v=20261018s';
+import { renderFilteredList, activityKeyword, activityFacets } from '../../../components/ui/list-filter.js?v=20261018t';
 
 // ── 超期提醒真实触达（2026-09-10）───────────────────────────────
 // 依据：纪检委员工作流程指南 §3.1「超时确认后可触发邮件提醒」、党小组组长工作手册
@@ -329,6 +329,7 @@ export function renderContent(ctx) {
         { key: 'scenario', label: '适用场景', type: 'input', required: false, placeholder: '什么情况下可用这条经验（选填）' },
         { key: 'counter', label: '常见误区/反例', type: 'textarea', required: false, placeholder: '不这样做会怎样 / 什么情况下不适用（选填）' },
       ],
+      submitLabel: '保存经验沉淀',
       onSubmit: (values) => {
         const deposits = _loadDeposits();
         deposits.push({
@@ -390,6 +391,7 @@ export function renderContent(ctx) {
           ]},
           { key: 'content', label: '批注内容', type: 'textarea', required: true, placeholder: '请输入批注内容...' }
         ],
+        submitLabel: '保存批注',
         onSubmit: (values) => {
           const updated = updateReviewById(reviewId, {
             reviewStatus: ReviewStatus.ANNOTATING,

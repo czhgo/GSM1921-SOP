@@ -12,21 +12,21 @@
 //   · 材料读取：`mockDB.imageRecords` / `loadAttendanceRecords` / `mockDB.inspections` / `loadActivityReviews`；
 //   · 归档写口：`services/core/mock.js::archiveActivity`（经 BranchService 暴露，与宣传台 / 支书台同源）；
 //   · 空态：`components/ui/empty-state.js`；浮窗：`components/ui/modal.js`；版本戳：`core/base/version-token.js`。
-import { renderSidebar } from '../../components/shell/sidebar.js?v=20261018s';
-import { renderHeader } from '../../components/shell/header.js?v=20261018s';
-import { BranchService } from '../../services/core/runtime.js?v=20261018s';
-import { mockDB, ReviewStatus } from '../../core/domain/domain.js?v=20261018s';
-import { loadAttendanceRecords } from '../../services/activity/attendance.js?v=20261018s';
-import { loadActivityReviews } from '../../services/governance/review.js?v=20261018s';
-import { AuthStore } from '../../services/core/auth.js?v=20261018s';
-import { isActivityArchived } from '../../core/domain/constants.js?v=20261018s';
-import { getBasePath, escHtml as esc, showToast } from '../../core/base/utils.js?v=20261018s';
-import { emptyStateHtml } from '../../components/ui/empty-state.js?v=20261018s';
-import { openModal, closeModal } from '../../components/ui/modal.js?v=20261018s';
-import { bumpToken } from '../../core/base/version-token.js?v=20261018s';
-import { hydrateDataSource, notifyDataLoaded } from '../../data/data-adapter.js?v=20261018s';
-import { ApiAdapter } from '../../data/api-adapter.js?v=20261018s';
-import { settleWrites } from '../../core/session/pending-writes.js?v=20261018s';
+import { renderSidebar } from '../../components/shell/sidebar.js?v=20261018t';
+import { renderHeader } from '../../components/shell/header.js?v=20261018t';
+import { BranchService } from '../../services/core/runtime.js?v=20261018t';
+import { mockDB, ReviewStatus } from '../../core/domain/domain.js?v=20261018t';
+import { loadAttendanceRecords } from '../../services/activity/attendance.js?v=20261018t';
+import { loadActivityReviews } from '../../services/governance/review.js?v=20261018t';
+import { AuthStore } from '../../services/core/auth.js?v=20261018t';
+import { isActivityArchived } from '../../core/domain/constants.js?v=20261018t';
+import { getBasePath, escHtml as esc, showToast } from '../../core/base/utils.js?v=20261018t';
+import { emptyStateHtml } from '../../components/ui/empty-state.js?v=20261018t';
+import { openModal, closeModal } from '../../components/ui/modal.js?v=20261018t';
+import { bumpToken } from '../../core/base/version-token.js?v=20261018t';
+import { hydrateDataSource, notifyDataLoaded } from '../../data/data-adapter.js?v=20261018t';
+import { ApiAdapter } from '../../data/api-adapter.js?v=20261018t';
+import { settleWrites } from '../../core/session/pending-writes.js?v=20261018t';
 
 renderSidebar('dashboard');
 renderHeader('dashboard');
@@ -111,24 +111,21 @@ function render() {
     <section class="mt-6" aria-labelledby="materials-list-title">
       <div class="flex items-center justify-between mb-2">
         <h3 id="materials-list-title" class="text-sm font-semibold text-gray-800">① 材料清单</h3>
-        <span class="text-xs text-gray-500">${hasAnyMaterial ? '按类核对，缺项直接去补充' : ''}</span>
+        <span class="text-xs text-gray-500">按类核对，缺项直接去补充</span>
       </div>
-      ${hasAnyMaterial ? `
-        <div class="space-y-2">
-          ${_materialRowHtml({ label: '宣传材料（照片）', count: photos.length, unit: '张', hint: '原图为主，含全景 + 特写', href: `${getBasePath()}workspace/prop.html?tab=archive` })}
-          ${_materialRowHtml({ label: '考勤', count: attendance.length, unit: '条', hint: '按会议类型由组织者 / 纪检上传', href: `${getBasePath()}workspace/disc.html?tab=attendance` })}
-          ${_materialRowHtml({ label: '考察', count: inspections.length, unit: '条', hint: '考察记录由该场组织者提交、纪检确认', href: `${getBasePath()}workspace/disc.html?tab=inspection` })}
-          ${_materialRowHtml({
-            label: '复盘',
-            count: reviews.length,
-            unit: '份',
-            hint: reviewReturned ? '复盘被退回，需组织者更新后重新提交' : '组织者提交；支委会可额外要求',
-            href: `${getBasePath()}workspace/visitor.html?tab=review`,
-            extra: reviewReturned ? '<span class="text-[11px] text-red-700">已退回</span>' : '',
-          })}
-        </div>` : emptyStateHtml('暂无材料', {
-          actionHtml: `<a class="btn-outline text-xs px-3 py-1.5" href="${getBasePath()}workspace/prop.html?tab=archive">去上传材料</a>`,
+      <div class="space-y-2">
+        ${_materialRowHtml({ label: '宣传材料（照片）', count: photos.length, unit: '张', hint: '原图为主，含全景 + 特写', href: `${getBasePath()}workspace/prop.html?tab=archive` })}
+        ${_materialRowHtml({ label: '考勤', count: attendance.length, unit: '条', hint: '按会议类型由组织者 / 纪检上传', href: `${getBasePath()}workspace/disc.html?tab=attendance` })}
+        ${_materialRowHtml({ label: '考察', count: inspections.length, unit: '条', hint: '考察记录由该场组织者提交、纪检确认', href: `${getBasePath()}workspace/disc.html?tab=inspection` })}
+        ${_materialRowHtml({
+          label: '复盘',
+          count: reviews.length,
+          unit: '份',
+          hint: reviewReturned ? '复盘被退回，需组织者更新后重新提交' : '组织者提交；支委会可额外要求',
+          href: `${getBasePath()}workspace/visitor.html?tab=review`,
+          extra: reviewReturned ? '<span class="text-[11px] text-red-700">已退回</span>' : '',
         })}
+      </div>
     </section>
 
     <section class="mt-6" aria-labelledby="materials-check-title">
@@ -166,13 +163,15 @@ function render() {
   document.getElementById('materials-archive-btn')?.addEventListener('click', () => _confirmArchive(act, { photos, attendance, inspections }));
 }
 
-/** 三步条（完成态 / 当前 / 待办） */
+/** 三步条（单调：已归档 ⇒ 三步全 done；否则 current = 第一个未完成项，done 之后不再出现 current） */
 function _stepperHtml(archived, coreReady, hasAnyMaterial) {
+  const doneFlags = archived ? [true, true, true] : [hasAnyMaterial, coreReady, false];
+  const currentIdx = doneFlags.indexOf(false); // -1 = 三步全完成
   const steps = [
-    { n: '①', label: '材料清单', state: hasAnyMaterial ? 'done' : 'current' },
-    { n: '②', label: '核对材料', state: coreReady ? 'done' : (hasAnyMaterial ? 'current' : 'pending') },
-    { n: '③', label: '提交归档', state: archived ? 'done' : (coreReady ? 'current' : 'pending') },
-  ];
+    { n: '①', label: '材料清单' },
+    { n: '②', label: '核对材料' },
+    { n: '③', label: '提交归档' },
+  ].map((s, i) => ({ ...s, state: doneFlags[i] ? 'done' : (i === currentIdx ? 'current' : 'pending') }));
   const cls = {
     done: 'bg-green-50 border-green-200 text-green-800',
     current: 'bg-[var(--app-accent-bg)] border-[var(--app-accent)] text-gray-800',

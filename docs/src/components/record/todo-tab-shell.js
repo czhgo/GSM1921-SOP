@@ -19,23 +19,22 @@
 // 视觉沿用 card/rounded 既有体系（四档列表渲染在 components/record/todo-list.js renderUrgencyTodoList）。
 // 设计权威源：content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md §六 M6（共性抽象净减）
 
-import { TodoStore, urgeRolesOf, WORK_DOMAIN, WORK_DOMAIN_LABELS, realtimeGroupDomainOf, buildModuleCycleRemindGroup } from '../../services/governance/todo.js?v=20261018s';
+import { TodoStore, urgeRolesOf, WORK_DOMAIN, WORK_DOMAIN_LABELS, realtimeGroupDomainOf, buildModuleCycleRemindGroup } from '../../services/governance/todo.js?v=20261018t';
 // S3②（2026-09-12）：未读通知计数单一来源——与顶栏角标/首页同源（NoticeStore activeOnly+read 过滤），
 // 不再用「通知类待办」现算（口径不同致三处不一致）。
-import { NoticeStore, NOTICE_MODULE_ROLE_PAGES } from '../../services/governance/notice.js?v=20261018s';
-import { buildUrgencySections, renderUrgencyTodoList } from './todo-list.js?v=20261018s';
-import { badgeHtml } from '../ui/badges.js?v=20261018s';
-import { showToast, escHtml, todayLocal } from '../../core/base/utils.js?v=20261018s';
-import { ROLE_LABELS, BRANCH_COMMISSION_ROLES } from '../../core/domain/constants.js?v=20261018s';
-import { openModal, closeModal } from '../ui/modal.js?v=20261018s';
-import { AuthStore } from '../../services/core/auth.js?v=20261018s';
-import { mockDB } from '../../core/domain/domain.js?v=20261018s';
-import { tokenOf } from '../../core/base/version-token.js?v=20261018s'; // P0 域写版本戳（spec §二.4）
-import { resolveDocumentUrl } from '../../core/base/page-url.js?v=20261018s';
-import { memoizeRender } from '../ui/memoize-render.js?v=20261018s'; // P2 渲染守卫（spec §四.1）
-import { renderTabHeader } from '../shell/page-frame.js?v=20261018s';
+import { NoticeStore, NOTICE_MODULE_ROLE_PAGES } from '../../services/governance/notice.js?v=20261018t';
+import { buildUrgencySections, renderUrgencyTodoList } from './todo-list.js?v=20261018t';
+import { badgeHtml } from '../ui/badges.js?v=20261018t';
+import { showToast, escHtml, todayLocal } from '../../core/base/utils.js?v=20261018t';
+import { ROLE_LABELS, BRANCH_COMMISSION_ROLES } from '../../core/domain/constants.js?v=20261018t';
+import { openModal, closeModal } from '../ui/modal.js?v=20261018t';
+import { AuthStore } from '../../services/core/auth.js?v=20261018t';
+import { mockDB } from '../../core/domain/domain.js?v=20261018t';
+import { tokenOf } from '../../core/base/version-token.js?v=20261018t'; // P0 域写版本戳（spec §二.4）
+import { resolveDocumentUrl } from '../../core/base/page-url.js?v=20261018t';
+import { memoizeRender } from '../ui/memoize-render.js?v=20261018t'; // P2 渲染守卫（spec §四.1）
 // 模块周期提醒（`R-29⑤` · `D-804`）：分工快照取法与 `components/governance/workforce-duty-card.js` 同口径
-import { getBranchIdOfPerson, getBranchWorkforce } from '../../services/branch/branch.js?v=20261018s';
+import { getBranchIdOfPerson, getBranchWorkforce } from '../../services/branch/branch.js?v=20261018t';
 
 // ── P0 组合数据复合键（2026-09-07 · spec §二.4）──────────────────
 // 组合点（buildRealtimeGroups + mergeRealtimeDomains + getUnreadNotices）以
@@ -206,11 +205,11 @@ export function createTodoTab(opts) {
     const row = '<div class="h-9 rounded-lg bg-gray-100 animate-pulse"></div>';
     return `
       <div data-ws-todo-skeleton class="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <div class="lg:col-span-2 card rounded-xl p-5" style="min-height:340px;">
+        <div class="lg:col-span-2 order-last lg:order-none card rounded-xl p-5" style="min-height:340px;">
           <div class="h-4 w-20 rounded bg-gray-100 animate-pulse mb-4"></div>
           <div class="space-y-2.5">${row}${row}${row}${row}${row}</div>
         </div>
-        <div class="lg:col-span-1 card rounded-xl p-5" style="min-height:220px;">
+        <div class="lg:col-span-1 order-first lg:order-none card rounded-xl p-5" style="min-height:220px;">
           <div class="h-4 w-12 rounded bg-gray-100 animate-pulse mb-4"></div>
           <div class="h-24 rounded-lg bg-gray-100 animate-pulse"></div>
         </div>
@@ -347,6 +346,13 @@ export function createTodoTab(opts) {
       </details>`;
   }
 
+  /** 窄屏选中待办后把详情卡滚入视野（详情列在 <lg 时 order-first，选中即见详情） */
+  function _scrollDetailIntoView() {
+    document.getElementById(containerId)
+      ?.querySelector('[data-ws-todo-detail]')
+      ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
   async function renderContent(ctx) {
     const container = document.getElementById(containerId);
     if (!container) return;
@@ -460,7 +466,7 @@ export function createTodoTab(opts) {
         selectedTodoId: _selectedTodoId,
         onSelectTodo: (todo) => {
           _selectedTodoId = todo.groupKey || todo.id;
-          renderContent(ctx);
+          renderContent(ctx).then(_scrollDetailIntoView);
         },
         onActionTodo: (todo) => {
           onAction(todo, ctx);
@@ -481,16 +487,15 @@ export function createTodoTab(opts) {
         ? (renderDetail ? renderDetail(selectedTodo, ctx) : _renderTodoDetail(selectedTodo, ctx))
         : `
           <div class="text-center py-12 text-gray-500">
-            <p class="text-sm">点击左侧待办查看详情</p>
+            <p class="text-sm">选择一条待办查看详情</p>
             <p class="text-xs mt-1">${emptyHint}</p>
           </div>
         `;
 
       container.innerHTML = `
-        ${renderTabHeader({ title: '待办' })}
         ${stripHtml}
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-4" data-ws-memo="todo-shell">
-          <div class="lg:col-span-2">
+          <div class="lg:col-span-2 order-last lg:order-none">
             <div class="card rounded-xl p-5 card--static">
               <div class="flex items-center justify-between mb-4">
                 <h3 class="font-title-cn text-base font-semibold text-gray-800">我的待办</h3>
@@ -499,8 +504,8 @@ export function createTodoTab(opts) {
               ${listHtml}
             </div>
           </div>
-          <div class="lg:col-span-1">
-            <div class="card rounded-xl p-5 sticky top-20 card--static">
+          <div class="lg:col-span-1 order-first lg:order-none">
+            <div class="card rounded-xl p-5 sticky top-20 card--static" data-ws-todo-detail aria-live="polite">
               <h3 class="font-title-cn text-base font-semibold text-gray-800 mb-4">${detailTitle}</h3>
               ${detailHtml}
             </div>

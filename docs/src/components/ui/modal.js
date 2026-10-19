@@ -5,6 +5,8 @@
 //  设计原则：点击按钮→弹出浮窗→在浮窗中完成写入→关闭浮窗
 //  页面保持清爽，所有表单/编辑器都在浮窗中完成
 
+import { escHtml } from '../../core/base/utils.js?v=20261018t';
+
 // 2026-09-13 修复（成员档案模态走查暴露）：Esc 监听原只在「按 Esc 关闭」这一条路径上注销，
 // 走遮罩点击/关闭按钮/程序化 closeModal 关闭时监听残留 → 反复打开同一 id 浮窗会累积 keydown
 // 监听（内存泄漏 + 多次无谓 closeModal）。现改为**按 id 登记**，closeModal 统一注销（全路径覆盖）。
@@ -90,17 +92,24 @@ function _releaseInert(id) {
 //   不必复制一份 HTML（避免"同一段标记两处各写一套"）。文案与样式与批次 99 手写那条逐字同款。
 export function settingsLinkHTML(settingsLink) {
   return settingsLink
-    ? `<div class="modal-settings-link" style="padding:10px 20px;border-top:1px solid var(--neutral-200);font-size:0.72rem;line-height:1.7;color:var(--neutral-500);">相关设置：<a href="${settingsLink.href}" style="color:var(--app-accent);text-decoration:underline;">${settingsLink.text}</a></div>`
+    ? `<div class="modal-settings-link" style="padding:10px 20px;border-top:1px solid var(--neutral-200);font-size:0.72rem;line-height:1.7;color:var(--neutral-500);">相关设置：<a href="${escHtml(settingsLink.href)}" style="color:var(--app-accent-text);text-decoration:underline;">${escHtml(settingsLink.text)}</a></div>`
     : '';
 }
 
 export function openModal({ id, title, bodyHtml, onMount, width = '480px', accentColor = 'var(--accent-blue)', settingsLink = null, dismissable = true }) {
   // 关闭已有同 id 浮窗
   closeModal(id);
+  // 上一个同 id 浮窗可能还在 150ms 淡出中：立刻摘掉它，避免与新浮窗同 id 并存
+  let stale = document.getElementById(`modal-overlay-${id}`);
+  while (stale) {
+    stale.remove();
+    stale = document.getElementById(`modal-overlay-${id}`);
+  }
 
   // 打开前的焦点位置：关闭时还给它（键盘用户不再被丢回页面开头）
   const opener = document.activeElement;
   const titleId = `modal-title-${id}`;
+  const safeTitle = escHtml(title);
 
   const overlay = document.createElement('div');
   overlay.id = `modal-overlay-${id}`;
@@ -123,7 +132,7 @@ export function openModal({ id, title, bodyHtml, onMount, width = '480px', accen
 
   panel.innerHTML = `
     <div style="padding:16px 20px;border-bottom:1px solid var(--neutral-200);display:flex;align-items:center;justify-content:space-between;">
-      <h3 id="${titleId}" class="font-title-cn text-sm font-semibold text-gray-800">${title}</h3>
+      <h3 id="${titleId}" class="font-title-cn text-sm font-semibold text-gray-800">${safeTitle}</h3>
       ${closeBtnHTML}
     </div>
     <div class="modal-body" style="padding:20px;overflow-y:auto;flex:1;">
@@ -185,7 +194,21 @@ export function closeModal(id) {
     _escHandlers.delete(id);
   }
   const overlay = document.getElementById(`modal-overlay-${id}`);
-  if (overlay) overlay.remove();
+  if (overlay && !overlay.dataset.closing) {
+    overlay.dataset.closing = '1';
+    // 先淡出再把节点摘掉（150ms；尊重 prefers-reduced-motion）。inert 还原与焦点回还**立即执行**，
+    // 不随淡出延后——键盘用户按 Esc 后应马上回到打开它的元素。
+    const reduced = typeof window !== 'undefined'
+      && typeof window.matchMedia === 'function'
+      && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduced) {
+      overlay.remove();
+    } else {
+      overlay.style.transition = 'opacity 0.15s ease';
+      overlay.style.opacity = '0';
+      setTimeout(() => overlay.remove(), 150);
+    }
+  }
   _releaseInert(id); // 还原背景 inert + 焦点还给打开它的元素（无浮窗时是空操作）
 }
 
@@ -196,31 +219,40 @@ export function closeModal(id) {
  * @param {string} options.title - 标题
  * @param {Array} options.fields - 字段定义 [{key, label, type, placeholder, required, options}]
  * @param {Function} options.onSubmit - 提交回调，参数为字段值对象
- * @param {string} [options.submitLabel='提交'] - 提交按钮文字
+ * @param {string} [options.submitLabel='保存'] - 提交按钮文字
  * @param {string} [options.accentColor] - 强调色
  * @param {Object} [options.initialValues] - 初始值（编辑模式）
  * @param {{href:string,text:string}} [options.settingsLink] - 页脚「设置」入口（透传 openModal，可选）
  */
-export function openFormModal({ id, title, fields, onSubmit, submitLabel = '提交', accentColor = 'var(--accent-blue)', initialValues = {}, settingsLink = null }) {
-  const fieldsHtml = fields.map(f => {
-    const val = initialValues[f.key] || '';
-    const req = f.required ? '<span style="--acc-text-dark:#F87171;color:var(--functional-error);">*</span>' : '';
+export function openFormModal({ id, title, fields, onSubmit, submitLabel = '保存', accentColor = 'var(--accent-blue)', initialValues = {}, settingsLink = null }) {
+  const labelStyle = '--acc-text-dark:#CBD5E1;display:block;font-weight:500;color:var(--neutral-700);margin-bottom:4px;';
+  const controlStyle = '--acc-text-dark:#CBD5E1;color:var(--neutral-700);';
+  const fieldId = (key) => `${id}-${key}`;
+  const errorHtml = (fid, key) =>
+    `<p class="text-xs text-red-600 mt-1" id="${escHtml(fid)}-err" data-field-error="${escHtml(key)}" hidden></p>`;
+
+  const fieldsHtml = fields.map((f) => {
+    const val = initialValues[f.key] != null ? initialValues[f.key] : '';
+    const fid = fieldId(f.key);
+    const reqMark = f.required ? '<span style="--acc-text-dark:#F87171;color:var(--functional-error);">*</span>' : '';
+    const requiredAttr = f.required ? ' required aria-required="true"' : '';
+    const label = `<label for="${escHtml(fid)}" style="${labelStyle}" class="text-body-sm">${escHtml(f.label)}${reqMark}</label>`;
     if (f.type === 'select') {
-      const opts = (f.options || []).map(o => `<option value="${o.value}" ${val === o.value ? 'selected' : ''}>${o.label}</option>`).join('');
-      return `<div style="margin-bottom:14px;"><label style="--acc-text-dark:#CBD5E1;display:block;font-weight:500;color:var(--neutral-700);margin-bottom:4px;" class="text-body-sm">${f.label}${req}</label><select data-field="${f.key}" class="input-flat w-full">${opts}</select></div>`;
+      const opts = (f.options || []).map((o) => `<option value="${escHtml(o.value)}" ${String(val) === String(o.value) ? 'selected' : ''}>${escHtml(o.label)}</option>`).join('');
+      return `<div style="margin-bottom:14px;">${label}<select id="${escHtml(fid)}" data-field="${escHtml(f.key)}" class="input-flat w-full"${requiredAttr}>${opts}</select>${errorHtml(fid, f.key)}</div>`;
     }
     if (f.type === 'textarea') {
-      return `<div style="margin-bottom:14px;"><label style="--acc-text-dark:#CBD5E1;display:block;font-weight:500;color:var(--neutral-700);margin-bottom:4px;" class="text-body-sm">${f.label}${req}</label><textarea data-field="${f.key}" rows="3" placeholder="${f.placeholder || ''}" class="input-flat-sm w-full" style="--acc-text-dark:#CBD5E1;color:var(--neutral-700);resize:vertical;">${val}</textarea></div>`;
+      return `<div style="margin-bottom:14px;">${label}<textarea id="${escHtml(fid)}" data-field="${escHtml(f.key)}" rows="3" placeholder="${escHtml(f.placeholder || '')}" class="input-flat-sm w-full" style="${controlStyle}resize:vertical;"${requiredAttr}>${escHtml(val)}</textarea>${errorHtml(fid, f.key)}</div>`;
     }
-    return `<div style="margin-bottom:14px;"><label style="--acc-text-dark:#CBD5E1;display:block;font-weight:500;color:var(--neutral-700);margin-bottom:4px;" class="text-body-sm">${f.label}${req}</label><input data-field="${f.key}" type="${f.type || 'text'}" value="${val}" placeholder="${f.placeholder || ''}" class="input-flat-sm w-full" style="--acc-text-dark:#CBD5E1;color:var(--neutral-700);" /></div>`;
+    return `<div style="margin-bottom:14px;">${label}<input id="${escHtml(fid)}" data-field="${escHtml(f.key)}" type="${escHtml(f.type || 'text')}" value="${escHtml(val)}" placeholder="${escHtml(f.placeholder || '')}" class="input-flat-sm w-full" style="${controlStyle}"${requiredAttr} />${errorHtml(fid, f.key)}</div>`;
   }).join('');
 
   const bodyHtml = `
-    <form data-modal-form="${id}">
+    <form data-modal-form="${escHtml(id)}">
       ${fieldsHtml}
       <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:20px;">
-        <button type="button" data-modal-cancel="${id}" class="btn-outline text-xs px-3 py-1.5" style="cursor:pointer;">取消</button>
-        <button type="submit" class="btn-accent text-sm px-4 py-[7px] font-medium">${submitLabel}</button>
+        <button type="button" data-modal-cancel="${escHtml(id)}" class="btn-outline text-xs px-3 py-1.5" style="cursor:pointer;">取消</button>
+        <button type="submit" class="btn-accent text-sm px-4 py-[7px] font-medium">${escHtml(submitLabel)}</button>
       </div>
     </form>
   `;
@@ -233,17 +265,55 @@ export function openFormModal({ id, title, fields, onSubmit, submitLabel = '提�
     accentColor,
     settingsLink,
     onMount: (panel) => {
+      const fieldEl = (key) => Array.from(panel.querySelectorAll('[data-field]')).find((el) => el.dataset.field === key);
+      const errorEl = (key) => Array.from(panel.querySelectorAll('[data-field-error]')).find((el) => el.dataset.fieldError === key);
+      const clearErrors = () => {
+        panel.querySelectorAll('[data-field-error]').forEach((el) => {
+          el.innerHTML = '';
+          el.hidden = true;
+        });
+        panel.querySelectorAll('[data-field]').forEach((el) => {
+          el.removeAttribute('aria-invalid');
+          const described = el.getAttribute('aria-describedby') || '';
+          if (described.endsWith('-err')) el.removeAttribute('aria-describedby');
+        });
+      };
+      /** 渲染字段错误行（aria-invalid / aria-describedby）并聚焦首个错误字段 */
+      const showErrors = (errors) => {
+        let firstControl = null;
+        Object.entries(errors || {}).forEach(([key, raw]) => {
+          const msg = String(raw == null ? '' : raw).trim();
+          if (!msg) return;
+          const control = fieldEl(key);
+          const errEl = errorEl(key);
+          if (!control) return;
+          if (errEl) {
+            errEl.innerHTML = escHtml(msg);
+            errEl.hidden = false;
+          }
+          control.setAttribute('aria-invalid', 'true');
+          if (errEl) control.setAttribute('aria-describedby', errEl.id);
+          if (!firstControl) firstControl = control;
+        });
+        firstControl?.focus();
+      };
+
       // 取消按钮
       panel.querySelector(`[data-modal-cancel="${id}"]`)?.addEventListener('click', () => closeModal(id));
       // 提交
       panel.querySelector(`[data-modal-form="${id}"]`)?.addEventListener('submit', (e) => {
         e.preventDefault();
+        clearErrors();
         const values = {};
-        panel.querySelectorAll('[data-field]').forEach(el => {
+        panel.querySelectorAll('[data-field]').forEach((el) => {
           values[el.dataset.field] = el.value;
         });
         const result = onSubmit(values);
         if (result === false) return; // onSubmit 返回 false 表示验证失败，不关闭浮窗
+        if (result && result.ok === false) {
+          showErrors(result.errors);
+          return;
+        }
         closeModal(id);
       });
     }
@@ -270,18 +340,22 @@ export function openFormModal({ id, title, fields, onSubmit, submitLabel = '提�
 export const NUDGE_TEXTS = {
   'activity-write': {
     who: '党小组组长',
+    verb: '写入',
     why: '支部的活动由各党小组组长写入——写入时同时指定本次活动的组织者，本场的任务与通知发布随该指定归到组织者。支书 / 副支书也可以写入，但一般不由其代办。',
   },
   'inspection-upload': {
     who: '该场活动的组织者',
+    verb: '上传',
     why: '考察记录由该场活动的组织者上传——谁组织这场，谁上传本场材料；上传后交纪检委员确认。',
   },
   'attendance-upload': {
     who: '该场活动的组织者',
+    verb: '上传',
     why: '考勤由该场活动的组织者上传（党课 / 支部党员大会的上传位在纪检委员），上传后交纪检委员确认。',
   },
   'taskforce-upload': {
     who: '该专班的组织者',
+    verb: '上传',
     why: '专班的材料与考察由该专班承担人（组织者）提交；组织委员负责建档与汇总，一般不直接录原始数据。',
   },
   // 2026-09-27 增设（支书裁定「两处都加」）——另两处「可介入但一般不越俎代庖」位的本位口径（业务语言，
@@ -292,18 +366,22 @@ export const NUDGE_TEXTS = {
   //   三个情景里都可介入））。
   'todo-urge': {
     who: '组织委员',
+    verb: '催办',
     why: '材料的催缴与审核督办归组织委员——支书也有权催办，但一般不越俎代庖（本条属例外操作）。',
   },
   'assign-leader': {
     who: '支书 / 副支书',
+    verb: '赋权',
     why: '常设赋权（设党小组组长 / 配置支委身份）由支书、副支书写入（副书同权）——一把手层身份归党委，其余归支书 / 副支书。',
   },
   'assign-activity': {
     who: '党小组组长',
+    verb: '赋权',
     why: '活动项目赋权由党小组组长写入（办活动即党小组承办）——支书在三个赋权情景里都可介入，但一般不由其代办。',
   },
   'assign-taskforce': {
     who: '组织委员',
+    verb: '赋权',
     why: '专班赋权由组织委员写入（专班招募统筹收口）——支书可介入，但一般不由其代办。',
   },
 };
@@ -384,15 +462,16 @@ function _noGrantNoteHtml(subject, context = '') {
  * @returns {Promise<boolean>} true＝仍由我继续；false＝取消
  */
 export function confirmNudge({ nudgeKey, who, why, context = '', noGrant = null }) {
-  const text = NUDGE_TEXTS[nudgeKey] || { who: '本位承担人', why: '' };
+  const text = NUDGE_TEXTS[nudgeKey] || { who: '本位承担人', verb: '办理', why: '' };
   const whoText = who || text.who;
+  const verbText = text.verb || '办理';
   const whyText = why || text.why;
   const grantNote = noGrant ? _noGrantNoteHtml(noGrant.subject || '活动', noGrant.context || '') : '';
   return _mustPressConfirm({
     id: `nudge-${nudgeKey}`,
-    title: `本步一般由${whoText}写入`,
+    title: `本步一般由${_nudgeEsc(whoText)}${_nudgeEsc(verbText)}`,
     bodyHtml: `
-        <p style="margin:0;font-size:0.8rem;line-height:1.75;color:var(--neutral-700);">${context ? `本场（${_nudgeEsc(context)}）` : '这一步'}一般由<b>${_nudgeEsc(whoText)}</b>写入。${_nudgeEsc(whyText)}</p>${grantNote}
+        <p style="margin:0;font-size:0.8rem;line-height:1.75;color:var(--neutral-700);">${context ? `本场（${_nudgeEsc(context)}）` : '这一步'}一般由<b>${_nudgeEsc(whoText)}</b>${_nudgeEsc(verbText)}。${_nudgeEsc(whyText)}</p>${grantNote}
         <p style="margin:10px 0 0;font-size:0.72rem;line-height:1.7;color:var(--neutral-500);">确需由您经办时，点「仍由我继续」即可——这只表示本次按例外办法办，不改动任何权限。</p>`,
     onPanel: (panel) => { panel.dataset.nudgeKey = nudgeKey; }, // 统计 / 测试锚定（`#modal-overlay-nudge-<key>` 亦可定位）
   });

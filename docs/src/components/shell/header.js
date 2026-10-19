@@ -3,17 +3,17 @@
 // 变化: 去掉 mode 标签与只读视角切换；2026-08-10 支书裁定（原则12 工作台集成制）：
 // 「切换工作台」下拉为冗余要素（每个人就是每个人，任务集成在工作台，跨台经待办/通知直达）→ 删除
 
-import { getAccentColors, ROLE_LABELS, relativeLuminance } from '../../core/domain/constants.js?v=20261018s';
+import { getAccentColors, ROLE_LABELS, relativeLuminance } from '../../core/domain/constants.js?v=20261018t';
 // R1-A 点⑤（2026-09-09）：身份标签取色走 person-aware 解析（登录 person 覆盖 / 访客全局键 / 角色默认），
 // 替代 constants resolveAccentRole（只读全局键=旧残留/默认）——支书改强调色后 header 角色标签同金。
-import { resolveAppliedAccentRole } from '../../core/boot/theme.js?v=20261018s';
-import { getBasePath } from '../../core/base/utils.js?v=20261018s';
-import { icon } from '../../core/base/icons.js?v=20261018s';
-import { DATA_CHANGED_EVENT, DATA_LOADED_EVENT } from '../../data/data-adapter.js?v=20261018s';
-import { badgeHtml } from '../ui/badges.js?v=20261018s';
-import { readLoginSnapshot } from '../../core/session/login-snapshot.js?v=20261018s';
+import { resolveAppliedAccentRole } from '../../core/boot/theme.js?v=20261018t';
+import { getBasePath } from '../../core/base/utils.js?v=20261018t';
+import { icon } from '../../core/base/icons.js?v=20261018t';
+import { DATA_CHANGED_EVENT, DATA_LOADED_EVENT } from '../../data/data-adapter.js?v=20261018t';
+import { badgeHtml } from '../ui/badges.js?v=20261018t';
+import { readLoginSnapshot } from '../../core/session/login-snapshot.js?v=20261018t';
 // P1 党委后台（2026-09-02）：header 品牌软编码——标题随支部配置档案更换（person→branchId→branches.config.headerTitle）
-import { getHeaderTitle } from '../../services/branch/branch.js?v=20261018s';
+import { getHeaderTitle } from '../../services/branch/branch.js?v=20261018t';
 
 // ── 数据层按需加载（静态页隔离，2026-08-12）──
 // about/help 等纯静态文档页以 staticShell 渲染 header：不加载 auth/notice 数据链
@@ -22,18 +22,18 @@ import { getHeaderTitle } from '../../services/branch/branch.js?v=20261018s';
 let _authModule = null;
 let _noticeModule = null;
 function loadAuth() {
-  if (!_authModule) _authModule = import('../../services/core/auth.js?v=20261018s');
+  if (!_authModule) _authModule = import('../../services/core/auth.js?v=20261018t');
   return _authModule;
 }
 function loadNotice() {
-  if (!_noticeModule) _noticeModule = import('../../services/governance/notice.js?v=20261018s');
+  if (!_noticeModule) _noticeModule = import('../../services/governance/notice.js?v=20261018t');
   return _noticeModule;
 }
 // 2026-09-30 批次 297-2：跨台通用动作「一键汇报」收进顶栏唯一固定位 ⇒ 顶栏按需加载其入口模块
 // （与 auth / notice 同一策略：静态壳页不加载，app 模式渲染后加载，模块缓存后即时）
 let _reportEntryModule = null;
 function loadReportEntry() {
-  if (!_reportEntryModule) _reportEntryModule = import('../record/report-entry.js?v=20261018s');
+  if (!_reportEntryModule) _reportEntryModule = import('../record/report-entry.js?v=20261018t');
   return _reportEntryModule;
 }
 
@@ -141,6 +141,8 @@ async function _renderNotificationBadge() {
   // 只统计未过期的未读通知，与 index 首页通知栏数据一致
   const activeNotices = NoticeStore.list(_noticeListFilter({ activeOnly: true }));
   const unread = activeNotices.filter(n => !n.read).length;
+  // R3-F02：铃铛可访问名称随未读数动态播报（视觉角标仍保留）。
+  document.getElementById('notif-btn')?.setAttribute('aria-label', unread > 0 ? `通知，${unread} 条未读` : '通知');
   if (unread > 0) {
     const badge = document.createElement('span');
     badge.id = 'notif-badge';
@@ -430,6 +432,8 @@ function _bindNotificationBell(header) {
           open();
         });
         item.addEventListener('keydown', (ev) => {
+          // R3-F02：条目内嵌「已读」按钮时，键盘事件不得冒泡触发整条跳转。
+          if (ev.target.closest('button,a,input,textarea,select')) return;
           if (ev.key === 'Enter' || ev.key === ' ' || ev.key === 'Spacebar') {
             ev.preventDefault();
             ev.stopPropagation();

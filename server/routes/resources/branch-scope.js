@@ -1,4 +1,5 @@
 import { POLICY_DEFAULTS } from '../../../docs/src/core/domain/policy-defaults.js';
+import { isBranchPendingUser } from '../../../docs/src/core/domain/constants.js';
 
 const PARTY_STAFF = 'party-staff';
 const DEFAULT_BRANCH = 'br-b1';
@@ -60,7 +61,23 @@ function projectBranchDirectoryRow(db, row, selectedBranchId) {
 
 export function actorBranchId(actor) {
   if (!actor || actor.role === PARTY_STAFF) return null;
+  // 显式 null = IAAA 建号后尚未经支部确认（待归属）；**不得**回落默认支部。
+  // 只有历史缺字段（undefined）才按存量口径回落 br-b1。
+  if (actor.branchId === null) return null;
   return actor.branchId || DEFAULT_BRANCH;
+}
+
+/**
+ * 资源路由的支部归属门（R4-B02）：非党委账号且 branchId 显式为 null ⇒ 一律 403。
+ * IAAA 的选支部/待确认端点挂在独立 router（/auth/iaaa），不经过本中间件。
+ */
+export function requireAssignedBranch() {
+  return (req, res, next) => {
+    if (isBranchPendingUser(req.actor)) {
+      return res.status(403).json({ error: '无权限：账号尚未归属支部，请先选择支部并等待支部确认' });
+    }
+    next();
+  };
 }
 
 export function branchSelectionError(actor, requestedBranchId) {
@@ -287,7 +304,12 @@ export function mergeScopedSnapshotWrites(db, writes, actor) {
       return { ...write, rows: [{ ...root, ...nextRoot, body: { ...retained, ...(nextRoot.body || {}) } }] };
     }
     const retained = current.filter((row) => resourceBranchId(db, name, row) !== own);
-    const scoped = rows.map((row) => ({ ...row, branchId: row.branchId || own }));
+    // 存量行保持原样（不额外补 branchId）：否则首次正常保存会把整集合标成「已修改」，
+    // 令逐行写门把历史行（如「支委会不考勤」的旧考勤）重新校验并误拒。新建行才归当前支部。
+    const existingIds = new Set(current.map((row) => String(row.id)));
+    const scoped = rows.map((row) => (existingIds.has(String(row.id))
+      ? row
+      : { ...row, branchId: row.branchId || own }));
     return { ...write, rows: [...retained, ...scoped] };
   });
 }

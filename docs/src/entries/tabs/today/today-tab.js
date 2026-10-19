@@ -32,43 +32,43 @@
 // 注入防护：标题/内容/截止等用户可控数据一律经 escHtml 后入 innerHTML。
 // ════════════════════════════════════════════════════════════════
 
-import { escHtml as esc, _fmtDate } from '../../../core/base/utils.js?v=20261018s';
-import { icon } from '../../../core/base/icons.js?v=20261018s';
-import { buildTodaySummary, TODO_ACTION_ORDER, TODO_ACTION_LABELS } from '../../../services/governance/today-summary.js?v=20261018s';
+import { escHtml as esc, _fmtDate } from '../../../core/base/utils.js?v=20261018t';
+import { icon } from '../../../core/base/icons.js?v=20261018t';
+import { buildTodaySummary, TODO_ACTION_ORDER, TODO_ACTION_LABELS } from '../../../services/governance/today-summary.js?v=20261018t';
 // 批次 47-I（Q-23-41 ②，支书 2026-09-15 裁定）：本组组员进展**由服务端汇总**——
 // api 态打服务端汇总接口、mock 态调同一纯函数（单一入口 `loadMemberProgress`）。
-import { loadMemberProgress } from '../../../services/member/member-progress.js?v=20261018s';
-import { resolveVisibleTargets } from '../../../services/core/visibility.js?v=20261018s';
-import { mockDB } from '../../../core/domain/domain.js?v=20261018s';
-import { tokenOf } from '../../../core/base/version-token.js?v=20261018s'; // P0 域写版本戳（spec §二.4）
-import { RESIDENCE_KEY } from '../../../services/member/roster.js?v=20261018s'; // 滞留覆盖 raw 源（roster 禁改不内改）
-import { PREVIEW_KEY } from '../../../services/branch/org-base-data-preview.js?v=20261018s'; // 基础数据预览 raw 源
-import { memoizeRender } from '../../../components/ui/memoize-render.js?v=20261018s'; // P2 渲染守卫（spec §四.1）
+import { loadMemberProgress } from '../../../services/member/member-progress.js?v=20261018t';
+import { resolveVisibleTargets } from '../../../services/core/visibility.js?v=20261018t';
+import { mockDB } from '../../../core/domain/domain.js?v=20261018t';
+import { tokenOf } from '../../../core/base/version-token.js?v=20261018t'; // P0 域写版本戳（spec §二.4）
+import { RESIDENCE_KEY } from '../../../services/member/roster.js?v=20261018t'; // 滞留覆盖 raw 源（roster 禁改不内改）
+import { PREVIEW_KEY } from '../../../services/branch/org-base-data-preview.js?v=20261018t'; // 基础数据预览 raw 源
+import { memoizeRender } from '../../../components/ui/memoize-render.js?v=20261018t'; // P2 渲染守卫（spec §四.1）
 // 批4（2026-09-09 支书批「域参数」）：组长学期组员进展归集提醒开关（读侧注入后 = 当前支部有效默认）
-import { POLICY_DEFAULTS } from '../../../core/domain/policy-defaults.js?v=20261018s';
+import { POLICY_DEFAULTS } from '../../../core/domain/policy-defaults.js?v=20261018t';
 // 批次 299「待我处理」两源——**单一源复用**，不另立取数口径：
 //   · 未读通知 ＝ 顶栏铃铛同一取数（NoticeStore.list retention:'visible'）＋ 同一跳转解析（resolveNoticeUrl）
 //   · 待处理汇报 ＝ 顶栏「一键汇报」角标同一集合（IssueNotify.getUnread(我)）
-import { NoticeStore, resolveNoticeUrl } from '../../../services/governance/notice.js?v=20261018s';
-import { IssueStore, IssueNotify } from '../../../services/governance/issues.js?v=20261018s';
+import { NoticeStore, resolveNoticeUrl } from '../../../services/governance/notice.js?v=20261018t';
+import { IssueStore, IssueNotify } from '../../../services/governance/issues.js?v=20261018t';
 // 批次 304「待我表态」三件——**判据与读口皆单一源**，不在本文件重写投票规则：
 //   · 我是否应到表决人 ＝ `vote-config.js::isVoterOf`（角色无关，只看固化名单）
 //   · 我是否已对某议程项表态 ＝ `committee-vote.js::hasVoted`
 //   · 当前登录人 ＝ `AuthStore.getCurrentUser()`
-import { AuthStore } from '../../../services/core/auth.js?v=20261018s';
-import { isVoterOf } from '../../../services/activity/vote-config.js?v=20261018s';
-import { hasVoted } from '../../../services/activity/committee-vote.js?v=20261018s';
+import { AuthStore } from '../../../services/core/auth.js?v=20261018t';
+import { isVoterOf } from '../../../services/activity/vote-config.js?v=20261018t';
+import { hasVoted } from '../../../services/activity/committee-vote.js?v=20261018t';
 // 活动类型胶囊（批次 301）：变体判据＝单一源 `activityTypeBadgeVariant`（三会一课＝brand 红 / 主题党日＝gold 金），
 //   渲染唯一源＝`components/ui/badge.js`；**本文件不手写类型色值**。
-import { activityTypeBadgeVariant, WORK_DOMAIN_COLORS, accDarkVars } from '../../../core/domain/constants.js?v=20261018s';
-import { resolveDocumentUrl } from '../../../core/base/page-url.js?v=20261018s';
+import { activityTypeBadgeVariant, WORK_DOMAIN_COLORS, accDarkVars } from '../../../core/domain/constants.js?v=20261018t';
+import { resolveDocumentUrl } from '../../../core/base/page-url.js?v=20261018t';
 // 徽章扎口出口（2026-09-30 批次 304 改准）：`components/ui/badges.js` 是**唯一调用口**
 //   （其文件头明写「调用方一律 import badges.js；内部实现文件 badge.js / status-badge.js 可各自演进」）；
 //   批次 301 我直连了实现文件 `badge.js` ⇒ 本批收回归口，**零行为变化**。
-import { badgeHtml } from '../../../components/ui/badges.js?v=20261018s';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20261018t';
 // 2026-10-18 繁专项 Task 7：汇报类行统一落到待办「待答复」收件箱（PendingTarget 一次性定位）。
 // 提交入口只在「我的处置」；今天页只读、不重复提供提交位。
-import { PendingTarget } from '../../../core/session/pending-target.js?v=20261018s';
+import { PendingTarget } from '../../../core/session/pending-target.js?v=20261018t';
 
 // 工作台主题色走 CSS 变量（各台 bootstrap 已按 accent 注入；缺省兜底党建红），同 overview/统计卡用法
 const ACCENT = 'var(--app-accent)';
@@ -576,12 +576,14 @@ export function renderTodayTab(container, { personId, role, onNav, onCreateActiv
   // P2 渲染守卫：数据键未变且现 DOM 为上次真实产物 → 整卡保留（跳过 buildTodaySummary
   // 全链重算与 HTML/DOM 重建）。未命中 → 执行 render（重建路径，行为与改造前一致）。
   memoizeRender(container, _todayMemoKey(personId, role), () => {
-    // 实时聚合；异常不崩页：console.warn + 空态兜底
+    // 实时聚合；异常不崩页：保留卡头与骨架，卡内显式错误态（R3-U08：不得把失败伪装成「今天暂无」）
     let summary;
+    let summaryError = false;
     try {
       summary = buildTodaySummary({ personId, role });
     } catch (err) {
-      console.warn('[today-tab] buildTodaySummary 失败，已渲染空态：', err);
+      console.warn('[today-tab] buildTodaySummary 失败，已渲染错误态：', err);
+      summaryError = true;
       summary = { date: '', hasMeeting: [], overdue: [], dueToday: [], myDuties: [], upcoming: [] };
     }
     const dateLabel = _dateLabel(summary.date) || _dateLabel(_fmtDate(new Date()));
@@ -602,7 +604,18 @@ export function renderTodayTab(container, { personId, role, onNav, onCreateActiv
     //   ⚠ 「全部 ›」留在**卡标题行**（分组不再只有一个段头，链接留任一段头都显得只属于那一段）。
     //   ⚠ 卡片**首个子 div 须为标题行**（真机件 `today-action-groups-e2e` 以其定位「全部 ›」）。
     const actionGroupsHtml = _actionGroupsBlock(summary);
-    const leftCard = `
+    const leftCard = summaryError
+      ? `
+      <section class="lg:col-span-2 card rounded-xl p-5 space-y-5 min-w-0">
+        <div class="flex items-center justify-between">
+          <h3 class="font-title-cn text-base font-semibold text-gray-800">今天要办</h3>
+        </div>
+        <div class="text-center py-8" data-today-error role="alert">
+          <p class="text-sm text-gray-600">今天的汇总暂时读取失败</p>
+          <button type="button" class="btn-outline text-xs px-3 py-1.5 mt-3" data-today-retry>重试</button>
+        </div>
+      </section>`
+      : `
       <section class="lg:col-span-2 card rounded-xl p-5 space-y-5 min-w-0">
         <div class="flex items-center justify-between">
           <h3 class="font-title-cn text-base font-semibold text-gray-800">今天要办</h3>
@@ -624,9 +637,11 @@ export function renderTodayTab(container, { personId, role, onNav, onCreateActiv
         </section>
       </div>`;
 
-    const body = total === 0
-      ? _allEmptyHtml(activityEntry)
-      : `<div class="grid grid-cols-1 lg:grid-cols-3 gap-5">${leftCard}${rightCard}</div>`;
+    const body = summaryError
+      ? `<div class="grid grid-cols-1 lg:grid-cols-3 gap-5">${leftCard}${rightCard}</div>`
+      : total === 0
+        ? _allEmptyHtml(activityEntry)
+        : `<div class="grid grid-cols-1 lg:grid-cols-3 gap-5">${leftCard}${rightCard}</div>`;
 
     // 跨 tab 共享容器约定（同 todo/overview/assign/…）：本 tab 渲染时登记当前 tab 标记。
     // ⚠ 本 tab 此前缺此登记（2026-09-25 真机实测：活动管理 → 今天 → 活动管理，因 calendar-tab 的
@@ -642,6 +657,11 @@ export function renderTodayTab(container, { personId, role, onNav, onCreateActiv
 
     // 行点击：会议/分工/近期安排 → 活动详情页；到期/逾期 → onNav('todo')；通知 → resolveNoticeUrl（同顶栏）；
     //   活动管理快捷入口：建活动 → onCreateActivity；看日历 → onNav('calendar')（各台同 id 的只读日历页签）
+    // R3-U08：汇总失败时「重试」清掉本卡 memo 键后重走同一渲染链（数据未变也能真正重算）。
+    container.querySelector('[data-today-retry]')?.addEventListener('click', () => {
+      delete container.dataset.memoKey;
+      renderTodayTab(container, { personId, role, onNav, onCreateActivity });
+    });
     container.querySelectorAll('.today-go').forEach(btn => {
       btn.addEventListener('click', () => {
         const go = btn.dataset.go;

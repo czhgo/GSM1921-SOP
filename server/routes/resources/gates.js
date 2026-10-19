@@ -7,6 +7,7 @@
 import { requireAuth, requireCommissioner } from '../auth.js';
 import { BRANCH_COMMISSION_ROLES, PARTY_STAFF_ROLE as PARTY_STAFF_KEYS, SECRETARY_AND_DEPUTY_ROLES, NOTICE_PUBLISH_ROLES, NOTICE_MANAGE_ROLES, MEMBER_FLOW_ROLES, ORG_COMMISSIONER_ROLES, branchCommissionerWriteDeny, isAnonymousForced } from '../../../docs/src/core/domain/constants.js';
 import { RESOURCE_TABLES, listTable } from './store.js';
+import { actorBranchId, resourceBranchId } from './branch-scope.js';
 import { CAPABILITY_PACKAGES } from '../../../docs/src/core/domain/capability-packages.js';
 
 // ── P3 上线前收紧（2026-09-03，design §7 登记项落地）：资源级写角色门 ──────────
@@ -22,6 +23,8 @@ const NOTICE_MANAGE_ROLE_SET = new Set(NOTICE_MANAGE_ROLES);
 export const SECRETARY_AND_DEPUTY_ROLE_SET = new Set(SECRETARY_AND_DEPUTY_ROLES);
 // 2026-09-14 批次 25：成员流动登记角色集（组织委员 + 支书/副支书）单一源 = constants.js::MEMBER_FLOW_ROLES
 const MEMBER_FLOW_ROLE_SET = new Set(MEMBER_FLOW_ROLES);
+// 「写入/删除均需支委身份」的资源集（快照写穿与资源 CRUD 共用同一份，勿另写第二套）
+export const COMMISSIONER_WRITE_RESOURCES = new Set(['branchDocs', 'fileSpaceRecords', 'imageRecords']);
 export const RESOURCE_WRITE_GATE = {
   branches: 'party-staff',
   appointmentRecords: 'party-staff',
@@ -36,6 +39,43 @@ export const RESOURCE_WRITE_GATE = {
   memberFlows: 'member-flow',
 };
 
+/** 支部归属口径：显式 null 保持 null（待归属/党委），仅历史缺字段回落 br-b1 */
+function _branchOrLegacy(value) {
+  return value === null ? null : (value || 'br-b1');
+}
+
+/**
+ * 活动组织者身份（与前端 `services/activity/activity.js::isActivityOrganizer` 同判据）：
+ * `activity.assignments` 中 role=organizer，或顶层 `activity.organizer === personId`。
+ * 仅用于「本场活动通知」的发布例外（R4-F03），不扩大其它通知的发布面。
+ */
+export function _isActivityOrganizer(db, actor, activityId) {
+  if (!db || !actor?.id || !activityId) return false;
+  const row = db.prepare('SELECT data FROM activities WHERE id = ?').get(String(activityId));
+  if (!row) return false;
+  let activity;
+  try { activity = JSON.parse(row.data); } catch { return false; }
+  const own = actorBranchId(actor);
+  if (own && (activity.branchId || 'br-b1') !== own) return false;
+  return activity.organizer === actor.id
+    || (Array.isArray(activity.assignments)
+      && activity.assignments.some((item) => item?.personId === actor.id && item.role === 'organizer'));
+}
+
+/** 通知所指活动 id（统一入口：targetType=activity / 兼容 activityId 字段） */
+function _noticeActivityId(notice) {
+  if (!notice) return null;
+  if (notice.targetType === 'activity' && notice.targetId) return notice.targetId;
+  return notice.activityId || null;
+}
+
+/** 通知发布权：角色白名单 ∪「本场活动组织者发布本场通知」 */
+function _noticePublishAllowed(db, actor, notice) {
+  if (!actor) return false;
+  if (NOTICE_PUBLISH_ROLE_SET.has(actor.role)) return true;
+  return _isActivityOrganizer(db, actor, _noticeActivityId(notice));
+}
+
 /** 资源写角色门判定（在 requireAuth 之后、handler 内调用；未设门资源一律放行） */
 export function _assertResourceWrite(actor, name, method, body, targetId, db) {
   const gate = RESOURCE_WRITE_GATE[name];
@@ -46,18 +86,18 @@ export function _assertResourceWrite(actor, name, method, body, targetId, db) {
     return !!actor && PARTY_STAFF_ROLE.has(actor.role);
   }
   if (need === 'branch-committee') {
-    // 支部侧上报：仅本支部支委层成员（actor 归属支部与上报支部一致；老数据缺省视为 br-b1）
+    // 支部侧上报：仅本支部支委层成员（actor 归属支部与上报支部一致；显式 null 不回落）
     if (!actor || !BRANCH_COMMITTEE_ROLES.has(actor.role)) return false;
-    const myBranch = actor.branchId || 'br-b1';
-    const targetBranch = (body && body.branchId) || 'br-b1';
-    return myBranch === targetBranch;
+    const myBranch = actorBranchId(actor);
+    const targetBranch = _branchOrLegacy(body && body.branchId);
+    return !!myBranch && myBranch === targetBranch;
   }
   if (need === 'notice-publish') {
-    // 人工发布：白名单角色。
+    // 人工发布：白名单角色；R4-F03 另放行「本场活动组织者发布本场通知」（与前端 NoticePermission.canPublish 同源）。
     // R-22（2026-09-13）：系统派生通知不再走本通道——原「客户端打标 systemDerived 即放行」因
     // 标记可伪造（任一登录成员可借此发任意广播通知）而移除，改由服务端注册表生成，
     // 见 server/system-notice-kinds.js 与 POST /api/v1/system-notices。
-    return !!actor && NOTICE_PUBLISH_ROLE_SET.has(actor.role);
+    return _noticePublishAllowed(db, actor, body);
   }
   if (need === 'notice-manage') return !!actor && NOTICE_MANAGE_ROLE_SET.has(actor.role);
   // 党小组管理：仅支书（含副支书）——角色名单单一源 constants.js::SECRETARY_AND_DEPUTY_ROLES
@@ -136,21 +176,21 @@ function _branchCommissionerGateDeny(db, actor, targetId, body) {
     const row = db.prepare(`SELECT data FROM ${table} WHERE id = ?`).get(String(id));
     return row ? JSON.parse(row.data) : null;
   };
-  const myBranchId = (actor && actor.branchId) || 'br-b1';
+  const myBranchId = actorBranchId(actor);
   const target = readRow('users', targetId);
-  const branch = readRow('branches', myBranchId);
+  const branch = myBranchId ? readRow('branches', myBranchId) : null;
   const patch = (body && typeof body === 'object' && !Array.isArray(body)) ? body : {};
   // 本支部现任副支书（副书同权，2026-09-23 支书追裁）：判据侧只认「本支部那一行 deputy-secretary」
-  const deputyRow = db.prepare('SELECT data FROM users').all()
+  const deputyRow = myBranchId && db.prepare('SELECT data FROM users').all()
     .map(r => JSON.parse(r.data))
-    .find(u => u.role === 'deputy-secretary' && ((u.branchId || 'br-b1') === myBranchId));
+    .find(u => u.role === 'deputy-secretary' && _branchOrLegacy(u.branchId) === myBranchId);
   return branchCommissionerWriteDeny({
     actorRole: actor && actor.role,
     actorId: actor && actor.id,
     actorBranchId: myBranchId,
     targetId: targetId ? String(targetId) : '',
     targetRole: target && target.role,
-    targetBranchId: target && (target.branchId || 'br-b1'),
+    targetBranchId: target && _branchOrLegacy(target.branchId),
     secretaryId: branch && branch.secretaryId,
     deputySecretaryId: deputyRow ? deputyRow.id : null,
     role: patch.role,
@@ -202,7 +242,9 @@ export function _assertActivityBlockEnabled(db, actor, effectiveType) {
 
 /** 明确停用某支部能力包时拒绝新建该包主对象；旧分支无配置仍兼容默认启用。 */
 export function _assertCapabilityPackageEnabled(db, actor, packageId) {
-  const branchId = (actor && actor.branchId) || 'br-b1';
+  const branchId = actor && Object.prototype.hasOwnProperty.call(actor, 'branchId')
+    ? actor.branchId : (actor ? 'br-b1' : null);
+  if (!branchId) return true; // 无支部归属（党委/待归属）：不套用任何支部停用配置
   const row = db.prepare('SELECT data FROM branches WHERE id = ?').get(branchId);
   if (!row) return true;
   let branch;
@@ -214,7 +256,10 @@ export function _assertCapabilityPackageEnabled(db, actor, packageId) {
 /** 工作流块的支部运行时开关；无显式停用配置时保持兼容默认启用。 */
 export function _assertWorkflowBlockEnabled(db, actor, blockId) {
   if (!blockId) return true;
-  const branchId = (actor && actor.branchId) || 'br-b1';   // 与全仓「缺省支部」兜底同口径
+  // 显式 null = 无支部归属（党委/待归属）⇒ 不套用支部配置；仅历史缺字段回落 br-b1。
+  const branchId = actor && Object.prototype.hasOwnProperty.call(actor, 'branchId')
+    ? actor.branchId : (actor ? 'br-b1' : null);
+  if (!branchId) return true;
   const row = db.prepare('SELECT data FROM branches WHERE id = ?').get(branchId);
   if (!row) return true;                            // 支部不存在 ⇒ 交给其它门拦；本门不越权
   let cfg; try { cfg = JSON.parse(row.data); } catch { return true; }
@@ -276,6 +321,124 @@ export function _snapshotNoticeMessageGateDeny(db, payload, actor) {
       if (JSON.stringify(row.audiencePersons || []) !== JSON.stringify(prev.audiencePersons || [])) {
         return NOTICE_MESSAGE_DENY_MSG;
       }
+    }
+  }
+  return null;
+}
+
+// ════════════════════════════════════════════════════════════════
+//  快照写穿的**资源写门复算**（R4-B01/F02，2026-10-19）
+// ════════════════════════════════════════════════════════════════
+// 病灶：`POST /snapshot` 原先只做支部范围校验；`notices` 等有写门的集合可被任一登录成员
+//   以整表写穿绕过（前端有门、后端快照口全开）。本函数对**最终要写入的行**逐行复算：
+//   · 有 `RESOURCE_WRITE_GATE` 门的集合 → 按新增/修改分别走同一 `_assertResourceWrite` 判据；
+//   · `COMMISSIONER_WRITE_RESOURCES`（文件/图片元数据）→ 支委层；
+//   · 没有门的集合 → deny-by-default 支部归属检查（行归属必须等于 actor 支部）。
+// 注：`users` / `branches` 由 `snapshotScopeDeny` 整体拒绝，不在此重复。
+// ⚠ 未变行一律放行（正常同步会把整集合带上来）；快照不负责校验「集合缺行＝删除」——
+//   该面与既有实现保持一致（删除走资源 DELETE / 语义端点留痕）。
+// ════════════════════════════════════════════════════════════════
+
+/** 通知快照写门：新增需发布权（含本场组织者），修改需管理权；任何成员可只改自己的 read 状态。 */
+function _snapshotNoticeWriteDeny(db, rows, actor) {
+  const previous = new Map(listTable(db, 'notices').map((r) => [String(r.id), r]));
+  for (const row of rows) {
+    if (!row || typeof row !== 'object' || !row.id) continue;
+    const prev = previous.get(String(row.id));
+    // 私信由 `_snapshotNoticeMessageGateDeny` 单独判定（全体成员可发，但不得代发）
+    if (row.noticeType === 'message' || prev?.noticeType === 'message') continue;
+    if (!prev) {
+      if (!_noticePublishAllowed(db, actor, row)) return _writeDenyMsg('notices');
+      continue;
+    }
+    const changed = Object.keys({ ...prev, ...row })
+      .filter((key) => JSON.stringify(prev[key]) !== JSON.stringify(row[key]));
+    if (changed.length === 0) continue;
+    // 已读是个人状态：任何成员都可推进自己的 read 标记（前端 markRead / markAllRead）
+    if (changed.every((key) => key === 'read')) continue;
+    if (!_assertResourceWrite(actor, 'notices', 'patch', row, row.id, db)) return _writeDenyMsg('notices');
+  }
+  return null;
+}
+
+/**
+ * 快照的「删除面」保护：有写门的集合，若操作人不具备删除权，则把本次未出现但库里属于
+ * 本支部的存量行**原样保留**（而不是让整表替换把它们删掉）。
+ * 这样普通成员即使构造 `notices: []` / `partyGroups: []` 也不能清空集合；有删除权的角色不受影响。
+ * @param {import('better-sqlite3').Database} db
+ * @param {Array<{name:string, table:string, rows:Array<Object>}>} writes
+ * @param {{id?:string, role?:string, branchId?:string|null}} actor
+ * @returns {Array<{name:string, table:string, rows:Array<Object>}>}
+ */
+export function _retainUngatedSnapshotRows(db, writes, actor) {
+  const own = actorBranchId(actor);
+  if (!own) return writes;
+  return writes.map((write) => {
+    const { name, table, rows } = write;
+    if (['users', 'branches', 'actSubRecords', 'tfSubRecords'].includes(name)) return write;
+    const gated = !!RESOURCE_WRITE_GATE[name] || COMMISSIONER_WRITE_RESOURCES.has(name);
+    if (!gated) return write;
+    const canDelete = COMMISSIONER_WRITE_RESOURCES.has(name)
+      ? BRANCH_COMMITTEE_ROLES.has(actor?.role)
+      : _assertResourceWrite(actor, name, 'delete', null, null, db);
+    if (canDelete) return write;
+    const incomingIds = new Set(rows.map((row) => String(row?.id)));
+    const missing = listTable(db, table)
+      .filter((row) => resourceBranchId(db, name, row) === own && !incomingIds.has(String(row.id)));
+    return missing.length ? { ...write, rows: [...rows, ...missing] } : write;
+  });
+}
+
+/**
+ * 快照最终写入行的资源门复算。
+ * @param {import('better-sqlite3').Database} db
+ * @param {Array<{name:string, table:string, rows:Array<Object>}>} writes `_snapshotWrites` 经支部合并后的结果
+ * @param {{id?:string, role?:string, branchId?:string|null}} actor
+ * @returns {string|null} 拒绝原因（403 文案）；放行 → null
+ */
+export function _snapshotResourceWriteGateDeny(db, writes, actor) {
+  const ownBranch = actorBranchId(actor);
+  for (const write of writes) {
+    const { name, table, rows } = write;
+    // 治理表由 snapshotScopeDeny 整体拒绝；聚合域由 aggregate 分支夹带校验。
+    if (['users', 'branches', 'actSubRecords', 'tfSubRecords'].includes(name)) continue;
+
+    // deny-by-default：没有门的集合也至少确认每行归属当前支部。
+    // 跳过「合并后保留的其他支部存量行」（未变行不构成本次写入）。
+    if (ownBranch) {
+      const existing = new Map(listTable(db, table).map((r) => [String(r.id), r]));
+      for (const row of rows) {
+        if (!row || typeof row !== 'object') continue;
+        const prev = existing.get(String(row.id));
+        if (prev && JSON.stringify(prev) === JSON.stringify(row)) continue;
+        const resolved = resourceBranchId(db, name, row);
+        if (resolved && resolved !== ownBranch) {
+          return '无权限：快照只能写入当前支部记录';
+        }
+      }
+    }
+
+    if (name === 'notices') {
+      const deny = _snapshotNoticeWriteDeny(db, rows, actor);
+      if (deny) return deny;
+      continue;
+    }
+
+    const gate = RESOURCE_WRITE_GATE[name];
+    const commissionerOnly = COMMISSIONER_WRITE_RESOURCES.has(name);
+    if (!gate && !commissionerOnly) continue;
+
+    const previous = new Map(listTable(db, table).map((r) => [String(r.id), r]));
+    for (const row of rows) {
+      if (!row || typeof row !== 'object' || !row.id) continue;
+      const prev = previous.get(String(row.id));
+      if (prev && JSON.stringify(prev) === JSON.stringify(row)) continue; // 未变行放行
+      if (commissionerOnly) {
+        if (!BRANCH_COMMITTEE_ROLES.has(actor?.role)) return _writeDenyMsg(name);
+        continue;
+      }
+      const method = prev ? 'patch' : 'post';
+      if (!_assertResourceWrite(actor, name, method, row, row.id, db)) return _writeDenyMsg(name);
     }
   }
   return null;

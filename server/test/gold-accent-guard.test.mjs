@@ -17,7 +17,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { ACCENT_COLORS, accentButtonColors } from '../../docs/src/core/domain/constants.js?v=20261018s';
+import { ACCENT_COLORS, accentButtonColors } from '../../docs/src/core/domain/constants.js?v=20261018t';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(HERE, '..', '..');
@@ -94,6 +94,53 @@ test('G3 四个注入点都调用 accentButtonColors 并写入三件套', () => 
       `${rel} 应写入 --app-accent-ink`);
     assert.match(src, /--app-accent-text',\s*btn\.text\)/,
       `${rel} 应写入 --app-accent-text`);
+  }
+});
+
+test('G5 金色文字 / 焦点环压深：不得直接用裸 var(--app-accent)', () => {
+  const textRules = [
+    '.text-accent',
+    '.chip-option:hover',
+    '.chip-accent-on',
+    '.sel-accent-on',
+    'button.metric-band__item.is-active .metric-band__label',
+    '.page-num.is-current',
+    '.wp-dim-chip.wp-dim-on',
+    '.wp-brand-chip.wp-brand-on',
+    '.wp-agenda-kind.wp-agenda-kind-on',
+    '.cs-option.is-selected',
+    '.accent-avatar',
+    '.metric-band__value--accent',
+    '.state-badge--accent',
+  ];
+  for (const selector of textRules) {
+    const body = ruleBody(STYLES, selector);
+    assert.ok(body, `styles.css 缺少 ${selector} 规则`);
+    assert.match(body, /(?:^|[;\s])color:\s*(?:var\(--app-accent-text\)|color-mix\(in srgb, var\(--app-accent\) 55%, #000\))/,
+      `${selector} 的文字色应使用 --app-accent-text（或加深金），不得直接用本色`);
+    assert.doesNotMatch(body, /(?:^|[;\s])color:\s*var\(--app-accent\)\s*(?:!important)?\s*;/,
+      `${selector} 仍在使用裸 var(--app-accent) 作文字色`);
+  }
+
+  const focusRules = [
+    'button:focus-visible,\\s*a:focus-visible',
+    '.ws-tab-scroll button:focus-visible',
+    '.notif-dropdown-item:focus-visible',
+    '.status-badge:focus-visible',
+    'button.metric-band__item:focus-visible',
+    '.list-row:focus-visible',
+    '.todo-more__item:focus-visible',
+    '.list-row\\[data-interactive="true"\\]:focus-visible',
+    '.gallery-card:focus-visible',
+  ];
+  for (const selector of focusRules) {
+    const re = new RegExp(`${selector}\\s*\\{([^}]*)\\}`);
+    const m = re.exec(STYLES);
+    assert.ok(m, `styles.css 缺少 ${selector} 规则`);
+    assert.match(m[1], /outline:\s*2px solid var\(--app-accent-text\)/,
+      `${selector} 的焦点环应使用 --app-accent-text（压深金），不得直接用本色`);
+    assert.doesNotMatch(m[1], /outline:\s*2px solid var\(--app-accent\)\s*;/,
+      `${selector} 仍在使用裸 var(--app-accent) 作焦点环`);
   }
 });
 

@@ -10,9 +10,10 @@
 // 权限：党委台仅 party-staff 进入（canSwitchBranch 任意支部）；现任支书走独立页 wizard.html?branch=
 // 写口：branch 服务既有校验语义（config 写口 = party-staff / 本支部现任支书）+ 即时生效留痕。
 
-import { AuthStore } from '../../../services/core/auth.js?v=20261018s';
-import { mountOrgSetupWizard } from '../../../components/governance/org-setup-wizard.js?v=20261018s';
-import { getAuthToken, getApiBaseUrl, getDataSource } from '../../../data/data-adapter.js?v=20261018s';
+import { AuthStore } from '../../../services/core/auth.js?v=20261018t';
+import { mountOrgSetupWizard } from '../../../components/governance/org-setup-wizard.js?v=20261018t';
+import { getAuthToken, getApiBaseUrl, getDataSource } from '../../../data/data-adapter.js?v=20261018t';
+import { describeWriteError, escHtml } from '../../../core/base/utils.js?v=20261018t';
 
 // ════════════════════════════════════════════════════════════════
 //  「部署与对接」面板（2026-09-29 批次 273 新增）
@@ -38,12 +39,20 @@ async function renderDeployPanel(host) {
       headers: { Authorization: `Bearer ${getAuthToken()}` },
     });
     if (!resp.ok) {
-      host.innerHTML = `<p class="text-sm text-red-700" role="alert">读取失败（HTTP ${resp.status}）。本面板仅党委组织员可见。</p>`;
-      return;
+      let body = null;
+      try { body = await resp.json(); } catch { body = null; }
+      const error = new Error(body && typeof body.error === 'string' ? body.error : '');
+      error.status = resp.status;
+      error.type = resp.status === 401 ? 'AuthError'
+        : resp.status === 403 ? 'PermissionError'
+        : 'ApiError';
+      error.body = body;
+      throw error;
     }
     data = await resp.json();
   } catch (e) {
-    host.innerHTML = `<p class="text-sm text-red-700" role="alert">读取失败：${String(e && e.message || e)}</p>`;
+    // 401 / 403 才说权限；5xx 说稍后重试——状态码与原始异常一律不上界面（describeWriteError 单一源）
+    host.innerHTML = `<p class="text-sm text-red-700" role="alert">读取失败：${escHtml(describeWriteError(e))}</p>`;
     return;
   }
 

@@ -1,5 +1,5 @@
 /* 组件样式（@import 必须位于文件顶部） */
-@import url('components/person-picker.css?v=20261018s');
+@import url('components/person-picker.css?v=20261018t');
 
 /* ═══════════════════════════════════════════════════════════════
    GSM1921-SOP DESIGN SYSTEM v11.0 — Matte Flat
@@ -628,7 +628,7 @@ input.input-flat.text-xs {
 .wp-dim-chip.wp-dim-on {
   background-color: var(--app-accent-bg);
   border-color: var(--app-accent);
-  color: var(--app-accent);
+  color: var(--app-accent-text);
   font-weight: 500;
 }
 
@@ -647,7 +647,7 @@ input.input-flat.text-xs {
 .wp-brand-chip.wp-brand-on {
   background-color: var(--app-accent-bg);
   border-color: var(--app-accent);
-  color: var(--app-accent);
+  color: var(--app-accent-text);
   font-weight: 500;
 }
 
@@ -664,7 +664,7 @@ input.input-flat.text-xs {
 .wp-agenda-kind.wp-agenda-kind-on {
   background-color: var(--app-accent-bg);
   border-color: var(--app-accent);
-  color: var(--app-accent);
+  color: var(--app-accent-text);
   font-weight: 500;
 }
 
@@ -841,7 +841,7 @@ input.input-flat.text-xs[type="datetime-local"] {
 }
 .cs-option.is-selected {
   background: var(--app-accent-bg);
-  color: var(--app-accent);
+  color: var(--app-accent-text);
   font-weight: 500;
 }
 .cs-option.is-disabled {
@@ -956,19 +956,19 @@ button:disabled { cursor: not-allowed; }
 }
 .chip-option:hover {
   border-color: var(--app-accent-border);
-  color: var(--app-accent);
+  color: var(--app-accent-text);
 }
 .chip-accent-on {
   border-color: var(--app-accent-border) !important;
   background: var(--app-accent-bg) !important;
-  color: var(--app-accent) !important;
+  color: var(--app-accent-text) !important;
 }
-/* 主题色文字（步骤指示/强调文字） */
-.text-accent { color: var(--app-accent) !important; }
+/* 主题色文字（步骤指示/强调文字）——亮金底上取压深字（--app-accent-text），不直接用本色 */
+.text-accent { color: var(--app-accent-text) !important; }
 /* 列表行选中态（无边框，用于模板/子项选中） */
 .sel-accent-on {
   background: var(--app-accent-bg) !important;
-  color: var(--app-accent) !important;
+  color: var(--app-accent-text) !important;
   font-weight: 500;
 }
 
@@ -977,7 +977,7 @@ button:disabled { cursor: not-allowed; }
    ——2026-09-28 收敛：原 assign-tab.js 三处内联（含硬编码兜底）各写一份，现统一到本类（DESIGN_SYSTEM §2.8）。 */
 .accent-avatar {
   background: var(--app-accent-bg);
-  color: var(--app-accent);
+  color: var(--app-accent-text);
 }
 html.theme-dark .accent-avatar {
   color: color-mix(in srgb, var(--app-accent) 55%, #fff);
@@ -1286,7 +1286,7 @@ html.theme-dark .accent-avatar {
 .page-num.is-current {
   border-color: var(--app-accent-border);
   background-color: var(--app-accent-bg);
-  color: var(--app-accent);
+  color: var(--app-accent-text);
   font-weight: 500;
 }
 
@@ -2049,14 +2049,14 @@ html.theme-dark .cal-cell-large.is-today, html.theme-dark .cal-cell-mobile.is-to
 
 /* 2026-10-18：横向滚动容器会裁剪纵向溢出，页签焦点环改用内描边，避免键盘焦点不可见。 */
 .ws-tab-scroll button:focus-visible {
-  outline: 2px solid var(--party-gold);
+  outline: 2px solid var(--app-accent-text);
   outline-offset: -2px;
   box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.55);
 }
 
 /* 2026-10-18：通知下拉条目是 div[role=button]，不命中全局 button/a 焦点环，显式补同口径。 */
 .notif-dropdown-item:focus-visible {
-  outline: 2px solid var(--party-gold);
+  outline: 2px solid var(--app-accent-text);
   outline-offset: -2px;
   box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.55);
   background: var(--surface-hover);
@@ -2072,7 +2072,6 @@ html.theme-dark .cal-cell-large.is-today, html.theme-dark .cal-cell-mobile.is-to
 }
 .ov-sub-tab-active {
   background: var(--surface-card);
-  color: var(--app-accent);
   color: color-mix(in srgb, var(--app-accent) 55%, #000);
   box-shadow: 0 1px 3px rgba(16, 24, 40, 0.12), 0 0 0 0.5px rgba(16, 24, 40, 0.04);
 }
@@ -2390,7 +2389,7 @@ html.theme-dark .tf-section-head {
   /* 2026-09-24 无障碍修复：.status-badge 是 <span role="button" tabindex="0">（见 components/status-badge.js），
      不匹配全局 `button/a/input:focus-visible` ⇒ 焦点环须在此显式声明；口径与全局同名同值
      （金环 2px / offset 2px + 深色补环；原仅金环 1.34:1 不达标）。 */
-  outline: 2px solid var(--party-gold);
+  outline: 2px solid var(--app-accent-text);
   outline-offset: 2px;
   box-shadow: 0 0 0 6px rgba(0, 0, 0, 0.55);
 }
@@ -2672,6 +2671,7 @@ html.theme-dark .tf-section-head {
 button:focus-visible,
 a:focus-visible {
   outline: 2px solid var(--party-gold);
+  outline: 2px solid var(--app-accent-text);
   outline-offset: 2px;
   box-shadow: 0 0 0 6px rgba(0, 0, 0, 0.55);
 }
@@ -4268,7 +4268,7 @@ html.theme-dark .help-note__link { color: color-mix(in srgb, var(--functional-in
   background: var(--surface-hover);
 }
 .list-row:focus-visible {
-  outline: 2px solid var(--app-accent);
+  outline: 2px solid var(--app-accent-text);
   outline-offset: -2px;
 }
 /* 可交互行用 <button> 时挂 btn-ghost 语义族；此处按行载体覆盖该族的紧凑尺寸。
@@ -4416,7 +4416,7 @@ html.theme-dark .help-note__link { color: color-mix(in srgb, var(--functional-in
   background: var(--surface-hover);
 }
 .todo-more__item:focus-visible {
-  outline: 2px solid var(--app-accent);
+  outline: 2px solid var(--app-accent-text);
   outline-offset: -2px;
 }
 .todo-more__item:disabled {
@@ -4545,14 +4545,14 @@ button.metric-band__item {
 }
 button.metric-band__item:hover { background: var(--neutral-100); }
 button.metric-band__item:focus-visible {
-  outline: 2px solid var(--app-accent);
+  outline: 2px solid var(--app-accent-text);
   outline-offset: 2px;
 }
 button.metric-band__item.is-active {
   background: transparent;
   box-shadow: inset 0 -2px 0 var(--app-accent);
 }
-button.metric-band__item.is-active .metric-band__label { color: var(--app-accent); }
+button.metric-band__item.is-active .metric-band__label { color: var(--app-accent-text); }
 .metric-band__item:first-child {
   border-left: 0;
   padding-left: 0;
@@ -4578,7 +4578,7 @@ button.metric-band__item.is-active .metric-band__label { color: var(--app-accent
   color: var(--neutral-500);
 }
 .metric-band__value--accent {
-  color: var(--app-accent);
+  color: var(--app-accent-text);
 }
 
 /* ── 状态徽章：统一淡底深字（§2.10 明暗档「状态」行）──
@@ -4618,7 +4618,7 @@ button.metric-band__item.is-active .metric-band__label { color: var(--app-accent
 }
 .state-badge--accent {
   background: var(--app-accent-bg);
-  color: var(--app-accent);
+  color: var(--app-accent-text);
   border-color: var(--app-accent-border);
 }
 /* 深色模式：底色略加深、文字提亮，保证浅底深字在深色底上仍可读（§7.2）。
@@ -4683,7 +4683,7 @@ html.theme-dark .state-badge--accent {
   background: transparent;
 }
 .list-row[data-interactive="true"]:focus-visible {
-  outline: 2px solid var(--app-accent);
+  outline: 2px solid var(--app-accent-text);
   outline-offset: -2px;
 }
 
@@ -4826,7 +4826,7 @@ html.theme-dark .state-badge--accent {
   color: inherit;
 }
 .gallery-card:focus-visible {
-  outline: 2px solid var(--app-accent);
+  outline: 2px solid var(--app-accent-text);
   outline-offset: 2px;
 }
 .gallery-card__cover {

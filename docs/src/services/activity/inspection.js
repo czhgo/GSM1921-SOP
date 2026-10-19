@@ -5,18 +5,18 @@
 //    考察对象为该工作组成员；sourceType/activityId/taskforceId 只是工作组类型的投影，不是独立父对象。
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB, SourceType, SOURCE_TYPE_LABELS, PARTICIPATION_LEVEL_LABELS, ParticipationLevel } from '../../core/domain/domain.js?v=20261018s';
-import { POLICY_DEFAULTS } from '../../core/domain/policy-defaults.js?v=20261018s';
-import { persist, getDataSource, getAdapter } from '../../data/data-adapter.js?v=20261018s';
-import { generateId } from '../../core/base/id.js?v=20261018s';
-import { bumpToken } from '../../core/base/version-token.js?v=20261018s'; // P0 域缓存失效（spec §二.3）
-import { INSPECTION_RECORDS } from '../../data/mock/index.js?v=20261018s';
-import { isInitStateActive } from '../core/init-reset.js?v=20261018s'; // C2 修复（2026-09-08）：init 态空态不回退演示种子
-import { getPersonById, getPersonName } from '../member/person.js?v=20261018s';
-import { TodoStore, TodoSourceType } from '../governance/todo.js?v=20261018s';
-import { loadActivities, isActivityOrganizer } from './activity.js?v=20261018s';
+import { mockDB, SourceType, SOURCE_TYPE_LABELS, PARTICIPATION_LEVEL_LABELS, ParticipationLevel } from '../../core/domain/domain.js?v=20261018t';
+import { POLICY_DEFAULTS } from '../../core/domain/policy-defaults.js?v=20261018t';
+import { persist, getDataSource, getAdapter } from '../../data/data-adapter.js?v=20261018t';
+import { generateId } from '../../core/base/id.js?v=20261018t';
+import { bumpToken } from '../../core/base/version-token.js?v=20261018t'; // P0 域缓存失效（spec §二.3）
+import { INSPECTION_RECORDS } from '../../data/mock/index.js?v=20261018t';
+import { isInitStateActive } from '../core/init-reset.js?v=20261018t'; // C2 修复（2026-09-08）：init 态空态不回退演示种子
+import { getPersonById, getPersonName } from '../member/person.js?v=20261018t';
+import { TodoStore, TodoSourceType } from '../governance/todo.js?v=20261018t';
+import { loadActivities, isActivityOrganizer } from './activity.js?v=20261018t';
 // 专班「组织者」判据单一源（2026-09-23 · 专班考察上传位的本位判据要读它）
-import { isTaskforceOrganizer } from './taskforce.js?v=20261018s';
+import { isTaskforceOrganizer } from './taskforce.js?v=20261018t';
 
 export function loadInspectionRecords() {
   if (mockDB.inspections.length > 0) return [...mockDB.inspections];

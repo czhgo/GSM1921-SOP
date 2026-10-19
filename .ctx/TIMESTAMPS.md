@@ -59,6 +59,7 @@ dynamic_role:
 | .ctx/REVIEW_QUEUE.md | 2026-10-06 | — | [工程师]+[AI] | 支书评议队列（**只答「要评议什么 ＋ 评议怎么做」**）：(a) 各专项机制与支书复用检查项；(b) **未闭环**命题（`H26.2`）。**边界**：过程 / 进度 / 落地细节 / **已闭环**一律不留（**连同指针一并删**——`git` 即沿革）。**为什么**：队列只装待议上下文，装过程即膨胀（判例：曾积到约 1000 行）。 |
 | .ctx/AUDIT_ROUND1_WORKBENCH_STRUCTURE.md | 2026-10-19 | — | [工程师]+[AI] | Round 1 工作台结构审计报告（53 条 triage + 三路审查 + 共识/分歧/裁定 + 证据门）；修复 spec 落盘后可归档或删除。 |
 | .ctx/AUDIT_ROUND2_MINIMUM_THREE_COSTS.md | 2026-10-19 | — | [工程师]+[AI] | Round 2 最小三成本审查报告（better-layout / better-accessibility / better-writing 三路独立审查 + 共识/分歧/归属）。本批修项见 `.trae/specs/audit-round2-minimum-three-costs`。 |
+| .ctx/AUDIT_ROUND3_4_COMBINED.md | 2026-10-19 | — | [工程师]+[AI] | Round 3+4 合并审查报告（六路 lens + 共识/分歧/待裁定 + batch 1/2A/2B/2C 归属）。修复入口 `.trae/specs/restore-homepage-brand-and-gold`。 |
 | .ctx/snapshots/INDEX.md | 2026-07-11 | — | [工程师]+[AI] | 快照历史索引 |
 | .ctx/snapshots/SNAPSHOT_v3_20260502.md | 2026-08-05 | — | [工程师]+[AI] | v3 快照 |
 | .ctx/logs/EXECUTION_LOG_INDEX.md | 2026-10-02 | — | [工程师]+[AI] | 日志索引（2026-09-19 补 2026年08月 / 09月 T 条目表） |

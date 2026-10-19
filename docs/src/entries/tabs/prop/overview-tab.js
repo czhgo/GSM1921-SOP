@@ -6,9 +6,9 @@
 // 顶部直达条属重复动作 ⇒ 外壳不再挂条，只保留骨架占位。
 // U3（2026-09-07）：先 beginOverviewShell 骨架/槽位占位 → 原地渲染概况（不推挤正文）。
 
-import { renderWorkOverview } from '../../../components/governance/work-overview.js?v=20261018s';
-import { AuthStore } from '../../../services/core/auth.js?v=20261018s';
-import { beginOverviewShell } from '../../../components/governance/overview-dispatch-bar.js?v=20261018s';
+import { renderWorkOverview } from '../../../components/governance/work-overview.js?v=20261018t';
+import { AuthStore } from '../../../services/core/auth.js?v=20261018t';
+import { beginOverviewShell } from '../../../components/governance/overview-dispatch-bar.js?v=20261018t';
 
 /**
  * 条线缺口行补真实动作（2026-10-18 繁专项 Task 15）。
@@ -66,6 +66,7 @@ export async function renderContent(ctx) {
     personId,
     accent: ctx.accent,
     prefix: 'prop',
+    title: '工作概况',
   });
   _observeLineGapActions(el);
   return done;

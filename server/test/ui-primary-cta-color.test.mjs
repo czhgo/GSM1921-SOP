@@ -13,6 +13,7 @@ import { fileURLToPath } from 'node:url';
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(HERE, '..', '..');
 const CSS = readFileSync(join(ROOT, 'docs', 'src', 'styles.css'), 'utf8');
+const CONSTANTS = readFileSync(join(ROOT, 'docs', 'src', 'core', 'domain', 'constants.js'), 'utf8');
 
 /** 取 `.btn-accent { … }` 规则体（排除 :hover / :disabled） */
 function btnAccentBody() {
@@ -32,7 +33,12 @@ test('C2 主 CTA 使用角色色令牌', () => {
   assert.match(body, /var\(--app-accent/, '.btn-accent 背景未使用 --app-accent 令牌');
 });
 
-test('C3 压深档仍取角色色相（只压深，不换色系）', () => {
-  assert.match(CSS, /--app-accent-strong:\s*color-mix\(in srgb,\s*var\(--app-accent\)\s+\d+%,\s*black\)/,
-    '缺少 --app-accent-strong（应由 var(--app-accent) 压深得到，保持色相）');
+test('C3 压深档仍取角色色相（亮色本色+深字 / 暗色压深+白字）', () => {
+  // 2026-10-19 支书裁定默认金 #F5C518：亮色主题不再压深成棕，而是本色底 + 深字；
+  // 暗色角色仍由 accentButtonColors() 生成 58% 压深底 + 白字，保持色相。
+  assert.match(CSS, /--app-accent-strong:\s*var\(--app-accent\)/,
+    '默认主题应使用本色底（亮色主题不再压深成棕）');
+  assert.match(CONSTANTS, /color-mix\(in srgb, \$\{hex\} 58%, black\)/,
+    '暗色角色应由 accentButtonColors 压深到 58% 并保持色相');
+  assert.match(CONSTANTS, /export function accentButtonColors/, '缺少 accentButtonColors 单一源');
 });

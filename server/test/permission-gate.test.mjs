@@ -726,7 +726,10 @@ test('成员变更确认端点：副支书本支部 200 且落库；组织委员
   assert.match((await crossSec.json()).error, /本支部/);
   const crossDep = await post(`/api/v1/member-change-requests/${crossId}/confirm`, depToken);
   assert.equal(crossDep.status, 403, '副支书不得确认异支部成员变更');
-  assert.equal((await usersOf(secToken)).find((u) => u.id === 'p90').developStage, '积极分子', '越权确认未改动阶段');
+  // 2026-10-19 口径同步：支部账号的 GET /users 按本支部过滤；党委未选支部时 users 返回空，
+  // 跨支部成员的落库态须用党委账号 + 明确 branchId 回读。
+  const crossUser = await (await fetch(`${base}/api/v1/users?branchId=br-xc`, { headers: authHeaders(pcToken) })).json();
+  assert.equal(crossUser.find((u) => u.id === 'p90').developStage, '积极分子', '越权确认未改动阶段');
 });
 
 test('分工自动传递（2026-09-13 支书裁定）：分工生效通知的受众与行动计划由服务端按 extras.proposal 复算', async () => {
@@ -882,12 +885,14 @@ test('支委身份写门：本支部现任支书 / 副支书可配本支部成�
     method: 'PATCH', headers: authHeaders(secToken), body: JSON.stringify({ role: 'prop-commissioner' }),
   });
   assert.equal(cross.status, 403, '支书不得配置异支部成员的支委身份');
-  assert.equal(await roleOf('p71'), 'participant', '跨支部越权请求未改动落库值');
+  // 2026-10-19 口径同步：跨支部成员用党委账号 + 明确 branchId 回读。
+  const roleOfCross = async () => (await (await fetch(`${base}/api/v1/users?branchId=br-x`, { headers: authHeaders(pcToken) })).json()).find((u) => u.id === 'p71')?.role;
+  assert.equal(await roleOfCross(), 'participant', '跨支部越权请求未改动落库值');
   const crossDep = await fetch(`${base}/api/v1/users/p71`, {
     method: 'PATCH', headers: authHeaders(depToken), body: JSON.stringify({ role: 'prop-commissioner' }),
   });
   assert.equal(crossDep.status, 403, '副支书不得配置异支部成员的支委身份');
-  assert.equal(await roleOf('p71'), 'participant', '跨支部越权请求未改动落库值（副支书）');
+  assert.equal(await roleOfCross(), 'participant', '跨支部越权请求未改动落库值（副支书）');
 
   // ④ 一把手层以外的身份者尝试改 → 403（组织委员 / 普通成员同一靶标 p3）
   for (const [who, tok] of [['组织委员', orgToken], ['普通成员', partToken]]) {

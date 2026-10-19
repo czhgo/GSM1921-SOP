@@ -14,7 +14,7 @@
 //         content/04_web_design/data/DATA_ARCHITECTURE.md §8.4
 // ════════════════════════════════════════════════════════════════
 
-import { getApiBaseUrl, getAuthToken } from './data-adapter.js?v=20261018s';
+import { getApiBaseUrl, getAuthToken } from './data-adapter.js?v=20261018t';
 
 // ── HTTP 工具函数 ──────────────────────────────────────────────
 
@@ -82,15 +82,20 @@ async function _request(path, options = {}) {
   }
 
   if (!response.ok) {
-    const error = new Error(`API 请求失败: ${response.status} ${response.statusText}`);
+    // P0-1（2026-09-23）：409 版本冲突需读**结构化 body**（conflicts 清单）——调用方据它决定「重拉哪些集合」。
+    // 读不出 JSON（非本仓服务端/无 body）时不吞错：error.body 留 null，仅凭 status 判。
+    let body = null;
+    try { body = await response.json(); } catch { body = null; }
+    // B05 / B08：服务端给了业务原因（body.error）就优先用它作 message，
+    // 调用方（describeWriteError）据此给出「发生了什么」；status / type / body 一并保留。
+    const serverError = body && typeof body.error === 'string' ? body.error.trim() : '';
+    const error = new Error(serverError || `API 请求失败: ${response.status} ${response.statusText}`);
     error.status = response.status;
     error.type = response.status === 404 ? 'NotFoundError' :
                  response.status === 403 ? 'PermissionError' :
                  response.status === 409 ? 'ConflictError' :
                  response.status === 401 ? 'AuthError' : 'ApiError';
-    // P0-1（2026-09-23）：409 版本冲突需读**结构化 body**（conflicts 清单）——调用方据它决定「重拉哪些集合」。
-    // 读不出 JSON（非本仓服务端/无 body）时不吞错：error.body 留 null，仅凭 status 判。
-    try { error.body = await response.json(); } catch { error.body = null; }
+    error.body = body;
     throw error;
   }
   if (response.status === 204) return null;

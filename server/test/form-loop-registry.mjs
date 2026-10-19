@@ -62,7 +62,7 @@
 //   真机流程 **实有 60 → 59**，基线同批改准为 **117 / 59**。
 // 2026-10-18 支委会密度重组：支委会 tab 改行内改派 ⇒ 退役流程 `secretary-assign-branch-commissioner`
 //   （两条校验点保留、改为 `machine:false`）；真机流程 **实有 59 → 58**，`FLOWS_BASELINE` 同批改准为 **58**。
-export const SITES_BASELINE = 120;
+export const SITES_BASELINE = 121;
 // 批次 323（2026-10-01）：补 `secretary-calendar-write-inline-grant`（覆盖批次 303 登记却漏纳入流程的
 //   「写入活动·内嵌项目赋权」两处 `machine:true`）⇒ 真机流程 **实有 56 → 57**，基线同批改准为 **57**。
 export const FLOWS_BASELINE = 58;
@@ -168,6 +168,7 @@ export const VALIDATION_SITES = [
   //   令本文件既有登记下移 ⇒ `672` → `691`（S6：行号须落在文案那一行；file/field/msg 不变）。
   // 2026-10-02（批次 340 · `#1`/`D-742` 作废落地）：同文件新增作废裁决区（约 +65 行）⇒ 本条再下移 `691` → `756`。
   { file: SRC + 'entries/tabs/secretary/todo-tab.js', line: 815, field: '退回原因', flow: 'secretary/待办·退回', machine: true, msg: '请填写退回原因' }, // 2026-10-06 批次 433（D-807④ 代归档浮窗插入）⇒ 760 → 815
+  { file: SRC + 'entries/tabs/secretary/overview-tab.js', line: 148, field: '退回说明', flow: 'secretary/周期归档待审·退回', machine: true, msg: '请填写退回说明' }, // 2026-10-19 批次 485（U-01 周期归档完整闭环）
   // 2026-10-02 批次 340（`#1`/`D-742` 待办「作废」落地）：新增两处「原因必填」校验点，均 `machine:false`
   //   ——**演示种子下无「待支委会确认的作废申请」过渡态**（须先由非支委 `requestVoid` 生成 `voidPending`，
   //   再由支书台确认/驳回；跨角色两步、无种子）⇒ 这两处弹窗在真机演示数据下结构性不可达；

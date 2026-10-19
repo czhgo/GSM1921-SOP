@@ -20,17 +20,19 @@ import { BRANCH_COMMISSION_ROLES, hashSubmitterToken, isActivityEnded } from '..
 import { projectMemberListRow } from '../../../docs/src/core/domain/profile-access.js';
 import { validateAgendaStructure } from '../../../docs/src/services/activity/agenda-relations.js';
 import { deriveArchivePeriod } from '../../../docs/src/services/governance/periodic-archive.js';
+// R4-B04：思想汇报读口与前端同一判据（本人或支委层），单一源 = services/governance/thought-report.js
+import { canReadThoughtReport } from '../../../docs/src/services/governance/thought-report.js';
 
 // 资源名 → 表名映射（与 data-adapter 的分组名对齐）
 // T-218：新增 4 张 niche 表（键名与前端快照 payload 键名完全一致）
 // T-209 全栈同步：补齐前端 mockDB 全部持久化域，使 API 模式全链路可用
 import { RESOURCE_TABLES, ID_PREFIX, listTable, getRow, writeRow } from './store.js';
-import { RESOURCE_WRITE_GATE, _assertResourceWrite, _writeDenyMsg, ACTIVITY_WRITE_DENY_MSG, _assertActivityWrite, _ballotModeReject, BRANCH_COMMITTEE_ROLES, PARTY_STAFF_ROLE, _assertActivityBlockEnabled, _assertWorkflowBlockEnabled, _assertCapabilityPackageEnabled, activityBlockDisabledMsg, workflowBlockDisabledMsg, _snapshotNoticeMessageGateDeny } from './gates.js';
+import { RESOURCE_WRITE_GATE, COMMISSIONER_WRITE_RESOURCES, _assertResourceWrite, _writeDenyMsg, ACTIVITY_WRITE_DENY_MSG, _assertActivityWrite, _ballotModeReject, BRANCH_COMMITTEE_ROLES, PARTY_STAFF_ROLE, _assertActivityBlockEnabled, _assertWorkflowBlockEnabled, _assertCapabilityPackageEnabled, activityBlockDisabledMsg, workflowBlockDisabledMsg, _snapshotNoticeMessageGateDeny, _snapshotResourceWriteGateDeny, _retainUngatedSnapshotRows } from './gates.js';
 import { _activityApprovalGateDeny, _snapshotActivityApprovalGateDeny, _activityCreateGatePatch } from './approval-gates.js';
 import { _snapshotBaseVersions, _snapshotWrites, _snapshotMissingVersions, _allCollectionVersions, _snapshotVersionConflicts, _normalizeSnapshotAliases } from './snapshot-versions.js';
 import { registerExtraSemanticRoutes } from './semantic-routes.js';
 import { activityCreationDeny, activityOperationAllowed, approvedTaskforceDissolutionWorkgroups, attendanceWriteDeny, createActivityWorkgroup, createTaskforceWorkgroup, snapshotScopeDeny } from './workgroup-routes.js';
-import { actorBranchId, aggregateWriteDeny, branchForNewResource, branchSelectionError, mergeAggregateBody, mergeScopedSnapshotWrites, recordBranchWriteDeny, resourceRowsForActor, resourceBranchId, scopedSnapshotWriteDeny } from './branch-scope.js';
+import { actorBranchId, aggregateWriteDeny, branchForNewResource, branchSelectionError, mergeAggregateBody, mergeScopedSnapshotWrites, recordBranchWriteDeny, requireAssignedBranch, resourceRowsForActor, resourceBranchId, scopedSnapshotWriteDeny } from './branch-scope.js';
 import { normalizeSignupCreate, normalizeSignupPatch, signupCreateDeny, signupSnapshotDeny } from './signup-write-guard.js';
 
 function _archiveSnapshotForActor(db, actor, submittedAt, report = {}) {
@@ -77,8 +79,86 @@ function _disabledActivityHistoryReadOnly(db, activity) {
   return !enabled && (isActivityEnded(activity) || activity.status === 'cancelled');
 }
 
+/** 支委层 / 党委：读口保留全量；其余成员按本人或职责投影（R4-F04） */
+function _hasFullRead(actor) {
+  return !actor || PARTY_STAFF_ROLE.has(actor.role) || BRANCH_COMMITTEE_ROLES.has(actor.role);
+}
+
+function _activityRow(db, id) {
+  if (!id) return null;
+  const row = db.prepare('SELECT data FROM activities WHERE id = ?').get(String(id));
+  return row ? JSON.parse(row.data) : null;
+}
+
+function _isActivityOrganizer(activity, actorId) {
+  if (!activity || !actorId) return false;
+  return activity.organizer === actorId
+    || (Array.isArray(activity.assignments)
+      && activity.assignments.some((item) => item?.personId === actorId && item.role === 'organizer'));
+}
+
+/** 活动承办党小组（与前端 attendance.js/inspection.js::_activityPartyGroup 同口径） */
+function _activityPartyGroup(db, activity) {
+  if (!activity) return null;
+  if (activity.hostGroup) return activity.hostGroup;
+  const organizerId = activity.organizer
+    || (Array.isArray(activity.assignments)
+      ? (activity.assignments.find((item) => item.role === 'organizer') || {}).personId
+      : null);
+  if (!organizerId) return null;
+  const row = db.prepare('SELECT data FROM users WHERE id = ?').get(String(organizerId));
+  return row ? (JSON.parse(row.data).partyGroup || null) : null;
+}
+
+function _isTaskforceOrganizerByName(db, sourceName, actorId) {
+  if (!sourceName || !actorId) return false;
+  return listTable(db, 'taskforces').some((row) => row.name === sourceName
+    && Array.isArray(row.members)
+    && row.members.some((member) => member?.personId === actorId && member.role === 'organizer'));
+}
+
+function _canReadAttendanceRow(db, row, actor) {
+  if (!row || !actor) return false;
+  if (row.personId === actor.id) return true;
+  const activity = _activityRow(db, row.activityId);
+  if (!activity) return false;
+  if (_isActivityOrganizer(activity, actor.id)) return true;
+  return actor.role === 'leader'
+    && !!actor.partyGroup
+    && _activityPartyGroup(db, activity) === actor.partyGroup;
+}
+
+function _canReadInspectionRow(db, row, actor) {
+  if (!row || !actor) return false;
+  if (row.personId === actor.id || row.recordedBy === actor.id) return true;
+  if (row.sourceType === 'taskforce') return _isTaskforceOrganizerByName(db, row.sourceName, actor.id);
+  const activity = _activityRow(db, row.activityId);
+  if (!activity) return false;
+  if (_isActivityOrganizer(activity, actor.id)) return true;
+  return actor.role === 'leader'
+    && !!actor.partyGroup
+    && _activityPartyGroup(db, activity) === actor.partyGroup;
+}
+
+function _canReadTodoRow(row, actor) {
+  if (!row || !actor) return false;
+  // 到人主责只给本人；角色待办按当前角色可见（与前端 TodoStore.getByRole 同口径）。
+  if (row.personId) return row.personId === actor.id;
+  return row.role === actor.role;
+}
+
 function _resourceRowsForActor(db, name, table, actor, requestedBranchId) {
-  const rows = resourceRowsForActor(db, name, listTable(db, table), actor, requestedBranchId);
+  let rows = resourceRowsForActor(db, name, listTable(db, table), actor, requestedBranchId);
+  // R4-B04：思想汇报读口与前端 canReadThoughtReport 同一判据（本人或支委层）。
+  if (name === 'thoughtReports') {
+    rows = rows.filter((row) => canReadThoughtReport(row, { personId: actor?.id, role: actor?.role }));
+  }
+  // R4-F04：非支委层的行级投影（本人 / 本场组织者 / 本组组长）。
+  if (!_hasFullRead(actor)) {
+    if (name === 'attendances') rows = rows.filter((row) => _canReadAttendanceRow(db, row, actor));
+    if (name === 'inspections') rows = rows.filter((row) => _canReadInspectionRow(db, row, actor));
+    if (name === 'todos') rows = rows.filter((row) => _canReadTodoRow(row, actor));
+  }
   if (name !== 'users') return rows;
   return rows.map((row) => projectMemberListRow(row, {
     id: actor?.id,
@@ -97,6 +177,19 @@ export function createResourcesRouter(db) {
       req.url = req.url.replace(/^\/weeklyReports(?=\/|\?|$)/i, '/periodicArchives');
     }
     next();
+  });
+
+  // R4-B02：非党委账号若 branchId 显式为 null（IAAA 建号后待支部确认），资源面一律 403。
+  // IAAA 的「选支部 / 待确认」端点挂在独立 router（/auth/iaaa），此处仅放行该前缀。
+  const assignedBranchGuard = requireAssignedBranch();
+  const authGuard = requireAuth(db);
+  router.use((req, res, next) => {
+    if (req.method === 'OPTIONS') return next();
+    if (/^\/auth\/iaaa(?=\/|\?|$)/i.test(req.path)) return next();
+    authGuard(req, res, (err) => {
+      if (err) return next(err);
+      assignedBranchGuard(req, res, next);
+    });
   });
 
   // ── 读口收紧（2026-09-18 批次 81；支书 2026-09-18 裁定「授权收紧」）──────────────
@@ -126,7 +219,7 @@ export function createResourcesRouter(db) {
   // 原状是「仅 requireAuth」⇒ 任一登录成员可直连塞入图片/文件记录（`D-448` ④ 越权取用，批次 80 审计实测
   // **未登录即可列举**、任一登录成员可写；`SOP-B-40` 第 4 项登记项，本批随照片墙一并收口）。
   // 未登录/非支委层一律 403；读口仍按 `PUBLIC_READ` 之外的 requireAuth 口径（未改）。
-  const COMMISSIONER_WRITE = new Set(['branchDocs', 'fileSpaceRecords', 'imageRecords']);
+  const COMMISSIONER_WRITE = COMMISSIONER_WRITE_RESOURCES;
   for (const [name, table] of Object.entries(RESOURCE_TABLES)) {
     const writeAuth = COMMISSIONER_WRITE.has(name) ? requireCommissioner(db) : requireAuth(db);
 
@@ -248,6 +341,20 @@ export function createResourcesRouter(db) {
 
     // 更新：局部合并 patch（与前端 update(id, patch) 语义一致）
     router.patch(`/${name}/:id`, writeAuth, (req, res) => {
+      // R4-B03：非党委账号对 users 的通用 PATCH 只允许「role」一个字段（支委身份配置），
+      // 拒绝 branchId / transferOut / studentId / developStage 等夹带；目标支部严格等值由写门判据负责。
+      if (name === 'users' && req.actor.role !== 'party-staff') {
+        const body = (req.body && typeof req.body === 'object' && !Array.isArray(req.body)) ? req.body : {};
+        const outside = Object.keys(body).filter((key) => key !== 'role');
+        if (outside.length > 0) {
+          return res.status(400).json({
+            error: `字段 ${outside[0]} 不在白名单（支书/副支书仅可配置本支部成员的支委身份 role）`,
+          });
+        }
+        if (!Object.prototype.hasOwnProperty.call(body, 'role')) {
+          return res.status(400).json({ error: '无可更新字段：此写口仅可配置成员角色 role' });
+        }
+      }
       if (!_assertResourceWrite(req.actor, name, 'patch', req.body, req.params.id, db)) {
         return res.status(403).json({ error: _writeDenyMsg(name) });
       }
@@ -608,11 +715,18 @@ export function createResourcesRouter(db) {
     }
     const branchWriteDeny = scopedSnapshotWriteDeny(db, payload, req.actor);
     if (branchWriteDeny) return res.status(403).json({ error: branchWriteDeny });
-    const snapshotWrites = mergeScopedSnapshotWrites(db, _snapshotWrites(payload), req.actor);
+    const snapshotWrites = _retainUngatedSnapshotRows(
+      db,
+      mergeScopedSnapshotWrites(db, _snapshotWrites(payload), req.actor),
+      req.actor,
+    );
     const validationPayload = { ...payload };
     for (const write of snapshotWrites) validationPayload[write.name] = write.rows;
     const scopeDeny = snapshotScopeDeny(db, validationPayload, req.actor);
     if (scopeDeny) return res.status(403).json({ error: scopeDeny });
+    // R4-B01/F02：逐集合复算资源写门（notices / partyGroups / memberFlows / 文件元数据 + 无门集合的支部归属）
+    const writeGateDeny = _snapshotResourceWriteGateDeny(db, snapshotWrites, req.actor);
+    if (writeGateDeny) return res.status(403).json({ error: writeGateDeny });
     const snapshotDeny = _snapshotActivityApprovalGateDeny(db, validationPayload, req.actor) || _snapshotNoticeMessageGateDeny(db, validationPayload, req.actor);
     if (snapshotDeny) return res.status(403).json({ error: snapshotDeny });
     const baseVersions = _snapshotBaseVersions(payload);

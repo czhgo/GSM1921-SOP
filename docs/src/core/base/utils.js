@@ -3,13 +3,13 @@
 //  utils.js — 格式化工具、动画辅助、Toast 组件
 // ════════════════════════════════════════════════════════════════
 
-import { hasPendingWrites, settleWrites } from '../session/pending-writes.js?v=20261018s';
+import { hasPendingWrites, settleWrites } from '../session/pending-writes.js?v=20261018t';
 
 // ── 日期格式化 ─────────────────────────────────────────────────
 // R-26③（2026-10-05 批次 388）：日期口径单一源下沉到**零依赖叶子** `core/base/date.js`
 //   （`core/domain/constants.js` 这类「被全站 import 且要求双端可载」的件只能引零依赖件；
 //   而 `utils.js` 牵 `core/session/pending-writes.js`）⇒ 此处**转出**，既有 `from '…/utils.js'` 调用点不变。
-export { _fmtDate, todayLocal } from './date.js?v=20261018s';
+export { _fmtDate, todayLocal } from './date.js?v=20261018t';
 
 export function _fmtChinese(d) {
   const DN = ['日','一','二','三','四','五','六'];
@@ -32,6 +32,41 @@ export function escHtml(s) {
   return String(s == null ? '' : s)
     .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+// ── 写入失败文案（B05 / B08 / R4-F09）──────────────────────────
+// 用户界面只讲「发生了什么 + 下一步」，**不显示 HTTP 状态码与原始异常**。
+// 401 / 403 才提权限；5xx / 408 一律「稍后重试」；网络层失败单独成句。
+/** 服务端错误是否只是技术性报文（不该透给用户） */
+function _isTechnicalErrorText(s) {
+  return !s || /API 请求失败|Failed to fetch|NetworkError|Load failed|请求超时|Forbidden|Unauthorized|HTTP\s*\d{3}|status\s*\d{3}/i.test(s);
+}
+
+/**
+ * 把写入异常翻译成用户可读文案。
+ * @param {any} err 写入异常（通常带 status / type / body）
+ * @returns {string} 面向用户的失败文案
+ */
+export function describeWriteError(err) {
+  const e = err || {};
+  const status = Number(e.status || e.body?.status || 0);
+  const bodyReason = e.body && typeof e.body.error === 'string' ? e.body.error.trim() : '';
+  const message = typeof e.message === 'string' ? e.message.trim() : '';
+  const reason = !_isTechnicalErrorText(bodyReason) ? bodyReason
+    : (!_isTechnicalErrorText(message) ? message : '');
+
+  if (status === 401) return '登录已过期，请重新登录';
+  if (status === 403) return reason ? `当前账号无权办理：${reason}` : '当前账号无权办理';
+  if (status === 404) return '记录不存在或已删除';
+  if (status === 409) return '已被他人更新，请刷新后重试';
+  if (status === 428) return '页面版本过旧，请刷新';
+  if (status === 408 || status >= 500) return '服务暂时不可用，请稍后重试';
+  if (!status && (e.type === 'NetworkError' || e.name === 'TypeError'
+    || /Failed to fetch|NetworkError|Load failed|网络异常|网络连接/i.test(message))) {
+    return '网络异常，请检查连接';
+  }
+  if (reason) return reason;
+  return '保存未完成，请稍后重试';
 }
 
 // ── Toast 组件 — 浮层通知（固定定位，不影响文档流）─────────────

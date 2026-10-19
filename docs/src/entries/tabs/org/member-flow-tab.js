@@ -15,25 +15,25 @@
 //   登记者角色门 = canRegisterFlow（组织委员 + 支书/副支书）。
 // ════════════════════════════════════════════════════════════════
 
-import { AuthStore } from '../../../services/core/auth.js?v=20261018s';
-import { getBranchIdOfPerson } from '../../../services/branch/branch.js?v=20261018s';
-import { getPersonName } from '../../../services/member/person.js?v=20261018s';
+import { AuthStore } from '../../../services/core/auth.js?v=20261018t';
+import { getBranchIdOfPerson } from '../../../services/branch/branch.js?v=20261018t';
+import { getPersonName } from '../../../services/member/person.js?v=20261018t';
 // 党小组常态清单唯一来源（活组、按 seq 升序；新增/改名/解散后随渲染即时可见）——登记流入的「党小组」选项
-import { groupOptions } from '../../../services/member/party-group.js?v=20261018s';
-import { showToast, escHtml as esc, getBasePath, todayLocal } from '../../../core/base/utils.js?v=20261018s';
-import { getAuthToken, getApiBaseUrl } from '../../../data/data-adapter.js?v=20261018s';
-import { openModal, closeModal } from '../../../components/ui/modal.js?v=20261018s';
+import { groupOptions } from '../../../services/member/party-group.js?v=20261018t';
+import { showToast, escHtml as esc, getBasePath, todayLocal } from '../../../core/base/utils.js?v=20261018t';
+import { getAuthToken, getApiBaseUrl } from '../../../data/data-adapter.js?v=20261018t';
+import { openModal, closeModal } from '../../../components/ui/modal.js?v=20261018t';
 // 统一检索引擎（表格统一化批次 A）：台账表接入关键词 + 分面（≤8 行引擎自动不渲染检索条）
-import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261018s';
+import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261018t';
 // 成员流入/流出登记服务层（2026-09-14 批次 25 支书裁定）：登记即生效 + 台账 + 对账 + 撤销
 import {
   loadMemberFlows, reconcile, registerIntake, registerIntakeBatch,
   registerOutflow, revokeFlow, canRegisterFlow,
-} from '../../../services/member/member-flow.js?v=20261018s';
+} from '../../../services/member/member-flow.js?v=20261018t';
 // 选人规范：凡选择具体人一律 PersonPicker（禁 select 罗列人名）——登记流出选人
-import { PersonPicker } from '../../../components/governance/pickers.js?v=20261018s';
+import { PersonPicker } from '../../../components/governance/pickers.js?v=20261018t';
 // 自定义圆角下拉增强（select.input-flat.text-xs → cs-trigger；与全局 observer 幂等）
-import { enhanceSelects } from '../../../components/ui/custom-select.js?v=20261018s';
+import { enhanceSelects } from '../../../components/ui/custom-select.js?v=20261018t';
 
 // 模块级 ctx 缓存：登记/撤销后整页刷新复用首次渲染的 accent
 let _ctx = null;
@@ -285,25 +285,25 @@ function _openIntakeModal() {
       </div>
       <div data-intake-pane="single">
         <div style="margin-bottom:14px;">
-          <label class="text-body-sm" style="${labelStyle}">姓名 <span style="color:var(--functional-error);">*</span></label>
-          <input data-intake="name" type="text" class="input-flat-sm w-full" placeholder="成员姓名（必填）" style="${inputStyle}">
+          <label for="flow-intake-name" class="text-body-sm" style="${labelStyle}">姓名 <span style="color:var(--functional-error);">*</span></label>
+          <input id="flow-intake-name" data-intake="name" type="text" class="input-flat-sm w-full" placeholder="成员姓名（必填）" style="${inputStyle}">
         </div>
         <div style="margin-bottom:14px;">
-          <label class="text-body-sm" style="${labelStyle}">学号 <span style="color:var(--functional-error);">*</span></label>
-          <input data-intake="studentId" type="text" class="input-flat-sm w-full" placeholder="学号（账号由此派生，必填）" style="${inputStyle}">
+          <label for="flow-intake-student-id" class="text-body-sm" style="${labelStyle}">学号 <span style="color:var(--functional-error);">*</span></label>
+          <input id="flow-intake-student-id" data-intake="studentId" type="text" class="input-flat-sm w-full" placeholder="学号（账号由此派生，必填）" style="${inputStyle}">
         </div>
         <div style="margin-bottom:14px;">
-          <label class="text-body-sm" style="${labelStyle}">届别</label>
-          <input data-intake="enrollYear" type="text" class="input-flat-sm w-full" placeholder="入学年份 / 届别（如 2026）" style="${inputStyle}">
+          <label for="flow-intake-enroll-year" class="text-body-sm" style="${labelStyle}">届别</label>
+          <input id="flow-intake-enroll-year" data-intake="enrollYear" type="text" class="input-flat-sm w-full" placeholder="入学年份 / 届别（如 2026）" style="${inputStyle}">
         </div>
         <div style="margin-bottom:14px;">
-          <label class="text-body-sm" style="${labelStyle}">党小组</label>
-          <select data-intake="partyGroup" class="input-flat w-full">${groupOpts}</select>
+          <label for="flow-intake-party-group" class="text-body-sm" style="${labelStyle}">党小组</label>
+          <select id="flow-intake-party-group" data-intake="partyGroup" class="input-flat w-full">${groupOpts}</select>
         </div>
       </div>
       <div data-intake-pane="batch" class="hidden">
-        <label class="text-body-sm" style="${labelStyle}">粘贴多行</label>
-        <textarea data-intake="text" rows="6" class="input-flat w-full" placeholder="一行一人：姓名、学号、届别、党小组（Tab 或逗号分隔）" style="${inputStyle}resize:vertical;"></textarea>
+        <label for="flow-intake-text" class="text-body-sm" style="${labelStyle}">粘贴多行</label>
+        <textarea id="flow-intake-text" data-intake="text" rows="6" class="input-flat w-full" placeholder="一行一人：姓名、学号、届别、党小组（Tab 或逗号分隔）" style="${inputStyle}resize:vertical;"></textarea>
       </div>
       <div data-intake-errors class="hidden mt-3 text-xs text-red-700"></div>
       <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:20px;">

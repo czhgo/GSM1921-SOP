@@ -17,7 +17,7 @@ import { test, beforeEach, afterEach } from 'node:test';
 import assert from 'node:assert/strict';
 
 const { resolveResetTier, collectResetKeys, handleResetIfRequested } =
-  await import('../../docs/src/data/mock-adapter.js?v=20261018s');
+  await import('../../docs/src/data/mock-adapter.js?v=20261018t');
 
 // ── 内存桩 ─────────────────────────────────────────────────────
 function makeStorage(seed = {}) {

@@ -98,13 +98,17 @@ test('U8 页标题层级：四页重点各一个 H2，卡头 H3，首页抬头�
   assert.match(frame, /<h2 class="page-frame__title">/, 'renderTabHeader 应输出 H2');
 
   const overview = read(OVERVIEW);
-  assert.match(overview, /renderTabHeader\(\{ title: '全局概况' \}\)/, '概况应有 H2「全局概况」');
+  // 2026-10-19 结构收口：概况标题参数化（默认「工作概况」，支书台显式「全局概况」），
+  // work-overview 只负责按 title 渲染 H2；支书台在 overview-tab 传值。
+  assert.match(overview, /renderTabHeader\(\{ title \}\)/, '概况 H2 应由 work-overview 参数化渲染');
+  assert.match(read('docs/src/entries/tabs/secretary/overview-tab.js'), /title: '全局概况'/, '支书台概况应显式传「全局概况」');
   assert.match(overview, /<h3 class="section-head__title">条线<\/h3>/, '条线须为 H3');
   assert.match(overview, /<h3 class="section-head__title">待我处理<\/h3>/, '待我处理须为 H3');
   assert.doesNotMatch(overview, /<h4[^>]*section-head__title/, '分区标题不得再用 H4');
 
   const todo = read(TODO_SHELL);
-  assert.match(todo, /renderTabHeader\(\{ title: '待办' \}\)/, '待办应有 H2「待办」');
+  // 2026-10-19 结构收口：待办页标题由页签承担，不再在内容区重复 H2。
+  assert.doesNotMatch(todo, /renderTabHeader\(\{ title: '待办' \}\)/, '待办不再重复页签同名 H2');
   assert.match(todo, /role="heading" aria-level="3"/, '折叠条标题应有 H3 语义（summary 内用 ARIA heading）');
 
   const cm = read(COMMITTEE);

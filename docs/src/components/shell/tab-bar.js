@@ -8,13 +8,13 @@
 
 
 
-import { accDarkParts } from '../../core/domain/constants.js?v=20261018s';
+import { accDarkParts } from '../../core/domain/constants.js?v=20261018t';
 
-import { icon } from '../../core/base/icons.js?v=20261018s';
+import { icon } from '../../core/base/icons.js?v=20261018t';
 
 // R6 导航守卫（2026-09-03 P2a）：初始/目标 tab 决策收敛到纯函数 tab-nav.js（防「被支部隐藏后静默白屏」）
 
-import { resolveInitialTab, resolveTargetTab } from '../../core/boot/tab-nav.js?v=20261018s';
+import { resolveInitialTab, resolveTargetTab } from '../../core/boot/tab-nav.js?v=20261018t';
 
 
 
@@ -252,8 +252,9 @@ export function renderTabBar({ prefix, tabs, accentColor, defaultTab, extraRight
 
 
 
-  // 右侧动作不属于页签集合：放在 tablist 外，避免读屏把「发布招募」等动作当成页签。
-  const extraHtml = extraRightHtml ? `<div class="ml-auto shrink-0">${extraRightHtml}</div>` : '';
+  // 右侧动作不属于页签集合：放在 tablist 与滚动容器之外，避免读屏把「发布招募」等动作当成页签，
+  // 也避免它被页签横向滚动容器的 overflow 裁掉（R3-U01）。
+  const extraSlot = extraRightHtml ? `<div class="ws-tab-extra shrink-0">${extraRightHtml}</div>` : '';
 
 
 
@@ -265,9 +266,11 @@ export function renderTabBar({ prefix, tabs, accentColor, defaultTab, extraRight
   //
   // 2026-10-19 Spec「页签溢出可发现」：`.ws-tab-scroll` 外包定位容器 `.ws-tab-shell`，
   //   左右箭头与右侧渐隐只在可滚时出现；tab 自身的尺寸/选中态/顺序/分组完全不动。
-  const html = `<div class="ws-tab-shell">
+  // R3-U01：外层 shell 为 flex，滚动容器 flex-1 min-w-0，右侧动作 `.ws-tab-extra` 在滚动容器之外。
+  const html = `<div class="ws-tab-shell" style="display:flex;align-items:center;gap:8px;">
     <button type="button" class="btn-outline btn-icon ws-tab-arrow ws-tab-arrow--left" data-tab-scroll-dir="-1" aria-label="向左滚动页签" hidden>${icon('chevronLeft', { className: 'w-4 h-4', extra: ' aria-hidden="true"' })}</button>
-    <div class="ws-tab-scroll flex flex-nowrap gap-2 mb-4 overflow-x-auto"><div class="flex flex-nowrap gap-2 shrink-0" role="tablist" aria-label="工作台页签">${btnsHtml}</div>${extraHtml}</div>
+    <div class="ws-tab-scroll flex flex-nowrap gap-2 mb-4 overflow-x-auto flex-1 min-w-0"><div class="flex flex-nowrap gap-2 shrink-0" role="tablist" aria-label="工作台页签">${btnsHtml}</div></div>
+    ${extraSlot}
     <button type="button" class="btn-outline btn-icon ws-tab-arrow ws-tab-arrow--right" data-tab-scroll-dir="1" aria-label="向右滚动页签" hidden>${icon('chevronRight', { className: 'w-4 h-4', extra: ' aria-hidden="true"' })}</button>
   </div><div id="${contentId}" role="tabpanel"></div>`;
 
@@ -344,6 +347,23 @@ export function renderTabBar({ prefix, tabs, accentColor, defaultTab, extraRight
 
 
 
+  /** R3-U03：页签模块 import / 渲染失败 → 容器内统一错误卡（保留页签栏，不整页遮罩）。 */
+  function _renderTabError(tab, ctx) {
+    const el = _tabContentEl();
+    if (!el) return;
+    _endTabLoading();
+    el.innerHTML = `
+      <div class="card rounded-xl p-6 text-center" data-ws-tab-error>
+        <p class="text-sm text-gray-600">这个页签暂时没加载出来</p>
+        <button type="button" class="btn-outline text-xs px-3 py-1.5 mt-3" data-ws-tab-retry>重试</button>
+      </div>`;
+    el.querySelector('[data-ws-tab-retry]')?.addEventListener('click', () => {
+      // 清掉失败缓存后重新走同一渲染链（含占位 / 并行去重 / 陈旧纠正）。
+      _renderInFlight.delete(tab.id);
+      _safeRender(tab, ctx);
+    });
+  }
+
   function _safeRender(tab, ctx) {
 
     if (!tab || typeof tab.render !== 'function') return;
@@ -371,9 +391,13 @@ export function renderTabBar({ prefix, tabs, accentColor, defaultTab, extraRight
 
         p = Promise.resolve(tab.render(ctx));
 
-        const done = () => {
+        const done = (ok) => {
 
-          if (seq === _renderSeq) _endTabLoading();
+          if (seq === _renderSeq) {
+            _endTabLoading();
+            // R3-U03：reject / throw 一律落错误卡（仅当本次仍对着当前页签且容器里没有新内容时）
+            if (!ok && currentTab === tab.id) _renderTabError(tab, ctx);
+          }
 
           if (_renderInFlight.get(tab.id) === p) _renderInFlight.delete(tab.id);
 
@@ -383,21 +407,24 @@ export function renderTabBar({ prefix, tabs, accentColor, defaultTab, extraRight
           //   （症状＝高亮停在后点的 tab、内容却是先点的那个；快速连切时必现，读起来像「点了加载不出来」）。
           //   故：本次渲染落定后若**已不是当前 tab**，则重渲染当前 tab 纠正之
           //   （`_renderInFlight` 去重：当前 tab 若仍在渲染中则自然跳过，不会重复 import）。
-          if (currentTab !== tab.id) {
+          if (ok && currentTab !== tab.id) {
             const cur = tabs.find((t) => t.id === currentTab);
             if (cur) _safeRender(cur, ctx);
           }
 
         };
 
-        p.then(done, done);
+        p.then(() => done(true), (e) => {
+          console.error(`[tab-bar] tab「${tab.id}」渲染失败`, e);
+          done(false);
+        });
 
       } catch (e) {
 
         console.error(`[tab-bar] tab「${tab.id}」渲染异常`, e);
 
         _endTabLoading(); // U3a：异常也收尾（防占位/置灰残留）
-
+        _renderTabError(tab, ctx);
         return;
 
       }
@@ -568,6 +595,14 @@ export function renderTabBar({ prefix, tabs, accentColor, defaultTab, extraRight
       if (btn) {
         btn.classList.add('tab-btn-active');
         btn.setAttribute('style', `--tab-accent:${accent};--tab-accent-bg:${accentRgba};--tab-accent-border:${accentBorder}`);
+        // R3-D05：激活页签若在横向滚动视口外，滚到最近可见位置（尊重减少动效偏好）。
+        try {
+          btn.scrollIntoView({
+            inline: 'nearest',
+            block: 'nearest',
+            behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth',
+          });
+        } catch (_) { /* 非浏览器环境 / 老浏览器：静默降级 */ }
       }
     }
     _syncTabA11y(tabId);

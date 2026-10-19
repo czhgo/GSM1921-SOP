@@ -2,63 +2,134 @@
 // activity-entry.js — 活动/专班统一详情页入口（T233 报名渠道）
 //  URL 前缀分流：act-* 渲染活动详情，tf-* 渲染专班详情。
 //  报名区仅在「可报名」时展示（活动 published/ongoing 且日期未过、专班 recruiting 且未截止）。
-import { renderSidebar } from '../../components/shell/sidebar.js?v=20261018s';
-import { renderHeader } from '../../components/shell/header.js?v=20261018s';
-import { BranchService } from '../../services/core/runtime.js?v=20261018s';
-import { mockDB } from '../../core/domain/domain.js?v=20261018s';
-import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261018s';
-import { legacyParticipantAssignmentRows, workgroupMembers } from '../../services/activity/workgroup-members.js?v=20261018s';
-import { NoticeStore } from '../../services/governance/notice.js?v=20261018s';
-import { SignupStore, canCloseActivitySignup, closeActivitySignup, SignupStatus } from '../../services/activity/signup.js?v=20261018s';
-import { AuthStore } from '../../services/core/auth.js?v=20261018s';
-import { getPersonById } from '../../services/member/person.js?v=20261018s';
+import { renderSidebar } from '../../components/shell/sidebar.js?v=20261018t';
+import { renderHeader } from '../../components/shell/header.js?v=20261018t';
+import { BranchService } from '../../services/core/runtime.js?v=20261018t';
+import { mockDB } from '../../core/domain/domain.js?v=20261018t';
+import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261018t';
+import { legacyParticipantAssignmentRows, workgroupMembers } from '../../services/activity/workgroup-members.js?v=20261018t';
+import { NoticeStore } from '../../services/governance/notice.js?v=20261018t';
+import { SignupStore, canCloseActivitySignup, closeActivitySignup, SignupStatus } from '../../services/activity/signup.js?v=20261018t';
+import { AuthStore } from '../../services/core/auth.js?v=20261018t';
+import { getPersonById } from '../../services/member/person.js?v=20261018t';
 // 品牌认定（2026-09-21 批次 132 · 支书口径二「支委/党小组组长均可以提案，支委会通过后确定」）：
 // 判据与写口单一源 = services/activity/activity.js；本页**不再有「点一下即认定」**（提案 / 撤回 / 取消认定三种动作）。
-import { canProposeBrand, brandProposalOf, proposeBrandDesignation, withdrawBrandProposal, revokeBrandDesignation } from '../../services/activity/activity.js?v=20261018s';
+import { canProposeBrand, brandProposalOf, proposeBrandDesignation, withdrawBrandProposal, revokeBrandDesignation } from '../../services/activity/activity.js?v=20261018t';
 // 转交组织者（SOP-G-2-② · 2026-10-01 批次 327 · 支书裁「乙：直接转交 ＋ 留痕」）：
 //   母本《常见工作场景快速指南》`:125`「组织者退出需经支委会确定好接手的组织者并负责地完成工作交接
 //   后方可退出」；可发起＝支书 / 副支书 / 组织委员 / **该场现任组织者本人**。判据与写口单一源＝
 //   `components/governance/organizer-transfer.js`（本页只挂入口）。
-import { canTransferOrganizer, openOrganizerTransfer } from '../../components/governance/organizer-transfer.js?v=20261018s';
+import { canTransferOrganizer, openOrganizerTransfer } from '../../components/governance/organizer-transfer.js?v=20261018t';
 // 追加复盘要求（2026-09-21 批次 135 · 裁定二「按推荐档落」）：支委会可额外要求本场组织者完成复盘；
 // 判据与写口单一源 = services/activity/activity.js；另有「交回状态」须读该场复盘记录（services/governance/review.js）。
-import { reviewRequestOf, isReviewReturned, isReviewRequestEligibleActivity, requestOrganizerReview, withdrawReviewRequest } from '../../services/activity/activity.js?v=20261018s';
-import { loadActivityReviews, loadTaskforceReviews } from '../../services/governance/review.js?v=20261018s';
-import { getBasePath, escHtml as esc, showToast } from '../../core/base/utils.js?v=20261018s';
-import { getActivityTypeColors, usesFormalMeetingRoster, SECRETARY_AND_DEPUTY_ROLES } from '../../core/domain/constants.js?v=20261018s';
-import { getAppState } from '../../core/base/state.js?v=20261018s';
-import { badgeHtml } from '../../components/ui/badges.js?v=20261018s';
+import { reviewRequestOf, isReviewReturned, isReviewRequestEligibleActivity, requestOrganizerReview, withdrawReviewRequest } from '../../services/activity/activity.js?v=20261018t';
+import { loadActivityReviews, loadTaskforceReviews } from '../../services/governance/review.js?v=20261018t';
+import { getBasePath, escHtml as esc, showToast } from '../../core/base/utils.js?v=20261018t';
+import { getActivityTypeColors, usesFormalMeetingRoster, SECRETARY_AND_DEPUTY_ROLES } from '../../core/domain/constants.js?v=20261018t';
+import { getAppState } from '../../core/base/state.js?v=20261018t';
+import { badgeHtml } from '../../components/ui/badges.js?v=20261018t';
 // 待批活动的可见性单一源（2026-09-22 批次 151 · 支书裁定「只支委层可见」）：详情页**直按 id 打开**也要守同一判据
 // （列表里不出现、但链接/历史记录可直达 ⇒ 只靠列表过滤不够）。
-import { isActivityVisibleTo, canRevealActivityMemberNames } from '../../services/core/visibility.js?v=20261018s';
+import { isActivityVisibleTo, canRevealActivityMemberNames } from '../../services/core/visibility.js?v=20261018t';
 // 活动生命周期展示态单一源（2026-09-13 收敛）：徽章/文案不得本地另写一套中文状态映射
-import { activityLifecycleBadgeHtml } from '../../components/record/inspector.js?v=20261018s';
-import { enhanceSelects } from '../../components/ui/custom-select.js?v=20261018s';
-import { canSignup as _canSignup, renderSignupSection, renderSignupList, bindSignupEvents, roleLabel } from '../../components/governance/signup-panel.js?v=20261018s';
+import { activityLifecycleBadgeHtml } from '../../components/record/inspector.js?v=20261018t';
+import { enhanceSelects } from '../../components/ui/custom-select.js?v=20261018t';
+import { canSignup as _canSignup, renderSignupSection, renderSignupList, bindSignupEvents, roleLabel } from '../../components/governance/signup-panel.js?v=20261018t';
 // 工作分工（`assignments` 表 · 2026-10-03 批次 359 · `D-750` 续答「全 CRUD」）：落点＝**活动详情页新增一块**；
 //   ⚠ 与活动内联的「参与人员」（`act.assignments`＝**项目角色数组**）**不是同一份数据**；术语用「项目分工 / 事上见」，
 //   **不得**称「常备性分工」（支书明令禁用）。判据与写口单一源＝`services/activity/work-assignment.js`。
-import { canManageWorkAssignments, listWorkAssignments, createWorkAssignment, updateWorkAssignment, removeWorkAssignment, WORK_ASSIGNMENT_STATUS, WORK_ASSIGNMENT_STATUS_LABELS } from '../../services/activity/work-assignment.js?v=20261018s';
+import { canManageWorkAssignments, listWorkAssignments, createWorkAssignment, updateWorkAssignment, removeWorkAssignment, WORK_ASSIGNMENT_STATUS, WORK_ASSIGNMENT_STATUS_LABELS } from '../../services/activity/work-assignment.js?v=20261018t';
 // 选人载体单一源（`DESIGN_SYSTEM §4.13` · `filter-row::S9`）：**「选名单成员」一律 PersonPicker**，
 //   **不得**用自建 `<select>` 罗列人名（`S9` 只放行「任命 / 指派到人」四处例外、且明禁新代码长出第 5 处）——
 //   本块「负责人」属「选名单成员」⇒ 走 PersonPicker（唯一出口 `components/governance/pickers.js`）。
-import { PersonPicker } from '../../components/governance/pickers.js?v=20261018s';
-import { renderShareButtonHtml, bindShareButton } from '../../components/shell/share-button.js?v=20261018s';
-import { renderVoteWidget } from '../../components/governance/vote-widget.js?v=20261018s';
-import { fetchVotes } from '../../services/activity/committee-vote.js?v=20261018s';
+import { PersonPicker } from '../../components/governance/pickers.js?v=20261018t';
+import { renderShareButtonHtml, bindShareButton } from '../../components/shell/share-button.js?v=20261018t';
+import { renderVoteWidget } from '../../components/governance/vote-widget.js?v=20261018t';
+import { fetchVotes } from '../../services/activity/committee-vote.js?v=20261018t';
 // 表态权判据单一源（2026-09-30 批次 304）：本页此前**内联**判过一遍 `voterIds.includes(me)`，
 //   与 inspector.js 的 `isCommittee` 角色门形成两种口径；现统一消费 `isVoterOf`（角色无关）。
-import { isVoterOf } from '../../services/activity/vote-config.js?v=20261018s';
+import { isVoterOf } from '../../services/activity/vote-config.js?v=20261018t';
 // SOP-B-2（批次 83）：本页必须先 hydrate API 数据源再渲染——见 _hydrateData 注释
-import { hydrateDataSource, notifyDataLoaded } from '../../data/data-adapter.js?v=20261018s';
-import { ApiAdapter } from '../../data/api-adapter.js?v=20261018s';
+import { hydrateDataSource, notifyDataLoaded } from '../../data/data-adapter.js?v=20261018t';
+import { ApiAdapter } from '../../data/api-adapter.js?v=20261018t';
 // 批次 123：「关闭报名」后按批次 49「存好了才报成功」同一口径——先结算在途落库再刷新
-import { settleWrites } from '../../core/session/pending-writes.js?v=20261018s';
-import { getAdapter } from '../../data/data-adapter.js?v=20261018s';
-import { renderWorkgroupMemberEditor, bindWorkgroupMemberEditor } from '../../components/governance/workgroup-member-editor.js?v=20261018s';
+import { settleWrites } from '../../core/session/pending-writes.js?v=20261018t';
+import { getAdapter } from '../../data/data-adapter.js?v=20261018t';
+import { renderWorkgroupMemberEditor, bindWorkgroupMemberEditor } from '../../components/governance/workgroup-member-editor.js?v=20261018t';
+import { openModal, closeModal } from '../../components/ui/modal.js?v=20261018t';
 
 renderSidebar('dashboard');
 renderHeader('dashboard');
+
+// ── 活动详情页的二次确认 / 单句输入（R3-D07）────────────────────
+// 原生 window.confirm / prompt 依赖浏览器样式、不可无障碍定制；本页 7 处动作统一改走 openModal。
+let _activityDialogSeq = 0;
+
+/** 二次确认：标题 + 后果句 + 取消/确认（危险动作走危险色调） */
+function _openConfirm({ title, message, consequence = '', confirmLabel = '确认', danger = false, onConfirm }) {
+  const id = `activity-confirm-${++_activityDialogSeq}`;
+  const okButton = danger
+    ? `<button type="button" data-act-ok class="btn-danger-solid text-sm px-4 py-[7px] font-medium">${esc(confirmLabel)}</button>`
+    : `<button type="button" data-act-ok class="btn-accent text-sm px-4 py-[7px] font-medium">${esc(confirmLabel)}</button>`;
+  openModal({
+    id,
+    title,
+    width: '440px',
+    bodyHtml: `
+      <p style="margin:0;font-size:0.85rem;line-height:1.75;color:var(--neutral-800);">${esc(message)}</p>
+      ${consequence ? `<p style="margin:8px 0 0;font-size:0.78rem;line-height:1.7;color:${danger ? 'var(--functional-error)' : 'var(--neutral-500)'};">${esc(consequence)}</p>` : ''}
+      <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:18px;">
+        <button type="button" data-act-cancel class="btn-outline text-xs px-3 py-1.5" style="cursor:pointer;">取消</button>
+        ${okButton}
+      </div>`,
+    onMount: (panel) => {
+      panel.querySelector('[data-act-cancel]')?.addEventListener('click', () => closeModal(id));
+      panel.querySelector('[data-act-ok]')?.addEventListener('click', () => {
+        closeModal(id);
+        onConfirm();
+      });
+    },
+  });
+}
+
+/** 单句输入：textarea 必填校验（空值就地报错并聚焦，不关闭浮窗） */
+function _openNotePrompt({ title, label, placeholder, confirmLabel, onConfirm }) {
+  const id = `activity-note-${++_activityDialogSeq}`;
+  openModal({
+    id,
+    title,
+    width: '440px',
+    bodyHtml: `
+      <label for="activity-note-input" style="display:block;font-weight:500;color:var(--neutral-700);margin-bottom:4px;" class="text-body-sm">${esc(label)} <span style="color:var(--functional-error);">*</span></label>
+      <textarea id="activity-note-input" rows="3" required aria-required="true" placeholder="${esc(placeholder)}" class="input-flat-sm w-full" style="--acc-text-dark:#CBD5E1;color:var(--neutral-700);resize:vertical;"></textarea>
+      <p id="activity-note-error" class="text-xs text-red-600 mt-1" hidden></p>
+      <p style="margin:8px 0 0;font-size:0.72rem;line-height:1.7;color:var(--neutral-500);">要求须写明一句内容，并进入本场关闭判据。</p>
+      <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:18px;">
+        <button type="button" data-note-cancel class="btn-outline text-xs px-3 py-1.5" style="cursor:pointer;">取消</button>
+        <button type="button" data-note-ok class="btn-accent text-sm px-4 py-[7px] font-medium">${esc(confirmLabel)}</button>
+      </div>`,
+    onMount: (panel) => {
+      const input = panel.querySelector('#activity-note-input');
+      const errorEl = panel.querySelector('#activity-note-error');
+      panel.querySelector('[data-note-cancel]')?.addEventListener('click', () => closeModal(id));
+      panel.querySelector('[data-note-ok]')?.addEventListener('click', () => {
+        const value = String(input?.value || '').trim();
+        if (!value) {
+          if (errorEl) {
+            errorEl.textContent = '请写明一句要求内容';
+            errorEl.hidden = false;
+          }
+          input?.setAttribute('aria-invalid', 'true');
+          input?.setAttribute('aria-describedby', 'activity-note-error');
+          input?.focus();
+          return;
+        }
+        closeModal(id);
+        onConfirm(value);
+      });
+    },
+  });
+}
 
 /**
  * 数据 hydrate（2026-09-18 批次 83 · SOP-B-2 报名链的前提修复）
@@ -465,13 +536,21 @@ async function renderActivity(id) {
 
   // 「关闭报名」（批次 123）：二次确认（关闭后无「重新开放」入口，属不可逆动作）→ 落库 → 结算 → 刷新。
   // 放行判据在 closeActivitySignup 内复算一次（呈现/动作同源 canCloseActivitySignup），点了没反应＝放行被挡。
-  cardEl.querySelector('#signup-close-btn')?.addEventListener('click', async () => {
-    if (!window.confirm('确认关闭本场报名？关闭后成员不能再新报（已报名者仍可自行取消）。')) return;
-    const res = await closeActivitySignup(act.id, myId);
-    if (!res.ok) { showToast('error', res.reason || '关闭报名失败'); return; }
-    showToast('success', '本场报名已关闭');
-    try { await settleWrites(); } catch (e) { console.warn('[activity-entry] 落库未结算，仍刷新以读取最新状态：', e); }
-    window.location.reload();
+  cardEl.querySelector('#signup-close-btn')?.addEventListener('click', () => {
+    _openConfirm({
+      title: '关闭本场报名',
+      message: '确认关闭本场报名？',
+      consequence: '关闭后成员不能再新报；已报名者仍可自行取消。',
+      confirmLabel: '关闭报名',
+      danger: true,
+      onConfirm: async () => {
+        const res = await closeActivitySignup(act.id, myId);
+        if (!res.ok) { showToast('error', res.reason || '关闭报名失败'); return; }
+        showToast('success', '本场报名已关闭');
+        try { await settleWrites(); } catch (e) { console.warn('[activity-entry] 落库未结算，仍刷新以读取最新状态：', e); }
+        window.location.reload();
+      },
+    });
   });
 
   // 品牌认定三动作（2026-09-21 批次 132 · 支书口径二「提案 → 支委会通过后确定」）：**认定只能由支委会审议通过产生**。
@@ -481,45 +560,79 @@ async function renderActivity(id) {
     try { await settleWrites(); } catch (e) { console.warn('[activity-entry] 落库未结算，仍刷新以读取最新状态：', e); }
     window.location.reload();
   };
-  cardEl.querySelector('#brand-propose-btn')?.addEventListener('click', async () => {
-    if (!window.confirm('提交「品牌认定」提案？提案只登记待议，须经支委会审议通过后才认定为品牌活动。')) return;
-    const res = proposeBrandDesignation({ activityId: act.id, by: myId, role: myRole });
-    if (!res.ok) { showToast('error', res.reason || '提案失败'); return; }
-    showToast('success', '已提交品牌认定提案（进支委会「拟上会」清单）');
-    await afterBrandWrite();
+  cardEl.querySelector('#brand-propose-btn')?.addEventListener('click', () => {
+    _openConfirm({
+      title: '提交品牌认定提案',
+      message: '提交「品牌认定」提案？',
+      consequence: '提案只登记待议，须经支委会审议通过后才认定为品牌活动。',
+      confirmLabel: '提交提案',
+      onConfirm: async () => {
+        const res = proposeBrandDesignation({ activityId: act.id, by: myId, role: myRole });
+        if (!res.ok) { showToast('error', res.reason || '提案失败'); return; }
+        showToast('success', '已提交品牌认定提案（进支委会「拟上会」清单）');
+        await afterBrandWrite();
+      },
+    });
   });
-  cardEl.querySelector('#brand-withdraw-btn')?.addEventListener('click', async () => {
-    if (!window.confirm('撤回该活动的品牌认定提案？')) return;
-    const res = withdrawBrandProposal({ activityId: act.id, by: myId, role: myRole });
-    if (!res.ok) { showToast('error', res.reason || '撤回失败'); return; }
-    showToast('success', '已撤回品牌认定提案');
-    await afterBrandWrite();
+  cardEl.querySelector('#brand-withdraw-btn')?.addEventListener('click', () => {
+    _openConfirm({
+      title: '撤回品牌认定提案',
+      message: '撤回该活动的品牌认定提案？',
+      consequence: '撤回后提案回到未提状态。',
+      confirmLabel: '撤回提案',
+      onConfirm: async () => {
+        const res = withdrawBrandProposal({ activityId: act.id, by: myId, role: myRole });
+        if (!res.ok) { showToast('error', res.reason || '撤回失败'); return; }
+        showToast('success', '已撤回品牌认定提案');
+        await afterBrandWrite();
+      },
+    });
   });
-  cardEl.querySelector('#brand-revoke-btn')?.addEventListener('click', async () => {
-    if (!window.confirm('确认取消本场的品牌认定？（留痕：取消人 / 时间；重新认定为品牌仍须支委会审议通过）')) return;
-    const res = revokeBrandDesignation({ activityId: act.id, by: myId, role: myRole });
-    if (!res.ok) { showToast('error', res.reason || '取消失败'); return; }
-    showToast('success', '已取消品牌认定');
-    await afterBrandWrite();
+  cardEl.querySelector('#brand-revoke-btn')?.addEventListener('click', () => {
+    _openConfirm({
+      title: '取消品牌认定',
+      message: '确认取消本场的品牌认定？',
+      consequence: '将留痕取消人与时间；重新认定为品牌仍须支委会审议通过。',
+      confirmLabel: '取消认定',
+      danger: true,
+      onConfirm: async () => {
+        const res = revokeBrandDesignation({ activityId: act.id, by: myId, role: myRole });
+        if (!res.ok) { showToast('error', res.reason || '取消失败'); return; }
+        showToast('success', '已取消品牌认定');
+        await afterBrandWrite();
+      },
+    });
   });
 
   // 追加复盘要求两动作（2026-09-21 批次 135 · 裁定二「按推荐档落」）：① 要求组织者复盘（支委会全体）
   //   ② 撤回要求（发起人或支委会）。要求须写明一句内容；写链单一源＝services/activity/activity.js，放行在服务内复算。
-  cardEl.querySelector('#review-request-btn')?.addEventListener('click', async () => {
-    const note = window.prompt('要求组织者复盘——请写明一句要求内容（如「请补充这次活动的改进建议」）：', '');
-    if (note === null) return;
-    if (!note.trim()) { showToast('error', '请写明一句要求内容'); return; }
-    const res = requestOrganizerReview({ activityId: act.id, by: myId, role: myRole, note });
-    if (!res.ok) { showToast('error', res.reason || '发起失败'); return; }
-    showToast('success', '已要求组织者复盘（进本场关闭判据，只判到「交回」）');
-    await afterBrandWrite();
+  cardEl.querySelector('#review-request-btn')?.addEventListener('click', () => {
+    _openNotePrompt({
+      title: '要求组织者复盘',
+      label: '要求内容',
+      placeholder: '如「请补充这次活动的改进建议」',
+      confirmLabel: '发起要求',
+      onConfirm: async (note) => {
+        const res = requestOrganizerReview({ activityId: act.id, by: myId, role: myRole, note });
+        if (!res.ok) { showToast('error', res.reason || '发起失败'); return; }
+        showToast('success', '已要求组织者复盘（进本场关闭判据，只判到「交回」）');
+        await afterBrandWrite();
+      },
+    });
   });
-  cardEl.querySelector('#review-request-withdraw-btn')?.addEventListener('click', async () => {
-    if (!window.confirm('撤回本场的追加复盘要求？')) return;
-    const res = withdrawReviewRequest({ activityId: act.id, by: myId, role: myRole });
-    if (!res.ok) { showToast('error', res.reason || '撤回失败'); return; }
-    showToast('success', '已撤回追加复盘要求');
-    await afterBrandWrite();
+  cardEl.querySelector('#review-request-withdraw-btn')?.addEventListener('click', () => {
+    _openConfirm({
+      title: '撤回复盘要求',
+      message: '撤回本场的追加复盘要求？',
+      consequence: '撤回后本场不再要求组织者补交复盘。',
+      confirmLabel: '撤回要求',
+      onConfirm: async () => {
+        const res = withdrawReviewRequest({ activityId: act.id, by: myId, role: myRole });
+        if (!res.ok) { showToast('error', res.reason || '撤回失败'); return; }
+        showToast('success', '已撤回追加复盘要求');
+        await afterBrandWrite();
+      },
+    });
   });
 
   // 转交组织者（2026-10-01 批次 327 · SOP-G-2-② · 支书裁「乙：直接转交 ＋ 留痕」）：
@@ -668,15 +781,18 @@ let _waPicker = null;
 function _waFormHtml(row) {
   const r = row || {};
   const statusCell = row
-    ? `<select class="input-flat text-xs" data-wa-field="status">${Object.entries(WORK_ASSIGNMENT_STATUS_LABELS)
+    ? `<label for="wa-status" class="visually-hidden">状态</label><select id="wa-status" class="input-flat text-xs" data-wa-field="status">${Object.entries(WORK_ASSIGNMENT_STATUS_LABELS)
       .map(([v, t]) => `<option value="${v}"${r.status === v ? ' selected' : ''}>${t}</option>`).join('')}</select>`
     : '<span></span>';
   return `
     <div class="rounded-xl border border-neutral-200 bg-white p-3 mb-2">
       <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+        <label for="wa-work-name" class="visually-hidden">工作名称</label>
         <input id="wa-work-name" class="input-flat text-xs" placeholder="工作名称（必填）" value="${esc(r.workName || '')}" data-wa-field="workName">
-        <input type="date" class="input-flat text-xs" value="${esc(r.ddl || '')}" data-wa-field="ddl">
-        <input class="input-flat text-xs md:col-span-2" placeholder="工作说明（选填）" value="${esc(r.workDescription || '')}" data-wa-field="workDescription">
+        <label for="wa-ddl" class="visually-hidden">截止日期</label>
+        <input id="wa-ddl" type="date" class="input-flat text-xs" value="${esc(r.ddl || '')}" data-wa-field="ddl">
+        <label for="wa-work-description" class="visually-hidden">工作说明</label>
+        <input id="wa-work-description" class="input-flat text-xs md:col-span-2" placeholder="工作说明（选填）" value="${esc(r.workDescription || '')}" data-wa-field="workDescription">
         <div class="wa-assignee-host" style="min-height:38px;"></div>
         ${statusCell}
       </div>
@@ -769,10 +885,18 @@ function _bindWorkAssignments(cardEl, act, myId, role, canRevealNames = true) {
     if (delBtn) {
       const row = rowOf(delBtn.dataset.rowId);
       if (!row) return;
-      if (!window.confirm(`删除工作「${row.workName}」？删除后不可恢复。`)) return;
-      await removeWorkAssignment(row.id);
-      showToast('success', '已删除该条工作分工');
-      rerender();
+      _openConfirm({
+        title: '删除工作分工',
+        message: `删除工作「${row.workName}」？`,
+        consequence: '删除后不可恢复。',
+        confirmLabel: '删除',
+        danger: true,
+        onConfirm: async () => {
+          await removeWorkAssignment(row.id);
+          showToast('success', '已删除该条工作分工');
+          rerender();
+        },
+      });
       return;
     }
     const saveBtn = e.target.closest('.wa-save-btn');

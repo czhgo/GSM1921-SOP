@@ -313,6 +313,14 @@ export function snapshotScopeDeny(db, payload, actor) {
       if (isDisabledActivityHistory(db, activityOf(db, row.activityId))) return '无权限：本支部已停用活动组织能力，已结束活动的考勤只读保留';
       if (old && old.recordedBy !== row.recordedBy) return '无权限：考勤记录人留痕不可通过快照修改';
       if (!old && row.recordedBy && row.recordedBy !== actor.id) return '无权限：不能伪造考勤记录人';
+      // 本人「线上参会」申报（SOP-B-5 / `declareOnlineAttend`）：只允许本人新增
+      // 「请假 + onlineAttend=true + 未确认」的自述行；不得记出勤、不得代他人、不得写确认人。
+      const selfOnlineDeclaration = !!actor
+        && row.personId === actor.id
+        && row.status === 'leave'
+        && row.onlineAttend === true
+        && !row.recordedBy;
+      if (selfOnlineDeclaration) continue;
       const deny = attendanceWriteDeny(db, actor, row);
       if (deny) return deny.error;
     }

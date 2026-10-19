@@ -3,7 +3,7 @@ import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { createApp } from '../app.js';
 import { seedDatabase } from '../seed.js';
-import { deriveExpectedRosterIds } from '../../docs/src/services/activity/attendance-roster.js?v=20261018s';
+import { deriveExpectedRosterIds } from '../../docs/src/services/activity/attendance-roster.js?v=20261018t';
 
 let server;
 let base;

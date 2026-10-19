@@ -24,7 +24,7 @@ import { sanitizeSelfProfile } from '../../docs/src/core/domain/self-profile.js'
 import { canReadMemberProfile, projectMemberProfile } from '../../docs/src/core/domain/profile-access.js';
 // R-26③（2026-10-05 批次 388）：日期口径统一到**本地**（服务端单一源 `services/reporting.js`）
 import { today as todayLocal } from '../services/reporting.js';
-import { actorBranchId, branchSelectionError, selectedBranchRequiredError, recordBranchWriteDeny, resourceRowsForActor } from './resources/branch-scope.js';
+import { actorBranchId, branchSelectionError, selectedBranchRequiredError, recordBranchWriteDeny, requireAssignedBranch, resourceRowsForActor } from './resources/branch-scope.js';
 
 // 全体支委（广播对象：支书/副支书/组织/宣传/纪检，与 member-change-flow 测试断言一致）
 // P2c：名单单一源 = constants.js COMMITTEE_IDS（勿手写）
@@ -52,6 +52,19 @@ function writeRow(db, table, row) {
 
 export function createMemberRouter(db) {
   const router = Router();
+
+  // R4-B02：非党委账号 branchId 显式 null（待归属）⇒ 成员链路一律 403；缺字段仍按存量口径回落。
+  const assignedBranchGuard = requireAssignedBranch();
+  const authGuard = requireAuth(db);
+  router.use((req, res, next) => {
+    if (req.method === 'OPTIONS') return next();
+    // IAAA 的选支部 / 待确认端点在挂载顺序上位于本 router 之后，必须放行。
+    if (/^\/auth\/iaaa(?=\/|\?|$)/i.test(req.path)) return next();
+    authGuard(req, res, (err) => {
+      if (err) return next(err);
+      assignedBranchGuard(req, res, next);
+    });
+  });
 
   // ── 申请列表（支委可见；支持按活动/状态过滤）──
   router.get('/member-change-requests', requireAuth(db), (req, res) => {
@@ -147,7 +160,7 @@ export function createMemberRouter(db) {
     }
     const userRow = db.prepare('SELECT data FROM users WHERE id = ?').get(existing.personId);
     const user = userRow ? JSON.parse(userRow.data) : null;
-    if (user && (req.actor.branchId || 'br-b1') !== (user.branchId || 'br-b1')) {
+    if (user && branchOf(req.actor) !== branchOf(user)) {
       return res.status(403).json({ error: '无权限：仅可确认本支部成员的变更申请' });
     }
     const updated = {
@@ -202,9 +215,9 @@ export function createMemberRouter(db) {
     const userRow = db.prepare('SELECT data FROM users WHERE id = ?').get(req.params.id);
     if (!userRow) return res.status(404).json({ error: '成员不存在' });
     const user = JSON.parse(userRow.data);
-    const myBranch = req.actor.branchId || 'br-b1';
-    const targetBranch = user.branchId || 'br-b1';
-    if (myBranch !== targetBranch) {
+    const myBranch = branchOf(req.actor);
+    const targetBranch = branchOf(user);
+    if (!myBranch || myBranch !== targetBranch) {
       return res.status(403).json({ error: '无权限：仅可推进本支部成员的发展阶段' });
     }
     const merged = { ...user, developStage: toStage };
@@ -234,7 +247,8 @@ export function createMemberRouter(db) {
   const SELF_WRITE_FIELDS = ['selfProfile'];
   const RESIDENCE_VALUES = [RESIDENCE.CAMPUS, RESIDENCE.DETAINED];
   const TRANSFER_OUT_ROLES = new Set(['org-commissioner', ...SECRETARY_DEPUTY_ROLE_KEYS]);
-  const branchOf = (u) => (u && u.branchId) || 'br-b1';
+  // 显式 null = 待归属（IAAA 建号未确认）⇒ 保持 null；仅历史缺字段回落 br-b1。
+  const branchOf = (u) => (u && (u.branchId === null ? null : (u.branchId || 'br-b1')));
   const readUser = (id) => {
     const row = db.prepare('SELECT data FROM users WHERE id = ?').get(id);
     return row ? JSON.parse(row.data) : null;

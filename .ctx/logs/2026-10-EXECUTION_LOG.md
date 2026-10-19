@@ -2808,3 +2808,66 @@ $body
 
 - 本批只修回归与党委台摘要/名册；Part B（Round 3+4 合并审查）另行推进。
 - 未改后端 API / 数据模型 / 权限链；党委台只读边界不变；未撤销四类按钮体系；未改首页区块顺序。
+
+## 批次 487（2026-10-19）：Round 3 + Round 4 合并审查与修复（batch 1 / 2A / 2B / 2C）
+
+### 一、判据
+
+- 支书裁定「Round 3 与 Round 4 两轮合为 1 轮」；六路 lens 一次进场、一份报告、一次 frontier。
+- frontier 裁定：R4 后端安全四项**本批授权修**；结构前端做「待办 + 日历 + 专班卡 + 页头/外壳统一」；表单做「openFormModal + 四表单」；金色文字/焦点**全面压深**。
+- 支书强调「该落盘的一定要落盘清楚」：裁定与批次写入 `.trae/specs/restore-homepage-brand-and-gold/spec.md §7`、`tasks.md` Part B、`.ctx/AUDIT_ROUND3_4_COMBINED.md` 三处同源。
+
+### 二、审查
+
+- Round 3：`frontend-design` / `design-with-taste` / `uicraft`；Round 4：`fullstack-developer` / `domain-modeling` / `backend-architect`（后两者本机未注册，按同等口径完成并登记）。
+- 六路共 60 条发现；合并报告 `.ctx/AUDIT_ROUND3_4_COMBINED.md`：共识 5、分歧 3、待裁定 4。
+- 关键共识：金色文字/焦点必须压深；表单 label/必填体系最大面积债；错误语义三套并存；日历空态/默认日期/键盘同源；后端快照写门最高风险。
+
+### 三、修复
+
+**batch 1（低风险高价值）**
+- R3-D01 金色文字/chip/链接/焦点统一 `--app-accent-text`，新增 G5 守卫禁止裸 `var(--app-accent)` 作 color/outline。
+- R4-F01 `openModal/openFormModal` title/label/placeholder/value/option/错误文本全量 `escHtml`。
+- R3-U01 组织台「发布招募」移出 `.ws-tab-scroll` 到固定右格；R3-U03 页签渲染失败统一错误卡 + 重试；R3-D05 激活页签 scrollIntoView。
+- R3-F02 通知条目 keydown 排除内层按钮 + 铃铛 aria-label 带未读数。
+- R3-U07 材料页四类行恒显示 + 步骤条单调；R3-U08「今天」错误态不冒充空态。
+- R3-F09 组长台卡点前置；R3-F10 成员台活动行动作换行。
+- R4-F07 日历空态/图例槽位兜底；R3-F03/B01 日历活动条目与日期格键盘可达。
+- R4-D07 DATA_MODEL 持久化字段 35→41、补 6 工作区域、personId、pending-approval/low。
+
+**batch 2A（后端安全，已授权）**
+- R4-B01/F02 快照写穿口按资源复算角色门；有门集合保留无删除权存量行；notices 新增/修改分权。
+- R4-B02 `branchId:null` 与历史缺字段分离；新增 `requireAssignedBranch`，IAAA 绑定端点显式放行。
+- R4-B03 非党委账号 `users.patch` 只允许 `role`，拒绝 branchId/transferOut/studentId/developStage 夹带。
+- R4-B04 思想汇报读口按 `canReadThoughtReport` 过滤（本人或支委层）。
+- R4-F03 通知组织者写口前后端同源；R4-F04 attendances/inspections/todos 非支委层行级投影。
+- 新增 `round3-4-security.test.mjs` 9/9：伪造考勤/通知/成员字段/思想汇报均被拒，正常保存不受误伤。
+
+**batch 2B（表单/错误/金色文字）**
+- `openFormModal` 生成 `${id}-${key}` 稳定 id、label for、required/aria-required、错误行/aria-invalid/aria-describedby、聚焦首错；默认按钮「保存」。
+- 四个重点表单补 for/id：写活动、成员流入库、工作分工、复盘批注。
+- 新增 `describeWriteError`（401/403/404/409/428/408/5xx/网络分流）；api-adapter 优先服务端 body.error；party-config/calendar 统一文案，界面不再显示 HTTP 数字。
+- nudge 标题动词化（写入/上传/催办/赋权）；浮窗 150ms 淡出且 inert/焦点立即回还；活动详情 7 处原生 confirm/prompt 迁 openModal。
+
+**batch 2C（结构性前端）**
+- 待办窄屏详情列 `order-first` + 选中 scrollIntoView + `aria-live`；删除重复「待办」H2。
+- 组织台专班卡 `role=button`/`tabindex`/aria-label + Enter/Space，内层按钮不劫持。
+- `work-overview` 概况标题参数化：支书「全局概况」、成员「我的工作概况」、其余「工作概况」；六台保留页头 H2，党委台 80rem 宽表例外。
+
+**测试口径同步**
+- `ui-primary-cta-color` C3 改按「亮色本色+深字 / 暗色 58% 压深+白字」；`ui-phase2-urgent` U8 改按概况标题参数化与待办去重。
+- `form-loop-registry` 新增「周期归档退回说明」校验点，`SITES_BASELINE 120→121`，README 同步 121/101。
+- `multi-user-write` 顺序写改用 todos（活动创建已收口语义入口）；`permission-gate` 跨支部成员改用党委账号 + branchId 回读。两项均为既有测试口径同步，已先在工作树基线复现为红。
+
+### 四、读数
+
+- 新守卫：`round3-4-batch1` 10/10、`modal-escape` 3/3、`frontend-foundations` 7/7、`round3-4-security` 9/9、`structural-round3` 5/5。
+- page-sweep **16/16** 全绿（P1/P2/P3/P7/S1/S2/S3/S19/S20/S21/S22/S23）。
+- doc-consistency 22/22、module-load E1 202/202、a11y-tree A1–A6、multi-user-write 3/3、permission-gate 13/13。
+- 版本戳 `20261018s → 20261018t`。
+
+### 五、边界
+
+- 转后续：R4-D02 活动创建事务 / D03 状态机 / D04 考察父键 / D05 考察写门；R4-F06/B09 宽表卡式化；R4-B07 mock 支部过滤。
+- 未改数据模型 / 表结构；未重写 68 页签；未恢复 `.btn-ghost` 为动作按钮。
+- 临时脚本与 worktree 已删除；证据落 `.ctx/evidence/2026-10-19/`。

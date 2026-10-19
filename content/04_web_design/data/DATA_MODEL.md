@@ -32,7 +32,7 @@ related_files: [content/02_institution/SYSTEM_ROLE_PERMISSION.md, content/02_ins
 | id | string | 是 | `generateId('act')` | 唯一标识符，前缀 `act_` |
 | title | string | 是 | -- | 活动标题 |
 | type | string | 是 | -- | 活动类型。类型体系（两大顶层非并列）：三会一课系含支部党员大会/支委会/党小组会/党课（组织生活会是**内容**而非子类，由三会之一召开，见 §2.1.2）；主题党日系含 `type='主题党日'` + 载体见 `carriers`。查询筛选按 `classifyActivityType` 级联展示 |
-| status | `'draft'\|'published'\|'ongoing'\|'completed'\|'cancelled'` | 是 | `'draft'` | 活动存储状态；页面展示态由生命周期派生（见下方"活动生命周期展示态"） |
+| status | `'draft'\|'pending-approval'\|'published'\|'ongoing'\|'completed'\|'cancelled'` | 是 | `'draft'` | 活动存储状态；页面展示态由生命周期派生（见下方"活动生命周期展示态"）。`pending-approval`＝待批（活动批准门开启时写入，默认关） |
 | visibility | `'branch'\|'group'` | 是 | `'group'` | 可见范围：全支部 or 党小组 |
 | date | string (YYYY-MM-DD) | 是 | -- | 活动日期 ISO 字符串 |
 | location | string\|null | 否 | null | 活动地点（线下活动场地/线上会议链接），用于活动详情与日历展示；可选字段，无则不显示地点 |
@@ -307,13 +307,13 @@ taskforce.members:    Array<{ personId, role: 'organizer' | 'deep' | 'participan
 ### 2.5 考勤数据 (AttendanceRecord)
 
 > 类型定义位于 [domain.js](../../../docs/src/core/domain/domain.js#L35-L46)（AttendanceRecord typedef）
-> **字段命名说明**：`personId` 统一为人员标识字段。代码中仍使用 `userId`，待后续同步。
+> **字段命名说明**：人员标识统一为 `personId`（与 AttendanceRecord typedef 一致）。
 
 | 字段名 | 类型 | 必填 | 默认值 | 说明 |
 |---|---|---|---|---|
 | id | string | 是 | `generateId()` | 唯一标识符 |
 | activityId | string | 是 | -- | 所属活动 ID |
-| personId | string | 是 | -- | 参会成员人员 ID（统一命名，代码中为 userId） |
+| personId | string | 是 | -- | 参会成员人员 ID（统一命名 personId） |
 | status | `'present'\|'absent'\|'leave'\|'made_up'` | 是 | -- | 出勤状态（出席/缺席/请假/已补） |
 | recordedBy | string | 是 | -- | 记录人用户 ID（纪检委员） |
 | recordedAt | string (ISO) | 是 | -- | 记录时间 |
@@ -1418,11 +1418,12 @@ pending ──用户开始处理──→ in_progress ──完成──→ comp
 |---|---|---|---|
 | `workflowos_branch_db_v1` | 完整 mockDB 状态（全量序列化） | JSON | [data/mock-adapter.js `_saveToStorage()`](../../../docs/src/data/mock-adapter.js#L48-L109)（saveDB/loadDB 已收敛至 MockAdapter，services/core/mock.js 仅保留 API 模式扎口代理） |
 
-**全量键字段清单**（`mock-adapter.js _saveToStorage()` 实际序列化的 35 个字段，按代码顺序）：
+**全量键字段清单**（`mock-adapter.js _saveToStorage()` 实际序列化的 41 个字段，按代码顺序）：
 
 | 字段 | 类型 | 说明 |
 |---|---|---|
 | `_schema` | number | Schema 版本号，当前值为 1（loadDB 校验，不匹配拒绝加载） |
+| `_seedVersion` | number | 种子数据版本（与 `domain.js::SEED_DATA_VERSION` 同源；旧版本本地演示数据自动失效并回新种子） |
 | `users` | User[] | `u_*` 系统账号预设（持久化但恢复时不做运行时污染覆盖） |
 | `activities` | ActivityRecord[] | 活动记录 |
 | `tasks` | Task[] | 任务记录 |
@@ -1437,6 +1438,12 @@ pending ──用户开始处理──→ in_progress ──完成──→ comp
 | `experienceDeposits` | ExperienceDeposit[] | 经验沉淀记录 |
 | `imageRecords` | ImageRecord[] | 图片记录 |
 | `taskforces` | TaskForceRecord[] | 专班记录 |
+| `workgroups` | Workgroup[] | 统一工作组主记录（活动工作组 / 专班工作组合一） |
+| `workgroupMembers` | WorkgroupMember[] | 工作组成员（组织者 / 深度参与者；不含权限） |
+| `workgroupGrants` | WorkgroupGrant[] | 工作组成员授权（与成员分工分离保存） |
+| `workgroupTasks` | WorkgroupTask[] | 工作组任务 |
+| `workgroupOutputs` | WorkgroupOutput[] | 工作组产出物 |
+| `attendanceRosters` | AttendanceRoster[] | 活动应到名单快照（按活动 ID 唯一） |
 | `notices` | Notice[] | 通知记录 |
 | `todos` | Todo[] | 待办任务记录（最小三成本原则落地，见 §2.18） |
 | `signups` | SignupRecord[] | 活动报名及专班组织者/深度参与者入组申请；专班不接受一般参与身份，且申请不生成考勤 |
