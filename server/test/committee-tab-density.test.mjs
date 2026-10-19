@@ -83,7 +83,10 @@ test('T6 帮助注释在两张表之后（说明后置）', () => {
 });
 
 test('T7 标题区只有一个主操作按钮，且行内不再出现 btn-ghost', () => {
-  const header = RAW.slice(RAW.indexOf('<header'), RAW.indexOf('</header>'));
+  // 2026-10-19 页标题统一后，标题区由 renderTabHeader 生成：在调用参数里核 CTA。
+  const start = RAW.indexOf('renderTabHeader({');
+  assert.ok(start >= 0, '标题区应走统一组件 renderTabHeader');
+  const header = RAW.slice(start, RAW.indexOf('})', start));
   const accentCount = (header.match(/btn-accent(?![\w-])/g) || []).length;
   assert.equal(accentCount, 1, `标题区 btn-accent 应为 1 个（新建 CTA），实测 ${accentCount}`);
   assert.ok(!/\bbtn-ghost\b/.test(RAW), '支委会 tab 行内动作仍在使用 btn-ghost');

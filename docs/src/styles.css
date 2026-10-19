@@ -1,5 +1,5 @@
 /* 组件样式（@import 必须位于文件顶部） */
-@import url('components/person-picker.css?v=20261018l');
+@import url('components/person-picker.css?v=20261018n');
 
 /* ═══════════════════════════════════════════════════════════════
    GSM1921-SOP DESIGN SYSTEM v11.0 — Matte Flat
@@ -399,6 +399,17 @@ body {
   padding-bottom: 1rem;
 }
 .page-frame__heading { min-width: 0; }
+/* Tab 页头：与页面页头同骨架，但不重复画底边线（页签栏已分隔）。 */
+.page-frame__header--tab {
+  align-items: center;
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+.page-frame__description {
+  margin-top: 0.25rem;
+  font-size: var(--text-xs);
+  color: var(--neutral-500);
+}
 .page-frame__title {
   margin-top: 0.25rem;
   font-family: 'STZhongsong', '华文中宋', 'STSong', 'SimSun', 'PingFang SC', serif;
@@ -1182,6 +1193,16 @@ html.theme-dark .accent-avatar {
   font-weight: 500;
   color: var(--neutral-500);
   background-color: var(--neutral-0);
+}
+/* 数字列（2026-10-19）：右对齐 + 等宽数字；表头与单元格共用同一标记。 */
+.data-table .is-numeric {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+/* 冗余列（2026-10-19）：整列同值且无信息量时隐藏，不删除源码列。 */
+.data-table .is-redundant {
+  display: none !important;
 }
 .data-table tbody tr {
   border-bottom: 1px solid var(--neutral-100);
@@ -4122,6 +4143,8 @@ html.theme-dark .help-note__link { color: color-mix(in srgb, var(--functional-in
 }
 .notice-row__main { flex: 1; min-width: 0; }
 .notice-row__title {
+  display: block;
+  min-width: 0;
   font-size: 14px;
   font-weight: 500;
   color: var(--neutral-800);

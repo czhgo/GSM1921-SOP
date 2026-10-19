@@ -10,20 +10,21 @@
 //   · 会议实体 = mockDB.activities（type==='支委会' 或 scenarioId==='branch-committee'）；
 //     应到人数 = services/activity/vote-config.js::resolveVoterIds('committee')（与本场应到名单同一口径）。
 //   · 表格 = components/ui/data-table.js（.data-table 单一源）；行内选人 = components/governance/pickers.js::PersonPicker。
-import { mockDB } from '../../../core/domain/domain.js?v=20261018l';
-import { AuthStore } from '../../../services/core/auth.js?v=20261018l';
-import { PersonStore, getPersonById } from '../../../services/member/person.js?v=20261018l';
+import { mockDB } from '../../../core/domain/domain.js?v=20261018n';
+import { AuthStore } from '../../../services/core/auth.js?v=20261018n';
+import { PersonStore, getPersonById } from '../../../services/member/person.js?v=20261018n';
 import {
   listBranchCommissioners,
   appointBranchCommissioner,
   revokeBranchCommissioner,
-} from '../../../services/branch/appointment.js?v=20261018l';
-import { ROLE_LABELS, BRANCH_COMMISSIONER_ASSIGNABLE_ROLES } from '../../../core/domain/constants.js?v=20261018l';
-import { resolveVoterIds } from '../../../services/activity/vote-config.js?v=20261018l';
-import { renderDataTable, tableHeadHtml } from '../../../components/ui/data-table.js?v=20261018l';
-import { PersonPicker } from '../../../components/governance/pickers.js?v=20261018l';
-import { getAppliedAccentColors } from '../../../core/boot/theme.js?v=20261018l';
-import { showToast, escHtml as esc } from '../../../core/base/utils.js?v=20261018l';
+} from '../../../services/branch/appointment.js?v=20261018n';
+import { ROLE_LABELS, BRANCH_COMMISSIONER_ASSIGNABLE_ROLES } from '../../../core/domain/constants.js?v=20261018n';
+import { resolveVoterIds } from '../../../services/activity/vote-config.js?v=20261018n';
+import { renderDataTable, tableHeadHtml } from '../../../components/ui/data-table.js?v=20261018n';
+import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261018n';
+import { PersonPicker } from '../../../components/governance/pickers.js?v=20261018n';
+import { getAppliedAccentColors } from '../../../core/boot/theme.js?v=20261018n';
+import { showToast, escHtml as esc } from '../../../core/base/utils.js?v=20261018n';
 
 /** 本支部 id（登录人归属；缺省 br-b1，与全仓同口径） */
 function branchId() {
@@ -71,7 +72,7 @@ function statusBadge(label, variant) {
 
 /** 支委构成行：末列 1 主（改派 / 补选）+「更多（撤销）」，只在本行内展开选人面板，
  *  不再出现全局「选人 → 选身份 → 确认」表单 */
-function rosterRowHtml(r) {
+function rosterRowHtml(r, showStatus) {
   const vacant = !r.name;
   const personCell = vacant ? '<span class="text-gray-400">空缺</span>' : esc(r.name);
   const statusCell = vacant ? statusBadge('空缺', 'warning') : statusBadge('在任', 'neutral');
@@ -92,7 +93,7 @@ function rosterRowHtml(r) {
     <td${vacant ? ' class="section-accent-left"' : ''} data-label="姓名">${personCell}</td>
     <td data-label="身份">${esc(r.label)}</td>
     <td data-label="来源">${esc(r.source)}</td>
-    <td data-label="状态">${statusCell}</td>
+    <td${showStatus ? '' : ' class="is-redundant"'} data-label="状态">${statusCell}</td>
     <td data-label="操作" data-cm-cell="${esc(r.role)}"><div class="flex items-center gap-2">${action}</div></td>
   </tr>`;
 }
@@ -137,7 +138,7 @@ function meetingRowHtml(act) {
     <td data-label="日期" class="whitespace-nowrap">${esc(act.date || '—')}</td>
     <td data-label="议题">${esc(act.title || '未命名会议')}</td>
     <td data-label="状态">${statusBadge(status, MEETING_STATUS_VARIANT[status] || 'neutral')}</td>
-    <td data-label="应到">${attendeeCount(act)}</td>
+    <td class="is-numeric" data-label="应到">${attendeeCount(act)}</td>
     <td data-label="操作"><a href="./party-committee-meeting.html?id=${encodeURIComponent(act.id)}" class="btn-outline btn-sm" style="text-decoration:none;">进入 ›</a></td>
   </tr>`;
 }
@@ -235,13 +236,11 @@ export function renderContent() {
   tc.dataset.currentTab = 'committee-meeting';
   tc.innerHTML = `
     <div class="stack-page">
-      <header class="flex items-start justify-between gap-3 flex-wrap">
-        <div class="min-w-0">
-          <h2 class="font-title-cn text-xl font-bold text-gray-800">支委会</h2>
-          <p class="text-xs text-gray-500 mt-1">支委身份由支书配置；支书 / 副支书由党委配置。</p>
-        </div>
-        <a href="./party-committee-meeting.html?action=new" class="btn-accent" style="text-decoration:none;">新建线上支委会 →</a>
-      </header>
+      ${renderTabHeader({
+        title: '支委会',
+        description: '支委身份由支书配置；支书 / 副支书由党委配置。',
+        actions: '<a href="./party-committee-meeting.html?action=new" class="btn-accent" style="text-decoration:none;">新建线上支委会 →</a>',
+      })}
       <section class="card card--static rounded-xl card-standard stack-card">
         <h3 class="font-title-cn text-sm font-bold text-gray-700">支委构成</h3>
         <div id="cm-roster-table" class="overflow-x-auto"></div>
@@ -254,12 +253,18 @@ export function renderContent() {
     </div>`;
   bindEvents(tc);
 
+  // 状态列去重（2026-10-19）：全部为「在任」时整列无信息量，隐藏；出现「空缺」才显示。
+  const roster = rosterRows();
+  const showStatus = roster.some((r) => !r.name);
+
   renderDataTable(tc.querySelector('#cm-roster-table'), {
     stateKey: 'secretary-committee-roster',
-    rows: rosterRows(),
-    rowHtml: rosterRowHtml,
+    rows: roster,
+    rowHtml: (r) => rosterRowHtml(r, showStatus),
     headHtml: tableHeadHtml([
-      { label: '姓名' }, { label: '身份' }, { label: '来源' }, { label: '状态' }, { label: '操作' },
+      { label: '姓名' }, { label: '身份' }, { label: '来源' },
+      { label: '状态', className: showStatus ? '' : 'is-redundant' },
+      { label: '操作' },
     ]),
     colSpan: 5,
     pageSize: 0,
@@ -272,7 +277,9 @@ export function renderContent() {
     rows: meetingRows(),
     rowHtml: meetingRowHtml,
     headHtml: tableHeadHtml([
-      { label: '日期' }, { label: '议题' }, { label: '状态' }, { label: '应到' }, { label: '操作' },
+      { label: '日期' }, { label: '议题' }, { label: '状态' },
+      { label: '应到', className: 'is-numeric' },
+      { label: '操作' },
     ]),
     colSpan: 5,
     pageSize: 8,

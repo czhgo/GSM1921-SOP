@@ -5,11 +5,11 @@
 //  职责单一：统计卡渲染 + 考勤明细弹窗（点击统计卡查看本月考勤）。
 // ════════════════════════════════════════════════════════════════
 
-import { NoticeStore } from '../../services/governance/notice.js?v=20261018l';
-import { _fmtDate } from '../../core/base/utils.js?v=20261018l';
-import { icon } from '../../core/base/icons.js?v=20261018l';
+import { NoticeStore } from '../../services/governance/notice.js?v=20261018n';
+import { _fmtDate } from '../../core/base/utils.js?v=20261018n';
+import { icon } from '../../core/base/icons.js?v=20261018n';
 // 活动「已归档」口径单一源（2026-09-13 收敛）：替代手写 !a.archived
-import { isActivityArchived } from '../../core/domain/constants.js?v=20261018l';
+import { isActivityArchived } from '../../core/domain/constants.js?v=20261018n';
 
 const ATTENDANCE_STATUS_DOT = {
   present:  { text: '出勤', cls: 'text-green-700', dot: 'var(--functional-success)' },
@@ -103,7 +103,7 @@ export function renderDashboardStats({ activities, taskforces, notices, attendan
         ${icon(s.icon, { strokeWidth: 1.8, stroke: s.color, className: 'w-5 h-5' })}
       </div>
       <div>
-        <p class="text-2xl font-bold" style="color:${s.color};line-height:1.2;">${s.value}<span class="text-xs font-normal ml-0.5" style="color:var(--neutral-500);">${s.unit}</span></p>
+        <p class="text-2xl font-bold tabular-nums" style="color:${s.color};line-height:1.2;">${s.value}<span class="text-xs font-normal ml-0.5" style="color:var(--neutral-500);">${s.unit}</span></p>
         <p class="text-xs" style="color:var(--neutral-500);">${s.label}</p>
       </div>
     </div>

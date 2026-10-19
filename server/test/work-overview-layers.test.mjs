@@ -27,8 +27,8 @@ test('W1 三层骨架：结论带 / 条线表 / 待我处理标记齐备', () =>
   for (const layer of ['summary', 'lines', 'actions']) {
     assert.match(OVERVIEW, new RegExp(`data-wo-layer="${layer}"`), `work-overview.js 缺 data-wo-layer="${layer}"`);
   }
-  assert.match(OVERVIEW, />条线<\/h4>/, '第二层须有「条线」表标题');
-  assert.match(OVERVIEW, />待我处理<\/h4>/, '第三层须有「待我处理」标题');
+  assert.match(OVERVIEW, />条线<\/h3>/, '第二层须有「条线」表标题（H3）');
+  assert.match(OVERVIEW, />待我处理<\/h3>/, '第三层须有「待我处理」标题（H3）');
 });
 
 test('W2 删除独立「汇报」卡：不再出现 <h4>汇报</h4>', () => {

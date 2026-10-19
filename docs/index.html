@@ -3,7 +3,7 @@
 <html lang="zh-CN">
 <head>
   
-<script src="./src/theme-init.js?v=20261018l"></script>
+<script src="./src/theme-init.js?v=20261018n"></script>
 <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>首页 — GSM1921-SOP</title>
@@ -15,9 +15,9 @@
   <noscript><link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;800&family=Noto+Serif+SC:wght@400;500;600;700;800&display=swap" rel="stylesheet"></noscript>
 
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="./src/tailwind-config.js?v=20261018l"></script>
+  <script src="./src/tailwind-config.js?v=20261018n"></script>
 
-  <link rel="stylesheet" href="./src/styles.css?v=20261018l">
+  <link rel="stylesheet" href="./src/styles.css?v=20261018n">
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
@@ -36,14 +36,10 @@
   <main id="main-content" class="flex-1 px-4 py-6 md:px-8 overflow-y-auto min-w-0">
     <section id="view-dashboard" class="view-section">
       <div class="max-w-6xl mx-auto">
-        <div class="text-center mb-6">
-          <img src="./assets/images/party_emblem.png" alt="党徽" class="mx-auto mb-3" style="width:48px;height:48px;" draggable="false">
-          <h2 class="font-title-cn text-2xl font-bold text-gray-800 mb-1">光华管理学院本科生党支部</h2>
-        </div>
         <div id="dashboard-stats" class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4"></div>
         <div class="card rounded-xl p-5 mb-6">
           <div class="flex items-center justify-between mb-4">
-            <h3 class="font-title-cn text-base font-semibold text-gray-800">重要通知</h3>
+            <h2 class="font-title-cn text-base font-semibold text-gray-800">重要通知</h2>
             <span id="dashboard-notice-count" class="text-xs text-gray-500"></span>
           </div>
           <div id="dashboard-notice-list" class="text-sm text-gray-500"><p>加载中…</p></div>
@@ -51,7 +47,7 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
           <div class="card rounded-xl p-5">
             <div class="flex items-center justify-between mb-4">
-              <h3 class="font-title-cn text-base font-semibold text-gray-800">近期活动</h3>
+              <h2 class="font-title-cn text-base font-semibold text-gray-800">近期活动</h2>
               <div class="flex items-center gap-3">
                 <div id="activity-view-tabs" class="flex items-center gap-2">
                   <button class="activity-tab-btn px-3 py-1.5 rounded-lg text-xs font-medium border transition-all duration-200 bg-[var(--app-accent-bg)] border-[var(--app-accent)] text-[var(--app-accent)]" data-view="calendar">日历</button>
@@ -109,7 +105,7 @@
           <!-- 首页工作组进展：活动工作组 / 专班工作组两类分组；数据口径见 components/dashboard/taskforce-list.js -->
           <div class="card rounded-xl p-5" id="dashboard-taskforce-card">
             <div class="flex items-center justify-between mb-4">
-              <h3 class="font-title-cn text-base font-semibold text-gray-800">工作组进展</h3>
+              <h2 class="font-title-cn text-base font-semibold text-gray-800">工作组进展</h2>
               <!-- 2026-10-18 Spec Task 8：「查看全部」按角色落真实工作组页签——
                    组织台有 `taskforce`（专班管理）；其余五台无该 id ⇒ 落 `tf-view`（知情查看/专班动态）；
                    党委台无工作组页签 ⇒ 最近的 `monitor`（支部动态）。禁止写不存在的 `tab=taskforce`。 -->
@@ -129,7 +125,7 @@
         <!-- 活动风采 -->
         <div class="card rounded-xl p-5 mt-6 card--static" id="dashboard-gallery-card">
           <div class="flex items-center justify-between mb-4">
-            <h3 class="font-title-cn text-base font-semibold text-gray-800">活动风采</h3>
+            <h2 class="font-title-cn text-base font-semibold text-gray-800">活动风采</h2>
             <a href="./archive.html" class="text-xs text-blue-600 hover:text-blue-800">归档库 →</a>
           </div>
           <div id="dashboard-gallery" class="text-sm text-gray-500"></div>
@@ -141,7 +137,7 @@
 
 
 
-<script type="module" src="./src/entries/pages/main-entry.js?v=20261018l"></script>
+<script type="module" src="./src/entries/pages/main-entry.js?v=20261018n"></script>
 
 </body>
 </html>

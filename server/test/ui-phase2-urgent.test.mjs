@@ -82,3 +82,72 @@ test('U7 活动风采卡可键盘触发', () => {
   assert.match(src, /role="button"/, '活动风采卡应声明 role="button"');
   assert.match(src, /addEventListener\('keydown'/, '活动风采卡应绑定键盘 Enter / Space');
 });
+
+// ── 第二批：页标题 / 零值 / 数字对齐 ─────────────────────────────
+
+const OVERVIEW = 'docs/src/components/governance/work-overview.js';
+const TODO_SHELL = 'docs/src/components/record/todo-tab-shell.js';
+const COMMITTEE = 'docs/src/entries/tabs/secretary/committee-meeting-tab.js';
+const GROUP = 'docs/src/entries/tabs/secretary/group-progress-tab.js';
+const INDEX = 'docs/index.html';
+const FOUR_PAGES = [OVERVIEW, TODO_SHELL, COMMITTEE, INDEX];
+
+test('U8 页标题层级：四页重点各一个 H2，卡头 H3，首页不再重复组织名', () => {
+  const frame = read('docs/src/components/shell/page-frame.js');
+  assert.match(frame, /export function renderTabHeader/, 'page-frame 应提供 renderTabHeader');
+  assert.match(frame, /<h2 class="page-frame__title">/, 'renderTabHeader 应输出 H2');
+
+  const overview = read(OVERVIEW);
+  assert.match(overview, /renderTabHeader\(\{ title: '全局概况' \}\)/, '概况应有 H2「全局概况」');
+  assert.match(overview, /<h3 class="section-head__title">条线<\/h3>/, '条线须为 H3');
+  assert.match(overview, /<h3 class="section-head__title">待我处理<\/h3>/, '待我处理须为 H3');
+  assert.doesNotMatch(overview, /<h4[^>]*section-head__title/, '分区标题不得再用 H4');
+
+  const todo = read(TODO_SHELL);
+  assert.match(todo, /renderTabHeader\(\{ title: '待办' \}\)/, '待办应有 H2「待办」');
+  assert.match(todo, /role="heading" aria-level="3"/, '折叠条标题应有 H3 语义（summary 内用 ARIA heading）');
+
+  const cm = read(COMMITTEE);
+  assert.match(cm, /renderTabHeader\(\{[\s\S]*?title: '支委会'/, '支委会 H2 应走统一组件');
+  assert.doesNotMatch(cm, /<h2 class="font-title-cn/, '支委会不得再手写第二套 H2');
+
+  const html = read(INDEX);
+  assert.doesNotMatch(html, /光华管理学院本科生党支部/, '首页不得再出现与 H1 同名的组织名标题');
+  assert.doesNotMatch(html, /party_emblem\.png/, '首页不得再重复党徽（顶栏已有一个）');
+  assert.doesNotMatch(html, /<h3/, '首页区块标题应升为 H2，不再保留 H3');
+  assert.equal((html.match(/<h2/g) || []).length, 4, '首页应有 4 个区块 H2');
+
+  const gallery = read('docs/src/components/dashboard/gallery.js');
+  assert.match(gallery, /<h3 class="gallery-card__title">/, '风采卡标题应为 H3');
+});
+
+test('U9 零值口径：真实的 0 显示为 0；不得出现 0/0', () => {
+  const src = read(OVERVIEW);
+  assert.doesNotMatch(src, /row\.active \|\| '—'/, '在办 0 不得再用「—」代替');
+  assert.match(src, /\$\{row\.active\}<\/td>/, '在办应直接输出数值（含 0）');
+  assert.match(src, /text-gray-400 tabular-nums">0</, '逾期 0 应显示弱化数字 0');
+  for (const file of FOUR_PAGES) {
+    assert.doesNotMatch(read(file), /0\/0/, `${file} 不得出现 0/0`);
+  }
+});
+
+test('U10 数字对齐与状态列去重：scope / is-numeric / is-redundant 齐备', () => {
+  const table = read('docs/src/components/ui/data-table.js');
+  assert.match(table, /<th scope="col"/, '表头应补 scope="col"');
+
+  const css = read('docs/src/styles.css');
+  assert.match(css, /\.data-table \.is-numeric\s*\{[^}]*text-align:\s*right/, '数字列应右对齐');
+  assert.match(css, /\.data-table \.is-numeric\s*\{[^}]*font-variant-numeric:\s*tabular-nums/, '数字列应等宽');
+  assert.match(css, /\.data-table \.is-redundant\s*\{[^}]*display:\s*none/, '冗余列应可隐藏');
+
+  assert.match(read(COMMITTEE), /showStatus = roster\.some/, '支委会应计算状态列是否冗余');
+  assert.match(read(GROUP), /showStatus = entities\.some/, '党小组应计算状态列是否冗余');
+});
+
+test('U11 DESIGN_SYSTEM 写入标题层级与零值口径', () => {
+  const ds = read('content/04_web_design/design-system/DESIGN_SYSTEM.md');
+  assert.match(ds, /### 4\.25 标题层级与文档大纲/, '应新增 §4.25 标题层级');
+  assert.match(ds, /### 4\.26 零值与空行/, '应新增 §4.26 零值口径');
+  assert.match(ds, /H1 只在顶栏出现一次/, '标题规则应写明 H1 唯一');
+  assert.match(ds, /0 是事实就显示 0/, '零值规则应写明 0 是事实');
+});
