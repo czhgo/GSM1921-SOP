@@ -8,14 +8,14 @@
 //  责任人候选 = 支委角色 + 具体成员（与 workforce-panel 发起分工的负责人下拉同口径）。
 // ════════════════════════════════════════════════════════════════
 
-import { escHtml as esc, showToast } from '../../core/base/utils.js?v=20261018k';
-import { BRANCH_COMMISSION_ROLES, ROLE_LABELS } from '../../core/domain/constants.js?v=20261018k';
-import { PersonStore } from '../../services/member/person.js?v=20261018k';
-import { AuthStore } from '../../services/core/auth.js?v=20261018k';
+import { escHtml as esc, showToast } from '../../core/base/utils.js?v=20261018l';
+import { BRANCH_COMMISSION_ROLES, ROLE_LABELS } from '../../core/domain/constants.js?v=20261018l';
+import { PersonStore } from '../../services/member/person.js?v=20261018l';
+import { AuthStore } from '../../services/core/auth.js?v=20261018l';
 import {
   saveFollowups, completeFollowup, reopenFollowup,
   FOLLOWUP_STATUS, ownerLabelOf,
-} from '../../services/governance/resolution-followup.js?v=20261018k';
+} from '../../services/governance/resolution-followup.js?v=20261018l';
 
 /** 责任人下拉选项（value 编码 type:id，与 workforce-panel 同口径） */
 function _ownerOptionsHtml() {

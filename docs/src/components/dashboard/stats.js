@@ -5,11 +5,11 @@
 //  职责单一：统计卡渲染 + 考勤明细弹窗（点击统计卡查看本月考勤）。
 // ════════════════════════════════════════════════════════════════
 
-import { NoticeStore } from '../../services/governance/notice.js?v=20261018k';
-import { _fmtDate } from '../../core/base/utils.js?v=20261018k';
-import { icon } from '../../core/base/icons.js?v=20261018k';
+import { NoticeStore } from '../../services/governance/notice.js?v=20261018l';
+import { _fmtDate } from '../../core/base/utils.js?v=20261018l';
+import { icon } from '../../core/base/icons.js?v=20261018l';
 // 活动「已归档」口径单一源（2026-09-13 收敛）：替代手写 !a.archived
-import { isActivityArchived } from '../../core/domain/constants.js?v=20261018k';
+import { isActivityArchived } from '../../core/domain/constants.js?v=20261018l';
 
 const ATTENDANCE_STATUS_DOT = {
   present:  { text: '出勤', cls: 'text-green-700', dot: 'var(--functional-success)' },
@@ -90,13 +90,14 @@ export function renderDashboardStats({ activities, taskforces, notices, attendan
       ? [{ label: '活跃专班', value: activeTFs.length, unit: '个', color: '#D97706', icon: 'usersGroup', interactive: false }]
       : []),
     { label: '未读通知', value: unreadNotices, unit: '条', color: unreadNotices > 0 ? '#DC2626' : 'var(--neutral-500)', icon: 'bellHero', interactive: false },
-    { label: '个人考勤', value: myTotal > 0 ? `${myPresent}/${myTotal}` : '—', unit: '', color: myColor, icon: 'clipboard', interactive: true },
+    // 空态（P2-5）：没有记录不是「数据坏了」，而是「本月无记录」这一事实。
+    { label: myTotal > 0 ? '个人考勤' : '个人考勤（本月无记录）', value: myTotal > 0 ? `${myPresent}/${myTotal}` : '—', unit: '', color: myColor, icon: 'clipboard', interactive: true },
   ];
 
   // T-304 Q2 点击热区：不可点卡（前三张）不再 hover 上浮（纯展示卡不加 hover 伪装，DESIGN_SYSTEM §4.3）；
   // 仅可点卡（个人考勤）保留 hover 反馈。统一 cursor：可点卡 pointer / 展示卡 default。
   container.innerHTML = stats.map(s => `
-    <div class="card rounded-xl p-4 flex items-center gap-3 ${s.interactive ? 'hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 cursor-pointer' : ''}"
+    <div class="card rounded-xl p-4 flex items-center gap-3 ${s.interactive ? 'card--interactive hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 cursor-pointer' : ''}"
          ${s.interactive ? 'data-attendance-popover="1"' : ''}>
       <div class="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 stat-icon-tint" style="--tint:${s.color};">
         ${icon(s.icon, { strokeWidth: 1.8, stroke: s.color, className: 'w-5 h-5' })}

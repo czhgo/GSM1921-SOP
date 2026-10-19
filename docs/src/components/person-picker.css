@@ -105,6 +105,11 @@
   background: rgba(0, 0, 0, 0.3);
 }
 
+/* 弹窗内打开：父级已有暗遮罩，这里只保留透明点击捕获层，避免双层黑（P2-14）。 */
+.person-picker-overlay--passive {
+  background: transparent;
+}
+
 /* ── 面板主体 ──────────────────────────────────────────────────── */
 .person-picker-panel {
   position: fixed;

@@ -12,8 +12,8 @@
 //  任务完成数＝completed 数 / 非 cancelled 任务总数，无任务显示「—」；两类皆空则整卡隐藏。
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../../core/domain/domain.js?v=20261018k';
-import { listRowHtml, listGroupHtml } from '../ui/list-row.js?v=20261018k';
+import { mockDB } from '../../core/domain/domain.js?v=20261018l';
+import { listRowHtml, listGroupHtml } from '../ui/list-row.js?v=20261018l';
 
 const GROUP_LIMIT = 3;
 const STATUS_BADGE = {

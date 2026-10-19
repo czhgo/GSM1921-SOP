@@ -9,21 +9,21 @@
 //            organizer/deep = 报名 + 发起人审核（pending → 通过/拒绝）。
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../../core/domain/domain.js?v=20261018k';
-import { generateId } from '../../core/base/id.js?v=20261018k';
-import { persist } from '../../data/data-adapter.js?v=20261018k';
-import { bumpToken } from '../../core/base/version-token.js?v=20261018k'; // P0 域缓存失效（spec §二.3）
-import { SEED_SIGNUPS } from '../../data/mock/seed.js?v=20261018k';
-import { isInitStateActive } from '../core/init-reset.js?v=20261018k'; // C2 修复（2026-09-08）：init 态跳过演示种子兜底
-import { getPersonById } from '../member/person.js?v=20261018k';
-import { TodoStore, TodoSourceType, TodoActionType, TodoCategory, TodoStatus } from '../governance/todo.js?v=20261018k';
-import { AuthStore } from '../core/auth.js?v=20261018k';
-import { TaskForceRecordStore } from './taskforce.js?v=20261018k';
-import { isWorkgroupMemberRole, removeSignupWorkgroupRole, workgroupMembers } from './workgroup-members.js?v=20261018k';
+import { mockDB } from '../../core/domain/domain.js?v=20261018l';
+import { generateId } from '../../core/base/id.js?v=20261018l';
+import { persist } from '../../data/data-adapter.js?v=20261018l';
+import { bumpToken } from '../../core/base/version-token.js?v=20261018l'; // P0 域缓存失效（spec §二.3）
+import { SEED_SIGNUPS } from '../../data/mock/seed.js?v=20261018l';
+import { isInitStateActive } from '../core/init-reset.js?v=20261018l'; // C2 修复（2026-09-08）：init 态跳过演示种子兜底
+import { getPersonById } from '../member/person.js?v=20261018l';
+import { TodoStore, TodoSourceType, TodoActionType, TodoCategory, TodoStatus } from '../governance/todo.js?v=20261018l';
+import { AuthStore } from '../core/auth.js?v=20261018l';
+import { TaskForceRecordStore } from './taskforce.js?v=20261018l';
+import { isWorkgroupMemberRole, removeSignupWorkgroupRole, workgroupMembers } from './workgroup-members.js?v=20261018l';
 // 组织者身份判据单一源（2026-09-19 批次 91 · SOP-B-17）——「谁能关本场报名」读它，勿另写一份
-import { isActivityOrganizer } from './activity.js?v=20261018k';
-import { todayLocal } from '../../core/base/utils.js?v=20261018k';
-import { usesFormalMeetingRoster } from '../../core/domain/constants.js?v=20261018k';
+import { isActivityOrganizer } from './activity.js?v=20261018l';
+import { todayLocal } from '../../core/base/utils.js?v=20261018l';
+import { usesFormalMeetingRoster } from '../../core/domain/constants.js?v=20261018l';
 
 // ── 枚举 ────────────────────────────────────────────────────────
 const SignupRole = {
@@ -396,7 +396,7 @@ export const SignupStore = {
         if (act && Array.isArray(act.assignments) && isWorkgroupMemberRole(s.role)) {
           const remaining = removeSignupWorkgroupRole(act.assignments, s);
           if (remaining.length !== act.assignments.length) {
-            import('../core/mock.js?v=20261018k').then(({ updateActivity }) => {
+            import('../core/mock.js?v=20261018l').then(({ updateActivity }) => {
               updateActivity(s.sourceId, { assignments: remaining });
               persist(); // updateActivity 不自动落盘，须显式 persist
             });
@@ -477,7 +477,7 @@ export async function closeActivitySignup(activityId, actorId) {
   if (!act) return { ok: false, reason: '活动不存在' };
   if (!canCloseActivitySignup(actorId, act)) return { ok: false, reason: '仅本场组织者或支书可关闭报名' };
   if (act.signupClosed === true) return { ok: false, reason: '本场报名已关闭' };
-  const { updateActivity } = await import('../core/mock.js?v=20261018k');
+  const { updateActivity } = await import('../core/mock.js?v=20261018l');
   await updateActivity(activityId, { signupClosed: true });
   return { ok: true };
 }

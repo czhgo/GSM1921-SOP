@@ -5,17 +5,20 @@
 //  视图模式：月/周/日/列表 四种切换
 // ════════════════════════════════════════════════════════════════
 
-import { getAppState, setState } from '../../core/base/state.js?v=20261018k';
-import { ROLE_COLORS, getActivityColor, ACTIVITY_CATEGORY_COLORS, ACTIVITY_TYPE_LABELS, ACTIVITY_TYPE_SHORT } from '../../core/domain/constants.js?v=20261018k';
-import { _fmtDate, _currentYearMonth } from '../../core/base/utils.js?v=20261018k';
-import { tokenOf } from '../../core/base/version-token.js?v=20261018k'; // P2 视图渲染守卫数据版本（spec §四.2）
-import { filterTasksByManagementRole, activityLifecycleBadgeHtml } from './inspector.js?v=20261018k';
+import { getAppState, setState } from '../../core/base/state.js?v=20261018l';
+import { ROLE_COLORS, getActivityColor, ACTIVITY_CATEGORY_COLORS, ACTIVITY_TYPE_LABELS, ACTIVITY_TYPE_SHORT } from '../../core/domain/constants.js?v=20261018l';
+import { _fmtDate, _currentYearMonth } from '../../core/base/utils.js?v=20261018l';
+import { tokenOf } from '../../core/base/version-token.js?v=20261018l'; // P2 视图渲染守卫数据版本（spec §四.2）
+import { filterTasksByManagementRole, activityLifecycleBadgeHtml } from './inspector.js?v=20261018l';
 
 // ── 内联标签深色变量对（与 constants.js _applyDark 生成的 bgDark/textDark/borderDark 配套）──
 // 标签/卡片：三件套（bg/text/border）；纯文字：仅 text；圆点：仅实色提亮（--acc-dot-dark）
 const _accDark = (c) => `--acc-bg-dark:${c.bgDark};--acc-text-dark:${c.textDark};--acc-border-dark:${c.borderDark};`;
 const _accText = (c) => `--acc-text-dark:${c.textDark};`;
 const _accDot = (c) => `--acc-dot-dark:${c.textDark};`;
+// 标签字色：类型色压深 72%（原 60% 在浅底仅 3.73:1，不达正文 4.5:1）；
+// 深色模式仍由 --acc-text-dark 变量接管，不因压深而失去对比。
+const _tagText = (c) => `color:color-mix(in srgb, ${c.text} 72%, #000);`;
 
 const VIEW_LABELS = { month: '月', week: '周', day: '日', list: '列表' };
 
@@ -278,7 +281,7 @@ function _renderCompactCellContent(dateKey, dayActs, ct, viaTasks, state) {
   dayActs.slice(0, 3).forEach(act => {
     const color = getActivityColor(act);
     const shortLabel = ACTIVITY_TYPE_SHORT[act.scenarioId] || ACTIVITY_TYPE_SHORT[act.type] || (act.type ? act.type.slice(0, 2) : '活动');
-    html += `<div class="cal-activity-tag cal-activity-item cursor-pointer hover:brightness-95 transition-all" data-act-id="${act.id || ''}" data-date="${dateKey}" style="${_accDark(color)}background:${color.bg};color:color-mix(in srgb, ${color.text} 60%, #000);border:1px solid ${color.border};" title="${act.title || ''}">` +
+    html += `<div class="cal-activity-tag cal-activity-item cursor-pointer hover:brightness-95 transition-all" data-act-id="${act.id || ''}" data-date="${dateKey}" style="${_accDark(color)}background:${color.bg};${_tagText(color)}border:1px solid ${color.border};" title="${act.title || ''}">` +
             `<span class="cal-activity-dot" style="${_accDot(color)}background:${color.text};"></span>` +
             `<span>${shortLabel}</span></div>`;
   });
@@ -290,7 +293,7 @@ function _renderCompactCellContent(dateKey, dayActs, ct, viaTasks, state) {
     const filteredTasks = filterTasksByManagementRole(allDayTasks, managementRole);
     filteredTasks.slice(0, 2).forEach(t => {
       const c = ROLE_COLORS[t.executor] || ROLE_COLORS.all;
-      html += `<div class="cal-task-tag" style="${_accDark(c)}background:${c.bg};color:color-mix(in srgb, ${c.text} 60%, #000);border:1px solid ${c.border};"><span class="task-dot" style="${_accDot(c)}background:${c.text};"></span><span class="truncate">${t.title}</span></div>`;
+      html += `<div class="cal-task-tag" style="${_accDark(c)}background:${c.bg};${_tagText(c)}border:1px solid ${c.border};"><span class="task-dot" style="${_accDot(c)}background:${c.text};"></span><span class="truncate">${t.title}</span></div>`;
     });
   }
   return html;
@@ -408,7 +411,7 @@ function _renderDayView(grid, activeActivities, tasks, month, state) {
       dayActivities.forEach(act => {
         const color = getActivityColor(act);
         html += `<div class="p-3 rounded-xl mb-2 border" style="${_accDark(color)}background:${color.bg};border-color:${color.border};">`;
-        html += `<div class="flex items-center gap-2 mb-1"><span class="cal-activity-dot" style="${_accDot(color)}background:${color.text};"></span><span class="text-sm font-medium" style="${_accText(color)}color:color-mix(in srgb, ${color.text} 60%, #000);">${act.title || '未命名'}</span></div>`;
+        html += `<div class="flex items-center gap-2 mb-1"><span class="cal-activity-dot" style="${_accDot(color)}background:${color.text};"></span><span class="text-sm font-medium" style="${_accText(color)}${_tagText(color)}">${act.title || '未命名'}</span></div>`;
         html += `<div class="text-xs text-gray-500">${act.type || ''} ${act.location ? '· ' + act.location : ''}</div>`;
         html += `</div>`;
       });
@@ -421,7 +424,7 @@ function _renderDayView(grid, activeActivities, tasks, month, state) {
       allTasks.forEach(t => {
         const c = ROLE_COLORS[t.executor] || ROLE_COLORS.all;
         html += `<div class="p-3 rounded-xl mb-2 border" style="${_accDark(c)}background:${c.bg};border-color:${c.border};">`;
-        html += `<div class="flex items-center gap-2"><span class="task-dot" style="${_accDot(c)}background:${c.text};"></span><span class="text-sm font-medium" style="${_accText(c)}color:color-mix(in srgb, ${c.text} 60%, #000);">${t.title}</span></div>`;
+        html += `<div class="flex items-center gap-2"><span class="task-dot" style="${_accDot(c)}background:${c.text};"></span><span class="text-sm font-medium" style="${_accText(c)}${_tagText(c)}">${t.title}</span></div>`;
         if (t.desc) html += `<div class="text-xs text-gray-500 mt-1">${t.desc}</div>`;
         html += `</div>`;
       });
@@ -512,7 +515,7 @@ function _renderCellContent(dateKey, dayActs, ct, hasActivity, viaTasks, state, 
   if (viewType === 'participant') {
     dayActs.slice(0, maxItems).forEach(act => {
       const color = getActivityColor(act);
-      html += `<div class="cal-activity-tag cal-activity-item cursor-pointer hover:brightness-95 transition-all" data-act-id="${act.id || ''}" data-date="${dateKey}" style="${_accDark(color)}background:${color.bg};color:color-mix(in srgb, ${color.text} 60%, #000);border:1px solid ${color.border};" title="${act.title || ''}">` +
+      html += `<div class="cal-activity-tag cal-activity-item cursor-pointer hover:brightness-95 transition-all" data-act-id="${act.id || ''}" data-date="${dateKey}" style="${_accDark(color)}background:${color.bg};${_tagText(color)}border:1px solid ${color.border};" title="${act.title || ''}">` +
               `<span class="cal-activity-dot" style="${_accDot(color)}background:${color.text};"></span>` +
               `<span class="truncate">${act.title || ''}</span></div>`;
     });
@@ -522,7 +525,7 @@ function _renderCellContent(dateKey, dayActs, ct, hasActivity, viaTasks, state, 
     if (dayActs.length > 0) {
       dayActs.slice(0, maxItems).forEach(act => {
         const color = getActivityColor(act);
-        html += `<div class="cal-activity-tag cal-activity-item cursor-pointer hover:brightness-95 transition-all" data-act-id="${act.id || ''}" data-date="${dateKey}" style="${_accDark(color)}background:${color.bg};color:color-mix(in srgb, ${color.text} 60%, #000);border:1px solid ${color.border};" title="${act.title || ''}">` +
+        html += `<div class="cal-activity-tag cal-activity-item cursor-pointer hover:brightness-95 transition-all" data-act-id="${act.id || ''}" data-date="${dateKey}" style="${_accDark(color)}background:${color.bg};${_tagText(color)}border:1px solid ${color.border};" title="${act.title || ''}">` +
                 `<span class="cal-activity-dot" style="${_accDot(color)}background:${color.text};"></span>` +
                 `<span class="truncate">${act.title || ''}</span></div>`;
       });
@@ -550,7 +553,7 @@ function _renderCellContent(dateKey, dayActs, ct, hasActivity, viaTasks, state, 
       : filteredTasks;
     focusedTasks.slice(0, maxItems).forEach(t => {
       const c = ROLE_COLORS[t.executor] || ROLE_COLORS.all;
-      html += `<div class="cal-task-tag" style="${_accDark(c)}background:${c.bg};color:color-mix(in srgb, ${c.text} 60%, #000);border:1px solid ${c.border};">` +
+      html += `<div class="cal-task-tag" style="${_accDark(c)}background:${c.bg};${_tagText(c)}border:1px solid ${c.border};">` +
               `<span class="task-dot" style="${_accDot(c)}background:${c.text};"></span>` +
               `<span class="truncate">${t.title}</span></div>`;
     });
@@ -699,7 +702,7 @@ function _showMobileDayDetail(dateKey, activeActivities, tasks, state) {
       filteredTasks.forEach(t => {
         const c = ROLE_COLORS[t.executor] || ROLE_COLORS.all;
         html += `<div class="cal-mobile-detail-card" style="border-left:3px solid ${c.text};">`;
-        html += `<div class="text-sm font-medium" style="--acc-text-dark:${c.text};color:color-mix(in srgb, ${c.text} 60%, #000);">${t.title}</div>`;
+        html += `<div class="text-sm font-medium" style="--acc-text-dark:${c.text};${_tagText(c)}">${t.title}</div>`;
         if (t.desc) html += `<div class="text-xs text-gray-500 mt-1">${t.desc}</div>`;
         html += `</div>`;
       });
@@ -952,7 +955,7 @@ function _renderMonthViewCompact(grid, activeActivities, month, state, mode) {
     dayActs.slice(0, 3).forEach(act => {
       const color = getActivityColor(act);
       const shortLabel = ACTIVITY_TYPE_SHORT[act.scenarioId] || ACTIVITY_TYPE_SHORT[act.type] || (act.type ? act.type.slice(0, 2) : '活动');
-      html += `<div class="cal-activity-tag cal-activity-item cursor-pointer hover:brightness-95 transition-all" data-act-id="${act.id || ''}" data-date="${k}" style="${_accDark(color)}background:${color.bg};color:color-mix(in srgb, ${color.text} 60%, #000);border:1px solid ${color.border};" title="${act.title || ''}">` +
+      html += `<div class="cal-activity-tag cal-activity-item cursor-pointer hover:brightness-95 transition-all" data-act-id="${act.id || ''}" data-date="${k}" style="${_accDark(color)}background:${color.bg};${_tagText(color)}border:1px solid ${color.border};" title="${act.title || ''}">` +
               `<span class="cal-activity-dot" style="${_accDot(color)}background:${color.text};"></span>` +
               `<span>${shortLabel}</span></div>`;
     });

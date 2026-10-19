@@ -7,15 +7,15 @@
 //  样式：提取至 person-picker.css，主题色通过 CSS 变量 --pp-* 注入
 // ════════════════════════════════════════════════════════════════
 
-import { liveMembers, PersonStore } from '../../services/member/person.js?v=20261018k';
+import { liveMembers, PersonStore } from '../../services/member/person.js?v=20261018l';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/member/person.js 获取（原直连 mock PEOPLE）
 // 实时视图（非快照）：成员增删即时可见——见 services/member/person.js liveMembers 说明
 const PEOPLE = liveMembers();
-import { getPersonById } from '../../services/member/person.js?v=20261018k';
+import { getPersonById } from '../../services/member/person.js?v=20261018l';
 // 党小组清单单一源（活组按 seq 升序；2026-09-14 批次 29 收敛——见文件头「党小组清单」说明）
-import { groupOptions } from '../../services/member/party-group.js?v=20261018k';
-import { icon } from '../../core/base/icons.js?v=20261018k';
-import { ROLE_LABELS, ACCENT_COLORS, applyDark } from '../../core/domain/constants.js?v=20261018k';
+import { groupOptions } from '../../services/member/party-group.js?v=20261018l';
+import { icon } from '../../core/base/icons.js?v=20261018l';
+import { ROLE_LABELS, ACCENT_COLORS, applyDark } from '../../core/domain/constants.js?v=20261018l';
 
 // ── 辅助：从 hex 生成 rgba 字符串 ──────────────────────────────
 function hexToRgba(hex, alpha) {
@@ -300,7 +300,12 @@ export class PersonPicker {
   _createPanel() {
     // 遮罩层（纯视觉 backdrop，无语义内容：点击空白关闭）
     const overlay = document.createElement('div');
-    overlay.className = 'person-picker-overlay';
+    // P2-14：触发按钮在 modal 内时，弹窗已有一层 0.35 黑遮罩；picker 再叠 0.3 会变成双层黑。
+    // 此情形只保留透明点击捕获层，仍有「点空白关闭」，但不再加深画面。
+    const insideDialog = !!(this._triggerBtn && this._triggerBtn.closest('[role="dialog"]'));
+    overlay.className = insideDialog
+      ? 'person-picker-overlay person-picker-overlay--passive'
+      : 'person-picker-overlay';
     overlay.addEventListener('click', (e) => {
       if (e.target === overlay) this._closePanel();
     });
@@ -460,21 +465,26 @@ export class PersonPicker {
     const MIN_PANEL_H = 160;
     const MAX_PANEL_H = 520;
     const PANEL_W = Math.min(380, viewportW - 16);
+    // P2-14：顶部 56px 是固定顶栏——面板向上展开时不得盖住它。
+    const headerEl = document.getElementById('app-header');
+    const topSafe = headerEl
+      ? Math.min(viewportH - MIN_PANEL_H, Math.max(8, headerEl.getBoundingClientRect().bottom + 8))
+      : 8;
 
     const belowH = viewportH - rect.bottom - GAP;
-    const aboveH = rect.top - GAP;
+    const aboveH = rect.top - GAP - topSafe;
     // 下方放得下（>= 下限）优先下方；否则上方放得下才翻到上方
     const placeBelow = belowH >= MIN_PANEL_H && (aboveH < MIN_PANEL_H || belowH >= aboveH);
 
     let top, panelH;
     if (placeBelow) {
-      top = rect.bottom + GAP;
+      top = Math.max(topSafe, rect.bottom + GAP);
       panelH = Math.min(MAX_PANEL_H, Math.max(MIN_PANEL_H, belowH));
       panelH = Math.min(panelH, viewportH - top - 8); // 兜底不溢出视口底
     } else {
       panelH = Math.min(MAX_PANEL_H, Math.max(MIN_PANEL_H, aboveH));
-      panelH = Math.min(panelH, rect.top - GAP - 8);   // 兜底不遮住触发按钮
-      top = Math.max(8, rect.top - GAP - panelH);
+      panelH = Math.min(panelH, Math.max(0, aboveH));   // 兜底不越过顶栏安全线
+      top = Math.max(topSafe, rect.top - GAP - panelH);
     }
 
     panel.style.width = `${PANEL_W}px`;
