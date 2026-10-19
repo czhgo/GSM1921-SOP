@@ -1,11 +1,12 @@
 import { POLICY_DEFAULTS } from '../../../docs/src/core/domain/policy-defaults.js';
 import { isBranchPendingUser } from '../../../docs/src/core/domain/constants.js';
+import { TASKFORCE_ACTIVE_STATUSES } from '../../../docs/src/core/domain/domain.js';
 
 const PARTY_STAFF = 'party-staff';
 const DEFAULT_BRANCH = 'br-b1';
 const AGGREGATE_PARENT = Object.freeze({ actSubRecords: ['activities', 'activities'], tfSubRecords: ['taskforces', 'taskforces'] });
 const TERMINAL_ACTIVITY = new Set(['completed', 'executed', 'archived', 'cancelled']);
-const OPEN_TASKFORCE = new Set(['recruiting', 'active', 'in_progress']);
+const OPEN_TASKFORCE = new Set(TASKFORCE_ACTIVE_STATUSES);
 
 function tableRows(db, table) {
   try {

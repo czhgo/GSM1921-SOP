@@ -5,24 +5,23 @@
 //  依赖：domain.js, id.js（单向依赖，不依赖 UI 或 runtime）
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../../core/domain/domain.js?v=20261018t';
-import { generateId } from '../../core/base/id.js?v=20261018t';
-import { getDataSource, getAdapter, notifyDataLoaded, persist, refreshRemoteCollections } from '../../data/data-adapter.js?v=20261018t';
-import { bumpToken, resetAllTokens } from '../../core/base/version-token.js?v=20261018t'; // P0 域缓存失效（spec §二.3/§二.4）
+import { mockDB } from '../../core/domain/domain.js?v=20261018u';
+import { generateId } from '../../core/base/id.js?v=20261018u';
+import { getDataSource, getAdapter, notifyDataLoaded, persist, refreshRemoteCollections } from '../../data/data-adapter.js?v=20261018u';
+import { bumpToken, resetAllTokens } from '../../core/base/version-token.js?v=20261018u'; // P0 域缓存失效（spec §二.3/§二.4）
 // Mock 持久化/种子引擎（saveDB/loadDB/seed 同步）收敛到 data/mock-adapter.js 唯一实现
 // （T-2026-09-007 Step1：services 版私有引擎曾与 mock-adapter 同 Key 双写并缺
 //   imageRecords/agendaVotes 等新域恢复 → 刷新即丢；现统一由 MockAdapter 承担全量持久化域 34 个，含 users）
-import { MockAdapter } from '../../data/mock-adapter.js?v=20261018t';
+import { MockAdapter } from '../../data/mock-adapter.js?v=20261018u';
 // C3 一键初始化档（?reset=init，2026-09-08）：mock-adapter 禁改 → reset/清库逻辑经本
 // 可改入口兜底；init 档与 demo/preview 档并存（demo/preview 仍在 MockAdapter.loadDB
 // 内既有 handleResetIfRequested 处理，本档先于其检测、互不冲突——见 init-reset.js）。
 // C2 修复（2026-09-08）：init 档在浏览器形态被 adapter 判空回填（init≈demo）——
 // loadDB 委派 MockAdapter.loadDB 后按 init 态哨兵剔除演示种子（见 stripSeedRecordsIfInitState）。
-import { handleInitResetIfRequested, stripSeedRecordsIfInitState } from './init-reset.js?v=20261018t';
+import { handleInitResetIfRequested, stripSeedRecordsIfInitState } from './init-reset.js?v=20261018u';
 // 批4（2026-09-09 支书批「域参数」）：数据加载完成 → 读侧有效默认注入
 // （当前人所属支部 config.policyOverrides merge 进 POLICY_DEFAULTS；无 overrides = 保持默认）
-import { applyEffectivePolicyDefaultsForPerson, getBranchIdOfPerson, getBranchWorkforce } from '../branch/branch.js?v=20261018t';
-import { todayLocal } from '../../core/base/utils.js?v=20261018t';
+import { applyEffectivePolicyDefaultsForPerson } from '../branch/branch.js?v=20261018u';
 
 const MOCK_DELAY_MS = 600;
 
@@ -135,34 +134,17 @@ export async function createActivity(data) {
       + '，workgroupId=' + (created.workgroupId || ''));
     return created;
   }
-  return _withDelay(() => {
-    const newItem = {
-      ...data,
-      id:        generateId('act'),
-      status:    data.status    || 'draft',
-      visibility: data.visibility || 'group',
-      date:      data.date || (data.targetDate ? data.targetDate.slice(0, 10) : todayLocal()),
-      createdBy: data.createdBy || 'u_exec',
-      createdAt: new Date().toISOString(),
-    };
-    // Immutable 写入：展开符替换整个数组，禁止 push/splice
-    mockDB.activities = [...mockDB.activities, newItem];
-    bumpToken('activity'); // P0：活动生命周期写口 bump（可改处；mock-adapter 触发路径禁改→依赖长度指纹兜底）
-    saveDB();
-    console.info('[MockAdapter] createActivity 成功，id=' + newItem.id
-      + '，当前 activities 总数：' + mockDB.activities.length);
-    // 派生赋权待办（最小三成本原则·阶段1C-3）
-    // T-190：创建时已内联赋权（assignments 非空）则不再派生；未选人保留待办兜底
-    // 联动赋权（`R-29⑤` · `D-804` 批次 425）：**收件人取该模块主责**——故须把本支部的**分工快照**
-    //   传进去（判据单一源＝`core/domain/work-map.js`；分支取「创建人所属支部」，取不到＝缺省分工）。
-    if (!newItem.assignments || newItem.assignments.length === 0) {
-      const snapshot = getBranchWorkforce(getBranchIdOfPerson(newItem.createdBy));
-      import('../governance/todo.js?v=20261018t').then(({ LifecycleTodoDeriver }) => {
-        LifecycleTodoDeriver.deriveFromActivityCreate(newItem, { snapshot });
-      }).catch(e => console.warn('[MockAdapter] 派生活动赋权待办失败：', e));
-    }
-    return newItem;
-  });
+  // mock 形态：活动与活动工作组（`wg-activity-<id>`）＋成员关系**同一次写入**建立，
+  // 与服务端 `POST /activities`（routes/resources/workgroup-routes.js::createActivityWorkgroup）同口径。
+  // 唯一实现复用 data/mock-adapter.js::MockAdapter.activities.create（勿在此另写第二套建组逻辑）——
+  // 此前本口只写 activities，工作组要等下次 loadDB 的 seed-sync 才补齐 ⇒ 本会话内活动详情按
+  // `wg-activity-<id>` 读不到工作组、后续赋权（/workgroups/<id>/grants）因工作组不存在而失败。
+  const newItem = await MockAdapter.activities.create(data);
+  bumpToken('activity'); // P0：活动生命周期写口 bump（MockAdapter 触发路径不碰版本戳）
+  console.info('[MockAdapter] createActivity 成功，id=' + newItem.id
+    + '，workgroupId=' + newItem.workgroupId
+    + '，当前 activities 总数：' + mockDB.activities.length);
+  return newItem;
 }
 
 /**
@@ -299,7 +281,7 @@ export function archiveActivity(id) {
     console.info('[MockAdapter] archiveActivity 成功，id=' + id
       + '，级联完成下属 tasks。');
     // 派生归档待办给宣传委员（最小三成本原则·阶段1C-3）
-    import('../governance/todo.js?v=20261018t').then(({ LifecycleTodoDeriver }) => {
+    import('../governance/todo.js?v=20261018u').then(({ LifecycleTodoDeriver }) => {
       LifecycleTodoDeriver.deriveFromActivityArchive(archived);
     }).catch(e => console.warn('[MockAdapter] 派生活动归档待办失败：', e));
     return archived;

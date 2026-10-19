@@ -258,6 +258,20 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/DOC
 
 > 详版：`content/05_ai_coding/PARALLEL_SKILL_AUDIT.md`（提示词模板 / 输出 schema / 汇总模板 / 决策记录 / 反模式）。
 
+### H21.3 批判性 IA 审查（2026-10-19 立 · 判例见 §11）
+
+> 任何一轮审查前先过三问；三问未过，不得进入视觉/无障碍评分：
+> ① 这个 tab 是否必须存在？（一 tab 一问）
+> ② 这张卡是否改变一个决策或触发一个动作？
+> ③ 这枚链接是否指向「该角色 + 该对象 + 该步骤」的正确落点？
+
+- **数据适配功能**：DB / 枚举 / mock 以页面功能与权限判据为准；mock 可删改；不得为旧数据削足适履。
+- **链接真值**：跨工作台链接必须按角色派生或渲染纯文本交接；不允许一条链接打天下。
+- **深链规则**：`highlight`/对象 id 必须先下发 `navTarget` 再清参，目标页必须消费；失败给可见提示。
+- **判例**：`.ctx/AUDIT_IA_CRITICAL.md`、`.ctx/IA_INVENTORY.md`、`.ctx/IA_LINK_TRUTH.md`；learned rules 见 `PARALLEL_SKILL_AUDIT.md §11.3`。
+
+> 详版：`content/05_ai_coding/PARALLEL_SKILL_AUDIT.md` §11。
+
 ***
 
 ## H30. 一改具改原则与母本子本关系

@@ -10,20 +10,20 @@
 //   - party 页面已移除，organizer/deep 内容落在成员工作台（workspace/visitor.html）——
 //     首页并无"我的角色"区块（2026-09-17 批次 64 dogfood 实测）
 
-import { ROLE_LABELS, ROLE_PAGE_MAP, BRANCH_COMMISSION_ROLES } from '../../core/domain/constants.js?v=20261018t';
-import { PEOPLE } from '../../data/mock/index.js?v=20261018t';
+import { ROLE_LABELS, ROLE_PAGE_MAP, BRANCH_COMMISSION_ROLES } from '../../core/domain/constants.js?v=20261018u';
+import { PEOPLE } from '../../data/mock/index.js?v=20261018u';
 // 账号登录校验（认证域收口：UI 不直连 mock 账号仓；真实后端接入时此处替换校验实现）
 // 2026-09-14 批次 25：改为「可持久化账号层 ∪ 静态种子表」校验（成员流入自动建号 / 流出停用；
 //   见 services/core/accounts.js），支撑「账号与成员档案同源」口径。
-import { verifyLogin } from './accounts.js?v=20261018t';
-import { getPersonById, getPersonName } from '../member/person.js?v=20261018t';
-import { mockDB } from '../../core/domain/domain.js?v=20261018t';
-import { NoticeStore } from '../governance/notice.js?v=20261018t';
-import { getAdapter } from '../../data/data-adapter.js?v=20261018t';
-import { enableApiMode } from './runtime.js?v=20261018t';
-import { generateId } from '../../core/base/id.js?v=20261018t';
-import { todayLocal } from '../../core/base/utils.js?v=20261018t';
-import { WORKGROUP_PERMISSION_TEMPLATES_BY_KIND } from '../../core/domain/workgroup-policy.js?v=20261018t';
+import { verifyLogin } from './accounts.js?v=20261018u';
+import { getPersonById, getPersonName } from '../member/person.js?v=20261018u';
+import { mockDB, WORKGROUP_WRITABLE_STATUSES } from '../../core/domain/domain.js?v=20261018u';
+import { NoticeStore } from '../governance/notice.js?v=20261018u';
+import { getAdapter } from '../../data/data-adapter.js?v=20261018u';
+import { enableApiMode } from './runtime.js?v=20261018u';
+import { generateId } from '../../core/base/id.js?v=20261018u';
+import { todayLocal } from '../../core/base/utils.js?v=20261018u';
+import { WORKGROUP_PERMISSION_TEMPLATES_BY_KIND } from '../../core/domain/workgroup-policy.js?v=20261018u';
 
 // ── 登录状态 ─────────────────────────────────────
 const LOGIN_KEY = 'gsm1921-login-user';   // localStorage: { personId, role, tabId }
@@ -580,7 +580,8 @@ export const AuthStore = {
       const workgroupId = _workgroupIdForProject(context.projectId);
       const permissionKey = PROJECT_ACTION_PERMISSION[action] || (action.startsWith('view_') ? 'activity.view' : null);
       const workgroup = mockDB.workgroups.find((row) => row.id === workgroupId);
-      if (workgroupId && workgroup && ['active', 'recruiting'].includes(workgroup.status) && permissionKey && mockDB.workgroupGrants.some((grant) => grant.workgroupId === workgroupId
+      // 工作组写权限只认 canonical 在办状态（recruiting/active）；draft/pending_review 只读等待。
+      if (workgroupId && workgroup && WORKGROUP_WRITABLE_STATUSES.includes(workgroup.status) && permissionKey && mockDB.workgroupGrants.some((grant) => grant.workgroupId === workgroupId
         && grant.personId === personId && grant.status === 'active'
         && Array.isArray(grant.permissionKeys) && grant.permissionKeys.includes(permissionKey))) return true;
     }
@@ -866,7 +867,7 @@ function _syncAuthAuditToServer(records) {
   const fresh = rows.filter((r) => r && r.id && !_auditSyncedIds.has(r.id));
   if (!fresh.length) return;
   fresh.forEach((r) => _auditSyncedIds.add(r.id));
-  import('../../data/data-adapter.js?v=20261018t').then(async ({ getDataSource, getAdapter }) => {
+  import('../../data/data-adapter.js?v=20261018u').then(async ({ getDataSource, getAdapter }) => {
     if (getDataSource() !== 'api') return; // mock 形态：不发（本机键即权威）
     const a = getAdapter();
     if (!a.authAudit || typeof a.authAudit.create !== 'function') return;

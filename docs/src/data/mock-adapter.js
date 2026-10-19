@@ -9,28 +9,83 @@
 //  Source: content/04_web_design/data/DATA_ARCHITECTURE.md
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB, SCHEMA_VERSION, SEED_DATA_VERSION } from '../core/domain/domain.js?v=20261018t';
-import { generateId } from '../core/base/id.js?v=20261018t';
+import { mockDB, SCHEMA_VERSION, SEED_DATA_VERSION, workgroupStatusForTaskforce } from '../core/domain/domain.js?v=20261018u';
+import { generateId } from '../core/base/id.js?v=20261018u';
 // 计票方式（ballotMode）单一源：正式表决无记名落库口径与 server/routes/committee.js 同源（constants.js）
-import { ballotModeOfActivity } from '../core/domain/constants.js?v=20261018t';
+import { ballotModeOfActivity } from '../core/domain/constants.js?v=20261018u';
 // 修复（T175）：直接从 ../mock/activities.js 导入 ACTIVITIES，
 // 绕过 ../mock/index.js 的 re-export 转发（与 services/core/mock.js 对齐，
 // 消除循环依赖/TDZ 导致的 seed 失败风险）
-import { ACTIVITIES } from './mock/activities.js?v=20261018t';
-import { MOCK_TASKFORCES } from './mock/taskforces.js?v=20261018t';
-import { PEOPLE } from './mock/people.js?v=20261018t';
-import { SEED_TASKS, SEED_ASSIGNMENTS, SEED_ARCHIVE_RECORDS, SEED_SIGNUPS, SEED_REVIEW_REQUESTS, SEED_MAKEUP_TASKS } from './mock/seed.js?v=20261018t';
+import { ACTIVITIES } from './mock/activities.js?v=20261018u';
+import { MOCK_TASKFORCES } from './mock/taskforces.js?v=20261018u';
+import { PEOPLE } from './mock/people.js?v=20261018u';
+import { SEED_TASKS, SEED_ASSIGNMENTS, SEED_ARCHIVE_RECORDS, SEED_SIGNUPS, SEED_REVIEW_REQUESTS, SEED_MAKEUP_TASKS } from './mock/seed.js?v=20261018u';
 // Seed 增量合并用（2026-08-05）：attendance.js/notices.js 为纯数据模块，
 // 经 services/member/person.js（只依赖 domain/people）→ 无指向本文件的循环依赖
-import { ATTENDANCE_RECORDS } from './mock/attendance.js?v=20261018t';
-import { MOCK_NOTICES } from './mock/notices.js?v=20261018t';
-import { BRANCHES } from './mock/branches.js?v=20261018t';
-import { todayLocal } from '../core/base/utils.js?v=20261018t';
-import { WORKGROUP_MEMBER_ROLES } from '../services/activity/workgroup-members.js?v=20261018t';
-import { WORKGROUP_PERMISSION_TEMPLATES_BY_KIND } from '../core/domain/workgroup-policy.js?v=20261018t';
-import { ensureLegacySourceWorkgroups, ensureDemoWorkgroupGrants } from './workgroup-seed-sync.js?v=20261018t';
+import { ATTENDANCE_RECORDS } from './mock/attendance.js?v=20261018u';
+import { MOCK_NOTICES } from './mock/notices.js?v=20261018u';
+import { BRANCHES } from './mock/branches.js?v=20261018u';
+import { todayLocal } from '../core/base/utils.js?v=20261018u';
+import { WORKGROUP_MEMBER_ROLES } from '../services/activity/workgroup-members.js?v=20261018u';
+import { WORKGROUP_PERMISSION_TEMPLATES_BY_KIND } from '../core/domain/workgroup-policy.js?v=20261018u';
+import { ensureLegacySourceWorkgroups, ensureDemoWorkgroupGrants } from './workgroup-seed-sync.js?v=20261018u';
 
 const STORAGE_KEY = 'workflowos_branch_db_v1';
+
+// Phase 0 · mock 多支部过滤（2026-10-20）：分量列表按 branchId 收敛，口径与服务端
+// server/routes/resources/branch-scope.js::resourceBranchId 同源：
+//   · branches → 自身 id；users → 显式 branchId（null = 未归属，不落入任何支部）
+//   · 其余资源 → 直接 branchId，缺失时按关联业务记录（activityId / workgroupId /
+//     taskforceId / sourceType+sourceId / 党小组）派生，仍无则按既有规则回落 br-b1
+//   · 直接 branchId 与关联派生结果冲突 ⇒ 视为归属不一致（不落入任何支部）
+// 仅在调用方显式传 params.branchId 时启用；不传保持原有全量行为（单支部演示不受影响）。
+const DEFAULT_BRANCH_ID = 'br-b1';
+
+function _rowById(rows, id) {
+  return (Array.isArray(rows) ? rows : []).find((row) => row && String(row.id) === String(id)) || null;
+}
+
+function _linkedBranchOfMockRow(row) {
+  if ((row.sourceType === 'activity' || row.sourceType === 'taskforce') && row.sourceId) {
+    const source = row.sourceType === 'activity'
+      ? _rowById(mockDB.activities, row.sourceId)
+      : _rowById(mockDB.taskforces, row.sourceId);
+    if (source) return _recordBranchId(row.sourceType === 'activity' ? 'activities' : 'taskforces', source);
+  }
+  if (row.activityId) {
+    const activity = _rowById(mockDB.activities, row.activityId);
+    if (activity) return activity.branchId || DEFAULT_BRANCH_ID;
+  }
+  if (row.workgroupId) {
+    const workgroup = _rowById(mockDB.workgroups, row.workgroupId);
+    if (workgroup) return workgroup.branchId || DEFAULT_BRANCH_ID;
+  }
+  if (row.taskforceId) {
+    const taskforce = _rowById(mockDB.taskforces, row.taskforceId);
+    if (taskforce) return taskforce.branchId || DEFAULT_BRANCH_ID;
+  }
+  const groupId = row.partyGroupId || row.groupId || row.hostGroupId;
+  if (groupId) {
+    const group = _rowById(mockDB.partyGroups, groupId);
+    if (group) return group.branchId || DEFAULT_BRANCH_ID;
+  }
+  return null;
+}
+
+function _recordBranchId(resourceName, row) {
+  if (!row || typeof row !== 'object') return null;
+  if (resourceName === 'branches') return row.id || null;
+  if (resourceName === 'users') return row.branchId || null;
+  const direct = row.branchId || null;
+  const linked = _linkedBranchOfMockRow(row);
+  if (direct && linked && direct !== linked) return null;
+  return direct || linked || DEFAULT_BRANCH_ID;
+}
+
+function _filterByBranch(rows, resourceName, params = {}) {
+  if (!params.branchId) return rows;
+  return rows.filter((row) => _recordBranchId(resourceName, row) === params.branchId);
+}
 
 // 历史遗留存储键（并入 workflowos_branch_db_v1 全量键架构前的旧单域键）：
 // SANDBOX_MODE 每刷清理与演示数据一键重置（?reset demo 档，见 handleResetIfRequested/collectResetKeys）
@@ -518,7 +573,7 @@ export const MockAdapter = {
     if (merged) _saveToStorage();
     // 数据加载完成广播：通知 header 角标等初始快照据实刷新（与 data-loader 的
     // notifyDataLoaded 双保险；此处覆盖 data-adapter.init() mock 分支等直连路径）
-    import('./data-adapter.js?v=20261018t').then(({ notifyDataLoaded }) => notifyDataLoaded())
+    import('./data-adapter.js?v=20261018u').then(({ notifyDataLoaded }) => notifyDataLoaded())
       .catch(() => {});
   },
 
@@ -529,8 +584,8 @@ export const MockAdapter = {
   // ── 资源分组接口 ──────────────────────────────────────────
 
   activities: {
-    list() {
-      return _withDelay(() => [...mockDB.activities]);
+    list(params = {}) {
+      return _withDelay(() => _filterByBranch([...mockDB.activities], 'activities', params));
     },
 
     create(data) {
@@ -565,8 +620,8 @@ export const MockAdapter = {
         // 联动赋权（`R-29⑤` · `D-804` 批次 425）：**收件人取该模块主责**——把本支部**分工快照**一并传进去；
         //   `branch.js` 亦走动态 import（本文件属数据层，静态引 services 层有成环风险）。
         Promise.all([
-          import('../services/governance/todo.js?v=20261018t'),
-          import('../services/branch/branch.js?v=20261018t'),
+          import('../services/governance/todo.js?v=20261018u'),
+          import('../services/branch/branch.js?v=20261018u'),
         ]).then(([{ LifecycleTodoDeriver }, branch]) => {
           const snapshot = branch.getBranchWorkforce(branch.getBranchIdOfPerson(newItem.createdBy));
           LifecycleTodoDeriver.deriveFromActivityCreate(newItem, { snapshot });
@@ -636,11 +691,11 @@ export const MockAdapter = {
           t.activityId === id && t.status !== 'completed' ? { ...t, status: 'completed' } : t
         );
         _saveToStorage();
-        import('../services/governance/todo.js?v=20261018t').then(({ LifecycleTodoDeriver }) => {
+        import('../services/governance/todo.js?v=20261018u').then(({ LifecycleTodoDeriver }) => {
           LifecycleTodoDeriver.deriveFromActivityArchive(archived);
         }).catch(e => console.warn('[MockAdapter] 派生活动归档待办失败：', e));
         // 2026-08-08 归档闭环：活动归档 → 配套通知随之一并归档，退出工作区
-        import('../services/governance/notice.js?v=20261018t').then(({ NoticeStore }) => {
+        import('../services/governance/notice.js?v=20261018u').then(({ NoticeStore }) => {
           NoticeStore.archiveBySource('activity', id);
         }).catch(e => console.warn('[MockAdapter] 归档关联通知失败：', e));
         return archived;
@@ -704,7 +759,7 @@ export const MockAdapter = {
   // ── 其他资源（直接操作 mockDB，满足 DataAdapter 接口）──────
 
   attendances: {
-    list() { return _withDelay(() => [...mockDB.attendances]); },
+    list(params = {}) { return _withDelay(() => _filterByBranch([...mockDB.attendances], 'attendances', params)); },
     listByActivity(activityId) { return _withDelay(() => mockDB.attendances.filter(a => a.activityId === activityId)); },
     create(data) {
       return _withDelay(() => {
@@ -750,7 +805,7 @@ export const MockAdapter = {
         const tf = { ...data, id, workgroupId: `wg-taskforce-${id}`, branchId: data.branchId || 'br-b1', createdAt };
         mockDB.workgroups = [...mockDB.workgroups, {
           id: tf.workgroupId, branchId: tf.branchId, kind: 'taskforce', sourceType: 'taskforce', sourceId: id,
-          name: tf.name || id, status: tf.status || 'active', migrationState: 'ready', createdBy: tf.createdBy || null, createdAt,
+          name: tf.name || id, status: workgroupStatusForTaskforce(tf.status), migrationState: 'ready', createdBy: tf.createdBy || null, createdAt,
         }];
         mockDB.workgroupMembers = [...mockDB.workgroupMembers, ...(Array.isArray(tf.members) ? tf.members : []).map((member) => ({
           id: `wgm-${encodeURIComponent(tf.workgroupId)}-${encodeURIComponent(String(member.personId))}`,
@@ -763,7 +818,7 @@ export const MockAdapter = {
         }];
         mockDB.taskforces = [...mockDB.taskforces, tf];
         _saveToStorage();
-        import('../services/governance/todo.js?v=20261018t').then(({ LifecycleTodoDeriver }) => {
+        import('../services/governance/todo.js?v=20261018u').then(({ LifecycleTodoDeriver }) => {
           LifecycleTodoDeriver.deriveFromTaskforceCreate(tf);
         }).catch(e => console.warn('[MockAdapter] 派生专班赋权待办失败：', e));
         return tf;
@@ -831,7 +886,7 @@ export const MockAdapter = {
       return _withDelay(() => {
         mockDB.taskforces = mockDB.taskforces.filter(t => t.id !== id);
         _saveToStorage();
-        import('../services/governance/todo.js?v=20261018t').then(({ LifecycleTodoDeriver }) => {
+        import('../services/governance/todo.js?v=20261018u').then(({ LifecycleTodoDeriver }) => {
           LifecycleTodoDeriver.deleteByTaskforce(id);
         }).catch(e => console.warn('[MockAdapter] 联动删除待办失败：', e));
         return { id };
@@ -840,13 +895,13 @@ export const MockAdapter = {
   },
 
   notices: {
-    list() { return _withDelay(() => [...mockDB.notices]); },
+    list(params = {}) { return _withDelay(() => _filterByBranch([...mockDB.notices], 'notices', params)); },
     create(data) {
       return _withDelay(() => {
         const notice = { ...data, id: data.id || generateId('notice'), publishDate: data.publishDate || todayLocal() };
         mockDB.notices = [...mockDB.notices, notice];
         _saveToStorage();
-        import('../services/governance/todo.js?v=20261018t').then(({ NoticeTodoDeriver }) => {
+        import('../services/governance/todo.js?v=20261018u').then(({ NoticeTodoDeriver }) => {
           NoticeTodoDeriver.deriveFromNotice(notice);
         }).catch(e => console.warn('[MockAdapter] 通知派生待办失败：', e));
         return notice;
@@ -868,7 +923,7 @@ export const MockAdapter = {
   },
 
   todos: {
-    list() { return _withDelay(() => [...mockDB.todos]); },
+    list(params = {}) { return _withDelay(() => _filterByBranch([...mockDB.todos], 'todos', params)); },
     create(data) {
       return _withDelay(() => {
         const todo = { ...data, id: data.id || generateId('todo_'), createdAt: data.createdAt || new Date().toISOString() };
@@ -900,7 +955,7 @@ export const MockAdapter = {
   },
 
   assignments: {
-    list() { return _withDelay(() => [...mockDB.assignments]); },
+    list(params = {}) { return _withDelay(() => _filterByBranch([...mockDB.assignments], 'assignments', params)); },
     create(data) {
       return _withDelay(() => {
         const record = { ...data, id: generateId('asgn'), createdAt: new Date().toISOString() };
@@ -1318,14 +1373,14 @@ export const MockAdapter = {
   // 含 p_pc 党委组织员）；create/update/delete 复用 PersonStore.saveMember/removeMember
   // 的 mock 分支（动态 import 防静态环，与 todo.js 同法）。
   users: {
-    list() {
-      return _withDelay(() => import('../services/member/person.js?v=20261018t')
-        .then(({ getBaseMemberRecords }) => getBaseMemberRecords()));
+    list(params = {}) {
+      return _withDelay(() => import('../services/member/person.js?v=20261018u')
+        .then(({ getBaseMemberRecords }) => _filterByBranch(getBaseMemberRecords(), 'users', params)));
     },
 
     create(data) {
       return _withDelay(async () => {
-        const { PersonStore } = await import('../services/member/person.js?v=20261018t');
+        const { PersonStore } = await import('../services/member/person.js?v=20261018u');
         const r = await PersonStore.saveMember(data, { by: data?.by });
         if (!r.ok) throw Object.assign(new Error(r.reason), { type: 'BadRequestError' });
         return r.member;
@@ -1334,7 +1389,7 @@ export const MockAdapter = {
 
     update(id, patch) {
       return _withDelay(async () => {
-        const { PersonStore } = await import('../services/member/person.js?v=20261018t');
+        const { PersonStore } = await import('../services/member/person.js?v=20261018u');
         const r = await PersonStore.saveMember({ id, ...patch }, { by: patch?.by });
         if (!r.ok) throw Object.assign(new Error(r.reason), { type: 'BadRequestError' });
         return r.member;
@@ -1344,7 +1399,7 @@ export const MockAdapter = {
     delete(id) {
       // adapter 层为数据原语（PersonStore.removeMember 为带引用守卫的业务口；此处直删由守卫在业务层把关）
       return _withDelay(async () => {
-        const { PersonStore } = await import('../services/member/person.js?v=20261018t');
+        const { PersonStore } = await import('../services/member/person.js?v=20261018u');
         const r = await PersonStore.removeMember(id, { guardRefs: false });
         if (!r.ok) throw Object.assign(new Error(r.reason), { type: 'BadRequestError' });
         return { id };
@@ -1552,7 +1607,7 @@ export const MockAdapter = {
         // （与 services/member/member-confirmation.js `_applyApproved` 同法；动态 import 防静态环）。
         // API 模式由 server/routes/member.js 写 users 表（已正确），本分支仅 mock 形态生效。
         if (row.toStage) {
-          const { PersonStore } = await import('../services/member/person.js?v=20261018t');
+          const { PersonStore } = await import('../services/member/person.js?v=20261018u');
           const saved = await PersonStore.saveMember(
             { id: row.personId, developStage: row.toStage },
             { by: row.confirmedBy || null },

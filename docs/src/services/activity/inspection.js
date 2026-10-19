@@ -5,18 +5,20 @@
 //    考察对象为该工作组成员；sourceType/activityId/taskforceId 只是工作组类型的投影，不是独立父对象。
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB, SourceType, SOURCE_TYPE_LABELS, PARTICIPATION_LEVEL_LABELS, ParticipationLevel } from '../../core/domain/domain.js?v=20261018t';
-import { POLICY_DEFAULTS } from '../../core/domain/policy-defaults.js?v=20261018t';
-import { persist, getDataSource, getAdapter } from '../../data/data-adapter.js?v=20261018t';
-import { generateId } from '../../core/base/id.js?v=20261018t';
-import { bumpToken } from '../../core/base/version-token.js?v=20261018t'; // P0 域缓存失效（spec §二.3）
-import { INSPECTION_RECORDS } from '../../data/mock/index.js?v=20261018t';
-import { isInitStateActive } from '../core/init-reset.js?v=20261018t'; // C2 修复（2026-09-08）：init 态空态不回退演示种子
-import { getPersonById, getPersonName } from '../member/person.js?v=20261018t';
-import { TodoStore, TodoSourceType } from '../governance/todo.js?v=20261018t';
-import { loadActivities, isActivityOrganizer } from './activity.js?v=20261018t';
+import { mockDB, SourceType, SOURCE_TYPE_LABELS, PARTICIPATION_LEVEL_LABELS, ParticipationLevel } from '../../core/domain/domain.js?v=20261018u';
+import { POLICY_DEFAULTS } from '../../core/domain/policy-defaults.js?v=20261018u';
+import { persist, getDataSource, getAdapter } from '../../data/data-adapter.js?v=20261018u';
+import { generateId } from '../../core/base/id.js?v=20261018u';
+import { bumpToken } from '../../core/base/version-token.js?v=20261018u'; // P0 域缓存失效（spec §二.3）
+import { INSPECTION_RECORDS } from '../../data/mock/index.js?v=20261018u';
+import { isInitStateActive } from '../core/init-reset.js?v=20261018u'; // C2 修复（2026-09-08）：init 态空态不回退演示种子
+import { getPersonById, getPersonName } from '../member/person.js?v=20261018u';
+import { TodoStore, TodoSourceType } from '../governance/todo.js?v=20261018u';
+import { loadActivities, isActivityOrganizer } from './activity.js?v=20261018u';
 // 专班「组织者」判据单一源（2026-09-23 · 专班考察上传位的本位判据要读它）
-import { isTaskforceOrganizer } from './taskforce.js?v=20261018t';
+import { isTaskforceOrganizer, TaskForceRecordStore } from './taskforce.js?v=20261018u';
+// R4-D05：删除/确认的默认操作人 = 当前登录人（调用方未显式传 actorId 时）
+import { AuthStore } from '../core/auth.js?v=20261018u';
 
 export function loadInspectionRecords() {
   if (mockDB.inspections.length > 0) return [...mockDB.inspections];
@@ -46,40 +48,70 @@ export function saveInspectionRecords(records) {
 // ── A1 上传位门禁（2026-09-05 落代码，语义见 SYSTEM_ROLE_PERMISSION §9b/§9f + CF §C.1a 考察管理）──
 
 /**
- * 活动归属党小组（dogfood 权限专项 2026-09-13）
- * 判据与 attendance.js::_activityPartyGroup 同（勿各自改口径）：优先 hostGroup，缺省回退组织者所属小组。
+ * 考察上传位门禁（R4-D05，2026-10-20：改为 deny-by-default）
+ * 允许：本场活动（专班）组织者 / 支书 / 副支书 / 纪检委员。
+ * - 活动：`activity.organizer === personId`，或 `assignments` 中 role=organizer/deep；
+ * - 专班：专班组织者（`taskforce.members` role=organizer；sourceName 与 id 皆可识别）。
+ * 其余角色一律拒绝——不再有「专班一律放行」「本组组长按类型放行」的宽口。
  */
-function _activityPartyGroup(activity) {
-  if (!activity) return null;
-  if (activity.hostGroup) return activity.hostGroup;
-  const orgId = activity.organizer
-    || (Array.isArray(activity.assignments) ? (activity.assignments.find(x => x.role === 'organizer') || {}).personId : null);
-  return orgId ? ((getPersonById(orgId) || {}).partyGroup || null) : null;
+
+/** 前端可写考察的角色（与任务裁定一致：支书/副支书/纪检；勿在此扩到其它支委） */
+const INSPECTION_ROLE_WRITE = new Set(['secretary', 'deputy-secretary', 'disc-commissioner']);
+
+/** 本场活动是否为该人的组织位（组织者 / deep 协作者） */
+function _isInspectionSourceOrganizer(personId, sourceType, sourceId) {
+  if (!personId || !sourceType || !sourceId) return false;
+  if (sourceType === SourceType.TASKFORCE) {
+    if (isTaskforceOrganizer(personId, sourceId)) return true;
+    const tf = TaskForceRecordStore.getAll().find(r => r.id === sourceId || r.name === sourceId);
+    return !!(tf && Array.isArray(tf.members)
+      && tf.members.some(m => m && m.personId === personId && m.role === 'organizer'));
+  }
+  const activity = loadActivities().find(a => a.id === sourceId);
+  if (!activity) return false;
+  if (activity.organizer === personId) return true;
+  return Array.isArray(activity.assignments)
+    && activity.assignments.some(x => x && x.personId === personId && (x.role === 'organizer' || x.role === 'deep'));
 }
 
 /**
- * 考察上传位门禁
- * - 活动类：上传/修改=该活动组织者（assignments organizer 或顶层 organizer 派生；组长兼组织者同）；
- *   组长非组织者=本组监督位（督促上传，见组长页监督提示）
- * - 专班类：上传=专班实际负责人——身份（指派到人/角色）待支书另裁（§9b 组织委员行注）；
- *   裁决前暂按页面可达放行（组委/组长既有入口保留），recordedBy 记真实操作人
+ * 上传门禁的**可懂原因**（允许 → null）。
+ * @returns {string|null}
  */
-export function canUploadInspection(personId, sourceType, sourceId) {
-  if (!personId || !sourceType || !sourceId) return false;
+export function inspectionUploadDenyReason(personId, sourceType, sourceId) {
+  if (!personId || !sourceType || !sourceId) return '缺少上传人或考察来源';
   const role = (getPersonById(personId) || {}).role;
-  if (role === 'secretary' || role === 'deputy-secretary') return true; // 支书/副支书例外承担
-  if (sourceType === SourceType.TASKFORCE) return true; // 专班负责人位待身份编码，暂放行（见上）
-  const activity = loadActivities().find(a => a.id === sourceId);
-  if (!activity || activity.archived) return false;
-  if (role === 'leader' && activity.type === '党小组会') {
-    // 本组上传位（组长手册 §2.1）：仅本组活动（dogfood 权限专项 2026-09-13 补「本组」约束，
-    // 此前仅判类型 → 任一组长可对他组小组会提交考察）
-    const myGroup = (getPersonById(personId) || {}).partyGroup;
-    return !!myGroup && _activityPartyGroup(activity) === myGroup;
+  if (INSPECTION_ROLE_WRITE.has(role)) return null;
+  if (sourceType === SourceType.TASKFORCE) {
+    return _isInspectionSourceOrganizer(personId, sourceType, sourceId)
+      ? null : '仅专班组织者或纪检可上传考察';
   }
-  const isOrg = (Array.isArray(activity.assignments) && activity.assignments.some(x => x.personId === personId && x.role === 'organizer'))
-    || activity.organizer === personId;
-  return !!isOrg;
+  const activity = loadActivities().find(a => a.id === sourceId);
+  if (!activity || activity.archived) return '该活动已归档或不存在，不能上传考察';
+  return _isInspectionSourceOrganizer(personId, sourceType, sourceId)
+    ? null : '仅本场组织者或纪检可上传考察';
+}
+
+export function canUploadInspection(personId, sourceType, sourceId) {
+  return inspectionUploadDenyReason(personId, sourceType, sourceId) === null;
+}
+
+/** 当前登录人（无会话 → null） */
+function _currentPersonId() {
+  try { return (AuthStore.getCurrentUser() || {}).personId || null; } catch (_) { return null; }
+}
+
+/** 删除/确认的授权判据：与本场组织者/纪检同一口径（允许 → null，拒绝 → 原因） */
+function _inspectionMutationDeny(actorId, record, action) {
+  const personId = actorId || _currentPersonId();
+  if (!personId) return `无法识别当前用户，不能${action}考察`;
+  const role = (getPersonById(personId) || {}).role;
+  if (INSPECTION_ROLE_WRITE.has(role)) return null;
+  const sourceType = record.sourceType === SourceType.TASKFORCE ? SourceType.TASKFORCE : SourceType.ACTIVITY;
+  const sourceId = sourceType === SourceType.TASKFORCE
+    ? (record.sourceName || record.taskforceId) : record.activityId;
+  return _isInspectionSourceOrganizer(personId, sourceType, sourceId)
+    ? null : `仅本场组织者或纪检可${action}考察`;
 }
 
 /** 更新考察记录 */
@@ -92,24 +124,35 @@ function updateInspectionRecord(id, updates) {
   }
 }
 
-/** 删除考察记录（仅待确认状态可删） */
-export function deleteInspectionRecord(id) {
+/**
+ * 删除考察记录（仅待确认状态可删；R4-D05 收紧为「本场组织者 / 支书 / 副支书 / 纪检」）
+ * @returns {{ok:boolean, reason?:string}}
+ */
+export function deleteInspectionRecord(id, { actorId } = {}) {
   const records = loadInspectionRecords();
-  const idx = records.findIndex(r => r.id === id && r.status === 'pending');
-  if (idx !== -1) {
-    records.splice(idx, 1);
-    saveInspectionRecords(records);
-    return true;
-  }
-  return false;
+  const idx = records.findIndex(r => r.id === id);
+  if (idx === -1) return { ok: false, reason: '考察记录不存在' };
+  const deny = _inspectionMutationDeny(actorId, records[idx], '删除');
+  if (deny) return { ok: false, reason: deny };
+  if (records[idx].status !== 'pending') return { ok: false, reason: '只能删除待确认状态的记录' };
+  records.splice(idx, 1);
+  saveInspectionRecords(records);
+  return { ok: true };
 }
 
-/** 确认考察记录（纪检委员操作） */
-export function confirmInspectionRecord(id) {
-  const res = updateInspectionRecord(id, { status: 'confirmed' });
+/**
+ * 确认考察记录（纪检委员操作；R4-D05 同口径校验）
+ * @returns {{ok:boolean, reason?:string}}
+ */
+export function confirmInspectionRecord(id, { actorId } = {}) {
+  const rec = loadInspectionRecords().find(r => r.id === id);
+  if (!rec) return { ok: false, reason: '考察记录不存在' };
+  const deny = _inspectionMutationDeny(actorId, rec, '确认');
+  if (deny) return { ok: false, reason: deny };
+  updateInspectionRecord(id, { status: 'confirmed' });
   // 做事即销待办：确认考察 → 销「考察超期/待确认」待办
   try { TodoStore.completeBySource(TodoSourceType.ACTIVITY, `insp_${id}`); } catch (e) { console.warn('[inspection] 销待办失败', e); }
-  return res;
+  return { ok: true };
 }
 
 /**

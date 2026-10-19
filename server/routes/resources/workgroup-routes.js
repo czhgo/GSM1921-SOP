@@ -3,6 +3,10 @@
 import { randomUUID } from 'node:crypto';
 import { requireAuth } from '../auth.js';
 import { BRANCH_COMMISSION_ROLES, SECRETARY_AND_DEPUTY_ROLES, isActivityEnded, usesFormalMeetingRoster } from '../../../docs/src/core/domain/constants.js';
+import {
+  TaskforceStatus, isTaskforceStatus, isTaskforceTerminalStatus, isWorkgroupClosedStatus,
+  isWorkgroupWritableStatus, workgroupStatusForTaskforce,
+} from '../../../docs/src/core/domain/domain.js';
 import { POLICY_DEFAULTS } from '../../../docs/src/core/domain/policy-defaults.js';
 import { bumpCollectionVersion } from '../../db.js';
 import { CAPABILITY_PACKAGE_BY_ID } from '../../../docs/src/core/domain/capability-packages.js';
@@ -31,8 +35,20 @@ const put = (db, table, row) => db.prepare(`INSERT OR REPLACE INTO ${table} (id,
   .run(row.id, JSON.stringify(row));
 const ownBranch = (actor) => actor?.branchId || 'br-b1';
 const memberBranch = (user) => user?.branchId || 'br-b1';
-const isClosedWorkgroup = (workgroup) => ['completed', 'archived', 'dissolved'].includes(workgroup?.status || '');
 const closedWorkgroupError = '工作组已结束，成员、授权、任务与产出历史只读保留';
+const preOpenWorkgroupError = '工作组尚未进入招募或运行阶段，成员、授权、任务与产出暂不可写';
+/** 写口统一状态门：终态 → 历史只读；draft/pending_review → 未开放。 */
+const workgroupWriteDeny = (workgroup) => {
+  if (isWorkgroupClosedStatus(workgroup?.status)) return closedWorkgroupError;
+  if (!isWorkgroupWritableStatus(workgroup?.status)) return preOpenWorkgroupError;
+  return null;
+};
+const sendWorkgroupWriteDeny = (res, workgroup) => {
+  const deny = workgroupWriteDeny(workgroup);
+  if (!deny) return false;
+  res.status(409).json({ error: deny });
+  return true;
+};
 const workgroupIdFor = (kind, sourceId) => `wg-${kind}-${sourceId}`;
 const memberIdFor = (workgroupId, personId) => `wgm-${encodeURIComponent(workgroupId)}-${encodeURIComponent(personId)}`;
 const isTaskforcePackageEnabled = (db, workgroup) => workgroup?.kind !== 'taskforce'
@@ -40,7 +56,7 @@ const isTaskforcePackageEnabled = (db, workgroup) => workgroup?.kind !== 'taskfo
 const isDisabledTaskforceHistory = (db, workgroup) => {
   if (workgroup?.kind !== 'taskforce' || isTaskforcePackageEnabled(db, workgroup)) return false;
   const taskforce = rowOf(db, 'taskforces', workgroup.sourceId);
-  return ['completed', 'archived', 'dissolved'].includes(taskforce?.status || '');
+  return isTaskforceTerminalStatus(taskforce?.status);
 };
 const isDisabledActivityHistory = (db, activity) => !!activity
   && !_assertCapabilityPackageEnabled(db, { branchId: activity.branchId || 'br-b1' }, 'activity-organization')
@@ -104,15 +120,41 @@ function isApprovedDissolution(previous, next) {
   const previousDecisions = Array.isArray(previous?.committeeDecision) ? previous.committeeDecision : [];
   const nextDecisions = Array.isArray(next?.committeeDecision) ? next.committeeDecision : [];
   const decision = nextDecisions.at(-1);
-  return previous?.status === 'active'
+  return previous?.status === TaskforceStatus.ACTIVE
     && previous.committeeRequest?.kind === 'dissolve'
     && previous.committeeRequest?.status === 'pending'
-    && next?.status === 'dissolved'
+    && next?.status === TaskforceStatus.DISSOLVED
     && next.committeeRequest == null
     && nextDecisions.length === previousDecisions.length + 1
     && decision?.kind === 'dissolve'
     && decision?.decision === 'approved'
     && !!decision?.decisionRef;
+}
+
+/**
+ * 专班状态（非终态）变化 → 工作组状态同源映射。
+ * 终态变化只能经「已批准解散」进入，由 approvedTaskforceDissolutionWorkgroups 处理；
+ * 这里覆盖 draft/pending_review/recruiting/active 之间的流转（如支委会发起表决通过）。
+ */
+export function taskforceStatusWorkgroups(db, payload, actor) {
+  if (!Array.isArray(payload?.taskforces)) return [];
+  const current = new Map(jsonRows(db, 'taskforces').map((row) => [String(row.id), row]));
+  const updates = [];
+  for (const next of payload.taskforces) {
+    if (!next?.id || !isTaskforceStatus(next.status) || isTaskforceTerminalStatus(next.status)) continue;
+    const previous = current.get(String(next.id));
+    if (!previous || previous.status === next.status) continue;
+    const workgroup = rowOf(db, 'workgroups', next.workgroupId || `wg-taskforce-${next.id}`);
+    if (!workgroup || (workgroup.branchId || 'br-b1') !== (next.branchId || 'br-b1')) continue;
+    updates.push({
+      ...workgroup,
+      name: next.name || workgroup.name,
+      status: workgroupStatusForTaskforce(next.status),
+      updatedBy: actor?.id || null,
+      updatedAt: new Date().toISOString(),
+    });
+  }
+  return updates;
 }
 
 export function approvedTaskforceDissolutionWorkgroups(db, payload, actor) {
@@ -126,7 +168,7 @@ export function approvedTaskforceDissolutionWorkgroups(db, payload, actor) {
     if (!workgroup) continue; // snapshotScopeDeny rejects the missing-parent case before this helper is called.
     const decision = next.committeeDecision.at(-1);
     updates.push({
-      ...workgroup, status: 'dissolved', updatedBy: actor?.id || null,
+      ...workgroup, status: TaskforceStatus.DISSOLVED, updatedBy: actor?.id || null,
       updatedAt: decision.at || new Date().toISOString(),
     });
   }
@@ -136,7 +178,7 @@ export function approvedTaskforceDissolutionWorkgroups(db, payload, actor) {
 export function hasWorkgroupPermission(db, workgroupId, personId, permissionKey) {
   const member = workgroupMembers(membersOf(db, workgroupId)).some((row) => row.personId === personId);
   const workgroup = workgroupOf(db, workgroupId);
-  return !!workgroup && ['active', 'recruiting'].includes(workgroup.status) && member && jsonRows(db, 'workgroup_grants').some((grant) => grant.workgroupId === workgroupId
+  return !!workgroup && isWorkgroupWritableStatus(workgroup.status) && member && jsonRows(db, 'workgroup_grants').some((grant) => grant.workgroupId === workgroupId
     && grant.personId === personId && grant.status === 'active'
     && Array.isArray(grant.permissionKeys) && grant.permissionKeys.includes(permissionKey));
 }
@@ -250,16 +292,18 @@ export function snapshotScopeDeny(db, payload, actor) {
   if (Array.isArray(payload.taskforces)) {
     const current = new Map(jsonRows(db, 'taskforces').map((row) => [String(row.id), row]));
     const incomingIds = new Set(payload.taskforces.filter((row) => row?.id).map((row) => String(row.id)));
-    const terminalStatuses = new Set(['completed', 'archived', 'dissolved']);
     for (const next of payload.taskforces) {
       if (!next?.id) continue;
+      if (next.status !== undefined && !isTaskforceStatus(next.status)) {
+        return `工作组状态无效：${String(next.status)}`;
+      }
       const previous = current.get(String(next.id));
       if (!previous) return '无权限：新增工作组须走语义创建接口，以同时建立工作组、成员与主任务';
       if ((next.branchId || 'br-b1') !== (previous.branchId || 'br-b1')) return '无权限：工作组支部归属创建后不可修改';
       if (JSON.stringify(previous) !== JSON.stringify(next) && (previous.branchId || 'br-b1') !== ownBranch(actor)) return '无权限：不能通过快照修改其他支部工作组';
       if ((next.workgroupId || `wg-taskforce-${next.id}`) !== (previous.workgroupId || `wg-taskforce-${previous.id}`)) return '无权限：工作组关联创建后不可修改';
       if (memberIdentity(previous.members) !== memberIdentity(next.members)) return '无权限：工作组成员须走成员语义接口调整';
-      const transitionedToTerminal = terminalStatuses.has(next.status) && (!previous || previous.status !== next.status);
+      const transitionedToTerminal = isTaskforceTerminalStatus(next.status) && (!previous || previous.status !== next.status);
       if (!transitionedToTerminal) continue;
       const approvedDissolution = isApprovedDissolution(previous, next);
       if (!approvedDissolution) return '无权限：工作组结束状态不能通过快照变更，须走工作组收尾接口或已排入的表决结论';
@@ -388,7 +432,7 @@ export function createTaskforceWorkgroup(db, actor, taskforce) {
   const id = workgroupIdFor('taskforce', taskforce.id);
   const workgroup = {
     id, branchId: ownBranch(actor), kind: 'taskforce', sourceType: 'taskforce', sourceId: taskforce.id,
-    name: taskforce.name || taskforce.id, status: taskforce.status || 'active',
+    name: taskforce.name || taskforce.id, status: workgroupStatusForTaskforce(taskforce.status),
     createdBy: actor.id, createdAt: taskforce.createdAt || new Date().toISOString(), migrationState: 'ready',
   };
   const membership = validAssignments(db, actor, taskforce.members || []);
@@ -455,7 +499,7 @@ export function registerWorkgroupRoutes(router, db) {
     const workgroup = workgroupOf(db, req.params.id);
     if (!workgroup) return res.status(404).json({ error: '工作组不存在' });
     if (!canManageWorkgroup(db, req.actor, workgroup)) return res.status(403).json({ error: '无权限：当前角色不能批量保存工作组成员与授权' });
-    if (isClosedWorkgroup(workgroup)) return res.status(409).json({ error: closedWorkgroupError });
+    if (sendWorkgroupWriteDeny(res, workgroup)) return;
     if (isDisabledTaskforceHistory(db, workgroup)) return res.status(409).json({ error: '本支部已停用专班工作组；历史成员与授权记录只读保留' });
 
     const body = req.body && typeof req.body === 'object' && !Array.isArray(req.body) ? req.body : {};
@@ -584,7 +628,7 @@ export function registerWorkgroupRoutes(router, db) {
     const workgroup = workgroupOf(db, req.params.id);
     if (!workgroup) return res.status(404).json({ error: '工作组不存在' });
     if (!canManageWorkgroup(db, req.actor, workgroup) && !hasWorkgroupPermission(db, workgroup.id, req.actor.id, 'workgroup.members.manage')) return res.status(403).json({ error: '无权限：当前角色不能调整该工作组成员' });
-    if (isClosedWorkgroup(workgroup)) return res.status(409).json({ error: closedWorkgroupError });
+    if (sendWorkgroupWriteDeny(res, workgroup)) return;
     if (isDisabledTaskforceHistory(db, workgroup)) return res.status(409).json({ error: '本支部已停用专班工作组；历史成员记录只读保留' });
     const body = req.body && typeof req.body === 'object' && !Array.isArray(req.body) ? req.body : {};
     const personId = String(body.personId || '');
@@ -626,7 +670,7 @@ export function registerWorkgroupRoutes(router, db) {
     const workgroup = workgroupOf(db, req.params.id);
     if (!workgroup) return res.status(404).json({ error: '工作组不存在' });
     if (!canManageWorkgroup(db, req.actor, workgroup) && !hasWorkgroupPermission(db, workgroup.id, req.actor.id, 'workgroup.members.manage')) return res.status(403).json({ error: '无权限：当前角色不能调整该工作组成员' });
-    if (isClosedWorkgroup(workgroup)) return res.status(409).json({ error: closedWorkgroupError });
+    if (sendWorkgroupWriteDeny(res, workgroup)) return;
     if (isDisabledTaskforceHistory(db, workgroup)) return res.status(409).json({ error: '本支部已停用专班工作组；历史成员记录只读保留' });
     const id = memberIdFor(workgroup.id, String(req.params.personId));
     const current = rowOf(db, 'workgroup_members', id);
@@ -671,7 +715,7 @@ export function registerWorkgroupRoutes(router, db) {
     const workgroup = workgroupOf(db, req.params.id);
     if (!workgroup) return res.status(404).json({ error: '工作组不存在' });
     if (!canManageWorkgroup(db, req.actor, workgroup)) return res.status(403).json({ error: '无权限：当前角色不能授予该工作组权限' });
-    if (isClosedWorkgroup(workgroup)) return res.status(409).json({ error: closedWorkgroupError });
+    if (sendWorkgroupWriteDeny(res, workgroup)) return;
     if (isDisabledTaskforceHistory(db, workgroup)) return res.status(409).json({ error: '本支部已停用专班工作组；历史授权记录只读保留' });
     const body = req.body && typeof req.body === 'object' && !Array.isArray(req.body) ? req.body : {};
     const personId = String(body.personId || '');
@@ -700,7 +744,7 @@ export function registerWorkgroupRoutes(router, db) {
     const current = rowOf(db, 'workgroup_grants', req.params.grantId);
     if (!workgroup || !current || current.workgroupId !== workgroup.id) return res.status(404).json({ error: '授权记录不存在' });
     if (!canManageWorkgroup(db, req.actor, workgroup)) return res.status(403).json({ error: '无权限：当前角色不能撤回该工作组授权' });
-    if (isClosedWorkgroup(workgroup)) return res.status(409).json({ error: closedWorkgroupError });
+    if (sendWorkgroupWriteDeny(res, workgroup)) return;
     if (current.status === 'revoked') return res.json(current);
     const next = { ...current, status: 'revoked', revokedBy: req.actor.id, revokedAt: new Date().toISOString() };
     put(db, 'workgroup_grants', next);
@@ -720,7 +764,7 @@ export function registerWorkgroupRoutes(router, db) {
     const workgroup = workgroupOf(db, req.params.id);
     if (!workgroup) return res.status(404).json({ error: '工作组不存在' });
     if (!canManageWorkgroup(db, req.actor, workgroup) && !hasWorkgroupPermission(db, workgroup.id, req.actor.id, 'task.manage')) return res.status(403).json({ error: '无权限：不能在该工作组新增任务' });
-    if (isClosedWorkgroup(workgroup)) return res.status(409).json({ error: closedWorkgroupError });
+    if (sendWorkgroupWriteDeny(res, workgroup)) return;
     const body = req.body && typeof req.body === 'object' && !Array.isArray(req.body) ? req.body : {};
     const title = typeof body.title === 'string' ? body.title.trim() : '';
     if (!title) return res.status(400).json({ error: '任务标题不能为空' });
@@ -756,7 +800,7 @@ export function registerWorkgroupRoutes(router, db) {
     if (task.branchId !== workgroup.branchId || ownBranch(req.actor) !== workgroup.branchId) {
       return res.status(403).json({ error: '无权限：任务与当前支部不一致' });
     }
-    if (isClosedWorkgroup(workgroup)) return res.status(409).json({ error: closedWorkgroupError });
+    if (sendWorkgroupWriteDeny(res, workgroup)) return;
     if (!canManageWorkgroup(db, req.actor, workgroup) && !hasWorkgroupPermission(db, workgroup.id, req.actor.id, 'task.complete')) {
       return res.status(403).json({ error: '无权限：不能更新该工作组任务' });
     }
@@ -788,7 +832,7 @@ export function registerWorkgroupRoutes(router, db) {
     const workgroup = workgroupOf(db, req.params.id);
     if (!workgroup) return res.status(404).json({ error: '工作组不存在' });
     if (!canManageWorkgroup(db, req.actor, workgroup) && !hasWorkgroupPermission(db, workgroup.id, req.actor.id, 'output.submit')) return res.status(403).json({ error: '无权限：不能向该工作组提交产出' });
-    if (isClosedWorkgroup(workgroup)) return res.status(409).json({ error: closedWorkgroupError });
+    if (sendWorkgroupWriteDeny(res, workgroup)) return;
     const body = req.body && typeof req.body === 'object' && !Array.isArray(req.body) ? req.body : {};
     const title = typeof body.title === 'string' ? body.title.trim() : '';
     if (!title) return res.status(400).json({ error: '产出标题不能为空' });
@@ -828,7 +872,7 @@ export function registerWorkgroupRoutes(router, db) {
     if ((taskforce.branchId || 'br-b1') !== ownBranch(req.actor)) {
       return res.status(403).json({ error: '无权限：不能跨支部办理工作组收尾' });
     }
-    if (taskforce.status !== 'active') return res.status(409).json({ error: '仅运行中的工作组可以办理收尾' });
+    if (taskforce.status !== TaskforceStatus.ACTIVE) return res.status(409).json({ error: '仅运行中的工作组可以办理收尾' });
     if (taskforce.committeeRequest?.status === 'pending') {
       return res.status(409).json({ error: '该工作组已有待审议事项，不能重复提交收尾' });
     }
@@ -865,7 +909,7 @@ export function registerWorkgroupRoutes(router, db) {
       };
     const nextWorkgroup = {
       ...workgroup,
-      status: body.requiresCommitteeVote ? workgroup.status : 'dissolved',
+      status: body.requiresCommitteeVote ? workgroup.status : TaskforceStatus.DISSOLVED,
       updatedBy: req.actor.id, updatedAt: at,
     };
     const save = db.transaction(() => {

@@ -1,5 +1,7 @@
 // Mock 数据兼容迁移：为已有活动/专班建立稳定工作组主记录。
 // 不搬移普通参与者，不猜测旧专班任务/产出；原始业务记录仍是来源。
+import { WorkgroupStatus, workgroupStatusForTaskforce } from '../core/domain/domain.js?v=20261018u';
+
 const MEMBER_ROLES = new Set(['organizer', 'deep']);
 
 const groupIdFor = (kind, sourceId) => `wg-${kind}-${sourceId}`;
@@ -45,9 +47,11 @@ export function ensureLegacySourceWorkgroups(db) {
         workgroup = {
           id: workgroupId, branchId, kind, sourceType: kind, sourceId: source.id,
           name: (kind === 'activity' ? source.title : source.name) || source.id,
+          // 状态不得原样复制旧值：专班状态经 canonical 映射（历史别名 in_progress→active；
+          // 未知值→draft 只读待核），活动工作组只由 archived 标记派生 active/archived。
           status: kind === 'activity'
-            ? (source.archived ? 'archived' : 'active')
-            : (source.deletedAt ? 'archived' : (source.status || 'active')),
+            ? (source.archived ? WorkgroupStatus.ARCHIVED : WorkgroupStatus.ACTIVE)
+            : (source.deletedAt ? WorkgroupStatus.ARCHIVED : workgroupStatusForTaskforce(source.status)),
           ...(kind === 'activity' ? {
             organizingScope: ['party-group', 'cross-group'].includes(source.organizingScope) ? source.organizingScope : null,
             hostGroupId: source.hostGroupId || null,

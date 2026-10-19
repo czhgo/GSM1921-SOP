@@ -18,6 +18,9 @@ import { POLICY_DEFAULTS, POLICY_OVERRIDE_SECTIONS } from '../../../docs/src/cor
 // P2c（2026-09-03）：授权语义角色集单一源 = docs/src/core/domain/constants.js（勿手写）
 import { BRANCH_COMMISSION_ROLES, hashSubmitterToken, isActivityEnded } from '../../../docs/src/core/domain/constants.js';
 import { projectMemberListRow } from '../../../docs/src/core/domain/profile-access.js';
+import {
+  TaskforceStatus, TASKFORCE_TERMINAL_STATUSES, isTaskforceStatus, workgroupStatusForTaskforce,
+} from '../../../docs/src/core/domain/domain.js';
 import { validateAgendaStructure } from '../../../docs/src/services/activity/agenda-relations.js';
 import { deriveArchivePeriod } from '../../../docs/src/services/governance/periodic-archive.js';
 // R4-B04：思想汇报读口与前端同一判据（本人或支委层），单一源 = services/governance/thought-report.js
@@ -31,7 +34,7 @@ import { RESOURCE_WRITE_GATE, COMMISSIONER_WRITE_RESOURCES, _assertResourceWrite
 import { _activityApprovalGateDeny, _snapshotActivityApprovalGateDeny, _activityCreateGatePatch } from './approval-gates.js';
 import { _snapshotBaseVersions, _snapshotWrites, _snapshotMissingVersions, _allCollectionVersions, _snapshotVersionConflicts, _normalizeSnapshotAliases } from './snapshot-versions.js';
 import { registerExtraSemanticRoutes } from './semantic-routes.js';
-import { activityCreationDeny, activityOperationAllowed, approvedTaskforceDissolutionWorkgroups, attendanceWriteDeny, createActivityWorkgroup, createTaskforceWorkgroup, snapshotScopeDeny } from './workgroup-routes.js';
+import { activityCreationDeny, activityOperationAllowed, approvedTaskforceDissolutionWorkgroups, attendanceWriteDeny, createActivityWorkgroup, createTaskforceWorkgroup, snapshotScopeDeny, taskforceStatusWorkgroups } from './workgroup-routes.js';
 import { actorBranchId, aggregateWriteDeny, branchForNewResource, branchSelectionError, mergeAggregateBody, mergeScopedSnapshotWrites, recordBranchWriteDeny, requireAssignedBranch, resourceRowsForActor, resourceBranchId, scopedSnapshotWriteDeny } from './branch-scope.js';
 import { normalizeSignupCreate, normalizeSignupPatch, signupCreateDeny, signupSnapshotDeny } from './signup-write-guard.js';
 
@@ -271,7 +274,8 @@ export function createResourcesRouter(db) {
           const canCreateTaskforce = req.actor.role === 'org-commissioner' || req.actor.role === 'secretary' || req.actor.role === 'deputy-secretary';
           if (!canCreateTaskforce) return res.status(403).json({ error: '无权限：独立工作组由组织委员扎口，支书/副书记统筹' });
           if (typeof row.task !== 'string' || !row.task.trim()) return res.status(400).json({ error: '工作组须登记一项明确任务' });
-          if (['completed', 'archived', 'dissolved'].includes(row.status)) return res.status(400).json({ error: '不能直接创建已结束工作组；请从在办状态按任务与产出收尾' });
+          if (row.status !== undefined && !isTaskforceStatus(row.status)) return res.status(400).json({ error: '专班状态无效' });
+          if (TASKFORCE_TERMINAL_STATUSES.includes(row.status)) return res.status(400).json({ error: '不能直接创建已结束工作组；请从在办状态按任务与产出收尾' });
           if (row.branchId && row.branchId !== (req.actor.branchId || 'br-b1')) return res.status(403).json({ error: '无权限：不能为其他支部创建工作组' });
           if (row.activityId) return res.status(400).json({ error: '工作组围绕自身任务存在；活动关联请记录在具体任务或产出上' });
           if (!_assertWorkflowBlockEnabled(db, req.actor, 'taskforce')) return res.status(403).json({ error: workflowBlockDisabledMsg('taskforce') });
@@ -312,10 +316,13 @@ export function createResourcesRouter(db) {
           } : null),
           ...(name === 'taskforces' ? {
             branchId: req.actor.branchId || 'br-b1',
+            status: row.status || TaskforceStatus.RECRUITING,
             createdBy: req.actor.id,
             workgroupId: `wg-taskforce-${id}`,
           } : null),
           ...(name === 'attendances' ? { recordedBy: req.actor.id, branchId: req.actor.branchId || 'br-b1' } : null),
+          // 考察记录人由会话决定（R4-D05：普通成员只可写自己组织的场次，不得代署记录人）
+          ...(name === 'inspections' ? { recordedBy: req.actor.id } : null),
           ...(name === 'periodicArchives' ? { branchId: req.actor.branchId || 'br-b1' } : null),
           id,
         };
@@ -362,6 +369,12 @@ export function createResourcesRouter(db) {
       const existing = db.prepare(`SELECT data FROM ${table} WHERE id = ?`).get(id);
       if (!existing) return res.status(404).json({ error: 'not found' });
       const previousRecord = JSON.parse(existing.data);
+      // 考察记录人不可代署/篡改（R4-D05：记录人=上传操作人）
+      if (name === 'inspections' && req.body
+        && Object.prototype.hasOwnProperty.call(req.body, 'recordedBy')
+        && req.body.recordedBy !== previousRecord.recordedBy) {
+        return res.status(403).json({ error: '无权限：不能伪造考察记录人' });
+      }
       if (name === 'signups') {
         const transition = normalizeSignupPatch(db, req.actor, previousRecord, req.body || {});
         if (transition.error) return res.status(403).json({ error: transition.error });
@@ -433,13 +446,16 @@ export function createResourcesRouter(db) {
       if (name === 'taskforces') {
         const current = JSON.parse(existing.data);
         if (!_assertWorkflowBlockEnabled(db, req.actor, 'taskforce')
-          && ['archived', 'dissolved', 'completed'].includes(current.status || '')) {
+          && TASKFORCE_TERMINAL_STATUSES.includes(current.status)) {
           return res.status(409).json({ error: workflowBlockDisabledMsg('taskforce') });
         }
         if (req.actor.role !== 'org-commissioner' && req.actor.role !== 'secretary' && req.actor.role !== 'deputy-secretary') {
           return res.status(403).json({ error: '无权限：当前角色不能管理该工作组' });
         }
-        if (req.body?.status && req.body.status !== current.status && ['completed', 'archived', 'dissolved'].includes(req.body.status)) {
+        if (req.body?.status !== undefined && !isTaskforceStatus(req.body.status)) {
+          return res.status(400).json({ error: '专班状态无效' });
+        }
+        if (req.body?.status && req.body.status !== current.status && TASKFORCE_TERMINAL_STATUSES.includes(req.body.status)) {
           return res.status(409).json({ error: '工作组结束状态不能通过通用更新变更；请走工作组收尾接口或已排入的表决结论' });
         }
         if ((current.branchId || 'br-b1') !== (req.actor.branchId || 'br-b1') || (req.body && req.body.branchId && req.body.branchId !== current.branchId)) {
@@ -471,7 +487,8 @@ export function createResourcesRouter(db) {
         if (workgroup) {
           const currentGroup = JSON.parse(workgroup.data);
           relatedWorkgroupUpdate = {
-            ...currentGroup, name: merged.name || currentGroup.name, status: merged.status || currentGroup.status,
+            ...currentGroup, name: merged.name || currentGroup.name,
+            status: workgroupStatusForTaskforce(merged.status || currentGroup.status),
             updatedBy: req.actor.id, updatedAt: new Date().toISOString(),
           };
         }
@@ -734,7 +751,10 @@ export function createResourcesRouter(db) {
     if (baseVersions) { const conflicts = _snapshotVersionConflicts(db, payload, baseVersions); if (conflicts.length) return res.status(409).json({ error: '数据已被他人更新，本次写入未生效（版本冲突，请刷新后重试）', conflicts }); }
     const writes = snapshotWrites;
     _freezeArchiveSnapshots(db, writes, req.actor);
-    const workgroupUpdates = approvedTaskforceDissolutionWorkgroups(db, validationPayload, req.actor);
+    const workgroupUpdates = [
+      ...taskforceStatusWorkgroups(db, validationPayload, req.actor),
+      ...approvedTaskforceDissolutionWorkgroups(db, validationPayload, req.actor),
+    ];
     const nextVersions = replaceCollectionsAtomic(db, writes, { workgroups: workgroupUpdates });
     return baseVersions ? res.json({ versions: nextVersions }) : res.status(204).end();
   });

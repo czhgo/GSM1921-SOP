@@ -1,16 +1,16 @@
 // Party committee branch directory: create and select; maintenance is in branch-config.html.
 
-import { mockDB } from '../../../core/domain/domain.js?v=20261018t';
+import { mockDB } from '../../../core/domain/domain.js?v=20261018u';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/member/person.js 获取（原直连 mock PEOPLE）；
 // 每次渲染现读（members 覆盖层即时吃到），不缓存在模块顶层
-import { PersonStore } from '../../../services/member/person.js?v=20261018t';
-import { createBranch } from '../../../services/branch/branch.js?v=20261018t';
-import { getRosterStats } from '../../../services/member/roster.js?v=20261018t';
-import { showToast, escHtml as esc, getBasePath } from '../../../core/base/utils.js?v=20261018t';
-import { bindBranchReadOnlyButtons } from '../../../services/core/branch-readonly-nav.js?v=20261018t';
-import { renderSectionHeader } from '../../../components/shell/page-frame.js?v=20261018t';
-import { ROLE_LABELS } from '../../../core/domain/constants.js?v=20261018t';
-import { getApiBaseUrl, getAuthToken, getDataSource } from '../../../data/data-adapter.js?v=20261018t';
+import { PersonStore } from '../../../services/member/person.js?v=20261018u';
+import { createBranch } from '../../../services/branch/branch.js?v=20261018u';
+import { getRosterStats } from '../../../services/member/roster.js?v=20261018u';
+import { showToast, escHtml as esc, getBasePath } from '../../../core/base/utils.js?v=20261018u';
+import { bindBranchReadOnlyButtons } from '../../../services/core/branch-readonly-nav.js?v=20261018u';
+import { renderSectionHeader } from '../../../components/shell/page-frame.js?v=20261018u';
+import { ROLE_LABELS } from '../../../core/domain/constants.js?v=20261018u';
+import { getApiBaseUrl, getAuthToken, getDataSource } from '../../../data/data-adapter.js?v=20261018u';
 
 const rosterLoadAttempts = new Set();
 const rosterLoadPromises = new Map();

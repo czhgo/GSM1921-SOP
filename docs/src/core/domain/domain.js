@@ -48,6 +48,20 @@ export const SEED_DATA_VERSION = '2026-10-07';
  */
 
 /**
+ * @typedef {Object} TaskForceRecord
+ * @property {string} id
+ * @property {string} name
+ * @property {string} task - 专班主任务（同时镜像为工作组 isPurpose 任务）
+ * @property {'draft'|'pending_review'|'recruiting'|'active'|'completed'|'archived'|'dissolved'} status
+ *   - 状态词为 `TaskforceStatus`，判据/流转见同文件 `TASKFORCE_STATUSES` 与 `TASKFORCE_DIRECT_TRANSITIONS`
+ * @property {string} branchId
+ * @property {string} [workgroupId] - 对应工作组；缺省 `wg-taskforce-{id}`
+ * @property {string} [createdAt]
+ * @property {string} [dissolvedAt]
+ * @property {'approved'|'rejected'} [approvalStatus] - 发起报送支委会的表决结果（`draft` 可据其展示「未通过·草稿」）
+ */
+
+/**
  * @typedef {Object} WorkGroupRecord
  * @property {string} id
  * @property {string} branchId
@@ -55,12 +69,135 @@ export const SEED_DATA_VERSION = '2026-10-07';
  * @property {'activity'|'taskforce'} sourceType
  * @property {string} sourceId
  * @property {string} name
- * @property {'active'|'recruiting'|'archived'|'dissolved'} status
+ * @property {'draft'|'pending_review'|'recruiting'|'active'|'completed'|'archived'|'dissolved'} status
+ *   - 状态词为 `WorkgroupStatus`；活动工作组只会出现 `active/archived`，专班工作组随专班生命周期
  * @property {'party-group'|'cross-group'} [organizingScope] - 活动工作组的承办范围
  * @property {string|null} [hostGroupId] - 活动工作组的承办党小组；跨组时为 null
  * @property {string} createdBy
  * @property {string} createdAt
  */
+
+// ════════════════════════════════════════════════════════════════
+//  专班 / 工作组状态（canonical 单一源）
+//  状态集合由 UI 流程反推（2026-10-20 · Phase 0 R4-D03）：
+//    · 组织委员/只读专班视图按 draft/pending_review/recruiting/active/completed/archived/dissolved 分组；
+//    · 发起报送（submitForCommittee）只认 draft/pending_review，解散只认 active；
+//    · 收尾（含表决解散）只认 completed/archived/dissolved 为终态；
+//    · 工作组写权限只认 recruiting/active（招募期与运行期），draft/pending_review 只读等待。
+//  ⚠ 与「活动 status」无关：活动状态是 `draft|pending-approval|published|ongoing|completed|cancelled`
+//    （见 Activity typedef 与 `constants.js::isActivityEnded`），两套枚举不得互相借值。
+// ════════════════════════════════════════════════════════════════
+export const TaskforceStatus = Object.freeze({
+  DRAFT: 'draft',
+  PENDING_REVIEW: 'pending_review',
+  RECRUITING: 'recruiting',
+  ACTIVE: 'active',
+  COMPLETED: 'completed',
+  ARCHIVED: 'archived',
+  DISSOLVED: 'dissolved',
+});
+
+/** 专班状态全集（写口/守卫的唯一枚举源） */
+export const TASKFORCE_STATUSES = Object.freeze(Object.values(TaskforceStatus));
+
+/** 立项尚未开放：草稿 / 待支委会表决（只读等待，不授予工作组写权限） */
+export const TASKFORCE_PRE_OPEN_STATUSES = Object.freeze([
+  TaskforceStatus.DRAFT,
+  TaskforceStatus.PENDING_REVIEW,
+]);
+
+/** 在办：招募中 / 运行中（工作组可写的两个状态） */
+export const TASKFORCE_ACTIVE_STATUSES = Object.freeze([
+  TaskforceStatus.RECRUITING,
+  TaskforceStatus.ACTIVE,
+]);
+
+/** 终态：已完结 / 已归档 / 已解散（历史只读） */
+export const TASKFORCE_TERMINAL_STATUSES = Object.freeze([
+  TaskforceStatus.COMPLETED,
+  TaskforceStatus.ARCHIVED,
+  TaskforceStatus.DISSOLVED,
+]);
+
+/**
+ * 专班直接状态流转（不含支委会表决与收尾语义写口）：
+ *   · recruiting → active：招募结束、进入运行；
+ *   · active → dissolved / pending_review → recruiting/draft 等必须走
+ *     `TaskForceRecordStore.dissolve / submitForCommittee / applyCommitteeDecision`。
+ */
+export const TASKFORCE_DIRECT_TRANSITIONS = Object.freeze({
+  [TaskforceStatus.DRAFT]: Object.freeze([]),
+  [TaskforceStatus.PENDING_REVIEW]: Object.freeze([]),
+  [TaskforceStatus.RECRUITING]: Object.freeze([TaskforceStatus.ACTIVE]),
+  [TaskforceStatus.ACTIVE]: Object.freeze([]),
+  [TaskforceStatus.COMPLETED]: Object.freeze([]),
+  [TaskforceStatus.ARCHIVED]: Object.freeze([]),
+  [TaskforceStatus.DISSOLVED]: Object.freeze([]),
+});
+
+export const WorkgroupStatus = Object.freeze({ ...TaskforceStatus });
+
+/** 工作组状态全集；活动工作组仅使用 active/archived，专班工作组随专班生命周期 */
+export const WORKGROUP_STATUSES = Object.freeze(Object.values(WorkgroupStatus));
+
+/** 工作组写权限判据：只有招募中 / 运行中可写成员、授权、任务与产出 */
+export const WORKGROUP_WRITABLE_STATUSES = Object.freeze([
+  WorkgroupStatus.RECRUITING,
+  WorkgroupStatus.ACTIVE,
+]);
+
+/** 工作组终态：历史只读 */
+export const WORKGROUP_CLOSED_STATUSES = Object.freeze([
+  WorkgroupStatus.COMPLETED,
+  WorkgroupStatus.ARCHIVED,
+  WorkgroupStatus.DISSOLVED,
+]);
+
+/** 已废弃/历史别名 → canonical（只做读侧映射，不写入新记录） */
+const TASKFORCE_STATUS_ALIASES = Object.freeze({
+  in_progress: TaskforceStatus.ACTIVE,
+});
+
+export function isTaskforceStatus(status) {
+  return TASKFORCE_STATUSES.includes(status);
+}
+
+export function isWorkgroupStatus(status) {
+  return WORKGROUP_STATUSES.includes(status);
+}
+
+export function isTaskforceTerminalStatus(status) {
+  return TASKFORCE_TERMINAL_STATUSES.includes(status);
+}
+
+export function isTaskforceActiveStatus(status) {
+  return TASKFORCE_ACTIVE_STATUSES.includes(status);
+}
+
+export function isWorkgroupWritableStatus(status) {
+  return WORKGROUP_WRITABLE_STATUSES.includes(status);
+}
+
+export function isWorkgroupClosedStatus(status) {
+  return WORKGROUP_CLOSED_STATUSES.includes(status);
+}
+
+/** 规范化专班状态：历史别名按映射处理，未知值落回 fallback（默认 recruiting） */
+export function normalizeTaskforceStatus(status, fallback = TaskforceStatus.RECRUITING) {
+  const alias = TASKFORCE_STATUS_ALIASES[status];
+  if (alias) return alias;
+  return isTaskforceStatus(status) ? status : fallback;
+}
+
+/**
+ * 专班状态 → 工作组状态：canonical 原样映射；历史别名 `in_progress` → active；
+ * 未知状态不得原样复制，一律落为 `draft`（只读待核），由迁移标记人工复核。
+ */
+export function workgroupStatusForTaskforce(status) {
+  const alias = TASKFORCE_STATUS_ALIASES[status];
+  if (alias) return alias;
+  return isWorkgroupStatus(status) ? status : WorkgroupStatus.DRAFT;
+}
 
 /**
  * @typedef {Object} WorkGroupMemberRecord

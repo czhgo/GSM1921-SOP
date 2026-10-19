@@ -1,4 +1,5 @@
 import { BRANCH_COMMISSION_ROLES, SECRETARY_AND_DEPUTY_ROLES, usesFormalMeetingRoster } from '../../../docs/src/core/domain/constants.js';
+import { TASKFORCE_ACTIVE_STATUSES } from '../../../docs/src/core/domain/domain.js';
 import { today as todayLocal } from '../../services/reporting.js';
 import { actorBranchId, resourceBranchId } from './branch-scope.js';
 import { hasWorkgroupPermission } from './workgroup-routes.js';
@@ -48,7 +49,7 @@ function sourceOpen(source, signup) {
     return !!activity.date && activity.date >= today;
   }
   const taskforce = source.row;
-  return ['recruiting', 'active'].includes(taskforce.status)
+  return TASKFORCE_ACTIVE_STATUSES.includes(taskforce.status)
     && (!taskforce.deadline || taskforce.deadline >= today);
 }
 

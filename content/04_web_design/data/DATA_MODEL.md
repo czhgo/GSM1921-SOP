@@ -3,7 +3,7 @@ title: "数据模型与数据流"
 type: design
 role: "[工程师]+[AI]"
 version: "1.1"
-last_updated: 2026-10-18
+last_updated: 2026-10-20
 status: active
 related_files: [content/02_institution/SYSTEM_ROLE_PERMISSION.md, content/02_institution/COMMISSIONER_DUTY_FRAMEWORK.md, content/02_institution/sop/纪检委员工作流程指南.md, content/03_doc_system/ARCHITECTURE.md]
 ---
@@ -241,7 +241,7 @@ ActivityRecord (主记录)
 | id | string | 是 | `generateId('tf')` | 唯一标识符，前缀 `tf_` |
 | name | string | 是 | -- | 专班名称 |
 | type | string | 是 | -- | 专班类型 |
-| status | `'recruiting'\|'active'\|'archived'\|'dissolved'` | 是 | `'recruiting'` | 专班状态（状态机见 TaskForceRecordStore：recruiting → active → archived/dissolved） |
+| status | `'draft'\|'pending_review'\|'recruiting'\|'active'\|'completed'\|'archived'\|'dissolved'` | 是 | `'recruiting'` | 专班状态；canonical 单一源 `docs/src/core/domain/domain.js::TaskforceStatus / TASKFORCE_STATUSES`。直接流转仅 `recruiting → active`；发起/解散经 `submitForCommittee` / `applyCommitteeDecision`，终态为 `completed/archived/dissolved`。⚠ 与活动 status 是两套枚举，不共用 `published/ongoing/cancelled/pending-approval` |
 | branchId | string | 是 | -- | 所属支部；服务端逐次校验关联记录的支部归属 |
 | activityId | string\|null | 否 | `null` | 旧数据兼容字段；新专班围绕自身任务，不以此字段直接挂靠活动。活动上下文写入具体任务或产出 |
 | workgroupId | string | 是 | `wg-taskforce-{id}` | 对应专班工作组 ID |
@@ -257,7 +257,7 @@ ActivityRecord (主记录)
 
 | 记录 | 核心字段 | 约束 |
 |---|---|---|
-| `WorkGroup` | `id, branchId, kind, sourceType, sourceId, name, status, organizingScope?, hostGroupId?` | `kind` 为 `activity` 或 `taskforce`；活动与专班分别保留自己的业务记录，工作组记录是二者之上的协作结构、不是独立业务对象。**考察记录以工作组为父对象（活动工作组/专班工作组）；`sourceType` 只是工作组类型的投影，不是独立父对象** |
+| `WorkGroup` | `id, branchId, kind, sourceType, sourceId, name, status, organizingScope?, hostGroupId?` | `kind` 为 `activity` 或 `taskforce`；活动与专班分别保留自己的业务记录，工作组记录是二者之上的协作结构、不是独立业务对象。**考察记录以工作组为父对象（活动工作组/专班工作组）；`sourceType` 只是工作组类型的投影，不是独立父对象**。`status` 单一源 `domain.js::WorkgroupStatus / WORKGROUP_STATUSES`：活动工作组仅 `active/archived`，专班工作组随专班生命周期；写权限仅 `recruiting/active`，`draft/pending_review` 只读等待，`completed/archived/dissolved` 历史只读 |
 | `WorkGroupMember` | `id, branchId, workgroupId, personId, role, status, createdBy, createdAt` | 活动与专班工作组的 `role` 均为 `organizer/deep`；成员须属于同一支部。活动一般参与者单独记录为报名，不属于工作组成员；专班可有组织者/深度参与者入组申请，但不设一般参与报名或考勤。登记成员不自动授予系统权限 |
 | `WorkGroupGrant` | `id, branchId, workgroupId, personId, templateKey?, permissionKeys[], status, grantedBy, grantedAt, revokedBy?, revokedAt?` | 独立授权留痕；可套用建议模板后调整；服务端按支部、活动与工作组范围校验每项操作 |
 | `WorkGroupTask` | `id, branchId, workgroupId, title, status, activityId?, capabilityPackageId?, isPurpose?` | `status` 为 `open/in_progress/completed/cancelled`；主任务 `isPurpose` 唯一。每个工作组至少有一项经确认的任务才可收尾。关联活动/能力包须同支部 |
@@ -266,6 +266,22 @@ ActivityRecord (主记录)
 **工作组创建、权限与生命周期**：活动工作组随活动创建；专班工作组围绕自身任务创建，专班可由能力包承载，也可由一次性任务触发。活动工作组不是独立业务对象，活动记录仍是活动业务的唯一载体；活动承办范围 (`party-group/cross-group`)、参加资格和系统授权是不同维度。党小组组长只能创建本组活动；跨组活动由支书/副书记创建。组织者与深度参与者是并列成员角色；具体操作权限经独立授权接口授予并留痕。活动、成员、任务和产出等跨记录写入都须由服务端校验支部归属。
 
 工作组收尾以全部登记任务和产出闭合为准；考察依托工作组存在，是否要求提交按事项规则，不因建组自动触发。纪检考察与支委会表决只在制度、议程或该事项明确要求时触发。能力包停用后禁止新建事项，在办事项可以完成，历史只读保留。党委负责目录/模板，支部自主采纳模板版本。
+
+#### 2.3.2 专班 / 工作组状态 canonical 集合（2026-10-20 · R4-D03）
+
+> 状态集合由 UI 流程反推，不再以旧数据已有值作为保留理由。单一源：`docs/src/core/domain/domain.js`
+> （`TaskforceStatus` / `TASKFORCE_STATUSES`、`WorkgroupStatus` / `WORKGROUP_STATUSES`）。
+
+| 分类 | 状态 | UI / 授权判据 |
+|---|---|---|
+| 未开放（只读） | `draft`、`pending_review` | 草稿 / 已报送支委会待表决；页面可查看、可删除或改后重报，工作组不授予写权限 |
+| 在办（可写） | `recruiting`、`active` | 招募中 / 运行中；工作组成员、授权、任务与产出写口仅在此两态放行 |
+| 终态（历史只读） | `completed`、`archived`、`dissolved` | 已完结 / 已归档 / 已解散；收尾与表决解散后的历史保留态 |
+
+- **状态机**：`draft|pending_review --支委会发起表决通过--> recruiting`（未通过 → `draft`）；`recruiting --招募结束--> active`；`active --收尾/表决通过--> dissolved`（表决未通过 → `active`）。`completed/archived/dissolved` 不再回退。
+- **授权单一源**：`docs/src/services/core/auth.js::canDo` 与服务端 `hasWorkgroupPermission` 只认 `WORKGROUP_WRITABLE_STATUSES`；成员/授权/任务/产出写口对 `draft/pending_review` 返回 409，对终态返回「历史只读」。
+- **迁移映射**：历史别名 `in_progress` → `active`；未知状态不得原样复制，一律映射为 `draft` 并标记 `migrationState='pending-review'` 待人工核对。
+- **与活动状态分离**：活动使用 `draft|pending-approval|published|ongoing|completed|cancelled`（页面展示态另由 `deriveActivityLifecycleStatus` 派生）。不得把活动的 `published/ongoing/cancelled/pending-approval` 写入专班或工作组 status。
 
 **能力包目录**：`docs/src/core/domain/capability-packages.js` 是当前静态目录入口。能力包记录所属页面、工作流块、产出块、制度依据状态、适用范围、配置权、依赖和版本。`required/optional/local/pending` 是适用范围属性；制度依据尚未核实时保留 `pending`。党委维护目录与模板，支部自主选择并采纳模板版本。目录编辑和模板发布的专用管理界面尚未建立。T1–T3 是术语授权层级，不作为功能等级。
 

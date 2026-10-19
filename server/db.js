@@ -1,5 +1,6 @@
 // server/db.js — SQLite 初始化与建表
 import Database from 'better-sqlite3';
+import { WorkgroupStatus, workgroupStatusForTaskforce } from '../docs/src/core/domain/domain.js';
 
 // 资源表：每张表 id 主键 + data JSON（保持与前端数据结构完全一致，嵌套字段零损失）
 // T-218：新增 4 张 niche 表（经验沉淀/合规引用/文件空间/图片记录），与前端快照 payload 键名对齐
@@ -269,7 +270,7 @@ export const MIGRATIONS = [
         const hostGroupId = activity.hostGroupId || (branchId && activity.hostGroup ? groupNameByBranch.get(`${branchId}:${activity.hostGroup}`) : null) || null;
         const workgroup = {
           id, branchId, kind: 'activity', sourceType: 'activity', sourceId: row.id,
-          name: activity.title || row.id, status: activity.archived ? 'archived' : 'active',
+          name: activity.title || row.id, status: activity.archived ? WorkgroupStatus.ARCHIVED : WorkgroupStatus.ACTIVE,
           organizingScope: ['party-group', 'cross-group'].includes(activity.organizingScope) ? activity.organizingScope : null,
           hostGroupId,
           migrationState: activity.organizingScope ? 'ready' : 'pending-review',
@@ -296,7 +297,8 @@ export const MIGRATIONS = [
         const branchId = taskforce.branchId || (new Set(candidates).size === 1 ? candidates[0] : null);
         const workgroup = {
           id, branchId, kind: 'taskforce', sourceType: 'taskforce', sourceId: row.id,
-          name: taskforce.name || row.id, status: taskforce.deletedAt ? 'archived' : (taskforce.status || 'active'),
+          name: taskforce.name || row.id,
+          status: taskforce.deletedAt ? WorkgroupStatus.ARCHIVED : workgroupStatusForTaskforce(taskforce.status),
           migrationState: 'pending-review', createdAt: taskforce.createdAt || null,
         };
         write('workgroups', workgroup);

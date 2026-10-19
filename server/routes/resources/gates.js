@@ -104,6 +104,8 @@ export function _assertResourceWrite(actor, name, method, body, targetId, db) {
   if (need === 'secretary') return !!actor && SECRETARY_AND_DEPUTY_ROLE_SET.has(actor.role);
   // 成员流动登记：组织委员 + 支书/副支书——单一源 constants.js::MEMBER_FLOW_ROLES（勿手写）；支委身份配置（users 的 patch 门）见文件末 _branchCommissionerGateDeny
   if (need === 'member-flow') return !!actor && MEMBER_FLOW_ROLE_SET.has(actor.role);
+  // 考察写门（Phase 0 · R4-D05）：支委层/党委，或本场活动（专班）组织者；判据见文件末 `_inspectionWriteAllowed`
+  if (need === 'inspection') return _inspectionWriteAllowed(db, actor, method, body, targetId);
   return need === 'branch-commissioner' ? _branchCommissionerGateDeny(db, actor, targetId, body) === null : true;
 }
 
@@ -118,7 +120,7 @@ export function _writeDenyMsg(name) {
   if (name === 'memberFlows') {
     return '无权限：成员流入/流出登记仅限组织委员或支书/副支书';
   }
-  return '无权限：该写操作仅限党委组织员/党务老师或本支部支委层';
+  return name === 'inspections' ? '无权限：考察记录仅限支委层/党委，或本场活动（专班）组织者写入' : '无权限：该写操作仅限党委组织员/党务老师或本支部支委层';
 }
 
 // ── 活动写门（dogfood 权限专项 2026-09-13 实证缺口）──────────────────────────
@@ -442,4 +444,78 @@ export function _snapshotResourceWriteGateDeny(db, writes, actor) {
     }
   }
   return null;
+}
+
+// ════════════════════════════════════════════════════════════════
+//  考察写门（Phase 0 · R4-D05，2026-10-20）
+// ════════════════════════════════════════════════════════════════
+// 口径（支书任务单）：
+//   · 支委层（secretary/deputy-secretary/org/prop/disc）与党委（party-staff）：可写；
+//   · 普通成员：仅当**本场活动（专班）组织者**（按活动 `assignments` / 专班 `members` 复算）——
+//     新增/修改限于自己组织的场次；删除同样限本场组织者（防越权清库）。
+// 复用的既有语义：
+//   · 角色集单一源 = `constants.js::BRANCH_COMMISSION_ROLES` / `PARTY_STAFF_ROLE`（勿另写角色表）；
+//   · 活动组织者判据复用本文件 `_isActivityOrganizer`（顶层 organizer + assignments.organizer + 支部等值），
+//     仅额外补 `assignments.role='deep'`（与前端 `canUploadInspection` 同口径，防两端一个放一个拦）；
+//   · 专班按 `members` role=organizer（`sourceName` 或 id 皆可识别，近似沿用前端 `isTaskforceOrganizer`）。
+// 读取面不动：仍走 `index.js::_canReadInspectionRow` 的 visibility 投影（不扩大）。
+// ⚠ 本段置尾：`RESOURCE_WRITE_GATE.inspections` 以运行时挂载登记（不插入上方对象字面量）。
+// ════════════════════════════════════════════════════════════════
+
+RESOURCE_WRITE_GATE.inspections = { post: 'inspection', patch: 'inspection', delete: 'inspection' };
+
+/** 本场活动组织者（含 deep 协作者；支部须与 actor 一致） */
+function _isInspectionActivityOrganizer(db, actor, activityId) {
+  if (_isActivityOrganizer(db, actor, activityId)) return true;
+  if (!db || !actor?.id || !activityId) return false;
+  const row = db.prepare('SELECT data FROM activities WHERE id = ?').get(String(activityId));
+  if (!row) return false;
+  let activity;
+  try { activity = JSON.parse(row.data); } catch { return false; }
+  const own = actorBranchId(actor);
+  if (own && (activity.branchId || 'br-b1') !== own) return false;
+  return Array.isArray(activity.assignments)
+    && activity.assignments.some((item) => item?.personId === actor.id && item.role === 'deep');
+}
+
+/** 专班组织者（sourceName / id 近似判据，与前端 `isTaskforceOrganizer` 同口径） */
+function _isInspectionTaskforceOrganizer(db, actorId, sourceRef) {
+  if (!db || !actorId || !sourceRef) return false;
+  return listTable(db, 'taskforces').some((row) => (row.id === sourceRef || row.name === sourceRef)
+    && Array.isArray(row.members)
+    && row.members.some((member) => member?.personId === actorId && member.role === 'organizer'));
+}
+
+/** 该考察来源是否由 actor 组织 */
+function _isInspectionSourceOrganizer(db, actor, record) {
+  if (!record) return false;
+  if (record.sourceType === 'taskforce') {
+    return _isInspectionTaskforceOrganizer(db, actor?.id, record.sourceName || record.taskforceId);
+  }
+  return _isInspectionActivityOrganizer(db, actor, record.activityId);
+}
+
+/**
+ * 考察写门判据（`_assertResourceWrite` 的 `inspection` 分派）。
+ * @returns {boolean} true = 放行
+ */
+function _inspectionWriteAllowed(db, actor, method, body, targetId) {
+  if (!actor || !actor.id) return false;
+  if (PARTY_STAFF_ROLE.has(actor.role) || BRANCH_COMMITTEE_ROLES.has(actor.role)) return true;
+
+  if (method === 'post') return _isInspectionSourceOrganizer(db, actor, body);
+
+  if (method !== 'patch' && method !== 'delete') return false;
+  if (!targetId) return false;
+  const row = db.prepare('SELECT data FROM inspections WHERE id = ?').get(String(targetId));
+  if (!row) return false;
+  let prev;
+  try { prev = JSON.parse(row.data); } catch { return false; }
+  if (!_isInspectionSourceOrganizer(db, actor, prev)) return false;
+  // 修改来源时，新来源也须是本人组织的场次（防借 PATCH 把记录挪到别人场次）
+  if (method === 'patch' && body && ['sourceType', 'activityId', 'sourceName', 'taskforceId']
+    .some((key) => Object.prototype.hasOwnProperty.call(body, key))) {
+    return _isInspectionSourceOrganizer(db, actor, { ...prev, ...body });
+  }
+  return true;
 }

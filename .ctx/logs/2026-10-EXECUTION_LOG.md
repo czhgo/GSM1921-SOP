@@ -2871,3 +2871,43 @@ $body
 - 转后续：R4-D02 活动创建事务 / D03 状态机 / D04 考察父键 / D05 考察写门；R4-F06/B09 宽表卡式化；R4-B07 mock 支部过滤。
 - 未改数据模型 / 表结构；未重写 68 页签；未恢复 `.btn-ghost` 为动作按钮。
 - 临时脚本与 worktree 已删除；证据落 `.ctx/evidence/2026-10-19/`。
+
+## 批次 488（2026-10-19）：信息架构批判性专项 ＋ Phase 0 前置正确性 ＋ H21.3
+
+### 一、判据
+
+- 支书指出：入口太多、界面太多，没有各尽其责又相互配合；tab/卡片是否需要、链接是否指向真正该去的地方；要求审查更有批判性。
+- 支书裁定：Phase 0 先做 D05 考察写门、D02 活动创建事务、D03 状态按 UI 反推、mock 多支部过滤；D04 单独迁移 spec；宽表等 IA 裁定。
+- 数据适配功能：DB/枚举/mock 以页面功能与权限判据为准，旧数据不构成保留理由；mock 可删改。
+- sample-diff 五样本全部按建议通过；frontier 裁定 tab 五项全做、链接建新契约、交接四项优先、卡片低风险六项。
+
+### 二、Phase 0 动作
+
+- **D05 考察写门**：前端 `canUploadInspection` deny-by-default；确认/删除同口径；服务端 `RESOURCE_WRITE_GATE.inspections` 补 create/patch/delete 门；`recordedBy` 强制会话人、禁止改写。新增 `inspection-write-gate` 4/4。
+- **D02 活动创建事务**：mock `createActivity` 改走 `MockAdapter.activities.create`，活动 + 工作组 + 成员同一写入；新增 `activity-creation-transaction` 3/3（含幂等）。
+- **D03 状态反推**：建立 `TaskforceStatus` / `WorkgroupStatus` 七态 canonical 集合；三分类（未开放只读 / 在办可写 / 终态只读）；`in_progress→active`、未知→`draft`；授权/迁移/服务端写口全引用单一源；新增 `state-enum-guard` 6/6。
+- **mock 多支部过滤**：`list({branchId})` 覆盖 users/activities/notices/attendances/todos/assignments；不传保持全量；新增 `mock-multi-branch` 3/3。
+- **D04**：另开 `.trae/specs/migrate-inspection-workgroup-key/`（只落盘，不实施）。
+
+### 三、IA 专项动作
+
+- **矩阵**：新增 `server/scripts/ia-inventory.mjs`，生成 `.ctx/IA_INVENTORY.md`：7 台 / 67 tab / 100 卡片 / 124 链接 / 28 深链；两次运行 SHA256 一致。
+- **六路审查**：Tab 必要性（A）、卡片顺序（B）、链接真值（C）、跨角色交接（D）、最小三成本（E）、数据/路由真值（F）；共 60+ 条发现，落 `.ctx/AUDIT_IA_CRITICAL.md`。
+- **链接真值**：`.ctx/IA_LINK_TRUTH.md` 材料闭环逐角色落点表 + 12 条高风险链接；真机确认组长从材料页点「考勤」→ 被弹回 `leader.html`，tab/对象丢失。
+- **sample-diff 五样本**：C01 角色化考勤链接、A01 纪检 tf-view 删除、B01 今天写入口移出日程卡、D04 auto 不派生待办、F01 改读 navTarget；全部按建议通过。
+- **learned rules**：AP-IA-01..05 落 `content/05_ai_coding/PARALLEL_SKILL_AUDIT.md §11.3` 与 `CLAUDE.md H21.3`。
+- **修复 spec**：`.trae/specs/ia-critical-remediation/`：tab 67→60、链接契约 `resolveMaterialHref` + `focusActivityId` + `[data-act-id]` + `highlightType`、交接 D01/D06/D04/D08、卡片六项。
+
+### 四、读数
+
+- Phase 0：inspection-write-gate 4/4、activity-creation-transaction 3/3、state-enum-guard 6/6、mock-multi-branch 3/3。
+- IA：ia-critical-guard 5/5；doc-consistency 22/22；claude-parallel-audit 7/7；frontmatter-freshness / version-stamp 全绿。
+- 真机：组长 `activity-materials.html?id=act-1` → 考勤链接 `disc.html?tab=attendance` → 最终 `workspace/leader.html`（确认弹回）。
+- 版本戳 `20261018t → 20261018u`。
+
+### 五、边界
+
+- 修复 spec 已落盘但**未实施**：tab 合并、链接契约、交接四项、卡片六项留下一批。
+- D04 workgroupId 迁移只落 spec，未改数据结构。
+- 宽表卡式化未提前做；A08 / B01/B03/B04/B05/B09/B11 / D02/D03/D05/D07/D09/D12 留后续。
+- 未改表结构；未重写 68 页签；临时脚本已删除。
