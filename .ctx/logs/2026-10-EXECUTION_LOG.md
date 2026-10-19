@@ -2635,6 +2635,27 @@ $body
 - `grill-me` 在本机不可用（注册表存在、未安装）；Round 2–4 的 lens 未确认前不写死进 H21。
 - 守卫：`claude-parallel-audit` 7/7；`doc-consistency` / `frontmatter-freshness` / `timestamps-note-guard` 待本批收尾复跑。
 
+## 批次 483（2026-10-19）：Round 1 工作台结构审计与修复 spec
+
+### 一、判据
+
+- 53 条全量 triage；15 条分层深审；三路独立 lens（`web-design-guidelines` / `design-with-taste` / `frontend-design`）；四轮程序先落盘；临时 `.ctx` 完成后退出。
+- 支书四项裁定：U-05 保留 Round 1 修复；U-01 开小调查；P7 表档先归因；修复 spec 纳入 U-23/U-35，U-53 留 Round 4。
+
+### 二、动作
+
+- 三路并行审查，分别写入 `.ctx/audit-round1/lens-a/b/c.md`；主代理合并为 53 条 disposition：9 共识结项、5 共识确认、5 分歧、13 需补证、21 转轮次。
+- 新增 `.ctx/AUDIT_ROUND1_WORKBENCH_STRUCTURE.md`（53 条 triage + 三路汇总 + 共识/分歧/裁定 + 证据门 + diff 记录）。
+- 新增 `.trae/specs/round1-workbench-structure-remediation/{spec,tasks,checklist}.md`：实施项 U-04/U-05/U-09/U-23/U-35；证据门 U-01/U-06/U-10/U-22。
+- 临时上下文退出：两份 68 页签审计稿移入 `.ctx/logs/archive/`；`UNFINISHED_AUDIT_BACKLOG.md` 删除。
+- 四轮表同步到 `CLAUDE.md` H21.2 与 `PARALLEL_SKILL_AUDIT.md` §9。
+
+### 三、边界与读数
+
+- 未改生产代码；未启动 Round 2；U-53 留 Round 4；U-23/U-35 只写 spec，不实施。
+- page-sweep 红灯（P7 表头 12px / 首列 14px、S1、S19）记录为证据门，未改代码、未放宽守卫。
+- 守卫：`claude-parallel-audit` 7/7；`doc-consistency` S1–S21、`frontmatter-freshness`、`timestamps-note-guard`、`link-integrity`、`version-stamp` 合计 62/62。
+
 ## 批次 474（2026-10-18 · 抽样复核修正：未读通知、页脚间距与「考察依托工作组」）
 
 **为什么**：支书用 sample-diff-learning 抽查后指出：同一未读通知在首页与工作台两套样子、侧栏页脚间距不像原样、且「考察依托工作组」这一关键概念没有进入全部权威文件。本轮按抽样逐条复核并修正。

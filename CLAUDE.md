@@ -249,10 +249,12 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/DOC
 
 | 轮次 | 三路 lens | 状态 |
 |---|---|---|
-| Round 1 脏乱繁复审计 | `web-design-guidelines` / `design-with-taste` / `frontend-design` | 协议批准后启动 |
-| Round 2 最小三成本 | 信息 / 操作 / 学习成本三路，skill 待发现 | 待确认 |
-| Round 3 功能与美观 | 功能完整性 / 视觉主张 / 交互手感；前端 skill ≥3 | 待确认 |
-| Round 4 全栈数据结构设计 | 前端呈现 / 服务端 API / 数据模型 | 待确认 |
+| Round 1 脏乱繁复审计 | `web-design-guidelines` / `design-with-taste` / `frontend-design` | 本 spec 批准后启动；停在审计报告 + 修复 spec |
+| Round 2 最小三成本 | `better-layout` / `better-accessibility` / `better-writing` | Round 1 修复批完成后 |
+| Round 3 功能与美观 | `frontend-design` / `design-with-taste` / `uicraft` | Round 2 修复批完成后 |
+| Round 4 全栈数据结构设计 | `fullstack-developer` / `domain-modeling` / `backend-architect` | Round 3 修复批完成后；三个 lens 均可用 |
+
+> 输入 / 输出 / 停线 / 触发条件见 content/05_ai_coding/PARALLEL_SKILL_AUDIT.md §9。
 
 > 详版：`content/05_ai_coding/PARALLEL_SKILL_AUDIT.md`（提示词模板 / 输出 schema / 汇总模板 / 决策记录 / 反模式）。
 

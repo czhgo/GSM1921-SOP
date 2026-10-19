@@ -403,12 +403,12 @@ related_files: [CLAUDE.md, .trae/specs/generalize-parallel-skill-audit/spec.md]
 
 ### 9.1 轮次与 lens
 
-| 轮次 | 审查对象 | 三路 lens | 启动条件 | 状态 |
-|---|---|---|---|---|
-| Round 1 脏乱繁复审计 | 当前页面 + 68 页签审计稿 + `REVIEW_QUEUE` 未闭环项 | `web-design-guidelines` / `design-with-taste` / `frontend-design` | H21 协议批准，未完成清单合并完成 | 协议批准后启动 |
-| Round 2 最小三成本 | 信息成本 / 操作成本 / 学习成本 | 三路 skill 待发现 | Round 1 裁定并落 spec 后 | 待确认 |
-| Round 3 功能与美观 | 功能完整性 / 视觉主张 / 交互手感 | `frontend-design` / `design-with-taste` / `uicraft` 或 `better-ui` | Round 2 裁定并落 spec 后 | 待确认 |
-| Round 4 全栈数据结构设计 | 前端呈现 / 服务端 API / 数据模型 | `fullstack-developer` + 服务端与数据模型 lens 待发现 | Round 3 裁定并落 spec 后 | 待支书确认 |
+| 轮次 | lens | 输入 | 输出 | 停线 | 触发 |
+|---|---|---|---|---|---|
+| Round 1 脏乱繁 | `web-design-guidelines` / `design-with-taste` / `frontend-design` | 53 条清单 + 当前页面 | 53 条 triage + 共识/分歧/裁定 + 修复 spec | 停在 spec | 本 spec 批准 |
+| Round 2 最小三成本 | `better-layout` / `better-accessibility` / `better-writing` | Round 1 归属到 R2 的条目 + 页面 | 信息/操作/学习成本裁定 + 修复 spec | 停在 spec | Round 1 修复批完成后 |
+| Round 3 功能与美观 | `frontend-design` / `design-with-taste` / `uicraft` | Round 1 归属到 R3 的条目 + 页面 | 功能完整性/视觉主张/手感裁定 + 修复 spec | 停在 spec | Round 2 修复批完成后 |
+| Round 4 全栈数据结构 | `fullstack-developer` / `domain-modeling` / `backend-architect` | Round 1 归属到 R4 的条目 + 数据/API | 前端呈现/服务端/数据模型裁定 + 修复 spec | 停在 spec | Round 3 修复批完成后；三个 lens 均可用 |
 
 ### 9.2 启动纪律
 
