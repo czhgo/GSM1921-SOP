@@ -151,3 +151,22 @@ test('U11 DESIGN_SYSTEM 写入标题层级与零值口径', () => {
   assert.match(ds, /H1 只在顶栏出现一次/, '标题规则应写明 H1 唯一');
   assert.match(ds, /0 是事实就显示 0/, '零值规则应写明 0 是事实');
 });
+
+test('U12 卡片边界：跨组进展拆成并列四卡，不套外包卡', () => {
+  const src = read(GROUP);
+  const start = src.indexOf('function _progressSectionHtml');
+  assert.ok(start >= 0, '未找到 _progressSectionHtml');
+  const end = src.indexOf('\n}', start);
+  const body = src.slice(start, end);
+  assert.match(body, /<section class="space-y-4" data-gp-progress>/, '跨组进展应为无卡分区');
+  assert.doesNotMatch(body, /class="card rounded-xl p-4 card--static"/, '跨组进展不得再套外包卡（卡中卡）');
+  const order = ['_groupSwitchHtml', '_memberProgressCardHtml', '_reviewStatusCardHtml', '_activityAttendanceCardHtml'];
+  const positions = order.map((fn) => body.indexOf(fn));
+  assert.ok(positions.every((p) => p >= 0), `四张并列卡缺一：${order.join(' / ')}`);
+  assert.deepEqual([...positions].sort((a, b) => a - b), positions,
+    '阅读顺序应为：选择党小组 → 组员汇报 → 活动复盘 → 活动与考勤');
+
+  const ds = read('content/04_web_design/design-system/DESIGN_SYSTEM.md');
+  assert.match(ds, /#### 卡片边界判据/, 'DESIGN_SYSTEM 应写入卡片边界判据');
+  assert.match(ds, /卡中卡/, '应明文禁止卡中卡');
+});

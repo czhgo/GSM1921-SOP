@@ -74,25 +74,27 @@ function targetTabFor(anchor, page) {
 
 const anchors = deeplinkAnchors();
 const calendarLink = anchors.find((a) => a.text.includes('完整日历'));
-const taskforceLink = anchors.find((a) => a.text.includes('查看全部'));
+const TASKFORCE_LIST = join(ROOT, 'docs', 'src', 'components', 'dashboard', 'taskforce-list.js');
 
-test('D1 首页「完整日历 / 查看全部」都走 data-ws-tab 深链', () => {
+test('D1 首页「完整日历」走 data-ws-tab 深链；工作组「查看全部」由分组组件生成', () => {
   assert.ok(calendarLink, 'index.html 未找到「完整日历 →」');
-  assert.ok(taskforceLink, 'index.html 未找到「查看全部 →」');
   assert.equal(calendarLink.attrs.tab, 'calendar', '「完整日历」默认页签应为 calendar');
-  assert.equal(taskforceLink.attrs.tab, 'taskforce', '「查看全部」默认页签应为 taskforce');
+
+  const src = readFileSync(TASKFORCE_LIST, 'utf8');
+  assert.match(src, /查看全部 →/, '工作组组头应生成「查看全部 →」');
+  assert.match(src, /_viewAllHref\(section\.kind\)/, '查看全部应按「活动 / 专班」两类分组分别落地');
+  assert.match(src, /const ACTIVITY_TAB = \{/, '缺活动工作组页签映射');
+  assert.match(src, /const TASKFORCE_TAB = \{/, '缺专班工作组页签映射');
 });
 
-test('D2 每台解析后的目标页签都命中该台注册 tab id', () => {
-  for (const [name, anchor] of [['完整日历', calendarLink], ['查看全部', taskforceLink]]) {
-    for (const page of Object.keys(PAGE_CAPS)) {
-      const target = targetTabFor(anchor, page);
-      assert.ok(target, `${name} 在 ${page} 台解析出的页签为空`);
-      assert.ok(
-        REGISTERED[page].has(target),
-        `${name} 在 ${page} 台落到不存在的 tab="${target}"；该台注册页签：${[...REGISTERED[page]].join(', ')}`,
-      );
-    }
+test('D2 首页「完整日历」每台解析后的目标页签都命中该台注册 tab id', () => {
+  for (const page of Object.keys(PAGE_CAPS)) {
+    const target = targetTabFor(calendarLink, page);
+    assert.ok(target, `完整日历在 ${page} 台解析出的页签为空`);
+    assert.ok(
+      REGISTERED[page].has(target),
+      `完整日历在 ${page} 台落到不存在的 tab="${target}"；该台注册页签：${[...REGISTERED[page]].join(', ')}`,
+    );
   }
 });
 
@@ -115,36 +117,70 @@ test('D3 「完整日历」落各台真实日历页签', () => {
   );
 });
 
-test('D4 「查看全部」落各台真实工作组页签', () => {
-  assert.equal(targetTabFor(taskforceLink, 'org'), 'taskforce', '组织台应落专班管理（taskforce）');
-  for (const page of ['secretary', 'prop', 'disc', 'leader', 'visitor']) {
-    assert.equal(
-      targetTabFor(taskforceLink, page),
-      'tf-view',
-      `「查看全部」在 ${page} 台应落知情查看/专班动态（tf-view）`,
-    );
+/** 从 taskforce-list.js 读取角色映射（源即单一实现，不在测试里再写第二份） */
+function roleMapOf(name) {
+  const src = readFileSync(TASKFORCE_LIST, 'utf8');
+  const block = src.match(new RegExp(`const ${name} = \\{([\\s\\S]*?)\\};`));
+  assert.ok(block, `taskforce-list.js 缺 ${name}`);
+  const out = {};
+  for (const m of block[1].matchAll(/(?:'([\w-]+)'|(\w+)):\s*'([^']+)'/g)) {
+    out[m[1] || m[2]] = m[3];
   }
-  assert.equal(
-    targetTabFor(taskforceLink, 'party-committee'),
-    'monitor',
-    '党委台无工作组页签，应落到最近的支部动态（monitor）',
-  );
+  return out;
+}
+
+const ROLE_PAGE = roleMapOf('ROLE_PAGE');
+const ACTIVITY_TAB = roleMapOf('ACTIVITY_TAB');
+const TASKFORCE_TAB = roleMapOf('TASKFORCE_TAB');
+const ROLE_TO_PAGE_KEY = {
+  secretary: 'secretary',
+  'deputy-secretary': 'secretary',
+  'org-commissioner': 'org',
+  'prop-commissioner': 'prop',
+  'disc-commissioner': 'disc',
+  leader: 'leader',
+  participant: 'visitor',
+  'party-staff': 'party-committee',
+};
+
+test('D4 工作组「查看全部」按活动 / 专班两类分别落到真实页签', () => {
+  for (const role of Object.keys(ROLE_PAGE)) {
+    const pageKey = ROLE_TO_PAGE_KEY[role];
+    assert.ok(pageKey, `未登记角色 ${role} 的页面键`);
+    const activityTab = ACTIVITY_TAB[role];
+    const taskforceTab = TASKFORCE_TAB[role];
+    assert.ok(activityTab, `${role} 缺活动工作组目标页签`);
+    assert.ok(taskforceTab, `${role} 缺专班工作组目标页签`);
+    assert.ok(REGISTERED[pageKey].has(activityTab),
+      `${role} 活动工作组落到不存在的 tab="${activityTab}"（${pageKey}）`);
+    assert.ok(REGISTERED[pageKey].has(taskforceTab),
+      `${role} 专班工作组落到不存在的 tab="${taskforceTab}"（${pageKey}）`);
+  }
+  // 抽样：成员台活动→activities、支书→calendar；组织台专班→taskforce、其余→tf-view
+  assert.equal(ACTIVITY_TAB.participant, 'activities');
+  assert.equal(ACTIVITY_TAB.secretary, 'calendar');
+  assert.equal(TASKFORCE_TAB['org-commissioner'], 'taskforce');
+  for (const role of ['secretary', 'prop-commissioner', 'disc-commissioner', 'leader', 'participant']) {
+    assert.equal(TASKFORCE_TAB[role], 'tf-view', `${role} 专班工作组应落 tf-view`);
+  }
+  assert.equal(TASKFORCE_TAB['party-staff'], 'monitor', '党委台应落 monitor');
 });
 
 test('D5 不再出现不存在的 tab=activities / tab=taskforce', () => {
   // 默认（未覆盖）值不得是 activities——成员台以外的台没有该 id
   assert.notEqual(calendarLink.attrs.tab, 'activities', '「完整日历」默认值不得写 activities');
-  for (const anchor of [calendarLink, taskforceLink]) {
-    for (const page of Object.keys(PAGE_CAPS)) {
-      const target = targetTabFor(anchor, page);
-      if (page !== 'visitor') {
-        assert.notEqual(target, 'activities', `${page} 台没有 activities 页签，不得落 tab=activities`);
-      }
-      if (page !== 'org') {
-        assert.notEqual(target, 'taskforce', `${page} 台没有 taskforce 页签，不得落 tab=taskforce`);
-      }
+  for (const page of Object.keys(PAGE_CAPS)) {
+    const target = targetTabFor(calendarLink, page);
+    if (page !== 'visitor') {
+      assert.notEqual(target, 'activities', `${page} 台没有 activities 页签，不得落 tab=activities`);
+    }
+    if (page !== 'org') {
+      assert.notEqual(target, 'taskforce', `${page} 台没有 taskforce 页签，不得落 tab=taskforce`);
     }
   }
+  // 分组映射同样不得写不存在的 tab（D4 已逐角色核注册表）
+  assert.notEqual(ACTIVITY_TAB['party-staff'], 'calendar', '党委台无 calendar 页签');
+  assert.notEqual(TASKFORCE_TAB['party-staff'], 'taskforce', '党委台无 taskforce 页签');
 });
 
 test('D6 main-entry.js 按角色消费 data-ws-tab-<page>，subview 只在 activities 上附加', () => {

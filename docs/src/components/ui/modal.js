@@ -114,7 +114,7 @@ export function openModal({ id, title, bodyHtml, onMount, width = '480px', accen
   // dismissable=false（「本位」nudge 专用，见 confirmNudge）：**不渲染右上角 ×**——
   // 那种弹窗只给两个动作按钮（主 / 次），不给第二条退出路径（2026-09-23 支书裁定）。
   const closeBtnHTML = dismissable
-    ? `<button data-modal-close="${id}" style="background:none;border:none;cursor:pointer;color:var(--neutral-400);line-height:1;padding:4px 8px;border-radius:var(--radius-sm);transition:all 0.15s;" class="btn-ghost text-xl" onmouseover="this.style.background='var(--neutral-100)';this.style.color='var(--neutral-600)'" onmouseout="this.style.background='none';this.style.color='var(--neutral-400)'">&times;</button>`
+    ? `<button data-modal-close="${id}" style="background:none;border:none;cursor:pointer;color:var(--neutral-400);line-height:1;padding:4px 8px;border-radius:var(--radius-sm);transition:background-color 0.15s ease, color 0.15s ease;" class="btn-ghost text-xl modal-close-btn" onmouseover="this.style.background='var(--neutral-100)';this.style.color='var(--neutral-600)'" onmouseout="this.style.background='none';this.style.color='var(--neutral-400)'">&times;</button>`
     : '';
 
   panel.innerHTML = `

@@ -1,7 +1,7 @@
 // role: [工程师]+[AI]
 // 个人档案读取边界的单一纯函数源；服务端强制执行，mock 页面镜像展示状态。
-import { BRANCH_COMMISSION_ROLES, ORG_COMMISSIONER_ROLES } from './constants.js?v=20261018n';
-import { POLICY_DEFAULTS } from './policy-defaults.js?v=20261018n';
+import { BRANCH_COMMISSION_ROLES, ORG_COMMISSIONER_ROLES } from './constants.js?v=20261018o';
+import { POLICY_DEFAULTS } from './policy-defaults.js?v=20261018o';
 
 const DEFAULT_BRANCH_ID = 'br-b1';
 

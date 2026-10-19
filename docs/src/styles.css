@@ -1,5 +1,5 @@
 /* 组件样式（@import 必须位于文件顶部） */
-@import url('components/person-picker.css?v=20261018n');
+@import url('components/person-picker.css?v=20261018o');
 
 /* ═══════════════════════════════════════════════════════════════
    GSM1921-SOP DESIGN SYSTEM v11.0 — Matte Flat
@@ -1341,7 +1341,7 @@ html.theme-dark .accent-avatar {
   background: var(--neutral-0);
   color: var(--neutral-600);
   cursor: pointer;
-  transition: all 150ms ease-out;
+  transition: background-color 150ms ease-out, border-color 150ms ease-out, color 150ms ease-out;
 }
 
 .btn-tab:hover { background: var(--neutral-50); border-color: var(--neutral-300); }
@@ -3338,7 +3338,7 @@ input.login-input:focus-visible,
 
 /* ── 首页近期活动 Tab 样式 ─────────────────────────── */
 .activity-tab-btn {
-  transition: all 0.15s ease;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
 }
 .activity-tab-btn:hover {
   transform: none;
@@ -4898,5 +4898,21 @@ html.theme-dark .state-badge--accent {
 }
 .gallery-card__badge {
   margin-top: auto;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   移动端命中区（2026-10-19 · P2-6）
+   ── 只抬「关闭 / 更多 / 危险」三类高风险控件；普通紧凑按钮仍 28px，桌面不动。
+   ── 依据：触屏误点成本高于表格密度损失；WCAG 2.5.8 下限 24px，36px 为舒适档。 */
+@media (max-width: 640px) {
+  .row-more > summary,
+  .row-more__menu > .btn-sm,
+  .todo-more__item,
+  .btn-sm.btn-danger,
+  .btn-sm.btn-danger-solid,
+  .person-picker-close-btn,
+  .modal-close-btn {
+    min-height: 36px !important;
+  }
 }
 

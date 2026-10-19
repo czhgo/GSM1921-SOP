@@ -12,14 +12,58 @@
 //  任务完成数＝completed 数 / 非 cancelled 任务总数，无任务显示「—」；两类皆空则整卡隐藏。
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../../core/domain/domain.js?v=20261018n';
-import { listRowHtml, listGroupHtml } from '../ui/list-row.js?v=20261018n';
+import { mockDB } from '../../core/domain/domain.js?v=20261018o';
+import { listRowHtml, listGroupHtml } from '../ui/list-row.js?v=20261018o';
+import { AuthStore } from '../../services/core/auth.js?v=20261018o';
+import { getBasePath } from '../../core/base/utils.js?v=20261018o';
 
 const GROUP_LIMIT = 3;
 const STATUS_BADGE = {
   active: { label: '运行中', tone: 'success' },
   recruiting: { label: '招募中', tone: 'info' },
 };
+
+// 「查看全部」按两类分组分别落地（2026-10-19）：
+//   首页卡同时列「活动工作组」「专班工作组」，单一入口无法覆盖两类——
+//   活动段落该台活动日历 / 活动动态；专班段落知情查看 / 专班管理 / 专班动态。
+//   角色→页面单一源与首页既有入口同口径；未登录按普通成员页（工作台门控会转登录）。
+const ROLE_PAGE = {
+  secretary: 'secretary.html',
+  'deputy-secretary': 'secretary.html',
+  'org-commissioner': 'org.html',
+  'prop-commissioner': 'prop.html',
+  'disc-commissioner': 'disc.html',
+  leader: 'leader.html',
+  participant: 'visitor.html',
+  'party-staff': 'party-committee.html',
+};
+const ACTIVITY_TAB = {
+  secretary: 'calendar',
+  'deputy-secretary': 'calendar',
+  'org-commissioner': 'calendar',
+  'prop-commissioner': 'calendar',
+  'disc-commissioner': 'calendar',
+  leader: 'calendar',
+  participant: 'activities',
+  'party-staff': 'monitor',
+};
+const TASKFORCE_TAB = {
+  secretary: 'tf-view',
+  'deputy-secretary': 'tf-view',
+  'org-commissioner': 'taskforce',
+  'prop-commissioner': 'tf-view',
+  'disc-commissioner': 'tf-view',
+  leader: 'tf-view',
+  participant: 'tf-view',
+  'party-staff': 'monitor',
+};
+
+function _viewAllHref(kind) {
+  const role = AuthStore.getCurrentUser()?.role || 'participant';
+  const page = ROLE_PAGE[role] || 'visitor.html';
+  const tab = (kind === 'activity' ? ACTIVITY_TAB : TASKFORCE_TAB)[role] || 'tf-view';
+  return `${getBasePath()}workspace/${page}?tab=${tab}`;
+}
 
 /** 某工作组的任务口径：completed / 非 cancelled 总数（无任务时 total 为 0） */
 function taskStats(workgroupId) {
@@ -68,11 +112,12 @@ function groupRowHtml(group, sourceById) {
   });
 }
 
-/** 组头：「组名 ·」+ 中性计数徽章；非首组用 1px hairline 与上一组分隔 */
-function groupHeadHtml(label, count, isFirst) {
+/** 组头：「组名 ·」+ 中性计数徽章 + 本组「查看全部」；非首组用 1px hairline 与上一组分隔 */
+function groupHeadHtml(label, count, isFirst, viewAllHref) {
   return `<div class="flex items-center gap-2 px-3 pb-2 ${isFirst ? '' : 'mt-4 pt-4 border-t border-neutral-100'}">
     <span class="section-head__title">${label}</span>
     <span class="state-badge state-badge--neutral">${count}</span>
+    ${viewAllHref ? `<a href="${viewAllHref}" class="ml-auto text-xs text-accent whitespace-nowrap">查看全部 →</a>` : ''}
   </div>`;
 }
 
@@ -104,8 +149,8 @@ export function renderWorkgroupProgress() {
   const taskforceGroups = workgroups.filter((group) => group.kind === 'taskforce');
   const sourceById = new Map([...activitiesById, ...taskforcesById]);
   const sections = [
-    { label: '活动工作组', total: activityGroups.length, items: activityGroups.slice(0, GROUP_LIMIT) },
-    { label: '专班工作组', total: taskforceGroups.length, items: taskforceGroups.slice(0, GROUP_LIMIT) },
+    { kind: 'activity', label: '活动工作组', total: activityGroups.length, items: activityGroups.slice(0, GROUP_LIMIT) },
+    { kind: 'taskforce', label: '专班工作组', total: taskforceGroups.length, items: taskforceGroups.slice(0, GROUP_LIMIT) },
   ].filter((section) => section.items.length > 0);
 
   if (sections.length === 0) {
@@ -116,7 +161,7 @@ export function renderWorkgroupProgress() {
   card?.classList.remove('hidden');
 
   container.innerHTML = sections.map((section, index) => (
-    groupHeadHtml(section.label, section.total, index === 0)
+    groupHeadHtml(section.label, section.total, index === 0, _viewAllHref(section.kind))
     + listGroupHtml(section.items.map((group) => groupRowHtml(group, sourceById)))
   )).join('');
 }
