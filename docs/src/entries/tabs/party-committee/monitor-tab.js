@@ -1,12 +1,12 @@
 // Branch monitoring: compare organization-level state without exposing member-level records.
-import { mockDB } from '../../../core/domain/domain.js?v=20261018i';
-import { PersonStore } from '../../../services/member/person.js?v=20261018i';
-import { getRosterStats } from '../../../services/member/roster.js?v=20261018i';
-import { listReviewRequests } from '../../../services/governance/review-request.js?v=20261018i';
-import { bindBranchReadOnlyButtons } from '../../../services/core/branch-readonly-nav.js?v=20261018i';
-import { renderBranchFilter, filterByBranch } from '../../../components/governance/branch-filter.js?v=20261018i';
-import { escHtml as esc } from '../../../core/base/utils.js?v=20261018i';
-import { renderSectionHeader } from '../../../components/shell/page-frame.js?v=20261018i';
+import { mockDB } from '../../../core/domain/domain.js?v=20261018k';
+import { PersonStore } from '../../../services/member/person.js?v=20261018k';
+import { getRosterStats } from '../../../services/member/roster.js?v=20261018k';
+import { listReviewRequests } from '../../../services/governance/review-request.js?v=20261018k';
+import { bindBranchReadOnlyButtons } from '../../../services/core/branch-readonly-nav.js?v=20261018k';
+import { renderBranchFilter, filterByBranch } from '../../../components/governance/branch-filter.js?v=20261018k';
+import { escHtml as esc } from '../../../core/base/utils.js?v=20261018k';
+import { renderSectionHeader } from '../../../components/shell/page-frame.js?v=20261018k';
 
 const BRANCH_FILTER_STATE = 'pc-monitor';
 

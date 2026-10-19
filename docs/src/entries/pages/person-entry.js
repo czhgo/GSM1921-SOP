@@ -11,32 +11,32 @@
 //  2026-10-18 乱专项：按「L0 结论带 → 组织事实 → 在册与留痕 → 本人自述 → 系统说明」重排；
 //        27 个档案字段各有且仅有一个 data-field 落点；同一事实不跨层重复。
 // ════════════════════════════════════════════════════════════════
-import { renderSidebar } from '../../components/shell/sidebar.js?v=20261018i';
-import { renderHeader } from '../../components/shell/header.js?v=20261018i';
-import { BranchService } from '../../services/core/runtime.js?v=20261018i';
-import { AuthStore } from '../../services/core/auth.js?v=20261018i';
-import { PersonStore, getPersonName } from '../../services/member/person.js?v=20261018i';
-import { getDataSource } from '../../data/data-adapter.js?v=20261018i';
-import { loadMemberProfile } from '../../services/member/profile.js?v=20261018i';
-import { getBranchById } from '../../services/branch/branch.js?v=20261018i';
-import { openPersonEditModal } from '../../components/governance/pickers.js?v=20261018i';
+import { renderSidebar } from '../../components/shell/sidebar.js?v=20261018k';
+import { renderHeader } from '../../components/shell/header.js?v=20261018k';
+import { BranchService } from '../../services/core/runtime.js?v=20261018k';
+import { AuthStore } from '../../services/core/auth.js?v=20261018k';
+import { PersonStore, getPersonName } from '../../services/member/person.js?v=20261018k';
+import { getDataSource } from '../../data/data-adapter.js?v=20261018k';
+import { loadMemberProfile } from '../../services/member/profile.js?v=20261018k';
+import { getBranchById } from '../../services/branch/branch.js?v=20261018k';
+import { openPersonEditModal } from '../../components/governance/pickers.js?v=20261018k';
 import {
   renderSelfDescriptionSection, countSelfProfileFilled, SELF_PROFILE_TOTAL,
-} from '../../components/governance/person-profile-sections.js?v=20261018i';
+} from '../../components/governance/person-profile-sections.js?v=20261018k';
 // 待确认请求读口（单一源：服务层现有读口；api 形态由 init() 从服务端填充同一缓存）
 import {
   listPendingConfirmations, MC_ACTION_LABEL,
-} from '../../services/member/member-confirmation.js?v=20261018i';
+} from '../../services/member/member-confirmation.js?v=20261018k';
 // Q-21-3 收敛（2026-09-13）：在册状态枚举单一源 = core/domain/constants.js（原经 org-base-data-preview 转出）
-import { ROLE_LABELS, RESIDENCE } from '../../core/domain/constants.js?v=20261018i';
-import { canMaintainMemberProfileFields } from '../../core/domain/profile-access.js?v=20261018i';
-import { getBasePath, escHtml as esc, fmtDt } from '../../core/base/utils.js?v=20261018i';
-import { badgeHtml } from '../../components/ui/badges.js?v=20261018i';
+import { ROLE_LABELS, RESIDENCE } from '../../core/domain/constants.js?v=20261018k';
+import { canMaintainMemberProfileFields } from '../../core/domain/profile-access.js?v=20261018k';
+import { getBasePath, escHtml as esc, fmtDt } from '../../core/base/utils.js?v=20261018k';
+import { badgeHtml } from '../../components/ui/badges.js?v=20261018k';
 // 批次 87：本页必须先 hydrate API 数据源再渲染（成员档案读 + 编辑写）——与 activity.html 标准形同款。
 // 此前本页只调 BranchService.loadDB()（API 模式直接 return）⇒ api 形态下档案读的是本地备份，
 // 且「编辑档案」按 mock 数据源落本机、服务端 users 表不更新。
-import { hydrateDataSource, notifyDataLoaded } from '../../data/data-adapter.js?v=20261018i';
-import { ApiAdapter } from '../../data/api-adapter.js?v=20261018i';
+import { hydrateDataSource, notifyDataLoaded } from '../../data/data-adapter.js?v=20261018k';
+import { ApiAdapter } from '../../data/api-adapter.js?v=20261018k';
 
 renderSidebar('dashboard');
 renderHeader('dashboard');

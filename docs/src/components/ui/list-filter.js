@@ -41,16 +41,16 @@
 //  数据变化后：同 stateKey 再调用一次，或 hold 返回值调 .update(newRows)。
 // ════════════════════════════════════════════════════════════════
 
-import { escHtml as esc } from '../../core/base/utils.js?v=20261018i';
+import { escHtml as esc } from '../../core/base/utils.js?v=20261018k';
 import {
   SEARCH_FILTER_MIN_ROWS, ROLE_LABELS, ACTIVITY_CLASSIFICATION,
   classifyActivityType, normalizeActivityType,
-} from '../../core/domain/constants.js?v=20261018i';
+} from '../../core/domain/constants.js?v=20261018k';
 // 活动生命周期**展示态**单一源 = components/record/inspector.js（草稿/已发布/进行中/待归档/已执行/已归档/已取消）
 // ——勿在本组件另写一套中文标签（constants.js 里曾短暂加过的副本已撤除）
-import { deriveActivityLifecycleStatus, ACTIVITY_LIFECYCLE } from '../record/inspector.js?v=20261018i';
+import { deriveActivityLifecycleStatus, ACTIVITY_LIFECYCLE } from '../record/inspector.js?v=20261018k';
 // 翻页控件单一源（批次 38 下沉为叶子件 pager.js）：本引擎与关系矩阵共用，勿另写翻页标记
-import { pagerHtml } from './pager.js?v=20261018i';
+import { pagerHtml } from './pager.js?v=20261018k';
 
 /** 每个 stateKey 的筛选状态（跨重渲染保持；键集合有界 = 全站表格数，不做回收） */
 const _states = new Map();
@@ -104,8 +104,9 @@ function _keywordHit(item, q, keyword) {
  * @param {Function} [cfg.sort] 排序比较器（缺省保持传入顺序）
  * @param {string} [cfg.listClass] 结果区 class（列表模式：行容器）
  * @param {string} [cfg.countUnit] 计数单位（'人' / '条'）
- * @param {{headHtml:string,colSpan:number,className?:string}} [cfg.table] 表格模式：结果区渲染为
+ * @param {{headHtml:string,colSpan:number,className?:string,responsive?:boolean}} [cfg.table] 表格模式：结果区渲染为
  *   `<table class="data-table">`（表头/行线/悬停/内边距由 styles.css 单一源提供；
+ *   `responsive: true` 时给 `<table>` 加 `data-responsive="cards"`，由 ≤640px 媒体查询转卡式行；
  *   rowHtml 须返回 `<tr>`，表头 `<th>` 不要再写 py-2 px-3 text-left 等重复类）——
  *   避免把 `<div>` 塞进 `<tbody>`（非法 HTML）。不传则为 div 列表模式。
  * @returns {{visible:boolean, state:Object, apply:Function, update:Function}}
@@ -255,7 +256,7 @@ export function renderFilteredList(container, cfg) {
     if (config.table) {
       const empty = `<tr class="is-empty"><td colspan="${config.table.colSpan || 1}" class="is-empty">${esc(config.emptyMessage)}</td></tr>`;
       // 表格样式单一源：表头/行线/悬停/内边距全部由 styles.css::.data-table 提供（各表勿再重复声明）
-      listEl.innerHTML = `<table class="data-table ${config.table.className || ''}">
+      listEl.innerHTML = `<table class="data-table ${config.table.className || ''}"${config.table.responsive ? ' data-responsive="cards"' : ''}>
         ${config.table.headHtml ? `<thead>${config.table.headHtml}</thead>` : ''}
         <tbody>${filtered.length === 0 ? empty : shown.map((item, i) => config.rowHtml(item, i)).join('')}</tbody>
       </table>`;

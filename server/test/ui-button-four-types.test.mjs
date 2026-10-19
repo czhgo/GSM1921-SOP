@@ -53,3 +53,29 @@ test('B4 非空转：四页重点确实含按钮标记', () => {
     assert.match(src, /<button|listRowHtml|metric-band__item/, `${label} 未检出按钮标记，抽取面可能写坏`);
   }
 });
+
+/** 取函数体（从 `function name` 到下一个顶层 `function`） */
+function functionBody(src, name) {
+  const start = src.indexOf(`function ${name}`);
+  assert.ok(start >= 0, `未找到函数 ${name}`);
+  const next = src.indexOf('\nfunction ', start + 1);
+  return next < 0 ? src.slice(start) : src.slice(start, next);
+}
+
+test('B5 行内可见动作 ≤2：党小组 / 支委会每行 1 主 + 更多，危险动作在菜单内', () => {
+  const rows = [
+    { label: '支书 · 党小组', src: readFileSync(PAGES[0].file, 'utf8'), fn: '_manageRowHtml' },
+    { label: '支书 · 支委会', src: readFileSync(PAGES[1].file, 'utf8'), fn: 'rosterRowHtml' },
+  ];
+  for (const { label, src, fn } of rows) {
+    const body = functionBody(src, fn);
+    assert.match(body, /<details class="row-more">/, `${label} 行未使用「更多」菜单`);
+    const visible = body.replace(/<details[\s\S]*?<\/details>/g, '');
+    const n = (visible.match(/<button\b/g) || []).length;
+    assert.ok(n <= 2, `${label} 行内可见动作应 ≤2（1 主 + 更多），实测 ${n}`);
+  }
+  const groupRow = functionBody(rows[0].src, rows[0].fn);
+  const menu = groupRow.slice(groupRow.indexOf('row-more__menu'));
+  assert.ok(menu.includes('gp-rename') && menu.includes('gp-dissolve'),
+    '改名 / 解散应在党小组行的「更多」菜单内');
+});

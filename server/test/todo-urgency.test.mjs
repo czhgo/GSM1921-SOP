@@ -18,7 +18,7 @@ import { join } from 'node:path';
 import {
   buildUrgencySections,
   renderUrgencyTodoList,
-} from '../../docs/src/components/record/todo-list.js?v=20261018i';
+} from '../../docs/src/components/record/todo-list.js?v=20261018k';
 
 const ROOT = join(import.meta.dirname, '..', '..');
 const read = (rel) => readFileSync(join(ROOT, rel), 'utf8');
@@ -135,17 +135,26 @@ test('⑦ 深链定位逻辑仍在：data-group-key 锚点 + groupKey 查找', (
   assert.match(list, /_findGroup\(sections, row\.dataset\.groupKey\)/, '点行应按 groupKey 找回分组');
 });
 
-test('⑧ 首屏顺序：待答复与未读通知合并为默认收起的折叠条，主对象「我的待办」紧随其后', () => {
+test('⑧ 首屏顺序：折叠条默认展开露 2 条待答复，未读通知二级折叠，「我的待办」紧随其后', () => {
   const shell = read('docs/src/components/record/todo-tab-shell.js');
+  const inbox = read('docs/src/components/record/report-inbox.js');
   assert.match(shell, /<details class="todo-strip[^"]*"/, '页顶应使用原生 details 折叠条');
-  assert.match(shell, /\$\{_stripOpen \? ' open' : ''\}/, '折叠条默认收起（open 仅由用户展开态决定）');
+  assert.match(shell, /let _stripOpen = true;/, '折叠条默认展开');
+  assert.match(shell, /\$\{_stripOpen \? ' open' : ''\}/, '折叠态在重建后保留');
   assert.match(shell, /待答复与未读通知/, '摘要只显示合并后的条名');
   assert.match(shell, /const stripHtml = _todoStripHtml\(extraHtml, unreadHtml, stripCount\)/, '收件箱与未读行应合并为一条');
-  const detailsStart = shell.indexOf('<details class="todo-strip');
+  // 未读通知二级折叠：默认不 open，摘要「未读通知 N」
+  assert.match(shell, /<details[^>]*class="todo-strip__section[^"]*"/, '未读通知应为二级折叠');
+  assert.doesNotMatch(shell, /<details[^>]*class="todo-strip__section[^"]*"[^>]*\bopen\b/, '未读二级折叠默认收起');
+  assert.match(shell, /未读通知\s*<span[^>]*>\$\{notices\.length\}/, '未读摘要应显示条数');
+  // 待答复 embedded 默认露 2 条，其余可展开
+  assert.match(inbox, /embeddedLimit\s*=\s*2/, 'embedded 模式默认限制 2 条待答复');
+  assert.match(inbox, /查看全部待答复/, '其余待答复经「查看全部待答复」展开');
+  const detailsStart = shell.indexOf('<details class="todo-strip card');
   const detailsEnd = shell.indexOf('</details>', detailsStart);
   const body = shell.slice(detailsStart, detailsEnd);
   assert.ok(body.includes('${extraHtml}') && body.includes('${unreadHtml}'), '展开区应同时承载待答复与未读通知行');
   const stripInsert = shell.indexOf('${stripHtml}');
   const mainObject = shell.indexOf('>我的待办</h3>');
-  assert.ok(stripInsert >= 0 && mainObject > stripInsert, '首屏顺序：折叠条在「我的待办」之前，收起只占一行');
+  assert.ok(stripInsert >= 0 && mainObject > stripInsert, '首屏顺序：折叠条在「我的待办」之前');
 });

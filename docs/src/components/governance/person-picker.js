@@ -7,15 +7,15 @@
 //  样式：提取至 person-picker.css，主题色通过 CSS 变量 --pp-* 注入
 // ════════════════════════════════════════════════════════════════
 
-import { liveMembers, PersonStore } from '../../services/member/person.js?v=20261018i';
+import { liveMembers, PersonStore } from '../../services/member/person.js?v=20261018k';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/member/person.js 获取（原直连 mock PEOPLE）
 // 实时视图（非快照）：成员增删即时可见——见 services/member/person.js liveMembers 说明
 const PEOPLE = liveMembers();
-import { getPersonById } from '../../services/member/person.js?v=20261018i';
+import { getPersonById } from '../../services/member/person.js?v=20261018k';
 // 党小组清单单一源（活组按 seq 升序；2026-09-14 批次 29 收敛——见文件头「党小组清单」说明）
-import { groupOptions } from '../../services/member/party-group.js?v=20261018i';
-import { icon } from '../../core/base/icons.js?v=20261018i';
-import { ROLE_LABELS, ACCENT_COLORS, applyDark } from '../../core/domain/constants.js?v=20261018i';
+import { groupOptions } from '../../services/member/party-group.js?v=20261018k';
+import { icon } from '../../core/base/icons.js?v=20261018k';
+import { ROLE_LABELS, ACCENT_COLORS, applyDark } from '../../core/domain/constants.js?v=20261018k';
 
 // ── 辅助：从 hex 生成 rgba 字符串 ──────────────────────────────
 function hexToRgba(hex, alpha) {
@@ -120,9 +120,14 @@ export class PersonPicker {
     // 过滤后的人员列表（缓存）
     this._filteredPeople = this._applyFilter(PEOPLE);
 
+    // 可达性状态（Task 5）：打开前的焦点 / body overflow 原值 / 重定位监听
+    this._lastFocused = null;
+    this._prevBodyOverflow = null;
+
     // 事件监听器引用（用于清理）
     this._boundDocClick = null;
-    this._boundEscKey = null;
+    this._boundKeydown = null;
+    this._boundReposition = null;
   }
 
   // ── 辅助：在元素上注入主题色 CSS 变量 ──────────────────────────
@@ -228,6 +233,13 @@ export class PersonPicker {
   _openPanel() {
     if (this._panelOpen) return;
     this._panelOpen = true;
+
+    // 记录打开前的焦点（通常是触发按钮），关闭时回焦
+    this._lastFocused = document.activeElement;
+    // 打开时锁 body 滚动，保留原值以便关闭时恢复
+    this._prevBodyOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
     this._triggerBtn?.setAttribute('aria-expanded', 'true');
 
     // 更新触发按钮样式（通过类名切换，CSS 控制具体样式）
@@ -269,8 +281,18 @@ export class PersonPicker {
     // 解绑全局事件
     this._unbindGlobalEvents();
 
-    // 关闭后归还焦点到触发按钮（rAF 保证重建 DOM 后执行）
-    requestAnimationFrame(() => this._triggerBtn?.focus());
+    // 恢复 body 滚动（打开前原值；空串也照原样还原）
+    if (this._prevBodyOverflow !== null) {
+      document.body.style.overflow = this._prevBodyOverflow;
+      this._prevBodyOverflow = null;
+    }
+
+    // 关闭后归还焦点：优先回到打开前的焦点（触发按钮），已脱离文档则退回触发按钮
+    const focusTarget = this._lastFocused && this._lastFocused.isConnected
+      ? this._lastFocused
+      : this._triggerBtn;
+    this._lastFocused = null;
+    requestAnimationFrame(() => focusTarget?.focus());
   }
 
   // ── 面板创建 ────────────────────────────────────────────────
@@ -582,17 +604,61 @@ export class PersonPicker {
   // ── 全局事件 ────────────────────────────────────────────────
 
   _bindGlobalEvents() {
-    this._boundEscKey = (e) => {
-      if (e.key === 'Escape') this._closePanel();
+    this._boundKeydown = (e) => {
+      // Esc 关闭：_closePanel 内统一回焦触发按钮
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        this._closePanel();
+        return;
+      }
+      if (e.key !== 'Tab' || !this._panelEl) return;
+
+      // 焦点陷阱：Tab / Shift+Tab 在面板内循环，不落到遮罩后的页面
+      const focusables = this._getFocusableElements();
+      if (focusables.length === 0) {
+        e.preventDefault();
+        return;
+      }
+      const first = focusables[0];
+      const last = focusables[focusables.length - 1];
+      const active = document.activeElement;
+      if (e.shiftKey && (active === first || !this._panelEl.contains(active))) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && (active === last || !this._panelEl.contains(active))) {
+        e.preventDefault();
+        first.focus();
+      }
     };
-    document.addEventListener('keydown', this._boundEscKey);
+    document.addEventListener('keydown', this._boundKeydown);
+
+    // 视口尺寸 / 转屏变化后按触发按钮的新位置重定位，390px 面板不出屏
+    this._boundReposition = () => {
+      if (this._panelOpen && this._panelEl) this._positionPanel(this._panelEl);
+    };
+    window.addEventListener('resize', this._boundReposition);
+    window.addEventListener('orientationchange', this._boundReposition);
   }
 
   _unbindGlobalEvents() {
-    if (this._boundEscKey) {
-      document.removeEventListener('keydown', this._boundEscKey);
-      this._boundEscKey = null;
+    if (this._boundKeydown) {
+      document.removeEventListener('keydown', this._boundKeydown);
+      this._boundKeydown = null;
     }
+    if (this._boundReposition) {
+      window.removeEventListener('resize', this._boundReposition);
+      window.removeEventListener('orientationchange', this._boundReposition);
+      this._boundReposition = null;
+    }
+  }
+
+  // 面板内可聚焦元素（按 DOM 顺序，供 Tab 循环）
+  _getFocusableElements() {
+    if (!this._panelEl) return [];
+    const selector = 'button:not([disabled]), input:not([disabled]), select:not([disabled]), '
+      + 'textarea:not([disabled]), a[href], [tabindex]:not([tabindex="-1"])';
+    return [...this._panelEl.querySelectorAll(selector)]
+      .filter((el) => !el.hasAttribute('aria-hidden') && (el.offsetWidth > 0 || el.offsetHeight > 0));
   }
 
   // ── 公开 API ────────────────────────────────────────────────

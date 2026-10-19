@@ -3,7 +3,7 @@
 <html lang="zh-CN">
 <head>
   
-<script src="./src/theme-init.js?v=20261018i"></script>
+<script src="./src/theme-init.js?v=20261018k"></script>
 <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>首页 — GSM1921-SOP</title>
@@ -15,9 +15,9 @@
   <noscript><link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;800&family=Noto+Serif+SC:wght@400;500;600;700;800&display=swap" rel="stylesheet"></noscript>
 
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="./src/tailwind-config.js?v=20261018i"></script>
+  <script src="./src/tailwind-config.js?v=20261018k"></script>
 
-  <link rel="stylesheet" href="./src/styles.css?v=20261018i">
+  <link rel="stylesheet" href="./src/styles.css?v=20261018k">
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
@@ -60,10 +60,18 @@
                 <a href="./workspace/visitor.html" class="text-xs text-blue-600 hover:text-blue-800">工作台 →</a>
                 <!-- 2026-09-30 批次 310：桌面日历的「完整日历」入口（href 由 main-entry.js 按登录角色改写）。
                      2026-10-04 批次 371（支书裁「**活动日历 应该放在 活动动态中 作为一个 视图才对**」）：
-                     成员台**已撤「活动日历」独立页签** ⇒ 本入口改落「活动动态」的**日历视图**
-                     （`data-ws-tab=\"activities\"` ＋ `data-ws-view=\"calendar\"` → `?tab=activities&subview=calendar`；
-                      **参数名用 `subview`**：`view` 是工作台壳的既有协议参数、会被它消费清掉） -->
-                <a href="./workspace/visitor.html" data-ws-tab="activities" data-ws-view="calendar" class="text-xs text-blue-600 hover:text-blue-800">完整日历 →</a>
+                     成员台**已撤「活动日历」独立页签** ⇒ 本入口改落「活动动态」的**日历视图**。
+                     2026-10-18 Spec Task 8：按角色落**真实存在的页签**（`data-ws-tab-<page>` 覆盖默认值）——
+                     支书/组织/宣传/纪检/组长台 → `calendar`（活动管理/活动日历）；
+                     成员台 → `activities` ＋ `data-ws-view=\"calendar\"`（`?tab=activities&subview=calendar`；
+                     **参数名用 `subview`**：`view` 是工作台壳的既有协议参数、会被它消费清掉）；
+                     党委台无日历页签 → 最近的 `monitor`（支部动态）。禁止落到不存在的 id 后静默回「今天」。 -->
+                <a href="./workspace/visitor.html"
+                   data-ws-tab="calendar"
+                   data-ws-tab-visitor="activities"
+                   data-ws-tab-party-committee="monitor"
+                   data-ws-view="calendar"
+                   class="text-xs text-blue-600 hover:text-blue-800">完整日历 →</a>
               </div>
             </div>
             <div id="activity-calendar-view">
@@ -102,7 +110,18 @@
           <div class="card rounded-xl p-5" id="dashboard-taskforce-card">
             <div class="flex items-center justify-between mb-4">
               <h3 class="font-title-cn text-base font-semibold text-gray-800">工作组进展</h3>
-              <a href="./workspace/org.html" data-ws-tab="taskforce" class="text-xs text-blue-600 hover:text-blue-800">查看全部 →</a>
+              <!-- 2026-10-18 Spec Task 8：「查看全部」按角色落真实工作组页签——
+                   组织台有 `taskforce`（专班管理）；其余五台无该 id ⇒ 落 `tf-view`（知情查看/专班动态）；
+                   党委台无工作组页签 ⇒ 最近的 `monitor`（支部动态）。禁止写不存在的 `tab=taskforce`。 -->
+              <a href="./workspace/org.html"
+                 data-ws-tab="taskforce"
+                 data-ws-tab-secretary="tf-view"
+                 data-ws-tab-prop="tf-view"
+                 data-ws-tab-disc="tf-view"
+                 data-ws-tab-leader="tf-view"
+                 data-ws-tab-visitor="tf-view"
+                 data-ws-tab-party-committee="monitor"
+                 class="text-xs text-blue-600 hover:text-blue-800">查看全部 →</a>
             </div>
             <div id="dashboard-taskforce-list" class="text-sm text-gray-500"></div>
           </div>
@@ -122,7 +141,7 @@
 
 
 
-<script type="module" src="./src/entries/pages/main-entry.js?v=20261018i"></script>
+<script type="module" src="./src/entries/pages/main-entry.js?v=20261018k"></script>
 
 </body>
 </html>

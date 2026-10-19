@@ -1,5 +1,5 @@
 /* 组件样式（@import 必须位于文件顶部） */
-@import url('components/person-picker.css?v=20261018i');
+@import url('components/person-picker.css?v=20261018k');
 
 /* ═══════════════════════════════════════════════════════════════
    GSM1921-SOP DESIGN SYSTEM v11.0 — Matte Flat
@@ -106,6 +106,10 @@
   --app-accent:        var(--accent-default);
   --app-accent-bg:     var(--accent-default-bg);
   --app-accent-border: var(--accent-default-border);
+  /* 主 CTA 实底专用：白字对比度不足的亮色角色（翠绿 / 天蓝 / 雾紫 / 亮蓝）压深一档，
+     仍保持角色色相；深色角色同步压深但观感仍是「角色色实底」，不再与深灰混成泥褐。
+     58% 实测调色板全色白字 ≥ 4.5:1（最差亮蓝 organizer ≈ 4.7:1）。 */
+  --app-accent-strong: color-mix(in srgb, var(--app-accent) 58%, black);
 
   /* ── Shape — 圆角 ── */
   --radius-sm: 8px;
@@ -838,7 +842,7 @@ button { cursor: pointer; }
 button:disabled { cursor: not-allowed; }
 
 .btn-accent {
-  background: color-mix(in srgb, var(--app-accent) 80%, #1F2937);
+  background: var(--app-accent-strong);
   color: #fff;
   border-radius: var(--radius-sm);
   transition: filter var(--transition-fast), opacity var(--transition-fast);
@@ -1411,6 +1415,16 @@ html.theme-dark .accent-avatar {
   display: flex;
   align-items: center;
   gap: 12px;
+  /* 390px：动作区不换行、不被压缩，品牌名靠 ellipsis 让位（见 .header-title h1）。 */
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* 390px 顶栏短名：全名放不下时只显示「光华党支部」，不压成「光…」。 */
+.header-title-short { display: none; }
+@media (max-width: 640px) {
+  .header-title-full { display: none; }
+  .header-title-short { display: inline; }
 }
 
 .header-action-btn {
@@ -1952,7 +1966,9 @@ html.theme-dark .cal-cell-large.is-today, html.theme-dark .cal-cell-mobile.is-to
    好处在一个分界线上…随着我的滚动，这个边界在这个 button 上的影响并没有被移除。这是我很不喜欢的」）。
    溢出提示改由**内容自身**给出：容器不裁剪末枚 tab ⇒「末尾露出半个 tab」即可见还有更多。
    JS 侧配套删除 `tab-bar.js::_bindScrollHints`（它只服务这两条遮罩），顺带消掉
-   `window.addEventListener('resize', …)` **未成对移除**的隐患。 */
+   `window.addEventListener('resize', …)` **未成对移除**的隐患。
+   ── 2026-10-19 Spec「页签溢出可发现」：改为 `.ws-tab-shell` 包裹层上的**右侧单边渐隐 + 左右箭头**，
+   只在可滚时出现；不改变 tab 尺寸 / 选中态 / 顺序 / 分组。 */
 .ws-tab-scroll {
   position: relative;
   scroll-behavior: smooth;
@@ -1962,6 +1978,40 @@ html.theme-dark .cal-cell-large.is-today, html.theme-dark .cal-cell-mobile.is-to
 }
 .ws-tab-scroll::-webkit-scrollbar {
   display: none;                    /* Chrome/Safari */
+}
+
+/* ── 页签溢出提示（2026-10-19）：定位壳 + 左右箭头 + 右侧渐隐 ──
+   箭头由 tab-bar.js 用 `.btn-outline.btn-icon`（32×32 命中区）渲染，仅在可滚时移除 `hidden`；
+   渐隐由 `data-scrollable` / `data-scroll-end` 驱动，滚到末端即消失，且不覆盖箭头（z-index 分层）。 */
+.ws-tab-shell {
+  position: relative;
+}
+.ws-tab-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 2;
+  border-radius: 9999px;
+  box-shadow: var(--shadow-dropdown);
+}
+.ws-tab-arrow--left { left: 0; }
+.ws-tab-arrow--right { right: 0; }
+.ws-tab-arrow[hidden] { display: none !important; }
+.ws-tab-shell::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 40px;
+  z-index: 1;
+  pointer-events: none;
+  background: linear-gradient(to right, transparent, var(--surface-page) 72%);
+  opacity: 0;
+  transition: opacity var(--transition-fast);
+}
+.ws-tab-shell[data-scrollable]:not([data-scroll-end])::after {
+  opacity: 1;
 }
 
 /* 2026-10-18：横向滚动容器会裁剪纵向溢出，页签焦点环改用内描边，避免键盘焦点不可见。 */
@@ -2741,6 +2791,17 @@ input.login-input:focus-visible,
 
   .header-actions {
     gap: 6px;
+  }
+
+  /* 390px：内容区收紧，给品牌短名（约 82px）留出完整宽度，不再压成「光…」。
+     动作按钮的内边距在文件末尾统一覆盖（`.btn-ghost.header-action-btn` 带 !important）。 */
+  .header-content {
+    gap: 8px;
+  }
+  /* 390px 顶栏：动作区宽度不够时先收起「我的档案」（无图标形态，收进更多需另建菜单，
+     本批取最小改动），保证品牌名仍可读。 */
+  #header-my-profile {
+    display: none !important;
   }
 
   .party-emblem-wrapper {
@@ -4474,6 +4535,12 @@ button.metric-band__item.is-active .metric-band__label { color: var(--app-accent
 .metric-band__value--warning {
   color: var(--functional-warning);
 }
+/* 存量指标，不与逾期争重心：在办是过程量，降到脚注级（18px / neutral-500）。 */
+.metric-band__value--muted {
+  font-size: 1.125rem;
+  font-weight: 500;
+  color: var(--neutral-500);
+}
 .metric-band__value--accent {
   color: var(--app-accent);
 }
@@ -4593,5 +4660,109 @@ html.theme-dark .state-badge--accent {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   响应式数据表（2026-10-19 · Spec Task 1）
+   ── 只对声明 `responsive: true` 的表生效（引擎输出 `data-responsive="cards"`）；
+      矩阵表 / 其他表不传该选项 ⇒ 桌面与窄屏外观均不变。
+   ── ≤640px：每行转卡片，`td` 前用 `data-label` 显示字段名，末列动作留在行尾。 */
+@media (max-width: 640px) {
+  .data-table[data-responsive="cards"] thead { display: none; }
+  .data-table[data-responsive="cards"],
+  .data-table[data-responsive="cards"] tbody,
+  .data-table[data-responsive="cards"] tr,
+  .data-table[data-responsive="cards"] td { display: block; width: 100%; }
+  .data-table[data-responsive="cards"] tr {
+    border: 1px solid var(--neutral-200);
+    border-radius: var(--radius-md);
+    padding: var(--space-2) var(--space-3);
+    margin-bottom: var(--space-2);
+    background: var(--surface-card);
+  }
+  /* 末行也要保留卡片边框（上方 `.data-table tbody tr:last-child` 会移除行线）。 */
+  .data-table[data-responsive="cards"] tbody tr:last-child {
+    border: 1px solid var(--neutral-200);
+  }
+  .data-table[data-responsive="cards"] td {
+    display: flex;
+    gap: var(--space-2);
+    padding: var(--space-1) 0;
+    border: 0;
+  }
+  .data-table[data-responsive="cards"] td::before {
+    content: attr(data-label);
+    flex: 0 0 72px;
+    font-size: 12px;
+    color: var(--neutral-500);
+  }
+  .data-table[data-responsive="cards"] td:last-child {
+    justify-content: flex-end;
+  }
+  /* 条线表转卡式行后，取消桌面横滑最小宽与首列 sticky，避免 390px 仍横向溢出。 */
+  .wo-lines-table[data-responsive="cards"] {
+    min-width: 0;
+  }
+  .wo-lines-table[data-responsive="cards"] td:first-child {
+    position: static;
+    background: transparent;
+  }
+  .wo-lines-table[data-responsive="cards"] .wo-line-gap {
+    max-width: none;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   行尾「更多」菜单（2026-10-19 · Spec Task 7）
+   ── 用途：数据表行内动作收敛为「1 主 + 更多」；危险动作进菜单。
+   ── 原生 <details> 承载开关；白底 + hairline + 圆角，不用阴影。 */
+.row-more {
+  position: relative;
+  display: inline-block;
+}
+.row-more > summary {
+  list-style: none;
+  cursor: pointer;
+}
+.row-more > summary::-webkit-details-marker {
+  display: none;
+}
+.row-more__menu {
+  position: absolute;
+  top: calc(100% + var(--space-1));
+  right: 0;
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  min-width: 112px;
+  padding: var(--space-1);
+  background: var(--surface-card);
+  border: 1px solid var(--neutral-200);
+  border-radius: var(--radius-sm);
+}
+.row-more__menu > .btn-sm {
+  width: 100%;
+  justify-content: flex-start;
+}
+/* 表格横向滚动容器会裁剪绝对定位菜单：展开时放开裁剪，菜单不被行尾截断。 */
+.overflow-x-auto:has(.row-more[open]) {
+  overflow: visible;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   390px 顶栏收紧（2026-10-19 · Spec Task 1）
+   ── 病灶：品牌短名已进 DOM，但动作区 220px 把 `.header-title` 压到 38px，
+      仍显示「光…」。本节按「先让品牌可读」收紧动作区，不改动作数量与语义。
+   ── 覆盖关系：`.btn-ghost.header-action-btn` 在文件中部带 `padding: 0 14px !important`，
+      故这里用 `#app-header` 提一级特异性覆盖，只改左右内边距，高度仍为 36px。 */
+@media (max-width: 640px) {
+  #app-header .header-actions {
+    gap: 4px;
+  }
+  #app-header .header-action-btn,
+  #app-header .btn-ghost.header-action-btn {
+    padding-left: 6px !important;
+    padding-right: 6px !important;
+  }
 }
 

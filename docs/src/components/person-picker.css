@@ -26,7 +26,7 @@
   border: 1px solid var(--neutral-200);
   background: var(--surface-card);
   cursor: pointer;
-  transition: all 0.15s;
+  transition: border-color 0.15s, box-shadow 0.15s, background-color 0.15s, color 0.15s;
   font-size: 0.75rem;
   color: var(--neutral-700);
   min-width: 120px;
@@ -196,7 +196,7 @@
   line-height: 1 !important;
   border: 1px solid var(--neutral-200);
   cursor: pointer;
-  transition: all 0.15s;
+  transition: background-color 0.15s, border-color 0.15s, color 0.15s;
   white-space: nowrap;
   background: var(--neutral-50);
   color: var(--neutral-500);
@@ -380,7 +380,7 @@
   background: var(--neutral-0);
   color: var(--neutral-500);
   cursor: pointer;
-  transition: all 0.15s;
+  transition: background-color 0.15s, border-color 0.15s, color 0.15s;
 }
 .person-picker-batch-chip:hover {
   border-color: var(--pp-accent);

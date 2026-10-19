@@ -3,9 +3,10 @@
 // 背景：6 个工作台 todo-tab 骨架逐字重复（选中首条 / renderTodoList / 两栏 HTML / 删除 / 详情按钮绑定），
 //       支书 2026-08-30：「模块化只见代码增多少见代码减少」→ 共性抽壳。
 // 设计：createTodoTab(opts) 工厂，每个角色一个实例（状态自持，与原模块级私有状态等价）。
-// 2026-10-19 最小三成本 Task 5（首屏与去重；spec .trae/specs/reflect-minimum-three-costs）：
-//   输出区 = ① 页顶「待答复与未读通知」折叠条（原生 details，默认收起只占一行；
-//             展开后才出现 extraTopHtml 收件箱与未读通知行）
+// 2026-10-19 最小三成本 Task 5 / harden-mobile-and-primary-actions Task 3（首屏与去重）：
+//   输出区 = ① 页顶「待答复与未读通知」折叠条（原生 details，**默认展开**；
+//             展开后待答复只露前 2 条，其余经「查看全部待答复」展开；
+//             未读通知为二级折叠，默认收起，摘要「未读通知 N」）
 //          ② 我的待办卡：四数摘要「逾期 / 今日 / 本周 / 待处理」——与列表共用
 //             buildUrgencySections 的同一批分组数据，不另算口径；
 //             下方四档列表「逾期 / 今日 / 本周 / 以后」（domains 展平为组后按截止日/状态归类；
@@ -18,22 +19,22 @@
 // 视觉沿用 card/rounded 既有体系（四档列表渲染在 components/record/todo-list.js renderUrgencyTodoList）。
 // 设计权威源：content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md §六 M6（共性抽象净减）
 
-import { TodoStore, urgeRolesOf, WORK_DOMAIN, WORK_DOMAIN_LABELS, realtimeGroupDomainOf, buildModuleCycleRemindGroup } from '../../services/governance/todo.js?v=20261018i';
+import { TodoStore, urgeRolesOf, WORK_DOMAIN, WORK_DOMAIN_LABELS, realtimeGroupDomainOf, buildModuleCycleRemindGroup } from '../../services/governance/todo.js?v=20261018k';
 // S3②（2026-09-12）：未读通知计数单一来源——与顶栏角标/首页同源（NoticeStore activeOnly+read 过滤），
 // 不再用「通知类待办」现算（口径不同致三处不一致）。
-import { NoticeStore, NOTICE_MODULE_ROLE_PAGES } from '../../services/governance/notice.js?v=20261018i';
-import { buildUrgencySections, renderUrgencyTodoList } from './todo-list.js?v=20261018i';
-import { badgeHtml } from '../ui/badges.js?v=20261018i';
-import { showToast, escHtml, todayLocal } from '../../core/base/utils.js?v=20261018i';
-import { ROLE_LABELS, BRANCH_COMMISSION_ROLES } from '../../core/domain/constants.js?v=20261018i';
-import { openModal, closeModal } from '../ui/modal.js?v=20261018i';
-import { AuthStore } from '../../services/core/auth.js?v=20261018i';
-import { mockDB } from '../../core/domain/domain.js?v=20261018i';
-import { tokenOf } from '../../core/base/version-token.js?v=20261018i'; // P0 域写版本戳（spec §二.4）
-import { resolveDocumentUrl } from '../../core/base/page-url.js?v=20261018i';
-import { memoizeRender } from '../ui/memoize-render.js?v=20261018i'; // P2 渲染守卫（spec §四.1）
+import { NoticeStore, NOTICE_MODULE_ROLE_PAGES } from '../../services/governance/notice.js?v=20261018k';
+import { buildUrgencySections, renderUrgencyTodoList } from './todo-list.js?v=20261018k';
+import { badgeHtml } from '../ui/badges.js?v=20261018k';
+import { showToast, escHtml, todayLocal } from '../../core/base/utils.js?v=20261018k';
+import { ROLE_LABELS, BRANCH_COMMISSION_ROLES } from '../../core/domain/constants.js?v=20261018k';
+import { openModal, closeModal } from '../ui/modal.js?v=20261018k';
+import { AuthStore } from '../../services/core/auth.js?v=20261018k';
+import { mockDB } from '../../core/domain/domain.js?v=20261018k';
+import { tokenOf } from '../../core/base/version-token.js?v=20261018k'; // P0 域写版本戳（spec §二.4）
+import { resolveDocumentUrl } from '../../core/base/page-url.js?v=20261018k';
+import { memoizeRender } from '../ui/memoize-render.js?v=20261018k'; // P2 渲染守卫（spec §四.1）
 // 模块周期提醒（`R-29⑤` · `D-804`）：分工快照取法与 `components/governance/workforce-duty-card.js` 同口径
-import { getBranchIdOfPerson, getBranchWorkforce } from '../../services/branch/branch.js?v=20261018i';
+import { getBranchIdOfPerson, getBranchWorkforce } from '../../services/branch/branch.js?v=20261018k';
 
 // ── P0 组合数据复合键（2026-09-07 · spec §二.4）──────────────────
 // 组合点（buildRealtimeGroups + mergeRealtimeDomains + getUnreadNotices）以
@@ -197,7 +198,7 @@ export function createTodoTab(opts) {
   // P0 组合点记忆化（每实例自持：复合键未变 → 复用上次组合数据对象；只读契约，见 _comboKeyOf 注释）
   let _lastComboKey = null;
   let _lastCombo = null; // { domains, allGroups, unreadNotices }
-  let _stripOpen = false; // 页顶折叠条展开态（默认收起；重渲染后保留用户展开）
+  let _stripOpen = true; // 页顶折叠条展开态（默认展开；重渲染后保留用户折叠）
 
   /** U3（2026-09-07）待办两栏等高骨架（await onBeforeRender/数据聚合期间占位；styles.css 禁改不碰） */
   function _todoShellSkeletonHtml() {
@@ -297,7 +298,7 @@ export function createTodoTab(opts) {
     `;
   }
 
-  /** 未读通知行（2026-10-19 Task 5：不再自带折叠壳，统一并入页顶「待答复与未读通知」条）。
+  /** 未读通知行（2026-10-19 Task 5 / Task 3：作为页顶折叠条的二级折叠，默认收起）。
    *  与首页通知列表共用 `.notice-row` 视觉语言；每行一个主行动「阅读」，阅读详情即已读。 */
   function _unreadRowsHtml(notices) {
     const rows = notices.map(n => {
@@ -320,14 +321,16 @@ export function createTodoTab(opts) {
         </div>`;
     }).join('');
     return `
-      <div class="todo-strip__section">
-        <p class="text-xs font-medium text-gray-500 pt-2 pb-1">未读通知</p>
+      <details class="todo-strip__section todo-strip__section--unread mt-1">
+        <summary class="cursor-pointer select-none py-1">
+          <span class="text-xs font-medium text-gray-500">未读通知 <span class="tabular-nums">${notices.length}</span></span>
+        </summary>
         <div class="divide-y divide-gray-100">${rows}</div>
-      </div>`;
+      </details>`;
   }
 
-  /** 页顶折叠条：默认收起只占一行，展开后放待答复收件箱与未读通知行。
-   *  首屏主对象优先——「我的待办」不再被收件箱与未读条压到下半屏。 */
+  /** 页顶折叠条：默认展开——首屏直接露出前 2 条待答复；未读通知在条内做二级折叠。
+   *  主对象「我的待办」紧随其后，不被全部未读撑高。 */
   function _todoStripHtml(extraHtml, unreadHtml, count) {
     if (!extraHtml && !unreadHtml) return '';
     return `
@@ -470,7 +473,7 @@ export function createTodoTab(opts) {
         emptyHint,
       });
 
-      // 页顶折叠条：待答复收件箱 + 未读通知行合并为一条，默认收起（数据来自 P0 组合点记忆化结果）
+      // 页顶折叠条：待答复收件箱（默认露 2 条）+ 未读通知二级折叠（数据来自 P0 组合点记忆化结果）
       const extraHtml = typeof extraTopHtml === 'function' ? extraTopHtml(ctx) : extraTopHtml;
       const unreadHtml = unreadNotices.length > 0 ? _unreadRowsHtml(unreadNotices) : '';
       const stripHtml = _todoStripHtml(extraHtml, unreadHtml, stripCount);
@@ -508,7 +511,7 @@ export function createTodoTab(opts) {
       // 域折组折叠 / 组行选中 / 行动按钮 / 删除
       bindEvents(container);
 
-      // 页顶折叠条：记住展开态（默认收起；数据变化重建后不强行折叠回来）
+      // 页顶折叠条：记住折叠态（默认展开；数据变化重建后保留用户折叠）
       container.querySelector('.todo-strip')?.addEventListener('toggle', (e) => {
         _stripOpen = !!e.target.open;
       });

@@ -8,11 +8,13 @@
 
 
 
-import { accDarkParts } from '../../core/domain/constants.js?v=20261018i';
+import { accDarkParts } from '../../core/domain/constants.js?v=20261018k';
+
+import { icon } from '../../core/base/icons.js?v=20261018k';
 
 // R6 导航守卫（2026-09-03 P2a）：初始/目标 tab 决策收敛到纯函数 tab-nav.js（防「被支部隐藏后静默白屏」）
 
-import { resolveInitialTab, resolveTargetTab } from '../../core/boot/tab-nav.js?v=20261018i';
+import { resolveInitialTab, resolveTargetTab } from '../../core/boot/tab-nav.js?v=20261018k';
 
 
 
@@ -256,12 +258,18 @@ export function renderTabBar({ prefix, tabs, accentColor, defaultTab, extraRight
 
 
   // 单行 + 横向平滑滚动（2026-08-23 支书裁定：tab 数量增加禁止随机换行成 2 行）——
-
+  //
   // flex-nowrap 永不换行，overflow-x-auto 超宽时横向滑动；ws-tab-scroll 样式在 styles.css 统一维护
-
-  // （隐藏滚动条 + scroll-behavior:smooth + 溢出时两侧渐隐遮罩）。
-
-  const html = `<div class="ws-tab-scroll flex flex-nowrap gap-2 mb-4 overflow-x-auto"><div class="flex flex-nowrap gap-2 shrink-0" role="tablist" aria-label="工作台页签">${btnsHtml}</div>${extraHtml}</div><div id="${contentId}" role="tabpanel"></div>`;
+  //
+  // （隐藏滚动条 + scroll-behavior:smooth）。
+  //
+  // 2026-10-19 Spec「页签溢出可发现」：`.ws-tab-scroll` 外包定位容器 `.ws-tab-shell`，
+  //   左右箭头与右侧渐隐只在可滚时出现；tab 自身的尺寸/选中态/顺序/分组完全不动。
+  const html = `<div class="ws-tab-shell">
+    <button type="button" class="btn-outline btn-icon ws-tab-arrow ws-tab-arrow--left" data-tab-scroll-dir="-1" aria-label="向左滚动页签" hidden>${icon('chevronLeft', { className: 'w-4 h-4', extra: ' aria-hidden="true"' })}</button>
+    <div class="ws-tab-scroll flex flex-nowrap gap-2 mb-4 overflow-x-auto"><div class="flex flex-nowrap gap-2 shrink-0" role="tablist" aria-label="工作台页签">${btnsHtml}</div>${extraHtml}</div>
+    <button type="button" class="btn-outline btn-icon ws-tab-arrow ws-tab-arrow--right" data-tab-scroll-dir="1" aria-label="向右滚动页签" hidden>${icon('chevronRight', { className: 'w-4 h-4', extra: ' aria-hidden="true"' })}</button>
+  </div><div id="${contentId}" role="tabpanel"></div>`;
 
 
 
@@ -417,6 +425,44 @@ export function renderTabBar({ prefix, tabs, accentColor, defaultTab, extraRight
     if (panel) panel.setAttribute('aria-labelledby', `${prefix}-tab-${tabId}`);
   }
 
+  /**
+   * 页签溢出提示（2026-10-19）：左右箭头只在可滚时出现，右侧渐隐随滚动位置切换。
+   * 不改变 tab 尺寸 / 选中态 / 顺序；滚动步长 240px，平滑滚动。
+   */
+  function _bindTabScroll(container) {
+    const shell = container.querySelector('.ws-tab-shell');
+    if (!shell) return;
+    const scroller = shell.querySelector('.ws-tab-scroll');
+    const left = shell.querySelector('.ws-tab-arrow--left');
+    const right = shell.querySelector('.ws-tab-arrow--right');
+    if (!scroller || !left || !right) return;
+
+    const STEP = 240;
+    const sync = () => {
+      const max = Math.max(0, scroller.scrollWidth - scroller.clientWidth);
+      const x = scroller.scrollLeft;
+      const canScroll = max > 1;
+      const atStart = x <= 1;
+      const atEnd = x >= max - 1;
+      left.hidden = !canScroll || atStart;
+      right.hidden = !canScroll || atEnd;
+      shell.toggleAttribute('data-scrollable', canScroll);
+      shell.toggleAttribute('data-scroll-end', atEnd);
+    };
+    // resize 重算：容器被重渲染后自动解绑（避免每次 entry 重渲染累积 window 监听）
+    const onResize = () => {
+      if (!scroller.isConnected) { window.removeEventListener('resize', onResize); return; }
+      sync();
+    };
+
+    left.addEventListener('click', () => scroller.scrollBy({ left: -STEP, behavior: 'smooth' }));
+    right.addEventListener('click', () => scroller.scrollBy({ left: STEP, behavior: 'smooth' }));
+    scroller.addEventListener('scroll', sync, { passive: true });
+    window.addEventListener('resize', onResize);
+    sync();
+    requestAnimationFrame(sync);
+  }
+
   function bindEvents(container) {
     boundContainer = container;
     container.querySelectorAll(`.${btnClass}`).forEach(btn => {
@@ -461,6 +507,7 @@ export function renderTabBar({ prefix, tabs, accentColor, defaultTab, extraRight
         btns[next].focus();
       });
     }
+    _bindTabScroll(container);
   }
 
 

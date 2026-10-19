@@ -10,8 +10,8 @@
 //   · 检索条阈值 = components/ui/filter-bar.js（行数 > 8 才出现）。
 // 采用口径：首列 sticky 由调用方在 headHtml / rowHtml 的 className 中声明；
 //   末列动作由 rowHtml 提供；不得在调用方另写 <table> 或表头内边距。
-import { escHtml as esc } from '../../core/base/utils.js?v=20261018i';
-import { renderFilteredList } from './list-filter.js?v=20261018i';
+import { escHtml as esc } from '../../core/base/utils.js?v=20261018k';
+import { renderFilteredList } from './list-filter.js?v=20261018k';
 
 /**
  * 生成表头行。
@@ -41,16 +41,18 @@ export function tableHeadHtml(columns) {
  * @param {number} [cfg.pageSize] 每页条数（缺省 10；0 = 不分页）
  * @param {string} [cfg.emptyMessage] 空态文案
  * @param {string} [cfg.countUnit] 计数单位
+ * @param {boolean} [cfg.responsive] 窄屏卡式行（≤640px 时表体转「标签：值」卡片；缺省 false）
  * @returns {Object} renderFilteredList 的句柄（visible / state / apply / update）
  */
 export function renderDataTable(container, {
-  stateKey, rows, rowHtml, headHtml, colSpan, keyword, facets, pageSize, emptyMessage, countUnit,
+  stateKey, rows, rowHtml, headHtml, colSpan, keyword, facets, pageSize, emptyMessage, countUnit, responsive,
 } = {}) {
   const cfg = {
     rows: Array.isArray(rows) ? rows : [],
     rowHtml,
     table: { headHtml, colSpan: colSpan || 1 },
   };
+  if (responsive) cfg.table.responsive = true;
   if (stateKey) cfg.stateKey = stateKey;
   if (keyword) cfg.keyword = keyword;
   if (facets) cfg.facets = facets;

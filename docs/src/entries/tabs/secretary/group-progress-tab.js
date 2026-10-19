@@ -8,7 +8,7 @@
 //   ① 未分组归组条：ungroupedMembers() 非空时显示「未分组 N 人」，每人一个活组下拉（groupOptions()）
 //      + 「移出党小组」项（值 ''）——选定即 assignMemberToGroup(personId, 组名, {by, role})，行内逐个归组；
 //   ② 党小组清单（管理区）：组名 / 序号 / 组长（由 services/member/group-view.js::listPartyGroups 派生）/
-//      人数 / 党员数 / 状态 + 每行「改名」「解散」；「+ 新增党小组」走服务层默认名（第 N 党小组）；
+//      人数 / 党员数 / 状态 + 每行 1 主「设 / 改」+「更多（改名 / 解散）」；「+ 新增党小组」走服务层默认名（第 N 党小组）；
 //      解散允许非空组，确认弹窗写明「组内 N 人将转为「未分组」」；按钮显隐与写口校验同源
 //      （canManagePartyGroups(role)，单一源 core/domain/constants.js::SECRETARY_AND_DEPUTY_ROLES）；
 //      组级变更留痕（服务层 history）由 listGroupHistory() 折叠展示；
@@ -44,41 +44,41 @@
 //   ⚠ **只动渲染顺序 / 分层与落点**，不改任何功能、权限判定与写口——DOM ID 全保留，真机流程不失配。
 // ════════════════════════════════════════════════════════════════
 
-import { AuthStore } from '../../../services/core/auth.js?v=20261018i';
-import { PersonStore, getPersonName } from '../../../services/member/person.js?v=20261018i';
-import { getBranchIdOfPerson } from '../../../services/branch/branch.js?v=20261018i';
-import { IssueStore } from '../../../services/governance/issues.js?v=20261018i';
-import { loadActivities } from '../../../services/activity/activity.js?v=20261018i';
-import { loadActivityReviews } from '../../../services/governance/review.js?v=20261018i';
-import { loadAttendanceRecords } from '../../../services/activity/attendance.js?v=20261018i';
-import { AttendanceStatus, ReviewStatus, REVIEW_STATUS_LABELS } from '../../../core/domain/domain.js?v=20261018i';
-import { getMeetingRosterIds } from '../../../services/member/roster.js?v=20261018i';
-import { showToast, escHtml as esc, getBasePath, todayLocal } from '../../../core/base/utils.js?v=20261018i';
+import { AuthStore } from '../../../services/core/auth.js?v=20261018k';
+import { PersonStore, getPersonName } from '../../../services/member/person.js?v=20261018k';
+import { getBranchIdOfPerson } from '../../../services/branch/branch.js?v=20261018k';
+import { IssueStore } from '../../../services/governance/issues.js?v=20261018k';
+import { loadActivities } from '../../../services/activity/activity.js?v=20261018k';
+import { loadActivityReviews } from '../../../services/governance/review.js?v=20261018k';
+import { loadAttendanceRecords } from '../../../services/activity/attendance.js?v=20261018k';
+import { AttendanceStatus, ReviewStatus, REVIEW_STATUS_LABELS } from '../../../core/domain/domain.js?v=20261018k';
+import { getMeetingRosterIds } from '../../../services/member/roster.js?v=20261018k';
+import { showToast, escHtml as esc, getBasePath, todayLocal } from '../../../core/base/utils.js?v=20261018k';
 // 统一检索引擎（2026-09-13 表格统一化批次 A）：组员进展摘要（按人）接入关键词 + 分面
-import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261018i';
+import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261018k';
 // 活动类型胶囊（批次 301）：变体判据＝单一源 `activityTypeBadgeVariant`（三会一课＝brand 红 / 主题党日＝gold 金），
 //   渲染唯一源＝`components/ui/badge.js`；**不在本文件手写色值**（支书 2026-09-30：颜色是最好的信息展示方式）。
-import { activityTypeBadgeVariant } from '../../../core/domain/constants.js?v=20261018i';
-import { badgeHtml } from '../../../components/ui/badges.js?v=20261018i'; // 扎口出口（批次 304 收回，勿直连 badge.js）
-import { openModal, closeModal } from '../../../components/ui/modal.js?v=20261018i';
+import { activityTypeBadgeVariant } from '../../../core/domain/constants.js?v=20261018k';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20261018k'; // 扎口出口（批次 304 收回，勿直连 badge.js）
+import { openModal, closeModal } from '../../../components/ui/modal.js?v=20261018k';
 // 党小组一等实体服务层（组清单 / 写口 / 权限门 / 留痕——组名唯一来源，禁本文件手写组名数组）
 import {
   loadPartyGroups, groupOptions, defaultGroupName, nextGroupSeq,
   addGroup, renameGroup, dissolveGroup, assignMemberToGroup, ungroupedMembers,
   canManagePartyGroups, listGroupHistory,
-} from '../../../services/member/party-group.js?v=20261018i';
+} from '../../../services/member/party-group.js?v=20261018k';
 import {
   listPartyGroups, memberScopeOfGroup, countOpenReportsByGroup,
   groupActivitiesOf, reviewBucketOf, GROUP_REVIEW_COLOR, groupLeadershipOf,
   groupReportRowsOf, reportRowStateOf,
-} from '../../../services/member/group-view.js?v=20261018i';
+} from '../../../services/member/group-view.js?v=20261018k';
 // 赋权分块（2026-09-25 支书裁「全按对象归位」）：情景①a（设党小组组长 / 副组长）由本 tab「党小组清单」卡内
 //   行内管理（2026-10-04 批次 373 去冗余：撤独立「组长指派」块，改由清单行内「设/改」开同一面板）；
 //   **情景①b 支委身份配置已按 2026-09-27 支书裁定迁「支委会」**；**情景②③ 项目赋权整卡按 2026-10-04
 //   批次 373 迁「活动管理」页**（`calendar-tab.js`）。
 //   实现单一源＝entries/tabs/secretary/assign-tab.js（该文件已不注册为 tab，仅余 mount* 分块）
 //   ⇒ **不新造第二套视觉/表单**，只把既有分块挂到本 tab 的落点。
-import { mountLeaderAssign, openLeaderAssignPanel } from './assign-tab.js?v=20261018i';
+import { mountLeaderAssign, openLeaderAssignPanel } from './assign-tab.js?v=20261018k';
 
 /** 缺省支部（与 services/member/party-group.js / mock/domain 既有兼容口径一致：老数据无 branchId 视为 br-b1） */
 const DEFAULT_BRANCH_ID = 'br-b1';
@@ -232,7 +232,7 @@ function _manageCardHtml(entities, statOf, leaderAssign, canManage) {
         </div>
       </div>
       <div class="overflow-x-auto">
-        <table class="data-table">
+        <table class="data-table" data-responsive="cards">
           <thead>
             <tr>
               <th>党小组</th>
@@ -252,24 +252,29 @@ function _manageCardHtml(entities, statOf, leaderAssign, canManage) {
 
 function _manageRowHtml(g, stat, assign, canManage) {
   const active = g.status === 'active';
-  // 行内动作收敛为 1 强调次操作（设 / 改）＋ 1 次操作（改名）＋ 1 危险（解散）；
+  // 行内动作收敛为 1 主（设 / 改）＋ 1 个「更多」；改名 / 解散进菜单（2026-10-19 Task 7）。
   //   尺寸走紧凑档 `.btn-sm`，不再用 `text-xs px-* py-*` 手写尺寸。
   const actions = (canManage && active)
     ? `<div class="flex items-center gap-1.5">
         <button type="button" class="gp-assign-leader btn-accent-soft btn-sm" data-group="${esc(g.name)}" title="设 / 改本组组长或副组长">设 / 改</button>
-        <button type="button" class="gp-rename btn-outline btn-sm" data-id="${esc(g.id)}">改名</button>
-        <button type="button" class="gp-dissolve btn-danger btn-sm" data-id="${esc(g.id)}">解散</button>
+        <details class="row-more">
+          <summary class="btn-outline btn-sm">更多</summary>
+          <div class="row-more__menu" role="menu">
+            <button type="button" role="menuitem" class="gp-rename btn-outline btn-sm" data-id="${esc(g.id)}">改名</button>
+            <button type="button" role="menuitem" class="gp-dissolve btn-danger btn-sm" data-id="${esc(g.id)}">解散</button>
+          </div>
+        </details>
       </div>`
     : '<span class="text-gray-500">—</span>';
   const leaderCell = active ? _leaderCellHtml(g, assign, canManage) : '<span class="text-gray-500">—</span>';
   const headCount = stat ? `${stat.memberCount} 人 · 党员 ${stat.partyCount}` : '0 人 · 党员 0';
   return `
     <tr>
-      <td class="text-gray-800 font-medium whitespace-nowrap">${esc(g.name)}</td>
-      <td>${leaderCell}</td>
-      <td class="text-gray-600 tabular-nums whitespace-nowrap">${headCount}</td>
-      <td class="whitespace-nowrap"><span class="text-xs px-1.5 py-0.5 rounded-full ${active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}">${active ? '在册' : '已解散'}</span></td>
-      <td>${actions}</td>
+      <td data-label="党小组" class="text-gray-800 font-medium whitespace-nowrap">${esc(g.name)}</td>
+      <td data-label="负责人">${leaderCell}</td>
+      <td data-label="人数" class="text-gray-600 tabular-nums whitespace-nowrap">${headCount}</td>
+      <td data-label="状态" class="whitespace-nowrap"><span class="text-xs px-1.5 py-0.5 rounded-full ${active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}">${active ? '在册' : '已解散'}</span></td>
+      <td data-label="操作">${actions}</td>
     </tr>`;
 }
 
@@ -719,6 +724,11 @@ function _bindDelegated(container) {
   container.dataset.gpDelegated = '1';
 
   container.addEventListener('click', (e) => {
+    // 行尾「更多」（原生 details）：点击其它区域 / 菜单项时收起（2026-10-19 Task 7）
+    const clickedMore = e.target.closest('.row-more');
+    container.querySelectorAll('.row-more[open]').forEach(d => {
+      if (d !== clickedMore || e.target.closest('.row-more__menu')) d.removeAttribute('open');
+    });
     const retry = e.target.closest('.gp-reports-retry');
     if (retry) { _onReportsRetry(container); return; }
     const ask = e.target.closest('.gp-ask-leader');
@@ -743,6 +753,12 @@ function _bindDelegated(container) {
       _progressOpen = !_progressOpen;
       _renderAll(container);
     }
+  });
+
+  // Esc 收起行尾「更多」菜单（原生 details 不自行关闭）
+  container.addEventListener('keydown', (e) => {
+    if (e.key !== 'Escape') return;
+    container.querySelectorAll('.row-more[open]').forEach(d => d.removeAttribute('open'));
   });
 
   // 未分组行内下拉：选定即归组/移出（assignMemberToGroup 单一写口）

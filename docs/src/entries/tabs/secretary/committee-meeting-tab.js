@@ -10,20 +10,20 @@
 //   · 会议实体 = mockDB.activities（type==='支委会' 或 scenarioId==='branch-committee'）；
 //     应到人数 = services/activity/vote-config.js::resolveVoterIds('committee')（与本场应到名单同一口径）。
 //   · 表格 = components/ui/data-table.js（.data-table 单一源）；行内选人 = components/governance/pickers.js::PersonPicker。
-import { mockDB } from '../../../core/domain/domain.js?v=20261018i';
-import { AuthStore } from '../../../services/core/auth.js?v=20261018i';
-import { PersonStore, getPersonById } from '../../../services/member/person.js?v=20261018i';
+import { mockDB } from '../../../core/domain/domain.js?v=20261018k';
+import { AuthStore } from '../../../services/core/auth.js?v=20261018k';
+import { PersonStore, getPersonById } from '../../../services/member/person.js?v=20261018k';
 import {
   listBranchCommissioners,
   appointBranchCommissioner,
   revokeBranchCommissioner,
-} from '../../../services/branch/appointment.js?v=20261018i';
-import { ROLE_LABELS, BRANCH_COMMISSIONER_ASSIGNABLE_ROLES } from '../../../core/domain/constants.js?v=20261018i';
-import { resolveVoterIds } from '../../../services/activity/vote-config.js?v=20261018i';
-import { renderDataTable, tableHeadHtml } from '../../../components/ui/data-table.js?v=20261018i';
-import { PersonPicker } from '../../../components/governance/pickers.js?v=20261018i';
-import { getAppliedAccentColors } from '../../../core/boot/theme.js?v=20261018i';
-import { showToast, escHtml as esc } from '../../../core/base/utils.js?v=20261018i';
+} from '../../../services/branch/appointment.js?v=20261018k';
+import { ROLE_LABELS, BRANCH_COMMISSIONER_ASSIGNABLE_ROLES } from '../../../core/domain/constants.js?v=20261018k';
+import { resolveVoterIds } from '../../../services/activity/vote-config.js?v=20261018k';
+import { renderDataTable, tableHeadHtml } from '../../../components/ui/data-table.js?v=20261018k';
+import { PersonPicker } from '../../../components/governance/pickers.js?v=20261018k';
+import { getAppliedAccentColors } from '../../../core/boot/theme.js?v=20261018k';
+import { showToast, escHtml as esc } from '../../../core/base/utils.js?v=20261018k';
 
 /** 本支部 id（登录人归属；缺省 br-b1，与全仓同口径） */
 function branchId() {
@@ -69,24 +69,31 @@ function statusBadge(label, variant) {
   return `<span class="state-badge state-badge--${variant}">${esc(label)}</span>`;
 }
 
-/** 支委构成行：末列动作只在本行内展开选人面板，不再出现全局「选人 → 选身份 → 确认」表单 */
+/** 支委构成行：末列 1 主（改派 / 补选）+「更多（撤销）」，只在本行内展开选人面板，
+ *  不再出现全局「选人 → 选身份 → 确认」表单 */
 function rosterRowHtml(r) {
   const vacant = !r.name;
   const personCell = vacant ? '<span class="text-gray-400">空缺</span>' : esc(r.name);
   const statusCell = vacant ? statusBadge('空缺', 'warning') : statusBadge('在任', 'neutral');
   let action = '<span class="text-gray-400">党委配置</span>';
   if (r.editable && !vacant) {
+    // 1 主（改派）＋ 1 个「更多」；撤销进菜单（2026-10-19 Task 7）
     action = `<button type="button" class="btn-accent-soft btn-sm" data-cm-replace="${esc(r.role)}">改派</button>
-      <button type="button" class="btn-danger btn-sm" data-cm-revoke="${esc(r.role)}" data-person-id="${esc(r.personId)}">撤销</button>`;
+      <details class="row-more">
+        <summary class="btn-outline btn-sm">更多</summary>
+        <div class="row-more__menu" role="menu">
+          <button type="button" role="menuitem" class="btn-danger btn-sm" data-cm-revoke="${esc(r.role)}" data-person-id="${esc(r.personId)}">撤销</button>
+        </div>
+      </details>`;
   } else if (r.editable) {
     action = `<button type="button" class="btn-accent-soft btn-sm" data-cm-replace="${esc(r.role)}">补选</button>`;
   }
   return `<tr>
-    <td${vacant ? ' class="section-accent-left"' : ''}>${personCell}</td>
-    <td>${esc(r.label)}</td>
-    <td>${esc(r.source)}</td>
-    <td>${statusCell}</td>
-    <td data-cm-cell="${esc(r.role)}"><div class="flex items-center gap-2">${action}</div></td>
+    <td${vacant ? ' class="section-accent-left"' : ''} data-label="姓名">${personCell}</td>
+    <td data-label="身份">${esc(r.label)}</td>
+    <td data-label="来源">${esc(r.source)}</td>
+    <td data-label="状态">${statusCell}</td>
+    <td data-label="操作" data-cm-cell="${esc(r.role)}"><div class="flex items-center gap-2">${action}</div></td>
   </tr>`;
 }
 
@@ -127,11 +134,11 @@ function attendeeCount(act) {
 function meetingRowHtml(act) {
   const status = meetingStatus(act);
   return `<tr>
-    <td class="whitespace-nowrap">${esc(act.date || '—')}</td>
-    <td>${esc(act.title || '未命名会议')}</td>
-    <td>${statusBadge(status, MEETING_STATUS_VARIANT[status] || 'neutral')}</td>
-    <td>${attendeeCount(act)}</td>
-    <td><a href="./party-committee-meeting.html?id=${encodeURIComponent(act.id)}" class="btn-outline btn-sm" style="text-decoration:none;">进入 ›</a></td>
+    <td data-label="日期" class="whitespace-nowrap">${esc(act.date || '—')}</td>
+    <td data-label="议题">${esc(act.title || '未命名会议')}</td>
+    <td data-label="状态">${statusBadge(status, MEETING_STATUS_VARIANT[status] || 'neutral')}</td>
+    <td data-label="应到">${attendeeCount(act)}</td>
+    <td data-label="操作"><a href="./party-committee-meeting.html?id=${encodeURIComponent(act.id)}" class="btn-outline btn-sm" style="text-decoration:none;">进入 ›</a></td>
   </tr>`;
 }
 
@@ -193,6 +200,11 @@ function bindEvents(tc) {
   if (tc.dataset.cmBound === '1') return;
   tc.dataset.cmBound = '1';
   tc.addEventListener('click', async (e) => {
+    // 行尾「更多」（原生 details）：点击其它区域 / 菜单项时收起（2026-10-19 Task 7）
+    const clickedMore = e.target.closest('.row-more');
+    tc.querySelectorAll('.row-more[open]').forEach(d => {
+      if (d !== clickedMore || e.target.closest('.row-more__menu')) d.removeAttribute('open');
+    });
     const cancel = e.target.closest('[data-cm-cancel]');
     if (cancel) {
       destroyRowPicker();
@@ -208,6 +220,11 @@ function bindEvents(tc) {
     if (revoke) {
       await revokeSeat(revoke.dataset.cmRevoke, revoke.dataset.personId);
     }
+  });
+  // Esc 收起行尾「更多」菜单（原生 details 不自行关闭）
+  tc.addEventListener('keydown', (e) => {
+    if (e.key !== 'Escape') return;
+    tc.querySelectorAll('.row-more[open]').forEach(d => d.removeAttribute('open'));
   });
 }
 
@@ -246,6 +263,7 @@ export function renderContent() {
     ]),
     colSpan: 5,
     pageSize: 0,
+    responsive: true,
     emptyMessage: '暂无支委身份',
   });
 
@@ -258,6 +276,7 @@ export function renderContent() {
     ]),
     colSpan: 5,
     pageSize: 8,
+    responsive: true,
     emptyMessage: '暂无支委会会议',
   });
 }

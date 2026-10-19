@@ -63,12 +63,23 @@ test('F2 DESIGN_SYSTEM §10.6 10 个抽样页乱象登记齐备（4 已修 + 6 �
   }
 });
 
-test('F4 待办首屏：待答复与未读通知合并为默认收起的折叠条，主对象「我的待办」紧随其后', () => {
+test('F4 待办首屏：折叠条默认展开露 2 条待答复；未读通知二级折叠；「我的待办」紧随其后', () => {
   const src = readFileSync(join(ROOT, 'docs', 'src', 'components', 'record', 'todo-tab-shell.js'), 'utf8');
+  const inbox = readFileSync(join(ROOT, 'docs', 'src', 'components', 'record', 'report-inbox.js'), 'utf8');
   assert.match(src, /<details class="todo-strip[^"]*"/, '待办页顶应使用原生 details 折叠条');
-  assert.match(src, /\$\{_stripOpen \? ' open' : ''\}/, '折叠条默认收起，仅用户展开后才带 open');
+  assert.match(src, /let _stripOpen = true;/, '折叠条默认展开');
+  assert.match(src, /\$\{_stripOpen \? ' open' : ''\}/, '用户折叠后重建仍保留折叠态');
   assert.match(src, /待答复与未读通知/, '折叠条摘要应显示合并后的条名');
-  const detailsStart = src.indexOf('<details class="todo-strip');
+  // 未读通知：二级 details，默认不 open，摘要带条数
+  const unreadFn = sliceBetween(src, 'function _unreadRowsHtml', 'function _todoStripHtml');
+  assert.match(unreadFn, /<details[^>]*class="todo-strip__section[^"]*"/, '未读通知应为二级折叠');
+  assert.doesNotMatch(unreadFn, /<details[^>]*\bopen\b/, '未读通知二级折叠默认收起');
+  assert.match(unreadFn, /未读通知\s*<span[^>]*>\$\{notices\.length\}/, '未读折叠摘要应显示「未读通知 N」');
+  // 待答复：embedded 默认只露 2 条，其余经「查看全部待答复」展开
+  assert.match(inbox, /embeddedLimit\s*=\s*2/, 'embedded 模式默认限制 2 条待答复');
+  assert.match(inbox, /sorted\.slice\(0, limit\)|rows\.slice\(0, payload\.limit\)/, 'embedded 模式只渲染前 limit 条');
+  assert.match(inbox, /查看全部待答复/, '其余待答复经「查看全部待答复」展开');
+  const detailsStart = src.indexOf('<details class="todo-strip card');
   const detailsEnd = src.indexOf('</details>', detailsStart);
   const stripBody = src.slice(detailsStart, detailsEnd);
   assert.ok(stripBody.includes('${extraHtml}') && stripBody.includes('${unreadHtml}'),
@@ -76,7 +87,7 @@ test('F4 待办首屏：待答复与未读通知合并为默认收起的折叠�
   const stripInsert = src.indexOf('${stripHtml}');
   const mainObject = src.indexOf('>我的待办</h3>');
   assert.ok(stripInsert >= 0 && mainObject > stripInsert,
-    '首屏顺序：折叠条先于「我的待办」，收起时只占一行');
+    '首屏顺序：折叠条先于「我的待办」');
 });
 
 test('F5 党小组表恰 5 列，负责人单元格不再有第三行嵌套', () => {

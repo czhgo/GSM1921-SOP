@@ -4,27 +4,27 @@
 // 各区块渲染已拆至 components/dashboard/：stats（统计卡+考勤弹窗）/ activity-panel（活动日历+列表）/ taskforce-list / gallery。
 // 本文件仅保留：bootstrap、工作台链接修正、renderUI 调度、renderDashboard 组装+导航委托、数据变更即时刷新。
 
-import { BranchService } from '../../services/core/runtime.js?v=20261018i';
-import { STATE, setState, registerRenderCallback, getAppState } from '../../core/base/state.js?v=20261018i';
-import { NoticeStore } from '../../services/governance/notice.js?v=20261018i';
+import { BranchService } from '../../services/core/runtime.js?v=20261018k';
+import { STATE, setState, registerRenderCallback, getAppState } from '../../core/base/state.js?v=20261018k';
+import { NoticeStore } from '../../services/governance/notice.js?v=20261018k';
 // 视图层独立：renderNoticeList 属「通知视图层」（G1 第③项服务层不产 UI，2026-09-28 迁出）
-import { renderNoticeList } from '../../components/governance/notice-view.js?v=20261018i';
-import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261018i';
-import { getBasePath } from '../../core/base/utils.js?v=20261018i';
-import { loadAttendanceRecords, loadActiveAttendanceRecords } from '../../services/activity/attendance.js?v=20261018i';
-import { loadActivities } from '../../services/activity/activity.js?v=20261018i';
-import { CrossPageState } from '../../core/session/cross-page-state.js?v=20261018i';
-import { bootstrapPage } from '../../core/boot/bootstrap.js?v=20261018i';
-import { AuthStore } from '../../services/core/auth.js?v=20261018i';
-import { getHeaderTitle } from '../../services/branch/branch.js?v=20261018i';
-import { loadWorkspaceData } from '../../data/data-loader.js?v=20261018i';
-import { DATA_CHANGED_EVENT, probeRemoteChanges } from '../../data/data-adapter.js?v=20261018i';
-import '../../capabilities/activity-calendar.js?v=20261018i'; // 副作用导入：注册首页活动日历能力
+import { renderNoticeList } from '../../components/governance/notice-view.js?v=20261018k';
+import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261018k';
+import { getBasePath } from '../../core/base/utils.js?v=20261018k';
+import { loadAttendanceRecords, loadActiveAttendanceRecords } from '../../services/activity/attendance.js?v=20261018k';
+import { loadActivities } from '../../services/activity/activity.js?v=20261018k';
+import { CrossPageState } from '../../core/session/cross-page-state.js?v=20261018k';
+import { bootstrapPage } from '../../core/boot/bootstrap.js?v=20261018k';
+import { AuthStore } from '../../services/core/auth.js?v=20261018k';
+import { getHeaderTitle } from '../../services/branch/branch.js?v=20261018k';
+import { loadWorkspaceData } from '../../data/data-loader.js?v=20261018k';
+import { DATA_CHANGED_EVENT, probeRemoteChanges } from '../../data/data-adapter.js?v=20261018k';
+import '../../capabilities/activity-calendar.js?v=20261018k'; // 副作用导入：注册首页活动日历能力
 // ── 方案 B 入口拆分：dashboard 区块渲染模块 ──
-import { renderDashboardStats } from '../../components/dashboard/stats.js?v=20261018i';
-import { renderActivityList, renderActivityCalendar, initActivityTabs, getInitialActivityView } from '../../components/dashboard/activity-panel.js?v=20261018i';
-import { renderWorkgroupProgress } from '../../components/dashboard/taskforce-list.js?v=20261018i';
-import { renderGallery } from '../../components/dashboard/gallery.js?v=20261018i';
+import { renderDashboardStats } from '../../components/dashboard/stats.js?v=20261018k';
+import { renderActivityList, renderActivityCalendar, initActivityTabs, getInitialActivityView } from '../../components/dashboard/activity-panel.js?v=20261018k';
+import { renderWorkgroupProgress } from '../../components/dashboard/taskforce-list.js?v=20261018k';
+import { renderGallery } from '../../components/dashboard/gallery.js?v=20261018k';
 
 // ── 时序修复（2026-09-10「归属显示不一致」；正确先例 settings-entry.js:1236-1244）──
 // header 品牌标题经 getHeaderTitle 读 mockDB.branches，必须先完成 BranchService.loadDB()
@@ -55,13 +55,23 @@ if (heroTitleEl) {
 //   ⚠ **参数名用 `subview` 而非 `view`**：`view` 是**工作台壳的既有协议参数**（`view=activities` 表示
 //   「旧导航落点」，见 `components/shell/workspace-shell.js:512-522`，壳会**消费并清掉**它）——
 //   用 `view` 会被壳吃掉、承载页读不到。视图名由承载页自行消费（`visitor/activities-tab.js`）。
+// 2026-10-18 Spec Task 8：首页两个入口按**登录角色真实页签**落点，不再写死单台 id——
+//   锚点用 `data-ws-tab-<page>`（page = `secretary/org/prop/disc/leader/visitor/party-committee`）
+//   覆盖默认 `data-ws-tab`；解析后必定命中该台注册页签（守卫 test/ui-home-deeplink.test.mjs），
+//   因此不会静默清空 `?tab=` 回「今天」。`subview` 只在目标页签为成员台 `activities` 时附加。
 const wsLinks = document.querySelectorAll('a[href*="workspace/"]');
 if (user) {
   const wsPage = AuthStore.getPageForRole('workspace', user.role) || 'visitor.html';
   const wsBase = getBasePath() + 'workspace/' + wsPage;
+  const pageKey = wsPage.replace(/\.html$/, '');
+  // data-ws-tab-visitor → dataset.wsTabVisitor；data-ws-tab-party-committee → dataset.wsTabPartyCommittee
+  const pageSuffix = pageKey.replace(/(^|-)([a-z])/g, (_, _sep, ch) => ch.toUpperCase());
   wsLinks.forEach(a => {
-    const view = a.dataset.wsView ? `&subview=${encodeURIComponent(a.dataset.wsView)}` : '';
-    a.href = a.dataset.wsTab ? `${wsBase}?tab=${encodeURIComponent(a.dataset.wsTab)}${view}` : wsBase;
+    const tab = a.dataset[`wsTab${pageSuffix}`] || a.dataset.wsTab || '';
+    const view = a.dataset.wsView && tab === 'activities'
+      ? `&subview=${encodeURIComponent(a.dataset.wsView)}`
+      : '';
+    a.href = tab ? `${wsBase}?tab=${encodeURIComponent(tab)}${view}` : wsBase;
   });
 } else {
   wsLinks.forEach(a => { a.href = getBasePath() + 'login.html'; });

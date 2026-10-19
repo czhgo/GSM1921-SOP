@@ -8,13 +8,13 @@
 //  本组件禁用 SVG 图标（支书 2026-08-10 裁定），类别用色点+文字标签区分
 // ════════════════════════════════════════════════════════════════
 
-import { IssueStore, deriveIssueDisplayState, REPORT_CATEGORIES } from '../../services/governance/issues.js?v=20261018i';
-import { AuthStore } from '../../services/core/auth.js?v=20261018i';
-import { showToast, escHtml } from '../../core/base/utils.js?v=20261018i';
-import { getPersonName } from '../../services/member/person.js?v=20261018i';
-import { solidAccentStyle } from '../../core/domain/constants.js?v=20261018i';
+import { IssueStore, deriveIssueDisplayState, REPORT_CATEGORIES } from '../../services/governance/issues.js?v=20261018k';
+import { AuthStore } from '../../services/core/auth.js?v=20261018k';
+import { showToast, escHtml } from '../../core/base/utils.js?v=20261018k';
+import { getPersonName } from '../../services/member/person.js?v=20261018k';
+import { solidAccentStyle } from '../../core/domain/constants.js?v=20261018k';
 // 统一检索引擎（2026-09-14 批次 37）：待答复汇报列表接入（关键词 事项/汇报人 + 引擎内置分页）
-import { renderFilteredList } from '../ui/list-filter.js?v=20261018i';
+import { renderFilteredList } from '../ui/list-filter.js?v=20261018k';
 
 // ── E-3（2026-09-09 · H60.7 面板保态复查③）：列表瞬态草稿互扰兜底 ──────
 // 某行正式答复成功 → onAnswered → 调用方整块重渲染（支书待办/组长组员汇报），
@@ -30,7 +30,11 @@ const _rowUi = new Map(); // reportId → { open: boolean, draft: string }
 // 引擎行数据交接（2026-09-14 批次 37）：行由统一检索引擎渲染，而引擎须 DOM 就位后才可挂载
 //（render 出 HTML 串 → 调用方 innerHTML → bind 才拿到容器）。bind 侧调用方只传 role，拿不到 reports，
 // 故 render 按 role 暂存本轮「排序后行 + 强调色」，bind 取回后即挂载（同 role 不会同屏两份收件箱）。
-const _listPayload = new Map(); // role → { accent, rows }
+const _listPayload = new Map(); // role → { accent, rows, embedded, limit }
+
+// 2026-10-19 Task 3：embedded 模式「查看全部待答复」展开态（按 role 会话内保持；
+// 整块重渲染后仍展示全部，避免点开又被折叠回去）。
+const _embeddedExpanded = new Set();
 
 /** 派生状态 → 状态徽章档（颜色四问：状态用功能色淡底深字，不借用主题色） */
 const STATE_BADGE_VARIANT = {
@@ -52,6 +56,7 @@ const STATE_BADGE_VARIANT = {
  * @param {string} [opts.accent] — 强调色
  * @param {string} [opts.emptyMsg] — 空态文案
  * @param {boolean} [opts.embedded] — 嵌入折叠条时为 true：不画独立卡片与标题，只出检索宿主
+ * @param {number} [opts.embeddedLimit=2] — 仅 embedded 生效：首屏只露前 N 条待答复，其余经「查看全部待答复」展开
  * @returns {string}
  */
 export function renderReportInboxHtml({
@@ -62,6 +67,7 @@ export function renderReportInboxHtml({
   accent = '#B91C1C',
   emptyMsg = '暂无待答复汇报',
   embedded = false,
+  embeddedLimit = 2,
 } = {}) {
   // 2026-09-08 顶卡排布统一：空态并入统一形态（text-xs text-gray-500 py-1），
   // 保留绿色圆点「已全部答复」语义（不突兀：与相邻卡空态行同高，无底色整条）
@@ -72,6 +78,7 @@ export function renderReportInboxHtml({
 
   if (!reports.length) {
     _rowUi.clear(); // 无行可展示：清模块态，防陈旧草稿/展开态残留下次渲染
+    _embeddedExpanded.delete(role); // 无待答复：下次有汇报时回到默认「只露前 2 条」
     if (embedded) return ''; // 折叠条内无待答复 → 不占位（条内还有未读通知行）
     return `
       <div class="card rounded-xl p-4 mb-4">
@@ -102,13 +109,21 @@ export function renderReportInboxHtml({
 
   // 行内容迁至统一检索引擎（rowHtml 见 bindReportInbox——引擎须 DOM 就位后才可挂载）；
   // 本轮排序后行与强调色按 role 交接给 bind（行 HTML 原样保留，仅换承载）
-  _listPayload.set(role, { accent, rows: sorted });
+  _listPayload.set(role, { accent, rows: sorted, embedded, limit: Math.max(1, Number(embeddedLimit) || 2) });
 
   if (embedded) {
+    // 2026-10-19 Task 3：首屏只露前 embeddedLimit 条；其余经「查看全部待答复」展开。
+    const limit = Math.max(1, Number(embeddedLimit) || 2);
+    const visibleCount = _embeddedExpanded.has(role) ? sorted.length : Math.min(limit, sorted.length);
+    const hiddenCount = sorted.length - visibleCount;
     return `
       <div class="todo-strip__section">
         <p class="text-xs font-medium text-gray-500 pt-2 pb-1">待答复</p>
         <div id="rep-inbox-list-host"></div>
+        ${hiddenCount > 0 ? `
+          <div class="rep-inbox-more pt-1">
+            <button type="button" class="btn-outline btn-sm rep-inbox-show-all">查看全部待答复（${sorted.length}）</button>
+          </div>` : ''}
       </div>`;
   }
 
@@ -178,10 +193,12 @@ export function bindReportInbox(container, { role = 'secretary', onAnswered = ()
   // 故筛选/翻页后仍有效，且不随每次渲染叠加监听。
   const host = container.querySelector('#rep-inbox-list-host');
   const payload = host ? _listPayload.get(role) : null;
-  if (host && payload) {
+  /** 挂载/重绘列表（embedded 首屏按 limit 截取；「查看全部」时换全量行，同一引擎配置） */
+  const mountList = (rows) => {
+    if (!host) return;
     renderFilteredList(host, {
       stateKey: `report-inbox-${role}`,
-      rows: payload.rows,
+      rows,
       keyword: {
         keys: ['title', 'name'],
         placeholder: '搜索汇报事项 / 汇报人…',
@@ -225,7 +242,19 @@ export function bindReportInbox(container, { role = 'secretary', onAnswered = ()
       </div>`;
       },
     });
+  };
+  if (host && payload) {
+    const initialRows = (payload.embedded && !_embeddedExpanded.has(role))
+      ? payload.rows.slice(0, payload.limit)
+      : payload.rows;
+    mountList(initialRows);
   }
+  // 「查看全部待答复」：embedded 模式展开全量；会话内保持，整块重建后仍展示全部
+  container.querySelector('.rep-inbox-show-all')?.addEventListener('click', (e) => {
+    _embeddedExpanded.add(role);
+    if (payload) mountList(payload.rows);
+    e.currentTarget.closest('.rep-inbox-more')?.remove();
+  });
   // 展开/收起详情（展开态写入模块态 → 整块重渲染后仍保持）
   host?.addEventListener('click', (e) => {
     const toggle = e.target.closest('.rep-inbox-toggle');
