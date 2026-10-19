@@ -1,5 +1,5 @@
 /* 组件样式（@import 必须位于文件顶部） */
-@import url('components/person-picker.css?v=20261018q');
+@import url('components/person-picker.css?v=20261018r');
 
 /* ═══════════════════════════════════════════════════════════════
    GSM1921-SOP DESIGN SYSTEM v11.0 — Matte Flat
@@ -4490,10 +4490,11 @@ html.theme-dark .help-note__link { color: color-mix(in srgb, var(--functional-in
 /* ── 数据表视觉档（覆盖关系：以下选择器写在既有 .data-table 段之后；
       `.data-table thead th`（0,1,2）覆盖上方 `.data-table th`（0,1,1）的底色 / 字号 / 字重；
       `.data-table tbody td:first-child`（0,2,2）覆盖 `.data-table td`（0,1,1）的字号字重。
-      既有 hover / 空结果 / sticky 规则不动。 ── */
+      既有 hover / 空结果 / sticky 规则不动。
+      字号档（2026-10-19 支书裁定回退）：表头与首列同为 13px 单档；字重 / 颜色承担强调，不再改字号。 ── */
 .data-table thead th {
   background: var(--neutral-50);
-  font-size: var(--text-sm);
+  font-size: 0.8125rem;
   font-weight: 600;
   color: var(--neutral-600);
   padding: var(--space-2) var(--space-3);
@@ -4504,7 +4505,7 @@ html.theme-dark .help-note__link { color: color-mix(in srgb, var(--functional-in
   font-size: 0.8125rem;
 }
 .data-table tbody td:first-child {
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   font-weight: 500;
 }
 .data-table tbody tr {

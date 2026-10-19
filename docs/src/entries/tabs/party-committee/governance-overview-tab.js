@@ -1,10 +1,10 @@
 // Party governance home: show real work first, then organizational exceptions.
-import { mockDB } from '../../../core/domain/domain.js?v=20261018q';
-import { buildPartyOverviewModel } from '../../../core/domain/party-overview.js?v=20261018q';
-import { listReviewRequests } from '../../../services/governance/review-request.js?v=20261018q';
-import { getBranchById } from '../../../services/branch/branch.js?v=20261018q';
-import { escHtml as esc, fmtDt, getBasePath } from '../../../core/base/utils.js?v=20261018q';
-import { renderSectionHeader } from '../../../components/shell/page-frame.js?v=20261018q';
+import { mockDB } from '../../../core/domain/domain.js?v=20261018r';
+import { buildPartyOverviewModel } from '../../../core/domain/party-overview.js?v=20261018r';
+import { listReviewRequests } from '../../../services/governance/review-request.js?v=20261018r';
+import { getBranchById } from '../../../services/branch/branch.js?v=20261018r';
+import { escHtml as esc, fmtDt, getBasePath } from '../../../core/base/utils.js?v=20261018r';
+import { renderSectionHeader } from '../../../components/shell/page-frame.js?v=20261018r';
 
 const TYPE_LABELS = { 'develop-node': '发展节点', 'activity-report': '活动报备' };
 // 2026-10-18 繁专项（Top 7）：总览只预览待批复前 N 条，完整队列回「支部上报」页

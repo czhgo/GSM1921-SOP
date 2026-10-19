@@ -2747,3 +2747,35 @@ $body
 - S19 仍红：根 `README.md` 措辞与解析锚点不一致（「角色工作台页签」vs「逐枚页签」）；本批未改措辞。
 - U-01 判为确认缺口（服务层有写口、页面零消费、通知深链落空），建议 Round 2 落地；本批未改代码。
 - 未改后端 API / 数据模型 / 权限链；U-53 未实施；未写日常 `server/data.db`。
+
+## 批次 485（2026-10-19）：Round 2 最小三成本审查 ＋ P7/S1/S19 收口 ＋ U-01 闭环 ＋ 无障碍机检
+
+### 一、判据
+
+- 四轮程序：Round 1 修复批完成后启动 Round 2；lens＝`better-layout` / `better-accessibility` / `better-writing`。
+- 支书四项裁定：P7 回退 13px；S1 矩阵基线下调 2；U-01 完整闭环；Round 2 七台全量三 lens。
+- 支书执行纪律：不确定处集中呈报；需要做的事不拖；长远动作必须落盘。
+
+### 二、动作
+
+- **三路独立审查**：三个子代理各自只加载一个 skill、不互读报告，覆盖 7 台 + 关键公共页；产出 12 / 12 / 12 条发现，写入 `.ctx/AUDIT_ROUND2_MINIMUM_THREE_COSTS.md`（共识 5 条 / 分歧 3 条 / 归属表）。
+- **P7**：`styles.css` 表头与首列回退 13px（保留 600 / neutral-600 / 500）；新增 `table-type-scale-guard`；P7 判据未动。
+- **S1 / S19**：`page-sweep` 矩阵门槛 4 → 2（注释写实测与范围未缩水）；根 `README.md` 页签句对齐「逐枚页签（共 67 个）」。
+- **U-01**：支书台工作概况新增周期归档待审卡（通过 / 退回，退回走 `openModal` 填说明）；消费 `?highlight=` 定位高亮；`work-overview`「待我处理」并入待审计数（同源 `listPeriodicArchivesPendingReview`）。
+- **无障碍机检**：新增 `server/test/a11y-tree.test.mjs`（CDP Accessibility 树）：dialog 名称、焦点入正文、Esc 回还、专班/项目分工 `pressed`、会议活动 combobox、空态出口可聚焦。
+- **审计本批修**：P1「支部分工」`pageSize` 20→10；写入活动浮窗两处折叠改 `button aria-expanded`；看板卡 keydown 排除内层控件；浮窗关闭补 `aria-label`；矩阵行首 `th scope=row` + 分页 `nav/aria-current`；考勤队列复选框/下拉补对象名；详情缺对象补下一步；材料页第②步改「核对材料」并去内部话术；用户可见省略号统一「…」。
+- 版本戳 `20261018q` → `20261018r`；新增测试登记：`table-type-scale-guard` → `test:daily`，`a11y-tree` → `test:core`。
+
+### 三、读数
+
+- 静态 + a11y 组 **75/75 通过**（version-stamp 28、module-load E1 202/202、E2 15 页、E3/E4、round1 R1–R5、a11y A1–A6、table-type P7、doc-consistency S1–S21、button/spacing/text/import-path）。
+- page-sweep **16/16 通过**：P1/P2/P3/P7/S1/S2/S3/S19/S20/S21/S22/S23 全绿；`tab=67 · 列表=56（>10 行 19）· 矩阵=2 · 手写表格=9`。
+- U-01 真机 e2e PASS：待审卡出现、highlight 高亮、通过后状态 approved（本地 + 服务端）、「待我处理」33 → 32；退回 `reviewNote` 落库。
+- AX 读数：dialog「发布专班招募」；焦点 `INPUT#rf-name`；Esc 后焦点回 `#btn-publish-tf`；三视图 pressed true/false；会议活动 combobox name「会议活动 *」。
+
+### 四、边界
+
+- 三路分歧按原样保留：一页多筛选作用域、宽表卡式化、技术信息折叠——归 Round 3/4，不预写默认值。
+- 转 Round 3：L-A01/A02/A04/A05/A06/A07/A10/A11/A12、L-B01/B04/B07/B08/B10/B12、L-C02/C03/C04/C05/C06/C07/C08/C09。
+- 转 Round 4：L-A03/A08、L-B02、L-C11。
+- 未启动 Round 3/4；未改后端 API / 数据模型 / 权限链；未实施 U-53；未为 P7 改 DESIGN_SYSTEM 的 13px 单档契约。

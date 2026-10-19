@@ -12,39 +12,39 @@
 //   - 活动无上限 → 必须提供活动筛选（含时间区间）便于考察
 //   - 条目不得使用浅色底板（支书反感）→ 白底 + 左侧状态色条
 
-import { AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../../core/domain/domain.js?v=20261018q';
-import { generateId } from '../../../core/base/id.js?v=20261018q';
-import { attendanceToLong, loadAttendanceRecords, loadActiveAttendanceRecords, loadAttendanceRosterSnapshots, saveAttendanceRecords, canUploadAttendance, upsertMeetingAttendance, MEETING_ATTENDANCE_TYPES as MEETING_TYPES, ABSENCE_REASONS, absenceReasonLabel, absenceReasonNote, recorderRolesOf, listGroupMeetingAttendance, loadAttendanceAppeals, returnAttendanceAppeal, closeAttendanceAppeal, returnAttendanceRecord, summarizeAttendanceByActivity, isAttendanceHomePosition, freezeExpectedRosterForActivity } from '../../../services/activity/attendance.js?v=20261018q';
-import { buildAttendanceMatrixModel } from '../../../services/activity/attendance-matrix.js?v=20261018q';
-import { getPersonName } from '../../../services/member/person.js?v=20261018q';
+import { AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../../core/domain/domain.js?v=20261018r';
+import { generateId } from '../../../core/base/id.js?v=20261018r';
+import { attendanceToLong, loadAttendanceRecords, loadActiveAttendanceRecords, loadAttendanceRosterSnapshots, saveAttendanceRecords, canUploadAttendance, upsertMeetingAttendance, MEETING_ATTENDANCE_TYPES as MEETING_TYPES, ABSENCE_REASONS, absenceReasonLabel, absenceReasonNote, recorderRolesOf, listGroupMeetingAttendance, loadAttendanceAppeals, returnAttendanceAppeal, closeAttendanceAppeal, returnAttendanceRecord, summarizeAttendanceByActivity, isAttendanceHomePosition, freezeExpectedRosterForActivity } from '../../../services/activity/attendance.js?v=20261018r';
+import { buildAttendanceMatrixModel } from '../../../services/activity/attendance-matrix.js?v=20261018r';
+import { getPersonName } from '../../../services/member/person.js?v=20261018r';
 // S1–S4 滞留党员设计（2026-09-06 支书已批）：会议考勤「应到清点/全选范围」= 应到名单口径
 // （党员 正式+预备 且非滞留；滞留者「可见但禁用」、党课列席不计应到），不再全支部 50 人候选
 // 附录⑩ A批·S1（2026-09-06 支书裁定）：滞留线下到场可「到场补录」计入到席（实际应到=预应到 K + 补录 L）
-import { getMeetingRoster, getRosterStats, getMeetingRosterCandidates } from '../../../services/member/roster.js?v=20261018q';
-import { solidAccentStyle, ROLE_LABELS, isActivityArchived, isActivityLive } from '../../../core/domain/constants.js?v=20261018q';
-import { loadActivities } from '../../../services/activity/activity.js?v=20261018q';
+import { getMeetingRoster, getRosterStats, getMeetingRosterCandidates } from '../../../services/member/roster.js?v=20261018r';
+import { solidAccentStyle, ROLE_LABELS, isActivityArchived, isActivityLive } from '../../../core/domain/constants.js?v=20261018r';
+import { loadActivities } from '../../../services/activity/activity.js?v=20261018r';
 // SOP-B-2（D-288）：考勤候选默认选中「已通过报名者」——报名名单的来源单一源 = SignupStore
-import { getApprovedSignupPersonIds } from '../../../services/activity/signup.js?v=20261018q';
-import { autoGenerateMakeupTask } from '../../../services/activity/makeup.js?v=20261018q';
-import { TodoStore, TodoSourceType } from '../../../services/governance/todo.js?v=20261018q';
-import { NoticeStore } from '../../../services/governance/notice.js?v=20261018q';
-import { enhanceSelects } from '../../../components/ui/custom-select.js?v=20261018q';
-import { badgeHtml } from '../../../components/ui/badges.js?v=20261018q';
+import { getApprovedSignupPersonIds } from '../../../services/activity/signup.js?v=20261018r';
+import { autoGenerateMakeupTask } from '../../../services/activity/makeup.js?v=20261018r';
+import { TodoStore, TodoSourceType } from '../../../services/governance/todo.js?v=20261018r';
+import { NoticeStore } from '../../../services/governance/notice.js?v=20261018r';
+import { enhanceSelects } from '../../../components/ui/custom-select.js?v=20261018r';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20261018r';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是人的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
 // pagerHtml = 翻页控件单一源（批次 38：全站手写翻页一律并轨；叶子件，避免与矩阵相互成环）
-import { pagerHtml } from '../../../components/ui/pager.js?v=20261018q';
+import { pagerHtml } from '../../../components/ui/pager.js?v=20261018r';
 // 人×项目矩阵单一源（支书 2026-09-14 批次 35 裁定：宽表默认 + 矩阵推广）
-import { renderRelationMatrix } from '../../../components/ui/relation-matrix.js?v=20261018q';
-import { showToast, downloadCSV, triggerPrint, _fmtDate, escHtml as esc, getBasePath, flashHighlight } from '../../../core/base/utils.js?v=20261018q';
-import { DISC_COMMISSIONER_ID } from './_shared.js?v=20261018q';
-import { HandoffStore } from '../../../services/governance/handoff.js?v=20261018q';
-import { AuthStore } from '../../../services/core/auth.js?v=20261018q';
-import { PersonPicker } from '../../../components/governance/pickers.js?v=20261018q';
+import { renderRelationMatrix } from '../../../components/ui/relation-matrix.js?v=20261018r';
+import { showToast, downloadCSV, triggerPrint, _fmtDate, escHtml as esc, getBasePath, flashHighlight } from '../../../core/base/utils.js?v=20261018r';
+import { DISC_COMMISSIONER_ID } from './_shared.js?v=20261018r';
+import { HandoffStore } from '../../../services/governance/handoff.js?v=20261018r';
+import { AuthStore } from '../../../services/core/auth.js?v=20261018r';
+import { PersonPicker } from '../../../components/governance/pickers.js?v=20261018r';
 // 通用浮窗 + 「本位」nudge 确认弹窗（2026-09-23 支书裁定 · 单一源 = components/ui/modal.js）
 // U-04：申诉打回原用 `window.prompt`（无对话框语义、无焦点接管、移动端样式原生）→ 换本组件 openModal。
-import { confirmNudge, openModal, closeModal } from '../../../components/ui/modal.js?v=20261018q';
+import { confirmNudge, openModal, closeModal } from '../../../components/ui/modal.js?v=20261018r';
 // 「补课」分段整段复用原独立 tab 的渲染（2026-09-15 支书裁定：补课并入考勤管理，内部逻辑不改写）
-import { renderContent as renderMakeupContent } from './makeup-tab.js?v=20261018q';
+import { renderContent as renderMakeupContent } from './makeup-tab.js?v=20261018r';
 
 const PAGE_SIZE = 20; // 分页铁律：全量总表每页 20 条
 let _page = 1;        // 模块级分页状态（随模块自持）
@@ -560,9 +560,10 @@ function _buildQueueHTML(items, returnedRecs, leaveCount, absentCount, overdueCo
     const act = actById.get(r.activityId);
     const color = r.status === AttendanceStatus.ABSENT ? '#EF4444' : '#F59E0B';
     const checked = _queueChecked.has(r.id);
+    const rowStatusLabel = r.status === AttendanceStatus.ABSENT ? '缺勤' : '请假';
     return `
         <div class="flex items-center gap-3 py-2 rounded-xl hover:bg-gray-50 transition-colors cursor-pointer" data-att-record-row="${r.id}" title="点按整行勾选；矩阵中点按状态也回到这里">
-          <input type="checkbox" class="att-queue-check w-3.5 h-3.5 rounded shrink-0" data-record-id="${r.id}"${checked ? ' checked' : ''} aria-label="选择本条考勤">
+          <input type="checkbox" class="att-queue-check w-3.5 h-3.5 rounded shrink-0" data-record-id="${r.id}"${checked ? ' checked' : ''} aria-label="${esc(getPersonName(r.personId) || r.personId)} · ${esc(act?.title || '活动已下架')} · ${rowStatusLabel}">
           <span class="w-2 h-2 rounded-full flex-shrink-0" style="background:${color}"></span>
           <div class="flex-1 min-w-0">
             <div class="flex items-center gap-2">
@@ -1050,12 +1051,12 @@ function _renderDiscMeetStatusRows(selectedIds) {
         return `
         <div class="flex items-center gap-3 p-2 rounded-lg bg-white">
           <span class="text-sm font-medium text-gray-800 min-w-[60px]">${getPersonName(pid)}</span>
-          <select id="disc-meet-status-${pid}" class="input-flat">
+          <select id="disc-meet-status-${pid}" class="input-flat" aria-label="${esc(getPersonName(pid))} 出勤状态">
             ${options.map(o => `<option value="${o.value}" ${curStatus === o.value ? 'selected' : ''}>${o.label}</option>`).join('')}
           </select>
           <span class="reason-group-${pid} inline-flex items-center gap-1 ${showReason ? '' : 'hidden'}">
             <span class="text-[11px] text-gray-500 whitespace-nowrap">标因</span>
-            <select id="disc-meet-reason-${pid}" class="input-flat" title="未到标因（纪检认定：事假须提前 1 天申请 / 病假可事后补 / 无故 / 其它）">
+            <select id="disc-meet-reason-${pid}" class="input-flat" aria-label="${esc(getPersonName(pid))} 未到原因" title="未到标因（纪检认定：事假须提前 1 天申请 / 病假可事后补 / 无故 / 其它）">
               ${reasonOptions.map(x => `<option value="${x.key}" ${reasonValue === x.key ? 'selected' : ''}>${x.label}</option>`).join('')}
             </select>
             <span class="reason-note-${pid} text-[11px] text-gray-400 whitespace-nowrap" title="时效提示（不是校验，不拦提交）">${esc(absenceReasonNote(reasonValue))}</span>
@@ -1122,7 +1123,7 @@ function _buildMatrixCardHTML(ctx, matrixModel, filterActivityId, accent, accent
           <option value="">活动：全部</option>
           ${actOptions}
         </select>
-        <input type="text" id="att-mtx-search" class="input-flat text-xs lf-kw" placeholder="活动名筛选...">
+        <input type="text" id="att-mtx-search" class="input-flat text-xs lf-kw" placeholder="活动名筛选…">
         <input type="date" id="att-mtx-from" class="input-flat text-xs" title="时间区间：起始日期">
         <span class="text-xs text-gray-500 self-center">至</span>
         <input type="date" id="att-mtx-to" class="input-flat text-xs" title="时间区间：截止日期">
@@ -1235,7 +1236,7 @@ function _buildTableCardHTML(ctx, allRecords, longData, actById, filterActivityI
       <!-- U5b（2026-09-07）：搜索输入 + 状态下拉（enhanceSelects 后为 cs-trigger）统一 text-xs 紧凑档；
            2026-09-14 批次 27：载体收敛为 lf-bar/lf-kw/lf-select，控件统一 34px 高 / 12px 字 -->
       <div class="lf-bar mb-3">
-        <input type="text" id="att-table-search" class="input-flat text-xs lf-kw" placeholder="搜索姓名或活动...">
+        <input type="text" id="att-table-search" class="input-flat text-xs lf-kw" placeholder="搜索姓名或活动…">
         <select id="att-table-status" class="input-flat text-xs lf-select" aria-label="状态筛选">
           <option value="">状态：全部</option>
           ${Object.values(AttendanceStatus).map(s => `<option value="${s}">${ATTENDANCE_STATUS_LABELS[s]}</option>`).join('')}

@@ -67,7 +67,7 @@ test('R4 U-23 活动材料闭环：页面 / 入口 / 三步 / 复用既有写口
   assert.match(entry, /loadActivityReviews\(/, '材料清单须复用既有复盘读取');
   assert.match(entry, /mockDB\.imageRecords/, '宣传材料须复用既有 imageRecords');
   assert.match(entry, /① 材料清单/, '缺少第①步「材料清单」');
-  assert.match(entry, /② 上传\/核对/, '缺少第②步「上传/核对」');
+  assert.match(entry, /② 核对材料/, '缺少第②步「核对材料」');
   assert.match(entry, /③ 提交归档/, '缺少第③步「提交归档」');
   // 入口：活动详情 + 支书台 + 组织台
   assert.match(read('docs/src/entries/pages/activity-entry.js'), /activity-materials\.html\?id=/, '活动详情缺少材料闭环入口');

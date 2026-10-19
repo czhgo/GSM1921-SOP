@@ -16,31 +16,31 @@
 //  本页禁用 SVG 图标（支书 2026-08-10 裁定），类别用色点 + 文字区分。
 // ════════════════════════════════════════════════════════════════
 
-import { showToast, flashHighlight, todayLocal, escHtml as esc } from '../../core/base/utils.js?v=20261018q';
-import { listRowHtml, listGroupHtml } from '../ui/list-row.js?v=20261018q';
-import { tableHeadHtml } from '../ui/data-table.js?v=20261018q';
-import { emptyStateHtml } from '../ui/empty-state.js?v=20261018q';
-import { renderTabHeader } from '../shell/page-frame.js?v=20261018q';
+import { showToast, flashHighlight, todayLocal, escHtml as esc } from '../../core/base/utils.js?v=20261018r';
+import { listRowHtml, listGroupHtml } from '../ui/list-row.js?v=20261018r';
+import { tableHeadHtml } from '../ui/data-table.js?v=20261018r';
+import { emptyStateHtml } from '../ui/empty-state.js?v=20261018r';
+import { renderTabHeader } from '../shell/page-frame.js?v=20261018r';
 import {
   TodoStore, seedTodos, isTodoExpired, WORK_DOMAIN, WORK_DOMAIN_LABELS,
-} from '../../services/governance/todo.js?v=20261018q';
-import { IssueStore } from '../../services/governance/issues.js?v=20261018q';
+} from '../../services/governance/todo.js?v=20261018r';
+import { IssueStore } from '../../services/governance/issues.js?v=20261018r';
 import {
   isActivityEnded, isActivityArchived, ROLE_LABELS,
-} from '../../core/domain/constants.js?v=20261018q';
-import { loadActivities } from '../../services/activity/activity.js?v=20261018q';
-import { filterActivitiesForViewer, resolveVisibleTargets } from '../../services/core/visibility.js?v=20261018q';
-import { loadActiveAttendanceRecords } from '../../services/activity/attendance.js?v=20261018q';
-import { loadInspectionRecords, getOverdueRecords } from '../../services/activity/inspection.js?v=20261018q';
-import { loadMakeupTasks } from '../../services/activity/makeup.js?v=20261018q';
-import { loadActiveActivityReviews, loadTaskforceReviews } from '../../services/governance/review.js?v=20261018q';
-import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261018q';
-import { listPendingByReceiver, confirmExternalDispatch } from '../../services/activity/external-dispatch.js?v=20261018q';
-import { getPersonName } from '../../services/member/person.js?v=20261018q';
-import { loadMemberProgress, REPORT_KIND } from '../../services/member/member-progress.js?v=20261018q';
-import { AttendanceStatus, ReviewStatus, mockDB } from '../../core/domain/domain.js?v=20261018q';
-import { PROP_TASKS_SEED } from '../../data/mock/prop.js?v=20261018q';
-import { getBranchIdOfPerson, getBranchWorkforce } from '../../services/branch/branch.js?v=20261018q';
+} from '../../core/domain/constants.js?v=20261018r';
+import { loadActivities } from '../../services/activity/activity.js?v=20261018r';
+import { filterActivitiesForViewer, resolveVisibleTargets } from '../../services/core/visibility.js?v=20261018r';
+import { loadActiveAttendanceRecords } from '../../services/activity/attendance.js?v=20261018r';
+import { loadInspectionRecords, getOverdueRecords } from '../../services/activity/inspection.js?v=20261018r';
+import { loadMakeupTasks } from '../../services/activity/makeup.js?v=20261018r';
+import { loadActiveActivityReviews, loadTaskforceReviews } from '../../services/governance/review.js?v=20261018r';
+import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261018r';
+import { listPendingByReceiver, confirmExternalDispatch } from '../../services/activity/external-dispatch.js?v=20261018r';
+import { getPersonName } from '../../services/member/person.js?v=20261018r';
+import { loadMemberProgress, REPORT_KIND } from '../../services/member/member-progress.js?v=20261018r';
+import { AttendanceStatus, ReviewStatus, mockDB } from '../../core/domain/domain.js?v=20261018r';
+import { PROP_TASKS_SEED } from '../../data/mock/prop.js?v=20261018r';
+import { getBranchIdOfPerson, getBranchWorkforce } from '../../services/branch/branch.js?v=20261018r';
 
 // 在办下钻详情目标（支书 2026-08-10 裁定：概况「在办」可下钻到活动/专班只读详情）
 let _woDetail = null; // { kind: 'activity' | 'taskforce', id } | null
@@ -385,15 +385,16 @@ export async function renderWorkOverview(container, opts) {
   }
 }
 
-async function _renderOverviewContent(container, { role, personId, accent = '#B91C1C', prefix = '' }) {
+async function _renderOverviewContent(container, { role, personId, accent = '#B91C1C', prefix = '', extraSections = [] }) {
   await IssueStore.loadAll();
   seedTodos();
   TodoStore.refreshExpiredStatus();
   const today = todayLocal();
+  const rerenderOpts = { role, personId, accent, prefix, extraSections };
 
   // 在办下钻模式（支书 2026-08-10 裁定）：活动/专班只读详情，返回按钮回概况
   if (_woDetail) {
-    await _renderOverviewDetail(container, _woDetail, accent, () => renderWorkOverview(container, { role, personId, accent, prefix }));
+    await _renderOverviewDetail(container, _woDetail, accent, () => renderWorkOverview(container, rerenderOpts));
     return;
   }
 
@@ -508,9 +509,16 @@ async function _renderOverviewContent(container, { role, personId, accent = '#B9
         </div>
         ${actionRows.length ? listGroupHtml(actionRows) : emptyStateHtml(_metricFilter === 'overdue' ? '暂无逾期待办' : '暂无待我处理事项')}
       </section>
+
+      ${extraSections.map((section) => section?.html || '').join('')}
     </div>`;
 
-  _bindWorkOverviewEvents(container, role, personId, prefix, () => renderWorkOverview(container, { role, personId, accent, prefix }));
+  // 页面层附加区块（U-01 支书台「周期归档待审核」由 overview-tab 提供）：只负责落位与挂载
+  extraSections.forEach((section) => {
+    try { section?.mount?.(container); } catch (error) { console.warn('[work-overview] 附加区块挂载失败：', error); }
+  });
+
+  _bindWorkOverviewEvents(container, role, personId, prefix, () => renderWorkOverview(container, rerenderOpts));
 }
 
 /** 组装六台共用上下文（只读现有服务，不新增数据源） */
@@ -535,11 +543,16 @@ async function _buildContext(role, personId, today, config) {
 
   // 支书：概况维度 + 实时派生组（与待办页同源）
   if (role === 'secretary') {
-    const secretary = await import('../../services/governance/secretary-overview.js?v=20261018q');
+    const secretary = await import('../../services/governance/secretary-overview.js?v=20261018r');
     const realtime = secretary.SecretaryTodoDeriver.computeAggregates();
     const seen = new Set(ctx.todoGroups.map((group) => group.groupKey));
     ctx.todoGroups = [...ctx.todoGroups, ...realtime.filter((group) => !seen.has(group.groupKey))];
     ctx.overview = secretary.SecretaryOverviewStore.getOverview();
+    // U-01：「待我处理」并入周期归档待审数。口径单一源 =
+    //   services/governance/secretary-overview.js::listPeriodicArchivesPendingReview
+    //   （同一函数亦供 overview-tab 的「周期归档待审核」卡；本处只取待审计数/明细，不另立判据）。
+    //   角色门沿用本分支（支书/副支书共用 secretary 工作台）。
+    ctx.periodicArchivesPending = secretary.listPeriodicArchivesPendingReview();
   }
 
   const visibleActivities = filterActivitiesForViewer(loadActivities(), role).filter((activity) =>
@@ -680,6 +693,24 @@ function _buildActionItems(ctx, config) {
     });
   });
 
+  // 周期归档待审核（U-01）：并入「待我处理」计数与列表；点击滚到 overview-tab 的待审卡目标行。
+  //   单一源 = secretary-overview.js::listPeriodicArchivesPendingReview（见 _buildContext 注释）。
+  (ctx.periodicArchivesPending || []).forEach((report) => {
+    const label = report.archivePolicySnapshot?.periodLabel
+      || report.periodLabel || report.week || '未命名期次';
+    const submitter = getPersonName(report.submittedBy) || report.submittedBy || '提交人';
+    items.push({
+      kind: 'periodic-archive',
+      title: `周期归档待审核 · ${label}`,
+      reason: _gap('待审核', '宣传', `${submitter} 提交`, report.submittedAt ? `提交 ${String(report.submittedAt).slice(0, 10)}` : ''),
+      overdue: false,
+      deadline: '',
+      actionLabel: '去审核',
+      attrs: `data-wo-jump="periodic-archive" data-pa-id="${esc(report.id)}"`,
+      lineKey: 'prop',
+    });
+  });
+
   (ctx.dispatches || []).forEach((dispatch) => {
     items.push({
       kind: 'dispatch',
@@ -777,6 +808,7 @@ function _priorityOf(item) {
   if (item.kind === 'dispatch') return 1;
   if (item.kind === 'report') return 2;
   if (item.kind === 'gap') return 3;
+  if (item.kind === 'periodic-archive') return 3;
   return 4;
 }
 
@@ -836,6 +868,14 @@ function _bindWorkOverviewEvents(container, role, personId, prefix, rerender) {
       } else if (kind === 'taskforce') {
         _woDetail = { kind: 'taskforce', id: btn.dataset.tfId };
         rerender();
+      } else if (kind === 'periodic-archive') {
+        // U-01：滚到页面层待审卡的目标行（卡片由支书 overview-tab 提供）
+        const row = [...container.querySelectorAll('[data-periodic-archive-id]')]
+          .find((el) => el.dataset.periodicArchiveId === btn.dataset.paId);
+        if (row) {
+          row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          flashHighlight(row);
+        }
       }
     });
   });
@@ -846,7 +886,7 @@ function _bindWorkOverviewEvents(container, role, personId, prefix, rerender) {
       const tab = btn.dataset.woGotoTab;
       if (btn.dataset.woSegment === 'makeup') {
         try {
-          const module = await import('../../entries/tabs/disc/attendance-tab.js?v=20261018q');
+          const module = await import('../../entries/tabs/disc/attendance-tab.js?v=20261018r');
           module.focusSegment?.('makeup');
         } catch (_) { /* 分段记忆失败时仍进考勤页 */ }
       }
@@ -894,10 +934,10 @@ async function _renderOverviewDetail(container, detail, accent, onBack) {
   const host = container.querySelector('#wo-detail-host');
   if (!host) return;
   if (detail.kind === 'activity') {
-    const { renderActivityView } = await import('../record/activity-view.js?v=20261018q');
+    const { renderActivityView } = await import('../record/activity-view.js?v=20261018r');
     renderActivityView(host, { highlightId: detail.id, accent });
   } else {
-    const { renderTaskforceView } = await import('../record/taskforce-view.js?v=20261018q');
+    const { renderTaskforceView } = await import('../record/taskforce-view.js?v=20261018r');
     renderTaskforceView(host, { highlightId: detail.id });
   }
 }

@@ -5,28 +5,28 @@
 //   活动结束后的材料收口此前散在「活动详情（追加复盘）+ 宣传台档案归档 + 纪检/组织台考勤考察」，
 //   没有任何一屏能回答「这一场还差什么 / 交给谁 / 到哪一步」。本页是**单场活动的材料闭环承载面**：
 //     ① 材料清单 —— 宣传材料（照片）/ 考勤 / 考察 / 复盘 逐类计数与缺口；
-//     ② 上传/核对 —— 每类链到既有上传/核对位（不新造上传器、不新增数据源）；
+//     ② 核对材料 —— 每类链到既有上传/核对位（不新造上传器、不新增数据源）；
 //     ③ 提交归档 —— 复用 `BranchService.archiveActivity`（软归档 + 级联完成本场任务）。
 //
 // 单一源纪律：
 //   · 材料读取：`mockDB.imageRecords` / `loadAttendanceRecords` / `mockDB.inspections` / `loadActivityReviews`；
 //   · 归档写口：`services/core/mock.js::archiveActivity`（经 BranchService 暴露，与宣传台 / 支书台同源）；
 //   · 空态：`components/ui/empty-state.js`；浮窗：`components/ui/modal.js`；版本戳：`core/base/version-token.js`。
-import { renderSidebar } from '../../components/shell/sidebar.js?v=20261018q';
-import { renderHeader } from '../../components/shell/header.js?v=20261018q';
-import { BranchService } from '../../services/core/runtime.js?v=20261018q';
-import { mockDB, ReviewStatus } from '../../core/domain/domain.js?v=20261018q';
-import { loadAttendanceRecords } from '../../services/activity/attendance.js?v=20261018q';
-import { loadActivityReviews } from '../../services/governance/review.js?v=20261018q';
-import { AuthStore } from '../../services/core/auth.js?v=20261018q';
-import { isActivityArchived } from '../../core/domain/constants.js?v=20261018q';
-import { getBasePath, escHtml as esc, showToast } from '../../core/base/utils.js?v=20261018q';
-import { emptyStateHtml } from '../../components/ui/empty-state.js?v=20261018q';
-import { openModal, closeModal } from '../../components/ui/modal.js?v=20261018q';
-import { bumpToken } from '../../core/base/version-token.js?v=20261018q';
-import { hydrateDataSource, notifyDataLoaded } from '../../data/data-adapter.js?v=20261018q';
-import { ApiAdapter } from '../../data/api-adapter.js?v=20261018q';
-import { settleWrites } from '../../core/session/pending-writes.js?v=20261018q';
+import { renderSidebar } from '../../components/shell/sidebar.js?v=20261018r';
+import { renderHeader } from '../../components/shell/header.js?v=20261018r';
+import { BranchService } from '../../services/core/runtime.js?v=20261018r';
+import { mockDB, ReviewStatus } from '../../core/domain/domain.js?v=20261018r';
+import { loadAttendanceRecords } from '../../services/activity/attendance.js?v=20261018r';
+import { loadActivityReviews } from '../../services/governance/review.js?v=20261018r';
+import { AuthStore } from '../../services/core/auth.js?v=20261018r';
+import { isActivityArchived } from '../../core/domain/constants.js?v=20261018r';
+import { getBasePath, escHtml as esc, showToast } from '../../core/base/utils.js?v=20261018r';
+import { emptyStateHtml } from '../../components/ui/empty-state.js?v=20261018r';
+import { openModal, closeModal } from '../../components/ui/modal.js?v=20261018r';
+import { bumpToken } from '../../core/base/version-token.js?v=20261018r';
+import { hydrateDataSource, notifyDataLoaded } from '../../data/data-adapter.js?v=20261018r';
+import { ApiAdapter } from '../../data/api-adapter.js?v=20261018r';
+import { settleWrites } from '../../core/session/pending-writes.js?v=20261018r';
 
 renderSidebar('dashboard');
 renderHeader('dashboard');
@@ -94,8 +94,8 @@ function render() {
   rootEl.innerHTML = `
     <div class="mb-5 pb-5 border-b border-gray-100">
       <div class="flex items-center gap-2.5 mb-2 flex-wrap">
-        <span class="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">材料闭环</span>
-        <span class="text-xs text-gray-500">${esc(act.id)}</span>
+        <span class="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">活动材料与归档</span>
+        <span class="text-xs text-gray-500">活动编号：${esc(act.id)}</span>
         ${archived ? '<span class="text-xs px-2 py-0.5 rounded-full bg-green-50 text-green-700">已归档</span>' : ''}
       </div>
       <h2 class="font-title-cn text-xl font-bold text-gray-800 leading-snug">${esc(act.title || '未命名活动')}</h2>
@@ -132,9 +132,9 @@ function render() {
     </section>
 
     <section class="mt-6" aria-labelledby="materials-check-title">
-      <h3 id="materials-check-title" class="text-sm font-semibold text-gray-800 mb-2">② 上传/核对</h3>
+      <h3 id="materials-check-title" class="text-sm font-semibold text-gray-800 mb-2">② 核对材料</h3>
       <div class="rounded-xl border border-gray-100 bg-gray-50/60 px-4 py-3 text-xs text-gray-600 leading-6">
-        本页只做<b>收口核对</b>，上传仍走各自本位：宣传材料 → 宣传台「档案归档」；考勤 → 纪检台「考勤管理」；
+        本页集中<b>核对材料</b>，上传仍走各自本位：宣传材料 → 宣传台「档案归档」；考勤 → 纪检台「考勤管理」；
         考察 → 纪检台「考察管理」；复盘 → 成员台「我的复盘」。三类核心材料（宣传材料 / 考勤 / 考察）齐全后即可提交归档；
         归档后仍可在宣传台补交材料。
       </div>
@@ -151,7 +151,7 @@ function render() {
           <p class="text-xs text-gray-600 mt-1">归档记录 ${archiveRecords.length} 条（宣传台材料归档）；补交材料仍走宣传台。</p>
         </div>` : `
         <div class="rounded-xl border border-gray-100 px-4 py-3">
-          <p class="text-xs text-gray-600 leading-6">提交归档＝活动软归档（退出工作区），并级联完成本场未完成任务。归档后仍可在宣传台补交材料。</p>
+          <p class="text-xs text-gray-600 leading-6">提交归档后，活动移出工作区，仍可查阅和补交材料；并级联完成本场未完成任务。</p>
           ${_archiveError ? `<p class="mt-2 text-xs text-red-700" role="alert">归档失败：${esc(_archiveError)}</p>` : ''}
           <div class="mt-3 flex items-center gap-2">
             ${canArchive
@@ -170,7 +170,7 @@ function render() {
 function _stepperHtml(archived, coreReady, hasAnyMaterial) {
   const steps = [
     { n: '①', label: '材料清单', state: hasAnyMaterial ? 'done' : 'current' },
-    { n: '②', label: '上传/核对', state: coreReady ? 'done' : (hasAnyMaterial ? 'current' : 'pending') },
+    { n: '②', label: '核对材料', state: coreReady ? 'done' : (hasAnyMaterial ? 'current' : 'pending') },
     { n: '③', label: '提交归档', state: archived ? 'done' : (coreReady ? 'current' : 'pending') },
   ];
   const cls = {
@@ -220,7 +220,7 @@ function _confirmArchive(act, materials) {
     ${missing
       ? `<p class="text-xs text-amber-700 leading-6">以下核心材料仍缺：<b>${esc(missing)}</b>。归档后仍可在宣传台补交材料。</p>`
       : '<p class="text-xs text-green-700 leading-6">核心材料已齐（宣传材料 / 考勤 / 考察）。</p>'}
-    <p class="text-xs text-gray-600 leading-6 mt-2">提交归档＝活动软归档（退出工作区），并级联完成本场未完成任务。该动作留痕于活动主源。</p>
+    <p class="text-xs text-gray-600 leading-6 mt-2">提交归档后，活动移出工作区，仍可查阅和补交材料；并级联完成本场未完成任务。该动作留痕于活动主源。</p>
     <div class="flex justify-end gap-2 mt-4">
       <button type="button" data-materials-cancel class="btn-outline" style="cursor:pointer;">取消</button>
       <button type="button" data-materials-confirm class="btn-accent" style="cursor:pointer;">${missing ? '仍要归档' : '确认归档'}</button>
