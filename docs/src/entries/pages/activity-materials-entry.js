@@ -1,0 +1,258 @@
+// role: [工程师]+[AI]
+// activity-materials-entry.js — 活动材料闭环（U-23 · 单场活动）
+//
+// 为什么要有这一页（2026-10-19 Round 1 修复）：
+//   活动结束后的材料收口此前散在「活动详情（追加复盘）+ 宣传台档案归档 + 纪检/组织台考勤考察」，
+//   没有任何一屏能回答「这一场还差什么 / 交给谁 / 到哪一步」。本页是**单场活动的材料闭环承载面**：
+//     ① 材料清单 —— 宣传材料（照片）/ 考勤 / 考察 / 复盘 逐类计数与缺口；
+//     ② 上传/核对 —— 每类链到既有上传/核对位（不新造上传器、不新增数据源）；
+//     ③ 提交归档 —— 复用 `BranchService.archiveActivity`（软归档 + 级联完成本场任务）。
+//
+// 单一源纪律：
+//   · 材料读取：`mockDB.imageRecords` / `loadAttendanceRecords` / `mockDB.inspections` / `loadActivityReviews`；
+//   · 归档写口：`services/core/mock.js::archiveActivity`（经 BranchService 暴露，与宣传台 / 支书台同源）；
+//   · 空态：`components/ui/empty-state.js`；浮窗：`components/ui/modal.js`；版本戳：`core/base/version-token.js`。
+import { renderSidebar } from '../../components/shell/sidebar.js?v=20261018q';
+import { renderHeader } from '../../components/shell/header.js?v=20261018q';
+import { BranchService } from '../../services/core/runtime.js?v=20261018q';
+import { mockDB, ReviewStatus } from '../../core/domain/domain.js?v=20261018q';
+import { loadAttendanceRecords } from '../../services/activity/attendance.js?v=20261018q';
+import { loadActivityReviews } from '../../services/governance/review.js?v=20261018q';
+import { AuthStore } from '../../services/core/auth.js?v=20261018q';
+import { isActivityArchived } from '../../core/domain/constants.js?v=20261018q';
+import { getBasePath, escHtml as esc, showToast } from '../../core/base/utils.js?v=20261018q';
+import { emptyStateHtml } from '../../components/ui/empty-state.js?v=20261018q';
+import { openModal, closeModal } from '../../components/ui/modal.js?v=20261018q';
+import { bumpToken } from '../../core/base/version-token.js?v=20261018q';
+import { hydrateDataSource, notifyDataLoaded } from '../../data/data-adapter.js?v=20261018q';
+import { ApiAdapter } from '../../data/api-adapter.js?v=20261018q';
+import { settleWrites } from '../../core/session/pending-writes.js?v=20261018q';
+
+renderSidebar('dashboard');
+renderHeader('dashboard');
+
+const rootEl = document.getElementById('materials-root');
+const backBtn = document.getElementById('materials-back-btn');
+const params = new URLSearchParams(window.location.search);
+const activityId = params.get('id') || '';
+
+// 返回：有活动 id 回活动详情；否则回上一页 / 首页（与 activity.html 同一体例）
+backBtn?.addEventListener('click', () => {
+  if (activityId) { window.location.href = getBasePath() + `activity.html?id=${encodeURIComponent(activityId)}`; return; }
+  if (window.history.length > 1) window.history.back();
+  else window.location.href = getBasePath() + 'index.html';
+});
+
+/** 归档失败原因（局部重渲染时保留，供「重试」旁展示） */
+let _archiveError = '';
+
+(async () => {
+  const r = await hydrateDataSource({ apiAdapter: ApiAdapter, loadMock: () => BranchService.loadDB() });
+  notifyDataLoaded();
+  if (!r.ok) return; // 错误态由共享实现渲染
+  render();
+})();
+
+function _renderMessage(message, actionHtml = '') {
+  if (!rootEl) return;
+  rootEl.innerHTML = emptyStateHtml(message, { actionHtml });
+}
+
+function render() {
+  if (!rootEl) return;
+  if (!activityId) {
+    _renderMessage('未指定活动', `<a class="btn-outline text-xs px-3 py-1.5" href="${getBasePath()}index.html">回首页</a>`);
+    return;
+  }
+  const me = AuthStore.getCurrentUser();
+  if (!me) {
+    _renderMessage('材料闭环需登录后办理', `<a class="btn-outline text-xs px-3 py-1.5" href="${getBasePath()}login.html">去登录</a>`);
+    return;
+  }
+  const act = mockDB.activities.find(a => a.id === activityId);
+  if (!act) {
+    _renderMessage('活动不存在或尚未公开', `<a class="btn-outline text-xs px-3 py-1.5" href="${getBasePath()}index.html">回首页</a>`);
+    return;
+  }
+
+  // ── 材料读取（全部复用既有数据源，不新造表 / 不新增 API）──
+  const photos = (mockDB.imageRecords || []).filter(r => r.activityId === activityId && !r.voided);
+  const attendance = loadAttendanceRecords().filter(r => r.activityId === activityId);
+  const inspections = (mockDB.inspections || []).filter(r => r.activityId === activityId);
+  const reviews = loadActivityReviews().filter(r => r.activityId === activityId);
+  const archiveRecords = (mockDB.archiveRecords || []).filter(r => r.activityId === activityId);
+  const reviewReturned = reviews.some(r => r.reviewStatus === ReviewStatus.REJECTED);
+
+  const archived = isActivityArchived(act);
+  const coreReady = photos.length > 0 && attendance.length > 0 && inspections.length > 0;
+  const hasAnyMaterial = photos.length + attendance.length + inspections.length + reviews.length > 0;
+
+  // 归档动作的放行：支委层（含宣传 / 组织 / 纪检）或本场组织者。
+  // 说明：mock 写口本身不设门，本页按既有台面口径只对本位人 / 支委层呈现动作，避免"人人可归档"的假入口。
+  const canArchive = !!me && (AuthStore.isCommissioner(me.role) || act.organizer === me.personId);
+
+  rootEl.innerHTML = `
+    <div class="mb-5 pb-5 border-b border-gray-100">
+      <div class="flex items-center gap-2.5 mb-2 flex-wrap">
+        <span class="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">材料闭环</span>
+        <span class="text-xs text-gray-500">${esc(act.id)}</span>
+        ${archived ? '<span class="text-xs px-2 py-0.5 rounded-full bg-green-50 text-green-700">已归档</span>' : ''}
+      </div>
+      <h2 class="font-title-cn text-xl font-bold text-gray-800 leading-snug">${esc(act.title || '未命名活动')}</h2>
+      <p class="text-sm text-gray-500 mt-1">${esc(act.date || '—')}${act.location ? ' · ' + esc(act.location) : ''}</p>
+      <div class="mt-3 flex items-center gap-3">
+        <a class="text-xs text-sky-700 hover:underline" href="${getBasePath()}activity.html?id=${encodeURIComponent(activityId)}">查看活动详情 →</a>
+        <a class="text-xs text-gray-500 hover:underline" href="${getBasePath()}workspace/prop.html?tab=archive">宣传台 · 档案归档 →</a>
+      </div>
+    </div>
+
+    ${_stepperHtml(archived, coreReady, hasAnyMaterial)}
+
+    <section class="mt-6" aria-labelledby="materials-list-title">
+      <div class="flex items-center justify-between mb-2">
+        <h3 id="materials-list-title" class="text-sm font-semibold text-gray-800">① 材料清单</h3>
+        <span class="text-xs text-gray-500">${hasAnyMaterial ? '按类核对，缺项直接去补充' : ''}</span>
+      </div>
+      ${hasAnyMaterial ? `
+        <div class="space-y-2">
+          ${_materialRowHtml({ label: '宣传材料（照片）', count: photos.length, unit: '张', hint: '原图为主，含全景 + 特写', href: `${getBasePath()}workspace/prop.html?tab=archive` })}
+          ${_materialRowHtml({ label: '考勤', count: attendance.length, unit: '条', hint: '按会议类型由组织者 / 纪检上传', href: `${getBasePath()}workspace/disc.html?tab=attendance` })}
+          ${_materialRowHtml({ label: '考察', count: inspections.length, unit: '条', hint: '考察记录由该场组织者提交、纪检确认', href: `${getBasePath()}workspace/disc.html?tab=inspection` })}
+          ${_materialRowHtml({
+            label: '复盘',
+            count: reviews.length,
+            unit: '份',
+            hint: reviewReturned ? '复盘被退回，需组织者更新后重新提交' : '组织者提交；支委会可额外要求',
+            href: `${getBasePath()}workspace/visitor.html?tab=review`,
+            extra: reviewReturned ? '<span class="text-[11px] text-red-700">已退回</span>' : '',
+          })}
+        </div>` : emptyStateHtml('暂无材料', {
+          actionHtml: `<a class="btn-outline text-xs px-3 py-1.5" href="${getBasePath()}workspace/prop.html?tab=archive">去上传材料</a>`,
+        })}
+    </section>
+
+    <section class="mt-6" aria-labelledby="materials-check-title">
+      <h3 id="materials-check-title" class="text-sm font-semibold text-gray-800 mb-2">② 上传/核对</h3>
+      <div class="rounded-xl border border-gray-100 bg-gray-50/60 px-4 py-3 text-xs text-gray-600 leading-6">
+        本页只做<b>收口核对</b>，上传仍走各自本位：宣传材料 → 宣传台「档案归档」；考勤 → 纪检台「考勤管理」；
+        考察 → 纪检台「考察管理」；复盘 → 成员台「我的复盘」。三类核心材料（宣传材料 / 考勤 / 考察）齐全后即可提交归档；
+        归档后仍可在宣传台补交材料。
+      </div>
+      <div class="mt-2 text-xs ${coreReady ? 'text-green-700' : 'text-amber-700'}">
+        ${coreReady ? '核心材料已齐（宣传材料 / 考勤 / 考察）。' : `核心材料待补：${_missingText({ photos, attendance, inspections })}`}
+      </div>
+    </section>
+
+    <section class="mt-6" aria-labelledby="materials-archive-title">
+      <h3 id="materials-archive-title" class="text-sm font-semibold text-gray-800 mb-2">③ 提交归档</h3>
+      ${archived ? `
+        <div class="rounded-xl border border-green-100 bg-green-50/60 px-4 py-3">
+          <p class="text-sm text-green-800">本场已归档。</p>
+          <p class="text-xs text-gray-600 mt-1">归档记录 ${archiveRecords.length} 条（宣传台材料归档）；补交材料仍走宣传台。</p>
+        </div>` : `
+        <div class="rounded-xl border border-gray-100 px-4 py-3">
+          <p class="text-xs text-gray-600 leading-6">提交归档＝活动软归档（退出工作区），并级联完成本场未完成任务。归档后仍可在宣传台补交材料。</p>
+          ${_archiveError ? `<p class="mt-2 text-xs text-red-700" role="alert">归档失败：${esc(_archiveError)}</p>` : ''}
+          <div class="mt-3 flex items-center gap-2">
+            ${canArchive
+              ? `<button type="button" id="materials-archive-btn" class="btn-accent" style="cursor:pointer;">${_archiveError ? '重试归档' : '提交归档'}</button>`
+              : '<span class="text-xs text-gray-500">归档由支委会或本场组织者提交。</span>'}
+            <span class="text-xs text-gray-500">归档记录 ${archiveRecords.length} 条</span>
+          </div>
+        </div>`}
+    </section>
+  `;
+
+  document.getElementById('materials-archive-btn')?.addEventListener('click', () => _confirmArchive(act, { photos, attendance, inspections }));
+}
+
+/** 三步条（完成态 / 当前 / 待办） */
+function _stepperHtml(archived, coreReady, hasAnyMaterial) {
+  const steps = [
+    { n: '①', label: '材料清单', state: hasAnyMaterial ? 'done' : 'current' },
+    { n: '②', label: '上传/核对', state: coreReady ? 'done' : (hasAnyMaterial ? 'current' : 'pending') },
+    { n: '③', label: '提交归档', state: archived ? 'done' : (coreReady ? 'current' : 'pending') },
+  ];
+  const cls = {
+    done: 'bg-green-50 border-green-200 text-green-800',
+    current: 'bg-[var(--app-accent-bg)] border-[var(--app-accent)] text-gray-800',
+    pending: 'bg-white border-neutral-200 text-gray-500',
+  };
+  return `
+    <ol class="grid grid-cols-3 gap-2" aria-label="材料闭环步骤">
+      ${steps.map(s => `
+        <li class="rounded-xl border px-3 py-2 ${cls[s.state]}"${s.state === 'current' ? ' aria-current="step"' : ''}>
+          <div class="text-xs font-semibold">${s.n} ${s.label}</div>
+          <div class="text-[11px] mt-0.5">${s.state === 'done' ? '已完成' : s.state === 'current' ? '进行中' : '待开始'}</div>
+        </li>`).join('')}
+    </ol>`;
+}
+
+/** 单类材料行（计数 + 状态 + 去补充） */
+function _materialRowHtml({ label, count, unit, hint, href, extra = '' }) {
+  const ready = count > 0;
+  return `
+    <div class="flex items-center justify-between gap-3 rounded-xl border border-gray-100 px-4 py-3">
+      <div class="min-w-0">
+        <div class="flex items-center gap-2">
+          <span class="text-sm font-medium text-gray-800">${esc(label)}</span>
+          <span class="text-xs px-1.5 py-0.5 rounded-full ${ready ? 'bg-green-50 text-green-700' : 'bg-amber-50 text-amber-700'}">${ready ? `已收 ${count} ${unit}` : '待补'}</span>
+          ${extra}
+        </div>
+        <p class="text-xs text-gray-500 mt-0.5">${esc(hint)}</p>
+      </div>
+      <a class="btn-outline text-xs px-3 py-1.5 flex-shrink-0" href="${href}">${ready ? '去核对' : '去补充'}</a>
+    </div>`;
+}
+
+function _missingText({ photos, attendance, inspections }) {
+  const missing = [];
+  if (photos.length === 0) missing.push('宣传材料');
+  if (attendance.length === 0) missing.push('考勤');
+  if (inspections.length === 0) missing.push('考察');
+  return missing.join(' / ');
+}
+
+/** 提交归档确认浮窗：材料未齐时给软提示（不阻断——与「先归档、后补材料」的既有口径一致） */
+function _confirmArchive(act, materials) {
+  const missing = _missingText(materials);
+  const bodyHtml = `
+    ${missing
+      ? `<p class="text-xs text-amber-700 leading-6">以下核心材料仍缺：<b>${esc(missing)}</b>。归档后仍可在宣传台补交材料。</p>`
+      : '<p class="text-xs text-green-700 leading-6">核心材料已齐（宣传材料 / 考勤 / 考察）。</p>'}
+    <p class="text-xs text-gray-600 leading-6 mt-2">提交归档＝活动软归档（退出工作区），并级联完成本场未完成任务。该动作留痕于活动主源。</p>
+    <div class="flex justify-end gap-2 mt-4">
+      <button type="button" data-materials-cancel class="btn-outline" style="cursor:pointer;">取消</button>
+      <button type="button" data-materials-confirm class="btn-accent" style="cursor:pointer;">${missing ? '仍要归档' : '确认归档'}</button>
+    </div>`;
+  openModal({
+    id: 'materials-archive-confirm',
+    title: '提交归档',
+    width: '460px',
+    bodyHtml,
+    onMount: (panel) => {
+      panel.querySelector('[data-materials-cancel]')?.addEventListener('click', () => closeModal('materials-archive-confirm'));
+      panel.querySelector('[data-materials-confirm]')?.addEventListener('click', () => {
+        closeModal('materials-archive-confirm');
+        void _archiveActivity(act.id);
+      });
+    },
+  });
+}
+
+async function _archiveActivity(id) {
+  const btn = document.getElementById('materials-archive-btn');
+  if (btn) { btn.disabled = true; btn.textContent = '归档中…'; }
+  _archiveError = '';
+  try {
+    await BranchService.archiveActivity(id);
+    bumpToken('archiveRecord');
+    try { await settleWrites(); } catch (e) { console.warn('[activity-materials] 落库未结算，仍以本地结果刷新：', e); }
+    showToast('success', '活动已归档（材料可在宣传台继续补交）');
+    render();
+  } catch (err) {
+    _archiveError = (err && err.message) || String(err);
+    render();
+    showToast('error', `归档失败：${_archiveError}`);
+  }
+}

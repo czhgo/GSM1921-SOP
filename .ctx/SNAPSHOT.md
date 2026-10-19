@@ -2,13 +2,13 @@
 title: "系统快照"
 type: snapshot
 role: "[AI]"
-last_updated: "2026-10-18"
+last_updated: "2026-10-19"
 status: "ACTIVE"
-date: "2026-10-18"
-version: "v59"
+date: "2026-10-19"
+version: "v60"
 ---
 
-# System Snapshot — v59
+# System Snapshot — v60
 
 > 当前活跃基线。历史快照见 `.ctx/snapshots/`。
 
@@ -28,7 +28,7 @@ GSM1921-SOP/
 ├── LICENSE / CONTRIBUTING.md   ← 开源 License + 贡献指南（**2026-09-28 批次 236 新增 §六「发版（语义化 release）」**）
 ├── CHANGELOG.md                ← 变更日志（Keep a Changelog 体例；**只记「对使用者可见的变更」**——逐批沿革归 `.ctx/logs/**`；起点＝首次语义化发版 `0.1.0` 2026-09-28、不回溯补记）
 ├── CLAUDE.md                   ← 上下文入口（甲部 H10-H100 约束力三层 + H60 提问准则 + 乙部执行 + 丙部待决策）
-├── docs/                       ← 前端代码层（根 HTML + workspace/ 工作台 + ESM 模块化源码；页面实测 25=17 根+8 工作台/只读视图，清单见 §III，以 docs/ 实况为准）
+├── docs/                       ← 前端代码层（根 HTML + workspace/ 工作台 + ESM 模块化源码；页面实测 26=18 根+8 工作台/只读视图，清单见 §III，以 docs/ 实况为准）
 │   ├── index.html              ← 主页入口（通知/招募/日历/待办四组件）
 │   ├── notice.html             ← 通知独立页（含「党委下发」红标）
 │   ├── about.html              ← 支部的故事
@@ -122,7 +122,7 @@ GSM1921-SOP/
 | `content/03_doc_system/ARCHITECTURE.md` | ✅ | 《架构与单一事实源》（分层架构 + 仓库结构 + 数据模型 + 变更流水线 ＋ **§十 母本注册表 / 同步触发矩阵** ＋ **§十一 统一服务目录（服务清单 + 角色权限矩阵）**；**2026-09-25 批次 179 三份合一**：原 `SSOT_INDEX.md` / `SERVICE_CATALOG.md` 两份并入本文件并删除） |
 | `content/02_institution/SYSTEM_ROLE_PERMISSION.md` | ✅ | 系统角色权限矩阵（角色键全表 §9a0 + 权限矩阵/赋权链，代码键级权威） |
 
-### 前端页面（HTML 实测 25 个：17 根 + 8 工作台/只读视图；以 docs/ 实况为准——清单以 `docs/*.html` 与 `docs/workspace/*.html` 实测为准）
+### 前端页面（HTML 实测 26 个：18 根 + 8 工作台/只读视图；以 docs/ 实况为准——清单以 `docs/*.html` 与 `docs/workspace/*.html` 实测为准）
 
 | 页面 | 类型 | 说明 |
 |------|------|------|
@@ -136,6 +136,7 @@ GSM1921-SOP/
 | `search.html` | 独立 | 资料查询（支部文件唯一上传入口） |
 | `feedback.html` | 独立 | 意见反馈 |
 | `activity.html` | 公共页 | 活动/专班详情（议程区+表决端+通知直达锚点） |
+| `activity-materials.html` | 公共页 | 活动材料闭环（单场活动：材料清单 → 上传/核对 → 提交归档；复用 imageRecords / 考勤 / 考察 / 复盘与 archiveActivity） |
 | `party-committee-meeting.html` | 公共页 | 支委会会议页（线上召开：选线上召开 / 提取议程（专班报送·意见反馈）/ 委员线上表态 / 支书汇总截止（votesLocked）/ 留存并查阅讨论结果；仅支委可进，批次 105 / D-526） |
 | `taskforce.html` | 公共页 | 专班详情 |
 | `wizard.html` | 公共页 | 换组织向导（支书限本支部/党委任意/他角色无权限卡） |

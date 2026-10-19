@@ -316,6 +316,76 @@ Chromium 已可用（`server/node_modules/playwright` 在位，Chromium 148.0.77
 
 U-01 待查：「周期归档·支书待审核」是否还有页面入口，以及「待我处理」是否应含周报待审。在调查完成前，不把 U-01 记为缺陷，也不记为已结项。
 
+### 6.4 证据门结论（2026-10-19 · Round 1 修复批执行）
+
+> 口径：本节只写归因与证据，**未改代码、未放宽守卫**。P7 的修法留待后续批次裁定。
+
+#### U-01 周期归档·支书待审核：入口确已断裂
+
+- **服务层有写口、无消费面**：`docs/src/services/governance/secretary-overview.js:425-452` 导出
+  `listPeriodicArchivesPendingReview` / `reviewPeriodicArchive`（含旧名别名），但全仓 `docs/src/**` **零消费**
+  （`rg` 仅命中定义处；`entries/tabs/secretary/overview-tab.js` 无 `periodic|weekly|highlight` 任何命中）。
+- **通知落点是死深链**：`docs/src/core/domain/system-notice-templates.js:27-33` 把
+  `periodic-archive-submitted` 指向 `workspace/secretary.html?tab=overview&highlight=<id>`；目标页
+  不消费 `highlight`，也不渲染待审卡片 ⇒ 支书点通知只能到「工作概况」，看不到待审条目。
+- **「待我处理」不含周报待审**：`docs/src/components/governance/work-overview.js` 的指标口径无
+  `periodicArchives` 读源（该文件与 `overview-tab.js` 均无周期归档命中）。
+- **结论**：U-01 从「待核」改判 **确认缺口（入口断裂）**，但属**交互/信息结构**而非视觉批次；
+  建议归 **Round 2（最小三成本）**：在支书台「工作概况」补待审卡 + 消费 `highlight`，
+  并把「周报待审」并入「待我处理」计数（与 `PERIODIC_ARCHIVE_REVIEW_STATUS.PENDING` 同源）。
+  本批不动代码。
+
+#### U-06 / U-22-P7 表档：有意新增的视觉档，与 13px 单档契约冲突
+
+- **唯一根因（P7 实测复现）**：`docs/src/styles.css:4490-4508`「数据表视觉档」（2026-10-18
+  「静雅公文」Task 1）在既有 `.data-table` 段之后覆盖：
+  - `.data-table thead th { font-size: var(--text-sm) }`；`:root` 的 `--text-sm = 0.75rem` ⇒ **12px**；
+  - `.data-table tbody td:first-child { font-size: 0.875rem }` ⇒ **14px**。
+- **P7 实测**：`page-sweep` 的 `支部管理` 表逐格报 `TH 12px`（支部 / 状态 / 成员 / 在册党员 / 组织提醒 / 操作）
+  与首列 `TD 14px`（「光华管理学院本科生党支部…」），其余数据格 13px——与上述两条规则一一对应。
+- **契约侧**：`DESIGN_SYSTEM.md §4.2`（表头与数据格 13px）与 `§4.3 ⑦`（表格正文与筛选器/表单同档 13px）
+  仍写 13px；P7 判据 `cellPx=13` 未变。
+- **归因**：**有意的视觉档新增 + 口径未同步**（不是 Tailwind 越界、不是环境差异）。
+  它把「表头当 Caption、首列当强调」的设计意图，落在了全站所有 `.data-table` 上；
+  但文档契约与 P7 都仍按 13px 单档执行。
+- **建议（未执行）**：保留字重 600 / 颜色 `--neutral-600` 的强调，把两处字号回退 13px；
+  **不建议**把 §4.2/§4.3 改成 12/14——那会把所有数据表头降为标签档，与「表格正文单档」的既有裁定相反。
+  在裁定前 P7 保持红灯，不视为页面缺陷。
+
+#### U-22-S1 矩阵样本：基线过期，不是运行时缩水
+
+- **实测**：2026-10-19 全量普查 `tab=67 · 引擎列表=56（>10 行 19）· 矩阵=2 · 手写表格=9`；
+  S1 仅「矩阵 ≥ 4」不达标，其余三项均过线。
+- **归因**：基线的 4 来自旧信息结构（矩阵曾直接出现在默认视图）。2026-10 的「单一轴」整并后：
+  考勤矩阵移入「数据查看」分段、专班报名矩阵移入「报名总表」二级视图、部分矩阵随台账条件渲染 ⇒
+  **默认视图只剩 2 个**。P2 仍有 2 个矩阵可判（非空转），但 `SWEEP.matrices >= 4` 已与现状不符。
+- **建议（未执行）**：Round 2 决定「下调基线到实测 2（写明范围未缩水）」或「把分段/二级视图矩阵
+  计入载体样本」；本批不放宽守卫。
+
+#### U-22-S19 台账对账：README 措辞漂移导致解析失效
+
+- **报错**：`README.md 未解析到「各工作台逐枚页签（共 N 个）」`。
+- **实测**：`README.md:162` 现写「**角色工作台页签**（共 67 个）见其 §3.2」；S19 的锚定正则要求
+  `逐枚页签**（共 N 个）`。同一事实、两种措辞 ⇒ **解析失效**，不是页签数量不符
+  （README-server §3.2 七台计数与真机 67 一致）。
+- **建议（未执行）**：Round 2 二选一——把 README 句改回含「逐枚页签」的写法，或把 S19 正则改成
+  与现措辞同义（前者更小）。本批不改，保留红灯以提示口径未收口。
+
+#### U-10 平板量测：页签溢出可发现，无页面级横向溢出
+
+- **方法**：临时 Playwright 脚本（`.tmp/viewport-audit.mjs`，不入仓）起内存服务 + 真机 Chromium，
+  七个工作台按 768×1024 / 1024×768 登录量测；**不静音 Tailwind**（page-sweep S2 已登记：
+  静音 Tailwind 会让页签条失去 `flex-nowrap / overflow-x-auto`，量测即失真）。
+- **结果（14 组，全部 `pageOverflowX=false`）**：
+  - 768：6 台页签条可滚（`scrollWidth` 1003–1279 vs `clientWidth` 704），右箭头可见、左箭头在起点隐藏；
+    党委台 5 枚页签不滚（704=704）。
+  - 1024：同样 6 台可滚（`scrollWidth` 1003–1279 vs `clientWidth` 960）；党委台不滚（960=960）。
+  - 末枚页签在未滚动时超出容器（`lastClipped=true`）——这正是「末尾露出半个 tab」的可发现提示；
+    右箭头亦同时可见。
+- **结论**：U-10 未发现新缺陷；既有「页签溢出可发现」实现（2026-10-19）在 768/1024 两档均生效。
+- **落盘**：`.ctx/evidence/2026-10-19/u10-viewport-metrics.json` ＋ `u10-768-*.png` / `u10-1024-*.png`
+  （14 张截图）；page-sweep 原始日志 `u22-page-sweep.log`。
+
 ## 七、Round 1 修复 spec 输入
 
 ### 7.1 实施项
@@ -335,4 +405,4 @@ U-01 待查：「周期归档·支书待审核」是否还有页面入口，以�
 
 ### 7.3 边界
 
-本批只写 spec，不实施。U-53 仍留 Round 4，不进入本批 spec。三路分歧未在本批裁定，按第五节记录原样保留。
+本批 spec 已落盘；2026-10-19 已按 spec 开工并落地 U-04 / U-05 / U-09 / U-23 / U-35（见 `.ctx/logs/2026-10-EXECUTION_LOG.md`）。U-53 仍留 Round 4，不进入本批 spec。三路分歧未在本批裁定，按第五节记录原样保留。

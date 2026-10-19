@@ -33,7 +33,11 @@ const _FOCUSABLE = 'a[href],button,input,select,textarea,[tabindex]:not([tabinde
  * 再没有就把 panel 自身设为 tabindex="-1" 后聚焦（此时至少要读得到标题）。
  */
 function _focusInto(panel) {
-  const target = panel.querySelector(`.modal-body ${_FOCUSABLE}`) || panel.querySelector(_FOCUSABLE);
+  // ⚠ 选择器必须**限定在 .modal-body 内**：原写法 `.modal-body ${_FOCUSABLE}` 只给第一个
+  //   逗号分支加了前缀，`panel.querySelector` 会把 header 里的 × 当成首个可聚焦元素
+  //   （2026-10-19 U-05 真机复核实测：打开招募浮窗后 activeElement 是关闭按钮）。
+  const body = panel.querySelector('.modal-body');
+  const target = (body && body.querySelector(_FOCUSABLE)) || panel.querySelector(_FOCUSABLE);
   if (target) { target.focus(); return; }
   panel.setAttribute('tabindex', '-1');
   panel.focus();

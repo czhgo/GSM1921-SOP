@@ -2698,3 +2698,52 @@ $body
 - `INFORMATION_COMPUTATION.md` 如实登记了「角标数可能大于下拉条数」「概况与考勤出勤率两套口径」「待办去重键缺失」等 11 项未统一，未假装已统一。
 - `leader-attendance-upload-submit`、向导两条、`pc-review-reject-note` 仍红，原因见批次 472；本轮未改。
 - 未改权限矩阵与业务状态流；未写日常 `server/data.db`。
+
+## 批次 484（2026-10-19）：Round 1 修复批 —— U-04 / U-05 / U-09 / U-23 / U-35 落地 ＋ 四项证据门
+
+### 一、判据
+
+- 按 `.trae/specs/round1-workbench-structure-remediation/{spec,tasks,checklist}.md` 开工，不再只写 spec。
+- 四项既有裁定继续有效：U-05 保留修复；U-01 开小调查；P7 表档先归因、不改代码不放宽守卫；U-53 留 Round 4。
+
+### 二、动作
+
+- **U-04 纪检考勤**：`disc/attendance-tab.js` 两处打回说明从 `window.prompt` 收口到 `modal.js::openModal`
+  单一浮窗 `_openReturnNoteModal`；会议活动 label 补 `for`；确认段两视图保留 `aria-pressed`；
+  整行点击仍是鼠标增强，键盘路径（checkbox / 链接）保留；会议卡默认收起。
+- **U-05 专班管理**：视图钮（含报名总表「按人 / 按项目」）补初始与切换 `aria-pressed`；
+  招募浮窗改 `openModal` + `onMount`（dialog / aria-modal / Esc / 焦点回还 / inert 全由组件承担），
+  `_closeRecruitForm` 改 `closeModal`；「自动发布通知」折叠改 `<button aria-expanded aria-controls>`。
+  真机复核顺带修正 `modal.js::_focusInto` 的选择器作用域（原焦点落到右上角 ×，现落正文首个字段）。
+- **U-09 项目分工**：`list-filter.js` 非表格空态并轨 `empty-state.js` 并新增 `emptyActionHtml`；
+  「我的任务」空态给「去看我的分工」、「我的分工」空态给「浏览全局分工」；
+  子视图补 `aria-pressed`，`transition-all` 改 `transition-colors`；空态出口与顶部页签共用 `goSubView`。
+- **U-23 活动材料闭环**：新增 `docs/activity-materials.html` ＋ `entries/pages/activity-materials-entry.js`：
+  ① 材料清单（宣传材料 / 考勤 / 考察 / 复盘，逐类计数与去向）→ ② 上传/核对（链到既有本位面）→
+  ③ 提交归档（`BranchService.archiveActivity` 单一写口，失败给原因与「重试归档」）。
+  入口：活动详情标题行、支书台代归档浮窗行、组织台活动进度行。
+- **U-35 组长台「我的任务」**：新增 `entries/tabs/leader/my-tasks-section.js`，挂在「本组活动」页顶部；
+  复用 `listMyProjectTasks` / `completeMyProjectTask`，空态给「查看本组活动」；
+  文案写明与「待办」页待办聚合的口径区别。
+- **证据门**（未改代码、未放宽守卫）：结论写入 `.ctx/AUDIT_ROUND1_WORKBENCH_STRUCTURE.md §6.4`；
+  U-10 量测与 page-sweep 原始日志落 `.ctx/evidence/2026-10-19/`。
+- 新增常驻守卫 `server/test/round1-remediation-guard.test.mjs`（R1–R5），并登记进 `test:daily`。
+- 页面台账同步：`README-server.md §3.1` 26 页（18 根 + 8 台）· `README.md` 同数 · `SNAPSHOT.md` v60；
+  版本戳升 `20261018q`。
+
+### 三、读数
+
+- 新增守卫 R1–R5 **5/5**；`version-stamp` 28/28；`import-path-guard`、`link-target-guard`、`doc-consistency`、
+  `module-load`（E1 202/202、E2 15 页、E3、E4）、`button-system-guard`、`spacing-scale-guard`、
+  `text-tier-guard`、`copy-length-guard`、`link-integrity`、`write-path-guard` 等静态组全绿。
+- U-10 真机量测（带 Tailwind，14 组）：768 / 1024 两档全部无页面级横向溢出；6 台页签条可滚且右箭头可见，
+  党委台 5 枚不滚；末枚页签在未滚动时露出半枚（即可发现提示）。
+- page-sweep 回归：`tab=67 · 列表=56（>10 行 19）· 矩阵=2 · 手写表格=9`；红灯仍为 P7 / S1 / S19，均已归因（§6.4）。
+
+### 四、边界
+
+- P7 仍红：根因是 `styles.css:4490-4508` 的 12px / 14px 视觉档与 13px 单档契约冲突；本批只归因，未改字号、未放宽 P7。
+- S1 仍红：矩阵样本基线 4 已过期（现默认视图 2 个）；本批未下调基线。
+- S19 仍红：根 `README.md` 措辞与解析锚点不一致（「角色工作台页签」vs「逐枚页签」）；本批未改措辞。
+- U-01 判为确认缺口（服务层有写口、页面零消费、通知深链落空），建议 Round 2 落地；本批未改代码。
+- 未改后端 API / 数据模型 / 权限链；U-53 未实施；未写日常 `server/data.db`。

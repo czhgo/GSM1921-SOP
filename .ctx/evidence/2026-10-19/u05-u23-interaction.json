@@ -1,0 +1,39 @@
+{
+  "u05": {
+    "role": "dialog",
+    "ariaModal": "true",
+    "labelledby": "modal-title-recruit-form-modal",
+    "title": "发布专班招募",
+    "focusInside": true,
+    "activeTag": "INPUT",
+    "focusInBody": true
+  },
+  "u05Esc": {
+    "overlayGone": true,
+    "focusReturned": true,
+    "activeId": "btn-publish-tf"
+  },
+  "u05Views": [
+    {
+      "view": "workgroups",
+      "pressed": "true"
+    },
+    {
+      "view": "activities",
+      "pressed": "false"
+    },
+    {
+      "view": "matrix",
+      "pressed": "false"
+    }
+  ],
+  "u23": {
+    "hasList": true,
+    "hasCheck": true,
+    "hasArchive": true,
+    "hasBack": true,
+    "materialRows": 4,
+    "emptyState": false,
+    "len": 1284
+  }
+}

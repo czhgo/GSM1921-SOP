@@ -12,38 +12,39 @@
 //   - 活动无上限 → 必须提供活动筛选（含时间区间）便于考察
 //   - 条目不得使用浅色底板（支书反感）→ 白底 + 左侧状态色条
 
-import { AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../../core/domain/domain.js?v=20261018p';
-import { generateId } from '../../../core/base/id.js?v=20261018p';
-import { attendanceToLong, loadAttendanceRecords, loadActiveAttendanceRecords, loadAttendanceRosterSnapshots, saveAttendanceRecords, canUploadAttendance, upsertMeetingAttendance, MEETING_ATTENDANCE_TYPES as MEETING_TYPES, ABSENCE_REASONS, absenceReasonLabel, absenceReasonNote, recorderRolesOf, listGroupMeetingAttendance, loadAttendanceAppeals, returnAttendanceAppeal, closeAttendanceAppeal, returnAttendanceRecord, summarizeAttendanceByActivity, isAttendanceHomePosition, freezeExpectedRosterForActivity } from '../../../services/activity/attendance.js?v=20261018p';
-import { buildAttendanceMatrixModel } from '../../../services/activity/attendance-matrix.js?v=20261018p';
-import { getPersonName } from '../../../services/member/person.js?v=20261018p';
+import { AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../../core/domain/domain.js?v=20261018q';
+import { generateId } from '../../../core/base/id.js?v=20261018q';
+import { attendanceToLong, loadAttendanceRecords, loadActiveAttendanceRecords, loadAttendanceRosterSnapshots, saveAttendanceRecords, canUploadAttendance, upsertMeetingAttendance, MEETING_ATTENDANCE_TYPES as MEETING_TYPES, ABSENCE_REASONS, absenceReasonLabel, absenceReasonNote, recorderRolesOf, listGroupMeetingAttendance, loadAttendanceAppeals, returnAttendanceAppeal, closeAttendanceAppeal, returnAttendanceRecord, summarizeAttendanceByActivity, isAttendanceHomePosition, freezeExpectedRosterForActivity } from '../../../services/activity/attendance.js?v=20261018q';
+import { buildAttendanceMatrixModel } from '../../../services/activity/attendance-matrix.js?v=20261018q';
+import { getPersonName } from '../../../services/member/person.js?v=20261018q';
 // S1–S4 滞留党员设计（2026-09-06 支书已批）：会议考勤「应到清点/全选范围」= 应到名单口径
 // （党员 正式+预备 且非滞留；滞留者「可见但禁用」、党课列席不计应到），不再全支部 50 人候选
 // 附录⑩ A批·S1（2026-09-06 支书裁定）：滞留线下到场可「到场补录」计入到席（实际应到=预应到 K + 补录 L）
-import { getMeetingRoster, getRosterStats, getMeetingRosterCandidates } from '../../../services/member/roster.js?v=20261018p';
-import { solidAccentStyle, ROLE_LABELS, isActivityArchived, isActivityLive } from '../../../core/domain/constants.js?v=20261018p';
-import { loadActivities } from '../../../services/activity/activity.js?v=20261018p';
+import { getMeetingRoster, getRosterStats, getMeetingRosterCandidates } from '../../../services/member/roster.js?v=20261018q';
+import { solidAccentStyle, ROLE_LABELS, isActivityArchived, isActivityLive } from '../../../core/domain/constants.js?v=20261018q';
+import { loadActivities } from '../../../services/activity/activity.js?v=20261018q';
 // SOP-B-2（D-288）：考勤候选默认选中「已通过报名者」——报名名单的来源单一源 = SignupStore
-import { getApprovedSignupPersonIds } from '../../../services/activity/signup.js?v=20261018p';
-import { autoGenerateMakeupTask } from '../../../services/activity/makeup.js?v=20261018p';
-import { TodoStore, TodoSourceType } from '../../../services/governance/todo.js?v=20261018p';
-import { NoticeStore } from '../../../services/governance/notice.js?v=20261018p';
-import { enhanceSelects } from '../../../components/ui/custom-select.js?v=20261018p';
-import { badgeHtml } from '../../../components/ui/badges.js?v=20261018p';
+import { getApprovedSignupPersonIds } from '../../../services/activity/signup.js?v=20261018q';
+import { autoGenerateMakeupTask } from '../../../services/activity/makeup.js?v=20261018q';
+import { TodoStore, TodoSourceType } from '../../../services/governance/todo.js?v=20261018q';
+import { NoticeStore } from '../../../services/governance/notice.js?v=20261018q';
+import { enhanceSelects } from '../../../components/ui/custom-select.js?v=20261018q';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20261018q';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是人的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
 // pagerHtml = 翻页控件单一源（批次 38：全站手写翻页一律并轨；叶子件，避免与矩阵相互成环）
-import { pagerHtml } from '../../../components/ui/pager.js?v=20261018p';
+import { pagerHtml } from '../../../components/ui/pager.js?v=20261018q';
 // 人×项目矩阵单一源（支书 2026-09-14 批次 35 裁定：宽表默认 + 矩阵推广）
-import { renderRelationMatrix } from '../../../components/ui/relation-matrix.js?v=20261018p';
-import { showToast, downloadCSV, triggerPrint, _fmtDate, escHtml as esc, getBasePath, flashHighlight } from '../../../core/base/utils.js?v=20261018p';
-import { DISC_COMMISSIONER_ID } from './_shared.js?v=20261018p';
-import { HandoffStore } from '../../../services/governance/handoff.js?v=20261018p';
-import { AuthStore } from '../../../services/core/auth.js?v=20261018p';
-import { PersonPicker } from '../../../components/governance/pickers.js?v=20261018p';
-// 「本位」nudge 确认弹窗（2026-09-23 支书裁定 · 单一源 = components/ui/modal.js::confirmNudge）
-import { confirmNudge } from '../../../components/ui/modal.js?v=20261018p';
+import { renderRelationMatrix } from '../../../components/ui/relation-matrix.js?v=20261018q';
+import { showToast, downloadCSV, triggerPrint, _fmtDate, escHtml as esc, getBasePath, flashHighlight } from '../../../core/base/utils.js?v=20261018q';
+import { DISC_COMMISSIONER_ID } from './_shared.js?v=20261018q';
+import { HandoffStore } from '../../../services/governance/handoff.js?v=20261018q';
+import { AuthStore } from '../../../services/core/auth.js?v=20261018q';
+import { PersonPicker } from '../../../components/governance/pickers.js?v=20261018q';
+// 通用浮窗 + 「本位」nudge 确认弹窗（2026-09-23 支书裁定 · 单一源 = components/ui/modal.js）
+// U-04：申诉打回原用 `window.prompt`（无对话框语义、无焦点接管、移动端样式原生）→ 换本组件 openModal。
+import { confirmNudge, openModal, closeModal } from '../../../components/ui/modal.js?v=20261018q';
 // 「补课」分段整段复用原独立 tab 的渲染（2026-09-15 支书裁定：补课并入考勤管理，内部逻辑不改写）
-import { renderContent as renderMakeupContent } from './makeup-tab.js?v=20261018p';
+import { renderContent as renderMakeupContent } from './makeup-tab.js?v=20261018q';
 
 const PAGE_SIZE = 20; // 分页铁律：全量总表每页 20 条
 let _page = 1;        // 模块级分页状态（随模块自持）
@@ -239,12 +240,19 @@ export function renderContent(ctx) {
   // ── 出勤申诉（SOP-B-42 / `D-456`）：核实属实 → 打回组织者；不属实 → 关闭 ──
   container.querySelectorAll('.att-appeal-return').forEach(btn => {
     btn.addEventListener('click', () => {
-      const note = window.prompt('打回说明（可留空）——属实漏记将交活动组织方核实补录：', '');
-      if (note === null) return; // 取消
-      const res = returnAttendanceAppeal(btn.dataset.appealId, { by: DISC_COMMISSIONER_ID, note });
-      if (res.ok) showToast('success', res.hadRecord ? '已打回该考勤，交活动组织方重新确认' : '已打回，交活动组织方核实补录');
-      else showToast('error', '该申诉已处理');
-      renderContent(ctx);
+      const appealId = btn.dataset.appealId;
+      _openReturnNoteModal({
+        id: 'att-appeal-return',
+        title: '打回申诉',
+        hint: '打回说明可留空——属实漏记将交活动组织方核实补录。',
+        placeholder: '可留空',
+        onConfirm: (note) => {
+          const res = returnAttendanceAppeal(appealId, { by: DISC_COMMISSIONER_ID, note });
+          if (res.ok) showToast('success', res.hadRecord ? '已打回该考勤，交活动组织方重新确认' : '已打回，交活动组织方核实补录');
+          else showToast('error', '该申诉已处理');
+          renderContent(ctx);
+        },
+      });
     });
   });
   container.querySelectorAll('.att-appeal-close').forEach(btn => {
@@ -649,6 +657,33 @@ function _confirmAttendanceBatch(recordIds, actById) {
   return picked.length;
 }
 
+/** 打回说明浮窗（U-04 单一源）：考勤「申诉打回」与「待确认行打回」共用。
+ *  原两处均为 `window.prompt`——无对话框语义 / 焦点接管 / 焦点回还，移动端还是原生样式；
+ *  统一走项目内 `openModal`（role="dialog" + aria-modal + Esc + 关闭后焦点还给触发按钮）。 */
+function _openReturnNoteModal({ id, title, hint, placeholder, onConfirm }) {
+  openModal({
+    id,
+    title,
+    width: '460px',
+    bodyHtml: `
+      <p class="text-xs text-gray-500 mb-2">${hint}</p>
+      <label for="${id}-note" class="text-xs text-gray-700 mb-1.5 block font-medium">打回说明</label>
+      <textarea id="${id}-note" rows="3" class="input-flat-sm w-full" placeholder="${placeholder}"></textarea>
+      <div class="flex justify-end gap-2 mt-4">
+        <button type="button" data-return-cancel class="btn-outline" style="cursor:pointer;">取消</button>
+        <button type="button" data-return-confirm class="btn-accent" style="cursor:pointer;">打回</button>
+      </div>`,
+    onMount: (panel) => {
+      panel.querySelector('[data-return-cancel]')?.addEventListener('click', () => closeModal(id));
+      panel.querySelector('[data-return-confirm]')?.addEventListener('click', () => {
+        const note = (panel.querySelector(`#${id}-note`)?.value || '').trim();
+        closeModal(id);
+        onConfirm(note);
+      });
+    },
+  });
+}
+
 /** 队列勾选：只维护显式「已勾选」集合并刷新汇总条（不整块重渲染，避免丢滚动位置）
  *  2026-10-18 繁专项 Task 15：整行可点（与矩阵单元格同一落点/同一勾选语义）。 */
 function _bindQueueCheckboxes(container) {
@@ -787,7 +822,7 @@ function _buildMeetingCardHTML(ctx, accent, accentBorder, actById) {
       : `
       <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
         <div>
-          <label class="text-xs text-gray-500 mb-1.5 block font-medium">会议活动 <span class="text-red-600">*</span></label>
+          <label for="disc-meet-activity" class="text-xs text-gray-500 mb-1.5 block font-medium">会议活动 <span class="text-red-600">*</span></label>
           <select id="disc-meet-activity" class="input-flat w-full">
             ${meetings.map(m => `<option value="${m.id}">${m.title}（${m.date}）</option>`).join('')}
           </select>
@@ -1315,12 +1350,18 @@ function _renderTable(longData, allRecords, actById, accent, accentBorder, ctx, 
       const recordId = btn.dataset.recordId;
       const rec = loadAttendanceRecords().find(r => r.id === recordId);
       const who = rec ? getPersonName(rec.personId) : '该记录';
-      const reason = window.prompt(`打回「${who}」的考勤？写一句打回原因（将交活动组织方重新确认）：`, '');
-      if (reason === null) return; // 取消
-      const res = returnAttendanceRecord(recordId, { by: DISC_COMMISSIONER_ID, note: reason });
-      if (res.ok) showToast('success', '已打回，交活动组织方重新确认');
-      else showToast('error', '打回失败：记录不存在');
-      renderContent(ctx);
+      _openReturnNoteModal({
+        id: 'att-record-return',
+        title: `打回「${who}」的考勤`,
+        hint: '将交活动组织方重新确认。',
+        placeholder: '写一句打回原因',
+        onConfirm: (reason) => {
+          const res = returnAttendanceRecord(recordId, { by: DISC_COMMISSIONER_ID, note: reason });
+          if (res.ok) showToast('success', '已打回，交活动组织方重新确认');
+          else showToast('error', '打回失败：记录不存在');
+          renderContent(ctx);
+        },
+      });
     });
   });
 }

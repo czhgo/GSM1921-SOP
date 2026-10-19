@@ -10,9 +10,9 @@
 // 注意：mockDB/服务均带 ?v= 导入保证与 services 模块缓存同一实例。
 import { test, beforeEach, afterEach } from 'node:test';
 import assert from 'node:assert/strict';
-import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261018p';
-import { TaskForceRecordStore } from '../../docs/src/services/activity/taskforce.js?v=20261018p';
-import { getDataSource, setDataSource } from '../../docs/src/data/data-adapter.js?v=20261018p';
+import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261018q';
+import { TaskForceRecordStore } from '../../docs/src/services/activity/taskforce.js?v=20261018q';
+import { getDataSource, setDataSource } from '../../docs/src/data/data-adapter.js?v=20261018q';
 
 const ORIGINAL_TASKFORCES = mockDB.taskforces;
 const ORIGINAL_WORKGROUP_TASKS = mockDB.workgroupTasks;

@@ -41,16 +41,19 @@
 //  数据变化后：同 stateKey 再调用一次，或 hold 返回值调 .update(newRows)。
 // ════════════════════════════════════════════════════════════════
 
-import { escHtml as esc } from '../../core/base/utils.js?v=20261018p';
+import { escHtml as esc } from '../../core/base/utils.js?v=20261018q';
 import {
   SEARCH_FILTER_MIN_ROWS, ROLE_LABELS, ACTIVITY_CLASSIFICATION,
   classifyActivityType, normalizeActivityType,
-} from '../../core/domain/constants.js?v=20261018p';
+} from '../../core/domain/constants.js?v=20261018q';
 // 活动生命周期**展示态**单一源 = components/record/inspector.js（草稿/已发布/进行中/待归档/已执行/已归档/已取消）
 // ——勿在本组件另写一套中文标签（constants.js 里曾短暂加过的副本已撤除）
-import { deriveActivityLifecycleStatus, ACTIVITY_LIFECYCLE } from '../record/inspector.js?v=20261018p';
+import { deriveActivityLifecycleStatus, ACTIVITY_LIFECYCLE } from '../record/inspector.js?v=20261018q';
 // 翻页控件单一源（批次 38 下沉为叶子件 pager.js）：本引擎与关系矩阵共用，勿另写翻页标记
-import { pagerHtml } from './pager.js?v=20261018p';
+import { pagerHtml } from './pager.js?v=20261018q';
+// 空态单一源（U-09）：非表格列表空态原先是一行灰字 `<p>`（无出口、与 empty-state 两套样式）；
+// 改为 empty-state 组件，并支持 `emptyActionHtml` 给一个出口（表格空态仍由本文件自带空行）。
+import { emptyStateHtml } from './empty-state.js?v=20261018q';
 
 /** 每个 stateKey 的筛选状态（跨重渲染保持；键集合有界 = 全站表格数，不做回收） */
 const _states = new Map();
@@ -101,6 +104,8 @@ function _keywordHit(item, q, keyword) {
  * @param {number} [cfg.minRows] 检索条出现门槛（缺省 = SEARCH_FILTER_MIN_ROWS 单一源）
  * @param {number} [cfg.pageSize] 每页条数（缺省 10；传 0 = 不分页）。页数 ≤1 时不渲染翻页控件。
  * @param {string} [cfg.emptyMessage] 空结果文案
+ * @param {string} [cfg.emptyActionHtml] 列表模式空态的**唯一**出口（按钮 HTML；不传＝无出口）。
+ *   表格模式忽略本项（空行仍由 table.colSpan 自带）。
  * @param {Function} [cfg.sort] 排序比较器（缺省保持传入顺序）
  * @param {string} [cfg.listClass] 结果区 class（列表模式：行容器）
  * @param {string} [cfg.countUnit] 计数单位（'人' / '条'）
@@ -261,8 +266,10 @@ export function renderFilteredList(container, cfg) {
         <tbody>${filtered.length === 0 ? empty : shown.map((item, i) => config.rowHtml(item, i)).join('')}</tbody>
       </table>`;
     } else {
+      // 非表格空态：单一源 empty-state（一句话 + 至多一个动作）；`emptyActionHtml` 由调用方给出口，
+      // 无出口时与原灰字空态等价，但样式归一到 .empty-state（U-09）。
       listEl.innerHTML = filtered.length === 0
-        ? `<p class="text-xs text-gray-500 text-center py-4">${esc(config.emptyMessage)}</p>`
+        ? emptyStateHtml(config.emptyMessage, { actionHtml: config.emptyActionHtml })
         : shown.map((item, i) => config.rowHtml(item, i)).join('');
     }
     countEl.hidden = !visible;
