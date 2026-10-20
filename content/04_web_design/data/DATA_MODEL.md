@@ -365,12 +365,17 @@ taskforce.members:    Array<{ personId, role: 'organizer' | 'deep' | 'participan
 
 > 类型定义位于 [domain.js](../../../docs/src/core/domain/domain.js#L165-L177)（InspectionRecord typedef），持久化域 `mockDB.inspections`（`domain.js:245`，随全量键 `workflowos_branch_db_v1` 持久化）。考察记录用于记录制度、议程或具体事项明确要求的考察工作，不是所有工作组/活动的通用必经步骤；**考察记录以工作组为父对象（活动工作组/专班工作组），`sourceType` 只是工作组类型的投影，不是独立父对象**；组织者/深度参与者与考勤事实分开建模（见本文 §3.3）。
 
+> **父键与展示快照（R4-D04）**：活动考察以 `activityId` 为父键；专班考察以 `workgroupId` 为父键（`taskforceId` 为兼容快照）。`sourceName` **只是展示快照**——关联、查询、成员/支部校验、确认/删除写门一律不得再按名称匹配，专班改名或同名都不会断链/串数据。历史记录无法回填父键时置 `legacy:true` 只读。
+
 | 字段名 | 类型 | 必填 | 默认值 | 说明 |
 |---|---|---|---|---|
 | id | string | 是 | `generateId('insp')` | 唯一标识符，前缀 `insp_` |
 | sourceType | `'activity'\|'taskforce'` | 是 | -- | 考察来源类型：活动 or 专班 |
-| activityId | string | 是 | -- | 关联活动 ID（sourceType='activity' 时必填） |
-| sourceName | string | 否 | -- | 来源名称（sourceType='taskforce' 时为专班名称） |
+| activityId | string | 否 | -- | 关联活动 ID（sourceType='activity' 时必填） |
+| workgroupId | string | 否 | -- | **稳定父键**：考察所挂工作组 ID（sourceType='taskforce' 时必填） |
+| taskforceId | string | 否 | -- | 专班业务 ID 兼容快照（只读；关联与权限走 workgroupId） |
+| sourceName | string | 否 | -- | **仅展示快照**（sourceType='taskforce' 时为专班名称）；不得作为关联/查询/权限键 |
+| legacy | boolean | 否 | -- | 历史记录无法回填父键时为 `true`：只读，不参与写门与确认/删除 |
 | personId | string | 是 | -- | 人员 ID（引用 people.js）；必须是该考察所挂工作组的成员 |
 | level | `'organize'\|'deep'` | 是 | -- | 考察层级（仅组织者与深度参与者有考察记录） |
 | role | string | 是 | -- | 分工角色+描述（如：策划+全流程统筹、视频制作、PPT 设计） |
@@ -378,7 +383,7 @@ taskforce.members:    Array<{ personId, role: 'organizer' | 'deep' | 'participan
 | recordedAt | string (ISO) | 是 | -- | 记录时间 |
 | status | `'pending'\|'confirmed'` | 否 | `'pending'` | 考察确认状态（纪检委员确认后录入考察总表） |
 
-> **写入/确认链路**：仅在事项明确要求考察时，按其授权流程写入并由纪检委员处理；不得仅因建立工作组而自动派生考察要求。既有党小组活动/专班考察数据与入口保留，具体流程见纪检委员指南。考察依托工作组：活动工作组的考察挂活动工作组，专班工作组的考察挂专班工作组；没有工作组就没有考察对象。
+> **写入/确认链路**：仅在事项明确要求考察时，按其授权流程写入并由纪检委员处理；不得仅因建立工作组而自动派生考察要求。既有党小组活动/专班考察数据与入口保留，具体流程见纪检委员指南。考察依托工作组：活动工作组的考察挂活动工作组（`activityId`），专班工作组的考察挂专班工作组（`workgroupId`）；没有工作组就没有考察对象。新建专班考察必须写入 `workgroupId`；历史记录由启动迁移回填，无法回填者标 `legacy:true` 只读。
 
 ### 2.6 分工数据 (AssignmentRecord)
 

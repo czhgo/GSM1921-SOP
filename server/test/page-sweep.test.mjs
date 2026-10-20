@@ -276,7 +276,7 @@ for (const w of WORKS) {
       }
       await page.waitForTimeout(800);
       // P0-2 形态断言（2026-09-23 支书裁定「形态必须可断言、不许静默降级」）：本文件真机用例必须在 API 形态下跑
-      await page.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20261019a')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
+      await page.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20261020a')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
 
       // 只数**工作台页签条**（`aria-label="工作台页签"`）里的 role=tab；页面内二级分段
       //   （党委台「撰写 / 已发送」「待批复 / 已处理」、成员台「列表 / 日历 / 查询」）同样是 role=tab，
@@ -443,7 +443,7 @@ test('S21 组织台活动深链：?activityId / ?view=activities 落「活动日
     await page.waitForTimeout(800);
     // 取一个真实活动（优先「非当前月」者，顺带验证切月）
     const acts = await page.evaluate(async () => {
-      const m = await import('/src/core/base/state.js?v=20261019a');
+      const m = await import('/src/core/base/state.js?v=20261020a');
       return ((m.getAppState() || {}).activities || []).map((x) => ({ id: x.id, date: x.date }));
     });
     assert.ok(acts.length > 0, '组织台活动深链用例：未取到任何活动（样本不足）');

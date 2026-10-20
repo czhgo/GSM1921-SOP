@@ -5,22 +5,22 @@
 //    考察对象为该工作组成员；sourceType/activityId/taskforceId 只是工作组类型的投影，不是独立父对象。
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB, SourceType, SOURCE_TYPE_LABELS, PARTICIPATION_LEVEL_LABELS, ParticipationLevel } from '../../core/domain/domain.js?v=20261019a';
-import { POLICY_DEFAULTS } from '../../core/domain/policy-defaults.js?v=20261019a';
-import { persist, getDataSource, getAdapter } from '../../data/data-adapter.js?v=20261019a';
-import { generateId } from '../../core/base/id.js?v=20261019a';
-import { bumpToken } from '../../core/base/version-token.js?v=20261019a'; // P0 域缓存失效（spec §二.3）
-import { INSPECTION_RECORDS } from '../../data/mock/index.js?v=20261019a';
-import { isInitStateActive } from '../core/init-reset.js?v=20261019a'; // C2 修复（2026-09-08）：init 态空态不回退演示种子
-import { getPersonById, getPersonName } from '../member/person.js?v=20261019a';
-import { TodoStore, TodoSourceType } from '../governance/todo.js?v=20261019a';
-import { loadActivities, isActivityOrganizer } from './activity.js?v=20261019a';
+import { mockDB, SourceType, SOURCE_TYPE_LABELS, PARTICIPATION_LEVEL_LABELS, ParticipationLevel } from '../../core/domain/domain.js?v=20261020a';
+import { POLICY_DEFAULTS } from '../../core/domain/policy-defaults.js?v=20261020a';
+import { persist, getDataSource, getAdapter } from '../../data/data-adapter.js?v=20261020a';
+import { generateId } from '../../core/base/id.js?v=20261020a';
+import { bumpToken } from '../../core/base/version-token.js?v=20261020a'; // P0 域缓存失效（spec §二.3）
+import { INSPECTION_RECORDS } from '../../data/mock/index.js?v=20261020a';
+import { isInitStateActive } from '../core/init-reset.js?v=20261020a'; // C2 修复（2026-09-08）：init 态空态不回退演示种子
+import { getPersonById, getPersonName } from '../member/person.js?v=20261020a';
+import { TodoStore, TodoSourceType } from '../governance/todo.js?v=20261020a';
+import { loadActivities, isActivityOrganizer } from './activity.js?v=20261020a';
 // 专班「组织者」判据单一源（2026-09-23 · 专班考察上传位的本位判据要读它）
-import { isTaskforceOrganizer, TaskForceRecordStore } from './taskforce.js?v=20261019a';
+import { isTaskforceOrganizer, TaskForceRecordStore } from './taskforce.js?v=20261020a';
 // R4-D05：删除/确认的默认操作人 = 当前登录人（调用方未显式传 actorId 时）
-import { AuthStore } from '../core/auth.js?v=20261019a';
+import { AuthStore } from '../core/auth.js?v=20261020a';
 // D01/D08：考察写角色与确认角色单一源（server gates.js 同读，防两端一个放一个拦）
-import { INSPECTION_WRITE_ROLES, INSPECTION_CONFIRM_ROLES } from '../../core/domain/constants.js?v=20261019a';
+import { INSPECTION_WRITE_ROLES, INSPECTION_CONFIRM_ROLES } from '../../core/domain/constants.js?v=20261020a';
 
 export function loadInspectionRecords() {
   if (mockDB.inspections.length > 0) return [...mockDB.inspections];
@@ -53,7 +53,7 @@ export function saveInspectionRecords(records) {
  * 考察上传位门禁（R4-D05，2026-10-20：改为 deny-by-default）
  * 允许：本场活动（专班）组织者 / 支书 / 副支书 / 纪检委员。
  * - 活动：`activity.organizer === personId`，或 `assignments` 中 role=organizer/deep；
- * - 专班：专班组织者（`taskforce.members` role=organizer；sourceName 与 id 皆可识别）。
+ * - 专班：专班组织者（`taskforce.members` role=organizer；只按 workgroupId 反查，名称不作判据）。
  * 其余角色一律拒绝——不再有「专班一律放行」「本组组长按类型放行」的宽口。
  */
 
@@ -65,14 +65,30 @@ export const INSPECTION_ROLE_WRITE = new Set(INSPECTION_WRITE_ROLES);
 /** 前端可确认/打回考察的角色（D01：纪检/支书/副支书） */
 export const INSPECTION_ROLE_CONFIRM = new Set(INSPECTION_CONFIRM_ROLES);
 
+// R4-D04：考察记录以工作组为稳定父键。历史记录无法回填时置 legacy:true 只读——
+// 前后端同文案，避免「前端放行、服务端拒绝」的两种解释。
+export const INSPECTION_LEGACY_REASON = '历史考察缺少工作组键（只读）';
+export const INSPECTION_MISSING_KEY_REASON = '考察记录缺少工作组键（workgroupId），请从专班上下文重新上传';
+
+/** 由 workgroupId 反查专班（workgroups.sourceId 优先；兼容旧记录直接存专班 id） */
+function _taskforceByWorkgroupId(workgroupId) {
+  if (!workgroupId) return null;
+  const rows = TaskForceRecordStore.getAll();
+  const group = (Array.isArray(mockDB.workgroups) ? mockDB.workgroups : [])
+    .find(row => row.id === workgroupId && row.kind === 'taskforce');
+  return (group?.sourceId && rows.find(r => r.id === group.sourceId))
+    || rows.find(r => (r.workgroupId || `wg-taskforce-${r.id}`) === workgroupId)
+    || rows.find(r => r.id === workgroupId)
+    || null;
+}
+
 /** 本场活动是否为该人的组织位（组织者 / deep 协作者） */
 function _isInspectionSourceOrganizer(personId, sourceType, sourceId) {
   if (!personId || !sourceType || !sourceId) return false;
   if (sourceType === SourceType.TASKFORCE) {
-    if (isTaskforceOrganizer(personId, sourceId)) return true;
-    const tf = TaskForceRecordStore.getAll().find(r => r.id === sourceId || r.name === sourceId);
-    return !!(tf && Array.isArray(tf.members)
-      && tf.members.some(m => m && m.personId === personId && m.role === 'organizer'));
+    // R4-D04：专班侧只按 workgroupId（稳定父键）反查，改名/同名都不再影响判据。
+    const tf = _taskforceByWorkgroupId(sourceId);
+    return !!tf && isTaskforceOrganizer(personId, tf.id);
   }
   const activity = loadActivities().find(a => a.id === sourceId);
   if (!activity) return false;
@@ -90,6 +106,8 @@ export function inspectionUploadDenyReason(personId, sourceType, sourceId) {
   const role = (getPersonById(personId) || {}).role;
   if (INSPECTION_ROLE_WRITE.has(role)) return null;
   if (sourceType === SourceType.TASKFORCE) {
+    // R4-D04：sourceId 必须是专班工作组键；名称不再作为可上传来源。
+    if (!_taskforceByWorkgroupId(sourceId)) return '专班工作组不存在或缺少工作组键，不能上传考察';
     return _isInspectionSourceOrganizer(personId, sourceType, sourceId)
       ? null : '仅专班组织者或纪检可上传考察';
   }
@@ -115,6 +133,8 @@ function _currentPersonId() {
  *   ② actorId !== recordedBy——禁止自确认（「谁提交谁确认」会让闭环形同虚设）。
  */
 function _inspectionDecisionDeny(actorId, record, action) {
+  // R4-D04：无法回填工作组键的历史记录只读——不参与确认/打回（连角色白名单也不放行）。
+  if (record && record.legacy) return INSPECTION_LEGACY_REASON;
   const personId = actorId || _currentPersonId();
   if (!personId) return `无法识别当前用户，不能${action}考察`;
   const role = (getPersonById(personId) || {}).role;
@@ -135,13 +155,16 @@ export function inspectionReturnDenyReason(actorId, record) {
 
 /** 删除/确认的授权判据：与本场组织者/纪检同一口径（允许 → null，拒绝 → 原因） */
 function _inspectionMutationDeny(actorId, record, action) {
+  // R4-D04：历史考察（缺工作组键）只读，删除/更正一律拒绝并给出明确原因。
+  if (record && record.legacy) return INSPECTION_LEGACY_REASON;
   const personId = actorId || _currentPersonId();
   if (!personId) return `无法识别当前用户，不能${action}考察`;
   const role = (getPersonById(personId) || {}).role;
   if (INSPECTION_ROLE_WRITE.has(role)) return null;
   const sourceType = record.sourceType === SourceType.TASKFORCE ? SourceType.TASKFORCE : SourceType.ACTIVITY;
-  const sourceId = sourceType === SourceType.TASKFORCE
-    ? (record.sourceName || record.taskforceId) : record.activityId;
+  // R4-D04：专班侧只认 workgroupId；缺键的新记录不得再走名称兜底。
+  if (sourceType === SourceType.TASKFORCE && !record.workgroupId) return INSPECTION_MISSING_KEY_REASON;
+  const sourceId = sourceType === SourceType.TASKFORCE ? record.workgroupId : record.activityId;
   return _isInspectionSourceOrganizer(personId, sourceType, sourceId)
     ? null : `仅本场组织者或纪检可${action}考察`;
 }
@@ -214,14 +237,14 @@ export function getOverdueRecords(daysThreshold = POLICY_DEFAULTS.inspection.ove
 /**
  * 按来源查询考察记录
  * @param {'activity'|'taskforce'} sourceType
- * @param {string} [sourceId] — activityId 或 sourceName
+ * @param {string} [sourceId] — activityId 或专班 workgroupId（R4-D04：不再接受专班名称）
  */
 export function getRecordsBySource(sourceType, sourceId) {
   const records = loadInspectionRecords();
   return records.filter(r => {
     if (r.sourceType !== sourceType) return false;
     if (sourceType === SourceType.ACTIVITY) return r.activityId === sourceId;
-    return r.sourceName === sourceId;
+    return r.workgroupId === sourceId;
   });
 }
 
@@ -242,6 +265,8 @@ export function inspectionToDisplay(records) {
     activityId: r.activityId,
     activityTitle: r.activityId ? _activityTitle(r.activityId) : null,
     sourceName: r.sourceName,
+    workgroupId: r.workgroupId || null, // R4-D04：稳定父键（页面据此回查，不依赖名称）
+    legacy: !!r.legacy,
     level: r.level,
     levelLabel: PARTICIPATION_LEVEL_LABELS[r.level] || r.level,
     content: r.content || r.role, // P1-5：content 优先，旧数据以 role 兜底
@@ -269,6 +294,8 @@ export function inspectionToLong(records) {
     // R-16：透出来源标识（活动 id / 专班名），供台账行补「查看该活动」链接
     activityId: r.activityId || null,
     sourceName: r.sourceName || null,
+    workgroupId: r.workgroupId || null,
+    legacy: !!r.legacy,
     source: r.activityId ? _activityTitle(r.activityId) : r.sourceName,
     sourceType: SOURCE_TYPE_LABELS[r.sourceType] || r.sourceType,
     level: PARTICIPATION_LEVEL_LABELS[r.level] || r.level,
@@ -337,11 +364,13 @@ export function inspectionToWide(records) {
   const personMap = {};
   const sourceIds = [];
   records.forEach(r => {
-    const sourceKey = r.activityId || r.sourceName;
+    // R4-D04：矩阵按稳定父键分组（活动 activityId / 专班 workgroupId）；
+    // sourceName 仅作历史（legacy）记录的最后展示兜底，不参与正常关联。
+    const sourceKey = r.activityId || r.workgroupId || (r.legacy ? `legacy:${r.id}` : r.sourceName);
     if (!sourceIds.find(s => s.key === sourceKey)) {
       sourceIds.push({
         key: sourceKey,
-        title: r.activityId ? _activityTitle(r.activityId) : r.sourceName,
+        title: r.activityId ? _activityTitle(r.activityId) : (r.sourceName || r.workgroupId),
         type: SOURCE_TYPE_LABELS[r.sourceType] || r.sourceType,
       });
     }
@@ -585,12 +614,15 @@ export function resolveInspectionAppeal({ appealId, actorId, level, content, not
  * 供「越俎代庖」nudge 判「操作人是不是本位」——本位操作人走原路径、零打扰。
  * @param {string} personId 操作人
  * @param {string} sourceType SourceType.ACTIVITY / SourceType.TASKFORCE
- * @param {string} sourceId 活动 id / 专班 id
+ * @param {string} sourceId 活动 id / 专班 workgroupId（R4-D04：专班不再用名称）
  * @returns {boolean}
  */
 export function isInspectionHomePosition(personId, sourceType, sourceId) {
   if (!personId || !sourceType || !sourceId) return false;
-  if (sourceType === SourceType.TASKFORCE) return isTaskforceOrganizer(personId, sourceId);
+  if (sourceType === SourceType.TASKFORCE) {
+    const tf = _taskforceByWorkgroupId(sourceId);
+    return !!tf && isTaskforceOrganizer(personId, tf.id);
+  }
   return isActivityOrganizer(personId, sourceId);
 }
 

@@ -3,22 +3,22 @@
 // 专班考察：专班负责人/组织委员上传 → 纪检委员确认 → 录入考察总表。
 // 业务口径：考察依托工作组——考察记录挂工作组，考察对象为该工作组成员；sourceType/activityId/taskforceId 是工作组类型的投影。
 
-import { loadInspectionRecords, saveInspectionRecords } from '../../../services/activity/inspection.js?v=20261019a';
-import { reconfirmReturnedInspectionRecord, isInspectionHomePosition } from '../../../services/activity/inspection.js?v=20261019a';
-import { TaskForceRecordStore } from '../../../services/activity/taskforce.js?v=20261019a';
-import { anchorDetailToTrigger } from '../../../components/ui/detail-anchor.js?v=20261019a';
-import { AuthStore } from '../../../services/core/auth.js?v=20261019a';
-import { PersonPicker } from '../../../components/governance/pickers.js?v=20261019a';
+import { loadInspectionRecords, saveInspectionRecords } from '../../../services/activity/inspection.js?v=20261020a';
+import { reconfirmReturnedInspectionRecord, isInspectionHomePosition } from '../../../services/activity/inspection.js?v=20261020a';
+import { TaskForceRecordStore } from '../../../services/activity/taskforce.js?v=20261020a';
+import { anchorDetailToTrigger } from '../../../components/ui/detail-anchor.js?v=20261020a';
+import { AuthStore } from '../../../services/core/auth.js?v=20261020a';
+import { PersonPicker } from '../../../components/governance/pickers.js?v=20261020a';
 // 「本位」nudge 确认弹窗（2026-09-23 支书裁定 · 单一源 = components/ui/modal.js::confirmNudge）
-import { confirmNudge } from '../../../components/ui/modal.js?v=20261019a';
-import { inspectionToLong } from '../../../services/activity/inspection.js?v=20261019a';
-import { getPersonById, getPersonName } from '../../../services/member/person.js?v=20261019a';
-import { SourceType, ParticipationLevel } from '../../../core/domain/domain.js?v=20261019a';
-import { showToast, escHtml as esc, getBasePath } from '../../../core/base/utils.js?v=20261019a';
-import { solidAccentStyle, accDarkVars } from '../../../core/domain/constants.js?v=20261019a';
-import { generateId } from '../../../core/base/id.js?v=20261019a';
+import { confirmNudge } from '../../../components/ui/modal.js?v=20261020a';
+import { inspectionToLong } from '../../../services/activity/inspection.js?v=20261020a';
+import { getPersonById, getPersonName } from '../../../services/member/person.js?v=20261020a';
+import { SourceType, ParticipationLevel } from '../../../core/domain/domain.js?v=20261020a';
+import { showToast, escHtml as esc, getBasePath } from '../../../core/base/utils.js?v=20261020a';
+import { solidAccentStyle, accDarkVars } from '../../../core/domain/constants.js?v=20261020a';
+import { generateId } from '../../../core/base/id.js?v=20261020a';
 // 统一检索引擎（2026-09-13 表格统一化批次 A）：考察明细表接入关键词 + 分面（≤8 行引擎自动不渲染检索条）
-import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261019a';
+import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261020a';
 
 // 私有状态（随模块自持，不污染入口）
 let _orgInspFormVisible = false;
@@ -58,7 +58,7 @@ export function renderContent(ctx, container) {
         <label class="text-xs text-gray-500 mb-1.5 block font-medium">选择有明确考察要求的专班 <span class="text-red-600">*</span></label>
         <select id="org-insp-tf-select" class="input-flat w-full">
           <option value="">请选择专班</option>
-          ${activeTaskforces.map(tf => `<option value="${tf.id}" data-name="${tf.name}">${tf.name}（${tf.status === 'active' ? '运行中' : '招募中'}）</option>`).join('')}
+          ${activeTaskforces.map(tf => `<option value="${tf.id}" data-name="${tf.name}" data-workgroup-id="${tf.workgroupId || `wg-taskforce-${tf.id}`}">${tf.name}（${tf.status === 'active' ? '运行中' : '招募中'}）</option>`).join('')}
         </select>
       </div>
       <div class="mb-3">
@@ -266,6 +266,8 @@ function _initOrgInspForm(container, activeTaskforces, ctx) {
     if (!tfId) { showToast('error', '请选择专班'); return; }
 
     const tfName = tfOption?.dataset.name || tfId;
+    // R4-D04：专班考察必须落稳定父键 workgroupId（显示仍用 name 快照）。
+    const workgroupId = tfOption?.dataset.workgroupId || `wg-taskforce-${tfId}`;
     const selectedIds = _orgInspPickerInstance ? _orgInspPickerInstance.getSelected() : [];
     if (selectedIds.length === 0) { showToast('error', '请选择人员'); return; }
 
@@ -279,7 +281,9 @@ function _initOrgInspForm(container, activeTaskforces, ctx) {
         id: generateId('insp'),
         sourceType: SourceType.TASKFORCE,
         activityId: null,
-        sourceName: tfName,
+        workgroupId,              // R4-D04：父键（改名/同名不断链）
+        taskforceId: tfId,        // 兼容快照
+        sourceName: tfName,       // 仅展示快照
         personId,
         level: ParticipationLevel.DEEP_PARTICIPATE,
         content,                 // 2026-09-04 补齐 P1-5：考察内容入 content 字段（原误写 role）
@@ -295,7 +299,7 @@ function _initOrgInspForm(container, activeTaskforces, ctx) {
     //   （CF §D 考察管理表「专班考察：上传/修改：上传=专班实际负责人；组织委员=建档汇总，不直接录原始数据」）
     //   ⇒ 由本台代录时属**例外代办** ⇒ **写库前**弹一次确认（点「仍由我继续」才继续）。
     //   本位操作人（本人即该专班组织者）走原路径、零打扰。弹窗**必须点按钮才能关**；「取消」＝放弃本次上传。
-    if (!isInspectionHomePosition(AuthStore.getCurrentUser()?.personId, SourceType.TASKFORCE, tfId)) {
+    if (!isInspectionHomePosition(AuthStore.getCurrentUser()?.personId, SourceType.TASKFORCE, workgroupId)) {
       const _homeOk = await confirmNudge({ nudgeKey: 'taskforce-upload', context: tfName });
       if (!_homeOk) return;
     }

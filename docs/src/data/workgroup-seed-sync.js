@@ -1,6 +1,6 @@
 // Mock 数据兼容迁移：为已有活动/专班建立稳定工作组主记录。
 // 不搬移普通参与者，不猜测旧专班任务/产出；原始业务记录仍是来源。
-import { WorkgroupStatus, workgroupStatusForTaskforce } from '../core/domain/domain.js?v=20261019a';
+import { WorkgroupStatus, workgroupStatusForTaskforce } from '../core/domain/domain.js?v=20261020a';
 
 const MEMBER_ROLES = new Set(['organizer', 'deep']);
 

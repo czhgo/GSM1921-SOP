@@ -30,7 +30,7 @@ import { canReadThoughtReport } from '../../../docs/src/services/governance/thou
 // T-218：新增 4 张 niche 表（键名与前端快照 payload 键名完全一致）
 // T-209 全栈同步：补齐前端 mockDB 全部持久化域，使 API 模式全链路可用
 import { RESOURCE_TABLES, ID_PREFIX, listTable, getRow, writeRow } from './store.js';
-import { RESOURCE_WRITE_GATE, COMMISSIONER_WRITE_RESOURCES, _assertResourceWrite, _writeDenyMsg, ACTIVITY_WRITE_DENY_MSG, _assertActivityWrite, _ballotModeReject, BRANCH_COMMITTEE_ROLES, PARTY_STAFF_ROLE, _assertActivityBlockEnabled, _assertWorkflowBlockEnabled, _assertCapabilityPackageEnabled, activityBlockDisabledMsg, workflowBlockDisabledMsg, _snapshotNoticeMessageGateDeny, _snapshotResourceWriteGateDeny, _retainUngatedSnapshotRows, _inspectionDecisionDeny } from './gates.js';
+import { RESOURCE_WRITE_GATE, COMMISSIONER_WRITE_RESOURCES, _assertResourceWrite, _writeDenyMsg, ACTIVITY_WRITE_DENY_MSG, _assertActivityWrite, _ballotModeReject, BRANCH_COMMITTEE_ROLES, PARTY_STAFF_ROLE, _assertActivityBlockEnabled, _assertWorkflowBlockEnabled, _assertCapabilityPackageEnabled, activityBlockDisabledMsg, workflowBlockDisabledMsg, _snapshotNoticeMessageGateDeny, _snapshotResourceWriteGateDeny, _retainUngatedSnapshotRows, _inspectionDecisionDeny, _inspectionSourceKeyDeny, _inspectionImmutableKeyDeny } from './gates.js';
 import { _activityApprovalGateDeny, _snapshotActivityApprovalGateDeny, _activityCreateGatePatch } from './approval-gates.js';
 import { _snapshotBaseVersions, _snapshotWrites, _snapshotMissingVersions, _allCollectionVersions, _snapshotVersionConflicts, _normalizeSnapshotAliases } from './snapshot-versions.js';
 import { registerExtraSemanticRoutes } from './semantic-routes.js';
@@ -113,9 +113,13 @@ function _activityPartyGroup(db, activity) {
   return row ? (JSON.parse(row.data).partyGroup || null) : null;
 }
 
-function _isTaskforceOrganizerByName(db, sourceName, actorId) {
-  if (!sourceName || !actorId) return false;
-  return listTable(db, 'taskforces').some((row) => row.name === sourceName
+/** 专班组织者（R4-D04：只按 workgroupId → workgroups.sourceId → taskforces 反查，不再按名称匹配） */
+function _isTaskforceOrganizerByWorkgroupId(db, workgroupId, actorId) {
+  if (!workgroupId || !actorId) return false;
+  const group = listTable(db, 'workgroups').find((row) => row.id === workgroupId && row.kind === 'taskforce');
+  const taskforceId = group?.sourceId || null;
+  if (!taskforceId) return false;
+  return listTable(db, 'taskforces').some((row) => row.id === taskforceId
     && Array.isArray(row.members)
     && row.members.some((member) => member?.personId === actorId && member.role === 'organizer'));
 }
@@ -134,7 +138,7 @@ function _canReadAttendanceRow(db, row, actor) {
 function _canReadInspectionRow(db, row, actor) {
   if (!row || !actor) return false;
   if (row.personId === actor.id || row.recordedBy === actor.id) return true;
-  if (row.sourceType === 'taskforce') return _isTaskforceOrganizerByName(db, row.sourceName, actor.id);
+  if (row.sourceType === 'taskforce') return _isTaskforceOrganizerByWorkgroupId(db, row.workgroupId, actor.id);
   const activity = _activityRow(db, row.activityId);
   if (!activity) return false;
   if (_isActivityOrganizer(activity, actor.id)) return true;
@@ -231,6 +235,11 @@ export function createResourcesRouter(db) {
     // （空模板/复制双形态创建，party-staff 门控，见 L2 配置路由之前）；本通用 POST 跳过 branches。
     if (name !== 'branches') {
       router.post(`/${name}`, writeAuth, (req, res) => {
+        // R4-D04：先判稳定父键，再判角色门——缺键给出可懂 400，而不是笼统 403。
+        if (name === 'inspections') {
+          const keyDeny = _inspectionSourceKeyDeny(req.body);
+          if (keyDeny) return res.status(400).json({ error: keyDeny });
+        }
         if (!_assertResourceWrite(req.actor, name, 'post', req.body, req.params.id, db)) {
           return res.status(403).json({ error: _writeDenyMsg(name) });
         }
@@ -369,6 +378,19 @@ export function createResourcesRouter(db) {
           return res.status(400).json({ error: '无可更新字段：此写口仅可配置成员角色 role' });
         }
       }
+      // R4-D04：先判父键/只读，再判角色门——legacy 与改写父键给出明确原因（而非笼统 403）。
+      if (name === 'inspections') {
+        const current = db.prepare(`SELECT data FROM ${table} WHERE id = ?`).get(String(req.params.id));
+        if (current) {
+          const prevJson = JSON.parse(current.data);
+          const keyDeny = _inspectionSourceKeyDeny(prevJson);
+          if (keyDeny) {
+            return res.status(prevJson.legacy === true ? 403 : 400).json({ error: keyDeny });
+          }
+          const immutableDeny = _inspectionImmutableKeyDeny(prevJson, req.body);
+          if (immutableDeny) return res.status(403).json({ error: immutableDeny });
+        }
+      }
       if (!_assertResourceWrite(req.actor, name, 'patch', req.body, req.params.id, db)) {
         return res.status(403).json({ error: _writeDenyMsg(name) });
       }
@@ -382,6 +404,7 @@ export function createResourcesRouter(db) {
         && req.body.recordedBy !== previousRecord.recordedBy) {
         return res.status(403).json({ error: '无权限：不能伪造考察记录人' });
       }
+      // R4-D04：前置已判稳定父键/legacy（写门之前），此处不再重复。
       // D01：确认/打回另设白名单（纪检/支书/副支书）且禁止自确认——
       // 写门只判「能否改考察」，这里判「能否以确认人身份落库」。
       if (name === 'inspections') {
@@ -538,6 +561,14 @@ export function createResourcesRouter(db) {
 
     // 删除
     router.delete(`/${name}/:id`, writeAuth, (req, res) => {
+      // R4-D04：历史考察（缺工作组键）只读——删除给出明确原因，不走「万金油」403。
+      if (name === 'inspections') {
+        const current = db.prepare(`SELECT data FROM ${table} WHERE id = ?`).get(String(req.params.id));
+        if (current) {
+          const keyDeny = _inspectionSourceKeyDeny(JSON.parse(current.data));
+          if (keyDeny) return res.status(403).json({ error: keyDeny });
+        }
+      }
       if (!_assertResourceWrite(req.actor, name, 'delete', null, req.params.id, db)) {
         return res.status(403).json({ error: _writeDenyMsg(name) });
       }

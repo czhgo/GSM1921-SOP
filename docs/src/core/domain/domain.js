@@ -379,7 +379,10 @@ export const REVIEW_STATUS_LABELS = {
  * @property {string}  id            - 唯一标识符（由 id.js 生成）
  * @property {'activity'|'taskforce'} sourceType - 考察来源类型（活动 or 专班）— Source: D-198
  * @property {string}  activityId    - 关联活动 ID（sourceType='activity'时必填）
- * @property {string}  sourceName    - 来源名称（sourceType='taskforce'时为专班名称）
+ * @property {string}  [workgroupId] - 稳定父键：考察所挂工作组 ID（sourceType='taskforce' 时必填；R4-D04）
+ * @property {string}  [taskforceId] - 专班业务 ID 兼容快照（只读展示/回填用，关联与权限一律走 workgroupId）
+ * @property {string|null} [sourceName] - 来源名称（**仅展示快照**，不得用于关联/查询/权限判断；专班改名后不再断链）
+ * @property {boolean} [legacy]      - 历史记录无法回填工作组键时置 true：只读，不参与写门与确认/删除
  * @property {string}  personId      - 人员 ID（引用 people.js）
  * @property {'organize'|'deep'} level - 考察层级（仅组织者和深度参与者有考察记录） - Source: content/04_web_design/data/DATA_ARCHITECTURE.md §3.3
  * @property {string}  role          - 分工角色+描述（如：策划+全流程统筹、视频制作、PPT设计）

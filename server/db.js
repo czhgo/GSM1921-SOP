@@ -1,6 +1,8 @@
 // server/db.js — SQLite 初始化与建表
 import Database from 'better-sqlite3';
 import { WorkgroupStatus, workgroupStatusForTaskforce } from '../docs/src/core/domain/domain.js';
+// R4-D04：考察记录回填与 mock hydrate 同源（纯函数，勿在服务端另写一套匹配规则）
+import { migrateInspectionWorkgroupKeys } from '../docs/src/services/activity/inspection-migrate.js';
 
 // 资源表：每张表 id 主键 + data JSON（保持与前端数据结构完全一致，嵌套字段零损失）
 // T-218：新增 4 张 niche 表（经验沉淀/合规引用/文件空间/图片记录），与前端快照 payload 键名对齐
@@ -326,6 +328,28 @@ export const MIGRATIONS = [
         write.run(legacy.id, JSON.stringify(migrated));
       }
       db.exec('DROP TABLE weekly_reports');
+    },
+  },
+  {
+    // v5（IA 审查 R4-D04，2026-10-20）：考察记录补稳定父键 workgroupId。
+    //   旧记录只按 sourceName 串专班名 ⇒ 改名断链、同名串数据。这里只改 inspections 的 JSON 行，
+    //   **不动表结构**；回填函数与 mock hydrate 同源（docs/src/services/activity/inspection-migrate.js）。
+    version: 5,
+    name: 'inspection-workgroup-key',
+    tables: [],
+    up(db) {
+      const rows = db.prepare('SELECT id, data FROM inspections').all();
+      if (rows.length === 0) return;
+      const parseAll = (table) => db.prepare(`SELECT data FROM ${table}`).all().map((row) => JSON.parse(row.data));
+      const result = migrateInspectionWorkgroupKeys({
+        records: rows.map((row) => JSON.parse(row.data)),
+        workgroups: parseAll('workgroups'),
+        taskforces: parseAll('taskforces'),
+      });
+      const update = db.prepare('UPDATE inspections SET data = ? WHERE id = ?');
+      result.rows.forEach((row, index) => {
+        if (JSON.stringify(row) !== rows[index].data) update.run(JSON.stringify(row), rows[index].id);
+      });
     },
   },
 ];

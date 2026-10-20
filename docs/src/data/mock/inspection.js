@@ -9,7 +9,7 @@
 // 本文件退化为纯考察种子数据仓。
 // 2026-09-06 基线刷新：recordedAt 随关联活动/专班时间轴同步平移（活动新日期见 activities.js 头注）；
 //   注释中旧人名同步（与 people.js 一致）。
-import { ParticipationLevel, SourceType } from '../../core/domain/domain.js?v=20261019a';
+import { ParticipationLevel, SourceType } from '../../core/domain/domain.js?v=20261020a';
 
 export const INSPECTION_RECORDS = [
   // ── 活动考察记录 ──────────────────────────────────────────
@@ -32,10 +32,11 @@ export const INSPECTION_RECORDS = [
   { id: 'insp-10', sourceType: SourceType.ACTIVITY, activityId: 'act-12', sourceName: null, personId: 'p10', level: ParticipationLevel.DEEP_PARTICIPATE, role: '现场记录+纪要整理',   recordedBy: 'p11', recordedAt: '2026-07-14T14:05:00', status: 'pending' },
 
   // ── 专班考察记录 ──────────────────────────────────────────
+  // R4-D04：专班考察以 workgroupId 为稳定父键；sourceName 仅作展示快照。
   // 宣传专班（第二期）（p9 吕思涵 — tf-001 实际成员）
-  { id: 'insp-11', sourceType: SourceType.TASKFORCE, activityId: null, sourceName: '宣传专班（第二期）', personId: 'p9',  level: ParticipationLevel.DEEP_PARTICIPATE, role: '文案撰写',           recordedBy: 'p1',  recordedAt: '2026-07-07T09:00:00', status: 'pending' },
+  { id: 'insp-11', sourceType: SourceType.TASKFORCE, activityId: null, workgroupId: 'wg-taskforce-tf-001', taskforceId: 'tf-001', sourceName: '宣传专班（第二期）', personId: 'p9',  level: ParticipationLevel.DEEP_PARTICIPATE, role: '文案撰写',           recordedBy: 'p1',  recordedAt: '2026-07-07T09:00:00', status: 'pending' },
   // 共建座谈对接专班（p10 董建军 — tf-004 实际成员）
-  { id: 'insp-12', sourceType: SourceType.TASKFORCE, activityId: null, sourceName: '共建座谈对接专班', personId: 'p10', level: ParticipationLevel.DEEP_PARTICIPATE, role: 'PPT设计',            recordedBy: 'p11', recordedAt: '2026-07-09T10:00:00', status: 'pending' },
+  { id: 'insp-12', sourceType: SourceType.TASKFORCE, activityId: null, workgroupId: 'wg-taskforce-tf-004', taskforceId: 'tf-004', sourceName: '共建座谈对接专班', personId: 'p10', level: ParticipationLevel.DEEP_PARTICIPATE, role: 'PPT设计',            recordedBy: 'p11', recordedAt: '2026-07-09T10:00:00', status: 'pending' },
 
   // ── 各发展阶段人员考察记录（补齐支书全局概况"发展与考察"阶段人数）──
   // 积极分子（p7 曾雨桐 / p15 丁嘉懿 / p18 谢晓东 / p26 朱欣怡）— 参与积极分子座谈会

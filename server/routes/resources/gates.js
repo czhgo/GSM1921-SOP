@@ -443,6 +443,13 @@ export function _snapshotResourceWriteGateDeny(db, writes, actor) {
         continue;
       }
       const method = prev ? 'patch' : 'post';
+      // R4-D04：快照写穿同样复算稳定父键（缺键/legacy 只读/父键不可改写）。
+      if (name === 'inspections') {
+        const keyDeny = _inspectionSourceKeyDeny(row)
+          || (prev && _inspectionSourceKeyDeny(prev))
+          || (prev && _inspectionImmutableKeyDeny(prev, row));
+        if (keyDeny) return keyDeny;
+      }
       // D01：快照写穿同样复算「确认/打回」白名单与自确认禁令（前端服务层经 persist 走本口）
       if (name === 'inspections') {
         const decisionDeny = _inspectionDecisionDeny(actor, prev, row);
@@ -465,7 +472,8 @@ export function _snapshotResourceWriteGateDeny(db, writes, actor) {
 //   · 角色集单一源 = `constants.js::BRANCH_COMMISSION_ROLES` / `PARTY_STAFF_ROLE`（勿另写角色表）；
 //   · 活动组织者判据复用本文件 `_isActivityOrganizer`（顶层 organizer + assignments.organizer + 支部等值），
 //     仅额外补 `assignments.role='deep'`（与前端 `canUploadInspection` 同口径，防两端一个放一个拦）；
-//   · 专班按 `members` role=organizer（`sourceName` 或 id 皆可识别，近似沿用前端 `isTaskforceOrganizer`）。
+//   · 专班按 `members` role=organizer，但来源只认 `workgroupId`（R4-D04：名字只是展示快照，
+//     改名/同名不再影响写门）。
 // 读取面不动：仍走 `index.js::_canReadInspectionRow` 的 visibility 投影（不扩大）。
 // ⚠ 本段置尾：`RESOURCE_WRITE_GATE.inspections` 以运行时挂载登记（不插入上方对象字面量）。
 // ════════════════════════════════════════════════════════════════
@@ -486,19 +494,55 @@ function _isInspectionActivityOrganizer(db, actor, activityId) {
     && activity.assignments.some((item) => item?.personId === actor.id && item.role === 'deep');
 }
 
-/** 专班组织者（sourceName / id 近似判据，与前端 `isTaskforceOrganizer` 同口径） */
-function _isInspectionTaskforceOrganizer(db, actorId, sourceRef) {
-  if (!db || !actorId || !sourceRef) return false;
-  return listTable(db, 'taskforces').some((row) => (row.id === sourceRef || row.name === sourceRef)
+/** 专班组织者（R4-D04：只按 workgroupId → workgroups.sourceId → taskforces 反查，不再按名称匹配） */
+function _isInspectionTaskforceOrganizer(db, actorId, workgroupId) {
+  if (!db || !actorId || !workgroupId) return false;
+  const group = listTable(db, 'workgroups').find((row) => row.id === workgroupId && row.kind === 'taskforce');
+  const taskforceId = group?.sourceId || null;
+  if (!taskforceId) return false;
+  return listTable(db, 'taskforces').some((row) => row.id === taskforceId
     && Array.isArray(row.members)
     && row.members.some((member) => member?.personId === actorId && member.role === 'organizer'));
+}
+
+/** R4-D04：历史考察只读原因（与前端 services/activity/inspection.js 同文案） */
+export const INSPECTION_LEGACY_REASON = '历史考察缺少工作组键（只读）';
+const INSPECTION_MISSING_KEY_REASON = '考察记录缺少工作组键（workgroupId），请从专班上下文重新上传';
+
+/**
+ * R4-D04：考察记录的稳定父键校验（新增/修改/快照写穿共用）。
+ * @returns {string|null} 拒绝原因；放行 → null
+ */
+export function _inspectionSourceKeyDeny(record) {
+  if (!record || typeof record !== 'object') return '考察记录格式无效';
+  if (record.legacy === true) return INSPECTION_LEGACY_REASON;
+  if (record.sourceType === 'taskforce' && !record.workgroupId) return INSPECTION_MISSING_KEY_REASON;
+  if (record.sourceType === 'activity' && !record.activityId) return '活动考察缺少 activityId，不能写入';
+  return null;
+}
+
+/**
+ * R4-D04：稳定父键与只读标记在创建后不可改写（同 recordedBy 口径，防借 PATCH 挪场次/洗白 legacy）。
+ * @returns {string|null} 拒绝原因；放行 → null
+ */
+export function _inspectionImmutableKeyDeny(prev, body) {
+  if (!prev || !body || typeof body !== 'object') return null;
+  for (const key of ['workgroupId', 'activityId', 'legacy']) {
+    if (!Object.prototype.hasOwnProperty.call(body, key)) continue;
+    // legacy 是只读标记：布尔等价即视为未改写（兼容快照里的 false 归一）。
+    const changed = key === 'legacy'
+      ? (!!body[key] !== !!prev[key])
+      : (body[key] !== prev[key]);
+    if (changed) return `无权限：考察记录的 ${key} 创建后不可修改`;
+  }
+  return null;
 }
 
 /** 该考察来源是否由 actor 组织 */
 function _isInspectionSourceOrganizer(db, actor, record) {
   if (!record) return false;
   if (record.sourceType === 'taskforce') {
-    return _isInspectionTaskforceOrganizer(db, actor?.id, record.sourceName || record.taskforceId);
+    return _isInspectionTaskforceOrganizer(db, actor?.id, record.workgroupId);
   }
   return _isInspectionActivityOrganizer(db, actor, record.activityId);
 }
@@ -509,10 +553,15 @@ function _isInspectionSourceOrganizer(db, actor, record) {
  */
 function _inspectionWriteAllowed(db, actor, method, body, targetId) {
   if (!actor || !actor.id) return false;
-  // D08：支委层（含组织委员「建档代录」）与党委可写；普通成员仅限本场组织者（下段）
-  if (PARTY_STAFF_ROLE.has(actor.role) || INSPECTION_WRITE_ROLE_SET.has(actor.role)) return true;
+  const committee = PARTY_STAFF_ROLE.has(actor.role) || INSPECTION_WRITE_ROLE_SET.has(actor.role);
 
-  if (method === 'post') return _isInspectionSourceOrganizer(db, actor, body);
+  if (method === 'post') {
+    // R4-D04：新增专班考察必须带 workgroupId；legacy 记录不得作为新记录写入。
+    if (_inspectionSourceKeyDeny(body)) return false;
+    // D08：支委层（含组织委员「建档代录」）与党委可写；普通成员仅限本场组织者（下段）
+    if (committee) return true;
+    return _isInspectionSourceOrganizer(db, actor, body);
+  }
 
   if (method !== 'patch' && method !== 'delete') return false;
   if (!targetId) return false;
@@ -520,11 +569,17 @@ function _inspectionWriteAllowed(db, actor, method, body, targetId) {
   if (!row) return false;
   let prev;
   try { prev = JSON.parse(row.data); } catch { return false; }
+  // R4-D04：缺工作组键的历史记录对**所有角色**只读（含支委层），不参与写门。
+  if (_inspectionSourceKeyDeny(prev)) return false;
+  // 合并后的行仍须带正确父键（防借 sourceType/sourceName 改写拼出无键记录）。
+  const merged = method === 'patch' && body ? { ...prev, ...body } : prev;
+  if (_inspectionSourceKeyDeny(merged)) return false;
+  if (committee) return true;
   if (!_isInspectionSourceOrganizer(db, actor, prev)) return false;
   // 修改来源时，新来源也须是本人组织的场次（防借 PATCH 把记录挪到别人场次）
-  if (method === 'patch' && body && ['sourceType', 'activityId', 'sourceName', 'taskforceId']
+  if (method === 'patch' && body && ['sourceType', 'activityId', 'sourceName', 'taskforceId', 'workgroupId']
     .some((key) => Object.prototype.hasOwnProperty.call(body, key))) {
-    return _isInspectionSourceOrganizer(db, actor, { ...prev, ...body });
+    return _isInspectionSourceOrganizer(db, actor, merged);
   }
   return true;
 }
@@ -545,6 +600,8 @@ function _inspectionWriteAllowed(db, actor, method, body, targetId) {
  */
 export function _inspectionDecisionDeny(actor, prev, body) {
   if (!body || typeof body !== 'object') return null;
+  // R4-D04：历史考察（缺工作组键）只读——确认/打回同样拒绝（在判状态变化之前）。
+  if (prev && prev.legacy === true) return INSPECTION_LEGACY_REASON;
   // 只在「状态/留痕真的发生变化」时按确认/打回复算——避免编辑已确认记录的内容被误判为再次确认
   const isConfirm = (body.status === 'confirmed' && (!prev || prev.status !== 'confirmed'))
     || (Object.prototype.hasOwnProperty.call(body, 'confirmedBy')

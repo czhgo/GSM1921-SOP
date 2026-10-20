@@ -3,27 +3,27 @@
 // 党小组活动考察：组织者上传 → 纪检委员确认 → 录入考察总表。
 // 业务口径：考察依托工作组——考察记录挂工作组，考察对象为该工作组成员；sourceType/activityId/taskforceId 是工作组类型的投影。
 
-import { loadInspectionRecords, saveInspectionRecords, canUploadInspection } from '../../../services/activity/inspection.js?v=20261019a';
-import { loadInspectionAppeals, reconfirmReturnedInspectionRecord, resolveInspectionAppeal, isInspectionHomePosition } from '../../../services/activity/inspection.js?v=20261019a';
-import { loadActivities, getOrganizedActivities } from '../../../services/activity/activity.js?v=20261019a';
+import { loadInspectionRecords, saveInspectionRecords, canUploadInspection } from '../../../services/activity/inspection.js?v=20261020a';
+import { loadInspectionAppeals, reconfirmReturnedInspectionRecord, resolveInspectionAppeal, isInspectionHomePosition } from '../../../services/activity/inspection.js?v=20261020a';
+import { loadActivities, getOrganizedActivities } from '../../../services/activity/activity.js?v=20261020a';
 // 待批活动的可见性单一源（2026-09-22 批次 151）：组长台为非支委层 ⇒ 待批活动不进本页来源下拉
-import { filterActivitiesForViewer } from '../../../services/core/visibility.js?v=20261019a';
-import { TaskForceRecordStore, isTaskforceOrganizer } from '../../../services/activity/taskforce.js?v=20261019a';
-import { AuthStore } from '../../../services/core/auth.js?v=20261019a';
-import { PersonPicker } from '../../../components/governance/pickers.js?v=20261019a';
+import { filterActivitiesForViewer } from '../../../services/core/visibility.js?v=20261020a';
+import { TaskForceRecordStore, isTaskforceOrganizer } from '../../../services/activity/taskforce.js?v=20261020a';
+import { AuthStore } from '../../../services/core/auth.js?v=20261020a';
+import { PersonPicker } from '../../../components/governance/pickers.js?v=20261020a';
 // 「本位」nudge 确认弹窗（2026-09-23 支书裁定 · 单一源 = components/ui/modal.js::confirmNudge）
-import { confirmNudge } from '../../../components/ui/modal.js?v=20261019a';
-import { inspectionToLong } from '../../../services/activity/inspection.js?v=20261019a';
-import { getPersonById, getPersonName } from '../../../services/member/person.js?v=20261019a';
-import { SourceType, ParticipationLevel } from '../../../core/domain/domain.js?v=20261019a';
-import { showToast, escHtml as esc, getBasePath } from '../../../core/base/utils.js?v=20261019a';
-import { solidAccentStyle, accDarkVars } from '../../../core/domain/constants.js?v=20261019a';
-import { currentLeaderGroup } from './_shared.js?v=20261019a';
-import { generateId } from '../../../core/base/id.js?v=20261019a';
+import { confirmNudge } from '../../../components/ui/modal.js?v=20261020a';
+import { inspectionToLong } from '../../../services/activity/inspection.js?v=20261020a';
+import { getPersonById, getPersonName } from '../../../services/member/person.js?v=20261020a';
+import { SourceType, ParticipationLevel } from '../../../core/domain/domain.js?v=20261020a';
+import { showToast, escHtml as esc, getBasePath } from '../../../core/base/utils.js?v=20261020a';
+import { solidAccentStyle, accDarkVars } from '../../../core/domain/constants.js?v=20261020a';
+import { currentLeaderGroup } from './_shared.js?v=20261020a';
+import { generateId } from '../../../core/base/id.js?v=20261020a';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是人的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
-import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261019a';
+import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261020a';
 // 材料页深链 focusActivityId 的通用定位（只滚动 + 闪烁，不另造筛选器）
-import { focusActivityAnchor } from '../../../components/ui/detail-anchor.js?v=20261019a';
+import { focusActivityAnchor } from '../../../components/ui/detail-anchor.js?v=20261020a';
 
 // 私有状态（随模块自持，不污染入口）
 let _inspFormVisible = false;
@@ -298,7 +298,7 @@ function _initInspForm(container, sourceActivities, sourceTaskforces, ctx, opts 
           sourceActivities.map(a => `<option value="${a.id}" data-name="${a.title}">${a.title}（${a.date}）${uploadedActivityIds.has(a.id) ? ' · 已上传' : ''}</option>`).join('');
       } else if (type === 'taskforce') {
         sourceSelect.innerHTML = `<option value="">请选择专班</option>` +
-          sourceTaskforces.map(tf => `<option value="${tf.id}" data-name="${tf.name}">${tf.name}</option>`).join('');
+          sourceTaskforces.map(tf => `<option value="${tf.id}" data-name="${tf.name}" data-workgroup-id="${tf.workgroupId || `wg-taskforce-${tf.id}`}">${tf.name}</option>`).join('');
       } else {
         sourceSelect.innerHTML = '<option value="">请先选择来源类型</option>';
       }
@@ -330,6 +330,10 @@ function _initInspForm(container, sourceActivities, sourceTaskforces, ctx, opts 
       showToast('error', '该活动不在您的考察上传位内（仅本组党小组会/本人组织的活动可上传）'); return;
     }
 
+    // R4-D04：专班考察写稳定父键 workgroupId（名称只作展示快照）；活动类仍写 activityId。
+    const workgroupId = sourceType === 'taskforce'
+      ? (sourceOption?.dataset.workgroupId || `wg-taskforce-${sourceId}`) : null;
+
     // 收集每人的考察内容
     const records = [];
     for (const personId of selectedIds) {
@@ -341,6 +345,8 @@ function _initInspForm(container, sourceActivities, sourceTaskforces, ctx, opts 
         id: generateId('insp'),
         sourceType: sourceType === 'activity' ? SourceType.ACTIVITY : SourceType.TASKFORCE,
         activityId: sourceType === 'activity' ? sourceId : null,
+        workgroupId,
+        taskforceId: sourceType === 'activity' ? null : sourceId,
         sourceName: sourceType === 'activity' ? null : (sourceOption?.dataset.name || sourceId),
         personId,
         level: ParticipationLevel.ORGANIZE, // 默认组织层级，可由用户选择
@@ -359,7 +365,8 @@ function _initInspForm(container, sourceActivities, sourceTaskforces, ctx, opts 
     //   专班见 CF §D「专班考察：上传=专班实际负责人」）⇒ 本台若**不是该场组织者**（本组组长非组织者＝
     //   监督位；或专班上传方非该专班组织者）则属**例外代办** ⇒ **写库前**弹一次确认。
     //   本位操作人（本人即该场组织者）走原路径、零打扰。弹窗**必须点按钮才能关**；「取消」＝放弃本次上传。
-    if (!isInspectionHomePosition(actorId, sourceType === 'activity' ? SourceType.ACTIVITY : SourceType.TASKFORCE, sourceId)) {
+    const nudgeSourceId = sourceType === 'activity' ? sourceId : workgroupId;
+    if (!isInspectionHomePosition(actorId, sourceType === 'activity' ? SourceType.ACTIVITY : SourceType.TASKFORCE, nudgeSourceId)) {
       const _homeOk = await confirmNudge({ nudgeKey: 'inspection-upload', context: sourceOption?.dataset.name || '' });
       if (!_homeOk) return;
     }

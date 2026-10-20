@@ -2958,3 +2958,30 @@ $body
 - 未改表结构；未重写全部页签；宽表卡式化未提前做。
 - 留后续：A08、B01/B03/B04/B05/B09/B11、D02/D03/D05/D07/D09/D12。
 - 既有 `doc-line-ref` 漂移与 27 条 test:daily 存量红灯同批归因并修复（含 IAAA 待归属目录端点、登录前置守卫 2 处真实缺陷）。
+
+## 批次 490（2026-10-20）：考察记录父键迁移（R4-D04）
+
+### 一、判据
+
+- 执行 `.trae/specs/migrate-inspection-workgroup-key/`：专班考察以 `sourceName` 字符串挂载，改名即断链、同名串数据。
+- 不改表结构：考察记录是 JSON 行，只补 `workgroupId` / `taskforceId` / `legacy` 字段。
+
+### 二、动作
+
+- 写口：专班考察必写 `workgroupId`（活动类写 `activityId`）；`sourceName` 降为展示快照。
+- 查询/成员/支部校验/确认/删除写门全部改走 `workgroupId`；名称匹配删除。
+- 回填：新增 `inspection-migrate.js`（纯函数 + 可注入），按 `workgroupId → taskforceId → 唯一 sourceName → 唯一工作组名` 回填；同名多专班不猜，标 `legacy:true` 只读。mock hydrate 与 server migration v5 同源，幂等可重跑并输出回填率。
+- 权限：`legacy:true` 确认/删除 403；新建缺父键 400；PATCH 禁止改写父键/`legacy`。
+
+### 三、读数
+
+- 同名专班样本：`total=3 filled=1 legacy=1 rate=66.7%`；第二次 `filled=0 legacy=1`（幂等）。
+- 种子专班考察：`rate=100.0%`；剥离父键重跑 `filled=2`。
+- `inspection-workgroup-key` 5/5；连同 inspection / handoff / module-load / parity / db-migration / doc 守卫共 84 项全绿。
+- 版本戳 `20261019a → 20261020a`。
+
+### 四、边界
+
+- 未改 SQLite 表结构；未做 UI 改版；未混入 IA 修复。
+- 极旧客户端缓存的迁移前记录若整表快照回写，会因父键不可改写被 403；正常 `init()` 后带新键。
+- `legacy` 记录需人工补键或重录，系统不猜同名专班归属。
