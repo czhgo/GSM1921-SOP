@@ -19,35 +19,35 @@
 //
 // 数据源装配：与 activity-entry.js / notice-entry.js 同款——有 API 会话时先切数据源并 init() 拉全量
 //   再渲染（`module-load.test.mjs::E2` 独立页装配断言要求）。
-import { renderSidebar } from '../../components/shell/sidebar.js?v=20261020c';
-import { renderHeader } from '../../components/shell/header.js?v=20261020c';
-import { hydrateDataSource, notifyDataLoaded, getAdapter, persist } from '../../data/data-adapter.js?v=20261020c';
-import { ApiAdapter } from '../../data/api-adapter.js?v=20261020c';
-import { mockDB } from '../../core/domain/domain.js?v=20261020c';
-import { AuthStore } from '../../services/core/auth.js?v=20261020c';
-import { PersonStore, getPersonName } from '../../services/member/person.js?v=20261020c';
-import { BranchService } from '../../services/core/runtime.js?v=20261020c';
-import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261020c';
-import { IssueStore } from '../../services/governance/issues.js?v=20261020c';
-import { resolveVoterIds, defaultVoteConfig, optionSetOf, isAnonymousActivity } from '../../services/activity/vote-config.js?v=20261020c';
-import { fetchVotes, tallyForItem } from '../../services/activity/committee-vote.js?v=20261020c';
-import { agendaDecisionSource } from '../../services/activity/agenda-relations.js?v=20261020c';
-import { renderVoteWidget } from '../../components/governance/vote-widget.js?v=20261020c';
-import { renderVoteSummary } from '../../components/governance/vote-summary-panel.js?v=20261020c';
-import { recordAgendaResultForActivity } from '../../services/activity/agenda-follow-up.js?v=20261020c';
+import { renderSidebar } from '../../components/shell/sidebar.js?v=20261020d';
+import { renderHeader } from '../../components/shell/header.js?v=20261020d';
+import { hydrateDataSource, notifyDataLoaded, getAdapter, persist } from '../../data/data-adapter.js?v=20261020d';
+import { ApiAdapter } from '../../data/api-adapter.js?v=20261020d';
+import { mockDB } from '../../core/domain/domain.js?v=20261020d';
+import { AuthStore } from '../../services/core/auth.js?v=20261020d';
+import { PersonStore, getPersonName } from '../../services/member/person.js?v=20261020d';
+import { BranchService } from '../../services/core/runtime.js?v=20261020d';
+import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261020d';
+import { IssueStore } from '../../services/governance/issues.js?v=20261020d';
+import { resolveVoterIds, defaultVoteConfig, optionSetOf, isAnonymousActivity } from '../../services/activity/vote-config.js?v=20261020d';
+import { fetchVotes, tallyForItem } from '../../services/activity/committee-vote.js?v=20261020d';
+import { agendaDecisionSource } from '../../services/activity/agenda-relations.js?v=20261020d';
+import { renderVoteWidget } from '../../components/governance/vote-widget.js?v=20261020d';
+import { renderVoteSummary } from '../../components/governance/vote-summary-panel.js?v=20261020d';
+import { recordAgendaResultForActivity } from '../../services/activity/agenda-follow-up.js?v=20261020d';
 // 「拟上会」清单单一源（2026-09-21 批次 127 · `SOP-B-33` 取（乙）档）：本页的「提取议程」
 // 与写入活动的议程区块共用**同一张清单**（agenda-form.js::buildAgendaCandidates）——
 // 原按来源分两块的呈现（专班报送 / 意见反馈）已按乙档收为一张清单（不按来源各做导入口）。
-import { buildAgendaCandidates, AGENDA_CANDIDATE_GROUPS } from '../tabs/secretary/agenda-form.js?v=20261020c';
-import { listDocs as listBranchDocs, isAgendaDraftDoc, isInstitutionDraftAgendaItem } from '../../services/branch/branch-doc.js?v=20261020c';
+import { buildAgendaCandidates, AGENDA_CANDIDATE_GROUPS } from '../tabs/secretary/agenda-form.js?v=20261020d';
+import { listDocs as listBranchDocs, isAgendaDraftDoc, isInstitutionDraftAgendaItem } from '../../services/branch/branch-doc.js?v=20261020d';
 // 党小组组长（含代组长）清单单一源——2026-09-23 支书裁定甲「支委扩大会…党小组组长（代组长）是可以
 //   打包的」；**不另造组长名单**（同 services/member/party-group.js 的组清单同源；组内无组长时由该源回落次选身份）
-import { listPartyGroups } from '../../services/member/group-view.js?v=20261020c';
-import { loadStageEntryDates } from '../../services/member/member-confirmation.js?v=20261020c';
+import { listPartyGroups } from '../../services/member/group-view.js?v=20261020d';
+import { loadStageEntryDates } from '../../services/member/member-confirmation.js?v=20261020d';
 // 品牌认定提案（2026-09-21 批次 132 · 支书口径二「提案 → 支委会通过后确定」）——判据单一源
-import { listBrandProposals } from '../../services/activity/activity.js?v=20261020c';
-import { showToast, escHtml as esc, todayLocal } from '../../core/base/utils.js?v=20261020c';
-import { generateId } from '../../core/base/id.js?v=20261020c';
+import { listBrandProposals } from '../../services/activity/activity.js?v=20261020d';
+import { showToast, escHtml as esc, todayLocal } from '../../core/base/utils.js?v=20261020d';
+import { generateId } from '../../core/base/id.js?v=20261020d';
 
 renderSidebar('dashboard');
 renderHeader('dashboard');
@@ -256,7 +256,7 @@ function scopeSectionHtml(act, step) {
   return `
     <div class="card rounded-xl p-5">
       <p class="text-sm font-semibold text-gray-700 mb-1">范围 · 本场参会范围</p>
-      <p class="text-xs text-gray-500 mb-3">默认支委层，可扩大到党小组组长（代组长）。<a href="./help.html#card-copy-pcm-scope" class="text-sky-600 hover:underline">见帮助 · 支委会页可见范围</a></p>
+      <p class="text-xs text-gray-500 mb-3"><a href="./help.html#card-copy-pcm-scope" class="text-sky-600 hover:underline">见帮助 · 支委会页可见范围</a></p>
       ${editable ? `
       <label class="flex items-center gap-2 text-sm text-gray-700">
         <input type="checkbox" id="pcm-expanded"${expandedIds.length ? ' checked' : ''}>
@@ -275,7 +275,7 @@ function scopeSectionHtml(act, step) {
         <span class="text-[11px] text-gray-500">${esc(rangeText)}</span>
       </div>` : `
       <p class="text-xs text-gray-600">${esc(rangeText)}</p>
-      <p class="text-xs text-gray-500 mt-1.5">本场参会范围只读；你在本场按应到名单表态。</p>`}
+      <p class="text-xs text-gray-500 mt-1.5">按应到名单表态。</p>`}
     </div>`;
 }
 
@@ -391,7 +391,6 @@ function summarySectionHtml(act) {
   return `
     <div class="card rounded-xl p-5">
       <p class="text-sm font-semibold text-gray-700 mb-1">截止 · 汇总与截止</p>
-      <p class="text-xs text-gray-500 mb-3">汇总本场表态；截止后进入留存。</p>
       <div id="pcm-summary"></div>
     </div>`;
 }
@@ -450,7 +449,7 @@ function resultSectionHtml(act, votes) {
   return `
     <div class="card rounded-xl p-5">
       <p class="text-sm font-semibold text-gray-700 mb-1">留存 · 讨论结果</p>
-      <p class="text-xs text-gray-500 mb-3">留存＝议程结果＋表态记录。<a href="./help.html#card-copy-pcm-scope" class="text-sky-600 hover:underline">见帮助 · 支委会页可见范围</a></p>
+      <p class="text-xs text-gray-500 mb-3"><a href="./help.html#card-copy-pcm-scope" class="text-sky-600 hover:underline">见帮助 · 支委会页可见范围</a></p>
       <div class="space-y-3" id="pcm-result">${body}</div>
       <p class="text-xs text-gray-500 mt-3">也可在 <a href="./activity.html?id=${encodeURIComponent(act.id)}" class="text-blue-600 hover:underline">活动详情</a> 查看全部记录。</p>
     </div>`;
@@ -508,7 +507,7 @@ async function render() {
         <div class="flex items-start justify-between gap-3 flex-wrap">
           <div class="min-w-0">
             <h2 class="font-title-cn text-xl font-bold text-gray-800">支委会会议（线上召开）</h2>
-            <p class="text-xs text-gray-500 mt-1">线上与线下同等效力；记录即终局。<a href="./help.html#card-copy-pcm-scope" class="text-sky-600 hover:underline">见帮助 · 支委会页可见范围</a></p>
+            <p class="text-xs text-gray-500 mt-1"><span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] bg-gray-100 text-gray-600">线上＝线下效力</span><a href="./help.html#card-copy-pcm-scope" class="text-sky-600 hover:underline ml-2">见帮助</a></p>
           </div>
           <a href="./workspace/${esc(page)}" class="text-sm text-blue-600 hover:underline flex-shrink-0">← 返回我的工作台</a>
         </div>

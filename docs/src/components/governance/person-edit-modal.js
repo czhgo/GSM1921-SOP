@@ -28,19 +28,19 @@
 //      to ≠ from），明确提示随在册状态变更一并报送，不静默丢弃。
 // ════════════════════════════════════════════════════════════════
 
-import { openModal, closeModal } from '../ui/modal.js?v=20261020c';
-import { PersonStore } from '../../services/member/person.js?v=20261020c';
-import { getBranchById } from '../../services/branch/branch.js?v=20261020c';
+import { openModal, closeModal } from '../ui/modal.js?v=20261020d';
+import { PersonStore } from '../../services/member/person.js?v=20261020d';
+import { getBranchById } from '../../services/branch/branch.js?v=20261020d';
 // Q-21-3 收敛（2026-09-13）：在册状态枚举单一源 = core/domain/constants.js（原经 org-base-data-preview 转出）
-import { ROLE_LABELS, DEVELOP_STAGES, RESIDENCE } from '../../core/domain/constants.js?v=20261020c';
-import { submitMemberChange } from '../../services/member/member-confirmation.js?v=20261020c';
-import { AuthStore } from '../../services/core/auth.js?v=20261020c';
-import { showToast, escHtml as esc, getBasePath, todayLocal } from '../../core/base/utils.js?v=20261020c';
+import { ROLE_LABELS, DEVELOP_STAGES, RESIDENCE } from '../../core/domain/constants.js?v=20261020d';
+import { submitMemberChange } from '../../services/member/member-confirmation.js?v=20261020d';
+import { AuthStore } from '../../services/core/auth.js?v=20261020d';
+import { showToast, escHtml as esc, getBasePath, todayLocal } from '../../core/base/utils.js?v=20261020d';
 // `D-788`（2026-10-05 · `V-10b`）：成员「自我描述」字段模型（**零依赖叶子**）——表单控件由它逐字段生成（单一源）
 import {
   SELF_PROFILE_FIELDS, sanitizeSelfProfile,
   selfProfileListToText, selfProfileListFromText,
-} from '../../core/domain/self-profile.js?v=20261020c';
+} from '../../core/domain/self-profile.js?v=20261020d';
 
 /** 模态 id（openModal / closeModal 定位键） */
 const MODAL_ID = 'person-edit-modal';
@@ -110,7 +110,7 @@ function groupBox({ title, desc, rows }) {
   return `<div class="rounded-xl border border-gray-100 p-3 mb-3">
       <div class="mb-1.5">
         <h5 class="text-xs font-semibold text-gray-700">${esc(title)}</h5>
-        <p class="text-[11px] text-gray-500 mt-0.5">${esc(desc)}</p>
+        ${desc ? `<p class="text-[11px] text-gray-500 mt-0.5">${esc(desc)}</p>` : ''}
       </div>
       ${rows}
     </div>`;
@@ -162,7 +162,6 @@ function selfProfileControl(f, sp) {
 function selfProfileGroup(sp) {
   return groupBox({
     title: '自我描述',
-    desc: '成员自我描述（问卷字段）——本人可填自己的，支委层可代录；留空即不填。',
     rows: SELF_PROFILE_FIELDS.map((f) => formRow(f.label, selfProfileControl(f, sp), { tag: ownerTag('selfProfile') })).join(''),
   });
 }
@@ -230,7 +229,6 @@ export function openPersonEditModal(opts = {}) {
     <form id="${MODAL_ID}-form">
       ${selfOnly ? '' : groupBox({
         title: '档案资料 · 立即生效',
-        desc: '组织委员维护的成员档案属性，保存后即时写入档案。',
         rows: [
           formRow('姓名', `<input data-field="name" type="text" class="input-flat text-xs w-full" value="${esc(member.name || '')}" placeholder="成员姓名" />`, { required: true, tag: TAG_INSTANT }),
           formRow('学号', `<input data-field="studentId" type="text" class="input-flat text-xs w-full" value="${esc(member.studentId || '')}" placeholder="学号（可空）" />`, { tag: TAG_INSTANT }),
@@ -241,7 +239,6 @@ export function openPersonEditModal(opts = {}) {
       ${selfProfileGroup(spCurrent)}
       ${selfOnly ? '' : groupBox({
         title: '制度变更 · 报支书确认',
-        desc: '提交后由支书确认才生效，确认前保持现值，成员名册显示「待确认」。',
         rows: [
           formRow('发展阶段', `<select data-field="developStage" class="input-flat text-xs w-full">${stageOptions(member.developStage)}</select>`, { tag: TAG_CONFIRM }),
           formRow('在册状态', `<select data-field="residenceStatus" class="input-flat text-xs w-full">${residenceOptions(member.residenceStatus)}</select>`, { tag: TAG_CONFIRM }),
@@ -257,7 +254,6 @@ export function openPersonEditModal(opts = {}) {
           <span class="text-gray-500 w-24 flex-shrink-0">所属支部</span>
           <span class="text-gray-800 flex-1 min-w-0">${esc(branchLabel)}</span>
         </div>
-        <p class="text-[11px] text-gray-400 mt-1.5 ml-0">治理字段（角色 / 所属支部），不在本处修改</p>
       </div>`}
       <div class="flex justify-end gap-2 mt-4">
         <button type="button" data-modal-cancel="${MODAL_ID}" class="btn-outline text-xs px-3 py-1.5">取消</button>

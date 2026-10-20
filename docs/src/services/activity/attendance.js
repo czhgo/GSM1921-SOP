@@ -3,19 +3,19 @@
 //  attendance.js — 考勤记录 CRUD 服务
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB, AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../core/domain/domain.js?v=20261020c';
-import { POLICY_DEFAULTS } from '../../core/domain/policy-defaults.js?v=20261020c';
-import { persist, getDataSource, getAdapter } from '../../data/data-adapter.js?v=20261020c';
-import { generateId } from '../../core/base/id.js?v=20261020c';
-import { bumpToken } from '../../core/base/version-token.js?v=20261020c'; // P0 域缓存失效（spec §二.3）
-import { ATTENDANCE_RECORDS } from '../../data/mock/index.js?v=20261020c';
-import { isInitStateActive } from '../core/init-reset.js?v=20261020c'; // C2 修复（2026-09-08）：init 态空态不回退演示种子
-import { PersonStore, getPersonById, getPersonName } from '../member/person.js?v=20261020c';
-import { getRosterStats } from '../member/roster.js?v=20261020c';
-import { getMeetingRosterIds } from '../member/roster.js?v=20261020c';
-import { loadActivities, isActivityOrganizer } from './activity.js?v=20261020c';
-import { SignupStore } from './signup.js?v=20261020c';
-import { deriveExpectedRosterIds } from './attendance-roster.js?v=20261020c';
+import { mockDB, AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../core/domain/domain.js?v=20261020d';
+import { POLICY_DEFAULTS } from '../../core/domain/policy-defaults.js?v=20261020d';
+import { persist, getDataSource, getAdapter } from '../../data/data-adapter.js?v=20261020d';
+import { generateId } from '../../core/base/id.js?v=20261020d';
+import { bumpToken } from '../../core/base/version-token.js?v=20261020d'; // P0 域缓存失效（spec §二.3）
+import { ATTENDANCE_RECORDS } from '../../data/mock/index.js?v=20261020d';
+import { isInitStateActive } from '../core/init-reset.js?v=20261020d'; // C2 修复（2026-09-08）：init 态空态不回退演示种子
+import { PersonStore, getPersonById, getPersonName } from '../member/person.js?v=20261020d';
+import { getRosterStats } from '../member/roster.js?v=20261020d';
+import { getMeetingRosterIds } from '../member/roster.js?v=20261020d';
+import { loadActivities, isActivityOrganizer } from './activity.js?v=20261020d';
+import { SignupStore } from './signup.js?v=20261020d';
+import { deriveExpectedRosterIds } from './attendance-roster.js?v=20261020d';
 
 export function loadAttendanceRecords() {
   if (mockDB.attendances.length > 0) return [...mockDB.attendances];
@@ -593,20 +593,35 @@ export function listActivityParticipationByPerson(records) {
 export function summarizeAttendanceByActivity({ month, records, rosterSnapshots } = {}) {
   const src = records || loadActiveAttendanceRecords();
   const snapshots = rosterSnapshots || mockDB.attendanceRosters || [];
+  const signups = SignupStore.getAll();
   const rows = [];
   for (const a of loadActivities()) {
     if (month && !(a.date || '').startsWith(month)) continue;
+    // 支委会等「不考勤」类型不进入出勤率分母（policy 单一源）
+    if (POLICY_DEFAULTS.attendance.noAttendanceTypes.includes(a.type)) continue;
     const recordByPerson = new Map();
     for (const record of src) {
       if (record.activityId === a.id && record.personId) recordByPerson.set(record.personId, record);
     }
     const snapshot = snapshots.find((row) => row.activityId === a.id && row.frozen === true);
-    const expectedIds = new Set(Array.isArray(snapshot?.personIds) ? snapshot.personIds.map(String) : []);
+    let expectedIds;
+    let rosterFrozen = !!snapshot;
+    if (snapshot) {
+      expectedIds = new Set(Array.isArray(snapshot.personIds) ? snapshot.personIds.map(String) : []);
+    } else {
+      // R2-46：未冻结名单的活动也不能把「实际到场」当分母（会恒等于 100%）。
+      // 回退到支部在册应到名单（党小组会按本组），再叠加主题党日报名口径——与 freeze 时同源。
+      const groupId = a.type === '党小组会'
+        ? (a.hostGroup || getPersonById(a.organizer)?.partyGroup || '')
+        : undefined;
+      const original = getMeetingRosterIds({ type: a.type, groupId, branchId: a.branchId || undefined });
+      expectedIds = new Set(deriveExpectedRosterIds({ activity: a, originalPersonIds: original, signups }).map(String));
+    }
     const actualIds = new Set([...recordByPerson.values()]
       .filter((record) => record.status === AttendanceStatus.PRESENT || record.status === AttendanceStatus.MADE_UP)
       .map((record) => String(record.personId)));
     const rosterIds = new Set([...expectedIds, ...actualIds]);
-    if (rosterIds.size === 0) continue; // 尚无冻结名单且没有记录的活动不占位
+    if (rosterIds.size === 0) continue; // 尚无应到名单且没有记录的活动不占位
     const counted = [...rosterIds].map((personId) => recordByPerson.get(personId)).filter(Boolean);
     const present = counted.filter(r => r.status === AttendanceStatus.PRESENT || r.status === AttendanceStatus.MADE_UP).length;
     const leave = counted.filter(r => r.status === AttendanceStatus.LEAVE).length;
@@ -616,7 +631,7 @@ export function summarizeAttendanceByActivity({ month, records, rosterSnapshots 
     rows.push({
       activityId: a.id, activity: a.title, date: a.date || '', type: a.type || '',
       total: rosterIds.size, present, leave, absent, unrecorded, coverage,
-      rosterFrozen: !!snapshot, estimate: !snapshot,
+      rosterFrozen, estimate: !rosterFrozen,
       rate: Math.round((present / rosterIds.size) * 100),
     });
   }
@@ -657,6 +672,80 @@ export function summarizePersonAttendance({ personId, month } = {}) {
 }
 
 /**
+ * 出勤率配色分档（R2-14 / R2-47，2026-10-20）：全站唯一阈值源。
+ * 为什么需要：首页 90/70、成员台 90/提示线、单场 90/70 三套色阶会让同一人同一月一绿一黄。
+ * 口径：良好线固定 90（展示口径）；偏低线 = 制度参数 `attendance.lowRateHint`（默认 80，支部可调）。
+ * 仅返回语义档位，具体颜色由各展示层映射（颜色不进服务层）。
+ * @param {number|null} rate 0–100；null/undefined = 未录（待录入）
+ * @returns {'good'|'watch'|'low'|'pending'}
+ */
+export function attendanceRateTone(rate) {
+  if (rate === null || rate === undefined || !Number.isFinite(Number(rate))) return 'pending';
+  if (Number(rate) >= 90) return 'good';
+  if (Number(rate) >= POLICY_DEFAULTS.attendance.lowRateHint) return 'watch';
+  return 'low';
+}
+
+/**
+ * 按「应到人次」统计**某一个人**的出勤（R2-47，2026-10-20）。
+ * 与 `summarizePersonAttendance` 的区别（两者都必须显式标注分母）：
+ *   · 本函数：分母 = 该人**应到**的场次（冻结 roster / 在册应到名单，与场次级同一口径）；
+ *     未录场次计入 `unrecorded`，`rate` 仍以应到为分母，`coverage` 暴露录入完整度；
+ *   · `summarizePersonAttendance`：分母 = 该人**已录**场次（当事人视角的历史兼容口径）。
+ * 页面禁止自行相除，二选一并标注用的是哪一个。
+ * @param {{personId:string, month?:string}} [params]
+ * @returns {{total:number, recorded:number, present:number, leave:number, absent:number,
+ *   unrecorded:number, coverage:number, rate:number|null}}
+ */
+export function summarizePersonAttendanceByRoster({ personId, month } = {}) {
+  const empty = { total: 0, recorded: 0, present: 0, leave: 0, absent: 0, unrecorded: 0, coverage: 0, rate: null };
+  if (!personId) return empty;
+  const src = loadActiveAttendanceRecords();
+  const snapshots = mockDB.attendanceRosters || [];
+  const signups = SignupStore.getAll();
+  let total = 0, recorded = 0, present = 0, leave = 0, absent = 0;
+  for (const a of loadActivities()) {
+    if (month && !(a.date || '').startsWith(month)) continue;
+    // 支委会等「不考勤」类型不进入分母（与场次级汇总同源）
+    if (POLICY_DEFAULTS.attendance.noAttendanceTypes.includes(a.type)) continue;
+    const snapshot = snapshots.find((row) => row.activityId === a.id && row.frozen === true);
+    let expectedIds;
+    if (snapshot) {
+      expectedIds = new Set(Array.isArray(snapshot.personIds) ? snapshot.personIds.map(String) : []);
+    } else {
+      const groupId = a.type === '党小组会'
+        ? (a.hostGroup || getPersonById(a.organizer)?.partyGroup || '')
+        : undefined;
+      const original = getMeetingRosterIds({ type: a.type, groupId, branchId: a.branchId || undefined });
+      expectedIds = new Set(deriveExpectedRosterIds({ activity: a, originalPersonIds: original, signups }).map(String));
+    }
+    if (!expectedIds.has(String(personId))) continue;
+    total += 1;
+    const record = src.find((r) => r.activityId === a.id && r.personId === personId);
+    if (!record) continue;
+    recorded += 1;
+    if (record.status === AttendanceStatus.PRESENT || record.status === AttendanceStatus.MADE_UP) present += 1;
+    else if (record.status === AttendanceStatus.LEAVE) leave += 1;
+    else if (record.status === AttendanceStatus.ABSENT) absent += 1;
+  }
+  const unrecorded = total - recorded;
+  return {
+    total, recorded, present, leave, absent, unrecorded,
+    coverage: total > 0 ? Math.round((recorded / total) * 100) : 0,
+    // 未录（coverage=0）不得显示 0%/100% ⇒ null，由展示层写「待录入」
+    rate: total > 0 && recorded > 0 ? Math.round((present / total) * 100) : null,
+  };
+}
+
+/**
+ * 两个出勤率语义的**显式命名出口**（R2-47）：页面必须从二者选一并标注分母，禁止自己相除。
+ * · `attendanceRateByRoster`：按场次 / 应到人次（服务层唯一实现 = summarizeAttendanceByActivity）；
+ * · `attendanceRateByRecorded`：按人 / 已录场次（历史兼容口径 = summarizePersonAttendance）。
+ */
+export const attendanceRateByRoster = summarizeAttendanceByActivity;
+export const attendanceRateByRecorded = summarizePersonAttendance;
+
+/**
  * 出勤率偏低提示（SOP-B-15 / `SOP-B-7`，2026-09-18 批次 85）：**只作提示、不触发任何动作**
  * （不生成补课 / 不影响评优 / 不生成任何处置）。
  * 判据 = **提示线**（可调参数 `POLICY_DEFAULTS.attendance.lowRateHint`）——**提示线 ≠ 制度门槛**：
@@ -667,7 +756,7 @@ export function summarizePersonAttendance({ personId, month } = {}) {
 export function listLowAttendanceSessions({ month, hint } = {}) {
   const line = Number.isFinite(hint) ? hint : POLICY_DEFAULTS.attendance.lowRateHint;
   const sum = summarizeAttendanceByActivity({ month });
-  return { hint: line, month: sum.month, rows: sum.rows.filter(r => r.rate < line) };
+  return { hint: line, month: sum.month, rows: sum.rows.filter(r => r.coverage > 0 && r.rate < line) };
 }
 
 // ════════════════════════════════════════════════════════════════

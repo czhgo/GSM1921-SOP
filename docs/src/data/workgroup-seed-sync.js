@@ -1,6 +1,6 @@
 // Mock 数据兼容迁移：为已有活动/专班建立稳定工作组主记录。
 // 不搬移普通参与者，不猜测旧专班任务/产出；原始业务记录仍是来源。
-import { WorkgroupStatus, workgroupStatusForTaskforce } from '../core/domain/domain.js?v=20261020c';
+import { WorkgroupStatus, workgroupStatusForTaskforce } from '../core/domain/domain.js?v=20261020d';
 
 const MEMBER_ROLES = new Set(['organizer', 'deep']);
 
@@ -99,15 +99,21 @@ export function ensureLegacySourceWorkgroups(db) {
   return changed;
 }
 
-// ── 演示成员产出授权种子（2026-10-18）────────────────────────────
+// ── 演示成员产出授权种子（2026-10-18；R2-32 2026-10-20 迁移）────────────────────
 // 工作组成员身份不自动带来写权限（AuthStore.canDo 走 workgroupGrants）。
-// p5 是 tf-001 的深度参与者、也是成员台「专班动态 · 我的产出填报」演示账号；
+// p5 是成员台「专班动态 · 我的产出填报」演示账号；原授权挂在 tf-001，但 tf-001 已按日期
+// 收口为 completed（不再可写）⇒ 同批给 active 的 tf-002 补同型授权；tf-001 的旧授权保留为历史。
 // 这条种子只补该演示账号在演示专班的 output.submit（deep 模板），不改角色权限矩阵。
 export const DEMO_WORKGROUP_GRANTS = Object.freeze([
   {
     id: 'wgg-seed-tf-001-p5', branchId: 'br-b1', workgroupId: 'wg-taskforce-tf-001', personId: 'p5',
     templateKey: 'deep', permissionKeys: ['output.submit', 'task.complete'], status: 'active',
-    reason: '演示成员产出登记基线（成员台专班动态）', grantedBy: 'p_pc', grantedAt: '2026-09-01T00:00:00.000Z',
+    reason: '演示成员产出登记基线（历史：tf-001 已完成）', grantedBy: 'p_pc', grantedAt: '2026-09-01T00:00:00.000Z',
+  },
+  {
+    id: 'wgg-seed-tf-002-p5', branchId: 'br-b1', workgroupId: 'wg-taskforce-tf-002', personId: 'p5',
+    templateKey: 'deep', permissionKeys: ['output.submit', 'task.complete'], status: 'active',
+    reason: '演示成员产出登记基线（R2-32 后 active 载体＝tf-002）', grantedBy: 'p_pc', grantedAt: '2026-10-18T00:00:00.000Z',
   },
 ]);
 

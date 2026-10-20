@@ -12,9 +12,9 @@ const BASE = 'http://localhost:3000';
 // 浏览器内收集全部 mock 数据（结构化克隆返回）
 async function collectAll(page) {
   return page.evaluate(async () => {
-    const mock = await import('/src/data/mock/index.js?v=20261020c');
-    const seed = await import('/src/data/mock/seed.js?v=20261020c');
-    const accounts = await import('/src/data/mock/accounts.js?v=20261020c');
+    const mock = await import('/src/data/mock/index.js?v=20261020d');
+    const seed = await import('/src/data/mock/seed.js?v=20261020d');
+    const accounts = await import('/src/data/mock/accounts.js?v=20261020d');
     return {
       PEOPLE: mock.PEOPLE,
       ACTIVITIES: mock.ACTIVITIES,
@@ -148,6 +148,11 @@ function audit(data) {
   // ── accounts 引用 ──
   for (const ac of data.MOCK_ACCOUNTS) {
     if (!peopleIds.has(ac.personId)) issues.push(`[accounts] ${ac.studentId} personId 引用不存在: ${ac.personId}`);
+  }
+  // ── 角色覆盖（R2-38）：每个党小组组长都必须有演示账号，否则该组组长台无法进入 ──
+  const accountPersonIds = new Set(data.MOCK_ACCOUNTS.map((ac) => ac.personId));
+  for (const p of data.PEOPLE.filter((row) => row.role === 'leader')) {
+    if (!accountPersonIds.has(p.id)) issues.push(`[accounts] 组长 ${p.id}(${p.name}) 缺演示账号`);
   }
 
   return issues;

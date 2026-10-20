@@ -44,44 +44,43 @@
 //   ⚠ **只动渲染顺序 / 分层与落点**，不改任何功能、权限判定与写口——DOM ID 全保留，真机流程不失配。
 // ════════════════════════════════════════════════════════════════
 
-import { AuthStore } from '../../../services/core/auth.js?v=20261020c';
-import { PersonStore, getPersonName } from '../../../services/member/person.js?v=20261020c';
-import { getBranchIdOfPerson } from '../../../services/branch/branch.js?v=20261020c';
-import { IssueStore } from '../../../services/governance/issues.js?v=20261020c';
-import { loadActivities } from '../../../services/activity/activity.js?v=20261020c';
-import { loadActivityReviews } from '../../../services/governance/review.js?v=20261020c';
-import { loadAttendanceRecords } from '../../../services/activity/attendance.js?v=20261020c';
-import { AttendanceStatus, ReviewStatus, REVIEW_STATUS_LABELS } from '../../../core/domain/domain.js?v=20261020c';
-import { getMeetingRosterIds } from '../../../services/member/roster.js?v=20261020c';
-import { showToast, escHtml as esc, getBasePath, todayLocal } from '../../../core/base/utils.js?v=20261020c';
+import { AuthStore } from '../../../services/core/auth.js?v=20261020d';
+import { PersonStore, getPersonName } from '../../../services/member/person.js?v=20261020d';
+import { getBranchIdOfPerson } from '../../../services/branch/branch.js?v=20261020d';
+import { IssueStore } from '../../../services/governance/issues.js?v=20261020d';
+import { loadActivities } from '../../../services/activity/activity.js?v=20261020d';
+import { loadActivityReviews } from '../../../services/governance/review.js?v=20261020d';
+import { loadAttendanceRecords } from '../../../services/activity/attendance.js?v=20261020d';
+import { AttendanceStatus, ReviewStatus, REVIEW_STATUS_LABELS } from '../../../core/domain/domain.js?v=20261020d';
+import { getMeetingRosterIds } from '../../../services/member/roster.js?v=20261020d';
+import { showToast, escHtml as esc, getBasePath, todayLocal } from '../../../core/base/utils.js?v=20261020d';
 // 统一检索引擎（2026-09-13 表格统一化批次 A）：组员进展摘要（按人）接入关键词 + 分面
-import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261020c';
+import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261020d';
 // 活动类型胶囊（批次 301）：变体判据＝单一源 `activityTypeBadgeVariant`（三会一课＝brand 红 / 主题党日＝gold 金），
 //   渲染唯一源＝`components/ui/badge.js`；**不在本文件手写色值**（支书 2026-09-30：颜色是最好的信息展示方式）。
-import { activityTypeBadgeVariant } from '../../../core/domain/constants.js?v=20261020c';
-import { badgeHtml } from '../../../components/ui/badges.js?v=20261020c'; // 扎口出口（批次 304 收回，勿直连 badge.js）
-import { openModal, closeModal } from '../../../components/ui/modal.js?v=20261020c';
+import { activityTypeBadgeVariant, DEFAULT_BRANCH_ID } from '../../../core/domain/constants.js?v=20261020d';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20261020d'; // 扎口出口（批次 304 收回，勿直连 badge.js）
+import { openModal, closeModal } from '../../../components/ui/modal.js?v=20261020d';
 // 党小组一等实体服务层（组清单 / 写口 / 权限门 / 留痕——组名唯一来源，禁本文件手写组名数组）
 import {
   loadPartyGroups, groupOptions, defaultGroupName, nextGroupSeq,
   addGroup, renameGroup, dissolveGroup, assignMemberToGroup, ungroupedMembers,
   canManagePartyGroups, listGroupHistory,
-} from '../../../services/member/party-group.js?v=20261020c';
+} from '../../../services/member/party-group.js?v=20261020d';
 import {
   listPartyGroups, memberScopeOfGroup, countOpenReportsByGroup,
   groupActivitiesOf, reviewBucketOf, GROUP_REVIEW_COLOR, groupLeadershipOf,
   groupReportRowsOf, reportRowStateOf,
-} from '../../../services/member/group-view.js?v=20261020c';
+} from '../../../services/member/group-view.js?v=20261020d';
 // 赋权分块（2026-09-25 支书裁「全按对象归位」）：情景①a（设党小组组长 / 副组长）由本 tab「党小组清单」卡内
 //   行内管理（2026-10-04 批次 373 去冗余：撤独立「组长指派」块，改由清单行内「设/改」开同一面板）；
 //   **情景①b 支委身份配置已按 2026-09-27 支书裁定迁「支委会」**；**情景②③ 项目赋权整卡按 2026-10-04
 //   批次 373 迁「活动管理」页**（`calendar-tab.js`）。
 //   实现单一源＝entries/tabs/secretary/assign-tab.js（该文件已不注册为 tab，仅余 mount* 分块）
 //   ⇒ **不新造第二套视觉/表单**，只把既有分块挂到本 tab 的落点。
-import { mountLeaderAssign, openLeaderAssignPanel } from './assign-tab.js?v=20261020c';
+import { mountLeaderAssign, openLeaderAssignPanel } from './assign-tab.js?v=20261020d';
 
-/** 缺省支部（与 services/member/party-group.js / mock/domain 既有兼容口径一致：老数据无 branchId 视为 br-b1） */
-const DEFAULT_BRANCH_ID = 'br-b1';
+// R2-17：缺省支部单一源 = core/domain/constants.js::DEFAULT_BRANCH_ID。
 
 // ── 模块级状态（随模块自持；tab 切走再回保持，页面刷新回退首组） ──
 let _selectedGroup = null;      // 当前选中党小组名（进展区）
@@ -247,7 +246,7 @@ function _manageCardHtml(entities, statOf, leaderAssign, canManage) {
           <tbody>${rows}</tbody>
         </table>
       </div>
-      <p class="help-note" style="margin-top:10px;">组长 / 副组长由成员档案派生；行内「设 / 改」任命或撤销。<a href="./help.html#card-copy-party-group" class="help-note__link" title="见帮助：党小组与组长（组长派生 / 改名 / 解散的完整口径与边界）">见帮助 · 党小组与组长</a></p>
+      <p class="help-note" style="margin-top:10px;"><a href="./help.html#card-copy-party-group" class="help-note__link">见帮助 · 党小组与组长</a></p>
       <div id="gp-leader-assign-host"></div>
     </div>`;
 }
@@ -375,10 +374,9 @@ function _progressSectionHtml(viewGroups, group, members, activities, reviews, a
   return `
     <section class="space-y-4" data-gp-progress>
       <div class="flex items-center justify-between gap-2">
-        <h4 class="font-title-cn text-sm font-bold text-gray-700">跨组进展（只读知情）</h4>
+        <h4 class="font-title-cn text-sm font-bold text-gray-700">跨组进展</h4>
         <button type="button" class="btn-outline btn-sm gp-progress-toggle">${_progressOpen ? '收起' : '展开跨组进展'}</button>
       </div>
-      <p class="help-note">只读知情：组员汇报 / 复盘状态 / 活动与考勤。</p>
       ${_progressOpen ? `
         ${_groupSwitchHtml(viewGroups, group, issues)}
         ${_memberProgressCardHtml(group, issues)}
@@ -440,7 +438,7 @@ function _memberProgressCardHtml(group, issues) {
         <h4 class="font-title-cn text-base font-semibold text-gray-800">组员汇报（待答复）</h4>
         <span class="text-xs text-gray-500">组员向组长汇报 · 支书只读</span>
       </div>
-      <p class="text-xs text-gray-500 mb-2.5">支书不代组长答复；对待答复行可「请组长关注」——请求直达组长「我的处置」，不落答复 ${leaderNote}</p>
+      <p class="text-xs text-gray-500 mb-2.5">支书不代组长答复；对待答复行可「请组长关注」。 ${leaderNote}</p>
       <div id="gp-reports" class="space-y-1.5">${inner}</div>
     </div>`;
 }
@@ -608,7 +606,7 @@ function _reviewStatusCardHtml(group, members, activities, reviews) {
         <h4 class="font-title-cn text-sm font-bold text-gray-700">本组活动复盘状态</h4>
         <span class="text-xs text-gray-500">待复盘 ${pending.length} · 已复盘 ${completed.length}</span>
       </div>
-      <p class="help-note" style="margin-bottom:12px;">复盘由活动组织者 / 深度参与者提交；支书只读，点开看详情。<a href="./help.html#card-copy-review-submit" class="help-note__link" title="见帮助：活动复盘提交位（谁提交 / 哪里只读 / 待复盘与打回口径）">见帮助 · 活动复盘</a></p>
+      <p class="help-note" style="margin-bottom:12px;"><a href="./help.html#card-copy-review-submit" class="help-note__link">见帮助 · 活动复盘</a></p>
       <div class="mb-3">
         <div class="text-xs font-bold text-gray-600 mb-1.5">待复盘 <span class="text-gray-500 font-normal">(${pending.length})</span></div>
         <div class="space-y-1.5">${pendingRows}</div>
@@ -675,7 +673,7 @@ function _activityAttendanceCardHtml(group, members, branchId, activities, attRe
             <div class="flex items-center gap-2.5 py-1.5">
               <span class="text-xs text-gray-500 w-20 shrink-0">${esc(a.date || '')}</span>
               <span class="text-xs text-gray-600 flex-1 min-w-0 truncate">${esc(a.title || '未命名')}</span>
-              <span class="text-xs text-gray-600 shrink-0 tabular-nums" title="考勤应到＝正式＋预备党员（剔除滞留），与表决「应到（有表决权党员）」口径不同">应到 ${expected} · 实到 ${present}</span>
+              <span class="text-xs text-gray-600 shrink-0 tabular-nums">应到 ${expected} · 实到 ${present}</span>
               <span class="text-xs text-gray-500 shrink-0 tabular-nums">未到 ${absent}</span>
             </div>`;
       }).join('');
@@ -686,7 +684,6 @@ function _activityAttendanceCardHtml(group, members, branchId, activities, attRe
         <h4 class="font-title-cn text-sm font-bold text-gray-700">本组活动与考勤概览</h4>
         <span class="text-xs text-gray-500">组织者属本组 · 只读</span>
       </div>
-      <p class="text-xs text-gray-500 mb-3">近期活动按日期降序${groupActs.length > 4 ? `，共 ${groupActs.length} 场，仅示最近 4 场` : ''}</p>
       <div class="mb-3">
         <div class="text-xs font-bold text-gray-600 mb-1.5">近期活动</div>
         <div class="space-y-0.5">${recentRows}</div>

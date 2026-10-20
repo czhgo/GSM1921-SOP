@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
   
-<script src="./src/theme-init.js?v=20261020c"></script>
+<script src="./src/theme-init.js?v=20261020d"></script>
 <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>帮助 — GSM1921-SOP</title>
@@ -13,8 +13,8 @@
   <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;800&family=Noto+Serif+SC:wght@400;500;600;700;800&display=swap" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;800&family=Noto+Serif+SC:wght@400;500;600;700;800&display=swap" rel="stylesheet"></noscript>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="./src/tailwind-config.js?v=20261020c"></script>
-  <link rel="stylesheet" href="./src/styles.css?v=20261020c">
+  <script src="./src/tailwind-config.js?v=20261020d"></script>
+  <link rel="stylesheet" href="./src/styles.css?v=20261020d">
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
@@ -245,7 +245,6 @@
       <div class="text-center mb-10">
         <img src="./assets/images/party_emblem.png" alt="党徽" class="mx-auto mb-3" style="width:48px;height:48px;" draggable="false">
         <h2 class="font-title-cn text-2xl font-bold text-gray-800 mb-1">光华管理学院本科生党支部</h2>
-        <p class="text-sm text-gray-500">GSM1921-SOP · 系统说明书</p>
       </div>
 
       <!-- ========== 三区布局：左目录树 + 右内容面板（搜索框/章节） ========== -->
@@ -357,7 +356,7 @@
         <h2 class="doc-h2"><span class="doc-num">1</span>快速上手</h2>
         <hr class="doc-divider">
         <p class="doc-p doc-lead">
-          这一章讲登录后的通用规则：登录落在哪、工作台长什么样、哪些事你能看能改。逐台 tab 详表在第 2 章，按你的身份翻对应小节即可。
+          登录后先看这一章：登录落在哪、工作台长什么样、哪些事你能看能改。
         </p>
 
         <!-- 1.1 登录与角色落点 -->
@@ -427,7 +426,7 @@
         <h2 class="doc-h2"><span class="doc-num">2</span>角色工作台导览</h2>
         <hr class="doc-divider">
         <p class="doc-p doc-lead">
-          各工作台逐台列出<strong>实际 tab</strong>（以当前版本为准），每行说明：这个 tab 给谁用、在这页做哪几件事、点哪里做。通用件（今天 / 待办 / 工作概况 / 我的处置）在 1.2 已讲，这里不重复展开。
+          逐台列出实际 tab：给谁用、在这页做哪几件事、点哪里做。
         </p>
 
         <!-- 2.1 支书工作台 -->
@@ -599,12 +598,11 @@
         <hr class="doc-divider">
         <p class="doc-p doc-lead">
           界面上的说明行只留「一句话 ＋ 指向这里」；制度口径在本页<strong>各只一处</strong>，并带稳定锚点——界面深链一律写 <code>./help.html#card-copy-&lt;key&gt;</code>。
-          本节条目都是「界面说明行搬家」来的：原句在本节<strong>逐字保留</strong>（信息不丢，只换位置），界面侧删掉的那部分语义都能在这里查到；卡片属性里另记着它原来挂在哪份界面文件，便于反查与防回潮。
         </p>
 
         <div class="help-card" id="card-copy-party-group" data-copy-key="party-group" data-copy-source="docs/src/entries/tabs/secretary/group-progress-tab.js" data-search="党小组 组长 派生 成员档案 组内归属 指派 组长指派 赋权 改名 档案归属 解散 非空组 未分组 党小组清单 写权 副支书 归组">
           <h3 class="help-card-title">党小组与组长（组长怎么产生 · 改名与解散各牵动什么）</h3>
-          <p class="help-card-desc"><strong>原文（原为支书台「党小组」tab 的「党小组清单」卡导语，2026-09-25 起不在界面复述）：</strong>组长 / 副组长由成员档案（组长 / 副组长身份 + 组内归属）派生，任命入口就在清单行内「设 / 改」；改名会同步改写该组全部成员的档案归属；解散允许非空组，组内成员转为「未分组」。</p>
+          <p class="help-card-desc"><strong>组长 / 副组长怎么产生：</strong>由成员档案（组长 / 副组长身份 + 组内归属）派生，任命入口就在清单行内「设 / 改」；改名会同步改写该组全部成员的档案归属；解散允许非空组，组内成员转为「未分组」。</p>
           <ul class="doc-list" style="margin-top:8px;">
             <li><strong>组长 / 副组长怎么产生</strong>：不单独建表，而是从成员档案的「组长 / 副组长身份 ＋ 所在党小组」两项推出来——档案一改，口径跟着变；<strong>清单行内「设 / 改」就地任命</strong>（面板内选人 + 选身份〔组长 / 副组长〕+ 选组），<strong>行内「撤销」回收</strong>（2026-10-04 批次 373 去冗余：原独立「组长指派」块与其列表已撤、与清单组长列一并管理）。副组长可 1–2 名、与组长同列展示。</li>
             <li><strong>改名牵动谁</strong>：改的是这个组的名字，组里全体成员的档案归属一并改成新名（不必逐个成员去改）；此后该组的活动、考勤与复盘统计继续按新名归集。</li>
@@ -616,7 +614,7 @@
 
         <div class="help-card" id="card-copy-review-submit" data-copy-key="review-submit" data-copy-source="docs/src/entries/tabs/leader/review-tab.js,docs/src/entries/tabs/secretary/group-progress-tab.js" data-search="复盘 我的复盘 复盘提交 组织者 深度参与者 只读 待复盘 已复盘 打回 退回 纪检批注 真问题 组长台 支书台 组员进展 党小组 本组活动复盘状态">
           <h3 class="help-card-title">活动复盘提交位（谁提交 · 哪里只读 · 待复盘与打回怎么算）</h3>
-          <p class="help-card-desc"><strong>原文（两条界面说明行，2026-09-25 起不在界面复述）：</strong>① 组长台「组员进展」页内区块导语：复盘由活动组织者 / 深度参与者提交（成员端「我的复盘」）；本区仅展示状态，不提供提交。 ② 支书台「党小组」tab「本组活动复盘状态」卡导语：复盘由活动组织者 / 深度参与者提交（成员端「我的复盘」）；支书只读查看，点击已复盘行可展开详情。</p>
+          <p class="help-card-desc"><strong>提交与查看：</strong>复盘由活动组织者 / 深度参与者提交，入口在成员端「我的复盘」。组长台「组员进展」的「本组活动复盘状态」只展示状态；支书台「党小组」tab 的同一区块由支书只读，点已复盘行可展开详情。</p>
           <ul class="doc-list" style="margin-top:8px;">
             <li><strong>提交位只有一个</strong>：复盘在<strong>成员端「我的复盘」</strong>交，由该活动的组织者或深度参与者来写（被赋权后那场活动才在他页上出现填写入口）；普通成员也在同一页看自己参与过的复盘，但没有提交表单。</li>
             <li><strong>哪里只读</strong>：组长台「组员进展」页里的「本组活动复盘状态」区块、支书台「党小组」tab 的「本组活动复盘状态」卡，都只摆状态、不放提交入口——组长与支书都不代提交、不代答复。</li>
@@ -629,7 +627,7 @@
         <!-- 赋权三情景（2026-09-25 支书裁「全按对象归位」：原支书台「赋权管理」tab 删除，制度口径搬入本页定点） -->
         <div class="help-card" id="card-copy-assign-leader" data-copy-key="assign-leader" data-copy-source="docs/src/entries/tabs/secretary/assign-tab.js,docs/src/entries/tabs/secretary/group-progress-tab.js" data-search="赋权 常设赋权 设党小组组长 组长指派 支委身份 组织委员 宣传委员 纪检委员 身份边界 党委 副支书 本位 支委会 党小组与活动 党小组组长">
           <h3 class="help-card-title">常设赋权（设党小组组长 / 副组长 · 支委身份配置）</h3>
-          <p class="help-card-desc"><strong>原文（原为支书台「赋权管理」tab 情景① 卡的说明与其「身份边界」折叠正文，2026-09-25 赋权按对象归位后移入本页定点；界面侧只留一行 + 本锚点深链）：</strong>本位＝支书 / 副支书（副书同权）——最初只有党委给支书配置，其余身份由支书 / 副支书配置；设党小组组长＝系统内设 + 记录可追溯（替代口头 / 群聊指派）。身份边界：支书本人与副支书的身份由党委配置（换届涉及支委班子身份赋权，由党委改变支部设置）。</p>
+          <p class="help-card-desc"><strong>赋权与身份边界：</strong>支书 / 副支书（副书同权）配置其余身份；设党小组组长＝系统内设 + 记录可追溯。支书本人与副支书的身份由党委配置（换届涉及支委班子身份赋权，由党委改变支部设置）。</p>
           <ul class="doc-list" style="margin-top:8px;">
             <li><strong>落点</strong>：情景① 按组织层级分两处——<strong>支委身份配置</strong>在支书 / 副支书台「支委会」tab 的<strong>「机构构成」段</strong>（2026-09-27 支委会迁移批由「党小组与活动」迁入；判据＝支部大会选举支委 → 支委会讨论分工）、<strong>组长 / 副组长</strong>在「党小组」tab「党小组清单」卡内、与「组 / 组长」同区（2026-10-04 批次 373：**行内「设 / 改」**开面板，原独立「组长指派」块已撤；不再单设「赋权管理」页签）。</li>
             <li><strong>能做什么</strong>：设党小组<strong>组长 / 副组长</strong>（选人 + 选身份 + 选党小组 → 确认，可撤销；副组长可 1–2 名）；配置支委身份（组织 / 宣传 / 纪检委员，在本支部在册成员中选人 → 选身份 → 确认授予 / 改派，可撤销）。</li>
@@ -641,7 +639,7 @@
 
         <div class="help-card" id="card-copy-assign-activity" data-copy-key="assign-activity" data-copy-source="docs/src/entries/tabs/secretary/assign-tab.js,docs/src/entries/tabs/secretary/group-progress-tab.js" data-search="赋权 活动项目赋权 活动 组织者 深度参与者 项目角色 本位 党小组组长 党小组与活动 赋权链 知情边界">
           <h3 class="help-card-title">项目赋权 · 活动（按活动给同志赋项目角色）</h3>
-          <p class="help-card-desc"><strong>原文（原为支书台「赋权管理」tab 情景② 卡说明与其「支书为何可介入」折叠正文，2026-09-25 移入本页定点）：</strong>本位＝党小组组长（办活动 ⇒ 党小组承办）。支书为何可介入：支书在三个情景里都有份——此处是支书台的活动赋权统一入口（给同志赋权项目角色，赋权后该同志在该场活动中拥有相应权限）。</p>
+          <p class="help-card-desc"><strong>落点与介入：</strong>本位＝党小组组长（办活动 ⇒ 党小组承办）；支书台「活动管理」是活动赋权的统一入口，赋权后该同志在该场活动中拥有相应权限。</p>
           <p class="help-card-desc"><strong>一般由谁写入：</strong>项目赋权 · 活动的一般承担人是<strong>党小组组长</strong>。操作人不是他时，提交前弹确认窗——除点「取消」外，弹窗<strong>必须点按钮才能关闭</strong>，点「仍由我继续」才放行（只表示本次按例外办，不改动任何权限）。</p>
           <ul class="doc-list" style="margin-top:8px;">
             <li><strong>落点</strong>：支书台「活动管理」tab（2026-10-04 批次 373 按对象归位：整卡由「党小组与活动」迁入）——与「党小组活动」只读区同页；组长台「本组活动」内联。</li>
@@ -653,7 +651,7 @@
 
         <div class="help-card" id="card-copy-assign-taskforce" data-copy-key="assign-taskforce" data-copy-source="docs/src/entries/tabs/secretary/assign-tab.js,docs/src/entries/tabs/org/taskforce-tab.js" data-search="赋权 专班赋权 专班 专班管理 组织者 深度参与者 项目角色 本位 组织委员 支书可介入 组织委员台 赋权链 知情边界">
           <h3 class="help-card-title">项目赋权 · 专班（按专班给同志赋项目角色）</h3>
-          <p class="help-card-desc"><strong>原文（原为支书台「赋权管理」tab 情景③ 卡说明，2026-09-25 按对象归位后移入本页定点）：</strong>本位＝组织委员（专班招募统筹收口）。支书可介入：同上——保留专班赋权统一入口（赋权后在该专班中拥有相应权限）。<br>（注：上句「本台」指原支书台「赋权管理」tab；归位后该入口的**本位落点**在组织委员台「专班管理」；支书台仍有**同项入口**——2026-10-04 批次 373 随「项目赋权」整卡迁至支书台「活动管理」tab，母本「支书亦可」不破。）</p>
+          <p class="help-card-desc"><strong>落点：</strong>本位＝组织委员（专班招募统筹收口）；支书台「活动管理」另有同项入口，赋权后在该专班中拥有相应权限。</p>
           <p class="help-card-desc"><strong>一般由谁写入：</strong>项目赋权 · 专班的一般承担人是<strong>组织委员</strong>。操作人不是他时，提交前弹确认窗——除点「取消」外，弹窗<strong>必须点按钮才能关闭</strong>，点「仍由我继续」才放行（只表示本次按例外办，不改动任何权限）。</p>
           <ul class="doc-list" style="margin-top:8px;">
             <li><strong>落点</strong>：组织委员台「专班管理」tab（原支书台「赋权管理」情景③ 按对象归位到此）。</li>
@@ -678,7 +676,7 @@
 
         <div class="help-card" id="card-copy-pcm-scope" data-copy-key="pcm-scope" data-copy-source="docs/src/entries/pages/party-committee-meeting-entry.js" data-search="支委会 支委扩大会 法人性质 扩大到谁 应到名单 voterIds 可见范围 线上表决 效力 终局 表态 参会范围">
           <h3 class="help-card-title">支委会会议页（可见范围 · 参会范围 · 效力口径）</h3>
-          <p class="help-card-desc"><strong>原文（原为 party-committee-meeting.html 各卡与提示态的说明段，2026-09-25 起界面只留一行摘要 ＋ 本锚点深链）：</strong>〔可见范围〕支委会会议页对本支部支委（支书 / 副支书 / 组织委员 / 宣传委员 / 纪检委员）开放，看得到全部支委会场次；被扩大进某场支委会（支委扩大会）的人也能进本页，但只看得到「扩大到你的」那一场，并在该场表态。当前账号既不在本支部支委名单内，也没有任何一场支委会扩大到你的范围。〔被扩大者〕本页只列扩大到你的那些场次——其余支委会没有扩大到你的范围，不进下方列表、也不能打开（经链接直指会被拒）。在这几场里，你可按本场应到名单表态，并查阅议程与讨论结果；议程提取与参会范围调整是支委侧的写入位、汇总截止与记录讨论结果归支书 / 副支书，这些不在你的范围内。〔参会范围〕支委会与支委扩大会都是法人性质（支书 2026-09-23 裁定）：同一场支委会可按需扩大到谁。默认＝支委层（现状不变）；勾「扩大会」后逐位选，或一键勾「全体党小组组长（代组长）」。名单写在本场活动的既有应到名单字段上（voteConfig.voterIds，与线上表态门同一口径），不新增字段。〔推导待确认〕以下三条是由上面这条口径推导出来的，尚未逐条明答，请支书确认或推翻：② 讨论结果的可见范围与线下一致（即支委会内部）；③ 支委缺席按线下同一规则处理；④ 线上支委会也走线下会议的那套任务（两条线合流）。确认之前，本页不代作判定，只如实呈现已存记录（表态 / 锁定 / 结果）。</p>
+          <p class="help-card-desc"><strong>可见范围：</strong>支委会会议页对本支部支委开放全部场次；被扩大进某场支委会（支委扩大会）的人也能进本页，但只看得到「扩大到你的」那一场，并在该场按应到名单表态。<strong>参会范围：</strong>支委会与支委扩大会都是法人性质，同一场支委会可按需扩大到谁：默认支委层，勾「扩大会」后逐位选或一键勾全体党小组组长（代组长）；名单复用该场活动的应到名单字段（voteConfig.voterIds，与线上表态门同口径），不新增字段。</p>
           <ul class="doc-list" style="margin-top:8px;">
             <li><strong>谁能进</strong>：本级支委看全部场次；被扩大者只看到自己被扩大的那一场（直链越权会被拒）。</li>
             <li><strong>参会范围怎么定</strong>：默认支委层；要扩大就按法人会议扩，名单直接复用该场活动的应到名单字段（与线上表态门同源），不新增数据。</li>
@@ -689,7 +687,7 @@
 
         <div class="help-card" id="card-copy-attendance-record" data-copy-key="attendance-record" data-copy-source="docs/src/entries/tabs/disc/attendance-tab.js" data-search="考勤录入 上传位 党课 支部党员大会 纪检委员 组织者 支委会不考勤 标因 事假 病假 滞留到场 补录 更正 提交回执 待确认考勤">
           <h3 class="help-card-title">会议考勤（上传位怎么分 · 录入与更正口径）</h3>
-          <p class="help-card-desc"><strong>原文（原为纪检台「考勤管理」会议考勤卡的说明段与空态，2026-09-25 起界面只留一行摘要 ＋ 本锚点深链）：</strong>〔上传位〕当前没有您可上传的会议考勤——党课 / 支部党员大会由纪检委员上传（本卡）；党小组会 / 主题党日 / 组织生活会由该场活动组织者在组长台「考勤上传」上传；支委会不考勤。异常（缺勤 / 请假）请在下方「待确认考勤」队列做打包确认。〔录入与更正〕录入即确认（recordedBy=录入人本人＝该场会议的纪检委员 / 支书 / 副支书）；未到（缺勤/请假）者须选标因（事假 / 病假 / 无故 / 其它，纪检认定·固定枚举；事假须提前 1 天申请、病假可事后补——该句只是时效提示，不作校验、不拦提交）；滞留线下到场者勾选「到场补录」计入到席（落「滞留·到场」标记）；已录条目将覆盖（本人更正）· 新增/更正/跳过计数见提交回执。</p>
+          <p class="help-card-desc"><strong>上传位与更正：</strong>党课 / 支部党员大会由纪检委员上传（本卡）；党小组会 / 主题党日 / 组织生活会由该场活动组织者在组长台「考勤上传」；支委会不考勤。异常（缺勤 / 请假）在「待确认考勤」队列打包确认。录入即确认（记名到录入人）；未到者须选标因（事假 / 病假 / 无故 / 其它，纪检认定·固定枚举；事假提前 1 天、病假可事后补，仅作时效提示、不拦提交）；滞留线下到场勾「到场补录」计入到席；已录条目可由本人更正。</p>
           <ul class="doc-list" style="margin-top:8px;">
             <li><strong>上台位按会议类型分</strong>：党课与支部党员大会归纪检委员（本卡）；党小组会 / 主题党日 / 组织生活会归该场活动的组织者（组长台「考勤管理」）；支委会不考勤。</li>
             <li><strong>记名到人</strong>：录入人是谁，这条记录就以谁记名（本人即本场会议的纪检委员 / 支书 / 副支书其中一位）。</li>
@@ -701,7 +699,7 @@
 
         <div class="help-card" id="card-copy-makeup-scope" data-copy-key="makeup-scope" data-copy-source="docs/src/entries/tabs/disc/makeup-tab.js" data-search="补课 补课范围 T+7 七日 支部党员大会 党课 支委会不补课 主题党日 党小组会 要求补课 线上参会 归档 考勤汇总">
           <h3 class="help-card-title">补课（哪些会议要补 · 记录怎么归档）</h3>
-          <p class="help-card-desc"><strong>原文（原为纪检台「补课管理」卡的两段说明，2026-09-25 起界面只留一行摘要 ＋ 本锚点深链）：</strong>〔补课范围〕缺勤/请假的支部党员大会与党课须在 7 日内补课（T+7），纪检委员确认完成；支委会不补课，主题党日不强制补课，党小组会按该场活动「要求补课」的勾选进入名单；请假且线上参会不补课。〔归档〕补课记录随考勤一并归档（系统自动同步，随「考勤管理」的「提交考勤统计至支委会」一并与考勤汇总交付支委会）——不另设个人「补课记录归档审查」动作（D-285：归档不依赖个人重复劳动）。</p>
+          <p class="help-card-desc"><strong>补课范围：</strong>缺勤 / 请假的支部党员大会与党课须在 7 日内补课（T+7），由纪检委员确认完成；支委会不补课，主题党日不强制，党小组会按该场「要求补课」勾选进入名单；请假且线上参会不补课。<strong>归档：</strong>补课记录随考勤一并归档，随「提交考勤统计至支委会」交付。</p>
           <ul class="doc-list" style="margin-top:8px;">
             <li><strong>要补的只有两类</strong>：支部党员大会与党课（缺勤 / 请假都要），限 7 日内（T+7），由纪检委员确认完成。</li>
             <li><strong>其余不强求</strong>：支委会不补；主题党日不强制；党小组会只看该场活动有没有勾「要求补课」；请假但线上参会的不补。</li>
@@ -1801,6 +1799,6 @@
   </main>
 </div>
 
-<script type="module" src="./src/entries/pages/help-entry.js?v=20261020c"></script>
+<script type="module" src="./src/entries/pages/help-entry.js?v=20261020d"></script>
 </body>
 </html>

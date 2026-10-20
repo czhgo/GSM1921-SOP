@@ -40,7 +40,7 @@ test('U2 日历标签字色压深到 72%，不再用 60%', () => {
 test('U3 个人考勤空态：数值为「—」且标签写明「本月无记录」', () => {
   const src = read('docs/src/components/dashboard/stats.js');
   assert.match(src, /本月无记录/, '个人考勤为 0 时须写明「本月无记录」');
-  assert.match(src, /value:\s*myTotal > 0 \? `\$\{myPresent\}\/\$\{myTotal\}` : '—'/,
+  assert.match(src, /value:\s*myTotal > 0(?: && myRate !== null)? \? `\$\{myPresent\}\/\$\{myTotal\}` : '—'/,
     '空态数值应保持「—」，不得改成 0 或空白');
 });
 

@@ -1,11 +1,10 @@
 import { POLICY_DEFAULTS } from '../../../docs/src/core/domain/policy-defaults.js';
-import { isBranchPendingUser } from '../../../docs/src/core/domain/constants.js';
+import { isBranchPendingUser, isActivityInProgress } from '../../../docs/src/core/domain/constants.js';
 import { TASKFORCE_ACTIVE_STATUSES } from '../../../docs/src/core/domain/domain.js';
 
 const PARTY_STAFF = 'party-staff';
 const DEFAULT_BRANCH = 'br-b1';
 const AGGREGATE_PARENT = Object.freeze({ actSubRecords: ['activities', 'activities'], tfSubRecords: ['taskforces', 'taskforces'] });
-const TERMINAL_ACTIVITY = new Set(['completed', 'executed', 'archived', 'cancelled']);
 const OPEN_TASKFORCE = new Set(TASKFORCE_ACTIVE_STATUSES);
 
 function tableRows(db, table) {
@@ -35,7 +34,8 @@ function branchSummary(db, branch) {
       ? partyMembers.filter((row) => row.residenceStatus === '滞留').length
       : 0,
     activityCount: activities.length,
-    activeActivityCount: activities.filter((row) => !TERMINAL_ACTIVITY.has(row.status)).length,
+    // 与前端支书概况同一判据：草稿/已取消/已结束都不算在办（R2-48 单一源）。
+    activeActivityCount: activities.filter((row) => isActivityInProgress(row)).length,
     taskforceCount: taskforces.length,
     activeTaskforceCount: taskforces.filter((row) => OPEN_TASKFORCE.has(row.status)).length,
     noticeCount: notices.length,

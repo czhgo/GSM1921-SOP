@@ -3,11 +3,15 @@ export const MOCK_TASKFORCES = [
   // f(d) = 07-01 + round((d−03-01)/121×24) 线性压缩至 2026-07-01~07-25；
   // 个别专班（tf-003/tf-007）成立日手调至其服务活动日之前（f 压缩会晚于活动日）；
   // 8 月截止（tf-005/006 deadline 8/20、8/15）与 signup（su-001~005，8 月）保留。
+  // R2-32（2026-10-20）：过期未完结的 tf-001/005/006 已收口为 completed；tf-002 是唯一 active
+  //   （常设维护，deadline 推到 2026-12-31）；不再存在「已截止仍招募」的 recruiting 种子。
   {
     id: 'tf-001',
     name: '宣传专班（第二期）',
     task: '深度报道与专题视频制作 — 7月系列主题活动宣传任务',
-    status: 'active',
+    // R2-32（2026-10-20）：任务对象是「7 月系列主题活动」，deadline 7/17 早已过；
+    //   继续留在 active 会让「活跃专班」虚高，也违反「已截止仍招募」的读写矛盾 ⇒ 收口为 completed。
+    status: 'completed',
     manager: 'p11',
     initiator: 'p12',
     members: [
@@ -15,6 +19,8 @@ export const MOCK_TASKFORCES = [
       { personId: 'p9', role: 'deep', contributions: [] },
       // 批次 47-X（2026-09-16，承 47-W 的 R-78 口径）：为「专班查看 · 我的产出填报」
       //   （`taskforce-view.js` 的结构化产出登记入口）补一名**演示账号成员**。
+      //   ⚠ R2-32（2026-10-20）：本专班已按日期收口为 completed，这两条演示入口的 active 载体
+      //     已迁到 tf-002（见其成员注释）；本行保留为历史产出只读，不再承担可达性。
       // **为什么必须补**：该填报区**只在 `tf.status==='active' && isMember` 时渲染**（同文件 194 行），
       //   而原种子里两只 active 专班（tf-001 成员 p8+p9 / tf-002 成员 p4+p7）**成员全是非演示账号**
       //   ⇒ 任何演示账号登录后都不是「该专班成员」⇒ 该区**结构上恒不渲染**（批 47-L 真机实测
@@ -54,9 +60,16 @@ export const MOCK_TASKFORCES = [
     members: [
       { personId: 'p4', role: 'organizer', contributions: ['更新7月活动归档', '同步术语表'] },
       { personId: 'p7', role: 'organizer', contributions: ['整理考勤数据'] },
+      // R2-32（2026-10-20）：tf-001 按日期收口为 completed 后，原挂在它上面的「成员产出填报」与
+      //   「组织委员逐条核验」两个演示入口会失去 **active 专班** 载体。这里把演示成员与待核产出
+      //   迁到本常设专班（p5 是既有演示账号，不新造账号、不虚增人数；capacity 3 = 3/3 仍在容量内）。
+      //   ⇒ tf-002 成为唯一 active 专班，两条入口继续可达；tf-001 的历史产出保留只读。
+      { personId: 'p5', role: 'deep', contributions: [{ id: 'c-tf2-1', desc: '整理并校对 SOP 术语表（待核）', by: 'p5', at: '2026-10-18T20:10:00+08:00' }] },
     ],
     capacity: 3,
-    deadline: '2026-07-25',
+    // R2-32（2026-10-20）：SOP 维护是**常设**工作（无一次性活动对象），原 deadline 7/25 已过但与
+    //   active 状态矛盾；按报告允许的第二种处置把截止推到当前学期末（滚动维护），状态保持 active。
+    deadline: '2026-12-31',
     activityId: null,
     createdAt: '2026-07-13',
   },
@@ -98,7 +111,8 @@ export const MOCK_TASKFORCES = [
     id: 'tf-005',
     name: '建党105周年筹备专班',
     task: '7月23日建党105周年主题党日大型活动筹备',
-    status: 'recruiting',
+    // R2-32：筹备对象 act-16 已于 7/23 举办，招募截止 8/20 也已过 ⇒ recruiting 不再成立，收口 completed。
+    status: 'completed',
     manager: 'p11',
     initiator: 'p13',
     members: [
@@ -115,7 +129,8 @@ export const MOCK_TASKFORCES = [
     id: 'tf-006',
     name: '参访活动保障专班',
     task: '7月参访活动后勤保障与安全',
-    status: 'recruiting',
+    // R2-32：保障对象（7 月参访）已结束，截止 8/15 也已过 ⇒ recruiting 收口 completed。
+    status: 'completed',
     manager: 'p11',
     initiator: 'p1',
     members: [

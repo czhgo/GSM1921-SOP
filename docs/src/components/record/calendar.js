@@ -5,11 +5,11 @@
 //  视图模式：月/周/日/列表 四种切换
 // ════════════════════════════════════════════════════════════════
 
-import { getAppState, setState } from '../../core/base/state.js?v=20261020c';
-import { ROLE_COLORS, getActivityColor, ACTIVITY_CATEGORY_COLORS, ACTIVITY_TYPE_LABELS, ACTIVITY_TYPE_SHORT } from '../../core/domain/constants.js?v=20261020c';
-import { _fmtDate, _currentYearMonth } from '../../core/base/utils.js?v=20261020c';
-import { tokenOf } from '../../core/base/version-token.js?v=20261020c'; // P2 视图渲染守卫数据版本（spec §四.2）
-import { filterTasksByManagementRole, activityLifecycleBadgeHtml } from './inspector.js?v=20261020c';
+import { getAppState, setState } from '../../core/base/state.js?v=20261020d';
+import { ROLE_COLORS, getActivityColor, ACTIVITY_CATEGORY_COLORS, ACTIVITY_TYPE_LABELS, ACTIVITY_TYPE_SHORT } from '../../core/domain/constants.js?v=20261020d';
+import { _fmtDate, _currentYearMonth } from '../../core/base/utils.js?v=20261020d';
+import { tokenOf } from '../../core/base/version-token.js?v=20261020d'; // P2 视图渲染守卫数据版本（spec §四.2）
+import { filterTasksByManagementRole, activityLifecycleBadgeHtml } from './inspector.js?v=20261020d';
 
 // ── 内联标签深色变量对（与 constants.js _applyDark 生成的 bgDark/textDark/borderDark 配套）──
 // 标签/卡片：三件套（bg/text/border）；纯文字：仅 text；圆点：仅实色提亮（--acc-dot-dark）
@@ -563,14 +563,13 @@ function _renderCellContent(dateKey, dayActs, ct, hasActivity, viaTasks, state, 
       if (dayActs.length > maxItems) html += `<div class=" text-[11px] text-gray-500 text-center mt-0.5">+${dayActs.length - maxItems} 项活动</div>`;
     } else if (hasActivity) {
       // 仅有活动标记但无具体活动条目时，保留原角色点指示
-      const dateActRoles = dayActs.map(a => a.executor || 'all');
-      const uniqueRoles = [...new Set(dateActRoles)];
-      const ROLE_ORDER = ['leader', 'commissioner', 'organizer', 'deep', 'all'];
-      const sortedRoles = ROLE_ORDER.filter(r => uniqueRoles.includes(r));
-      if (sortedRoles.length === 0) sortedRoles.push('all');
+      // R2-13（2026-10-20）：活动不再有 executor 字段；颜色按**活动类型**取（getActivityColor），
+      //   原 `a.executor` 是 personId，拿去查角色色板只会恒落默认色。
+      const dateActRoles = [...new Set(dayActs.map((a) => a.type || 'all'))];
+      const sortedRoles = dateActRoles.length ? dateActRoles : ['all'];
       html += '<div style="display:flex;gap:2px;justify-content:center;margin:2px 0;">';
-      sortedRoles.forEach(r => {
-        const c = ROLE_COLORS[r] || ROLE_COLORS.all;
+      sortedRoles.forEach((type) => {
+        const c = getActivityColor({ type });
         html += `<div style="--acc-dot-dark:${c.textDark};width:6px;height:6px;border-radius:50%;background:${c.text};flex-shrink:0;"></div>`;
       });
       html += '</div>';
@@ -675,11 +674,10 @@ function _renderMobileDots(dayActs, ct, hasActivity, viaTasks, state) {
     // 非参与者模式：收集所有颜色点
     const dots = [];
     if (hasActivity) {
-      const dateActRoles = dayActs.map(a => a.executor || 'all');
-      const uniqueRoles = [...new Set(dateActRoles)];
-      uniqueRoles.forEach(r => {
-        const c = ROLE_COLORS[r] || ROLE_COLORS.all;
-        dots.push({ text: c.text, dark: c.textDark });
+      // R2-13：活动按类型取色（不再读已下线的 activity.executor personId）。
+      dayActs.forEach((act) => {
+        const c = getActivityColor(act);
+        if (!dots.some(x => x.text === c.text)) dots.push({ text: c.text, dark: c.textDark });
       });
     }
     // P1：viaTasks 已由日索引预分组（等价原 tasks.filter(!t.date && activityId∈当日)）

@@ -190,10 +190,10 @@ export async function seedDatabase(db) {
   //   `routes/leader-progress.js` 的 todos 读口径）：`todos` 在本系统里**两种性质并存**，故按纪律①播种——
   //   · **运行时派生**是常态：通知（`NoticeTodoDeriver`）/ 活动·专班生命周期（`LifecycleTodoDeriver`）/
   //     成员台参与（`VisitorTodoDeriver`）都在业务动作**发生时**派生待办——这些**不落种子**，由演示过程自然产生；
-  //   · 但另有一小批**独立台账型种子**：`docs/src/services/governance/todo.js::SEED_TODOS`（2 条：宣传委员「提交七一活动
-  //     新闻稿」·支书「设置第三党小组组长」；`sourceType:'manual'`、`sourceId:null`，**不引用任何活动/任务/
-  //     人员实体** ⇒ 零孤立引用）——由前端 `seedTodos()`（各工作台入口调用）与 `data-adapter.js::init()` 的
-  //     `SEED_FALLBACK` 空表回退**两处**注入，属既有演示基线。
+  //   · 但另有一小批**独立台账型种子**：`docs/src/services/governance/todo.js::SEED_TODOS`（1 条：宣传委员
+  //     「提交红色徒步·香山行新闻稿」；R2-33 已删除「设置第三党小组组长」假待办——p4 早已是第三组组长；
+  //     该条已挂 `sourceId: act-37`，活动归档可自动销项）——由前端 `seedTodos()`（各工作台入口调用）与
+  //     `data-adapter.js::init()` 的 `SEED_FALLBACK` 空表回退**两处**注入，属既有演示基线。
   // 处方：**从 `SEED_TODOS` 同源播种**（与 mock 形态逐值一致；前端 seedTodos() 读的正是同一常量），
   //   **不在服务端另造第二份清单**（与 `seedIssues()`／`seedMilestones()` 同一纪律）。
   // 直接动因：本文件原先**未播种 `todos`** ⇒ api 形态首启「待办」恒空，全靠前端空表回退兜底；

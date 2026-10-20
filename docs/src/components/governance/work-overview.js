@@ -16,31 +16,31 @@
 //  本页禁用 SVG 图标（支书 2026-08-10 裁定），类别用色点 + 文字区分。
 // ════════════════════════════════════════════════════════════════
 
-import { showToast, flashHighlight, todayLocal, escHtml as esc } from '../../core/base/utils.js?v=20261020c';
-import { listRowHtml, listGroupHtml } from '../ui/list-row.js?v=20261020c';
-import { tableHeadHtml } from '../ui/data-table.js?v=20261020c';
-import { emptyStateHtml } from '../ui/empty-state.js?v=20261020c';
-import { renderTabHeader } from '../shell/page-frame.js?v=20261020c';
+import { showToast, flashHighlight, todayLocal, escHtml as esc } from '../../core/base/utils.js?v=20261020d';
+import { listRowHtml, listGroupHtml } from '../ui/list-row.js?v=20261020d';
+import { tableHeadHtml } from '../ui/data-table.js?v=20261020d';
+import { emptyStateHtml } from '../ui/empty-state.js?v=20261020d';
+import { renderTabHeader } from '../shell/page-frame.js?v=20261020d';
 import {
   TodoStore, seedTodos, isTodoExpired, WORK_DOMAIN, WORK_DOMAIN_LABELS,
-} from '../../services/governance/todo.js?v=20261020c';
-import { IssueStore } from '../../services/governance/issues.js?v=20261020c';
+} from '../../services/governance/todo.js?v=20261020d';
+import { IssueStore } from '../../services/governance/issues.js?v=20261020d';
 import {
-  isActivityEnded, isActivityArchived, ROLE_LABELS,
-} from '../../core/domain/constants.js?v=20261020c';
-import { loadActivities } from '../../services/activity/activity.js?v=20261020c';
-import { filterActivitiesForViewer, resolveVisibleTargets } from '../../services/core/visibility.js?v=20261020c';
-import { loadActiveAttendanceRecords } from '../../services/activity/attendance.js?v=20261020c';
-import { loadInspectionRecords, getOverdueRecords } from '../../services/activity/inspection.js?v=20261020c';
-import { loadMakeupTasks } from '../../services/activity/makeup.js?v=20261020c';
-import { loadActiveActivityReviews, loadTaskforceReviews } from '../../services/governance/review.js?v=20261020c';
-import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261020c';
-import { listPendingByReceiver, confirmExternalDispatch } from '../../services/activity/external-dispatch.js?v=20261020c';
-import { getPersonName } from '../../services/member/person.js?v=20261020c';
-import { loadMemberProgress, REPORT_KIND } from '../../services/member/member-progress.js?v=20261020c';
-import { AttendanceStatus, ReviewStatus, mockDB } from '../../core/domain/domain.js?v=20261020c';
-import { PROP_TASKS_SEED } from '../../data/mock/prop.js?v=20261020c';
-import { getBranchIdOfPerson, getBranchWorkforce } from '../../services/branch/branch.js?v=20261020c';
+  isActivityEnded, isActivityArchived, isActivityInProgress, ROLE_LABELS,
+} from '../../core/domain/constants.js?v=20261020d';
+import { loadActivities } from '../../services/activity/activity.js?v=20261020d';
+import { filterActivitiesForViewer, resolveVisibleTargets } from '../../services/core/visibility.js?v=20261020d';
+import { loadActiveAttendanceRecords } from '../../services/activity/attendance.js?v=20261020d';
+import { loadInspectionRecords, getOverdueRecords } from '../../services/activity/inspection.js?v=20261020d';
+import { loadMakeupTasks } from '../../services/activity/makeup.js?v=20261020d';
+import { loadActiveActivityReviews, loadTaskforceReviews } from '../../services/governance/review.js?v=20261020d';
+import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261020d';
+import { listPendingByReceiver, confirmExternalDispatch } from '../../services/activity/external-dispatch.js?v=20261020d';
+import { getPersonName } from '../../services/member/person.js?v=20261020d';
+import { loadMemberProgress, REPORT_KIND } from '../../services/member/member-progress.js?v=20261020d';
+import { AttendanceStatus, ReviewStatus, mockDB, isTaskforceActiveStatus } from '../../core/domain/domain.js?v=20261020d';
+import { PROP_TASKS_SEED } from '../../data/mock/prop.js?v=20261020d';
+import { getBranchIdOfPerson, getBranchWorkforce } from '../../services/branch/branch.js?v=20261020d';
 
 // 在办下钻详情目标（支书 2026-08-10 裁定：概况「在办」可下钻到活动/专班只读详情）
 let _woDetail = null; // { kind: 'activity' | 'taskforce', id } | null
@@ -209,6 +209,8 @@ const ROLE_OVERVIEW_CONFIG = {
         tab: 'taskforce', actionLabel: '专班管理',
         stats: (c) => _taskforceStats(c.taskforces, c.today),
         gap: (c) => c.recruitingTaskforces ? `招募中 ${c.recruitingTaskforces} 个` : '',
+        // R2-30：缺口动作由共享组件结构化输出，org 外壳不再按 DOM 文案补按钮。
+        gapTab: 'taskforce',
       },
       {
         key: 'activity', label: '活动', ownerRole: 'org-commissioner', tab: 'calendar', actionLabel: '活动日历',
@@ -219,6 +221,7 @@ const ROLE_OVERVIEW_CONFIG = {
         key: 'auth', label: '赋权', ownerRole: 'org-commissioner', tab: 'calendar', actionLabel: '活动日历',
         stats: (c) => ({ active: c.pendingAuth, overdue: 0 }),
         gap: (c) => c.pendingAuth ? `待赋权 ${c.pendingAuth} 个` : '',
+        gapTab: 'calendar',
       },
       {
         key: 'member-flow', label: '成员流动', ownerRole: 'org-commissioner', tab: 'roster', actionLabel: '成员名册',
@@ -229,6 +232,7 @@ const ROLE_OVERVIEW_CONFIG = {
             .reduce((sum, g) => sum + (g.count || 0), 0);
           return pending ? `成员事项 ${pending} 项` : '';
         },
+        gapTab: 'roster',
       },
     ],
     lineOf(item) {
@@ -548,7 +552,7 @@ async function _buildContext(role, personId, today, config) {
 
   // 支书：概况维度 + 实时派生组（与待办页同源）
   if (role === 'secretary') {
-    const secretary = await import('../../services/governance/secretary-overview.js?v=20261020c');
+    const secretary = await import('../../services/governance/secretary-overview.js?v=20261020d');
     const realtime = secretary.SecretaryTodoDeriver.computeAggregates();
     const seen = new Set(ctx.todoGroups.map((group) => group.groupKey));
     ctx.todoGroups = [...ctx.todoGroups, ...realtime.filter((group) => !seen.has(group.groupKey))];
@@ -560,15 +564,16 @@ async function _buildContext(role, personId, today, config) {
     ctx.periodicArchivesPending = secretary.listPeriodicArchivesPendingReview();
   }
 
+  // 在办活动/专班都走 canonical 判据（R2-16/R2-48）：草稿与已取消不进入在办统计。
   const visibleActivities = filterActivitiesForViewer(loadActivities(), role).filter((activity) =>
-    !isActivityEnded(activity) && activity.status !== 'cancelled' && activity.status !== 'draft');
+    isActivityInProgress(activity));
   const isMineActivity = (activity) => activity.organizer === personId
     || (Array.isArray(activity.assignments) && activity.assignments.some((item) => item.personId === personId));
   ctx.activities = (role === 'leader' || role === 'visitor')
     ? visibleActivities.filter(isMineActivity)
     : visibleActivities;
 
-  const allTaskforces = TaskForceRecordStore.list().filter((tf) => tf.status === 'active' || tf.status === 'recruiting');
+  const allTaskforces = TaskForceRecordStore.list().filter((tf) => isTaskforceActiveStatus(tf.status));
   const isMineTaskforce = (tf) => tf.manager === personId || tf.initiator === personId
     || (Array.isArray(tf.members) && tf.members.some((member) => member.personId === personId));
   ctx.taskforces = (role === 'leader' || role === 'visitor')
@@ -578,7 +583,7 @@ async function _buildContext(role, personId, today, config) {
   const allActivities = filterActivitiesForViewer(loadActivities(), role);
   ctx.pendingAuth = role === 'secretary'
     ? (ctx.overview?.activity?.pendingAuth || 0)
-    : allActivities.filter((activity) => !isActivityArchived(activity)
+    : allActivities.filter((activity) => isActivityInProgress(activity)
       && activity.direction === 'bottom-up'
       && !(activity.assignments || []).some((item) => item.role === 'organizer')).length;
   ctx.pendingArchive = role === 'secretary'
@@ -908,7 +913,7 @@ function _bindWorkOverviewEvents(container, role, personId, prefix, rerender) {
       const tab = btn.dataset.woGotoTab;
       if (btn.dataset.woSegment === 'makeup') {
         try {
-          const module = await import('../../entries/tabs/disc/attendance-tab.js?v=20261020c');
+          const module = await import('../../entries/tabs/disc/attendance-tab.js?v=20261020d');
           module.focusSegment?.('makeup');
         } catch (_) { /* 分段记忆失败时仍进考勤页 */ }
       }
@@ -956,10 +961,10 @@ async function _renderOverviewDetail(container, detail, accent, onBack) {
   const host = container.querySelector('#wo-detail-host');
   if (!host) return;
   if (detail.kind === 'activity') {
-    const { renderActivityView } = await import('../record/activity-view.js?v=20261020c');
+    const { renderActivityView } = await import('../record/activity-view.js?v=20261020d');
     renderActivityView(host, { highlightId: detail.id, accent });
   } else {
-    const { renderTaskforceView } = await import('../record/taskforce-view.js?v=20261020c');
+    const { renderTaskforceView } = await import('../record/taskforce-view.js?v=20261020d');
     renderTaskforceView(host, { highlightId: detail.id });
   }
 }

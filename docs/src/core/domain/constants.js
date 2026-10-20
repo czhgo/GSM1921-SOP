@@ -5,7 +5,20 @@
 // R-26③（2026-10-05 批次 388）：本件**只引一个零依赖叶子** `core/base/date.js`（取本地「今天」）——
 //   不成环、双端可载；**不得**引 `core/base/utils.js`（那会牵 `core/session/pending-writes.js`）。
 
-import { todayLocal } from '../base/date.js?v=20261020c';
+import { todayLocal } from '../base/date.js?v=20261020d';
+
+// ════════════════════════════════════════════════════════════════
+//  缺省支部 id（单一源，R2-17，2026-10-20）
+// ════════════════════════════════════════════════════════════════
+//  原 5 个同名常量和多处内联 `|| 'br-b1'` 散落在服务层/页面里，换默认支部或多支部部署要逐处改，
+//  漏一处就产生跨支部归属。服务层的「缺失回落」统一引用本常量；
+//  ⚠ `branchId: null` 是**显式无支部**（IAAA 待归属），不得用本常量兜底（见 profile-access.js）。
+export const DEFAULT_BRANCH_ID = 'br-b1';
+
+/** 缺失（undefined / ''）时回落缺省支部；null 原样保留（显式无支部语义） */
+export function resolveBranchId(value) {
+  return value === undefined || value === '' ? DEFAULT_BRANCH_ID : value;
+}
 
 // ── 内联标签深色适配：深色三件套自动生成 ──────────────────────────
 // 深色模式下内联样式（background/color/border 浅底深字）不随主题反转，按「同色系提亮一档」为每个颜色条目
@@ -733,6 +746,17 @@ export function classifyActivityType(type) {
 //      DATA_CONSISTENCY_CHECKLIST「活动生命周期展示态」条）。徽章/文案一律用那一套，
 //      **不要**在别处另写一套中文标签（本节曾短暂加过 ACTIVITY_LIFECYCLE_LABELS，属重复源，已撤除）。
 
+// ════════════════════════════════════════════════════════════════
+//  首页展示截断上限（单一源，R2-24，2026-10-20）
+// ════════════════════════════════════════════════════════════════
+//  原先通知铃铛 10 / 活动风采 6 / 首页活动列表 10 三处各写死，调上限要改三处且容易漏。
+//  这里只收敛「数字」，排序/溢出提示仍由各组件按自身语义处理（通知按紧急/未读优先）。
+export const DASHBOARD_LIMITS = Object.freeze({
+  notices: 10,
+  gallery: 6,
+  activities: 10,
+});
+
 /** 活动是否已结束（单一源）：status==='completed' 或 archived 标记 */
 export function isActivityEnded(activity) {
   const a = activity || {};
@@ -748,6 +772,19 @@ export function isActivityArchived(activity) {
 export function isActivityLive(activity) {
   const a = activity || {};
   return a.archived !== true && a.status !== 'cancelled';
+}
+
+/**
+ * 活动是否「在办」（统计口径单一源，R2-48）：
+ *   在办 = 未结束（非 completed/archived）且非 draft、非 cancelled。
+ * 为什么与 isActivityLive 分开：isActivityLive 是「可展示清单」谓词（保留草稿与待审批，供编辑）；
+ *   支书概况/党委台账的「在办活动数」是**进度统计**，草稿尚未立项、取消已终止，二者都不应虚增在办数。
+ * `executed` 为历史状态别名（服务端旧数据仍可能出现），按终态处理，避免旧行被算成在办。
+ */
+export function isActivityInProgress(activity) {
+  const a = activity || {};
+  if (isActivityEnded(a)) return false;
+  return !['draft', 'cancelled', 'executed'].includes(a.status);
 }
 
 /** 活动是否未开始（单一源）：未结束，且无日期或不早于今天（member-confirmation 既有裁定字面一致） */

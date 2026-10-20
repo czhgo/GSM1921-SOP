@@ -719,11 +719,11 @@ export const MACHINE_FLOWS = [
   {
     // 批次 47-X（2026-09-16）：**成员台 · 知情查看 · 专班分段 · 「我的产出填报」**——承 47-W 的 R-78 口径，再清一处不可达。
     // 入口链：知情查看 tab（`components/record/insight-view.js`）→ 分段钮 `.insight-view-btn[data-iview="taskforce"]`
-    //   → 专班卡 `.tfv-card[data-tf-id="tf-001"]`（点击进只读详情）→ 详情内 `#tfv-contrib-add`（「填报本条产出」）。
-    // ⚠ **成立条件＝种子给 active 专班补一名演示账号成员**（本批改 `docs/src/data/mock/taskforces.js::tf-001`
-    //   成员补 p5）：该填报区**只在 `tf.status==='active' && isMember` 时渲染**（`taskforce-view.js:194`），
-    //   而原种子两只 active 专班的成员（p8+p9 / p4+p7）**全非演示账号** ⇒ 任何演示账号登录都看不到它（结构性不可达）。
-    //   **造前置时守 R-78 ②**：只**加成员**、**不动状态**、容量内（2/5 → 3/5）⇒「某 active 专班的成员里有本人」
+    //   → 专班卡 `.tfv-card[data-tf-id="tf-002"]`（点击进只读详情）→ 详情内 `#tfv-contrib-add`（「填报本条产出」）。
+    // ⚠ **成立条件＝种子给 active 专班补一名演示账号成员**（R2-32 后 `docs/src/data/mock/taskforces.js::tf-002`
+    //   成员含 p5；tf-001 已按日期收口为 completed，不再承载该入口）：该填报区**只在 `tf.status==='active' && isMember` 时渲染**
+    //   （`taskforce-view.js:194`），而原种子两只 active 专班的成员（p8+p9 / p4+p7）**全非演示账号** ⇒ 结构性不可达。
+    //   **造前置时守 R-78 ②**：只**加成员**、**不动状态**、容量内（2/3 → 3/3）⇒「某 active 专班的成员里有本人」
     //   本就是产品自己走得通的状态（成员由报名/发起流程加入）。
     // ⚠ 判据载体＝**文本域自身** `#tfv-my-contrib-desc`（不另造判据）；提示由 `showToast` 走全局 toast。
     // ⚠ 成员台「知情查看」是**只读形态**（`readonly` 缺省 true）——但「我的产出填报」是 R3-3 给**成员本人**的写口，
@@ -734,8 +734,8 @@ export const MACHINE_FLOWS = [
     tab: '专班动态',
     open: [
       { click: '.insight-view-btn[data-iview="taskforce"]' },
-      { waitFor: '.tfv-card[data-tf-id="tf-001"]' },
-      { click: '.tfv-card[data-tf-id="tf-001"]' },
+      { waitFor: '.tfv-card[data-tf-id="tf-002"]' },
+      { click: '.tfv-card[data-tf-id="tf-002"]' },
       { waitFor: '#tfv-output-add' },
     ],
     submit: [{ click: '#tfv-output-add' }],
@@ -1003,14 +1003,15 @@ export const MACHINE_FLOWS = [
     //   ⇒ 源码 `if (reason === null) return;` **直接 return，连空值分支都到不了**
     //   （源码 624-626：先判 `null`，再判 `.trim()` 为空）。**两个障碍缺一不可**。
     // 处置（R-78 两条出口里的「造真机可达的前置」）：
-    //   ① 种子：`docs/src/data/mock/taskforces.js::tf-001` 给 p5 补**一条待核产出**（`{id,desc,by,at}` 且无
+    //   ① 种子：`docs/src/data/mock/taskforces.js::tf-002` 给 p5 补**一条待核产出**（`{id,desc,by,at}` 且无
     //      `verifiedStatus`）——这正是成员在「我的产出填报」提交后的形状，产品自己就会产出它；
+    //      （R2-32 后 tf-001 已按日期 completed，待核产出随演示载体一并迁到 tf-002。）
     //   ② 能力：`runStep` 新增 **`dialogAnswer`** 步骤（在**触发它的那一步之前**注册一次性应答器），
     //      本流程用 `answer:''` 打**空值分支**；`answer:'某原因'` 可打成功分支（留作后继复用）。
     // ⚠ 入口链与 `org-taskforce-progress-add`（47-V 成功路径）**同属「运行中」专班 → 详情面板**，
     //   只是本条的落点在**逐条核验块**而非进度块——「同面板多块」的第四例。
-    // ⚠ **入口必须显式指定 tf-001**（`[data-tf-id="tf-001"]`），不能点「第一张卡」——本批真机首跑即踩：
-    //   第一张卡**不是** tf-001（运行中桶里另有 tf-002），于是逐条核验块读的是别的专班 ⇒ 报「等待超时」。
+    // ⚠ **入口必须显式指定 tf-002**（`[data-tf-id="tf-002"]`），不能点「第一张卡」——本批真机首跑即踩：
+    //   第一张卡**不是**目标专班（运行中桶里另有其它 active），于是逐条核验块读的是别的专班 ⇒ 报「等待超时」。
     //   **这与 47-W 把 `.cal-activity-item` 改成 `[data-act-id]` 是同一课**：靠「第一张」成立的判据，
     //   一旦桶里多一只就静默换对象（R-78 ④）。
     // ⚠ 判据载体＝**被点的那个按钮自身**（点击后弹窗早期 return，按钮仍在位）。
@@ -1018,7 +1019,7 @@ export const MACHINE_FLOWS = [
     page: 'org',
     tab: '专班管理',
     open: [
-      { click: '#tf-bucket-active .tf-store-card[data-tf-id="tf-001"]' },
+      { click: '#tf-bucket-active .tf-store-card[data-tf-id="tf-002"]' },
       { waitFor: '.tf-contrib-verify-btn[data-decision="reject"]' },
       { dialogAnswer: '' },
     ],

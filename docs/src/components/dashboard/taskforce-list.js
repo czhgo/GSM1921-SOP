@@ -12,10 +12,10 @@
 //  任务完成数＝completed 数 / 非 cancelled 任务总数，无任务显示「—」；两类皆空则整卡隐藏。
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../../core/domain/domain.js?v=20261020c';
-import { listRowHtml, listGroupHtml } from '../ui/list-row.js?v=20261020c';
-import { AuthStore } from '../../services/core/auth.js?v=20261020c';
-import { getBasePath } from '../../core/base/utils.js?v=20261020c';
+import { mockDB, isTaskforceActiveStatus } from '../../core/domain/domain.js?v=20261020d';
+import { listRowHtml, listGroupHtml } from '../ui/list-row.js?v=20261020d';
+import { AuthStore } from '../../services/core/auth.js?v=20261020d';
+import { getBasePath } from '../../core/base/utils.js?v=20261020d';
 
 const GROUP_LIMIT = 3;
 const STATUS_BADGE = {
@@ -49,8 +49,9 @@ const ACTIVITY_TAB = {
   'party-staff': 'branches',
 };
 // 2026-10-20 批次 489（IA-A01/A03 裁定）：纪检/组长台已不再用「知情查看」承载专班
-//   ⇒ 专班「查看全部」改落专班详情页；下表仍保留两键（`tf-view`）只为活动/未知分支兜底，
-//   实际命中由上方 TASKFORCE_HREF 覆盖。
+//   ⇒ 专班「查看全部」改落专班详情页（见 TASKFORCE_HREF）。
+// R2-45（2026-10-20）：原表内的 disc/leader → `tf-view` 两键是**死映射**（两台已无该页签，
+//   且 TASKFORCE_HREF 抢先覆盖），直接删除，避免后续以为是有效落点。
 const TASKFORCE_HREF = {
   'disc-commissioner': 'taskforce.html',
   leader: 'taskforce.html',
@@ -60,8 +61,6 @@ const TASKFORCE_TAB = {
   'deputy-secretary': 'tf-view',
   'org-commissioner': 'taskforce',
   'prop-commissioner': 'kanban',
-  'disc-commissioner': 'tf-view',
-  leader: 'tf-view',
   participant: 'tf-view',
   // 2026-10-20 批次 489：党委台无专班页签，专班工作组「查看全部」落支部管理（汇总面）。
   'party-staff': 'branches',
@@ -148,7 +147,7 @@ export function renderWorkgroupProgress() {
   const taskforcesById = new Map((mockDB.taskforces || []).map((row) => [row.id, row]));
 
   const workgroups = (mockDB.workgroups || [])
-    .filter((group) => group.status === 'active' || group.status === 'recruiting')
+    .filter((group) => isTaskforceActiveStatus(group.status))
     // 工作组状态是建组时投影；活动后来归档/取消时以业务记录为准，避免首页继续显示已结束的组。
     .filter((group) => {
       if (group.kind !== 'activity') return true;

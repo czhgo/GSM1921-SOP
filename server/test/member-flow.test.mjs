@@ -12,7 +12,7 @@ import { readFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const V = '?v=20261020c';
+const V = '?v=20261020d';
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const SRC_DIR = join(ROOT, 'docs', 'src');
 const read = (f) => readFileSync(f, 'utf8');
@@ -94,7 +94,10 @@ test('S2 enrollYear 字段两侧白名单齐备（前端字段白名单 + server
 test('S5 成员流动页首文案中性，不再写死「成员名册」', () => {
   const src = read(join(SRC_DIR, 'entries', 'tabs', 'org', 'member-flow-tab.js'));
   assert.doesNotMatch(src, /在册成员与档案状态见「成员名册」/, '共享组件不得写死支书台不存在的页签名');
-  assert.match(src, /在册成员与档案状态以成员档案为准/, '页首改为角色中性的档案指引');
+  // 2026-10-20 第二轮界面细化：页首三句说明（含「在册成员与档案状态以成员档案为准」）
+  //   按「此地无银」判据整句删除，页面只留卡片标题与台账本身。
+  assert.doesNotMatch(src, /在册成员与档案状态以成员档案为准/, '页首长说明已删，不再复述标题');
+  assert.match(src, /font-title-cn[^>]*>成员流动</, '卡片标题保留');
 });
 
 test('S3 写门角色集来自单一源（不得手写角色字符串）', () => {

@@ -8,7 +8,7 @@
 //   · 出现阈值 = core/domain/constants.js::SEARCH_FILTER_MIN_ROWS（本件只转出，不造第二源）；
 //   · 翻页 = components/ui/pager.js（由引擎内部调用）。
 // 采用口径：表格 / 列表行数超过 8 行才出现检索条；小表不加搜索框（§4.20.2 / §4.21）。
-import { SEARCH_FILTER_MIN_ROWS } from '../../core/domain/constants.js?v=20261020c';
+import { SEARCH_FILTER_MIN_ROWS } from '../../core/domain/constants.js?v=20261020d';
 
 export { SEARCH_FILTER_MIN_ROWS };
 

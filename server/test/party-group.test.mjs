@@ -10,7 +10,7 @@ import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const V = '?v=20261020c';
+const V = '?v=20261020d';
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const SRC_DIR = join(ROOT, 'docs', 'src');
 const CAP_DIR = join(SRC_DIR, 'capabilities');
@@ -48,7 +48,6 @@ test('S1 全站不得写死组名清单（白名单＝种子/档案语料/演示
     'data/mock/people.js',            // 成员档案语料（partyGroup 取值）
     'data/mock/activities.js',        // 活动语料（hostGroup 取值）
     'data/mock/attendance.js',        // 考勤语料（partyGroup 快照）
-    'services/governance/todo.js',          // 待办种子文案（「设置第三党小组组长」）
     'core/domain/domain.js',            // 演示用户域（u_leader_N 名称文案，非清单判定源）
   ]);
   const offenders = [];

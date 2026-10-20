@@ -1,7 +1,7 @@
-import { PersonPicker } from './pickers.js?v=20261020c';
-import { getAdapter } from '../../data/data-adapter.js?v=20261020c';
-import { getPersonById } from '../../services/member/person.js?v=20261020c';
-import { WORKGROUP_PERMISSION_LABELS, WORKGROUP_ROLE_LABELS, workgroupPermissionTemplates } from '../../core/domain/workgroup-policy.js?v=20261020c';
+import { PersonPicker } from './pickers.js?v=20261020d';
+import { getAdapter } from '../../data/data-adapter.js?v=20261020d';
+import { getPersonById } from '../../services/member/person.js?v=20261020d';
+import { WORKGROUP_PERMISSION_LABELS, WORKGROUP_ROLE_LABELS, workgroupPermissionTemplates } from '../../core/domain/workgroup-policy.js?v=20261020d';
 
 const esc = (value) => String(value ?? '').replace(/[&<>"']/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
 const permissionName = (key) => WORKGROUP_PERMISSION_LABELS[key] || key;
@@ -56,7 +56,6 @@ function renderMemberRow(member, grant, kind, canEdit) {
       ${canEdit ? `<fieldset class="mt-3">
         <legend class="text-xs font-medium text-gray-700">独立操作授权</legend>
         ${permissionControls}
-        <p class="mt-2 text-xs text-gray-500">工作组成员身份本身不会授予系统权限；勾选项将随本次保存一并生效。</p>
       </fieldset>` : ''}
     </div>
   </details>`;
@@ -65,7 +64,6 @@ function renderMemberRow(member, grant, kind, canEdit) {
 function renderParticipantList(participants) {
   return `<section class="mt-5 border-t border-gray-100 pt-4" aria-labelledby="wg-general-participants-title">
     <h4 id="wg-general-participants-title" class="text-sm font-semibold text-gray-800">一般参与者（已通过报名）· ${participants.length}</h4>
-    <p class="mt-1 text-xs text-gray-500">报名关系独立记录，不属于工作组角色；主题党日有效报名默认选择线下参加。</p>
     ${participants.length
       ? `<ul class="mt-2 flex flex-wrap gap-2">${participants.map((row) => `<li class="rounded-lg bg-gray-50 px-2.5 py-1 text-xs text-gray-700">${esc(row.name || getPersonById(row.personId)?.name || row.personId)}</li>`).join('')}</ul>`
       : '<p class="mt-2 text-xs text-gray-500">暂无已通过报名</p>'}
@@ -83,8 +81,7 @@ export function renderWorkgroupMemberEditor({
     .filter((row) => row?.status === 'active').map((row) => [String(row.personId), row]));
   return `<section class="mt-6" data-workgroup-member-editor="${esc(workgroupId)}" data-workgroup-kind="${activity ? 'activity' : 'taskforce'}" aria-labelledby="wg-editor-title-${esc(workgroupId)}">
     <div class="flex flex-wrap items-end justify-between gap-2 border-b border-gray-100 pb-2">
-      <div><h3 id="wg-editor-title-${esc(workgroupId)}" class="text-sm font-semibold text-gray-800">${title}（${activeMembers.length}）</h3>
-      <p class="mt-1 text-xs text-gray-500">组织者与深度参与者是工作组分工；操作授权单独选择。</p></div>
+      <div><h3 id="wg-editor-title-${esc(workgroupId)}" class="text-sm font-semibold text-gray-800">${title}（${activeMembers.length}）</h3></div>
     </div>
     <div class="mt-3 space-y-2" data-wg-member-list>
       ${activeMembers.length
@@ -99,7 +96,6 @@ export function renderWorkgroupMemberEditor({
     ${activity ? renderParticipantList(participants) : '<p class="mt-4 border-t border-gray-100 pt-3 text-xs text-gray-500">专班不设一般参与者报名、应到名单或考勤；组织者/深度参与者入组申请由组织台受理，工作执行按登记任务与产出记录。</p>'}
     ${canEdit ? `<div class="mt-4 border-t border-gray-100 pt-4">
       <h4 class="text-xs font-semibold text-gray-800">加入成员</h4>
-      <p class="mt-1 text-xs text-gray-500">新成员初始不带操作授权；需要时在成员详情中明确勾选。</p>
       <div class="mt-2 flex flex-col gap-2 sm:flex-row sm:items-center">
         <div class="min-w-0 flex-1" data-wg-person-picker></div>
         <button type="button" class="btn-outline min-h-10 px-3 text-sm" data-wg-add>加入选中成员</button>
@@ -108,7 +104,7 @@ export function renderWorkgroupMemberEditor({
         <button type="button" class="btn-accent min-h-10 px-4 text-sm" data-wg-save>保存成员和权限</button>
         <span class="text-xs text-gray-500" data-wg-status aria-live="polite"></span>
       </div>
-    </div>` : '<p class="mt-3 text-xs text-gray-500">当前为只读视图。</p>'}
+    </div>` : '<span class="inline-flex items-center mt-3 px-2 py-0.5 rounded-full text-[11px] bg-gray-100 text-gray-600">只读</span>'}
   </section>`;
 }
 

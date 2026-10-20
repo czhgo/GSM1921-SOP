@@ -11,32 +11,32 @@
 //  2026-10-18 乱专项：按「L0 结论带 → 组织事实 → 在册与留痕 → 本人自述 → 系统说明」重排；
 //        27 个档案字段各有且仅有一个 data-field 落点；同一事实不跨层重复。
 // ════════════════════════════════════════════════════════════════
-import { renderSidebar } from '../../components/shell/sidebar.js?v=20261020c';
-import { renderHeader } from '../../components/shell/header.js?v=20261020c';
-import { BranchService } from '../../services/core/runtime.js?v=20261020c';
-import { AuthStore } from '../../services/core/auth.js?v=20261020c';
-import { PersonStore, getPersonName } from '../../services/member/person.js?v=20261020c';
-import { getDataSource } from '../../data/data-adapter.js?v=20261020c';
-import { loadMemberProfile } from '../../services/member/profile.js?v=20261020c';
-import { getBranchById } from '../../services/branch/branch.js?v=20261020c';
-import { openPersonEditModal } from '../../components/governance/pickers.js?v=20261020c';
+import { renderSidebar } from '../../components/shell/sidebar.js?v=20261020d';
+import { renderHeader } from '../../components/shell/header.js?v=20261020d';
+import { BranchService } from '../../services/core/runtime.js?v=20261020d';
+import { AuthStore } from '../../services/core/auth.js?v=20261020d';
+import { PersonStore, getPersonName } from '../../services/member/person.js?v=20261020d';
+import { getDataSource } from '../../data/data-adapter.js?v=20261020d';
+import { loadMemberProfile } from '../../services/member/profile.js?v=20261020d';
+import { getBranchById } from '../../services/branch/branch.js?v=20261020d';
+import { openPersonEditModal } from '../../components/governance/pickers.js?v=20261020d';
 import {
   renderSelfDescriptionSection, countSelfProfileFilled, SELF_PROFILE_TOTAL,
-} from '../../components/governance/person-profile-sections.js?v=20261020c';
+} from '../../components/governance/person-profile-sections.js?v=20261020d';
 // 待确认请求读口（单一源：服务层现有读口；api 形态由 init() 从服务端填充同一缓存）
 import {
   listPendingConfirmations, MC_ACTION_LABEL,
-} from '../../services/member/member-confirmation.js?v=20261020c';
+} from '../../services/member/member-confirmation.js?v=20261020d';
 // Q-21-3 收敛（2026-09-13）：在册状态枚举单一源 = core/domain/constants.js（原经 org-base-data-preview 转出）
-import { ROLE_LABELS, RESIDENCE } from '../../core/domain/constants.js?v=20261020c';
-import { canMaintainMemberProfileFields } from '../../core/domain/profile-access.js?v=20261020c';
-import { getBasePath, escHtml as esc, fmtDt } from '../../core/base/utils.js?v=20261020c';
-import { badgeHtml } from '../../components/ui/badges.js?v=20261020c';
+import { ROLE_LABELS, RESIDENCE } from '../../core/domain/constants.js?v=20261020d';
+import { canMaintainMemberProfileFields } from '../../core/domain/profile-access.js?v=20261020d';
+import { getBasePath, escHtml as esc, fmtDt } from '../../core/base/utils.js?v=20261020d';
+import { badgeHtml } from '../../components/ui/badges.js?v=20261020d';
 // 批次 87：本页必须先 hydrate API 数据源再渲染（成员档案读 + 编辑写）——与 activity.html 标准形同款。
 // 此前本页只调 BranchService.loadDB()（API 模式直接 return）⇒ api 形态下档案读的是本地备份，
 // 且「编辑档案」按 mock 数据源落本机、服务端 users 表不更新。
-import { hydrateDataSource, notifyDataLoaded } from '../../data/data-adapter.js?v=20261020c';
-import { ApiAdapter } from '../../data/api-adapter.js?v=20261020c';
+import { hydrateDataSource, notifyDataLoaded } from '../../data/data-adapter.js?v=20261020d';
+import { ApiAdapter } from '../../data/api-adapter.js?v=20261020d';
 
 renderSidebar('dashboard');
 renderHeader('dashboard');
@@ -244,7 +244,7 @@ async function render() {
           </div>
         </div>
         <div class="flex flex-wrap items-center gap-1.5">
-          ${isSelf ? '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-sky-50 text-sky-700" title="这是你自己的档案（无 ?id= 即本人）">本人</span>' : ''}
+          ${isSelf ? '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-sky-50 text-sky-700">本人</span>' : ''}
           ${isPartyStaff ? '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600">党委只读</span>' : ''}
         </div>
       </div>
@@ -322,14 +322,12 @@ async function render() {
 
     <!-- L2 系统说明：档案编号即学号（2026-10-20 支书裁定；页面不再渲染 p* 内部 id） -->
     <details id="person-system-info" class="pt-1">
-      <summary class="cursor-pointer text-xs font-medium text-gray-500">系统说明 · 档案编号即学号</summary>
+      <summary class="cursor-pointer text-xs font-medium text-gray-500">档案编号</summary>
       <div class="mt-2 space-y-1 text-xs text-gray-500">
         <p>
           <span class="text-[11px] uppercase tracking-wide text-gray-400">档案编号</span>
           <span data-field="id" class="ml-2 font-mono text-gray-700 break-all">${textOrEmpty(member.studentId, '—')}</span>
         </p>
-        <p>变更留痕由确认链追加，不可编辑；阶段起始日随阶段变更同笔落档。</p>
-        <p>角色与所属支部为治理字段，不在本页修改。</p>
       </div>
     </details>
   `;

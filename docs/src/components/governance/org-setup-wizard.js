@@ -14,35 +14,35 @@
 // 草稿：localStorage `wizard-draft-<branchId>`（当前步 + 每步完成标记 + 完成态），中断可续走。
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../../core/domain/domain.js?v=20261020c';
-import { getCapabilities } from '../../core/boot/registry.js?v=20261020c';
-import { OUTPUT_BLOCK_DEFS, BRANCH_COMMISSION_ROLES, ROLE_LABELS, getAccentColors, accentButtonColors } from '../../core/domain/constants.js?v=20261020c';
-import { CAPABILITY_PACKAGES } from '../../core/domain/capability-packages.js?v=20261020c';
-import { ORG_SUBJECT_LABELS, isBranchOrgSubject, ownerSubjectType } from '../../core/domain/work-map.js?v=20261020c';
+import { mockDB } from '../../core/domain/domain.js?v=20261020d';
+import { getCapabilities } from '../../core/boot/registry.js?v=20261020d';
+import { OUTPUT_BLOCK_DEFS, BRANCH_COMMISSION_ROLES, ROLE_LABELS, getAccentColors, accentButtonColors } from '../../core/domain/constants.js?v=20261020d';
+import { CAPABILITY_PACKAGES } from '../../core/domain/capability-packages.js?v=20261020d';
+import { ORG_SUBJECT_LABELS, isBranchOrgSubject, ownerSubjectType } from '../../core/domain/work-map.js?v=20261020d';
 // 副作用：注册支委层工作台能力（配置目录=其 tab 清单，单一源）
-import '../../capabilities/secretary-workspace.js?v=20261020c';
-import { BLOCK_MANIFESTS } from '../../workflow/blocks/manifests.js?v=20261020c';
+import '../../capabilities/secretary-workspace.js?v=20261020d';
+import { BLOCK_MANIFESTS } from '../../workflow/blocks/manifests.js?v=20261020d';
 // L3 流程组合（2026-09-28 批次 246）：把编排内核接进**生产路径**——配置面用它做「组合体检」
-import { composePlan } from '../../workflow/blocks/orchestration.js?v=20261020c';
-import { escHtml as esc, showToast, downloadBlob } from '../../core/base/utils.js?v=20261020c';
-import { readLoginSnapshot } from '../../core/session/login-snapshot.js?v=20261020c';
-import { WORK_MAP_MODULES } from '../../core/domain/work-map.js?v=20261020c';
+import { composePlan } from '../../workflow/blocks/orchestration.js?v=20261020d';
+import { escHtml as esc, showToast, downloadBlob } from '../../core/base/utils.js?v=20261020d';
+import { readLoginSnapshot } from '../../core/session/login-snapshot.js?v=20261020d';
+import { WORK_MAP_MODULES } from '../../core/domain/work-map.js?v=20261020d';
 import {
   getBranchById, getBranchOrg, getBranchTabPolicy, getCoreTabIds,
   getBranchOutputBlocks, getBranchCapabilityPackageState, getOutputBlockPolicy, getWorkflowBlockPolicy, orderByIds,
   updateBranchModules, updateBranchCapabilityPackages, getBranchWorkforce, updateBranchWorkforce, updateBranchOrg,
   applyConfigCopy, createBranch, getBranchIdOfPerson,
-} from '../../services/branch/branch.js?v=20261020c';
-import { buildConfigPackage, applyConfigPackage } from '../../services/branch/org-config-package.js?v=20261020c';
+} from '../../services/branch/branch.js?v=20261020d';
+import { buildConfigPackage, applyConfigPackage } from '../../services/branch/org-config-package.js?v=20261020d';
 import {
   buildPreviewTemplate, sanitizePreview, applyPreview, clearPreview, getPreviewState,
   PREVIEW_KIND, PREVIEW_VERSION,
-} from '../../services/branch/org-base-data-preview.js?v=20261020c';
-import { getRosterStats, isDetained } from '../../services/member/roster.js?v=20261020c';
-import { buildOrgWizardReport } from '../../services/branch/org-wizard-report.js?v=20261020c';
-import { PersonStore, getPersonName } from '../../services/member/person.js?v=20261020c';
+} from '../../services/branch/org-base-data-preview.js?v=20261020d';
+import { getRosterStats, isDetained } from '../../services/member/roster.js?v=20261020d';
+import { buildOrgWizardReport } from '../../services/branch/org-wizard-report.js?v=20261020d';
+import { PersonStore, getPersonName } from '../../services/member/person.js?v=20261020d';
 // R5-1（2026-09-06）：建空支部「就地任命首任骨干」——任命编排在 appointment.js 收口（含数据边界登记）
-import { appointInauguralOfficers } from '../../services/branch/appointment.js?v=20261020c';
+import { appointInauguralOfficers } from '../../services/branch/appointment.js?v=20261020d';
 
 // ── 步骤元信息（支书已批口径）────────────────────────────────────
 export const WIZARD_STEPS = [
@@ -538,7 +538,7 @@ function _copyPanelHtml(S, branches) {
   return `
     <div class="rounded-lg border border-blue-100 bg-blue-50/40 p-3 mt-2.5 space-y-2">
       <p class="text-xs font-semibold text-gray-700">复制配置到支部…</p>
-      <p class="text-[11px] text-gray-500">源：<b class="text-gray-700">${sourceName}</b>；将模块/块组合、角色分工与组织档案（页眉/自述/主题预设）复制给勾选的目标支部，逐个支部记录变更来源（<code class="text-[11px] bg-white px-1 py-0.5 rounded border border-blue-100">config-copied</code>）。</p>
+      <p class="text-[11px] text-gray-500">源：<b class="text-gray-700">${sourceName}</b>；将模块/块组合、角色分工与组织档案（页眉/自述/主题预设）复制给勾选的目标支部。</p>
       <div class="rounded-lg bg-white border border-blue-100 px-2 py-1 max-h-44 overflow-y-auto">${rows}</div>
       <div class="flex items-center justify-end gap-2">
         <button type="button" data-wz-act="toggle-copy" class="btn-outline text-xs px-2.5 py-1.5">取消</button>
@@ -785,9 +785,9 @@ function _step3Html(S, branch) {
     <div class="rounded-xl border border-gray-200 bg-white p-4 space-y-3">
       <div class="flex items-center justify-between">
         <p class="text-xs font-bold text-gray-700">③ 角色分工</p>
-        <span class="text-[11px] text-gray-500">模块负责人归属 → config.workforce（保留既有数据结构）</span>
+        <span class="text-[11px] text-gray-500">模块负责人归属</span>
       </div>
-      <p class="text-[11px] text-gray-500">部署期/换壳期直接写入系统并立即生效、同时记录变更；日常分工调整请走支书台「支部分工」的支委会议题流程（M2）。</p>
+      <p class="text-[11px] text-gray-500">此处修改立即生效并留痕；日常分工调整请走支书台「支部分工」的支委会议题流程。</p>
       <div class="rounded-lg border border-gray-100 bg-gray-50/50 px-3 py-2">${rows}</div>
       <div class="flex gap-2 justify-end pt-1 border-t border-gray-100">
         <button type="button" data-wz-act="reset-workforce" class="btn-outline text-xs px-3 py-1.5">恢复默认分工</button>
@@ -815,13 +815,11 @@ function _step4Html(S, branch) {
     <div class="rounded-xl border border-gray-200 bg-white p-4 space-y-3">
       <div class="flex items-center justify-between">
         <p class="text-xs font-bold text-gray-700">④ 术语 / 制度 / 数据指引 + 换壳工作单</p>
-        <span class="text-[11px] text-gray-500">本步只读：仓库文件内容不在此在线修改，出「工作单」指引人工替换</span>
       </div>
-      <p class="text-[11px] text-gray-500">以下「替换入口总表」要点 = 换壳时需要人工改的仓库文件（在线可改的已在①②③即时写入支部 config）：</p>
       <div class="rounded-lg border border-gray-100 bg-gray-50/50 px-3 py-1">${guide}</div>
       <div class="rounded-xl border border-dashed border-red-200 bg-red-50/40 p-3.5">
         <p class="text-xs font-semibold text-gray-700">生成「换壳工作单」（Markdown 下载）</p>
-        <p class="text-[11px] text-gray-500 mt-1">汇总：已完成配置摘要（①②③现读数）+ 待手动替换文件清单 + 检查项（应到名单 / ?reset=1 / npm test）。</p>
+        <p class="text-[11px] text-gray-500 mt-1">汇总：已完成配置摘要 + 待替换材料清单。</p>
         <button type="button" data-wz-act="download-report" class="btn-accent mt-2 px-3 py-1.5 text-xs font-medium">生成并下载工作单</button>
       </div>
     </div>`;
@@ -839,15 +837,11 @@ function _step5Html(S, branch, org) {
         <p class="text-xs font-semibold text-gray-700">应到名单核对（现读数）</p>
         <p class="text-[11px] text-gray-500 mt-1">支部党员大会/党课等应到 = 在册党员（正式 + 预备）非滞留；滞留剔除。</p>
         <p class="text-xs text-gray-700 mt-2">在册党员 <b class="text-gray-900">${stats.partyTotal}</b> 人 − 滞留剔除 <b class="text-gray-900">${stats.detainedParty}</b> 人 = 应到 <b class="text-red-600">${stats.expected}</b> 人</p>
-        <p class="text-[11px] text-gray-500 mt-1">计算规则：docs/src/core/domain/policy-defaults.js attendance.roster（换数据后回本页复查读数）</p>
+        <p class="text-[11px] text-gray-500 mt-1">按支部制度参数计算（换数据后回本页复查读数）。</p>
       </div>
       <div class="rounded-xl border border-amber-100 bg-amber-50/50 p-3">
         <p class="text-xs font-semibold text-gray-700">重置 ?reset=1</p>
         <p class="text-[11px] text-gray-500 mt-1">本地浏览模式：在任意页面 URL 末尾加 <code class="text-[11px] bg-white px-1 py-0.5 rounded border border-amber-200">?reset=1</code> 访问，一键清除本域全部本地存储并回到种子初始态（含本向导配置）——仅本地形态，生产数据不受影响。</p>
-      </div>
-      <div class="rounded-xl border border-gray-200 bg-gray-50/60 p-3">
-        <p class="text-xs font-semibold text-gray-700">回归验证</p>
-        <p class="text-[11px] text-gray-500 mt-1">改仓库文件（②清单）后：<code class="text-[11px] bg-white px-1 py-0.5 rounded border border-gray-200">cd server && npm test</code>（node --test）确认全绿再交付。</p>
       </div>
       <div>
         <p class="text-xs font-semibold text-gray-600 mb-1.5">步骤完成情况（存档于 localStorage 草稿，可续走）</p>

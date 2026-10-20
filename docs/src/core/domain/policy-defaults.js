@@ -132,6 +132,15 @@ const _FACTORY = {
     //   config.policyOverrides.memberConfirmation.semesterDetainedWindows 覆盖，支书待办随窗口变化。
     semesterDetainedWindows: [[6, 15, 7, 15], [12, 15, 1, 15]],
   },
+  member: {
+    // 预备期（R2-15，2026-10-20）：原 talent-tab 把「满 12 个月可转正 / 满 9 个月可筹备」
+    //   写死在页面里，制度天数调整时提示不跟随。这里收进制度参数（制度裁决固定项），
+    //   消费点 = entries/tabs/org/talent-tab.js（按**整月**计算，不再用年月差粗略相减）。
+    probation: {
+      completeMonths: 12,
+      prepMonths: 9,
+    },
+  },
   review: {
     // 复盘提交提醒阈值（支书台自动提醒：活动结束 >overdueDays 天仍无复盘 → 提醒组织者提交）
     // kind 'branch-default'：域=纪检监督侧。批4 副本收编（2026-09-09 支书批）：
@@ -269,6 +278,11 @@ export const POLICY_FIXED = [
   // ── profile：个人档案隐私边界（组织统一制度）──
   { path: ['profile', 'selfProfileReadScope'], kind: 'institutional',
     why: '个人自我描述仅本人及本支部支委可读；党委、组长与普通成员不得读取他人自述', src: '支书 2026-10-17 裁定；仅可经全组织制度裁决后修改' },
+  // ── member：预备期（R2-15；制度固定项）──
+  { path: ['member', 'probation', 'completeMonths'], kind: 'institutional',
+    why: '预备期满一年可转正是党章规定，不是支部可调技参', src: '《中国共产党章程》预备期一年；R2-15 从 talent-tab 硬编码迁入' },
+  { path: ['member', 'probation', 'prepMonths'], kind: 'institutional',
+    why: '「满 9 个月可筹备转正」是流程准备期口径，与满 12 个月同属制度固定项', src: 'R2-15；原 talent-tab 字面量' },
   // ── workforce（票决门槛；制度裁决）──
   { path: ['workforce', 'voteThreshold', 'quorum'], kind: 'institutional',
     why: '支委会票决通过门槛（应到 2/3 且无反对）＝制度裁决，非技参', src: 'REVIEW_QUEUE 附录⑩ S2 R2-3（支书 2026-09-06 裁）' },

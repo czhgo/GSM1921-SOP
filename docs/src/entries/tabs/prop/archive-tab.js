@@ -2,36 +2,37 @@
 // 宣传委员工作台 Tab：档案归档（T-279 M3 拆分，照 M2 样板）
 // 归档记录纯读 + 材料标准/模板 + 归档推进浮窗（材料确认清单）+ 上传宣传材料（attachments 双模式）。
 
-import { icon } from '../../../core/base/icons.js?v=20261020c';
-import { solidAccentStyle, activityTypeBadgeVariant, isActivityArchived } from '../../../core/domain/constants.js?v=20261020c';
-import { POLICY_DEFAULTS } from '../../../core/domain/policy-defaults.js?v=20261020c';
+import { icon } from '../../../core/base/icons.js?v=20261020d';
+import { solidAccentStyle, activityTypeBadgeVariant, isActivityArchived } from '../../../core/domain/constants.js?v=20261020d';
+import { POLICY_DEFAULTS } from '../../../core/domain/policy-defaults.js?v=20261020d';
 // 活动类型胶囊（批次 301）：类别色走单一源（三会一课＝brand 红 / 主题党日＝gold 金），渲染唯一源 badge.js
-import { badgeHtml } from '../../../components/ui/badges.js?v=20261020c'; // 扎口出口（批次 304 收回，勿直连 badge.js）
-import { showToast, downloadCSV, downloadBlob, downloadUrl, _fmtDate, escHtml, todayLocal } from '../../../core/base/utils.js?v=20261020c';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20261020d'; // 扎口出口（批次 304 收回，勿直连 badge.js）
+import { showToast, downloadCSV, downloadBlob, downloadUrl, _fmtDate, escHtml, todayLocal } from '../../../core/base/utils.js?v=20261020d';
 // 2026-09-21 批次 139：本 tab 的浮层是**自建浮层**（不走 components/ui/modal.js），页脚那条「相关设置」
 //   深链用 modal.js 导出的同一段标记（`settingsLinkHTML`）——不落第二份 HTML（仍是单一源）。
-import { settingsLinkHTML } from '../../../components/ui/modal.js?v=20261020c';
-import { persist, getAuthToken, getApiBaseUrl, getAdapter } from '../../../data/data-adapter.js?v=20261020c';
-import { withSelectedBranchScope } from '../../../data/api-adapter.js?v=20261020c';
-import { mockDB } from '../../../core/domain/domain.js?v=20261020c';
-import { bumpToken } from '../../../core/base/version-token.js?v=20261020c'; // P0 域缓存失效（spec §二.3）
-import { loadActivities, listPublicityDrafts, setPublicityDraftStatus, PUBLICITY_DRAFT_STATUS, listGalleryCandidates, setGalleryFeatured, setGalleryPinned, isGalleryFeatured, isGalleryPinned } from '../../../services/activity/activity.js?v=20261020c';
-import { isApiMode } from '../../../services/core/runtime.js?v=20261020c';
-import { AuthStore } from '../../../services/core/auth.js?v=20261020c';
-import { getPersonName } from '../../../services/member/person.js?v=20261020c';
+import { settingsLinkHTML } from '../../../components/ui/modal.js?v=20261020d';
+import { persist, getAuthToken, getApiBaseUrl, getAdapter } from '../../../data/data-adapter.js?v=20261020d';
+import { withSelectedBranchScope } from '../../../data/api-adapter.js?v=20261020d';
+import { mockDB } from '../../../core/domain/domain.js?v=20261020d';
+import { bumpToken } from '../../../core/base/version-token.js?v=20261020d'; // P0 域缓存失效（spec §二.3）
+import { loadActivities, listPublicityDrafts, setPublicityDraftStatus, PUBLICITY_DRAFT_STATUS, listGalleryCandidates, setGalleryFeatured, setGalleryPinned, isGalleryFeatured, isGalleryPinned } from '../../../services/activity/activity.js?v=20261020d';
+import { isApiMode } from '../../../services/core/runtime.js?v=20261020d';
+import { AuthStore, currentUserId } from '../../../services/core/auth.js?v=20261020d';
+import { getPersonName } from '../../../services/member/person.js?v=20261020d';
 // 批次 352（`D-746` · `D-744`② 业务过程类余项）：照片记录「作废（软）」——统一写口 ＋ 支委层判据
-import * as SoftVoid from '../../../services/governance/soft-void.js?v=20261020c';
-import { openVoidModal } from '../../../components/ui/void-record.js?v=20261020c';
-import { generateId } from '../../../core/base/id.js?v=20261020c';
-import { addExternalDispatch, loadExternalDispatches, loadActiveDispatches } from '../../../services/activity/external-dispatch.js?v=20261020c';
+import * as SoftVoid from '../../../services/governance/soft-void.js?v=20261020d';
+import { openVoidModal } from '../../../components/ui/void-record.js?v=20261020d';
+import { addExternalDispatch, loadExternalDispatches, loadActiveDispatches } from '../../../services/activity/external-dispatch.js?v=20261020d';
+// R2-40：归档材料写口（mock/api 同源）——api 落 archive_records、mock 落 localStorage
+import { ArchiveStore } from '../../../services/activity/archive.js?v=20261020d';
 // A② 归档缺口判据单一源（支书台「宣传材料待归档」实时组同源）：已归档但无归档记录的活动
-import { getArchiveGapActivities, getEndedUnarchivedActivities } from '../../../services/governance/secretary-overview.js?v=20261020c';
+import { getArchiveGapActivities, getEndedUnarchivedActivities } from '../../../services/governance/secretary-overview.js?v=20261020d';
 // 活动归档写口（与支书台活动管理同源：软删 archived=true + 级联完成下属任务）
-import { BranchService } from '../../../services/core/runtime.js?v=20261020c';
+import { BranchService } from '../../../services/core/runtime.js?v=20261020d';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是活动的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
-import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261020c';
+import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261020d';
 // 材料页深链 focusActivityId 的通用定位（只滚动 + 闪烁，不另造筛选器）
-import { focusActivityAnchor } from '../../../components/ui/detail-anchor.js?v=20261020c';
+import { focusActivityAnchor } from '../../../components/ui/detail-anchor.js?v=20261020d';
 
 // ── 档案归档 ─────────────────────────────────────────────
 // 种子数据已提升为全局（data/mock/seed.js SEED_ARCHIVE_RECORDS，loadDB 时注入），
@@ -117,7 +118,7 @@ export function renderContent(ctx) {
     <details class="card rounded-xl p-4" id="archive-template-fold">
       <summary class="font-title-cn text-sm font-bold text-gray-700 cursor-pointer select-none">
         归档模板与材料标准
-        <span class="text-xs font-normal text-gray-500 ml-1.5">下载 / 口径说明</span>
+        <span class="text-xs font-normal text-gray-500 ml-1.5">下载</span>
       </summary>
       <div class="mt-3 space-y-2">
         ${ARCHIVE_TEMPLATES.map(t => `
@@ -129,9 +130,7 @@ export function renderContent(ctx) {
             <button class="btn-outline archive-tpl-btn text-xs px-3 py-1.5" data-tpl-name="${t.name}">下载</button>
           </div>
         `).join('')}
-        <p class="text-xs text-gray-500 pt-1">材料标准（新闻稿 / 照片 / 视频 / 其他）与归档口径见
-          <a href="./help.html#card-dom38-archive" class="text-sky-600 hover:underline" title="见帮助：档案归档（材料标准 / 模板 / 上传与下载）">帮助 · 档案归档</a>。
-        </p>
+        <p class="text-xs text-gray-500 pt-1"><a href="./help.html#card-dom38-archive" class="text-sky-600 hover:underline">见帮助 · 档案归档</a></p>
       </div>
     </details>
   `;
@@ -434,7 +433,7 @@ let _weeklyOpen = false;
 /** 懒挂周报内容到宿主容器（`weekly-tab.js` 的 `renderContent(ctx, host)` 已支持传入宿主） */
 function _mountWeekly(host, ctx) {
   host.dataset.weeklyMounted = '1';
-  import('./weekly-tab.js?v=20261020c').then(m => {
+  import('./weekly-tab.js?v=20261020d').then(m => {
     if (host.isConnected) m.renderContent(ctx, host);
   });
 }
@@ -470,7 +469,6 @@ function _renderEndedUnarchivedSection(activities) {
         <h4 class="text-sm font-bold text-gray-700">待归档活动</h4>
         <span class="text-xs px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200">${activities.length} 个活动已结束未归档</span>
       </div>
-      <p class="text-xs text-gray-500 mb-2">与「工作概况 · 待归档活动」同判据（活动已结束但未归档）——可直接归档；归档后请在上方「待归档」区补充宣传材料。</p>
       <div id="archive-ended-list"></div>
     </div>`;
 }
@@ -516,7 +514,7 @@ function _renderPublicityDraftSection(rows) {
         <h4 class="text-sm font-bold text-gray-700">宣传初稿（待审核）</h4>
         <span class="text-xs px-1.5 py-0.5 rounded-full bg-sky-50 text-sky-700 border border-sky-200">${rows.length} 条待审核</span>
       </div>
-      <p class="text-xs text-gray-500 mb-2">被分工者写好的宣传初稿在这里审核：<b>定稿</b>即成为可归档的宣传成稿，<b>退回</b>则回到初稿状态（可写一句退回说明给撰写人）。</p>
+      <p class="text-xs text-gray-500 mb-2">退回时可写一句修改说明。</p>
       <div class="space-y-2" id="prop-publicity-draft-list">${items}</div>
     </div>`;
 }
@@ -546,7 +544,6 @@ function _renderPendingArchiveSection(activities) {
         <h4 class="text-sm font-bold text-gray-700">待归档</h4>
         <span class="text-xs px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200">${activities.length} 个活动待补材料</span>
       </div>
-      <p class="text-xs text-gray-500 mb-2">以下活动已归档，但宣传材料尚未提交——请补充材料完成归档。</p>
       <div class="space-y-2" id="archive-pending-list">${items}</div>
     </div>`;
 }
@@ -578,7 +575,7 @@ function _archiveRowHtml(r) {
   // B4（2026-09-12）：无材料文件时不再静默隐藏入口 → 给出可见依据提示（避免「入口完全不可见」）
   const dispatchHtml = r.fileName
     ? _renderDispatchCell(r)
-    : `<span class="text-[11px] text-gray-400 flex-shrink-0" title="「标记已发送」用于材料已通过微信/对外发出的留痕；需先上传材料后才可标记">上传材料后可标记外发</span>`;
+    : `<span class="text-[11px] text-gray-400 flex-shrink-0">上传材料后可标记外发</span>`;
   // 2026-09-22 批次 145（支书裁定二「归档页补一个」）：党建平台上报留痕——与既有那枚「标记已发送（微信/对外）」
   //   并列、两个动作分开记（母本 `宣传委员工作流程指南.md:49` 步 7；同文件 `:88` 周报步 4 已指周报页那枚）。
   const platformHtml = _renderPlatformCell(r);
@@ -609,7 +606,7 @@ function _renderDispatchCell(r) {
   const label = `宣传材料：${r.activityName || '未命名活动'}`;
   const recs = loadActiveDispatches().filter(d => d.refType === 'publicity' && d.refLabel === label);
   if (recs.length === 0) {
-    return `<button class="btn-action btn-action-amber archive-dispatch-btn" data-record-id="${r.id}" title="材料如已通过微信/对外发出，点击标记已外发" style="cursor:pointer;">标记已发送（微信/对外）</button>`;
+    return `<button class="btn-action btn-action-amber archive-dispatch-btn" data-record-id="${r.id}" style="cursor:pointer;">标记已发送（微信/对外）</button>`;
   }
   const latest = recs[recs.length - 1];
   const confirmed = recs.some(d => d.confirmedAt);
@@ -725,7 +722,8 @@ async function _deleteArchiveFile(record) {
       mockDB.fileSpaceRecords = mockDB.fileSpaceRecords.filter(f => f.id !== fsRec.id);
     }
   }
-  mockDB.archiveRecords = mockDB.archiveRecords.filter(r => r.id !== record.id);
+  // R2-40：归档记录同步走服务层删除（api → DELETE /api/v1/archiveRecords/:id；mock → localStorage）
+  await ArchiveStore.removeMaterial(record.id);
   bumpToken('archiveRecord'); // P0：档案材料删除写口
   persist();
   return true;
@@ -869,10 +867,11 @@ function _parseChecklistFromStandard(standard, category) {
 
 // ── 上传宣传材料（attachments 双模式：mock base64 持久化 / server multipart 落盘）──
 // spec §8 增量：宣传委员上传照片/简讯/报送 → 写入 archiveRecords（产出物区/关闭校验同源读取）。
-// mock 模式：FileReader → base64 dataURL 存 mockDB.archiveRecords + persist()；
+// 两形态统一经 `ArchiveStore.createMaterial`（R2-40）：
+// mock 模式：FileReader → base64 dataURL → MockAdapter.archiveRecords（localStorage，刷新可读）；
 // server 模式：文件本体 POST /api/v1/uploads（multer 落盘 server/uploads/），
-// 元数据 POST /api/v1/fileSpaceRecords（server 端无 archiveRecords 表，落文件空间宽表），
-// 同时写入内存 archiveRecords 保证当页产出物区/关闭校验联动。
+// 元数据 → fileSpaceRecords 宽表 + `POST /api/v1/archiveRecords`（archive_records 表），
+// 两条记录都落库 ⇒ 刷新后产出物区/关闭校验仍能读到。
 const UPLOAD_MAX_MOCK_MB = 2;  // mock 模式 localStorage 容量约束（base64 膨胀 ~33%）
 const UPLOAD_MAX_SERVER_MB = 10; // 与 server/routes/uploads.js 服务端限制一致
 
@@ -1093,6 +1092,13 @@ function _promptExternalDispatch(activityId, activityName, ctx, onSent) {
 
 async function _handleArchiveUpload(files, activityId, activityName, category) {
   const today = todayLocal();
+  // R2-10：上传留痕必须是**当前登录人**——写死 p12 会在换人/代上传后把审计链记到固定账号。
+  // 无会话即拒绝写入（不清空已选文件之外的任何数据），提示重新登录。
+  const uploadedBy = currentUserId();
+  if (!uploadedBy) {
+    showToast('error', '登录状态已失效，请重新登录后再上传');
+    return;
+  }
   let saved = 0;
 
   if (isApiMode()) {
@@ -1110,21 +1116,22 @@ async function _handleArchiveUpload(files, activityId, activityName, category) {
         });
         if (!resp.ok) throw new Error(`上传失败(${resp.status})`);
         const { path } = await resp.json();
-        // 元数据 → fileSpaceRecords（server RESOURCE_TABLES 无 archiveRecords 表）
+        // 元数据 → fileSpaceRecords（文件空间宽表：文件名/大小/路径）
         // 2026-10-02 批次 343（`D-744` D 档写口纪律）：**统一走适配器写口**（原为直连 `fetch` POST）
         const metaRow = await getAdapter().fileSpaceRecords.create({
           activityId, activityName, category,
           fileName: file.name, fileSize: file.size, filePath: path,
-          status: 'archived', archiveDate: today, uploadedBy: 'p12',
+          status: 'archived', archiveDate: today, uploadedBy,
         });
         // 同步写入内存 fileSpaceRecords：persist() 的全量快照会按 mockDB 状态整表覆盖
         // server 端表（快照写穿清表缺口），不 push 则刚落库的元数据被空数组擦除
         mockDB.fileSpaceRecords.push(metaRow);
-        // 同步写入内存 archiveRecords → 产出物区/关闭校验同源联动
-        mockDB.archiveRecords.push({
-          id: generateId('ar-u', '-'), activityId, activityName,
-          archiveDate: today, category, status: 'archived',
-          fileName: file.name, fileSize: file.size, filePath: path,
+        // R2-40：归档记录走服务层写口（api → POST /api/v1/archiveRecords 落 archive_records 表；
+        //   mock → MockAdapter 写 localStorage）。原实现只 push 内存 ⇒ api 形态刷新后记录消失，
+        //   「产出物区/关闭校验」读不到刚上传的材料（服务端其实一直有 archive_records 表）。
+        await ArchiveStore.createMaterial({
+          activityId, activityName, archiveDate: today, category, status: 'archived',
+          fileName: file.name, fileSize: file.size, filePath: path, uploadedBy,
         });
         saved++;
       } catch (err) {
@@ -1132,14 +1139,13 @@ async function _handleArchiveUpload(files, activityId, activityName, category) {
       }
     }
   } else {
-    // ── mock 模式：base64 dataURL 持久化 ──
+    // ── mock 模式：base64 dataURL 持久化（同样走 ArchiveStore，保持单一写口）──
     for (const file of files) {
       try {
         const dataUrl = await _readFileAsDataURL(file);
-        mockDB.archiveRecords.push({
-          id: generateId('ar-u', '-'), activityId, activityName,
-          archiveDate: today, category, status: 'archived',
-          fileName: file.name, fileSize: file.size, fileData: dataUrl,
+        await ArchiveStore.createMaterial({
+          activityId, activityName, archiveDate: today, category, status: 'archived',
+          fileName: file.name, fileSize: file.size, fileData: dataUrl, uploadedBy,
         });
         saved++;
       } catch (err) {
@@ -1232,7 +1238,7 @@ function _renderPhotoWallSection(ctx) {
       <p class="text-xs text-gray-500 mb-2">${hint}</p>
       <section id="photo-wall-groups" class="space-y-3">${groups.length
         ? groups.map(g => _photoGroupHtml(g)).join('')
-        : '<p class="text-xs text-gray-400 py-3 text-center">还没有照片——点右上「上传照片」，照片会按拍摄日期在此分组展示</p>'}</section>
+        : '<p class="text-xs text-gray-400 py-3 text-center">暂无照片</p>'}</section>
     </div>`;
 }
 

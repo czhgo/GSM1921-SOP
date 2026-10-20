@@ -1,5 +1,5 @@
 export const MOCK_NOTICES = [
-  // ── 7 月通知（当前有效）──────────────────────────────────
+  // ── 历史通知（多数已过期；有效期由 expireDate 决定，不以注释断言「当前有效」）──────
   {
     id: 'notice-101',
     title: '七月主题党日"深化改革"活动通知',
@@ -181,7 +181,10 @@ const NOTICE_AUDIENCE_SEED = {
 for (const notice of MOCK_NOTICES) {
   notice.branchId = notice.branchId ?? 'br-b1';
   notice.source = notice.source ?? 'branch';
-  notice.createdBy = notice.createdBy ?? 'p13'; // 发布者（现任支书；仅种子快照）
+  // R2-37（2026-10-20）：历史种子通知不得把「现任支书」写进发布者——支书换人后新支书无法
+  //   编辑/撤回这些通知（发布者判据读 createdBy），审计也会显示错误发布者。种子统一记为系统通知
+  //   （createdBy:null），读侧按「系统初始通知」处理；真实发布的通知仍写当前登录人。
+  notice.createdBy = notice.createdBy ?? null;
   if (notice.audience === undefined && !Array.isArray(notice.audiencePersons)) {
     Object.assign(notice, NOTICE_AUDIENCE_SEED[notice.id] || { audience: ['all'] });
   }

@@ -5,18 +5,18 @@
 //  职责单一：日历/列表双视图切换 + ?view=?month= URL 同步 + 活动列表（前 10 条）。
 // ════════════════════════════════════════════════════════════════
 
-import { setState, getAppState } from '../../core/base/state.js?v=20261020c';
-import { _fmtDate, getBasePath } from '../../core/base/utils.js?v=20261020c';
-import { getPersonName } from '../../services/member/person.js?v=20261020c';
-import { CrossPageState } from '../../core/session/cross-page-state.js?v=20261020c';
-import { AuthStore } from '../../services/core/auth.js?v=20261020c';
-import { getActivityTypeColors } from '../../core/domain/constants.js?v=20261020c';
+import { setState, getAppState } from '../../core/base/state.js?v=20261020d';
+import { _fmtDate, getBasePath } from '../../core/base/utils.js?v=20261020d';
+import { getPersonName } from '../../services/member/person.js?v=20261020d';
+import { CrossPageState } from '../../core/session/cross-page-state.js?v=20261020d';
+import { AuthStore } from '../../services/core/auth.js?v=20261020d';
+import { getActivityTypeColors, DASHBOARD_LIMITS } from '../../core/domain/constants.js?v=20261020d';
 // 活动「已归档」口径单一源（2026-09-13 收敛）：替代手写 !a.archived
-import { isActivityArchived } from '../../core/domain/constants.js?v=20261020c';
-import { badgeHtml } from '../ui/badges.js?v=20261020c';
-import { deriveActivityLifecycleStatus, ACTIVITY_LIFECYCLE } from '../record/inspector.js?v=20261020c';
-import { populateMonthSelector } from '../record/calendar.js?v=20261020c';
-import { getCapabilities, mountCapability, getRuntimeEnv } from '../../core/boot/registry.js?v=20261020c';
+import { isActivityArchived } from '../../core/domain/constants.js?v=20261020d';
+import { badgeHtml } from '../ui/badges.js?v=20261020d';
+import { deriveActivityLifecycleStatus, ACTIVITY_LIFECYCLE } from '../record/inspector.js?v=20261020d';
+import { populateMonthSelector } from '../record/calendar.js?v=20261020d';
+import { getCapabilities, mountCapability, getRuntimeEnv } from '../../core/boot/registry.js?v=20261020d';
 
 const DASHBOARD_DEFAULT_VIEW = 'calendar';
 const ACTIVITY_TYPE_COLORS = getActivityTypeColors({ withLabel: true });
@@ -94,7 +94,7 @@ export function renderActivityList(activities, user) {
   const sorted = [...activities]
     .filter(a => a.date && !isActivityArchived(a))
     .sort((a, b) => (b.date || '').localeCompare(a.date || ''));
-  const display = [...sorted.filter(a => !isDone(a)), ...sorted.filter(a => isDone(a))].slice(0, 10);
+  const display = [...sorted.filter(a => !isDone(a)), ...sorted.filter(a => isDone(a))].slice(0, DASHBOARD_LIMITS.activities);
 
   if (display.length === 0) {
     container.innerHTML = '<p class="text-sm text-gray-500 p-4">暂无可展示的活动</p>';

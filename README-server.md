@@ -88,7 +88,7 @@
 | 12 | `commissioner` | 条条委员 | 遗留键 | — | **不参与权限判定**，仅兼容兜底 |
 | 13 | `initiator` | 发起人 | 遗留键 | — | 同上 |
 
-**依据**：`docs/src/core/domain/constants.js:189-195,831-833`（`ROLE_KEYS`——`deputy-leader` 于该文件末挂载）、`:196`（`ROLE_LEGACY_KEYS`）、`:340`（`ROLE_LABELS`）、`:358`（`ROLE_PAGE_MAP`）；`content/02_institution/SYSTEM_ROLE_PERMISSION.md:24-38`（§9a0 角色键全表）。
+**依据**：`docs/src/core/domain/constants.js:202-208,963-968`（`ROLE_KEYS`——`deputy-leader` 于该文件末挂载）、`:209`（`ROLE_LEGACY_KEYS`）、`:353-367`（`ROLE_LABELS`）、`:371-383`（`ROLE_PAGE_MAP`）；`content/02_institution/SYSTEM_ROLE_PERMISSION.md:24-38`（§9a0 角色键全表）。
 
 **两点易错约定**：
 - **「访客」不是角色**：未登录即访客（无角色键）。`visitor.html` 里的 `visitor` 只是**页面/页签前缀**，与「未登录访客」不是一回事。**另，「全体相关」（`all`）不是角色键**，故不在上表；其展示标签仍保留，见 §2.2.11。**同族同步**：`content/02_institution/SYSTEM_ROLE_PERMISSION.md` 的 §9a0 角色键全表**亦为 13 键**。
@@ -121,9 +121,9 @@
 | 不能做什么 | 不持 `record_attendance`（不直接记考勤）、不持 `summarize_inspection`（不汇总考察）、不持 `assign_project_role`（项目角色赋权走组长/组织者链） |
 | 审批位 | ① 成员变更申请**确认**（组织委员审批后由支书确认生效）；② 支部**上报党委**的发起方；③ 意见反馈**处置**（指派/关闭/重开/隐藏/合并/里程碑/终审）——**归支委会：支委层五角色（支书 / 副支书 / 组织 / 宣传 / 纪检）均可**；④ **品牌认定**：本角色可**提案**，认定本身须经**支委会审议通过**后确定 |
 | 特例 / 边界 | ① **看不到匿名反馈的真实提交人**——匿名反馈只在所属支部内闭环，当前任何角色均无系统揭名入口（`D-824`）；② 支部 config 全量可写，但**不含支部官方名 `name`**（仅 `party-staff` 可改）；③ 党小组管理（新增/改名/解散/归组）仅支书（含副支书）；④ **代归档兜底在本台集成**——待办「宣传材料待归档」组「代归档」按钮**本台浮窗直执**（判据与写口与宣传台归档面同源；原「进宣传工作台只放行档案归档页」的跨台形态已撤，`D-807④`）；⑤ **支委身份配置**：可把**本支部成员**配为组织 / 宣传 / 纪检委员（可改派、可撤销）——**支书本人与副支书的身份由党委配置**，不在此列；**副支书与支书同权**（两者均可配） |
-| 依据 | `docs/src/services/core/auth.js:79`、`:68-75`、`docs/src/core/domain/constants.js:202-204`（`BRANCH_COMMISSION_ROLES`）、`content/02_institution/SYSTEM_ROLE_PERMISSION.md:188-199`（§9j）、`server/routes/resources/gates.js:24-36`（党小组门）、`docs/src/entries/tabs/secretary/todo-tab.js`（代归档本台直执，`D-807④`） |
+| 依据 | `docs/src/services/core/auth.js:79`、`:68-75`、`docs/src/core/domain/constants.js:215-217`（`BRANCH_COMMISSION_ROLES`）、`content/02_institution/SYSTEM_ROLE_PERMISSION.md:188-199`（§9j）、`server/routes/resources/gates.js:24-36`（党小组门）、`docs/src/entries/tabs/secretary/todo-tab.js`（代归档本台直执，`D-807④`） |
 
-> **⚠「仍专属支书」的清单**：「**品牌认定**」「**意见处置**」已归支委会 / 支委层，**仍专属支书**的为——① **活动信息编辑**（巡查面板按钮，前端按 `SECRETARY_ROLES` 判：`docs/src/components/record/inspector.js:628`）；② **全支部通知发布**（本组通知发布口的注释明写「全支部通知仍归支书」：`docs/src/components/governance/notice-view.js:182`）；③ **名册成员变更确认链的阶段语义端点**（服务端走 `SECRETARY_AND_DEPUTY_ROLES`，属既有支书写链：`server/routes/member.js:129`）。`SECRETARY_ROLES` 的注释写明「品牌认定、意见处置已移出本集」（`docs/src/core/domain/constants.js:205`）。
+> **⚠「仍专属支书」的清单**：「**品牌认定**」「**意见处置**」已归支委会 / 支委层，**仍专属支书**的为——① **活动信息编辑**（巡查面板按钮，前端按 `SECRETARY_ROLES` 判：`docs/src/components/record/inspector.js:628`）；② **全支部通知发布**（本组通知发布口的注释明写「全支部通知仍归支书」：`docs/src/components/governance/notice-view.js:182`）；③ **名册成员变更确认链的阶段语义端点**（服务端走 `SECRETARY_AND_DEPUTY_ROLES`，属既有支书写链：`server/routes/member.js:129`）。`SECRETARY_ROLES` 的注释写明「品牌认定、意见处置已移出本集」（`docs/src/core/domain/constants.js:218`）。
 
 #### 2.2.2 `deputy-secretary` 副支书
 
@@ -134,7 +134,7 @@
 | 副书同权范围（制度与代码均已确认） | 成员变更确认、在册状态镜像、发展阶段推进、移出/撤销流出确认、议程结果区与编辑议程、支部 config（modules/blocks/workforce/组织档案/域参数全量）、线上表决截止、党小组管理、成员流动登记、**支委身份配置**（本支部支委身份＝组织 / 宣传 / 纪检委员，支书 / 副支书均可配） |
 | 不能做什么 | ① 改支部官方名 `name`（仅 `party-staff`）；② 不持 `record_attendance` / `summarize_inspection` / `assign_project_role`；③ 不越权「仍专属支书」的前端动作——**活动信息编辑**按钮（`docs/src/components/record/inspector.js:628`（`SECRETARY_ROLES`），前端按它判）与**全支部通知发布**（`docs/src/components/governance/notice-view.js:182`） |
 | 特例 | 代码里「副书同权」实现为常量 `SECRETARY_AND_DEPUTY_ROLES = ['secretary','deputy-secretary']`，被成员变更确认、党小组管理、表决截止等多处写门引用 |
-| 依据 | `docs/src/services/core/auth.js:80`、`docs/src/core/domain/constants.js:208`、`server/routes/member.js:129`、`server/routes/committee.js:161`、`server/routes/resources/gates.js:21,63` |
+| 依据 | `docs/src/services/core/auth.js:80`、`docs/src/core/domain/constants.js:221`、`server/routes/member.js:129`、`server/routes/committee.js:161`、`server/routes/resources/gates.js:21,63` |
 
 #### 2.2.3 `org-commissioner` 组织委员
 
@@ -191,7 +191,7 @@
 | 能做什么 | 看公开/本人相关视图；提交意见反馈与评论、表态、提及/引用、编辑自己提交的内容；提交思想汇报；提交本人复盘（组织者/深度参与者身份时）；报名活动/专班 |
 | 不能做什么 | 任何「记录类」写入（考勤、考察、复盘批注、名册、通知发布、活动创建…）一律不可 |
 | 特例 | 不持 `record_inspection`——本人素材走**活动参与记录**（制度矩阵 §9d 该键为 `--`） |
-| 依据 | `docs/src/services/core/auth.js:85`、`content/02_institution/SYSTEM_ROLE_PERMISSION.md:80-84`（§9d）、`docs/src/core/domain/constants.js:276`（`DEVELOP_STAGES`） |
+| 依据 | `docs/src/services/core/auth.js:85`、`content/02_institution/SYSTEM_ROLE_PERMISSION.md:80-84`（§9d）、`docs/src/core/domain/constants.js:289`（`DEVELOP_STAGES`） |
 
 #### 2.2.8 `party-staff` 党委组织员（组织级）
 
@@ -238,13 +238,13 @@
 | `initiator` | 发起人 | 同上 |
 | `all` | 全体相关 | **非角色键**（已自 `ROLE_LEGACY_KEYS` 撤除）；原在 SOP 场景任务的 `executor` 字段里表示「全员参与」，该用点随 `org-life` 场景一并删除；现仅作参考指南展示键（标签 / 色值保留） |
 
-**依据**：`docs/src/core/domain/constants.js:196`（`ROLE_LEGACY_KEYS`——**已自其中撤除「全体相关」**）、`:340`（`ROLE_LABELS`，「全体相关」的展示标签仍保留）；⚠ **`all` 现非角色键**，且已不再出现在任何 SOP 场景任务的 `executor` 里——原来那三处用点随 `org-life` 场景一并删除（`executor` 的现行取值见 §4.15）。
+**依据**：`docs/src/core/domain/constants.js:209`（`ROLE_LEGACY_KEYS`——**已自其中撤除「全体相关」**）、`:353-367`（`ROLE_LABELS`，「全体相关」的展示标签仍保留）；⚠ **`all` 现非角色键**，且已不再出现在任何 SOP 场景任务的 `executor` 里——原来那三处用点随 `org-life` 场景一并删除（`executor` 的现行取值见 §4.15）。
 
 > ⚠ **注意区分两组同名集合**（后端实现权限时极易踩坑）：
 > - **授权语义**（含支书/副支书）＝ `BRANCH_COMMISSION_ROLES`（5 个键）：服务端 `requireCommissioner` 与前端「是否支委」判定用它。
 > - **业务语义「条条委员」**（三委员，**不含**支书/副支书）＝ `COMMISSIONER_ROLES`（`commissioner`/`org-commissioner`/`prop-commissioner`/`disc-commissioner`）。
 >
-> **依据**：`docs/src/core/domain/constants.js:202-204`、`:348-350`、`server/routes/auth.js:92-97`、`content/02_institution/SYSTEM_ROLE_PERMISSION.md:43`。
+> **依据**：`docs/src/core/domain/constants.js:215-217`（`BRANCH_COMMISSION_ROLES`）、`:424-426`（`COMMISSIONER_ROLES`）、`server/routes/auth.js:92-97`、`content/02_institution/SYSTEM_ROLE_PERMISSION.md:43`。
 
 ### 2.3 权限矩阵（键级，取自代码）
 
@@ -461,7 +461,7 @@
 
 三个页签使用统一“党委治理”分组标签，不再把首页与全院治理拆成两个导航小组。登录落点为「支部上报」（先看待批复队列）。需要支部明细时先明确选择单一支部；支部目录保留创建、配置和只读查看入口，改名、任命、状态维护和空支部名册导入集中在独立配置页。意见反馈始终在支部内闭环，不进入党委工作台；党委共享顶栏不提供“我的档案”。
 
-**依据（3.2 全节）**：`docs/src/capabilities/{secretary,org,prop,disc,leader,visitor,party-committee}-workspace.js`（逐台的 `tabs()` 数组）；`docs/src/core/domain/constants.js:297`（核心页签判定 `isCoreTab`）；`server/test/doc-consistency.test.mjs:64-72`（七台注册文件与分组轴口径）。
+**依据（3.2 全节）**：`docs/src/capabilities/{secretary,org,prop,disc,leader,visitor,party-committee}-workspace.js`（逐台的 `tabs()` 数组）；`docs/src/core/domain/constants.js:310`（核心页签判定 `isCoreTab`）；`server/test/doc-consistency.test.mjs:64-72`（七台注册文件与分组轴口径）。
 
 ### 3.3 设置中心（`settings.html`）
 
@@ -498,7 +498,7 @@
 
 **依据**：`README.md:172-186`（§3.5 关键机制）、`docs/src/core/domain/policy-defaults.js:36`（票决门槛 `quorum: 2/3`、`vetoOnObject: true`）、`docs/src/core/domain/policy-defaults.js:73-80`（会议考勤的「记录人 / 不设考勤类型」：`recorderByType` / `noAttendanceTypes`）、`docs/src/services/activity/attendance.js:85-111`（`canUploadAttendance`）、`server/routes/committee.js:161-177`（截止不可逆）、`server/routes/resources/index.js:659-722`（删除活动的级联清理）。
 
-> **说明**：制度文本里还有「数据交接」一项（`docs/src/core/domain/domain.js:479` 的 `handoffs` 域）。**服务端已有对源**：服务端建表 `handoffs`（`server/db.js::SEMANTIC_TABLES`）＋ 语义端点 `GET/POST /api/v1/handoffs`、`POST /api/v1/handoffs/:id/confirm`（见 §6.13），前端 api 形态改经端点读写、mock 形态维持本地路径。
+> **说明**：制度文本里还有「数据交接」一项（`docs/src/core/domain/domain.js:477` 的 `handoffs` 域）。**服务端已有对源**：服务端建表 `handoffs`（`server/db.js::SEMANTIC_TABLES`）＋ 语义端点 `GET/POST /api/v1/handoffs`、`POST /api/v1/handoffs/:id/confirm`（见 §6.13），前端 api 形态改经端点读写、mock 形态维持本地路径。
 
 ### 3.5 支部分工模块目录（`config.workforce` 的键集，共 14 个）
 
@@ -552,13 +552,13 @@
 
 > **`deepWorkMode` 补充说明**：该字段有母本依据（《常见工作场景快速指南》:120）；**已列入 `DATA_MODEL.md` §2.1 字段表**（同属来源 A）。**依据**：`docs/src/services/activity/activity.js`（`DEEP_WORK_MODE` / `DEEP_WORK_MODE_LABEL` / `deepWorkModeOf` 单一源）、`docs/src/services/activity/decision-tree.js`（`DecisionTreeState.deepItems` 项清单）、`docs/src/entries/tabs/leader/write-tab.js` 的勾选排、`docs/src/entries/tabs/visitor/projects-tab.js` 的「我的任务」完成方式位。
 
-> **来源 C · 原字段表尾行补充**：本节**原字段表**最后 7 行（`organizer`→`voteConfig`）与 `isOutdoor` 同属「代码确实写入 / 读取」的字段，**现均已列入 `DATA_MODEL.md` §2.1**（同属来源 A）；其代码出处保留如下，后端建模不得漏。**依据**：`docs/src/data/mock/activities.js:12-14,61-66`（`organizer` / `direction` / `hostGroup` / `assignments` 的实存形态）、`docs/src/services/activity/decision-tree.js:359`（`organizer` 写入）、`docs/src/services/core/auth.js:489-493`（`assignments` 写读）、`docs/src/entries/tabs/leader/write-tab.js:1111,1113`（`signupEnabled` / `requireMakeup` 写入）、`docs/src/entries/tabs/secretary/calendar-tab.js:1398-1414`（`voteConfig` 写入）、`docs/src/services/activity/vote-config.js:41,44`（`voteConfig` 取值）、`docs/src/services/activity/attendance.js:112-123`（`hostGroup` 判据）、`server/routes/resources/gates.js:98-104`、`server/routes/resources/index.js:314-316`（`voteConfig` 写侧校验）。
+> **来源 C · 原字段表尾行补充**：本节**原字段表**最后 7 行（`organizer`→`voteConfig`）与 `isOutdoor` 同属「代码确实写入 / 读取」的字段，**现均已列入 `DATA_MODEL.md` §2.1**（同属来源 A）；其代码出处保留如下，后端建模不得漏。**依据**：`docs/src/data/mock/activities.js:12-14,61-66`（`organizer` / `direction` / `hostGroup` / `assignments` 的实存形态）、`docs/src/services/activity/decision-tree.js:359`（`organizer` 写入）、`docs/src/services/core/auth.js:489-493`（`assignments` 写读）、`docs/src/entries/tabs/leader/write-tab.js:1114,1116`（`signupEnabled` / `requireMakeup` 写入）、`docs/src/entries/tabs/secretary/calendar-tab.js:1398-1414`（`voteConfig` 写入）、`docs/src/services/activity/vote-config.js:41,44`（`voteConfig` 取值）、`docs/src/services/activity/attendance.js:112-123`（`hostGroup` 判据）、`server/routes/resources/gates.js:98-104`、`server/routes/resources/index.js:314-316`（`voteConfig` 写侧校验）。
 
 **活动存储状态取值**：`draft` 草稿 / `pending-approval` 待批（**仅活动批准门开启时出现**，默认关不写入） / `published` 已发布 / `ongoing` 进行中 / `completed` 已结束 / `cancelled` 已取消。
 **活动生命周期展示态（派生，不落库）**：`draft` / `pending_approval`（待批） / `published` / `ongoing` / `pending_archive`（待归档，悬停显示缺项）/ `executed`（已执行）/ `archived` / `cancelled`。
 **活动分类（制度口径）**：顶层两大类＝**三会一课**（固定 4 子类，颜色党建红）与**主题党日**（正交维度：共建性质 / 是否外出 / 活动载体）。**组织生活会是「会议内容」而非子类**——由三会之一召开，不单独成类、不进写入表单。
 
-**依据**：`content/04_web_design/data/DATA_MODEL.md:69-93`、`:130-179`（`isOutdoor` 见 `:68`）、`docs/src/core/domain/constants.js:680-782`（`ACTIVITY_CLASSIFICATION` / `normalizeActivityType`）、`docs/src/services/activity/activity.js:71-83`（外出提醒清单与 `isOutdoor` 判据）。
+**依据**：`content/04_web_design/data/DATA_MODEL.md:69-93`、`:130-179`（`isOutdoor` 见 `:68`）、`docs/src/core/domain/constants.js:693-825`（`ACTIVITY_CLASSIFICATION` / `normalizeActivityType`）、`docs/src/services/activity/activity.js:71-83`（外出提醒清单与 `isOutdoor` 判据）。
 **`agenda[]` 说明**：`id` 用于线上支委会表决关联表态、`sourceRef` 用于回指提取来源；支委会会议页全部复用既有实体与既有写口（活动 + `voteConfig` + `agenda` + `agendaVotes` + `votesLocked`），未新增任何表 / 活动字段。
 **品牌认定与议程子字段说明**：① `isBrand` 认定路径＝「**支委 / 党小组组长提案 → 支委会（或支委扩大会）通过后确定**」，唯一入口＝支委会议程项「记录结果 · 通过」（**无「点一下即认定」**）；② `brandProposal` 与品牌认定 / 取消留痕 7 个字段属**来源 C**（`DATA_MODEL.md` 字段表未列）；③ `signupClosed` 同属来源 C；④ `agenda[]` 的 `kinds` / `branchDocId` / `brandActivityId` / `personIds` / `fromStage` / `toStage` / `personStages` 子字段＝议程提取与「拟上会」清单的落点。
 **来源 C · `signupClosed` 与品牌认定 / 取消留痕 9 个字段（母本字段表未列 · 后端不得漏）**：
@@ -624,7 +624,7 @@
 
 **出勤状态枚举**：`present` 出席 / `absent` 缺席（触发补课机制）/ `leave` 请假 / `made_up` 已补。**请假分事假 / 病假两档在 `absenceReason` 上区分**（时效（事假提前 1 天 / 病假可事后补）**只提示、不校验、不拦提交**）。标因可选项单一源 `docs/src/core/domain/policy-defaults.js:90-94`（`attendance.reasons`，新增须支书裁决）。
 **来源 C · `secretaryConfirmedAt`**（`string`（ISO），可选）：**支书复核标记**——支书台待办「一键确认」写入即销项；**无此字段＝未复核**（§4.6 / §4.17 同名同义）。
-**依据**：`content/04_web_design/data/DATA_MODEL.md:293-328`、`docs/src/core/domain/domain.js:92-108`、`docs/src/core/domain/policy-defaults.js:73-87`、`docs/src/services/governance/secretary-overview.js:582`（`secretaryConfirmedAt` 读）、`docs/src/entries/tabs/secretary/todo-tab.js:1028`（写）。
+**依据**：`content/04_web_design/data/DATA_MODEL.md:293-328`、`docs/src/core/domain/domain.js:92-108`、`docs/src/core/domain/policy-defaults.js:73-87`、`docs/src/services/governance/secretary-overview.js:583`（`secretaryConfirmedAt` 读）、`docs/src/entries/tabs/secretary/todo-tab.js:1028`（写）。
 
 ### 4.6 考察记录（InspectionRecord）
 
@@ -651,7 +651,7 @@
 
 **产出类型枚举（7 种）与定向路由**：
 
-**依据**：`content/04_web_design/data/DATA_MODEL.md:371-397`、`docs/src/core/domain/domain.js:566-636`（`OutputType` / `OUTPUT_ROUTES` / `deriveOutputRoute`）。
+**依据**：`content/04_web_design/data/DATA_MODEL.md:371-397`、`docs/src/core/domain/domain.js:566-634`（`OutputType` / `OUTPUT_ROUTES` / `deriveOutputRoute`）。
 
 ### 4.9 补课任务（MakeupTask）
 
@@ -924,7 +924,7 @@
 | status | string | `pending`（待确认收到） |
 | broadcastAt | string（ISO） | 广播时间 |
 
-**依据**：`server/routes/member.js:110-121`、`docs/src/core/domain/constants.js:217`（`getCommitteeIds`）。
+**依据**：`server/routes/member.js:110-121`、`docs/src/core/domain/constants.js:230-243`（`getCommitteeIds`）。
 
 ### 4.36 线上表态记录（agenda_votes，**服务端专有**）
 
@@ -1101,7 +1101,7 @@
 | platformReportedBy | string | 否 | 上报留痕·操作人 personId（与 `platformReportedAt` 同步写入） |
 
 **服务端种子**：**有**（`server/seed.js:61` 从 `docs/src/data/mock/seed.js::SEED_ARCHIVE_RECORDS` 播种 6 条）。
-**依据**：`docs/src/data/mock/seed.js:37-44`、`docs/src/entries/tabs/prop/archive-tab.js:1069-1131`（运行时新建：`_handleArchiveUpload`）、`docs/src/entries/tabs/prop/archive-tab.js:640-660`（党建平台留痕位：`_markPlatformReported` 写、`_renderPlatformCell` 读）、`docs/src/services/governance/secretary-overview.js:603`（`secretaryConfirmedAt` 读）、`docs/src/entries/tabs/secretary/todo-tab.js:737`（写）、`server/seed.js:61`、`server/routes/resources/store.js:30,56`。
+**依据**：`docs/src/data/mock/seed.js:37-44`、`docs/src/entries/tabs/prop/archive-tab.js:1069-1131`（运行时新建：`_handleArchiveUpload`）、`docs/src/entries/tabs/prop/archive-tab.js:637-656`（党建平台留痕位：`_markPlatformReported` 写、`_renderPlatformCell` 读）、`docs/src/services/governance/secretary-overview.js:604`（`secretaryConfirmedAt` 读）、`docs/src/entries/tabs/secretary/todo-tab.js:737`（写）、`server/seed.js:61`、`server/routes/resources/store.js:30,56`。
 
 ---
 
@@ -1200,7 +1200,7 @@ npm start                   # 启动服务，默认端口 3000（PORT 可覆盖�
 | 13 | **附件下载需登录 ＋ 支部隔离** | `POST /api/v1/uploads` **＝支委层**（`requireCommissioner`）；`GET /api/v1/uploads/:name` 需要登录、只取 basename（防路径穿越），并按**上传人所属支部**做隔离（党委跨支部可见；无记录 404）。⚠ 隔离判据是「**上传人现在所属支部**」——`attachments` 表**无支部字段**，故同一人换支部后其历史附件会跟着换支部 | `server/routes/uploads.js:69`、`:88-100` |
 | 14 | **删除活动会级联删除子数据** | 删活动在同一 SQLite 事务中清理任务、考勤、考察、分工、复盘、补课、报名、通知、待办、归档/文件/图片记录、议题表态和活动子记录；关联附件仅在无其他记录引用时物理删除。集合版本同步递增；操作**不可撤销** | `server/routes/resources/index.js:659-722` |
 | 15 | **配置写留痕上限 100 条** | 超出后裁剪最早条目（低频可回滚，历史不改写） | `server/routes/resources/index.js:14,422-432` |
-| 16 | **支委名单按角色派生（已撤销硬编码）** | 原 `COMMITTEE_IDS = ['p10'…'p14']` 已删除；支委名单由 `getCommitteeIds / resolveCommitteeIds` 从 users 的 `secretary / deputy-secretary / org-commissioner / prop-commissioner / disc-commissioner` 派生。**无支委角色时 fail-closed**（旧活动表决名单返回空并告警），不再用假人兜底 | `docs/src/core/domain/constants.js:217`、`server/routes/member.js:111`、`server/routes/committee.js:89` |
+| 16 | **支委名单按角色派生（已撤销硬编码）** | 原 `COMMITTEE_IDS = ['p10'…'p14']` 已删除；支委名单由 `getCommitteeIds / resolveCommitteeIds` 从 users 的 `secretary / deputy-secretary / org-commissioner / prop-commissioner / disc-commissioner` 派生。**无支委角色时 fail-closed**（旧活动表决名单返回空并告警），不再用假人兜底 | `docs/src/core/domain/constants.js:230-243`、`server/routes/member.js:111`、`server/routes/committee.js:89` |
 | 17 | **默认支部 id 硬编码兜底** | 大量读写在 `branchId` 缺省时回退常量 `'br-b1'`（示例支部 id）；真实部署若用别的 id，须保证所有写入都带 `branchId` | `server/routes/resources/gates.js:50`、`server/routes/resources/index.js:509,557-558`、`server/routes/member.js:180,207` |
 | 18 | **快照写穿的残余口（P0-1）** | `POST /api/v1/snapshot` 的乐观锁只对**带了 `_versions` 的集合**生效；未带该键的集合**按无条件整表写**（兼容旧客户端与直连调用，如 `server-base.test.mjs`）。真实写路径只有前端一条（`data-adapter.js::_flushSnapshot` 恒定带 `_versions`）⇒ 生产链路不暴露；对外直连写库须自行带 `_versions`（先 `GET /api/v1/snapshot/versions` 取基线） | `server/routes/resources/index.js` 末尾「快照写穿的集合版本号协议」段、`docs/src/data/data-adapter.js` 末尾「P0-1 乐观锁」段 |
 | 19 | **pagehide 兜底写撞 409 时无法当场自愈** | 页面卸载瞬间的同步冲刷（`_flushSnapshotSync`）同样带 `_versions`（不会退化成无条件覆盖），但**该上下文已无法再观测响应** ⇒ 撞 409 时只 `console.warn`，本地改动靠 `localStorage` 备份保留、不会进服务端（下次打开页面以服务端为准） | `docs/src/data/data-adapter.js`（`_flushSnapshotSync` / `_recoverFromConflict`） |
@@ -1480,8 +1480,8 @@ npm start                   # 启动服务，默认端口 3000（PORT 可覆盖�
 | 12 | **活动字段 `deliverableIds` 已废弃** | 字段仍在模型中（标注为废弃），交付物实际由「文件空间记录」覆盖 | `content/04_web_design/data/DATA_MODEL.md:50` |
 | 13 | **归档材料 `url` 字段当前恒为 null** | 模型写明「阶段 2 后端支持时填充，mock 阶段为 null」 | `content/04_web_design/data/DATA_MODEL.md:908` |
 | 14 | **邮件通道实际不会发出任何邮件** | 三重原因叠加：① 收件人从成员档案 `email` 读取，而**示例数据无该字段**；② 需 `MAIL_ENABLED=true` 且 `SMTP_*` 齐备；③ 即便发出，也只覆盖「通知发布 / 待办提醒 / 汇报」三类触发点，受众解析**只实现了 activity 定向与全体两种**（党小组/角色定向统一按全体处理） | `server/services/mailer.js:93-106`、`server/services/mailer-hooks.js:19-37` |
-| 15 | **`handoffs`（三委数据交接记录）：服务端已有表** | 前端 mockDB 有 `handoffs` 域；**服务端现有同名表 `handoffs`**（语义端点组 = `server/db.js::SEMANTIC_TABLES`，写读口见 §6 末「语义端点」段）⇒ API 形态下该域**已落库**，且 `init()` 会拉取填充 | `docs/src/core/domain/domain.js:479`、`server/db.js:157-161`（`SEMANTIC_TABLES`）、`server/routes/resources/semantic-routes.js:256-311`（handoffs 三端点：列表 / 发起 / 接收确认） |
-| 16 | **`pendingMemberConfirmations`：服务端已有表** | 前端 mockDB 数组承载内存读链；**服务端现有表 `member_confirmations`**（语义端点组 = `server/db.js::SEMANTIC_TABLES`）⇒ API 形态下该队列**已落库**、清浏览器缓存不丢（写读口见 §6 末「语义端点」段）；浏览器 localStorage 键 `gsm1921-member-confirmations` 仍作 mock 形态的持久化通道，两形态并存 | `docs/src/core/domain/domain.js:556`（`pendingMemberConfirmations`）、`server/db.js:157-161`、`server/routes/resources/semantic-routes.js:312-359`（入队 / 支书决策两端点） |
+| 15 | **`handoffs`（三委数据交接记录）：服务端已有表** | 前端 mockDB 有 `handoffs` 域；**服务端现有同名表 `handoffs`**（语义端点组 = `server/db.js::SEMANTIC_TABLES`，写读口见 §6 末「语义端点」段）⇒ API 形态下该域**已落库**，且 `init()` 会拉取填充 | `docs/src/core/domain/domain.js:477`、`server/db.js:157-161`（`SEMANTIC_TABLES`）、`server/routes/resources/semantic-routes.js:256-311`（handoffs 三端点：列表 / 发起 / 接收确认） |
+| 16 | **`pendingMemberConfirmations`：服务端已有表** | 前端 mockDB 数组承载内存读链；**服务端现有表 `member_confirmations`**（语义端点组 = `server/db.js::SEMANTIC_TABLES`）⇒ API 形态下该队列**已落库**、清浏览器缓存不丢（写读口见 §6 末「语义端点」段）；浏览器 localStorage 键 `gsm1921-member-confirmations` 仍作 mock 形态的持久化通道，两形态并存 | `docs/src/core/domain/domain.js:554`（`pendingMemberConfirmations`）、`server/db.js:157-161`、`server/routes/resources/semantic-routes.js:312-359`（入队 / 支书决策两端点） |
 | 17 | **「副组长」身份已落地** | 制度文本规定「每个党小组设 1 名组长 + 1-2 名副组长，副组长可共享同组组长工作台的相关内容」；系统已把 `deputy-leader` 落成**可与组长区分的第二个身份**——**同页同台、同权限集，任务优先给组长、不硬切分正副职责**；**支书台「党小组」清单行内可赋权 / 撤销副组长（与组长同列双身份）** | `content/02_institution/SYSTEM_ROLE_PERMISSION.md:46`、`content/02_institution/sop/支委与党小组定人定责定岗说明.md:40`、`content/02_institution/sop/党小组组长工作手册.md:46-48`；载体名单（`docs/` 内「副组长」命中集）见 `server/test/doc-line-ref.test.mjs:268-275` |
 | 18 | **`party-staff` 无可见性配置** | 「谁能看谁」（`ROLE_VISIBILITY`）表中**没有 `party-staff` 键** ⇒ 该角色的可见目标投影恒为空 | `docs/src/services/core/visibility.js:48-56`、`:99-101` |
 

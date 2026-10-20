@@ -3,22 +3,22 @@
 // 专班考察：专班负责人/组织委员上传 → 纪检委员确认 → 录入考察总表。
 // 业务口径：考察依托工作组——考察记录挂工作组，考察对象为该工作组成员；sourceType/activityId/taskforceId 是工作组类型的投影。
 
-import { loadInspectionRecords, saveInspectionRecords } from '../../../services/activity/inspection.js?v=20261020c';
-import { reconfirmReturnedInspectionRecord, isInspectionHomePosition } from '../../../services/activity/inspection.js?v=20261020c';
-import { TaskForceRecordStore } from '../../../services/activity/taskforce.js?v=20261020c';
-import { anchorDetailToTrigger } from '../../../components/ui/detail-anchor.js?v=20261020c';
-import { currentUserId } from '../../../services/core/auth.js?v=20261020c';
-import { PersonPicker } from '../../../components/governance/pickers.js?v=20261020c';
+import { loadInspectionRecords, saveInspectionRecords } from '../../../services/activity/inspection.js?v=20261020d';
+import { reconfirmReturnedInspectionRecord, isInspectionHomePosition } from '../../../services/activity/inspection.js?v=20261020d';
+import { TaskForceRecordStore } from '../../../services/activity/taskforce.js?v=20261020d';
+import { anchorDetailToTrigger } from '../../../components/ui/detail-anchor.js?v=20261020d';
+import { currentUserId } from '../../../services/core/auth.js?v=20261020d';
+import { PersonPicker } from '../../../components/governance/pickers.js?v=20261020d';
 // 「本位」nudge 确认弹窗（2026-09-23 支书裁定 · 单一源 = components/ui/modal.js::confirmNudge）
-import { confirmNudge } from '../../../components/ui/modal.js?v=20261020c';
-import { inspectionToLong } from '../../../services/activity/inspection.js?v=20261020c';
-import { getPersonById, getPersonName } from '../../../services/member/person.js?v=20261020c';
-import { SourceType, ParticipationLevel } from '../../../core/domain/domain.js?v=20261020c';
-import { showToast, escHtml as esc, getBasePath } from '../../../core/base/utils.js?v=20261020c';
-import { solidAccentStyle, accDarkVars } from '../../../core/domain/constants.js?v=20261020c';
-import { generateId } from '../../../core/base/id.js?v=20261020c';
+import { confirmNudge } from '../../../components/ui/modal.js?v=20261020d';
+import { inspectionToLong } from '../../../services/activity/inspection.js?v=20261020d';
+import { getPersonById, getPersonName } from '../../../services/member/person.js?v=20261020d';
+import { SourceType, ParticipationLevel, isTaskforceActiveStatus } from '../../../core/domain/domain.js?v=20261020d';
+import { showToast, escHtml as esc, getBasePath } from '../../../core/base/utils.js?v=20261020d';
+import { solidAccentStyle, accDarkVars } from '../../../core/domain/constants.js?v=20261020d';
+import { generateId } from '../../../core/base/id.js?v=20261020d';
 // 统一检索引擎（2026-09-13 表格统一化批次 A）：考察明细表接入关键词 + 分面（≤8 行引擎自动不渲染检索条）
-import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261020c';
+import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261020d';
 
 // 私有状态（随模块自持，不污染入口）
 let _orgInspFormVisible = false;
@@ -48,7 +48,7 @@ export function renderContent(ctx, container) {
 
   // T223 专班新者在前（createdAt 降序）
   const activeTaskforces = TaskForceRecordStore.getAll()
-    .filter(t => t.status === 'active' || t.status === 'recruiting')
+    .filter(t => isTaskforceActiveStatus(t.status))
     .sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
 
   const formHtml = _orgInspFormVisible ? `
@@ -70,7 +70,6 @@ export function renderContent(ctx, container) {
         <button id="org-insp-form-submit" class="btn-accent text-sm px-4 py-[7px]" style="cursor:pointer">提交考察</button>
         <button id="org-insp-form-cancel" class="btn-outline text-sm px-4 py-1.5" style="cursor:pointer;">取消</button>
       </div>
-      <p class="text-[11px] text-gray-500 mt-2">仅制度、议程或具体事项明确要求时录入；请在记录内容中写明要求来源。提交后由纪检确认。</p>
     </div>
   ` : '';
 
@@ -92,7 +91,7 @@ export function renderContent(ctx, container) {
       ${returnedRecords.length > 0 ? `
       <div class="mt-4 pt-3 border-t border-gray-100">
         <div class="text-xs font-bold text-gray-600 mb-2">纪检打回 · 待你确认（${returnedRecords.length}）</div>
-        <div class="text-xs text-gray-500 mb-2">纪检核实后打回，请重新确认该条专班考察（修改痕迹留存）；确认后回到纪检「待确认」队列复核</div>
+        <div class="text-xs text-gray-500 mb-2">纪检打回，请重新确认后提交。</div>
         <div class="space-y-2">
           ${returnedRecords.map(r => `
             <div class="flex items-center gap-2 p-2 rounded-lg bg-white border border-amber-100">
@@ -208,7 +207,6 @@ export function renderContent(ctx, container) {
               <p style="color:var(--neutral-700);">考察内容 <span style="color:var(--neutral-800);font-weight:500;">${rec.content || rec.role || '—'}</span></p>
             </div>
           </div>
-          <p class="text-[11px] mt-2 pt-2" style="color:var(--neutral-500);border-top:1px solid var(--neutral-200);">流程：专班负责人/组织委员上传 → 纪检委员确认 → 录入考察总表</p>
         </div>`;
       // 触点即落点（全局 UX 反思批次 2026-09-13）：详情紧贴被点的考察行展开并滚入视野
       //（此前单例面板固定在整张表之后，行数一多就要下滚寻找）

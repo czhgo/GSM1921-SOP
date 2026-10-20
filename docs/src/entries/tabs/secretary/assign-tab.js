@@ -33,27 +33,27 @@
 // 制度口径（各情景「本位＝谁」与 2 处折叠说明）已搬入 `docs/help.html` 定点（`#card-copy-assign-*`），
 //   界面只留一行 + 深链（DESIGN_SYSTEM §4.18 C7：制度原文不进界面）。
 
-import { showToast, getBasePath, escHtml as esc } from '../../../core/base/utils.js?v=20261020c';
-import { AuthStore } from '../../../services/core/auth.js?v=20261020c';
+import { showToast, getBasePath, escHtml as esc } from '../../../core/base/utils.js?v=20261020d';
+import { AuthStore } from '../../../services/core/auth.js?v=20261020d';
 // 成员档案读链（2026-09-03 数据域接线收口）：一律经 services/member/person.js（原直连 mock PEOPLE 已收口）
-import { getPersonById, getPersonName } from '../../../services/member/person.js?v=20261020c';
+import { getPersonById, getPersonName } from '../../../services/member/person.js?v=20261020d';
 // 党小组常态清单唯一来源（活组、按 seq 升序；新增/改名/解散后随渲染即时可见）——禁再手写组名数组
-import { groupOptions } from '../../../services/member/party-group.js?v=20261020c';
-import { TaskForceRecordStore } from '../../../services/activity/taskforce.js?v=20261020c';
-import { PersonPicker } from '../../../components/governance/pickers.js?v=20261020c';
+import { groupOptions } from '../../../services/member/party-group.js?v=20261020d';
+import { TaskForceRecordStore } from '../../../services/activity/taskforce.js?v=20261020d';
+import { PersonPicker } from '../../../components/governance/pickers.js?v=20261020d';
 // 本位 nudge 单一源（2026-09-27：赋权三情景各自本位不同——非本位操作人写库前弹确认）
-import { confirmNudge } from '../../../components/ui/modal.js?v=20261020c';
-import { ROLE_LABELS, PROJECT_ROLES, BRANCH_COMMISSIONER_ASSIGNABLE_ROLES } from '../../../core/domain/constants.js?v=20261020c';
+import { confirmNudge } from '../../../components/ui/modal.js?v=20261020d';
+import { ROLE_LABELS, PROJECT_ROLES, BRANCH_COMMISSIONER_ASSIGNABLE_ROLES } from '../../../core/domain/constants.js?v=20261020d';
 // 2026-09-23 支书裁定（情景①）：支委身份配置写口单一源 = services/branch/appointment.js
 //（本 tab 只做表单/列表渲染，不直接改 mockDB；白名单与写门判据同源 core/domain/constants.js）
-import { appointBranchCommissioner, revokeBranchCommissioner, listBranchCommissioners } from '../../../services/branch/appointment.js?v=20261020c';
+import { appointBranchCommissioner, revokeBranchCommissioner, listBranchCommissioners } from '../../../services/branch/appointment.js?v=20261020d';
 // R1-A 点⑤（2026-09-09）：强调色渲染统一 person-aware 动态解析（替代模块级 resolveAccentRole 快照）
-import { getAppliedAccentColors } from '../../../core/boot/theme.js?v=20261020c';
-import { loadActivities } from '../../../services/activity/activity.js?v=20261020c';
-import { badgeHtml } from '../../../components/ui/badges.js?v=20261020c';
-import { TodoStore } from '../../../services/governance/todo.js?v=20261020c';
+import { getAppliedAccentColors } from '../../../core/boot/theme.js?v=20261020d';
+import { loadActivities } from '../../../services/activity/activity.js?v=20261020d';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20261020d';
+import { TodoStore } from '../../../services/governance/todo.js?v=20261020d';
 // 统一检索引擎（2026-09-13 表格统一化批次 A）：赋权记录列表（第一列是人）接入关键词 + 分面
-import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261020c';
+import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261020d';
 
 // 生效强调色 hex（R1-A 点⑤：登录人强调色=person 键覆盖，禁止模块加载期快照写死——
 // 一律渲染时经 getAppliedAccentColors 动态解析，改色后随重渲染/刷新生效，与 --app-accent 同源）
@@ -105,7 +105,6 @@ const GROUP_LEADER_IDENTITIES = [
  *  同 `#cal-activity-auth-host` 既有形态）。 */
 const COMMISSIONER_ASSIGN_HTML = `
     <h4 class="font-title-cn text-sm font-bold text-gray-700 mb-1">支委身份配置（组织 / 宣传 / 纪检委员）</h4>
-    <p class="text-xs text-gray-500 mb-1">选本支部在册成员 → 选身份 → 保存，可改派、可撤销。</p>
     <div id="bc-assign-area"></div>`;
 
 /** 情景② ／ 情景③ 的**合并卡**（**支书台「活动管理」tab 用**——2026-10-04 批次 373 由「党小组与活动」迁入，支书圈乙）
@@ -131,7 +130,7 @@ const PROJECT_AUTH_MERGED_HTML = `
 const TF_AUTH_HTML = `
   <div class="card rounded-xl p-4">
     <h4 class="font-title-cn text-sm font-bold text-gray-700 mb-1">项目赋权 · 专班（组织者 / 深度参与者）</h4>
-    <p class="text-[11px] text-gray-500 mb-3">为某一个专班给同志赋项目角色（组织者 / 深度参与者）。<a href="./help.html#card-copy-assign-taskforce" class="text-sky-600 hover:underline" title="见帮助：项目赋权 · 专班（本位 / 赋权口径）">见帮助 · 专班赋权</a></p>
+    <p class="text-[11px] text-gray-500 mb-3"><a href="./help.html#card-copy-assign-taskforce" class="text-sky-600 hover:underline">见帮助 · 专班赋权</a></p>
     <div id="tf-auth-panel"></div>
   </div>`;
 
@@ -608,14 +607,14 @@ function renderCommissionerAssign() {
       </div>
       <div>
         <label class="text-xs text-gray-500 mb-1.5 block font-medium">要授予的支委身份 <span class="text-red-600">*</span></label>
-        <div class="flex gap-3 pt-1 flex-wrap">
+        <div class="flex items-center gap-3 pt-1 flex-wrap">
           ${BRANCH_COMMISSIONER_ASSIGNABLE_ROLES.map((r) => `
             <label class="flex items-center gap-2 text-xs">
               <input type="radio" name="bc-role" value="${r}" class="radio-accent">
               <span>${ROLE_LABELS[r] || r}</span>
             </label>`).join('')}
+          <span class="text-[11px] px-2 py-0.5 rounded-full bg-gray-100 text-gray-600" title="支书 / 副支书身份由党委配置">党委配置</span>
         </div>
-        <p class="text-[11px] text-gray-500 mt-1">支书 / 副支书身份由党委配置，不在本表</p>
       </div>
     </div>
     <button id="bc-assign-confirm" type="button" class="btn-accent text-sm px-4 py-[7px]">确认授予 / 改派</button>

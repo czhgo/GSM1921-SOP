@@ -25,20 +25,20 @@
 //  Source: content/04_web_design/data/DATA_ARCHITECTURE.md
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../../core/domain/domain.js?v=20261020c';
+import { mockDB } from '../../core/domain/domain.js?v=20261020d';
 // P0 域缓存失效（spec §二.3）：成员覆盖层写口 bump（支书台 semester-remind/成员组等读数新鲜度）
-import { bumpToken } from '../../core/base/version-token.js?v=20261020c';
+import { bumpToken } from '../../core/base/version-token.js?v=20261020d';
 // 修复（T175）：直接从 data/mock/people.js 导入 PEOPLE，
 // 断开 person.js ↔ data/mock/index.js 双向循环依赖（person.js 不再依赖 data/mock/index.js）
-import { PEOPLE } from '../../data/mock/people.js?v=20261020c';
+import { PEOPLE } from '../../data/mock/people.js?v=20261020d';
 // 成员基础数据预览叠加（立项④阶段三·目标1）：PersonStore 读取时套预览 override；
 // 依赖方向单向（person → preview，preview 不 import person/roster，无循环）
-import { overlayPreviewMembers } from '../branch/org-base-data-preview.js?v=20261020c';
+import { overlayPreviewMembers } from '../branch/org-base-data-preview.js?v=20261020d';
 // 双形态判定（mock/api）：data-adapter.js 不静态依赖业务服务；其静态依赖仅为零依赖叶子（无环）
-import { getDataSource } from '../../data/data-adapter.js?v=20261020c';
+import { getDataSource } from '../../data/data-adapter.js?v=20261020d';
 // 新成员 id 规则（P1-12，2026-10-20）：学号即唯一 id；不再 import generateId 生成 p_ 代理键
 // `D-788`（2026-10-05 · `V-10b`）：成员「自我描述」字段模型（**零依赖叶子**；写口按它净化）
-import { sanitizeSelfProfile } from '../../core/domain/self-profile.js?v=20261020c';
+import { sanitizeSelfProfile } from '../../core/domain/self-profile.js?v=20261020d';
 
 // ════════════════════════════════════════════════════════════════
 //  PersonStore — 人员数据统一服务接口
@@ -125,7 +125,7 @@ export const PersonStore = {
       return { ok: false, reason: '成员数据须为对象' };
     }
     if (getDataSource() === 'api') return _apiSaveMember(updates, opts);
-    return _mockSaveMember(updates);
+    return _mockSaveMember(updates, opts);
   },
 
   /**
@@ -391,7 +391,7 @@ function _cleanMemberRecord(record) {
 }
 
 /** mock 形态保存（upsert 覆盖层；新 id / 缺 id → 以学号为主键，禁止随机 p_ 代理键） */
-function _mockSaveMember(updates) {
+function _mockSaveMember(updates, opts = {}) {
   const view = _baseMemberRecords();
   const rawId = updates.id !== undefined && updates.id !== null && String(updates.id).trim() ? String(updates.id) : null;
   // P1-12（2026-10-20）：新成员 id = 学号（学号即唯一 id）。
@@ -402,6 +402,12 @@ function _mockSaveMember(updates) {
   const targetId = rawId || studentId;
   if (!targetId) return { ok: false, reason: '学号不能为空（学号即成员唯一 id）' };
   const existing = view.find(p => p.id === targetId) || null;
+  // R2-19（2026-10-20）：新增成员的支部归属取**操作人**所属支部，不再写死 br-b1——
+  //   否则非 br-b1 的组织委员新增成员会被静默归到演示支部。操作人缺失/无支部时写 null
+  //   （IAAA 待归属语义），由支部确认链补；已有成员保持原 branchId。
+  const actorBranchId = opts.by
+    ? ((view.find(p => p.id === opts.by) || {}).branchId ?? null)
+    : null;
   const base = existing || {
     id: targetId,
     name: '',
@@ -409,7 +415,7 @@ function _mockSaveMember(updates) {
     partyGroup: '',
     developStage: '',
     role: 'participant',
-    branchId: 'br-b1',
+    branchId: actorBranchId,
   };
   const next = { ...base, ..._cleanMemberRecord({ ...updates, id: targetId }) };
   if (!String(next.name || '').trim()) return { ok: false, reason: '成员姓名不能为空' };
@@ -507,11 +513,12 @@ export function findMemberRefs(personId) {
     }
   }
 
-  // 活动：组织者 / 创建人 / 督办执行 / 内嵌分工 / 表决应到快照
+  // 活动：组织者 / 创建人 / 内嵌分工 / 表决应到快照
+  // R2-13（2026-10-20）：活动模型的 executor/supervisor 已下线（executor 恒等于 organizer，
+  //   supervisor 恒 null）⇒ 引用判定不再读这两个字段；organizer 已覆盖原 executor 的全部命中。
   for (const a of mockDB.activities || []) {
     if (!a) continue;
     const matched = a.organizer === personId || a.createdBy === personId
-      || a.supervisor === personId || a.executor === personId
       || (Array.isArray(a.assignments) && a.assignments.some((x) => x && x.personId === personId))
       || (Array.isArray(a.voteConfig?.voterIds) && a.voteConfig.voterIds.includes(personId));
     if (matched) hit('activities', a.id, '活动');
@@ -598,13 +605,13 @@ function _mockReplaceBranchMembers(records, branchId) {
 // ── api 形态实现（server users 表；ApiAdapter 动态导入防 mock 侧加载面扩大）──
 
 async function _apiAdapterUsers() {
-  const { ApiAdapter } = await import('../../data/api-adapter.js?v=20261020c');
+  const { ApiAdapter } = await import('../../data/api-adapter.js?v=20261020d');
   return ApiAdapter.users;
 }
 
 /** 名册成员变更确认链写口（C-2 方案 B）：支书专属阶段语义端点（ApiAdapter.members.setDevelopStage） */
 async function _apiAdapterMembers() {
-  const { ApiAdapter } = await import('../../data/api-adapter.js?v=20261020c');
+  const { ApiAdapter } = await import('../../data/api-adapter.js?v=20261020d');
   return ApiAdapter.members;
 }
 
@@ -716,7 +723,7 @@ async function _apiRemoveMember(personId, opts = {}) {
 
 async function _apiReplaceBranchMembers(records, branchId) {
   try {
-    const { ApiAdapter } = await import('../../data/api-adapter.js?v=20261020c');
+    const { ApiAdapter } = await import('../../data/api-adapter.js?v=20261020d');
     const users = ApiAdapter.users;
     // 存在性（服务器权威）：branches 表须有该实例
     const branches = await ApiAdapter.branches.list();

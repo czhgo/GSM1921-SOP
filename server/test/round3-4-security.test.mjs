@@ -255,13 +255,14 @@ test('F1 非支委层 attendances / inspections / todos 按本人或职责投影
   assert.ok(!insp.some((row) => row.id === 'insp-9'), '他人考察记录（非本人职责）不得可见');
 
   const todos = await (await fetch(`${base}/api/v1/todos`, { headers: headers(partToken) })).json();
-  assert.ok(!todos.some((row) => row.id === 'todo_seed_7'), '普通成员不得看到支书角色待办');
+  // R2-33：原断言对象 todo_seed_7（设置第三党小组组长）已作为假待办删除；改用同表的宣传委员种子。
+  assert.ok(!todos.some((row) => row.id === 'todo_seed_6'), '普通成员不得看到宣传委员角色待办');
 
   const { token: secToken } = await login('p13'); // 支委层
   const secAtt = await (await fetch(`${base}/api/v1/attendances`, { headers: headers(secToken) })).json();
   assert.ok(secAtt.some((row) => row.id === 'att900'), '支委层保留考勤全量');
   const secTodos = await (await fetch(`${base}/api/v1/todos`, { headers: headers(secToken) })).json();
-  assert.ok(secTodos.some((row) => row.id === 'todo_seed_7'), '支委层保留待办全量');
+  assert.ok(secTodos.some((row) => row.id === 'todo_seed_6'), '支委层保留待办全量');
 
   const { token: orgToken } = await login('p11'); // 支委层
   const orgInsp = await (await fetch(`${base}/api/v1/inspections`, { headers: headers(orgToken) })).json();

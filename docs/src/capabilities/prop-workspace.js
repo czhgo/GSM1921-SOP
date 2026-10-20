@@ -4,9 +4,9 @@
 // 读取本能力，tab 声明（含懒加载 render）不再硬编码在入口。
 // 设计权威源：content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md §四/§六
 
-import { registerCapability } from '../core/boot/registry.js?v=20261020c';
-import { rolesForPage } from '../core/domain/constants.js?v=20261020c';
-import { AuthStore } from '../services/core/auth.js?v=20261020c';
+import { registerCapability } from '../core/boot/registry.js?v=20261020d';
+import { rolesForPage } from '../core/domain/constants.js?v=20261020d';
+import { AuthStore } from '../services/core/auth.js?v=20261020d';
 
 // 8 个 tab 清单：render 为懒加载动态 import（相对本模块解析到 entries/tabs/prop/）
 // ⚠ 2026-10-04 批次 367（`#10` 单一轴 · 支书裁「周报作为 归档的一个 特例即可」）：**已摘除
@@ -25,7 +25,7 @@ registerCapability({
     // 到期/逾期行 → onNav('todo')（todo tab 六台同 id）；会议/分工行在 today-tab 内直跳 activity.html；
     // 会议「全部」→ onNav('activities')，下方映射到本台活动承载 tab（宣传台=活动日历 calendar；
     //   2026-10-18 繁专项 Top 10：原落项目看板 kanban，改为落活动日历）
-    { id: 'today', label: '今天', groupLabel: '工作台', coreTab: true, render: (ctx) => import('../entries/tabs/today/today-tab.js?v=20261020c').then(m => {
+    { id: 'today', label: '今天', groupLabel: '工作台', coreTab: true, render: (ctx) => import('../entries/tabs/today/today-tab.js?v=20261020d').then(m => {
       const el = document.getElementById('prop-tab-content');
       if (el) m.renderTodayTab(el, {
         personId: ctx?.personId || AuthStore.getCurrentUser()?.personId,
@@ -37,28 +37,28 @@ registerCapability({
         },
       });
     }) },
-    { id: 'todo', label: '待办', groupLabel: '工作台', coreTab: true, render: (ctx) => import('../entries/tabs/prop/todo-tab.js?v=20261020c').then(m => m.renderContent(ctx)) },
+    { id: 'todo', label: '待办', groupLabel: '工作台', coreTab: true, render: (ctx) => import('../entries/tabs/prop/todo-tab.js?v=20261020d').then(m => m.renderContent(ctx)) },
     // 工作概况（支书 2026-08-10 裁定：全部角色新增——汇报/卡点/在办三区总览 + 条线数据注入）
-    { id: 'overview', label: '工作概况', groupLabel: '工作台', coreTab: true, render: (ctx) => import('../entries/tabs/prop/overview-tab.js?v=20261020c').then(m => m.renderContent(ctx)) },
+    { id: 'overview', label: '工作概况', groupLabel: '工作台', coreTab: true, render: (ctx) => import('../entries/tabs/prop/overview-tab.js?v=20261020d').then(m => m.renderContent(ctx)) },
     // 活动日历（2026-09-30 批次 310 支书裁定「每个人应该都有这样的活动日历界面」）：与其余五台同用
     //   **只读共享页签**（entries/tabs/shared/activity-calendar-tab.js）。
     // 2026-10-04 批次 367（`#10` 单一轴）：它是**人人有的通用面**（与「今天 / 待办 / 工作概况」同类）
     //   ⇒ **组归属由「知情查看」改为「工作台」**（组名与组数一律不变，只改 groupLabel）；
     //   ⚠ **注册序也必须落进「工作台」段内**（页签条按注册序分段渲染 ⇒ 留在原处会多出一个「工作台」分节）。
-    { id: 'calendar', label: '活动日历', groupLabel: '工作台', render: () => import('../entries/tabs/shared/activity-calendar-tab.js?v=20261020c').then(m => m.renderContent(document.getElementById('prop-tab-content'))) },
+    { id: 'calendar', label: '活动日历', groupLabel: '工作台', render: () => import('../entries/tabs/shared/activity-calendar-tab.js?v=20261020d').then(m => m.renderContent(document.getElementById('prop-tab-content'))) },
     // 本轮（2026-09-15）五台统一：原「反馈」组并入「制度与答复」（与支书台同名），组内以「我的处置」为成员；
     //   2026-10-18 繁专项 Top 2：制度与答复整组前移到「工作台」之后、「我的职责」之前。
-    { id: 'my-dispatch', label: '我的处置', groupLabel: '制度与答复', render: (ctx) => import('../entries/tabs/prop/my-dispatch-tab.js?v=20261020c').then(m => m.renderContent(ctx)) },
+    { id: 'my-dispatch', label: '我的处置', groupLabel: '制度与答复', render: (ctx) => import('../entries/tabs/prop/my-dispatch-tab.js?v=20261020d').then(m => m.renderContent(ctx)) },
     // 分组「我的职责」= 2026-09-14 裁定按行为性质四组之一；本轮（2026-09-15）五台统一：原「党建」组改名「我的职责」
-    { id: 'tasks', label: '宣传任务', groupLabel: '我的职责', render: (ctx) => import('../entries/tabs/prop/tasks-tab.js?v=20261020c').then(m => m.renderContent(ctx)) },
-    { id: 'kanban', label: '项目看板', groupLabel: '我的职责', render: (ctx) => import('../entries/tabs/prop/kanban-tab.js?v=20261020c').then(m => m.renderContent(ctx)) },
+    { id: 'tasks', label: '宣传任务', groupLabel: '我的职责', render: (ctx) => import('../entries/tabs/prop/tasks-tab.js?v=20261020d').then(m => m.renderContent(ctx)) },
+    { id: 'kanban', label: '项目看板', groupLabel: '我的职责', render: (ctx) => import('../entries/tabs/prop/kanban-tab.js?v=20261020d').then(m => m.renderContent(ctx)) },
     // 档案归档（含「周报」折叠区）。2026-10-04 批次 367（`#10` 单一轴）：支书逐字裁
     //   「**周报作为 归档的一个 特例即可！！**」⇒ **原独立「周报报送」页签降为本页页内折叠区**
     //   （页签 **10 → 9**）；实现单一源仍是 `entries/tabs/prop/weekly-tab.js`（挂进本页
     //   `#archive-weekly-host`，**不复制表单**）。同批台账：`help.html §0.1/§2.2`、
     //   `README-server.md §3.2.2`、`form-loop-registry.mjs`（四条 `prop-weekly*` 流程 `tab` 改本页）、
     //   `page-sweep` 门槛、`function-catalog.js`。
-    { id: 'archive', label: '档案归档', groupLabel: '我的职责', render: (ctx) => import('../entries/tabs/prop/archive-tab.js?v=20261020c').then(m => m.renderContent(ctx)) },
+    { id: 'archive', label: '档案归档', groupLabel: '我的职责', render: (ctx) => import('../entries/tabs/prop/archive-tab.js?v=20261020d').then(m => m.renderContent(ctx)) },
     // 2026-10-20 批次 489（IA-A02 裁定）：**删除「知情查看」页签**——宣传台无赋权下游，该页长期是
     //   空壳；宣传关心的专班/项目进展已由「项目看板」承载 ⇒ 本台不再保留第九个页签（9 → 8）。
     //   旧深链 `?tab=tf-view` 由壳别名落 `kanban`（别名在 workspace-shell.js，单点维护）。

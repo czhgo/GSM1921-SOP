@@ -10,18 +10,18 @@
 //  收录权与排序不变（`galleryFeatured` / `galleryPinned` 单一源仍来自 activity.js）。
 // ════════════════════════════════════════════════════════════════
 
-import { getAppState } from '../../core/base/state.js?v=20261020c';
-import { _fmtDate, escHtml } from '../../core/base/utils.js?v=20261020c';
-import { getPersonName } from '../../services/member/person.js?v=20261020c';
-import { getActivityTypeColors } from '../../core/domain/constants.js?v=20261020c';
-import { icon } from '../../core/base/icons.js?v=20261020c';
-import { mockDB } from '../../core/domain/domain.js?v=20261020c';
-import { getAuthToken, getApiBaseUrl } from '../../data/data-adapter.js?v=20261020c';
-import { withSelectedBranchScope } from '../../data/api-adapter.js?v=20261020c';
+import { getAppState } from '../../core/base/state.js?v=20261020d';
+import { _fmtDate, escHtml } from '../../core/base/utils.js?v=20261020d';
+import { getPersonName } from '../../services/member/person.js?v=20261020d';
+import { getActivityTypeColors, DASHBOARD_LIMITS } from '../../core/domain/constants.js?v=20261020d';
+import { icon } from '../../core/base/icons.js?v=20261020d';
+import { mockDB } from '../../core/domain/domain.js?v=20261020d';
+import { getAuthToken, getApiBaseUrl } from '../../data/data-adapter.js?v=20261020d';
+import { withSelectedBranchScope } from '../../data/api-adapter.js?v=20261020d';
 // 2026-09-29 批次 294（支书裁：收录权归宣传委员）：本页收录改**人工**——判据单一源 = 活动主源 `galleryFeatured`。
-import { isGalleryFeatured, isGalleryPinned } from '../../services/activity/activity.js?v=20261020c';
-import { badgeHtml } from '../ui/badges.js?v=20261020c';
-import { deriveActivityLifecycleStatus, ACTIVITY_LIFECYCLE } from '../record/inspector.js?v=20261020c';
+import { isGalleryFeatured, isGalleryPinned } from '../../services/activity/activity.js?v=20261020d';
+import { badgeHtml } from '../ui/badges.js?v=20261020d';
+import { deriveActivityLifecycleStatus, ACTIVITY_LIFECYCLE } from '../record/inspector.js?v=20261020d';
 
 const ACTIVITY_TYPE_COLORS = getActivityTypeColors({ withLabel: true });
 
@@ -100,7 +100,7 @@ export function renderGallery(activities) {
   const display = [
     ...sortByDate(pinned.filter(a => !isDone(a))), ...sortByDate(pinned.filter(a => isDone(a))),
     ...sortByDate(rest.filter(a => !isDone(a))), ...sortByDate(rest.filter(a => isDone(a))),
-  ].slice(0, 6);
+  ].slice(0, DASHBOARD_LIMITS.gallery);
 
   if (display.length === 0) {
     // 过拟合修正（2026-09-13）：活动风采为支部自创展示位（品牌活动），首页不为其保留常驻空卡

@@ -15,8 +15,10 @@ export const SEED_TASKS = [
   { id: 'tsk-004', activityId: 'act-3', title: '撰写活动总结', status: 'completed', createdAt: '2026-07-02T08:00:00Z' },
   { id: 'tsk-005', activityId: 'act-5', title: '联系共建单位确认参访安排', status: 'completed', createdAt: '2026-07-06T08:00:00Z' },
   { id: 'tsk-006', activityId: 'act-5', title: '安排车辆和午餐', status: 'completed', createdAt: '2026-07-06T08:00:00Z' },
-  { id: 'tsk-007', activityId: 'act-10', title: '准备主题党日方案', status: 'in_progress', createdAt: '2026-07-12T08:00:00Z' },
-  { id: 'tsk-008', activityId: 'act-10', title: '收集参与者反馈', status: 'pending', createdAt: '2026-07-12T08:00:00Z' },
+  // R2-31（2026-10-20）：act-10 已收口为 completed ⇒ 挂在其上的任务必须同为 completed
+  //   （mock-integrity M2：完成态活动不得挂未完成任务）；7 月的筹备任务到今天不可能仍在办。
+  { id: 'tsk-007', activityId: 'act-10', title: '准备主题党日方案', status: 'completed', createdAt: '2026-07-12T08:00:00Z' },
+  { id: 'tsk-008', activityId: 'act-10', title: '收集参与者反馈', status: 'completed', createdAt: '2026-07-12T08:00:00Z' },
 ];
 
 // ── 分工种子（组织者分配，时间随活动重排） ──────────────────
@@ -25,7 +27,8 @@ export const SEED_ASSIGNMENTS = [
   { id: 'assign_seed_002', activityId: 'act-3', workName: '场地布置', workDescription: '准备投影设备、签到表、座位安排', ddl: '2026-07-02T00:00:00Z', assigneeId: 'p5', status: 'completed', createdBy: 'p1', createdAt: '2026-07-02T08:00:00Z', completedAt: '2026-07-02T08:00:00Z' },
   { id: 'assign_seed_003', activityId: 'act-5', workName: '联系共建单位', workDescription: '确认参访时间、路线、交流内容', ddl: '2026-07-06T00:00:00Z', assigneeId: 'p3', status: 'completed', createdBy: 'p11', createdAt: '2026-07-06T08:00:00Z', completedAt: '2026-07-06T10:00:00Z' },
   { id: 'assign_seed_004', activityId: 'act-5', workName: '拍摄活动照片', workDescription: '全程拍摄参访活动照片，活动结束后提交', ddl: '2026-07-06T00:00:00Z', assigneeId: 'p5', status: 'completed', createdBy: 'p3', createdAt: '2026-07-06T08:00:00Z', completedAt: null },
-  { id: 'assign_seed_005', activityId: 'act-10', workName: '准备活动方案', workDescription: '撰写主题党日活动方案，含议程和分工', ddl: '2026-07-12T00:00:00Z', assigneeId: 'p3', status: 'in_progress', createdBy: 'p1', createdAt: '2026-07-12T08:00:00Z', completedAt: null },
+  // R2-31：act-10 完成态 ⇒ 分工同步收口（ddl 保持原日期，completedAt 记活动当日）
+  { id: 'assign_seed_005', activityId: 'act-10', workName: '准备活动方案', workDescription: '撰写主题党日活动方案，含议程和分工', ddl: '2026-07-12T00:00:00Z', assigneeId: 'p3', status: 'completed', createdBy: 'p1', createdAt: '2026-07-12T08:00:00Z', completedAt: '2026-07-13T18:00:00Z' },
 ];
 
 // ── 档案归档种子 ─────────────────────────────────────────────

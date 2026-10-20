@@ -14,7 +14,7 @@
 //         content/04_web_design/data/DATA_ARCHITECTURE.md §8.4
 // ════════════════════════════════════════════════════════════════
 
-import { getApiBaseUrl, getAuthToken } from './data-adapter.js?v=20261020c';
+import { getApiBaseUrl, getAuthToken } from './data-adapter.js?v=20261020d';
 
 // ── HTTP 工具函数 ──────────────────────────────────────────────
 
@@ -565,6 +565,11 @@ export const ApiAdapter = {
 
     update(id, patch) {
       return _patch(`/api/v1/archiveRecords/${id}`, patch);
+    },
+
+    // R2-40：归档材料删除同步服务端行（原只有 create/update ⇒ 前端删除后刷新又回来）。
+    delete(id) {
+      return _delete(`/api/v1/archiveRecords/${id}`);
     },
   },
 

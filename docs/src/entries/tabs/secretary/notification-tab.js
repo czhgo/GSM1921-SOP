@@ -3,23 +3,23 @@
 // 2026-08-07 自 ws-secretary-entry.js 拆分。
 // 数据源：NoticeStore（与首页/全局概况/visitor 同源，消除双数据源脱节）。
 
-import { NoticeStore, sendDirectMessage } from '../../../services/governance/notice.js?v=20261020c';
-import { AuthStore } from '../../../services/core/auth.js?v=20261020c';
-import { showToast, getBasePath, _fmtDate, todayLocal } from '../../../core/base/utils.js?v=20261020c';
-import { badgeHtml } from '../../../components/ui/badges.js?v=20261020c';
-import { openModal, closeModal } from '../../../components/ui/modal.js?v=20261020c';
+import { NoticeStore, sendDirectMessage } from '../../../services/governance/notice.js?v=20261020d';
+import { AuthStore } from '../../../services/core/auth.js?v=20261020d';
+import { showToast, getBasePath, _fmtDate, todayLocal } from '../../../core/base/utils.js?v=20261020d';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20261020d';
+import { openModal, closeModal } from '../../../components/ui/modal.js?v=20261020d';
 // 统一检索引擎（2026-09-14 批次 37）：已发布通知列表接入关键词（标题/正文）+ 分页
-import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261020c';
+import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261020d';
 // Q-22-1（2026-09-13）：受众选项改引 core/domain/constants.js 单一源（NOTICE_AUDIENCE_SENTINELS）——
 // 发布侧写入值必须与消费端可见性判定同源，勿再本地手写 sentinel 列表（否则 ['all'] 永不命中）。
-import { NOTICE_AUDIENCE_OPTIONS, ACTIVITY_CLASSIFICATION } from '../../../core/domain/constants.js?v=20261020c';
+import { NOTICE_AUDIENCE_OPTIONS, ACTIVITY_CLASSIFICATION } from '../../../core/domain/constants.js?v=20261020d';
 // SOP-B-5（D-293）：发布三会一课通知时选定本次活动 —— 被通知人在「确认读取」时填「能否线上参会」
-import { loadActivities } from '../../../services/activity/activity.js?v=20261020c';
+import { loadActivities } from '../../../services/activity/activity.js?v=20261020d';
 // B1（2026-09-12）：党委下钻支部的演示只读视图判定（单一源 = services/core/branch-demo-nav.js）
-import { isReadonlyBranchDrilldown } from '../../../services/core/branch-demo-nav.js?v=20261020c';
+import { isReadonlyBranchDrilldown } from '../../../services/core/branch-demo-nav.js?v=20261020d';
 // 站内信（批次 348 · 支书 `#4`「站内信是一个很重要的形式」）：受众「指定人（私发）」——选人用 PersonPicker
 //（选人规范 §2.2：姓名/学号搜索，不手写名单）
-import { PersonPicker } from '../../../components/governance/pickers.js?v=20261020c';
+import { PersonPicker } from '../../../components/governance/pickers.js?v=20261020d';
 
 const NOTIFICATION_TAB_HTML = `
   <div class="card rounded-xl p-5 mb-6">
@@ -60,9 +60,9 @@ function renderNotificationForm() {
   const formArea = document.getElementById('notification-form-area');
   if (!formArea) return;
 
-  // B1（2026-09-12）：党委下钻只读视图 → 不渲染发布表单，改为只读说明
+  // B1（2026-09-12）：党委下钻只读视图 → 不渲染发布表单；入口已由权限隐藏，只留一句状态
   if (isReadonlyBranchDrilldown()) {
-    formArea.innerHTML = '<p class="text-xs text-gray-500 leading-relaxed">党委视角（只读）：本页仅供只读查看，不可发布/编辑/删除通知（写操作按角色权限拒绝）。</p>';
+    formArea.innerHTML = '<p class="text-xs text-gray-500">当前身份不可发布通知。</p>';
     return;
   }
 
@@ -96,7 +96,7 @@ function renderNotificationForm() {
   html += `</div>`;
   if (_directMode) {
     html += `<div class="mb-5 rounded-lg border border-gray-200 bg-white p-3">`;
-    html += `<p class="text-xs text-gray-500 mb-2">收件人（可多选）——站内信<b>仅你与收件人可见</b>，不进支部公告。</p>`;
+    html += `<div class="mb-2 flex items-center gap-2"><span class="text-xs text-gray-500">收件人（可多选）</span><span class="text-[11px] px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">仅双方可见</span></div>`;
     html += `<div id="notif-direct-host"></div>`;
     html += `</div>`;
   }
@@ -110,7 +110,7 @@ function renderNotificationForm() {
     html += `<option value="${a.id}">${a.title}（${a.date || '未排期'} · ${a.type}）</option>`;
   });
   html += `</select>`;
-  html += `<p class="text-[11px] text-gray-500 mt-1 leading-5">关联后，被通知人在通知详情点「确认读取」时可填<b>能否线上参会</b>；线上参会按制度记「请假」、<b>不计入出席、只免补课</b>。</p>`;
+  html += `<p class="text-[11px] mt-1"><a href="./help.html#card-copy-attendance-record" class="text-sky-600 hover:underline">见帮助 · 线上参会记录</a></p>`;
   html += `</div>`;
 
   // 发布按钮

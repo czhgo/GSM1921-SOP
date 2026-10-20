@@ -1,8 +1,8 @@
 // 数据域接线批次二（2026-09-03）：展示格式化 attendanceToLong 已提升至 services/activity/attendance.js；
 // 本文件退化为纯考勤种子数据仓（PEOPLE 供全员出席名单生成）。
-import { PEOPLE } from './people.js?v=20261020c';
-import { AttendanceStatus } from '../../core/domain/domain.js?v=20261020c';
-import { getCommitteeIds } from '../../core/domain/constants.js?v=20261020c';
+import { PEOPLE } from './people.js?v=20261020d';
+import { AttendanceStatus } from '../../core/domain/domain.js?v=20261020d';
+import { getCommitteeIds } from '../../core/domain/constants.js?v=20261020d';
 
 // 最后更新：2026-09-06（演示数据基线刷新）
 // 显式段 att1~att43 的 recordedAt 随关联活动重排同步平移（recordedAt = 活动日当天），
@@ -98,7 +98,8 @@ export const ATTENDANCE_RECORDS = [
 // 2026-08-05 修订（支书裁决）：
 //   1. act-28「谈话考察」违背 5b2e4ea「删除考察活动类型」，已彻底删除（活动/考勤/通知）
 //   2. 已生成考勤的活动日期前移至已发生（≤ 8/5）：act-26 8/1、act-27 8/3、act-29 8/4；
-//      未来活动 act-30（8/28 draft）不生成考勤——「8 月底活动不可能已出勤」语义自洽
+//      未来活动 act-30（8/28，种子里不生成考勤）不生成考勤——「部署会尚未发生/未录入」语义自洽
+//      R2-31 后 act-30 已按日期收口为 completed，但**仍保留「无考勤」**：这是「已结束未录考勤」的演示路径。
 //   3. 原 act-26 显式段（att44~60）并入生成器统一覆盖（去重），ID 从 att44 起连续
 // 覆盖规则（确定性生成，非随机——刷新与跨会话结果稳定）：
 //   act-26 8/1  党小组会（暑期线上）          → 全员 50 人

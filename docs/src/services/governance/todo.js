@@ -6,18 +6,18 @@
 //         content/04_web_design/design-system/DESIGN_SYSTEM.md §一 第6条
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../../core/domain/domain.js?v=20261020c';
-import { persist } from '../../data/data-adapter.js?v=20261020c';
-import { generateId } from '../../core/base/id.js?v=20261020c';
-import { bumpToken, tokenOf } from '../../core/base/version-token.js?v=20261020c';
+import { mockDB, isTaskforceActiveStatus } from '../../core/domain/domain.js?v=20261020d';
+import { persist } from '../../data/data-adapter.js?v=20261020d';
+import { generateId } from '../../core/base/id.js?v=20261020d';
+import { bumpToken, tokenOf } from '../../core/base/version-token.js?v=20261020d';
 // 待批活动状态值单一源（2026-09-22 批次 151 · 支书裁定「只支委层可见」）：待批活动**不是**「待参与」的活动
 // ——它还没获批（与 `draft` 同待遇），不为它派生「参与活动」待办（也免得从待办标题把没批的活动漏出去）。
-import { PENDING_APPROVAL_STATUS } from '../activity/activity.js?v=20261020c';
-import { todayLocal, _fmtDate } from '../../core/base/utils.js?v=20261020c';
+import { PENDING_APPROVAL_STATUS } from '../activity/activity.js?v=20261020d';
+import { todayLocal, _fmtDate } from '../../core/base/utils.js?v=20261020d';
 // 周期键（月/季/半年/年）与「模块周期」单一源（2026-10-06 批次 423 · `R-29⑤` · `D-804`）——
 //   周期任务的**来源**＝`work-map.js::WORK_MAP_MODULES[].cycle`（不另立第二份映射，`D-803②`）。
-import { cyclePeriodOf, cyclePeriodLabel } from '../../core/base/period.js?v=20261020c';
-import { WORK_MAP_MODULES, expandWorkforce, ownerOfModule, moduleIdOfActivity } from '../../core/domain/work-map.js?v=20261020c';
+import { cyclePeriodOf, cyclePeriodLabel } from '../../core/base/period.js?v=20261020d';
+import { WORK_MAP_MODULES, expandWorkforce, ownerOfModule, moduleIdOfActivity } from '../../core/domain/work-map.js?v=20261020d';
 
 // ── 待办分类枚举 ──────────────────────────────────────────────
 export const TodoCategory = {
@@ -1526,7 +1526,8 @@ export const VisitorTodoDeriver = {
     const items = [];
     for (const tf of taskforces || []) {
       if (!tf || !tf.id) continue;
-      if (tf.status !== 'recruiting' && tf.status !== 'active') continue;
+      // 在办专班 = canonical 单一源（recruiting/active）；草稿/待表决不派生参与待办。
+      if (!isTaskforceActiveStatus(tf.status)) continue;
       if (tf.deadline && tf.deadline < today) continue;
       const isMember = (tf.members || []).some(m => m.personId === personId);
       const approved = (signups || []).some(s =>
@@ -1583,37 +1584,27 @@ export const SEED_TODOS = [
     category: TodoCategory.SUBMIT,
     priority: 'normal',
     status: TodoStatus.PENDING,
-    deadline: '2026-12-31',
+    // R2-34（2026-10-20）：原 deadline 12/31、sourceId:null ⇒ 与活动无派生关系，活动归档也不会自动销项。
+    //   改为挂真实活动 act-37，截止 = 活动日 10/22 + 7 天（宣传归档时限，与 review.deadlineDays 同一 T+7 口径）。
+    deadline: '2026-10-29',
     createdAt: '2026-07-05T08:00:00',
-    sourceType: TodoSourceType.MANUAL,
-    sourceId: null,
+    sourceType: TodoSourceType.ACTIVITY,
+    sourceId: 'act-37',
     actionKey: 'activity-archive',
     actionType: TodoActionType.SUBMIT,
-    actionData: null,
+    actionData: { activityId: 'act-37' },
     // E2 数据上下游标注
     flow: '宣传材料 → 宣传委员归档 → 产出物区',
   },
   // 支书待办
-  {
-    id: 'todo_seed_7',
-    title: '设置第三党小组组长',
-    description: '第三党小组组长待任命，请在常设赋权中完成设置。',
-    role: 'secretary',
-    category: TodoCategory.AUTH,
-    priority: 'normal',
-    status: TodoStatus.PENDING,
-    deadline: null,
-    createdAt: '2026-07-01T08:00:00',
-    sourceType: TodoSourceType.MANUAL,
-    sourceId: null,
-    actionKey: 'authorize',
-    actionType: TodoActionType.AUTHORIZE,
-    actionData: { scope: 'leader', sourceId: null, sourceName: '第三党小组组长' },
-  },
+  // R2-33（2026-10-20）：删除「设置第三党小组组长」种子——p4 已是第三党小组组长（people.js role:'leader'），
+  //   这条待办点「去赋权」只会看到「已设置」，且每次 seed 补齐都会把它加回来 ⇒ 永远无法正确销项的假待办。
+  //   不另造「第四组待任命」：本支部只有三个党小组（party-groups.js），伪造第四组同样是假数据。
 ];
 
 /** 已废弃种子（T232 闭环化移除：虚假/过期且来源与销项动作不匹配，改由业务数据动态派生） */
-const OBSOLETE_SEED_IDS = new Set(['todo_seed_1', 'todo_seed_2', 'todo_seed_3', 'todo_seed_4', 'todo_seed_5']);
+// R2-33：todo_seed_7 同属假待办（组长早已任命），并入废弃清单以便老 localStorage 残留被清掉。
+const OBSOLETE_SEED_IDS = new Set(['todo_seed_1', 'todo_seed_2', 'todo_seed_3', 'todo_seed_4', 'todo_seed_5', 'todo_seed_7']);
 
 /** 初始化种子数据（幂等：按 id 补齐缺失种子；同时清理已废弃种子，避免残留叠加） */
 export function seedTodos() {

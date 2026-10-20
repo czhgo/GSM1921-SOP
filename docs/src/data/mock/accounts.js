@@ -10,6 +10,9 @@ export const MOCK_ACCOUNTS = [
   { studentId: '2400012354', password: '123456', personId: 'p10' },  // 纪检委员 董建军
   { studentId: '2400012345', password: '123456', personId: 'p1'  },  // 组长 罗文杰
   { studentId: '2400012346', password: '123456', personId: 'p2'  },  // 组长 郭子睿
+  // R2-38（2026-10-20）：补第三党小组组长 p4 的演示账号——原注释声称「角色覆盖…组长」，
+  //   但三个组长里只有第一/第二组有账号 ⇒ 第三组组长台无法进入（与 R2-33 的假待办叠加时更难解释）。
+  { studentId: '2400012348', password: '123456', personId: 'p4'  },  // 组长 梁凯文（第三党小组）
   { studentId: '2400012349', password: '123456', personId: 'p5'  },  // 普通成员 宋佳宁
   // === T4.4 补充角色切换样本（2026-07-16）===
   { studentId: '2500010012', password: '123456', personId: 'p26' },  // 积极分子 朱欣怡（D-240 organizer 候选）

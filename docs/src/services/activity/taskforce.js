@@ -8,24 +8,24 @@
 import {
   mockDB, TaskforceStatus, TASKFORCE_TERMINAL_STATUSES, TASKFORCE_PRE_OPEN_STATUSES,
   TASKFORCE_DIRECT_TRANSITIONS, WorkgroupStatus, workgroupStatusForTaskforce,
-} from '../../core/domain/domain.js?v=20261020c';
-import { getAdapter, getDataSource, notifyDataChanged, persist } from '../../data/data-adapter.js?v=20261020c';
-import { bumpToken } from '../../core/base/version-token.js?v=20261020c'; // P0 域缓存失效（spec §二.3）
-import { MOCK_TASKFORCES } from '../../data/mock/index.js?v=20261020c';
-import { isInitStateActive } from '../core/init-reset.js?v=20261020c'; // C2 修复（2026-09-08）：init 态跳过演示种子兜底
-import { getPersonName } from '../member/person.js?v=20261020c';
-import { evaluateWorkforceVotes } from '../branch/workforce.js?v=20261020c';
+} from '../../core/domain/domain.js?v=20261020d';
+import { getAdapter, getDataSource, notifyDataChanged, persist } from '../../data/data-adapter.js?v=20261020d';
+import { bumpToken } from '../../core/base/version-token.js?v=20261020d'; // P0 域缓存失效（spec §二.3）
+import { MOCK_TASKFORCES } from '../../data/mock/index.js?v=20261020d';
+import { isInitStateActive } from '../core/init-reset.js?v=20261020d'; // C2 修复（2026-09-08）：init 态跳过演示种子兜底
+import { getPersonName } from '../member/person.js?v=20261020d';
+import { evaluateWorkforceVotes } from '../branch/workforce.js?v=20261020d';
 // 附录⑩ B批（3.3）专班议案排入支委会表决所需的活动/通知基建：
 // 与 services/branch/workforce.js 同路径（BranchService.createActivity + NoticeStore.add），
 // 仅函数体内使用（懒加载语义），不新增模块初始化期副作用。
-import { BranchService } from '../core/runtime.js?v=20261020c';
-import { NoticeStore } from '../governance/notice.js?v=20261020c';
-import { defaultVoteConfig, resolveVoterIds } from './vote-config.js?v=20261020c';
-import { loadActivities } from './activity.js?v=20261020c';
-import { AuthStore } from '../core/auth.js?v=20261020c';
-import { BRANCH_COMMISSION_ROLES } from '../../core/domain/constants.js?v=20261020c'; // 支委层应到名单单一源（勿手写）
-import { generateId } from '../../core/base/id.js?v=20261020c';
-import { todayLocal } from '../../core/base/utils.js?v=20261020c';
+import { BranchService } from '../core/runtime.js?v=20261020d';
+import { NoticeStore } from '../governance/notice.js?v=20261020d';
+import { defaultVoteConfig, resolveVoterIds } from './vote-config.js?v=20261020d';
+import { loadActivities } from './activity.js?v=20261020d';
+import { AuthStore } from '../core/auth.js?v=20261020d';
+import { BRANCH_COMMISSION_ROLES } from '../../core/domain/constants.js?v=20261020d'; // 支委层应到名单单一源（勿手写）
+import { generateId } from '../../core/base/id.js?v=20261020d';
+import { todayLocal } from '../../core/base/utils.js?v=20261020d';
 
 // 附录⑩ B批（S3 专班生命周期 · 支书裁定 2026-09-06）：
 //   治理按事项判定：仅制度或议程明确要求的发起/解散事项进入支委会表决；其余按业务流程办理并留痕。
@@ -149,8 +149,8 @@ export const TaskForceRecordStore = {
       const me = AuthStore.getCurrentUser && AuthStore.getCurrentUser();
       const pid = newRecord.manager || newRecord.initiator || (me && (me.personId || me.id)) || null;
       Promise.all([
-        import('../governance/todo.js?v=20261020c'),
-        import('../branch/branch.js?v=20261020c'),
+        import('../governance/todo.js?v=20261020d'),
+        import('../branch/branch.js?v=20261020d'),
       ]).then(([{ LifecycleTodoDeriver }, branch]) => {
         const snapshot = branch.getBranchWorkforce(branch.getBranchIdOfPerson(pid));
         LifecycleTodoDeriver.deriveFromTaskforceCreate(newRecord, { snapshot });
@@ -180,8 +180,8 @@ export const TaskForceRecordStore = {
     if (getDataSource() === 'api' && created.members.length === 0) {
       const actorId = created.manager || created.initiator || actor?.personId || actor?.id || null;
       Promise.all([
-        import('../governance/todo.js?v=20261020c'),
-        import('../branch/branch.js?v=20261020c'),
+        import('../governance/todo.js?v=20261020d'),
+        import('../branch/branch.js?v=20261020d'),
       ]).then(([{ LifecycleTodoDeriver }, branch]) => {
         const snapshot = branch.getBranchWorkforce(branch.getBranchIdOfPerson(actorId));
         LifecycleTodoDeriver.deriveFromTaskforceCreate(created, { snapshot });
@@ -679,12 +679,19 @@ export async function createTaskforceVoteActivity({ taskforceId, kind = 'initiat
   // R-22（2026-09-13）：系统派生通知改由服务端生成（kind 注册表复算授权 + 文案 + 落点）；
   // 支委点通知（targetType/targetId）直达活动详情页在线表态。失败不阻断排入结果。
   try {
-    NoticeStore.addSystem('taskforce-vote-requested', activity.id, {
-      activityTitle: activity.title,
-      date: today,
-      branchId: 'br-b1',
-      actionRoles: [...BRANCH_COMMISSION_ROLES],
-    });
+    // R2-18（2026-10-20）：通知支部取**活动/专班/操作人**的真实归属，不再写死 br-b1——
+    //   否则非 br-b1 支部的专报表决通知会落到错误支部，目标支委收不到。三处都缺失则不发送并留痕。
+    const notifyBranchId = activity.branchId || tf.branchId || me.branchId || null;
+    if (!notifyBranchId) {
+      console.warn('[TaskForceRecordStore] 支委通知缺少支部归属（活动/专班/操作人均为空），已跳过');
+    } else {
+      NoticeStore.addSystem('taskforce-vote-requested', activity.id, {
+        activityTitle: activity.title,
+        date: today,
+        branchId: notifyBranchId,
+        actionRoles: [...BRANCH_COMMISSION_ROLES],
+      });
+    }
   } catch (e) {
     console.warn('[TaskForceRecordStore] 支委通知失败（不影响排入表决）：', e);
   }

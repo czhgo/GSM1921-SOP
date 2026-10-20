@@ -32,12 +32,12 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
-import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261020c';
-import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261020c';
-import { setDataSource, registerMockAdapter } from '../../docs/src/data/data-adapter.js?v=20261020c';
-import { MOCK_NOTICES } from '../../docs/src/data/mock/index.js?v=20261020c';
-import { NOTICE_AUDIENCE_OPTIONS } from '../../docs/src/core/domain/constants.js?v=20261020c';
-import { NoticeStore, canReadNotice } from '../../docs/src/services/governance/notice.js?v=20261020c';
+import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261020d';
+import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261020d';
+import { setDataSource, registerMockAdapter } from '../../docs/src/data/data-adapter.js?v=20261020d';
+import { MOCK_NOTICES } from '../../docs/src/data/mock/index.js?v=20261020d';
+import { NOTICE_AUDIENCE_OPTIONS } from '../../docs/src/core/domain/constants.js?v=20261020d';
+import { NoticeStore, canReadNotice } from '../../docs/src/services/governance/notice.js?v=20261020d';
 
 // ── localStorage 内存桩 + sessionStorage 空桩（与 thought-report-panel.test.mjs 同做法）──
 // getCurrentUser 走 localStorage；A-11 防串扰仅在登录对象带 tabId 时才校验，本桩不带 tabId → 直取。
@@ -246,4 +246,37 @@ test('N10 顶栏源码：party-staff 分支给铃铛与角标传 scope:committee
   assert.match(src, /scope:\s*'committee'/, 'header 须向 NoticeStore.list 传 scope:committee');
   const uses = (src.match(/_noticeListFilter\(/g) || []).length;
   assert.ok(uses >= 3, `铃铛下拉与角标须共用 _noticeListFilter（实得 ${uses} 处，含定义至少 3 处）`);
+});
+
+// ════════════════════════════════════════════════════════════════
+//  N11~N12 逐人已读（R2-49，2026-10-20）
+//  共享通知行只存 reads: personId[]；read 是观看者投影，不再是共享布尔。
+// ════════════════════════════════════════════════════════════════
+
+test('N11 已读按人：A 点开广播后，B 仍为未读且共享行不写全局 read', () => {
+  beginCase([{ ...BASE, id: 'notice-read-per-person', audience: ['all'] }]);
+  loginAs('p13', 'secretary');
+  assert.equal(NoticeStore.list().find(n => n.id === 'notice-read-per-person').read, false, '初始未读');
+  NoticeStore.markRead('notice-read-per-person');
+
+  const row = mockDB.notices.find(n => n.id === 'notice-read-per-person');
+  assert.ok(Array.isArray(row.reads) && row.reads.includes('p13'), '已读写入当前人的 reads');
+  assert.equal(Object.hasOwn(row, 'read'), false, '共享行不得再写全局 read 布尔');
+  assert.equal(NoticeStore.list().find(n => n.id === 'notice-read-per-person').read, true, 'A 视角已读');
+
+  loginAs('p1', 'leader');
+  assert.equal(NoticeStore.list().find(n => n.id === 'notice-read-per-person').read, false, 'B 视角仍未读');
+});
+
+test('N12 旧全局 read 一次性回填当前登录人；其他人按未读', () => {
+  beginCase([{ ...BASE, id: 'notice-legacy-read', audience: ['all'], read: true }]);
+  loginAs('p13', 'secretary');
+  const mine = NoticeStore.list().find(n => n.id === 'notice-legacy-read');
+  assert.equal(mine.read, true, '旧 read=true 回填给当前登录人');
+  assert.deepEqual(mine.reads, ['p13'], '回填口径 = 当前登录人');
+  const row = mockDB.notices.find(n => n.id === 'notice-legacy-read');
+  assert.equal(Object.hasOwn(row, 'read'), false, '迁移后删除旧全局 read');
+
+  loginAs('p1', 'leader');
+  assert.equal(NoticeStore.list().find(n => n.id === 'notice-legacy-read').read, false, '其他人不继承旧全局已读');
 });

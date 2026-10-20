@@ -190,9 +190,9 @@ const BASELINE = {
   // `docs/src/entries/tabs/org/inspection-tab.js` 条目已于 2026-10-18「工作台提质」批移除（收基线）：
   //   该文件的「自动投递：纪检确认→考察总表…」长说明已改为一行摘要，界面与母本不再有 ≥20 字连续重合
   //   ⇒ 按收基线纪律删条目；`BASELINE_FILE_COUNT` 8 → 7、`BASELINE_TOTAL` 10 → 9，N3 下限同批下调。
-  'docs/src/entries/tabs/secretary/calendar-tab.js': [
-    '人数按现时「在校/滞留」状态自动剔除滞留成员，创建时',          // 活动写入人数口径（与 §3.2 同句）
-  ],
+  // `docs/src/entries/tabs/secretary/calendar-tab.js` 条目已于 2026-10-20（第二轮界面细化）收基线：
+  //   活动写入人数口径的同义句（「人数按现时…剔除滞留成员，创建时锁定名单」）已删，只保留表单顶部的
+  //   一次说明；界面与母本不再有 ≥20 字连续重合 ⇒ 按收基线纪律删条目，文件数 6 → 5、条数 8 → 7。
   'docs/src/entries/tabs/secretary/report-up-tab.js': [
     '节点（确定积极分子/发展对象、接收预备党员、按期转正等',        // 上报党委事项类型（与 §3.7 同句）
   ],
@@ -209,8 +209,8 @@ const BASELINE = {
  *  2026-10-11（批次 441）：收 `about-entry.js` 条目（该平台化小字已从关于页 / 帮助页 / 首页三处删除，
  *    母本与界面侧重合同时清零）⇒ 文件 9 → 8、条数 11 → 10；N3 两处硬下限同批下调为 `>= 8` / `>= 10`
  *    （与上一条同规矩：只降不升、同批说明）。 */
-const BASELINE_FILE_COUNT = 6;
-const BASELINE_TOTAL = 8;
+const BASELINE_FILE_COUNT = 5;
+const BASELINE_TOTAL = 7;
 
 /** 定点登记表（help.html 里 data-copy-key 卡片数）的下限，防台账被删空
  *  2026-09-25「文案存量清理」批：本批新增 4 张定点（issue-reveal / pcm-scope / attendance-record / makeup-scope）
@@ -270,8 +270,8 @@ test('N3 非空转：抽取口径可用（含 20/19 字边界）+ 基线规模�
 
   // ② 基线规模下限（低于此值说明台账被删减或口径失效）
   const baseFiles = Object.keys(BASELINE);
-  assert.ok(BASELINE_FILE_COUNT >= 6, `基线文件数过少（声明 ${BASELINE_FILE_COUNT}，下限 6）——台账被删减或抽取口径失效`);
-  assert.ok(BASELINE_TOTAL >= 8, `基线条数过少（声明 ${BASELINE_TOTAL}，下限 8）——台账被删减或抽取口径失效`);
+  assert.ok(BASELINE_FILE_COUNT >= 5, `基线文件数过少（声明 ${BASELINE_FILE_COUNT}，下限 5）——台账被删减或抽取口径失效`);
+  assert.ok(BASELINE_TOTAL >= 7, `基线条数过少（声明 ${BASELINE_TOTAL}，下限 7）——台账被删减或抽取口径失效`);
   assert.equal(baseFiles.length, BASELINE_FILE_COUNT,
     `基线条目数与声明的文件数不一致（实测 ${baseFiles.length} / 声明 ${BASELINE_FILE_COUNT}）`);
   assert.equal(baseFiles.reduce((a, f) => a + BASELINE[f].length, 0), BASELINE_TOTAL,
@@ -302,9 +302,13 @@ test('N3 非空转：抽取口径可用（含 20/19 字边界）+ 基线规模�
     for (const s of srcs) {
       assert.ok(existsSync(join(ROOT, s)), `定点 ${id} 的 data-copy-source 指向不存在的文件：${s}`);
     }
-    // 原句逐字可查：卡片正文与该文件都在，正文里须有这条口径的原文（非空转）
-    assert.ok(helpSrc.slice(helpSrc.indexOf(tag), helpSrc.indexOf(tag) + 2600).includes('原文'),
-      `定点 ${id} 未见「原文」段——被删掉的界面语义必须在 help 逐字可查（C7「信息不丢，只搬家」）`);
+    // 2026-10-20 支书裁定：帮助页不再写「原文（原为…）」这类版本叙事，直接写现行口径
+    //   ⇒ 哨兵从「必须出现『原文』二字」改成「卡片正文须有 ≥40 个汉字的可执行口径」，
+    //   防的是「卡片被删空 / 只剩标题」（非空转）；id / key / search / source / 深链检查一字未放宽。
+    const cardSlice = helpSrc.slice(helpSrc.indexOf(tag), helpSrc.indexOf(tag) + 2600);
+    const cardCjk = (cardSlice.replace(/<[^>]*>/g, '').match(/[\u4e00-\u9fff]/g) || []).length;
+    assert.ok(cardCjk >= 40,
+      `定点 ${id} 正文过短（${cardCjk} 个汉字）——被删掉的界面语义须在 help 有可执行口径（C7「信息不丢，只搬家」）`);
   }
 
   // ⑤ 界面深链可达：docs/src 里出现的 ./help.html#<锚点> 必须在 help.html 真有该 id

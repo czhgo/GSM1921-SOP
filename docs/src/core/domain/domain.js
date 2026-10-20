@@ -30,8 +30,6 @@ export const SEED_DATA_VERSION = '2026-10-07';
  * @property {'draft'|'pending-approval'|'published'|'ongoing'|'completed'|'cancelled'} status - 活动状态（`pending-approval`＝待批，2026-09-22 批次 150 活动批准门开启时写入，默认关） - Source: knowledge/SOP/常见工作场景快速指南.md#我要组织一次党小组活动
  * @property {'branch'|'group'} visibility - 可见范围：全支部 or 党小组 - Source: knowledge/SOP/支委与党小组定人定责定岗说明.md#一、人员结构与双重身份体系
  * @property {string}  date        - 活动日期 ISO 字符串（YYYY-MM-DD）
- * @property {string}  executor    - 执行角色 - Source: knowledge/SOP/组织委员工作流程指南.md#一、工作职责总览
- * @property {string|null} supervisor - 督办角色（可为 null） - Source: knowledge/SOP/常见工作场景快速指南.md#我要组织一次党小组活动
  * @property {string}  createdBy   - 创建者用户 ID
  * @property {string}  createdAt   - 创建时间 ISO 字符串
  * @property {'normal'|'urgent'} [priority] - 优先级（工作流引擎用） - Source: knowledge/SOP/常见工作场景快速指南.md#我要组织一次党小组活动

@@ -153,7 +153,6 @@ test('D4 工作组「查看全部」按活动 / 专班两类分别落到真实�
     const activityTab = ACTIVITY_TAB[role];
     const taskforceTab = TASKFORCE_TAB[role];
     assert.ok(activityTab, `${role} 缺活动工作组目标页签`);
-    assert.ok(taskforceTab, `${role} 缺专班工作组目标页签`);
     assert.ok(REGISTERED[pageKey].has(activityTab),
       `${role} 活动工作组落到不存在的 tab="${activityTab}"（${pageKey}）`);
     // 纪检/组长：专班「查看全部」走 taskforce.html 覆盖（页签已删/不再出专班段）⇒ 不再要求页签存在。
@@ -161,6 +160,7 @@ test('D4 工作组「查看全部」按活动 / 专班两类分别落到真实�
     if (taskforceHref) {
       assert.match(taskforceHref, /^taskforce\.html$/, `${role} 专班「查看全部」应落专班详情页`);
     } else {
+      assert.ok(taskforceTab, `${role} 缺专班工作组目标页签`);
       assert.ok(REGISTERED[pageKey].has(taskforceTab),
         `${role} 专班工作组落到不存在的 tab="${taskforceTab}"（${pageKey}）`);
     }

@@ -235,7 +235,9 @@ test('工作组成员不再自动出现在纪检考察清单中', async () => {
   assert.doesNotMatch(disc, /TaskForceRecordStore|_buildTaskforceRosterHTML/);
   assert.doesNotMatch(disc, /专班名单区（组织→纪检 自动同步/);
   const org = await read('../../docs/src/entries/tabs/org/inspection-tab.js');
-  assert.match(org, /仅制度、议程或具体事项明确要求时录入/);
+  // 2026-10-20 第二轮界面细化：表单下与列表上原为同一条规则的两句话，现只留卡片脚注一处；
+  //   断言改按保留句（语义不变：仍须声明「仅明确要求的专班才录入」）。
+  assert.match(org, /仅为制度、议程或事项明确要求的专班录入考察/);
   assert.match(org, /工作组成员名单不会自动生成考察名单/);
 });
 

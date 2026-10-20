@@ -9,7 +9,7 @@
 // 本文件退化为纯考察种子数据仓。
 // 2026-09-06 基线刷新：recordedAt 随关联活动/专班时间轴同步平移（活动新日期见 activities.js 头注）；
 //   注释中旧人名同步（与 people.js 一致）。
-import { ParticipationLevel, SourceType } from '../../core/domain/domain.js?v=20261020c';
+import { ParticipationLevel, SourceType } from '../../core/domain/domain.js?v=20261020d';
 
 export const INSPECTION_RECORDS = [
   // ── 活动考察记录 ──────────────────────────────────────────
@@ -81,3 +81,15 @@ export const INSPECTION_RECORDS = [
   { id: 'insp-42', sourceType: SourceType.ACTIVITY, activityId: 'act-26', sourceName: null, personId: 'p49', level: ParticipationLevel.DEEP_PARTICIPATE, role: '记录整理',           recordedBy: 'p1',  recordedAt: '2026-08-07T21:25:00', status: 'confirmed' },
   { id: 'insp-43', sourceType: SourceType.ACTIVITY, activityId: 'act-26', sourceName: null, personId: 'p50', level: ParticipationLevel.DEEP_PARTICIPATE, role: '会后资料分发',       recordedBy: 'p1',  recordedAt: '2026-08-07T21:30:00', status: 'confirmed' },
 ];
+
+// R2-35（2026-10-20）：原 42 条种子里 39 条 `pending`，recordedAt 集中在 7–8 月 ⇒ 纪检台
+//   「考察超期未确认」（待确认 + 超过 overdueDays）首屏会被历史种子占满，真实新记录被淹没。
+// 处置：只保留**最近一批**（act-26，8/7）的 3 条 pending 作为可达演示态，其余历史记录一律 confirmed。
+// 为什么用派生循环而不是逐条改字面量：一处口径、不会漏改；mock 与 server/seed.js 同源 import 本数组，
+//   两形态同时生效（不另造服务端副本）。日期保持原 recordedAt——它们是历史事实，不随今天的日期伪造。
+const RECENT_PENDING_INSPECTION_IDS = new Set(['insp-24', 'insp-25', 'insp-26']);
+for (const record of INSPECTION_RECORDS) {
+  if (record.status === 'pending' && !RECENT_PENDING_INSPECTION_IDS.has(record.id)) {
+    record.status = 'confirmed';
+  }
+}

@@ -3055,3 +3055,36 @@ $body
 
 - 未做全库主键迁移（Phase 2）；存量 p* 仍在 mock/历史记录中。
 - 审计原文落 `.ctx/logs/archive/2026-10/{UI_REDUNDANCY_AUDIT,DATA_LIFECYCLE_AUDIT}.md`。
+
+## 批次 493（2026-10-20）：第二轮平行审查（前端冗余 × 数据生命周期）
+
+### 一、判据
+
+- 支书：「这个工作还要再来一轮」；前端重点仍是「此地无银三百两」的注释；数据侧追空值写入口、工作流硬编码、mock 漂移，不削足适履。
+- sample-diff 三样本（出勤率分母、按人已读、在办单一源）全部按建议通过；范围定为 **P1 + P2 全修**。
+
+### 二、前端
+
+- 48/48 处置：删同义标题/正文（今天·组员进展）、三层重复口径（组织考察）、108 字说明（组长考察）、102 字打回规则（组长考勤）、重复「只读」、补课双层说明、常驻「† 口径」、6 处「应到」口径、向导里的源码路径与 `npm test`。
+- 帮助页删除「从界面搬来」的版本叙事；`title=` 字段定义与跨页逐字说明按类清理。
+- 守卫：copy-length 6/6、copy-master 4/4、copy-screen 11/11、text-tier 4/4、ui-redundancy 2/2、a11y 6/6、page-sweep 21/21。
+
+### 三、数据
+
+- 出勤率：分母改应到人次（roster/在册/报名），未录为「待录入」；4 人应到 2 人到场 = 50%（旧实现 100%）。
+- 通知已读按人：共享行改 `reads[]`，旧全局 `read` 一次性回填当前人后删除；铃铛/首页/待办按当前人算。
+- 在办单一源：`isActivityInProgress` / `isTaskforceActiveStatus`；草稿与已取消不计；9 处手写状态集改引用。
+- 宣传上传人、宣传判据、`u_exec` 兜底、IAAA 建号（id=学号）、待归属支部权限（null 不回落 br-b1）全部改派生/拒绝。
+- mock 收口：在办活动 11→1、在办专班 4→1；假待办删除；过期 recruiting 收口；归档记录改 `ArchiveStore` 持久化；p4 补账号。
+- 剩余 p*：416 处 / 18 文件（Top：activities 103、inspection 84、attendance 63、people 52），留待学号迁移批。
+
+### 四、读数
+
+- `npm run test:daily`：**1271 / 1271 通过，0 断言失败**。
+- doc-line-ref 6/6、doc-consistency 21/21、timestamps/frontmatter 10/10。
+- 版本戳 `20261020c → 20261020d`。
+
+### 五、边界
+
+- 未做 p* → 学号主键迁移（BREAKING，下一批）。
+- 未改表结构；通知已读为 JSON 行内 `reads[]`；归档记录落既有 `archive_records`。

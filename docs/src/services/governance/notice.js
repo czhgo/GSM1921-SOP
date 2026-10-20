@@ -5,28 +5,38 @@
 //  独立于 mockDB 内存结构，通过 mockDB.notices 统一持久化
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../../core/domain/domain.js?v=20261020c';
-import { generateId } from '../../core/base/id.js?v=20261020c';
-import { persist, getDataSource, getApiBaseUrl, getAuthToken } from '../../data/data-adapter.js?v=20261020c';
-import { buildSystemNotice } from '../../core/domain/system-notice-templates.js?v=20261020c';
-import { bumpToken } from '../../core/base/version-token.js?v=20261020c'; // P0 域缓存失效（spec §二.3）
-import { MOCK_NOTICES } from '../../data/mock/index.js?v=20261020c';
-import { isInitStateActive } from '../core/init-reset.js?v=20261020c'; // C2 修复（2026-09-08）：init 态跳过演示种子兜底
-import { getBasePath, todayLocal } from '../../core/base/utils.js?v=20261020c';
-import { AuthStore } from '../core/auth.js?v=20261020c';
-import {  getPersonById } from '../member/person.js?v=20261020c';
-import { NoticeTodoDeriver, TodoStore, TodoSourceType, TodoStatus } from './todo.js?v=20261020c';
+import { mockDB } from '../../core/domain/domain.js?v=20261020d';
+import { generateId } from '../../core/base/id.js?v=20261020d';
+import { persist, getDataSource, getApiBaseUrl, getAuthToken } from '../../data/data-adapter.js?v=20261020d';
+import { buildSystemNotice } from '../../core/domain/system-notice-templates.js?v=20261020d';
+import { bumpToken } from '../../core/base/version-token.js?v=20261020d'; // P0 域缓存失效（spec §二.3）
+import { MOCK_NOTICES } from '../../data/mock/index.js?v=20261020d';
+import { isInitStateActive } from '../core/init-reset.js?v=20261020d'; // C2 修复（2026-09-08）：init 态跳过演示种子兜底
+import { getBasePath, todayLocal } from '../../core/base/utils.js?v=20261020d';
+import { AuthStore } from '../core/auth.js?v=20261020d';
+import {  getPersonById } from '../member/person.js?v=20261020d';
+import { NoticeTodoDeriver, TodoStore, TodoSourceType, TodoStatus } from './todo.js?v=20261020d';
 // 组织者身份读取单一源（2026-09-19 批次 91 · SOP-B-17）——发布权随「被指定为该场组织者」动态获得
-import {  getOrganizedActivities } from '../activity/activity.js?v=20261020c';
+import {  getOrganizedActivities } from '../activity/activity.js?v=20261020d';
 import {
   NOTICE_PUBLISH_ROLES, NOTICE_MANAGE_ROLES, BRANCH_COMMISSION_ROLES,
   NOTICE_AUDIENCE_SENTINELS, ROLE_LABELS,
-} from '../../core/domain/constants.js?v=20261020c';
+} from '../../core/domain/constants.js?v=20261020d';
 
 function _loadNotices() {
   try {
     // 2026-08-08 归档闭环：统一归一化 archived 字段（旧数据缺省视为未归档）
-    return (mockDB.notices || []).map(n => ({ ...n, archived: n.archived === true }));
+    // R2-49（2026-10-20）：已读改为逐人 `reads: personId[]`；旧全局 `read` 只做一次性回填——
+    //   只回填给**当前登录人**（无会话则按未读），随后删除该字段；不把「某人读过」扩散成全站已读。
+    const viewerId = _viewerPersonId();
+    return (mockDB.notices || []).map(n => {
+      const row = { ...n, archived: n.archived === true };
+      if (!Array.isArray(row.reads)) {
+        row.reads = row.read === true && viewerId ? [viewerId] : [];
+      }
+      delete row.read;
+      return row;
+    });
   } catch (e) {
     console.warn('[NoticeStore] 加载失败：', e);
     return [];
@@ -41,6 +51,29 @@ function _saveNotices(notices) {
   } catch (e) {
     console.warn('[NoticeStore] 保存失败：', e);
   }
+}
+
+// ════════════════════════════════════════════════════════════════
+//  逐人已读（R2-49，2026-10-20）
+//  为什么：通知是共享行，全局 `read` 布尔会让「广播通知任一人点开 ⇒ 所有人未读清零」。
+//  现口径：通知本体仍只有一行；已读写在行内 `reads: personId[]`（不改表结构，随 JSON 行持久化）。
+//  读侧投影：list()/getAll()/getById() 返回的每条通知都带**当前人**的 `read` 布尔，
+//  既有消费点（铃铛/首页/待办未读条）无需各自再算。
+// ════════════════════════════════════════════════════════════════
+
+/** 通知的逐人已读名单（旧行无 reads = 无人已读） */
+function _readsOf(n) {
+  return Array.isArray(n && n.reads) ? n.reads.filter(Boolean) : [];
+}
+
+/** 当前登录人 personId（无会话 = null；不得猜人） */
+function _viewerPersonId() {
+  return AuthStore.getCurrentUser()?.personId || null;
+}
+
+/** 给通知副本投影当前人的 read（不修改源行，避免把观看者信息写回共享记录） */
+function _withViewerRead(n, viewerId) {
+  return { ...n, read: viewerId ? _readsOf(n).includes(viewerId) : false };
 }
 
 // ════════════════════════════════════════════════════════════════
@@ -198,9 +231,21 @@ export const NoticeStore = {
   _notices: [],
 
   init() {
+    // R2-49：旧全局 read → 逐人 reads 的迁移只发生在权威缓存上；迁移后同步回 mockDB，
+    // 否则 _current() 优先读 mockDB 时又会拿到旧字段（迁移等于没做）。
+    // R2-49：只有**旧全局 read 字段仍在**时才需要迁移并落盘；
+    // 仅缺 reads 数组（例如服务端新行）不必整表回写，读侧按「无人已读」投影即可。
+    const needsReadMigration = (mockDB.notices || []).some(n => 'read' in n);
     const persisted = _loadNotices();
     if (persisted.length > 0) {
       this._notices = persisted;
+      if (needsReadMigration && mockDB.notices && mockDB.notices.length > 0) {
+        mockDB.notices = persisted.map(n => ({ ...n }));
+        bumpToken('notice');
+        // 迁移要真正「一次性」：数据已加载时立即落盘（mock→localStorage / api→快照），
+        // 否则下次换人登录会把旧全局 read=true 再回填给新用户。
+        if (mockDB._loaded) _saveNotices(mockDB.notices);
+      }
     } else if (isInitStateActive()) {
       // C2 修复（2026-09-08）：init 态下「无持久化通知 = 合法空支部态」——不兜底演示种子
       //（否则 MOCK_NOTICES 会经 _saveNotices 重新写回 mockDB/持久层，通知在 init 后回填 demo）。
@@ -240,7 +285,10 @@ export const NoticeStore = {
     if (this._notices.length === 0) {
       this.init();
     }
-    let result = [...this._current()];
+    // R2-49：先按**当前观看者**投影 read，再做受众/保留/排序/截断——
+    // 未读角标与「已读重要通知收起」都自动按人计算。
+    const viewerId = _viewerPersonId();
+    let result = [...this._current()].map(n => _withViewerRead(n, viewerId));
 
     // 2026-08-08 归档闭环：默认排除已归档通知（随活动/专班归档退出工作区）
     if (filter.includeArchived !== true) {
@@ -497,7 +545,10 @@ export const NoticeStore = {
   getAll({ includeArchived = false } = {}) {
     if (this._notices.length === 0) this.init();
     const src = this._current();
-    return includeArchived ? [...src] : [...src].filter(n => !n.archived);
+    const viewerId = _viewerPersonId();
+    const rows = includeArchived ? [...src] : [...src].filter(n => !n.archived);
+    // R2-49：read 是观看者投影，不得把某人的已读状态当共享事实返回。
+    return rows.map(n => _withViewerRead(n, viewerId));
   },
 
   /**
@@ -514,7 +565,7 @@ export const NoticeStore = {
     if (!id) return null;
     if (this._notices.length === 0) this.init(); // 与 list() 一致：确保初始化（_current 取 mockDB 优先、内存兜底）
     const found = this._current().find(n => n.id === id);
-    if (found) return found;
+    if (found) return _withViewerRead(found, _viewerPersonId());
     try {
       const all = TodoStore.getAll();
       const todo = all.find(t => t && t.id === id)
@@ -555,11 +606,22 @@ export const NoticeStore = {
   },
 
   markRead(id) {
+    const viewerId = _viewerPersonId();
     this._syncWithStore();
     const notice = this._notices.find(n => n.id === id);
     if (notice) {
-      notice.read = true;
-      _saveNotices(this._notices);
+      if (!viewerId) {
+        // 写口纪律：无会话不得写共享记录（也避免把「无人」记成已读）
+        console.warn('[NoticeStore] 未登录，无法标记已读；请重新登录');
+        return false;
+      }
+      const reads = _readsOf(notice);
+      if (!reads.includes(viewerId)) {
+        // R2-49：只把当前人追加进 reads；绝不写回全局 read（否则广播通知会全员已读）
+        notice.reads = [...reads, viewerId];
+        delete notice.read;
+        _saveNotices(this._notices);
+      }
     } else {
       // S1：派生通知（未持久化）确认读取 → 直接销对应通知类待办
       try {
@@ -569,12 +631,25 @@ export const NoticeStore = {
     }
     // 做事即销待办：已读自动完成「通知阅读」待办
     try { TodoStore.completeBySource(TodoSourceType.NOTICE, id); } catch (e) { console.warn('[notice] 销待办失败', e); }
+    return true;
   },
 
   markAllRead() {
+    const viewerId = _viewerPersonId();
+    if (!viewerId) {
+      console.warn('[NoticeStore] 未登录，无法全部标记已读；请重新登录');
+      return false;
+    }
     this._syncWithStore();
-    this._notices.forEach(n => { n.read = true; });
+    this._notices = this._notices.map(n => {
+      const reads = _readsOf(n);
+      if (reads.includes(viewerId)) return n;
+      const next = { ...n, reads: [...reads, viewerId] };
+      delete next.read;
+      return next;
+    });
     _saveNotices(this._notices);
+    return true;
   },
 };
 
@@ -602,7 +677,7 @@ export function canReadNotice(notice, viewer) {
   // ⑥ **站内信（`noticeType:'message'`，点对点 / 点对多人 私信）——批次 348**：
   //    可见性＝**仅发件人 ＋ 收件人**。此判**必须先于**下面的「支委层可读任意通知」兜底——
   //    否则一条两人私信会被全体支委读到，与私信语义直接冲突。
-  //    私信以 `audiencePersons` 承载收件人（发送时**逐人 fan-out**成每人一条，故 `read` 全局标量语义仍正确）。
+  //    私信以 `audiencePersons` 承载收件人（发送时**逐人 fan-out**成每人一条，故逐人 reads 语义正确）。
   if (n.noticeType === 'message') {
     if (!ctx.role) return false;                       // 无会话 → 不可读（私信不广播）
     return _isPublisher(n, ctx) || _audiencePersonsHit(n, ctx);

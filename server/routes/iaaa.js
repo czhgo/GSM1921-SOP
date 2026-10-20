@@ -160,8 +160,11 @@ export function createIaaaRouter(db) {
     let user = findByStudentId(db, ident.studentId);
     let created = false;
     if (!user) {
+      // R2-41（2026-10-20）：自助建号 id 直接用 IAAA 返回的学号/工号——
+      // 与「新成员 id = 学号」同源，避免生产入口持续制造 `p_<uuid>` 代理键、下一批迁移再洗一遍。
+      // `_verifyWithIaaa` 已保证 ident.studentId 非空；为空时不会走到这里（回调已 401）。
       user = {
-        id: `p_${randomUUID().replace(/-/g, '').slice(0, 12)}`,   // 与既有形态一致：`p_<uuid>`（见 services/member/person.js）
+        id: ident.studentId,
         name: ident.name,
         studentId: ident.studentId,
         partyGroup: '',

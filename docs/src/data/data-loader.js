@@ -3,13 +3,13 @@
 //  data-loader.js — 数据加载统一入口
 // ════════════════════════════════════════════════════════════════
 
-import { BranchService } from '../services/core/runtime.js?v=20261020c';
-import { getAppState, setState, STATE } from '../core/base/state.js?v=20261020c';
-import { notifyDataLoaded } from './data-adapter.js?v=20261020c';
-import { AuthStore } from '../services/core/auth.js?v=20261020c';
+import { BranchService } from '../services/core/runtime.js?v=20261020d';
+import { getAppState, setState, STATE } from '../core/base/state.js?v=20261020d';
+import { notifyDataLoaded } from './data-adapter.js?v=20261020d';
+import { AuthStore } from '../services/core/auth.js?v=20261020d';
 // 待批活动的可见性单一源（2026-09-22 批次 151 · 支书裁定「只支委层可见」）：`state.activities` 是仪表盘与各
 // 工作台 tab 的主读口 ⇒ 在本口按查看者角色收窄一次，覆盖首页活动日历/列表、成员台「活动动态」等全部消费点。
-import { filterActivitiesForViewer } from '../services/core/visibility.js?v=20261020c';
+import { filterActivitiesForViewer } from '../services/core/visibility.js?v=20261020d';
 
 /**
  * 将 mock ACTIVITIES 映射为带完整字段的 fallback 数据
@@ -19,10 +19,11 @@ function fallbackMapActivities(activities) {
   return activities.map(a => ({
     ...a,
     visibility: 'branch',
-    executor: a.organizer || 'u_exec',
-    supervisor: null,
-    createdBy: a.organizer || 'u_exec',
-    createdAt: a.date || new Date().toISOString(),
+    // R2-12：装载兜底不得伪造操作人（原 `|| 'u_exec'` 会把活动记到不存在的账号）；
+    // 有组织者则沿用其 personId，缺失保持 null，读侧显示「—」。
+    // R2-13：executor/supervisor 已从活动模型下线，兜底映射不再生成这两个字段。
+    createdBy: a.createdBy || a.organizer || null,
+    createdAt: a.createdAt || a.date || new Date().toISOString(),
   }));
 }
 

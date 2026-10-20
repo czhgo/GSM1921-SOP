@@ -276,7 +276,7 @@ for (const w of WORKS) {
       }
       await page.waitForTimeout(800);
       // P0-2 形态断言（2026-09-23 支书裁定「形态必须可断言、不许静默降级」）：本文件真机用例必须在 API 形态下跑
-      await page.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20261020c')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
+      await page.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20261020d')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
 
       // 只数**工作台页签条**（`aria-label="工作台页签"`）里的 role=tab；页面内二级分段
       //   （党委台「撰写 / 已发送」「待批复 / 已处理」、成员台「列表 / 日历 / 查询」）同样是 role=tab，
@@ -443,7 +443,7 @@ test('S21 组织台活动深链：?activityId / ?view=activities 落「活动日
     await page.waitForTimeout(800);
     // 取一个真实活动（优先「非当前月」者，顺带验证切月）
     const acts = await page.evaluate(async () => {
-      const m = await import('/src/core/base/state.js?v=20261020c');
+      const m = await import('/src/core/base/state.js?v=20261020d');
       return ((m.getAppState() || {}).activities || []).map((x) => ({ id: x.id, date: x.date }));
     });
     assert.ok(acts.length > 0, '组织台活动深链用例：未取到任何活动（样本不足）');
@@ -518,15 +518,15 @@ test('S1 普查非空转：确实覆盖到「本该分页的列表 / 矩阵人�
     `P11 待修台账僵尸：以下条目在真机里再也命中不到——已修好则应删条目，否则说明选择器失配：\n  ${zombie.map((p) => `${p.where} [${p.sig}]`).join('\n  ')}`);
 });
 
-// S22（2026-10-18 繁专项 Task 14）：组织台深度审阅后的三个落点/文案守卫（静态层，随普查同文件收口）。
+// S22（R2-30，2026-10-20 改准）：组织台落点必须是**结构化映射**，不得再靠 DOM 文案补丁。
 test('S22 组织台概况缺口有真实落点，履职卡不再指向已摘除的 development', () => {
-  const src = readFileSync(join(import.meta.dirname, '..', '..', 'docs', 'src', 'entries', 'tabs', 'org', 'overview-tab.js'), 'utf8');
-  assert.match(src, /\.wfd-duty\[data-tab="development"\]/, '须定位旧履职落点');
-  assert.match(src, /setAttribute\('data-tab', 'talent'\)/, '发展党员改落人才库');
-  assert.match(src, /data-org-gap-tab/, '条线缺口行须补动作');
-  assert.match(src, /_gotoOrgTab\(action\.tab\)/, '缺口动作须切到真实页签');
-  for (const tab of ['taskforce', 'calendar', 'roster', 'talent', 'thought-review']) {
-    assert.ok(src.includes(`tab: '${tab}'`), `缺口动作缺少真实页签：${tab}`);
+  const orgOverview = readFileSync(join(import.meta.dirname, '..', '..', 'docs', 'src', 'entries', 'tabs', 'org', 'overview-tab.js'), 'utf8');
+  assert.doesNotMatch(orgOverview, /data-org-gap-tab|\.wfd-duty\[data-tab="development"\]/, '不得再按 DOM 文案补按钮 / 原地改 data-tab');
+  const duty = readFileSync(join(import.meta.dirname, '..', '..', 'docs', 'src', 'components', 'governance', 'workforce-duty-card.js'), 'utf8');
+  assert.match(duty, /'develop-party-member': 'talent'/, '发展党员须直接映射人才库');
+  const overview = readFileSync(join(import.meta.dirname, '..', '..', 'docs', 'src', 'components', 'governance', 'work-overview.js'), 'utf8');
+  for (const tab of ['taskforce', 'calendar', 'roster']) {
+    assert.ok(overview.includes(`gapTab: '${tab}'`), `条线缺口缺少结构化落点：${tab}`);
   }
 });
 

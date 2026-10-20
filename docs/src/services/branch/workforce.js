@@ -9,21 +9,21 @@
 //   议题 extras 记 voteOutcome {status,tally,needed,evaluatedAt}；会前草稿=支书台暂存。
 // R2-3（2026-09-06 支书裁，附录⑩ S2）：门槛改「应到会人数超过 2/3 且无反对」——
 //   出席须严格超过应到 2/3（整界不过），反对=0（'object' 异议与 'oppose' 反对同口径），弃权允许。
-import { BranchService } from '../core/runtime.js?v=20261020c';
-import { NoticeStore } from '../governance/notice.js?v=20261020c';
-import { defaultVoteConfig, resolveVoterIds } from '../activity/vote-config.js?v=20261020c';
-import { ROLE_LABELS } from '../../core/domain/constants.js?v=20261020c';
-import { POLICY_DEFAULTS } from '../../core/domain/policy-defaults.js?v=20261020c';
-import { WORK_MAP_MODULES, mergeWorkforceSnapshot, canDisableModule, ORG_SUBJECT_LABELS } from '../../core/domain/work-map.js?v=20261020c';
-import { getPersonName } from '../member/person.js?v=20261020c';
-import { AuthStore } from '../core/auth.js?v=20261020c';
-import { getBranchWorkforce, updateBranchWorkforce } from './branch.js?v=20261020c';
-import { fetchVotesStrict } from '../activity/committee-vote.js?v=20261020c';
-import { TodoStore, TodoCategory, TodoSourceType, WORK_DOMAIN } from '../governance/todo.js?v=20261020c';
+import { BranchService } from '../core/runtime.js?v=20261020d';
+import { NoticeStore } from '../governance/notice.js?v=20261020d';
+import { defaultVoteConfig, resolveVoterIds } from '../activity/vote-config.js?v=20261020d';
+import { ROLE_LABELS } from '../../core/domain/constants.js?v=20261020d';
+import { POLICY_DEFAULTS } from '../../core/domain/policy-defaults.js?v=20261020d';
+import { WORK_MAP_MODULES, mergeWorkforceSnapshot, canDisableModule, ORG_SUBJECT_LABELS } from '../../core/domain/work-map.js?v=20261020d';
+import { getPersonName } from '../member/person.js?v=20261020d';
+import { AuthStore, currentUserId } from '../core/auth.js?v=20261020d';
+import { getBranchWorkforce, updateBranchWorkforce } from './branch.js?v=20261020d';
+import { fetchVotesStrict } from '../activity/committee-vote.js?v=20261020d';
+import { TodoStore, TodoCategory, TodoSourceType, WORK_DOMAIN } from '../governance/todo.js?v=20261020d';
 // 2026-09-28 修（去表决 dogfood）：议题议程项须带 id，线上表态位（.vote-widget-slot / .vote-panel-slot
 //   仅在议程项含 id 时渲染）才成立；原实现无 id ⇒ 表决入口页「该条无表决编号」，谁也投不了票。
-import { generateId } from '../../core/base/id.js?v=20261020c';
-import { todayLocal } from '../../core/base/utils.js?v=20261020c';
+import { generateId } from '../../core/base/id.js?v=20261020d';
+import { todayLocal } from '../../core/base/utils.js?v=20261020d';
 
 export const WORKFORCE_PROPOSAL_KIND = 'workforce-proposal';
 
@@ -149,6 +149,9 @@ export async function createWorkforceProposalActivity(branchId, changes, note = 
   if (clean.length === 0) throw new Error('改派清单为空：请选择要调整的模块与目标负责人');
 
   const lines = clean.map((c) => `- ${moduleName(c.moduleId)}：现任 ${ownerDisplay(getBranchWorkforce(branchId)[c.moduleId])} → 拟改派 ${ownerDisplay(c.to)}`);
+  // R2-12：活动创建人/组织者必须是当前登录人；无会话拒绝写入（不再由数据层落伪用户）。
+  const actorId = currentUserId();
+  if (!actorId) throw new Error('登录状态已失效，请重新登录后再发起分工调整');
   const activity = await BranchService.createActivity({
     type: '支委会',
     scenarioId: 'branch-committee',
@@ -158,6 +161,8 @@ export async function createWorkforceProposalActivity(branchId, changes, note = 
     date: date || todayLocal(),
     status: 'published',
     visibility: 'group',
+    organizer: actorId,
+    createdBy: actorId,
     // 新支委会表决活动（支书 2026-09-06 ②批）：voterIds 固化 = 现时支委应到名单
     // （支委若滞留则剔，roster 口径；历史活动快照不回改）
     voteConfig: { ...defaultVoteConfig('branch-committee'), voterIds: resolveVoterIds('committee') }, // deliberative / committee / quorum=false

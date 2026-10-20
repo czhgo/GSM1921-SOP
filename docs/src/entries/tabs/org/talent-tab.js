@@ -9,21 +9,23 @@
 //   · 读侧数据不动写（除页面跳转外无任何保存/报送控件）。
 // 保留「人才库=只读画像、名册=档案维护」页内注释与引导文案。
 
-import { loadInspectionRecords } from '../../../services/activity/inspection.js?v=20261020c';
+import { loadInspectionRecords } from '../../../services/activity/inspection.js?v=20261020d';
 // ⚠ 2026-10-01 批次 321（支书 V-10 取「乙：整页并入人才库」）：原「发展数据」tab 的**活动参与汇总**卡
 //   并入本页——「参与工作情况」正是**考察**的主体，支书原话「**考察就是维护人才库的过程！！**」。
-import { listActivityParticipationByPerson } from '../../../services/activity/attendance.js?v=20261020c';
-import { loadThoughtReports } from '../../../services/governance/thought-report.js?v=20261020c';
-import { PersonStore, getPersonName } from '../../../services/member/person.js?v=20261020c';
+import { listActivityParticipationByPerson } from '../../../services/activity/attendance.js?v=20261020d';
+// R2-15（2026-10-20）：预备期月数改由制度参数派生（原 12/9 写死在本页）
+import { POLICY_DEFAULTS } from '../../../core/domain/policy-defaults.js?v=20261020d';
+import { loadThoughtReports } from '../../../services/governance/thought-report.js?v=20261020d';
+import { PersonStore, getPersonName } from '../../../services/member/person.js?v=20261020d';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/member/person.js 获取（原直连 mock PEOPLE）
-import { getResidenceOf } from '../../../services/member/roster.js?v=20261020c';
+import { getResidenceOf } from '../../../services/member/roster.js?v=20261020d';
 // Q-21-3 收敛（2026-09-13）：在册状态枚举单一源 = core/domain/constants.js（原经 roster.js 转出）
-import { RESIDENCE } from '../../../core/domain/constants.js?v=20261020c';
+import { RESIDENCE } from '../../../core/domain/constants.js?v=20261020d';
 // B5（2026-09-12）：搜索 + 阶段/党小组筛选已统一接入 components/ui/list-filter.js（分面枚举由引擎 auto 派生）
-import { listPendingConfirmations, lastApprovedStageChange } from '../../../services/member/member-confirmation.js?v=20261020c';
-import { escHtml as esc, getBasePath } from '../../../core/base/utils.js?v=20261020c';
+import { listPendingConfirmations, lastApprovedStageChange } from '../../../services/member/member-confirmation.js?v=20261020d';
+import { escHtml as esc, getBasePath } from '../../../core/base/utils.js?v=20261020d';
 // 统一检索引擎（2026-09-13 表格统一化批次 A）：成员卡列表接入关键词 + 分面（替代原手写三控件显隐过滤）
-import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261020c';
+import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261020d';
 
 // 发展阶段顺序（发展流程正向：入党申请人 → 积极分子 → 发展对象 → 预备党员 → 正式党员）
 const STAGE_ORDER = ['积极分子', '发展对象', '预备党员', '正式党员'];
@@ -52,11 +54,16 @@ function _truncate(text, len) {
   return s.length > len ? s.slice(0, len) + '…' : s;
 }
 
-/** 距今天的月份数（近似满期提示用；dateStr 非法返回 0） */
+/**
+ * 距今天的**整月**数（R2-15：原按年月差，忽略日 ⇒ 每月同日前后最多一个月偏差）。
+ * 口径：只有「日」达到起始日才算满一个月；dateStr 非法返回 0。
+ */
 function _monthsSince(dateStr, now = new Date()) {
   const d = new Date(String(dateStr || '').slice(0, 10) + 'T00:00:00');
   if (Number.isNaN(d.getTime())) return 0;
-  return (now.getFullYear() - d.getFullYear()) * 12 + (now.getMonth() - d.getMonth());
+  let months = (now.getFullYear() - d.getFullYear()) * 12 + (now.getMonth() - d.getMonth());
+  if (now.getDate() < d.getDate()) months -= 1;
+  return Math.max(0, months);
 }
 
 /**
@@ -90,9 +97,12 @@ function _devTips(person, counts, ctx) {
     const ch = lastApprovedStageChange(person.id);
     if (ch && ch.at) {
       const months = _monthsSince(ch.at);
-      if (months >= 12) {
+      // R2-15：12/9 个月由制度参数派生，不在页面重复字面量。
+      const full = POLICY_DEFAULTS.member?.probation?.completeMonths ?? 12;
+      const prep = POLICY_DEFAULTS.member?.probation?.prepMonths ?? 9;
+      if (months >= full) {
         tips.push({ cls: 'bg-green-50 text-green-700 border border-green-100', text: `预备期已满（${String(ch.at).slice(0, 10)} 起满一年），可启动转正流程`, jump: true });
-      } else if (months >= 9) {
+      } else if (months >= prep) {
         tips.push({ cls: 'bg-green-50 text-green-700 border border-green-100', text: `预备期将满（${String(ch.at).slice(0, 10)} 起），可筹备转正申请`, jump: true });
       }
     }
@@ -116,7 +126,7 @@ function _participationCardHtml(part) {
         <h3 class="font-title-cn text-base font-semibold text-gray-800">活动参与汇总</h3>
         <span class="text-xs text-gray-500">${part.rows.length} 人 · 以人为第一列（写工作总结可直接引用）</span>
       </div>
-      <p class="text-xs text-gray-500 mb-3">参与＝出勤 / 已补（线上参会只免补课、不计入出席，故不计入）；请假 / 缺勤不计。</p>
+      <p class="text-xs text-gray-500 mb-3">参与＝出勤 / 已补；请假 / 缺勤不计。</p>
       <div class="overflow-x-auto"><div id="org-part-list"></div></div>
     </div>
   `;
@@ -225,7 +235,7 @@ export function renderContent(ctx) {
       <div class="flex items-center justify-between mb-2 flex-wrap gap-2">
         <h3 class="font-title-cn text-base font-semibold text-gray-800">人才库</h3>
         <div class="flex items-center flex-wrap justify-end gap-x-3 gap-y-0.5 text-xs text-gray-500">
-          <span title="统计范围：本支部在册成员（不含党委组织员等非本支部人员），与「成员名册」同口径">成员 <span class="tabular-nums font-medium text-gray-700">${people.length}</span> 人<sup class="ml-0.5 text-gray-400">†</sup></span>
+          <span>成员 <span class="tabular-nums font-medium text-gray-700">${people.length}</span> 人</span>
           <span>考察摘要 <span class="tabular-nums font-medium text-gray-700">${inspections.filter(r => r && r.personId).length}</span> 条</span>
           <span>思想汇报已归档 <span class="tabular-nums font-medium text-gray-700">${thoughts.filter(t => t && t.personId).length}</span> 篇</span>
           <span>发展提示 <span class="tabular-nums font-medium ${tipCount > 0 ? 'text-amber-700' : 'text-gray-700'}">${tipCount}</span> 人</span>
@@ -237,7 +247,6 @@ export function renderContent(ctx) {
            同批（支书 V-11）：「† 口径」里删去「不含党委组织员等非本支部人员」一句——本仓即**支部系统**，
            在册成员的取值本不含非本支部人员，多这一句只是把界面上本已成立的事再讲一遍。 -->
 
-      <p class="text-[11px] text-gray-400 mb-1">† 口径：本支部在册成员（全量列出，不按发展阶段筛）；**发展阶段变更的写入位＝个人总表**（点姓名或提示行直达）。</p>
       ${inspGapCount ? `<p class="text-xs text-gray-500 mb-1">${inspGapCount} 人尚无考察记录，发展材料待积累</p>` : ''}
       <div id="talent-list"></div>
     </div>
@@ -317,7 +326,7 @@ function _renderInspectionSlot(container, ctx) {
     _renderInspectionSlot(container, ctx);
   });
   if (_inspSlotOpen) {
-    import('./inspection-tab.js?v=20261020c').then((m) => {
+    import('./inspection-tab.js?v=20261020d').then((m) => {
       const body = host.querySelector('#talent-insp-body');
       m.renderContent(ctx, body);
       _normalizeInspectionCopy(body);

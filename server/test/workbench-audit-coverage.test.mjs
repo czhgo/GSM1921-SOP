@@ -117,7 +117,10 @@ test('支书台 Task 17 回修：党小组标题去重 + 活动卡完整页出�
   assert.match(GROUP_PROGRESS_TAB, />选择党小组</, '组切换卡标题须为「选择党小组」');
   assert.match(GROUP_PROGRESS_TAB, />组员汇报（待答复）</, '汇报卡须按内容命名为「组员汇报（待答复）」');
   assert.ok(!GROUP_PROGRESS_TAB.includes('>组员进展摘要<'), '不得再出现名不副实的「组员进展摘要」');
-  assert.ok(!GROUP_PROGRESS_TAB.includes('>跨组进展</h4>'), '展开区内不得重复折叠壳的「跨组进展」标题');
+  // 2026-10-20 第二轮界面细化：折叠壳标题改为「跨组进展」（去「只读知情」括注）⇒ 改用「只出现一次」
+  //   断言（原来用 `!includes` 管「内层不重复」，标题变短后会误伤折叠壳自身）。
+  const progressTitleHits = GROUP_PROGRESS_TAB.match(/>跨组进展<\/h4>/g) || [];
+  assert.equal(progressTitleHits.length, 1, '「跨组进展」标题只应出现在折叠壳一处（内层仍是「选择党小组」）');
 
   // ② calendar：右栏活动卡补完整页出口（复用 activity.html?id=，与左栏同落点）
   assert.match(CALENDAR_TAB, /_decorateInspectorActivityLinks\(\)/, '右栏渲染后须补详情链接');
@@ -202,7 +205,9 @@ test('组长/成员台 Task 16：写入口径、考察范围、组员进度与�
 
   // ② 组长 inspection：说明改准；明细按本组活动收窄；organizer 投影分支保留
   const insp = read('docs/src/entries/tabs/leader/inspection-tab.js');
-  assert.match(insp, /本组活动的考察上传/, '页头说明须收窄为「本组活动的考察上传」');
+  // 2026-10-20 第二轮界面细化：108 字页头说明压成「仅本组活动」＋ help 深链；
+  //   断言随保留句改（语义不变：说明仍须把范围收窄到本组活动）。
+  assert.match(insp, /仅本组活动/, '页头说明须收窄为「仅本组活动」');
   assert.match(insp, /groupActivityIds\.has\(r\.activityId\)/, '明细须按本组活动 id 收窄');
   assert.match(insp, /本组活动考察明细/, '明细区须有本组范围标题');
   assert.match(insp, /if \(!isOrganizerScope\) \{\s*renderFilteredList\(container\.querySelector\('#insp-list-host'\)/, 'organizer 投影分支不得渲染全量明细');

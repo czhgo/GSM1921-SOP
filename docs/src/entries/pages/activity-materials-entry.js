@@ -12,24 +12,24 @@
 //   · 材料读取：`mockDB.imageRecords` / `loadAttendanceRecords` / `mockDB.inspections` / `loadActivityReviews`；
 //   · 归档写口：`services/core/mock.js::archiveActivity`（经 BranchService 暴露，与宣传台 / 支书台同源）；
 //   · 空态：`components/ui/empty-state.js`；浮窗：`components/ui/modal.js`；版本戳：`core/base/version-token.js`。
-import { renderSidebar } from '../../components/shell/sidebar.js?v=20261020c';
-import { renderHeader } from '../../components/shell/header.js?v=20261020c';
-import { BranchService } from '../../services/core/runtime.js?v=20261020c';
-import { mockDB, ReviewStatus } from '../../core/domain/domain.js?v=20261020c';
-import { loadAttendanceRecords } from '../../services/activity/attendance.js?v=20261020c';
-import { loadActivityReviews } from '../../services/governance/review.js?v=20261020c';
-import { AuthStore } from '../../services/core/auth.js?v=20261020c';
-import { isActivityArchived } from '../../core/domain/constants.js?v=20261020c';
-import { getBasePath, escHtml as esc, showToast } from '../../core/base/utils.js?v=20261020c';
-import { resolveMaterialHref, resolveMaterialHandoff, resolveMaterialRoleNote } from '../../core/domain/material-links.js?v=20261020c';
+import { renderSidebar } from '../../components/shell/sidebar.js?v=20261020d';
+import { renderHeader } from '../../components/shell/header.js?v=20261020d';
+import { BranchService } from '../../services/core/runtime.js?v=20261020d';
+import { mockDB, ReviewStatus } from '../../core/domain/domain.js?v=20261020d';
+import { loadAttendanceRecords } from '../../services/activity/attendance.js?v=20261020d';
+import { loadActivityReviews } from '../../services/governance/review.js?v=20261020d';
+import { AuthStore } from '../../services/core/auth.js?v=20261020d';
+import { isActivityArchived } from '../../core/domain/constants.js?v=20261020d';
+import { getBasePath, escHtml as esc, showToast } from '../../core/base/utils.js?v=20261020d';
+import { resolveMaterialHref, resolveMaterialHandoff, resolveMaterialRoleNote } from '../../core/domain/material-links.js?v=20261020d';
 // 材料页可见性单一源（C11）：与活动列表 / 详情页同判据，待批活动不能凭 id 被非支委层读到
-import { isActivityVisibleTo } from '../../services/core/visibility.js?v=20261020c';
-import { emptyStateHtml } from '../../components/ui/empty-state.js?v=20261020c';
-import { openModal, closeModal } from '../../components/ui/modal.js?v=20261020c';
-import { bumpToken } from '../../core/base/version-token.js?v=20261020c';
-import { hydrateDataSource, notifyDataLoaded } from '../../data/data-adapter.js?v=20261020c';
-import { ApiAdapter } from '../../data/api-adapter.js?v=20261020c';
-import { settleWrites } from '../../core/session/pending-writes.js?v=20261020c';
+import { isActivityVisibleTo } from '../../services/core/visibility.js?v=20261020d';
+import { emptyStateHtml } from '../../components/ui/empty-state.js?v=20261020d';
+import { openModal, closeModal } from '../../components/ui/modal.js?v=20261020d';
+import { bumpToken } from '../../core/base/version-token.js?v=20261020d';
+import { hydrateDataSource, notifyDataLoaded } from '../../data/data-adapter.js?v=20261020d';
+import { ApiAdapter } from '../../data/api-adapter.js?v=20261020d';
+import { settleWrites } from '../../core/session/pending-writes.js?v=20261020d';
 
 renderSidebar('dashboard');
 renderHeader('dashboard');
@@ -173,7 +173,6 @@ function render() {
           <p class="text-xs text-gray-600 mt-1">归档记录 ${archiveRecords.length} 条（宣传台材料归档）；补交材料仍走宣传台。</p>
         </div>` : `
         <div class="rounded-xl border border-gray-100 px-4 py-3">
-          <p class="text-xs text-gray-600 leading-6">提交归档后，活动移出工作区，仍可查阅和补交材料；并级联完成本场未完成任务。</p>
           ${_archiveError ? `<p class="mt-2 text-xs text-red-700" role="alert">归档失败：${esc(_archiveError)}</p>` : ''}
           <div class="mt-3 flex items-center gap-2">
             ${canArchive
@@ -247,7 +246,6 @@ function _confirmArchive(act, materials) {
     ${missing
       ? `<p class="text-xs text-amber-700 leading-6">以下核心材料仍缺：<b>${esc(missing)}</b>。归档后仍可在宣传台补交材料。</p>`
       : '<p class="text-xs text-green-700 leading-6">核心材料已齐（宣传材料 / 考勤 / 考察）。</p>'}
-    <p class="text-xs text-gray-600 leading-6 mt-2">提交归档后，活动移出工作区，仍可查阅和补交材料；并级联完成本场未完成任务。该动作留痕于活动主源。</p>
     <div class="flex justify-end gap-2 mt-4">
       <button type="button" data-materials-cancel class="btn-outline" style="cursor:pointer;">取消</button>
       <button type="button" data-materials-confirm class="btn-accent" style="cursor:pointer;">${missing ? '仍要归档' : '确认归档'}</button>

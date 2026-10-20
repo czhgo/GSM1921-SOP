@@ -7,24 +7,24 @@
 //         content/04_web_design/design-system/DESIGN_SYSTEM.md §一 第2条 最小三成本
 // ════════════════════════════════════════════════════════════════
 
-import { loadAttendanceRecords, loadActiveAttendanceRecords, listLowAttendanceSessions } from '../activity/attendance.js?v=20261020c';
-import { loadActivities } from '../activity/activity.js?v=20261020c';
-import { loadInspectionRecords, getOverdueRecords } from '../activity/inspection.js?v=20261020c';
-import { TaskForceRecordStore } from '../activity/taskforce.js?v=20261020c';
-import { loadActivityReviews, loadActiveActivityReviews } from './review.js?v=20261020c';
-import { NoticeStore } from './notice.js?v=20261020c';
-import { TodoStore, seedTodos, TodoCategory, TodoActionType, REALTIME_GROUP_DOMAIN, WORK_DOMAIN } from './todo.js?v=20261020c';
-import { tokenOf } from '../../core/base/version-token.js?v=20261020c'; // P0 域缓存失效（spec §二.3/§二.4）
-import { PEOPLE } from '../../data/mock/index.js?v=20261020c';
-import { getPersonById } from '../member/person.js?v=20261020c';
-import { ROLE_LABELS, isActivityEnded, isActivityArchived } from '../../core/domain/constants.js?v=20261020c';
-import { mockDB, AttendanceStatus, ReviewStatus } from '../../core/domain/domain.js?v=20261020c';
-import { persist } from '../../data/data-adapter.js?v=20261020c'; // 周期归档审核写口落盘（SOP-B-40 ②）
+import { loadAttendanceRecords, loadActiveAttendanceRecords, listLowAttendanceSessions, summarizeAttendanceByActivity } from '../activity/attendance.js?v=20261020d';
+import { loadActivities } from '../activity/activity.js?v=20261020d';
+import { loadInspectionRecords, getOverdueRecords } from '../activity/inspection.js?v=20261020d';
+import { TaskForceRecordStore } from '../activity/taskforce.js?v=20261020d';
+import { loadActivityReviews, loadActiveActivityReviews } from './review.js?v=20261020d';
+import { NoticeStore } from './notice.js?v=20261020d';
+import { TodoStore, seedTodos, TodoCategory, TodoActionType, REALTIME_GROUP_DOMAIN, WORK_DOMAIN } from './todo.js?v=20261020d';
+import { tokenOf } from '../../core/base/version-token.js?v=20261020d'; // P0 域缓存失效（spec §二.3/§二.4）
+import { PEOPLE } from '../../data/mock/index.js?v=20261020d';
+import { getPersonById } from '../member/person.js?v=20261020d';
+import { ROLE_LABELS, isActivityEnded, isActivityArchived, isActivityInProgress } from '../../core/domain/constants.js?v=20261020d';
+import { mockDB, AttendanceStatus, ReviewStatus, isTaskforceActiveStatus } from '../../core/domain/domain.js?v=20261020d';
+import { persist } from '../../data/data-adapter.js?v=20261020d'; // 周期归档审核写口落盘（SOP-B-40 ②）
 // 批4（2026-09-09 支书批「域参数」副本收编）：本文件 4 组提醒阈值/deadline 一律引 policy 单一源派生，
 // 勿再写字面量（attendance.entryRemindDays/summaryDeadlineDays · inspection.overdueDays ·
 // review.overdueDays/deadlineDays——读侧注入后自动跟随域覆盖值）
-import { POLICY_DEFAULTS } from '../../core/domain/policy-defaults.js?v=20261020c';
-import { todayLocal, _fmtDate } from '../../core/base/utils.js?v=20261020c';
+import { POLICY_DEFAULTS } from '../../core/domain/policy-defaults.js?v=20261020d';
+import { todayLocal, _fmtDate } from '../../core/base/utils.js?v=20261020d';
 
 // ════════════════════════════════════════════════════════════════
 //  工具函数
@@ -177,18 +177,17 @@ export const SecretaryOverviewStore = {
         it.deadline && it.deadline < today
       ).length, 0);
 
-      // ② 在办活动：未归档、非完结态，且本人为组织者或项目成员
+      // ② 在办活动：统一判据 isActivityInProgress（排除草稿/已取消/已结束）；本人为组织者或项目成员
       const relatedActivities = activities.filter(a =>
-        !isActivityArchived(a) &&
-        a.status !== 'completed' && a.status !== 'cancelled' && a.status !== 'draft' &&
+        isActivityInProgress(a) &&
         (personIdSet.has(a.organizer) ||
           (Array.isArray(a.assignments) && a.assignments.some(x => personIdSet.has(x.personId))))
       );
 
-      // ③ 在办专班：进行中/招募中，且本人为 manager/initiator/成员
+      // ③ 在办专班：canonical 单一源 TASKFORCE_ACTIVE_STATUSES（recruiting/active）
       //     关系标注：manager=统筹（组织委员职责）/ initiator=发起 / member=成员
       const relatedTaskforces = taskforces.filter(tf =>
-        (tf.status === 'active' || tf.status === 'recruiting') &&
+        isTaskforceActiveStatus(tf.status) &&
         (personIdSet.has(tf.manager) || personIdSet.has(tf.initiator) ||
           (Array.isArray(tf.members) && tf.members.some(m => personIdSet.has(m.personId))))
       ).map(tf => {
@@ -224,10 +223,11 @@ export const SecretaryOverviewStore = {
     const monthActivityIds = new Set(
       activities.filter(a => (a.date || '').startsWith(thisMonth)).map(a => a.id)
     );
-    // P1（2026-09-07）：records 多遍 filter 合并为单遍（口径不变——出勤/缺勤统计仅本月；
+    // P1（2026-09-07）：records 多遍 filter 合并为单遍（口径不变——absent 列表仅本月；
     // absent/made_up 全集仍跨全部活跃记录，供补课未完成数判定）
-    let total = 0;
-    let present = 0;
+    // R2-46（2026-10-20）：出勤率分母改为**应到人次**（活动冻结 roster ∪ 实际到场），
+    //   单一源 = attendance.js::summarizeAttendanceByActivity（纪检台同一读口），
+    //   不再用「本月已录记录数」当分母——否则只录 3 条全勤也会显示 100%。
     const monthAbsent = []; // 本月缺席 personId（原 monthRecords.filter(ABSENT) 序列，去重后用于列表）
     const absentIds = new Set(); // 全部活跃记录缺席 personId（原 records.filter(ABSENT)）
     const madeUpIds = new Set(); // 全部活跃记录已补 personId（原 records.filter(MADE_UP)）
@@ -235,13 +235,12 @@ export const SecretaryOverviewStore = {
       const st = r.status;
       if (st === AttendanceStatus.ABSENT) absentIds.add(r.personId);
       else if (st === AttendanceStatus.MADE_UP) madeUpIds.add(r.personId);
-      if (monthActivityIds.has(r.activityId)) {
-        total += 1;
-        if (st === AttendanceStatus.PRESENT || st === AttendanceStatus.MADE_UP) present += 1;
-        else if (st === AttendanceStatus.ABSENT) monthAbsent.push(r.personId);
-      }
+      if (monthActivityIds.has(r.activityId) && st === AttendanceStatus.ABSENT) monthAbsent.push(r.personId);
     }
-    const attendanceRate = total > 0 ? Math.round((present / total) * 100) : 0;
+    // 覆盖率 = 已录 / 应到：为 0 时表示本月还没有可判读的考勤，出勤率应显示「待录入」而不是 0%/100%。
+    const monthSummary = summarizeAttendanceByActivity({ month: thisMonth, records });
+    const hasRecorded = monthSummary.total > 0 && monthSummary.recordedTotal > 0;
+    const attendanceRate = hasRecorded ? monthSummary.rate : null;
 
     // 出勤率偏低**提示**（SOP-B-15 / SOP-B-7，2026-09-18 批次 85）：**只作提示、不触发任何动作**
     // （不生成补课 / 不影响评优 / 不生成任何处置）。判据 = 提示线（可调参数 attendance.lowRateHint，
@@ -264,7 +263,11 @@ export const SecretaryOverviewStore = {
     const makeupPending = [...absentIds].filter(id => !madeUpIds.has(id)).length;
 
     return {
-      attendanceRate,
+      attendanceRate,             // 应到人次口径；未录 = null（呈现层显示「待录入」）
+      attendancePending: !hasRecorded,
+      attendanceTotal: monthSummary.total,       // 本月应到人次
+      attendancePresent: monthSummary.presentTotal,
+      attendanceCoverage: monthSummary.coverage, // 已录 / 应到
       alert: lowRate.rows.length > 0,
       lowRateHint: lowRate.hint,
       lowSessions: lowRate.rows,
@@ -309,25 +312,23 @@ export const SecretaryOverviewStore = {
     const activities = loadActivities();
     const reviews    = loadActivityReviews();
 
-    // 进行中活动数（未归档的）
-    const activeActivities = activities.filter(a => !isActivityArchived(a)).length;
+    // 在办活动数（统一判据：排除 draft/cancelled/completed/archived）
+    const activeActivities = activities.filter(a => isActivityInProgress(a)).length;
 
-    // 进行中专班数（status=active + recruiting）
+    // 在办专班数（canonical 单一源 = TASKFORCE_ACTIVE_STATUSES）
     const taskforces = TaskForceRecordStore.list();
-    const activeTaskforces = taskforces.filter(tf =>
-      tf.status === 'active' || tf.status === 'recruiting'
-    ).length;
+    const activeTaskforces = taskforces.filter(tf => isTaskforceActiveStatus(tf.status)).length;
 
-    // 待赋权活动数（bottom-up 且主源 assignments 中无组织者）
+    // 待赋权活动数（bottom-up 且在办，主源 assignments 中无组织者）
     const pendingAuth = activities.filter(a =>
-      !isActivityArchived(a) &&
+      isActivityInProgress(a) &&
       a.direction === 'bottom-up' &&
       !(a.assignments || []).some(x => x.role === 'organizer')
     ).length;
 
     // 复盘问题数（支书 2026-08-10 裁定：复盘率 100% 目标会诱导"随意提交凑数"→ 目标异化；
     // 从最初设定就只希望大家提交真问题——改问题导向，计量活跃活动复盘中提出的真问题数量）
-    const activeReviewIds = new Set(activities.filter(a => !isActivityArchived(a)).map(a => a.id));
+    const activeReviewIds = new Set(activities.filter(a => isActivityInProgress(a)).map(a => a.id));
     const reviewIssues = reviews
       .filter(r => activeReviewIds.has(r.activityId))
       .reduce((sum, r) => sum + (Array.isArray(r.issues) ? r.issues.length : 0), 0);
