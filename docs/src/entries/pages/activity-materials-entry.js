@@ -12,24 +12,24 @@
 //   · 材料读取：`mockDB.imageRecords` / `loadAttendanceRecords` / `mockDB.inspections` / `loadActivityReviews`；
 //   · 归档写口：`services/core/mock.js::archiveActivity`（经 BranchService 暴露，与宣传台 / 支书台同源）；
 //   · 空态：`components/ui/empty-state.js`；浮窗：`components/ui/modal.js`；版本戳：`core/base/version-token.js`。
-import { renderSidebar } from '../../components/shell/sidebar.js?v=20261020e';
-import { renderHeader } from '../../components/shell/header.js?v=20261020e';
-import { BranchService } from '../../services/core/runtime.js?v=20261020e';
-import { mockDB, ReviewStatus } from '../../core/domain/domain.js?v=20261020e';
-import { loadAttendanceRecords } from '../../services/activity/attendance.js?v=20261020e';
-import { loadActivityReviews } from '../../services/governance/review.js?v=20261020e';
-import { AuthStore } from '../../services/core/auth.js?v=20261020e';
-import { isActivityArchived } from '../../core/domain/constants.js?v=20261020e';
-import { getBasePath, escHtml as esc, showToast } from '../../core/base/utils.js?v=20261020e';
-import { resolveMaterialHref, resolveMaterialHandoff, resolveMaterialRoleNote } from '../../core/domain/material-links.js?v=20261020e';
+import { renderSidebar } from '../../components/shell/sidebar.js?v=20261020f';
+import { renderHeader } from '../../components/shell/header.js?v=20261020f';
+import { BranchService } from '../../services/core/runtime.js?v=20261020f';
+import { mockDB, ReviewStatus } from '../../core/domain/domain.js?v=20261020f';
+import { loadAttendanceRecords } from '../../services/activity/attendance.js?v=20261020f';
+import { loadActivityReviews } from '../../services/governance/review.js?v=20261020f';
+import { AuthStore } from '../../services/core/auth.js?v=20261020f';
+import { isActivityArchived } from '../../core/domain/constants.js?v=20261020f';
+import { getBasePath, escHtml as esc, showToast } from '../../core/base/utils.js?v=20261020f';
+import { resolveMaterialHref, resolveMaterialHandoff, resolveMaterialRoleNote } from '../../core/domain/material-links.js?v=20261020f';
 // 材料页可见性单一源（C11）：与活动列表 / 详情页同判据，待批活动不能凭 id 被非支委层读到
-import { isActivityVisibleTo } from '../../services/core/visibility.js?v=20261020e';
-import { emptyStateHtml } from '../../components/ui/empty-state.js?v=20261020e';
-import { openModal, closeModal } from '../../components/ui/modal.js?v=20261020e';
-import { bumpToken } from '../../core/base/version-token.js?v=20261020e';
-import { hydrateDataSource, notifyDataLoaded } from '../../data/data-adapter.js?v=20261020e';
-import { ApiAdapter } from '../../data/api-adapter.js?v=20261020e';
-import { settleWrites } from '../../core/session/pending-writes.js?v=20261020e';
+import { isActivityVisibleTo } from '../../services/core/visibility.js?v=20261020f';
+import { emptyStateHtml } from '../../components/ui/empty-state.js?v=20261020f';
+import { openModal, closeModal } from '../../components/ui/modal.js?v=20261020f';
+import { bumpToken } from '../../core/base/version-token.js?v=20261020f';
+import { hydrateDataSource, notifyDataLoaded } from '../../data/data-adapter.js?v=20261020f';
+import { ApiAdapter } from '../../data/api-adapter.js?v=20261020f';
+import { settleWrites } from '../../core/session/pending-writes.js?v=20261020f';
 
 renderSidebar('dashboard');
 renderHeader('dashboard');

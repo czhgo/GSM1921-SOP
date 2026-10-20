@@ -9,11 +9,12 @@
 //  D04（AP-IA-04）：auto 类（AUTO_CONFIRM_TYPES）发起即送达，**不派生待办**；confirm 幂等。
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../../core/domain/domain.js?v=20261020e';
-import { persist, getDataSource, getAdapter } from '../../data/data-adapter.js?v=20261020e';
-import { bumpToken } from '../../core/base/version-token.js?v=20261020e'; // P0 域缓存失效（spec §二.3）
-import { TodoStore, TodoCategory, TodoActionType, TodoSourceType } from './todo.js?v=20261020e';
-import { generateId } from '../../core/base/id.js?v=20261020e';
+import { mockDB } from '../../core/domain/domain.js?v=20261020f';
+import { persist, getDataSource, getAdapter } from '../../data/data-adapter.js?v=20261020f';
+import { bumpToken } from '../../core/base/version-token.js?v=20261020f'; // P0 域缓存失效（spec §二.3）
+import { TodoStore, TodoCategory, TodoActionType, TodoSourceType } from './todo.js?v=20261020f';
+import { generateId } from '../../core/base/id.js?v=20261020f';
+import { trackWrite } from '../../core/session/pending-writes.js?v=20261020f';
 
 // ── 2026-09-23 批次 163（T1）：api 形态补服务端对源 ─────────────────────────
 // 病灶：handoffs 有本地落盘（mock-adapter 域清单）却**不在**快照 payload / init 拉取列表 / 服务端资源名映射
@@ -36,11 +37,14 @@ function _syncToServer(fn, what) {
   try {
     const adapter = getAdapter();
     const call = fn(adapter);
-    if (call && typeof call.catch === 'function') {
-      call.catch((e) => console.warn(`[HandoffStore] api 形态${what}落服务端失败（本地已记，下次 init 以服务端为准）：`, e));
+    // R3-P1（F-09）：语义端点落库登记到 pending-writes —— 成功提示前 await settleWrites()，
+    // 失败必须让调用方感知（不再 fire-and-forget 后照报成功）。
+    if (call && typeof call.then === 'function') {
+      trackWrite(call).catch((e) => console.warn(`[HandoffStore] api 形态${what}落服务端失败（本地已记，下次 init 以服务端为准）：`, e));
     }
   } catch (e) {
     console.warn(`[HandoffStore] api 形态${what}落服务端失败（本地已记，下次 init 以服务端为准）：`, e);
+    trackWrite(Promise.reject(e));
   }
 }
 

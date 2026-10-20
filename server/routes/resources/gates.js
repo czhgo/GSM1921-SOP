@@ -106,7 +106,7 @@ export function _assertResourceWrite(actor, name, method, body, targetId, db) {
   if (need === 'member-flow') return !!actor && MEMBER_FLOW_ROLE_SET.has(actor.role);
   // 考察写门（Phase 0 · R4-D05）：支委层/党委，或本场活动（专班）组织者；判据见文件末 `_inspectionWriteAllowed`
   if (need === 'inspection') return _inspectionWriteAllowed(db, actor, method, body, targetId);
-  return need === 'branch-commissioner' ? _branchCommissionerGateDeny(db, actor, targetId, body) === null : true;
+  return _assertResourceWriteTail(need, db, actor, method, body, targetId);
 }
 
 /** 写门 403 文案（按资源给可懂原因，勿用一句万金油） */
@@ -359,8 +359,8 @@ function _snapshotNoticeWriteDeny(db, rows, actor) {
     const changed = Object.keys({ ...prev, ...row })
       .filter((key) => JSON.stringify(prev[key]) !== JSON.stringify(row[key]));
     if (changed.length === 0) continue;
-    // 已读是个人状态：任何成员都可推进自己的 read 标记（前端 markRead / markAllRead）
-    if (changed.every((key) => key === 'read')) continue;
+    // 已读是个人状态：任何成员都可推进自己的 read / reads 标记（前端 markRead / markAllRead）
+    if (_noticeSelfReadChange(prev, row, actor, changed)) continue;
     if (!_assertResourceWrite(actor, 'notices', 'patch', row, row.id, db)) return _writeDenyMsg('notices');
   }
   return null;
@@ -621,4 +621,119 @@ export function _inspectionDecisionDeny(actor, prev, body) {
     return '无权限：考察确认/打回仅限纪检委员或支书/副支书';
   }
   return null;
+}
+
+// ════════════════════════════════════════════════════════════════
+//  R3-P1（2026-10-20）：未设门资源补「行级归属」写门 + 通知逐人已读增量化
+//  · 病灶（FULLSTACK_AUDIT_R3 F-05）：thoughtReports / tasks / todos / makeupTasks /
+//    archiveRecords / experienceDeposits / propTasks / externalDispatches / activityReviews /
+//    taskforceReviews / periodicArchives 等此前 `_assertResourceWrite` 无门即放行
+//    ⇒ 任一登录成员可 PATCH/DELETE 同支部他人记录。
+//  · 口径：角色门来自 constants.js 单一源（BRANCH_COMMISSION_ROLES / PARTY_STAFF_ROLE），
+//    到人记录另判「本人 / 本人负责 / 本人组织」；无法判归属 ⇒ 拒写（deny-by-default）。
+//  · ⚠ 本段置尾：`RESOURCE_WRITE_GATE` 以运行时挂载登记（不插入上方对象字面量，行号零漂移）。
+// ════════════════════════════════════════════════════════════════
+Object.assign(RESOURCE_WRITE_GATE, {
+  todos: 'todo-row',
+  thoughtReports: 'thought-report',
+  tasks: 'task-row',
+  assignments: 'assignment-row',
+  makeupTasks: 'committee-only',
+  experienceDeposits: 'committee-only',
+  propTasks: 'committee-only',
+  archiveRecords: 'committee-only',
+  externalDispatches: 'committee-only',
+  periodicArchives: 'committee-only',
+  activityReviews: 'committee-or-organizer',
+  taskforceReviews: 'committee-or-organizer',
+  committeeBroadcasts: 'party-staff-only',
+  agendaVotes: 'vote-row',
+});
+
+/** 目标行（补丁时与既有行合并；新增时即 body） */
+function _gateTargetRow(db, name, body, targetId) {
+  const row = (body && typeof body === 'object' && !Array.isArray(body)) ? body : {};
+  const table = RESOURCE_TABLES[name];
+  if (!table || !targetId) return row;
+  let prev = null;
+  try {
+    const found = db.prepare(`SELECT data FROM ${table} WHERE id = ?`).get(String(targetId));
+    prev = found ? JSON.parse(found.data) : null;
+  } catch { prev = null; }
+  return prev ? { ...prev, ...row } : row;
+}
+
+function _isCommitteeRole(actor) {
+  return !!actor && BRANCH_COMMITTEE_ROLES.has(actor.role);
+}
+
+/** `_assertResourceWrite` 尾部：既有 branch-commissioner + R3 新增行级门 */
+function _assertResourceWriteTail(need, db, actor, method, body, targetId) {
+  if (!need) return true;
+  if (need === 'branch-commissioner') return _branchCommissionerGateDeny(db, actor, targetId, body) === null;
+  if (need === 'party-staff-only') return !!actor && PARTY_STAFF_ROLE.has(actor.role);
+  if (need === 'committee-only') return _isCommitteeRole(actor);
+  if (need === 'todo-row') {
+    if (!actor) return false;
+    const row = _gateTargetRow(db, 'todos', body, targetId);
+    if (row.personId) return String(row.personId) === String(actor.id);
+    // 角色待办：只有该角色本人可推进（与读口 `_canReadTodoRow` 同口径）
+    return !!row.role && row.role === actor.role;
+  }
+  if (need === 'thought-report') {
+    if (!actor) return false;
+    const row = _gateTargetRow(db, 'thoughtReports', body, targetId);
+    return _isCommitteeRole(actor) || (!!row.personId && String(row.personId) === String(actor.id));
+  }
+  if (need === 'task-row') {
+    if (!actor) return false;
+    if (_isCommitteeRole(actor) || actor.role === 'leader') return true;
+    const row = _gateTargetRow(db, 'tasks', body, targetId);
+    if (row.assigneeId && String(row.assigneeId) === String(actor.id)) return true;
+    if (row.createdBy && String(row.createdBy) === String(actor.id)) return true;
+    return !!row.activityId && _isActivityOrganizer(db, actor, row.activityId);
+  }
+  if (need === 'assignment-row') {
+    if (!actor) return false;
+    if (_isCommitteeRole(actor) || actor.role === 'leader') return true;
+    const row = _gateTargetRow(db, 'assignments', body, targetId);
+    if (row.assigneeId && String(row.assigneeId) === String(actor.id)) return true;
+    if (row.createdBy && String(row.createdBy) === String(actor.id)) return true;
+    return !!row.activityId && _isActivityOrganizer(db, actor, row.activityId);
+  }
+  if (need === 'committee-or-organizer') {
+    if (!actor) return false;
+    if (_isCommitteeRole(actor)) return true;
+    const row = { ...(_gateTargetRow(db, 'activityReviews', body, targetId)), ...(_gateTargetRow(db, 'taskforceReviews', body, targetId)) };
+    if (row.organizerId && String(row.organizerId) === String(actor.id)) return true;
+    return !!row.activityId && _isActivityOrganizer(db, actor, row.activityId);
+  }
+  if (need === 'vote-row') {
+    if (!actor) return false;
+    if (_isCommitteeRole(actor) || PARTY_STAFF_ROLE.has(actor.role)) return true;
+    const row = _gateTargetRow(db, 'agendaVotes', body, targetId);
+    return [row.voterId, row.personId].some((id) => id && String(id) === String(actor.id));
+  }
+  // 未登记的门类型：拒绝（deny-by-default，防「拼错门名＝全放行」）
+  return false;
+}
+
+/**
+ * 通知「已读」变更是否只作用于本人（R3-P1 / F-03）。
+ * · `read`（旧全局布尔）沿用既有放行；
+ * · `reads[]`（逐人已读）：只允许**追加本人**，不得移除/新增他人 id。
+ */
+function _noticeSelfReadChange(prev, row, actor, changed) {
+  if (!changed.length || changed.some((key) => key !== 'read' && key !== 'reads')) return false;
+  if (!changed.includes('reads')) return true;
+  if (!actor) return false;
+  const before = Array.isArray(prev.reads) ? prev.reads : [];
+  const after = Array.isArray(row.reads) ? row.reads : [];
+  const self = String(actor.id);
+  // 不得改动他人已读
+  const touchedOthers = before.some((id) => String(id) !== self && !after.map(String).includes(String(id)))
+    || after.some((id) => String(id) !== self && !before.map(String).includes(String(id)));
+  if (touchedOthers) return false;
+  // 只允许追加本人（删除本人已读也放行：属本人状态）
+  return true;
 }

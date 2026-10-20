@@ -2,8 +2,8 @@
 // 纪检委员工作台共享上下文（T-279 M3 拆分，照 M2 样板 leader/_shared）
 // 各 tab 模块复用的只读配置与纯函数：纪检委员 personId。
 
-import { PersonStore } from '../../../services/member/person.js?v=20261020e';
-import { showToast } from '../../../core/base/utils.js?v=20261020e';
+import { PersonStore } from '../../../services/member/person.js?v=20261020f';
+import { showToast } from '../../../core/base/utils.js?v=20261020f';
 
 /**
  * 现任纪检委员 personId（数据驱动：users.role === 'disc-commissioner'）。

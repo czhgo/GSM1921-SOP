@@ -14,7 +14,7 @@
 //         content/04_web_design/data/DATA_ARCHITECTURE.md §8.4
 // ════════════════════════════════════════════════════════════════
 
-import { getApiBaseUrl, getAuthToken } from './data-adapter.js?v=20261020e';
+import { getApiBaseUrl, getAuthToken } from './data-adapter.js?v=20261020f';
 
 // ── HTTP 工具函数 ──────────────────────────────────────────────
 
@@ -657,8 +657,9 @@ export const ApiAdapter = {
   },
 
   users: {
-    list() {
-      return _get('/api/v1/users');
+    // `includeTransferredOut`：治理侧读「历史行」（移出成员）时显式请求；默认在册名册不含移出行（F-08）。
+    list(params = {}) {
+      return _get(`/api/v1/users${params && params.includeTransferredOut ? '?includeTransferredOut=1' : ''}`);
     },
     // 2026-09-06 立项⑥ A波：users 双形态写口补齐（server RESOURCE_TABLES 通用 CRUD 已存在：
     // POST /api/v1/users / PATCH /users/:id / DELETE /users/:id，party-staff 门）

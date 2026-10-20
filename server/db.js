@@ -468,11 +468,25 @@ export function migratePersonIdsToStudentNumbers(db) {
   const unmapped = new Set();
   let total = 0;
   let mapped = 0;
+  const conflicts = [];
+
+  // ① 旧 IAAA 代理键 `p_<uuid>`：表内无固定映射，改按该行自带 `studentId` 归一到学号
+  //    （旧库可能残留；没有 studentId ⇒ 进 unmapped 清单，拒绝半写）。
+  const userRows = hasTable('users') ? db.prepare('SELECT id, data FROM users').all() : [];
+  const proxyAlias = new Map();
+  for (const row of userRows) {
+    if (!/^p_[0-9a-f][0-9a-f-]{6,}$/i.test(row.id)) continue;
+    let data; try { data = JSON.parse(row.data); } catch { continue; }
+    const sid = data?.studentId != null ? String(data.studentId) : '';
+    if (sid && !isLegacyPersonId(sid) && !/^p_/i.test(sid)) proxyAlias.set(row.id, sid);
+  }
+  const mapId = (value) => (proxyAlias.has(value) ? proxyAlias.get(value) : mapPersonId(value));
+  const isLegacyAny = (value) => typeof value === 'string' && (isLegacyPersonId(value) || proxyAlias.has(value));
 
   const mapExact = (value) => {
-    if (typeof value !== 'string' || !isLegacyPersonId(value)) return value;
+    if (!isLegacyAny(value)) return value;
     total += 1;
-    const next = mapPersonId(value);
+    const next = mapId(value);
     if (next == null) { unmapped.add(value); return value; }
     mapped += 1;
     return next;
@@ -481,22 +495,38 @@ export function migratePersonIdsToStudentNumbers(db) {
   // 复合 id（`p11:issue-002` / `wgg-seed-tf-001-p5`）：仅换边界上的旧 id
   const mapComposite = (value) => {
     if (typeof value !== 'string') return value;
-    return value.replace(/(^|[-:])p(?:_pc|\d+)(?=$|[-:])/g, (match, prefix) => {
+    return value.replace(/(^|[-:])p(?:_pc|_[0-9a-f][0-9a-f-]{6,}|\d+)(?=$|[-:])/gi, (match, prefix) => {
       const token = match.slice(prefix.length);
       total += 1;
-      const next = mapPersonId(token);
+      const next = mapId(token);
       if (next == null) { unmapped.add(token); return match; }
       mapped += 1;
       return prefix + next;
     });
   };
 
-  const transform = (value) => {
+  // 对象键里的人员 id：历史 `agenda[].personStages` 形如 `{p6:'发展对象'}`（值递归不会碰到键）
+  const KEYED_PERSON_MAPS = new Set(['personStages']);
+  // 数字型人员 id（历史 `audiencePersons: 17` / `reads: [13]`）：只在这些「人员数组」键下归一
+  const NUMERIC_PERSON_ARRAYS = new Set(['audiencePersons', 'reads', 'voterIds', 'personIds', 'assigneeIds', 'actionPersonIds']);
+
+  const transform = (value, parentKey) => {
+    if (typeof value === 'number') {
+      if (!NUMERIC_PERSON_ARRAYS.has(parentKey) || !Number.isInteger(value)) return value;
+      total += 1;
+      const next = mapId(`p${value}`);
+      if (next == null || /^p\d+$/.test(next)) { unmapped.add(`number:${value}`); return value; }
+      mapped += 1;
+      return next;
+    }
     if (typeof value === 'string') return mapExact(value);
-    if (Array.isArray(value)) return value.map(transform);
+    if (Array.isArray(value)) return value.map((item) => transform(item, parentKey));
     if (value && typeof value === 'object') {
       const out = {};
-      for (const [key, item] of Object.entries(value)) out[key] = transform(item);
+      for (const [key, item] of Object.entries(value)) {
+        const nextKey = KEYED_PERSON_MAPS.has(parentKey) ? mapExact(key) : key;
+        out[nextKey] = transform(item, key);
+      }
       return out;
     }
     return value;
@@ -504,11 +534,14 @@ export function migratePersonIdsToStudentNumbers(db) {
 
   const plans = [];
   // ① users 先改：id 即学号（人员档案的 studentId 与行主键必须一致）
-  const userRows = hasTable('users') ? db.prepare('SELECT id, data FROM users').all() : [];
   for (const row of userRows) {
     const nextId = mapComposite(row.id);
     const data = transform(JSON.parse(row.data));
     if (typeof data.id === 'string') data.id = mapComposite(data.id);
+    // 历史空 studentId：主键已被迁移则用新学号回填（否则迁移后档案自相矛盾）
+    if ((data.studentId == null || data.studentId === '') && nextId !== row.id && !isLegacyAny(nextId)) {
+      data.studentId = String(nextId);
+    }
     if (data.studentId != null && String(data.studentId) !== String(nextId ?? data.id)) {
       unmapped.add(`users.id≠studentId:${row.id}->${data.studentId}`);
     }
@@ -548,6 +581,27 @@ export function migratePersonIdsToStudentNumbers(db) {
       const next = mapExact(row.uploaded_by);
       if (next !== row.uploaded_by) relationPlans.push({ table: 'attachments', key: row.id, column: 'uploaded_by', next });
     }
+  }
+
+  // ④ 目标主键冲突预检（F-18）：任何一条在 UPDATE 时会撞主键的映射 ⇒ 先列清单、整体不写。
+  //    （迁移事务在 applyMigrations 内；此处抛错 ⇒ 不产生半写库。）
+  const plannedById = new Map();
+  for (const plan of plans) {
+    if (plan.nextId === plan.id) continue;
+    const key = `${plan.table}\u0000${plan.nextId}`;
+    const existing = plannedById.get(key);
+    if (existing && existing !== plan.id) conflicts.push(`${plan.table}: ${existing} 与 ${plan.id} 均映射到 ${plan.nextId}`);
+    else plannedById.set(key, plan.id);
+  }
+  for (const plan of plans) {
+    if (plan.nextId === plan.id || !hasTable(plan.table)) continue;
+    const clash = db.prepare(`SELECT 1 FROM ${plan.table} WHERE id = ?`).get(String(plan.nextId));
+    if (!clash) continue;
+    const renamedAway = plans.some((p) => p.table === plan.table && p.id === String(plan.nextId) && p.nextId !== p.id);
+    if (!renamedAway) conflicts.push(`${plan.table}: ${plan.id} → ${plan.nextId} 的目标主键已存在`);
+  }
+  if (conflicts.length) {
+    throw new Error(`[db] v7 人员主键迁移预检失败（未写入任何行）：${[...new Set(conflicts)].join('；')}`);
   }
 
   if (unmapped.size > 0) {

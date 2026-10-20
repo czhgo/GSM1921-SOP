@@ -27,22 +27,23 @@
 // 单测：server/test/member-confirmation.test.mjs
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../../core/domain/domain.js?v=20261020e';
-import { persist, getDataSource, getAdapter } from '../../data/data-adapter.js?v=20261020e';
+import { mockDB } from '../../core/domain/domain.js?v=20261020f';
+import { persist, getDataSource, getAdapter } from '../../data/data-adapter.js?v=20261020f';
 // 全站唯一实体 id 源（2026-09-13 Q-21-2 收敛：禁止再写「前缀 + Date.now()」）
-import { generateId } from '../../core/base/id.js?v=20261020e';
-import { bumpToken } from '../../core/base/version-token.js?v=20261020e'; // P0 域缓存失效（spec §二.3）
+import { generateId } from '../../core/base/id.js?v=20261020f';
+import { bumpToken } from '../../core/base/version-token.js?v=20261020f'; // P0 域缓存失效（spec §二.3）
 // 批4（2026-09-09 支书批「域参数」）：滞留复核窗口单一源 = policy memberConfirmation.semesterDetainedWindows
 // （原本文件 :533 硬编码 615/715/1215 迁出；组织委员可经设置中心覆盖，判定随窗口变化）
-import { POLICY_DEFAULTS } from '../../core/domain/policy-defaults.js?v=20261020e';
-import { PersonStore, findRemovedRecord, liveMembers } from './person.js?v=20261020e';
-import { getResidenceOf, saveResidenceChange, getDetainedMembers } from './roster.js?v=20261020e';
+import { POLICY_DEFAULTS } from '../../core/domain/policy-defaults.js?v=20261020f';
+import { PersonStore, findRemovedRecord, liveMembers } from './person.js?v=20261020f';
+import { getResidenceOf, saveResidenceChange, getDetainedMembers } from './roster.js?v=20261020f';
 // 发展阶段枚举单一源（静态种子派生，禁造新枚举）
-import { DEVELOP_STAGE_OPTIONS } from '../branch/org-base-data-preview.js?v=20261020e';
+import { DEVELOP_STAGE_OPTIONS } from '../branch/org-base-data-preview.js?v=20261020f';
 // 活动「未开始」口径单一源（2026-09-13 收敛）：替代本文件手写 archived || status==='completed'
 // 在册状态枚举 RESIDENCE 同源（2026-09-13 Q-21-3 收敛：原经 roster.js 转出，现直取单一源）
-import { isActivityNotStarted, RESIDENCE } from '../../core/domain/constants.js?v=20261020e';
-import { todayLocal } from '../../core/base/utils.js?v=20261020e';
+import { isActivityNotStarted, RESIDENCE } from '../../core/domain/constants.js?v=20261020f';
+import { todayLocal } from '../../core/base/utils.js?v=20261020f';
+import { trackWrite } from '../../core/session/pending-writes.js?v=20261020f';
 
 /** 成员变更确认请求队列的 localStorage 键（gsm1921- 前缀 → ?reset=demo 自动清理） */
 export const MEMBER_CONFIRM_KEY = 'gsm1921-member-confirmations';
@@ -144,17 +145,18 @@ function _isApi() {
   try { return getDataSource() === 'api'; } catch (_) { return false; }
 }
 
-/** api 形态：把一次写同步到服务端（失败仅告警——本地乐观已记，next init 以服务端为准） */
+/** api 形态：把一次写同步到服务端（本地乐观已记；R3-P1（F-09）登记 pending-writes，失败让调用方感知） */
 function _syncToServer(fn, what) {
   if (!_isApi()) return;
   try {
     const adapter = getAdapter();
     const call = fn(adapter);
-    if (call && typeof call.catch === 'function') {
-      call.catch((e) => console.warn(`[MemberConfirmation] api 形态${what}落服务端失败（本地已记，下次 init 以服务端为准）：`, e));
+    if (call && typeof call.then === 'function') {
+      trackWrite(call).catch((e) => console.warn(`[MemberConfirmation] api 形态${what}落服务端失败（本地已记，下次 init 以服务端为准）：`, e));
     }
   } catch (e) {
     console.warn(`[MemberConfirmation] api 形态${what}落服务端失败（本地已记，下次 init 以服务端为准）：`, e);
+    trackWrite(Promise.reject(e));
   }
 }
 

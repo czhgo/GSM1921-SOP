@@ -30,15 +30,17 @@ globalThis.localStorage = storage;
 
 import { createApp } from '../app.js';
 import { seedDatabase } from '../seed.js';
-import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261020e';
-import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261020e';
-import { PEOPLE } from '../../docs/src/data/mock/people.js?v=20261020e';
-import { ACTIVITIES } from '../../docs/src/data/mock/activities.js?v=20261020e';
-import { MOCK_NOTICES } from '../../docs/src/data/mock/notices.js?v=20261020e';
-import { ATTENDANCE_RECORDS } from '../../docs/src/data/mock/attendance.js?v=20261020e';
-import { SEED_ASSIGNMENTS } from '../../docs/src/data/mock/seed.js?v=20261020e';
-import { SEED_TODOS } from '../../docs/src/services/governance/todo.js?v=20261020e';
-import { ensureLegacySourceWorkgroups } from '../../docs/src/data/workgroup-seed-sync.js?v=20261020e';
+import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261020f';
+import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261020f';
+import { PEOPLE } from '../../docs/src/data/mock/people.js?v=20261020f';
+import { ACTIVITIES } from '../../docs/src/data/mock/activities.js?v=20261020f';
+import { MOCK_NOTICES } from '../../docs/src/data/mock/notices.js?v=20261020f';
+import { ATTENDANCE_RECORDS } from '../../docs/src/data/mock/attendance.js?v=20261020f';
+import { SEED_ASSIGNMENTS } from '../../docs/src/data/mock/seed.js?v=20261020f';
+import { SEED_TODOS } from '../../docs/src/services/governance/todo.js?v=20261020f';
+import { ensureLegacySourceWorkgroups } from '../../docs/src/data/workgroup-seed-sync.js?v=20261020f';
+// R3-P1（F-06）：通知读口按受众投影（私信/定向）——本守卫的 api 侧同样经该判据，mock 侧须同源对齐。
+import { canReadNotice } from '../../docs/src/services/governance/notice.js?v=20261020f';
 
 const BRANCH_B1 = 'br-b1';
 const BRANCH_B2 = 'br-b2';
@@ -209,10 +211,14 @@ test('M3 与 api 形态读数逐值一致（两支部 × 六张表）', async ()
   const problems = [];
   for (const branchId of [BRANCH_B1, BRANCH_B2]) {
     for (const resource of RESOURCES) {
-      const [mockSide, apiSide] = await Promise.all([
+      const [mockSideRaw, apiSide] = await Promise.all([
         mockRows(resource, { branchId }),
         apiRows(resource, branchId),
       ]);
+      // R3-P1（F-06）：api 通知读口按登录人受众投影；mock 侧用同一判据对齐（否则比较的是两套口径）
+      const mockSide = resource === 'notices'
+        ? mockSideRaw.filter((row) => canReadNotice(row, { personId: '9000000001', role: 'party-staff' }))
+        : mockSideRaw;
       const diff = diffOf(normalize(mockSide), normalize(apiSide));
       if (diff.length) problems.push(`[${resource} @ ${branchId}] ${diff.slice(0, 6).join('；')}`);
       assert.ok(apiSide.length > 0, `${resource} @ ${branchId}：api 读数不得为空（防「空 == 空」恒真）`);

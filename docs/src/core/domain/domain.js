@@ -16,7 +16,7 @@ export const SCHEMA_VERSION = 1;
  * ⚠ 与 SCHEMA_VERSION 区分：SCHEMA_VERSION 是「持久化结构版本」（结构变了才动，现为 1 不动）；
  *    本值是「数据内容版本」（内容变了就改）。
  */
-export const SEED_DATA_VERSION = '2026-10-20';
+export const SEED_DATA_VERSION = '2026-10-20b';
 
 /**
  * @typedef {Object} Activity

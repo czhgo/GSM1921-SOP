@@ -25,20 +25,20 @@
 //  Source: content/04_web_design/data/DATA_ARCHITECTURE.md
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../../core/domain/domain.js?v=20261020e';
+import { mockDB } from '../../core/domain/domain.js?v=20261020f';
 // P0 域缓存失效（spec §二.3）：成员覆盖层写口 bump（支书台 semester-remind/成员组等读数新鲜度）
-import { bumpToken } from '../../core/base/version-token.js?v=20261020e';
+import { bumpToken } from '../../core/base/version-token.js?v=20261020f';
 // 修复（T175）：直接从 data/mock/people.js 导入 PEOPLE，
 // 断开 person.js ↔ data/mock/index.js 双向循环依赖（person.js 不再依赖 data/mock/index.js）
-import { PEOPLE } from '../../data/mock/people.js?v=20261020e';
+import { PEOPLE } from '../../data/mock/people.js?v=20261020f';
 // 成员基础数据预览叠加（立项④阶段三·目标1）：PersonStore 读取时套预览 override；
 // 依赖方向单向（person → preview，preview 不 import person/roster，无循环）
-import { overlayPreviewMembers } from '../branch/org-base-data-preview.js?v=20261020e';
+import { overlayPreviewMembers } from '../branch/org-base-data-preview.js?v=20261020f';
 // 双形态判定（mock/api）：data-adapter.js 不静态依赖业务服务；其静态依赖仅为零依赖叶子（无环）
-import { getDataSource } from '../../data/data-adapter.js?v=20261020e';
+import { getDataSource } from '../../data/data-adapter.js?v=20261020f';
 // 新成员 id 规则（P1-12，2026-10-20）：学号即唯一 id；不再 import generateId 生成 p_ 代理键
 // `D-788`（2026-10-05 · `V-10b`）：成员「自我描述」字段模型（**零依赖叶子**；写口按它净化）
-import { sanitizeSelfProfile } from '../../core/domain/self-profile.js?v=20261020e';
+import { sanitizeSelfProfile } from '../../core/domain/self-profile.js?v=20261020f';
 
 // ════════════════════════════════════════════════════════════════
 //  PersonStore — 人员数据统一服务接口
@@ -93,7 +93,7 @@ export const PersonStore = {
     // 解析不到姓名，页面显示"发起: p12"而非真实姓名。
     const map = new Map();
     [...overlayPreviewMembers(_baseMemberRecords()), ...(mockDB.users || [])].forEach(p => {
-      if (p && p.id) map.set(p.id, p);
+      if (p && p.id && p.transferOut !== true) map.set(p.id, p);
     });
     return Array.from(map.values());
   },
@@ -331,8 +331,9 @@ export function applyMemberOverlay(base, overlay) {
  * @returns {Array} 成员数组（未套 org-base-data-preview 预览）
  */
 function _baseMemberRecords() {
-  if (getDataSource() === 'api') return Array.isArray(mockDB.users) ? [...mockDB.users] : [];
-  return applyMemberOverlay(PEOPLE, _loadMemberOverlay());
+  // R3-P1（F-08）：移出成员（transferOut 软标记）保留历史行，但不出现在在册名册读链。
+  if (getDataSource() === 'api') return (Array.isArray(mockDB.users) ? [...mockDB.users] : []).filter(u => u && u.transferOut !== true);
+  return applyMemberOverlay(PEOPLE, _loadMemberOverlay()).filter(u => u && u.transferOut !== true);
 }
 
 /**
@@ -605,13 +606,13 @@ function _mockReplaceBranchMembers(records, branchId) {
 // ── api 形态实现（server users 表；ApiAdapter 动态导入防 mock 侧加载面扩大）──
 
 async function _apiAdapterUsers() {
-  const { ApiAdapter } = await import('../../data/api-adapter.js?v=20261020e');
+  const { ApiAdapter } = await import('../../data/api-adapter.js?v=20261020f');
   return ApiAdapter.users;
 }
 
 /** 名册成员变更确认链写口（C-2 方案 B）：支书专属阶段语义端点（ApiAdapter.members.setDevelopStage） */
 async function _apiAdapterMembers() {
-  const { ApiAdapter } = await import('../../data/api-adapter.js?v=20261020e');
+  const { ApiAdapter } = await import('../../data/api-adapter.js?v=20261020f');
   return ApiAdapter.members;
 }
 
@@ -645,7 +646,8 @@ async function _apiSaveMember(updates, opts = {}) {
   try {
     const users = await _apiAdapterUsers();
     const members = await _apiAdapterMembers();
-    const list = await users.list();
+    // 存在性判定须含「已移出」历史行：否则撤销流出 / 补丁会被误判为新增并撞主键。
+    const list = await users.list({ includeTransferredOut: true });
     const rawId = updates.id !== undefined && updates.id !== null && String(updates.id).trim() ? String(updates.id) : null;
     // P1-12：与 mock 形态同规则——新成员 id = 学号（教工暂以 studentId 承载 workNo）。
     const studentId = String(updates.studentId ?? '').trim();
@@ -723,7 +725,7 @@ async function _apiRemoveMember(personId, opts = {}) {
 
 async function _apiReplaceBranchMembers(records, branchId) {
   try {
-    const { ApiAdapter } = await import('../../data/api-adapter.js?v=20261020e');
+    const { ApiAdapter } = await import('../../data/api-adapter.js?v=20261020f');
     const users = ApiAdapter.users;
     // 存在性（服务器权威）：branches 表须有该实例
     const branches = await ApiAdapter.branches.list();

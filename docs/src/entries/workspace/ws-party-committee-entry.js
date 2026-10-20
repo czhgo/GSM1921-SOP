@@ -6,11 +6,11 @@
 // 2026-10-20 IA 修复批次（A06）：治理总览撤页（「组织待补」已并入支部管理的组织提醒列）
 //   ⇒ 登录落点改为「支部上报」（review）：党委进入工作台先看待批复队列，再下发通知 / 管理支部。
 
-import { createWorkspaceShell } from '../../components/shell/workspace-shell.js?v=20261020e';
-import { loadActivities } from '../../services/activity/activity.js?v=20261020e';
-import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261020e';
+import { createWorkspaceShell } from '../../components/shell/workspace-shell.js?v=20261020f';
+import { loadActivities } from '../../services/activity/activity.js?v=20261020f';
+import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261020f';
 // 副作用导入触发党委工作台能力注册（tab 清单）
-import '../../capabilities/party-committee-workspace.js?v=20261020e';
+import '../../capabilities/party-committee-workspace.js?v=20261020f';
 
 await createWorkspaceShell({
   accentRole: 'party-staff',

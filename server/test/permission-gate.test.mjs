@@ -228,8 +228,8 @@ test('系统派生通知端点：合法 kind 201（服务端生成文案/落点�
   assert.equal(okNotice.title, '思想汇报已提交', '标题来自服务端 build（不采信 payload 的 title）');
   assert.equal(okNotice.targetUrl, `thought-report.html?id=${trId}`, '落点由服务端按 sourceId 派生（F02：直达思想汇报详情页）');
   assert.deepEqual(okNotice.audience, ['org-commissioner'], 'R-23：受众锁定组织委员（阅处功能位），不再全站广播');
-  // 落库核对（非仅响应）
-  const list2 = await (await fetch(`${base}/api/v1/notices`, { headers: authHeaders(partTok) })).json();
+  // 落库核对（非仅响应）——R3-P1（F-06）：该通知受众为组织委员，读回须用阅处角色账号
+  const list2 = await (await fetch(`${base}/api/v1/notices`, { headers: authHeaders(orgTok) })).json();
   const stored = list2.find((n) => n.id === okNotice.id);
   assert.ok(stored, '通知已落库 notices 表');
   assert.equal(stored.title, '思想汇报已提交', '落库标题为服务端生成');
@@ -531,12 +531,11 @@ test('R-10 名册写链端点：授权 200 落库；越权 403；注入 400；�
   assert.equal(mirrorDep.status, 200, '副支书可写在册状态镜像（副书同权）');
   assert.equal((await usersOf(depToken)).find(u => u.id === '2400012346').residenceStatus, '滞留', '副支书在册镜像落库');
 
-  // ⑤ 移出软标记：组织委员发起 200（行保留不匿名）
+  // ⑤ 移出软标记：组织委员发起 200（R3-P1 / F-08：历史行保留，但不再出现在在册名册读口）
   const outOrg = await fetch(`${base}/api/v1/members/p80/transfer-out`, { method: 'POST', headers: authHeaders(orgToken), body: '{}' });
   assert.equal(outOrg.status, 200, '组织委员可发起移出');
   const oRow = (await usersOf(orgToken)).find(u => u.id === 'p80');
-  assert.equal(oRow.transferOut, true, 'users 行打转出标记');
-  assert.equal(oRow.name, 'R10成员改', '软标记保留姓名（不匿名）');
+  assert.equal(oRow, undefined, '移出后不在在册名册读口出现（刷新不复活）');
 
   // ⑤b 移出软标记：副支书确认 200（副书同权；行保留不匿名）
   const depCreated = await fetch(`${base}/api/v1/members`, {
@@ -547,8 +546,7 @@ test('R-10 名册写链端点：授权 200 落库；越权 403；注入 400；�
   const outDep = await fetch(`${base}/api/v1/members/p82/transfer-out`, { method: 'POST', headers: authHeaders(depToken), body: '{}' });
   assert.equal(outDep.status, 200, '副支书可确认移出（副书同权）');
   const oDepRow = (await usersOf(depToken)).find(u => u.id === 'p82');
-  assert.equal(oDepRow.transferOut, true, 'users 行打转出标记');
-  assert.equal(oDepRow.name, 'R10副支书移出', '软标记保留姓名（不匿名）');
+  assert.equal(oDepRow, undefined, '移出后不在在册名册读口出现');
 
   // ⑤c 撤销流出（POST /members/:id/undo-transfer-out；2026-09-14 批次 29，Q-23-5）：
   //     清 transferOut 软标记 → 账号方可恢复（原仅走 profile 补丁不清标记，撤销后 /login 仍 401）

@@ -9,9 +9,9 @@
 //   履职卡映射改在 workforce-duty-card.js 的 DUTY_TAB 单一源，条线缺口由 work-overview 的
 //   结构化 `gapTab` 直接渲染入口；文案或 DOM 结构再变也不会静默失效。
 
-import { renderWorkOverview } from '../../../components/governance/work-overview.js?v=20261020e';
-import { currentUserId } from '../../../services/core/auth.js?v=20261020e';
-import { beginOverviewShell } from '../../../components/governance/overview-dispatch-bar.js?v=20261020e';
+import { renderWorkOverview } from '../../../components/governance/work-overview.js?v=20261020f';
+import { currentUserId } from '../../../services/core/auth.js?v=20261020f';
+import { beginOverviewShell } from '../../../components/governance/overview-dispatch-bar.js?v=20261020f';
 
 export async function renderContent(ctx) {
   const el = document.getElementById('org-tab-content');

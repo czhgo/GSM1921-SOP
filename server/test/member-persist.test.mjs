@@ -19,18 +19,18 @@
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { PEOPLE } from '../../docs/src/data/mock/people.js?v=20261020e';
-import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261020e';
+import { PEOPLE } from '../../docs/src/data/mock/people.js?v=20261020f';
+import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261020f';
 import {
   MockAdapter, collectResetKeys, handleResetIfRequested,
-} from '../../docs/src/data/mock-adapter.js?v=20261020e';
+} from '../../docs/src/data/mock-adapter.js?v=20261020f';
 import {
   PersonStore, MEMBER_OVERLAY_KEY, getBaseMemberRecords, findMemberRefs,
-} from '../../docs/src/services/member/person.js?v=20261020e';
-import { getRosterStats } from '../../docs/src/services/member/roster.js?v=20261020e';
-import { setDataSource } from '../../docs/src/data/data-adapter.js?v=20261020e';
+} from '../../docs/src/services/member/person.js?v=20261020f';
+import { getRosterStats } from '../../docs/src/services/member/roster.js?v=20261020f';
+import { setDataSource } from '../../docs/src/data/data-adapter.js?v=20261020f';
 // Q-23-10（批次 30）实证：成员流动流入登记在 api 形态走 /members/intake（支书/副支书亦可）
-import { registerIntake } from '../../docs/src/services/member/member-flow.js?v=20261020e';
+import { registerIntake } from '../../docs/src/services/member/member-flow.js?v=20261020f';
 import { createApp } from '../app.js';
 import { seedDatabase } from '../seed.js';
 
@@ -324,9 +324,7 @@ test('api ⑧：PersonStore api 形态 saveMember/removeMember 经名册语义�
     const removed = await PersonStore.removeMember('p61', { by: '2400012355', transferOut: true });
     assert.equal(removed.ok, true, JSON.stringify(removed));
     const outRow = (await getUsers(orgToken)).find(u => u.id === 'p61');
-    assert.ok(outRow, '软标记：users 行保留（不删不匿名，历史可解析姓名）');
-    assert.equal(outRow.transferOut, true, 'users 行打 transferOut 标记');
-    assert.ok(outRow.transferredOutAt, '转出时间落库');
+    assert.equal(outRow, undefined, 'R3-P1（F-08）：移出后不在在册名册读口（历史行仍留库）');
     assert.ok(!mockDB.users.some(u => u.id === 'p61'), 'mockDB.users 缓存同步剔除');
   } finally {
     setDataSource('mock');
@@ -414,8 +412,12 @@ test('api ⑩：R-10 三条链——支书在册镜像 / 组织委员在册行�
   try {
     const out = await PersonStore.removeMember('p63', { by: '2300010001', guardRefs: false, transferOut: true });
     assert.equal(out.ok, true, `支书移出确认不应 403：${JSON.stringify(out)}`);
-    const outRow = (await getUsers(secToken)).find(u => u.id === 'p63');
-    assert.equal(outRow.transferOut, true, '支书确认移出软标记落库');
+    // R3-P1（F-08）：默认在册名册不含移出行；治理侧显式 includeTransferredOut 可读历史行（原行保留不匿名）
+    const rosterRow = (await getUsers(secToken)).find(u => u.id === 'p63');
+    assert.equal(rosterRow, undefined, '移出后不在在册名册读口');
+    const history = await fetch(`${base}/api/v1/users?branchId=br-b1&includeTransferredOut=1`, { headers: auth(secToken) });
+    const outRow = (await history.json()).find(u => u.id === 'p63');
+    assert.equal(outRow.transferOut, true, '支书确认移出软标记落库（历史行保留）');
     assert.equal(outRow.name, '待移出成员63', '原行保留姓名（不匿名）');
   } finally {
     setDataSource('mock');
@@ -439,7 +441,7 @@ test('api ⑪：Q-23-5 撤销流出清 server 软标记（流出后 401 → 撤�
     const out = await PersonStore.removeMember('2026999901', { by: '2400012355', guardRefs: false, transferOut: true });
     assert.equal(out.ok, true, `流出应成功：${JSON.stringify(out)}`);
     const outRow = (await getUsers(orgToken)).find(u => u.id === '2026999901');
-    assert.equal(outRow.transferOut, true, '流出后 users 行打 transferOut 软标记（原行保留）');
+    assert.equal(outRow, undefined, 'R3-P1（F-08）：流出后不在在册名册读口');
     const denied = await fetch(`${base}/api/v1/auth/login`, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ personId: '2026999901', password: '123456' }),
@@ -449,7 +451,7 @@ test('api ⑪：Q-23-5 撤销流出清 server 软标记（流出后 401 → 撤�
     // ② 病灶复现：不带 restoreFromTransferOut 的常规档案补丁**清不掉**软标记
     const plain = await PersonStore.saveMember({ id: '2026999901', name: '撤销流出测试' }, { by: '2400012355' });
     assert.equal(plain.ok, true, `常规补丁应成功：${JSON.stringify(plain)}`);
-    assert.equal((await getUsers(orgToken)).find(u => u.id === '2026999901').transferOut, true,
+    assert.equal((await getUsers(orgToken)).find(u => u.id === '2026999901'), undefined,
       '仅走 profile 补丁不会清软标记（Q-23-5 病灶：撤销后成员仍回不来）');
 
     // ③ 撤销流出（revokeFlow 的实际调用形态）→ 清 server 软标记

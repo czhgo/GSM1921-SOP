@@ -3115,3 +3115,30 @@ $body
 
 - 未改业务语义与页签；迁移失败整批回滚。
 - 测试夹具保留少量旧 id（登录别名/合成账号），守卫只约束种子与业务代码。
+
+## 批次 495（2026-10-20）：全栈审查 P0/P1 修复
+
+### 一、P0
+
+- v7 迁移 import 复核已存在（真实旧库 p13 实测 6/6 映射）。
+- **快照写穿不再删他人记录**：`resources/index.js` 快照合并阶段保留「本人不可见的同支部存量行」，覆盖 todos / thoughtReports / attendances / inspections；组长考勤保存不再被误判为删除他组行。
+
+### 二、P1
+
+- 通知 `reads[]` 只允许追加/删除本人；私信与定向通知读口按 `canReadNotice` 投影。
+- 14 个未设门资源补角色/归属门，未知门 deny-by-default。
+- 移出成员在 users / PersonStore / roster 统一剔除（治理侧可显式读历史）。
+- 交接/成员确认/考勤/考察/授权审计登记 `trackWrite`，成功提示＝已落库。
+- 本地缓存整库 + person 键空间迁移；`SEED_DATA_VERSION` 升。
+- 迁移支持 `personStages` 对象键、数字 id、`p_<uuid>`，并做目标主键冲突预检（失败零写入）。
+
+### 三、读数
+
+- `test:daily`：**1287 / 1287 通过，0 断言失败**。
+- 新增 `r3-data-permission-regression` 9 条并登记。
+- 版本戳 `20261020e → 20261020f`。
+
+### 四、边界
+
+- 延期：issues 受众投影、任命事务化、ownBranch 去回落、归档语义端点、角色级未读。
+- 未做 UI 版式修改；未改学号主键口径。

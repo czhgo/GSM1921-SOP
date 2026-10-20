@@ -154,7 +154,7 @@ function _canReadTodoRow(row, actor) {
   return row.role === actor.role;
 }
 
-function _resourceRowsForActor(db, name, table, actor, requestedBranchId) {
+function _resourceRowsForActor(db, name, table, actor, requestedBranchId, opts = {}) {
   let rows = resourceRowsForActor(db, name, listTable(db, table), actor, requestedBranchId);
   // R4-B04：思想汇报读口与前端 canReadThoughtReport 同一判据（本人或支委层）。
   if (name === 'thoughtReports') {
@@ -166,8 +166,8 @@ function _resourceRowsForActor(db, name, table, actor, requestedBranchId) {
     if (name === 'inspections') rows = rows.filter((row) => _canReadInspectionRow(db, row, actor));
     if (name === 'todos') rows = rows.filter((row) => _canReadTodoRow(row, actor));
   }
-  if (name !== 'users') return rows;
-  return rows.map((row) => projectMemberListRow(row, {
+  if (name !== 'users') return _projectResourceRowsExt(db, name, rows, actor);
+  return rows.filter((row) => row && ((opts.includeTransferredOut === true || opts.includeTransferredOut === '1') && (PARTY_STAFF_ROLE.has(actor?.role) || BRANCH_COMMITTEE_ROLES.has(actor?.role)) ? true : row.transferOut !== true)).map((row) => projectMemberListRow(row, {
     id: actor?.id,
     role: actor?.role,
     branchId: actorBranchId(actor) || resourceBranchId(db, 'users', row),
@@ -213,7 +213,7 @@ export function createResourcesRouter(db) {
     router.get(`/${name}`, ...readAuth, (req, res) => {
       const deny = branchSelectionError(req.actor, req.query.branchId);
       if (deny) return res.status(403).json({ error: deny });
-      return res.json(_resourceRowsForActor(db, name, table, req.actor, req.query.branchId));
+      return res.json(_resourceRowsForActor(db, name, table, req.actor, req.query.branchId, req.query));
     });
   }
 
@@ -787,11 +787,11 @@ export function createResourcesRouter(db) {
     }
     const branchWriteDeny = scopedSnapshotWriteDeny(db, payload, req.actor);
     if (branchWriteDeny) return res.status(403).json({ error: branchWriteDeny });
-    const snapshotWrites = _retainUngatedSnapshotRows(
+    const snapshotWrites = _retainRowScopedSnapshotRows(db, _retainUngatedSnapshotRows(
       db,
       mergeScopedSnapshotWrites(db, _snapshotWrites(payload), req.actor),
       req.actor,
-    );
+    ), req.actor);
     const validationPayload = { ...payload };
     for (const write of snapshotWrites) validationPayload[write.name] = write.rows;
     const scopeDeny = snapshotScopeDeny(db, validationPayload, req.actor);
@@ -1297,3 +1297,50 @@ function deleteActivityCascade(db, id) {
     return { found: true, versions, filePaths: removableFiles };
   })();
 }
+
+// ════════════════════════════════════════════════════════════════
+//  R3-P1（2026-10-20）：读口受众投影 + 行级读集合的快照「保留未见行」
+//  · F-06：`GET /notices` 复用前端 `canReadNotice`（单一源）逐行投影——私信只给收发双方、
+//    audiencePersons 定向通知只给受众；党委按本级规则（committee source / 选中支部）。
+//  · F-02/F-04：普通成员（非支委层）对 todos / thoughtReports / attendances / inspections
+//    只拿到本人可见行，快照却是整表上传 ⇒ 保存一次会删掉同支部他人记录。写入口改为
+//    「只提交本人可见/本人负责的行，服务端按 id 保留未见行」，与现有支部合并同一事务。
+//  · ⚠ 本段置尾：上文行号是 README-server.md 的取证靶点（doc-line-ref 逐条核）。
+// ════════════════════════════════════════════════════════════════
+function _projectResourceRowsExt(db, name, rows, actor) {
+  if (name !== 'notices') return rows;
+  const viewer = actor
+    ? { personId: actor.id, role: actor.role, developStage: actor.developStage }
+    : null;
+  return rows.filter((row) => canReadNotice(row, viewer));
+}
+
+/** 行级读投影集合：非支委层快照写穿时，保留「本次未出现且本人不可见」的存量行 */
+const ROW_PROJECTED_SNAPSHOT_COLLECTIONS = new Set(['todos', 'thoughtReports', 'attendances', 'inspections']);
+
+function _canReadProjectedRow(db, name, row, actor) {
+  if (name === 'todos') return _canReadTodoRow(row, actor);
+  if (name === 'thoughtReports') return canReadThoughtReport(row, { personId: actor?.id, role: actor?.role });
+  if (name === 'attendances') return _canReadAttendanceRow(db, row, actor);
+  if (name === 'inspections') return _canReadInspectionRow(db, row, actor);
+  return true;
+}
+
+export function _retainRowScopedSnapshotRows(db, writes, actor) {
+  if (!actor || _hasFullRead(actor)) return writes;
+  const own = actorBranchId(actor);
+  if (!own) return writes;
+  return writes.map((write) => {
+    const { name, table, rows } = write;
+    if (!ROW_PROJECTED_SNAPSHOT_COLLECTIONS.has(name)) return write;
+    const incoming = new Set(rows.map((row) => String(row && row.id)));
+    const retained = listTable(db, table).filter((row) => row && row.id
+      && !incoming.has(String(row.id))
+      && resourceBranchId(db, name, row) === own
+      && !_canReadProjectedRow(db, name, row, actor));
+    return retained.length ? { ...write, rows: [...rows, ...retained] } : write;
+  });
+}
+
+// 受众判定单一源 = 前端 `canReadNotice`（私信 / 定向 / 角色 sentinel 同一套规则；勿另写一份）
+import { canReadNotice } from '../../../docs/src/services/governance/notice.js';
