@@ -21,9 +21,9 @@
 // ════════════════════════════════════════════════════════════════
 
 // 期次标签单一源（core/base/period.js）——勿在本文件另写季度格式化
-import { periodLabel } from '../base/period.js?v=20261020b';
+import { periodLabel } from '../base/period.js?v=20261020c';
 // 角色 → 工作台页单一源（F05/F12：按接收人角色生成落点，勿在本文件另写一张角色页表）
-import { ROLE_PAGE_MAP, SECRETARY_AND_DEPUTY_ROLES } from './constants.js?v=20261020b';
+import { ROLE_PAGE_MAP, SECRETARY_AND_DEPUTY_ROLES } from './constants.js?v=20261020c';
 
 /** 组装返回对象（跳过 undefined，保持通知结构精简；与原前端 add() 落库形态一致） */
 function pick(obj) {
@@ -181,6 +181,9 @@ const TEMPLATES = {
     title: '支部上报待批复',
     content: `${branchLabel} 提交${subject}，由 ${submitterName} 发起，请党委审批。`,
     priority: 'normal',
+    // 党委跨支部通知：`branch-scope` 对未选支部的 party-staff 只放行 source='committee'
+    // （2026-10-18 规则）⇒ 支部上报必须显式标为党委级来源，否则党委读不到待批复通知。
+    source: 'committee',
     targetUrl: `workspace/party-committee.html?tab=review&highlight=${sourceId}`,
     actionRoles: ['party-staff'],
     read: false,
@@ -191,6 +194,8 @@ const TEMPLATES = {
     title: approved ? '上报已获党委批准' : '上报被党委驳回',
     content: `${branchLabel} 的${subject}已${approved ? '批准' : '驳回'}${approved ? '' : '，请按党委意见整改后重新上报'}${decisionNote ? '。党委意见：' + decisionNote : '。'}`,
     priority: 'normal',
+    // 与提交通知同口径：党委未选支部时只读 source='committee'，结论通知须显式标为党委级来源。
+    source: 'committee',
     targetUrl: `workspace/secretary.html?tab=report-up&highlight=${sourceId}`,
     actionRoles: ['secretary', 'deputy-secretary'],
     read: false,

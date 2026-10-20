@@ -3,22 +3,22 @@
 // 专班考察：专班负责人/组织委员上传 → 纪检委员确认 → 录入考察总表。
 // 业务口径：考察依托工作组——考察记录挂工作组，考察对象为该工作组成员；sourceType/activityId/taskforceId 是工作组类型的投影。
 
-import { loadInspectionRecords, saveInspectionRecords } from '../../../services/activity/inspection.js?v=20261020b';
-import { reconfirmReturnedInspectionRecord, isInspectionHomePosition } from '../../../services/activity/inspection.js?v=20261020b';
-import { TaskForceRecordStore } from '../../../services/activity/taskforce.js?v=20261020b';
-import { anchorDetailToTrigger } from '../../../components/ui/detail-anchor.js?v=20261020b';
-import { AuthStore } from '../../../services/core/auth.js?v=20261020b';
-import { PersonPicker } from '../../../components/governance/pickers.js?v=20261020b';
+import { loadInspectionRecords, saveInspectionRecords } from '../../../services/activity/inspection.js?v=20261020c';
+import { reconfirmReturnedInspectionRecord, isInspectionHomePosition } from '../../../services/activity/inspection.js?v=20261020c';
+import { TaskForceRecordStore } from '../../../services/activity/taskforce.js?v=20261020c';
+import { anchorDetailToTrigger } from '../../../components/ui/detail-anchor.js?v=20261020c';
+import { currentUserId } from '../../../services/core/auth.js?v=20261020c';
+import { PersonPicker } from '../../../components/governance/pickers.js?v=20261020c';
 // 「本位」nudge 确认弹窗（2026-09-23 支书裁定 · 单一源 = components/ui/modal.js::confirmNudge）
-import { confirmNudge } from '../../../components/ui/modal.js?v=20261020b';
-import { inspectionToLong } from '../../../services/activity/inspection.js?v=20261020b';
-import { getPersonById, getPersonName } from '../../../services/member/person.js?v=20261020b';
-import { SourceType, ParticipationLevel } from '../../../core/domain/domain.js?v=20261020b';
-import { showToast, escHtml as esc, getBasePath } from '../../../core/base/utils.js?v=20261020b';
-import { solidAccentStyle, accDarkVars } from '../../../core/domain/constants.js?v=20261020b';
-import { generateId } from '../../../core/base/id.js?v=20261020b';
+import { confirmNudge } from '../../../components/ui/modal.js?v=20261020c';
+import { inspectionToLong } from '../../../services/activity/inspection.js?v=20261020c';
+import { getPersonById, getPersonName } from '../../../services/member/person.js?v=20261020c';
+import { SourceType, ParticipationLevel } from '../../../core/domain/domain.js?v=20261020c';
+import { showToast, escHtml as esc, getBasePath } from '../../../core/base/utils.js?v=20261020c';
+import { solidAccentStyle, accDarkVars } from '../../../core/domain/constants.js?v=20261020c';
+import { generateId } from '../../../core/base/id.js?v=20261020c';
 // 统一检索引擎（2026-09-13 表格统一化批次 A）：考察明细表接入关键词 + 分面（≤8 行引擎自动不渲染检索条）
-import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261020b';
+import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261020c';
 
 // 私有状态（随模块自持，不污染入口）
 let _orgInspFormVisible = false;
@@ -220,7 +220,9 @@ export function renderContent(ctx, container) {
   // 纪检打回：上传方重新确认（批次 119 · 与考勤打回同规）——清打回痕、回「待确认」交纪检复核
   container.querySelectorAll('.org-return-confirm').forEach(btn => {
     btn.addEventListener('click', () => {
-      const actorId = AuthStore.getCurrentUser()?.personId || 'p13';
+      const actorId = currentUserId();
+      // P1-11：失效会话不猜人——不再回落到支书 p13。
+      if (!actorId) { showToast('error', '登录态已失效，请重新登录'); return; }
       const res = reconfirmReturnedInspectionRecord(btn.dataset.id, { actorId });
       if (!res.ok) { showToast('error', '确认失败：该记录不存在'); return; }
       showToast('success', '已重新提交，等待纪检复核');
@@ -270,6 +272,9 @@ function _initOrgInspForm(container, activeTaskforces, ctx) {
     const workgroupId = tfOption?.dataset.workgroupId || `wg-taskforce-${tfId}`;
     const selectedIds = _orgInspPickerInstance ? _orgInspPickerInstance.getSelected() : [];
     if (selectedIds.length === 0) { showToast('error', '请选择人员'); return; }
+    // P1-11：recordedBy 必须是真实登录人；失效会话拒绝写入（不落到支书 p13）。
+    const actorId = currentUserId();
+    if (!actorId) { showToast('error', '登录态已失效，请重新登录'); return; }
 
     const records = [];
     for (const personId of selectedIds) {
@@ -288,7 +293,7 @@ function _initOrgInspForm(container, activeTaskforces, ctx) {
         level: ParticipationLevel.DEEP_PARTICIPATE,
         content,                 // 2026-09-04 补齐 P1-5：考察内容入 content 字段（原误写 role）
         role: '深度参与者',       // role 恢复为角色标签（与 level deep 语义一致）
-        recordedBy: AuthStore.getCurrentUser()?.personId || 'p13', // A1-2026-09-05：真实操作人（组织委员建档位临时承载专班上传，负责人位待另裁）
+        recordedBy: actorId, // A1-2026-09-05：真实操作人（组织委员建档位临时承载专班上传，负责人位待另裁）
         recordedAt: new Date().toISOString(),
         status: 'pending',
       });
@@ -299,7 +304,7 @@ function _initOrgInspForm(container, activeTaskforces, ctx) {
     //   （CF §D 考察管理表「专班考察：上传/修改：上传=专班实际负责人；组织委员=建档汇总，不直接录原始数据」）
     //   ⇒ 由本台代录时属**例外代办** ⇒ **写库前**弹一次确认（点「仍由我继续」才继续）。
     //   本位操作人（本人即该专班组织者）走原路径、零打扰。弹窗**必须点按钮才能关**；「取消」＝放弃本次上传。
-    if (!isInspectionHomePosition(AuthStore.getCurrentUser()?.personId, SourceType.TASKFORCE, workgroupId)) {
+    if (!isInspectionHomePosition(actorId, SourceType.TASKFORCE, workgroupId)) {
       const _homeOk = await confirmNudge({ nudgeKey: 'taskforce-upload', context: tfName });
       if (!_homeOk) return;
     }

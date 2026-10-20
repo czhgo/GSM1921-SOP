@@ -62,7 +62,7 @@
 //   真机流程 **实有 60 → 59**，基线同批改准为 **117 / 59**。
 // 2026-10-18 支委会密度重组：支委会 tab 改行内改派 ⇒ 退役流程 `secretary-assign-branch-commissioner`
 //   （两条校验点保留、改为 `machine:false`）；真机流程 **实有 59 → 58**，`FLOWS_BASELINE` 同批改准为 **58**。
-export const SITES_BASELINE = 121;
+export const SITES_BASELINE = 122;
 // 批次 323（2026-10-01）：补 `secretary-calendar-write-inline-grant`（覆盖批次 303 登记却漏纳入流程的
 //   「写入活动·内嵌项目赋权」两处 `machine:true`）⇒ 真机流程 **实有 56 → 57**，基线同批改准为 **57**。
 export const FLOWS_BASELINE = 58;
@@ -351,6 +351,9 @@ export const VALIDATION_SITES = [
   { file: SRC + 'components/governance/resolution-followup-manager.js', line: 145, field: '落实时限', flow: 'component/决议落实', machine: true, msg: '请选择落实时限' },
   { file: SRC + 'components/governance/vote-widget.js', line: 79, field: '表态', flow: 'component/表决控件', machine: true, msg: '请先选择表态' },
   { file: SRC + 'components/record/inspector.js', line: 576, field: '表态', flow: 'component/活动巡查·表决', machine: true, msg: '请先选择表态' },
+  // 2026-10-20 数据生命周期批：纪检台写口不再硬编码 p10，改为按角色派生；无纪检委员时提示去档案维护。
+  //   这不是表单字段校验，而是「角色前置缺失」⇒ 无可稳定造出的真机表单路径，只登记不造数据。
+  { file: SRC + 'entries/tabs/disc/_shared.js', line: 28, field: '纪检委员', flow: 'disc/权限前置', machine: false, msg: '未找到纪检委员：请先在成员档案维护纪检委员角色', reason: '【2026-10-20 补登记】角色前置告警：需先把某人设为 disc-commissioner 才能进入写口；不属表单字段校验，缺稳定前置。' },
   { file: SRC + 'components/record/inspector.js', line: 1415, field: '活动名称', flow: 'component/活动巡查·信息编辑', machine: true, msg: '请填写活动名称' },
   { file: SRC + 'components/record/inspector.js', line: 1416, field: '日期', flow: 'component/活动巡查·信息编辑', machine: true, msg: '请选择日期' },
   { file: SRC + 'components/record/inspector.js', line: 1417, field: '活动地点', flow: 'component/活动巡查·信息编辑', machine: true, msg: '请填写活动地点' },

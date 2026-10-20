@@ -5,7 +5,7 @@
 // R-26③（2026-10-05 批次 388）：本件**只引一个零依赖叶子** `core/base/date.js`（取本地「今天」）——
 //   不成环、双端可载；**不得**引 `core/base/utils.js`（那会牵 `core/session/pending-writes.js`）。
 
-import { todayLocal } from '../base/date.js?v=20261020b';
+import { todayLocal } from '../base/date.js?v=20261020c';
 
 // ── 内联标签深色适配：深色三件套自动生成 ──────────────────────────
 // 深色模式下内联样式（background/color/border 浅底深字）不随主题反转，按「同色系提亮一档」为每个颜色条目
@@ -198,7 +198,7 @@ export const ROLE_LEGACY_KEYS = ['commissioner', 'initiator']; // 遗留键：�
 // ── 授权语义角色集（2026-09-03 P2c 收敛：server 鉴权与前端 AuthStore 共用单一源，勿各自手写）──
 // 注意与上方「条条委员 COMMISSIONER_ROLES（业务语义：三委员，不含支书/副支书）」区分——
 // 授权语义含支书/副支书（写活动/发任务等全局授权门），是 server requireRole 与前端 isCommissioner 的依据。
-// 名单与 SYSTEM_ROLE_PERMISSION.md §9a0 角色键全表一致；成员名单 COMMITTEE_IDS 对应演示支部支委（p10~p14）。
+// 名单与 SYSTEM_ROLE_PERMISSION.md §9a0 角色键全表一致；具体成员名单由 getCommitteeIds(users) 按角色派生，不再维护 id 快照。
 export const BRANCH_COMMISSION_ROLES = [
   'secretary', 'deputy-secretary', 'org-commissioner', 'prop-commissioner', 'disc-commissioner',
 ]; // 授权支委（含支书/副支书）
@@ -207,7 +207,41 @@ export const SECRETARY_ROLES = ['secretary']; // 支书专属（副支书/委员
 // 与上一行的关系收口（2026-09-21 批次 126 · D-550）：品牌认定、意见处置已由「支书专属」移出、归支委会 ⇒ 落在支委层（BRANCH_COMMISSION_ROLES，本位副支书在内），两集之争到此为止；「仍专属支书」的清单见上一行。server requireRole 与前端共用单一源。
 export const SECRETARY_AND_DEPUTY_ROLES = ['secretary', 'deputy-secretary'];
 export const PARTY_STAFF_ROLE = ['party-staff']; // 党委组织员（组织级，不属于支部）
-export const COMMITTEE_IDS = ['p10', 'p11', 'p12', 'p13', 'p14']; // 演示支部支委名单（与 mock people 对齐）
+
+// ── 支委名单派生（数据生命周期 P1-09，2026-10-20）────────────────────
+// 为什么删除 COMMITTEE_IDS 常量：支委改选 / 人员 id 迁移后，写死的 p10~p14 会把广播与
+//   旧活动表决名单继续发给「上一届」；名单属工作流事实，必须随 users.role 现算。
+// 顺序 = 支书 → 副支书 → 组织 → 宣传 → 纪检（与历史快照 p13,p14,p11,p12,p10 同序，
+//   使考勤种子、表决名单的下标语义保持稳定）。
+// 无数据时返回空数组（调用方必须显式失败或显示 —，不得静默用假人）。
+export function getCommitteeIds(people) {
+  const rows = Array.isArray(people) ? people : [];
+  const ids = [];
+  for (const role of BRANCH_COMMISSION_ROLES) {
+    for (const person of rows) {
+      if (!person || !person.id) continue;
+      if (String(person.id).startsWith('u_')) continue; // 系统账号不是成员档案
+      if (person.role !== role) continue;
+      const id = String(person.id);
+      if (!ids.includes(id)) ids.push(id);
+    }
+  }
+  return ids;
+}
+
+/**
+ * 支委名单解析（带明确错误）：供写口在「无支委角色」时 fail-closed。
+ * @param {Array<{id:string, role?:string}>} people
+ * @returns {{ids:string[], error:string|null}}
+ */
+export function resolveCommitteeIds(people) {
+  const ids = getCommitteeIds(people);
+  if (ids.length > 0) return { ids, error: null };
+  return {
+    ids: [],
+    error: '支委名单不可用：当前成员档案中没有 secretary / deputy-secretary / org-commissioner / prop-commissioner / disc-commissioner 角色的用户，请先维护成员角色',
+  };
+}
 
 // ── 组织委员职能位（单一源，2026-09-14）────────────────────────────
 // 「组织委员」专属写链（名册档案维护/名册新增/成员流入登记等）的角色判定单一源。

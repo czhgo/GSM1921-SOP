@@ -19,22 +19,22 @@
 // 视觉沿用 card/rounded 既有体系（四档列表渲染在 components/record/todo-list.js renderUrgencyTodoList）。
 // 设计权威源：content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md §六 M6（共性抽象净减）
 
-import { TodoStore, urgeRolesOf, WORK_DOMAIN, WORK_DOMAIN_LABELS, realtimeGroupDomainOf, buildModuleCycleRemindGroup } from '../../services/governance/todo.js?v=20261020b';
+import { TodoStore, urgeRolesOf, WORK_DOMAIN, WORK_DOMAIN_LABELS, realtimeGroupDomainOf, buildModuleCycleRemindGroup } from '../../services/governance/todo.js?v=20261020c';
 // S3②（2026-09-12）：未读通知计数单一来源——与顶栏角标/首页同源（NoticeStore activeOnly+read 过滤），
 // 不再用「通知类待办」现算（口径不同致三处不一致）。
-import { NoticeStore, NOTICE_MODULE_ROLE_PAGES } from '../../services/governance/notice.js?v=20261020b';
-import { buildUrgencySections, renderUrgencyTodoList } from './todo-list.js?v=20261020b';
-import { badgeHtml } from '../ui/badges.js?v=20261020b';
-import { showToast, escHtml, todayLocal, flashHighlight } from '../../core/base/utils.js?v=20261020b';
-import { ROLE_LABELS, BRANCH_COMMISSION_ROLES } from '../../core/domain/constants.js?v=20261020b';
-import { openModal, closeModal } from '../ui/modal.js?v=20261020b';
-import { AuthStore } from '../../services/core/auth.js?v=20261020b';
-import { mockDB } from '../../core/domain/domain.js?v=20261020b';
-import { tokenOf } from '../../core/base/version-token.js?v=20261020b'; // P0 域写版本戳（spec §二.4）
-import { resolveDocumentUrl } from '../../core/base/page-url.js?v=20261020b';
-import { memoizeRender } from '../ui/memoize-render.js?v=20261020b'; // P2 渲染守卫（spec §四.1）
+import { NoticeStore, NOTICE_MODULE_ROLE_PAGES } from '../../services/governance/notice.js?v=20261020c';
+import { buildUrgencySections, renderUrgencyTodoList } from './todo-list.js?v=20261020c';
+import { badgeHtml } from '../ui/badges.js?v=20261020c';
+import { showToast, escHtml, todayLocal, flashHighlight } from '../../core/base/utils.js?v=20261020c';
+import { ROLE_LABELS, BRANCH_COMMISSION_ROLES } from '../../core/domain/constants.js?v=20261020c';
+import { openModal, closeModal } from '../ui/modal.js?v=20261020c';
+import { AuthStore } from '../../services/core/auth.js?v=20261020c';
+import { mockDB } from '../../core/domain/domain.js?v=20261020c';
+import { tokenOf } from '../../core/base/version-token.js?v=20261020c'; // P0 域写版本戳（spec §二.4）
+import { resolveDocumentUrl } from '../../core/base/page-url.js?v=20261020c';
+import { memoizeRender } from '../ui/memoize-render.js?v=20261020c'; // P2 渲染守卫（spec §四.1）
 // 模块周期提醒（`R-29⑤` · `D-804`）：分工快照取法与 `components/governance/workforce-duty-card.js` 同口径
-import { getBranchIdOfPerson, getBranchWorkforce } from '../../services/branch/branch.js?v=20261020b';
+import { getBranchIdOfPerson, getBranchWorkforce } from '../../services/branch/branch.js?v=20261020c';
 
 // ── P0 组合数据复合键（2026-09-07 · spec §二.4）──────────────────
 // 组合点（buildRealtimeGroups + mergeRealtimeDomains + getUnreadNotices）以

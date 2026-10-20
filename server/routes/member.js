@@ -10,7 +10,6 @@ import { requireAuth, requireRole, requireCommissioner } from './auth.js';
 //   而 preview 与 roster 各持一份同值字面量；现全站唯一源）
 import {
   SECRETARY_AND_DEPUTY_ROLES as SECRETARY_DEPUTY_ROLE_KEYS,
-  COMMITTEE_IDS as BRANCH_COMMITTEE_IDS,
   RESIDENCE,
   // 2026-09-14：组织委员职能位单一源（原本文件手写的组委角色数组收敛至 constants.js）
   ORG_COMMISSIONER_ROLES as ORG_COMMISSIONER_ROLE_KEYS,
@@ -26,9 +25,9 @@ import { canReadMemberProfile, projectMemberProfile } from '../../docs/src/core/
 import { today as todayLocal } from '../services/reporting.js';
 import { actorBranchId, branchSelectionError, selectedBranchRequiredError, recordBranchWriteDeny, requireAssignedBranch, resourceRowsForActor } from './resources/branch-scope.js';
 
-// 全体支委（广播对象：支书/副支书/组织/宣传/纪检，与 member-change-flow 测试断言一致）
-// P2c：名单单一源 = constants.js COMMITTEE_IDS（勿手写）
-const COMMITTEE_IDS = BRANCH_COMMITTEE_IDS;
+// 全体支委广播常量已移除（2026-10-20 数据生命周期 P1-26）：
+// `committee_broadcasts` 无任何消费端，审批通过的送达由系统通知 `member-change-approved` 完成，
+// 故 approve 不再写入该域；GET /committeeBroadcasts 保留用于读取存量行。
 
 const ORG_COMMISSIONER_ROLES = new Set(ORG_COMMISSIONER_ROLE_KEYS);
 // 成员流动登记角色集（组织委员 + 支书/副支书；单一源 constants.js，勿手写）
@@ -129,21 +128,8 @@ export function createMemberRouter(db) {
       approvedAt: new Date().toISOString(),
     };
     writeRow(db, 'member_change_requests', updated);
-
-    // 广播全体支委（含组织委员自身与支书；状态 pending 待支委确认收到）
-    const already = listTable(db, 'committee_broadcasts').filter((b) => b.requestId === existing.id);
-    for (const recipientId of COMMITTEE_IDS) {
-      if (already.some((b) => b.recipientId === recipientId)) continue;
-      const bid = `cb-${randomUUID().slice(0, 8)}`;
-      writeRow(db, 'committee_broadcasts', {
-        id: bid,
-        branchId: existing.branchId || 'br-b1',
-        requestId: existing.id,
-        recipientId,
-        status: 'pending',
-        broadcastAt: new Date().toISOString(),
-      });
-    }
+    // 2026-10-20 数据生命周期 P1-26：不再写 committee_broadcasts（只写不读，通知已由
+    //   `member-change-approved` 系统通知送达）；存量行仍可经 GET /committeeBroadcasts 读取。
     res.json(updated);
   });
 
@@ -351,7 +337,10 @@ export function createMemberRouter(db) {
     if (body.residenceStatus !== undefined && String(body.residenceStatus).trim() !== '' && !RESIDENCE_VALUES.includes(body.residenceStatus)) {
       return res.status(400).json({ error: `residenceStatus 须为：${RESIDENCE_VALUES.join(' / ')}` });
     }
-    const id = body.id ? String(body.id) : `p_${randomUUID().slice(0, 8)}`;
+    // P1-12（2026-10-20）：学号即唯一 id；缺 id 时以 studentId 作主键，禁止再生成 p_ 随机代理键。
+    //   教工/党委将来用 workNo 作业务键；当前 users 模型只有 studentId，先以其承载。
+    const id = body.id ? String(body.id) : String(body.studentId || '').trim();
+    if (!id) return res.status(400).json({ error: '学号不能为空（学号即成员唯一 id）' });
     if (db.prepare('SELECT id FROM users WHERE id = ?').get(id)) {
       return res.status(409).json({ error: '成员 id 已存在（改档请走 PATCH /members/:id/profile）' });
     }

@@ -206,6 +206,9 @@ export function resourceRowsForActor(db, name, rows, actor, requestedBranchId) {
     if (name === 'notices') {
       return rows.filter((row) => row?.source === 'committee');
     }
+    // 支部上报审批是**党委本职台账**（跨支部待批复队列）——党委未选支部时也必须能看到
+    // 全部待批复上报，否则「支部上报」页恒空（P3 党委后台闭环，party-committee-review P3）。
+    if (name === 'reviewRequests') return rows;
     if (AGGREGATE_PARENT[name]) return aggregateRows(db, name, rows, null);
     return [];
   }

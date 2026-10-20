@@ -5,15 +5,15 @@
 //  P1-4 修复（2026-08-02）：复盘记录接入 mockDB 持久化层，刷新不再丢失
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB, ReviewStatus } from '../../core/domain/domain.js?v=20261020b';
-import { persist } from '../../data/data-adapter.js?v=20261020b';
-import { bumpToken } from '../../core/base/version-token.js?v=20261020b'; // P0 域缓存失效（spec §二.3）
-import { REVIEW_RECORDS, TASKFORCE_REVIEW_RECORDS } from '../../data/mock/index.js?v=20261020b';
-import { ACTIVITIES } from '../../data/mock/activities.js?v=20261020b';
-import { getPersonName } from '../member/person.js?v=20261020b';
-import { loadActivities } from '../activity/activity.js?v=20261020b';
-import { solidAccentStyle } from '../../core/domain/constants.js?v=20261020b';
-import { generateId } from '../../core/base/id.js?v=20261020b';
+import { mockDB, ReviewStatus } from '../../core/domain/domain.js?v=20261020c';
+import { persist } from '../../data/data-adapter.js?v=20261020c';
+import { bumpToken } from '../../core/base/version-token.js?v=20261020c'; // P0 域缓存失效（spec §二.3）
+import { REVIEW_RECORDS, TASKFORCE_REVIEW_RECORDS } from '../../data/mock/index.js?v=20261020c';
+import { ACTIVITIES } from '../../data/mock/activities.js?v=20261020c';
+import { getPersonName } from '../member/person.js?v=20261020c';
+import { loadActivities } from '../activity/activity.js?v=20261020c';
+import { solidAccentStyle } from '../../core/domain/constants.js?v=20261020c';
+import { generateId } from '../../core/base/id.js?v=20261020c';
 
 /** 读取活动复盘记录（mock 常量兜底，写入后以 mockDB 为准） */
 export function loadActivityReviews() {
@@ -156,6 +156,8 @@ export function submitActivityReviewForm({ activityId, content, issues = [], act
       issues,
       reviewStatus: ReviewStatus.UPLOADED,
       submittedAt: new Date().toISOString(),
+      // P1-05：重交时一并补齐稳定父键（历史行缺键的顺手回填）。
+      workgroupId: act?.workgroupId || `wg-activity-${activityId}`,
       ...(isResubmit ? { annotation: '' } : {}),
     });
   } else {
@@ -164,6 +166,8 @@ export function submitActivityReviewForm({ activityId, content, issues = [], act
     addActivityReview({
       id: generateId('rev'),
       activityId,
+      // P1-05/M1：活动复盘补工作组投影父键（与 seed / 迁移同一派生规则）。
+      workgroupId: act?.workgroupId || `wg-activity-${activityId}`,
       organizerId,
       progress: '已完成',
       overdue: false,
@@ -193,6 +197,9 @@ export function reviewToDisplay(records, tfRecords) {
     activityId: r.activityId || null,
     sourceType: r.sourceType || null,
     sourceName: r.sourceName || null,
+    // P1-05/M1（2026-10-20）：复盘稳定父键透传给「已沉淀」判据（活动 activityId / 专班 taskforceId）。
+    workgroupId: r.workgroupId || null,
+    taskforceId: r.taskforceId || null,
     organizerId: r.organizerId,
     organizer: _personName(r.organizerId),
     progress: r.progress,

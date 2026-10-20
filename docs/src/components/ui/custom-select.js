@@ -38,6 +38,15 @@ function _syncTrigger(trigger, sel) {
   }
 }
 
+/** 禁用态同步（2026-10-20 界面细化）：原生 select 被程序置 disabled 时，
+ *  触发器若仍可点会给出「能点但没反应」的错觉；disabled + aria-disabled 同步给读屏与样式。 */
+function _syncDisabled(trigger, sel) {
+  const disabled = !!sel.disabled;
+  trigger.disabled = disabled;
+  if (disabled) trigger.setAttribute('aria-disabled', 'true');
+  else trigger.removeAttribute('aria-disabled');
+}
+
 /**
  * 下拉菜单智能定位（支书指令 2026-08-06）：不再一律向下展开，
  * 按触发器在视口中的实际位置决定向下/向上，并限制高度避免溢出视口。
@@ -118,14 +127,20 @@ function _openMenu(wrapper, menu, trigger, sel) {
   //   optgroup 的分组标题被丢弃 → 支部分工面板的「工作程序·规范 / 工作方法·支部自选」「不开展」
   //   等分组在增强下拉里完全不可见（数据层有分组、渲染层丢分组）。改为遍历 sel.children：
   //   OPTGROUP → 渲染不可选的分组标题行（.cs-group-label），OPTION → 渲染选项。
-  const appendOption = (opt, parent) => {
+  const appendOption = (opt, parent, groupDisabled = false) => {
     const item = document.createElement('div');
     item.className = 'cs-option';
     item.dataset.value = opt.value;
     item.textContent = opt.textContent;
     item.setAttribute('role', 'option');
-    if (opt.disabled) item.classList.add('is-disabled');
-    if (opt.selected) item.classList.add('is-selected');
+    if (opt.disabled || groupDisabled) {
+      item.classList.add('is-disabled');
+      item.setAttribute('aria-disabled', 'true');
+    }
+    if (opt.selected) {
+      item.classList.add('is-selected');
+      item.setAttribute('aria-selected', 'true');
+    }
     parent.appendChild(item);
   };
   const childNodes = Array.from(sel.children || []);
@@ -134,16 +149,28 @@ function _openMenu(wrapper, menu, trigger, sel) {
       if (node.tagName === 'OPTGROUP') {
         const head = document.createElement('div');
         head.className = 'cs-group-label';
+        // 分组禁用须同时落到标题与子项（2026-10-20）：只灰标题而子项可点，状态就不一致。
+        if (node.disabled) {
+          head.classList.add('is-disabled');
+          head.setAttribute('aria-disabled', 'true');
+        }
         head.textContent = node.label || '';
         head.setAttribute('role', 'presentation');
         frag.appendChild(head);
-        Array.from(node.children).forEach((o) => appendOption(o, frag));
+        Array.from(node.children).forEach((o) => appendOption(o, frag, !!node.disabled));
       } else if (node.tagName === 'OPTION') {
         appendOption(node, frag);
       }
     });
   } else {
     Array.from(sel.options).forEach((opt) => appendOption(opt, frag));
+  }
+  // 0 选项时菜单原本是一片空白，用户会以为没加载出来（C-05）；这里给明确空态。
+  if (sel.options.length === 0) {
+    const placeholder = document.createElement('div');
+    placeholder.className = 'cs-empty';
+    placeholder.textContent = '暂无可选项';
+    frag.appendChild(placeholder);
   }
   menu.appendChild(frag);
 
@@ -284,6 +311,7 @@ function enhanceSelect(sel) {
   trigger.setAttribute('aria-expanded', 'false');
   trigger.innerHTML = `<span class="cs-value"></span>${ICON_CHEVRON}`;
   _syncTrigger(trigger, sel);
+  _syncDisabled(trigger, sel);
 
   const menu = document.createElement('div');
   menu.className = 'cs-menu hidden';
@@ -329,9 +357,13 @@ function enhanceSelect(sel) {
     }
   });
 
-  // 外部程序性更新 select.value 时同步触发器文案（响应动态填充后的选中）
-  const observer = new MutationObserver(() => _syncTrigger(trigger, sel));
-  observer.observe(sel, { attributes: true, attributeFilter: ['value'], childList: true, subtree: true });
+  // 外部程序性更新 select.value 时同步触发器文案（响应动态填充后的选中）；
+  // disabled 也一并跟随（表单常按权限/前置条件启用或禁用控件）。
+  const observer = new MutationObserver(() => {
+    _syncTrigger(trigger, sel);
+    _syncDisabled(trigger, sel);
+  });
+  observer.observe(sel, { attributes: true, attributeFilter: ['value', 'disabled'], childList: true, subtree: true });
 }
 
 /**

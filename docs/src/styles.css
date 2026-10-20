@@ -1,5 +1,5 @@
 /* 组件样式（@import 必须位于文件顶部） */
-@import url('components/person-picker.css?v=20261020b');
+@import url('components/person-picker.css?v=20261020c');
 
 /* ═══════════════════════════════════════════════════════════════
    GSM1921-SOP DESIGN SYSTEM v11.0 — Matte Flat
@@ -847,6 +847,43 @@ input.input-flat.text-xs[type="datetime-local"] {
 .cs-option.is-disabled {
   color: var(--neutral-300);
   cursor: not-allowed;
+}
+/* 分组禁用与子项同态（2026-10-20）：只灰标题、子项仍可选会让用户误判可选项。 */
+.cs-group-label.is-disabled {
+  color: var(--neutral-300);
+}
+/* 禁用触发器（2026-10-20）：外观必须看得出不可用，不能只靠点击无响应。 */
+.cs-trigger:disabled,
+.cs-trigger[aria-disabled="true"] {
+  background: var(--neutral-100);
+  color: var(--neutral-400);
+  border-color: var(--neutral-200);
+  cursor: not-allowed;
+}
+.cs-trigger:disabled .cs-chevron,
+.cs-trigger[aria-disabled="true"] .cs-chevron {
+  color: var(--neutral-400);
+}
+/* 深色下选中项：--app-accent-text 是亮色主题注入的深字，叠在深底上对比约 1.1:1；
+   改「近白字 + 主题色淡底」保证可读（2026-10-20 界面细化，A-10）。 */
+html.theme-dark .cs-option.is-selected {
+  background: color-mix(in srgb, var(--app-accent, var(--party-gold)) 18%, var(--neutral-0));
+  color: var(--neutral-900);
+}
+/* 大字号档：触发器已随 .input-flat 提到 17px，菜单四项仍钉在 11–12px 会形成断层
+   （2026-10-20 界面细化，B-21）；这里只补菜单侧字号，行高随 padding 自然增长。 */
+html.font-size-large .cs-option {
+  font-size: 1rem;
+  padding: 10px 12px;
+}
+html.font-size-large .cs-group-label {
+  font-size: 0.875rem;
+}
+html.font-size-large .cs-search-input {
+  font-size: 1rem;
+}
+html.font-size-large .cs-empty {
+  font-size: 1rem;
 }
 
 /* ═══════════════════════════════════════════════════════════════

@@ -5,7 +5,8 @@
 //       2026-10-19 支书明确要求恢复，且不得写死示例支部名。
 //
 // 判据：
-//   E1 index.html 在 #dashboard-stats 之前有 #dashboard-hero 抬头块（党徽 + 标题 + 副标题）；
+//   E1 index.html 在 #dashboard-stats 之前有 #dashboard-hero 抬头块（党徽 + 标题）；
+//      **2026-10-20 支书裁定：删除副标题**（「组织生活与工作台账」只是标题复述），故 E1 反向断言其不存在；
 //   E2 抬头标题用专属 id（#dashboard-hero-title），main-entry.js 不按区块标题选择器覆写；
 //   E3 main-entry.js 引入 getHeaderTitle，并按 user 分支设置标题；
 //   E4 index.html 不出现硬编码示例支部名「光华管理学院本科生党支部」；
@@ -34,13 +35,14 @@ const IMPORT_RE = /import\s*\{[^}]*\bgetHeaderTitle\b[^}]*\}\s*from\s*['"]\.\.\/
 const TITLE_CALL_RE = /heroTitleEl\.textContent\s*=\s*user\s*\?\s*getHeaderTitle\(user\.personId\)\s*:\s*getHeaderTitle\(\)/;
 const OLD_SELECTOR_RE = /querySelector\(\s*['"]#view-dashboard h2\.font-title-cn['"]\s*\)/;
 
-test('E1 首页抬头块：党徽 + 标题 + 副标题，位于统计卡之前', () => {
+test('E1 首页抬头块：党徽 + 标题，位于统计卡之前；副标题已裁删', () => {
   const hero = indexHtml.match(HERO_BLOCK_RE);
   assert.ok(hero, 'index.html 缺 #dashboard-hero 抬头块');
   const block = hero[0];
   assert.match(block, EMBLEM_RE, '抬头块缺党徽 img（./assets/images/party_emblem.png，alt=党徽）');
   assert.match(block, HERO_TITLE_RE, '抬头块缺 #dashboard-hero-title');
-  assert.match(block, HERO_SUBTITLE_RE, '抬头块缺 #dashboard-hero-subtitle');
+  assert.doesNotMatch(block, HERO_SUBTITLE_RE,
+    '抬头块不得再渲染 #dashboard-hero-subtitle（2026-10-20 支书裁定：职责/口号副标题全删）');
   assert.ok(
     indexHtml.indexOf('id="dashboard-hero"') < indexHtml.indexOf('id="dashboard-stats"'),
     '#dashboard-hero 必须位于 #dashboard-stats 之前',
@@ -69,18 +71,18 @@ test('E5 非空转自检：正则正样本命中、负样本不命中', () => {
   const posHtml = '<div class="text-center mb-6" id="dashboard-hero">'
     + '<img src="./assets/images/party_emblem.png" alt="党徽" class="mx-auto mb-3">'
     + '<h2 id="dashboard-hero-title" class="font-title-cn">党支部工作台</h2>'
-    + '<p id="dashboard-hero-subtitle" class="text-sm">组织生活与工作台账</p>'
     + '</div>';
   assert.match(posHtml, HERO_BLOCK_RE);
   assert.match(posHtml, EMBLEM_RE);
   assert.match(posHtml, HERO_TITLE_RE);
-  assert.match(posHtml, HERO_SUBTITLE_RE);
+  assert.doesNotMatch(posHtml, HERO_SUBTITLE_RE);
   assert.doesNotMatch('<div id="dashboard-stats"></div>', HERO_BLOCK_RE);
   assert.doesNotMatch('<img src="./assets/images/other.png" alt="党徽">', EMBLEM_RE);
   assert.doesNotMatch('<h2 class="font-title-cn">重要通知</h2>', HERO_TITLE_RE);
-  assert.doesNotMatch('<p class="text-sm">组织生活与工作台账</p>', HERO_SUBTITLE_RE);
+  assert.match('<p id="dashboard-hero-subtitle" class="text-sm">x</p>', HERO_SUBTITLE_RE,
+    '副标题正则须能识别回潮元素（反向断言依赖它）');
 
-  const posImport = "import { getHeaderTitle } from '../../services/branch/branch.js?v=20261020b';";
+  const posImport = "import { getHeaderTitle } from '../../services/branch/branch.js?v=20261020c';";
   const negImport = "import { getHeaderTitle } from '../../services/branch/branch.js';";
   assert.match(posImport, IMPORT_RE);
   assert.doesNotMatch(negImport, IMPORT_RE);

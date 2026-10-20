@@ -9,16 +9,14 @@ import { requireAuth, requireRole } from './auth.js';
 // P2c（2026-09-03）：角色/支委名单单一源 = docs/src/core/domain/constants.js（勿手写）
 // 计票方式（ballotMode）同源（2026-09-12 支书裁定「正式表决无记名 + 匿名模式可选」）：
 //   强制/默认规则 = ballotModeOfActivity/isAnonymousForced，勿在本文件另写副本。
-import { SECRETARY_AND_DEPUTY_ROLES as SECRETARY_DEPUTY_ROLE_KEYS, COMMITTEE_IDS as BRANCH_COMMITTEE_IDS, ballotModeOfActivity } from '../../docs/src/core/domain/constants.js';
+import { SECRETARY_AND_DEPUTY_ROLES as SECRETARY_DEPUTY_ROLE_KEYS, resolveCommitteeIds, ballotModeOfActivity } from '../../docs/src/core/domain/constants.js';
 import { validateAgendaVoteTarget } from '../../docs/src/services/activity/agenda-relations.js';
 import { actorBranchId, branchSelectionError, resourceRowsForActor } from './resources/branch-scope.js';
 
-// 支委白名单 = 旧活动回退白名单（保留不改行为；名单单一源 = constants.js COMMITTEE_IDS，与 member.js 同源），
-// 供无 voteConfig 的旧活动/回退场景兜底校验。
+// 支委白名单 = 旧活动回退白名单（P1-09，2026-10-20）：按当前 users.role 派生，不再维护 id 快照；
 // 权威名单 = 活动 voteConfig.voterIds（前端创建活动时经 vote-config 固化写入活动）；
 // 前端唯一源 = docs/src/services/activity/vote-config.js resolveVoterIds('committee')
-//   （people.js role + AuthStore.isCommissioner，排除 u_*）。名单变更请改前端权威源，勿在此增删成员。
-const COMMITTEE_IDS = new Set(BRANCH_COMMITTEE_IDS);
+//   （constants.js::resolveCommitteeIds 角色派生）。名单变更请改成员角色，勿在此增删成员。
 // 支书侧写权角色集（含副支书＝副书同权 2026-09-11 支书裁定；单一源 = constants.js）
 const SECRETARY_AND_DEPUTY_ROLES = new Set(SECRETARY_DEPUTY_ROLE_KEYS);
 
@@ -93,7 +91,19 @@ export function createCommitteeRouter(db) {
       return res.status(400).json({ error: '活动表决名单无效：voterIds 须为非空数组' });
     }
     const optionSet = hasConfig ? vc.optionSet : 'deliberative';
-    const voterIds = hasConfig ? new Set(vc.voterIds) : COMMITTEE_IDS;
+    // 旧活动回退名单：按「本活动所属支部」的现任支委角色派生（P1-09）。
+    // 为什么 fail-closed：无支委角色时若静默放行/用假人，历史活动重开表决会把票记到错误的人；
+    // 明确 409 让操作者先维护角色或补齐 voteConfig。
+    let voterIds = null;
+    if (hasConfig) {
+      voterIds = new Set(vc.voterIds);
+    } else {
+      const branchId = actRow.branchId || 'br-b1';
+      const branchUsers = listTable(db, 'users').filter((u) => (u.branchId || 'br-b1') === branchId);
+      const committee = resolveCommitteeIds(branchUsers);
+      if (committee.error) return res.status(409).json({ error: committee.error });
+      voterIds = new Set(committee.ids);
+    }
     if (!voterIds.has(req.actor.id)) {
       return res.status(403).json({ error: hasConfig ? '不在本次表决名单' : '仅支委可表态' });
     }

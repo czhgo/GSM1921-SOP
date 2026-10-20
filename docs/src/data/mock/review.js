@@ -7,7 +7,7 @@
 // 本文件退化为纯复盘种子数据仓。
 // 2026-09-06 基线刷新：时间字段随关联活动重排（活动新日期见 activities.js 头注）同步平移，
 //   正文中旧人名/月份词同步更新（人名与 people.js 一致）。
-import { ReviewStatus } from '../../core/domain/domain.js?v=20261020b';
+import { ReviewStatus } from '../../core/domain/domain.js?v=20261020c';
 
 /**
  * 活动复盘记录
@@ -151,14 +151,23 @@ export const REVIEW_RECORDS = [
   },
 ];
 
+// P1-05（2026-10-20）：活动复盘补稳定父键 workgroupId（与 workgroup-seed-sync 的
+//   `wg-activity-<activityId>` 派生规则同源）；activityId 本身即活动父键，此处只补工作组投影。
+for (const r of REVIEW_RECORDS) {
+  if (r.activityId && !r.workgroupId) r.workgroupId = `wg-activity-${r.activityId}`;
+}
+
 /**
  * 专班复盘记录
  * organizerId 必须为专班 manager/initiator/members 中的实际 organizer
+ * P1-05/M2（2026-10-20）：补稳定父键 workgroupId + taskforceId（sourceName 仅展示快照）。
  */
 export const TASKFORCE_REVIEW_RECORDS = [
   {
     id: 'tfrev1',
     sourceType: 'taskforce',
+    taskforceId: 'tf-001',
+    workgroupId: 'wg-taskforce-tf-001',
     sourceName: '宣传专班（第二期）',
     organizerId: 'p11',
     progress: '进行中',
@@ -171,6 +180,8 @@ export const TASKFORCE_REVIEW_RECORDS = [
   {
     id: 'tfrev2',
     sourceType: 'taskforce',
+    taskforceId: 'tf-004',
+    workgroupId: 'wg-taskforce-tf-004',
     sourceName: '共建座谈对接专班',
     organizerId: 'p11',
     progress: '已完成',

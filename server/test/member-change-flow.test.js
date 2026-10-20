@@ -75,13 +75,11 @@ test('组织委员审批后广播，支书确认后更新成员资料', async ()
   const peopleBeforeConfirmation = await userBeforeConfirmation.json();
   assert.equal(peopleBeforeConfirmation.find((person) => person.id === 'p6').developStage, '发展对象');
 
+  // P1-26（2026-10-20）：committee_broadcasts 无消费端，审批通过不再写入（送达改由系统通知）。
   const broadcastsResponse = await requestAs(secretaryToken, `/api/v1/committeeBroadcasts?requestId=${created.id}`, 'GET');
   assert.equal(broadcastsResponse.status, 200);
   const broadcasts = await broadcastsResponse.json();
-  assert.deepEqual(
-    broadcasts.map((record) => record.recipientId).sort(),
-    ['p10', 'p11', 'p12', 'p13', 'p14'],
-  );
+  assert.deepEqual(broadcasts, [], '审批通过不再堆积只写不读的支委广播');
 
   const confirmResponse = await requestAs(secretaryToken, `/api/v1/member-change-requests/${created.id}/confirm`, 'POST');
   assert.equal(confirmResponse.status, 200);

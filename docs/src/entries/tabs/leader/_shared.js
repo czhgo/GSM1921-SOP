@@ -2,23 +2,27 @@
 // 组长工作台共享上下文（T-279 M2 拆分样板）
 // 各 tab 模块复用的只读配置与纯函数：accent 三件套、当前组长组、活动按角色过滤。
 
-import { liveMembers, PersonStore } from '../../../services/member/person.js?v=20261020b';
+import { liveMembers, PersonStore } from '../../../services/member/person.js?v=20261020c';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/member/person.js 获取（原直连 mock PEOPLE）
 // 实时视图（非快照）：成员增删即时可见——见 services/member/person.js liveMembers 说明
 const PEOPLE = liveMembers();
-import { AuthStore } from '../../../services/core/auth.js?v=20261020b';
+import { currentUserId } from '../../../services/core/auth.js?v=20261020c';
 
-/** 当前组长身份（数据驱动：AuthStore 当前用户 + partyGroup，不硬编码人） */
+/**
+ * 当前组长身份（数据驱动：AuthStore 当前用户 + partyGroup，不硬编码人）。
+ * P1-11（2026-10-20）：失效会话返回 { leaderId:null, group:'' }——不再回落到固定组长 p4，
+ *   调用方据此把「本组」读口显示为 —、写口禁用并提示重新登录。
+ */
 export function currentLeaderGroup() {
-  const me = AuthStore.getCurrentUser();
-  const leaderId = me?.personId || 'p4';
+  const leaderId = currentUserId();
+  if (!leaderId) return { leaderId: null, group: '' };
   const group = PEOPLE.find(p => p.id === leaderId)?.partyGroup || '';
   return { leaderId, group };
 }
 
-/** 当前组长 personId */
+/** 当前组长 personId（失效会话 → null，禁止猜人） */
 export function getCurrentLeaderId() {
-  return AuthStore.getCurrentUser()?.personId || 'p4';
+  return currentUserId();
 }
 
 /** 按角色过滤活动（组长视角：上级下发 + 本人组织/参与 + 本人创建） */

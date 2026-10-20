@@ -5,14 +5,19 @@
 // 2026-10-18 繁专项 Task 6：概况汇报区降为只读摘要，唯一动作「去我的处置」；提交入口只在「我的处置」。
 // U3（2026-09-07）：进入概况先骨架占位（内容容器兜底等高骨架卡，防首帧 0 高弹跳）。
 
-import { renderWorkOverview } from '../../../components/governance/work-overview.js?v=20261020b';
-import { AuthStore } from '../../../services/core/auth.js?v=20261020b';
-import { beginOverviewShell } from '../../../components/governance/overview-dispatch-bar.js?v=20261020b';
+import { renderWorkOverview } from '../../../components/governance/work-overview.js?v=20261020c';
+import { currentUserId } from '../../../services/core/auth.js?v=20261020c';
+import { beginOverviewShell } from '../../../components/governance/overview-dispatch-bar.js?v=20261020c';
 
 export function renderContent(ctx) {
   const el = document.getElementById('visitor-tab-content');
   if (!el) return null;
-  const personId = AuthStore.getCurrentUser()?.personId || 'p5';
+  const personId = currentUserId();
+  // 失效会话不猜人（P1-11）：读口显式显示 —，不再回落到固定参与者 p5。
+  if (!personId) {
+    el.innerHTML = '<div class="card rounded-xl p-5 text-center"><p class="text-xs text-gray-500">—（登录态已失效，请重新登录）</p></div>';
+    return null;
+  }
   beginOverviewShell(el);
   return renderWorkOverview(el, { role: 'visitor', personId, accent: ctx.accent, prefix: 'visitor', title: '我的工作概况' });
 }

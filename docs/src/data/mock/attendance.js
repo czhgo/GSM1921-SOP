@@ -1,7 +1,8 @@
 // 数据域接线批次二（2026-09-03）：展示格式化 attendanceToLong 已提升至 services/activity/attendance.js；
 // 本文件退化为纯考勤种子数据仓（PEOPLE 供全员出席名单生成）。
-import { PEOPLE } from './people.js?v=20261020b';
-import { AttendanceStatus } from '../../core/domain/domain.js?v=20261020b';
+import { PEOPLE } from './people.js?v=20261020c';
+import { AttendanceStatus } from '../../core/domain/domain.js?v=20261020c';
+import { getCommitteeIds } from '../../core/domain/constants.js?v=20261020c';
 
 // 最后更新：2026-09-06（演示数据基线刷新）
 // 显式段 att1~att43 的 recordedAt 随关联活动重排同步平移（recordedAt = 活动日当天），
@@ -105,10 +106,14 @@ export const ATTENDANCE_RECORDS = [
 //   act-29 8/4  暑期实践总结分享（主题党日）   → 全员 50 人
 // 状态分布：出勤为主；按 (idx + 事件偏移) 确定性抽取请假/缺勤，统一待纪检确认（recordedBy null）。
 
-// 支委班子出席快照（支书/副支书/三委员/三组长 共 8 人）——系 act-27 考勤出席名单，非支委集合定义：
-// 前五位 p13/p14/p11/p12/p10 = 支委五人（权威名单：services/activity/vote-config.js resolveVoterIds('committee')），
-// p1/p2/p4 = 三组长；勿据此名单增删支委，成员变更请改 vote-config 权威源。
-const _BRANCH_COMMITTEE_IDS = ['p13', 'p14', 'p11', 'p12', 'p10', 'p1', 'p2', 'p4'];
+// 支委班子出席快照（支书/副支书/三委员/三组长 共 8 人）——系 act-27 考勤出席名单。
+// M4（2026-10-20）：改为**角色派生**（支委 = getCommitteeIds 单一源；组长 = role='leader' 且属本支部），
+//   不再维护 p13/p14/... 的 id 快照——支委改选或学号迁移后种子自动跟随。
+//   顺序 = 支书→副支书→组织→宣传→纪检→三组长，与历史快照同序（考勤状态按下标确定性生成，保持演示稳定）。
+const _BRANCH_COMMITTEE_IDS = [...new Set([
+  ...getCommitteeIds(PEOPLE),
+  ...PEOPLE.filter((p) => p.role === 'leader' && p.branchId).map((p) => p.id),
+])];
 // 全员（三党小组 17/17/16 共 50 人）——**限本支部成员**：
 // 2026-09-26 本批改准：原 `PEOPLE.map(p => p.id)` 会把**党委组织员 p_pc**（`branchId: null`，不属任一支部，
 //   见 `people.js`）一并写进 act-26/act-29 的「全员出席」⇒ 生产 2 条游离于支部成员集之外的考勤行，

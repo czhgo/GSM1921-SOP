@@ -9,18 +9,18 @@
 //（listPeriodicArchivesPendingReview / reviewPeriodicArchive / PERIODIC_ARCHIVE_REVIEW_STATUS），
 // 本页只做呈现与交互，不另写状态名、不改后端 API/数据模型/权限链。
 
-import { AuthStore } from '../../../services/core/auth.js?v=20261020b';
-import { renderWorkOverview } from '../../../components/governance/work-overview.js?v=20261020b';
+import { currentUserId } from '../../../services/core/auth.js?v=20261020c';
+import { renderWorkOverview } from '../../../components/governance/work-overview.js?v=20261020c';
 import {
   listPeriodicArchivesPendingReview, reviewPeriodicArchive,
-} from '../../../services/governance/secretary-overview.js?v=20261020b';
-import { getPersonName } from '../../../services/member/person.js?v=20261020b';
-import { listRowHtml, listGroupHtml } from '../../../components/ui/list-row.js?v=20261020b';
-import { emptyStateHtml } from '../../../components/ui/empty-state.js?v=20261020b';
-import { openModal, closeModal } from '../../../components/ui/modal.js?v=20261020b';
+} from '../../../services/governance/secretary-overview.js?v=20261020c';
+import { getPersonName } from '../../../services/member/person.js?v=20261020c';
+import { listRowHtml, listGroupHtml } from '../../../components/ui/list-row.js?v=20261020c';
+import { emptyStateHtml } from '../../../components/ui/empty-state.js?v=20261020c';
+import { openModal, closeModal } from '../../../components/ui/modal.js?v=20261020c';
 import {
   showToast, flashHighlight, getBasePath, escHtml as esc,
-} from '../../../core/base/utils.js?v=20261020b';
+} from '../../../core/base/utils.js?v=20261020c';
 
 const OVERVIEW_TAB_HTML = `
   <div id="secretary-overview-content"></div>
@@ -51,7 +51,9 @@ export async function renderContent(ctx = {}) {
   }
   const container = document.getElementById('secretary-overview-content');
   if (!container) return null;
-  const personId = AuthStore.getCurrentUser()?.personId || 'p1';
+  // P1-11：失效会话不再回落到组长 p1（原兜底会把支书的写操作记到别人名下）；
+  //   读口照常渲染，写口在 _mountPeriodicReview 内显式拒绝并提示重新登录。
+  const personId = currentUserId();
   const highlightId = _highlightConsumed ? '' : _resolveHighlightId(ctx);
   const pendingReports = listPeriodicArchivesPendingReview();
   return renderWorkOverview(container, {
@@ -116,6 +118,8 @@ function _mountPeriodicReview(container, personId, ctx) {
   section.addEventListener('click', (event) => {
     const btn = event.target.closest('[data-pa-review]');
     if (!btn) return;
+    // P1-11：无登录人不允许写（宁可不写，也不把审核记到猜测的人名下）。
+    if (!personId) { showToast('error', '登录态已失效，请重新登录后再审核'); return; }
     const id = btn.dataset.paId;
     if (!id) return;
     if (btn.dataset.paReview === 'approved') {

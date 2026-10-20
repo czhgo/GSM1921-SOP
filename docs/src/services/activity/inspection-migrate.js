@@ -110,3 +110,114 @@ export function migrateInspectionWorkgroupKeys({ records, workgroups, taskforces
   console.info(`[inspection-migrate] 考察工作组键回填：total=${total} filled=${filled} legacy=${legacy} rate=${(rate * 100).toFixed(1)}%`);
   return result;
 }
+
+/**
+ * 复盘父键回填（数据生命周期 P1-05/M1-M2，2026-10-20）。
+ *
+ * 为什么：复盘与经验沉淀原只按 `sourceName` 关联——活动/专班改名即断链、同名即串数据。
+ * 这里把稳定父键补进 JSON 行（**不动表结构**）：
+ *   · 活动复盘：activityId 已存在 ⇒ 补 workgroupId（activity.workgroupId 或 `wg-activity-<id>`）；
+ *   · 专班复盘：按 `workgroupId → taskforceId → 唯一 sourceName → 唯一工作组名` 回填
+ *     workgroupId + taskforceId；同名多专班不猜，标 `legacy:true` 只读。
+ * 幂等：已带有效父键的行原样保留（第二次运行 filled=0）；legacy 只对仍无法回填者计数，重跑不增。
+ * mock hydrate 与服务端迁移共用本实现（单一源）。
+ * @param {{activityReviews?:Array, taskforceReviews?:Array, activities?:Array, workgroups?:Array, taskforces?:Array}} input
+ * @returns {{activityReviews:Array, taskforceReviews:Array, activity:Object, taskforce:Object}}
+ */
+export function migrateReviewParentKeys({ activityReviews, taskforceReviews, activities, workgroups, taskforces } = {}) {
+  const activitySource = Array.isArray(activityReviews) ? activityReviews : [];
+  const taskforceSource = Array.isArray(taskforceReviews) ? taskforceReviews : [];
+  const acts = Array.isArray(activities) ? activities : [];
+  const groups = Array.isArray(workgroups) ? workgroups : [];
+  const tfs = Array.isArray(taskforces) ? taskforces : [];
+
+  const actsById = new Map(acts.map((row) => [String(row.id), row]));
+  const groupsById = new Map(groups.map((row) => [String(row.id), row]));
+  const taskforcesById = new Map(tfs.map((tf) => [String(tf.id), tf]));
+  // 名称只在历史回填时作线索；必须唯一命中，否则 legacy（不猜同名专班）。
+  const taskforcesByName = new Map();
+  for (const tf of tfs) {
+    const key = String(tf.name || '');
+    if (!key) continue;
+    if (!taskforcesByName.has(key)) taskforcesByName.set(key, []);
+    taskforcesByName.get(key).push(tf);
+  }
+
+  let activityTotal = 0;
+  let activityFilled = 0;
+  let activityLegacy = 0;
+  const nextActivityReviews = activitySource.map((record) => {
+    if (!record || !record.activityId) return record;
+    activityTotal += 1;
+    const activity = actsById.get(String(record.activityId));
+    if (!activity) {
+      activityLegacy += 1;
+      return record.legacy ? record : { ...record, legacy: true };
+    }
+    const workgroupId = record.workgroupId || activity.workgroupId || `wg-activity-${activity.id}`;
+    if (record.workgroupId !== workgroupId) activityFilled += 1;
+    const next = { ...record, workgroupId };
+    delete next.legacy;
+    return next;
+  });
+
+  let taskforceTotal = 0;
+  let taskforceFilled = 0;
+  let taskforceLegacy = 0;
+  const nextTaskforceReviews = taskforceSource.map((record) => {
+    if (!record) return record;
+    taskforceTotal += 1;
+    const existingGroup = record.workgroupId ? groupsById.get(String(record.workgroupId)) : null;
+
+    // 已有有效父键：保留父键，不改写；只补 taskforceId 兼容快照。
+    if (existingGroup && existingGroup.kind === TASKFORCE) {
+      const taskforceId = record.taskforceId || existingGroup.sourceId || null;
+      const next = { ...record, workgroupId: existingGroup.id, ...(taskforceId ? { taskforceId } : {}) };
+      delete next.legacy;
+      if (record.taskforceId !== taskforceId) taskforceFilled += 1;
+      return next;
+    }
+
+    // 回填线索（按可信度）：显式 taskforceId → workgroupId 反查 → 唯一名称 → 唯一工作组名称。
+    let resolved = record.taskforceId ? taskforcesById.get(String(record.taskforceId)) : null;
+    if (!resolved && record.workgroupId) {
+      resolved = _taskforceByWorkgroupId(record.workgroupId, { groupsById, taskforces: tfs });
+    }
+    if (!resolved && record.sourceName) {
+      const byName = taskforcesByName.get(String(record.sourceName)) || [];
+      if (byName.length === 1) resolved = byName[0];
+    }
+    if (!resolved && record.sourceName) {
+      const candidates = groups
+        .filter((group) => group.kind === TASKFORCE && group.name === record.sourceName)
+        .map((group) => taskforcesById.get(String(group.sourceId)))
+        .filter(Boolean);
+      if (candidates.length === 1) resolved = candidates[0];
+    }
+
+    if (!resolved) {
+      taskforceLegacy += 1;
+      return record.legacy ? record : { ...record, legacy: true };
+    }
+
+    const workgroupId = record.workgroupId || _workgroupIdOfTaskforce(resolved);
+    const taskforceId = record.taskforceId || resolved.id;
+    if (record.workgroupId !== workgroupId || record.taskforceId !== taskforceId) taskforceFilled += 1;
+    const next = { ...record, workgroupId, taskforceId };
+    delete next.legacy;
+    return next;
+  });
+
+  const activityRate = activityTotal === 0 ? 1 : (activityTotal - activityLegacy) / activityTotal;
+  const taskforceRate = taskforceTotal === 0 ? 1 : (taskforceTotal - taskforceLegacy) / taskforceTotal;
+  console.info(
+    `[review-migrate] 复盘父键回填：activity total=${activityTotal} filled=${activityFilled} legacy=${activityLegacy} rate=${(activityRate * 100).toFixed(1)}%；`
+    + `taskforce total=${taskforceTotal} filled=${taskforceFilled} legacy=${taskforceLegacy} rate=${(taskforceRate * 100).toFixed(1)}%`,
+  );
+  return {
+    activityReviews: nextActivityReviews,
+    taskforceReviews: nextTaskforceReviews,
+    activity: { total: activityTotal, filled: activityFilled, legacy: activityLegacy, rate: activityRate },
+    taskforce: { total: taskforceTotal, filled: taskforceFilled, legacy: taskforceLegacy, rate: taskforceRate },
+  };
+}

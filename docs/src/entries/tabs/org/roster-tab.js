@@ -42,33 +42,33 @@
 //    支书确认生效时先 roster.saveResidenceChange（RESIDENCE_KEY 覆盖 + 留痕）→ 再 saveMember 镜像进档案。
 // ════════════════════════════════════════════════════════════════
 
-import { PersonStore, getPersonName } from '../../../services/member/person.js?v=20261020b';
-import { getRosterStats, getResidenceOf } from '../../../services/member/roster.js?v=20261020b';
-import { listPendingConfirmations } from '../../../services/member/member-confirmation.js?v=20261020b';
-import { DEVELOP_STAGE_OPTIONS } from '../../../services/branch/org-base-data-preview.js?v=20261020b';
+import { PersonStore, getPersonName } from '../../../services/member/person.js?v=20261020c';
+import { getRosterStats, getResidenceOf } from '../../../services/member/roster.js?v=20261020c';
+import { listPendingConfirmations } from '../../../services/member/member-confirmation.js?v=20261020c';
+import { DEVELOP_STAGE_OPTIONS } from '../../../services/branch/org-base-data-preview.js?v=20261020c';
 // 党小组常态清单唯一来源（活组、按 seq 升序；新增/改名/解散后随渲染即时可见）
-import { groupOptions } from '../../../services/member/party-group.js?v=20261020b';
-import { AuthStore } from '../../../services/core/auth.js?v=20261020b';
+import { groupOptions } from '../../../services/member/party-group.js?v=20261020c';
+import { AuthStore, currentUserId } from '../../../services/core/auth.js?v=20261020c';
 // Q-21-3 收敛（2026-09-13）：在册状态枚举单一源 = core/domain/constants.js（原经 roster.js 转出）
-import { ROLE_LABELS, RESIDENCE } from '../../../core/domain/constants.js?v=20261020b';
-import { showToast, escHtml as esc, getBasePath } from '../../../core/base/utils.js?v=20261020b';
-import { openModal, closeModal, openFormModal } from '../../../components/ui/modal.js?v=20261020b';
+import { ROLE_LABELS, RESIDENCE } from '../../../core/domain/constants.js?v=20261020c';
+import { showToast, escHtml as esc, getBasePath } from '../../../core/base/utils.js?v=20261020c';
+import { openModal, closeModal, openFormModal } from '../../../components/ui/modal.js?v=20261020c';
 // 统一成员档案编辑模态（成员名册行内「编辑」入口；模态内按字段分流：档案属性立即生效 / 制度变更报支书确认）
-import { openPersonEditModal } from '../../../components/governance/pickers.js?v=20261020b';
+import { openPersonEditModal } from '../../../components/governance/pickers.js?v=20261020c';
 // 纯逻辑（可单测）：新增表单校验
-import { validateMemberForm } from '../../../services/member/roster-ui-logic.js?v=20261020b';
+import { validateMemberForm } from '../../../services/member/roster-ui-logic.js?v=20261020c';
 // `D-788` / `V-10b` 第三批（2026-10-05 · 支书圈「甲：粘贴/CSV ＋ 预览」）：自我描述批量导入服务
 //   （纯函数：解析 → 表头关键词映射 → 净化 → 与名册匹配 → 预览；本模块不落库，确认由本 tab 逐行走 saveMember）
-import { buildSelfProfileImport } from '../../../services/member/self-profile-import.js?v=20261020b';
+import { buildSelfProfileImport } from '../../../services/member/self-profile-import.js?v=20261020c';
 // 统一检索引擎（2026-09-13 表格统一化批次 A）：名册列表接入关键词 + 分面（≤8 行引擎自动不渲染检索条）
-import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261020b';
+import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261020c';
 // 成员流出登记（行内「移出」＝登记即生效）：2026-09-28 批次 220 · R10 拆分后，本 tab 只留「移出」这一
 //   行操作；「成员流动」面板（登记流入 / 登记流出 / 对账行 / 台账表 / 撤销）已拆到独立 tab（org/member-flow-tab.js）。
-import { registerOutflow } from '../../../services/member/member-flow.js?v=20261020b';
+import { registerOutflow } from '../../../services/member/member-flow.js?v=20261020c';
 // 支部归属解析（当前操作人 → 支部 id）：台账/对账/登记同支部口径
-import { getBranchIdOfPerson } from '../../../services/branch/branch.js?v=20261020b';
+import { getBranchIdOfPerson } from '../../../services/branch/branch.js?v=20261020c';
 // 自定义圆角下拉增强（select.input-flat.text-xs → cs-trigger；与全局 observer 幂等）
-import { enhanceSelects } from '../../../components/ui/custom-select.js?v=20261020b';
+import { enhanceSelects } from '../../../components/ui/custom-select.js?v=20261020c';
 
 // 模块级 ctx 缓存：行内保存/删除/新增后整页刷新复用首次渲染的 accent
 let _ctx = null;
@@ -85,9 +85,16 @@ function _branchMembers() {
   return PersonStore.getMembers().filter(p => p.branchId !== null && p.branchId !== undefined);
 }
 
-/** 操作人（审计/留痕 updatedBy；组织委员位兜底 p11，同 talent-tab 口径） */
+/** 操作人（审计/留痕 updatedBy；P1-11：失效会话 → null，禁止回落到组织委员 p11） */
 function _actorId() {
-  return AuthStore.getCurrentUser()?.personId || 'p11';
+  return currentUserId();
+}
+
+/** 写口取操作人：无登录人 → 提示重新登录并拒绝写入（宁可不写，也不记到别人名下） */
+function _requireActor() {
+  const id = _actorId();
+  if (!id) showToast('error', '登录态已失效，请重新登录');
+  return id;
 }
 
 /** 操作人角色（成员流动登记权限门 canRegisterFlow 入参） */
@@ -149,8 +156,7 @@ export function renderContent(ctx) {
         </div>
         <details class="mb-3 rounded-lg border border-gray-100 bg-gray-50/50 px-3 py-2">
           <summary class="text-xs text-gray-600 cursor-pointer select-none">应到与待确认明细</summary>
-          <p class="text-xs text-gray-500 mt-2 mb-2">成员名册逐人「新增 / 编辑 / 移出」：点行内「编辑」打开档案编辑模态——姓名 / 学号 / 党小组立即生效，发展阶段 / 在册状态变更报支书确认后生效。</p>
-          <div class="flex items-center gap-x-4 gap-y-1 flex-wrap text-xs">
+          <div class="mt-2 flex items-center gap-x-4 gap-y-1 flex-wrap text-xs">
             <span class="px-2 py-1 rounded-full bg-white border border-gray-100"><span class="font-medium text-gray-700">支部应到 ${stats.expected} 人</span><span class="text-gray-500">＝在册党员 ${stats.partyTotal} − 滞留剔除 ${stats.detainedParty}</span></span>
             ${groupStats.map(x => `<span class="text-gray-500">${esc(x.g)}应到 <span class="text-gray-700 font-medium">${x.s.expected}</span><span class="text-gray-500">/${x.s.partyTotal}</span></span>`).join('')}
             <span class="text-gray-500">未分组 <span class="text-gray-700 font-medium">${ungroupedCount}</span> 人</span>
@@ -401,7 +407,8 @@ async function _confirmSpImport() {
   if (!r || !r.rows) return;
   const importable = r.rows.filter((row) => row.status === 'matched' && row.personId);
   if (!importable.length) { showToast('error', '没有可导入的行（请检查匹配列与内容）'); return; }
-  const by = _actorId();
+  const by = _requireActor();
+  if (!by) return;
   let okN = 0;
   const fails = [];
   for (const row of importable) {
@@ -449,7 +456,8 @@ function _openAddForm() {
 }
 
 async function _addMember(val) {
-  const actorId = _actorId();
+  const actorId = _requireActor();
+  if (!actorId) return;
   const payload = {
     name: val.name,
     studentId: val.studentId,
@@ -503,9 +511,11 @@ function _askRemove(personId) {
 }
 
 async function _doRemove(personId, name) {
+  const by = _requireActor();
+  if (!by) return;
   const r = await registerOutflow({
     personIds: [personId],
-    by: _actorId(),
+    by,
     role: _actorRole(),
     branchId: _branchId(),
   });

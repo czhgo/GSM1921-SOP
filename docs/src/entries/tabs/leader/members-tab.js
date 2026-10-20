@@ -5,23 +5,23 @@
 // P-011 知情边界：看 ≠ 做——组长只知情与温和「了解进展」，答复由支书完成，不跳转他人工作台。
 // 本视图禁用 SVG 图标，类别用色点+文字区分。
 
-import { AuthStore } from '../../../services/core/auth.js?v=20261020b';
-import { IssueStore } from '../../../services/governance/issues.js?v=20261020b';
-import { renderReportInboxHtml, bindReportInbox } from '../../../components/record/reporting.js?v=20261020b';
+import { currentUserId } from '../../../services/core/auth.js?v=20261020c';
+import { IssueStore } from '../../../services/governance/issues.js?v=20261020c';
+import { renderReportInboxHtml, bindReportInbox } from '../../../components/record/reporting.js?v=20261020c';
 // 批次 47-I（Q-23-41 ②，支书 2026-09-15 裁定「改为服务端汇总」）：四项聚合口径下沉单一源
 // `services/member/member-progress.js`——api 态由**服务端**汇总接口计算、mock 态调**同一个**纯函数。
 // 故原先此处的四源直读与内联判定（TodoStore / TodoStatus / isTodoExpired / AttendanceStatus /
 // loadAttendanceRecords / loadActiveInspectionRecords）**全部移除**：判定逻辑不再在本文件出现。
-import { loadMemberProgress, blockersOf, REPORT_KIND } from '../../../services/member/member-progress.js?v=20261020b';
-import { resolveVisibleTargets } from '../../../services/core/visibility.js?v=20261020b';
-import { getPersonById, getPersonName } from '../../../services/member/person.js?v=20261020b';
-import { showToast, getBasePath, escHtml as esc, todayLocal } from '../../../core/base/utils.js?v=20261020b';
+import { loadMemberProgress, blockersOf, REPORT_KIND } from '../../../services/member/member-progress.js?v=20261020c';
+import { resolveVisibleTargets } from '../../../services/core/visibility.js?v=20261020c';
+import { getPersonById, getPersonName } from '../../../services/member/person.js?v=20261020c';
+import { showToast, getBasePath, escHtml as esc, todayLocal } from '../../../core/base/utils.js?v=20261020c';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是人的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
-import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261020b';
+import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261020c';
 // D8 裁决批二（2026-09-08）：本组活动复盘状态只读区块并入「组员进展」页（原独立「复盘状态」tab 已删）
-import { reviewStatusSectionHtml, bindReviewStatusSection } from './review-tab.js?v=20261020b';
+import { reviewStatusSectionHtml, bindReviewStatusSection } from './review-tab.js?v=20261020c';
 // 材料页深链 focusActivityId 的通用定位（只滚动 + 闪烁，不另造筛选器）
-import { focusActivityAnchor } from '../../../components/ui/detail-anchor.js?v=20261020b';
+import { focusActivityAnchor } from '../../../components/ui/detail-anchor.js?v=20261020c';
 
 // 模块级 ctx 缓存：重渲染（了解进展/行内答复后刷新）复用首次渲染的 accent
 let _ctx = null;
@@ -31,8 +31,12 @@ export async function renderContent(ctx) {
   const container = document.getElementById('leader-tab-content');
   if (!container) return;
 
-  const me = AuthStore.getCurrentUser();
-  const myPersonId = me?.personId || 'p4';
+  const myPersonId = currentUserId();
+  // P1-11：失效会话不再回落到固定组长 p4；本组读口显示 —，避免把 p_pc（空党小组）误当组员。
+  if (!myPersonId) {
+    container.innerHTML = '<div class="card rounded-xl p-5 text-center"><p class="text-xs text-gray-500">—（登录态已失效，请重新登录）</p></div>';
+    return;
+  }
   await IssueStore.loadAll();
   const today = todayLocal();
 

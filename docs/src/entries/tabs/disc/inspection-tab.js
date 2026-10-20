@@ -3,33 +3,33 @@
 // 仅展示已登记的考察事项；工作组成员名单不自动生成考察清单。
 // 业务口径：考察依托工作组——考察记录挂工作组，考察对象为该工作组成员；sourceType/activityId/taskforceId 是工作组类型的投影。
 
-import { loadActiveInspectionRecords, getOverdueRecords, confirmInspectionRecord, deleteInspectionRecord, listInspectionSupervision } from '../../../services/activity/inspection.js?v=20261020b';
-import { loadInspectionRecords, saveInspectionRecords, isInspectionHomePosition, inspectionConfirmDenyReason } from '../../../services/activity/inspection.js?v=20261020b';
-import { returnInspectionRecord, loadInspectionAppeals, returnInspectionAppeal, closeInspectionAppeal } from '../../../services/activity/inspection.js?v=20261020b';
-import { inspectionToLong, inspectionToWide } from '../../../services/activity/inspection.js?v=20261020b';
-import { getPersonById, getPersonName } from '../../../services/member/person.js?v=20261020b';
-import { SourceType, ParticipationLevel } from '../../../core/domain/domain.js?v=20261020b';
+import { loadActiveInspectionRecords, getOverdueRecords, confirmInspectionRecord, deleteInspectionRecord, listInspectionSupervision } from '../../../services/activity/inspection.js?v=20261020c';
+import { loadInspectionRecords, saveInspectionRecords, isInspectionHomePosition, inspectionConfirmDenyReason } from '../../../services/activity/inspection.js?v=20261020c';
+import { returnInspectionRecord, loadInspectionAppeals, returnInspectionAppeal, closeInspectionAppeal } from '../../../services/activity/inspection.js?v=20261020c';
+import { inspectionToLong, inspectionToWide } from '../../../services/activity/inspection.js?v=20261020c';
+import { getPersonById, getPersonName } from '../../../services/member/person.js?v=20261020c';
+import { SourceType, ParticipationLevel } from '../../../core/domain/domain.js?v=20261020c';
 // P3c 单一源（批4 副本收编 2026-09-09）：超期天数与文案由 policy 派生，勿在此写字面量
-import { POLICY_DEFAULTS } from '../../../core/domain/policy-defaults.js?v=20261020b';
-import { badgeHtml } from '../../../components/ui/badges.js?v=20261020b';
-import { showToast, downloadCSV, triggerPrint, _fmtDate, escHtml as esc, getBasePath, flashHighlight } from '../../../core/base/utils.js?v=20261020b';
-import { HandoffStore } from '../../../services/governance/handoff.js?v=20261020b';
-import { DISC_COMMISSIONER_ID, getDiscCommissionerId } from './_shared.js?v=20261020b';
+import { POLICY_DEFAULTS } from '../../../core/domain/policy-defaults.js?v=20261020c';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20261020c';
+import { showToast, downloadCSV, triggerPrint, _fmtDate, escHtml as esc, getBasePath, flashHighlight } from '../../../core/base/utils.js?v=20261020c';
+import { HandoffStore } from '../../../services/governance/handoff.js?v=20261020c';
+import { requireDiscCommissionerId } from './_shared.js?v=20261020c';
 // 统一检索引擎（支书 2026-09-13 裁定）：可搜索表一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
-import { renderFilteredList, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261020b';
+import { renderFilteredList, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261020c';
 // 人×项目矩阵单一源（支书 2026-09-14 批次 35 裁定：宽表默认 + 矩阵推广到其它二元关系域）
-import { renderRelationMatrix, MATRIX_COL_LIMIT } from '../../../components/ui/relation-matrix.js?v=20261020b';
+import { renderRelationMatrix, MATRIX_COL_LIMIT } from '../../../components/ui/relation-matrix.js?v=20261020c';
 // 考察代录位（2026-09-23 支书追裁「开一个代录位」）：写口与字段**完全复用**组长台「考察上传」，
 //   本位判据单一源 `services/activity/inspection.js::isInspectionHomePosition`，非本位代录走既有 nudge。
-import { loadActivities } from '../../../services/activity/activity.js?v=20261020b';
-import { filterActivitiesForViewer } from '../../../services/core/visibility.js?v=20261020b';
-import { AuthStore } from '../../../services/core/auth.js?v=20261020b';
-import { PersonPicker } from '../../../components/governance/pickers.js?v=20261020b';
+import { loadActivities } from '../../../services/activity/activity.js?v=20261020c';
+import { filterActivitiesForViewer } from '../../../services/core/visibility.js?v=20261020c';
+import { currentUserId } from '../../../services/core/auth.js?v=20261020c';
+import { PersonPicker } from '../../../components/governance/pickers.js?v=20261020c';
 // 「本位」nudge 确认弹窗（单一源 = components/ui/modal.js::confirmNudge）
-import { confirmNudge } from '../../../components/ui/modal.js?v=20261020b';
-import { generateId } from '../../../core/base/id.js?v=20261020b';
+import { confirmNudge } from '../../../components/ui/modal.js?v=20261020c';
+import { generateId } from '../../../core/base/id.js?v=20261020c';
 // 材料页深链 focusActivityId 的通用定位（只滚动 + 闪烁，不另造筛选器）
-import { focusActivityAnchor } from '../../../components/ui/detail-anchor.js?v=20261020b';
+import { focusActivityAnchor } from '../../../components/ui/detail-anchor.js?v=20261020c';
 
 // 考察代录表单状态（随模块自持，不污染入口；与组长 / 组织台考察上传同规）
 let _discInspFormVisible = false;
@@ -41,7 +41,8 @@ export function renderContent(ctx) {
 
   const allRecords = loadActiveInspectionRecords();
   // D01：本人提交的行不渲染可用「确认/打回」按钮（服务端同样拒绝，前端先给出可见原因）
-  const actorId = AuthStore.getCurrentUser()?.personId || DISC_COMMISSIONER_ID;
+  // P1-10/P1-11：确认/打回的主体＝当前登录人；失效会话 → null（按钮因 deny 原因置灰，处理函数再兜底拒绝）。
+  const actorId = currentUserId();
   const longData = inspectionToLong(allRecords);
   const wideData = inspectionToWide(allRecords);
   const overdueRecords = getOverdueRecords(); // 缺省阈值 = POLICY_DEFAULTS.inspection.overdueDays（批4 单一源）
@@ -239,6 +240,8 @@ export function renderContent(ctx) {
 
   // 确认/删除（事件委托：引擎筛选重渲染行后仍可点）
   document.getElementById('insp-table-container')?.addEventListener('click', (e) => {
+    // P1-11：无登录人不允许任何写操作（确认/删除/打回/申诉）。
+    if (!actorId) { showToast('error', '登录态已失效，请重新登录'); return; }
     const confirmBtn = e.target.closest('.btn-disc-confirm-insp');
     if (confirmBtn) {
       const res = confirmInspectionRecord(confirmBtn.dataset.recordId, { actorId });
@@ -278,6 +281,8 @@ export function renderContent(ctx) {
 
   // 考察申诉卡（批次 119）：卡本体不在表格容器内，故另挂一支；载体每次渲染重建 ⇒ 随重建重挂（与上同款，不重复绑定）
   document.getElementById('insp-appeal-card')?.addEventListener('click', (e) => {
+    // P1-11：无登录人不允许处理申诉（原兜底会把处理记到 p10）。
+    if (!actorId) { showToast('error', '登录态已失效，请重新登录'); return; }
     const appealReturnBtn = e.target.closest('.insp-appeal-return');
     if (appealReturnBtn) {
       const note = window.prompt('打回说明（可留空）——属实漏记将交上传方核实补录：', '');
@@ -290,7 +295,10 @@ export function renderContent(ctx) {
     }
     const appealCloseBtn = e.target.closest('.insp-appeal-close');
     if (appealCloseBtn) {
-      const res = closeInspectionAppeal(appealCloseBtn.dataset.appealId, { by: DISC_COMMISSIONER_ID });
+      // P1-10：关闭申诉的处理人＝现任纪检委员（角色派生）。
+      const by = requireDiscCommissionerId();
+      if (!by) return;
+      const res = closeInspectionAppeal(appealCloseBtn.dataset.appealId, { by });
       if (res.ok) showToast('success', '该申诉已关闭（核实不属实或已另行处理）');
       else showToast('error', '该申诉已处理');
       renderContent(ctx);
@@ -508,7 +516,9 @@ function _initDiscInspForm(container, ctx) {
     const selectedIds = _discInspPickerInstance ? _discInspPickerInstance.getSelected() : [];
     if (selectedIds.length === 0) { showToast('error', '请选择人员'); return; }
 
-    const actorId = getDiscCommissionerId();
+    // P1-10：代录操作的记录人＝现任纪检委员（角色派生）；无该角色时拒绝写入。
+    const actorId = requireDiscCommissionerId();
+    if (!actorId) return;
     // 与组长台「考察上传」逐字同款的记录字段集（同一服务层函数写库，不新增字段）
     const records = [];
     for (const personId of selectedIds) {

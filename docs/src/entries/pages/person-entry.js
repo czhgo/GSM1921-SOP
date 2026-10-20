@@ -11,32 +11,32 @@
 //  2026-10-18 乱专项：按「L0 结论带 → 组织事实 → 在册与留痕 → 本人自述 → 系统说明」重排；
 //        27 个档案字段各有且仅有一个 data-field 落点；同一事实不跨层重复。
 // ════════════════════════════════════════════════════════════════
-import { renderSidebar } from '../../components/shell/sidebar.js?v=20261020b';
-import { renderHeader } from '../../components/shell/header.js?v=20261020b';
-import { BranchService } from '../../services/core/runtime.js?v=20261020b';
-import { AuthStore } from '../../services/core/auth.js?v=20261020b';
-import { PersonStore, getPersonName } from '../../services/member/person.js?v=20261020b';
-import { getDataSource } from '../../data/data-adapter.js?v=20261020b';
-import { loadMemberProfile } from '../../services/member/profile.js?v=20261020b';
-import { getBranchById } from '../../services/branch/branch.js?v=20261020b';
-import { openPersonEditModal } from '../../components/governance/pickers.js?v=20261020b';
+import { renderSidebar } from '../../components/shell/sidebar.js?v=20261020c';
+import { renderHeader } from '../../components/shell/header.js?v=20261020c';
+import { BranchService } from '../../services/core/runtime.js?v=20261020c';
+import { AuthStore } from '../../services/core/auth.js?v=20261020c';
+import { PersonStore, getPersonName } from '../../services/member/person.js?v=20261020c';
+import { getDataSource } from '../../data/data-adapter.js?v=20261020c';
+import { loadMemberProfile } from '../../services/member/profile.js?v=20261020c';
+import { getBranchById } from '../../services/branch/branch.js?v=20261020c';
+import { openPersonEditModal } from '../../components/governance/pickers.js?v=20261020c';
 import {
   renderSelfDescriptionSection, countSelfProfileFilled, SELF_PROFILE_TOTAL,
-} from '../../components/governance/person-profile-sections.js?v=20261020b';
+} from '../../components/governance/person-profile-sections.js?v=20261020c';
 // 待确认请求读口（单一源：服务层现有读口；api 形态由 init() 从服务端填充同一缓存）
 import {
   listPendingConfirmations, MC_ACTION_LABEL,
-} from '../../services/member/member-confirmation.js?v=20261020b';
+} from '../../services/member/member-confirmation.js?v=20261020c';
 // Q-21-3 收敛（2026-09-13）：在册状态枚举单一源 = core/domain/constants.js（原经 org-base-data-preview 转出）
-import { ROLE_LABELS, RESIDENCE } from '../../core/domain/constants.js?v=20261020b';
-import { canMaintainMemberProfileFields } from '../../core/domain/profile-access.js?v=20261020b';
-import { getBasePath, escHtml as esc, fmtDt } from '../../core/base/utils.js?v=20261020b';
-import { badgeHtml } from '../../components/ui/badges.js?v=20261020b';
+import { ROLE_LABELS, RESIDENCE } from '../../core/domain/constants.js?v=20261020c';
+import { canMaintainMemberProfileFields } from '../../core/domain/profile-access.js?v=20261020c';
+import { getBasePath, escHtml as esc, fmtDt } from '../../core/base/utils.js?v=20261020c';
+import { badgeHtml } from '../../components/ui/badges.js?v=20261020c';
 // 批次 87：本页必须先 hydrate API 数据源再渲染（成员档案读 + 编辑写）——与 activity.html 标准形同款。
 // 此前本页只调 BranchService.loadDB()（API 模式直接 return）⇒ api 形态下档案读的是本地备份，
 // 且「编辑档案」按 mock 数据源落本机、服务端 users 表不更新。
-import { hydrateDataSource, notifyDataLoaded } from '../../data/data-adapter.js?v=20261020b';
-import { ApiAdapter } from '../../data/api-adapter.js?v=20261020b';
+import { hydrateDataSource, notifyDataLoaded } from '../../data/data-adapter.js?v=20261020c';
+import { ApiAdapter } from '../../data/api-adapter.js?v=20261020c';
 
 renderSidebar('dashboard');
 renderHeader('dashboard');
@@ -79,15 +79,15 @@ function renderMessage(html, role = 'status') {
   cardEl.innerHTML = `<p role="${role}" aria-live="${role === 'alert' ? 'assertive' : 'polite'}" class="text-sm text-gray-600 text-center py-12">${html}</p>`;
 }
 
-/** 字段值：缺失/空白 → 未填写（全页一套词表） */
-function textOrEmpty(value, empty = '未填写') {
+/** 字段值：缺失/空白 → 「—」（全页一套空值词表；2026-10-20 支书裁定统一用「—」，可写项由各区按钮给入口） */
+function textOrEmpty(value, empty = '—') {
   const text = String(value == null ? '' : value).trim();
   return text ? esc(text) : empty;
 }
 
-/** 党小组：空串＝未分组；字段缺失＝未填写（不回退混淆） */
+/** 党小组：空串＝未分组（业务态，保留）；字段缺失＝「—」（不回退混淆） */
 function partyGroupHtml(value) {
-  if (value === undefined || value === null) return '未填写';
+  if (value === undefined || value === null) return '—';
   const text = String(value).trim();
   return text ? esc(text) : '未分组';
 }
@@ -99,17 +99,17 @@ function residenceText(member) {
   return value;
 }
 
-/** 届别：四位数年份显示为「YYYY 届」；其余原值展示（仅新增时采集，本页只读） */
+/** 届别：四位数年份显示为「YYYY 届」；其余原值展示 */
 function enrollYearHtml(value) {
   const text = String(value == null ? '' : value).trim();
-  if (!text) return '未填写';
+  if (!text) return '—';
   return /^\d{4}$/.test(text) ? esc(`${text} 届`) : esc(text);
 }
 
 /** 阶段起始日：只读，显示为「YYYY-MM-DD 起」 */
 function developStageSinceHtml(value) {
   const match = /^(\d{4}-\d{2}-\d{2})/.exec(String(value == null ? '' : value));
-  return match ? `${match[1]} 起` : '未填写';
+  return match ? `${match[1]} 起` : '—';
 }
 
 /** 人名现取（不得使用记录内姓名快照） */
@@ -200,7 +200,7 @@ async function render() {
 
   const residenceLabel = residenceText(member);
   const residenceVariant = !member.residenceStatus ? 'neutral' : isDetained ? 'warning' : 'success';
-  const stageLabel = member.developStage || '阶段未填写';
+  const stageLabel = member.developStage || '—';
   const roleLabel = ROLE_LABELS[member.role] || member.role || '无治理角色';
   const recentConclusion = latest
     ? `最近变更：${esc(fmtDt(latest.updatedAt) || '时间未记录')} ${esc(latest.from || '—')} → ${esc(latest.to || '—')}${latest.updatedBy ? `（记录：${esc(personLabel(latest.updatedBy))}）` : ''}`
@@ -250,43 +250,37 @@ async function render() {
       </div>
     </section>
 
-    <!-- 分区一：组织事实（4 行紧凑 dl，不是 4 张同权灰卡） -->
+    <!-- 分区一：组织事实（一行小标签 + 两列 key-value；2026-10-20 支书裁定去掉独立标题与解释段） -->
     <section aria-labelledby="person-org-facts-heading" class="mb-6 border-b border-gray-100 pb-6">
-      <div class="flex flex-wrap items-start justify-between gap-2">
-        <div class="min-w-0">
-          <h2 id="person-org-facts-heading" class="text-base font-semibold text-gray-700">组织事实</h2>
-          <p class="mt-1 text-xs text-gray-500">组织关系已归属该支部；以下 4 项为档案细节，其中学号、党小组可在此补正。</p>
-        </div>
+      <div class="flex flex-wrap items-center justify-between gap-2">
+        <p id="person-org-facts-heading" class="text-xs font-medium tracking-wide text-gray-500">组织事实</p>
         ${canEdit
           ? '<button type="button" id="person-org-facts-btn" class="btn-accent-soft text-sm px-4 py-2 rounded-lg">编辑组织事实</button>'
           : `<p class="text-xs text-gray-400">${esc(readOnlyReason)}</p>`}
       </div>
-      <dl class="mt-2 border-y border-gray-100">
-        <div class="flex gap-3 border-b border-gray-100 py-2 last:border-b-0">
+      <dl class="mt-2 grid grid-cols-2 gap-x-6 border-y border-gray-100">
+        <div class="flex gap-3 border-b border-gray-100 py-2">
           <dt class="w-20 flex-shrink-0 text-xs text-gray-500">学号</dt>
           <dd class="min-w-0 flex-1">
             <span data-field="studentId" class="text-sm text-gray-800 break-words">${textOrEmpty(member.studentId)}</span>
-            <span class="mt-0.5 block text-[11px] text-gray-400">同时是登录账号</span>
           </dd>
         </div>
-        <div class="flex gap-3 border-b border-gray-100 py-2 last:border-b-0">
+        <div class="flex gap-3 border-b border-gray-100 py-2">
           <dt class="w-20 flex-shrink-0 text-xs text-gray-500">届别</dt>
           <dd class="min-w-0 flex-1">
             <span data-field="enrollYear" class="text-sm text-gray-800 break-words">${enrollYearHtml(member.enrollYear)}</span>
-            <span class="mt-0.5 block text-[11px] text-gray-400">仅新增时采集</span>
           </dd>
         </div>
-        <div class="flex gap-3 border-b border-gray-100 py-2 last:border-b-0">
+        <div class="flex gap-3 py-2">
           <dt class="w-20 flex-shrink-0 text-xs text-gray-500">党小组</dt>
           <dd class="min-w-0 flex-1">
             <span data-field="partyGroup" class="text-sm text-gray-800 break-words">${partyGroupHtml(member.partyGroup)}</span>
           </dd>
         </div>
-        <div class="flex gap-3 border-b border-gray-100 py-2 last:border-b-0">
-          <dt class="w-20 flex-shrink-0 text-xs text-gray-500">进入当前阶段</dt>
+        <div class="flex gap-3 py-2">
+          <dt class="w-20 flex-shrink-0 text-xs text-gray-500">阶段起始日</dt>
           <dd class="min-w-0 flex-1">
             <span data-field="developStageSince" class="text-sm text-gray-800 break-words">${developStageSinceHtml(member.developStageSince)}</span>
-            <span class="mt-0.5 block text-[11px] text-gray-400">系统随阶段变更落档，本页只读</span>
           </dd>
         </div>
       </dl>
@@ -326,15 +320,14 @@ async function render() {
       readOnlyReason: selfReadOnlyReason,
     })}
 
-    <!-- L2 系统说明：id 唯一落点，标注系统生成、不参与业务判断 -->
+    <!-- L2 系统说明：档案编号即学号（2026-10-20 支书裁定；页面不再渲染 p* 内部 id） -->
     <details id="person-system-info" class="pt-1">
-      <summary class="cursor-pointer text-xs font-medium text-gray-500">系统说明 · 档案编号与留痕来源</summary>
+      <summary class="cursor-pointer text-xs font-medium text-gray-500">系统说明 · 档案编号即学号</summary>
       <div class="mt-2 space-y-1 text-xs text-gray-500">
         <p>
           <span class="text-[11px] uppercase tracking-wide text-gray-400">档案编号</span>
-          <span data-field="id" class="ml-2 font-mono text-gray-700 break-all">${textOrEmpty(member.id, '档案编号缺失')}</span>
+          <span data-field="id" class="ml-2 font-mono text-gray-700 break-all">${textOrEmpty(member.studentId, '—')}</span>
         </p>
-        <p>档案编号由系统生成，用于排障与对账，不参与业务判断。</p>
         <p>变更留痕由确认链追加，不可编辑；阶段起始日随阶段变更同笔落档。</p>
         <p>角色与所属支部为治理字段，不在本页修改。</p>
       </div>

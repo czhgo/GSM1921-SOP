@@ -19,18 +19,18 @@
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { PEOPLE } from '../../docs/src/data/mock/people.js?v=20261020b';
-import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261020b';
+import { PEOPLE } from '../../docs/src/data/mock/people.js?v=20261020c';
+import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261020c';
 import {
   MockAdapter, collectResetKeys, handleResetIfRequested,
-} from '../../docs/src/data/mock-adapter.js?v=20261020b';
+} from '../../docs/src/data/mock-adapter.js?v=20261020c';
 import {
   PersonStore, MEMBER_OVERLAY_KEY, getBaseMemberRecords, findMemberRefs,
-} from '../../docs/src/services/member/person.js?v=20261020b';
-import { getRosterStats } from '../../docs/src/services/member/roster.js?v=20261020b';
-import { setDataSource } from '../../docs/src/data/data-adapter.js?v=20261020b';
+} from '../../docs/src/services/member/person.js?v=20261020c';
+import { getRosterStats } from '../../docs/src/services/member/roster.js?v=20261020c';
+import { setDataSource } from '../../docs/src/data/data-adapter.js?v=20261020c';
 // Q-23-10（批次 30）实证：成员流动流入登记在 api 形态走 /members/intake（支书/副支书亦可）
-import { registerIntake } from '../../docs/src/services/member/member-flow.js?v=20261020b';
+import { registerIntake } from '../../docs/src/services/member/member-flow.js?v=20261020c';
 import { createApp } from '../app.js';
 import { seedDatabase } from '../seed.js';
 
@@ -93,13 +93,20 @@ test('mock ①：saveMember 新增（显式新 id）→ 读链即时生效；get
   assert.equal(PersonStore.getMembers().some(p => p.id === 'p_pc'), true, 'p_pc 党委组织员仍在档案（server users 同源）');
 });
 
-test('mock ①b：saveMember 缺 id → 自动生成 p_ 前缀 id 新增', async () => {
+test('mock ①b：saveMember 缺 id → 以学号作主键；学号也缺则拒绝（P1-12）', async () => {
   beginMockCase();
+  // 学号即唯一 id：缺 id 且缺学号 → 拒绝，不得再生成 p_<uuid> 代理键
+  const rejected = await PersonStore.saveMember({
+    name: '无学号成员', partyGroup: '第二党小组', developStage: '发展对象', role: 'participant',
+  });
+  assert.equal(rejected.ok, false);
+  assert.match(rejected.reason, /学号/);
+
   const r = await PersonStore.saveMember({
-    name: '自动编号成员', partyGroup: '第二党小组', developStage: '发展对象', role: 'participant',
+    name: '自动编号成员', studentId: '2500099999', partyGroup: '第二党小组', developStage: '发展对象', role: 'participant',
   });
   assert.equal(r.ok, true, JSON.stringify(r));
-  assert.match(r.member.id, /^p_/, '自动 id 形如 p_<uuid>（与种子 p1~p50/p_pc 不冲突）');
+  assert.equal(r.member.id, '2500099999', '新成员 id = 学号');
   assert.equal(PersonStore.getMembers().some(p => p.id === r.member.id), true);
 });
 

@@ -2,24 +2,24 @@
 // 纪检委员工作台 Tab：复盘（T-279 M3 拆分；2026-10-04 批次 368 页签名由「活动监督复盘」改「复盘」——原名＝动作＋对象混轴）
 // 活动流程监督（超时提醒）+ 活动复盘监督（批注/打回/确认）+ 经验沉淀督促清单。
 
-import { mockDB, ReviewStatus } from '../../../core/domain/domain.js?v=20261020b';
-import { persist } from '../../../data/data-adapter.js?v=20261020b';
-import { reviewToDisplay } from '../../../services/governance/review.js?v=20261020b';
-import { loadActiveActivityReviews, loadTaskforceReviews, updateReviewById } from '../../../services/governance/review.js?v=20261020b';
-import { loadActivities } from '../../../services/activity/activity.js?v=20261020b';
-import { showToast, escHtml } from '../../../core/base/utils.js?v=20261020b';
-import { openFormModal } from '../../../components/ui/modal.js?v=20261020b';
+import { mockDB, ReviewStatus } from '../../../core/domain/domain.js?v=20261020c';
+import { persist } from '../../../data/data-adapter.js?v=20261020c';
+import { reviewToDisplay } from '../../../services/governance/review.js?v=20261020c';
+import { loadActiveActivityReviews, loadTaskforceReviews, updateReviewById } from '../../../services/governance/review.js?v=20261020c';
+import { loadActivities } from '../../../services/activity/activity.js?v=20261020c';
+import { showToast, escHtml } from '../../../core/base/utils.js?v=20261020c';
+import { openFormModal } from '../../../components/ui/modal.js?v=20261020c';
 // 批次 352（`D-746` · `D-744`② 业务过程类余项）：经验沉淀「作废（软）」——统一写口 ＋ 支委层判据
-import * as SoftVoid from '../../../services/governance/soft-void.js?v=20261020b';
-import { openVoidModal } from '../../../components/ui/void-record.js?v=20261020b';
-import { NoticeStore } from '../../../services/governance/notice.js?v=20261020b';
-import { generateId } from '../../../core/base/id.js?v=20261020b';
-import { getPersonById } from '../../../services/member/person.js?v=20261020b';
-import { DISC_COMMISSIONER_ID } from './_shared.js?v=20261020b';
+import * as SoftVoid from '../../../services/governance/soft-void.js?v=20261020c';
+import { openVoidModal } from '../../../components/ui/void-record.js?v=20261020c';
+import { NoticeStore } from '../../../services/governance/notice.js?v=20261020c';
+import { generateId } from '../../../core/base/id.js?v=20261020c';
+import { getPersonById } from '../../../services/member/person.js?v=20261020c';
+import { requireDiscCommissionerId } from './_shared.js?v=20261020c';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是活动的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
-import { renderFilteredList, activityKeyword, activityFacets } from '../../../components/ui/list-filter.js?v=20261020b';
+import { renderFilteredList, activityKeyword, activityFacets } from '../../../components/ui/list-filter.js?v=20261020c';
 // 材料页深链 focusActivityId 的通用定位（只滚动 + 闪烁，不另造筛选器）
-import { focusActivityAnchor } from '../../../components/ui/detail-anchor.js?v=20261020b';
+import { focusActivityAnchor } from '../../../components/ui/detail-anchor.js?v=20261020c';
 
 // ── 超期提醒真实触达（2026-09-10）───────────────────────────────
 // 依据：纪检委员工作流程指南 §3.1「超时确认后可触发邮件提醒」、党小组组长工作手册
@@ -68,6 +68,31 @@ function _saveDeposits(deposits) {
   persist();
 }
 
+// ── 复盘 / 沉淀的稳定父键（P1-05/M1，2026-10-20）────────────────────
+// 为什么：名称是可变展示快照，改名即断链、同名即串数据。活动复盘以 activityId 为父键，
+//   专班复盘以 taskforceId（缺省 workgroupId）为父键；两边写入同一 `type:id` 形态后即可直接比对。
+function _reviewParentKey(review) {
+  if (!review) return null;
+  if (review.sourceType === 'taskforce') {
+    if (review.taskforceId) return `taskforce:${review.taskforceId}`;
+    if (review.workgroupId) return `workgroup:${review.workgroupId}`;
+    return null;
+  }
+  return review.activityId ? `activity:${review.activityId}` : null;
+}
+
+function _depositParentKey(deposit) {
+  if (!deposit) return null;
+  if (deposit.sourceType === 'taskforce') {
+    if (deposit.taskforceId) return `taskforce:${deposit.taskforceId}`;
+    if (deposit.workgroupId) return `workgroup:${deposit.workgroupId}`;
+    return null;
+  }
+  if (deposit.activityId) return `activity:${deposit.activityId}`;
+  if (deposit.sourceId) return `${deposit.sourceType || 'activity'}:${deposit.sourceId}`;
+  return null;
+}
+
 /** 已沉淀清单行（批次 352 · `D-746`）：行尾「作废（软）」——支委可直接作废、其余人报支委会 */
 function depositRecordRowHtml(d) {
   return `
@@ -101,11 +126,16 @@ export function renderContent(ctx) {
   }
 
   // 经验沉淀交叉引用：判断已完成复盘的活动是否已有沉淀（批次 352：**已作废的不算已沉淀**）
+  // 2026-10-20 数据生命周期 P1-05/M1：「已沉淀」改按**稳定父键**比对（活动 activityId /
+  //   专班 taskforceId），不再以名称字符串为关联键——活动/专班改名后不会永久显示「未沉淀」。
+  //   仅对迁移前无父键的存量沉淀保留名称兜底（legacy，回填后自然消失）。
   const activeDeposits = _activeDeposits();
-  const depositedSources = new Set(activeDeposits.map(d => d.sourceName));
+  const depositedKeys = new Set(activeDeposits.map(_depositParentKey).filter(Boolean));
+  const legacyDepositNames = new Set(activeDeposits.filter(d => !_depositParentKey(d)).map(d => d.sourceName).filter(Boolean));
   function hasDeposit(reviewItem) {
-    const name = reviewItem.sourceName || reviewItem.activity;
-    return depositedSources.has(name);
+    const key = _reviewParentKey(reviewItem);
+    if (key && depositedKeys.has(key)) return true;
+    return legacyDepositNames.has(reviewItem.sourceName || reviewItem.activity);
   }
 
   // 经验沉淀督促清单：已确认复盘但未沉淀的活动
@@ -176,7 +206,8 @@ export function renderContent(ctx) {
                   <button class="btn-action btn-action-red btn-disc-remind-review" data-review-id="${r.id}">站内通知</button>
                 ` : ''}
                 ${r.reviewStatus === ReviewStatus.CONFIRMED && !hasDeposit(r) ? `
-                  <button class="btn-action btn-action-amber btn-disc-urge-deposit" data-review-id="${r.id}" data-activity-name="${r.sourceName || r.activity}" data-organizer="${r.organizer}">督促沉淀</button>
+                  <button class="btn-action btn-action-amber btn-disc-urge-deposit" data-review-id="${escHtml(r.id)}" data-activity-name="${r.sourceName || r.activity}" data-organizer="${r.organizer}"
+                    data-source-type="${escHtml(r.sourceType || 'activity')}" data-activity-id="${escHtml(r.activityId || '')}" data-taskforce-id="${escHtml(r.taskforceId || '')}" data-workgroup-id="${escHtml(r.workgroupId || '')}">督促沉淀</button>
                 ` : ''}
               </div>
             </div>`;
@@ -189,7 +220,8 @@ export function renderContent(ctx) {
                 <div class="text-sm font-medium text-gray-800">${r.activity}</div>
                 <div class="text-xs text-gray-500 mt-0.5">组织者：${r.organizer}</div>
               </div>
-              <button class="btn-accent-soft text-xs px-3 py-1.5 btn-disc-urge-deposit" style="cursor:pointer;" data-activity-name="${r.sourceName || r.activity}" data-organizer="${r.organizer}">督促沉淀</button>
+              <button class="btn-accent-soft text-xs px-3 py-1.5 btn-disc-urge-deposit" style="cursor:pointer;" data-review-id="${escHtml(r.id)}" data-activity-name="${r.sourceName || r.activity}" data-organizer="${r.organizer}"
+                data-source-type="${escHtml(r.sourceType || 'activity')}" data-activity-id="${escHtml(r.activityId || '')}" data-taskforce-id="${escHtml(r.taskforceId || '')}" data-workgroup-id="${escHtml(r.workgroupId || '')}">督促沉淀</button>
             </div>`;
 
   // B10（2026-10-20）：「流程监督」与「复盘监督」原为两张并列卡，但同一批复盘先看流程进度、
@@ -324,8 +356,19 @@ export function renderContent(ctx) {
 
   /** 督促沉淀表单（复盘监督行 / 沉淀清单行共用；B 档 CRUD 补全：落库同源） */
   const _openDepositForm = (btn) => {
+    // P1-10：记录人＝现任纪检委员（角色派生），无该角色时拒绝写入。
+    const submittedBy = requireDiscCommissionerId();
+    if (!submittedBy) return;
     const reviewId = btn.dataset.reviewId;
     const activityName = btn.dataset.activityName || btn.dataset.organizer || '该活动';
+    // P1-05/M1：沉淀必须落稳定父键（活动 activityId / 专班 taskforceId），sourceName 只作展示快照。
+    const sourceType = btn.dataset.sourceType === 'taskforce' ? 'taskforce' : 'activity';
+    const activityId = btn.dataset.activityId || null;
+    const taskforceId = btn.dataset.taskforceId || null;
+    const workgroupId = btn.dataset.workgroupId || null;
+    // 无父键不写（否则又回到「只按名称关联」的老问题）。
+    if (sourceType === 'activity' && !activityId) { showToast('error', '缺少活动父键，无法记录沉淀'); return; }
+    if (sourceType === 'taskforce' && !taskforceId && !workgroupId) { showToast('error', '缺少专班父键，无法记录沉淀'); return; }
     openFormModal({
       id: 'deposit',
       title: '记录经验沉淀',
@@ -342,14 +385,18 @@ export function renderContent(ctx) {
         const deposits = _loadDeposits();
         deposits.push({
           id: generateId('exp'),
-          sourceName: activityName,
-          sourceType: 'activity',
+          sourceName: activityName,   // 仅展示快照（改名不回写）
+          sourceType,
+          sourceId: sourceType === 'taskforce' ? (taskforceId || workgroupId || null) : activityId,
+          activityId: sourceType === 'activity' ? activityId : null,
+          taskforceId: sourceType === 'taskforce' ? taskforceId : null,
+          workgroupId,
           reviewId: reviewId || null,
           title: values.title,
           content: values.content,
           scenario: values.scenario || '',
           counter: values.counter || '',
-          submittedBy: DISC_COMMISSIONER_ID,
+          submittedBy,
           createdAt: new Date().toISOString(),
         });
         _saveDeposits(deposits);
@@ -387,6 +434,9 @@ export function renderContent(ctx) {
     const annotate = e.target.closest('.btn-disc-annotate');
     if (annotate) {
       const reviewId = annotate.dataset.reviewId;
+      // P1-10：批注人＝现任纪检委员（角色派生），无该角色不写。
+      const annotatedBy = requireDiscCommissionerId();
+      if (!annotatedBy) return;
       openFormModal({
         id: 'annotation',
         title: '添加批注',
@@ -405,7 +455,7 @@ export function renderContent(ctx) {
             reviewStatus: ReviewStatus.ANNOTATING,
             annotation: values.content,
             annotationType: values.type,
-            annotatedBy: DISC_COMMISSIONER_ID,
+            annotatedBy,
             annotatedAt: new Date().toISOString(),
           });
           if (!updated) { showToast('error', '复盘记录不存在'); return; }
@@ -422,9 +472,12 @@ export function renderContent(ctx) {
       const item = _reviewItemOf(id);
       // C2 危险操作二次确认：打回即流转要求组织者重交，先确认再落库（2026-09-12）
       if (!window.confirm(`确认打回「${(item && (item.sourceName || item.activity)) || '该复盘'}」？打回后要求组织者重新提交复盘总结。`)) return;
+      // P1-10：打回人＝现任纪检委员（角色派生），无该角色不写。
+      const annotatedBy = requireDiscCommissionerId();
+      if (!annotatedBy) return;
       const updated = updateReviewById(id, {
         reviewStatus: ReviewStatus.REJECTED,
-        annotatedBy: DISC_COMMISSIONER_ID,
+        annotatedBy,
         annotatedAt: new Date().toISOString(),
       });
       if (!updated) { showToast('error', '复盘记录不存在'); return; }

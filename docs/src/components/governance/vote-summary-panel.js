@@ -7,19 +7,19 @@
 //   其余角色 canLock=false 时按钮位置改为明示「截止表态由支书/副支书操作」（不留静默空缺）
 // 应到总数 = activity.voteConfig.voterIds.length（AV2 创建时固化）；旧活动/线下无 voteConfig 回退
 //   committeeMembers.length。矩阵成员由调用方传入（有 voteConfig → voterIds 映射人员；无 → 权威支委名单
-//   resolveVoterIds('committee')，过滤见 inspector.js；server/routes/committee.js COMMITTEE_IDS 仅作旧活动
-//   回退白名单，勿再本地罗列支委成员）。选项集/标签权威 = vote-config.js OPTION_SETS（勿再本地硬编码）
-import { fetchVotes, lockVotes, votedCountOf, tallyOf } from '../../services/activity/committee-vote.js?v=20261020b';
-import { optionSetOf, isAnonymousActivity } from '../../services/activity/vote-config.js?v=20261020b';
-import { showToast, escHtml as esc } from '../../core/base/utils.js?v=20261020b';
+//   resolveVoterIds('committee')，过滤见 inspector.js；server/routes/committee.js 旧活动
+//   回退名单同样按 users.role 派生（P1-09，勿再本地罗列支委成员）。选项集/标签权威 = vote-config.js OPTION_SETS（勿再本地硬编码）
+import { fetchVotes, lockVotes, votedCountOf, tallyOf } from '../../services/activity/committee-vote.js?v=20261020c';
+import { optionSetOf, isAnonymousActivity } from '../../services/activity/vote-config.js?v=20261020c';
+import { showToast, escHtml as esc } from '../../core/base/utils.js?v=20261020c';
 // R2-2（2026-09-06）：决议「待落实」跟进管理器（记录决议视图内勾选/保存/销项；本文件保留原版本串——
 //   唯一引用方 components/record/inspector.js 属禁改文件无法同步 ?v=，改动经子模块新版本串保证取新代码）
-import { loadActivities } from '../../services/activity/activity.js?v=20261020b';
+import { loadActivities } from '../../services/activity/activity.js?v=20261020c';
 import {
   resolutionFollowupSectionHtml, bindResolutionFollowupSection,
-} from './resolution-followup-manager.js?v=20261020b';
+} from './resolution-followup-manager.js?v=20261020c';
 // 批次 39：表态矩阵并入单一源「人 × 项目」矩阵（原 .vs-matrix 自建实现撤除，Q-23-18 收敛）
-import { renderRelationMatrix } from '../ui/relation-matrix.js?v=20261020b';
+import { renderRelationMatrix } from '../ui/relation-matrix.js?v=20261020c';
 
 // HTML 转义统一走 core/base/utils.js escHtml（2026-09-03 去重收口）
 

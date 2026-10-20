@@ -60,8 +60,9 @@ test('独立支委会话读取支书确认后的同一服务器数据', async ()
   const users = await usersResponse.json();
   assert.equal(users.find((person) => person.id === 'p6').developStage, '预备党员');
 
+  // P1-26（2026-10-20）：committee_broadcasts 无消费端，审批通过不再写入（送达改由系统通知）。
   const broadcastsResponse = await api(independentCommissioner, `/api/v1/committeeBroadcasts?requestId=${request.id}`);
   assert.equal(broadcastsResponse.status, 200);
   const broadcasts = await broadcastsResponse.json();
-  assert.equal(broadcasts.some((record) => record.recipientId === 'p10'), true);
+  assert.equal(broadcasts.length, 0);
 });

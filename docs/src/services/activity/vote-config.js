@@ -8,9 +8,10 @@
 //   滞留剔除复用 services/member/roster.js isDetained（口径单一源 = core/policy-defaults attendance.roster）。
 //   历史快照语义：已创建活动（如 mock act-31）的 voteConfig.voterIds 为创建时固化的名单快照，
 //   不随成员后续滞留状态变更回改——存量数据不动，仅新创建默认值走现时 roster。
-import { PersonStore } from '../member/person.js?v=20261020b';
-import { AuthStore } from '../core/auth.js?v=20261020b';
-import { isDetained } from '../member/roster.js?v=20261020b';
+import { PersonStore } from '../member/person.js?v=20261020c';
+import { isDetained } from '../member/roster.js?v=20261020c';
+// 支委名单单一源（数据生命周期 P1-09）：按 users.role 派生，禁止再维护 p10~p14 快照。
+import { resolveCommitteeIds } from '../../core/domain/constants.js?v=20261020c';
 
 export const OPTION_SETS = {
   deliberative: {
@@ -27,7 +28,7 @@ export const OPTION_SETS = {
 
 // 计票方式（ballotMode）单一源转出：常量与强制/默认规则定义在 core/domain/constants.js
 // （server 写侧校验与 mock 形态共用同一文件，勿另写规则副本）。
-export { BALLOT_MODES, BALLOT_MODE_LABELS, isAnonymousForced, defaultBallotMode, ballotModeOfActivity, isAnonymousActivity } from '../../core/domain/constants.js?v=20261020b';
+export { BALLOT_MODES, BALLOT_MODE_LABELS, isAnonymousForced, defaultBallotMode, ballotModeOfActivity, isAnonymousActivity } from '../../core/domain/constants.js?v=20261020c';
 
 const DECISION_SCENARIOS = new Set(['branch-committee', 'branch-party-meeting']);
 
@@ -55,7 +56,12 @@ export function resolveVoterIds(voterScope) {
   const people = PersonStore.getAll();
   let list;
   if (voterScope === 'committee') {
-    list = people.filter((p) => !p.id.startsWith('u_') && AuthStore.isCommissioner(p.role));
+    // 名单 = constants.js::resolveCommitteeIds 单一源（角色派生）；无支委角色时返回空名单 +
+    // 明确告警，由创建/写入口显式失败（P1-09：不再回退写死的演示 id）。
+    const committee = resolveCommitteeIds(people);
+    if (committee.error) console.warn(`[vote-config] ${committee.error}`);
+    const ids = new Set(committee.ids);
+    list = people.filter((p) => ids.has(p.id));
   } else if (voterScope === 'formal-only') {
     list = people.filter((p) => !p.id.startsWith('u_') && p.developStage === '正式党员');
   } else if (voterScope === 'formal-plus-prep') {

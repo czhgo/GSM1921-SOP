@@ -9,9 +9,10 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import {
   ROLE_KEYS, ROLE_LEGACY_KEYS,
-  BRANCH_COMMISSION_ROLES, SECRETARY_ROLES, SECRETARY_AND_DEPUTY_ROLES, PARTY_STAFF_ROLE, COMMITTEE_IDS,
+  BRANCH_COMMISSION_ROLES, SECRETARY_ROLES, SECRETARY_AND_DEPUTY_ROLES, PARTY_STAFF_ROLE,
+  getCommitteeIds, resolveCommitteeIds,
   COMMISSIONER_ROLES,
-} from '../../docs/src/core/domain/constants.js?v=20261020b';
+} from '../../docs/src/core/domain/constants.js?v=20261020c';
 
 const root = fileURLToPath(new URL('../..', import.meta.url)); // 仓库根
 
@@ -34,8 +35,21 @@ test('授权支委集 = 5 支委且含支书/副支书；业务「条条三委�
   }
 });
 
-test('演示支部支委名单 COMMITTEE_IDS = 5 人（p10~p14）', () => {
-  assert.deepEqual(COMMITTEE_IDS, ['p10', 'p11', 'p12', 'p13', 'p14']);
+test('支委名单按角色派生（P1-09：不再维护 p10~p14 快照）', () => {
+  const people = [
+    { id: 'p12', role: 'prop-commissioner' },
+    { id: 'p10', role: 'disc-commissioner' },
+    { id: 'p13', role: 'secretary' },
+    { id: 'p11', role: 'org-commissioner' },
+    { id: 'p14', role: 'deputy-secretary' },
+    { id: 'p1', role: 'leader' },
+    { id: 'u_sec', role: 'secretary' },
+  ];
+  // 顺序 = 支书→副支书→组织→宣传→纪检（与历史快照同序）；系统账号 u_* 不入选
+  assert.deepEqual(getCommitteeIds(people), ['p13', 'p14', 'p11', 'p12', 'p10']);
+  // 无支委角色 → 空集 + 明确错误（不得静默用假人）
+  assert.deepEqual(getCommitteeIds([]), []);
+  assert.match(resolveCommitteeIds([]).error, /支委名单不可用/);
 });
 
 test('server 路由与前端鉴权不再手写 5 支委授权列表（特征串仅在 constants.js 出现 1 次）', () => {

@@ -88,7 +88,7 @@
 | 12 | `commissioner` | 条条委员 | 遗留键 | — | **不参与权限判定**，仅兼容兜底 |
 | 13 | `initiator` | 发起人 | 遗留键 | — | 同上 |
 
-**依据**：`docs/src/core/domain/constants.js:189-195,831-833`（`ROLE_KEYS`——`deputy-leader` 于该文件末挂载）、`:196`（`ROLE_LEGACY_KEYS`）、`:306-320`（`ROLE_LABELS`）、`:324-336`（`ROLE_PAGE_MAP`）；`content/02_institution/SYSTEM_ROLE_PERMISSION.md:24-38`（§9a0 角色键全表）。
+**依据**：`docs/src/core/domain/constants.js:189-195,831-833`（`ROLE_KEYS`——`deputy-leader` 于该文件末挂载）、`:196`（`ROLE_LEGACY_KEYS`）、`:340`（`ROLE_LABELS`）、`:358`（`ROLE_PAGE_MAP`）；`content/02_institution/SYSTEM_ROLE_PERMISSION.md:24-38`（§9a0 角色键全表）。
 
 **两点易错约定**：
 - **「访客」不是角色**：未登录即访客（无角色键）。`visitor.html` 里的 `visitor` 只是**页面/页签前缀**，与「未登录访客」不是一回事。**另，「全体相关」（`all`）不是角色键**，故不在上表；其展示标签仍保留，见 §2.2.11。**同族同步**：`content/02_institution/SYSTEM_ROLE_PERMISSION.md` 的 §9a0 角色键全表**亦为 13 键**。
@@ -191,7 +191,7 @@
 | 能做什么 | 看公开/本人相关视图；提交意见反馈与评论、表态、提及/引用、编辑自己提交的内容；提交思想汇报；提交本人复盘（组织者/深度参与者身份时）；报名活动/专班 |
 | 不能做什么 | 任何「记录类」写入（考勤、考察、复盘批注、名册、通知发布、活动创建…）一律不可 |
 | 特例 | 不持 `record_inspection`——本人素材走**活动参与记录**（制度矩阵 §9d 该键为 `--`） |
-| 依据 | `docs/src/services/core/auth.js:85`、`content/02_institution/SYSTEM_ROLE_PERMISSION.md:80-84`（§9d）、`docs/src/core/domain/constants.js:242`（`DEVELOP_STAGES`） |
+| 依据 | `docs/src/services/core/auth.js:85`、`content/02_institution/SYSTEM_ROLE_PERMISSION.md:80-84`（§9d）、`docs/src/core/domain/constants.js:276`（`DEVELOP_STAGES`） |
 
 #### 2.2.8 `party-staff` 党委组织员（组织级）
 
@@ -238,7 +238,7 @@
 | `initiator` | 发起人 | 同上 |
 | `all` | 全体相关 | **非角色键**（已自 `ROLE_LEGACY_KEYS` 撤除）；原在 SOP 场景任务的 `executor` 字段里表示「全员参与」，该用点随 `org-life` 场景一并删除；现仅作参考指南展示键（标签 / 色值保留） |
 
-**依据**：`docs/src/core/domain/constants.js:196`（`ROLE_LEGACY_KEYS`——**已自其中撤除「全体相关」**）、`:293-307`（`ROLE_LABELS`，「全体相关」的展示标签仍保留）；⚠ **`all` 现非角色键**，且已不再出现在任何 SOP 场景任务的 `executor` 里——原来那三处用点随 `org-life` 场景一并删除（`executor` 的现行取值见 §4.15）。
+**依据**：`docs/src/core/domain/constants.js:196`（`ROLE_LEGACY_KEYS`——**已自其中撤除「全体相关」**）、`:340`（`ROLE_LABELS`，「全体相关」的展示标签仍保留）；⚠ **`all` 现非角色键**，且已不再出现在任何 SOP 场景任务的 `executor` 里——原来那三处用点随 `org-life` 场景一并删除（`executor` 的现行取值见 §4.15）。
 
 > ⚠ **注意区分两组同名集合**（后端实现权限时极易踩坑）：
 > - **授权语义**（含支书/副支书）＝ `BRANCH_COMMISSION_ROLES`（5 个键）：服务端 `requireCommissioner` 与前端「是否支委」判定用它。
@@ -461,7 +461,7 @@
 
 三个页签使用统一“党委治理”分组标签，不再把首页与全院治理拆成两个导航小组。登录落点为「支部上报」（先看待批复队列）。需要支部明细时先明确选择单一支部；支部目录保留创建、配置和只读查看入口，改名、任命、状态维护和空支部名册导入集中在独立配置页。意见反馈始终在支部内闭环，不进入党委工作台；党委共享顶栏不提供“我的档案”。
 
-**依据（3.2 全节）**：`docs/src/capabilities/{secretary,org,prop,disc,leader,visitor,party-committee}-workspace.js`（逐台的 `tabs()` 数组）；`docs/src/core/domain/constants.js:256-265`（核心页签判定 `isCoreTab`）；`server/test/doc-consistency.test.mjs:64-72`（七台注册文件与分组轴口径）。
+**依据（3.2 全节）**：`docs/src/capabilities/{secretary,org,prop,disc,leader,visitor,party-committee}-workspace.js`（逐台的 `tabs()` 数组）；`docs/src/core/domain/constants.js:297`（核心页签判定 `isCoreTab`）；`server/test/doc-consistency.test.mjs:64-72`（七台注册文件与分组轴口径）。
 
 ### 3.3 设置中心（`settings.html`）
 
@@ -558,7 +558,7 @@
 **活动生命周期展示态（派生，不落库）**：`draft` / `pending_approval`（待批） / `published` / `ongoing` / `pending_archive`（待归档，悬停显示缺项）/ `executed`（已执行）/ `archived` / `cancelled`。
 **活动分类（制度口径）**：顶层两大类＝**三会一课**（固定 4 子类，颜色党建红）与**主题党日**（正交维度：共建性质 / 是否外出 / 活动载体）。**组织生活会是「会议内容」而非子类**——由三会之一召开，不单独成类、不进写入表单。
 
-**依据**：`content/04_web_design/data/DATA_MODEL.md:69-93`、`:130-179`（`isOutdoor` 见 `:68`）、`docs/src/core/domain/constants.js:628-736`（`ACTIVITY_CLASSIFICATION` / `normalizeActivityType`）、`docs/src/services/activity/activity.js:71-83`（外出提醒清单与 `isOutdoor` 判据）。
+**依据**：`content/04_web_design/data/DATA_MODEL.md:69-93`、`:130-179`（`isOutdoor` 见 `:68`）、`docs/src/core/domain/constants.js:680-782`（`ACTIVITY_CLASSIFICATION` / `normalizeActivityType`）、`docs/src/services/activity/activity.js:71-83`（外出提醒清单与 `isOutdoor` 判据）。
 **`agenda[]` 说明**：`id` 用于线上支委会表决关联表态、`sourceRef` 用于回指提取来源；支委会会议页全部复用既有实体与既有写口（活动 + `voteConfig` + `agenda` + `agendaVotes` + `votesLocked`），未新增任何表 / 活动字段。
 **品牌认定与议程子字段说明**：① `isBrand` 认定路径＝「**支委 / 党小组组长提案 → 支委会（或支委扩大会）通过后确定**」，唯一入口＝支委会议程项「记录结果 · 通过」（**无「点一下即认定」**）；② `brandProposal` 与品牌认定 / 取消留痕 7 个字段属**来源 C**（`DATA_MODEL.md` 字段表未列）；③ `signupClosed` 同属来源 C；④ `agenda[]` 的 `kinds` / `branchDocId` / `brandActivityId` / `personIds` / `fromStage` / `toStage` / `personStages` 子字段＝议程提取与「拟上会」清单的落点。
 **来源 C · `signupClosed` 与品牌认定 / 取消留痕 9 个字段（母本字段表未列 · 后端不得漏）**：
@@ -633,7 +633,7 @@
 > 字段级清单见母本 `content/04_web_design/data/DATA_MODEL.md`（本文不复刻）。
 
 **来源 C · `secretaryConfirmedAt`**（`string`（ISO），可选）：见 §4.5（对「已纪检确认」的考察写此销项）。
-**依据**：`content/04_web_design/data/DATA_MODEL.md:330-344`、`docs/src/core/domain/domain.js:166-178`、`docs/src/services/governance/secretary-overview.js:581`（读）、`docs/src/entries/tabs/secretary/todo-tab.js:727`（写）。
+**依据**：`content/04_web_design/data/DATA_MODEL.md:330-344`、`docs/src/core/domain/domain.js:166-178`、`docs/src/services/governance/secretary-overview.js:581`（读）、`docs/src/entries/tabs/secretary/todo-tab.js:1047`（写）。
 
 ### 4.7 分工记录（AssignmentRecord）
 
@@ -924,7 +924,7 @@
 | status | string | `pending`（待确认收到） |
 | broadcastAt | string（ISO） | 广播时间 |
 
-**依据**：`server/routes/member.js:110-121`、`docs/src/core/domain/constants.js:210`。
+**依据**：`server/routes/member.js:110-121`、`docs/src/core/domain/constants.js:217`（`getCommitteeIds`）。
 
 ### 4.36 线上表态记录（agenda_votes，**服务端专有**）
 
@@ -1179,7 +1179,7 @@ npm start                   # 启动服务，默认端口 3000（PORT 可覆盖�
 | 前端静态文件 | `docs/` | 由 Express 静态托管（**强制 `Cache-Control: no-cache, must-revalidate`**） | `server/app.js:63-66` |
 | 备份 | `server/backups/<时间戳>/` | **用脚本备，不要手拷库文件**：`scripts/backup.mjs`（Windows 可调 `scripts/backup.ps1`）→ 数据库走 SQLite **在线备份**（better-sqlite3 `db.backup()`，**含 WAL 内容的一致性快照，不需停服**）+ 附件目录整体复制 + 备份当场校验（`integrity_check`）；**只拷 `data.db` 会丢最近写入**（WAL 未并回）**且会丢附件物理文件**（表里只存元数据） | `server/scripts/backup.mjs`、`server/README.md`「备份与恢复」一节；WAL 见 `server/db.js:62`；附件目录见 §5.4 上一行 |
 | 重置 | —— | **API 形态下 `?reset=` 三档不生效**；服务端重置＝删除 `server/data.db` 后重启自动重种，或 `DISABLE_SEED=1` 空库起步 | `server/README.md:19` |
-| 库结构版本 | 库内 `PRAGMA user_version` | **有版本化迁移**：`server/db.js` 末尾「最小可用迁移机制」段以 `user_version` 记 schema 版本，启动（`initDb`）时把未应用的迁移**按序、在一个事务内**执行、**失败即抛**（不静默）；`v1` 为**冻结的基线迁移**，之后结构变更走 `v2+`；v3 新增工作组与应到名单快照表；v4 将周报历史迁入通用周期归档表，旧专班/活动工作组兼容迁入；验收见 `server/test/db-migration.test.mjs` / `server/test/db-integrity-guard.test.mjs` / `server/test/backup-restore.test.mjs` | `server/db.js:218-352`（`MIGRATIONS`）、`server/db.js:360-361`（`SCHEMA_VERSION`）、`server/db.js:60-69`（启动接入点） |
+| 库结构版本 | 库内 `PRAGMA user_version` | **有版本化迁移**：`server/db.js` 末尾「最小可用迁移机制」段以 `user_version` 记 schema 版本，启动（`initDb`）时把未应用的迁移**按序、在一个事务内**执行、**失败即抛**（不静默）；`v1` 为**冻结的基线迁移**，之后结构变更走 `v2+`；v3 新增工作组与应到名单快照表；v4 将周报历史迁入通用周期归档表，旧专班/活动工作组兼容迁入；验收见 `server/test/db-migration.test.mjs` / `server/test/db-integrity-guard.test.mjs` / `server/test/backup-restore.test.mjs` | `server/db.js:218-390`（`MIGRATIONS`）、`server/db.js:395`（`SCHEMA_VERSION`）、`server/db.js:60-69`（启动接入点） |
 
 ### 5.5 服务器侧注意事项 / 限制（**请逐条核对**）
 
@@ -1200,7 +1200,7 @@ npm start                   # 启动服务，默认端口 3000（PORT 可覆盖�
 | 13 | **附件下载需登录 ＋ 支部隔离** | `POST /api/v1/uploads` **＝支委层**（`requireCommissioner`）；`GET /api/v1/uploads/:name` 需要登录、只取 basename（防路径穿越），并按**上传人所属支部**做隔离（党委跨支部可见；无记录 404）。⚠ 隔离判据是「**上传人现在所属支部**」——`attachments` 表**无支部字段**，故同一人换支部后其历史附件会跟着换支部 | `server/routes/uploads.js:69`、`:88-100` |
 | 14 | **删除活动会级联删除子数据** | 删活动在同一 SQLite 事务中清理任务、考勤、考察、分工、复盘、补课、报名、通知、待办、归档/文件/图片记录、议题表态和活动子记录；关联附件仅在无其他记录引用时物理删除。集合版本同步递增；操作**不可撤销** | `server/routes/resources/index.js:659-722` |
 | 15 | **配置写留痕上限 100 条** | 超出后裁剪最早条目（低频可回滚，历史不改写） | `server/routes/resources/index.js:14,422-432` |
-| 16 | **演示支委名单硬编码** | `COMMITTEE_IDS = ['p10','p11','p12','p13','p14']` 是**示例支部的支委 personId**，被成员变更广播与「旧活动表决名单兜底」引用；真实部署必须同步替换 | `docs/src/core/domain/constants.js:210`、`server/routes/member.js:111`、`server/routes/committee.js:89` |
+| 16 | **支委名单按角色派生（已撤销硬编码）** | 原 `COMMITTEE_IDS = ['p10'…'p14']` 已删除；支委名单由 `getCommitteeIds / resolveCommitteeIds` 从 users 的 `secretary / deputy-secretary / org-commissioner / prop-commissioner / disc-commissioner` 派生。**无支委角色时 fail-closed**（旧活动表决名单返回空并告警），不再用假人兜底 | `docs/src/core/domain/constants.js:217`、`server/routes/member.js:111`、`server/routes/committee.js:89` |
 | 17 | **默认支部 id 硬编码兜底** | 大量读写在 `branchId` 缺省时回退常量 `'br-b1'`（示例支部 id）；真实部署若用别的 id，须保证所有写入都带 `branchId` | `server/routes/resources/gates.js:50`、`server/routes/resources/index.js:509,557-558`、`server/routes/member.js:180,207` |
 | 18 | **快照写穿的残余口（P0-1）** | `POST /api/v1/snapshot` 的乐观锁只对**带了 `_versions` 的集合**生效；未带该键的集合**按无条件整表写**（兼容旧客户端与直连调用，如 `server-base.test.mjs`）。真实写路径只有前端一条（`data-adapter.js::_flushSnapshot` 恒定带 `_versions`）⇒ 生产链路不暴露；对外直连写库须自行带 `_versions`（先 `GET /api/v1/snapshot/versions` 取基线） | `server/routes/resources/index.js` 末尾「快照写穿的集合版本号协议」段、`docs/src/data/data-adapter.js` 末尾「P0-1 乐观锁」段 |
 | 19 | **pagehide 兜底写撞 409 时无法当场自愈** | 页面卸载瞬间的同步冲刷（`_flushSnapshotSync`）同样带 `_versions`（不会退化成无条件覆盖），但**该上下文已无法再观测响应** ⇒ 撞 409 时只 `console.warn`，本地改动靠 `localStorage` 备份保留、不会进服务端（下次打开页面以服务端为准） | `docs/src/data/data-adapter.js`（`_flushSnapshotSync` / `_recoverFromConflict`） |

@@ -12,41 +12,41 @@
 //   - 活动无上限 → 必须提供活动筛选（含时间区间）便于考察
 //   - 条目不得使用浅色底板（支书反感）→ 白底 + 左侧状态色条
 
-import { AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../../core/domain/domain.js?v=20261020b';
-import { generateId } from '../../../core/base/id.js?v=20261020b';
-import { attendanceToLong, loadAttendanceRecords, loadActiveAttendanceRecords, loadAttendanceRosterSnapshots, saveAttendanceRecords, canUploadAttendance, upsertMeetingAttendance, MEETING_ATTENDANCE_TYPES as MEETING_TYPES, ABSENCE_REASONS, absenceReasonLabel, absenceReasonNote, recorderRolesOf, listGroupMeetingAttendance, loadAttendanceAppeals, returnAttendanceAppeal, closeAttendanceAppeal, returnAttendanceRecord, summarizeAttendanceByActivity, isAttendanceHomePosition, freezeExpectedRosterForActivity, isAttendancePendingConfirm } from '../../../services/activity/attendance.js?v=20261020b';
-import { buildAttendanceMatrixModel } from '../../../services/activity/attendance-matrix.js?v=20261020b';
-import { getPersonName } from '../../../services/member/person.js?v=20261020b';
+import { AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../../core/domain/domain.js?v=20261020c';
+import { generateId } from '../../../core/base/id.js?v=20261020c';
+import { attendanceToLong, loadAttendanceRecords, loadActiveAttendanceRecords, loadAttendanceRosterSnapshots, saveAttendanceRecords, canUploadAttendance, upsertMeetingAttendance, MEETING_ATTENDANCE_TYPES as MEETING_TYPES, ABSENCE_REASONS, absenceReasonLabel, absenceReasonNote, recorderRolesOf, listGroupMeetingAttendance, loadAttendanceAppeals, returnAttendanceAppeal, closeAttendanceAppeal, returnAttendanceRecord, summarizeAttendanceByActivity, isAttendanceHomePosition, freezeExpectedRosterForActivity, isAttendancePendingConfirm } from '../../../services/activity/attendance.js?v=20261020c';
+import { buildAttendanceMatrixModel } from '../../../services/activity/attendance-matrix.js?v=20261020c';
+import { getPersonName } from '../../../services/member/person.js?v=20261020c';
 // S1–S4 滞留党员设计（2026-09-06 支书已批）：会议考勤「应到清点/全选范围」= 应到名单口径
 // （党员 正式+预备 且非滞留；滞留者「可见但禁用」、党课列席不计应到），不再全支部 50 人候选
 // 附录⑩ A批·S1（2026-09-06 支书裁定）：滞留线下到场可「到场补录」计入到席（实际应到=预应到 K + 补录 L）
-import { getMeetingRoster, getRosterStats, getMeetingRosterCandidates } from '../../../services/member/roster.js?v=20261020b';
-import { solidAccentStyle, ROLE_LABELS, isActivityArchived, isActivityLive } from '../../../core/domain/constants.js?v=20261020b';
-import { loadActivities } from '../../../services/activity/activity.js?v=20261020b';
+import { getMeetingRoster, getRosterStats, getMeetingRosterCandidates } from '../../../services/member/roster.js?v=20261020c';
+import { solidAccentStyle, ROLE_LABELS, isActivityArchived, isActivityLive } from '../../../core/domain/constants.js?v=20261020c';
+import { loadActivities } from '../../../services/activity/activity.js?v=20261020c';
 // SOP-B-2（D-288）：考勤候选默认选中「已通过报名者」——报名名单的来源单一源 = SignupStore
-import { getApprovedSignupPersonIds } from '../../../services/activity/signup.js?v=20261020b';
-import { autoGenerateMakeupTask } from '../../../services/activity/makeup.js?v=20261020b';
-import { TodoStore, TodoSourceType } from '../../../services/governance/todo.js?v=20261020b';
-import { NoticeStore } from '../../../services/governance/notice.js?v=20261020b';
-import { enhanceSelects } from '../../../components/ui/custom-select.js?v=20261020b';
-import { badgeHtml } from '../../../components/ui/badges.js?v=20261020b';
+import { getApprovedSignupPersonIds } from '../../../services/activity/signup.js?v=20261020c';
+import { autoGenerateMakeupTask } from '../../../services/activity/makeup.js?v=20261020c';
+import { TodoStore, TodoSourceType } from '../../../services/governance/todo.js?v=20261020c';
+import { NoticeStore } from '../../../services/governance/notice.js?v=20261020c';
+import { enhanceSelects } from '../../../components/ui/custom-select.js?v=20261020c';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20261020c';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是人的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
 // pagerHtml = 翻页控件单一源（批次 38：全站手写翻页一律并轨；叶子件，避免与矩阵相互成环）
-import { pagerHtml } from '../../../components/ui/pager.js?v=20261020b';
+import { pagerHtml } from '../../../components/ui/pager.js?v=20261020c';
 // 人×项目矩阵单一源（支书 2026-09-14 批次 35 裁定：宽表默认 + 矩阵推广）
-import { renderRelationMatrix } from '../../../components/ui/relation-matrix.js?v=20261020b';
-import { showToast, downloadCSV, triggerPrint, _fmtDate, escHtml as esc, getBasePath, flashHighlight } from '../../../core/base/utils.js?v=20261020b';
-import { DISC_COMMISSIONER_ID } from './_shared.js?v=20261020b';
-import { HandoffStore } from '../../../services/governance/handoff.js?v=20261020b';
-import { AuthStore } from '../../../services/core/auth.js?v=20261020b';
-import { PersonPicker } from '../../../components/governance/pickers.js?v=20261020b';
+import { renderRelationMatrix } from '../../../components/ui/relation-matrix.js?v=20261020c';
+import { showToast, downloadCSV, triggerPrint, _fmtDate, escHtml as esc, getBasePath, flashHighlight } from '../../../core/base/utils.js?v=20261020c';
+import { requireDiscCommissionerId } from './_shared.js?v=20261020c';
+import { HandoffStore } from '../../../services/governance/handoff.js?v=20261020c';
+import { currentUserId } from '../../../services/core/auth.js?v=20261020c';
+import { PersonPicker } from '../../../components/governance/pickers.js?v=20261020c';
 // 通用浮窗 + 「本位」nudge 确认弹窗（2026-09-23 支书裁定 · 单一源 = components/ui/modal.js）
 // U-04：申诉打回原用 `window.prompt`（无对话框语义、无焦点接管、移动端样式原生）→ 换本组件 openModal。
-import { confirmNudge, openModal, closeModal } from '../../../components/ui/modal.js?v=20261020b';
+import { confirmNudge, openModal, closeModal } from '../../../components/ui/modal.js?v=20261020c';
 // 「补课」分段整段复用原独立 tab 的渲染（2026-09-15 支书裁定：补课并入考勤管理，内部逻辑不改写）
-import { renderContent as renderMakeupContent } from './makeup-tab.js?v=20261020b';
+import { renderContent as renderMakeupContent } from './makeup-tab.js?v=20261020c';
 // 材料页深链 focusActivityId 的通用定位（只滚动 + 闪烁，不另造筛选器）
-import { focusActivityAnchor } from '../../../components/ui/detail-anchor.js?v=20261020b';
+import { focusActivityAnchor } from '../../../components/ui/detail-anchor.js?v=20261020c';
 
 const PAGE_SIZE = 20; // 分页铁律：全量总表每页 20 条
 let _page = 1;        // 模块级分页状态（随模块自持）
@@ -255,7 +255,10 @@ export function renderContent(ctx) {
         hint: '打回说明可留空——属实漏记将交活动组织方核实补录。',
         placeholder: '可留空',
         onConfirm: (note) => {
-          const res = returnAttendanceAppeal(appealId, { by: DISC_COMMISSIONER_ID, note });
+          // P1-10：处理人＝现任纪检委员（角色派生），无该角色时拒绝写入。
+          const by = requireDiscCommissionerId();
+          if (!by) return;
+          const res = returnAttendanceAppeal(appealId, { by, note });
           if (res.ok) showToast('success', res.hadRecord ? '已打回该考勤，交活动组织方重新确认' : '已打回，交活动组织方核实补录');
           else showToast('error', '该申诉已处理');
           renderContent(ctx);
@@ -265,7 +268,9 @@ export function renderContent(ctx) {
   });
   container.querySelectorAll('.att-appeal-close').forEach(btn => {
     btn.addEventListener('click', () => {
-      const res = closeAttendanceAppeal(btn.dataset.appealId, { by: DISC_COMMISSIONER_ID });
+      const by = requireDiscCommissionerId();
+      if (!by) return;
+      const res = closeAttendanceAppeal(btn.dataset.appealId, { by });
       if (res.ok) showToast('success', '该申诉已关闭（核实不属实或已另行处理）');
       else showToast('error', '该申诉已处理');
       renderContent(ctx);
@@ -337,7 +342,9 @@ export function renderContent(ctx) {
     // 滞留到场补录集合（纪检单独勾选；与全选应到互斥，重复防御）
     const makeupIds = [..._meetMakeupIds].filter(pid => !selectedIds.includes(pid));
     if (selectedIds.length === 0 && makeupIds.length === 0) { showToast('error', '请选择参会人员，或在「滞留党员到场补录」勾选线下到场者'); return; }
-    const actorId = AuthStore.getCurrentUser()?.personId || DISC_COMMISSIONER_ID;
+    const actorId = currentUserId();
+    // P1-10/P1-11：写口必须真实登录人；失效会话拒绝写入（不再回落到 p10）。
+    if (!actorId) { showToast('error', '登录态已失效，请重新登录'); return; }
     const records = [];
     for (const pid of selectedIds) {
       const status = (container.querySelector(`#disc-meet-status-${pid}`)?.value) || AttendanceStatus.PRESENT;
@@ -371,7 +378,7 @@ export function renderContent(ctx) {
     //   **党课 / 支部党员大会＝纪检委员**这一档（判据单一源 = `services/activity/attendance.js::isAttendanceHomePosition`）；
     //   支书 / 副支书有权上传（例外承担）但**一般由纪检委员写入** ⇒ 操作人不是本位时**写库前**弹一次确认。
     //   ⚠ 常规路径（本人＝纪检委员、本卡即其本位）**不弹**；弹窗**必须点按钮才能关**，「取消」＝放弃本次录入。
-    const _meetActorId = AuthStore.getCurrentUser()?.personId || DISC_COMMISSIONER_ID;
+    const _meetActorId = actorId;
     if (!isAttendanceHomePosition(_meetActorId, activityId)) {
       const _meetAct = loadActivities().find(a => a.id === activityId);
       // 表内有「记录人」角色键的类型（党课 / 支部党员大会）本位＝纪检委员；其余（组织生活会等）＝该场组织者
@@ -650,7 +657,10 @@ function _confirmAttendanceBatch(recordIds, actById) {
   const records = loadAttendanceRecords();
   const picked = records.filter(r => recordIds.includes(r.id) && !r.recordedBy);
   if (picked.length === 0) return 0;
-  picked.forEach(r => { r.recordedBy = DISC_COMMISSIONER_ID; });
+  // P1-10：确认人＝现任纪检委员（角色派生）；无该角色不写，避免把确认记到旧人。
+  const confirmerId = requireDiscCommissionerId();
+  if (!confirmerId) return 0;
+  picked.forEach(r => { r.recordedBy = confirmerId; });
   saveAttendanceRecords(records);
   picked.forEach(r => {
     // 做事即销待办：确认考勤 → 销支书「考勤待确认」/纪检提醒
@@ -820,8 +830,10 @@ function _buildAppealCardHTML(pendingAppeals, returnedAppeals, actById, accent, 
 //  CF §C.1a「会议考勤」；党小组会归组长/组织者，不在此列
 // ════════════════════════════════════════════════════════════════
 function _buildMeetingCardHTML(ctx, accent, accentBorder, actById) {
+  // P1-10：上传位判定对象＝当前登录人（原写死 p10，导致实际登录人反被忽略）。
+  const viewerId = currentUserId();
   const meetings = loadActivities()
-    .filter(a => !isActivityArchived(a) && MEETING_TYPES.includes(a.type) && canUploadAttendance(DISC_COMMISSIONER_ID, a.id))
+    .filter(a => !isActivityArchived(a) && MEETING_TYPES.includes(a.type) && canUploadAttendance(viewerId, a.id))
     .sort((a, b) => (b.date || '').localeCompare(a.date || ''));
   const accentStyle = solidAccentStyle(accent, accentBorder);
   const toggleBtn = `<button class="btn-md" id="disc-meet-toggle" style="${accentStyle}cursor:pointer;">${_meetFormVisible ? '收起' : '录入会议考勤'}</button>`;
@@ -857,12 +869,7 @@ function _buildMeetingCardHTML(ctx, accent, accentBorder, actById) {
         <button id="disc-meet-submit" class="btn-accent text-sm px-4 py-[7px]">提交录入</button>
         <button id="disc-meet-cancel" class="btn-outline text-sm px-4 py-1.5">取消</button>
       </div>
-      <div class="mt-3 text-[11px] text-gray-500">录入即确认：提交后记录人即确认人，<b>不再进入「待确认考勤」队列</b>（缺勤 / 请假须选标因）。<a href="./help.html#card-copy-attendance-record" class="text-sky-600 hover:underline">见帮助 · 考勤录入口径</a>
-        <details class="mt-1">
-          <summary class="text-[11px] text-gray-500 cursor-pointer select-none">标注原因与更正口径 ▾</summary>
-          <div class="leading-5 mt-1">标因：事假 / 病假 / 无故 / 其它（纪检认定）；时效为提示、非校验。滞留到场勾「到场补录」；已录由本人更正。详见帮助。</div>
-        </details>
-      </div>`;
+      <div class="mt-3 text-[11px] text-gray-500">录入即确认。<a href="./help.html#card-copy-attendance-record" class="text-sky-600 hover:underline">见帮助 · 考勤录入口径</a></div>`;
     body = `<div id="disc-meet-body">${bodyInner}</div>`;
   }
 
@@ -872,14 +879,6 @@ function _buildMeetingCardHTML(ctx, accent, accentBorder, actById) {
         <h3 class="font-title-cn text-base font-semibold text-gray-800">会议考勤录入（党课 / 支部党员大会：纪检上传位）</h3>
         ${toggleBtn}
       </div>
-      <p class="text-xs text-gray-500 mb-1"><b>上传位按会议类型分</b>：<b>党课 / 支部党员大会＝纪检委员</b>（本卡即其承载面）· <b>党小组会 / 组织生活会 / 主题党日＝该场活动组织者</b>（组长台「考勤管理」）· <b>支委会不考勤</b>。</p>
-      <details class="mb-3">
-        <summary class="text-xs text-gray-500 cursor-pointer select-none">上传位口径与应到计算规则 ▾</summary>
-        <div class="text-[11px] text-gray-500 leading-5 mt-1.5 space-y-1">
-          <p>（2026-09-21 批次 132 · 支书当日口径一，修正「一律组织者」）本卡只列<b>您本人可上传</b>的会议场次（您为纪检委员，或您为例外承担的支书 / 副支书）；纪检另管确认（下方「待确认考勤」打包确认）与统计核对（明细 / 汇总 / 导出照既有面）。</p>
-          <p>应到计算规则（支书 2026-09-06 裁定）：<b>预应到 K</b>（在册党员 − 滞留剔除；党课列席不计应到）→ 滞留到场补录 <b>L</b> → <b>实际应到 = K+L</b>；候选中滞留者默认不计（灰态可见原因），「全选应到名单」不含滞留，线下到场由录入人在下方单独勾选「到场补录」。</p>
-        </div>
-      </details>
       ${body}
     </div>
   `;
@@ -1368,7 +1367,10 @@ function _renderTable(longData, allRecords, actById, accent, accentBorder, ctx, 
         hint: '将交活动组织方重新确认。',
         placeholder: '写一句打回原因',
         onConfirm: (reason) => {
-          const res = returnAttendanceRecord(recordId, { by: DISC_COMMISSIONER_ID, note: reason });
+          // P1-10：打回人＝现任纪检委员（角色派生）；无该角色时拒绝写入。
+          const by = requireDiscCommissionerId();
+          if (!by) return;
+          const res = returnAttendanceRecord(recordId, { by, note: reason });
           if (res.ok) showToast('success', '已打回，交活动组织方重新确认');
           else showToast('error', '打回失败：记录不存在');
           renderContent(ctx);

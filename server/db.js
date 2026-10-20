@@ -2,7 +2,7 @@
 import Database from 'better-sqlite3';
 import { WorkgroupStatus, workgroupStatusForTaskforce } from '../docs/src/core/domain/domain.js';
 // R4-D04：考察记录回填与 mock hydrate 同源（纯函数，勿在服务端另写一套匹配规则）
-import { migrateInspectionWorkgroupKeys } from '../docs/src/services/activity/inspection-migrate.js';
+import { migrateInspectionWorkgroupKeys, migrateReviewParentKeys } from '../docs/src/services/activity/inspection-migrate.js';
 
 // 资源表：每张表 id 主键 + data JSON（保持与前端数据结构完全一致，嵌套字段零损失）
 // T-218：新增 4 张 niche 表（经验沉淀/合规引用/文件空间/图片记录），与前端快照 payload 键名对齐
@@ -353,6 +353,40 @@ export const MIGRATIONS = [
       result.rows.forEach((row, index) => {
         if (JSON.stringify(row) !== rows[index].data) update.run(JSON.stringify(row), rows[index].id);
       });
+    },
+  },
+  {
+    // v6（数据生命周期 P1-05/M1-M2，2026-10-20）：复盘补稳定父键。
+    //   旧复盘只按 sourceName 关联专班 ⇒ 改名断链、同名串数据。只改 JSON 行，
+    //   **不动表结构**；回填函数与 mock hydrate 同源（inspection-migrate.js::migrateReviewParentKeys）。
+    version: 6,
+    name: 'review-parent-keys',
+    tables: [],
+    up(db) {
+      const hasTable = (name) => db.prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name = ?").get(name);
+      if (!hasTable('activity_reviews') && !hasTable('taskforce_reviews')) return;
+      const readTable = (table) => (hasTable(table) ? db.prepare(`SELECT id, data FROM ${table}`).all() : []);
+      const parseAll = (table) => (hasTable(table) ? db.prepare(`SELECT data FROM ${table}`).all().map((row) => JSON.parse(row.data)) : []);
+      const activityRows = readTable('activity_reviews');
+      const taskforceRows = readTable('taskforce_reviews');
+      if (activityRows.length === 0 && taskforceRows.length === 0) return;
+
+      const result = migrateReviewParentKeys({
+        activityReviews: activityRows.map((row) => JSON.parse(row.data)),
+        taskforceReviews: taskforceRows.map((row) => JSON.parse(row.data)),
+        activities: parseAll('activities'),
+        workgroups: parseAll('workgroups'),
+        taskforces: parseAll('taskforces'),
+      });
+      const writeBack = (table, rows, nextRows) => {
+        if (!hasTable(table)) return;
+        const update = db.prepare(`UPDATE ${table} SET data = ? WHERE id = ?`);
+        nextRows.forEach((row, index) => {
+          if (JSON.stringify(row) !== rows[index].data) update.run(JSON.stringify(row), rows[index].id);
+        });
+      };
+      writeBack('activity_reviews', activityRows, result.activityReviews);
+      writeBack('taskforce_reviews', taskforceRows, result.taskforceReviews);
     },
   },
 ];

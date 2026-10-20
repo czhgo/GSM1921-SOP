@@ -102,7 +102,8 @@ test('U8 页标题层级：四页重点各一个 H2，卡头 H3，首页抬头�
   // work-overview 只负责按 title 渲染 H2；支书台在 overview-tab 传值。
   assert.match(overview, /renderTabHeader\(\{ title \}\)/, '概况 H2 应由 work-overview 参数化渲染');
   assert.match(read('docs/src/entries/tabs/secretary/overview-tab.js'), /title: '全局概况'/, '支书台概况应显式传「全局概况」');
-  assert.match(overview, /<h3 class="section-head__title">条线<\/h3>/, '条线须为 H3');
+  // 2026-10-20 界面细化：原「条线」是内部管理词，支书裁定改为「工作分工」。
+  assert.match(overview, /<h3 class="section-head__title">工作分工<\/h3>/, '工作分工须为 H3');
   assert.match(overview, /<h3 class="section-head__title">待我处理<\/h3>/, '待我处理须为 H3');
   assert.doesNotMatch(overview, /<h4[^>]*section-head__title/, '分区标题不得再用 H4');
 

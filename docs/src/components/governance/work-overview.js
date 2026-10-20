@@ -4,7 +4,7 @@
 //  2026-10-18 支书拍定（工作台密度与组件重组 Task 7）：六台统一三层，不再有独立「汇报」卡。
 //    ① 结论带 data-wo-layer="summary"：一条横向带四个数（在办 / 逾期 / 待我处理 / 待答复或职责指标）；
 //       四项是可聚焦按钮，逾期/待我处理可筛选下方列表，在办/第四项滚到条线表
-//    ② 条线表 data-wo-layer="lines"：行=条线，列固定「条线 / 负责人 / 在办 / 逾期 / 最近卡点 / 动作」；
+//    ② 条线表 data-wo-layer="lines"：行=分工条线，列固定「工作分工 / 负责人 / 在办 / 逾期 / 待处理 / 动作」；
 //       仅 gap 或逾期 > 0 的行显示动作
 //    ③ 待我处理 data-wo-layer="actions"：最多 3 条，每条标题 + 一句原因 + 一个动作；超出留一行「共 N 项 · 去待办」
 //  单一源关系：
@@ -16,31 +16,31 @@
 //  本页禁用 SVG 图标（支书 2026-08-10 裁定），类别用色点 + 文字区分。
 // ════════════════════════════════════════════════════════════════
 
-import { showToast, flashHighlight, todayLocal, escHtml as esc } from '../../core/base/utils.js?v=20261020b';
-import { listRowHtml, listGroupHtml } from '../ui/list-row.js?v=20261020b';
-import { tableHeadHtml } from '../ui/data-table.js?v=20261020b';
-import { emptyStateHtml } from '../ui/empty-state.js?v=20261020b';
-import { renderTabHeader } from '../shell/page-frame.js?v=20261020b';
+import { showToast, flashHighlight, todayLocal, escHtml as esc } from '../../core/base/utils.js?v=20261020c';
+import { listRowHtml, listGroupHtml } from '../ui/list-row.js?v=20261020c';
+import { tableHeadHtml } from '../ui/data-table.js?v=20261020c';
+import { emptyStateHtml } from '../ui/empty-state.js?v=20261020c';
+import { renderTabHeader } from '../shell/page-frame.js?v=20261020c';
 import {
   TodoStore, seedTodos, isTodoExpired, WORK_DOMAIN, WORK_DOMAIN_LABELS,
-} from '../../services/governance/todo.js?v=20261020b';
-import { IssueStore } from '../../services/governance/issues.js?v=20261020b';
+} from '../../services/governance/todo.js?v=20261020c';
+import { IssueStore } from '../../services/governance/issues.js?v=20261020c';
 import {
   isActivityEnded, isActivityArchived, ROLE_LABELS,
-} from '../../core/domain/constants.js?v=20261020b';
-import { loadActivities } from '../../services/activity/activity.js?v=20261020b';
-import { filterActivitiesForViewer, resolveVisibleTargets } from '../../services/core/visibility.js?v=20261020b';
-import { loadActiveAttendanceRecords } from '../../services/activity/attendance.js?v=20261020b';
-import { loadInspectionRecords, getOverdueRecords } from '../../services/activity/inspection.js?v=20261020b';
-import { loadMakeupTasks } from '../../services/activity/makeup.js?v=20261020b';
-import { loadActiveActivityReviews, loadTaskforceReviews } from '../../services/governance/review.js?v=20261020b';
-import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261020b';
-import { listPendingByReceiver, confirmExternalDispatch } from '../../services/activity/external-dispatch.js?v=20261020b';
-import { getPersonName } from '../../services/member/person.js?v=20261020b';
-import { loadMemberProgress, REPORT_KIND } from '../../services/member/member-progress.js?v=20261020b';
-import { AttendanceStatus, ReviewStatus, mockDB } from '../../core/domain/domain.js?v=20261020b';
-import { PROP_TASKS_SEED } from '../../data/mock/prop.js?v=20261020b';
-import { getBranchIdOfPerson, getBranchWorkforce } from '../../services/branch/branch.js?v=20261020b';
+} from '../../core/domain/constants.js?v=20261020c';
+import { loadActivities } from '../../services/activity/activity.js?v=20261020c';
+import { filterActivitiesForViewer, resolveVisibleTargets } from '../../services/core/visibility.js?v=20261020c';
+import { loadActiveAttendanceRecords } from '../../services/activity/attendance.js?v=20261020c';
+import { loadInspectionRecords, getOverdueRecords } from '../../services/activity/inspection.js?v=20261020c';
+import { loadMakeupTasks } from '../../services/activity/makeup.js?v=20261020c';
+import { loadActiveActivityReviews, loadTaskforceReviews } from '../../services/governance/review.js?v=20261020c';
+import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261020c';
+import { listPendingByReceiver, confirmExternalDispatch } from '../../services/activity/external-dispatch.js?v=20261020c';
+import { getPersonName } from '../../services/member/person.js?v=20261020c';
+import { loadMemberProgress, REPORT_KIND } from '../../services/member/member-progress.js?v=20261020c';
+import { AttendanceStatus, ReviewStatus, mockDB } from '../../core/domain/domain.js?v=20261020c';
+import { PROP_TASKS_SEED } from '../../data/mock/prop.js?v=20261020c';
+import { getBranchIdOfPerson, getBranchWorkforce } from '../../services/branch/branch.js?v=20261020c';
 
 // 在办下钻详情目标（支书 2026-08-10 裁定：概况「在办」可下钻到活动/专班只读详情）
 let _woDetail = null; // { kind: 'activity' | 'taskforce', id } | null
@@ -50,11 +50,11 @@ let _metricRole = null;
 
 const _MAX_INLINE = 3;
 const LINE_COLUMNS = [
-  { label: '条线', className: 'wo-line-name' },
+  { label: '工作分工', className: 'wo-line-name' },
   { label: '负责人' },
   { label: '在办', className: 'is-numeric' },
   { label: '逾期', className: 'is-numeric' },
-  { label: '最近卡点' },
+  { label: '待处理' },
   { label: '动作' },
 ];
 
@@ -127,10 +127,10 @@ function _daysOverdue(deadline, today) {
 /** 四个数的统一形态：逾期与待我处理在前，在办退到第三位，第四数按职责替换 */
 function _metrics(fourth) {
   return [
-    { key: 'overdue', label: '逾期（全口径）', value: (totals) => totals.overdue, warning: true, ariaLabel: '筛选逾期待办' },
+    { key: 'overdue', label: '逾期', value: (totals) => totals.overdue, warning: true, ariaLabel: '筛选逾期待办' },
     { key: 'actions', label: '待我处理', value: (totals) => totals.actions, ariaLabel: '显示全部待我处理' },
-    { key: 'active', label: '在办', value: (totals) => totals.active, muted: true, ariaLabel: '查看条线表' },
-    { ...fourth, key: 'fourth', ariaLabel: `查看${fourth.label}条线` },
+    { key: 'active', label: '在办', value: (totals) => totals.active, muted: true, ariaLabel: '查看工作分工表' },
+    { ...fourth, key: 'fourth', ariaLabel: `查看${fourth.label}分工` },
   ];
 }
 
@@ -459,11 +459,11 @@ async function _renderOverviewContent(container, { role, personId, accent = '#B9
       ? `<span class="state-badge state-badge--warning tabular-nums">${row.overdue}</span>`
       : '<span class="text-gray-400 tabular-nums">0</span>';
     return `<tr data-wo-line="${esc(row.line.key)}">
-      <td class="wo-line-name" data-label="条线">${esc(row.line.label)}</td>
+      <td class="wo-line-name" data-label="工作分工">${esc(row.line.label)}</td>
       <td data-label="负责人">${esc(row.owner)}</td>
       <td class="is-numeric" data-label="在办">${row.active}</td>
       <td class="is-numeric" data-label="逾期">${overdue}</td>
-      <td class="wo-line-gap" data-label="最近卡点">${_gapCellHtml(row.gap, row.line.gapTab)}</td>
+      <td class="wo-line-gap" data-label="待处理">${_gapCellHtml(row.gap, row.line.gapTab)}</td>
       <td data-label="动作">${action}</td>
     </tr>`;
   }).join('');
@@ -497,7 +497,7 @@ async function _renderOverviewContent(container, { role, personId, accent = '#B9
 
       <section class="card rounded-xl card-standard stack-section card--static" data-wo-layer="lines">
         <div class="section-head">
-          <h3 class="section-head__title">条线</h3>
+          <h3 class="section-head__title">工作分工</h3>
           <span class="section-head__meta">共 ${lineRows.length} 条</span>
         </div>
         <div class="wo-lines-scroll">
@@ -548,7 +548,7 @@ async function _buildContext(role, personId, today, config) {
 
   // 支书：概况维度 + 实时派生组（与待办页同源）
   if (role === 'secretary') {
-    const secretary = await import('../../services/governance/secretary-overview.js?v=20261020b');
+    const secretary = await import('../../services/governance/secretary-overview.js?v=20261020c');
     const realtime = secretary.SecretaryTodoDeriver.computeAggregates();
     const seen = new Set(ctx.todoGroups.map((group) => group.groupKey));
     ctx.todoGroups = [...ctx.todoGroups, ...realtime.filter((group) => !seen.has(group.groupKey))];
@@ -654,7 +654,7 @@ function _ownerOf(line, workforce, role) {
   return _roleLabel(line.ownerRole || role);
 }
 
-/** 最近卡点：中性文字；仅「超期」一词取 warning 色，不整列铺色。
+/** 待处理：中性文字；仅「超期」一词取 warning 色，不整列铺色。
  *  B06：条线声明了 `gapTab` 时，缺口文字本身即入口（如支书「待赋权 N 个」→ 活动管理），
  *  避免「看得见数字、找不到处理处」；未声明者仍为纯文本（其余条线零变化）。 */
 function _gapCellHtml(gap, gapTab) {
@@ -811,7 +811,7 @@ function _buildActionItems(ctx, config) {
     items.push({
       kind: 'gap',
       title: `${line.label} · ${gap}`,
-      reason: `${line.label}条线 · 待处理`,
+      reason: `${line.label} · 待处理`,
       overdue: false,
       deadline: '',
       actionLabel: `去${line.actionLabel || line.label}`,
@@ -908,7 +908,7 @@ function _bindWorkOverviewEvents(container, role, personId, prefix, rerender) {
       const tab = btn.dataset.woGotoTab;
       if (btn.dataset.woSegment === 'makeup') {
         try {
-          const module = await import('../../entries/tabs/disc/attendance-tab.js?v=20261020b');
+          const module = await import('../../entries/tabs/disc/attendance-tab.js?v=20261020c');
           module.focusSegment?.('makeup');
         } catch (_) { /* 分段记忆失败时仍进考勤页 */ }
       }
@@ -956,10 +956,10 @@ async function _renderOverviewDetail(container, detail, accent, onBack) {
   const host = container.querySelector('#wo-detail-host');
   if (!host) return;
   if (detail.kind === 'activity') {
-    const { renderActivityView } = await import('../record/activity-view.js?v=20261020b');
+    const { renderActivityView } = await import('../record/activity-view.js?v=20261020c');
     renderActivityView(host, { highlightId: detail.id, accent });
   } else {
-    const { renderTaskforceView } = await import('../record/taskforce-view.js?v=20261020b');
+    const { renderTaskforceView } = await import('../record/taskforce-view.js?v=20261020c');
     renderTaskforceView(host, { highlightId: detail.id });
   }
 }

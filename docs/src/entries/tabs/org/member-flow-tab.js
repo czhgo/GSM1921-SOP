@@ -15,25 +15,25 @@
 //   登记者角色门 = canRegisterFlow（组织委员 + 支书/副支书）。
 // ════════════════════════════════════════════════════════════════
 
-import { AuthStore } from '../../../services/core/auth.js?v=20261020b';
-import { getBranchIdOfPerson } from '../../../services/branch/branch.js?v=20261020b';
-import { getPersonName } from '../../../services/member/person.js?v=20261020b';
+import { AuthStore, currentUserId } from '../../../services/core/auth.js?v=20261020c';
+import { getBranchIdOfPerson } from '../../../services/branch/branch.js?v=20261020c';
+import { getPersonName } from '../../../services/member/person.js?v=20261020c';
 // 党小组常态清单唯一来源（活组、按 seq 升序；新增/改名/解散后随渲染即时可见）——登记流入的「党小组」选项
-import { groupOptions } from '../../../services/member/party-group.js?v=20261020b';
-import { showToast, escHtml as esc, getBasePath, todayLocal } from '../../../core/base/utils.js?v=20261020b';
-import { getAuthToken, getApiBaseUrl } from '../../../data/data-adapter.js?v=20261020b';
-import { openModal, closeModal } from '../../../components/ui/modal.js?v=20261020b';
+import { groupOptions } from '../../../services/member/party-group.js?v=20261020c';
+import { showToast, escHtml as esc, getBasePath, todayLocal } from '../../../core/base/utils.js?v=20261020c';
+import { getAuthToken, getApiBaseUrl } from '../../../data/data-adapter.js?v=20261020c';
+import { openModal, closeModal } from '../../../components/ui/modal.js?v=20261020c';
 // 统一检索引擎（表格统一化批次 A）：台账表接入关键词 + 分面（≤8 行引擎自动不渲染检索条）
-import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261020b';
+import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261020c';
 // 成员流入/流出登记服务层（2026-09-14 批次 25 支书裁定）：登记即生效 + 台账 + 对账 + 撤销
 import {
   loadMemberFlows, reconcile, registerIntake, registerIntakeBatch,
   registerOutflow, revokeFlow, canRegisterFlow,
-} from '../../../services/member/member-flow.js?v=20261020b';
+} from '../../../services/member/member-flow.js?v=20261020c';
 // 选人规范：凡选择具体人一律 PersonPicker（禁 select 罗列人名）——登记流出选人
-import { PersonPicker } from '../../../components/governance/pickers.js?v=20261020b';
+import { PersonPicker } from '../../../components/governance/pickers.js?v=20261020c';
 // 自定义圆角下拉增强（select.input-flat.text-xs → cs-trigger；与全局 observer 幂等）
-import { enhanceSelects } from '../../../components/ui/custom-select.js?v=20261020b';
+import { enhanceSelects } from '../../../components/ui/custom-select.js?v=20261020c';
 
 // 模块级 ctx 缓存：登记/撤销后整页刷新复用首次渲染的 accent
 let _ctx = null;
@@ -41,9 +41,16 @@ let _ctx = null;
 /** 登记流出弹窗的 PersonPicker 实例（提交/取消时销毁，防浮层泄漏） */
 let _outflowPicker = null;
 
-/** 操作人（审计/留痕 updatedBy；组织委员位兜底 p11，同名册口径） */
+/** 操作人（审计/留痕 updatedBy；P1-11：失效会话 → null，禁止回落组织委员 p11） */
 function _actorId() {
-  return AuthStore.getCurrentUser()?.personId || 'p11';
+  return currentUserId();
+}
+
+/** 写口取操作人：无登录人 → 提示重新登录并拒绝写入 */
+function _requireActor() {
+  const id = _actorId();
+  if (!id) showToast('error', '登录态已失效，请重新登录');
+  return id;
 }
 
 /** 操作人角色（成员流动登记权限门 canRegisterFlow 入参） */
@@ -328,7 +335,8 @@ function _openIntakeModal() {
       });
       panel.querySelector('[data-intake-cancel]')?.addEventListener('click', () => closeModal('flow-intake'));
       panel.querySelector('[data-intake-submit]')?.addEventListener('click', async () => {
-        const by = _actorId();
+        const by = _requireActor();
+        if (!by) return;
         const role = _actorRole();
         const branchId = _branchId();
         if (mode === 'single') {
@@ -423,7 +431,9 @@ function _openOutflowModal() {
         if (!ids.length) { showErr('<p>请至少选择一名流出人员</p>'); return; }
         const date = panel.querySelector('[data-outflow="date"]').value;
         const note = panel.querySelector('[data-outflow="note"]').value;
-        const r = await registerOutflow({ personIds: ids, date, note, by: _actorId(), role: _actorRole(), branchId });
+        const by = _requireActor();
+        if (!by) return;
+        const r = await registerOutflow({ personIds: ids, date, note, by, role: _actorRole(), branchId });
         if (!r.movedCount) {
           showErr(`<p>${esc(r.reason || '未登记任何流出，请检查所选人员')}</p>${_skippedHtml(r.skipped)}`);
           return;
@@ -466,7 +476,9 @@ function _askRevoke(flowId) {
       panel.querySelector('[data-flow-revoke-cancel]')?.addEventListener('click', () => closeModal('flow-revoke-confirm'));
       panel.querySelector('[data-flow-revoke-ok]')?.addEventListener('click', async () => {
         closeModal('flow-revoke-confirm');
-        const r = await revokeFlow({ flowId, by: _actorId(), role: _actorRole() });
+        const by = _requireActor();
+        if (!by) return;
+        const r = await revokeFlow({ flowId, by, role: _actorRole() });
         if (r.ok) {
           showToast('success', '已撤销该台账记录，成员在册状态与账号已回滚');
           renderContent(_ctx);

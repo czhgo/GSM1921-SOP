@@ -155,3 +155,34 @@ export const MOCK_NOTICES = [
     read: false,
   },
 ];
+
+// ── 通知受众 / 支部归属 / 来源（M3，2026-10-20）──────────────────────
+// 为什么补：原种子没有 audience/branchId/source，读侧一律当作「无受众 = 广播」，
+//   与现行受众模型（sentinels / 角色键 / audiencePersons）漂移，演示时无法验证定向可见性。
+// 覆盖三态：全体党员（all）、党小组组长（leaders）、指定人 / 指定角色（audiencePersons / 角色键）。
+// 受众取自通知正文的对象（如「请组织委员…」→ 组织委员），不新增业务语义。
+const NOTICE_AUDIENCE_SEED = {
+  'notice-101': { audience: ['all'] },
+  'notice-102': { audiencePersons: ['p11'] },          // 组织委员
+  'notice-103': { audience: ['all'] },
+  'notice-104': { audience: ['leaders'] },
+  'notice-105': { audience: ['activists'] },
+  'notice-106': { audience: ['disc-commissioner'] },   // 纪检委员
+  'notice-107': { audience: ['committee'] },
+  'notice-108': { audience: ['all'] },
+  'notice-110': { audience: ['committee'] },
+  'notice-001': { audience: ['committee'] },
+  'notice-005': { audience: ['all'] },
+  'notice-011': { audience: ['leaders'] },
+  'notice-111': { audience: ['all'] },
+  'notice-112': { audience: ['all'] },
+};
+
+for (const notice of MOCK_NOTICES) {
+  notice.branchId = notice.branchId ?? 'br-b1';
+  notice.source = notice.source ?? 'branch';
+  notice.createdBy = notice.createdBy ?? 'p13'; // 发布者（现任支书；仅种子快照）
+  if (notice.audience === undefined && !Array.isArray(notice.audiencePersons)) {
+    Object.assign(notice, NOTICE_AUDIENCE_SEED[notice.id] || { audience: ['all'] });
+  }
+}

@@ -20,16 +20,16 @@
 //     预载后经缓存读取（签名未变秒回、变才 await 拉取）——todo-tab-shell _comboKeyOf 已并入
 //     该 token+长度指纹 → 确认/审批后渲染守卫键变化 → 重建而非命中跳过。
 
-import { getAdapter } from '../../data/data-adapter.js?v=20261020b';
-import { mockDB } from '../../core/domain/domain.js?v=20261020b';
-import { bumpToken } from '../../core/base/version-token.js?v=20261020b';
-import { getPersonById, getPersonName } from '../../services/member/person.js?v=20261020b';
-import { loadActivities } from '../../services/activity/activity.js?v=20261020b';
-import { showToast, escHtml as esc, getBasePath } from '../../core/base/utils.js?v=20261020b';
-import { NoticeStore } from '../../services/governance/notice.js?v=20261020b';
-import { AuthStore } from '../../services/core/auth.js?v=20261020b';
+import { getAdapter } from '../../data/data-adapter.js?v=20261020c';
+import { mockDB } from '../../core/domain/domain.js?v=20261020c';
+import { bumpToken } from '../../core/base/version-token.js?v=20261020c';
+import { getPersonById, getPersonName } from '../../services/member/person.js?v=20261020c';
+import { loadActivities } from '../../services/activity/activity.js?v=20261020c';
+import { showToast, escHtml as esc, getBasePath } from '../../core/base/utils.js?v=20261020c';
+import { NoticeStore } from '../../services/governance/notice.js?v=20261020c';
+import { currentUserId } from '../../services/core/auth.js?v=20261020c';
 // roster=名册报送确认链（组织委员发起 → 支书确认/退回；bulk 行仅确认，退回留在详情逐项）
-import { listPendingConfirmations, decideConfirmation, MC_ACTION_LABEL } from '../../services/member/member-confirmation.js?v=20261020b';
+import { listPendingConfirmations, decideConfirmation, MC_ACTION_LABEL } from '../../services/member/member-confirmation.js?v=20261020c';
 
 const _pendingStatusOf = (mode) => (mode === 'org-approve' ? 'pending-org-approval' : 'pending-secretary');
 
@@ -196,7 +196,9 @@ export function bindMcBulk(container, { mode = 'secretary-confirm', onDone } = {
           if (mode === 'org-approve') await approveMemberChangeRequest(p.id);
           else await confirmMemberChangeRequest(p.id);
         } else if (p.source === 'roster' && mode !== 'org-approve') {
-          const by = AuthStore.getCurrentUser()?.personId || 'p13';
+          // P1-11：批量的名册确认也必须由真实登录人留痕（原有 p13 兜底会记到支书名下）。
+          const by = currentUserId();
+          if (!by) { showToast('error', '登录态已失效，请重新登录'); errN += 1; continue; }
           const r = await decideConfirmation(p.id, { decision: 'approved', by, note: '' });
           if (!r.ok) throw new Error(r.reason || '确认失败');
         } else {

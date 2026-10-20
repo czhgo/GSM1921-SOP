@@ -9,9 +9,9 @@
 //   · 履职卡「发展党员」原映射到已摘除的 `development` 页签 ⇒ 改落 `talent`（人才库 / 阶段推进写位）；
 //   · 条线缺口行原为纯文本 ⇒ 按缺口语义补真实页签动作（专班管理 / 活动日历等）。
 
-import { renderWorkOverview } from '../../../components/governance/work-overview.js?v=20261020b';
-import { AuthStore } from '../../../services/core/auth.js?v=20261020b';
-import { beginOverviewShell } from '../../../components/governance/overview-dispatch-bar.js?v=20261020b';
+import { renderWorkOverview } from '../../../components/governance/work-overview.js?v=20261020c';
+import { currentUserId } from '../../../services/core/auth.js?v=20261020c';
+import { beginOverviewShell } from '../../../components/governance/overview-dispatch-bar.js?v=20261020c';
 
 /** 组织台条线缺口 → 真实页签（缺口文案含关键词即命中；均为本台已注册页签） */
 const ORG_GAP_ACTIONS = [
@@ -62,7 +62,12 @@ function _enhanceOrgOverview(el) {
 export async function renderContent(ctx) {
   const el = document.getElementById('org-tab-content');
   if (!el) return null;
-  const personId = AuthStore.getCurrentUser()?.personId || 'p11';
+  const personId = currentUserId();
+  // 失效会话不猜人（P1-11）：读口显式显示 —，不再回落到固定组织委员 p11。
+  if (!personId) {
+    el.innerHTML = '<div class="card rounded-xl p-5 text-center"><p class="text-xs text-gray-500">—（登录态已失效，请重新登录）</p></div>';
+    return null;
+  }
   beginOverviewShell(el);
   await renderWorkOverview(el, {
     role: 'org-commissioner',
