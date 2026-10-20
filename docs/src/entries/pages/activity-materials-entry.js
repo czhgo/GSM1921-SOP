@@ -12,24 +12,24 @@
 //   · 材料读取：`mockDB.imageRecords` / `loadAttendanceRecords` / `mockDB.inspections` / `loadActivityReviews`；
 //   · 归档写口：`services/core/mock.js::archiveActivity`（经 BranchService 暴露，与宣传台 / 支书台同源）；
 //   · 空态：`components/ui/empty-state.js`；浮窗：`components/ui/modal.js`；版本戳：`core/base/version-token.js`。
-import { renderSidebar } from '../../components/shell/sidebar.js?v=20261020f';
-import { renderHeader } from '../../components/shell/header.js?v=20261020f';
-import { BranchService } from '../../services/core/runtime.js?v=20261020f';
-import { mockDB, ReviewStatus } from '../../core/domain/domain.js?v=20261020f';
-import { loadAttendanceRecords } from '../../services/activity/attendance.js?v=20261020f';
-import { loadActivityReviews } from '../../services/governance/review.js?v=20261020f';
-import { AuthStore } from '../../services/core/auth.js?v=20261020f';
-import { isActivityArchived } from '../../core/domain/constants.js?v=20261020f';
-import { getBasePath, escHtml as esc, showToast } from '../../core/base/utils.js?v=20261020f';
-import { resolveMaterialHref, resolveMaterialHandoff, resolveMaterialRoleNote } from '../../core/domain/material-links.js?v=20261020f';
+import { renderSidebar } from '../../components/shell/sidebar.js?v=20261020g';
+import { renderHeader } from '../../components/shell/header.js?v=20261020g';
+import { BranchService } from '../../services/core/runtime.js?v=20261020g';
+import { mockDB, ReviewStatus } from '../../core/domain/domain.js?v=20261020g';
+import { loadAttendanceRecords } from '../../services/activity/attendance.js?v=20261020g';
+import { loadActivityReviews } from '../../services/governance/review.js?v=20261020g';
+import { AuthStore } from '../../services/core/auth.js?v=20261020g';
+import { isActivityArchived } from '../../core/domain/constants.js?v=20261020g';
+import { getBasePath, escHtml as esc, showToast } from '../../core/base/utils.js?v=20261020g';
+import { resolveMaterialHref, resolveMaterialHandoff, resolveMaterialRoleNote } from '../../core/domain/material-links.js?v=20261020g';
 // 材料页可见性单一源（C11）：与活动列表 / 详情页同判据，待批活动不能凭 id 被非支委层读到
-import { isActivityVisibleTo } from '../../services/core/visibility.js?v=20261020f';
-import { emptyStateHtml } from '../../components/ui/empty-state.js?v=20261020f';
-import { openModal, closeModal } from '../../components/ui/modal.js?v=20261020f';
-import { bumpToken } from '../../core/base/version-token.js?v=20261020f';
-import { hydrateDataSource, notifyDataLoaded } from '../../data/data-adapter.js?v=20261020f';
-import { ApiAdapter } from '../../data/api-adapter.js?v=20261020f';
-import { settleWrites } from '../../core/session/pending-writes.js?v=20261020f';
+import { isActivityVisibleTo } from '../../services/core/visibility.js?v=20261020g';
+import { emptyStateHtml } from '../../components/ui/empty-state.js?v=20261020g';
+import { openModal, closeModal } from '../../components/ui/modal.js?v=20261020g';
+import { bumpToken } from '../../core/base/version-token.js?v=20261020g';
+import { hydrateDataSource, notifyDataLoaded } from '../../data/data-adapter.js?v=20261020g';
+import { ApiAdapter } from '../../data/api-adapter.js?v=20261020g';
+import { settleWrites } from '../../core/session/pending-writes.js?v=20261020g';
 
 renderSidebar('dashboard');
 renderHeader('dashboard');
@@ -245,16 +245,15 @@ function _confirmArchive(act, materials) {
   const bodyHtml = `
     ${missing
       ? `<p class="text-xs text-amber-700 leading-6">以下核心材料仍缺：<b>${esc(missing)}</b>。归档后仍可在宣传台补交材料。</p>`
-      : '<p class="text-xs text-green-700 leading-6">核心材料已齐（宣传材料 / 考勤 / 考察）。</p>'}
-    <div class="flex justify-end gap-2 mt-4">
-      <button type="button" data-materials-cancel class="btn-outline" style="cursor:pointer;">取消</button>
-      <button type="button" data-materials-confirm class="btn-accent" style="cursor:pointer;">${missing ? '仍要归档' : '确认归档'}</button>
-    </div>`;
+      : '<p class="text-xs text-green-700 leading-6">核心材料已齐（宣传材料 / 考勤 / 考察）。</p>'}`;
   openModal({
     id: 'materials-archive-confirm',
     title: '提交归档',
     width: '460px',
     bodyHtml,
+    footerHtml: `
+      <button type="button" data-materials-cancel class="btn-outline text-sm px-4 py-1.5" style="cursor:pointer;">取消</button>
+      <button type="button" data-materials-confirm class="btn-accent text-sm px-4 py-1.5" style="cursor:pointer;">${missing ? '仍要归档' : '确认归档'}</button>`,
     onMount: (panel) => {
       panel.querySelector('[data-materials-cancel]')?.addEventListener('click', () => closeModal('materials-archive-confirm'));
       panel.querySelector('[data-materials-confirm]')?.addEventListener('click', () => {

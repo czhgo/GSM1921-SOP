@@ -276,7 +276,7 @@ for (const w of WORKS) {
       }
       await page.waitForTimeout(800);
       // P0-2 形态断言（2026-09-23 支书裁定「形态必须可断言、不许静默降级」）：本文件真机用例必须在 API 形态下跑
-      await page.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20261020f')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
+      await page.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20261020g')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
 
       // 只数**工作台页签条**（`aria-label="工作台页签"`）里的 role=tab；页面内二级分段
       //   （党委台「撰写 / 已发送」「待批复 / 已处理」、成员台「列表 / 日历 / 查询」）同样是 role=tab，
@@ -443,7 +443,7 @@ test('S21 组织台活动深链：?activityId / ?view=activities 落「活动日
     await page.waitForTimeout(800);
     // 取一个真实活动（优先「非当前月」者，顺带验证切月）
     const acts = await page.evaluate(async () => {
-      const m = await import('/src/core/base/state.js?v=20261020f');
+      const m = await import('/src/core/base/state.js?v=20261020g');
       return ((m.getAppState() || {}).activities || []).map((x) => ({ id: x.id, date: x.date }));
     });
     assert.ok(acts.length > 0, '组织台活动深链用例：未取到任何活动（样本不足）');
@@ -506,7 +506,9 @@ test('S1 普查非空转：确实覆盖到「本该分页的列表 / 矩阵人�
   console.log(`[普查覆盖] tab=${SWEEP.tabs} 引擎列表=${SWEEP.lists}（其中总数>10 的 ${SWEEP.listsOverPage}）矩阵=${SWEEP.matrices} 手写表格=${SWEEP.tables}`);
   assert.ok(SWEEP.tabs >= 62, `普查 tab 数少于当前角色入口基线 62（实测 ${SWEEP.tabs}）：普查范围缩水或某台 tab 未渲染`);
   assert.ok(SWEEP.listsOverPage >= 12, `「总数 > 10 的引擎列表」样本少于基线 12（实测 ${SWEEP.listsOverPage}）：分页断言可能恒真`);
-  assert.ok(SWEEP.matrices >= 2, `矩阵样本少于基线 2（实测 ${SWEEP.matrices}）：人维分页断言可能恒真`);
+  // 2026-10-20 第三轮 IA 判例③：组织台思想汇报的全量「人 × 期次」矩阵撤除（收窄为例外清单）
+  //   ⇒ 矩阵样本由 2 降为 1（报名总表仍在）。门槛按实测值改准为 1；P2 的「人维 ≤10」判据不变。
+  assert.ok(SWEEP.matrices >= 1, `矩阵样本少于基线 1（实测 ${SWEEP.matrices}）：人维分页断言可能恒真`);
   assert.ok(SWEEP.tables >= 2, `手写表格样本少于基线 2（实测 ${SWEEP.tables}）：P3 断言恒真`);
   // 批次 47-C：二级视图扩围的「非空转」——审次不得少于 tab 数（否则扩围未生效），
   //   且转置视图必须真被审到过（否则 P10 恒真）。
@@ -525,7 +527,7 @@ test('S22 组织台概况缺口有真实落点，履职卡不再指向已摘除�
   const duty = readFileSync(join(import.meta.dirname, '..', '..', 'docs', 'src', 'components', 'governance', 'workforce-duty-card.js'), 'utf8');
   assert.match(duty, /'develop-party-member': 'talent'/, '发展党员须直接映射人才库');
   const overview = readFileSync(join(import.meta.dirname, '..', '..', 'docs', 'src', 'components', 'governance', 'work-overview.js'), 'utf8');
-  for (const tab of ['taskforce', 'calendar', 'roster']) {
+  for (const tab of ['taskforce', 'calendar', 'member-flow']) {
     assert.ok(overview.includes(`gapTab: '${tab}'`), `条线缺口缺少结构化落点：${tab}`);
   }
 });

@@ -11,6 +11,7 @@
 // 本页签的**能力边界**（只读，不做第二套写口）：
 //   · 只渲「月 / 周 / 日 / 列表」四视图 ＋ 类别图例 ＋ 月份选择（引擎单一源 `components/record/calendar.js`）；
 //   · **不挂**写入按钮 / 统计条 / 活动查询——那些是支书台的管侧面，挂在各成员台上既越权、又与「详情页」重复建设；
+//     右栏仅给「本场组织者且有考勤上传位」的人一枚**本位跳转**链接（跳组长 / 成员台的既有上传位，不复制表单）；
 //   · 点击活动条目 → `activity.html?id=…`（**既有落点**，与首页「近期活动」日历同一条跳转机制；
 //     不新增机制、不在本页复刻详情）；**点击日期格 → 右侧详情栏出当日活动**（只读分支，见下）。
 //
@@ -29,9 +30,9 @@
 //   容器内容却没登记标记」时会把本页判成「已在位」而跳过骨架重建，留下空白（同 today-tab 2026-09-25
 //   真机实测的残留病）。
 
-import { getAppState } from '../../../core/base/state.js?v=20261020f';
-import { populateMonthSelector, renderCalendarByActivities } from '../../../components/record/calendar.js?v=20261020f';
-import { renderInspectorFromState } from '../../../components/record/inspector.js?v=20261020f';
+import { getAppState } from '../../../core/base/state.js?v=20261020g';
+import { populateMonthSelector, renderCalendarByActivities } from '../../../components/record/calendar.js?v=20261020g';
+import { renderInspectorFromState } from '../../../components/record/inspector.js?v=20261020g';
 
 const TAB_HTML = `
   <div class="card rounded-xl p-5">
@@ -47,7 +48,7 @@ const TAB_HTML = `
         <div id="calendar-legend" class="mt-3"></div>
       </div>
       <div id="inspector-container" class="lg:col-span-2 rounded-xl bg-gray-50/50 border border-gray-100 p-3">
-        <div id="inspector-default" class="text-sm text-gray-500 text-center py-8">点击日期查看活动详情，或点击活动条目直接进入详情</div>
+        <div id="inspector-default" class="text-sm text-gray-500 text-center py-8">点击日期查看当日活动，或点击活动条目直接进入详情</div>
         <div id="inspector-content" class="hidden">
           <h4 id="inspector-date-title" class="font-title-cn text-sm font-bold text-gray-800 mb-3"></h4>
           <div id="inspector-cards"></div>

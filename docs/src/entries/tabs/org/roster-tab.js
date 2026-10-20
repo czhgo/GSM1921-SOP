@@ -42,33 +42,35 @@
 //    支书确认生效时先 roster.saveResidenceChange（RESIDENCE_KEY 覆盖 + 留痕）→ 再 saveMember 镜像进档案。
 // ════════════════════════════════════════════════════════════════
 
-import { PersonStore, getPersonName } from '../../../services/member/person.js?v=20261020f';
-import { getRosterStats, getResidenceOf } from '../../../services/member/roster.js?v=20261020f';
-import { listPendingConfirmations } from '../../../services/member/member-confirmation.js?v=20261020f';
-import { DEVELOP_STAGE_OPTIONS } from '../../../services/branch/org-base-data-preview.js?v=20261020f';
+import { PersonStore, getPersonName } from '../../../services/member/person.js?v=20261020g';
+import { getRosterStats, getResidenceOf } from '../../../services/member/roster.js?v=20261020g';
+import { listPendingConfirmations } from '../../../services/member/member-confirmation.js?v=20261020g';
+import { DEVELOP_STAGE_OPTIONS } from '../../../services/branch/org-base-data-preview.js?v=20261020g';
 // 党小组常态清单唯一来源（活组、按 seq 升序；新增/改名/解散后随渲染即时可见）
-import { groupOptions } from '../../../services/member/party-group.js?v=20261020f';
-import { AuthStore, currentUserId } from '../../../services/core/auth.js?v=20261020f';
+import { groupOptions } from '../../../services/member/party-group.js?v=20261020g';
+import { AuthStore, currentUserId } from '../../../services/core/auth.js?v=20261020g';
 // Q-21-3 收敛（2026-09-13）：在册状态枚举单一源 = core/domain/constants.js（原经 roster.js 转出）
-import { ROLE_LABELS, RESIDENCE } from '../../../core/domain/constants.js?v=20261020f';
-import { showToast, escHtml as esc, getBasePath } from '../../../core/base/utils.js?v=20261020f';
-import { openModal, closeModal, openFormModal } from '../../../components/ui/modal.js?v=20261020f';
+import { ROLE_LABELS, RESIDENCE } from '../../../core/domain/constants.js?v=20261020g';
+import { showToast, escHtml as esc, getBasePath } from '../../../core/base/utils.js?v=20261020g';
+import { openModal, closeModal, openFormModal } from '../../../components/ui/modal.js?v=20261020g';
 // 统一成员档案编辑模态（成员名册行内「编辑」入口；模态内按字段分流：档案属性立即生效 / 制度变更报支书确认）
-import { openPersonEditModal } from '../../../components/governance/pickers.js?v=20261020f';
+import { openPersonEditModal } from '../../../components/governance/pickers.js?v=20261020g';
 // 纯逻辑（可单测）：新增表单校验
-import { validateMemberForm } from '../../../services/member/roster-ui-logic.js?v=20261020f';
+import { validateMemberForm } from '../../../services/member/roster-ui-logic.js?v=20261020g';
 // `D-788` / `V-10b` 第三批（2026-10-05 · 支书圈「甲：粘贴/CSV ＋ 预览」）：自我描述批量导入服务
 //   （纯函数：解析 → 表头关键词映射 → 净化 → 与名册匹配 → 预览；本模块不落库，确认由本 tab 逐行走 saveMember）
-import { buildSelfProfileImport } from '../../../services/member/self-profile-import.js?v=20261020f';
+import { buildSelfProfileImport } from '../../../services/member/self-profile-import.js?v=20261020g';
 // 统一检索引擎（2026-09-13 表格统一化批次 A）：名册列表接入关键词 + 分面（≤8 行引擎自动不渲染检索条）
-import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261020f';
+// 2026-10-20 第三轮 IA 判例⑤：名册是核对表而非标签墙 ⇒ 4 组 chip（约 20 枚）收回
+//   「搜索 + 党小组 / 发展阶段 / 在册状态 三个下拉」；角色是低频维度、不进主行（改在个人档案看）。
+import { renderFilteredList, personKeyword, personFacets } from '../../../components/ui/list-filter.js?v=20261020g';
 // 成员流出登记（行内「移出」＝登记即生效）：2026-09-28 批次 220 · R10 拆分后，本 tab 只留「移出」这一
 //   行操作；「成员流动」面板（登记流入 / 登记流出 / 对账行 / 台账表 / 撤销）已拆到独立 tab（org/member-flow-tab.js）。
-import { registerOutflow } from '../../../services/member/member-flow.js?v=20261020f';
+import { registerOutflow } from '../../../services/member/member-flow.js?v=20261020g';
 // 支部归属解析（当前操作人 → 支部 id）：台账/对账/登记同支部口径
-import { getBranchIdOfPerson } from '../../../services/branch/branch.js?v=20261020f';
+import { getBranchIdOfPerson } from '../../../services/branch/branch.js?v=20261020g';
 // 自定义圆角下拉增强（select.input-flat.text-xs → cs-trigger；与全局 observer 幂等）
-import { enhanceSelects } from '../../../components/ui/custom-select.js?v=20261020f';
+import { enhanceSelects } from '../../../components/ui/custom-select.js?v=20261020g';
 
 // 模块级 ctx 缓存：行内保存/删除/新增后整页刷新复用首次渲染的 accent
 let _ctx = null;
@@ -79,6 +81,26 @@ let _spDraft = null;
 
 /** 发展阶段展示排序（仅排序用，值仍出自 DEVELOP_STAGE_OPTIONS，不新增枚举） */
 const STAGE_ORDER = ['正式党员', '预备党员', '发展对象', '积极分子'];
+
+/** 名册主行只保留三个下拉维度（角色降级为档案字段，不进筛选行）——判例⑤的控件清单单一源。 */
+const ROSTER_FACET_KEYS = ['partyGroup', 'developStage', 'residenceStatus'];
+
+/** 名册分面（在册状态用固定枚举 + 读取 `getResidenceOf`）：
+ *  自动派生会因「全部在校」而把该维度判成空值隐藏，且忽略留痕覆盖层；
+ *  固定两项既保证三个下拉恒在，也与行内显示（getResidenceOf）同源。 */
+const ROSTER_FACETS = personFacets()
+  .filter((facet) => ROSTER_FACET_KEYS.includes(facet.key))
+  .map((facet) => (facet.key === 'residenceStatus'
+    ? {
+      ...facet,
+      label: '在册状态',
+      options: [
+        { value: RESIDENCE.CAMPUS, label: '在校' },
+        { value: RESIDENCE.DETAINED, label: '滞留' },
+      ],
+      get: (person) => getResidenceOf(person).residenceStatus || RESIDENCE.CAMPUS,
+    }
+    : facet));
 
 /** 支部层成员（党委组织员（组织级角色）不属于支部，不参与名册管理） */
 function _branchMembers() {
@@ -179,16 +201,16 @@ export function renderContent(ctx) {
   `;
 
   container.querySelector('#roster-add-btn')?.addEventListener('click', _openAddForm);
-  // 统一检索引擎：关键词（姓名/学号）+ 分面（党小组/发展阶段/角色/在册）
-  // ⚠ 2026-10-01 批次 319（支书 V-12 取「丁：先改最重的两处」）：本页为**首批迁移页之一** ⇒
-  //   分面改 `chip` 形态（**搜索框 ＋ span 小胶囊**）；胶囊走引擎单一源、选中态随主题色。
+  // 统一检索引擎：关键词（姓名/学号）+ 三个下拉（党小组 / 发展阶段 / 在册状态）。
+  // 2026-10-20 第三轮 IA 判例⑤：原 4 组 chip（约 20 枚按钮）把名册推下首屏；改回引擎默认的
+  //   dropdown 形态（`.lf-select`，由全局 enhanceSelects 增强为圆角下拉）。少一次「值已在屏上」
+  //   的便利，换来首屏约 60px（桌面）/ 120px（390px）与更低的误点率。
   const host = container.querySelector('#roster-list-host');
   renderFilteredList(host, {
     stateKey: 'org-roster-table',
     rows: members,
     keyword: personKeyword(),
-    facets: personFacets({ roleLabel: roleLabelOf }),
-    facetStyle: 'chip',
+    facets: ROSTER_FACETS,
     countUnit: '人',
     listClass: 'divide-y divide-gray-100',
     emptyMessage: members.length ? '无匹配成员' : '名册暂无成员，点右上角「新增成员」录入',
@@ -494,11 +516,10 @@ function _askRemove(personId) {
     accentColor: 'var(--functional-error)',
     bodyHtml: `
       <p class="text-sm text-gray-700 mb-2">确认将「${esc(name)}」移出成员名册？</p>
-      <p class="text-xs text-gray-500 mb-4">登记即生效：移出名册、账号停用，原考勤与考察历史保留；可在「成员流动」撤销纠正。</p>
-      <div style="display:flex;gap:10px;justify-content:flex-end;">
-        <button type="button" data-roster-del-cancel class="btn-outline text-xs px-3 py-1.5" style="cursor:pointer;">取消</button>
-        <button type="button" data-roster-del-ok class="btn-danger-solid text-xs px-3 py-1.5">确认登记流出</button>
-      </div>`,
+      <p class="text-xs text-gray-500 mb-4">登记即生效：移出名册、账号停用，原考勤与考察历史保留；可在「成员流动」撤销纠正。</p>`,
+    footerHtml: `
+      <button type="button" data-roster-del-cancel class="btn-outline text-sm px-4 py-1.5" style="cursor:pointer;">取消</button>
+      <button type="button" data-roster-del-ok class="btn-danger-solid text-sm px-4 py-1.5">确认登记流出</button>`,
     onMount: (panel) => {
       panel.querySelector('[data-roster-del-cancel]')?.addEventListener('click', () => closeModal('roster-del-confirm'));
       panel.querySelector('[data-roster-del-ok]')?.addEventListener('click', () => {

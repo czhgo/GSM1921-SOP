@@ -44,41 +44,41 @@
 //   ⚠ **只动渲染顺序 / 分层与落点**，不改任何功能、权限判定与写口——DOM ID 全保留，真机流程不失配。
 // ════════════════════════════════════════════════════════════════
 
-import { AuthStore } from '../../../services/core/auth.js?v=20261020f';
-import { PersonStore, getPersonName } from '../../../services/member/person.js?v=20261020f';
-import { getBranchIdOfPerson } from '../../../services/branch/branch.js?v=20261020f';
-import { IssueStore } from '../../../services/governance/issues.js?v=20261020f';
-import { loadActivities } from '../../../services/activity/activity.js?v=20261020f';
-import { loadActivityReviews } from '../../../services/governance/review.js?v=20261020f';
-import { loadAttendanceRecords } from '../../../services/activity/attendance.js?v=20261020f';
-import { AttendanceStatus, ReviewStatus, REVIEW_STATUS_LABELS } from '../../../core/domain/domain.js?v=20261020f';
-import { getMeetingRosterIds } from '../../../services/member/roster.js?v=20261020f';
-import { showToast, escHtml as esc, getBasePath, todayLocal } from '../../../core/base/utils.js?v=20261020f';
+import { AuthStore } from '../../../services/core/auth.js?v=20261020g';
+import { PersonStore, getPersonName } from '../../../services/member/person.js?v=20261020g';
+import { getBranchIdOfPerson } from '../../../services/branch/branch.js?v=20261020g';
+import { IssueStore } from '../../../services/governance/issues.js?v=20261020g';
+import { loadActivities } from '../../../services/activity/activity.js?v=20261020g';
+import { loadActivityReviews } from '../../../services/governance/review.js?v=20261020g';
+import { loadAttendanceRecords } from '../../../services/activity/attendance.js?v=20261020g';
+import { AttendanceStatus, ReviewStatus, REVIEW_STATUS_LABELS } from '../../../core/domain/domain.js?v=20261020g';
+import { getMeetingRosterIds } from '../../../services/member/roster.js?v=20261020g';
+import { showToast, escHtml as esc, getBasePath, todayLocal } from '../../../core/base/utils.js?v=20261020g';
 // 统一检索引擎（2026-09-13 表格统一化批次 A）：组员进展摘要（按人）接入关键词 + 分面
-import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261020f';
+import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261020g';
 // 活动类型胶囊（批次 301）：变体判据＝单一源 `activityTypeBadgeVariant`（三会一课＝brand 红 / 主题党日＝gold 金），
 //   渲染唯一源＝`components/ui/badge.js`；**不在本文件手写色值**（支书 2026-09-30：颜色是最好的信息展示方式）。
-import { activityTypeBadgeVariant, DEFAULT_BRANCH_ID } from '../../../core/domain/constants.js?v=20261020f';
-import { badgeHtml } from '../../../components/ui/badges.js?v=20261020f'; // 扎口出口（批次 304 收回，勿直连 badge.js）
-import { openModal, closeModal } from '../../../components/ui/modal.js?v=20261020f';
+import { activityTypeBadgeVariant, DEFAULT_BRANCH_ID } from '../../../core/domain/constants.js?v=20261020g';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20261020g'; // 扎口出口（批次 304 收回，勿直连 badge.js）
+import { openModal, closeModal } from '../../../components/ui/modal.js?v=20261020g';
 // 党小组一等实体服务层（组清单 / 写口 / 权限门 / 留痕——组名唯一来源，禁本文件手写组名数组）
 import {
   loadPartyGroups, groupOptions, defaultGroupName, nextGroupSeq,
   addGroup, renameGroup, dissolveGroup, assignMemberToGroup, ungroupedMembers,
   canManagePartyGroups, listGroupHistory,
-} from '../../../services/member/party-group.js?v=20261020f';
+} from '../../../services/member/party-group.js?v=20261020g';
 import {
   listPartyGroups, memberScopeOfGroup, countOpenReportsByGroup,
   groupActivitiesOf, reviewBucketOf, GROUP_REVIEW_COLOR, groupLeadershipOf,
   groupReportRowsOf, reportRowStateOf,
-} from '../../../services/member/group-view.js?v=20261020f';
+} from '../../../services/member/group-view.js?v=20261020g';
 // 赋权分块（2026-09-25 支书裁「全按对象归位」）：情景①a（设党小组组长 / 副组长）由本 tab「党小组清单」卡内
 //   行内管理（2026-10-04 批次 373 去冗余：撤独立「组长指派」块，改由清单行内「设/改」开同一面板）；
 //   **情景①b 支委身份配置已按 2026-09-27 支书裁定迁「支委会」**；**情景②③ 项目赋权整卡按 2026-10-04
 //   批次 373 迁「活动管理」页**（`calendar-tab.js`）。
 //   实现单一源＝entries/tabs/secretary/assign-tab.js（该文件已不注册为 tab，仅余 mount* 分块）
 //   ⇒ **不新造第二套视觉/表单**，只把既有分块挂到本 tab 的落点。
-import { mountLeaderAssign, openLeaderAssignPanel } from './assign-tab.js?v=20261020f';
+import { mountLeaderAssign, openLeaderAssignPanel } from './assign-tab.js?v=20261020g';
 
 // R2-17：缺省支部单一源 = core/domain/constants.js::DEFAULT_BRANCH_ID。
 
@@ -489,7 +489,6 @@ function _renderReportsList(hostEl, group, allIssues) {
     rows: groupReportRowsOf(allIssues, group),
     keyword: personKeyword(),
     facets: personFacets({ roleLabel: roleLabelOf }),
-    facetStyle: 'chip',
     countUnit: '人',
     listClass: 'space-y-1.5',
     emptyMessage: '暂无本组组员汇报，组员汇报答复在组长台完成',
@@ -825,11 +824,10 @@ function _openAddGroupModal(container) {
           <input type="text" id="gp-add-name" class="input-flat w-full" placeholder="留空则用「${esc(defName)}」">
         </div>
         <p class="text-xs text-gray-500">同一支部内活组组名不得重复；成立后可在清单行「改名」，成员在页面顶部「未分组」一行逐个归组。</p>
-      </div>
-      <div class="flex justify-end gap-2 mt-4">
-        <button type="button" id="gp-add-cancel" class="btn-outline btn-sm" style="cursor:pointer;">取消</button>
-        <button type="button" id="gp-add-confirm" class="btn-accent">新增</button>
       </div>`,
+    footerHtml: `
+      <button type="button" id="gp-add-cancel" class="btn-outline text-sm px-4 py-1.5" style="cursor:pointer;">取消</button>
+      <button type="button" id="gp-add-confirm" class="btn-accent text-sm px-4 py-1.5 font-medium">新增</button>`,
     onMount: (panel) => {
       panel.querySelector('#gp-add-cancel')?.addEventListener('click', () => closeModal('gp-add-group'));
       panel.querySelector('#gp-add-confirm')?.addEventListener('click', async () => {
@@ -860,11 +858,10 @@ function _openRenameModal(container, id) {
           <input type="text" id="gp-rename-name" class="input-flat w-full" value="${esc(g.name)}">
         </div>
         <p class="text-xs text-gray-500">改名将同步改写该组全部成员的档案归属（原「${esc(g.name)}」下的成员一并改为新组名），相关活动与考勤口径随之对齐。</p>
-      </div>
-      <div class="flex justify-end gap-2 mt-4">
-        <button type="button" id="gp-rename-cancel" class="btn-outline btn-sm" style="cursor:pointer;">取消</button>
-        <button type="button" id="gp-rename-confirm" class="btn-accent">保存</button>
       </div>`,
+    footerHtml: `
+      <button type="button" id="gp-rename-cancel" class="btn-outline text-sm px-4 py-1.5" style="cursor:pointer;">取消</button>
+      <button type="button" id="gp-rename-confirm" class="btn-accent text-sm px-4 py-1.5 font-medium">保存</button>`,
     onMount: (panel) => {
       panel.querySelector('#gp-rename-cancel')?.addEventListener('click', () => closeModal('gp-rename'));
       panel.querySelector('#gp-rename-confirm')?.addEventListener('click', async () => {
@@ -900,11 +897,10 @@ function _openDissolveModal(container, id) {
       <div class="mt-3">
         <label class="text-xs text-gray-500 mb-1.5 block font-medium" for="gp-dissolve-note">解散原因（可空）</label>
         <input type="text" id="gp-dissolve-note" class="input-flat w-full" placeholder="如：并入其它党小组 / 成员重新分组">
-      </div>
-      <div class="flex justify-end gap-2 mt-4">
-        <button type="button" id="gp-dissolve-cancel" class="btn-outline btn-sm" style="cursor:pointer;">取消</button>
-        <button type="button" id="gp-dissolve-confirm" class="btn-danger-solid">确认解散</button>
       </div>`,
+    footerHtml: `
+      <button type="button" id="gp-dissolve-cancel" class="btn-outline text-sm px-4 py-1.5" style="cursor:pointer;">取消</button>
+      <button type="button" id="gp-dissolve-confirm" class="btn-danger-solid text-sm px-4 py-1.5">确认解散</button>`,
     onMount: (panel) => {
       panel.querySelector('#gp-dissolve-cancel')?.addEventListener('click', () => closeModal('gp-dissolve'));
       panel.querySelector('#gp-dissolve-confirm')?.addEventListener('click', async () => {

@@ -8,52 +8,52 @@
 //   buildRealtimeGroups 一次 merge 进对应域（考勤纪律/考察/活动项目/归档宣传/成员发展/决议上报）；
 //   种子行动类（设党小组组长）由壳按域聚合；自定义详情/专班待议/待答复收件箱/成员变更面板照旧挂载。
 
-import { showToast, escHtml as esc, flashHighlight } from '../../../core/base/utils.js?v=20261020f';
+import { showToast, escHtml as esc, flashHighlight } from '../../../core/base/utils.js?v=20261020g';
 // D2 裁决批二（2026-09-08）：概况汇报区只读摘要「去待办处理」→ 定位消费（展开该答复详情并滚动到视口）
-import { PendingTarget } from '../../../core/session/pending-target.js?v=20261020f';
-import { createTodoTab, createUrgeController } from '../../../components/record/todo-tab-shell.js?v=20261020f';
+import { PendingTarget } from '../../../core/session/pending-target.js?v=20261020g';
+import { createTodoTab, createUrgeController } from '../../../components/record/todo-tab-shell.js?v=20261020g';
 // 本位 nudge 单一源（2026-09-27：材料催办 → 组织委员为本位；支书 / 副支书催办属例外代办）
-import { confirmNudge } from '../../../components/ui/modal.js?v=20261020f';
-import { TodoStore, seedTodos, TodoCategory, REALTIME_GROUP_DOMAIN, WORK_DOMAIN } from '../../../services/governance/todo.js?v=20261020f';
+import { confirmNudge } from '../../../components/ui/modal.js?v=20261020g';
+import { TodoStore, seedTodos, TodoCategory, REALTIME_GROUP_DOMAIN, WORK_DOMAIN } from '../../../services/governance/todo.js?v=20261020g';
 // `#1`/`D-742`：作废裁决后的**站内知会**（知会「相关委员管理上可优化」）——走系统派生通知单一源
 // （`addSystem` → 服务端按 `todo-void-decided` kind 复算授权与受众；mock 模式本地同模板镜像）。
-import { NoticeStore } from '../../../services/governance/notice.js?v=20261020f';
-import { SecretaryTodoDeriver, getEndedUnarchivedActivities, getArchiveGapActivities } from '../../../services/governance/secretary-overview.js?v=20261020f';
-import { badgeHtml } from '../../../components/ui/badges.js?v=20261020f';
-import { loadAttendanceRecords, saveAttendanceRecords } from '../../../services/activity/attendance.js?v=20261020f';
-import { loadInspectionRecords, saveInspectionRecords } from '../../../services/activity/inspection.js?v=20261020f';
-import { updateActivityReview, loadActivityReviews, renderActivityReviewFormHtml, submitActivityReviewForm } from '../../../services/governance/review.js?v=20261020f';
-import { loadActivities } from '../../../services/activity/activity.js?v=20261020f';
+import { NoticeStore } from '../../../services/governance/notice.js?v=20261020g';
+import { SecretaryTodoDeriver, getEndedUnarchivedActivities, getArchiveGapActivities } from '../../../services/governance/secretary-overview.js?v=20261020g';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20261020g';
+import { loadAttendanceRecords, saveAttendanceRecords } from '../../../services/activity/attendance.js?v=20261020g';
+import { loadInspectionRecords, saveInspectionRecords } from '../../../services/activity/inspection.js?v=20261020g';
+import { updateActivityReview, loadActivityReviews, renderActivityReviewFormHtml, submitActivityReviewForm } from '../../../services/governance/review.js?v=20261020g';
+import { loadActivities } from '../../../services/activity/activity.js?v=20261020g';
 // 批次 346（`D-744`②）：业务记录「作废（软）」统一写口——待确认申请并入**同一个**「作废待确认」组
-import * as SoftVoid from '../../../services/governance/soft-void.js?v=20261020f';
-import { mockDB } from '../../../core/domain/domain.js?v=20261020f';
-import { persist } from '../../../data/data-adapter.js?v=20261020f';
-import { bumpToken } from '../../../core/base/version-token.js?v=20261020f'; // P0 域缓存失效（spec §二.3）
-import { getPersonById, getPersonName, PersonStore } from '../../../services/member/person.js?v=20261020f';
-import { solidAccentStyle, ROLE_LABELS, activityTypeBadgeVariant } from '../../../core/domain/constants.js?v=20261020f';
+import * as SoftVoid from '../../../services/governance/soft-void.js?v=20261020g';
+import { mockDB } from '../../../core/domain/domain.js?v=20261020g';
+import { persist } from '../../../data/data-adapter.js?v=20261020g';
+import { bumpToken } from '../../../core/base/version-token.js?v=20261020g'; // P0 域缓存失效（spec §二.3）
+import { getPersonById, getPersonName, PersonStore } from '../../../services/member/person.js?v=20261020g';
+import { solidAccentStyle, ROLE_LABELS, activityTypeBadgeVariant } from '../../../core/domain/constants.js?v=20261020g';
 // 代归档写口（D-807④）：与宣传台归档面同一写口（软删 archived=true + 级联完成下属任务）
-import { BranchService } from '../../../services/core/runtime.js?v=20261020f';
+import { BranchService } from '../../../services/core/runtime.js?v=20261020g';
 // R1-A 点⑤（2026-09-09）：强调色渲染统一 person-aware 动态解析（替代模块级 resolveAccentRole 快照）
-import { getAppliedAccentColors } from '../../../core/boot/theme.js?v=20261020f';
-import { IssueStore } from '../../../services/governance/issues.js?v=20261020f';
-import { TaskForceRecordStore, createTaskforceVoteActivity, findTaskforceVoteActivity } from '../../../services/activity/taskforce.js?v=20261020f';
-import { fetchVotes } from '../../../services/activity/committee-vote.js?v=20261020f';
-import { resolveVoterIds } from '../../../services/activity/vote-config.js?v=20261020f';
-import { renderReportInboxHtml, bindReportInbox } from '../../../components/record/reporting.js?v=20261020f';
+import { getAppliedAccentColors } from '../../../core/boot/theme.js?v=20261020g';
+import { IssueStore } from '../../../services/governance/issues.js?v=20261020g';
+import { TaskForceRecordStore, createTaskforceVoteActivity, findTaskforceVoteActivity } from '../../../services/activity/taskforce.js?v=20261020g';
+import { fetchVotes } from '../../../services/activity/committee-vote.js?v=20261020g';
+import { resolveVoterIds } from '../../../services/activity/vote-config.js?v=20261020g';
+import { renderReportInboxHtml, bindReportInbox } from '../../../components/record/reporting.js?v=20261020g';
 // 2026-09-08 裁决批一（D1/D3）：成员变更=域内确认+批量去顶卡——顶卡面板移除，
 // 确认位唯一化 = 「成员发展」域实时组内批量块（buildMcBulkRows/renderMcBulkRowsHtml/bindMcBulk）。
-import { preloadMemberChangeRequests, getCachedMemberChangeRequests, buildMcBulkRows, renderMcBulkRowsHtml, bindMcBulk } from '../../../components/governance/member-change-panel.js?v=20261020f';
-import { tryDirectJump } from '../../../components/record/todo-jump.js?v=20261020f';
-import { buildOverdueRemindGroupNow } from '../../../services/governance/resolution-followup.js?v=20261020f';
+import { preloadMemberChangeRequests, getCachedMemberChangeRequests, buildMcBulkRows, renderMcBulkRowsHtml, bindMcBulk } from '../../../components/governance/member-change-panel.js?v=20261020g';
+import { tryDirectJump } from '../../../components/record/todo-jump.js?v=20261020g';
+import { buildOverdueRemindGroupNow } from '../../../services/governance/resolution-followup.js?v=20261020g';
 // C 批 附录⑩ S4：名册成员变更确认复核（组织委员发起 → 支书确认/退回）+ 学期末滞留集中复核提醒
 // 批4（2026-09-09）：窗口判定与窗口文案单一源 = policy（memberConfirmation.semesterDetainedWindows）
-import { listPendingConfirmations, decideConfirmation, shouldShowSemesterDetainedRemind, semesterDetainedWindowsLabel, MC_ACTION_LABEL } from '../../../services/member/member-confirmation.js?v=20261020f';
-import { getDetainedMembers, getResidenceOf } from '../../../services/member/roster.js?v=20261020f';
-import { AuthStore, currentUserId } from '../../../services/core/auth.js?v=20261020f';
+import { listPendingConfirmations, decideConfirmation, shouldShowSemesterDetainedRemind, semesterDetainedWindowsLabel, MC_ACTION_LABEL } from '../../../services/member/member-confirmation.js?v=20261020g';
+import { getDetainedMembers, getResidenceOf } from '../../../services/member/roster.js?v=20261020g';
+import { AuthStore, currentUserId } from '../../../services/core/auth.js?v=20261020g';
 // 逐条催办（2026-09-10 支书裁定；2026-09-18 批次 88 抽到共享壳 createUrgeController，
 // 与组织委员台共用同一实现；判据仍在 services/governance/todo.js::urgeRolesOf，未改）
-import { setState } from '../../../core/base/state.js?v=20261020f';
-import { openModal, closeModal } from '../../../components/ui/modal.js?v=20261020f';
+import { setState } from '../../../core/base/state.js?v=20261020g';
+import { openModal, closeModal } from '../../../components/ui/modal.js?v=20261020g';
 
 // 生效强调色三件套（R1-A 点⑤：登录人强调色=person 键覆盖，禁止模块加载期快照写死——
 // 一律渲染时经 getAppliedAccentColors 动态解析，改色后随重渲染/刷新生效，与 --app-accent 同源）
@@ -263,6 +263,8 @@ function _openDelegateArchiveModal() {
       ${sectionHtml('待补材料', gaps.length + ' 个', gaps.map(gapRowHtml).join(''),
         '已归档但宣传材料未提交——材料属宣传委员本职（不代交），可回待办组逐条催办。')}
       ${(!ended.length && !gaps.length) ? '<div class="text-xs text-gray-500">当前无待归档活动、无材料缺口。</div>' : ''}`,
+    footerHtml: `
+      <button type="button" data-modal-cancel="secretary-delegate-archive" class="btn-outline text-sm px-4 py-1.5">关闭</button>`,
     accentColor: accent,
     onMount: (panel) => {
       panel.addEventListener('click', async (e) => {
@@ -837,11 +839,10 @@ function _askMcReject(reqId, api) {
     accentColor: '#6B7280',
     bodyHtml: `
       <p class="text-sm text-gray-700 mb-1">确认退回${name ? `「${esc(name)}」` : '该成员'}的变更请求？退回后不生效，组织委员可在名册重新发起。</p>
-      <textarea id="mc-reject-note" class="input-flat text-xs w-full mt-2" rows="3" maxlength="200" placeholder="退回原因（必填）"></textarea>
-      <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:14px;">
-        <button type="button" data-mc-reject-cancel class="btn-outline text-xs px-3 py-1.5" style="cursor:pointer;">取消</button>
-        <button type="button" data-mc-reject-ok class="btn-neutral text-xs px-3 py-1.5">确认退回</button>
-      </div>`,
+      <textarea id="mc-reject-note" class="input-flat text-xs w-full mt-2" rows="3" maxlength="200" placeholder="退回原因（必填）"></textarea>`,
+    footerHtml: `
+      <button type="button" data-mc-reject-cancel class="btn-outline text-sm px-4 py-1.5" style="cursor:pointer;">取消</button>
+      <button type="button" data-mc-reject-ok class="btn-neutral text-sm px-4 py-1.5">确认退回</button>`,
     onMount: (panel) => {
       panel.querySelector('[data-mc-reject-cancel]')?.addEventListener('click', () => closeModal('mc-reject-modal'));
       panel.querySelector('[data-mc-reject-ok]')?.addEventListener('click', async () => {
@@ -914,11 +915,10 @@ function _askRecordVoidReject(btn, api, rv) {
     accentColor: 'var(--functional-error)',
     bodyHtml: `
       <p class="text-sm text-gray-700 mb-1">确认驳回「${esc(label)}」的作废申请？驳回后该记录回到原状（仍按原流程办结）。</p>
-      <textarea id="record-void-reject-note" class="input-flat text-xs w-full mt-2" rows="3" maxlength="200" placeholder="驳回意见（必填）"></textarea>
-      <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:14px;">
-        <button type="button" data-record-void-reject-cancel class="btn-outline text-xs px-3 py-1.5" style="cursor:pointer;">取消</button>
-        <button type="button" data-record-void-reject-ok class="btn-neutral text-xs px-3 py-1.5">确认驳回</button>
-      </div>`,
+      <textarea id="record-void-reject-note" class="input-flat text-xs w-full mt-2" rows="3" maxlength="200" placeholder="驳回意见（必填）"></textarea>`,
+    footerHtml: `
+      <button type="button" data-record-void-reject-cancel class="btn-outline text-sm px-4 py-1.5" style="cursor:pointer;">取消</button>
+      <button type="button" data-record-void-reject-ok class="btn-neutral text-sm px-4 py-1.5">确认驳回</button>`,
     onMount: (panel) => {
       panel.querySelector('[data-record-void-reject-cancel]')?.addEventListener('click', () => closeModal('record-void-reject-modal'));
       panel.querySelector('[data-record-void-reject-ok]')?.addEventListener('click', async () => {
@@ -948,11 +948,10 @@ function _askVoidReject(todo, api) {
     accentColor: 'var(--functional-error)',
     bodyHtml: `
       <p class="text-sm text-gray-700 mb-1">确认驳回「${esc(todo.title || '该待办')}」的作废申请？驳回后该待办回到原状（仍须办结），并知会相关委员。</p>
-      <textarea id="todo-void-reject-note" class="input-flat text-xs w-full mt-2" rows="3" maxlength="200" placeholder="驳回意见（必填）"></textarea>
-      <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:14px;">
-        <button type="button" data-todo-void-reject-cancel class="btn-outline text-xs px-3 py-1.5" style="cursor:pointer;">取消</button>
-        <button type="button" data-todo-void-reject-ok class="btn-neutral text-xs px-3 py-1.5">确认驳回</button>
-      </div>`,
+      <textarea id="todo-void-reject-note" class="input-flat text-xs w-full mt-2" rows="3" maxlength="200" placeholder="驳回意见（必填）"></textarea>`,
+    footerHtml: `
+      <button type="button" data-todo-void-reject-cancel class="btn-outline text-sm px-4 py-1.5" style="cursor:pointer;">取消</button>
+      <button type="button" data-todo-void-reject-ok class="btn-neutral text-sm px-4 py-1.5">确认驳回</button>`,
     onMount: (panel) => {
       panel.querySelector('[data-todo-void-reject-cancel]')?.addEventListener('click', () => closeModal('todo-void-reject-modal'));
       panel.querySelector('[data-todo-void-reject-ok]')?.addEventListener('click', () => {
@@ -1135,10 +1134,10 @@ function expandAssignPanelForTodo(todo) {
   const sourceId = todo.actionData?.sourceId;
   if (scope === 'leader') {
     // 组长 / 副组长赋权：置模块态后由 group-progress 挂载时补渲（tab 异步渲染也能落到位）
-    import('./assign-tab.js?v=20261020f').then(m => m.openLeaderAssignPanel({}));
+    import('./assign-tab.js?v=20261020g').then(m => m.openLeaderAssignPanel({}));
   } else if (scope === 'activity' || scope === 'taskforce') {
     // 项目赋权（整卡在「活动管理」页）：先按模块态切到该块，等宿主就位后再预选项目 + 滚到该块表单
-    import('./assign-tab.js?v=20261020f').then(m => m.selectProjectAuthKind(scope));
+    import('./assign-tab.js?v=20261020g').then(m => m.selectProjectAuthKind(scope));
     const cfg = scope === 'taskforce'
       ? { selectId: 'tf-project-select', panelId: 'tf-auth-panel' }
       : { selectId: 'project-id-select', panelId: 'project-auth-panel' };

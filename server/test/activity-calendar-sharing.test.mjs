@@ -24,6 +24,16 @@ test('四个只读角色入口仍指向相同的共享渲染器；支书保留�
   const root = '../../docs/src/capabilities';
   for (const page of ['org', 'prop', 'disc', 'leader']) {
     const source = read(`${root}/${page}-workspace.js`);
+    if (page === 'org') {
+      // 2026-10-20 第三轮 IA 判例④：组织台「活动日历」改成薄包装（共享日历 ＋ 本台「活动进展」分段），
+      //   共享渲染器仍只有一份——由包装件直接 import，不得复制第二套日历。
+      assert.match(source, /entries\/tabs\/org\/activity-calendar-tab\.js/,
+        '组织台活动日历须走本台包装件');
+      const wrapper = read('../../docs/src/entries/tabs/org/activity-calendar-tab.js');
+      assert.match(wrapper, /entries\/tabs\/shared\/activity-calendar-tab\.js/,
+        '组织台包装件须复用共享日历实现');
+      continue;
+    }
     assert.match(source, /entries\/tabs\/shared\/activity-calendar-tab\.js/,
       `${page} 工作台应复用共享日历实现`);
   }

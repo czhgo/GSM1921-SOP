@@ -9,18 +9,18 @@
 //（listPeriodicArchivesPendingReview / reviewPeriodicArchive / PERIODIC_ARCHIVE_REVIEW_STATUS），
 // 本页只做呈现与交互，不另写状态名、不改后端 API/数据模型/权限链。
 
-import { currentUserId } from '../../../services/core/auth.js?v=20261020f';
-import { renderWorkOverview } from '../../../components/governance/work-overview.js?v=20261020f';
+import { currentUserId } from '../../../services/core/auth.js?v=20261020g';
+import { renderWorkOverview } from '../../../components/governance/work-overview.js?v=20261020g';
 import {
   listPeriodicArchivesPendingReview, reviewPeriodicArchive,
-} from '../../../services/governance/secretary-overview.js?v=20261020f';
-import { getPersonName } from '../../../services/member/person.js?v=20261020f';
-import { listRowHtml, listGroupHtml } from '../../../components/ui/list-row.js?v=20261020f';
-import { emptyStateHtml } from '../../../components/ui/empty-state.js?v=20261020f';
-import { openModal, closeModal } from '../../../components/ui/modal.js?v=20261020f';
+} from '../../../services/governance/secretary-overview.js?v=20261020g';
+import { getPersonName } from '../../../services/member/person.js?v=20261020g';
+import { listRowHtml, listGroupHtml } from '../../../components/ui/list-row.js?v=20261020g';
+import { emptyStateHtml } from '../../../components/ui/empty-state.js?v=20261020g';
+import { openModal, closeModal } from '../../../components/ui/modal.js?v=20261020g';
 import {
   showToast, flashHighlight, getBasePath, escHtml as esc,
-} from '../../../core/base/utils.js?v=20261020f';
+} from '../../../core/base/utils.js?v=20261020g';
 
 const OVERVIEW_TAB_HTML = `
   <div id="secretary-overview-content"></div>
@@ -142,11 +142,10 @@ function _openReturnModal(id, personId, ctx) {
     bodyHtml: `
       <p class="text-xs text-gray-500" style="margin:0 0 10px;">退回后由宣传委员按说明修改并重新提交。</p>
       <label class="text-xs text-gray-500 mb-1.5 block font-medium" for="periodic-return-note">退回说明</label>
-      <textarea id="periodic-return-note" rows="3" class="input-flat w-full resize-none" placeholder="请填写一句退回说明"></textarea>
-      <div class="flex items-center justify-end gap-2" style="margin-top:16px;">
-        <button type="button" class="btn-outline text-xs px-3 py-1.5" data-pa-return-cancel>取消</button>
-        <button type="button" class="btn-accent text-sm px-4 py-2 font-medium" data-pa-return-confirm>确认退回</button>
-      </div>`,
+      <textarea id="periodic-return-note" rows="3" class="input-flat w-full resize-none" placeholder="请填写一句退回说明"></textarea>`,
+    footerHtml: `
+      <button type="button" class="btn-outline text-sm px-4 py-1.5" data-pa-return-cancel>取消</button>
+      <button type="button" class="btn-accent text-sm px-4 py-1.5 font-medium" data-pa-return-confirm>确认退回</button>`,
     onMount: (panel) => {
       panel.querySelector('[data-pa-return-cancel]')?.addEventListener('click', () => closeModal(PERIODIC_REVIEW_MODAL_ID));
       panel.querySelector('[data-pa-return-confirm]')?.addEventListener('click', () => {

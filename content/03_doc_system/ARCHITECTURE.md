@@ -177,18 +177,19 @@ Layer 7: 审计参考层（审计与参考）
 │   │   └── README.md                 [工程师]+[AI] 文档系统治理层目录索引
 │   ├── 04_web_design/                [工程师]+[AI] 网站设计层（设计理念与思路档案）
 │   │   ├── data/                      [工程师]+[AI] 数据权威（DATA_MODEL 数据模型与数据流）
-│   │   ├── design-system/             [工程师]+[AI] 全站通用规范（DESIGN_SYSTEM：设计哲学/色彩/排版/组件/交互/响应式/深色/资产/点击落点）
+│   │   ├── design-system/             [工程师]+[AI] 全站通用规范（DESIGN_SYSTEM：设计哲学/色彩/排版/组件〔含浮窗体例、筛选形态〕/交互/响应式/深色/资产/点击落点〔含承载面唯一性〕）
 │   │   ├── module/                    [工程师]+[AI] 页面与模块设计（SOP_WEBSITE_GUIDE / MODULE_UI_DESIGN / ABOUT_PAGE_DESIGN / AGENDA_AND_REFERENCE_DESIGN）
 │   │   ├── deploy/                    [工程师]+[AI] 部署与集成设计（DEPLOYMENT_GUIDE）
 │   │   ├── evolution/                 [工程师]+[AI] 演进、契约与评估（ARCHITECTURE_EVOLUTION / WORKFLOW_BLOCK_CONTRACT / BRANCH_WORK_MAP / PARTY_COMMITTEE_DESIGN / ROLE_PERMISSION_DESIGN / DESIGN_METHODOLOGY；工程化评估见 .ctx/ENGINEERING_ASSESSMENT.md）
 │   │   └── README.md                 [工程师]+[AI] 网站设计层目录索引（逐文件一句话说明）
-│   ├── 05_ai_coding/                 [工程师]+[AI] AI 协作方法论层（唯一 AI 协作方法论层：README + 5 分篇 + DATA_CONSISTENCY_CHECKLIST）
+│   ├── 05_ai_coding/                 [工程师]+[AI] AI 协作方法论层（唯一 AI 协作方法论层：README + 6 分篇 + DATA_CONSISTENCY_CHECKLIST）
 │   │   ├── README.md                         [工程师]+[AI] AI 协作方法论层目录索引（层索引表 + 分流来源声明）
 │   │   ├── FILE_OPERATION_RULES.md           [工程师]+[AI] 文件操作纪律分篇
-│   │   ├── TEST_AND_VERIFICATION.md         [工程师]+[AI] 测试验证纪律分篇（含数据同源一致性校验节）
+│   │   ├── TEST_AND_VERIFICATION.md         [工程师]+[AI] 测试验证纪律分篇（含数据同源一致性校验节、承载形态守卫）
 │   │   ├── DOCUMENT_GOVERNANCE.md           [工程师]+[AI] 文档治理与一改具改分篇
 │   │   ├── CONTEXT_MANAGEMENT.md            [工程师]+[AI] 上下文管理与防失忆分篇（read_strategy: active）
 │   │   ├── REVIEW_AND_EXPRESSION.md         [工程师]+[AI] 评议与表达纪律分篇
+│   │   ├── PARALLEL_SKILL_AUDIT.md          [工程师]+[AI] 多代理独立审查操作手册（H21 详版；§12 全局性审查五问）
 │   │   └── DATA_CONSISTENCY_CHECKLIST.md    [工程师]+[AI] 数据同源一致性校验手册（工程质检纪律）
 │   ├── insights/                     [用户]+[AI] 经验沉淀（党建实务保留）
 │   │   ├── README.md                 [用户]+[工程师] 经验沉淀层目录索引
@@ -374,6 +375,7 @@ content/02_institution/sop/ → docs/src/workflow/ → core/constants/utils → 
 | `content/04_web_design/data/DATA_MODEL.md §3（参与者数据流设计）` | `docs/src/`（角色权限引擎） | 设计→代码。数据流架构定义角色数据流与登录态说明（§3.4，已实现登录态），代码实现设计 |
 | `content/02_institution/COMMISSIONER_DUTY_FRAMEWORK.md` | `docs/src/`（专班管理 + 审批流程） | 设计→代码。支委系统设计定义专班管理逻辑和§审批流程规范，代码实现 |
 | `content/04_web_design/design-system/DESIGN_SYSTEM.md` | `docs/src/styles.css`、`docs/src/components/*` | 设计→样式/代码。设计系统是全局样式与各组件实现的母本（查色值见 §二，写组件见 §四，点击落点见 §十） |
+| `content/04_web_design/design-system/DESIGN_SYSTEM.md §4.27–§4.28 / §10.7` | `docs/src/components/ui/modal.js`、`docs/src/components/ui/list-filter.js`、各对象入口页 | 设计→代码。浮窗体例 / 筛选形态 / 承载面唯一性是组件与入口的母本；新增浮窗、筛选或对象入口先对照三节 |
 | `content/04_web_design/module/MODULE_UI_DESIGN.md` | `docs/src/components/record/calendar.js` | 设计→代码。日历功能规划是日历渲染引擎的母本 |
 | `content/04_web_design/data/DATA_MODEL.md` | `docs/src/core/domain/domain.js` | 数据→代码。数据字段定义权威源（含§写入数据验证设计），代码中的数据结构必须与 DATA_MODEL.md 一致 |
 | `content/04_web_design/data/DATA_MODEL.md §3.4（登录态说明）` | `docs/src/core/base/state.js` | 设计→代码。DATA_MODEL §3.4 登录态说明是状态中心登录逻辑的母本 |

@@ -1,45 +1,42 @@
 // role: [工程师]+[AI]
 // 组织委员工作台 Tab：专班管理（T-279 M3 拆分，照 M2 样板）
-// 看板式专班全生命周期管理 + 发布招募表单 + 活动进度追踪（原追踪看板融入）。
-// 私有状态（PersonPicker 实例）随模块自持；共享数据（taskforce 分类/activities）经 ctx 传入。
+// 看板式专班全生命周期管理 + 发布招募表单 + 专班详情（活动进展已迁出，见下）。
+// 私有状态（PersonPicker 实例）随模块自持；共享数据（taskforce 分类）经 ctx 传入。
+// 2026-10-20 第三轮 IA 判例④：活动视图已迁至「活动日历」页，本页不再消费 ctx.activities。
 
-import { setState } from '../../../core/base/state.js?v=20261020f';
-import { BranchService } from '../../../services/core/runtime.js?v=20261020f';
-import { TaskForceRecordStore, isTaskforceOrganizer } from '../../../services/activity/taskforce.js?v=20261020f';
-import { legacyParticipantAssignmentRows, workgroupMembers } from '../../../services/activity/workgroup-members.js?v=20261020f';
-import { SignupStore, resolveSignupReviewer, SignupStatus, SIGNUP_ROLE_LABELS, SIGNUP_STATUS_LABELS } from '../../../services/activity/signup.js?v=20261020f';
-import { AuthStore } from '../../../services/core/auth.js?v=20261020f';
-import { loadTaskforceReviews, addTaskforceReview } from '../../../services/governance/review.js?v=20261020f';
-import { TodoStore, TodoSourceType, TodoCategory, TodoActionType } from '../../../services/governance/todo.js?v=20261020f';
-import { NoticeStore } from '../../../services/governance/notice.js?v=20261020f';
-import { mockDB, ReviewStatus, isTaskforceTerminalStatus, isTaskforceActiveStatus } from '../../../core/domain/domain.js?v=20261020f'; // IA-C3 收敛单写入口 2026-09-06：ParticipationLevel 随考察写入口移除
-import { persist } from '../../../data/data-adapter.js?v=20261020f';
-import { settleWrites } from '../../../core/session/pending-writes.js?v=20261020f';
-import { showToast, escHtml as esc, getBasePath, todayLocal, flashHighlight } from '../../../core/base/utils.js?v=20261020f';
-import { generateId } from '../../../core/base/id.js?v=20261020f';
-import { solidAccentStyle } from '../../../core/domain/constants.js?v=20261020f';
-// 活动「已结束/已归档」判据单一源（2026-09-13 收敛）：替代手写 `status === 'completed'`
-import { isActivityEnded } from '../../../core/domain/constants.js?v=20261020f';
-import { PersonPicker } from '../../../components/governance/pickers.js?v=20261020f';
-import { renderWorkgroupPermissionEditor, readWorkgroupPermissionEditor } from '../../../components/governance/workgroup-permissions.js?v=20261020f';
-import { renderWorkgroupMemberEditor, bindWorkgroupMemberEditor } from '../../../components/governance/workgroup-member-editor.js?v=20261020f';
-import { getAdapter } from '../../../data/data-adapter.js?v=20261020f';
-import { recordFormShell } from '../../../components/ui/forms.js?v=20261020f';
+import { setState } from '../../../core/base/state.js?v=20261020g';
+import { TaskForceRecordStore, isTaskforceOrganizer } from '../../../services/activity/taskforce.js?v=20261020g';
+import { legacyParticipantAssignmentRows, workgroupMembers } from '../../../services/activity/workgroup-members.js?v=20261020g';
+import { SignupStore, resolveSignupReviewer, SignupStatus, SIGNUP_ROLE_LABELS, SIGNUP_STATUS_LABELS } from '../../../services/activity/signup.js?v=20261020g';
+import { AuthStore } from '../../../services/core/auth.js?v=20261020g';
+import { loadTaskforceReviews, addTaskforceReview } from '../../../services/governance/review.js?v=20261020g';
+import { TodoStore, TodoSourceType, TodoCategory, TodoActionType } from '../../../services/governance/todo.js?v=20261020g';
+import { NoticeStore } from '../../../services/governance/notice.js?v=20261020g';
+import { mockDB, ReviewStatus, isTaskforceTerminalStatus, isTaskforceActiveStatus } from '../../../core/domain/domain.js?v=20261020g'; // IA-C3 收敛单写入口 2026-09-06：ParticipationLevel 随考察写入口移除
+import { persist } from '../../../data/data-adapter.js?v=20261020g';
+import { settleWrites } from '../../../core/session/pending-writes.js?v=20261020g';
+import { showToast, escHtml as esc, getBasePath, todayLocal, flashHighlight } from '../../../core/base/utils.js?v=20261020g';
+import { generateId } from '../../../core/base/id.js?v=20261020g';
+import { solidAccentStyle } from '../../../core/domain/constants.js?v=20261020g';
+import { PersonPicker } from '../../../components/governance/pickers.js?v=20261020g';
+import { renderWorkgroupPermissionEditor, readWorkgroupPermissionEditor } from '../../../components/governance/workgroup-permissions.js?v=20261020g';
+import { renderWorkgroupMemberEditor, bindWorkgroupMemberEditor } from '../../../components/governance/workgroup-member-editor.js?v=20261020g';
+import { getAdapter } from '../../../data/data-adapter.js?v=20261020g';
+import { recordFormShell } from '../../../components/ui/forms.js?v=20261020g';
 // 「本位」nudge 确认弹窗（2026-09-23 支书裁定 · 单一源 = components/ui/modal.js::confirmNudge）
 // U-05：招募浮窗原为手写 overlay/panel（无 dialog 语义 / 无焦点接管）→ 改走同一组件的 openModal。
-import { confirmNudge, confirmWriteWithoutGrant, openModal, closeModal } from '../../../components/ui/modal.js?v=20261020f';
+import { confirmNudge, confirmWriteWithoutGrant, openModal, closeModal } from '../../../components/ui/modal.js?v=20261020g';
 // 转交组织者（SOP-G-2-② · 2026-10-01 批次 327 · 支书裁「乙：直接转交 ＋ 留痕」）：判据 / 写口 /
 //   弹窗单一源＝`components/governance/organizer-transfer.js`（本台只挂入口，不复制一份实现）。
-import { canTransferOrganizer, openOrganizerTransfer } from '../../../components/governance/organizer-transfer.js?v=20261020f';
-import { renderQueryView } from '../../../components/governance/query-view.js?v=20261020f';
-import { badgeHtml } from '../../../components/ui/badges.js?v=20261020f';
+import { canTransferOrganizer, openOrganizerTransfer } from '../../../components/governance/organizer-transfer.js?v=20261020g';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20261020g';
 // 人×项目矩阵单一源（支书 2026-09-14 裁定：把宽表推广到其它二元关系域 → 本批「专班报名」域）
-import { renderRelationMatrix } from '../../../components/ui/relation-matrix.js?v=20261020f';
-import { getPersonName, PersonStore } from '../../../services/member/person.js?v=20261020f';
+import { renderRelationMatrix } from '../../../components/ui/relation-matrix.js?v=20261020g';
+import { getPersonName, PersonStore } from '../../../services/member/person.js?v=20261020g';
 // 统一检索引擎（2026-09-13 表格统一化批次 A）：报名名单等按人段落接入关键词 + 分面
-import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261020f';
+import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261020g';
 // 详情锚定单一源（2026-10-18 繁专项 Task 14）：与 taskforce-view.js 同款「触点即落点」
-import { anchorDetailToTrigger, scrollDetailIntoView } from '../../../components/ui/detail-anchor.js?v=20261020f';
+import { anchorDetailToTrigger, scrollDetailIntoView } from '../../../components/ui/detail-anchor.js?v=20261020g';
 // 私有状态（随模块自持，不污染入口）
 let _recruitOrganizerPicker = null;
 let _recruitDeepPicker = null;
@@ -72,7 +69,6 @@ export function renderContent(ctx) {
   const pending = ctx.pending || [];
   const recruiting = ctx.recruiting || [];
   const active = ctx.active || [];
-  const activities = ctx.activities || [];
 
   // 附录⑩ B批（R3-1/R3-2）：状态词对齐「支委会表决」语义——pending_review=待支委会表决；
   // 已完结桶含 completed / archived / dissolved（解散表决通过后置 dissolved，见服务层 applyCommitteeDecision）
@@ -85,11 +81,12 @@ export function renderContent(ctx) {
     .sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
 
   container.innerHTML = `
-    <!-- 工作组为主对象：专班与活动工作组并列，报名总表作为跨专班关系视图。 -->
+    <!-- 专班为主对象：专班工作组与报名总表两个视图。
+          2026-10-20 第三轮 IA 判例④：原活动视图已迁回「活动日历」页（组织侧「活动进展」分段），
+          本页不得再出现活动查询/活动收尾动作——页签名「专班管理」只覆盖专班域。 -->
     <div class="flex items-center justify-between flex-wrap gap-2 mb-3">
       <div class="flex items-center gap-2" id="org-tf-view-btns" role="group" aria-label="专班工作视图">
         <button type="button" class="btn-tab org-tf-view-btn px-3 py-1.5 text-xs font-medium [color:color-mix(in_srgb,var(--app-accent)_60%,#000)]" style="--acc-text-dark:color-mix(in srgb, var(--app-accent) 55%, #fff)" data-view="workgroups" aria-pressed="true">专班工作组</button>
-        <button type="button" class="btn-tab org-tf-view-btn px-3 py-1.5 text-xs font-medium" data-view="activities" aria-pressed="false">活动工作组</button>
         <button type="button" class="btn-tab org-tf-view-btn px-3 py-1.5 text-xs font-medium" data-view="matrix" aria-pressed="false">报名总表</button>
       </div>
       <!-- A04：原「知情查看」页的对象级只读集合并入本页；默认关闭，不改变原有看板口径。 -->
@@ -102,7 +99,6 @@ export function renderContent(ctx) {
       <input type="text" id="org-tf-search" class="input-flat text-xs lf-kw" placeholder="搜索专班名称或任务...">
     </div>
     <div id="org-tf-kanban"></div>
-    <div id="org-tf-activity-area" class="hidden"><div id="org-activity-progress"></div></div>
     <div id="org-tf-matrix-area" class="hidden">
       <!-- 转置双视图钮（缺省「按人」＝宽表默认，与全站口径一致）：data-mode 直接映射矩阵 mode -->
       <div class="flex items-center gap-2 mb-3" id="org-tf-mode-btns" role="group" aria-label="报名总表视图">
@@ -236,7 +232,6 @@ export function renderContent(ctx) {
   // 子视图切换：「看板」（缺省，现有看板 DOM 只做显隐、不重绘 → 行为/外观不变）|「报名总表」
   const kbViewEl = document.getElementById('org-tf-kanban');
   const searchBarEl = document.getElementById('org-tf-search-bar');
-  const activityAreaEl = document.getElementById('org-tf-activity-area');
   const matrixAreaEl = document.getElementById('org-tf-matrix-area');
   const viewBtnsEl = document.getElementById('org-tf-view-btns');
   viewBtnsEl?.addEventListener('click', (e) => {
@@ -256,14 +251,11 @@ export function renderContent(ctx) {
     });
     const view = btn.dataset.view;
     const isWorkgroups = view === 'workgroups';
-    const isActivities = view === 'activities';
     const isMatrix = view === 'matrix';
     kbViewEl?.classList.toggle('hidden', !isWorkgroups);
-    activityAreaEl?.classList.toggle('hidden', !isActivities);
-    // 检索条只服务工作组看板；活动列表与宽表各自提供查询维度。
+    // 检索条只服务工作组看板；宽表自带查询维度。
     searchBarEl?.classList.toggle('hidden', !isWorkgroups);
     matrixAreaEl?.classList.toggle('hidden', !isMatrix);
-    if (isActivities) _renderActivityProgress(activities, ctx);
     if (isMatrix) renderSignupMatrix();
   });
   const modeBtnsEl = document.getElementById('org-tf-mode-btns');
@@ -959,7 +951,6 @@ function _tfRenderSignupBlock(panel, tf, ctx) {
     rows: signupListRows,
     keyword: personKeyword(),
     facets: personFacets({ roleLabel: roleLabelOf }),
-    facetStyle: 'chip',
     countUnit: '人',
     listClass: 'space-y-0',
     emptyMessage: '暂无报名',
@@ -1456,7 +1447,10 @@ export function openRecruitForm(ctx) {
     // 统一表单基建（2026-08-05 支书裁决「统一表单基建」）：与「写入活动」表单对齐
     // input-flat / text-xs 标签 / 红色必填星号 / 同规格按钮
     bodyHtml: `
-    <form id="recruit-form" autocomplete="off">
+    <form id="recruit-form" autocomplete="off" novalidate>
+      <fieldset class="modal-fieldset">
+        <legend class="modal-fieldset__legend">基本信息</legend>
+        <div class="modal-fieldset__body">
       <div class="mb-3">
         <label class="text-xs text-gray-500 mb-1.5 block font-medium">专班名称 <span class="text-red-600">*</span></label>
         <input type="text" id="rf-name" required placeholder="如：宣传专班（第三期）" class="input-flat w-full">
@@ -1475,7 +1469,7 @@ export function openRecruitForm(ctx) {
         <textarea id="rf-governance-reason" rows="2" class="input-flat w-full mt-2 hidden" placeholder="写明对应制度条款或议程事项"></textarea>
       </div>
 
-      <div class="grid grid-cols-2 gap-3 mb-3">
+      <div class="modal-form-grid mb-3">
         <div>
           <label class="text-xs text-gray-500 mb-1.5 block font-medium">所需人数 <span class="text-red-600">*</span></label>
           <input type="number" id="rf-capacity" required min="1" max="50" placeholder="如：5" class="input-flat w-full">
@@ -1491,7 +1485,7 @@ export function openRecruitForm(ctx) {
         <input type="text" id="rf-skills" placeholder="如：视频剪辑、文案撰写" class="input-flat w-full">
       </div>
 
-      <div class="grid grid-cols-2 gap-3 mb-3">
+      <div class="modal-form-grid mb-3">
         <div>
           <label class="text-xs text-gray-500 mb-1.5 block font-medium">周期起始 <span class="text-gray-500">（选填）</span></label>
           <input type="date" id="rf-period-start" class="input-flat w-full">
@@ -1501,16 +1495,25 @@ export function openRecruitForm(ctx) {
           <input type="date" id="rf-period-end" class="input-flat w-full">
         </div>
       </div>
+        </div>
+      </fieldset>
 
+      <fieldset class="modal-fieldset">
+        <legend class="modal-fieldset__legend">工作组成员与职责</legend>
+        <div class="modal-fieldset__body">
       <div class="mb-3">
-        <label class="text-xs text-gray-500 mb-1.5 block font-medium">工作组成员与职责 <span class="text-gray-500">（选填）</span></label>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div class="modal-form-grid">
           <div><div class="text-[12px] text-gray-500 mb-1">组织者</div><div id="rf-organizers-picker"></div></div>
           <div><div class="text-[12px] text-gray-500 mb-1">深度参与者</div><div id="rf-deep-picker"></div></div>
         </div>
         ${renderWorkgroupPermissionEditor('taskforce-create', 'taskforce')}
       </div>
+        </div>
+      </fieldset>
 
+      <fieldset class="modal-fieldset">
+        <legend class="modal-fieldset__legend">通知与说明</legend>
+        <div class="modal-fieldset__body">
       <div class="mb-3">
         <label class="text-xs text-gray-500 mb-1.5 block font-medium">说明 <span class="text-gray-500">（选填）</span></label>
         <textarea id="rf-notes" rows="2" placeholder="补充说明" class="input-flat w-full"></textarea>
@@ -1530,17 +1533,22 @@ export function openRecruitForm(ctx) {
           </div>
         </div>
       </div>
-
-      <div style="display:flex;gap:12px;justify-content:flex-end;">
-        <button type="button" id="recruit-form-cancel" class="btn-outline text-sm px-4 py-[7px]">取消</button>
-        <button type="submit" class="btn-accent text-sm px-4 py-[7px] font-medium" >发布</button>
-      </div>
+        </div>
+      </fieldset>
     </form>
   `,
+    // 动作固定在 sticky footer（R3-10）：15 个字段滚到哪里，取消 / 发布都在视口内
+    footerHtml: `
+      <button type="button" data-modal-cancel="recruit-form-modal" class="btn-outline text-sm px-4 py-1.5">取消</button>
+      <button type="submit" form="recruit-form" data-modal-submit="recruit-form-modal" class="btn-accent text-sm px-4 py-1.5 font-medium">发布</button>`,
+    // 取消 = 放弃本次编辑：Esc / 遮罩 / × / 取消都销毁两个选人器（R3 关闭路径完整化）
+    onCancel: () => {
+      _recruitOrganizerPicker?.destroy();
+      _recruitDeepPicker?.destroy();
+      _recruitOrganizerPicker = null;
+      _recruitDeepPicker = null;
+    },
     onMount: (panel) => {
-      // 关闭按钮（取消）
-      panel.querySelector('#recruit-form-cancel').addEventListener('click', () => _closeRecruitForm());
-
       // 工作组成员身份与操作权限分开配置。
       const organizerContainer = panel.querySelector('#rf-organizers-picker');
       _recruitOrganizerPicker = new PersonPicker({
@@ -1569,10 +1577,23 @@ export function openRecruitForm(ctx) {
         noticeBody?.classList.toggle('hidden', expanded);
       });
 
-      // 表单提交
-      panel.querySelector('#recruit-form').addEventListener('submit', (e) => {
+      // 表单提交：提交中禁用按钮并显示进度；失败留在浮窗内（不关窗、不丢已填）
+      const submitBtn = panel.querySelector('[data-modal-submit="recruit-form-modal"]');
+      const cancelBtn = panel.querySelector('[data-modal-cancel="recruit-form-modal"]');
+      panel.querySelector('#recruit-form').addEventListener('submit', async (e) => {
         e.preventDefault();
-        void _submitRecruitForm(ctx);
+        if (submitBtn?.disabled) return;
+        if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = '发布中…'; submitBtn.classList.add('opacity-50'); }
+        if (cancelBtn) cancelBtn.disabled = true;
+        let ok = false;
+        try {
+          ok = await _submitRecruitForm(ctx);
+        } finally {
+          if (!ok && panel.isConnected) {
+            if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = '发布'; submitBtn.classList.remove('opacity-50'); }
+            if (cancelBtn) cancelBtn.disabled = false;
+          }
+        }
       });
     },
   });
@@ -1604,12 +1625,12 @@ async function _submitRecruitForm(ctx) {
   const noticeTitle = document.getElementById('rf-notice-title')?.value?.trim();
   const noticeContent = document.getElementById('rf-notice-content')?.value?.trim();
 
-  // 校验必填项
-  if (!name) { showToast('error', '请填写专班名称'); return; }
-  if (!task) { showToast('error', '请填写任务描述'); return; }
-  if (!capacity || capacity < 1) { showToast('error', '请填写有效的所需人数'); return; }
-  if (!deadline) { showToast('error', '请选择截止日期'); return; }
-  if (requiresCommitteeVote && !governanceReason) { showToast('error', '请写明要求支委会表决的制度或议程依据'); return; }
+  // 校验必填项（失败留在浮窗内，返回 false 让按钮恢复）
+  if (!name) { showToast('error', '请填写专班名称'); return false; }
+  if (!task) { showToast('error', '请填写任务描述'); return false; }
+  if (!capacity || capacity < 1) { showToast('error', '请填写有效的所需人数'); return false; }
+  if (!deadline) { showToast('error', '请选择截止日期'); return false; }
+  if (requiresCommitteeVote && !governanceReason) { showToast('error', '请写明要求支委会表决的制度或议程依据'); return false; }
 
   // 获取初始成员（统一英文编码 role: 'deep'，T-190 修复 P1-2 中英文混用）
   const organizers = _recruitOrganizerPicker?.getSelected() || [];
@@ -1624,7 +1645,7 @@ async function _submitRecruitForm(ctx) {
   //   **可继续提交**。机制同「本位」nudge（单一源 `components/ui/modal.js::confirmWriteWithoutGrant`）。
   if (!members.some(m => m.role === 'organizer')) {
     const _grantOk = await confirmWriteWithoutGrant({ subject: '专班', context: name });
-    if (!_grantOk) return;
+    if (!_grantOk) return false;
   }
 
   // 构建专班记录
@@ -1685,93 +1706,17 @@ async function _submitRecruitForm(ctx) {
     _closeRecruitForm();
     // 刷新看板
     setState({});
+    return true;
   } catch (err) {
     console.error('[recruit-form] 创建专班失败：', err);
     showToast('error', '发布失败，请重试');
+    return false;
   }
 }
 
-// ── 活动进度区块（融入专班管理tab，原追踪看板） ──
-function _renderActivityProgress(activities, ctx) {
-  const progressEl = document.getElementById('org-activity-progress');
-  if (!progressEl) return;
-
-  const typeOptions = [...new Set(activities.map(a => a.type).filter(Boolean))].map(t => ({ value: t, label: t }));
-  const queryData = activities.map(a => ({ ...a, archived: String(isActivityEnded(a)) }));
-
-  progressEl.innerHTML = `
-    <div class="card rounded-xl p-5">
-      <h3 class="font-title-cn text-base font-semibold text-gray-800 mb-1">活动工作组</h3>
-      <div class="text-xs text-gray-500 mb-3">按承办范围查看活动；参加活动不改变成员原党小组归属。</div>
-      <div id="org-activity-query"></div>
-    </div>
-  `;
-
-  const queryContainer = document.getElementById('org-activity-query');
-  if (!queryContainer) return;
-
-  renderQueryView(queryContainer, {
-    searchPlaceholder: '搜索活动名称...',
-    searchKey: 'title',
-    filters: [
-      // 分面一律下拉（首项「<维度>：全部」由组件统一补，勿在 options 里再放空值「全部」项）
-      { key: 'type', label: '活动类型', options: typeOptions },
-      { key: 'archived', label: '状态', options: [
-        { value: 'false', label: '进行中' },
-        { value: 'true', label: '已归档' },
-      ]},
-    ],
-    data: queryData,
-    renderRow: (a) => {
-      const isArchived = isActivityEnded(a);
-      const scopeLabel = a.organizingScope === 'party-group' ? '组内承办'
-        : a.organizingScope === 'cross-group' ? '跨组承办' : '承办范围待核';
-      const organizers = [...new Set([
-        a.organizer,
-        ...(Array.isArray(a.assignments) ? a.assignments.filter((member) => member.role === 'organizer').map((member) => member.personId) : []),
-      ].filter(Boolean))];
-      const deepCount = Array.isArray(a.assignments) ? a.assignments.filter((member) => member.role === 'deep').length : 0;
-      const statusTag = isArchived
-        ? badgeHtml('已归档', 'neutral')
-        : badgeHtml('已发布', 'success');
-      const completeBtn = !isArchived
-        ? `<button class="btn-accent-soft track-complete-btn text-xs px-3 py-1.5" data-act-id="${a.id}">确认完成</button>`
-        : '';
-      return `
-        <div class="flex items-center justify-between p-3 rounded-xl bg-white transition-colors">
-          <div class="flex-1 min-w-0">
-            <div class="text-sm font-medium ${isArchived ? 'text-gray-500 line-through' : 'text-gray-800'}">${a.title || '未命名'}</div>
-            <div class="text-xs text-gray-500 mt-0.5">${a.date || ''}${a.type ? ' · ' + a.type : ''}${a.location ? ' · ' + a.location : ''}</div>
-            <div class="text-[11px] text-gray-500 mt-1">${scopeLabel} · 组织者：${organizers.length ? organizers.map((id) => getPersonName(id)).join('、') : '待指定'} · 深度参与 ${deepCount} 人</div>
-          </div>
-          <div class="flex items-center gap-2">
-            ${statusTag}
-            <a href="./activity-materials.html?id=${encodeURIComponent(a.id)}" class="text-xs text-sky-700 hover:underline" title="材料清单 → 上传/核对 → 提交归档">材料闭环</a>
-            ${completeBtn}
-          </div>
-        </div>
-      `;
-    },
-    emptyMessage: '无匹配活动',
-    accentColor: ctx.accent,
-    sortKey: 'date',
-    sortDir: 'desc',
-    pageSize: 10,      // 活动无上限增长 → 分页（2026-08-07）
-    pageParam: 'opage',
-  });
-
-  // 绑定确认完成按钮
-  queryContainer.addEventListener('click', (e) => {
-    const btn = e.target.closest('.track-complete-btn');
-    if (!btn) return;
-    const actId = btn.dataset.actId;
-    const activity = activities.find(a => a.id === actId);
-    if (!activity) return;
-    const confirmed = window.confirm(`确认完成活动「${activity.title || '未命名'}」？完成后将归档。`);
-    if (!confirmed) return;
-    BranchService.updateActivity(actId, { status: 'completed' });
-    persist(); // 扎口修复（Z1/Z3）：updateActivity 内部不落盘，必须显式 persist 写穿
-    showToast('success', `活动「${activity.title || '未命名'}」已完成并归档`);
-    setState({});
-  });
-}
+// ── 活动进度区块已迁出（2026-10-20 第三轮 IA 判例④）──
+// 原 `_renderActivityProgress` 在此渲染全部活动查询 + 材料出口 + 确认完成；
+// 它属于「活动」对象而非「专班」，与组织台「活动日历」重复，且「确认完成」是绕过归档闸门的假归档。
+// 现承载面＝`entries/tabs/org/activity-calendar-tab.js` 的「活动进展」分段
+// （组件单一源 `components/governance/activity-progress.js`，文案改为「标记完成」）。
+// ⚠ 不得在本文件重新长出活动查询 / 活动收尾按钮。

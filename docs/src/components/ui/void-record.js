@@ -13,11 +13,11 @@
 //    沿用其既有 id（`makeup-void-modal` / `#makeup-void-reason` / `[data-makeup-void-ok]`），
 //    以免动到已在册的真机流 `disc-makeup-void-reason` 的选择器。
 // ════════════════════════════════════════════════════════════════
-import * as SoftVoid from '../../services/governance/soft-void.js?v=20261020f';
-import { BRANCH_COMMISSION_ROLES } from '../../core/domain/constants.js?v=20261020f';
-import { AuthStore } from '../../services/core/auth.js?v=20261020f';
-import { openModal, closeModal } from './modal.js?v=20261020f';
-import { showToast, escHtml } from '../../core/base/utils.js?v=20261020f';
+import * as SoftVoid from '../../services/governance/soft-void.js?v=20261020g';
+import { BRANCH_COMMISSION_ROLES } from '../../core/domain/constants.js?v=20261020g';
+import { AuthStore } from '../../services/core/auth.js?v=20261020g';
+import { openModal, closeModal } from './modal.js?v=20261020g';
+import { showToast, escHtml } from '../../core/base/utils.js?v=20261020g';
 
 /**
  * 打开「作废（软）」弹窗（原因必填 → 支委直接作废 / 其余人报支委会）。
@@ -49,11 +49,10 @@ export function openVoidModal({
     accentColor: 'var(--functional-error)',
     bodyHtml: `
       <p class="text-sm text-gray-700 mb-1">作废「${escHtml(subject || id)}」这条${escHtml(label)}？作废＝<b>软作废</b>（留痕、默认列表出列），<b>不硬删</b>；支委可直接作废，其余人需报支委会确认。</p>
-      <textarea id="${reasonId}" class="input-flat text-xs w-full mt-2" rows="3" maxlength="200" placeholder="作废原因（必填）"></textarea>
-      <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:14px;">
-        <button type="button" ${cancelAttr} class="btn-outline text-xs px-3 py-1.5" style="cursor:pointer;">取消</button>
-        <button type="button" ${okAttr} class="btn-neutral text-xs px-3 py-1.5">确认作废</button>
-      </div>`,
+      <textarea id="${reasonId}" class="input-flat text-xs w-full mt-2" rows="3" maxlength="200" placeholder="作废原因（必填）"></textarea>`,
+    footerHtml: `
+      <button type="button" ${cancelAttr} class="btn-outline text-sm px-4 py-1.5" style="cursor:pointer;">取消</button>
+      <button type="button" ${okAttr} class="btn-neutral text-sm px-4 py-1.5">确认作废</button>`,
     onMount: (panel) => {
       panel.querySelector(`[${cancelAttr}]`)?.addEventListener('click', () => closeModal(modalId));
       panel.querySelector(`[${okAttr}]`)?.addEventListener('click', async () => {

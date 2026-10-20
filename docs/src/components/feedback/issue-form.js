@@ -1,10 +1,10 @@
 // role: [工程师]+[AI]
 // issue-form.js — 反馈新建表单
 
-import { IssueStore, ISSUE_DOMAINS, issueDomainSuggest, issueDomainReplyHint } from '../../services/governance/issues.js?v=20261020f';
-import { showToast } from '../../core/base/utils.js?v=20261020f';
-import { icon } from '../../core/base/icons.js?v=20261020f';
-import { badgeHtml } from '../ui/badges.js?v=20261020f';
+import { IssueStore, ISSUE_DOMAINS, issueDomainSuggest, issueDomainReplyHint } from '../../services/governance/issues.js?v=20261020g';
+import { showToast } from '../../core/base/utils.js?v=20261020g';
+import { icon } from '../../core/base/icons.js?v=20261020g';
+import { badgeHtml } from '../ui/badges.js?v=20261020g';
 
 const SCOPE_OPTIONS = [
   { value: 'permanent', label: '底层架构' },
@@ -83,7 +83,7 @@ export function renderIssueForm() {
           </label>
           <div class="flex gap-2">
             <a href="./feedback.html" class="px-4 py-2 text-sm rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 font-sans">取消</a>
-            <button id="btn-submit-issue" class="btn-accent text-sm px-4 py-[7px] font-sans">提交反馈</button>
+            <button id="btn-submit-issue" class="btn-accent text-sm px-4 py-1.5 font-sans">提交反馈</button>
           </div>
         </div>
       </div>

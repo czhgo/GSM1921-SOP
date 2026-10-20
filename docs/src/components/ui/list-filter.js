@@ -11,13 +11,14 @@
 //   ① 单一引擎：28 张按人表 + 32 张活动表共用本组件，勿各页手写搜索（现状：按人表 0 复用）。
 //   ② 能力 = 关键词（多字段模糊）+ 分面 + 结果计数 + **分页**；
 //      分面**两种形态**（2026-10-01 支书裁定「推翻筛选行禁 chip」后新增 chip 形态）：
-//        · `facetStyle: 'dropdown'`（**默认**，未迁移页原样）＝ `.lf-select` 下拉，首项「全部」，
+//        · `facetStyle: 'dropdown'`（**默认**）＝ `.lf-select` 下拉，首项「全部」，
 //          走全局 enhanceSelects 圆角增强；自身即状态显示位 ⇒ 改动无需重绘。
 //        · `facetStyle: 'chip'`＝**搜索框 ＋ span 小胶囊**（值平铺可见、少一次展开点击），
 //          选中态走 `.chip-accent-on`（判据·甲「选中态随主题色」）；平铺 ⇒ 改动须重绘。
 //      ⚠ 支书 2026-10-01 原话：「这个筛选器请全面移除。我 prefer div 这种格式。但是可以用 span 这样的小胶囊。
-//        搜索 姓名/学号/角色 即可」，同时裁「**具体问题一定要具体分析**」⇒ **默认不翻**、**逐页迁移**
-//        （先 人才库 · 成员名册），全部迁完再翻默认。
+//        搜索 姓名/学号/角色 即可」，同时裁「**具体问题一定要具体分析**」⇒ **逐页判断**。
+//      2026-10-20 第三轮 IA 判例⑤（名册 4 组 ≈20 枚胶囊把表格推下首屏）：**人维表（personFacets）
+//        一律回到 dropdown**；chip 只留给「取值 ≤3 且需快速切换」的极小维度（如成员流动的方向）。
 //      分面取值可 auto 派生（免各表手写枚举），取值 ≤1 种时该维度自动隐藏（空维度不占位）。
 //   ③ 出现门槛：当前视图行数 ≤ SEARCH_FILTER_MIN_ROWS（单一源 constants.js）→ **不渲染检索条**；
 //      行数变化自动出现/隐藏（动态，非静态按表判定）。
@@ -41,19 +42,19 @@
 //  数据变化后：同 stateKey 再调用一次，或 hold 返回值调 .update(newRows)。
 // ════════════════════════════════════════════════════════════════
 
-import { escHtml as esc } from '../../core/base/utils.js?v=20261020f';
+import { escHtml as esc } from '../../core/base/utils.js?v=20261020g';
 import {
   SEARCH_FILTER_MIN_ROWS, ROLE_LABELS, ACTIVITY_CLASSIFICATION,
   classifyActivityType, normalizeActivityType,
-} from '../../core/domain/constants.js?v=20261020f';
+} from '../../core/domain/constants.js?v=20261020g';
 // 活动生命周期**展示态**单一源 = components/record/inspector.js（草稿/已发布/进行中/待归档/已执行/已归档/已取消）
 // ——勿在本组件另写一套中文标签（constants.js 里曾短暂加过的副本已撤除）
-import { deriveActivityLifecycleStatus, ACTIVITY_LIFECYCLE } from '../record/inspector.js?v=20261020f';
+import { deriveActivityLifecycleStatus, ACTIVITY_LIFECYCLE } from '../record/inspector.js?v=20261020g';
 // 翻页控件单一源（批次 38 下沉为叶子件 pager.js）：本引擎与关系矩阵共用，勿另写翻页标记
-import { pagerHtml } from './pager.js?v=20261020f';
+import { pagerHtml } from './pager.js?v=20261020g';
 // 空态单一源（U-09）：非表格列表空态原先是一行灰字 `<p>`（无出口、与 empty-state 两套样式）；
 // 改为 empty-state 组件，并支持 `emptyActionHtml` 给一个出口（表格空态仍由本文件自带空行）。
-import { emptyStateHtml } from './empty-state.js?v=20261020f';
+import { emptyStateHtml } from './empty-state.js?v=20261020g';
 
 /** 每个 stateKey 的筛选状态（跨重渲染保持；键集合有界 = 全站表格数，不做回收） */
 const _states = new Map();

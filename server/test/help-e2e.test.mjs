@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import { chromium } from 'playwright';
 import { createApp } from '../app.js';
 import { seedDatabase } from '../seed.js';
-import { FUNCTION_CATALOG } from '../../docs/src/core/domain/function-catalog.js?v=20261020f';
+import { FUNCTION_CATALOG } from '../../docs/src/core/domain/function-catalog.js?v=20261020g';
 
 let server, base, browser;
 
@@ -108,7 +108,9 @@ test('Help 搜索覆盖章节表格，并提供按角色与常见任务浏览', 
   await page.goto(`${base}/help.html`, { waitUntil: 'domcontentloaded' });
   await page.waitForSelector('.help-toc-item', { timeout: 8000 });
 
-  await page.fill('#help-search-input', '最近 6 期可展开');
+  // 2026-10-20 判例②：思想汇报表行改为「本页只处理例外」；用它验证搜索覆盖章节表格
+  //   （原样本「最近 6 期可展开」随全量矩阵撤除而消失）。
+  await page.fill('#help-search-input', '本页只处理例外');
   await page.waitForFunction(() => document.querySelectorAll('.help-search-result').length > 0, null, { timeout: 3000 });
   const chapterResult = page.locator('.help-search-result').filter({ hasText: '角色工作台导览' }).first();
   assert.ok(await chapterResult.count(), '结果能定位到章节中的表格说明');

@@ -2,9 +2,9 @@
 // login-entry.js — 登录页入口（重构版）
 // 支持: 账号密码 Mock 校验 + 开发模式直接选身份
 
-import { AuthStore } from '../../services/core/auth.js?v=20261020f';
-import { getAccentColors, solidAccentStyle, dotDarkVars, isBranchPendingUser } from '../../core/domain/constants.js?v=20261020f';
-import { escHtml } from '../../core/base/utils.js?v=20261020f';
+import { AuthStore } from '../../services/core/auth.js?v=20261020g';
+import { getAccentColors, solidAccentStyle, dotDarkVars, isBranchPendingUser } from '../../core/domain/constants.js?v=20261020g';
+import { escHtml } from '../../core/base/utils.js?v=20261020g';
 
 // C09（2026-10-20）：登录链接可带 `next`（目标页 URL）——登录成功后按 next 回跳，
 // 「未登录点活动 / 专班」不再只进工作台、丢掉原对象。只接受**同源** URL（防开放重定向），
@@ -78,7 +78,7 @@ function _renderDevCards() {
         <!-- 2026-09-24 无障碍：9 张身份卡的按钮可访问名原为清一色「登录」（身份名「组织委员」等
              只在兄弟 <span> 里、不进可访问名）⇒ 读屏分不出身份。此处把身份名并入按钮的可访问名；
              视觉与点击行为不变（点击仍由外层 .login-card 的委托处理）。 -->
-        <button class="btn-accent login-btn w-full text-sm px-4 py-[7px] font-medium" aria-label="以 ${card.label} 身份登录" >登录</button>
+        <button class="btn-accent login-btn w-full text-sm px-4 py-1.5 font-medium" aria-label="以 ${card.label} 身份登录" >登录</button>
       </div>
     `;
   }).join('');

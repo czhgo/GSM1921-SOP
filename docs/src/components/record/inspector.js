@@ -5,50 +5,50 @@
 //        renderInspectorList, renderInspectorDetail
 // ════════════════════════════════════════════════════════════════
 
-import { setState, STATE, getAppState } from '../../core/base/state.js?v=20261020f';
-import { ROLE_COLORS, ROLE_LABELS, ROLE_THEME_CLASS, COMMISSIONER_ROLES, SECRETARY_ROLES, ACTIVITY_CLASSIFICATION } from '../../core/domain/constants.js?v=20261020f';
-import { _fmtChinese, showToast, escHtml as esc } from '../../core/base/utils.js?v=20261020f';
-import { icon } from '../../core/base/icons.js?v=20261020f';
-import { openModal, closeModal } from '../ui/modal.js?v=20261020f';
+import { setState, STATE, getAppState } from '../../core/base/state.js?v=20261020g';
+import { ROLE_COLORS, ROLE_LABELS, ROLE_THEME_CLASS, COMMISSIONER_ROLES, SECRETARY_ROLES, ACTIVITY_CLASSIFICATION } from '../../core/domain/constants.js?v=20261020g';
+import { _fmtChinese, showToast, escHtml as esc } from '../../core/base/utils.js?v=20261020g';
+import { icon } from '../../core/base/icons.js?v=20261020g';
+import { openModal, closeModal } from '../ui/modal.js?v=20261020g';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/member/person.js 获取（原直连 mock PEOPLE）
 // 实时视图（非快照）：成员增删即时可见——见 services/member/person.js liveMembers 说明
 const PEOPLE = liveMembers();
-import { getPersonById } from '../../services/member/person.js?v=20261020f';
-import { BranchService } from '../../services/core/runtime.js?v=20261020f';
-import { AuthStore } from '../../services/core/auth.js?v=20261020f';
-import { liveMembers, PersonStore, getPersonName } from '../../services/member/person.js?v=20261020f';
-import { statusBadgeHtml, bindStatusBadge, badgeHtml } from '../ui/badges.js?v=20261020f';
+import { getPersonById } from '../../services/member/person.js?v=20261020g';
+import { BranchService } from '../../services/core/runtime.js?v=20261020g';
+import { AuthStore } from '../../services/core/auth.js?v=20261020g';
+import { liveMembers, PersonStore, getPersonName } from '../../services/member/person.js?v=20261020g';
+import { statusBadgeHtml, bindStatusBadge, badgeHtml } from '../ui/badges.js?v=20261020g';
 // 表态权判据单一源（2026-09-30 批次 304 立 · 批次 312 补齐）：`isVoterOf` —— **角色无关**，只看本场固化应到名单。
 // 依据：支书 2026-09-30 原话「**即使是支部书记 / 其他支委 投票，在投票的时候也就是普通党员**」。
 // ⚠ 批次 304 只改了「表态位是否挂」（下方 slot 那行）；**表态面板的动作门与填充循环仍是 `isCommittee`**
 //   ⇒ 应到名单内的普通党员在支书台**挂得出空槽**（面板无按钮 / 循环根本不填）。批次 312 把这两处一并收口。
-import { isVoterOf } from '../../services/activity/vote-config.js?v=20261020f';
+import { isVoterOf } from '../../services/activity/vote-config.js?v=20261020g';
 // 批次 352b（`D-746` · 支书取「活动详情页行内作废」）：任务「作废（软）」——单一源弹窗
-import { openVoidModal } from '../ui/void-record.js?v=20261020f';
-import { persist, getAuthToken, getApiBaseUrl, getAdapter } from '../../data/data-adapter.js?v=20261020f';
-import { withSelectedBranchScope } from '../../data/api-adapter.js?v=20261020f';
-import { recordAgendaResultForActivity } from '../../services/activity/agenda-follow-up.js?v=20261020f';
+import { openVoidModal } from '../ui/void-record.js?v=20261020g';
+import { persist, getAuthToken, getApiBaseUrl, getAdapter } from '../../data/data-adapter.js?v=20261020g';
+import { withSelectedBranchScope } from '../../data/api-adapter.js?v=20261020g';
+import { recordAgendaResultForActivity } from '../../services/activity/agenda-follow-up.js?v=20261020g';
 // 制度链（2026-09-21 批次 129）：制度草案议程项在「记录结果」旁给一个「报送党员大会表决」勾选位——
 // 判据单一源在 branch-doc.js（勿在界面另写一份 purpose/status 判断）。
-import { isInstitutionDraftAgendaItem } from '../../services/branch/branch-doc.js?v=20261020f';
+import { isInstitutionDraftAgendaItem } from '../../services/branch/branch-doc.js?v=20261020g';
 // 品牌认定（2026-09-21 批次 132 · 支书口径二「支委/党小组组长均可以提案，支委会通过后确定」）：判据与写口单一源 = services/activity/activity.js；
 // 本处只渲染「提案 / 撤回 / 取消认定」三种动作，**不再有「点一下即认定」**；同源另取三项（2026-09-21 批次 135）：追加复盘要求进关闭判据。
-import { canProposeBrand, brandProposalOf, proposeBrandDesignation, withdrawBrandProposal, revokeBrandDesignation, reviewRequestOf, isReviewReturned, isReviewRequestEligibleActivity, PENDING_APPROVAL_STATUS, canApproveActivity, approveActivity, rejectActivity, activityApprovalVoteOf, openCommitteeVoteForActivity } from '../../services/activity/activity.js?v=20261020f';
+import { canProposeBrand, brandProposalOf, proposeBrandDesignation, withdrawBrandProposal, revokeBrandDesignation, reviewRequestOf, isReviewReturned, isReviewRequestEligibleActivity, PENDING_APPROVAL_STATUS, canApproveActivity, approveActivity, rejectActivity, activityApprovalVoteOf, openCommitteeVoteForActivity } from '../../services/activity/activity.js?v=20261020g';
 // 活动批准门当前档位（2026-09-22 批次 150）：参数本体单一源 = core/domain/policy-defaults.js::activityApproval.mode
-import { activityApprovalMode, ACTIVITY_APPROVAL_MODE_LABELS } from '../../core/domain/policy-defaults.js?v=20261020f';
+import { activityApprovalMode, ACTIVITY_APPROVAL_MODE_LABELS } from '../../core/domain/policy-defaults.js?v=20261020g';
 // 议程行内编辑纯函数（2026-09-06 复用激活）：createEditableAgenda 整对象投影随行保留扩展字段；
 // normalizeEditedAgenda 保存时 {...原对象, item/host} 重建并剔空行——修复编辑丢 id/配置/结果的数据安全事故
-import { createEditableAgenda, normalizeEditedAgenda } from '../../services/activity/agenda-editing.js?v=20261020f';
-import { agendaDecisionSource, validateAgendaStructure } from '../../services/activity/agenda-relations.js?v=20261020f';
+import { createEditableAgenda, normalizeEditedAgenda } from '../../services/activity/agenda-editing.js?v=20261020g';
+import { agendaDecisionSource, validateAgendaStructure } from '../../services/activity/agenda-relations.js?v=20261020g';
 // 议程更新后通知全员（活动锚定，targetType/targetId 供归档联动）
-import { NoticeStore } from '../../services/governance/notice.js?v=20261020f';
-import { fetchVotes, submitVote } from '../../services/activity/committee-vote.js?v=20261020f';
-import { optionSetOf, resolveVoterIds, OPTION_SETS, isAnonymousActivity } from '../../services/activity/vote-config.js?v=20261020f';
-import { renderVoteSummary } from '../governance/vote-summary-panel.js?v=20261020f';
-import { loadAttendanceRecords } from '../../services/activity/attendance.js?v=20261020f';
-import { loadInspectionRecords } from '../../services/activity/inspection.js?v=20261020f';
-import { loadActivityReviews } from '../../services/governance/review.js?v=20261020f';
-import { mockDB, OutputType, deriveOutputRoute, ReviewStatus, AttendanceStatus } from '../../core/domain/domain.js?v=20261020f';
+import { NoticeStore } from '../../services/governance/notice.js?v=20261020g';
+import { fetchVotes, submitVote } from '../../services/activity/committee-vote.js?v=20261020g';
+import { optionSetOf, resolveVoterIds, OPTION_SETS, isAnonymousActivity } from '../../services/activity/vote-config.js?v=20261020g';
+import { renderVoteSummary } from '../governance/vote-summary-panel.js?v=20261020g';
+import { loadAttendanceRecords, canUploadAttendance } from '../../services/activity/attendance.js?v=20261020g';
+import { loadInspectionRecords } from '../../services/activity/inspection.js?v=20261020g';
+import { loadActivityReviews } from '../../services/governance/review.js?v=20261020g';
+import { mockDB, OutputType, deriveOutputRoute, ReviewStatus, AttendanceStatus } from '../../core/domain/domain.js?v=20261020g';
 
 // T-217 §2.4：任务状态定义（status-badge 用，色点 + 文字）
 const TASK_STATUSES = {
@@ -177,7 +177,7 @@ function _showParticipantModal(act) {
     + extraHtml
     + '<p class=" text-xs text-gray-500 border-t border-gray-100 pt-3 mt-2 leading-relaxed">'
     + '如需查看任务详情，请前往对应的工作台页面。</p>'
-    + '<button class="btn-accent text-sm px-4 py-[7px] mt-4 w-full">关闭</button>';
+    + '<button class="btn-accent text-sm px-4 py-1.5 mt-4 w-full">关闭</button>';
   card.querySelector('button').addEventListener('click', () => overlay.remove());
   overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
   card.addEventListener('click', e => e.stopPropagation());
@@ -188,6 +188,50 @@ function _showParticipantModal(act) {
 // ════════════════════════════════════════════════════════════════
 //  列表视图：渲染指定日期的活动列表（普通或归档模式）
 // ════════════════════════════════════════════════════════════════
+/** 考勤上传位：按角色落本位；无本位返回空串（不造假入口）。 */
+function _attendanceUploadHref(role, actId) {
+  const id = encodeURIComponent(actId || '');
+  if (role === 'leader' || role === 'deputy-leader') return `./workspace/leader.html?tab=attendance&focusActivityId=${id}`;
+  if (role === 'disc-commissioner') return `./workspace/disc.html?tab=attendance&focusActivityId=${id}`;
+  if (role === 'participant') return './workspace/visitor.html?tab=attendance#org-host';
+  return '';
+}
+
+/** 考勤上传入口：仅在 `canUploadAttendance` 且本角色确有上传位时给出；否则返回空串。 */
+function _attendanceActionHtml(act) {
+  const me = AuthStore.getCurrentUser();
+  const href = _attendanceUploadHref(me?.role, act.id);
+  if (!href || !canUploadAttendance(me?.personId, act.id)) return '';
+  return `<a href="${href}" class="text-xs text-sky-700 hover:underline" data-inspector-attendance>登记考勤</a>`;
+}
+
+/**
+ * 管理侧右栏每行的就地动作（2026-10-20 R3-05）：
+ *   查看详情 / 写纪要 / 登记考勤（仅在 `canUploadAttendance` 且本角色确有上传位时出现）。
+ * 为什么不做成整卡点击：日期清单的价值是「点进来就能办一件事」，整卡只跳详情等于把左栏标签又说一遍。
+ */
+function _inspectorAdminActionsHtml(act) {
+  const id = encodeURIComponent(act.id || '');
+  const links = [
+    `<a href="./activity.html?id=${id}" class="text-xs text-sky-700 hover:underline" data-inspector-open>查看详情</a>`,
+    `<a href="./activity-materials.html?id=${id}" class="text-xs text-sky-700 hover:underline" title="材料清单：会议纪要 / 考勤 / 考察 / 复盘">写纪要</a>`,
+  ];
+  const attendance = _attendanceActionHtml(act);
+  if (attendance) links.push(attendance);
+  return `<div class="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1" data-inspector-actions>${links.join('')}</div>`;
+}
+
+/** 管理侧活动的组织者文字（复用活动 assignments 口径，不新造字段）。 */
+function _organizerText(act) {
+  const ids = [...new Set([
+    act.organizer,
+    ...(Array.isArray(act.assignments)
+      ? act.assignments.filter((member) => member && member.role === 'organizer').map((member) => member.personId)
+      : []),
+  ].filter(Boolean))];
+  return ids.length ? ids.map((id) => getPersonName(id) || id).join('、') : '待指定';
+}
+
 export function renderInspectorList(activities, dateKey, viewType, viewArchived = false) {
   const defEl     = document.getElementById('inspector-default');
   const contentEl = document.getElementById('inspector-content');
@@ -204,14 +248,25 @@ export function renderInspectorList(activities, dateKey, viewType, viewArchived 
       : [];
   }
 
+  const isParticipant = !viewArchived && (viewType === 'participant' || !viewType);
+
   if (dateActivities.length === 0) {
     defEl.classList.remove('hidden');
     if (viewArchived) {
       defEl.innerHTML = '<p class=" text-sm text-gray-500 text-center py-8">归档库暂无内容</p>';
+    } else if (dateKey && !isParticipant) {
+      // 管理侧空日不是死路：带日期开「写入活动」，把右栏从回声变成动作位。
+      defEl.innerHTML = `<div class="text-center text-gray-500 py-8 text-sm">
+        <p>当日无活动</p>
+        <button type="button" class="btn-accent-soft text-xs px-3 py-1.5 mt-3" data-inspector-new-activity="${esc(dateKey)}">新建活动（${esc(dateKey)}）</button>
+      </div>`;
+      defEl.querySelector('[data-inspector-new-activity]')?.addEventListener('click', () => {
+        document.dispatchEvent(new CustomEvent('inspector:new-activity', { detail: { date: dateKey } }));
+      });
     } else if (dateKey) {
       defEl.innerHTML = '<div class="text-center text-gray-500 py-8  text-sm">当日暂无活动</div>';
     } else {
-      defEl.innerHTML = '<div class="text-center text-gray-500 py-8  text-sm">点击日历日期查看活动</div>';
+      defEl.innerHTML = '<div class="text-center text-gray-500 py-8  text-sm">点击日期查看当日活动</div>';
     }
     contentEl.classList.add('hidden');
     return;
@@ -224,13 +279,11 @@ export function renderInspectorList(activities, dateKey, viewType, viewArchived 
   if (titleEl) {
     titleEl.textContent = viewArchived
       ? '归档库 · 已归档活动'
-      : _fmtChinese(new Date(dateKey + 'T00:00:00')) + ' · 活动列表';
+      : `${_fmtChinese(new Date(dateKey + 'T00:00:00'))} · ${dateActivities.length} 场`;
   }
 
   // 确保 inspector 可见：滚动到视图中
   contentEl.closest('#inspector-container')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-
-  const isParticipant = !viewArchived && (viewType === 'participant' || !viewType);
 
   const allTasks = (getAppState() || {}).tasks || [];
   let html = '';
@@ -241,18 +294,22 @@ export function renderInspectorList(activities, dateKey, viewType, viewArchived 
     if (isParticipant) {
       html += `<div class="inspector-card" data-act-id="${act.id}" style="${isBrand ? 'border-left:3px solid var(--party-gold);' : ''}">`;
       html += `<div class="flex items-start justify-between gap-2 mb-1">`;
-      html += `<p class=" font-bold text-sm text-gray-800 leading-snug flex-1">${act.title}</p>`;
+      html += `<p class=" font-bold text-sm text-gray-800 leading-snug flex-1">${esc(act.title)}</p>`;
       html += activityLifecycleBadgeHtml(act, allTasks);
       html += '</div>';
       html += `<div class="flex items-center gap-1.5">${brandTag}<p class=" text-xs text-gray-500">活动信息 · 点击查看</p></div>`;
+      // 本轮组织者在本台有上传位时，右栏也给一个就地出口（只跳本位，不在只读日历里复制表单）。
+      const attendance = _attendanceActionHtml(act);
+      if (attendance) html += `<div class="mt-2" data-inspector-actions>${attendance}</div>`;
       html += '</div>';
     } else {
-      html += `<div class="inspector-card" style="cursor:pointer;${isBrand ? 'border-left:3px solid var(--party-gold);' : ''}" data-act-id="${act.id}">`;
+      html += `<div class="inspector-card" style="cursor:pointer;${isBrand ? 'border-left:3px solid var(--party-gold);' : ''}" data-act-id="${esc(act.id)}">`;
       html += `<div class="flex items-start justify-between gap-2 mb-1">`;
-      html += `<div class="flex items-center gap-1.5 flex-1"><p class=" font-bold text-sm text-gray-800 leading-snug">${act.title}</p>${brandTag}</div>`;
+      html += `<div class="flex items-center gap-1.5 flex-1"><p class=" font-bold text-sm text-gray-800 leading-snug">${esc(act.title)}</p>${brandTag}</div>`;
       html += activityLifecycleBadgeHtml(act, allTasks);
       html += '</div>';
-      html += `<p class=" text-xs text-gray-500">点击查看任务详情 →</p>`;
+      html += `<p class="mt-0.5 text-xs text-gray-500">${esc(act.date || '')} · 组织者：${esc(_organizerText(act))}</p>`;
+      html += _inspectorAdminActionsHtml(act);
       html += '</div>';
     }
   });
@@ -263,12 +320,19 @@ export function renderInspectorList(activities, dateKey, viewType, viewArchived 
     delete cardsEl.dataset.actId;
 
     if (!isParticipant) {
+      // 行内动作不得被整卡「进详情」吞掉：显式阻止冒泡。
+      cardsEl.querySelectorAll('[data-inspector-actions] a').forEach((link) => {
+        link.addEventListener('click', (e) => e.stopPropagation());
+      });
       cardsEl.querySelectorAll('[data-act-id]').forEach(card => {
         card.addEventListener('click', () => {
           setState({ viewMode: 'detail', selectedActivityId: card.dataset.actId });
         });
       });
     } else {
+      cardsEl.querySelectorAll('[data-inspector-actions] a').forEach((link) => {
+        link.addEventListener('click', (e) => e.stopPropagation());
+      });
       cardsEl.querySelectorAll('[data-act-id]').forEach(card => {
         card.addEventListener('click', () => {
           const act = dateActivities.find(a => a.id === card.dataset.actId);
@@ -438,7 +502,7 @@ function _showCloseBlockModal(activity, missing) {
         `<li class="text-xs text-red-600 flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-red-400 flex-shrink-0"></span>${m}</li>`
       ).join('')
     + '</ul>'
-    + '<button class="btn-accent text-sm px-4 py-[7px] w-full">知道了</button>';
+    + '<button class="btn-accent text-sm px-4 py-1.5 w-full">知道了</button>';
   card.querySelector('button').addEventListener('click', () => overlay.remove());
   overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
   card.addEventListener('click', e => e.stopPropagation());
@@ -1378,7 +1442,7 @@ function _openActivityEditModal(activity, tasks, managementRole) {
           <label class="text-xs text-gray-500 mb-1.5 block font-medium">活动名称 <span class="text-red-600">*</span></label>
           <input type="text" id="ae-title" class="input-flat w-full" value="${activity.title || ''}">
         </div>
-        <div class="grid grid-cols-2 gap-3">
+        <div class="modal-form-grid">
           <div>
             <label class="text-xs text-gray-500 mb-1.5 block font-medium">日期 <span class="text-red-600">*</span></label>
             <input type="date" id="ae-date" class="input-flat w-full" value="${activity.date || ''}">
@@ -1400,14 +1464,11 @@ function _openActivityEditModal(activity, tasks, managementRole) {
           <label class="text-xs text-gray-500 mb-1.5 block font-medium">活动详情 <span class="text-gray-500">（选填）</span></label>
           <textarea id="ae-desc" rows="3" class="input-flat w-full">${activity.description || ''}</textarea>
         </div>
-      </div>
-      <div class="flex justify-end gap-2 mt-4">
-        <button id="ae-cancel" class="btn-ghost text-xs px-3 py-1.5">取消</button>
-        <button id="ae-save" class="btn-accent text-xs px-3 py-1.5">保存</button>
-      </div>
-    `,
+      </div>`,
+    footerHtml: `
+      <button id="ae-cancel" type="button" data-modal-cancel="activity-edit" class="btn-outline text-sm px-4 py-1.5">取消</button>
+      <button id="ae-save" type="button" class="btn-accent text-sm px-4 py-1.5 font-medium">保存</button>`,
     onMount: (panel) => {
-      panel.querySelector('#ae-cancel')?.addEventListener('click', () => closeModal('activity-edit'));
       panel.querySelector('#ae-save')?.addEventListener('click', async () => {
         const title = panel.querySelector('#ae-title')?.value?.trim();
         const date = panel.querySelector('#ae-date')?.value?.trim();

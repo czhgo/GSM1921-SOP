@@ -2,17 +2,17 @@
 // services/activity/decision-tree.js — 统一决策树服务
 // 从 ws-leader-entry.js 和 ws-secretary-entry.js 中提取的共享逻辑
 // 包含：配置管理、状态管理、场景映射、工作流面板渲染、活动写入
-import { BranchService } from '../core/runtime.js?v=20261020f';
-import { showToast, _fmtDate } from '../../core/base/utils.js?v=20261020f';
-import { sopDatabase, instantiateSOP, renderWorkflow } from '../../workflow/index.js?v=20261020f';
-import { icon } from '../../core/base/icons.js?v=20261020f';
-import { NoticeStore } from '../governance/notice.js?v=20261020f';
+import { BranchService } from '../core/runtime.js?v=20261020g';
+import { showToast, _fmtDate } from '../../core/base/utils.js?v=20261020g';
+import { sopDatabase, instantiateSOP, renderWorkflow } from '../../workflow/index.js?v=20261020g';
+import { icon } from '../../core/base/icons.js?v=20261020g';
+import { NoticeStore } from '../governance/notice.js?v=20261020g';
 // P2b（2026-09-03）：写活动场景选择清单单一源 = core/domain/constants.js SCENARIO_WRITE_IDS/SCENARIO_LABELS
 //   （与 calendar-tab WRITE_TEMPLATES 同源，勿再手写四子会清单）
-import { SCENARIO_WRITE_IDS, SCENARIO_LABELS } from '../../core/domain/constants.js?v=20261020f';
+import { SCENARIO_WRITE_IDS, SCENARIO_LABELS } from '../../core/domain/constants.js?v=20261020g';
 // M4 场景注册化：经注册表读取 SOP 场景能力（sop-scenarios），行为零变化——能力缺省时回退直接读 sopDatabase
-import { getCapabilities } from '../../core/boot/registry.js?v=20261020f';
-import '../../capabilities/sop-scenarios.js?v=20261020f';
+import { getCapabilities } from '../../core/boot/registry.js?v=20261020g';
+import '../../capabilities/sop-scenarios.js?v=20261020g';
 
 /**
  * 经注册表读取场景（M4 场景注册化消费点）
@@ -150,6 +150,9 @@ export class DecisionTreeState {
     this.step = 1;
     this.showPanel = false;
     this.submitting = false;
+    // R3-02：写入活动内嵌「项目赋权」的待提交名单也属**临时编辑态**，必须随 reset 清空；
+    // 否则取消 / Esc / 遮罩关闭后旧名单残留，下一次写入会被静默授权到新活动。
+    this.pendingAuth = [];
     this._resetSelections();
   }
 
@@ -162,6 +165,8 @@ export class DecisionTreeState {
     this.step = 1;
     this.showPanel = false;
     this.submitting = false;
+    // R3-02：取消 = 放弃本次编辑 —— 待提交赋权名单不得跨会话残留
+    this.pendingAuth = [];
   }
 
   select(key, value) {
@@ -364,8 +369,8 @@ export async function writeActivityWithSOP(activityData, scenarioId, targetDate)
   // 档位读 core/domain/policy-defaults.js::activityApprovalMode（call-time）。此处动态引入以不动本文件行号
   // （README-server.md 有指向本文件的 `文件:行号` 引用）。
   const [{ activityApprovalMode }, { pendingApprovalPatchOnWrite }] = await Promise.all([
-    import('../../core/domain/policy-defaults.js?v=20261020f'),
-    import('./activity.js?v=20261020f'),
+    import('../../core/domain/policy-defaults.js?v=20261020g'),
+    import('./activity.js?v=20261020g'),
   ]);
   const gatePatch = pendingApprovalPatchOnWrite(activityApprovalMode());
 

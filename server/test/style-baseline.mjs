@@ -295,9 +295,8 @@ export const HEX_BASELINE = {
       '#60a5fa', '#6366f1', '#6b7280', '#8b5cf6', '#94a3b8', '#a5b4fc',
       '#c4b5fd', '#d97706', '#dc2626', '#f87171', '#fbbf24', '#fff'
   ] },
-  'docs/src/entries/tabs/org/thought-review-tab.js': { c: 1, v: [
-      '#000'
-  ] },
+  // ⚠ 2026-10-20 第三轮 IA 收口：`org/thought-review-tab.js` 的最后一处 `#000` 随浮窗体例迁移清零
+  //   ⇒ 按收基线纪律删条目（文件数 75 → 74；`HEX_TOTAL_BASELINE` 仍为存量起点）。
   'docs/src/entries/tabs/prop/archive-tab.js': { c: 2, v: [
       '#60a5fa', '#999'
   ] },
@@ -465,7 +464,9 @@ export const HEX_TOTAL_BASELINE = 2025;
 //   **删除** ⇒ 其 hex 条目一并删、**文件数声明 77 → 76**（与实况同值；`H3` 的非空转下限同步下沉到 76）。
 // ⚠ 2026-10-18 Task 7：`secretary/overview-tab.js` 改为六台共享概况外壳（不再直写主题色）
 //   ⇒ 该文件 hex 清零，按收基线纪律删条目、文件数声明 75 → 74（与实况同值；H3 防呆下限同步下沉）。
-export const HEX_FILE_BASELINE = 75;
+// ⚠ 2026-10-20 第三轮 IA 收口：`org/thought-review-tab.js` hex 清零 ⇒ 条目删除、文件数 75 → **74**
+//   （与实况同值；H3 防呆下限保持 74）。
+export const HEX_FILE_BASELINE = 74;
 export const HEX_VALUE_BASELINE = 168;
 
 /** 搬移例外台账（**人工填写**；守卫**不自动放宽**）——2026-09-25 支书裁定「开搬移例外」。

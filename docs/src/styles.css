@@ -1,5 +1,5 @@
 /* 组件样式（@import 必须位于文件顶部） */
-@import url('components/person-picker.css?v=20261020f');
+@import url('components/person-picker.css?v=20261020g');
 
 /* ═══════════════════════════════════════════════════════════════
    GSM1921-SOP DESIGN SYSTEM v11.0 — Matte Flat
@@ -1151,6 +1151,17 @@ html.theme-dark .accent-avatar {
   width: auto;
   min-width: 104px;
 }
+/* 名册 390px 单列（2026-10-20 判例⑤）：搜索与三个下拉各占一行，避免 2 列挤压触发误点；
+   选择器收窄到 #roster-list-host，不改变其它页的检索条排布。 */
+@media (max-width: 640px) {
+  #roster-list-host .lf-bar > .lf-kw,
+  #roster-list-host .lf-bar > .cs-select {
+    flex: 1 1 100%;
+    width: 100%;
+    min-width: 0;
+  }
+  #roster-list-host .lf-bar > .cs-select .cs-trigger { width: 100%; }
+}
 /* 分面胶囊组（2026-10-01 批次 319 · 支书裁定「推翻筛选行禁 chip」后新增的 chip 形态）：
    与 `.lf-select` 二选一（`facetStyle`），由 `list-filter.js` 按形态渲染；胶囊本体样式复用
    `.chip-option` / `.chip-accent-on`（表单多选同一套，**不另造外观**），此处只管「组」的排布。 */
@@ -1334,9 +1345,9 @@ html.theme-dark .accent-avatar {
    1. 微操作档  25px — .btn-action              → 表格行内 / 列表项内操作
    2. 默认档    30px — text-xs px-3 py-1.5      → 卡片内 / 模态内独立按钮
    3. 行内对齐档 34px — text-xs px-3 py-2       → 与 input-flat text-xs / select 同行
-   4. 主 CTA 档 34px — text-sm px-4 py-1.5（带边框，边框计 2px）/ py-[7px]（无边框，纯填充）
+   4. 主 CTA 档 34px — text-sm px-4 py-1.5（带 / 不带边框同高）
        → 表单主提交 / 页面主操作（w-full 大按钮；加粗 + 强调色背景与行内档区分）
-       → 实测口径：text-sm 行高 20px，带边框 20+12+2=34px，无边框 20+14=34px
+       → 实测口径：text-sm 行高 20px，带边框 20+12+2=34px；无边框由 `.btn-*` 归一后的 min-height 兜底
    判断规则：按钮与相邻 input/select 在同一 flex/工具条行 → 行内对齐档；
    独立出现在卡片/模态/面板内 → 默认档；主提交/显著 CTA → 主 CTA 档。
    ═══════════════════════════════════════════════════════════════ */
@@ -4590,10 +4601,35 @@ button.metric-band__item.is-active {
   box-shadow: inset 0 -2px 0 var(--app-accent);
 }
 button.metric-band__item.is-active .metric-band__label { color: var(--app-accent-text); }
+/* 2026-10-20 R3-07：滚动类指标改为页内链接（原生锚点），与筛选类 chip 在形态上分开：
+   筛选＝可切换的胶囊（有 aria-pressed），滚动＝带「›」的文字链接。 */
+a.metric-band__item {
+  text-decoration: none;
+  color: inherit;
+  border-radius: var(--radius-sm);
+  transition: background-color var(--transition-fast);
+}
+a.metric-band__item:hover { background: var(--neutral-100); }
+a.metric-band__item:focus-visible {
+  outline: 2px solid var(--app-accent-text);
+  outline-offset: 2px;
+}
+.metric-band__item--filter {
+  padding: 2px var(--space-3);
+  border-left: 0;
+  border-radius: 999px;
+}
+button.metric-band__item--filter.is-active {
+  background: var(--app-accent-bg);
+  box-shadow: none;
+}
+.metric-band__jump { color: var(--neutral-400); font-size: var(--text-sm); line-height: 1; }
 .metric-band__item:first-child {
   border-left: 0;
   padding-left: 0;
 }
+/* chip 档的首项保留胶囊内边距（与上一行同特异性，故必须写在它之后）。 */
+.metric-band__item--filter:first-child { padding-left: var(--space-3); }
 .metric-band__value {
   font-size: 1.625rem;
   font-weight: 600;
@@ -4952,6 +4988,159 @@ html.theme-dark .state-badge--accent {
   .person-picker-close-btn,
   .modal-close-btn {
     min-height: 36px !important;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   浮窗统一体例（2026-10-20 · R3-01/02/09/10）
+   ── header（纯文本标题）/ body（分组 fieldset）/ footer（取消 + 提交，sticky）
+   ── 高度用 dvh（软键盘弹起后仍能看到底部动作）；footer 吃 safe-area。
+   ── 为什么集中成类而不是各浮窗写内联：36 个调用点各写一套必然漂移，
+      统一后「动作固定 / 单列 / 安全区」只改这一处。 */
+.modal-panel {
+  width: var(--modal-width, 480px);
+  max-width: calc(100vw - 32px);
+  max-height: min(92dvh, 900px);
+  background: var(--surface-card);
+  border-radius: var(--radius-md);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.modal-header {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--neutral-200);
+}
+.modal-title {
+  min-width: 0;
+  font-family: 'STZhongsong', '华文中宋', 'STSong', 'SimSun', serif;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--neutral-800);
+  overflow-wrap: anywhere;
+}
+.modal-body {
+  flex: 1;
+  min-height: 0;
+  padding: 20px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+.modal-footer {
+  flex: none;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 12px 20px;
+  border-top: 1px solid var(--neutral-200);
+  background: var(--surface-card);
+}
+/* sticky 是「动作常驻」的硬约束：长表单滚到任何位置，取消 / 提交都在视口内 */
+.modal-footer--sticky {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+}
+.modal-footer .btn-outline,
+.modal-footer .btn-accent {
+  min-height: 36px;
+}
+.modal-form-error {
+  flex-basis: 100%;
+  margin: 0 0 2px;
+  color: var(--functional-error);
+  font-size: var(--text-xs);
+  line-height: 1.6;
+}
+/* body 的分组：统一用 fieldset，避免每个浮窗各写一套卡片 */
+.modal-fieldset {
+  min-width: 0;
+  margin: 0 0 12px;
+  padding: 12px;
+  border: 1px solid var(--neutral-200);
+  border-radius: var(--radius-md);
+}
+.modal-fieldset:last-child {
+  margin-bottom: 0;
+}
+.modal-fieldset__legend {
+  padding: 0 6px;
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--neutral-700);
+}
+.modal-fieldset__summary {
+  cursor: pointer;
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--neutral-700);
+  list-style: none;
+}
+.modal-fieldset__summary::-webkit-details-marker {
+  display: none;
+}
+.modal-fieldset__summary::after {
+  content: '展开';
+  float: right;
+  font-weight: 400;
+  color: var(--neutral-500);
+}
+details[open] > .modal-fieldset__summary::after {
+  content: '收起';
+}
+.modal-fieldset__body {
+  margin-top: 10px;
+}
+.modal-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+.modal-form-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 6px 0;
+}
+
+/* ≤640px：单列 + 底部抽屉；不强制两列（日期 / 时间在 390px 会挤压溢出） */
+@media (max-width: 640px) {
+  .modal-panel {
+    width: 100%;
+    max-width: 100%;
+    max-height: 92dvh;
+    border-radius: var(--radius-md) var(--radius-md) 0 0;
+    align-self: flex-end;
+  }
+  .modal-header {
+    padding: 14px 16px;
+  }
+  .modal-body {
+    padding: 16px;
+  }
+  .modal-footer {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+  .modal-footer .btn-outline,
+  .modal-footer .btn-accent {
+    flex: 1 1 auto;
+  }
+  .modal-form-grid {
+    grid-template-columns: 1fr;
+  }
+  .modal-form-row {
+    flex-wrap: wrap;
   }
 }
 

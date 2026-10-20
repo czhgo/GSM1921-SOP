@@ -41,12 +41,25 @@ test('党委支部配置按分区导航只显示当前配置面板', async () =>
   assert.match(entry, /navigationMode: 'sections'/);
 });
 
-test('组织委员工作组页提供专班、活动工作组和报名总表的互斥视图', async () => {
+test('组织委员专班页只提供专班工作组与报名总表；活动进展迁至活动日历', async () => {
   const source = await read('../../docs/src/entries/tabs/org/taskforce-tab.js');
+  // 2026-10-20 第三轮 IA 判例④：页签名「专班管理」由 D-442 锁定，但页内不得再出现「活动工作组」
+  //   （活动属于「活动日历」页；活动进度 / 材料 / 收尾一并迁出）。
   assert.match(source, /data-view="workgroups"[^>]*>专班工作组/);
-  assert.match(source, /data-view="activities"[^>]*>活动工作组/);
   assert.match(source, /data-view="matrix"[^>]*>报名总表/);
-  assert.match(source, /organizingScope/);
+  assert.doesNotMatch(source, /data-view="activities"/, '专班页不得再注册活动视图');
+  assert.doesNotMatch(source, /活动工作组/, '专班页不得再出现「活动工作组」');
+  assert.doesNotMatch(source, /track-complete-btn/, '活动收尾按钮必须随活动迁出专班页');
+  // 新承载面：活动日历页内的本台「活动进展」分段（组件单一源）
+  const wrapper = await read('../../docs/src/entries/tabs/org/activity-calendar-tab.js');
+  assert.match(wrapper, /renderSharedCalendar/, '活动日历页仍复用共享只读日历');
+  assert.match(wrapper, /renderActivityProgress/, '活动日历页须挂本台「活动进展」分段');
+  const progress = await read('../../docs/src/components/governance/activity-progress.js');
+  assert.match(progress, />活动进展</);
+  assert.match(progress, /organizingScope/, '活动进展须按承办范围展示');
+  assert.match(progress, /标记完成/, '活动收尾只能写「标记完成」');
+  assert.doesNotMatch(progress, /已归档/, '不得再声称「已归档」（归档仍走材料 / 考勤闸门）');
+  assert.doesNotMatch(progress, /确认完成/);
   assert.match(source, /const inspectionHtml = tfSubs\.inspection\.length \? ins\.shellHtml : ''/);
   assert.match(source, /if \(tfSubs\.inspection\.length\) \{[\s\S]*?renderFilteredList\(mount\.querySelector\('#tf-sub-host-inspection'\)/);
   assert.match(source, /const closedOutputCount = outputs\.filter/);

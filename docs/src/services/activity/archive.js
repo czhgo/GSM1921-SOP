@@ -10,8 +10,8 @@
 //     · api 形态 → `POST /api/v1/archiveRecords`（落库，刷新后可读）；
 //     · mock 形态 → MockAdapter 写 localStorage（同样刷新后可读）。
 //   调用点只依赖 ArchiveStore，不再直接 push `mockDB.archiveRecords`（避免两形态两套写法）。
-import { getAdapter } from '../../data/data-adapter.js?v=20261020f';
-import { mockDB } from '../../core/domain/domain.js?v=20261020f';
+import { getAdapter } from '../../data/data-adapter.js?v=20261020g';
+import { mockDB } from '../../core/domain/domain.js?v=20261020g';
 
 /** 用服务端/适配器返回行替换内存同 id 行；不存在则追加（mock 形态适配器已追加，此处幂等） */
 function _syncMemory(record) {

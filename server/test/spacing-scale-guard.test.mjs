@@ -35,8 +35,8 @@ const SPACE_TOKENS = [
 /** 自由间距值：任意值工具类（长前缀在前，避免 p- 抢先命中 px-/py-） */
 const ARBITRARY_SPACING_RE = /\b(?:space-y|space-x|px|py|pt|pb|pl|pr|p|mx|my|mt|mb|ml|mr|m|gap)-\[\d+(?:\.\d+)?px\]/g;
 
-/** 基线（2026-10-18 本批实测 35；只降不升） */
-const SPACING_BASELINE = 35;
+/** 基线（2026-10-18 本批实测 35；2026-10-20 浮窗/六条 IA 批次把全部 `py-[7px]` 迁到 `py-1.5` ⇒ 0；只降不升） */
+const SPACING_BASELINE = 0;
 
 /** 本批新增的四个模块（Task 2） */
 const NEW_MODULES = ['list-row.js', 'filter-bar.js', 'data-table.js', 'empty-state.js']
@@ -63,7 +63,7 @@ test('S1 间距五档令牌：styles.css 存在且值为 4/8/12/16/24px', () => 
   }
 });
 
-test('S2 自由间距值存量只降不升（基线 35）', () => {
+test('S2 自由间距值存量只降不升（基线 0）', () => {
   const files = walk(SRC);
   const perFile = new Map();
   let total = 0;

@@ -50,10 +50,11 @@ test('M1 非空转自检：escHtml(...) 通过，裸用户数据必须被识别'
     '负值样本（裸用户数据）应被逐项识别');
 });
 
-test('M2 openModal：title / settingsLink 先转义再插入', () => {
+test('M2 openModal：title / settingsLink 以纯文本写入，不解释 HTML', () => {
   const src = exportSource('openModal');
-  assert.match(src, /const safeTitle = escHtml\(title\)/, 'openModal 应先把 title 转义');
-  assert.match(src, /\$\{safeTitle\}/, 'openModal 标题应插入转义后的 safeTitle');
+  // 2026-10-20 R3-01：标题改走 textContent（调用方误传 HTML 也只显示原文），不再拼进 innerHTML
+  assert.match(src, /titleEl\.textContent\s*=/, 'openModal 标题应以 textContent 写入');
+  assert.doesNotMatch(src, /\$\{safeTitle\}/, '标题不得再以 HTML 插值方式渲染');
   assert.deepEqual(unescapedUserInterpolations(src), [],
     `openModal 存在未转义的用户数据插值：${unescapedUserInterpolations(src).join(', ')}`);
 

@@ -67,10 +67,13 @@ test('P1 本人自助填「自我描述」：入口在 · 模态只出该组 · 
     assert.ok(shape.hasMajor && shape.hasStudentWorks, '模态须含「专业」与「担任的学生工作」两控件');
     assert.ok(!shape.hasName, '本人自填（selfOnly）不得出「姓名」等档案控件（其余档案字段归支委层）');
 
-    // ④ 填写并提交
+    // ④ 填写并提交（自述字段按四组折叠；先展开全部组，再按用户路径填写）
+    await page.evaluate(() => {
+      document.querySelectorAll('#person-edit-modal-form details').forEach((d) => { d.open = true; });
+    });
     await page.fill('[data-field="selfProfile.major"]', '计算机科学与技术');
     await page.fill('[data-field="selfProfile.studentWorks"]', '班团 | 计算机 2401 | 团支书');
-    await page.click('#person-edit-modal-form button[type="submit"]');
+    await page.click('[data-modal-submit="person-edit-modal"]');
     await page.waitForSelector('#person-edit-modal-form', { state: 'detached', timeout: 10000 });
 
     // ⑤ 再次打开（走应用自己的读链）⇒ 值仍在（落库 → 读回闭环）

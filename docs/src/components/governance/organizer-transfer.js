@@ -13,18 +13,18 @@
 //   通知被赋权人）。⇒ 「退出与接手人」两者都在既有审计链里可查。
 // **不改权限门**：本件不新增任何写权限——能否转交由本文件判据决定，底层写入仍走既有写口。
 
-import { openModal, closeModal } from '../ui/modal.js?v=20261020f';
-import { PersonPicker } from './pickers.js?v=20261020f';
-import { AuthStore } from '../../services/core/auth.js?v=20261020f';
-import { getPersonName } from '../../services/member/person.js?v=20261020f';
-import { showToast, escHtml } from '../../core/base/utils.js?v=20261020f';
-import { mockDB } from '../../core/domain/domain.js?v=20261020f';
+import { openModal, closeModal } from '../ui/modal.js?v=20261020g';
+import { PersonPicker } from './pickers.js?v=20261020g';
+import { AuthStore } from '../../services/core/auth.js?v=20261020g';
+import { getPersonName } from '../../services/member/person.js?v=20261020g';
+import { showToast, escHtml } from '../../core/base/utils.js?v=20261020g';
+import { mockDB } from '../../core/domain/domain.js?v=20261020g';
 // 「做事即销待办」：转交完成＝本对象已完成「指定组织者」这件事 ⇒ 与两处既有「保存角色」同款，
 //   销掉该对象的赋权待办（`TodoSourceType.ACTIVITY` / `TASKFORCE`）——**不一致会留下悬空待办**。
-import { TodoStore, TodoSourceType } from '../../services/governance/todo.js?v=20261020f';
+import { TodoStore, TodoSourceType } from '../../services/governance/todo.js?v=20261020g';
 // 通知**被退出的原组织者**（2026-10-01 批次 330 · 支书裁「补：通知原组织者」）：走系统派生通知单一源
 //   （kind `organizer-transferred`，服务端按注册表复算授权；受众＝到人定向，文案/落点在模板单一源）。
-import { NoticeStore } from '../../services/governance/notice.js?v=20261020f';
+import { NoticeStore } from '../../services/governance/notice.js?v=20261020g';
 
 /** 可发起「转交组织者」的角色 —— **单一源**（支书 / 副支书 / 组织委员；现任组织者本人另按人判，见下） */
 const TRANSFER_ROLES = ['secretary', 'deputy-secretary', 'org-commissioner'];
@@ -115,11 +115,12 @@ export function openOrganizerTransfer({ subject, scopeRef, subjectName = '', onD
     bodyHtml: `
       <p style="margin:0 0 10px;font-size:0.8rem;line-height:1.75;color:var(--neutral-700);">本${label}${subjectName ? `（${escHtml(subjectName)}）` : ''}现任组织者：<b>${escHtml(fromName)}</b>。选定接手人后<b>立即生效</b>——原组织者退出、新人接手，本${label}的任务与通知发布随之归到新人。</p>
       <div id="ot-picker-slot"></div>
-      <p style="margin:10px 0 0;font-size:0.72rem;line-height:1.7;color:var(--neutral-500);">更换会记入本${label}的角色变更留痕（谁转给谁、何时），并通知接手人；这不改动任何权限。</p>
-      <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:18px;">
-        <button type="button" data-ot-cancel class="btn-outline text-xs px-3 py-1.5" style="cursor:pointer;">取消</button>
-        <button type="button" data-ot-confirm class="btn-accent text-sm px-4 py-[7px] font-medium">转交</button>
-      </div>`,
+      <p style="margin:10px 0 0;font-size:0.72rem;line-height:1.7;color:var(--neutral-500);">更换会记入本${label}的角色变更留痕（谁转给谁、何时），并通知接手人；这不改动任何权限。</p>`,
+    footerHtml: `
+      <button type="button" data-ot-cancel class="btn-outline text-sm px-4 py-1.5" style="cursor:pointer;">取消</button>
+      <button type="button" data-ot-confirm class="btn-accent text-sm px-4 py-1.5 font-medium">转交</button>`,
+    // 取消 = 放弃本次编辑：销毁选人器（Esc / 遮罩 / × 同样生效）
+    onCancel: () => { if (picker) { picker.destroy(); picker = null; } },
     onMount: (panel) => {
       const slot = panel.querySelector('#ot-picker-slot');
       if (slot) {

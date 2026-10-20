@@ -113,7 +113,7 @@ related_files: [OPERATIONS_GUIDE.md, CLAUDE.md, ARCHITECTURE.md, .ctx/REVIEW_QUE
 | 文件 | 受众 | 内容 | 被引用方 |
 |------|------|------|---------|
 | `content/04_web_design/data/DATA_MODEL.md` | [工程师]+[AI] | 数据模型与数据流（数据权威：§2.x 静态模型 20 类字段定义 + §写入数据验证 + 待办/通知派生 + 归档扩展字段；§1.x·§3.x·§4.x 数据流：数据架构总览 + 参与者数据流 + 前端数据流：状态管理/持久化/数据源边界/DataAdapter/写穿透） | SECRETARY_DIRECTIVES.md、ARCHITECTURE.md、CLAUDE.md |
-| `content/04_web_design/design-system/DESIGN_SYSTEM.md` | [工程师]+[AI] | 设计系统（§一 设计哲学/§二 色彩系统/§三 排版/§四 组件规范/§五 交互反馈/§六 响应式/§七 深色模式/§八 设计资产/§十 点击落点映射） | docs/src/styles.css、docs/src/components/*、docs/src/core/session/cross-page-state.js（buildURL 统一出口）、docs/src/services/governance/notice.js（resolveNoticeUrl） |
+| `content/04_web_design/design-system/DESIGN_SYSTEM.md` | [工程师]+[AI] | 设计系统（§一 设计哲学/§二 色彩系统/§三 排版/§四 组件规范〔含 §4.27 浮窗体例、§4.28 筛选形态选择〕/§五 交互反馈/§六 响应式/§七 深色模式/§八 设计资产/§十 点击落点映射〔含 §10.7 承载面唯一性〕） | docs/src/styles.css、docs/src/components/*、docs/src/core/session/cross-page-state.js（buildURL 统一出口）、docs/src/services/governance/notice.js（resolveNoticeUrl） |
 | `content/04_web_design/module/ABOUT_PAGE_DESIGN.md` | [工程师]+[AI] | About 页面设计系统（超参数设定原则/防风格疲劳/无竖线红线） | docs/src/about.css、docs/src/entries/pages/about-entry.js |
 | `content/04_web_design/module/AGENDA_AND_REFERENCE_DESIGN.md` | [工程师]+[AI] | 会议议程与资料查询联动设计（会前草案关联/会后少重复录入/单一数据源） | —（草案·待实施 2026-08-31） |
 | `content/04_web_design/module/MODULE_UI_DESIGN.md`（已落地 2026-09-03） | [工程师]+[AI] | 模块界面设计（合并原 PAFFAIRS_UI/CALENDAR：「党建」Tab 分组+日历功能，已落地、设计论证档案） | docs/src/components/record/calendar.js |
@@ -137,10 +137,11 @@ related_files: [OPERATIONS_GUIDE.md, CLAUDE.md, ARCHITECTURE.md, .ctx/REVIEW_QUE
 |------|------|------|---------|
 | `content/05_ai_coding/README.md` | [工程师]+[AI] | AI 协作方法论层目录索引（层索引表 + 分流来源声明；2026-09-04 原 19 条总篇拆分为 5 分篇） | CLAUDE.md H90 |
 | `content/05_ai_coding/FILE_OPERATION_RULES.md` | [工程师]+[AI] | 文件操作纪律分篇（持久化/临时文件/工具选择/版本参数/连续编辑/沙箱脚本 + 删除三铁律/架构迁移四步/仓库卫生；原 KNOWN §1/§3/§6/§13/§14/§18 + insights §2.3/§5.1/§5.11；read_strategy: on-demand） | CLAUDE.md H90 |
-| `content/05_ai_coding/TEST_AND_VERIFICATION.md` | [工程师]+[AI] | 测试验证纪律分篇（Subagent 虚假确认/同一套数据盲区/受限视觉三件套/版本分裂/e2e 写穿 + 模拟数据一致性/人工检查写法/修复前 Grep 定位/排序覆盖下拉/兜底模式/CSS 注释陷阱；原 KNOWN §11/§12/§15/§16/§17/§19 + insights §4.12.2/§5.10/§6.17/§6.25/§6.26/§6.29；read_strategy: on-demand） | DATA_CONSISTENCY_CHECKLIST.md（配套手册） |
+| `content/05_ai_coding/TEST_AND_VERIFICATION.md` | [工程师]+[AI] | 测试验证纪律分篇（Subagent 虚假确认/同一套数据盲区/受限视觉三件套/版本分裂/e2e 写穿 + 模拟数据一致性/人工检查写法/修复前 Grep 定位/排序覆盖下拉/兜底模式/CSS 注释陷阱/**承载形态守卫〔浮窗/筛选/承载面〕**；原 KNOWN §11/§12/§15/§16/§17/§19 + insights §4.12.2/§5.10/§6.17/§6.25/§6.26/§6.29；read_strategy: on-demand） | DATA_CONSISTENCY_CHECKLIST.md（配套手册） |
 | `content/05_ai_coding/DOCUMENT_GOVERNANCE.md` | [工程师]+[AI] | 文档治理与一改具改分篇（一改具改执行/分层体系冲突/遗漏场景 + 命名/SSOT/单一表达/历史不可变/文件归置/工具隔离/文件夹治理/阶段适应性/spec 全流程/治理审计/全仓验证/被否决残留；原 KNOWN §2/§7/§10 + insights §1.1/§1.2/§1.3/§3.6/§4.8/§4.18/§5.2-§5.4/§5.9/§6.4/§6.15/§6.27；read_strategy: on-demand） | OPERATIONS_GUIDE.md §1.4 |
 | `content/05_ai_coding/CONTEXT_MANAGEMENT.md` | [工程师]+[AI] | 上下文管理与防失忆分篇（上下文丢失/制度推断/对话总结虚假 + 减负/只留当前/决策三分/看板归档/交接协议/核心原则三分层/上下文工程/轮值推定/丙部触发 + 支书裁决落活层闭环规则；原 KNOWN §4/§8/§9 + insights §2.1/§2.2/§2.5/§2.6/§3.1/§3.2/§3.3/§6.1/§6.5/§6.11；**read_strategy: active**） | CLAUDE.md H90 + H26 |
 | `content/05_ai_coding/REVIEW_AND_EXPRESSION.md` | [工程师]+[AI] | 评议与表达纪律分篇（沉淀位置 + 内容归属/沉淀闭环/复盘理念/提级机制/Skill 检验/正反两面论/反论审核/尺度三分类/消歧写法/总分并列/打破重组/孤段落/叙述表达/零补丁/讲解三层/AI 概括层级/T3 行话；原 KNOWN §5 + insights §1.6/§3.4/§3.7/§4.5/§4.6/§4.7/§4.8/§4.12.6/§4.15/§5.10/§6.2/§6.18/§7.1-§7.5；read_strategy: on-demand） | insights/ |
+| `content/05_ai_coding/PARALLEL_SKILL_AUDIT.md` | [工程师]+[AI] | 多代理独立审查操作手册（H21 详版：提示词模板 / 输出 schema / 汇总模板 / 决策记录 / 反模式 / 四轮路线图；§11 批判性 IA 审查；**§12 全局性审查五问与触发清单 / 判例登记**；read_strategy: on-demand） | CLAUDE.md H21、`DESIGN_SYSTEM.md` §4.27/§4.28/§10.7 |
 | `content/05_ai_coding/DATA_CONSISTENCY_CHECKLIST.md` | [工程师]+[AI] | 数据同源一致性校验手册（工程质检流程，按数据类别逐步检查；机器检查+人工检查分工；2026-09-04 自 04 evolution 迁入，AI 方法论归 05） | DATA_MODEL.md、ARCHITECTURE.md |
 
 ### 跨多类：经验沉淀（content/insights/）
@@ -151,7 +152,7 @@ related_files: [OPERATIONS_GUIDE.md, CLAUDE.md, ARCHITECTURE.md, .ctx/REVIEW_QUE
 |------|------|------|---------|
 | `content/insights/README.md` | [用户]+[工程师] | 前后端、数据库、权限、测试、部署、架构和 AI 协作的学习入口；指向权威规范与经验文 | DOC_MAP、content/03_doc_system/、content/04_web_design/、content/05_ai_coding/ |
 | `content/insights/党支部管理与实务经验沉淀.md` | [用户]+[AI] | 经验沉淀（组织性/管理事服务人、条块二元结构、支委角色设计、活动分类体系、专班） | AI（经验提炼） |
-| `content/insights/工程与AI协作的全栈实践.md` | [用户]+[工程师] | 面向人的全栈工程方法：业务路径、数据权威源、权限、测试、运行及 AI 协作；规范细节回链 03/04/05 权威源 | insights/README.md、.ctx/ENGINEERING_ASSESSMENT.md |
+| `content/insights/工程与AI协作的全栈实践.md` | [用户]+[工程师] | 面向人的全栈工程方法：业务路径、数据权威源、权限、测试、运行及 AI 协作；含**经验各得其所（原则/方法/判例/解释四去向）**与**全局性审查优先于角落补丁**；规范细节回链 03/04/05 权威源 | insights/README.md、.ctx/ENGINEERING_ASSESSMENT.md |
 
 ### 跨多类：根目录 + 审计底座 + 实现层
 

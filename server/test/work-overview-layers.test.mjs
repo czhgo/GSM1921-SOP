@@ -29,7 +29,9 @@ test('W1 三层骨架：结论带 / 工作分工表 / 待我处理标记齐备',
     assert.match(OVERVIEW, new RegExp(`data-wo-layer="${layer}"`), `work-overview.js 缺 data-wo-layer="${layer}"`);
   }
   assert.match(OVERVIEW, />工作分工<\/h3>/, '第二层须有「工作分工」表标题（H3）');
-  assert.match(OVERVIEW, />待我处理<\/h3>/, '第三层须有「待我处理」标题（H3）');
+  // 2026-10-20 判例④：标题走 ACTIONS_TITLE 常量（值仍为「待我处理」），避免结论带再写一遍同词。
+  assert.match(OVERVIEW, /const ACTIONS_TITLE = '待我处理'/, '第三层标题常量须为「待我处理」');
+  assert.match(OVERVIEW, /\$\{ACTIONS_TITLE\}<\/h3>/, '第三层须渲染 ACTIONS_TITLE 标题');
 });
 
 test('W2 删除独立「汇报」卡：不再出现 <h4>汇报</h4>', () => {
@@ -93,10 +95,13 @@ test('W7 390px：条线表横滑 + 首列 sticky', () => {
   assert.match(STYLES, /\.wo-lines-table td:first-child\s*\{[^}]*position:\s*sticky/, '首列须 sticky');
 });
 
-test('W8 结论带四项可交互：button / data-metric / aria-pressed / 筛选状态', () => {
-  assert.match(OVERVIEW, /<button type="button" class="metric-band__item/, '结论带四项须渲染为 button.metric-band__item');
-  assert.match(OVERVIEW, /data-metric="\$\{esc\(metric\.key\)\}"/, '每个指标须带 data-metric');
-  assert.match(OVERVIEW, /aria-pressed="\$\{active \? 'true' : 'false'\}"/, '每个指标须带 aria-pressed');
+test('W8 结论带两种控件：筛选 chip（aria-pressed）/ 滚动链接（锚点）；两段与动作列收敛', () => {
+  // 2026-10-20 R3-07：筛选类＝chip 按钮，滚动类＝页内链接，不再让同款按钮干两种事。
+  assert.match(OVERVIEW, /<button type="button" class="metric-band__item metric-band__item--filter/, '筛选类指标须渲染为 chip 按钮');
+  assert.match(OVERVIEW, /data-metric="\$\{esc\(metric\.key\)\}" data-metric-kind="filter"/, '筛选类须带 data-metric-kind="filter"');
+  assert.match(OVERVIEW, /aria-pressed="\$\{active \? 'true' : 'false'\}"/, '筛选 chip 须带 aria-pressed');
+  assert.match(OVERVIEW, /<a class="metric-band__item metric-band__item--link" href="\$\{esc\(metric\.href \|\| '#wo-lines'\)\}"/, '滚动类指标须为页内链接（#wo-lines / #wo-actions）');
+  assert.match(OVERVIEW, /data-metric-kind="scroll"/, '滚动类须带 data-metric-kind="scroll"');
   for (const key of ['overdue', 'actions', 'active', 'fourth']) {
     assert.ok(OVERVIEW.includes(`key: '${key}'`), `指标缺 data-metric 键「${key}」`);
   }
@@ -105,8 +110,13 @@ test('W8 结论带四项可交互：button / data-metric / aria-pressed / 筛选
   assert.match(OVERVIEW, /actionItems\.filter\(\(item\) => item\.overdue\)/, '逾期筛选须按 item.overdue 过滤');
   assert.match(OVERVIEW, /visibleActions\.slice\(0, _MAX_INLINE\)/, '待我处理须按新上限截取');
   assert.match(OVERVIEW, /row\.gap \|\| row\.overdue > 0/, '条线动作只对缺口或逾期行显示');
-  // 指标单点：结论带已有计数，卡头不得再重复。
-  assert.doesNotMatch(OVERVIEW, /section-head__count/, '「待我处理」卡头不得重复计数');
+  // 动作列：无动作时留空（不再铺「—」）；指标单点：卡头不得重复计数。
+  assert.doesNotMatch(OVERVIEW, /if \(!\(row\.gap \|\| row\.overdue > 0\)\) return '—'/, '动作列不得回潮「—」占位');
+  assert.doesNotMatch(OVERVIEW, /section-head__count|section-head__meta/, '卡头不得重复计数 / 同义说明');
+  // 两段：待我处理 + 我已处理（默认折叠的 details）。
+  assert.match(OVERVIEW, /data-wo-layer="done"/, '须有「我已处理」段');
+  assert.match(OVERVIEW, /<details class="card[^"]*" data-wo-layer="done">/, '「我已处理」须为默认折叠的 details');
+  assert.match(OVERVIEW, /我已处理/, '「我已处理」标题须在位');
   // 条线表窄屏卡式行：表声明 data-responsive，每个 td 带 data-label。
   assert.match(OVERVIEW, /data-responsive="cards"/, '条线表须声明卡式行');
   for (const label of ['工作分工', '负责人', '在办', '逾期', '待处理', '动作']) {

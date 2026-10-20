@@ -6,8 +6,8 @@
 //   A1 组织台「专班管理」→「发布招募」：AX 中存在 role=dialog、name=「发布专班招募」的节点，
 //      且打开后焦点落在 `.modal-body` 内（不是 body、不是右上角 ×）。
 //   A2 按 Esc 关闭：AX / DOM 中浮窗消失，焦点回到打开它的 `#btn-publish-tf`。
-//   A3 专班三视图按钮：AX 中 role=button、name 分别为「专班工作组 / 活动工作组 / 报名总表」，
-//      且每个节点都带 `pressed` 属性（true/false）。
+//   A3 专班两视图按钮：AX 中 role=button、name 分别为「专班工作组 / 报名总表」，
+//      且每个节点都带 `pressed` 属性（true/false）。活动视图已迁至「活动日历」（2026-10-20 判例④）。
 //   A4 成员台「项目分工」三子视图按钮：AX 中 `pressed` 属性存在。
 //   A5 项目分工空态出口：无命中检索 → 空态出现；AX 中存在「去看我的分工」/「浏览全局分工」
 //      的 button/link 节点，且可聚焦（DOM tabIndex ≥ 0 / 原生按钮）。
@@ -208,8 +208,8 @@ test('A1/A2 组织台招募浮窗：AX dialog「发布专班招募」+ 焦点入
   }
 });
 
-// A3：专班三视图按钮的 AX pressed 属性
-test('A3 专班三视图按钮：AX role=button 且带 pressed（专班工作组 / 活动工作组 / 报名总表）', async () => {
+// A3：专班两视图按钮的 AX pressed 属性（2026-10-20 判例④：活动视图已迁至活动日历，本页只留专班）
+test('A3 专班两视图按钮：AX role=button 且带 pressed（专班工作组 / 报名总表）', async () => {
   const page = await browser.newPage();
   try {
     await openWorkspace(page, '2400012355', 'org');
@@ -218,10 +218,10 @@ test('A3 专班三视图按钮：AX role=button 且带 pressed（专班工作组
     await page.waitForTimeout(500);
 
     const nodes = await axSnapshot(page);
-    const readings = ['专班工作组', '活动工作组', '报名总表'].map((name) => assertPressed(nodes, name));
-    console.log('[AX] 专班三视图:', JSON.stringify(readings));
+    const readings = ['专班工作组', '报名总表'].map((name) => assertPressed(nodes, name));
+    console.log('[AX] 专班两视图:', JSON.stringify(readings));
     assert.equal(readings.filter((r) => r.pressed === 'true').length, 1,
-      `专班三视图应恰有一个选中态（pressed=true），实际=${JSON.stringify(readings)}`);
+      `专班两视图应恰有一个选中态（pressed=true），实际=${JSON.stringify(readings)}`);
   } finally {
     await page.close();
   }

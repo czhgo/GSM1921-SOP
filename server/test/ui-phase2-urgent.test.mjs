@@ -104,7 +104,10 @@ test('U8 页标题层级：四页重点各一个 H2，卡头 H3，首页抬头�
   assert.match(read('docs/src/entries/tabs/secretary/overview-tab.js'), /title: '全局概况'/, '支书台概况应显式传「全局概况」');
   // 2026-10-20 界面细化：原「条线」是内部管理词，支书裁定改为「工作分工」。
   assert.match(overview, /<h3 class="section-head__title">工作分工<\/h3>/, '工作分工须为 H3');
-  assert.match(overview, /<h3 class="section-head__title">待我处理<\/h3>/, '待我处理须为 H3');
+  // 2026-10-20：分区标题改由单一常量 ACTIONS_TITLE 输出（结论带第二枚指标已改称「待办」），
+  //   层级仍是 H3；断言钉住「常量值 + H3 载体」，避免改文案时漏掉语义。
+  assert.match(overview, /const ACTIONS_TITLE = '待我处理';/, '待我处理标题文案应单一源');
+  assert.match(overview, /<h3 class="section-head__title">\$\{ACTIONS_TITLE\}<\/h3>/, '待我处理须为 H3');
   assert.doesNotMatch(overview, /<h4[^>]*section-head__title/, '分区标题不得再用 H4');
 
   const todo = read(TODO_SHELL);

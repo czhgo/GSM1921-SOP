@@ -34,9 +34,11 @@ test('R2 U-05 专班管理：招募浮窗走通用 modal · 视图 aria-pressed 
   assert.match(src, /id: 'recruit-form-modal'/, '招募浮窗应走 openModal 且 id=recruit-form-modal');
   assert.match(src, /closeModal\('recruit-form-modal'\)/, '关闭应走 closeModal（统一注销 Esc / 还原 inert）');
   assert.ok(!/recruit-form-overlay/.test(src), '手写 overlay 应已撤除（回退即丢 dialog 语义）');
-  for (const view of ['workgroups', 'activities', 'matrix']) {
+  // 2026-10-20 第三轮 IA 判例④：活动工作组已迁回组织台「活动日历」页，专班页只剩两个视图。
+  for (const view of ['workgroups', 'matrix']) {
     assert.match(src, new RegExp(`data-view="${view}" aria-pressed=`), `视图钮「${view}」缺少初始 aria-pressed`);
   }
+  assert.doesNotMatch(src, /data-view="activities"/, '专班页不得回潮「活动工作组」视图（活动已迁至活动日历页）');
   assert.match(src, /setAttribute\('aria-pressed', on \? 'true' : 'false'\)/, '视图切换未同步 aria-pressed');
   assert.match(src, /id="rf-notice-toggle"[^>]*aria-expanded="false"[^>]*aria-controls="rf-notice-body"/,
     '「自动发布通知」折叠须为 button + aria-expanded + aria-controls');
@@ -72,7 +74,12 @@ test('R4 U-23 活动材料闭环：页面 / 入口 / 三步 / 复用既有写口
   // 入口：活动详情 + 支书台 + 组织台
   assert.match(read('docs/src/entries/pages/activity-entry.js'), /activity-materials\.html\?id=/, '活动详情缺少材料闭环入口');
   assert.match(read('docs/src/entries/tabs/secretary/todo-tab.js'), /activity-materials\.html\?id=/, '支书台待归档区缺少材料闭环入口');
-  assert.match(read('docs/src/entries/tabs/org/taskforce-tab.js'), /activity-materials\.html\?id=/, '组织台活动区缺少材料闭环入口');
+  // 2026-10-20 第三轮 IA 判例④：活动工作组迁到组织台「活动日历」页，材料闭环入口随迁（承接组件＝activity-progress.js）。
+  const orgCalendar = read('docs/src/entries/tabs/org/activity-calendar-tab.js');
+  assert.match(orgCalendar, /renderActivityProgress\(/, '组织台活动日历页未挂载「活动进展」分段');
+  const orgProgress = read('docs/src/components/governance/activity-progress.js');
+  assert.match(orgProgress, /activity-materials\.html\?id=/, '组织台活动区缺少材料闭环入口');
+  assert.doesNotMatch(orgProgress, /archiveActivity\(/, '组织台活动区不得另造归档写口（归档仍走材料闭环页单一写口）');
   // 台账：页面清单与快照
   assert.match(read('README-server.md'), /docs\/activity-materials\.html/, 'README-server §3.1 未登记材料闭环页');
   assert.match(read('.ctx/SNAPSHOT.md'), /activity-materials\.html/, 'SNAPSHOT 未登记材料闭环页');

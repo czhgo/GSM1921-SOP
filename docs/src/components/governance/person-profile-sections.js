@@ -1,10 +1,11 @@
 // role: [工程师]+[AI]
 // 个人档案页的「本人自述」展示：折叠摘要 + 5 个子组。
 // 字段顺序与含义沿用自我描述字段单一源（core/domain/self-profile.js）。
-import { escHtml as esc } from '../../core/base/utils.js?v=20261020f';
+import { escHtml as esc } from '../../core/base/utils.js?v=20261020g';
 import {
   isSelfProfileEmpty, SELF_PROFILE_FIELDS,
-} from '../../core/domain/self-profile.js?v=20261020f';
+} from '../../core/domain/self-profile.js?v=20261020g';
+import { listRowHtml, listGroupHtml } from '../ui/list-row.js?v=20261020g';
 
 /** 15 个自述字段的展示子组（顺序＝展开后的阅读顺序；键集≡SELF_PROFILE_FIELDS） */
 export const SELF_PROFILE_GROUPS = [
@@ -157,5 +158,46 @@ export function renderSelfDescriptionSection(selfProfile, {
       </details>
       <div class="flex-shrink-0">${action}</div>
     </div>
+  </section>`;
+}
+
+const THOUGHT_STATUS = {
+  needs_revision: '已打回 · 待补充',
+  archived: '已入库',
+};
+
+/**
+ * 个人档案「思想汇报」段（2026-10-20 R3-20）。
+ * 制度三处都写「提交即入库、算法归集至个人档案」；此前档案页没有这一段，组织台只能拿台账代偿。
+ * 本段只做**按人归集的查阅出口**（列表 + 查看），数据由调用方从既有服务取，组件不新造数据源。
+ *
+ * @param {Object} opts
+ * @param {Array}  [opts.reports]      已归一、已按提交时间倒序的本人汇报
+ * @param {number} [opts.total]        全部篇数（缺省取 reports.length）
+ * @param {string} [opts.viewAllHref]  「全部 N 篇」出口（thought-report.html?personId=…）
+ * @param {number} [opts.limit]        段内最多显示几篇（缺省 3）
+ */
+export function renderThoughtReportsSection({ reports = [], total = 0, viewAllHref = '', limit = 3 } = {}) {
+  const count = total || reports.length;
+  const shown = reports.slice(0, limit);
+  const rows = shown.map((r) => listRowHtml({
+    rowType: 'action',
+    title: r.title || '思想汇报',
+    meta: `${r.period || '期次未记录'} · 提交 ${String(r.submittedAt || '').slice(0, 10) || '时间未记录'} · ${THOUGHT_STATUS[r.reviewStatus] || '已入库'}`,
+    trailing: `<a href="./thought-report.html?id=${encodeURIComponent(r.id)}" class="text-xs text-sky-700 hover:underline">查看</a>`,
+  }));
+  return `<section id="person-thought-reports" aria-labelledby="person-thought-heading" class="mb-6 border-b border-gray-100 pb-6">
+    <div class="flex flex-wrap items-baseline justify-between gap-2">
+      <div class="flex items-baseline gap-2 min-w-0">
+        <h2 id="person-thought-heading" class="text-base font-semibold text-gray-700">思想汇报</h2>
+        <span class="text-xs text-gray-500">共 ${count} 篇 · 提交即入库</span>
+      </div>
+      ${count > shown.length && viewAllHref
+        ? `<a href="${viewAllHref}" class="text-xs text-sky-700 hover:underline">全部 ${count} 篇 →</a>`
+        : ''}
+    </div>
+    ${rows.length
+      ? `<div class="mt-2 border-t border-gray-100 pt-1">${listGroupHtml(rows)}</div>`
+      : '<p class="mt-2 text-sm text-gray-600">暂无思想汇报。</p>'}
   </section>`;
 }

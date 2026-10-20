@@ -1,14 +1,14 @@
 // role: [工程师]+[AI]
 // issue-list.js — 反馈列表渲染
 
-import { IssueStore } from '../../services/governance/issues.js?v=20261020f';
-import { AuthStore } from '../../services/core/auth.js?v=20261020f';
-import { icon } from '../../core/base/icons.js?v=20261020f';
-import { getPersonName } from '../../services/member/person.js?v=20261020f';
-import { ISSUE_STATUS_LABELS, ISSUE_CLOSED_REASON_LABELS } from '../../core/domain/constants.js?v=20261020f';
-import { badgeHtml } from '../ui/badges.js?v=20261020f';
+import { IssueStore } from '../../services/governance/issues.js?v=20261020g';
+import { AuthStore } from '../../services/core/auth.js?v=20261020g';
+import { icon } from '../../core/base/icons.js?v=20261020g';
+import { getPersonName } from '../../services/member/person.js?v=20261020g';
+import { ISSUE_STATUS_LABELS, ISSUE_CLOSED_REASON_LABELS } from '../../core/domain/constants.js?v=20261020g';
+import { badgeHtml } from '../ui/badges.js?v=20261020g';
 // 翻页控件单一源（批次 38：全站手写翻页一律并轨 pagerHtml）
-import { pagerHtml } from '../ui/pager.js?v=20261020f';
+import { pagerHtml } from '../ui/pager.js?v=20261020g';
 
 const SCOPE_LABELS = {
   permanent: '底层架构',
@@ -79,7 +79,7 @@ export function renderIssueList() {
     <div class="card rounded-xl p-5 mb-4">
       <div class="flex items-center justify-between mb-3">
         <h3 class="font-title-cn text-base font-semibold text-gray-800">全部意见 <span class="text-xs font-normal text-gray-500">开放中 ${counts.open} · 已关闭 ${counts.closed}</span></h3>
-        ${canCreate ? `<button id="btn-new-issue" class="btn-accent text-sm px-4 py-[7px] font-medium" onmouseover="this.style.background='#991B1B'" onmouseout="this.style.background='#CE1126'">+ 新反馈</button>` : ''}
+        ${canCreate ? `<button id="btn-new-issue" class="btn-accent text-sm px-4 py-1.5 font-medium" onmouseover="this.style.background='#991B1B'" onmouseout="this.style.background='#CE1126'">+ 新反馈</button>` : ''}
       </div>
 
       <!-- 筛选行（2026-09-14 批次 27 统一：载体 styles.css::.lf-bar/.lf-kw/.lf-select/.lf-btn；

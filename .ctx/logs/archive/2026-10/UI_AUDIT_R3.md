@@ -415,3 +415,22 @@ round: 3
 ---
 
 *本报告只读产出，未改动任何产品代码，未 commit，未触碰 `.ctx` 顶层。*
+
+---
+
+## 处置表补记（2026-10-20 收口 · 浮窗 + 六条 IA 批次）
+
+> 本节只追加处置结果，**不改上方任何发现正文**。收口目标＝`npm run test:daily` 0 断言失败；
+> 实跑 `tests 1298 / pass 1298 / fail 0`（退出码 1 仅来自 Playwright `debug.log` 的沙箱写入拒绝，属环境限制，不计断言失败）。
+
+| 编号 | 处置 | 文件:行号 |
+|---|---|---|
+| `doc-line-ref::R2` | 已修：符号锚点按实况改准 | `README-server.md:125`（活动信息编辑 → `docs/src/components/record/inspector.js:946-947`）、`README-server.md:134`（`SECRETARY_ROLES` → `inspector.js:692`） |
+| `hex-hardcode-guard::H1` | 已修：新文件去硬编码兜底 | `docs/src/components/governance/activity-progress.js:28`（删 `accent = '#B91C1C'`；调用方 `entries/tabs/org/activity-calendar-tab.js:33` 始终显式传 `ctx.accent`） |
+| `hex-hardcode-guard::H3` | 已修：收基线（只降） | `server/test/style-baseline.mjs:298`（删 `org/thought-review-tab.js` 清零条目）、`:469`（`HEX_FILE_BASELINE` 75 → 74） |
+| `round1-remediation-guard::R2 U-05` | 已修：测试改到新契约 | `server/test/round1-remediation-guard.test.mjs:38-40`（只断言 `workgroups` / `matrix` 两视图带 `aria-pressed`，并新增 `data-view="activities"` 不得回潮）；产品面 `entries/tabs/org/taskforce-tab.js:89-90` |
+| `round1-remediation-guard::R4 U-23` | 已修：材料闭环入口随迁 | `server/test/round1-remediation-guard.test.mjs:77-82`（指向 `entries/tabs/org/activity-calendar-tab.js:31` 的 `renderActivityProgress` 与 `components/governance/activity-progress.js:80` 的 `activity-materials.html?id=`；断言不另造 `archiveActivity(` 写口，写口仍为 `entries/pages/activity-materials-entry.js` 的 `BranchService.archiveActivity`） |
+| `spacing-scale-guard::S2` | 已修：自由间距迁移到标准档（只降） | `docs/src/**` 29 文件 70 处 `py-[7px]` → `py-1.5`（`.btn-*` 族的 32px 内边距由 `docs/src/styles.css:4052-4061` 的 `!important` 归一，观感零变化）；代表位：`entries/tabs/secretary/todo-tab.js:267,844-845,920-921,953-954`、`entries/tabs/org/member-flow-tab.js:317-318,413-414,473-474`、`entries/tabs/secretary/group-progress-tab.js:829-830,863-864,902-903`、`styles.css:1348`（注释同步）；基线 `server/test/spacing-scale-guard.test.mjs:39` 35 → 0 |
+| `ui-phase2-urgent::U8` | 已修：标题层级断言按单一源同步 | `server/test/ui-phase2-urgent.test.mjs:107-110`（断言 `const ACTIONS_TITLE = '待我处理'` 与 `<h3 class="section-head__title">${ACTIONS_TITLE}</h3>`；仍为 H3，每页一个 H2 / 卡头 H3 不变）；产品面 `docs/src/components/governance/work-overview.js:54,536` |
+
+**守卫登记**：本轮未新增守卫文件；改动的 `doc-line-ref` / `hex-hardcode-guard` / `round1-remediation-guard` / `spacing-scale-guard` / `ui-phase2-urgent` 均已在 `server/package.json` 的 `test:daily` 清单内。

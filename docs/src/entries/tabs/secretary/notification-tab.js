@@ -3,23 +3,23 @@
 // 2026-08-07 自 ws-secretary-entry.js 拆分。
 // 数据源：NoticeStore（与首页/全局概况/visitor 同源，消除双数据源脱节）。
 
-import { NoticeStore, sendDirectMessage } from '../../../services/governance/notice.js?v=20261020f';
-import { AuthStore } from '../../../services/core/auth.js?v=20261020f';
-import { showToast, getBasePath, _fmtDate, todayLocal } from '../../../core/base/utils.js?v=20261020f';
-import { badgeHtml } from '../../../components/ui/badges.js?v=20261020f';
-import { openModal, closeModal } from '../../../components/ui/modal.js?v=20261020f';
+import { NoticeStore, sendDirectMessage } from '../../../services/governance/notice.js?v=20261020g';
+import { AuthStore } from '../../../services/core/auth.js?v=20261020g';
+import { showToast, getBasePath, _fmtDate, todayLocal } from '../../../core/base/utils.js?v=20261020g';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20261020g';
+import { openModal, closeModal } from '../../../components/ui/modal.js?v=20261020g';
 // 统一检索引擎（2026-09-14 批次 37）：已发布通知列表接入关键词（标题/正文）+ 分页
-import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261020f';
+import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261020g';
 // Q-22-1（2026-09-13）：受众选项改引 core/domain/constants.js 单一源（NOTICE_AUDIENCE_SENTINELS）——
 // 发布侧写入值必须与消费端可见性判定同源，勿再本地手写 sentinel 列表（否则 ['all'] 永不命中）。
-import { NOTICE_AUDIENCE_OPTIONS, ACTIVITY_CLASSIFICATION } from '../../../core/domain/constants.js?v=20261020f';
+import { NOTICE_AUDIENCE_OPTIONS, ACTIVITY_CLASSIFICATION } from '../../../core/domain/constants.js?v=20261020g';
 // SOP-B-5（D-293）：发布三会一课通知时选定本次活动 —— 被通知人在「确认读取」时填「能否线上参会」
-import { loadActivities } from '../../../services/activity/activity.js?v=20261020f';
+import { loadActivities } from '../../../services/activity/activity.js?v=20261020g';
 // B1（2026-09-12）：党委下钻支部的演示只读视图判定（单一源 = services/core/branch-demo-nav.js）
-import { isReadonlyBranchDrilldown } from '../../../services/core/branch-demo-nav.js?v=20261020f';
+import { isReadonlyBranchDrilldown } from '../../../services/core/branch-demo-nav.js?v=20261020g';
 // 站内信（批次 348 · 支书 `#4`「站内信是一个很重要的形式」）：受众「指定人（私发）」——选人用 PersonPicker
 //（选人规范 §2.2：姓名/学号搜索，不手写名单）
-import { PersonPicker } from '../../../components/governance/pickers.js?v=20261020f';
+import { PersonPicker } from '../../../components/governance/pickers.js?v=20261020g';
 
 const NOTIFICATION_TAB_HTML = `
   <div class="card rounded-xl p-5 mb-6">
@@ -114,7 +114,7 @@ function renderNotificationForm() {
   html += `</div>`;
 
   // 发布按钮
-  html += `<button data-notif-action="publish" class="btn-accent text-sm px-4 py-[7px] font-medium">发布通知</button>`;
+  html += `<button data-notif-action="publish" class="btn-accent text-sm px-4 py-1.5 font-medium">发布通知</button>`;
 
   formArea.innerHTML = html;
 
@@ -374,37 +374,42 @@ function _openNoticeEditModal(notice) {
     width: '560px',
     accentColor: '#CE1126',
     bodyHtml: `
-      <div class="space-y-3">
-        <div>
-          <label class="text-xs text-gray-500 mb-1.5 block font-medium">通知标题 <span class="text-red-600">*</span></label>
-          <input type="text" id="ne-title" class="input-flat w-full" value="${notice.title || ''}">
+      <fieldset class="modal-fieldset">
+        <legend class="modal-fieldset__legend">内容</legend>
+        <div class="modal-fieldset__body">
+          <div class="mb-3">
+            <label class="text-xs text-gray-500 mb-1.5 block font-medium">通知标题 <span class="text-red-600">*</span></label>
+            <input type="text" id="ne-title" class="input-flat w-full" value="${notice.title || ''}">
+          </div>
+          <div>
+            <label class="text-xs text-gray-500 mb-1.5 block font-medium">通知内容 <span class="text-red-600">*</span></label>
+            <textarea id="ne-content" rows="4" class="input-flat w-full">${notice.content || ''}</textarea>
+          </div>
         </div>
-        <div>
-          <label class="text-xs text-gray-500 mb-1.5 block font-medium">通知内容 <span class="text-red-600">*</span></label>
-          <textarea id="ne-content" rows="4" class="input-flat w-full">${notice.content || ''}</textarea>
+      </fieldset>
+      <fieldset class="modal-fieldset">
+        <legend class="modal-fieldset__legend">送达</legend>
+        <div class="modal-fieldset__body">
+          <div class="mb-3">
+            <label class="text-xs text-gray-500 mb-1.5 block font-medium">目标受众</label>
+            <div class="flex flex-wrap gap-2">${chips}</div>
+          </div>
+          <div>
+            <label class="text-xs text-gray-500 mb-1.5 block font-medium" for="ne-priority">优先级</label>
+            <select id="ne-priority" class="input-flat w-full">
+              <option value="normal" ${notice.priority !== 'urgent' ? 'selected' : ''}>普通</option>
+              <option value="urgent" ${notice.priority === 'urgent' ? 'selected' : ''}>紧急</option>
+            </select>
+          </div>
         </div>
-        <div>
-          <label class="text-xs text-gray-500 mb-1.5 block font-medium">目标受众</label>
-          <div class="flex flex-wrap gap-2">${chips}</div>
-        </div>
-        <div>
-          <label class="text-xs text-gray-500 mb-1.5 block font-medium" for="ne-priority">优先级</label>
-          <select id="ne-priority" class="input-flat w-full">
-            <option value="normal" ${notice.priority !== 'urgent' ? 'selected' : ''}>普通</option>
-            <option value="urgent" ${notice.priority === 'urgent' ? 'selected' : ''}>紧急</option>
-          </select>
-        </div>
-      </div>
-      <div class="flex justify-end gap-2 mt-4">
-        <button id="ne-cancel" class="btn-ghost text-xs px-3 py-1.5">取消</button>
-        <button id="ne-save" class="btn-accent text-xs px-3 py-1.5">保存</button>
-      </div>
-    `,
+      </fieldset>`,
+    footerHtml: `
+      <button type="button" data-modal-cancel="notice-edit" class="btn-outline text-sm px-4 py-1.5">取消</button>
+      <button type="button" id="ne-save" class="btn-accent text-sm px-4 py-1.5 font-medium">保存</button>`,
     onMount: (panel) => {
       panel.querySelectorAll('[data-notif-edit-aud]').forEach(chip => {
         chip.addEventListener('click', () => chip.classList.toggle('chip-accent-on'));
       });
-      panel.querySelector('#ne-cancel')?.addEventListener('click', () => closeModal('notice-edit'));
       panel.querySelector('#ne-save')?.addEventListener('click', () => {
         const title = panel.querySelector('#ne-title')?.value?.trim();
         const content = panel.querySelector('#ne-content')?.value?.trim();

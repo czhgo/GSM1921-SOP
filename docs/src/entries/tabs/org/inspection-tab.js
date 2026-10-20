@@ -3,22 +3,22 @@
 // 专班考察：专班负责人/组织委员上传 → 纪检委员确认 → 录入考察总表。
 // 业务口径：考察依托工作组——考察记录挂工作组，考察对象为该工作组成员；sourceType/activityId/taskforceId 是工作组类型的投影。
 
-import { loadInspectionRecords, saveInspectionRecords } from '../../../services/activity/inspection.js?v=20261020f';
-import { reconfirmReturnedInspectionRecord, isInspectionHomePosition } from '../../../services/activity/inspection.js?v=20261020f';
-import { TaskForceRecordStore } from '../../../services/activity/taskforce.js?v=20261020f';
-import { anchorDetailToTrigger } from '../../../components/ui/detail-anchor.js?v=20261020f';
-import { currentUserId } from '../../../services/core/auth.js?v=20261020f';
-import { PersonPicker } from '../../../components/governance/pickers.js?v=20261020f';
+import { loadInspectionRecords, saveInspectionRecords } from '../../../services/activity/inspection.js?v=20261020g';
+import { reconfirmReturnedInspectionRecord, isInspectionHomePosition } from '../../../services/activity/inspection.js?v=20261020g';
+import { TaskForceRecordStore } from '../../../services/activity/taskforce.js?v=20261020g';
+import { anchorDetailToTrigger } from '../../../components/ui/detail-anchor.js?v=20261020g';
+import { currentUserId } from '../../../services/core/auth.js?v=20261020g';
+import { PersonPicker } from '../../../components/governance/pickers.js?v=20261020g';
 // 「本位」nudge 确认弹窗（2026-09-23 支书裁定 · 单一源 = components/ui/modal.js::confirmNudge）
-import { confirmNudge } from '../../../components/ui/modal.js?v=20261020f';
-import { inspectionToLong } from '../../../services/activity/inspection.js?v=20261020f';
-import { getPersonById, getPersonName } from '../../../services/member/person.js?v=20261020f';
-import { SourceType, ParticipationLevel, isTaskforceActiveStatus } from '../../../core/domain/domain.js?v=20261020f';
-import { showToast, escHtml as esc, getBasePath } from '../../../core/base/utils.js?v=20261020f';
-import { solidAccentStyle, accDarkVars } from '../../../core/domain/constants.js?v=20261020f';
-import { generateId } from '../../../core/base/id.js?v=20261020f';
+import { confirmNudge } from '../../../components/ui/modal.js?v=20261020g';
+import { inspectionToLong } from '../../../services/activity/inspection.js?v=20261020g';
+import { getPersonById, getPersonName } from '../../../services/member/person.js?v=20261020g';
+import { SourceType, ParticipationLevel, isTaskforceActiveStatus } from '../../../core/domain/domain.js?v=20261020g';
+import { showToast, escHtml as esc, getBasePath } from '../../../core/base/utils.js?v=20261020g';
+import { solidAccentStyle, accDarkVars } from '../../../core/domain/constants.js?v=20261020g';
+import { generateId } from '../../../core/base/id.js?v=20261020g';
 // 统一检索引擎（2026-09-13 表格统一化批次 A）：考察明细表接入关键词 + 分面（≤8 行引擎自动不渲染检索条）
-import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261020f';
+import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261020g';
 
 // 私有状态（随模块自持，不污染入口）
 let _orgInspFormVisible = false;
@@ -67,7 +67,7 @@ export function renderContent(ctx, container) {
       </div>
       <div id="org-insp-content-rows" class="mb-3"></div>
       <div class="flex items-center gap-3">
-        <button id="org-insp-form-submit" class="btn-accent text-sm px-4 py-[7px]" style="cursor:pointer">提交考察</button>
+        <button id="org-insp-form-submit" class="btn-accent text-sm px-4 py-1.5" style="cursor:pointer">提交考察</button>
         <button id="org-insp-form-cancel" class="btn-outline text-sm px-4 py-1.5" style="cursor:pointer;">取消</button>
       </div>
     </div>
@@ -141,7 +141,6 @@ export function renderContent(ctx, container) {
     rows: inspRows,
     keyword: personKeyword(),
     facets: personFacets({ roleLabel: roleLabelOf }),
-    facetStyle: 'chip',
     countUnit: '条',
     emptyMessage: '暂无专班考察记录',
     table: {
