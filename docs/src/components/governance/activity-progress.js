@@ -12,13 +12,13 @@
 //   也绕过了支书台归档前的材料 / 考勤闸门。本次不新增第二套归档写口（归档仍走活动详情的材料闸门），
 //   文案与提示只说「标记完成」，不再声称「完成即归档」。
 
-import { BranchService } from '../../services/core/runtime.js?v=20261020g';
-import { persist } from '../../data/data-adapter.js?v=20261020g';
-import { showToast, escHtml as esc } from '../../core/base/utils.js?v=20261020g';
-import { isActivityEnded } from '../../core/domain/constants.js?v=20261020g';
-import { getPersonName } from '../../services/member/person.js?v=20261020g';
-import { badgeHtml } from '../ui/badges.js?v=20261020g';
-import { renderQueryView } from './query-view.js?v=20261020g';
+import { BranchService } from '../../services/core/runtime.js?v=20261020h';
+import { persist } from '../../data/data-adapter.js?v=20261020h';
+import { showToast, escHtml as esc } from '../../core/base/utils.js?v=20261020h';
+import { isActivityEnded } from '../../core/domain/constants.js?v=20261020h';
+import { getPersonName } from '../../services/member/person.js?v=20261020h';
+import { badgeHtml } from '../ui/badges.js?v=20261020h';
+import { renderQueryView } from './query-view.js?v=20261020h';
 
 /**
  * 渲染活动进展分段（全部活动查询 + 材料出口 + 标记完成）。

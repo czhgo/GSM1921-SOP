@@ -2,7 +2,7 @@
 title: "设计系统"
 type: design
 role: "[工程师]+[AI]"
-last_updated: 2026-10-20
+last_updated: 2026-10-21
 status: active
 related_files: [docs/src/styles.css, ../evolution/DESIGN_METHODOLOGY.md, ../data/DATA_MODEL.md]
 ---
@@ -1746,7 +1746,7 @@ li + li { margin-top: 0.25em; }
 | M-1 | header 纯文本 | `title` 只传文本；链接与次级动作放页脚插槽（`settingsLink`） | `title` 入参含 `<` / `>`，依赖转义后才可读 |
 | M-2 | body 分组 | 可见字段 > 6 必须分组；必填与选填不混排；同一字段只出现一次 | 字段 > 6 且无分组；只读区与可改区重复同一字段 |
 | M-3 | footer sticky | 取消 / 提交固定在面板底部，不随 `.modal-body` 滚动 | 提交按钮位于滚动容器内，必须滚到底才可见 |
-| M-4 | dvh + safe-area | 面板高 `85dvh`；底部留 `env(safe-area-inset-bottom)` | 使用 `vh`；软键盘弹起后底部动作被遮 |
+| M-4 | dvh + safe-area | 面板高 `min(92dvh, 900px)`；底部留 `env(safe-area-inset-bottom)` | 使用 `vh`；软键盘弹起后底部动作被遮 |
 | M-5 | 取消＝放弃 | 取消 / Esc / 遮罩 / × 四条路径都清空草稿、待提交名单与选人器 | 只有「取消」按钮 reset，其余路径复用上次状态 |
 | M-6 | 失败留在浮窗 | 提交失败不关闭；原位显示 403 / 409 / 428 原因并保留已填内容 | 失败即关闭，或只提示「请稍后重试」 |
 | M-7 | 移动端单列 | ≤640px 一律单列；日期、时间一类成对字段上下排 | 390px 出现两列挤压或横向溢出 |

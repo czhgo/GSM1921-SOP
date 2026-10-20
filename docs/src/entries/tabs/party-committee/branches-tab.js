@@ -1,20 +1,20 @@
 // Party committee branch directory: create and select; maintenance is in branch-config.html.
 
-import { mockDB } from '../../../core/domain/domain.js?v=20261020g';
+import { mockDB } from '../../../core/domain/domain.js?v=20261020h';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/member/person.js 获取（原直连 mock PEOPLE）；
 // 每次渲染现读（members 覆盖层即时吃到），不缓存在模块顶层
-import { PersonStore } from '../../../services/member/person.js?v=20261020g';
-import { createBranch } from '../../../services/branch/branch.js?v=20261020g';
-import { getRosterStats } from '../../../services/member/roster.js?v=20261020g';
-import { showToast, escHtml as esc, getBasePath } from '../../../core/base/utils.js?v=20261020g';
-import { bindBranchReadOnlyButtons } from '../../../services/core/branch-readonly-nav.js?v=20261020g';
-import { renderSectionHeader } from '../../../components/shell/page-frame.js?v=20261020g';
-import { ROLE_LABELS } from '../../../core/domain/constants.js?v=20261020g';
-import { getAdapter, getDataSource } from '../../../data/data-adapter.js?v=20261020g';
+import { PersonStore } from '../../../services/member/person.js?v=20261020h';
+import { createBranch } from '../../../services/branch/branch.js?v=20261020h';
+import { getRosterStats } from '../../../services/member/roster.js?v=20261020h';
+import { showToast, escHtml as esc, getBasePath } from '../../../core/base/utils.js?v=20261020h';
+import { bindBranchReadOnlyButtons } from '../../../services/core/branch-readonly-nav.js?v=20261020h';
+import { renderSectionHeader } from '../../../components/shell/page-frame.js?v=20261020h';
+import { ROLE_LABELS } from '../../../core/domain/constants.js?v=20261020h';
+import { getAdapter, getDataSource } from '../../../data/data-adapter.js?v=20261020h';
 // A05（2026-10-20 IA 修复批次）：「支部动态」撤页后，其「待批复数量列 + 支部筛选」并入本页。
 //   数据与筛选件一律复用既有单一源（review-request 服务 + branch-filter 共用件），不另写一份。
-import { listReviewRequests } from '../../../services/governance/review-request.js?v=20261020g';
-import { renderBranchFilter, getBranchFilter } from '../../../components/governance/branch-filter.js?v=20261020g';
+import { listReviewRequests } from '../../../services/governance/review-request.js?v=20261020h';
+import { renderBranchFilter, getBranchFilter } from '../../../components/governance/branch-filter.js?v=20261020h';
 
 const BRANCH_FILTER_STATE = 'pc-branches';
 

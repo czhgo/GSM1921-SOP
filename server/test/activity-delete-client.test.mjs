@@ -1,9 +1,9 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { BranchService } from '../../docs/src/services/core/runtime.js?v=20261020g';
-import { setDataSource } from '../../docs/src/data/data-adapter.js?v=20261020g';
-import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261020g';
-import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261020g';
+import { BranchService } from '../../docs/src/services/core/runtime.js?v=20261020h';
+import { setDataSource } from '../../docs/src/data/data-adapter.js?v=20261020h';
+import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261020h';
+import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261020h';
 
 test('API 模式的活动删除使用服务端级联删除端点', async () => {
   const id = 'act-delete-client-route';

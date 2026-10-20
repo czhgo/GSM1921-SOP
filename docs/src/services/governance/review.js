@@ -5,15 +5,15 @@
 //  P1-4 修复（2026-08-02）：复盘记录接入 mockDB 持久化层，刷新不再丢失
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB, ReviewStatus } from '../../core/domain/domain.js?v=20261020g';
-import { persist } from '../../data/data-adapter.js?v=20261020g';
-import { bumpToken } from '../../core/base/version-token.js?v=20261020g'; // P0 域缓存失效（spec §二.3）
-import { REVIEW_RECORDS, TASKFORCE_REVIEW_RECORDS } from '../../data/mock/index.js?v=20261020g';
-import { ACTIVITIES } from '../../data/mock/activities.js?v=20261020g';
-import { getPersonName } from '../member/person.js?v=20261020g';
-import { loadActivities } from '../activity/activity.js?v=20261020g';
-import { solidAccentStyle } from '../../core/domain/constants.js?v=20261020g';
-import { generateId } from '../../core/base/id.js?v=20261020g';
+import { mockDB, ReviewStatus } from '../../core/domain/domain.js?v=20261020h';
+import { persist } from '../../data/data-adapter.js?v=20261020h';
+import { bumpToken } from '../../core/base/version-token.js?v=20261020h'; // P0 域缓存失效（spec §二.3）
+import { REVIEW_RECORDS, TASKFORCE_REVIEW_RECORDS } from '../../data/mock/index.js?v=20261020h';
+import { ACTIVITIES } from '../../data/mock/activities.js?v=20261020h';
+import { getPersonName } from '../member/person.js?v=20261020h';
+import { loadActivities } from '../activity/activity.js?v=20261020h';
+import { solidAccentStyle } from '../../core/domain/constants.js?v=20261020h';
+import { generateId } from '../../core/base/id.js?v=20261020h';
 
 /** 读取活动复盘记录（mock 常量兜底，写入后以 mockDB 为准） */
 export function loadActivityReviews() {
@@ -98,8 +98,9 @@ export function addTaskforceReview(record) {
  * 复盘表单 HTML（复用现有字段：复盘总结 + 提出的真问题；提交按钮 class=btn-review-submit）
  * @param {Object} act - 活动对象（提供 id/title）
  * @param {Object|null} rev - 现有复盘记录（预填内容/打回批注）
- * @param {{ accent?: string, accentBorder?: string, delegateHint?: string, footHint?: string }} [opts]
- *   delegateHint：代填说明（仅支书代提交时传入）；footHint：提交后提示文案
+ * @param {{ accent?: string, accentBorder?: string, delegateHint?: string, footHint?: string, showActions?: boolean }} [opts]
+ *   delegateHint：代填说明（仅支书代提交时传入）；footHint：提交后提示文案；
+ *   showActions：是否渲染表单自带的「提交复盘」动作行（默认 true；挂进浮窗时传 false，动作由浮窗 footer 承载）
  * @returns {string}
  */
 export function renderActivityReviewFormHtml(act, rev, opts = {}) {
@@ -107,6 +108,7 @@ export function renderActivityReviewFormHtml(act, rev, opts = {}) {
   const existingIssues = Array.isArray(rev?.issues) ? rev.issues : [];
   const isRejected = rev?.reviewStatus === ReviewStatus.REJECTED;
   const footHint = opts.footHint || '提交后纪检委员将在监督复盘tab收到通知';
+  const showActions = opts.showActions !== false;
   return `
     <div class="mt-3 pt-3 border-t border-gray-100">
       ${isRejected && rev.annotation ? `
@@ -121,10 +123,10 @@ export function renderActivityReviewFormHtml(act, rev, opts = {}) {
         <label class="text-xs text-gray-500 block mb-1">提出的真问题（每行一条，便于汇总改进）</label>
         <textarea id="review-issues-${act.id}" class="input-flat w-full text-xs resize-none" rows="2" placeholder="如：讨论时间不足，需预留更多…">${existingIssues.join('\n')}</textarea>
       </div>
-      <div class="flex items-center gap-2 mt-2">
+      ${showActions ? `<div class="flex items-center gap-2 mt-2">
         <button class="btn-accent-soft btn-review-submit text-xs px-3 py-1.5" data-act-id="${act.id}" style="cursor:pointer">提交复盘</button>
         <span class="text-xs text-gray-500">${footHint}</span>
-      </div>
+      </div>` : ''}
     </div>
   `;
 }

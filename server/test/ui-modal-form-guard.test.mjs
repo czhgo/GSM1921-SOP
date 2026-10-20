@@ -77,6 +77,27 @@ function submitOutsideFooter(callText) {
 // 白名单：{ 文件相对路径: 理由 }。当前无例外——新增例外必须在这里写明「为什么不能进 footer」。
 const SUBMIT_OUTSIDE_FOOTER_WHITELIST = {};
 
+/**
+ * 非对话框固定层白名单（G6）：仅限「全屏但不承载表单 / 不是对话框」的层，每条必须写理由。
+ * 对话框（表单、确认、详情）一律不得自建 —— 自建即绕开 role/aria-modal/inert/焦点回还/关闭语义。
+ */
+const FIXED_LAYER_WHITELIST = {
+  'data/data-adapter.js': '连接失败 / 会话失效的全屏拦截层（role=alert，非表单、单动作）；data 层不反向依赖组件层',
+};
+
+/** 该源码是否自建了「全屏固定层」（`position:fixed` 与 `inset:0` 同现，或 Tailwind `fixed inset-0`） */
+function hasFixedOverlay(src) {
+  if (/['"`]fixed inset-0/.test(src)) return true;
+  let idx = src.indexOf('position:fixed');
+  while (idx !== -1) {
+    const win = src.slice(Math.max(0, idx - 200), idx + 300);
+    if (/inset:\s*0/.test(win)) return true;
+    idx = src.indexOf('position:fixed', idx + 1);
+  }
+  return false;
+}
+
+
 test('G1 非空转自检：能截取调用，且能识别 body 内 / footer 内的提交按钮', () => {
   const src = [
     'openModal({ id: "a", bodyHtml: `<button type="submit">保存</button>` });',
@@ -156,3 +177,23 @@ test('G5 写入活动：取消 / Esc / 遮罩都清 pendingAuth', () => {
   const resetBody = dt.match(/reset\(\)\s*\{[\s\S]*?\n\s*\}/)?.[0] || '';
   assert.match(resetBody, /this\.pendingAuth\s*=\s*\[\]/, 'DecisionTreeState.reset 应清 pendingAuth');
 });
+
+test('G6 非空转：hasFixedOverlay 能识别自建全屏层，且不误报普通 fixed 定位', () => {
+  assert.equal(hasFixedOverlay("el.style.cssText='position:fixed;inset:0;z-index:9';"), true);
+  assert.equal(hasFixedOverlay("['position:fixed', 'inset:0'].join(';')"), true);
+  assert.equal(hasFixedOverlay('<div class="fixed inset-0 bg-black/40"></div>'), true);
+  assert.equal(hasFixedOverlay("el.style.cssText='position:fixed;z-index:10;bottom:1rem';"), false);
+});
+
+test('G7 浮层唯一实现：对话框不得自建全屏固定层（白名单须写理由）', () => {
+  const violations = [];
+  for (const file of walk(SRC)) {
+    const rel = relative(SRC, file).replace(/\\/g, '/');
+    if (rel === 'components/ui/modal.js') continue; // 唯一实现本体
+    const src = readFileSync(file, 'utf8');
+    if (hasFixedOverlay(src) && !FIXED_LAYER_WHITELIST[rel]) violations.push(rel);
+  }
+  assert.deepEqual(violations, [],
+    `以下文件自建了全屏浮层（绕开 role/aria-modal/inert/焦点回还），应改走 openModal：${violations.join(', ')}`);
+});
+

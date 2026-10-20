@@ -3174,3 +3174,31 @@ $body
 ### 五、边界
 
 - 未改学号主键与业务权限；`secretary-delegate-review`、归档 overlay、内联表单仍为已知例外。
+
+## 批次 497（2026-10-21）：浮层承载面专项
+
+### 一、判据
+
+- 交接把浮窗问题列为「三处已知例外」；实测是**第二实现**：`ui-modal-form-guard` 的 G3 只扫 `openModal(`，自建 overlay 不在扫描面内，白名单为空造成「零例外」的假绿。
+- 同一病灶 ≥3 处 ⇒ 按 `PARALLEL_SKILL_AUDIT §12.2` 升级专项、按 `H31` 先改引擎与守卫再回收调用点，不做逐页补丁。
+- 前置：批次 496 改了组织委员 SOP 正文未刷 frontmatter，基线实为 1297/1298（非交接所称 1298/1298）；本批先补刷 `R-83` 再开工。
+
+### 二、动作
+
+- **守卫**：新增 G6/G7 —— `hasFixedOverlay` 识别自建全屏层；对话框一律走 `openModal`，白名单只留 `data-adapter` 的连接失败拦截层（role=alert、非表单）。改造前实测报出 **7 文件 / 12 处**。
+- **迁移 12 处**：7 个写入口（上传宣传材料 / 文件外发 / 上传照片 / 标注照片 / 写支部文件 / 上传新版 / 一键汇报）+ 5 个只读确认（参与者摘要 / 关闭受阻 / 结束工作组 / 表决结果 / 归档详情）。写入口的取消 / Esc / 遮罩统一清 objectURL 与未提交选择。
+- **复盘表单**：`renderActivityReviewFormHtml` 增加 `showActions`（默认 true，页面内联不变）；代提交复盘的「提交复盘」进 footer。
+- **文档**：`DESIGN_SYSTEM §4.27 M-4` 高度口径改准（85dvh → `min(92dvh, 900px)`，与代码和 G2 同源）。
+
+### 三、读数
+
+- `ui-modal-form-guard` 7/7；`module-load` 4/4；`a11y-tree` 5/5；`page-sweep` 16/16。
+- `form-loop` 台账 S0–S6 全绿；本批触碰的四条流程（`prop-archive-upload` / `prop-photo-wall-upload` / `page-refs-doc-write` / `page-refs-publish-version`）全绿。台账 21 条行号随位移改准。
+- `npm run test:daily`：**1300 / 1300 通过，0 断言失败**。
+- 版本戳 `20261020g → 20261020h`。
+
+### 四、边界
+
+- `form-loop` 全量仍有存量红（跨台 snapshot 403、专班进度写 403 等），非本批引入；`report-entry-one-click` 的红点是页面加载期 403，不是浮窗校验。
+- 未改权限、数据模型、字段与校验；只改承载形态、动作位置与关闭语义。
+- 原生 `window.confirm/alert`（制度停用 / 启用）不在 `openModal` 体系内，本批未动，留待专项裁定。

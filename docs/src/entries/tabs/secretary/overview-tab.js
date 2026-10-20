@@ -9,18 +9,18 @@
 //（listPeriodicArchivesPendingReview / reviewPeriodicArchive / PERIODIC_ARCHIVE_REVIEW_STATUS），
 // 本页只做呈现与交互，不另写状态名、不改后端 API/数据模型/权限链。
 
-import { currentUserId } from '../../../services/core/auth.js?v=20261020g';
-import { renderWorkOverview } from '../../../components/governance/work-overview.js?v=20261020g';
+import { currentUserId } from '../../../services/core/auth.js?v=20261020h';
+import { renderWorkOverview } from '../../../components/governance/work-overview.js?v=20261020h';
 import {
   listPeriodicArchivesPendingReview, reviewPeriodicArchive,
-} from '../../../services/governance/secretary-overview.js?v=20261020g';
-import { getPersonName } from '../../../services/member/person.js?v=20261020g';
-import { listRowHtml, listGroupHtml } from '../../../components/ui/list-row.js?v=20261020g';
-import { emptyStateHtml } from '../../../components/ui/empty-state.js?v=20261020g';
-import { openModal, closeModal } from '../../../components/ui/modal.js?v=20261020g';
+} from '../../../services/governance/secretary-overview.js?v=20261020h';
+import { getPersonName } from '../../../services/member/person.js?v=20261020h';
+import { listRowHtml, listGroupHtml } from '../../../components/ui/list-row.js?v=20261020h';
+import { emptyStateHtml } from '../../../components/ui/empty-state.js?v=20261020h';
+import { openModal, closeModal } from '../../../components/ui/modal.js?v=20261020h';
 import {
   showToast, flashHighlight, getBasePath, escHtml as esc,
-} from '../../../core/base/utils.js?v=20261020g';
+} from '../../../core/base/utils.js?v=20261020h';
 
 const OVERVIEW_TAB_HTML = `
   <div id="secretary-overview-content"></div>

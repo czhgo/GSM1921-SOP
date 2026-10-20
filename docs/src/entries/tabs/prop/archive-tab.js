@@ -2,37 +2,38 @@
 // 宣传委员工作台 Tab：档案归档（T-279 M3 拆分，照 M2 样板）
 // 归档记录纯读 + 材料标准/模板 + 归档推进浮窗（材料确认清单）+ 上传宣传材料（attachments 双模式）。
 
-import { icon } from '../../../core/base/icons.js?v=20261020g';
-import { solidAccentStyle, activityTypeBadgeVariant, isActivityArchived } from '../../../core/domain/constants.js?v=20261020g';
-import { POLICY_DEFAULTS } from '../../../core/domain/policy-defaults.js?v=20261020g';
+import { icon } from '../../../core/base/icons.js?v=20261020h';
+import { solidAccentStyle, activityTypeBadgeVariant, isActivityArchived } from '../../../core/domain/constants.js?v=20261020h';
+import { POLICY_DEFAULTS } from '../../../core/domain/policy-defaults.js?v=20261020h';
 // 活动类型胶囊（批次 301）：类别色走单一源（三会一课＝brand 红 / 主题党日＝gold 金），渲染唯一源 badge.js
-import { badgeHtml } from '../../../components/ui/badges.js?v=20261020g'; // 扎口出口（批次 304 收回，勿直连 badge.js）
-import { showToast, downloadCSV, downloadBlob, downloadUrl, _fmtDate, escHtml, todayLocal } from '../../../core/base/utils.js?v=20261020g';
-// 2026-09-21 批次 139：本 tab 的浮层是**自建浮层**（不走 components/ui/modal.js），页脚那条「相关设置」
-//   深链用 modal.js 导出的同一段标记（`settingsLinkHTML`）——不落第二份 HTML（仍是单一源）。
-import { settingsLinkHTML } from '../../../components/ui/modal.js?v=20261020g';
-import { persist, getAuthToken, getApiBaseUrl, getAdapter } from '../../../data/data-adapter.js?v=20261020g';
-import { withSelectedBranchScope } from '../../../data/api-adapter.js?v=20261020g';
-import { mockDB } from '../../../core/domain/domain.js?v=20261020g';
-import { bumpToken } from '../../../core/base/version-token.js?v=20261020g'; // P0 域缓存失效（spec §二.3）
-import { loadActivities, listPublicityDrafts, setPublicityDraftStatus, PUBLICITY_DRAFT_STATUS, listGalleryCandidates, setGalleryFeatured, setGalleryPinned, isGalleryFeatured, isGalleryPinned } from '../../../services/activity/activity.js?v=20261020g';
-import { isApiMode } from '../../../services/core/runtime.js?v=20261020g';
-import { AuthStore, currentUserId } from '../../../services/core/auth.js?v=20261020g';
-import { getPersonName } from '../../../services/member/person.js?v=20261020g';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20261020h'; // 扎口出口（批次 304 收回，勿直连 badge.js）
+import { showToast, downloadCSV, downloadBlob, downloadUrl, _fmtDate, escHtml, todayLocal } from '../../../core/base/utils.js?v=20261020h';
+// 2026-09-21 批次 139：页脚「相关设置」深链由 modal.js 的 `settingsLinkHTML` 单点渲染；
+//   2026-10-21 批次 497：本 tab 四个浮层（上传材料 / 文件外发 / 上传照片 / 标注照片）全部改走 `openModal`，
+//   不再自建 overlay（统一 dialog 语义、sticky footer 与取消语义）。
+import { openModal, closeModal } from '../../../components/ui/modal.js?v=20261020h';
+import { persist, getAuthToken, getApiBaseUrl, getAdapter } from '../../../data/data-adapter.js?v=20261020h';
+import { withSelectedBranchScope } from '../../../data/api-adapter.js?v=20261020h';
+import { mockDB } from '../../../core/domain/domain.js?v=20261020h';
+import { bumpToken } from '../../../core/base/version-token.js?v=20261020h'; // P0 域缓存失效（spec §二.3）
+import { loadActivities, listPublicityDrafts, setPublicityDraftStatus, PUBLICITY_DRAFT_STATUS, listGalleryCandidates, setGalleryFeatured, setGalleryPinned, isGalleryFeatured, isGalleryPinned } from '../../../services/activity/activity.js?v=20261020h';
+import { isApiMode } from '../../../services/core/runtime.js?v=20261020h';
+import { AuthStore, currentUserId } from '../../../services/core/auth.js?v=20261020h';
+import { getPersonName } from '../../../services/member/person.js?v=20261020h';
 // 批次 352（`D-746` · `D-744`② 业务过程类余项）：照片记录「作废（软）」——统一写口 ＋ 支委层判据
-import * as SoftVoid from '../../../services/governance/soft-void.js?v=20261020g';
-import { openVoidModal } from '../../../components/ui/void-record.js?v=20261020g';
-import { addExternalDispatch, loadExternalDispatches, loadActiveDispatches } from '../../../services/activity/external-dispatch.js?v=20261020g';
+import * as SoftVoid from '../../../services/governance/soft-void.js?v=20261020h';
+import { openVoidModal } from '../../../components/ui/void-record.js?v=20261020h';
+import { addExternalDispatch, loadExternalDispatches, loadActiveDispatches } from '../../../services/activity/external-dispatch.js?v=20261020h';
 // R2-40：归档材料写口（mock/api 同源）——api 落 archive_records、mock 落 localStorage
-import { ArchiveStore } from '../../../services/activity/archive.js?v=20261020g';
+import { ArchiveStore } from '../../../services/activity/archive.js?v=20261020h';
 // A② 归档缺口判据单一源（支书台「宣传材料待归档」实时组同源）：已归档但无归档记录的活动
-import { getArchiveGapActivities, getEndedUnarchivedActivities } from '../../../services/governance/secretary-overview.js?v=20261020g';
+import { getArchiveGapActivities, getEndedUnarchivedActivities } from '../../../services/governance/secretary-overview.js?v=20261020h';
 // 活动归档写口（与支书台活动管理同源：软删 archived=true + 级联完成下属任务）
-import { BranchService } from '../../../services/core/runtime.js?v=20261020g';
+import { BranchService } from '../../../services/core/runtime.js?v=20261020h';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是活动的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
-import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261020g';
+import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261020h';
 // 材料页深链 focusActivityId 的通用定位（只滚动 + 闪烁，不另造筛选器）
-import { focusActivityAnchor } from '../../../components/ui/detail-anchor.js?v=20261020g';
+import { focusActivityAnchor } from '../../../components/ui/detail-anchor.js?v=20261020h';
 
 // ── 档案归档 ─────────────────────────────────────────────
 // 种子数据已提升为全局（data/mock/seed.js SEED_ARCHIVE_RECORDS，loadDB 时注入），
@@ -433,7 +434,7 @@ let _weeklyOpen = false;
 /** 懒挂周报内容到宿主容器（`weekly-tab.js` 的 `renderContent(ctx, host)` 已支持传入宿主） */
 function _mountWeekly(host, ctx) {
   host.dataset.weeklyMounted = '1';
-  import('./weekly-tab.js?v=20261020g').then(m => {
+  import('./weekly-tab.js?v=20261020h').then(m => {
     if (host.isConnected) m.renderContent(ctx, host);
   });
 }
@@ -876,155 +877,138 @@ const UPLOAD_MAX_MOCK_MB = 2;  // mock 模式 localStorage 容量约束（base64
 const UPLOAD_MAX_SERVER_MB = 10; // 与 server/routes/uploads.js 服务端限制一致
 
 function _showArchiveUploadModal(ctx) {
-  // 移除已有模态
-  const existing = document.getElementById('archive-upload-modal');
-  if (existing) existing.remove();
-
+  const MODAL_ID = 'archive-upload';
   const activities = loadActivities();
   const apiMode = isApiMode();
   const maxMB = apiMode ? UPLOAD_MAX_SERVER_MB : UPLOAD_MAX_MOCK_MB;
-
-  const overlay = document.createElement('div');
-  overlay.id = 'archive-upload-modal';
-  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px;';
-
-  const card = document.createElement('div');
-  card.style.cssText = 'background:var(--surface-card);border-radius:14px;padding:0;max-width:440px;width:100%;box-shadow:0 12px 40px rgba(0,0,0,0.18);max-height:86vh;display:flex;flex-direction:column;';
 
   // T223 排序统一：关联活动下拉按 date 降序（新者在前），与全站一致
   const sortedActivities = [...activities].sort((a, b) => (b.date || '').localeCompare(a.date || ''));
   const activityOptions = sortedActivities.length === 0
     ? '<option value="">（暂无活动，请先创建）</option>'
     : `<option value="">请选择关联活动</option>` + sortedActivities.map(a =>
-        `<option value="${a.id}">${a.title}（${a.date || '未定日期'}）</option>`
+        `<option value="${a.id}">${escHtml(a.title)}（${escHtml(a.date || '未定日期')}）</option>`
       ).join('');
-
-  card.innerHTML = `
-    <div class="px-5 pt-4 pb-3 border-b border-gray-100 flex items-center justify-between">
-      <h3 class="font-title-cn text-sm font-semibold text-gray-800">上传宣传材料</h3>
-      <button id="upload-modal-close" class="btn-ghost text-sm leading-none">&times;</button>
-    </div>
-    <div class="px-5 py-4 space-y-3.5 overflow-y-auto">
-      <div>
-        <label class="text-xs text-gray-500 mb-1.5 block font-medium">关联活动 <span class="text-red-600">*</span></label>
-        <select id="upload-activity" class="input-flat w-full">${activityOptions}</select>
-      </div>
-      <div>
-        <label class="text-xs text-gray-500 mb-1.5 block font-medium" for="upload-category">材料类别</label>
-        <select id="upload-category" class="input-flat w-full">
-          ${MATERIAL_STANDARDS.map(s => `<option value="${s.category}">${s.category}</option>`).join('')}
-        </select>
-      </div>
-      <div>
-        <label class="text-xs text-gray-500 mb-1.5 block font-medium" for="upload-file">选择文件（可多选）</label>
-        <input id="upload-file" type="file" multiple
-          accept=".jpg,.jpeg,.png,.pdf,.doc,.docx,.xlsx,.mp4"
-          class="block w-full text-xs text-gray-600 file:mr-3 file:px-3 file:py-1.5 file:rounded-lg file:border-0 file:bg-blue-50 file:text-blue-600 file:text-xs hover:file:bg-blue-100 transition-colors cursor-pointer" />
-        <div id="upload-preview" class="mt-2 space-y-1.5"></div>
-      </div>
-      <div class="rounded-lg px-3 py-2 text-[11px] leading-relaxed ${apiMode ? 'bg-teal-50 text-teal-700 border border-teal-100' : 'bg-amber-50 text-amber-700 border border-amber-100'}">
-        ${apiMode
-          ? '服务端模式：文件落服务器磁盘（jpg/png/pdf/doc/docx/xlsx/mp4，单文件 ≤' + maxMB + 'MB），元数据写入文件空间记录，产出物区同步可见。'
-          : '本地模式：文件以 base64 存入本地存储（单文件 ≤' + maxMB + 'MB），刷新不丢失；产出物区/关闭校验同步可见。'}
-      </div>
-    </div>
-    <div class="flex justify-end gap-2 px-5 py-3 border-t border-gray-100">
-      <button id="upload-cancel" class="btn-ghost text-xs px-3 py-1.5">取消</button>
-      <button id="upload-confirm" class="btn-accent-soft text-xs px-3 py-1.5" >上传</button>
-    </div>
-    ${settingsLinkHTML({ href: './settings.html', text: '设置首页（宣传台无支部治理分区）' })}
-  `;
-
-  overlay.appendChild(card);
-  document.body.appendChild(overlay);
 
   let selectedFiles = [];
   let previewUrls = [];
-
-  const closeModal = () => {
+  /** 取消 / 关闭 / 上传成功后都要撤销预览 URL（M-5：取消＝放弃，不能留临时资源） */
+  const cleanup = () => {
     previewUrls.forEach(u => URL.revokeObjectURL(u));
-    overlay.remove();
+    previewUrls = [];
   };
 
-  const renderPreview = () => {
-    const previewEl = card.querySelector('#upload-preview');
-    previewEl.innerHTML = selectedFiles.map((f, i) => {
-      const isImage = f.type && f.type.startsWith('image/');
-      const thumb = isImage
-        ? `<img src="${previewUrls[i]}" class="w-9 h-9 rounded object-cover border border-gray-200 flex-shrink-0" alt="" />`
-        : `<span class="w-9 h-9 rounded flex items-center justify-center flex-shrink-0" style="--acc-bg-dark:rgba(96,165,250,0.16);--acc-text-dark:#60A5FA;background:rgba(59,130,246,0.1);color:var(--accent-blue);">${icon('fileText', { className: 'w-4 h-4' })}</span>`;
-      return `<div class="flex items-center gap-2 p-2 rounded-lg bg-gray-50">
-        ${thumb}
-        <div class="flex-1 min-w-0">
-          <p class="text-xs text-gray-700 truncate">${escHtml(f.name)}</p>
-          <p class="text-[11px] text-gray-500">${(f.size / 1024).toFixed(1)} KB</p>
+  openModal({
+    id: MODAL_ID,
+    title: '上传宣传材料',
+    width: '440px',
+    bodyHtml: `
+      <div class="space-y-3.5">
+        <div>
+          <label class="text-xs text-gray-500 mb-1.5 block font-medium">关联活动 <span class="text-red-600">*</span></label>
+          <select id="upload-activity" class="input-flat w-full">${activityOptions}</select>
         </div>
-        <button class="btn-ghost upload-file-remove text-sm leading-none" data-idx="${i}">&times;</button>
-      </div>`;
-    }).join('') || '<p class="text-xs text-gray-500 text-center py-3">尚未选择文件</p>';
-  };
+        <div>
+          <label class="text-xs text-gray-500 mb-1.5 block font-medium" for="upload-category">材料类别</label>
+          <select id="upload-category" class="input-flat w-full">
+            ${MATERIAL_STANDARDS.map(s => `<option value="${s.category}">${s.category}</option>`).join('')}
+          </select>
+        </div>
+        <div>
+          <label class="text-xs text-gray-500 mb-1.5 block font-medium" for="upload-file">选择文件（可多选）</label>
+          <input id="upload-file" type="file" multiple
+            accept=".jpg,.jpeg,.png,.pdf,.doc,.docx,.xlsx,.mp4"
+            class="block w-full text-xs text-gray-600 file:mr-3 file:px-3 file:py-1.5 file:rounded-lg file:border-0 file:bg-blue-50 file:text-blue-600 file:text-xs hover:file:bg-blue-100 transition-colors cursor-pointer" />
+          <div id="upload-preview" class="mt-2 space-y-1.5"></div>
+        </div>
+        <div class="rounded-lg px-3 py-2 text-[11px] leading-relaxed ${apiMode ? 'bg-teal-50 text-teal-700 border border-teal-100' : 'bg-amber-50 text-amber-700 border border-amber-100'}">
+          ${apiMode
+            ? '服务端模式：文件落服务器磁盘（jpg/png/pdf/doc/docx/xlsx/mp4，单文件 ≤' + maxMB + 'MB），元数据写入文件空间记录，产出物区同步可见。'
+            : '本地模式：文件以 base64 存入本地存储（单文件 ≤' + maxMB + 'MB），刷新不丢失；产出物区/关闭校验同步可见。'}
+        </div>
+      </div>`,
+    footerHtml: `
+      <button id="upload-cancel" type="button" data-modal-cancel="${MODAL_ID}" class="btn-ghost text-xs px-3 py-1.5">取消</button>
+      <button id="upload-confirm" type="button" class="btn-accent-soft text-xs px-3 py-1.5" style="cursor:pointer">上传</button>`,
+    settingsLink: { href: './settings.html', text: '设置首页（宣传台无支部治理分区）' },
+    onCancel: cleanup,
+    onMount: (card) => {
+      const renderPreview = () => {
+        const previewEl = card.querySelector('#upload-preview');
+        previewEl.innerHTML = selectedFiles.map((f, i) => {
+          const isImage = f.type && f.type.startsWith('image/');
+          const thumb = isImage
+            ? `<img src="${previewUrls[i]}" class="w-9 h-9 rounded object-cover border border-gray-200 flex-shrink-0" alt="" />`
+            : `<span class="w-9 h-9 rounded flex items-center justify-center flex-shrink-0" style="--acc-bg-dark:rgba(96,165,250,0.16);--acc-text-dark:#60A5FA;background:rgba(59,130,246,0.1);color:var(--accent-blue);">${icon('fileText', { className: 'w-4 h-4' })}</span>`;
+          return `<div class="flex items-center gap-2 p-2 rounded-lg bg-gray-50">
+            ${thumb}
+            <div class="flex-1 min-w-0">
+              <p class="text-xs text-gray-700 truncate">${escHtml(f.name)}</p>
+              <p class="text-[11px] text-gray-500">${(f.size / 1024).toFixed(1)} KB</p>
+            </div>
+            <button class="btn-ghost upload-file-remove text-sm leading-none" data-idx="${i}">&times;</button>
+          </div>`;
+        }).join('') || '<p class="text-xs text-gray-500 text-center py-3">尚未选择文件</p>';
+      };
 
-  // 文件选择：过滤超限文件并渲染预览
-  card.querySelector('#upload-file').addEventListener('change', (e) => {
-    const files = Array.from(e.target.files || []);
-    const maxBytes = maxMB * 1024 * 1024;
-    const oversized = files.filter(f => f.size > maxBytes);
-    if (oversized.length > 0) {
-      showToast('error', `${oversized.map(f => f.name).join('、')} 超出 ${maxMB}MB 限制，已剔除`);
-    }
-    selectedFiles = files.filter(f => f.size <= maxBytes);
-    previewUrls.forEach(u => URL.revokeObjectURL(u));
-    previewUrls = selectedFiles.map(f => URL.createObjectURL(f));
-    renderPreview();
+      // 文件选择：过滤超限文件并渲染预览
+      card.querySelector('#upload-file').addEventListener('change', (e) => {
+        const files = Array.from(e.target.files || []);
+        const maxBytes = maxMB * 1024 * 1024;
+        const oversized = files.filter(f => f.size > maxBytes);
+        if (oversized.length > 0) {
+          showToast('error', `${oversized.map(f => f.name).join('、')} 超出 ${maxMB}MB 限制，已剔除`);
+        }
+        selectedFiles = files.filter(f => f.size <= maxBytes);
+        cleanup();
+        previewUrls = selectedFiles.map(f => URL.createObjectURL(f));
+        renderPreview();
+      });
+
+      // 移除单个文件
+      card.querySelector('#upload-preview').addEventListener('click', (e) => {
+        const btn = e.target.closest('.upload-file-remove');
+        if (!btn) return;
+        const idx = Number(btn.dataset.idx);
+        selectedFiles.splice(idx, 1);
+        URL.revokeObjectURL(previewUrls[idx]);
+        previewUrls.splice(idx, 1);
+        renderPreview();
+      });
+
+      // 提交上传
+      card.querySelector('#upload-confirm').addEventListener('click', async () => {
+        const activityId = card.querySelector('#upload-activity').value;
+        const category = card.querySelector('#upload-category').value;
+        if (!activityId) {
+          showToast('error', '请先选择关联活动');
+          return;
+        }
+        if (selectedFiles.length === 0) {
+          showToast('error', '请先选择文件');
+          return;
+        }
+        const activity = activities.find(a => a.id === activityId);
+        const confirmBtn = card.querySelector('#upload-confirm');
+        confirmBtn.disabled = true;
+        confirmBtn.textContent = '上传中…';
+        try {
+          const saved = await _handleArchiveUpload(selectedFiles, activityId, activity ? activity.title : '', category);
+          if (saved > 0) {
+            showToast('success', `已归档 ${saved} 项宣传材料`);
+            // C④ 2026-09-10 裁定：上传成功不再无条件弹「文件外发确认」二次浮窗，
+            // 外发改由归档行内「标记已发送（微信/对外）」按钮按需触发（见 _archiveRowHtml）。
+            cleanup();
+            closeModal(MODAL_ID);
+            renderContent(ctx);
+          }
+        } finally {
+          confirmBtn.disabled = false;
+          confirmBtn.textContent = '上传';
+        }
+      });
+    },
   });
-
-  // 移除单个文件
-  card.querySelector('#upload-preview').addEventListener('click', (e) => {
-    const btn = e.target.closest('.upload-file-remove');
-    if (!btn) return;
-    const idx = Number(btn.dataset.idx);
-    selectedFiles.splice(idx, 1);
-    URL.revokeObjectURL(previewUrls[idx]);
-    previewUrls.splice(idx, 1);
-    renderPreview();
-  });
-
-  // 提交上传
-  card.querySelector('#upload-confirm').addEventListener('click', async () => {
-    const activityId = card.querySelector('#upload-activity').value;
-    const category = card.querySelector('#upload-category').value;
-    if (!activityId) {
-      showToast('error', '请先选择关联活动');
-      return;
-    }
-    if (selectedFiles.length === 0) {
-      showToast('error', '请先选择文件');
-      return;
-    }
-    const activity = activities.find(a => a.id === activityId);
-    const confirmBtn = card.querySelector('#upload-confirm');
-    confirmBtn.disabled = true;
-    confirmBtn.textContent = '上传中…';
-    try {
-      const saved = await _handleArchiveUpload(selectedFiles, activityId, activity ? activity.title : '', category);
-      if (saved > 0) {
-        showToast('success', `已归档 ${saved} 项宣传材料`);
-        // C④ 2026-09-10 裁定：上传成功不再无条件弹「文件外发确认」二次浮窗，
-        // 外发改由归档行内「标记已发送（微信/对外）」按钮按需触发（见 _archiveRowHtml）。
-        closeModal();
-        renderContent(ctx);
-      }
-    } finally {
-      confirmBtn.disabled = false;
-      confirmBtn.textContent = '上传';
-    }
-  });
-
-  // 关闭
-  card.querySelector('#upload-modal-close').addEventListener('click', closeModal);
-  card.querySelector('#upload-cancel').addEventListener('click', closeModal);
-  overlay.addEventListener('click', e => { if (e.target === overlay) closeModal(); });
-  card.addEventListener('click', e => e.stopPropagation());
 }
 
 /** 文件流外发确认（支书 2026-08-10 裁定；C④ 2026-09-10 改为行内按需触发）：
@@ -1038,15 +1022,13 @@ function _promptExternalDispatch(activityId, activityName, ctx, onSent) {
     { value: 'disc-commissioner', label: '纪检委员（留档）' },
     { value: 'org-commissioner', label: '组织委员' },
   ];
-  const overlay = document.createElement('div');
-  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(15,23,42,0.4);display:flex;align-items:center;justify-content:center;z-index:200;';
-  overlay.innerHTML = `
-    <div class="card rounded-xl w-full max-w-md" style="max-height:80vh;overflow-y:auto;">
-      <div class="px-5 pt-4 pb-3 border-b border-gray-100 flex items-center justify-between">
-        <h3 class="font-title-cn text-sm font-semibold text-gray-800">文件外发确认</h3>
-        <button id="ed-modal-close" class="btn-ghost text-sm leading-none">&times;</button>
-      </div>
-      <div class="px-5 py-4 space-y-3.5">
+  const MODAL_ID = 'external-dispatch';
+  openModal({
+    id: MODAL_ID,
+    title: '文件外发确认',
+    size: 'md',
+    bodyHtml: `
+      <div class="space-y-3.5">
         <div class="rounded-lg px-3 py-2 text-[11px] leading-relaxed bg-amber-50 text-amber-700 border border-amber-100">
           宣传材料已归档到系统。若还需通过<b>微信</b>把文件发给对方确认（如新闻稿送支书审核），
           请在此标记「已外发」——对方收到后会在其工作台确认，形成可审计记录（谁 / 何时 / 发给谁 / 何时确认）。
@@ -1061,32 +1043,27 @@ function _promptExternalDispatch(activityId, activityName, ctx, onSent) {
           <label class="text-xs text-gray-500 mb-1.5 block font-medium" for="ed-note">备注（可选）</label>
           <input id="ed-note" type="text" class="input-flat w-full" placeholder="如：新闻稿终稿，请审核…" />
         </div>
-      </div>
-      <div class="flex justify-end gap-2 px-5 py-3 border-t border-gray-100">
-        <button id="ed-skip" class="btn-ghost text-xs px-3 py-1.5">暂不外发</button>
-        <button id="ed-confirm" class="btn-accent-soft text-xs px-3 py-1.5" style="cursor:pointer">标记已通过微信发送</button>
-      </div>
-    </div>
-  `;
-  document.body.appendChild(overlay);
-  const close = () => overlay.remove();
-  overlay.querySelector('#ed-modal-close').addEventListener('click', close);
-  overlay.querySelector('#ed-skip').addEventListener('click', close);
-  overlay.addEventListener('click', e => { if (e.target === overlay) close(); });
-  overlay.querySelector('#ed-confirm').addEventListener('click', () => {
-    const receiverRole = overlay.querySelector('#ed-receiver').value;
-    const note = overlay.querySelector('#ed-note').value.trim();
-    addExternalDispatch({
-      refType: 'publicity',
-      refLabel: `宣传材料：${activityName || '未命名活动'}`,
-      senderId: user.personId,
-      senderName: getPersonName(user.personId) || '宣传委员',
-      receiverRole,
-      note,
-    });
-    showToast('success', '已标记外发，对方确认后完成');
-    close();
-    if (typeof onSent === 'function') onSent();
+      </div>`,
+    footerHtml: `
+      <button id="ed-skip" type="button" data-modal-cancel="${MODAL_ID}" class="btn-ghost text-xs px-3 py-1.5">暂不外发</button>
+      <button id="ed-confirm" type="button" class="btn-accent-soft text-xs px-3 py-1.5" style="cursor:pointer">标记已通过微信发送</button>`,
+    onMount: (panel) => {
+      panel.querySelector('#ed-confirm').addEventListener('click', () => {
+        const receiverRole = panel.querySelector('#ed-receiver').value;
+        const note = panel.querySelector('#ed-note').value.trim();
+        addExternalDispatch({
+          refType: 'publicity',
+          refLabel: `宣传材料：${activityName || '未命名活动'}`,
+          senderId: user.personId,
+          senderName: getPersonName(user.personId) || '宣传委员',
+          receiverRole,
+          note,
+        });
+        showToast('success', '已标记外发，对方确认后完成');
+        closeModal(MODAL_ID);
+        if (typeof onSent === 'function') onSent();
+      });
+    },
   });
 }
 
@@ -1308,124 +1285,115 @@ async function _photoObjectUrl(filePath) {
 
 /** 上传照片浮窗（关联活动 / 拍摄日期 / 标题 / 拍摄主体 + 多选图片） */
 function _showPhotoUploadModal(ctx) {
-  const existing = document.getElementById('photo-upload-modal');
-  if (existing) existing.remove();
-
+  const MODAL_ID = 'photo-upload';
   const activities = [...loadActivities()].sort((a, b) => (b.date || '').localeCompare(a.date || ''));
   const today = todayLocal();
   const activityOptions = `<option value="">（不关联活动）</option>` + activities.map(a =>
     `<option value="${a.id}">${escHtml(a.title)}（${escHtml(a.date || '未定日期')}）</option>`).join('');
 
-  const overlay = document.createElement('div');
-  overlay.id = 'photo-upload-modal';
-  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px;';
-
-  const card = document.createElement('div');
-  card.style.cssText = 'background:var(--surface-card);border-radius:14px;padding:0;max-width:440px;width:100%;box-shadow:0 12px 40px rgba(0,0,0,0.18);max-height:86vh;display:flex;flex-direction:column;';
-  card.innerHTML = `
-    <div class="px-5 pt-4 pb-3 border-b border-gray-100 flex items-center justify-between">
-      <h3 class="font-title-cn text-sm font-semibold text-gray-800">上传照片</h3>
-      <button id="photo-upload-close" class="btn-ghost text-sm leading-none">&times;</button>
-    </div>
-    <div class="px-5 py-4 space-y-3.5 overflow-y-auto">
-      <div>
-        <label class="text-xs text-gray-500 mb-1.5 block font-medium" for="photo-upload-activity">关联活动（可不选）</label>
-        <select id="photo-upload-activity" class="input-flat w-full">${activityOptions}</select>
-      </div>
-      <div>
-        <label class="text-xs text-gray-500 mb-1.5 block font-medium" for="photo-upload-date">拍摄日期</label>
-        <input id="photo-upload-date" type="date" class="input-flat w-full" value="${today}" />
-      </div>
-      <div>
-        <label class="text-xs text-gray-500 mb-1.5 block font-medium" for="photo-upload-title">标题</label>
-        <input id="photo-upload-title" type="text" class="input-flat w-full" placeholder="如：主题党日合影（留空取文件名）" />
-      </div>
-      <div>
-        <label class="text-xs text-gray-500 mb-1.5 block font-medium" for="photo-upload-subject">拍摄主体</label>
-        <input id="photo-upload-subject" type="text" class="input-flat w-full" placeholder="如：全体党员 / 主讲人 / 会场全景" />
-      </div>
-      <div>
-        <label class="text-xs text-gray-500 mb-1.5 block font-medium" for="photo-upload-file">选择图片（可多选）</label>
-        <input id="photo-upload-file" type="file" multiple accept=".jpg,.jpeg,.png"
-          class="block w-full text-xs text-gray-600 file:mr-3 file:px-3 file:py-1.5 file:rounded-lg file:border-0 file:bg-blue-50 file:text-blue-600 file:text-xs hover:file:bg-blue-100 transition-colors cursor-pointer" />
-        <div id="photo-upload-preview" class="mt-2 space-y-1.5"></div>
-      </div>
-      <div class="rounded-lg px-3 py-2 text-[11px] leading-relaxed bg-teal-50 text-teal-700 border border-teal-100">
-        照片走服务端上传接口（jpg / png，单张 ≤10MB）落盘，元数据进图片记录；同批照片共用上方日期与标注。
-      </div>
-    </div>
-    <div class="flex justify-end gap-2 px-5 py-3 border-t border-gray-100">
-      <button id="photo-upload-cancel" class="btn-ghost text-xs px-3 py-1.5">取消</button>
-      <button id="photo-upload-confirm" class="btn-accent-soft text-xs px-3 py-1.5" style="cursor:pointer">上传</button>
-    </div>
-  `;
-  overlay.appendChild(card);
-  document.body.appendChild(overlay);
-
   let selectedFiles = [];
   let previewUrls = [];
-  const closeModal = () => { previewUrls.forEach(u => URL.revokeObjectURL(u)); overlay.remove(); };
-  const renderPreview = () => {
-    card.querySelector('#photo-upload-preview').innerHTML = selectedFiles.map((f, i) => `
-      <div class="flex items-center gap-2 p-2 rounded-lg bg-gray-50">
-        <img src="${previewUrls[i]}" class="w-9 h-9 rounded object-cover border border-gray-200 flex-shrink-0" alt="" />
-        <div class="flex-1 min-w-0">
-          <p class="text-xs text-gray-700 truncate">${escHtml(f.name)}</p>
-          <p class="text-[11px] text-gray-500">${(f.size / 1024).toFixed(1)} KB</p>
-        </div>
-        <button class="btn-ghost photo-file-remove text-sm leading-none" data-idx="${i}">&times;</button>
-      </div>`).join('') || '<p class="text-xs text-gray-500 text-center py-3">尚未选择图片</p>';
+  const cleanup = () => {
+    previewUrls.forEach(u => URL.revokeObjectURL(u));
+    previewUrls = [];
   };
 
-  card.querySelector('#photo-upload-file').addEventListener('change', (e) => {
-    const maxBytes = UPLOAD_MAX_SERVER_MB * 1024 * 1024; // 与 server/routes/uploads.js 同一上限
-    const files = Array.from(e.target.files || []);
-    const oversized = files.filter(f => f.size > maxBytes);
-    if (oversized.length > 0) showToast('error', `${oversized.map(f => f.name).join('、')} 超出 ${UPLOAD_MAX_SERVER_MB}MB 限制，已剔除`);
-    selectedFiles = files.filter(f => f.size <= maxBytes);
-    previewUrls.forEach(u => URL.revokeObjectURL(u));
-    previewUrls = selectedFiles.map(f => URL.createObjectURL(f));
-    renderPreview();
-  });
+  openModal({
+    id: MODAL_ID,
+    title: '上传照片',
+    width: '440px',
+    bodyHtml: `
+      <div class="space-y-3.5">
+        <div>
+          <label class="text-xs text-gray-500 mb-1.5 block font-medium" for="photo-upload-activity">关联活动（可不选）</label>
+          <select id="photo-upload-activity" class="input-flat w-full">${activityOptions}</select>
+        </div>
+        <div>
+          <label class="text-xs text-gray-500 mb-1.5 block font-medium" for="photo-upload-date">拍摄日期</label>
+          <input id="photo-upload-date" type="date" class="input-flat w-full" value="${today}" />
+        </div>
+        <div>
+          <label class="text-xs text-gray-500 mb-1.5 block font-medium" for="photo-upload-title">标题</label>
+          <input id="photo-upload-title" type="text" class="input-flat w-full" placeholder="如：主题党日合影（留空取文件名）" />
+        </div>
+        <div>
+          <label class="text-xs text-gray-500 mb-1.5 block font-medium" for="photo-upload-subject">拍摄主体</label>
+          <input id="photo-upload-subject" type="text" class="input-flat w-full" placeholder="如：全体党员 / 主讲人 / 会场全景" />
+        </div>
+        <div>
+          <label class="text-xs text-gray-500 mb-1.5 block font-medium" for="photo-upload-file">选择图片（可多选）</label>
+          <input id="photo-upload-file" type="file" multiple accept=".jpg,.jpeg,.png"
+            class="block w-full text-xs text-gray-600 file:mr-3 file:px-3 file:py-1.5 file:rounded-lg file:border-0 file:bg-blue-50 file:text-blue-600 file:text-xs hover:file:bg-blue-100 transition-colors cursor-pointer" />
+          <div id="photo-upload-preview" class="mt-2 space-y-1.5"></div>
+        </div>
+        <div class="rounded-lg px-3 py-2 text-[11px] leading-relaxed bg-teal-50 text-teal-700 border border-teal-100">
+          照片走服务端上传接口（jpg / png，单张 ≤10MB）落盘，元数据进图片记录；同批照片共用上方日期与标注。
+        </div>
+      </div>`,
+    footerHtml: `
+      <button id="photo-upload-cancel" type="button" data-modal-cancel="${MODAL_ID}" class="btn-ghost text-xs px-3 py-1.5">取消</button>
+      <button id="photo-upload-confirm" type="button" class="btn-accent-soft text-xs px-3 py-1.5" style="cursor:pointer">上传</button>`,
+    onCancel: cleanup,
+    onMount: (card) => {
+      const renderPreview = () => {
+        card.querySelector('#photo-upload-preview').innerHTML = selectedFiles.map((f, i) => `
+          <div class="flex items-center gap-2 p-2 rounded-lg bg-gray-50">
+            <img src="${previewUrls[i]}" class="w-9 h-9 rounded object-cover border border-gray-200 flex-shrink-0" alt="" />
+            <div class="flex-1 min-w-0">
+              <p class="text-xs text-gray-700 truncate">${escHtml(f.name)}</p>
+              <p class="text-[11px] text-gray-500">${(f.size / 1024).toFixed(1)} KB</p>
+            </div>
+            <button class="btn-ghost photo-file-remove text-sm leading-none" data-idx="${i}">&times;</button>
+          </div>`).join('') || '<p class="text-xs text-gray-500 text-center py-3">尚未选择图片</p>';
+      };
 
-  card.querySelector('#photo-upload-preview').addEventListener('click', (e) => {
-    const btn = e.target.closest('.photo-file-remove');
-    if (!btn) return;
-    const idx = Number(btn.dataset.idx);
-    selectedFiles.splice(idx, 1);
-    URL.revokeObjectURL(previewUrls[idx]);
-    previewUrls.splice(idx, 1);
-    renderPreview();
-  });
+      card.querySelector('#photo-upload-file').addEventListener('change', (e) => {
+        const maxBytes = UPLOAD_MAX_SERVER_MB * 1024 * 1024; // 与 server/routes/uploads.js 同一上限
+        const files = Array.from(e.target.files || []);
+        const oversized = files.filter(f => f.size > maxBytes);
+        if (oversized.length > 0) showToast('error', `${oversized.map(f => f.name).join('、')} 超出 ${UPLOAD_MAX_SERVER_MB}MB 限制，已剔除`);
+        selectedFiles = files.filter(f => f.size <= maxBytes);
+        cleanup();
+        previewUrls = selectedFiles.map(f => URL.createObjectURL(f));
+        renderPreview();
+      });
 
-  card.querySelector('#photo-upload-confirm').addEventListener('click', async () => {
-    if (selectedFiles.length === 0) { showToast('error', '请先选择图片'); return; }
-    const meta = {
-      date: card.querySelector('#photo-upload-date').value || today,
-      title: card.querySelector('#photo-upload-title').value.trim(),
-      subject: card.querySelector('#photo-upload-subject').value.trim(),
-      activityId: card.querySelector('#photo-upload-activity').value,
-    };
-    const confirmBtn = card.querySelector('#photo-upload-confirm');
-    confirmBtn.disabled = true;
-    confirmBtn.textContent = '上传中…';
-    try {
-      const saved = await _handlePhotoUpload(selectedFiles, meta);
-      if (saved > 0) {
-        showToast('success', `已上传 ${saved} 张照片，照片墙按拍摄日期分组展示`);
-        closeModal();
-        renderContent(ctx);
-      }
-    } finally {
-      confirmBtn.disabled = false;
-      confirmBtn.textContent = '上传';
-    }
-  });
+      card.querySelector('#photo-upload-preview').addEventListener('click', (e) => {
+        const btn = e.target.closest('.photo-file-remove');
+        if (!btn) return;
+        const idx = Number(btn.dataset.idx);
+        selectedFiles.splice(idx, 1);
+        URL.revokeObjectURL(previewUrls[idx]);
+        previewUrls.splice(idx, 1);
+        renderPreview();
+      });
 
-  card.querySelector('#photo-upload-close').addEventListener('click', closeModal);
-  card.querySelector('#photo-upload-cancel').addEventListener('click', closeModal);
-  overlay.addEventListener('click', e => { if (e.target === overlay) closeModal(); });
-  card.addEventListener('click', e => e.stopPropagation());
+      card.querySelector('#photo-upload-confirm').addEventListener('click', async () => {
+        if (selectedFiles.length === 0) { showToast('error', '请先选择图片'); return; }
+        const meta = {
+          date: card.querySelector('#photo-upload-date').value || today,
+          title: card.querySelector('#photo-upload-title').value.trim(),
+          subject: card.querySelector('#photo-upload-subject').value.trim(),
+          activityId: card.querySelector('#photo-upload-activity').value,
+        };
+        const confirmBtn = card.querySelector('#photo-upload-confirm');
+        confirmBtn.disabled = true;
+        confirmBtn.textContent = '上传中…';
+        try {
+          const saved = await _handlePhotoUpload(selectedFiles, meta);
+          if (saved > 0) {
+            showToast('success', `已上传 ${saved} 张照片，照片墙按拍摄日期分组展示`);
+            cleanup();
+            closeModal(MODAL_ID);
+            renderContent(ctx);
+          }
+        } finally {
+          confirmBtn.disabled = false;
+          confirmBtn.textContent = '上传';
+        }
+      });
+    },
+  });
 }
 
 /** 上传本体：文件 → 上传接口（拿 path）→ 元数据 → imageRecords（服务端表 + 内存同源） */
@@ -1470,70 +1438,57 @@ async function _handlePhotoUpload(files, meta) {
 
 /** 标注浮窗（日期 / 标题 / 拍摄主体 / 关联活动） */
 function _showPhotoAnnotateModal(record, ctx) {
-  const existing = document.getElementById('photo-annotate-modal');
-  if (existing) existing.remove();
+  const MODAL_ID = 'photo-annotate';
   const activities = [...loadActivities()].sort((a, b) => (b.date || '').localeCompare(a.date || ''));
   const activityOptions = `<option value="">（不关联活动）</option>` + activities.map(a =>
     `<option value="${a.id}"${a.id === record.activityId ? ' selected' : ''}>${escHtml(a.title)}（${escHtml(a.date || '未定日期')}）</option>`).join('');
 
-  const overlay = document.createElement('div');
-  overlay.id = 'photo-annotate-modal';
-  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px;';
-  const card = document.createElement('div');
-  card.style.cssText = 'background:var(--surface-card);border-radius:14px;padding:0;max-width:440px;width:100%;box-shadow:0 12px 40px rgba(0,0,0,0.18);';
-  card.innerHTML = `
-    <div class="px-5 pt-4 pb-3 border-b border-gray-100 flex items-center justify-between">
-      <h3 class="font-title-cn text-sm font-semibold text-gray-800">标注照片</h3>
-      <button id="photo-annotate-close" class="btn-ghost text-sm leading-none">&times;</button>
-    </div>
-    <div class="px-5 py-4 space-y-3.5">
-      <p class="text-xs text-gray-500">${escHtml(record.fileName || '照片')}</p>
-      <div>
-        <label class="text-xs text-gray-500 mb-1.5 block font-medium" for="photo-annotate-date">拍摄日期</label>
-        <input id="photo-annotate-date" type="date" class="input-flat w-full" value="${escHtml(record.date || '')}" />
-      </div>
-      <div>
-        <label class="text-xs text-gray-500 mb-1.5 block font-medium" for="photo-annotate-title">标题</label>
-        <input id="photo-annotate-title" type="text" class="input-flat w-full" value="${escHtml(record.title || '')}" />
-      </div>
-      <div>
-        <label class="text-xs text-gray-500 mb-1.5 block font-medium" for="photo-annotate-subject">拍摄主体</label>
-        <input id="photo-annotate-subject" type="text" class="input-flat w-full" value="${escHtml(record.subject || '')}" />
-      </div>
-      <div>
-        <label class="text-xs text-gray-500 mb-1.5 block font-medium" for="photo-annotate-activity">关联活动（可不选）</label>
-        <select id="photo-annotate-activity" class="input-flat w-full">${activityOptions}</select>
-      </div>
-    </div>
-    <div class="flex justify-end gap-2 px-5 py-3 border-t border-gray-100">
-      <button id="photo-annotate-cancel" class="btn-ghost text-xs px-3 py-1.5">取消</button>
-      <button id="photo-annotate-confirm" class="btn-accent-soft text-xs px-3 py-1.5" style="cursor:pointer">保存</button>
-    </div>
-  `;
-  overlay.appendChild(card);
-  document.body.appendChild(overlay);
-  const close = () => overlay.remove();
-
-  card.querySelector('#photo-annotate-confirm').addEventListener('click', async () => {
-    const patch = {
-      date: card.querySelector('#photo-annotate-date').value || record.date || '',
-      title: card.querySelector('#photo-annotate-title').value.trim(),
-      subject: card.querySelector('#photo-annotate-subject').value.trim(),
-      activityId: card.querySelector('#photo-annotate-activity').value,
-    };
-    try {
-      await _savePhotoAnnotation(record.id, patch);
-      showToast('success', '标注已保存');
-      close();
-      renderContent(ctx);
-    } catch (err) {
-      showToast('error', `保存失败：${(err && err.message) || err}`);
-    }
+  openModal({
+    id: MODAL_ID,
+    title: '标注照片',
+    width: '440px',
+    bodyHtml: `
+      <div class="space-y-3.5">
+        <p class="text-xs text-gray-500">${escHtml(record.fileName || '照片')}</p>
+        <div>
+          <label class="text-xs text-gray-500 mb-1.5 block font-medium" for="photo-annotate-date">拍摄日期</label>
+          <input id="photo-annotate-date" type="date" class="input-flat w-full" value="${escHtml(record.date || '')}" />
+        </div>
+        <div>
+          <label class="text-xs text-gray-500 mb-1.5 block font-medium" for="photo-annotate-title">标题</label>
+          <input id="photo-annotate-title" type="text" class="input-flat w-full" value="${escHtml(record.title || '')}" />
+        </div>
+        <div>
+          <label class="text-xs text-gray-500 mb-1.5 block font-medium" for="photo-annotate-subject">拍摄主体</label>
+          <input id="photo-annotate-subject" type="text" class="input-flat w-full" value="${escHtml(record.subject || '')}" />
+        </div>
+        <div>
+          <label class="text-xs text-gray-500 mb-1.5 block font-medium" for="photo-annotate-activity">关联活动（可不选）</label>
+          <select id="photo-annotate-activity" class="input-flat w-full">${activityOptions}</select>
+        </div>
+      </div>`,
+    footerHtml: `
+      <button id="photo-annotate-cancel" type="button" data-modal-cancel="${MODAL_ID}" class="btn-ghost text-xs px-3 py-1.5">取消</button>
+      <button id="photo-annotate-confirm" type="button" class="btn-accent-soft text-xs px-3 py-1.5" style="cursor:pointer">保存</button>`,
+    onMount: (card) => {
+      card.querySelector('#photo-annotate-confirm').addEventListener('click', async () => {
+        const patch = {
+          date: card.querySelector('#photo-annotate-date').value || record.date || '',
+          title: card.querySelector('#photo-annotate-title').value.trim(),
+          subject: card.querySelector('#photo-annotate-subject').value.trim(),
+          activityId: card.querySelector('#photo-annotate-activity').value,
+        };
+        try {
+          await _savePhotoAnnotation(record.id, patch);
+          showToast('success', '标注已保存');
+          closeModal(MODAL_ID);
+          renderContent(ctx);
+        } catch (err) {
+          showToast('error', `保存失败：${(err && err.message) || err}`);
+        }
+      });
+    },
   });
-  card.querySelector('#photo-annotate-close').addEventListener('click', close);
-  card.querySelector('#photo-annotate-cancel').addEventListener('click', close);
-  overlay.addEventListener('click', e => { if (e.target === overlay) close(); });
-  card.addEventListener('click', e => e.stopPropagation());
 }
 
 /** 标注写口：2026-10-02 批次 343（`D-744` D 档）起**两形态统一走 `getAdapter().imageRecords.update`**

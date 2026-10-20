@@ -1,27 +1,28 @@
 // role: [工程师]+[AI]
 // archive-entry.js — 归档库独立入口
 // 2026-07-30: Tab 分类（活动/专班/通知），替代原单一列表
-import { renderSidebar } from '../../components/shell/sidebar.js?v=20261020g';
-import { renderHeader } from '../../components/shell/header.js?v=20261020g';
-import { BranchService } from '../../services/core/runtime.js?v=20261020g';
-import { mockDB } from '../../core/domain/domain.js?v=20261020g';
-import { getPersonById } from '../../services/member/person.js?v=20261020g';
-import { loadActivities } from '../../services/activity/activity.js?v=20261020g';
-import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261020g';
-import { getActivityTypeColors } from '../../core/domain/constants.js?v=20261020g';
+import { renderSidebar } from '../../components/shell/sidebar.js?v=20261020h';
+import { renderHeader } from '../../components/shell/header.js?v=20261020h';
+import { BranchService } from '../../services/core/runtime.js?v=20261020h';
+import { mockDB } from '../../core/domain/domain.js?v=20261020h';
+import { getPersonById } from '../../services/member/person.js?v=20261020h';
+import { loadActivities } from '../../services/activity/activity.js?v=20261020h';
+import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261020h';
+import { getActivityTypeColors } from '../../core/domain/constants.js?v=20261020h';
 // 活动「已结束」口径单一源（2026-09-13 收敛）：替代手写 status==='completed' || archived
-import { isActivityEnded } from '../../core/domain/constants.js?v=20261020g';
-import { NoticeStore, resolveNoticeUrl } from '../../services/governance/notice.js?v=20261020g';
-import { getBasePath, todayLocal } from '../../core/base/utils.js?v=20261020g';
-import { AuthStore } from '../../services/core/auth.js?v=20261020g';
-import { badgeHtml } from '../../components/ui/badges.js?v=20261020g';
+import { isActivityEnded } from '../../core/domain/constants.js?v=20261020h';
+import { NoticeStore, resolveNoticeUrl } from '../../services/governance/notice.js?v=20261020h';
+import { getBasePath, todayLocal } from '../../core/base/utils.js?v=20261020h';
+import { AuthStore } from '../../services/core/auth.js?v=20261020h';
+import { badgeHtml } from '../../components/ui/badges.js?v=20261020h';
 // 翻页控件单一源（批次 38：全站手写翻页一律并轨 pagerHtml）
-import { pagerHtml } from '../../components/ui/pager.js?v=20261020g';
+import { pagerHtml } from '../../components/ui/pager.js?v=20261020h';
+import { openModal } from '../../components/ui/modal.js?v=20261020h';
 // 批次 87：本页必须先 hydrate API 数据源再渲染——与 activity.html（批次 83 修好后的标准形）同款。
 // 此前本页只调 BranchService.loadDB()（API 模式直接 return）⇒ api 形态下归档库读的是本地备份，
 // 服务端已归档的活动 / 专班 / 通知看不到。
-import { hydrateDataSource, notifyDataLoaded } from '../../data/data-adapter.js?v=20261020g';
-import { ApiAdapter } from '../../data/api-adapter.js?v=20261020g';
+import { hydrateDataSource, notifyDataLoaded } from '../../data/data-adapter.js?v=20261020h';
+import { ApiAdapter } from '../../data/api-adapter.js?v=20261020h';
 
 renderSidebar('archive');
 renderHeader('archive');
@@ -250,50 +251,18 @@ archiveSearch?.addEventListener('input', (e) => {
 
 // ════════════════════════════════════════════════════════════════
 //  归档详情浮窗（阶段1C-4：点击归档条目查看详情）
-//  浮窗展示活动/专班的完整归档元数据，阶段2接入后端后支持文件查看
+//  浮窗展示活动/专班的完整归档元数据；形态走统一浮层（DESIGN_SYSTEM §4.27），
+//  标题纯文本、焦点接管与关闭语义由 modal.js 单点提供。
 // ════════════════════════════════════════════════════════════════
 
-let _archiveDetailOverlay = null;
-let _archiveDetailModal = null;
-
-function _ensureArchiveDetailModal() {
-  if (_archiveDetailOverlay) return;
-  _archiveDetailOverlay = document.createElement('div');
-  _archiveDetailOverlay.id = 'archive-detail-overlay';
-  _archiveDetailOverlay.className = 'fixed inset-0 bg-black/40 z-50 hidden';
-  _archiveDetailOverlay.innerHTML = `
-    <div class="absolute inset-0" data-close></div>
-    <div id="archive-detail-modal" class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[640px] max-w-[92vw] max-h-[85vh] overflow-y-auto bg-white rounded-xl shadow-2xl">
-      <!-- 内容由 _showArchiveDetail 注入 -->
-    </div>
-  `;
-  document.body.appendChild(_archiveDetailOverlay);
-
-  _archiveDetailModal = _archiveDetailOverlay.querySelector('#archive-detail-modal');
-
-  // 点击遮罩或关闭按钮关闭
-  _archiveDetailOverlay.addEventListener('click', (e) => {
-    if (e.target.dataset.close !== undefined || e.target.closest('[data-close]')) {
-      _hideArchiveDetail();
-    }
+function _showArchiveDetail({ title, bodyHtml }) {
+  openModal({
+    id: 'archive-detail',
+    title,
+    size: 'lg',
+    bodyHtml,
+    footerHtml: `<button type="button" data-modal-cancel="archive-detail" class="btn-outline text-sm px-4 py-1.5">关闭</button>`,
   });
-
-  // ESC 关闭
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && !_archiveDetailOverlay.classList.contains('hidden')) {
-      _hideArchiveDetail();
-    }
-  });
-}
-
-function _hideArchiveDetail() {
-  if (_archiveDetailOverlay) _archiveDetailOverlay.classList.add('hidden');
-}
-
-function _showArchiveDetail(html) {
-  _ensureArchiveDetailModal();
-  _archiveDetailModal.innerHTML = html;
-  _archiveDetailOverlay.classList.remove('hidden');
 }
 
 function _renderActivityDetail(activity) {
@@ -301,25 +270,16 @@ function _renderActivityDetail(activity) {
   const typeColors = getActivityTypeColors({ withLabel: true });
   const color = typeColors[activity.type] || { dot: '#6B7280', label: activity.type || '活动' };
 
-  return `
-    <div class="p-6">
-      <div class="flex items-start justify-between mb-4">
-        <div class="flex-1 min-w-0">
-          <div class="flex items-center gap-2 mb-2">
-            <span class="w-2 h-2 rounded-full" style="background:${color.dot}${color.dotBorder ? `;border:1px solid ${color.dotBorder}` : ''};"></span>
-            <span class="text-xs text-gray-500">${color.label}</span>
-            ${activity.isBrand ? badgeHtml('品牌', 'brand') : ''}
-          </div>
-          <h3 class="font-title-cn text-base font-semibold text-gray-800">${activity.title || '未命名活动'}</h3>
-        </div>
-        <button data-close class="btn-ghost ml-3 flex-shrink-0">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-          </svg>
-        </button>
+  return {
+    title: activity.title || '归档详情',
+    bodyHtml: `
+      <div class="flex items-center gap-2 mb-4">
+        <span class="w-2 h-2 rounded-full" style="background:${color.dot}${color.dotBorder ? `;border:1px solid ${color.dotBorder}` : ''};"></span>
+        <span class="text-xs text-gray-500">${color.label}</span>
+        ${activity.isBrand ? badgeHtml('品牌', 'brand') : ''}
       </div>
 
-      <div class="grid grid-cols-2 gap-3 mb-5 text-xs">
+      <div class="modal-form-grid mb-5 text-xs">
         <div class="bg-gray-50 rounded-lg p-3">
           <p class="text-gray-500 mb-1">活动日期</p>
           <p class="text-gray-800 font-medium">${activity.date || '未设定'}</p>
@@ -351,8 +311,8 @@ function _renderActivityDetail(activity) {
         </div>
         ${_renderArchiveMaterials(activity)}
       </div>
-    </div>
-  `;
+    `,
+  };
 }
 
 /** 归档材料补真（2026-08-07）：优先读取 mockDB.archiveRecords 中同 activityId 的真实材料 */
@@ -392,24 +352,15 @@ function _renderTaskforceDetail(tf) {
   const initiator = getPersonById(tf.initiator);
   const filledMembers = (tf.members || []).filter(m => m.personId);
 
-  return `
-    <div class="p-6">
-      <div class="flex items-start justify-between mb-4">
-        <div class="flex-1 min-w-0">
-          <div class="flex items-center gap-2 mb-2">
-            ${badgeHtml('专班', 'info')}
-            ${badgeHtml('已归档', 'neutral')}
-          </div>
-          <h3 class="font-title-cn text-base font-semibold text-gray-800">${tf.name || '未命名专班'}</h3>
-        </div>
-        <button data-close class="btn-ghost ml-3 flex-shrink-0">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-          </svg>
-        </button>
+  return {
+    title: tf.name || '归档详情',
+    bodyHtml: `
+      <div class="flex items-center gap-2 mb-4">
+        ${badgeHtml('专班', 'info')}
+        ${badgeHtml('已归档', 'neutral')}
       </div>
 
-      <div class="grid grid-cols-2 gap-3 mb-5 text-xs">
+      <div class="modal-form-grid mb-5 text-xs">
         <div class="bg-gray-50 rounded-lg p-3">
           <p class="text-gray-500 mb-1">发起日期</p>
           <p class="text-gray-800 font-medium">${tf.createdAt || '未设定'}</p>
@@ -454,8 +405,8 @@ function _renderTaskforceDetail(tf) {
           </div>
         </div>
       ` : ''}
-    </div>
-  `;
+    `,
+  };
 }
 
 // 事件委托：分页按钮 / 点击归档条目弹出详情浮窗

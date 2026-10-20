@@ -1,27 +1,28 @@
 // role: [工程师]+[AI]
 // 参考资料板块 — 网站群展示 + 官方文件（党内法规位阶排序）+ 支部文件（支委写入/全员下载）
 
-import { icon } from '../../core/base/icons.js?v=20261020g';
-import { getBasePath, showToast } from '../../core/base/utils.js?v=20261020g';
-import { getAdapter, getDataSource, getAuthToken, getApiBaseUrl } from '../../data/data-adapter.js?v=20261020g';
-import { withSelectedBranchScope } from '../../data/api-adapter.js?v=20261020g';
-import { AuthStore } from '../../services/core/auth.js?v=20261020g';
-import { loadActivities } from '../../services/activity/activity.js?v=20261020g';
-import { PEOPLE } from '../../data/mock/people.js?v=20261020g';
+import { icon } from '../../core/base/icons.js?v=20261020h';
+import { getBasePath, showToast } from '../../core/base/utils.js?v=20261020h';
+import { getAdapter, getDataSource, getAuthToken, getApiBaseUrl } from '../../data/data-adapter.js?v=20261020h';
+import { withSelectedBranchScope } from '../../data/api-adapter.js?v=20261020h';
+import { AuthStore } from '../../services/core/auth.js?v=20261020h';
+import { loadActivities } from '../../services/activity/activity.js?v=20261020h';
+import { PEOPLE } from '../../data/mock/people.js?v=20261020h';
 // 立项⑧（E 批）：支部文件增强——制度文本（版本化 + 现行/停用态 + 网页读正文）纯逻辑服务
 // 2026-09-21 批次 129：制度链（草案 → 支委会审议 → 现行版 / 退回修改）——草案态与修改口同源于该服务
 import {
   isInstitutionManager, saveDoc, publishNewVersion, setDocStatus,
   updateInstitutionDraft, INSTITUTION_DRAFT, INSTITUTION_PENDING_PARTY_MEETING,
   buildDocVersionsView, renderDocBody, listDocs,
-} from '../../services/branch/branch-doc.js?v=20261020g';
+} from '../../services/branch/branch-doc.js?v=20261020h';
 // 统一检索引擎（2026-09-14 批次 37）：本页三处列表（站点网格 / 官方文件 / 支部文件）各接一个实例
-import { renderFilteredList } from '../ui/list-filter.js?v=20261020g';
+import { renderFilteredList } from '../ui/list-filter.js?v=20261020h';
+import { openModal, closeModal } from '../ui/modal.js?v=20261020h';
 // 制度内容（领域）→ 对应【主体】：判据单一源（2026-10-05 批次 378 · `SOP-B-25` 第 ② 项「按草案落地」）
 import {
   INSTITUTION_DOMAINS, INSTITUTION_DOMAIN_LABELS, institutionSubjectOfDomain, ORG_SUBJECT_LABELS,
-} from '../../core/domain/work-map.js?v=20261020g';
-import { ROLE_LABELS } from '../../core/domain/constants.js?v=20261020g';
+} from '../../core/domain/work-map.js?v=20261020h';
+import { ROLE_LABELS } from '../../core/domain/constants.js?v=20261020h';
 
 /** 主体引用 → 显示名（角色键 → 角色名；组织型主体 id → 组织名，如「支委会」） */
 function _subjectLabelOf(subjectId) {
@@ -672,16 +673,7 @@ export class ReferencesModule {
     const editing = docId ? ReferencesModule._branchDocs.find(d => d.id === docId) : null;
     // 2026-09-21 批次 129：编辑**制度草案**＝起草人修改（正文预填、保存后仍是草案）；其余编辑维持现状
     const editingDraft = !!(editing && _isInstitutionDoc(editing) && editing.status === INSTITUTION_DRAFT);
-
-    const existing = document.getElementById('ref-branch-doc-modal');
-    if (existing) existing.remove();
-
-    const overlay = document.createElement('div');
-    overlay.id = 'ref-branch-doc-modal';
-    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px;';
-
-    const card = document.createElement('div');
-    card.style.cssText = 'background:var(--surface-card);border-radius:14px;padding:0;max-width:480px;width:100%;box-shadow:0 12px 40px rgba(0,0,0,0.18);max-height:88vh;display:flex;flex-direction:column;';
+    const MODAL_ID = 'ref-branch-doc';
 
     // 用途：仅新增时可选（制度文本仅支书/副支书可见该选项）；编辑普通文件维持现状，不含转制度入口
     const purposeOptions = ['doc'].concat(ReferencesModule._isInstitutionManager ? ['institution'] : []);
@@ -724,44 +716,34 @@ export class ReferencesModule {
       </div>
     `;
 
-    card.innerHTML = `
-      <div class="px-5 pt-4 pb-3 flex items-center justify-between" style="border-bottom:1px solid var(--neutral-200);">
-        <h3 class="font-title-cn text-sm font-semibold" style="color:var(--neutral-800);">${editingDraft ? '修改制度草案' : (editing ? '修改支部文件' : '写入支部文件')}</h3>
-        <button id="ref-modal-close" type="button" aria-label="关闭写入支部文件窗口" style="color:var(--neutral-400);font-size:1rem;line-height:1;background:none;border:none;cursor:pointer;">&times;</button>
-      </div>
-      <div class="px-5 py-4 space-y-3.5 overflow-y-auto">
-        ${purposeSelectHtml}
-        <div>
-          <label class="text-xs font-medium mb-1.5 block" style="color:var(--neutral-500);">标题 <span style="color:var(--functional-error);">*</span></label>
-          <input id="ref-modal-title" class="input-flat w-full" placeholder="如：积极分子考察表模板 / 支部例会制度" value="${editing ? _esc(editing.title || '') : ''}" />
-        </div>
-        <div>
-          <label class="text-xs font-medium mb-1.5 block" style="color:var(--neutral-500);" for="ref-modal-desc">描述</label>
-          <textarea id="ref-modal-desc" class="input-flat w-full" rows="2" placeholder="可选：文件用途 / 说明">${editing ? _esc(editing.desc || '') : ''}</textarea>
-        </div>
-        ${instBoxHtml}
-        <div>
-          <label class="text-xs font-medium mb-1.5 block" style="color:var(--neutral-500);" id="ref-modal-file-label">${editing ? '替换文件（可选，不选则保留原文件）' : '选择文件 <span style="color:var(--functional-error);">*</span>'}</label>
-          <input id="ref-modal-file" type="file" accept=".jpg,.jpeg,.png,.pdf,.doc,.docx,.xlsx,.mp4"
-            class="block w-full text-xs file:mr-3 file:px-3 file:py-1.5 file:rounded-lg file:border-0 file:bg-blue-50 file:text-blue-600 file:text-xs hover:file:bg-blue-100 transition-colors cursor-pointer" style="color:var(--neutral-600);" />
-        </div>
-        <div id="ref-modal-status" class="hidden text-xs rounded-lg px-3 py-2"></div>
-      </div>
-      <div class="flex justify-end gap-2 px-5 py-3" style="border-top:1px solid var(--neutral-200);">
-        <button id="ref-modal-cancel" type="button" class="btn-ghost text-xs px-3 py-1.5">取消</button>
-        <button id="ref-modal-confirm" type="button" class="btn-accent text-xs px-3 py-1.5">${editing ? '保存' : '写入'}</button>
-      </div>
-    `;
-
-    overlay.appendChild(card);
-    document.body.appendChild(overlay);
-
-    const closeModal = () => overlay.remove();
-    card.querySelector('#ref-modal-close').addEventListener('click', closeModal);
-    card.querySelector('#ref-modal-cancel').addEventListener('click', closeModal);
-    overlay.addEventListener('click', (e) => { if (e.target === overlay) closeModal(); });
-
-    const statusEl = card.querySelector('#ref-modal-status');
+    openModal({
+      id: MODAL_ID,
+      title: editingDraft ? '修改制度草案' : (editing ? '修改支部文件' : '写入支部文件'),
+      width: '480px',
+      bodyHtml: `
+        <div class="space-y-3.5">
+          ${purposeSelectHtml}
+          <div>
+            <label class="text-xs font-medium mb-1.5 block" style="color:var(--neutral-500);">标题 <span style="color:var(--functional-error);">*</span></label>
+            <input id="ref-modal-title" class="input-flat w-full" placeholder="如：积极分子考察表模板 / 支部例会制度" value="${editing ? _esc(editing.title || '') : ''}" />
+          </div>
+          <div>
+            <label class="text-xs font-medium mb-1.5 block" style="color:var(--neutral-500);" for="ref-modal-desc">描述</label>
+            <textarea id="ref-modal-desc" class="input-flat w-full" rows="2" placeholder="可选：文件用途 / 说明">${editing ? _esc(editing.desc || '') : ''}</textarea>
+          </div>
+          ${instBoxHtml}
+          <div>
+            <label class="text-xs font-medium mb-1.5 block" style="color:var(--neutral-500);" id="ref-modal-file-label">${editing ? '替换文件（可选，不选则保留原文件）' : '选择文件 <span style="color:var(--functional-error);">*</span>'}</label>
+            <input id="ref-modal-file" type="file" accept=".jpg,.jpeg,.png,.pdf,.doc,.docx,.xlsx,.mp4"
+              class="block w-full text-xs file:mr-3 file:px-3 file:py-1.5 file:rounded-lg file:border-0 file:bg-blue-50 file:text-blue-600 file:text-xs hover:file:bg-blue-100 transition-colors cursor-pointer" style="color:var(--neutral-600);" />
+          </div>
+          <div id="ref-modal-status" class="hidden text-xs rounded-lg px-3 py-2"></div>
+        </div>`,
+      footerHtml: `
+        <button id="ref-modal-cancel" type="button" data-modal-cancel="${MODAL_ID}" class="btn-ghost text-xs px-3 py-1.5">取消</button>
+        <button id="ref-modal-confirm" type="button" class="btn-accent text-xs px-3 py-1.5">${editing ? '保存' : '写入'}</button>`,
+      onMount: (card) => {
+        const statusEl = card.querySelector('#ref-modal-status');
     const showStatus = (type, msg) => {
       statusEl.classList.remove('hidden');
       statusEl.textContent = msg;
@@ -823,11 +805,13 @@ export class ReferencesModule {
         const savedMsg = editingDraft ? `已保存「${title}」（仍为草案）`
           : (asDraft ? `已存为草案「${title}」（待支委会审议）` : `已保存「${title}」`);
         showToast('success', savedMsg);
-        closeModal();
+        closeModal(MODAL_ID);
       } catch (e) {
         confirmBtn.disabled = false;
         showStatus('error', e.message || '操作失败');
       }
+    });
+      },
     });
   }
 
@@ -867,53 +851,34 @@ export class ReferencesModule {
   static _openPublishModal(docId) {
     const doc = ReferencesModule._branchDocs.find((d) => d.id === docId);
     if (!doc || !_isInstitutionDoc(doc)) return;
+    const MODAL_ID = 'ref-branch-doc-publish';
 
-    const existing = document.getElementById('ref-branch-doc-publish-modal');
-    if (existing) existing.remove();
-
-    const overlay = document.createElement('div');
-    overlay.id = 'ref-branch-doc-publish-modal';
-    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px;';
-
-    const card = document.createElement('div');
-    card.style.cssText = 'background:var(--surface-card);border-radius:14px;padding:0;max-width:560px;width:100%;box-shadow:0 12px 40px rgba(0,0,0,0.18);max-height:88vh;display:flex;flex-direction:column;';
-
-    card.innerHTML = `
-      <div class="px-5 pt-4 pb-3 flex items-center justify-between" style="border-bottom:1px solid var(--neutral-200);">
-        <h3 class="font-title-cn text-sm font-semibold" style="color:var(--neutral-800);">上传新版（制度文本）</h3>
-        <button id="ref-pub-close" type="button" aria-label="关闭上传新版窗口" style="color:var(--neutral-400);font-size:1rem;line-height:1;background:none;border:none;cursor:pointer;">&times;</button>
-      </div>
-      <div class="px-5 py-4 space-y-3.5 overflow-y-auto">
-        <div>
-          <label class="text-xs font-medium mb-1.5 block" style="color:var(--neutral-500);">标题 <span style="color:var(--functional-error);">*</span></label>
-          <input id="ref-pub-title" class="input-flat w-full" value="${_esc(doc.title || '')}" />
-        </div>
-        <div>
-          <label class="text-xs font-medium mb-1.5 block" style="color:var(--neutral-500);" for="ref-pub-body">正文（文本 / Markdown，已预填现行版）</label>
-          <textarea id="ref-pub-body" class="input-flat w-full" rows="12" style="font-family:inherit;">${_esc(doc.bodyText || '')}</textarea>
-        </div>
-        <div>
-          <label class="text-xs font-medium mb-1.5 block" style="color:var(--neutral-500);" for="ref-pub-note">版本说明（可选）</label>
-          <input id="ref-pub-note" class="input-flat w-full" placeholder="如：根据 2026-09 支委会意见修订第三条" />
-        </div>
-        <p class="text-xs" style="color:var(--neutral-500);">保存后：当前「现行版 v${doc.version || 1}」自动归档为历史版本（成员仍可展开查阅），正文更新为「现行版 v${(doc.version || 1) + 1}」。</p>
-        <div id="ref-pub-status" class="hidden text-xs rounded-lg px-3 py-2"></div>
-      </div>
-      <div class="flex justify-end gap-2 px-5 py-3" style="border-top:1px solid var(--neutral-200);">
-        <button id="ref-pub-cancel" type="button" class="btn-ghost text-xs px-3 py-1.5">取消</button>
-        <button id="ref-pub-confirm" type="button" class="btn-accent text-xs px-3 py-1.5">发布新版</button>
-      </div>
-    `;
-
-    overlay.appendChild(card);
-    document.body.appendChild(overlay);
-
-    const closeModal = () => overlay.remove();
-    card.querySelector('#ref-pub-close').addEventListener('click', closeModal);
-    card.querySelector('#ref-pub-cancel').addEventListener('click', closeModal);
-    overlay.addEventListener('click', (e) => { if (e.target === overlay) closeModal(); });
-
-    const statusEl = card.querySelector('#ref-pub-status');
+    openModal({
+      id: MODAL_ID,
+      title: '上传新版（制度文本）',
+      width: '560px',
+      bodyHtml: `
+        <div class="space-y-3.5">
+          <div>
+            <label class="text-xs font-medium mb-1.5 block" style="color:var(--neutral-500);">标题 <span style="color:var(--functional-error);">*</span></label>
+            <input id="ref-pub-title" class="input-flat w-full" value="${_esc(doc.title || '')}" />
+          </div>
+          <div>
+            <label class="text-xs font-medium mb-1.5 block" style="color:var(--neutral-500);" for="ref-pub-body">正文（文本 / Markdown，已预填现行版）</label>
+            <textarea id="ref-pub-body" class="input-flat w-full" rows="12" style="font-family:inherit;">${_esc(doc.bodyText || '')}</textarea>
+          </div>
+          <div>
+            <label class="text-xs font-medium mb-1.5 block" style="color:var(--neutral-500);" for="ref-pub-note">版本说明（可选）</label>
+            <input id="ref-pub-note" class="input-flat w-full" placeholder="如：根据 2026-09 支委会意见修订第三条" />
+          </div>
+          <p class="text-xs" style="color:var(--neutral-500);">保存后：当前「现行版 v${doc.version || 1}」自动归档为历史版本（成员仍可展开查阅），正文更新为「现行版 v${(doc.version || 1) + 1}」。</p>
+          <div id="ref-pub-status" class="hidden text-xs rounded-lg px-3 py-2"></div>
+        </div>`,
+      footerHtml: `
+        <button id="ref-pub-cancel" type="button" data-modal-cancel="${MODAL_ID}" class="btn-ghost text-xs px-3 py-1.5">取消</button>
+        <button id="ref-pub-confirm" type="button" class="btn-accent text-xs px-3 py-1.5">发布新版</button>`,
+      onMount: (card) => {
+        const statusEl = card.querySelector('#ref-pub-status');
     const showStatus = (type, msg) => {
       statusEl.classList.remove('hidden');
       statusEl.textContent = msg;
@@ -940,11 +905,13 @@ export class ReferencesModule {
         // 批次 48（2026-09-17）：与上方「制度写入」成功分支**同一形态的静默**（原只有 `closeModal()`），
         //   按 R-67 同批一并补提示（两分支同源，见上处注释的支书裁定 Q-23-46，2026-09-17）。
         showToast('success', `已发布「${title}」新版本`);
-        closeModal();
+        closeModal(MODAL_ID);
       } catch (e) {
         confirmBtn.disabled = false;
         showStatus('error', e.message || '操作失败');
       }
+    });
+      },
     });
   }
 

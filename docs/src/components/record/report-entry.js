@@ -19,10 +19,11 @@
 //    **不落 hex**。
 // ════════════════════════════════════════════════════════════════
 
-import { IssueStore, IssueNotify, REPORT_CATEGORIES } from '../../services/governance/issues.js?v=20261020g';
-import { AuthStore } from '../../services/core/auth.js?v=20261020g';
-import { showToast } from '../../core/base/utils.js?v=20261020g';
-import { getPersonName } from '../../services/member/person.js?v=20261020g';
+import { IssueStore, IssueNotify, REPORT_CATEGORIES } from '../../services/governance/issues.js?v=20261020h';
+import { AuthStore } from '../../services/core/auth.js?v=20261020h';
+import { showToast } from '../../core/base/utils.js?v=20261020h';
+import { getPersonName } from '../../services/member/person.js?v=20261020h';
+import { openModal, closeModal } from '../ui/modal.js?v=20261020h';
 
 /** 当前用户未读汇报数（「支书请我汇报」＋「支书答复发回」） */
 function _unreadCount() {
@@ -68,60 +69,52 @@ export function bindReportEntry(root = document) {
 /** 打开汇报弹窗（预加载 issues 权威源，避免覆盖本地缓存） */
 async function openReportModal() {
   await IssueStore.loadAll();
-  const existing = document.getElementById('report-modal-root');
-  if (existing) existing.remove();
+  const MODAL_ID = 'report-entry';
 
-  const root = document.createElement('div');
-  root.id = 'report-modal-root';
-  root.style.cssText = 'position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.4);display:flex;align-items:center;justify-content:center;';
-  root.innerHTML = `
-    <div class="card rounded-xl p-5 w-full" style="max-width:480px;margin:16px;">
-      <div class="flex items-center justify-between mb-4">
-        <h3 class="font-title-cn text-base font-semibold text-gray-800">一键汇报</h3>
-        <button type="button" class="btn-ghost report-modal-close text-xs">关闭</button>
-      </div>
-      <p class="text-xs text-gray-500 mb-3">汇报将发往支书，答复后发回给你。请选择分类并填写内容。</p>
-      <div class="flex items-center gap-2 mb-3">
-        ${Object.entries(REPORT_CATEGORIES).map(([key, label]) => `
-          <button type="button" class="btn-tab report-cat-btn text-xs px-3 py-1.5 rounded-lg transition-all ${key === 'progress' ? 'report-cat-active' : 'bg-white text-gray-600 border border-gray-200 hover:border-gray-300'}"
-            data-category="${key}">${label}</button>
-        `).join('')}
-      </div>
-      <textarea id="report-modal-body" class="input-flat w-full h-24 resize-none" placeholder="填写汇报内容（进度 / 难点卡点 / 请示事项）…"></textarea>
-      <div class="flex justify-end gap-2 mt-3">
-        <button type="button" class="btn-outline report-modal-close text-xs px-3 py-2">取消</button>
-        <button id="report-modal-submit" class="btn-accent text-xs px-4 py-2">发出汇报</button>
-      </div>
+  // 浮层统一体例（DESIGN_SYSTEM §4.27）：header 纯文本标题 / 动作固定在 footer / 取消走 onCancel
+  const bodyHtml = `
+    <p class="text-xs text-gray-500 mb-3">汇报将发往支书，答复后发回给你。请选择分类并填写内容。</p>
+    <div class="flex items-center gap-2 mb-3">
+      ${Object.entries(REPORT_CATEGORIES).map(([key, label]) => `
+        <button type="button" class="btn-tab report-cat-btn text-xs px-3 py-1.5 rounded-lg transition-all ${key === 'progress' ? 'report-cat-active' : 'bg-white text-gray-600 border border-gray-200 hover:border-gray-300'}"
+          data-category="${key}">${label}</button>
+      `).join('')}
     </div>
+    <textarea id="report-modal-body" class="input-flat w-full h-24 resize-none" placeholder="填写汇报内容（进度 / 难点卡点 / 请示事项）…"></textarea>
   `;
-  document.body.appendChild(root);
 
-  // 分类选择
-  let category = 'progress';
-  root.querySelectorAll('.report-cat-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      category = btn.dataset.category;
-      root.querySelectorAll('.report-cat-btn').forEach(b => {
-        const on = b === btn;
-        b.className = `report-cat-btn text-xs px-3 py-1.5 rounded-lg transition-all ${on ? 'report-cat-active' : 'bg-white text-gray-600 border border-gray-200 hover:border-gray-300'}`;
+  openModal({
+    id: MODAL_ID,
+    title: '一键汇报',
+    bodyHtml,
+    size: 'md',
+    footerHtml: `
+      <button type="button" data-modal-cancel="${MODAL_ID}" class="btn-outline text-xs px-3 py-2">取消</button>
+      <button id="report-modal-submit" type="button" class="btn-accent text-xs px-4 py-2">发出汇报</button>`,
+    onMount: (panel) => {
+      // 分类选择
+      let category = 'progress';
+      panel.querySelectorAll('.report-cat-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          category = btn.dataset.category;
+          panel.querySelectorAll('.report-cat-btn').forEach(b => {
+            const on = b === btn;
+            b.className = `report-cat-btn text-xs px-3 py-1.5 rounded-lg transition-all ${on ? 'report-cat-active' : 'bg-white text-gray-600 border border-gray-200 hover:border-gray-300'}`;
+          });
+        });
       });
-    });
-  });
 
-  // 关闭
-  const close = () => root.remove();
-  root.querySelectorAll('.report-modal-close').forEach(b => b.addEventListener('click', close));
-  root.addEventListener('click', e => { if (e.target === root) close(); });
-
-  // 提交
-  root.querySelector('#report-modal-submit').addEventListener('click', () => {
-    const body = document.getElementById('report-modal-body')?.value?.trim();
-    if (!body) { showToast('error', '请填写汇报内容'); return; }
-    const issue = IssueStore.submitReport({ category, body });
-    if (!issue) { showToast('error', '汇报发送失败'); return; }
-    showToast('success', '汇报已发出，等待支书答复');
-    close();
-    refreshReportEntryBadge();
+      // 提交：校验失败不关窗、不丢正文（M-6）
+      panel.querySelector('#report-modal-submit').addEventListener('click', () => {
+        const body = panel.querySelector('#report-modal-body')?.value?.trim();
+        if (!body) { showToast('error', '请填写汇报内容'); return; }
+        const issue = IssueStore.submitReport({ category, body });
+        if (!issue) { showToast('error', '汇报发送失败'); return; }
+        showToast('success', '汇报已发出，等待支书答复');
+        closeModal(MODAL_ID);
+        refreshReportEntryBadge();
+      });
+    },
   });
 }
 

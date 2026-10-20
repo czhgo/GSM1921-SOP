@@ -4,39 +4,39 @@
 // 私有状态（PersonPicker 实例）随模块自持；共享数据（taskforce 分类）经 ctx 传入。
 // 2026-10-20 第三轮 IA 判例④：活动视图已迁至「活动日历」页，本页不再消费 ctx.activities。
 
-import { setState } from '../../../core/base/state.js?v=20261020g';
-import { TaskForceRecordStore, isTaskforceOrganizer } from '../../../services/activity/taskforce.js?v=20261020g';
-import { legacyParticipantAssignmentRows, workgroupMembers } from '../../../services/activity/workgroup-members.js?v=20261020g';
-import { SignupStore, resolveSignupReviewer, SignupStatus, SIGNUP_ROLE_LABELS, SIGNUP_STATUS_LABELS } from '../../../services/activity/signup.js?v=20261020g';
-import { AuthStore } from '../../../services/core/auth.js?v=20261020g';
-import { loadTaskforceReviews, addTaskforceReview } from '../../../services/governance/review.js?v=20261020g';
-import { TodoStore, TodoSourceType, TodoCategory, TodoActionType } from '../../../services/governance/todo.js?v=20261020g';
-import { NoticeStore } from '../../../services/governance/notice.js?v=20261020g';
-import { mockDB, ReviewStatus, isTaskforceTerminalStatus, isTaskforceActiveStatus } from '../../../core/domain/domain.js?v=20261020g'; // IA-C3 收敛单写入口 2026-09-06：ParticipationLevel 随考察写入口移除
-import { persist } from '../../../data/data-adapter.js?v=20261020g';
-import { settleWrites } from '../../../core/session/pending-writes.js?v=20261020g';
-import { showToast, escHtml as esc, getBasePath, todayLocal, flashHighlight } from '../../../core/base/utils.js?v=20261020g';
-import { generateId } from '../../../core/base/id.js?v=20261020g';
-import { solidAccentStyle } from '../../../core/domain/constants.js?v=20261020g';
-import { PersonPicker } from '../../../components/governance/pickers.js?v=20261020g';
-import { renderWorkgroupPermissionEditor, readWorkgroupPermissionEditor } from '../../../components/governance/workgroup-permissions.js?v=20261020g';
-import { renderWorkgroupMemberEditor, bindWorkgroupMemberEditor } from '../../../components/governance/workgroup-member-editor.js?v=20261020g';
-import { getAdapter } from '../../../data/data-adapter.js?v=20261020g';
-import { recordFormShell } from '../../../components/ui/forms.js?v=20261020g';
+import { setState } from '../../../core/base/state.js?v=20261020h';
+import { TaskForceRecordStore, isTaskforceOrganizer } from '../../../services/activity/taskforce.js?v=20261020h';
+import { legacyParticipantAssignmentRows, workgroupMembers } from '../../../services/activity/workgroup-members.js?v=20261020h';
+import { SignupStore, resolveSignupReviewer, SignupStatus, SIGNUP_ROLE_LABELS, SIGNUP_STATUS_LABELS } from '../../../services/activity/signup.js?v=20261020h';
+import { AuthStore } from '../../../services/core/auth.js?v=20261020h';
+import { loadTaskforceReviews, addTaskforceReview } from '../../../services/governance/review.js?v=20261020h';
+import { TodoStore, TodoSourceType, TodoCategory, TodoActionType } from '../../../services/governance/todo.js?v=20261020h';
+import { NoticeStore } from '../../../services/governance/notice.js?v=20261020h';
+import { mockDB, ReviewStatus, isTaskforceTerminalStatus, isTaskforceActiveStatus } from '../../../core/domain/domain.js?v=20261020h'; // IA-C3 收敛单写入口 2026-09-06：ParticipationLevel 随考察写入口移除
+import { persist } from '../../../data/data-adapter.js?v=20261020h';
+import { settleWrites } from '../../../core/session/pending-writes.js?v=20261020h';
+import { showToast, escHtml as esc, getBasePath, todayLocal, flashHighlight } from '../../../core/base/utils.js?v=20261020h';
+import { generateId } from '../../../core/base/id.js?v=20261020h';
+import { solidAccentStyle } from '../../../core/domain/constants.js?v=20261020h';
+import { PersonPicker } from '../../../components/governance/pickers.js?v=20261020h';
+import { renderWorkgroupPermissionEditor, readWorkgroupPermissionEditor } from '../../../components/governance/workgroup-permissions.js?v=20261020h';
+import { renderWorkgroupMemberEditor, bindWorkgroupMemberEditor } from '../../../components/governance/workgroup-member-editor.js?v=20261020h';
+import { getAdapter } from '../../../data/data-adapter.js?v=20261020h';
+import { recordFormShell } from '../../../components/ui/forms.js?v=20261020h';
 // 「本位」nudge 确认弹窗（2026-09-23 支书裁定 · 单一源 = components/ui/modal.js::confirmNudge）
 // U-05：招募浮窗原为手写 overlay/panel（无 dialog 语义 / 无焦点接管）→ 改走同一组件的 openModal。
-import { confirmNudge, confirmWriteWithoutGrant, openModal, closeModal } from '../../../components/ui/modal.js?v=20261020g';
+import { confirmNudge, confirmWriteWithoutGrant, openModal, closeModal } from '../../../components/ui/modal.js?v=20261020h';
 // 转交组织者（SOP-G-2-② · 2026-10-01 批次 327 · 支书裁「乙：直接转交 ＋ 留痕」）：判据 / 写口 /
 //   弹窗单一源＝`components/governance/organizer-transfer.js`（本台只挂入口，不复制一份实现）。
-import { canTransferOrganizer, openOrganizerTransfer } from '../../../components/governance/organizer-transfer.js?v=20261020g';
-import { badgeHtml } from '../../../components/ui/badges.js?v=20261020g';
+import { canTransferOrganizer, openOrganizerTransfer } from '../../../components/governance/organizer-transfer.js?v=20261020h';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20261020h';
 // 人×项目矩阵单一源（支书 2026-09-14 裁定：把宽表推广到其它二元关系域 → 本批「专班报名」域）
-import { renderRelationMatrix } from '../../../components/ui/relation-matrix.js?v=20261020g';
-import { getPersonName, PersonStore } from '../../../services/member/person.js?v=20261020g';
+import { renderRelationMatrix } from '../../../components/ui/relation-matrix.js?v=20261020h';
+import { getPersonName, PersonStore } from '../../../services/member/person.js?v=20261020h';
 // 统一检索引擎（2026-09-13 表格统一化批次 A）：报名名单等按人段落接入关键词 + 分面
-import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261020g';
+import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261020h';
 // 详情锚定单一源（2026-10-18 繁专项 Task 14）：与 taskforce-view.js 同款「触点即落点」
-import { anchorDetailToTrigger, scrollDetailIntoView } from '../../../components/ui/detail-anchor.js?v=20261020g';
+import { anchorDetailToTrigger, scrollDetailIntoView } from '../../../components/ui/detail-anchor.js?v=20261020h';
 // 私有状态（随模块自持，不污染入口）
 let _recruitOrganizerPicker = null;
 let _recruitDeepPicker = null;
@@ -1293,89 +1293,77 @@ async function _dissolveTaskforce(tf) {
 }
 
 function _showTaskforceDissolutionDialog(tf) {
-  const overlay = document.createElement('div');
-  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(15,23,42,.48);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px;';
-  const card = document.createElement('section');
-  card.className = 'card rounded-xl';
-  card.setAttribute('role', 'dialog');
-  card.setAttribute('aria-modal', 'true');
-  card.setAttribute('aria-labelledby', 'tf-dissolve-title');
-  card.style.cssText = 'width:480px;max-width:100%;padding:22px;';
-  card.innerHTML = `
-    <h3 id="tf-dissolve-title" class="font-title-cn text-sm font-semibold text-gray-800">结束工作组：${esc(tf.name)}</h3>
-    <p class="mt-2 text-xs leading-5 text-gray-600">登记任务闭合后即可结束，工作组与产出历史会保留。纪检考察只在该事项明确要求时办理；只有制度或议程明确要求表决时，才提交表决。</p>
-    <label class="mt-4 flex items-start gap-2 rounded-lg border border-gray-200 p-3 text-xs text-gray-700">
-      <input id="tf-dissolve-vote" type="checkbox" class="mt-0.5 accent-red-600">
-      <span>本事项有明确的制度或议程表决依据</span>
-    </label>
-    <div id="tf-dissolve-basis-wrap" class="mt-3 hidden">
-      <label for="tf-dissolve-basis" class="mb-1 block text-xs font-medium text-gray-600">制度条款或议程事项 <span class="text-red-600">*</span></label>
-      <textarea id="tf-dissolve-basis" rows="2" class="input-flat w-full" placeholder="写明要求支委会表决的具体依据"></textarea>
-    </div>
-    <div class="mt-3">
-      <label for="tf-dissolve-note" class="mb-1 block text-xs font-medium text-gray-600">收尾说明 <span class="font-normal text-gray-500">（选填）</span></label>
-      <textarea id="tf-dissolve-note" rows="2" class="input-flat w-full" placeholder="记录事项完成情况或后续交接"></textarea>
-    </div>
-    <div class="mt-5 flex justify-end gap-2">
-      <button type="button" id="tf-dissolve-cancel" class="btn-outline text-xs px-3 py-2">返回</button>
-      <button type="button" id="tf-dissolve-submit" class="btn-md btn-md-red">直接结束工作组</button>
-    </div>`;
-  overlay.appendChild(card);
-  document.body.appendChild(overlay);
-  const vote = card.querySelector('#tf-dissolve-vote');
-  const basisWrap = card.querySelector('#tf-dissolve-basis-wrap');
-  const basis = card.querySelector('#tf-dissolve-basis');
-  const submit = card.querySelector('#tf-dissolve-submit');
-  vote.addEventListener('change', () => {
-    basisWrap.classList.toggle('hidden', !vote.checked);
-    basis.required = vote.checked;
-    submit.textContent = vote.checked ? '提交支委会表决' : '直接结束工作组';
-    if (vote.checked) basis.focus();
-  });
-  const close = () => overlay.remove();
-  card.querySelector('#tf-dissolve-cancel').addEventListener('click', close);
-  overlay.addEventListener('click', (event) => { if (event.target === overlay) close(); });
-  const onKeydown = (event) => {
-    if (event.key === 'Escape') close();
-  };
-  overlay.addEventListener('keydown', onKeydown);
-  submit.addEventListener('click', async () => {
-    const governanceReason = basis.value.trim();
-    if (vote.checked && !governanceReason) {
-      showToast('error', '请写明制度或议程表决依据');
-      basis.focus();
-      return;
-    }
-    submit.disabled = true;
-    const currentUserId = AuthStore.getCurrentUser()?.personId || '';
-    try {
-      const updated = await TaskForceRecordStore.dissolve(tf.id, {
-        requiresCommitteeVote: vote.checked,
-        governanceReason,
-        note: card.querySelector('#tf-dissolve-note').value.trim(),
-        by: currentUserId,
+  const MODAL_ID = 'tf-dissolve';
+  openModal({
+    id: MODAL_ID,
+    title: `结束工作组：${tf.name || ''}`,
+    width: '480px',
+    bodyHtml: `
+      <p class="text-xs leading-5 text-gray-600">登记任务闭合后即可结束，工作组与产出历史会保留。纪检考察只在该事项明确要求时办理；只有制度或议程明确要求表决时，才提交表决。</p>
+      <label class="mt-4 flex items-start gap-2 rounded-lg border border-gray-200 p-3 text-xs text-gray-700">
+        <input id="tf-dissolve-vote" type="checkbox" class="mt-0.5 accent-red-600">
+        <span>本事项有明确的制度或议程表决依据</span>
+      </label>
+      <div id="tf-dissolve-basis-wrap" class="mt-3 hidden">
+        <label for="tf-dissolve-basis" class="mb-1 block text-xs font-medium text-gray-600">制度条款或议程事项 <span class="text-red-600">*</span></label>
+        <textarea id="tf-dissolve-basis" rows="2" class="input-flat w-full" placeholder="写明要求支委会表决的具体依据"></textarea>
+      </div>
+      <div class="mt-3">
+        <label for="tf-dissolve-note" class="mb-1 block text-xs font-medium text-gray-600">收尾说明 <span class="font-normal text-gray-500">（选填）</span></label>
+        <textarea id="tf-dissolve-note" rows="2" class="input-flat w-full" placeholder="记录事项完成情况或后续交接"></textarea>
+      </div>`,
+    footerHtml: `
+      <button type="button" id="tf-dissolve-cancel" data-modal-cancel="${MODAL_ID}" class="btn-outline text-xs px-3 py-2">返回</button>
+      <button type="button" id="tf-dissolve-submit" class="btn-md btn-md-red">直接结束工作组</button>`,
+    onMount: (card) => {
+      const vote = card.querySelector('#tf-dissolve-vote');
+      const basisWrap = card.querySelector('#tf-dissolve-basis-wrap');
+      const basis = card.querySelector('#tf-dissolve-basis');
+      const submit = card.querySelector('#tf-dissolve-submit');
+      vote.addEventListener('change', () => {
+        basisWrap.classList.toggle('hidden', !vote.checked);
+        basis.required = vote.checked;
+        submit.textContent = vote.checked ? '提交支委会表决' : '直接结束工作组';
+        if (vote.checked) basis.focus();
       });
-      if (!updated) {
-        showToast('error', '工作组收尾失败：请刷新后检查状态与权限');
-        submit.disabled = false;
-        return;
-      }
-      if (!vote.checked) {
-        // 任务和产出均闭合后直接结束，才销掉收尾待办并归档配套通知。
-        TodoStore.completeBySource(TodoSourceType.TASKFORCE, tf.id);
-        NoticeStore.archiveBySource('taskforce', tf.id);
-      }
-      close();
-      showToast('success', vote.checked
-        ? `工作组「${tf.name}」已提交支委会表决`
-        : `工作组「${tf.name}」已结束，历史记录保留`);
-      setState({});
-    } catch (error) {
-      submit.disabled = false;
-      showToast('error', error?.message || '工作组收尾失败，请稍后重试');
-    }
+      submit.addEventListener('click', async () => {
+        const governanceReason = basis.value.trim();
+        if (vote.checked && !governanceReason) {
+          showToast('error', '请写明制度或议程表决依据');
+          basis.focus();
+          return;
+        }
+        submit.disabled = true;
+        const currentUserId = AuthStore.getCurrentUser()?.personId || '';
+        try {
+          const updated = await TaskForceRecordStore.dissolve(tf.id, {
+            requiresCommitteeVote: vote.checked,
+            governanceReason,
+            note: card.querySelector('#tf-dissolve-note').value.trim(),
+            by: currentUserId,
+          });
+          if (!updated) {
+            showToast('error', '工作组收尾失败：请刷新后检查状态与权限');
+            submit.disabled = false;
+            return;
+          }
+          if (!vote.checked) {
+            // 任务和产出均闭合后直接结束，才销掉收尾待办并归档配套通知。
+            TodoStore.completeBySource(TodoSourceType.TASKFORCE, tf.id);
+            NoticeStore.archiveBySource('taskforce', tf.id);
+          }
+          closeModal(MODAL_ID);
+          showToast('success', vote.checked
+            ? `工作组「${tf.name}」已提交支委会表决`
+            : `工作组「${tf.name}」已结束，历史记录保留`);
+          setState({});
+        } catch (error) {
+          submit.disabled = false;
+          showToast('error', error?.message || '工作组收尾失败，请稍后重试');
+        }
+      });
+    },
   });
-  card.querySelector('#tf-dissolve-cancel').focus();
 }
 
 function _renderTfCard(t, statusLabel, statusColor) {
