@@ -2985,3 +2985,38 @@ $body
 - 未改 SQLite 表结构；未做 UI 改版；未混入 IA 修复。
 - 极旧客户端缓存的迁移前记录若整表快照回写，会因父键不可改写被 403；正常 `init()` 后带新键。
 - `legacy` 记录需人工补键或重录，系统不猜同名专班归属。
+
+## 批次 491（2026-10-20）：`.ctx` 瘦身——审计产物归位与准入边界
+
+### 一、判据
+
+- 支书：不是 `.ctx` 要退出，而是 `.ctx` 顶层文件太多、正在变成筐；审计知识要「各找各的地方」——原则找原则、方法找方法、执行沿革进 `logs/archive/`。
+- sample-diff 四样本（IA 审计原文 / 链接真值 / 生成矩阵 / 67 页签草稿）全部按「结论沉淀 + 原文归档」通过。
+
+### 二、动作
+
+- **归档**：7 份审计原文与 `snapshots/` 移入 `.ctx/logs/archive/2026-10/`；`.ctx` 顶层只剩白名单 7 项（`logs/`、`evidence/` + 5 份台账）。
+- **沉淀**：
+  - 链接真值 → `content/04_web_design/module/MODULE_UI_DESIGN.md §五`（四行角色表 + `focusActivityId` / `highlightType` / `[data-act-id]`）；
+  - `.ctx` 准入与三去向 → `CLAUDE.md H26.3`；
+  - 记录生命周期 → `OPERATIONS_GUIDE §10.7`（含 2026-10 归档索引）；
+  - `.ctx` 树与归档规则 → `DOC_MAP` / `ARCHITECTURE`；
+  - 守卫纪律 → `TEST_AND_VERIFICATION`「守卫不得依赖一次性审计产物」；
+  - CTX-01..04 四条 Boolean 规则 → `PARALLEL_SKILL_AUDIT §11.3`；
+  - 「审计产物不是知识」→ `content/insights/工程与AI协作的全栈实践.md`。
+- **路径**：`ia-inventory.mjs` 输出改归档；`ia-critical-guard` / `workbench-audit-coverage` / `doc-consistency` 改读归档路径；新增 `ctx-hygiene-guard`（白名单 / 顶层禁入 / 归档指针 / 生成脚本）。
+- **修**：D04 迁移 v5 在无 `inspections` 表的最小库上先判表存在再回填；README-server 的 `SCHEMA_VERSION` 行号随迁改准。
+
+### 三、读数
+
+- `.ctx` 顶层：7 项（无 `AUDIT_*` / `IA_*` / `*_DRAFT.md` / `snapshots/`）。
+- `ia-inventory.mjs` 重跑：7 台 / 62 tab / 89 卡片 / 114 链接 / 17 深链，写入归档路径。
+- `npm run test:daily`：**1248 / 1248 通过，0 断言失败**。
+- doc-consistency / doc-line-ref / timestamps-note-guard / frontmatter-freshness / ia-critical-guard / workbench-audit-coverage / ctx-hygiene-guard 全绿。
+- 版本戳 `20261020a → 20261020b`。
+
+### 四、边界
+
+- 未删除 `.ctx`；未搬走 `logs/`、`evidence/` 与 5 份台账；未复制审计原文。
+- 历史日志正文不改写（append-only）；旧路径仅作为历史记录存在。
+- 未改业务功能 / 表结构。

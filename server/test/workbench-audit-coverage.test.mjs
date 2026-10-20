@@ -7,7 +7,7 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 const ROOT = join(import.meta.dirname, '..', '..');
-const LEDGER = join(ROOT, '.ctx', 'WORKBENCH_67_TAB_AUDIT_DRAFT.md');
+const LEDGER = join(ROOT, '.ctx', 'logs', 'archive', '2026-10', 'WORKBENCH_67_TAB_AUDIT_DRAFT.md');
 const text = readFileSync(LEDGER, 'utf8');
 const NOTIFICATION_TAB = readFileSync(join(ROOT, 'docs', 'src', 'entries', 'tabs', 'secretary', 'notification-tab.js'), 'utf8');
 // 2026-10-18 Task 17 回修面：支书台党小组 / 活动管理 / 今天（共享 today 只读核对）

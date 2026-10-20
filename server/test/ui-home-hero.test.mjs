@@ -80,7 +80,7 @@ test('E5 非空转自检：正则正样本命中、负样本不命中', () => {
   assert.doesNotMatch('<h2 class="font-title-cn">重要通知</h2>', HERO_TITLE_RE);
   assert.doesNotMatch('<p class="text-sm">组织生活与工作台账</p>', HERO_SUBTITLE_RE);
 
-  const posImport = "import { getHeaderTitle } from '../../services/branch/branch.js?v=20261020a';";
+  const posImport = "import { getHeaderTitle } from '../../services/branch/branch.js?v=20261020b';";
   const negImport = "import { getHeaderTitle } from '../../services/branch/branch.js';";
   assert.match(posImport, IMPORT_RE);
   assert.doesNotMatch(negImport, IMPORT_RE);

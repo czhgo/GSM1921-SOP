@@ -2,7 +2,7 @@
 title: "运行与协作规范"
 type: governance
 role: "[工程师]+[AI]"
-last_updated: 2026-10-18
+last_updated: "2026-10-20"
 version: "4.1"
 status: active
 merged_from:
@@ -198,7 +198,7 @@ related_files: [...]
 | `log`            | 执行日志           | .ctx/logs/                                                                |
 | `decision_log`   | 决策日志           | .ctx/logs/                                                                |
 | `audit_report`   | 审计报告           | .ctx/logs/                                                                |
-| `snapshot`       | 系统快照           | .ctx/snapshots/                                                           |
+| `snapshot`       | 系统快照           | .ctx/logs/archive/2026-10/snapshots/                                      |
 
 **已废弃的 type 值**：`CLAUDE.md`（改为 `roadmap`）、`模板`（改为 `template`）、`导航`（改为 `index`）
 
@@ -557,6 +557,29 @@ Guides 文件不使用数字编号，使用**语义化文件名**（大写+下�
 - 具体边界由 AI 根据条目数量和逻辑分组灵活划分，不做硬性日期切割
 
 **与 H20.1 的关系**：H20.1 要求"读取 .ctx/ 确定当前基线"——AI 应优先读取活跃日志的摘要表和近期详细条目，按需读取归档文件。不得一次性读取全部归档内容。
+
+### 10.7 记录生命周期：产生 → 沉淀 → 归档（2026-10-20 立）
+
+> **为什么单列**：日志归档只解决了「日志变大」，没解决「审计报告堆在 `.ctx` 顶层」。记录从产生到归档要有固定路径，否则 `.ctx` 会变成筐。
+
+| 阶段 | 做什么 | 落点 |
+| --- | --- | --- |
+| **产生** | 任务过程、审计发现、真机读数先如实记录，带证据（`file:line` / 截图 / 命令输出） | `.ctx/logs/YYYY-MM-EXECUTION_LOG.md`；二进制与读数放 `.ctx/evidence/YYYY-MM-DD/` |
+| **沉淀** | 把可复用结论拆成「原则」与「方法」，写进各自权威文档（见 `CLAUDE.md H26.3` 三去向） | 原则 → `CLAUDE.md` / `OPERATIONS_GUIDE.md` / `DESIGN_SYSTEM.md` / `DATA_MODEL.md`；方法 → `TEST_AND_VERIFICATION.md` / `PARALLEL_SKILL_AUDIT.md` |
+| **归档** | 一次性审计原文、脚本生成产物、已完成轮次的报告移入按月归档；结论与原文的指针一并交代 | `.ctx/logs/archive/YYYY-MM/` |
+
+**`.ctx` 的职责边界**：只放台账（`TIMESTAMPS.md` / `SNAPSHOT.md` / `REVIEW_QUEUE.md` / `ACTIVE_RULINGS.md` / `ENGINEERING_ASSESSMENT.md`）、日志（`logs/`）与证据（`evidence/`）。审计报告不是知识本体——结论沉淀后原文归档，不在顶层常驻；顶层新增文件必须命中 `CLAUDE.md H26.3` 的白名单。
+
+**2026-10 归档索引（原文唯一一份在 `.ctx/logs/archive/2026-10/`）**：
+
+- `AUDIT_IA_CRITICAL.md`（IA 六路审计；原则已进 `CLAUDE.md H21.3`，方法已进 `PARALLEL_SKILL_AUDIT.md §11`）
+- `IA_LINK_TRUTH.md`（逐角色链接真值；契约已进 `content/04_web_design/module/MODULE_UI_DESIGN.md §五`）
+- `IA_INVENTORY.md`（`server/scripts/ia-inventory.mjs` 生成产物，可重跑）
+- `AUDIT_ROUND1_WORKBENCH_STRUCTURE.md`
+- `AUDIT_ROUND2_MINIMUM_THREE_COSTS.md`
+- `AUDIT_ROUND3_4_COMBINED.md`
+- `WORKBENCH_67_TAB_AUDIT_DRAFT.md`（67 页签覆盖率历史证据）
+- `snapshots/`（历史系统快照）
 
 ## 11. 反论表述审核标准
 

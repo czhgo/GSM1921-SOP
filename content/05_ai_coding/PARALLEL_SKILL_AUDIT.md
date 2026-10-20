@@ -444,7 +444,7 @@ related_files: [CLAUDE.md, .trae/specs/generalize-parallel-skill-audit/spec.md]
 
 ## 11. 批判性 IA 审查（H21.3 · 2026-10-19 立）
 
-> 判例：`.ctx/AUDIT_IA_CRITICAL.md`、`.ctx/IA_INVENTORY.md`、`.ctx/IA_LINK_TRUTH.md`。
+> 判例：`.ctx/logs/archive/2026-10/AUDIT_IA_CRITICAL.md`、`.ctx/logs/archive/2026-10/IA_INVENTORY.md`、`.ctx/logs/archive/2026-10/IA_LINK_TRUTH.md`。
 > 起因：支书指出「入口太多、界面太多，没有各尽其责又相互配合；链接还有问题」。上一轮 H21 擅长「页面做得好不好」，不擅长「该不该存在、指向对不对」。
 
 ### 11.1 三问（未过不得进入视觉/无障碍评分）
@@ -468,6 +468,10 @@ related_files: [CLAUDE.md, .trae/specs/generalize-parallel-skill-audit/spec.md]
 | AP-IA-03 | IF 一张卡同时承载只读决策信息与写 CTA THEN 拆分；写 CTA 移到页头或独立主行动区，每屏最多 1 个 | 六台 `today` 日程卡 |
 | AP-IA-04 | IF 交接为 auto-confirm THEN 不为接收方派生可执行待办；改为只读回执，confirm 幂等返回 true | 纪检自动交接 |
 | AP-IA-05 | IF 深链携带 `highlight`/对象 id THEN 壳必须先下发 `navTarget` 再清参，目标页必须消费；定位失败必须可见提示 | `review&highlight`；`thought-review&highlight` |
+| CTX-01 | IF 审计结论已沉淀到原则 / 方法文档 THEN 原文必须在 `.ctx/logs/archive/YYYY-MM/`；不得继续留在 `.ctx` 顶层 | 2026-10 IA 三件套归档 |
+| CTX-02 | IF 产物可由脚本重跑 THEN 不得作为权威常驻 `.ctx` 顶层；守卫读 `archive` 路径或直接跑生成脚本 | `server/scripts/ia-inventory.mjs` → `IA_INVENTORY.md` |
+| CTX-03 | IF 内容是可复用契约（逐角色落点 / 深链协议）THEN 进 `content/04_web_design/module/MODULE_UI_DESIGN.md` 一类设计文档，不进审计报告常驻 | `IA_LINK_TRUTH.md` 材料闭环表 → MODULE_UI_DESIGN §五 |
+| CTX-04 | IF `.ctx` 顶层新增文件 THEN 必须命中白名单（`logs/`、`evidence/`、`TIMESTAMPS.md`、`SNAPSHOT.md`、`REVIEW_QUEUE.md`、`ACTIVE_RULINGS.md`、`ENGINEERING_ASSESSMENT.md`）；否则先沉淀再归档 | `CLAUDE.md H26.3` |
 
 ### 11.4 审查顺序
 

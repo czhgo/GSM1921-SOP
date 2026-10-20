@@ -6,20 +6,20 @@
 // SOP-B-15 当事人可见侧（2026-09-20 批次 116 支书定案「支委会 ＋ 当事人本人」）：顶部一块
 //   「本月我的出勤率」——只算当前登录人（当事人只能看到自己的），偏低时按同一提示线给一句提示。
 
-import { loadActiveAttendanceRecords, absenceReasonLabel, createAttendanceAppeal, summarizePersonAttendance } from '../../../services/activity/attendance.js?v=20261020a';
-import { getOrganizedActivities } from '../../../services/activity/activity.js?v=20261020a';
-import { loadMakeupTasks, saveMakeupTasks } from '../../../services/activity/makeup.js?v=20261020a';
-import { AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../../core/domain/domain.js?v=20261020a';
-import { POLICY_DEFAULTS } from '../../../core/domain/policy-defaults.js?v=20261020a';
-import { AuthStore } from '../../../services/core/auth.js?v=20261020a';
-import { openFormModal } from '../../../components/ui/modal.js?v=20261020a';
-import { showToast } from '../../../core/base/utils.js?v=20261020a';
+import { loadActiveAttendanceRecords, absenceReasonLabel, createAttendanceAppeal, summarizePersonAttendance } from '../../../services/activity/attendance.js?v=20261020b';
+import { getOrganizedActivities } from '../../../services/activity/activity.js?v=20261020b';
+import { loadMakeupTasks, saveMakeupTasks } from '../../../services/activity/makeup.js?v=20261020b';
+import { AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../../core/domain/domain.js?v=20261020b';
+import { POLICY_DEFAULTS } from '../../../core/domain/policy-defaults.js?v=20261020b';
+import { AuthStore } from '../../../services/core/auth.js?v=20261020b';
+import { openFormModal } from '../../../components/ui/modal.js?v=20261020b';
+import { showToast } from '../../../core/base/utils.js?v=20261020b';
 // 活动「已归档」口径单一源（2026-09-13 收敛）：替代手写 !a.archived
-import { isActivityArchived } from '../../../core/domain/constants.js?v=20261020a';
+import { isActivityArchived } from '../../../core/domain/constants.js?v=20261020b';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是活动的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
-import { renderFilteredList, activityKeyword, activityFacets } from '../../../components/ui/list-filter.js?v=20261020a';
+import { renderFilteredList, activityKeyword, activityFacets } from '../../../components/ui/list-filter.js?v=20261020b';
 // 材料页深链 focusActivityId 的通用定位（只滚动 + 闪烁，不另造筛选器）
-import { focusActivityAnchor } from '../../../components/ui/detail-anchor.js?v=20261020a';
+import { focusActivityAnchor } from '../../../components/ui/detail-anchor.js?v=20261020b';
 
 export function renderContent(ctx) {
   const tc = document.getElementById('visitor-tab-content');
@@ -61,7 +61,7 @@ export function renderContent(ctx) {
   // 挂「由我组织的活动」上传位（实现单一源＝leader/attendance-tab，host 复用；scope=organizer 只投影本人活动）
   const _orgAttHost = document.getElementById('visitor-org-att-host');
   if (_orgAttHost) {
-    import('../leader/attendance-tab.js?v=20261020a').then(m => { if (_orgAttHost.isConnected) m.renderContent(ctx, _orgAttHost, { scope: 'organizer' }); });
+    import('../leader/attendance-tab.js?v=20261020b').then(m => { if (_orgAttHost.isConnected) m.renderContent(ctx, _orgAttHost, { scope: 'organizer' }); });
   }
 
   // SOP-B-15 当事人可见侧（2026-09-20 批次 116 支书定案「支委会 ＋ 当事人本人」）：

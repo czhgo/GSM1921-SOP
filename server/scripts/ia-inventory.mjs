@@ -6,7 +6,7 @@
 //   1) docs/src/capabilities/*-workspace.js —— 七台页签声明（id/label/groupLabel/coreTab/render）
 //   2) docs/src/entries/tabs/**              —— 各页签渲染文件
 //   3) docs/src/entries/pages/{activity-entry,activity-materials-entry,main-entry}.js
-// 输出：.ctx/IA_INVENTORY.md（稳定排序，可重复运行）
+// 输出：.ctx/logs/archive/2026-10/IA_INVENTORY.md（稳定排序，可重复运行）
 //
 // 计数口径（详见报告末尾「口径说明」）：
 //   · 卡片 = class/className 中含独立 `card` token 的容器；另记节标题（h2/h3 + renderTabHeader）
@@ -26,7 +26,7 @@ const CAP_DIR = path.join(SRC, 'capabilities');
 const TABS_DIR = path.join(SRC, 'entries', 'tabs');
 const PAGE_FILES = ['activity-entry.js', 'activity-materials-entry.js', 'main-entry.js']
   .map((name) => path.join(SRC, 'entries', 'pages', name));
-const OUT_FILE = path.join(ROOT, '.ctx', 'IA_INVENTORY.md');
+const OUT_FILE = path.join(ROOT, '.ctx', 'logs', 'archive', '2026-10', 'IA_INVENTORY.md');
 
 const DEEP_KEYS = ['tab', 'highlight', 'activityId', 'branchId', 'subview'];
 const ID_KEYS = ['activityId', 'taskforceId', 'personId', 'issueId', 'noticeId', 'id', 'branchId'];

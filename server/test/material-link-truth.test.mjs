@@ -10,11 +10,11 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import {
   MATERIAL_ROWS, resolveMaterialHref, resolveMaterialHandoff,
-} from '../../docs/src/core/domain/material-links.js?v=20261020a';
+} from '../../docs/src/core/domain/material-links.js?v=20261020b';
 
 const ID = 'act-1';
 
-/** 真值表（与 .ctx/IA_LINK_TRUTH.md 一致；role 取 AuthStore 的 role 值） */
+/** 真值表（与 .ctx/logs/archive/2026-10/IA_LINK_TRUTH.md 一致；role 取 AuthStore 的 role 值） */
 const EXPECTED = {
   'secretary': {
     photos: null,

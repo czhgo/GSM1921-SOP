@@ -10,7 +10,7 @@ version: "v60"
 
 # System Snapshot — v60
 
-> 当前活跃基线。历史快照见 `.ctx/snapshots/`。
+> 当前活跃基线。历史快照见 `.ctx/logs/archive/2026-10/snapshots/`。
 
 > **职能（2026-09-17 立，规范见 [OPERATIONS_GUIDE §5.1](../content/03_doc_system/OPERATIONS_GUIDE.md)）**
 > **回答什么问题**：「**这个系统现在长什么样**」——目录结构、页面与数据表清单、账号与角色、当前基线口径。**AI 新会话开局靠它一次同步到现状**，不必重读全部历史。

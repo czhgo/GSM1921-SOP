@@ -2,7 +2,7 @@
 title: "全局文档导航映射"
 type: governance
 role: "[工程师]+[AI]"
-last_updated: 2026-10-18
+last_updated: "2026-10-20"
 version: "2.5"
 status: active
 related_files: [OPERATIONS_GUIDE.md, CLAUDE.md, ARCHITECTURE.md, .ctx/REVIEW_QUEUE.md, .ctx/ENGINEERING_ASSESSMENT.md, content/insights/README.md]
@@ -161,10 +161,17 @@ related_files: [OPERATIONS_GUIDE.md, CLAUDE.md, ARCHITECTURE.md, .ctx/REVIEW_QUE
 | `README.md`（根目录） | [用户] | 项目门面，一句话说清是什么 | — |
 | `.ctx/TIMESTAMPS.md` | [工程师] | 文件时间戳注册表（含周期性任务追踪表） | CLAUDE.md |
 | `.ctx/SNAPSHOT.md` | [AI] | 系统快照、AI 快速同步入口（审计追溯层） | ARCHITECTURE.md、CLAUDE.md |
+| `.ctx/REVIEW_QUEUE.md` | [工程师]+[AI] | 评议队列（未闭环事项与评议规则） | CLAUDE.md H60/H60.6 |
+| `.ctx/ACTIVE_RULINGS.md` | [工程师]+[AI] | 现行有效裁定速查（权威源为月度决策日志） | CLAUDE.md H26 |
+| `.ctx/ENGINEERING_ASSESSMENT.md` | [工程师]+[AI] | 工程化评估与改造行动线 | CLAUDE.md、DOC_MAP §二 |
 | `.ctx/logs/YYYY-MM-EXECUTION_LOG.md` | [工程师] | 月度执行日志 | ARCHITECTURE.md、CLAUDE.md |
 | `.ctx/logs/DECISION_LOG.md` | [工程师] | 决策日志 | ARCHITECTURE.md、CLAUDE.md |
+| `.ctx/logs/archive/YYYY-MM/` | [工程师]+[AI] | 一次性审计原文与已完成轮次报告归档 | CLAUDE.md H26.3 |
+| `.ctx/evidence/YYYY-MM-DD/` | [工程师]+[AI] | 真机截图与读数证据 | 执行日志对应条目 |
 | `docs/src/*` | [工程师] | 代码实现（workflow/services/entries/core/components/styles） | ARCHITECTURE.md |
 | `docs/help.html` | [用户] | 系统帮助与操作说明；章节阅读、全文搜索、按角色/任务进入 | Help 章节正文、FUNCTION_CATALOG、docs/src/components/sections/help-navigation.js |
+
+> **归档规则（`.ctx` 顶层准入）**：`.ctx` 顶层只列白名单 7 项——`logs/`、`evidence/`、`TIMESTAMPS.md`、`SNAPSHOT.md`、`REVIEW_QUEUE.md`、`ACTIVE_RULINGS.md`、`ENGINEERING_ASSESSMENT.md`。一次性审计报告 / 脚本生成产物在结论沉淀后移入 `.ctx/logs/archive/YYYY-MM/`，不得在顶层新增；准入与三去向见 `CLAUDE.md H26.3`。
 
 ---
 

@@ -2,7 +2,7 @@
 title: "测试验证纪律"
 type: governance
 role: "[工程师]+[AI]"
-last_updated: 2026-09-29
+last_updated: "2026-10-20"
 status: active
 related_files: [CLAUDE.md, DATA_CONSISTENCY_CHECKLIST.md, content/03_doc_system/OPERATIONS_GUIDE.md, docs/scripts/bump-version.mjs]
 ---
@@ -260,4 +260,21 @@ UI-2 通知点击响应修复时，首次基于"函数名直观判断"将 click 
 4. **静态守卫只能锁「形态」，锁不住「引用完整性」，须靠 e2e / 全量回归兜底**——模块环场景下单一源必须放**叶子件**，但其搬迁仍按本清单改签
 
 **生效条件**：任何「移动 / 重命名单一源位置」的任务（换文件、换导出名、抽出叶子件）；尤其当该单一源被 5 个以上文件引用时。
+
+---
+
+## 守卫不得长期依赖一次性审计产物（2026-10-20 立）
+
+**问题**：审计报告、IA 矩阵、生成清单常被直接写成守卫的输入路径。一次性产物在结论沉淀后要移入 `.ctx/logs/archive/YYYY-MM/`；若守卫仍读 `.ctx` 顶层，迁移即红；若为了守卫把原文留在顶层，`.ctx` 又会重新变成筐。
+
+**规则**：
+
+1. **守卫只依赖两类输入**：① **台账**——`.ctx/TIMESTAMPS.md`、`.ctx/SNAPSHOT.md`、`.ctx/REVIEW_QUEUE.md`、`.ctx/ACTIVE_RULINGS.md` 等常驻文件；② **archive 中带生成脚本的产物**——能用脚本重跑，如 `server/scripts/ia-inventory.mjs` 生成的 `IA_INVENTORY.md`。
+2. **审计原文不是守卫契约**：需要断言的结论先沉淀到原则 / 方法文档（`CLAUDE.md`、`OPERATIONS_GUIDE.md`、`DESIGN_SYSTEM.md`、`DATA_MODEL.md` 或本篇 / `PARALLEL_SKILL_AUDIT.md`），守卫读那份文档，不读一次性报告。
+3. **迁移与改路径同批**：审计产物从 `.ctx` 顶层迁入 `archive/YYYY-MM/` 时，新增或迁移守卫**必须在同一批**改路径；迁移后全仓 Grep 旧路径应为 0 命中，并跑相关守卫。
+4. **跨月归档仍按一改具改**：守卫路径含月份目录；跨月归档后按 H30.1 同步改签，不得留下只在旧月份存在的隐式依赖。
+
+**Boolean 条件**：新增守卫引用 `.ctx/**` 文件 → 先问「它是台账，还是可由脚本重跑？两者都不是 ⇒ 不得作为守卫输入」；迁移 `.ctx` 文件 → 同批检查所有守卫与文档引用。
+
+**生效条件**：任何新增 / 修订守卫、任何 `.ctx` 文件迁移或归档的批次。
 

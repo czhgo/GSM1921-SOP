@@ -2,7 +2,7 @@
 title: "架构与单一事实源"
 type: architecture
 role: "[工程师]+[AI]"
-last_updated: 2026-10-18
+last_updated: "2026-10-20"
 version: "7.4"
 status: active
 related_files: [CLAUDE.md, content/03_doc_system/DOC_MAP.md, content/02_institution/SYSTEM_ROLE_PERMISSION.md, content/04_web_design/]
@@ -102,7 +102,7 @@ Layer 6: 实现层（代码实现与运行时）
   └─ server/                              [工程师]+[AI] Node 一体化后端（Express + better-sqlite3）
 
 Layer 7: 审计参考层（审计与参考）
-  └─ .ctx/                                [AI]/[工程师]+[AI] 审计底座（logs/TIMESTAMPS/SNAPSHOT/REVIEW_QUEUE）
+  └─ .ctx/                                [AI]/[工程师]+[AI] 审计底座（logs/ · evidence/ · TIMESTAMPS · SNAPSHOT · REVIEW_QUEUE · ACTIVE_RULINGS · ENGINEERING_ASSESSMENT）
 ```
 
 ---
@@ -195,18 +195,21 @@ Layer 7: 审计参考层（审计与参考）
 │   │   └── 党支部管理与实务经验沉淀.md [用户]+[AI] 按 5 类知识类型组织的经验沉淀（党建实务）
 │   └── README.md                     [用户]+[AI] 内容中心索引
 │
-├── .ctx/                              [AI] 运行时上下文（审计底座）
+├── .ctx/                              [AI] 运行时上下文（审计底座；顶层只列白名单 7 项）
 │   ├── TIMESTAMPS.md                  [工程师]+[AI] 文件时间戳注册表
 │   ├── SNAPSHOT.md                    [AI] 当前基线快照
 │   ├── REVIEW_QUEUE.md                [工程师]+[AI] 支书评议队列
+│   ├── ACTIVE_RULINGS.md              [工程师]+[AI] 现行有效裁定速查
 │   ├── ENGINEERING_ASSESSMENT.md     [工程师]+[AI] 工程化评估与改造行动线（评估职能归审计底座）
-│   ├── snapshots/                     [AI] 历史快照归档
+│   ├── evidence/                      [工程师]+[AI] 真机证据（按日期：YYYY-MM-DD/ 截图与读数）
 │   └── logs/                          [工程师]+[AI] 月度执行日志与决策日志
-│       ├── archive/                   [工程师]+[AI] 历史日志归档
+│       ├── archive/                   [工程师]+[AI] 历史日志与审计原文归档（按月份：YYYY-MM/）
 │       ├── EXECUTION_LOG_INDEX.md     [工程师]+[AI] 日志导航索引
 │       ├── YYYY-MM-EXECUTION_LOG.md   [工程师]+[AI] 月度执行日志
 │       └── YYYY-MM-DECISION_LOG.md    [工程师]+[AI] 月度决策日志
 ```
+
+> **归档规则**：`.ctx` 顶层只放 `logs/`、`evidence/`、`TIMESTAMPS.md`、`SNAPSHOT.md`、`REVIEW_QUEUE.md`、`ACTIVE_RULINGS.md`、`ENGINEERING_ASSESSMENT.md`。一次性审计报告与脚本生成产物在结论沉淀到原则 / 方法文档后，移入 `.ctx/logs/archive/YYYY-MM/`，不得在顶层新增；准入与三去向见 `CLAUDE.md H26.3`。
 
 ---
 

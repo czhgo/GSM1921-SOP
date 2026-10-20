@@ -23,9 +23,9 @@ const has = (p) => existsSync(join(ROOT, p));
 
 test('I1 四件落盘：IA 矩阵 / 批判性审计 / 链接真值 / H21.3 协议', () => {
   for (const p of [
-    '.ctx/IA_INVENTORY.md',
-    '.ctx/AUDIT_IA_CRITICAL.md',
-    '.ctx/IA_LINK_TRUTH.md',
+    '.ctx/logs/archive/2026-10/IA_INVENTORY.md',
+    '.ctx/logs/archive/2026-10/AUDIT_IA_CRITICAL.md',
+    '.ctx/logs/archive/2026-10/IA_LINK_TRUTH.md',
     'content/05_ai_coding/PARALLEL_SKILL_AUDIT.md',
   ]) assert.ok(has(p), `缺少 ${p}`);
 });
@@ -54,7 +54,7 @@ test('I3 CLAUDE 含 H21.3 三问与 mock 可删改', () => {
 });
 
 test('I4 矩阵非空转：tabs ≥ 60、links ≥ 30', () => {
-  const m = read('.ctx/IA_INVENTORY.md');
+  const m = read('.ctx/logs/archive/2026-10/IA_INVENTORY.md');
   const tabs = Number((/tab 数\s*\|\s*(\d+)/.exec(m) || [])[1] || 0);
   const links = Number((/链接数[^|\n]*\|\s*(\d+)/.exec(m) || [])[1] || 0);
   assert.ok(tabs >= 60, `矩阵 tabs=${tabs} < 60，扫描面异常`);
@@ -62,11 +62,11 @@ test('I4 矩阵非空转：tabs ≥ 60、links ≥ 30', () => {
 });
 
 test('I5 审计报告覆盖六路编号；链接真值覆盖材料闭环与至少 10 条', () => {
-  const a = read('.ctx/AUDIT_IA_CRITICAL.md');
+  const a = read('.ctx/logs/archive/2026-10/AUDIT_IA_CRITICAL.md');
   for (const id of ['IA-A01', 'IA-B01', 'IA-C01', 'IA-D01', 'IA-E01', 'IA-F01']) {
     assert.ok(a.includes(id), `审计报告缺少 ${id}`);
   }
-  const l = read('.ctx/IA_LINK_TRUTH.md');
+  const l = read('.ctx/logs/archive/2026-10/IA_LINK_TRUTH.md');
   assert.match(l, /材料闭环页：逐角色落点/, '链接真值缺少材料闭环逐角色表');
   const ids = new Set((l.match(/IA-C\d{2}|C\d{2}/g) || []).map((x) => x.replace('IA-', '')));
   assert.ok(ids.size >= 10, `链接真值覆盖 ${ids.size} 条 < 10`);

@@ -2,9 +2,9 @@
 title: "工程与 AI 协作的全栈实践"
 type: experience_doc
 role: "[用户]+[工程师]"
-last_updated: "2026-10-16"
+last_updated: "2026-10-20"
 status: active
-related_files: [content/insights/README.md, content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/OPERATIONS_GUIDE.md, content/04_web_design/data/DATA_MODEL.md, content/04_web_design/data/SYSTEM_ROLE_PERMISSION.md, content/04_web_design/design-system/DESIGN_SYSTEM.md, content/05_ai_coding/DATA_CONSISTENCY_CHECKLIST.md, content/05_ai_coding/TEST_AND_VERIFICATION.md, content/05_ai_coding/CONTEXT_MANAGEMENT.md, server/README.md, .ctx/ENGINEERING_ASSESSMENT.md]
+related_files: [CLAUDE.md, content/insights/README.md, content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/OPERATIONS_GUIDE.md, content/04_web_design/data/DATA_MODEL.md, content/04_web_design/data/SYSTEM_ROLE_PERMISSION.md, content/04_web_design/design-system/DESIGN_SYSTEM.md, content/05_ai_coding/DATA_CONSISTENCY_CHECKLIST.md, content/05_ai_coding/TEST_AND_VERIFICATION.md, content/05_ai_coding/CONTEXT_MANAGEMENT.md, server/README.md, .ctx/ENGINEERING_ASSESSMENT.md]
 ---
 
 # 工程与 AI 协作的全栈实践
@@ -121,6 +121,12 @@ AI 擅长快速搜索、连通调用链、生成测试反例和做重复编辑�
 4. **先做最小反例与计划：** 定义需要保留的行为、失败行为、受影响文件和测试，再实施。多个职责不同的改动分开验证。
 5. **改后验证并更新归处：** 跑覆盖本批逻辑的测试、检查真实用户路径，核对数据库没有被意外写入，并更新必要的帮助、索引和学习文档。
 6. **把经验放回合适位置：** 当前规则进权威文件；可复用的检查方法进 05；给人读的跨层经验进 insights；本次发生的事情进执行记录；不要在多个文件复制同一段规则。
+
+### 审计产物不是知识
+
+一次审计产出的报告、矩阵、截图和生成清单，证明的是「这一次查到了什么」，不是「以后该怎么判」。可复用的结论要在当批拆成两类沉淀：原则（以后怎么判）进 `CLAUDE.md`、`OPERATIONS_GUIDE.md`、`DESIGN_SYSTEM.md`、`DATA_MODEL.md`；方法（以后怎么做）进 `TEST_AND_VERIFICATION.md`、`PARALLEL_SKILL_AUDIT.md`。原文只留一份证据，移入 `.ctx/logs/archive/YYYY-MM/`。
+
+把审计报告常驻 `.ctx` 顶层，会让上下文目录变成筐：下次开工读到的是一堆一次性过程，真正的规则却仍散落在报告里。`.ctx` 顶层准入白名单与「原则 / 方法 / 沿革」三去向见 [CLAUDE.md](../../CLAUDE.md) 的「`.ctx` 准入与审计产物三去向」。
 
 让 AI 提供判断和反例，而不是替使用者承担业务裁定。出现权限变化、统计口径变化、跨角色流程变化时，应该明确展示差异和代价，再由负责者决定。
 

@@ -2,7 +2,7 @@
 title: "Org OS — 系统路线图与 Harness"
 type: roadmap
 role: "[工程师]+[AI]"
-last_updated: 2026-10-19
+last_updated: "2026-10-20"
 status: active
 related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/DOC_MAP.md, content/01_strategy/SECRETARY_DIRECTIVES.md, content/01_strategy/, content/02_institution/, content/03_doc_system/, content/04_web_design/, content/05_ai_coding/, content/insights/, server/, .ctx/logs/]
 ---
@@ -206,6 +206,26 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/DOC
 
 ***
 
+## H26.3 `.ctx` 准入与审计产物三去向（2026-10-20 立）
+
+> **背景**：`.ctx` 顶层文件过多、成了筐；审计知识必须「各找各的地方」——原则归原则、方法归方法、执行沿革进 `logs/archive/`。
+
+**`.ctx` 顶层白名单（只此 7 项）**：`logs/`、`evidence/`、`TIMESTAMPS.md`、`SNAPSHOT.md`、`REVIEW_QUEUE.md`、`ACTIVE_RULINGS.md`、`ENGINEERING_ASSESSMENT.md`。
+
+**审计产物三去向**（先判性质，再决定落点）：
+
+| 产物性质 | 去向 | 判据 |
+| --- | --- | --- |
+| **原则**（现在该怎么判） | `CLAUDE.md` / `OPERATIONS_GUIDE.md` / `DESIGN_SYSTEM.md` / `DATA_MODEL.md` | 结论长期约束后续设计、权限或数据口径 |
+| **方法**（以后怎么做） | `TEST_AND_VERIFICATION.md` / `PARALLEL_SKILL_AUDIT.md` | 可复用的检查步骤、守卫写法、审查流程 |
+| **执行沿革**（这一次发生了什么） | `.ctx/logs/archive/YYYY-MM/` | 一次性审计报告、生成产物、真机读数与证据 |
+
+**禁止**：一次性审计报告 / 脚本生成产物常驻 `.ctx` 顶层。结论已沉淀到原则或方法文档的，原文在 `archive` 只留一份；守卫读 `archive` 路径或直接重跑生成脚本，不得为守卫方便把原文留在顶层。顶层新增文件必须命中白名单，否则先沉淀、再归档。
+
+**边界**：本律只管落点，不改审计结论；原则以原则文档为准，沿革以 `archive` 原文为准。
+
+***
+
 ## H27. AI逃逸捕捉评议（2026-08-30 支书引入）
 
 **定义**：检查提示词体系（本文件甲部 + 检查要点库 REVIEW_QUEUE 附录⑤ + skills）中「本应 rule-based（确定性执行）却写成 AI 可自行取舍的软性表述」的位置——**逃逸点**（AI 可合理化偏离规则意图）。
@@ -268,7 +288,7 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/DOC
 - **数据适配功能**：DB / 枚举 / mock 以页面功能与权限判据为准；mock 可删改；不得为旧数据削足适履。
 - **链接真值**：跨工作台链接必须按角色派生或渲染纯文本交接；不允许一条链接打天下。
 - **深链规则**：`highlight`/对象 id 必须先下发 `navTarget` 再清参，目标页必须消费；失败给可见提示。
-- **判例**：`.ctx/AUDIT_IA_CRITICAL.md`、`.ctx/IA_INVENTORY.md`、`.ctx/IA_LINK_TRUTH.md`；learned rules 见 `PARALLEL_SKILL_AUDIT.md §11.3`。
+- **判例**：`.ctx/logs/archive/2026-10/AUDIT_IA_CRITICAL.md`、`.ctx/logs/archive/2026-10/IA_INVENTORY.md`、`.ctx/logs/archive/2026-10/IA_LINK_TRUTH.md`；learned rules 见 `PARALLEL_SKILL_AUDIT.md §11.3`。
 
 > 详版：`content/05_ai_coding/PARALLEL_SKILL_AUDIT.md` §11。
 
@@ -798,7 +818,7 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/DOC
 
 | ID | 事项 | 引用流程 | 修改对象 | 状态 |
 | --- | --- | --- | --- | --- |
-| T-903 | 完成工作台标签结构盘点与重点页证据审校；收束已确认的信息结构、能力包治理字段和文案改进 | H20.2 + H25 + DESIGN_SYSTEM + 最小三成本 | `.ctx/WORKBENCH_67_TAB_AUDIT_DRAFT.md`、`README-server.md`、相关工作台实现 | 进行中（批次 464 党委批次 0；465 验证；466 个人档案设计；467–471 5 个阻塞清零、繁专项 Top 10 部分、个人档案分层实现；472 API 语义写链与工作组概念全仓对齐；473 按钮/边框归一、表格四类规范、信息计算文档与党委铃铛收窄。台账结论 29 合格 / 38 需修 / 0 阻塞。form-loop 仍有多条真机写链红：组长考勤前置数据、向导任选、pc-review 前置；按钮族内尺寸工具类存量 491 处为只降不升基线） |
+| T-903 | 完成工作台标签结构盘点与重点页证据审校；收束已确认的信息结构、能力包治理字段和文案改进 | H20.2 + H25 + DESIGN_SYSTEM + 最小三成本 | `.ctx/logs/archive/2026-10/WORKBENCH_67_TAB_AUDIT_DRAFT.md`、`README-server.md`、相关工作台实现 | 进行中（批次 464 党委批次 0；465 验证；466 个人档案设计；467–471 5 个阻塞清零、繁专项 Top 10 部分、个人档案分层实现；472 API 语义写链与工作组概念全仓对齐；473 按钮/边框归一、表格四类规范、信息计算文档与党委铃铛收窄。台账结论 29 合格 / 38 需修 / 0 阻塞。form-loop 仍有多条真机写链红：组长考勤前置数据、向导任选、pc-review 前置；按钮族内尺寸工具类存量 491 处为只降不升基线） |
 
 ***
 

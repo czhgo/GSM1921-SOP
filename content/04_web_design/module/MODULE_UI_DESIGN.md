@@ -3,7 +3,7 @@ title: "模块界面设计"
 type: design
 role: "[工程师]+[AI]"
 version: "2.0"
-last_updated: 2026-10-06
+last_updated: "2026-10-20"
 status: landed
 merged_from: [content/design/PAFFAIRS_UI.md, content/design/CALENDAR.md]
 related_files: [content/04_web_design/design-system/DESIGN_SYSTEM.md, content/04_web_design/data/DATA_MODEL.md, content/02_institution/COMMISSIONER_DUTY_FRAMEWORK.md]
@@ -343,6 +343,34 @@ calendarView: 'month',  // 'month' | 'week' | 'day' | 'list'
 > **状态**：2026-09-27 的「全站 8 角色 tab」体检与规划稿（原 §四.1–§四.5）**已全部执行并收口**，已执行内容按 `H50.1 §3` 清出——**空章不驻留**。
 > **现行口径（判据不随清出而失）**：分组主轴见 [DESIGN_SYSTEM.md §2.8](../design-system/DESIGN_SYSTEM.md)；「数据格式 → 视图模式」对照表**已升为 [DESIGN_SYSTEM.md §4.10.1](../design-system/DESIGN_SYSTEM.md) 正式条文（单一源）**；命名口径见该文「tab 命名一致性」。
 > **去向**：2026-09-27 四条裁定原话见 `.ctx/logs/archive/2026-09-DECISION_LOG.md`（2026-09-27 条）；`#10` 全站页签单一轴的分期口径与裁定见 `.ctx/logs/2026-10-DECISION_LOG.md` `D-754`…`D-767`；逐批落地见 `.ctx/logs/2026-10-EXECUTION_LOG.md` 批次 365–375。
+
+---
+
+## 五、链接真值：角色 × 对象 × 步骤
+
+> **判据**：链接不是「能打开」就算对，而是「**该角色 + 该对象 + 该步骤**」的正确落点。目标页必须对该角色可达，目标 tab 必须是该动作的本位，对象 id 必须随链接携带并被目标页消费。跨工作台链接若对当前角色不可达，应渲染本位入口或纯文本交接，不允许一条链接打天下。
+>
+> 工作台身份门只放行本人角色台；跨台链接会被弹回并丢失 `tab` 与对象。真机判例（2026-10-19）：组长从材料页点「考勤」→ 最终落 `leader.html`，`tab` 与活动对象全部丢失。
+
+### 5.1 材料闭环四行逐角色落点
+
+| 材料行 | 支书/副支书 | 组织委员 | 宣传委员 | 纪检委员 | 组长 | 成员组织者 | 其他成员 |
+|---|---|---|---|---|---|---|---|
+| 宣传材料（照片） | 本页提交归档 + 纯文本「由宣传委员补材料」 | 纯文本交接 | `prop.html?tab=archive&highlight=<actId>`（缺件 focus） | 纯文本交接 | 纯文本交接 | 纯文本交接 | 纯文本交接 |
+| 考勤 | `secretary.html?activityId=<actId>` 只读 + 交接 | 纯文本交接（组织台无考勤上传位） | 纯文本交接 | `disc.html?activityId=<actId>`（党课/党员大会）；党小组会/主题党日→组织者位 | `leader.html?tab=attendance` | `visitor.html?tab=attendance#org-host` | 纯文本「由组织者/纪检上传」 |
+| 考察 | `secretary.html?activityId=<actId>` 只读 + 交接 | `org.html?tab=talent`（建档汇总位） | 纯文本交接 | `disc.html?tab=inspection`（确认/打回） | `leader.html?tab=inspection` | `visitor.html?tab=inspection` | 纯文本「由组织者提交、纪检确认」 |
+| 复盘 | `secretary.html?tab=group-progress`（只读状态） | 纯文本交接 | 纯文本交接 | `disc.html?tab=review`（监督/督办） | `leader.html?tab=members`（组员进展内只读） | `visitor.html?tab=review&focus=<actId>` | 纯文本「由组织者提交」 |
+
+**分步骤**：「去补充」与「去核对」按角色、按步骤分别给目标，不能同一目标只换文案；无写权限的角色给纯文本交接，不给假入口。
+
+### 5.2 深链契约
+
+- **`focusActivityId`**：材料页跳转用的新参数，**不复用 `activityId`**——后者会被各台 `onNavTarget` 劫持，导致对象被当作当前台的活动处理。
+- **`[data-act-id]`**：壳的对象高亮选择器必须补这一项，否则复盘卡无法按活动 id 高亮。
+- **`highlightType`**：`highlight` 必须带类型（`p` / `a` / `t` / `rq` / `tr` / `mcr` / `group`），避免跨 tab 语义串味；壳先下发 `navTarget` 再清参，目标页必须消费，高亮 3 秒后清理。
+- **失败可见提示**：目标 tab 被角色或支部配置隐藏、对象不存在或无权查看时，内容区给可见提示与替代落点，不得静默回退默认 tab。
+
+> 原文证据：`.ctx/logs/archive/2026-10/IA_LINK_TRUTH.md`。
 
 ---
 

@@ -338,6 +338,9 @@ export const MIGRATIONS = [
     name: 'inspection-workgroup-key',
     tables: [],
     up(db) {
+      // 最小库 / 旧库可能尚未建 inspections 表（如只做 weekly_reports 迁移的测试库）⇒ 无可回填
+      const hasInspections = db.prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'inspections'").get();
+      if (!hasInspections) return;
       const rows = db.prepare('SELECT id, data FROM inspections').all();
       if (rows.length === 0) return;
       const parseAll = (table) => db.prepare(`SELECT data FROM ${table}`).all().map((row) => JSON.parse(row.data));
