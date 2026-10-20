@@ -42,11 +42,11 @@ async function patchConfig(token, body) {
 }
 
 test('L2 config：现任支书/本副支书可写，其它支委/普通成员/党委 403；治理字段不受 body 影响', async () => {
-  const { token: sec } = await login('p13');    // 现任支书（br-b1）
-  const { token: dep } = await login('p14');    // 本副支书（deputy-secretary，br-b1；副书同权 2026-09-09）
-  const { token: orgc } = await login('p11');   // 组织委员（支委但非支书/副）
-  const { token: mem } = await login('p5');     // 普通成员
-  const { token: staff } = await login('p_pc'); // 党委组织员
+  const { token: sec } = await login('2300010001');    // 现任支书（br-b1）
+  const { token: dep } = await login('2300010002');    // 本副支书（deputy-secretary，br-b1；副书同权 2026-09-09）
+  const { token: orgc } = await login('2400012355');   // 组织委员（支委但非支书/副）
+  const { token: mem } = await login('2400012349');     // 普通成员
+  const { token: staff } = await login('9000000001'); // 党委组织员
 
   // ① 现任支书写 → 200，modules 落库
   const r1 = await patchConfig(sec, { config: { modules: { hiddenTabIds: ['calendar', 'feedback'], tabOrder: ['report-up'] }, name: '越权改名' } });
@@ -55,7 +55,7 @@ test('L2 config：现任支书/本副支书可写，其它支委/普通成员/�
   assert.deepEqual(b1.config.modules.hiddenTabIds, ['calendar', 'feedback'], 'hidden 写回');
   assert.deepEqual(b1.config.modules.tabOrder, ['report-up'], 'tabOrder 写回');
   assert.equal(b1.name, '光华管理学院本科生党支部', '治理字段 name 不被 body 影响（白名单）');
-  assert.equal(b1.secretaryId, 'p13', 'secretaryId 不变');
+  assert.equal(b1.secretaryId, '2300010001', 'secretaryId 不变');
 
   // ② 本副支书 → 200（副书同权：config 写权同现任支书）
   const r2 = await patchConfig(dep, { config: { modules: { hiddenTabIds: ['calendar'], tabOrder: ['report-up', 'notification'] } } });
@@ -83,24 +83,24 @@ test('L2 config：现任支书/本副支书可写，其它支委/普通成员/�
 });
 
 test('L2 config 门控：外副支书 403（副书同权仅限本支部）', async () => {
-  const { token: dep } = await login('p14');
-  const row = db.prepare('SELECT data FROM users WHERE id = ?').get('p14');
+  const { token: dep } = await login('2300010002');
+  const row = db.prepare('SELECT data FROM users WHERE id = ?').get('2300010002');
   const user = JSON.parse(row.data);
-  // 把 p14 归属临时改为另一支部 → 对 br-b1 的 config 写应 403
-  db.prepare('UPDATE users SET data = ? WHERE id = ?').run(JSON.stringify({ ...user, branchId: 'br-other' }), 'p14');
+  // 把 2300010002 归属临时改为另一支部 → 对 br-b1 的 config 写应 403
+  db.prepare('UPDATE users SET data = ? WHERE id = ?').run(JSON.stringify({ ...user, branchId: 'br-other' }), '2300010002');
   try {
     const r = await patchConfig(dep, { config: { modules: { tabOrder: ['report-up'] } } });
     assert.equal(r.status, 403, '外副支书不可写本支部 config');
   } finally {
-    db.prepare('UPDATE users SET data = ? WHERE id = ?').run(JSON.stringify({ ...user, branchId: user.branchId || 'br-b1' }), 'p14');
+    db.prepare('UPDATE users SET data = ? WHERE id = ?').run(JSON.stringify({ ...user, branchId: user.branchId || 'br-b1' }), '2300010002');
   }
   // 恢复本支部归属后副支书可写（还原无残留）
   assert.equal((await patchConfig(dep, { config: { modules: null } })).status, 200, '恢复本支部归属后副支书可写');
 });
 
 test('L2 config.blocks：产出块写回/单独写 blocks/恢复默认/结构校验', async () => {
-  const { token: sec } = await login('p13');
-  const { token: staff } = await login('p_pc');
+  const { token: sec } = await login('2300010001');
+  const { token: staff } = await login('9000000001');
 
   // ① 单独写 blocks（modules 缺省保留现值）
   const r1 = await patchConfig(sec, { config: { blocks: { outputBlocks: { hiddenBlockIds: ['publicity'], blockOrder: ['materials', 'attendance'] } } } });

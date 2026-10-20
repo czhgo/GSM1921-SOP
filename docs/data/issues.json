@@ -13,7 +13,7 @@
       "status": "open",
       "closedReason": null,
       "closedAt": null,
-      "submittedBy": "p5",
+      "submittedBy": "2400012349",
       "submittedAt": "2026-07-15",
       "assignee": null,
       "assigneeRole": null,
@@ -23,9 +23,9 @@
       "mergedInto": null,
       "resultPending": false,
       "reactions": {
-        "thumbsUp": ["p11", "p1"],
+        "thumbsUp": ["2400012355", "2400012345"],
         "thumbsDown": [],
-        "eyes": ["p13"],
+        "eyes": ["2300010001"],
         "hooray": []
       },
       "mentions": [],
@@ -33,7 +33,7 @@
       "comments": [
         {
           "id": "cmt-001",
-          "author": "p11",
+          "author": "2400012355",
           "authorRole": null,
           "body": "我也遇到类似问题，建议增设预授权。",
           "createdAt": "2026-07-15",
@@ -44,7 +44,7 @@
           "hiddenAt": null
         }
       ],
-      "participants": ["p5", "p11"],
+      "participants": ["2400012349", "2400012355"],
       "commentCount": 1
     },
     {
@@ -58,15 +58,15 @@
       "status": "open",
       "closedReason": null,
       "closedAt": null,
-      "submittedBy": "p3",
+      "submittedBy": "2400012347",
       "submittedAt": "2026-07-22",
-      "assignee": "p11",
+      "assignee": "2400012355",
       "assigneeRole": "org-commissioner",
       "dispatchHistory": [
         {
           "from": null,
-          "to": "p11",
-          "by": "p13",
+          "to": "2400012355",
+          "by": "2300010001",
           "at": "2026-07-23",
           "note": "请组织委员核实并补充模板字段"
         }
@@ -76,7 +76,7 @@
       "mergedInto": null,
       "resultPending": false,
       "reactions": {
-        "thumbsUp": ["p7"],
+        "thumbsUp": ["2400012351"],
         "thumbsDown": [],
         "eyes": [],
         "hooray": []
@@ -86,7 +86,7 @@
       "comments": [
         {
           "id": "cmt-002",
-          "author": "p13",
+          "author": "2300010001",
           "authorRole": "secretary",
           "body": "指派给 org-commissioner：请组织委员核实并补充模板字段",
           "createdAt": "2026-07-23",
@@ -98,7 +98,7 @@
         },
         {
           "id": "cmt-003",
-          "author": "p11",
+          "author": "2400012355",
           "authorRole": "org-commissioner",
           "body": "已与宣传委员沟通，确认模板需要在「讨论记录」后追加「下一步行动」「责任人」「完成时限」三列。预计本周内提交修订版。",
           "createdAt": "2026-07-26",
@@ -109,7 +109,7 @@
           "hiddenAt": null
         }
       ],
-      "participants": ["p3", "p13", "p11"],
+      "participants": ["2400012347", "2300010001", "2400012355"],
       "commentCount": 2
     },
     {
@@ -123,15 +123,15 @@
       "status": "open",
       "closedReason": null,
       "closedAt": null,
-      "submittedBy": "p8",
+      "submittedBy": "2400012352",
       "submittedAt": "2026-07-25",
-      "assignee": "p1",
+      "assignee": "2400012345",
       "assigneeRole": "leader",
       "dispatchHistory": [
         {
           "from": null,
-          "to": "p1",
-          "by": "p13",
+          "to": "2400012345",
+          "by": "2300010001",
           "at": "2026-07-26",
           "note": "请第一党小组组长评估在本小组试点的可行性"
         }
@@ -143,7 +143,7 @@
       "reactions": {
         "thumbsUp": [],
         "thumbsDown": [],
-        "eyes": ["p2"],
+        "eyes": ["2400012346"],
         "hooray": []
       },
       "mentions": [],
@@ -151,7 +151,7 @@
       "comments": [
         {
           "id": "cmt-004",
-          "author": "p13",
+          "author": "2300010001",
           "authorRole": "secretary",
           "body": "指派给 leader：请第一党小组组长评估在本小组试点的可行性",
           "createdAt": "2026-07-26",
@@ -163,7 +163,7 @@
         },
         {
           "id": "cmt-005",
-          "author": "p1",
+          "author": "2400012345",
           "authorRole": "leader",
           "body": "已与组内同志讨论，可在 8 月党小组会试点扫码签到，需 IT 支持生成专属二维码。建议先用现有问卷工具，后续再集成。",
           "createdAt": "2026-07-29",
@@ -174,7 +174,7 @@
           "hiddenAt": null
         }
       ],
-      "participants": ["p8", "p13", "p1"],
+      "participants": ["2400012352", "2300010001", "2400012345"],
       "commentCount": 2
     },
     {
@@ -188,15 +188,15 @@
       "status": "closed",
       "closedReason": "completed",
       "closedAt": "2026-07-20",
-      "submittedBy": "p15",
+      "submittedBy": "2500010001",
       "submittedAt": "2026-07-12",
-      "assignee": "p12",
+      "assignee": "2400012356",
       "assigneeRole": "prop-commissioner",
       "dispatchHistory": [
         {
           "from": null,
-          "to": "p12",
-          "by": "p13",
+          "to": "2400012356",
+          "by": "2300010001",
           "at": "2026-07-13",
           "note": "请宣传委员设计系统内报名登记方案"
         }
@@ -206,17 +206,17 @@
       "mergedInto": null,
       "resultPending": false,
       "reactions": {
-        "thumbsUp": ["p1", "p4"],
+        "thumbsUp": ["2400012345", "2400012348"],
         "thumbsDown": [],
         "eyes": [],
-        "hooray": ["p15"]
+        "hooray": ["2500010001"]
       },
       "mentions": [],
       "references": [],
       "comments": [
         {
           "id": "cmt-006",
-          "author": "p13",
+          "author": "2300010001",
           "authorRole": "secretary",
           "body": "指派给 prop-commissioner：请宣传委员设计系统内报名登记方案",
           "createdAt": "2026-07-13",
@@ -228,7 +228,7 @@
         },
         {
           "id": "cmt-007",
-          "author": "p12",
+          "author": "2400012356",
           "authorRole": "prop-commissioner",
           "body": "已完成活动报名功能设计，在「活动写入」中增加「参与人」字段，活动详情页可查看报名列表。",
           "createdAt": "2026-07-18",
@@ -240,7 +240,7 @@
         },
         {
           "id": "cmt-008",
-          "author": "p13",
+          "author": "2300010001",
           "authorRole": "secretary",
           "body": "关闭反馈（completed）：方案已采纳并实施，下次主题党日起启用。",
           "createdAt": "2026-07-20",
@@ -252,7 +252,7 @@
         },
         {
           "id": "cmt-010",
-          "author": "p12",
+          "author": "2400012356",
           "authorRole": "prop-commissioner",
           "body": "报名功能已随「活动/专班报名渠道」正式落地（2026-08-07）：活动与专班均支持自下而上报名，普通参与报名即加入、组织者/深度参与报名后由发起人审核，报名记录全链路可查。",
           "createdAt": "2026-08-07",
@@ -263,7 +263,7 @@
           "hiddenAt": null
         }
       ],
-      "participants": ["p15", "p13", "p12", "p12"],
+      "participants": ["2500010001", "2300010001", "2400012356", "2400012356"],
       "commentCount": 4
     },
     {
@@ -279,16 +279,16 @@
       "status": "open",
       "closedReason": null,
       "closedAt": null,
-      "submittedBy": "p13",
+      "submittedBy": "2300010001",
       "submittedAt": "2026-07-05",
-      "requestedBy": "p13",
+      "requestedBy": "2300010001",
       "requestedAt": "2026-07-05",
       "requestedNote": "宣传专班（第二期）招募与推进情况",
-      "assignee": "p11",
+      "assignee": "2400012355",
       "assigneeRole": "org-commissioner",
-      "dispatchHistory": [{ "from": null, "to": "p11", "by": "p13", "at": "2026-07-05", "note": "了解进展" }],
+      "dispatchHistory": [{ "from": null, "to": "2400012355", "by": "2300010001", "at": "2026-07-05", "note": "了解进展" }],
       "comments": [],
-      "participants": ["p13", "p11"],
+      "participants": ["2300010001", "2400012355"],
       "commentCount": 0,
       "reactions": { "thumbsUp": [], "thumbsDown": [], "eyes": [], "hooray": [] },
       "mentions": [],
@@ -308,13 +308,13 @@
       "status": "open",
       "closedReason": null,
       "closedAt": null,
-      "submittedBy": "p1",
+      "submittedBy": "2400012345",
       "submittedAt": "2026-07-08",
       "assignee": null,
       "assigneeRole": null,
       "dispatchHistory": [],
       "comments": [],
-      "participants": ["p1"],
+      "participants": ["2400012345"],
       "commentCount": 0,
       "reactions": { "thumbsUp": [], "thumbsDown": [], "eyes": [], "hooray": [] },
       "mentions": [],

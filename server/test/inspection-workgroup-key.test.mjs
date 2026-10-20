@@ -11,9 +11,9 @@ import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { createApp } from '../app.js';
 import { seedDatabase } from '../seed.js';
-import { migrateInspectionWorkgroupKeys } from '../../docs/src/services/activity/inspection-migrate.js?v=20261020d';
-import { INSPECTION_RECORDS } from '../../docs/src/data/mock/inspection.js?v=20261020d';
-import { MOCK_TASKFORCES } from '../../docs/src/data/mock/taskforces.js?v=20261020d';
+import { migrateInspectionWorkgroupKeys } from '../../docs/src/services/activity/inspection-migrate.js?v=20261020e';
+import { INSPECTION_RECORDS } from '../../docs/src/data/mock/inspection.js?v=20261020e';
+import { MOCK_TASKFORCES } from '../../docs/src/data/mock/taskforces.js?v=20261020e';
 
 let app, db, server, base;
 
@@ -48,7 +48,7 @@ const taskforcePayload = (workgroupId, content, extra = {}) => ({
   activityId: null,
   workgroupId,
   sourceName: '宣传专班（第二期）',
-  personId: 'p9',
+  personId: '2400012353',
   level: 'deep',
   content,
   status: 'pending',
@@ -57,7 +57,7 @@ const taskforcePayload = (workgroupId, content, extra = {}) => ({
 });
 
 test('① 新建考察：专班带 workgroupId，活动带 activityId；专班缺键 → 400', async () => {
-  const { token } = await login('p10'); // 纪检（支委层，可写任意场次）
+  const { token } = await login('2400012354'); // 纪检（支委层，可写任意场次）
 
   const tf = await fetch(`${base}/api/v1/inspections`, {
     method: 'POST', headers: headers(token),
@@ -69,11 +69,11 @@ test('① 新建考察：专班带 workgroupId，活动带 activityId；专班�
   assert.equal(tfRow.workgroupId, 'wg-taskforce-tf-001', '专班考察必须落 workgroupId');
   assert.equal(tfRow.taskforceId, 'tf-001', '兼容快照 taskforceId 随行保留');
 
-  const { token: orgToken } = await login('p3'); // act-7 组织者（普通成员）
+  const { token: orgToken } = await login('2400012347'); // act-7 组织者（普通成员）
   const act = await fetch(`${base}/api/v1/inspections`, {
     method: 'POST', headers: headers(orgToken),
     body: JSON.stringify({
-      sourceType: 'activity', activityId: 'act-7', sourceName: null, personId: 'p9',
+      sourceType: 'activity', activityId: 'act-7', sourceName: null, personId: '2400012353',
       level: 'deep', content: '活动考察·父键断言', status: 'pending', recordedAt: new Date().toISOString(),
     }),
   });
@@ -95,14 +95,14 @@ test('② 专班改名后按 workgroupId 仍可查；同名专班不串数据', 
   // 造一个与 tf-001 同名的专班（各自独立 workgroupId）——只有父键能区分，名称不能。
   put('taskforces', {
     id: 'tf-twin', name: '宣传专班（第二期）', status: 'active', branchId: 'br-b1',
-    manager: 'p11', initiator: 'p13', members: [{ personId: 'p10', role: 'organizer' }], createdAt: '2026-07-09',
+    manager: '2400012355', initiator: '2300010001', members: [{ personId: '2400012354', role: 'organizer' }], createdAt: '2026-07-09',
   });
   put('workgroups', {
     id: 'wg-taskforce-tf-twin', branchId: 'br-b1', kind: 'taskforce', sourceType: 'taskforce',
     sourceId: 'tf-twin', name: '宣传专班（第二期）', status: 'active', createdAt: '2026-07-09',
   });
 
-  const { token } = await login('p10');
+  const { token } = await login('2400012354');
   const create = async (workgroupId, taskforceId, content) => {
     const res = await fetch(`${base}/api/v1/inspections`, {
       method: 'POST', headers: headers(token),
@@ -116,7 +116,7 @@ test('② 专班改名后按 workgroupId 仍可查；同名专班不串数据', 
   const b = await create('wg-taskforce-tf-twin', 'tf-twin', '同名B·tf-twin');
 
   // 真改名（走服务端 PATCH），workgroupId 不变。
-  const { token: secToken } = await login('p13');
+  const { token: secToken } = await login('2300010001');
   const rename = await fetch(`${base}/api/v1/taskforces/tf-001`, {
     method: 'PATCH', headers: headers(secToken), body: JSON.stringify({ name: '宣传专班（改名后）' }),
   });
@@ -147,10 +147,10 @@ test('③ 回填幂等：第二次 filled=0、legacy 不增；legacy 记录确�
     id: tf.workgroupId, kind: 'taskforce', sourceId: tf.id, name: tf.name,
   }));
   const records = [
-    { id: 'm1', sourceType: 'taskforce', sourceName: '唯一专班', personId: 'p1' },
-    { id: 'm2', sourceType: 'taskforce', sourceName: '重名专班', personId: 'p1' }, // 同名 ⇒ 无法唯一回填
-    { id: 'm3', sourceType: 'taskforce', workgroupId: 'wg-taskforce-tf-001', personId: 'p1' },
-    { id: 'a1', sourceType: 'activity', activityId: 'act-1', personId: 'p1' },
+    { id: 'm1', sourceType: 'taskforce', sourceName: '唯一专班', personId: '2400012345' },
+    { id: 'm2', sourceType: 'taskforce', sourceName: '重名专班', personId: '2400012345' }, // 同名 ⇒ 无法唯一回填
+    { id: 'm3', sourceType: 'taskforce', workgroupId: 'wg-taskforce-tf-001', personId: '2400012345' },
+    { id: 'a1', sourceType: 'activity', activityId: 'act-1', personId: '2400012345' },
   ];
 
   const first = migrateInspectionWorkgroupKeys({ records, workgroups, taskforces });
@@ -172,10 +172,10 @@ test('③ 回填幂等：第二次 filled=0、legacy 不增；legacy 记录确�
   // 落一条真实 legacy 记录，验证服务端只读（确认/删除均拒绝且文案明确）。
   put('inspections', {
     id: 'insp-legacy-test', sourceType: 'taskforce', activityId: null, sourceName: '已下架专班',
-    personId: 'p9', level: 'deep', content: '历史考察', role: '组织者',
-    recordedBy: 'p1', recordedAt: '2026-07-01T00:00:00', status: 'pending', legacy: true,
+    personId: '2400012353', level: 'deep', content: '历史考察', role: '组织者',
+    recordedBy: '2400012345', recordedAt: '2026-07-01T00:00:00', status: 'pending', legacy: true,
   });
-  const { token } = await login('p10');
+  const { token } = await login('2400012354');
   const confirm = await fetch(`${base}/api/v1/inspections/insp-legacy-test`, {
     method: 'PATCH', headers: headers(token), body: JSON.stringify({ status: 'confirmed' }),
   });
@@ -190,7 +190,7 @@ test('③ 回填幂等：第二次 filled=0、legacy 不增；legacy 记录确�
 });
 
 test('④ 跨组 / 跨支部写门拒绝', async () => {
-  const { token: p4Token } = await login('p4'); // tf-002 组织者（普通成员）
+  const { token: p4Token } = await login('2400012348'); // tf-002 组织者（普通成员）
   const crossGroup = await fetch(`${base}/api/v1/inspections`, {
     method: 'POST', headers: headers(p4Token),
     body: JSON.stringify(taskforcePayload('wg-taskforce-tf-001', '跨组越权写入')),
@@ -201,14 +201,14 @@ test('④ 跨组 / 跨支部写门拒绝', async () => {
   put('branches', { id: 'br-x', name: '测试支部', config: {} });
   put('taskforces', {
     id: 'tf-x', name: '外支部专班', status: 'active', branchId: 'br-x',
-    members: [{ personId: 'p13', role: 'organizer' }], createdAt: '2026-07-01',
+    members: [{ personId: '2300010001', role: 'organizer' }], createdAt: '2026-07-01',
   });
   put('workgroups', {
     id: 'wg-taskforce-tf-x', branchId: 'br-x', kind: 'taskforce', sourceType: 'taskforce',
     sourceId: 'tf-x', name: '外支部专班', status: 'active', createdAt: '2026-07-01',
   });
 
-  const { token: secToken } = await login('p13');
+  const { token: secToken } = await login('2300010001');
   const crossBranch = await fetch(`${base}/api/v1/inspections`, {
     method: 'POST', headers: headers(secToken),
     body: JSON.stringify(taskforcePayload('wg-taskforce-tf-x', '跨支部越权写入')),
@@ -218,7 +218,7 @@ test('④ 跨组 / 跨支部写门拒绝', async () => {
 });
 
 test('⑤ mock / api 两形态父键读数一致', async () => {
-  const { token } = await login('p13');
+  const { token } = await login('2300010001');
   const apiRows = await (await fetch(`${base}/api/v1/inspections`, { headers: headers(token) })).json();
   const apiKeys = Object.fromEntries(
     ['insp-11', 'insp-12'].map((id) => [id, apiRows.find((r) => r.id === id)?.workgroupId]));

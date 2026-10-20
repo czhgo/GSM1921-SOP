@@ -29,9 +29,9 @@ import { chromium } from 'playwright';
 
 const BASE = process.env.BASE || 'http://localhost:3000';
 const PW = process.env.LOGIN_PASSWORD || '123456';
-const DISC_PERSON = 'p10';               // 纪检委员（`docs/src/data/mock/people.js`）
+const DISC_PERSON = '2400012354';               // 纪检委员（`docs/src/data/mock/people.js`）
 const DISC_STUDENT = '2400012354';       // 上者的学号（登录页表单用学号）
-const MENTEE = 'p5';                     // 被补课人
+const MENTEE = '2400012349';                     // 被补课人
 const RID = Math.random().toString(36).slice(2, 8);
 const ATT_ID = `att-b31-${RID}`;
 const MK_ID = `mk-b31-${RID}`;

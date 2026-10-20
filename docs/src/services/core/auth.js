@@ -10,20 +10,33 @@
 //   - party 页面已移除，organizer/deep 内容落在成员工作台（workspace/visitor.html）——
 //     首页并无"我的角色"区块（2026-09-17 批次 64 dogfood 实测）
 
-import { ROLE_LABELS, ROLE_PAGE_MAP, BRANCH_COMMISSION_ROLES } from '../../core/domain/constants.js?v=20261020d';
-import { PEOPLE } from '../../data/mock/index.js?v=20261020d';
+import { ROLE_LABELS, ROLE_PAGE_MAP, BRANCH_COMMISSION_ROLES } from '../../core/domain/constants.js?v=20261020e';
+import { PEOPLE } from '../../data/mock/index.js?v=20261020e';
 // 账号登录校验（认证域收口：UI 不直连 mock 账号仓；真实后端接入时此处替换校验实现）
 // 2026-09-14 批次 25：改为「可持久化账号层 ∪ 静态种子表」校验（成员流入自动建号 / 流出停用；
 //   见 services/core/accounts.js），支撑「账号与成员档案同源」口径。
-import { verifyLogin } from './accounts.js?v=20261020d';
-import { getPersonById, getPersonName } from '../member/person.js?v=20261020d';
-import { mockDB, WORKGROUP_WRITABLE_STATUSES } from '../../core/domain/domain.js?v=20261020d';
-import { NoticeStore } from '../governance/notice.js?v=20261020d';
-import { getAdapter } from '../../data/data-adapter.js?v=20261020d';
-import { enableApiMode } from './runtime.js?v=20261020d';
-import { generateId } from '../../core/base/id.js?v=20261020d';
-import { todayLocal } from '../../core/base/utils.js?v=20261020d';
-import { WORKGROUP_PERMISSION_TEMPLATES_BY_KIND } from '../../core/domain/workgroup-policy.js?v=20261020d';
+import { verifyLogin } from './accounts.js?v=20261020e';
+import { getPersonById, getPersonName } from '../member/person.js?v=20261020e';
+import { mockDB, WORKGROUP_WRITABLE_STATUSES } from '../../core/domain/domain.js?v=20261020e';
+import { NoticeStore } from '../governance/notice.js?v=20261020e';
+import { getAdapter, migrateLegacyPersonId } from '../../data/data-adapter.js?v=20261020e';
+import { enableApiMode } from './runtime.js?v=20261020e';
+import { generateId } from '../../core/base/id.js?v=20261020e';
+import { todayLocal } from '../../core/base/utils.js?v=20261020e';
+import { WORKGROUP_PERMISSION_TEMPLATES_BY_KIND } from '../../core/domain/workgroup-policy.js?v=20261020e';
+
+// 迁移期（2026-10-20）：旧 p* 仅作登录别名 / 历史 localStorage 兼容，会话一律存学号。
+// 映射表经 data-adapter 的迁移入口转出，业务层不直接引用 deprecated 映射文件。
+let _legacyAliasWarned = false;
+function _toStudentId(id) {
+  const mapped = migrateLegacyPersonId(id);
+  if (mapped == null) return null;
+  if (mapped !== id && !_legacyAliasWarned) {
+    _legacyAliasWarned = true;
+    console.warn('[AuthStore] 检测到旧 p* 人员 id（仅迁移期兼容），已按学号处理');
+  }
+  return mapped;
+}
 
 // ── 登录状态 ─────────────────────────────────────
 const LOGIN_KEY = 'gsm1921-login-user';   // localStorage: { personId, role, tabId }
@@ -342,7 +355,10 @@ export const AuthStore = {
    * @returns {{ ok: boolean, personId: string|null }}
    */
   verifyCredentials(studentId, password) {
-    return verifyLogin(studentId, password);
+    // 迁移期：旧 p* 可作登录别名，校验通过后返回的 personId 一律是学号
+    const resolved = _toStudentId(studentId);
+    if (resolved == null) return { ok: false, personId: null };
+    return verifyLogin(resolved, password);
   },
 
   /**
@@ -352,6 +368,9 @@ export const AuthStore = {
    * @returns {Promise<void>}
    */
   async login(personId, password) {
+    const accountId = _toStudentId(personId);
+    if (accountId == null) return;
+    personId = accountId;
     const role = _getUserRoleFromMemory(personId);
     _writeLogin({ personId, role });
 
@@ -401,7 +420,7 @@ export const AuthStore = {
   devLogin(role) {
     // 找到该角色的第一个 mock 用户
     const person = PEOPLE.find(p => p.role === role);
-    const personId = person ? person.id : 'p5';
+    const personId = person ? person.id : (PEOPLE[0]?.id || null);
     _writeLogin({ personId, role });
     // 修复（2026-08-05）：开发模式是纯 mock 路径，必须清除残留 API token，
     // 否则 bootstrap 检测到 sessionStorage['gsm1921-api-token'] 会把开发模式劫持为 API 模式
@@ -441,13 +460,24 @@ export const AuthStore = {
       // 回退到本标签页会话快照，避免 B 页登录改变 A 页身份。
       if (data.tabId && data.tabId !== _getTabId()) {
         const snapRaw = sessionStorage.getItem(SESSION_KEY);
-        if (snapRaw) return JSON.parse(snapRaw);
+        if (snapRaw) {
+          const snap = JSON.parse(snapRaw);
+          const mapped = _toStudentId(snap.personId);
+          if (mapped && mapped !== snap.personId) snap.personId = mapped;
+          return snap;
+        }
         return null;
       }
       // 迁移：旧格式 { userId, role } → 新格式 { personId, role }
       if (data.userId && !data.personId) {
         data.personId = data.userId;
         delete data.userId;
+        localStorage.setItem(LOGIN_KEY, JSON.stringify(data));
+      }
+      // 迁移期：历史 localStorage 里的 p* 会话一次性改存学号
+      const mapped = _toStudentId(data.personId);
+      if (mapped && mapped !== data.personId) {
+        data.personId = mapped;
         localStorage.setItem(LOGIN_KEY, JSON.stringify(data));
       }
       return data;
@@ -879,7 +909,7 @@ function _syncAuthAuditToServer(records) {
   const fresh = rows.filter((r) => r && r.id && !_auditSyncedIds.has(r.id));
   if (!fresh.length) return;
   fresh.forEach((r) => _auditSyncedIds.add(r.id));
-  import('../../data/data-adapter.js?v=20261020d').then(async ({ getDataSource, getAdapter }) => {
+  import('../../data/data-adapter.js?v=20261020e').then(async ({ getDataSource, getAdapter }) => {
     if (getDataSource() !== 'api') return; // mock 形态：不发（本机键即权威）
     const a = getAdapter();
     if (!a.authAudit || typeof a.authAudit.create !== 'function') return;

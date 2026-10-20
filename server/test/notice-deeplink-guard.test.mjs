@@ -24,7 +24,7 @@ import assert from 'node:assert/strict';
 import { readFileSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
 
-import { buildSystemNotice } from '../../docs/src/core/domain/system-notice-templates.js?v=20261020d';
+import { buildSystemNotice } from '../../docs/src/core/domain/system-notice-templates.js?v=20261020e';
 
 const ROOT = join(import.meta.dirname, '..', '..');
 const read = (...parts) => readFileSync(join(ROOT, ...parts), 'utf8');
@@ -171,11 +171,11 @@ test('F12 跨台落点：不得保留其他角色台的写死 URL；动态落点
   assert.match(AUTH, /ROLE_PAGE_MAP\.workspace\[person\?\.role\]/, '赋权通知落点须按接收人角色派生');
   // 补课提醒：当事人角色本位（成员台仍落「考勤概况」，其他角色不弹回）
   const makeupMember = buildSystemNotice('makeup-remind', {
-    sourceId: 'mk-1', personId: 'p3', activityName: '活动', deadline: '2026-10-30', role: 'participant',
+    sourceId: 'mk-1', personId: '2400012347', activityName: '活动', deadline: '2026-10-30', role: 'participant',
   });
   assert.equal(makeupMember.targetUrl, 'workspace/visitor.html?tab=attendance', '成员补课落考勤概况');
   const makeupSecretary = buildSystemNotice('makeup-remind', {
-    sourceId: 'mk-2', personId: 'p13', activityName: '活动', deadline: '2026-10-30', role: 'secretary',
+    sourceId: 'mk-2', personId: '2300010001', activityName: '活动', deadline: '2026-10-30', role: 'secretary',
   });
   assert.equal(makeupSecretary.targetUrl, 'workspace/secretary.html', '其他角色落本台，不弹回成员台');
 });

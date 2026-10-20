@@ -12,10 +12,10 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
-import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261020d';
-import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261020d';
-import { setDataSource } from '../../docs/src/data/data-adapter.js?v=20261020d';
-import { TodoStore, TodoCategory } from '../../docs/src/services/governance/todo.js?v=20261020d';
+import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261020e';
+import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261020e';
+import { setDataSource } from '../../docs/src/data/data-adapter.js?v=20261020e';
+import { TodoStore, TodoCategory } from '../../docs/src/services/governance/todo.js?v=20261020e';
 
 const ROOT = join(import.meta.dirname, '..', '..');
 
@@ -71,7 +71,7 @@ test('V1 无原因不得作废：requestVoid/confirmVoid 空原因一律拒绝',
   const t = mk();
   assert.equal(TodoStore.requestVoid(t.id, { reason: '   ' }), null, '空原因申请应被拒');
   assert.equal(!!TodoStore.getById(t.id).voidPending, false, '空原因申请不得落 voidPending');
-  assert.equal(TodoStore.confirmVoid(t.id, { byPersonId: 'p13' }), null, '未申请且无 note ⇒ 直接作废也应被拒（原因必填）');
+  assert.equal(TodoStore.confirmVoid(t.id, { byPersonId: '2300010001' }), null, '未申请且无 note ⇒ 直接作废也应被拒（原因必填）');
   assert.equal(!!TodoStore.getById(t.id).voided, false, '被拒的作废不得落 voided');
 });
 
@@ -79,10 +79,10 @@ test('V1 无原因不得作废：requestVoid/confirmVoid 空原因一律拒绝',
 test('V2 requestVoid：落 voidPending、列表照常可见、进入 getVoidPending', () => {
   beginMockCase();
   const t = mk();
-  const r = TodoStore.requestVoid(t.id, { reason: '活动早已结束，此项不该再挂', byPersonId: 'p6' });
+  const r = TodoStore.requestVoid(t.id, { reason: '活动早已结束，此项不该再挂', byPersonId: '2400012350' });
   assert.ok(r && r.voidPending, 'requestVoid 应落 voidPending');
   assert.equal(r.voidPending.reason, '活动早已结束，此项不该再挂');
-  assert.equal(r.voidPending.byPersonId, 'p6');
+  assert.equal(r.voidPending.byPersonId, '2400012350');
   assert.equal(!!r.voided, false, '申请阶段不得直接 voided');
 
   // 列表照常可见（默认过滤只挡 voided，不挡 voidPending）
@@ -101,11 +101,11 @@ test('V2 requestVoid：落 voidPending、列表照常可见、进入 getVoidPend
 test('V3 confirmVoid：落 voided 且默认列表出列，includeVoided 可回看', () => {
   beginMockCase();
   const t = mk();
-  TodoStore.requestVoid(t.id, { reason: '重复派生', byPersonId: 'p6' });
-  const r = TodoStore.confirmVoid(t.id, { byPersonId: 'p13' });
+  TodoStore.requestVoid(t.id, { reason: '重复派生', byPersonId: '2400012350' });
+  const r = TodoStore.confirmVoid(t.id, { byPersonId: '2300010001' });
   assert.ok(r && r.voided, 'confirmVoid 应落 voided');
   assert.equal(r.voided.reason, '重复派生', '作废原因沿用申请原因');
-  assert.equal(r.voided.confirmedBy, 'p13');
+  assert.equal(r.voided.confirmedBy, '2300010001');
   assert.equal(!!r.voidPending, false, '确认后应清掉 voidPending');
 
   assert.equal(TodoStore.getByRole('org-commissioner').some(x => x.id === t.id), false, 'voided 默认应从列表出列');
@@ -117,8 +117,8 @@ test('V3 confirmVoid：落 voided 且默认列表出列，includeVoided 可回�
 test('V4 rejectVoid：清 voidPending 回原状（列表可见）并留 voidRejected', () => {
   beginMockCase();
   const t = mk();
-  TodoStore.requestVoid(t.id, { reason: '不办了', byPersonId: 'p6' });
-  const r = TodoStore.rejectVoid(t.id, { byPersonId: 'p13', note: '先留一周，仍须办结' });
+  TodoStore.requestVoid(t.id, { reason: '不办了', byPersonId: '2400012350' });
+  const r = TodoStore.rejectVoid(t.id, { byPersonId: '2300010001', note: '先留一周，仍须办结' });
   assert.ok(r, 'rejectVoid 应返回更新后的行');
   assert.equal(!!r.voidPending, false, '驳回后应清 voidPending');
   assert.equal(!!r.voided, false, '驳回不得作废');

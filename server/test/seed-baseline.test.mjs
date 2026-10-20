@@ -18,7 +18,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { initDb } from '../db.js';
 import { seedBaseline } from '../seed-baseline.js';
-import { PEOPLE } from '../../docs/src/data/mock/people.js?v=20261020d';
+import { PEOPLE } from '../../docs/src/data/mock/people.js?v=20261020e';
 
 const rows = (db, t) => db.prepare(`SELECT data FROM ${t}`).all().map((r) => JSON.parse(r.data));
 const count = (db, t) => db.prepare(`SELECT COUNT(*) c FROM ${t}`).get().c;
@@ -83,9 +83,9 @@ test('B3 幂等 + 不覆盖：连跑两次不变；已有支部 / 已有党委�
 
   // 已有数据时**不覆盖**：换一个已存在的支部 + 已存在的党委账号 ⇒ 调用前后逐值不变
   const db2 = initDb(':memory:');
-  const custom = { id: 'br-b1', name: '我自己的支部名', type: 'x', config: { headerTitle: 'HH' }, secretaryId: 'p1', status: 'active' };
+  const custom = { id: 'br-b1', name: '我自己的支部名', type: 'x', config: { headerTitle: 'HH' }, secretaryId: '2400012345', status: 'active' };
   db2.prepare('INSERT INTO branches (id, data) VALUES (?, ?)').run(custom.id, JSON.stringify(custom));
-  const staff = { id: 'p_pc', name: '真名党务老师', studentId: '1234567890', role: 'party-staff', branchId: null };
+  const staff = { id: '9000000001', name: '真名党务老师', studentId: '1234567890', role: 'party-staff', branchId: null };
   db2.prepare('INSERT INTO users (id, data) VALUES (?, ?)').run(staff.id, JSON.stringify(staff));
   const r = seedBaseline(db2);
   assert.deepEqual(r, { branch: false, partyStaff: false }, '已有支部与账号 ⇒ 一项都不补');

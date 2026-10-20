@@ -37,12 +37,12 @@ const _store = makeStorage();
 globalThis.localStorage = _store;
 globalThis.sessionStorage = makeStorage();
 
-const { mockDB } = await import('../../docs/src/core/domain/domain.js?v=20261020d');
-const { MockAdapter } = await import('../../docs/src/data/mock-adapter.js?v=20261020d');
-const { getAdapter } = await import('../../docs/src/data/data-adapter.js?v=20261020d');
+const { mockDB } = await import('../../docs/src/core/domain/domain.js?v=20261020e');
+const { MockAdapter } = await import('../../docs/src/data/mock-adapter.js?v=20261020e');
+const { getAdapter } = await import('../../docs/src/data/data-adapter.js?v=20261020e');
 // runtime 注册 mock/api 适配器并 setDataSource('mock')
-const { BranchService } = await import('../../docs/src/services/core/runtime.js?v=20261020d');
-const { writeActivityWithSOP } = await import('../../docs/src/services/activity/decision-tree.js?v=20261020d');
+const { BranchService } = await import('../../docs/src/services/core/runtime.js?v=20261020e');
+const { writeActivityWithSOP } = await import('../../docs/src/services/activity/decision-tree.js?v=20261020e');
 
 const ORIGINAL = {
   activities: mockDB.activities,
@@ -55,8 +55,8 @@ const ORIGINAL = {
 };
 
 const ASSIGNMENTS = [
-  { personId: 'p11', role: 'organizer' },
-  { personId: 'p5', role: 'deep' },
+  { personId: '2400012355', role: 'organizer' },
+  { personId: '2400012349', role: 'deep' },
 ];
 
 beforeEach(() => {
@@ -83,7 +83,7 @@ const groupsOf = (workgroupId) => mockDB.workgroups.filter((row) => row.id === w
 test('T1 mock 写口创建活动 ⇒ 工作组与成员关系同事务建立，赋权不落空', async () => {
   const act = await BranchService.createActivity({
     title: '事务测试 · 党小组会', type: '党小组会', date: '2026-10-30', branchId: 'br-b1',
-    createdBy: 'p11', organizer: 'p11', organizingScope: 'party-group', hostGroupId: 'pg-1',
+    createdBy: '2400012355', organizer: '2400012355', organizingScope: 'party-group', hostGroupId: 'pg-1',
     assignments: ASSIGNMENTS,
   });
   const workgroupId = `wg-activity-${act.id}`;
@@ -97,12 +97,12 @@ test('T1 mock 写口创建活动 ⇒ 工作组与成员关系同事务建立，�
 
   assert.deepEqual(
     membersOf(workgroupId).map((row) => `${row.personId}:${row.role}`).sort(),
-    ['p11:organizer', 'p5:deep'],
+    ['2400012349:deep', '2400012355:organizer'],
     '组织者/深度参与者成员关系须已存在',
   );
 
   // 赋权写口（mock adapter）要求工作组与成员都已存在；能建成即证明授权不会落到不存在的工作组。
-  const grant = await getAdapter().workgroups.grants.create(workgroupId, { personId: 'p5', templateKey: 'deep' });
+  const grant = await getAdapter().workgroups.grants.create(workgroupId, { personId: '2400012349', templateKey: 'deep' });
   assert.ok(grant && grant.workgroupId === workgroupId);
   assert.equal(grant.status, 'active');
 });
@@ -111,7 +111,7 @@ test('T2 writeActivityWithSOP 创建后，本会话内即读得到工作组与�
   const before = mockDB.activities.length;
   const { activity } = await writeActivityWithSOP({
     title: '事务测试 · 党课', type: '党课', date: '2026-10-30', targetDate: '2026-10-30',
-    location: '线上', branchId: 'br-b1', createdBy: 'p11', organizer: 'p11',
+    location: '线上', branchId: 'br-b1', createdBy: '2400012355', organizer: '2400012355',
     organizingScope: 'cross-group', hostGroupId: null, assignments: ASSIGNMENTS,
   }, 'party-lecture', '2026-10-30');
 
@@ -121,14 +121,14 @@ test('T2 writeActivityWithSOP 创建后，本会话内即读得到工作组与�
   assert.equal(groupsOf(workgroupId).length, 1, '本会话内按 wg-activity-<id> 须读到工作组');
   assert.deepEqual(
     membersOf(workgroupId).map((row) => `${row.personId}:${row.role}`).sort(),
-    ['p11:organizer', 'p5:deep'],
+    ['2400012349:deep', '2400012355:organizer'],
   );
 });
 
 test('T3 刷新后不重复建组、不重复成员（幂等）', async () => {
   const act = await BranchService.createActivity({
     title: '事务测试 · 幂等', type: '党小组会', date: '2026-10-31', branchId: 'br-b1',
-    createdBy: 'p11', organizer: 'p11', organizingScope: 'party-group', hostGroupId: 'pg-1',
+    createdBy: '2400012355', organizer: '2400012355', organizingScope: 'party-group', hostGroupId: 'pg-1',
     assignments: ASSIGNMENTS,
   });
   const workgroupId = `wg-activity-${act.id}`;
@@ -145,7 +145,7 @@ test('T3 刷新后不重复建组、不重复成员（幂等）', async () => {
   assert.equal(membersOf(workgroupId).length, before.members, '刷新后不得重复成员');
   assert.deepEqual(
     membersOf(workgroupId).map((row) => `${row.personId}:${row.role}`).sort(),
-    ['p11:organizer', 'p5:deep'],
+    ['2400012349:deep', '2400012355:organizer'],
   );
   assert.equal(mockDB.activities.find((row) => row.id === act.id)?.workgroupId, workgroupId,
     '刷新后活动仍指向同一工作组');

@@ -21,7 +21,18 @@ export function createAuthRouter(db) {
   const router = Router();
 
   router.post('/login', (req, res) => {
-    const { personId, password } = req.body || {};
+    let { personId } = req.body || {};
+    const { password } = req.body || {};
+    // 迁移期（2026-10-20）：旧 p* 仅作登录别名；会话一律存学号（一次 console.warn）
+    if (isLegacyPersonId(personId)) {
+      const mapped = mapPersonId(personId);
+      if (mapped == null) return res.status(401).json({ error: '未知人员' });
+      if (!legacyAliasWarned) {
+        legacyAliasWarned = true;
+        console.warn('[auth] 检测到旧 p* 人员 id 登录别名（仅迁移期兼容），会话已改存学号');
+      }
+      personId = mapped;
+    }
     const userRow = db.prepare('SELECT data FROM users WHERE id = ?').get(personId);
     if (!userRow) return res.status(401).json({ error: '未知人员' });
     if (!passwordCheckDisabled() && !loginPasswordOk(password)) {
@@ -99,3 +110,7 @@ export function requireCommissioner(db) {
 // 运行形态判定单一源（P0-3）：`APP_ENV=production` 或 `NODE_ENV=production`，见 server/env.js。
 // ⚠ 置尾以保上文行号（`auth.js:12-14` / `:17` / `:92-97` 等是 README-server.md 的取证靶点）；import 声明被提升，置尾不影响语义。
 import { isProductionEnv } from '../env.js';
+// 迁移期旧 p* 登录别名（映射表仅迁移与兼容使用，业务代码不得引用）
+import { isLegacyPersonId, mapPersonId } from '../migrations/legacy-person-ids.js';
+
+let legacyAliasWarned = false;

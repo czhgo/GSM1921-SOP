@@ -16,7 +16,7 @@ export const SCHEMA_VERSION = 1;
  * ⚠ 与 SCHEMA_VERSION 区分：SCHEMA_VERSION 是「持久化结构版本」（结构变了才动，现为 1 不动）；
  *    本值是「数据内容版本」（内容变了就改）。
  */
-export const SEED_DATA_VERSION = '2026-10-07';
+export const SEED_DATA_VERSION = '2026-10-20';
 
 /**
  * @typedef {Object} Activity
@@ -238,13 +238,13 @@ export function workgroupStatusForTaskforce(status) {
 
 /**
  * @typedef {Object} Person
- * @property {string}  id          - 人员 ID（如 'p5'）
+ * @property {string}  id          - 人员 ID（学号/工号，如 '2400012345'）
  * @property {string}  name        - 姓名
  * @property {string}  studentId   - 学号
  * @property {string}  partyGroup  - 所属党小组（如 '第一党小组'）
  * @property {'正式党员'|'预备党员'|'发展对象'|'积极分子'} developStage - 发展阶段（四阶段，2026-08-01 支书决策移除【入党申请人】）
  * @property {string}  role        - 角色键（secretary/org-commissioner/participant…，与 core/domain/constants.js ROLE_KEYS 对齐）
- * @property {string}  [branchId]  - 所属支部（缺省 br-b1；p_pc 党委组织员=null 不属于支部）
+ * @property {string}  [branchId]  - 所属支部（缺省 br-b1；党委组织员（party-staff）=null 不属于支部）
  * @property {'在校'|'滞留'} [residenceStatus] - 居住/在册状态（S1–S4 滞留党员设计，2026-09-06 支书已批）：
  *   滞留 = 组织关系在本支部但人不在校、不参加日常会议；成员身份保留、应到剔除、通知照发。
  *   未标注 = 默认「在校」。

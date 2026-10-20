@@ -61,7 +61,7 @@ async function openOrgTab(page, tab) {
   await page.waitForFunction(() => !!document.querySelector('.lf-bar'), null, { timeout: 15000 });
 }
 
-/** 成员登录（`p5` 宋佳宁，正式党员）→ 直达成员台指定 tab（后批新增：用于「保持 dropdown」的反向样本） */
+/** 成员登录（`2400012349` 宋佳宁，正式党员）→ 直达成员台指定 tab（后批新增：用于「保持 dropdown」的反向样本） */
 async function openVisitorTab(page, tab) {
   await page.goto(`${base}/login.html`, { waitUntil: 'domcontentloaded' });
   await page.fill('#student-id', '2400012349');
@@ -75,10 +75,10 @@ async function openVisitorTab(page, tab) {
 
 test('S11 筛选行 chip 形态：首批两页渲染胶囊且无下拉；未迁移页无胶囊；点胶囊即筛', async () => {
   // ① 成员名册（首批迁移）
-  const p1 = await newPage();
+  const p_2400012345 = await newPage();
   try {
-    await openOrgTab(p1, 'roster');
-    const roster = await p1.evaluate(() => ({
+    await openOrgTab(p_2400012345, 'roster');
+    const roster = await p_2400012345.evaluate(() => ({
       chips: document.querySelectorAll('.lf-facet-chips .chip-option').length,
       selects: document.querySelectorAll('.lf-select').length,
       groups: document.querySelectorAll('.lf-facet-chips').length,
@@ -86,13 +86,13 @@ test('S11 筛选行 chip 形态：首批两页渲染胶囊且无下拉；未迁�
     assert.ok(roster.chips > 1, `成员名册须渲染分面胶囊（实得 ${roster.chips} 枚）——chip 形态未生效？`);
     assert.ok(roster.groups >= 1, '成员名册须有 .lf-facet-chips 组');
     assert.equal(roster.selects, 0, '成员名册已迁 chip ⇒ 不得再有分面下拉 .lf-select');
-  } finally { await p1.close(); }
+  } finally { await p_2400012345.close(); }
 
   // ① 人才库（首批迁移）
-  const p2 = await newPage();
+  const p_2400012346 = await newPage();
   try {
-    await openOrgTab(p2, 'talent');
-    const talent = await p2.evaluate(() => ({
+    await openOrgTab(p_2400012346, 'talent');
+    const talent = await p_2400012346.evaluate(() => ({
       chips: document.querySelectorAll('.lf-facet-chips .chip-option').length,
       selects: document.querySelectorAll('.lf-select').length,
     }));
@@ -100,19 +100,19 @@ test('S11 筛选行 chip 形态：首批两页渲染胶囊且无下拉；未迁�
     assert.equal(talent.selects, 0, '人才库已迁 chip ⇒ 不得再有分面下拉');
     // 2026-10-01 批次 321（支书 V-10 取「乙：整页并入人才库」）：「活动参与汇总」卡须已并入本页
     //   （原「发展数据」页签已摘除）——这是「整页并入」落地的**正面证据**。
-    assert.ok(await p2.evaluate(() => !!document.getElementById('org-part-list')),
+    assert.ok(await p_2400012346.evaluate(() => !!document.getElementById('org-part-list')),
       '人才库页须含「活动参与汇总」（原「发展数据」的该卡已并入本页）');
-  } finally { await p2.close(); }
+  } finally { await p_2400012346.close(); }
 
   // ② **保持 dropdown 的对照页**（批次 332 改样本）：**活动类表**按判据**不迁** chip——
   //   反样本改用**成员台「我的考察」**（`visitor/inspection-tab` 用 `activityFacets()`：月份 / 类别 / 类型 / 状态，
   //   值集长 ⇒ 平铺成墙）⇒ 该页**不得**出现分面胶囊。**这才是「逐页 opt-in」的干净证据**：
   //   原样本「考察上传」是人维表、按新判据**已迁** chip（旧样本失效）。
   //   ⚠ 与原样本同款边界：检索条是否渲染取决于行数、且维度取值 ≤1 种时自动隐藏 ⇒ 不断言 `.lf-select` 个数。
-  const p3 = await newPage();
+  const p_2400012347 = await newPage();
   try {
-    await openVisitorTab(p3, 'inspection');
-    const act = await p3.evaluate(() => ({
+    await openVisitorTab(p_2400012347, 'inspection');
+    const act = await p_2400012347.evaluate(() => ({
       chips: document.querySelectorAll('.lf-facet-chips .chip-option').length,
       groups: document.querySelectorAll('.lf-facet-chips').length,
       bar: !!document.querySelector('.lf-bar'),
@@ -120,15 +120,15 @@ test('S11 筛选行 chip 形态：首批两页渲染胶囊且无下拉；未迁�
     assert.equal(act.chips, 0, '活动类表**不迁** ⇒ 不得出现分面胶囊（否则＝判据被越界套用）');
     assert.equal(act.groups, 0, '活动类表**不迁** ⇒ 不得出现 `.lf-facet-chips` 组');
     assert.ok(act.bar === true || act.bar === false, 'bar 取值须为布尔（防止选择器失效被静默吞掉）');
-  } finally { await p3.close(); }
+  } finally { await p_2400012347.close(); }
 
   // ③ 点胶囊真的在筛：选中态落到 .chip-accent-on，且**结果计数位**由「共 N 人」变「筛选出 M / N 人」
-  const p4 = await newPage();
+  const p_2400012348 = await newPage();
   try {
-    await openOrgTab(p4, 'roster');
-    const before = await p4.evaluate(() => document.querySelector('.lf-count')?.textContent || '');
+    await openOrgTab(p_2400012348, 'roster');
+    const before = await p_2400012348.evaluate(() => document.querySelector('.lf-count')?.textContent || '');
     assert.match(before, /^共\s*\d+/, `未筛时计数位应为「共 N 人」，实得「${before}」`);
-    const clicked = await p4.evaluate(() => {
+    const clicked = await p_2400012348.evaluate(() => {
       const chip = [...document.querySelectorAll('.lf-facet-chips .chip-option')]
         .find((c) => c.dataset.value);           // 跳过「全部」，取第一个有取值的胶囊
       if (!chip) return null;
@@ -136,14 +136,14 @@ test('S11 筛选行 chip 形态：首批两页渲染胶囊且无下拉；未迁�
       return { key: chip.dataset.facet, value: chip.dataset.value };
     });
     assert.ok(clicked, '成员名册须至少有一枚带取值的分面胶囊可点');
-    await p4.waitForFunction(({ key, value }) => {
+    await p_2400012348.waitForFunction(({ key, value }) => {
       const on = [...document.querySelectorAll(`.lf-facet-chips .chip-option[data-facet="${key}"]`)]
         .filter((c) => c.classList.contains('chip-accent-on'));
       return on.length === 1 && on[0].dataset.value === value;
     }, clicked, { timeout: 8000 });
     // 计数位是**引擎自己的**状态显示位（`role="status"`）⇒ 它变了，即「胶囊真的把筛选落了」
-    await p4.waitForFunction(() => /^筛选出/.test(document.querySelector('.lf-count')?.textContent || ''), null, { timeout: 8000 });
-    const after = await p4.evaluate(() => document.querySelector('.lf-count')?.textContent || '');
+    await p_2400012348.waitForFunction(() => /^筛选出/.test(document.querySelector('.lf-count')?.textContent || ''), null, { timeout: 8000 });
+    const after = await p_2400012348.evaluate(() => document.querySelector('.lf-count')?.textContent || '');
     assert.match(after, /^筛选出\s*\d+\s*\/\s*\d+/, `点胶囊后计数位应为「筛选出 M / N」，实得「${after}」`);
-  } finally { await p4.close(); }
+  } finally { await p_2400012348.close(); }
 });

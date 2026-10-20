@@ -10,7 +10,7 @@
 //
 // 说明：
 // - 登录必须走账号密码表单（#student-id / #password），不走 dev 卡片（devLogin 不产生 API token）。
-// - 合法账号 2300010001/123456 → personId 'p13'（支书 储子禾），p13 在种子 users 表中。
+// - 合法账号 2300010001/123456 → personId '2300010001'（支书 储子禾），2300010001 在种子 users 表中。
 // - fresh browser context 下 localStorage 为空：登录页不会因已登录自动跳转；
 //   首页首次加载会触发 CODE_VERSION 自检 reload 一次，sessionStorage（含 API token）在 reload 间保留。
 //
@@ -99,7 +99,7 @@ test('账号密码登录后直达工作台，切换 API 数据源且后端数据
     // 1. 打开登录页（fresh context，无历史登录态）
     await page.goto(`${base}/login.html`, { waitUntil: 'domcontentloaded' });
 
-    // 2. 通过账号密码表单登录（2300010001/123456 → p13 支书）
+    // 2. 通过账号密码表单登录（2300010001/123456 → 2300010001 支书）
     //    P2 修复（最小三成本）：登录后直达角色工作台 secretary.html，不再跳首页
     await page.fill('#student-id', '2300010001');
     await page.fill('#password', '123456');
@@ -115,8 +115,8 @@ test('账号密码登录后直达工作台，切换 API 数据源且后端数据
     // 3b. P0-2 形态断言（2026-09-23 支书裁定「形态必须可断言、不许静默降级」）：
     //     单一源 = data/data-adapter.js::getRuntimeMode()——本文件的真机链路必须在 api 形态下跑
     //     （有 token 时 init() 失败不再静默回落 mock，故这里必须确为 api，否则后面的写穿断言全部无意义）。
-    await page.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20261020d')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
-    const runtimeMode = await page.evaluate(async () => (await import('/src/data/data-adapter.js?v=20261020d')).getRuntimeMode());
+    await page.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20261020e')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
+    const runtimeMode = await page.evaluate(async () => (await import('/src/data/data-adapter.js?v=20261020e')).getRuntimeMode());
     assert.equal(runtimeMode.source, 'api', `真机用例须确为 api 形态（实测 ${JSON.stringify(runtimeMode)}）`);
     assert.equal(runtimeMode.hasToken, true, 'api 形态应存在会话 token');
 
@@ -159,8 +159,8 @@ test('账号密码登录后直达工作台，切换 API 数据源且后端数据
     await page.evaluate(async ({ uniqueTitle, dateStr }) => {
       // 版本串与当前全库一致（20260901c）：确保 import 的是页面主模块实例，
       // push/persist 作用于真实 mockDB（版本串不一致会加载孤儿实例，写穿落服务器但本地不渲染）
-      const { mockDB } = await import('/src/core/domain/domain.js?v=20261020d');
-      const { persist } = await import('/src/data/data-adapter.js?v=20261020d');
+      const { mockDB } = await import('/src/core/domain/domain.js?v=20261020e');
+      const { persist } = await import('/src/data/data-adapter.js?v=20261020e');
       mockDB.activities.push({
         id: 'act-e2e-' + Date.now(),
         title: uniqueTitle,
@@ -168,9 +168,9 @@ test('账号密码登录后直达工作台，切换 API 数据源且后端数据
         type: '会议',
         status: 'published',
         visibility: 'branch',
-        organizer: 'p13',
-        creator: 'p13',
-        executor: 'p13',
+        organizer: '2300010001',
+        creator: '2300010001',
+        executor: '2300010001',
         createdAt: new Date().toISOString(),
       });
       persist();
@@ -189,7 +189,7 @@ test('账号密码登录后直达工作台，切换 API 数据源且后端数据
         if (!landed) await new Promise((r) => setTimeout(r, 300));
       }
       if (!landed) {
-        await page.evaluate(() => import('/src/data/data-adapter.js?v=20261020d').then((m) => m.persist()));
+        await page.evaluate(() => import('/src/data/data-adapter.js?v=20261020e').then((m) => m.persist()));
       }
     }
     if (!landed) {

@@ -5,7 +5,7 @@
 // R-26③（2026-10-05 批次 388）：本件**只引一个零依赖叶子** `core/base/date.js`（取本地「今天」）——
 //   不成环、双端可载；**不得**引 `core/base/utils.js`（那会牵 `core/session/pending-writes.js`）。
 
-import { todayLocal } from '../base/date.js?v=20261020d';
+import { todayLocal } from '../base/date.js?v=20261020e';
 
 // ════════════════════════════════════════════════════════════════
 //  缺省支部 id（单一源，R2-17，2026-10-20）
@@ -222,9 +222,9 @@ export const SECRETARY_AND_DEPUTY_ROLES = ['secretary', 'deputy-secretary'];
 export const PARTY_STAFF_ROLE = ['party-staff']; // 党委组织员（组织级，不属于支部）
 
 // ── 支委名单派生（数据生命周期 P1-09，2026-10-20）────────────────────
-// 为什么删除 COMMITTEE_IDS 常量：支委改选 / 人员 id 迁移后，写死的 p10~p14 会把广播与
+// 为什么删除 COMMITTEE_IDS 常量：支委改选 / 人员 id 迁移后，写死的旧 id 名单会把广播与
 //   旧活动表决名单继续发给「上一届」；名单属工作流事实，必须随 users.role 现算。
-// 顺序 = 支书 → 副支书 → 组织 → 宣传 → 纪检（与历史快照 p13,p14,p11,p12,p10 同序，
+// 顺序 = 支书 → 副支书 → 组织 → 宣传 → 纪检（与历史支委顺序同序，
 //   使考勤种子、表决名单的下标语义保持稳定）。
 // 无数据时返回空数组（调用方必须显式失败或显示 —，不得静默用假人）。
 export function getCommitteeIds(people) {

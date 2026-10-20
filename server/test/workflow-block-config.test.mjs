@@ -40,7 +40,7 @@ async function patchConfig(token, body) {
   });
 }
 
-const V = '?v=20261020d';
+const V = '?v=20261020e';
 const BLOCK_IDS = ['theme-party-day', 'taskforce'];
 
 test('S3 工作流块策略（纯函数）：默认全开 / 隐藏过滤 / 缺段兼容', async () => {
@@ -75,8 +75,8 @@ test('S3 工作流块策略（纯函数）：默认全开 / 隐藏过滤 / 缺�
 });
 
 test('S3 HTTP：workflowBlocks 写回/结构校验/恢复默认', async () => {
-  const { token: sec } = await login('p13');    // 现任支书
-  const { token: staff } = await login('p_pc'); // 党委组织员
+  const { token: sec } = await login('2300010001');    // 现任支书
+  const { token: staff } = await login('9000000001'); // 党委组织员
 
   // ① 支书写 workflowBlocks（与 outputBlocks 同包）→ 200 落库
   const r1 = await patchConfig(sec, {

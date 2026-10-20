@@ -13,7 +13,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { canReadNotice } from '../../docs/src/services/governance/notice.js?v=20261020d';
+import { canReadNotice } from '../../docs/src/services/governance/notice.js?v=20261020e';
 import { _snapshotNoticeMessageGateDeny, NOTICE_MESSAGE_DENY_MSG } from '../routes/resources/gates.js';
 
 const MSG = {
@@ -21,14 +21,14 @@ const MSG = {
   title: '关于支部工作的一点沟通',
   content: '（站内信正文）',
   noticeType: 'message',
-  fromPersonId: 'p13',
-  audiencePersons: ['p5'],
+  fromPersonId: '2300010001',
+  audiencePersons: ['2400012349'],
   read: false,
 };
-const SENDER = { role: 'secretary', personId: 'p13' };
-const RECIPIENT = { role: 'participant', personId: 'p5' };
-const OTHER_COMMITTEE = { role: 'org-commissioner', personId: 'p10' }; // 支委层**他人**
-const BYSTANDER = { role: 'participant', personId: 'p7' };
+const SENDER = { role: 'secretary', personId: '2300010001' };
+const RECIPIENT = { role: 'participant', personId: '2400012349' };
+const OTHER_COMMITTEE = { role: 'org-commissioner', personId: '2400012354' }; // 支委层**他人**
+const BYSTANDER = { role: 'participant', personId: '2400012351' };
 
 test('N1 站内信：发件人 ＋ 收件人可读；支委层他人 / 无关成员 / 无会话**不可读**（反例锁死）', () => {
   assert.equal(canReadNotice(MSG, SENDER), true, '发件人（fromPersonId）可读');
@@ -58,30 +58,30 @@ const fakeDb = (rows) => ({ prepare: () => ({ all: () => rows.map((r) => ({ data
 
 test('N3 服务端私信写门：新增私信须「发件人为本人」（发送权已放开到全体成员）', () => {
   const db = fakeDb([]);
-  const mk = (from) => ({ id: 'ntc-new', title: 't', content: 'c', noticeType: 'message', fromPersonId: from, audiencePersons: ['p5'] });
-  assert.equal(_snapshotNoticeMessageGateDeny(db, { notices: [mk('p13')] }, { role: 'secretary', id: 'p13' }), null,
+  const mk = (from) => ({ id: 'ntc-new', title: 't', content: 'c', noticeType: 'message', fromPersonId: from, audiencePersons: ['2400012349'] });
+  assert.equal(_snapshotNoticeMessageGateDeny(db, { notices: [mk('2300010001')] }, { role: 'secretary', id: '2300010001' }), null,
     '支书发本人私信 → 放行');
-  assert.equal(_snapshotNoticeMessageGateDeny(db, { notices: [mk('p4')] }, { role: 'leader', id: 'p4' }), null,
+  assert.equal(_snapshotNoticeMessageGateDeny(db, { notices: [mk('2400012348')] }, { role: 'leader', id: '2400012348' }), null,
     '党小组组长发本人私信 → 放行');
-  assert.equal(_snapshotNoticeMessageGateDeny(db, { notices: [mk('p7')] }, { role: 'participant', id: 'p7' }), null,
+  assert.equal(_snapshotNoticeMessageGateDeny(db, { notices: [mk('2400012351')] }, { role: 'participant', id: '2400012351' }), null,
     '**普通成员**发本人私信 → 放行（批次 406 · `D-793`：全体成员均可发，原「支委层 ∪ 组长」已放开）');
-  assert.equal(_snapshotNoticeMessageGateDeny(db, { notices: [mk('p7')] }, null), NOTICE_MESSAGE_DENY_MSG,
+  assert.equal(_snapshotNoticeMessageGateDeny(db, { notices: [mk('2400012351')] }, null), NOTICE_MESSAGE_DENY_MSG,
     '无会话（actor 缺）→ 拦截');
-  assert.equal(_snapshotNoticeMessageGateDeny(db, { notices: [mk('p5')] }, { role: 'secretary', id: 'p13' }), NOTICE_MESSAGE_DENY_MSG,
+  assert.equal(_snapshotNoticeMessageGateDeny(db, { notices: [mk('2400012349')] }, { role: 'secretary', id: '2300010001' }), NOTICE_MESSAGE_DENY_MSG,
     '**代他人**发私信（fromPersonId ≠ 本人）→ 拦截');
-  assert.equal(_snapshotNoticeMessageGateDeny(db, { notices: [{ id: 'n9', title: 'x', content: 'y', noticeType: undefined }] }, { role: 'participant', id: 'p7' }), null,
+  assert.equal(_snapshotNoticeMessageGateDeny(db, { notices: [{ id: 'n9', title: 'x', content: 'y', noticeType: undefined }] }, { role: 'participant', id: '2400012351' }), null,
     '非私信（普通通知）未受本门影响 → 放行');
 });
 
 test('N4 服务端私信写门：既有私信「作者不可改 / 非作者不得改收件人 / 未变行放行」', () => {
-  const prev = { id: 'ntc-old', title: 't', content: 'c', noticeType: 'message', fromPersonId: 'p13', audiencePersons: ['p5'] };
+  const prev = { id: 'ntc-old', title: 't', content: 'c', noticeType: 'message', fromPersonId: '2300010001', audiencePersons: ['2400012349'] };
   const db = fakeDb([prev]);
-  assert.equal(_snapshotNoticeMessageGateDeny(db, { notices: [{ ...prev }] }, { role: 'participant', id: 'p5' }), null,
+  assert.equal(_snapshotNoticeMessageGateDeny(db, { notices: [{ ...prev }] }, { role: 'participant', id: '2400012349' }), null,
     '收件人回传未变行（整表写穿必带）→ 放行');
-  assert.equal(_snapshotNoticeMessageGateDeny(db, { notices: [{ ...prev, fromPersonId: 'p6' }] }, { role: 'secretary', id: 'p13' }), NOTICE_MESSAGE_DENY_MSG,
+  assert.equal(_snapshotNoticeMessageGateDeny(db, { notices: [{ ...prev, fromPersonId: '2400012350' }] }, { role: 'secretary', id: '2300010001' }), NOTICE_MESSAGE_DENY_MSG,
     '篡改作者（fromPersonId 被改）→ 拦截');
-  assert.equal(_snapshotNoticeMessageGateDeny(db, { notices: [{ ...prev, audiencePersons: ['p6'] }] }, { role: 'participant', id: 'p5' }), NOTICE_MESSAGE_DENY_MSG,
+  assert.equal(_snapshotNoticeMessageGateDeny(db, { notices: [{ ...prev, audiencePersons: ['2400012350'] }] }, { role: 'participant', id: '2400012349' }), NOTICE_MESSAGE_DENY_MSG,
     '非作者改收件人（把私下一条改成发给别人）→ 拦截');
-  assert.equal(_snapshotNoticeMessageGateDeny(db, { notices: [{ ...prev, audiencePersons: ['p5', 'p6'] }] }, { role: 'secretary', id: 'p13' }), null,
+  assert.equal(_snapshotNoticeMessageGateDeny(db, { notices: [{ ...prev, audiencePersons: ['2400012349', '2400012350'] }] }, { role: 'secretary', id: '2300010001' }), null,
     '作者改收件人 → 放行（本门不越权管作者本人）');
 });

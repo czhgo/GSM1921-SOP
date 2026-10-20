@@ -62,10 +62,10 @@ test('initDb 建表成功，核心表存在', () => {
 test('JSON 资源表支持嵌套字段读写', () => {
   const db = initDb(':memory:');
   db.prepare('INSERT INTO activities (id, data) VALUES (?, ?)')
-    .run('act-test', JSON.stringify({ id: 'act-test', assignments: [{ personId: 'p1', role: 'organizer' }] }));
+    .run('act-test', JSON.stringify({ id: 'act-test', assignments: [{ personId: '2400012345', role: 'organizer' }] }));
   const row = db.prepare('SELECT data FROM activities WHERE id = ?').get('act-test');
   const parsed = JSON.parse(row.data);
-  assert.equal(parsed.assignments[0].personId, 'p1');
+  assert.equal(parsed.assignments[0].personId, '2400012345');
 });
 
 test('replaceCollection 整表替换写入', () => {
@@ -103,7 +103,7 @@ test('seedDatabase 写入 users 与 activities', async () => {
 // ── ③ 资源读口（原 resources.test.js，2 条）──────────────────────────
 
 test('activities list 返回活动数组', async () => {
-  const token = await loginToken('p13');
+  const token = await loginToken('2300010001');
   const res = await fetch(`${base}/api/v1/activities`, { headers: { Authorization: `Bearer ${token}` } });
   assert.equal(res.status, 200);
   const list = await res.json();
@@ -113,7 +113,7 @@ test('activities list 返回活动数组', async () => {
 });
 
 test('bootstrap 返回全部资源分组', async () => {
-  const token = await loginToken('p13');
+  const token = await loginToken('2300010001');
   const res = await fetch(`${base}/api/v1/bootstrap`, { headers: { Authorization: `Bearer ${token}` } });
   const body = await res.json();
   for (const k of ['activities', 'todos', 'notices', 'users']) {
@@ -126,7 +126,7 @@ test('bootstrap 返回全部资源分组', async () => {
 test('登录后上传附件返回元数据', async () => {
   const login = await (await fetch(`${base}/api/v1/auth/login`, {
     method: 'POST', headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ personId: 'p13' }),
+    body: JSON.stringify({ personId: '2300010001' }),
   })).json();
 
   const form = new FormData();
@@ -161,7 +161,7 @@ async function versionsOf(token) {
 test('snapshot 全量覆盖保存后能读回字段修改（新增活动须走语义写入口）', async () => {
   const tokenRes = await fetch(`${base}/api/v1/auth/login`, {
     method: 'POST', headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ personId: 'p13' }),
+    body: JSON.stringify({ personId: '2300010001' }),
   });
   const { token } = await tokenRes.json();
 
@@ -189,7 +189,7 @@ test('snapshot 全量覆盖保存后能读回字段修改（新增活动须走�
 test('snapshot 缺集合版本号 ⇒ 整批 428（不再无条件写）', async () => {
   const { token } = await (await fetch(`${base}/api/v1/auth/login`, {
     method: 'POST', headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ personId: 'p13' }),
+    body: JSON.stringify({ personId: '2300010001' }),
   })).json();
   const before = await (await fetch(`${base}/api/v1/activities`, { headers: { Authorization: `Bearer ${token}` } })).json();
   const res = await fetch(`${base}/api/v1/snapshot`, {

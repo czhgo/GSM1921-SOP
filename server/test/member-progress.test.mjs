@@ -14,7 +14,7 @@
 //   S4 **参数守卫**：缺 personIds → 400（不得静默返回全量人员）。
 //
 // 数据源：服务端四张键值表 `todos` / `attendances` / `inspections` / `issues`（id + data JSON）。
-// 目标人用**合成 id**（`mp-p1`）——避免与种子库里的真实人员数据相互污染。
+// 目标人用**合成 id**（`mp-2400012345`）——避免与种子库里的真实人员数据相互污染。
 
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
@@ -22,11 +22,11 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { createApp } from '../app.js';
 import { seedDatabase } from '../seed.js';
-import { aggregateMemberProgress } from '../../docs/src/services/member/member-progress.js?v=20261020d';
+import { aggregateMemberProgress } from '../../docs/src/services/member/member-progress.js?v=20261020e';
 
 const ROOT = join(import.meta.dirname, '..', '..');
 const TODAY = '2026-09-15';
-const TARGET = 'mp-p1'; // 合成人员：不与种子数据交叉
+const TARGET = 'mp-2400012345'; // 合成人员：不与种子数据交叉
 
 let server, base, db, token;
 
@@ -60,7 +60,7 @@ before(async () => {
   const r = await fetch(`${base}/api/v1/auth/login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ personId: 'p13', password: '123456' }),
+    body: JSON.stringify({ personId: '2300010001', password: '123456' }),
   });
   token = (await r.json()).token;
   assert.ok(token, '登录取 token 失败——后续断言将全部 401');

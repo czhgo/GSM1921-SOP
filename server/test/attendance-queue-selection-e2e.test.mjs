@@ -32,7 +32,7 @@ test('纪检批量确认默认不选，展开只保留显式选择，清空覆�
   await page.route('**://cdn.tailwindcss.com/**', (route) => route.abort());
   try {
     await page.goto(`${base}/login.html`, { waitUntil: 'domcontentloaded' });
-    await page.fill('#student-id', '2400012354'); // 纪检委员 p10
+    await page.fill('#student-id', '2400012354'); // 纪检委员 2400012354
     await page.fill('#password', '123456');
     await Promise.all([
       page.waitForURL('**/workspace/disc.html', { timeout: 15000 }),

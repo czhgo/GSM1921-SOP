@@ -1,7 +1,7 @@
 // agenda-relations.test.mjs — 活动议程步骤、讨论/表决关联及表态目标的共同校验
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { agendaDecisionSource, validateAgendaStructure, validateAgendaVoteTarget } from '../../docs/src/services/activity/agenda-relations.js?v=20261020d';
+import { agendaDecisionSource, validateAgendaStructure, validateAgendaVoteTarget } from '../../docs/src/services/activity/agenda-relations.js?v=20261020e';
 
 test('兼容未标步骤的历史议程与普通议题表态', () => {
   const agenda = [{ item: '历史议题' }, { id: 'ag-current', item: '普通议题' }];
@@ -58,8 +58,8 @@ test('显式议程关系必须使用规范字符串步骤、ID 和关联引用',
 test('显式讨论项不允许携带会议决议结果或结果留痕', () => {
   for (const outcome of [
     { result: 'passed' },
-    { personResults: [{ personId: 'p1', passed: true }] },
-    { recordedBy: 'p13' },
+    { personResults: [{ personId: '2400012345', passed: true }] },
+    { recordedBy: '2300010001' },
     { recordedAt: '2026-10-15T00:00:00.000Z' },
     { reportToPartyMeeting: true },
   ]) {
@@ -89,16 +89,16 @@ test('表态目标必须在本活动议程中且不能指向显式讨论项', ()
 test('表决结果沿用关联讨论项的既有业务回指，表决项自身字段优先', () => {
   const discussion = {
     id: 'ag-discuss', agendaStep: 'discussion', item: '讨论发展对象',
-    kinds: ['attendee-list'], personIds: ['p6', 'p22'], personStages: { p6: '发展对象', p22: '积极分子' }, toStage: '预备党员',
+    kinds: ['attendee-list'], personIds: ['2400012350', '2500010008'], personStages: { 2400012350: '发展对象', 2500010008: '积极分子' }, toStage: '预备党员',
   };
   const vote = {
     id: 'ag-vote', agendaStep: 'vote', item: '表决发展对象',
-    discussionAgendaItemId: 'ag-discuss', kinds: [], personIds: [], personStages: { p6: '发展对象' },
+    discussionAgendaItemId: 'ag-discuss', kinds: [], personIds: [], personStages: { 2400012350: '发展对象' },
   };
   const source = agendaDecisionSource([discussion, vote], vote);
   assert.equal(source.id, 'ag-vote', '结果仍落在表决项');
   assert.deepEqual(source.kinds, ['attendee-list']);
-  assert.deepEqual(source.personIds, ['p6', 'p22']);
-  assert.deepEqual(source.personStages, { p6: '发展对象', p22: '积极分子' }, '表决项只覆盖自己有值的阶段，其他沿用讨论项快照');
+  assert.deepEqual(source.personIds, ['2400012350', '2500010008']);
+  assert.deepEqual(source.personStages, { 2400012350: '发展对象', 2500010008: '积极分子' }, '表决项只覆盖自己有值的阶段，其他沿用讨论项快照');
   assert.equal(source.toStage, '预备党员');
 });

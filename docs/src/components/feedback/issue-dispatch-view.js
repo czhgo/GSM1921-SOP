@@ -11,9 +11,9 @@
 //  依赖方向正确：组件 → 服务（不是服务 → 组件）。守卫：issue-branch.test.mjs（结构层）。
 // ════════════════════════════════════════════════════════════════
 
-import { renderFilteredList } from '../ui/list-filter.js?v=20261020d';
-import { escHtml, showToast } from '../../core/base/utils.js?v=20261020d';
-import { IssueStore, IssueNotify, deriveIssueDisplayState, REPORT_CATEGORIES, displayNameOf as _displayName } from '../../services/governance/issues.js?v=20261020d';
+import { renderFilteredList } from '../ui/list-filter.js?v=20261020e';
+import { escHtml, showToast } from '../../core/base/utils.js?v=20261020e';
+import { IssueStore, IssueNotify, deriveIssueDisplayState, REPORT_CATEGORIES, displayNameOf as _displayName } from '../../services/governance/issues.js?v=20261020e';
 
 // ════════════════════════════════════════════════════════════════
 //  「我的处置」Tab 渲染工具（各角色工作台复用）
@@ -23,7 +23,7 @@ import { IssueStore, IssueNotify, deriveIssueDisplayState, REPORT_CATEGORIES, di
 /**
  * 渲染「我的处置」Tab 内容
  * @param {string} role 角色键（如 'org-commissioner'）
- * @param {string} userId 被指派人 personId（如 'p11'）
+ * @param {string} userId 被指派人 personId（如 '2400012355'）
  * @returns {string} HTML
  */
 export function renderMyDispatchTab(role, userId, opts = {}) {

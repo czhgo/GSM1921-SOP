@@ -17,7 +17,7 @@
 //
 // 表集合（**覆盖本批补 / 改的表 ＋ 已知易漂的表**）：
 //   · `todos`（本批补种；也是唯一曾被 `SEED_FALLBACK` 掩盖缺口的表）· `notices`（种子计数曾疑 12 vs 13）
-//   · `attendances`（本批改 8 月生成段 `_ALL_PERSON_IDS`：剔除党委组织员 p_pc）
+//   · `attendances`（本批改 8 月生成段 `_ALL_PERSON_IDS`：剔除党委组织员 9000000001）
 //   · `inspections`（id 序列跳过 insp-17）· `makeupTasks`（本批改 `attendanceRecordId`：att-sep-1 → att900）
 //   ⚠ 未再扩张到「服务端逐字复刻、无 mock 具名导出可比」的表（weekly_reports / prop_tasks / handoffs /
 //     各申诉队列等：它们的语料在 UI 文件内私有或纯服务端常量，本守卫**没有**一侧可比对 ⇒ 强行纳入会假绿）。
@@ -48,15 +48,15 @@ globalThis.localStorage = makeStorage();
 
 import { createApp } from '../app.js';
 import { seedDatabase } from '../seed.js';
-import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261020d';
-import { getRuntimeMode, init, setDataSource } from '../../docs/src/data/data-adapter.js?v=20261020d';
+import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261020e';
+import { getRuntimeMode, init, setDataSource } from '../../docs/src/data/data-adapter.js?v=20261020e';
 // ── mock 形态语料（单一源；服务端 seed.js 亦从这些具名导出播种 ⇒ 两侧本应逐值相同）──
-import { MOCK_NOTICES } from '../../docs/src/data/mock/notices.js?v=20261020d';
-import { ATTENDANCE_RECORDS } from '../../docs/src/data/mock/attendance.js?v=20261020d';
-import { INSPECTION_RECORDS } from '../../docs/src/data/mock/inspection.js?v=20261020d';
-import { SEED_MAKEUP_TASKS } from '../../docs/src/data/mock/seed.js?v=20261020d';
+import { MOCK_NOTICES } from '../../docs/src/data/mock/notices.js?v=20261020e';
+import { ATTENDANCE_RECORDS } from '../../docs/src/data/mock/attendance.js?v=20261020e';
+import { INSPECTION_RECORDS } from '../../docs/src/data/mock/inspection.js?v=20261020e';
+import { SEED_MAKEUP_TASKS } from '../../docs/src/data/mock/seed.js?v=20261020e';
 // `SEED_TODOS` 不在 `mock/**`（它是服务层常量，前端 seedTodos() 读的正是它）——服务端 seed.js 同源 import
-import { SEED_TODOS } from '../../docs/src/services/governance/todo.js?v=20261020d';
+import { SEED_TODOS } from '../../docs/src/services/governance/todo.js?v=20261020e';
 
 // ════════════════════════════════════════════════════════════════
 //  B 类现场（api 形态）：内存服务 + 真登录取 token + init() 把服务端全量灌进 mockDB 缓存
@@ -69,7 +69,7 @@ const _base = `http://127.0.0.1:${_server.address().port}`;
 const _loginRes = await fetch(`${_base}/api/v1/auth/login`, {
   method: 'POST',
   headers: { 'content-type': 'application/json' },
-  body: JSON.stringify({ personId: 'p13', password: '123456' }),
+  body: JSON.stringify({ personId: '2300010001', password: '123456' }),
 });
 assert.equal(_loginRes.status, 200, 'B 类现场：真登录须 200');
 const { token: _token } = await _loginRes.json();

@@ -31,7 +31,7 @@ export const BRANCHES = [
       modules: null,                 // 全开（默认 profile，兼容现有演示）
       fileSpaceIsolated: true,
     },
-    secretaryId: 'p13',              // 现任支书（储子禾）；P2 起由党委任命驱动
+    secretaryId: '2300010001',              // 现任支书（储子禾）；P2 起由党委任命驱动
     status: 'active',
     createdAt: '2026-09-01T00:00:00.000Z',
   },

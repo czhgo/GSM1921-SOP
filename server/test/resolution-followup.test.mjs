@@ -9,14 +9,14 @@
 // 注意：mockDB/服务均带 ?v= 导入，保证与 services 模块缓存同一实例（见 agenda-quorum.test 头注）。
 import { test, afterEach } from 'node:test';
 import assert from 'node:assert/strict';
-import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261020d';
-import { TodoStore } from '../../docs/src/services/governance/todo.js?v=20261020d';
+import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261020e';
+import { TodoStore } from '../../docs/src/services/governance/todo.js?v=20261020e';
 import {
   buildFollowupTodoPayloads,
   saveFollowups, completeFollowup, reopenFollowup,
   collectOverdueResolutionFollowups, buildOverdueRemindGroup,
   FOLLOWUP_STATUS,
-} from '../../docs/src/services/governance/resolution-followup.js?v=20261020d';
+} from '../../docs/src/services/governance/resolution-followup.js?v=20261020e';
 
 const ORIGINAL_ACTIVITIES = mockDB.activities;
 const ORIGINAL_TODOS = mockDB.todos;
@@ -38,7 +38,7 @@ function makePassedActivity() {
       result: 'passed',
       followups: [
         { id: 'fu-1', item: '制定发展计划', ownerType: 'role', ownerId: 'org-commissioner', deadline: '2026-09-10', status: FOLLOWUP_STATUS.PENDING, createdAt: '2026-09-06T08:00:00' },
-        { id: 'fu-2', item: '整理待讨论名单', ownerType: 'person', ownerId: 'p3', deadline: '2026-09-20', status: FOLLOWUP_STATUS.PENDING, createdAt: '2026-09-06T08:00:00' },
+        { id: 'fu-2', item: '整理待讨论名单', ownerType: 'person', ownerId: '2400012347', deadline: '2026-09-20', status: FOLLOWUP_STATUS.PENDING, createdAt: '2026-09-06T08:00:00' },
         { id: 'fu-3', item: '已完成的宣传安排', ownerType: 'role', ownerId: 'prop-commissioner', deadline: '2026-09-01', status: FOLLOWUP_STATUS.COMPLETED, createdAt: '2026-09-06T08:00:00', completedAt: '2026-09-02T08:00:00' },
       ],
     }, {
@@ -63,7 +63,7 @@ test('A buildFollowupTodoPayloads：角色/到人映射正确，已销项跳过�
 
   const personP = payloads.find((p) => p.actionData.followupId === 'fu-2');
   assert.equal(personP.role, 'visitor', '到人责任人（participant）→ visitor 聚合键（与 VisitorTodoDeriver 一致）');
-  assert.equal(personP.personId, 'p3');
+  assert.equal(personP.personId, '2400012347');
   assert.equal(personP.actionKey, 'resolution-followup');
   assert.equal(personP.sourceType, 'activity', '复用活动生命周期（删除活动联动清待办）');
   assert.equal(personP.category, 'track');
@@ -118,10 +118,10 @@ test('C saveFollowups→completeFollowup→reopenFollowup：落库/待办派生/
     activityId: 'act-fu',
     agendaItemId: 'ag-1',
     followups: [
-      { item: '整理待讨论名单', ownerType: 'person', ownerId: 'p3', deadline: '2026-09-20' },
+      { item: '整理待讨论名单', ownerType: 'person', ownerId: '2400012347', deadline: '2026-09-20' },
       { item: '拟定十月党课主题', ownerType: 'role', ownerId: 'prop-commissioner', deadline: '2026-09-15' },
     ],
-    actorId: 'p13',
+    actorId: '2300010001',
   });
   const savedItem = updated.agenda.find((i) => i.id === 'ag-1');
   assert.equal(savedItem.followups.length, 2);
@@ -130,12 +130,12 @@ test('C saveFollowups→completeFollowup→reopenFollowup：落库/待办派生/
   assert.equal(fuA.status, FOLLOWUP_STATUS.PENDING);
   assert.equal(mockDB.activities.find((a) => a.id === 'act-fu').agenda[0].followups.length, 2, '落库生效');
 
-  // 2) 派生责任人待办（到人 p3=participant → visitor 键；角色 prop-commissioner → 角色键）
+  // 2) 派生责任人待办（到人 2400012347=participant → visitor 键；角色 prop-commissioner → 角色键）
   const todos = TodoStore.getAll();
   const visitorTodo = todos.find((t) => t.actionData && t.actionData.followupId === fuA.id);
   assert.ok(visitorTodo, '到人待落实生成责任人待办');
   assert.equal(visitorTodo.role, 'visitor');
-  assert.equal(visitorTodo.personId, 'p3');
+  assert.equal(visitorTodo.personId, '2400012347');
   assert.equal(visitorTodo.deadline, '2026-09-20');
   const fuB = savedItem.followups[1];
   const roleTodo = todos.find((t) => t.actionData && t.actionData.followupId === fuB.id);
@@ -143,13 +143,13 @@ test('C saveFollowups→completeFollowup→reopenFollowup：落库/待办派生/
   assert.equal(roleTodo.deadline, '2026-09-15');
 
   // 3) 销项：议程行 completed + 责任人待办销账
-  await completeFollowup({ activityId: 'act-fu', agendaItemId: 'ag-1', followupId: fuA.id, actorId: 'p13' });
+  await completeFollowup({ activityId: 'act-fu', agendaItemId: 'ag-1', followupId: fuA.id, actorId: '2300010001' });
   const afterDone = mockDB.activities.find((a) => a.id === 'act-fu').agenda[0];
   assert.equal(afterDone.followups.find((f) => f.id === fuA.id).status, FOLLOWUP_STATUS.COMPLETED);
   assert.equal(TodoStore.getById(visitorTodo.id).status, 'completed', '销项联动责任人待办完成');
 
   // 4) 恢复：回 pending 且补建责任人待办
-  await reopenFollowup({ activityId: 'act-fu', agendaItemId: 'ag-1', followupId: fuA.id, actorId: 'p13' });
+  await reopenFollowup({ activityId: 'act-fu', agendaItemId: 'ag-1', followupId: fuA.id, actorId: '2300010001' });
   const afterReopen = mockDB.activities.find((a) => a.id === 'act-fu').agenda[0];
   assert.equal(afterReopen.followups.find((f) => f.id === fuA.id).status, FOLLOWUP_STATUS.PENDING);
   const reopenedTodo = TodoStore.getAll().find((t) => t.actionData && t.actionData.followupId === fuA.id && t.status !== 'completed');

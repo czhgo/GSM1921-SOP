@@ -20,42 +20,42 @@
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261020d';
-import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261020d';
-import { setDataSource, registerMockAdapter } from '../../docs/src/data/data-adapter.js?v=20261020d';
+import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261020e';
+import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261020e';
+import { setDataSource, registerMockAdapter } from '../../docs/src/data/data-adapter.js?v=20261020e';
 import {
   POLICY_DEFAULTS, POLICY_OVERRIDABLE, POLICY_FIXED, POLICY_OVERRIDE_SECTIONS, activityApprovalMode,
-} from '../../docs/src/core/domain/policy-defaults.js?v=20261020d';
+} from '../../docs/src/core/domain/policy-defaults.js?v=20261020e';
 // ⑧ 活动批准门（2026-09-22 批次 150）：判据/写口/状态单一源 = services/activity/activity.js
 import {
   pendingApprovalPatchOnWrite, canApproveActivity, PENDING_APPROVAL_STATUS,
   // ⑨ 批次 151（启用端：待批可见性 / 支委会档复用线上表决）
   activityApprovalVoteOf, openCommitteeVoteForActivity, applyActivityApprovalResult,
-} from '../../docs/src/services/activity/activity.js?v=20261020d';
+} from '../../docs/src/services/activity/activity.js?v=20261020e';
 // ⑨ 待批可见性单一源（2026-09-22 批次 151 · 支书裁定「只支委层可见」）
 import {
   canSeePendingApprovalActivities, isActivityVisibleTo, filterActivitiesForViewer,
-} from '../../docs/src/services/core/visibility.js?v=20261020d';
+} from '../../docs/src/services/core/visibility.js?v=20261020e';
 // 批次 47-F 第二组并入：消费点导出面（原 policy-defaults-sync.test.mjs 的导入）
-import { MEETING_ATTENDANCE_TYPES } from '../../docs/src/services/activity/attendance.js?v=20261020d';
-import { WORKFORCE_VOTE_DEFAULT } from '../../docs/src/services/branch/workforce.js?v=20261020d';
-import { getOverdueRecords } from '../../docs/src/services/activity/inspection.js?v=20261020d';
+import { MEETING_ATTENDANCE_TYPES } from '../../docs/src/services/activity/attendance.js?v=20261020e';
+import { WORKFORCE_VOTE_DEFAULT } from '../../docs/src/services/branch/workforce.js?v=20261020e';
+import { getOverdueRecords } from '../../docs/src/services/activity/inspection.js?v=20261020e';
 import {
   sanitizeConfigPolicyOverrides, applyBranchPolicyOverrides,
-} from '../../docs/src/services/branch/config-clean.js?v=20261020d';
+} from '../../docs/src/services/branch/config-clean.js?v=20261020e';
 import {
   savePolicyOverrides, canManagePolicyOverrides, getBranchById,
-} from '../../docs/src/services/branch/branch.js?v=20261020d';
+} from '../../docs/src/services/branch/branch.js?v=20261020e';
 import {
   semesterDetainedWindowsLabel,
-} from '../../docs/src/services/member/member-confirmation.js?v=20261020d';
+} from '../../docs/src/services/member/member-confirmation.js?v=20261020e';
 // ⑪ 2026-09-27「补入口」批：补课范围/时限 call-time 消费点（makeup.js 读 POLICY_DEFAULTS）
 import {
   makeupDefaultActivityTypes, makeupDeadlineDays, isMakeupRequired,
-} from '../../docs/src/services/activity/makeup.js?v=20261020d';
+} from '../../docs/src/services/activity/makeup.js?v=20261020e';
 import {
   leaderSemesterReportTermKey, isLeaderSemesterRemindWindow,
-} from '../../docs/src/entries/tabs/today/today-tab.js?v=20261020d';
+} from '../../docs/src/entries/tabs/today/today-tab.js?v=20261020e';
 // HTTP 域（PATCH /branches/:id/config policyOverrides 写口与 server 同源校验）
 import { createApp } from '../app.js';
 import { seedDatabase } from '../seed.js';
@@ -195,15 +195,15 @@ test('⑧ 批准门：默认关 + 三态白名单净化 + 关时写入补丁为 
 
 test('⑧ 批准门：开启档位可经支书落库（savePolicyOverrides），关回去复原', async () => {
   beginMockCase();
-  const r1 = await savePolicyOverrides('br-b1', { activityApproval: { mode: 'secretary' } }, { actor: { personId: 'p13', role: 'secretary' } });
+  const r1 = await savePolicyOverrides('br-b1', { activityApproval: { mode: 'secretary' } }, { actor: { personId: '2300010001', role: 'secretary' } });
   assert.equal(r1.ok, true);
   assert.equal(r1.changed, true);
   assert.deepEqual(po().activityApproval, { mode: 'secretary' });
   // 域负责人（纪检）不可写支书域的活动批准门
-  const r2 = await savePolicyOverrides('br-b1', { activityApproval: { mode: 'off' } }, { actor: { personId: 'p10', role: 'disc-commissioner' } });
+  const r2 = await savePolicyOverrides('br-b1', { activityApproval: { mode: 'off' } }, { actor: { personId: '2400012354', role: 'disc-commissioner' } });
   assert.equal(po().activityApproval.mode, 'secretary', '纪检不可改支书域参数');
   // 关回去：置 null 删该节 → 回制度默认（关闭）
-  const r3 = await savePolicyOverrides('br-b1', { activityApproval: null }, { actor: { personId: 'p13', role: 'secretary' } });
+  const r3 = await savePolicyOverrides('br-b1', { activityApproval: null }, { actor: { personId: '2300010001', role: 'secretary' } });
   assert.equal(r3.ok, true);
   assert.ok(!po() || po().activityApproval === undefined, '唯一覆盖删除后归一（该节消失）');
   applyBranchPolicyOverrides({ config: BR().config || {} });
@@ -291,62 +291,62 @@ test('③ 读侧注入：覆盖生效；无覆盖=保持默认；跨支部切换
 test('④ 角色守卫：支书/副/party-staff 全量；纪检/组织/组长仅本域；普通成员拒绝', () => {
   beginMockCase();
   const perm = (actor) => canManagePolicyOverrides(actor, 'br-b1');
-  assert.equal(perm({ personId: 'p13', role: 'secretary' }).ok, true);
-  assert.equal(perm({ personId: 'p13', role: 'secretary' }).scope, 'all');
-  assert.equal(perm({ personId: 'p14', role: 'deputy-secretary' }).ok, true, '副书同权');
-  assert.equal(perm({ personId: 'p_pc', role: 'party-staff' }).ok, true);
-  assert.deepEqual(perm({ personId: 'p10', role: 'disc-commissioner' }).scope, ['inspection', 'attendance', 'review', 'makeup'], '纪检域＝考察超期 / 考勤与复盘时限 / 补课范围与时限');
-  assert.deepEqual(perm({ personId: 'p11', role: 'org-commissioner' }).scope, ['memberConfirmation', 'thoughtReport']);
-  assert.deepEqual(perm({ personId: 'p1', role: 'leader' }).scope, ['leader']);
-  assert.equal(perm({ personId: 'p3', role: 'participant' }).ok, false, '普通成员无权');
+  assert.equal(perm({ personId: '2300010001', role: 'secretary' }).ok, true);
+  assert.equal(perm({ personId: '2300010001', role: 'secretary' }).scope, 'all');
+  assert.equal(perm({ personId: '2300010002', role: 'deputy-secretary' }).ok, true, '副书同权');
+  assert.equal(perm({ personId: '9000000001', role: 'party-staff' }).ok, true);
+  assert.deepEqual(perm({ personId: '2400012354', role: 'disc-commissioner' }).scope, ['inspection', 'attendance', 'review', 'makeup'], '纪检域＝考察超期 / 考勤与复盘时限 / 补课范围与时限');
+  assert.deepEqual(perm({ personId: '2400012355', role: 'org-commissioner' }).scope, ['memberConfirmation', 'thoughtReport']);
+  assert.deepEqual(perm({ personId: '2400012345', role: 'leader' }).scope, ['leader']);
+  assert.equal(perm({ personId: '2400012347', role: 'participant' }).ok, false, '普通成员无权');
 });
 
 test('④ 域保存：纪检保存 overdueDays → 落库 policyOverrides.inspection；恢复默认=删该域键', async () => {
   beginMockCase();
-  const r1 = await savePolicyOverrides('br-b1', { inspection: { overdueDays: 10 } }, { actor: { personId: 'p10', role: 'disc-commissioner' } });
+  const r1 = await savePolicyOverrides('br-b1', { inspection: { overdueDays: 10 } }, { actor: { personId: '2400012354', role: 'disc-commissioner' } });
   assert.equal(r1.ok, true);
   assert.equal(r1.changed, true);
   assert.deepEqual(po().inspection, { overdueDays: 10 }, '纪检覆盖写入 config.policyOverrides');
   // 保存无实质变化 → changed=false（不产生冗余留痕）
-  const r1b = await savePolicyOverrides('br-b1', { inspection: { overdueDays: 10 } }, { actor: { personId: 'p10', role: 'disc-commissioner' } });
+  const r1b = await savePolicyOverrides('br-b1', { inspection: { overdueDays: 10 } }, { actor: { personId: '2400012354', role: 'disc-commissioner' } });
   assert.equal(r1b.changed, false);
   // 纪检不能把自己的包捎带组织域（域负责人仅本域键；其它节被忽略）
-  await savePolicyOverrides('br-b1', { memberConfirmation: { semesterDetainedWindows: [[3, 1, 3, 7]] } }, { actor: { personId: 'p10', role: 'disc-commissioner' } });
+  await savePolicyOverrides('br-b1', { memberConfirmation: { semesterDetainedWindows: [[3, 1, 3, 7]] } }, { actor: { personId: '2400012354', role: 'disc-commissioner' } });
   assert.equal(po().memberConfirmation, undefined, '纪检不可写组织域');
   // 恢复默认：inspection 节置 null → 删除；全空 → policyOverrides null
-  const r2 = await savePolicyOverrides('br-b1', { inspection: null }, { actor: { personId: 'p10', role: 'disc-commissioner' } });
+  const r2 = await savePolicyOverrides('br-b1', { inspection: null }, { actor: { personId: '2400012354', role: 'disc-commissioner' } });
   assert.equal(r2.ok, true);
   assert.equal(r2.changed, true);
   assert.equal(po(), null, '唯一覆盖删除后 policyOverrides 归一 null');
   // 钳制路径（写口走同一净化）：0 → 1
-  await savePolicyOverrides('br-b1', { inspection: { overdueDays: 0 } }, { actor: { personId: 'p10', role: 'disc-commissioner' } });
+  await savePolicyOverrides('br-b1', { inspection: { overdueDays: 0 } }, { actor: { personId: '2400012354', role: 'disc-commissioner' } });
   assert.deepEqual(po().inspection, { overdueDays: 1 });
 });
 
 test('④ 域保存：组织窗口 / 组长开关 / party-staff 全量（含 leader 节）', async () => {
   beginMockCase();
-  const rOrg = await savePolicyOverrides('br-b1', { memberConfirmation: { semesterDetainedWindows: [[6, 20, 7, 10], [12, 20, 1, 10]] } }, { actor: { personId: 'p11', role: 'org-commissioner' } });
+  const rOrg = await savePolicyOverrides('br-b1', { memberConfirmation: { semesterDetainedWindows: [[6, 20, 7, 10], [12, 20, 1, 10]] } }, { actor: { personId: '2400012355', role: 'org-commissioner' } });
   assert.equal(rOrg.ok, true);
   assert.deepEqual(po().memberConfirmation.semesterDetainedWindows, [[6, 20, 7, 10], [12, 20, 1, 10]]);
 
-  const rLeader = await savePolicyOverrides('br-b1', { leader: { semesterReportReminder: { enabled: false } } }, { actor: { personId: 'p1', role: 'leader' } });
+  const rLeader = await savePolicyOverrides('br-b1', { leader: { semesterReportReminder: { enabled: false } } }, { actor: { personId: '2400012345', role: 'leader' } });
   assert.equal(rLeader.ok, true);
   assert.equal(po().leader.semesterReportReminder.enabled, false);
 
   // party-staff 全量写（保留既有节 + 新增 inspection）
-  const rStaff = await savePolicyOverrides('br-b1', { inspection: { overdueDays: 9 } }, { actor: { personId: 'p_pc', role: 'party-staff' } });
+  const rStaff = await savePolicyOverrides('br-b1', { inspection: { overdueDays: 9 } }, { actor: { personId: '9000000001', role: 'party-staff' } });
   assert.equal(rStaff.ok, true);
   assert.equal(po().inspection.overdueDays, 9);
   assert.equal(po().leader.semesterReportReminder.enabled, false, 'party-staff 全量不丢其它节');
   // 支书（副书同权同测一例）
-  const rSec = await savePolicyOverrides('br-b1', { inspection: null }, { actor: { personId: 'p13', role: 'secretary' } });
+  const rSec = await savePolicyOverrides('br-b1', { inspection: null }, { actor: { personId: '2300010001', role: 'secretary' } });
   assert.equal(rSec.ok, true);
   assert.equal(po().inspection, undefined);
 });
 
 test('④ 守卫拒绝：普通成员与支部外域负责人不可写（写口不落地）', async () => {
   beginMockCase();
-  const r = await savePolicyOverrides('br-b1', { inspection: { overdueDays: 6 } }, { actor: { personId: 'p3', role: 'participant' } });
+  const r = await savePolicyOverrides('br-b1', { inspection: { overdueDays: 6 } }, { actor: { personId: '2400012347', role: 'participant' } });
   assert.equal(r.ok, false, '普通成员拒绝');
   assert.equal(r.reason.includes('无权限') || r.reason.includes('管理权'), true);
   assert.equal(po(), null, '未落地');
@@ -404,7 +404,7 @@ async function _patchConfig(token, body) {
 }
 
 test('⑦ HTTP：支书可写 policyOverrides（合并/整清）；域负责人仅本域节（越域 400、modules 403）', async () => {
-  const sec = await _login('p13');
+  const sec = await _login('2300010001');
   const r1 = await _patchConfig(sec, { config: { policyOverrides: { inspection: { overdueDays: 12 } } } });
   assert.equal(r1.status, 200, '现任支书可写 policyOverrides');
   assert.equal((await r1.json()).config.policyOverrides.inspection.overdueDays, 12);
@@ -412,7 +412,7 @@ test('⑦ HTTP：支书可写 policyOverrides（合并/整清）；域负责人�
   assert.equal(r2.status, 200, '支书可整体恢复默认（null）');
   assert.equal((await r2.json()).config.policyOverrides, null);
 
-  const orgc = await _login('p11');
+  const orgc = await _login('2400012355');
   const r3 = await _patchConfig(orgc, { config: { policyOverrides: { memberConfirmation: { semesterDetainedWindows: [[6, 20, 7, 10], [12, 20, 1, 10]] } } } });
   assert.equal(r3.status, 200, '组织委员可写自己组织域节');
   const b3 = await r3.json();
@@ -425,23 +425,23 @@ test('⑦ HTTP：支书可写 policyOverrides（合并/整清）；域负责人�
 });
 
 test('⑦ HTTP：普通成员 403；本支部组长可写自己 leader 节', async () => {
-  const mem = await _login('p5');
+  const mem = await _login('2400012349');
   const r1 = await _patchConfig(mem, { config: { policyOverrides: { inspection: { overdueDays: 5 } } } });
   assert.equal(r1.status, 403, '普通成员不可写 policyOverrides');
-  const leader = await _login('p1');
+  const leader = await _login('2400012345');
   const r2 = await _patchConfig(leader, { config: { policyOverrides: { leader: { semesterReportReminder: { enabled: false } } } } });
   assert.equal(r2.status, 200, '本支部组长可写 leader 节');
   assert.equal((await r2.json()).config.policyOverrides.leader.semesterReportReminder.enabled, false);
 });
 
 test('⑦ HTTP：党委可读目录但不能替支部启停功能；支书可自治选择并留痕', async () => {
-  const staff = await _login('p_pc');
+  const staff = await _login('9000000001');
   const deniedModules = await _patchConfig(staff, { config: { modules: { hiddenTabIds: ['calendar'], tabOrder: [] } } });
   assert.equal(deniedModules.status, 403, '党委不能替支部改变工作台能力选配');
   const deniedBlocks = await _patchConfig(staff, { config: { blocks: { workflowBlocks: { hiddenBlockIds: ['taskforce'] } } } });
   assert.equal(deniedBlocks.status, 403, '党委不能替支部启停流程块');
 
-  const secretary = await _login('p13');
+  const secretary = await _login('2300010001');
   const selected = await _patchConfig(secretary, { config: { modules: { hiddenTabIds: ['calendar'], tabOrder: [] } } });
   assert.equal(selected.status, 200, '本支部支书可调整本支部能力选配');
   const selectedBranch = await selected.json();
@@ -458,8 +458,8 @@ test('⑦ HTTP：党委可读目录但不能替支部启停功能；支书可自
 // ── ⑨ 活动批准门「启用端」（2026-09-22 批次 151 · 支书三条裁定）────────────────────────
 // ① 待批可见性＝只支委层可见；② 服务端门（PATCH 上判状态转移）；③ 支委会档复用线上表决。
 test('⑨ 待批可见性：只支委层可见；非待批活动恒可见（关闭档位时过滤为空转）', () => {
-  const pending = { id: 'act-p1', status: PENDING_APPROVAL_STATUS };
-  const published = { id: 'act-p2', status: 'published' };
+  const pending = { id: 'act-2400012345', status: PENDING_APPROVAL_STATUS };
+  const published = { id: 'act-2400012346', status: 'published' };
   // 支委层＝BRANCH_COMMISSION_ROLES（单一源）
   ['secretary', 'deputy-secretary', 'org-commissioner', 'prop-commissioner', 'disc-commissioner']
     .forEach((r) => assert.equal(canSeePendingApprovalActivities(r), true, `${r} 属支委层`));
@@ -468,18 +468,18 @@ test('⑨ 待批可见性：只支委层可见；非待批活动恒可见（关�
   assert.equal(isActivityVisibleTo(pending, 'participant'), false, '普通成员看不到待批活动');
   assert.equal(isActivityVisibleTo(pending, 'secretary'), true, '支委层看得到待批活动');
   assert.equal(isActivityVisibleTo(published, 'participant'), true, '非待批活动沿用既有可见性');
-  assert.deepEqual(filterActivitiesForViewer([pending, published], 'participant').map((a) => a.id), ['act-p2']);
-  assert.deepEqual(filterActivitiesForViewer([pending, published], 'secretary').map((a) => a.id), ['act-p1', 'act-p2']);
+  assert.deepEqual(filterActivitiesForViewer([pending, published], 'participant').map((a) => a.id), ['act-2400012346']);
+  assert.deepEqual(filterActivitiesForViewer([pending, published], 'secretary').map((a) => a.id), ['act-2400012345', 'act-2400012346']);
   // 三档之②：组织者本人（2026-09-22 批次 152）——他可见、别人不可见（组织者按实际字段 organizer / assignments）
-  const mine = { id: 'act-p3b', status: PENDING_APPROVAL_STATUS, organizer: 'p5' };
-  const other = { id: 'act-p3c', status: PENDING_APPROVAL_STATUS, organizer: 'p9', assignments: [{ personId: 'p9', role: 'organizer' }] };
-  assert.equal(isActivityVisibleTo(mine, 'leader', 'p5'), true, '组织者本人（非支委层）看得到自己组织的待批活动');
-  assert.equal(isActivityVisibleTo(mine, 'participant', 'p7'), false, '同一场待批活动，别人仍看不到');
-  assert.equal(isActivityVisibleTo(other, 'participant', 'p9'), true, '组织者身份按 assignments[].role=organizer 也认');
-  assert.deepEqual(filterActivitiesForViewer([mine, other], 'participant', 'p5').map((a) => a.id), ['act-p3b']);
-  assert.deepEqual(filterActivitiesForViewer([mine, other], 'participant', 'p7').map((a) => a.id), []);
+  const mine = { id: 'act-p3b', status: PENDING_APPROVAL_STATUS, organizer: '2400012349' };
+  const other = { id: 'act-p3c', status: PENDING_APPROVAL_STATUS, organizer: '2400012353', assignments: [{ personId: '2400012353', role: 'organizer' }] };
+  assert.equal(isActivityVisibleTo(mine, 'leader', '2400012349'), true, '组织者本人（非支委层）看得到自己组织的待批活动');
+  assert.equal(isActivityVisibleTo(mine, 'participant', '2400012351'), false, '同一场待批活动，别人仍看不到');
+  assert.equal(isActivityVisibleTo(other, 'participant', '2400012353'), true, '组织者身份按 assignments[].role=organizer 也认');
+  assert.deepEqual(filterActivitiesForViewer([mine, other], 'participant', '2400012349').map((a) => a.id), ['act-p3b']);
+  assert.deepEqual(filterActivitiesForViewer([mine, other], 'participant', '2400012351').map((a) => a.id), []);
   // 关闭（默认）档位：系统里不存在 pending-approval 活动 ⇒ 过滤对任何清单恒等（零行为变化）
-  const plain = [published, { id: 'act-p3', status: 'draft' }, { id: 'act-p4', status: 'completed' }];
+  const plain = [published, { id: 'act-2400012347', status: 'draft' }, { id: 'act-2400012348', status: 'completed' }];
   assert.deepEqual(filterActivitiesForViewer(plain, 'participant'), plain);
 });
 
@@ -490,9 +490,9 @@ test('⑨ 支委会档：提请表决＝挂 activity-approval 议程项＋支委
     approval: { required: true, mode: 'branch-committee', state: 'pending', at: '2026-09-22T00:00:00.000Z' },
   }];
   // 放行复算：非支委层不可提请；非 branch-committee 档不适用
-  assert.equal((await openCommitteeVoteForActivity({ activityId: 'act-ap1', by: 'p3', role: 'participant', mode: 'branch-committee' })).ok, false);
-  assert.equal((await openCommitteeVoteForActivity({ activityId: 'act-ap1', by: 'p13', role: 'secretary', mode: 'secretary' })).ok, false);
-  const r = await openCommitteeVoteForActivity({ activityId: 'act-ap1', by: 'p13', role: 'secretary', mode: 'branch-committee' });
+  assert.equal((await openCommitteeVoteForActivity({ activityId: 'act-ap1', by: '2400012347', role: 'participant', mode: 'branch-committee' })).ok, false);
+  assert.equal((await openCommitteeVoteForActivity({ activityId: 'act-ap1', by: '2300010001', role: 'secretary', mode: 'secretary' })).ok, false);
+  const r = await openCommitteeVoteForActivity({ activityId: 'act-ap1', by: '2300010001', role: 'secretary', mode: 'branch-committee' });
   assert.equal(r.ok, true);
   const act = mockDB.activities.find((a) => a.id === 'act-ap1');
   assert.equal(act.status, PENDING_APPROVAL_STATUS, '提请表决本身不改状态（不发布）');
@@ -503,14 +503,14 @@ test('⑨ 支委会档：提请表决＝挂 activity-approval 议程项＋支委
   const vote = activityApprovalVoteOf(act);
   assert.ok(vote && vote.agendaItemId, '本活动上已挂承载表决的议程项');
   assert.equal(act.agenda.find((x) => x.id === vote.agendaItemId).approvalActivityId, 'act-ap1', '议程项回指被表决的活动');
-  assert.equal((await openCommitteeVoteForActivity({ activityId: 'act-ap1', by: 'p13', role: 'secretary', mode: 'branch-committee' })).already, true, '幂等：不重复挂');
+  assert.equal((await openCommitteeVoteForActivity({ activityId: 'act-ap1', by: '2300010001', role: 'secretary', mode: 'branch-committee' })).already, true, '幂等：不重复挂');
   // 通过 ⇒ 发布
-  const pass = applyActivityApprovalResult({ activity: act, decision: 'passed', by: 'p13', at: '2026-09-22T01:00:00.000Z', agendaItemId: vote.agendaItemId });
+  const pass = applyActivityApprovalResult({ activity: act, decision: 'passed', by: '2300010001', at: '2026-09-22T01:00:00.000Z', agendaItemId: vote.agendaItemId });
   assert.equal(pass.ok, true);
   assert.equal(pass.patch.status, 'published');
   assert.equal(pass.patch.approval.state, 'approved');
   // 未通过 ⇒ 终止
-  const fail = applyActivityApprovalResult({ activity: act, decision: 'rejected', by: 'p13' });
+  const fail = applyActivityApprovalResult({ activity: act, decision: 'rejected', by: '2300010001' });
   assert.equal(fail.ok, true);
   assert.equal(fail.patch.status, 'cancelled');
   assert.equal(fail.patch.approval.state, 'rejected');
@@ -521,7 +521,7 @@ test('⑨ 支委会档：提请表决＝挂 activity-approval 议程项＋支委
 });
 
 test('⑨ HTTP：服务端门——待批活动改状态必须带批准语义且角色符合该活动固化的档位', async () => {
-  const sec = await _login('p13');
+  const sec = await _login('2300010001');
   const post = (token, body) => fetch(`${_httpBase}/api/v1/activities`, {
     method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ organizingScope: 'cross-group', hostGroupId: null, ...body }),
   });
@@ -540,15 +540,15 @@ test('⑨ HTTP：服务端门——待批活动改状态必须带批准语义且
   assert.equal(r1.status, 403);
   assert.match((await r1.json()).error, /待批/);
   // ② 普通成员：先被既有角色门拦住 ⇒ 403
-  const mem = await _login('p5');
+  const mem = await _login('2400012349');
   assert.equal((await patch(mem, id, { status: 'published', approval: { state: 'approved', mode: 'secretary' } })).status, 403);
   // ③ 支委层但档位不符：档位固化＝secretary ⇒ 组织委员不可批；且补丁自述 mode 不采信（仍 403）
-  const orgc = await _login('p11');
+  const orgc = await _login('2400012355');
   assert.equal((await patch(orgc, id, { status: 'published', approval: { state: 'approved', mode: 'secretary' } })).status, 403);
   const r3 = await patch(orgc, id, { status: 'published', approval: { state: 'approved', mode: 'branch-committee' } });
   assert.equal(r3.status, 403, '不采信补丁自述的档位（否则支委可自选档位放行自己）');
   // ④ 合法：支书带批准语义 ⇒ 200 且转 published
-  const r4 = await patch(sec, id, { status: 'published', approval: { required: true, mode: 'secretary', state: 'approved', by: 'p13', at: '2026-09-22T02:00:00.000Z' } });
+  const r4 = await patch(sec, id, { status: 'published', approval: { required: true, mode: 'secretary', state: 'approved', by: '2300010001', at: '2026-09-22T02:00:00.000Z' } });
   assert.equal(r4.status, 200, JSON.stringify(await r4.clone().json()));
   assert.equal((await r4.json()).status, 'published');
   // ⑤ 非待批活动不受本门约束（既有行为不变）：draft → published 直改仍放行
@@ -566,8 +566,8 @@ test('⑨ HTTP：服务端门——待批活动改状态必须带批准语义且
 // ① 快照口（`POST /snapshot`）**只拦「不该发生的状态迁移」**——判据与 PATCH 门同源（逐行复用）；
 // ② 直建口（`POST /activities`）——开启档落「待批」（同写入链）、关闭档照旧。
 test('⑩ HTTP：快照口只拦不该发生的状态迁移（其余整表写入照旧放行）；直建口开启档落待批、关闭档照旧', async () => {
-  const sec = await _login('p13');
-  const mem = await _login('p5');
+  const sec = await _login('2300010001');
+  const mem = await _login('2400012349');
   const snapshot = (token, body) => fetch(`${_httpBase}/api/v1/snapshot`, {
     method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify(body),
   });
@@ -610,7 +610,7 @@ test('⑩ HTTP：快照口只拦不该发生的状态迁移（其余整表写入
   assert.equal((await snapshot(sec, {})).status, 204);
   // ①-e 合法批准（支书 ＋ 批准语义）⇒ 放行且转 published
   const approved = all.map((a) => (a.id === created.id
-    ? { ...a, status: 'published', approval: { required: true, mode: 'secretary', state: 'approved', by: 'p13', at: '2026-09-22T03:00:00.000Z' } }
+    ? { ...a, status: 'published', approval: { required: true, mode: 'secretary', state: 'approved', by: '2300010001', at: '2026-09-22T03:00:00.000Z' } }
     : a));
   assert.equal((await snapshot(sec, await versioned(sec, { activities: approved }))).status, 200);
   assert.equal((await listAll(sec)).find((a) => a.id === created.id).status, 'published');
@@ -645,16 +645,16 @@ test('⑪ 时限 / 补课 / 篇幅三族入白名单：净化值域 + 域负责�
   beginMockCase();
   const r1 = await savePolicyOverrides('br-b1',
     { attendance: { entryRemindDays: 3 }, review: { overdueDays: 5 }, makeup: { partyClass: false, deadlineDays: 10 } },
-    { actor: { personId: 'p10', role: 'disc-commissioner' } });
+    { actor: { personId: '2400012354', role: 'disc-commissioner' } });
   assert.equal(r1.ok, true);
   assert.deepEqual(po().attendance, { entryRemindDays: 3 }, '纪检可写 attendance 节');
   assert.deepEqual(po().review, { overdueDays: 5 });
   assert.deepEqual(po().makeup, { partyClass: false, deadlineDays: 10 });
-  const r2 = await savePolicyOverrides('br-b1', { thoughtReport: { wordHint: 2000, wordSoftMin: 1500 } }, { actor: { personId: 'p11', role: 'org-commissioner' } });
+  const r2 = await savePolicyOverrides('br-b1', { thoughtReport: { wordHint: 2000, wordSoftMin: 1500 } }, { actor: { personId: '2400012355', role: 'org-commissioner' } });
   assert.equal(r2.ok, true);
   assert.deepEqual(po().thoughtReport, { wordHint: 2000, wordSoftMin: 1500 });
   // 纪检不可写组织域 thoughtReport（域外节被忽略，未落地）
-  await savePolicyOverrides('br-b1', { thoughtReport: { wordHint: 3000 } }, { actor: { personId: 'p10', role: 'disc-commissioner' } });
+  await savePolicyOverrides('br-b1', { thoughtReport: { wordHint: 3000 } }, { actor: { personId: '2400012354', role: 'disc-commissioner' } });
   assert.deepEqual(po().thoughtReport, { wordHint: 2000, wordSoftMin: 1500 }, '纪检不可改组织域 thoughtReport');
 
   // 读侧注入 + 新开放项真生效（补课范围/时限随参数走；makeup.js call-time 读 POLICY_DEFAULTS）

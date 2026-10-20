@@ -13,7 +13,7 @@ import { readFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const V = '?v=20261020d';
+const V = '?v=20261020e';
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const SRC_DIR = join(ROOT, 'docs', 'src');
 const ISSUES_JSON = join(ROOT, 'docs', 'data', 'issues.json');
@@ -137,7 +137,7 @@ test('S5 组长/成员「我的处置」：我提交/参与段前移，提交与
 test('D1 存量迁移：缓存各条均带 branchId；viewer 取到本支部 issue', async () => {
   const data = JSON.parse(read(ISSUES_JSON));
   await beginIssueCase(data.issues);
-  loginAs('p5', 'participant');
+  loginAs('2400012349', 'participant');
   const all = IssueStore.getAll();
   assert.equal(all.length, data.issues.length, 'br-b1 viewer 可见全部存量 issue');
   for (const i of all) {
@@ -150,12 +150,12 @@ test('D1 存量迁移：缓存各条均带 branchId；viewer 取到本支部 iss
 });
 
 test('D2 跨支部不可见：br-b1 viewer 取不到 br-b2 issue，反之亦然', async () => {
-  const A = { id: 'issue-a', number: 101, branchId: 'br-b1', title: '甲支部反馈', status: 'open', submittedBy: 'p5', participants: ['p5'], comments: [], commentCount: 0 };
+  const A = { id: 'issue-a', number: 101, branchId: 'br-b1', title: '甲支部反馈', status: 'open', submittedBy: '2400012349', participants: ['2400012349'], comments: [], commentCount: 0 };
   const B = { id: 'issue-b', number: 102, branchId: 'br-b2', title: '乙支部反馈', status: 'open', submittedBy: 'pX', participants: ['pX'], comments: [], commentCount: 0 };
   await beginIssueCase([A, B]);
 
-  // br-b1 viewer（p5）→ 只见甲支部
-  loginAs('p5', 'participant');
+  // br-b1 viewer（2400012349）→ 只见甲支部
+  loginAs('2400012349', 'participant');
   assert.deepEqual(IssueStore.getAll().map((i) => i.id), ['issue-a'], 'br-b1 viewer 仅见本支部');
   assert.ok(IssueStore.getById('issue-a'), '本支部 issue 可取');
   assert.equal(IssueStore.getById('issue-b'), undefined, '跨支部 issue 不可见（getById）');
@@ -170,28 +170,28 @@ test('D2 跨支部不可见：br-b1 viewer 取不到 br-b2 issue，反之亦然'
 });
 
 test('D3 成员参与答复：participant 可对自己提交的 issue 追加说明（作者/计数落库）', async () => {
-  const A = { id: 'issue-a', number: 201, branchId: 'br-b1', title: '我提的反馈', status: 'open', submittedBy: 'p5', participants: ['p5'], comments: [], commentCount: 0 };
+  const A = { id: 'issue-a', number: 201, branchId: 'br-b1', title: '我提的反馈', status: 'open', submittedBy: '2400012349', participants: ['2400012349'], comments: [], commentCount: 0 };
   await beginIssueCase([A]);
-  loginAs('p5', 'participant');
+  loginAs('2400012349', 'participant');
 
-  const mine = IssueStore.getMyIssues('p5');
+  const mine = IssueStore.getMyIssues('2400012349');
   assert.equal(mine.length, 1, '我提交的反馈进入「我提交/参与的反馈」');
   assert.equal(mine[0].id, 'issue-a');
 
-  const updated = IssueStore.addComment('issue-a', 'p5', 'participant', '我再补充一点说明', 'comment');
+  const updated = IssueStore.addComment('issue-a', '2400012349', 'participant', '我再补充一点说明', 'comment');
   assert.ok(updated, '追加说明成功');
   assert.equal(updated.commentCount, 1, 'commentCount +1');
   const last = updated.comments[updated.comments.length - 1];
-  assert.equal(last.author, 'p5', '评论作者 = 本人');
+  assert.equal(last.author, '2400012349', '评论作者 = 本人');
   assert.equal(last.body, '我再补充一点说明');
   assert.equal(last.kind, 'comment', '成员答复 kind = comment（非处置结果）');
 
   // 持久化回缓存（后续读取一致）
   const cached = JSON.parse(_store.get(CACHE_KEY)).find((i) => i.id === 'issue-a');
   assert.equal(cached.commentCount, 1, '缓存已落库');
-  assert.equal(cached.comments[cached.comments.length - 1].author, 'p5');
+  assert.equal(cached.comments[cached.comments.length - 1].author, '2400012349');
 
   // 权限边界：成员不因参与答复获得「处置他人反馈」能力（指派处置仍按原角色口径）
-  assert.deepEqual(IssueStore.getAssignedTo('p5'), [], '成员无被指派处置项');
+  assert.deepEqual(IssueStore.getAssignedTo('2400012349'), [], '成员无被指派处置项');
   assert.ok(AuthStore.getCurrentUser()?.role === 'participant', '身份为成员 participant');
 });

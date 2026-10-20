@@ -15,7 +15,7 @@ import { join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createApp } from '../app.js';
 import { seedDatabase } from '../seed.js';
-import { MOCK_ACCOUNTS } from '../../docs/src/data/mock/accounts.js?v=20261020d';
+import { MOCK_ACCOUNTS } from '../../docs/src/data/mock/accounts.js?v=20261020e';
 
 let server;
 let BASE;
@@ -67,7 +67,7 @@ test('E1 编辑完整性：docs/src 全部模块可加载（无语法/重复声�
       let done = 0;
       for (const rel of mods) {
         try {
-          await import(`/src/${rel}?v=20261020d`);
+          await import(`/src/${rel}?v=20261020e`);
         } catch (e) {
           failures.push(`${rel} :: ${String(e).slice(0, 140)}`);
         }
@@ -180,9 +180,9 @@ test('E3 分层方向：服务层不得 import 组件（服务层不产 UI；组
 test('E4 真机装配：登录后 3 类角色的工作台页在真实浏览器里真的装配成 api', async () => {
   // 抽样取自 `docs/src/data/mock/accounts.js`（单一源）——personId 写在这里但**须真实存在**，否则红
   const SAMPLES = [
-    { label: '支书台', page: '/workspace/secretary.html', personId: 'p13' },
-    { label: '纪检台', page: '/workspace/disc.html', personId: 'p10' },
-    { label: '组长台', page: '/workspace/leader.html', personId: 'p1' },
+    { label: '支书台', page: '/workspace/secretary.html', personId: '2300010001' },
+    { label: '纪检台', page: '/workspace/disc.html', personId: '2400012354' },
+    { label: '组长台', page: '/workspace/leader.html', personId: '2400012345' },
   ];
   for (const s of SAMPLES) {
     assert.ok(MOCK_ACCOUNTS.some((a) => a.personId === s.personId),

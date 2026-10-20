@@ -3,20 +3,20 @@
 // 纯 Node（无浏览器、不起 server；mock 形态 + localStorage 内存桩，做法同 policy-config.test.mjs）：
 //   ① getBoundBranch 归属判定矩阵（person 不存在 / branchId null/空 / branchId 查无 → null；查有 → branch；
 //      party-staff（branchId null）→ null）
-//   ② getBranchIdOfPerson 保留数据解析兜底语义（演示/存量兼容：undefined/查无档案/p_pc → 'br-b1'）
+//   ② getBranchIdOfPerson 保留数据解析兜底语义（演示/存量兼容：undefined/查无档案/9000000001 → 'br-b1'）
 //   ③ getHeaderTitle：party-staff → 党委名；有归属 → config.headerTitle；登录无归属 → 中性「未绑定支部」
 //      （不再泄漏示例支部名，placeholder 可覆盖）；未登录静态壳 → 支部显示名（数据驱动，缺省取支部名兜底）
 // 运行：node --test test/branch-affiliation.test.mjs
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261020d';
-import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261020d';
-import { setDataSource, registerMockAdapter } from '../../docs/src/data/data-adapter.js?v=20261020d';
-import { MEMBER_OVERLAY_KEY } from '../../docs/src/services/member/person.js?v=20261020d';
+import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261020e';
+import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261020e';
+import { setDataSource, registerMockAdapter } from '../../docs/src/data/data-adapter.js?v=20261020e';
+import { MEMBER_OVERLAY_KEY } from '../../docs/src/services/member/person.js?v=20261020e';
 import {
   getBoundBranch, getBranchIdOfPerson, getHeaderTitle, getBranchById, getCommitteeName, isLoaded,
-} from '../../docs/src/services/branch/branch.js?v=20261020d';
+} from '../../docs/src/services/branch/branch.js?v=20261020e';
 
 // ── localStorage 内存桩 + mock 适配器注册（people 为静态种子，读链即时可用）──
 const _store = new Map();
@@ -50,11 +50,11 @@ test('① getBoundBranch：person 不存在 / branchId null 或空 / branchId �
   beginMockCase();
   assert.equal(getBoundBranch(undefined), null, '无 personId → null');
   assert.equal(getBoundBranch('p_ghost'), null, 'person 不存在 → null');
-  assert.equal(getBoundBranch('p_pc'), null, 'party-staff 显式 branchId:null → null');
+  assert.equal(getBoundBranch('9000000001'), null, 'party-staff 显式 branchId:null → null');
 
-  const p1 = getBoundBranch('p1');
-  assert.ok(p1 && p1.id === 'br-b1' && p1.name === '光华管理学院本科生党支部', '有归属 → 返回该支部记录');
-  assert.equal(p1.config.headerTitle, '光华管理学院本科生党支部');
+  const p_2400012345 = getBoundBranch('2400012345');
+  assert.ok(p_2400012345 && p_2400012345.id === 'br-b1' && p_2400012345.name === '光华管理学院本科生党支部', '有归属 → 返回该支部记录');
+  assert.equal(p_2400012345.config.headerTitle, '光华管理学院本科生党支部');
 
   overlayPerson('p_nobind', { name: '未绑定测试员', role: 'participant', branchId: null });
   assert.equal(getBoundBranch('p_nobind'), null, '档案 branchId null → null');
@@ -71,8 +71,8 @@ test('② getBranchIdOfPerson 保留兜底语义（undefined/查无档案/party-
   beginMockCase();
   assert.equal(getBranchIdOfPerson(undefined), 'br-b1');
   assert.equal(getBranchIdOfPerson('p_ghost'), 'br-b1', '查无档案 → 兜底 br-b1（数据解析兜底）');
-  assert.equal(getBranchIdOfPerson('p_pc'), 'br-b1', 'party-staff branchId null → 兜底 br-b1（演示兼容）');
-  assert.equal(getBranchIdOfPerson('p1'), 'br-b1');
+  assert.equal(getBranchIdOfPerson('9000000001'), 'br-b1', 'party-staff branchId null → 兜底 br-b1（演示兼容）');
+  assert.equal(getBranchIdOfPerson('2400012345'), 'br-b1');
 });
 
 // ── ③ getHeaderTitle 归属语义 ─────────────────────────────────────────────
@@ -83,9 +83,9 @@ test('③ header：party-staff → 党委名；有归属 → config.headerTitle�
     ? { ...b, config: { ...b.config, headerTitle: '页眉测试名' } }
     : b));
 
-  assert.equal(getHeaderTitle('p13'), '页眉测试名', '有归属 → 该支部 config.headerTitle');
-  assert.equal(getHeaderTitle('p_pc'), getCommitteeName(), 'party-staff → 院系党委名（不属于任一支部）');
-  assert.equal(getHeaderTitle('p_pc'), '光华管理学院党委');
+  assert.equal(getHeaderTitle('2300010001'), '页眉测试名', '有归属 → 该支部 config.headerTitle');
+  assert.equal(getHeaderTitle('9000000001'), getCommitteeName(), 'party-staff → 院系党委名（不属于任一支部）');
+  assert.equal(getHeaderTitle('9000000001'), '光华管理学院党委');
 
   overlayPerson('p_nobind', { name: '未绑定测试员', role: 'participant', branchId: null });
   assert.equal(getHeaderTitle('p_nobind'), '未绑定支部', '登录但无归属 → 中性占位，不泄漏示例支部名');
@@ -108,10 +108,10 @@ test('③ header：未登录/查无档案 → 支部显示名「光华管理学�
   mockDB.branches = [];
   mockDB._loaded = false;
   assert.equal(isLoaded(), false, 'loadDB 前 isLoaded=false（归属语境可区分数据未加载）');
-  assert.equal(getHeaderTitle('p13'), '光华管理学院本科生党支部', '登录人 + 数据未加载 → 静态兜底名（非「未绑定支部」）');
+  assert.equal(getHeaderTitle('2300010001'), '光华管理学院本科生党支部', '登录人 + 数据未加载 → 静态兜底名（非「未绑定支部」）');
 
   // 数据已加载但确无该支部：登录成员 → 真无归属中性占位；未登录 → 中性占位（不受加载态影响）
   mockDB._loaded = true;
-  assert.equal(getHeaderTitle('p13'), '未绑定支部', '数据已加载（p13 归属支部不存在）→ 确无归属中性占位');
+  assert.equal(getHeaderTitle('2300010001'), '未绑定支部', '数据已加载（2300010001 归属支部不存在）→ 确无归属中性占位');
   assert.equal(getHeaderTitle(), '光华管理学院本科生党支部', '未登录 → 支部显示名（数据驱动，缺省取支部名兜底）');
 });

@@ -5,7 +5,7 @@
 //   他人权威拒盖 / 批量混合计数 / MEETING_ATTENDANCE_TYPES 单一源 /
 //   **上传位按会议类型分**（2026-09-21 批次 132 · 支书口径一，**修正批次 124 的「一律组织者」**——
 //   党课 / 支部党员大会＝纪检委员；支委会＝不考勤；组织者位活动仍认组织者）。
-//   用例 a–e 的现场类型取 `meetingTypes[0]`（＝党课）且组织者设为被操作人（纪检 p10），故上传位成立。
+//   用例 a–e 的现场类型取 `meetingTypes[0]`（＝党课）且组织者设为被操作人（纪检 2400012354），故上传位成立。
 // 导入链说明：attendance.js → core(domain/data-adapter/policy-defaults)/mock/person/activity
 //   全部纯 node 可载（先例 server/test/policy-config.test.mjs 的 T2/T3 已直接导入 attendance.js 并跑绿）；
 //   data-adapter persist() 在未注册 mock 适配器时空安全（_mockAdapter?.saveDB），
@@ -17,22 +17,22 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 
-import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261020d';
-import { POLICY_DEFAULTS } from '../../docs/src/core/domain/policy-defaults.js?v=20261020d';
+import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261020e';
+import { POLICY_DEFAULTS } from '../../docs/src/core/domain/policy-defaults.js?v=20261020e';
 import {
   upsertMeetingAttendance,
   MEETING_ATTENDANCE_TYPES,
   canUploadAttendance,
   loadAttendanceRecords,
-} from '../../docs/src/services/activity/attendance.js?v=20261020d';
+} from '../../docs/src/services/activity/attendance.js?v=20261020e';
 
 // ── 测试身份（demo 单源）────────────────────────────────────
-// 被操作人 = 'p10'（role 'disc-commissioner'；DISC_COMMISSIONER_ID 单源在
-//   docs/src/entries/tabs/disc/_shared.js = 'p10'，该文件依赖浏览器组件不可直导 → 字面量 + 锚定出处）。
+// 被操作人 = '2400012354'（role 'disc-commissioner'；DISC_COMMISSIONER_ID 单源在
+//   docs/src/entries/tabs/disc/_shared.js = '2400012354'，该文件依赖浏览器组件不可直导 → 字面量 + 锚定出处）。
 //   2026-09-21 批次 132 起党课 / 支部党员大会的上传位＝纪检委员，故 freshState() 造党课并设其为组织者。
-const DISC = 'p10';
-// 他人权威（非本人所录，用于拒盖用例；亦用于「非组织者不可上传」用例）：组织委员 'p11'（role 'org-commissioner'，docs/src/data/mock/people.js）
-const OTHER_AUTH = 'p11';
+const DISC = '2400012354';
+// 他人权威（非本人所录，用于拒盖用例；亦用于「非组织者不可上传」用例）：组织委员 '2400012355'（role 'org-commissioner'，docs/src/data/mock/people.js）
+const OTHER_AUTH = '2400012355';
 
 // 会议考勤类型的活动类型（policy-defaults 单一源，取首个「党课」造活动；用例 f 再整表深等校验）
 const MEETING_TYPE = POLICY_DEFAULTS.attendance.meetingTypes[0];
@@ -61,8 +61,8 @@ test('新增：组织者批量上传 2 条新人 → added:2/updated:0/skipped:0
   const res = upsertMeetingAttendance({
     actorId: DISC,
     records: [
-      { personId: 'p1', activityId, status: 'present' },
-      { personId: 'p2', activityId, status: 'absent' },
+      { personId: '2400012345', activityId, status: 'present' },
+      { personId: '2400012346', activityId, status: 'absent' },
     ],
   });
   assert.deepEqual(res, { added: 2, updated: 0, skipped: 0 });
@@ -74,8 +74,8 @@ test('新增：组织者批量上传 2 条新人 → added:2/updated:0/skipped:0
     assert.equal(r.recordedBy, DISC, 'recordedBy = 上传者本人（上传位即确认）');
     assert.equal(r.overdue, false);
   }
-  assert.equal(saved.find(r => r.personId === 'p1').status, 'present');
-  assert.equal(saved.find(r => r.personId === 'p2').status, 'absent');
+  assert.equal(saved.find(r => r.personId === '2400012345').status, 'present');
+  assert.equal(saved.find(r => r.personId === '2400012346').status, 'absent');
 });
 
 // ── b) 旧语义：同 (人,活动) 再提交（不带 overwrite）→ 跳过 ──
@@ -83,15 +83,15 @@ test('旧语义：同人同活动再提交（不传 overwrite）→ skipped:1，
   const activityId = freshState();
   upsertMeetingAttendance({
     actorId: DISC,
-    records: [{ personId: 'p1', activityId, status: 'present' }],
+    records: [{ personId: '2400012345', activityId, status: 'present' }],
   });
   const again = upsertMeetingAttendance({
     actorId: DISC,
-    records: [{ personId: 'p1', activityId, status: 'absent' }],
+    records: [{ personId: '2400012345', activityId, status: 'absent' }],
   });
   assert.deepEqual(again, { added: 0, updated: 0, skipped: 1 });
 
-  const rec = loadAttendanceRecords().find(r => r.personId === 'p1' && r.activityId === activityId);
+  const rec = loadAttendanceRecords().find(r => r.personId === '2400012345' && r.activityId === activityId);
   assert.equal(rec.status, 'present', '原记录状态未被覆盖');
   assert.equal(rec.recordedBy, DISC);
   assert.equal(rec.updatedBy, undefined, '旧语义不写更新审计');
@@ -103,15 +103,15 @@ test('更正：本人对已录条 overwrite 提交 status=leave → updated:1，
   const activityId = freshState();
   upsertMeetingAttendance({
     actorId: DISC,
-    records: [{ personId: 'p1', activityId, status: 'present' }],
+    records: [{ personId: '2400012345', activityId, status: 'present' }],
   });
   const res = upsertMeetingAttendance(
-    { actorId: DISC, records: [{ personId: 'p1', activityId, status: 'leave' }] },
+    { actorId: DISC, records: [{ personId: '2400012345', activityId, status: 'leave' }] },
     { overwrite: true },
   );
   assert.deepEqual(res, { added: 0, updated: 1, skipped: 0 });
 
-  const rec = loadAttendanceRecords().find(r => r.personId === 'p1' && r.activityId === activityId);
+  const rec = loadAttendanceRecords().find(r => r.personId === '2400012345' && r.activityId === activityId);
   assert.equal(rec.status, 'leave', '状态被覆盖更正');
   assert.equal(rec.updatedBy, DISC, 'updatedBy = 上传者本人');
   assert.ok(rec.updatedAt && !Number.isNaN(Date.parse(rec.updatedAt)), 'updatedAt 应为可解析 ISO 时间');
@@ -121,26 +121,26 @@ test('更正：本人对已录条 overwrite 提交 status=leave → updated:1，
 });
 
 // ── d) 他人权威拒盖（overwrite 仍 skip）──
-test('更正：existing.recordedBy=他人权威（组织委员 p11）→ overwrite 仍 skipped，原记录不动', () => {
+test('更正：existing.recordedBy=他人权威（组织委员 2400012355）→ overwrite 仍 skipped，原记录不动', () => {
   const activityId = freshState();
   // 直接构造一条「他人权威所录」的既有记录（组织委员已录 present），
   // 模拟非本人权威的录入——此为 overwrite 分支的拒盖语义路径
   // （他人权威记录不可覆盖，改走纪检确认界面）。
   mockDB.attendances = [{
-    id: `att-${activityId}-p1`,
-    personId: 'p1',
+    id: `att-${activityId}-2400012345`,
+    personId: '2400012345',
     activityId,
     status: 'present',
     recordedBy: OTHER_AUTH,
     recordedAt: '2026-09-01T00:00:00.000Z',
   }];
   const res = upsertMeetingAttendance(
-    { actorId: DISC, records: [{ personId: 'p1', activityId, status: 'leave' }] },
+    { actorId: DISC, records: [{ personId: '2400012345', activityId, status: 'leave' }] },
     { overwrite: true },
   );
   assert.deepEqual(res, { added: 0, updated: 0, skipped: 1 });
 
-  const rec = loadAttendanceRecords().find(r => r.personId === 'p1' && r.activityId === activityId);
+  const rec = loadAttendanceRecords().find(r => r.personId === '2400012345' && r.activityId === activityId);
   assert.equal(rec.status, 'present', '状态未被覆盖');
   assert.equal(rec.recordedBy, OTHER_AUTH, '权威归属不变');
   assert.equal(rec.updatedBy, undefined, '未写更新审计');
@@ -152,15 +152,15 @@ test('批量混合：一批 3 条（2 新增 + 1 既有本人记录改状态）�
   const activityId = freshState();
   upsertMeetingAttendance({
     actorId: DISC,
-    records: [{ personId: 'p1', activityId, status: 'present' }],
+    records: [{ personId: '2400012345', activityId, status: 'present' }],
   });
   const res = upsertMeetingAttendance(
     {
       actorId: DISC,
       records: [
-        { personId: 'p2', activityId, status: 'absent' }, // 新成员
-        { personId: 'p3', activityId, status: 'leave' },  // 新成员
-        { personId: 'p1', activityId, status: 'leave' },  // 既有本人记录 → 覆盖更正
+        { personId: '2400012346', activityId, status: 'absent' }, // 新成员
+        { personId: '2400012347', activityId, status: 'leave' },  // 新成员
+        { personId: '2400012345', activityId, status: 'leave' },  // 既有本人记录 → 覆盖更正
       ],
     },
     { overwrite: true },
@@ -169,11 +169,11 @@ test('批量混合：一批 3 条（2 新增 + 1 既有本人记录改状态）�
 
   const saved = savedOf(activityId);
   assert.equal(saved.length, 3, '该活动落盘应恰好 3 条（2 新 + 1 更正不重复）');
-  const p1 = saved.find(r => r.personId === 'p1');
-  assert.equal(p1.status, 'leave');
-  assert.equal(p1.updatedBy, DISC);
-  assert.equal(saved.find(r => r.personId === 'p2').status, 'absent');
-  assert.equal(saved.find(r => r.personId === 'p3').status, 'leave');
+  const p_2400012345 = saved.find(r => r.personId === '2400012345');
+  assert.equal(p_2400012345.status, 'leave');
+  assert.equal(p_2400012345.updatedBy, DISC);
+  assert.equal(saved.find(r => r.personId === '2400012346').status, 'absent');
+  assert.equal(saved.find(r => r.personId === '2400012347').status, 'leave');
 });
 
 // ── f) 常量：MEETING_ATTENDANCE_TYPES 深等 policy meetingTypes ──
@@ -195,16 +195,16 @@ test('上传位：党课/支部党员大会＝纪检（支书/副支书例外）
   mockDB.attendances = [];
   assert.equal(canUploadAttendance(DISC, 'act-132-a'), true, '党课＝纪检上传位');
   assert.equal(canUploadAttendance(OTHER_AUTH, 'act-132-a'), false, '党课的组织者（非纪检）不持上传位');
-  assert.equal(canUploadAttendance('p13', 'act-132-a'), true, '支书例外承担');
-  assert.equal(canUploadAttendance('p14', 'act-132-a'), true, '副支书例外承担');
+  assert.equal(canUploadAttendance('2300010001', 'act-132-a'), true, '支书例外承担');
+  assert.equal(canUploadAttendance('2300010002', 'act-132-a'), true, '副支书例外承担');
   const denied = upsertMeetingAttendance({
     actorId: OTHER_AUTH,
-    records: [{ personId: 'p1', activityId: 'act-132-a', status: 'present' }],
+    records: [{ personId: '2400012345', activityId: 'act-132-a', status: 'present' }],
   });
   assert.deepEqual(denied, { added: 0, updated: 0, skipped: 1 }, '非纪检（组织者）提交不落记录');
   assert.equal(savedOf('act-132-a').length, 0, '不落任何记录');
 
-  // 支部党员大会：同为纪检上传位（组织者 p11 组织委员不可传）
+  // 支部党员大会：同为纪检上传位（组织者 2400012355 组织委员不可传）
   mockDB.activities = [{ id: 'act-132-b', type: '支部党员大会', archived: false, organizer: OTHER_AUTH }];
   assert.equal(canUploadAttendance(DISC, 'act-132-b'), true, '支部党员大会＝纪检上传位');
   assert.equal(canUploadAttendance(OTHER_AUTH, 'act-132-b'), false, '组织者不持党员大会上传位');
@@ -213,7 +213,7 @@ test('上传位：党课/支部党员大会＝纪检（支书/副支书例外）
   mockDB.activities = [{ id: 'act-132-c', type: '支委会', archived: false, organizer: DISC }];
   assert.equal(canUploadAttendance(DISC, 'act-132-c'), false, '支委会不考勤：纪检亦无上传位');
   assert.equal(canUploadAttendance(OTHER_AUTH, 'act-132-c'), false, '支委会不考勤：组织者亦无上传位');
-  assert.equal(canUploadAttendance('p13', 'act-132-c'), false, '支委会不考勤：支书亦无上传位');
+  assert.equal(canUploadAttendance('2300010001', 'act-132-c'), false, '支委会不考勤：支书亦无上传位');
 
   // 组织者位活动（组织生活会 / 主题党日）＝该场组织者（本批未动）
   mockDB.activities = [{ id: 'act-132-d', type: '组织生活会', archived: false, organizer: OTHER_AUTH }];
@@ -221,8 +221,8 @@ test('上传位：党课/支部党员大会＝纪检（支书/副支书例外）
   assert.equal(canUploadAttendance(DISC, 'act-132-d'), false, '非该场组织者的纪检不持组织生活会上传位');
 
   // 党小组会：本组组长（兼组织者）＝上传位；跨组组长不可
-  mockDB.activities = [{ id: 'act-132-e', type: '党小组会', archived: false, organizer: 'p1' }];
-  assert.equal(canUploadAttendance('p1', 'act-132-e'), true, '本组组长（兼该场组织者）持本组小组会上传位');
+  mockDB.activities = [{ id: 'act-132-e', type: '党小组会', archived: false, organizer: '2400012345' }];
+  assert.equal(canUploadAttendance('2400012345', 'act-132-e'), true, '本组组长（兼该场组织者）持本组小组会上传位');
   mockDB.activities = [];
   mockDB.attendances = [];
 });

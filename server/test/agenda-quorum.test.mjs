@@ -9,9 +9,9 @@
 // 运行：node --test server/test/agenda-quorum.test.mjs
 import { test, afterEach } from 'node:test';
 import assert from 'node:assert/strict';
-import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261020d';
-import { recordAgendaResultForActivity } from '../../docs/src/services/activity/agenda-follow-up.js?v=20261020d';
-import { defaultVoteConfig } from '../../docs/src/services/activity/vote-config.js?v=20261020d';
+import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261020e';
+import { recordAgendaResultForActivity } from '../../docs/src/services/activity/agenda-follow-up.js?v=20261020e';
+import { defaultVoteConfig } from '../../docs/src/services/activity/vote-config.js?v=20261020e';
 
 const ACT_ID = 'act-quorum';
 const AGENDA_ITEM_ID = 'a1';
@@ -21,7 +21,7 @@ afterEach(() => {
   mockDB.agendaVotes = ORIGINAL_VOTES;
 });
 
-/** 应到 voterIds = p1..pN 的党员大会 fixture（formal/quorumCheck 可配） */
+/** 应到 voterIds = 2400012345..pN 的党员大会 fixture（formal/quorumCheck 可配） */
 function makeActivity(total, { quorumCheck = true } = {}) {
   const voterIds = Array.from({ length: total }, (_, i) => `p${i + 1}`);
   return {
@@ -43,7 +43,7 @@ function anonTally(tally) {
   return { id: `avt-${ACT_ID}-${AGENDA_ITEM_ID}`, activityId: ACT_ID, agendaItemId: AGENDA_ITEM_ID, ballotMode: 'anonymous', tally };
 }
 
-const BASE_CALL = { agendaItemId: AGENDA_ITEM_ID, result: 'passed', adapter: {}, db: {}, actorId: 'p13' };
+const BASE_CALL = { agendaItemId: AGENDA_ITEM_ID, result: 'passed', adapter: {}, db: {}, actorId: '2300010001' };
 
 test('投票门槛按场景分开：党员大会正式门槛、普通支委会讨论、分工提案专用门槛', () => {
   const partyMeeting = defaultVoteConfig('branch-party-meeting');
@@ -60,7 +60,7 @@ test('投票门槛按场景分开：党员大会正式门槛、普通支委会�
 });
 
 test('quorumCheck=true：出席不足拦截（1/4 表态，未严格超过应到人数一半），抛错且不写 result', async () => {
-  mockDB.agendaVotes = [vote('p1', 'approve')];
+  mockDB.agendaVotes = [vote('2400012345', 'approve')];
   const activity = makeActivity(4);
   await assert.rejects(
     recordAgendaResultForActivity({ activity, ...BASE_CALL }),
@@ -72,7 +72,7 @@ test('quorumCheck=true：出席不足拦截（1/4 表态，未严格超过应到
 });
 
 test('quorumCheck=true：偶数应到恰好半数出席仍须拦截', async () => {
-  mockDB.agendaVotes = [vote('p1', 'approve'), vote('p2', 'approve')];
+  mockDB.agendaVotes = [vote('2400012345', 'approve'), vote('2400012346', 'approve')];
   const activity = makeActivity(4);
   await assert.rejects(
     recordAgendaResultForActivity({ activity, ...BASE_CALL }),
@@ -83,7 +83,7 @@ test('quorumCheck=true：偶数应到恰好半数出席仍须拦截', async () =
 });
 
 test('quorumCheck=true：出席达标但赞成不足拦截（2 approve + 1 abstain / 4）', async () => {
-  mockDB.agendaVotes = [vote('p1', 'approve'), vote('p2', 'approve'), vote('p3', 'abstain')];
+  mockDB.agendaVotes = [vote('2400012345', 'approve'), vote('2400012346', 'approve'), vote('2400012347', 'abstain')];
   const activity = makeActivity(4);
   await assert.rejects(
     recordAgendaResultForActivity({ activity, ...BASE_CALL }),
@@ -98,8 +98,8 @@ test('quorumCheck=true：弃权计入出席（不计入赞成）——abstain �
   // 应到 5：出席需 ≥ ceil(5/2)=3。2 approve + 2 abstain → 出席 4 达标（弃权不计入则 2<3 会按出席拦截）、
   // 赞成 2 ≤ 2.5 不足（abstain 误计赞成则 4>2.5 会放行）→ 命中赞成不足分支即双向证明。
   mockDB.agendaVotes = [
-    vote('p1', 'approve'), vote('p2', 'approve'),
-    vote('p3', 'abstain'), vote('p4', 'abstain'),
+    vote('2400012345', 'approve'), vote('2400012346', 'approve'),
+    vote('2400012347', 'abstain'), vote('2400012348', 'abstain'),
   ];
   const activity = makeActivity(5);
   await assert.rejects(
@@ -113,11 +113,11 @@ test('quorumCheck=true：弃权计入出席（不计入赞成）——abstain �
 test('quorumCheck=true：出席与赞成均达标放行（2 approve + 1 abstain / 3，弃权不计赞成）', async () => {
   // 应到 3：出席需 ≥ 2、赞成需 > 1.5（≥ 2）。2 approve + 1 abstain → 出席 3 达标、赞成 2 达标。
   mockDB.agendaVotes = [
-    vote('p1', 'approve'), vote('p2', 'approve'), vote('p3', 'abstain'),
+    vote('2400012345', 'approve'), vote('2400012346', 'approve'), vote('2400012347', 'abstain'),
   ];
   const updated = await recordAgendaResultForActivity({ activity: makeActivity(3), ...BASE_CALL });
   assert.equal(updated.agenda[0].result, 'passed', '达标应放行并记录通过');
-  assert.equal(updated.agenda[0].recordedBy, 'p13');
+  assert.equal(updated.agenda[0].recordedBy, '2300010001');
 });
 
 test('quorumCheck=false：不拦截（无任何表态也放行）', async () => {
@@ -133,7 +133,7 @@ test('quorumCheck=false：不拦截（无任何表态也放行）', async () => 
 test('无记名：赞成取自 tally（无逐人 position 亦放行）', async () => {
   // 应到 3：实到需 ≥2、赞成需 >1.5。2 条参与记录 + tally{approve:2} → 放行；
   // 若误按逐人 position 计（无 position）则赞成 0 → 会被赞成门禁拦截，此断言即证明取自 tally。
-  mockDB.agendaVotes = [anonParticipation('p1'), anonParticipation('p2'), anonTally({ approve: 2 })];
+  mockDB.agendaVotes = [anonParticipation('2400012345'), anonParticipation('2400012346'), anonTally({ approve: 2 })];
   const updated = await recordAgendaResultForActivity({ activity: makeActivity(3), ...BASE_CALL });
   assert.equal(updated.agenda[0].result, 'passed', '无记名赞成取自 tally 应放行');
 });
@@ -141,7 +141,7 @@ test('无记名：赞成取自 tally（无逐人 position 亦放行）', async (
 test('无记名：弃权计入实到、不计赞成（tally abstain）', async () => {
   // 应到 3：2 参与（tally approve 1 + abstain 1）→ 实到 2 达标、赞成 1 ≤1.5 不足 → 按赞成拦截。
   mockDB.agendaVotes = [
-    anonParticipation('p1'), anonParticipation('p2'), anonTally({ approve: 1, abstain: 1 }),
+    anonParticipation('2400012345'), anonParticipation('2400012346'), anonTally({ approve: 1, abstain: 1 }),
   ];
   await assert.rejects(
     recordAgendaResultForActivity({ activity: makeActivity(3), ...BASE_CALL }),
@@ -151,7 +151,7 @@ test('无记名：弃权计入实到、不计赞成（tally abstain）', async (
 
 test('无记名：实到按参与记录判定（出席不足拦截，含可督促提示）', async () => {
   // 应到 4：仅 1 条参与记录（tally 记 approve 1）→ 实到 1 未严格超过 2 → 出席门禁拦截。
-  mockDB.agendaVotes = [anonParticipation('p1'), anonTally({ approve: 1 })];
+  mockDB.agendaVotes = [anonParticipation('2400012345'), anonTally({ approve: 1 })];
   await assert.rejects(
     recordAgendaResultForActivity({ activity: makeActivity(4), ...BASE_CALL }),
     (e) => e instanceof Error

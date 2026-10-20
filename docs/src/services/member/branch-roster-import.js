@@ -5,7 +5,7 @@
 // 支书口径：整支部换名单在网页一次导入即可落库（不再「下载模板改文件」）；仅空支部可整体
 //   替换（有历史/成员的支部拒绝，提示改用逐人编辑成员档案）；导入后成员/应到统计即时可见。
 // 语义（与 services/member/person.js replaceBranchMembers 契约对齐——A波已备写口，本模块只做净化+预览）：
-//   · 名册行 = 现有成员档案成员（id 锚点，白名单 = 当前成员档案中属支部者，p_pc 党委组织员除外）。
+//   · 名册行 = 现有成员档案成员（id 锚点，白名单 = 当前成员档案中属支部者，党委组织员除外）。
 //     确认导入 = PersonStore.replaceBranchMembers(rows, {branchId})：把名册行整体落为该支部成员
 //     （mock → members 持久覆盖层；api → server users 批量），其余档案成员留在原支部。
 //   · 行字段 = 五项基础字段可改（name/partyGroup/developStage/residenceStatus/residenceNote）：
@@ -23,15 +23,15 @@
 // 纯 ESM、无 DOM：localStorage 由 person.js 内部以 typeof 守卫惰性访问 → 浏览器 / Node 双端可载（单测直导）。
 // ════════════════════════════════════════════════════════════════
 
-import { getBaseMemberRecords } from './person.js?v=20261020d';
-import { DEVELOP_STAGE_OPTIONS, buildPreviewTemplate } from '../branch/org-base-data-preview.js?v=20261020d';
+import { getBaseMemberRecords } from './person.js?v=20261020e';
+import { DEVELOP_STAGE_OPTIONS, buildPreviewTemplate } from '../branch/org-base-data-preview.js?v=20261020e';
 // 党小组活组清单单一源（2026-09-14 批次 29 硬编码审查评议）：原用种子枚举 PARTY_GROUP_OPTIONS
 // 校验导入行/派生按组统计 → 支书台「新增 / 改名 / 解散党小组」后导入侧不联动（新组名被回退、统计缺组）。
 // 种子枚举仍归 org-base-data-preview 的**预览种子期**口径，运行时消费一律走 groupOptions()。
-import { groupOptions } from './party-group.js?v=20261020d';
-import { POLICY_DEFAULTS } from '../../core/domain/policy-defaults.js?v=20261020d';
+import { groupOptions } from './party-group.js?v=20261020e';
+import { POLICY_DEFAULTS } from '../../core/domain/policy-defaults.js?v=20261020e';
 // Q-21-3 收敛（2026-09-13）：枚举单一源 = core/domain/constants.js（原经 org-base-data-preview 转出，现直取）
-import { RESIDENCE } from '../../core/domain/constants.js?v=20261020d';
+import { RESIDENCE } from '../../core/domain/constants.js?v=20261020e';
 
 /** 空支部名册包类型标识（与预览包 kind 区分；净化时兼容两 kind——预览模板行结构同源） */
 export const BRANCH_ROSTER_KIND = 'gsm1921-branch-roster';

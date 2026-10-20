@@ -28,7 +28,7 @@ let server, base, browser, db;
 before(async () => {
   const app = createApp({ dbPath: ':memory:' });
   db = app.locals.db;
-  await seedDatabase(db);                            // 演示种子：含 br-b1 ＋ 党委账号 p_pc(9000000001)
+  await seedDatabase(db);                            // 演示种子：含 br-b1 ＋ 党委账号 9000000001(9000000001)
   server = app.listen(0);
   base = `http://127.0.0.1:${server.address().port}`;
   browser = await chromium.launch({ headless: true });
@@ -107,7 +107,7 @@ test('U4–U5 待归属者被阻断层挡住；支部确认后「刷新确认状
     assert.match(page.url(), /login\.html\?need-branch=1$/, 'U4 待归属者不得进入工作台');
     await page.locator('#login-branch.visible').waitFor({ timeout: 10000 });
 
-    // U5 支部确认（党委 p_pc 跨支部批）⇒ 刷新即放行
+    // U5 支部确认（党委 9000000001 跨支部批）⇒ 刷新即放行
     const bound = await api('POST', '/api/v1/auth/iaaa/bind-branch', { token: born.token, body: { branchId: 'br-b1' } });
     assert.equal(bound.status, 200, '前置：待归属者须先提交支部意向（否则无待确认申请）');
     const pc = (await api('GET', '/api/v1/auth/iaaa/callback?mode=json&token=9000000001')).json;

@@ -42,7 +42,7 @@ async function loginAs(browser, role) {
   ]);
   await page.waitForTimeout(1200);
   // P0-2 形态断言（2026-09-23 支书裁定「形态必须可断言」）：本文件真机用例必须在 API 形态下跑
-  await page.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20261020d')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
+  await page.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20261020e')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
   return page;
 }
 
@@ -68,13 +68,13 @@ test('核心闭环：议程讨论文件类型 → 记录通过 → 自动归档 
   const browser = await chromium.launch({ headless: true });
   try {
     // ── 前置：以支委身份写入一份「会前草案」支部文件（draft）──
-    const secToken = await apiLogin('p13');
+    const secToken = await apiLogin('2300010001');
     const docResp = await api(secToken, '/api/v1/branchDocs', 'POST', {
       title: `闭环点验草案-${Date.now().toString().slice(-5)}`,
       desc: '核心闭环端到端点验用会前草案',
       cat: 'party-doc',
       status: 'draft',
-      uploadedBy: 'p13',
+      uploadedBy: '2300010001',
       uploadedAt: new Date().toISOString(),
     });
     assert.equal(docResp.status, 201);

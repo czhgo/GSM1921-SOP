@@ -1,7 +1,7 @@
 // server/test/module-config-e2e.test.mjs — 支部模块停用 E2E（回炉 v3，对齐换组织向导，2026-09-09）
-// 党委组织员(p_pc)登录党委工作台 →「支部配置」tab（换组织向导 embed，步骤②「模块/块组合」）
+// 党委组织员(9000000001)登录党委工作台 →「支部配置」tab（换组织向导 embed，步骤②「模块/块组合」）
 // → 目标支部 br-b1 → 停用「活动管理」(calendar) 业务模块 → 保存本步（即时生效 + 留痕）
-// → 支书(p13)工作台「活动管理」tab 消失、核心组「待办」仍固定
+// → 支书(2300010001)工作台「活动管理」tab 消失、核心组「待办」仍固定
 // → 党委台「恢复默认（全开）」→ 支书台刷新「活动管理」回归。
 // 现行 UI 事实：原 #pc-branch-select/[data-pc-module]/#pc-save/#pc-reset 已并入向导；
 //   业务模块 chips = data-wz-chip="module" data-id=<secretary 工作台 tab id>；
@@ -47,7 +47,7 @@ async function login(page, sid, urlPart) {
     page.click('button[type="submit"]'),
   ]);
   // P0-2 形态断言（2026-09-23 支书裁定「形态必须可断言」）：本文件真机用例必须在 API 形态下跑
-  await page.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20261020d')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
+  await page.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20261020e')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
 }
 async function clickTab(page, sel, text) {
   await page.waitForFunction(({ s, t }) => {
@@ -132,7 +132,7 @@ test('党委「支部配置」向导：停用业务模块 → 支书台消失（
       return b && b.classList.contains('opacity-45');
     }, null, { timeout: 8000 });
 
-    // ③ 支书(p13)登录支书台 →「活动管理」tab 消失、核心组「待办」仍固定（跨会话 = 服务端已持久化）
+    // ③ 支书(2300010001)登录支书台 →「活动管理」tab 消失、核心组「待办」仍固定（跨会话 = 服务端已持久化）
     const sec = await newPage();
     await login(sec, '2300010001', 'secretary');
     await waitNoSecretaryTab(sec, '活动管理');

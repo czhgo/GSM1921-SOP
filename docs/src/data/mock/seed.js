@@ -23,12 +23,12 @@ export const SEED_TASKS = [
 
 // ── 分工种子（组织者分配，时间随活动重排） ──────────────────
 export const SEED_ASSIGNMENTS = [
-  { id: 'assign_seed_001', activityId: 'act-3', workName: '撰写学习材料', workDescription: '整理两会精神要点，制作学习PPT', ddl: '2026-07-02T00:00:00Z', assigneeId: 'p3', status: 'completed', createdBy: 'p1', createdAt: '2026-07-02T08:00:00Z', completedAt: '2026-07-02T16:00:00Z' },
-  { id: 'assign_seed_002', activityId: 'act-3', workName: '场地布置', workDescription: '准备投影设备、签到表、座位安排', ddl: '2026-07-02T00:00:00Z', assigneeId: 'p5', status: 'completed', createdBy: 'p1', createdAt: '2026-07-02T08:00:00Z', completedAt: '2026-07-02T08:00:00Z' },
-  { id: 'assign_seed_003', activityId: 'act-5', workName: '联系共建单位', workDescription: '确认参访时间、路线、交流内容', ddl: '2026-07-06T00:00:00Z', assigneeId: 'p3', status: 'completed', createdBy: 'p11', createdAt: '2026-07-06T08:00:00Z', completedAt: '2026-07-06T10:00:00Z' },
-  { id: 'assign_seed_004', activityId: 'act-5', workName: '拍摄活动照片', workDescription: '全程拍摄参访活动照片，活动结束后提交', ddl: '2026-07-06T00:00:00Z', assigneeId: 'p5', status: 'completed', createdBy: 'p3', createdAt: '2026-07-06T08:00:00Z', completedAt: null },
+  { id: 'assign_seed_001', activityId: 'act-3', workName: '撰写学习材料', workDescription: '整理两会精神要点，制作学习PPT', ddl: '2026-07-02T00:00:00Z', assigneeId: '2400012347', status: 'completed', createdBy: '2400012345', createdAt: '2026-07-02T08:00:00Z', completedAt: '2026-07-02T16:00:00Z' },
+  { id: 'assign_seed_002', activityId: 'act-3', workName: '场地布置', workDescription: '准备投影设备、签到表、座位安排', ddl: '2026-07-02T00:00:00Z', assigneeId: '2400012349', status: 'completed', createdBy: '2400012345', createdAt: '2026-07-02T08:00:00Z', completedAt: '2026-07-02T08:00:00Z' },
+  { id: 'assign_seed_003', activityId: 'act-5', workName: '联系共建单位', workDescription: '确认参访时间、路线、交流内容', ddl: '2026-07-06T00:00:00Z', assigneeId: '2400012347', status: 'completed', createdBy: '2400012355', createdAt: '2026-07-06T08:00:00Z', completedAt: '2026-07-06T10:00:00Z' },
+  { id: 'assign_seed_004', activityId: 'act-5', workName: '拍摄活动照片', workDescription: '全程拍摄参访活动照片，活动结束后提交', ddl: '2026-07-06T00:00:00Z', assigneeId: '2400012349', status: 'completed', createdBy: '2400012347', createdAt: '2026-07-06T08:00:00Z', completedAt: null },
   // R2-31：act-10 完成态 ⇒ 分工同步收口（ddl 保持原日期，completedAt 记活动当日）
-  { id: 'assign_seed_005', activityId: 'act-10', workName: '准备活动方案', workDescription: '撰写主题党日活动方案，含议程和分工', ddl: '2026-07-12T00:00:00Z', assigneeId: 'p3', status: 'completed', createdBy: 'p1', createdAt: '2026-07-12T08:00:00Z', completedAt: '2026-07-13T18:00:00Z' },
+  { id: 'assign_seed_005', activityId: 'act-10', workName: '准备活动方案', workDescription: '撰写主题党日活动方案，含议程和分工', ddl: '2026-07-12T00:00:00Z', assigneeId: '2400012347', status: 'completed', createdBy: '2400012345', createdAt: '2026-07-12T08:00:00Z', completedAt: '2026-07-13T18:00:00Z' },
 ];
 
 // ── 档案归档种子 ─────────────────────────────────────────────
@@ -50,15 +50,15 @@ export const SEED_ARCHIVE_RECORDS = [
 // 2026-09-06 基线刷新：su-001~007 均为 8 月数据（>07-01），时间与指向（tf-005/006/act-30）不变。
 export const SEED_SIGNUPS = [
   // tf-005 建党105周年筹备专班（招募中，截止 8/20，2/8 已满编 2 名组织者）
-  { id: 'su-001', sourceType: 'taskforce', sourceId: 'tf-005', personId: 'p7',  role: 'participant', status: 'approved', createdAt: '2026-08-10T09:00:00', reviewedBy: null, reviewedAt: null, note: '想参与活动筹备' },
-  { id: 'su-002', sourceType: 'taskforce', sourceId: 'tf-005', personId: 'p22', role: 'deep',        status: 'pending',   createdAt: '2026-08-10T10:30:00', reviewedBy: null, reviewedAt: null, note: '可负责宣传物料' },
-  { id: 'su-003', sourceType: 'taskforce', sourceId: 'tf-005', personId: 'p27', role: 'organizer',   status: 'pending',   createdAt: '2026-08-11T08:00:00', reviewedBy: null, reviewedAt: null, note: '有活动统筹经验' },
+  { id: 'su-001', sourceType: 'taskforce', sourceId: 'tf-005', personId: '2400012351',  role: 'participant', status: 'approved', createdAt: '2026-08-10T09:00:00', reviewedBy: null, reviewedAt: null, note: '想参与活动筹备' },
+  { id: 'su-002', sourceType: 'taskforce', sourceId: 'tf-005', personId: '2500010008', role: 'deep',        status: 'pending',   createdAt: '2026-08-10T10:30:00', reviewedBy: null, reviewedAt: null, note: '可负责宣传物料' },
+  { id: 'su-003', sourceType: 'taskforce', sourceId: 'tf-005', personId: '2500010013', role: 'organizer',   status: 'pending',   createdAt: '2026-08-11T08:00:00', reviewedBy: null, reviewedAt: null, note: '有活动统筹经验' },
   // tf-006 参访活动保障专班（招募中，截止 8/15，0/4）
-  { id: 'su-004', sourceType: 'taskforce', sourceId: 'tf-006', personId: 'p6',  role: 'participant', status: 'approved', createdAt: '2026-08-09T14:00:00', reviewedBy: null, reviewedAt: null, note: null },
-  { id: 'su-005', sourceType: 'taskforce', sourceId: 'tf-006', personId: 'p9',  role: 'deep',        status: 'pending',   createdAt: '2026-08-10T16:00:00', reviewedBy: null, reviewedAt: null, note: '负责后勤协调' },
+  { id: 'su-004', sourceType: 'taskforce', sourceId: 'tf-006', personId: '2400012350',  role: 'participant', status: 'approved', createdAt: '2026-08-09T14:00:00', reviewedBy: null, reviewedAt: null, note: null },
+  { id: 'su-005', sourceType: 'taskforce', sourceId: 'tf-006', personId: '2400012353',  role: 'deep',        status: 'pending',   createdAt: '2026-08-10T16:00:00', reviewedBy: null, reviewedAt: null, note: '负责后勤协调' },
   // act-30 秋季学期工作部署会（published，8/28）
-  { id: 'su-006', sourceType: 'activity', sourceId: 'act-30', personId: 'p8',  role: 'participant', status: 'approved', createdAt: '2026-08-11T11:00:00', reviewedBy: null, reviewedAt: null, note: null },
-  { id: 'su-007', sourceType: 'activity', sourceId: 'act-30', personId: 'p15', role: 'participant', status: 'approved', createdAt: '2026-08-11T11:30:00', reviewedBy: null, reviewedAt: null, note: '反馈#4 提出者' },
+  { id: 'su-006', sourceType: 'activity', sourceId: 'act-30', personId: '2400012352',  role: 'participant', status: 'approved', createdAt: '2026-08-11T11:00:00', reviewedBy: null, reviewedAt: null, note: null },
+  { id: 'su-007', sourceType: 'activity', sourceId: 'act-30', personId: '2500010001', role: 'participant', status: 'approved', createdAt: '2026-08-11T11:30:00', reviewedBy: null, reviewedAt: null, note: '反馈#4 提出者' },
 ];
 
 // ── 支部上报审批种子（2026-09-16 批次 47-P，支书「允许改种子」裁定） ──
@@ -79,7 +79,7 @@ export const SEED_REVIEW_REQUESTS = [
     type: 'activity-report',
     title: '关于赴香山开展主题党日的报备',
     content: '拟定 8 月中旬组织支部党员赴香山开展主题党日，含往返交通、安全预案与经费说明，报请党委备案。',
-    submittedBy: 'p1',
+    submittedBy: '2400012345',
     status: 'pending',
     createdAt: '2026-08-06T09:00:00.000Z',
   },
@@ -91,7 +91,7 @@ export const SEED_REVIEW_REQUESTS = [
 //   而本表**原无任何种子**（`data-adapter.js:312` 明确写「makeupTasks 无静态种子（由纪检操作生成），空属合理，不回退」）
 //   ⇒ api/mock 两形态首启都空 ⇒ 该判据**结构性不可达**（批 47-X 真机实测入口计数 0）。
 // **为什么自洽（R-78 ②）**：这条任务**就是** `services/activity/makeup.js::autoGenerateMakeupTask()` 对
-//   `att900`（p5 · act-31 · `AttendanceStatus.ABSENT` · 已由 p10 确认）的**派生结果**——
+//   `att900`（2400012349 · act-31 · `AttendanceStatus.ABSENT` · 已由 2400012354 确认）的**派生结果**——
 //   字段与 `autoGenerateMakeupTask` 落库形状逐项对齐（含 `attendanceRecordId: 'att900'`、
 //   `deadline` = 缺勤日 +7 天、`proofContent: null`、`status: 'pending'`、`isMandatory: true`
 //   因 act-31 是「支部党员大会」）⇒ 产品在「纪检确认考勤」时自己就会产出它，不是伪造状态。
@@ -102,7 +102,7 @@ export const SEED_REVIEW_REQUESTS = [
 export const SEED_MAKEUP_TASKS = [
   {
     id: 'mk-seed-1',
-    personId: 'p5',
+    personId: '2400012349',
     activityId: 'act-31',
     // 2026-09-26 本批改准：原写 'att-sep-1'（**对不上任何考勤行**）——`attendance.js` 里那条实际 id 是
     //   `att900`（该文件注释专门解释了为何必须是 `att900`：`?reset=init` 的种子识别口径 `/^att\d+$/`）。

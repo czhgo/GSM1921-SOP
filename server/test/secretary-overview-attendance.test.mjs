@@ -3,9 +3,9 @@
 // 未录出勤时返回 null（呈现「待录入」），不得用少量已录记录算出 100%。
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261020d';
-import { SecretaryOverviewStore } from '../../docs/src/services/governance/secretary-overview.js?v=20261020d';
-import { getMeetingRosterIds } from '../../docs/src/services/member/roster.js?v=20261020d';
+import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261020e';
+import { SecretaryOverviewStore } from '../../docs/src/services/governance/secretary-overview.js?v=20261020e';
+import { getMeetingRosterIds } from '../../docs/src/services/member/roster.js?v=20261020e';
 
 const MONTH = new Date().toISOString().slice(0, 7);
 const ACTIVITY_ID = 'act-overview-rate';
@@ -29,10 +29,10 @@ function withFixture({ records, rosterIds }) {
 test('出勤率分母 = 应到人次：4 人应到、仅 2 人出勤 ⇒ 50%（旧实现会算成 100%）', () => {
   const restore = withFixture({
     records: [
-      { id: 'att-o1', activityId: ACTIVITY_ID, personId: 'p1', status: 'present' },
-      { id: 'att-o2', activityId: ACTIVITY_ID, personId: 'p2', status: 'present' },
+      { id: 'att-o1', activityId: ACTIVITY_ID, personId: '2400012345', status: 'present' },
+      { id: 'att-o2', activityId: ACTIVITY_ID, personId: '2400012346', status: 'present' },
     ],
-    rosterIds: ['p1', 'p2', 'p3', 'p4'],
+    rosterIds: ['2400012345', '2400012346', '2400012347', '2400012348'],
   });
   try {
     const att = SecretaryOverviewStore._computeAttendance();
@@ -47,7 +47,7 @@ test('出勤率分母 = 应到人次：4 人应到、仅 2 人出勤 ⇒ 50%（�
 });
 
 test('本月有应到名单但零记录 ⇒ 出勤率 null（待录入），不显示 0% 或 100%', () => {
-  const restore = withFixture({ records: [], rosterIds: ['p1', 'p2', 'p3', 'p4'] });
+  const restore = withFixture({ records: [], rosterIds: ['2400012345', '2400012346', '2400012347', '2400012348'] });
   try {
     const att = SecretaryOverviewStore._computeAttendance();
     assert.equal(att.attendanceTotal, 4);

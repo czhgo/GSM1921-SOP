@@ -30,15 +30,15 @@ globalThis.localStorage = storage;
 
 import { createApp } from '../app.js';
 import { seedDatabase } from '../seed.js';
-import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261020d';
-import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261020d';
-import { PEOPLE } from '../../docs/src/data/mock/people.js?v=20261020d';
-import { ACTIVITIES } from '../../docs/src/data/mock/activities.js?v=20261020d';
-import { MOCK_NOTICES } from '../../docs/src/data/mock/notices.js?v=20261020d';
-import { ATTENDANCE_RECORDS } from '../../docs/src/data/mock/attendance.js?v=20261020d';
-import { SEED_ASSIGNMENTS } from '../../docs/src/data/mock/seed.js?v=20261020d';
-import { SEED_TODOS } from '../../docs/src/services/governance/todo.js?v=20261020d';
-import { ensureLegacySourceWorkgroups } from '../../docs/src/data/workgroup-seed-sync.js?v=20261020d';
+import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261020e';
+import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261020e';
+import { PEOPLE } from '../../docs/src/data/mock/people.js?v=20261020e';
+import { ACTIVITIES } from '../../docs/src/data/mock/activities.js?v=20261020e';
+import { MOCK_NOTICES } from '../../docs/src/data/mock/notices.js?v=20261020e';
+import { ATTENDANCE_RECORDS } from '../../docs/src/data/mock/attendance.js?v=20261020e';
+import { SEED_ASSIGNMENTS } from '../../docs/src/data/mock/seed.js?v=20261020e';
+import { SEED_TODOS } from '../../docs/src/services/governance/todo.js?v=20261020e';
+import { ensureLegacySourceWorkgroups } from '../../docs/src/data/workgroup-seed-sync.js?v=20261020e';
 
 const BRANCH_B1 = 'br-b1';
 const BRANCH_B2 = 'br-b2';
@@ -106,7 +106,7 @@ const base = `http://127.0.0.1:${server.address().port}/api/v1`;
 const loginRes = await fetch(`${base}/auth/login`, {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({ personId: 'p_pc', password: '123456' }),
+  body: JSON.stringify({ personId: '9000000001', password: '123456' }),
 });
 assert.equal(loginRes.status, 200, '党委组织员登录须 200');
 const { token } = await loginRes.json();
@@ -179,8 +179,8 @@ test('M1 mock list({ branchId }) 只返回本支部：六张表逐表核对', as
 
   // users 特例：未归属支部的党委组织员（branchId:null）不落入任何支部
   const b1Users = await mockRows('users', { branchId: BRANCH_B1 });
-  assert.ok(b1Users.some((row) => row.id === 'p13'), '第一支部名册应含本支部成员 p13');
-  assert.ok(!b1Users.some((row) => row.id === 'p_pc'), '未归属支部的党委组织员不得进入第一支部名册');
+  assert.ok(b1Users.some((row) => row.id === '2300010001'), '第一支部名册应含本支部成员 2300010001');
+  assert.ok(!b1Users.some((row) => row.id === '9000000001'), '未归属支部的党委组织员不得进入第一支部名册');
   const b2Users = await mockRows('users', { branchId: BRANCH_B2 });
   assert.deepEqual(idsOf(b2Users), ['p-b2', 'p-b3']);
 });
@@ -202,7 +202,7 @@ test('M2 不传 branchId 保持全量行为（单支部演示不受影响）', a
       `${resource}.list() 无参应同时含第二支部记录`);
   });
   const users = readings[RESOURCES.indexOf('users')];
-  assert.ok(users.some((row) => row.id === 'p_pc'), '无参名册应保留党委组织员（原有全量行为）');
+  assert.ok(users.some((row) => row.id === '9000000001'), '无参名册应保留党委组织员（原有全量行为）');
 });
 
 test('M3 与 api 形态读数逐值一致（两支部 × 六张表）', async () => {

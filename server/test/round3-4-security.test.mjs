@@ -52,7 +52,7 @@ function dbRow(table, id) {
 
 // ── A. 快照写穿口越权 ──────────────────────────────────────────────
 test('A1 普通成员构造快照写 notices → 403，且不落库', async () => {
-  const { token } = await login('p7'); // 普通成员
+  const { token } = await login('2400012351'); // 普通成员
   const v = await versions(token);
   const forged = {
     id: 'ntc-r34-a1', title: '越权广播', content: 'x', priority: 'normal',
@@ -68,10 +68,10 @@ test('A1 普通成员构造快照写 notices → 403，且不落库', async () =
 });
 
 test('A2 普通成员构造快照替他人写 attendances → 403，且不落库', async () => {
-  const { token } = await login('p7');
+  const { token } = await login('2400012351');
   const v = await versions(token);
   const forged = {
-    id: 'att-r34-a2', activityId: 'act-31', personId: 'p3',
+    id: 'att-r34-a2', activityId: 'act-31', personId: '2400012347',
     status: 'present', recordedBy: null, overdue: false,
   };
   const res = await fetch(`${base}/api/v1/snapshot`, {
@@ -84,14 +84,14 @@ test('A2 普通成员构造快照替他人写 attendances → 403，且不落库
 });
 
 test('A3 支书正常保存 notices + attendances → 200（前端 persist 路径不被误伤）', async () => {
-  const { token } = await login('p13'); // 支书
+  const { token } = await login('2300010001'); // 支书
   const v = await versions(token);
   const notice = {
     id: 'ntc-r34-ok', title: '支书正常保存', content: 'x', priority: 'normal',
     publishDate: '2026-10-19', expireDate: null, read: false,
   };
   const attendance = {
-    id: 'att-r34-ok', activityId: 'act-31', personId: 'p3',
+    id: 'att-r34-ok', activityId: 'act-31', personId: '2400012347',
     status: 'present', recordedBy: null, overdue: false,
   };
   // 前端 persist() 上传的是**整集合**（脏集合增量，而非单行）——按真实形态取现有全量再追加。
@@ -144,7 +144,7 @@ test('B2 IAAA 未归属账号：读/写 br-b1 资源一律 403；绑定端点仍
   });
   assert.equal(write.status, 403, '未归属账号写 br-b1 资源应 403');
 
-  const member = await fetch(`${base}/api/v1/members/p3/profile`, {
+  const member = await fetch(`${base}/api/v1/members/2400012347/profile`, {
     method: 'PATCH', headers: headers(token), body: JSON.stringify({ name: '越权改名' }),
   });
   assert.equal(member.status, 403, '成员链路同样被支部归属门拦截');
@@ -158,8 +158,8 @@ test('B2 IAAA 未归属账号：读/写 br-b1 资源一律 403；绑定端点仍
 
 // ── C. users.patch 字段夹带 ───────────────────────────────────────
 test('C1 支书 patch users：role+branchId 等夹带字段 → 400/403；仅 role → 200', async () => {
-  const { token } = await login('p13'); // 支书
-  const beforeRow = dbRow('users', 'p6');
+  const { token } = await login('2300010001'); // 支书
+  const beforeRow = dbRow('users', '2400012350');
   const beforeBranch = beforeRow.branchId;
 
   const smuggleCases = [
@@ -169,35 +169,35 @@ test('C1 支书 patch users：role+branchId 等夹带字段 → 400/403；仅 ro
     ['developStage', { role: 'participant', developStage: '正式党员' }],
   ];
   for (const [field, body] of smuggleCases) {
-    const res = await fetch(`${base}/api/v1/users/p6`, {
+    const res = await fetch(`${base}/api/v1/users/2400012350`, {
       method: 'PATCH', headers: headers(token), body: JSON.stringify(body),
     });
     assert.ok([400, 403].includes(res.status), `${field} 夹带应 400/403（实测 ${res.status}）`);
     const payload = await res.json();
     assert.match(payload.error, new RegExp(field), `${field} 的拒绝原因应点名该字段`);
   }
-  const afterRow = dbRow('users', 'p6');
+  const afterRow = dbRow('users', '2400012350');
   assert.equal(afterRow.branchId, beforeBranch, '被拒请求不得改动支部归属');
   assert.notEqual(afterRow.transferOut, true, '被拒请求不得打转出标记');
   assert.equal(afterRow.developStage, beforeRow.developStage, '被拒请求不得改动发展阶段');
 
-  const ok = await fetch(`${base}/api/v1/users/p6`, {
+  const ok = await fetch(`${base}/api/v1/users/2400012350`, {
     method: 'PATCH', headers: headers(token), body: JSON.stringify({ role: 'participant' }),
   });
   assert.equal(ok.status, 200, '支书仅改 role 应 200');
-  assert.equal(dbRow('users', 'p6').role, 'participant');
+  assert.equal(dbRow('users', '2400012350').role, 'participant');
 });
 
 // ── D. 思想汇报读口 ───────────────────────────────────────────────
 test('D1 普通党员 GET /thoughtReports 只返回本人；支委层返回全量', async () => {
-  const { token: partToken } = await login('p3'); // 普通党员
+  const { token: partToken } = await login('2400012347'); // 普通党员
   const partRows = await (await fetch(`${base}/api/v1/thoughtReports`, { headers: headers(partToken) })).json();
   assert.ok(partRows.length > 0, '普通党员应能看到自己的思想汇报');
-  assert.ok(partRows.every((row) => row.personId === 'p3'), `普通党员不得看到他人汇报：${JSON.stringify(partRows.map((r) => r.personId))}`);
+  assert.ok(partRows.every((row) => row.personId === '2400012347'), `普通党员不得看到他人汇报：${JSON.stringify(partRows.map((r) => r.personId))}`);
   assert.ok(partRows.some((row) => row.id === 'tr-4'), '本人记录应可见');
   assert.ok(!partRows.some((row) => row.id === 'tr-1'), '他人记录不得出现');
 
-  const { token: orgToken } = await login('p11'); // 组织委员（支委层）
+  const { token: orgToken } = await login('2400012355'); // 组织委员（支委层）
   const orgRows = await (await fetch(`${base}/api/v1/thoughtReports`, { headers: headers(orgToken) })).json();
   assert.ok(orgRows.some((row) => row.id === 'tr-1') && orgRows.some((row) => row.id === 'tr-4'),
     '支委层应看到全部思想汇报');
@@ -205,7 +205,7 @@ test('D1 普通党员 GET /thoughtReports 只返回本人；支委层返回全�
 
 // ── E. 通知组织者写口 ─────────────────────────────────────────────
 test('E1 普通成员组织者可发本场通知；非组织者普通成员 403', async () => {
-  const { token: organizerToken } = await login('p3'); // act-7 组织者（普通成员）
+  const { token: organizerToken } = await login('2400012347'); // act-7 组织者（普通成员）
   const payload = {
     title: '本场活动通知（组织者）', content: 'x', priority: 'normal',
     targetModule: 'activity', targetType: 'activity', targetId: 'act-7',
@@ -216,7 +216,7 @@ test('E1 普通成员组织者可发本场通知；非组织者普通成员 403'
   });
   assert.equal(ok.status, 201, `本场组织者应可发本场通知（实测 ${ok.status}：${await ok.clone().text()}）`);
 
-  const { token: memberToken } = await login('p7'); // 非本场组织者
+  const { token: memberToken } = await login('2400012351'); // 非本场组织者
   const deny = await fetch(`${base}/api/v1/notices`, {
     method: 'POST', headers: headers(memberToken), body: JSON.stringify({ ...payload, title: '越权本场通知' }),
   });
@@ -239,15 +239,15 @@ test('E1 普通成员组织者可发本场通知；非组织者普通成员 403'
 
 // ── F. 读口可见性（F04，部分完成：按本人/职责投影）──────────────────
 test('F1 非支委层 attendances / inspections / todos 按本人或职责投影；支委层全量', async () => {
-  const { token: partToken } = await login('p3');
+  const { token: partToken } = await login('2400012347');
   const organizedByP3 = new Set(db.prepare('SELECT data FROM activities').all()
     .map((row) => JSON.parse(row.data))
-    .filter((row) => row.organizer === 'p3'
-      || (Array.isArray(row.assignments) && row.assignments.some((item) => item.personId === 'p3' && item.role === 'organizer')))
+    .filter((row) => row.organizer === '2400012347'
+      || (Array.isArray(row.assignments) && row.assignments.some((item) => item.personId === '2400012347' && item.role === 'organizer')))
     .map((row) => row.id));
   const att = await (await fetch(`${base}/api/v1/attendances`, { headers: headers(partToken) })).json();
-  assert.ok(!att.some((row) => row.id === 'att900'), '普通成员不得看到他人考勤（att900 为 p5 在 act-31）');
-  assert.ok(att.every((row) => row.personId === 'p3' || organizedByP3.has(row.activityId)),
+  assert.ok(!att.some((row) => row.id === 'att900'), '普通成员不得看到他人考勤（att900 为 2400012349 在 act-31）');
+  assert.ok(att.every((row) => row.personId === '2400012347' || organizedByP3.has(row.activityId)),
     `考勤投影越界：${JSON.stringify(att.map((r) => [r.id, r.personId, r.activityId]).slice(0, 10))}`);
 
   const insp = await (await fetch(`${base}/api/v1/inspections`, { headers: headers(partToken) })).json();
@@ -258,13 +258,13 @@ test('F1 非支委层 attendances / inspections / todos 按本人或职责投影
   // R2-33：原断言对象 todo_seed_7（设置第三党小组组长）已作为假待办删除；改用同表的宣传委员种子。
   assert.ok(!todos.some((row) => row.id === 'todo_seed_6'), '普通成员不得看到宣传委员角色待办');
 
-  const { token: secToken } = await login('p13'); // 支委层
+  const { token: secToken } = await login('2300010001'); // 支委层
   const secAtt = await (await fetch(`${base}/api/v1/attendances`, { headers: headers(secToken) })).json();
   assert.ok(secAtt.some((row) => row.id === 'att900'), '支委层保留考勤全量');
   const secTodos = await (await fetch(`${base}/api/v1/todos`, { headers: headers(secToken) })).json();
   assert.ok(secTodos.some((row) => row.id === 'todo_seed_6'), '支委层保留待办全量');
 
-  const { token: orgToken } = await login('p11'); // 支委层
+  const { token: orgToken } = await login('2400012355'); // 支委层
   const orgInsp = await (await fetch(`${base}/api/v1/inspections`, { headers: headers(orgToken) })).json();
   assert.ok(orgInsp.some((row) => row.id === 'insp-9'), '支委层保留考察全量');
 });

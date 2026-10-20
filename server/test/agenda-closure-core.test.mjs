@@ -5,8 +5,8 @@
 // 运行：node --test server/test/agenda-closure-core.test.mjs
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { collectAgendaRows } from '../../docs/src/entries/tabs/secretary/agenda-form.js?v=20261020d';
-import { recordAgendaResultForActivity } from '../../docs/src/services/activity/agenda-follow-up.js?v=20261020d';
+import { collectAgendaRows } from '../../docs/src/entries/tabs/secretary/agenda-form.js?v=20261020e';
+import { recordAgendaResultForActivity } from '../../docs/src/services/activity/agenda-follow-up.js?v=20261020e';
 
 test('collectAgendaRows：议程行多类型不互斥，产出 kinds 数组与结构化字段', () => {
   const rows = [
@@ -17,7 +17,7 @@ test('collectAgendaRows：议程行多类型不互斥，产出 kinds 数组与�
       item: '讨论关于 2 名发展对象转为预备党员', host: '组织委员',
       kinds: ['discussion-file', 'attendee-list'],
       branchDocId: 'bd-draft-1',
-      personIds: ['p6', 'p22'],
+      personIds: ['2400012350', '2500010008'],
       fromStage: '发展对象', toStage: '预备党员',
     },
     // 空行忽略
@@ -32,7 +32,7 @@ test('collectAgendaRows：议程行多类型不互斥，产出 kinds 数组与�
   assert.ok(agenda[0].id, '议程应生成 id');
   assert.deepEqual(agenda[1].kinds, ['discussion-file', 'attendee-list'], '一条议程可同时标记两种类型');
   assert.equal(agenda[1].branchDocId, 'bd-draft-1');
-  assert.deepEqual(agenda[1].personIds, ['p6', 'p22'], '待讨论名单应多选');
+  assert.deepEqual(agenda[1].personIds, ['2400012350', '2500010008'], '待讨论名单应多选');
   assert.equal(agenda[1].fromStage, '发展对象');
   assert.equal(agenda[1].toStage, '预备党员');
 });
@@ -80,7 +80,7 @@ test('recordAgendaResultForActivity：记录通过后归档草案，并为名单
         item: '讨论关于 2 名发展对象转为预备党员',
         kinds: ['discussion-file', 'attendee-list'],
         branchDocId: 'bd-draft-1',
-        personIds: ['p6', 'p22'],
+        personIds: ['2400012350', '2500010008'],
         fromStage: '发展对象', toStage: '预备党员',
         result: null,
       },
@@ -93,12 +93,12 @@ test('recordAgendaResultForActivity：记录通过后归档草案，并为名单
     result: 'passed',
     adapter,
     db,
-    actorId: 'p13',
+    actorId: '2300010001',
     now: '2026-09-01T00:00:00.000Z',
   });
 
   assert.equal(updated.agenda[0].result, 'passed', '议程应记录通过');
-  assert.equal(updated.agenda[0].recordedBy, 'p13');
+  assert.equal(updated.agenda[0].recordedBy, '2300010001');
   assert.deepEqual(calls.branchUpdates, [{
     id: 'bd-draft-1',
     patch: {
@@ -109,7 +109,7 @@ test('recordAgendaResultForActivity：记录通过后归档草案，并为名单
     },
   }], '通过后草案应归档并回填讨论来源');
   assert.equal(calls.memberCreates.length, 2, '名单 2 人应各建一条申请');
-  assert.deepEqual(calls.memberCreates.map((c) => c.personId).sort(), ['p22', 'p6']);
+  assert.deepEqual(calls.memberCreates.map((c) => c.personId).sort(), ['2400012350', '2500010008']);
   assert.equal(calls.memberCreates[0].fromStage, '发展对象');
   assert.equal(calls.memberCreates[0].toStage, '预备党员');
 });
@@ -119,7 +119,7 @@ test('recordAgendaResultForActivity：重复记录通过不重复建申请（幂
   const db = {
     branchDocs: [],
     memberChangeRequests: [{
-      id: 'mcr-1', activityId: 'act-99', agendaItemId: 'a1', personId: 'p6',
+      id: 'mcr-1', activityId: 'act-99', agendaItemId: 'a1', personId: '2400012350',
       fromStage: '发展对象', toStage: '预备党员', status: 'pending-org-approval',
     }],
   };
@@ -129,13 +129,13 @@ test('recordAgendaResultForActivity：重复记录通过不重复建申请（幂
   };
 
   await recordAgendaResultForActivity({
-    activity: { id: 'act-99', agenda: [{ id: 'a1', kinds: ['attendee-list'], personIds: ['p6', 'p22'], fromStage: '发展对象', toStage: '预备党员', result: null }] },
-    agendaItemId: 'a1', result: 'passed', adapter, db, actorId: 'p13',
+    activity: { id: 'act-99', agenda: [{ id: 'a1', kinds: ['attendee-list'], personIds: ['2400012350', '2500010008'], fromStage: '发展对象', toStage: '预备党员', result: null }] },
+    agendaItemId: 'a1', result: 'passed', adapter, db, actorId: '2300010001',
   });
 
-  // p6 已有申请（幂等跳过），仅 p22 新建
+  // 2400012350 已有申请（幂等跳过），仅 2500010008 新建
   assert.equal(calls.memberCreates.length, 1);
-  assert.equal(calls.memberCreates[0].personId, 'p22');
+  assert.equal(calls.memberCreates[0].personId, '2500010008');
 });
 
 test('记录关联表决结果：沿用讨论项的成员变更数据并把决议落在表决项', async () => {
@@ -156,19 +156,19 @@ test('记录关联表决结果：沿用讨论项的成员变更数据并把决�
     id: 'act-vote-step',
     agenda: [
       {
-        id: 'ag-discussion', item: '讨论 p6 转为预备党员', agendaStep: 'discussion',
-        kinds: ['attendee-list'], personIds: ['p6', 'p22'],
-        personStages: { p6: '发展对象', p22: '积极分子' }, toStage: '预备党员',
+        id: 'ag-discussion', item: '讨论 2400012350 转为预备党员', agendaStep: 'discussion',
+        kinds: ['attendee-list'], personIds: ['2400012350', '2500010008'],
+        personStages: { 2400012350: '发展对象', 2500010008: '积极分子' }, toStage: '预备党员',
       },
       {
-        id: 'ag-vote', item: '表决 p6 转为预备党员', agendaStep: 'vote', discussionAgendaItemId: 'ag-discussion',
-        kinds: [], personIds: [], personStages: { p6: '发展对象' },
+        id: 'ag-vote', item: '表决 2400012350 转为预备党员', agendaStep: 'vote', discussionAgendaItemId: 'ag-discussion',
+        kinds: [], personIds: [], personStages: { 2400012350: '发展对象' },
       },
     ],
   };
 
   const updated = await recordAgendaResultForActivity({
-    activity, agendaItemId: 'ag-vote', result: 'passed', adapter, db, actorId: 'p13', now: '2026-09-02T00:00:00.000Z',
+    activity, agendaItemId: 'ag-vote', result: 'passed', adapter, db, actorId: '2300010001', now: '2026-09-02T00:00:00.000Z',
   });
 
   assert.equal(updated.agenda[0].result, undefined, '讨论过程项不承载最终决议结果');
@@ -176,8 +176,8 @@ test('记录关联表决结果：沿用讨论项的成员变更数据并把决�
   assert.equal(calls.length, 2, '部分填入表决项阶段时，讨论项其余成员阶段仍须参与跟办');
   assert.equal(calls[0].agendaItemId, 'ag-vote', '派生申请回指最终表决项');
   assert.deepEqual(calls.map(({ personId, fromStage, toStage }) => ({ personId, fromStage, toStage })), [
-    { personId: 'p6', fromStage: '发展对象', toStage: '预备党员' },
-    { personId: 'p22', fromStage: '积极分子', toStage: '预备党员' },
+    { personId: '2400012350', fromStage: '发展对象', toStage: '预备党员' },
+    { personId: '2500010008', fromStage: '积极分子', toStage: '预备党员' },
   ]);
 });
 
@@ -185,7 +185,7 @@ test('recordAgendaResultForActivity：服务层拒绝给讨论项记决议且不
   let writes = 0;
   const agenda = [{
     id: 'ag-discussion', item: '讨论事项', agendaStep: 'discussion',
-    kinds: ['attendee-list'], personIds: ['p6'], fromStage: '发展对象', toStage: '预备党员',
+    kinds: ['attendee-list'], personIds: ['2400012350'], fromStage: '发展对象', toStage: '预备党员',
   }];
   await assert.rejects(recordAgendaResultForActivity({
     activity: { id: 'act-discussion-result', agenda },

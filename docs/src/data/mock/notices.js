@@ -163,7 +163,7 @@ export const MOCK_NOTICES = [
 // 受众取自通知正文的对象（如「请组织委员…」→ 组织委员），不新增业务语义。
 const NOTICE_AUDIENCE_SEED = {
   'notice-101': { audience: ['all'] },
-  'notice-102': { audiencePersons: ['p11'] },          // 组织委员
+  'notice-102': { audiencePersons: ['2400012355'] },          // 组织委员
   'notice-103': { audience: ['all'] },
   'notice-104': { audience: ['leaders'] },
   'notice-105': { audience: ['activists'] },

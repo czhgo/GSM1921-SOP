@@ -9,7 +9,7 @@
 //     直接 import 本文件（不依赖 person.js，防 person→preview→party-group 成环）。
 
 export const PARTY_GROUPS = [
-  { id: 'pg-1', branchId: 'br-b1', name: '第一党小组', seq: 1, status: 'active', createdAt: '2026-09-01', createdBy: 'p1', note: '', history: [] },
-  { id: 'pg-2', branchId: 'br-b1', name: '第二党小组', seq: 2, status: 'active', createdAt: '2026-09-01', createdBy: 'p1', note: '', history: [] },
-  { id: 'pg-3', branchId: 'br-b1', name: '第三党小组', seq: 3, status: 'active', createdAt: '2026-09-01', createdBy: 'p1', note: '', history: [] },
+  { id: 'pg-1', branchId: 'br-b1', name: '第一党小组', seq: 1, status: 'active', createdAt: '2026-09-01', createdBy: '2400012345', note: '', history: [] },
+  { id: 'pg-2', branchId: 'br-b1', name: '第二党小组', seq: 2, status: 'active', createdAt: '2026-09-01', createdBy: '2400012345', note: '', history: [] },
+  { id: 'pg-3', branchId: 'br-b1', name: '第三党小组', seq: 3, status: 'active', createdAt: '2026-09-01', createdBy: '2400012345', note: '', history: [] },
 ];

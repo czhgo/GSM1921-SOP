@@ -3088,3 +3088,30 @@ $body
 
 - 未做 p* → 学号主键迁移（BREAKING，下一批）。
 - 未改表结构；通知已读为 JSON 行内 `reads[]`；归档记录落既有 `archive_records`。
+
+## 批次 494（2026-10-20）：学号/工号作为人员唯一主键（BREAKING）
+
+### 一、判据
+
+- 支书：学号就是唯一 id；教工/党委用工号；界面与数据都不再保留 p*。
+- 迁移可重跑、有映射率；无法映射即回滚，不静默丢。
+
+### 二、动作
+
+- 映射单一源：`server/migrations/legacy-person-ids.js`（迁移专用）+ 前端 deprecated 兼容表；业务禁止引用。
+- mock/seed 全量重写：people / accounts / activities / attendance / inspection / review / taskforces / seed / thought-reports / party-groups / notices / branches / workgroup-seed-sync / issues.json。
+- migration v7：先改 `users.id`，再改 sessions/attachments 与全部资源、语义、工作组 JSON 表；支持复合 id（`p11:issue-002`、`wgm-…-p13`）；单事务、失败回滚、输出映射率。
+- 登录：会话 id=学号；旧 p* 仅作登录别名（一次 warn），不落库。
+- 旧链接 `person.html?id=p13` 一次 replaceState 改学号；历史 localStorage 迁移。
+
+### 三、读数
+
+- 映射率 **51/51（100%）**；v7 重跑 `total=0 mapped=0`（幂等）。
+- `test:daily`：**1278 / 1278 通过，0 断言失败**。
+- 生产代码与数据残留 p*：**0**；仅两份迁移映射文件保留。
+- 版本戳 `20261020d → 20261020e`。
+
+### 四、边界
+
+- 未改业务语义与页签；迁移失败整批回滚。
+- 测试夹具保留少量旧 id（登录别名/合成账号），守卫只约束种子与业务代码。

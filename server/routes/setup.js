@@ -50,7 +50,7 @@ export function createSetupRouter(db) {
     const users = db.prepare('SELECT data FROM users').all().map((r) => JSON.parse(r.data));
     // 「演示名册成员」的**包无关**判据：演示人的 id 形如 `p1`…`p50`（短 `p`＋数字）——
     //   ⚠ 不能用「id ∈ PEOPLE」：发布包里 `docs/src/data/mock/people.js` 已被**空壳化**（`PEOPLE = []`），
-    //   那样判据会**恒真**（等于没检）。而基线党委账号是 `p_pc`、IAAA 自建号是 `p_<uuid12>` ⇒ 都不会被误判。
+    //   那样判据会**恒真**（等于没检）。而基线党委账号是工号 `9000000001` ⇒ 不会被误判（判据只认旧版 `p<数字>` 残留）。
     const demoAccounts = users.filter((u) => /^p\d{1,3}$/.test(String(u.id))).length;
     const dbStat = {
       partyStaff: users.filter((u) => u.role === 'party-staff').length,

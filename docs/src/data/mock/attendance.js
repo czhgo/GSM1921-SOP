@@ -1,8 +1,8 @@
 // 数据域接线批次二（2026-09-03）：展示格式化 attendanceToLong 已提升至 services/activity/attendance.js；
 // 本文件退化为纯考勤种子数据仓（PEOPLE 供全员出席名单生成）。
-import { PEOPLE } from './people.js?v=20261020d';
-import { AttendanceStatus } from '../../core/domain/domain.js?v=20261020d';
-import { getCommitteeIds } from '../../core/domain/constants.js?v=20261020d';
+import { PEOPLE } from './people.js?v=20261020e';
+import { AttendanceStatus } from '../../core/domain/domain.js?v=20261020e';
+import { getCommitteeIds } from '../../core/domain/constants.js?v=20261020e';
 
 // 最后更新：2026-09-06（演示数据基线刷新）
 // 显式段 att1~att43 的 recordedAt 随关联活动重排同步平移（recordedAt = 活动日当天），
@@ -10,88 +10,88 @@ import { getCommitteeIds } from '../../core/domain/constants.js?v=20261020d';
 // ID 连续序列 att1~att43 保持不变；8 月生成段（att44 起）不受影响。
 export const ATTENDANCE_RECORDS = [
   // ── act-1 (2026-07-01) 7月党小组会 ─────────────────────────
-  { id: 'att1',  personId: 'p1',  activityId: 'act-1',  status: AttendanceStatus.PRESENT,  recordedBy: null,  recordedAt: '2026-07-01T18:00:00Z', overdue: false },
-  { id: 'att2',  personId: 'p3',  activityId: 'act-1',  status: AttendanceStatus.PRESENT,  recordedBy: null,  recordedAt: '2026-07-01T18:00:00Z', overdue: false },
+  { id: 'att1',  personId: '2400012345',  activityId: 'act-1',  status: AttendanceStatus.PRESENT,  recordedBy: null,  recordedAt: '2026-07-01T18:00:00Z', overdue: false },
+  { id: 'att2',  personId: '2400012347',  activityId: 'act-1',  status: AttendanceStatus.PRESENT,  recordedBy: null,  recordedAt: '2026-07-01T18:00:00Z', overdue: false },
 
   // ── act-2 (2026-07-02) 7月支委会 ───────────────────────────
-  { id: 'att3',  personId: 'p2',  activityId: 'act-2',  status: AttendanceStatus.ABSENT,   recordedBy: 'p10', recordedAt: '2026-07-02T18:00:00Z', overdue: false },
-  { id: 'att4',  personId: 'p1',  activityId: 'act-2',  status: AttendanceStatus.PRESENT,  recordedBy: 'p10', recordedAt: '2026-07-02T18:00:00Z', overdue: false },
-  { id: 'att5',  personId: 'p4',  activityId: 'act-2',  status: AttendanceStatus.ABSENT,   recordedBy: 'p10', recordedAt: '2026-07-02T18:00:00Z', overdue: false },
-  { id: 'att6',  personId: 'p13', activityId: 'act-2',  status: AttendanceStatus.PRESENT,  recordedBy: null,  recordedAt: '2026-07-02T18:00:00Z', overdue: false },
-  { id: 'att7',  personId: 'p14', activityId: 'act-2',  status: AttendanceStatus.PRESENT,  recordedBy: null,  recordedAt: '2026-07-02T18:00:00Z', overdue: false },
+  { id: 'att3',  personId: '2400012346',  activityId: 'act-2',  status: AttendanceStatus.ABSENT,   recordedBy: '2400012354', recordedAt: '2026-07-02T18:00:00Z', overdue: false },
+  { id: 'att4',  personId: '2400012345',  activityId: 'act-2',  status: AttendanceStatus.PRESENT,  recordedBy: '2400012354', recordedAt: '2026-07-02T18:00:00Z', overdue: false },
+  { id: 'att5',  personId: '2400012348',  activityId: 'act-2',  status: AttendanceStatus.ABSENT,   recordedBy: '2400012354', recordedAt: '2026-07-02T18:00:00Z', overdue: false },
+  { id: 'att6',  personId: '2300010001', activityId: 'act-2',  status: AttendanceStatus.PRESENT,  recordedBy: null,  recordedAt: '2026-07-02T18:00:00Z', overdue: false },
+  { id: 'att7',  personId: '2300010002', activityId: 'act-2',  status: AttendanceStatus.PRESENT,  recordedBy: null,  recordedAt: '2026-07-02T18:00:00Z', overdue: false },
 
   // ── act-3 (2026-07-03) 7月主题党日：学习两会精神 ────────────
-  { id: 'att8',  personId: 'p3',  activityId: 'act-3',  status: AttendanceStatus.PRESENT,  recordedBy: null,  recordedAt: '2026-07-03T18:00:00Z', overdue: false },
-  { id: 'att9',  personId: 'p2',  activityId: 'act-3',  status: AttendanceStatus.PRESENT,  recordedBy: null,  recordedAt: '2026-07-03T18:00:00Z', overdue: false },
+  { id: 'att8',  personId: '2400012347',  activityId: 'act-3',  status: AttendanceStatus.PRESENT,  recordedBy: null,  recordedAt: '2026-07-03T18:00:00Z', overdue: false },
+  { id: 'att9',  personId: '2400012346',  activityId: 'act-3',  status: AttendanceStatus.PRESENT,  recordedBy: null,  recordedAt: '2026-07-03T18:00:00Z', overdue: false },
 
   // ── act-4 (2026-07-06) 7月党小组会 ─────────────────────────
-  { id: 'att10', personId: 'p4',  activityId: 'act-4',  status: AttendanceStatus.LEAVE,    recordedBy: null,  recordedAt: '2026-07-06T18:00:00Z', overdue: true },
-  { id: 'att11', personId: 'p5',  activityId: 'act-4',  status: AttendanceStatus.LEAVE,    recordedBy: null,  recordedAt: '2026-07-06T18:00:00Z', overdue: false },
+  { id: 'att10', personId: '2400012348',  activityId: 'act-4',  status: AttendanceStatus.LEAVE,    recordedBy: null,  recordedAt: '2026-07-06T18:00:00Z', overdue: true },
+  { id: 'att11', personId: '2400012349',  activityId: 'act-4',  status: AttendanceStatus.LEAVE,    recordedBy: null,  recordedAt: '2026-07-06T18:00:00Z', overdue: false },
 
   // ── act-5 (2026-07-07) 7月支委会 ───────────────────────────
-  { id: 'att12', personId: 'p5',  activityId: 'act-5',  status: AttendanceStatus.PRESENT,  recordedBy: 'p10', recordedAt: '2026-07-07T18:00:00Z', overdue: false },
-  { id: 'att13', personId: 'p7',  activityId: 'act-5',  status: AttendanceStatus.PRESENT,  recordedBy: 'p10', recordedAt: '2026-07-07T18:00:00Z', overdue: false },
+  { id: 'att12', personId: '2400012349',  activityId: 'act-5',  status: AttendanceStatus.PRESENT,  recordedBy: '2400012354', recordedAt: '2026-07-07T18:00:00Z', overdue: false },
+  { id: 'att13', personId: '2400012351',  activityId: 'act-5',  status: AttendanceStatus.PRESENT,  recordedBy: '2400012354', recordedAt: '2026-07-07T18:00:00Z', overdue: false },
 
   // ── act-6 (2026-07-09) 7月党课：新时代青年担当 ──────────────
-  // p15 缺勤后完成补课（mk5），status='made_up'
-  { id: 'att14', personId: 'p15', activityId: 'act-6',  status: AttendanceStatus.MADE_UP,  recordedBy: 'p10', recordedAt: '2026-07-09T18:00:00Z', overdue: false },
+  // 2500010001 缺勤后完成补课（mk5），status='made_up'
+  { id: 'att14', personId: '2500010001', activityId: 'act-6',  status: AttendanceStatus.MADE_UP,  recordedBy: '2400012354', recordedAt: '2026-07-09T18:00:00Z', overdue: false },
 
   // ── act-8 (2026-07-11) 7月支部党员大会 ─────────────────────
-  { id: 'att15', personId: 'p1',  activityId: 'act-8',  status: AttendanceStatus.PRESENT,  recordedBy: null,  recordedAt: '2026-07-11T18:00:00Z', overdue: false },
-  { id: 'att16', personId: 'p2',  activityId: 'act-8',  status: AttendanceStatus.PRESENT,  recordedBy: null,  recordedAt: '2026-07-11T18:00:00Z', overdue: false },
-  { id: 'att17', personId: 'p4',  activityId: 'act-8',  status: AttendanceStatus.LEAVE,    recordedBy: 'p10', recordedAt: '2026-07-11T18:00:00Z', overdue: false },
-  { id: 'att18', personId: 'p6',  activityId: 'act-8',  status: AttendanceStatus.PRESENT,  recordedBy: null,  recordedAt: '2026-07-11T18:00:00Z', overdue: false },
-  { id: 'att19', personId: 'p9',  activityId: 'act-8',  status: AttendanceStatus.PRESENT,  recordedBy: null,  recordedAt: '2026-07-11T18:00:00Z', overdue: false },
-  { id: 'att20', personId: 'p11', activityId: 'act-8',  status: AttendanceStatus.PRESENT,  recordedBy: null,  recordedAt: '2026-07-11T18:00:00Z', overdue: false },
-  { id: 'att21', personId: 'p13', activityId: 'act-8',  status: AttendanceStatus.PRESENT,  recordedBy: null,  recordedAt: '2026-07-11T18:00:00Z', overdue: false },
-  { id: 'att22', personId: 'p14', activityId: 'act-8',  status: AttendanceStatus.PRESENT,  recordedBy: null,  recordedAt: '2026-07-11T18:00:00Z', overdue: false },
-  { id: 'att23', personId: 'p15', activityId: 'act-8',  status: AttendanceStatus.PRESENT,  recordedBy: 'p10', recordedAt: '2026-07-11T18:00:00Z', overdue: false },
+  { id: 'att15', personId: '2400012345',  activityId: 'act-8',  status: AttendanceStatus.PRESENT,  recordedBy: null,  recordedAt: '2026-07-11T18:00:00Z', overdue: false },
+  { id: 'att16', personId: '2400012346',  activityId: 'act-8',  status: AttendanceStatus.PRESENT,  recordedBy: null,  recordedAt: '2026-07-11T18:00:00Z', overdue: false },
+  { id: 'att17', personId: '2400012348',  activityId: 'act-8',  status: AttendanceStatus.LEAVE,    recordedBy: '2400012354', recordedAt: '2026-07-11T18:00:00Z', overdue: false },
+  { id: 'att18', personId: '2400012350',  activityId: 'act-8',  status: AttendanceStatus.PRESENT,  recordedBy: null,  recordedAt: '2026-07-11T18:00:00Z', overdue: false },
+  { id: 'att19', personId: '2400012353',  activityId: 'act-8',  status: AttendanceStatus.PRESENT,  recordedBy: null,  recordedAt: '2026-07-11T18:00:00Z', overdue: false },
+  { id: 'att20', personId: '2400012355', activityId: 'act-8',  status: AttendanceStatus.PRESENT,  recordedBy: null,  recordedAt: '2026-07-11T18:00:00Z', overdue: false },
+  { id: 'att21', personId: '2300010001', activityId: 'act-8',  status: AttendanceStatus.PRESENT,  recordedBy: null,  recordedAt: '2026-07-11T18:00:00Z', overdue: false },
+  { id: 'att22', personId: '2300010002', activityId: 'act-8',  status: AttendanceStatus.PRESENT,  recordedBy: null,  recordedAt: '2026-07-11T18:00:00Z', overdue: false },
+  { id: 'att23', personId: '2500010001', activityId: 'act-8',  status: AttendanceStatus.PRESENT,  recordedBy: '2400012354', recordedAt: '2026-07-11T18:00:00Z', overdue: false },
 
   // ── act-9 (2026-07-12) 7月党小组会 ─────────────────────────
-  // p7 缺勤后完成补课（mk3），status='made_up'
-  { id: 'att24', personId: 'p3',  activityId: 'act-9',  status: AttendanceStatus.PRESENT,  recordedBy: null,  recordedAt: '2026-07-12T18:00:00Z', overdue: false },
-  { id: 'att25', personId: 'p5',  activityId: 'act-9',  status: AttendanceStatus.PRESENT,  recordedBy: null,  recordedAt: '2026-07-12T18:00:00Z', overdue: false },
-  { id: 'att26', personId: 'p6',  activityId: 'act-9',  status: AttendanceStatus.PRESENT,  recordedBy: null,  recordedAt: '2026-07-12T18:00:00Z', overdue: false },
-  { id: 'att27', personId: 'p7',  activityId: 'act-9',  status: AttendanceStatus.MADE_UP,  recordedBy: 'p10', recordedAt: '2026-07-12T18:00:00Z', overdue: false },
-  { id: 'att28', personId: 'p8',  activityId: 'act-9',  status: AttendanceStatus.PRESENT,  recordedBy: null,  recordedAt: '2026-07-12T18:00:00Z', overdue: false },
-  { id: 'att29', personId: 'p15', activityId: 'act-9',  status: AttendanceStatus.PRESENT,  recordedBy: 'p10', recordedAt: '2026-07-12T18:00:00Z', overdue: false },
+  // 2400012351 缺勤后完成补课（mk3），status='made_up'
+  { id: 'att24', personId: '2400012347',  activityId: 'act-9',  status: AttendanceStatus.PRESENT,  recordedBy: null,  recordedAt: '2026-07-12T18:00:00Z', overdue: false },
+  { id: 'att25', personId: '2400012349',  activityId: 'act-9',  status: AttendanceStatus.PRESENT,  recordedBy: null,  recordedAt: '2026-07-12T18:00:00Z', overdue: false },
+  { id: 'att26', personId: '2400012350',  activityId: 'act-9',  status: AttendanceStatus.PRESENT,  recordedBy: null,  recordedAt: '2026-07-12T18:00:00Z', overdue: false },
+  { id: 'att27', personId: '2400012351',  activityId: 'act-9',  status: AttendanceStatus.MADE_UP,  recordedBy: '2400012354', recordedAt: '2026-07-12T18:00:00Z', overdue: false },
+  { id: 'att28', personId: '2400012352',  activityId: 'act-9',  status: AttendanceStatus.PRESENT,  recordedBy: null,  recordedAt: '2026-07-12T18:00:00Z', overdue: false },
+  { id: 'att29', personId: '2500010001', activityId: 'act-9',  status: AttendanceStatus.PRESENT,  recordedBy: '2400012354', recordedAt: '2026-07-12T18:00:00Z', overdue: false },
 
   // ── act-10 (2026-07-13) 7月主题党日：五四精神传承 ────────────
-  { id: 'att30', personId: 'p8',  activityId: 'act-10', status: AttendanceStatus.PRESENT,  recordedBy: null,  recordedAt: '2026-07-13T18:00:00Z', overdue: false },
-  { id: 'att31', personId: 'p9',  activityId: 'act-10', status: AttendanceStatus.PRESENT,  recordedBy: null,  recordedAt: '2026-07-13T18:00:00Z', overdue: false },
-  { id: 'att32', personId: 'p1',  activityId: 'act-10', status: AttendanceStatus.PRESENT,  recordedBy: null,  recordedAt: '2026-07-13T18:00:00Z', overdue: false },
-  { id: 'att33', personId: 'p2',  activityId: 'act-10', status: AttendanceStatus.LEAVE,    recordedBy: 'p10', recordedAt: '2026-07-13T18:00:00Z', overdue: true },
-  { id: 'att34', personId: 'p4',  activityId: 'act-10', status: AttendanceStatus.PRESENT,  recordedBy: null,  recordedAt: '2026-07-13T18:00:00Z', overdue: false },
-  { id: 'att35', personId: 'p10', activityId: 'act-10', status: AttendanceStatus.PRESENT,  recordedBy: null,  recordedAt: '2026-07-13T18:00:00Z', overdue: false },
-  { id: 'att36', personId: 'p12', activityId: 'act-10', status: AttendanceStatus.PRESENT,  recordedBy: null,  recordedAt: '2026-07-13T18:00:00Z', overdue: false },
+  { id: 'att30', personId: '2400012352',  activityId: 'act-10', status: AttendanceStatus.PRESENT,  recordedBy: null,  recordedAt: '2026-07-13T18:00:00Z', overdue: false },
+  { id: 'att31', personId: '2400012353',  activityId: 'act-10', status: AttendanceStatus.PRESENT,  recordedBy: null,  recordedAt: '2026-07-13T18:00:00Z', overdue: false },
+  { id: 'att32', personId: '2400012345',  activityId: 'act-10', status: AttendanceStatus.PRESENT,  recordedBy: null,  recordedAt: '2026-07-13T18:00:00Z', overdue: false },
+  { id: 'att33', personId: '2400012346',  activityId: 'act-10', status: AttendanceStatus.LEAVE,    recordedBy: '2400012354', recordedAt: '2026-07-13T18:00:00Z', overdue: true },
+  { id: 'att34', personId: '2400012348',  activityId: 'act-10', status: AttendanceStatus.PRESENT,  recordedBy: null,  recordedAt: '2026-07-13T18:00:00Z', overdue: false },
+  { id: 'att35', personId: '2400012354', activityId: 'act-10', status: AttendanceStatus.PRESENT,  recordedBy: null,  recordedAt: '2026-07-13T18:00:00Z', overdue: false },
+  { id: 'att36', personId: '2400012356', activityId: 'act-10', status: AttendanceStatus.PRESENT,  recordedBy: null,  recordedAt: '2026-07-13T18:00:00Z', overdue: false },
 
   // ── act-11 (2026-07-14) 7月支委会 ──────────────────────────
-  { id: 'att37', personId: 'p10', activityId: 'act-11', status: AttendanceStatus.PRESENT,  recordedBy: null,  recordedAt: '2026-07-14T18:00:00Z', overdue: false },
-  { id: 'att38', personId: 'p5',  activityId: 'act-11', status: AttendanceStatus.ABSENT,   recordedBy: 'p10', recordedAt: '2026-07-14T18:00:00Z', overdue: false },
+  { id: 'att37', personId: '2400012354', activityId: 'act-11', status: AttendanceStatus.PRESENT,  recordedBy: null,  recordedAt: '2026-07-14T18:00:00Z', overdue: false },
+  { id: 'att38', personId: '2400012349',  activityId: 'act-11', status: AttendanceStatus.ABSENT,   recordedBy: '2400012354', recordedAt: '2026-07-14T18:00:00Z', overdue: false },
 
   // ── act-19 (2026-07-19) 7月组织生活会 ──────────────────────
   // 组织生活会考勤记录需补充 studentId/developStage/partyGroup（D-239 中文枚举）
-  { id: 'att39', personId: 'p1',  activityId: 'act-19', status: AttendanceStatus.PRESENT,  recordedBy: 'p10', recordedAt: '2026-07-19T18:00:00Z', overdue: false, studentId: '2400012345', developStage: '正式党员', partyGroup: '第一党小组' },
-  { id: 'att40', personId: 'p4',  activityId: 'act-19', status: AttendanceStatus.PRESENT,  recordedBy: 'p10', recordedAt: '2026-07-19T18:00:00Z', overdue: false, studentId: '2400012348', developStage: '正式党员', partyGroup: '第三党小组' },
-  { id: 'att41', personId: 'p6',  activityId: 'act-19', status: AttendanceStatus.PRESENT,  recordedBy: 'p10', recordedAt: '2026-07-19T18:00:00Z', overdue: false, studentId: '2400012350', developStage: '发展对象', partyGroup: '第一党小组' },
-  { id: 'att42', personId: 'p7',  activityId: 'act-19', status: AttendanceStatus.ABSENT,   recordedBy: 'p10', recordedAt: '2026-07-19T18:00:00Z', overdue: false, studentId: '2400012351', developStage: '积极分子', partyGroup: '第三党小组' },
-  { id: 'att43', personId: 'p8',  activityId: 'act-19', status: AttendanceStatus.LEAVE,    recordedBy: 'p10', recordedAt: '2026-07-19T18:00:00Z', overdue: false, studentId: '2400012352', developStage: '正式党员', partyGroup: '第二党小组' },
+  { id: 'att39', personId: '2400012345',  activityId: 'act-19', status: AttendanceStatus.PRESENT,  recordedBy: '2400012354', recordedAt: '2026-07-19T18:00:00Z', overdue: false, studentId: '2400012345', developStage: '正式党员', partyGroup: '第一党小组' },
+  { id: 'att40', personId: '2400012348',  activityId: 'act-19', status: AttendanceStatus.PRESENT,  recordedBy: '2400012354', recordedAt: '2026-07-19T18:00:00Z', overdue: false, studentId: '2400012348', developStage: '正式党员', partyGroup: '第三党小组' },
+  { id: 'att41', personId: '2400012350',  activityId: 'act-19', status: AttendanceStatus.PRESENT,  recordedBy: '2400012354', recordedAt: '2026-07-19T18:00:00Z', overdue: false, studentId: '2400012350', developStage: '发展对象', partyGroup: '第一党小组' },
+  { id: 'att42', personId: '2400012351',  activityId: 'act-19', status: AttendanceStatus.ABSENT,   recordedBy: '2400012354', recordedAt: '2026-07-19T18:00:00Z', overdue: false, studentId: '2400012351', developStage: '积极分子', partyGroup: '第三党小组' },
+  { id: 'att43', personId: '2400012352',  activityId: 'act-19', status: AttendanceStatus.LEAVE,    recordedBy: '2400012354', recordedAt: '2026-07-19T18:00:00Z', overdue: false, studentId: '2400012352', developStage: '正式党员', partyGroup: '第二党小组' },
 
   // ── act-31 (2026-09-10) 9月支部党员大会：线上异步表决 ──────────
   // 批次 47-Y（2026-09-16，承 R-78 口径）：**9 月**缺勤一条——为成员台「考勤概况 · 去补课 → 补课说明」造可达前置。
   // **为什么必须是 9 月**：该页只列**当月**活动（`entries/tabs/visitor/attendance-tab.js:24-25` 的 `thisMonth` 过滤），
   //   而 9 月此前**只有 act-31 且它一条考勤记录都没有** ⇒ 补课入口在 9 月没有任何可挂的行
   //   （原登记说「日期耦合」，其实还是**结构性不可达**：换任何月份都会撞上同一个问题）。
-  // **为什么 `recordedBy: 'p10'`（已确认）而不是 `null`（待确认）**：补课任务由「**纪检确认考勤**」时才
+  // **为什么 `recordedBy: '2400012354'`（已确认）而不是 `null`（待确认）**：补课任务由「**纪检确认考勤**」时才
   //   派生（`autoGenerateMakeupTask()`）——若这条记录还是待确认态，却已经存在补课任务，两者**自相矛盾**。
-  //   与 `att38`（p5 · 缺勤 · recordedBy p10）同形，故本条与 `data/mock/seed.js::SEED_MAKEUP_TASKS` 互为因果、自洽。
+  //   与 `att38`（2400012349 · 缺勤 · recordedBy 2400012354）同形，故本条与 `data/mock/seed.js::SEED_MAKEUP_TASKS` 互为因果、自洽。
   // ⚠⚠ **id 必须是 `att` + 纯数字**（本批首跑被 `reset-tier-init::C2` 当场抓住）：本仓的**种子识别口径**
   //   是 `init-reset.js::INIT_SEED_ID_PATTERNS.attendances = /^att\d+$/`（`mock-adapter.js` 的 merge 同判据），
   //   `?reset=init` 靠它把演示种子从库里剔除。本条初版 id 写成 `att-sep-1`（**不匹配**）⇒ 剔除漏掉它
   //   ⇒ 空态不空（`attendances.length` 1 !== 0）。**「造种子」不只是造出内容，还要落在既有的种子 id 空间里。**
   // ⚠ 取 `att900`（**隔离段**）：避开 8 月生成器的连续区间（现 `att44`–`att151`，随 `_AUGUST_EVENTS` 增长而增长），
   //   留足余量以免将来撞号（真撞了 M1 的唯一性断言也会红，不会静默）。
-  { id: 'att900', personId: 'p5', activityId: 'act-31', status: AttendanceStatus.ABSENT, recordedBy: 'p10', recordedAt: '2026-09-10T18:00:00Z', overdue: false },
+  { id: 'att900', personId: '2400012349', activityId: 'act-31', status: AttendanceStatus.ABSENT, recordedBy: '2400012354', recordedAt: '2026-09-10T18:00:00Z', overdue: false },
 ];
 
 // ── 8 月考勤全覆盖（2026-08-05 支书裁决「补全 5 场全覆盖」；次日修订）────
@@ -109,18 +109,18 @@ export const ATTENDANCE_RECORDS = [
 
 // 支委班子出席快照（支书/副支书/三委员/三组长 共 8 人）——系 act-27 考勤出席名单。
 // M4（2026-10-20）：改为**角色派生**（支委 = getCommitteeIds 单一源；组长 = role='leader' 且属本支部），
-//   不再维护 p13/p14/... 的 id 快照——支委改选或学号迁移后种子自动跟随。
+//   不再维护 2300010001/2300010002/... 的 id 快照——支委改选或学号迁移后种子自动跟随。
 //   顺序 = 支书→副支书→组织→宣传→纪检→三组长，与历史快照同序（考勤状态按下标确定性生成，保持演示稳定）。
 const _BRANCH_COMMITTEE_IDS = [...new Set([
   ...getCommitteeIds(PEOPLE),
   ...PEOPLE.filter((p) => p.role === 'leader' && p.branchId).map((p) => p.id),
 ])];
 // 全员（三党小组 17/17/16 共 50 人）——**限本支部成员**：
-// 2026-09-26 本批改准：原 `PEOPLE.map(p => p.id)` 会把**党委组织员 p_pc**（`branchId: null`，不属任一支部，
+// 2026-09-26 本批改准：原 `PEOPLE.map(p => p.id)` 会把**党委组织员 9000000001**（`branchId: null`，不属任一支部，
 //   见 `people.js`）一并写进 act-26/act-29 的「全员出席」⇒ 生产 2 条游离于支部成员集之外的考勤行，
-//   且与本常量上注「共 50 人」自相矛盾（实得 51）。既有三处口径均把 p_pc 排除在支部名单外
-//   （`roster.test`「p_pc 不入选」· `base-data-preview.test`「本支部成员 50 名，不含 p_pc」· `group-view.test`
-//   「三组合计 50，p_pc 剔除」）⇒ 本处按支部归属过滤，回到 50。
+//   且与本常量上注「共 50 人」自相矛盾（实得 51）。既有三处口径均把 9000000001 排除在支部名单外
+//   （`roster.test`「9000000001 不入选」· `base-data-preview.test`「本支部成员 50 名，不含 9000000001」· `group-view.test`
+//   「三组合计 50，9000000001 剔除」）⇒ 本处按支部归属过滤，回到 50。
 const _ALL_PERSON_IDS = PEOPLE.filter((p) => p.branchId).map((p) => p.id);
 
 const _AUGUST_EVENTS = [

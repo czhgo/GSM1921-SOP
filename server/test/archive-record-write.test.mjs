@@ -7,11 +7,11 @@
 // ════════════════════════════════════════════════════════════════
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { ArchiveStore } from '../../docs/src/services/activity/archive.js?v=20261020d';
-import { setDataSource, registerMockAdapter, registerApiAdapter } from '../../docs/src/data/data-adapter.js?v=20261020d';
-import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261020d';
-import { ApiAdapter } from '../../docs/src/data/api-adapter.js?v=20261020d';
-import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261020d';
+import { ArchiveStore } from '../../docs/src/services/activity/archive.js?v=20261020e';
+import { setDataSource, registerMockAdapter, registerApiAdapter } from '../../docs/src/data/data-adapter.js?v=20261020e';
+import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261020e';
+import { ApiAdapter } from '../../docs/src/data/api-adapter.js?v=20261020e';
+import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261020e';
 
 // 服务层按 runtime.js 的正常路径取适配器；单测里手动注入同一对实例。
 registerMockAdapter(MockAdapter);
@@ -37,7 +37,7 @@ test('mock 形态：ArchiveStore 写入/删除都落 MockAdapter（localStorage 
     const row = await ArchiveStore.createMaterial({
       activityId: 'act-archive-test', activityName: '测试活动', category: '新闻稿',
       fileName: 'a.pdf', fileSize: 10, fileData: 'data:text/plain;base64,QQ==',
-      archiveDate: '2026-10-20', status: 'archived', uploadedBy: 'p12',
+      archiveDate: '2026-10-20', status: 'archived', uploadedBy: '2400012356',
     });
     assert.ok(row.id, '应生成归档记录 id');
     assert.equal(mockDB.archiveRecords.length, 1, '内存同源应有一条');
@@ -73,7 +73,7 @@ test('api 形态：ArchiveStore 必须调用 POST /api/v1/archiveRecords（刷�
     const row = await ArchiveStore.createMaterial({
       activityId: 'act-archive-api', activityName: '测试活动', category: '照片',
       fileName: 'b.jpg', fileSize: 20, filePath: '/api/v1/uploads/b.jpg',
-      archiveDate: '2026-10-20', status: 'archived', uploadedBy: 'p12',
+      archiveDate: '2026-10-20', status: 'archived', uploadedBy: '2400012356',
     });
     assert.ok(calls.some((c) => c.method === 'POST' && c.url.endsWith('/api/v1/archiveRecords')),
       'api 形态必须 POST archiveRecords，不能只写内存');

@@ -17,7 +17,7 @@ import assert from 'node:assert/strict';
 
 import {
   SELF_PROFILE_FIELDS, SELF_PROFILE_KEYS, emptySelfProfile, sanitizeSelfProfile, isSelfProfileEmpty,
-} from '../../docs/src/core/domain/self-profile.js?v=20261020d';
+} from '../../docs/src/core/domain/self-profile.js?v=20261020e';
 import { createApp } from '../app.js';
 import { seedDatabase } from '../seed.js';
 
@@ -83,10 +83,10 @@ test('A3 净化不崩 ＋ 空值判定：非对象输入 → 空表单；全空 
 
 // ═════════════════ B mock 写链 ═════════════════
 
-import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261020d';
-import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261020d';
-import { setDataSource } from '../../docs/src/data/data-adapter.js?v=20261020d';
-import { PersonStore } from '../../docs/src/services/member/person.js?v=20261020d';
+import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261020e';
+import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261020e';
+import { setDataSource } from '../../docs/src/data/data-adapter.js?v=20261020e';
+import { PersonStore } from '../../docs/src/services/member/person.js?v=20261020e';
 
 const _store = new Map();
 globalThis.localStorage = {
@@ -102,22 +102,22 @@ test('B1 mock 写链：saveMember 落 selfProfile（净化后）；显式空对�
   _store.clear();
   setDataSource('mock');
   await MockAdapter.loadDB();
-  const r1 = await PersonStore.saveMember({ id: 'p1', selfProfile: { major: '计算机', __evil: 'x' } });
+  const r1 = await PersonStore.saveMember({ id: '2400012345', selfProfile: { major: '计算机', __evil: 'x' } });
   assert.equal(r1.ok, true, `保存成功：${r1.reason || ''}`);
-  const got = PersonStore.getById('p1');
+  const got = PersonStore.getById('2400012345');
   assert.ok(got && got.selfProfile, '档案带 selfProfile');
   assert.equal(got.selfProfile.major, '计算机');
   assert.ok(!('__evil' in got.selfProfile), '白名单外键被净化剔除');
   // 显式传空 ⇒ 落为空对象（＝清空：不把旧值留在档案里）
-  const r2 = await PersonStore.saveMember({ id: 'p1', selfProfile: { major: '   ' } });
+  const r2 = await PersonStore.saveMember({ id: '2400012345', selfProfile: { major: '   ' } });
   assert.equal(r2.ok, true);
-  const got2 = PersonStore.getById('p1');
+  const got2 = PersonStore.getById('2400012345');
   assert.ok(got2.selfProfile, '显式传入空自我描述 ⇒ 字段仍在（空对象）');
   assert.equal(got2.selfProfile.major, '', '原值被清空（不再残留「计算机」）');
   // 未提供该字段 ⇒ 不改动（缺省不覆盖）
-  const r3 = await PersonStore.saveMember({ id: 'p2', name: '新成员' });
+  const r3 = await PersonStore.saveMember({ id: '2400012346', name: '新成员' });
   assert.equal(r3.ok, true);
-  assert.equal(PersonStore.getById('p2').selfProfile, undefined, '未提供 ⇒ 不落该字段');
+  assert.equal(PersonStore.getById('2400012346').selfProfile, undefined, '未提供 ⇒ 不落该字段');
 });
 
 // ═════════════════ C api 写链（内存服务） ═════════════════
@@ -148,31 +148,31 @@ const patchProfile = (token, id, body) => fetch(`${base}/api/v1/members/${id}/pr
 });
 
 test('C1 api：本人自填 selfProfile 200 落库；他人自填 403；本人改别的档案字段 400（不放宽）', async () => {
-  const { token: p7 } = await login('p7');      // 普通成员
-  const { token: p5 } = await login('p5');      // 另一普通成员
-  const { token: org } = await login('p11');    // 组织委员
+  const { token: p_2400012351 } = await login('2400012351');      // 普通成员
+  const { token: p_2400012349 } = await login('2400012349');      // 另一普通成员
+  const { token: org } = await login('2400012355');    // 组织委员
   // ① 本人自填 → 200
-  const r1 = await patchProfile(p7, 'p7', { selfProfile: { major: '计算机', familiarWorks: ['团支书'] } });
+  const r1 = await patchProfile(p_2400012351, '2400012351', { selfProfile: { major: '计算机', familiarWorks: ['团支书'] } });
   assert.equal(r1.status, 200, '本人自填自我描述须放行');
   const saved1 = await r1.json();
   assert.equal(saved1.selfProfile.major, '计算机', '本人自填落库');
   // ⑤ 服务端净化：塞白名单外键 ⇒ 被剔除
-  const r2 = await patchProfile(p7, 'p7', { selfProfile: { major: '计算机', __evil: 'x' } });
+  const r2 = await patchProfile(p_2400012351, '2400012351', { selfProfile: { major: '计算机', __evil: 'x' } });
   assert.equal(r2.status, 200);
   assert.ok(!('__evil' in (await r2.json()).selfProfile), '服务端净化剔除白名单外键');
   // ② 他人自填 → 403
-  assert.equal((await patchProfile(p5, 'p7', { selfProfile: { major: 'x' } })).status, 403, '他人不得代填');
+  assert.equal((await patchProfile(p_2400012349, '2400012351', { selfProfile: { major: 'x' } })).status, 403, '他人不得代填');
   // ③ 本人改别的档案字段 → 400（仅可写 selfProfile）
-  assert.equal((await patchProfile(p7, 'p7', { name: '改名' })).status, 400, '本人不得改档案其他字段');
+  assert.equal((await patchProfile(p_2400012351, '2400012351', { name: '改名' })).status, 400, '本人不得改档案其他字段');
   // ④ 组织委员代录 → 200
-  const r4 = await patchProfile(org, 'p7', { selfProfile: { major: '软件工程' } });
+  const r4 = await patchProfile(org, '2400012351', { selfProfile: { major: '软件工程' } });
   assert.equal(r4.status, 200, '组织委员可代录');
   assert.equal((await r4.json()).selfProfile.major, '软件工程');
 });
 
 test('C2 api：靶标不存在 404 · 非本支部 403 · 无非白名单字段 400（沿用既有口径，未被例外放宽）', async () => {
-  const { token: org } = await login('p11');
+  const { token: org } = await login('2400012355');
   assert.equal((await patchProfile(org, 'p_nope', { selfProfile: { major: 'x' } })).status, 404, '成员不存在 404');
-  assert.equal((await patchProfile(org, 'p7', {})).status, 400, '无可更新字段 400');
-  assert.equal((await patchProfile(org, 'p7', { developStage: '正式党员' })).status, 400, '发展阶段不在本端点白名单');
+  assert.equal((await patchProfile(org, '2400012351', {})).status, 400, '无可更新字段 400');
+  assert.equal((await patchProfile(org, '2400012351', { developStage: '正式党员' })).status, 400, '发展阶段不在本端点白名单');
 });

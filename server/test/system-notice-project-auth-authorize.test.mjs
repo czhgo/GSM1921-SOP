@@ -23,39 +23,39 @@ const TF = (extra = {}) => ({ taskforces: { 'tf-1': { id: 'tf-1', ...extra } } }
 
 test('A1 支委层放行（原授权面不变）', () => {
   for (const role of ['secretary', 'deputy-secretary', 'org-commissioner', 'prop-commissioner', 'disc-commissioner']) {
-    assert.equal(AUTH({ id: 'p10', role }, 'act-1', ACT()), true, role);
+    assert.equal(AUTH({ id: '2400012354', role }, 'act-1', ACT()), true, role);
   }
 });
 
 test('A2 党小组组长放行（甲案新增 · role key `leader`）', () => {
-  assert.equal(AUTH({ id: 'p20', role: 'leader' }, 'act-1', ACT()), true);
-  assert.equal(AUTH({ id: 'p20', role: 'leader' }, 'tf-1', TF()), true);
+  assert.equal(AUTH({ id: '2500010006', role: 'leader' }, 'act-1', ACT()), true);
+  assert.equal(AUTH({ id: '2500010006', role: 'leader' }, 'tf-1', TF()), true);
 });
 
 test('A3 该场现任组织者本人放行（甲案新增 · 活动侧 assignments）', () => {
-  assert.equal(AUTH({ id: 'p30', role: 'participant' }, 'act-1',
-    ACT({ assignments: [{ personId: 'p30', role: 'organizer' }, { personId: 'p31', role: 'deep' }] })), true);
+  assert.equal(AUTH({ id: '2500010016', role: 'participant' }, 'act-1',
+    ACT({ assignments: [{ personId: '2500010016', role: 'organizer' }, { personId: '2500010017', role: 'deep' }] })), true);
 });
 
 test('A4 该场现任组织者本人放行（甲案新增 · 专班侧 members）', () => {
-  assert.equal(AUTH({ id: 'p30', role: 'participant' }, 'tf-1',
-    TF({ members: [{ personId: 'p30', role: 'organizer' }] })), true);
+  assert.equal(AUTH({ id: '2500010016', role: 'participant' }, 'tf-1',
+    TF({ members: [{ personId: '2500010016', role: 'organizer' }] })), true);
 });
 
 test('A5 无关成员仍拒（**不得**放宽到「人人可发」）', () => {
-  assert.equal(AUTH({ id: 'p40', role: 'participant' }, 'act-1',
-    ACT({ assignments: [{ personId: 'p30', role: 'organizer' }] })), false);
+  assert.equal(AUTH({ id: '2500010026', role: 'participant' }, 'act-1',
+    ACT({ assignments: [{ personId: '2500010016', role: 'organizer' }] })), false);
 });
 
 test('A6 非组织者的项目角色行（`deep`）不放行', () => {
-  assert.equal(AUTH({ id: 'p41', role: 'participant' }, 'act-1',
-    ACT({ assignments: [{ personId: 'p41', role: 'deep' }] })), false);
+  assert.equal(AUTH({ id: '2500010027', role: 'participant' }, 'act-1',
+    ACT({ assignments: [{ personId: '2500010027', role: 'deep' }] })), false);
 });
 
 test('A7 来源对象不存在一律拒（三档皆然）', () => {
-  assert.equal(AUTH({ id: 'p10', role: 'secretary' }, 'act-9', {}), false);
-  assert.equal(AUTH({ id: 'p20', role: 'leader' }, 'act-9', {}), false);
-  assert.equal(AUTH({ id: 'p30', role: 'participant' }, 'act-9', {}), false);
+  assert.equal(AUTH({ id: '2400012354', role: 'secretary' }, 'act-9', {}), false);
+  assert.equal(AUTH({ id: '2500010006', role: 'leader' }, 'act-9', {}), false);
+  assert.equal(AUTH({ id: '2500010016', role: 'participant' }, 'act-9', {}), false);
 });
 
 test('A8 无 actor 一律拒（防未登录）', () => {
@@ -113,13 +113,13 @@ test('B5 材料外发：refLabel/receiverRole 按表复算', () => {
 });
 
 test('B6 周期归档：旧期次字段按表复算，旧通知 kind 仍兼容', () => {
-  const rows = { periodic_archive_submissions: { 'w-1': { id: 'w-1', week: '第 41 周', weekRange: '2026-10-05 ~ 10-11', submittedBy: 'p1' } } };
+  const rows = { periodic_archive_submissions: { 'w-1': { id: 'w-1', week: '第 41 周', weekRange: '2026-10-05 ~ 10-11', submittedBy: '2400012345' } } };
   const payload = { week: '伪造周次', weekRange: '伪造区间', submitterName: '张三' };
   const t = TEXT(BUILD('periodic-archive-submitted', 'w-1', rows, payload));
   assert.equal(TEXT(BUILD('weekly-report-submitted', 'w-1', rows, payload)), t, '旧 kind 必须转到同一模板');
   assert.ok(t.includes('第 41 周') && t.includes('2026-10-05 ~ 10-11'), t);
   assert.ok(!t.includes('伪造周次') && !t.includes('伪造区间'), t);
-  // 本夹具**未给 `users` 表** ⇒ 名册查无 p1 ⇒ 沿用 payload（批次 426 口径：先按源行补 `submitterId`、再走名册；
+  // 本夹具**未给 `users` 表** ⇒ 名册查无 2400012345 ⇒ 沿用 payload（批次 426 口径：先按源行补 `submitterId`、再走名册；
   //   「源行有 `submittedBy` 且名册查得到」的正例见 E1，「源行无 `submittedBy`」的反例见 E4）。
   assert.ok(t.includes('张三'), `名册查无 ⇒ 沿用 payload（不空名）：${t}`);
 });
@@ -181,20 +181,20 @@ const RAUTH = (actor, resource, sourceId, rows) =>
 
 test('C1 记录作废裁决：支委层 + 已知资源 + 行存在 ⇒ 放行；非支委 / 未知资源 / 行不存在 ⇒ 拒', () => {
   const rows = { makeup_tasks: { 'mk-1': { id: 'mk-1' } } };
-  assert.equal(RAUTH({ id: 'p11', role: 'org-commissioner' }, 'makeupTasks', 'mk-1', rows), true, '支委层放行');
-  assert.equal(RAUTH({ id: 'p7', role: 'participant' }, 'makeupTasks', 'mk-1', rows), false, '非支委层拒');
-  assert.equal(RAUTH({ id: 'p11', role: 'org-commissioner' }, 'nopeResource', 'mk-1', rows), false, '未知资源拒（不采信客户端自造名）');
-  assert.equal(RAUTH({ id: 'p11', role: 'org-commissioner' }, 'makeupTasks', 'mk-9', rows), false, '行不存在拒');
+  assert.equal(RAUTH({ id: '2400012355', role: 'org-commissioner' }, 'makeupTasks', 'mk-1', rows), true, '支委层放行');
+  assert.equal(RAUTH({ id: '2400012351', role: 'participant' }, 'makeupTasks', 'mk-1', rows), false, '非支委层拒');
+  assert.equal(RAUTH({ id: '2400012355', role: 'org-commissioner' }, 'nopeResource', 'mk-1', rows), false, '未知资源拒（不采信客户端自造名）');
+  assert.equal(RAUTH({ id: '2400012355', role: 'org-commissioner' }, 'makeupTasks', 'mk-9', rows), false, '行不存在拒');
   assert.equal(RAUTH(null, 'makeupTasks', 'mk-1', rows), false, '无 actor 拒（防未登录）');
 });
 
 test('C2 记录作废裁决（确认）：受众＝申请人本人（按记录行复算，到人定向、不广播）', () => {
-  const rows = { makeup_tasks: { 'mk-1': { id: 'mk-1', voided: { byPersonId: 'p20' } } } };
+  const rows = { makeup_tasks: { 'mk-1': { id: 'mk-1', voided: { byPersonId: '2500010006' } } } };
   const notice = SYSTEM_NOTICE_KINDS['record-void-decided'].build({
     db: dbStub(rows), sourceId: 'mk-1',
     payload: { resource: 'makeupTasks', label: '补课任务 · 表内活动名', decision: 'confirmed', reason: '长期未补' },
   });
-  assert.deepEqual(notice.audiencePersons, ['p20'], '受众＝申请人（到人）');
+  assert.deepEqual(notice.audiencePersons, ['2500010006'], '受众＝申请人（到人）');
   assert.equal(notice.audience, undefined, '不发角色广播');
   const t = TEXT(notice);
   assert.ok(t.includes('补课任务 · 表内活动名') && t.includes('长期未补'), t);
@@ -202,12 +202,12 @@ test('C2 记录作废裁决（确认）：受众＝申请人本人（按记录�
 });
 
 test('C3 记录作废裁决（驳回）：受众＝原申请人（`voidRejected.byPersonId`）；无申请人 ⇒ 不设受众', () => {
-  const rows = { makeup_tasks: { 'mk-1': { id: 'mk-1', voidRejected: { byPersonId: 'p21', note: '证据不足' } } } };
+  const rows = { makeup_tasks: { 'mk-1': { id: 'mk-1', voidRejected: { byPersonId: '2500010007', note: '证据不足' } } } };
   const notice = SYSTEM_NOTICE_KINDS['record-void-decided'].build({
     db: dbStub(rows), sourceId: 'mk-1',
     payload: { resource: 'makeupTasks', label: 'L', decision: 'rejected', reason: '证据不足' },
   });
-  assert.deepEqual(notice.audiencePersons, ['p21']);
+  assert.deepEqual(notice.audiencePersons, ['2500010007']);
   assert.ok(TEXT(notice).includes('驳回'), TEXT(notice));
   const blank = SYSTEM_NOTICE_KINDS['record-void-decided'].build({
     db: dbStub({ makeup_tasks: { 'mk-2': { id: 'mk-2' } } }), sourceId: 'mk-2',
@@ -224,11 +224,11 @@ test('C3 记录作废裁决（驳回）：受众＝原申请人（`voidRejected.
 //           ④ payload **不带配对 id** 者仍沿用 payload —— **如实登记为余项**（见 D4）。
 test('D1 人名按名册复算：payload 伪造 senderName 被在册名覆盖（external-dispatch-created）', () => {
   const rows = {
-    users: { p3: { id: 'p3', name: '在册真名' } },
-    external_dispatches: { 'ed-1': { id: 'ed-1', senderId: 'p3', refLabel: '表内材料', receiverRole: '宣传委员' } },
+    users: { 2400012347: { id: '2400012347', name: '在册真名' } },
+    external_dispatches: { 'ed-1': { id: 'ed-1', senderId: '2400012347', refLabel: '表内材料', receiverRole: '宣传委员' } },
   };
   const t = TEXT(BUILD('external-dispatch-created', 'ed-1', rows,
-    { senderId: 'p3', senderName: '伪造名', refLabel: '伪造材料', receiverRole: '伪造角色' }));
+    { senderId: '2400012347', senderName: '伪造名', refLabel: '伪造材料', receiverRole: '伪造角色' }));
   assert.ok(t.includes('在册真名'), `人名未按名册复算（R-23 余项未堵）：${t}`);
   assert.ok(!t.includes('伪造名'), `伪造人名不得出现：${t}`);
 });
@@ -240,9 +240,9 @@ test('D2 反例：名册查无此人 ⇒ 沿用 payload（不得产出空名）'
 });
 
 test('D3 端口：`applyRosterNames` 只覆写「名册查得到」的 `<x>Id` —— 非人名 id 不误伤', () => {
-  const db = dbStub({ users: { p3: { id: 'p3', name: '在册真名' } } });
+  const db = dbStub({ users: { 2400012347: { id: '2400012347', name: '在册真名' } } });
   const vars = applyRosterNames(db, {
-    personId: 'p3', personName: '伪造',
+    personId: '2400012347', personName: '伪造',
     activityId: 'act-9', activityName: '活动名', sourceId: 'act-9',
   });
   assert.equal(vars.personName, '在册真名', '在册者 ⇒ 覆盖');
@@ -253,8 +253,8 @@ test('D4 余项**已收口**（2026-10-06 批次 426）：`member-change-approve
   // 批次 422 时这里记的是「payload 无配对 id ⇒ 名册无从复算（余项）」；批次 426 改为**按源行派生 id**：
   //   源行 `member_change_requests.personId` 补进 vars ⇒ `applyRosterNames` 按名册复算 `personName`。
   const rows = {
-    users: { p7: { id: 'p7', name: '在册真名' } },
-    member_change_requests: { 'mc-1': { id: 'mc-1', personId: 'p7', fromStage: '积极分子', toStage: '发展对象' } },
+    users: { 2400012351: { id: '2400012351', name: '在册真名' } },
+    member_change_requests: { 'mc-1': { id: 'mc-1', personId: '2400012351', fromStage: '积极分子', toStage: '发展对象' } },
   };
   const t = TEXT(BUILD('member-change-approved', 'mc-1', rows, { personName: 'payload 名' }));
   assert.ok(t.includes('在册真名'), `须按源行 personId 走名册复算：${t}`);
@@ -268,8 +268,8 @@ test('D4 余项**已收口**（2026-10-06 批次 426）：`member-change-approve
 //     「角色标签 → 中文」表）与 `targetPage`（落点，取决于被赋权人身份）。
 test('E1 `periodic-archive-submitted`：源行 `submittedBy` ⇒ 按名册复算 `submitterName`', () => {
   const rows = {
-    users: { p11: { id: 'p11', name: '宣传委员真名' } },
-    periodic_archive_submissions: { 'wr-1': { id: 'wr-1', submittedBy: 'p11', week: '第十周', weekRange: '10.01–10.07' } },
+    users: { 2400012355: { id: '2400012355', name: '宣传委员真名' } },
+    periodic_archive_submissions: { 'wr-1': { id: 'wr-1', submittedBy: '2400012355', week: '第十周', weekRange: '10.01–10.07' } },
   };
   const t = TEXT(BUILD('periodic-archive-submitted', 'wr-1', rows, { submitterName: '伪造报送人', week: '伪造周' }));
   assert.ok(t.includes('宣传委员真名'), `报送人未按名册复算：${t}`);
@@ -279,9 +279,9 @@ test('E1 `periodic-archive-submitted`：源行 `submittedBy` ⇒ 按名册复算
 
 test('周期归档通知按服务端冻结的周期快照展示，不采信客户端伪造期次', () => {
   const rows = {
-    users: { p11: { id: 'p11', name: '宣传委员真名' } },
+    users: { 2400012355: { id: '2400012355', name: '宣传委员真名' } },
     periodic_archive_submissions: { 'wr-month': {
-      id: 'wr-month', submittedBy: 'p11', week: '旧兼容字段', weekRange: '旧日期',
+      id: 'wr-month', submittedBy: '2400012355', week: '旧兼容字段', weekRange: '旧日期',
       archivePolicySnapshot: { unit: 'month', periodLabel: '2026年10月', periodRange: '2026-10-01 ~ 2026-10-31', version: 2 },
     } },
   };
@@ -295,9 +295,9 @@ test('周期归档通知按服务端冻结的周期快照展示，不采信客�
 
 test('E2 `review-request-submitted`：源行 `submittedBy` ⇒ 按名册复算 `submitterName`', () => {
   const rows = {
-    users: { p13: { id: 'p13', name: '支书真名' } },
+    users: { 2300010001: { id: '2300010001', name: '支书真名' } },
     branches: { 'br-b1': { id: 'br-b1', name: '演示支部' } },
-    review_requests: { 'rr-1': { id: 'rr-1', submittedBy: 'p13', branchId: 'br-b1', type: 'report', title: '半年小结' } },
+    review_requests: { 'rr-1': { id: 'rr-1', submittedBy: '2300010001', branchId: 'br-b1', type: 'report', title: '半年小结' } },
   };
   const t = TEXT(BUILD('review-request-submitted', 'rr-1', rows, { submitterName: '伪造发起人' }));
   assert.ok(t.includes('支书真名'), `发起人未按名册复算：${t}`);
@@ -306,12 +306,12 @@ test('E2 `review-request-submitted`：源行 `submittedBy` ⇒ 按名册复算 `
 
 test('E3 `project-auth-granted`：授权人＝服务端 `actor`、角色标签＝按 `role` 键复算（均不采信 payload）', () => {
   const rows = {
-    users: { p13: { id: 'p13', name: '支书真名' } },
+    users: { 2300010001: { id: '2300010001', name: '支书真名' } },
     activities: { 'act-1': { id: 'act-1', title: '表内活动' } },
   };
   const t = TEXT(BUILD('project-auth-granted', 'act-1', rows,
     { authorizerName: '伪造授权人', projectName: '伪造活动', roleLabel: '伪造角色', targetPage: './workspace/leader.html', role: 'organizer' },
-    { id: 'p13', role: 'secretary' }));
+    { id: '2300010001', role: 'secretary' }));
   assert.ok(t.includes('支书真名'), `授权人未按名册复算（须取自 ctx.actor.id）：${t}`);
   assert.ok(!t.includes('伪造授权人'), `伪造授权人不得出现：${t}`);
   assert.ok(t.includes('表内活动'), '项目名仍按表复算（批次 391 口径未动）');
@@ -323,7 +323,7 @@ test('E5 `project-auth-granted`：`role=deep` ⇒ 「深度参与者」（同一
   const rows = { activities: { 'act-2': { id: 'act-2', title: '表内活动二' } } };
   const t = TEXT(BUILD('project-auth-granted', 'act-2', rows,
     { roleLabel: '伪造角色', role: 'deep', targetPage: './workspace/visitor.html' },
-    { id: 'p11', role: 'org-commissioner' }));
+    { id: '2400012355', role: 'org-commissioner' }));
   assert.ok(t.includes('深度参与者'), t);
   assert.ok(!t.includes('伪造角色'), t);
 });
@@ -332,12 +332,12 @@ test('E6 反例（如实）：payload 不带 `role` 键 ⇒ 角色标签沿用 p
   const rows = { activities: { 'act-3': { id: 'act-3', title: '表内活动三' } } };
   const t = TEXT(BUILD('project-auth-granted', 'act-3', rows,
     { roleLabel: '旧客户端发来的标签', targetPage: './workspace/visitor.html' },
-    { id: 'p11', role: 'org-commissioner' }));
+    { id: '2400012355', role: 'org-commissioner' }));
   assert.ok(t.includes('旧客户端发来的标签'), `无 role 键 ⇒ 沿用 payload（不空标签）：${t}`);
 });
 
 test('E4 反例：源行无人字段 ⇒ 仍沿用 payload（不得产出空名）', () => {
-  const rows = { users: { p11: { id: 'p11', name: '在册真名' } }, periodic_archive_submissions: { 'wr-2': { id: 'wr-2', week: '第十一周' } } };
+  const rows = { users: { 2400012355: { id: '2400012355', name: '在册真名' } }, periodic_archive_submissions: { 'wr-2': { id: 'wr-2', week: '第十一周' } } };
   const t = TEXT(BUILD('periodic-archive-submitted', 'wr-2', rows, { submitterName: '报表未记报送人时的 payload 名' }));
   assert.ok(t.includes('报表未记报送人时的 payload 名'), `源行无 submittedBy ⇒ 沿用 payload（不空名）：${t}`);
 });

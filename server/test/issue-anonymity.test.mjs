@@ -37,7 +37,7 @@ import { join } from 'node:path';
 import { createApp } from '../app.js';
 import { seedDatabase } from '../seed.js';
 // 前后端同源哈希（服务端与前端共用；测试据此证明 tokenHash 由随机 token 派生、不含 personId）
-import { hashSubmitterToken } from '../../docs/src/core/domain/constants.js?v=20261020d';
+import { hashSubmitterToken } from '../../docs/src/core/domain/constants.js?v=20261020e';
 import { chromium } from 'playwright';
 
 let app, server, base;
@@ -104,8 +104,8 @@ let realIssue = null;    // 实名条目（供 ⑤ 与留痕「不含实名 id�
 //  ① 匿名提交：落库记真身；只有支部内可读，且任何常规出口都取不到真身
 // ═══════════════════════════════════════════════════════════════════════════
 test('API ①匿名提交：服务端存储层记真身；未登录拒绝、支部内脱敏、党委空列表', async () => {
-  const member = await login('p5');
-  const sec = await login('p13');
+  const member = await login('2400012349');
+  const sec = await login('2300010001');
   const token = 'anon-token-' + T0;
   const title = '匿名意见-' + T0;
   const res = await postIssue(member, {
@@ -130,7 +130,7 @@ test('API ①匿名提交：服务端存储层记真身；未登录拒绝、支�
   assert.equal(rec.submittedBy, '匿名', '对外字段仍是匿名');
   assert.equal(rec.anonymous, true);
   assert.deepEqual(rec.participants, []);
-  assert.equal(rec._realPersonId, 'p5', '改裁后存储层**必须**记真实提交人（取值＝会话 actor，非请求体自述）');
+  assert.equal(rec._realPersonId, '2400012349', '改裁后存储层**必须**记真实提交人（取值＝会话 actor，非请求体自述）');
   assert.ok(!raw.includes('p99'), '存储层不得采信客户端自述身份（p99 是请求体注入的伪身份）');
   assert.ok(!raw.includes('"author"'), '存储层不得含 author 字段');
   for (const k of STORAGE_FORBIDDEN_KEYS) assert.ok(!(k in rec), `存储层不得含 ${k}（真身只走 _realPersonId）`);
@@ -138,16 +138,16 @@ test('API ①匿名提交：服务端存储层记真身；未登录拒绝、支�
   // ── 未登录不能读取；党委维持 bootstrap 形状但不返回任何反馈 ──
   const unauth = await fetch(`${base}/api/v1/issues`);
   assert.equal(unauth.status, 401, '未登录不得读取支部反馈');
-  const partyRows = await getIssues(await login('p_pc'));
+  const partyRows = await getIssues(await login('9000000001'));
   assert.deepEqual(partyRows, [], '党委账号不能读取支部反馈');
 
-  // ── 支书视角（p13 secretary）：同样脱敏（「处置」≠「查看真身」）──
+  // ── 支书视角（2300010001 secretary）：同样脱敏（「处置」≠「查看真身」）──
   const secList = await getIssues(sec);
   const secRow = secList.find((i) => i.id === created.id);
   assert.ok(secRow, '本支部支书可见该反馈（处置用）');
   assert.equal(secRow.submittedBy, '匿名');
   for (const k of IDENTITY_KEYS) assert.ok(!(k in secRow), `支书视角不得含身份字段 ${k}`);
-  assert.ok(!JSON.stringify(secRow).includes('"p5"'), '支书视角不得含提交人 personId');
+  assert.ok(!JSON.stringify(secRow).includes('"2400012349"'), '支书视角不得含提交人 personId');
 });
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -159,20 +159,20 @@ test('API ①匿名提交：服务端存储层记真身；未登录拒绝、支�
 //  这正是 R-80 的同族：「**有一个出口脱敏，就要有一个写口保证不顺手把库里的东西擦掉**」——
 //  **脱敏是出口的事，不是写口的事**。此断言即该条纪律的常驻守卫（修了不加守卫＝还会回来，R-67）。
 test('API ①′处置不清真身：支书反复 PATCH 后库里仍保留匿名真实提交人，且出口始终脱敏', async () => {
-  const member = await login('p5');
-  const sec = await login('p13');
+  const member = await login('2400012349');
+  const sec = await login('2300010001');
   const created = await (await postIssue(member, {
     title: '处置不清真身-' + Date.now(), body: '正文', scope: 'scenario', types: ['bug'],
     anonymous: true, submitterToken: 'anon-keep-' + Date.now(),
   })).json();
   const readRaw = () => JSON.parse(app.locals.db.prepare('SELECT data FROM issues WHERE id = ?').get(created.id).data);
-  assert.equal(readRaw()._realPersonId, 'p5', '落库即含真身');
+  assert.equal(readRaw()._realPersonId, '2400012349', '落库即含真身');
 
   // 模拟支书侧的三种典型处置（指派 → 关闭 → 追加评论）：每一次都会把整条记录回写
   const patches = [
-    { status: 'processing', assignee: 'p13', assigneeRole: 'secretary' },
+    { status: 'processing', assignee: '2300010001', assigneeRole: 'secretary' },
     { status: 'closed', closedReason: '已办理', closedAt: new Date().toISOString() },
-    { comments: [{ id: 'c-keep-1', author: 'p13', body: '已核实' }], commentCount: 1 },
+    { comments: [{ id: 'c-keep-1', author: '2300010001', body: '已核实' }], commentCount: 1 },
   ];
   for (const [i, patch] of patches.entries()) {
     const res = await fetch(`${base}/api/v1/issues/${created.id}`, {
@@ -184,56 +184,56 @@ test('API ①′处置不清真身：支书反复 PATCH 后库里仍保留匿名
     const got = await res.json();
     for (const k of IDENTITY_KEYS) assert.ok(!(k in got), `处置回执不得含身份字段 ${k}`);
     assert.equal(got.submittedBy, '匿名', '处置后对外仍是匿名');
-    assert.equal(readRaw()._realPersonId, 'p5', `第 ${i + 1} 次处置后库里必须仍含真身（写口不得把脱敏后的对象整条写回）`);
+    assert.equal(readRaw()._realPersonId, '2400012349', `第 ${i + 1} 次处置后库里必须仍含真身（写口不得把脱敏后的对象整条写回）`);
   }
 
   // 真实身份字段仍在受保护存储中，但当前没有系统揭名出口。
-  const reveal = await getReveal(await login('p_pc'));
+  const reveal = await getReveal(await login('9000000001'));
   assert.equal(reveal.status, 403, '党委不能通过系统查看真身');
-  assert.equal(readRaw()._realPersonId, 'p5', '拒绝揭名不改变后台身份记录');
+  assert.equal(readRaw()._realPersonId, '2400012349', '拒绝揭名不改变后台身份记录');
 });
 
 // ═══════════════════════════════════════════════════════════════════════════
 //  ② 党委既不能读取支部反馈，也不能经旧兼容路径揭名
 // ═══════════════════════════════════════════════════════════════════════════
 test('API ②党委不能读取反馈或通过兼容端点揭名', async () => {
-  const pc = await login('p_pc');
+  const pc = await login('9000000001');
   const res = await getReveal(pc);
   assert.equal(res.status, 403);
-  assert.ok(!(await res.text()).includes('p5'));
+  assert.ok(!(await res.text()).includes('2400012349'));
   const rows = await getIssues(pc);
   assert.deepEqual(rows, [], '党委没有匿名反馈列表');
-  assert.equal(storedIssue(anonIssue.id).rec._realPersonId, 'p5', '受保护存储仍保留真实提交人');
+  assert.equal(storedIssue(anonIssue.id).rec._realPersonId, '2400012349', '受保护存储仍保留真实提交人');
 });
 
 // ═══════════════════════════════════════════════════════════════════════════
 //  ③ 所有角色均不可经 reveal 揭名 ＋ 未登录 401
 // ═══════════════════════════════════════════════════════════════════════════
 test('API ③揭名端点保持关闭：支部各角色与党委均 403，未登录 401', async () => {
-  // 逐一覆盖七个支部侧角色（单一源 roles：p13 支书 / p14 副支书 / p11 组织 / p12 宣传 / p10 纪检 / p1 组长 / p5 成员）
+  // 逐一覆盖七个支部侧角色（单一源 roles：2300010001 支书 / 2300010002 副支书 / 2400012355 组织 / 2400012356 宣传 / 2400012354 纪检 / 2400012345 组长 / 2400012349 成员）
   const FORBIDDEN = [
-    ['p13', 'secretary', '支书'],
-    ['p14', 'deputy-secretary', '副支书'],
-    ['p11', 'org-commissioner', '组织委员'],
-    ['p12', 'prop-commissioner', '宣传委员'],
-    ['p10', 'disc-commissioner', '纪检委员'],
-    ['p1', 'leader', '党小组组长'],
-    ['p5', 'participant', '普通成员'],
+    ['2300010001', 'secretary', '支书'],
+    ['2300010002', 'deputy-secretary', '副支书'],
+    ['2400012355', 'org-commissioner', '组织委员'],
+    ['2400012356', 'prop-commissioner', '宣传委员'],
+    ['2400012354', 'disc-commissioner', '纪检委员'],
+    ['2400012345', 'leader', '党小组组长'],
+    ['2400012349', 'participant', '普通成员'],
   ];
   for (const [pid, role, label] of FORBIDDEN) {
     const token = await login(pid);
     const res = await getReveal(token);
     assert.equal(res.status, 403, `${label}（${pid}/${role}）不得查看匿名真身`);
     const body = await res.text();
-    assert.ok(!body.includes('p5'), `${label} 的 403 响应体不得夹带真身`);
+    assert.ok(!body.includes('2400012349'), `${label} 的 403 响应体不得夹带真身`);
     assert.ok(!body.includes('realPersonId'), `${label} 的 403 响应体不得夹带真身字段`);
   }
-  const party = await getReveal(await login('p_pc'));
+  const party = await getReveal(await login('9000000001'));
   assert.equal(party.status, 403, '党委同样不能揭名');
   // 未登录（无 token）→ 401
   const anon = await getReveal(null);
   assert.equal(anon.status, 401, '未登录不得查看匿名真身');
-  assert.ok(!(await anon.text()).includes('p5'));
+  assert.ok(!(await anon.text()).includes('2400012349'));
 });
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -241,7 +241,7 @@ test('API ③揭名端点保持关闭：支部各角色与党委均 403，未登
 // ═══════════════════════════════════════════════════════════════════════════
 test('API ④关闭揭名后任何角色均不能新增揭名留痕', async () => {
   // 先备一条实名反馈，作为「revealedIds 不含实名 id」的对照
-  const member = await login('p5');
+  const member = await login('2400012349');
   realIssue = await (await postIssue(member, {
     title: '实名意见-' + T0, body: '实名内容', scope: 'scenario', types: ['enhancement'],
     anonymous: false, submitterToken: 'real-token-' + T0,
@@ -249,11 +249,11 @@ test('API ④关闭揭名后任何角色均不能新增揭名留痕', async () =
 
   const before = revealTraces();
   // 非党委查看被拒 → **不留痕**（否则留痕表会被无关角色刷脏，失去「谁看了」的意义）
-  await getReveal(await login('p13'));
+  await getReveal(await login('2300010001'));
   assert.equal(revealTraces().length, before.length, '被拒（403）的查看不得留痕');
 
   // 党委查看被拒 → 不新增留痕
-  const pc = await login('p_pc');
+  const pc = await login('9000000001');
   const res = await getReveal(pc);
   assert.equal(res.status, 403);
 
@@ -266,25 +266,25 @@ test('API ④关闭揭名后任何角色均不能新增揭名留痕', async () =
 // ═══════════════════════════════════════════════════════════════════════════
 test('API ⑤实名提交：submittedBy ＝ 提交人且仍只在本支部可读', async () => {
   assert.ok(realIssue, '④ 已备实名条目');
-  assert.equal(realIssue.submittedBy, 'p5');
+  assert.equal(realIssue.submittedBy, '2400012349');
   assert.equal(realIssue.anonymous, false);
-  assert.deepEqual(realIssue.participants, ['p5']);
+  assert.deepEqual(realIssue.participants, ['2400012349']);
   assert.ok(!('_realPersonId' in realIssue), '实名不重复存真身（真身即 submittedBy）');
 
   const { rec } = storedIssue(realIssue.id);
   assert.ok(!('_realPersonId' in rec), '实名条目存储层亦无 `_realPersonId` 冗余');
-  assert.equal(rec.submittedBy, 'p5');
+  assert.equal(rec.submittedBy, '2400012349');
 
-  const rows = await getIssues(await login('p5'));
-  assert.equal(rows.find((i) => i.id === realIssue.id)?.submittedBy, 'p5', '实名信息只对本支部常规读者可见');
-  assert.equal((await getReveal(await login('p_pc'))).status, 403);
+  const rows = await getIssues(await login('2400012349'));
+  assert.equal(rows.find((i) => i.id === realIssue.id)?.submittedBy, '2400012349', '实名信息只对本支部常规读者可见');
+  assert.equal((await getReveal(await login('9000000001'))).status, 403);
 });
 
 // ═══════════════════════════════════════════════════════════════════════════
 //  ⑥ 防刷行为不变：只按 tokenHash 判重/限频（与 personId 无关）
 // ═══════════════════════════════════════════════════════════════════════════
 test('API ⑥防刷不变：同一 token 判重 + 频率上限；换登录人同 token 仍判重（只认 tokenHash）', async () => {
-  const member = await login('p5');
+  const member = await login('2400012349');
   const token = 'abuse-token-' + Math.random().toString(36).slice(2);
   const body = { title: '限频测试', body: '同一内容', scope: 'scenario', types: ['bug'], anonymous: true, submitterToken: token };
   const first = await postIssue(member, body);
@@ -293,7 +293,7 @@ test('API ⑥防刷不变：同一 token 判重 + 频率上限；换登录人同
   assert.equal(dup.status, 409, '同 token 相同内容 → 判重');
 
   // 换一个登录人（支书）用**同一 token** 再交同样内容 → 仍判重 ⇒ 判重口径只认 tokenHash，与 personId 无关
-  const sec = await login('p13');
+  const sec = await login('2300010001');
   const dupOther = await postIssue(sec, body);
   assert.equal(dupOther.status, 409, '判重只认 tokenHash（换登录人同样命中），与 personId 无关');
 
@@ -308,14 +308,14 @@ test('API ⑥防刷不变：同一 token 判重 + 频率上限；换登录人同
 //  ⑦ tokenHash 不可反查：确定性派生、不含 personId / 原始 token
 // ═══════════════════════════════════════════════════════════════════════════
 test('API ⑦tokenHash 不可反查：确定性派生、不含 personId / 原始 token（改裁不改变此承诺）', async () => {
-  const member = await login('p5');
+  const member = await login('2400012349');
   const token = 'hash-token-' + Math.random().toString(36).slice(2);
   const created = await (await postIssue(member, {
     title: '哈希意见-' + T0, body: '哈希内容', scope: 'scenario', types: ['question'],
     anonymous: true, submitterToken: token,
   })).json();
   assert.equal(created.tokenHash, hashSubmitterToken(token), 'tokenHash 由随机 token 确定性派生');
-  assert.ok(!created.tokenHash.includes('p5'), 'tokenHash 不得含 personId');
+  assert.ok(!created.tokenHash.includes('2400012349'), 'tokenHash 不得含 personId');
   assert.ok(!created.tokenHash.includes(token), 'tokenHash 不得含原始 token');
   assert.ok(!JSON.stringify(created).includes(token), '常规读回执不得留原始 token');
   // 与真身字段的分离：tokenHash 是防刷线，`_realPersonId` 只在服务端受保护存储层保留
@@ -332,7 +332,7 @@ test('API ⑦tokenHash 不可反查：确定性派生、不含 personId / 原始
   const rows = await getIssues(member);
   const mine = rows.find((r) => r.id === created.id);
   assert.equal(mine.tokenHash, hashSubmitterToken(token), '公开读带 tokenHash（本机据此自认，服务端不参与认人）');
-  for (const pid of ['p1', 'p5', 'p11', 'p12', 'p13', 'p14', 'p_pc']) {
+  for (const pid of ['2400012345', '2400012349', '2400012355', '2400012356', '2300010001', '2300010002', '9000000001']) {
     assert.notEqual(hashSubmitterToken(pid), mine.tokenHash, `tokenHash 不得可由 personId（${pid}）推出`);
   }
   assert.notEqual(hashSubmitterToken('another-browser-token-' + T0), mine.tokenHash, '别台浏览器令牌比不中');
@@ -364,8 +364,8 @@ test('mock 形态：浏览器存储不保留真身（含旧缓存迁移）；党
     await page.route('**://cdn.tailwindcss.com/**', (r) => r.abort());
     await page.goto(`${base}/index.html`, { waitUntil: 'domcontentloaded', timeout: 15000 });
     const out = await page.evaluate(async () => {
-      const { IssueStore } = await import('/src/services/governance/issues.js?v=20261020d');
-      const { PersonStore } = await import('/src/services/member/person.js?v=20261020d');
+      const { IssueStore } = await import('/src/services/governance/issues.js?v=20261020e');
+      const { PersonStore } = await import('/src/services/member/person.js?v=20261020e');
       localStorage.clear();
       // 页面启动（bootstrap）可能已把 issues 读入模块内存；先清内存缓存，确保下面的「旧缓存迁移」
       // 场景从持久层真实回放（否则 loadAll 会走内存短路，旧记录被随后的写链覆盖）。
@@ -374,15 +374,15 @@ test('mock 形态：浏览器存储不保留真身（含旧缓存迁移）；党
       localStorage.setItem('gsm1921-issue-cache-version', '4');
       localStorage.setItem('gsm1921-issue-cache-v3', JSON.stringify([{
         id: 'legacy-anonymous', number: 9001, branchId: 'br-b1', title: '旧匿名反馈', body: '旧正文',
-        submittedBy: '匿名', anonymous: true, _realPersonId: 'p5', status: 'open',
+        submittedBy: '匿名', anonymous: true, _realPersonId: '2400012349', status: 'open',
       }]));
       localStorage.setItem('gsm1921-issue-drafts', JSON.stringify([{
         draftId: 'legacy-draft', type: 'new-issue', author: '匿名',
-        payload: { title: '旧匿名草稿', submittedBy: '匿名', anonymous: true, _realPersonId: 'p5' },
+        payload: { title: '旧匿名草稿', submittedBy: '匿名', anonymous: true, _realPersonId: '2400012349' },
       }]));
       const loginAs = (personId, role) => localStorage.setItem('gsm1921-login-user', JSON.stringify({ personId, role }));
 
-      loginAs('p5', 'participant');
+      loginAs('2400012349', 'participant');
       await IssueStore.loadAll();
       // 匿名提交 → 支书审核通过 → 仅本支部内可见
       const dAnon = await IssueStore.submitIssue({ title: '匿名-A', body: '内容A', scope: 'scenario', types: ['bug'], anonymous: true });
@@ -400,20 +400,20 @@ test('mock 形态：浏览器存储不保留真身（含旧缓存迁移）；党
       const asMember = await IssueStore.getIssuesForPartyReview();
 
       // 党委视角：服务层不提供列表或揭名出口
-      loginAs('p_pc', 'party-staff');
+      loginAs('9000000001', 'party-staff');
       const asParty = await IssueStore.getIssuesForPartyReview();
       const tracesAfterReveal = JSON.parse(localStorage.getItem('issue_reveals') || '[]');
-      const p5Name = PersonStore.getName('p5');
+      const p5Name = PersonStore.getName('2400012349');
 
       // 支书视角调核查出口（前端闸门：不得越权）
-      loginAs('p13', 'secretary');
+      loginAs('2300010001', 'secretary');
       const asSecretary = await IssueStore.getIssuesForPartyReview();
 
       // 支书端界面：反馈管理 tab 列表 + 详情面板
       const tc = document.createElement('div');
       tc.id = 'secretary-tab-content';
       document.body.appendChild(tc);
-      const fb = await import('/src/entries/tabs/secretary/feedback-tab.js?v=20261020d');
+      const fb = await import('/src/entries/tabs/secretary/feedback-tab.js?v=20261020e');
       fb.renderContent();
       const listRow = document.querySelector(`[data-issue-id="${anon.id}"]`);
       const listRowHtml = listRow ? listRow.innerHTML : '';
@@ -425,11 +425,11 @@ test('mock 形态：浏览器存储不保留真身（含旧缓存迁移）；党
       const pc = document.createElement('div');
       pc.id = 'party-committee-tab-content';
       document.body.appendChild(pc);
-      const pcTab = await import('/src/entries/tabs/party-committee/issue-review-tab.js?v=20261020d');
+      const pcTab = await import('/src/entries/tabs/party-committee/issue-review-tab.js?v=20261020e');
       await pcTab.renderContent();
       const asSecretaryHtml = pc.innerHTML;
       // …党委同样只看到边界说明
-      loginAs('p_pc', 'party-staff');
+      loginAs('9000000001', 'party-staff');
       await pcTab.renderContent();
       const asPartyHtml = pc.innerHTML;
       pc.remove();
@@ -453,7 +453,7 @@ test('mock 形态：浏览器存储不保留真身（含旧缓存迁移）；党
     for (const [label, rec] of [['getAll', out.viaGetAll], ['getById', out.viaGetById]]) {
       assert.ok(rec, `${label} 取得到该条`);
       for (const k of IDENTITY_KEYS) assert.ok(!(k in rec), `${label} 出口不得含身份字段 ${k}`);
-      assert.ok(!JSON.stringify(rec).includes('"p5"'), `${label} 出口不得含提交人 personId`);
+      assert.ok(!JSON.stringify(rec).includes('"2400012349"'), `${label} 出口不得含提交人 personId`);
     }
 
     // ── mock 本地库（缓存）：不能把“本机可读”冒充为“后台受保护” ──
@@ -481,7 +481,7 @@ test('mock 形态：浏览器存储不保留真身（含旧缓存迁移）；党
     assert.deepEqual(out.asMember.rows, [], '被拒时不得返回任何（含真身的）记录');
     assert.equal(out.asSecretary.forbidden, true, '支书也没有系统揭名入口');
     assert.deepEqual(out.asSecretary.rows, []);
-    assert.ok(out.p5Name && out.p5Name !== 'p5', '演示成员 p5 可解析为姓名');
+    assert.ok(out.p5Name && out.p5Name !== '2400012349', '演示成员 2400012349 可解析为姓名');
     assert.ok(!out.asSecretaryHtml.includes(out.p5Name), '旧核查深链不得出现真身');
     assert.ok(out.asSecretaryHtml.includes('匿名反馈不是向党委上报的入口'));
 

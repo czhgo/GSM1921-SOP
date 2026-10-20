@@ -19,24 +19,24 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261020d';
+import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261020e';
 import {
   MockAdapter,
-} from '../../docs/src/data/mock-adapter.js?v=20261020d';
-import { setDataSource } from '../../docs/src/data/data-adapter.js?v=20261020d';
+} from '../../docs/src/data/mock-adapter.js?v=20261020e';
+import { setDataSource } from '../../docs/src/data/data-adapter.js?v=20261020e';
 import {
   WORK_DOMAIN, TodoStore, TodoSourceType,
   LifecycleTodoDeriver, VisitorTodoDeriver, NoticeTodoDeriver,
   REALTIME_GROUP_DOMAIN, realtimeGroupDomainOf,
   buildDevelopNodeRemindGroup,
-} from '../../docs/src/services/governance/todo.js?v=20261020d';
-import { HandoffStore } from '../../docs/src/services/governance/handoff.js?v=20261020d';
-import { SignupStore } from '../../docs/src/services/activity/signup.js?v=20261020d';
-import { TaskForceRecordStore } from '../../docs/src/services/activity/taskforce.js?v=20261020d';
+} from '../../docs/src/services/governance/todo.js?v=20261020e';
+import { HandoffStore } from '../../docs/src/services/governance/handoff.js?v=20261020e';
+import { SignupStore } from '../../docs/src/services/activity/signup.js?v=20261020e';
+import { TaskForceRecordStore } from '../../docs/src/services/activity/taskforce.js?v=20261020e';
 import {
   saveFollowups, buildOverdueRemindGroup,
-} from '../../docs/src/services/governance/resolution-followup.js?v=20261020d';
-import { SecretaryTodoDeriver } from '../../docs/src/services/governance/secretary-overview.js?v=20261020d';
+} from '../../docs/src/services/governance/resolution-followup.js?v=20261020e';
+import { SecretaryTodoDeriver } from '../../docs/src/services/governance/secretary-overview.js?v=20261020e';
 
 // ── localStorage 内存桩（member-persist 同款）─────────────────────
 const _store = new Map();
@@ -126,16 +126,16 @@ test('③ visitor 参与：活动/专班 participate + 稳定键 participate（�
   // 活动与三会活动在一次全量扫描内派生（deriveFromActivities 会清理本次非 applicable 的同源残留，
   // 两次子集调用会互删；合并为一次调用，语义=工作台实时全量派生）
   VisitorTodoDeriver.deriveFromActivities({
-    personId: 'p3',
+    personId: '2400012347',
     activities: [
-      { id: 'act-v', title: '社区志愿', date: '2099-01-05', status: 'published', scenarioId: 'theme-party', organizer: 'p3', assignments: [] },
-      { id: 'act-vm', title: '党小组会', date: '2099-01-06', status: 'published', scenarioId: 'party-group-meeting', organizer: 'p1', assignments: [{ personId: 'p3', role: 'participant' }] },
+      { id: 'act-v', title: '社区志愿', date: '2099-01-05', status: 'published', scenarioId: 'theme-party', organizer: '2400012347', assignments: [] },
+      { id: 'act-vm', title: '党小组会', date: '2099-01-06', status: 'published', scenarioId: 'party-group-meeting', organizer: '2400012345', assignments: [{ personId: '2400012347', role: 'participant' }] },
     ],
     signups: [],
   });
   VisitorTodoDeriver.deriveFromTaskforceSignups({
-    personId: 'p3',
-    taskforces: [{ id: 'tf-v', name: '迎新专班', status: 'recruiting', deadline: '2099-02-01', task: '迎新生', members: [{ personId: 'p3', role: 'participant' }] }],
+    personId: '2400012347',
+    taskforces: [{ id: 'tf-v', name: '迎新专班', status: 'recruiting', deadline: '2099-02-01', task: '迎新生', members: [{ personId: '2400012347', role: 'participant' }] }],
     signups: [],
   });
 
@@ -164,7 +164,7 @@ test('④ 通知派生（NoticeTodoDeriver / Visitor 通知扫描）：domain=NO
     actionRoles: ['secretary'], targetModule: 'workspace', priority: 'normal',
   });
   VisitorTodoDeriver.deriveFromNotices({
-    personId: 'p3',
+    personId: '2400012347',
     notices: [{ id: 'nt-2', title: '活动预告', content: '', targetModule: 'activity', read: false }],
   });
 
@@ -201,28 +201,28 @@ test('⑤ handoff 三型：auto 类不派生待办；补课回执→考勤纪律
 
 test('⑥ signup-review：活动(theme-party)→活动/项目、专班→专班；approved 报名 participate 同步打标', () => {
   beginMockCase();
-  // 活动源：organizer=组长 p1（审核人角色 leader）
+  // 活动源：organizer=组长 2400012345（审核人角色 leader）
   mockDB.activities = [
     ...mockDB.activities,
-    { id: 'act-su', title: '实践参访报名', date: '2099-03-01', status: 'published', scenarioId: 'theme-party', organizer: 'p1', createdBy: 'p1', assignments: [] },
-    // p3 已是该活动参与者（assignments 预置 → apply participant 时 _writeSource 同步 return，避免异步泄漏跨用例）
-    { id: 'act-su2', title: '志愿活动报名', date: '2099-03-05', status: 'published', scenarioId: 'theme-party', organizer: 'p1', createdBy: 'p1', assignments: [{ personId: 'p3', role: 'participant' }] },
+    { id: 'act-su', title: '实践参访报名', date: '2099-03-01', status: 'published', scenarioId: 'theme-party', organizer: '2400012345', createdBy: '2400012345', assignments: [] },
+    // 2400012347 已是该活动参与者（assignments 预置 → apply participant 时 _writeSource 同步 return，避免异步泄漏跨用例）
+    { id: 'act-su2', title: '志愿活动报名', date: '2099-03-05', status: 'published', scenarioId: 'theme-party', organizer: '2400012345', createdBy: '2400012345', assignments: [{ personId: '2400012347', role: 'participant' }] },
   ];
-  // 专班源：initiator=组长 p1
+  // 专班源：initiator=组长 2400012345
   mockDB.taskforces = [
-    { id: 'tf-su', name: '迎新专班', status: 'recruiting', deadline: '2099-04-01', task: '迎新生', initiator: 'p1', members: [] },
+    { id: 'tf-su', name: '迎新专班', status: 'recruiting', deadline: '2099-04-01', task: '迎新生', initiator: '2400012345', members: [] },
   ];
   TaskForceRecordStore._records = [...mockDB.taskforces];
 
   // organizer 报名（pending）→ 审核待办
-  const ra = SignupStore.apply({ sourceType: 'activity', sourceId: 'act-su', personId: 'p3', role: 'organizer' });
+  const ra = SignupStore.apply({ sourceType: 'activity', sourceId: 'act-su', personId: '2400012347', role: 'organizer' });
   assert.equal(ra.ok, true);
-  const rt = SignupStore.apply({ sourceType: 'taskforce', sourceId: 'tf-su', personId: 'p3', role: 'deep' });
+  const rt = SignupStore.apply({ sourceType: 'taskforce', sourceId: 'tf-su', personId: '2400012347', role: 'deep' });
   assert.equal(rt.ok, true);
 
   const ta = TodoStore.getAll().find(t => t.actionKey === 'signup-review' && t.actionData && t.actionData.signupId === ra.signup.id);
   assert.ok(ta, '活动报名审核待办已派生');
-  assert.equal(ta.role, 'leader', '审核人=活动 organizer（p1 leader）');
+  assert.equal(ta.role, 'leader', '审核人=活动 organizer（2400012345 leader）');
   assert.equal(ta.sourceType, 'activity');
   assert.equal(ta.actionKey, 'signup-review', 'signup-review 稳定键已设');
   assert.equal(ta.domain, 'project', '活动侧报名审核 → 项目域');
@@ -230,13 +230,13 @@ test('⑥ signup-review：活动(theme-party)→活动/项目、专班→专班�
 
   const tt = TodoStore.getAll().find(t => t.actionKey === 'signup-review' && t.actionData && t.actionData.signupId === rt.signup.id);
   assert.ok(tt, '专班报名审核待办已派生');
-  assert.equal(tt.role, 'leader', '审核人=专班 initiator（p1 leader）');
+  assert.equal(tt.role, 'leader', '审核人=专班 initiator（2400012345 leader）');
   assert.equal(tt.sourceType, 'taskforce');
   assert.equal(tt.actionKey, 'signup-review');
   assert.equal(tt.domain, 'project', '专班侧报名审核 → 项目域');
 
   // participant 报名（auto approved）→ 参与待办同步打标
-  const rp = SignupStore.apply({ sourceType: 'activity', sourceId: 'act-su2', personId: 'p3', role: 'participant' });
+  const rp = SignupStore.apply({ sourceType: 'activity', sourceId: 'act-su2', personId: '2400012347', role: 'participant' });
   assert.equal(rp.ok, true);
   const tp = TodoStore.getAll().find(t => t.actionType === 'participate' && t.sourceId === 'act-su2');
   assert.ok(tp, 'approved 报名生成参与待办');
@@ -315,16 +315,16 @@ test('⑧ 实时组域标签：导出映射覆盖支书 8 组/决议逾期/成�
 test('⑨ 发展节点提醒：培养考察期满/预备期满派生组织委员实时组（域=成员发展 + 稳定键，幂等不重复）', () => {
   const today = '2026-09-10';
   const members = [
-    { id: 'p1', name: '甲', developStage: '积极分子' },
-    { id: 'p2', name: '乙', developStage: '预备党员' },
-    { id: 'p3', name: '丙', developStage: '积极分子' },   // 未满期
-    { id: 'p4', name: '丁', developStage: '发展对象' },   // 无期满节点
-    { id: 'p5', name: '戊', developStage: '预备党员' },   // 无 entryDate → 不派生
+    { id: '2400012345', name: '甲', developStage: '积极分子' },
+    { id: '2400012346', name: '乙', developStage: '预备党员' },
+    { id: '2400012347', name: '丙', developStage: '积极分子' },   // 未满期
+    { id: '2400012348', name: '丁', developStage: '发展对象' },   // 无期满节点
+    { id: '2400012349', name: '戊', developStage: '预备党员' },   // 无 entryDate → 不派生
   ];
   const overrides = {
-    p1: { stage: '积极分子', entryDate: '2025-06-01' }, // +365 = 2026-06-01 ≤ today → 满期
-    p2: { stage: '预备党员', entryDate: '2025-08-01' }, // +365 = 2026-08-01 ≤ today → 满期
-    p3: { stage: '积极分子', entryDate: '2026-05-01' }, // +365 → 未满
+    2400012345: { stage: '积极分子', entryDate: '2025-06-01' }, // +365 = 2026-06-01 ≤ today → 满期
+    2400012346: { stage: '预备党员', entryDate: '2025-08-01' }, // +365 = 2026-08-01 ≤ today → 满期
+    2400012347: { stage: '积极分子', entryDate: '2026-05-01' }, // +365 → 未满
   };
 
   const g = buildDevelopNodeRemindGroup({ members, overrides, today });
@@ -332,16 +332,16 @@ test('⑨ 发展节点提醒：培养考察期满/预备期满派生组织委员
   assert.equal(g.actionKey, 'develop-node-remind', '稳定 actionKey');
   assert.equal(g.groupKey, 'org-commissioner:develop-node-remind');
   assert.equal(g.domain, WORK_DOMAIN.MEMBER_DEV, '域=成员发展');
-  assert.equal(g.count, 2, '仅满期且有日期者计入（p3 未满 / p4 无节点 / p5 无日期 不入）');
-  assert.deepEqual(g.items.map(i => i.personId).sort(), ['p1', 'p2']);
-  assert.equal(g.items.find(i => i.personId === 'p1').dueDate, '2026-06-01', '培养考察期 = entryDate + 365 天');
-  assert.match(g.items.find(i => i.personId === 'p2').title, /预备期满/);
+  assert.equal(g.count, 2, '仅满期且有日期者计入（2400012347 未满 / 2400012348 无节点 / 2400012349 无日期 不入）');
+  assert.deepEqual(g.items.map(i => i.personId).sort(), ['2400012345', '2400012346']);
+  assert.equal(g.items.find(i => i.personId === '2400012345').dueDate, '2026-06-01', '培养考察期 = entryDate + 365 天');
+  assert.match(g.items.find(i => i.personId === '2400012346').title, /预备期满/);
 
   // 稳定键已登记域映射（供 T4 域折组展示）
   assert.equal(REALTIME_GROUP_DOMAIN['develop-node-remind'], WORK_DOMAIN.MEMBER_DEV);
   assert.equal(realtimeGroupDomainOf({ actionKey: 'develop-node-remind' }), WORK_DOMAIN.MEMBER_DEV);
 
   // 幂等：无期满/空输入 → null（不产生空组卡，避免重复提醒）
-  assert.equal(buildDevelopNodeRemindGroup({ members, overrides: { p3: overrides.p3 }, today }), null);
+  assert.equal(buildDevelopNodeRemindGroup({ members, overrides: { 2400012347: overrides['2400012347'] }, today }), null);
   assert.equal(buildDevelopNodeRemindGroup({ members: [], overrides: {}, today }), null);
 });

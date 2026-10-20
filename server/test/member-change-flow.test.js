@@ -37,14 +37,14 @@ async function requestAs(token, path, method, body) {
 }
 
 test('组织委员审批后广播，支书确认后更新成员资料', async () => {
-  const secretaryToken = await tokenFor('p13');
-  const orgToken = await tokenFor('p11');
-  const participantToken = await tokenFor('p6');
+  const secretaryToken = await tokenFor('2300010001');
+  const orgToken = await tokenFor('2400012355');
+  const participantToken = await tokenFor('2400012350');
 
   const deniedCreate = await requestAs(participantToken, '/api/v1/member-change-requests', 'POST', {
     activityId: 'act-27',
-    agendaItemId: 'agenda-member-p6',
-    personId: 'p6',
+    agendaItemId: 'agenda-member-2400012350',
+    personId: '2400012350',
     fromStage: '发展对象',
     toStage: '预备党员',
     meetingResult: 'passed',
@@ -53,8 +53,8 @@ test('组织委员审批后广播，支书确认后更新成员资料', async ()
 
   const createResponse = await requestAs(secretaryToken, '/api/v1/member-change-requests', 'POST', {
     activityId: 'act-27',
-    agendaItemId: 'agenda-member-p6',
-    personId: 'p6',
+    agendaItemId: 'agenda-member-2400012350',
+    personId: '2400012350',
     fromStage: '发展对象',
     toStage: '预备党员',
     meetingResult: 'passed',
@@ -73,7 +73,7 @@ test('组织委员审批后广播，支书确认后更新成员资料', async ()
 
   const userBeforeConfirmation = await requestAs(secretaryToken, '/api/v1/users', 'GET');
   const peopleBeforeConfirmation = await userBeforeConfirmation.json();
-  assert.equal(peopleBeforeConfirmation.find((person) => person.id === 'p6').developStage, '发展对象');
+  assert.equal(peopleBeforeConfirmation.find((person) => person.id === '2400012350').developStage, '发展对象');
 
   // P1-26（2026-10-20）：committee_broadcasts 无消费端，审批通过不再写入（送达改由系统通知）。
   const broadcastsResponse = await requestAs(secretaryToken, `/api/v1/committeeBroadcasts?requestId=${created.id}`, 'GET');
@@ -87,5 +87,5 @@ test('组织委员审批后广播，支书确认后更新成员资料', async ()
 
   const userAfterConfirmation = await requestAs(secretaryToken, '/api/v1/users', 'GET');
   const peopleAfterConfirmation = await userAfterConfirmation.json();
-  assert.equal(peopleAfterConfirmation.find((person) => person.id === 'p6').developStage, '预备党员');
+  assert.equal(peopleAfterConfirmation.find((person) => person.id === '2400012350').developStage, '预备党员');
 });

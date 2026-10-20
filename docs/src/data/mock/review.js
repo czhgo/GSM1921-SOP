@@ -7,7 +7,7 @@
 // 本文件退化为纯复盘种子数据仓。
 // 2026-09-06 基线刷新：时间字段随关联活动重排（活动新日期见 activities.js 头注）同步平移，
 //   正文中旧人名/月份词同步更新（人名与 people.js 一致）。
-import { ReviewStatus } from '../../core/domain/domain.js?v=20261020d';
+import { ReviewStatus } from '../../core/domain/domain.js?v=20261020e';
 
 /**
  * 活动复盘记录
@@ -23,7 +23,7 @@ export const REVIEW_RECORDS = [
   {
     id: 'rev1',
     activityId: 'act-1',
-    organizerId: 'p3',
+    organizerId: '2400012347',
     progress: '已完成',
     overdue: false,
     reviewStatus: ReviewStatus.CONFIRMED,
@@ -34,7 +34,7 @@ export const REVIEW_RECORDS = [
   {
     id: 'rev2',
     activityId: 'act-2',
-    organizerId: 'p11',
+    organizerId: '2400012355',
     progress: '已完成',
     overdue: false,
     reviewStatus: ReviewStatus.CONFIRMED,
@@ -45,7 +45,7 @@ export const REVIEW_RECORDS = [
   {
     id: 'rev3',
     activityId: 'act-3',
-    organizerId: 'p3',
+    organizerId: '2400012347',
     progress: '已完成',
     overdue: false,
     reviewStatus: ReviewStatus.UPLOADED,
@@ -58,7 +58,7 @@ export const REVIEW_RECORDS = [
   {
     id: 'rev4',
     activityId: 'act-4',
-    organizerId: 'p1',
+    organizerId: '2400012345',
     progress: '已完成',
     overdue: false,
     reviewStatus: ReviewStatus.UPLOADED,
@@ -68,21 +68,21 @@ export const REVIEW_RECORDS = [
   {
     id: 'rev5',
     activityId: 'act-5',
-    organizerId: 'p11',
+    organizerId: '2400012355',
     progress: '已完成',
     overdue: false,
     reviewStatus: ReviewStatus.ANNOTATING,
     reviewContent: '7月支委会审议本月积极分子考察结果，议定7月支部党员大会议程。各项决议已落实至承办委员。',
-    annotation: '请补充积极分子 p7 曾雨桐的考察材料清单，明确材料缺失项。',
-    annotatedBy: 'p10',
+    annotation: '请补充积极分子 2400012351 曾雨桐的考察材料清单，明确材料缺失项。',
+    annotatedBy: '2400012354',
     annotatedAt: '2026-07-09T10:00:00',
-    issues: ['积极分子 p7 考察材料清单缺失'],
+    issues: ['积极分子 2400012351 考察材料清单缺失'],
     submittedAt: '2026-07-08T14:00:00',
   },
   {
     id: 'rev6',
     activityId: 'act-6',
-    organizerId: 'p13',
+    organizerId: '2300010001',
     progress: '已完成',
     overdue: false,
     reviewStatus: ReviewStatus.UPLOADED,
@@ -93,13 +93,13 @@ export const REVIEW_RECORDS = [
   {
     id: 'rev7',
     activityId: 'act-7',
-    organizerId: 'p3',
+    organizerId: '2400012347',
     progress: '超时',
     overdue: true,
     reviewStatus: ReviewStatus.REJECTED,
     reviewContent: '7月主题党日红色基地参访复盘（初稿）。',
-    annotation: '复盘材料缺失：① 参访人员名单与签到表 ② 现场影像记录 ③ 深度参与者 p9 吕思涵的工作量记录。请补充完整后重新提交。',
-    annotatedBy: 'p10',
+    annotation: '复盘材料缺失：① 参访人员名单与签到表 ② 现场影像记录 ③ 深度参与者 2400012353 吕思涵的工作量记录。请补充完整后重新提交。',
+    annotatedBy: '2400012354',
     annotatedAt: '2026-07-11T11:00:00',
     issues: ['参访材料缺失：人员名单与签到表、现场影像、深度参与者工作量记录'],
     submittedAt: '2026-07-10T10:00:00',
@@ -109,7 +109,7 @@ export const REVIEW_RECORDS = [
   {
     id: 'rev8',
     activityId: 'act-8',
-    organizerId: 'p11',
+    organizerId: '2400012355',
     progress: '已完成',
     overdue: false,
     reviewStatus: ReviewStatus.UPLOADED,
@@ -119,13 +119,13 @@ export const REVIEW_RECORDS = [
   {
     id: 'rev9',
     activityId: 'act-10',
-    organizerId: 'p3',
+    organizerId: '2400012347',
     progress: '已完成',
     overdue: false,
     reviewStatus: ReviewStatus.ANNOTATING,
     reviewContent: '7月主题党日"五四精神传承"为品牌活动第二场，深度参与者彭博文、吕思涵完成视频制作与新闻稿撰写。本次活动引入校企共建元素，效果良好。',
     annotation: '建议补充品牌活动培育路径说明，体现"培育→成熟→标杆"四阶段中的当前阶段。',
-    annotatedBy: 'p10',
+    annotatedBy: '2400012354',
     annotatedAt: '2026-07-15T09:00:00',
     issues: ['品牌活动培育路径说明缺失'],
     submittedAt: '2026-07-14T16:00:00',
@@ -133,7 +133,7 @@ export const REVIEW_RECORDS = [
   {
     id: 'rev10',
     activityId: 'act-12',
-    organizerId: 'p11',
+    organizerId: '2400012355',
     progress: '已完成',
     overdue: false,
     reviewStatus: ReviewStatus.UPLOADED,
@@ -143,7 +143,7 @@ export const REVIEW_RECORDS = [
   {
     id: 'rev11',
     activityId: 'act-19',
-    organizerId: 'p4',
+    organizerId: '2400012348',
     progress: '进行中',
     overdue: false,
     reviewStatus: ReviewStatus.NOT_SUBMITTED,
@@ -169,7 +169,7 @@ export const TASKFORCE_REVIEW_RECORDS = [
     taskforceId: 'tf-001',
     workgroupId: 'wg-taskforce-tf-001',
     sourceName: '宣传专班（第二期）',
-    organizerId: 'p11',
+    organizerId: '2400012355',
     progress: '进行中',
     overdue: false,
     reviewStatus: ReviewStatus.UPLOADED,
@@ -183,7 +183,7 @@ export const TASKFORCE_REVIEW_RECORDS = [
     taskforceId: 'tf-004',
     workgroupId: 'wg-taskforce-tf-004',
     sourceName: '共建座谈对接专班',
-    organizerId: 'p11',
+    organizerId: '2400012355',
     progress: '已完成',
     overdue: false,
     reviewStatus: ReviewStatus.CONFIRMED,

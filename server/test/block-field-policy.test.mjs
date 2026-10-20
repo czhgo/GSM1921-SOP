@@ -46,7 +46,7 @@ async function patchConfig(token, body) {
   });
 }
 
-const V = '?v=20261020d';
+const V = '?v=20261020e';
 const BLOCK = 'theme-party-day';
 
 test('② 净化 + 读侧：cleanFieldPolicies 正/反样例（去重/丢非串/只收布尔/空壳不保留）', async () => {
@@ -100,8 +100,8 @@ test('② 对齐清单：carrier 过滤 + 隐藏 + 必填覆盖（且不原地�
 });
 
 test('② HTTP：fieldPolicies 写回（净化形状）/ 非法丢弃 / blocks=null 恢复默认', async () => {
-  const { token: sec } = await login('p13');    // 现任支书
-  const { token: staff } = await login('p_pc'); // 党委组织员
+  const { token: sec } = await login('2300010001');    // 现任支书
+  const { token: staff } = await login('9000000001'); // 党委组织员
 
   // ① 写入（含脏值）→ 200，读回为净化后的形状
   const r1 = await patchConfig(sec, {

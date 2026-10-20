@@ -7,7 +7,7 @@
 //   ③ 填「专业」＋子表（`班团 | 计算机 2401 | 团支书`）提交 ⇒ 模态关闭；**再次打开**（走应用自己的读链）
 //      值仍在 ⇒ 证明**落库 → 读回**闭环（非只改内存）。
 //
-// 自包含：createApp(:memory:) + seedDatabase + 真登录（普通成员 p1 ＝ 学号 2400012345 / 123456）。
+// 自包含：createApp(:memory:) + seedDatabase + 真登录（普通成员 2400012345 ＝ 学号 2400012345 / 123456）。
 
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
@@ -39,7 +39,7 @@ test('P1 本人自助填「自我描述」：入口在 · 模态只出该组 · 
   await page.route('**://fonts.gstatic.com/**', (r) => r.abort());
   await page.route('**://cdn.tailwindcss.com/**', (r) => r.abort());
   try {
-    // ① 真登录（普通成员 p1；账号＝学号）
+    // ① 真登录（普通成员 2400012345；账号＝学号）
     await page.goto(`${base}/login.html`, { waitUntil: 'domcontentloaded' });
     await page.fill('#student-id', '2400012345');
     await page.fill('#password', '123456');
@@ -96,7 +96,7 @@ test('P2 组织委员批量导入「自我描述」：粘贴 → 解析预览 �
   await page.route('**://fonts.gstatic.com/**', (r) => r.abort());
   await page.route('**://cdn.tailwindcss.com/**', (r) => r.abort());
   try {
-    // ① 真登录：组织委员 p11（学号 2400012355 / 123456）
+    // ① 真登录：组织委员 2400012355（学号 2400012355 / 123456）
     await page.goto(`${base}/login.html`, { waitUntil: 'domcontentloaded' });
     await page.fill('#student-id', '2400012355');
     await page.fill('#password', '123456');
@@ -108,14 +108,14 @@ test('P2 组织委员批量导入「自我描述」：粘贴 → 解析预览 �
     // ② 组织台「成员名册」tab（深链 ?tab=roster）⇒ 导入区在位、名单已渲染
     await page.goto(`${base}/workspace/org.html?tab=roster`, { waitUntil: 'domcontentloaded' });
     await page.waitForSelector('#roster-sp-import-card', { timeout: 15000 });
-    await page.waitForSelector('.roster-edit[data-person-id="p3"]', { timeout: 15000 });
+    await page.waitForSelector('.roster-edit[data-person-id="2400012347"]', { timeout: 15000 });
 
-    // ③ 变前基线：p3「专业」尚空（证明后面的非空确系导入所致，排除「本来就有」）
-    await page.click('.roster-edit[data-person-id="p3"]');
+    // ③ 变前基线：2400012347「专业」尚空（证明后面的非空确系导入所致，排除「本来就有」）
+    await page.click('.roster-edit[data-person-id="2400012347"]');
     await page.waitForSelector('#person-edit-modal-form', { timeout: 8000 });
     const before = await page.evaluate(() =>
       document.querySelector('#person-edit-modal-form [data-field="selfProfile.major"]')?.value ?? null);
-    assert.equal(before, '', '变前 p3 的「专业」应为空');
+    assert.equal(before, '', '变前 2400012347 的「专业」应为空');
     await page.click('button[data-modal-cancel="person-edit-modal"]');
     await page.waitForSelector('#person-edit-modal-form', { state: 'detached', timeout: 8000 });
 
@@ -140,10 +140,10 @@ test('P2 组织委员批量导入「自我描述」：粘贴 → 解析预览 �
       const el = document.querySelector('#roster-sp-preview');
       return !el || el.innerHTML.trim() === '';
     }, { timeout: 10000 });
-    await page.waitForSelector('.roster-edit[data-person-id="p3"]', { timeout: 15000 });
+    await page.waitForSelector('.roster-edit[data-person-id="2400012347"]', { timeout: 15000 });
 
-    // ⑥ 读回（走应用自己的读链）：p3 档案模态里「专业 / 志愿服务时长 / 学生工作」应更新
-    await page.click('.roster-edit[data-person-id="p3"]');
+    // ⑥ 读回（走应用自己的读链）：2400012347 档案模态里「专业 / 志愿服务时长 / 学生工作」应更新
+    await page.click('.roster-edit[data-person-id="2400012347"]');
     await page.waitForSelector('#person-edit-modal-form', { timeout: 8000 });
     const after = await page.evaluate(() => {
       const f = document.querySelector('#person-edit-modal-form');

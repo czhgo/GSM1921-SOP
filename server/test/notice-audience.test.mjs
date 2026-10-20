@@ -32,12 +32,12 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
-import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261020d';
-import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261020d';
-import { setDataSource, registerMockAdapter } from '../../docs/src/data/data-adapter.js?v=20261020d';
-import { MOCK_NOTICES } from '../../docs/src/data/mock/index.js?v=20261020d';
-import { NOTICE_AUDIENCE_OPTIONS } from '../../docs/src/core/domain/constants.js?v=20261020d';
-import { NoticeStore, canReadNotice } from '../../docs/src/services/governance/notice.js?v=20261020d';
+import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261020e';
+import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261020e';
+import { setDataSource, registerMockAdapter } from '../../docs/src/data/data-adapter.js?v=20261020e';
+import { MOCK_NOTICES } from '../../docs/src/data/mock/index.js?v=20261020e';
+import { NOTICE_AUDIENCE_OPTIONS } from '../../docs/src/core/domain/constants.js?v=20261020e';
+import { NoticeStore, canReadNotice } from '../../docs/src/services/governance/notice.js?v=20261020e';
 
 // ── localStorage 内存桩 + sessionStorage 空桩（与 thought-report-panel.test.mjs 同做法）──
 // getCurrentUser 走 localStorage；A-11 防串扰仅在登录对象带 tabId 时才校验，本桩不带 tabId → 直取。
@@ -91,17 +91,17 @@ test('N1 sentinel all（全体党员）= 广播：任意角色与无会话均可
   assert.deepEqual(NOTICE_AUDIENCE_OPTIONS.map((o) => o.label), ['全体党员', '党小组组长', '入党积极分子', '发展对象']);
 
   beginCase([{ ...BASE, id: 'notice-n1', audience: ['all'], audienceLabel: '全体党员' }]);
-  loginAs('p13', 'secretary');  assert.ok(visibleIds().includes('notice-n1'), '支书可见（广播）');
-  loginAs('p1', 'leader');      assert.ok(visibleIds().includes('notice-n1'), '组长可见（广播）');
-  loginAs('p3', 'participant'); assert.ok(visibleIds().includes('notice-n1'), '普通成员可见（广播）');
+  loginAs('2300010001', 'secretary');  assert.ok(visibleIds().includes('notice-n1'), '支书可见（广播）');
+  loginAs('2400012345', 'leader');      assert.ok(visibleIds().includes('notice-n1'), '组长可见（广播）');
+  loginAs('2400012347', 'participant'); assert.ok(visibleIds().includes('notice-n1'), '普通成员可见（广播）');
   logout();                     assert.ok(visibleIds().includes('notice-n1'), '无会话可见（广播）');
 });
 
 test('N2 sentinel leaders：组长可见；非 leader 的成员/支书不可见', () => {
   beginCase([{ ...BASE, id: 'notice-n2', audience: ['leaders'], audienceLabel: '党小组组长' }]);
-  loginAs('p1', 'leader');      assert.ok(visibleIds().includes('notice-n2'), '组长可见');
-  loginAs('p3', 'participant'); assert.ok(!visibleIds().includes('notice-n2'), '普通成员不可见');
-  loginAs('p13', 'secretary');  assert.ok(!visibleIds().includes('notice-n2'), '支书不可见（list 受众门无签发人特权）');
+  loginAs('2400012345', 'leader');      assert.ok(visibleIds().includes('notice-n2'), '组长可见');
+  loginAs('2400012347', 'participant'); assert.ok(!visibleIds().includes('notice-n2'), '普通成员不可见');
+  loginAs('2300010001', 'secretary');  assert.ok(!visibleIds().includes('notice-n2'), '支书不可见（list 受众门无签发人特权）');
 });
 
 test('N3 sentinel activists/candidates：按 developStage 命中；无关阶段不可见', () => {
@@ -109,24 +109,24 @@ test('N3 sentinel activists/candidates：按 developStage 命中；无关阶段�
     { ...BASE, id: 'notice-act', audience: ['activists'], audienceLabel: '入党积极分子' },
     { ...BASE, id: 'notice-cand', audience: ['candidates'], audienceLabel: '发展对象' },
   ]);
-  loginAs('p7', 'participant'); // developStage = 积极分子
+  loginAs('2400012351', 'participant'); // developStage = 积极分子
   assert.ok(visibleIds().includes('notice-act'), '积极分子可见 activists');
   assert.ok(!visibleIds().includes('notice-cand'), '积极分子不可见 candidates');
 
-  loginAs('p6', 'participant'); // developStage = 发展对象
+  loginAs('2400012350', 'participant'); // developStage = 发展对象
   assert.ok(visibleIds().includes('notice-cand'), '发展对象可见 candidates');
   assert.ok(!visibleIds().includes('notice-act'), '发展对象不可见 activists');
 
-  loginAs('p3', 'participant'); // developStage = 正式党员（无关阶段）
+  loginAs('2400012347', 'participant'); // developStage = 正式党员（无关阶段）
   assert.ok(!visibleIds().includes('notice-act'), '无关阶段不可见 activists');
   assert.ok(!visibleIds().includes('notice-cand'), '无关阶段不可见 candidates');
 });
 
 test('N4 裸角色键兼容：audience:[org-commissioner] 仅组织委员可见（回退判定生效）', () => {
   beginCase([{ ...BASE, id: 'notice-n4', audience: ['org-commissioner'] }]);
-  loginAs('p11', 'org-commissioner'); assert.ok(visibleIds().includes('notice-n4'), '组织委员可见');
-  loginAs('p13', 'secretary');        assert.ok(!visibleIds().includes('notice-n4'), '支书不可见');
-  loginAs('p3', 'participant');       assert.ok(!visibleIds().includes('notice-n4'), '普通成员不可见');
+  loginAs('2400012355', 'org-commissioner'); assert.ok(visibleIds().includes('notice-n4'), '组织委员可见');
+  loginAs('2300010001', 'secretary');        assert.ok(!visibleIds().includes('notice-n4'), '支书不可见');
+  loginAs('2400012347', 'participant');       assert.ok(!visibleIds().includes('notice-n4'), '普通成员不可见');
 });
 
 // ════════════════════════════════════════════════════════════════
@@ -138,7 +138,7 @@ test('N5 getById 契约：按 id 取数不受可见性门限制（签发人也�
     { ...BASE, id: 'notice-n5-all', audience: ['all'], audienceLabel: '全体党员', publishedBy: '支书' },
     { ...BASE, id: 'notice-n5-dir', audience: ['leaders'], audienceLabel: '党小组组长', publishedBy: '支书' },
   ]);
-  loginAs('p13', 'secretary');
+  loginAs('2300010001', 'secretary');
   assert.ok(NoticeStore.getById('notice-n5-all'),
     "audience:['all'] 的通知，发布者（支书）经 getById 必须取到（修复前此处为 null → 详情页打不开）");
   assert.ok(NoticeStore.getById('notice-n5-dir'),
@@ -153,9 +153,9 @@ test('N5 getById 契约：按 id 取数不受可见性门限制（签发人也�
 
 test('N6 canReadNotice：发布者/支委层/命中受众可读；无关成员不可读；广播人人可读；无会话仅广播可读', () => {
   beginCase([]);
-  const secretary = { personId: 'p13', role: 'secretary' };
-  const leader = { personId: 'p1', role: 'leader' };
-  const member = { personId: 'p3', role: 'participant' };
+  const secretary = { personId: '2300010001', role: 'secretary' };
+  const leader = { personId: '2400012345', role: 'leader' };
+  const member = { personId: '2400012347', role: 'participant' };
 
   // 发布者恒可读：组长发布的定向通知（受众=支书），组长本人非受众但仍可读
   const byLeader = { ...BASE, id: 'n6-pub', audience: ['secretary'], publishedBy: '党小组组长' };
@@ -180,7 +180,7 @@ test('N7 无受众（audience:null，如种子 notice-101）→ 人人可见、�
   const seed101 = MOCK_NOTICES.find((n) => n.id === 'notice-101');
   beginCase([{ ...BASE, id: 'notice-n7', audience: null }, { ...seed101 }]);
 
-  loginAs('p3', 'participant');
+  loginAs('2400012347', 'participant');
   assert.ok(visibleIds().includes('notice-n7'), '无受众：普通成员可见');
   // 种子 notice-101 已过期 → 用 activeOnly:false 复核受众门（证明「可见」不是被过期过滤掉）
   assert.ok(NoticeStore.list({ activeOnly: false }).map((n) => n.id).includes('notice-101'),
@@ -190,7 +190,7 @@ test('N7 无受众（audience:null，如种子 notice-101）→ 人人可见、�
 
   const fromStore = NoticeStore.getById('notice-101');
   assert.ok(fromStore, 'notice-101 可取到（取数不套可见性门）');
-  assert.equal(canReadNotice(fromStore, { personId: 'p3', role: 'participant' }), true, '无受众：成员可读');
+  assert.equal(canReadNotice(fromStore, { personId: '2400012347', role: 'participant' }), true, '无受众：成员可读');
   assert.equal(canReadNotice(fromStore, null), true, '无受众：无登录会话可读');
 });
 
@@ -200,9 +200,9 @@ test('N7 无受众（audience:null，如种子 notice-101）→ 人人可见、�
 
 test('N8 actionRoles 路径不受影响：仅 actionRoles:[leader] 的通知，组长可见、非组长不可见', () => {
   beginCase([{ ...BASE, id: 'notice-n8', actionRoles: ['leader'], targetUrl: 'workspace/leader.html' }]);
-  loginAs('p1', 'leader');      assert.ok(visibleIds().includes('notice-n8'), '目标角色（组长）可见');
-  loginAs('p3', 'participant'); assert.ok(!visibleIds().includes('notice-n8'), '普通成员不可见');
-  loginAs('p13', 'secretary');  assert.ok(!visibleIds().includes('notice-n8'), '非目标角色（支书）不可见');
+  loginAs('2400012345', 'leader');      assert.ok(visibleIds().includes('notice-n8'), '目标角色（组长）可见');
+  loginAs('2400012347', 'participant'); assert.ok(!visibleIds().includes('notice-n8'), '普通成员不可见');
+  loginAs('2300010001', 'secretary');  assert.ok(!visibleIds().includes('notice-n8'), '非目标角色（支书）不可见');
 });
 
 // ════════════════════════════════════════════════════════════════
@@ -216,13 +216,13 @@ test('N9 scope committee：党委台铃铛只取党委级与本人私信，支�
     { ...BASE, id: 'n9-source', source: 'committee', audience: ['all'] },
     { ...BASE, id: 'n9-aud-str', audience: 'committee', branchId: 'br-b1' },
     { ...BASE, id: 'n9-aud-arr', audience: ['committee'], branchId: 'br-b1' },
-    { ...BASE, id: 'n9-dm-me', noticeType: 'message', audiencePersons: ['p_pc'], fromPersonId: 'p13' },
-    { ...BASE, id: 'n9-dm-other', noticeType: 'message', audiencePersons: ['p3'], fromPersonId: 'p13' },
+    { ...BASE, id: 'n9-dm-me', noticeType: 'message', audiencePersons: ['9000000001'], fromPersonId: '2300010001' },
+    { ...BASE, id: 'n9-dm-other', noticeType: 'message', audiencePersons: ['2400012347'], fromPersonId: '2300010001' },
     { ...BASE, id: 'n9-broadcast', audience: ['all'] },
     { ...BASE, id: 'n9-role', audience: ['leaders'] },
   ]);
 
-  loginAs('p_pc', 'party-staff');
+  loginAs('9000000001', 'party-staff');
   const ids = NoticeStore.list({ scope: 'committee' }).map((n) => n.id);
   for (const id of ['n9-source', 'n9-aud-str', 'n9-aud-arr', 'n9-dm-me']) {
     assert.ok(ids.includes(id), `党委台应保留党委级通知 ${id}`);
@@ -232,7 +232,7 @@ test('N9 scope committee：党委台铃铛只取党委级与本人私信，支�
   }
 
   // 普通支部角色：传 scope 或不传 scope 行为不变（scope 仅对 party-staff 生效）
-  loginAs('p13', 'secretary');
+  loginAs('2300010001', 'secretary');
   assert.deepEqual(
     NoticeStore.list({ scope: 'committee' }).map((n) => n.id).sort(),
     NoticeStore.list().map((n) => n.id).sort(),
@@ -255,28 +255,28 @@ test('N10 顶栏源码：party-staff 分支给铃铛与角标传 scope:committee
 
 test('N11 已读按人：A 点开广播后，B 仍为未读且共享行不写全局 read', () => {
   beginCase([{ ...BASE, id: 'notice-read-per-person', audience: ['all'] }]);
-  loginAs('p13', 'secretary');
+  loginAs('2300010001', 'secretary');
   assert.equal(NoticeStore.list().find(n => n.id === 'notice-read-per-person').read, false, '初始未读');
   NoticeStore.markRead('notice-read-per-person');
 
   const row = mockDB.notices.find(n => n.id === 'notice-read-per-person');
-  assert.ok(Array.isArray(row.reads) && row.reads.includes('p13'), '已读写入当前人的 reads');
+  assert.ok(Array.isArray(row.reads) && row.reads.includes('2300010001'), '已读写入当前人的 reads');
   assert.equal(Object.hasOwn(row, 'read'), false, '共享行不得再写全局 read 布尔');
   assert.equal(NoticeStore.list().find(n => n.id === 'notice-read-per-person').read, true, 'A 视角已读');
 
-  loginAs('p1', 'leader');
+  loginAs('2400012345', 'leader');
   assert.equal(NoticeStore.list().find(n => n.id === 'notice-read-per-person').read, false, 'B 视角仍未读');
 });
 
 test('N12 旧全局 read 一次性回填当前登录人；其他人按未读', () => {
   beginCase([{ ...BASE, id: 'notice-legacy-read', audience: ['all'], read: true }]);
-  loginAs('p13', 'secretary');
+  loginAs('2300010001', 'secretary');
   const mine = NoticeStore.list().find(n => n.id === 'notice-legacy-read');
   assert.equal(mine.read, true, '旧 read=true 回填给当前登录人');
-  assert.deepEqual(mine.reads, ['p13'], '回填口径 = 当前登录人');
+  assert.deepEqual(mine.reads, ['2300010001'], '回填口径 = 当前登录人');
   const row = mockDB.notices.find(n => n.id === 'notice-legacy-read');
   assert.equal(Object.hasOwn(row, 'read'), false, '迁移后删除旧全局 read');
 
-  loginAs('p1', 'leader');
+  loginAs('2400012345', 'leader');
   assert.equal(NoticeStore.list().find(n => n.id === 'notice-legacy-read').read, false, '其他人不继承旧全局已读');
 });

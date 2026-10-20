@@ -14,7 +14,7 @@ import assert from 'node:assert/strict';
 
 import {
   buildSelfProfileImport, parseSelfProfileSheet, detectDelimiter, headerToTarget,
-} from '../../docs/src/services/member/self-profile-import.js?v=20261020d';
+} from '../../docs/src/services/member/self-profile-import.js?v=20261020e';
 
 /** 支书提供的问卷导出表头（**逐字**；用于顺序敏感的全列映射） */
 const HEAD = [
@@ -32,9 +32,9 @@ const HEAD = [
 ];
 
 const MEMBERS = [
-  { id: 'p1', name: '张三', studentId: '2400012345' },
-  { id: 'p2', name: '李四', studentId: '2400012346' },
-  { id: 'p3', name: '王五', studentId: '2400012347' },
+  { id: '2400012345', name: '张三', studentId: '2400012345' },
+  { id: '2400012346', name: '李四', studentId: '2400012346' },
+  { id: '2400012347', name: '王五', studentId: '2400012347' },
 ];
 
 const DATA_ROW = [
@@ -75,7 +75,7 @@ test('③ 真实问卷表头全列映射（顺序敏感：长列名不得被「�
   assert.equal(r.ok, true, `应解析成功：${r.reason || ''}`);
   assert.deepEqual(r.counts, { total: 1, matched: 1, empty: 0, unmatched: 0, ambiguous: 0 }, '一行、全匹配');
   const sp = r.rows[0].selfProfile;
-  assert.equal(r.rows[0].personId, 'p1', '按学号匹配到 p1');
+  assert.equal(r.rows[0].personId, '2400012345', '按学号匹配到 2400012345');
   assert.equal(sp.phone, '13800001111');
   assert.equal(sp.grade, '2024级');
   assert.equal(sp.major, '计算机科学与技术');
@@ -100,23 +100,23 @@ test('④ 匹配：学号优先 > 姓名唯一；重名 ambiguous；无此人 un
   const rows = [
     ['张三', '2400012345', '计算机'],   // 学号命中
     ['李四', '', '软件工程'],           // 姓名唯一命中
-    ['张三', '2400012346', '数学'],     // 学号命中（与 p2 学号同 → 以学号为准，非重名）
+    ['张三', '2400012346', '数学'],     // 学号命中（与 2400012346 学号同 → 以学号为准，非重名）
     ['无名氏', '', '物理'],             // 查无此人
     ['王五', '', ''],                   // 命中但无内容
   ];
   const r = buildSelfProfileImport([head, ...rows.map((x) => x.join('\t'))].join('\n'), MEMBERS);
   assert.equal(r.ok, true);
   assert.equal(r.rows[0].status, 'matched');
-  assert.equal(r.rows[0].personId, 'p1');
+  assert.equal(r.rows[0].personId, '2400012345');
   assert.equal(r.rows[1].status, 'matched');
-  assert.equal(r.rows[1].personId, 'p2', '姓名唯一 ⇒ 命中');
-  assert.equal(r.rows[2].personId, 'p2', '学号优先（姓名同为「张三」也不歧义）');
+  assert.equal(r.rows[1].personId, '2400012346', '姓名唯一 ⇒ 命中');
+  assert.equal(r.rows[2].personId, '2400012346', '学号优先（姓名同为「张三」也不歧义）');
   assert.equal(r.rows[3].status, 'unmatched', '查无此人');
   assert.equal(r.rows[4].status, 'empty', '命中但该行无自我描述内容');
   assert.deepEqual(r.counts, { total: 5, matched: 3, empty: 1, unmatched: 1, ambiguous: 0 });
   // 重名（无学号）⇒ ambiguous
   const dup = buildSelfProfileImport(['姓名\t专业', '张三\t计算机'].join('\n'),
-    [...MEMBERS, { id: 'p9', name: '张三', studentId: '2400012399' }]);
+    [...MEMBERS, { id: '2400012353', name: '张三', studentId: '2400012399' }]);
   assert.equal(dup.rows[0].status, 'ambiguous', '姓名重名且无学号 ⇒ ambiguous');
   assert.ok(dup.rows[0].problems.some((p) => p.includes('重名')), '问题说明须点明重名');
 });

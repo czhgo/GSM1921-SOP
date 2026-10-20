@@ -12,20 +12,20 @@ export const MOCK_TASKFORCES = [
     // R2-32（2026-10-20）：任务对象是「7 月系列主题活动」，deadline 7/17 早已过；
     //   继续留在 active 会让「活跃专班」虚高，也违反「已截止仍招募」的读写矛盾 ⇒ 收口为 completed。
     status: 'completed',
-    manager: 'p11',
-    initiator: 'p12',
+    manager: '2400012355',
+    initiator: '2400012356',
     members: [
-      { personId: 'p8', role: 'deep', contributions: [] },
-      { personId: 'p9', role: 'deep', contributions: [] },
+      { personId: '2400012352', role: 'deep', contributions: [] },
+      { personId: '2400012353', role: 'deep', contributions: [] },
       // 批次 47-X（2026-09-16，承 47-W 的 R-78 口径）：为「专班查看 · 我的产出填报」
       //   （`taskforce-view.js` 的结构化产出登记入口）补一名**演示账号成员**。
       //   ⚠ R2-32（2026-10-20）：本专班已按日期收口为 completed，这两条演示入口的 active 载体
       //     已迁到 tf-002（见其成员注释）；本行保留为历史产出只读，不再承担可达性。
       // **为什么必须补**：该填报区**只在 `tf.status==='active' && isMember` 时渲染**（同文件 194 行），
-      //   而原种子里两只 active 专班（tf-001 成员 p8+p9 / tf-002 成员 p4+p7）**成员全是非演示账号**
+      //   而原种子里两只 active 专班（tf-001 成员 2400012352+2400012353 / tf-002 成员 2400012348+2400012351）**成员全是非演示账号**
       //   ⇒ 任何演示账号登录后都不是「该专班成员」⇒ 该区**结构上恒不渲染**（批 47-L 真机实测
       //   `#tfv-contrib-add` 计数 0，已如实登记为不可达）。
-      // **为什么挂在这里自洽**：p5（普通成员 · 演示账号 2400012349）本就是「深度参与者」口径的常见填写人；
+      // **为什么挂在这里自洽**：2400012349（普通成员 · 演示账号 2400012349）本就是「深度参与者」口径的常见填写人；
       //   挂进一只**已存在且 active** 的专班、只加成员不动状态，不新造任何不可能的状态；
       //   capacity 5 ⇒ 由 2/5 变 3/5，仍在容量内。
       // **为什么不改 tf-002**：tf-002 是「SOP 系统维护专班」（组织委员口径的示例），成员均为 organizer，
@@ -37,8 +37,8 @@ export const MOCK_TASKFORCES = [
       //   的成员产出全为空数组 ⇒ 该区显「暂无待核条目」⇒ 退回按钮**计数恒 0**（批 47-X 真机实测，已如实登记）。
       // **为什么自洽（R-78 ②）**：这正是**成员本人**在专班详情「我的产出填报」（`#tfv-contrib-add`）提交后的形状
       //   ——`{ id, desc, by, at }` 且**无 `verifiedStatus`**（＝待核）。产品自己就会产出这个状态：成员填报 → 组织委员逐条核。
-      //   本批正是拿 **p5**（47-X 已加入本专班、且 47-X 那条成功路径就在他的填报口上）来产生，语义连贯。
-      { personId: 'p5', role: 'deep', contributions: [{ id: 'c-tf1-1', desc: '撰写专班宣传稿（待核）', by: 'p5', at: '2026-09-14T20:10:00+08:00' }] },
+      //   本批正是拿 **2400012349**（47-X 已加入本专班、且 47-X 那条成功路径就在他的填报口上）来产生，语义连贯。
+      { personId: '2400012349', role: 'deep', contributions: [{ id: 'c-tf1-1', desc: '撰写专班宣传稿（待核）', by: '2400012349', at: '2026-09-14T20:10:00+08:00' }] },
     ],
     capacity: 5,
     deadline: '2026-07-17',
@@ -46,8 +46,8 @@ export const MOCK_TASKFORCES = [
     createdAt: '2026-07-09',
     // 立项③阶段a：专班中间进度（组织委员填报，纪检/组长只读可见）
     progressList: [
-      { id: 'tp-demo-1', stage: '筹备中', note: '完成选题策划与成员分工排期，宣传物料清单已确定。', by: 'p11', at: '2026-07-14T10:00:00.000Z' },
-      { id: 'tp-demo-2', stage: '执行中', note: '深度报道采写进行中，已完成 2 篇专题稿件初稿。', by: 'p11', at: '2026-07-15T15:30:00.000Z' },
+      { id: 'tp-demo-1', stage: '筹备中', note: '完成选题策划与成员分工排期，宣传物料清单已确定。', by: '2400012355', at: '2026-07-14T10:00:00.000Z' },
+      { id: 'tp-demo-2', stage: '执行中', note: '深度报道采写进行中，已完成 2 篇专题稿件初稿。', by: '2400012355', at: '2026-07-15T15:30:00.000Z' },
     ],
   },
   {
@@ -55,16 +55,16 @@ export const MOCK_TASKFORCES = [
     name: 'SOP 系统维护专班',
     task: 'SOP 文档体系维护、系统同步更新、经验蒸馏记录',
     status: 'active',
-    manager: 'p11',
-    initiator: 'p13',
+    manager: '2400012355',
+    initiator: '2300010001',
     members: [
-      { personId: 'p4', role: 'organizer', contributions: ['更新7月活动归档', '同步术语表'] },
-      { personId: 'p7', role: 'organizer', contributions: ['整理考勤数据'] },
+      { personId: '2400012348', role: 'organizer', contributions: ['更新7月活动归档', '同步术语表'] },
+      { personId: '2400012351', role: 'organizer', contributions: ['整理考勤数据'] },
       // R2-32（2026-10-20）：tf-001 按日期收口为 completed 后，原挂在它上面的「成员产出填报」与
       //   「组织委员逐条核验」两个演示入口会失去 **active 专班** 载体。这里把演示成员与待核产出
-      //   迁到本常设专班（p5 是既有演示账号，不新造账号、不虚增人数；capacity 3 = 3/3 仍在容量内）。
+      //   迁到本常设专班（2400012349 是既有演示账号，不新造账号、不虚增人数；capacity 3 = 3/3 仍在容量内）。
       //   ⇒ tf-002 成为唯一 active 专班，两条入口继续可达；tf-001 的历史产出保留只读。
-      { personId: 'p5', role: 'deep', contributions: [{ id: 'c-tf2-1', desc: '整理并校对 SOP 术语表（待核）', by: 'p5', at: '2026-10-18T20:10:00+08:00' }] },
+      { personId: '2400012349', role: 'deep', contributions: [{ id: 'c-tf2-1', desc: '整理并校对 SOP 术语表（待核）', by: '2400012349', at: '2026-10-18T20:10:00+08:00' }] },
     ],
     capacity: 3,
     // R2-32（2026-10-20）：SOP 维护是**常设**工作（无一次性活动对象），原 deadline 7/25 已过但与
@@ -78,13 +78,13 @@ export const MOCK_TASKFORCES = [
     name: '五四主题党日筹备专班',
     task: '7月13日五四精神传承主题党日活动全流程筹备',
     status: 'completed',
-    manager: 'p11',
-    initiator: 'p1',
+    manager: '2400012355',
+    initiator: '2400012345',
     members: [
-      { personId: 'p3', role: 'organizer', contributions: ['策划方案', '场地预约'] },
-      { personId: 'p8', role: 'deep', contributions: ['视频制作'] },
-      { personId: 'p9', role: 'deep', contributions: ['新闻稿撰写'] },
-      { personId: 'p5', role: 'participant', contributions: ['物资准备'] },
+      { personId: '2400012347', role: 'organizer', contributions: ['策划方案', '场地预约'] },
+      { personId: '2400012352', role: 'deep', contributions: ['视频制作'] },
+      { personId: '2400012353', role: 'deep', contributions: ['新闻稿撰写'] },
+      { personId: '2400012349', role: 'participant', contributions: ['物资准备'] },
     ],
     capacity: 6,
     deadline: '2026-07-13',
@@ -96,11 +96,11 @@ export const MOCK_TASKFORCES = [
     name: '共建座谈对接专班',
     task: '校企共建座谈（光华 x 中信证券）对接与执行',
     status: 'completed',
-    manager: 'p11',
-    initiator: 'p13',
+    manager: '2400012355',
+    initiator: '2300010001',
     members: [
-      { personId: 'p11', role: 'organizer', contributions: ['嘉宾邀请', '议程设计'] },
-      { personId: 'p10', role: 'deep', contributions: ['现场记录', '考勤统计'] },
+      { personId: '2400012355', role: 'organizer', contributions: ['嘉宾邀请', '议程设计'] },
+      { personId: '2400012354', role: 'deep', contributions: ['现场记录', '考勤统计'] },
     ],
     capacity: 4,
     deadline: '2026-07-17',
@@ -113,12 +113,12 @@ export const MOCK_TASKFORCES = [
     task: '7月23日建党105周年主题党日大型活动筹备',
     // R2-32：筹备对象 act-16 已于 7/23 举办，招募截止 8/20 也已过 ⇒ recruiting 不再成立，收口 completed。
     status: 'completed',
-    manager: 'p11',
-    initiator: 'p13',
+    manager: '2400012355',
+    initiator: '2300010001',
     members: [
-      { personId: 'p1', role: 'organizer', contributions: [] },
-      { personId: 'p26', role: 'organizer', contributions: [] },
-      { personId: 'p7', role: 'participant', contributions: [] },
+      { personId: '2400012345', role: 'organizer', contributions: [] },
+      { personId: '2500010012', role: 'organizer', contributions: [] },
+      { personId: '2400012351', role: 'participant', contributions: [] },
     ],
     capacity: 8,
     deadline: '2026-08-20',
@@ -131,10 +131,10 @@ export const MOCK_TASKFORCES = [
     task: '7月参访活动后勤保障与安全',
     // R2-32：保障对象（7 月参访）已结束，截止 8/15 也已过 ⇒ recruiting 收口 completed。
     status: 'completed',
-    manager: 'p11',
-    initiator: 'p1',
+    manager: '2400012355',
+    initiator: '2400012345',
     members: [
-      { personId: 'p6', role: 'participant', contributions: [] },
+      { personId: '2400012350', role: 'participant', contributions: [] },
     ],
     capacity: 4,
     deadline: '2026-08-15',
@@ -146,11 +146,11 @@ export const MOCK_TASKFORCES = [
     name: '两会精神学习专班',
     task: '两会精神学习材料整理与分享',
     status: 'completed',
-    manager: 'p11',
-    initiator: 'p12',
+    manager: '2400012355',
+    initiator: '2400012356',
     members: [
-      { personId: 'p12', role: 'organizer', contributions: ['材料整理', '分享会主持'] },
-      { personId: 'p6', role: 'deep', contributions: ['PPT制作'] },
+      { personId: '2400012356', role: 'organizer', contributions: ['材料整理', '分享会主持'] },
+      { personId: '2400012350', role: 'deep', contributions: ['PPT制作'] },
     ],
     capacity: 3,
     deadline: '2026-07-03',
@@ -162,11 +162,11 @@ export const MOCK_TASKFORCES = [
     name: '七月活动档案整理专班',
     task: '七月上旬活动归档整理、材料汇总与电子化',
     status: 'dissolved',
-    manager: 'p11',
-    initiator: 'p13',
+    manager: '2400012355',
+    initiator: '2300010001',
     members: [
-      { personId: 'p12', role: 'organizer', contributions: ['材料汇总', '归档清单'] },
-      { personId: 'p6', role: 'deep', contributions: ['PPT制作', '电子档案'] },
+      { personId: '2400012356', role: 'organizer', contributions: ['材料汇总', '归档清单'] },
+      { personId: '2400012350', role: 'deep', contributions: ['PPT制作', '电子档案'] },
     ],
     capacity: 3,
     deadline: '2026-07-09',

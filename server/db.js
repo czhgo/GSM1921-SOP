@@ -389,6 +389,19 @@ export const MIGRATIONS = [
       writeBack('taskforce_reviews', taskforceRows, result.taskforceReviews);
     },
   },
+  {
+    // v7（2026-10-20 支书裁定）：人员主键由 p* 迁移为学号/工号。
+    //   · users.id 先改，再改所有引用列（sessions.person_id / attachments.uploaded_by / 各 JSON 表）；
+    //   · 一次事务；任何无法映射的旧 id ⇒ 抛错并整体回滚（不静默丢、不部分写入）；
+    //   · 幂等：已全为学号时 mapped=0，rate=1。
+    version: 7,
+    name: 'person-id-student-number',
+    tables: [],
+    up(db) {
+      const report = migratePersonIdsToStudentNumbers(db);
+      console.log('[db] v7 人员主键迁移：', JSON.stringify(report));
+    },
+  },
 ];
 
 /** 迁移列表的最大版本（＝目标 schema 版本；守卫据此核 `user_version`，防「有迁移没跑」/「版本号被手改」） */
@@ -440,3 +453,125 @@ export function applyMigrations(db, list = MIGRATIONS) {
   console.log(`[db] schema v${to}（本次应用 ${pending.length} 项）`);
   return { from: current, to, applied: pending.map((m) => m.version) };
 }
+
+// ════════════════════════════════════════════════════════════════
+//  v7 人员主键迁移（p* → 学号/工号）
+// ════════════════════════════════════════════════════════════════
+//  · 先改 users.id，再改引用（sessions.person_id / attachments.uploaded_by / 全部 JSON 表）；
+//  · JSON 表逐行走查：字符串**整值**命中旧 id ⇒ 换学号；`id` 里的复合串（`p11:issue-002`、
+//    `wgm-…-p13`）按边界换写，其余自由文本（备注 / 审计原文）一律不动；
+//  · 无法映射 ⇒ 先收集清单再抛（此时尚未写库），外层迁移事务整体回滚；
+//  · 幂等：全为学号时没有任何旧 id 命中 ⇒ `{total:0,mapped:0,unmapped:[],rate:1}`。
+export function migratePersonIdsToStudentNumbers(db) {
+  const tables = [...new Set([...RESOURCE_TABLES, ...SEMANTIC_TABLES, ...WORKGROUP_TABLES])];
+  const hasTable = (name) => Boolean(db.prepare("SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = ?").get(name));
+  const unmapped = new Set();
+  let total = 0;
+  let mapped = 0;
+
+  const mapExact = (value) => {
+    if (typeof value !== 'string' || !isLegacyPersonId(value)) return value;
+    total += 1;
+    const next = mapPersonId(value);
+    if (next == null) { unmapped.add(value); return value; }
+    mapped += 1;
+    return next;
+  };
+
+  // 复合 id（`p11:issue-002` / `wgg-seed-tf-001-p5`）：仅换边界上的旧 id
+  const mapComposite = (value) => {
+    if (typeof value !== 'string') return value;
+    return value.replace(/(^|[-:])p(?:_pc|\d+)(?=$|[-:])/g, (match, prefix) => {
+      const token = match.slice(prefix.length);
+      total += 1;
+      const next = mapPersonId(token);
+      if (next == null) { unmapped.add(token); return match; }
+      mapped += 1;
+      return prefix + next;
+    });
+  };
+
+  const transform = (value) => {
+    if (typeof value === 'string') return mapExact(value);
+    if (Array.isArray(value)) return value.map(transform);
+    if (value && typeof value === 'object') {
+      const out = {};
+      for (const [key, item] of Object.entries(value)) out[key] = transform(item);
+      return out;
+    }
+    return value;
+  };
+
+  const plans = [];
+  // ① users 先改：id 即学号（人员档案的 studentId 与行主键必须一致）
+  const userRows = hasTable('users') ? db.prepare('SELECT id, data FROM users').all() : [];
+  for (const row of userRows) {
+    const nextId = mapComposite(row.id);
+    const data = transform(JSON.parse(row.data));
+    if (typeof data.id === 'string') data.id = mapComposite(data.id);
+    if (data.studentId != null && String(data.studentId) !== String(nextId ?? data.id)) {
+      unmapped.add(`users.id≠studentId:${row.id}->${data.studentId}`);
+    }
+    if (data.id !== nextId) data.id = nextId;
+    if (nextId !== row.id || JSON.stringify(data) !== row.data) {
+      plans.push({ table: 'users', id: row.id, nextId, data: JSON.stringify(data) });
+    }
+  }
+
+  // ② 其余 JSON 表：整值换学号 + `id` 复合串换写
+  for (const table of tables) {
+    if (table === 'users' || !hasTable(table)) continue;
+    for (const row of db.prepare(`SELECT id, data FROM ${table}`).all()) {
+      const nextId = mapComposite(row.id);
+      let data;
+      try { data = JSON.parse(row.data); } catch { continue; }
+      const nextData = transform(data);
+      if (nextData && typeof nextData === 'object' && typeof nextData.id === 'string') {
+        nextData.id = mapComposite(nextData.id);
+      }
+      if (nextId !== row.id || JSON.stringify(nextData) !== row.data) {
+        plans.push({ table, id: row.id, nextId, data: JSON.stringify(nextData) });
+      }
+    }
+  }
+
+  // ③ 关系表：sessions.person_id / attachments.uploaded_by
+  const relationPlans = [];
+  if (hasTable('sessions')) {
+    for (const row of db.prepare('SELECT token, person_id FROM sessions').all()) {
+      const next = mapExact(row.person_id);
+      if (next !== row.person_id) relationPlans.push({ table: 'sessions', key: row.token, column: 'person_id', next });
+    }
+  }
+  if (hasTable('attachments')) {
+    for (const row of db.prepare('SELECT id, uploaded_by FROM attachments').all()) {
+      const next = mapExact(row.uploaded_by);
+      if (next !== row.uploaded_by) relationPlans.push({ table: 'attachments', key: row.id, column: 'uploaded_by', next });
+    }
+  }
+
+  if (unmapped.size > 0) {
+    throw new Error(`[db] v7 人员主键迁移失败：存在无法映射的旧人员 id / 不一致档案：${[...unmapped].join('、')}`);
+  }
+
+  const run = db.transaction(() => {
+    // users 必须先落，其余表再引用新 id
+    for (const plan of plans.sort((a, b) => (a.table === 'users' ? -1 : b.table === 'users' ? 1 : 0))) {
+      db.prepare(`UPDATE ${plan.table} SET id = ?, data = ? WHERE id = ?`).run(plan.nextId, plan.data, plan.id);
+    }
+    for (const plan of relationPlans) {
+      db.prepare(`UPDATE ${plan.table} SET ${plan.column} = ? WHERE ${plan.table === 'sessions' ? 'token' : 'id'} = ?`).run(plan.next, plan.key);
+    }
+  });
+  run();
+
+  return {
+    total,
+    mapped,
+    unmapped: [...unmapped],
+    rate: total === 0 ? 1 : Number((mapped / total).toFixed(4)),
+  };
+}
+
+// 迁移专用映射（置尾：import 声明被提升，避免上文 README-server.md 取证行号漂移）
+import { isLegacyPersonId, mapPersonId } from './migrations/legacy-person-ids.js';

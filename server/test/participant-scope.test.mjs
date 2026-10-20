@@ -15,9 +15,9 @@ import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { createApp } from '../app.js';
 import { seedDatabase } from '../seed.js';
-import { resolveVoterIds, resolveParticipantIds } from '../../docs/src/services/activity/vote-config.js?v=20261020d';
-import { cleanParticipantPolicies } from '../../docs/src/services/branch/config-clean.js?v=20261020d';
-import { getWorkflowBlockParticipantPolicy } from '../../docs/src/services/branch/branch.js?v=20261020d';
+import { resolveVoterIds, resolveParticipantIds } from '../../docs/src/services/activity/vote-config.js?v=20261020e';
+import { cleanParticipantPolicies } from '../../docs/src/services/branch/config-clean.js?v=20261020e';
+import { getWorkflowBlockParticipantPolicy } from '../../docs/src/services/branch/branch.js?v=20261020e';
 
 let server, base;
 
@@ -83,7 +83,7 @@ test('③ 消费面：none 与 resolveVoterIds 逐字一致；organizer-deep 确
 
   // ① 缺省 / none ⇒ 逐字一致（默认零影响）
   assert.deepEqual(resolveParticipantIds('committee'), baseIds, '无 policy ⇒ 逐字一致');
-  assert.deepEqual(resolveParticipantIds('committee', { orgMode: 'none' }, ['p13', 'x']), baseIds, 'none ⇒ 不并入指派层');
+  assert.deepEqual(resolveParticipantIds('committee', { orgMode: 'none' }, ['2300010001', 'x']), baseIds, 'none ⇒ 不并入指派层');
   assert.deepEqual(resolveParticipantIds('committee', { orgMode: 'organizer-deep' }, []), baseIds, 'organizer-deep 但无指派 ⇒ 一致');
 
   // ② organizer-deep ⇒ 并入指派层（base 在前、按入参顺序、去重、非串丢弃）
@@ -98,8 +98,8 @@ test('③ 消费面：none 与 resolveVoterIds 逐字一致；organizer-deep 确
 });
 
 test('③ HTTP：participantPolicies 净化往返 / 未写不引入该段 / blocks=null 恢复默认', async () => {
-  const { token: sec } = await login('p13');    // 现任支书
-  const { token: staff } = await login('p_pc'); // 党委组织员
+  const { token: sec } = await login('2300010001');    // 现任支书
+  const { token: staff } = await login('9000000001'); // 党委组织员
 
   const r1 = await patchConfig(sec, {
     config: {

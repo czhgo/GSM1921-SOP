@@ -2,7 +2,7 @@
 // ════════════════════════════════════════════════════════════════
 // 目的：把本轮「名单/操作人/父键/只写不读」修复钉成结构守卫，防止回潮：
 //   ① docs/src 不得再用 `|| 'pN'` 把失效会话回落到固定演示人（P1-11）；
-//   ② 不得写死支委名单 p10~p14（P1-09）；
+//   ② 不得写死支委名单 2400012354~2300010002（P1-09）；
 //   ③ 不得用 generateId('p') 生成成员 id（P1-12：学号即唯一 id）；
 //   ④ 复盘/经验沉淀写口必须落稳定父键，不得只写 sourceName（P1-05/M1）；
 //   ⑤ mockDB 不新增「只写不读」集合：新增键必须在 docs/src 有消费者，或在允许清单内并写明理由（P1-26）；
@@ -51,9 +51,9 @@ test('① docs/src 不得出现 `|| \'pN\'` 操作人兜底（P1-11）', () => {
   assert.deepEqual(hits, [], `失效会话不得回落到固定演示人：\n${hits.map(h => `${h.file}:${h.line} ${h.text}`).join('\n')}`);
 });
 
-test('② 不得写死支委名单 p10~p14（P1-09）', () => {
-  // 三连以上的 p10~p14 数组字面量＝名单快照；名单必须 getCommitteeIds(users) 角色派生。
-  const hits = scan(/\[\s*['"]p1[0-4]['"]\s*,\s*['"]p1[0-4]['"]\s*,\s*['"]p1[0-4]['"]/);
+test('② 不得写死支委名单 2400012354~2300010002（P1-09）', () => {
+  // 三连以上的 2400012354~2300010002 数组字面量＝名单快照；名单必须 getCommitteeIds(users) 角色派生。
+  const hits = scan(/\[\s*['"]2400012345[0-4]['"]\s*,\s*['"]2400012345[0-4]['"]\s*,\s*['"]2400012345[0-4]['"]/);
   const constants = readFileSync(join(SRC, 'core', 'domain', 'constants.js'), 'utf8');
   assert.doesNotMatch(constants, /export\s+const\s+COMMITTEE_IDS\s*=/, 'constants.js 不得再导出写死的 COMMITTEE_IDS 名单');
   assert.deepEqual(hits, [], `支委名单必须角色派生：\n${hits.map(h => `${h.file}:${h.line} ${h.text}`).join('\n')}`);

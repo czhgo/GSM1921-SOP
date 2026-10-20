@@ -34,12 +34,12 @@ async function login(personId) {
 
 const headers = (token) => ({ 'Content-Type': 'application/json', Authorization: `Bearer ${token}` });
 
-/** act-7 的组织者是 p3（普通成员）；p7 既非组织者、也非支委层 */
+/** act-7 的组织者是 2400012347（普通成员）；2400012351 既非组织者、也非支委层 */
 const ACTIVITY_ID = 'act-7';
 const inspectionPayload = (content) => ({
   sourceType: 'activity',
   activityId: ACTIVITY_ID,
-  personId: 'p9',
+  personId: '2400012353',
   level: 'deep',
   content,
   status: 'pending',
@@ -47,7 +47,7 @@ const inspectionPayload = (content) => ({
 });
 
 test('普通成员非本场组织者：POST/PATCH/DELETE /inspections → 403，且删除不落库', async () => {
-  const { token } = await login('p7');
+  const { token } = await login('2400012351');
 
   const post = await fetch(`${base}/api/v1/inspections`, {
     method: 'POST', headers: headers(token), body: JSON.stringify(inspectionPayload('越权新增考察')),
@@ -66,7 +66,7 @@ test('普通成员非本场组织者：POST/PATCH/DELETE /inspections → 403，
   assert.equal(del.status, 403, `非组织者不得删除考察（实得 ${del.status}：${await del.text()}）`);
 
   // 非授权删除不落库：支委层读口仍能看到 insp-4，且内容未被篡改
-  const { token: secToken } = await login('p13');
+  const { token: secToken } = await login('2300010001');
   const rows = await (await fetch(`${base}/api/v1/inspections`, { headers: headers(secToken) })).json();
   const row = rows.find((r) => r.id === 'insp-4');
   assert.ok(row, '非授权删除不得落库（insp-4 应仍存在）');
@@ -74,7 +74,7 @@ test('普通成员非本场组织者：POST/PATCH/DELETE /inspections → 403，
 });
 
 test('本场组织者的普通成员：POST 本场考察 → 201，记录人取当前会话', async () => {
-  const { token } = await login('p3'); // act-7 组织者（participant）
+  const { token } = await login('2400012347'); // act-7 组织者（participant）
   const res = await fetch(`${base}/api/v1/inspections`, {
     method: 'POST', headers: headers(token), body: JSON.stringify(inspectionPayload('组织者上传本场考察')),
   });
@@ -82,7 +82,7 @@ test('本场组织者的普通成员：POST 本场考察 → 201，记录人取�
   assert.equal(res.status, 201, `本场组织者应可新增（实得 ${res.status}：${text}）`);
   const created = JSON.parse(text);
   assert.equal(created.activityId, ACTIVITY_ID);
-  assert.equal(created.recordedBy, 'p3', '考察记录人应由会话决定（不得代署）');
+  assert.equal(created.recordedBy, '2400012347', '考察记录人应由会话决定（不得代署）');
 
   // 自己组织的场次可修改
   const patch = await fetch(`${base}/api/v1/inspections/${created.id}`, {
@@ -92,7 +92,7 @@ test('本场组织者的普通成员：POST 本场考察 → 201，记录人取�
 });
 
 test('纪检（disc-commissioner）：POST / PATCH / DELETE → 201 / 200 / 204', async () => {
-  const { token } = await login('p10'); // 纪检委员
+  const { token } = await login('2400012354'); // 纪检委员
   const post = await fetch(`${base}/api/v1/inspections`, {
     method: 'POST', headers: headers(token), body: JSON.stringify(inspectionPayload('纪检补录考察')),
   });
@@ -113,7 +113,7 @@ test('纪检（disc-commissioner）：POST / PATCH / DELETE → 201 / 200 / 204'
 });
 
 test('支书（secretary）：POST / PATCH / DELETE → 201 / 200 / 204', async () => {
-  const { token } = await login('p13'); // 支书
+  const { token } = await login('2300010001'); // 支书
   const post = await fetch(`${base}/api/v1/inspections`, {
     method: 'POST', headers: headers(token), body: JSON.stringify(inspectionPayload('支书补录考察')),
   });

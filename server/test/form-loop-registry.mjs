@@ -162,7 +162,7 @@ export const VALIDATION_SITES = [
   //     `member-confirmation.js` 无任何服务端表，mock/api 两态同源）⇒ 请求只存在于**产生它的那个浏览器会话**里，
   //     **组织委员在另一台发起、支书这边根本看不到**。真正的前置是「**同一会话内先产生过一条请求**」。
   //   · 可达链（本批真机跑通）：支书本人也有该写权（`person-entry.js::EDIT_ROLES = 支书/副支书/组织委员`）⇒
-  //     `person.html?id=p7` → 编辑档案 → 改「发展阶段」→ 保存（报出「已报送支书确认 1 项」）→ 回支书台「待办」→
+  //     `person.html?id=2400012351` → 编辑档案 → 改「发展阶段」→ 保存（报出「已报送支书确认 1 项」）→ 回支书台「待办」→
   //     `[data-mc-id][data-decision="rejected"]` 即在位。**无需造种子、无需改产品、无需跨角色会话**。
   // 2026-09-27（本位 nudge 两处增设批）：`secretary/todo-tab.js` 接入催办 nudge（import 1 行 ＋ 外层包装 15 行）
   //   令本文件既有登记下移 ⇒ `672` → `691`（S6：行号须落在文案那一行；file/field/msg 不变）。
@@ -181,7 +181,7 @@ export const VALIDATION_SITES = [
 
   // ── 纪检委员台 ──
   // 批次 124（2026-09-21）：会议考勤上传主体收归「该场会议组织者」（支书 2026-09-20 定案，落地 `D-547`）
-  //   ⇒ 纪检台「会议考勤录入」表单只列**本人可上传**的会议场次；演示数据里纪检（p10）不持任何会议
+  //   ⇒ 纪检台「会议考勤录入」表单只列**本人可上传**的会议场次；演示数据里纪检（2400012354）不持任何会议
   //   场次的上传位 ⇒ 表单长期空态、这两条校验分支**真机不可达**（原流程 `disc-meeting-attendance` 随之退役）。
   //   **同形态的两条校验未失覆盖**：组织者上传位（组长台「考勤上传」）的「活动 / 参会人员」两条仍 machine:true。
   { file: SRC + 'entries/tabs/disc/attendance-tab.js', line: 319, field: '会议活动', flow: 'disc/考勤管理·建考勤', machine: false, reason: '上传位已收归该场会议组织者（批次 124 定案）；演示数据下纪检不持任何会议场次的上传位 ⇒ 该表单为空态、本分支不可达。同形态校验由 leader/考勤上传 覆盖。', msg: '请选择会议活动' },
@@ -337,7 +337,7 @@ export const VALIDATION_SITES = [
   { file: SRC + 'components/feedback/issue-dispatch-view.js', line: 321, field: '评论内容', flow: 'service/议题评论', machine: true, msg: '请输入评论内容' },
   { file: SRC + 'components/feedback/issue-dispatch-view.js', line: 321, field: '评论内容', flow: 'service/议题评论', machine: true, msg: '请输入评论内容' },
   { file: SRC + 'components/feedback/issue-dispatch-view.js', line: 404, field: '处置结果内容', flow: 'service/议题处置', machine: true, msg: '请输入处置结果内容' },
-  { file: SRC + 'components/feedback/issue-dispatch-view.js', line: 478, field: '说明内容', flow: 'service/议题说明', machine: false, msg: '请输入说明内容', reason: '【批 47-X 真机+接口双取证·**口径更正**】原 reason 写「纳入条件：种子把某条议题的 reporterId/participants 指向演示账号」——**这是不够的、且方向错了**。实测事实：① 种子 `docs/data/issues.json` 里 issue-001 本就 `submittedBy:p5`、issue-002/003 的 `participants` 含 p11/p1/p13，**认人字段本来就在**；② 但 api 形态 `GET /api/v1/issues` 实测返回 **6 条**：4 条公开反馈**一律** `submittedBy:\'匿名\' / participants:[] / anonymous:true`（服务端按「真匿名」口径脱敏，见 `server/seed.js::seedIssues`）、2 条 `kind:\'report\'` 保留真名；③ 而 `IssueStore.getMyIssues` **排除 `kind===\'report\'`** 且靠 `submittedBy`/`participants` 认人 ⇒ **api 形态下该区结构上恒为空**（不是「种子没挂上」）。真机复核：成员台(p5)/组织台(p11)/组长台(p1)/宣传台(p12) 逐台打开「我的处置」，④区标题均为「我提交 / 参与的反馈 · 0」、宿主显「暂无我提交或参与的反馈」。**⇒ 这不是种子问题，是两形态口径不一致的产品缺口**（mock 形态直读 issues.json 带真名 ⇒ 有行；api 形态脱敏 ⇒ 恒空），而 help/README-members 都把该区写成了功能。**已立 `Q-23-48` 待支书裁定（2026-09-16 登记）**。**⇒ 批次 48（2026-09-17 支书裁定 `Q-23-48`：**接受缺口 + 改文案**）**已按裁定落地**：① **不改服务端隐私口径**（真匿名是公开反馈页的承诺）；② **不造种子**（④区的数据来源是「服务端按人回认」，只种 mock 等于**只在演示形态显形＝假绿**）；③ **改文案说清口径**——`services/governance/issues.js` ④区标题下新增说明行「仅本地演示模式可见：正式部署下公开反馈按「真匿名」口径脱敏，无法按人回认」+ `help.html` 两处（§角色 tab 说明行 / 「我的处置」卡）+ `README-members.md` 成员能力行；④ 故本条**保留 `machine:false`**，reason 由「**待裁**」改为「**已裁定为产品接受的缺口**」（不再是悬而未决项，也不再是「纳入条件」）。**⇒ 批次 49（2026-09-17）该缺口的「根因」被修掉**：支书改裁走**不可反查的本人标识**——`IssueStore.getMyIssues` 新增第 ③ 条判据（本浏览器提交令牌的哈希 `tokenHash` 相符即算「我的」），④区在**正式部署下也能列出本机提交过的反馈**，且任何人都无法由数据反推是谁。**本条仍保留 `machine:false`**：真机要跑到这处校验，须先**在同一会话内用公开反馈页提交一条反馈**（令牌落本地 → ④区出现该行 → 进详情 → 空提交触发本校验），与批 47-Z「让产品自己把前置走出来」同法，**留作下一批的解锁动作**（本批不动台账判据，只如实改写 reason + 更正行号）。' },
+  { file: SRC + 'components/feedback/issue-dispatch-view.js', line: 478, field: '说明内容', flow: 'service/议题说明', machine: false, msg: '请输入说明内容', reason: '【批 47-X 真机+接口双取证·**口径更正**】原 reason 写「纳入条件：种子把某条议题的 reporterId/participants 指向演示账号」——**这是不够的、且方向错了**。实测事实：① 种子 `docs/data/issues.json` 里 issue-001 本就 `submittedBy:2400012349`、issue-002/003 的 `participants` 含 2400012355/2400012345/2300010001，**认人字段本来就在**；② 但 api 形态 `GET /api/v1/issues` 实测返回 **6 条**：4 条公开反馈**一律** `submittedBy:\'匿名\' / participants:[] / anonymous:true`（服务端按「真匿名」口径脱敏，见 `server/seed.js::seedIssues`）、2 条 `kind:\'report\'` 保留真名；③ 而 `IssueStore.getMyIssues` **排除 `kind===\'report\'`** 且靠 `submittedBy`/`participants` 认人 ⇒ **api 形态下该区结构上恒为空**（不是「种子没挂上」）。真机复核：成员台(2400012349)/组织台(2400012355)/组长台(2400012345)/宣传台(2400012356) 逐台打开「我的处置」，④区标题均为「我提交 / 参与的反馈 · 0」、宿主显「暂无我提交或参与的反馈」。**⇒ 这不是种子问题，是两形态口径不一致的产品缺口**（mock 形态直读 issues.json 带真名 ⇒ 有行；api 形态脱敏 ⇒ 恒空），而 help/README-members 都把该区写成了功能。**已立 `Q-23-48` 待支书裁定（2026-09-16 登记）**。**⇒ 批次 48（2026-09-17 支书裁定 `Q-23-48`：**接受缺口 + 改文案**）**已按裁定落地**：① **不改服务端隐私口径**（真匿名是公开反馈页的承诺）；② **不造种子**（④区的数据来源是「服务端按人回认」，只种 mock 等于**只在演示形态显形＝假绿**）；③ **改文案说清口径**——`services/governance/issues.js` ④区标题下新增说明行「仅本地演示模式可见：正式部署下公开反馈按「真匿名」口径脱敏，无法按人回认」+ `help.html` 两处（§角色 tab 说明行 / 「我的处置」卡）+ `README-members.md` 成员能力行；④ 故本条**保留 `machine:false`**，reason 由「**待裁**」改为「**已裁定为产品接受的缺口**」（不再是悬而未决项，也不再是「纳入条件」）。**⇒ 批次 49（2026-09-17）该缺口的「根因」被修掉**：支书改裁走**不可反查的本人标识**——`IssueStore.getMyIssues` 新增第 ③ 条判据（本浏览器提交令牌的哈希 `tokenHash` 相符即算「我的」），④区在**正式部署下也能列出本机提交过的反馈**，且任何人都无法由数据反推是谁。**本条仍保留 `machine:false`**：真机要跑到这处校验，须先**在同一会话内用公开反馈页提交一条反馈**（令牌落本地 → ④区出现该行 → 进详情 → 空提交触发本校验），与批 47-Z「让产品自己把前置走出来」同法，**留作下一批的解锁动作**（本批不动台账判据，只如实改写 reason + 更正行号）。' },
   { file: SRC + 'components/record/report-entry.js', line: 119, field: '汇报内容', flow: 'component/一键汇报', machine: true, msg: '请填写汇报内容' },
   { file: SRC + 'components/record/report-inbox.js', line: 217, field: '答复内容', flow: 'component/汇报收件箱·答复', machine: true, msg: '请填写答复内容' },
   { file: SRC + 'components/record/taskforce-view.js', line: 342, field: '产出名称', flow: 'component/专班查看·产出', machine: true, msg: '请填写产出名称' },
@@ -351,7 +351,7 @@ export const VALIDATION_SITES = [
   { file: SRC + 'components/governance/resolution-followup-manager.js', line: 145, field: '落实时限', flow: 'component/决议落实', machine: true, msg: '请选择落实时限' },
   { file: SRC + 'components/governance/vote-widget.js', line: 79, field: '表态', flow: 'component/表决控件', machine: true, msg: '请先选择表态' },
   { file: SRC + 'components/record/inspector.js', line: 576, field: '表态', flow: 'component/活动巡查·表决', machine: true, msg: '请先选择表态' },
-  // 2026-10-20 数据生命周期批：纪检台写口不再硬编码 p10，改为按角色派生；无纪检委员时提示去档案维护。
+  // 2026-10-20 数据生命周期批：纪检台写口不再硬编码 2400012354，改为按角色派生；无纪检委员时提示去档案维护。
   //   这不是表单字段校验，而是「角色前置缺失」⇒ 无可稳定造出的真机表单路径，只登记不造数据。
   { file: SRC + 'entries/tabs/disc/_shared.js', line: 28, field: '纪检委员', flow: 'disc/权限前置', machine: false, msg: '未找到纪检委员：请先在成员档案维护纪检委员角色', reason: '【2026-10-20 补登记】角色前置告警：需先把某人设为 disc-commissioner 才能进入写口；不属表单字段校验，缺稳定前置。' },
   { file: SRC + 'components/record/inspector.js', line: 1415, field: '活动名称', flow: 'component/活动巡查·信息编辑', machine: true, msg: '请填写活动名称' },
@@ -390,7 +390,7 @@ export const VALIDATION_SITES = [
   // 批次 47-R（2026-09-16）**新增登记**：打回意见（同一独立页、另一提交口）。
   // ⚠ 说明为何此前不在台账里：S0/S2 只保证「规模不缩水」与「machine:true 全被覆盖」，
   //   **不保证「全站校验点都已登记」**——本条即是一处**台账遗漏**（原 92 条漏了这一处）。
-  //   本批顺手补上并直接真机覆盖：种子里 tr-4（p3）本就存在，**组织委员**登录该页即可打回
+  //   本批顺手补上并直接真机覆盖：种子里 tr-4（2400012347）本就存在，**组织委员**登录该页即可打回
   //   ⇒ 该处一直可达，只是**没人登记、也就没人跑**。**这就是「台账不是全量」的实例：漏登记＝漏发现。**
   // 2026-09-18 批次 86（`SOP-B-28` 取消初阅门）：打回由「初阅决定」改为**事后反馈**（可对任一篇发起），
   //   文案随之由「打回须填写初阅意见」改准为「打回须填写意见」；行号随本批改动同步。
@@ -721,8 +721,8 @@ export const MACHINE_FLOWS = [
     // 入口链：知情查看 tab（`components/record/insight-view.js`）→ 分段钮 `.insight-view-btn[data-iview="taskforce"]`
     //   → 专班卡 `.tfv-card[data-tf-id="tf-002"]`（点击进只读详情）→ 详情内 `#tfv-contrib-add`（「填报本条产出」）。
     // ⚠ **成立条件＝种子给 active 专班补一名演示账号成员**（R2-32 后 `docs/src/data/mock/taskforces.js::tf-002`
-    //   成员含 p5；tf-001 已按日期收口为 completed，不再承载该入口）：该填报区**只在 `tf.status==='active' && isMember` 时渲染**
-    //   （`taskforce-view.js:194`），而原种子两只 active 专班的成员（p8+p9 / p4+p7）**全非演示账号** ⇒ 结构性不可达。
+    //   成员含 2400012349；tf-001 已按日期收口为 completed，不再承载该入口）：该填报区**只在 `tf.status==='active' && isMember` 时渲染**
+    //   （`taskforce-view.js:194`），而原种子两只 active 专班的成员（2400012352+2400012353 / 2400012348+2400012351）**全非演示账号** ⇒ 结构性不可达。
     //   **造前置时守 R-78 ②**：只**加成员**、**不动状态**、容量内（2/3 → 3/3）⇒「某 active 专班的成员里有本人」
     //   本就是产品自己走得通的状态（成员由报名/发起流程加入）。
     // ⚠ 判据载体＝**文本域自身** `#tfv-my-contrib-desc`（不另造判据）；提示由 `showToast` 走全局 toast。
@@ -784,7 +784,7 @@ export const MACHINE_FLOWS = [
   {
     // 批次 327（2026-10-01 · `SOP-G-2-②`「转交组织者」· 支书裁「乙：直接转交 ＋ 留痕」）：
     //   同一独立页 `docs/activity.html?id=act-31` 的**专用「转交组织者」浮窗**——不选接手人即点「转交」。
-    //   ⚠ 前置：`act-31` 的 `assignments` 含 `role:'organizer'`（p11）⇒ 「本场有组织者」成立；
+    //   ⚠ 前置：`act-31` 的 `assignments` 含 `role:'organizer'`（2400012355）⇒ 「本场有组织者」成立；
     //     发起人取支书（属四类可发起之一：支书 / 副支书 / 组织委员 / 现任组织者本人）。
     id: 'page-activity-organizer-transfer',
     page: 'secretary',
@@ -1003,7 +1003,7 @@ export const MACHINE_FLOWS = [
     //   ⇒ 源码 `if (reason === null) return;` **直接 return，连空值分支都到不了**
     //   （源码 624-626：先判 `null`，再判 `.trim()` 为空）。**两个障碍缺一不可**。
     // 处置（R-78 两条出口里的「造真机可达的前置」）：
-    //   ① 种子：`docs/src/data/mock/taskforces.js::tf-002` 给 p5 补**一条待核产出**（`{id,desc,by,at}` 且无
+    //   ① 种子：`docs/src/data/mock/taskforces.js::tf-002` 给 2400012349 补**一条待核产出**（`{id,desc,by,at}` 且无
     //      `verifiedStatus`）——这正是成员在「我的产出填报」提交后的形状，产品自己就会产出它；
     //      （R2-32 后 tf-001 已按日期 completed，待核产出随演示载体一并迁到 tf-002。）
     //   ② 能力：`runStep` 新增 **`dialogAnswer`** 步骤（在**触发它的那一步之前**注册一次性应答器），
@@ -1030,17 +1030,17 @@ export const MACHINE_FLOWS = [
   },
   {
     // 批次 47-Y（2026-09-16，承 R-78 口径）：**成员台 · 考勤概况 · 去补课 → 补课说明**。
-    // 台账原 reason 写「需 p5 的 pending 补课任务；该域按设计无静态种子，由纪检操作派生」——**后半句是错的**：
+    // 台账原 reason 写「需 2400012349 的 pending 补课任务；该域按设计无静态种子，由纪检操作派生」——**后半句是错的**：
     //   ① 「无静态种子」不是设计必然，而是**当初没种**（`data-adapter.js` 那句「空属合理」已被本批更正）；
     //   ② 更关键的是**日期耦合**：该页只列**当月**活动（`visitor/attendance-tab.js:24-25`），
-    //      而 7 月那条现成的 p5 缺勤（att38/act-11）**根本不在当月** ⇒ 就算照原方案「等纪检派生」也看不到。
+    //      而 7 月那条现成的 2400012349 缺勤（att38/act-11）**根本不在当月** ⇒ 就算照原方案「等纪检派生」也看不到。
     // 处置（R-78 出口一：造**可达且自洽**的前置）：
-    //   ① `docs/src/data/mock/attendance.js` 补 **9 月**缺勤一条（`att-sep-1`：p5 · act-31 · 缺勤 · **已确认**）；
+    //   ① `docs/src/data/mock/attendance.js` 补 **9 月**缺勤一条（`att-sep-1`：2400012349 · act-31 · 缺勤 · **已确认**）；
     //   ② `docs/src/data/mock/seed.js::SEED_MAKEUP_TASKS` 补**该条的派生结果**（补课任务，`attendanceRecordId` 对得上、
     //      `deadline` = 缺勤日 +7 天、`proofContent: null`）⇒ 与 `autoGenerateMakeupTask()` 落库形状逐项一致；
     //   ③ 两形态同源注入（`server/seed.js` 的 `replaceCollection('makeup_tasks')` ＋ `mock-adapter._seedInitialData`）
     //      ——**只种 mock 就是假绿**（47-S 的教训）。
-    // ⚠ **必须是「已确认」的缺勤**（`recordedBy:'p10'`）：补课任务由「纪检**确认**考勤」时才派生，
+    // ⚠ **必须是「已确认」的缺勤**（`recordedBy:'2400012354'`）：补课任务由「纪检**确认**考勤」时才派生，
     //   若记录还是待确认态却已存在补课任务，两者自相矛盾（R-78 ② 自洽）。
     // ⚠ 弹窗由 `openFormModal` 生成：字段 `[data-field="proof"]`、提交口 `[data-modal-form="..."] button[type=submit]`；
     //   判据载体＝**文本域自身**（点击后弹窗不关，仅弹 toast，故载体仍在位）。
@@ -1077,7 +1077,7 @@ export const MACHINE_FLOWS = [
   },
   // 批次 124（2026-09-21）**退役**：原 `disc-meeting-attendance`（纪检台 · 考勤管理 · 建考勤）流程——
   //   会议考勤上传主体收归「该场会议组织者」（支书 2026-09-20 定案，落地 `D-547`）后，纪检台
-  //   「会议考勤录入」表单只列**本人可上传**的会议场次；演示数据里纪检（p10）不持任何会议场次的上传位
+  //   「会议考勤录入」表单只列**本人可上传**的会议场次；演示数据里纪检（2400012354）不持任何会议场次的上传位
   //   ⇒ 表单长期空态，`waitFor: '#disc-meet-submit'` **结构性**不成立（不是抖动）。
   //   两条校验点随之转 `machine:false`（理由见上方 VALIDATION_SITES「纪检委员台」段）；
   //   **同形态的两条校验未失覆盖**：`leader-attendance-upload`（组织者上传位）的「活动 / 参会人员」仍在跑。
@@ -1482,7 +1482,7 @@ export const MACHINE_FLOWS = [
   // 四处的公共前置是「存在 `kind:'report'` 的内部汇报」，而该域的内容单一源 `docs/data/issues.json`
   // **当时同时是公开匿名反馈页的数据源** ⇒ 直种会让内部汇报出现在当时的公开面。
   // 处置（支书裁定 2026-09-16）：① **公开页加过滤**（`issue-list.js` 传 `kind:'feedback'`，列表与统计同一 kind）；
-  //   ② **种进同源**（issue-101 请汇报请求 → 组织委员 p11；issue-102 成员主动汇报 → 组长 p1）；
+  //   ② **种进同源**（issue-101 请汇报请求 → 组织委员 2400012355；issue-102 成员主动汇报 → 组长 2400012345）；
   //   ③ **服务端按 kind 分流脱敏**（真匿名是**公开反馈**的口径，内部汇报按设计带名）。
   // 现存提交口三处（工作概况行内提交口已于 2026-10-18 繁专项 Task 6 删除，提交只保留在「我的处置」）：
   //   · ①区「请我汇报」行内提交口（`[data-mydispatch-action="submit-report"]`）
@@ -1538,11 +1538,11 @@ export const MACHINE_FLOWS = [
   //   自管 localStorage 键 `gsm1921-member-confirmations`，mock/api 两态都没有服务端表）。
   //   ⇒ 原 reason 写的「组织委员在**某台**发起一次变更 → 该待办即出现」是**不成立的跨人假设**（如实更正）。
   // 真正可达的链（同一会话内）：支书本人也在该写权内（`person-entry.js::EDIT_ROLES`）⇒
-  //   `person.html?id=p7` →「编辑档案」→ 改「发展阶段」（`[data-field="developStage"]`，报支书确认那一组）
+  //   `person.html?id=2400012351` →「编辑档案」→ 改「发展阶段」（`[data-field="developStage"]`，报支书确认那一组）
   //   → 保存 ⇒ 队列里出现一条 pending ⇒ 回支书台「待办」→ 成员发展域 → 组行进详情 ⇒ 退回按钮在位。
   // 依赖的新能力：`{ goto }`（跨页跳转）· `{ openTab }`（跳回工作台后切 tab）——与 `dialogAnswer` / `reopen[]`
   //   同规：**形态逼出来的能力，不是为凑覆盖**。
-  // ⚠ **2026-09-21 批次 127 改准（改测试不改制度，同 `D-513` 口径）**：原前置改的是 `p7`（**积极分子**）→
+  // ⚠ **2026-09-21 批次 127 改准（改测试不改制度，同 `D-513` 口径）**：原前置改的是 `2400012351`（**积极分子**）→
   //   「**发展对象**」；`D-553` 起该步**受「支委会讨论门」前置**（未上会讨论通过即被挡）⇒ 队列里不再出现 pending、
   //   本流程在「等 `secretary:member-confirm` 组行」处超时。本流程只为**造一条 pending**（校验点是「退回原因」必填），
   //   **与目标阶段无关** ⇒ 改用**不受该门约束**的 `积极分子 → 预备党员`（同一个人、同一处写口，**判据一字未改**）。
@@ -1551,7 +1551,7 @@ export const MACHINE_FLOWS = [
     page: 'secretary',
     tab: '待办',
     open: [
-      { goto: '/person.html?id=p7' },
+      { goto: '/person.html?id=2400012351' },
       { waitFor: '#person-stage-btn' },
       { click: '#person-stage-btn' },
       { waitFor: '#person-edit-modal-form' },
@@ -1573,11 +1573,11 @@ export const MACHINE_FLOWS = [
   },
   // 批次 47-R（2026-09-16，支书裁定「过渡态种子都补」）：**过渡态种子簇**——三处，两改种子 + 一处补登记。
   // 三处的共同点：**都缺「过渡态数据」而不是缺功能**（按钮只在某个状态分支里渲染，而种子里永远没有那个状态）。
-  // 1) 成员台「我的复盘」：种子把 p5 排为 act-3 的 `deep`（复盘责任人）⇒ 行卡出现。
-  // 2) 思想汇报「修改并重新提交」：种子补 tr-5（p5 · needs_revision）⇒ 本人可见修改态。
+  // 1) 成员台「我的复盘」：种子把 2400012349 排为 act-3 的 `deep`（复盘责任人）⇒ 行卡出现。
+  // 2) 思想汇报「修改并重新提交」：种子补 tr-5（2400012349 · needs_revision）⇒ 本人可见修改态。
   //    ⚠ 这条**只改 `docs/src/data/mock/thought-reports.js` 就够了**（与 47-P 的 `review_requests` 不同）：
   //      `loadThoughtReports()` 在 `mockDB.thoughtReports` 为空时**回退模块常量** ⇒ api 形态同样看得到。
-  // 3) 思想汇报「打回」（`#tr-reject-confirm`）：**这处此前压根没登记在台账里**——种子里 tr-4（p3）
+  // 3) 思想汇报「打回」（`#tr-reject-confirm`）：**这处此前压根没登记在台账里**——种子里 tr-4（2400012347）
   //    本就存在、组织委员一直可达，只是**没人登记、也就没人跑**。本批补登记并直接覆盖。
   //    （2026-09-18 批次 86 取消初阅门后：打回改为**事后反馈**，组织委员对任一篇都可发起 ⇒ 该流程仍可达。）
   //    ⇒ **「台账不是全量」的实例**：S0 只防规模缩水、S2 只防 machine:true 漏覆盖，**都防不了「漏登记」**。
@@ -2087,7 +2087,7 @@ export const SUCCESS_FLOWS = [
     // ⚠ 断言用**计数文案**「已提交 N 篇」而不是列表文案：新增记录的 `title` 恒为 '思想汇报'
     //   （`addThoughtReport` 的缺省），列表里**没有可区分的文本**；而计数是从 `mockDB.thoughtReports`
     //   现算的 ⇒ 「当场 2 篇 + 重载后仍 2 篇」同时证了「真写了」与「真落库了」。
-    //   **口子在这里**：N 由**种子**决定（演示账号 p5 的种子 = `tr-5` 一条）。**若将来给 p5 增删种子思想汇报，
+    //   **口子在这里**：N 由**种子**决定（演示账号 2400012349 的种子 = `tr-5` 一条）。**若将来给 2400012349 增删种子思想汇报，
     //   必须同步改这里的 N**——否则本条会红，而那是「断言过期」不是「产品坏了」。
     id: 'visitor-thought-report-submit',
     page: 'visitor',

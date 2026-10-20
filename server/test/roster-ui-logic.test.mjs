@@ -9,16 +9,16 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { PEOPLE } from '../../docs/src/data/mock/people.js?v=20261020d';
+import { PEOPLE } from '../../docs/src/data/mock/people.js?v=20261020e';
 // Q-21-3（2026-09-13）：在册状态枚举单一源 = core/domain/constants.js（原经 roster.js 转出）
-import { RESIDENCE } from '../../docs/src/core/domain/constants.js?v=20261020d';
+import { RESIDENCE } from '../../docs/src/core/domain/constants.js?v=20261020e';
 import {
   guardCategoryList, buildGuardMessage,
   validateMemberForm, diffMemberFields,
-} from '../../docs/src/services/member/roster-ui-logic.js?v=20261020d';
+} from '../../docs/src/services/member/roster-ui-logic.js?v=20261020e';
 
-const p1 = PEOPLE.find(p => p.id === 'p1'); // 在校党员（第一党小组·正式党员，无种子滞留字段）
-const p5 = PEOPLE.find(p => p.id === 'p5'); // 种子示范滞留党员（第二党小组·正式党员）
+const p_2400012345 = PEOPLE.find(p => p.id === '2400012345'); // 在校党员（第一党小组·正式党员，无种子滞留字段）
+const p_2400012349 = PEOPLE.find(p => p.id === '2400012349'); // 种子示范滞留党员（第二党小组·正式党员）
 
 // ── a) 守卫引用 → 话术类别（去重 / 计数 / 保序 / 未知域兜底）────────
 test('guardCategoryList：同类别多域合并计数、按话术顺序、未知域兜底、空引用 → []', () => {
@@ -47,7 +47,7 @@ test('guardCategoryList：同类别多域合并计数、按话术顺序、未知
 test('buildGuardMessage：多类措辞含类别清单、标题含姓名、不泄技术键；无引用 → null', () => {
   const refs = [
     { domain: 'branches', id: 'br-b1', label: '支部现任支书' },
-    { domain: 'attendances', id: 'p5-2026-09', label: '考勤记录' },
+    { domain: 'attendances', id: '2400012349-2026-09', label: '考勤记录' },
   ];
   const msg = buildGuardMessage('宋佳宁', refs);
   assert.ok(msg, '有引用应产出话术');
@@ -56,8 +56,8 @@ test('buildGuardMessage：多类措辞含类别清单、标题含姓名、不泄
   assert.ok(msg.reason.includes('解除或迁移'), '原因给出行动指引');
   assert.deepEqual(msg.categories.map(c => c.category), ['现任支书职务', '考勤记录']);
   // 不透出技术键：域英文键 / 记录 id / 成员 id
-  assert.ok(!/branches|attendances|br-b1|p5-2026-09/.test(msg.reason), `原因不应含技术键，实际：${msg.reason}`);
-  assert.ok(!/p5/.test(msg.reason), '原因不应泄成员 id');
+  assert.ok(!/branches|attendances|br-b1|p_2400012349-2026-09/.test(msg.reason), `原因不应含技术键，实际：${msg.reason}`);
+  assert.ok(!/p_2400012349/.test(msg.reason), '原因不应泄成员 id');
 
   const single = buildGuardMessage('罗文杰', [{ domain: 'attendances', id: 'x1', label: '考勤记录' }]);
   assert.ok(single.reason.includes('该成员仍被「考勤记录」引用'), '单类措辞不带「等业务记录」');
@@ -114,18 +114,18 @@ test('validateMemberForm：在册状态枚举外拒绝（禁造新枚举）；�
 
 // ── d) 行内保存 diff（仅带变化字段；无变化 → 空补丁）───────────────
 test('diffMemberFields：分组/阶段变化 → 仅对应补丁字段；全同 → 空补丁', () => {
-  const patch = diffMemberFields(p1, {
+  const patch = diffMemberFields(p_2400012345, {
     partyGroup: '第三党小组', developStage: '正式党员',
     residenceStatus: RESIDENCE.CAMPUS, residenceNote: '',
   });
   assert.deepEqual(patch, { partyGroup: '第三党小组' });
-  assert.deepEqual(diffMemberFields(p1, {
-    partyGroup: p1.partyGroup, developStage: '预备党员',
+  assert.deepEqual(diffMemberFields(p_2400012345, {
+    partyGroup: p_2400012345.partyGroup, developStage: '预备党员',
     residenceStatus: RESIDENCE.CAMPUS, residenceNote: '',
   }), { developStage: '预备党员' });
-  // 全部相同（p1 在校缺省、无备注）→ 无变化
-  assert.deepEqual(diffMemberFields(p1, {
-    partyGroup: p1.partyGroup, developStage: p1.developStage,
+  // 全部相同（p_2400012345 在校缺省、无备注）→ 无变化
+  assert.deepEqual(diffMemberFields(p_2400012345, {
+    partyGroup: p_2400012345.partyGroup, developStage: p_2400012345.developStage,
     residenceStatus: RESIDENCE.CAMPUS, residenceNote: '',
   }), {});
   // 空 member → 空补丁（防御）
@@ -134,32 +134,32 @@ test('diffMemberFields：分组/阶段变化 → 仅对应补丁字段；全同 
 
 test('diffMemberFields：滞留状态/备注变化 → 状态+备注同带；改回在校 → 备注清空；在校备注不落', () => {
   // 在校党员 → 标记滞留（无备注）
-  const toDetained = diffMemberFields(p1, {
-    partyGroup: p1.partyGroup, developStage: p1.developStage,
+  const toDetained = diffMemberFields(p_2400012345, {
+    partyGroup: p_2400012345.partyGroup, developStage: p_2400012345.developStage,
     residenceStatus: RESIDENCE.DETAINED, residenceNote: '',
   });
   assert.deepEqual(toDetained, { residenceStatus: '滞留', residenceNote: '' });
 
-  // 滞留党员 p5：仅改备注 → 状态+备注同带（备注随状态保存）
-  const noteOnly = diffMemberFields(p5, {
-    partyGroup: p5.partyGroup, developStage: p5.developStage,
+  // 滞留党员 p_2400012349：仅改备注 → 状态+备注同带（备注随状态保存）
+  const noteOnly = diffMemberFields(p_2400012349, {
+    partyGroup: p_2400012349.partyGroup, developStage: p_2400012349.developStage,
     residenceStatus: RESIDENCE.DETAINED, residenceNote: ' 2026-09 起交换（新备注） ',
   });
   assert.equal(noteOnly.residenceStatus, '滞留');
   assert.equal(noteOnly.residenceNote, '2026-09 起交换（新备注）');
   assert.equal(noteOnly.partyGroup, undefined, '未动分组不带分组字段');
 
-  // 滞留党员 p5 → 改回在校（即使表单残留备注文本也清空——备注=滞留备注）
-  const back = diffMemberFields(p5, {
-    partyGroup: p5.partyGroup, developStage: p5.developStage,
+  // 滞留党员 p_2400012349 → 改回在校（即使表单残留备注文本也清空——备注=滞留备注）
+  const back = diffMemberFields(p_2400012349, {
+    partyGroup: p_2400012349.partyGroup, developStage: p_2400012349.developStage,
     residenceStatus: RESIDENCE.CAMPUS, residenceNote: '残留备注',
   });
   assert.deepEqual(back, { residenceStatus: '在校', residenceNote: '' });
 
-  // p5 全同 → 无变化
-  const rs5 = p5.residenceStatus || RESIDENCE.DETAINED;
-  assert.deepEqual(diffMemberFields(p5, {
-    partyGroup: p5.partyGroup, developStage: p5.developStage,
-    residenceStatus: rs5, residenceNote: p5.residenceNote || '',
+  // p_2400012349 全同 → 无变化
+  const rs5 = p_2400012349.residenceStatus || RESIDENCE.DETAINED;
+  assert.deepEqual(diffMemberFields(p_2400012349, {
+    partyGroup: p_2400012349.partyGroup, developStage: p_2400012349.developStage,
+    residenceStatus: rs5, residenceNote: p_2400012349.residenceNote || '',
   }), {});
 });

@@ -13,16 +13,16 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261020d';
-import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261020d';
-import { setDataSource } from '../../docs/src/data/data-adapter.js?v=20261020d';
+import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261020e';
+import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261020e';
+import { setDataSource } from '../../docs/src/data/data-adapter.js?v=20261020e';
 // 日历日索引纯分组 helper（calendar.js 现为 node 可导：resize 监听已 typeof 守卫）
-import { buildCalendarDayIndex } from '../../docs/src/components/record/calendar.js?v=20261020d';
-import { SecretaryTodoDeriver } from '../../docs/src/services/governance/secretary-overview.js?v=20261020d';
+import { buildCalendarDayIndex } from '../../docs/src/components/record/calendar.js?v=20261020e';
+import { SecretaryTodoDeriver } from '../../docs/src/services/governance/secretary-overview.js?v=20261020e';
 import {
   buildApprovedSignupIndex, approvedSignupHit,
-} from '../../docs/src/services/governance/today-summary.js?v=20261020d';
-import { TodoStatus, isTodoExpired } from '../../docs/src/services/governance/todo.js?v=20261020d';
+} from '../../docs/src/services/governance/today-summary.js?v=20261020e';
+import { TodoStatus, isTodoExpired } from '../../docs/src/services/governance/todo.js?v=20261020e';
 // R-26③（2026-10-05 批次 388）：与生产同口径＝**本地**「今天」（服务端单一源）
 import { today as todayLocal } from '../services/reporting.js';
 
@@ -127,8 +127,8 @@ test('② 考勤缺口（_aggAttendanceRemind Map 化）：缺口活动序与旧
   ];
   mockDB.activities = activities;
   mockDB.attendances = [
-    { id: 'r1', activityId: 'g2', personId: 'p1', status: 'present' },
-    { id: 'r2', activityId: 'g2', personId: 'p2', status: 'absent' },   // g2 已录（任意状态都算"已录"）→ 排除
+    { id: 'r1', activityId: 'g2', personId: '2400012345', status: 'present' },
+    { id: 'r2', activityId: 'g2', personId: '2400012346', status: 'absent' },   // g2 已录（任意状态都算"已录"）→ 排除
   ];
 
   // 旧嵌套对偶实现（改造前逻辑逐字）
@@ -161,21 +161,21 @@ test('③ 报名索引（buildApprovedSignupIndex/approvedSignupHit）：与旧 
     );
 
   const signups = [
-    { id: 's1', sourceType: 'activity', sourceId: 'act-1', personId: 'p1', status: 'approved' },
-    { id: 's2', sourceType: 'activity', sourceId: 'act-1', personId: 'p2', status: 'approved' },
-    { id: 's3', sourceType: 'activity', sourceId: 'act-1', personId: 'p3', status: 'pending' },   // pending 不计
-    { id: 's4', sourceType: 'activity', sourceId: 'act-2', personId: 'p1', status: 'approved' },
-    { id: 's5', sourceType: 'taskforce', sourceId: 'act-1', personId: 'p1', status: 'approved' }, // 异源同 id → 不得误命中
-    { id: 's6', sourceType: 'activity', sourceId: 'act-3', personId: 'p2', status: 'approved' },
-    { id: 's7', sourceType: 'activity', sourceId: 'act-1', personId: 'p1', status: 'approved' },  // 同人重复行
+    { id: 's1', sourceType: 'activity', sourceId: 'act-1', personId: '2400012345', status: 'approved' },
+    { id: 's2', sourceType: 'activity', sourceId: 'act-1', personId: '2400012346', status: 'approved' },
+    { id: 's3', sourceType: 'activity', sourceId: 'act-1', personId: '2400012347', status: 'pending' },   // pending 不计
+    { id: 's4', sourceType: 'activity', sourceId: 'act-2', personId: '2400012345', status: 'approved' },
+    { id: 's5', sourceType: 'taskforce', sourceId: 'act-1', personId: '2400012345', status: 'approved' }, // 异源同 id → 不得误命中
+    { id: 's6', sourceType: 'activity', sourceId: 'act-3', personId: '2400012346', status: 'approved' },
+    { id: 's7', sourceType: 'activity', sourceId: 'act-1', personId: '2400012345', status: 'approved' },  // 同人重复行
     null,                                                                                          // 脏行（旧 .some 跳过）
-    { id: 's8', sourceType: 'activity', sourceId: 'act-x', personId: 'p9', status: 'approved' },
-    { id: 's9', sourceType: 'activity', sourceId: null, personId: 'p1', status: 'approved' },     // 源 id 缺失
+    { id: 's8', sourceType: 'activity', sourceId: 'act-x', personId: '2400012353', status: 'approved' },
+    { id: 's9', sourceType: 'activity', sourceId: null, personId: '2400012345', status: 'approved' },     // 源 id 缺失
   ];
 
   const index = buildApprovedSignupIndex(signups);
   const queryActs = ['act-1', 'act-2', 'act-3', 'act-x', 'act-missing', null, undefined];
-  const queryPersons = ['p1', 'p2', 'p3', 'p9', 'nobody', null, undefined];
+  const queryPersons = ['2400012345', '2400012346', '2400012347', '2400012353', 'nobody', null, undefined];
   for (const actId of queryActs) {
     for (const pid of queryPersons) {
       assert.equal(
@@ -186,13 +186,13 @@ test('③ 报名索引（buildApprovedSignupIndex/approvedSignupHit）：与旧 
     }
   }
   // 抽样显式断言：命中与反例
-  assert.equal(approvedSignupHit(index, 'act-1', 'p1'), true, 'approved 同人命中');
-  assert.equal(approvedSignupHit(index, 'act-1', 'p3'), false, 'pending 不计');
+  assert.equal(approvedSignupHit(index, 'act-1', '2400012345'), true, 'approved 同人命中');
+  assert.equal(approvedSignupHit(index, 'act-1', '2400012347'), false, 'pending 不计');
   assert.equal(approvedSignupHit(index, 'act-1', 'nobody'), false);
-  assert.equal(approvedSignupHit(index, 'act-missing', 'p1'), false, '无报名活动 miss');
+  assert.equal(approvedSignupHit(index, 'act-missing', '2400012345'), false, '无报名活动 miss');
   // 空表/缺省入参
-  assert.equal(approvedSignupHit(buildApprovedSignupIndex([]), 'act-1', 'p1'), false);
-  assert.equal(approvedSignupHit(buildApprovedSignupIndex(null), 'act-1', 'p1'), false);
+  assert.equal(approvedSignupHit(buildApprovedSignupIndex([]), 'act-1', '2400012345'), false);
+  assert.equal(approvedSignupHit(buildApprovedSignupIndex(null), 'act-1', '2400012345'), false);
 });
 
 // ═══════════════ ④ isTodoExpired ≡ 旧四处判定 ═══════════════

@@ -63,7 +63,7 @@ async function openWriteStep1(page) {
   ]);
   await page.waitForFunction(() => [...document.querySelectorAll('.secretary-tab-btn')].some(b => b.textContent.includes('活动')), null, { timeout: 12000 });
   // P0-2 形态断言（2026-09-23 支书裁定「形态必须可断言」）：本文件真机用例必须在 API 形态下跑
-  await page.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20261020d')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
+  await page.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20261020e')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
   await page.evaluate(() => [...document.querySelectorAll('.secretary-tab-btn')].find(b => b.textContent.includes('活动'))?.click());
   await page.waitForFunction(() => document.getElementById('ws-sec-write-btn'), null, { timeout: 10000 });
   await page.evaluate(() => document.getElementById('ws-sec-write-btn')?.click());
@@ -71,7 +71,7 @@ async function openWriteStep1(page) {
 }
 
 test('S4 主题党日块入口守卫：停用 → Step1 模板卡消失 → 恢复默认回归', async () => {
-  const staffToken = await apiLogin('p_pc');
+  const staffToken = await apiLogin('9000000001');
 
   // ① 基线：默认主题党日模板卡（data-tpl-click="1"）存在
   const page1 = await newPage();
@@ -114,70 +114,70 @@ async function readThreeMeetingSubtypes(page) {
 }
 
 test('S4+ 三会一课块入口守卫（2026-09-28 批次 248）：停用「党课块」→ 该场景模板按钮消失 → 恢复回归', async () => {
-  const staffToken = await apiLogin('p_pc');
+  const staffToken = await apiLogin('9000000001');
 
   // ① 基线：四个三会一课子类按钮都在
-  const p1 = await newPage();
+  const p_2400012345 = await newPage();
   try {
-    await openWriteStep1(p1);
-    assert.deepEqual((await readThreeMeetingSubtypes(p1)).sort(),
+    await openWriteStep1(p_2400012345);
+    assert.deepEqual((await readThreeMeetingSubtypes(p_2400012345)).sort(),
       ['branch-committee', 'branch-party-meeting', 'party-group-meeting', 'party-lecture'],
       '默认四个三会一课子类都在');
-  } finally { await p1.close(); }
+  } finally { await p_2400012345.close(); }
 
   // ② 支部停用 party-lecture（党课块）→ 只有该场景的按钮消失 + 提示点名它
   await patchBlocks(staffToken, {
     outputBlocks: { hiddenBlockIds: [], blockOrder: [] },
     workflowBlocks: { hiddenBlockIds: ['party-lecture'] },
   });
-  const p2 = await newPage();
+  const p_2400012346 = await newPage();
   try {
-    await openWriteStep1(p2);
-    const subs = await readThreeMeetingSubtypes(p2);
+    await openWriteStep1(p_2400012346);
+    const subs = await readThreeMeetingSubtypes(p_2400012346);
     assert.equal(subs.includes('party-lecture'), false, '停用后「党课」模板按钮消失');
     assert.equal(subs.length, 3, '其余三会一课子类不受影响');
-    const notice = await p2.evaluate(() => document.body.textContent.includes('工作流块「党课块」已由支部配置停用'));
+    const notice = await p_2400012346.evaluate(() => document.body.textContent.includes('工作流块「党课块」已由支部配置停用'));
     assert.equal(notice, true, '停用提示点名「党课块」');
-  } finally { await p2.close(); }
+  } finally { await p_2400012346.close(); }
 
   // ③ 恢复默认 → 党课按钮回归
   await patchBlocks(staffToken, null);
-  const p3 = await newPage();
+  const p_2400012347 = await newPage();
   try {
-    await openWriteStep1(p3);
-    assert.equal((await readThreeMeetingSubtypes(p3)).includes('party-lecture'), true, '恢复默认后「党课」按钮回归');
-  } finally { await p3.close(); }
+    await openWriteStep1(p_2400012347);
+    assert.equal((await readThreeMeetingSubtypes(p_2400012347)).includes('party-lecture'), true, '恢复默认后「党课」按钮回归');
+  } finally { await p_2400012347.close(); }
 
   console.log('[S4+] 三会一课块入口守卫: 停用党课块→按钮消失+点名提示 → 恢复→回归 闭环通过');
 });
 
 test('S4++ 三会一课四块全停用（2026-09-29 批次 249）：子类按钮全消失 ＋ 空态文案 ＋ 提示逐块点名 → 恢复回归', async () => {
-  const staffToken = await apiLogin('p_pc');
+  const staffToken = await apiLogin('9000000001');
   const ALL4 = ['branch-party-meeting', 'branch-committee', 'party-group-meeting', 'party-lecture'];
 
   await patchBlocks(staffToken, {
     outputBlocks: { hiddenBlockIds: [], blockOrder: [] },
     workflowBlocks: { hiddenBlockIds: ALL4 },
   });
-  const p1 = await newPage();
+  const p_2400012345 = await newPage();
   try {
-    await openWriteStep1(p1);
-    assert.deepEqual(await readThreeMeetingSubtypes(p1), [], '四块全停用后三会一课子类按钮**全消失**');
-    const txt = await p1.evaluate(() => document.body.textContent);
+    await openWriteStep1(p_2400012345);
+    assert.deepEqual(await readThreeMeetingSubtypes(p_2400012345), [], '四块全停用后三会一课子类按钮**全消失**');
+    const txt = await p_2400012345.evaluate(() => document.body.textContent);
     assert.ok(txt.includes('本类目下的工作流块均已由支部配置停用。'), '显示「本类目全停用」空态文案');
     // 逐块点名（`<块名>块` 只出现在停用提示句里 ⇒ 可精确断言提示覆盖了全部四块）
     ['支部党员大会块', '支委会块', '党小组会块', '党课块'].forEach((n) => {
       assert.ok(txt.includes(n), `停用提示应点名「${n}」`);
     });
-  } finally { await p1.close(); }
+  } finally { await p_2400012345.close(); }
 
   // 恢复默认 → 四块按钮全回归
   await patchBlocks(staffToken, null);
-  const p2 = await newPage();
+  const p_2400012346 = await newPage();
   try {
-    await openWriteStep1(p2);
-    assert.deepEqual((await readThreeMeetingSubtypes(p2)).sort(), [...ALL4].sort(), '恢复默认后四个子类全部回归');
-  } finally { await p2.close(); }
+    await openWriteStep1(p_2400012346);
+    assert.deepEqual((await readThreeMeetingSubtypes(p_2400012346)).sort(), [...ALL4].sort(), '恢复默认后四个子类全部回归');
+  } finally { await p_2400012346.close(); }
 
   console.log('[S4++] 三会一课块全停用: 四按钮全消失+空态+逐块点名 → 恢复→四块回归 闭环通过');
 });
@@ -195,7 +195,7 @@ const CALENDAR_TAB_SRC = fileURLToPath(new URL('../../docs/src/entries/tabs/secr
 const MANIFEST_HINT = '如：学习两会精神主题党日';
 
 test('S4 表单元数据单一源（真机）：主题党日标题 hint 来自 manifest ＋ 反证不硬编码 ＋ 三会一课对照无', async () => {
-  const staffToken = await apiLogin('p_pc');
+  const staffToken = await apiLogin('9000000001');
   await patchBlocks(staffToken, null); // 默认全开（守卫前置：块停用会让模板卡消失、选不到模板）
 
   // ② 反证（先做，纯文件读，快）：该 hint 不得硬编码在写面板源码里
@@ -204,24 +204,24 @@ test('S4 表单元数据单一源（真机）：主题党日标题 hint 来自 m
     `hint「${MANIFEST_HINT}」不得硬编码在 calendar-tab.js —— 若在此硬编码，① 的「来自 manifest」就不成立（判据失效）`);
 
   // ① 主题党日 Step2：标题字段的 label/hint 来自 manifest（hint 探针＝该声明值）
-  const p1 = await newPage();
+  const p_2400012345 = await newPage();
   try {
-    await openWriteStep1(p1);
-    await p1.click('button[data-action="select-template"][data-scenario-id="theme-party"]');
-    await p1.waitForFunction(() => !!document.getElementById('wp-title'), null, { timeout: 8000 });
-    const themeFormText = await p1.evaluate(() => document.getElementById('wp-title').closest('div').textContent);
+    await openWriteStep1(p_2400012345);
+    await p_2400012345.click('button[data-action="select-template"][data-scenario-id="theme-party"]');
+    await p_2400012345.waitForFunction(() => !!document.getElementById('wp-title'), null, { timeout: 8000 });
+    const themeFormText = await p_2400012345.evaluate(() => document.getElementById('wp-title').closest('div').textContent);
     assert.ok(themeFormText.includes(MANIFEST_HINT), '主题党日 Step2 标题字段应渲染 manifest 声明的 hint');
-  } finally { await p1.close(); }
+  } finally { await p_2400012345.close(); }
 
   // ③ 对照：三会一课（党课）Step2 的标题字段**不含**该 hint（其余模板维持原样）
-  const p2 = await newPage();
+  const p_2400012346 = await newPage();
   try {
-    await openWriteStep1(p2);
-    await p2.click('button[data-action="select-template"][data-subtype="party-lecture"]');
-    await p2.waitForFunction(() => !!document.getElementById('wp-title'), null, { timeout: 8000 });
-    const lectureFormText = await p2.evaluate(() => document.getElementById('wp-title').closest('div').textContent);
+    await openWriteStep1(p_2400012346);
+    await p_2400012346.click('button[data-action="select-template"][data-subtype="party-lecture"]');
+    await p_2400012346.waitForFunction(() => !!document.getElementById('wp-title'), null, { timeout: 8000 });
+    const lectureFormText = await p_2400012346.evaluate(() => document.getElementById('wp-title').closest('div').textContent);
     assert.equal(lectureFormText.includes(MANIFEST_HINT), false, '三会一课标题字段不应出现主题党日块的 hint（对照）');
-  } finally { await p2.close(); }
+  } finally { await p_2400012346.close(); }
 
   console.log('[S4] 表单元数据单一源（真机）: 主题党日 hint 来自 manifest ＋ 源码反证 ＋ 三会一课对照 通过');
 });

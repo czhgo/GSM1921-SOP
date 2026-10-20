@@ -1072,9 +1072,9 @@ pending ──用户开始处理──→ in_progress ──完成──→ comp
 
 | 字段 | 类型 | 说明 |
 |---|---|---|
-| id | string | 主键，由 `generateId('p')` 派生（形如 `p_<hex>`） |
+| id | string | 主键＝**学号/工号**（与 `studentId` 同值）；学生用学号，教工/党委组织员用工号 |
 | name | string | 姓名（必填） |
-| studentId | string | 学号；**新增成员时采集**；支部内唯一；**同时作为登录账号** |
+| studentId | string | 学号/工号；**新增成员时采集**；支部内唯一；**同时作为登录账号** |
 | enrollYear | string | **届别/入学年份**；用于识别毕业批次，登记流入时采集 |
 | partyGroup | string | 党小组归属；**空字符串即「未分组」**（不属任何党小组） |
 | developStage | string | 发展阶段；枚举单一源见 `core/domain/constants.js::DEVELOP_STAGES` |
@@ -1084,6 +1084,8 @@ pending ──用户开始处理──→ in_progress ──完成──→ comp
 | residenceNote | string | 滞留备注（仅滞留态保留） |
 | residenceHistory | array | 在册状态变更留痕（from/to/updatedBy/updatedAt/note） |
 | selfProfile | object | **成员「自我描述」**（2026-10-05 `D-788` / `V-10b`：支书提供问卷字段清单 ⇒ 落点＝扩本实体）。**字段模型单一源＝`docs/src/core/domain/self-profile.js`**（15 字段 · 四类形态：`text` / `bool` / `multi` / `list`）；详见下表 |
+
+> **人员主键口径（2026-10-20 起，BREAKING）**：`id` 即**学号/工号**，与 `studentId` 同值；学生用学号，教工/党委组织员用工号。`p*` 不再作为人员 id 出现在界面或数据里。服务端 schema **v7 `person-id-student-number`** 在启动时一次性把 `users.id`、`sessions.person_id`、`attachments.uploaded_by` 与全部 JSON 表里的人员引用（组织者/记录人/指派对象/工作组成员/表决名单等）改为学号：单事务、先改 `users.id` 再改引用，无法映射即抛错并在清单里列出、整体回滚；重跑幂等（已全为学号时 `mapped=0`）。旧 id 映射只保留在 `server/migrations/legacy-person-ids.js` 与前端 `docs/src/data/legacy-person-ids.js`（deprecated，仅适配器迁移路径可引用）：旧 `p*` 只作**登录别名**，登录后会话一律存学号；旧链接 `person.html?id=p13` 按映射改写为学号并 `replaceState`，不 404。
 
 **`selfProfile` 子表（字段模型单一源＝`docs/src/core/domain/self-profile.js::SELF_PROFILE_FIELDS`）：**
 
@@ -1246,7 +1248,7 @@ pending ──用户开始处理──→ in_progress ──完成──→ comp
 | SOP 场景模板 (Scenario) | sopData.js (静态代码) | 静态，代码级维护 | 7 个内置场景，驱动任务生成和工作流（内置清单见本文 §2.14） |
 | 工作流定义 (Definition) | definitions.js (静态代码) | 静态，代码级维护 | 3 套流程定义模板（theme-party-day / short-term / long-term），驱动活动流转（与本文 §2.15 一致） |
 | 应用状态 (appState) | core/base/state.js (内存) | 页面生命周期内 | UI 视图状态，不持久化 |
-| 用户/角色预设 (users) | mockDB.users (内存) | 静态预设 | 11 个 `u_*` 系统账号（支书/副支书/支委/3 组长/执行组长/组织者/深度参与者）；登录账号另见 data/mock/accounts.js `MOCK_ACCOUNTS`（`p*`，含党委组织员 p_pc） |
+| 用户/角色预设 (users) | mockDB.users (内存) | 静态预设 | 11 个 `u_*` 系统账号（支书/副支书/支委/3 组长/执行组长/组织者/深度参与者）；登录账号另见 data/mock/accounts.js `MOCK_ACCOUNTS`（账号＝学号，`personId` 同学号；含党委组织员工号 `9000000001`） |
 | 赋权审计 (AuthRecord) | API：服务端 `auth_audit`；mock：localStorage `sop_org_os_auth_audit` | 跨会话持久化 | API 写入须对应服务端核验的同支部角色/工作组成员变更；操作者、时间、支部归属由服务端生成，客户端同名字段不采信 |
 | 角色常量 (ROLE_LABELS/COLORS) | core/domain/constants.js (静态代码) | 静态，代码级维护 | 13 键角色（11 业务 + 2 遗留）的中文标签与视觉配色 |
 | 意见反馈 (IssueRecord) | `docs/data/issues.json` + localStorage `gsm1921-issue-drafts` | open->closed->reopened | GitHub Issue 风格开源讨论，双轨数据层，处置归支委会、由支书主持支委会（`issues.json` 权威源） |
@@ -1531,7 +1533,7 @@ pending ──用户开始处理──→ in_progress ──完成──→ comp
 |---|---|---|---|
 | 人员（学生+系统账号） | `PEOPLE`（people.js）+ `mockDB.users`（domain.js，u_* 系统账号） | 全部渲染层经 `PersonStore.getAll()/getName()` 解析 | 任何模块不得自行硬编码人员名单 |
 | 发展党员追踪 | `PEOPLE.developStage` + `developStage` 变更时落档的 **`developStageSince`**（进入当前阶段日期；**2026-09-28 起在成员档案上、服务端权威**，原为本机覆盖档案 `gsm1921-dev-stage-overrides`） | 组织委员工作台发展党员/人才库 | 候选人由 `_buildCandidates()` 从 PEOPLE 派生（非正式党员），推进落成员档案字段（读口 `loadStageEntryDates()`） |
-| 反馈系统人员 ID | 真实成员短 ID（`p*`，如 `p13`/`p11`/`p1`；不得用 `u_*` 占位） | issue-list/issue-detail/issues.js 渲染层统一 `getPersonName()`/`PersonStore.getName()` 转姓名 | 存储与渲染均不得出现 `u_org_commissioner` 等长 ID；`PersonStore.getName` 解析不到时回退返回 ID 本身 |
+| 反馈系统人员 ID | 真实成员学号/工号（如 `2300010001`/`2400012355`；不得用 `u_*` 占位） | issue-list/issue-detail/issues.js 渲染层统一 `getPersonName()`/`PersonStore.getName()` 转姓名 | 存储与渲染均不得出现 `u_org_commissioner` 等长 ID，也不得出现已退役的 `p*`；`PersonStore.getName` 解析不到时回退返回 ID 本身 |
 | `partyGroups` | `docs/src/services/member/party-group.js`（写口）+ `mockDB.partyGroups` / server 表 `party_groups` | 支书台「党小组」tab 组清单、组长建活动承办组选项、成员名册下拉、group-view 聚合 | 支部级清单，活组（`status='active'`，按 seq 排序）为唯一枚举来源；实体与解散口径见 §2.27 + 单一源登记见 §三 |
 | `memberFlows` | `docs/src/services/member/member-flow.js` + `mockDB.memberFlows` / server 表 `member_flows` | 名册「成员流动」面板（台账 + 对账行）、流入自动建号 | 复式记账台账，对账恒等式「期初 + 流入 − 流出 = 在册」；实体见 §2.28 + 单一源登记见 §三 |
 

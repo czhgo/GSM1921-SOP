@@ -19,7 +19,7 @@ import {
   getAccentRolePreference, setAccentRolePreference,
   resolveAppliedAccentRole, personPrefKey, syncAppearanceForActiveUser,
   getAppliedAccentColors,
-} from '../../docs/src/core/boot/theme.js?v=20261020d';
+} from '../../docs/src/core/boot/theme.js?v=20261020e';
 
 const THEME_KEY = 'workflowos_theme';
 const FONT_KEY = 'workflowos_font_size';
@@ -66,7 +66,7 @@ test('R1-A：访客在全局键留下偏好后，新登录账号 person 无键 �
   store.set(FONT_KEY, 'large');
   store.set(ACCENT_KEY, 'participant');
 
-  loginAs('p5'); // 新账号首登：person 空间全新
+  loginAs('2400012349'); // 新账号首登：person 空间全新
   assert.equal(getThemePreference(), 'system', '主题默认 = 跟随系统默认档（不继承全局 dark）');
   assert.equal(getFontSizePreference(), 'medium', '字号默认 = 中（不继承全局 large）');
   assert.equal(getAccentRolePreference(), null, '强调色默认 = 未设置 null（不继承全局 participant）');
@@ -84,14 +84,14 @@ test('R1-A：登录用户 set 只写 person 键，绝不材料化全局键', () 
   store.set(FONT_KEY, 'medium');
   store.set(ACCENT_KEY, 'secretary');
 
-  loginAs('p13');
+  loginAs('2300010001');
   setThemePreference('dark');
   setFontSizePreference('large');
   setAccentRolePreference('participant');
 
-  assert.equal(store.get(personPrefKey('p13', '-theme')), 'dark');
-  assert.equal(store.get(personPrefKey('p13', '-font-size')), 'large');
-  assert.equal(store.get(personPrefKey('p13', '-accent-role')), 'participant');
+  assert.equal(store.get(personPrefKey('2300010001', '-theme')), 'dark');
+  assert.equal(store.get(personPrefKey('2300010001', '-font-size')), 'large');
+  assert.equal(store.get(personPrefKey('2300010001', '-accent-role')), 'participant');
   // 全局键 = 访客原值（登录写入未触碰）
   assert.equal(store.get(THEME_KEY), 'light');
   assert.equal(store.get(FONT_KEY), 'medium');
@@ -116,31 +116,31 @@ test('R1-A：访客 set 只写全局键，get 读全局键；不产生任何 per
 });
 
 // ── 4) 双账号互不污染 + 切号读回 ──
-test('R1-A：p13 与 p5 偏好互不污染；切号后读回各自 person 键（p5 无键=默认）', () => {
+test('R1-A：2300010001 与 2400012349 偏好互不污染；切号后读回各自 person 键（2400012349 无键=默认）', () => {
   const store = installStorage();
-  loginAs('p13');
+  loginAs('2300010001');
   setThemePreference('dark');
   setFontSizePreference('large');
   setAccentRolePreference('participant');
   logout();
 
-  loginAs('p5'); // 切到另一账号：默认不继承
+  loginAs('2400012349'); // 切到另一账号：默认不继承
   assert.equal(getThemePreference(), 'system');
   assert.equal(getFontSizePreference(), 'medium');
   assert.equal(getAccentRolePreference(), null);
   logout();
 
-  loginAs('p13'); // 切回支书：person 键仍在
+  loginAs('2300010001'); // 切回支书：person 键仍在
   assert.equal(getThemePreference(), 'dark');
   assert.equal(getFontSizePreference(), 'large');
   assert.equal(getAccentRolePreference(), 'participant');
-  assert.equal(personKeysOf(store).length, 3, '仅 p13 三个 person 键；p5 首登零写入');
+  assert.equal(personKeysOf(store).length, 3, '仅 2300010001 三个 person 键；2400012349 首登零写入');
 });
 
 // ── 补充：resolveAppliedAccentRole 无覆盖回落默认金色 ──
 test('resolveAppliedAccentRole：登录无覆盖 → 默认金色；有覆盖 → 覆盖键；非法覆盖 → 默认金色', () => {
   const store = installStorage();
-  loginAs('p13');
+  loginAs('2300010001');
   assert.equal(resolveAppliedAccentRole('secretary'), 'participant', '登录无覆盖 → 默认金色（绝不回落全局/角色色）');
   store.set(ACCENT_KEY, 'leader'); // 全局残留上一登录者/访客键（应被无视）
   assert.equal(resolveAppliedAccentRole('secretary'), 'participant', '登录解析无视全局残留');
@@ -152,7 +152,7 @@ test('resolveAppliedAccentRole：登录无覆盖 → 默认金色；有覆盖 �
 
 // ── 补充：node 无 DOM 环境下模块 API 安全（守卫路径不抛）──
 test('node 环境安全：sync/DOM 依赖 API 有 typeof 守卫，调用不抛', () => {
-  loginAs('p13');
+  loginAs('2300010001');
   assert.equal(syncAppearanceForActiveUser(), undefined);
   setThemePreference('dark');
 });
@@ -162,7 +162,7 @@ test('node 环境安全：sync/DOM 依赖 API 有 typeof 守卫，调用不抛',
 //    覆盖非法回落角色默认、访客回落全局键，供各消费点统一取色（模块加载期快照的替代）。 ──
 test('getAppliedAccentColors：登录 person 覆盖生效 / 无覆盖=默认金色 / 非法覆盖回落默认金色', () => {
   const store = installStorage();
-  loginAs('p13');
+  loginAs('2300010001');
   // 无 person 覆盖 → 默认金色（所有角色一致；2026-10-20：默认金单一源已改亮金 #F5C518）
   assert.equal(getAppliedAccentColors('secretary').accent, '#F5C518');
   // 全局残留（上一登录者/访客键）被无视

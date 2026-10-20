@@ -10,17 +10,17 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261020d';
-import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261020d';
-import { setDataSource } from '../../docs/src/data/data-adapter.js?v=20261020d';
-import { bumpToken, tokenOf, resetAllTokens } from '../../docs/src/core/base/version-token.js?v=20261020d';
-import { saveAttendanceRecords, loadAttendanceRecords } from '../../docs/src/services/activity/attendance.js?v=20261020d';
-import { saveInspectionRecords, loadInspectionRecords } from '../../docs/src/services/activity/inspection.js?v=20261020d';
-import { addActivityReview } from '../../docs/src/services/governance/review.js?v=20261020d';
-import { TaskForceRecordStore } from '../../docs/src/services/activity/taskforce.js?v=20261020d';
-import { SignupStore } from '../../docs/src/services/activity/signup.js?v=20261020d';
-import { saveFollowups } from '../../docs/src/services/governance/resolution-followup.js?v=20261020d';
-import { SecretaryOverviewStore, SecretaryTodoDeriver } from '../../docs/src/services/governance/secretary-overview.js?v=20261020d';
+import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261020e';
+import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261020e';
+import { setDataSource } from '../../docs/src/data/data-adapter.js?v=20261020e';
+import { bumpToken, tokenOf, resetAllTokens } from '../../docs/src/core/base/version-token.js?v=20261020e';
+import { saveAttendanceRecords, loadAttendanceRecords } from '../../docs/src/services/activity/attendance.js?v=20261020e';
+import { saveInspectionRecords, loadInspectionRecords } from '../../docs/src/services/activity/inspection.js?v=20261020e';
+import { addActivityReview } from '../../docs/src/services/governance/review.js?v=20261020e';
+import { TaskForceRecordStore } from '../../docs/src/services/activity/taskforce.js?v=20261020e';
+import { SignupStore } from '../../docs/src/services/activity/signup.js?v=20261020e';
+import { saveFollowups } from '../../docs/src/services/governance/resolution-followup.js?v=20261020e';
+import { SecretaryOverviewStore, SecretaryTodoDeriver } from '../../docs/src/services/governance/secretary-overview.js?v=20261020e';
 
 // ── localStorage 内存桩（member-persist 同款）─────────────────────
 const _store = new Map();
@@ -57,7 +57,7 @@ test('① attendance：未写 tokenOf 不变；saveAttendanceRecords 写口后�
   const b1 = tokenOf('attendance');
   assert.equal(tokenOf('attendance'), b1, '未写时读数不变');
   saveAttendanceRecords([...loadAttendanceRecords().slice(0, 1), {
-    id: 'att-p0', activityId: 'act-x', personId: 'p1', status: 'present',
+    id: 'att-p0', activityId: 'act-x', personId: '2400012345', status: 'present',
     recordedBy: 'u_disc', recordedAt: '2026-09-06T08:00:00.000Z',
   }]);
   assert.ok(tokenOf('attendance') > b1, '考勤写口 → attendance token 递增');
@@ -68,7 +68,7 @@ test('② inspection：未写 tokenOf 不变；saveInspectionRecords 写口后�
   const b1 = tokenOf('inspection');
   assert.equal(tokenOf('inspection'), b1, '未写时读数不变');
   saveInspectionRecords([...loadInspectionRecords().slice(0, 1), {
-    id: 'ins-p0', sourceType: 'activity', activityId: 'act-x', personId: 'p1',
+    id: 'ins-p0', sourceType: 'activity', activityId: 'act-x', personId: '2400012345',
     level: 'organize', role: '策划', recordedBy: 'u_disc', recordedAt: '2026-09-06T08:00:00.000Z', status: 'pending',
   }]);
   assert.ok(tokenOf('inspection') > b1, '考察写口 → inspection token 递增');
@@ -79,7 +79,7 @@ test('③ activityReview：未写 tokenOf 不变；addActivityReview 写口后�
   const b1 = tokenOf('activityReview');
   assert.equal(tokenOf('activityReview'), b1, '未写时读数不变');
   addActivityReview({
-    id: 'rev-p0', activityId: 'act-x', organizerId: 'p1', progress: '已完成',
+    id: 'rev-p0', activityId: 'act-x', organizerId: '2400012345', progress: '已完成',
     reviewStatus: '未提交', reviewContent: '', issues: [],
   });
   assert.ok(tokenOf('activityReview') > b1, '活动复盘写口 → activityReview token 递增');
@@ -90,7 +90,7 @@ test('④ taskforce：未写 tokenOf 不变；TaskForceRecordStore.add 写口后
   TaskForceRecordStore._records = []; // 复位模块级内存态（loadDB 不播专班种子）
   const b1 = tokenOf('taskforce');
   assert.equal(tokenOf('taskforce'), b1, '未写时读数不变');
-  TaskForceRecordStore.add({ id: 'tf-p0', name: 'P0 测试专班', task: '测试', status: 'recruiting', manager: 'p11', initiator: 'p11', members: [{ personId: 'p1', role: 'participant' }] });
+  TaskForceRecordStore.add({ id: 'tf-p0', name: 'P0 测试专班', task: '测试', status: 'recruiting', manager: '2400012355', initiator: '2400012355', members: [{ personId: '2400012345', role: 'participant' }] });
   assert.ok(tokenOf('taskforce') > b1, '专班写口 → taskforce token 递增');
 });
 
@@ -103,7 +103,7 @@ test('⑤ resolution：未写 tokenOf 不变；saveFollowups 写口后递增（�
   const b1 = tokenOf('resolution');
   assert.equal(tokenOf('resolution'), b1, '未写时读数不变');
   await saveFollowups({
-    activityId: 'act-p0', agendaItemId: 'ag-p0', actorId: 'p13',
+    activityId: 'act-p0', agendaItemId: 'ag-p0', actorId: '2300010001',
     followups: [{ item: '落实 P0 议题', ownerType: 'role', ownerId: 'org-commissioner', deadline: '2099-12-31' }],
   });
   assert.ok(tokenOf('resolution') > b1, '决议跟进写口 → resolution token 递增');
@@ -113,7 +113,7 @@ test('⑥ signup：未写 tokenOf 不变；SignupStore.apply 写口后递增', (
   beginMockCase();
   mockDB.activities = [...mockDB.activities, {
     id: 'act-su-p0', title: 'P0 报名活动', date: '2099-03-01', status: 'published',
-    scenarioId: 'theme-party', organizer: 'p1', createdBy: 'p1', assignments: [],
+    scenarioId: 'theme-party', organizer: '2400012345', createdBy: '2400012345', assignments: [],
   }];
   mockDB.taskforces = [];
   TaskForceRecordStore._records = [];
@@ -121,7 +121,7 @@ test('⑥ signup：未写 tokenOf 不变；SignupStore.apply 写口后递增', (
   SignupStore.init();
   const b1 = tokenOf('signup');
   assert.equal(tokenOf('signup'), b1, '未写时读数不变');
-  const r = SignupStore.apply({ sourceType: 'activity', sourceId: 'act-su-p0', personId: 'p3', role: 'organizer' });
+  const r = SignupStore.apply({ sourceType: 'activity', sourceId: 'act-su-p0', personId: '2400012347', role: 'organizer' });
   assert.equal(r.ok, true, JSON.stringify(r));
   assert.ok(tokenOf('signup') > b1, '报名写口 → signup token 递增');
 });
@@ -157,7 +157,7 @@ test('⑧ 聚合入口复合键缓存：未写同引用；attendance 写口后�
   assert.strictEqual(SecretaryOverviewStore.getOverview(), o1, 'getOverview 未写命中同引用（只读契约）');
   // 写口（attendance）→ token 递增 → 复合键变 → 重算（新引用）
   saveAttendanceRecords([...loadAttendanceRecords(), {
-    id: 'att-p8', activityId: 'act-zz', personId: 'p1', status: 'present',
+    id: 'att-2400012352', activityId: 'act-zz', personId: '2400012345', status: 'present',
     recordedBy: 'u_disc', recordedAt: '2026-09-06T08:00:00.000Z',
   }]);
   assert.ok(tokenOf('attendance') > 0, 'attendance 写口已 bump');

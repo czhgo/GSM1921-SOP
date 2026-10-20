@@ -113,7 +113,7 @@ export async function seedDatabase(db) {
   // 与 mock 态**同源**（`docs/src/data/mock/seed.js::SEED_MAKEUP_TASKS`，经 mock-adapter._seedInitialData 注入）
   // ⇒ 两形态一致；补它的直接动因：成员台「考勤概况 · 去补课」入口只在「本人 pending 补课任务」存在时渲染，
   //   而该表原无种子（`data-adapter.js` 原注「由纪检操作生成，空属合理」）⇒ api 形态下该入口恒不存在。
-  //   本条任务＝`att900`（p5 · act-31 · 缺勤 · 已确认）的派生结果（详见该常量注释；
+  //   本条任务＝`att900`（2400012349 · act-31 · 缺勤 · 已确认）的派生结果（详见该常量注释；
   //   `attendanceRecordId` 原误写 `att-sep-1`，2026-09-26 已按真实 id 改准为 `att900`）。
   replaceCollection(db, 'makeup_tasks', seedMod.SEED_MAKEUP_TASKS);
   // 2026-09-14 批次 25：党小组一等实体种子（br-b1 现有三组；组长由成员档案派生不落本表）
@@ -191,7 +191,7 @@ export async function seedDatabase(db) {
   //   · **运行时派生**是常态：通知（`NoticeTodoDeriver`）/ 活动·专班生命周期（`LifecycleTodoDeriver`）/
   //     成员台参与（`VisitorTodoDeriver`）都在业务动作**发生时**派生待办——这些**不落种子**，由演示过程自然产生；
   //   · 但另有一小批**独立台账型种子**：`docs/src/services/governance/todo.js::SEED_TODOS`（1 条：宣传委员
-  //     「提交红色徒步·香山行新闻稿」；R2-33 已删除「设置第三党小组组长」假待办——p4 早已是第三组组长；
+  //     「提交红色徒步·香山行新闻稿」；R2-33 已删除「设置第三党小组组长」假待办——2400012348 早已是第三组组长；
   //     该条已挂 `sourceId: act-37`，活动归档可自动销项）——由前端 `seedTodos()`（各工作台入口调用）与
   //     `data-adapter.js::init()` 的 `SEED_FALLBACK` 空表回退**两处**注入，属既有演示基线。
   // 处方：**从 `SEED_TODOS` 同源播种**（与 mock 形态逐值一致；前端 seedTodos() 读的正是同一常量），
@@ -215,18 +215,18 @@ export async function seedDatabase(db) {
 
 /**
  * 文件流外发确认（形状 = `services/activity/external-dispatch.js::addExternalDispatch` 的落库对象）。
- * `senderId`/`senderName` 取自 `people.js` 档案（p3 何晓峰 / p10 董建军）；`receiverRole` = 接收方角色键。
+ * `senderId`/`senderName` 取自 `people.js` 档案（2400012347 何晓峰 / 2400012354 董建军）；`receiverRole` = 接收方角色键。
  * 一条待确认（`confirmedAt: null` ⇒ 接收方工作台「待确认外发」有行）、一条已确认（闭环留痕）。
  */
 const SEED_EXTERNAL_DISPATCHES = [
   {
     id: 'ed-seed-1', refType: 'publicity', refLabel: '7月主题党日「学习两会精神」新闻稿',
-    senderId: 'p3', senderName: '何晓峰', receiverRole: 'secretary',
+    senderId: '2400012347', senderName: '何晓峰', receiverRole: 'secretary',
     note: '新闻稿已微信发给支书审核', sentAt: '2026-07-04T10:00:00.000Z', confirmedAt: null,
   },
   {
     id: 'ed-seed-2', refType: 'inspection', refLabel: '7月党小组会考勤统计',
-    senderId: 'p10', senderName: '董建军', receiverRole: 'org-commissioner',
+    senderId: '2400012354', senderName: '董建军', receiverRole: 'org-commissioner',
     note: '考勤统计已外发组织委员归档', sentAt: '2026-07-13T18:00:00.000Z', confirmedAt: '2026-07-14T09:00:00.000Z',
   },
 ];
@@ -257,28 +257,28 @@ const SEED_HANDOFFS = [
  * 名册成员变更确认队列（形状 = `POST /member-confirmations`；`action` 取值见
  * `services/member/member-confirmation.js::MC_ACTION_LABEL`（developStage / residence / transferOut），
  * 状态机 = `POST /member-confirmations/:id/decide`）。
- * 造 1 条**待确认**（`status:'pending'`）：p6 苏明哲（档案 `developStage:'发展对象'`）→ 预备党员，
+ * 造 1 条**待确认**（`status:'pending'`）：2400012350 苏明哲（档案 `developStage:'发展对象'`）→ 预备党员，
  * 由组织委员发起、待支书确认 ⇒ 支书台「待确认」队列首启即有真行（终态行由演示过程自然产生，**不预置**，
  * 与 `SEED_REVIEW_REQUESTS` 同一口径）。
  */
 const SEED_MEMBER_CONFIRMATIONS = [
   {
-    id: 'mc-seed-1', kind: 'change', personId: 'p6', action: 'developStage',
+    id: 'mc-seed-1', kind: 'change', personId: '2400012350', action: 'developStage',
     from: '发展对象', to: '预备党员', note: '支部党员大会通过接收苏明哲同志为预备党员，报请支书确认生效',
-    by: 'p11', status: 'pending', decidedBy: null, decidedAt: null, rejectNote: '',
+    by: '2400012355', status: 'pending', decidedBy: null, decidedAt: null, rejectNote: '',
     createdAt: '2026-09-12T10:00:00.000Z',
   },
 ];
 
 /**
  * 出勤申诉队列（形状 = `POST /attendance-appeals`）。
- * 引用自洽：p5 宋佳宁在 `act-11`（7月支委会）有一条**缺勤**考勤（`att38`，已由 p10 确认）
+ * 引用自洽：2400012349 宋佳宁在 `act-11`（7月支委会）有一条**缺勤**考勤（`att38`，已由 2400012354 确认）
  * ⇒ 「本人已请假、考勤记为缺勤，申请更正」这条申诉针对的正是那条真实考勤行。
  * （**故意不挂 act-31 的那条缺勤**：`att900` 已派生补课任务 `mk-seed-1`，两事并存会语义打架。）
  */
 const SEED_ATTENDANCE_APPEALS = [
   {
-    id: 'appeal-seed-1', branchId: 'br-b1', personId: 'p5', activityId: 'act-11',
+    id: 'appeal-seed-1', branchId: 'br-b1', personId: '2400012349', activityId: 'act-11',
     note: '7月支委会本人课前已向组织委员请假，考勤记录为缺勤，申请更正为请假',
     status: 'pending', createdAt: '2026-09-12T09:00:00.000Z',
   },
@@ -286,12 +286,12 @@ const SEED_ATTENDANCE_APPEALS = [
 
 /**
  * 考察申诉队列（形状 = `POST /inspection-appeals`）。
- * 引用自洽：p26 朱欣怡在 `act-22`（7月积极分子座谈会）有一条真实考察记录（`insp-16`，深度参与）
+ * 引用自洽：2500010012 朱欣怡在 `act-22`（7月积极分子座谈会）有一条真实考察记录（`insp-16`，深度参与）
  * ⇒ 申诉针对的正是该活动下已存在的考察行，诉求为「工作量未完整反映」。
  */
 const SEED_INSPECTION_APPEALS = [
   {
-    id: 'inspAppeal-seed-1', branchId: 'br-b1', personId: 'p26', activityId: 'act-22',
+    id: 'inspAppeal-seed-1', branchId: 'br-b1', personId: '2500010012', activityId: 'act-22',
     note: '本人除发言准备外另承担了签到统计，考察记录未完整反映工作量，申请补充',
     status: 'pending', createdAt: '2026-09-12T09:30:00.000Z',
   },
@@ -299,36 +299,36 @@ const SEED_INSPECTION_APPEALS = [
 
 /**
  * 意见反馈「逐人未读标记」（形状 = `POST /issue-unread`；id 恒为 `${assigneeId}:${issueId}`）。
- * 引用自洽：`issue-002` 的 `assignee` = p11、`issue-003` 的 `assignee` = p1（见 `docs/data/issues.json`，
+ * 引用自洽：`issue-002` 的 `assignee` = 2400012355、`issue-003` 的 `assignee` = 2400012345（见 `docs/data/issues.json`，
  * 由 `seedIssues()` 播进 issues 表）⇒ 未读标记只挂在**确有指派**的条目上（不凭空造）。
  */
 const SEED_ISSUE_UNREAD = [
-  { id: 'p11:issue-002', assigneeId: 'p11', issueId: 'issue-002', unread: true, at: '2026-07-23T10:00:00.000Z' },
-  { id: 'p1:issue-003', assigneeId: 'p1', issueId: 'issue-003', unread: true, at: '2026-07-26T10:00:00.000Z' },
+  { id: '2400012355:issue-002', assigneeId: '2400012355', issueId: 'issue-002', unread: true, at: '2026-07-23T10:00:00.000Z' },
+  { id: '2400012345:issue-003', assigneeId: '2400012345', issueId: 'issue-003', unread: true, at: '2026-07-26T10:00:00.000Z' },
 ];
 
 /**
  * 授权审计留痕（形状 = `POST /auth-audit`；字段白名单 id/targetPersonId/role/scopeRef/authorizedBy/
- * authorizedAt/action）。记 `br-b1` 首任支书的任命（被授权人 p13 储子禾、授权人 p_pc 党委组织员、
+ * authorizedAt/action）。记 `br-b1` 首任支书的任命（被授权人 2300010001 储子禾、授权人 9000000001 党委组织员、
  * 日期与 `data/mock/branches.js::BRANCHES[0].createdAt`（2026-09-01）一致）⇒ 与 `branches.secretaryId`
  * 及下方 `SEED_APPOINTMENT_RECORDS` **三处自洽**（同一个人、同一天、同一个支部）。
  */
 const SEED_AUTH_AUDIT = [
   {
-    id: 'auth-seed-1', targetPersonId: 'p13', role: 'secretary', scopeRef: 'br-b1',
-    authorizedBy: 'p_pc', authorizedAt: '2026-09-01', action: 'grant',
+    id: 'auth-seed-1', targetPersonId: '2300010001', role: 'secretary', scopeRef: 'br-b1',
+    authorizedBy: '9000000001', authorizedAt: '2026-09-01', action: 'grant',
   },
 ];
 
 /**
  * 支书任期记录（形状 = `appointmentRecords` 通用 CRUD / `services/branch/appointment.js::listAppointments`
- * 的排序键 `from`）。一条**现任**记录（`to: null`）：`branchId` = br-b1、`secretaryId` = p13
+ * 的排序键 `from`）。一条**现任**记录（`to: null`）：`branchId` = br-b1、`secretaryId` = 2300010001
  * ⇒ 与 `branches.br-b1.secretaryId`（`data/mock/branches.js`）一致；后续换届由 `appointSecretary()`
  * 自行「封口现任 + 新建」⇒ 本行是**真实链路的起点**，不是终态伪造。
  */
 const SEED_APPOINTMENT_RECORDS = [
   {
-    id: 'appt-seed-1', branchId: 'br-b1', secretaryId: 'p13', note: '党委任命首任支书',
+    id: 'appt-seed-1', branchId: 'br-b1', secretaryId: '2300010001', note: '党委任命首任支书',
     from: '2026-09-01T00:00:00.000Z', to: null,
   },
 ];

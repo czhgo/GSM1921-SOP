@@ -7,10 +7,10 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { evaluateWorkforceVotes } from '../../docs/src/services/branch/workforce.js?v=20261020d';
-import { mergeWorkforceSnapshot, expandWorkforce } from '../../docs/src/core/domain/work-map.js?v=20261020d';
+import { evaluateWorkforceVotes } from '../../docs/src/services/branch/workforce.js?v=20261020e';
+import { mergeWorkforceSnapshot, expandWorkforce } from '../../docs/src/core/domain/work-map.js?v=20261020e';
 
-const ROSTER = ['p1', 'p2', 'p3', 'p4', 'p5']; // 应到支委 5 人（演示）
+const ROSTER = ['2400012345', '2400012346', '2400012347', '2400012348', '2400012349']; // 应到支委 5 人（演示）
 const v = (posArr) => posArr.map((position, i) => ({ personId: ROSTER[i], position }));
 const vv = (roster) => (posArr) => posArr.map((position, i) => ({ personId: roster[i], position }));
 
@@ -29,28 +29,28 @@ test('evaluateWorkforceVotes：3/5 出席（不足 >2/3）→ pending', () => {
 });
 
 test('evaluateWorkforceVotes：2/3 整界不过——应到 3 出席 2（=2/3）→ pending', () => {
-  const r3 = ['p1', 'p2', 'p3'];
+  const r3 = ['2400012345', '2400012346', '2400012347'];
   const r = evaluateWorkforceVotes({ roster: r3, votes: vv(r3)(['agree', 'agree']) });
   assert.equal(r.status, 'pending', '2/3 整界（2/3）不得视为超过 2/3');
   assert.equal(r.needed, 3);
 });
 
 test('evaluateWorkforceVotes：超过 2/3 通过——应到 3 全出席 → passed', () => {
-  const r3 = ['p1', 'p2', 'p3'];
+  const r3 = ['2400012345', '2400012346', '2400012347'];
   const r = evaluateWorkforceVotes({ roster: r3, votes: vv(r3)(['agree', 'comment', 'agree']) });
   assert.equal(r.status, 'passed');
   assert.equal(r.needed, 3);
 });
 
 test('evaluateWorkforceVotes：2/3 整界不过——应到 6 出席 4（=2/3）→ pending', () => {
-  const r6 = ['p1', 'p2', 'p3', 'p4', 'p5', 'p6'];
+  const r6 = ['2400012345', '2400012346', '2400012347', '2400012348', '2400012349', '2400012350'];
   const r = evaluateWorkforceVotes({ roster: r6, votes: vv(r6)(['agree', 'agree', 'agree', 'comment']) });
   assert.equal(r.status, 'pending', '4/6 恰为 2/3，未严格超过');
   assert.equal(r.needed, 5);
 });
 
 test('evaluateWorkforceVotes：超过 2/3 通过——应到 6 出席 5 → passed', () => {
-  const r6 = ['p1', 'p2', 'p3', 'p4', 'p5', 'p6'];
+  const r6 = ['2400012345', '2400012346', '2400012347', '2400012348', '2400012349', '2400012350'];
   const r = evaluateWorkforceVotes({ roster: r6, votes: vv(r6)(['agree', 'agree', 'agree', 'comment', 'agree']) });
   assert.equal(r.status, 'passed');
   assert.equal(r.needed, 5);
@@ -106,9 +106,9 @@ test('evaluateWorkforceVotes：弃权不否决但反对仍否决 → failed', ()
 test('evaluateWorkforceVotes：应到外人员/重复人不计票', () => {
   const votes = [
     { personId: 'u_exec', position: 'agree' }, // 系统伪用户不计
-    { personId: 'p1', position: 'agree' },
-    { personId: 'p1', position: 'object' },    // 重复人取首条，不新增
-    { personId: 'p2', position: 'agree' },
+    { personId: '2400012345', position: 'agree' },
+    { personId: '2400012345', position: 'object' },    // 重复人取首条，不新增
+    { personId: '2400012346', position: 'agree' },
   ];
   const r = evaluateWorkforceVotes({ roster: ROSTER, votes });
   assert.equal(r.tally.voted, 2);
@@ -119,10 +119,10 @@ test('evaluateWorkforceVotes：应到外人员/重复人不计票', () => {
 test('mergeWorkforceSnapshot：改派清单只覆盖目标模块，其余保持', () => {
   const base = expandWorkforce(null); // 全缺省（14 模块 role / org owner）
   const next = mergeWorkforceSnapshot(base, [
-    { moduleId: 'develop-party-member', to: { ownerType: 'person', ownerId: 'p3' } },
+    { moduleId: 'develop-party-member', to: { ownerType: 'person', ownerId: '2400012347' } },
     { moduleId: 'taskforce', to: { ownerType: 'role', ownerId: 'secretary' } },
   ]);
-  assert.deepEqual(next['develop-party-member'], { ownerType: 'person', ownerId: 'p3' });
+  assert.deepEqual(next['develop-party-member'], { ownerType: 'person', ownerId: '2400012347' });
   assert.deepEqual(next['taskforce'], { ownerType: 'role', ownerId: 'secretary' });
   assert.equal(next['branch-party-meeting'].ownerId, 'secretary'); // 未涉及模块原样
   assert.equal(Object.keys(next).length, 14);

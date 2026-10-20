@@ -14,35 +14,35 @@
 // 草稿：localStorage `wizard-draft-<branchId>`（当前步 + 每步完成标记 + 完成态），中断可续走。
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../../core/domain/domain.js?v=20261020d';
-import { getCapabilities } from '../../core/boot/registry.js?v=20261020d';
-import { OUTPUT_BLOCK_DEFS, BRANCH_COMMISSION_ROLES, ROLE_LABELS, getAccentColors, accentButtonColors } from '../../core/domain/constants.js?v=20261020d';
-import { CAPABILITY_PACKAGES } from '../../core/domain/capability-packages.js?v=20261020d';
-import { ORG_SUBJECT_LABELS, isBranchOrgSubject, ownerSubjectType } from '../../core/domain/work-map.js?v=20261020d';
+import { mockDB } from '../../core/domain/domain.js?v=20261020e';
+import { getCapabilities } from '../../core/boot/registry.js?v=20261020e';
+import { OUTPUT_BLOCK_DEFS, BRANCH_COMMISSION_ROLES, ROLE_LABELS, getAccentColors, accentButtonColors } from '../../core/domain/constants.js?v=20261020e';
+import { CAPABILITY_PACKAGES } from '../../core/domain/capability-packages.js?v=20261020e';
+import { ORG_SUBJECT_LABELS, isBranchOrgSubject, ownerSubjectType } from '../../core/domain/work-map.js?v=20261020e';
 // 副作用：注册支委层工作台能力（配置目录=其 tab 清单，单一源）
-import '../../capabilities/secretary-workspace.js?v=20261020d';
-import { BLOCK_MANIFESTS } from '../../workflow/blocks/manifests.js?v=20261020d';
+import '../../capabilities/secretary-workspace.js?v=20261020e';
+import { BLOCK_MANIFESTS } from '../../workflow/blocks/manifests.js?v=20261020e';
 // L3 流程组合（2026-09-28 批次 246）：把编排内核接进**生产路径**——配置面用它做「组合体检」
-import { composePlan } from '../../workflow/blocks/orchestration.js?v=20261020d';
-import { escHtml as esc, showToast, downloadBlob } from '../../core/base/utils.js?v=20261020d';
-import { readLoginSnapshot } from '../../core/session/login-snapshot.js?v=20261020d';
-import { WORK_MAP_MODULES } from '../../core/domain/work-map.js?v=20261020d';
+import { composePlan } from '../../workflow/blocks/orchestration.js?v=20261020e';
+import { escHtml as esc, showToast, downloadBlob } from '../../core/base/utils.js?v=20261020e';
+import { readLoginSnapshot } from '../../core/session/login-snapshot.js?v=20261020e';
+import { WORK_MAP_MODULES } from '../../core/domain/work-map.js?v=20261020e';
 import {
   getBranchById, getBranchOrg, getBranchTabPolicy, getCoreTabIds,
   getBranchOutputBlocks, getBranchCapabilityPackageState, getOutputBlockPolicy, getWorkflowBlockPolicy, orderByIds,
   updateBranchModules, updateBranchCapabilityPackages, getBranchWorkforce, updateBranchWorkforce, updateBranchOrg,
   applyConfigCopy, createBranch, getBranchIdOfPerson,
-} from '../../services/branch/branch.js?v=20261020d';
-import { buildConfigPackage, applyConfigPackage } from '../../services/branch/org-config-package.js?v=20261020d';
+} from '../../services/branch/branch.js?v=20261020e';
+import { buildConfigPackage, applyConfigPackage } from '../../services/branch/org-config-package.js?v=20261020e';
 import {
   buildPreviewTemplate, sanitizePreview, applyPreview, clearPreview, getPreviewState,
   PREVIEW_KIND, PREVIEW_VERSION,
-} from '../../services/branch/org-base-data-preview.js?v=20261020d';
-import { getRosterStats, isDetained } from '../../services/member/roster.js?v=20261020d';
-import { buildOrgWizardReport } from '../../services/branch/org-wizard-report.js?v=20261020d';
-import { PersonStore, getPersonName } from '../../services/member/person.js?v=20261020d';
+} from '../../services/branch/org-base-data-preview.js?v=20261020e';
+import { getRosterStats, isDetained } from '../../services/member/roster.js?v=20261020e';
+import { buildOrgWizardReport } from '../../services/branch/org-wizard-report.js?v=20261020e';
+import { PersonStore, getPersonName } from '../../services/member/person.js?v=20261020e';
 // R5-1（2026-09-06）：建空支部「就地任命首任骨干」——任命编排在 appointment.js 收口（含数据边界登记）
-import { appointInauguralOfficers } from '../../services/branch/appointment.js?v=20261020d';
+import { appointInauguralOfficers } from '../../services/branch/appointment.js?v=20261020e';
 
 // ── 步骤元信息（支书已批口径）────────────────────────────────────
 export const WIZARD_STEPS = [
@@ -370,7 +370,7 @@ function _createPanelHtml(S, isStaff) {
     `<option value="${esc(b.id)}">${esc(b.name)}${b.id === S.branchId ? '（当前）' : ''}</option>`).join('');
   const nameDefault = '新支部（待配置）';
   // R5-1（2026-09-06）：就地任命首任骨干区块——候选 = 现役成员（PersonStore 读链），
-  // 剔除滞留党员（口径单一源 roster.isDetained）与组织级人员 party-staff（不挂支部、非成员 → 天然排除 p_pc）。
+  // 剔除滞留党员（口径单一源 roster.isDetained）与组织级人员 party-staff（不挂支部、非成员 → 天然排除党委组织员）。
   // option 文案 = 姓名 + 当前支部/职务（如「张三（br-b1 · 组织委员）」）。
   const appointOn = S.appointOn !== false;
   const appointCandidates = PersonStore.getMembers()

@@ -12,7 +12,7 @@
 //    · `server/seed.js::seedDatabase()` = **演示种子**（51 人名单 ＋ 活动/考勤/通知…，为**本地测试与演示**而存在）
 //      ⇒ 仍由 `DISABLE_SEED` / `APP_ENV` 控制，**生产不播**；
 //    · 本文件 = **组织基线**（只有「谁能登录」「本组织有哪个支部」两件事）⇒ **任何形态都补**、且**幂等**。
-//    两者不重叠：`seedDatabase` 已含 `br-b1` 与 `p_pc` ⇒ 跑过演示种子后本文件**什么都不做**。
+//    两者不重叠：`seedDatabase` 已含 `br-b1` 与党委组织员账号 ⇒ 跑过演示种子后本文件**什么都不做**。
 //
 //  【口径（2026-09-29 支书令：「把党委功能设置好，以及一个既存的支部 光华管理学院本科生党支部」）】
 //    · 党委：**不是数据库实体**（见 `docs/src/data/mock/branches.js::PARTY_COMMITTEE` 是前端常量、
@@ -55,7 +55,7 @@ function partyStaffRow() {
   const studentId = process.env.BASELINE_PARTY_STAFF_ID || '9000000001';
   const name = process.env.BASELINE_PARTY_STAFF_NAME || '党委组织员';
   return {
-    id: 'p_pc',
+    id: studentId,   // 人员主键即学号/工号（与 users.studentId 同值）
     name,
     studentId,
     partyGroup: '',

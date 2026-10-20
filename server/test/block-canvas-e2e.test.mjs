@@ -1,5 +1,5 @@
 // server/test/block-canvas-e2e.test.mjs — 块画布 v0 E2E（2026-09-03）
-// 支书在「工作台配置」停用「宣传」产出块 → 保存 → 组长(罗文杰 p1)活动详情
+// 支书在「工作台配置」停用「宣传」产出块 → 保存 → 组长(罗文杰 2400012345)活动详情
 // 「添加记录」按钮组不再含 publicity；恢复默认后回归。
 // 自包含：createApp(:memory:) + seedDatabase + 账号密码登录。
 
@@ -68,14 +68,14 @@ test('产出块：支书停用宣传 → 组长活动详情无 publicity 按钮 
   await login(sec, '2300010001');
   await sec.waitForURL('**/workspace/secretary.html', { timeout: 10000 });
   // P0-2 形态断言（2026-09-23 支书裁定「形态必须可断言」）：本文件真机用例必须在 API 形态下跑
-  await sec.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20261020d')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
+  await sec.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20261020e')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
   await sec.evaluate(async () => {
-    const { updateBranchBlocks } = await import('/src/services/branch/branch.js?v=20261020d');
+    const { updateBranchBlocks } = await import('/src/services/branch/branch.js?v=20261020e');
     await updateBranchBlocks('br-b1', { outputBlocks: { hiddenBlockIds: ['publicity'], blockOrder: [] } });
   });
   await new Promise((r) => setTimeout(r, 1200));
 
-  // ② 组长 p1 登录 leader.html → 活动 tab → 打开活动详情 → 断言无 publicity 添加按钮
+  // ② 组长 2400012345 登录 leader.html → 活动 tab → 打开活动详情 → 断言无 publicity 添加按钮
   const lead = await browser.newPage();
   blockRoutes(lead);
   await login(lead, '2400012345');
@@ -92,7 +92,7 @@ test('产出块：支书停用宣传 → 组长活动详情无 publicity 按钮 
 
   // ③ 支书恢复默认（产出块=null）→ 组长刷新详情 → publicity 回归（考勤/考察仍只读）
   await sec.evaluate(async () => {
-    const { updateBranchBlocks } = await import('/src/services/branch/branch.js?v=20261020d');
+    const { updateBranchBlocks } = await import('/src/services/branch/branch.js?v=20261020e');
     await updateBranchBlocks('br-b1', null);
   });
   await new Promise((r) => setTimeout(r, 1000));

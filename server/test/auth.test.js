@@ -17,12 +17,12 @@ test('登录成功返回 token 与用户信息', async () => {
   const res = await fetch(`${base}/api/v1/auth/login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ personId: 'p13' }),
+    body: JSON.stringify({ personId: '2300010001' }),
   });
   assert.equal(res.status, 200);
   const body = await res.json();
   assert.ok(body.token, '应返回 token');
-  assert.equal(body.user.id, 'p13');
+  assert.equal(body.user.id, '2300010001');
   assert.equal(body.user.role, 'secretary');
 });
 
@@ -39,11 +39,11 @@ test('me 接口携带 token 返回当前用户', async () => {
   const loginRes = await fetch(`${base}/api/v1/auth/login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ personId: 'p11' }),
+    body: JSON.stringify({ personId: '2400012355' }),
   });
   const { token } = await loginRes.json();
   const res = await fetch(`${base}/api/v1/auth/me`, { headers: { Authorization: `Bearer ${token}` } });
   assert.equal(res.status, 200);
   const body = await res.json();
-  assert.equal(body.id, 'p11');
+  assert.equal(body.id, '2400012355');
 });

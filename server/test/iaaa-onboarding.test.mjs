@@ -42,7 +42,7 @@ const iaaaLogin = async (studentId) => (await api('GET', `/api/v1/auth/iaaa/call
 before(async () => {
   const app = createApp(':memory:');
   db = app.locals.db;
-  seedBaseline(db);                       // 组织基线：党委账号 p_pc ＋ 支部 br-b1
+  seedBaseline(db);                       // 组织基线：党委账号 9000000001 ＋ 支部 br-b1
   // 造数据：第二个支部 ＋ 一名组织委员（br-b1）＋ 一名「申请进 br-x」的待确认者
   db.prepare('INSERT OR REPLACE INTO branches (id, data) VALUES (?, ?)')
     .run('br-x', JSON.stringify({ id: 'br-x', name: '测试他支部', config: { modules: null, blocks: null, workforce: null }, secretaryId: null, status: 'active' }));

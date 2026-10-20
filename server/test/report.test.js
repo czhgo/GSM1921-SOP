@@ -14,13 +14,13 @@ before(async () => {
   const login = await fetch(`${base}/api/v1/auth/login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ personId: 'p13', password: '123456' }),
+    body: JSON.stringify({ personId: '2300010001', password: '123456' }),
   });
   token = (await login.json()).token;
   const partyLogin = await fetch(`${base}/api/v1/auth/login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ personId: 'p_pc', password: '123456' }),
+    body: JSON.stringify({ personId: '9000000001', password: '123456' }),
   });
   partyToken = (await partyLogin.json()).token;
 });

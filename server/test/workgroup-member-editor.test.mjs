@@ -1,17 +1,17 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { renderWorkgroupMemberEditor } from '../../docs/src/components/governance/workgroup-member-editor.js?v=20261020d';
-import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261020d';
-import { ensureLegacySourceWorkgroups } from '../../docs/src/data/workgroup-seed-sync.js?v=20261020d';
-import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261020d';
-import { workgroupPermissionTemplates } from '../../docs/src/core/domain/workgroup-policy.js?v=20261020d';
-import { renderSignupSection, renderSignupList } from '../../docs/src/components/governance/signup-panel.js?v=20261020d';
+import { renderWorkgroupMemberEditor } from '../../docs/src/components/governance/workgroup-member-editor.js?v=20261020e';
+import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261020e';
+import { ensureLegacySourceWorkgroups } from '../../docs/src/data/workgroup-seed-sync.js?v=20261020e';
+import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261020e';
+import { workgroupPermissionTemplates } from '../../docs/src/core/domain/workgroup-policy.js?v=20261020e';
+import { renderSignupSection, renderSignupList } from '../../docs/src/components/governance/signup-panel.js?v=20261020e';
 
 test('活动成员编辑器把组织者/深度参与者与已通过报名的一般参与者分层展示', () => {
   const html = renderWorkgroupMemberEditor({
     workgroupId: 'wg-activity-a1', kind: 'activity', canEdit: true,
-    members: [{ personId: 'p1', name: '甲', role: 'organizer' }, { personId: 'p2', name: '乙', role: 'deep' }],
-    participants: [{ personId: 'p3', name: '丙' }], grants: [], legacyRows: [],
+    members: [{ personId: '2400012345', name: '甲', role: 'organizer' }, { personId: '2400012346', name: '乙', role: 'deep' }],
+    participants: [{ personId: '2400012347', name: '丙' }], grants: [], legacyRows: [],
   });
   assert.match(html, /活动工作组成员/);
   assert.match(html, /组织者/);
@@ -26,8 +26,8 @@ test('活动成员编辑器把组织者/深度参与者与已通过报名的一�
 test('专班成员编辑器不提供一般参与或考勤，只把历史普通参与行标为待核', () => {
   const html = renderWorkgroupMemberEditor({
     workgroupId: 'wg-taskforce-t1', kind: 'taskforce', canEdit: true,
-    members: [{ personId: 'p1', name: '甲', role: 'organizer' }], grants: [],
-    legacyRows: [{ personId: 'p2', name: '乙', role: 'participant' }],
+    members: [{ personId: '2400012345', name: '甲', role: 'organizer' }], grants: [],
+    legacyRows: [{ personId: '2400012346', name: '乙', role: 'participant' }],
   });
   assert.match(html, /专班工作组成员/);
   assert.match(html, /历史普通参与记录待核/);
@@ -41,7 +41,7 @@ test('专班成员编辑器不提供一般参与或考勤，只把历史普通�
 test('只读成员展示不暴露增删、角色编辑或授权表单', () => {
   const html = renderWorkgroupMemberEditor({
     workgroupId: 'wg-activity-readonly', kind: 'activity', canEdit: false,
-    members: [{ personId: 'p1', name: '甲', role: 'deep' }], grants: [], participants: [], legacyRows: [],
+    members: [{ personId: '2400012345', name: '甲', role: 'deep' }], grants: [], participants: [], legacyRows: [],
   });
   assert.match(html, /甲/);
   assert.doesNotMatch(html, /保存成员和权限|移除.*甲|data-member-role/);
@@ -50,24 +50,24 @@ test('只读成员展示不暴露增删、角色编辑或授权表单', () => {
 });
 
 test('报名角色和说明控件有可见标签，已通过的主题党日组织者能看见线下意向', () => {
-  const form = renderSignupSection({ sourceType: 'activity', sourceId: 'act-labels', title: '主题党日', source: { type: '主题党日' }, signups: [], myId: 'p1' });
+  const form = renderSignupSection({ sourceType: 'activity', sourceId: 'act-labels', title: '主题党日', source: { type: '主题党日' }, signups: [], myId: '2400012345' });
   assert.match(form, /<label[^>]*>报名角色\s*<select id="signup-role-select"/);
   assert.match(form, /<label[^>]*>附加说明（选填）\s*<input id="signup-note-input"/);
   assert.match(form, /id="signup-role-select"/);
   assert.match(form, /id="signup-note-input"/);
 
   const approved = renderSignupSection({
-    sourceType: 'activity', sourceId: 'act-labels', title: '主题党日', source: { type: '主题党日' }, myId: 'p1',
-    signups: [{ id: 's1', personId: 'p1', role: 'organizer', status: 'approved', onsite: false }],
+    sourceType: 'activity', sourceId: 'act-labels', title: '主题党日', source: { type: '主题党日' }, myId: '2400012345',
+    signups: [{ id: 's1', personId: '2400012345', role: 'organizer', status: 'approved', onsite: false }],
   });
   assert.match(approved, /已选择不线下参加/);
 
   const list = renderSignupList({
     sourceType: 'activity', sourceId: 'act-labels', source: { type: '主题党日' }, myId: null,
     signups: [
-      { id: 's1', personId: 'p1', role: 'organizer', status: 'approved', onsite: false },
-      { id: 's2', personId: 'p2', role: 'deep', status: 'approved', onsite: true },
-      { id: 's3', personId: 'p3', role: 'organizer', status: 'pending', onsite: true },
+      { id: 's1', personId: '2400012345', role: 'organizer', status: 'approved', onsite: false },
+      { id: 's2', personId: '2400012346', role: 'deep', status: 'approved', onsite: true },
+      { id: 's3', personId: '2400012347', role: 'organizer', status: 'pending', onsite: true },
     ],
   });
   assert.match(list, /组织者\/深度参与者已通过报名：线下参加 1 人 · 不线下参加 1 人/);
@@ -78,16 +78,16 @@ test('旧演示活动和专班补齐稳定工作组映射，participant 保留�
   const keys = ['activities', 'taskforces', 'workgroups', 'workgroupMembers'];
   const before = Object.fromEntries(keys.map((key) => [key, mockDB[key]]));
   mockDB.activities = [{
-    id: 'legacy-activity', title: '历史活动', organizer: 'p1', branchId: 'br-b1',
+    id: 'legacy-activity', title: '历史活动', organizer: '2400012345', branchId: 'br-b1',
     organizingScope: 'cross-group', assignments: [
-      { personId: 'p1', role: 'organizer' }, { personId: 'p2', role: 'deep' }, { personId: 'p3', role: 'participant' },
+      { personId: '2400012345', role: 'organizer' }, { personId: '2400012346', role: 'deep' }, { personId: '2400012347', role: 'participant' },
     ],
   }];
   mockDB.taskforces = [{
     id: 'legacy-taskforce', name: '历史专班', task: '整理历史材料', status: 'active', branchId: 'br-b1',
     members: [
-      { personId: 'p1', role: 'organizer' }, { personId: 'p2', role: 'deep' },
-      { personId: 'p3', role: 'participant', contributions: ['历史记录'] },
+      { personId: '2400012345', role: 'organizer' }, { personId: '2400012346', role: 'deep' },
+      { personId: '2400012347', role: 'participant', contributions: ['历史记录'] },
     ],
   }];
   mockDB.workgroups = [];
@@ -99,10 +99,10 @@ test('旧演示活动和专班补齐稳定工作组映射，participant 保留�
     assert.equal(mockDB.workgroups.length, 2);
     assert.equal(mockDB.workgroups.find((row) => row.kind === 'taskforce').migrationState, 'pending-review');
     assert.deepEqual(mockDB.workgroupMembers.map((row) => [row.workgroupId, row.personId, row.role]), [
-      ['wg-activity-legacy-activity', 'p1', 'organizer'],
-      ['wg-activity-legacy-activity', 'p2', 'deep'],
-      ['wg-taskforce-legacy-taskforce', 'p1', 'organizer'],
-      ['wg-taskforce-legacy-taskforce', 'p2', 'deep'],
+      ['wg-activity-legacy-activity', '2400012345', 'organizer'],
+      ['wg-activity-legacy-activity', '2400012346', 'deep'],
+      ['wg-taskforce-legacy-taskforce', '2400012345', 'organizer'],
+      ['wg-taskforce-legacy-taskforce', '2400012346', 'deep'],
     ]);
     assert.ok(mockDB.activities[0].assignments.some((row) => row.role === 'participant'));
     assert.ok(mockDB.taskforces[0].members.some((row) => row.role === 'participant' && row.contributions[0] === '历史记录'));
@@ -122,7 +122,7 @@ test('旧数据同步清除指向类型冲突或异支部工作组的错误关�
     id: 'cross-branch-link-activity', title: '跨支部关联', branchId: 'br-b1', workgroupId: 'existing-other-branch', assignments: [],
   }, {
     id: 'empty-existing-group-activity', title: '已编辑为空的活动', branchId: 'br-b1', workgroupId: 'existing-empty-group',
-    assignments: [{ personId: 'p1', role: 'organizer' }],
+    assignments: [{ personId: '2400012345', role: 'organizer' }],
   }, {
     id: 'conflicting-source-activity', title: '来源字段冲突', branchId: 'br-b1', assignments: [],
   }];
@@ -187,32 +187,32 @@ test('MockAdapter 保存全量成员与权限时撤销被移出成员的授权�
   const keys = ['workgroups', 'workgroupMembers', 'workgroupGrants', 'activities', 'taskforces', 'users', '_loaded'];
   const before = Object.fromEntries(keys.map((key) => [key, mockDB[key]]));
   const oldStorage = globalThis.localStorage;
-  const values = new Map([['gsm1921-login-user', JSON.stringify({ personId: 'p1' })]]);
+  const values = new Map([['gsm1921-login-user', JSON.stringify({ personId: '2400012345' })]]);
   globalThis.localStorage = {
     getItem: (key) => values.get(key) ?? null,
     setItem: (key, value) => values.set(key, String(value)),
   };
   const workgroupId = 'wg-activity-editor-test';
   const activity = { id: 'activity-editor-test', workgroupId, branchId: 'br-b1', assignments: [
-    { personId: 'p1', role: 'organizer' }, { personId: 'p2', role: 'deep' },
+    { personId: '2400012345', role: 'organizer' }, { personId: '2400012346', role: 'deep' },
   ] };
   mockDB._loaded = true;
   mockDB.workgroups = [{ id: workgroupId, branchId: 'br-b1', kind: 'activity', sourceType: 'activity', sourceId: activity.id, status: 'active' }];
   mockDB.activities = [activity];
   mockDB.taskforces = [];
-  mockDB.users = [{ id: 'p1', branchId: 'br-b1' }, { id: 'p2', branchId: 'br-b1' }, { id: 'p3', branchId: 'br-b1' }];
+  mockDB.users = [{ id: '2400012345', branchId: 'br-b1' }, { id: '2400012346', branchId: 'br-b1' }, { id: '2400012347', branchId: 'br-b1' }];
   mockDB.workgroupMembers = [
-    { id: `wgm-${workgroupId}-p1`, workgroupId, branchId: 'br-b1', personId: 'p1', role: 'organizer', status: 'active' },
-    { id: `wgm-${workgroupId}-p2`, workgroupId, branchId: 'br-b1', personId: 'p2', role: 'deep', status: 'active' },
+    { id: `wgm-${workgroupId}-2400012345`, workgroupId, branchId: 'br-b1', personId: '2400012345', role: 'organizer', status: 'active' },
+    { id: `wgm-${workgroupId}-2400012346`, workgroupId, branchId: 'br-b1', personId: '2400012346', role: 'deep', status: 'active' },
   ];
-  mockDB.workgroupGrants = [{ id: 'grant-old', workgroupId, branchId: 'br-b1', personId: 'p2', status: 'active', permissionKeys: ['task.complete'] }];
+  mockDB.workgroupGrants = [{ id: 'grant-old', workgroupId, branchId: 'br-b1', personId: '2400012346', status: 'active', permissionKeys: ['task.complete'] }];
   try {
     const result = await MockAdapter.workgroups.members.saveAll(workgroupId, {
-      members: [{ personId: 'p3', role: 'deep', templateKey: 'deep', permissionKeys: ['task.complete'], reason: '任务执行' }],
+      members: [{ personId: '2400012347', role: 'deep', templateKey: 'deep', permissionKeys: ['task.complete'], reason: '任务执行' }],
     });
-    assert.deepEqual(result.members.filter((row) => row.status === 'active').map((row) => [row.personId, row.role]), [['p3', 'deep']]);
+    assert.deepEqual(result.members.filter((row) => row.status === 'active').map((row) => [row.personId, row.role]), [['2400012347', 'deep']]);
     assert.equal(mockDB.workgroupGrants.find((row) => row.id === 'grant-old').status, 'revoked');
-    assert.deepEqual(mockDB.activities[0].assignments, [{ personId: 'p3', role: 'deep' }]);
+    assert.deepEqual(mockDB.activities[0].assignments, [{ personId: '2400012347', role: 'deep' }]);
   } finally {
     for (const key of keys) mockDB[key] = before[key];
     if (oldStorage === undefined) delete globalThis.localStorage;
