@@ -1068,6 +1068,8 @@ export function createResourcesRouter(db) {
   //  · 支部归属：写入取 actor.branchId；读取在服务端按所属支部过滤。
   // ════════════════════════════════════════════════════════════════
   const ISSUE_DISPOSITION_SET = new Set(BRANCH_COMMISSION_ROLES); // 意见处置＝支委会（支委层；2026-09-21 批次 126 · D-550：原为 new Set(SECRETARY_ROLES) 仅支书）
+  // 一键汇报的三类（与前端 `REPORT_CATEGORIES` 同口径；服务端据此派生标题，不采信客户端标题）
+  const ISSUE_REPORT_CATEGORIES = { progress: '进度', blocked: '卡点', ask: '请示' };
   // 真身同族键：任何常规读出口都不得带出
   const ISSUE_IDENTITY_KEYS = ['_realPersonId', 'realPersonId', 'submitterId'];
   // **脱敏序列化（默认出口）**：拷贝后剥掉真身键。**一切常规读（支部内列表 / 提交回执 / 处置回执）都走它**。
@@ -1095,7 +1097,10 @@ export function createResourcesRouter(db) {
     const branchId = actorBranchId(req.actor);
     // 党委账号无支部归属：保持 API bootstrap 形状可用，但不泄漏反馈列表。
     if (!branchId) return res.json([]);
-    return res.json(listIssues().filter((row) => (row.branchId || 'br-b1') === branchId));
+    // 受众投影（与前端同一判据 `canReadIssue`）：内部汇报只给支书层与当事人；
+    // 隐藏 / 已合并只给支书层与处置人。此前只做支部过滤，同支部任一成员可直连读到他人汇报与隐藏行。
+    const viewer = { personId: req.actor?.id || null, role: req.actor?.role || null };
+    return res.json(listIssues().filter((row) => (row.branchId || 'br-b1') === branchId && canReadIssue(row, viewer)));
   });
 
   // D-824：任何角色均没有系统揭名入口。保留此兼容路径以便旧客户端得到明确拒绝；
@@ -1108,43 +1113,71 @@ export function createResourcesRouter(db) {
     const actor = req.actor;
     if (!actor) return res.status(401).json({ error: '未登录' });
     const branchId = actorBranchId(actor);
-    if (!branchId) return res.status(403).json({ error: '党委账号不能提交支部内部匿名反馈' });
+    if (!branchId) return res.status(403).json({ error: '党委账号不能提交支部内部反馈或汇报' });
     const body = (req.body && typeof req.body === 'object' && !Array.isArray(req.body)) ? req.body : {};
-    const title = typeof body.title === 'string' ? body.title.trim() : '';
+    // 两条写入口共用本路由：kind='report' 是「一键汇报」（带名、可挂活动/专班工作组）；缺省是匿名反馈。
+    const kind = body.kind === 'report' ? 'report' : 'feedback';
     const text = typeof body.body === 'string' ? body.body.trim() : '';
+    const title = typeof body.title === 'string' ? body.title.trim() : '';
     const scope = typeof body.scope === 'string' ? body.scope.trim() : '';
     const types = Array.isArray(body.types) ? body.types.filter((t) => typeof t === 'string') : []; const domain = typeof body.domain === 'string' ? body.domain.trim() : ''; // 事项领域（SOP-B-32 甲档／2026-09-21 批次 126）：选填不设硬校验（兼容既有调用），表单侧必填
-    if (!title) return res.status(400).json({ error: '标题不能为空' });
+    const reportCategory = ISSUE_REPORT_CATEGORIES[body.reportCategory] ? body.reportCategory : 'progress';
     if (!text) return res.status(400).json({ error: '正文不能为空' });
-    if (!scope) return res.status(400).json({ error: '范围不能为空' });
-    if (types.length === 0) return res.status(400).json({ error: '至少选择一个类型' });
-    const anonymous = body.anonymous !== false; // 缺省匿名（与前端开关默认一致）
+    if (kind === 'feedback') {
+      if (!title) return res.status(400).json({ error: '标题不能为空' });
+      if (!scope) return res.status(400).json({ error: '范围不能为空' });
+      if (types.length === 0) return res.status(400).json({ error: '至少选择一个类型' });
+    }
+    const anonymous = kind === 'report' ? false : body.anonymous !== false; // 汇报必须带名；反馈缺省匿名
     // 客户端随机 token（不可由 personId 推导）；缺省则服务端随机化（不与他人共享哈希）
     const rawToken = (typeof body.submitterToken === 'string' && body.submitterToken) ? body.submitterToken : randomUUID();
     const tokenHash = hashSubmitterToken(rawToken);
     const now = new Date();
     const nowMs = now.getTime();
 
-    // 防刷：仅按 tokenHash 判重/限频（不含 personId，不可反查人）
+    // 防刷：仅按 tokenHash 判重/限频（不含 personId，不可反查人）；汇报不做「同文去重」（同一句话可再次汇报）
     const all = listTable(db, 'issues');
     const recent = all.filter((r) => r.tokenHash === tokenHash && (nowMs - Date.parse(r.createdAt || r.submittedAt || 0)) < RATE_WINDOW_MS);
     if (recent.length >= RATE_MAX) return res.status(429).json({ error: '提交过于频繁，请稍后再试' });
-    const isDup = recent.some((r) => r.title === title && r.body === text && (nowMs - Date.parse(r.createdAt || r.submittedAt || 0)) < DEDUP_WINDOW_MS);
-    if (isDup) return res.status(409).json({ error: '重复提交（内容与近期提交相同）' });
+    if (kind === 'feedback') {
+      const isDup = recent.some((r) => r.title === title && r.body === text && (nowMs - Date.parse(r.createdAt || r.submittedAt || 0)) < DEDUP_WINDOW_MS);
+      if (isDup) return res.status(409).json({ error: '重复提交（内容与近期提交相同）' });
+    }
+
+    // 汇报的可选父键：只认服务端库里的工作组，且必须属于本支部；名称按源对象现取，不采信客户端自述。
+    let parent = { workgroupId: null, sourceType: null, sourceId: null, sourceName: '' };
+    if (kind === 'report' && typeof body.workgroupId === 'string' && body.workgroupId.trim()) {
+      const workgroupId = body.workgroupId.trim();
+      const wgRow = db.prepare('SELECT data FROM workgroups WHERE id = ?').get(workgroupId);
+      if (!wgRow) return res.status(400).json({ error: '关联事项不存在' });
+      const wg = JSON.parse(wgRow.data);
+      if ((wg.branchId || 'br-b1') !== branchId) return res.status(403).json({ error: '关联事项不属于本支部' });
+      parent = { workgroupId: wg.id || workgroupId, sourceType: wg.kind || null, sourceId: wg.sourceId || null, sourceName: '' };
+      const srcTable = parent.sourceType === 'activity' ? 'activities' : (parent.sourceType === 'taskforce' ? 'taskforces' : null);
+      if (srcTable && parent.sourceId) {
+        const srcRow = db.prepare(`SELECT data FROM ${srcTable} WHERE id = ?`).get(parent.sourceId);
+        if (srcRow) {
+          const src = JSON.parse(srcRow.data);
+          parent.sourceName = src.title || src.name || '';
+        }
+      }
+    }
 
     const number = all.reduce((m, r) => Math.max(m, r.number || 0), 0) + 1;
     const id = 'issue-' + randomUUID().slice(0, 8);
     // 支部归属由服务端会话确定；不采信客户端自述，也不把党委账号回落到默认支部。
     // 落库白名单：匿名 → submittedBy='匿名' 且 participants 为空，**但落真实提交人 `_realPersonId`**
-    //（2026-09-17 支书改裁「后台记录真实情况」）；实名 → 按现口径记 actor.id（真身即 submittedBy，不重复存）
+    //（2026-09-17 支书改裁「后台记录真实情况」）；实名 / 汇报 → 记 actor.id（真身即 submittedBy）。
     const record = {
       id,
       number,
       branchId,
-      title,
+      title: kind === 'report' ? `【${ISSUE_REPORT_CATEGORIES[reportCategory]}汇报】` : title,
       body: text,
-      scope,
-      types, domain,
+      scope: kind === 'report' ? 'report' : scope,
+      types: kind === 'report' ? [reportCategory] : types,
+      domain,
+      ...(kind === 'report' ? { kind: 'report', reportCategory } : {}),
       status: 'open',
       closedReason: null,
       closedAt: null,
@@ -1155,6 +1188,7 @@ export function createResourcesRouter(db) {
       createdAt: now.toISOString(),
       assignee: null,
       assigneeRole: null,
+      ...(kind === 'report' ? parent : {}),
       dispatchHistory: [],
       milestone: null,
       hidden: false,
@@ -1344,3 +1378,5 @@ export function _retainRowScopedSnapshotRows(db, writes, actor) {
 
 // 受众判定单一源 = 前端 `canReadNotice`（私信 / 定向 / 角色 sentinel 同一套规则；勿另写一份）
 import { canReadNotice } from '../../../docs/src/services/governance/notice.js';
+// 反馈 / 汇报的受众判定单一源 = domain 层纯函数（服务端不能 import issues.js：那件牵 localStorage/适配器）
+import { canReadIssue } from '../../../docs/src/core/domain/issue-visibility.js';

@@ -8,9 +8,9 @@
 //   · 下半部是本台专属的「活动进展」分段（组件单一源 `components/governance/activity-progress.js`）。
 //   ⚠ 不新造页签、不改注册序；`?tab=calendar` / 旧 `?tab=tf-view` 别名均不受影响。
 
-import { getAppState, setState } from '../../../core/base/state.js?v=20261020h';
-import { renderContent as renderSharedCalendar } from '../shared/activity-calendar-tab.js?v=20261020h';
-import { renderActivityProgress } from '../../../components/governance/activity-progress.js?v=20261020h';
+import { getAppState, setState } from '../../../core/base/state.js?v=20261021a';
+import { renderContent as renderSharedCalendar } from '../shared/activity-calendar-tab.js?v=20261021a';
+import { renderActivityProgress } from '../../../components/governance/activity-progress.js?v=20261021a';
 
 export function renderContent(ctx = {}) {
   const container = document.getElementById('org-tab-content');

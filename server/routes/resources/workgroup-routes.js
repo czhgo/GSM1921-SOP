@@ -33,8 +33,11 @@ const memberIdentity = (rows) => JSON.stringify((Array.isArray(rows) ? rows : []
   .sort((left, right) => left[0].localeCompare(right[0]) || left[1].localeCompare(right[1])));
 const put = (db, table, row) => db.prepare(`INSERT OR REPLACE INTO ${table} (id, data) VALUES (?, ?)`)
   .run(row.id, JSON.stringify(row));
-const ownBranch = (actor) => actor?.branchId || 'br-b1';
-const memberBranch = (user) => user?.branchId || 'br-b1';
+// 2026-10-21 批次 498（支书裁定）：**不再回落 `br-b1`**。党委账号未选支部时写门一律拒绝并提示先选支部；
+// 支部账号的 `branchId` 恒有值，不受影响。读口按 `?branchId=` 选支（见各 GET 的 selectedBranchRequiredError）。
+const NO_BRANCH_MESSAGE = '无权限：请先选择支部后再操作';
+const ownBranch = (actor) => actor?.branchId || null;
+const memberBranch = (user) => user?.branchId || null;
 const closedWorkgroupError = '工作组已结束，成员、授权、任务与产出历史只读保留';
 const preOpenWorkgroupError = '工作组尚未进入招募或运行阶段，成员、授权、任务与产出暂不可写';
 /** 写口统一状态门：终态 → 历史只读；draft/pending_review → 未开放。 */
@@ -198,6 +201,7 @@ export function canManageWorkgroup(db, actor, workgroup) {
 export function activityCreationDeny(db, actor, body) {
   if (!actor) return '活动创建者不存在';
   const branchId = ownBranch(actor);
+  if (!branchId) return NO_BRANCH_MESSAGE;
   // 书记/副书记创建活动时，缺省承办范围确定为跨组；支部组内活动仍须由组长明确提交所属党小组。
   const organizingScope = body.organizingScope || (SECRETARY.has(actor.role) ? 'cross-group' : '');
   if (body.branchId && body.branchId !== branchId) return '无权限：不能为其他支部创建活动';
@@ -263,6 +267,7 @@ export function attendanceWriteDeny(db, actor, attendance) {
 }
 
 export function snapshotScopeDeny(db, payload, actor) {
+  if (!ownBranch(actor)) return NO_BRANCH_MESSAGE;
   if (['users', 'branches'].some((key) => Object.prototype.hasOwnProperty.call(payload, key))) {
     return '无权限：成员与支部治理记录须走专用语义接口，不能通过整库快照写入';
   }
@@ -380,6 +385,7 @@ export function snapshotScopeDeny(db, payload, actor) {
 
 function validAssignments(db, actor, assignments, { allowFormalRoster = false } = {}) {
   if (!Array.isArray(assignments)) return { ok: true, value: [] };
+  if (!ownBranch(actor)) return { ok: false, status: 403, error: NO_BRANCH_MESSAGE };
   const seen = new Set();
   const rows = [];
   for (const item of assignments) {
@@ -429,6 +435,7 @@ export function createActivityWorkgroup(db, actor, activity) {
 }
 
 export function createTaskforceWorkgroup(db, actor, taskforce) {
+  if (!ownBranch(actor)) return { ok: false, status: 403, error: NO_BRANCH_MESSAGE };
   const id = workgroupIdFor('taskforce', taskforce.id);
   const workgroup = {
     id, branchId: ownBranch(actor), kind: 'taskforce', sourceType: 'taskforce', sourceId: taskforce.id,
@@ -941,6 +948,7 @@ export function registerWorkgroupRoutes(router, db) {
     res.json(rows);
   });
   router.put('/activities/:id/expected-roster', requireAuth(db), (req, res) => {
+    if (!ownBranch(req.actor)) return res.status(403).json({ error: NO_BRANCH_MESSAGE });
     const activity = activityOf(db, req.params.id);
     if (!activity) return res.status(404).json({ error: '活动不存在' });
     if ((activity.branchId || 'br-b1') !== ownBranch(req.actor)) return res.status(403).json({ error: '无权限：活动不属于当前支部' });

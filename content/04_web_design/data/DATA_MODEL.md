@@ -3,7 +3,7 @@ title: "数据模型与数据流"
 type: design
 role: "[工程师]+[AI]"
 version: "1.1"
-last_updated: 2026-10-20
+last_updated: 2026-10-21
 status: active
 related_files: [content/02_institution/SYSTEM_ROLE_PERMISSION.md, content/02_institution/COMMISSIONER_DUTY_FRAMEWORK.md, content/02_institution/sop/纪检委员工作流程指南.md, content/03_doc_system/ARCHITECTURE.md]
 ---
@@ -670,6 +670,10 @@ taskforce.members:    Array<{ personId, role: 'organizer' | 'deep' | 'participan
 | hidden / mergedInto | boolean / string\|null | 支书隐藏（不在公开列表显示）/ 合并去向（被合并的 source 置位） |
 | comments | {id, author, authorRole, body, createdAt, kind, hidden, hiddenBy, hiddenReason, hiddenAt}[] | 评论时间线；kind：`comment`（普通评论）/ `reply`（支书正式答复，通知汇报人）/ `dispatch`（指派事件）/ `result`（处置结果）/ `verdict`（支书终审/合并事件）。注：工作汇报型 issue 自身 `kind='report'`（issue 级，非评论时间线 kind，见 issues.js addReport） |
 | resultPending / resultSubmittedAt | boolean / string\|null | 待终审标记（处置结果提交后置位） |
+| kind / reportCategory | `'report'` \| 无 / `'progress'\|'blocked'\|'ask'` | 工作汇报标记与分类（缺省＝意见反馈）。汇报带名、发往支书，走同一 `POST /issues` |
+| workgroupId / sourceType / sourceId / sourceName | string\|null / `'activity'\|'taskforce'`\|null / string\|null / string | **仅工作汇报**的可选父键：关联活动或专班。服务端按工作组复核支部归属并现取源对象名称；个人汇报四项均为空 |
+
+**受众口径（2026-10-21 支书裁定）**：内部汇报只对支书 / 副支书、汇报人、被请求人事可见；隐藏 / 已合并反馈只对支书 / 副支书与处置人（按人 / 按角色指派）可见；其余公开反馈本支部成员可读。前后端共用 `docs/src/core/domain/issue-visibility.js::canReadIssue`（服务端 `GET /issues` 同源投影），不得只做支部过滤。汇报父键**可选**：有上下文的带上，不强制挂工作组；「支部向党委报告」仍是独立的 `ReviewRequest`（§2.23），不并入意见反馈。
 
 **匿名与范围口径（D-824）**：意见反馈必须登录后提交，并始终在提交人所属支部内读取和处置；支部账号不能跨支部读写，党委账号不读取列表、不代为提交，也不能揭名。匿名提交在支部工作人员的列表与详情中始终显示为「匿名」；服务端受保护记录保留真实提交人字段，但当前不提供任何系统揭名入口。无受保护服务端存储的浏览器 mock 只保留匿名业务内容，不持久化真实身份；升级时会清理本机旧匿名缓存与草稿中的身份字段。意见反馈不是向党委上报的通道。此规则不改变正式表决独立的「真无记名」机制。
 

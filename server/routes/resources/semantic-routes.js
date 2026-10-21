@@ -126,10 +126,17 @@ export function registerExtraSemanticRoutes(router, db) {
     const issueId = body.issueId ? String(body.issueId) : '';
     if (!assigneeId || !issueId) return res.status(400).json({ error: '缺少必要字段：assigneeId/issueId' });
     const id = issueUnreadId(assigneeId, issueId);
+    // 角色级未读（2026-10-21 批次 498 · 修 F-17）：「支书待终审/待答复」用保留键 `secretary-review`，
+    // 它不对应某个 users 行。原实现要求 users 表存在该 id ⇒ 400，前端每次提交汇报都报「未保存成功」。
+    // 现按「角色保留键」处理：支部归属取写入人（汇报人）所属支部；读口仍按支部与 assigneeId 过滤。
+    const ROLE_UNREAD_KEYS = new Set(['secretary-review']);
     const assignee = getRow(db, 'users', assigneeId);
-    if (!assignee) return res.status(400).json({ error: '未读标记对象不存在' });
+    const isRoleKey = ROLE_UNREAD_KEYS.has(assigneeId);
+    if (!assignee && !isRoleKey) return res.status(400).json({ error: '未读标记对象不存在' });
+    const rowBranchId = assignee ? (assignee.branchId || 'br-b1') : (req.actor.branchId || null);
+    if (!rowBranchId) return res.status(403).json({ error: '无权限：请先选择支部后再操作' });
     const prev = getRow(db, 'issue_unread', id) || {};
-    const row = { ...prev, id, assigneeId, issueId, branchId: assignee.branchId || 'br-b1', unread: body.unread !== false, at: new Date().toISOString() };
+    const row = { ...prev, id, assigneeId, issueId, branchId: rowBranchId, unread: body.unread !== false, at: new Date().toISOString() };
     const scopeDeny = recordBranchWriteDeny(db, 'issue_unread', row, req.actor);
     if (scopeDeny) return res.status(403).json({ error: scopeDeny });
     writeRow(db, 'issue_unread', row);

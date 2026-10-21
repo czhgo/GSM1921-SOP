@@ -17,7 +17,7 @@
  *   anchorDetailToTrigger(detailEl, triggerEl, { block: 'center', smooth: true });
  */
 
-import { flashHighlight } from '../../core/base/utils.js?v=20261020h';
+import { flashHighlight } from '../../core/base/utils.js?v=20261021a';
 
 /**
  * 材料页深链 `focusActivityId` 的通用落点（2026-10-20 IA 修复）：

@@ -1,4 +1,4 @@
-import { WORKGROUP_PERMISSION_LABELS, WORKGROUP_PERMISSION_TEMPLATES_BY_KIND, WORKGROUP_ROLE_LABELS } from '../../core/domain/workgroup-policy.js?v=20261020h';
+import { WORKGROUP_PERMISSION_LABELS, WORKGROUP_PERMISSION_TEMPLATES_BY_KIND, WORKGROUP_ROLE_LABELS } from '../../core/domain/workgroup-policy.js?v=20261021a';
 
 /** Render editable suggested permission templates for a workgroup assignment form. */
 export function renderWorkgroupPermissionEditor(prefix, kind = 'activity') {

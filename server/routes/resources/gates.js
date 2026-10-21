@@ -356,8 +356,16 @@ function _snapshotNoticeWriteDeny(db, rows, actor) {
       if (!_noticePublishAllowed(db, actor, row)) return _writeDenyMsg('notices');
       continue;
     }
+    // 2026-10-21 批次 498：缺省与 `false` 等价（客户端整行回传时会把未落库的布尔默认写成 false，
+    // 原逐字比较把 `undefined → false` 误判成「改了通知」，普通成员随即被发布门 403）。
+    const sameField = (a, b) => {
+      if (a === b) return true;
+      if ((a === undefined || a === null) && b === false) return true;
+      if ((b === undefined || b === null) && a === false) return true;
+      return JSON.stringify(a) === JSON.stringify(b);
+    };
     const changed = Object.keys({ ...prev, ...row })
-      .filter((key) => JSON.stringify(prev[key]) !== JSON.stringify(row[key]));
+      .filter((key) => !sameField(prev[key], row[key]));
     if (changed.length === 0) continue;
     // 已读是个人状态：任何成员都可推进自己的 read / reads 标记（前端 markRead / markAllRead）
     if (_noticeSelfReadChange(prev, row, actor, changed)) continue;

@@ -2,38 +2,36 @@
 // 宣传委员工作台 Tab：档案归档（T-279 M3 拆分，照 M2 样板）
 // 归档记录纯读 + 材料标准/模板 + 归档推进浮窗（材料确认清单）+ 上传宣传材料（attachments 双模式）。
 
-import { icon } from '../../../core/base/icons.js?v=20261020h';
-import { solidAccentStyle, activityTypeBadgeVariant, isActivityArchived } from '../../../core/domain/constants.js?v=20261020h';
-import { POLICY_DEFAULTS } from '../../../core/domain/policy-defaults.js?v=20261020h';
+import { icon } from '../../../core/base/icons.js?v=20261021a';
+import { solidAccentStyle, activityTypeBadgeVariant, isActivityArchived } from '../../../core/domain/constants.js?v=20261021a';
+import { POLICY_DEFAULTS } from '../../../core/domain/policy-defaults.js?v=20261021a';
 // 活动类型胶囊（批次 301）：类别色走单一源（三会一课＝brand 红 / 主题党日＝gold 金），渲染唯一源 badge.js
-import { badgeHtml } from '../../../components/ui/badges.js?v=20261020h'; // 扎口出口（批次 304 收回，勿直连 badge.js）
-import { showToast, downloadCSV, downloadBlob, downloadUrl, _fmtDate, escHtml, todayLocal } from '../../../core/base/utils.js?v=20261020h';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20261021a'; // 扎口出口（批次 304 收回，勿直连 badge.js）
+import { showToast, downloadCSV, downloadBlob, downloadUrl, _fmtDate, escHtml, todayLocal } from '../../../core/base/utils.js?v=20261021a';
 // 2026-09-21 批次 139：页脚「相关设置」深链由 modal.js 的 `settingsLinkHTML` 单点渲染；
 //   2026-10-21 批次 497：本 tab 四个浮层（上传材料 / 文件外发 / 上传照片 / 标注照片）全部改走 `openModal`，
 //   不再自建 overlay（统一 dialog 语义、sticky footer 与取消语义）。
-import { openModal, closeModal } from '../../../components/ui/modal.js?v=20261020h';
-import { persist, getAuthToken, getApiBaseUrl, getAdapter } from '../../../data/data-adapter.js?v=20261020h';
-import { withSelectedBranchScope } from '../../../data/api-adapter.js?v=20261020h';
-import { mockDB } from '../../../core/domain/domain.js?v=20261020h';
-import { bumpToken } from '../../../core/base/version-token.js?v=20261020h'; // P0 域缓存失效（spec §二.3）
-import { loadActivities, listPublicityDrafts, setPublicityDraftStatus, PUBLICITY_DRAFT_STATUS, listGalleryCandidates, setGalleryFeatured, setGalleryPinned, isGalleryFeatured, isGalleryPinned } from '../../../services/activity/activity.js?v=20261020h';
-import { isApiMode } from '../../../services/core/runtime.js?v=20261020h';
-import { AuthStore, currentUserId } from '../../../services/core/auth.js?v=20261020h';
-import { getPersonName } from '../../../services/member/person.js?v=20261020h';
+import { openModal, closeModal } from '../../../components/ui/modal.js?v=20261021a';
+import { persist, getAuthToken, getApiBaseUrl, getAdapter } from '../../../data/data-adapter.js?v=20261021a';
+import { withSelectedBranchScope } from '../../../data/api-adapter.js?v=20261021a';
+import { mockDB } from '../../../core/domain/domain.js?v=20261021a';
+import { bumpToken } from '../../../core/base/version-token.js?v=20261021a'; // P0 域缓存失效（spec §二.3）
+import { loadActivities, listPublicityDrafts, setPublicityDraftStatus, PUBLICITY_DRAFT_STATUS, listGalleryCandidates, setGalleryFeatured, setGalleryPinned, isGalleryFeatured, isGalleryPinned } from '../../../services/activity/activity.js?v=20261021a';
+import { isApiMode } from '../../../services/core/runtime.js?v=20261021a';
+import { AuthStore, currentUserId } from '../../../services/core/auth.js?v=20261021a';
+import { getPersonName } from '../../../services/member/person.js?v=20261021a';
 // 批次 352（`D-746` · `D-744`② 业务过程类余项）：照片记录「作废（软）」——统一写口 ＋ 支委层判据
-import * as SoftVoid from '../../../services/governance/soft-void.js?v=20261020h';
-import { openVoidModal } from '../../../components/ui/void-record.js?v=20261020h';
-import { addExternalDispatch, loadExternalDispatches, loadActiveDispatches } from '../../../services/activity/external-dispatch.js?v=20261020h';
+import * as SoftVoid from '../../../services/governance/soft-void.js?v=20261021a';
+import { openVoidModal } from '../../../components/ui/void-record.js?v=20261021a';
+import { addExternalDispatch, loadExternalDispatches, loadActiveDispatches } from '../../../services/activity/external-dispatch.js?v=20261021a';
 // R2-40：归档材料写口（mock/api 同源）——api 落 archive_records、mock 落 localStorage
-import { ArchiveStore } from '../../../services/activity/archive.js?v=20261020h';
+import { ArchiveStore } from '../../../services/activity/archive.js?v=20261021a';
 // A② 归档缺口判据单一源（支书台「宣传材料待归档」实时组同源）：已归档但无归档记录的活动
-import { getArchiveGapActivities, getEndedUnarchivedActivities } from '../../../services/governance/secretary-overview.js?v=20261020h';
-// 活动归档写口（与支书台活动管理同源：软删 archived=true + 级联完成下属任务）
-import { BranchService } from '../../../services/core/runtime.js?v=20261020h';
+import { getArchiveGapActivities, getEndedUnarchivedActivities } from '../../../services/governance/secretary-overview.js?v=20261021a';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是活动的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
-import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261020h';
+import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261021a';
 // 材料页深链 focusActivityId 的通用定位（只滚动 + 闪烁，不另造筛选器）
-import { focusActivityAnchor } from '../../../components/ui/detail-anchor.js?v=20261020h';
+import { focusActivityAnchor } from '../../../components/ui/detail-anchor.js?v=20261021a';
 
 // ── 档案归档 ─────────────────────────────────────────────
 // 种子数据已提升为全局（data/mock/seed.js SEED_ARCHIVE_RECORDS，loadDB 时注入），
@@ -206,7 +204,9 @@ export function renderContent(ctx) {
   // 归档推进按钮（B3 2026-09-12）：改用列表容器事件委托（见下方 #archive-list 委托）——
   // 旧实现按渲染时一次性 querySelectorAll 绑定，筛选/搜索重写 #archive-list 后新按钮无监听 → 点击全失效。
 
-  // B4：待归档活动区「归档」按钮（容器委托；活动软归档写口）
+  // B4：待归档活动区只读（2026-10-21 批次 498 支书裁定）——
+  //   「归档活动」是活动生命周期动作，归支书 / 本场组织者在活动详情办理；宣传台只归档材料。
+  //   此处保留只读清单（哪些活动材料仍未归档）作为提示，不给第二个写口。
   // 待归档活动：接统一检索引擎（批次 47-H / Q-23-40）——行数达门槛即出检索条并分页；
   // 空数据时 _renderEndedUnarchivedSection 返回 ''，故须判宿主存在再挂。
   const endedHost = container.querySelector('#archive-ended-list');
@@ -222,23 +222,6 @@ export function renderContent(ctx) {
       rowHtml: _endedUnarchivedCardHtml,
     });
   }
-  container.querySelector('#archive-ended-list')?.addEventListener('click', async (e) => {
-    const btn = e.target.closest('.archive-activity-btn');
-    if (!btn) return;
-    e.stopPropagation();
-    const activityId = btn.dataset.activityId;
-    if (!activityId) return;
-    btn.disabled = true;
-    try {
-      await BranchService.archiveActivity(activityId);
-      bumpToken('archiveRecord');
-      showToast('success', '活动已归档，请在上方「待归档」区补充宣传材料');
-      renderContent(ctx);
-    } catch (err) {
-      btn.disabled = false;
-      showToast('error', `归档失败：${(err && err.message) || err}`);
-    }
-  });
 
   // ── SOP-B-38 宣传初稿审核位（2026-09-19 批次 94）：定稿 / 退回修改 ──
   // 状态位与写口单一源 = services/activity/activity.js::setPublicityDraftStatus（勿在此另写状态名）。
@@ -434,7 +417,7 @@ let _weeklyOpen = false;
 /** 懒挂周报内容到宿主容器（`weekly-tab.js` 的 `renderContent(ctx, host)` 已支持传入宿主） */
 function _mountWeekly(host, ctx) {
   host.dataset.weeklyMounted = '1';
-  import('./weekly-tab.js?v=20261020h').then(m => {
+  import('./weekly-tab.js?v=20261021a').then(m => {
     if (host.isConnected) m.renderContent(ctx, host);
   });
 }
@@ -456,20 +439,20 @@ function _renderWeeklySlot() {
     </div>`;
 }
 
-/** 待归档活动区（B4 2026-09-12）：宣传概况「待归档活动 N 个」的明细——判据单一源
- *  getEndedUnarchivedActivities（已结束未归档），每行可直接「归档」（活动软归档写口，
- *  与支书台活动管理同源）。归档后活动进入上方「待归档（材料未提交）」区，形成闭环。 */
+/** 待归档活动区（B4 2026-09-12；2026-10-21 批次 498 改为只读）：
+ *  判据单一源 getEndedUnarchivedActivities（已结束未归档）。本区只提示「哪些活动材料还没归档」，
+ *  **不提供归档活动写口**——活动归档归支书 / 本场组织者在活动详情办理（宣传委员归档材料，母本口径）。 */
 function _renderEndedUnarchivedSection(activities) {
   if (!activities || activities.length === 0) return '';
   // 批次 47-H（支书 2026-09-15 裁定「Q-23-40 现在就接分页」）：本区原为纯 `.map()` 卡片列表——22 条时既不分页
-  // 也搜不得，真机 P11 命中。现**接统一检索引擎**（行由 `_endedUnarchivedCardHtml` 渲染）；
-  // 「归档」按钮仍是事件委托（挂在 #archive-ended-list 上），引擎翻页重绘不影响。
+  // 也搜不得，真机 P11 命中。现**接统一检索引擎**（行由 `_endedUnarchivedCardHtml` 渲染）。
   return `
     <div class="mb-6">
-      <div class="flex items-center gap-2 mb-1.5">
+      <div class="flex items-center gap-2 mb-1">
         <h4 class="text-sm font-bold text-gray-700">待归档活动</h4>
         <span class="text-xs px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200">${activities.length} 个活动已结束未归档</span>
       </div>
+      <p class="text-xs text-gray-500 mb-2">活动归档由支书或本场组织者办理；此处只提示材料是否已补齐。</p>
       <div id="archive-ended-list"></div>
     </div>`;
 }
@@ -482,11 +465,10 @@ function _endedUnarchivedCardHtml(a) {
           <div class="flex items-center gap-2 mb-0.5">
             <span class="text-sm font-medium text-gray-800 truncate">${escHtml(a.title || '未命名活动')}</span>
             ${a.type ? badgeHtml(escHtml(a.type), activityTypeBadgeVariant(a.type)) : ''}
-            <span class="text-xs px-1.5 py-0.5 rounded-full border bg-amber-50 text-amber-700 border-amber-200 shrink-0">已结束·待归档</span>
+            <span class="text-xs px-1.5 py-0.5 rounded-full border bg-amber-50 text-amber-700 border-amber-200 shrink-0">已结束·未归档</span>
           </div>
           <span class="text-xs text-gray-500">活动日期：${escHtml(a.date || '—')}</span>
         </a>
-        <button type="button" class="btn-accent-soft archive-activity-btn text-xs px-3 py-1.5 flex-shrink-0" data-activity-id="${escHtml(a.id)}" style="cursor:pointer;">归档</button>
       </div>`;
 }
 

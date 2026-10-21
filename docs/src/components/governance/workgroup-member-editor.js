@@ -1,7 +1,7 @@
-import { PersonPicker } from './pickers.js?v=20261020h';
-import { getAdapter } from '../../data/data-adapter.js?v=20261020h';
-import { getPersonById } from '../../services/member/person.js?v=20261020h';
-import { WORKGROUP_PERMISSION_LABELS, WORKGROUP_ROLE_LABELS, workgroupPermissionTemplates } from '../../core/domain/workgroup-policy.js?v=20261020h';
+import { PersonPicker } from './pickers.js?v=20261021a';
+import { getAdapter } from '../../data/data-adapter.js?v=20261021a';
+import { getPersonById } from '../../services/member/person.js?v=20261021a';
+import { WORKGROUP_PERMISSION_LABELS, WORKGROUP_ROLE_LABELS, workgroupPermissionTemplates } from '../../core/domain/workgroup-policy.js?v=20261021a';
 
 const esc = (value) => String(value ?? '').replace(/[&<>"']/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
 const permissionName = (key) => WORKGROUP_PERMISSION_LABELS[key] || key;

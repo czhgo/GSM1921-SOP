@@ -13,7 +13,7 @@ import { readFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const V = '?v=20261020h';
+const V = '?v=20261021a';
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const SRC_DIR = join(ROOT, 'docs', 'src');
 const ISSUES_JSON = join(ROOT, 'docs', 'data', 'issues.json');
@@ -86,7 +86,7 @@ test('S2 写入口径锁定：前端 submitIssue/approveDraft 与服务端 POST/
   const resources = read(join(ROOT, 'server', 'routes', 'resources', 'index.js'));
   assert.match(resources, /const branchId = actorBranchId\(actor\)/, 'server POST 须取登录人所属支部（权威），党委不得回落默认支部');
   // PowerShell checkout uses CRLF; allow either LF or CRLF between record fields.
-  assert.match(resources, /branchId,\r?\n\s*title,/, 'server 落库记录须含 branchId');
+  assert.match(resources, /branchId,\r?\n\s*title:/, 'server 落库记录须含 branchId');
 
   const seed = read(join(ROOT, 'server', 'seed.js'));
   assert.match(seed, /branchId:\s*r\.branchId \|\| 'br-b1'/, 'seedIssues 播种须补 branchId（缺省部署默认支部）');
@@ -98,8 +98,9 @@ test('S3 读取过滤单一源：issues.js 经 branch.js 的 withinBranch 收敛
     '须 import branch.js 单一源（withinBranch/getBranchIdOfPerson）——2026-09-28 目录分层后 issues.js 在 services/governance/、branch.js 在 services/branch/，相对路径为 ../branch/branch.js');
   assert.match(issues, /function _withinViewerBranch\(list\) \{\s*if \(!_hasBranchFeedbackAccess\(\)\) return \[\];\s*return withinBranch\(list \|\| \[\], _viewerId\(\)\);/,
     '登录且有支部归属后，过滤器须经 withinBranch 单一源实现');
-  const n = (issues.match(/_withinViewerBranch\(/g) || []).length;
-  assert.ok(n >= 12, `列表出口均须按 viewer 所属支部过滤（实际接线 ${n} 处，期望 ≥12）`);
+  // 2026-10-21 批次 498：读口在支部过滤之上再加受众投影（`_visibleIssues`），两件都算「已接线」
+  const n = (issues.match(/_withinViewerBranch\(|_visibleIssues\(/g) || []).length;
+  assert.ok(n >= 12, `列表出口均须按 viewer 所属支部过滤并做受众投影（实际接线 ${n} 处，期望 ≥12）`);
   // getSecretaryPendingReports / getAssignedToRole 等此前未过滤的出口须覆盖
   assert.match(issues, /getAssignedToRole\(role\) \{\s*return _withinViewerBranch/, 'getAssignedToRole 须按支部过滤');
 });
@@ -139,7 +140,9 @@ test('D1 存量迁移：缓存各条均带 branchId；viewer 取到本支部 iss
   await beginIssueCase(data.issues);
   loginAs('2400012349', 'participant');
   const all = IssueStore.getAll();
-  assert.equal(all.length, data.issues.length, 'br-b1 viewer 可见全部存量 issue');
+  // 2026-10-21 批次 498：内部汇报（kind='report'）只给支书层与当事人，普通成员列表只含公开反馈。
+  const visible = data.issues.filter((i) => i.kind !== 'report');
+  assert.equal(all.length, visible.length, 'br-b1 viewer 可见本支部公开反馈（不含他人内部汇报）');
   for (const i of all) {
     assert.ok(i.branchId, `读取到的 issue ${i.id} 须带 branchId`);
     assert.equal(i.branchId, 'br-b1');

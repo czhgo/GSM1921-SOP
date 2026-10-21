@@ -11,9 +11,9 @@
 //  依赖方向正确：组件 → 服务（不是服务 → 组件）。守卫：issue-branch.test.mjs（结构层）。
 // ════════════════════════════════════════════════════════════════
 
-import { renderFilteredList } from '../ui/list-filter.js?v=20261020h';
-import { escHtml, showToast } from '../../core/base/utils.js?v=20261020h';
-import { IssueStore, IssueNotify, deriveIssueDisplayState, REPORT_CATEGORIES, displayNameOf as _displayName } from '../../services/governance/issues.js?v=20261020h';
+import { renderFilteredList } from '../ui/list-filter.js?v=20261021a';
+import { escHtml, showToast } from '../../core/base/utils.js?v=20261021a';
+import { IssueStore, IssueNotify, deriveIssueDisplayState, REPORT_CATEGORIES, displayNameOf as _displayName } from '../../services/governance/issues.js?v=20261021a';
 
 // ════════════════════════════════════════════════════════════════
 //  「我的处置」Tab 渲染工具（各角色工作台复用）
@@ -268,6 +268,7 @@ function _renderMyReportDetail(issueId, role, userId, container, opts = {}) {
   if (issue.body) html += `<p class="text-sm text-gray-600 whitespace-pre-wrap mb-4">${issue.body}</p>`;
   html += `<div class="flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-500 mb-4 pb-4 border-b border-gray-100">`;
   html += `<span>${REPORT_CATEGORIES[issue.reportCategory] || '进度'}汇报</span>`;
+  if (issue.sourceName) html += `<span>关联：${escHtml(issue.sourceName)}</span>`;
   html += `<span>发出：${issue.submittedAt}</span>`;
   if (issue.closedAt) html += `<span>已办结：${issue.closedAt}</span>`;
   html += `</div>`;

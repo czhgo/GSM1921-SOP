@@ -7,24 +7,24 @@
 //         content/04_web_design/design-system/DESIGN_SYSTEM.md §一 第2条 最小三成本
 // ════════════════════════════════════════════════════════════════
 
-import { loadAttendanceRecords, loadActiveAttendanceRecords, listLowAttendanceSessions, summarizeAttendanceByActivity } from '../activity/attendance.js?v=20261020h';
-import { loadActivities } from '../activity/activity.js?v=20261020h';
-import { loadInspectionRecords, getOverdueRecords } from '../activity/inspection.js?v=20261020h';
-import { TaskForceRecordStore } from '../activity/taskforce.js?v=20261020h';
-import { loadActivityReviews, loadActiveActivityReviews } from './review.js?v=20261020h';
-import { NoticeStore } from './notice.js?v=20261020h';
-import { TodoStore, seedTodos, TodoCategory, TodoActionType, REALTIME_GROUP_DOMAIN, WORK_DOMAIN } from './todo.js?v=20261020h';
-import { tokenOf } from '../../core/base/version-token.js?v=20261020h'; // P0 域缓存失效（spec §二.3/§二.4）
-import { PEOPLE } from '../../data/mock/index.js?v=20261020h';
-import { getPersonById } from '../member/person.js?v=20261020h';
-import { ROLE_LABELS, isActivityEnded, isActivityArchived, isActivityInProgress } from '../../core/domain/constants.js?v=20261020h';
-import { mockDB, AttendanceStatus, ReviewStatus, isTaskforceActiveStatus } from '../../core/domain/domain.js?v=20261020h';
-import { persist } from '../../data/data-adapter.js?v=20261020h'; // 周期归档审核写口落盘（SOP-B-40 ②）
+import { loadAttendanceRecords, loadActiveAttendanceRecords, listLowAttendanceSessions, summarizeAttendanceByActivity } from '../activity/attendance.js?v=20261021a';
+import { loadActivities } from '../activity/activity.js?v=20261021a';
+import { loadInspectionRecords, getOverdueRecords } from '../activity/inspection.js?v=20261021a';
+import { TaskForceRecordStore } from '../activity/taskforce.js?v=20261021a';
+import { loadActivityReviews, loadActiveActivityReviews } from './review.js?v=20261021a';
+import { NoticeStore } from './notice.js?v=20261021a';
+import { TodoStore, seedTodos, TodoCategory, TodoActionType, REALTIME_GROUP_DOMAIN, WORK_DOMAIN } from './todo.js?v=20261021a';
+import { tokenOf } from '../../core/base/version-token.js?v=20261021a'; // P0 域缓存失效（spec §二.3/§二.4）
+import { PEOPLE } from '../../data/mock/index.js?v=20261021a';
+import { getPersonById } from '../member/person.js?v=20261021a';
+import { ROLE_LABELS, isActivityEnded, isActivityArchived, isActivityInProgress } from '../../core/domain/constants.js?v=20261021a';
+import { mockDB, AttendanceStatus, ReviewStatus, isTaskforceActiveStatus } from '../../core/domain/domain.js?v=20261021a';
+import { persist } from '../../data/data-adapter.js?v=20261021a'; // 周期归档审核写口落盘（SOP-B-40 ②）
 // 批4（2026-09-09 支书批「域参数」副本收编）：本文件 4 组提醒阈值/deadline 一律引 policy 单一源派生，
 // 勿再写字面量（attendance.entryRemindDays/summaryDeadlineDays · inspection.overdueDays ·
 // review.overdueDays/deadlineDays——读侧注入后自动跟随域覆盖值）
-import { POLICY_DEFAULTS } from '../../core/domain/policy-defaults.js?v=20261020h';
-import { todayLocal, _fmtDate } from '../../core/base/utils.js?v=20261020h';
+import { POLICY_DEFAULTS } from '../../core/domain/policy-defaults.js?v=20261021a';
+import { todayLocal, _fmtDate } from '../../core/base/utils.js?v=20261021a';
 
 // ════════════════════════════════════════════════════════════════
 //  工具函数

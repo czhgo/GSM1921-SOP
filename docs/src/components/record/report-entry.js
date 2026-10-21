@@ -19,11 +19,15 @@
 //    **不落 hex**。
 // ════════════════════════════════════════════════════════════════
 
-import { IssueStore, IssueNotify, REPORT_CATEGORIES } from '../../services/governance/issues.js?v=20261020h';
-import { AuthStore } from '../../services/core/auth.js?v=20261020h';
-import { showToast } from '../../core/base/utils.js?v=20261020h';
-import { getPersonName } from '../../services/member/person.js?v=20261020h';
-import { openModal, closeModal } from '../ui/modal.js?v=20261020h';
+import { IssueStore, IssueNotify, REPORT_CATEGORIES } from '../../services/governance/issues.js?v=20261021a';
+import { AuthStore } from '../../services/core/auth.js?v=20261021a';
+import { showToast, getBasePath } from '../../core/base/utils.js?v=20261021a';
+import { getPersonName } from '../../services/member/person.js?v=20261021a';
+import { loadActivities } from '../../services/activity/activity.js?v=20261021a';
+import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261021a';
+import { SECRETARY_AND_DEPUTY_ROLES } from '../../core/domain/constants.js?v=20261021a';
+import { isTaskforceTerminalStatus } from '../../core/domain/domain.js?v=20261021a';
+import { openModal, closeModal } from '../ui/modal.js?v=20261021a';
 
 /** 当前用户未读汇报数（「支书请我汇报」＋「支书答复发回」） */
 function _unreadCount() {
@@ -66,14 +70,68 @@ export function bindReportEntry(root = document) {
   root.querySelector('#btn-report-entry')?.addEventListener('click', () => openReportModal());
 }
 
+/** 可选父键候选：在办的活动 / 专班（各自带工作组 id；不新造工作组） */
+function _reportTargets() {
+  const acts = (loadActivities() || [])
+    .filter(a => !a.archived)
+    .map(a => ({
+      workgroupId: a.workgroupId || `wg-activity-${a.id}`,
+      sourceType: 'activity',
+      sourceId: a.id,
+      label: `活动：${a.title || a.id}`,
+    }));
+  const tfs = (TaskForceRecordStore.getAll() || [])
+    .filter(t => !isTaskforceTerminalStatus(t.status))
+    .map(t => ({
+      workgroupId: t.workgroupId || `wg-taskforce-${t.id}`,
+      sourceType: 'taskforce',
+      sourceId: t.id,
+      label: `专班：${t.name || t.id}`,
+    }));
+  return [...acts, ...tfs];
+}
+
+/** 上下文预选：从活动 / 专班详情页发起时，把当前对象带进汇报（父键不是必填，仍可改回「不关联」） */
+function _contextReportTarget() {
+  try {
+    const q = new URLSearchParams(window.location.search);
+    const path = window.location.pathname;
+    if (/activity\.html$/.test(path)) return { sourceType: 'activity', sourceId: q.get('activityId') || q.get('id') };
+    if (/taskforce\.html$/.test(path)) return { sourceType: 'taskforce', sourceId: q.get('taskforceId') || q.get('id') };
+  } catch {}
+  return null;
+}
+
 /** 打开汇报弹窗（预加载 issues 权威源，避免覆盖本地缓存） */
 async function openReportModal() {
   await IssueStore.loadAll();
   const MODAL_ID = 'report-entry';
+  const me = AuthStore.getCurrentUser();
+  const targets = _reportTargets();
+  const ctx = _contextReportTarget();
+  const preselected = ctx
+    ? targets.find(t => t.sourceType === ctx.sourceType && t.sourceId === ctx.sourceId)
+    : null;
+  const canReportUp = !!me && SECRETARY_AND_DEPUTY_ROLES.includes(me.role);
+  const optionsHtml = [
+    '<option value="">（不关联，个人汇报）</option>',
+    targets.some(t => t.sourceType === 'activity')
+      ? `<optgroup label="活动">${targets.filter(t => t.sourceType === 'activity')
+          .map(t => `<option value="${t.workgroupId}"${preselected && preselected.workgroupId === t.workgroupId ? ' selected' : ''}>${t.label}</option>`).join('')}</optgroup>`
+      : '',
+    targets.some(t => t.sourceType === 'taskforce')
+      ? `<optgroup label="专班">${targets.filter(t => t.sourceType === 'taskforce')
+          .map(t => `<option value="${t.workgroupId}"${preselected && preselected.workgroupId === t.workgroupId ? ' selected' : ''}>${t.label}</option>`).join('')}</optgroup>`
+      : '',
+  ].join('');
 
   // 浮层统一体例（DESIGN_SYSTEM §4.27）：header 纯文本标题 / 动作固定在 footer / 取消走 onCancel
   const bodyHtml = `
     <p class="text-xs text-gray-500 mb-3">汇报将发往支书，答复后发回给你。请选择分类并填写内容。</p>
+    <div class="mb-3">
+      <label class="text-xs text-gray-500 mb-1.5 block font-medium" for="report-modal-target">关联事项（可选）</label>
+      <select id="report-modal-target" class="input-flat w-full">${optionsHtml}</select>
+    </div>
     <div class="flex items-center gap-2 mb-3">
       ${Object.entries(REPORT_CATEGORIES).map(([key, label]) => `
         <button type="button" class="btn-tab report-cat-btn text-xs px-3 py-1.5 rounded-lg transition-all ${key === 'progress' ? 'report-cat-active' : 'bg-white text-gray-600 border border-gray-200 hover:border-gray-300'}"
@@ -81,6 +139,7 @@ async function openReportModal() {
       `).join('')}
     </div>
     <textarea id="report-modal-body" class="input-flat w-full h-24 resize-none" placeholder="填写汇报内容（进度 / 难点卡点 / 请示事项）…"></textarea>
+    ${canReportUp ? `<p class="text-xs text-gray-500 mt-3">需向党委上报（发展节点 / 活动报备）？<a class="underline" style="color:var(--app-accent-text);" href="${getBasePath()}workspace/secretary.html?tab=report-up">去上报党委</a></p>` : ''}
   `;
 
   openModal({
@@ -105,14 +164,29 @@ async function openReportModal() {
       });
 
       // 提交：校验失败不关窗、不丢正文（M-6）
-      panel.querySelector('#report-modal-submit').addEventListener('click', () => {
+      panel.querySelector('#report-modal-submit').addEventListener('click', async () => {
         const body = panel.querySelector('#report-modal-body')?.value?.trim();
         if (!body) { showToast('error', '请填写汇报内容'); return; }
-        const issue = IssueStore.submitReport({ category, body });
-        if (!issue) { showToast('error', '汇报发送失败'); return; }
-        showToast('success', '汇报已发出，等待支书答复');
-        closeModal(MODAL_ID);
-        refreshReportEntryBadge();
+        const workgroupId = panel.querySelector('#report-modal-target')?.value || '';
+        const target = workgroupId ? targets.find(t => t.workgroupId === workgroupId) : null;
+        const submitBtn = panel.querySelector('#report-modal-submit');
+        submitBtn.disabled = true;
+        try {
+          const issue = await IssueStore.submitReport({
+            category,
+            body,
+            workgroupId: workgroupId || null,
+            sourceType: target?.sourceType || null,
+            sourceId: target?.sourceId || null,
+            sourceName: target?.label || '',
+          });
+          if (!issue) { showToast('error', '汇报发送失败'); return; }
+          showToast('success', '汇报已发出，等待支书答复');
+          closeModal(MODAL_ID);
+          refreshReportEntryBadge();
+        } finally {
+          submitBtn.disabled = false;
+        }
       });
     },
   });

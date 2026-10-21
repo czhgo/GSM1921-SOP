@@ -6,16 +6,17 @@
 //   见 server/routes/resources.js 末「反馈未读标记」段），`init()` 拉取填 `mockDB.issueUnread` 供同步读；
 //   mock 形态原路径（本机键）一字未改。
 
-import { mockDB } from '../../core/domain/domain.js?v=20261020h';
-import { AuthStore } from '../core/auth.js?v=20261020h';
-import { PersonStore } from '../member/person.js?v=20261020h';
-import { bumpToken } from '../../core/base/version-token.js?v=20261020h'; // P2 渲染守卫失效（spec §四.1）
-import { getDataSource, getAdapter, isDemoReadOnly, demoReadOnlyMessage } from '../../data/data-adapter.js?v=20261020h';
-import { hashSubmitterToken, BRANCH_COMMISSION_ROLES, PARTY_STAFF_ROLE } from '../../core/domain/constants.js?v=20261020h';
+import { mockDB } from '../../core/domain/domain.js?v=20261021a';
+import { AuthStore } from '../core/auth.js?v=20261021a';
+import { PersonStore } from '../member/person.js?v=20261021a';
+import { bumpToken } from '../../core/base/version-token.js?v=20261021a'; // P2 渲染守卫失效（spec §四.1）
+import { getDataSource, getAdapter, isDemoReadOnly, demoReadOnlyMessage } from '../../data/data-adapter.js?v=20261021a';
+import { hashSubmitterToken, BRANCH_COMMISSION_ROLES, PARTY_STAFF_ROLE } from '../../core/domain/constants.js?v=20261021a';
 // 2026-09-17 批次 49：处置写链（REST 直连，不走 persist）须自登记进成功提示的统一等待点
-import { trackWrite } from '../../core/session/pending-writes.js?v=20261020h';
-import { withinBranch, getBranchIdOfPerson } from '../branch/branch.js?v=20261020h';
-import { generateId, randomHex } from '../../core/base/id.js?v=20261020h';
+import { trackWrite } from '../../core/session/pending-writes.js?v=20261021a';
+import { withinBranch, getBranchIdOfPerson } from '../branch/branch.js?v=20261021a';
+import { canReadIssue } from '../../core/domain/issue-visibility.js?v=20261021a';
+import { generateId, randomHex } from '../../core/base/id.js?v=20261021a';
 // 批次 47-M（2026-09-16）：**补上缺失的 showToast 导入**——本文件有 11 处 `showToast(...)`，
 //   却从未 import 它，页面也没有任何地方把它挂到 window 上 ⇒ 真机跑到这些行时**一律抛
 //   `ReferenceError: showToast is not defined`**。后果（正是支书实报的那类「非闭环」）：
@@ -26,7 +27,7 @@ import { generateId, randomHex } from '../../core/base/id.js?v=20261020h';
 //       **写已经落库，提示却抛在写之后**，于是「事情办成了，但界面一声不吭」，用户会以为没生效而重复提交。
 //   之所以长期没被发现：这五处校验点的「载体不在位」旧理由（「需先有议题并进入评论态」等）把它们
 //   一直挂在 machine:false 白名单里，**真机从未跑到这些行**（见批 47-M 台账注释）。
-import { showToast, todayLocal } from '../../core/base/utils.js?v=20261020h';
+import { showToast, todayLocal } from '../../core/base/utils.js?v=20261021a';
 // 统一检索引擎（2026-09-14 批次 37）：本 tab 三区各接一个实例（关键词 + 引擎内置分页）
 
 /** 解析人员 ID → 姓名（反馈系统统一走 PersonStore 唯一解析源） */
@@ -225,6 +226,21 @@ function _withinViewerBranch(list) {
   return withinBranch(list || [], _viewerId());
 }
 
+/** 当前观看者上下文（受众判据的入参；与 server 端 viewer 同形） */
+function _viewerCtx() {
+  const user = AuthStore.getCurrentUser();
+  return { personId: user?.personId || null, role: user?.role || null };
+}
+
+/**
+ * 支部过滤 ＋ 受众投影（单一源 `canReadIssue`）：内部汇报只给支书层与当事人，
+ * 隐藏反馈只给支书层与处置人。前端所有「列表 / 详情 / 统计」读口都经此，不得各自只做支部过滤。
+ */
+function _visibleIssues(list) {
+  const viewer = _viewerCtx();
+  return _withinViewerBranch(list).filter(row => canReadIssue(row, viewer));
+}
+
 /**
  * 处置审计落款角色（2026-09-13 dogfood 同类彻查）：原 assignIssue/closeIssue/mergeIssues 一律
  * 硬编码 authorRole='secretary'，副支书（副书同权）经手时审计被记成支书——与「催办签发人写死」
@@ -294,19 +310,19 @@ export const IssueStore = {
     }
   },
 
-  /** 同步读取（需先调用 loadAll）——按 viewer 所属支部过滤（跨支部 issue 不可见）；出口脱敏 */
+  /** 同步读取（需先调用 loadAll）——支部过滤 ＋ 受众投影（内部汇报 / 隐藏行不外泄）；出口脱敏 */
   getAll() {
-    return _sanitizeIssues(_withinViewerBranch(_issuesCache || []));
+    return _sanitizeIssues(_visibleIssues(_issuesCache || []));
   },
 
-  /** 按 ID 获取（按 viewer 所属支部过滤：跨支部 issue 不可见）；出口脱敏 */
+  /** 按 ID 获取（支部过滤 ＋ 受众投影：读不到的行按不存在处理）；出口脱敏 */
   getById(id) {
-    return _sanitizeIssue(_withinViewerBranch(_issuesCache || []).find(i => i.id === id));
+    return _sanitizeIssue(_visibleIssues(_issuesCache || []).find(i => i.id === id));
   },
 
-  /** 按 number 获取（按 viewer 所属支部过滤：跨支部 issue 不可见）；出口脱敏 */
+  /** 按 number 获取（支部过滤 ＋ 受众投影）；出口脱敏 */
   getByNumber(num) {
-    return _sanitizeIssue(_withinViewerBranch(_issuesCache || []).find(i => i.number === num));
+    return _sanitizeIssue(_visibleIssues(_issuesCache || []).find(i => i.number === num));
   },
 
   /** 获取下一个可用 number（全库编号，不按支部过滤——支部间编号全局唯一） */
@@ -315,9 +331,9 @@ export const IssueStore = {
     return list.reduce((max, i) => Math.max(max, i.number || 0), 0) + 1;
   },
 
-  /** 过滤（按 viewer 所属支部过滤后再按维度筛选）；出口脱敏 */
+  /** 过滤（支部过滤 ＋ 受众投影后再按维度筛选）；出口脱敏 */
   filter({ status, scope, type, milestone, keyword, kind } = {}) {
-    let list = _withinViewerBranch(_issuesCache || []);
+    let list = _visibleIssues(_issuesCache || []);
     if (status && status !== 'all') list = list.filter(i => i.status === status);
     if (scope && scope !== 'all') list = list.filter(i => i.scope === scope);
     if (type && type !== 'all') list = list.filter(i => (i.types || []).includes(type));
@@ -339,9 +355,9 @@ export const IssueStore = {
     return _sanitizeIssues(list);
   },
 
-  /** 统计（按 viewer 所属支部过滤；`kind` 语义同 filter） */
+  /** 统计（支部过滤 ＋ 受众投影；`kind` 语义同 filter） */
   countByStatus({ kind } = {}) {
-    let list = _withinViewerBranch(_issuesCache || []);
+    let list = _visibleIssues(_issuesCache || []);
     if (kind) list = list.filter(i => (i.kind || 'feedback') === kind);
     return {
       total: list.length,
@@ -697,13 +713,37 @@ export const IssueStore = {
 
   /**
    * 成员主动发起工作汇报（发往支书；三类：进度/卡点/请示）
-   * @param {{ category: 'progress'|'blocked'|'ask', body: string }} params
+   * @param {{ category: 'progress'|'blocked'|'ask', body: string,
+   *           workgroupId?: string|null, sourceType?: 'activity'|'taskforce'|null,
+   *           sourceId?: string|null, sourceName?: string|null }} params
+   *   workgroupId 为**可选父键**：有上下文的汇报带上，个人汇报留空；服务端会按支部与工作组复核。
    * @returns {Object|null} 新建的汇报 issue
    */
-  submitReport({ category = 'progress', body = '' } = {}) {
+  async submitReport({ category = 'progress', body = '', workgroupId = null, sourceType = null, sourceId = null, sourceName = '' } = {}) {
     if (!body.trim()) return null;
     const by = _currentPersonId();
     const now = todayLocal();
+    // API 形态：汇报与反馈同走 `POST /issues`（服务端派生标题、校验父键归属并落库）。
+    // 原实现只写本机缓存与 localStorage，刷新后 `loadAll()` 用服务端列表覆盖 ⇒ 汇报静默丢失。
+    if (_isApiMode()) {
+      try {
+        const row = await getAdapter().issues.create({
+          kind: 'report',
+          reportCategory: category,
+          body: body.trim(),
+          ...(workgroupId ? { workgroupId } : {}),
+        });
+        if (!row || !row.id) return null;
+        _issuesCache = [...(_issuesCache || []), row];
+        try { localStorage.setItem(CACHE_KEY, JSON.stringify(_issuesCache)); } catch {}
+        _noteIssueChange(); // P2：发起汇报 → 写版本 +1（支书收件箱新条）
+        IssueNotify.markSecretaryReviewPending(row.id);
+        return _sanitizeIssue(row);
+      } catch (err) {
+        console.warn('[IssueStore] 汇报写入失败：', err);
+        return null;
+      }
+    }
     const issue = {
       id: generateId('report', '-'),
       number: this.nextNumber(),
@@ -721,6 +761,10 @@ export const IssueStore = {
       submittedAt: now,
       assignee: null, // 未指派 → 默认发往支书待答复
       assigneeRole: null,
+      workgroupId: workgroupId || null,
+      sourceType: sourceType || null,
+      sourceId: sourceId || null,
+      sourceName: sourceName || '',
       dispatchHistory: [],
       comments: [],
       participants: [by],

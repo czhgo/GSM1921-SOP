@@ -6,18 +6,19 @@
 //         content/04_web_design/design-system/DESIGN_SYSTEM.md §一 第6条
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB, isTaskforceActiveStatus } from '../../core/domain/domain.js?v=20261020h';
-import { persist } from '../../data/data-adapter.js?v=20261020h';
-import { generateId } from '../../core/base/id.js?v=20261020h';
-import { bumpToken, tokenOf } from '../../core/base/version-token.js?v=20261020h';
+import { mockDB, isTaskforceActiveStatus } from '../../core/domain/domain.js?v=20261021a';
+import { persist } from '../../data/data-adapter.js?v=20261021a';
+import { generateId } from '../../core/base/id.js?v=20261021a';
+import { bumpToken, tokenOf } from '../../core/base/version-token.js?v=20261021a';
 // 待批活动状态值单一源（2026-09-22 批次 151 · 支书裁定「只支委层可见」）：待批活动**不是**「待参与」的活动
 // ——它还没获批（与 `draft` 同待遇），不为它派生「参与活动」待办（也免得从待办标题把没批的活动漏出去）。
-import { PENDING_APPROVAL_STATUS } from '../activity/activity.js?v=20261020h';
-import { todayLocal, _fmtDate } from '../../core/base/utils.js?v=20261020h';
+import { PENDING_APPROVAL_STATUS } from '../activity/activity.js?v=20261021a';
+import { todayLocal, _fmtDate } from '../../core/base/utils.js?v=20261021a';
+import { AuthStore } from '../core/auth.js?v=20261021a';
 // 周期键（月/季/半年/年）与「模块周期」单一源（2026-10-06 批次 423 · `R-29⑤` · `D-804`）——
 //   周期任务的**来源**＝`work-map.js::WORK_MAP_MODULES[].cycle`（不另立第二份映射，`D-803②`）。
-import { cyclePeriodOf, cyclePeriodLabel } from '../../core/base/period.js?v=20261020h';
-import { WORK_MAP_MODULES, expandWorkforce, ownerOfModule, moduleIdOfActivity } from '../../core/domain/work-map.js?v=20261020h';
+import { cyclePeriodOf, cyclePeriodLabel } from '../../core/base/period.js?v=20261021a';
+import { WORK_MAP_MODULES, expandWorkforce, ownerOfModule, moduleIdOfActivity } from '../../core/domain/work-map.js?v=20261021a';
 
 // ── 待办分类枚举 ──────────────────────────────────────────────
 export const TodoCategory = {
@@ -1157,8 +1158,16 @@ export const TodoStore = {
     const todos = _loadTodos();
     let changed = false;
     const today = todayLocal();
+    // 2026-10-21 批次 498：只把**本人待办**（到人 / 本角色）落库为 expired。
+    // 原实现替全支部所有角色待办写真——普通成员打开页面即触发他人行的 PATCH，被行级写门 403，
+    // 连带同一次 flush 里的成功提示变成「未保存成功」。他人待办的过期态由读侧 isTodoExpired 派生。
+    const me = AuthStore.getCurrentUser();
+    // 无会话（node 单测 / 纯函数调用）不涉及跨人写入，保持原行为；有会话时只写本人行。
+    const isMine = !me ? () => true : (t) => (t.personId
+      ? String(t.personId) === String(me.personId || '')
+      : (!!t.role && t.role === me.role));
     const updated = todos.map(t => {
-      if (t.status === TodoStatus.PENDING && isTodoExpired(t, today)) {
+      if (isMine(t) && t.status === TodoStatus.PENDING && isTodoExpired(t, today)) {
         changed = true;
         return { ...t, status: TodoStatus.EXPIRED };
       }
