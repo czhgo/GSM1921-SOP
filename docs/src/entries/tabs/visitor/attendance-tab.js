@@ -8,20 +8,21 @@
 
 // R2-47（2026-10-20）：出勤率统一走服务层的两个显式语义（按应到 / 按已录），页面不再自己相除；
 //   R2-14：配色档位同源 attendanceRateTone（良好线 90 + 制度提示线 lowRateHint）。
-import { loadActiveAttendanceRecords, absenceReasonLabel, createAttendanceAppeal, summarizePersonAttendanceByRoster, summarizeAttendanceByActivity, attendanceRateTone } from '../../../services/activity/attendance.js?v=20261021b';
-import { getOrganizedActivities } from '../../../services/activity/activity.js?v=20261021b';
-import { loadMakeupTasks, saveMakeupTasks } from '../../../services/activity/makeup.js?v=20261021b';
-import { AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../../core/domain/domain.js?v=20261021b';
-import { POLICY_DEFAULTS } from '../../../core/domain/policy-defaults.js?v=20261021b';
-import { AuthStore } from '../../../services/core/auth.js?v=20261021b';
-import { openFormModal } from '../../../components/ui/modal.js?v=20261021b';
-import { showToast, todayLocal } from '../../../core/base/utils.js?v=20261021b';
+import { loadActiveAttendanceRecords, absenceReasonLabel, createAttendanceAppeal, summarizePersonAttendanceByRoster, summarizeAttendanceByActivity, attendanceRateTone } from '../../../services/activity/attendance.js?v=20261021c';
+import { getOrganizedActivities } from '../../../services/activity/activity.js?v=20261021c';
+import { loadMakeupTasks, saveMakeupTasks } from '../../../services/activity/makeup.js?v=20261021c';
+import { AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../../core/domain/domain.js?v=20261021c';
+import { POLICY_DEFAULTS } from '../../../core/domain/policy-defaults.js?v=20261021c';
+import { AuthStore } from '../../../services/core/auth.js?v=20261021c';
+import { openFormModal } from '../../../components/ui/modal.js?v=20261021c';
+import { showToast, todayLocal } from '../../../core/base/utils.js?v=20261021c';
 // 活动「已归档」口径单一源（2026-09-13 收敛）：替代手写 !a.archived
-import { isActivityArchived } from '../../../core/domain/constants.js?v=20261021b';
+import { isActivityArchived } from '../../../core/domain/constants.js?v=20261021c';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是活动的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
-import { renderFilteredList, activityKeyword, activityFacets } from '../../../components/ui/list-filter.js?v=20261021b';
+import { renderFilteredList, activityKeyword, activityFacets } from '../../../components/ui/list-filter.js?v=20261021c';
 // 材料页深链 focusActivityId 的通用定位（只滚动 + 闪烁，不另造筛选器）
-import { focusActivityAnchor } from '../../../components/ui/detail-anchor.js?v=20261021b';
+import { focusActivityAnchor } from '../../../components/ui/detail-anchor.js?v=20261021c';
+import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261021c';
 
 export function renderContent(ctx) {
   const tc = document.getElementById('visitor-tab-content');
@@ -49,8 +50,9 @@ export function renderContent(ctx) {
   // 2026-10-18 成员台组织者投影：个人考勤内容（我的出勤率 / 本人明细 / 补课入口）在页首，
   // 组织者上传位放在个人内容之后；只渲染「由我组织」的活动，不再整页复用组长台的全组视图。
   tc.innerHTML = `
+    ${renderTabHeader({ title: '考勤概况', description: '本月我的出勤率与活动出勤明细；补课入口在行内。' })}
     <div id="visitor-att-mine"></div>
-    <div id="visitor-att-list"></div>
+    <div class="card rounded-xl p-5"><div id="visitor-att-list"></div></div>
     ${myOrgActs.length ? `
     <div class="mt-4">
       <div class="text-xs text-gray-500 mb-1.5">由我组织的活动 · 考勤上传位（会议考勤由组织者上传；此处即你的上传面）</div>
@@ -63,7 +65,7 @@ export function renderContent(ctx) {
   // 挂「由我组织的活动」上传位（实现单一源＝leader/attendance-tab，host 复用；scope=organizer 只投影本人活动）
   const _orgAttHost = document.getElementById('visitor-org-att-host');
   if (_orgAttHost) {
-    import('../leader/attendance-tab.js?v=20261021b').then(m => { if (_orgAttHost.isConnected) m.renderContent(ctx, _orgAttHost, { scope: 'organizer' }); });
+    import('../leader/attendance-tab.js?v=20261021c').then(m => { if (_orgAttHost.isConnected) m.renderContent(ctx, _orgAttHost, { scope: 'organizer' }); });
   }
 
   // SOP-B-15 当事人可见侧（2026-09-20 批次 116 支书定案「支委会 ＋ 当事人本人」）：
@@ -81,16 +83,16 @@ export function renderContent(ctx) {
       : mineTone === 'low' ? 'text-red-600' : 'text-gray-400';
     const mineRateText = mine.rate === null ? '待录入' : `${mine.rate}%`;
     mineEl.innerHTML = meId && mine.total > 0
-      ? `<div class="rounded-lg bg-white p-3 mb-3">
+      ? `<div class="card rounded-xl p-5 mb-3">
           <div class="flex items-center justify-between flex-wrap gap-2">
             <p class="text-sm font-medium text-gray-800">本月我的出勤率</p>
             <p class="text-sm font-semibold ${mineRateCls}">${mineRateText}</p>
           </div>
           <p class="text-xs text-gray-500 mt-1">出勤 ${mine.present}/${mine.total}（应到人次口径；出勤含已补${mine.unrecorded > 0 ? ` · 未录 ${mine.unrecorded} 场` : ''}）${mine.rate !== null && mine.rate < hint ? ` · 低于提示线 ${hint}%，仅作提示、不触发任何处置` : ''}</p>
         </div>`
-      : `<div class="rounded-lg bg-white p-3 mb-3">
+      : `<div class="card rounded-xl p-5 mb-3">
           <p class="text-sm font-medium text-gray-800">本月我的出勤率</p>
-          <p class="text-xs text-gray-400 mt-1">本月暂无你的考勤记录</p>
+          <p class="text-xs text-gray-400 mt-1">— 本月暂无你的考勤记录 · 下一步：活动组织者上传考勤后在此显示</p>
         </div>`;
   }
 
@@ -128,7 +130,7 @@ export function renderContent(ctx) {
           </div>
           <div class="text-xs font-medium ${rateCls}">${rateText}</div>
         </div>
-        <div class="flex items-center gap-2 px-3 pb-3">
+        <div class="flex flex-wrap items-center gap-2 px-3 pb-3">
           <button type="button" class="btn-neutral visitor-att-detail-btn text-xs px-2.5 py-1" data-act-id="${act.id}" style="cursor:pointer;">查看个人明细</button>
           ${myMakeup ? `<button type="button" class="btn-accent-soft visitor-att-makeup-btn text-xs px-2.5 py-1" data-act-id="${act.id}" style="cursor:pointer;">${myMakeup.proofContent ? '修改补课说明' : '去补课 · 提交补课说明'}</button>` : ''}
           ${(!myRecord || myRecord.status === AttendanceStatus.ABSENT) ? `<button type="button" class="btn-accent-soft visitor-att-appeal-btn text-xs px-2.5 py-1" data-act-id="${act.id}" style="cursor:pointer;">我参加了但没记上</button>` : ''}
@@ -156,7 +158,7 @@ export function renderContent(ctx) {
       facets: activityFacets(),
       countUnit: '条',
       listClass: 'space-y-2',
-      emptyMessage: '无匹配考勤数据',
+      emptyMessage: '— 无匹配考勤数据 · 下一步：清除筛选或等待活动考勤上传',
       rowHtml,
     });
   }
@@ -184,7 +186,7 @@ export function renderContent(ctx) {
       title: `补课说明 · ${task.activityName || '缺勤活动'}`,
       // 2026-09-21 批次 139：每台浮窗页脚一条「相关设置」深链——成员台**没有**支部治理分区
       // （`settings-entry.js::GOVERNANCE_BY_ROLE` 只为支书/副支书与纪检/组织/组长发放），故指向设置首页。
-      settingsLink: { href: './settings.html', text: '设置首页（外观 / 我的工作台）' },
+      settingsLink: { href: './settings.html', text: '制度参数 →' },
       fields: [{ key: 'proof', label: '补课说明（补课方式与心得要点）', type: 'textarea', required: true, placeholder: '如：已观看党课录像并撰写学习心得……' }],
       initialValues: { proof: task.proofContent || '' },
       submitLabel: '提交',

@@ -16,10 +16,13 @@
 //     人维无论落在行（byPerson）还是列（byItem）都按同一页切片——转置只换视角，不换分页口径。
 //   · 视图与「是否展开全部列」按 stateKey 持久（跨重渲染不丢，与统一检索引擎同一状态纪律）。
 //   · 载体单一源：表格用 .data-table；切换/展开钮用 .lf-btn；不为矩阵新造一套样式（styles.css 是禁改文件）。
-import { escHtml as esc } from '../../core/base/utils.js?v=20261021b';
+//   · **窄屏（≤640px）＝同一关系行的响应式形态**（2026-10-21 Task 7 / B-499-10）：仍是这一张表，
+//     只是每行按「行表头（人/项目）＋ 逐列 `data-label` 值」堆叠成卡；不新造第二套矩阵、不改 cell 口径。
+//     与引擎表共用 styles.css 的 `[data-responsive="cards"]` 一套规则（thead 隐藏、sticky/min-width 清零）。
+import { escHtml as esc } from '../../core/base/utils.js?v=20261021c';
 // 翻页控件单一源（批次 38）：矩阵的人维分页与统一检索引擎共用同一套 .page-btn / .page-num 标记
 // （叶子件 pager.js——不经 list-filter 引入，避免 list-filter→inspector→vote-summary-panel 与本节成环）
-import { pagerHtml } from './pager.js?v=20261021b';
+import { pagerHtml } from './pager.js?v=20261021c';
 
 /** 项目维缺省列上限（最近 N 项） */
 export const MATRIX_COL_LIMIT = 6;
@@ -63,13 +66,16 @@ export function renderRelationMatrix(host, cfg) {
   const persons = Array.isArray(cfg.persons) ? cfg.persons : [];
   const cell = typeof cfg.cell === 'function' ? cfg.cell : () => null;
   const cellClass = typeof cfg.cellClass === 'function' ? cfg.cellClass : () => '';
-  const cellOf = (pid, iid) => {
+  const cellOf = (pid, iid, label) => {
     const html = cell(pid, iid);
     const extra = cellClass(pid, iid) || '';
     const cls = extra ? ` ${extra}` : '';
+    // data-label＝该列在当前视图里的维度名（byPerson＝项目名 / byItem＝姓名）：
+    // 窄屏堆叠时由 styles.css 的 td::before 显示，桌面不参与布局。
+    const lab = label ? ` data-label="${esc(label)}" title="${esc(label)}"` : '';
     return html
-      ? `<td class="text-center${cls}">${html}</td>`
-      : `<td class="text-center text-gray-400${cls}">—</td>`;
+      ? `<td class="text-center${cls}"${lab}>${html}</td>`
+      : `<td class="text-center text-gray-400${cls}"${lab}>—</td>`;
   };
 
   const overLimit = colLimit > 0 && items.length > colLimit;
@@ -106,12 +112,12 @@ export function renderRelationMatrix(host, cfg) {
 
   const body = byPerson
     ? pagePersons.map(p => `<tr>
-        <th scope="row" class="font-medium text-gray-800 whitespace-nowrap sticky left-0 bg-white" style="color:#1F2937;background:#fff;">${esc(p.name)}</th>
-        ${cols.map(it => cellOf(p.id, it.id)).join('')}
+        <th scope="row" class="font-medium text-gray-800 whitespace-nowrap sticky left-0 bg-white" style="color:#1F2937">${esc(p.name)}</th>
+        ${cols.map(it => cellOf(p.id, it.id, it.title)).join('')}
       </tr>`).join('')
     : cols.map(it => `<tr>
         ${itemRowHead(it)}
-        ${pagePersons.map(p => cellOf(p.id, it.id)).join('')}
+        ${pagePersons.map(p => cellOf(p.id, it.id, p.name)).join('')}
       </tr>`).join('');
 
   const span = 1 + (byPerson ? cols.length : pagePersons.length);
@@ -130,8 +136,8 @@ export function renderRelationMatrix(host, cfg) {
             ${st.showAll ? `只看最近 ${colLimit} 项` : `显示全部 ${items.length} 项`}
           </button>` : ''}
         </div>` : ''}
-      <div class="overflow-x-auto max-h-[420px] overflow-y-auto">
-        <table class="data-table rm-table">
+      <div class="rm-scroll overflow-x-auto max-h-[420px] overflow-y-auto">
+        <table class="data-table rm-table" data-responsive="cards">
           <caption class="visually-hidden">关系矩阵：行与列交叉单元格</caption>
           <thead><tr>${headRow}</tr></thead>
           <tbody>${body || empty}</tbody>

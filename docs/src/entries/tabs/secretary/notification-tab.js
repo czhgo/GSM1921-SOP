@@ -3,25 +3,27 @@
 // 2026-08-07 自 ws-secretary-entry.js 拆分。
 // 数据源：NoticeStore（与首页/全局概况/visitor 同源，消除双数据源脱节）。
 
-import { NoticeStore, sendDirectMessage } from '../../../services/governance/notice.js?v=20261021b';
-import { AuthStore } from '../../../services/core/auth.js?v=20261021b';
-import { showToast, getBasePath, _fmtDate, todayLocal } from '../../../core/base/utils.js?v=20261021b';
-import { badgeHtml } from '../../../components/ui/badges.js?v=20261021b';
-import { openModal, closeModal } from '../../../components/ui/modal.js?v=20261021b';
+import { NoticeStore, sendDirectMessage } from '../../../services/governance/notice.js?v=20261021c';
+import { AuthStore } from '../../../services/core/auth.js?v=20261021c';
+import { showToast, getBasePath, _fmtDate, todayLocal, escHtml } from '../../../core/base/utils.js?v=20261021c';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20261021c';
+import { openModal, closeModal } from '../../../components/ui/modal.js?v=20261021c';
 // 统一检索引擎（2026-09-14 批次 37）：已发布通知列表接入关键词（标题/正文）+ 分页
-import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261021b';
+import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261021c';
 // Q-22-1（2026-09-13）：受众选项改引 core/domain/constants.js 单一源（NOTICE_AUDIENCE_SENTINELS）——
 // 发布侧写入值必须与消费端可见性判定同源，勿再本地手写 sentinel 列表（否则 ['all'] 永不命中）。
-import { NOTICE_AUDIENCE_OPTIONS, ACTIVITY_CLASSIFICATION } from '../../../core/domain/constants.js?v=20261021b';
+import { NOTICE_AUDIENCE_OPTIONS, ACTIVITY_CLASSIFICATION } from '../../../core/domain/constants.js?v=20261021c';
 // SOP-B-5（D-293）：发布三会一课通知时选定本次活动 —— 被通知人在「确认读取」时填「能否线上参会」
-import { loadActivities } from '../../../services/activity/activity.js?v=20261021b';
+import { loadActivities } from '../../../services/activity/activity.js?v=20261021c';
 // B1（2026-09-12）：党委下钻支部的演示只读视图判定（单一源 = services/core/branch-demo-nav.js）
-import { isReadonlyBranchDrilldown } from '../../../services/core/branch-demo-nav.js?v=20261021b';
+import { isReadonlyBranchDrilldown } from '../../../services/core/branch-demo-nav.js?v=20261021c';
 // 站内信（批次 348 · 支书 `#4`「站内信是一个很重要的形式」）：受众「指定人（私发）」——选人用 PersonPicker
 //（选人规范 §2.2：姓名/学号搜索，不手写名单）
-import { PersonPicker } from '../../../components/governance/pickers.js?v=20261021b';
+import { PersonPicker } from '../../../components/governance/pickers.js?v=20261021c';
+import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261021c';
 
 const NOTIFICATION_TAB_HTML = `
+  ${renderTabHeader({ title: '通知发布' })}
   <div class="card rounded-xl p-5 mb-6">
     <div class="flex items-center justify-between mb-1">
       <h3 class="font-title-cn text-base font-semibold text-gray-800">发布通知</h3>
@@ -282,6 +284,31 @@ function handlePublishNotification() {
   renderNotificationList();
 }
 
+/** R5A-07：删除通知前二次确认（复用统一浮窗），确认后才物理删除并联动清理待办。 */
+function _confirmDeleteNotice(noticeId) {
+  const notice = NoticeStore.getAll({ includeArchived: true }).find(n => n.id === noticeId);
+  if (!notice) return;
+  openModal({
+    id: 'notice-delete-confirm',
+    title: '删除通知',
+    size: 'sm',
+    bodyHtml: `
+      <p class="text-sm text-gray-700 leading-relaxed">确认删除通知「${escHtml(notice.title)}」？</p>
+      <p class="mt-2 text-xs text-gray-500 leading-relaxed">删除后不可恢复，并将同步删除该通知关联的待办。</p>`,
+    footerHtml: `
+      <button type="button" data-modal-cancel="notice-delete-confirm" class="btn-outline text-sm px-3 py-1.5" style="cursor:pointer;">取消</button>
+      <button type="button" data-notice-delete-confirm class="btn-accent text-sm px-3 py-1.5 font-medium">删除</button>`,
+    onMount: (panel) => {
+      panel.querySelector('[data-notice-delete-confirm]')?.addEventListener('click', () => {
+        NoticeStore.remove(noticeId, 'secretary');
+        closeModal('notice-delete-confirm');
+        showToast('success', '通知已删除，关联待办已同步移除');
+        renderNotificationList();
+      });
+    },
+  });
+}
+
 /** 渲染已发布通知列表（NoticeStore 全部通知，按发布日期倒序） */
 function renderNotificationList() {
   const listArea = document.getElementById('notification-list-area');
@@ -341,9 +368,7 @@ function renderNotificationList() {
     listArea.addEventListener('click', (e) => {
       const delBtn = e.target.closest('[data-notif-action="delete"]');
       if (delBtn) {
-        NoticeStore.remove(delBtn.dataset.notifId, 'secretary');
-        showToast('success', '通知已删除');
-        renderNotificationList();
+        _confirmDeleteNotice(delBtn.dataset.notifId);
         return;
       }
       const editBtn = e.target.closest('[data-notif-action="edit"]');

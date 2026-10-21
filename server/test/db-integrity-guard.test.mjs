@@ -63,7 +63,7 @@ const AD_HOC = new Set([
   /COLLECTION_VERSIONS_TABLE = '(\w+)'/.exec(SRC)[1],
   ...MIGRATIONS.flatMap((migration) => migration.tables || []),
 ]);
-const AD_HOC_BASELINE = 51; // v1 冻结 44 张 + schema v3 新增 6 张 + schema v4 周期归档表；新增迁移表须同步审阅本基线。
+const AD_HOC_BASELINE = 52; // v1 冻结 44 张 + schema v3 新增 6 张 + schema v4 周期归档表 + schema v9 seed_meta；新增迁移表须同步审阅本基线。
 
 /** 各迁移声明的表名（`tables` 字段） */
 const DECLARED = new Set();
@@ -73,7 +73,7 @@ const COVERED = new Set([...LEGACY_TABLES, ...DECLARED]);
 /** 从已创建结构扣除迁移明确声明删除的历史表，得到目标版本应存在的表集。 */
 const RETIRED_TABLES = new Set(MIGRATIONS.flatMap((migration) => migration.drops || []));
 const CURRENT_TABLES = new Set([...AD_HOC].filter((table) => !RETIRED_TABLES.has(table)));
-const CURRENT_TABLE_BASELINE = 50;
+const CURRENT_TABLE_BASELINE = 51;
 
 // ── G1 / G2 ────────────────────────────────────────────────────────────────
 test('G1/G2 完整性 + 版本对齐：临时库 integrity_check=ok，且 user_version=SCHEMA_VERSION', () => {

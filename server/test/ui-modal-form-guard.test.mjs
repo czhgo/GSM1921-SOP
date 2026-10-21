@@ -197,3 +197,48 @@ test('G7 浮层唯一实现：对话框不得自建全屏固定层（白名单�
     `以下文件自建了全屏浮层（绕开 role/aria-modal/inert/焦点回还），应改走 openModal：${violations.join(', ')}`);
 });
 
+test('G8 R3-25：六处 settingsLink 统一短文案，modal 做长度归一 / 兜底', () => {
+  // 6 个调用点（与 R3-25 清单同源）：全部只传「制度参数 →」，完整口径在 help。
+  const callers = [
+    'entries/tabs/leader/write-tab.js',
+    'entries/tabs/disc/review-tab.js',
+    'entries/tabs/org/member-flow-tab.js',
+    'entries/tabs/visitor/attendance-tab.js',
+    'entries/tabs/prop/archive-tab.js',
+    'entries/tabs/secretary/calendar-tab.js',
+  ];
+  for (const file of callers) {
+    assert.match(read(file), /settingsLink:\s*\{[^\n]*text:\s*'制度参数 →'/, `${file} 的 settingsLink 文案须归一为「制度参数 →」`);
+  }
+  // 组件层兜底：缺省 / 过长一律回落短文案，且不得再写「相关设置：」长前缀。
+  assert.match(MODAL, /SETTINGS_LINK_TEXT = '制度参数 →'/, 'modal.js 须声明统一短文案');
+  assert.match(MODAL, /raw && raw\.length <= 12/, 'modal.js 须对调用方文案做长度归一');
+  assert.doesNotMatch(MODAL, /相关设置：/, '页脚不得再带「相关设置：」前缀');
+});
+
+// ════════════════════════════════════════════════════════════════
+//  R5A-07/08（2026-10-21）：删除确认与归档推进都走统一浮窗
+// ════════════════════════════════════════════════════════════════
+test('G9 通知删除：先 openModal 二次确认，确认后才 NoticeStore.remove（并说明联动删除待办）', () => {
+  const src = read('entries/tabs/secretary/notification-tab.js');
+  assert.match(src, /function _confirmDeleteNotice\(noticeId\)/, '缺删除确认入口');
+  assert.match(src, /_confirmDeleteNotice[\s\S]{0,800}openModal\(\{/, '删除确认须复用统一浮窗 openModal');
+  assert.match(src, /openModal\(\{[\s\S]{0,1500}NoticeStore\.remove\(noticeId,\s*'secretary'\)/,
+    'NoticeStore.remove 只应在确认浮窗的确认回调里执行');
+  assert.doesNotMatch(src, /const delBtn[\s\S]{0,240}NoticeStore\.remove/,
+    '列表点击处理不得直接删除——必须先弹确认');
+  assert.match(src, /同步删除该通知关联的待办/, '确认文案须说明会联动删除待办');
+  assert.match(src, /data-modal-cancel="notice-delete-confirm"/, '取消按钮须走统一取消语义');
+});
+
+test('G10 归档推进：不再自建 position:fixed / 380px 浮层，改走 openModal', () => {
+  const src = read('entries/tabs/prop/archive-tab.js');
+  assert.doesNotMatch(src, /archive-advance-popover/, '不得再保留自建浮层 id');
+  assert.doesNotMatch(src, /position:\s*fixed/, '归档推进不得自建 fixed 浮层（绕开 dialog 语义与焦点接管）');
+  assert.doesNotMatch(src, /width:\s*380px/, '不得再固定 380px（390px 视口仅剩 2px 边距）');
+  assert.match(src, /openModal\(\{\s*id:\s*'archive-advance'/, '归档推进须迁到 openModal');
+  assert.match(src, /data-modal-cancel="archive-advance"/, '取消须走统一取消语义（Esc / 遮罩 / × 同源）');
+  assert.doesNotMatch(src, /document\.addEventListener\('keydown',\s*escHandler\)/,
+    '迁到 openModal 后不得再自挂 Esc 监听（关闭清理由 modal 统一负责）');
+});
+

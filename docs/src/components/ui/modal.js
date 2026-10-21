@@ -5,7 +5,7 @@
 //  设计原则：点击按钮→弹出浮窗→在浮窗中完成写入→关闭浮窗
 //  页面保持清爽，所有表单/编辑器都在浮窗中完成
 
-import { escHtml } from '../../core/base/utils.js?v=20261021b';
+import { escHtml } from '../../core/base/utils.js?v=20261021c';
 
 // 2026-09-13 修复（成员档案模态走查暴露）：Esc 监听原只在「按 Esc 关闭」这一条路径上注销，
 // 走遮罩点击/关闭按钮/程序化 closeModal 关闭时监听残留 → 反复打开同一 id 浮窗会累积 keydown
@@ -112,10 +112,19 @@ function _releaseInert(id) {
 //   ① 本组件自身的 `openModal`（常规浮窗）；② **自建浮层**（不走本组件、自持 body 的那种，见
 //   `entries/tabs/prop/archive-tab.js` 的上传浮层）——它只需在自己的页脚插入本函数的结果，
 //   不必复制一份 HTML（避免"同一段标记两处各写一套"）。文案与样式与批次 99 手写那条逐字同款。
+/** 页脚设置深链的统一短文案（R3-25：完整口径在 help，不在浮窗里折行写长句） */
+export const SETTINGS_LINK_TEXT = '制度参数 →';
+
+/** 文案归一：缺省或过长一律回落到统一短文案（调用点不必各写一遍长度判断） */
+function _normalizeSettingsText(text) {
+  const raw = String(text == null ? '' : text).trim();
+  return raw && raw.length <= 12 ? raw : SETTINGS_LINK_TEXT;
+}
+
 export function settingsLinkHTML(settingsLink) {
-  return settingsLink
-    ? `<div class="modal-settings-link" style="padding:10px 20px;border-top:1px solid var(--neutral-200);font-size:0.72rem;line-height:1.7;color:var(--neutral-500);">相关设置：<a href="${escHtml(settingsLink.href)}" style="color:var(--app-accent-text);text-decoration:underline;">${escHtml(settingsLink.text)}</a></div>`
-    : '';
+  if (!settingsLink) return '';
+  const text = _normalizeSettingsText(escHtml(settingsLink.text));
+  return `<div class="modal-settings-link" style="padding:10px 20px;border-top:1px solid var(--neutral-200);font-size:0.72rem;line-height:1.7;color:var(--neutral-500);"><a href="${escHtml(settingsLink.href)}" style="color:var(--app-accent-text);text-decoration:underline;white-space:nowrap;">${text}</a></div>`;
 }
 
 // ════════════════════════════════════════════════════════════════

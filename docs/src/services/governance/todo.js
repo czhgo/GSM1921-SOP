@@ -6,19 +6,19 @@
 //         content/04_web_design/design-system/DESIGN_SYSTEM.md §一 第6条
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB, isTaskforceActiveStatus } from '../../core/domain/domain.js?v=20261021b';
-import { persist } from '../../data/data-adapter.js?v=20261021b';
-import { generateId } from '../../core/base/id.js?v=20261021b';
-import { bumpToken, tokenOf } from '../../core/base/version-token.js?v=20261021b';
+import { mockDB, isTaskforceActiveStatus } from '../../core/domain/domain.js?v=20261021c';
+import { persist, getDataSource } from '../../data/data-adapter.js?v=20261021c';
+import { generateId } from '../../core/base/id.js?v=20261021c';
+import { bumpToken, tokenOf } from '../../core/base/version-token.js?v=20261021c';
 // 待批活动状态值单一源（2026-09-22 批次 151 · 支书裁定「只支委层可见」）：待批活动**不是**「待参与」的活动
 // ——它还没获批（与 `draft` 同待遇），不为它派生「参与活动」待办（也免得从待办标题把没批的活动漏出去）。
-import { PENDING_APPROVAL_STATUS } from '../activity/activity.js?v=20261021b';
-import { todayLocal, _fmtDate } from '../../core/base/utils.js?v=20261021b';
-import { AuthStore } from '../core/auth.js?v=20261021b';
+import { PENDING_APPROVAL_STATUS } from '../activity/activity.js?v=20261021c';
+import { todayLocal, _fmtDate } from '../../core/base/utils.js?v=20261021c';
+import { AuthStore } from '../core/auth.js?v=20261021c';
 // 周期键（月/季/半年/年）与「模块周期」单一源（2026-10-06 批次 423 · `R-29⑤` · `D-804`）——
 //   周期任务的**来源**＝`work-map.js::WORK_MAP_MODULES[].cycle`（不另立第二份映射，`D-803②`）。
-import { cyclePeriodOf, cyclePeriodLabel } from '../../core/base/period.js?v=20261021b';
-import { WORK_MAP_MODULES, expandWorkforce, ownerOfModule, moduleIdOfActivity } from '../../core/domain/work-map.js?v=20261021b';
+import { cyclePeriodOf, cyclePeriodLabel } from '../../core/base/period.js?v=20261021c';
+import { WORK_MAP_MODULES, expandWorkforce, ownerOfModule, moduleIdOfActivity } from '../../core/domain/work-map.js?v=20261021c';
 
 // ── 待办分类枚举 ──────────────────────────────────────────────
 export const TodoCategory = {
@@ -1111,12 +1111,29 @@ export const TodoStore = {
     );
   },
 
-  /** 按来源批量标记完成（业务操作联动：纪检确认考勤→销对应待办等） */
-  completeBySource(sourceType, sourceId) {
+  /**
+   * 按来源批量标记完成（业务操作联动：纪检确认考勤→销对应待办等）
+   * `scope`（可选 `{ personId, role }`）：**只销本人 / 本角色行**（批次 500 · B-499-3）。
+   * · 传 `personId` ⇒ 只销 `personId` 相同的行（他人定向行一律不动）；
+   * · 只传 `role` ⇒ 只销无 `personId` 的角色行；
+   * · 未传 scope ⇒ 取当前登录会话（同一判据）；**无会话时保持既有调用兼容**（node 纯函数 / 历史调用）。
+   * 注：不传 scope 也不再「无条件跨角色」——有会话即按会话收窄，避免通知已读等动作销掉他人待办。
+   */
+  completeBySource(sourceType, sourceId, scope = {}) {
+    const me = AuthStore.getCurrentUser();
+    const personId = scope && scope.personId !== undefined ? scope.personId : (me ? me.personId : undefined);
+    const role = scope && scope.role !== undefined ? scope.role : (me ? me.role : undefined);
+    const scoped = personId !== undefined || role !== undefined;
+    const isMine = (t) => {
+      if (!scoped) return true; // 无会话 / 历史调用：保持既有行为
+      if (personId && t.personId) return String(t.personId) === String(personId);
+      if (role && !t.personId) return t.role === role;
+      return false;
+    };
     const todos = _loadTodos();
     let changed = false;
     const updated = todos.map(t => {
-      if (t.sourceType === sourceType && t.sourceId === sourceId && t.status !== TodoStatus.COMPLETED) {
+      if (t.sourceType === sourceType && t.sourceId === sourceId && t.status !== TodoStatus.COMPLETED && isMine(t)) {
         changed = true;
         return { ...t, status: TodoStatus.COMPLETED, completedAt: new Date().toISOString() };
       }
@@ -1162,8 +1179,10 @@ export const TodoStore = {
     // 原实现替全支部所有角色待办写真——普通成员打开页面即触发他人行的 PATCH，被行级写门 403，
     // 连带同一次 flush 里的成功提示变成「未保存成功」。他人待办的过期态由读侧 isTodoExpired 派生。
     const me = AuthStore.getCurrentUser();
-    // 无会话（node 单测 / 纯函数调用）不涉及跨人写入，保持原行为；有会话时只写本人行。
-    const isMine = !me ? () => true : (t) => (t.personId
+    // 2026-10-21 批次 500（B-499-3）：**无会话不写任何行**——没有「本人」就无从判定归属，
+    // 原「isMine=()=>true」会把他人角色待办一并落库（跨角色写）。逾期态仍由读侧 isTodoExpired 派生。
+    if (!me) return todos;
+    const isMine = (t) => (t.personId
       ? String(t.personId) === String(me.personId || '')
       : (!!t.role && t.role === me.role));
     const updated = todos.map(t => {
@@ -1443,12 +1462,16 @@ export const VisitorTodoDeriver = {
       const module = n.targetModule;
       if (module === 'attendance') continue;
       if (module === 'party' && person && person.developStage === '正式党员') continue;
-      const dup = TodoStore.getBySource(TodoSourceType.NOTICE, n.id).some(t => t.status !== TodoStatus.COMPLETED);
+      // 去重按人收敛：同一通知的其他角色 / 其他人待办不得阻止本人派生（B-499-3）
+      const dup = TodoStore.getBySource(TodoSourceType.NOTICE, n.id)
+        .some(t => String(t.personId || '') === String(personId) && t.status !== TodoStatus.COMPLETED);
       if (dup) continue;
       items.push({
         title: `阅读通知「${n.title}」`,
         description: n.content || '',
         role: 'visitor',
+        // 到人归属：服务端 todo-row 门只认 personId 或本角色（participant ≠ visitor，必须带 personId）
+        personId,
         category: TodoCategory.NOTICE,
         priority: n.priority || 'normal',
         deadline: n.expireDate || null,
@@ -1487,14 +1510,18 @@ export const VisitorTodoDeriver = {
         approvedMine;
       if (!mine) continue;
       applicableIds.add(a.id);
-      // dup 仅限「参与」类待办：signup-review 等其它同源待办不得阻止参与待办生成
+      // dup 仅限「参与」类待办，且按人收敛：其他参与者的参与待办不得阻止本人派生（B-499-3）
       const dup = TodoStore.getBySource(TodoSourceType.ACTIVITY, a.id)
-        .some(t => t.actionType === TodoActionType.PARTICIPATE && t.status !== TodoStatus.COMPLETED);
+        .some(t => String(t.personId || '') === String(personId)
+          && t.actionType === TodoActionType.PARTICIPATE
+          && t.status !== TodoStatus.COMPLETED);
       if (dup) continue;
       items.push({
         title: `参与活动「${a.title || '未命名'}」`,
         description: `活动日期：${a.date}。请按时参与并配合考勤。`,
         role: 'visitor',
+        // 到人归属：行级写门只认本人 personId（visitor 聚合键不是登录角色）
+        personId,
         category: TodoCategory.TRACK,
         priority: 'normal',
         deadline: a.date,
@@ -1511,8 +1538,10 @@ export const VisitorTodoDeriver = {
       });
     }
     // 清理：本人已不适用（取消/过期/归档）的活动待办 → 移除
+    // 严格按 personId 收敛：不得把其他参与者的 visitor 行 / 历史无主行当作本次清理对象（B-499-3）
     const stale = _loadTodos().filter(t =>
       t.role === 'visitor' &&
+      String(t.personId || '') === String(personId) &&
       t.sourceType === TodoSourceType.ACTIVITY &&
       t.status !== TodoStatus.COMPLETED &&
       !applicableIds.has(t.sourceId)
@@ -1545,14 +1574,18 @@ export const VisitorTodoDeriver = {
       );
       if (!isMember && !approved) continue;
       applicableIds.add(tf.id);
-      // dup 仅限「参与」类待办：signup-review 等其它同源待办不得阻止参与待办生成
+      // dup 仅限「参与」类待办，且按人收敛：其他成员的参与待办不得阻止本人派生（B-499-3）
       const dup = TodoStore.getBySource(TodoSourceType.TASKFORCE, tf.id)
-        .some(t => t.actionType === TodoActionType.PARTICIPATE && t.status !== TodoStatus.COMPLETED);
+        .some(t => String(t.personId || '') === String(personId)
+          && t.actionType === TodoActionType.PARTICIPATE
+          && t.status !== TodoStatus.COMPLETED);
       if (dup) continue;
       items.push({
         title: `参与专班「${tf.name || '未命名'}」`,
         description: tf.task || '',
         role: 'visitor',
+        // 到人归属：行级写门只认本人 personId（visitor 聚合键不是登录角色）
+        personId,
         category: TodoCategory.TRACK,
         priority: 'normal',
         deadline: tf.deadline || null,
@@ -1565,8 +1598,10 @@ export const VisitorTodoDeriver = {
       });
     }
     // 清理：本人已不适用（取消/过期/归档）的专班待办 → 移除
+    // 严格按 personId 收敛：不得跨人清理（B-499-3）
     const stale = _loadTodos().filter(t =>
       t.role === 'visitor' &&
+      String(t.personId || '') === String(personId) &&
       t.sourceType === TodoSourceType.TASKFORCE &&
       t.status !== TodoStatus.COMPLETED &&
       !applicableIds.has(t.sourceId)
@@ -1615,7 +1650,13 @@ export const SEED_TODOS = [
 // R2-33：todo_seed_7 同属假待办（组长早已任命），并入废弃清单以便老 localStorage 残留被清掉。
 const OBSOLETE_SEED_IDS = new Set(['todo_seed_1', 'todo_seed_2', 'todo_seed_3', 'todo_seed_4', 'todo_seed_5', 'todo_seed_7']);
 
-/** 初始化种子数据（幂等：按 id 补齐缺失种子；同时清理已废弃种子，避免残留叠加） */
+/**
+ * 初始化种子数据（幂等：按 id 补齐缺失种子；同时清理已废弃种子，避免残留叠加）
+ * 批次 500（B-499-3）：
+ *  · **mock 形态**保留演示能力——补齐全部种子；
+ *  · **API 形态**只补「当前登录角色匹配」的种子；无会话 / 无匹配角色 ⇒ 不补。
+ *    （客户端替其他角色播种会生成服务端行级写门看不见的本地行，每次刷新重加、快照 403。）
+ */
 export function seedTodos() {
   let existing = _loadTodos();
   // 清理已废弃种子（用户 localStorage 可能残留旧版本种子）
@@ -1624,8 +1665,13 @@ export function seedTodos() {
     _saveTodos(purged);
     existing = purged;
   }
+  let seeds = SEED_TODOS;
+  if (getDataSource() === 'api') {
+    const me = AuthStore.getCurrentUser();
+    seeds = me && me.role ? SEED_TODOS.filter(t => t.role === me.role) : [];
+  }
   const existingIds = new Set(existing.map(t => t.id));
-  const missing = SEED_TODOS.filter(t => !existingIds.has(t.id));
+  const missing = seeds.filter(t => !existingIds.has(t.id));
   if (missing.length === 0) return;
   _saveTodos([...existing, ...missing]);
 }

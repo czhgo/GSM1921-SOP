@@ -5,23 +5,23 @@
 //  独立于 mockDB 内存结构，通过 mockDB.notices 统一持久化
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../../core/domain/domain.js?v=20261021b';
-import { generateId } from '../../core/base/id.js?v=20261021b';
-import { persist, getDataSource, getApiBaseUrl, getAuthToken } from '../../data/data-adapter.js?v=20261021b';
-import { buildSystemNotice } from '../../core/domain/system-notice-templates.js?v=20261021b';
-import { bumpToken } from '../../core/base/version-token.js?v=20261021b'; // P0 域缓存失效（spec §二.3）
-import { MOCK_NOTICES } from '../../data/mock/index.js?v=20261021b';
-import { isInitStateActive } from '../core/init-reset.js?v=20261021b'; // C2 修复（2026-09-08）：init 态跳过演示种子兜底
-import { getBasePath, todayLocal } from '../../core/base/utils.js?v=20261021b';
-import { AuthStore } from '../core/auth.js?v=20261021b';
-import {  getPersonById } from '../member/person.js?v=20261021b';
-import { NoticeTodoDeriver, TodoStore, TodoSourceType, TodoStatus } from './todo.js?v=20261021b';
+import { mockDB } from '../../core/domain/domain.js?v=20261021c';
+import { generateId } from '../../core/base/id.js?v=20261021c';
+import { persist, getDataSource, getApiBaseUrl, getAuthToken } from '../../data/data-adapter.js?v=20261021c';
+import { buildSystemNotice } from '../../core/domain/system-notice-templates.js?v=20261021c';
+import { bumpToken } from '../../core/base/version-token.js?v=20261021c'; // P0 域缓存失效（spec §二.3）
+import { MOCK_NOTICES } from '../../data/mock/index.js?v=20261021c';
+import { isInitStateActive } from '../core/init-reset.js?v=20261021c'; // C2 修复（2026-09-08）：init 态跳过演示种子兜底
+import { getBasePath, todayLocal } from '../../core/base/utils.js?v=20261021c';
+import { AuthStore } from '../core/auth.js?v=20261021c';
+import {  getPersonById } from '../member/person.js?v=20261021c';
+import { NoticeTodoDeriver, TodoStore, TodoSourceType, TodoStatus } from './todo.js?v=20261021c';
 // 组织者身份读取单一源（2026-09-19 批次 91 · SOP-B-17）——发布权随「被指定为该场组织者」动态获得
-import {  getOrganizedActivities } from '../activity/activity.js?v=20261021b';
+import {  getOrganizedActivities } from '../activity/activity.js?v=20261021c';
 import {
   NOTICE_PUBLISH_ROLES, NOTICE_MANAGE_ROLES, BRANCH_COMMISSION_ROLES,
   NOTICE_AUDIENCE_SENTINELS, ROLE_LABELS,
-} from '../../core/domain/constants.js?v=20261021b';
+} from '../../core/domain/constants.js?v=20261021c';
 
 function _loadNotices() {
   try {
@@ -607,15 +607,16 @@ export const NoticeStore = {
   },
 
   markRead(id) {
+    const me = AuthStore.getCurrentUser();
     const viewerId = _viewerPersonId();
+    // 写口纪律：无会话不得写共享记录，也不得销任何人的待办（B-499-3）
+    if (!viewerId) {
+      console.warn('[NoticeStore] 未登录，无法标记已读；请重新登录');
+      return false;
+    }
     this._syncWithStore();
     const notice = this._notices.find(n => n.id === id);
     if (notice) {
-      if (!viewerId) {
-        // 写口纪律：无会话不得写共享记录（也避免把「无人」记成已读）
-        console.warn('[NoticeStore] 未登录，无法标记已读；请重新登录');
-        return false;
-      }
       const reads = _readsOf(notice);
       if (!reads.includes(viewerId)) {
         // R2-49：只把当前人追加进 reads；绝不写回全局 read（否则广播通知会全员已读）
@@ -624,14 +625,22 @@ export const NoticeStore = {
         _saveNotices(this._notices);
       }
     } else {
-      // S1：派生通知（未持久化）确认读取 → 直接销对应通知类待办
+      // S1：派生通知（未持久化）确认读取 → 只销**本人 / 本角色**的通知待办
       try {
         const todo = TodoStore.getById(id);
-        if (todo) TodoStore.complete(id);
+        const mine = !!todo && (todo.personId
+          ? String(todo.personId) === String(viewerId)
+          : (!!todo.role && !!me && todo.role === me.role));
+        if (mine) TodoStore.complete(id);
       } catch (e) { console.warn('[notice] 派生通知销待办失败', e); }
     }
-    // 做事即销待办：已读自动完成「通知阅读」待办
-    try { TodoStore.completeBySource(TodoSourceType.NOTICE, id); } catch (e) { console.warn('[notice] 销待办失败', e); }
+    // 做事即销待办：已读自动完成「本人 / 本角色」的「通知阅读」待办（不跨角色）
+    try {
+      TodoStore.completeBySource(TodoSourceType.NOTICE, id, {
+        personId: viewerId,
+        role: me ? me.role : undefined,
+      });
+    } catch (e) { console.warn('[notice] 销待办失败', e); }
     return true;
   },
 

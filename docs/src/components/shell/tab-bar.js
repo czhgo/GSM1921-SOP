@@ -8,13 +8,11 @@
 
 
 
-import { accDarkParts } from '../../core/domain/constants.js?v=20261021b';
-
-import { icon } from '../../core/base/icons.js?v=20261021b';
+import { icon } from '../../core/base/icons.js?v=20261021c';
 
 // R6 导航守卫（2026-09-03 P2a）：初始/目标 tab 决策收敛到纯函数 tab-nav.js（防「被支部隐藏后静默白屏」）
 
-import { resolveInitialTab, resolveTargetTab } from '../../core/boot/tab-nav.js?v=20261021b';
+import { resolveInitialTab, resolveTargetTab } from '../../core/boot/tab-nav.js?v=20261021c';
 
 
 
@@ -194,10 +192,6 @@ export function renderTabBar({ prefix, tabs, accentColor, defaultTab, extraRight
 
   const { accent, accentRgba, accentBorder } = accentColor || FALLBACK_ACCENT;
 
-  // 分组标签深色三件套（浅底深字 → 夜间提亮底+亮字+亮边框，配合 styles.css --acc-*-dark 覆盖规则）
-
-  const _grpDark = accDarkParts(accent);
-
 
 
   // 生成 Tab 按钮 HTML（active 状态由 CSS 类 + CSS 变量驱动）
@@ -230,13 +224,15 @@ export function renderTabBar({ prefix, tabs, accentColor, defaultTab, extraRight
 
       seenGroups.add(groupLabel);
 
-      const divider = isFirstGroup
+      // 2026-10-21 R5-C01：分组不再画与选中页签同色同形的胶囊（22 枚胶囊占 258px，
+      //   1440 下 secretary / visitor 即被挤出末页签）；桌面端只留 1px 竖线作分隔，
+      //   ≤1024px 由 styles.css 整段隐藏（窄屏不渲染分组标签）。
+      //   首组前不画线（组顺序已在页签顺序中自陈）。
+      groupHtml = isFirstGroup
 
         ? ''
 
-        : `<span style="--acc-bg-dark:#334155;width:1px;height:14px;background:var(--neutral-200);display:inline-block;margin-right:4px;vertical-align:middle;"></span>`;
-
-      groupHtml = `<span class="tab-group-label shrink-0 inline-flex items-center gap-1.5" role="presentation" style="pointer-events:none;user-select:none;">${divider}<span style="padding:1px 5px;border-radius:3px;--acc-bg-dark:${_grpDark.bg};--acc-text-dark:${_grpDark.text};--acc-border-dark:${_grpDark.border};background:${accentRgba};color:color-mix(in srgb, ${accent} 60%, #000);font-weight:600;letter-spacing:0.5px;vertical-align:middle;" class="text-[11px]">${groupLabel}</span></span>`;
+        : '<span class="tab-group-label" role="presentation" aria-hidden="true"></span>';
 
       isFirstGroup = false;
 

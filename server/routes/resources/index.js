@@ -666,13 +666,21 @@ export function createResourcesRouter(db) {
         if (!found) return res.status(404).json({ error: 'not found' });
         return res.status(409).json({ error: '工作组记录及关联历史须保留；请使用撤销并留痕，不能物理删除' });
       }
-      // 文件类资源（支部文件/文件空间记录/图片记录）：删除记录前联动删除已上传的物理文件
-      // （支书 2026-08-18 裁决「连物理文件一起删」；T-304 D 档扩展至文件空间/图片记录，杜绝孤儿文件）
-      if (name === 'branchDocs' || name === 'fileSpaceRecords' || name === 'imageRecords') {
+      // 文件类资源（支部文件/文件空间记录/图片记录/档案归档）：删除记录前联动删除已上传的物理文件
+      // （支书 2026-08-18 裁决「连物理文件一起删」；T-304 D 档扩展至文件空间/图片记录；
+      //   B-499-8 补 archive_records 单删联动，杜绝孤儿文件）
+      if (name === 'branchDocs' || name === 'fileSpaceRecords' || name === 'imageRecords' || name === 'archiveRecords') {
         const existing = db.prepare(`SELECT data FROM ${table} WHERE id = ?`).get(req.params.id);
         if (existing) {
           const doc = JSON.parse(existing.data);
-          if (doc.filePath) deleteUploadedFile(doc.filePath);
+          if (doc.filePath) {
+            // 归档记录可能与文件空间/图片记录共用同一物理文件：仍有他处引用时保留文件。
+            const stillReferenced = name === 'archiveRecords'
+              && ['branch_docs', 'file_space_records', 'image_records']
+                .some((refTable) => db.prepare(`SELECT data FROM ${refTable}`).all()
+                  .some((row) => JSON.parse(row.data).filePath === doc.filePath));
+            if (!stillReferenced) deleteUploadedFile(doc.filePath);
+          }
         }
       }
       const info = db.prepare(`DELETE FROM ${table} WHERE id = ?`).run(req.params.id);
@@ -1137,16 +1145,53 @@ export function createResourcesRouter(db) {
   const RATE_MAX = 20;                   // 窗口内同 tokenHash 最大提交数
   const DEDUP_WINDOW_MS = 5 * 60 * 1000; // 判重窗口
 
+  // 反馈 / 汇报受众的组织关系解析（与前端 `issues.js::_audienceAccess` 同口径）：
+  //  · 工作组组织者 = `workgroup_members.role='organizer'` 的在册成员；存量活动另认 `activity.organizer`；
+  //  · 党小组组长 = 观看者为 leader / deputy-leader，且与汇报人同属一个党小组。
+  // 只读当前支部的组织事实；`canReadIssue` 仍是唯一判据，这里只注入解析结果。
+  const issueAudienceContext = (viewer, branchId) => {
+    const personId = viewer?.personId || null;
+    const userOf = (id) => {
+      if (!id) return null;
+      const row = db.prepare('SELECT data FROM users WHERE id = ?').get(String(id));
+      return row ? JSON.parse(row.data) : null;
+    };
+    const myGroup = personId ? (userOf(personId)?.partyGroup || null) : null;
+    const organizerWorkgroups = new Set();
+    if (personId) {
+      for (const member of listTable(db, 'workgroup_members')) {
+        if (member.personId === personId && member.role === 'organizer'
+          && member.status !== 'removed' && (member.branchId || 'br-b1') === branchId) {
+          organizerWorkgroups.add(member.workgroupId);
+        }
+      }
+      for (const activity of listTable(db, 'activities')) {
+        if (activity.organizer === personId && (activity.branchId || 'br-b1') === branchId) {
+          organizerWorkgroups.add(activity.workgroupId || `wg-activity-${activity.id}`);
+        }
+      }
+    }
+    return {
+      isWorkgroupOrganizer: (workgroupId) => !!workgroupId && organizerWorkgroups.has(workgroupId),
+      isPartyGroupLeaderOf: (submitterId) => !!myGroup && !!submitterId
+        && ['leader', 'deputy-leader'].includes(viewer?.role)
+        && userOf(submitterId)?.partyGroup === myGroup,
+    };
+  };
+
   router.get('/issues', requireAuth(db), (req, res) => {
     const deny = branchSelectionError(req.actor, req.query.branchId);
     if (deny) return res.status(403).json({ error: deny });
     const branchId = actorBranchId(req.actor);
     // 党委账号无支部归属：保持 API bootstrap 形状可用，但不泄漏反馈列表。
     if (!branchId) return res.json([]);
-    // 受众投影（与前端同一判据 `canReadIssue`）：内部汇报只给支书层与当事人；
-    // 隐藏 / 已合并只给支书层与处置人。此前只做支部过滤，同支部任一成员可直连读到他人汇报与隐藏行。
+    // 受众投影（与前端同一判据 `canReadIssue`）：内部汇报给支委层、当事人、该工作组组织者与
+    // 汇报人所在党小组组长；隐藏 / 已合并只给支书层与处置人。此前只做支部过滤，同支部任一成员
+    // 可直连读到他人汇报与隐藏行。
     const viewer = { personId: req.actor?.id || null, role: req.actor?.role || null };
-    return res.json(listIssues().filter((row) => (row.branchId || 'br-b1') === branchId && canReadIssue(row, viewer)));
+    const access = issueAudienceContext(viewer, branchId);
+    return res.json(listIssues().filter((row) =>
+      (row.branchId || 'br-b1') === branchId && canReadIssue(row, viewer, access)));
   });
 
   // D-824：任何角色均没有系统揭名入口。保留此兼容路径以便旧客户端得到明确拒绝；

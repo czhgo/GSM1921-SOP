@@ -28,6 +28,25 @@ function _escapeHtml(s) {
   return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 
+let _csSeq = 0;
+
+/** 菜单内当前可聚焦（未禁用、未被搜索过滤）的选项 */
+function _enabledOptions(menu) {
+  return Array.from(menu.querySelectorAll('.cs-option')).filter((el) => (
+    !el.classList.contains('is-disabled') && el.style.display !== 'none'
+  ));
+}
+
+/** 选中一个选项：写回原生 select → 触发 change → 同步触发器 → 关闭并回焦 */
+function _selectOption(item, sel, trigger, wrapper, menu) {
+  if (!item || item.classList.contains('is-disabled')) return;
+  sel.value = item.dataset.value;
+  sel.dispatchEvent(new Event('change', { bubbles: true }));
+  _syncTrigger(trigger, sel);
+  _closeMenu(wrapper, menu, trigger);
+  trigger.focus();
+}
+
 function _syncTrigger(trigger, sel) {
   const opt = sel.options[sel.selectedIndex];
   const label = opt ? opt.textContent : sel.value;
@@ -133,6 +152,8 @@ function _openMenu(wrapper, menu, trigger, sel) {
     item.dataset.value = opt.value;
     item.textContent = opt.textContent;
     item.setAttribute('role', 'option');
+    // R5A-03：选项必须可编程聚焦，方向键才能把焦点移进 listbox。
+    item.tabIndex = -1;
     if (opt.disabled || groupDisabled) {
       item.classList.add('is-disabled');
       item.setAttribute('aria-disabled', 'true');
@@ -216,18 +237,18 @@ function _openMenu(wrapper, menu, trigger, sel) {
         empty.remove();
       }
     });
-    // 键盘：Enter 选择首个可见项；Esc 先清空再关闭
+    // 键盘：Enter 选择首个可见项；Esc 先清空再关闭；↑/↓ 把焦点移入选项
     searchInput.addEventListener('keydown', (e) => {
       if (e.key === 'Enter') {
         e.preventDefault();
-        const first = menu.querySelector('.cs-option:not([style*="display: none"])');
-        if (first) first.click();
+        const first = _enabledOptions(menu)[0];
+        if (first) _selectOption(first, sel, trigger, wrapper, menu);
       } else if (e.key === 'Escape') {
         if (searchInput.value) {
           searchInput.value = '';
           searchInput.dispatchEvent(new Event('input'));
         } else {
-          _closeMenu(wrapper, menu, trigger);
+          _closeMenu(wrapper, menu, trigger, { restoreFocus: true });
         }
         e.stopPropagation();
       }
@@ -239,9 +260,19 @@ function _openMenu(wrapper, menu, trigger, sel) {
   if (active) {
     menu.scrollTop = Math.max(0, active.offsetTop - menu.clientHeight / 2 + active.clientHeight / 2);
   }
+
+  // R5A-03：打开即把焦点移入 listbox（有搜索框时焦点先落搜索，↓ 再进选项）。
+  if (needsSearch) {
+    menu.querySelector('.cs-search-input')?.focus();
+  } else {
+    const target = menu.querySelector('.cs-option.is-selected:not(.is-disabled)')
+      || _enabledOptions(menu)[0]
+      || menu;
+    target.focus();
+  }
 }
 
-function _closeMenu(wrapper, menu, trigger) {
+function _closeMenu(wrapper, menu, trigger, { restoreFocus = false } = {}) {
   // 从全局浮层互斥注册表中注销
   if (wrapper._csCloser) window.__popoverClosers.delete(wrapper._csCloser);
   // 移除滚动/缩放重定位监听
@@ -258,6 +289,8 @@ function _closeMenu(wrapper, menu, trigger) {
   menu.classList.add('hidden');
   trigger.setAttribute('aria-expanded', 'false');
   wrapper.classList.remove('is-open');
+  // R5A-03：键盘关闭（Esc）后把焦点归还触发器；点击外部关闭不抢焦点。
+  if (restoreFocus) trigger.focus();
 }
 
 function enhanceSelect(sel) {
@@ -268,6 +301,8 @@ function enhanceSelect(sel) {
   // 原生 select 视觉隐藏（保留 DOM、原 class 与全部语义；追加 cs-native）
   sel.className = (origClass + ' cs-native').replace(/\s+/g, ' ').trim();
   sel.tabIndex = -1;
+  // R5A-03：原生 select 只是值载体，读屏不应再遇到第二个 1px combobox。
+  sel.setAttribute('aria-hidden', 'true');
 
   // 布局容器：仅继承布局类（外边距/宽度/弹性），排除视觉类（input-flat/padding/文字/圆角/字体等）
   const layoutCls = origClass
@@ -309,13 +344,27 @@ function enhanceSelect(sel) {
   // 现由 .cs-trigger.input-flat.text-xs 的 padding 8px 12px + 行高 16px + 边框 2px 自然得 34px，与输入框严格同高。
   trigger.setAttribute('aria-haspopup', 'listbox');
   trigger.setAttribute('aria-expanded', 'false');
+  // R5A-03：触发器需要稳定 id 与字段标签（`label[for]` 指向原生 select，
+  // 不建立 aria-labelledby 时可访问名只剩当前值，读屏听不到字段名）。
+  trigger.id = `${sel.id || `cs-select-${++_csSeq}`}-trigger`;
+  trigger.setAttribute('role', 'combobox');
+  const labelledBy = Array.from(sel.labels || []).map((label, i) => {
+    if (!label.id) label.id = `${trigger.id}-label-${i}`;
+    return label.id;
+  });
+  labelledBy.push(trigger.id);
+  trigger.setAttribute('aria-labelledby', labelledBy.join(' '));
   trigger.innerHTML = `<span class="cs-value"></span>${ICON_CHEVRON}`;
   _syncTrigger(trigger, sel);
   _syncDisabled(trigger, sel);
 
   const menu = document.createElement('div');
   menu.className = 'cs-menu hidden';
+  menu.id = `${trigger.id}-menu`;
   menu.setAttribute('role', 'listbox');
+  menu.setAttribute('aria-labelledby', trigger.id);
+  menu.tabIndex = -1;
+  trigger.setAttribute('aria-controls', menu.id);
 
   // 替换原 select 在 DOM 中的位置
   sel.parentNode.insertBefore(wrapper, sel);
@@ -336,24 +385,67 @@ function enhanceSelect(sel) {
 
   menu.addEventListener('click', (e) => {
     const item = e.target.closest('.cs-option');
-    if (!item || item.classList.contains('is-disabled')) return;
-    sel.value = item.dataset.value;
-    sel.dispatchEvent(new Event('change', { bubbles: true }));
-    _syncTrigger(trigger, sel);
-    _closeMenu(wrapper, menu, trigger);
-    trigger.focus();
+    if (!item) return;
+    _selectOption(item, sel, trigger, wrapper, menu);
   });
+
+  // R5A-03：listbox 键盘导航（焦点在选项上时）。Home/End 跳首末，Enter/Space 选择，Esc 关闭并回焦。
+  menu.addEventListener('keydown', (e) => {
+    const items = _enabledOptions(menu);
+    const current = e.target.closest?.('.cs-option') || null;
+    const index = current ? items.indexOf(current) : -1;
+    const moveTo = (next) => {
+      if (!items.length) return;
+      e.preventDefault();
+      items[Math.max(0, Math.min(items.length - 1, next))]?.focus();
+    };
+    switch (e.key) {
+      case 'ArrowDown': moveTo(index + 1); break;
+      case 'ArrowUp': moveTo(index < 0 ? items.length - 1 : index - 1); break;
+      case 'Home': moveTo(0); break;
+      case 'End': moveTo(items.length - 1); break;
+      case 'Enter':
+      case ' ':
+        if (current) {
+          e.preventDefault();
+          _selectOption(current, sel, trigger, wrapper, menu);
+        }
+        break;
+      case 'Escape':
+        e.preventDefault();
+        e.stopPropagation();
+        _closeMenu(wrapper, menu, trigger, { restoreFocus: true });
+        break;
+      case 'Tab':
+        _closeMenu(wrapper, menu, trigger);
+        break;
+      default:
+        break;
+    }
+  });
+
+  // 点击 `label[for=<select id>]` 时浏览器会聚焦被隐藏的原生 select：把焦点转给可见触发器。
+  sel.addEventListener('focus', () => trigger.focus());
 
   // 点击外部关闭
   document.addEventListener('click', (e) => {
     if (!wrapper.contains(e.target)) _closeMenu(wrapper, menu, trigger);
   });
 
-  // Esc 关闭
+  // Esc 关闭（焦点在触发器时）；↑/↓ 直接打开并聚焦首/末项
   trigger.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
       _closeMenu(wrapper, menu, trigger);
       e.stopPropagation();
+      return;
+    }
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+      e.preventDefault();
+      if (sel.disabled) return;
+      if (menu.classList.contains('hidden')) _openMenu(wrapper, menu, trigger, sel);
+      const items = _enabledOptions(menu);
+      const target = e.key === 'ArrowDown' ? items[0] : items[items.length - 1];
+      target?.focus();
     }
   });
 

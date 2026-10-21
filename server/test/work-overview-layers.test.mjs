@@ -68,10 +68,11 @@ test('W4 六个角色键与四数齐备', () => {
   assert.match(STYLES, /\.metric-band__value--muted\s*\{[^}]*color:\s*var\(--neutral-500\)/, '在办 muted 档须为 neutral-500');
 });
 
-test('W5 工作分工表列固定：工作分工 / 负责人 / 在办 / 逾期 / 待处理 / 动作', () => {
-  for (const label of ['工作分工', '负责人', '在办', '逾期', '待处理', '动作']) {
+test('W5 工作分工表列固定：工作分工 / 负责人 / 在办 / 逾期 / 待处理（R3-29 动作列并入待处理）', () => {
+  for (const label of ['工作分工', '负责人', '在办', '逾期', '待处理']) {
     assert.ok(OVERVIEW.includes(`label: '${label}'`), `工作分工表缺列「${label}」`);
   }
+  assert.ok(!OVERVIEW.includes("label: '动作'"), 'R3-29：独立「动作」列已删除（并入「待处理」）');
   assert.match(OVERVIEW, /tableHeadHtml\(LINE_COLUMNS\)/, '表头须由 data-table 的 tableHeadHtml 生成');
   assert.match(OVERVIEW, /class="data-table wo-lines-table"/, '工作分工表须使用 .data-table');
 });
@@ -100,7 +101,7 @@ test('W8 结论带两种控件：筛选 chip（aria-pressed）/ 滚动链接（�
   assert.match(OVERVIEW, /<button type="button" class="metric-band__item metric-band__item--filter/, '筛选类指标须渲染为 chip 按钮');
   assert.match(OVERVIEW, /data-metric="\$\{esc\(metric\.key\)\}" data-metric-kind="filter"/, '筛选类须带 data-metric-kind="filter"');
   assert.match(OVERVIEW, /aria-pressed="\$\{active \? 'true' : 'false'\}"/, '筛选 chip 须带 aria-pressed');
-  assert.match(OVERVIEW, /<a class="metric-band__item metric-band__item--link" href="\$\{esc\(metric\.href \|\| '#wo-lines'\)\}"/, '滚动类指标须为页内链接（#wo-lines / #wo-actions）');
+  assert.match(OVERVIEW, /<a class="metric-band__item metric-band__item--link" href="\$\{esc\(docAnchorHref\(metric\.href \|\| '#wo-lines'\)\)\}"/, '滚动类指标须为页内链接（#wo-lines / #wo-actions，经 docAnchorHref 归一）');
   assert.match(OVERVIEW, /data-metric-kind="scroll"/, '滚动类须带 data-metric-kind="scroll"');
   for (const key of ['overdue', 'actions', 'active', 'fourth']) {
     assert.ok(OVERVIEW.includes(`key: '${key}'`), `指标缺 data-metric 键「${key}」`);
@@ -110,8 +111,10 @@ test('W8 结论带两种控件：筛选 chip（aria-pressed）/ 滚动链接（�
   assert.match(OVERVIEW, /actionItems\.filter\(\(item\) => item\.overdue\)/, '逾期筛选须按 item.overdue 过滤');
   assert.match(OVERVIEW, /visibleActions\.slice\(0, _MAX_INLINE\)/, '待我处理须按新上限截取');
   assert.match(OVERVIEW, /row\.gap \|\| row\.overdue > 0/, '条线动作只对缺口或逾期行显示');
-  // 动作列：无动作时留空（不再铺「—」）；指标单点：卡头不得重复计数。
+  // 动作列：无动作时留空（不再铺「—」）；R3-29 动作并入「待处理」，独立列不再出现。
   assert.doesNotMatch(OVERVIEW, /if \(!\(row\.gap \|\| row\.overdue > 0\)\) return '—'/, '动作列不得回潮「—」占位');
+  assert.doesNotMatch(OVERVIEW, /data-label="动作"/, 'R3-29：td 不得再带 data-label="动作"（列数 6→5）');
+  assert.match(OVERVIEW, /function _pendingCellHtml\(row\)/, '「待处理」格须统一承载缺口与行内动作');
   assert.doesNotMatch(OVERVIEW, /section-head__count|section-head__meta/, '卡头不得重复计数 / 同义说明');
   // 两段：待我处理 + 我已处理（默认折叠的 details）。
   assert.match(OVERVIEW, /data-wo-layer="done"/, '须有「我已处理」段');
@@ -119,7 +122,7 @@ test('W8 结论带两种控件：筛选 chip（aria-pressed）/ 滚动链接（�
   assert.match(OVERVIEW, /我已处理/, '「我已处理」标题须在位');
   // 条线表窄屏卡式行：表声明 data-responsive，每个 td 带 data-label。
   assert.match(OVERVIEW, /data-responsive="cards"/, '条线表须声明卡式行');
-  for (const label of ['工作分工', '负责人', '在办', '逾期', '待处理', '动作']) {
+  for (const label of ['工作分工', '负责人', '在办', '逾期', '待处理']) {
     assert.ok(OVERVIEW.includes(`data-label="${label}"`), `工作分工表 td 缺 data-label="${label}"`);
   }
 });

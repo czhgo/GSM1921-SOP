@@ -2,19 +2,20 @@
 // 宣传委员工作台 Tab：宣传任务（T-279 M3 拆分，照 M2 样板）
 // 任务状态流转：待接收 → 进行中 → 已提交（seed 常量 + mockDB 持久化，刷新不再丢失）。
 
-import { mockDB } from '../../../core/domain/domain.js?v=20261021b';
-import { persist } from '../../../data/data-adapter.js?v=20261021b';
-import { showToast, downloadCSV, _fmtDate, todayLocal, escHtml } from '../../../core/base/utils.js?v=20261021b';
-import { generateId } from '../../../core/base/id.js?v=20261021b';
-import { isActivityLive } from '../../../core/domain/constants.js?v=20261021b';
+import { mockDB } from '../../../core/domain/domain.js?v=20261021c';
+import { persist } from '../../../data/data-adapter.js?v=20261021c';
+import { showToast, downloadCSV, _fmtDate, todayLocal, escHtml } from '../../../core/base/utils.js?v=20261021c';
+import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261021c';
+import { generateId } from '../../../core/base/id.js?v=20261021c';
+import { isActivityLive } from '../../../core/domain/constants.js?v=20261021c';
 // 2026-10-03 批次 358（`D-751`）：宣传任务「作废（软）」——弹窗**单一源**（原因必填那句校验只此一处）
-import { openVoidModal } from '../../../components/ui/void-record.js?v=20261021b';
-import { filterActive } from '../../../services/governance/soft-void.js?v=20261021b';
+import { openVoidModal } from '../../../components/ui/void-record.js?v=20261021c';
+import { filterActive } from '../../../services/governance/soft-void.js?v=20261021c';
 
 // ── 宣传任务 mock 数据（2026-08-05：seed 常量 + mockDB 持久化，刷新不再丢失）──
 // 2026-09-28 批次 234：常量**搬到内容单一源** `docs/src/data/mock/prop.js`（服务端 `server/seed.js` 同源 import，
 //   原先此处私有常量被服务端逐字复刻一份 ⇒ 两份字面量，本批收成一份；取值与顺序一字未改）。
-import { PROP_TASKS_SEED } from '../../../data/mock/prop.js?v=20261021b';
+import { PROP_TASKS_SEED } from '../../../data/mock/prop.js?v=20261021c';
 
 // 从 mockDB 读取（seed 兜底注入一次）；写操作须更新 mockDB.propTasks 后调用 persist()
 function _loadPropTasks() {
@@ -59,6 +60,7 @@ export function renderContent(ctx = {}) {
   const activityMap = new Map((ctx.activities || []).map(a => [a.id, a]));
 
   container.innerHTML = `
+    ${renderTabHeader({ title: '宣传任务', description: '素材归档、新闻稿、推送排版与周期归档任务的登记与推进。' })}
     ${_renderCreateForm(ctx)}
     <div class="flex items-center justify-between mb-4">
       <h3 class="font-title-cn text-base font-semibold text-gray-800">宣传任务</h3>

@@ -18,6 +18,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
 import Database from 'better-sqlite3';
 import { initDb } from '../db.js';
 
@@ -68,6 +69,17 @@ test('B1 备份→恢复演练：真跑 scripts/backup.mjs ⇒ 破坏原库 ⇒ 
   const bakDb = path.join(outDir, 'data.db');
   assert.ok(fs.existsSync(bakDb), '备份应产出 data.db');
 
+  // ── ①b 备份清单（B-499-8）：user_version / 逐表行数 / 附件数 / sha256 必须与备份文件一致 ──
+  const manifestPath = path.join(outDir, 'backup.json');
+  assert.ok(fs.existsSync(manifestPath), '备份应产出 backup.json 清单');
+  const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+  const actualSha = createHash('sha256').update(fs.readFileSync(bakDb)).digest('hex');
+  assert.equal(manifest.sha256, actualSha, '清单 sha256 必须与备份副本一致');
+  assert.equal(manifest.user_version, Number(db.pragma('user_version', { simple: true })), '清单 user_version 必须与源库一致');
+  assert.equal(manifest.tables.users, SEED.length, '清单应记录 users 行数');
+  assert.equal(manifest.uploads.files, 1, '清单应记录附件文件数');
+  assert.equal(manifest.seed_version, null, '无 seed_meta 版本时应明确记为 null（不是猜值）');
+
   // ── ② 备份副本必须**含 WAL 未 checkpoint 的数据**：行数 + 逐值一致 ──
   const bk = new Database(bakDb, { readonly: true });
   let bakRows;
@@ -117,5 +129,13 @@ test('B1 备份→恢复演练：真跑 scripts/backup.mjs ⇒ 破坏原库 ⇒ 
     assert.equal(byId.get('bk-3').name, '备份丙', '关键字段逐值：bk-3.name');
   } finally { rd.close(); }
   assert.equal(fs.readFileSync(path.join(restoreUploads, 'note.txt'), 'utf8'), UPLOAD_TEXT, '附件须一并恢复');
+  // 恢复演练校验（B-499-8）：恢复后的库必须与清单 sha256 / 行数一致。
+  const restoredSha = createHash('sha256').update(fs.readFileSync(restoreDb)).digest('hex');
+  assert.equal(restoredSha, manifest.sha256, '恢复后的 data.db sha256 必须与备份清单一致');
+  const rd2 = new Database(restoreDb, { readonly: true });
+  try {
+    assert.equal(rd2.prepare('SELECT COUNT(*) c FROM users').get().c, manifest.tables.users, '恢复后行数必须与清单一致');
+  } finally { rd2.close(); }
+  console.log('[B1] ✔ backup.json 清单校验通过（sha256 / user_version / 逐表行数 / 附件数）');
   console.log('[B1] ✔ 破坏原库 → 恢复到新路径 → integrity_check=ok、行/字段逐值一致、附件还原');
 });

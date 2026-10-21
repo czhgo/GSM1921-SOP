@@ -30,17 +30,17 @@ globalThis.localStorage = storage;
 
 import { createApp } from '../app.js';
 import { seedDatabase } from '../seed.js';
-import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261021b';
-import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261021b';
-import { PEOPLE } from '../../docs/src/data/mock/people.js?v=20261021b';
-import { ACTIVITIES } from '../../docs/src/data/mock/activities.js?v=20261021b';
-import { MOCK_NOTICES } from '../../docs/src/data/mock/notices.js?v=20261021b';
-import { ATTENDANCE_RECORDS } from '../../docs/src/data/mock/attendance.js?v=20261021b';
-import { SEED_ASSIGNMENTS } from '../../docs/src/data/mock/seed.js?v=20261021b';
-import { SEED_TODOS } from '../../docs/src/services/governance/todo.js?v=20261021b';
-import { ensureLegacySourceWorkgroups, normalizeSeedActivityOrganizing } from '../../docs/src/data/workgroup-seed-sync.js?v=20261021b';
+import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261021c';
+import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261021c';
+import { PEOPLE } from '../../docs/src/data/mock/people.js?v=20261021c';
+import { ACTIVITIES } from '../../docs/src/data/mock/activities.js?v=20261021c';
+import { MOCK_NOTICES } from '../../docs/src/data/mock/notices.js?v=20261021c';
+import { ATTENDANCE_RECORDS } from '../../docs/src/data/mock/attendance.js?v=20261021c';
+import { SEED_ASSIGNMENTS } from '../../docs/src/data/mock/seed.js?v=20261021c';
+import { SEED_TODOS } from '../../docs/src/services/governance/todo.js?v=20261021c';
+import { ensureLegacySourceWorkgroups, normalizeSeedActivitySeedRows } from '../../docs/src/data/workgroup-seed-sync.js?v=20261021c';
 // R3-P1（F-06）：通知读口按受众投影（私信/定向）——本守卫的 api 侧同样经该判据，mock 侧须同源对齐。
-import { canReadNotice } from '../../docs/src/services/governance/notice.js?v=20261021b';
+import { canReadNotice } from '../../docs/src/services/governance/notice.js?v=20261021c';
 
 const BRANCH_B1 = 'br-b1';
 const BRANCH_B2 = 'br-b2';
@@ -73,7 +73,9 @@ const B2 = {
 // ── mock 形态：与 server/seed.js 同源播种六张表（不做 mock-adapter 的额外字段加工，
 //    以保证两侧比较的是同一份语料）；再追加第二支部夹具。 ──
 // 2026-10-21 批次 499：与服务端 seed 同一归一口径（组织落点/跨组招募字段），否则两形态读数不一致。
-mockDB.activities = normalizeSeedActivityOrganizing(ACTIVITIES).map((row) => ({ ...row }));
+// B-499-4（2026-10-21）：服务端 seed 已按数据模型补齐 `visibility/createdBy/createdAt`
+// 装载默认（原先只有 mock-adapter `_seedInitialData` 补）——本夹具用同一归一函数，保持两形态同源。
+mockDB.activities = normalizeSeedActivitySeedRows(ACTIVITIES);
 mockDB.notices = MOCK_NOTICES.map((row) => ({ ...row }));
 mockDB.attendances = ATTENDANCE_RECORDS.map((row) => ({ ...row }));
 mockDB.todos = SEED_TODOS.map((row) => ({ ...row }));

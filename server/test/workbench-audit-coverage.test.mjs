@@ -200,7 +200,7 @@ test('组长/成员台 Task 16：写入口径、考察范围、组员进度与�
   assert.match(write, /id="leader-activity-readonly-list"/, '须单列「可见活动（只读）」');
   assert.match(write, /可见活动（只读）/, '只读分组须明示');
   assert.match(write, /const effectiveReadOnly = readOnly \|\| !roleEditable;/, '未授权活动须进入只读分支');
-  assert.match(write, /effectiveReadOnly\s*\?\s*''\s*:\s*`<td class="text-center whitespace-nowrap">/, '只读活动不得渲染子记录删除/添加动作');
+  assert.match(write, /effectiveReadOnly\s*\?\s*''\s*:\s*`<td[^>]*class="text-center whitespace-nowrap">/, '只读活动不得渲染子记录删除/添加动作');
   assert.match(write, /#leader-activity-lists/, '可写与只读两组须共用事件委托宿主');
 
   // ② 组长 inspection：说明改准；明细按本组活动收窄；organizer 投影分支保留
@@ -231,12 +231,13 @@ test('组长/成员台 Task 16：写入口径、考察范围、组员进度与�
   assert.match(tf, /panel\.appendChild\(section\)/, '产出登记须移到详情下部');
   assert.match(tf, /id = 'tfv-output-section'/, '写表单须有独立分区标识');
 
-  // ⑥ 组长/成员 my-dispatch：我提交/参与段前移；提交与已读逻辑不变
+  // ⑥ 组长/成员 my-dispatch：R3-08 两段结构（待我处理 / 我已处理），打开行才标已读
   const leaderDispatch = read('docs/src/entries/tabs/leader/my-dispatch-tab.js');
   const visitorDispatch = read('docs/src/entries/tabs/visitor/my-dispatch-tab.js');
-  assert.match(leaderDispatch, /myIssuesFirst: true/, '组长台须声明我提交/参与段前置');
-  assert.match(visitorDispatch, /myIssuesFirst: true/, '成员台须声明我提交/参与段前置');
+  assert.match(leaderDispatch, /renderMyDispatchTab\('leader', uid, opts\)/, '组长台须把选项传入渲染入口');
+  assert.match(visitorDispatch, /renderMyDispatchTab\('participant', uid, opts\)/, '成员台须把选项传入渲染入口');
   const view = read('docs/src/components/feedback/issue-dispatch-view.js');
-  assert.match(view, /opts\.myIssuesFirst[\s\S]{0,120}\[myIssuesHtml, reqHtml, myReportsHtml, assignedHtml\]/, '段序须把我提交/参与放第一段');
-  assert.match(view, /unread\.forEach\(id => IssueNotify\.markRead\(userId, id\)\);/, '已读逻辑不得改动');
+  assert.match(view, /id="mydispatch-pending-host"/, '须有「待我处理」段宿主');
+  assert.match(view, /id="mydispatch-done-host"/, '须有「我已处理」段宿主');
+  assert.doesNotMatch(view, /unread\.forEach\(id => IssueNotify\.markRead\(userId, id\)\);/, '不得整批标已读');
 });

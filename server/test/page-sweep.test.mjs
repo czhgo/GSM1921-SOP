@@ -74,7 +74,7 @@ const DECK = { ctrlH: 38, cellPx: 13, pagerH: 30 };
 const MUTED_EXTERNALS = [
   { pattern: '**://fonts.googleapis.com/**', why: '仅提供字体文件；字体族不影响字号档与控件高度判据' },
   { pattern: '**://fonts.gstatic.com/**', why: '同上：仅提供字体二进制文件，字体族不影响字号档与控件高度判据' },
-  { pattern: '**://cdn.tailwindcss.com/**', why: '其 .text-xs（12px）等工具类**会影响**字体判据——故单档已改为直接声明到 th/td（特异性高于单类工具类，见 filter-row D3），与本项静音与否无关，量测值与生产一致' },
+  { pattern: '**://cdn.tailwindcss.com/**', why: '其 .text-xs（12px）等工具类**会影响**字体判据——故单档已改为直接声明到 th/td（特异性高于单类工具类，见 filter-row D3），与本项静音与否无关，量测值与生产一致；⚠ 其 .flex / .w-full / .overflow-x-auto 等工具类会影响**窄屏布局**判据，故 390×844 审次前先 unroute 并在未静音的同环境量测（见 W-NARROW）' },
 ];
 
 /** 二级视图触发器（批次 47-C）：默认视图审完后逐一「点开」再审计——
@@ -276,7 +276,20 @@ for (const w of WORKS) {
       }
       await page.waitForTimeout(800);
       // P0-2 形态断言（2026-09-23 支书裁定「形态必须可断言、不许静默降级」）：本文件真机用例必须在 API 形态下跑
-      await page.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20261021b')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
+      await page.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20261021c')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
+
+      // ── 1440 页签条不溢出（2026-10-21 R5-C01）──
+      //   判据：`.ws-tab-scroll` 的 scrollWidth ≤ clientWidth（分组胶囊改竖线 + 滚动区右留 40px 后，
+      //   secretary / visitor 的末页签在 1440 下不得再被藏）。
+      await page.setViewportSize({ width: 1440, height: 900 });
+      await page.waitForTimeout(400);
+      const tabGeom = await page.evaluate(() => {
+        const s = document.querySelector('.ws-tab-shell .ws-tab-scroll');
+        return s ? { scrollWidth: s.scrollWidth, clientWidth: s.clientWidth } : null;
+      });
+      assert.ok(tabGeom, `${w.name} 未找到页签滚动容器 .ws-tab-scroll`);
+      assert.ok(tabGeom.scrollWidth <= tabGeom.clientWidth + 1,
+        `${w.name} · 1440 下页签条溢出：scrollWidth ${tabGeom.scrollWidth} > clientWidth ${tabGeom.clientWidth}`);
 
       // 只数**工作台页签条**（`aria-label="工作台页签"`）里的 role=tab；页面内二级分段
       //   （党委台「撰写 / 已发送」「待批复 / 已处理」、成员台「列表 / 日历 / 查询」）同样是 role=tab，
@@ -318,6 +331,16 @@ for (const w of WORKS) {
           `${w.name} · tab「${label}」：容器 #${w.page}-tab-content 不存在 ⇒ 结构漂移（renderTabBar 口径变了？）`);
         assert.ok(rendered.len > 10,
           `${w.name} · tab「${label}」：渲染产物为空（#${w.page}-tab-content innerHTML 长度 ${rendered.len}）⇒ 「加载不出来」`);
+        // ── 页题守卫（2026-10-21 R5-B F-01 / R5-C C-02）──
+        //   每个 tab 内容区至少一个可见 H2，且 H2 字号统一 20px（含今天页的日期副串）。
+        const h2 = await page.evaluate((pid) => {
+          const root = document.getElementById(pid);
+          const hs = root ? [...root.querySelectorAll('h2')].filter((el) => el.offsetParent !== null) : [];
+          return { count: hs.length, sizes: [...new Set(hs.map((el) => Math.round(parseFloat(getComputedStyle(el).fontSize) * 100) / 100))] };
+        }, `${w.page}-tab-content`);
+        assert.ok(h2.count >= 1, `${w.name} · tab「${label}」缺页级 H2（页题）`);
+        assert.deepEqual(h2.sizes.filter((px) => px !== 20), [],
+          `${w.name} · tab「${label}」H2 字号不统一（应为 20px，实测 ${h2.sizes.join(' / ')}）`);
         await audit(label, '默认', true);
         // 二级视图（批次 47-C）：点开「矩阵显示全部 N 项」后再审一遍
         for (const t of SUBVIEW_TRIGGERS) {
@@ -339,6 +362,57 @@ for (const w of WORKS) {
         }
       }
       if (probeLog.length) console.log(`[探针·自建列表候选] ${probeLog.length} 处\n  ${probeLog.join('\n  ')}`);
+      // ── 390×844 窄屏审次（2026-10-21 Task 7 / B-499-10）──
+      //  判据：逐 tab `documentElement.scrollWidth ≤ innerWidth + 1`（页面主体不横向溢出）；
+      //  矩阵容器允许表内滚动，但必须有**卡式或滚动兜底**（不能把宽表原样塞进 390px）。
+      //  ⚠ 同环境纪律（S2）：CDN 工具类（.flex / .w-full / .overflow-x-auto…）承载布局，
+      //    静音后量到的是「测试环境专属溢出」⇒ 本审次先 unroute Tailwind 并重载，再量。
+      await page.unroute('**://cdn.tailwindcss.com/**');
+      await page.reload({ waitUntil: 'domcontentloaded', timeout: 30000 }).catch(() => {});
+      await page.waitForFunction(() => document.querySelectorAll('[aria-label="工作台页签"] button[role="tab"]').length > 0, { timeout: 45000 });
+      const twReady = await page.evaluate(() => {
+        const el = document.querySelector('.ws-tab-scroll');
+        return !!el && getComputedStyle(el).display === 'flex';
+      });
+      assert.ok(twReady, `${w.name} · 390 审次需要 Tailwind 布局工具类（CDN 未加载 ⇒ 宽表量测不成立）`);
+      await page.setViewportSize({ width: 390, height: 844 });
+      await page.waitForTimeout(500);
+      const narrowIssues = [];
+      for (const label of labels) {
+        await page.evaluate((l) => {
+          [...document.querySelectorAll('[aria-label="工作台页签"] button[role="tab"]')].find((x) => x.textContent.includes(l))?.click();
+        }, label);
+        await page.waitForTimeout(600);
+        const audit390 = await page.evaluate((pid) => {
+          const de = document.documentElement;
+          const root = document.querySelector(`#${pid} .rm-root`);
+          let matrix = null;
+          if (root) {
+            const table = root.querySelector('table.rm-table');
+            const row = table?.querySelector('tbody tr');
+            const thead = table?.querySelector('thead');
+            const scroller = root.querySelector('.rm-scroll');
+            matrix = {
+              cardMode: !!row && getComputedStyle(row).display === 'block',
+              theadHidden: !!thead && getComputedStyle(thead).display === 'none',
+              scrollFallback: !!scroller && /auto|scroll/.test(getComputedStyle(scroller).overflowX),
+            };
+          }
+          return {
+            overflow: de.scrollWidth - window.innerWidth,
+            matrix,
+            // R5-C01：≤1024px 不渲染分组标签（CSS display:none ⇒ offsetParent 为 null）。
+            groupLabelsVisible: [...document.querySelectorAll('.tab-group-label')].filter((el) => el.offsetParent !== null).length,
+          };
+        }, `${w.page}-tab-content`);
+        if (audit390.overflow > 1) narrowIssues.push(`[${label}] scrollWidth 超出视口 ${audit390.overflow}px`);
+        if (audit390.groupLabelsVisible > 0) narrowIssues.push(`[${label}] 390px 仍渲染 ${audit390.groupLabelsVisible} 个分组标签`);
+        if (audit390.matrix && !audit390.matrix.cardMode && !audit390.matrix.scrollFallback) {
+          narrowIssues.push(`[${label}] 矩阵既未卡式化也无滚动兜底`);
+        }
+      }
+      assert.deepEqual(narrowIssues, [], `${w.name} · 390×844 窄屏横向溢出 / 矩阵兜底缺失：\n${narrowIssues.join('\n')}`);
+      await page.setViewportSize({ width: 1280, height: 720 });
       assert.ok(SWEEP.lists + SWEEP.cells + SWEEP.ctrls > 0, `${w.name} 未普查到任何列表 / 数据格 / 控件（普查空转）`);
       assert.deepEqual(errs, [], `${w.name} 出现脚本错误：\n${errs.join('\n')}`);
       assert.deepEqual(report, [], `${w.name} 分页 / 宽表 / 检索 / 尺规普查不通过：\n${report.map((r) => `[${r.tab}] ${r.rule} ${JSON.stringify(r)}`).join('\n')}`);
@@ -443,7 +517,7 @@ test('S21 组织台活动深链：?activityId / ?view=activities 落「活动日
     await page.waitForTimeout(800);
     // 取一个真实活动（优先「非当前月」者，顺带验证切月）
     const acts = await page.evaluate(async () => {
-      const m = await import('/src/core/base/state.js?v=20261021b');
+      const m = await import('/src/core/base/state.js?v=20261021c');
       return ((m.getAppState() || {}).activities || []).map((x) => ({ id: x.id, date: x.date }));
     });
     assert.ok(acts.length > 0, '组织台活动深链用例：未取到任何活动（样本不足）');

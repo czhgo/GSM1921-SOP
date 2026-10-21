@@ -684,9 +684,39 @@ function _assertResourceWriteTail(need, db, actor, method, body, targetId) {
   if (need === 'todo-row') {
     if (!actor) return false;
     const row = _gateTargetRow(db, 'todos', body, targetId);
-    if (row.personId) return String(row.personId) === String(actor.id);
-    // 角色待办：只有该角色本人可推进（与读口 `_canReadTodoRow` 同口径）
-    return !!row.role && row.role === actor.role;
+    // 2026-10-21 批次 500（B-499-3）：派生待办的**新建**必须放行——
+    //   通知发布派生「某角色行动待办」、活动创建派生「模块主责赋权待办」、报名派生「组长审核待办」
+    //   都是「A 的动作给 B 生成待办」；若只认本人，这些待办永远写不进服务端（整批 snapshot 403，
+    //   连带同一次 flush 里的成功提示被反转成「未保存成功」）。
+    //   两条放行口径（**只限 post 新行**）：
+    //     ① 支委层 / 党委代办；
+    //     ② 带齐 `sourceType + sourceId + actionKey`、且来源记录真实存在并与本人同支部的**派生行**
+    //        （报名人 → 审核人待办、组织者 → 参与者待办都走这条；伪造只能往待办列表塞行，
+    //         不能借它改他人已有待办的推进状态）。
+    //   边界：`patch` / `delete` 仍只归本人 / 本角色，他人不得替其推进或销项。
+    const isPost = method === 'post';
+    const canDeriveForOthers = isPost
+      && !!actor.role
+      && (BRANCH_COMMITTEE_ROLES.has(actor.role) || PARTY_STAFF_ROLE.has(actor.role));
+    const SOURCE_TABLE = { notice: 'notices', activity: 'activities', taskforce: 'taskforces' };
+    let derivedFromSource = false;
+    if (isPost && row.actionKey && row.sourceId && SOURCE_TABLE[row.sourceType]) {
+      const found = db.prepare(`SELECT data FROM ${SOURCE_TABLE[row.sourceType]} WHERE id = ?`).get(String(row.sourceId));
+      if (found) {
+        let src = null;
+        try { src = JSON.parse(found.data); } catch { src = null; }
+        const own = actorBranchId(actor);
+        derivedFromSource = !!src && (!own || (src.branchId || 'br-b1') === own);
+      }
+    }
+    const mayCreateForOthers = canDeriveForOthers || derivedFromSource;
+    if (row.personId) {
+      return String(row.personId) === String(actor.id) || mayCreateForOthers;
+    }
+    // 角色待办：只有该角色本人可推进（与读口 `_canReadTodoRow` 同口径）；
+    // `visitor` 不是登录角色，无 personId 的行对任何人都不可归属，一律拒绝。
+    if (!!row.role && row.role === actor.role) return true;
+    return mayCreateForOthers && row.role !== 'visitor';
   }
   if (need === 'thought-report') {
     if (!actor) return false;

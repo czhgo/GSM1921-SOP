@@ -20,33 +20,33 @@
 
 
 
-import { STATE, getAppState, setState, registerRenderCallback } from '../../core/base/state.js?v=20261021b';
+import { STATE, getAppState, setState, registerRenderCallback } from '../../core/base/state.js?v=20261021c';
 
-import { bootstrapPage } from '../../core/boot/bootstrap.js?v=20261021b';
-import { renderTabBar, tabContentSkeletonHtml } from './tab-bar.js?v=20261021b';
-import { flashHighlight, escHtml } from '../../core/base/utils.js?v=20261021b';
-import { CrossPageState } from '../../core/session/cross-page-state.js?v=20261021b';
-import { getCapabilities } from '../../core/boot/registry.js?v=20261021b';
-import { loadWorkspaceData } from '../../data/data-loader.js?v=20261021b';
+import { bootstrapPage } from '../../core/boot/bootstrap.js?v=20261021c';
+import { renderTabBar, tabContentSkeletonHtml } from './tab-bar.js?v=20261021c';
+import { flashHighlight, escHtml } from '../../core/base/utils.js?v=20261021c';
+import { CrossPageState } from '../../core/session/cross-page-state.js?v=20261021c';
+import { getCapabilities } from '../../core/boot/registry.js?v=20261021c';
+import { loadWorkspaceData } from '../../data/data-loader.js?v=20261021c';
 // 待批活动的可见性单一源（2026-09-22 批次 151）：种子兜底路径同样按查看者角色收窄（与 data-loader 同判据）
-import { filterActivitiesForViewer } from '../../services/core/visibility.js?v=20261021b';
+import { filterActivitiesForViewer } from '../../services/core/visibility.js?v=20261021c';
 
-import { TodoStore } from '../../services/governance/todo.js?v=20261021b';
-import { AuthStore } from '../../services/core/auth.js?v=20261021b';
-import { BranchService } from '../../services/core/runtime.js?v=20261021b';
-import { applyTabPolicy, getBranchIdOfPerson, getBranchWorkforce } from '../../services/branch/branch.js?v=20261021b';
+import { TodoStore } from '../../services/governance/todo.js?v=20261021c';
+import { AuthStore } from '../../services/core/auth.js?v=20261021c';
+import { BranchService } from '../../services/core/runtime.js?v=20261021c';
+import { applyTabPolicy, getBranchIdOfPerson, getBranchWorkforce } from '../../services/branch/branch.js?v=20261021c';
 // 设置中心批2（2026-09-09 支书批准 v3）：个人 tab 顺序覆盖（个人层；支部层=applyTabPolicy 之上叠加）
-import { applyPersonalTabOrder } from '../../services/core/preferences.js?v=20261021b';
+import { applyPersonalTabOrder } from '../../services/core/preferences.js?v=20261021c';
 // （丁）归属可转移：可转移页签的**判据单一源**（2026-10-05 批次 379 · `D-771`）——模块主责快照派生，
 //   禁前端写死「哪个 tab 长在哪个台」。
-import { TRANSFERABLE_TAB_ROWS, transferRowOf, transferTabDecision, expandWorkforce } from '../../core/domain/work-map.js?v=20261021b';
+import { TRANSFERABLE_TAB_ROWS, transferRowOf, transferTabDecision, expandWorkforce } from '../../core/domain/work-map.js?v=20261021c';
 // 「归属可转移」**原台页签声明单一源**（迁入时取**同一份声明**，勿在本处复制 render）：
 //   ⚠ 台账：`TRANSFERABLE_TAB_ROWS` 的每个 `page` 都必须在此有对应声明（新增行时同批补），
 //     由 `server/test/work-map.test.mjs` 断言 `page ∈ {org, disc, leader}` 守住。
 //   ⚠ 统一取**声明常量**而非各台 `tabs()`：后者是**查看者上下文相关**的（如组长台按「组织者兜底进入」过滤）。
-import { ORG_WORKSPACE_TAB_DECLS } from '../../capabilities/org-workspace.js?v=20261021b';
-import { DISC_WORKSPACE_TAB_DECLS } from '../../capabilities/disc-workspace.js?v=20261021b';
-import { LEADER_WORKSPACE_TAB_DECLS } from '../../capabilities/leader-workspace.js?v=20261021b';
+import { ORG_WORKSPACE_TAB_DECLS } from '../../capabilities/org-workspace.js?v=20261021c';
+import { DISC_WORKSPACE_TAB_DECLS } from '../../capabilities/disc-workspace.js?v=20261021c';
+import { LEADER_WORKSPACE_TAB_DECLS } from '../../capabilities/leader-workspace.js?v=20261021c';
 
 /** 台 → 页签声明（归属可转移迁入取用；单一源＝各台能力模块的声明常量） */
 const TRANSFER_HOME_DECLS = {
@@ -209,6 +209,22 @@ export async function createWorkspaceShell(opts) {
     fallbackExtras,
 
   } = opts;
+
+
+
+  // R5A-01：工作台 `<base href="../">` 会把裸 `#main-content` 解析到 docs 根。
+
+  // 静态 HTML 已写 `workspace/<page>.html#main-content` 作无 JS 兜底；这里再归一为
+
+  // 「当前路径 + 当前查询串」，确保从带 `?tab=` 的深链进入时 skip link 不丢页签。
+
+  const _skipLink = document.querySelector('a.skip-link[href]');
+
+  if (_skipLink) {
+
+    _skipLink.setAttribute('href', `${window.location.pathname}${window.location.search}#main-content`);
+
+  }
 
 
 

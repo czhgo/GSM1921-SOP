@@ -32,16 +32,19 @@ export const INIT_BLOB_KEY = 'workflowos_branch_db_v1';
 // 语义：?reset=init 是「有意的初始化」，产出的库已是「当前种子版本的空业务态」；
 // 若不盖戳（尤其是旧访客的库本就无该字段），下一次 loadDB 会被「旧本地演示数据自动失效」
 // 判据误判为旧版本演示库 → 整库丢弃回种子 → 连 init 有意保留的支部 config（分工/header）也会丢。
-import { SEED_DATA_VERSION } from '../../core/domain/domain.js?v=20261021b';
+import { SEED_DATA_VERSION } from '../../core/domain/domain.js?v=20261021c';
+// B-499-8：init 态的种子剔除与持久化键分类都从 manifest 单一源派生（勿在此另抄正则/键表）。
+import { SEED_MANIFEST } from '../../data/seed-manifest.js?v=20261021c';
 
 /**
  * init 档保留的主库字段（白名单 = 组织骨架；键名与 mock-adapter _saveToStorage 一致）：
  *  - _schema            持久化 schema 版本（不可动）
+ *  - _seedVersion       种子内容版本戳（trimInitBlob 会盖当前版本；保留分区不漏键）
  *  - users              账号与角色结构（u_* 演示账号行 + person 档案同步行）
  *  - branches           支部实例与 config 档案（header/模块组合/分工 workforce/术语主题等，向导可再改）
  *  - appointmentRecords 支书任期档案（账号「职务动态绑定」的在任留痕；随 branches.secretaryId 保留）
  */
-export const INIT_BLOB_KEEP_KEYS = ['_schema', 'users', 'branches', 'appointmentRecords'];
+export const INIT_BLOB_KEEP_KEYS = ['_schema', '_seedVersion', 'users', 'branches', 'appointmentRecords'];
 
 /**
  * init 档清空的业务过程域 → 空默认值（键名与 mock-adapter _saveToStorage / domain.js mockDB 对齐）：
@@ -55,18 +58,23 @@ export const INIT_BLOB_CLEAR_DEFAULTS = {
   actSubRecords: {}, tfSubRecords: {},
   // 专班/通知/待办/报名
   taskforces: [], notices: [], todos: [], signups: [],
+  // 工作组域（B-499-8）：主记录 / 成员 / 授权 / 任务 / 产出 / 冻结应到名单
+  workgroups: [], workgroupMembers: [], workgroupGrants: [],
+  workgroupTasks: [], workgroupOutputs: [], attendanceRosters: [],
   // 汇报与复盘：活动复盘/专班复盘/思想汇报/宣传任务/周期归档
   activityReviews: [], taskforceReviews: [], thoughtReports: [], propTasks: [], periodicArchives: [],
   // 归档/文件/资料：档案归档/支部文件/文件空间/图片/经验沉淀
   archiveRecords: [], branchDocs: [], fileSpaceRecords: [], imageRecords: [],
   experienceDeposits: [],
-  // 党小组（2026-09-14 批次 25 一等实体）：清空回种子（loadPartyGroups 空集合回退 PARTY_GROUPS）
+  // 党小组（2026-09-14 批次 25 一等实体）：清空；B-499-8 起 init 态不再回种子
   partyGroups: [],
   // 成员流动台账（2026-09-14 批次 25）：业务过程数据，随初始化清空
   memberFlows: [],
   // 内控/交接/审批：文件流外发确认/三委数据交接/成员变更申请/支委广播/表态/支部上报审批
   externalDispatches: [], handoffs: [], memberChangeRequests: [],
   committeeBroadcasts: [], agendaVotes: [], reviewRequests: [],
+  // 旧周期性汇报键（V4 迁移前）：init 时一并清空，避免下次 loadDB 又映射回 periodicArchives
+  weeklyReports: [],
 };
 
 /**
@@ -164,27 +172,17 @@ export function isInitStateActive() {
 }
 
 /**
- * 演示种子 id 判定（与 data/mock-adapter.js merge/seed 的种子 id 空间同源：
- * 种子 = 「连字符 + 数字」；用户记录 = generateId 的「prefix_<uuid>」或时间戳下划线形态，
- * 二者正交——adapter 自身即以此区分种子同步与用户数据，本表复用同一判定零误伤）：
- *  - activities    act-\d+（ACTIVITIES，merge /^act-\d+$/）
- *  - tasks         tsk-\d+（SEED_TASKS，_seedInitialData 整表回填）
- *  - assignments   assign_seed_\d+（SEED_ASSIGNMENTS）
- *  - attendances   att\d+（ATTENDANCE_RECORDS，merge /^att\d+$/）
- *  - notices       notice-\d{3}（MOCK_NOTICES，merge /^notice-\d{3}$/；用户 notice-<13位时间戳> 不匹配）
- *  - archiveRecords ar\d+（SEED_ARCHIVE_RECORDS，merge /^ar\d+$/）
- *  - signups       su-\d{3}（SEED_SIGNUPS，merge /^su-\d{3}$/）
- * 不列入：users/branches/appointmentRecords（init 白名单，永不剔除）。
+ * init 态演示种子 id 判定（B-499-8：从 seed-manifest 单一源派生，勿在此另抄正则）：
+ * 只取 `initTier === 'clear'` 的集合（activities / tasks / attendances / notices /
+ * signups / archiveRecords / taskforces / makeupTasks / reviewRequests / partyGroups /
+ * 工作组三表等）；`initTier === 'keep'` 的组织骨架（users / branches / appointmentRecords /
+ * authAudit）永不剔除。用户记录 id 与种子 id 空间正交（generateId 的 `prefix_<uuid>` 等）。
  */
-const INIT_SEED_ID_PATTERNS = {
-  activities: /^act-\d+$/,
-  tasks: /^tsk-\d+$/,
-  assignments: /^assign_seed_\d+$/,
-  attendances: /^att\d+$/,
-  notices: /^notice-\d{3}$/,
-  archiveRecords: /^ar\d+$/,
-  signups: /^su-\d{3}$/,
-};
+const INIT_SEED_ID_PATTERNS = Object.fromEntries(
+  SEED_MANIFEST
+    .filter((entry) => entry.initTier === 'clear')
+    .map((entry) => [entry.collection, new RegExp(entry.idPattern)]),
+);
 
 /**
  * init 态演示种子剔除（纯内存操作，幂等）：

@@ -1,11 +1,11 @@
 // Party dispatch reuses the notice domain; this page separates composing from sent history.
-import { mockDB } from '../../../core/domain/domain.js?v=20261021b';
-import { AuthStore } from '../../../services/core/auth.js?v=20261021b';
-import { NoticeStore } from '../../../services/governance/notice.js?v=20261021b';
-import { textField, textareaField } from '../../../components/ui/forms.js?v=20261021b';
-import { showToast, escHtml as esc } from '../../../core/base/utils.js?v=20261021b';
-import { renderBranchFilter, filterByBranch } from '../../../components/governance/branch-filter.js?v=20261021b';
-import { renderSectionHeader } from '../../../components/shell/page-frame.js?v=20261021b';
+import { mockDB } from '../../../core/domain/domain.js?v=20261021c';
+import { AuthStore } from '../../../services/core/auth.js?v=20261021c';
+import { NoticeStore } from '../../../services/governance/notice.js?v=20261021c';
+import { textField, textareaField } from '../../../components/ui/forms.js?v=20261021c';
+import { showToast, escHtml as esc } from '../../../core/base/utils.js?v=20261021c';
+import { renderBranchFilter, filterByBranch } from '../../../components/governance/branch-filter.js?v=20261021c';
+import { renderSectionHeader, renderTabHeader } from '../../../components/shell/page-frame.js?v=20261021c';
 
 const BRANCH_FILTER_STATE = 'pc-dispatch';
 const initialView = new URLSearchParams(window.location.search).get('view');
@@ -43,6 +43,7 @@ export function renderContent() {
   };
 
   host.innerHTML = `
+    ${renderTabHeader({ title: '下发通知', description: '通知送达所选支部的支委层；收件人在通知铃铛中查看。' })}
     <div class="page-section-stack">
       <div class="subtabs" role="tablist" aria-label="通知工作区">
         <button id="pc-dispatch-tab-compose" type="button" class="subtab" data-dispatch-view="compose" role="tab" aria-controls="pc-dispatch-panel" aria-selected="${dispatchView === 'compose'}" tabindex="${dispatchView === 'compose' ? '0' : '-1'}">撰写</button>

@@ -453,6 +453,20 @@ export const MIGRATIONS = [
       console.log(`[db] v8 活动组织落点：支部级重分类=${reclassified} 补承办范围=${scopeFilled} 待补责任组=${legacy}`);
     },
   },
+  {
+    // v9（B-499-8，2026-10-21）：种子版本元数据。浏览器侧早有 `SEED_DATA_VERSION`，
+    //   服务端此前只在 users==0 时播种 ⇒ 既有库永不跟随种子更新。本表只存三件事：
+    //   · `seed_version`：最近一次种子行修复/播种对应的 `docs/src/core/domain/domain.js::SEED_DATA_VERSION`；
+    //   · `mode`：`demo` / `baseline`（rebuild-demo.mjs 写入）；
+    //   · `updated_at`：写入时间。
+    //   ⚠ 本迁移只建表，不改任何业务行；修复逻辑在 server/seed-repair.js，启动期在事务内只更新既有 seed id。
+    version: 9,
+    name: 'seed-meta',
+    tables: ['seed_meta'],
+    up(db) {
+      db.exec('CREATE TABLE IF NOT EXISTS seed_meta (key TEXT PRIMARY KEY, value TEXT NOT NULL)');
+    },
+  },
 ];
 
 /** 迁移列表的最大版本（＝目标 schema 版本；守卫据此核 `user_version`，防「有迁移没跑」/「版本号被手改」） */

@@ -2,7 +2,7 @@
 title: "2026年10月执行日志"
 type: execution_log
 role: "[工程师]+[AI]"
-last_updated: 2026-10-19
+last_updated: 2026-10-21
 status: active
 related_files: [CLAUDE.md, .ctx/logs/archive/2026-09-EXECUTION_LOG.md, .ctx/logs/EXECUTION_LOG_INDEX.md]
 ---
@@ -3284,4 +3284,53 @@ $body
 | 2 | 支委会也塞一个党小组 | 支部级法定会议单列 branch | scope_mismatch | IF 支委会/党员大会/党课 THEN organizingScope='branch'，不指定责任组 |
 | 3 | 深参能选到人即可入组 | 跨组深参必须由组织委员协调并留痕 | permission_gap | IF 成员所属组≠责任组 THEN 必须有 recruitmentScope + 协调人，否则拒绝 |
 | 4 | 组织委员协调顺带获得活动写权 | 协调只标记状态，不扩权 | permission_creep | IF 协调动作 THEN 只写协调状态，不改成员关系、不授予活动写权 |
+
+## 批次 500（2026-10-21）：十项专项一次收口（跨角色待办 · 汇报受众 · mock 真值 · seed 生命周期 · 任命事务化 · IA · 宽表 · 跨组 · 测试分层 · 第五轮审查）
+
+### 一、判据
+
+- 支书本轮指令：**全局考虑、一推到底、不分批**；daily 收敛到约 4 分钟、重活移 precommit；数据生命周期取**默认安全模式**（cleanup 默认 dry-run、不自动删业务记录）；IA 剩余项并入本轮；第五轮「脏乱繁」审查在功能改造后立即审、共识项本轮直接修。
+- 汇报受众按支书原话改为**支委层＋当事人＋该工作组组织者＋汇报人所在党小组组长**（覆盖批次 498 的「支书层」口径）。
+- 派生待办口径：**谁的动作给谁生成待办**是正当业务，不得因行级写门把「A 的动作给 B 生成待办」整批拒掉；但他人已有待办只能本人推进。
+
+### 二、动作
+
+1. **跨角色待办（B-499-3）**：`VisitorTodoDeriver` 三条链补 `personId`、去重 / 清理按人收敛；API 形态 `seedTodos` 只补当前角色；`completeBySource` 加 `{personId, role}` 作用域；`refreshExpiredStatus` 无会话不写。服务端 `todo-row` 门收敛为：本人 / 本角色可推进；**新建**派生行按「支委层代办」或「来源可证」（`sourceType + sourceId + actionKey` 指向真实且同支部的 notices/activities/taskforces）放行，`patch` / `delete` 仍只归本人。
+2. **汇报受众与汇总（B-499-2）**：`canReadIssue(row, viewer, access)` 注入组织者 / 组长解析；服务端 `GET /issues` 同判据；活动 / 专班页「本工作组汇报汇总」、组长台按党小组汇总，复用 `report-inbox` + `filterReportsByScope`，空态 `—`。
+3. **mock↔API 结构真值（B-499-4）**：新增 `seed-manifest.js` 与 `mock-api-parity-structure.test.mjs`（33 表 / 495 行 / 4773 字段，白名单仅 `issues.anonymous` 4 条）；修活动种子缺 `visibility/createdBy/createdAt`。
+4. **seed 漂移与生命周期（B-499-8）**：`seed-drift.js` 纯函数 + 服务端 `seed_meta`（v9）+ 启动幂等修复；`cleanup.mjs` 默认 dry-run、`--keep 14`；`rebuild-demo.mjs` 生产拒绝 demo；`backup.json` 清单；归档单删联动物理文件（仍被引用则保留）。
+5. **任命事务化（B-499-9）**：新增 `POST /branches/:id/appointments` 与 `/branch-commissioners`，单事务 + `expectedSecretaryId` 409 + `appointmentId` 幂等；前端一次调用、不再吞错；mock 快照失败恢复。
+6. **IA 剩余项（B-499-7）**：「我的处置」两段、逐行已读；条线动作列并入待处理；6 处浮窗设置链统一「制度参数 →」；`activity.html` 接受 `id|activityId`；思想汇报完整记录落 `person.html`；重跑 `ia-inventory`（7 台 / 62 tab / 103 卡片 / 117 链接）。
+7. **宽表窄屏（B-499-10）**：关系矩阵 ≤640px 卡式堆叠、考勤汇总与成员流动台账 `data-responsive="cards"` + `data-label`、打印恢复表格；设计系统 §4.10/§4.20 改准。
+8. **跨组余项（B-499-1）**：新增 `cross-group-activity-probe`；补真机流程 `secretary-calendar-write-scope`（主题党日 → 组织落点），「组织者跨组说明」「org 补选责任组」「向导首任支书」三条改 `machine:false` 并逐条写 reason。
+9. **测试分层（B-499-5）**：`test-tier-registry.mjs` 三层登记（daily 209 / precommit 36 / weekly 2）+ `test-tier-guard` T1–T6；daily 由 454s 降至 74s。
+10. **第五轮审查（B-499-6）**：三路 lens 报告归档 `AUDIT_R5_A/B/C`；共识 P1 本轮修复（skip link / `<base>` 相对链接 / custom-select 键盘与标签 / 焦点环 / 62 tab 页题 H2 / 13 处宽表卡式化）；并修 e2e 暴露的链路：`auth-audit` 按角色跳过、党委未选支部不发快照、`link-integrity` 锚点解析 bug、`block-entry-guard` 改用支书令牌、三会一课模板基数 4→3。
+
+### 三、读数
+
+- `npm run test:daily`：**1388 / 1388 通过、0 失败，74s**（静态断言预算 1377 → **1383**，同批写明理由）。
+- precommit 全量（`SWEEP_SHARD=all`）：**非 e2e 通道 1388 / 1388 全绿**；e2e-A **52 / 58**（5 失败、1 skip）；e2e-B **175 / 179**（4 失败）。
+- 版本戳 20261021b → **20261021c**；`version-stamp` / `page-sweep` / `doc-line-ref`（R1–R6）/ `doc-consistency`（S1–S21）/ `timestamps-note-guard` 全绿。
+- `ia-inventory` 重跑：workspaces=7 · tabs=62 · cards=103 · sections=112 · links=117。
+
+### 四、边界（如实）
+
+- **e2e 仍有 9 条红（均为存量 / 测试与产品口径脱节，非本轮十项的功能未做）**：
+  - e2e-B 4 条：`A5 项目分工空态出口`、`S3 工作流块配置区`（`#pc-wizard-host` 已随「支部配置」并入 `branch-config.html`，党委台 tab 不再挂载）、`secretary-todo-reject-reason`（49s 等不到可作废待办）、`org-roster-member-add-save`。
+  - e2e-A 5 条：`核心闭环议程→归档`、`B3-1 补课回写`（造考勤前置失败）、`党委支部配置向导`（同上 `#pc-wizard-host` 落点）、`判据A 跨标签`（前置写入未落服务端）、`判据D 断服静默`（前一条留下 pending-write ⇒ 探测被跳过，测试自污染）。
+  - 已在本轮修掉的同类：`block-entry-guard` 4/4 全绿、`e2e-login` `t is not defined`、`link-integrity` 锚点解析、`wizard` 两条、`party-committee`/`visitor` 全量真机流程。
+- **派生行「来源可证」只证明来源存在**：伪造仍可往待办列表塞一条（不能改他人已有待办的状态）。彻底收口需服务端派生，登记为下一轮专项。
+- **党委未选支部时快照不发送**：原本必 403；现按本地缓存保留、选支后由读口刷新。这是「不把 403 误报成保存失败」，不是补齐党委跨支部批处理。
+- **三条 `machine:false`**（组织者跨组说明 / org 补选责任组 / 向导首任支书）均有真机探针证据与 reason，不是删判据。
+- **`test:precommit` 的 e2e 双道并行共享 :3000**：`判据D` 这类「前一条留 pending-write」的用例对执行顺序敏感，属测试自污染，未在本轮改其夹具。
+
+### 五、sample-diff 四样本（AI 假设 → 支书意图）
+
+| # | AI 假设 | 支书意图 | 偏差类型 | 可复用规则（Boolean） |
+|---|---|---|---|---|
+| 1 | 行级写门只认本人 / 本角色，跨角色派生一律拒 | 业务动作生成的待办必须能落库；只有「推进他人待办」才该拒 | permission_scope_mismatch | IF 待办行是新建 AND（支委代办 OR 来源记录可证同支部）THEN 放行；IF patch/delete 他人行 THEN 拒 |
+| 2 | 用户看不到就说明没写 | 成员页成功却提示失败＝**写链整批被拒**，读投影不是主因 | symptom_misread | IF 成功提示被反转 THEN 先查同批 snapshot 是否 403，不先改读口 |
+| 3 | mock 数据只要「看起来像」就行 | mock 必须是真实 API 结构的真值呈现 | definition_mismatch | IF mock 与 API 同表 THEN 字段集合与类型逐项相等，差异只许进白名单并写理由 |
+| 4 | 空白即「不可自动化」，登记 machine:false 即可 | 不可自动化必须有**探针证据**；能点开的就补真机 | evidence_gap | IF 校验点标 machine:false THEN 附真机探针结论与不可达原因；能造前置的必须补流程 |
+
 

@@ -13,7 +13,7 @@ import { readFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const V = '?v=20261021b';
+const V = '?v=20261021c';
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const SRC_DIR = join(ROOT, 'docs', 'src');
 const ISSUES_JSON = join(ROOT, 'docs', 'data', 'issues.json');
@@ -102,7 +102,7 @@ test('S3 读取过滤单一源：issues.js 经 branch.js 的 withinBranch 收敛
   const n = (issues.match(/_withinViewerBranch\(|_visibleIssues\(/g) || []).length;
   assert.ok(n >= 12, `列表出口均须按 viewer 所属支部过滤并做受众投影（实际接线 ${n} 处，期望 ≥12）`);
   // getSecretaryPendingReports / getAssignedToRole 等此前未过滤的出口须覆盖
-  assert.match(issues, /getAssignedToRole\(role\) \{\s*return _withinViewerBranch/, 'getAssignedToRole 须按支部过滤');
+  assert.match(issues, /getAssignedToRole\(role\) \{\s*return _visibleIssues\(/, 'getAssignedToRole 须按支部过滤并做受众投影');
 });
 
 test('S4 成员参与接线：getMyIssues 出口 + 我的处置 tab「我提交/参与的反馈」区', () => {
@@ -111,7 +111,9 @@ test('S4 成员参与接线：getMyIssues 出口 + 我的处置 tab「我提交/
   // 渲染相关断言改读组件 components/feedback/issue-dispatch-view.js；数据出口断言仍读服务层。
   const view = read(join(SRC_DIR, 'components', 'feedback', 'issue-dispatch-view.js'));
   assert.match(issues, /getMyIssues\(userId\) \{/, 'IssueStore 须暴露 getMyIssues（我提交/参与的反馈）');
-  assert.match(view, /mydispatch-myissues-host/, 'renderMyDispatchTab 须渲染成员参与区宿主');
+  // 2026-10-21 R3-08：四段收为两段——我提交/参与并入「我已处理」宿主（不再单列 myissues 宿主）
+  assert.match(view, /mydispatch-done-host/, 'renderMyDispatchTab 须渲染成员参与区宿主（我已处理）');
+  assert.match(view, /getMyIssues\(userId\)/, '我已处理段须并入我提交/参与的反馈');
   assert.match(view, /function _renderMyIssueDetail\(/, '成员答复详情须存在（追加说明，issue 答复口径）');
   // 成员参与绝不放大写权：详情仅 addComment('comment')，不出现提交处置结果/关闭
   const seg = view.slice(view.indexOf('function _renderMyIssueDetail('));
@@ -119,15 +121,22 @@ test('S4 成员参与接线：getMyIssues 出口 + 我的处置 tab「我提交/
   assert.ok(!/submit-result/.test(seg), '成员参与详情不得提供「提交处置结果」（写权不外扩）');
 });
 
-test('S5 组长/成员「我的处置」：我提交/参与段前移，提交与已读逻辑不变', () => {
+test('S5 组长/成员「我的处置」：两段结构、打开行才标已读、令牌说明移 help', () => {
   const view = read(join(SRC_DIR, 'components', 'feedback', 'issue-dispatch-view.js'));
-  assert.match(view, /renderMyDispatchTab\(role, userId, opts = \{\}\)/, '渲染入口须接受段序选项');
-  assert.match(view, /bindMyDispatchEvents\(container, role, userId, opts = \{\}\)/, '事件绑定须透传段序选项');
-  assert.match(view, /opts\.myIssuesFirst[\s\S]{0,140}\[myIssuesHtml, reqHtml, myReportsHtml, assignedHtml\]/, '我提交/参与段须可前移为第一段');
-  assert.match(view, /unread\.forEach\(id => IssueNotify\.markRead\(userId, id\)\);/, '整批标已读逻辑不得改动');
+  assert.match(view, /renderMyDispatchTab\(role, userId, opts = \{\}\)/, '渲染入口须保留角色 / 用户参数');
+  assert.match(view, /bindMyDispatchEvents\(container, role, userId, opts = \{\}\)/, '事件绑定须透传选项');
+  // 2026-10-21 R3-08：四段收两段（待我处理 / 我已处理）。
+  assert.match(view, /id="mydispatch-pending-host"/, '须有「待我处理」段宿主');
+  assert.match(view, /id="mydispatch-done-host"/, '须有「我已处理」段宿主');
+  assert.doesNotMatch(view, /mydispatch-(?:req|issues|myreports|myissues)-host/, '四段旧宿主不得回潮');
+  // 渲染时不得整批 markRead；改为打开行时标记（详情渲染内逐条 markRead）。
+  assert.doesNotMatch(view, /unread\.forEach\(id => IssueNotify\.markRead\(userId, id\)\);/, '不得整批 markRead');
+  assert.match(view, /IssueNotify\.markRead\(userId, issueId\)/, '打开行时才标记已读');
+  // 100 字令牌机制说明移 help，界面只留一句短提示 + help 深链。
+  assert.doesNotMatch(view, /随机令牌比对|不以提交人身份为判据/, '长令牌说明不得留在界面');
+  assert.match(view, /\.\/help\.html#card-dom39-my-dispatch/, '令牌说明的完整口径须指向 help');
   for (const role of ['leader', 'visitor']) {
     const tab = read(join(SRC_DIR, 'entries', 'tabs', role, 'my-dispatch-tab.js'));
-    assert.match(tab, /myIssuesFirst: true/, `${role} 台须声明我提交/参与段前置`);
     assert.match(tab, /renderMyDispatchTab\('(?:leader|participant)', uid, opts\)/, `${role} 台须把选项传入渲染入口`);
     assert.match(tab, /bindMyDispatchEvents\(el, '(?:leader|participant)', uid, opts\)/, `${role} 台须把选项传入事件绑定`);
   }

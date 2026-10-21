@@ -2,36 +2,37 @@
 // 宣传委员工作台 Tab：档案归档（T-279 M3 拆分，照 M2 样板）
 // 归档记录纯读 + 材料标准/模板 + 归档推进浮窗（材料确认清单）+ 上传宣传材料（attachments 双模式）。
 
-import { icon } from '../../../core/base/icons.js?v=20261021b';
-import { solidAccentStyle, activityTypeBadgeVariant, isActivityArchived } from '../../../core/domain/constants.js?v=20261021b';
-import { POLICY_DEFAULTS } from '../../../core/domain/policy-defaults.js?v=20261021b';
+import { icon } from '../../../core/base/icons.js?v=20261021c';
+import { solidAccentStyle, activityTypeBadgeVariant, isActivityArchived } from '../../../core/domain/constants.js?v=20261021c';
+import { POLICY_DEFAULTS } from '../../../core/domain/policy-defaults.js?v=20261021c';
 // 活动类型胶囊（批次 301）：类别色走单一源（三会一课＝brand 红 / 主题党日＝gold 金），渲染唯一源 badge.js
-import { badgeHtml } from '../../../components/ui/badges.js?v=20261021b'; // 扎口出口（批次 304 收回，勿直连 badge.js）
-import { showToast, downloadCSV, downloadBlob, downloadUrl, _fmtDate, escHtml, todayLocal } from '../../../core/base/utils.js?v=20261021b';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20261021c'; // 扎口出口（批次 304 收回，勿直连 badge.js）
+import { showToast, downloadCSV, downloadBlob, downloadUrl, _fmtDate, escHtml, todayLocal } from '../../../core/base/utils.js?v=20261021c';
 // 2026-09-21 批次 139：页脚「相关设置」深链由 modal.js 的 `settingsLinkHTML` 单点渲染；
 //   2026-10-21 批次 497：本 tab 四个浮层（上传材料 / 文件外发 / 上传照片 / 标注照片）全部改走 `openModal`，
 //   不再自建 overlay（统一 dialog 语义、sticky footer 与取消语义）。
-import { openModal, closeModal } from '../../../components/ui/modal.js?v=20261021b';
-import { persist, getAuthToken, getApiBaseUrl, getAdapter } from '../../../data/data-adapter.js?v=20261021b';
-import { withSelectedBranchScope } from '../../../data/api-adapter.js?v=20261021b';
-import { mockDB } from '../../../core/domain/domain.js?v=20261021b';
-import { bumpToken } from '../../../core/base/version-token.js?v=20261021b'; // P0 域缓存失效（spec §二.3）
-import { loadActivities, listPublicityDrafts, setPublicityDraftStatus, PUBLICITY_DRAFT_STATUS, listGalleryCandidates, setGalleryFeatured, setGalleryPinned, isGalleryFeatured, isGalleryPinned } from '../../../services/activity/activity.js?v=20261021b';
-import { isApiMode } from '../../../services/core/runtime.js?v=20261021b';
-import { AuthStore, currentUserId } from '../../../services/core/auth.js?v=20261021b';
-import { getPersonName } from '../../../services/member/person.js?v=20261021b';
+import { openModal, closeModal } from '../../../components/ui/modal.js?v=20261021c';
+import { persist, getAuthToken, getApiBaseUrl, getAdapter } from '../../../data/data-adapter.js?v=20261021c';
+import { withSelectedBranchScope } from '../../../data/api-adapter.js?v=20261021c';
+import { mockDB } from '../../../core/domain/domain.js?v=20261021c';
+import { bumpToken } from '../../../core/base/version-token.js?v=20261021c'; // P0 域缓存失效（spec §二.3）
+import { loadActivities, listPublicityDrafts, setPublicityDraftStatus, PUBLICITY_DRAFT_STATUS, listGalleryCandidates, setGalleryFeatured, setGalleryPinned, isGalleryFeatured, isGalleryPinned } from '../../../services/activity/activity.js?v=20261021c';
+import { isApiMode } from '../../../services/core/runtime.js?v=20261021c';
+import { AuthStore, currentUserId } from '../../../services/core/auth.js?v=20261021c';
+import { getPersonName } from '../../../services/member/person.js?v=20261021c';
 // 批次 352（`D-746` · `D-744`② 业务过程类余项）：照片记录「作废（软）」——统一写口 ＋ 支委层判据
-import * as SoftVoid from '../../../services/governance/soft-void.js?v=20261021b';
-import { openVoidModal } from '../../../components/ui/void-record.js?v=20261021b';
-import { addExternalDispatch, loadExternalDispatches, loadActiveDispatches } from '../../../services/activity/external-dispatch.js?v=20261021b';
+import * as SoftVoid from '../../../services/governance/soft-void.js?v=20261021c';
+import { openVoidModal } from '../../../components/ui/void-record.js?v=20261021c';
+import { addExternalDispatch, loadExternalDispatches, loadActiveDispatches } from '../../../services/activity/external-dispatch.js?v=20261021c';
 // R2-40：归档材料写口（mock/api 同源）——api 落 archive_records、mock 落 localStorage
-import { ArchiveStore } from '../../../services/activity/archive.js?v=20261021b';
+import { ArchiveStore } from '../../../services/activity/archive.js?v=20261021c';
 // A② 归档缺口判据单一源（支书台「宣传材料待归档」实时组同源）：已归档但无归档记录的活动
-import { getArchiveGapActivities, getEndedUnarchivedActivities } from '../../../services/governance/secretary-overview.js?v=20261021b';
+import { getArchiveGapActivities, getEndedUnarchivedActivities } from '../../../services/governance/secretary-overview.js?v=20261021c';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是活动的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
-import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261021b';
+import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261021c';
+import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261021c';
 // 材料页深链 focusActivityId 的通用定位（只滚动 + 闪烁，不另造筛选器）
-import { focusActivityAnchor } from '../../../components/ui/detail-anchor.js?v=20261021b';
+import { focusActivityAnchor } from '../../../components/ui/detail-anchor.js?v=20261021c';
 
 // ── 档案归档 ─────────────────────────────────────────────
 // 种子数据已提升为全局（data/mock/seed.js SEED_ARCHIVE_RECORDS，loadDB 时注入），
@@ -82,6 +83,7 @@ export function renderContent(ctx) {
   const galleryCount = listGalleryCandidates().length;
   const photoCount = _loadImageRecords().length;
   container.innerHTML = `
+    ${renderTabHeader({ title: '档案归档', description: '待归档活动、宣传初稿与待补材料；归档后即可回看。' })}
     ${_renderWeeklySlot()}
 
     <div class="mb-4 flex flex-col sm:flex-row gap-3 items-center justify-end">
@@ -417,7 +419,7 @@ let _weeklyOpen = false;
 /** 懒挂周报内容到宿主容器（`weekly-tab.js` 的 `renderContent(ctx, host)` 已支持传入宿主） */
 function _mountWeekly(host, ctx) {
   host.dataset.weeklyMounted = '1';
-  import('./weekly-tab.js?v=20261021b').then(m => {
+  import('./weekly-tab.js?v=20261021c').then(m => {
     if (host.isConnected) m.renderContent(ctx, host);
   });
 }
@@ -715,11 +717,7 @@ async function _deleteArchiveFile(record) {
 // ════════════════════════════════════════════════════════════════
 //  归档推进浮窗：弹出材料确认清单，而非直接改状态标签
 // ════════════════════════════════════════════════════════════════
-function _showArchiveAdvancePopover(record, triggerBtn, ctx) {
-  // 移除已有浮窗
-  const existing = document.getElementById('archive-advance-popover');
-  if (existing) existing.remove();
-
+function _showArchiveAdvancePopover(record, _triggerBtn, ctx) {
   const isStart = record.status === 'pending';
   const nextStatus = isStart ? 'in_progress' : 'archived';
   const nextLabel = ARCHIVE_STATUS_LABEL[nextStatus];
@@ -729,106 +727,59 @@ function _showArchiveAdvancePopover(record, triggerBtn, ctx) {
   // 拆分材料标准为检查项
   const checklist = _parseChecklistFromStandard(categoryStandard.standard, record.category);
 
-  const popover = document.createElement('div');
-  popover.id = 'archive-advance-popover';
-  popover.style.cssText = 'position:fixed;z-index:100;background:var(--surface-card);border-radius:14px;box-shadow:0 12px 40px rgba(0,0,0,0.15);border:1px solid var(--neutral-200);padding:0;width:380px;max-height:80vh;overflow-y:auto;';
-
-  // ── 浮窗内容 ──
-  let html = '';
-  // 标题栏
-  html += `<div class="px-5 pt-4 pb-3 border-b border-gray-100">`;
-  html += `<div class="flex items-center justify-between mb-1">`;
-  html += `<h3 class="font-title-cn text-sm font-semibold text-gray-800">${isStart ? '开始归档' : '确认归档'}</h3>`;
-  html += `<button id="archive-popover-close" class="btn-ghost text-sm leading-none">&times;</button>`;
-  html += `</div>`;
-  html += `<div class="text-xs text-gray-500">${record.activityName} · <span class="px-1 py-0.5 rounded ${ARCHIVE_CATEGORY_STYLE[record.category] || ''}">${record.category}</span></div>`;
-  html += `</div>`;
+  // R5A-08：原自建 fixed 定位浮层（固定 380px / 无 dialog 语义 / 监听泄漏）统一迁到 openModal，
+  //   复用 role=dialog、aria-modal、背景 inert、焦点接管与回还、Esc/遮罩取消。
+  let bodyHtml = `<p class="text-xs text-gray-500 mb-3">${escHtml(record.activityName)} · <span class="px-1 py-0.5 rounded ${ARCHIVE_CATEGORY_STYLE[record.category] || ''}">${escHtml(record.category)}</span></p>`;
 
   if (isStart) {
-    // 开始归档：显示材料标准检查清单
-    html += `<div class="px-5 py-4">`;
-    html += `<p class="text-xs text-gray-600 mb-3">请确认以下材料标准是否满足：</p>`;
-    html += `<div class="space-y-2 mb-4">`;
+    bodyHtml += `<p class="text-xs text-gray-600 mb-3">请确认以下材料标准是否满足：</p>`;
+    bodyHtml += `<div class="space-y-2 mb-4">`;
     checklist.forEach((item, i) => {
-      html += `<label class="flex items-start gap-2.5 cursor-pointer group">`;
-      html += `<input type="checkbox" class="archive-checklist-item mt-0.5 rounded border-gray-300 text-blue-600 focus:ring-blue-300" data-check-idx="${i}" />`;
-      html += `<span class="text-xs text-gray-700 leading-relaxed group-hover:text-gray-900">${item}</span>`;
-      html += `</label>`;
+      bodyHtml += `<label class="flex items-start gap-2.5 cursor-pointer group">`;
+      bodyHtml += `<input type="checkbox" class="archive-checklist-item mt-0.5 rounded border-gray-300 text-blue-600 focus:ring-blue-300" data-check-idx="${i}" />`;
+      bodyHtml += `<span class="text-xs text-gray-700 leading-relaxed group-hover:text-gray-900">${escHtml(item)}</span>`;
+      bodyHtml += `</label>`;
     });
-    html += `</div>`;
-    html += `<div class="rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 mb-4">`;
-    html += `<p class="text-[12px] text-amber-700">提示：未全部勾选也可推进状态，但请确保后续补齐。</p>`;
-    html += `</div>`;
-    html += `</div>`;
+    bodyHtml += `</div>`;
+    bodyHtml += `<div class="rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 mb-4">`;
+    bodyHtml += `<p class="text-[12px] text-amber-700">提示：未全部勾选也可推进状态，但请确保后续补齐。</p>`;
+    bodyHtml += `</div>`;
   } else {
-    // 确认归档：显示归档总结
-    html += `<div class="px-5 py-4">`;
-    html += `<p class="text-xs text-gray-600 mb-3">确认将以下条目归档？归档后将从待处理列表移除。</p>`;
-    html += `<div class="rounded-lg bg-gray-50 px-3 py-2.5 mb-4 space-y-1.5">`;
-    html += `<div class="flex items-center justify-between text-xs"><span class="text-gray-500">活动名称</span><span class="text-gray-800 font-medium">${record.activityName}</span></div>`;
-    html += `<div class="flex items-center justify-between text-xs"><span class="text-gray-500">归档类别</span><span class="text-gray-800">${record.category}</span></div>`;
-    html += `<div class="flex items-center justify-between text-xs"><span class="text-gray-500">归档日期</span><span class="text-gray-800">${record.archiveDate}</span></div>`;
-    html += `</div>`;
-    html += `<div class="rounded-lg bg-blue-50 border border-blue-200 px-3 py-2 mb-4">`;
-    html += `<p class="text-[12px] text-blue-700">材料标准：${categoryStandard.standard}</p>`;
-    html += `</div>`;
-    html += `</div>`;
+    bodyHtml += `<p class="text-xs text-gray-600 mb-3">确认将以下条目归档？归档后将从待处理列表移除。</p>`;
+    bodyHtml += `<div class="rounded-lg bg-gray-50 px-3 py-2.5 mb-4 space-y-1.5">`;
+    bodyHtml += `<div class="flex items-center justify-between text-xs"><span class="text-gray-500">活动名称</span><span class="text-gray-800 font-medium">${escHtml(record.activityName)}</span></div>`;
+    bodyHtml += `<div class="flex items-center justify-between text-xs"><span class="text-gray-500">归档类别</span><span class="text-gray-800">${escHtml(record.category)}</span></div>`;
+    bodyHtml += `<div class="flex items-center justify-between text-xs"><span class="text-gray-500">归档日期</span><span class="text-gray-800">${escHtml(record.archiveDate || '—')}</span></div>`;
+    bodyHtml += `</div>`;
+    bodyHtml += `<div class="rounded-lg bg-blue-50 border border-blue-200 px-3 py-2 mb-4">`;
+    bodyHtml += `<p class="text-[12px] text-blue-700">材料标准：${escHtml(categoryStandard.standard)}</p>`;
+    bodyHtml += `</div>`;
   }
 
-  // 操作按钮
-  html += `<div class="flex justify-end gap-2 px-5 py-3 border-t border-gray-100">`;
-  html += `<button id="archive-popover-cancel" class="btn-ghost text-xs px-3 py-1.5">取消</button>`;
-  html += `<button id="archive-popover-confirm" class="btn-accent-soft text-xs px-3 py-1.5" >${nextLabel}</button>`;
-  html += `</div>`;
-
-  popover.innerHTML = html;
-  document.body.appendChild(popover);
-
-  // 定位
-  const rect = triggerBtn.getBoundingClientRect();
-  let top = rect.bottom + 8;
-  let left = rect.left;
-  if (left + 380 > window.innerWidth) left = Math.max(8, window.innerWidth - 392);
-  if (top + popover.offsetHeight > window.innerHeight) top = Math.max(8, rect.top - popover.offsetHeight - 8);
-  popover.style.top = top + 'px';
-  popover.style.left = left + 'px';
-
-  const closePopover = () => { popover.remove(); };
-
-  popover.querySelector('#archive-popover-close')?.addEventListener('click', closePopover);
-  popover.querySelector('#archive-popover-cancel')?.addEventListener('click', closePopover);
-
-  // 确认推进
-  popover.querySelector('#archive-popover-confirm')?.addEventListener('click', () => {
-    if (isStart) {
-      // 开始归档：收集勾选状态
-      const checks = popover.querySelectorAll('.archive-checklist-item');
-      const checkedCount = [...checks].filter(c => c.checked).length;
-      const totalCount = checks.length;
-      record._checklistState = { checked: checkedCount, total: totalCount };
-    }
-    record.status = nextStatus;
-    bumpToken('archiveRecord'); // P0：档案状态推进写口（pending→in_progress→archived，长度不变须显式 bump）
-    persist();
-    closePopover();
-    showToast('success', `「${record.activityName}」${nextLabel}${isStart ? '，请按材料标准准备' : ''}`);
-    renderContent(ctx);
+  openModal({
+    id: 'archive-advance',
+    title: isStart ? '开始归档' : '确认归档',
+    size: 'md',
+    bodyHtml,
+    footerHtml: `
+      <button type="button" data-modal-cancel="archive-advance" class="btn-outline text-xs px-3 py-1.5" style="cursor:pointer;">取消</button>
+      <button type="button" data-archive-advance-confirm class="btn-accent text-xs px-3 py-1.5">${nextLabel}</button>`,
+    onMount: (panel) => {
+      panel.querySelector('[data-archive-advance-confirm]')?.addEventListener('click', () => {
+        if (isStart) {
+          const checks = panel.querySelectorAll('.archive-checklist-item');
+          const checkedCount = [...checks].filter(c => c.checked).length;
+          record._checklistState = { checked: checkedCount, total: checks.length };
+        }
+        record.status = nextStatus;
+        bumpToken('archiveRecord'); // P0：档案状态推进写口（pending→in_progress→archived，长度不变须显式 bump）
+        persist();
+        closeModal('archive-advance');
+        showToast('success', `「${record.activityName}」${nextLabel}${isStart ? '，请按材料标准准备' : ''}`);
+        renderContent(ctx);
+      });
+    },
   });
-
-  // 点击外部关闭
-  const outsideHandler = (e) => {
-    if (!popover.contains(e.target) && !triggerBtn.contains(e.target)) {
-      closePopover();
-      document.removeEventListener('click', outsideHandler, true);
-    }
-  };
-  setTimeout(() => document.addEventListener('click', outsideHandler, true), 0);
-
-  // ESC 关闭
-  const escHandler = (e) => {
-    if (e.key === 'Escape') { closePopover(); document.removeEventListener('keydown', escHandler); }
-  };
-  document.addEventListener('keydown', escHandler);
 }
 
 /**
@@ -912,7 +863,7 @@ function _showArchiveUploadModal(ctx) {
     footerHtml: `
       <button id="upload-cancel" type="button" data-modal-cancel="${MODAL_ID}" class="btn-ghost text-xs px-3 py-1.5">取消</button>
       <button id="upload-confirm" type="button" class="btn-accent-soft text-xs px-3 py-1.5" style="cursor:pointer">上传</button>`,
-    settingsLink: { href: './settings.html', text: '设置首页（宣传台无支部治理分区）' },
+    settingsLink: { href: './settings.html', text: '制度参数 →' },
     onCancel: cleanup,
     onMount: (card) => {
       const renderPreview = () => {

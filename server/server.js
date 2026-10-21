@@ -12,6 +12,12 @@ const DB_PATH = process.env.DB_PATH || fileURLToPath(new URL('./data.db', import
 const SEED_DISABLED = process.env.DISABLE_SEED === '1' || isProductionEnv();
 if (isProductionEnv() && !process.env.LOGIN_PASSWORD) { console.error('[server] ⛔ 启动被拒：生产形态（APP_ENV=production / NODE_ENV=production）必须显式设置 LOGIN_PASSWORD（所有账号共用该口令，缺省口令不得上线）。请设置该环境变量后重启。'); process.exit(1); } // P0-3：生产形态必须显式设 LOGIN_PASSWORD（全站账号共用该口令）⇒ 未设则启动即拒
 const db = initDb(DB_PATH);
+// B-499-8（2026-10-21）：既有库跟随种子版本——applyMigrations 之后比较 seed_meta.seed_version，
+// 不一致时在事务内**只修复既有 seed id**（不插入缺失、不删除 orphan、保留运行时字段）。
+// 用内联 import：上方 `:12-18` / `:21` / `:22-23` 是 README-server.md 的取证靶点，尽量少动行。
+const { SEED_DATA_VERSION } = await import('../docs/src/core/domain/domain.js');
+const { repairSeedRowsIfNeeded } = await import('./seed-repair.js');
+await repairSeedRowsIfNeeded(db, SEED_DATA_VERSION);
 if (!SEED_DISABLED && db.prepare('SELECT COUNT(*) AS c FROM users').get().c === 0) {
   await seedDatabase(db);
   console.log('[server] 已导入种子数据');

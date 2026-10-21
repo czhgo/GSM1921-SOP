@@ -2,20 +2,21 @@
 // 组长工作台 Tab：待办（T-279 M2 拆分；T-304 代码减负 2026-08-30：骨架并入 todo-tab-shell）
 // 最小三成本原则落地：进入即见首条详情，减一次点击。
 
-import { showToast } from '../../../core/base/utils.js?v=20261021b';
-import { createTodoTab } from '../../../components/record/todo-tab-shell.js?v=20261021b';
-import { tryDirectJump } from '../../../components/record/todo-jump.js?v=20261021b';
+import { showToast } from '../../../core/base/utils.js?v=20261021c';
+import { createTodoTab } from '../../../components/record/todo-tab-shell.js?v=20261021c';
+import { tryDirectJump } from '../../../components/record/todo-jump.js?v=20261021c';
 
 function _handleTodoAction(todo, ctx) {
   // 直达跳转（通知阅读 T-234 F1 / 报名审核 T-233）已收敛于 components/record/todo-jump.js（2026-09-04）
   if (tryDirectJump(todo)) return;
-  // 根据 actionType 跳转到对应 tab
+  // 根据 actionType 跳转到对应 tab（R3-IA：每个值必须是 leader-workspace 已注册的 tab id；
+  //   复盘状态已并入「组员进展」页内块，故 review → members，不再指向不存在的 review 页签）。
   // 无生产者残留键清理（IA-C1 Task5 登记 2026-09-06）：actionKey 级 attendance-upload/review-submit
   // 与 actionType submit（考勤上传）旧键均无派生器（组长赋权=activity-authorize、报名审核=signup-review
   // 走 tryDirectJump 优先直达），仅余 authorize/review 兜底——未知键落下方 else「请处理」提示。
   const tabMap = {
     authorize: 'write',
-    review: 'review',
+    review: 'members',
   };
   const targetTab = tabMap[todo.actionType];
   if (targetTab) {
@@ -37,7 +38,7 @@ function _handleTodoAction(todo, ctx) {
         if (++tries > 40) clearInterval(timer); // 4s 超时（懒加载渲染 + 重建窗口）
       }, 100);
     }
-    const tabLabel = { write: '活动写入', review: '复盘状态' }[targetTab] || '';
+    const tabLabel = { write: '本组活动', members: '组员进展' }[targetTab] || '';
     showToast('info', `已跳转到${tabLabel}，请处理：${todo.title}`);
   } else {
     showToast('info', `请处理：${todo.title}`);

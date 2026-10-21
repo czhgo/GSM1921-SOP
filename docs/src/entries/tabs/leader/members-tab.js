@@ -5,23 +5,24 @@
 // P-011 知情边界：看 ≠ 做——组长只知情与温和「了解进展」，答复由支书完成，不跳转他人工作台。
 // 本视图禁用 SVG 图标，类别用色点+文字区分。
 
-import { currentUserId } from '../../../services/core/auth.js?v=20261021b';
-import { IssueStore } from '../../../services/governance/issues.js?v=20261021b';
-import { renderReportInboxHtml, bindReportInbox } from '../../../components/record/reporting.js?v=20261021b';
+import { currentUserId } from '../../../services/core/auth.js?v=20261021c';
+import { IssueStore } from '../../../services/governance/issues.js?v=20261021c';
+import { renderReportInboxHtml, bindReportInbox, filterReportsByScope } from '../../../components/record/reporting.js?v=20261021c';
 // 批次 47-I（Q-23-41 ②，支书 2026-09-15 裁定「改为服务端汇总」）：四项聚合口径下沉单一源
 // `services/member/member-progress.js`——api 态由**服务端**汇总接口计算、mock 态调**同一个**纯函数。
 // 故原先此处的四源直读与内联判定（TodoStore / TodoStatus / isTodoExpired / AttendanceStatus /
 // loadAttendanceRecords / loadActiveInspectionRecords）**全部移除**：判定逻辑不再在本文件出现。
-import { loadMemberProgress, blockersOf, REPORT_KIND } from '../../../services/member/member-progress.js?v=20261021b';
-import { resolveVisibleTargets } from '../../../services/core/visibility.js?v=20261021b';
-import { getPersonById, getPersonName } from '../../../services/member/person.js?v=20261021b';
-import { showToast, getBasePath, escHtml as esc, todayLocal } from '../../../core/base/utils.js?v=20261021b';
+import { loadMemberProgress, blockersOf, REPORT_KIND } from '../../../services/member/member-progress.js?v=20261021c';
+import { resolveVisibleTargets } from '../../../services/core/visibility.js?v=20261021c';
+import { getPersonById, getPersonName } from '../../../services/member/person.js?v=20261021c';
+import { showToast, getBasePath, escHtml as esc, todayLocal } from '../../../core/base/utils.js?v=20261021c';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是人的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
-import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261021b';
+import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261021c';
+import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261021c';
 // D8 裁决批二（2026-09-08）：本组活动复盘状态只读区块并入「组员进展」页（原独立「复盘状态」tab 已删）
-import { reviewStatusSectionHtml, bindReviewStatusSection } from './review-tab.js?v=20261021b';
+import { reviewStatusSectionHtml, bindReviewStatusSection } from './review-tab.js?v=20261021c';
 // 材料页深链 focusActivityId 的通用定位（只滚动 + 闪烁，不另造筛选器）
-import { focusActivityAnchor } from '../../../components/ui/detail-anchor.js?v=20261021b';
+import { focusActivityAnchor } from '../../../components/ui/detail-anchor.js?v=20261021c';
 
 // 模块级 ctx 缓存：重渲染（了解进展/行内答复后刷新）复用首次渲染的 accent
 let _ctx = null;
@@ -34,7 +35,7 @@ export async function renderContent(ctx) {
   const myPersonId = currentUserId();
   // P1-11：失效会话不再回落到固定的旧演示组长；本组读口显示 —，避免把党委组织员（空党小组）误当组员。
   if (!myPersonId) {
-    container.innerHTML = '<div class="card rounded-xl p-5 text-center"><p class="text-xs text-gray-500">—（登录态已失效，请重新登录）</p></div>';
+    container.innerHTML = `${renderTabHeader({ title: '组员进展' })}<div class="card rounded-xl p-5 text-center"><p class="text-xs text-gray-500">—（登录态已失效，请重新登录）</p></div>`;
     return;
   }
   await IssueStore.loadAll();
@@ -43,8 +44,9 @@ export async function renderContent(ctx) {
   const targets = resolveVisibleTargets('leader', myPersonId);
   if (!targets.length) {
     container.innerHTML = `
+      ${renderTabHeader({ title: '组员进展' })}
       <div class="card rounded-xl p-5 text-center">
-        <p class="text-xs text-gray-500">本党小组暂无其他组员可查看</p>
+        <p class="text-xs text-gray-500">— 本党小组暂无其他组员可查看 · 下一步：请联系组织委员核对成员档案中的党小组归属</p>
       </div>`;
     return;
   }
@@ -113,43 +115,49 @@ export async function renderContent(ctx) {
   // ⚠ 数据格不挂 text-xs（P7：.data-table 单档 13px，正文 12–13px 由表样式承载）。
   const progressRowHtml = (r) => `
     <tr>
-      <td class="font-medium text-gray-800"><a href="${getBasePath()}person.html?id=${encodeURIComponent(r.personId)}" class="hover:underline hover:text-sky-700 transition-colors" title="查看完整档案">${esc(getPersonName(r.personId))}</a></td>
-      <td class="text-gray-600 tabular-nums">${r.active}${r.overdue ? ` · <span class="text-red-600 font-medium">超期 ${r.overdue}</span>` : ''}</td>
-      <td class="text-gray-600 tabular-nums ${r.absent ? 'text-red-600 font-medium' : ''}">缺勤 ${r.absent}</td>
-      <td class="text-gray-600 tabular-nums ${r.inspPending ? 'text-amber-700 font-medium' : ''}">待确认 ${r.inspPending}</td>
-      <td class="${r.reportClass}">${r.reportState}</td>
-      <td class="text-gray-600">${esc(r.developStage || '—')}</td>
+      <td data-label="姓名" class="font-medium text-gray-800"><a href="${getBasePath()}person.html?id=${encodeURIComponent(r.personId)}" class="hover:underline hover:text-sky-700 transition-colors" title="查看完整档案">${esc(getPersonName(r.personId))}</a></td>
+      <td data-label="在办 / 超期" class="text-gray-600 tabular-nums">${r.active}${r.overdue ? ` · <span class="text-red-600 font-medium">超期 ${r.overdue}</span>` : ''}</td>
+      <td data-label="考勤" class="text-gray-600 tabular-nums ${r.absent ? 'text-red-600 font-medium' : ''}">缺勤 ${r.absent}</td>
+      <td data-label="考察" class="text-gray-600 tabular-nums ${r.inspPending ? 'text-amber-700 font-medium' : ''}">待确认 ${r.inspPending}</td>
+      <td data-label="汇报" class="${r.reportClass}">${r.reportState}</td>
+      <td data-label="阶段" class="text-gray-600">${esc(r.developStage || '—')}</td>
     </tr>`;
 
   // 汇报区（支书 2026-08-10 裁定：组长可答复本组组员汇报，块块内闭环；支书仍全局可见）
-  // 本组组员发起的 open 汇报 → 行内正式答复；问题优先置顶
-  const memberIds = new Set(targets.map(t => t.personId));
-  const memberReports = allIssues.filter(i =>
-    i.kind === 'report' && i.status === 'open' && !i.hidden && !i.mergedInto &&
-    memberIds.has(i.submittedBy)
+  // 2026-10-21 批次 500（B-499-2）：汇总口径改为**本党小组**（与受众判据同一组织事实），
+  // 条数与列表共用 `filterReportsByScope`，不再按 targets 另写一套成员集合。
+  const myGroup = (getPersonById(myPersonId) || {}).partyGroup || '';
+  const openReports = allIssues.filter(i =>
+    i.kind === 'report' && i.status === 'open' && !i.hidden && !i.mergedInto
   );
+  const groupScope = myGroup ? { partyGroup: myGroup } : null;
+  const memberReports = myGroup ? filterReportsByScope(openReports, groupScope) : [];
   const reportInboxHtml = renderReportInboxHtml({
     reports: memberReports,
+    scope: groupScope,
     title: '组员汇报',
-    subtitle: '本组待答复 · 行内答复',
+    subtitle: `${memberReports.length} 条 · 本组待答复 · 行内答复`,
     role: 'leader',
-    accent: ctx.accent,
-    emptyMsg: '暂无本组组员汇报',
+    accent: ctx?.accent,
+    emptyMsg: myGroup
+      ? '— 本组暂无汇报 · 下一步：在下方组员进度点「了解进展」，或等组员主动汇报'
+      : '— 未能识别您的党小组 · 下一步：请联系组织委员核对成员档案中的党小组归属',
   });
 
   container.innerHTML = `
+    ${renderTabHeader({ title: '组员进展', description: '本组组员的在办 / 考勤 / 考察 / 汇报与卡点。' })}
     <div class="space-y-4">
       <!-- 2026-10-20 IA 批次：恢复 R3-F09 裁定的「卡点前置」——先看待办卡点，再看逐人进度，最后接组员汇报 -->
       <div class="card rounded-xl p-4">
         <div class="flex items-center justify-between mb-3">
-          <h4 class="font-title-cn text-base font-semibold text-gray-800">卡点</h4>
+          <h3 class="font-title-cn text-sm font-bold text-gray-700">卡点</h3>
           <span class="text-xs text-gray-500">本组超期/上报/缺勤 · ${blockers.length} 项</span>
         </div>
         <div id="leader-blockers-list"></div>
       </div>
       <div class="card rounded-xl p-4">
         <div class="flex items-center justify-between mb-3">
-          <h4 class="font-title-cn text-base font-semibold text-gray-800">进度</h4>
+          <h3 class="font-title-cn text-sm font-bold text-gray-700">进度</h3>
           <span class="text-xs text-gray-500">本组组员在办 / 考勤 / 考察 / 汇报 · ${rows.length} 人</span>
         </div>
         <div id="leader-progress-list"></div>
@@ -169,6 +177,7 @@ export async function renderContent(ctx) {
     emptyMessage: '无匹配组员',
     table: {
       colSpan: 6,
+      responsive: true,
       headHtml: `<tr>
             <th>姓名</th>
             <th>在办 / 超期</th>
@@ -202,13 +211,13 @@ export async function renderContent(ctx) {
     }
   }
 
-  _bindMembersEvents(container);
+  _bindMembersEvents(container, groupScope);
 
   // 材料页深链（2026-10-20）：复盘状态区渲染后把本场活动卡片滚到视野（其余行无活动锚点则静默）。
   focusActivityAnchor(container, ctx?.focusActivityId);
 }
 
-function _bindMembersEvents(container) {
+function _bindMembersEvents(container, scope = null) {
   // 批次 47-H：卡点区接入引擎后行会重绘（翻页/筛选）→ 「了解进展」必须改**容器委托**；
   // 旧实现按渲染时 querySelectorAll 一次性绑定，重绘后新按钮无监听、点击全失效
   // （与 archive-tab.js 里已记录的同名病灶同类）。
@@ -223,7 +232,7 @@ function _bindMembersEvents(container) {
     renderContent(_ctx);
   });
   // 组员汇报行内正式答复（支书 2026-08-10 裁定：组长可答复本组组员，块块闭环）
-  bindReportInbox(container, { role: 'leader', onAnswered: () => renderContent(_ctx) });
+  bindReportInbox(container, { role: 'leader', scope, onAnswered: () => renderContent(_ctx) });
   // D8 裁决批二（2026-09-08）：复盘状态区块展开/收起（只读；rerender=本页整页重渲染）
   bindReviewStatusSection(container, () => renderContent(_ctx));
 }

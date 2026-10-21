@@ -19,6 +19,7 @@
 // ════════════════════════════════════════════════════════════════
 import fs from 'node:fs';
 import path from 'node:path';
+import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -100,14 +101,25 @@ async function main() {
     db.close();
   }
 
-  // ② 备份当场自检：能打开 + integrity_check 通过 + users 行数（可读的「这份备份是什么」）
+  // ② 备份当场自检：能打开 + integrity_check 通过 + 逐表行数 + seed_meta 版本
+  //    （清单写进 backup.json，恢复演练可逐项核对，而不是「文件存在就算备份成功」）
   const dbBytes = fs.statSync(dbTarget).size;
-  let integrity = '未知', usersCount = '未知';
+  let integrity = '未知', usersCount = '未知', userVersion = null, seedVersion = null;
+  const tableCounts = {};
   try {
     const check = new Database(dbTarget, { readonly: true });
     try {
       integrity = check.pragma('integrity_check', { simple: true });
       usersCount = check.prepare('SELECT COUNT(*) AS c FROM users').get().c;
+      userVersion = Number(check.pragma('user_version', { simple: true }));
+      const hasSeedMeta = check.prepare("SELECT 1 FROM sqlite_master WHERE type='table' AND name='seed_meta'").get();
+      if (hasSeedMeta) {
+        const row = check.prepare("SELECT value FROM seed_meta WHERE key = 'seed_version'").get();
+        seedVersion = row ? row.value : null;
+      }
+      for (const row of check.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' ORDER BY name").all()) {
+        tableCounts[row.name] = check.prepare(`SELECT COUNT(*) c FROM ${row.name}`).get().c;
+      }
     } finally {
       check.close();
     }
@@ -138,9 +150,23 @@ async function main() {
     uploadsLine = `${src.files} 个文件 / ${sizeText(src.bytes)} → ${path.join(outDir, 'uploads')}`;
   }
 
+  // ④ 备份清单（B-499-8）：恢复演练据 backup.json 逐项核对，不靠文件名猜内容。
+  const sha256 = createHash('sha256').update(fs.readFileSync(dbTarget)).digest('hex');
+  const manifest = {
+    createdAt: new Date().toISOString(),
+    database: 'data.db',
+    user_version: userVersion,
+    seed_version: seedVersion,
+    tables: tableCounts,
+    uploads: { files: src.files, bytes: src.bytes, copied: Boolean(uploadsDir && src.exists && src.files > 0) },
+    sha256,
+  };
+  fs.writeFileSync(path.join(outDir, 'backup.json'), JSON.stringify(manifest, null, 2));
+
   console.log('[backup] ✔ 备份完成');
   console.log(`[backup]   备份目录：${outDir}`);
-  console.log(`[backup]   数据库  ：data.db（${sizeText(dbBytes)}）· integrity_check=${integrity} · users=${usersCount} 行`);
+  console.log(`[backup]   数据库  ：data.db（${sizeText(dbBytes)}）· integrity_check=${integrity} · users=${usersCount} 行 · schema v${userVersion} · seed=${seedVersion ?? '未登记'}`);
+  console.log(`[backup]   清单    ：backup.json（${Object.keys(tableCounts).length} 张表 · 附件 ${src.files} 个 · sha256=${sha256.slice(0, 12)}…）`);
   console.log(`[backup]   附件     ：${uploadsLine}`);
   console.log('[backup]   恢复：停服 → 用备份的 data.db 覆盖库文件（并删除同目录 data.db-wal / data.db-shm）');
   console.log('[backup]         → 用备份的 uploads/ 覆盖附件目录 → 启动。详见 server/README.md「备份与恢复」。');

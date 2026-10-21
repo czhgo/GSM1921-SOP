@@ -3,22 +3,23 @@
 // 三视图：列表（分页）/ 日历 / 查询；列表与日历为纯展示，查询复用全局查询组件。
 // URL 落点高亮（?activityId=）经 ctx.highlightId 一次性消费（对齐单体版参数清除后的行为）。
 
-import { icon } from '../../../core/base/icons.js?v=20261021b';
-import { renderQueryView } from '../../../components/governance/query-view.js?v=20261021b';
-import { flashHighlight } from '../../../core/base/utils.js?v=20261021b';
-import { getActivityTypeColors } from '../../../core/domain/constants.js?v=20261021b';
+import { icon } from '../../../core/base/icons.js?v=20261021c';
+import { renderQueryView } from '../../../components/governance/query-view.js?v=20261021c';
+import { flashHighlight } from '../../../core/base/utils.js?v=20261021c';
+import { getActivityTypeColors } from '../../../core/domain/constants.js?v=20261021c';
 // 活动「仍在办」口径单一源（2026-09-13 收敛）：替代手写 !archived && status!=='cancelled'
-import { isActivityLive } from '../../../core/domain/constants.js?v=20261021b';
-import { canSignup } from '../../../components/governance/signup-panel.js?v=20261021b';
-import { AuthStore } from '../../../services/core/auth.js?v=20261021b';
+import { isActivityLive } from '../../../core/domain/constants.js?v=20261021c';
+import { canSignup } from '../../../components/governance/signup-panel.js?v=20261021c';
+import { AuthStore } from '../../../services/core/auth.js?v=20261021c';
 // 组织者按活动身份读（2026-09-19 批次 91 · SOP-B-17）：本人被指定为某场活动的组织者时，
 // 该场的发布口与上传位从该行可达——「组织者是这场事上被指定的人」，不是静态角色。
-import { isActivityOrganizer, findActivityById } from '../../../services/activity/activity.js?v=20261021b';
-import { openGroupNoticeComposer } from '../../../components/governance/notice-view.js?v=20261021b';
+import { isActivityOrganizer, findActivityById } from '../../../services/activity/activity.js?v=20261021c';
+import { openGroupNoticeComposer } from '../../../components/governance/notice-view.js?v=20261021c';
 // 翻页控件单一源（批次 38：全站手写翻页一律并轨 pagerHtml）
-import { pagerHtml } from '../../../components/ui/pager.js?v=20261021b';
-import { getAppState } from '../../../core/base/state.js?v=20261021b';
-import { renderContent as renderSharedActivityCalendar } from '../shared/activity-calendar-tab.js?v=20261021b';
+import { pagerHtml } from '../../../components/ui/pager.js?v=20261021c';
+import { getAppState } from '../../../core/base/state.js?v=20261021c';
+import { renderContent as renderSharedActivityCalendar } from '../shared/activity-calendar-tab.js?v=20261021c';
+import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261021c';
 
 const ACTIVITY_TYPE_COLORS = getActivityTypeColors();
 
@@ -28,7 +29,7 @@ const ACTIVITY_TYPE_COLORS = getActivityTypeColors();
 function _actEntryHtml(a, href) {
   const btns = [];
   if (canSignup('activity', a)) {
-    btns.push(`<a href="${href}" aria-label="报名活动：${a.title || ''}" class="text-xs px-3 py-1.5 rounded-lg font-medium text-white transition-colors hover:opacity-90 flex-shrink-0 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#CE1126]" style="background:var(--party-red);text-decoration:none;">去报名</a>`);
+    btns.push(`<a href="${href}" aria-label="报名活动：${a.title || ''}" class="btn-accent text-xs px-3 py-1.5 font-medium flex-shrink-0" style="text-decoration:none;">去报名</a>`);
   }
   const me = AuthStore.getCurrentUser();
   const voterIds = (a.voteConfig && Array.isArray(a.voteConfig.voterIds)) ? a.voteConfig.voterIds : [];
@@ -159,6 +160,7 @@ export function renderContent(ctx) {
 
   // 唯一主视图切换（列表 / 日历 / 查询）；日历内的「月/周/日」只是次级粒度工具条。
   tc.innerHTML = `
+    ${renderTabHeader({ title: '活动动态', description: '列表 / 日历 / 查询三视图；报名与表态从行内直达。' })}
     <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
       <span class="text-xs text-gray-500">${sorted.length} 条活动</span>
       <div class="flex gap-1" role="tablist" aria-label="活动视图">
@@ -173,7 +175,7 @@ export function renderContent(ctx) {
         </button>
       </div>
     </div>
-    <div id="visitor-act-view"></div>
+    <div class="card rounded-xl p-5"><div id="visitor-act-view"></div></div>
   `;
   _paintViewButtons(tc, 'list');
 
@@ -235,7 +237,7 @@ function _renderActListView(sorted, highlightId) {
 
   vc.innerHTML = `
     <div class="space-y-2">
-      ${sorted.length === 0 ? '<p class="text-xs text-gray-500 text-center py-6">暂无活动</p>' :
+      ${sorted.length === 0 ? '<p class="text-xs text-gray-500 text-center py-6">— 暂无活动 · 下一步：活动发布后会出现在这里</p>' :
         pageItems.map(a => _activityRowHtml(a)).join('')}
     </div>
     ${pagerHtml({ page, pages: totalPages, total: sorted.length, unit: '条' })}

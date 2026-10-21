@@ -3,7 +3,7 @@ title: "工程化评估与改造行动线"
 type: audit_report
 role: "[工程师]+[AI]"
 created: 2026-09-03
-last_updated: "2026-10-14"
+last_updated: "2026-10-21"
 status: active
 related_files: [content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md, content/04_web_design/evolution/WORKFLOW_BLOCK_CONTRACT.md, content/04_web_design/evolution/PARTY_COMMITTEE_DESIGN.md, content/04_web_design/module/SOP_WEBSITE_GUIDE.md, content/04_web_design/deploy/DEPLOYMENT_GUIDE.md, .ctx/REVIEW_QUEUE.md, CLAUDE.md, content/03_doc_system/DOC_MAP.md, content/insights/README.md, content/insights/工程与AI协作的全栈实践.md, server/README.md, docs/help.html]
 ---
@@ -248,6 +248,25 @@ Git 从 2026-03-14 至 2026-10-14 共 1,133 条提交记录；按提交日期分
 | P13 | **性能债与权限读/写面** | 🟡 **口径已定、待执行（批次 270）**：**S1**（ETag/304 ＋ 只读诊断，零结构改动；实测 `api-adapter` 的 `fetch` 未设 `cache:` ⇒ 前端无需改动即生效）先行；**S2**（读过滤/取子集**下推** ＋ 表达式索引，走 `MIGRATIONS v2`）**与「服务端支部读过滤」同批**——因实测全仓 SQL 只有主键命中，**裸加索引＝空转件**。**权限**：先「一实例一支部」上线（读过滤缺口单支部下无风险），读过滤列 **P1**、写门（`RESOURCE_WRITE_GATE` 现仅 9 项）排其后 |
 | P14 | **部署组织基线 ＋ 名单不出包 ＋ IAAA 入站** | ✅ **已落（2026-09-29 批次 270–271）**：ⓐ `server/seed-baseline.js` 最小组织基线（**党委账号 1 名 ＋ 支部 br-b1「光华管理学院本科生党支部」**，零名单，任何形态都跑且幂等）——补掉「生产空库无法自举」的死锁（实测 `users=1 / branches=1 / 其余表全空`；守卫 `seed-baseline::B1–B3` 3/3）ⓑ 发布包**名单空壳化 ＋ 消毒 ＋ 出包断言**（实测 328 文件 / 10.1 MB / 两项断言 0 命中）ⓒ **IAAA 入站服务端全链**（`server/routes/iaaa.js` 六端点；四口径＝OAuth / 无门槛 / 支书·副支书·组织委员确认 / 不新增表；协议可插拔 ＋ `IAAA_MOCK` 本地联调；守卫 `iaaa-onboarding::T1–T7` **7/7**）🟡 **未落**：IAAA 前端承载面三步（登录按钮 · 选支部层 · 待确认队列）＋ 换学号解析口径待计算中心文档（见 `REVIEW_QUEUE H-22`） |
 | 后续·残项跟踪 | 组件出口零星散件、G3-3 余下三层 | 后续（见 §一 残项 TOP 与 §二 各维残项；**已闭合项不再逐条罗列**，见日志沿革节） |
+
+### 专项台账（2026-10-21 批次 500 起，单一源）
+
+> 每批收尾必须报告本表快照与下一轮建议（`CLAUDE.md H20.3(e)`）。状态：✅ 已收口 / 🟡 在办 / ⏸ 暂停 / 后续。
+
+| 专项 | 性质 | 状态 | 下一动作 | 单一源指针 |
+|---|---|---|---|---|
+| 跨组活动落实责任党小组 | 数据/权限 | ✅ | 已收口（批次 499） | `.trae/specs/assign-cross-group-activity-to-party-group/` |
+| 汇报受众与组织汇总 | 权限/信息架构 | ✅ | 已收口（批次 500） | `issue-visibility.js`、`DATA_MODEL §2.16`、P-019 |
+| 跨角色派生待办 | 写链/权限 | ✅ | 已收口（批次 500） | `todo.js`、`todo-cross-role-safety`、`todo-role-write-gate` |
+| mock ↔ API 结构真值 | 数据真值 | ✅ 持续 | 新表 / 新字段必须进 manifest 并过 parity | `seed-manifest.js`、`mock-api-parity-structure` |
+| seed 漂移与数据生命周期 | 数据治理 | ✅ 安全模式 | cleanup/rebuild 按需运行；保留期策略待支书裁定 | `seed-drift.js`、`server/scripts/{cleanup,rebuild-demo}.mjs` |
+| 任命事务化 | 后端事务 | ✅ | 已收口（批次 500） | `semantic-routes` appointments / branch-commissioners |
+| IA 剩余项（R3） | 信息架构 | ✅ P1；后续 P2/P3 | P2/P3 按三路报告排批 | `.ctx/logs/archive/2026-10/AUDIT_R5_*.md`、`UI_AUDIT_R3.md` |
+| 宽表卡式化 | 响应式 | ✅ P1；后续 P2 | 动态列/党委目录/个人档案子表按需扩展 | `responsive-cards-guard`、`DESIGN_SYSTEM §4.20` |
+| daily test 分层 | 测试工程 | ✅ | 预算只降不升；新增测试同批登记层级 | `test-tier-registry.mjs`、`test-tier-guard` |
+| 第五轮脏乱繁审查 | 审查 | ✅ 报告；后续共识修复 | P2/P3 按报告修复顺序排批 | `.ctx/logs/archive/2026-10/AUDIT_R5_*.md` |
+| 浮层承载面 | 承载形态 | ✅ | 已收口（批次 497） | `ui-modal-form-guard`、`DESIGN_SYSTEM §4.27` |
+| form-loop 存量红 | 测试工程 | 🟡 | 按台账逐条造前置或改判据 | `form-loop-registry.mjs` |
 
 ---
 

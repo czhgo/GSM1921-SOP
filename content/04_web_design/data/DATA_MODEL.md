@@ -64,7 +64,7 @@ related_files: [content/02_institution/SYSTEM_ROLE_PERMISSION.md, content/02_ins
 | legacyHostGroup | boolean | 否 | -- | 历史「跨组且无责任党小组」记录的迁移标记（v8）。系统**不猜测归属**；组织台单列「待补责任党小组」，补选后清除 |
 | organizerExceptionReason | string | 否 | -- | 组织者不由责任党小组承担时的例外说明（软提示后留痕，不阻断写入） |
 | workgroupId | string | 是 | `wg-activity-{id}` | 活动工作组主记录 ID；活动记录与统一工作组记录在同一事务中建立 |
-| assignments | `Array<{personId: string, role: 'organizer'\|'deep'\|'participant'}>` | 否 | `[]` | 兼容旧页面/快照的镜像。新工作组成员主源为 `workgroup_members`，只含组织者/深度参与者；旧 `participant` 行只按其来源事实读取，不转成工作组成员。主题党日一般参与者以报名记录为准；三会一课按正式名单处理。授权另存 `workgroup_grants` |
+| assignments | `Array<{personId: string, role: 'organizer'\|'deep'\|'participant', crossGroup?: boolean, coordinatedBy?: string}>` | 否 | `[]` | 兼容旧页面/快照的镜像。新工作组成员主源为 `workgroup_members`，只含组织者/深度参与者；旧 `participant` 行只按其来源事实读取，不转成工作组成员。跨党小组深参与成员主源同形，镜像 `crossGroup/coordinatedBy`。主题党日一般参与者以报名记录为准；三会一课按正式名单处理。授权另存 `workgroup_grants` |
 | signupEnabled | boolean | 否 | `false` | 开放报名开关（SOP-B-2）：勾选后该活动可被报名；草稿态默认不可报名，须本字段为 `true` 才放开。**与下行的分工**：本字段＝写入活动时的「是否开放报名」，关闭动作见 `signupClosed` |
 | signupClosed | boolean | 否 | `false` | 本场报名是否已**手动关闭**（SOP-B-2 · 支书 2026-09-20 定案「不设截止，但组织者可手动关」）：置 `true` 后成员不能**新报**（判据单一出口 `services/activity/signup.js::_sourceOpen`），**已报名者仍可自行取消**；可关者＝**本场组织者（判据 `isActivityOrganizer`）＋ 支书/副支书**，入口在活动详情页报名区块旁。**不设「报名截止时点」字段** |
 | requireMakeup | boolean | 否 | `false` | 活动级「本次要求补课」（SOP-B-6）：党小组会等**不默认补课**的类型，勾选后才进补课名单（补课范围单一出口 `isMakeupRequired`） |
@@ -677,7 +677,9 @@ taskforce.members:    Array<{ personId, role: 'organizer' | 'deep' | 'participan
 | kind / reportCategory | `'report'` \| 无 / `'progress'\|'blocked'\|'ask'` | 工作汇报标记与分类（缺省＝意见反馈）。汇报带名、发往支书，走同一 `POST /issues` |
 | workgroupId / sourceType / sourceId / sourceName | string\|null / `'activity'\|'taskforce'`\|null / string\|null / string | **仅工作汇报**的可选父键：关联活动或专班。服务端按工作组复核支部归属并现取源对象名称；个人汇报四项均为空 |
 
-**受众口径（2026-10-21 支书裁定）**：内部汇报只对支书 / 副支书、汇报人、被请求人事可见；隐藏 / 已合并反馈只对支书 / 副支书与处置人（按人 / 按角色指派）可见；其余公开反馈本支部成员可读。前后端共用 `docs/src/core/domain/issue-visibility.js::canReadIssue`（服务端 `GET /issues` 同源投影），不得只做支部过滤。汇报父键**可选**：有上下文的带上，不强制挂工作组；「支部向党委报告」仍是独立的 `ReviewRequest`（§2.23），不并入意见反馈。
+**受众口径（2026-10-21 支书裁定，覆盖批次 498 的「支书层」口径）**：内部汇报对**支委层（支书 / 副支书 / 组织 / 宣传 / 纪检委员）＋当事人（汇报人 / 被请求人 / 被指派人）＋该汇报所挂工作组的组织者＋汇报人所在党小组的组长**可见；隐藏 / 已合并反馈仍只对支书 / 副支书与处置人（按人 / 按角色指派）可见；其余公开反馈本支部成员可读。前后端共用 `docs/src/core/domain/issue-visibility.js::canReadIssue`（服务端 `GET /issues` 同源投影），不得只做支部过滤。汇报父键**可选**：有上下文的带上，不强制挂工作组；「支部向党委报告」仍是独立的 `ReviewRequest`（§2.23），不并入意见反馈。
+
+**汇总口径**：汇报按组织关系提供只读汇总视图——活动 / 专班上下文按**工作组**汇总（组织者看本组），组长台按**党小组**汇总（组长看本组）；汇总使用同一批汇报，不复制、不另造数据。空态给 `—` 与下一步，不造假入口。
 
 **匿名与范围口径（D-824）**：意见反馈必须登录后提交，并始终在提交人所属支部内读取和处置；支部账号不能跨支部读写，党委账号不读取列表、不代为提交，也不能揭名。匿名提交在支部工作人员的列表与详情中始终显示为「匿名」；服务端受保护记录保留真实提交人字段，但当前不提供任何系统揭名入口。无受保护服务端存储的浏览器 mock 只保留匿名业务内容，不持久化真实身份；升级时会清理本机旧匿名缓存与草稿中的身份字段。意见反馈不是向党委上报的通道。此规则不改变正式表决独立的「真无记名」机制。
 

@@ -19,18 +19,18 @@
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { PEOPLE } from '../../docs/src/data/mock/people.js?v=20261021b';
-import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261021b';
+import { PEOPLE } from '../../docs/src/data/mock/people.js?v=20261021c';
+import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261021c';
 import {
   MockAdapter, collectResetKeys, handleResetIfRequested,
-} from '../../docs/src/data/mock-adapter.js?v=20261021b';
+} from '../../docs/src/data/mock-adapter.js?v=20261021c';
 import {
   PersonStore, MEMBER_OVERLAY_KEY, getBaseMemberRecords, findMemberRefs,
-} from '../../docs/src/services/member/person.js?v=20261021b';
-import { getRosterStats } from '../../docs/src/services/member/roster.js?v=20261021b';
-import { setDataSource } from '../../docs/src/data/data-adapter.js?v=20261021b';
+} from '../../docs/src/services/member/person.js?v=20261021c';
+import { getRosterStats } from '../../docs/src/services/member/roster.js?v=20261021c';
+import { setDataSource } from '../../docs/src/data/data-adapter.js?v=20261021c';
 // Q-23-10（批次 30）实证：成员流动流入登记在 api 形态走 /members/intake（支书/副支书亦可）
-import { registerIntake } from '../../docs/src/services/member/member-flow.js?v=20261021b';
+import { registerIntake } from '../../docs/src/services/member/member-flow.js?v=20261021c';
 import { createApp } from '../app.js';
 import { seedDatabase } from '../seed.js';
 
@@ -145,22 +145,31 @@ test('mock ③：removeMember 引用守卫命中拒绝——活动分工（24000
   assert.equal(force.ok, true, 'guardRefs:false 强制删除');
 });
 
-test('mock ④：removeMember 空引用可删（2500010036）→ 读链剔除 + 刷新仍剔除；?reset=demo 回种子（2500010036 再现）', async () => {
+test('mock ④：removeMember 空引用可删（临时成员）→ 读链剔除 + 刷新仍剔除；?reset=demo 回到种子基线', async () => {
   beginMockCase();
-  const refs = findMemberRefs('2500010036');
-  assert.deepEqual(refs, [], '2500010036 无业务引用');
-  const r = await PersonStore.removeMember('2500010036', { by: '9000000001' });
+  // 2026-10-21 批次 500：8 月全员考勤覆盖已把每位种子成员都变成“有考勤引用”，
+  // 原用 2500010036 的“无引用”前提不再成立。这里造一个临时成员，保持测试意图：
+  // 空引用可删、删除标记持久、demo 重置回种子（临时成员不是种子，重置后消失）。
+  const tempId = '2999999999';
+  const added = await PersonStore.saveMember({
+    id: tempId, name: '临时删测成员', studentId: tempId, partyGroup: '第一党小组', developStage: '正式党员', role: 'participant',
+  });
+  assert.equal(added.ok, true, JSON.stringify(added));
+  assert.deepEqual(findMemberRefs(tempId), [], '临时成员无业务引用');
+  assert.equal(PersonStore.getMembers().length, PEOPLE.length + 1);
+  const r = await PersonStore.removeMember(tempId, { by: '9000000001' });
   assert.equal(r.ok, true, JSON.stringify(r));
-  assert.equal(PersonStore.getMembers().some(p => p.id === '2500010036'), false, '读链即时剔除');
-  assert.equal(PersonStore.getMembers().length, PEOPLE.length - 1);
+  assert.equal(PersonStore.getMembers().some(p => p.id === tempId), false, '读链即时剔除');
+  assert.equal(PersonStore.getMembers().length, PEOPLE.length);
   // 模拟刷新：删除标记（覆盖层 removedIds）独立键持久
   MockAdapter.loadDB();
-  assert.equal(PersonStore.getMembers().some(p => p.id === '2500010036'), false, '刷新后删除仍持久');
-  // ?reset=demo 档：清 gsm1921-* 前缀键（含 members 覆盖层）= 回种子 → 2500010036 再现
+  assert.equal(PersonStore.getMembers().some(p => p.id === tempId), false, '刷新后删除仍持久');
+  // ?reset=demo 档：清 gsm1921-* 前缀键（含 members 覆盖层）= 回种子 → 临时成员不存在的种子基线
   stubResetWindow('?reset=demo', 'http://127.0.0.1:3000/index.html?reset=demo');
   assert.equal(handleResetIfRequested(), true);
   assert.equal(_store.has(MEMBER_OVERLAY_KEY), false, 'demo 档清除 members 覆盖层键');
-  assert.equal(PersonStore.getMembers().some(p => p.id === '2500010036'), true, '回种子：2500010036 再现');
+  assert.equal(PersonStore.getMembers().some(p => p.id === tempId), false, '回种子：临时成员不在种子基线');
+  assert.equal(PersonStore.getMembers().some(p => p.id === '2500010036'), true, '回种子：2500010036 仍在');
 });
 
 test('mock ⑤：replaceBranchMembers 到空支部生效且 roster 应到即时变化；到有历史支部（br-b1）默认拒绝', async () => {

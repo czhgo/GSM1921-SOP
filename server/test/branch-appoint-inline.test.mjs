@@ -13,12 +13,12 @@
 import { test, before } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261021b';
-import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261021b';
-import { registerMockAdapter, setDataSource } from '../../docs/src/data/data-adapter.js?v=20261021b';
-import { createBranch, getBranchById } from '../../docs/src/services/branch/branch.js?v=20261021b';
-import { PersonStore } from '../../docs/src/services/member/person.js?v=20261021b';
-import { appointInauguralOfficers } from '../../docs/src/services/branch/appointment.js?v=20261021b';
+import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261021c';
+import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261021c';
+import { registerMockAdapter, setDataSource } from '../../docs/src/data/data-adapter.js?v=20261021c';
+import { createBranch, getBranchById } from '../../docs/src/services/branch/branch.js?v=20261021c';
+import { PersonStore } from '../../docs/src/services/member/person.js?v=20261021c';
+import { appointInauguralOfficers } from '../../docs/src/services/branch/appointment.js?v=20261021c';
 
 // ── localStorage 内存桩（member-persist 同款；key/length 供 handleResetIfRequested 枚举）──
 const _store = new Map();
@@ -40,6 +40,75 @@ const BASE_USERS = (mockDB.users || []).map(u => ({ ...u }));
 //    _syncUserRole 落 mockDB.users 对应行——真实 mock 适配器同构但带 600ms 延迟，测试用同步版）──
 const adapter = {
   saveDB() {},
+  appointments: {
+    async apply(data) {
+      const branchId = String(data.branchId || '');
+      const idx = (mockDB.branches || []).findIndex(b => b.id === branchId);
+      if (idx === -1) throw Object.assign(new Error(`支部 ${branchId} 不存在`), { type: 'NotFoundError' });
+      const branch = mockDB.branches[idx];
+      if (Object.prototype.hasOwnProperty.call(data, 'expectedSecretaryId')
+        && (branch.secretaryId || null) !== (data.expectedSecretaryId || null)) {
+        throw Object.assign(new Error('现任支书已变更'), { type: 'ConflictError' });
+      }
+      const nextSecretaryId = data.secretaryId ? String(data.secretaryId) : null;
+      if (nextSecretaryId && !PersonStore.getById(nextSecretaryId)) {
+        throw Object.assign(new Error('被任命人不存在'), { type: 'BadRequestError' });
+      }
+      const now = new Date().toISOString();
+      const previousSecretaryId = branch.secretaryId || null;
+      const changedUsers = [];
+      const nextBranch = { ...branch, secretaryId: nextSecretaryId };
+      mockDB.branches = [...mockDB.branches.slice(0, idx), nextBranch, ...mockDB.branches.slice(idx + 1)];
+      const syncRole = (id, role) => {
+        const i = (mockDB.users || []).findIndex(u => u.id === id);
+        if (i >= 0) {
+          const next = { ...mockDB.users[i], role };
+          mockDB.users = [...mockDB.users.slice(0, i), next, ...mockDB.users.slice(i + 1)];
+          changedUsers.push(next);
+          return;
+        }
+        const person = PersonStore.getById(id);
+        if (!person) return;
+        const created = { ...person, role };
+        mockDB.users = [...(mockDB.users || []), created];
+        changedUsers.push(created);
+      };
+      if (previousSecretaryId && previousSecretaryId !== nextSecretaryId) syncRole(previousSecretaryId, 'participant');
+      if (nextSecretaryId) syncRole(nextSecretaryId, 'secretary');
+      const touched = [];
+      const records = (mockDB.appointmentRecords || []).map((record) => {
+        if (record.branchId !== branchId || record.to) return record;
+        const closed = { ...record, to: now };
+        touched.push(closed);
+        return closed;
+      });
+      let appointment = null;
+      if (nextSecretaryId) {
+        appointment = {
+          id: `appt-inline-${records.length + 1}`,
+          branchId,
+          secretaryId: nextSecretaryId,
+          appointedBy: 'party-staff',
+          note: data.note || '',
+          from: now,
+          to: null,
+        };
+        records.push(appointment);
+        touched.push(appointment);
+      }
+      mockDB.appointmentRecords = records;
+      for (const [id, role] of [
+        ...(previousSecretaryId && previousSecretaryId !== nextSecretaryId ? [[previousSecretaryId, 'participant']] : []),
+        ...(nextSecretaryId ? [[nextSecretaryId, 'secretary']] : []),
+      ]) {
+        const person = PersonStore.getById(id);
+        if (!person || !String(person.name || '').trim()) continue;
+        const saved = await PersonStore.saveMember({ id, role });
+        if (!saved || !saved.ok) throw Object.assign(new Error(saved?.reason || '角色同步失败'), { type: 'BadRequestError' });
+      }
+      return { ok: true, branch: nextBranch, appointment, appointmentRecords: touched, users: changedUsers };
+    },
+  },
   branches: {
     update(id, patch) {
       const idx = (mockDB.branches || []).findIndex(b => b.id === id);

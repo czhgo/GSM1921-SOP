@@ -6,17 +6,17 @@
 //   见 server/routes/resources.js 末「反馈未读标记」段），`init()` 拉取填 `mockDB.issueUnread` 供同步读；
 //   mock 形态原路径（本机键）一字未改。
 
-import { mockDB } from '../../core/domain/domain.js?v=20261021b';
-import { AuthStore } from '../core/auth.js?v=20261021b';
-import { PersonStore } from '../member/person.js?v=20261021b';
-import { bumpToken } from '../../core/base/version-token.js?v=20261021b'; // P2 渲染守卫失效（spec §四.1）
-import { getDataSource, getAdapter, isDemoReadOnly, demoReadOnlyMessage } from '../../data/data-adapter.js?v=20261021b';
-import { hashSubmitterToken, BRANCH_COMMISSION_ROLES, PARTY_STAFF_ROLE } from '../../core/domain/constants.js?v=20261021b';
+import { mockDB } from '../../core/domain/domain.js?v=20261021c';
+import { AuthStore } from '../core/auth.js?v=20261021c';
+import { PersonStore } from '../member/person.js?v=20261021c';
+import { bumpToken } from '../../core/base/version-token.js?v=20261021c'; // P2 渲染守卫失效（spec §四.1）
+import { getDataSource, getAdapter, isDemoReadOnly, demoReadOnlyMessage } from '../../data/data-adapter.js?v=20261021c';
+import { hashSubmitterToken, BRANCH_COMMISSION_ROLES, PARTY_STAFF_ROLE } from '../../core/domain/constants.js?v=20261021c';
 // 2026-09-17 批次 49：处置写链（REST 直连，不走 persist）须自登记进成功提示的统一等待点
-import { trackWrite } from '../../core/session/pending-writes.js?v=20261021b';
-import { withinBranch, getBranchIdOfPerson } from '../branch/branch.js?v=20261021b';
-import { canReadIssue } from '../../core/domain/issue-visibility.js?v=20261021b';
-import { generateId, randomHex } from '../../core/base/id.js?v=20261021b';
+import { trackWrite } from '../../core/session/pending-writes.js?v=20261021c';
+import { withinBranch, getBranchIdOfPerson } from '../branch/branch.js?v=20261021c';
+import { canReadIssue } from '../../core/domain/issue-visibility.js?v=20261021c';
+import { generateId, randomHex } from '../../core/base/id.js?v=20261021c';
 // 批次 47-M（2026-09-16）：**补上缺失的 showToast 导入**——本文件有 11 处 `showToast(...)`，
 //   却从未 import 它，页面也没有任何地方把它挂到 window 上 ⇒ 真机跑到这些行时**一律抛
 //   `ReferenceError: showToast is not defined`**。后果（正是支书实报的那类「非闭环」）：
@@ -27,7 +27,7 @@ import { generateId, randomHex } from '../../core/base/id.js?v=20261021b';
 //       **写已经落库，提示却抛在写之后**，于是「事情办成了，但界面一声不吭」，用户会以为没生效而重复提交。
 //   之所以长期没被发现：这五处校验点的「载体不在位」旧理由（「需先有议题并进入评论态」等）把它们
 //   一直挂在 machine:false 白名单里，**真机从未跑到这些行**（见批 47-M 台账注释）。
-import { showToast, todayLocal } from '../../core/base/utils.js?v=20261021b';
+import { showToast, todayLocal } from '../../core/base/utils.js?v=20261021c';
 // 统一检索引擎（2026-09-14 批次 37）：本 tab 三区各接一个实例（关键词 + 引擎内置分页）
 
 /** 解析人员 ID → 姓名（反馈系统统一走 PersonStore 唯一解析源） */
@@ -232,13 +232,47 @@ function _viewerCtx() {
   return { personId: user?.personId || null, role: user?.role || null };
 }
 
+const PARTY_GROUP_LEADER_ROLES = ['leader', 'deputy-leader'];
+
 /**
- * 支部过滤 ＋ 受众投影（单一源 `canReadIssue`）：内部汇报只给支书层与当事人，
- * 隐藏反馈只给支书层与处置人。前端所有「列表 / 详情 / 统计」读口都经此，不得各自只做支部过滤。
+ * 组织关系解析（受众判据注入项，与 server `issueAudienceContext` 同口径）：
+ *  · 工作组组织者 = 工作组成员中 role='organizer' 的在册成员；存量活动另认 `activity.organizer`；
+ *  · 党小组组长 = 观看者为 leader / deputy-leader，且与汇报人同属一个党小组。
+ * 只读现有缓存，不改写、不猜人。
+ */
+function _audienceAccess(viewer) {
+  const personId = viewer?.personId || null;
+  const organizerWorkgroups = new Set();
+  if (personId) {
+    for (const row of (mockDB.workgroupMembers || [])) {
+      if (row.personId === personId && row.role === 'organizer' && row.status !== 'removed') {
+        organizerWorkgroups.add(row.workgroupId);
+      }
+    }
+    for (const activity of (mockDB.activities || [])) {
+      if (activity.organizer === personId) {
+        organizerWorkgroups.add(activity.workgroupId || `wg-activity-${activity.id}`);
+      }
+    }
+  }
+  const myGroup = personId ? (PersonStore.getById(personId)?.partyGroup || null) : null;
+  return {
+    isWorkgroupOrganizer: (workgroupId) => !!workgroupId && organizerWorkgroups.has(workgroupId),
+    isPartyGroupLeaderOf: (submitterId) => !!myGroup && !!submitterId
+      && PARTY_GROUP_LEADER_ROLES.includes(viewer?.role)
+      && PersonStore.getById(submitterId)?.partyGroup === myGroup,
+  };
+}
+
+/**
+ * 支部过滤 ＋ 受众投影（单一源 `canReadIssue`）：内部汇报给支委层、当事人、该工作组组织者与
+ * 汇报人所在党小组组长；隐藏反馈只给支书层与处置人。前端所有「列表 / 详情 / 统计」读口都经此，
+ * 不得各自只做支部过滤。
  */
 function _visibleIssues(list) {
   const viewer = _viewerCtx();
-  return _withinViewerBranch(list).filter(row => canReadIssue(row, viewer));
+  const access = _audienceAccess(viewer);
+  return _withinViewerBranch(list).filter(row => canReadIssue(row, viewer, access));
 }
 
 /**
@@ -855,32 +889,39 @@ export const IssueStore = {
     return _sanitizeIssue(issue);
   },
 
-  /** 我发起的汇报（全部状态；按 viewer 所属支部过滤）；出口脱敏 */
+  /** 我发起的汇报（全部状态；受众投影）；出口脱敏 */
   getMyReports(userId) {
-    return _sanitizeIssues(_withinViewerBranch(_issuesCache || []).filter(i =>
+    return _sanitizeIssues(_visibleIssues(_issuesCache || []).filter(i =>
       i.kind === 'report' && i.submittedBy === userId && !i.hidden && !i.mergedInto
     ));
   },
 
-  /** 支书请我汇报、尚未提交的请求（按 viewer 所属支部过滤）；出口脱敏 */
+  /** 支书请我汇报、尚未提交的请求（受众投影）；出口脱敏 */
   getReportRequestsFor(userId) {
-    return _sanitizeIssues(_withinViewerBranch(_issuesCache || []).filter(i =>
+    return _sanitizeIssues(_visibleIssues(_issuesCache || []).filter(i =>
       i.kind === 'report' && i.requestedBy && i.assignee === userId &&
       i.status === 'open' && !i.hidden && !i.mergedInto
     ));
   },
 
-  /** 支书待答复/待终审的汇报（开放中，含成员主动汇报与请求后的回应；按 viewer 所属支部过滤）；出口脱敏 */
+  /** 支书待答复/待终审的汇报（开放中，含成员主动汇报与请求后的回应；受众投影）；出口脱敏 */
   getSecretaryPendingReports() {
-    return _sanitizeIssues(_withinViewerBranch(_issuesCache || []).filter(i =>
+    return _sanitizeIssues(_visibleIssues(_issuesCache || []).filter(i =>
       i.kind === 'report' && i.status === 'open' && !i.hidden && !i.mergedInto
     ));
   },
 
-  /** 某人发起的全部汇报（按 viewer 所属支部过滤）；出口脱敏 */
+  /** 某人发起的全部汇报（受众投影）；出口脱敏 */
   getReportsBySubmitter(personId) {
-    return _sanitizeIssues(_withinViewerBranch(_issuesCache || []).filter(i =>
+    return _sanitizeIssues(_visibleIssues(_issuesCache || []).filter(i =>
       i.kind === 'report' && i.submittedBy === personId && !i.hidden && !i.mergedInto
+    ));
+  },
+
+  /** 受众投影后的全部内部汇报（汇总面单一读口；含已关闭，供按工作组 / 党小组再分组）；出口脱敏 */
+  getVisibleReports() {
+    return _sanitizeIssues(_visibleIssues(_issuesCache || []).filter(i =>
+      i.kind === 'report' && !i.hidden && !i.mergedInto
     ));
   },
 
@@ -926,16 +967,16 @@ export const IssueStore = {
     return { source: _sanitizeIssue(source), target: _sanitizeIssue(target) };
   },
 
-  /** 被指派给某人的反馈（开放中；按 viewer 所属支部过滤）；出口脱敏 */
+  /** 被指派给某人的反馈（开放中；受众投影）；出口脱敏 */
   getAssignedTo(userId) {
-    return _sanitizeIssues(_withinViewerBranch(_issuesCache || []).filter(i =>
+    return _sanitizeIssues(_visibleIssues(_issuesCache || []).filter(i =>
       i.assignee === userId && i.status === 'open' && !i.hidden && !i.mergedInto
     ));
   },
 
-  /** 被指派给某角色的反馈（开放中；按 viewer 所属支部过滤）；出口脱敏 */
+  /** 被指派给某角色的反馈（开放中；受众投影）；出口脱敏 */
   getAssignedToRole(role) {
-    return _withinViewerBranch(_issuesCache || []).filter(i =>
+    return _visibleIssues(_issuesCache || []).filter(i =>
       i.assigneeRole === role && i.status === 'open' && !i.hidden && !i.mergedInto
     ).map(_sanitizeIssue);
   },
@@ -965,7 +1006,7 @@ export const IssueStore = {
     if (!userId) return [];
     const myToken = _peekSubmitterToken();
     const myHash = myToken ? hashSubmitterToken(myToken) : null;
-    return _sanitizeIssues(_withinViewerBranch(_issuesCache || []).filter(i =>
+    return _sanitizeIssues(_visibleIssues(_issuesCache || []).filter(i =>
       i.kind !== 'report' && !i.hidden && !i.mergedInto &&
       (i.submittedBy === userId || (i.participants || []).includes(userId) ||
         (!!myHash && i.tokenHash === myHash))

@@ -63,7 +63,7 @@ async function openWriteStep1(page) {
   ]);
   await page.waitForFunction(() => [...document.querySelectorAll('.secretary-tab-btn')].some(b => b.textContent.includes('活动')), null, { timeout: 12000 });
   // P0-2 形态断言（2026-09-23 支书裁定「形态必须可断言」）：本文件真机用例必须在 API 形态下跑
-  await page.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20261021b')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
+  await page.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20261021c')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
   await page.evaluate(() => [...document.querySelectorAll('.secretary-tab-btn')].find(b => b.textContent.includes('活动'))?.click());
   await page.waitForFunction(() => document.getElementById('ws-sec-write-btn'), null, { timeout: 10000 });
   await page.evaluate(() => document.getElementById('ws-sec-write-btn')?.click());
@@ -71,7 +71,8 @@ async function openWriteStep1(page) {
 }
 
 test('S4 主题党日块入口守卫：停用 → Step1 模板卡消失 → 恢复默认回归', async () => {
-  const staffToken = await apiLogin('9000000001');
+  // 党委不代支部选配流程块（`workflow-block-config`：党委写 blocks 403）⇒ 用本支部书记改配置。
+  const staffToken = await apiLogin('2300010001');
 
   // ① 基线：默认主题党日模板卡（data-tpl-click="1"）存在
   const page1 = await newPage();
@@ -114,15 +115,18 @@ async function readThreeMeetingSubtypes(page) {
 }
 
 test('S4+ 三会一课块入口守卫（2026-09-28 批次 248）：停用「党课块」→ 该场景模板按钮消失 → 恢复回归', async () => {
-  const staffToken = await apiLogin('9000000001');
+  // 同上：用本支部书记（党委写 blocks 403）。
+  const staffToken = await apiLogin('2300010001');
 
-  // ① 基线：四个三会一课子类按钮都在
+  // ① 基线：三会一课三个子类按钮都在
+  //    ⚠ 2026-10-21 批次 500 改准：`party-group-meeting` 自批次 499 起**不再出现在支书台写入模板**
+  //    （`WRITE_TEMPLATES` 显式过滤：党小组会由组长台发起）⇒ 基线由 4 条改 3 条。
   const p_2400012345 = await newPage();
   try {
     await openWriteStep1(p_2400012345);
     assert.deepEqual((await readThreeMeetingSubtypes(p_2400012345)).sort(),
-      ['branch-committee', 'branch-party-meeting', 'party-group-meeting', 'party-lecture'],
-      '默认四个三会一课子类都在');
+      ['branch-committee', 'branch-party-meeting', 'party-lecture'],
+      '默认三个三会一课子类都在');
   } finally { await p_2400012345.close(); }
 
   // ② 支部停用 party-lecture（党课块）→ 只有该场景的按钮消失 + 提示点名它
@@ -135,7 +139,7 @@ test('S4+ 三会一课块入口守卫（2026-09-28 批次 248）：停用「党�
     await openWriteStep1(p_2400012346);
     const subs = await readThreeMeetingSubtypes(p_2400012346);
     assert.equal(subs.includes('party-lecture'), false, '停用后「党课」模板按钮消失');
-    assert.equal(subs.length, 3, '其余三会一课子类不受影响');
+    assert.equal(subs.length, 2, '其余三会一课子类不受影响（基线 3 条 − 党课 = 2）');
     const notice = await p_2400012346.evaluate(() => document.body.textContent.includes('工作流块「党课块」已由支部配置停用'));
     assert.equal(notice, true, '停用提示点名「党课块」');
   } finally { await p_2400012346.close(); }
@@ -152,7 +156,8 @@ test('S4+ 三会一课块入口守卫（2026-09-28 批次 248）：停用「党�
 });
 
 test('S4++ 三会一课四块全停用（2026-09-29 批次 249）：子类按钮全消失 ＋ 空态文案 ＋ 提示逐块点名 → 恢复回归', async () => {
-  const staffToken = await apiLogin('9000000001');
+  // 同上：用本支部书记（党委写 blocks 403）。
+  const staffToken = await apiLogin('2300010001');
   const ALL4 = ['branch-party-meeting', 'branch-committee', 'party-group-meeting', 'party-lecture'];
 
   await patchBlocks(staffToken, {
@@ -165,21 +170,24 @@ test('S4++ 三会一课四块全停用（2026-09-29 批次 249）：子类按钮
     assert.deepEqual(await readThreeMeetingSubtypes(p_2400012345), [], '四块全停用后三会一课子类按钮**全消失**');
     const txt = await p_2400012345.evaluate(() => document.body.textContent);
     assert.ok(txt.includes('本类目下的工作流块均已由支部配置停用。'), '显示「本类目全停用」空态文案');
-    // 逐块点名（`<块名>块` 只出现在停用提示句里 ⇒ 可精确断言提示覆盖了全部四块）
-    ['支部党员大会块', '支委会块', '党小组会块', '党课块'].forEach((n) => {
+    // 逐块点名（`<块名>块` 只出现在停用提示句里 ⇒ 可精确断言提示覆盖了写入模板可见的三块）
+    //    ⚠ 党小组会块自批次 499 起不在支书台写入模板 ⇒ 提示句也不再点名它（如实按现行为断言）。
+    ['支部党员大会块', '支委会块', '党课块'].forEach((n) => {
       assert.ok(txt.includes(n), `停用提示应点名「${n}」`);
     });
   } finally { await p_2400012345.close(); }
 
-  // 恢复默认 → 四块按钮全回归
+  // 恢复默认 → 三块按钮全回归（党小组会块不在支书台写入模板，自批次 499 起）
   await patchBlocks(staffToken, null);
   const p_2400012346 = await newPage();
   try {
     await openWriteStep1(p_2400012346);
-    assert.deepEqual((await readThreeMeetingSubtypes(p_2400012346)).sort(), [...ALL4].sort(), '恢复默认后四个子类全部回归');
+    assert.deepEqual((await readThreeMeetingSubtypes(p_2400012346)).sort(),
+      ['branch-committee', 'branch-party-meeting', 'party-lecture'],
+      '恢复默认后三个子类全部回归');
   } finally { await p_2400012346.close(); }
 
-  console.log('[S4++] 三会一课块全停用: 四按钮全消失+空态+逐块点名 → 恢复→四块回归 闭环通过');
+  console.log('[S4++] 三会一课块全停用: 按钮全消失+空态+逐块点名 → 恢复→三块回归 闭环通过');
 });
 
 // ════════════════════════════════════════════════════════════════
@@ -195,7 +203,8 @@ const CALENDAR_TAB_SRC = fileURLToPath(new URL('../../docs/src/entries/tabs/secr
 const MANIFEST_HINT = '如：学习两会精神主题党日';
 
 test('S4 表单元数据单一源（真机）：主题党日标题 hint 来自 manifest ＋ 反证不硬编码 ＋ 三会一课对照无', async () => {
-  const staffToken = await apiLogin('9000000001');
+  // 同上：用本支部书记（党委写 blocks 403）。
+  const staffToken = await apiLogin('2300010001');
   await patchBlocks(staffToken, null); // 默认全开（守卫前置：块停用会让模板卡消失、选不到模板）
 
   // ② 反证（先做，纯文件读，快）：该 hint 不得硬编码在写面板源码里

@@ -23,8 +23,8 @@ export const SEED_DATA_VERSION = '2026-10-21a';
  * @property {string}  id          - 唯一标识符（由 id.js 生成）
  * @property {string}  title       - 活动标题
  * @property {string}  type        - 活动类型（如 '组织生活会'、'主题党日'）
- * @property {'party-group'|'cross-group'} [organizingScope] - 持久化承办责任范围；不限制成员报名或参加
- * @property {string|null} [hostGroupId] - 组内承办党小组 ID；跨组承办时为 null
+ * @property {'party-group'|'cross-group'|'branch'} [organizingScope] - 持久化组织落点；跨组只改变参与/招募范围，不限制成员报名或参加；支部级法定会议为 branch
+ * @property {string|null} [hostGroupId] - 责任党小组 ID；所有非支部级活动必填，branch 时必须为 null
  * @property {string} [workgroupId] - 随活动创建的活动工作组主记录 ID
  * @property {string} [branchId] - 活动所属支部；关联写入须由服务端校验同支部
  * @property {'draft'|'pending-approval'|'published'|'ongoing'|'completed'|'cancelled'} status - 活动状态（`pending-approval`＝待批，2026-09-22 批次 150 活动批准门开启时写入，默认关） - Source: knowledge/SOP/常见工作场景快速指南.md#我要组织一次党小组活动
@@ -69,8 +69,8 @@ export const SEED_DATA_VERSION = '2026-10-21a';
  * @property {string} name
  * @property {'draft'|'pending_review'|'recruiting'|'active'|'completed'|'archived'|'dissolved'} status
  *   - 状态词为 `WorkgroupStatus`；活动工作组只会出现 `active/archived`，专班工作组随专班生命周期
- * @property {'party-group'|'cross-group'} [organizingScope] - 活动工作组的承办范围
- * @property {string|null} [hostGroupId] - 活动工作组的承办党小组；跨组时为 null
+ * @property {'party-group'|'cross-group'|'branch'} [organizingScope] - 活动工作组的组织落点
+ * @property {string|null} [hostGroupId] - 责任党小组 ID；所有非支部级活动必填，branch 时必须为 null（recruitmentScope / crossGroupCoordinatorId 见 DATA_MODEL §2.3.1）
  * @property {string} createdBy
  * @property {string} createdAt
  */

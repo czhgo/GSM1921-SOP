@@ -15,14 +15,15 @@
 //   判据复用既有 `reviewHistory`（打回是唯一留痕动作），不新增字段、不复活旧 `pending` 状态。
 //   它只提示「还没看过」，不拦归档、不产生写动作。
 
-import { listAllThoughtReports, comparePeriodDesc, periodOf } from '../../../services/governance/thought-report.js?v=20261021b';
-import { getPersonName, liveMembers } from '../../../services/member/person.js?v=20261021b';
-import { AuthStore } from '../../../services/core/auth.js?v=20261021b';
-import { escHtml as esc, getBasePath } from '../../../core/base/utils.js?v=20261021b';
-import { ROLE_LABELS } from '../../../core/domain/constants.js?v=20261021b';
-import { listRowHtml } from '../../../components/ui/list-row.js?v=20261021b';
+import { listAllThoughtReports, comparePeriodDesc, periodOf } from '../../../services/governance/thought-report.js?v=20261021c';
+import { getPersonName, liveMembers } from '../../../services/member/person.js?v=20261021c';
+import { AuthStore } from '../../../services/core/auth.js?v=20261021c';
+import { escHtml as esc, getBasePath } from '../../../core/base/utils.js?v=20261021c';
+import { ROLE_LABELS } from '../../../core/domain/constants.js?v=20261021c';
+import { listRowHtml } from '../../../components/ui/list-row.js?v=20261021c';
 // 例外清单仍是按人表：接统一引擎只为**分页**（无关键词 / 无分面时引擎自动不渲染检索条）。
-import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261021b';
+import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261021c';
+import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261021c';
 
 const STATUS_LABEL = {
   needs_revision: '已打回 · 待补充',
@@ -66,15 +67,16 @@ export function renderContent(ctx) { // ctx 对齐 org 其它 tab（本 tab 不�
 
   const user = AuthStore.getCurrentUser();
   if (!user) {
-    container.innerHTML = '<div class="card rounded-xl p-5"><p class="text-xs text-gray-500 text-center py-6">请先登录后使用</p></div>';
+    container.innerHTML = `${renderTabHeader({ title: '思想汇报' })}<div class="card rounded-xl p-5"><p class="text-xs text-gray-500 text-center py-6">— 请先登录后使用</p></div>`;
     return;
   }
   // 防御：非组织委员不渲染。角色键一律走 ROLE_LABELS（R3-04：不得把 `secretary` 原样抛给用户）。
   if (user.role !== 'org-commissioner') {
     const roleName = ROLE_LABELS[user.role] || '当前身份';
     container.innerHTML = `
+      ${renderTabHeader({ title: '思想汇报' })}
       <div class="card rounded-xl p-5">
-        <p class="text-xs text-gray-500 text-center py-6">无权限：仅组织委员可审阅思想汇报（当前身份：${esc(roleName)}）</p>
+        <p class="text-xs text-gray-500 text-center py-6">— 无权限：仅组织委员可审阅思想汇报（当前身份：${esc(roleName)}）</p>
       </div>`;
     return;
   }
@@ -129,13 +131,14 @@ export function renderContent(ctx) { // ctx 对齐 org 其它 tab（本 tab 不�
   const total = counts.reduce((sum, n) => sum + n, 0);
 
   container.innerHTML = `
+    ${renderTabHeader({ title: '思想汇报', description: '本期未交、待初阅与待补充的例外清单。' })}
     <div class="card rounded-xl p-5">
       <div class="flex items-center justify-between flex-wrap gap-2">
         <div class="min-w-0">
           <h3 class="font-title-cn text-base font-semibold text-gray-800">思想汇报例外</h3>
           <p class="mt-0.5 text-xs text-gray-500">${esc(currentPeriod)} · 需处理 ${total} 项</p>
         </div>
-        <a href="${getBasePath()}workspace/org.html?tab=roster" class="text-xs text-gray-500 hover:text-gray-700 underline">完整记录在成员个人档案 →</a>
+        <span class="text-xs text-gray-500">完整记录见各行「档案」</span>
       </div>
       <div class="mt-4 space-y-4">
         ${GROUPS.map((g) => {
@@ -151,7 +154,6 @@ export function renderContent(ctx) { // ctx 对齐 org 其它 tab（本 tab 不�
           </section>`;
         }).join('')}
       </div>
-      <p class="mt-4 text-xs text-gray-500">提交即入库归档；本页只列例外，供催交与审阅，不改变归档状态。</p>
     </div>
   `;
 

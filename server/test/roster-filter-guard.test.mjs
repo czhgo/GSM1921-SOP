@@ -64,3 +64,18 @@ test('R4 390px 单列：名册检索条在窄屏逐行排布', () => {
 test('R5 守卫登记在 test:daily', () => {
   assert.match(PKG, /test:daily[^\n]*roster-filter-guard\.test\.mjs/, 'test:daily 须登记 roster-filter-guard.test.mjs');
 });
+
+test('R6 R3-17：待确认摘要不重复、pill title 只写「待支书确认」', () => {
+  assert.doesNotMatch(ROSTER, /等待支书确认/, '「待支书确认：」已在前，尾部不得再说一遍「等待支书确认」');
+  assert.match(ROSTER, /_pendingPill\('阶段变更·待确认', '待支书确认'\)/, '阶段 pill title 须压成「待支书确认」');
+  assert.match(ROSTER, /_pendingPill\('在册状态·待确认', '待支书确认'\)/, '在册 pill title 须压成「待支书确认」');
+  assert.doesNotMatch(ROSTER, /已报送支书确认，生效前保持现值/, 'pill 不得再讲 40 字路由说明');
+});
+
+test('R7 R3-18：新增成员不写「推荐填写」，占位符只给例子', () => {
+  assert.doesNotMatch(ROSTER, /推荐填写/, '学号 / 届别不得再写「推荐填写」');
+  assert.doesNotMatch(ROSTER, /仅「滞留」时填写/, '占位符不得写填写规则');
+  assert.match(ROSTER, /placeholder: '如 2400012345'/, '学号占位符须只给例子');
+  assert.match(ROSTER, /placeholder: '如 2026'/, '届别占位符须只给例子');
+  assert.match(ROSTER, /placeholder: '如：2026-09 起赴外校交换一学期'/, '滞留备注占位符须只给例子');
+});

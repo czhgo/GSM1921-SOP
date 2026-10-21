@@ -27,14 +27,13 @@ const {
   INIT_BLOB_KEY, INIT_BLOB_CLEAR_DEFAULTS, INIT_WHITELIST_STANDALONE_KEYS,
   INIT_STATE_KEY, stripSeedRecordsIfInitState,
   collectInitKeys, trimInitBlob, handleInitResetIfRequested,
-} = await import('../../docs/src/services/core/init-reset.js?v=20261021b');
+} = await import('../../docs/src/services/core/init-reset.js?v=20261021c');
 // 接线冒烟（⑤）：走 services/core/mock.js loadDB 可改 reset 链（数据源默认 mock）
-const { loadDB, saveDB } = await import('../../docs/src/services/core/mock.js?v=20261021b');
+const { loadDB, saveDB } = await import('../../docs/src/services/core/mock.js?v=20261021c');
 // C2 修复（⑥）：浏览器加载链多轮 loadDB 稳态断言（内存 mockDB 与浏览器同源单例）
-const { mockDB } = await import('../../docs/src/core/domain/domain.js?v=20261021b');
-// 专班域在 mock-adapter 中按「空即回种子」的恒常口径装载（不属于 init 可清空的业务过程域），
-// 断言取种子常量长度而非写死 0 —— 种子增删时本断言随单源自洽。
-const { MOCK_TASKFORCES } = await import('../../docs/src/data/mock/taskforces.js?v=20261021b');
+const { mockDB } = await import('../../docs/src/core/domain/domain.js?v=20261021c');
+// 专班域自 B-499-8 起纳入 init 清空范围（不再按「空即回种子」恒常装载），
+// 断言据此改为真实空态；种子常量的增删不再影响本文件的期望值。
 
 // ── 内存桩（与 reset-tier.test.mjs 同构）────────────────────────
 function makeStorage(seed = {}) {
@@ -339,8 +338,13 @@ test('接线：services/core/mock.js loadDB（mock 数据源）在 ?reset=init �
 // MockAdapter.loadDB 后 stripSeedRecordsIfInitState 剔除回填种子并 saveDB——多轮 loadDB
 // 业务域稳态为空、白名单（账号/支部 config/任期档案）在；demo 无哨兵仍回种子（行为不变）。
 
-/** 演示种子回填域（mock-adapter merge/_seedInitialData 会回填的全部业务域） */
-const SEED_BACKFILL_KEYS = ['activities', 'tasks', 'assignments', 'attendances', 'notices', 'archiveRecords', 'signups'];
+/** 演示种子回填域（mock-adapter 正常加载/演示重建可能触及的全部业务域） */
+const SEED_BACKFILL_KEYS = [
+  'activities', 'tasks', 'assignments', 'attendances', 'notices', 'archiveRecords', 'signups',
+  'taskforces', 'makeupTasks', 'reviewRequests', 'partyGroups',
+  'workgroups', 'workgroupMembers', 'workgroupGrants', 'workgroupTasks', 'workgroupOutputs',
+  'attendanceRosters',
+];
 
 test('C2 修复：init 后浏览器加载链多轮 loadDB——业务域空 / 白名单在 / 再次 loadDB 仍空不回填', () => {
   const { ls, win } = stubGlobals({
@@ -362,8 +366,13 @@ test('C2 修复：init 后浏览器加载链多轮 loadDB——业务域空 / �
   for (const key of SEED_BACKFILL_KEYS) {
     assert.equal(mockDB[key].length, 0, `第 2 轮 loadDB 后 ${key} 为空（不被种子回填）`);
   }
-  assert.equal(mockDB.taskforces.length, MOCK_TASKFORCES.length,
-    'taskforces 读数与种子单源一致（专班域按种子装载，不写死 0）');
+  assert.equal(mockDB.taskforces.length, 0,
+    'taskforces 在 init 态必须保持空（B-499-8：不再回种子）');
+  assert.equal(mockDB.makeupTasks.length, 0, 'makeupTasks 在 init 态必须保持空');
+  assert.equal(mockDB.reviewRequests.length, 0, 'reviewRequests 在 init 态必须保持空');
+  assert.equal(mockDB.partyGroups.length, 0, 'partyGroups 在 init 态必须保持空');
+  assert.equal(mockDB.workgroups.length, 0, 'workgroups 在 init 态必须保持空');
+  assert.equal(mockDB.attendanceRosters.length, 0, 'attendanceRosters 在 init 态必须保持空');
   assert.ok(mockDB.users.some(u => u.id === 'u_sec'), '账号结构保留（空支部起步登录可用）');
   assert.ok(mockDB.branches.some(b => b.id === 'br-b1'), '支部实例 br-b1 保留');
   assert.ok(mockDB.branches[0].config.headerTitle && mockDB.branches[0].config.workforce, '支部 config（header/分工）保留');
@@ -461,7 +470,7 @@ test('C2 修复：stripSeedRecordsIfInitState——有哨兵只剔种子留用�
 });
 
 test('C2 修复：loadActivities 读兜底——init 态空态返回 []（不回退演示种子）；无哨兵保持原回退', async () => {
-  const { loadActivities } = await import('../../docs/src/services/activity/activity.js?v=20261021b');
+  const { loadActivities } = await import('../../docs/src/services/activity/activity.js?v=20261021c');
   const { ls } = stubGlobals({ search: '', href: 'http://127.0.0.1:3000/index.html', store: { page_pref: 'x' } });
   // 无哨兵（正常演示态）：mockDB 空 → 回退演示种子（首屏早期/未加载语义不变）
   mockDB.activities = [];

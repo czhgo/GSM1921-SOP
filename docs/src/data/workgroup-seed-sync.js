@@ -1,9 +1,9 @@
 // Mock 数据兼容迁移：为已有活动/专班建立稳定工作组主记录。
 // 不搬移普通参与者，不猜测旧专班任务/产出；原始业务记录仍是来源。
-import { WorkgroupStatus, workgroupStatusForTaskforce } from '../core/domain/domain.js?v=20261021b';
-import { isBranchLevelActivity } from '../core/domain/constants.js?v=20261021b';
-import { PARTY_GROUPS } from './mock/party-groups.js?v=20261021b';
-import { PEOPLE } from './mock/people.js?v=20261021b';
+import { WorkgroupStatus, workgroupStatusForTaskforce } from '../core/domain/domain.js?v=20261021c';
+import { isBranchLevelActivity } from '../core/domain/constants.js?v=20261021c';
+import { PARTY_GROUPS } from './mock/party-groups.js?v=20261021c';
+import { PEOPLE } from './mock/people.js?v=20261021c';
 
 const MEMBER_ROLES = new Set(['organizer', 'deep']);
 
@@ -48,6 +48,21 @@ export function normalizeSeedActivityOrganizing(activities) {
       ...(crossRecruit ? { recruitmentScope: 'cross-group', crossGroupCoordinatorId: commissioner?.id || null } : {}),
     };
   });
+}
+
+/**
+ * 种子活动行的**完整装载归一**（2026-10-21 批次 499 B-499-4）：
+ * 在组织落点归一之后，补齐数据模型必填的装载默认字段（`visibility / createdBy / createdAt`）。
+ * 原先只有 `mock-adapter.js::_seedInitialData` 在浏览器装载时补这三项 ⇒ API 首启行缺字段，
+ * 两形态结构漂移。本函数为 server 播种与 mock 装载共用的单一源；不新增人员、不编造活动。
+ */
+export function normalizeSeedActivitySeedRows(activities) {
+  return normalizeSeedActivityOrganizing(activities).map((activity) => ({
+    ...activity,
+    visibility: activity.visibility || 'branch',
+    createdBy: activity.createdBy || activity.organizer || null,
+    createdAt: activity.createdAt || activity.date,
+  }));
 }
 
 const groupIdFor = (kind, sourceId) => `wg-${kind}-${sourceId}`;

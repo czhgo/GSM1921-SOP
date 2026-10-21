@@ -10,8 +10,18 @@
 // ════════════════════════════════════════════════════════════════
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync, readdirSync, statSync } from 'node:fs';
+import { readFileSync, readdirSync, statSync, mkdtempSync, mkdirSync, writeFileSync, rmSync, existsSync, utimesSync } from 'node:fs';
 import { join, dirname } from 'node:path';
+import { tmpdir } from 'node:os';
+import { spawnSync } from 'node:child_process';
+import Database from 'better-sqlite3';
+import { initDb } from '../db.js';
+import {
+  classifyPersistKey, classifyTable,
+} from '../../docs/src/data/seed-manifest.js?v=20261021c';
+import {
+  INIT_BLOB_KEEP_KEYS, INIT_BLOB_CLEAR_DEFAULTS, trimInitBlob,
+} from '../../docs/src/services/core/init-reset.js?v=20261021c';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -169,4 +179,165 @@ test('⑦ 建表清单不新增只写不读集合（允许清单 + 理由，P1-2
   const added = [...tables].filter((table) => !BASELINE_TABLES.has(table));
   const offenders = added.filter((table) => !readByApp(table) && !TABLE_WRITE_ONLY_ALLOWED[table]);
   assert.deepEqual(offenders, [], `以下新增表只写不读且未登记理由：${offenders.join('、')}`);
+});
+
+// ════════════════════════════════════════════════════════════════
+//  B-499-8（Task 4）：数据生命周期守卫
+//  ⑧ 分类完整性：mock 持久化键 / mockDB 键 / db 表都必须有归属（种子或非种子登记）
+//  ⑨ reset 分区：每个持久化键必须落在 init 的 keep 或 clear 分区
+//  ⑩ init 空态真实性：工作组域 / attendanceRosters / 旧 weeklyReports 必须被清空
+//  ⑪ API token no-op：?reset=init 的边界仍以 token 为门
+//  ⑫ 清理安全：cleanup 默认 dry-run；--apply 只删孤儿附件 / 悬空附件行 / 旧备份
+//  ⑬ 重建边界：rebuild-demo 生产拒绝 demo、目标已存在拒绝、只写指定输出
+//  ⑭ 档案归档单删联动物理文件
+// ════════════════════════════════════════════════════════════════
+
+const adapterSource = readFileSync(join(SRC, 'data', 'mock-adapter.js'), 'utf8');
+const persistedKeys = [...(/localStorage\.setItem\(STORAGE_KEY, JSON\.stringify\(\{([\s\S]*?)\}\)\)/.exec(adapterSource)?.[1] || '')
+  .matchAll(/^ {6}([A-Za-z_$][\w$]*):/gm)].map((m) => m[1]);
+const domainSource = readFileSync(join(SRC, 'core', 'domain', 'domain.js'), 'utf8');
+const mockDbKeys = [...(/export const mockDB = \{([\s\S]*?)\n\};/.exec(domainSource)?.[1] || '')
+  .matchAll(/^ {2}([A-Za-z_$][\w$]*):/gm)].map((m) => m[1]).filter((key) => key !== '_loaded');
+
+test('⑧ 分类完整性：mock 持久化键 / mockDB 键 / 物理表全部有归属（未分类即红）', () => {
+  assert.ok(persistedKeys.length >= 30, `持久化键抽取失败（实得 ${persistedKeys.length} 个）`);
+  const unclassifiedKeys = [...new Set([...persistedKeys, ...mockDbKeys])].filter((key) => !classifyPersistKey(key));
+  assert.deepEqual(unclassifiedKeys, [], `以下持久化键未在 seed-manifest 分类：${unclassifiedKeys.join('、')}`);
+
+  const dbSource = readFileSync(join(ROOT, 'server', 'db.js'), 'utf8');
+  const namesFrom = (pattern) => [...(pattern.exec(dbSource)?.[1] || '').matchAll(/'([a-z0-9_]+)'/g)]
+    .map((m) => m[1]).filter((name) => name !== 'id' && name !== 'data');
+  const tables = new Set([
+    ...namesFrom(/const RESOURCE_TABLES = \[([\s\S]*?)\n\];/),
+    ...namesFrom(/export const SEMANTIC_TABLES = \[([\s\S]*?)\n\];/),
+    ...namesFrom(/const WORKGROUP_TABLES = Object\.freeze\(\[([\s\S]*?)\]\);/),
+    'sessions', 'attachments', 'collection_versions', 'seed_meta',
+  ]);
+  const unclassifiedTables = [...tables].filter((table) => !classifyTable(table));
+  assert.deepEqual(unclassifiedTables, [], `以下物理表未在 seed-manifest 分类：${unclassifiedTables.join('、')}`);
+});
+
+test('⑨ reset 分区：每个 mock 持久化键必须落在 init 的 keep 或 clear 分区', () => {
+  const partition = new Set([...INIT_BLOB_KEEP_KEYS, ...Object.keys(INIT_BLOB_CLEAR_DEFAULTS)]);
+  const orphans = persistedKeys.filter((key) => !partition.has(key));
+  assert.deepEqual(orphans, [], `以下持久化键未纳入 init 分区（keep / clear）：${orphans.join('、')}`);
+});
+
+test('⑩ init 空态真实性：工作组域 / attendanceRosters / 旧 weeklyReports 均被清空', () => {
+  const blob = {
+    _schema: 1,
+    users: [{ id: 'u_sec' }],
+    branches: [{ id: 'br-b1' }],
+    appointmentRecords: [{ id: 'appt-1' }],
+    workgroups: [{ id: 'wg-activity-act-1' }],
+    workgroupMembers: [{ id: 'wgm-1' }],
+    workgroupGrants: [{ id: 'wgg-seed-1' }],
+    workgroupTasks: [{ id: 'wgt-1' }],
+    workgroupOutputs: [{ id: 'wgo-1' }],
+    attendanceRosters: [{ id: 'ar-1' }],
+    taskforces: [{ id: 'tf-001' }],
+    makeupTasks: [{ id: 'mk-seed-1' }],
+    reviewRequests: [{ id: 'rq-seed-1' }],
+    partyGroups: [{ id: 'pg-1' }],
+    weeklyReports: [{ id: 'wr-1' }],
+  };
+  const out = trimInitBlob(blob);
+  for (const key of ['workgroups', 'workgroupMembers', 'workgroupGrants', 'workgroupTasks', 'workgroupOutputs', 'attendanceRosters',
+    'taskforces', 'makeupTasks', 'reviewRequests', 'partyGroups', 'weeklyReports']) {
+    assert.ok(Array.isArray(out[key]) && out[key].length === 0, `${key} 必须被 init 清空`);
+  }
+  assert.equal(out.users.length, 1, '账号白名单保留');
+  assert.equal(out.branches.length, 1, '支部 config 保留');
+});
+
+test('⑪ API token no-op：init 档仍以 sessionStorage token 为执行边界', () => {
+  const source = readFileSync(join(SRC, 'services', 'core', 'init-reset.js'), 'utf8');
+  assert.match(source, /sessionStorage\.getItem\('gsm1921-api-token'\)/, 'init 档必须先检查 API token');
+  assert.match(source, /if \(typeof sessionStorage !== 'undefined' && sessionStorage\.getItem\('gsm1921-api-token'\)\) return false;/,
+    'token 在场必须直接返回 false（不动存储、不导航）');
+});
+
+test('⑫ 清理安全：cleanup 默认 dry-run；--apply 只删孤儿附件 / 悬空附件行 / 旧备份，业务记录不动', () => {
+  const root = mkdtempSync(join(tmpdir(), 'gsm-cleanup-'));
+  const dbPath = join(root, 'data.db');
+  const uploads = join(root, 'uploads');
+  const backups = join(root, 'backups');
+  mkdirSync(uploads, { recursive: true });
+  mkdirSync(backups, { recursive: true });
+  const db = initDb(dbPath);
+  db.prepare('INSERT INTO activities (id, data) VALUES (?, ?)').run('act-1', JSON.stringify({ id: 'act-1', title: '保留业务行', filePath: '/api/v1/uploads/used.txt' }));
+  db.prepare('INSERT INTO attachments (id, filename, path, size, uploaded_by, uploaded_at) VALUES (?, ?, ?, ?, ?, ?)')
+    .run('a-used', 'used.txt', '/api/v1/uploads/used.txt', 1, 'u1', '2026-10-21T00:00:00.000Z');
+  db.prepare('INSERT INTO attachments (id, filename, path, size, uploaded_by, uploaded_at) VALUES (?, ?, ?, ?, ?, ?)')
+    .run('a-dangling', 'missing.txt', '/api/v1/uploads/missing.txt', 1, 'u1', '2026-10-21T00:00:00.000Z');
+  db.close();
+  writeFileSync(join(uploads, 'used.txt'), 'used');
+  writeFileSync(join(uploads, 'orphan.txt'), 'orphan');
+  const backupNames = ['bak-1', 'bak-2', 'bak-3'];
+  backupNames.forEach((name, index) => {
+    const dir = join(backups, name);
+    mkdirSync(dir);
+    const time = new Date(Date.now() - (backupNames.length - index) * 1000);
+    utimesSync(dir, time, time);
+  });
+  const script = join(ROOT, 'server', 'scripts', 'cleanup.mjs');
+
+  const dry = spawnSync(process.execPath, [script, '--db', dbPath, '--uploads', uploads, '--backups', backups, '--keep', '1'], { encoding: 'utf8' });
+  assert.equal(dry.status, 0, `dry-run 应成功：${dry.stderr}`);
+  assert.match(dry.stdout, /DRY-RUN/, '默认必须是 dry-run');
+  assert.ok(existsSync(join(uploads, 'orphan.txt')), 'dry-run 不得删除孤儿附件');
+  assert.equal(readdirSync(backups).length, 3, 'dry-run 不得删除旧备份');
+  const before = new Database(dbPath, { readonly: true });
+  try { assert.equal(before.prepare('SELECT COUNT(*) c FROM attachments').get().c, 2, 'dry-run 不得删除附件行'); } finally { before.close(); }
+
+  const apply = spawnSync(process.execPath, [script, '--db', dbPath, '--uploads', uploads, '--backups', backups, '--keep', '1', '--apply'], { encoding: 'utf8' });
+  assert.equal(apply.status, 0, `--apply 应成功：${apply.stderr}`);
+  assert.ok(existsSync(join(uploads, 'used.txt')), '被引用的附件必须保留');
+  assert.ok(!existsSync(join(uploads, 'orphan.txt')), '孤儿附件必须删除');
+  assert.deepEqual(readdirSync(backups), ['bak-3'], '只保留最近 keep 份');
+  const after = new Database(dbPath, { readonly: true });
+  try {
+    assert.equal(after.prepare('SELECT COUNT(*) c FROM attachments').get().c, 1, '悬空附件行删除、其他附件行保留');
+    assert.equal(after.prepare('SELECT COUNT(*) c FROM activities').get().c, 1, '业务记录不得删除');
+    assert.equal(JSON.parse(after.prepare('SELECT data FROM activities WHERE id = ?').get('act-1').data).title, '保留业务行');
+  } finally { after.close(); }
+  rmSync(root, { recursive: true, force: true });
+});
+
+test('⑬ 重建边界：生产拒绝 demo、目标已存在拒绝、baseline 只写指定输出并写 seed_meta', () => {
+  const root = mkdtempSync(join(tmpdir(), 'gsm-rebuild-'));
+  const script = join(ROOT, 'server', 'scripts', 'rebuild-demo.mjs');
+  const demoOut = join(root, 'demo.db');
+  const prod = spawnSync(process.execPath, [script, '--mode', 'demo', '--out', demoOut], {
+    encoding: 'utf8', env: { ...process.env, APP_ENV: 'production' },
+  });
+  assert.notEqual(prod.status, 0, '生产形态必须拒绝 demo');
+  assert.ok(!existsSync(demoOut), '被拒绝时不得留下产物');
+
+  const existing = join(root, 'existing.db');
+  writeFileSync(existing, 'x');
+  const refuse = spawnSync(process.execPath, [script, '--mode', 'baseline', '--out', existing], { encoding: 'utf8' });
+  assert.notEqual(refuse.status, 0, '目标已存在默认必须拒绝');
+  assert.equal(readFileSync(existing, 'utf8'), 'x', '被拒绝时不得覆盖目标');
+
+  const baselineOut = join(root, 'baseline.db');
+  const ok = spawnSync(process.execPath, [script, '--mode', 'baseline', '--out', baselineOut], { encoding: 'utf8' });
+  assert.equal(ok.status, 0, `baseline 重建应成功：${ok.stderr}`);
+  const db = new Database(baselineOut, { readonly: true });
+  try {
+    assert.equal(db.prepare('SELECT COUNT(*) c FROM users').get().c, 1, 'baseline 只建 1 名党委账号');
+    assert.equal(db.prepare('SELECT COUNT(*) c FROM branches').get().c, 1, 'baseline 只建 1 个支部');
+    const mode = db.prepare("SELECT value FROM seed_meta WHERE key='mode'").get();
+    const version = db.prepare("SELECT value FROM seed_meta WHERE key='seed_version'").get();
+    assert.equal(mode.value, 'baseline', 'seed_meta.mode 必须写入');
+    assert.ok(version.value, 'seed_meta.seed_version 必须写入');
+  } finally { db.close(); }
+  rmSync(root, { recursive: true, force: true });
+});
+
+test('⑭ 档案归档单删联动物理文件（或保留仍被其他表引用的文件）', () => {
+  const source = readFileSync(join(ROOT, 'server', 'routes', 'resources', 'index.js'), 'utf8');
+  assert.match(source, /name === 'archiveRecords'/, 'archiveRecords 必须进入文件类删除联动分支');
+  assert.match(source, /stillReferenced[\s\S]{0,200}deleteUploadedFile\(doc\.filePath\)/,
+    'archiveRecords 单删必须联动 deleteUploadedFile，并在他处仍引用时保留');
 });

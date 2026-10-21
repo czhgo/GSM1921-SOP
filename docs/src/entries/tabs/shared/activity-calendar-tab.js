@@ -30,13 +30,14 @@
 //   容器内容却没登记标记」时会把本页判成「已在位」而跳过骨架重建，留下空白（同 today-tab 2026-09-25
 //   真机实测的残留病）。
 
-import { getAppState } from '../../../core/base/state.js?v=20261021b';
-import { populateMonthSelector, renderCalendarByActivities } from '../../../components/record/calendar.js?v=20261021b';
-import { renderInspectorFromState } from '../../../components/record/inspector.js?v=20261021b';
+import { getAppState } from '../../../core/base/state.js?v=20261021c';
+import { populateMonthSelector, renderCalendarByActivities } from '../../../components/record/calendar.js?v=20261021c';
+import { renderInspectorFromState } from '../../../components/record/inspector.js?v=20261021c';
+import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261021c';
 
 const TAB_HTML = `
+  ${renderTabHeader({ title: '活动日历', description: '月 / 周 / 日 / 列表四视图；点击日期查看当日活动。' })}
   <div class="card rounded-xl p-5">
-    <h3 class="font-title-cn text-base font-semibold text-gray-800 mb-4">活动日历</h3>
     <div id="calendar-view-section" class="grid grid-cols-1 lg:grid-cols-5 gap-4">
       <div class="lg:col-span-3">
         <div class="flex flex-wrap items-center gap-2 mb-3">

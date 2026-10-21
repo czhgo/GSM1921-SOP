@@ -99,6 +99,7 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/DOC
 - **(b) 需要恢复的上下文要点**（下次接手的 AI 需要了解的关键信息）
 - **(c) 建议的执行顺序**（下一步应该先做什么）
 - **(d) Skill 提醒**：若未完成项涉及可调用 Skill 的场景，必须标注推荐 Skill（如"→ 推荐 Skill: brainstorming"）。可用 Skill 通过 `npx skills find <keyword>` 搜索
+- **(e) 专项台账快照**：列出 `.ctx/ENGINEERING_ASSESSMENT.md §四 专项台账` 的现行专项、各自状态与下一轮建议；不得只报本批读数
 
 **⚠️ 丙部待决策事项**：若丙部有未决事项，必须在 next_prompt 中列出，交由支书决策。
 
@@ -820,20 +821,22 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/DOC
 | --- | --- | --- | --- | --- |
 | T-903 | 完成工作台标签结构盘点与重点页证据审校；收束已确认的信息结构、能力包治理字段和文案改进 | H20.2 + H25 + DESIGN_SYSTEM + 最小三成本 | `.ctx/logs/archive/2026-10/WORKBENCH_67_TAB_AUDIT_DRAFT.md`、`README-server.md`、相关工作台实现 | 进行中（批次 464 党委批次 0；465 验证；466 个人档案设计；467–471 5 个阻塞清零、繁专项 Top 10 部分、个人档案分层实现；472 API 语义写链与工作组概念全仓对齐；473 按钮/边框归一、表格四类规范、信息计算文档与党委铃铛收窄。台账结论 29 合格 / 38 需修 / 0 阻塞。form-loop 仍有多条真机写链红：组长考勤前置数据、向导任选、pc-review 前置；按钮族内尺寸工具类存量 491 处为只降不升基线） |
 
-## 批次 499 收尾与后续批次（2026-10-21）
+## 批次 500 收尾与后续批次（2026-10-21）
+
+> 批次 499 的十项专项已在批次 500 一轮内收口（见 `.trae/specs/close-special-projects-batch-500/` 与执行日志）。下表只留尚未闭环的后续项。
 
 | ID | 事项（人话） | 引用流程 | 状态 |
 | --- | --- | --- | --- |
-| B-499-1 | 跨组活动落实责任党小组、跨组深参由组织委员协调（本 spec 余项：真机闭环与守卫补充） | `.trae/specs/assign-cross-group-activity-to-party-group/*` + `H21` + `H32` | 本批实施，真机验证中 |
-| B-499-2 | 汇报按工作组 / 党小组汇总：组织者汇总工作组、党小组组长汇总党小组；受众＝支委层＋当事人＋组织者/组长 | `.trae/specs/round5-dirty-audit-and-truth-baseline/spec.md` + `SECRETARY_DIRECTIVES.md` P-018 | 待启动 |
-| B-499-3 | 跨角色派生待办：成员页成功落库却提示「未保存成功」（visitor 页替其他角色刷新待办 403） | 批次 498 问题清单 + `H21` | 待启动（最高优先级遗留） |
-| B-499-4 | mock↔API 结构真值：字段、校验、错误文案逐项对齐，不再削足适履 | `PARALLEL_SKILL_AUDIT.md` §11.2 + `round5` spec | 持续（本批补组织落点字段） |
-| B-499-5 | daily test 分层精简：抓主要矛盾与关键 probe，平衡效率与安全 | `TEST_AND_VERIFICATION.md` + `round5` spec | 待启动 |
-| B-499-6 | 第五轮「脏乱繁」平行代理审查与专项台账 | `H21` + `PARALLEL_SKILL_AUDIT.md` §12 | 待启动 |
-| B-499-7 | IA 剩余项（第三轮审查未闭环部分）与承载面唯一性复验 | `PARALLEL_SKILL_AUDIT.md` §11/§12 + `DESIGN_SYSTEM.md` §10.7 | 待启动 |
-| B-499-8 | 数据生命周期：归档、清理与演示库重建的统一策略 | `DATA_MODEL.md` + `H32` | 待启动 |
-| B-499-9 | 任命事务化（支委 / 组长任命的多表写入原子化） | `H32` + `server/db.js` 迁移机制 | 待启动 |
-| B-499-10 | 宽表卡式化（成员名册等宽表在小屏的卡片化承载） | `DESIGN_SYSTEM.md` + 最小三成本 | 待启动 |
+| B-500-1 | 第五轮审查 P2/P3 按三路报告的修复顺序排批（空态、动画、反馈落点、字号双标、原生 confirm 等） | `.ctx/logs/archive/2026-10/AUDIT_R5_*.md` + `H21` | 待启动 |
+| B-500-2 | IA P2/P3 余项（R3 报告与三路审查重叠部分） | `.ctx/logs/archive/2026-10/UI_AUDIT_R3.md` + `AUDIT_R5_*.md` | 待启动 |
+| B-500-3 | form-loop / precommit 存量红：按台账逐条造前置或改判据（批次 500 收尾实测 9 条：e2e-B `A5 项目分工空态` · `S3 工作流块配置区` · `secretary-todo-reject-reason` · `org-roster-member-add-save`；e2e-A `核心闭环议程→归档` · `B3-1 补课回写` · `党委支部配置向导` · `判据A 跨标签` · `判据D 断服静默`（自污染）） | `form-loop-registry.mjs` + `TEST_AND_VERIFICATION.md` + 批次 500 执行日志 §四 | 在办 |
+| B-500-4 | 数据保留期策略（归档 / 通知 / 待办）——须支书裁定后才允许 cleanup `--apply` 删业务记录 | `DATA_MODEL.md` + `.ctx/ENGINEERING_ASSESSMENT.md §四` | 待裁定 |
+| B-500-5 | 宽表 P2：动态列（活动参与汇总）、党委目录、个人档案子表 | `DESIGN_SYSTEM.md §4.20` + `responsive-cards-guard` | 待启动 |
+| B-500-6 | 任命通用 CRUD 收口：`PATCH /branches/:id` 直改 `secretaryId`、`POST /appointmentRecords` 绕语义端点 | `server/routes/resources/index.js` + `semantic-routes.js` | 待启动 |
+| B-500-7 | 待办派生的下一步：把通知 / 生命周期派生迁到服务端，客户端只读（Plan B） | `todo.js` + `H32` | 后续（当前 Plan A 已止血） |
+| B-500-8 | mock 真值持续：新表 / 新字段必须进 `seed-manifest` 并过 parity | `seed-manifest.js` + `mock-api-parity-structure` | 持续 |
+| B-500-9 | 测试分层预算维持：新增测试同批登记层级，预算只降不升 | `test-tier-registry.mjs` + `test-tier-guard` | 持续 |
+| B-500-10 | 「支部配置」引导向导的落点：`#pc-wizard-host` 现只在 `branch-config.html`（sections 模式）挂载，党委台「支部管理」页不再有可切支部的 guided 向导 ⇒ `module-config-e2e` / `block-config-ui-e2e` 两条真机红 | `branches-tab.js` + `party-config-tab.js` + `branch-config-entry.js` | 待启动 |
 
 ***
 

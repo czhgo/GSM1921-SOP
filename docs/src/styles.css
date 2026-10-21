@@ -1,5 +1,5 @@
 /* 组件样式（@import 必须位于文件顶部） */
-@import url('components/person-picker.css?v=20261021b');
+@import url('components/person-picker.css?v=20261021c');
 
 /* ═══════════════════════════════════════════════════════════════
    GSM1921-SOP DESIGN SYSTEM v11.0 — Matte Flat
@@ -111,6 +111,12 @@
   --app-accent-strong: var(--app-accent);
   --app-accent-ink: #1F2937;
   --app-accent-text: #1F2937;
+
+  /* 焦点指示环（2026-10-21 R5A-04/05）：亮色用深灰（vs 白/页面底 ≥14:1），
+     暗色在 html.theme-dark 覆盖为党徽金（vs #0B1220 ≈ 13:1）。
+     不得再用 --app-accent-text 同时承担「亮色焦点环」——它在暗色下仍是深灰。 */
+  --focus-ring: #1F2937;
+  --focus-halo: rgba(0, 0, 0, 0.55);
 
   /* ── Shape — 圆角 ── */
   --radius-sm: 8px;
@@ -839,6 +845,12 @@ input.input-flat.text-xs[type="datetime-local"] {
 .cs-option:hover {
   background: var(--neutral-100);
 }
+/* R5A-03：键盘焦点落在选项上时必须可见（此前选项不可聚焦，只能靠 hover 判断当前位置）。 */
+.cs-option:focus-visible {
+  background: var(--neutral-100);
+  outline: 2px solid var(--focus-ring);
+  outline-offset: -2px;
+}
 .cs-option.is-selected {
   background: var(--app-accent-bg);
   color: var(--app-accent-text);
@@ -1396,9 +1408,11 @@ html.theme-dark .accent-avatar {
 .btn-tab:hover { background: var(--neutral-50); border-color: var(--neutral-300); }
 
 .btn-tab.active {
-  background: var(--primary-50);
-  color: var(--primary-700);
-  border-color: var(--primary-200);
+  /* 2026-10-21 R5-C05：二级分段选中态跟随本台主题色（与页签选中同源），
+     不再固定党建红——避免同屏「金页签 + 红分段」两套选中色。 */
+  background: var(--app-accent-bg);
+  color: var(--app-accent-text);
+  border-color: color-mix(in srgb, var(--app-accent) 45%, var(--neutral-200));
 }
 
 /* 命名族「自带口径」的私有件：族类只提供语义外观基线，**尺寸 / 字号以本件口径为准**
@@ -2034,9 +2048,24 @@ html.theme-dark .cal-cell-large.is-today, html.theme-dark .cal-cell-mobile.is-to
 /* ── Tab 按钮 active 状态（CSS 变量驱动，替代 inline style） ── */
 .tab-btn-active {
   background: var(--tab-accent-bg);
-  color: var(--tab-accent);
-  color: color-mix(in srgb, var(--tab-accent, #B91C1C) 55%, #000);
+  /* 2026-10-21 R5-C06：金色派生文字压深一档（55% → 45%），金色选中页签 ≥4.5:1。 */
+  color: color-mix(in srgb, var(--tab-accent, #B91C1C) 45%, #000);
   border: 1px solid var(--tab-accent-border);
+}
+
+/* ── 页签分组分隔（2026-10-21 R5-C01）：1px 竖线，不再是与选中页签同色同形的胶囊；
+   ≤1024px 不渲染分组标签（窄屏把宽度全部让给可点页签）。 ── */
+.tab-group-label {
+  display: inline-block;
+  width: 1px;
+  height: 14px;
+  margin: 0 4px;
+  flex-shrink: 0;
+  background: var(--neutral-200);
+  vertical-align: middle;
+}
+@media (max-width: 1024px) {
+  .tab-group-label { display: none; }
 }
 
 /* ── Tab 栏单行横向平滑滚动（2026-08-23 支书裁定：tab 数量增加禁止随机换行成 2 行） ──
@@ -2052,6 +2081,9 @@ html.theme-dark .cal-cell-large.is-today, html.theme-dark .cal-cell-mobile.is-to
    只在可滚时出现；不改变 tab 尺寸 / 选中态 / 顺序 / 分组。 */
 .ws-tab-scroll {
   position: relative;
+  /* R5-C01：右侧箭头为绝对定位覆盖层 ⇒ 给滚动区预留 40px 内边距，
+     末枚页签不再被箭头压住（桌面 1440 下 secretary / visitor 末签可见）。 */
+  padding-right: 40px;
   scroll-behavior: smooth;
   scrollbar-width: none;            /* Firefox */
   -ms-overflow-style: none;         /* IE/旧 Edge */
@@ -2097,14 +2129,14 @@ html.theme-dark .cal-cell-large.is-today, html.theme-dark .cal-cell-mobile.is-to
 
 /* 2026-10-18：横向滚动容器会裁剪纵向溢出，页签焦点环改用内描边，避免键盘焦点不可见。 */
 .ws-tab-scroll button:focus-visible {
-  outline: 2px solid var(--app-accent-text);
+  outline: 2px solid var(--focus-ring);
   outline-offset: -2px;
   box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.55);
 }
 
 /* 2026-10-18：通知下拉条目是 div[role=button]，不命中全局 button/a 焦点环，显式补同口径。 */
 .notif-dropdown-item:focus-visible {
-  outline: 2px solid var(--app-accent-text);
+  outline: 2px solid var(--focus-ring);
   outline-offset: -2px;
   box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.55);
   background: var(--surface-hover);
@@ -2437,7 +2469,7 @@ html.theme-dark .tf-section-head {
   /* 2026-09-24 无障碍修复：.status-badge 是 <span role="button" tabindex="0">（见 components/status-badge.js），
      不匹配全局 `button/a/input:focus-visible` ⇒ 焦点环须在此显式声明；口径与全局同名同值
      （金环 2px / offset 2px + 深色补环；原仅金环 1.34:1 不达标）。 */
-  outline: 2px solid var(--app-accent-text);
+  outline: 2px solid var(--focus-ring);
   outline-offset: 2px;
   box-shadow: 0 0 0 6px rgba(0, 0, 0, 0.55);
 }
@@ -2718,22 +2750,23 @@ html.theme-dark .tf-section-head {
    ═══════════════════════════════════════════════════════════════ */
 button:focus-visible,
 a:focus-visible {
-  outline: 2px solid var(--party-gold);
-  outline: 2px solid var(--app-accent-text);
+  /* R5A-05：只保留一条 outline——原「金环 + --app-accent-text 深灰」重复声明，
+     后者在暗色下≈1.15:1，把可见的金环完全覆盖。--focus-ring 按主题取深灰 / 党徽金。 */
+  outline: 2px solid var(--focus-ring);
   outline-offset: 2px;
-  box-shadow: 0 0 0 6px rgba(0, 0, 0, 0.55);
+  box-shadow: 0 0 0 6px var(--focus-halo);
 }
 
-/* 有边框的输入 / 下拉 / 登录控件聚焦（2026-09-28）：焦点反馈＝边框变金（§4.3 / §5.2），
-   不画 outline、不加发光（§5.3）——原「金环 + 深色发光」即支书所报的「诡异黄框」。
-   （.input-flat:focus 的 border-color 见上文 424 行 / select.input-flat:focus 见 528 行。） */
+/* 有边框的输入 / 下拉 / 登录控件聚焦：R5A-04 起除「边框变金」外必须叠加 ≥3:1 的
+   outline（金边 vs 白仅 1.4:1）。外圈仍不加发光（§5.3），只用实线 outline 承担对比度。 */
 .input-flat:focus,
 .input-flat:focus-visible,
 input.login-input:focus,
 input.login-input:focus-visible,
 .cs-trigger:focus,
 .cs-trigger:focus-visible {
-  outline: none;
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 1px;
   box-shadow: none;
 }
 /* login 页自带 .login-input:focus 的红边与下拉触发器 .cs-trigger 的默认边框：聚焦一并归金。 */
@@ -3439,6 +3472,10 @@ input.login-input:focus-visible,
 
     --shadow-dropdown: 0 4px 16px rgba(0, 0, 0, 0.5);
 
+    /* 焦点环（R5A-05）：暗底上党徽金 ≈13:1；外圈用浅色描边，不再用融于深底的纯黑。 */
+    --focus-ring: var(--party-gold);
+    --focus-halo: rgba(15, 23, 42, 0.9);
+
     /* help 页文字变量反向 */
     --help-text: #E2E8F0;
     --help-sub:  #94A3B8;
@@ -3636,6 +3673,12 @@ input.login-input:focus-visible,
     border-color: color-mix(in srgb, var(--tab-accent) 60%, var(--neutral-200)) !important;
     color: color-mix(in srgb, var(--tab-accent) 55%, white) !important;
   }
+  /* R5-C05：二级分段选中态同随主题色（深色下用亮字，避免深字压深底）。 */
+  html.theme-dark .btn-tab.active {
+    background: color-mix(in srgb, var(--app-accent) 18%, var(--surface-card));
+    border-color: color-mix(in srgb, var(--app-accent) 60%, var(--neutral-200));
+    color: color-mix(in srgb, var(--app-accent) 55%, white);
+  }
 
   /* 侧边栏激活导航（module-tab.active）：深色底 --surface-active #2A1A22 + 原红字 #CE1126 对比仅 2.94:1，
      提亮为功能红 #F87171（与 badge--danger 深色语义一致） */
@@ -3668,7 +3711,7 @@ input.login-input:focus-visible,
 .badge--info    { background: #DBEAFE; color: #1D4ED8; }
 .badge--neutral { background: #F3F4F6; color: #6B7280; }
 .badge--brand   { background: #FEE2E2; color: var(--party-red); border: 1px solid rgba(206, 17, 38, 0.25); }
-.badge--gold    { background: #FDE68A; color: #A16207; font-weight: 600; }
+.badge--gold    { background: #FDE68A; color: color-mix(in srgb, var(--brand-amber-dark) 70%, #000); font-weight: 600; }
 
 /* ── 内联色块统一基础类（T231 第二轮）：内联样式只带 --tint，深浅两套由 CSS 计算 ──
    浅色：色值 10% 叠加透明 + 色字 + 28% 边框（与原 ROLE_COLORS rgba 底同构）；
@@ -4259,7 +4302,9 @@ html.theme-dark .help-note__link { color: color-mix(in srgb, var(--functional-in
   overflow-x: auto;
 }
 .wo-lines-table {
-  min-width: 44rem;
+  /* 5 列（工作分工 / 负责人 / 在办 / 逾期 / 待处理；R3-29 动作列已并入待处理）：
+     40rem 足以让五列各得其所，又能在平板/分栏下触发表内横滑。 */
+  min-width: 40rem;
 }
 .wo-lines-table th:first-child,
 .wo-lines-table td:first-child {
@@ -4316,7 +4361,7 @@ html.theme-dark .help-note__link { color: color-mix(in srgb, var(--functional-in
   background: var(--surface-hover);
 }
 .list-row:focus-visible {
-  outline: 2px solid var(--app-accent-text);
+  outline: 2px solid var(--focus-ring);
   outline-offset: -2px;
 }
 /* 可交互行用 <button> 时挂 btn-ghost 语义族；此处按行载体覆盖该族的紧凑尺寸。
@@ -4464,7 +4509,7 @@ html.theme-dark .help-note__link { color: color-mix(in srgb, var(--functional-in
   background: var(--surface-hover);
 }
 .todo-more__item:focus-visible {
-  outline: 2px solid var(--app-accent-text);
+  outline: 2px solid var(--focus-ring);
   outline-offset: -2px;
 }
 .todo-more__item:disabled {
@@ -4593,7 +4638,7 @@ button.metric-band__item {
 }
 button.metric-band__item:hover { background: var(--neutral-100); }
 button.metric-band__item:focus-visible {
-  outline: 2px solid var(--app-accent-text);
+  outline: 2px solid var(--focus-ring);
   outline-offset: 2px;
 }
 button.metric-band__item.is-active {
@@ -4611,7 +4656,7 @@ a.metric-band__item {
 }
 a.metric-band__item:hover { background: var(--neutral-100); }
 a.metric-band__item:focus-visible {
-  outline: 2px solid var(--app-accent-text);
+  outline: 2px solid var(--focus-ring);
   outline-offset: 2px;
 }
 .metric-band__item--filter {
@@ -4756,7 +4801,7 @@ html.theme-dark .state-badge--accent {
   background: transparent;
 }
 .list-row[data-interactive="true"]:focus-visible {
-  outline: 2px solid var(--app-accent-text);
+  outline: 2px solid var(--focus-ring);
   outline-offset: -2px;
 }
 
@@ -4772,16 +4817,30 @@ html.theme-dark .state-badge--accent {
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   响应式数据表（2026-10-19 · Spec Task 1）
-   ── 只对声明 `responsive: true` 的表生效（引擎输出 `data-responsive="cards"`）；
-      矩阵表 / 其他表不传该选项 ⇒ 桌面与窄屏外观均不变。
-   ── ≤640px：每行转卡片，`td` 前用 `data-label` 显示字段名，末列动作留在行尾。 */
+   响应式数据表 / 矩阵（2026-10-19 立 · 2026-10-21 Task 7 校准）
+   ── 只对声明 `responsive: true` 的表生效（引擎 / 手写表输出 `data-responsive="cards"`）；
+      矩阵表同为 `[data-responsive="cards"]`——窄屏堆叠是同一关系行的响应式形态，不是第二套矩阵。
+   ── ≤640px：每行转卡片，`td` 前用 `data-label` 显示字段名，末列动作留在行尾。
+   ── 卡式行内 sticky / min-width 一律清零：它们只属于桌面宽表（否则 390px 会被首列吸附撑宽）。 */
 @media (max-width: 640px) {
+  .data-table[data-responsive="cards"] {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+  }
   .data-table[data-responsive="cards"] thead { display: none; }
-  .data-table[data-responsive="cards"],
   .data-table[data-responsive="cards"] tbody,
   .data-table[data-responsive="cards"] tr,
-  .data-table[data-responsive="cards"] td { display: block; width: 100%; }
+  .data-table[data-responsive="cards"] td,
+  .data-table[data-responsive="cards"] tbody th { display: block; width: 100%; }
+  /* 桌面宽表的 sticky / min-width 在卡式行内全部失效（含 `.wo-lines-table td:first-child`） */
+  .data-table[data-responsive="cards"] th,
+  .data-table[data-responsive="cards"] td {
+    position: static;
+    min-width: 0;
+    max-width: 100%;
+  }
   .data-table[data-responsive="cards"] tr {
     border: 1px solid var(--neutral-200);
     border-radius: var(--radius-md);
@@ -4793,21 +4852,52 @@ html.theme-dark .state-badge--accent {
   .data-table[data-responsive="cards"] tbody tr:last-child {
     border: 1px solid var(--neutral-200);
   }
+  /* 行表头（矩阵的人 / 项目）＝卡片标题；不再吸附、不再占固定列宽。 */
+  .data-table[data-responsive="cards"] tbody th {
+    padding: 0 0 var(--space-1);
+    text-align: left;
+    font-weight: 600;
+    color: var(--neutral-800);
+    background: transparent;
+    border: 0;
+    max-width: 100%;
+    white-space: normal;
+  }
   .data-table[data-responsive="cards"] td {
     display: flex;
+    align-items: baseline;
     gap: var(--space-2);
     padding: var(--space-1) 0;
     border: 0;
+    overflow-wrap: anywhere;
   }
   .data-table[data-responsive="cards"] td::before {
     content: attr(data-label);
-    flex: 0 0 72px;
+    flex: 0 0 5.5rem;
     font-size: 12px;
     color: var(--neutral-500);
+    overflow-wrap: anywhere;
   }
   .data-table[data-responsive="cards"] td:last-child {
     justify-content: flex-end;
   }
+  /* 矩阵末列不是「行尾动作」，保持左起；标签过长时截断，全文在 td[title]。 */
+  .data-table[data-responsive="cards"].rm-table td:last-child {
+    justify-content: flex-start;
+  }
+  .data-table[data-responsive="cards"].rm-table td::before {
+    flex: 0 1 7rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  /* 空态行不参与「标签：值」排布，也不显示空标签。 */
+  .data-table[data-responsive="cards"] td.is-empty {
+    display: block;
+    padding: 24px 12px;
+    text-align: center;
+  }
+  .data-table[data-responsive="cards"] td.is-empty::before { content: none; }
   /* 条线表转卡式行后，取消桌面横滑最小宽与首列 sticky，避免 390px 仍横向溢出。 */
   .wo-lines-table[data-responsive="cards"] {
     min-width: 0;
@@ -4818,6 +4908,44 @@ html.theme-dark .state-badge--accent {
   }
   .wo-lines-table[data-responsive="cards"] .wo-line-gap {
     max-width: none;
+  }
+  /* 矩阵容器在卡式形态下不再内部横滚 / 限高；每行一卡自然流。 */
+  .rm-root .rm-scroll {
+    max-height: none;
+    overflow-x: visible;
+  }
+}
+
+/* 打印：任何 `data-responsive="cards"` 表都回到表格形态（卡式行只服务窄屏屏幕）。 */
+@media print {
+  .data-table[data-responsive="cards"] {
+    display: table !important;
+    width: 100% !important;
+    max-width: none !important;
+    min-width: 0 !important;
+  }
+  .data-table[data-responsive="cards"] thead { display: table-header-group !important; }
+  .data-table[data-responsive="cards"] tbody { display: table-row-group !important; }
+  .data-table[data-responsive="cards"] tr {
+    display: table-row !important;
+    border: 0 !important;
+    border-radius: 0;
+    padding: 0;
+    margin: 0;
+    background: transparent !important;
+  }
+  .data-table[data-responsive="cards"] th,
+  .data-table[data-responsive="cards"] td {
+    display: table-cell !important;
+    width: auto !important;
+    max-width: none !important;
+    padding: 8px 12px !important;
+    background: transparent !important;
+  }
+  .data-table[data-responsive="cards"] td::before { content: none !important; }
+  .rm-root .rm-scroll {
+    max-height: none !important;
+    overflow: visible !important;
   }
 }
 
@@ -4899,7 +5027,7 @@ html.theme-dark .state-badge--accent {
   color: inherit;
 }
 .gallery-card:focus-visible {
-  outline: 2px solid var(--app-accent-text);
+  outline: 2px solid var(--focus-ring);
   outline-offset: 2px;
 }
 .gallery-card__cover {

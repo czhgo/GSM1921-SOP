@@ -17,7 +17,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { ACCENT_COLORS, accentButtonColors } from '../../docs/src/core/domain/constants.js?v=20261021b';
+import { ACCENT_COLORS, accentButtonColors } from '../../docs/src/core/domain/constants.js?v=20261021c';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(HERE, '..', '..');
@@ -137,8 +137,12 @@ test('G5 金色文字 / 焦点环压深：不得直接用裸 var(--app-accent)',
     const re = new RegExp(`${selector}\\s*\\{([^}]*)\\}`);
     const m = re.exec(STYLES);
     assert.ok(m, `styles.css 缺少 ${selector} 规则`);
-    assert.match(m[1], /outline:\s*2px solid var\(--app-accent-text\)/,
-      `${selector} 的焦点环应使用 --app-accent-text（压深金），不得直接用本色`);
+    // R5A-04/05（2026-10-21）：焦点环统一走 --focus-ring（亮色深灰 / 暗色党徽金），
+    // 不得再用 --app-accent-text——它在暗色下仍是深灰，深底上 ≈1.15:1。
+    assert.match(m[1], /outline:\s*2px solid var\(--focus-ring\)/,
+      `${selector} 的焦点环应使用 --focus-ring（按主题取色）`);
+    assert.doesNotMatch(m[1], /outline:\s*2px solid var\(--app-accent-text\)/,
+      `${selector} 仍在使用暗色下不可见的 --app-accent-text 作焦点环`);
     assert.doesNotMatch(m[1], /outline:\s*2px solid var\(--app-accent\)\s*;/,
       `${selector} 仍在使用裸 var(--app-accent) 作焦点环`);
   }

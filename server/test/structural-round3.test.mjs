@@ -50,8 +50,9 @@ test('S1 待办窄屏：详情列 order-first / 列表 order-last，选中滚入
   // 空态不再写「左侧」（窄屏详情在上方），且不再重复页签名。
   assert.doesNotMatch(src, /点击左侧待办查看详情/, '空态不得再写「左侧」');
   assert.match(src, /选择一条待办查看详情/, '空态文案应为「选择一条待办查看详情」');
-  assert.doesNotMatch(src, /renderTabHeader\(\{ title: '待办' \}\)/, '待办页不得再重复页签名 H2');
-  assert.doesNotMatch(src, /import \{ renderTabHeader \}/, '待办壳已不调用页头，不应保留 import');
+  // 2026-10-21 R5-B F-01 / R5-C C-02：每个 tab 必须有页级 H2 ⇒ 待办壳统一经 renderTabHeader。
+  assert.match(src, /renderTabHeader\(\{ title: pageTitle \}\)/, '待办壳应输出页级 H2（renderTabHeader）');
+  assert.match(src, /import \{ renderTabHeader \}/, '待办壳应引入页头单一源');
 });
 
 test('S2 专班卡：role=button / tabindex=0 / aria-label，Enter·Space 展开且不劫持卡内控件', () => {

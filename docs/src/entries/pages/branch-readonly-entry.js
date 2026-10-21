@@ -1,15 +1,15 @@
 // 党委所选支部只读视图：页面身份不切换到支部工作台。
-import { renderSidebar } from '../../components/shell/sidebar.js?v=20261021b';
-import { renderHeader } from '../../components/shell/header.js?v=20261021b';
-import { AuthStore } from '../../services/core/auth.js?v=20261021b';
-import { BranchService } from '../../services/core/runtime.js?v=20261021b';
-import { PersonStore, getPersonName } from '../../services/member/person.js?v=20261021b';
-import { getBranchById } from '../../services/branch/branch.js?v=20261021b';
-import { ApiAdapter } from '../../data/api-adapter.js?v=20261021b';
-import { hydrateDataSource } from '../../data/data-adapter.js?v=20261021b';
-import { getBasePath, escHtml as esc } from '../../core/base/utils.js?v=20261021b';
-import { ROLE_LABELS } from '../../core/domain/constants.js?v=20261021b';
-import { renderPageHeader } from '../../components/shell/page-frame.js?v=20261021b';
+import { renderSidebar } from '../../components/shell/sidebar.js?v=20261021c';
+import { renderHeader } from '../../components/shell/header.js?v=20261021c';
+import { AuthStore } from '../../services/core/auth.js?v=20261021c';
+import { BranchService } from '../../services/core/runtime.js?v=20261021c';
+import { PersonStore, getPersonName } from '../../services/member/person.js?v=20261021c';
+import { getBranchById } from '../../services/branch/branch.js?v=20261021c';
+import { ApiAdapter } from '../../data/api-adapter.js?v=20261021c';
+import { hydrateDataSource } from '../../data/data-adapter.js?v=20261021c';
+import { getBasePath, docAnchorHref, escHtml as esc } from '../../core/base/utils.js?v=20261021c';
+import { ROLE_LABELS } from '../../core/domain/constants.js?v=20261021c';
+import { renderPageHeader } from '../../components/shell/page-frame.js?v=20261021c';
 
 renderSidebar('workspace');
 renderHeader('workspace');
@@ -76,7 +76,7 @@ async function render() {
       </section>
 
       <nav class="branch-readonly-nav" aria-label="支部只读视图目录">
-        <a href="#branch-overview">概况</a><a href="#branch-roster">名册</a><a href="#branch-activities">活动</a>
+        <a href="${esc(docAnchorHref('#branch-overview'))}">概况</a><a href="${esc(docAnchorHref('#branch-roster'))}">名册</a><a href="${esc(docAnchorHref('#branch-activities'))}">活动</a>
       </nav>
 
       <section id="branch-roster" class="card p-5" aria-labelledby="branch-members-heading">

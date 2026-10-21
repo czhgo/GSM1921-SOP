@@ -2,17 +2,18 @@
 // 宣传委员工作台 Tab：项目看板（T-279 M3 拆分，照 M2 样板）
 // 活动/专班合并看板（活动+专班分桶）+ 专班工作量区块；从 TaskForceRecordStore 动态派生（H-1 数据断裂修复）。
 
-import { badgeHtml } from '../../../components/ui/badges.js?v=20261021b';
-import { BranchService } from '../../../services/core/runtime.js?v=20261021b';
-import { TodoStore, TodoSourceType } from '../../../services/governance/todo.js?v=20261021b';
-import { persist } from '../../../data/data-adapter.js?v=20261021b';
-import { showToast, escHtml as esc } from '../../../core/base/utils.js?v=20261021b';
-import { setState } from '../../../core/base/state.js?v=20261021b';
-import { resolveDocumentUrl } from '../../../core/base/page-url.js?v=20261021b';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20261021c';
+import { BranchService } from '../../../services/core/runtime.js?v=20261021c';
+import { TodoStore, TodoSourceType } from '../../../services/governance/todo.js?v=20261021c';
+import { persist } from '../../../data/data-adapter.js?v=20261021c';
+import { showToast, escHtml as esc } from '../../../core/base/utils.js?v=20261021c';
+import { setState } from '../../../core/base/state.js?v=20261021c';
+import { resolveDocumentUrl } from '../../../core/base/page-url.js?v=20261021c';
 // 「已归档」判据单一源（只看 archived === true；不得再把 status === 'completed' 当归档）
-import { isActivityArchived } from '../../../core/domain/constants.js?v=20261021b';
+import { isActivityArchived } from '../../../core/domain/constants.js?v=20261021c';
 // 统一检索引擎（2026-09-14 批次 37）：三桶各接一个实例（keyword null + facets [] → 仅分页，保持三桶观感）
-import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261021b';
+import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261021c';
+import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261021c';
 
 export function renderContent(ctx) {
   const container = document.getElementById('prop-tab-content');
@@ -45,6 +46,7 @@ export function renderContent(ctx) {
   ].sort((a, b) => (b.date || '').localeCompare(a.date || ''));
 
   container.innerHTML = `
+    ${renderTabHeader({ title: '项目看板', description: '活动与专班合并看板：待启动 / 进行中。' })}
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
       <div class="card rounded-xl p-0 overflow-hidden">
         <div class="px-4 py-3 font-title-cn text-sm font-bold" style="--acc-bg-dark:rgba(96,165,250,0.10);--acc-text-dark:#60A5FA;--acc-border-dark:rgba(96,165,250,0.25);background:rgba(37,99,235,0.06);color:var(--accent-prop-commissioner);border-bottom:2px solid rgba(37,99,235,0.15);">待启动 (${pending.length})</div>
@@ -57,7 +59,7 @@ export function renderContent(ctx) {
     </div>
     <!-- A07：归档统一落「档案归档」页签；本页只承接待启动 / 进行中，不再设归档桶。 -->
     <p class="mb-4 text-xs text-gray-500">
-      <a class="font-medium text-sky-700 hover:underline" href="?tab=archive">去档案归档</a>
+      <a class="font-medium text-sky-700 hover:underline" href="./workspace/prop.html?tab=archive">去档案归档</a>
       <span class="ml-1">（活动结束后的正式归档统一在档案归档页办理）</span>
     </p>
   `;

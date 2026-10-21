@@ -4,39 +4,40 @@
 // 私有状态（PersonPicker 实例）随模块自持；共享数据（taskforce 分类）经 ctx 传入。
 // 2026-10-20 第三轮 IA 判例④：活动视图已迁至「活动日历」页，本页不再消费 ctx.activities。
 
-import { setState } from '../../../core/base/state.js?v=20261021b';
-import { TaskForceRecordStore, isTaskforceOrganizer } from '../../../services/activity/taskforce.js?v=20261021b';
-import { legacyParticipantAssignmentRows, workgroupMembers } from '../../../services/activity/workgroup-members.js?v=20261021b';
-import { SignupStore, resolveSignupReviewer, SignupStatus, SIGNUP_ROLE_LABELS, SIGNUP_STATUS_LABELS } from '../../../services/activity/signup.js?v=20261021b';
-import { AuthStore } from '../../../services/core/auth.js?v=20261021b';
-import { loadTaskforceReviews, addTaskforceReview } from '../../../services/governance/review.js?v=20261021b';
-import { TodoStore, TodoSourceType, TodoCategory, TodoActionType } from '../../../services/governance/todo.js?v=20261021b';
-import { NoticeStore } from '../../../services/governance/notice.js?v=20261021b';
-import { mockDB, ReviewStatus, isTaskforceTerminalStatus, isTaskforceActiveStatus } from '../../../core/domain/domain.js?v=20261021b'; // IA-C3 收敛单写入口 2026-09-06：ParticipationLevel 随考察写入口移除
-import { persist } from '../../../data/data-adapter.js?v=20261021b';
-import { settleWrites } from '../../../core/session/pending-writes.js?v=20261021b';
-import { showToast, escHtml as esc, getBasePath, todayLocal, flashHighlight } from '../../../core/base/utils.js?v=20261021b';
-import { generateId } from '../../../core/base/id.js?v=20261021b';
-import { solidAccentStyle } from '../../../core/domain/constants.js?v=20261021b';
-import { PersonPicker } from '../../../components/governance/pickers.js?v=20261021b';
-import { renderWorkgroupPermissionEditor, readWorkgroupPermissionEditor } from '../../../components/governance/workgroup-permissions.js?v=20261021b';
-import { renderWorkgroupMemberEditor, bindWorkgroupMemberEditor } from '../../../components/governance/workgroup-member-editor.js?v=20261021b';
-import { getAdapter } from '../../../data/data-adapter.js?v=20261021b';
-import { recordFormShell } from '../../../components/ui/forms.js?v=20261021b';
+import { setState } from '../../../core/base/state.js?v=20261021c';
+import { TaskForceRecordStore, isTaskforceOrganizer } from '../../../services/activity/taskforce.js?v=20261021c';
+import { legacyParticipantAssignmentRows, workgroupMembers } from '../../../services/activity/workgroup-members.js?v=20261021c';
+import { SignupStore, resolveSignupReviewer, SignupStatus, SIGNUP_ROLE_LABELS, SIGNUP_STATUS_LABELS } from '../../../services/activity/signup.js?v=20261021c';
+import { AuthStore } from '../../../services/core/auth.js?v=20261021c';
+import { loadTaskforceReviews, addTaskforceReview } from '../../../services/governance/review.js?v=20261021c';
+import { TodoStore, TodoSourceType, TodoCategory, TodoActionType } from '../../../services/governance/todo.js?v=20261021c';
+import { NoticeStore } from '../../../services/governance/notice.js?v=20261021c';
+import { mockDB, ReviewStatus, isTaskforceTerminalStatus, isTaskforceActiveStatus } from '../../../core/domain/domain.js?v=20261021c'; // IA-C3 收敛单写入口 2026-09-06：ParticipationLevel 随考察写入口移除
+import { persist } from '../../../data/data-adapter.js?v=20261021c';
+import { settleWrites } from '../../../core/session/pending-writes.js?v=20261021c';
+import { showToast, escHtml as esc, getBasePath, todayLocal, flashHighlight } from '../../../core/base/utils.js?v=20261021c';
+import { generateId } from '../../../core/base/id.js?v=20261021c';
+import { solidAccentStyle } from '../../../core/domain/constants.js?v=20261021c';
+import { PersonPicker } from '../../../components/governance/pickers.js?v=20261021c';
+import { renderWorkgroupPermissionEditor, readWorkgroupPermissionEditor } from '../../../components/governance/workgroup-permissions.js?v=20261021c';
+import { renderWorkgroupMemberEditor, bindWorkgroupMemberEditor } from '../../../components/governance/workgroup-member-editor.js?v=20261021c';
+import { getAdapter } from '../../../data/data-adapter.js?v=20261021c';
+import { recordFormShell } from '../../../components/ui/forms.js?v=20261021c';
 // 「本位」nudge 确认弹窗（2026-09-23 支书裁定 · 单一源 = components/ui/modal.js::confirmNudge）
 // U-05：招募浮窗原为手写 overlay/panel（无 dialog 语义 / 无焦点接管）→ 改走同一组件的 openModal。
-import { confirmNudge, confirmWriteWithoutGrant, openModal, closeModal } from '../../../components/ui/modal.js?v=20261021b';
+import { confirmNudge, confirmWriteWithoutGrant, openModal, closeModal } from '../../../components/ui/modal.js?v=20261021c';
 // 转交组织者（SOP-G-2-② · 2026-10-01 批次 327 · 支书裁「乙：直接转交 ＋ 留痕」）：判据 / 写口 /
 //   弹窗单一源＝`components/governance/organizer-transfer.js`（本台只挂入口，不复制一份实现）。
-import { canTransferOrganizer, openOrganizerTransfer } from '../../../components/governance/organizer-transfer.js?v=20261021b';
-import { badgeHtml } from '../../../components/ui/badges.js?v=20261021b';
+import { canTransferOrganizer, openOrganizerTransfer } from '../../../components/governance/organizer-transfer.js?v=20261021c';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20261021c';
 // 人×项目矩阵单一源（支书 2026-09-14 裁定：把宽表推广到其它二元关系域 → 本批「专班报名」域）
-import { renderRelationMatrix } from '../../../components/ui/relation-matrix.js?v=20261021b';
-import { getPersonName, PersonStore } from '../../../services/member/person.js?v=20261021b';
+import { renderRelationMatrix } from '../../../components/ui/relation-matrix.js?v=20261021c';
+import { getPersonName, PersonStore } from '../../../services/member/person.js?v=20261021c';
 // 统一检索引擎（2026-09-13 表格统一化批次 A）：报名名单等按人段落接入关键词 + 分面
-import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261021b';
+import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261021c';
+import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261021c';
 // 详情锚定单一源（2026-10-18 繁专项 Task 14）：与 taskforce-view.js 同款「触点即落点」
-import { anchorDetailToTrigger, scrollDetailIntoView } from '../../../components/ui/detail-anchor.js?v=20261021b';
+import { anchorDetailToTrigger, scrollDetailIntoView } from '../../../components/ui/detail-anchor.js?v=20261021c';
 // 私有状态（随模块自持，不污染入口）
 let _recruitOrganizerPicker = null;
 let _recruitDeepPicker = null;
@@ -81,6 +82,7 @@ export function renderContent(ctx) {
     .sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
 
   container.innerHTML = `
+    ${renderTabHeader({ title: '专班管理', description: '专班工作组与报名总表；成员产出与复核在同页。' })}
     <!-- 专班为主对象：专班工作组与报名总表两个视图。
           2026-10-20 第三轮 IA 判例④：原活动视图已迁回「活动日历」页（组织侧「活动进展」分段），
           本页不得再出现活动查询/活动收尾动作——页签名「专班管理」只覆盖专班域。 -->
@@ -100,10 +102,9 @@ export function renderContent(ctx) {
     </div>
     <div id="org-tf-kanban"></div>
     <div id="org-tf-matrix-area" class="hidden">
-      <!-- 转置双视图钮（缺省「按人」＝宽表默认，与全站口径一致）：data-mode 直接映射矩阵 mode -->
-      <div class="flex items-center gap-2 mb-3" id="org-tf-mode-btns" role="group" aria-label="报名总表视图">
-        <button type="button" class="btn-outline org-tf-mode-btn px-3 py-1.5 text-xs font-medium [color:color-mix(in_srgb,var(--app-accent)_60%,#000)]" style="--acc-text-dark:color-mix(in srgb, var(--app-accent) 55%, #fff)" data-mode="byPerson" aria-pressed="true">按人</button>
-        <button type="button" class="btn-outline org-tf-mode-btn px-3 py-1.5 text-xs font-medium" data-mode="byItem" aria-pressed="false">按项目</button>
+      <!-- R3-14：工具行只留一个转置开关（按人 ⇄ 按项目），不再与页级视图钮平级铺两个按钮 -->
+      <div class="flex items-center gap-2 mb-3" id="org-tf-mode-btns">
+        <button type="button" id="org-tf-mode-toggle" class="btn-outline px-3 py-1.5 text-xs font-medium" data-mode-toggle aria-pressed="false" aria-label="切换报名总表视角">按项目</button>
       </div>
       <div id="org-tf-signup-matrix"></div>
     </div>
@@ -153,10 +154,19 @@ export function renderContent(ctx) {
         <summary class="px-4 py-3 font-title-cn text-sm font-bold cursor-pointer select-none tf-section-head" style="--tint:#3B82F6;--acc-text-dark:#60A5FA;color:color-mix(in srgb, var(--accent-blue) 60%, #000);">已完结 (${fc.length})</summary>
         <div class="p-3" id="tf-bucket-completed"></div>
       </details>` : ''}
-      ${emptyAll ? `<p class="text-xs text-gray-500 text-center py-6">${onlyMine
-        ? '本人暂无参与或受权的专班；取消「只看我参与的」可查看支部全部专班。'
-        : '暂无专班；可在「支部分工」指定负责人后再开展。'}</p>` : ''}
+      ${emptyAll ? (onlyMine
+        ? `<div class="text-center py-6">
+            <p class="text-xs text-gray-500">暂无我参与的专班</p>
+            <button type="button" class="btn-outline text-xs px-3 py-1.5 mt-2" data-tf-show-all>查看全部</button>
+          </div>`
+        : '<p class="text-xs text-gray-500 text-center py-6">暂无专班</p>') : ''}
     `;
+
+    kb.querySelector('[data-tf-show-all]')?.addEventListener('click', () => {
+      const onlyMineEl = document.getElementById('org-tf-only-mine');
+      if (onlyMineEl) onlyMineEl.checked = false;
+      renderKanban();
+    });
 
     // 各桶各接一个引擎实例：keyword null + facets [] → 引擎不渲染检索条，只出分页
     //（≤8 条不出翻页控件，三桶观感与卡片 HTML 零改动；行内状态按钮/整卡点击改事件委托，挂各桶宿主）
@@ -225,7 +235,7 @@ export function renderContent(ctx) {
       // colLimit 不传＝组件缺省 6（MATRIX_COL_LIMIT）：专班会随年份无限累积，列必须封顶；
       // 「显示全部 N 项 / 只看最近 6 项」展开钮由组件自带
       emptyText: '暂无报名记录',
-      hintText: '列＝最近 6 个专班（按创建时间倒序）；「显示全部」可展开更早专班',
+      hintText: '最近 6 个',
     });
   }
 
@@ -260,20 +270,12 @@ export function renderContent(ctx) {
   });
   const modeBtnsEl = document.getElementById('org-tf-mode-btns');
   modeBtnsEl?.addEventListener('click', (e) => {
-    const btn = e.target.closest('.org-tf-mode-btn');
+    const btn = e.target.closest('[data-mode-toggle]');
     if (!btn) return;
-    modeBtnsEl.querySelectorAll('.org-tf-mode-btn').forEach(b => {
-      const on = b === btn;
-      b.setAttribute('aria-pressed', on ? 'true' : 'false');
-      b.classList.toggle('bg-[var(--app-accent-bg)]', on);
-      b.classList.toggle('border-[var(--app-accent)]', on);
-      b.classList.toggle('[color:color-mix(in_srgb,var(--app-accent)_60%,#000)]', on);
-      if (on) b.style.setProperty('--acc-text-dark', 'color-mix(in srgb, var(--app-accent) 55%, #fff)'); else b.style.removeProperty('--acc-text-dark');
-      b.classList.toggle('bg-white', !on);
-      b.classList.toggle('border-neutral-200', !on);
-      b.classList.toggle('text-gray-600', !on);
-    });
-    matrixMode = btn.dataset.mode; // 直接映射 renderRelationMatrix 的 mode（byPerson / byItem）
+    matrixMode = matrixMode === 'byPerson' ? 'byItem' : 'byPerson';
+    // 单开关：按钮文字＝切换后的目标视角；aria-pressed 表示是否已转置（行＝项目）
+    btn.textContent = matrixMode === 'byItem' ? '按人' : '按项目';
+    btn.setAttribute('aria-pressed', matrixMode === 'byItem' ? 'true' : 'false');
     renderSignupMatrix();
   });
 
@@ -1013,17 +1015,18 @@ function _tfSubTableHtml(type, items, readOnly) {
       <div id="tf-sub-host-${type}"></div>
     </div>`,
     table: {
+      responsive: true,
       headHtml: `<tr>
             ${fields.map(f => `<th>${f.label}</th>`).join('')}
-            ${readOnly ? '' : '<th class="w-12"></th>'}
+            ${readOnly ? '' : '<th class="w-12">操作</th>'}
           </tr>`,
       colSpan: fields.length + (readOnly ? 0 : 1),
     },
     // 行 HTML 原样；删除按数组原下标（引擎只传当页下标，故取 items.indexOf）
     rowHtml: (item) => `
     <tr>
-      ${fields.map(f => `<td class="text-gray-700">${cellOf(item, f.key)}</td>`).join('')}
-      ${readOnly ? '' : `<td class="text-center"><button class="btn-ghost sub-del-btn text-xs" data-type="${type}" data-idx="${items.indexOf(item)}">删除</button></td>`}
+      ${fields.map(f => `<td data-label="${f.label}" class="text-gray-700">${cellOf(item, f.key)}</td>`).join('')}
+      ${readOnly ? '' : `<td data-label="操作" class="text-center"><button class="btn-ghost sub-del-btn text-xs" data-type="${type}" data-idx="${items.indexOf(item)}">删除</button></td>`}
     </tr>`,
   };
 }
@@ -1508,8 +1511,10 @@ export function openRecruitForm(ctx) {
       </div>
 
       <div class="mb-4">
-        <button type="button" id="rf-notice-toggle" class="btn-tab w-full" aria-expanded="false" aria-controls="rf-notice-body">自动发布通知（选填）</button>
-        <p class="text-xs text-gray-500 mt-1">发布专班后立即通知全体成员</p>
+        <label class="inline-flex items-center gap-2 text-xs text-gray-700 cursor-pointer">
+          <input id="rf-notice-check" type="checkbox" class="accent-red-600">
+          <span>同时发布通知</span>
+        </label>
         <div id="rf-notice-body" class="mt-2 space-y-3 hidden">
           <div>
             <label class="text-xs text-gray-500 mb-1.5 block font-medium" for="rf-notice-title">通知标题</label>
@@ -1556,13 +1561,11 @@ export function openRecruitForm(ctx) {
         if (voteReason) voteReason.required = voteRequired.checked;
       });
 
-      // 折叠：原 `div onclick` 只能鼠标触发 → 改 `<button aria-expanded aria-controls>`
-      const noticeToggle = panel.querySelector('#rf-notice-toggle');
+      // 紧凑勾选（R3-27）：勾选即展开通知标题 / 内容；与「需支委会表决」同款写法
+      const noticeCheck = panel.querySelector('#rf-notice-check');
       const noticeBody = panel.querySelector('#rf-notice-body');
-      noticeToggle?.addEventListener('click', () => {
-        const expanded = noticeToggle.getAttribute('aria-expanded') === 'true';
-        noticeToggle.setAttribute('aria-expanded', String(!expanded));
-        noticeBody?.classList.toggle('hidden', expanded);
+      noticeCheck?.addEventListener('change', () => {
+        noticeBody?.classList.toggle('hidden', !noticeCheck.checked);
       });
 
       // 表单提交：提交中禁用按钮并显示进度；失败留在浮窗内（不关窗、不丢已填）
@@ -1610,6 +1613,7 @@ async function _submitRecruitForm(ctx) {
   const governanceReason = document.getElementById('rf-governance-reason')?.value?.trim() || '';
 
   // 预拟通知（选填，2026-08-05 支书裁决「表单内预拟通知·只跑一次」）
+  const noticeWanted = !!document.getElementById('rf-notice-check')?.checked;
   const noticeTitle = document.getElementById('rf-notice-title')?.value?.trim();
   const noticeContent = document.getElementById('rf-notice-content')?.value?.trim();
 
@@ -1679,16 +1683,16 @@ async function _submitRecruitForm(ctx) {
       ? `专班「${name}」已报送支委会表决`
       : `专班「${name}」已创建并进入招募`);
 
-    // 预拟通知「只跑一次」（2026-08-05）：仅在表单填写了标题时发布一条通知，单次调用不重复发。
+    // 预拟通知「只跑一次」（2026-08-05）：勾选即发布一条；未填标题时用专班名称兜底。
     // R-22（2026-09-13）：系统派生通知改由服务端生成（kind 注册表复算授权 + 落点；标题/正文为发布人所填）
-    if (noticeTitle) {
+    if (created && noticeWanted) {
       NoticeStore.addSystem('taskforce-notice-draft', created.id, {
-        title: noticeTitle,
+        title: noticeTitle || `专班招募：${name}`,
         content: noticeContent,
         deadline,
         taskforceName: name,
       });
-      showToast('success', '已自动发布通知');
+      showToast('success', '已发布通知');
     }
 
     _closeRecruitForm();

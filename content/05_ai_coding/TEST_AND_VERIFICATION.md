@@ -2,7 +2,7 @@
 title: "测试验证纪律"
 type: governance
 role: "[工程师]+[AI]"
-last_updated: "2026-10-20"
+last_updated: "2026-10-21"
 status: active
 related_files: [CLAUDE.md, DATA_CONSISTENCY_CHECKLIST.md, content/03_doc_system/OPERATIONS_GUIDE.md, docs/scripts/bump-version.mjs]
 ---
@@ -309,3 +309,22 @@ UI-2 通知点击响应修复时，首次基于"函数名直观判断"将 click 
 
 **生效条件**：任何新增 / 修订守卫、任何 `.ctx` 文件迁移或归档的批次。
 
+
+---
+
+## 测试三层：daily / precommit / weekly（2026-10-21 批次 500 立）
+
+**问题**：daily 长期把真机普查与全部 e2e 混在一起，单次约 5–8 分钟，反馈变慢；但直接删测试又会丢覆盖。
+
+**规则**：
+
+1. **单一源**：server/test-tier-registry.mjs 登记每个测试文件的层级、理由与覆盖来源；server/test/test-tier-guard.test.mjs 断言磁盘全集 ↔ registry 三层双向相等、互不重叠。
+2. **daily**：只保留关键 probe——权限、数据真值、迁移、写链、构建完整性、本批改动面与防假绿守卫；墙钟目标约 4 分钟内。非 Playwright 的纯 node 守卫必须全部在 daily（doc-consistency::S16）。
+3. **precommit**：daily 全集 ＋ 真机 e2e（含 page-sweep、form-loop-sweep 与全部 *-e2e）。
+4. **weekly**：更慢的视觉/审计类；precommit/full 仍须覆盖。
+5. **移出不丢覆盖**：任一文件移出 daily，必须在 registry 写清移入层与覆盖来源；不得静默删除，也不得改断言变绿。
+6. **预算**：daily 文件数与断言行数写入常量；新增测试必须同批登记层级，预算只降不升。
+
+**Boolean 条件**：测试文件移出 daily → 必须同时出现在 precommit/weekly 且 registry 有 reason；否则守卫红。
+
+**生效条件**：任何新增 / 删除 / 移动测试文件或修改 server/package.json 测试脚本的批次。

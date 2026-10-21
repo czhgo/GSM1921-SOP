@@ -40,8 +40,10 @@ test('R2 U-05 专班管理：招募浮窗走通用 modal · 视图 aria-pressed 
   }
   assert.doesNotMatch(src, /data-view="activities"/, '专班页不得回潮「活动工作组」视图（活动已迁至活动日历页）');
   assert.match(src, /setAttribute\('aria-pressed', on \? 'true' : 'false'\)/, '视图切换未同步 aria-pressed');
-  assert.match(src, /id="rf-notice-toggle"[^>]*aria-expanded="false"[^>]*aria-controls="rf-notice-body"/,
-    '「自动发布通知」折叠须为 button + aria-expanded + aria-controls');
+  // 2026-10-21 R3-27：招募通知由「展开器」改为紧凑勾选（勾选即展开，与活动表单同款）。
+  assert.match(src, /id="rf-notice-check"[^>]*type="checkbox"/, '「同时发布通知」须为紧凑勾选框');
+  assert.match(src, /noticeCheck\?\.addEventListener\('change'/, '勾选状态须控制通知字段显隐');
+  assert.match(src, /id="rf-notice-body"/, '通知字段容器须保留');
   // 焦点接管必须落在正文首个字段，而不是右上角 ×（2026-10-19 真机复核修正）
   const modal = read('docs/src/components/ui/modal.js');
   assert.match(modal, /const body = panel\.querySelector\('\.modal-body'\)/,
@@ -52,7 +54,7 @@ test('R2 U-05 专班管理：招募浮窗走通用 modal · 视图 aria-pressed 
 test('R3 U-09 项目分工空态：两个出口 + aria-pressed + 无 transition-all', () => {
   const proj = read('docs/src/entries/tabs/visitor/projects-tab.js');
   assert.match(proj, /emptyActionHtml:[\s\S]{0,200}?data-proj-subview="mine"/, '「我的任务」空态缺少「去看我的分工」出口');
-  assert.match(proj, /emptyActionHtml:[\s\S]{0,200}?data-proj-subview="all"/, '「我的分工」空态缺少「浏览全局分工」出口');
+  assert.match(proj, /emptyActionHtml:[\s\S]{0,260}?data-proj-subview="\$\{[^}]*'all'[^}]*\}"/, '「我的分工」空态缺少「浏览全局分工」出口');
   assert.match(proj, /aria-pressed="\$\{_projSubView === t\.key\}"/, '子视图钮缺少 aria-pressed');
   assert.ok(!/transition-all/.test(proj), '项目分工子视图钮不得再用 transition-all（应改具体属性）');
   const lf = read('docs/src/components/ui/list-filter.js');

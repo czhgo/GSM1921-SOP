@@ -1,4 +1,4 @@
-﻿// role: [工程师]+[AI]
+// role: [工程师]+[AI]
 // 党委工作台 Tab：支部上报（P3 党委后台，2026-09-02；**2026-10-04 批次 374 由「上报审批」改名**）
 // 党委侧处理端（双向通道党委半侧）：各支部上报（发展节点/活动报备）在此逐项批/驳，
 // 意见随结论回传支部侧；已处理历史可查。
@@ -8,17 +8,17 @@
 // 数据源：reviewRequests（services/governance/review-request.js，mock 与 API 双引擎同源）
 // 设计权威源：content/04_web_design/evolution/PARTY_COMMITTEE_DESIGN.md §5 P3
 
-import { mockDB } from '../../../core/domain/domain.js?v=20261021b';
-import { AuthStore } from '../../../services/core/auth.js?v=20261021b';
-import { getPersonName } from '../../../services/member/person.js?v=20261021b';
-import { getBranchById } from '../../../services/branch/branch.js?v=20261021b';
-import { decideReviewRequest, listReviewRequests } from '../../../services/governance/review-request.js?v=20261021b';
-import { showToast, escHtml as esc, fmtDt } from '../../../core/base/utils.js?v=20261021b';
+import { mockDB } from '../../../core/domain/domain.js?v=20261021c';
+import { AuthStore } from '../../../services/core/auth.js?v=20261021c';
+import { getPersonName } from '../../../services/member/person.js?v=20261021c';
+import { getBranchById } from '../../../services/branch/branch.js?v=20261021c';
+import { decideReviewRequest, listReviewRequests } from '../../../services/governance/review-request.js?v=20261021c';
+import { showToast, escHtml as esc, fmtDt } from '../../../core/base/utils.js?v=20261021c';
 // 统一检索引擎（2026-09-14 批次 37）：待批复 / 已处理两区各接一个实例（关键词 + 类型/状态分面 + 分页）
-import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261021b';
+import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261021c';
 // 支部筛选共用件（2026-10-04 批次 374 · 支书「按下设支部筛选信息」）——三页复用同一件，不各写一份
-import { renderBranchFilter, filterByBranch } from '../../../components/governance/branch-filter.js?v=20261021b';
-import { renderSectionHeader } from '../../../components/shell/page-frame.js?v=20261021b';
+import { renderBranchFilter, filterByBranch } from '../../../components/governance/branch-filter.js?v=20261021c';
+import { renderSectionHeader, renderTabHeader } from '../../../components/shell/page-frame.js?v=20261021c';
 
 /** 本页支部筛选的 stateKey（选择随模块自持，页内重绘不丢） */
 const BRANCH_FILTER_STATE = 'pc-review';
@@ -72,9 +72,10 @@ export function renderContent(ctx = {}) {
   else if (highlightId) reviewMode = 'pending';
 
   el.innerHTML = `
+    ${renderTabHeader({ title: '支部上报', description: '党委逐项批复，决定和意见会回传提交支部。' })}
     <div class="page-section-stack">
       <section class="card p-5" aria-label="支部上报处理">
-      ${renderSectionHeader({ title: '支部上报处理', description: '党委逐项批复，决定和意见会回传提交支部。' })}
+      ${renderSectionHeader({ title: '支部上报处理', level: 3 })}
       <div id="pc-review-hl-hint" class="mt-4" role="status" aria-live="polite"></div>
       <div id="pc-review-branch-filter" class="mb-4 mt-4"></div>
       <div class="subtabs" role="tablist" aria-label="上报状态">

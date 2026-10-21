@@ -16,7 +16,7 @@ import { replaceCollection } from './db.js';
  *   · 支部归属 branchId（每个组织独立 issue 空间，2026-09-15 支书裁定）：取 issues.json 所载；
  *     存量缺省按部署默认支部 'br-b1'（与前端 services/governance/issues.js 写入口径 getBranchIdOfPerson 同源）。
  */
-function seedIssues() {
+export function seedIssues() {
   let raw;
   try {
     raw = JSON.parse(readFileSync(new URL('../docs/data/issues.json', import.meta.url), 'utf8'));
@@ -47,7 +47,7 @@ function seedIssues() {
  *   `GET /api/v1/milestones` ⇒ 两形态同内容。
  * ⚠ 只读域：本表只由播种写入，前端无写口（里程碑的维护仍走静态文件 + 重新部署）。
  */
-function seedMilestones() {
+export function seedMilestones() {
   let raw;
   try {
     raw = JSON.parse(readFileSync(new URL('../docs/data/milestones.json', import.meta.url), 'utf8'));
@@ -73,9 +73,9 @@ export async function seedDatabase(db) {
   // 原迁移 v3 在 seed 之前执行（新库此时活动/专班为空）⇒ 播种后工作组缺失；
   // 这里用同一迁移函数（单一源）补齐，并追加演示成员产出授权种子。
   const workgroupSeed = {
-    // 2026-10-21 批次 499：种子活动补齐组织落点字段（单一源 workgroup-seed-sync.js），
+    // 2026-10-21 批次 499：种子活动补齐组织落点 + 模型必填装载默认（单一源 workgroup-seed-sync.js），
     // 使 API 首启数据与真实写入结构一致；mock 形态走同一函数。
-    activities: workgroupSyncMod.normalizeSeedActivityOrganizing(activitiesMod.ACTIVITIES).map((row) => ({ ...row })),
+    activities: workgroupSyncMod.normalizeSeedActivitySeedRows(activitiesMod.ACTIVITIES),
     taskforces: taskforcesMod.MOCK_TASKFORCES.map((row) => ({ ...row })),
     workgroups: [], workgroupMembers: [], workgroupGrants: [],
   };
@@ -220,7 +220,7 @@ export async function seedDatabase(db) {
  * `senderId`/`senderName` 取自 `people.js` 档案（2400012347 何晓峰 / 2400012354 董建军）；`receiverRole` = 接收方角色键。
  * 一条待确认（`confirmedAt: null` ⇒ 接收方工作台「待确认外发」有行）、一条已确认（闭环留痕）。
  */
-const SEED_EXTERNAL_DISPATCHES = [
+export const SEED_EXTERNAL_DISPATCHES = [
   {
     id: 'ed-seed-1', refType: 'publicity', refLabel: '7月主题党日「学习两会精神」新闻稿',
     senderId: '2400012347', senderName: '何晓峰', receiverRole: 'secretary',
@@ -240,7 +240,7 @@ const SEED_EXTERNAL_DISPATCHES = [
  * 两场均有考勤与考察记录 ⇒ 与「考勤统计 / 考察记录提交」的语义自洽）。
  * 一条 pending（纪检→组织，待接收方确认；接收方台账有行）+ 一条 done（已确认闭环留痕）。
  */
-const SEED_HANDOFFS = [
+export const SEED_HANDOFFS = [
   {
     id: 'ho-seed-1', type: 'attendance-archival', from: 'disc-commissioner', to: 'org-commissioner',
     refType: 'activity', refLabel: '7月支部党员大会考勤统计', refId: 'act-8',
@@ -263,7 +263,7 @@ const SEED_HANDOFFS = [
  * 由组织委员发起、待支书确认 ⇒ 支书台「待确认」队列首启即有真行（终态行由演示过程自然产生，**不预置**，
  * 与 `SEED_REVIEW_REQUESTS` 同一口径）。
  */
-const SEED_MEMBER_CONFIRMATIONS = [
+export const SEED_MEMBER_CONFIRMATIONS = [
   {
     id: 'mc-seed-1', kind: 'change', personId: '2400012350', action: 'developStage',
     from: '发展对象', to: '预备党员', note: '支部党员大会通过接收苏明哲同志为预备党员，报请支书确认生效',
@@ -278,7 +278,7 @@ const SEED_MEMBER_CONFIRMATIONS = [
  * ⇒ 「本人已请假、考勤记为缺勤，申请更正」这条申诉针对的正是那条真实考勤行。
  * （**故意不挂 act-31 的那条缺勤**：`att900` 已派生补课任务 `mk-seed-1`，两事并存会语义打架。）
  */
-const SEED_ATTENDANCE_APPEALS = [
+export const SEED_ATTENDANCE_APPEALS = [
   {
     id: 'appeal-seed-1', branchId: 'br-b1', personId: '2400012349', activityId: 'act-11',
     note: '7月支委会本人课前已向组织委员请假，考勤记录为缺勤，申请更正为请假',
@@ -291,7 +291,7 @@ const SEED_ATTENDANCE_APPEALS = [
  * 引用自洽：2500010012 朱欣怡在 `act-22`（7月积极分子座谈会）有一条真实考察记录（`insp-16`，深度参与）
  * ⇒ 申诉针对的正是该活动下已存在的考察行，诉求为「工作量未完整反映」。
  */
-const SEED_INSPECTION_APPEALS = [
+export const SEED_INSPECTION_APPEALS = [
   {
     id: 'inspAppeal-seed-1', branchId: 'br-b1', personId: '2500010012', activityId: 'act-22',
     note: '本人除发言准备外另承担了签到统计，考察记录未完整反映工作量，申请补充',
@@ -304,7 +304,7 @@ const SEED_INSPECTION_APPEALS = [
  * 引用自洽：`issue-002` 的 `assignee` = 2400012355、`issue-003` 的 `assignee` = 2400012345（见 `docs/data/issues.json`，
  * 由 `seedIssues()` 播进 issues 表）⇒ 未读标记只挂在**确有指派**的条目上（不凭空造）。
  */
-const SEED_ISSUE_UNREAD = [
+export const SEED_ISSUE_UNREAD = [
   { id: '2400012355:issue-002', assigneeId: '2400012355', issueId: 'issue-002', unread: true, at: '2026-07-23T10:00:00.000Z' },
   { id: '2400012345:issue-003', assigneeId: '2400012345', issueId: 'issue-003', unread: true, at: '2026-07-26T10:00:00.000Z' },
 ];
@@ -315,7 +315,7 @@ const SEED_ISSUE_UNREAD = [
  * 日期与 `data/mock/branches.js::BRANCHES[0].createdAt`（2026-09-01）一致）⇒ 与 `branches.secretaryId`
  * 及下方 `SEED_APPOINTMENT_RECORDS` **三处自洽**（同一个人、同一天、同一个支部）。
  */
-const SEED_AUTH_AUDIT = [
+export const SEED_AUTH_AUDIT = [
   {
     id: 'auth-seed-1', targetPersonId: '2300010001', role: 'secretary', scopeRef: 'br-b1',
     authorizedBy: '9000000001', authorizedAt: '2026-09-01', action: 'grant',
@@ -328,7 +328,7 @@ const SEED_AUTH_AUDIT = [
  * ⇒ 与 `branches.br-b1.secretaryId`（`data/mock/branches.js`）一致；后续换届由 `appointSecretary()`
  * 自行「封口现任 + 新建」⇒ 本行是**真实链路的起点**，不是终态伪造。
  */
-const SEED_APPOINTMENT_RECORDS = [
+export const SEED_APPOINTMENT_RECORDS = [
   {
     id: 'appt-seed-1', branchId: 'br-b1', secretaryId: '2300010001', note: '党委任命首任支书',
     from: '2026-09-01T00:00:00.000Z', to: null,

@@ -10,18 +10,18 @@
 //  收录权与排序不变（`galleryFeatured` / `galleryPinned` 单一源仍来自 activity.js）。
 // ════════════════════════════════════════════════════════════════
 
-import { getAppState } from '../../core/base/state.js?v=20261021b';
-import { _fmtDate, escHtml } from '../../core/base/utils.js?v=20261021b';
-import { getPersonName } from '../../services/member/person.js?v=20261021b';
-import { getActivityTypeColors, DASHBOARD_LIMITS } from '../../core/domain/constants.js?v=20261021b';
-import { icon } from '../../core/base/icons.js?v=20261021b';
-import { mockDB } from '../../core/domain/domain.js?v=20261021b';
-import { getAuthToken, getApiBaseUrl } from '../../data/data-adapter.js?v=20261021b';
-import { withSelectedBranchScope } from '../../data/api-adapter.js?v=20261021b';
+import { getAppState } from '../../core/base/state.js?v=20261021c';
+import { _fmtDate, escHtml } from '../../core/base/utils.js?v=20261021c';
+import { getPersonName } from '../../services/member/person.js?v=20261021c';
+import { getActivityTypeColors, DASHBOARD_LIMITS } from '../../core/domain/constants.js?v=20261021c';
+import { icon } from '../../core/base/icons.js?v=20261021c';
+import { mockDB } from '../../core/domain/domain.js?v=20261021c';
+import { getAuthToken, getApiBaseUrl } from '../../data/data-adapter.js?v=20261021c';
+import { withSelectedBranchScope } from '../../data/api-adapter.js?v=20261021c';
 // 2026-09-29 批次 294（支书裁：收录权归宣传委员）：本页收录改**人工**——判据单一源 = 活动主源 `galleryFeatured`。
-import { isGalleryFeatured, isGalleryPinned } from '../../services/activity/activity.js?v=20261021b';
-import { badgeHtml } from '../ui/badges.js?v=20261021b';
-import { deriveActivityLifecycleStatus, ACTIVITY_LIFECYCLE } from '../record/inspector.js?v=20261021b';
+import { isGalleryFeatured, isGalleryPinned } from '../../services/activity/activity.js?v=20261021c';
+import { badgeHtml } from '../ui/badges.js?v=20261021c';
+import { deriveActivityLifecycleStatus, ACTIVITY_LIFECYCLE } from '../record/inspector.js?v=20261021c';
 
 const ACTIVITY_TYPE_COLORS = getActivityTypeColors({ withLabel: true });
 

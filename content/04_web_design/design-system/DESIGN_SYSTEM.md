@@ -1130,30 +1130,32 @@ li + li { margin-top: 0.25em; }
 
 **翻页标记单一源＝[`components/ui/pager.js`](file:///d:/GitHub/GSM1921-SOP/docs/src/components/ui/pager.js)（2026-09-14 支书裁定）**：导出 `pagerHtml({ page, pages, total, unit })`，是全站**唯一**产出 `.page-btn` / `.page-num` 标记的地方（样式仍归 `styles.css` 的 `.page-btn` / `.page-num`，本文件只产标记）；自 `list-filter.js` 内部**下沉为叶子件**是为断掉模块环（`relation-matrix → list-filter → inspector → vote-summary-panel`），供统一检索引擎与「人 × 项目」矩阵共用；**页数 ≤1 返回空串**（小表零负担）。守卫 `server/test/filter-row.test.mjs::S11`（`class="page-btn"` / `page-num` 只允许由 `pager.js` 产出）。
 
-**表格样式单一源（2026-09-14 支书裁定·覆盖所有【表】）**：全站表格的表头与行样式**只允许一套**，落 `docs/src/styles.css` 的 `.data-table` 类族（表头 `8px 12px`／左对齐／`--neutral-500`／`--neutral-0` 底，表体行线 `--neutral-100`，行悬停 `--neutral-50`，数据格 `8px 12px`，表宽 `100%`／字号 `0.8125rem` 13px／行高 `1.25rem`）；**表头不得再由各 tab 各写一遍**；调用点只写 `<table class="data-table">`，行内不得再补 `w-full`/`text-xs`；列级特例（sticky 固定列、`whitespace-nowrap`、`truncate`）可按需在行内声明；表格横向滚动容器由承载组件提供 `overflow-x-auto`。**全站表格类族统一为 `.data-table` 一套**——表决矩阵已并入「人 × 项目」矩阵单一源，与表态矩阵均走 `.data-table`。守卫见 `server/test/filter-row.test.mjs` S3/S4、`S12`（**手写表格收敛台账**：`<table` 只允许出现在 4 个登记位置——`components/ui/list-filter.js` / `components/ui/relation-matrix.js` / `entries/tabs/disc/attendance-tab.js`（考勤明细）/ `entries/tabs/secretary/group-progress-tab.js`（党小组清单），带防僵尸）。
+**表格样式单一源（2026-09-14 支书裁定·覆盖所有【表】）**：全站表格的表头与行样式**只允许一套**，落 `docs/src/styles.css` 的 `.data-table` 类族（表头 `8px 12px`／左对齐／`--neutral-500`／`--neutral-0` 底，表体行线 `--neutral-100`，行悬停 `--neutral-50`，数据格 `8px 12px`，表宽 `100%`／字号 `0.8125rem` 13px／行高 `1.25rem`）；**表头不得再由各 tab 各写一遍**；调用点只写 `<table class="data-table">`，行内不得再补 `w-full`/`text-xs`；列级特例（sticky 固定列、`whitespace-nowrap`、`truncate`）可按需在行内声明；表格横向滚动容器由承载组件提供 `overflow-x-auto`。**全站表格类族统一为 `.data-table` 一套**——表决矩阵已并入「人 × 项目」矩阵单一源，与表态矩阵均走 `.data-table`。守卫见 `server/test/filter-row.test.mjs` S3/S4、`S12`（**手写表格收敛台账**：`<table` 只允许出现在 4 个登记位置——`components/ui/list-filter.js` / `components/ui/relation-matrix.js` / `entries/tabs/disc/attendance-tab.js`（考勤明细） / `entries/tabs/secretary/group-progress-tab.js`（党小组清单），带防僵尸）。⚠ **成员名册不是手写表**（`entries/tabs/org/roster-tab.js` 走统一检索引擎的**列表模式**：网格行，`_listHeaderHtml` 自绘列头），不占 S12 名额；§4.20.5 / §4.20.8 的旧「名册＝数据表」表述已随此改准。
 
 **「人 × 项目」矩阵＝宽表单一源（2026-09-14 支书裁定）**
 
 > 支书原话：「活动的考勤考察，还是以 long form 为主，也就是每人次一行。wide form 是不是一个更加简明的表现方式呢？人和活动/专班/别的……分离开后，其实存在一种**转置**方式！第一列是人的话，就可以展示他参加的项目；如果第一列是项目，那就可以看有哪些人。这是一个**很全局性的**需要思考和改进工程！」
 > 支书裁定：① **宽表默认**（long form 降为「明细 / 导出」下钻）；② 矩阵**推广到其它二元关系域**（支部分工、专班报名总表、表态汇总）。
 
-凡「人 × 项目」这类**二元关系**（考勤、考察、支部分工、专班报名总表、表态汇总、思想汇报台账）一律走单一源组件 [components/ui/relation-matrix.js](file:///d:/GitHub/GSM1921-SOP/docs/src/components/ui/relation-matrix.js)：
+凡「人 × 项目」这类**二元关系**（考勤、考察、支部分工、专班报名总表、表态汇总）一律走单一源组件 [components/ui/relation-matrix.js](file:///d:/GitHub/GSM1921-SOP/docs/src/components/ui/relation-matrix.js)：
 
 1. **转置双视图**——`byPerson`（行＝人，列＝项目，看「某人参加了哪些」）与 `byItem`（行＝项目，列＝人，看「某项目有哪些人」）**互为转置**：同一份数据、同一 cell 口径，切换只换视角，不是两张表；
 2. **项目维列上限 6**（`MATRIX_COL_LIMIT`）——项目（活动/专班/工作项）随年份无限累积，列不能无限长；超限时给「**显示全部 N 项**」一键展开（展开态按 `stateKey` 记忆，跨重渲染不丢），行维保持全量；
-3. **横向滚动 + 首列吸附**（`overflow-x-auto` + `sticky left-0`）——宽表横向滑动时维度名不丢；
+3. **横向滚动 + 首列吸附**（`overflow-x-auto` + `sticky left-0`）——桌面 / 宽表横向滑动时维度名不丢；≤640px 不靠横滑，改按第 9 条堆叠；
 4. **筛选归调用方**（活动名/时间区间/姓名/分面），组件只负责「列取哪几项 + 转置 + 展开」——筛选是各域口径，矩阵是共同载体；
 5. **载体不另造样式**——表格用 `.data-table`，展开钮用 `.lf-btn`（全站单档 38px/13px），不为矩阵新增类族（`styles.css` 属禁改文件）；
 6. **默认视图＝宽表**（long form 的定位改为「明细 / 导出 / 打印」下钻）；
 7. **人维分页**——`MATRIX_ROW_LIMIT = 10`（每页 10 人），`cfg.rowLimit` 可配、**0＝不分页**；人维无论落在行（按人）还是列（按项目）都按同一页切片，页控件走 `components/ui/pager.js::pagerHtml`（翻页标记单一源，见 §4.10「翻页标记单一源」）；
 8. **`cfg.cellClass(pid, iid)` 单元格附加类钩子**——单元格语义经既有语义类复用（如表态矩阵的「异议」红底 /「未投」灰字复用 `.vs-object` / `.vs-none`），**不为矩阵新增样式类族**。
+9. **窄屏堆叠＝同一关系行的响应式形态（2026-10-21 Task 7 / B-499-10）**——矩阵表与引擎表共用 `data-responsive="cards"`：≤640px 时 thead 隐藏，每行成为一张卡（`byPerson`＝一人一卡、卡内「项目名·状态」；`byItem`＝一项一卡、卡内「姓名·状态」），行表头（`tbody th`）作卡标题，每个 `td` 用 `data-label`（当前可见列名）作字段名。**这不是卡片矩阵**：仍是同一张表、同一份数据、同一 cell 口径（含 `—`、状态徽标、下钻），只是响应式重排；转置、列上限 6、显示全部、人维分页全部保留。卡式行内 `sticky` / `min-width` 必须清零（`styles.css` 单一源），容器不限高、不再表内横滚；桌面 ≥1024px 仍是原宽表 + 首列吸附。
 
-**转置双视图的调用点清单**：考勤（`disc/attendance-tab.js`，按人 / 按活动）、考察（`disc/inspection-tab.js`，按人 / 按项目）、支部分工（`secretary/work-map-tab.js`，平铺模块 / 按人 / 按项目三视图，缺省「按人」宽表）、专班报名总表（`org/taskforce-tab.js`，人 × 专班，列封顶最近 6 个专班可展开）、表态汇总（`components/governance/vote-summary-panel.js`，行＝议题、列＝应到成员）、思想汇报台账（`org/thought-review-tab.js`，人 × 期次，列封顶最近 6 期可展开，**可按人 / 按期次互转**）。
+**转置双视图的调用点清单**：考勤（`disc/attendance-tab.js`，按人 / 按活动）、考察（`disc/inspection-tab.js`，按人 / 按项目）、支部分工（`secretary/work-map-tab.js`，平铺模块 / 按人 / 按项目三视图，缺省「按人」宽表）、专班报名总表（`org/taskforce-tab.js`，人 × 专班，列封顶最近 6 个专班可展开）、表态汇总（`components/governance/vote-summary-panel.js`，行＝议题、列＝应到成员）。⚠ 思想汇报**已不是矩阵**（2026-10-20 第三轮 IA 判例②）：组织台只保留「未交 / 待初阅 / 待补充」例外清单，完整记录落个人档案 `person.html`。
 
-**已迁移**：`entries/tabs/disc/attendance-tab.js`（考勤矩阵，默认「按人」，`byActivity`＝转置视图）、`entries/tabs/disc/inspection-tab.js`（考察，默认「按人」，新增「按项目」＝转置）、`entries/tabs/secretary/work-map-tab.js`（支部分工）、`entries/tabs/org/taskforce-tab.js`（专班报名总表）、`components/governance/vote-summary-panel.js`（表态汇总）、`entries/tabs/org/thought-review-tab.js`（思想汇报台账：行＝支部在册成员、列＝期次 `YYYY-Qn` 新→旧，cell＝该期最需处理状态徽标＋多篇「N 篇」，未提交＝「—」）。
+**已迁移**：`entries/tabs/disc/attendance-tab.js`（考勤矩阵，默认「按人」，`byActivity`＝转置视图）、`entries/tabs/disc/inspection-tab.js`（考察，默认「按人」，新增「按项目」＝转置）、`entries/tabs/secretary/work-map-tab.js`（支部分工）、`entries/tabs/org/taskforce-tab.js`（专班报名总表）、`components/governance/vote-summary-panel.js`（表态汇总）。
+**已撤出（2026-10-20 判例②）**：`entries/tabs/org/thought-review-tab.js` 的「人 × 期次」全量矩阵已收窄为例外清单（`renderFilteredList` 按人分页，三组：未交 / 待初阅 / 待补充）；不得以矩阵形态回潮。
 **口径例外（两处，经支书批准并在守卫登记）**：表态汇总走 `colLimit: 0`（议题维＝单场议程，有界，不需「最近 6 项」封顶）与 `rowLimit: 0`（人维＝本场应到名单，须一屏看全表决分布）；二者由 `relation-matrix.test.mjs::S5` 锁白名单防僵尸。
 **待迁**：**（空）**——各二元关系域已全部迁入；如需新增域，按「项目维＝谁、cell 语义＝什么」先定口径再接组件，**不得各写一版**。
-**守卫**：`server/test/relation-matrix.test.mjs`（S1 组件单一源 + 人维分页 + 引用 `pager.js` / S2 参与方不得自造矩阵（`<th class="sticky left-0">` 只允许出现在组件内）/ S3 宽表默认且 long form 降为「明细」/ S4 矩阵类实现收敛台账（白名单已清空）/ S5 `rowLimit: 0` 须登记备案 + 白名单防僵尸 / **S6 思想汇报台账＝人 × 期次（接入单一源 + 列维＝期次 + 期次排序走单一源 + 行维取实时视图 + 禁回潮按人分组自建列表）** / ① 真机：默认宽表 → 列上限 6 → 一键展开 → 切转置视图行列互换 / **② 真机：思想汇报台账（首列「姓名」/ 人维 ≤10 / 列头 `YYYY-Qn` 新→旧 / 有可下钻 cell 与「—」 / **「待初阅队列」已随取消初阅门撤除、该卡不得回潮** / **切「按期次」首列变期次、切回「按人」复原**）**）；**分页全覆盖另有真机全站普查守卫 `server/test/page-sweep.test.mjs`**（P1 引擎列表渲染行数 > 10 必须有翻页控件 / P2 矩阵人维 ≤ 10 行且计数口径为「共 N 人 · 第 x / y 页」/ P3 手写表格 > 10 行须有翻页 / P4 首列是人的引擎表须有搜索框（引擎门槛 `SEARCH_FILTER_MIN_ROWS` 之内不要求）/ P5 零 pageerror）。
+**守卫**：`server/test/relation-matrix.test.mjs`（S1 组件单一源 + 人维分页 + 引用 `pager.js` + **窄屏卡式结构（`data-responsive="cards"` / `data-label` / `rm-scroll`）** / S2 参与方不得自造矩阵（`<th class="sticky left-0">` 只允许出现在组件内）/ S3 宽表默认且 long form 降为「明细」/ S4 矩阵类实现收敛台账（白名单已清空）/ S5 `rowLimit: 0` 须登记备案 + 白名单防僵尸 / **S6 思想汇报已撤出矩阵：组织台只渲染例外清单（未交 / 待初阅 / 待补充），不得回潮矩阵或按人分组的自建列表** / ① 真机：默认宽表 → 列上限 6 → 一键展开 → 切转置视图行列互换 / **② 真机：思想汇报例外清单（无 `.rm-root` / 三组在位 / 完整记录走个人档案）**）；**分页全覆盖另有真机全站普查守卫 `server/test/page-sweep.test.mjs`**（P1 引擎列表渲染行数 > 10 必须有翻页控件 / P2 矩阵人维 ≤ 10 行且计数口径为「共 N 人 · 第 x / y 页」/ P3 手写表格 > 10 行须有翻页 / P4 首列是人的引擎表须有搜索框（引擎门槛 `SEARCH_FILTER_MIN_ROWS` 之内不要求）/ P5 零 pageerror / **390×844 逐 tab：`documentElement.scrollWidth ≤ innerWidth + 1`，矩阵须卡式或滚动兜底**）。
 
 **执行层仪表盘（2026-08-08 指令 #2；2026-10-18 改准）**：支书「全局概况」以统一待处理主队列为先，待决定/确认与异常/督办分开；责任线、指标和趋势按需展开，不占首屏主位。
 
@@ -1164,9 +1166,9 @@ li + li { margin-top: 0.25em; }
 
 | # | 数据格式 / 形态 | 该用的视图 | 判据（什么信号决定用它） | 本仓实例（`文件:行`） | 反例（用错的实例） | 落位（新增 / 并入既有） |
 |---|---|---|---|---|---|---|
-| 1 | 多行同字段 | 表格（`.data-table` ＋ 统一检索引擎分页） | 首列是同一维度、行数 > 1；行数 > `SEARCH_FILTER_MIN_ROWS`(8) 才挂检索条 | `docs/src/components/ui/list-filter.js`；`docs/src/entries/tabs/org/roster-tab.js` | 小表强加检索条（已修，`content/04_web_design/evolution/BRANCH_WORK_MAP.md:87`） | **新增**（视图＝§4.10 既有；判据 / 反例新增） |
+| 1 | 多行同字段 | 表格（`.data-table` ＋ 统一检索引擎分页） | 首列是同一维度、行数 > 1；行数 > `SEARCH_FILTER_MIN_ROWS`(8) 才挂检索条 | `docs/src/components/ui/list-filter.js`；`docs/src/entries/tabs/disc/makeup-tab.js` | 小表强加检索条（已修，`content/04_web_design/evolution/BRANCH_WORK_MAP.md:87`）；成员名册已改引擎**列表模式**（网格行，不是 `.data-table`） | **新增**（视图＝§4.10 既有；判据 / 反例新增） |
 | 2 | 单实体档案 | 卡片（`.card`，一份＝一卡） | 一条记录、字段多、需并读 | `docs/src/entries/tabs/party-committee/monitor-tab.js:32`；`docs/src/entries/tabs/org/talent-tab.js` | 「全量成员档案平铺」（已收敛为观察卡，`docs/src/entries/tabs/org/talent-tab.js:2-8` 头注即反例记录） | **新增**（视图＝§4.2 卡片既有；判据 / 反例新增） |
-| 3 | 跨期 / 交叉对比 | 矩阵（`docs/src/components/ui/relation-matrix.js` 转置双视图，默认宽表） | 二元关系（人×项目 / 人×期次） | 本 §4.10「转置双视图」（单一源 `relation-matrix.js`）；`docs/src/entries/tabs/disc/attendance-tab.js`、`docs/src/entries/tabs/org/thought-review-tab.js` | long form 当主视图（2026-09-14 裁定降为「明细 / 导出」下钻，本 §4.10「默认视图＝宽表」条） | **并入既有**（本 §4.10「转置双视图」；只补判据） |
+| 3 | 跨期 / 交叉对比 | 矩阵（`docs/src/components/ui/relation-matrix.js` 转置双视图，默认宽表） | 二元关系（人×项目 / 人×期次） | 本 §4.10「转置双视图」（单一源 `relation-matrix.js`）；`docs/src/entries/tabs/disc/attendance-tab.js`、`docs/src/entries/tabs/org/taskforce-tab.js` | long form 当主视图（2026-09-14 裁定降为「明细 / 导出」下钻，本 §4.10「默认视图＝宽表」条）；思想汇报已收窄为例外清单（2026-10-20 判例②） | **并入既有**（本 §4.10「转置双视图」；只补判据） |
 | 4 | 流状事件 | 时间轴 / 日志（行＝时间＋动作＋人） | 有先后、需留痕、只增不改 | `docs/src/entries/tabs/secretary/group-progress-tab.js:267`（组级变更留痕）；`docs/src/components/feedback/issue-detail.js:119-123`（评论 timeline） | — | **新增**（视图＝§4.10 表外既有实现；判据 / 实例新增） |
 | 5 | 分类归属 | 看板 / 分列（只渲染有内容的分桶） | 每行必落且仅落一桶 | `docs/src/entries/tabs/org/taskforce-tab.js`（三桶）；`docs/src/entries/tabs/prop/kanban-tab.js` | 空桶恒渲染撑 `min-h-[120px]`（已修，`content/04_web_design/evolution/BRANCH_WORK_MAP.md:61`） | **新增**（视图＝§4.10「看板视图」行；判据 / 反例新增） |
 | 6 | 进度与占比 | 进度条 / 迷你条 | 面向「未完成」的推进度 | 本 §4.10「执行层仪表盘」KPI 进度条 | 「已完成 N/总数」无差异存量统计（违 §一 原则11） | **并入既有**（本 §4.10 执行层仪表盘；只补判据） |
@@ -1490,7 +1492,7 @@ li + li { margin-top: 0.25em; }
 - **阈值**：行数 **> 8**（`SEARCH_FILTER_MIN_ROWS`）必须出现检索条；每页 10 条，页数 > 1 显示翻页控件（`pageSize: 0` 仅限有界小表）。
 - **列序**：第一列＝对象标识；中间列＝可比字段；**行动作固定放末列**。
 - **状态**：空态一句话（如「无匹配记录」）；加载态由承载页在数据到达前给出占位文本，**不得把空数组渲染成空态**。
-- **窄屏**：承载容器提供 `overflow-x-auto` 横向滚动；需要固定身份列时，首列声明 `sticky left-0`（列级特例，样式仍归 `.data-table`）。
+- **窄屏**：承载容器提供 `overflow-x-auto` 横向滚动；需要固定身份列时，首列声明 `sticky left-0`（列级特例，样式仍归 `.data-table`）。**≤640px 可切卡式行**（`responsive: true` / `data-responsive="cards"` ＋ 每格 `data-label`）：一行一卡、字段名在值前；打印时由 `@media print` 恢复为表格。
 
 **② 关系矩阵（`.relation-matrix`）**
 
@@ -1498,7 +1500,7 @@ li + li { margin-top: 0.25em; }
 - **形态**：`relation-matrix.js` 的 `byPerson` / `byItem` 互为转置；同一份数据、同一 cell 口径。
 - **单元格**：只放状态徽标、计数或可下钻动作；长说明不进单元格。
 - **分页**：矩阵不做业务行的无限翻页——列维超过 **6 项**用「显示全部 N 项」展开（展开态按 `stateKey` 记忆）；人维沿用 `MATRIX_ROW_LIMIT`（缺省每页 10 人，`rowLimit: 0` 取消），与 §4.10 单一源一致。新矩阵不得另写分页标记。
-- **窄屏**：横向滚动；**首列（行表头）`sticky left-0`**，滚动时维度名不丢；表头随表格容器滚动，不另造浮层表头。
+- **窄屏（≤640px）**：**堆叠为卡式行**——同一张表加 `data-responsive="cards"`，thead 隐藏，每行一卡（行表头作卡标题，每格用 `data-label` 显示当前可见列名）；**矩阵窄屏堆叠＝同一关系行的响应式形态，不算卡片矩阵**（仍是同一份数据、同一 cell 口径，转置 / 列上限 / 分页不变）。卡式行内 `sticky` / `min-width` 清零，页面主体不得横向溢出；桌面 ≥1024px 仍是宽表 + 首列 `sticky left-0`。
 
 **③ 台账 / 时间轴**
 
@@ -1529,13 +1531,13 @@ li + li { margin-top: 0.25em; }
 - **行动作**：固定末列；危险动作二次确认；纯展示行不得出现伪按钮。
 - **键盘可达**：可点击行/卡须可聚焦（`tabindex="0"` 或原生控件），Enter / Space 等效；禁用控件用 `disabled`，不用 `div` 模拟。
 - **空态 / 错误态**：空态一句话；读取失败给出「读取失败 + 重试」，不得静默显示为空。
-- **窄屏**：表格与矩阵横向滚动；首列固定；卡片列表单列；不得把表格强行压成两列。
+- **窄屏**：表格 ≤640px 可切卡式行（`data-responsive="cards"`），矩阵可堆叠（同一关系行的响应式形态）；未切卡式的表仍在自身容器内横向滚动、首列固定；卡片列表单列；不得把表格强行压成两列。
 
 #### 4.20.5 实现对照表
 
 | 载体 | 现有组件（单一源） | 代表页面 |
 |---|---|---|
-| 数据表 | `components/ui/list-filter.js`（`renderFilteredList` 表格模式）＋ `.data-table` | `entries/tabs/org/roster-tab.js`（名册）、`entries/tabs/disc/makeup-tab.js`（补课任务）、`entries/tabs/org/member-flow-tab.js`（成员流动台账） |
+| 数据表 | `components/ui/list-filter.js`（`renderFilteredList` 表格模式）＋ `.data-table` | `entries/tabs/disc/makeup-tab.js`（补课任务）、`entries/tabs/org/member-flow-tab.js`（成员流动台账）、`entries/tabs/secretary/committee-meeting-tab.js`（支委构成 / 支委会会议） |
 | 关系矩阵 | `components/ui/relation-matrix.js`（`renderRelationMatrix`） | `entries/tabs/disc/attendance-tab.js`（考勤）、`entries/tabs/org/taskforce-tab.js`（专班报名总表）、`components/governance/vote-summary-panel.js`（表态汇总） |
 | 台账 / 时间轴 | 既有留痕区块（按日期分组；不新造存储） | `entries/tabs/secretary/group-progress-tab.js`（党小组变更留痕）、`components/feedback/issue-detail.js`（评论 timeline） |
 | 卡片列表 | `.card` ＋ 既有卡片区块 | `entries/tabs/party-committee/monitor-tab.js`（支部观察卡）、`entries/tabs/org/talent-tab.js`（人才观察卡） |
@@ -1571,6 +1573,7 @@ li + li { margin-top: 0.25em; }
 2. 新增逐行对比表必须用 `components/ui/data-table.js`；不得手写 `<table>` 或 `<td>` 内边距。
 3. 新增两维交叉必须用 `components/ui/relation-matrix.js`；不得用卡片矩阵或稀疏表格冒充。
 4. 留痕行只读；更正以新记录留痕，不覆盖原行。
+5. **矩阵窄屏堆叠不算卡片矩阵**（2026-10-21 Task 7）：≤640px 时矩阵仍是同一张表加 `data-responsive="cards"`，一行一卡是**关系行的响应式形态**；不得因此另写一套「人 × 项目」卡片渲染，也不得把矩阵拆成互不相关的小卡。
 
 #### 4.20.8 复用模块采用矩阵
 
@@ -1578,8 +1581,8 @@ li + li { margin-top: 0.25em; }
 
 | 载体 | list-row | filter-bar | data-table | pager | empty-state | person-picker | relation-matrix | 代表页面 | 阈值 / 交互 |
 |---|---|---|---|---|---|---|---|---|---|
-| **数据表（对象行）** | — | ✓ 行数 > 8 | ✓ 主载体 | ✓ 页数 > 1 | ✓ 空结果 | — | — | 成员名册、补课任务、成员流动台账 | 每页 10；首列对象、末列动作；筛选后页码归 1 |
-| **关系矩阵（关系行）** | — | — | — | ✓ 人维分页 | ✓ 空结果 | — | ✓ 主载体 | 考勤明细、专班报名总表、表态汇总 | 项目维列上限 6 可展开；人维每页 10；首列吸附 |
+| **数据表（对象行）** | — | ✓ 行数 > 8 | ✓ 主载体 | ✓ 页数 > 1 | ✓ 空结果 | — | — | 补课任务、成员流动台账、支委构成 | 每页 10；首列对象、末列动作；筛选后页码归 1；≤640px 可切卡式行 |
+| **关系矩阵（关系行）** | — | — | — | ✓ 人维分页 | ✓ 空结果 | — | ✓ 主载体 | 考勤明细、专班报名总表、表态汇总 | 项目维列上限 6 可展开；人维每页 10；首列吸附；≤640px 堆叠（同一关系行的响应式形态） |
 | **台账（留痕行）** | ✓ 主行型 | ✓ 可选 | — | ✓ 可选 | ✓ 空结果 | — | — | 党小组变更留痕、评论时间线 | 按日期分组、组内倒序；只读、不排序 |
 | **卡片列表 / 选人** | ✓ 重复行 | — | — | — | ✓ 空结果 | ✓ 选人面板 | — | 选人面板、人才观察卡 | 卡片 ≤ 12 项；选人行高 40px、单选即关、多选底部确认 |
 
@@ -1863,6 +1866,8 @@ li + li { margin-top: 0.25em; }
 | 基础字号 | `1rem` (16px) | `1rem` (16px) | `0.95rem` (≈15px) |
 
 **版心与数据形状**：内容容器使用 `width: 100%` 并设置语义化 `max-width`；列按网格比例伸缩，表单按可读长度设上限，宽表获得更大的版心。百分比描述网格中的相对占位，不能单独决定页面最大宽度。表格宽度由容器承担；窄屏在表格自身容器内横向滚动，页面主体保持在视口内。需要比较的人或支部以连续表格行呈现，不逐条套卡片。白底圆角卡片继续承载清楚的业务分区，同一层级统一内边距与间距，卡片内不再重复包裹记录行。
+
+**窄屏（≤640px）承载口径（2026-10-21 Task 7 补）**：表格可切**卡式行**（`data-responsive="cards"`：thead 隐藏、一行一卡、每格 `data-label` 作字段名），矩阵可**堆叠**（同一关系行的响应式形态，不算卡片矩阵）；卡式行内 `sticky` / `min-width` 清零，`documentElement.scrollWidth` 不得超过视口宽度（390×844 为准）。未切卡式的表仍在自身容器内横滑，页面主体不横向溢出；打印时 `@media print` 恢复为表格。
 
 ### 6.3 移动端特殊规则
 

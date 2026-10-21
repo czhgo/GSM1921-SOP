@@ -15,25 +15,26 @@
 //   登记者角色门 = canRegisterFlow（组织委员 + 支书/副支书）。
 // ════════════════════════════════════════════════════════════════
 
-import { AuthStore, currentUserId } from '../../../services/core/auth.js?v=20261021b';
-import { getBranchIdOfPerson } from '../../../services/branch/branch.js?v=20261021b';
-import { getPersonName } from '../../../services/member/person.js?v=20261021b';
+import { AuthStore, currentUserId } from '../../../services/core/auth.js?v=20261021c';
+import { getBranchIdOfPerson } from '../../../services/branch/branch.js?v=20261021c';
+import { getPersonName } from '../../../services/member/person.js?v=20261021c';
 // 党小组常态清单唯一来源（活组、按 seq 升序；新增/改名/解散后随渲染即时可见）——登记流入的「党小组」选项
-import { groupOptions } from '../../../services/member/party-group.js?v=20261021b';
-import { showToast, escHtml as esc, getBasePath, todayLocal } from '../../../core/base/utils.js?v=20261021b';
-import { getAuthToken, getApiBaseUrl } from '../../../data/data-adapter.js?v=20261021b';
-import { openModal, closeModal } from '../../../components/ui/modal.js?v=20261021b';
+import { groupOptions } from '../../../services/member/party-group.js?v=20261021c';
+import { showToast, escHtml as esc, getBasePath, todayLocal } from '../../../core/base/utils.js?v=20261021c';
+import { getAuthToken, getApiBaseUrl } from '../../../data/data-adapter.js?v=20261021c';
+import { openModal, closeModal } from '../../../components/ui/modal.js?v=20261021c';
 // 统一检索引擎（表格统一化批次 A）：台账表接入关键词 + 分面（≤8 行引擎自动不渲染检索条）
-import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261021b';
+import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261021c';
+import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261021c';
 // 成员流入/流出登记服务层（2026-09-14 批次 25 支书裁定）：登记即生效 + 台账 + 对账 + 撤销
 import {
   loadMemberFlows, reconcile, registerIntake, registerIntakeBatch,
   registerOutflow, revokeFlow, canRegisterFlow,
-} from '../../../services/member/member-flow.js?v=20261021b';
+} from '../../../services/member/member-flow.js?v=20261021c';
 // 选人规范：凡选择具体人一律 PersonPicker（禁 select 罗列人名）——登记流出选人
-import { PersonPicker } from '../../../components/governance/pickers.js?v=20261021b';
+import { PersonPicker } from '../../../components/governance/pickers.js?v=20261021c';
 // 自定义圆角下拉增强（select.input-flat.text-xs → cs-trigger；与全局 observer 幂等）
-import { enhanceSelects } from '../../../components/ui/custom-select.js?v=20261021b';
+import { enhanceSelects } from '../../../components/ui/custom-select.js?v=20261021c';
 
 // 模块级 ctx 缓存：登记/撤销后整页刷新复用首次渲染的 accent
 let _ctx = null;
@@ -78,6 +79,7 @@ export function renderContent(ctx) {
   const canRegister = canRegisterFlow(_actorRole());
 
   container.innerHTML = `
+    ${renderTabHeader({ title: '成员流动', description: '流入 / 流出登记与对账台账。' })}
     <div class="space-y-4">
       ${_iaaaPendingCardHtml()}
       ${_flowCardHtml(canRegister)}
@@ -233,6 +235,7 @@ function _renderFlowBody() {
     table: {
       headHtml: '<tr><th>类型</th><th>姓名</th><th>学号</th><th>届别</th><th>日期</th><th>经手人</th><th>备注</th><th>操作</th></tr>',
       colSpan: 8,
+      responsive: true,
     },
     emptyMessage: flows.length ? '无匹配台账记录' : '台账暂无记录，点上方「登记流入 / 登记流出」录入',
     rowHtml: (f) => _flowRowHtml(f),
@@ -247,14 +250,14 @@ function _flowRowHtml(f) {
   const operator = f.by ? (getPersonName(f.by) || f.by) : '—';
   return `
     <tr>
-      <td class="${revoked ? 'text-gray-400' : (inDir ? 'text-sky-700' : 'text-red-700')}">${inDir ? '流入' : '流出'}</td>
-      <td class="${tdc}">${esc(f.name || '—')}</td>
-      <td class="${tdc}">${esc(f.studentId || '—')}</td>
-      <td class="${tdc}">${esc(f.enrollYear || '—')}</td>
-      <td class="${tdc}">${esc(f.date || '—')}</td>
-      <td class="${tdc}">${esc(operator)}</td>
-      <td class="${tdc}" title="${esc(f.note || '')}">${esc(f.note || '—')}</td>
-      <td>${revoked
+      <td class="${revoked ? 'text-gray-400' : (inDir ? 'text-sky-700' : 'text-red-700')}" data-label="类型">${inDir ? '流入' : '流出'}</td>
+      <td class="${tdc}" data-label="姓名">${esc(f.name || '—')}</td>
+      <td class="${tdc}" data-label="学号">${esc(f.studentId || '—')}</td>
+      <td class="${tdc}" data-label="届别">${esc(f.enrollYear || '—')}</td>
+      <td class="${tdc}" data-label="日期">${esc(f.date || '—')}</td>
+      <td class="${tdc}" data-label="经手人">${esc(operator)}</td>
+      <td class="${tdc}" data-label="备注" title="${esc(f.note || '')}">${esc(f.note || '—')}</td>
+      <td data-label="操作">${revoked
         ? `<span class="text-gray-400" title="已于 ${esc(String(f.revokedAt).slice(0, 10))} 撤销">已撤销</span>`
         : `<button type="button" class="flow-revoke btn-action btn-action-gray" data-flow-id="${esc(f.id)}" style="cursor:pointer;">撤销</button>`}</td>
     </tr>`;
@@ -283,7 +286,7 @@ function _openIntakeModal() {
     accentColor: accent,
     // 浮窗页脚「设置」入口（2026-09-21 批次 138）：本浮窗管的是成员在册 / 流动，与设置里组织委员
     // 那一域的职责参数（学期末滞留集中复核窗口）同域，就地给一条去该分区的入口（modal.js 单一源）。
-    settingsLink: { href: `${getBasePath()}settings.html#domain-org`, text: '组织职责参数（学期末滞留集中复核窗口）→ 设置' },
+    settingsLink: { href: `${getBasePath()}settings.html#domain-org`, text: '制度参数 →' },
     bodyHtml: `
       <div class="flex items-center gap-2 mb-4">
         <button type="button" data-intake-mode="single" class="btn-tab ${MODE_ON}" style="cursor:pointer;">单人登记</button>

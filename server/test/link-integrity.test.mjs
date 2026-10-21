@@ -100,7 +100,7 @@ test('L1 静态链接：全部 HTML href/src 目标存在 + 锚点存在', async
         if (targetIsHtml) {
           stats.anchors++;
           const tSrc = readFileSync(cleanPath, 'utf8');
-          const anchorId = r.hash.slice(1);
+          const anchorId = r.hash.replace(/^#/, ''); // resolveUrl 已按 '#' 切分，hash 不带前导 '#'
           const hasAnchor = new RegExp(`id=["']${anchorId}["']|name=["']${anchorId}["']`).test(tSrc);
           if (!hasAnchor) issues.push(`${relPage} → ${raw}（锚点 #${anchorId} 在目标中不存在）`);
         }

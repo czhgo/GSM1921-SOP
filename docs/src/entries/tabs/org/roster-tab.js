@@ -42,35 +42,36 @@
 //    支书确认生效时先 roster.saveResidenceChange（RESIDENCE_KEY 覆盖 + 留痕）→ 再 saveMember 镜像进档案。
 // ════════════════════════════════════════════════════════════════
 
-import { PersonStore, getPersonName } from '../../../services/member/person.js?v=20261021b';
-import { getRosterStats, getResidenceOf } from '../../../services/member/roster.js?v=20261021b';
-import { listPendingConfirmations } from '../../../services/member/member-confirmation.js?v=20261021b';
-import { DEVELOP_STAGE_OPTIONS } from '../../../services/branch/org-base-data-preview.js?v=20261021b';
+import { PersonStore, getPersonName } from '../../../services/member/person.js?v=20261021c';
+import { getRosterStats, getResidenceOf } from '../../../services/member/roster.js?v=20261021c';
+import { listPendingConfirmations } from '../../../services/member/member-confirmation.js?v=20261021c';
+import { DEVELOP_STAGE_OPTIONS } from '../../../services/branch/org-base-data-preview.js?v=20261021c';
 // 党小组常态清单唯一来源（活组、按 seq 升序；新增/改名/解散后随渲染即时可见）
-import { groupOptions } from '../../../services/member/party-group.js?v=20261021b';
-import { AuthStore, currentUserId } from '../../../services/core/auth.js?v=20261021b';
+import { groupOptions } from '../../../services/member/party-group.js?v=20261021c';
+import { AuthStore, currentUserId } from '../../../services/core/auth.js?v=20261021c';
 // Q-21-3 收敛（2026-09-13）：在册状态枚举单一源 = core/domain/constants.js（原经 roster.js 转出）
-import { ROLE_LABELS, RESIDENCE } from '../../../core/domain/constants.js?v=20261021b';
-import { showToast, escHtml as esc, getBasePath } from '../../../core/base/utils.js?v=20261021b';
-import { openModal, closeModal, openFormModal } from '../../../components/ui/modal.js?v=20261021b';
+import { ROLE_LABELS, RESIDENCE } from '../../../core/domain/constants.js?v=20261021c';
+import { showToast, escHtml as esc, getBasePath } from '../../../core/base/utils.js?v=20261021c';
+import { openModal, closeModal, openFormModal } from '../../../components/ui/modal.js?v=20261021c';
 // 统一成员档案编辑模态（成员名册行内「编辑」入口；模态内按字段分流：档案属性立即生效 / 制度变更报支书确认）
-import { openPersonEditModal } from '../../../components/governance/pickers.js?v=20261021b';
+import { openPersonEditModal } from '../../../components/governance/pickers.js?v=20261021c';
 // 纯逻辑（可单测）：新增表单校验
-import { validateMemberForm } from '../../../services/member/roster-ui-logic.js?v=20261021b';
+import { validateMemberForm } from '../../../services/member/roster-ui-logic.js?v=20261021c';
 // `D-788` / `V-10b` 第三批（2026-10-05 · 支书圈「甲：粘贴/CSV ＋ 预览」）：自我描述批量导入服务
 //   （纯函数：解析 → 表头关键词映射 → 净化 → 与名册匹配 → 预览；本模块不落库，确认由本 tab 逐行走 saveMember）
-import { buildSelfProfileImport } from '../../../services/member/self-profile-import.js?v=20261021b';
+import { buildSelfProfileImport } from '../../../services/member/self-profile-import.js?v=20261021c';
 // 统一检索引擎（2026-09-13 表格统一化批次 A）：名册列表接入关键词 + 分面（≤8 行引擎自动不渲染检索条）
 // 2026-10-20 第三轮 IA 判例⑤：名册是核对表而非标签墙 ⇒ 4 组 chip（约 20 枚）收回
 //   「搜索 + 党小组 / 发展阶段 / 在册状态 三个下拉」；角色是低频维度、不进主行（改在个人档案看）。
-import { renderFilteredList, personKeyword, personFacets } from '../../../components/ui/list-filter.js?v=20261021b';
+import { renderFilteredList, personKeyword, personFacets } from '../../../components/ui/list-filter.js?v=20261021c';
+import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261021c';
 // 成员流出登记（行内「移出」＝登记即生效）：2026-09-28 批次 220 · R10 拆分后，本 tab 只留「移出」这一
 //   行操作；「成员流动」面板（登记流入 / 登记流出 / 对账行 / 台账表 / 撤销）已拆到独立 tab（org/member-flow-tab.js）。
-import { registerOutflow } from '../../../services/member/member-flow.js?v=20261021b';
+import { registerOutflow } from '../../../services/member/member-flow.js?v=20261021c';
 // 支部归属解析（当前操作人 → 支部 id）：台账/对账/登记同支部口径
-import { getBranchIdOfPerson } from '../../../services/branch/branch.js?v=20261021b';
+import { getBranchIdOfPerson } from '../../../services/branch/branch.js?v=20261021c';
 // 自定义圆角下拉增强（select.input-flat.text-xs → cs-trigger；与全局 observer 幂等）
-import { enhanceSelects } from '../../../components/ui/custom-select.js?v=20261021b';
+import { enhanceSelects } from '../../../components/ui/custom-select.js?v=20261021c';
 
 // 模块级 ctx 缓存：行内保存/删除/新增后整页刷新复用首次渲染的 accent
 let _ctx = null;
@@ -167,6 +168,7 @@ export function renderContent(ctx) {
   //   （在册 / 党员 / 待办），名册列表首屏可见；应到与分组明细收进卡头折叠区，低频查阅不占首屏。
   //   导入入口（_spImportHtml）仍在卡尾、默认收起，不进入首屏。
   container.innerHTML = `
+    ${renderTabHeader({ title: '成员名册', description: '支部在册成员、党小组与在册状态维护。' })}
     <div class="space-y-4">
       <div class="card rounded-xl p-4 overflow-x-auto" id="roster-list-card">
         <div class="flex items-center justify-between flex-wrap gap-2 mb-3">
@@ -189,7 +191,6 @@ export function renderContent(ctx) {
           <div class="flex items-center gap-1.5 flex-wrap mt-2">
             <span class="text-[11px] text-gray-500">待支书确认：</span>
             ${pendParts.map(t => `<span class="text-[11px] px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-100">${t}</span>`).join('')}
-            <span class="text-[11px] text-gray-500">等待支书确认</span>
           </div>` : ''}
         </details>
         ${_listHeaderHtml()}
@@ -256,11 +257,11 @@ function _rowHtml(p, pend) {
       <div class="text-xs text-gray-800 truncate">${p.partyGroup ? esc(p.partyGroup) : '<span class="text-gray-400">未分组</span>'}</div>
       <div class="flex flex-col gap-0.5 min-w-0">
         <span class="text-xs text-gray-800 truncate">${esc(p.developStage || '待定')}</span>
-        ${stagePend ? _pendingPill('阶段变更·待确认', '已报送支书确认，生效前保持现值；在支书「待办」页确认或退回') : ''}
+        ${stagePend ? _pendingPill('阶段变更·待确认', '待支书确认') : ''}
       </div>
       <div class="flex flex-col gap-0.5 min-w-0">
         <span class="text-xs truncate ${detained ? 'text-amber-700' : 'text-gray-800'}">${esc(rs.residenceStatus)}</span>
-        ${resPend ? _pendingPill('在册状态·待确认', '已报送支书确认，生效前保持现值；在支书「待办」页确认或退回') : ''}
+        ${resPend ? _pendingPill('在册状态·待确认', '待支书确认') : ''}
       </div>
       <div class="text-xs text-gray-600 truncate" title="${esc(rs.residenceNote || '')}">${esc(rs.residenceNote || '—')}</div>
       <div class="flex items-center justify-end gap-1.5">
@@ -454,15 +455,15 @@ function _openAddForm() {
     accentColor: _ctx?.accent || 'var(--accent-blue)',
     fields: [
       { key: 'name', label: '姓名', type: 'text', required: true, placeholder: '成员姓名（必填）' },
-      { key: 'studentId', label: '学号', type: 'text', placeholder: '学号（推荐填写；全站唯一，不可与既有成员重复）' },
-      { key: 'enrollYear', label: '届别', type: 'text', placeholder: '入学年份 / 届别（如 2026，推荐填写）' },
+      { key: 'studentId', label: '学号', type: 'text', placeholder: '如 2400012345' },
+      { key: 'enrollYear', label: '届别', type: 'text', placeholder: '如 2026' },
       { key: 'partyGroup', label: '党小组', type: 'select',
         options: [emptyOpt, ...groupOptions().map(g => ({ value: g, label: g }))] },
       { key: 'developStage', label: '发展阶段', type: 'select',
         options: [emptyOpt, ..._orderedStages().map(s => ({ value: s, label: s }))] },
       { key: 'residenceStatus', label: '在册状态', type: 'select',
         options: [{ value: RESIDENCE.CAMPUS, label: '在校' }, { value: RESIDENCE.DETAINED, label: '滞留' }] },
-      { key: 'residenceNote', label: '滞留备注', type: 'textarea', placeholder: '仅「滞留」时填写：原因 / 起止（如 2026-09 起赴外校交换一学期）' },
+      { key: 'residenceNote', label: '滞留备注', type: 'textarea', placeholder: '如：2026-09 起赴外校交换一学期' },
     ],
     submitLabel: '新增并加入名册',
     onSubmit: (values) => {

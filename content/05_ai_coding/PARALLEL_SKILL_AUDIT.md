@@ -473,6 +473,11 @@ related_files: [CLAUDE.md, .trae/specs/generalize-parallel-skill-audit/spec.md]
 | AP-IA-08 | IF 功能需要父键 THEN 有上下文默认带入、无上下文留空；禁止为凑父键造虚拟对象 | 批次 498：汇报可选 `workgroupId`，个人汇报不挂父键 |
 | AP-IA-09 | IF 活动允许跨组参与 THEN 仍必须有唯一责任党小组；`cross-group` 不得再等价于 `hostGroupId=null`；支部级法定会议单列 `branch` | 批次 499：支书补充口径；`activityCreationDeny` 与数据迁移 v8 |
 | AP-IA-10 | IF 工作组成员来自其他党小组 THEN 必须标记跨组招募并有组织委员协调人；不得静默入组，也不得用「能选到人」代替「组织上已协调」 | 批次 499：`validAssignments` 403；成员行 `crossGroup/coordinatedBy`；组织台协调面 |
+| AP-IA-11 | IF 待办由页面派生 THEN 必须带当前登录人 `personId`；不得生成其他角色 / 其他成员的可写行，也不得跨人清理 | 批次 500：`VisitorTodoDeriver` 三条链补 `personId`；服务端 `todo-row` 门不放宽 |
+| AP-IA-12 | IF 内部汇报挂了工作组 THEN 支委层知情权不得被工作组切走；组织者按工作组、组长按党小组汇总，不另造数据 | 批次 500：P-019；`canReadIssue` 扩展＋`report-inbox` scope |
+| AP-IA-13 | IF mock 与 API 同表 THEN 逐字段结构必须一致；只允许有理由的客户端投影白名单，不得改 API 迁就 mock | 批次 500：`seed-manifest`＋`mock-api-parity-structure` 33 表逐字段对照 |
+| AP-IA-14 | IF 修复既有 seed 行 THEN 只更新既有 seed id 的种子自有字段，保留运行时字段；不插入 missing、不删 orphan；清理默认 dry-run | 批次 500：`seed-drift`＋v9 `seed_meta`；`cleanup`/`rebuild-demo` 安全联锁 |
+| AP-IA-15 | IF 测试移出 daily THEN 必须移入 precommit/weekly 并登记覆盖来源；daily 只保留关键 probe，不得静默删测 | 批次 500：`test-tier-registry`＋`test-tier-guard`；daily 118s |
 | CTX-01 | IF 审计结论已沉淀到原则 / 方法文档 THEN 原文必须在 `.ctx/logs/archive/YYYY-MM/`；不得继续留在 `.ctx` 顶层 | 2026-10 IA 三件套归档 |
 | CTX-02 | IF 产物可由脚本重跑 THEN 不得作为权威常驻 `.ctx` 顶层；守卫读 `archive` 路径或直接跑生成脚本 | `server/scripts/ia-inventory.mjs` → `IA_INVENTORY.md` |
 | CTX-03 | IF 内容是可复用契约（逐角色落点 / 深链协议）THEN 进 `content/04_web_design/module/MODULE_UI_DESIGN.md` 一类设计文档，不进审计报告常驻 | `IA_LINK_TRUTH.md` 材料闭环表 → MODULE_UI_DESIGN §五 |
@@ -533,5 +538,6 @@ related_files: [CLAUDE.md, .trae/specs/generalize-parallel-skill-audit/spec.md]
 | 2026-10-20 | `.ctx/logs/archive/2026-10/FULLSTACK_AUDIT_R3.md` | 本文 §12 G-2 / G-5；`TEST_AND_VERIFICATION.md`「承载形态守卫」 |
 | 2026-10-21 | 批次 498 支书裁定（汇报受众 / 可选父键 / 党委入口） | `DATA_MODEL.md` §2.16 受众口径；本文 §11.3 AP-IA-06…08 |
 | 2026-10-21 | 批次 499 支书补充口径（跨组活动落实党小组 / 跨组深参协调） | `SECRETARY_DIRECTIVES.md` P-018；`DATA_MODEL.md` §2.1/§2.3；本文 §11.3 AP-IA-09…10 |
+| 2026-10-21 | 批次 500 十项专项收口（汇报汇总 / 待办归属 / mock 真值 / 生命周期 / 测试分层 / 第五轮审查） | `SECRETARY_DIRECTIVES.md` P-019；`DATA_MODEL.md` §2.16；本文 §11.3 AP-IA-11…15；`.ctx/logs/archive/2026-10/AUDIT_R5_*.md` |
 
 > 报告只做判例证据，不复制原文；后续同类问题先回查上表，再决定是否新开专项。

@@ -14,7 +14,7 @@
 //         content/04_web_design/data/DATA_ARCHITECTURE.md §8.4
 // ════════════════════════════════════════════════════════════════
 
-import { getApiBaseUrl, getAuthToken } from './data-adapter.js?v=20261021b';
+import { getApiBaseUrl, getAuthToken } from './data-adapter.js?v=20261021c';
 
 // ── HTTP 工具函数 ──────────────────────────────────────────────
 
@@ -758,6 +758,21 @@ export const ApiAdapter = {
 
     delete(id) {
       return _delete(`/api/v1/branches/${id}`);
+    },
+  },
+
+  // B-499-9：任命与支委身份配置的语义写口（服务端同一事务落 branch/users/任期记录或 users/auth_audit）
+  appointments: {
+    apply(data = {}) {
+      const { branchId, ...body } = data;
+      return _post(`/api/v1/branches/${encodeURIComponent(branchId)}/appointments`, body);
+    },
+  },
+
+  branchCommissioners: {
+    apply(data = {}) {
+      const { branchId, ...body } = data;
+      return _post(`/api/v1/branches/${encodeURIComponent(branchId)}/branch-commissioners`, body);
     },
   },
 

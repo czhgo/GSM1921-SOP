@@ -142,7 +142,7 @@ test('M7 v8 活动组织落点：支部级重分类 / 补承办范围 / legacy �
     put('act-v8-plain', { id: 'act-v8-plain', type: '主题党日' });
 
     const applied = applyMigrations(db);
-    assert.deepEqual(applied.applied, [8], '只应补跑 v8');
+    assert.deepEqual(applied.applied, [8, 9], '应从 v7 补跑 v8 + v9');
     const row = (id) => JSON.parse(db.prepare('SELECT data FROM activities WHERE id = ?').get(id).data);
     assert.equal(row('act-v8-legacy').legacyHostGroup, true, '跨组且无责任组 ⇒ legacy 标记，不猜测');
     assert.equal(row('act-v8-branch').organizingScope, 'branch', '支部级会议重分类');

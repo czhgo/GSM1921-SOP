@@ -5,14 +5,15 @@
 // 数据源：reviewRequests（services/governance/review-request.js，mock 与 API 双引擎同源）
 // 设计权威源：content/04_web_design/evolution/PARTY_COMMITTEE_DESIGN.md §5 P3
 
-import { mockDB } from '../../../core/domain/domain.js?v=20261021b';
-import { AuthStore } from '../../../services/core/auth.js?v=20261021b';
-import { getPersonName } from '../../../services/member/person.js?v=20261021b';
-import { getBranchIdOfPerson } from '../../../services/branch/branch.js?v=20261021b';
-import { submitReviewRequest, listReviewRequests } from '../../../services/governance/review-request.js?v=20261021b';
-import { showToast, escHtml as esc, fmtDt } from '../../../core/base/utils.js?v=20261021b';
+import { mockDB } from '../../../core/domain/domain.js?v=20261021c';
+import { AuthStore } from '../../../services/core/auth.js?v=20261021c';
+import { getPersonName } from '../../../services/member/person.js?v=20261021c';
+import { getBranchIdOfPerson } from '../../../services/branch/branch.js?v=20261021c';
+import { submitReviewRequest, listReviewRequests } from '../../../services/governance/review-request.js?v=20261021c';
+import { showToast, escHtml as esc, fmtDt } from '../../../core/base/utils.js?v=20261021c';
 // 统一检索引擎（2026-09-14 批次 37）：上报记录列表接入关键词 + 状态分面 + 分页
-import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261021b';
+import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261021c';
+import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261021c';
 
 const TYPE_META = {
   'develop-node': { label: '发展节点', desc: '发展党员关键节点（确定积极分子/发展对象、接收预备党员、按期转正等）' },
@@ -35,6 +36,7 @@ export function renderContent() {
 
   if (tc.dataset.currentTab !== 'report-up') {
     tc.innerHTML = `
+      ${renderTabHeader({ title: '上报党委', description: '一次性地向院党委发起上报，并在此跟批复回执。' })}
       <div class="space-y-4">
         <!-- 统计条（页首内联一行：待批复/已批准/已驳回；沿用活动管理内联统计条样式） -->
         <div id="rq-stats" class="flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-gray-500 py-2 border-b border-gray-100"></div>

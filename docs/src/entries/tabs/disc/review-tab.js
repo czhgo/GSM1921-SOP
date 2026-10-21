@@ -2,24 +2,25 @@
 // 纪检委员工作台 Tab：复盘（T-279 M3 拆分；2026-10-04 批次 368 页签名由「活动监督复盘」改「复盘」——原名＝动作＋对象混轴）
 // 活动流程监督（超时提醒）+ 活动复盘监督（批注/打回/确认）+ 经验沉淀督促清单。
 
-import { mockDB, ReviewStatus } from '../../../core/domain/domain.js?v=20261021b';
-import { persist } from '../../../data/data-adapter.js?v=20261021b';
-import { reviewToDisplay } from '../../../services/governance/review.js?v=20261021b';
-import { loadActiveActivityReviews, loadTaskforceReviews, updateReviewById } from '../../../services/governance/review.js?v=20261021b';
-import { loadActivities } from '../../../services/activity/activity.js?v=20261021b';
-import { showToast, escHtml } from '../../../core/base/utils.js?v=20261021b';
-import { openFormModal } from '../../../components/ui/modal.js?v=20261021b';
+import { mockDB, ReviewStatus } from '../../../core/domain/domain.js?v=20261021c';
+import { persist } from '../../../data/data-adapter.js?v=20261021c';
+import { reviewToDisplay } from '../../../services/governance/review.js?v=20261021c';
+import { loadActiveActivityReviews, loadTaskforceReviews, updateReviewById } from '../../../services/governance/review.js?v=20261021c';
+import { loadActivities } from '../../../services/activity/activity.js?v=20261021c';
+import { showToast, escHtml } from '../../../core/base/utils.js?v=20261021c';
+import { openFormModal } from '../../../components/ui/modal.js?v=20261021c';
 // 批次 352（`D-746` · `D-744`② 业务过程类余项）：经验沉淀「作废（软）」——统一写口 ＋ 支委层判据
-import * as SoftVoid from '../../../services/governance/soft-void.js?v=20261021b';
-import { openVoidModal } from '../../../components/ui/void-record.js?v=20261021b';
-import { NoticeStore } from '../../../services/governance/notice.js?v=20261021b';
-import { generateId } from '../../../core/base/id.js?v=20261021b';
-import { getPersonById } from '../../../services/member/person.js?v=20261021b';
-import { requireDiscCommissionerId } from './_shared.js?v=20261021b';
+import * as SoftVoid from '../../../services/governance/soft-void.js?v=20261021c';
+import { openVoidModal } from '../../../components/ui/void-record.js?v=20261021c';
+import { NoticeStore } from '../../../services/governance/notice.js?v=20261021c';
+import { generateId } from '../../../core/base/id.js?v=20261021c';
+import { getPersonById } from '../../../services/member/person.js?v=20261021c';
+import { requireDiscCommissionerId } from './_shared.js?v=20261021c';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是活动的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
-import { renderFilteredList, activityKeyword, activityFacets } from '../../../components/ui/list-filter.js?v=20261021b';
+import { renderFilteredList, activityKeyword, activityFacets } from '../../../components/ui/list-filter.js?v=20261021c';
+import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261021c';
 // 材料页深链 focusActivityId 的通用定位（只滚动 + 闪烁，不另造筛选器）
-import { focusActivityAnchor } from '../../../components/ui/detail-anchor.js?v=20261021b';
+import { focusActivityAnchor } from '../../../components/ui/detail-anchor.js?v=20261021c';
 
 // ── 超期提醒真实触达（2026-09-10）───────────────────────────────
 // 依据：纪检委员工作流程指南 §3.1「超时确认后可触发邮件提醒」、党小组组长工作手册
@@ -228,6 +229,7 @@ export function renderContent(ctx) {
   //   再批注/确认，属同一任务的先后两段 ⇒ 合并为一张「复盘监督」卡：一个卡头、两个小节；
   //   两个列表宿主 id 与全部按钮/勾选行为原样保留（清单与动作零丢失）。
   container.innerHTML = `
+    ${renderTabHeader({ title: '复盘', description: '流程监督与复盘处理；已确认复盘的经验沉淀。' })}
     <div class="space-y-4">
       <div class="card rounded-xl p-5">
         <div class="flex items-center justify-between gap-2 mb-3">
@@ -373,7 +375,7 @@ export function renderContent(ctx) {
       id: 'deposit',
       title: '记录经验沉淀',
       // 2026-09-21 批次 139：每台浮窗页脚一条「相关设置」深链（纪检台 → 纪检职责参数）
-      settingsLink: { href: './settings.html#domain-disc', text: '纪检职责参数（考察确认超期天数）→ 设置' },
+      settingsLink: { href: './settings.html#domain-disc', text: '制度参数 →' },
       fields: [
         { key: 'title', label: '沉淀主题', type: 'input', required: true, placeholder: `如：${activityName}的组织经验` },
         { key: 'content', label: '经验内容', type: 'textarea', required: true, placeholder: '做了什么、怎么做的、为什么这样做（可操作、有边界）' },

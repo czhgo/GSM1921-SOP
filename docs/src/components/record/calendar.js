@@ -5,11 +5,11 @@
 //  视图模式：月/周/日/列表 四种切换
 // ════════════════════════════════════════════════════════════════
 
-import { getAppState, setState } from '../../core/base/state.js?v=20261021b';
-import { ROLE_COLORS, getActivityColor, ACTIVITY_CATEGORY_COLORS, ACTIVITY_TYPE_LABELS, ACTIVITY_TYPE_SHORT } from '../../core/domain/constants.js?v=20261021b';
-import { _fmtDate, _currentYearMonth } from '../../core/base/utils.js?v=20261021b';
-import { tokenOf } from '../../core/base/version-token.js?v=20261021b'; // P2 视图渲染守卫数据版本（spec §四.2）
-import { filterTasksByManagementRole, activityLifecycleBadgeHtml } from './inspector.js?v=20261021b';
+import { getAppState, setState } from '../../core/base/state.js?v=20261021c';
+import { ROLE_COLORS, getActivityColor, ACTIVITY_CATEGORY_COLORS, ACTIVITY_TYPE_LABELS, ACTIVITY_TYPE_SHORT } from '../../core/domain/constants.js?v=20261021c';
+import { _fmtDate, _currentYearMonth } from '../../core/base/utils.js?v=20261021c';
+import { tokenOf } from '../../core/base/version-token.js?v=20261021c'; // P2 视图渲染守卫数据版本（spec §四.2）
+import { filterTasksByManagementRole, activityLifecycleBadgeHtml } from './inspector.js?v=20261021c';
 
 // ── 内联标签深色变量对（与 constants.js _applyDark 生成的 bgDark/textDark/borderDark 配套）──
 // 标签/卡片：三件套（bg/text/border）；纯文字：仅 text；圆点：仅实色提亮（--acc-dot-dark）
@@ -592,7 +592,8 @@ function _renderCellContent(dateKey, dayActs, ct, hasActivity, viaTasks, state, 
   return html;
 }
 
-/** R3-F03/B01：日期格键盘选中（Enter/Space 与点击等价；不拦截格内活动条目的键盘事件）。 */
+/** R3-F03/B01：日期格键盘选中（Enter/Space 与点击完全等价；不拦截格内活动条目的键盘事件）。
+ *  R3-11：统一走 `cell.click()` —— 桌面与移动端同一绑定（移动端还要打开当日详情面板）。 */
 function _bindDateCellKeys(grid) {
   grid.querySelectorAll('[data-date][role="gridcell"]').forEach(cell => {
     if (cell.dataset.calDateKeyBound) return;
@@ -601,9 +602,7 @@ function _bindDateCellKeys(grid) {
       if (e.target !== cell) return; // 活动条目自行处理
       if (e.key !== 'Enter' && e.key !== ' ' && e.key !== 'Spacebar') return;
       e.preventDefault();
-      grid.querySelectorAll('.selected').forEach(c => c.classList.remove('selected'));
-      cell.classList.add('selected');
-      setState({ selectedDate: cell.dataset.date, viewMode: 'list', selectedActivityId: null });
+      cell.click();
     });
   });
 }
@@ -703,7 +702,9 @@ function _renderMobileDots(dayActs, ct, hasActivity, viaTasks, state) {
 }
 
 function _bindMobileCellClicks(grid, activeActivities, tasks, month, state) {
-  grid.querySelectorAll('.cal-cell-mobile.has-tasks').forEach(cell => {
+  // R3-11：原只绑 `.has-tasks` ⇒ 空日期格在手机上点不动（桌面已统一绑定）。
+  // 现所有 `[data-date][role=gridcell]` 一律同绑定：点/键盘 Enter 都打开当日详情。
+  grid.querySelectorAll('.cal-cell-mobile[data-date][role="gridcell"]').forEach(cell => {
     cell.addEventListener('click', () => {
       // 移除之前的选中状态
       grid.querySelectorAll('.cal-cell-mobile.selected').forEach(c => c.classList.remove('selected'));

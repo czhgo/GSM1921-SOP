@@ -12,14 +12,14 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261021b';
+import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261021c';
 import {
   MockAdapter,
-} from '../../docs/src/data/mock-adapter.js?v=20261021b';
-import { setDataSource } from '../../docs/src/data/data-adapter.js?v=20261021b';
+} from '../../docs/src/data/mock-adapter.js?v=20261021c';
+import { setDataSource } from '../../docs/src/data/data-adapter.js?v=20261021c';
 import {
   TodoStore, TodoCategory, TodoStatus, WORK_DOMAIN,
-} from '../../docs/src/services/governance/todo.js?v=20261021b';
+} from '../../docs/src/services/governance/todo.js?v=20261021c';
 
 // ── localStorage 内存桩（member-persist 同款）─────────────────────
 const _store = new Map();
@@ -123,6 +123,8 @@ test('③ complete 后：getDomainsWithGroups 结果变化（计数 +1，完成�
 
 test('④ refreshExpiredStatus 实际变更后：结果变化（计数 +1，条目转 expired）', () => {
   beginMockCase();
+  // 批次 500（B-499-3）：无会话不再写任何行 ⇒ 本用例以 secretary 会话执行，锁定「只写本人/本角色」。
+  globalThis.localStorage.setItem('gsm1921-login-user', JSON.stringify({ personId: '2400012347', role: 'secretary' }));
   // 远期正常待办 + 过期待办（pending、deadline 早于今日 → refresh 会置为 expired）
   mk({ id: 'ag-30', domain: WORK_DOMAIN.PROJECT, actionKey: 'participate', title: '参加党员大会', deadline: '2099-06-01' });
   const expiredId = mk({ id: 'ag-31', domain: WORK_DOMAIN.ATTENDANCE, actionKey: 'attendance-remind', title: '过期考勤待录入', deadline: '2000-01-01' }).id;

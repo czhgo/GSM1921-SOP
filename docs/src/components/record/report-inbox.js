@@ -8,13 +8,13 @@
 //  本组件禁用 SVG 图标（支书 2026-08-10 裁定），类别用色点+文字标签区分
 // ════════════════════════════════════════════════════════════════
 
-import { IssueStore, deriveIssueDisplayState, REPORT_CATEGORIES } from '../../services/governance/issues.js?v=20261021b';
-import { AuthStore } from '../../services/core/auth.js?v=20261021b';
-import { showToast, escHtml } from '../../core/base/utils.js?v=20261021b';
-import { getPersonName } from '../../services/member/person.js?v=20261021b';
-import { solidAccentStyle } from '../../core/domain/constants.js?v=20261021b';
+import { IssueStore, deriveIssueDisplayState, REPORT_CATEGORIES } from '../../services/governance/issues.js?v=20261021c';
+import { AuthStore } from '../../services/core/auth.js?v=20261021c';
+import { showToast, escHtml } from '../../core/base/utils.js?v=20261021c';
+import { PersonStore, getPersonName } from '../../services/member/person.js?v=20261021c';
+import { solidAccentStyle } from '../../core/domain/constants.js?v=20261021c';
 // 统一检索引擎（2026-09-14 批次 37）：待答复汇报列表接入（关键词 事项/汇报人 + 引擎内置分页）
-import { renderFilteredList } from '../ui/list-filter.js?v=20261021b';
+import { renderFilteredList } from '../ui/list-filter.js?v=20261021c';
 
 // ── E-3（2026-09-09 · H60.7 面板保态复查③）：列表瞬态草稿互扰兜底 ──────
 // 某行正式答复成功 → onAnswered → 调用方整块重渲染（支书待办/组长组员汇报），
@@ -46,10 +46,42 @@ const STATE_BADGE_VARIANT = {
   unknown: 'neutral',
 };
 
+/** 汇报所挂工作组 id：显式父键优先，其次按 sourceType/sourceId 还原稳定工作组 id */
+function _workgroupIdOf(row) {
+  if (row?.workgroupId) return row.workgroupId;
+  if (row?.sourceType && row?.sourceId) return `wg-${row.sourceType}-${row.sourceId}`;
+  return null;
+}
+
+/**
+ * 汇总范围过滤（按活动 / 专班工作组，或按汇报人所属党小组）。
+ * 单一源：列表与条数都走这里，调用方不得另写一套筛选。可见性仍由 `IssueStore` 读口收口。
+ * @param {Array} reports
+ * @param {{ workgroupId?: string|null, partyGroup?: string|null }} [scope]
+ * @returns {Array}
+ */
+export function filterReportsByScope(reports, scope = {}) {
+  const list = Array.isArray(reports) ? reports : [];
+  if (scope?.workgroupId) return list.filter((row) => _workgroupIdOf(row) === scope.workgroupId);
+  if (scope?.partyGroup) {
+    return list.filter((row) => !!row.submittedBy
+      && PersonStore.getById(row.submittedBy)?.partyGroup === scope.partyGroup);
+  }
+  return list;
+}
+
+/** 同一 role 可能承载多个 scope（如活动详情 + 专班详情），交接键须带上 scope */
+function _payloadKey(role, scope) {
+  if (scope?.workgroupId) return `${role}::wg:${scope.workgroupId}`;
+  if (scope?.partyGroup) return `${role}::pg:${scope.partyGroup}`;
+  return role;
+}
+
 /**
  * 待答复收件箱 HTML
  * @param {Object} opts
  * @param {Array}  opts.reports  — 待答复汇报（kind='report' 且 open）
+ * @param {{ workgroupId?: string|null, partyGroup?: string|null }} [opts.scope] — 汇总范围（工作组 / 党小组）
  * @param {string} [opts.title]  — 区标题（默认「待答复」）
  * @param {string} [opts.subtitle] — 区副标题（如「X 条待答复 · 行内答复」）
  * @param {string} [opts.role]   — 答复人角色键（'secretary' | 'leader'）
@@ -61,6 +93,7 @@ const STATE_BADGE_VARIANT = {
  */
 export function renderReportInboxHtml({
   reports = [],
+  scope = null,
   title = '待答复',
   subtitle = '',
   role = 'secretary',
@@ -69,6 +102,8 @@ export function renderReportInboxHtml({
   embedded = false,
   embeddedLimit = 2,
 } = {}) {
+  const list = filterReportsByScope(reports, scope || {});
+  const payloadKey = _payloadKey(role, scope);
   // 2026-09-08 顶卡排布统一：空态并入统一形态（text-xs text-gray-500 py-1），
   // 保留绿色圆点「已全部答复」语义（不突兀：与相邻卡空态行同高，无底色整条）
   const emptyBox = `
@@ -76,9 +111,9 @@ export function renderReportInboxHtml({
       <span class="w-2 h-2 rounded-full bg-green-500 flex-shrink-0"></span> ${emptyMsg}
     </p>`;
 
-  if (!reports.length) {
+  if (!list.length) {
     _rowUi.clear(); // 无行可展示：清模块态，防陈旧草稿/展开态残留下次渲染
-    _embeddedExpanded.delete(role); // 无待答复：下次有汇报时回到默认「只露前 2 条」
+    _embeddedExpanded.delete(payloadKey); // 无待答复：下次有汇报时回到默认「只露前 2 条」
     if (embedded) return ''; // 折叠条内无待答复 → 不占位（条内还有未读通知行）
     return `
       <div class="card rounded-xl p-4 mb-4">
@@ -92,7 +127,7 @@ export function renderReportInboxHtml({
 
   // 问题优先排序：卡点 → 请示 → 进度；待答复（resultPending）优先于待处理
   const catOrder = { blocked: 0, ask: 1, progress: 2 };
-  const sorted = [...reports].sort((a, b) => {
+  const sorted = [...list].sort((a, b) => {
     const ca = catOrder[a.reportCategory] ?? 3;
     const cb = catOrder[b.reportCategory] ?? 3;
     if (ca !== cb) return ca - cb;
@@ -108,13 +143,13 @@ export function renderReportInboxHtml({
   }
 
   // 行内容迁至统一检索引擎（rowHtml 见 bindReportInbox——引擎须 DOM 就位后才可挂载）；
-  // 本轮排序后行与强调色按 role 交接给 bind（行 HTML 原样保留，仅换承载）
-  _listPayload.set(role, { accent, rows: sorted, embedded, limit: Math.max(1, Number(embeddedLimit) || 2) });
+  // 本轮排序后行与强调色按 role+scope 交接给 bind（行 HTML 原样保留，仅换承载）
+  _listPayload.set(payloadKey, { accent, rows: sorted, embedded, limit: Math.max(1, Number(embeddedLimit) || 2) });
 
   if (embedded) {
     // 2026-10-19 Task 3：首屏只露前 embeddedLimit 条；其余经「查看全部待答复」展开。
     const limit = Math.max(1, Number(embeddedLimit) || 2);
-    const visibleCount = _embeddedExpanded.has(role) ? sorted.length : Math.min(limit, sorted.length);
+    const visibleCount = _embeddedExpanded.has(payloadKey) ? sorted.length : Math.min(limit, sorted.length);
     const hiddenCount = sorted.length - visibleCount;
     return `
       <div class="todo-strip__section">
@@ -131,7 +166,7 @@ export function renderReportInboxHtml({
     <div class="card rounded-xl p-4 mb-4">
       <div class="flex items-center justify-between mb-3">
         <h4 class="font-title-cn text-sm font-bold text-gray-800">${title}</h4>
-        <span class="text-xs text-gray-500">${subtitle || `${reports.length} 条待答复 · 行内答复`}</span>
+        <span class="text-xs text-gray-500">${subtitle || `${sorted.length} 条待答复 · 行内答复`}</span>
       </div>
       <div id="rep-inbox-list-host"></div>
     </div>`;
@@ -179,10 +214,12 @@ function _renderInboxDetail(r, accent, draft = '') {
  * @param {HTMLElement} container — 工作台根容器
  * @param {Object} opts
  * @param {string} opts.role       — 答复人角色键
+ * @param {{ workgroupId?: string|null, partyGroup?: string|null }} [opts.scope] — 与 render 相同的汇总范围
  * @param {Function} [opts.onAnswered] — 答复完成后回调（重渲染）
  */
-export function bindReportInbox(container, { role = 'secretary', onAnswered = () => {} } = {}) {
+export function bindReportInbox(container, { role = 'secretary', scope = null, onAnswered = () => {} } = {}) {
   if (!container) return;
+  const payloadKey = _payloadKey(role, scope);
   /** E-3：读/写某行模块态（不存在则按默认建） */
   const rowState = (id) => {
     let s = _rowUi.get(id);
@@ -193,12 +230,12 @@ export function bindReportInbox(container, { role = 'secretary', onAnswered = ()
   // 行内动作一律事件委托于宿主：宿主由 renderReportInboxHtml 每次新建、引擎只重绘其内部，
   // 故筛选/翻页后仍有效，且不随每次渲染叠加监听。
   const host = container.querySelector('#rep-inbox-list-host');
-  const payload = host ? _listPayload.get(role) : null;
+  const payload = host ? _listPayload.get(payloadKey) : null;
   /** 挂载/重绘列表（embedded 首屏按 limit 截取；「查看全部」时换全量行，同一引擎配置） */
   const mountList = (rows) => {
     if (!host) return;
     renderFilteredList(host, {
-      stateKey: `report-inbox-${role}`,
+      stateKey: `report-inbox-${payloadKey}`,
       rows,
       keyword: {
         keys: ['title', 'name'],
@@ -245,14 +282,14 @@ export function bindReportInbox(container, { role = 'secretary', onAnswered = ()
     });
   };
   if (host && payload) {
-    const initialRows = (payload.embedded && !_embeddedExpanded.has(role))
+    const initialRows = (payload.embedded && !_embeddedExpanded.has(payloadKey))
       ? payload.rows.slice(0, payload.limit)
       : payload.rows;
     mountList(initialRows);
   }
   // 「查看全部待答复」：embedded 模式展开全量；会话内保持，整块重建后仍展示全部
   container.querySelector('.rep-inbox-show-all')?.addEventListener('click', (e) => {
-    _embeddedExpanded.add(role);
+    _embeddedExpanded.add(payloadKey);
     if (payload) mountList(payload.rows);
     e.currentTarget.closest('.rep-inbox-more')?.remove();
   });

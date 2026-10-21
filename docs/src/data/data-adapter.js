@@ -21,10 +21,12 @@
 // 本文件避免静态引入业务服务以防环依赖；静态依赖仅限零依赖叶子模块：
 //   · pending-writes：persist() 排程时必须同步登记写入，不能等 await（批次 49）。
 //   · page-url：纯 URL 解析，无数据或业务依赖，不形成反向依赖。
-import { trackWrite } from '../core/session/pending-writes.js?v=20261021b';
-import { resolveDocumentUrl } from '../core/base/page-url.js?v=20261021b';
+import { trackWrite } from '../core/session/pending-writes.js?v=20261021c';
+import { resolveDocumentUrl } from '../core/base/page-url.js?v=20261021c';
+// 角色集单一源（constants.js 只引零依赖叶子 date.js ⇒ 不形成业务环依赖）。
+import { BRANCH_COMMISSION_ROLES, PARTY_STAFF_ROLE } from '../core/domain/constants.js?v=20261021c';
 // @deprecated 旧 p* 人员 id 映射：仅迁移路径（本文件 + mock-adapter）可引用，业务代码禁止直接 import。
-import { isLegacyPersonId, mapPersonId } from './legacy-person-ids.js?v=20261021b';
+import { isLegacyPersonId, mapPersonId } from './legacy-person-ids.js?v=20261021c';
 
 /**
  * 旧 p* 人员 id → 学号/工号（迁移期兼容；已是学号原样返回，未知旧 id 返回 null）。
@@ -229,7 +231,7 @@ export async function init() {
       ]);
 
       // 填充 mockDB 缓存（供服务层同步读取）
-      const { mockDB } = await import('../core/domain/domain.js?v=20261021b');
+      const { mockDB } = await import('../core/domain/domain.js?v=20261021c');
       // 缓存引用：pagehide 同步冲刷时不能再 await 动态 import（文档卸载中挂起），
       // 必须直接同步读取（见 _flushSnapshotSync）
       _cachedMockDB = mockDB;
@@ -321,7 +323,7 @@ export async function init() {
       } catch (e) {
         console.warn('[DataAdapter] init: niche/新域集合拉取失败，回退本地备份：', e);
         try {
-          const { restoreNicheCollections } = await import('./mock-adapter.js?v=20261021b');
+          const { restoreNicheCollections } = await import('./mock-adapter.js?v=20261021c');
           restoreNicheCollections();
         } catch (e2) {
           console.warn('[DataAdapter] init: 本地 niche 备份恢复失败：', e2);
@@ -354,8 +356,8 @@ export async function init() {
       //   （批 47-X 真机实测入口计数 0，批 47-Y 按 R-78 造出可达且自洽的前置后转正）。
       if (SEED_FALLBACK && (!mockDB.attendances.length || !mockDB.inspections.length)) {
         try {
-          const { ATTENDANCE_RECORDS } = await import('./mock/attendance.js?v=20261021b');
-          const { INSPECTION_RECORDS } = await import('./mock/inspection.js?v=20261021b');
+          const { ATTENDANCE_RECORDS } = await import('./mock/attendance.js?v=20261021c');
+          const { INSPECTION_RECORDS } = await import('./mock/inspection.js?v=20261021c');
           const filled = ['attendances', 'inspections'].filter((k) => !mockDB[k].length); // 实际被回退注入的键
           for (const k of filled) mockDB[k] = (k === 'attendances' ? ATTENDANCE_RECORDS : INSPECTION_RECORDS).map(r => ({ ...r }));
           _commitBase(mockDB, filled); // 2026-09-26 批次 206：只登记实际注入的键（原先并列写死 ⇒ 未回退的键也被推基线 ⇒ 并发写丢）
@@ -366,10 +368,10 @@ export async function init() {
       }
       if (SEED_FALLBACK && !mockDB.todos.length) {
         try {
-          const { SEED_TODOS } = await import('../services/governance/todo.js?v=20261021b');
-          mockDB.todos = SEED_TODOS.map(t => ({ ...t }));
+          const { SEED_TODOS } = await import('../services/governance/todo.js?v=20261021c');
+          mockDB.todos = _seedTodosForCurrentRole(SEED_TODOS);
           _commitBase(mockDB, ['todos']); // 回退值计入基线 ⇒ 不上传
-          console.info('[DataAdapter] init: 待办空集合已回退本地 seed');
+          console.info('[DataAdapter] init: 待办空集合已按当前角色回退本地 seed');
         } catch (e) {
           console.warn('[DataAdapter] init: 待办 seed 回退失败：', e);
         }
@@ -596,8 +598,10 @@ async function _flushSnapshot() {
   _flushDeferred = null;
   // flush 时若数据源已切回 mock（如服务器不可达回退），跳过写穿
   if (DATA_SOURCE !== 'api') { deferred?.resolve(); return; }
+  // 党委账号未选支部：本轮没有支部写范围，快照必被服务端 403 ⇒ 不发（不把成功提示反转为失败）
+  if (_isPartyStaffWithoutBranch()) { deferred?.resolve(); return; }
   try {
-    const { mockDB } = await import('../core/domain/domain.js?v=20261021b');
+    const { mockDB } = await import('../core/domain/domain.js?v=20261021c');
     _cachedMockDB = mockDB;
     const dirty = _collectDirty(mockDB);
     if (!dirty) { deferred?.resolve(); return; } // 无脏集合：跳过上传（2026-09-02 增量快照）
@@ -754,11 +758,11 @@ async function _recoverFromConflict(e) {
     console.warn('[DataAdapter] 409 冲突但未给出冲突集合清单，无法定向刷新');
     return;
   }
-  const { mockDB } = await import('../core/domain/domain.js?v=20261021b');
+  const { mockDB } = await import('../core/domain/domain.js?v=20261021c');
   await _refreshCollections(names, mockDB);
   // 业务语言提示（既有告警通道 + 支书要求的可读文案）
   try {
-    const { showToast } = await import('../core/base/utils.js?v=20261021b');
+    const { showToast } = await import('../core/base/utils.js?v=20261021c');
     showToast('info', '数据已被他人更新，已为你刷新');
   } catch (err) {
     console.warn('[DataAdapter] 冲突提示渲染失败：', err);
@@ -939,12 +943,12 @@ export async function hydrateDataSource({ apiAdapter, loadMock } = {}) {
 
 // 部署形态常量（`getRuntimeMode().stage` 的取值来源）：server=同源后端（Node 动态注入）/ static=静态托管。
 // ⚠ 同本文件既有纪律：**置尾**以保上文行号（README-server.md 的 `文件:行号` 取证引用）；import 声明被提升，置尾不影响语义。
-import { DEPLOY_MODE, DEMO_READONLY } from '../config/deploy.js?v=20261021b';
+import { DEPLOY_MODE, DEMO_READONLY } from '../config/deploy.js?v=20261021c';
 // `SEED_FALLBACK`（空域 seed 回退开关）**用命名空间导入**：Node 托管形态下 `/src/config/deploy.js`
 //   由 `server/app.js` 注入，**已带上该常量**（值由 env `SEED_FALLBACK=0` 决定，缺省 `true`）。仍保持
 //   命名空间导入（不用命名导入）：托管形态不止一种，命名导入遇上缺导出的宿主会 **SyntaxError**
 //   ⇒ 取不到即按**默认 `true`**（＝既有行为）。完整语义见 `config/deploy.js` 与本文件 `_deployConfig`。
-import * as _deployConfig from '../config/deploy.js?v=20261021b';
+import * as _deployConfig from '../config/deploy.js?v=20261021c';
 const SEED_FALLBACK = _deployConfig.SEED_FALLBACK !== undefined ? _deployConfig.SEED_FALLBACK : true;
 
 // ════════════════════════════════════════════════════════════════
@@ -958,6 +962,36 @@ const SEED_FALLBACK = _deployConfig.SEED_FALLBACK !== undefined ? _deployConfig.
 //   故本函数**必须在 `_captureBase` 之前**调用，且拉到的值天然不进基线（基线只遍历 payload 的键）。
 // 失败语义：**逐域独立兜底、不抛**——拉取失败时保留本地既有值（本地备份/空数组），不阻断 init 主流程
 //   （主集合已由上文拉取成功；若这里抛出，会把整页打成「无法连接服务器」，代价过大）。
+/**
+ * 党委账号是否「未选支部」（本轮无支部写范围）。
+ * 服务端 `snapshotScopeDeny` 对无支部的党委写口一律 403（批次 498 裁定，不回落 br-b1）⇒
+ * 客户端也就不该发这次快照：业务写走语义端点，缓存等选支后由读口刷新。
+ */
+function _isPartyStaffWithoutBranch() {
+  try {
+    const raw = localStorage.getItem('gsm1921-login-user');
+    const role = raw ? JSON.parse(raw)?.role : null;
+    if (!PARTY_STAFF_ROLE.includes(role)) return false;
+    return !new URLSearchParams(window.location.search).get('branchId');
+  } catch (_) {
+    return false;
+  }
+}
+
+/**
+ * 授权审计留痕的读权限：支委层 ∪ 党委（与服务端 `GET /auth-audit` 同门）。
+ * 读登录痕迹里的角色即可，不引 AuthStore（本文件不静态引业务服务，防环依赖）。
+ */
+function _canReadAuthAudit() {
+  try {
+    const raw = localStorage.getItem('gsm1921-login-user');
+    const role = raw ? JSON.parse(raw)?.role : null;
+    return !!role && (BRANCH_COMMISSION_ROLES.includes(role) || PARTY_STAFF_ROLE.includes(role));
+  } catch (_) {
+    return false;
+  }
+}
+
 /**
  * @param {Object} mockDB 缓存对象（`core/domain/domain.js::mockDB`）
  */
@@ -976,7 +1010,12 @@ async function _loadAuxCollections(mockDB) {
   };
   await pull('handoffs', 'handoffs', []); await pull('attendanceAppeals', 'attendanceAppeals', []);
   await pull('memberConfirmations', 'pendingMemberConfirmations', []); await pull('inspectionAppeals', 'inspectionAppeals', []);
-  await pull('milestones', 'milestones', []); await pull('issueUnread', 'issueUnread', []); await pull('authAudit', 'authAudit', []);
+  await pull('milestones', 'milestones', []); await pull('issueUnread', 'issueUnread', []);
+  // 授权审计留痕只对支委层 / 党委可读（服务端 `GET /auth-audit` 同一道门，见 semantic-routes.js）。
+  // 2026-10-21 批次 500：按角色跳过——否则组长 / 成员 / 访客每开一页都吃一次 403，
+  // 真机普查把它记成「未捕获脚本错误」，连带同屏的成功提示被当成静默失败。
+  if (_canReadAuthAudit()) await pull('authAudit', 'authAudit', []);
+  else if (mockDB.authAudit === undefined) mockDB.authAudit = [];
   await pull('workgroups', 'workgroups', []);
   await pull('workgroups.members', 'workgroupMembers', []);
   await pull('workgroups.grants', 'workgroupGrants', [], 'listMine');
@@ -1279,6 +1318,30 @@ export function demoReadOnlyMessage() {
 export async function refreshRemoteCollections(names, opts = {}) {
   if (DATA_SOURCE !== 'api') throw new Error('[DataAdapter] refreshRemoteCollections 仅用于 API 数据源');
   const uniqueNames = [...new Set((Array.isArray(names) ? names : []).filter((name) => typeof name === 'string'))];
-  const { mockDB } = await import('../core/domain/domain.js?v=20261021b');
+  const { mockDB } = await import('../core/domain/domain.js?v=20261021c');
   return _refreshCollections(uniqueNames, mockDB, opts);
+}
+
+/**
+ * 当前登录角色（仅 init 的种子回退用；与 `getRuntimeMode` 同读登录快照键）。
+ * 不 import AuthStore：本文件是其依赖，静态/动态反向引用都会成环。
+ * ⚠ 置尾：上文行号是 README-server.md / doc-line-ref 的取证靶点；函数声明提升 ⇒ 上方调用安全。
+ * @returns {string|null}
+ */
+function _currentLoginRole() {
+  try {
+    const raw = localStorage.getItem('gsm1921-login-user');
+    if (!raw) return null;
+    const u = JSON.parse(raw);
+    return (u && (u.role || (u.user && u.user.role))) || null;
+  } catch (_) { return null; }
+}
+
+/**
+ * API 形态空表回退：**只给当前登录角色**的种子（批次 500 · B-499-3）。
+ * 其他角色种子写进本地缓存后，服务端读投影看不到，持久化时会被 todo-row 门 403；无会话则不回退。
+ */
+function _seedTodosForCurrentRole(seeds) {
+  const role = _currentLoginRole();
+  return (Array.isArray(seeds) ? seeds : []).filter(t => role && t.role === role).map(t => ({ ...t }));
 }
