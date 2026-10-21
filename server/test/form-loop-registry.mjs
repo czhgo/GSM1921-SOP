@@ -62,7 +62,7 @@
 //   真机流程 **实有 60 → 59**，基线同批改准为 **117 / 59**。
 // 2026-10-18 支委会密度重组：支委会 tab 改行内改派 ⇒ 退役流程 `secretary-assign-branch-commissioner`
 //   （两条校验点保留、改为 `machine:false`）；真机流程 **实有 59 → 58**，`FLOWS_BASELINE` 同批改准为 **58**。
-export const SITES_BASELINE = 122;
+export const SITES_BASELINE = 125;
 // 批次 323（2026-10-01）：补 `secretary-calendar-write-inline-grant`（覆盖批次 303 登记却漏纳入流程的
 //   「写入活动·内嵌项目赋权」两处 `machine:true`）⇒ 真机流程 **实有 56 → 57**，基线同批改准为 **57**。
 export const FLOWS_BASELINE = 58;
@@ -102,6 +102,10 @@ export const VALIDATION_SITES = [
   //   ② 「待讨论名单」只是行内一个 chip（`.wp-agenda-kind[data-kind="attendee-list"]`，点一下即亮）；
   //   ③ 多选人员走通用 `openPicker`（复用考察上传同一步骤）。三字段（名称/日期/地点）用 satisfy 顺序放行即可达。
   { file: SRC + 'entries/tabs/secretary/calendar-tab.js', line: 1397, field: '目标阶段', flow: 'secretary/写入活动·议程待讨论名单', machine: true, msg: '待讨论名单请选择目标阶段' },
+  // 2026-10-21 批次 499：跨组活动必须有唯一责任党小组；组织者跨组须留说明。
+  { file: SRC + 'entries/tabs/secretary/calendar-tab.js', line: 1578, field: '责任党小组', flow: 'secretary/写入活动·组织落点', machine: true, msg: '请选择责任党小组' },
+  { file: SRC + 'entries/tabs/secretary/calendar-tab.js', line: 1606, field: '组织者跨组说明', flow: 'secretary/写入活动·组织落点', machine: true, msg: '请填写组织者跨组说明（将随活动留存）' },
+  { file: SRC + 'entries/tabs/org/activity-calendar-tab.js', line: 137, field: '责任党小组（补选）', flow: 'org/活动日历·待补责任党小组', machine: true, msg: '请选择责任党小组' },
   { file: SRC + 'entries/tabs/secretary/report-up-tab.js', line: 126, field: '事项类型、标题与说明', flow: 'secretary/上报党委', machine: true, msg: '请填写事项类型、标题与说明' },
   // 2026-09-23（裁定乙）：支书台「赋权管理」按三个情景分块（情景② 活动 / 情景③ 专班各一套表单，
   //   校验共用一个实现）⇒ 台账行号随块位移（`:217,218,219` → `:243,244,245`；`:419,423` → `:447,451`）。

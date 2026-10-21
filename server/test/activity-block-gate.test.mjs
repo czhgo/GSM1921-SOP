@@ -14,7 +14,7 @@
 // ════════════════════════════════════════════════════════════════
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
-import { SCENARIO_WRITE_IDS, SCENARIO_LABELS, BRANCH_COMMISSION_ROLES } from '../../docs/src/core/domain/constants.js?v=20261021a';
+import { SCENARIO_WRITE_IDS, SCENARIO_LABELS, BRANCH_COMMISSION_ROLES } from '../../docs/src/core/domain/constants.js?v=20261021b';
 const { createApp } = await import('../app.js');
 const { seedBaseline } = await import('../seed-baseline.js');
 
@@ -50,7 +50,10 @@ function setHiddenBlocks(ids) {
 let seq = 0;
 const postActivity = (type) => api('POST', '/api/v1/activities', { body: {
   id: `act-blockgate-${++seq}`, name: `运行时面测试 ${seq}`, type, date: '2026-09-28',
-  organizingScope: 'cross-group', hostGroupId: null,
+  // 2026-10-21 批次 499：支部级法定会议单列 branch，不塞党小组；其余活动须落到责任党小组。
+  ...(['支委会', '支部党员大会', '党课'].includes(type)
+    ? { organizingScope: 'branch', hostGroupId: null, hostGroup: '' }
+    : { organizingScope: 'cross-group', hostGroupId: 'pg-1', hostGroup: '第一党小组' }),
 } });
 
 before(async () => {

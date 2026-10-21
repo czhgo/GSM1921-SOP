@@ -113,7 +113,7 @@ test('活动写门：支委层可建；普通成员 403；组长限党小组会/
   const { token } = await login('2300010001'); // 支书（支委层）
   const ok = await fetch(`${base}/api/v1/activities`, {
     method: 'POST', headers: authHeaders(token),
-    body: JSON.stringify({ title: '权限门回归活动', date: '2026-09-10', type: '主题党日', organizingScope: 'cross-group', hostGroupId: null }),
+    body: JSON.stringify({ title: '权限门回归活动', date: '2026-09-10', type: '主题党日', organizingScope: 'cross-group', hostGroupId: 'pg-1', hostGroup: '第一党小组' }),
   });
   assert.equal(ok.status, 201, '支书（支委层）可创建活动');
 
@@ -738,7 +738,7 @@ test('分工自动传递（2026-09-13 支书裁定）：分工生效通知的受
     method: 'POST', headers: authHeaders(secToken),
     body: JSON.stringify({
       title: '支部分工调整（测试）', date: '2026-09-13', type: '支委会', status: 'in-progress',
-      organizingScope: 'cross-group', hostGroupId: null,
+      organizingScope: 'branch', hostGroupId: null,
       extras: {
         proposal: [
           { moduleId: 'taskforce', to: { ownerType: 'person', ownerId: '2400012347' } },

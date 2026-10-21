@@ -3244,3 +3244,44 @@ $body
 | 2 | 汇报应统一挂工作组 | 可选父键＋上下文自动带 | scope_widening | IF 父键非必需 THEN 有上下文带入、无上下文留空，禁止造虚拟父键 |
 | 3 | 为减少入口把党委报告并入汇报 | 不并入，只给链接 | definition_mismatch | IF 受众/生命周期/权限三处不同 THEN 不合并对象，只给入口链接 |
 | 4 | 保留宣传台归档并授权 | 撤掉，归支书/组织者 | priority_inversion | IF 母本只给材料归档 THEN 不扩活动归档；先查母本再定权限 |
+
+## 批次 499（2026-10-21）：跨组活动落实到党小组与跨组招募协调
+
+### 一、判据
+
+- 支书补充口径：跨组活动也要落实到党小组；组织者一般本组，深度参与者按需跨组招募，由组织委员协调。
+- 旧模型把 cross-group 定义为 hostGroupId=null，跨组活动因而没有组织落点；本次按定义失配处理，先改字段、校验、迁移，再改页面。
+- 支委会 / 党员大会 / 党课是支部级法定会议，单列 organizingScope='branch'，不硬塞党小组；旧客户端不传 scope 时按 type 推断。
+
+### 二、动作
+
+- 数据与服务端：新增 ACTIVITY_SCOPES / isBranchLevelActivity；activityCreationDeny 改为 branch / party-group / cross-group 三分支；非支部级活动责任组必填。validAssignments 与单加成员同判据：跨党小组深参必须有 recruitmentScope='cross-group' 与协调人，否则 403；通过后成员行与活动 assignments 镜像写 crossGroup/coordinatedBy。新增 POST /workgroups/:id/coordinate，仅组织委员 / 支书 / 副支书可标记协调完成或撤销，不授予活动写权。
+- 迁移 v8：支部级会议重分类为 branch；有 hostGroupId 的旧行补齐承办范围；其余跨组无责任组行标 legacyHostGroup，不猜测归属；重复执行幂等。
+- 前端：支书台写入表单新增责任党小组必选、跨组招募勾选、组织委员协调人、组织者跨组说明（软提示＋留痕）；组织者候选默认只显示责任党小组，可关闭以选他组。组长台对跨组深参自动标记 recruitmentScope 并指定组织委员。组织台「活动日历」新增「跨组招募待协调」与「待补责任党小组」两段，可就地标记协调 / 补选责任组。
+- mock / 种子：normalizeSeedActivityOrganizing 作为单一源补齐种子字段；MockAdapter 创建、批量保存、单加成员、协调接口与 server 同口径。
+- 文档：SECRETARY_DIRECTIVES 新增 P-018（逐字原话）；DATA_MODEL §2.1/§2.3；组织委员指南与党小组组长手册；PARALLEL_SKILL_AUDIT §11.3 AP-IA-09/10；CLAUDE.md 乙部登记 B-499-1…10。
+
+### 三、读数
+
+- npm run test:daily：**1318 / 1318 通过，0 断言失败**（Playwright debug.log 沙箱拒绝属环境）。
+- 新增 activity-party-group-assignment（5 条）与 cross-group-recruitment（3 条）全绿；db-migration 新增 M7（v8 重分类 / legacy / 幂等）全绿。
+- mock-multi-branch M3 两形态逐值一致；text-tier / validation-site / doc-line-ref / doc-consistency / timestamps-note 全绿。
+- page-sweep 七台全部 tab 通过；version-stamp 全站单一戳。
+- 真机：支书台创建「跨组活动真机验证 499」→ 未选责任组被拒「请选择责任党小组」→ 选第一党小组 → 关闭「只显示责任党小组」→ 选第二党小组宋佳宁为深参 → 自动勾选跨组招募 → 创建成功；活动详情显示「跨党小组深度参与者 1 人：宋佳宁（第二党小组 · 跨组）」。
+- 版本戳 20261021a → 20261021b。
+
+### 四、边界
+
+- 组织者候选默认过滤只在支书台写入表单；组长台仍以已选组织者提示为准。
+- 跨组招募标记目前随活动创建写入，创建后不再改写 recruitmentScope；历史行补选只补责任组，不改招募范围。
+- 组织台协调面在 API 形态需异步补拉工作组 / 成员（不进整库快照），已就地重绘，不触发整页循环渲染；协调动作本身由 cross-group-recruitment 服务端测试覆盖，页面渲染由 page-sweep 组织台全 tab 覆盖。
+
+### 五、sample-diff 四样本（AI 假设 → 支书意图）
+
+| # | AI 假设 | 支书意图 | 偏差类型 | 可复用规则（Boolean） |
+|---|---|---|---|---|
+| 1 | 跨组承办＝没有承办党小组 | 跨组是参与/招募范围，活动仍须唯一责任组 | definition_mismatch | IF 活动允许跨组参与 THEN 仍必须有唯一责任党小组 |
+| 2 | 支委会也塞一个党小组 | 支部级法定会议单列 branch | scope_mismatch | IF 支委会/党员大会/党课 THEN organizingScope='branch'，不指定责任组 |
+| 3 | 深参能选到人即可入组 | 跨组深参必须由组织委员协调并留痕 | permission_gap | IF 成员所属组≠责任组 THEN 必须有 recruitmentScope + 协调人，否则拒绝 |
+| 4 | 组织委员协调顺带获得活动写权 | 协调只标记状态，不扩权 | permission_creep | IF 协调动作 THEN 只写协调状态，不改成员关系、不授予活动写权 |
+

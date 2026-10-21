@@ -1,14 +1,20 @@
-import { PersonPicker } from './pickers.js?v=20261021a';
-import { getAdapter } from '../../data/data-adapter.js?v=20261021a';
-import { getPersonById } from '../../services/member/person.js?v=20261021a';
-import { WORKGROUP_PERMISSION_LABELS, WORKGROUP_ROLE_LABELS, workgroupPermissionTemplates } from '../../core/domain/workgroup-policy.js?v=20261021a';
+import { PersonPicker } from './pickers.js?v=20261021b';
+import { getAdapter } from '../../data/data-adapter.js?v=20261021b';
+import { getPersonById } from '../../services/member/person.js?v=20261021b';
+import { WORKGROUP_PERMISSION_LABELS, WORKGROUP_ROLE_LABELS, workgroupPermissionTemplates } from '../../core/domain/workgroup-policy.js?v=20261021b';
 
 const esc = (value) => String(value ?? '').replace(/[&<>"']/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
 const permissionName = (key) => WORKGROUP_PERMISSION_LABELS[key] || key;
 
 function renderMemberRow(member, grant, kind, canEdit) {
   const personId = String(member.personId || '');
-  const name = member.name || getPersonById(personId)?.name || personId;
+  const person = getPersonById(personId);
+  const name = member.name || person?.name || personId;
+  // 2026-10-21 批次 499：成员行显示所属党小组，跨组深参一眼可辨（跨组由组织委员协调）
+  const partyGroup = person?.partyGroup || '';
+  const groupLabel = partyGroup
+    ? `<span class="text-[11px] text-gray-500">${esc(partyGroup)}</span>${member.crossGroup ? '<span class="rounded-full bg-amber-100 px-2 py-0.5 text-[11px] text-amber-800">跨组</span>' : ''}`
+    : '';
   const role = member.role === 'organizer' ? 'organizer' : 'deep';
   const templates = workgroupPermissionTemplates(kind);
   const activeKeys = new Set(Array.isArray(grant?.permissionKeys) ? grant.permissionKeys : []);
@@ -35,6 +41,7 @@ function renderMemberRow(member, grant, kind, canEdit) {
       <div class="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm">
         <span class="font-medium text-gray-800">${esc(name)}</span>
         <span class="rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-600">${WORKGROUP_ROLE_LABELS[role]}</span>
+        ${groupLabel}
         <span class="ml-auto text-xs text-gray-500">只读</span>
       </div>
       ${permissionControls}
@@ -45,6 +52,7 @@ function renderMemberRow(member, grant, kind, canEdit) {
     <summary class="flex cursor-pointer list-none flex-wrap items-center gap-x-2 gap-y-1 text-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700">
       <span class="font-medium text-gray-800">${esc(name)}</span>
       <span class="rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-600">${WORKGROUP_ROLE_LABELS[role]}</span>
+      ${groupLabel}
       <span class="ml-auto text-xs text-gray-500">${permissionSummary} · 展开管理</span>
     </summary>
     <div class="mt-3 border-t border-gray-100 pt-2">
@@ -79,10 +87,13 @@ export function renderWorkgroupMemberEditor({
   const activeMembers = (Array.isArray(members) ? members : []).filter((row) => row?.personId && ['organizer', 'deep'].includes(row.role));
   const activeGrants = new Map((Array.isArray(grants) ? grants : [])
     .filter((row) => row?.status === 'active').map((row) => [String(row.personId), row]));
+  // 2026-10-21 批次 499：跨党小组深参由组织委员协调——成员区顶部明确标出，避免静默入组。
+  const crossMembers = activeMembers.filter((row) => row.crossGroup);
   return `<section class="mt-6" data-workgroup-member-editor="${esc(workgroupId)}" data-workgroup-kind="${activity ? 'activity' : 'taskforce'}" aria-labelledby="wg-editor-title-${esc(workgroupId)}">
     <div class="flex flex-wrap items-end justify-between gap-2 border-b border-gray-100 pb-2">
       <div><h3 id="wg-editor-title-${esc(workgroupId)}" class="text-sm font-semibold text-gray-800">${title}（${activeMembers.length}）</h3></div>
     </div>
+    ${activity && crossMembers.length ? `<p class="mt-2 rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-900">跨党小组深度参与者 ${crossMembers.length} 人：${crossMembers.map((row) => esc(row.name || getPersonById(row.personId)?.name || row.personId)).join('、')}。须由组织委员协调；协调进度见组织台「跨组招募待协调」。</p>` : ''}
     <div class="mt-3 space-y-2" data-wg-member-list>
       ${activeMembers.length
         ? activeMembers.map((row) => renderMemberRow(row, activeGrants.get(String(row.personId)), activity ? 'activity' : 'taskforce', canEdit)).join('')

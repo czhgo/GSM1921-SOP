@@ -2,7 +2,7 @@
 // 这些实体不进入 /snapshot；每次写入均在服务端核实支部归属与操作者范围。
 import { randomUUID } from 'node:crypto';
 import { requireAuth } from '../auth.js';
-import { BRANCH_COMMISSION_ROLES, SECRETARY_AND_DEPUTY_ROLES, isActivityEnded, usesFormalMeetingRoster } from '../../../docs/src/core/domain/constants.js';
+import { BRANCH_COMMISSION_ROLES, SECRETARY_AND_DEPUTY_ROLES, isActivityEnded, usesFormalMeetingRoster, ACTIVITY_SCOPES, isBranchLevelActivity } from '../../../docs/src/core/domain/constants.js';
 import {
   TaskforceStatus, isTaskforceStatus, isTaskforceTerminalStatus, isWorkgroupClosedStatus,
   isWorkgroupWritableStatus, workgroupStatusForTaskforce,
@@ -202,23 +202,33 @@ export function activityCreationDeny(db, actor, body) {
   if (!actor) return '活动创建者不存在';
   const branchId = ownBranch(actor);
   if (!branchId) return NO_BRANCH_MESSAGE;
-  // 书记/副书记创建活动时，缺省承办范围确定为跨组；支部组内活动仍须由组长明确提交所属党小组。
-  const organizingScope = body.organizingScope || (SECRETARY.has(actor.role) ? 'cross-group' : '');
+  // 2026-10-21 批次 499（支书补充口径）：跨组只表示参与/招募范围，活动仍须落到唯一责任党小组；
+  // 支委会 / 党员大会 / 党课是支部级法定会议，单列 'branch'，不硬塞党小组。
+  // 旧客户端可能不传 organizingScope：支部级会议按 branch 推断，其余支书创建按跨组推断（责任组仍必填）。
+  const organizingScope = body.organizingScope
+    || (isBranchLevelActivity(body) ? ACTIVITY_SCOPES.BRANCH : (SECRETARY.has(actor.role) ? ACTIVITY_SCOPES.CROSS_GROUP : ''));
+  const hostGroupId = body.hostGroupId ? String(body.hostGroupId) : '';
   if (body.branchId && body.branchId !== branchId) return '无权限：不能为其他支部创建活动';
-  if (body.type === '党小组会' && organizingScope !== 'party-group') return '党小组会必须由所属党小组承办';
-  if (organizingScope === 'party-group') {
-    const group = body.hostGroupId && groupOf(db, body.hostGroupId);
-    if (actor.role !== 'leader' || !group || group.status !== 'active' || group.branchId !== branchId || group.name !== actor.partyGroup) {
+  if (isBranchLevelActivity(body)) {
+    if (organizingScope !== ACTIVITY_SCOPES.BRANCH) return '支部级会议的组织落点必须为「支部级」';
+    if (hostGroupId) return '支部级会议不指定责任党小组';
+    if (!(SECRETARY.has(actor.role) || actor.role === 'party-staff')) return '无权限：支部级会议须由支书 / 副书记或党委创建';
+    return null;
+  }
+  const group = hostGroupId ? groupOf(db, hostGroupId) : null;
+  if (!group || group.status !== 'active' || group.branchId !== branchId) return '活动必须指定本支部的责任党小组';
+  if (body.type === '党小组会' && organizingScope !== ACTIVITY_SCOPES.PARTY_GROUP) return '党小组会必须由所属党小组承办';
+  if (organizingScope === ACTIVITY_SCOPES.PARTY_GROUP) {
+    if (actor.role !== 'leader' || group.name !== actor.partyGroup) {
       return '无权限：组内承办活动须由本党小组组长从组长工作台创建';
     }
     return null;
   }
-  if (organizingScope === 'cross-group') {
-    if (!SECRETARY.has(actor.role)) return '无权限：跨组承办活动须由支书或副书记创建';
-    if (body.hostGroupId) return '跨组承办活动不能指定单一承办党小组';
+  if (organizingScope === ACTIVITY_SCOPES.CROSS_GROUP) {
+    if (!SECRETARY.has(actor.role)) return '无权限：跨组活动须由支书或副书记创建';
     return null;
   }
-  return '活动必须明确承办范围：组内承办或跨组承办';
+  return '活动必须明确组织落点：组内 / 跨组 / 支部级';
 }
 
 export function activityOperationAllowed(db, actor, activity, permissionKey = 'activity.edit') {
@@ -383,9 +393,10 @@ export function snapshotScopeDeny(db, payload, actor) {
   return null;
 }
 
-function validAssignments(db, actor, assignments, { allowFormalRoster = false } = {}) {
+function validAssignments(db, actor, assignments, { allowFormalRoster = false, hostGroupId = null, recruitmentScope = 'group', coordinatorId = null } = {}) {
   if (!Array.isArray(assignments)) return { ok: true, value: [] };
   if (!ownBranch(actor)) return { ok: false, status: 403, error: NO_BRANCH_MESSAGE };
+  const hostGroup = hostGroupId ? groupOf(db, hostGroupId) : null;
   const seen = new Set();
   const rows = [];
   for (const item of assignments) {
@@ -397,7 +408,16 @@ function validAssignments(db, actor, assignments, { allowFormalRoster = false } 
     const user = userOf(db, personId);
     if (!user) return { ok: false, status: 400, error: `工作组成员不存在：${personId}` };
     if (memberBranch(user) !== ownBranch(actor)) return { ok: false, status: 403, error: '无权限：工作组成员须属于同一支部' };
-    rows.push({ personId, role: item.role });
+    const row = { personId, role: item.role };
+    // 2026-10-21 批次 499：深度参与者可跨党小组，但必须已有跨组招募标记与组织委员协调人。
+    if (hostGroup && item.role === 'deep' && user.partyGroup && user.partyGroup !== hostGroup.name) {
+      if (recruitmentScope !== 'cross-group' || !coordinatorId) {
+        return { ok: false, status: 403, error: '跨党小组深度参与者须先由组织委员协调（标记跨组招募并指定协调人）' };
+      }
+      row.crossGroup = true;
+      row.coordinatedBy = coordinatorId;
+    }
+    rows.push(row);
   }
   return { ok: true, value: rows };
 }
@@ -408,6 +428,8 @@ export function createActivityWorkgroup(db, actor, activity) {
     id, branchId: activity.branchId, kind: 'activity', sourceType: 'activity', sourceId: activity.id,
     name: activity.title || activity.id, status: 'active', organizingScope: activity.organizingScope,
     hostGroupId: activity.hostGroupId || null, createdBy: actor.id, createdAt: activity.createdAt || new Date().toISOString(),
+    recruitmentScope: activity.recruitmentScope || 'group',
+    crossGroupCoordinatorId: activity.crossGroupCoordinatorId || null,
     migrationState: 'ready',
   };
   const assignmentRows = Array.isArray(activity.assignments) ? activity.assignments : [];
@@ -415,9 +437,16 @@ export function createActivityWorkgroup(db, actor, activity) {
   if (!formalRoster && assignmentRows.some((row) => row?.role === 'participant')) {
     return { ok: false, status: 400, error: '活动普通参与者请通过报名登记，不能写入工作组成员' };
   }
-  const membership = validAssignments(db, actor, assignmentRows, { allowFormalRoster: formalRoster });
+  const membership = validAssignments(db, actor, assignmentRows, {
+    allowFormalRoster: formalRoster,
+    hostGroupId: workgroup.hostGroupId,
+    recruitmentScope: workgroup.recruitmentScope,
+    coordinatorId: workgroup.crossGroupCoordinatorId,
+  });
   if (!membership.ok) return membership;
   const members = workgroupMembers(membership.value);
+  // 2026-10-21 批次 499：兼容镜像 assignments 与成员主源同形（含 crossGroup/coordinatedBy）。
+  activity.assignments = membership.value;
   const run = db.transaction(() => {
     put(db, 'activities', activity);
     put(db, 'workgroups', workgroup);
@@ -425,6 +454,8 @@ export function createActivityWorkgroup(db, actor, activity) {
       const row = {
         id: memberIdFor(id, member.personId), branchId: activity.branchId, workgroupId: id,
         personId: member.personId, role: member.role, status: 'active',
+        // 2026-10-21 批次 499：跨党小组深参的标记与协调人须随建组写入
+        ...(member.crossGroup ? { crossGroup: true, coordinatedBy: member.coordinatedBy || null } : {}),
         createdBy: actor.id, createdAt: workgroup.createdAt,
       };
       put(db, 'workgroup_members', row);
@@ -514,6 +545,7 @@ export function registerWorkgroupRoutes(router, db) {
       return res.status(400).json({ error: '批量保存仅接受完整 members 列表' });
     }
     const allowedMemberFields = new Set(['personId', 'role', 'templateKey', 'permissionKeys', 'reason']);
+    const hostGroup = workgroup.hostGroupId ? groupOf(db, workgroup.hostGroupId) : null;
     const desired = [];
     const seen = new Set();
     for (const item of body.members) {
@@ -542,10 +574,17 @@ export function registerWorkgroupRoutes(router, db) {
         return res.status(400).json({ error: `成员权限项无效：${personId}` });
       }
       if (item.reason !== undefined && typeof item.reason !== 'string') return res.status(400).json({ error: `授权说明须为文本：${personId}` });
+      // 2026-10-21 批次 499：跨党小组深度参与者必须有跨组招募标记与组织委员协调人
+      const crossGroup = !!hostGroup && item.role === 'deep'
+        && !!person.partyGroup && person.partyGroup !== hostGroup.name;
+      if (crossGroup && (workgroup.recruitmentScope !== 'cross-group' || !workgroup.crossGroupCoordinatorId)) {
+        return res.status(403).json({ error: '跨党小组深度参与者须先由组织委员协调（标记跨组招募并指定协调人）' });
+      }
       desired.push({
         personId, role: item.role, templateKey,
         permissionKeys: [...new Set(permissionKeys)].sort(),
         reason: (item.reason || '').trim(),
+        ...(crossGroup ? { crossGroup: true, coordinatedBy: workgroup.crossGroupCoordinatorId } : {}),
       });
     }
 
@@ -562,9 +601,10 @@ export function registerWorkgroupRoutes(router, db) {
       .map((row) => [String(row.personId), row]));
     const mirroredRows = desired.map((member) => {
       const previous = priorSourceByPerson.get(member.personId);
+      const cross = member.crossGroup ? { crossGroup: true, coordinatedBy: member.coordinatedBy } : {};
       return workgroup.kind === 'taskforce'
-        ? { personId: member.personId, role: member.role, contributions: previous?.contributions || [] }
-        : { personId: member.personId, role: member.role };
+        ? { personId: member.personId, role: member.role, contributions: previous?.contributions || [], ...cross }
+        : { personId: member.personId, role: member.role, ...cross };
     });
     source[sourceKey] = [...preservedRows, ...mirroredRows];
     if (workgroup.kind === 'activity') source.organizer = mirroredRows.find((row) => row.role === 'organizer')?.personId || null;
@@ -582,6 +622,7 @@ export function registerWorkgroupRoutes(router, db) {
       memberWrites.push({
         id: memberIdFor(workgroup.id, member.personId), branchId: workgroup.branchId,
         workgroupId: workgroup.id, personId: member.personId, role: member.role, status: 'active',
+        ...(member.crossGroup ? { crossGroup: true, coordinatedBy: member.coordinatedBy } : {}),
         createdBy: previous?.createdBy || req.actor.id, createdAt: previous?.createdAt || now,
         updatedBy: req.actor.id, updatedAt: now,
       });
@@ -643,12 +684,20 @@ export function registerWorkgroupRoutes(router, db) {
     const person = userOf(db, personId);
     if (!person) return res.status(400).json({ error: '工作组成员不存在' });
     if (memberBranch(person) !== workgroup.branchId) return res.status(403).json({ error: '无权限：工作组成员须属于同一支部' });
+    // 2026-10-21 批次 499：单加成员与批量保存同一判据——跨党小组深参必须先有招募标记与协调人。
+    const hostGroup = workgroup.hostGroupId ? groupOf(db, workgroup.hostGroupId) : null;
+    const crossGroup = !!hostGroup && body.role === 'deep'
+      && !!person.partyGroup && person.partyGroup !== hostGroup.name;
+    if (crossGroup && (workgroup.recruitmentScope !== 'cross-group' || !workgroup.crossGroupCoordinatorId)) {
+      return res.status(403).json({ error: '跨党小组深度参与者须先由组织委员协调（标记跨组招募并指定协调人）' });
+    }
     const id = memberIdFor(workgroup.id, personId);
     const previous = rowOf(db, 'workgroup_members', id);
     const row = {
       id, branchId: workgroup.branchId, workgroupId: workgroup.id, personId, role: body.role,
       status: 'active', createdBy: previous?.createdBy || req.actor.id,
       createdAt: previous?.createdAt || new Date().toISOString(), updatedBy: req.actor.id, updatedAt: new Date().toISOString(),
+      ...(crossGroup ? { crossGroup: true, coordinatedBy: workgroup.crossGroupCoordinatorId } : {}),
     };
     const sourceTable = workgroup.sourceType === 'activity' ? 'activities' : 'taskforces';
     const source = rowOf(db, sourceTable, workgroup.sourceId);
@@ -656,7 +705,7 @@ export function registerWorkgroupRoutes(router, db) {
     if (workgroup.kind === 'activity') {
       const assignments = (Array.isArray(source.assignments) ? source.assignments : [])
         .filter((item) => item.personId !== personId || !isWorkgroupMemberRole(item.role));
-      assignments.push({ personId, role: body.role });
+      assignments.push({ personId, role: body.role, ...(crossGroup ? { crossGroup: true, coordinatedBy: workgroup.crossGroupCoordinatorId } : {}) });
       source.assignments = assignments;
     } else {
       const members = (Array.isArray(source.members) ? source.members : []).filter((item) => item.personId !== personId);
@@ -708,6 +757,61 @@ export function registerWorkgroupRoutes(router, db) {
     });
     run();
     res.status(204).end();
+  });
+  /**
+   * 跨组招募协调标记（2026-10-21 批次 499）。
+   * 组织委员只在**协调面**留「已协调 / 撤销协调」这一枚状态，不因此获得活动写权：
+   *   · 不改 assignments 成员关系，只给既有跨组深参行补 coordinatedBy / coordinatedAt；
+   *   · 活动与工作组各留 crossGroupCoordinatedBy / At，供组织台清单与活动详情只读展示。
+   */
+  router.post('/workgroups/:id/coordinate', requireAuth(db), (req, res) => {
+    const workgroup = workgroupOf(db, req.params.id);
+    if (!workgroup) return res.status(404).json({ error: '工作组不存在' });
+    if (workgroup.kind !== 'activity') return res.status(400).json({ error: '仅活动工作组需要跨组招募协调' });
+    if ((workgroup.branchId || 'br-b1') !== ownBranch(req.actor)) return res.status(403).json({ error: '无权限：工作组不属于当前支部' });
+    if (!['org-commissioner', 'secretary', 'deputy-secretary'].includes(req.actor.role)) {
+      return res.status(403).json({ error: '无权限：跨组招募协调由组织委员（或支书 / 副支书）办理' });
+    }
+    if (workgroup.recruitmentScope !== 'cross-group' || !workgroup.crossGroupCoordinatorId) {
+      return res.status(409).json({ error: '该活动未标记跨组招募，无需协调' });
+    }
+    if (sendWorkgroupWriteDeny(res, workgroup)) return;
+    const body = req.body && typeof req.body === 'object' && !Array.isArray(req.body) ? req.body : {};
+    const action = body.action || 'complete';
+    if (!['complete', 'reset'].includes(action)) return res.status(400).json({ error: '协调动作仅支持 complete / reset' });
+    const completed = action === 'complete';
+    const now = new Date().toISOString();
+    const nextGroup = {
+      ...workgroup,
+      crossGroupCoordinatedBy: completed ? req.actor.id : null,
+      crossGroupCoordinatedAt: completed ? now : null,
+      updatedBy: req.actor.id, updatedAt: now,
+    };
+    const source = rowOf(db, 'activities', workgroup.sourceId);
+    if (!source) return res.status(409).json({ error: '工作组所属业务记录缺失' });
+    const members = jsonRows(db, 'workgroup_members')
+      .filter((row) => row.workgroupId === workgroup.id && row.status !== 'removed' && row.crossGroup);
+    const memberWrites = members.map((row) => ({
+      ...row,
+      coordinatedBy: completed ? req.actor.id : workgroup.crossGroupCoordinatorId,
+      ...(completed ? { coordinatedAt: now } : { coordinatedAt: null }),
+      updatedBy: req.actor.id, updatedAt: now,
+    }));
+    const nextAssignments = (Array.isArray(source.assignments) ? source.assignments : []).map((row) => (
+      row.crossGroup
+        ? { ...row, coordinatedBy: completed ? req.actor.id : workgroup.crossGroupCoordinatorId, ...(completed ? { coordinatedAt: now } : {}) }
+        : row
+    ));
+    const nextSource = { ...source, assignments: nextAssignments };
+    const run = db.transaction(() => {
+      put(db, 'workgroups', nextGroup);
+      for (const row of memberWrites) put(db, 'workgroup_members', row);
+      put(db, 'activities', nextSource);
+      bumpCollectionVersion(db, 'workgroup_members');
+      bumpCollectionVersion(db, 'activities');
+    });
+    run();
+    res.json({ workgroup: nextGroup, members: membersOf(db, workgroup.id) });
   });
   router.get('/workgroups/:id/grants', requireAuth(db), (req, res) => {
     const workgroup = workgroupOf(db, req.params.id);

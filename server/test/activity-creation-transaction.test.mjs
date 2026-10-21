@@ -37,12 +37,12 @@ const _store = makeStorage();
 globalThis.localStorage = _store;
 globalThis.sessionStorage = makeStorage();
 
-const { mockDB } = await import('../../docs/src/core/domain/domain.js?v=20261021a');
-const { MockAdapter } = await import('../../docs/src/data/mock-adapter.js?v=20261021a');
-const { getAdapter } = await import('../../docs/src/data/data-adapter.js?v=20261021a');
+const { mockDB } = await import('../../docs/src/core/domain/domain.js?v=20261021b');
+const { MockAdapter } = await import('../../docs/src/data/mock-adapter.js?v=20261021b');
+const { getAdapter } = await import('../../docs/src/data/data-adapter.js?v=20261021b');
 // runtime 注册 mock/api 适配器并 setDataSource('mock')
-const { BranchService } = await import('../../docs/src/services/core/runtime.js?v=20261021a');
-const { writeActivityWithSOP } = await import('../../docs/src/services/activity/decision-tree.js?v=20261021a');
+const { BranchService } = await import('../../docs/src/services/core/runtime.js?v=20261021b');
+const { writeActivityWithSOP } = await import('../../docs/src/services/activity/decision-tree.js?v=20261021b');
 
 const ORIGINAL = {
   activities: mockDB.activities,
@@ -112,7 +112,7 @@ test('T2 writeActivityWithSOP 创建后，本会话内即读得到工作组与�
   const { activity } = await writeActivityWithSOP({
     title: '事务测试 · 党课', type: '党课', date: '2026-10-30', targetDate: '2026-10-30',
     location: '线上', branchId: 'br-b1', createdBy: '2400012355', organizer: '2400012355',
-    organizingScope: 'cross-group', hostGroupId: null, assignments: ASSIGNMENTS,
+    organizingScope: 'branch', hostGroupId: null, assignments: ASSIGNMENTS,
   }, 'party-lecture', '2026-10-30');
 
   assert.equal(mockDB.activities.length, before + 1, '活动须写入主源');

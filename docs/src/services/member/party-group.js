@@ -15,14 +15,14 @@
 //   （preview 的组枚举由 data/mock/party-groups.js 种子派生，保持其为叶子，防 person→preview→party-group 成环）。
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../../core/domain/domain.js?v=20261021a';
-import { persist } from '../../data/data-adapter.js?v=20261021a';
-import { generateId } from '../../core/base/id.js?v=20261021a';
+import { mockDB } from '../../core/domain/domain.js?v=20261021b';
+import { persist } from '../../data/data-adapter.js?v=20261021b';
+import { generateId } from '../../core/base/id.js?v=20261021b';
 // 支委层角色集合单一源（勿手写角色名单——roles-sync 守卫会拦）
-import { SECRETARY_AND_DEPUTY_ROLES, DEFAULT_BRANCH_ID } from '../../core/domain/constants.js?v=20261021a';
-import { bumpToken } from '../../core/base/version-token.js?v=20261021a';
-import { PARTY_GROUPS } from '../../data/mock/index.js?v=20261021a';
-import { PersonStore } from './person.js?v=20261021a';
+import { SECRETARY_AND_DEPUTY_ROLES, DEFAULT_BRANCH_ID } from '../../core/domain/constants.js?v=20261021b';
+import { bumpToken } from '../../core/base/version-token.js?v=20261021b';
+import { PARTY_GROUPS } from '../../data/mock/index.js?v=20261021b';
+import { PersonStore } from './person.js?v=20261021b';
 
 // R2-17：缺省支部单一源 = core/domain/constants.js::DEFAULT_BRANCH_ID（老数据无 branchId 视为 br-b1）。
 /** 无权限文案（UI 与服务层同源） */

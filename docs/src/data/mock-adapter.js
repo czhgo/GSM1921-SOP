@@ -9,29 +9,29 @@
 //  Source: content/04_web_design/data/DATA_ARCHITECTURE.md
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB, SCHEMA_VERSION, SEED_DATA_VERSION, workgroupStatusForTaskforce } from '../core/domain/domain.js?v=20261021a';
-import { generateId } from '../core/base/id.js?v=20261021a';
+import { mockDB, SCHEMA_VERSION, SEED_DATA_VERSION, workgroupStatusForTaskforce } from '../core/domain/domain.js?v=20261021b';
+import { generateId } from '../core/base/id.js?v=20261021b';
 // 计票方式（ballotMode）单一源：正式表决无记名落库口径与 server/routes/committee.js 同源（constants.js）
-import { ballotModeOfActivity, DEFAULT_BRANCH_ID } from '../core/domain/constants.js?v=20261021a';
+import { ballotModeOfActivity, DEFAULT_BRANCH_ID, isBranchLevelActivity } from '../core/domain/constants.js?v=20261021b';
 // 修复（T175）：直接从 ../mock/activities.js 导入 ACTIVITIES，
 // 绕过 ../mock/index.js 的 re-export 转发（与 services/core/mock.js 对齐，
 // 消除循环依赖/TDZ 导致的 seed 失败风险）
-import { ACTIVITIES } from './mock/activities.js?v=20261021a';
-import { MOCK_TASKFORCES } from './mock/taskforces.js?v=20261021a';
-import { PEOPLE } from './mock/people.js?v=20261021a';
-import { SEED_TASKS, SEED_ASSIGNMENTS, SEED_ARCHIVE_RECORDS, SEED_SIGNUPS, SEED_REVIEW_REQUESTS, SEED_MAKEUP_TASKS } from './mock/seed.js?v=20261021a';
+import { ACTIVITIES } from './mock/activities.js?v=20261021b';
+import { MOCK_TASKFORCES } from './mock/taskforces.js?v=20261021b';
+import { PEOPLE } from './mock/people.js?v=20261021b';
+import { SEED_TASKS, SEED_ASSIGNMENTS, SEED_ARCHIVE_RECORDS, SEED_SIGNUPS, SEED_REVIEW_REQUESTS, SEED_MAKEUP_TASKS } from './mock/seed.js?v=20261021b';
 // Seed 增量合并用（2026-08-05）：attendance.js/notices.js 为纯数据模块，
 // 经 services/member/person.js（只依赖 domain/people）→ 无指向本文件的循环依赖
-import { ATTENDANCE_RECORDS } from './mock/attendance.js?v=20261021a';
-import { MOCK_NOTICES } from './mock/notices.js?v=20261021a';
-import { BRANCHES } from './mock/branches.js?v=20261021a';
-import { todayLocal } from '../core/base/utils.js?v=20261021a';
-import { WORKGROUP_MEMBER_ROLES } from '../services/activity/workgroup-members.js?v=20261021a';
-import { WORKGROUP_PERMISSION_TEMPLATES_BY_KIND } from '../core/domain/workgroup-policy.js?v=20261021a';
-import { ensureLegacySourceWorkgroups, ensureDemoWorkgroupGrants } from './workgroup-seed-sync.js?v=20261021a';
-import { migrateInspectionWorkgroupKeys, migrateReviewParentKeys } from '../services/activity/inspection-migrate.js?v=20261021a';
+import { ATTENDANCE_RECORDS } from './mock/attendance.js?v=20261021b';
+import { MOCK_NOTICES } from './mock/notices.js?v=20261021b';
+import { BRANCHES } from './mock/branches.js?v=20261021b';
+import { todayLocal } from '../core/base/utils.js?v=20261021b';
+import { WORKGROUP_MEMBER_ROLES } from '../services/activity/workgroup-members.js?v=20261021b';
+import { WORKGROUP_PERMISSION_TEMPLATES_BY_KIND } from '../core/domain/workgroup-policy.js?v=20261021b';
+import { ensureLegacySourceWorkgroups, ensureDemoWorkgroupGrants, normalizeSeedActivityOrganizing } from './workgroup-seed-sync.js?v=20261021b';
+import { migrateInspectionWorkgroupKeys, migrateReviewParentKeys } from '../services/activity/inspection-migrate.js?v=20261021b';
 // @deprecated 旧 p* → 学号：仅本文件（历史 localStorage / 已存演示库）迁移路径使用
-import { isLegacyPersonId, mapPersonId, mapLegacyIdInString } from './legacy-person-ids.js?v=20261021a';
+import { isLegacyPersonId, mapPersonId, mapLegacyIdInString } from './legacy-person-ids.js?v=20261021b';
 
 const STORAGE_KEY = 'workflowos_branch_db_v1';
 
@@ -283,7 +283,8 @@ function _loadFromStorage() {
     localStorage.removeItem('workflowos_taskforces_v1');
     LEGACY_STORAGE_KEYS.forEach(k => localStorage.removeItem(k));
     if (mockDB.activities.length === 0 && ACTIVITIES.length > 0) {
-      mockDB.activities = ACTIVITIES.map(a => ({
+      // 2026-10-21 批次 499：种子活动先补齐组织落点（与服务端 seed 同一函数）。
+      mockDB.activities = normalizeSeedActivityOrganizing(ACTIVITIES).map(a => ({
         ...a,
         visibility: a.visibility || 'branch',
         // R2-12：装载不得伪造操作人；缺失保持 null（读侧显示「—」）。
@@ -386,7 +387,8 @@ function _loadFromStorage() {
 /** 加载初始 seed 数据到 mockDB（仅当对应字段为空时） */
 function _seedInitialData() {
   if (mockDB.activities.length === 0 && ACTIVITIES.length > 0) {
-    mockDB.activities = ACTIVITIES.map(a => ({
+    // 2026-10-21 批次 499：与服务端 seed 同一归一口径。
+    mockDB.activities = normalizeSeedActivityOrganizing(ACTIVITIES).map(a => ({
       ...a,
       visibility: a.visibility || 'branch',
       // R2-12：seed 装载不伪造操作人；缺失保持 null。
@@ -632,7 +634,8 @@ function _mergeNewSeedRecords() {
   let changed = false;
 
   // ── 活动：种子同步 ──────────────────────────────────────────
-  const actSeedById = new Map(ACTIVITIES.map(a => [a.id, a]));
+  const normalizedSeedActivities = normalizeSeedActivityOrganizing(ACTIVITIES);
+  const actSeedById = new Map(normalizedSeedActivities.map(a => [a.id, a]));
   const actOut = [];
   for (const a of mockDB.activities) {
     if (!/^act-\d+$/.test(a.id)) { actOut.push(a); continue; }
@@ -652,7 +655,7 @@ function _mergeNewSeedRecords() {
     actOut.push(merged);
   }
   const actExist = new Set(actOut.map(a => a.id));
-  ACTIVITIES.forEach(a => {
+  normalizedSeedActivities.forEach(a => {
     if (actExist.has(a.id)) return;
     actOut.push({ ...a, visibility: a.visibility || 'branch', createdBy: a.createdBy || a.organizer || null, createdAt: a.createdAt || a.date || new Date().toISOString() });
     changed = true;
@@ -789,7 +792,7 @@ export const MockAdapter = {
     if (merged) _saveToStorage();
     // 数据加载完成广播：通知 header 角标等初始快照据实刷新（与 data-loader 的
     // notifyDataLoaded 双保险；此处覆盖 data-adapter.init() mock 分支等直连路径）
-    import('./data-adapter.js?v=20261021a').then(({ notifyDataLoaded }) => notifyDataLoaded())
+    import('./data-adapter.js?v=20261021b').then(({ notifyDataLoaded }) => notifyDataLoaded())
       .catch(() => {});
   },
 
@@ -810,10 +813,26 @@ export const MockAdapter = {
         // 两者都缺失才拒绝，绝不写伪用户。
         const createdBy = data.createdBy || data.organizer || null;
         if (!createdBy) throw new Error('登录状态已失效，请重新登录后再创建活动');
+        // 2026-10-21 批次 499：与 server activityCreationDeny / validAssignments 同口径。
+        if (!isBranchLevelActivity(data) && !data.hostGroupId) {
+          throw Object.assign(new Error('活动必须指定本支部的责任党小组'), { type: 'ValidationError' });
+        }
+        const hostGroup = data.hostGroupId
+          ? (_rowById(mockDB.partyGroups, data.hostGroupId) || null) : null;
+        const normalizedAssignments = (Array.isArray(data.assignments) ? data.assignments : []).map((member) => {
+          const person = _rowById(mockDB.users, member.personId) || _rowById(PEOPLE, member.personId);
+          const cross = !!hostGroup && member.role === 'deep'
+            && !!person?.partyGroup && person.partyGroup !== hostGroup.name;
+          if (cross && (data.recruitmentScope !== 'cross-group' || !data.crossGroupCoordinatorId)) {
+            throw Object.assign(new Error('跨党小组深度参与者须先由组织委员协调（标记跨组招募并指定协调人）'), { type: 'PermissionError' });
+          }
+          return cross ? { ...member, crossGroup: true, coordinatedBy: data.crossGroupCoordinatorId } : member;
+        });
         const id = generateId('act');
         const workgroupId = `wg-activity-${id}`;
         const newItem = {
           ...data,
+          assignments: normalizedAssignments,
           id,
           workgroupId,
           status: data.status || 'draft',
@@ -826,13 +845,18 @@ export const MockAdapter = {
         mockDB.workgroups = [...mockDB.workgroups, {
           id: workgroupId, branchId, kind: 'activity', sourceType: 'activity', sourceId: id,
           name: newItem.title || id, status: 'active', organizingScope: newItem.organizingScope || null,
-          hostGroupId: newItem.hostGroupId || null, migrationState: newItem.organizingScope ? 'ready' : 'pending-review',
+          hostGroupId: newItem.hostGroupId || null,
+          // 2026-10-21 批次 499：跨组招募字段与 server createActivityWorkgroup 同构。
+          recruitmentScope: newItem.recruitmentScope || 'group',
+          crossGroupCoordinatorId: newItem.crossGroupCoordinatorId || null,
+          migrationState: newItem.organizingScope ? 'ready' : 'pending-review',
           createdBy: newItem.createdBy, createdAt: newItem.createdAt,
         }];
         mockDB.workgroupMembers = [...mockDB.workgroupMembers, ...(Array.isArray(newItem.assignments) ? newItem.assignments : []).map((member) => ({
           id: `wgm-${encodeURIComponent(workgroupId)}-${encodeURIComponent(String(member.personId))}`,
           branchId, workgroupId, personId: String(member.personId), role: member.role || 'participant',
           status: 'active', createdBy: newItem.createdBy, createdAt: newItem.createdAt,
+          ...(member.crossGroup ? { crossGroup: true, coordinatedBy: member.coordinatedBy || newItem.crossGroupCoordinatorId || null } : {}),
         }))];
         mockDB.activities = [...mockDB.activities, newItem];
         _saveToStorage();
@@ -840,8 +864,8 @@ export const MockAdapter = {
         // 联动赋权（`R-29⑤` · `D-804` 批次 425）：**收件人取该模块主责**——把本支部**分工快照**一并传进去；
         //   `branch.js` 亦走动态 import（本文件属数据层，静态引 services 层有成环风险）。
         Promise.all([
-          import('../services/governance/todo.js?v=20261021a'),
-          import('../services/branch/branch.js?v=20261021a'),
+          import('../services/governance/todo.js?v=20261021b'),
+          import('../services/branch/branch.js?v=20261021b'),
         ]).then(([{ LifecycleTodoDeriver }, branch]) => {
           const snapshot = branch.getBranchWorkforce(branch.getBranchIdOfPerson(newItem.createdBy));
           LifecycleTodoDeriver.deriveFromActivityCreate(newItem, { snapshot });
@@ -911,11 +935,11 @@ export const MockAdapter = {
           t.activityId === id && t.status !== 'completed' ? { ...t, status: 'completed' } : t
         );
         _saveToStorage();
-        import('../services/governance/todo.js?v=20261021a').then(({ LifecycleTodoDeriver }) => {
+        import('../services/governance/todo.js?v=20261021b').then(({ LifecycleTodoDeriver }) => {
           LifecycleTodoDeriver.deriveFromActivityArchive(archived);
         }).catch(e => console.warn('[MockAdapter] 派生活动归档待办失败：', e));
         // 2026-08-08 归档闭环：活动归档 → 配套通知随之一并归档，退出工作区
-        import('../services/governance/notice.js?v=20261021a').then(({ NoticeStore }) => {
+        import('../services/governance/notice.js?v=20261021b').then(({ NoticeStore }) => {
           NoticeStore.archiveBySource('activity', id);
         }).catch(e => console.warn('[MockAdapter] 归档关联通知失败：', e));
         return archived;
@@ -1038,7 +1062,7 @@ export const MockAdapter = {
         }];
         mockDB.taskforces = [...mockDB.taskforces, tf];
         _saveToStorage();
-        import('../services/governance/todo.js?v=20261021a').then(({ LifecycleTodoDeriver }) => {
+        import('../services/governance/todo.js?v=20261021b').then(({ LifecycleTodoDeriver }) => {
           LifecycleTodoDeriver.deriveFromTaskforceCreate(tf);
         }).catch(e => console.warn('[MockAdapter] 派生专班赋权待办失败：', e));
         return tf;
@@ -1106,7 +1130,7 @@ export const MockAdapter = {
       return _withDelay(() => {
         mockDB.taskforces = mockDB.taskforces.filter(t => t.id !== id);
         _saveToStorage();
-        import('../services/governance/todo.js?v=20261021a').then(({ LifecycleTodoDeriver }) => {
+        import('../services/governance/todo.js?v=20261021b').then(({ LifecycleTodoDeriver }) => {
           LifecycleTodoDeriver.deleteByTaskforce(id);
         }).catch(e => console.warn('[MockAdapter] 联动删除待办失败：', e));
         return { id };
@@ -1121,7 +1145,7 @@ export const MockAdapter = {
         const notice = { ...data, id: data.id || generateId('notice'), publishDate: data.publishDate || todayLocal() };
         mockDB.notices = [...mockDB.notices, notice];
         _saveToStorage();
-        import('../services/governance/todo.js?v=20261021a').then(({ NoticeTodoDeriver }) => {
+        import('../services/governance/todo.js?v=20261021b').then(({ NoticeTodoDeriver }) => {
           NoticeTodoDeriver.deriveFromNotice(notice);
         }).catch(e => console.warn('[MockAdapter] 通知派生待办失败：', e));
         return notice;
@@ -1632,13 +1656,13 @@ export const MockAdapter = {
   // 的 mock 分支（动态 import 防静态环，与 todo.js 同法）。
   users: {
     list(params = {}) {
-      return _withDelay(() => import('../services/member/person.js?v=20261021a')
+      return _withDelay(() => import('../services/member/person.js?v=20261021b')
         .then(({ getBaseMemberRecords }) => _filterByBranch(getBaseMemberRecords(), 'users', params)));
     },
 
     create(data) {
       return _withDelay(async () => {
-        const { PersonStore } = await import('../services/member/person.js?v=20261021a');
+        const { PersonStore } = await import('../services/member/person.js?v=20261021b');
         const r = await PersonStore.saveMember(data, { by: data?.by });
         if (!r.ok) throw Object.assign(new Error(r.reason), { type: 'BadRequestError' });
         return r.member;
@@ -1647,7 +1671,7 @@ export const MockAdapter = {
 
     update(id, patch) {
       return _withDelay(async () => {
-        const { PersonStore } = await import('../services/member/person.js?v=20261021a');
+        const { PersonStore } = await import('../services/member/person.js?v=20261021b');
         const r = await PersonStore.saveMember({ id, ...patch }, { by: patch?.by });
         if (!r.ok) throw Object.assign(new Error(r.reason), { type: 'BadRequestError' });
         return r.member;
@@ -1657,7 +1681,7 @@ export const MockAdapter = {
     delete(id) {
       // adapter 层为数据原语（PersonStore.removeMember 为带引用守卫的业务口；此处直删由守卫在业务层把关）
       return _withDelay(async () => {
-        const { PersonStore } = await import('../services/member/person.js?v=20261021a');
+        const { PersonStore } = await import('../services/member/person.js?v=20261021b');
         const r = await PersonStore.removeMember(id, { guardRefs: false });
         if (!r.ok) throw Object.assign(new Error(r.reason), { type: 'BadRequestError' });
         return { id };
@@ -1852,7 +1876,7 @@ export const MockAdapter = {
         // （与 services/member/member-confirmation.js `_applyApproved` 同法；动态 import 防静态环）。
         // API 模式由 server/routes/member.js 写 users 表（已正确），本分支仅 mock 形态生效。
         if (row.toStage) {
-          const { PersonStore } = await import('../services/member/person.js?v=20261021a');
+          const { PersonStore } = await import('../services/member/person.js?v=20261021b');
           const saved = await PersonStore.saveMember(
             { id: row.personId, developStage: row.toStage },
             { by: row.confirmedBy || null },
@@ -1967,6 +1991,9 @@ export const MockAdapter = {
           const templates = WORKGROUP_PERMISSION_TEMPLATES_BY_KIND[workgroup.kind];
           if (!templates) throw Object.assign(new Error('工作组类型无效'), { type: 'ValidationError' });
           const allowedPermissions = new Set(Object.values(templates).flat());
+          // 2026-10-21 批次 499：跨党小组深参的口径与 server PUT /workgroups/:id/members 同源。
+          const hostGroup = workgroup.hostGroupId
+            ? (_rowById(mockDB.partyGroups, workgroup.hostGroupId) || null) : null;
           const seen = new Set();
           const desired = data.members.map((item) => {
             if (!item || !item.personId || !WORKGROUP_MEMBER_ROLES.includes(item.role)) {
@@ -1985,7 +2012,16 @@ export const MockAdapter = {
             if (!Array.isArray(permissionKeys) || permissionKeys.some((key) => typeof key !== 'string' || !allowedPermissions.has(key))) {
               throw Object.assign(new Error(`成员权限项无效：${personId}`), { type: 'ValidationError' });
             }
-            return { personId, role: item.role, templateKey, permissionKeys: [...new Set(permissionKeys)].sort(), reason: String(item.reason || '').trim() };
+            const crossGroup = !!hostGroup && item.role === 'deep'
+              && !!person.partyGroup && person.partyGroup !== hostGroup.name;
+            if (crossGroup && (workgroup.recruitmentScope !== 'cross-group' || !workgroup.crossGroupCoordinatorId)) {
+              throw Object.assign(new Error('跨党小组深度参与者须先由组织委员协调（标记跨组招募并指定协调人）'), { type: 'PermissionError' });
+            }
+            return {
+              personId, role: item.role, templateKey, permissionKeys: [...new Set(permissionKeys)].sort(),
+              reason: String(item.reason || '').trim(),
+              ...(crossGroup ? { crossGroup: true, coordinatedBy: workgroup.crossGroupCoordinatorId } : {}),
+            };
           });
           const sourceKey = workgroup.sourceType === 'activity' ? 'activities' : 'taskforces';
           const source = mockDB[sourceKey].find((row) => row.id === workgroup.sourceId);
@@ -2009,6 +2045,7 @@ export const MockAdapter = {
               id: `wgm-${encodeURIComponent(id)}-${encodeURIComponent(member.personId)}`, branchId: workgroup.branchId,
               workgroupId: id, personId: member.personId, role: member.role, status: 'active',
               createdBy: previous?.createdBy || actorId, createdAt: previous?.createdAt || now, updatedBy: actorId, updatedAt: now,
+              ...(member.crossGroup ? { crossGroup: true, coordinatedBy: member.coordinatedBy } : {}),
             };
             const index = nextMembers.findIndex((item) => item.id === row.id);
             if (index >= 0) nextMembers[index] = row;
@@ -2041,9 +2078,12 @@ export const MockAdapter = {
           const originalRows = Array.isArray(source[memberKey]) ? source[memberKey] : [];
           const preserved = originalRows.filter((row) => !WORKGROUP_MEMBER_ROLES.includes(row?.role));
           const prior = new Map(originalRows.filter((row) => WORKGROUP_MEMBER_ROLES.includes(row?.role)).map((row) => [String(row.personId), row]));
-          const mirror = desired.map((member) => workgroup.kind === 'taskforce'
-            ? { personId: member.personId, role: member.role, contributions: prior.get(member.personId)?.contributions || [] }
-            : { personId: member.personId, role: member.role });
+          const mirror = desired.map((member) => {
+            const cross = member.crossGroup ? { crossGroup: true, coordinatedBy: member.coordinatedBy } : {};
+            return workgroup.kind === 'taskforce'
+              ? { personId: member.personId, role: member.role, contributions: prior.get(member.personId)?.contributions || [], ...cross }
+              : { personId: member.personId, role: member.role, ...cross };
+          });
           const updatedSource = { ...source, [memberKey]: [...preserved, ...mirror] };
           if (workgroup.kind === 'activity') updatedSource.organizer = mirror.find((row) => row.role === 'organizer')?.personId || null;
 
@@ -2065,10 +2105,18 @@ export const MockAdapter = {
           const person = mockDB.users.find((row) => row.id === String(data.personId)) || PEOPLE.find((row) => row.id === String(data.personId));
           if (!person) throw Object.assign(new Error('工作组成员不存在'), { type: 'ValidationError' });
           if ((person.branchId || 'br-b1') !== workgroup.branchId) throw Object.assign(new Error('工作组成员须属于同一支部'), { type: 'PermissionError' });
+          // 2026-10-21 批次 499：与 server 单加成员同判据。
+          const hostGroup = workgroup.hostGroupId ? _rowById(mockDB.partyGroups, workgroup.hostGroupId) : null;
+          const crossGroup = !!hostGroup && data.role === 'deep'
+            && !!person.partyGroup && person.partyGroup !== hostGroup.name;
+          if (crossGroup && (workgroup.recruitmentScope !== 'cross-group' || !workgroup.crossGroupCoordinatorId)) {
+            throw Object.assign(new Error('跨党小组深度参与者须先由组织委员协调（标记跨组招募并指定协调人）'), { type: 'PermissionError' });
+          }
           const memberId = `wgm-${encodeURIComponent(id)}-${encodeURIComponent(String(data.personId))}`;
           const previous = mockDB.workgroupMembers.find((row) => row.id === memberId);
           const row = { ...previous, ...data, id: memberId, branchId: workgroup.branchId, workgroupId: id,
-            status: 'active', createdAt: previous?.createdAt || new Date().toISOString() };
+            status: 'active', createdAt: previous?.createdAt || new Date().toISOString(),
+            ...(crossGroup ? { crossGroup: true, coordinatedBy: workgroup.crossGroupCoordinatorId } : {}) };
           mockDB.workgroupMembers = [...mockDB.workgroupMembers.filter((item) => item.id !== memberId), row];
           const sourceKey = workgroup.kind === 'activity' ? 'activities' : 'taskforces';
           const sourceIndex = mockDB[sourceKey].findIndex((item) => item.id === workgroup.sourceId);
@@ -2076,7 +2124,7 @@ export const MockAdapter = {
             const source = mockDB[sourceKey][sourceIndex];
             const memberKey = workgroup.kind === 'activity' ? 'assignments' : 'members';
             const members = (source[memberKey] || []).filter((item) => item.personId !== data.personId);
-            members.push({ personId: data.personId, role: data.role });
+            members.push({ personId: data.personId, role: data.role, ...(crossGroup ? { crossGroup: true, coordinatedBy: workgroup.crossGroupCoordinatorId } : {}) });
             const updated = { ...source, [memberKey]: members };
             if (workgroup.kind === 'activity') updated.organizer = members.find((item) => item.role === 'organizer')?.personId || null;
             mockDB[sourceKey] = [...mockDB[sourceKey].slice(0, sourceIndex), updated, ...mockDB[sourceKey].slice(sourceIndex + 1)];
@@ -2111,6 +2159,52 @@ export const MockAdapter = {
           return null;
         });
       },
+    },
+    // 2026-10-21 批次 499：跨组招募协调标记，与 server POST /workgroups/:id/coordinate 同构。
+    coordinate(id, data = {}) {
+      return _withDelay(() => {
+        const workgroup = mockDB.workgroups.find((row) => row.id === id);
+        if (!workgroup) throw Object.assign(new Error('工作组不存在'), { type: 'NotFoundError' });
+        if (workgroup.kind !== 'activity') throw Object.assign(new Error('仅活动工作组需要跨组招募协调'), { type: 'ValidationError' });
+        if (workgroup.recruitmentScope !== 'cross-group' || !workgroup.crossGroupCoordinatorId) {
+          throw Object.assign(new Error('该活动未标记跨组招募，无需协调'), { type: 'ConflictError' });
+        }
+        const action = data.action || 'complete';
+        if (!['complete', 'reset'].includes(action)) throw Object.assign(new Error('协调动作仅支持 complete / reset'), { type: 'ValidationError' });
+        const completed = action === 'complete';
+        const now = new Date().toISOString();
+        let actorId = null;
+        try { actorId = JSON.parse(localStorage.getItem('gsm1921-login-user') || '{}').personId || null; } catch {}
+        const nextGroup = {
+          ...workgroup,
+          crossGroupCoordinatedBy: completed ? actorId : null,
+          crossGroupCoordinatedAt: completed ? now : null,
+          updatedBy: actorId, updatedAt: now,
+        };
+        mockDB.workgroups = mockDB.workgroups.map((row) => row.id === id ? nextGroup : row);
+        mockDB.workgroupMembers = mockDB.workgroupMembers.map((row) => (
+          row.workgroupId === id && row.status !== 'removed' && row.crossGroup
+            ? { ...row, coordinatedBy: completed ? actorId : workgroup.crossGroupCoordinatorId,
+              ...(completed ? { coordinatedAt: now } : { coordinatedAt: null }), updatedBy: actorId, updatedAt: now }
+            : row
+        ));
+        const sourceIndex = mockDB.activities.findIndex((item) => item.id === workgroup.sourceId);
+        if (sourceIndex >= 0) {
+          const source = mockDB.activities[sourceIndex];
+          const assignments = (Array.isArray(source.assignments) ? source.assignments : []).map((row) => (
+            row.crossGroup
+              ? { ...row, coordinatedBy: completed ? actorId : workgroup.crossGroupCoordinatorId, ...(completed ? { coordinatedAt: now } : {}) }
+              : row
+          ));
+          mockDB.activities = [...mockDB.activities.slice(0, sourceIndex), { ...source, assignments },
+            ...mockDB.activities.slice(sourceIndex + 1)];
+        }
+        _saveToStorage();
+        return {
+          workgroup: nextGroup,
+          members: mockDB.workgroupMembers.filter((row) => row.workgroupId === id && row.status !== 'removed'),
+        };
+      });
     },
     grants: {
       list(id) { return _withDelay(() => mockDB.workgroupGrants.filter((row) => row.workgroupId === id)); },

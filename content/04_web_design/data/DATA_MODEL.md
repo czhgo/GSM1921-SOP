@@ -55,10 +55,14 @@ related_files: [content/02_institution/SYSTEM_ROLE_PERMISSION.md, content/02_ins
 | agenda | `Array<{id, item, host?, kinds?, agendaStep?, discussionAgendaItemId?, ...业务回指与结果字段}>` | 否 | `[]` | 会议议程（三会一课专用）。`agendaStep` 缺省＝普通/历史议题；`discussion`＝讨论项；`vote`＝表决项，须用 `discussionAgendaItemId` 指向本活动中排在前面的讨论项。`kinds` 仍是可多选业务标签，不表示议程步骤；“三会”会议类型仍由活动 `type/scenarioId` 表达。结果与表态锚定表决项；业务回指可留在其关联讨论项，由会后衔接读取。表态接口校验议题归属与步骤，旧议程未标步骤时继续沿用原逐项表态行为。创建时经写入表单"会议议程"区块填写；会后可在活动详情修改 |
 | organizer | string | 否 | -- | 组织者 personId。活动工作组中的 `organizer` 成员为标准记录；本字段是兼容读侧镜像。活动创建时由对应入口指定：组内活动由党小组组长写入，跨组活动由支书/副支书写入并指定组织者 |
 | direction | `'top-down'\|'bottom-up'` | 否 | `'bottom-up'` | 发起方向：自上而下（支部部署）/ 自下而上（党小组发起）；由组长写入表单 L4 级选定 |
-| hostGroup | string\|null | 否 | null | 旧名称兼容字段。新数据以 `hostGroupId` 表达责任归属；不得用它限制其他党小组成员报名或参加 |
+| hostGroup | string\|null | 否 | null | 责任党小组名称的**展示兼容字段**，权威归属以 `hostGroupId` 为准；不得用它限制其他党小组成员报名或参加 |
 | branchId | string | 是 | 创建者支部 | 活动所属支部；写入后不可改，跨支部引用由服务端拒绝 |
-| organizingScope | `'party-group'\|'cross-group'` | 是 | -- | 承办责任范围：组内承办或跨组承办。组内由本组组长从组长台创建；跨组由书记/副书记从书记台创建。它不限制其他成员报名或参加 |
-| hostGroupId | string\|null | 条件必填 | `null` | `party-group` 时指向同支部党小组；`cross-group` 时必须为 `null`。旧 `hostGroup` 名称字段暂保留兼容 |
+| organizingScope | `'party-group'\|'cross-group'\|'branch'` | 是 | -- | 组织落点：组内承办 / 跨组承办（可跨组参与与招募，但仍有唯一责任党小组）/ 支部级法定会议（支委会、党员大会、党课，不指定责任党小组）。组内由本组组长从组长台创建；跨组由支书/副书记从支书台创建；支部级由支书/副书记或党委创建 |
+| hostGroupId | string\|null | 条件必填 | `null` | 所有非支部级活动**必填**，指向同支部活组；`branch` 时必须为 `null`。跨组活动只改变参与/招募范围，不改变组织落点 |
+| recruitmentScope | `'group'\|'cross-group'` | 否 | `'group'` | 深度参与者招募范围。`cross-group`＝需从其他党小组招募深参，须同时写 `crossGroupCoordinatorId`；跨党小组成员入组时行上记 `crossGroup/coordinatedBy`，不得静默入组 |
+| crossGroupCoordinatorId | string\|null | 条件必填 | `null` | `recruitmentScope='cross-group'` 时必填，默认本支部组织委员；组织台「跨组招募待协调」据此汇总 |
+| legacyHostGroup | boolean | 否 | -- | 历史「跨组且无责任党小组」记录的迁移标记（v8）。系统**不猜测归属**；组织台单列「待补责任党小组」，补选后清除 |
+| organizerExceptionReason | string | 否 | -- | 组织者不由责任党小组承担时的例外说明（软提示后留痕，不阻断写入） |
 | workgroupId | string | 是 | `wg-activity-{id}` | 活动工作组主记录 ID；活动记录与统一工作组记录在同一事务中建立 |
 | assignments | `Array<{personId: string, role: 'organizer'\|'deep'\|'participant'}>` | 否 | `[]` | 兼容旧页面/快照的镜像。新工作组成员主源为 `workgroup_members`，只含组织者/深度参与者；旧 `participant` 行只按其来源事实读取，不转成工作组成员。主题党日一般参与者以报名记录为准；三会一课按正式名单处理。授权另存 `workgroup_grants` |
 | signupEnabled | boolean | 否 | `false` | 开放报名开关（SOP-B-2）：勾选后该活动可被报名；草稿态默认不可报名，须本字段为 `true` 才放开。**与下行的分工**：本字段＝写入活动时的「是否开放报名」，关闭动作见 `signupClosed` |
@@ -234,7 +238,7 @@ ActivityRecord (主记录)
 
 ### 2.3 专班数据 (TaskForceRecord)
 
-> 活动工作组与专班工作组共用工作组领域，但各自保留原有业务记录。活动工作组随活动创建；专班工作组围绕专班自身任务存在。跨组活动筹办组不改变成员的党小组归属。当前数据库表为 `workgroups`、`workgroup_members`、`workgroup_grants`、`workgroup_tasks`、`workgroup_outputs`。
+> 活动工作组与专班工作组共用工作组领域，但各自保留原有业务记录。活动工作组随活动创建；专班工作组围绕专班自身任务存在。跨组活动筹办组不改变成员的党小组归属，**也不改变活动的组织落点**——跨组只是参与/招募范围，活动仍有唯一责任党小组。当前数据库表为 `workgroups`、`workgroup_members`、`workgroup_grants`、`workgroup_tasks`、`workgroup_outputs`。
 
 | 字段名 | 类型 | 必填 | 默认值 | 说明 |
 |---|---|---|---|---|
@@ -257,13 +261,13 @@ ActivityRecord (主记录)
 
 | 记录 | 核心字段 | 约束 |
 |---|---|---|
-| `WorkGroup` | `id, branchId, kind, sourceType, sourceId, name, status, organizingScope?, hostGroupId?` | `kind` 为 `activity` 或 `taskforce`；活动与专班分别保留自己的业务记录，工作组记录是二者之上的协作结构、不是独立业务对象。**考察记录以工作组为父对象（活动工作组/专班工作组）；`sourceType` 只是工作组类型的投影，不是独立父对象**。`status` 单一源 `domain.js::WorkgroupStatus / WORKGROUP_STATUSES`：活动工作组仅 `active/archived`，专班工作组随专班生命周期；写权限仅 `recruiting/active`，`draft/pending_review` 只读等待，`completed/archived/dissolved` 历史只读 |
-| `WorkGroupMember` | `id, branchId, workgroupId, personId, role, status, createdBy, createdAt` | 活动与专班工作组的 `role` 均为 `organizer/deep`；成员须属于同一支部。活动一般参与者单独记录为报名，不属于工作组成员；专班可有组织者/深度参与者入组申请，但不设一般参与报名或考勤。登记成员不自动授予系统权限 |
+| `WorkGroup` | `id, branchId, kind, sourceType, sourceId, name, status, organizingScope?, hostGroupId?, recruitmentScope?, crossGroupCoordinatorId?, crossGroupCoordinatedBy?, crossGroupCoordinatedAt?` | `kind` 为 `activity` 或 `taskforce`；活动与专班分别保留自己的业务记录，工作组记录是二者之上的协作结构、不是独立业务对象。**考察记录以工作组为父对象（活动工作组/专班工作组）；`sourceType` 只是工作组类型的投影，不是独立父对象**。`status` 单一源 `domain.js::WorkgroupStatus / WORKGROUP_STATUSES`：活动工作组仅 `active/archived`，专班工作组随专班生命周期；写权限仅 `recruiting/active`，`draft/pending_review` 只读等待，`completed/archived/dissolved` 历史只读。跨组招募标记与协调人随活动创建写入；协调成败由组织台 `POST /workgroups/:id/coordinate` 留痕，不授予活动写权 |
+| `WorkGroupMember` | `id, branchId, workgroupId, personId, role, status, crossGroup?, coordinatedBy?, coordinatedAt?, createdBy, createdAt` | 活动与专班工作组的 `role` 均为 `organizer/deep`；成员须属于同一支部。成员所属党小组≠责任党小组时，必须有 `recruitmentScope='cross-group'` 与协调人，否则服务端拒绝；通过后行上记 `crossGroup:true, coordinatedBy`。活动一般参与者单独记录为报名，不属于工作组成员；专班可有组织者/深度参与者入组申请，但不设一般参与报名或考勤。登记成员不自动授予系统权限 |
 | `WorkGroupGrant` | `id, branchId, workgroupId, personId, templateKey?, permissionKeys[], status, grantedBy, grantedAt, revokedBy?, revokedAt?` | 独立授权留痕；可套用建议模板后调整；服务端按支部、活动与工作组范围校验每项操作 |
 | `WorkGroupTask` | `id, branchId, workgroupId, title, status, activityId?, capabilityPackageId?, isPurpose?` | `status` 为 `open/in_progress/completed/cancelled`；主任务 `isPurpose` 唯一。每个工作组至少有一项经确认的任务才可收尾。关联活动/能力包须同支部 |
 | `WorkGroupOutput` | `id, branchId, workgroupId, taskId?, activityId?, capabilityPackageId?, title, submittedBy, submittedAt, status` | 产出可关联任务、活动与能力包；跨支部或跨工作组引用由服务端拒绝。收尾需所有已登记产出完成登记 |
 
-**工作组创建、权限与生命周期**：活动工作组随活动创建；专班工作组围绕自身任务创建，专班可由能力包承载，也可由一次性任务触发。活动工作组不是独立业务对象，活动记录仍是活动业务的唯一载体；活动承办范围 (`party-group/cross-group`)、参加资格和系统授权是不同维度。党小组组长只能创建本组活动；跨组活动由支书/副书记创建。组织者与深度参与者是并列成员角色；具体操作权限经独立授权接口授予并留痕。活动、成员、任务和产出等跨记录写入都须由服务端校验支部归属。
+**工作组创建、权限与生命周期**：活动工作组随活动创建；专班工作组围绕自身任务创建，专班可由能力包承载，也可由一次性任务触发。活动工作组不是独立业务对象，活动记录仍是活动业务的唯一载体；活动组织落点 (`party-group/cross-group/branch`)、参加资格和系统授权是不同维度。党小组组长只能创建本组活动；跨组活动由支书/副书记创建，且仍须选择唯一责任党小组；支委会、党员大会、党课等支部级法定会议单列 `branch`，不塞党小组。组织者一般由责任党小组承担，他组同志须留例外说明；深度参与者可按需跨组招募，但必须有招募标记与组织委员协调人，成员行记 `crossGroup/coordinatedBy`。组织者与深度参与者是并列成员角色；具体操作权限经独立授权接口授予并留痕。活动、成员、任务和产出等跨记录写入都须由服务端校验支部归属。
 
 工作组收尾以全部登记任务和产出闭合为准；考察依托工作组存在，是否要求提交按事项规则，不因建组自动触发。纪检考察与支委会表决只在制度、议程或该事项明确要求时触发。能力包停用后禁止新建事项，在办事项可以完成，历史只读保留。党委负责目录/模板，支部自主采纳模板版本。
 

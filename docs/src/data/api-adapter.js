@@ -14,7 +14,7 @@
 //         content/04_web_design/data/DATA_ARCHITECTURE.md §8.4
 // ════════════════════════════════════════════════════════════════
 
-import { getApiBaseUrl, getAuthToken } from './data-adapter.js?v=20261021a';
+import { getApiBaseUrl, getAuthToken } from './data-adapter.js?v=20261021b';
 
 // ── HTTP 工具函数 ──────────────────────────────────────────────
 
@@ -893,6 +893,8 @@ export const ApiAdapter = {
       add(id, data) { return _post(`/api/v1/workgroups/${encodeURIComponent(id)}/members`, data); },
       remove(id, personId) { return _delete(`/api/v1/workgroups/${encodeURIComponent(id)}/members/${encodeURIComponent(personId)}`); },
     },
+    // 2026-10-21 批次 499：跨组招募协调标记（组织委员不因此获得活动写权）
+    coordinate(id, data) { return _post(`/api/v1/workgroups/${encodeURIComponent(id)}/coordinate`, data || {}); },
     grants: {
       list(id) { return _get(`/api/v1/workgroups/${encodeURIComponent(id)}/grants`); },
       listMine() { return _get('/api/v1/workgroup-grants'); },

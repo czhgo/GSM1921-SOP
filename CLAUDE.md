@@ -2,7 +2,7 @@
 title: "Org OS — 系统路线图与 Harness"
 type: roadmap
 role: "[工程师]+[AI]"
-last_updated: "2026-10-20"
+last_updated: "2026-10-21"
 status: active
 related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/DOC_MAP.md, content/01_strategy/SECRETARY_DIRECTIVES.md, content/01_strategy/, content/02_institution/, content/03_doc_system/, content/04_web_design/, content/05_ai_coding/, content/insights/, server/, .ctx/logs/]
 ---
@@ -819,6 +819,21 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/DOC
 | ID | 事项 | 引用流程 | 修改对象 | 状态 |
 | --- | --- | --- | --- | --- |
 | T-903 | 完成工作台标签结构盘点与重点页证据审校；收束已确认的信息结构、能力包治理字段和文案改进 | H20.2 + H25 + DESIGN_SYSTEM + 最小三成本 | `.ctx/logs/archive/2026-10/WORKBENCH_67_TAB_AUDIT_DRAFT.md`、`README-server.md`、相关工作台实现 | 进行中（批次 464 党委批次 0；465 验证；466 个人档案设计；467–471 5 个阻塞清零、繁专项 Top 10 部分、个人档案分层实现；472 API 语义写链与工作组概念全仓对齐；473 按钮/边框归一、表格四类规范、信息计算文档与党委铃铛收窄。台账结论 29 合格 / 38 需修 / 0 阻塞。form-loop 仍有多条真机写链红：组长考勤前置数据、向导任选、pc-review 前置；按钮族内尺寸工具类存量 491 处为只降不升基线） |
+
+## 批次 499 收尾与后续批次（2026-10-21）
+
+| ID | 事项（人话） | 引用流程 | 状态 |
+| --- | --- | --- | --- |
+| B-499-1 | 跨组活动落实责任党小组、跨组深参由组织委员协调（本 spec 余项：真机闭环与守卫补充） | `.trae/specs/assign-cross-group-activity-to-party-group/*` + `H21` + `H32` | 本批实施，真机验证中 |
+| B-499-2 | 汇报按工作组 / 党小组汇总：组织者汇总工作组、党小组组长汇总党小组；受众＝支委层＋当事人＋组织者/组长 | `.trae/specs/round5-dirty-audit-and-truth-baseline/spec.md` + `SECRETARY_DIRECTIVES.md` P-018 | 待启动 |
+| B-499-3 | 跨角色派生待办：成员页成功落库却提示「未保存成功」（visitor 页替其他角色刷新待办 403） | 批次 498 问题清单 + `H21` | 待启动（最高优先级遗留） |
+| B-499-4 | mock↔API 结构真值：字段、校验、错误文案逐项对齐，不再削足适履 | `PARALLEL_SKILL_AUDIT.md` §11.2 + `round5` spec | 持续（本批补组织落点字段） |
+| B-499-5 | daily test 分层精简：抓主要矛盾与关键 probe，平衡效率与安全 | `TEST_AND_VERIFICATION.md` + `round5` spec | 待启动 |
+| B-499-6 | 第五轮「脏乱繁」平行代理审查与专项台账 | `H21` + `PARALLEL_SKILL_AUDIT.md` §12 | 待启动 |
+| B-499-7 | IA 剩余项（第三轮审查未闭环部分）与承载面唯一性复验 | `PARALLEL_SKILL_AUDIT.md` §11/§12 + `DESIGN_SYSTEM.md` §10.7 | 待启动 |
+| B-499-8 | 数据生命周期：归档、清理与演示库重建的统一策略 | `DATA_MODEL.md` + `H32` | 待启动 |
+| B-499-9 | 任命事务化（支委 / 组长任命的多表写入原子化） | `H32` + `server/db.js` 迁移机制 | 待启动 |
+| B-499-10 | 宽表卡式化（成员名册等宽表在小屏的卡片化承载） | `DESIGN_SYSTEM.md` + 最小三成本 | 待启动 |
 
 ***
 

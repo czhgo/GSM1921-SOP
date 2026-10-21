@@ -3,34 +3,36 @@
 // 党小组组长可创建党小组会、主题党日活动，写入后自动生成SOP任务节点。
 // 含决策树引导式写入（DecisionTreeState）+ 活动详情/子记录内联编辑 + 活动角色赋权。
 
-import { setState, getAppState } from '../../../core/base/state.js?v=20261021a';
-import { BranchService } from '../../../services/core/runtime.js?v=20261021a';
-import { DecisionTreeState, DECISION_TREE_CONFIGS, renderWorkflowPanel, writeActivityWithSOP, hostGroups as buildHostGroupOptions } from '../../../services/activity/decision-tree.js?v=20261021a';
+import { setState, getAppState } from '../../../core/base/state.js?v=20261021b';
+import { BranchService } from '../../../services/core/runtime.js?v=20261021b';
+import { DecisionTreeState, DECISION_TREE_CONFIGS, renderWorkflowPanel, writeActivityWithSOP, hostGroups as buildHostGroupOptions } from '../../../services/activity/decision-tree.js?v=20261021b';
 // 党小组常态清单唯一来源（活组、按 seq 升序）——承办党小组选项不再写死
-import { groupOptions, loadPartyGroups } from '../../../services/member/party-group.js?v=20261021a';
-import { AuthStore, currentUserId } from '../../../services/core/auth.js?v=20261021a';
-import { TodoStore, TodoSourceType } from '../../../services/governance/todo.js?v=20261021a';
-import { mockDB, OutputType, deriveOutputRoute } from '../../../core/domain/domain.js?v=20261021a';
-import { persist } from '../../../data/data-adapter.js?v=20261021a';
-import { PersonPicker } from '../../../components/governance/pickers.js?v=20261021a';
-import { renderWorkgroupPermissionEditor, readWorkgroupPermissionEditor } from '../../../components/governance/workgroup-permissions.js?v=20261021a';
-import { recordFormShell } from '../../../components/ui/forms.js?v=20261021a';
-import { getBranchIdOfPerson, getBranchOutputBlocks, applyOutputBlockPolicy } from '../../../services/branch/branch.js?v=20261021a';
-import { badgeHtml } from '../../../components/ui/badges.js?v=20261021a';
+import { groupOptions, loadPartyGroups } from '../../../services/member/party-group.js?v=20261021b';
+// 2026-10-21 批次 499：跨党小组深参/组织者需按成员所属组判定（组织者一般本组，跨组深参由组织委员协调）
+import { PersonStore } from '../../../services/member/person.js?v=20261021b';
+import { AuthStore, currentUserId } from '../../../services/core/auth.js?v=20261021b';
+import { TodoStore, TodoSourceType } from '../../../services/governance/todo.js?v=20261021b';
+import { mockDB, OutputType, deriveOutputRoute } from '../../../core/domain/domain.js?v=20261021b';
+import { persist } from '../../../data/data-adapter.js?v=20261021b';
+import { PersonPicker } from '../../../components/governance/pickers.js?v=20261021b';
+import { renderWorkgroupPermissionEditor, readWorkgroupPermissionEditor } from '../../../components/governance/workgroup-permissions.js?v=20261021b';
+import { recordFormShell } from '../../../components/ui/forms.js?v=20261021b';
+import { getBranchIdOfPerson, getBranchOutputBlocks, applyOutputBlockPolicy } from '../../../services/branch/branch.js?v=20261021b';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20261021b';
 // 活动生命周期展示态单一源（草稿/已发布/进行中/待归档/已执行/已归档/已取消）——勿在本文件另造中文标签
-import { activityLifecycleBadgeHtml } from '../../../components/record/inspector.js?v=20261021a';
-import { showToast, escHtml, todayLocal } from '../../../core/base/utils.js?v=20261021a';
+import { activityLifecycleBadgeHtml } from '../../../components/record/inspector.js?v=20261021b';
+import { showToast, escHtml, todayLocal } from '../../../core/base/utils.js?v=20261021b';
 // 组织者的发布口（2026-09-19 批次 91 · SOP-B-17）：本人被指定为该场组织者时，本台即可发布本组通知
-import { isActivityOrganizer, findActivityById, OUTDOOR_CHECKLIST, isOutdoorActivity, PUBLICITY_DRAFT_STATUS, PUBLICITY_DRAFT_LABELS, publicityDraftStatusOf, setPublicityDraftStatus, DEEP_WORK_MODE } from '../../../services/activity/activity.js?v=20261021a';
-import { openModal, closeModal } from '../../../components/ui/modal.js?v=20261021a';
-import { openGroupNoticeComposer } from '../../../components/governance/notice-view.js?v=20261021a';
-import { solidAccentStyle, accDarkVars, accDarkParts, OUTPUT_BLOCK_DEFS, isActivityEnded, ACTIVITY_SUBTYPES, normalizeActivityType } from '../../../core/domain/constants.js?v=20261021a';
-import { filterByRole, getCurrentLeaderId, currentLeaderGroup } from './_shared.js?v=20261021a';
-import { anchorDetailToTrigger } from '../../../components/ui/detail-anchor.js?v=20261021a';
+import { isActivityOrganizer, findActivityById, OUTDOOR_CHECKLIST, isOutdoorActivity, PUBLICITY_DRAFT_STATUS, PUBLICITY_DRAFT_LABELS, publicityDraftStatusOf, setPublicityDraftStatus, DEEP_WORK_MODE } from '../../../services/activity/activity.js?v=20261021b';
+import { openModal, closeModal } from '../../../components/ui/modal.js?v=20261021b';
+import { openGroupNoticeComposer } from '../../../components/governance/notice-view.js?v=20261021b';
+import { solidAccentStyle, accDarkVars, accDarkParts, OUTPUT_BLOCK_DEFS, isActivityEnded, ACTIVITY_SUBTYPES, normalizeActivityType } from '../../../core/domain/constants.js?v=20261021b';
+import { filterByRole, getCurrentLeaderId, currentLeaderGroup } from './_shared.js?v=20261021b';
+import { anchorDetailToTrigger } from '../../../components/ui/detail-anchor.js?v=20261021b';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是活动的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
-import { renderFilteredList, activityKeyword, activityFacets } from '../../../components/ui/list-filter.js?v=20261021a';
+import { renderFilteredList, activityKeyword, activityFacets } from '../../../components/ui/list-filter.js?v=20261021b';
 // U-35：「我的任务」承载面（按项目身份派给组长的 SOP 任务；数据与写口复用 services/activity/activity.js）
-import { myTasksSectionHtml, bindMyTasksSection } from './my-tasks-section.js?v=20261021a';
+import { myTasksSectionHtml, bindMyTasksSection } from './my-tasks-section.js?v=20261021b';
 
 /**
  * 活动角色可编辑性（dogfood 权限专项 2026-09-13）
@@ -62,7 +64,7 @@ let _dtAdvOpen = false;        // C② 高级设置折叠区展开态（跨面�
 // 此处以模块级轻量草稿兜底：输入/选人即写入 dtDraft，重建面板时回填；
 // C6（2026-09-12）起草稿落 localStorage 跨整页刷新保留 + beforeunload 提醒；
 // 仅「写入成功」或表单内「取消」（dt.reset 重置会话）时清空。
-const dtDraft = { date: '', location: '', title: '', desc: '', orgIds: null, deepIds: null, signupEnabled: false, requireMakeup: false, isOutdoor: false, deepWork: {} };
+const dtDraft = { date: '', location: '', title: '', desc: '', orgIds: null, deepIds: null, signupEnabled: false, requireMakeup: false, isOutdoor: false, deepWork: {}, organizerExceptionReason: '' };
 
 // C6（2026-09-12）跨整页刷新草稿保护：dtDraft 同步落 localStorage，F5/误关闭后可恢复；
 // 存在未提交内容时 beforeunload 二次确认，避免「填了一半刷新即丢光且无提醒」。
@@ -101,6 +103,7 @@ function _dtDraftClear() {
   dtDraft.requireMakeup = false;
   dtDraft.isOutdoor = false;
   dtDraft.deepWork = {};
+  dtDraft.organizerExceptionReason = '';
   try { localStorage.removeItem(DT_DRAFT_KEY); } catch (e) { /* 忽略 */ }
 }
 
@@ -773,10 +776,17 @@ function _renderDecisionTreePanel({ accent, accentRgba, accentBorder, _dtBtnStyl
           <div>
             <div class="text-[12px] text-gray-500 mb-1">组织者（默认组长本人，可改）</div>
             <div id="dt-org-picker"></div>
+            <!-- 2026-10-21 批次 499：组织者一般本组；他组同志须留说明（软提示，不阻断） -->
+            <p id="dt-org-cross-hint" class="text-xs text-amber-700 mt-1 hidden">组织者一般由本党小组承担；已选他组同志，请填写说明。</p>
+            <div id="dt-org-exception-slot" class="mt-1 hidden">
+              <input type="text" id="dt-org-exception" class="input-flat w-full text-xs" placeholder="组织者跨组说明（将随活动留存）" value="${escHtml(dtDraft.organizerExceptionReason || '')}">
+            </div>
           </div>
           <div>
             <div class="text-[12px] text-gray-500 mb-1">深度参与者 <span class="text-gray-500">（选填）</span></div>
             <div id="dt-deep-picker"></div>
+            <!-- 2026-10-21 批次 499：跨党小组深参须由组织委员协调，提交时自动标记跨组招募 -->
+            <p id="dt-deep-cross-hint" class="text-xs text-amber-700 mt-1 hidden"></p>
           </div>
         </div>
         ${renderWorkgroupPermissionEditor('activity-create')}
@@ -962,13 +972,31 @@ function _dtBindPanelArea(container, ctx, refresh) {
   const currentLeaderId = getCurrentLeaderId();
   const dtOrgEl = wrap.querySelector('#dt-org-picker');
   const dtDeepEl = wrap.querySelector('#dt-deep-picker');
+  // 2026-10-21 批次 499：跨组组织者 / 跨组深参的就地提示（提交时落 recruitmentScope 与说明）
+  const syncLeaderCrossGroupHints = () => {
+    const groupName = currentLeaderGroup();
+    const groupOfPerson = (id) => PersonStore.getById(id)?.partyGroup || '';
+    const orgIds = _dtOrgPicker ? _dtOrgPicker.getSelected() : [];
+    const deepIds = _dtDeepPicker ? _dtDeepPicker.getSelected() : [];
+    const crossOrgs = orgIds.filter((id) => groupOfPerson(id) && groupOfPerson(id) !== groupName);
+    const crossDeep = deepIds.filter((id) => groupOfPerson(id) && groupOfPerson(id) !== groupName);
+    wrap.querySelector('#dt-org-cross-hint')?.classList.toggle('hidden', crossOrgs.length === 0);
+    wrap.querySelector('#dt-org-exception-slot')?.classList.toggle('hidden', crossOrgs.length === 0);
+    const hint = wrap.querySelector('#dt-deep-cross-hint');
+    if (hint) {
+      hint.classList.toggle('hidden', crossDeep.length === 0);
+      hint.textContent = crossDeep.length
+        ? `跨党小组深参 ${crossDeep.map((id) => PersonStore.getById(id)?.name || id).join('、')}：提交后自动标记跨组招募，由组织委员协调。`
+        : '';
+    }
+  };
   if (dtOrgEl) {
     _dtOrgPicker = new PersonPicker({
       mode: 'multi',
       placeholder: '选择组织者',
       accentColor: accent,
       initialIds: dtDraft.orgIds !== null ? dtDraft.orgIds : [currentLeaderId],
-      onSelect: (ids) => { dtDraft.orgIds = ids; _dtDraftSave(); },
+      onSelect: (ids) => { dtDraft.orgIds = ids; _dtDraftSave(); syncLeaderCrossGroupHints(); },
     });
     _dtOrgPicker.render(dtOrgEl);
   }
@@ -978,10 +1006,14 @@ function _dtBindPanelArea(container, ctx, refresh) {
       placeholder: '选择深度参与者',
       accentColor: accent,
       initialIds: dtDraft.deepIds !== null ? dtDraft.deepIds : [],
-      onSelect: (ids) => { dtDraft.deepIds = ids; _dtDraftSave(); },
+      onSelect: (ids) => { dtDraft.deepIds = ids; _dtDraftSave(); syncLeaderCrossGroupHints(); },
     });
     _dtDeepPicker.render(dtDeepEl);
   }
+  wrap.querySelector('#dt-org-exception')?.addEventListener('input', (e) => {
+    dtDraft.organizerExceptionReason = e.target.value;
+  });
+  syncLeaderCrossGroupHints();
 
   // L1 按钮（变更时重置后续选择，轻量刷新面板动态区）
   wrap.querySelectorAll('.dt-l1-btn').forEach(btn => {
@@ -1086,6 +1118,22 @@ function _dtBindPanelArea(container, ctx, refresh) {
       const hostGroupRecord = loadPartyGroups().find((group) => group.name === hostGroup
         && (group.branchId || 'br-b1') === branchId && group.status === 'active');
       if (!hostGroupRecord) throw new Error('只能由组长创建本党小组承办的活动');
+      // 2026-10-21 批次 499：跨党小组深参由组织委员协调；组织者一般本组，例外须留说明。
+      const organizerIds = _dtOrgPicker ? _dtOrgPicker.getSelected() : [currentLeaderId];
+      const deepIds = _dtDeepPicker ? _dtDeepPicker.getSelected() : [];
+      const groupOfPerson = (id) => PersonStore.getById(id)?.partyGroup || '';
+      const crossOrganizers = organizerIds.filter((id) => groupOfPerson(id) && groupOfPerson(id) !== hostGroupRecord.name);
+      const crossDeep = deepIds.filter((id) => groupOfPerson(id) && groupOfPerson(id) !== hostGroupRecord.name);
+      const organizerExceptionReason = (wrap.querySelector('#dt-org-exception')?.value
+        || dtDraft.organizerExceptionReason || '').trim();
+      if (crossOrganizers.length && !organizerExceptionReason) {
+        throw new Error('组织者一般由本党小组承担；请填写组织者跨组说明');
+      }
+      const commissioner = PersonStore.getMembers().find((p) => p.role === 'org-commissioner'
+        && (p.branchId || 'br-b1') === branchId);
+      if (crossDeep.length && !commissioner) {
+        throw new Error('本支部未配置组织委员，跨党小组深参暂不能招募');
+      }
       const activityData = {
         title,
         // 权威类型取值 = 子类中文名（单一源 ACTIVITY_SUBTYPES；组长台 L1 标签即权威子类名），
@@ -1103,6 +1151,10 @@ function _dtBindPanelArea(container, ctx, refresh) {
         hostGroup,
         hostGroupId: hostGroupRecord.id,
         organizingScope: 'party-group',
+        // 组内承办不变；跨组招募只影响深参来源，并指定组织委员协调
+        recruitmentScope: crossDeep.length ? 'cross-group' : 'group',
+        ...(crossDeep.length ? { crossGroupCoordinatorId: commissioner?.id || null } : {}),
+        ...(crossOrganizers.length ? { organizerExceptionReason } : {}),
         branchId,
         scenarioId,
         status: 'draft',
@@ -1127,8 +1179,6 @@ function _dtBindPanelArea(container, ctx, refresh) {
       if (Object.keys(deepWorkMode).length) activityData.deepWorkMode = deepWorkMode;
 
       // T-190：创建时同步赋权——组织者（默认组长本人）+ 深度参与者写入主源 assignments
-      const organizerIds = _dtOrgPicker ? _dtOrgPicker.getSelected() : [currentLeaderId];
-      const deepIds = _dtDeepPicker ? _dtDeepPicker.getSelected() : [];
       const assignments = [
         ...organizerIds.map(personId => ({ personId, role: 'organizer' })),
         ...deepIds.map(personId => ({ personId, role: 'deep' })),

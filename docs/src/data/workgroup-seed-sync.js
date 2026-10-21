@@ -1,8 +1,54 @@
 // Mock 数据兼容迁移：为已有活动/专班建立稳定工作组主记录。
 // 不搬移普通参与者，不猜测旧专班任务/产出；原始业务记录仍是来源。
-import { WorkgroupStatus, workgroupStatusForTaskforce } from '../core/domain/domain.js?v=20261021a';
+import { WorkgroupStatus, workgroupStatusForTaskforce } from '../core/domain/domain.js?v=20261021b';
+import { isBranchLevelActivity } from '../core/domain/constants.js?v=20261021b';
+import { PARTY_GROUPS } from './mock/party-groups.js?v=20261021b';
+import { PEOPLE } from './mock/people.js?v=20261021b';
 
 const MEMBER_ROLES = new Set(['organizer', 'deep']);
+
+/**
+ * 种子活动的组织落点归一（2026-10-21 批次 499）。
+ * 演示种子是**本仓作者维护的夹具**，不是线上存量：这里按既有事实补齐
+ * `organizingScope / hostGroupId / recruitmentScope / crossGroupCoordinatorId`，
+ * 使 mock 与真实 API 结构一致；不新增人员、不编造活动。
+ * 规则（均可由既有字段直接判定，不做归属猜测）：
+ *   · 支部级场景 ⇒ `branch`，无责任组；
+ *   · 已写 hostGroup 名称 ⇒ 以该组为责任组；否则以组织者所属党小组为责任组（母本「组织者一般本组」）；
+ *   · 党小组会 ⇒ `party-group`，其余 ⇒ `cross-group`（跨组参与范围，但仍落到责任组）；
+ *   · 深度参与者来自其他党小组 ⇒ 标记 `recruitmentScope='cross-group'`，协调人取本支部组织委员，
+ *     并在成员行写 `crossGroup/coordinatedBy`（与 API 写入结果同构）；
+ *   · 仍无法判定责任组 ⇒ `legacyHostGroup=true`，留给组织台补选，不猜。
+ */
+export function normalizeSeedActivityOrganizing(activities) {
+  const groups = Array.isArray(PARTY_GROUPS) ? PARTY_GROUPS : [];
+  const commissioner = PEOPLE.find((p) => p.role === 'org-commissioner') || null;
+  return (Array.isArray(activities) ? activities : []).map((activity) => {
+    if (activity.organizingScope) return activity;
+    if (isBranchLevelActivity(activity)) {
+      return { ...activity, organizingScope: 'branch', hostGroupId: null, hostGroup: '' };
+    }
+    const organizer = PEOPLE.find((p) => p.id === activity.organizer);
+    const group = (activity.hostGroup && groups.find((g) => g.name === activity.hostGroup))
+      || (organizer?.partyGroup && groups.find((g) => g.name === organizer.partyGroup))
+      || null;
+    if (!group) return { ...activity, legacyHostGroup: true };
+    const assignments = (Array.isArray(activity.assignments) ? activity.assignments : []).map((member) => {
+      const person = PEOPLE.find((p) => p.id === member.personId);
+      const cross = member.role === 'deep' && person?.partyGroup && person.partyGroup !== group.name;
+      return cross ? { ...member, crossGroup: true, coordinatedBy: commissioner?.id || null } : member;
+    });
+    const crossRecruit = assignments.some((member) => member.crossGroup);
+    return {
+      ...activity,
+      organizingScope: activity.type === '党小组会' ? 'party-group' : 'cross-group',
+      hostGroupId: group.id,
+      hostGroup: group.name,
+      assignments,
+      ...(crossRecruit ? { recruitmentScope: 'cross-group', crossGroupCoordinatorId: commissioner?.id || null } : {}),
+    };
+  });
+}
 
 const groupIdFor = (kind, sourceId) => `wg-${kind}-${sourceId}`;
 const memberIdFor = (workgroupId, personId) => `wgm-${encodeURIComponent(workgroupId)}-${encodeURIComponent(personId)}`;
@@ -53,8 +99,10 @@ export function ensureLegacySourceWorkgroups(db) {
             ? (source.archived ? WorkgroupStatus.ARCHIVED : WorkgroupStatus.ACTIVE)
             : (source.deletedAt ? WorkgroupStatus.ARCHIVED : workgroupStatusForTaskforce(source.status)),
           ...(kind === 'activity' ? {
-            organizingScope: ['party-group', 'cross-group'].includes(source.organizingScope) ? source.organizingScope : null,
+            organizingScope: ['party-group', 'cross-group', 'branch'].includes(source.organizingScope) ? source.organizingScope : null,
             hostGroupId: source.hostGroupId || null,
+            recruitmentScope: source.recruitmentScope || 'group',
+            crossGroupCoordinatorId: source.crossGroupCoordinatorId || null,
           } : {}),
           migrationState: kind === 'taskforce' || !source.organizingScope ? 'pending-review' : 'ready',
           createdAt,
@@ -80,6 +128,7 @@ export function ensureLegacySourceWorkgroups(db) {
           memberships.push({
             id, branchId: workgroup.branchId, workgroupId: workgroup.id, personId,
             role: member.role, status: 'active', migratedFromLegacy: true,
+            ...(member.crossGroup ? { crossGroup: true, coordinatedBy: member.coordinatedBy || null } : {}),
             createdBy: 'mock-workgroup-migration', createdAt: workgroup.createdAt || new Date(0).toISOString(),
           });
           changed = true;

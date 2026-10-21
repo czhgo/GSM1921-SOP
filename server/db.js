@@ -3,6 +3,7 @@ import Database from 'better-sqlite3';
 import { WorkgroupStatus, workgroupStatusForTaskforce } from '../docs/src/core/domain/domain.js';
 // R4-D04：考察记录回填与 mock hydrate 同源（纯函数，勿在服务端另写一套匹配规则）
 import { migrateInspectionWorkgroupKeys, migrateReviewParentKeys } from '../docs/src/services/activity/inspection-migrate.js';
+import { isBranchLevelActivity } from '../docs/src/core/domain/constants.js';
 
 // 资源表：每张表 id 主键 + data JSON（保持与前端数据结构完全一致，嵌套字段零损失）
 // T-218：新增 4 张 niche 表（经验沉淀/合规引用/文件空间/图片记录），与前端快照 payload 键名对齐
@@ -400,6 +401,56 @@ export const MIGRATIONS = [
     up(db) {
       const report = migratePersonIdsToStudentNumbers(db);
       console.log('[db] v7 人员主键迁移：', JSON.stringify(report));
+    },
+  },
+  {
+    // v8（2026-10-21 批次 499 · 支书补充口径）：跨组活动也必须落到责任党小组。
+    //   · 支委会 / 党员大会 / 党课属支部级法定会议 ⇒ organizingScope='branch'，不塞党小组；
+    //   · 其余 cross-group 且无 hostGroupId 的旧行 ⇒ legacyHostGroup=true（不猜测归属，编辑时补选）。
+    version: 8,
+    name: 'activity-host-group-scope',
+    tables: [],
+    up(db) {
+      const hasActivities = db.prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'activities'").get();
+      if (!hasActivities) return;
+      const rows = db.prepare('SELECT id, data FROM activities').all();
+      const update = db.prepare('UPDATE activities SET data = ? WHERE id = ?');
+      let reclassified = 0;
+      let legacy = 0;
+      let scopeFilled = 0;
+      for (const row of rows) {
+        const activity = JSON.parse(row.data);
+        let changed = false;
+        if (isBranchLevelActivity(activity)) {
+          if (activity.organizingScope !== 'branch') {
+            activity.organizingScope = 'branch';
+            reclassified += 1;
+            changed = true;
+          }
+        } else if (!activity.organizingScope) {
+          // 旧行只有党小组名称派生的 hostGroupId（v3 已补）⇒ 承办范围可由既有字段确定，不算猜测。
+          if (activity.hostGroupId) {
+            activity.organizingScope = activity.type === '党小组会' ? 'party-group' : 'cross-group';
+            scopeFilled += 1;
+            changed = true;
+          } else if (!activity.legacyHostGroup) {
+            activity.legacyHostGroup = true;
+            legacy += 1;
+            changed = true;
+          }
+        } else if (activity.organizingScope === 'cross-group' && !activity.hostGroupId && !activity.legacyHostGroup) {
+          activity.legacyHostGroup = true;
+          legacy += 1;
+          changed = true;
+        }
+        if (activity.organizingScope === 'branch' && activity.hostGroupId) {
+          activity.hostGroupId = null;
+          activity.hostGroup = '';
+          changed = true;
+        }
+        if (changed) update.run(JSON.stringify(activity), row.id);
+      }
+      console.log(`[db] v8 活动组织落点：支部级重分类=${reclassified} 补承办范围=${scopeFilled} 待补责任组=${legacy}`);
     },
   },
 ];

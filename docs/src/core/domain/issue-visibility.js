@@ -11,7 +11,7 @@
 //     就自动扩散给该组组织者；
 //   · 隐藏反馈（hidden / mergedInto）：支书层 ＋ 处置人（按人指派或按角色指派）；
 //   · 其余公开反馈：本支部成员可读（支部边界仍由调用方按 branchId 收口）。
-import { SECRETARY_AND_DEPUTY_ROLES } from './constants.js?v=20261021a';
+import { SECRETARY_AND_DEPUTY_ROLES } from './constants.js?v=20261021b';
 
 /**
  * 一行反馈 / 汇报是否可被该观看者读取（不判断支部归属——支部边界由调用方另行收口）。

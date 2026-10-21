@@ -5,7 +5,7 @@
 // R-26③（2026-10-05 批次 388）：本件**只引一个零依赖叶子** `core/base/date.js`（取本地「今天」）——
 //   不成环、双端可载；**不得**引 `core/base/utils.js`（那会牵 `core/session/pending-writes.js`）。
 
-import { todayLocal } from '../base/date.js?v=20261021a';
+import { todayLocal } from '../base/date.js?v=20261021b';
 
 // ════════════════════════════════════════════════════════════════
 //  缺省支部 id（单一源，R2-17，2026-10-20）
@@ -720,6 +720,25 @@ export const SCENARIO_LABELS = {
   'party-lecture': _THREE_MEETINGS_SUBTYPES[3],
   'theme-party': ACTIVITY_CLASSIFICATION['theme-party'].label,
 };
+
+// ── 活动组织落点（2026-10-21 批次 499 · 支书补充口径）──────────────
+// 支书原话：「跨组活动也要落实到党小组」「组织者一般是本组的；深度参与者按实际需要跨组招募，
+//   由组织委员协调」。⇒ 跨组只表示参与/招募范围，不表示「没有承办组」。
+// 支部级法定会议（支委会 / 支部党员大会 / 党课）不硬塞党小组，单列 'branch'。
+export const ACTIVITY_SCOPES = {
+  PARTY_GROUP: 'party-group',
+  CROSS_GROUP: 'cross-group',
+  BRANCH: 'branch',
+};
+export const BRANCH_LEVEL_SCENARIOS = ['branch-committee', 'branch-party-meeting', 'party-lecture'];
+// 旧客户端可能只传 type、不传 scenarioId ⇒ 判支部级会议必须同时认两类入参（服务端与迁移共用）。
+export const BRANCH_LEVEL_ACTIVITY_TYPES = ['支委会', '支部党员大会', '党课'];
+export function isBranchLevelScenario(scenarioId) {
+  return BRANCH_LEVEL_SCENARIOS.includes(scenarioId);
+}
+export function isBranchLevelActivity(activity) {
+  return isBranchLevelScenario(activity?.scenarioId) || BRANCH_LEVEL_ACTIVITY_TYPES.includes(activity?.type);
+}
 
 /** type → 大类（three-meetings | theme-party） */
 export function classifyActivityType(type) {

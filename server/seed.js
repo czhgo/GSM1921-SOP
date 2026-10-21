@@ -73,7 +73,9 @@ export async function seedDatabase(db) {
   // 原迁移 v3 在 seed 之前执行（新库此时活动/专班为空）⇒ 播种后工作组缺失；
   // 这里用同一迁移函数（单一源）补齐，并追加演示成员产出授权种子。
   const workgroupSeed = {
-    activities: activitiesMod.ACTIVITIES.map((row) => ({ ...row })),
+    // 2026-10-21 批次 499：种子活动补齐组织落点字段（单一源 workgroup-seed-sync.js），
+    // 使 API 首启数据与真实写入结构一致；mock 形态走同一函数。
+    activities: workgroupSyncMod.normalizeSeedActivityOrganizing(activitiesMod.ACTIVITIES).map((row) => ({ ...row })),
     taskforces: taskforcesMod.MOCK_TASKFORCES.map((row) => ({ ...row })),
     workgroups: [], workgroupMembers: [], workgroupGrants: [],
   };

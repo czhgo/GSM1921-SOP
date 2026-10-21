@@ -2,7 +2,7 @@
 title: "党支书工作交接文档"
 type: governance
 role: "[用户]+[AI]"
-last_updated: 2026-10-16
+last_updated: 2026-10-21
 status: active
 related_files: [CLAUDE.md, ARCHITECTURE.md, content/01_strategy/DEVELOPMENT_PATH.md, content/04_web_design/data/DATA_MODEL.md, content/02_institution/COMMISSIONER_DUTY_FRAMEWORK.md, content/04_web_design/module/SOP_WEBSITE_GUIDE.md, content/03_doc_system/OPERATIONS_GUIDE.md, content/insights/党支部管理与实务经验沉淀.md]
 ---
@@ -383,6 +383,21 @@ related_files: [CLAUDE.md, ARCHITECTURE.md, content/01_strategy/DEVELOPMENT_PATH
 
 ***
 
+### P-018 跨组活动仍须落到党小组——组织者一般本组，跨组深参由组织委员协调
+
+“跨组活动也要落实到党小组，我们的数据中必须有这样的功能设计。”（2026-10-21）
+“组织者一般是本组的，但是 深度参与者 按照实际需要，如果需要跨组招募，由组织委员协调相关工作！！”（2026-10-21）
+
+> 管理支部的人会遇到一个容易混淆的问题：跨组活动既然不止一个党小组参与，是不是就没有承办党小组了？答案是否定的。跨组只是**参与与招募范围**，活动本身仍须落到唯一责任党小组——任务、考察、考勤与汇报汇总都要有组织落点，否则「跨组」会变成没有归属的临时拼盘。
+>
+> 组织者一般由责任党小组的同志承担；确需他组同志承担时，属例外，应留下说明。深度参与者按实际需要可以跨组招募，但必须显式标记并由**组织委员**协调，不得静默入组——这样既保护了责任党小组的组织责任，也让跨组协作有可追溯的协调人。
+>
+> 支委会、支部党员大会、党课等**支部级法定会议**不指定责任党小组，单列「支部级」组织落点，避免把支部层面的会议硬塞进某一个党小组。
+
+> 出处：支书 2026-10-21 补充口径（跨组活动与跨组招募）· 子本：`content/04_web_design/data/DATA_MODEL.md` §2.1/§2.3、`content/02_institution/sop/组织委员工作流程指南.md`、`content/02_institution/sop/党小组组长工作手册.md` · 层次：制度设计级
+
+***
+
 ## 附录·论断编号索引
 
 按 P 编号顺序列出本文件保留的论断及其页内锚点（已迁出条目见下方「已迁出/已删除论断」去向指针）：
@@ -406,6 +421,7 @@ related_files: [CLAUDE.md, ARCHITECTURE.md, content/01_strategy/DEVELOPMENT_PATH
 | P-015 | 探索、创新的机会——AI时代中学生党支部的探索机会                 | 第三章 | 战略路线级 | `#p-015-探索创新的机会ai时代中学生党支部的探索机会`               |
 | P-016 | 恢复对话能力——党建+科研的重要战略选择                         | 第三章 | 战略路线级 | `#p-016-恢复对话能力党建科研的重要战略选择`                     |
 | P-017 | 主客统一——组织要求与成员自觉的辩证统一                      | 第四章 | 元命题   | `#p-017-主客统一组织要求与成员自觉的辩证统一`                   |
+| P-018 | 跨组活动仍须落到党小组——组织者一般本组，跨组深参由组织委员协调 | 第二章 | 制度设计级 | `#p-018-跨组活动仍须落到党小组组织者一般本组跨组深参由组织委员协调` |
 
 **已迁出/已删除论断**（不再保留在本文件）：
 

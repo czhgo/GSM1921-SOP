@@ -16,7 +16,7 @@ import { CAPABILITY_PACKAGE_BY_ID } from '../../../docs/src/core/domain/capabili
 // 批4（2026-09-09 支书批「域参数」）：policyOverrides 顶层节白名单（server 写口与前端 branch.js 同源校验）
 import { POLICY_DEFAULTS, POLICY_OVERRIDE_SECTIONS } from '../../../docs/src/core/domain/policy-defaults.js';
 // P2c（2026-09-03）：授权语义角色集单一源 = docs/src/core/domain/constants.js（勿手写）
-import { BRANCH_COMMISSION_ROLES, hashSubmitterToken, isActivityEnded } from '../../../docs/src/core/domain/constants.js';
+import { BRANCH_COMMISSION_ROLES, hashSubmitterToken, isActivityEnded, isBranchLevelActivity } from '../../../docs/src/core/domain/constants.js';
 import { projectMemberListRow } from '../../../docs/src/core/domain/profile-access.js';
 import {
   TaskforceStatus, TASKFORCE_TERMINAL_STATUSES, isTaskforceStatus, workgroupStatusForTaskforce,
@@ -323,8 +323,12 @@ export function createResourcesRouter(db) {
           } : null),
           ...(name === 'activities' ? {
             ...(row.branchId ? {} : { branchId: req.actor.branchId || 'br-b1' }),
+            // 2026-10-21 批次 499：组织落点不再默认「跨组且无责任党小组」——
+            //   带责任组的默认跨组承办；支部级法定会议默认支部级（其校验见 activityCreationDeny）。
             ...(!row.organizingScope && ['secretary', 'deputy-secretary'].includes(req.actor.role)
-              ? { organizingScope: 'cross-group', hostGroupId: null, hostGroup: '' }
+              ? (row.hostGroupId
+                ? { organizingScope: 'cross-group' }
+                : (isBranchLevelActivity(row) ? { organizingScope: 'branch', hostGroupId: null, hostGroup: '' } : {}))
               : null),
             createdBy: req.actor.id,
             workgroupId: `wg-activity-${id}`,
@@ -436,15 +440,42 @@ export function createResourcesRouter(db) {
         if (nextScopeDeny) return res.status(403).json({ error: nextScopeDeny });
       }
       // 活动写门：按「本次改后的类型」判定（未携带 type 时取既有类型）；批准门状态转移门（批次 151）叠加其后
+      let legacyHostGroupCompleted = false;
       if (name === 'activities') {
         const prevRow = JSON.parse(existing.data);
+        const nextHostGroupId = req.body && Object.prototype.hasOwnProperty.call(req.body, 'hostGroupId')
+          ? (req.body.hostGroupId || null) : (prevRow.hostGroupId || null);
+        // 2026-10-21 批次 499：历史「跨组且无责任党小组」行标 legacyHostGroup=true，
+        //   只在**补选责任组**这一种情况下允许改承办范围（不猜测归属，补选后清除标记）。
+        legacyHostGroupCompleted = !!prevRow.legacyHostGroup && !!nextHostGroupId
+          && nextHostGroupId !== (prevRow.hostGroupId || null);
         if (req.body && (
           (req.body.organizingScope !== undefined && req.body.organizingScope !== prevRow.organizingScope)
-          || (req.body.hostGroupId !== undefined && req.body.hostGroupId !== (prevRow.hostGroupId || null))
-        )) return res.status(400).json({ error: '活动承办范围与承办党小组在创建后不可修改' });
+          || (nextHostGroupId !== (prevRow.hostGroupId || null))
+        ) && !legacyHostGroupCompleted) {
+          return res.status(400).json({ error: '活动承办范围与承办党小组在创建后不可修改' });
+        }
+        if (legacyHostGroupCompleted) {
+          const groupRow = db.prepare('SELECT data FROM party_groups WHERE id = ?').get(String(nextHostGroupId));
+          const group = groupRow ? JSON.parse(groupRow.data) : null;
+          if (!group || group.status !== 'active' || (group.branchId || 'br-b1') !== (prevRow.branchId || 'br-b1')) {
+            return res.status(400).json({ error: '补选的责任党小组无效或不属于本支部' });
+          }
+          // 历史行本来就是跨组承办；补选只补组织落点，不改承办范围语义。
+          req.body = { ...req.body, organizingScope: prevRow.organizingScope || 'cross-group' };
+        }
+        // 2026-10-21 批次 499：组织委员可完成「历史待补责任党小组」这一件事，
+        //   但只允许改组织落点三字段，不因此获得活动其他写权。
+        const orgCommissionerLegacyFix = legacyHostGroupCompleted && req.actor.role === 'org-commissioner';
+        if (orgCommissionerLegacyFix) {
+          const allowedKeys = new Set(['hostGroupId', 'hostGroup', 'organizingScope']);
+          if (Object.keys(req.body || {}).some((key) => !allowedKeys.has(key))) {
+            return res.status(403).json({ error: '无权限：组织委员补选责任党小组时只能修改组织落点' });
+          }
+        }
         const effType = (req.body && req.body.type) || prevRow.type;
         const actorCanWriteType = req.actor.role !== 'leader' || _assertActivityWrite(req.actor, effType);
-        const gateDeny = actorCanWriteType && activityOperationAllowed(db, req.actor, prevRow)
+        const gateDeny = actorCanWriteType && (activityOperationAllowed(db, req.actor, prevRow) || orgCommissionerLegacyFix)
           ? _activityApprovalGateDeny(prevRow, req.body, req.actor) : (ACTIVITY_WRITE_DENY_MSG + '；且须具备本活动范围内的明确操作权限');
         if (gateDeny) return res.status(403).json({ error: gateDeny });
         if (_disabledActivityHistoryReadOnly(db, prevRow)) {
@@ -547,6 +578,21 @@ export function createResourcesRouter(db) {
       if (name === 'activities') {
         const agendaCheck = validateAgendaStructure(merged.agenda);
         if (!agendaCheck.ok) return res.status(400).json({ error: agendaCheck.error });
+        if (legacyHostGroupCompleted) {
+          delete merged.legacyHostGroup;
+          const wgRow = db.prepare('SELECT data FROM workgroups WHERE id = ?')
+            .get(merged.workgroupId || `wg-activity-${id}`);
+          if (wgRow) {
+            const currentGroup = JSON.parse(wgRow.data);
+            relatedWorkgroupUpdate = {
+              ...currentGroup,
+              organizingScope: merged.organizingScope,
+              hostGroupId: merged.hostGroupId,
+              migrationState: 'ready',
+              updatedBy: req.actor.id, updatedAt: new Date().toISOString(),
+            };
+          }
+        }
       }
       const save = db.transaction(() => {
         db.prepare(`INSERT OR REPLACE INTO ${table} (id, data) VALUES (?, ?)`).run(id, JSON.stringify(merged));
