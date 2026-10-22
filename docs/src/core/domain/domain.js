@@ -23,7 +23,7 @@ export const SEED_DATA_VERSION = '2026-10-21a';
  * @property {string}  id          - 唯一标识符（由 id.js 生成）
  * @property {string}  title       - 活动标题
  * @property {string}  type        - 活动类型（如 '组织生活会'、'主题党日'）
- * @property {'party-group'|'cross-group'|'branch'} [organizingScope] - 持久化组织落点；跨组只改变参与/招募范围，不限制成员报名或参加；支部级法定会议为 branch
+ * @property {'party-group'|'branch'} [organizingScope] - 持久化组织落点，只有两档：非支部级活动一律 party-group（承办党小组由 hostGroupId 指定），支部级法定会议为 branch；「跨组」只由 recruitmentScope='cross-group' 与成员 crossGroup 表达，不是第三种落点（旧值 cross-group 由 normalizeOrganizingScope 读取兼容）
  * @property {string|null} [hostGroupId] - 责任党小组 ID；所有非支部级活动必填，branch 时必须为 null
  * @property {string} [workgroupId] - 随活动创建的活动工作组主记录 ID
  * @property {string} [branchId] - 活动所属支部；关联写入须由服务端校验同支部
@@ -69,7 +69,7 @@ export const SEED_DATA_VERSION = '2026-10-21a';
  * @property {string} name
  * @property {'draft'|'pending_review'|'recruiting'|'active'|'completed'|'archived'|'dissolved'} status
  *   - 状态词为 `WorkgroupStatus`；活动工作组只会出现 `active/archived`，专班工作组随专班生命周期
- * @property {'party-group'|'cross-group'|'branch'} [organizingScope] - 活动工作组的组织落点
+ * @property {'party-group'|'branch'} [organizingScope] - 活动工作组的组织落点（两档；跨组只由 recruitmentScope 表达）
  * @property {string|null} [hostGroupId] - 责任党小组 ID；所有非支部级活动必填，branch 时必须为 null（recruitmentScope / crossGroupCoordinatorId 见 DATA_MODEL §2.3.1）
  * @property {string} createdBy
  * @property {string} createdAt
@@ -631,4 +631,66 @@ const OUTPUT_ROUTES = {
  */
 export function deriveOutputRoute(type) {
   return OUTPUT_ROUTES[type] || null;
+}
+
+// ════════════════════════════════════════════════════════════════
+//  活动 / 任务 / 产出「已闭环」判据（canonical 单一源，R7-16，2026-10-22）
+//  ⚠ 本块置于文件末尾：README-server.md 按行号引用本文件中段（handoffs / OUTPUT_ROUTES /
+//    pendingMemberConfirmations），中段插入会整体位移既有引用 ⇒ 只追加在末尾。
+//  病灶：`['completed','cancelled']` 与 `['submitted','accepted','archived']` 在全站 9 处手写，
+//    新增终态时漏改一处即出现「统计已闭合、按钮仍可点」的矛盾。
+//  ⚠ 与专班 / 工作组状态集分开：活动状态是 `draft|pending-approval|published|ongoing|completed|cancelled`，
+//    任务状态是 `open|in_progress|completed|cancelled`，产出状态见 `OutputStatus`；三套枚举不得互相借值。
+// ════════════════════════════════════════════════════════════════
+
+/** 任务状态全集（工作组任务） */
+export const TaskStatus = Object.freeze({
+  OPEN: 'open',
+  IN_PROGRESS: 'in_progress',
+  COMPLETED: 'completed',
+  CANCELLED: 'cancelled',
+});
+
+export const TASK_STATUSES = Object.freeze(Object.values(TaskStatus));
+
+/** 任务终态：已完成 / 已取消（「任务已闭环」的唯一判据） */
+export const TASK_TERMINAL_STATUSES = Object.freeze([
+  TaskStatus.COMPLETED,
+  TaskStatus.CANCELLED,
+]);
+
+/** 产出物登记状态全集（工作组产出） */
+export const OutputStatus = Object.freeze({
+  DRAFT: 'draft',
+  PENDING: 'pending',
+  SUBMITTED: 'submitted',
+  ACCEPTED: 'accepted',
+  ARCHIVED: 'archived',
+});
+
+export const OUTPUT_STATUSES = Object.freeze(Object.values(OutputStatus));
+
+/** 产出终态：已提交 / 已确认 / 已归档（「产出已闭环」的唯一判据） */
+export const OUTPUT_TERMINAL_STATUSES = Object.freeze([
+  OutputStatus.SUBMITTED,
+  OutputStatus.ACCEPTED,
+  OutputStatus.ARCHIVED,
+]);
+
+/** 活动闭环状态（不含 archived 软删标记，由 isActivityClosed 一并判定） */
+export const ACTIVITY_CLOSED_STATUSES = Object.freeze(['completed', 'cancelled']);
+
+/**
+ * 活动是否已闭环（单一源）：`archived===true` 或 status ∈ `ACTIVITY_CLOSED_STATUSES`。
+ * 与 `constants.js::isActivityEnded` 的分工：后者是「已结束」＝completed/archived（不含取消），
+ * 本函数用于列表排序 / 收录候选等「已完成或已取消」的闭环档位。
+ */
+export function isActivityClosed(activity) {
+  const a = activity || {};
+  return a.archived === true || ACTIVITY_CLOSED_STATUSES.includes(a.status);
+}
+
+/** 工作组是否已闭环（别名，口径同 `isWorkgroupClosedStatus`；R7-16 单一源） */
+export function isWorkgroupClosed(status) {
+  return WORKGROUP_CLOSED_STATUSES.includes(status);
 }

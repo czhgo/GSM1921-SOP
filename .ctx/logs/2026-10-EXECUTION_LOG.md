@@ -3374,4 +3374,50 @@ $body
 | 2 | 服务端 PATCH 200 且库里已写 ⇒ 保存链没问题 | 真实根因是读投影只给 summary，向导没补取 | evidence_gap | IF 写成功但重进读不到 THEN 先查读投影范围，不先改写链 |
 | 3 | 红项多半要放开产品才能过 | 九条里八条是测试与现行口径脱节 | attribution_error | IF 红项定级 THEN 先判「产品能力缺失 or 测试口径过期」，只有前者改产品 |
 
+***
+
+## 批次 502（2026-10-22）：第六、七轮专项审查 ＋ 跨组「不是第三落点」落地
+
+### 一、判据
+
+- 支书：这样的审查还要走**至少 3–4 轮**；本轮先做两轮——① 前端脏乱繁复审，重点「繁」里的**此地无银式注释**；② 数据生命周期（空值字段要有改写入口、工作流硬编码要计算/派生、mock 跟代码走、**不削足适履**）。
+- 支书追加必须落实：**「跨组活动同样落实承办党小组；组织者一般来自承办组，深度参与者可以跨组招募，由组织委员协调。」**
+- 同时要求：未完成工作继续推进、多问、先盘点遗留。审查按 `sample-diff-learning` 出样本表，口径拿不准处用 `AskUserQuestion` 呈报（本轮四问：学号写口、副组长写权、缺省支部、向导定位）。
+
+### 二、动作
+
+1. **跨组不是第三落点（`D-826`，BREAKING）**：`ACTIVITY_SCOPES` 生产路径只产出 `party-group` / `branch`；新增 `normalizeOrganizingScope()`；支书台非支部级固定写 `party-group`＋必选承办组，跨组只由 `recruitmentScope='cross-group'`＋协调人表达；服务端 `activityCreationDeny` 归一旧入参、新增 `activityOrganizerExceptionDeny`（他组组织者无说明 400）；迁移 **v10** 归一旧行、补招募标记与工作组镜像；组织台 / 进度 / 成员编辑器措辞统一为「承办党小组＋跨组招募」。
+2. **第六轮前端审查**：四路 lens（`frontend-design` / `design-with-taste` / `better-writing` / `web-design-guidelines`）复读 R2 与 R5 报告，产出 39 条（P1 6 / P2 12 / P3 21）；P1/P2 全部修（含向导页删内部字段名与源码路径、纪检三处长导语、我的处置空态改控件、页头与卡头同句）。
+3. **第七轮数据生命周期**：产出 36 条（P1 1 / P2 12 / P3 23）；P1 学号写口按支书选择**新建账号重命名端点**（党委专用、单事务改名＋会话＋JSON 引用＋审计），档案页学号改只读；P2 修在册备注死入口、阶段起始日不渲染/派生、撰写人默认当前人、会议类型读 policy、补课文案参数化、状态集合单一源、`enrollYear` 补 mock 与 manifest、代理 id；**`overdue` 改为按日期＋制度现算**（存储字段保留不迁移）。
+4. **支书四答落地**：副组长与组长同权（`PARTY_GROUP_LEADER_ROLES`，仍限本组）；缺省支部全量替换 **151 处 / 44 文件**并新增 `branch-id-literal-guard`；向导按产品页处理。
+5. **遗留盘点**：`CLAUDE.md` 乙部新增 `B-502-1…7`（第八轮最小三成本、第九轮功能美观＋全栈数据结构、两轮 P3、重命名边界、补课文案余项、`u_*` 口径澄清）。
+6. **文档同步**：`SECRETARY_DIRECTIVES` P-018 补 2026-10-22 原话与「跨组不是第三落点」；`DATA_MODEL` / `SYSTEM_ROLE_PERMISSION` / `COMMISSIONER_DUTY_FRAMEWORK` / SOP 母本 / `ARCHITECTURE` / `OPERATIONS_GUIDE` / `PARALLEL_SKILL_AUDIT`（AP-IA-09 改准、新增 AP-IA-16）等 14 份 content 文件同批改准。
+
+### 三、读数
+
+- `npm run test:daily`：**1396 / 1396 通过、0 失败**（93s）。
+- `SWEEP_SHARD=all`（带 `DISABLE_PASSWORD_CHECK=1` / `DEMO_READONLY=0`）：**[node] 1398 / 1398**、**[e2e-A] 57 过 + 1 skip（58）**、**[e2e-B] 179 / 179** ⇒ 三通道全绿、0 失败；墙钟 **1171.8s**（≤1200s）。
+- 守卫：`doc-consistency`（S1–S21）/ `doc-line-ref`（R1–R6）/ `link-integrity` / `timestamps-note-guard` / `frontmatter-freshness` / `version-stamp` **61/61**；`button-system-guard` B7 收口（新按钮不再写尺寸类）。
+- 迁移实测（演示库）：v10 落点归一 **14** 条、工作组镜像 **36** 条、待补承办组 **0**。
+- 版本戳 20261022b → **20261022c**。
+
+### 四、边界（如实）
+
+- **审查是抽样**：R6/R7 各 39/36 条，不承诺穷举；P3 未修、已逐条登记乙部（`B-502-3` / `B-502-4`）。
+- **`overdue` 现算后历史行会多出「超期」**（约 9 条考勤、`rev11` 复盘）：这是修正而非回归；存储字段保留、不回写不迁移。
+- **账号重命名边界**：旧 token 仍有效（不把人锁在门外）；旧 `person.html?id=旧学号` 与外链会 404；复合物理 id（如 `wgm-…-旧学号`）不重写，但其 `data.personId` 已同步（`B-502-5`）。
+- **`u_*` 是空支部基线系统账号**，不是幽灵数据：`getAll()` 保留，成员名单走 `getMembers()`（R7-30 原判据已按证据修正）。
+- **补课文案两处未接统一派生**：`disc/makeup-tab.js` 与设置页仍各写「T+7」（`B-502-6`）。
+- **stamp 事故（如实登记）**：本轮中段工作树曾出现 `?v=20261021c` 与 `20261022a` 混用（126 文件），导致一次 daily 108 假红；已用 `bump-version` 全量收口并复核旧戳 0 处（注释内历史戳除外）。
+- **form-loop 台账新增 1 处 machine:false**（组长台「请填写撰写人」），写明不新造前置的理由；`SITES_BASELINE` 125 → 126、README 计数同批改准。
+
+### 五、sample-diff 四样本（AI 假设 → 支书意图）
+
+| # | AI 假设 | 支书意图 | 偏差类型 | 可复用规则（Boolean） |
+|---|---|---|---|---|
+| 1 | `cross-group` 是第三种组织落点，带责任组就算落实 | 承办组永远唯一，跨组只是招募范围 | definition_mismatch | IF 活动非支部级 THEN 必须唯一承办组且落 `party-group`；IF 深参跨组 THEN 只写 `recruitmentScope` |
+| 2 | 学号可编辑就补个提示即可 | 主键改名必须走受控端点，同步会话与全部引用 | definition_mismatch | IF 字段是实体主键 THEN 只读；改名走单事务受控端点并写审计 |
+| 3 | 「未填写」只要有入口就算有信息 | 有入口但存不进＝死信息，按缺陷修 | symptom_misread | IF 字段可编辑 THEN 保存后读侧必须刷新；否则隐藏或标归属，不留死入口 |
+| 4 | 审查报告列出问题就算完成 | P1/P2 必须本批修，P3 要有去处 | evidence_gap | IF 审查产出 THEN P1/P2 同批修、P3 登记乙部并写清下一轮 |
+
 

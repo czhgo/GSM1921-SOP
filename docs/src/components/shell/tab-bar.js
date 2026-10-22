@@ -8,11 +8,11 @@
 
 
 
-import { icon } from '../../core/base/icons.js?v=20261022a';
+import { icon } from '../../core/base/icons.js?v=20261022c';
 
 // R6 导航守卫（2026-09-03 P2a）：初始/目标 tab 决策收敛到纯函数 tab-nav.js（防「被支部隐藏后静默白屏」）
 
-import { resolveInitialTab, resolveTargetTab } from '../../core/boot/tab-nav.js?v=20261022a';
+import { resolveInitialTab, resolveTargetTab } from '../../core/boot/tab-nav.js?v=20261022c';
 
 
 
@@ -498,7 +498,6 @@ export function renderTabBar({ prefix, tabs, accentColor, defaultTab, extraRight
         // 激活当前 Tab（添加 active 类 + 注入 CSS 变量）
         btn.classList.add('tab-btn-active');
         btn.setAttribute('style', `--tab-accent:${accent};--tab-accent-bg:${accentRgba};--tab-accent-border:${accentBorder}`);
-        // 渲染内容
         const tabId = btn.getAttribute(dataAttr);
         _syncTabA11y(tabId);
         // 记忆到 localStorage

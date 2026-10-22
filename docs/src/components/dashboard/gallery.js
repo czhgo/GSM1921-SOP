@@ -10,18 +10,18 @@
 //  收录权与排序不变（`galleryFeatured` / `galleryPinned` 单一源仍来自 activity.js）。
 // ════════════════════════════════════════════════════════════════
 
-import { getAppState } from '../../core/base/state.js?v=20261022a';
-import { _fmtDate, escHtml } from '../../core/base/utils.js?v=20261022a';
-import { getPersonName } from '../../services/member/person.js?v=20261022a';
-import { getActivityTypeColors, DASHBOARD_LIMITS } from '../../core/domain/constants.js?v=20261022a';
-import { icon } from '../../core/base/icons.js?v=20261022a';
-import { mockDB } from '../../core/domain/domain.js?v=20261022a';
-import { getAuthToken, getApiBaseUrl } from '../../data/data-adapter.js?v=20261022a';
-import { withSelectedBranchScope } from '../../data/api-adapter.js?v=20261022a';
+import { getAppState } from '../../core/base/state.js?v=20261022c';
+import { _fmtDate, escHtml } from '../../core/base/utils.js?v=20261022c';
+import { getPersonName } from '../../services/member/person.js?v=20261022c';
+import { getActivityTypeColors, DASHBOARD_LIMITS } from '../../core/domain/constants.js?v=20261022c';
+import { icon } from '../../core/base/icons.js?v=20261022c';
+import { mockDB, isActivityClosed } from '../../core/domain/domain.js?v=20261022c';
+import { getAuthToken, getApiBaseUrl } from '../../data/data-adapter.js?v=20261022c';
+import { withSelectedBranchScope } from '../../data/api-adapter.js?v=20261022c';
 // 2026-09-29 批次 294（支书裁：收录权归宣传委员）：本页收录改**人工**——判据单一源 = 活动主源 `galleryFeatured`。
-import { isGalleryFeatured, isGalleryPinned } from '../../services/activity/activity.js?v=20261022a';
-import { badgeHtml } from '../ui/badges.js?v=20261022a';
-import { deriveActivityLifecycleStatus, ACTIVITY_LIFECYCLE } from '../record/inspector.js?v=20261022a';
+import { isGalleryFeatured, isGalleryPinned } from '../../services/activity/activity.js?v=20261022c';
+import { badgeHtml } from '../ui/badges.js?v=20261022c';
+import { deriveActivityLifecycleStatus, ACTIVITY_LIFECYCLE } from '../record/inspector.js?v=20261022c';
 
 const ACTIVITY_TYPE_COLORS = getActivityTypeColors({ withLabel: true });
 
@@ -92,7 +92,8 @@ export function renderGallery(activities) {
 
   // 2026-09-30 批次 298（支书裁「排序＝加『置顶』」）：排序权重 **置顶 ＞ 未完成 ＞ 已完成**，
   //   组内均按 date 降序（新者在前）。置顶写口单一源 ＝ activity.js::setGalleryPinned。
-  const isDone = a => a.archived || ['completed', 'cancelled'].includes(a.status);
+  // 「已完成 / 已取消」闭环判据单一源 = domain.js::isActivityClosed（R7-16）
+  const isDone = isActivityClosed;
   const candidates = activities.filter(a => isGalleryFeatured(a));
   const sortByDate = (arr) => [...arr].sort((a, b) => (b.date || '').localeCompare(a.date || ''));
   const pinned = candidates.filter(a => isGalleryPinned(a));

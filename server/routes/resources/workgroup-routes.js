@@ -2,7 +2,7 @@
 // 这些实体不进入 /snapshot；每次写入均在服务端核实支部归属与操作者范围。
 import { randomUUID } from 'node:crypto';
 import { requireAuth } from '../auth.js';
-import { BRANCH_COMMISSION_ROLES, SECRETARY_AND_DEPUTY_ROLES, isActivityEnded, usesFormalMeetingRoster, ACTIVITY_SCOPES, isBranchLevelActivity } from '../../../docs/src/core/domain/constants.js';
+import { BRANCH_COMMISSION_ROLES, SECRETARY_AND_DEPUTY_ROLES, isActivityEnded, usesFormalMeetingRoster, ACTIVITY_SCOPES, isBranchLevelActivity, normalizeOrganizingScope, isPartyGroupLeaderRole, DEFAULT_BRANCH_ID } from '../../../docs/src/core/domain/constants.js';
 import {
   TaskforceStatus, isTaskforceStatus, isTaskforceTerminalStatus, isWorkgroupClosedStatus,
   isWorkgroupWritableStatus, workgroupStatusForTaskforce,
@@ -62,7 +62,7 @@ const isDisabledTaskforceHistory = (db, workgroup) => {
   return isTaskforceTerminalStatus(taskforce?.status);
 };
 const isDisabledActivityHistory = (db, activity) => !!activity
-  && !_assertCapabilityPackageEnabled(db, { branchId: activity.branchId || 'br-b1' }, 'activity-organization')
+  && !_assertCapabilityPackageEnabled(db, { branchId: activity.branchId || DEFAULT_BRANCH_ID }, 'activity-organization')
   && (isActivityEnded(activity) || activity.status === 'cancelled');
 
 export function grantsRevokedByMembershipRemoval(grants, { workgroupId, personId, removedBy, removedAt }) {
@@ -105,7 +105,7 @@ function ensureTaskforcePurposeTask(db, workgroup) {
 
 function taskforceClosureDeny(db, taskforce) {
   const workgroup = rowOf(db, 'workgroups', taskforce?.workgroupId || `wg-taskforce-${taskforce?.id}`);
-  if (!workgroup || workgroup.branchId !== (taskforce?.branchId || 'br-b1')) {
+  if (!workgroup || workgroup.branchId !== (taskforce?.branchId || DEFAULT_BRANCH_ID)) {
     return { error: '工作组主记录缺失或支部归属不一致，已阻止收尾' };
   }
   ensureTaskforcePurposeTask(db, workgroup);
@@ -148,7 +148,7 @@ export function taskforceStatusWorkgroups(db, payload, actor) {
     const previous = current.get(String(next.id));
     if (!previous || previous.status === next.status) continue;
     const workgroup = rowOf(db, 'workgroups', next.workgroupId || `wg-taskforce-${next.id}`);
-    if (!workgroup || (workgroup.branchId || 'br-b1') !== (next.branchId || 'br-b1')) continue;
+    if (!workgroup || (workgroup.branchId || DEFAULT_BRANCH_ID) !== (next.branchId || DEFAULT_BRANCH_ID)) continue;
     updates.push({
       ...workgroup,
       name: next.name || workgroup.name,
@@ -191,7 +191,7 @@ export function canManageWorkgroup(db, actor, workgroup) {
   if (SECRETARY.has(actor.role)) return true;
   if (workgroup.kind === 'taskforce') return actor.role === 'org-commissioner';
   if (workgroup.kind !== 'activity') return false;
-  if (actor.role === 'leader' && workgroup.organizingScope === 'party-group') {
+  if (isPartyGroupLeaderRole(actor.role) && normalizeOrganizingScope(workgroup.organizingScope, { type: '' }) === 'party-group') {
     const group = groupOf(db, workgroup.hostGroupId);
     return !!group && group.branchId === workgroup.branchId && group.status === 'active' && actor.partyGroup === group.name;
   }
@@ -202,11 +202,10 @@ export function activityCreationDeny(db, actor, body) {
   if (!actor) return '活动创建者不存在';
   const branchId = ownBranch(actor);
   if (!branchId) return NO_BRANCH_MESSAGE;
-  // 2026-10-21 批次 499（支书补充口径）：跨组只表示参与/招募范围，活动仍须落到唯一责任党小组；
-  // 支委会 / 党员大会 / 党课是支部级法定会议，单列 'branch'，不硬塞党小组。
-  // 旧客户端可能不传 organizingScope：支部级会议按 branch 推断，其余支书创建按跨组推断（责任组仍必填）。
-  const organizingScope = body.organizingScope
-    || (isBranchLevelActivity(body) ? ACTIVITY_SCOPES.BRANCH : (SECRETARY.has(actor.role) ? ACTIVITY_SCOPES.CROSS_GROUP : ''));
+  // 2026-10-21 批次 502（支书补充口径）：组织落点只有两档——
+  //   支部级法定会议 'branch'；其余全部 'party-group'（必填承办党小组）。
+  //   「跨组」只表示招募范围，旧客户端传 'cross-group' 先归一，不拒绝。
+  const organizingScope = normalizeOrganizingScope(body.organizingScope, body);
   const hostGroupId = body.hostGroupId ? String(body.hostGroupId) : '';
   if (body.branchId && body.branchId !== branchId) return '无权限：不能为其他支部创建活动';
   if (isBranchLevelActivity(body)) {
@@ -217,34 +216,55 @@ export function activityCreationDeny(db, actor, body) {
   }
   const group = hostGroupId ? groupOf(db, hostGroupId) : null;
   if (!group || group.status !== 'active' || group.branchId !== branchId) return '活动必须指定本支部的责任党小组';
-  if (body.type === '党小组会' && organizingScope !== ACTIVITY_SCOPES.PARTY_GROUP) return '党小组会必须由所属党小组承办';
-  if (organizingScope === ACTIVITY_SCOPES.PARTY_GROUP) {
-    if (actor.role !== 'leader' || group.name !== actor.partyGroup) {
-      return '无权限：组内承办活动须由本党小组组长从组长工作台创建';
-    }
+  if (organizingScope !== ACTIVITY_SCOPES.PARTY_GROUP) return '非支部级活动的组织落点必须为「承办党小组」';
+  // 党小组会仍要求承办组＝本组、由本组组长（含副组长，`D-571` 同权）创建。
+  if (body.type === '党小组会') {
+    if (!isPartyGroupLeaderRole(actor.role) || group.name !== actor.partyGroup) return '党小组会必须由所属党小组承办';
     return null;
   }
-  if (organizingScope === ACTIVITY_SCOPES.CROSS_GROUP) {
-    if (!SECRETARY.has(actor.role)) return '无权限：跨组活动须由支书或副书记创建';
-    return null;
+  if (SECRETARY.has(actor.role)) return null;
+  if (isPartyGroupLeaderRole(actor.role) && group.name === actor.partyGroup) return null;
+  return '无权限：非支部级活动须由支书 / 副书记或承办党小组组长创建';
+}
+
+/**
+ * 组织者默认来自承办党小组；他组组织者必须留跨组说明（防绕过 UI 的静默越组）。
+ * 仅检查显式 organizer / assignments 中的 organizer，不改既有历史组织者。
+ * @returns {string|null} 可懂错误文案（调用方按 400 返回）
+ */
+export function activityOrganizerExceptionDeny(db, body) {
+  if (isBranchLevelActivity(body)) return null;
+  const hostGroupId = body?.hostGroupId ? String(body.hostGroupId) : '';
+  const hostGroup = hostGroupId ? groupOf(db, hostGroupId) : null;
+  if (!hostGroup) return null;
+  const organizerIds = new Set();
+  if (body?.organizer) organizerIds.add(String(body.organizer));
+  for (const item of Array.isArray(body?.assignments) ? body.assignments : []) {
+    if (item?.role === 'organizer' && item.personId) organizerIds.add(String(item.personId));
   }
-  return '活动必须明确组织落点：组内 / 跨组 / 支部级';
+  if (organizerIds.size === 0) return null;
+  const reason = String(body?.organizerExceptionReason || '').trim();
+  const crossGroup = [...organizerIds].some((personId) => {
+    const person = userOf(db, personId);
+    return !!person?.partyGroup && person.partyGroup !== hostGroup.name;
+  });
+  return crossGroup && !reason ? '组织者一般由承办党小组承担；请填写组织者跨组说明' : null;
 }
 
 export function activityOperationAllowed(db, actor, activity, permissionKey = 'activity.edit') {
-  if (!actor || !activity || ownBranch(actor) !== (activity.branchId || 'br-b1')) return false;
+  if (!actor || !activity || ownBranch(actor) !== (activity.branchId || DEFAULT_BRANCH_ID)) return false;
   if (SECRETARY.has(actor.role)) return true;
   const workgroupId = activity.workgroupId || workgroupIdFor('activity', activity.id);
   if (hasWorkgroupPermission(db, workgroupId, actor.id, permissionKey)) return true;
   const group = activity.hostGroupId && groupOf(db, activity.hostGroupId);
-  return actor.role === 'leader' && activity.organizingScope === 'party-group'
+  return isPartyGroupLeaderRole(actor.role) && normalizeOrganizingScope(activity.organizingScope, activity) === 'party-group'
     && !!group && group.branchId === ownBranch(actor) && actor.partyGroup === group.name;
 }
 
 export function attendanceOperationAllowed(db, actor, activity, personId) {
-  if (!actor || !activity || ownBranch(actor) !== (activity.branchId || 'br-b1')) return false;
+  if (!actor || !activity || ownBranch(actor) !== (activity.branchId || DEFAULT_BRANCH_ID)) return false;
   const person = userOf(db, personId);
-  if (!person || memberBranch(person) !== (activity.branchId || 'br-b1')) return false;
+  if (!person || memberBranch(person) !== (activity.branchId || DEFAULT_BRANCH_ID)) return false;
   if (POLICY_DEFAULTS.attendance.noAttendanceTypes.includes(activity.type)) return false;
   if (POLICY_DEFAULTS.attendance.uploaderExceptions.secretaryDeputy.includes(actor.role)) return true;
   const workgroupId = activity.workgroupId || workgroupIdFor('activity', activity.id);
@@ -256,7 +276,7 @@ export function attendanceOperationAllowed(db, actor, activity, personId) {
     || (group ? group.name : null)
     || (activity.organizer ? (userOf(db, activity.organizer)?.partyGroup || null) : null);
   const policyRoles = POLICY_DEFAULTS.attendance.recorderByType[activity.type] || [];
-  const isHostGroupLeader = actor.role === 'leader'
+  const isHostGroupLeader = isPartyGroupLeaderRole(actor.role)
     && !!hostGroupName && actor.partyGroup === hostGroupName
     && (!!group ? group.branchId === ownBranch(actor) : true);
   const isActivityOrganizer = activity.organizer === actor.id
@@ -300,7 +320,7 @@ export function snapshotScopeDeny(db, payload, actor) {
         }
         return '无权限：周期归档只能写入当前支部记录';
       }
-      if (previous && (previous.branchId || 'br-b1') !== branchId) return '无权限：不能跨支部修改周期归档';
+      if (previous && (previous.branchId || DEFAULT_BRANCH_ID) !== branchId) return '无权限：不能跨支部修改周期归档';
       incomingIds.add(String(row.id));
     }
   }
@@ -314,8 +334,8 @@ export function snapshotScopeDeny(db, payload, actor) {
       }
       const previous = current.get(String(next.id));
       if (!previous) return '无权限：新增工作组须走语义创建接口，以同时建立工作组、成员与主任务';
-      if ((next.branchId || 'br-b1') !== (previous.branchId || 'br-b1')) return '无权限：工作组支部归属创建后不可修改';
-      if (JSON.stringify(previous) !== JSON.stringify(next) && (previous.branchId || 'br-b1') !== ownBranch(actor)) return '无权限：不能通过快照修改其他支部工作组';
+      if ((next.branchId || DEFAULT_BRANCH_ID) !== (previous.branchId || DEFAULT_BRANCH_ID)) return '无权限：工作组支部归属创建后不可修改';
+      if (JSON.stringify(previous) !== JSON.stringify(next) && (previous.branchId || DEFAULT_BRANCH_ID) !== ownBranch(actor)) return '无权限：不能通过快照修改其他支部工作组';
       if ((next.workgroupId || `wg-taskforce-${next.id}`) !== (previous.workgroupId || `wg-taskforce-${previous.id}`)) return '无权限：工作组关联创建后不可修改';
       if (memberIdentity(previous.members) !== memberIdentity(next.members)) return '无权限：工作组成员须走成员语义接口调整';
       const transitionedToTerminal = isTaskforceTerminalStatus(next.status) && (!previous || previous.status !== next.status);
@@ -325,7 +345,7 @@ export function snapshotScopeDeny(db, payload, actor) {
       if (!actor || !['org-commissioner', 'secretary', 'deputy-secretary'].includes(actor.role)) {
         return '无权限：当前角色不能确认工作组收尾';
       }
-      if ((previous.branchId || 'br-b1') !== ownBranch(actor)) return '无权限：不能跨支部结束工作组';
+      if ((previous.branchId || DEFAULT_BRANCH_ID) !== ownBranch(actor)) return '无权限：不能跨支部结束工作组';
       const closureDeny = taskforceClosureDeny(db, previous);
       if (closureDeny) return `工作组尚未闭合，不能生效表决结论：${closureDeny.error}`;
     }
@@ -349,7 +369,7 @@ export function snapshotScopeDeny(db, payload, actor) {
       const changed = JSON.stringify(old) !== JSON.stringify(row);
       if (changed && isDisabledActivityHistory(db, old)) return '无权限：本支部已停用活动组织能力，已结束活动只读保留';
       if (changed && !activityOperationAllowed(db, actor, old)) return '无权限：不能通过快照修改其他范围的活动';
-      if (row.branchId && row.branchId !== (old.branchId || 'br-b1')) return '无权限：活动支部归属创建后不可修改';
+      if (row.branchId && row.branchId !== (old.branchId || DEFAULT_BRANCH_ID)) return '无权限：活动支部归属创建后不可修改';
     }
     for (const id of current.keys()) {
       if (!incoming.has(id)) return '无权限：活动物理删除须走级联删除接口';
@@ -426,7 +446,7 @@ export function createActivityWorkgroup(db, actor, activity) {
   const id = workgroupIdFor('activity', activity.id);
   const workgroup = {
     id, branchId: activity.branchId, kind: 'activity', sourceType: 'activity', sourceId: activity.id,
-    name: activity.title || activity.id, status: 'active', organizingScope: activity.organizingScope,
+    name: activity.title || activity.id, status: 'active', organizingScope: normalizeOrganizingScope(activity.organizingScope, activity),
     hostGroupId: activity.hostGroupId || null, createdBy: actor.id, createdAt: activity.createdAt || new Date().toISOString(),
     recruitmentScope: activity.recruitmentScope || 'group',
     crossGroupCoordinatorId: activity.crossGroupCoordinatorId || null,
@@ -590,7 +610,7 @@ export function registerWorkgroupRoutes(router, db) {
 
     const sourceTable = workgroup.sourceType === 'activity' ? 'activities' : 'taskforces';
     const source = rowOf(db, sourceTable, workgroup.sourceId);
-    if (!source || (source.branchId || 'br-b1') !== workgroup.branchId) {
+    if (!source || (source.branchId || DEFAULT_BRANCH_ID) !== workgroup.branchId) {
       return res.status(409).json({ error: '工作组所属业务记录缺失或支部归属不一致' });
     }
     const sourceKey = workgroup.kind === 'activity' ? 'assignments' : 'members';
@@ -607,7 +627,19 @@ export function registerWorkgroupRoutes(router, db) {
         : { personId: member.personId, role: member.role, ...cross };
     });
     source[sourceKey] = [...preservedRows, ...mirroredRows];
-    if (workgroup.kind === 'activity') source.organizer = mirroredRows.find((row) => row.role === 'organizer')?.personId || null;
+    if (workgroup.kind === 'activity') {
+      // 组织者默认来自承办党小组；新指定的他组组织者必须已有跨组说明（批次 502）。
+      const organizerId = mirroredRows.find((row) => row.role === 'organizer')?.personId || null;
+      const organizerChanged = (source.organizer || null) !== organizerId;
+      if (organizerChanged && organizerId && hostGroup) {
+        const person = userOf(db, organizerId);
+        const crossGroup = !!person?.partyGroup && person.partyGroup !== hostGroup.name;
+        if (crossGroup && !String(source.organizerExceptionReason || '').trim()) {
+          return res.status(400).json({ error: '组织者一般由承办党小组承担；请填写组织者跨组说明' });
+        }
+      }
+      source.organizer = organizerId;
+    }
 
     const now = new Date().toISOString();
     const existingRows = jsonRows(db, 'workgroup_members').filter((row) => row.workgroupId === workgroup.id);
@@ -702,6 +734,11 @@ export function registerWorkgroupRoutes(router, db) {
     const sourceTable = workgroup.sourceType === 'activity' ? 'activities' : 'taskforces';
     const source = rowOf(db, sourceTable, workgroup.sourceId);
     if (!source) return res.status(409).json({ error: '工作组所属业务记录不存在' });
+    if (workgroup.kind === 'activity' && body.role === 'organizer' && hostGroup
+      && !!person.partyGroup && person.partyGroup !== hostGroup.name
+      && !String(source.organizerExceptionReason || '').trim()) {
+      return res.status(400).json({ error: '组织者一般由承办党小组承担；请填写组织者跨组说明' });
+    }
     if (workgroup.kind === 'activity') {
       const assignments = (Array.isArray(source.assignments) ? source.assignments : [])
         .filter((item) => item.personId !== personId || !isWorkgroupMemberRole(item.role));
@@ -768,7 +805,7 @@ export function registerWorkgroupRoutes(router, db) {
     const workgroup = workgroupOf(db, req.params.id);
     if (!workgroup) return res.status(404).json({ error: '工作组不存在' });
     if (workgroup.kind !== 'activity') return res.status(400).json({ error: '仅活动工作组需要跨组招募协调' });
-    if ((workgroup.branchId || 'br-b1') !== ownBranch(req.actor)) return res.status(403).json({ error: '无权限：工作组不属于当前支部' });
+    if ((workgroup.branchId || DEFAULT_BRANCH_ID) !== ownBranch(req.actor)) return res.status(403).json({ error: '无权限：工作组不属于当前支部' });
     if (!['org-commissioner', 'secretary', 'deputy-secretary'].includes(req.actor.role)) {
       return res.status(403).json({ error: '无权限：跨组招募协调由组织委员（或支书 / 副支书）办理' });
     }
@@ -890,7 +927,7 @@ export function registerWorkgroupRoutes(router, db) {
     }
     if (body.activityId) {
       const activity = activityOf(db, body.activityId);
-      if (!activity || (activity.branchId || 'br-b1') !== workgroup.branchId) return res.status(403).json({ error: '无权限：任务关联活动须属于同一支部' });
+      if (!activity || (activity.branchId || DEFAULT_BRANCH_ID) !== workgroup.branchId) return res.status(403).json({ error: '无权限：任务关联活动须属于同一支部' });
     }
     const id = body.id ? String(body.id) : `wgt-${randomUUID().slice(0, 12)}`;
     if (rowOf(db, 'workgroup_tasks', id)) return res.status(409).json({ error: '任务记录 id 已存在' });
@@ -961,7 +998,7 @@ export function registerWorkgroupRoutes(router, db) {
     if (!isTaskforcePackageEnabled(db, workgroup) && !body.taskId) return res.status(409).json({ error: '本支部已停用专班工作组；收尾产出须关联尚未闭合的在办任务' });
     if (body.activityId) {
       const activity = activityOf(db, body.activityId);
-      if (!activity || (activity.branchId || 'br-b1') !== workgroup.branchId) return res.status(403).json({ error: '无权限：产出关联活动须属于同一支部' });
+      if (!activity || (activity.branchId || DEFAULT_BRANCH_ID) !== workgroup.branchId) return res.status(403).json({ error: '无权限：产出关联活动须属于同一支部' });
     }
     const id = body.id ? String(body.id) : `wgo-${randomUUID().slice(0, 12)}`;
     if (rowOf(db, 'workgroup_outputs', id)) return res.status(409).json({ error: '产出记录 id 已存在' });
@@ -980,7 +1017,7 @@ export function registerWorkgroupRoutes(router, db) {
     if (!['org-commissioner', ...SECRETARY].includes(req.actor.role)) {
       return res.status(403).json({ error: '无权限：当前角色不能办理专班工作组收尾' });
     }
-    if ((taskforce.branchId || 'br-b1') !== ownBranch(req.actor)) {
+    if ((taskforce.branchId || DEFAULT_BRANCH_ID) !== ownBranch(req.actor)) {
       return res.status(403).json({ error: '无权限：不能跨支部办理工作组收尾' });
     }
     if (taskforce.status !== TaskforceStatus.ACTIVE) return res.status(409).json({ error: '仅运行中的工作组可以办理收尾' });
@@ -1037,8 +1074,8 @@ export function registerWorkgroupRoutes(router, db) {
     if (!activity) return res.status(404).json({ error: '活动不存在' });
     const selectionRequired = selectedBranchRequiredError(req.actor, req.query.branchId);
     if (selectionRequired) return res.status(400).json({ error: selectionRequired });
-    if (req.actor.role === 'party-staff' && req.query.branchId !== (activity.branchId || 'br-b1')) return res.status(403).json({ error: '无权限：活动不属于所选支部' });
-    if ((activity.branchId || 'br-b1') !== ownBranch(req.actor) && req.actor.role !== 'party-staff') return res.status(403).json({ error: '无权限：活动不属于当前支部' });
+    if (req.actor.role === 'party-staff' && req.query.branchId !== (activity.branchId || DEFAULT_BRANCH_ID)) return res.status(403).json({ error: '无权限：活动不属于所选支部' });
+    if ((activity.branchId || DEFAULT_BRANCH_ID) !== ownBranch(req.actor) && req.actor.role !== 'party-staff') return res.status(403).json({ error: '无权限：活动不属于当前支部' });
     res.json(rowOf(db, 'attendance_rosters', `atr-${activity.id}`));
   });
   router.get('/attendance-rosters', requireAuth(db), (req, res) => {
@@ -1055,7 +1092,7 @@ export function registerWorkgroupRoutes(router, db) {
     if (!ownBranch(req.actor)) return res.status(403).json({ error: NO_BRANCH_MESSAGE });
     const activity = activityOf(db, req.params.id);
     if (!activity) return res.status(404).json({ error: '活动不存在' });
-    if ((activity.branchId || 'br-b1') !== ownBranch(req.actor)) return res.status(403).json({ error: '无权限：活动不属于当前支部' });
+    if ((activity.branchId || DEFAULT_BRANCH_ID) !== ownBranch(req.actor)) return res.status(403).json({ error: '无权限：活动不属于当前支部' });
     if (isDisabledActivityHistory(db, activity)) return res.status(409).json({ error: '本支部已停用活动组织能力；已结束活动的应到名单只读保留' });
     // 冻结口径与考勤写入同源：能录入该场考勤的人，才应能冻结该场应到名单。
     // 旧判据只认 organizingScope='party-group'，会让历史活动（仅有 hostGroup 名称）的组织者 403。
@@ -1069,7 +1106,7 @@ export function registerWorkgroupRoutes(router, db) {
     for (const personId of personIds) {
       const person = userOf(db, personId);
       if (!person) return res.status(400).json({ error: `应到成员不存在：${personId}` });
-      if (memberBranch(person) !== (activity.branchId || 'br-b1')) return res.status(403).json({ error: '无权限：应到成员须属于活动所在支部' });
+      if (memberBranch(person) !== (activity.branchId || DEFAULT_BRANCH_ID)) return res.status(403).json({ error: '无权限：应到成员须属于活动所在支部' });
     }
     const id = `atr-${activity.id}`;
     const current = rowOf(db, 'attendance_rosters', id);
@@ -1078,7 +1115,7 @@ export function registerWorkgroupRoutes(router, db) {
       return res.status(409).json({ error: '已冻结的应到名单不能原位覆盖' });
     }
     const row = {
-      id, branchId: activity.branchId || 'br-b1', activityId: activity.id, personIds,
+      id, branchId: activity.branchId || DEFAULT_BRANCH_ID, activityId: activity.id, personIds,
       frozen: true, version: (current?.version || 0) + 1,
       frozenBy: req.actor.id, frozenAt: new Date().toISOString(),
     };

@@ -1,3 +1,4 @@
+import { DEFAULT_BRANCH_ID } from '../../core/domain/constants.js?v=20261022c';
 export const MOCK_NOTICES = [
   // ── 历史通知（多数已过期；有效期由 expireDate 决定，不以注释断言「当前有效」）──────
   {
@@ -179,7 +180,7 @@ const NOTICE_AUDIENCE_SEED = {
 };
 
 for (const notice of MOCK_NOTICES) {
-  notice.branchId = notice.branchId ?? 'br-b1';
+  notice.branchId = notice.branchId ?? DEFAULT_BRANCH_ID;
   notice.source = notice.source ?? 'branch';
   // R2-37（2026-10-20）：历史种子通知不得把「现任支书」写进发布者——支书换人后新支书无法
   //   编辑/撤回这些通知（发布者判据读 createdBy），审计也会显示错误发布者。种子统一记为系统通知

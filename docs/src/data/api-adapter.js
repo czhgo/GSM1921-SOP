@@ -14,7 +14,7 @@
 //         content/04_web_design/data/DATA_ARCHITECTURE.md §8.4
 // ════════════════════════════════════════════════════════════════
 
-import { getApiBaseUrl, getAuthToken } from './data-adapter.js?v=20261022a';
+import { getApiBaseUrl, getAuthToken } from './data-adapter.js?v=20261022c';
 
 // ── HTTP 工具函数 ──────────────────────────────────────────────
 
@@ -723,6 +723,12 @@ export const ApiAdapter = {
 
     undoTransferOut(id) {
       return _post(`/api/v1/members/${id}/undo-transfer-out`, {});
+    },
+
+    // R7-01（2026-10-22）：人员主键重命名（学号即 id）。服务端仅党委组织员可调用，
+    // 一个事务内同步 users.id / sessions / 各业务表 JSON 引用并写 auth_audit。
+    renameAccount(id, newPersonId) {
+      return _post(`/api/v1/members/${encodeURIComponent(id)}/account-rename`, { newPersonId });
     },
   },
 

@@ -5,10 +5,10 @@
 // 动画：Lenis 平滑滚动 + CSS 滚动驱动（animation-timeline: view()）+ 原生 JS 驱动
 // 签名元素：收束致谢（三层小字）+ 探索区 SVG 关系网络 + 对话卡日出日落公转（文字正立）
 
-import { renderSidebar } from '../../components/shell/sidebar.js?v=20261022a';
-import { renderHeader } from '../../components/shell/header.js?v=20261022a';
-import { getBasePath } from '../../core/base/utils.js?v=20261022a';
-import { icon } from '../../core/base/icons.js?v=20261022a';
+import { renderSidebar } from '../../components/shell/sidebar.js?v=20261022c';
+import { renderHeader } from '../../components/shell/header.js?v=20261022c';
+import { getBasePath } from '../../core/base/utils.js?v=20261022c';
+import { icon } from '../../core/base/icons.js?v=20261022c';
 
 // ── 公开访问：不检查登录 ──
 // 静态壳模式（2026-08-12）：about 为纯静态文档，不加载 auth/notice 数据链（约 50 模块），
@@ -82,16 +82,16 @@ const WF_FALLBACK_COLOR = '#64748B';
 const ACTIVITY_SCENE = {
   id: 'activity',
   no: '01',
-  title: '活动：按承办范围确定责任入口',
-  note: '本图展示组内承办示例：党小组组长创建活动并建立活动工作组；跨组承办由支书/副书记从支书台创建。承办范围表示责任归属，不限制参与资格。',
+  title: '活动：按承办党小组确定责任入口',
+  note: '本图展示组内承办示例：党小组组长创建活动并建立活动工作组；支书/副书记从支书台创建时同样选择承办党小组，跨组只体现在招募范围。',
   viewBox: '0 0 800 720',
   shots: [
     {
       id: 0,
-      title: '按承办范围创建',
-      desc: '组内承办由所属党小组组长从组长台创建；跨组承办由支书/副书记从支书台创建。活动创建时建立工作组并记录组织者、深度参与者等并列分工。',
+      title: '按承办党小组创建',
+      desc: '组内活动由所属党小组组长从组长台创建；支书/副书记从支书台创建时须指定承办党小组。跨党小组深度参与者由组织委员协调。活动创建时建立工作组并记录组织者、深度参与者等并列分工。',
       flows: [
-        { text: '责任主体 → 活动记录（持久化承办范围）', type: 'task' },
+        { text: '责任主体 → 活动记录（持久化承办党小组）', type: 'task' },
         { text: '活动记录 → 活动工作组（建立协作成员）', type: 'task' },
       ],
       nodes: [

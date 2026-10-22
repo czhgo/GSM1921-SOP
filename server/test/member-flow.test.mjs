@@ -12,7 +12,7 @@ import { readFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const V = '?v=20261022a';
+const V = '?v=20261022c';
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const SRC_DIR = join(ROOT, 'docs', 'src');
 const read = (f) => readFileSync(f, 'utf8');
@@ -88,7 +88,8 @@ test('S2 enrollYear 字段两侧白名单齐备（前端字段白名单 + server
   assert.match(modal, /enrollYear/, '完整档案展示须含 enrollYear（只读）');
   // 2026-10-18 繁专项 Task 14：届别补进「立即生效」可改组（服务端白名单已含 enrollYear）
   assert.match(modal, /data-field="enrollYear"/, '编辑模态须提供届别输入');
-  assert.match(modal, /INSTANT_FIELDS = \['name', 'studentId', 'enrollYear', 'partyGroup'\]/, '届别须随立即生效字段提交');
+  // 2026-10-22 R7-01：学号即人员主键、改为只读（改名走党委「重命名账号」受控端点）⇒ 立即生效组只余三项
+  assert.match(modal, /INSTANT_FIELDS = \['name', 'enrollYear', 'partyGroup'\]/, '届别须随立即生效字段提交');
 });
 
 test('S5 成员流动页首文案中性，不再写死「成员名册」', () => {

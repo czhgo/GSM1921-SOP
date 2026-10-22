@@ -10,32 +10,32 @@
 //   · 会议实体 = mockDB.activities（type==='支委会' 或 scenarioId==='branch-committee'）；
 //     应到人数 = services/activity/vote-config.js::resolveVoterIds('committee')（与本场应到名单同一口径）。
 //   · 表格 = components/ui/data-table.js（.data-table 单一源）；行内选人 = components/governance/pickers.js::PersonPicker。
-import { mockDB } from '../../../core/domain/domain.js?v=20261022a';
-import { AuthStore } from '../../../services/core/auth.js?v=20261022a';
-import { PersonStore, getPersonById } from '../../../services/member/person.js?v=20261022a';
+import { mockDB } from '../../../core/domain/domain.js?v=20261022c';
+import { AuthStore } from '../../../services/core/auth.js?v=20261022c';
+import { PersonStore, getPersonById } from '../../../services/member/person.js?v=20261022c';
 import {
   listBranchCommissioners,
   appointBranchCommissioner,
   revokeBranchCommissioner,
-} from '../../../services/branch/appointment.js?v=20261022a';
-import { ROLE_LABELS, BRANCH_COMMISSIONER_ASSIGNABLE_ROLES } from '../../../core/domain/constants.js?v=20261022a';
-import { resolveVoterIds } from '../../../services/activity/vote-config.js?v=20261022a';
-import { renderDataTable, tableHeadHtml } from '../../../components/ui/data-table.js?v=20261022a';
-import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261022a';
-import { PersonPicker } from '../../../components/governance/pickers.js?v=20261022a';
-import { getAppliedAccentColors } from '../../../core/boot/theme.js?v=20261022a';
-import { showToast, escHtml as esc } from '../../../core/base/utils.js?v=20261022a';
+} from '../../../services/branch/appointment.js?v=20261022c';
+import { DEFAULT_BRANCH_ID, ROLE_LABELS, BRANCH_COMMISSIONER_ASSIGNABLE_ROLES } from '../../../core/domain/constants.js?v=20261022c';
+import { resolveVoterIds } from '../../../services/activity/vote-config.js?v=20261022c';
+import { renderDataTable, tableHeadHtml } from '../../../components/ui/data-table.js?v=20261022c';
+import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261022c';
+import { PersonPicker } from '../../../components/governance/pickers.js?v=20261022c';
+import { getAppliedAccentColors } from '../../../core/boot/theme.js?v=20261022c';
+import { showToast, escHtml as esc } from '../../../core/base/utils.js?v=20261022c';
 
 /** 本支部 id（登录人归属；缺省 br-b1，与全仓同口径） */
 function branchId() {
   const me = getPersonById(AuthStore.getCurrentUser()?.personId);
-  return (me && me.branchId) || 'br-b1';
+  return (me && me.branchId) || DEFAULT_BRANCH_ID;
 }
 
 /** 支委构成五行：支书、副支书（党委配置，只读）＋ 组织委员、宣传委员、纪检委员（支部授予，可改派可撤销） */
 function rosterRows() {
   const bid = branchId();
-  const members = PersonStore.getMembers().filter((p) => (p.branchId || 'br-b1') === bid);
+  const members = PersonStore.getMembers().filter((p) => (p.branchId || DEFAULT_BRANCH_ID) === bid);
   const granted = new Map(listBranchCommissioners(bid).map((r) => [r.role, r]));
   const branch = (mockDB.branches || []).find((b) => b.id === bid) || null;
   const secretary = members.find((p) => p.id === branch?.secretaryId)
@@ -162,7 +162,7 @@ function openRowPicker(role) {
   _rowPicker = new PersonPicker({
     mode: 'single',
     placeholder: `选择${ROLE_LABELS[role] || role}人选`,
-    filter: (p) => (p.branchId || 'br-b1') === branchId()
+    filter: (p) => (p.branchId || DEFAULT_BRANCH_ID) === branchId()
       && p.role !== 'secretary' && p.role !== 'deputy-secretary',
     accentColor: getAppliedAccentColors('secretary').accent,
     onSelect: async (ids) => {

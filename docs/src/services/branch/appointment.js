@@ -6,17 +6,18 @@
 // 模式：一次语义调用（api：POST /branches/:id/appointments；mock：adapter.appointments.apply 快照回滚）；
 // 成功后用服务端/adapter 返回的 branch/users/appointmentRecords 刷新本地缓存（刷新不丢）。
 
-import { mockDB } from '../../core/domain/domain.js?v=20261022a';
-import { getAdapter, persist } from '../../data/data-adapter.js?v=20261022a';
+import { mockDB } from '../../core/domain/domain.js?v=20261022c';
+import { getAdapter, persist } from '../../data/data-adapter.js?v=20261022c';
 // R5-1（2026-09-06）：就地任命需补齐 person.role（角色双链读链 = person 档案，见 appointInauguralOfficers 注释）
-import { PersonStore } from '../member/person.js?v=20261022a';
+import { PersonStore } from '../member/person.js?v=20261022c';
 // 2026-09-23 支书裁定（情景①）：支书自配本支部支委身份——留痕复用既有审计快照（AuthStore），判据与白名单
 // 单一源 = core/domain/constants.js（勿在本文件另写角色名单；server/users 写门同源同一判据）
-import { AuthStore } from '../core/auth.js?v=20261022a';
+import { AuthStore } from '../core/auth.js?v=20261022c';
 import {
   ROLE_LABELS,
   BRANCH_COMMISSIONER_ASSIGNABLE_ROLES,
-} from '../../core/domain/constants.js?v=20261022a';
+  DEFAULT_BRANCH_ID,
+} from '../../core/domain/constants.js?v=20261022c';
 
 function _syncBranch(next) {
   const idx = (mockDB.branches || []).findIndex(b => b.id === next.id);
@@ -153,7 +154,7 @@ export async function appointInauguralOfficers({ branchId, secretaryId = null, o
 
 /** 本支部现任支委身份（现值；单一源＝成员档案 role，附最近一条审计快照供展示） */
 export function listBranchCommissioners(branchId) {
-  const bid = branchId || 'br-b1';
+  const bid = branchId || DEFAULT_BRANCH_ID;
   const grantByKey = new Map();
   AuthStore.getAuthorizations()
     .filter(r => BRANCH_COMMISSIONER_ASSIGNABLE_ROLES.includes(r.role))
@@ -161,7 +162,7 @@ export function listBranchCommissioners(branchId) {
       if (r.targetPersonId && r.action !== 'revoke') grantByKey.set(`${r.targetPersonId}|${r.role}`, r);
     });
   return PersonStore.getMembers()
-    .filter(p => (p.branchId || 'br-b1') === bid && BRANCH_COMMISSIONER_ASSIGNABLE_ROLES.includes(p.role))
+    .filter(p => (p.branchId || DEFAULT_BRANCH_ID) === bid && BRANCH_COMMISSIONER_ASSIGNABLE_ROLES.includes(p.role))
     .map(p => ({
       personId: p.id,
       name: p.name,

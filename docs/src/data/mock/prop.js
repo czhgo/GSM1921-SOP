@@ -17,11 +17,12 @@
  * 周期归档演示基线（当前示例采用周策略）。
  * 形状 = `PeriodicArchiveSubmission`；周只是 `periodUnit` 的取值，不改变记录实体。
  */
+import { DEFAULT_BRANCH_ID } from '../../core/domain/constants.js?v=20261022c';
 export const PERIODIC_ARCHIVES_SEED = [
-  { id: 'pa1', branchId: 'br-b1', periodUnit: 'week', periodKey: '2026-W30', periodLabel: '第30周', periodRange: '2026-07-20 ~ 2026-07-24', content: '1. 七一主题党日活动新闻稿发布\n2. 发展对象公示推送排版完成\n3. 上半年活动照片归档整理进行中', status: 'submitted', submittedAt: '2026-07-24' },
-  { id: 'pa2', branchId: 'br-b1', periodUnit: 'week', periodKey: '2026-W29', periodLabel: '第29周', periodRange: '2026-07-13 ~ 2026-07-17', content: '1. 入党积极分子培训资料归档完成\n2. 组织生活会预告推送发布\n3. 配合组织委员完成发展对象材料审核', status: 'submitted', submittedAt: '2026-07-17' },
-  { id: 'pa3', branchId: 'br-b1', periodUnit: 'week', periodKey: '2026-W28', periodLabel: '第28周', periodRange: '2026-07-06 ~ 2026-07-10', content: '1. 预备党员转正大会新闻稿起草\n2. 七一活动素材整理\n3. 宣传专栏内容更新', status: 'submitted', submittedAt: '2026-07-10' },
-  { id: 'pa4', branchId: 'br-b1', periodUnit: 'week', periodKey: '2026-W31', periodLabel: '第31周', periodRange: '2026-07-27 ~ 2026-07-31', content: '', status: 'draft', submittedAt: null },
+  { id: 'pa1', branchId: DEFAULT_BRANCH_ID, periodUnit: 'week', periodKey: '2026-W30', periodLabel: '第30周', periodRange: '2026-07-20 ~ 2026-07-24', content: '1. 七一主题党日活动新闻稿发布\n2. 发展对象公示推送排版完成\n3. 上半年活动照片归档整理进行中', status: 'submitted', submittedAt: '2026-07-24' },
+  { id: 'pa2', branchId: DEFAULT_BRANCH_ID, periodUnit: 'week', periodKey: '2026-W29', periodLabel: '第29周', periodRange: '2026-07-13 ~ 2026-07-17', content: '1. 入党积极分子培训资料归档完成\n2. 组织生活会预告推送发布\n3. 配合组织委员完成发展对象材料审核', status: 'submitted', submittedAt: '2026-07-17' },
+  { id: 'pa3', branchId: DEFAULT_BRANCH_ID, periodUnit: 'week', periodKey: '2026-W28', periodLabel: '第28周', periodRange: '2026-07-06 ~ 2026-07-10', content: '1. 预备党员转正大会新闻稿起草\n2. 七一活动素材整理\n3. 宣传专栏内容更新', status: 'submitted', submittedAt: '2026-07-10' },
+  { id: 'pa4', branchId: DEFAULT_BRANCH_ID, periodUnit: 'week', periodKey: '2026-W31', periodLabel: '第31周', periodRange: '2026-07-27 ~ 2026-07-31', content: '', status: 'draft', submittedAt: null },
 ];
 
 // 历史导入名兼容旧开发脚本；存储域与运行期 API 均使用 periodicArchives。

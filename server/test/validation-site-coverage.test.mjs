@@ -28,7 +28,6 @@ const ROOT = join(import.meta.dirname, '..', '..');
  *  本批（323）实测＝ **4 处**，**全部是「状态守卫」**（不点名具体字段 / 选择项 ⇒ 按台账开篇判据**本就不该登记**），
  *  我的「字段关键词」粗筛（`请先` 一类）会把它们捞进来；留在基线里＝**承认它们是正当的非登记项**，不是缺口。 */
 export const UNREGISTERED_BASELINE = [
-  'docs/src/components/governance/person-edit-modal.js :: 在册备注需随在册状态变更一并报确认，请先调整状态或联系支书',
   'docs/src/entries/pages/notice-entry.js :: 请先登录后再申报线上参会',
   'docs/src/entries/tabs/disc/attendance-tab.js :: 请先勾选要确认的考勤',
   'docs/src/entries/tabs/disc/inspection-tab.js :: 暂无可提交的已确认考察，请先确认（或抽查）后再提交',

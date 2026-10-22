@@ -5,6 +5,8 @@
 //  v2.0: + 子状态追踪（考勤/宣传） + 角色流转守卫 + 前置校验
 // ════════════════════════════════════════════════════════════════
 
+import { isPartyGroupLeaderRole } from '../core/domain/constants.js?v=20261022c';
+
 /**
  * @typedef {Object} StateNodeConfig
  * @property {string}   name               - 状态名称
@@ -243,7 +245,7 @@ export class WorkflowEngine {
 
     // 角色校验
     if (this.roleGuardEnabled && operatorRole && tracker.ownerRole) {
-      if (operatorRole !== tracker.ownerRole && operatorRole !== 'secretary' && operatorRole !== 'leader') {
+      if (operatorRole !== tracker.ownerRole && operatorRole !== 'secretary' && !isPartyGroupLeaderRole(operatorRole)) {
         throw new Error(`Role "${operatorRole}" cannot operate sub-state "${subStateName}" (owner: ${tracker.ownerRole})`);
       }
     }

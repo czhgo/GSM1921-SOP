@@ -18,29 +18,30 @@
 //  ════════════════════════════════════════════════════════════════
 //  模态内「按字段分流」（支书 2026-09-13 grill-me 面谈定案）：
 //    同一模态里两类字段各走各的写路径，界面显式分组 + 逐行小标区分——
-//      · 立即生效组（档案资料）name / studentId / enrollYear / partyGroup：
+//      · 立即生效组（档案资料）name / enrollYear / partyGroup：
 //        组织委员维护的档案属性，直改 `PersonStore.saveMember`，保存后即时写入档案；
+//        **学号只读**（2026-10-22 R7-01：学号即人员主键，改名走党委「重命名账号」受控端点）。
 //      · 报支书确认组（制度变更）developStage / residenceStatus / residenceNote：
 //        走制度链 `submitMemberChange(...)` 提交申请 → 支书确认才生效，生效前保持现值。
 //    保存流程：先算差异 → 直改字段先保存（失败则报错且不关闭）→ 再逐条报送确认
 //      （任一条失败只报告，不影响已成功的直改）→ 汇总「已保存 N 项 · 已报送支书确认 M 项」→
-//      回调 onSaved → 关闭。仅「在册备注」变化而状态未变时不发起确认（submitMemberChange 要求
-//      to ≠ from），明确提示随在册状态变更一并报送，不静默丢弃。
+//      回调 onSaved → 关闭。在册备注只在「在册状态发生变更」时可编辑且必填；状态不变时控件禁用
+//      并标「随在册状态变更填写」——不留「可输入却存不进」的死入口（R7-02）。
 // ════════════════════════════════════════════════════════════════
 
-import { openModal, closeModal } from '../ui/modal.js?v=20261022a';
-import { PersonStore } from '../../services/member/person.js?v=20261022a';
-import { getBranchById } from '../../services/branch/branch.js?v=20261022a';
+import { openModal, closeModal } from '../ui/modal.js?v=20261022c';
+import { PersonStore } from '../../services/member/person.js?v=20261022c';
+import { getBranchById } from '../../services/branch/branch.js?v=20261022c';
 // Q-21-3 收敛（2026-09-13）：在册状态枚举单一源 = core/domain/constants.js（原经 org-base-data-preview 转出）
-import { ROLE_LABELS, DEVELOP_STAGES, RESIDENCE } from '../../core/domain/constants.js?v=20261022a';
-import { submitMemberChange } from '../../services/member/member-confirmation.js?v=20261022a';
-import { AuthStore } from '../../services/core/auth.js?v=20261022a';
-import { showToast, escHtml as esc, getBasePath, todayLocal } from '../../core/base/utils.js?v=20261022a';
+import { ROLE_LABELS, DEVELOP_STAGES, RESIDENCE } from '../../core/domain/constants.js?v=20261022c';
+import { submitMemberChange } from '../../services/member/member-confirmation.js?v=20261022c';
+import { AuthStore } from '../../services/core/auth.js?v=20261022c';
+import { showToast, escHtml as esc, getBasePath, todayLocal } from '../../core/base/utils.js?v=20261022c';
 // `D-788`（2026-10-05 · `V-10b`）：成员「自我描述」字段模型（**零依赖叶子**）——表单控件由它逐字段生成（单一源）
 import {
   SELF_PROFILE_FIELDS, sanitizeSelfProfile,
   selfProfileListToText, selfProfileListFromText,
-} from '../../core/domain/self-profile.js?v=20261022a';
+} from '../../core/domain/self-profile.js?v=20261022c';
 
 /** 模态 id（openModal / closeModal 定位键） */
 const MODAL_ID = 'person-edit-modal';
@@ -243,6 +244,8 @@ export function openPersonEditModal(opts = {}) {
     archiveRow({ label: '在册变更留痕', valueHtml: `<span class="text-gray-800">${history.length} 条</span>`, field: 'residenceHistory', highlight: hits('residenceHistory') }),
   ];
   const readonlyRows = (selfOnly ? readonlyAll : [
+    // 学号即人员主键（R7-01）：模态只读展示；改名只走党委「重命名账号」受控端点
+    archiveRow({ label: '学号', valueHtml: `${esc(member.studentId || '—')}<span class="ml-1 text-[11px] text-gray-400">（账号主键，改名走党委受控入口）</span>`, field: 'studentId', highlight: hits('studentId') }),
     archiveRow({ label: '角色', valueHtml: esc(ROLE_LABELS[member.role] || member.role || '—'), field: 'role', highlight: hits('role') }),
     archiveRow({ label: '所属支部', valueHtml: esc(branchLabel), field: 'branchId', highlight: hits('branchId') }),
     archiveRow({ label: '在册变更留痕', valueHtml: `<span class="text-gray-800">${history.length} 条</span>`, field: 'residenceHistory', highlight: hits('residenceHistory') }),
@@ -255,7 +258,6 @@ export function openPersonEditModal(opts = {}) {
         title: '档案资料 · 立即生效',
         rows: [
           formRow('姓名', `<input data-field="name" type="text" class="input-flat text-xs w-full" value="${esc(member.name || '')}" placeholder="成员姓名" />`, { required: true, tag: TAG_INSTANT }),
-          formRow('学号', `<input data-field="studentId" type="text" class="input-flat text-xs w-full" value="${esc(member.studentId || '')}" placeholder="学号（可空）" />`, { tag: TAG_INSTANT }),
           formRow('届别', `<input data-field="enrollYear" type="text" class="input-flat text-xs w-full" value="${esc(member.enrollYear || '')}" placeholder="入学年份 / 届别（如 2026，可空）" />`, { tag: TAG_INSTANT }),
           formRow('党小组', `<input data-field="partyGroup" type="text" class="input-flat text-xs w-full" value="${esc(member.partyGroup || '')}" placeholder="党小组归属（可空）" />`, { tag: TAG_INSTANT }),
         ].join(''),
@@ -266,7 +268,7 @@ export function openPersonEditModal(opts = {}) {
         rows: [
           formRow('发展阶段', `<select data-field="developStage" class="input-flat text-xs w-full">${stageOptions(member.developStage)}</select>`, { tag: TAG_CONFIRM }),
           formRow('在册状态', `<select data-field="residenceStatus" class="input-flat text-xs w-full">${residenceOptions(member.residenceStatus)}</select>`, { tag: TAG_CONFIRM }),
-          formRow('在册备注', `<textarea data-field="residenceNote" rows="3" class="input-flat text-xs w-full" placeholder="在册变更原因 / 起止等（可空；随在册状态变更一并报确认）">${esc(member.residenceNote || '')}</textarea>`, { tag: TAG_CONFIRM }),
+          formRow('在册备注', `<textarea data-field="residenceNote" rows="3" class="input-flat text-xs w-full" disabled placeholder="随在册状态变更填写；状态变更时必填说明">${esc(member.residenceNote || '')}</textarea><p class="mt-1 text-[11px] text-gray-500" data-note-hint>随在册状态变更填写</p>`, { tag: TAG_CONFIRM }),
         ].join(''),
       })}
     </form>`;
@@ -296,8 +298,23 @@ export function openPersonEditModal(opts = {}) {
       <button type="submit" form="${MODAL_ID}-form" data-modal-submit="${MODAL_ID}" class="btn-accent text-sm px-4 py-1.5 font-medium">保存</button>`,
     onMount: (panelEl) => {
       panelEl.querySelector(`#${MODAL_ID}-form`)?.addEventListener('submit', onSubmit);
+      // R7-02：在册备注只在「在册状态发生变更」时可编辑且必填；状态不变时禁用并标注归属。
+      const statusEl = panelEl.querySelector('[data-field="residenceStatus"]');
+      const noteEl = panelEl.querySelector('[data-field="residenceNote"]');
+      const noteHintEl = panelEl.querySelector('[data-note-hint]');
+      const syncNoteState = () => {
+        if (!noteEl) return;
+        const changed = String(statusEl?.value || '') !== String(member.residenceStatus || RESIDENCE.CAMPUS);
+        noteEl.disabled = !changed;
+        noteEl.required = changed;
+        noteEl.placeholder = changed ? '请填写在册变更原因 / 起止（必填）' : '随在册状态变更填写';
+        if (noteHintEl) noteHintEl.textContent = changed ? '状态变更须填写说明（必填）' : '随在册状态变更填写';
+        if (!changed) noteEl.value = member.residenceNote || '';
+      };
+      statusEl?.addEventListener('change', syncNoteState);
+      syncNoteState();
       // 打开时聚焦第一个可编辑输入
-      panelEl.querySelector('[data-field]')?.focus();
+      panelEl.querySelector('[data-field]:not([disabled])')?.focus();
     },
   });
 
@@ -318,7 +335,7 @@ export function openPersonEditModal(opts = {}) {
     // `selfOnly`（本人自助）：无档案控件 ⇒ 跳过姓名校验与档案差异，只算「自我描述」
     const next = selfOnly ? null : {
       name: String(read('name')).trim(),
-      studentId: String(read('studentId')).trim(), enrollYear: String(read('enrollYear')).trim(),
+      enrollYear: String(read('enrollYear')).trim(),
       partyGroup: String(read('partyGroup')).trim(),
       developStage: read('developStage'),
       residenceStatus: read('residenceStatus'),
@@ -340,6 +357,11 @@ export function openPersonEditModal(opts = {}) {
     // 自我描述（`D-788`）：整对象比对，变了才提交（空对象 = 清空自我描述）
     const nextSp = readSelfProfile(panelEl);
     if (JSON.stringify(nextSp) !== JSON.stringify(spCurrent)) patch.selfProfile = nextSp;
+    // R7-02：在册状态变更必须随附说明（备注不再是「可空且单独可存」的字段）
+    if (next && 'residenceStatus' in patch && !next.residenceNote) {
+      showToast('error', '在册状态变更须填写备注说明');
+      return;
+    }
     if (Object.keys(patch).length === 0) {
       showToast('info', '没有需要保存的变更');
       closeModal(MODAL_ID);
@@ -347,13 +369,12 @@ export function openPersonEditModal(opts = {}) {
     }
 
     // 按写路径分组：档案资料立即生效 / 制度变更报支书确认
-    const INSTANT_FIELDS = ['name', 'studentId', 'enrollYear', 'partyGroup'];
+    const INSTANT_FIELDS = ['name', 'enrollYear', 'partyGroup'];
     const instantPatch = {};
     for (const f of INSTANT_FIELDS) if (f in patch) instantPatch[f] = patch[f];
     if ('selfProfile' in patch) instantPatch.selfProfile = patch.selfProfile; // `D-788`：自我描述同走成员档案写口
     const stageChanged = 'developStage' in patch;
     const resStatusChanged = 'residenceStatus' in patch;
-    const noteOnly = 'residenceNote' in patch && !resStatusChanged; // 状态未动、仅备注变化
 
     if (btn) btn.disabled = true;
 
@@ -388,23 +409,19 @@ export function openPersonEditModal(opts = {}) {
       if (r.ok) submitted += 1; else errors.push(r.reason || '发展阶段变更报送失败');
     }
     if (resStatusChanged) {
-      // 在册备注随在册状态变更一并提交（在校不留滞留备注，与名册口径一致）
+      // 在册备注随在册状态变更一并提交（R7-02：状态变更必填说明）
       const r = submitMemberChange({
         personId: member.id, kind: 'residence', to: patch.residenceStatus,
-        note: patch.residenceStatus === RESIDENCE.DETAINED ? next.residenceNote : '', by,
+        note: next.residenceNote, by,
       });
       if (r.ok) submitted += 1; else errors.push(r.reason || '在册状态变更报送失败');
     }
 
     if (btn) btn.disabled = false;
 
-    if (noteOnly) {
-      // submitMemberChange 要求 to ≠ from → 备注无法单独发起变更：明确提示，不静默丢弃
-      showToast('warn', '在册备注需随在册状态变更一并报确认，请先调整状态或联系支书');
-    }
     if (errors.length) showToast('error', errors.join('；'));
 
-    if (savedCount + submitted === 0) return; // 无实际落档（仅备注变化 / 报送失败）：保留模态便于修正
+    if (savedCount + submitted === 0) return; // 无实际落档（报送失败）：保留模态便于修正
 
     showToast('success', `已保存 ${savedCount} 项 · 已报送支书确认 ${submitted} 项`);
     if (typeof opts.onSaved === 'function') {

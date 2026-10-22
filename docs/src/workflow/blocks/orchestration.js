@@ -12,12 +12,12 @@
 //   ② **校验复用单一源**：块级 = `manifests.js::validateBlockManifest`；组合级 = `core/base/module-compose.js::resolveConflicts`
 //      ⇒ 本文件**不重写任何一条校验**（改写即两套判据、必然失同步）；
 //   ③ **产物是数据不是代码**：`compilePlan` 只产出**既有 definition 形状**的数据（含 `sopScenarioId` 供既有
-//      `WorkflowEngine` 消费），**不含函数、不执行写入**；某块若没有既有模板，如实记为 `warning`（不是错误）。
+//      `WorkflowEngine` 消费），**不含函数、不执行写入**；某块若没有既有模板，如实记为 `warning`。
 //
 // 纯 ESM、零依赖（浏览器 / Node 双端可加载）；守卫 = `server/test/block-orchestration.test.mjs::O1–O5`。
 
-import { BLOCK_MANIFESTS, validateBlockManifest } from './manifests.js?v=20261022a';
-import { resolveConflicts } from '../../core/base/module-compose.js?v=20261022a';
+import { BLOCK_MANIFESTS, validateBlockManifest } from './manifests.js?v=20261022c';
+import { resolveConflicts } from '../../core/base/module-compose.js?v=20261022c';
 
 /**
  * 按作用域取可编排的块（L4 原则：**可拖范围仍受角色 / 作用域约束**，界面上不是所有块都能拖）。
@@ -120,7 +120,7 @@ export function compilePlan(plan, { definitionsById = {} } = {}) {
     if (!def || typeof def.id !== 'string') {
       templateIds.push(null);
       sopScenarioIds.push(null);
-      warnings.push(`块 ${id} 无既有 definition 模板 ⇒ 只作声明，无可编译模板（不是错误）`);
+      warnings.push(`块 ${id} 无既有 definition 模板 ⇒ 只作声明，无可编译模板`);
       continue;
     }
     templateIds.push(def.id);

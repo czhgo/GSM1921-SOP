@@ -8,15 +8,15 @@
 //   · 下半部是本台专属的「活动进展」分段（组件单一源 `components/governance/activity-progress.js`）。
 //   ⚠ 不新造页签、不改注册序；`?tab=calendar` / 旧 `?tab=tf-view` 别名均不受影响。
 
-import { getAppState, setState } from '../../../core/base/state.js?v=20261022a';
-import { renderContent as renderSharedCalendar } from '../shared/activity-calendar-tab.js?v=20261022a';
-import { renderActivityProgress } from '../../../components/governance/activity-progress.js?v=20261022a';
-import { mockDB } from '../../../core/domain/domain.js?v=20261022a';
-import { getAdapter } from '../../../data/data-adapter.js?v=20261022a';
-import { loadPartyGroups } from '../../../services/member/party-group.js?v=20261022a';
-import { getPersonName } from '../../../services/member/person.js?v=20261022a';
-import { AuthStore } from '../../../services/core/auth.js?v=20261022a';
-import { escHtml as esc, showToast } from '../../../core/base/utils.js?v=20261022a';
+import { getAppState, setState } from '../../../core/base/state.js?v=20261022c';
+import { renderContent as renderSharedCalendar } from '../shared/activity-calendar-tab.js?v=20261022c';
+import { renderActivityProgress } from '../../../components/governance/activity-progress.js?v=20261022c';
+import { mockDB } from '../../../core/domain/domain.js?v=20261022c';
+import { getAdapter } from '../../../data/data-adapter.js?v=20261022c';
+import { loadPartyGroups } from '../../../services/member/party-group.js?v=20261022c';
+import { getPersonName } from '../../../services/member/person.js?v=20261022c';
+import { AuthStore } from '../../../services/core/auth.js?v=20261022c';
+import { escHtml as esc, showToast } from '../../../core/base/utils.js?v=20261022c';
 
 // ── 跨组招募协调 / 待补责任党小组（2026-10-21 批次 499 · 组织委员协调面）──────
 // 口径：跨组只是参与/招募范围，活动仍有唯一责任党小组；跨党小组深度参与者由组织委员协调。
@@ -59,7 +59,7 @@ function _renderOrgRecruitmentPanel(host, activities) {
       <div class="flex flex-wrap items-center justify-between gap-2 p-3 rounded-xl bg-white border border-gray-100">
         <div class="flex-1 min-w-[220px]">
           <div class="text-sm font-medium text-gray-800">${esc(activity.title || '未命名')}</div>
-          <div class="text-xs text-gray-500 mt-0.5">责任组：${esc(activity.hostGroup || '—')} · 跨组深参 ${crossMembers.length} 人 · ${status}</div>
+          <div class="text-xs text-gray-500 mt-0.5">承办党小组：${esc(activity.hostGroup || '—')} · 跨组深参 ${crossMembers.length} 人 · ${status}</div>
           ${crossMembers.length ? `<div class="text-[11px] text-gray-500 mt-1">${crossMembers.map((m) => esc(getPersonName(m.personId) || m.personId)).join('、')}</div>` : ''}
         </div>
         <div class="flex items-center gap-2">
@@ -74,7 +74,7 @@ function _renderOrgRecruitmentPanel(host, activities) {
       <div class="flex flex-wrap items-center justify-between gap-2 p-3 rounded-xl bg-white border border-amber-200">
         <div class="flex-1 min-w-[220px]">
           <div class="text-sm font-medium text-gray-800">${esc(activity.title || '未命名')}</div>
-          <div class="text-xs text-gray-500 mt-0.5">${esc(activity.date || '')}${activity.type ? ' · ' + esc(activity.type) : ''} · 历史记录未落责任党小组</div>
+          <div class="text-xs text-gray-500 mt-0.5">${esc(activity.date || '')}${activity.type ? ' · ' + esc(activity.type) : ''} · 历史记录未落承办党小组</div>
         </div>
         <div class="flex items-center gap-2">
           <select class="input-flat text-xs org-legacy-group" data-act-id="${esc(activity.id)}" aria-label="补选责任党小组">
@@ -91,15 +91,15 @@ function _renderOrgRecruitmentPanel(host, activities) {
         <span class="font-title-cn text-base font-semibold text-gray-800">跨组招募待协调</span>
         <span class="text-xs text-gray-500 tabular-nums">${recruitRows.length} 项</span>
       </summary>
-      <p class="text-xs text-gray-500 mt-3 mb-3">跨组活动仍须落到责任党小组；深度参与者跨组招募由组织委员协调。此处只标记协调状态，不授予活动写权。</p>
+      <p class="text-xs text-gray-500 mt-3 mb-3">跨组只影响招募范围；活动始终落到承办党小组，跨党小组深度参与者由组织委员协调。此处只标记协调状态，不授予活动写权。</p>
       <div class="space-y-2">${recruitHtml}</div>
     </details>
     <details class="card rounded-xl p-5 mb-4" id="org-legacy-host-card"${legacyRows.length ? ' open' : ''}>
       <summary class="cursor-pointer select-none flex flex-wrap items-baseline gap-x-2">
-        <span class="font-title-cn text-base font-semibold text-gray-800">待补责任党小组</span>
+        <span class="font-title-cn text-base font-semibold text-gray-800">待补承办党小组</span>
         <span class="text-xs text-gray-500 tabular-nums">${legacyRows.length} 项</span>
       </summary>
-      <p class="text-xs text-gray-500 mt-3 mb-3">历史跨组活动缺少责任党小组。系统不猜测归属，请按实际补选；补选后任务、考察与汇报可按党小组汇总。</p>
+      <p class="text-xs text-gray-500 mt-3 mb-3">历史活动缺少承办党小组。系统不猜测归属，请按实际补选；补选后任务、考察与汇报可按党小组汇总。</p>
       <div class="space-y-2">${legacyHtml}</div>
     </details>
   `;
@@ -138,12 +138,12 @@ function _renderOrgRecruitmentPanel(host, activities) {
       btn.disabled = true;
       try {
         await getAdapter().activities.update(activityId, {
-          hostGroupId: group.id, hostGroup: group.name, organizingScope: 'cross-group',
+          hostGroupId: group.id, hostGroup: group.name, organizingScope: 'party-group',
         });
         mockDB.activities = mockDB.activities.map((row) => row.id === activityId
-          ? { ...row, hostGroupId: group.id, hostGroup: group.name, organizingScope: 'cross-group', legacyHostGroup: undefined }
+          ? { ...row, hostGroupId: group.id, hostGroup: group.name, organizingScope: 'party-group', legacyHostGroup: undefined }
           : row);
-        showToast('success', `已补选责任党小组：${group.name}`);
+        showToast('success', `已补选承办党小组：${group.name}`);
         setState({});
       } catch (e) {
         btn.disabled = false;

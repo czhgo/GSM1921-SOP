@@ -4,12 +4,12 @@
 //  与 attendance.js / inspection.js 同构：mockDB 优先 + mock 常量 fallback
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB, ReviewStatus } from '../../core/domain/domain.js?v=20261022a';
-import { persist } from '../../data/data-adapter.js?v=20261022a';
-import { bumpToken } from '../../core/base/version-token.js?v=20261022a';
-import { BRANCH_COMMISSION_ROLES, ACTIVITY_CLASSIFICATION, SECRETARY_AND_DEPUTY_ROLES } from '../../core/domain/constants.js?v=20261022a';
-import { ACTIVITIES } from '../../data/mock/index.js?v=20261022a';
-import { isInitStateActive } from '../core/init-reset.js?v=20261022a'; // C2 修复（2026-09-08）：init 态空态不回退演示种子
+import { mockDB, ReviewStatus, isActivityClosed } from '../../core/domain/domain.js?v=20261022c';
+import { persist } from '../../data/data-adapter.js?v=20261022c';
+import { bumpToken } from '../../core/base/version-token.js?v=20261022c';
+import { BRANCH_COMMISSION_ROLES, ACTIVITY_CLASSIFICATION, SECRETARY_AND_DEPUTY_ROLES, PARTY_GROUP_LEADER_ROLES } from '../../core/domain/constants.js?v=20261022c';
+import { ACTIVITIES } from '../../data/mock/index.js?v=20261022c';
+import { isInitStateActive } from '../core/init-reset.js?v=20261022c'; // C2 修复（2026-09-08）：init 态空态不回退演示种子
 
 /** 读取全部活动（同步接口，供 UI 层使用） */
 export function loadActivities() {
@@ -256,8 +256,8 @@ export function listMyProjectTasks(personId) {
 //   判据 `BRAND_MEETING_RE` 按既有类型字面同源。**不新增会议类型**。
 // ⚠ 判据（谁能提案 / 哪场会能定）单一源即本段，勿在页面另写。
 
-/** 提案权角色集＝支委层（`constants.js::BRANCH_COMMISSION_ROLES` 单一源）＋ 党小组组长 */
-export const BRAND_PROPOSER_ROLES = [...BRANCH_COMMISSION_ROLES, 'leader'];
+/** 提案权角色集＝支委层（`constants.js::BRANCH_COMMISSION_ROLES` 单一源）＋ 党小组组长同权角色集 */
+export const BRAND_PROPOSER_ROLES = [...BRANCH_COMMISSION_ROLES, ...PARTY_GROUP_LEADER_ROLES];
 
 /** 能承载「品牌认定」审议的会议类型（支委会；党小组组长在场即支委扩大会，同属支委会会议） */
 const BRAND_MEETING_RE = /支委/;
@@ -300,10 +300,10 @@ export function isGalleryFeatured(activity) {
   return !!(activity && activity.galleryFeatured === true);
 }
 
-/** 收录候选池：「有展示价值」的活动——品牌活动、或已结束 / 已归档的活动 */
+/** 收录候选池：「有展示价值」的活动——品牌活动、或已闭环（已完成 / 已取消 / 已归档）的活动 */
 export function listGalleryCandidates() {
   return loadActivities()
-    .filter((a) => a && (a.isBrand === true || a.archived === true || ['completed', 'cancelled'].includes(a.status)));
+    .filter((a) => a && (a.isBrand === true || isActivityClosed(a)));
 }
 
 /**
@@ -756,8 +756,8 @@ export async function openCommitteeVoteForActivity({ activityId, by, role, mode 
   if (existing) return { ok: true, already: true, agendaItemId: existing.id };
   // 动态引入（不改本文件行号；表决配置与 id 生成的单一源仍在各自模块，不在此另写一套）
   const [{ defaultVoteConfig, resolveVoterIds }, { generateId }] = await Promise.all([
-    import('./vote-config.js?v=20261022a'),
-    import('../../core/base/id.js?v=20261022a'),
+    import('./vote-config.js?v=20261022c'),
+    import('../../core/base/id.js?v=20261022c'),
   ]);
   const agendaItemId = generateId('ag');
   const at = new Date().toISOString();

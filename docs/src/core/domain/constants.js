@@ -5,7 +5,7 @@
 // R-26③（2026-10-05 批次 388）：本件**只引一个零依赖叶子** `core/base/date.js`（取本地「今天」）——
 //   不成环、双端可载；**不得**引 `core/base/utils.js`（那会牵 `core/session/pending-writes.js`）。
 
-import { todayLocal } from '../base/date.js?v=20261022a';
+import { todayLocal } from '../base/date.js?v=20261022c';
 
 // ════════════════════════════════════════════════════════════════
 //  缺省支部 id（单一源，R2-17，2026-10-20）
@@ -721,14 +721,16 @@ export const SCENARIO_LABELS = {
   'theme-party': ACTIVITY_CLASSIFICATION['theme-party'].label,
 };
 
-// ── 活动组织落点（2026-10-21 批次 499 · 支书补充口径）──────────────
-// 支书原话：「跨组活动也要落实到党小组」「组织者一般是本组的；深度参与者按实际需要跨组招募，
-//   由组织委员协调」。⇒ 跨组只表示参与/招募范围，不表示「没有承办组」。
+// ── 活动组织落点（2026-10-21 批次 499/502 · 支书补充口径）──────────────
+// 支书原话：「跨组活动同样落实承办党小组；组织者一般来自承办组，深度参与者可以跨组招募，
+//   由组织委员协调。」⇒ 组织落点只有两档：支部级法定会议 'branch'；其余全部 'party-group'。
 // 支部级法定会议（支委会 / 支部党员大会 / 党课）不硬塞党小组，单列 'branch'。
 export const ACTIVITY_SCOPES = {
   PARTY_GROUP: 'party-group',
-  CROSS_GROUP: 'cross-group',
   BRANCH: 'branch',
+  // 读取别名（2026-10-21 批次 502）：已退出生产写入，仅用于旧数据 / 旧客户端入参兼容；
+  // 一律经 normalizeOrganizingScope() 归一为 'party-group'。新代码不得产出该值。
+  CROSS_GROUP: 'cross-group',
 };
 export const BRANCH_LEVEL_SCENARIOS = ['branch-committee', 'branch-party-meeting', 'party-lecture'];
 // 旧客户端可能只传 type、不传 scenarioId ⇒ 判支部级会议必须同时认两类入参（服务端与迁移共用）。
@@ -738,6 +740,17 @@ export function isBranchLevelScenario(scenarioId) {
 }
 export function isBranchLevelActivity(activity) {
   return isBranchLevelScenario(activity?.scenarioId) || BRANCH_LEVEL_ACTIVITY_TYPES.includes(activity?.type);
+}
+
+/**
+ * 组织落点归一（前端写口 / 服务端写门 / 迁移 / 种子共用的单一函数）。
+ * @param {string|undefined|null} value 原始 organizingScope（可能来自旧数据或旧客户端）
+ * @param {object|null} [activity] 活动行；支部级法定会议一律归一为 branch
+ * @returns {'branch'|'party-group'}
+ */
+export function normalizeOrganizingScope(value, activity = null) {
+  if (activity && isBranchLevelActivity(activity)) return ACTIVITY_SCOPES.BRANCH;
+  return value === ACTIVITY_SCOPES.BRANCH ? ACTIVITY_SCOPES.BRANCH : ACTIVITY_SCOPES.PARTY_GROUP;
 }
 
 /** type → 大类（three-meetings | theme-party） */
@@ -1022,7 +1035,7 @@ export const BRANCH_COMMISSIONER_FALLBACK_ROLE = 'participant';
  */
 export function branchCommissionerWriteDeny(p) {
   const s = p || {};
-  const branchOf = (b) => b || 'br-b1';
+  const branchOf = (b) => b || DEFAULT_BRANCH_ID;
   if (s.actorRole === 'party-staff') return null; // 党委侧 users 写门原样（本次只放宽、不收窄）
   // 一把手层同权（2026-09-23 支书追裁「副支书也可配」）：本支部现任支书 ∨ 本支部现任副支书
   const isBranchSecretary = !!s.secretaryId && s.actorId === s.secretaryId;
@@ -1064,3 +1077,26 @@ const WORK_DOMAIN_COLOR = _applyDark({
   project: { bg: 'rgba(206, 17, 38, 0.08)', text: _C.red800, border: 'rgba(206, 17, 38, 0.25)' }, // 项目（会务·活动·专班）
 });
 export const WORK_DOMAIN_COLORS = WORK_DOMAIN_COLOR;
+
+// ════════════════════════════════════════════════════════════════
+//  「党小组组长 / 副组长」同权角色集（2026-10-22 第七轮 P2 · `D-540` / `D-571`）
+// ════════════════════════════════════════════════════════════════
+// 裁定口径：「副组长共用组长工作台，权限集与赋权链与组长同一份」⇒ 一切**权限门**判「党小组组长」
+//   都必须同时认 `deputy-leader`，否则副组长在本组活动创建 / 编辑 / 考勤记录位被 403。
+// ⚠ 两类判据不要混：**权限门**用本集（两个角色同权）；**「任务优先打给组长」的锚点**
+//   （履职待办派生 / 会议记录人 / 产出块负责人 / 本组组长位）仍只解析 `leader`（见本文件 988 行注）。
+// 消费方（单一源，勿各自手写第二份）：server 路由写门与前端能力判定同引本文件。
+export const PARTY_GROUP_LEADER_ROLES = Object.freeze(['leader', 'deputy-leader']);
+/** 是否「党小组组长 / 副组长」（权限门判据，勿用于任务派发锚点） */
+export function isPartyGroupLeaderRole(role) {
+  return PARTY_GROUP_LEADER_ROLES.includes(role);
+}
+
+// ════════════════════════════════════════════════════════════════
+//  组长可创建的活动类型（R7-19 单一源，2026-10-22）
+// ════════════════════════════════════════════════════════════════
+// 病灶：服务端 `routes/resources/gates.js`（活动写门）与 `system-notice-kinds.js`
+//   （活动创建通知受众）各写一份 `Set(['党小组会','主题党日'])` ⇒ 调整时可出现
+//   「活动写门放行、通知受众不放行」（或反之）。本集为两处**唯一**判据源。
+// 口径：对齐 SYSTEM_ROLE_PERMISSION §9a 与组长手册（组长限办本组党小组会 / 主题党日）。
+export const LEADER_CREATABLE_ACTIVITY_TYPES = Object.freeze(['党小组会', '主题党日']);

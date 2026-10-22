@@ -20,42 +20,43 @@
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261022a';
-import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261022a';
-import { setDataSource, registerMockAdapter } from '../../docs/src/data/data-adapter.js?v=20261022a';
+import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261022c';
+import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261022c';
+import { setDataSource, registerMockAdapter } from '../../docs/src/data/data-adapter.js?v=20261022c';
 import {
   POLICY_DEFAULTS, POLICY_OVERRIDABLE, POLICY_FIXED, POLICY_OVERRIDE_SECTIONS, activityApprovalMode,
-} from '../../docs/src/core/domain/policy-defaults.js?v=20261022a';
+  isAttendanceOverdue, isReviewOverdue,
+} from '../../docs/src/core/domain/policy-defaults.js?v=20261022c';
 // ⑧ 活动批准门（2026-09-22 批次 150）：判据/写口/状态单一源 = services/activity/activity.js
 import {
   pendingApprovalPatchOnWrite, canApproveActivity, PENDING_APPROVAL_STATUS,
   // ⑨ 批次 151（启用端：待批可见性 / 支委会档复用线上表决）
   activityApprovalVoteOf, openCommitteeVoteForActivity, applyActivityApprovalResult,
-} from '../../docs/src/services/activity/activity.js?v=20261022a';
+} from '../../docs/src/services/activity/activity.js?v=20261022c';
 // ⑨ 待批可见性单一源（2026-09-22 批次 151 · 支书裁定「只支委层可见」）
 import {
   canSeePendingApprovalActivities, isActivityVisibleTo, filterActivitiesForViewer,
-} from '../../docs/src/services/core/visibility.js?v=20261022a';
+} from '../../docs/src/services/core/visibility.js?v=20261022c';
 // 批次 47-F 第二组并入：消费点导出面（原 policy-defaults-sync.test.mjs 的导入）
-import { MEETING_ATTENDANCE_TYPES } from '../../docs/src/services/activity/attendance.js?v=20261022a';
-import { WORKFORCE_VOTE_DEFAULT } from '../../docs/src/services/branch/workforce.js?v=20261022a';
-import { getOverdueRecords } from '../../docs/src/services/activity/inspection.js?v=20261022a';
+import { MEETING_ATTENDANCE_TYPES } from '../../docs/src/services/activity/attendance.js?v=20261022c';
+import { WORKFORCE_VOTE_DEFAULT } from '../../docs/src/services/branch/workforce.js?v=20261022c';
+import { getOverdueRecords } from '../../docs/src/services/activity/inspection.js?v=20261022c';
 import {
   sanitizeConfigPolicyOverrides, applyBranchPolicyOverrides,
-} from '../../docs/src/services/branch/config-clean.js?v=20261022a';
+} from '../../docs/src/services/branch/config-clean.js?v=20261022c';
 import {
   savePolicyOverrides, canManagePolicyOverrides, getBranchById,
-} from '../../docs/src/services/branch/branch.js?v=20261022a';
+} from '../../docs/src/services/branch/branch.js?v=20261022c';
 import {
   semesterDetainedWindowsLabel,
-} from '../../docs/src/services/member/member-confirmation.js?v=20261022a';
+} from '../../docs/src/services/member/member-confirmation.js?v=20261022c';
 // ⑪ 2026-09-27「补入口」批：补课范围/时限 call-time 消费点（makeup.js 读 POLICY_DEFAULTS）
 import {
   makeupDefaultActivityTypes, makeupDeadlineDays, isMakeupRequired,
-} from '../../docs/src/services/activity/makeup.js?v=20261022a';
+} from '../../docs/src/services/activity/makeup.js?v=20261022c';
 import {
   leaderSemesterReportTermKey, isLeaderSemesterRemindWindow,
-} from '../../docs/src/entries/tabs/today/today-tab.js?v=20261022a';
+} from '../../docs/src/entries/tabs/today/today-tab.js?v=20261022c';
 // HTTP 域（PATCH /branches/:id/config policyOverrides 写口与 server 同源校验）
 import { createApp } from '../app.js';
 import { seedDatabase } from '../seed.js';
@@ -525,7 +526,7 @@ test('⑨ 支委会档：提请表决＝挂 activity-approval 议程项＋支委
 test('⑨ HTTP：服务端门——待批活动改状态必须带批准语义且角色符合该活动固化的档位', async () => {
   const sec = await _login('2300010001');
   const post = (token, body) => fetch(`${_httpBase}/api/v1/activities`, {
-    method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ organizingScope: 'cross-group', hostGroupId: 'pg-1', hostGroup: '第一党小组', ...body }),
+    method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ organizingScope: 'party-group', hostGroupId: 'pg-1', hostGroup: '第一党小组', ...body }),
   });
   const patch = (token, id, body) => fetch(`${_httpBase}/api/v1/activities/${id}`, {
     method: 'PATCH', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify(body),
@@ -574,7 +575,7 @@ test('⑩ HTTP：快照口只拦不该发生的状态迁移（其余整表写入
     method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify(body),
   });
   const post = (token, body) => fetch(`${_httpBase}/api/v1/activities`, {
-    method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ organizingScope: 'cross-group', hostGroupId: 'pg-1', hostGroup: '第一党小组', ...body }),
+    method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ organizingScope: 'party-group', hostGroupId: 'pg-1', hostGroup: '第一党小组', ...body }),
   });
   const listAll = async (token) => (await (await fetch(`${_httpBase}/api/v1/activities`, { headers: { Authorization: `Bearer ${token}` } })).json());
   // T5（2026-09-23 批次 163）：`/snapshot` 拒收**缺集合版本号**的集合（整批 428）⇒ 直连调用须自带 `_versions`
@@ -743,4 +744,36 @@ test('R3 非空转：叶键规模与两栏条数满足恒等式（防解析写�
   const kinds = POLICY_FIXED.reduce((m, o) => ((m[o.kind] = (m[o.kind] || 0) + 1), m), {});
   assert.ok(kinds.institutional >= 5,
     `固定台账里 institutional 只 ${kinds.institutional} 条（G3-2 判定表结论应为 7）——判据可能被改松`);
+});
+
+// ── R7-33（2026-10-22 第七轮）：考勤 / 复盘超期改为「日期 + policy」现算，不再依赖存储快照 ──
+test('⑫ R7-33 考勤超期现算：历史 overdue:false 但已过补课时限 ⇒ 超期；已补课/线上参会不判', () => {
+  const policy = { makeup: { deadlineDays: 7 } };
+  // 存储快照写 false（历史遗留），日期已过 ⇒ 现算必须为 true
+  const historical = { id: 'att-x', status: 'absent', overdue: false, recordedAt: '2026-07-01T18:00:00Z' };
+  assert.equal(isAttendanceOverdue(historical, { today: '2026-07-09', policy }), true,
+    '活动日 07-01 + 7 天 = 07-08；07-09 已过 ⇒ 超期（不看存储 overdue）');
+  assert.equal(isAttendanceOverdue(historical, { today: '2026-07-08', policy }), false, '期限当日不算超期');
+  assert.equal(isAttendanceOverdue({ ...historical, status: 'made_up' }, { today: '2026-07-09', policy }), false, '已补课不判超期');
+  assert.equal(isAttendanceOverdue({ ...historical, status: 'present' }, { today: '2026-07-09', policy }), false, '已出勤不判超期');
+  assert.equal(isAttendanceOverdue({ ...historical, status: 'leave', onlineAttend: true }, { today: '2026-07-09', policy }), false, '线上参会免补课 ⇒ 不判超期');
+  // 天数随制度参数走：同一记录在 30 天时限下不超期
+  assert.equal(isAttendanceOverdue(historical, { today: '2026-07-20', policy: { makeup: { deadlineDays: 30 } } }), false,
+    '补课时限改为 30 天后，07-20 未超期');
+});
+
+test('⑬ R7-33 复盘超期现算：未提交 / 已打回按期限判；已提交、已确认不判', () => {
+  const policy = { review: { deadlineDays: 10 } };
+  const notSubmitted = { id: 'rev-x', activityId: 'act-x', date: '2026-07-19', overdue: false, reviewStatus: '未提交' };
+  assert.equal(isReviewOverdue(notSubmitted, { today: '2026-07-30', policy }), true,
+    '活动日 07-19 + 10 天 = 07-29；07-30 已过 ⇒ 超期（存储 overdue:false 不再生效）');
+  assert.equal(isReviewOverdue(notSubmitted, { today: '2026-07-29', policy }), false, '期限当日不算超期');
+  assert.equal(isReviewOverdue({ ...notSubmitted, submittedAt: '2026-07-20T10:00:00Z', reviewStatus: '已上传' },
+    { today: '2026-07-30', policy }), false, '已提交（已上传）不判超期');
+  assert.equal(isReviewOverdue({ ...notSubmitted, submittedAt: '2026-07-20T10:00:00Z', reviewStatus: '批注中' },
+    { today: '2026-07-30', policy }), false, '批注中不判超期');
+  assert.equal(isReviewOverdue({ ...notSubmitted, confirmedAt: '2026-07-21T10:00:00Z' },
+    { today: '2026-07-30', policy }), false, '已确认不判超期');
+  assert.equal(isReviewOverdue({ ...notSubmitted, submittedAt: '2026-07-20T10:00:00Z', reviewStatus: '已打回' },
+    { today: '2026-07-30', policy }), true, '已打回且未重交 ⇒ 超期');
 });

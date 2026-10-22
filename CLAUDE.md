@@ -837,6 +837,13 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/DOC
 | B-500-8 | mock 真值持续：新表 / 新字段必须进 `seed-manifest` 并过 parity | `seed-manifest.js` + `mock-api-parity-structure` | 持续 |
 | B-500-9 | 测试分层预算维持：新增测试同批登记层级，预算只降不升 | `test-tier-registry.mjs` + `test-tier-guard` | 持续 |
 | B-500-10 | 「支部配置」引导向导的落点：`#pc-wizard-host` 现只在 `branch-config.html`（sections 模式）挂载，党委台「支部管理」页不再有可切支部的 guided 向导 ⇒ `module-config-e2e` / `block-config-ui-e2e` 两条真机红 | `branches-tab.js` + `party-config-tab.js` + `branch-config-entry.js` | 已完成（批次 501：党委在 `wizard.html` 可切支部并代配置（`D-825`）；两条 e2e 改签到 `/wizard.html?branch=br-b1`；向导按支部补取完整 config） |
+| B-502-1 | 第八轮专项：**最小三成本原则**复审（学习成本 / 使用成本 / 维护成本；含「同一任务只留一个权威处理位」与空值词表） | `REVIEW_QUEUE 附录⑤` + `content/04_web_design/evolution/DESIGN_METHODOLOGY.md` + `H25` | 待启动（支书 2026-10-22 圈定再走 3–4 轮） |
+| B-502-2 | 第九轮专项：**功能与美观提升**＋**全栈数据结构设计**复审（页面质感 / 组件复用 / 数据模型与派生口径） | `DESIGN_SYSTEM.md` + `DATA_MODEL.md` + `FULLSTACK_AUDIT_R3.md` | 待启动 |
+| B-502-3 | 第六轮前端审查 P3 余项（21 条；报告 `.ctx/logs/2026-10-AUDIT_R6_FRONTEND.md`），含 `constants.js` 28 行引语块与 `server/seed.js` 墓志铭注释两处禁区项 | `2026-10-AUDIT_R6_FRONTEND.md` + `copy-*` 守卫 | 待启动 |
+| B-502-4 | 第七轮数据生命周期 P3 余项（23 条；报告 `.ctx/logs/2026-10-AUDIT_R7_DATA.md`），含「缺省支部」之外的 id 形态与 mock 时间老化 | `2026-10-AUDIT_R7_DATA.md` + `seed-manifest.js` | 待启动 |
+| B-502-5 | 账号重命名后的边界：旧 token 仍有效、旧 `person.html?id=旧学号` 与收藏外链会 404（已如实登记，不自动改写） | `server/routes/member.js` + `person-entry.js` | 后续（需支书定是否做旧链接跳转） |
+| B-502-6 | 补课文案与设置页仍各写「T+7」：`disc/makeup-tab.js` / `settings-entry.js` 未接统一 `makeupScopeHint()` 派生（R7-15 部分落地） | `services/activity/makeup.js` + `settings-entry.js` | 待启动 |
+| B-502-7 | `u_*` 系统账号口径：`getAll()` 保留（空支部基线可登录），成员面向名单走 `getMembers()`；不视为幽灵数据 | `services/member/person.js` + `reset-tier-init` | 已澄清（无需再改） |
 
 ***
 

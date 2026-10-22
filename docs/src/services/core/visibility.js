@@ -12,10 +12,10 @@
 //  核心："看 ≠ 做"——可见性只决定"能看到什么维度"，不授予任何操作权。
 // ════════════════════════════════════════════════════════════════
 
-import { PEOPLE } from '../../data/mock/people.js?v=20261022a';
-import { TaskForceRecordStore } from '../activity/taskforce.js?v=20261022a';
-import { loadActivities, isPendingApprovalActivity, isActivityOrganizerIn } from '../activity/activity.js?v=20261022a';
-import { BRANCH_COMMISSION_ROLES } from '../../core/domain/constants.js?v=20261022a';
+import { PEOPLE } from '../../data/mock/people.js?v=20261022c';
+import { TaskForceRecordStore } from '../activity/taskforce.js?v=20261022c';
+import { loadActivities, isPendingApprovalActivity, isActivityOrganizerIn } from '../activity/activity.js?v=20261022c';
+import { BRANCH_COMMISSION_ROLES } from '../../core/domain/constants.js?v=20261022c';
 
 // ── 可见维度（职责空间投影的最小充分信息）─────────────────────────
 //  progress    — 在办进度（待办/活动/专班聚合）
@@ -52,6 +52,8 @@ const ROLE_VISIBILITY = {
   'prop-commissioner': { targets: [],         dimensions: [] },
   'disc-commissioner': { targets: 'all',      dimensions: [VISIBLE_DIMENSIONS.attendance, VISIBLE_DIMENSIONS.inspection] },
   'leader':            { targets: 'own-group', dimensions: [VISIBLE_DIMENSIONS.progress, VISIBLE_DIMENSIONS.blocker, VISIBLE_DIMENSIONS.report, VISIBLE_DIMENSIONS.attendance, VISIBLE_DIMENSIONS.inspection] },
+  // 2026-10-22 第七轮 P2（`D-540`/`D-571`）：组长同权角色共用组长工作台 ⇒ 可见面与组长同一份
+  'deputy-leader':     { targets: 'own-group', dimensions: [VISIBLE_DIMENSIONS.progress, VISIBLE_DIMENSIONS.blocker, VISIBLE_DIMENSIONS.report, VISIBLE_DIMENSIONS.attendance, VISIBLE_DIMENSIONS.inspection] },
   'participant':       { targets: [],         dimensions: [] },
 };
 
@@ -208,5 +210,5 @@ export function canRevealActivityMemberNames(activity, viewer, selectedBranchId 
 }
 
 // 当前登录人读口（置文件末尾：ESM import 声明提升，不影响语义，避免改动上文行号 ⇒ README-server.md 引用不漂移）
-import { AuthStore } from './auth.js?v=20261022a';
+import { AuthStore } from './auth.js?v=20261022c';
 

@@ -5,7 +5,7 @@
 // ════════════════════════════════════════════════════════════════
 
 import { requireAuth, requireCommissioner } from '../auth.js';
-import { BRANCH_COMMISSION_ROLES, PARTY_STAFF_ROLE as PARTY_STAFF_KEYS, SECRETARY_AND_DEPUTY_ROLES, NOTICE_PUBLISH_ROLES, NOTICE_MANAGE_ROLES, MEMBER_FLOW_ROLES, ORG_COMMISSIONER_ROLES, INSPECTION_WRITE_ROLES, INSPECTION_CONFIRM_ROLES, branchCommissionerWriteDeny, isAnonymousForced } from '../../../docs/src/core/domain/constants.js';
+import { BRANCH_COMMISSION_ROLES, PARTY_STAFF_ROLE as PARTY_STAFF_KEYS, SECRETARY_AND_DEPUTY_ROLES, NOTICE_PUBLISH_ROLES, NOTICE_MANAGE_ROLES, MEMBER_FLOW_ROLES, ORG_COMMISSIONER_ROLES, INSPECTION_WRITE_ROLES, INSPECTION_CONFIRM_ROLES, branchCommissionerWriteDeny, isAnonymousForced, PARTY_GROUP_LEADER_ROLES, isPartyGroupLeaderRole, DEFAULT_BRANCH_ID, LEADER_CREATABLE_ACTIVITY_TYPES } from '../../../docs/src/core/domain/constants.js';
 import { RESOURCE_TABLES, listTable } from './store.js';
 import { actorBranchId, resourceBranchId } from './branch-scope.js';
 import { CAPABILITY_PACKAGES } from '../../../docs/src/core/domain/capability-packages.js';
@@ -41,7 +41,7 @@ export const RESOURCE_WRITE_GATE = {
 
 /** 支部归属口径：显式 null 保持 null（待归属/党委），仅历史缺字段回落 br-b1 */
 function _branchOrLegacy(value) {
-  return value === null ? null : (value || 'br-b1');
+  return value === null ? null : (value || DEFAULT_BRANCH_ID);
 }
 
 /**
@@ -56,7 +56,7 @@ export function _isActivityOrganizer(db, actor, activityId) {
   let activity;
   try { activity = JSON.parse(row.data); } catch { return false; }
   const own = actorBranchId(actor);
-  if (own && (activity.branchId || 'br-b1') !== own) return false;
+  if (own && (activity.branchId || DEFAULT_BRANCH_ID) !== own) return false;
   return activity.organizer === actor.id
     || (Array.isArray(activity.assignments)
       && activity.assignments.some((item) => item?.personId === actor.id && item.role === 'organizer'));
@@ -130,12 +130,12 @@ export function _writeDenyMsg(name) {
 //   ② 党小组组长仅限「党小组会 / 主题党日」（对齐 SYSTEM_ROLE_PERMISSION §9a 与组长手册）。
 // 支委层既有功能位（宣传归档、议程/结果编辑、状态更新）保持放行，不在此收口——是否进一步收紧为
 //   §9a 原文「仅支书/副支书/党小组组长」列入丙部待支书裁（避免误伤归档/议程链路）。
-const ACTIVITY_WRITE_ROLES = new Set([...BRANCH_COMMISSION_ROLES, 'leader']);
-const LEADER_ACTIVITY_TYPES = new Set(['党小组会', '主题党日']);
+const ACTIVITY_WRITE_ROLES = new Set([...BRANCH_COMMISSION_ROLES, ...PARTY_GROUP_LEADER_ROLES]);
+const LEADER_ACTIVITY_TYPES = new Set(LEADER_CREATABLE_ACTIVITY_TYPES); // R7-19 单一源 = constants.js（与通知受众门同源）
 export const ACTIVITY_WRITE_DENY_MSG = '无权限：活动写入仅限支委层与党小组组长（组长限党小组会/主题党日）';
 export function _assertActivityWrite(actor, effectiveType) {
   if (!actor || !ACTIVITY_WRITE_ROLES.has(actor.role)) return false;
-  if (actor.role === 'leader') return LEADER_ACTIVITY_TYPES.has(effectiveType);
+  if (isPartyGroupLeaderRole(actor.role)) return LEADER_ACTIVITY_TYPES.has(effectiveType);
   return true;
 }
 export function _ballotModeReject(voteConfig) {
@@ -248,7 +248,7 @@ export function _assertActivityBlockEnabled(db, actor, effectiveType) {
 /** 明确停用某支部能力包时拒绝新建该包主对象；旧分支无配置仍兼容默认启用。 */
 export function _assertCapabilityPackageEnabled(db, actor, packageId) {
   const branchId = actor && Object.prototype.hasOwnProperty.call(actor, 'branchId')
-    ? actor.branchId : (actor ? 'br-b1' : null);
+    ? actor.branchId : (actor ? DEFAULT_BRANCH_ID : null);
   if (!branchId) return true; // 无支部归属（党委/待归属）：不套用任何支部停用配置
   const row = db.prepare('SELECT data FROM branches WHERE id = ?').get(branchId);
   if (!row) return true;
@@ -263,7 +263,7 @@ export function _assertWorkflowBlockEnabled(db, actor, blockId) {
   if (!blockId) return true;
   // 显式 null = 无支部归属（党委/待归属）⇒ 不套用支部配置；仅历史缺字段回落 br-b1。
   const branchId = actor && Object.prototype.hasOwnProperty.call(actor, 'branchId')
-    ? actor.branchId : (actor ? 'br-b1' : null);
+    ? actor.branchId : (actor ? DEFAULT_BRANCH_ID : null);
   if (!branchId) return true;
   const row = db.prepare('SELECT data FROM branches WHERE id = ?').get(branchId);
   if (!row) return true;                            // 支部不存在 ⇒ 交给其它门拦；本门不越权
@@ -497,7 +497,7 @@ function _isInspectionActivityOrganizer(db, actor, activityId) {
   let activity;
   try { activity = JSON.parse(row.data); } catch { return false; }
   const own = actorBranchId(actor);
-  if (own && (activity.branchId || 'br-b1') !== own) return false;
+  if (own && (activity.branchId || DEFAULT_BRANCH_ID) !== own) return false;
   return Array.isArray(activity.assignments)
     && activity.assignments.some((item) => item?.personId === actor.id && item.role === 'deep');
 }
@@ -706,7 +706,7 @@ function _assertResourceWriteTail(need, db, actor, method, body, targetId) {
         let src = null;
         try { src = JSON.parse(found.data); } catch { src = null; }
         const own = actorBranchId(actor);
-        derivedFromSource = !!src && (!own || (src.branchId || 'br-b1') === own);
+        derivedFromSource = !!src && (!own || (src.branchId || DEFAULT_BRANCH_ID) === own);
       }
     }
     const mayCreateForOthers = canDeriveForOthers || derivedFromSource;
@@ -725,7 +725,7 @@ function _assertResourceWriteTail(need, db, actor, method, body, targetId) {
   }
   if (need === 'task-row') {
     if (!actor) return false;
-    if (_isCommitteeRole(actor) || actor.role === 'leader') return true;
+    if (_isCommitteeRole(actor) || isPartyGroupLeaderRole(actor.role)) return true;
     const row = _gateTargetRow(db, 'tasks', body, targetId);
     if (row.assigneeId && String(row.assigneeId) === String(actor.id)) return true;
     if (row.createdBy && String(row.createdBy) === String(actor.id)) return true;
@@ -733,7 +733,7 @@ function _assertResourceWriteTail(need, db, actor, method, body, targetId) {
   }
   if (need === 'assignment-row') {
     if (!actor) return false;
-    if (_isCommitteeRole(actor) || actor.role === 'leader') return true;
+    if (_isCommitteeRole(actor) || isPartyGroupLeaderRole(actor.role)) return true;
     const row = _gateTargetRow(db, 'assignments', body, targetId);
     if (row.assigneeId && String(row.assigneeId) === String(actor.id)) return true;
     if (row.createdBy && String(row.createdBy) === String(actor.id)) return true;

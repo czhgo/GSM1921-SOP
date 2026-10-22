@@ -1,3 +1,4 @@
+import { DEFAULT_BRANCH_ID } from '../../core/domain/constants.js?v=20261022c';
 export const PEOPLE = [
   // ── 2026-09-06 基线刷新：首批 15 名成员姓名由「数字占位名」替换为常见真实人名（支书=储子禾 2300010001）──
   // ── S1–S4 滞留党员示范（2026-09-06 支书已批）：成员档案可选字段 residenceStatus('在校'|'滞留')/
@@ -69,5 +70,15 @@ export const PEOPLE = [
 // ── P1 党委后台（2026-09-02，支书决策：党员严格单支部）──
 // 成员缺省归属本科生党支部 br-b1；党委级人员（party-staff，Ste2400012348 引入）显式 branchId: null（不属于支部）
 for (const p of PEOPLE) {
-  if (p.branchId === undefined) p.branchId = 'br-b1';
+  if (p.branchId === undefined) p.branchId = DEFAULT_BRANCH_ID;
+}
+
+// R7-29（2026-10-22）：届别按学号前两位年份派生（24→2024 / 23→2023 / 25→2025）。
+// 党委组织员（学号 90 开头）非学生：字段保留但值为空（不适用），不伪造入学年份。
+// 放在归一循环里而不是逐行手写：新增成员自动带届别，避免再次出现「字段在模型/表单里、种子里全空」。
+for (const p of PEOPLE) {
+  if (p.enrollYear === undefined) {
+    const yy = String(p.studentId || p.id).slice(0, 2);
+    p.enrollYear = /^2\d$/.test(yy) ? `20${yy}` : '';
+  }
 }

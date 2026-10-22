@@ -15,6 +15,9 @@ import {
   ORG_COMMISSIONER_ROLES as ORG_COMMISSIONER_ROLE_KEYS,
   // 2026-09-14 批次 30（支书裁定 Q-23-10）：成员流动登记角色集单一源 —— 承载「流入登记」一路写门
   MEMBER_FLOW_ROLES as MEMBER_FLOW_ROLE_KEYS,
+  DEFAULT_BRANCH_ID,
+  // 2026-10-22 R7-01：账号重命名（人员主键改名）仅党委组织员可调用
+  PARTY_STAFF_ROLE,
 } from '../../docs/src/core/domain/constants.js';
 // 发展阶段枚举单一源 = docs/src/services/branch/org-base-data-preview.js（静态种子派生，勿另写枚举）
 import { DEVELOP_STAGE_OPTIONS } from '../../docs/src/services/branch/org-base-data-preview.js';
@@ -47,6 +50,29 @@ function getRow(db, table, id) {
 
 function writeRow(db, table, row) {
   db.prepare(`INSERT OR REPLACE INTO ${table} (id, data) VALUES (?, ?)`).run(row.id, JSON.stringify(row));
+}
+
+/**
+ * 人员主键重命名（纯函数，可单测）：递归替换 JSON 中**精确等于旧 id** 的字符串引用。
+ * · 数组元素逐项递归（含嵌套对象/数组）；
+ * · 对象键也按同口径替换（历史 `personStages: { <personId>: stage }` 这类以人员 id 为键的映射）；
+ * · 仅「整值相等」才替换——备注、审计原文等自由文本里出现旧 id 时保持原样（不做子串改写）。
+ * @param {*} value 任意 JSON 值
+ * @param {string} from 旧人员 id
+ * @param {string} to 新人员 id
+ * @returns {*} 替换后的新值（不修改入参）
+ */
+export function renamePersonRefs(value, from, to) {
+  if (typeof value === 'string') return value === from ? to : value;
+  if (Array.isArray(value)) return value.map((item) => renamePersonRefs(item, from, to));
+  if (value && typeof value === 'object') {
+    const out = {};
+    for (const [key, item] of Object.entries(value)) {
+      out[key === from ? to : key] = renamePersonRefs(item, from, to);
+    }
+    return out;
+  }
+  return value;
 }
 
 export function createMemberRouter(db) {
@@ -93,7 +119,7 @@ export function createMemberRouter(db) {
     const id = `mcr-${randomUUID().slice(0, 8)}`;
     const activity = getRow(db, 'activities', activityId);
     if (!activity) return res.status(404).json({ error: '关联活动不存在' });
-    const rowBranchId = activity.branchId || 'br-b1';
+    const rowBranchId = activity.branchId || DEFAULT_BRANCH_ID;
     const row = {
       id,
       branchId: rowBranchId,
@@ -227,14 +253,16 @@ export function createMemberRouter(db) {
   const RESIDENCE_FIELDS = ['residenceStatus', 'residenceNote', 'residenceHistory'];
   // `D-788`（2026-10-05 · `V-10b` · 支书圈甲「本人可填 ＋ 支委层代录」）：`selfProfile`（成员「自我描述」）
   //   并入**档案属性**白名单；**本人自填**另走「②′ 例外」——仅 `selfProfile` 一键、仅靶标＝本人（不放宽其他字段）。
-  const PROFILE_FIELDS = ['name', 'studentId', 'enrollYear', 'partyGroup', 'selfProfile', ...RESIDENCE_FIELDS];
+  // 2026-10-22 R7-01：`studentId` 移出白名单——学号即人员主键，改名只走 `/members/:id/account-rename`
+  //   （受控端点同事务重写 users.id / 会话 / 业务引用）；本端点再改学号只会重新制造「主键与学号不一致」。
+  const PROFILE_FIELDS = ['name', 'enrollYear', 'partyGroup', 'selfProfile', ...RESIDENCE_FIELDS];
   const CREATE_FIELDS = ['id', 'name', 'studentId', 'enrollYear', 'partyGroup', 'developStage', ...RESIDENCE_FIELDS];
   /** 本人自填**仅可写**的字段集（`D-788`：边界＝只此一键；其余档案字段仍归组织委员） */
   const SELF_WRITE_FIELDS = ['selfProfile'];
   const RESIDENCE_VALUES = [RESIDENCE.CAMPUS, RESIDENCE.DETAINED];
   const TRANSFER_OUT_ROLES = new Set(['org-commissioner', ...SECRETARY_DEPUTY_ROLE_KEYS]);
   // 显式 null = 待归属（IAAA 建号未确认）⇒ 保持 null；仅历史缺字段回落 br-b1。
-  const branchOf = (u) => (u && (u.branchId === null ? null : (u.branchId || 'br-b1')));
+  const branchOf = (u) => (u && (u.branchId === null ? null : (u.branchId || DEFAULT_BRANCH_ID)));
   const readUser = (id) => {
     const row = db.prepare('SELECT data FROM users WHERE id = ?').get(id);
     return row ? JSON.parse(row.data) : null;
@@ -257,6 +285,61 @@ export function createMemberRouter(db) {
     return res.json(projectMemberProfile(user));
   });
   const firstOutside = (body, allowed) => Object.keys(body).find((k) => !allowed.includes(k));
+
+  // ── 账号重命名（R7-01 · 2026-10-22）：人员主键改名受控端点，仅党委组织员 ─────────────
+  // 病灶：学号原可在档案编辑模态里改，但 `PATCH /members/:id/profile` 只并入 `users.data`，
+  //   `users.id` 主键不动 ⇒ 新学号登不进、旧学号仍能登、历史记录全指向旧号。
+  // 本端点把「改学号」定义为**人员主键重命名**，一个事务内同步：
+  //   users.id / users.data.id / users.data.studentId、sessions.person_id、attachments.uploaded_by、
+  //   各业务表 JSON 中精确等于旧 id 的字符串引用（递归，含数组元素），并写一条 auth_audit 留痕。
+  const PARTY_STAFF_ROLES = new Set(PARTY_STAFF_ROLE);
+  const LEGACY_PERSON_ID_PATTERN = /^p(?:\d+|_.*)$/i;
+  const jsonTables = () => db.prepare(
+    "SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%' AND name <> 'users'",
+  ).all()
+    .map((row) => String(row.name))
+    .filter((table) => db.prepare('SELECT 1 FROM pragma_table_info(?) WHERE name = ?').get(table, 'data'));
+
+  router.post('/members/:id/account-rename', requireRole(db, PARTY_STAFF_ROLES), (req, res) => {
+    const body = (req.body && typeof req.body === 'object' && !Array.isArray(req.body)) ? req.body : {};
+    const bad = firstOutside(body, ['newPersonId']);
+    if (bad) return res.status(400).json({ error: `字段 ${bad} 不在白名单（本端点仅可写 newPersonId）` });
+    const from = String(req.params.id);
+    const to = String(body.newPersonId == null ? '' : body.newPersonId).trim();
+    if (!to) return res.status(400).json({ error: '新学号不能为空' });
+    if (LEGACY_PERSON_ID_PATTERN.test(to)) {
+      return res.status(400).json({ error: '新学号不得为旧 p* 形态（人员主键一律用学号/工号）' });
+    }
+    if (!readUser(from)) return res.status(404).json({ error: '成员不存在' });
+    if (from === to || db.prepare('SELECT 1 FROM users WHERE id = ?').get(to)) {
+      return res.status(409).json({ error: '新学号已被占用' });
+    }
+    const at = new Date().toISOString();
+    const auditId = `auth-${randomUUID().slice(0, 8)}`;
+    db.transaction(() => {
+      const user = readUser(from);
+      const nextData = { ...renamePersonRefs(user, from, to), id: to, studentId: to };
+      db.prepare('UPDATE users SET id = ?, data = ? WHERE id = ?').run(to, JSON.stringify(nextData), from);
+      db.prepare('UPDATE sessions SET person_id = ? WHERE person_id = ?').run(to, from);
+      // 附件上传人同属人员引用列（旧 v7 迁移同口径）；表可能不存在于最小测试库。
+      if (db.prepare("SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'attachments'").get()) {
+        db.prepare('UPDATE attachments SET uploaded_by = ? WHERE uploaded_by = ?').run(to, from);
+      }
+      for (const table of jsonTables()) {
+        const update = db.prepare(`UPDATE "${table}" SET data = ? WHERE id = ?`);
+        for (const row of db.prepare(`SELECT id, data FROM "${table}"`).all()) {
+          let parsed;
+          try { parsed = JSON.parse(row.data); } catch { continue; }
+          const next = renamePersonRefs(parsed, from, to);
+          if (JSON.stringify(next) !== row.data) update.run(JSON.stringify(next), row.id);
+        }
+      }
+      // 留痕形状：what/from/to/by/at（账号改名不是授权授予，故不复用 grant/revoke 语义）
+      const audit = { id: auditId, what: 'account-renamed', from, to, by: req.actor.id, at };
+      db.prepare('INSERT OR REPLACE INTO auth_audit (id, data) VALUES (?, ?)').run(audit.id, JSON.stringify(audit));
+    })();
+    res.json({ ok: true, from, to });
+  });
 
   // ① 在册状态镜像：成员变更确认链支书/副支书确认生效 → 写 residenceStatus/Note/History（副书同权 + 同支部）
   router.post('/members/:id/residence-status', requireRole(db, SECRETARY_AND_DEPUTY_ROLES), (req, res) => {

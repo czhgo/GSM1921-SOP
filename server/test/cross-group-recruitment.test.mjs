@@ -47,7 +47,7 @@ const workgroupRow = (id) => JSON.parse(db.prepare('SELECT data FROM workgroups 
 test('跨党小组深参未标记跨组招募 ⇒ 拒绝；标记并指定协调人 ⇒ 落 crossGroup/coordinatedBy', async () => {
   const denied = await request('activities', '2300010001', 'POST', {
     title: '跨组深参未协调', type: '主题党日', date: '2026-10-25',
-    organizingScope: 'cross-group', hostGroupId: 'pg-1', hostGroup: '第一党小组',
+    organizingScope: 'party-group', hostGroupId: 'pg-1', hostGroup: '第一党小组',
     assignments: [{ personId: '2300010001', role: 'organizer' }, { personId: '2400012349', role: 'deep' }],
   });
   assert.equal(denied.status, 403);
@@ -55,7 +55,7 @@ test('跨党小组深参未标记跨组招募 ⇒ 拒绝；标记并指定协调
 
   const ok = await request('activities', '2300010001', 'POST', {
     title: '跨组深参已协调', type: '主题党日', date: '2026-10-26',
-    organizingScope: 'cross-group', hostGroupId: 'pg-1', hostGroup: '第一党小组',
+    organizingScope: 'party-group', hostGroupId: 'pg-1', hostGroup: '第一党小组',
     recruitmentScope: 'cross-group', crossGroupCoordinatorId: '2400012355',
     assignments: [{ personId: '2300010001', role: 'organizer' }, { personId: '2400012349', role: 'deep' }],
   });
@@ -74,7 +74,7 @@ test('跨党小组深参未标记跨组招募 ⇒ 拒绝；标记并指定协调
 test('单加跨组深参同样受招募标记约束；标记后写入跨组字段', async () => {
   const plain = await request('activities', '2300010001', 'POST', {
     title: '未标记跨组招募的活动', type: '主题党日', date: '2026-10-27',
-    organizingScope: 'cross-group', hostGroupId: 'pg-1', hostGroup: '第一党小组',
+    organizingScope: 'party-group', hostGroupId: 'pg-1', hostGroup: '第一党小组',
     assignments: [{ personId: '2300010001', role: 'organizer' }],
   });
   assert.equal(plain.status, 201);
@@ -86,7 +86,7 @@ test('单加跨组深参同样受招募标记约束；标记后写入跨组字�
 
   const marked = await request('activities', '2300010001', 'POST', {
     title: '已标记跨组招募的活动', type: '主题党日', date: '2026-10-28',
-    organizingScope: 'cross-group', hostGroupId: 'pg-1', hostGroup: '第一党小组',
+    organizingScope: 'party-group', hostGroupId: 'pg-1', hostGroup: '第一党小组',
     recruitmentScope: 'cross-group', crossGroupCoordinatorId: '2400012355',
     assignments: [{ personId: '2300010001', role: 'organizer' }],
   });
@@ -102,7 +102,7 @@ test('单加跨组深参同样受招募标记约束；标记后写入跨组字�
 test('组织委员标记协调完成 / 撤销；不获得活动写权，未标记活动不出现协调动作', async () => {
   const created = await request('activities', '2300010001', 'POST', {
     title: '待协调的跨组活动', type: '主题党日', date: '2026-10-29',
-    organizingScope: 'cross-group', hostGroupId: 'pg-1', hostGroup: '第一党小组',
+    organizingScope: 'party-group', hostGroupId: 'pg-1', hostGroup: '第一党小组',
     recruitmentScope: 'cross-group', crossGroupCoordinatorId: '2400012355',
     assignments: [{ personId: '2300010001', role: 'organizer' }, { personId: '2400012349', role: 'deep' }],
   });
@@ -124,7 +124,7 @@ test('组织委员标记协调完成 / 撤销；不获得活动写权，未标�
 
   const plain = await request('activities', '2300010001', 'POST', {
     title: '无需协调的活动', type: '主题党日', date: '2026-10-30',
-    organizingScope: 'cross-group', hostGroupId: 'pg-1', hostGroup: '第一党小组', assignments: [],
+    organizingScope: 'party-group', hostGroupId: 'pg-1', hostGroup: '第一党小组', assignments: [],
   });
   assert.equal(plain.status, 201);
   const notNeeded = await request(`workgroups/${plain.data.workgroupId}/coordinate`, '2400012355', 'POST', { action: 'complete' });

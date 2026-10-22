@@ -28,8 +28,9 @@
 // ════════════════════════════════════════════════════════════════
 
 /** 支部名与类型（支书点名：既存支部＝光华管理学院本科生党支部） */
+import { DEFAULT_BRANCH_ID } from '../docs/src/core/domain/constants.js';
 const BASELINE_BRANCH = {
-  id: 'br-b1',
+  id: DEFAULT_BRANCH_ID,
   name: '光华管理学院本科生党支部',
   type: '本科生',
   config: {

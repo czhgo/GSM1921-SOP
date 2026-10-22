@@ -17,6 +17,8 @@
 //   组长学期提醒消费——一律改由本文件派生）。
 // ════════════════════════════════════════════════════════════════
 
+import { todayLocal } from '../base/date.js?v=20261022c';
+
 /** 深拷贝工具（policy 结构纯 JSON 数据；factory 基准深拷贝/复位用） */
 function _clone(v) {
   return JSON.parse(JSON.stringify(v));
@@ -369,4 +371,82 @@ export function applyPolicyOverrides(clean) {
     }
   }
   return n;
+}
+
+// ════════════════════════════════════════════════════════════════
+//  考勤 / 复盘「已超期」现算（R7-33 单一源，2026-10-22）
+// ════════════════════════════════════════════════════════════════
+// 病灶：`overdue` 原是记录上的**存储快照**（mock 里少数行写死 true，新增一律 false）
+//   ⇒ 真实缺勤记录永远不会变「已超期」，政策时限调整也不跟随；同一「逾期」在
+//   纪检总表（OR 日期现算）与成员台（只读快照）出现两种结果。
+// 口径（纯函数，call-time 读 POLICY_DEFAULTS；today 可注入以便测试）：
+//   · 考勤：缺勤/请假未闭环，且已过**补课时限**（活动日 + makeup.deadlineDays）；
+//     已出勤 / 已补课（made_up）/ 线上参会 / 已作废 不判超期。
+//   · 复盘：未提交或已打回，且已过**复盘提交期限**（活动日 + review.deadlineDays）；
+//     已确认 / 已提交（已上传·批注中）/ 已作废 不判超期。
+// 存储字段 `overdue` 保留作历史兼容（不回写、不迁移），读侧一律改调本组函数。
+// ════════════════════════════════════════════════════════════════
+
+/** 本地日历日 + n 天（纯字符串/Date 运算；非法输入原样返回） */
+function _addDays(dateKey, n) {
+  const m = /^(\d{4})-(\d{1,2})-(\d{1,2})$/.exec(String(dateKey || ''));
+  if (!m) return dateKey;
+  const d = new Date(+m[1], +m[2] - 1, +m[3] + n);
+  const pad = (x) => String(x).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+}
+
+/** 取记录上的日期锚点（活动日 / 记录日；显式 deadline 由 `_deadlineOf` 优先处理） */
+function _recordDateKey(record) {
+  const r = record || {};
+  const base = r.date || r.activityDate || r.recordedAt || r.submittedAt || r.createdAt || '';
+  const key = String(base).slice(0, 10);
+  return /^\d{4}-\d{2}-\d{2}$/.test(key) ? key : '';
+}
+
+/** 期限：显式 deadline（YYYY-MM-DD）优先，否则日期锚点 + policy 天数 */
+function _deadlineOf(record, days, fallbackDays) {
+  const explicit = String((record || {}).deadline || '');
+  if (/^\d{4}-\d{2}-\d{2}$/.test(explicit)) return explicit;
+  const base = _recordDateKey(record);
+  if (!base) return '';
+  return _addDays(base, Number.isInteger(days) ? days : fallbackDays);
+}
+
+/** 是否已过期限（today 严格大于 deadline 才算超期；当日不算） */
+function _isPast(today, deadline) {
+  return !!deadline && String(today) > deadline;
+}
+
+/**
+ * 考勤记录是否已超期（现算，R7-33）。
+ * @param {Object} record 考勤记录（date/activityDate/recordedAt 任一作日期锚点；deadline 优先）
+ * @param {{today?: string, policy?: Object}} [opts]
+ * @returns {boolean}
+ */
+export function isAttendanceOverdue(record, { today = todayLocal(), policy = POLICY_DEFAULTS } = {}) {
+  if (!record) return false;
+  // 已闭环：出勤 / 已补课 / 线上参会（免补课）/ 已作废（已处理）
+  if (record.status === 'present' || record.status === 'made_up') return false;
+  if (record.onlineAttend === true) return false;
+  if (record.voided === true) return false;
+  const days = (policy.makeup || {}).deadlineDays;
+  return _isPast(today, _deadlineOf(record, days, 7));
+}
+
+/**
+ * 复盘记录是否已超期（现算，R7-33）。
+ * 「已提交」（有 submittedAt 且非「已打回」）与「已确认」不判超期；未提交 / 已打回按期限判。
+ * @param {Object} record 复盘记录（date/activityDate 作活动日；deadline 优先）
+ * @param {{today?: string, policy?: Object}} [opts]
+ * @returns {boolean}
+ */
+export function isReviewOverdue(record, { today = todayLocal(), policy = POLICY_DEFAULTS } = {}) {
+  if (!record) return false;
+  if (record.confirmedAt) return false;                        // 已确认
+  if (record.voided === true) return false;                    // 已作废（已处理）
+  const rejected = record.reviewStatus === '已打回';
+  if (record.submittedAt && !rejected) return false;           // 已上传 / 批注中：组织者已交
+  const days = (policy.review || {}).deadlineDays;
+  return _isPast(today, _deadlineOf(record, days, 10));
 }

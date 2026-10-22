@@ -1,4 +1,4 @@
-import { BRANCH_COMMISSION_ROLES, SECRETARY_AND_DEPUTY_ROLES, usesFormalMeetingRoster } from '../../../docs/src/core/domain/constants.js';
+import { DEFAULT_BRANCH_ID, BRANCH_COMMISSION_ROLES, SECRETARY_AND_DEPUTY_ROLES, usesFormalMeetingRoster } from '../../../docs/src/core/domain/constants.js';
 import { TASKFORCE_ACTIVE_STATUSES } from '../../../docs/src/core/domain/domain.js';
 import { today as todayLocal } from '../../services/reporting.js';
 import { actorBranchId, resourceBranchId } from './branch-scope.js';
@@ -72,7 +72,7 @@ function sourceAndPersonDeny(db, actor, signup, { creating = false, requireOwner
   const ownBranch = actorBranchId(actor);
   if (ownBranch && source.branchId !== ownBranch) return '无权限：报名来源属于其他支部';
   const person = rowOf(db, 'users', signup.personId);
-  if (!person || (person.branchId || 'br-b1') !== source.branchId) return '无权限：报名人必须属于来源所在支部';
+  if (!person || (person.branchId || DEFAULT_BRANCH_ID) !== source.branchId) return '无权限：报名人必须属于来源所在支部';
   if (signup.branchId && signup.branchId !== source.branchId) return '报名支部归属须与来源对象一致';
   return null;
 }

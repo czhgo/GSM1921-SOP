@@ -1,38 +1,46 @@
 // Mock 数据兼容迁移：为已有活动/专班建立稳定工作组主记录。
 // 不搬移普通参与者，不猜测旧专班任务/产出；原始业务记录仍是来源。
-import { WorkgroupStatus, workgroupStatusForTaskforce } from '../core/domain/domain.js?v=20261022a';
-import { isBranchLevelActivity } from '../core/domain/constants.js?v=20261022a';
-import { PARTY_GROUPS } from './mock/party-groups.js?v=20261022a';
-import { PEOPLE } from './mock/people.js?v=20261022a';
+import { WorkgroupStatus, workgroupStatusForTaskforce } from '../core/domain/domain.js?v=20261022c';
+import { DEFAULT_BRANCH_ID, ACTIVITY_SCOPES, isBranchLevelActivity, normalizeOrganizingScope } from '../core/domain/constants.js?v=20261022c';
+import { PARTY_GROUPS } from './mock/party-groups.js?v=20261022c';
+import { PEOPLE } from './mock/people.js?v=20261022c';
 
 const MEMBER_ROLES = new Set(['organizer', 'deep']);
 
 /**
- * 种子活动的组织落点归一（2026-10-21 批次 499）。
+ * 种子活动的组织落点归一（2026-10-21 批次 499/502）。
  * 演示种子是**本仓作者维护的夹具**，不是线上存量：这里按既有事实补齐
  * `organizingScope / hostGroupId / recruitmentScope / crossGroupCoordinatorId`，
  * 使 mock 与真实 API 结构一致；不新增人员、不编造活动。
  * 规则（均可由既有字段直接判定，不做归属猜测）：
- *   · 支部级场景 ⇒ `branch`，无责任组；
- *   · 已写 hostGroup 名称 ⇒ 以该组为责任组；否则以组织者所属党小组为责任组（母本「组织者一般本组」）；
- *   · 党小组会 ⇒ `party-group`，其余 ⇒ `cross-group`（跨组参与范围，但仍落到责任组）；
+ *   · 支部级场景 ⇒ `branch`，无承办组；
+ *   · 其余一律 `party-group`（跨组不是第三种落点）；承办组优先取既有 hostGroup，
+ *     否则取组织者所属党小组（母本「组织者一般本组」）；
  *   · 深度参与者来自其他党小组 ⇒ 标记 `recruitmentScope='cross-group'`，协调人取本支部组织委员，
  *     并在成员行写 `crossGroup/coordinatedBy`（与 API 写入结果同构）；
- *   · 仍无法判定责任组 ⇒ `legacyHostGroup=true`，留给组织台补选，不猜。
+ *   · 仍无法判定承办组 ⇒ `legacyHostGroup=true`，留给组织台补选，不猜。
  */
 export function normalizeSeedActivityOrganizing(activities) {
   const groups = Array.isArray(PARTY_GROUPS) ? PARTY_GROUPS : [];
   const commissioner = PEOPLE.find((p) => p.role === 'org-commissioner') || null;
   return (Array.isArray(activities) ? activities : []).map((activity) => {
-    if (activity.organizingScope) return activity;
+    const { legacyHostGroup, ...rest } = activity;
     if (isBranchLevelActivity(activity)) {
-      return { ...activity, organizingScope: 'branch', hostGroupId: null, hostGroup: '' };
+      return { ...rest, organizingScope: ACTIVITY_SCOPES.BRANCH, hostGroupId: null, hostGroup: '' };
     }
     const organizer = PEOPLE.find((p) => p.id === activity.organizer);
-    const group = (activity.hostGroup && groups.find((g) => g.name === activity.hostGroup))
+    const group = (activity.hostGroupId && groups.find((g) => g.id === activity.hostGroupId))
+      || (activity.hostGroup && groups.find((g) => g.name === activity.hostGroup))
       || (organizer?.partyGroup && groups.find((g) => g.name === organizer.partyGroup))
       || null;
-    if (!group) return { ...activity, legacyHostGroup: true };
+    if (!group) {
+      return {
+        ...rest,
+        organizingScope: normalizeOrganizingScope(activity.organizingScope, activity),
+        hostGroupId: activity.hostGroupId || null,
+        legacyHostGroup: legacyHostGroup || !activity.hostGroupId || undefined,
+      };
+    }
     const assignments = (Array.isArray(activity.assignments) ? activity.assignments : []).map((member) => {
       const person = PEOPLE.find((p) => p.id === member.personId);
       const cross = member.role === 'deep' && person?.partyGroup && person.partyGroup !== group.name;
@@ -40,8 +48,8 @@ export function normalizeSeedActivityOrganizing(activities) {
     });
     const crossRecruit = assignments.some((member) => member.crossGroup);
     return {
-      ...activity,
-      organizingScope: activity.type === '党小组会' ? 'party-group' : 'cross-group',
+      ...rest,
+      organizingScope: ACTIVITY_SCOPES.PARTY_GROUP,
       hostGroupId: group.id,
       hostGroup: group.name,
       assignments,
@@ -100,8 +108,12 @@ export function ensureLegacySourceWorkgroups(db) {
       const existingWorkgroup = explicitGroup || sourceCandidate || null;
       const workgroupId = existingWorkgroup?.id || source.workgroupId || groupIdFor(kind, source.id);
       let workgroup = existingWorkgroup;
-      const branchId = source.branchId || workgroup?.branchId || 'br-b1';
+      const branchId = source.branchId || workgroup?.branchId || DEFAULT_BRANCH_ID;
       const createdAt = source.createdAt || source.date || null;
+      // 组织落点只有两档：读取旧 cross-group / 空值时归一为 party-group（跨组只由 recruitmentScope 表达）。
+      const sourceScope = kind === 'activity' && source.organizingScope
+        ? normalizeOrganizingScope(source.organizingScope, source)
+        : source.organizingScope;
       let createdGroup = false;
 
       if (!workgroup) {
@@ -114,7 +126,7 @@ export function ensureLegacySourceWorkgroups(db) {
             ? (source.archived ? WorkgroupStatus.ARCHIVED : WorkgroupStatus.ACTIVE)
             : (source.deletedAt ? WorkgroupStatus.ARCHIVED : workgroupStatusForTaskforce(source.status)),
           ...(kind === 'activity' ? {
-            organizingScope: ['party-group', 'cross-group', 'branch'].includes(source.organizingScope) ? source.organizingScope : null,
+            organizingScope: sourceScope || null,
             hostGroupId: source.hostGroupId || null,
             recruitmentScope: source.recruitmentScope || 'group',
             crossGroupCoordinatorId: source.crossGroupCoordinatorId || null,
@@ -128,6 +140,14 @@ export function ensureLegacySourceWorkgroups(db) {
       }
 
       if (source.workgroupId !== workgroup.id) {
+        changed = true;
+      }
+
+      // 既有工作组的组织落点镜像同样收敛为两档（旧 mock / 旧 localStorage 里的 cross-group）。
+      if (kind === 'activity' && workgroup.organizingScope
+        && workgroup.organizingScope !== normalizeOrganizingScope(workgroup.organizingScope, source)) {
+        workgroup = { ...workgroup, organizingScope: normalizeOrganizingScope(workgroup.organizingScope, source) };
+        workgroups[workgroups.findIndex((row) => row.id === workgroup.id)] = workgroup;
         changed = true;
       }
 
@@ -150,7 +170,11 @@ export function ensureLegacySourceWorkgroups(db) {
         }
       }
 
-      return source.workgroupId === workgroup.id ? source : { ...source, workgroupId: workgroup.id };
+      const nextSource = source.organizingScope && kind === 'activity' && source.organizingScope !== sourceScope
+        ? { ...source, organizingScope: sourceScope }
+        : source;
+      if (nextSource !== source) changed = true;
+      return nextSource.workgroupId === workgroup.id ? nextSource : { ...nextSource, workgroupId: workgroup.id };
     });
 
     db.workgroups = workgroups;
@@ -170,12 +194,12 @@ export function ensureLegacySourceWorkgroups(db) {
 // 这条种子只补该演示账号在演示专班的 output.submit（deep 模板），不改角色权限矩阵。
 export const DEMO_WORKGROUP_GRANTS = Object.freeze([
   {
-    id: 'wgg-seed-tf-001-2400012349', branchId: 'br-b1', workgroupId: 'wg-taskforce-tf-001', personId: '2400012349',
+    id: 'wgg-seed-tf-001-2400012349', branchId: DEFAULT_BRANCH_ID, workgroupId: 'wg-taskforce-tf-001', personId: '2400012349',
     templateKey: 'deep', permissionKeys: ['output.submit', 'task.complete'], status: 'active',
     reason: '演示成员产出登记基线（历史：tf-001 已完成）', grantedBy: '9000000001', grantedAt: '2026-09-01T00:00:00.000Z',
   },
   {
-    id: 'wgg-seed-tf-002-2400012349', branchId: 'br-b1', workgroupId: 'wg-taskforce-tf-002', personId: '2400012349',
+    id: 'wgg-seed-tf-002-2400012349', branchId: DEFAULT_BRANCH_ID, workgroupId: 'wg-taskforce-tf-002', personId: '2400012349',
     templateKey: 'deep', permissionKeys: ['output.submit', 'task.complete'], status: 'active',
     reason: '演示成员产出登记基线（R2-32 后 active 载体＝tf-002）', grantedBy: '9000000001', grantedAt: '2026-10-18T00:00:00.000Z',
   },

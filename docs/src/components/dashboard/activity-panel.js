@@ -5,18 +5,20 @@
 //  职责单一：日历/列表双视图切换 + ?view=?month= URL 同步 + 活动列表（前 10 条）。
 // ════════════════════════════════════════════════════════════════
 
-import { setState, getAppState } from '../../core/base/state.js?v=20261022a';
-import { _fmtDate, getBasePath } from '../../core/base/utils.js?v=20261022a';
-import { getPersonName } from '../../services/member/person.js?v=20261022a';
-import { CrossPageState } from '../../core/session/cross-page-state.js?v=20261022a';
-import { AuthStore } from '../../services/core/auth.js?v=20261022a';
-import { getActivityTypeColors, DASHBOARD_LIMITS } from '../../core/domain/constants.js?v=20261022a';
+import { setState, getAppState } from '../../core/base/state.js?v=20261022c';
+import { _fmtDate, getBasePath } from '../../core/base/utils.js?v=20261022c';
+import { getPersonName } from '../../services/member/person.js?v=20261022c';
+import { CrossPageState } from '../../core/session/cross-page-state.js?v=20261022c';
+import { AuthStore } from '../../services/core/auth.js?v=20261022c';
+import { getActivityTypeColors, DASHBOARD_LIMITS } from '../../core/domain/constants.js?v=20261022c';
 // 活动「已归档」口径单一源（2026-09-13 收敛）：替代手写 !a.archived
-import { isActivityArchived } from '../../core/domain/constants.js?v=20261022a';
-import { badgeHtml } from '../ui/badges.js?v=20261022a';
-import { deriveActivityLifecycleStatus, ACTIVITY_LIFECYCLE } from '../record/inspector.js?v=20261022a';
-import { populateMonthSelector } from '../record/calendar.js?v=20261022a';
-import { getCapabilities, mountCapability, getRuntimeEnv } from '../../core/boot/registry.js?v=20261022a';
+import { isActivityArchived } from '../../core/domain/constants.js?v=20261022c';
+import { badgeHtml } from '../ui/badges.js?v=20261022c';
+// 活动「已完成 / 已取消」闭环判据单一源（R7-16）：替代手写 ['completed','cancelled']
+import { isActivityClosed } from '../../core/domain/domain.js?v=20261022c';
+import { deriveActivityLifecycleStatus, ACTIVITY_LIFECYCLE } from '../record/inspector.js?v=20261022c';
+import { populateMonthSelector } from '../record/calendar.js?v=20261022c';
+import { getCapabilities, mountCapability, getRuntimeEnv } from '../../core/boot/registry.js?v=20261022c';
 
 const DASHBOARD_DEFAULT_VIEW = 'calendar';
 const ACTIVITY_TYPE_COLORS = getActivityTypeColors({ withLabel: true });
@@ -90,7 +92,7 @@ export function renderActivityList(activities, user) {
   if (!container) return;
 
   // T223 排序统一：未完成在前、已完成在后，组内均按 date 降序（新者在前）
-  const isDone = a => a.archived || ['completed', 'cancelled'].includes(a.status);
+  const isDone = isActivityClosed;
   const sorted = [...activities]
     .filter(a => a.date && !isActivityArchived(a))
     .sort((a, b) => (b.date || '').localeCompare(a.date || ''));

@@ -12,6 +12,7 @@
 //   `issues`（汇报态）——均为「id + data(JSON)」键值表，故此处只能取全量后交给纯函数聚合。
 // ════════════════════════════════════════════════════════════════
 
+import { DEFAULT_BRANCH_ID } from '../../docs/src/core/domain/constants.js';
 import { Router } from 'express';
 import { requireAuth } from './auth.js';
 import { aggregateMemberProgress } from '../../docs/src/services/member/member-progress.js';
@@ -44,7 +45,7 @@ export function createLeaderProgressRouter(db) {
     const requestedUsers = new Map(allOf(db, 'users').map((user) => [user.id, user]));
     if (personIds.some((personId) => {
       const user = requestedUsers.get(personId);
-      return !user || (branchId && (user.branchId || 'br-b1') !== branchId);
+      return !user || (branchId && (user.branchId || DEFAULT_BRANCH_ID) !== branchId);
     })) return res.status(403).json({ error: '无权限：只能查看所选支部成员进展' });
     const today = String(req.query.today || '').trim() || todayLocal();
 

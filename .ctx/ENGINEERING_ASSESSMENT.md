@@ -268,6 +268,9 @@ Git 从 2026-03-14 至 2026-10-14 共 1,133 条提交记录；按提交日期分
 | 浮层承载面 | 承载形态 | ✅ | 已收口（批次 497） | `ui-modal-form-guard`、`DESIGN_SYSTEM §4.27` |
 | form-loop 存量红 | 测试工程 | ✅ | 已收口（批次 501）：九条 e2e / form-loop 红全清 | `form-loop-registry.mjs` |
 | 党委代配置写门（`D-825`） | 权限/治理 | ✅ | 已收口（批次 501）：推翻批次 448 写门，党委可代支部写 `modules`/`blocks`/`capabilityPackages`，留痕 `byRole` | `server/routes/resources/index.js`、`SYSTEM_ROLE_PERMISSION §9h`、`DECISION_LOG D-825` |
+| 跨组不是第三落点（`D-826`） | 数据模型/权限 | ✅ | 已收口（批次 502）：落点两档 `party-group`/`branch`，跨组只表示招募范围；迁移 v10；服务端补组织者例外校验 | `constants.js::normalizeOrganizingScope`、`server/db.js` v10、`DECISION_LOG D-826` |
+| 第六轮前端脏乱繁复审 | 审查 | ✅ 报告；P1/P2 已修 | P3 余项登记 `CLAUDE.md B-502-3` | `.ctx/logs/2026-10-AUDIT_R6_FRONTEND.md` |
+| 第七轮数据生命周期 | 审查 | ✅ 报告；P1/P2 已修 | P3 余项登记 `CLAUDE.md B-502-4`；补课文案余项 `B-502-6` | `.ctx/logs/2026-10-AUDIT_R7_DATA.md` |
 
 ---
 

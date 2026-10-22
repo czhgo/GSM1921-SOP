@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
   
-<script src="./src/theme-init.js?v=20261022a"></script>
+<script src="./src/theme-init.js?v=20261022c"></script>
 <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>帮助 — GSM1921-SOP</title>
@@ -13,8 +13,8 @@
   <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;800&family=Noto+Serif+SC:wght@400;500;600;700;800&display=swap" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;800&family=Noto+Serif+SC:wght@400;500;600;700;800&display=swap" rel="stylesheet"></noscript>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="./src/tailwind-config.js?v=20261022a"></script>
-  <link rel="stylesheet" href="./src/styles.css?v=20261022a">
+  <script src="./src/tailwind-config.js?v=20261022c"></script>
+  <link rel="stylesheet" href="./src/styles.css?v=20261022c">
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
@@ -678,8 +678,6 @@
           <h3 class="help-card-title">支委会会议页（可见范围 · 参会范围 · 效力口径）</h3>
           <p class="help-card-desc"><strong>可见范围：</strong>支委会会议页对本支部支委开放全部场次；被扩大进某场支委会（支委扩大会）的人也能进本页，但只看得到「扩大到你的」那一场，并在该场按应到名单表态。<strong>参会范围：</strong>支委会与支委扩大会都是法人性质，同一场支委会可按需扩大到谁：默认支委层，勾「扩大会」后逐位选或一键勾全体党小组组长（代组长）；名单复用该场活动的应到名单字段（voteConfig.voterIds，与线上表态门同口径），不新增字段。</p>
           <ul class="doc-list" style="margin-top:8px;">
-            <li><strong>谁能进</strong>：本级支委看全部场次；被扩大者只看到自己被扩大的那一场（直链越权会被拒）。</li>
-            <li><strong>参会范围怎么定</strong>：默认支委层；要扩大就按法人会议扩，名单直接复用该场活动的应到名单字段（与线上表态门同源），不新增数据。</li>
             <li><strong>效力</strong>：线上表决与线上记录的讨论结果即终局（2026-09-20 定案），不必线下追认；同源派生的可见范围 / 缺席处理 / 任务合流三条仍待支书确认，确认前本页只如实呈现、不代作判定。</li>
             <li><strong>相关</strong>：§2.7 党委工作台；活动域「支委会 / 线上异步表决」。</li>
           </ul>
@@ -687,12 +685,8 @@
 
         <div class="help-card" id="card-copy-attendance-record" data-copy-key="attendance-record" data-copy-source="docs/src/entries/tabs/disc/attendance-tab.js" data-search="考勤录入 上传位 党课 支部党员大会 纪检委员 组织者 支委会不考勤 标因 事假 病假 滞留到场 补录 更正 提交回执 待确认考勤">
           <h3 class="help-card-title">会议考勤（上传位怎么分 · 录入与更正口径）</h3>
-          <p class="help-card-desc"><strong>上传位与更正：</strong>党课 / 支部党员大会由纪检委员上传（本卡）；党小组会 / 主题党日 / 组织生活会由该场活动组织者在组长台「考勤上传」；支委会不考勤。异常（缺勤 / 请假）在「待确认考勤」队列打包确认。录入即确认（记名到录入人）；未到者须选标因（事假 / 病假 / 无故 / 其它，纪检认定·固定枚举；事假提前 1 天、病假可事后补，仅作时效提示、不拦提交）；滞留线下到场勾「到场补录」计入到席；已录条目可由本人更正。</p>
+          <p class="help-card-desc"><strong>上传位与更正：</strong>党课 / 支部党员大会由纪检委员上传（本卡）；党小组会 / 主题党日 / 组织生活会由该场活动组织者在组长台「考勤上传」；支委会不考勤。异常（缺勤 / 请假）在「待确认考勤」队列打包确认。录入即确认（记名到录入人）；未到者须选标因（事假 / 病假 / 无故 / 其它，纪检认定·固定枚举；事假提前 1 天、病假可事后补，仅作时效提示、不拦提交）；滞留线下到场勾「到场补录」计入到席；已录条目可由本人更正。应到＝在册党员剔除滞留（党课列席不计）；滞留者线下到场单独补录，计入到席，实际应到＝应到＋补录。</p>
           <ul class="doc-list" style="margin-top:8px;">
-            <li><strong>上台位按会议类型分</strong>：党课与支部党员大会归纪检委员（本卡）；党小组会 / 主题党日 / 组织生活会归该场活动的组织者（组长台「考勤管理」）；支委会不考勤。</li>
-            <li><strong>记名到人</strong>：录入人是谁，这条记录就以谁记名（本人即本场会议的纪检委员 / 支书 / 副支书其中一位）。</li>
-            <li><strong>标因是固定枚举</strong>：缺勤 / 请假要选原因（事假 / 病假 / 无故 / 其它，由纪检认定）；事假提前 1 天、病假可事后补——这句只提示时效，不校验、不拦提交。</li>
-            <li><strong>滞留与更正</strong>：滞留者线下到场勾「到场补录」计到席（落「滞留·到场」标记）；已录条目由本人更正覆盖，新增 / 更正 / 跳过三条计数在提交回执里。</li>
             <li><strong>相关</strong>：§2.4 纪检委员工作台「考勤管理」行；考勤统计交付见「提交考勤统计至支委会」。</li>
           </ul>
         </div>
@@ -701,9 +695,6 @@
           <h3 class="help-card-title">补课（哪些会议要补 · 记录怎么归档）</h3>
           <p class="help-card-desc"><strong>补课范围：</strong>缺勤 / 请假的支部党员大会与党课须在 7 日内补课（T+7），由纪检委员确认完成；支委会不补课，主题党日不强制，党小组会按该场「要求补课」勾选进入名单；请假且线上参会不补课。<strong>归档：</strong>补课记录随考勤一并归档，随「提交考勤统计至支委会」交付。</p>
           <ul class="doc-list" style="margin-top:8px;">
-            <li><strong>要补的只有两类</strong>：支部党员大会与党课（缺勤 / 请假都要），限 7 日内（T+7），由纪检委员确认完成。</li>
-            <li><strong>其余不强求</strong>：支委会不补；主题党日不强制；党小组会只看该场活动有没有勾「要求补课」；请假但线上参会的不补。</li>
-            <li><strong>归档自动</strong>：补课记录随考勤同步归档，随「提交考勤统计至支委会」一并交付；不额外设个人「补课记录归档审查」动作（归档不靠重复劳动）。</li>
             <li><strong>相关</strong>：§2.4 纪检委员工作台「补课管理」行；考勤口径见本页 #card-copy-attendance-record。</li>
           </ul>
         </div>
@@ -1799,6 +1790,6 @@
   </main>
 </div>
 
-<script type="module" src="./src/entries/pages/help-entry.js?v=20261022a"></script>
+<script type="module" src="./src/entries/pages/help-entry.js?v=20261022c"></script>
 </body>
 </html>

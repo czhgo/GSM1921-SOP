@@ -129,10 +129,10 @@ test('M5 失败不吞：列表自检不过（重复版本号）⇒ applyMigratio
   } finally { db.close(); }
 });
 
-test('M7 v8 活动组织落点：支部级重分类 / 补承办范围 / legacy 标记；重复执行幂等', () => {
+test('M7 v8/v10 活动组织落点：两档归一 / legacy 标记 / 补跨组招募；重复执行幂等', () => {
   const db = initDb(tempDbPath('v8'));
   try {
-    // 回到 v7 再灌「升级前」数据（initDb 已建全表；v8 是纯数据迁移）
+    // 回到 v7 再灌「升级前」数据（initDb 已建全表；v8–v10 是纯数据迁移）
     db.pragma('user_version = 7');
     const put = (id, row) => db.prepare('INSERT INTO activities (id, data) VALUES (?, ?)').run(id, JSON.stringify(row));
     put('act-v8-legacy', { id: 'act-v8-legacy', type: '主题党日', organizingScope: 'cross-group', hostGroupId: null });
@@ -140,24 +140,51 @@ test('M7 v8 活动组织落点：支部级重分类 / 补承办范围 / legacy �
     put('act-v8-branch-wrong', { id: 'act-v8-branch-wrong', type: '党课', organizingScope: 'cross-group', hostGroupId: 'pg-1', hostGroup: '第一党小组' });
     put('act-v8-scope', { id: 'act-v8-scope', type: '主题党日', hostGroupId: 'pg-1' });
     put('act-v8-plain', { id: 'act-v8-plain', type: '主题党日' });
+    put('act-v10-cross', {
+      id: 'act-v10-cross', type: '主题党日', organizingScope: 'cross-group',
+      hostGroupId: 'pg-1', hostGroup: '第一党小组', workgroupId: 'wg-activity-act-v10-cross',
+      assignments: [{ personId: '2400012355', role: 'organizer' }],
+    });
+    db.prepare('INSERT INTO party_groups (id, data) VALUES (?, ?)').run('pg-1', JSON.stringify({ id: 'pg-1', branchId: 'br-b1', name: '第一党小组', status: 'active' }));
+    db.prepare('INSERT INTO users (id, data) VALUES (?, ?)').run('2400012355', JSON.stringify({ id: '2400012355', name: '组织委员', role: 'org-commissioner', branchId: 'br-b1', partyGroup: '第三党小组' }));
+    db.prepare('INSERT INTO users (id, data) VALUES (?, ?)').run('2400012349', JSON.stringify({ id: '2400012349', name: '第二组深参', role: 'participant', branchId: 'br-b1', partyGroup: '第二党小组' }));
+    db.prepare('INSERT INTO workgroups (id, data) VALUES (?, ?)').run('wg-activity-act-v10-cross', JSON.stringify({
+      id: 'wg-activity-act-v10-cross', branchId: 'br-b1', kind: 'activity', sourceType: 'activity', sourceId: 'act-v10-cross',
+      name: 'v10 跨组活动', status: 'active', organizingScope: 'cross-group', hostGroupId: 'pg-1', recruitmentScope: 'group',
+    }));
+    db.prepare('INSERT INTO workgroup_members (id, data) VALUES (?, ?)').run('wgm-v10-deep', JSON.stringify({
+      id: 'wgm-v10-deep', branchId: 'br-b1', workgroupId: 'wg-activity-act-v10-cross', personId: '2400012349', role: 'deep', status: 'active',
+    }));
 
     const applied = applyMigrations(db);
-    assert.deepEqual(applied.applied, [8, 9], '应从 v7 补跑 v8 + v9');
+    assert.deepEqual(applied.applied, [8, 9, 10], '应从 v7 补跑 v8 + v9 + v10');
     const row = (id) => JSON.parse(db.prepare('SELECT data FROM activities WHERE id = ?').get(id).data);
-    assert.equal(row('act-v8-legacy').legacyHostGroup, true, '跨组且无责任组 ⇒ legacy 标记，不猜测');
+    assert.equal(row('act-v8-legacy').organizingScope, 'party-group', '旧 cross-group 归一为 party-group');
+    assert.equal(row('act-v8-legacy').legacyHostGroup, true, '无承办组 ⇒ legacy 标记，不猜测');
     assert.equal(row('act-v8-branch').organizingScope, 'branch', '支部级会议重分类');
     assert.equal(row('act-v8-branch-wrong').organizingScope, 'branch');
-    assert.equal(row('act-v8-branch-wrong').hostGroupId, null, '支部级会议不保留责任组');
-    assert.equal(row('act-v8-scope').organizingScope, 'cross-group', '有 hostGroupId 的旧行补齐承办范围');
-    assert.equal(row('act-v8-plain').legacyHostGroup, true, '无承办范围的旧行标待补责任组');
+    assert.equal(row('act-v8-branch-wrong').hostGroupId, null, '支部级会议不保留承办组');
+    assert.equal(row('act-v8-scope').organizingScope, 'party-group', '有 hostGroupId 的旧行补承办范围');
+    assert.equal(row('act-v8-plain').legacyHostGroup, true, '无承办范围的旧行标待补承办组');
+    assert.equal(row('act-v8-plain').organizingScope, 'party-group');
+    assert.equal(row('act-v10-cross').organizingScope, 'party-group');
+    assert.equal(row('act-v10-cross').hostGroupId, 'pg-1', '归一保留承办组');
+    assert.equal(row('act-v10-cross').recruitmentScope, 'cross-group', '成员含跨党小组深参 ⇒ 补招募标记');
+    assert.equal(row('act-v10-cross').crossGroupCoordinatorId, '2400012355', '协调人取本支部组织委员');
+    const workgroup = JSON.parse(db.prepare('SELECT data FROM workgroups WHERE id = ?').get('wg-activity-act-v10-cross').data);
+    assert.equal(workgroup.organizingScope, 'party-group', '工作组镜像同步两档落点');
+    assert.equal(workgroup.recruitmentScope, 'cross-group');
+    assert.equal(workgroup.crossGroupCoordinatorId, '2400012355');
 
-    const before = ['act-v8-legacy', 'act-v8-branch', 'act-v8-branch-wrong', 'act-v8-scope', 'act-v8-plain']
-      .map((id) => JSON.stringify(row(id)));
+    const ids = ['act-v8-legacy', 'act-v8-branch', 'act-v8-branch-wrong', 'act-v8-scope', 'act-v8-plain', 'act-v10-cross'];
+    const before = ids.map((id) => JSON.stringify(row(id)));
+    const workgroupBefore = db.prepare('SELECT data FROM workgroups WHERE id = ?').get('wg-activity-act-v10-cross').data;
     const again = applyMigrations(db);
     assert.deepEqual(again.applied, [], '重复执行不得再改写');
-    const after = ['act-v8-legacy', 'act-v8-branch', 'act-v8-branch-wrong', 'act-v8-scope', 'act-v8-plain']
-      .map((id) => JSON.stringify(row(id)));
+    const after = ids.map((id) => JSON.stringify(row(id)));
     assert.deepEqual(after, before, '重复迁移零改写');
+    assert.equal(db.prepare('SELECT data FROM workgroups WHERE id = ?').get('wg-activity-act-v10-cross').data, workgroupBefore,
+      '工作组镜像重复迁移零改写（v10 幂等）');
   } finally { db.close(); }
 });
 

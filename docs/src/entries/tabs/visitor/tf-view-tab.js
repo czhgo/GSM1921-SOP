@@ -6,13 +6,11 @@
 //   故**改名「专班动态」**（名实相符；与「活动动态」成对）。
 //   ⚠ 专班详情卡内的新产出登记写入结构化 `workgroup_outputs`；旧 `members[].contributions` 仅作历史分工只读展示，
 //     不再作为新产出的写口，避免历史字段与任务/产出记录继续混写。
-//     本页仍是 `readonly` 只读形态（只读指的是「专班记录不可编辑」，与「本人产出填报」不冲突）。
 // 深链兜底：若 URL 带 `activityId`，`insight-view` 会把 `activity` 段临时并入（否则定位目标无处可显）。
 
 let _tfObserver = null;
 
-// 2026-10-18 脏专项：本页实际能力＝只读浏览 + 本人产出登记，页头不再写「只读」。
-// 共享组件 taskforce-view 同时服务组长/纪检只读台，故不改组件，只在本台渲染后就地校正文案与分区顺序。
+// 本页＝只读浏览 + 本人产出登记；共享组件 taskforce-view 同时服务组长/纪检只读台，故只在本台渲染后就地校正文案与分区顺序。
 function _syncTfCopy(container) {
   container.querySelectorAll('h3').forEach((h) => {
     if (h.textContent.trim() === '专班查看') h.textContent = '专班动态';
@@ -53,7 +51,7 @@ function _watchTfView(container) {
 export function renderContent(ctx) {
   const el = document.getElementById('visitor-tab-content');
   if (!el) return null;
-  return import('../../../components/record/insight-view.js?v=20261022a').then(m => m.renderInsightView(el, {
+  return import('../../../components/record/insight-view.js?v=20261022c').then(m => m.renderInsightView(el, {
     title: '专班动态',
     // 只出专班段（活动一览在「活动动态」——见头注）
     views: ['taskforce'],

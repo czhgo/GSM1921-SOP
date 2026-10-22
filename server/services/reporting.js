@@ -9,6 +9,7 @@
 //  - 会议提醒（§3.8.1 场景④）：活动当日扫描 + reminderSentAt 持久化防重复
 // ════════════════════════════════════════════════════════════════
 
+import { DEFAULT_BRANCH_ID } from '../../docs/src/core/domain/constants.js';
 import { emailOf, sendMail } from './mailer.js';
 
 export const REPORT_DOMAINS = {
@@ -60,7 +61,7 @@ export function extractDomain(db, domain, from, to, { branchId = null } = {}) {
     // 党员信息：全量支部成员档案；排除组织级人员（party-staff 党委组织员不属于支部党员档案，P1 党委后台）
     // 联系方式默认不报（脱敏可配 REPORT_INCLUDE_CONTACT=true，§6.2）
     const withContact = process.env.REPORT_INCLUDE_CONTACT === 'true';
-    return users.filter(u => u.role !== 'party-staff' && (!branchId || (u.branchId || 'br-b1') === branchId)).map(u => ({
+    return users.filter(u => u.role !== 'party-staff' && (!branchId || (u.branchId || DEFAULT_BRANCH_ID) === branchId)).map(u => ({
       name: u.name,
       studentId: u.studentId,
       partyGroup: u.partyGroup,
@@ -73,7 +74,7 @@ export function extractDomain(db, domain, from, to, { branchId = null } = {}) {
   if (domain === 'activity') {
     // 活动记录：有效活动（排除 取消/草稿）；已完成/进行中/已发布均属有效
     const activities = listTable(db, 'activities').filter(a => !['cancelled', 'draft'].includes(a.status)
-      && (!branchId || (a.branchId || 'br-b1') === branchId));
+      && (!branchId || (a.branchId || DEFAULT_BRANCH_ID) === branchId));
     const signups = listTable(db, 'signups');
     const approvedSignupPeopleByActivity = new Map();
     for (const signup of signups) {
@@ -103,7 +104,7 @@ export function extractDomain(db, domain, from, to, { branchId = null } = {}) {
     const activities = listTable(db, 'activities');
     const activityById = new Map(activities.map(a => [a.id, a]));
     return listTable(db, 'attendances')
-      .filter(r => !branchId || (r.branchId || activityById.get(r.activityId)?.branchId || 'br-b1') === branchId)
+      .filter(r => !branchId || (r.branchId || activityById.get(r.activityId)?.branchId || DEFAULT_BRANCH_ID) === branchId)
       .filter(r => r.status && r.status !== 'pending')
       .filter(r => inWindow(r[cfg.dateField], from, to))
       .map(r => ({
@@ -121,7 +122,7 @@ export function extractDomain(db, domain, from, to, { branchId = null } = {}) {
   const activities = listTable(db, 'activities');
   const activityById = new Map(activities.map(a => [a.id, a]));
   return listTable(db, 'makeup_tasks')
-    .filter(t => !branchId || (t.branchId || activityById.get(t.activityId)?.branchId || 'br-b1') === branchId)
+    .filter(t => !branchId || (t.branchId || activityById.get(t.activityId)?.branchId || DEFAULT_BRANCH_ID) === branchId)
     .filter(t => t.status === 'completed')
     .filter(t => inWindow(t[cfg.dateField], from, to))
     .map(t => ({

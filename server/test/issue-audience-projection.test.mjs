@@ -187,7 +187,7 @@ test('当事人与无关成员：提交人 / 被指派人 / 被请求人可读�
 });
 
 test('直连判据 canReadIssue：五类支委 / 组织者 / 组长 / 当事人 / 无关成员', async () => {
-  const { canReadIssue } = await import('../../docs/src/core/domain/issue-visibility.js?v=20261022a');
+  const { canReadIssue } = await import('../../docs/src/core/domain/issue-visibility.js?v=20261022c');
   const report = { kind: 'report', submittedBy: REPORTER_A, workgroupId: WG_A };
   // 解析回调按观看者各自绑定（由 server / 前端在每次请求时构造，不是全局常量）
   const accessFor = ({ workgroupId = null, leaderOf = null } = {}) => ({
@@ -226,7 +226,7 @@ test('汇总 scope：按工作组 / 党小组过滤，条数与列表同一判�
       get length() { return store.size; },
     };
   }
-  const { filterReportsByScope } = await import('../../docs/src/components/record/report-inbox.js?v=20261022a');
+  const { filterReportsByScope } = await import('../../docs/src/components/record/report-inbox.js?v=20261022c');
   const rows = [
     { id: 'r-wg-a', kind: 'report', submittedBy: REPORTER_A, workgroupId: WG_A },
     { id: 'r-wg-b', kind: 'report', submittedBy: REPORTER_B, workgroupId: WG_B },
@@ -245,9 +245,9 @@ test('汇总 scope：按工作组 / 党小组过滤，条数与列表同一判�
 
 test('前端直连读口 getById 与列表共用同一投影（非本组组织者读不到）', async () => {
   assert.ok(globalThis.localStorage, '上一用例已建存储桩');
-  const { mockDB } = await import('../../docs/src/core/domain/domain.js?v=20261022a');
-  const { setDataSource } = await import('../../docs/src/data/data-adapter.js?v=20261022a');
-  const { IssueStore } = await import('../../docs/src/services/governance/issues.js?v=20261022a');
+  const { mockDB } = await import('../../docs/src/core/domain/domain.js?v=20261022c');
+  const { setDataSource } = await import('../../docs/src/data/data-adapter.js?v=20261022c');
+  const { IssueStore } = await import('../../docs/src/services/governance/issues.js?v=20261022c');
   setDataSource('mock');
   mockDB.activities = [];
   mockDB.workgroupMembers = [

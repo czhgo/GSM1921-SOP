@@ -5,23 +5,24 @@
 //  独立于 mockDB 内存结构，通过 mockDB.notices 统一持久化
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../../core/domain/domain.js?v=20261022a';
-import { generateId } from '../../core/base/id.js?v=20261022a';
-import { persist, getDataSource, getApiBaseUrl, getAuthToken } from '../../data/data-adapter.js?v=20261022a';
-import { buildSystemNotice } from '../../core/domain/system-notice-templates.js?v=20261022a';
-import { bumpToken } from '../../core/base/version-token.js?v=20261022a'; // P0 域缓存失效（spec §二.3）
-import { MOCK_NOTICES } from '../../data/mock/index.js?v=20261022a';
-import { isInitStateActive } from '../core/init-reset.js?v=20261022a'; // C2 修复（2026-09-08）：init 态跳过演示种子兜底
-import { getBasePath, todayLocal } from '../../core/base/utils.js?v=20261022a';
-import { AuthStore } from '../core/auth.js?v=20261022a';
-import {  getPersonById } from '../member/person.js?v=20261022a';
-import { NoticeTodoDeriver, TodoStore, TodoSourceType, TodoStatus } from './todo.js?v=20261022a';
+import { mockDB } from '../../core/domain/domain.js?v=20261022c';
+import { generateId } from '../../core/base/id.js?v=20261022c';
+import { persist, getDataSource, getApiBaseUrl, getAuthToken } from '../../data/data-adapter.js?v=20261022c';
+import { buildSystemNotice } from '../../core/domain/system-notice-templates.js?v=20261022c';
+import { bumpToken } from '../../core/base/version-token.js?v=20261022c'; // P0 域缓存失效（spec §二.3）
+import { MOCK_NOTICES } from '../../data/mock/index.js?v=20261022c';
+import { isInitStateActive } from '../core/init-reset.js?v=20261022c'; // C2 修复（2026-09-08）：init 态跳过演示种子兜底
+import { getBasePath, todayLocal } from '../../core/base/utils.js?v=20261022c';
+import { AuthStore } from '../core/auth.js?v=20261022c';
+import {  getPersonById } from '../member/person.js?v=20261022c';
+import { NoticeTodoDeriver, TodoStore, TodoSourceType, TodoStatus } from './todo.js?v=20261022c';
 // 组织者身份读取单一源（2026-09-19 批次 91 · SOP-B-17）——发布权随「被指定为该场组织者」动态获得
-import {  getOrganizedActivities } from '../activity/activity.js?v=20261022a';
+import {  getOrganizedActivities } from '../activity/activity.js?v=20261022c';
 import {
   NOTICE_PUBLISH_ROLES, NOTICE_MANAGE_ROLES, BRANCH_COMMISSION_ROLES,
   NOTICE_AUDIENCE_SENTINELS, ROLE_LABELS,
-} from '../../core/domain/constants.js?v=20261022a';
+  DEFAULT_BRANCH_ID,
+} from '../../core/domain/constants.js?v=20261022c';
 
 function _loadNotices() {
   try {
@@ -315,7 +316,7 @@ export const NoticeStore = {
       const _me = AuthStore.getCurrentUser();
       const _role = _me && _me.role;
       const _isComm = !!_role && BRANCH_COMMISSION_ROLES.includes(_role);
-      const _myBranch = _me ? (getPersonById(_me.personId)?.branchId || 'br-b1') : null;
+      const _myBranch = _me ? (getPersonById(_me.personId)?.branchId || DEFAULT_BRANCH_ID) : null;
       // 受众命中走单一源（Q-22-1）：sentinel 经 NOTICE_AUDIENCE_SENTINELS 判定，裸角色键回退直比
       const _ctx = _noticeViewerCtx(_me);
       const _hitPersons = (n) => _audiencePersonsHit(n, _ctx);
@@ -329,7 +330,7 @@ export const NoticeStore = {
         if (!_role) return true;         // 无会话：不按受众收窄（保持既有行为）
         if (_staffCommitteeScope
           && (n.audience === 'committee' || (Array.isArray(n.audience) && n.audience.includes('committee')))) return true;
-        if (n.audience === 'committee' && _isComm && !!_myBranch && (n.branchId || 'br-b1') === _myBranch) return true;
+        if (n.audience === 'committee' && _isComm && !!_myBranch && (n.branchId || DEFAULT_BRANCH_ID) === _myBranch) return true;
         if (_hitPersons(n) || _hitRoles(n) || _hitActions(n)) return true;
         return false;
       });

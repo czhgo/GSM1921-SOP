@@ -3,7 +3,7 @@ import Database from 'better-sqlite3';
 import { WorkgroupStatus, workgroupStatusForTaskforce } from '../docs/src/core/domain/domain.js';
 // R4-D04：考察记录回填与 mock hydrate 同源（纯函数，勿在服务端另写一套匹配规则）
 import { migrateInspectionWorkgroupKeys, migrateReviewParentKeys } from '../docs/src/services/activity/inspection-migrate.js';
-import { isBranchLevelActivity } from '../docs/src/core/domain/constants.js';
+import { DEFAULT_BRANCH_ID, ACTIVITY_SCOPES, isBranchLevelActivity, normalizeOrganizingScope } from '../docs/src/core/domain/constants.js';
 
 // 资源表：每张表 id 主键 + data JSON（保持与前端数据结构完全一致，嵌套字段零损失）
 // T-218：新增 4 张 niche 表（经验沉淀/合规引用/文件空间/图片记录），与前端快照 payload 键名对齐
@@ -274,7 +274,8 @@ export const MIGRATIONS = [
         const workgroup = {
           id, branchId, kind: 'activity', sourceType: 'activity', sourceId: row.id,
           name: activity.title || row.id, status: activity.archived ? WorkgroupStatus.ARCHIVED : WorkgroupStatus.ACTIVE,
-          organizingScope: ['party-group', 'cross-group'].includes(activity.organizingScope) ? activity.organizingScope : null,
+          // 组织落点只有两档；旧 cross-group 读取别名在此即归一（批次 502）。
+          organizingScope: activity.organizingScope ? normalizeOrganizingScope(activity.organizingScope, activity) : null,
           hostGroupId,
           migrationState: activity.organizingScope ? 'ready' : 'pending-review',
           createdAt: activity.createdAt || null,
@@ -325,7 +326,7 @@ export const MIGRATIONS = [
       for (const legacy of db.prepare('SELECT id, data FROM weekly_reports').all()) {
         const row = JSON.parse(legacy.data);
         // 旧资源诞生于单支部时期；可按提交人名册归属时优先取名册，缺失时沿用当时唯一支部。
-        const migrated = { ...row, branchId: row.branchId || branchByPerson.get(row.submittedBy) || 'br-b1' };
+        const migrated = { ...row, branchId: row.branchId || branchByPerson.get(row.submittedBy) || DEFAULT_BRANCH_ID };
         write.run(legacy.id, JSON.stringify(migrated));
       }
       db.exec('DROP TABLE weekly_reports');
@@ -404,9 +405,10 @@ export const MIGRATIONS = [
     },
   },
   {
-    // v8（2026-10-21 批次 499 · 支书补充口径）：跨组活动也必须落到责任党小组。
+    // v8（2026-10-21 批次 499/502 · 支书补充口径）：跨组活动也必须落到承办党小组。
     //   · 支委会 / 党员大会 / 党课属支部级法定会议 ⇒ organizingScope='branch'，不塞党小组；
-    //   · 其余 cross-group 且无 hostGroupId 的旧行 ⇒ legacyHostGroup=true（不猜测归属，编辑时补选）。
+    //   · 其余一律 party-group（v10 起「跨组」只由 recruitmentScope 表达），无 hostGroupId 的旧行
+    //     ⇒ legacyHostGroup=true（不猜测归属，编辑时补选）。
     version: 8,
     name: 'activity-host-group-scope',
     tables: [],
@@ -422,15 +424,15 @@ export const MIGRATIONS = [
         const activity = JSON.parse(row.data);
         let changed = false;
         if (isBranchLevelActivity(activity)) {
-          if (activity.organizingScope !== 'branch') {
-            activity.organizingScope = 'branch';
+          if (activity.organizingScope !== ACTIVITY_SCOPES.BRANCH) {
+            activity.organizingScope = ACTIVITY_SCOPES.BRANCH;
             reclassified += 1;
             changed = true;
           }
         } else if (!activity.organizingScope) {
           // 旧行只有党小组名称派生的 hostGroupId（v3 已补）⇒ 承办范围可由既有字段确定，不算猜测。
           if (activity.hostGroupId) {
-            activity.organizingScope = activity.type === '党小组会' ? 'party-group' : 'cross-group';
+            activity.organizingScope = ACTIVITY_SCOPES.PARTY_GROUP;
             scopeFilled += 1;
             changed = true;
           } else if (!activity.legacyHostGroup) {
@@ -438,12 +440,16 @@ export const MIGRATIONS = [
             legacy += 1;
             changed = true;
           }
-        } else if (activity.organizingScope === 'cross-group' && !activity.hostGroupId && !activity.legacyHostGroup) {
-          activity.legacyHostGroup = true;
-          legacy += 1;
+        } else if (activity.organizingScope === ACTIVITY_SCOPES.CROSS_GROUP) {
+          activity.organizingScope = ACTIVITY_SCOPES.PARTY_GROUP;
+          if (!activity.hostGroupId && !activity.legacyHostGroup) {
+            activity.legacyHostGroup = true;
+            legacy += 1;
+          }
+          scopeFilled += 1;
           changed = true;
         }
-        if (activity.organizingScope === 'branch' && activity.hostGroupId) {
+        if (activity.organizingScope === ACTIVITY_SCOPES.BRANCH && activity.hostGroupId) {
           activity.hostGroupId = null;
           activity.hostGroup = '';
           changed = true;
@@ -465,6 +471,124 @@ export const MIGRATIONS = [
     tables: ['seed_meta'],
     up(db) {
       db.exec('CREATE TABLE IF NOT EXISTS seed_meta (key TEXT PRIMARY KEY, value TEXT NOT NULL)');
+    },
+  },
+  {
+    // v10（2026-10-21 批次 502 · 支书补充口径）：组织落点收敛为两档。
+    //   · organizingScope='cross-group' ⇒ 'party-group'；保留 hostGroupId / hostGroup；
+    //   · 非支部级活动缺 hostGroupId ⇒ legacyHostGroup=true（不猜测归属，组织台补选）；
+    //   · 工作组成员含跨党小组深参（能按用户档案判定时）且活动未标 cross-group 招募
+    //     ⇒ 补 recruitmentScope='cross-group'，协调人取本支部 org-commissioner（无则 null）；
+    //   · 活动工作组镜像同步两档落点与招募字段。逐行仅在内容变化时写回，重复执行零改写。
+    version: 10,
+    name: 'activity-scope-two-tier',
+    tables: [],
+    up(db) {
+      const hasTable = (name) => !!db.prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name = ?").get(name);
+      if (!hasTable('activities')) return;
+      const parseAll = (table) => (hasTable(table) ? db.prepare(`SELECT data FROM ${table}`).all().map((row) => JSON.parse(row.data)) : []);
+      const activities = parseAll('activities');
+      const workgroups = parseAll('workgroups');
+      const members = parseAll('workgroup_members');
+      const users = parseAll('users');
+      const groups = parseAll('party_groups');
+      const groupById = new Map(groups.map((group) => [String(group.id), group]));
+      const groupByName = new Map(groups.map((group) => [`${group.branchId || DEFAULT_BRANCH_ID}:${group.name}`, group]));
+      const userById = new Map(users.map((user) => [String(user.id), user]));
+      const commissionerByBranch = new Map();
+      for (const user of users.filter((row) => row.role === 'org-commissioner')) {
+        const branchId = user.branchId || DEFAULT_BRANCH_ID;
+        if (!commissionerByBranch.has(branchId)) commissionerByBranch.set(branchId, user.id);
+      }
+      const membersByWorkgroup = new Map();
+      for (const member of members.filter((row) => row.status !== 'removed')) {
+        const key = String(member.workgroupId || '');
+        if (!membersByWorkgroup.has(key)) membersByWorkgroup.set(key, []);
+        membersByWorkgroup.get(key).push(member);
+      }
+      const workgroupById = new Map(workgroups.map((row) => [String(row.id), row]));
+      const updateActivity = db.prepare('UPDATE activities SET data = ? WHERE id = ?');
+      const updateWorkgroup = hasTable('workgroups')
+        ? db.prepare('UPDATE workgroups SET data = ? WHERE id = ?') : null;
+      let scopeNormalized = 0;
+      let legacyMarked = 0;
+      let recruitmentFilled = 0;
+      let workgroupsNormalized = 0;
+      for (const activity of activities) {
+        const rowId = activity.id;
+        const branchId = activity.branchId || DEFAULT_BRANCH_ID;
+        const normalizedScope = normalizeOrganizingScope(activity.organizingScope, activity);
+        let changed = false;
+        if (activity.organizingScope !== normalizedScope) {
+          activity.organizingScope = normalizedScope;
+          scopeNormalized += 1;
+          changed = true;
+        }
+        if (normalizedScope === ACTIVITY_SCOPES.BRANCH) {
+          if (activity.hostGroupId || activity.hostGroup) {
+            activity.hostGroupId = null;
+            activity.hostGroup = '';
+            changed = true;
+          }
+        } else if (!activity.hostGroupId && !activity.legacyHostGroup) {
+          activity.legacyHostGroup = true;
+          legacyMarked += 1;
+          changed = true;
+        }
+
+        const hostGroup = activity.hostGroupId
+          ? groupById.get(String(activity.hostGroupId))
+          : (activity.hostGroup ? groupByName.get(`${branchId}:${activity.hostGroup}`) : null);
+        if (hostGroup && activity.hostGroup !== hostGroup.name) {
+          activity.hostGroup = hostGroup.name;
+          changed = true;
+        }
+        const workgroupId = activity.workgroupId || `wg-activity-${rowId}`;
+        const memberRows = membersByWorkgroup.get(String(workgroupId)) || [];
+        const crossDeep = !!hostGroup && memberRows.some((member) => {
+          if (member.role !== 'deep') return false;
+          if (member.crossGroup === true) return true;
+          const person = userById.get(String(member.personId));
+          return !!person?.partyGroup && person.partyGroup !== hostGroup.name;
+        });
+        if (crossDeep && activity.recruitmentScope !== 'cross-group') {
+          activity.recruitmentScope = 'cross-group';
+          activity.crossGroupCoordinatorId = commissionerByBranch.get(branchId) || null;
+          recruitmentFilled += 1;
+          changed = true;
+        }
+        if (changed) updateActivity.run(JSON.stringify(activity), rowId);
+
+        const workgroup = workgroupById.get(String(workgroupId));
+        if (!workgroup || workgroup.kind !== 'activity' || !updateWorkgroup) continue;
+        let workgroupChanged = false;
+        const mirroredScope = normalizeOrganizingScope(workgroup.organizingScope, activity);
+        if (workgroup.organizingScope !== mirroredScope) {
+          workgroup.organizingScope = mirroredScope;
+          workgroupChanged = true;
+        }
+        if (mirroredScope === ACTIVITY_SCOPES.BRANCH) {
+          if (workgroup.hostGroupId) {
+            workgroup.hostGroupId = null;
+            workgroupChanged = true;
+          }
+        } else if (activity.hostGroupId && workgroup.hostGroupId !== activity.hostGroupId) {
+          workgroup.hostGroupId = activity.hostGroupId;
+          workgroupChanged = true;
+        }
+        if (activity.recruitmentScope === 'cross-group'
+          && (workgroup.recruitmentScope !== 'cross-group'
+            || workgroup.crossGroupCoordinatorId !== activity.crossGroupCoordinatorId)) {
+          workgroup.recruitmentScope = 'cross-group';
+          workgroup.crossGroupCoordinatorId = activity.crossGroupCoordinatorId || null;
+          workgroupChanged = true;
+        }
+        if (workgroupChanged) {
+          updateWorkgroup.run(JSON.stringify(workgroup), workgroup.id);
+          workgroupsNormalized += 1;
+        }
+      }
+      console.log(`[db] v10 活动组织落点两档：落点归一=${scopeNormalized} 待补承办组=${legacyMarked} 补跨组招募=${recruitmentFilled} 工作组镜像=${workgroupsNormalized}`);
     },
   },
 ];

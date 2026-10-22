@@ -68,7 +68,8 @@ test('组长只能从本人党小组创建组内活动，组内范围不限制�
   const otherGroup = await createGroupActivity('2400012345', { hostGroupId: 'pg-2', hostGroup: '第二党小组' });
   assert.equal(otherGroup.response.status, 403);
   const crossAsLeader = await createGroupActivity('2400012345', { organizingScope: 'cross-group', hostGroupId: 'pg-1', hostGroup: '第一党小组' });
-  assert.equal(crossAsLeader.response.status, 403);
+  assert.equal(crossAsLeader.response.status, 201, '旧 cross-group 入参归一为 party-group，组内活动不受影响');
+  assert.equal(crossAsLeader.data.organizingScope, 'party-group');
 });
 
 test('工作组成员只登记组织者与深度参与者，普通活动参与者必须留在报名域', async () => {
@@ -101,7 +102,7 @@ test('正式会议保留显式名单，但不把名单成员登记为工作组�
 
   const topicDayParticipant = await request('activities', '2300010001', 'POST', {
     title: '主题党日不得把普通参与人写进角色数组', type: '主题党日', date: '2026-10-24', status: 'published', branchId: 'br-b1',
-    organizingScope: 'cross-group', hostGroupId: 'pg-1', hostGroup: '第一党小组',
+    organizingScope: 'party-group', hostGroupId: 'pg-1', hostGroup: '第一党小组',
     assignments: [{ personId: '2400012352', role: 'participant' }],
   });
   assert.equal(topicDayParticipant.response.status, 400);
@@ -140,35 +141,36 @@ test('党小组会考勤记录人角色仍受活动承办党小组范围限制',
 test('跨组活动由书记/副书记创建；参与者的党小组归属不受活动承办范围限制', async () => {
   const created = await request('activities', '2300010001', 'POST', {
     title: '跨组筹办测试', type: '主题党日', date: '2026-10-21', status: 'planned', branchId: 'br-b1',
-    organizingScope: 'cross-group', hostGroupId: 'pg-1', hostGroup: '第一党小组',
+    organizingScope: 'party-group', hostGroupId: 'pg-1', hostGroup: '第一党小组',
     recruitmentScope: 'cross-group', crossGroupCoordinatorId: '2400012355',
     assignments: [{ personId: '2300010001', role: 'organizer' }, { personId: '2400012346', role: 'deep' }],
   });
   assert.equal(created.response.status, 201);
-  assert.equal(created.data.organizingScope, 'cross-group');
-  assert.equal(created.data.hostGroupId, 'pg-1', '跨组活动仍须落到责任党小组');
+  assert.equal(created.data.organizingScope, 'party-group');
+  assert.equal(created.data.hostGroupId, 'pg-1', '跨组活动仍须落到承办党小组');
   assert.ok(created.data.workgroupId);
   assert.ok(db.prepare('SELECT data FROM workgroup_members').all().map((row) => JSON.parse(row.data))
     .some((row) => row.workgroupId === created.data.workgroupId && row.personId === '2400012346'));
   const deputy = await request('activities', '2300010002', 'POST', {
     title: '跨组字段不可伪造创建者', type: '主题党日', date: '2026-10-22', status: 'planned', branchId: 'br-b1',
-    organizingScope: 'cross-group', hostGroupId: 'pg-1', hostGroup: '第一党小组', organizer: '2300010002', assignments: [],
+    organizingScope: 'party-group', hostGroupId: 'pg-1', hostGroup: '第一党小组', organizer: '2300010002',
+    organizerExceptionReason: '本次由副书记牵头', assignments: [],
   });
   assert.equal(deputy.response.status, 201);
   const crossGroupMeeting = await request('activities', '2300010001', 'POST', {
     title: '不应作为跨组活动的党小组会', type: '党小组会', date: '2026-10-22',
-    organizingScope: 'cross-group', hostGroupId: 'pg-1', hostGroup: '第一党小组', assignments: [],
+    organizingScope: 'party-group', hostGroupId: 'pg-1', hostGroup: '第一党小组', assignments: [],
   });
   assert.equal(crossGroupMeeting.response.status, 403, '党小组会必须有唯一所属党小组承办');
 
   const normalMember = await request('activities', '2400012349', 'POST', {
-    title: '无权活动', type: '主题党日', date: '2026-10-22', organizingScope: 'cross-group', hostGroupId: 'pg-1', assignments: [],
+    title: '无权活动', type: '主题党日', date: '2026-10-22', organizingScope: 'party-group', hostGroupId: 'pg-1', assignments: [],
   });
   assert.equal(normalMember.response.status, 403);
-  const unrelatedLeader = await request(`activities/${created.data.id}`, '2400012345', 'PATCH', { title: '组长越权改跨组活动' });
+  const unrelatedLeader = await request(`activities/${created.data.id}`, '2400012346', 'PATCH', { title: '他组组长越权改活动' });
   assert.equal(unrelatedLeader.response.status, 403);
   const changeScope = await request(`activities/${created.data.id}`, '2300010001', 'PATCH', {
-    organizingScope: 'party-group', hostGroupId: 'pg-1',
+    organizingScope: 'branch',
   });
   assert.equal(changeScope.response.status, 400, '承办责任范围创建后不可改写');
 });
@@ -704,7 +706,7 @@ test('缺少原任务的旧工作组不自动猜测；人工核对补登记后�
 test('停用活动组织能力后阻止新建，并保护已结束活动及其考勤历史', async () => {
   const created = await request('activities', '2300010001', 'POST', {
     title: '活动能力停用历史测试', type: '主题党日', date: '2026-10-23', status: 'completed',
-    branchId: 'br-b1', organizingScope: 'cross-group', hostGroupId: 'pg-1', hostGroup: '第一党小组', assignments: [],
+    branchId: 'br-b1', organizingScope: 'party-group', hostGroupId: 'pg-1', hostGroup: '第一党小组', assignments: [],
   });
   assert.equal(created.response.status, 201);
   const branch = JSON.parse(db.prepare('SELECT data FROM branches WHERE id = ?').get('br-b1').data);
@@ -719,7 +721,7 @@ test('停用活动组织能力后阻止新建，并保护已结束活动及其�
 
   const newActivity = await request('activities', '2300010001', 'POST', {
     title: '停用后新建', type: '主题党日', date: '2026-10-24', status: 'planned',
-    branchId: 'br-b1', organizingScope: 'cross-group', hostGroupId: 'pg-1', hostGroup: '第一党小组', assignments: [],
+    branchId: 'br-b1', organizingScope: 'party-group', hostGroupId: 'pg-1', hostGroup: '第一党小组', assignments: [],
   });
   assert.equal(newActivity.response.status, 403);
   const editHistory = await request(`activities/${created.data.id}`, '2300010001', 'PATCH', { title: '改写历史' });

@@ -38,7 +38,7 @@ export const SEED_MANIFEST = [
     lifecycleClass: 'skeleton',
     initTier: 'keep',
     seedOwnedFields: [
-      'id', 'name', 'studentId', 'partyGroup', 'developStage', 'role', 'branchId',
+      'id', 'name', 'studentId', 'enrollYear', 'partyGroup', 'developStage', 'role', 'branchId',
       'residenceStatus', 'residenceNote', 'residenceHistory',
     ],
     runtimeFields: ['selfProfile', 'transferOut', 'developStageSince'],

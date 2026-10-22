@@ -11,10 +11,10 @@
 //  依赖方向正确：组件 → 服务（不是服务 → 组件）。守卫：issue-branch.test.mjs（结构层）。
 // ════════════════════════════════════════════════════════════════
 
-import { renderFilteredList } from '../ui/list-filter.js?v=20261022a';
-import { renderTabHeader } from '../shell/page-frame.js?v=20261022a';
-import { escHtml, showToast } from '../../core/base/utils.js?v=20261022a';
-import { IssueStore, IssueNotify, deriveIssueDisplayState, REPORT_CATEGORIES, displayNameOf as _displayName } from '../../services/governance/issues.js?v=20261022a';
+import { renderFilteredList } from '../ui/list-filter.js?v=20261022c';
+import { renderTabHeader } from '../shell/page-frame.js?v=20261022c';
+import { escHtml, showToast } from '../../core/base/utils.js?v=20261022c';
+import { IssueStore, IssueNotify, deriveIssueDisplayState, REPORT_CATEGORIES, displayNameOf as _displayName } from '../../services/governance/issues.js?v=20261022c';
 
 // ════════════════════════════════════════════════════════════════
 //  「我的处置」Tab 渲染工具（各角色工作台复用）
@@ -113,7 +113,7 @@ export function bindMyDispatchEvents(container, role, userId, opts = {}) {
       sort: bySubmittedDesc,
       countUnit: '条',
       listClass: 'space-y-3',
-      emptyMessage: '— 暂无待我处理事项 · 下一步：支部派发后会出现在这里',
+      emptyMessage: '— 暂无待我处理事项',
       rowHtml: (item) => (item.__kind === 'request' ? _reportRequestRowHtml(item.row) : _assignedIssueRowHtml(item.row, userId)),
     });
     pendingHost.addEventListener('click', (e) => {
@@ -148,7 +148,7 @@ export function bindMyDispatchEvents(container, role, userId, opts = {}) {
       sort: bySubmittedDesc,
       countUnit: '条',
       listClass: 'divide-y divide-gray-100',
-      emptyMessage: '— 还没有处理记录 · 下一步：完成一条待我处理后即可在此回看',
+      emptyMessage: '— 还没有处理记录',
       rowHtml: (item) => (item.__kind === 'my-report' ? _myReportRowHtml(item.row) : _myIssueRowHtml(item.row)),
     });
     doneHost.addEventListener('click', (e) => {

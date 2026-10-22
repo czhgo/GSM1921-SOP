@@ -276,7 +276,7 @@ for (const w of WORKS) {
       }
       await page.waitForTimeout(800);
       // P0-2 形态断言（2026-09-23 支书裁定「形态必须可断言、不许静默降级」）：本文件真机用例必须在 API 形态下跑
-      await page.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20261022a')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
+      await page.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20261022c')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
 
       // ── 1440 页签条不溢出（2026-10-21 R5-C01）──
       //   判据：`.ws-tab-scroll` 的 scrollWidth ≤ clientWidth（分组胶囊改竖线 + 滚动区右留 40px 后，
@@ -517,7 +517,7 @@ test('S21 组织台活动深链：?activityId / ?view=activities 落「活动日
     await page.waitForTimeout(800);
     // 取一个真实活动（优先「非当前月」者，顺带验证切月）
     const acts = await page.evaluate(async () => {
-      const m = await import('/src/core/base/state.js?v=20261022a');
+      const m = await import('/src/core/base/state.js?v=20261022c');
       return ((m.getAppState() || {}).activities || []).map((x) => ({ id: x.id, date: x.date }));
     });
     assert.ok(acts.length > 0, '组织台活动深链用例：未取到任何活动（样本不足）');

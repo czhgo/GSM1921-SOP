@@ -7,7 +7,7 @@
 import { randomUUID } from 'node:crypto';
 import { requireAuth, requireRole } from '../auth.js';
 import { HANDOFF_TYPES as HANDOFF_TYPES_SRC, AUTO_CONFIRM_TYPES } from '../../../docs/src/services/governance/handoff.js';
-import { BRANCH_COMMISSION_ROLES, BRANCH_COMMISSIONER_ASSIGNABLE_ROLES, BRANCH_COMMISSIONER_FALLBACK_ROLE, branchCommissionerWriteDeny } from '../../../docs/src/core/domain/constants.js';
+import { BRANCH_COMMISSION_ROLES, BRANCH_COMMISSIONER_ASSIGNABLE_ROLES, BRANCH_COMMISSIONER_FALLBACK_ROLE, branchCommissionerWriteDeny, PARTY_GROUP_LEADER_ROLES, DEFAULT_BRANCH_ID } from '../../../docs/src/core/domain/constants.js';
 import { listTable, getRow, writeRow } from './store.js';
 import { ORG_COMMISSIONER_ROLE_SET, PARTY_STAFF_ROLE, SECRETARY_AND_DEPUTY_ROLE_SET } from './gates.js';
 // R-26③（2026-10-05 批次 388）：日期口径统一到**本地**（服务端单一源 `services/reporting.js`）
@@ -35,9 +35,9 @@ export function registerExtraSemanticRoutes(router, db) {
   registerWorkgroupRoutes(router, db);
   const APPEAL_STATUSES = ['pending', 'returned', 'closed'];
   const APPEAL_PATCH_KEYS = ['status', 'note'];
-  // 申诉处置位＝支委层（纪检/支书/组织/宣传）+ 党小组组长（「交组织方重新确认」的重确认位）——
-  //   角色集由 constants.js::BRANCH_COMMISSION_ROLES 单一源派生，勿手写角色字符串
-  const APPEAL_DISPOSITION_ROLE_SET = new Set([...BRANCH_COMMISSION_ROLES, 'leader']);
+  // 申诉处置位＝支委层（纪检/支书/组织/宣传）+ 党小组组长/副组长（「交组织方重新确认」的重确认位）——
+  //   角色集由 constants.js::BRANCH_COMMISSION_ROLES / PARTY_GROUP_LEADER_ROLES 单一源派生，勿手写角色字符串
+  const APPEAL_DISPOSITION_ROLE_SET = new Set([...BRANCH_COMMISSION_ROLES, ...PARTY_GROUP_LEADER_ROLES]);
   const readScoped = (req, table, name = table) => resourceRowsForActor(db, name, listTable(db, table), req.actor, req.query.branchId);
   // 申诉读（可按支部 / 状态过滤）
   const readAppeals = (req, table) => {
@@ -56,7 +56,7 @@ export function registerExtraSemanticRoutes(router, db) {
     if (db.prepare(`SELECT id FROM ${table} WHERE id = ?`).get(id)) return res.status(409).json({ error: '该申诉 id 已存在' });
     const row = {
       id,
-      branchId: req.actor.branchId || 'br-b1',
+      branchId: req.actor.branchId || DEFAULT_BRANCH_ID,
       personId,
       activityId,
       note: typeof body.note === 'string' ? body.note.trim() : '',
@@ -133,7 +133,7 @@ export function registerExtraSemanticRoutes(router, db) {
     const assignee = getRow(db, 'users', assigneeId);
     const isRoleKey = ROLE_UNREAD_KEYS.has(assigneeId);
     if (!assignee && !isRoleKey) return res.status(400).json({ error: '未读标记对象不存在' });
-    const rowBranchId = assignee ? (assignee.branchId || 'br-b1') : (req.actor.branchId || null);
+    const rowBranchId = assignee ? (assignee.branchId || DEFAULT_BRANCH_ID) : (req.actor.branchId || null);
     if (!rowBranchId) return res.status(403).json({ error: '无权限：请先选择支部后再操作' });
     const prev = getRow(db, 'issue_unread', id) || {};
     const row = { ...prev, id, assigneeId, issueId, branchId: rowBranchId, unread: body.unread !== false, at: new Date().toISOString() };
@@ -163,7 +163,7 @@ export function registerExtraSemanticRoutes(router, db) {
     }
     const targetUser = getRow(db, 'users', targetPersonId);
     if (!targetUser) return res.status(400).json({ error: '授权对象不存在' });
-    const targetBranchId = targetUser.branchId || 'br-b1';
+    const targetBranchId = targetUser.branchId || DEFAULT_BRANCH_ID;
     const partyStaffSelection = selectedBranchRequiredError(req.actor, req.query.branchId);
     if (partyStaffSelection) return res.status(400).json({ error: partyStaffSelection });
     if (req.actor.role === 'party-staff' && req.query.branchId !== targetBranchId) {
@@ -227,7 +227,7 @@ export function registerExtraSemanticRoutes(router, db) {
         actorRole: req.actor.role, actorId: req.actor.id, actorBranchId: actorBranchId(req.actor) || req.query.branchId,
         targetId: targetPersonId, targetRole: targetUser.role, targetBranchId,
         secretaryId: branch.secretaryId,
-        deputySecretaryId: branch.deputySecretaryId || listTable(db, 'users').find((user) => user.role === 'deputy-secretary' && (user.branchId || 'br-b1') === targetBranchId)?.id,
+        deputySecretaryId: branch.deputySecretaryId || listTable(db, 'users').find((user) => user.role === 'deputy-secretary' && (user.branchId || DEFAULT_BRANCH_ID) === targetBranchId)?.id,
         role: action === 'grant' ? role : BRANCH_COMMISSIONER_FALLBACK_ROLE,
       });
       if (deny) return res.status(403).json({ error: deny });
@@ -353,7 +353,7 @@ export function registerExtraSemanticRoutes(router, db) {
     const gateRole = action === 'revoke' ? BRANCH_COMMISSIONER_FALLBACK_ROLE : requestedRole;
     const deputy = branch.deputySecretaryId
       ? getRow(db, 'users', String(branch.deputySecretaryId))
-      : listTable(db, 'users').find((user) => user.role === 'deputy-secretary' && (user.branchId || 'br-b1') === branchId);
+      : listTable(db, 'users').find((user) => user.role === 'deputy-secretary' && (user.branchId || DEFAULT_BRANCH_ID) === branchId);
     const deny = branchCommissionerWriteDeny({
       actorRole: req.actor.role,
       actorId: req.actor.id,
@@ -504,7 +504,7 @@ export function registerExtraSemanticRoutes(router, db) {
     const row = {
       ...body,
       id,
-      branchId: person.branchId || 'br-b1',
+      branchId: person.branchId || DEFAULT_BRANCH_ID,
       kind: kind || 'change',
       personId,
       action,

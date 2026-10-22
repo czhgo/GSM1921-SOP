@@ -8,9 +8,10 @@
 // 纪律：新建「制度文本」条目仅支书（含副支书）可操作；普通文件写权限维持现状（支委可写，
 // 由 UI 现状门控，本服务对 doc 类不做额外收紧）。不触碰 content / 禁改清单。
 
-import { getAdapter } from '../../data/data-adapter.js?v=20261022a';
+import { DEFAULT_BRANCH_ID } from '../../core/domain/constants.js?v=20261022c';
+import { getAdapter } from '../../data/data-adapter.js?v=20261022c';
 // 支部归属判定收敛点（读侧隔离用；设计 §2.5「一个支部一片存储空间、按 branchId 分区、跨支部不可见」）
-import { getBoundBranch } from './branch.js?v=20261022a';
+import { getBoundBranch } from './branch.js?v=20261022c';
 
 /** 制度文本管理角色（支书/副支书）——与既有写权限门一致做法：UI 与 service 双重校验 */
 export const INSTITUTION_MANAGER_ROLES = ['secretary', 'deputy-secretary'];
@@ -253,7 +254,7 @@ export async function listDocs(filter = {}) {
     if (purpose === 'institution' && d.status === 'superseded') return false;
     if (status && d.status !== status) return false;
     // 支部隔离：仅已归属者过滤；老数据无 branchId 归 br-b1（惰性维度迁移兼容）
-    if (boundBranchId && (d.branchId || 'br-b1') !== boundBranchId) return false;
+    if (boundBranchId && (d.branchId || DEFAULT_BRANCH_ID) !== boundBranchId) return false;
     return true;
   });
   return list.sort((a, b) =>

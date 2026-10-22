@@ -3,6 +3,7 @@
 // 单一事实源：前端 domain mockDB.branches 首启 seed + server/seed.js 两级导入均引用本文件
 // 支部不预设名字——br-b1 是当前实例（本科生党支部），硕博等支部由党委在系统内动态创建/改名。
 
+import { DEFAULT_BRANCH_ID } from '../../core/domain/constants.js?v=20261022c';
 export const PARTY_COMMITTEE = {
   id: 'pc-gsm',
   name: '光华管理学院党委',   // 院系级党委（支书 2026-09-02 澄清：非全校）
@@ -20,7 +21,7 @@ export const PARTY_COMMITTEE = {
  */
 export const BRANCHES = [
   {
-    id: 'br-b1',
+    id: DEFAULT_BRANCH_ID,
     name: '光华管理学院本科生党支部',   // 支部档案名（默认显示名；headerTitle 未单独设置时 header 用它）
     type: '本科生',                 // 类别标签（自由文本，不预设枚举）
     config: {
@@ -43,4 +44,4 @@ export const BRANCHES = [
  * ⚠ 段②（真实支部数据）与段③（本兜底）在本演示实例下会取到**同一个字面量**、来源不同；
  *   要分辨当前生效的是哪一段，看 services/branch/branch.js::getAffiliationShape().segment（1–5）。
  */
-export const DEFAULT_BRANCH_DISPLAY_NAME = BRANCHES.find(b => b.id === 'br-b1')?.name || '示例组织';
+export const DEFAULT_BRANCH_DISPLAY_NAME = BRANCHES.find(b => b.id === DEFAULT_BRANCH_ID)?.name || '示例组织';

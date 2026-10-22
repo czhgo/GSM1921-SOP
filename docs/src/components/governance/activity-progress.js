@@ -12,13 +12,13 @@
 //   也绕过了支书台归档前的材料 / 考勤闸门。本次不新增第二套归档写口（归档仍走活动详情的材料闸门），
 //   文案与提示只说「标记完成」，不再声称「完成即归档」。
 
-import { BranchService } from '../../services/core/runtime.js?v=20261022a';
-import { persist } from '../../data/data-adapter.js?v=20261022a';
-import { showToast, escHtml as esc } from '../../core/base/utils.js?v=20261022a';
-import { isActivityEnded } from '../../core/domain/constants.js?v=20261022a';
-import { getPersonName } from '../../services/member/person.js?v=20261022a';
-import { badgeHtml } from '../ui/badges.js?v=20261022a';
-import { renderQueryView } from './query-view.js?v=20261022a';
+import { BranchService } from '../../services/core/runtime.js?v=20261022c';
+import { persist } from '../../data/data-adapter.js?v=20261022c';
+import { showToast, escHtml as esc } from '../../core/base/utils.js?v=20261022c';
+import { isActivityEnded } from '../../core/domain/constants.js?v=20261022c';
+import { getPersonName } from '../../services/member/person.js?v=20261022c';
+import { badgeHtml } from '../ui/badges.js?v=20261022c';
+import { renderQueryView } from './query-view.js?v=20261022c';
 
 /**
  * 渲染活动进展分段（全部活动查询 + 材料出口 + 标记完成）。
@@ -58,9 +58,8 @@ export function renderActivityProgress(host, { activities = [], accent, onChange
     data: queryData,
     renderRow: (a) => {
       const ended = isActivityEnded(a);
-      const scopeLabel = a.organizingScope === 'party-group' ? '组内承办'
-        : a.organizingScope === 'cross-group' ? '跨组承办'
-          : a.organizingScope === 'branch' ? '支部级' : '承办范围未填';
+      const scopeLabel = a.organizingScope === 'branch' ? '支部级' : `承办党小组：${a.hostGroup || '待补'}`;
+      const recruitLabel = a.recruitmentScope === 'cross-group' ? ' · 跨组招募（组织委员协调）' : '';
       const organizers = [...new Set([
         a.organizer,
         ...(Array.isArray(a.assignments)
@@ -74,7 +73,7 @@ export function renderActivityProgress(host, { activities = [], accent, onChange
           <div class="flex-1 min-w-0">
             <div class="text-sm font-medium ${ended ? 'text-gray-500' : 'text-gray-800'}">${esc(a.title || '未命名')}</div>
             <div class="text-xs text-gray-500 mt-0.5">${esc(a.date || '')}${a.type ? ' · ' + esc(a.type) : ''}${a.location ? ' · ' + esc(a.location) : ''}</div>
-            <div class="text-[11px] text-gray-500 mt-1">${scopeLabel} · 责任组：${esc(a.hostGroup || '—')} · 组织者：${organizers.length ? organizers.map((id) => getPersonName(id)).join('、') : '待指定'} · 深度参与 ${deepCount} 人</div>
+            <div class="text-[11px] text-gray-500 mt-1">${scopeLabel}${recruitLabel} · 组织者：${organizers.length ? organizers.map((id) => getPersonName(id)).join('、') : '待指定'} · 深度参与 ${deepCount} 人</div>
           </div>
           <div class="flex items-center gap-2">
             ${ended ? badgeHtml('已结束', 'neutral') : badgeHtml('进行中', 'success')}

@@ -8,7 +8,7 @@ import { fileURLToPath } from 'node:url';
 import { requireAuth, requireCommissioner } from './auth.js';
 import { selectedBranchRequiredError } from './resources/branch-scope.js';
 // 党委角色单一源（勿手写）：下载做支部隔离时，党委（组织级、不属任何支部）跨支部可见
-import { PARTY_STAFF_ROLE as PARTY_STAFF_KEYS } from '../../docs/src/core/domain/constants.js';
+import { DEFAULT_BRANCH_ID, PARTY_STAFF_ROLE as PARTY_STAFF_KEYS } from '../../docs/src/core/domain/constants.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 // 上传目录（2026-09-18 批次 80 · P1-③）：可由 env UPLOAD_DIR 配置；缺省值不变＝server/uploads。
@@ -93,13 +93,13 @@ export function createUploadsRouter(db) {
     if (!row) return res.status(404).json({ error: '附件不存在' });
     const actor = req.actor;
     const ownerRow = db.prepare('SELECT data FROM users WHERE id = ?').get(row.uploaded_by);
-    const ownerBranch = (ownerRow ? JSON.parse(ownerRow.data).branchId : null) || 'br-b1';
+    const ownerBranch = (ownerRow ? JSON.parse(ownerRow.data).branchId : null) || DEFAULT_BRANCH_ID;
     if (PARTY_STAFF_ROLE_SET.has(actor.role)) {
       const selectionRequired = selectedBranchRequiredError(actor, req.query.branchId);
       if (selectionRequired) return res.status(400).json({ error: selectionRequired });
       if (String(req.query.branchId) !== ownerBranch) return res.status(403).json({ error: '无权限：附件不属于所选支部' });
     } else {
-      const actorBranch = actor.branchId || 'br-b1';
+      const actorBranch = actor.branchId || DEFAULT_BRANCH_ID;
       if (ownerBranch !== actorBranch) return res.status(403).json({ error: '无权限：该附件不属于本支部' });
     }
     res.sendFile(path.join(UPLOAD_DIR, safe));

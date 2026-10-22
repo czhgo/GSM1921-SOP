@@ -13,7 +13,7 @@ import { readFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const V = '?v=20261022a';
+const V = '?v=20261022c';
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const SRC_DIR = join(ROOT, 'docs', 'src');
 const ISSUES_JSON = join(ROOT, 'docs', 'data', 'issues.json');
@@ -89,7 +89,7 @@ test('S2 写入口径锁定：前端 submitIssue/approveDraft 与服务端 POST/
   assert.match(resources, /branchId,\r?\n\s*title:/, 'server 落库记录须含 branchId');
 
   const seed = read(join(ROOT, 'server', 'seed.js'));
-  assert.match(seed, /branchId:\s*r\.branchId \|\| 'br-b1'/, 'seedIssues 播种须补 branchId（缺省部署默认支部）');
+  assert.match(seed, /branchId:\s*r\.branchId \|\| DEFAULT_BRANCH_ID/, 'seedIssues 播种须补 branchId（缺省支部单一源）');
 });
 
 test('S3 读取过滤单一源：issues.js 经 branch.js 的 withinBranch 收敛（勿另写第二套支部口径）', () => {

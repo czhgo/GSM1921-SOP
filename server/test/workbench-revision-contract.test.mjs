@@ -97,7 +97,7 @@ test('已结束专班的成员与授权历史只读，待办联动写入完成�
 test('党委支部筛选只纳入明确归属当前支部的记录，支部管理转义支部配置文本', async () => {
   const filter = await read('../../docs/src/components/governance/branch-filter.js');
   const branches = await read('../../docs/src/entries/tabs/party-committee/branches-tab.js');
-  assert.match(filter, /String\(r\.branchId \|\| 'br-b1'\) === fid/);
+  assert.match(filter, /String\(r\.branchId \|\| DEFAULT_BRANCH_ID\) === fid/);
   assert.match(branches, /esc\(b\.config\?\.headerTitle \|\| b\.name\)/);
   assert.match(branches, /import \{ showToast, escHtml as esc, getBasePath \}/);
 });

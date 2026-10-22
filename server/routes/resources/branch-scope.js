@@ -1,9 +1,9 @@
 import { POLICY_DEFAULTS } from '../../../docs/src/core/domain/policy-defaults.js';
-import { isBranchPendingUser, isActivityInProgress } from '../../../docs/src/core/domain/constants.js';
+import { isBranchPendingUser, isActivityInProgress, DEFAULT_BRANCH_ID } from '../../../docs/src/core/domain/constants.js';
 import { TASKFORCE_ACTIVE_STATUSES } from '../../../docs/src/core/domain/domain.js';
 
 const PARTY_STAFF = 'party-staff';
-const DEFAULT_BRANCH = 'br-b1';
+const DEFAULT_BRANCH = DEFAULT_BRANCH_ID;
 const AGGREGATE_PARENT = Object.freeze({ actSubRecords: ['activities', 'activities'], tfSubRecords: ['taskforces', 'taskforces'] });
 const OPEN_TASKFORCE = new Set(TASKFORCE_ACTIVE_STATUSES);
 

@@ -1,7 +1,7 @@
 // 跨组活动余项聚焦 probe（2026-10-21 · B-499-1）
 // ════════════════════════════════════════════════════════════════
 // 一条链走完「跨组活动 → 责任党小组 → 跨组深参 → 组织委员协调」：
-//   ① 支书创建 cross-group 活动：责任组 pg-1 必填，工作组 hostGroupId 同步；
+//   ① 支书创建跨组活动：承办组 pg-1 必填、组织落点恒为 party-group，工作组 hostGroupId 同步；
 //   ② 未标记 recruitmentScope 时，第二党小组深参入组 ⇒ 403（文案指向组织委员协调）；
 //   ③ 同一活动（另建带标记）带 recruitmentScope='cross-group' + 协调人 ⇒ 深参 201，
 //      成员行与活动镜像写 crossGroup/coordinatedBy；
@@ -30,10 +30,10 @@ globalThis.localStorage = storage;
 
 import { createApp } from '../app.js';
 import { seedDatabase } from '../seed.js';
-import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261022a';
-import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261022a';
-import { PEOPLE } from '../../docs/src/data/mock/people.js?v=20261022a';
-import { PARTY_GROUPS } from '../../docs/src/data/mock/party-groups.js?v=20261022a';
+import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261022c';
+import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261022c';
+import { PEOPLE } from '../../docs/src/data/mock/people.js?v=20261022c';
+import { PARTY_GROUPS } from '../../docs/src/data/mock/party-groups.js?v=20261022c';
 
 const SECRETARY = '2300010001';
 const ORG_COMMISSIONER = '2400012355';
@@ -80,7 +80,7 @@ const memberRow = (workgroupId, personId) => JSON.parse(db.prepare('SELECT data 
 function activityBody({ title, marked = false }) {
   return {
     title, type: '主题党日', date: '2026-10-31',
-    organizingScope: 'cross-group', hostGroupId: HOST_GROUP, hostGroup: '第一党小组', createdBy: SECRETARY,
+    organizingScope: 'party-group', hostGroupId: HOST_GROUP, hostGroup: '第一党小组', createdBy: SECRETARY,
     ...(marked ? { recruitmentScope: 'cross-group', crossGroupCoordinatorId: ORG_COMMISSIONER } : {}),
     assignments: [{ personId: SECRETARY, role: 'organizer' }],
   };
@@ -90,7 +90,7 @@ test('API：跨组活动责任组 → 深参门 → 组织委员协调 完整链
   // ① 支书创建跨组活动，责任组 pg-1
   const plain = await request('activities', SECRETARY, 'POST', activityBody({ title: 'probe-未标记跨组招募' }));
   assert.equal(plain.status, 201, JSON.stringify(plain.data));
-  assert.equal(plain.data.organizingScope, 'cross-group');
+  assert.equal(plain.data.organizingScope, 'party-group');
   assert.equal(plain.data.hostGroupId, HOST_GROUP);
   const plainGroup = workgroupRow(plain.data.workgroupId);
   assert.equal(plainGroup.hostGroupId, HOST_GROUP, '工作组必须同步责任党小组');

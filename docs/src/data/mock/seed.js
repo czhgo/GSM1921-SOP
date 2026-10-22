@@ -8,6 +8,7 @@
 //  并钳制于 [07-01, 活动日前 1 天]；signups（su-001~007，8 月）保留。
 
 // ── 任务种子（关联活动，时间随活动重排） ────────────────────
+import { DEFAULT_BRANCH_ID } from '../../core/domain/constants.js?v=20261022c';
 export const SEED_TASKS = [
   { id: 'tsk-001', activityId: 'act-1', title: '预定会议室并通知参会人员', status: 'completed', createdAt: '2026-07-01T08:00:00Z' },
   { id: 'tsk-002', activityId: 'act-1', title: '整理会议记录并归档', status: 'completed', createdAt: '2026-07-01T08:00:00Z' },
@@ -75,7 +76,7 @@ export const SEED_SIGNUPS = [
 export const SEED_REVIEW_REQUESTS = [
   {
     id: 'rq-seed-1',
-    branchId: 'br-b1',
+    branchId: DEFAULT_BRANCH_ID,
     type: 'activity-report',
     title: '关于赴香山开展主题党日的报备',
     content: '拟定 8 月中旬组织支部党员赴香山开展主题党日，含往返交通、安全预案与经费说明，报请党委备案。',

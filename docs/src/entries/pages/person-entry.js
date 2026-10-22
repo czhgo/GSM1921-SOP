@@ -11,37 +11,37 @@
 //  2026-10-18 乱专项：按「L0 结论带 → 组织事实 → 在册与留痕 → 本人自述 → 系统说明」重排；
 //        27 个档案字段各有且仅有一个 data-field 落点；同一事实不跨层重复。
 // ════════════════════════════════════════════════════════════════
-import { renderSidebar } from '../../components/shell/sidebar.js?v=20261022a';
-import { renderHeader } from '../../components/shell/header.js?v=20261022a';
-import { BranchService } from '../../services/core/runtime.js?v=20261022a';
-import { AuthStore } from '../../services/core/auth.js?v=20261022a';
-import { PersonStore, getPersonName } from '../../services/member/person.js?v=20261022a';
-import { getDataSource, migrateLegacyPersonId } from '../../data/data-adapter.js?v=20261022a';
-import { loadMemberProfile } from '../../services/member/profile.js?v=20261022a';
-import { getBranchById } from '../../services/branch/branch.js?v=20261022a';
-import { openPersonEditModal } from '../../components/governance/pickers.js?v=20261022a';
+import { renderSidebar } from '../../components/shell/sidebar.js?v=20261022c';
+import { renderHeader } from '../../components/shell/header.js?v=20261022c';
+import { BranchService } from '../../services/core/runtime.js?v=20261022c';
+import { AuthStore } from '../../services/core/auth.js?v=20261022c';
+import { PersonStore, getPersonName, renameMemberAccount, deriveDevelopStageSince } from '../../services/member/person.js?v=20261022c';
+import { getDataSource, migrateLegacyPersonId } from '../../data/data-adapter.js?v=20261022c';
+import { loadMemberProfile } from '../../services/member/profile.js?v=20261022c';
+import { getBranchById } from '../../services/branch/branch.js?v=20261022c';
+import { openPersonEditModal } from '../../components/governance/pickers.js?v=20261022c';
 import {
   renderSelfDescriptionSection, countSelfProfileFilled, SELF_PROFILE_TOTAL,
   renderThoughtReportsSection,
-} from '../../components/governance/person-profile-sections.js?v=20261022a';
+} from '../../components/governance/person-profile-sections.js?v=20261022c';
 // 思想汇报按人归集（既有服务读口；制度承诺「提交即入库、算法归集至个人档案」的落地）
 import {
   listThoughtReportsByPerson, canReadThoughtReport,
-} from '../../services/governance/thought-report.js?v=20261022a';
+} from '../../services/governance/thought-report.js?v=20261022c';
 // 待确认请求读口（单一源：服务层现有读口；api 形态由 init() 从服务端填充同一缓存）
 import {
   listPendingConfirmations, MC_ACTION_LABEL,
-} from '../../services/member/member-confirmation.js?v=20261022a';
+} from '../../services/member/member-confirmation.js?v=20261022c';
 // Q-21-3 收敛（2026-09-13）：在册状态枚举单一源 = core/domain/constants.js（原经 org-base-data-preview 转出）
-import { ROLE_LABELS, RESIDENCE } from '../../core/domain/constants.js?v=20261022a';
-import { canMaintainMemberProfileFields } from '../../core/domain/profile-access.js?v=20261022a';
-import { getBasePath, escHtml as esc, fmtDt } from '../../core/base/utils.js?v=20261022a';
-import { badgeHtml } from '../../components/ui/badges.js?v=20261022a';
+import { ROLE_LABELS, RESIDENCE } from '../../core/domain/constants.js?v=20261022c';
+import { canMaintainMemberProfileFields } from '../../core/domain/profile-access.js?v=20261022c';
+import { getBasePath, escHtml as esc, fmtDt } from '../../core/base/utils.js?v=20261022c';
+import { badgeHtml } from '../../components/ui/badges.js?v=20261022c';
 // 批次 87：本页必须先 hydrate API 数据源再渲染（成员档案读 + 编辑写）——与 activity.html 标准形同款。
 // 此前本页只调 BranchService.loadDB()（API 模式直接 return）⇒ api 形态下档案读的是本地备份，
 // 且「编辑档案」按 mock 数据源落本机、服务端 users 表不更新。
-import { hydrateDataSource, notifyDataLoaded } from '../../data/data-adapter.js?v=20261022a';
-import { ApiAdapter } from '../../data/api-adapter.js?v=20261022a';
+import { hydrateDataSource, notifyDataLoaded } from '../../data/data-adapter.js?v=20261022c';
+import { ApiAdapter } from '../../data/api-adapter.js?v=20261022c';
 
 renderSidebar('dashboard');
 renderHeader('dashboard');
@@ -84,7 +84,6 @@ if (legacyMappedId && legacyMappedId !== personId) {
   next.searchParams.set('id', personId);
   window.history.replaceState(null, '', next);
 }
-const isSelf = !!personId && String(viewer?.personId || '') === String(personId);
 
 /** 卡内状态提示（权限失败不会先显示缓存档案，再以遮罩隐藏）。 */
 function renderMessage(html, role = 'status') {
@@ -120,10 +119,11 @@ function enrollYearHtml(value) {
   return /^\d{4}$/.test(text) ? esc(`${text} 届`) : esc(text);
 }
 
-/** 阶段起始日：只读，显示为「YYYY-MM-DD 起」 */
-function developStageSinceHtml(value) {
+/** 阶段起始日：只读，显示为「YYYY-MM-DD 起」；缺失返回空串（该行不渲染，R7-03） */
+function developStageSinceHtml(value, derived = false) {
   const match = /^(\d{4}-\d{2}-\d{2})/.exec(String(value == null ? '' : value));
-  return match ? `${match[1]} 起` : '—';
+  if (!match) return '';
+  return `${match[1]} 起${derived ? '<span class="ml-1 text-[11px] text-gray-400">（据成员变更记录）</span>' : ''}`;
 }
 
 /** 人名现取（不得使用记录内姓名快照） */
@@ -179,6 +179,9 @@ async function render() {
   const branchLabel = branch?.name || member.branchId || '支部未归属';
   const isDetained = member.residenceStatus === RESIDENCE.DETAINED;
   const hasResidenceNote = String(member.residenceNote == null ? '' : member.residenceNote).trim() !== '';
+  // R7-03：阶段起始日缺失 ⇒ 不渲染该行；有「进入当前阶段」的通过留痕 ⇒ 用其日期派生（只读，注明来源）
+  const derivedStageSince = member.developStageSince ? '' : deriveDevelopStageSince(member.id, member.developStage);
+  const stageSinceHtml = developStageSinceHtml(member.developStageSince || derivedStageSince, !member.developStageSince && !!derivedStageSince);
   const history = Array.isArray(member.residenceHistory) ? member.residenceHistory.slice() : [];
   // 留痕固定新→旧（页面可见标注「按时间倒序」）
   history.sort((a, b) => String(b?.updatedAt || '').localeCompare(String(a?.updatedAt || '')));
@@ -188,6 +191,7 @@ async function render() {
     id: viewer.personId, role: viewer.role, branchId: viewer.branchId,
   }, member);
   const isPartyStaff = viewer.role === 'party-staff';
+  const isSelf = !!personId && String(viewer?.personId || '') === String(personId);
   const readOnlyReason = isPartyStaff
     ? '党委只读查看'
     : isSelf
@@ -271,6 +275,7 @@ async function render() {
         <div class="flex flex-wrap items-center gap-1.5">
           ${isSelf ? '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-sky-50 text-sky-700">本人</span>' : ''}
           ${isPartyStaff ? '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600">党委只读</span>' : ''}
+          ${isPartyStaff ? '<button type="button" id="person-rename-btn" class="btn-outline">重命名账号</button>' : ''}
         </div>
       </div>
     </section>
@@ -288,6 +293,7 @@ async function render() {
           <dt class="w-20 flex-shrink-0 text-xs text-gray-500">学号</dt>
           <dd class="min-w-0 flex-1">
             <span data-field="studentId" class="text-sm text-gray-800 break-words">${textOrEmpty(member.studentId)}</span>
+            <span class="ml-1 text-[11px] text-gray-400">（登录账号）</span>
           </dd>
         </div>
         <div class="flex gap-3 border-b border-gray-100 py-2">
@@ -302,12 +308,12 @@ async function render() {
             <span data-field="partyGroup" class="text-sm text-gray-800 break-words">${partyGroupHtml(member.partyGroup)}</span>
           </dd>
         </div>
-        <div class="flex gap-3 py-2">
+        ${stageSinceHtml ? `<div class="flex gap-3 py-2">
           <dt class="w-20 flex-shrink-0 text-xs text-gray-500">阶段起始日</dt>
           <dd class="min-w-0 flex-1">
-            <span data-field="developStageSince" class="text-sm text-gray-800 break-words">${developStageSinceHtml(member.developStageSince)}</span>
+            <span data-field="developStageSince" class="text-sm text-gray-800 break-words">${stageSinceHtml}</span>
           </dd>
-        </div>
+        </div>` : ''}
       </dl>
     </section>
 
@@ -321,10 +327,10 @@ async function render() {
             ${pendingLineHtml}
           </summary>
           <div class="mt-2 border-t border-gray-100 pt-2">
-            <div class="flex gap-3 py-1.5">
+            ${hasResidenceNote ? `<div class="flex gap-3 py-1.5">
               <span class="w-20 flex-shrink-0 text-xs text-gray-500">当前备注</span>
-              <p data-field="residenceNote" class="min-w-0 flex-1 text-sm text-gray-800 break-words whitespace-pre-wrap">${hasResidenceNote ? esc(String(member.residenceNote).trim()) : '—'}</p>
-            </div>
+              <p data-field="residenceNote" class="min-w-0 flex-1 text-sm text-gray-800 break-words whitespace-pre-wrap">${esc(String(member.residenceNote).trim())}</p>
+            </div>` : ''}
             <div class="mt-3">
               <p class="text-xs text-gray-500">变更留痕 · 按时间倒序</p>
               <ol data-field="residenceHistory" class="mt-1.5 space-y-3 border-l border-gray-200 pl-4">
@@ -378,7 +384,8 @@ async function render() {
   cardEl.querySelector('#person-org-facts-btn')?.addEventListener('click', () => {
     openPersonEditModal({
       ...editOpts,
-      focusFields: ['studentId', 'partyGroup'],
+      // 学号已改为账号主键只读（R7-01），本入口负责届别 / 党小组
+      focusFields: ['enrollYear', 'partyGroup'],
       sourceLabel: '个人档案 · 组织事实',
     });
   });
@@ -388,6 +395,25 @@ async function render() {
       focusFields: ['residenceStatus', 'residenceNote', 'residenceHistory'],
       sourceLabel: '个人档案 · 在册与留痕',
     });
+  });
+  // R7-01：党委组织员「重命名账号」受控入口（学号即人员主键，改号必须走语义端点）
+  cardEl.querySelector('#person-rename-btn')?.addEventListener('click', async () => {
+    const nextId = window.prompt(
+      `将「${member.name || member.id}」的登录学号由 ${member.studentId || member.id} 改为：`,
+      '',
+    );
+    if (nextId === null) return;
+    const targetId = String(nextId).trim();
+    if (!targetId) { window.alert('新学号不能为空'); return; }
+    const r = await renameMemberAccount(member.id, targetId, { by: viewer.personId });
+    if (!r.ok) { window.alert(r.reason || '重命名失败'); return; }
+    // 就地刷新：地址栏同步新 id
+    personId = r.to;
+    params.set('id', r.to);
+    const next = new URL(window.location.href);
+    next.searchParams.set('id', r.to);
+    window.history.replaceState(null, '', next);
+    await render();
   });
   // 本人「填写/编辑我的自述」用 selfOnly；组织委员「代录自述」走同一模态（不复制表单）。
   const selfBtn = cardEl.querySelector('#person-self-profile-btn');

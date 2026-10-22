@@ -1,4 +1,5 @@
 // server/seed.js — 从前端 mock 纯数据模块导入种子
+import { DEFAULT_BRANCH_ID } from '../docs/src/core/domain/constants.js';
 import { readFileSync } from 'node:fs';
 import { replaceCollection } from './db.js';
 
@@ -32,9 +33,9 @@ export function seedIssues() {
     //   支书台「汇报收件箱」与成员台「我发起的汇报」全靠这些字段成立。
     //   若照旧一律脱敏，api 形态会把这些字段抹掉 ⇒ 两形态不一致（mock 直读原文件带名、api 全匿名）
     //   ⇒ 守卫绿而支书在真实演示里看不到汇报（典型的假绿）。故按 kind 分流。
-    if (r.kind === 'report') return { ...r, branchId: r.branchId || 'br-b1' };
+    if (r.kind === 'report') return { ...r, branchId: r.branchId || DEFAULT_BRANCH_ID };
     const { tokenHash: _t, participants: _p, submittedBy: _s, ...rest } = r;
-    return { ...rest, branchId: r.branchId || 'br-b1', submittedBy: '匿名', anonymous: true, participants: [] };
+    return { ...rest, branchId: r.branchId || DEFAULT_BRANCH_ID, submittedBy: '匿名', anonymous: true, participants: [] };
   });
 }
 
@@ -280,7 +281,7 @@ export const SEED_MEMBER_CONFIRMATIONS = [
  */
 export const SEED_ATTENDANCE_APPEALS = [
   {
-    id: 'appeal-seed-1', branchId: 'br-b1', personId: '2400012349', activityId: 'act-11',
+    id: 'appeal-seed-1', branchId: DEFAULT_BRANCH_ID, personId: '2400012349', activityId: 'act-11',
     note: '7月支委会本人课前已向组织委员请假，考勤记录为缺勤，申请更正为请假',
     status: 'pending', createdAt: '2026-09-12T09:00:00.000Z',
   },
@@ -293,7 +294,7 @@ export const SEED_ATTENDANCE_APPEALS = [
  */
 export const SEED_INSPECTION_APPEALS = [
   {
-    id: 'inspAppeal-seed-1', branchId: 'br-b1', personId: '2500010012', activityId: 'act-22',
+    id: 'inspAppeal-seed-1', branchId: DEFAULT_BRANCH_ID, personId: '2500010012', activityId: 'act-22',
     note: '本人除发言准备外另承担了签到统计，考察记录未完整反映工作量，申请补充',
     status: 'pending', createdAt: '2026-09-12T09:30:00.000Z',
   },
@@ -317,7 +318,7 @@ export const SEED_ISSUE_UNREAD = [
  */
 export const SEED_AUTH_AUDIT = [
   {
-    id: 'auth-seed-1', targetPersonId: '2300010001', role: 'secretary', scopeRef: 'br-b1',
+    id: 'auth-seed-1', targetPersonId: '2300010001', role: 'secretary', scopeRef: DEFAULT_BRANCH_ID,
     authorizedBy: '9000000001', authorizedAt: '2026-09-01', action: 'grant',
   },
 ];
@@ -330,7 +331,7 @@ export const SEED_AUTH_AUDIT = [
  */
 export const SEED_APPOINTMENT_RECORDS = [
   {
-    id: 'appt-seed-1', branchId: 'br-b1', secretaryId: '2300010001', note: '党委任命首任支书',
+    id: 'appt-seed-1', branchId: DEFAULT_BRANCH_ID, secretaryId: '2300010001', note: '党委任命首任支书',
     from: '2026-09-01T00:00:00.000Z', to: null,
   },
 ];

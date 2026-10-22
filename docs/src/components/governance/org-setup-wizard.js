@@ -16,35 +16,35 @@
 // 草稿：localStorage `wizard-draft-<branchId>`（当前步 + 每步完成标记 + 完成态），中断可续走。
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../../core/domain/domain.js?v=20261022a';
-import { getCapabilities } from '../../core/boot/registry.js?v=20261022a';
-import { OUTPUT_BLOCK_DEFS, BRANCH_COMMISSION_ROLES, ROLE_LABELS, getAccentColors, accentButtonColors } from '../../core/domain/constants.js?v=20261022a';
-import { CAPABILITY_PACKAGES } from '../../core/domain/capability-packages.js?v=20261022a';
-import { ORG_SUBJECT_LABELS, isBranchOrgSubject, ownerSubjectType } from '../../core/domain/work-map.js?v=20261022a';
+import { mockDB } from '../../core/domain/domain.js?v=20261022c';
+import { getCapabilities } from '../../core/boot/registry.js?v=20261022c';
+import { OUTPUT_BLOCK_DEFS, BRANCH_COMMISSION_ROLES, ROLE_LABELS, getAccentColors, accentButtonColors } from '../../core/domain/constants.js?v=20261022c';
+import { CAPABILITY_PACKAGES } from '../../core/domain/capability-packages.js?v=20261022c';
+import { ORG_SUBJECT_LABELS, isBranchOrgSubject, ownerSubjectType } from '../../core/domain/work-map.js?v=20261022c';
 // 副作用：注册支委层工作台能力（配置目录=其 tab 清单，单一源）
-import '../../capabilities/secretary-workspace.js?v=20261022a';
-import { BLOCK_MANIFESTS } from '../../workflow/blocks/manifests.js?v=20261022a';
+import '../../capabilities/secretary-workspace.js?v=20261022c';
+import { BLOCK_MANIFESTS } from '../../workflow/blocks/manifests.js?v=20261022c';
 // L3 流程组合（2026-09-28 批次 246）：把编排内核接进**生产路径**——配置面用它做「组合体检」
-import { composePlan } from '../../workflow/blocks/orchestration.js?v=20261022a';
-import { escHtml as esc, showToast, downloadBlob } from '../../core/base/utils.js?v=20261022a';
-import { readLoginSnapshot } from '../../core/session/login-snapshot.js?v=20261022a';
-import { WORK_MAP_MODULES } from '../../core/domain/work-map.js?v=20261022a';
+import { composePlan } from '../../workflow/blocks/orchestration.js?v=20261022c';
+import { escHtml as esc, showToast, downloadBlob } from '../../core/base/utils.js?v=20261022c';
+import { readLoginSnapshot } from '../../core/session/login-snapshot.js?v=20261022c';
+import { WORK_MAP_MODULES } from '../../core/domain/work-map.js?v=20261022c';
 import {
   getBranchById, getBranchOrg, getBranchTabPolicy, getCoreTabIds,
   getBranchOutputBlocks, getBranchCapabilityPackageState, getOutputBlockPolicy, getWorkflowBlockPolicy, orderByIds,
   updateBranchModules, updateBranchCapabilityPackages, getBranchWorkforce, updateBranchWorkforce, updateBranchOrg,
   applyConfigCopy, createBranch, getBranchIdOfPerson, ensureBranchConfigLoaded,
-} from '../../services/branch/branch.js?v=20261022a';
-import { buildConfigPackage, applyConfigPackage } from '../../services/branch/org-config-package.js?v=20261022a';
+} from '../../services/branch/branch.js?v=20261022c';
+import { buildConfigPackage, applyConfigPackage } from '../../services/branch/org-config-package.js?v=20261022c';
 import {
   buildPreviewTemplate, sanitizePreview, applyPreview, clearPreview, getPreviewState,
   PREVIEW_KIND, PREVIEW_VERSION,
-} from '../../services/branch/org-base-data-preview.js?v=20261022a';
-import { getRosterStats, isDetained } from '../../services/member/roster.js?v=20261022a';
-import { buildOrgWizardReport } from '../../services/branch/org-wizard-report.js?v=20261022a';
-import { PersonStore, getPersonName } from '../../services/member/person.js?v=20261022a';
+} from '../../services/branch/org-base-data-preview.js?v=20261022c';
+import { getRosterStats, isDetained } from '../../services/member/roster.js?v=20261022c';
+import { buildOrgWizardReport } from '../../services/branch/org-wizard-report.js?v=20261022c';
+import { PersonStore, getPersonName } from '../../services/member/person.js?v=20261022c';
 // R5-1（2026-09-06）：建空支部「就地任命首任骨干」——任命编排在 appointment.js 收口（含数据边界登记）
-import { appointInauguralOfficers } from '../../services/branch/appointment.js?v=20261022a';
+import { appointInauguralOfficers } from '../../services/branch/appointment.js?v=20261022c';
 
 // ── 步骤元信息（支书已批口径）────────────────────────────────────
 export const WIZARD_STEPS = [
@@ -475,9 +475,9 @@ function _basePanelHtml(S) {
   const n = st.rows.length;
   return `
     <div class="rounded-lg border border-blue-100 bg-blue-50/40 p-3 mt-2.5 space-y-2">
-      <p class="text-xs font-semibold text-gray-700">成员基础数据预览 <span class="text-[11px] font-normal text-gray-500">（本地预览：仅覆盖姓名/党小组归属/发展阶段/在校·滞留，不写 mockDB / 种子持久）</span></p>
-      <p class="text-[11px] text-gray-500">下载「成员名单模板」→ 按真实名册改 JSON → 「导入名单(JSON)预览」：应到人数 / 党员分布即时可见变化（⑤ 验证与重置、纪检考勤等的应到名单来源一致）；「清除预览」一键回种子。</p>
-      <p class="text-[11px] text-amber-700">注意：业务历史（活动/考勤/议程/专班等）仍关联历史成员，正式换数据请按「换壳工作单」落仓库文件。</p>
+      <p class="text-xs font-semibold text-gray-700">成员基础数据预览 <span class="text-[11px] font-normal text-gray-500">（本地预览：仅覆盖姓名/党小组归属/发展阶段/在校·滞留，不改动已保存数据）</span></p>
+      <p class="text-[11px] text-gray-500">下载「成员名单模板」→ 按真实名册改 JSON → 「导入名单(JSON)预览」：应到人数与党员分布即时变化；「清除预览」回到初始名册。</p>
+      <p class="text-[11px] text-amber-700">注意：业务历史（活动/考勤/议程/专班等）仍关联历史成员；需人工替换的项见「换壳工作单」。</p>
       <div class="flex flex-wrap items-center gap-2">
         <button type="button" data-wz-act="download-base-template" class="btn-outline ${subtle}">下载成员名单模板</button>
         <button type="button" data-wz-act="import-base" class="btn-outline ${subtle}">导入名单(JSON)预览</button>
@@ -808,13 +808,13 @@ function _step3Html(S, branch) {
 // ── ④ 术语/制度/数据指引 + 换壳工作单 ──
 function _step4Html(S, branch) {
   const guide = [
-    ['示例数据与人员档案', 'docs/src/data/mock/（people.js 成员档案 / accounts.js 账号 / branches.js 支部种子 / activities.js 等活动示例）'],
-    ['系统常量', 'docs/src/core/domain/constants.js（角色/文案/活动类型/产出块目录）'],
-    ['角色权限', 'content/02_institution/SYSTEM_ROLE_PERMISSION.md（矩阵单一源；代码侧 auth.js ROLE_PERMISSIONS 同步）'],
-    ['术语/使用策略', 'content/03_doc_system/OPERATIONS_GUIDE.md §19–§23（《运行与协作规范》）+ docs/src/core/domain/policy-defaults.js'],
-    ['制度 SOP', 'content/02_institution/sop/（支书/组织/宣传/纪检/组长指南）'],
-    ['配色系统', 'content/04_web_design/design-system/DESIGN_SYSTEM.md + docs/src/styles.css（:root 固定令牌不可改）'],
-    ['支部默认策略', 'docs/src/core/domain/policy-defaults.js（branch-default 可按制度调；institutional 勿改）'],
+    ['成员档案与演示数据', '成员档案、账号、支部与活动示例数据'],
+    ['系统常量', '角色、活动类型、产出块目录等系统字面量'],
+    ['角色权限', '各角色可做什么（权限矩阵）'],
+    ['术语与使用策略', '术语表与日常运行协作规范'],
+    ['制度 SOP', '支书 / 组织 / 宣传 / 纪检 / 组长工作指南'],
+    ['配色系统', '配色、字号、圆角等视觉规范'],
+    ['支部默认策略', '支部默认策略可按制度调整；制度级策略勿改'],
   ].map(([t, d]) =>
     `<div class="flex items-start gap-2 py-1.5 border-b border-gray-50 last:border-0">
       <span class="text-xs font-semibold text-gray-700 shrink-0 w-28">${esc(t)}</span>
@@ -885,7 +885,7 @@ function _completeHtml(S, branch, org) {
         <p class="font-title-cn text-base font-bold text-gray-800">完成 · ${esc(branch.name)}</p>
         <span class="text-[11px] px-2 py-0.5 rounded-full bg-green-100 text-green-700">配置已生效</span>
       </div>
-      <p class="text-xs text-gray-500">以下改动已即时写入支部 config 并记录变更（可查 config.configChangeHistory）；未写入仓库文件的项见下载的工作单。</p>
+      <p class="text-xs text-gray-500">以下改动已即时生效并留痕；需人工替换的项见下载的工作单。</p>
       <div class="flex flex-wrap gap-1.5">${summaryChips}</div>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs">
         <div class="rounded-lg bg-white border border-green-100 p-2.5">

@@ -25,20 +25,24 @@
 //  Source: content/04_web_design/data/DATA_ARCHITECTURE.md
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../../core/domain/domain.js?v=20261022a';
+import { DEFAULT_BRANCH_ID } from '../../core/domain/constants.js?v=20261022c';
+import { mockDB } from '../../core/domain/domain.js?v=20261022c';
 // P0 域缓存失效（spec §二.3）：成员覆盖层写口 bump（支书台 semester-remind/成员组等读数新鲜度）
-import { bumpToken } from '../../core/base/version-token.js?v=20261022a';
+import { bumpToken } from '../../core/base/version-token.js?v=20261022c';
+import { generateId } from '../../core/base/id.js?v=20261022c';
 // 修复（T175）：直接从 data/mock/people.js 导入 PEOPLE，
 // 断开 person.js ↔ data/mock/index.js 双向循环依赖（person.js 不再依赖 data/mock/index.js）
-import { PEOPLE } from '../../data/mock/people.js?v=20261022a';
+import { PEOPLE } from '../../data/mock/people.js?v=20261022c';
 // 成员基础数据预览叠加（立项④阶段三·目标1）：PersonStore 读取时套预览 override；
 // 依赖方向单向（person → preview，preview 不 import person/roster，无循环）
-import { overlayPreviewMembers } from '../branch/org-base-data-preview.js?v=20261022a';
+import { overlayPreviewMembers } from '../branch/org-base-data-preview.js?v=20261022c';
 // 双形态判定（mock/api）：data-adapter.js 不静态依赖业务服务；其静态依赖仅为零依赖叶子（无环）
-import { getDataSource } from '../../data/data-adapter.js?v=20261022a';
+import { getDataSource, persist } from '../../data/data-adapter.js?v=20261022c';
 // 新成员 id 规则（P1-12，2026-10-20）：学号即唯一 id；不再 import generateId 生成 p_ 代理键
 // `D-788`（2026-10-05 · `V-10b`）：成员「自我描述」字段模型（**零依赖叶子**；写口按它净化）
-import { sanitizeSelfProfile } from '../../core/domain/self-profile.js?v=20261022a';
+import { sanitizeSelfProfile } from '../../core/domain/self-profile.js?v=20261022c';
+// R7-01（2026-10-22）：mock 形态账号改名要与登录账号层同步（新学号可登录、旧学号停用），保证演示可用
+import { createAccount, deactivateAccount } from '../core/accounts.js?v=20261022c';
 
 // ════════════════════════════════════════════════════════════════
 //  PersonStore — 人员数据统一服务接口
@@ -85,12 +89,12 @@ export const PersonStore = {
 
   /**
    * 获取全部人员列表
+   * 2026-10-22 R7-30 复核：`u_*`（u_sec / u_org / …）是**空支部基线的系统账号占位**，
+   *   不是幽灵脏数据——`reset-tier-init` 明确断言空支部起步必须保留 `u_sec` 以可登录，
+   *   故本读口继续包含它们；成员面向的名单走 `getMembers()`（只含成员档案），不受影响。
    * @returns {Array} 人员数组
    */
   getAll() {
-    // 修复（T175）：合并静态学生人员（PEOPLE，p1~p27）与系统账号（mockDB.users，u_*）。
-    // 此前仅返回 mockDB.users（8 条系统账号），导致学生 ID（p1/p12/p13 等）
-    // 解析不到姓名，页面显示"发起: p12"而非真实姓名。
     const map = new Map();
     [...overlayPreviewMembers(_baseMemberRecords()), ...(mockDB.users || [])].forEach(p => {
       if (p && p.id && p.transferOut !== true) map.set(p.id, p);
@@ -126,6 +130,45 @@ export const PersonStore = {
     }
     if (getDataSource() === 'api') return _apiSaveMember(updates, opts);
     return _mockSaveMember(updates, opts);
+  },
+
+  /**
+   * 账号重命名（R7-01 · 2026-10-22 · 支书裁定「受控端点」）：
+   * 学号即人员主键 ⇒ 改学号 = **人员主键重命名**，不是普通档案字段补丁。
+   *  - api 形态：调 `POST /members/:id/account-rename`（仅党委组织员）；服务端一个事务内同步
+   *    users.id / users.data.studentId / sessions.person_id / 各业务表 JSON 引用，并写 auth_audit；
+   *  - mock 形态：等价本地重命名（members 覆盖层 + mockDB 各域引用递归替换 + 本地审计行）；
+   *  - 两侧同规则：新学号非空、不得为旧 p* 形态、不得与既有人员/账号重复。
+   * @param {string} personId 旧人员 id（当前学号）
+   * @param {string} newPersonId 新学号
+   * @param {{by?:string}} [opts] 操作人（留痕）
+   * @returns {Promise<{ok:boolean, from?:string, to?:string, member?:Object, reason?:string}>}
+   */
+  async renameMemberAccount(personId, newPersonId, opts = {}) {
+    const from = String(personId == null ? '' : personId).trim();
+    const to = String(newPersonId == null ? '' : newPersonId).trim();
+    if (!from) return { ok: false, reason: '缺少成员 id' };
+    if (!to) return { ok: false, reason: '新学号不能为空' };
+    if (/^p(?:\d+|_.*)$/i.test(to)) return { ok: false, reason: '新学号不得为旧 p* 形态（人员主键一律用学号/工号）' };
+    if (from === to) return { ok: false, reason: '新旧学号相同' };
+    const exists = (getDataSource() === 'api' ? (mockDB.users || []) : getBaseMemberRecords())
+      .some((p) => p && String(p.id) === to);
+    if (exists) return { ok: false, reason: '新学号已被占用' };
+    if (getDataSource() === 'api') {
+      try {
+        const { ApiAdapter } = await import('../../data/api-adapter.js?v=20261022c');
+        await ApiAdapter.members.renameAccount(from, to);
+        const member = _applyLocalRename(from, to, opts.by || null);
+        return { ok: true, from, to, member };
+      } catch (e) {
+        return { ok: false, reason: e?.message || '账号重命名失败' };
+      }
+    }
+    const result = _mockRenameAccount(from, to, opts.by || null);
+    if (result.ok) {
+      try { persist(); } catch (_) { /* mock 落库失败已在 persist 内登记 */ }
+    }
+    return result;
   },
 
   /**
@@ -218,6 +261,52 @@ export function getPersonById(id) {
  */
 export function getPersonName(id) {
   return PersonStore.getName(id);
+}
+
+/**
+ * 账号重命名服务口（R7-01）：页面不直连适配器，统一经此调用 PersonStore。
+ * @param {string} personId
+ * @param {string} newPersonId
+ * @param {{by?:string}} [opts]
+ * @returns {Promise<{ok:boolean, from?:string, to?:string, member?:Object, reason?:string}>}
+ */
+export function renameMemberAccount(personId, newPersonId, opts = {}) {
+  return PersonStore.renameMemberAccount(personId, newPersonId, opts);
+}
+
+/**
+ * 阶段起始日派生（R7-03）：档案无 `developStageSince` 时，按成员变更申请里
+ * 「进入当前阶段」的通过留痕回填（只读展示，不新造写入口）。
+ * @param {string} personId
+ * @param {string} developStage 当前发展阶段
+ * @returns {string} 'YYYY-MM-DD'；无可用留痕 → ''
+ */
+export function deriveDevelopStageSince(personId, developStage) {
+  if (!personId || !developStage) return '';
+  const dates = (mockDB.memberChangeRequests || [])
+    .filter((row) => row && String(row.personId) === String(personId)
+      && row.status === 'completed' && String(row.toStage || '') === String(developStage))
+    .map((row) => String(row.entryDate || row.confirmedAt || row.approvedAt || row.createdAt || '').slice(0, 10))
+    .filter((date) => /^\d{4}-\d{2}-\d{2}$/.test(date))
+    .sort();
+  return dates[dates.length - 1] || '';
+}
+
+/**
+ * 人员引用递归替换（纯函数，mock 形态与服务端 `renamePersonRefs` 同口径）：
+ * 精确等于旧 id 的字符串（含数组元素/对象键）换成新 id；自由文本原样保留。
+ */
+export function renamePersonRefs(value, from, to) {
+  if (typeof value === 'string') return value === from ? to : value;
+  if (Array.isArray(value)) return value.map((item) => renamePersonRefs(item, from, to));
+  if (value && typeof value === 'object') {
+    const out = {};
+    for (const [key, item] of Object.entries(value)) {
+      out[key === from ? to : key] = renamePersonRefs(item, from, to);
+    }
+    return out;
+  }
+  return value;
 }
 
 // PEOPLE 已在第 15 行导入，可在 person.js 内部使用，但不导出
@@ -560,7 +649,7 @@ export function findMemberRefs(personId) {
  * @returns {boolean} true = 有历史（拒绝整支部替换）
  */
 function _branchHasHistory(branchId) {
-  const own = (r) => r && (r.branchId || 'br-b1') === branchId;
+  const own = (r) => r && (r.branchId || DEFAULT_BRANCH_ID) === branchId;
   if ((mockDB.activities || []).some(own)) return true;
   if ((mockDB.taskforces || []).some(own)) return true;
   if ((mockDB.thoughtReports || []).some(own)) return true;
@@ -606,13 +695,13 @@ function _mockReplaceBranchMembers(records, branchId) {
 // ── api 形态实现（server users 表；ApiAdapter 动态导入防 mock 侧加载面扩大）──
 
 async function _apiAdapterUsers() {
-  const { ApiAdapter } = await import('../../data/api-adapter.js?v=20261022a');
+  const { ApiAdapter } = await import('../../data/api-adapter.js?v=20261022c');
   return ApiAdapter.users;
 }
 
 /** 名册成员变更确认链写口（C-2 方案 B）：支书专属阶段语义端点（ApiAdapter.members.setDevelopStage） */
 async function _apiAdapterMembers() {
-  const { ApiAdapter } = await import('../../data/api-adapter.js?v=20261022a');
+  const { ApiAdapter } = await import('../../data/api-adapter.js?v=20261022c');
   return ApiAdapter.members;
 }
 
@@ -629,9 +718,69 @@ function _syncMockDBUsers(upsert, removeId) {
   mockDB.users = users;
 }
 
+/**
+ * 本地执行人员主键改名（mock 与 api 两种形态共用）：mockDB.users 行改名后，
+ * 把 mockDB 各域里精确等于旧 id 的引用递归替换，并追加一条本地审计行。
+ * api 形态只用于同步浏览器缓存（服务端已在同一事务内完成同等替换），不触发快照回写。
+ * @returns {Object|null} 改名后的成员记录
+ */
+function _applyLocalRename(from, to, by) {
+  const users = Array.isArray(mockDB.users) ? mockDB.users : [];
+  const old = users.find((u) => u && String(u.id) === from);
+  if (old) {
+    mockDB.users = [
+      ...users.filter((u) => u && String(u.id) !== from && String(u.id) !== to),
+      { ...old, id: to, studentId: to },
+    ];
+  }
+  for (const key of Object.keys(mockDB)) {
+    if (key === 'users' || key.startsWith('_')) continue;
+    const value = mockDB[key];
+    if (Array.isArray(value) || (value && typeof value === 'object')) {
+      mockDB[key] = renamePersonRefs(value, from, to);
+    }
+  }
+  mockDB.authAudit = [
+    ...(Array.isArray(mockDB.authAudit) ? mockDB.authAudit : []),
+    {
+      id: generateId('auth', '-'),
+      what: 'account-renamed', from, to, by: by || null,
+      at: new Date().toISOString(),
+    },
+  ];
+  bumpToken('member');
+  return (Array.isArray(mockDB.users) ? mockDB.users : []).find((p) => p && String(p.id) === to)
+    || getBaseMemberRecords().find((p) => p && String(p.id) === to)
+    || null;
+}
+
+/** mock 形态账号改名：members 覆盖层「旧 id 移除 + 新 id upsert」＋ mockDB 引用同步 */
+function _mockRenameAccount(from, to, by) {
+  const record = getBaseMemberRecords().find((p) => p && String(p.id) === from);
+  if (!record) return { ok: false, reason: '成员不存在（档案中无该 id）' };
+  const ov = _loadMemberOverlay() || { upserts: [], removedIds: [] };
+  const upserts = ov.upserts.filter((u) => u.id !== from && u.id !== to);
+  upserts.push(_cleanMemberRecord({ ...record, id: to, studentId: to }));
+  const removedIds = ov.removedIds.filter((x) => _removedIdOf(x) !== from && _removedIdOf(x) !== to);
+  removedIds.push({
+    id: from,
+    name: record.name || '',
+    removedAt: new Date().toISOString(),
+    decidedBy: by || null,
+    renamedTo: to,
+  });
+  if (!_saveMemberOverlay({ upserts, removedIds })) return { ok: false, reason: '本地存储不可用，未保存' };
+  // 登录账号层同步（mock 形态）：新学号建号、旧学号停用（写墓碑，不物理删除）
+  createAccount({ personId: to, studentId: to });
+  deactivateAccount(from, { studentId: record.studentId || from });
+  const member = _applyLocalRename(from, to, by);
+  return { ok: true, from, to, member: member || { id: to, studentId: to, name: record.name || '' } };
+}
+
 /** api 形态语义端点字段分组（与 server/routes/member.js 白名单同源，勿各自未同步） */
 const API_RESIDENCE_FIELDS = ['residenceStatus', 'residenceNote', 'residenceHistory'];
-const API_PROFILE_FIELDS = ['name', 'studentId', 'enrollYear', 'partyGroup', 'selfProfile']; // `D-788`：自我描述并入「档案属性」组（走 members.updateProfile）
+const API_PROFILE_FIELDS = ['name', 'enrollYear', 'partyGroup', 'selfProfile']; // `D-788`：自我描述并入「档案属性」组（走 members.updateProfile）
+// R7-01（2026-10-22）：studentId 不在补丁白名单——学号即主键，改名只走 renameMemberAccount（受控端点）。
 const API_CREATE_FIELDS = ['id', 'name', 'studentId', 'enrollYear', 'partyGroup', 'developStage', ...API_RESIDENCE_FIELDS];
 const API_GOVERNANCE_FIELDS = ['role', 'branchId'];
 
@@ -725,7 +874,7 @@ async function _apiRemoveMember(personId, opts = {}) {
 
 async function _apiReplaceBranchMembers(records, branchId) {
   try {
-    const { ApiAdapter } = await import('../../data/api-adapter.js?v=20261022a');
+    const { ApiAdapter } = await import('../../data/api-adapter.js?v=20261022c');
     const users = ApiAdapter.users;
     // 存在性（服务器权威）：branches 表须有该实例
     const branches = await ApiAdapter.branches.list();
@@ -737,7 +886,7 @@ async function _apiReplaceBranchMembers(records, branchId) {
       return { ok: false, reason: '目标支部已有业务历史（活动/专班/思想汇报等），整支部替换名单被拒绝（防孤儿引用）' };
     }
     const list = await users.list();
-    const old = list.filter(u => (u.branchId || 'br-b1') === branchId);
+    const old = list.filter(u => (u.branchId || DEFAULT_BRANCH_ID) === branchId);
     for (const u of old) {
       if (u.role === 'party-staff' || u.branchId === null) continue; // 党委组织员不属于支部——防御：不误删系统内建
       await users.delete(u.id);

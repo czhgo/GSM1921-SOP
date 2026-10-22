@@ -1,20 +1,20 @@
 // Party committee branch directory: create and select; maintenance is in branch-config.html.
 
-import { mockDB } from '../../../core/domain/domain.js?v=20261022a';
+import { mockDB } from '../../../core/domain/domain.js?v=20261022c';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/member/person.js 获取（原直连 mock PEOPLE）；
 // 每次渲染现读（members 覆盖层即时吃到），不缓存在模块顶层
-import { PersonStore } from '../../../services/member/person.js?v=20261022a';
-import { createBranch } from '../../../services/branch/branch.js?v=20261022a';
-import { getRosterStats } from '../../../services/member/roster.js?v=20261022a';
-import { showToast, escHtml as esc, getBasePath } from '../../../core/base/utils.js?v=20261022a';
-import { bindBranchReadOnlyButtons } from '../../../services/core/branch-readonly-nav.js?v=20261022a';
-import { renderSectionHeader, renderTabHeader } from '../../../components/shell/page-frame.js?v=20261022a';
-import { ROLE_LABELS } from '../../../core/domain/constants.js?v=20261022a';
-import { getAdapter, getDataSource } from '../../../data/data-adapter.js?v=20261022a';
+import { PersonStore } from '../../../services/member/person.js?v=20261022c';
+import { createBranch } from '../../../services/branch/branch.js?v=20261022c';
+import { getRosterStats } from '../../../services/member/roster.js?v=20261022c';
+import { showToast, escHtml as esc, getBasePath } from '../../../core/base/utils.js?v=20261022c';
+import { bindBranchReadOnlyButtons } from '../../../services/core/branch-readonly-nav.js?v=20261022c';
+import { renderSectionHeader, renderTabHeader } from '../../../components/shell/page-frame.js?v=20261022c';
+import { DEFAULT_BRANCH_ID, ROLE_LABELS } from '../../../core/domain/constants.js?v=20261022c';
+import { getAdapter, getDataSource } from '../../../data/data-adapter.js?v=20261022c';
 // A05（2026-10-20 IA 修复批次）：「支部动态」撤页后，其「待批复数量列 + 支部筛选」并入本页。
 //   数据与筛选件一律复用既有单一源（review-request 服务 + branch-filter 共用件），不另写一份。
-import { listReviewRequests } from '../../../services/governance/review-request.js?v=20261022a';
-import { renderBranchFilter, getBranchFilter } from '../../../components/governance/branch-filter.js?v=20261022a';
+import { listReviewRequests } from '../../../services/governance/review-request.js?v=20261022c';
+import { renderBranchFilter, getBranchFilter } from '../../../components/governance/branch-filter.js?v=20261022c';
 
 const BRANCH_FILTER_STATE = 'pc-branches';
 
@@ -30,7 +30,7 @@ const rosterLoadPromises = new Map();
 function ensureBranchMembersLoaded(branchId) {
   if (getDataSource() !== 'api' || rosterLoadAttempts.has(branchId)) return Promise.resolve();
   if (rosterLoadPromises.has(branchId)) return rosterLoadPromises.get(branchId);
-  if (PersonStore.getMembers().some((person) => (person.branchId || 'br-b1') === branchId)) {
+  if (PersonStore.getMembers().some((person) => (person.branchId || DEFAULT_BRANCH_ID) === branchId)) {
     rosterLoadAttempts.add(branchId);
     return Promise.resolve();
   }
@@ -56,7 +56,7 @@ function ensureBranchMembersLoaded(branchId) {
 
 function renderBranchRosterRows(branchId) {
   const people = PersonStore.getMembers()
-    .filter((person) => (person.branchId || 'br-b1') === branchId)
+    .filter((person) => (person.branchId || DEFAULT_BRANCH_ID) === branchId)
     .sort((a, b) => String(a.name || '').localeCompare(String(b.name || ''), 'zh-CN'));
   const rows = people.map((person) => {
     const profileUrl = `${getBasePath()}person.html?id=${encodeURIComponent(person.id)}`;

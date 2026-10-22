@@ -3,34 +3,34 @@
 // 仅展示已登记的考察事项；工作组成员名单不自动生成考察清单。
 // 业务口径：考察依托工作组——考察记录挂工作组，考察对象为该工作组成员；sourceType/activityId/taskforceId 是工作组类型的投影。
 
-import { loadActiveInspectionRecords, getOverdueRecords, confirmInspectionRecord, deleteInspectionRecord, listInspectionSupervision } from '../../../services/activity/inspection.js?v=20261022a';
-import { loadInspectionRecords, saveInspectionRecords, isInspectionHomePosition, inspectionConfirmDenyReason } from '../../../services/activity/inspection.js?v=20261022a';
-import { returnInspectionRecord, loadInspectionAppeals, returnInspectionAppeal, closeInspectionAppeal } from '../../../services/activity/inspection.js?v=20261022a';
-import { inspectionToLong, inspectionToWide } from '../../../services/activity/inspection.js?v=20261022a';
-import { getPersonById, getPersonName } from '../../../services/member/person.js?v=20261022a';
-import { SourceType, ParticipationLevel } from '../../../core/domain/domain.js?v=20261022a';
-// P3c 单一源（批4 副本收编 2026-09-09）：超期天数与文案由 policy 派生，勿在此写字面量
-import { POLICY_DEFAULTS } from '../../../core/domain/policy-defaults.js?v=20261022a';
-import { badgeHtml } from '../../../components/ui/badges.js?v=20261022a';
-import { showToast, downloadCSV, triggerPrint, _fmtDate, escHtml as esc, getBasePath, flashHighlight } from '../../../core/base/utils.js?v=20261022a';
-import { HandoffStore } from '../../../services/governance/handoff.js?v=20261022a';
-import { requireDiscCommissionerId } from './_shared.js?v=20261022a';
+import { loadActiveInspectionRecords, getOverdueRecords, confirmInspectionRecord, deleteInspectionRecord, listInspectionSupervision } from '../../../services/activity/inspection.js?v=20261022c';
+import { loadInspectionRecords, saveInspectionRecords, isInspectionHomePosition, inspectionConfirmDenyReason } from '../../../services/activity/inspection.js?v=20261022c';
+import { returnInspectionRecord, loadInspectionAppeals, returnInspectionAppeal, closeInspectionAppeal } from '../../../services/activity/inspection.js?v=20261022c';
+import { inspectionToLong, inspectionToWide } from '../../../services/activity/inspection.js?v=20261022c';
+import { getPersonById, getPersonName } from '../../../services/member/person.js?v=20261022c';
+import { SourceType, ParticipationLevel } from '../../../core/domain/domain.js?v=20261022c';
+// 超期天数单一源（设置中心可调）：只用于徽章 title，不在界面铺口径说明
+import { POLICY_DEFAULTS } from '../../../core/domain/policy-defaults.js?v=20261022c';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20261022c';
+import { showToast, downloadCSV, triggerPrint, _fmtDate, escHtml as esc, getBasePath, flashHighlight } from '../../../core/base/utils.js?v=20261022c';
+import { HandoffStore } from '../../../services/governance/handoff.js?v=20261022c';
+import { requireDiscCommissionerId } from './_shared.js?v=20261022c';
 // 统一检索引擎（支书 2026-09-13 裁定）：可搜索表一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
-import { renderFilteredList, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261022a';
-import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261022a';
+import { renderFilteredList, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261022c';
+import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261022c';
 // 人×项目矩阵单一源（支书 2026-09-14 批次 35 裁定：宽表默认 + 矩阵推广到其它二元关系域）
-import { renderRelationMatrix, MATRIX_COL_LIMIT } from '../../../components/ui/relation-matrix.js?v=20261022a';
+import { renderRelationMatrix, MATRIX_COL_LIMIT } from '../../../components/ui/relation-matrix.js?v=20261022c';
 // 考察代录位（2026-09-23 支书追裁「开一个代录位」）：写口与字段**完全复用**组长台「考察上传」，
 //   本位判据单一源 `services/activity/inspection.js::isInspectionHomePosition`，非本位代录走既有 nudge。
-import { loadActivities } from '../../../services/activity/activity.js?v=20261022a';
-import { filterActivitiesForViewer } from '../../../services/core/visibility.js?v=20261022a';
-import { currentUserId } from '../../../services/core/auth.js?v=20261022a';
-import { PersonPicker } from '../../../components/governance/pickers.js?v=20261022a';
+import { loadActivities } from '../../../services/activity/activity.js?v=20261022c';
+import { filterActivitiesForViewer } from '../../../services/core/visibility.js?v=20261022c';
+import { currentUserId } from '../../../services/core/auth.js?v=20261022c';
+import { PersonPicker } from '../../../components/governance/pickers.js?v=20261022c';
 // 「本位」nudge 确认弹窗（单一源 = components/ui/modal.js::confirmNudge）
-import { confirmNudge } from '../../../components/ui/modal.js?v=20261022a';
-import { generateId } from '../../../core/base/id.js?v=20261022a';
+import { confirmNudge } from '../../../components/ui/modal.js?v=20261022c';
+import { generateId } from '../../../core/base/id.js?v=20261022c';
 // 材料页深链 focusActivityId 的通用定位（只滚动 + 闪烁，不另造筛选器）
-import { focusActivityAnchor } from '../../../components/ui/detail-anchor.js?v=20261022a';
+import { focusActivityAnchor } from '../../../components/ui/detail-anchor.js?v=20261022c';
 
 // 考察代录表单状态（随模块自持，不污染入口；与组长 / 组织台考察上传同规）
 let _discInspFormVisible = false;
@@ -57,7 +57,7 @@ export function renderContent(ctx) {
   const returnedIds = new Set(returnedRecs.map(r => r.id));
   const tagColor = { 'activity': 'bg-blue-50 text-blue-600', 'taskforce': 'bg-green-50 text-green-700' };
   const statusColor = { 'confirmed': 'bg-green-100 text-green-700', 'pending': 'bg-orange-100 text-orange-700', 'overdue': 'bg-red-100 text-red-700' };
-  const overdueDays = POLICY_DEFAULTS.inspection.overdueDays; // 超期文案天数（批4 单一源派生）
+  const overdueDays = POLICY_DEFAULTS.inspection.overdueDays;
   // 考察代录位（2026-09-23 支书追裁「开一个代录位」）：来源＝活动侧（本位＝该场活动的组织者），
   //   与组长 / 组织台「考察上传」**同一来源集**（未归档、未取消的会议类活动；此处不按上传位收窄——
   //   纪检本就不是该场组织者，正是「本位不在时就地代录」）。
@@ -68,7 +68,7 @@ export function renderContent(ctx) {
 
   container.innerHTML = `
     ${renderTabHeader({ title: '考察管理', description: '督办清单、考察申诉、代录与考察总表。' })}
-    ${_buildSupervisionCardHTML(supervisionRows, overdueDays, returnedRecs)}
+    ${_buildSupervisionCardHTML(supervisionRows, returnedRecs)}
     ${_buildAppealCardHTML(pendingAppeals, returnedAppeals)}
     ${_buildInspectionProxyCardHTML(proxyActivities)}
     <div class="card rounded-xl p-5">
@@ -483,7 +483,7 @@ function _buildInspectionProxyCardHTML(activities = []) {
         <h3 class="font-title-cn text-base font-semibold text-gray-800">考察代录（代上传方录入）</h3>
         <button id="btn-disc-upload-insp" class="btn-outline h-8 px-3 text-xs font-medium">${_discInspFormVisible ? '收起表单' : '代录考察表单'}</button>
       </div>
-      <div class="text-[11px] text-gray-500 leading-5 mb-3">考察记录的写入本位是<strong>该场活动的组织者</strong>——上传方未到位时，纪检可在此代录；记录照常入下方考察总表「待确认」，确认权仍在本页。<strong>不是你本位时，提交前会先弹一次确认</strong>。</div>
+      <div class="text-[11px] text-gray-500 leading-5 mb-3">代录后进入下方考察总表「待确认」。</div>
       ${formHtml}
     </div>`;
 }
@@ -587,7 +587,7 @@ function _renderDiscInspContentRows(selectedIds) {
 // ── 督办清单卡（SOP-B-10 · 以人为第一列）──
 // 纪检委员的入口＝「未闭环 / 超期」项；数据由 listInspectionSupervision 按人聚合、随记录即时更新。
 // 批次 119：卡内补「已打回 · 待上传方重新确认」只读区（回退态交上传方，纪检只读掌握、不代确认）。
-function _buildSupervisionCardHTML(rows, overdueDays, returnedRecs = []) {
+function _buildSupervisionCardHTML(rows, returnedRecs = []) {
   const overdueCount = rows.reduce((n, r) => n + r.overdueCount, 0);
   const returnedHtml = returnedRecs.length === 0 ? '' : `
       <div class="mt-3 pt-3 border-t border-gray-100">
@@ -611,7 +611,7 @@ function _buildSupervisionCardHTML(rows, overdueDays, returnedRecs = []) {
           <span class="text-gray-600">超期 <span class="font-bold text-red-700">${overdueCount}</span></span>
         </div>
       </div>
-      <div class="text-[11px] text-gray-500 leading-5 mb-3">以人为第一列 · 随记录产生即时更新（没有「本月待汇总的表」）。<b>未闭环</b>＝已有考察记录未确认；<b>超期</b>＝未确认超过 ${overdueDays} 天。点姓名去推动闭环——<b>督办不等于接手</b>，建档与核对仍归组织委员；已确认的单条有误可「打回」，交上传方重新确认。</div>
+      <div class="text-[11px] text-gray-500 leading-5 mb-3">点姓名查看并推动闭环。</div>
       <div class="overflow-x-auto"><div id="insp-sup-list"></div></div>
       ${returnedHtml}
     </div>

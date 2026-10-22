@@ -3,50 +3,50 @@
 // 2026-08-07 自 ws-secretary-entry.js 拆分：统计条 + 活动日历 + 写入活动悬浮表单 + 活动查询。
 // D4 裁决批二（2026-09-08）：「考勤概况」独立卡移除 → 考勤作为活动字段入「活动查询」行内只读摘要。
 
-import { getAppState, setState } from '../../../core/base/state.js?v=20261022a';
-import { showToast, escHtml as esc, todayLocal, describeWriteError } from '../../../core/base/utils.js?v=20261022a';
-import { scrollDetailIntoView } from '../../../components/ui/detail-anchor.js?v=20261022a';
-import { populateMonthSelector, renderCalendarByActivities } from '../../../components/record/calendar.js?v=20261022a';
-import { renderInspectorFromState, _draftMaterialCount } from '../../../components/record/inspector.js?v=20261022a';
-import { computeSecretaryStats } from '../../../services/core/roles.js?v=20261022a';
-import { PersonPicker } from '../../../components/governance/pickers.js?v=20261022a';
-import { renderWorkgroupPermissionEditor, readWorkgroupPermissionEditor } from '../../../components/governance/workgroup-permissions.js?v=20261022a';
-import { openModal, closeModal, confirmNudge, confirmWriteWithoutGrant } from '../../../components/ui/modal.js?v=20261022a';
-import { DecisionTreeState, renderWorkflowPanel, writeActivityWithSOP } from '../../../services/activity/decision-tree.js?v=20261022a';
-import { loadActivities, listBrandProposals } from '../../../services/activity/activity.js?v=20261022a';
-import { renderQueryView } from '../../../components/governance/query-view.js?v=20261022a';
-import { icon } from '../../../core/base/icons.js?v=20261022a';
-import { loadAttendanceRecords } from '../../../services/activity/attendance.js?v=20261022a';
-import { liveMembers, PersonStore, getPersonName } from '../../../services/member/person.js?v=20261022a';
+import { getAppState, setState } from '../../../core/base/state.js?v=20261022c';
+import { showToast, escHtml as esc, todayLocal, describeWriteError } from '../../../core/base/utils.js?v=20261022c';
+import { scrollDetailIntoView } from '../../../components/ui/detail-anchor.js?v=20261022c';
+import { populateMonthSelector, renderCalendarByActivities } from '../../../components/record/calendar.js?v=20261022c';
+import { renderInspectorFromState, _draftMaterialCount } from '../../../components/record/inspector.js?v=20261022c';
+import { computeSecretaryStats } from '../../../services/core/roles.js?v=20261022c';
+import { PersonPicker } from '../../../components/governance/pickers.js?v=20261022c';
+import { renderWorkgroupPermissionEditor, readWorkgroupPermissionEditor } from '../../../components/governance/workgroup-permissions.js?v=20261022c';
+import { openModal, closeModal, confirmNudge, confirmWriteWithoutGrant } from '../../../components/ui/modal.js?v=20261022c';
+import { DecisionTreeState, renderWorkflowPanel, writeActivityWithSOP } from '../../../services/activity/decision-tree.js?v=20261022c';
+import { loadActivities, listBrandProposals } from '../../../services/activity/activity.js?v=20261022c';
+import { renderQueryView } from '../../../components/governance/query-view.js?v=20261022c';
+import { icon } from '../../../core/base/icons.js?v=20261022c';
+import { loadAttendanceRecords } from '../../../services/activity/attendance.js?v=20261022c';
+import { liveMembers, PersonStore, getPersonName } from '../../../services/member/person.js?v=20261022c';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/member/person.js 获取（原直连 mock PEOPLE）
 // 实时视图（非快照）：成员增删即时可见——见 services/member/person.js liveMembers 说明
 const PEOPLE = liveMembers();
-import { NoticeStore } from '../../../services/governance/notice.js?v=20261022a';
-import { BranchService } from '../../../services/core/runtime.js?v=20261022a';
-import { ACTIVITY_CLASSIFICATION, classifyActivityType, normalizeActivityType, dotDarkVars, SCENARIO_WRITE_IDS, SCENARIO_LABELS, ROLE_LABELS, PROJECT_ROLES, activityTypeBadgeVariant, ACTIVITY_SCOPES, isBranchLevelScenario } from '../../../core/domain/constants.js?v=20261022a';
+import { NoticeStore } from '../../../services/governance/notice.js?v=20261022c';
+import { BranchService } from '../../../services/core/runtime.js?v=20261022c';
+import { DEFAULT_BRANCH_ID, ACTIVITY_CLASSIFICATION, classifyActivityType, normalizeActivityType, dotDarkVars, SCENARIO_WRITE_IDS, SCENARIO_LABELS, ROLE_LABELS, PROJECT_ROLES, activityTypeBadgeVariant, ACTIVITY_SCOPES, isBranchLevelScenario } from '../../../core/domain/constants.js?v=20261022c';
 // 责任党小组清单唯一来源（2026-10-21 批次 499：活动必须落到唯一责任党小组）
-import { loadPartyGroups } from '../../../services/member/party-group.js?v=20261022a';
+import { loadPartyGroups } from '../../../services/member/party-group.js?v=20261022c';
 // R1-A 点⑤（2026-09-09）：强调色渲染统一 person-aware 动态解析（替代模块级 resolveAccentRole 快照）
-import { getAppliedAccentColors } from '../../../core/boot/theme.js?v=20261022a';
-import { badgeHtml } from '../../../components/ui/badges.js?v=20261022a';
-import { collectAgendaRows, buildAgendaCandidates, AGENDA_CANDIDATE_GROUPS } from './agenda-form.js?v=20261022a';
-import { defaultVoteConfig, isDecisionScenario, resolveVoterIds, resolveParticipantIds, isAnonymousForced } from '../../../services/activity/vote-config.js?v=20261022a';
-import { AuthStore } from '../../../services/core/auth.js?v=20261022a';
-import { getBranchIdOfPerson, getBranchById, getBranchOutputBlocks, applyWorkflowBlockPolicy, getWorkflowBlockFieldPolicy, getWorkflowBlockParticipantPolicy } from '../../../services/branch/branch.js?v=20261022a';
-import { generateId } from '../../../core/base/id.js?v=20261022a';
-import { validateAgendaStructure } from '../../../services/activity/agenda-relations.js?v=20261022a';
+import { getAppliedAccentColors } from '../../../core/boot/theme.js?v=20261022c';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20261022c';
+import { collectAgendaRows, buildAgendaCandidates, AGENDA_CANDIDATE_GROUPS } from './agenda-form.js?v=20261022c';
+import { defaultVoteConfig, isDecisionScenario, resolveVoterIds, resolveParticipantIds, isAnonymousForced } from '../../../services/activity/vote-config.js?v=20261022c';
+import { AuthStore } from '../../../services/core/auth.js?v=20261022c';
+import { getBranchIdOfPerson, getBranchById, getBranchOutputBlocks, applyWorkflowBlockPolicy, getWorkflowBlockFieldPolicy, getWorkflowBlockParticipantPolicy } from '../../../services/branch/branch.js?v=20261022c';
+import { generateId } from '../../../core/base/id.js?v=20261022c';
+import { validateAgendaStructure } from '../../../services/activity/agenda-relations.js?v=20261022c';
 // 支部文件读侧收敛点（2026-09-10）：会前草案下拉经 branch-doc 服务读取（按归属支部过滤，跨支部不可见）
-import { listDocs as listBranchDocs, isAgendaDraftDoc } from '../../../services/branch/branch-doc.js?v=20261022a';
+import { listDocs as listBranchDocs, isAgendaDraftDoc } from '../../../services/branch/branch-doc.js?v=20261022c';
 // L3 S4（2026-09-03）：主题党日工作流块 manifest 驱动试点（入口守卫 + 表单元数据单一源）
-import { BLOCK_MANIFESTS, THEME_PARTY_DAY_MANIFEST, THREE_MEETINGS_MANIFESTS } from '../../../workflow/blocks/manifests.js?v=20261022a';
+import { BLOCK_MANIFESTS, THEME_PARTY_DAY_MANIFEST, THREE_MEETINGS_MANIFESTS } from '../../../workflow/blocks/manifests.js?v=20261022c';
 // B1（2026-09-12）：党委下钻支部的演示只读视图判定（单一源 = services/core/branch-demo-nav.js）
-import { isReadonlyBranchDrilldown } from '../../../services/core/branch-demo-nav.js?v=20261022a';
+import { isReadonlyBranchDrilldown } from '../../../services/core/branch-demo-nav.js?v=20261022c';
 // 统一检索引擎（2026-10-04 批次 373）：党小组活动列表（原支书台「党小组与活动」分区）按对象归位到本页
-import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261022a';
-import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261022a';
+import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261022c';
+import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261022c';
 // 项目赋权整卡（2026-10-04 批次 373 · 支书圈乙「整卡搬去活动管理」）：实现单一源＝assign-tab.js
 //   ——本页只给落点宿主，不新造第二套视觉/表单（同 group-progress-tab 既有形态）。
-import { mountActivityProjectAuth } from './assign-tab.js?v=20261022a';
+import { mountActivityProjectAuth } from './assign-tab.js?v=20261022c';
 
 // 生效强调色 hex（R1-A 点⑤：登录人强调色=person 键覆盖，禁止模块加载期快照写死——
 // 一律渲染时经 getAppliedAccentColors 动态解析，改色后随重渲染/刷新生效，与 --app-accent 同源）
@@ -60,21 +60,21 @@ function _accentHex() {
 // validAssignments 同口径——本处只做表单呈现与提交前软提示，不另立规则。
 function _currentBranchId() {
   const me = AuthStore.getCurrentUser();
-  return me?.branchId || getBranchIdOfPerson(me?.personId) || 'br-b1';
+  return me?.branchId || getBranchIdOfPerson(me?.personId) || DEFAULT_BRANCH_ID;
 }
 
 /** 本支部活组（显示顺序＝组序） */
 function _branchPartyGroups() {
   const branchId = _currentBranchId();
   return loadPartyGroups()
-    .filter((g) => g.status === 'active' && (g.branchId || 'br-b1') === branchId)
+    .filter((g) => g.status === 'active' && (g.branchId || DEFAULT_BRANCH_ID) === branchId)
     .sort((a, b) => (Number(a.seq) || 0) - (Number(b.seq) || 0));
 }
 
 /** 本支部组织委员（跨组深参的默认协调人） */
 function _orgCommissionerId() {
   const branchId = _currentBranchId();
-  return PEOPLE.find((p) => p.role === 'org-commissioner' && (p.branchId || 'br-b1') === branchId)?.id || '';
+  return PEOPLE.find((p) => p.role === 'org-commissioner' && (p.branchId || DEFAULT_BRANCH_ID) === branchId)?.id || '';
 }
 
 /** 当前表单里已选的责任组 */
@@ -103,15 +103,15 @@ function _renderOrganizingScopeSection(scenarioId) {
   let html = `<div class="mb-3 card rounded-xl p-4" id="wp-organizing-scope">`;
   html += `<p class="text-xs font-medium text-gray-700 mb-1.5">组织落点</p>`;
   if (isBranchLevelScenario(scenarioId)) {
-    html += `<p class="text-xs text-gray-600 leading-5">支部级法定会议：由支委会 / 党员大会 / 党课统一组织，<b>不指定责任党小组</b>。</p>`;
+    html += `<p class="text-xs text-gray-600 leading-5">支部级法定会议：由支委会 / 党员大会 / 党课统一组织，<b>不指定承办党小组</b>。</p>`;
     html += `</div>`;
     return html;
   }
   const options = groups.map((g) => `<option value="${esc(g.id)}"${g.id === wp.hostGroupId ? ' selected' : ''}>${esc(g.name)}</option>`).join('');
-  html += `<label for="wp-host-group" class="text-xs text-gray-500 mb-1.5 block font-medium">责任党小组 <span class="text-red-600">*</span></label>`;
+  html += `<label for="wp-host-group" class="text-xs text-gray-500 mb-1.5 block font-medium">承办党小组 <span class="text-red-600">*</span></label>`;
   html += `<select id="wp-host-group" class="input-flat w-full" aria-describedby="wp-host-group-hint">`;
-  html += `<option value="">请选择责任党小组</option>${options}</select>`;
-  html += `<p id="wp-host-group-hint" class="text-xs text-gray-500 mt-1">跨组活动只改变参与 / 招募范围，组织落点仍是该责任党小组。</p>`;
+  html += `<option value="">请选择承办党小组</option>${options}</select>`;
+  html += `<p id="wp-host-group-hint" class="text-xs text-gray-500 mt-1">跨组只影响招募范围；活动始终落到该承办党小组。</p>`;
   html += `<label class="flex items-start gap-2 text-xs text-gray-700 mt-2.5"><input type="checkbox" id="wp-cross-recruit" class="checkbox-accent mt-0.5"${wp.crossRecruit ? ' checked' : ''}><span>需从其他党小组招募深度参与者<span class="text-gray-500">（由组织委员协调）</span></span></label>`;
   const coordinatorId = _orgCommissionerId();
   html += `<p class="text-xs text-gray-500 mt-1">协调人：${coordinatorId ? esc(getPersonName(coordinatorId) || coordinatorId) + '（组织委员）' : '本支部未配置组织委员，暂不能跨组招募'}</p>`;
@@ -119,7 +119,7 @@ function _renderOrganizingScopeSection(scenarioId) {
   const exceptionReason = wp.organizerExceptionReason || '';
   html += `<div class="mt-2.5${cross.organizers.length ? '' : ' hidden'}" id="wp-organizer-exception-slot">`;
   html += `<label for="wp-organizer-exception" class="text-xs text-gray-500 mb-1 block font-medium">组织者跨组说明 <span class="text-red-600">*</span></label>`;
-  html += `<input type="text" id="wp-organizer-exception" class="input-flat w-full" value="${esc(exceptionReason)}" placeholder="组织者一般由责任党小组承担，请说明本次由他组同志承担的原因">`;
+  html += `<input type="text" id="wp-organizer-exception" class="input-flat w-full" value="${esc(exceptionReason)}" placeholder="组织者一般由承办党小组承担，请说明本次由他组同志承担的原因">`;
   html += `<p class="text-xs text-amber-700 mt-1">组织者一般由本组承担；确需他组同志时，说明将随活动留存（不阻断）。</p>`;
   html += `</div>`;
   html += `<p id="wp-cross-deep-note" class="text-xs text-amber-700 mt-2${cross.deep.length ? '' : ' hidden'}">${cross.deep.length ? `已在名单中的跨组深参：${cross.deep.map((p) => esc(p.name || p.id)).join('、')}——提交后由组织台「跨组招募待协调」跟进。` : ''}</p>`;
@@ -962,7 +962,7 @@ function renderFormStep() {
   html += `</div>`;
   html += `<div id="wp-auth-list" class="mt-2"></div>`;
   // 2026-10-21 批次 499：组织者候选默认限责任党小组；关闭后才显示全部成员（跨组深参由此入口招募）。
-  html += `<label class="flex items-start gap-2 text-xs text-gray-600 mt-2"><input type="checkbox" id="wp-auth-same-group" class="checkbox-accent mt-0.5" checked><span>只显示责任党小组<span class="text-gray-500">（组织者一般本组；关闭后可选他组，跨组深参须由组织委员协调）</span></span></label>`;
+  html += `<label class="flex items-start gap-2 text-xs text-gray-600 mt-2"><input type="checkbox" id="wp-auth-same-group" class="checkbox-accent mt-0.5" checked><span>只显示承办党小组成员<span class="text-gray-500">（关闭后显示全部成员；组织者一般本组，跨组深参须由组织委员协调）</span></span></label>`;
   html += renderWorkgroupPermissionEditor('secretary-activity');
   html += `</div>`;
 
@@ -1582,7 +1582,7 @@ async function handleSubmitActivity() {
     const hostSelect = document.getElementById('wp-host-group');
     hostGroupId = hostSelect?.value || wp.hostGroupId || '';
     const group = _branchPartyGroups().find((g) => g.id === hostGroupId);
-    if (!group) { showToast('error', '请选择责任党小组'); hostSelect?.focus(); return; }
+    if (!group) { showToast('error', '请选择承办党小组'); hostSelect?.focus(); return; }
     hostGroupName = group.name;
     wp.hostGroupId = hostGroupId;
   }
@@ -1603,7 +1603,7 @@ async function handleSubmitActivity() {
     // 组织者一般由责任党小组承担；他组同志属例外——软提示不阻断，但须留说明。
     const ok = await confirmNudge({
       nudgeKey: 'activity-write',
-      who: '责任党小组',
+      who: '承办党小组',
       verb: '承担组织者',
       why: '组织者一般由本组承担，跨组承担属例外；确认后将随活动留存说明。',
       context: title,
@@ -1696,8 +1696,8 @@ async function handleSubmitActivity() {
       // 2026-09-13 dogfood 同类彻查：创建人审计取真实登录成员（原写死占位 ID 'u_sec'）
       createdBy: AuthStore.getCurrentUser()?.personId || null,
       branchId: AuthStore.getCurrentUser()?.branchId || getBranchIdOfPerson(AuthStore.getCurrentUser()?.personId),
-      // 2026-10-21 批次 499：组织落点按场景写入；跨组招募同时落协调人。
-      organizingScope: branchLevel ? ACTIVITY_SCOPES.BRANCH : ACTIVITY_SCOPES.CROSS_GROUP,
+      // 2026-10-21 批次 502：组织落点只有两档（支部级 / 承办党小组）；「跨组」只由招募范围表达。
+      organizingScope: branchLevel ? ACTIVITY_SCOPES.BRANCH : ACTIVITY_SCOPES.PARTY_GROUP,
       hostGroupId: branchLevel ? null : hostGroupId,
       hostGroup: branchLevel ? '' : hostGroupName,
       recruitmentScope: crossRecruit ? 'cross-group' : 'group',
@@ -1843,9 +1843,9 @@ document.addEventListener('click', (e) => { if (e.target?.closest?.('#wp-agenda-
 async function _loadAgendaCandidateSources() {
   const out = { taskforceProposals: [], issues: [], draftDocs: [], members: [], stageEntries: {} };
   const [{ TaskForceRecordStore }, { IssueStore }, { loadStageEntryDates }] = await Promise.all([
-    import('../../../services/activity/taskforce.js?v=20261022a'),
-    import('../../../services/governance/issues.js?v=20261022a'),
-    import('../../../services/member/member-confirmation.js?v=20261022a'),
+    import('../../../services/activity/taskforce.js?v=20261022c'),
+    import('../../../services/governance/issues.js?v=20261022c'),
+    import('../../../services/member/member-confirmation.js?v=20261022c'),
   ]);
   try { out.taskforceProposals = TaskForceRecordStore.listCommitteeRequests(); }
   catch (e) { console.warn('[calendar] 专班待议加载失败：', e); }

@@ -7,15 +7,15 @@
 //  样式：提取至 person-picker.css，主题色通过 CSS 变量 --pp-* 注入
 // ════════════════════════════════════════════════════════════════
 
-import { liveMembers, PersonStore } from '../../services/member/person.js?v=20261022a';
+import { liveMembers, PersonStore } from '../../services/member/person.js?v=20261022c';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/member/person.js 获取（原直连 mock PEOPLE）
 // 实时视图（非快照）：成员增删即时可见——见 services/member/person.js liveMembers 说明
 const PEOPLE = liveMembers();
-import { getPersonById } from '../../services/member/person.js?v=20261022a';
+import { getPersonById } from '../../services/member/person.js?v=20261022c';
 // 党小组清单单一源（活组按 seq 升序；2026-09-14 批次 29 收敛——见文件头「党小组清单」说明）
-import { groupOptions } from '../../services/member/party-group.js?v=20261022a';
-import { icon } from '../../core/base/icons.js?v=20261022a';
-import { ROLE_LABELS, ACCENT_COLORS, applyDark } from '../../core/domain/constants.js?v=20261022a';
+import { groupOptions } from '../../services/member/party-group.js?v=20261022c';
+import { icon } from '../../core/base/icons.js?v=20261022c';
+import { ROLE_LABELS, ACCENT_COLORS, applyDark } from '../../core/domain/constants.js?v=20261022c';
 
 // ── 辅助：从 hex 生成 rgba 字符串 ──────────────────────────────
 function hexToRgba(hex, alpha) {
@@ -242,7 +242,6 @@ export class PersonPicker {
 
     this._triggerBtn?.setAttribute('aria-expanded', 'true');
 
-    // 更新触发按钮样式（通过类名切换，CSS 控制具体样式）
     if (this._triggerBtn) {
       this._triggerBtn.classList.add('open');
       const arrow = this._triggerBtn.querySelector('.person-picker-arrow');
@@ -364,7 +363,6 @@ export class PersonPicker {
 
       tab.addEventListener('click', () => {
         this._activeGroup = group;
-        // 更新 tab 激活状态（类名切换，CSS 控制具体样式）
         tabBar.querySelectorAll('.person-picker-tab').forEach(t => {
           t.classList.toggle('active', t.dataset.group === this._activeGroup);
         });
@@ -437,10 +435,8 @@ export class PersonPicker {
 
     this._panelEl = panel;
 
-    // 渲染人员列表
     this._renderList();
 
-    // 聚焦搜索框
     requestAnimationFrame(() => searchInput.focus());
   }
 
@@ -545,7 +541,6 @@ export class PersonPicker {
       `;
     }).join('');
 
-    // 绑定点击事件
     listEl.querySelectorAll('.person-picker-item').forEach(item => {
       item.addEventListener('click', () => {
         const personId = item.dataset.personId;

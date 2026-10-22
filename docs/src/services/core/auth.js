@@ -10,20 +10,20 @@
 //   - party 页面已移除，organizer/deep 内容落在成员工作台（workspace/visitor.html）——
 //     首页并无"我的角色"区块（2026-09-17 批次 64 dogfood 实测）
 
-import { ROLE_LABELS, ROLE_PAGE_MAP, BRANCH_COMMISSION_ROLES } from '../../core/domain/constants.js?v=20261022a';
-import { PEOPLE } from '../../data/mock/index.js?v=20261022a';
+import { DEFAULT_BRANCH_ID, ROLE_LABELS, ROLE_PAGE_MAP, BRANCH_COMMISSION_ROLES } from '../../core/domain/constants.js?v=20261022c';
+import { PEOPLE } from '../../data/mock/index.js?v=20261022c';
 // 账号登录校验（认证域收口：UI 不直连 mock 账号仓；真实后端接入时此处替换校验实现）
 // 2026-09-14 批次 25：改为「可持久化账号层 ∪ 静态种子表」校验（成员流入自动建号 / 流出停用；
 //   见 services/core/accounts.js），支撑「账号与成员档案同源」口径。
-import { verifyLogin } from './accounts.js?v=20261022a';
-import { getPersonById, getPersonName } from '../member/person.js?v=20261022a';
-import { mockDB, WORKGROUP_WRITABLE_STATUSES } from '../../core/domain/domain.js?v=20261022a';
-import { NoticeStore } from '../governance/notice.js?v=20261022a';
-import { getAdapter, migrateLegacyPersonId } from '../../data/data-adapter.js?v=20261022a';
-import { enableApiMode } from './runtime.js?v=20261022a';
-import { generateId } from '../../core/base/id.js?v=20261022a';
-import { todayLocal } from '../../core/base/utils.js?v=20261022a';
-import { WORKGROUP_PERMISSION_TEMPLATES_BY_KIND } from '../../core/domain/workgroup-policy.js?v=20261022a';
+import { verifyLogin } from './accounts.js?v=20261022c';
+import { getPersonById, getPersonName } from '../member/person.js?v=20261022c';
+import { mockDB, WORKGROUP_WRITABLE_STATUSES } from '../../core/domain/domain.js?v=20261022c';
+import { NoticeStore } from '../governance/notice.js?v=20261022c';
+import { getAdapter, migrateLegacyPersonId } from '../../data/data-adapter.js?v=20261022c';
+import { enableApiMode } from './runtime.js?v=20261022c';
+import { generateId } from '../../core/base/id.js?v=20261022c';
+import { todayLocal } from '../../core/base/utils.js?v=20261022c';
+import { WORKGROUP_PERMISSION_TEMPLATES_BY_KIND } from '../../core/domain/workgroup-policy.js?v=20261022c';
 
 // 迁移期（2026-10-20）：旧 p* 仅作登录别名 / 历史 localStorage 兼容，会话一律存学号。
 // 映射表经 data-adapter 的迁移入口转出，业务层不直接引用 deprecated 映射文件。
@@ -909,13 +909,13 @@ function _syncAuthAuditToServer(records) {
   const fresh = rows.filter((r) => r && r.id && !_auditSyncedIds.has(r.id));
   if (!fresh.length) return;
   fresh.forEach((r) => _auditSyncedIds.add(r.id));
-  const sync = import('../../data/data-adapter.js?v=20261022a').then(async ({ getDataSource, getAdapter }) => {
+  const sync = import('../../data/data-adapter.js?v=20261022c').then(async ({ getDataSource, getAdapter }) => {
     if (getDataSource() !== 'api') return; // mock 形态：不发（本机键即权威）
     const a = getAdapter();
     if (!a.authAudit || typeof a.authAudit.create !== 'function') return;
     for (const r of fresh) {
       const target = getPersonById(r.targetPersonId);
-      await a.authAudit.create({ ...r, branchId: target?.branchId || AuthStore.getCurrentUser()?.branchId || 'br-b1' });
+      await a.authAudit.create({ ...r, branchId: target?.branchId || AuthStore.getCurrentUser()?.branchId || DEFAULT_BRANCH_ID });
     }
   }).catch((e) => {
     fresh.forEach((r) => _auditSyncedIds.delete(r.id)); // 失败回滚登记 → 下次写重试
@@ -926,4 +926,4 @@ function _syncAuthAuditToServer(records) {
 }
 
 // R3-P1（F-09）：授权审计语义端点登记 pending-writes（置尾 import，避免上文 README 取证行号漂移）
-import { trackWrite } from '../../core/session/pending-writes.js?v=20261022a';
+import { trackWrite } from '../../core/session/pending-writes.js?v=20261022c';

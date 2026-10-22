@@ -3,20 +3,21 @@
 //  attendance.js — 考勤记录 CRUD 服务
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB, AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../core/domain/domain.js?v=20261022a';
-import { POLICY_DEFAULTS } from '../../core/domain/policy-defaults.js?v=20261022a';
-import { persist, getDataSource, getAdapter } from '../../data/data-adapter.js?v=20261022a';
-import { generateId } from '../../core/base/id.js?v=20261022a';
-import { bumpToken } from '../../core/base/version-token.js?v=20261022a'; // P0 域缓存失效（spec §二.3）
-import { ATTENDANCE_RECORDS } from '../../data/mock/index.js?v=20261022a';
-import { isInitStateActive } from '../core/init-reset.js?v=20261022a'; // C2 修复（2026-09-08）：init 态空态不回退演示种子
-import { PersonStore, getPersonById, getPersonName } from '../member/person.js?v=20261022a';
-import { getRosterStats } from '../member/roster.js?v=20261022a';
-import { getMeetingRosterIds } from '../member/roster.js?v=20261022a';
-import { loadActivities, isActivityOrganizer } from './activity.js?v=20261022a';
-import { SignupStore } from './signup.js?v=20261022a';
-import { deriveExpectedRosterIds } from './attendance-roster.js?v=20261022a';
-import { trackWrite } from '../../core/session/pending-writes.js?v=20261022a';
+import { mockDB, AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../core/domain/domain.js?v=20261022c';
+import { POLICY_DEFAULTS, isAttendanceOverdue } from '../../core/domain/policy-defaults.js?v=20261022c';
+import { persist, getDataSource, getAdapter } from '../../data/data-adapter.js?v=20261022c';
+import { generateId } from '../../core/base/id.js?v=20261022c';
+import { bumpToken } from '../../core/base/version-token.js?v=20261022c'; // P0 域缓存失效（spec §二.3）
+import { ATTENDANCE_RECORDS } from '../../data/mock/index.js?v=20261022c';
+import { isInitStateActive } from '../core/init-reset.js?v=20261022c'; // C2 修复（2026-09-08）：init 态空态不回退演示种子
+import { PersonStore, getPersonById, getPersonName } from '../member/person.js?v=20261022c';
+import { getRosterStats } from '../member/roster.js?v=20261022c';
+import { getMeetingRosterIds } from '../member/roster.js?v=20261022c';
+import { loadActivities, isActivityOrganizer } from './activity.js?v=20261022c';
+import { SignupStore } from './signup.js?v=20261022c';
+import { deriveExpectedRosterIds } from './attendance-roster.js?v=20261022c';
+import { trackWrite } from '../../core/session/pending-writes.js?v=20261022c';
+import { isPartyGroupLeaderRole } from '../../core/domain/constants.js?v=20261022c';
 
 export function loadAttendanceRecords() {
   if (mockDB.attendances.length > 0) return [...mockDB.attendances];
@@ -142,7 +143,7 @@ export function canUploadAttendance(personId, activityId) {
     // dogfood 权限专项 2026-09-13：此前仅判类型 → 任一组长可代录他组小组会考勤（实测下拉出现
     //   别组小组会且可提交成功），与制度「本组」口径不符。
     const myGroup = (getPersonById(personId) || {}).partyGroup;
-    if (role === 'leader' && !!myGroup && _activityPartyGroup(activity) === myGroup) return true;
+    if (isPartyGroupLeaderRole(role) && !!myGroup && _activityPartyGroup(activity) === myGroup) return true;
     // 该场会议的组织者（2026-09-21 批次 132 · 支书口径一「党小组会 那就是 会议组织者」）
     return isActivityOrganizer(personId, activityId);
   }
@@ -509,6 +510,7 @@ const _personName = (id) => getPersonName(id);
 // ACTIVITIES 中，此前台账只显示 act-xxxx 原始 id（人会看不懂是哪场活动）
 const _activityTitle = (id) => loadActivities().find(a => a.id === id)?.title || id;
 const _activityType = (id) => loadActivities().find(a => a.id === id)?.type || '未知';
+const _activityDate = (id) => loadActivities().find(a => a.id === id)?.date || '';
 
 /** 考勤记录展示长格式（记录 → 姓名/学号/发展阶段/所属党小组/活动/类别/状态/确认人） */
 export function attendanceToLong(records) {
@@ -535,7 +537,8 @@ export function attendanceToLong(records) {
       // 单列字段供各展示点标注「· 线上参会」，勿把它并进 status 中文标签（状态筛选按 statusKey 判）。
       onlineAttend: r.onlineAttend === true,
       confirmer: r.recordedBy ? _personName(r.recordedBy) : '—',
-      overdue: r.overdue,
+      // R7-33：超期按「活动日 + 补课时限」现算（存储字段 overdue 仅作历史兼容，不再直读）
+      overdue: isAttendanceOverdue({ ...r, date: r.date || _activityDate(r.activityId) }),
     };
   });
 }

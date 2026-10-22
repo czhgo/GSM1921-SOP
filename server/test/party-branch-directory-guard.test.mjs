@@ -42,6 +42,6 @@ test('S 支部目录：活动/专班/通知三列 + 行内名册展开', async (
   assert.match(source, /max-h-80/, '名册区须限制最大高度');
   assert.match(source, /overflow-y-auto/, '名册区须纵向滚动');
   assert.match(source, /暂无在册成员/, '名册空态文案须为「暂无在册成员」');
-  assert.match(source, /PersonStore\.getMembers\(\)[\s\S]*?\(person\.branchId \|\| 'br-b1'\) === branchId/,
+  assert.match(source, /PersonStore\.getMembers\(\)[\s\S]*?\(person\.branchId \|\| DEFAULT_BRANCH_ID\) === branchId/,
     '名册取数须经 PersonStore.getMembers() 且按支部归属过滤');
 });

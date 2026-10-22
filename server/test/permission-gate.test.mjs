@@ -113,7 +113,7 @@ test('活动写门：支委层可建；普通成员 403；组长限党小组会/
   const { token } = await login('2300010001'); // 支书（支委层）
   const ok = await fetch(`${base}/api/v1/activities`, {
     method: 'POST', headers: authHeaders(token),
-    body: JSON.stringify({ title: '权限门回归活动', date: '2026-09-10', type: '主题党日', organizingScope: 'cross-group', hostGroupId: 'pg-1', hostGroup: '第一党小组' }),
+    body: JSON.stringify({ title: '权限门回归活动', date: '2026-09-10', type: '主题党日', organizingScope: 'party-group', hostGroupId: 'pg-1', hostGroup: '第一党小组' }),
   });
   assert.equal(ok.status, 201, '支书（支委层）可创建活动');
 

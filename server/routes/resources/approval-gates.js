@@ -4,6 +4,7 @@
 //  判据单一源＝ docs/src/services/activity/activity.js（自带 import 随块搬迁）。
 // ════════════════════════════════════════════════════════════════
 
+import { DEFAULT_BRANCH_ID } from '../../../docs/src/core/domain/constants.js';
 import { listTable } from './store.js';
 
 // ════════════════════════════════════════════════════════════════
@@ -106,7 +107,7 @@ export function _snapshotActivityApprovalGateDeny(db, payload, actor) {
 export function _activityCreateGatePatch(db, actor) {
   let mode = 'off';
   try {
-    const row = db.prepare('SELECT data FROM branches WHERE id = ?').get((actor && actor.branchId) || 'br-b1');
+    const row = db.prepare('SELECT data FROM branches WHERE id = ?').get((actor && actor.branchId) || DEFAULT_BRANCH_ID);
     const cfg = row ? JSON.parse(row.data).config : null;
     mode = (cfg && cfg.policyOverrides && cfg.policyOverrides.activityApproval
       && cfg.policyOverrides.activityApproval.mode) || 'off';

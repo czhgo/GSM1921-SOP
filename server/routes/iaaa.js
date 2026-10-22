@@ -34,7 +34,7 @@
 import express from 'express';
 import { randomUUID } from 'node:crypto';
 import { requireAuth } from './auth.js';
-import { SECRETARY_AND_DEPUTY_ROLES, ORG_COMMISSIONER_ROLES, PARTY_STAFF_ROLE } from '../../docs/src/core/domain/constants.js';
+import { DEFAULT_BRANCH_ID, SECRETARY_AND_DEPUTY_ROLES, ORG_COMMISSIONER_ROLES, PARTY_STAFF_ROLE } from '../../docs/src/core/domain/constants.js';
 import { selectedBranchRequiredError } from './resources/branch-scope.js';
 // R-26③（2026-10-05 批次 388）：日期口径统一到**本地**（`services/reporting.js` 是服务端单一源；禁 UTC 切串）
 import { today as todayLocal } from '../services/reporting.js';
@@ -222,7 +222,7 @@ export function createIaaaRouter(db) {
     const rows = listUsers(db)
       .filter((u) => u.branchId === null && u.joinIntent && u.joinIntent.branchId)
       .filter((u) => (want ? u.joinIntent.branchId === want : true))
-      .filter((u) => (mine ? u.joinIntent.branchId === (actor.branchId || 'br-b1') : true))
+      .filter((u) => (mine ? u.joinIntent.branchId === (actor.branchId || DEFAULT_BRANCH_ID) : true))
       .map((u) => ({ personId: u.id, name: u.name, studentId: u.studentId, joinIntent: u.joinIntent }));
     res.json(rows);
   });
@@ -236,7 +236,7 @@ export function createIaaaRouter(db) {
       if (!u) return res.status(404).json({ error: '账号不存在' });
       if (!u.joinIntent || !u.joinIntent.branchId) return res.status(409).json({ error: '该账号没有待确认的入站申请' });
       const target = String((req.body && req.body.branchId) || u.joinIntent.branchId);
-      if (actor.role !== 'party-staff' && target !== (actor.branchId || 'br-b1')) {
+      if (actor.role !== 'party-staff' && target !== (actor.branchId || DEFAULT_BRANCH_ID)) {
         return res.status(403).json({ error: '无权限：只能处理本支部的入站申请' });
       }
       if (verb === 'approve') {

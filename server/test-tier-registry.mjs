@@ -22,13 +22,18 @@ export const TIERS = ['daily', 'precommit', 'weekly'];
 
 /** daily 文件数预算（含本守卫自身；新增 daily 测试须同批上调并写明理由）
  *  2026-10-21 R5 P1：新增 page-title-guard / ui-contrast-guard，并补登记既有
- *  ui-custom-select / ui-focus-ring（纯 node 守卫）⇒ 209 → 213。 */
-export const DAILY_FILE_BUDGET = 213;
+ *  ui-custom-select / ui-focus-ring（纯 node 守卫）⇒ 209 → 213。
+ *  2026-10-22 第七轮 P2：新增 branch-id-literal-guard（缺省支部字面量守卫，纯 node）⇒ 213 → 214。
+ *  2026-10-22 第七轮 R7-01：新增 account-rename（人员主键改名受控端点，纯 node）⇒ 214 → 215。 */
+export const DAILY_FILE_BUDGET = 215;
 
 /** daily 静态 `test(` / `it(` 调用点预算（含子测试；新增断言须同批上调并写明理由）
  *  2026-10-21 R5 P1：页题守卫 4 条 + 对比度守卫 5 条 + 补登记的既有两条守卫 ⇒ 1351 → 1377。
- *  2026-10-21 批次 500 收尾：`todo-role-write-gate` 补 S5–S10（派生待办：支委代办 / 来源可证 / 伪造来源拒 / 无 actionKey 拒 / 推进仍归本人 / 无主 visitor 拒）⇒ 1377 → 1383。 */
-export const DAILY_TEST_BUDGET = 1383;
+ *  2026-10-21 批次 500 收尾：`todo-role-write-gate` 补 S5–S10（派生待办：支委代办 / 来源可证 / 伪造来源拒 / 无 actionKey 拒 / 推进仍归本人 / 无主 visitor 拒）⇒ 1377 → 1383。
+ *  2026-10-22 第七轮 P2：`branch-id-literal-guard` 2 条 + 副组长同权用例 2 条 ⇒ 1383 → 1387。
+ *  2026-10-22 第七轮 R7-33：`policy-config` 补考勤/复盘超期现算 2 条纯函数用例 ⇒ 1387 → 1389。
+ *  2026-10-22 第七轮 R7-01：`account-rename` 4 条（成功 / 409 / 403 / p* 400）⇒ 1389 → 1393。 */
+export const DAILY_TEST_BUDGET = 1393;
 
 const group = (tier, reason, list) => list.map((file) => ({ file, tier, reason }));
 
@@ -68,6 +73,7 @@ export const TEST_TIERS = [
   ]),
   // daily · 数据真值 / 迁移 / 种子 / 备份
   ...group('daily', '数据真值 / 迁移 / 种子 / 备份', [
+    'account-rename.test.mjs',
     'archive-action-guard.test.mjs',
     'archive-record-write.test.mjs',
     'backup-restore.test.mjs',
@@ -104,6 +110,7 @@ export const TEST_TIERS = [
   ...group('daily', '静态结构 / UI / 文案 / 防假绿守卫', [
     'activity-block-gate.test.mjs',
     'block-orchestration.test.mjs',
+    'branch-id-literal-guard.test.mjs',
     'button-system-guard.test.mjs',
     'committee-meeting-density.test.mjs',
     'committee-tab-density.test.mjs',

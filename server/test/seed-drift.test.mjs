@@ -10,7 +10,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { initDb, SCHEMA_VERSION } from '../db.js';
-import { detectSeedDrift, planSeedRepair } from '../../docs/src/data/seed-drift.js?v=20261022a';
+import { detectSeedDrift, planSeedRepair } from '../../docs/src/data/seed-drift.js?v=20261022c';
 import { loadSeedRowsForTable } from '../seed-rows.js';
 import { repairSeedRowsIfNeeded, readSeedMeta } from '../seed-repair.js';
 

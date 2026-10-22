@@ -8,21 +8,21 @@
 
 // R2-47（2026-10-20）：出勤率统一走服务层的两个显式语义（按应到 / 按已录），页面不再自己相除；
 //   R2-14：配色档位同源 attendanceRateTone（良好线 90 + 制度提示线 lowRateHint）。
-import { loadActiveAttendanceRecords, absenceReasonLabel, createAttendanceAppeal, summarizePersonAttendanceByRoster, summarizeAttendanceByActivity, attendanceRateTone } from '../../../services/activity/attendance.js?v=20261022a';
-import { getOrganizedActivities } from '../../../services/activity/activity.js?v=20261022a';
-import { loadMakeupTasks, saveMakeupTasks } from '../../../services/activity/makeup.js?v=20261022a';
-import { AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../../core/domain/domain.js?v=20261022a';
-import { POLICY_DEFAULTS } from '../../../core/domain/policy-defaults.js?v=20261022a';
-import { AuthStore } from '../../../services/core/auth.js?v=20261022a';
-import { openFormModal } from '../../../components/ui/modal.js?v=20261022a';
-import { showToast, todayLocal } from '../../../core/base/utils.js?v=20261022a';
+import { loadActiveAttendanceRecords, absenceReasonLabel, createAttendanceAppeal, summarizePersonAttendanceByRoster, summarizeAttendanceByActivity, attendanceRateTone } from '../../../services/activity/attendance.js?v=20261022c';
+import { getOrganizedActivities } from '../../../services/activity/activity.js?v=20261022c';
+import { loadMakeupTasks, saveMakeupTasks } from '../../../services/activity/makeup.js?v=20261022c';
+import { AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../../core/domain/domain.js?v=20261022c';
+import { POLICY_DEFAULTS, isAttendanceOverdue } from '../../../core/domain/policy-defaults.js?v=20261022c';
+import { AuthStore } from '../../../services/core/auth.js?v=20261022c';
+import { openFormModal } from '../../../components/ui/modal.js?v=20261022c';
+import { showToast, todayLocal } from '../../../core/base/utils.js?v=20261022c';
 // 活动「已归档」口径单一源（2026-09-13 收敛）：替代手写 !a.archived
-import { isActivityArchived } from '../../../core/domain/constants.js?v=20261022a';
+import { isActivityArchived } from '../../../core/domain/constants.js?v=20261022c';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是活动的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
-import { renderFilteredList, activityKeyword, activityFacets } from '../../../components/ui/list-filter.js?v=20261022a';
+import { renderFilteredList, activityKeyword, activityFacets } from '../../../components/ui/list-filter.js?v=20261022c';
 // 材料页深链 focusActivityId 的通用定位（只滚动 + 闪烁，不另造筛选器）
-import { focusActivityAnchor } from '../../../components/ui/detail-anchor.js?v=20261022a';
-import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261022a';
+import { focusActivityAnchor } from '../../../components/ui/detail-anchor.js?v=20261022c';
+import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261022c';
 
 export function renderContent(ctx) {
   const tc = document.getElementById('visitor-tab-content');
@@ -50,12 +50,12 @@ export function renderContent(ctx) {
   // 2026-10-18 成员台组织者投影：个人考勤内容（我的出勤率 / 本人明细 / 补课入口）在页首，
   // 组织者上传位放在个人内容之后；只渲染「由我组织」的活动，不再整页复用组长台的全组视图。
   tc.innerHTML = `
-    ${renderTabHeader({ title: '考勤概况', description: '本月我的出勤率与活动出勤明细；补课入口在行内。' })}
+    ${renderTabHeader({ title: '考勤概况', description: '本月我的出勤率与活动出勤明细。' })}
     <div id="visitor-att-mine"></div>
     <div class="card rounded-xl p-5"><div id="visitor-att-list"></div></div>
     ${myOrgActs.length ? `
     <div class="mt-4">
-      <div class="text-xs text-gray-500 mb-1.5">由我组织的活动 · 考勤上传位（会议考勤由组织者上传；此处即你的上传面）</div>
+      <div class="text-xs text-gray-500 mb-1.5">由我组织的活动 · 考勤上传位</div>
       <!-- 材料页「成员组织者」深链锚点（visitor.html?tab=attendance#org-host） -->
       <span id="org-host" aria-hidden="true"></span>
       <div id="visitor-org-att-host"></div>
@@ -65,7 +65,7 @@ export function renderContent(ctx) {
   // 挂「由我组织的活动」上传位（实现单一源＝leader/attendance-tab，host 复用；scope=organizer 只投影本人活动）
   const _orgAttHost = document.getElementById('visitor-org-att-host');
   if (_orgAttHost) {
-    import('../leader/attendance-tab.js?v=20261022a').then(m => { if (_orgAttHost.isConnected) m.renderContent(ctx, _orgAttHost, { scope: 'organizer' }); });
+    import('../leader/attendance-tab.js?v=20261022c').then(m => { if (_orgAttHost.isConnected) m.renderContent(ctx, _orgAttHost, { scope: 'organizer' }); });
   }
 
   // SOP-B-15 当事人可见侧（2026-09-20 批次 116 支书定案「支委会 ＋ 当事人本人」）：
@@ -119,6 +119,8 @@ export function renderContent(ctx) {
       : `出勤 ${present}/${total} · ${rate}%${summary.unrecorded > 0 ? `（未录 ${summary.unrecorded} 人）` : ''}`;
     const rateCls = rate === null ? 'text-gray-400' : rateColor;
     const myRecord = meId ? records.find(r => r.personId === meId) : null;
+    // R7-33：超期按「活动日 + 补课时限」现算（不再读记录上的 overdue 快照）
+    const myOverdue = !!myRecord && isAttendanceOverdue({ ...myRecord, date: myRecord.date || act.date });
     // 本人待补课任务（按活动索引；补课入口出现条件）
     const myMakeup = loadMakeupTasks().find(t => t.personId === meId && t.activityId === act.id && t.status === 'pending');
     return `
@@ -137,7 +139,7 @@ export function renderContent(ctx) {
         </div>
         <div class="visitor-att-detail hidden px-3 pb-3 pt-1 border-t border-gray-50" data-att-detail="${act.id}">
           <div class="text-[12px] text-gray-600 space-y-0.5">
-            <div>我的出勤：${myRecord ? `<span class="font-medium text-gray-800">${ATTENDANCE_STATUS_LABELS[myRecord.status] || myRecord.status}</span>${myRecord.status === AttendanceStatus.ABSENT || myRecord.status === AttendanceStatus.LEAVE ? `（${myRecord.overdue ? '已超期' : '待补'}）` : ''}` : '<span class="text-gray-500">无你的出勤记录</span>'}</div>
+            <div>我的出勤：${myRecord ? `<span class="font-medium text-gray-800">${ATTENDANCE_STATUS_LABELS[myRecord.status] || myRecord.status}</span>${myRecord.status === AttendanceStatus.ABSENT || myRecord.status === AttendanceStatus.LEAVE ? `（${myOverdue ? '已超期' : '待补'}）` : ''}` : '<span class="text-gray-500">无你的出勤记录</span>'}</div>
             ${myRecord && myRecord.absenceReason ? `<div>未到标因：${absenceReasonLabel(myRecord.absenceReason)}</div>` : ''}
             ${myMakeup ? `<div>补课截止：${myMakeup.deadline || '—'}${myMakeup.status === 'pending' && myMakeup.deadline && myMakeup.deadline < todayLocal() ? '（已逾期，请尽快提交）' : ''}${myMakeup.isMandatory ? '（必修：自学+心得）' : '（选修：自学）'}</div>` : ''}
             ${myMakeup ? `<div>补课说明：${myMakeup.proofContent ? `<span class="text-gray-700 whitespace-pre-wrap">${myMakeup.proofContent}</span>` : '<span class="text-gray-500">未提交</span>'}</div>` : ''}
