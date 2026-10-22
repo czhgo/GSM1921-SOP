@@ -46,7 +46,7 @@ async function patchConfig(token, body) {
   });
 }
 
-const V = '?v=20261021c';
+const V = '?v=20261022a';
 const BLOCK = 'theme-party-day';
 
 test('② 净化 + 读侧：cleanFieldPolicies 正/反样例（去重/丢非串/只收布尔/空壳不保留）', async () => {
@@ -135,10 +135,11 @@ test('② HTTP：fieldPolicies 写回（净化形状）/ 非法丢弃 / blocks=n
   assert.equal(r3.status, 200, 'blocks=null 恢复默认');
   assert.equal((await r3.json()).config.blocks, null, 'blocks 全清');
 
-  // ④ 产品规则（routes/resources/index.js:827）：党委维护能力目录与模板，支部自行选择模块/流程块
-  //   ⇒ 党委对 config.blocks 的任何写（含 null 恢复默认）一律 403；守卫不因改测试角色而弱化。
-  assert.equal((await patchConfig(staff, { config: { blocks: { workflowBlocks: { hiddenBlockIds: [] } } } })).status, 403,
-    '党委不得写 config.blocks（仅支部支书/副支书可选配）');
-  assert.equal((await patchConfig(staff, { config: { blocks: null } })).status, 403,
-    '党委不得经 blocks=null 恢复支部默认');
+  // ④ 2026-10-21 批次 501（D-825，推翻批次 448）：党委可代支部写 config.blocks（含 null 恢复默认），
+  //   留痕行带 `byRole='party-staff'`。
+  const r4 = await patchConfig(staff, { config: { blocks: { workflowBlocks: { hiddenBlockIds: [] } } } });
+  assert.equal(r4.status, 200, '党委可代支部写 config.blocks（D-825）');
+  assert.equal((await r4.json()).config.configChangeHistory.at(-1).byRole, 'party-staff', '留痕标明党委代配置');
+  const r4b = await patchConfig(staff, { config: { blocks: null } });
+  assert.equal(r4b.status, 200, '党委可经 blocks=null 恢复支部默认（D-825）');
 });

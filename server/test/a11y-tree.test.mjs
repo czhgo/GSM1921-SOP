@@ -274,7 +274,9 @@ test('A5 项目分工空态出口：检索无命中后 AX 存在可聚焦的「�
       return !!empty && empty.getBoundingClientRect().height > 0;
     }, null, { timeout: 10000 });
     const searchedEmpty = await page.evaluate(() => document.querySelector('#visitor-tab-content .empty-state')?.innerText.trim());
-    assert.ok(/无匹配项目/.test(searchedEmpty || ''),
+    // 该 tab 的空态文案由 projects-tab.js 自定义（`emptyMessage`：全量「— 暂无项目」/ 我的「— 你暂未参与任何项目」），
+    //   不套检索引擎缺省「无匹配结果」；两种都算正常空态（批次 501 改准）。
+    assert.ok(/暂无|无匹配/.test(searchedEmpty || ''),
       `无命中检索后空态文案异常：${JSON.stringify(searchedEmpty)}`);
     console.log('[AX] 无命中检索视图:', JSON.stringify({ view: searchedIn, keyword: 'zzzz-no-match', emptyState: searchedEmpty }));
 

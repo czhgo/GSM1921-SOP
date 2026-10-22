@@ -2,7 +2,7 @@
 title: "系统角色权限矩阵（代码键级权威）"
 type: governance
 role: "[工程师]+[AI]"
-last_updated: 2026-10-18
+last_updated: 2026-10-22
 status: active
 related_files: [content/03_doc_system/OPERATIONS_GUIDE.md, docs/src/core/domain/constants.js]
 ---
@@ -135,11 +135,11 @@ related_files: [content/03_doc_system/OPERATIONS_GUIDE.md, docs/src/core/domain/
 
 ## 9h. 支部 config 写权（config 写权分层）
 
-> **定位与键级说明**：支部 config（branches.config 各域）写权**未入 auth.js ROLE_PERMISSIONS 键集**——按 §9f 双轨约定属「写层业务守卫」类（与建档/监督/导入等操作位限定同理，不硬凑缺键）。党委维护能力目录与模板，支部自主选择已发布能力包；党委组织员不直接替支部开关模块、流程块或能力包。服务端仍按域校验党委组织员可写的组织档案、分工和域参数；本支部支书/副支书可管理本支部的模块、流程块和能力包；域负责人仅写本域 policyOverrides。实现见 `server/routes/resources/index.js` 与 `services/branch/branch.js`。
+> **定位与键级说明**：支部 config（branches.config 各域）写权**未入 auth.js ROLE_PERMISSIONS 键集**——按 §9f 双轨约定属「写层业务守卫」类（与建档/监督/导入等操作位限定同理，不硬凑缺键）。**2026-10-22 批次 501（`D-825`）起：党委作为管理后台可代支部配置模块、流程块与能力包**（每次写入进 `config.configChangeHistory` 并带 `byRole`，标明代配）；支部（支书/副支书）仍可自行选择与覆盖。党委维护能力目录与模板的职责不变；域负责人仅写本域 policyOverrides。实现见 `server/routes/resources/index.js` 与 `services/branch/branch.js`。
 
 | 角色 | config.modules/blocks | config.capabilityPackages | config.workforce | org 档案（headerTitle/desc/themePreset） | 域参数 policyOverrides（L2） | 顶层治理字段 name/type/secretaryId/status |
 |---|:---:|:---:|:---:|:---:|:---:|:---:|
-| party-staff（党委组织员，组织级） | -- | -- | Y（全支部） | Y（全支部；含 name 同步） | Y（全量） | **Y（唯一可写）** |
+| party-staff（党委组织员，组织级） | **Y（代支部；留痕 `byRole`）** | **Y（代支部；留痕 `byRole`）** | Y（全支部） | Y（全支部；含 name 同步） | Y（全量） | **Y（唯一可写）** |
 | 现任支书（本支部） | Y | Y | Y（日常 = 支委会议题 M2 表决落库；换壳/部署 = 向导③直写） | Y（**不含 name**） | Y（全量） | -- |
 | 现任副支书（本支部 · 副书同权） | Y | Y | Y（同上） | Y（**不含 name**） | Y（全量） | -- |
 | 纪检委员（本支部） | -- | -- | -- | -- | Y（本域 `inspection`/`attendance`/`review`/`makeup` 节） | -- |
@@ -147,7 +147,7 @@ related_files: [content/03_doc_system/OPERATIONS_GUIDE.md, docs/src/core/domain/
 | 党小组组长（本支部） | -- | -- | -- | -- | Y（仅 `leader` 节） | -- |
 | 其余角色（宣传委员/成员等） | -- | -- | -- | -- | -- | -- |
 
-> 注：① modules/blocks 核心组（groupLabel='工作台'）固定不可关、不参与排序；null = 默认全开。② `config.capabilityPackages` 只接受目录中可由支部配置的 optional/local 包；停用后停止新建，在办可完成，历史只读；模板版本由支部自主采纳。③ org 档案写口 = 换组织向导步骤①；顶层 name 仅 party-staff（支书/副支书不可改官方名，改名同步 headerTitle）。④ 全部 config 写留痕 `config.configChangeHistory`（{by,at,what,from?,to?}），逐键 diff、空变化不冗余。⑤ 他支部的支书/副支书不可写本支部 config（person → branchId 归属校验）。⑥ modules/blocks/workforce/org 档案操作位 = 设置（侧边栏右下）→ 支部治理 + 换组织向导内嵌（支书/副支书共台）。
+> 注：① modules/blocks 核心组（groupLabel='工作台'）固定不可关、不参与排序；null = 默认全开。② `config.capabilityPackages` 只接受目录中可由支部配置的 optional/local 包；停用后停止新建，在办可完成，历史只读；模板版本由支部自主采纳。③ org 档案写口 = 换组织向导步骤①；顶层 name 仅 party-staff（支书/副支书不可改官方名，改名同步 headerTitle）。④ 全部 config 写留痕 `config.configChangeHistory`（{by,byRole,at,what,from?,to?}），逐键 diff、空变化不冗余；`byRole` 用于区分「党委代配置」与「支部自行配置」。⑤ 他支部的支书/副支书不可写本支部 config（person → branchId 归属校验）。⑥ modules/blocks/workforce/org 档案操作位 = 设置（侧边栏右下）→ 支部治理 + 换组织向导内嵌（支书/副支书共台）。
 
 ### 9h.1 活动承办与工作组权限边界
 

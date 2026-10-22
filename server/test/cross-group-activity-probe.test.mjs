@@ -30,10 +30,10 @@ globalThis.localStorage = storage;
 
 import { createApp } from '../app.js';
 import { seedDatabase } from '../seed.js';
-import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261021c';
-import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261021c';
-import { PEOPLE } from '../../docs/src/data/mock/people.js?v=20261021c';
-import { PARTY_GROUPS } from '../../docs/src/data/mock/party-groups.js?v=20261021c';
+import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261022a';
+import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261022a';
+import { PEOPLE } from '../../docs/src/data/mock/people.js?v=20261022a';
+import { PARTY_GROUPS } from '../../docs/src/data/mock/party-groups.js?v=20261022a';
 
 const SECRETARY = '2300010001';
 const ORG_COMMISSIONER = '2400012355';

@@ -8,15 +8,15 @@
 //   · 下半部是本台专属的「活动进展」分段（组件单一源 `components/governance/activity-progress.js`）。
 //   ⚠ 不新造页签、不改注册序；`?tab=calendar` / 旧 `?tab=tf-view` 别名均不受影响。
 
-import { getAppState, setState } from '../../../core/base/state.js?v=20261021c';
-import { renderContent as renderSharedCalendar } from '../shared/activity-calendar-tab.js?v=20261021c';
-import { renderActivityProgress } from '../../../components/governance/activity-progress.js?v=20261021c';
-import { mockDB } from '../../../core/domain/domain.js?v=20261021c';
-import { getAdapter } from '../../../data/data-adapter.js?v=20261021c';
-import { loadPartyGroups } from '../../../services/member/party-group.js?v=20261021c';
-import { getPersonName } from '../../../services/member/person.js?v=20261021c';
-import { AuthStore } from '../../../services/core/auth.js?v=20261021c';
-import { escHtml as esc, showToast } from '../../../core/base/utils.js?v=20261021c';
+import { getAppState, setState } from '../../../core/base/state.js?v=20261022a';
+import { renderContent as renderSharedCalendar } from '../shared/activity-calendar-tab.js?v=20261022a';
+import { renderActivityProgress } from '../../../components/governance/activity-progress.js?v=20261022a';
+import { mockDB } from '../../../core/domain/domain.js?v=20261022a';
+import { getAdapter } from '../../../data/data-adapter.js?v=20261022a';
+import { loadPartyGroups } from '../../../services/member/party-group.js?v=20261022a';
+import { getPersonName } from '../../../services/member/person.js?v=20261022a';
+import { AuthStore } from '../../../services/core/auth.js?v=20261022a';
+import { escHtml as esc, showToast } from '../../../core/base/utils.js?v=20261022a';
 
 // ── 跨组招募协调 / 待补责任党小组（2026-10-21 批次 499 · 组织委员协调面）──────
 // 口径：跨组只是参与/招募范围，活动仍有唯一责任党小组；跨党小组深度参与者由组织委员协调。

@@ -1,7 +1,7 @@
 // server/test/module-config.test.mjs — L2 支部工作流模块配置（2026-09-03）
-// 支书裁定：支部自治/支书操作/核心固定——PATCH /branches/:id/config 仅本支部现任支书、
-// 本副支书（副书同权，2026-09-09 支书批）；党委维护能力目录与模板、不代支部选配
-// （`server/routes/resources/index.js:827`）⇒ 党委写 modules/blocks 一律 403；
+// 支书裁定：支部自治/支书操作/核心固定——PATCH /branches/:id/config 本支部现任支书、
+// 本副支书（副书同权，2026-09-09 支书批）可写；2026-10-21 批次 501（D-825）起**党委亦可代支部配置**
+// （留痕 byRole='party-staff'），推翻批次 448 的 403 写门；
 // 白名单仅收 config.modules（治理字段 name 不受 body 影响）；modules=null 恢复默认。HTTP 直连（无浏览器）。
 
 import { test, before, after } from 'node:test';
@@ -41,7 +41,7 @@ async function patchConfig(token, body) {
   });
 }
 
-test('L2 config：现任支书/本副支书可写，其它支委/普通成员/党委 403；治理字段不受 body 影响', async () => {
+test('L2 config：现任支书/本副支书/党委（D-825 代配置）可写，其它支委/普通成员 403；治理字段不受 body 影响', async () => {
   const { token: sec } = await login('2300010001');    // 现任支书（br-b1）
   const { token: dep } = await login('2300010002');    // 本副支书（deputy-secretary，br-b1；副书同权 2026-09-09）
   const { token: orgc } = await login('2400012355');   // 组织委员（支委但非支书/副）
@@ -71,8 +71,10 @@ test('L2 config：现任支书/本副支书可写，其它支委/普通成员/�
   // ④ 普通成员 → 403
   assert.equal((await patchConfig(mem, { config: { modules: { hiddenTabIds: [] } } })).status, 403, '普通成员不可写');
 
-  // ⑤ 党委组织员写 modules → 403（党委维护目录/模板，不代支部选择工作台模块）
-  assert.equal((await patchConfig(staff, { config: { modules: null } })).status, 403, '党委不得写 config.modules');
+  // ⑤ 党委组织员可代支部写 modules（2026-10-21 批次 501 · D-825 推翻批次 448），留痕带 byRole
+  const rStaff = await patchConfig(staff, { config: { modules: null } });
+  assert.equal(rStaff.status, 200, '党委可代支部写 config.modules（D-825）');
+  assert.equal((await rStaff.json()).config.configChangeHistory.at(-1).byRole, 'party-staff', '留痕标明党委代配置');
   // 支书恢复默认（null=恢复默认）→ 200
   const r5 = await patchConfig(sec, { config: { modules: null } });
   assert.equal(r5.status, 200, '支书可恢复 modules 默认');
@@ -115,8 +117,10 @@ test('L2 config.blocks：产出块写回/单独写 blocks/恢复默认/结构校
   // ③ 全空 config → 400
   assert.equal((await patchConfig(sec, { config: {} })).status, 400, '无 modules/blocks → 400');
 
-  // ④ 党委写 blocks（含恢复默认）→ 403；支书可恢复默认（blocks=null）
-  assert.equal((await patchConfig(staff, { config: { blocks: null } })).status, 403, '党委不得写 config.blocks');
+  // ④ 党委可代支部写 blocks（含恢复默认，D-825）；支书同样可恢复默认
+  const r4Staff = await patchConfig(staff, { config: { blocks: null } });
+  assert.equal(r4Staff.status, 200, '党委可代支部写 config.blocks（D-825）');
+  assert.equal((await r4Staff.json()).config.configChangeHistory.at(-1).byRole, 'party-staff', '留痕标明党委代配置');
   const r4 = await patchConfig(sec, { config: { blocks: null } });
   assert.equal(r4.status, 200, '支书可恢复 blocks 默认');
   assert.equal((await r4.json()).config.blocks, null, 'blocks=null 恢复默认');

@@ -3,7 +3,7 @@ title: "工程化评估与改造行动线"
 type: audit_report
 role: "[工程师]+[AI]"
 created: 2026-09-03
-last_updated: "2026-10-21"
+last_updated: "2026-10-22"
 status: active
 related_files: [content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md, content/04_web_design/evolution/WORKFLOW_BLOCK_CONTRACT.md, content/04_web_design/evolution/PARTY_COMMITTEE_DESIGN.md, content/04_web_design/module/SOP_WEBSITE_GUIDE.md, content/04_web_design/deploy/DEPLOYMENT_GUIDE.md, .ctx/REVIEW_QUEUE.md, CLAUDE.md, content/03_doc_system/DOC_MAP.md, content/insights/README.md, content/insights/工程与AI协作的全栈实践.md, server/README.md, docs/help.html]
 ---
@@ -266,7 +266,8 @@ Git 从 2026-03-14 至 2026-10-14 共 1,133 条提交记录；按提交日期分
 | daily test 分层 | 测试工程 | ✅ | 预算只降不升；新增测试同批登记层级 | `test-tier-registry.mjs`、`test-tier-guard` |
 | 第五轮脏乱繁审查 | 审查 | ✅ 报告；后续共识修复 | P2/P3 按报告修复顺序排批 | `.ctx/logs/archive/2026-10/AUDIT_R5_*.md` |
 | 浮层承载面 | 承载形态 | ✅ | 已收口（批次 497） | `ui-modal-form-guard`、`DESIGN_SYSTEM §4.27` |
-| form-loop 存量红 | 测试工程 | 🟡 | 按台账逐条造前置或改判据 | `form-loop-registry.mjs` |
+| form-loop 存量红 | 测试工程 | ✅ | 已收口（批次 501）：九条 e2e / form-loop 红全清 | `form-loop-registry.mjs` |
+| 党委代配置写门（`D-825`） | 权限/治理 | ✅ | 已收口（批次 501）：推翻批次 448 写门，党委可代支部写 `modules`/`blocks`/`capabilityPackages`，留痕 `byRole` | `server/routes/resources/index.js`、`SYSTEM_ROLE_PERMISSION §9h`、`DECISION_LOG D-825` |
 
 ---
 

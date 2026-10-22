@@ -2,7 +2,7 @@
 title: "测试验证纪律"
 type: governance
 role: "[工程师]+[AI]"
-last_updated: "2026-10-21"
+last_updated: "2026-10-22"
 status: active
 related_files: [CLAUDE.md, DATA_CONSISTENCY_CHECKLIST.md, content/03_doc_system/OPERATIONS_GUIDE.md, docs/scripts/bump-version.mjs]
 ---

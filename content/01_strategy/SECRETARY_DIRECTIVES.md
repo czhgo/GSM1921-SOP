@@ -2,7 +2,7 @@
 title: "党支书工作交接文档"
 type: governance
 role: "[用户]+[AI]"
-last_updated: 2026-10-21
+last_updated: 2026-10-22
 status: active
 related_files: [CLAUDE.md, ARCHITECTURE.md, content/01_strategy/DEVELOPMENT_PATH.md, content/04_web_design/data/DATA_MODEL.md, content/02_institution/COMMISSIONER_DUTY_FRAMEWORK.md, content/04_web_design/module/SOP_WEBSITE_GUIDE.md, content/03_doc_system/OPERATIONS_GUIDE.md, content/insights/党支部管理与实务经验沉淀.md]
 ---
@@ -411,6 +411,18 @@ related_files: [CLAUDE.md, ARCHITECTURE.md, content/01_strategy/DEVELOPMENT_PATH
 
 ***
 
+### P-020 党委是管理后台——可代支部配置，支部保留覆盖权
+
+“党委就是 管理后台，这么看来，是否应当推翻448裁定内容？”（2026-10-22）
+
+> 管理多个支部时会遇到一个权限边界问题：党委能不能直接替支部勾选模块、停用流程块？答案是能。党委的定位就是**管理后台**，换组织、批量初始化、纠正配置都是它的本职；把「支部自治」理解成「党委不能代办」，会让后台在真实运维里寸步难行。
+>
+> 代配置不等于取代：支部（支书 / 副支书）随时可以自行改回，后写覆盖前写；每一次代配置都要在支部配置留痕里标明**是谁、以什么角色**写的（`byRole=party-staff`），让支部与后来者一眼分清「这是党委代配的还是支部自己定的」。
+
+> 出处：支书 2026-10-22 对 `D-448` 的复议 · 子本：`content/02_institution/SYSTEM_ROLE_PERMISSION.md` §9h、`.ctx/logs/2026-10-DECISION_LOG.md` `D-825` · 层次：制度设计级
+
+***
+
 ## 附录·论断编号索引
 
 按 P 编号顺序列出本文件保留的论断及其页内锚点（已迁出条目见下方「已迁出/已删除论断」去向指针）：
@@ -436,6 +448,7 @@ related_files: [CLAUDE.md, ARCHITECTURE.md, content/01_strategy/DEVELOPMENT_PATH
 | P-017 | 主客统一——组织要求与成员自觉的辩证统一                      | 第四章 | 元命题   | `#p-017-主客统一组织要求与成员自觉的辩证统一`                   |
 | P-018 | 跨组活动仍须落到党小组——组织者一般本组，跨组深参由组织委员协调 | 第二章 | 制度设计级 | `#p-018-跨组活动仍须落到党小组组织者一般本组跨组深参由组织委员协调` |
 | P-019 | 汇报要保护支委知情权，并尽可能按组织关系汇总 | 第二章 | 制度设计级 | `#p-019-汇报要保护支委知情权并尽可能按组织关系汇总` |
+| P-020 | 党委是管理后台——可代支部配置，支部保留覆盖权 | 第二章 | 制度设计级 | `#p-020-党委是管理后台可代支部配置支部保留覆盖权` |
 
 **已迁出/已删除论断**（不再保留在本文件）：
 

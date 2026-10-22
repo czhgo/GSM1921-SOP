@@ -42,7 +42,7 @@ async function loginAs(browser, role) {
   ]);
   await page.waitForTimeout(1200);
   // P0-2 形态断言（2026-09-23 支书裁定「形态必须可断言」）：本文件真机用例必须在 API 形态下跑
-  await page.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20261021c')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
+  await page.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20261022a')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
   return page;
 }
 
@@ -50,7 +50,8 @@ async function apiLogin(personId) {
   const r = await fetch(`${BASE}/api/v1/auth/login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ personId }),
+    // 2026-10-21 批次 501：登录自 P1b 起必须带口令（缺口令一律 401），此处补齐。
+    body: JSON.stringify({ personId, password: '123456' }),
   });
   assert.equal(r.status, 200);
   return (await r.json()).token;
@@ -87,7 +88,9 @@ test('核心闭环：议程讨论文件类型 → 记录通过 → 自动归档 
     await page.waitForSelector('#month-selector', { timeout: 10000 });
     await page.click('#ws-sec-write-btn');
     await page.waitForSelector('[data-action="select-template"][data-category="three-meetings"]', { timeout: 10000 });
-    await page.click('[data-action="select-template"][data-category="three-meetings"][data-subtype="party-group-meeting"]');
+    // 2026-10-21 批次 501：`party-group-meeting` 自批次 499 起不再出现在支书台写入模板
+    //   （`WRITE_TEMPLATES` 显式过滤：党小组会由组长台发起）⇒ 改用同为支部级的「支委会」。
+    await page.click('[data-action="select-template"][data-category="three-meetings"][data-subtype="branch-committee"]');
 
     const uniqueTitle = `闭环议程-${Date.now().toString().slice(-5)}`;
     await page.fill('#wp-title', uniqueTitle);

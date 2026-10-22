@@ -3,28 +3,55 @@
 // 支部边界收敛点（防止未同步的情况）：人→支部归属、支部配置档案读取（header 软编码/主题/启停模块）
 // 单一数据源：mockDB.branches（首启 seed 自 data/mock/branches.js BRANCHES）
 
-import { mockDB } from '../../core/domain/domain.js?v=20261021c';
-import { getPersonById } from '../member/person.js?v=20261021c';
-import { PARTY_COMMITTEE, DEFAULT_BRANCH_DISPLAY_NAME } from '../../data/mock/branches.js?v=20261021c';
-import { PEOPLE } from '../../data/mock/people.js?v=20261021c';
-import { getAdapter, persist, getDataSource } from '../../data/data-adapter.js?v=20261021c';
-import { listCapabilities } from '../../core/boot/registry.js?v=20261021c';
+import { mockDB } from '../../core/domain/domain.js?v=20261022a';
+import { getPersonById } from '../member/person.js?v=20261022a';
+import { PARTY_COMMITTEE, DEFAULT_BRANCH_DISPLAY_NAME } from '../../data/mock/branches.js?v=20261022a';
+import { PEOPLE } from '../../data/mock/people.js?v=20261022a';
+import { getAdapter, persist, getDataSource } from '../../data/data-adapter.js?v=20261022a';
+import { listCapabilities } from '../../core/boot/registry.js?v=20261022a';
 // P1a 单向权威（2026-09-03）：config 净化唯一实现 = services/branch/config-clean.js（server PATCH /branches/:id/config 同源）
-import { sanitizeConfigBlocks, sanitizeConfigModules, sanitizeConfigWorkforce, sanitizeConfigOrg, sanitizeConfigPolicyOverrides, sanitizeConfigCapabilityPackages, applyBranchPolicyOverrides } from './config-clean.js?v=20261021c';
-import { CAPABILITY_PACKAGES, disabledCapabilityChildIds } from '../../core/domain/capability-packages.js?v=20261021c';
+import { sanitizeConfigBlocks, sanitizeConfigModules, sanitizeConfigWorkforce, sanitizeConfigOrg, sanitizeConfigPolicyOverrides, sanitizeConfigCapabilityPackages, applyBranchPolicyOverrides } from './config-clean.js?v=20261022a';
+import { CAPABILITY_PACKAGES, disabledCapabilityChildIds } from '../../core/domain/capability-packages.js?v=20261022a';
 // 审计内核共享常量（2026-09-09 支书批）：why 透传/单键回滚白名单/历史上限单一源 = config-clean
 // （server resources.js 同源 import，双形态防止未同步的情况）
-import { CONFIG_HISTORY_MAX, CONFIG_ROLLBACK_WHAT, CONFIG_ROLLBACK_KEYS } from './config-clean.js?v=20261021c';
+import { CONFIG_HISTORY_MAX, CONFIG_ROLLBACK_WHAT, CONFIG_ROLLBACK_KEYS } from './config-clean.js?v=20261022a';
 // L4（2026-09-03）：支部工作地图模块目录单一源 = core/domain/work-map.js（14 模块/缺省分工/快照展开）
-import { expandWorkforce } from '../../core/domain/work-map.js?v=20261021c';
+import { expandWorkforce } from '../../core/domain/work-map.js?v=20261022a';
 // 批4（2026-09-09 支书批「域参数」）：policyOverrides 顶层节白名单（覆盖写口校验用）
-import { POLICY_DEFAULTS, POLICY_OVERRIDE_SECTIONS } from '../../core/domain/policy-defaults.js?v=20261021c';
-import { randomHex } from '../../core/base/id.js?v=20261021c';
+import { POLICY_DEFAULTS, POLICY_OVERRIDE_SECTIONS } from '../../core/domain/policy-defaults.js?v=20261022a';
+import { randomHex } from '../../core/base/id.js?v=20261022a';
 // 核心组判定单一源（2026-09-14 支书裁定·tab 全盘重设）：由「显示标签反推」改为「注册表 coreTab 显式声明」
-import { isCoreTab } from '../../core/domain/constants.js?v=20261021c';
+import { isCoreTab } from '../../core/domain/constants.js?v=20261022a';
 
 export function getBranchById(branchId) {
   return (mockDB.branches || []).find(b => b.id === branchId) || null;
+}
+
+/**
+ * 补取支部完整档案（api 形态；D-825 批次 501）
+ * 党委目录行（GET /branches 未选中支部）只投影 id/name/type/status + config.headerTitle，
+ * 向导要读写 modules/blocks/capabilityPackages——必须换成该支部完整行，否则「保存成功 → 重进向导」读不到配置。
+ * mock 形态全量在内存，直接返回。
+ */
+export async function ensureBranchConfigLoaded(branchId) {
+  const row = getBranchById(branchId);
+  if (!branchId || getDataSource() !== 'api') return row;
+  // 已有 headerTitle 之外的配置键 = 完整行（如页面 URL 带 branchId 由全量快照恢复）
+  if (Object.keys(row?.config || {}).some((k) => k !== 'headerTitle')) return row;
+  try {
+    const rows = await getAdapter().branches.list({ branchId });
+    const full = (rows || []).find((r) => r && r.id === branchId);
+    if (!full) return getBranchById(branchId);
+    const patch = { ...full };
+    delete patch.summary; // 目录统计不是支部档案字段
+    const list = mockDB.branches || (mockDB.branches = []);
+    const idx = list.findIndex((b) => b.id === branchId);
+    if (idx >= 0) list[idx] = { ...list[idx], ...patch };
+    else list.push(patch);
+  } catch (e) {
+    console.warn('[branch] 支部完整配置读取失败（沿用目录行）', branchId, e);
+  }
+  return getBranchById(branchId);
 }
 
 // ── 工作流模块配置 L2（2026-09-03 支书裁定：支部自治/支书操作/清单+画布并用/tab 级/核心固定）──
@@ -380,7 +407,7 @@ export async function rollbackBranchConfig(branchId, { by = null, targetEntryAt,
   // api 形态：语义交服务端 /branches/:id/config/rollback（服务端角色门+同规则回滚，返回权威分支）
   if (getDataSource() === 'api') {
     try {
-      const { ApiAdapter } = await import('../../data/api-adapter.js?v=20261021c');
+      const { ApiAdapter } = await import('../../data/api-adapter.js?v=20261022a');
       const updated = await ApiAdapter.branches.rollbackConfig(branchId, {
         ...(typeof targetEntryAt === 'string' && targetEntryAt ? { targetEntryAt } : {}),
         ...(Number.isInteger(index) ? { index } : {}),
@@ -406,7 +433,8 @@ export async function rollbackBranchConfig(branchId, { by = null, targetEntryAt,
 
 /**
  * 保存支部工作流配置（UI 供本支部支书/副支书使用；最终写权由 server PATCH /branches/:id/config 校验。
- * 党委维护能力目录与模板，但不能替支部开关 modules/blocks/capabilityPackages）：
+ * 2026-10-21 批次 501（D-825）：**党委（party-staff）可代支部配置** modules / blocks / capabilityPackages，
+ *   每次写入进 `config.configChangeHistory` 并带 `byRole`（标明是党委代配）；支部可自行覆盖。
  *   modules —— config.modules：模块/业务 tab 配置（null=恢复默认全开；undefined=不改）；
  *   blocks  —— config.blocks：活动产出块配置（null=恢复默认；undefined=不改）
  * tabs 仅用于防御核心 tab 不可隐藏。

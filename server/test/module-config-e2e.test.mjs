@@ -1,5 +1,5 @@
 // server/test/module-config-e2e.test.mjs — 支部模块停用 E2E（回炉 v3，对齐换组织向导，2026-09-09）
-// 党委组织员(9000000001)登录党委工作台 →「支部配置」tab（换组织向导 embed，步骤②「模块/块组合」）
+// 党委组织员(9000000001)登录 → 独立页 `/wizard.html`（换组织向导，步骤②「模块/块组合」）
 // → 目标支部 br-b1 → 停用「活动管理」(calendar) 业务模块 → 保存本步（即时生效 + 留痕）
 // → 支书(2300010001)工作台「活动管理」tab 消失、核心组「待办」仍固定
 // → 党委台「恢复默认（全开）」→ 支书台刷新「活动管理」回归。
@@ -47,7 +47,7 @@ async function login(page, sid, urlPart) {
     page.click('button[type="submit"]'),
   ]);
   // P0-2 形态断言（2026-09-23 支书裁定「形态必须可断言」）：本文件真机用例必须在 API 形态下跑
-  await page.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20261021c')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
+  await page.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20261022a')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
 }
 async function clickTab(page, sel, text) {
   await page.waitForFunction(({ s, t }) => {
@@ -59,11 +59,13 @@ async function clickTab(page, sel, text) {
   }, { s: sel, t: text });
 }
 
-/** 进党委台「支部配置」tab → 换组织向导步骤②「模块/块组合」（目标支部 br-b1） */
+/** 直达换组织向导步骤②「模块/块组合」（目标支部 br-b1）
+ *  2026-10-21 批次 501：党委台「支部管理」已不再挂 `#pc-wizard-host`（并入 branch-config 的 sections 只读），
+ *  可切支部的 guided 向导在独立页 `/wizard.html`（D-825 起党委在该页可代配置）。 */
 async function gotoWizardStep2(page) {
-  await clickTab(page, '.ws-tab-scroll button', '支部管理');
-  // 向导挂载点（#pc-wizard-host）；党委组织员可切目标支部（#wz-branch-select）
-  await page.waitForSelector('#pc-wizard-host', { timeout: 15000 });
+  // `?branch=br-b1` = 向导入口的目标支部（党委可切支部；不带则默认目录第一个支部）。
+  // 目录行只有 summary（headerTitle），完整 config 由组件挂载时按支部补取（批次 501）。
+  await page.goto(`${base}/wizard.html?branch=br-b1`, { waitUntil: 'domcontentloaded' });
   await page.waitForSelector('#wz-branch-select', { timeout: 15000 });
   await page.selectOption('#wz-branch-select', 'br-b1');
   await page.waitForFunction(() => document.querySelector('#wz-branch-select')?.value === 'br-b1', null, { timeout: 8000 });

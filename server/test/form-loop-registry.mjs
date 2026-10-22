@@ -382,8 +382,8 @@ export const VALIDATION_SITES = [
   //   党委账号在向导页（未选支部）`PersonStore.getMembers()` 为空 ⇒ `appointable=false` ⇒ **整块不渲染**
   //   （真机探针 500ms/2s/5s/10s 均无 `#wz-create-appoint`）⇒ 该支在本形态不可达，改 `machine:false` 登记。
   //   校验序：① 模式切「复制现有」后源支部为空 →「请选择源支部」；② 放行后 →「请选择首任支书…」（仅支部账号）。
-  { file: SRC + 'components/governance/org-setup-wizard.js', line: 1434, field: '源支部', flow: 'component/组织配置向导', machine: true, msg: '请选择源支部' },
-  { file: SRC + 'components/governance/org-setup-wizard.js', line: 396, field: '首任支书', flow: 'component/组织配置向导', machine: false, msg: '请选择首任支书', reason: '【批次 500 改准 · 原判 machine:true 系误判】就地任命区块的渲染前提是 `appointable`（现役成员候选非空）；党委账号在向导页尚未选支部，`PersonStore.getMembers()` 为空（真机探针 500ms→10s 均未出现 `#wz-create-appoint`）⇒ 空提交直接建支部、走不到「请选择首任支书」。任命可在创支后于「支部管理 / 任命」完成（本批任命事务化端点覆盖）。' },
+  { file: SRC + 'components/governance/org-setup-wizard.js', line: 1449, field: '源支部', flow: 'component/组织配置向导', machine: true, msg: '请选择源支部' },
+  { file: SRC + 'components/governance/org-setup-wizard.js', line: 401, field: '首任支书', flow: 'component/组织配置向导', machine: false, msg: '请选择首任支书', reason: '【批次 500 改准 · 原判 machine:true 系误判】就地任命区块的渲染前提是 `appointable`（现役成员候选非空）；党委账号在向导页尚未选支部，`PersonStore.getMembers()` 为空（真机探针 500ms→10s 均未出现 `#wz-create-appoint`）⇒ 空提交直接建支部、走不到「请选择首任支书」。任命可在创支后于「支部管理 / 任命」完成（本批任命事务化端点覆盖）。' },
   { file: SRC + 'components/sections/references.js', line: 785, field: '标题', flow: 'module/制度参考·写入', machine: true, msg: '请填写标题' },
   { file: SRC + 'components/sections/references.js', line: 789, field: '制度正文', flow: 'module/制度参考·写入', machine: true, msg: '请填写制度正文' },
   { file: SRC + 'components/sections/references.js', line: 791, field: '要上传的文件', flow: 'module/制度参考·写入', machine: true, msg: '请选择要上传的文件' },
@@ -1583,17 +1583,16 @@ export const MACHINE_FLOWS = [
   //   「**发展对象**」；`D-553` 起该步**受「支委会讨论门」前置**（未上会讨论通过即被挡）⇒ 队列里不再出现 pending、
   //   本流程在「等 `secretary:member-confirm` 组行」处超时。本流程只为**造一条 pending**（校验点是「退回原因」必填），
   //   **与目标阶段无关** ⇒ 改用**不受该门约束**的 `积极分子 → 预备党员`（同一个人、同一处写口，**判据一字未改**）。
+  // 2026-10-21 批次 501 改准：原前置「支书本人经 person.html 改阶段」已不可达——
+  //   `canMaintainMemberProfileFields` 只认**同支部组织委员**（`#person-stage-btn` 不再给支书渲染，探针实测 count=0）。
+  //   现改为把「组织委员刚提交的一条 pending」写进同一个客户端队列（`gsm1921-member-confirmations`），
+  //   再走**真实 UI**：待办组 → 详情 → 退回 → 原因必填。判据（`请填写退回原因`）一字未改。
   {
     id: 'secretary-todo-reject-reason',
     page: 'secretary',
     tab: '待办',
     open: [
-      { goto: '/person.html?id=2400012351' },
-      { waitFor: '#person-stage-btn' },
-      { click: '#person-stage-btn' },
-      { waitFor: '#person-edit-modal-form' },
-      { selectValue: { selector: '[data-field="developStage"]', value: '预备党员' } },
-      { click: '[data-modal-submit="person-edit-modal"]' },
+      { seedPendingConfirmation: { personId: '2400012351', name: '曾雨桐', from: '积极分子', to: '预备党员', by: '2400012355' } },
       { goto: '/workspace/secretary.html' },
       { waitFor: 'button[role="tab"]' },
       { openTab: '待办' },
@@ -2035,6 +2034,9 @@ export const SUCCESS_FLOWS = [
     ready: 'form[data-modal-form] input[data-field="name"]',
     fill: [
       { setValue: { selector: 'form[data-modal-form] input[data-field="name"]', value: '（成功路径普查）新增成员甲' } },
+      // 批次 501 改准：学号自成员主键迁移后为**必填**（缺口径即「学号不能为空（学号即成员唯一 id）」）；
+      //   取校园卡号段外的测试号，避免撞既有 50 人。
+      { setValue: { selector: 'form[data-modal-form] input[data-field="studentId"]', value: '2400999001' } },
     ],
     act: [{ click: '[data-modal-submit="roster-add-member"]' }],
     toast: '已新增成员',
@@ -2055,9 +2057,9 @@ export const SUCCESS_FLOWS = [
       //   新成员按种子顺序**追加在末页** ⇒ 用 `#roster-list-host` 当载体只能看到第 1 页（实测踩到）。
       //   故改断言**该列表自己的计数**（`.lf-count`，文案 `共 N 人`）——它由 `rows` 现算，
       //   「当场 51 + 重载后仍 51」同时证了「真写了」「真读出来了」「真落库了」。
-      //   **口子在这里**：N 由种子决定（`PEOPLE` 51 条中 `branchId` 非空者 50 条 ⇒ 新增后 51）。
-      //   **若将来增删种子人员，必须同步改这里的 N**——否则本条会红，而那是「断言过期」不是「产品坏了」。
-      { text: '共 51 人', carrier: '#roster-list-host .lf-count' },
+      //   **口子在批次 500/501 暴露**：N 曾写死「共 51 人」，服务端种子人数一变就红（断言过期 ≠ 产品坏了）。
+      //   2026-10-21 批次 501 改为 `countUp: 1`：以动作前读数为基线、只断言 +1（真写了 / 真读出来了）。
+      { carrier: '#roster-list-host .lf-count', countUp: 1 },
     ],
   },
   {

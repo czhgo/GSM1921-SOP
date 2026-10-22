@@ -5,14 +5,14 @@
 //  职责单一：统计卡渲染 + 考勤明细弹窗（点击统计卡查看本月考勤）。
 // ════════════════════════════════════════════════════════════════
 
-import { NoticeStore } from '../../services/governance/notice.js?v=20261021c';
-import { _fmtDate } from '../../core/base/utils.js?v=20261021c';
-import { icon } from '../../core/base/icons.js?v=20261021c';
+import { NoticeStore } from '../../services/governance/notice.js?v=20261022a';
+import { _fmtDate } from '../../core/base/utils.js?v=20261022a';
+import { icon } from '../../core/base/icons.js?v=20261022a';
 // 活动「已归档」口径单一源（2026-09-13 收敛）：替代手写 !a.archived
-import { isActivityArchived } from '../../core/domain/constants.js?v=20261021c';
-import { isTaskforceActiveStatus } from '../../core/domain/domain.js?v=20261021c';
+import { isActivityArchived } from '../../core/domain/constants.js?v=20261022a';
+import { isTaskforceActiveStatus } from '../../core/domain/domain.js?v=20261022a';
 // R2-47：出勤率语义单一源——首页「个人考勤」按应到人次（不是按已录记录），未录显示「待录入」
-import { summarizePersonAttendanceByRoster, attendanceRateTone } from '../../services/activity/attendance.js?v=20261021c';
+import { summarizePersonAttendanceByRoster, attendanceRateTone } from '../../services/activity/attendance.js?v=20261022a';
 
 const ATTENDANCE_STATUS_DOT = {
   present:  { text: '出勤', cls: 'text-green-700', dot: 'var(--functional-success)' },

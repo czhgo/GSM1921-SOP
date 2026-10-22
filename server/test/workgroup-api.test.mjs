@@ -652,7 +652,7 @@ test('停用专班能力后停止新开，既有任务仍可完成，结束后�
   assert.equal(mutateHistory.response.status, 409, '停用能力包后不能改写已结束工作组历史');
 });
 
-test('支部自主停用本地能力包后禁止新建工作组，党委不能代替支部改选', async () => {
+test('支部自主停用本地能力包后禁止新建工作组，党委可代支部改选（D-825）', async () => {
   const selected = await request('branches/br-b1/config', '2300010001', 'PATCH', {
     config: { capabilityPackages: { schemaVersion: 1, packages: {
       'taskforce-workgroup': { version: '1.0.0', enabled: false },
@@ -666,12 +666,15 @@ test('支部自主停用本地能力包后禁止新建工作组，党委不能�
   });
   assert.equal(denied.response.status, 403);
 
+  // 2026-10-22 批次 501（`D-825`）：党委即管理后台，可代支部改选（推翻批次 448 的 403 门）；写留痕带 byRole
   const crossOwner = await request('branches/br-b1/config', '9000000001', 'PATCH', {
     config: { capabilityPackages: { schemaVersion: 1, packages: {
       'taskforce-workgroup': { version: '1.0.0', enabled: true },
     } } },
   });
-  assert.equal(crossOwner.response.status, 403, '党委维护目录与模板，不替支部选择运行能力');
+  assert.equal(crossOwner.response.status, 200, 'D-825：党委可代支部配置能力包');
+  assert.equal(crossOwner.data.config.capabilityPackages.packages['taskforce-workgroup'].enabled, true);
+  assert.equal(crossOwner.data.config.configChangeHistory.at(-1).byRole, 'party-staff', '留痕标明党委代配置');
 });
 
 test('缺少原任务的旧工作组不自动猜测；人工核对补登记后可收尾', async () => {

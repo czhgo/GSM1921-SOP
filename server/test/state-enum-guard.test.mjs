@@ -27,9 +27,9 @@ import {
   TASKFORCE_TERMINAL_STATUSES, TASKFORCE_DIRECT_TRANSITIONS,
   WorkgroupStatus, WORKGROUP_STATUSES, WORKGROUP_WRITABLE_STATUSES, WORKGROUP_CLOSED_STATUSES,
   isTaskforceStatus, workgroupStatusForTaskforce,
-} from '../../docs/src/core/domain/domain.js?v=20261021c';
-import { MOCK_TASKFORCES } from '../../docs/src/data/mock/taskforces.js?v=20261021c';
-import { ensureLegacySourceWorkgroups } from '../../docs/src/data/workgroup-seed-sync.js?v=20261021c';
+} from '../../docs/src/core/domain/domain.js?v=20261022a';
+import { MOCK_TASKFORCES } from '../../docs/src/data/mock/taskforces.js?v=20261022a';
+import { ensureLegacySourceWorkgroups } from '../../docs/src/data/workgroup-seed-sync.js?v=20261022a';
 
 const ROOT = join(import.meta.dirname, '..', '..');
 const SELF = join(import.meta.dirname, 'state-enum-guard.test.mjs');

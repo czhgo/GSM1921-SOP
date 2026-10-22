@@ -195,7 +195,7 @@
 
 #### 2.2.8 `party-staff` 党委组织员（组织级）
 
-> **配置权现行口径**：党委维护能力目录/模板的制度归属；目录版本随系统发布。支部启停业务能力包由本支部支书/副书记自主决定，党委写支部配置时不能代为启停。
+> **配置权现行口径**（`D-825`，2026-10-22 推翻批次 448 写门）：党委的定位是**管理后台**，可代任意支部写 `modules` / `blocks` / `capabilityPackages`（留痕 `byRole='party-staff'`）；支部（支书 / 副书记）仍自主决定并可覆盖。党委维护能力目录 / 模板的制度归属，目录版本随系统发布。
 
 | 项 | 内容 |
 |---|---|
@@ -321,7 +321,7 @@
 | 活动专门写门 | 非支委层一律拒；组长**仅限**「党小组会/主题党日」 | `POST/PATCH/DELETE /api/v1/activities*` |
 | 正式表决计票写侧校验 | `optionSet='formal'` 时显式写 `ballotMode='named'` → 400 | `POST/PATCH /api/v1/activities` |
 
-**依据**：`server/routes/resources/index.js:97-110`（逐表读口默认 requireAuth）、`server/routes/resources/gates.js:24-67`（写门表）、`server/routes/resources/gates.js:83-97`（活动写门）、`server/routes/resources/gates.js:98-104`（计票方式）、`server/routes/resources/index.js:747`（bootstrap）、`server/routes/resources/index.js:1124`（`ISSUE_DISPOSITION_SET`：意见处置＝支委层）、`server/routes/resources/index.js:1107-1138`（issues 登录与支部过滤）、`server/routes/auth.js:67-106`（中间件）、`server/app.js:25`（health）。
+**依据**：`server/routes/resources/index.js:97-110`（逐表读口默认 requireAuth）、`server/routes/resources/gates.js:24-67`（写门表）、`server/routes/resources/gates.js:83-97`（活动写门）、`server/routes/resources/gates.js:98-104`（计票方式）、`server/routes/resources/index.js:747`（bootstrap）、`server/routes/resources/index.js:1123`（`ISSUE_DISPOSITION_SET`：意见处置＝支委层）、`server/routes/resources/index.js:1106-1137`（issues 登录与支部过滤）、`server/routes/auth.js:67-106`（中间件）、`server/app.js:25`（health）。
 
 > ⚠ **给后端的重要提示**：**公开只读口仅 `/api/v1/health`**。意见反馈 `/api/v1/issues` 必须登录，并按本支部过滤；党委列表为空。**29 个通用资源名的列表读与 `/bootstrap` 同样需登录**；此前未登录者可列举含学号的 `users` 等资源。服务端现按支部范围过滤通用资源、语义列表、汇总与导出；支部账号跨支部查询返回 403，党委可按 `branchId` 读取选中支部或不指定支部生成跨支部汇总。普通用户的数据写入仍须逐接口核对角色规则；快照不能写 `users` / `branches`，支部局部快照只替换本支部记录并保留其他支部数据。详见 §7.1。
 
@@ -733,7 +733,7 @@
 **落库时由服务端追加的字段（文档未列，见代码）**：`branchId`（服务端从登录会话取所属支部；党委账号不得回落默认支部）、`tokenHash`（防刷判重/限频，**与 personId 无关、不可反推人**）、`createdAt`（ISO 时间戳）。另有 `kind`（内部汇报型反馈自身为 `'report'`）——**该字段不在服务端 `POST /issues` 的落库对象里**，而来自种子文件 `docs/data/issues.json` 与前端写入，见 §4.16 说明与 §5.6 第 4 条。
 **匿名与范围（D-824）**：`anonymous !== false` 即匿名（**缺省匿名**）；必须登录后在所属支部内提交、读取和处置，支部账号之间相互隔离。党委不得读取、代为提交或揭名；匿名反馈不是向党委上报的通道。服务端受保护字段保留真实提交人，但当前不向任何角色提供系统揭名入口；浏览器 mock 缓存与草稿不保存身份，旧缓存会在读取时清理。
 **来源 C · `domain`（事项领域，母本字段表未列）**：`institution` 制度建设建议 / `activity` 活动组织建议 / `workflow` 工作流程建议 / `other` 其他建议——照母本《常见工作场景快速指南》「意见建议类型」表四类；随附**建议归口**（只给建议、**不自动派单**）。⚠ **服务端选填、表单侧必填**（不对称，如实登记）；单一源 `docs/src/services/governance/issues.js` 的 `ISSUE_DOMAINS`，落库白名单见下「依据」。
-**依据**：`content/04_web_design/data/DATA_MODEL.md:610-656`、`server/routes/resources/index.js:1214`（落库字段含 `domain`）、`server/routes/resources/index.js:1087-1098`（脱敏 / 留痕序列化）。
+**依据**：`content/04_web_design/data/DATA_MODEL.md:610-656`、`server/routes/resources/index.js:1213`（落库字段含 `domain`）、`server/routes/resources/index.js:1086-1097`（脱敏 / 留痕序列化）。
 
 ### 4.17 复盘记录（ReviewRecord）
 
@@ -1302,7 +1302,7 @@ npm start                   # 启动服务，默认端口 3000（PORT 可覆盖�
 | 方法 | 路径 | 用途 | 权限门 |
 |---|---|---|---|
 | POST | `/api/v1/branches` | 语义创建支部：`{mode:'empty'\|'copy', sourceId?, name?, type?}` → 201 `{branch, ok:true}` | 需登录 + **仅 `party-staff`** |
-| PATCH | `/api/v1/branches/:id/config` | 写支部配置：`config` 收 `modules`/`blocks`/`workforce`/`capabilityPackages`/`periodicArchiveUnit`/组织档案字段/`policyOverrides`；可选 `why`（写留痕） | 需登录 + 本支部现任支书/副书记（能力选配、周期规则等）或域负责人（仅本域 `policyOverrides`）；党委不能代支部启停能力包 |
+| PATCH | `/api/v1/branches/:id/config` | 写支部配置：`config` 收 `modules`/`blocks`/`workforce`/`capabilityPackages`/`periodicArchiveUnit`/组织档案字段/`policyOverrides`；可选 `why`（写留痕） | 需登录 + 本支部现任支书/副书记、域负责人（仅本域 `policyOverrides`），或党委代配置（`byRole='party-staff'` 留痕；`D-825`） |
 | PATCH | `/api/v1/branches/:id/config/rollback` | 配置单键回滚：`{targetEntryAt?\|index?, why?}` | 同上门（**不含域负责人**） |
 | POST | `/api/v1/branches/:id/appointments` | 支书任命事务：`{personId, expectedSecretaryId?, appointmentId?, note?}`；单事务写 branch / 双方 users / 任期封口与新建；服务端生成 `from/to/appointedBy` | 需登录 + **仅 `party-staff`**；`expectedSecretaryId` 不一致 → 409 |
 | POST | `/api/v1/branches/:id/branch-commissioners` | 支委身份事务：`{personId, role, action:'grant'\|'revoke'}`；`users.role` 与 `auth_audit` 同事务 | 需登录 + 本支部现任支书 / 副支书 |

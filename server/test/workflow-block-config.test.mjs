@@ -1,6 +1,6 @@
 // server/test/workflow-block-config.test.mjs — L3 S3 工作流块配置（2026-09-03）
-// 支书裁定：config.blocks 增 workflowBlocks（与 outputBlocks 平级）；PATCH /branches/:id/config 仅支书/副支书
-// （党委维护能力目录与模板、不代支部选配，见 routes/resources/index.js:827 ⇒ 党委写 blocks 403）
+// 支书裁定：config.blocks 增 workflowBlocks（与 outputBlocks 平级）；PATCH /branches/:id/config 支书/副支书可写；
+// 2026-10-21 批次 501（D-825）：**党委亦可代支部写**（留痕 byRole='party-staff'）——推翻批次 448 的 403 写门
 // 覆盖：① 纯函数 policy（默认全开/隐藏过滤/兼容缺段） ② HTTP 写回/结构校验/恢复默认
 // 运行：node --test server/test/workflow-block-config.test.mjs（自包含 server）
 
@@ -40,7 +40,7 @@ async function patchConfig(token, body) {
   });
 }
 
-const V = '?v=20261021c';
+const V = '?v=20261022a';
 const BLOCK_IDS = ['theme-party-day', 'taskforce'];
 
 test('S3 工作流块策略（纯函数）：默认全开 / 隐藏过滤 / 缺段兼容', async () => {
@@ -116,8 +116,13 @@ test('S3 HTTP：workflowBlocks 写回/结构校验/恢复默认', async () => {
   assert.equal(r5.status, 200, 'blocks=null 恢复默认');
   assert.equal((await r5.json()).config.blocks, null, 'workflowBlocks/outputBlocks（含顺序）全清');
 
-  // ⑥ 党委不得写 blocks（产品规则见 routes/resources/index.js:827；守卫不弱化）
-  assert.equal((await patchConfig(staff, { config: { blocks: null } })).status, 403, '党委不得经 blocks=null 恢复支部默认');
-  assert.equal((await patchConfig(staff, { config: { blocks: { workflowBlocks: { hiddenBlockIds: [] } } } })).status, 403,
-    '党委不得写 workflowBlocks');
+  // ⑥ 党委可代支部配置（2026-10-21 批次 501 · D-825 推翻批次 448 的写门）：workflowBlocks 与 blocks=null 都放行，
+  //   且**有实质变化**的留痕行带 `byRole='party-staff'`（可区分「党委代配」与「支部自配」）。
+  //   ⚠ 顺序：先写非空（相对上一段的 blocks=null 是实质变化）再恢复默认；后者无 diff 不产生新行，故不在此断言。
+  const r7 = await patchConfig(staff, { config: { blocks: { workflowBlocks: { hiddenBlockIds: [] } } } });
+  assert.equal(r7.status, 200, '党委可写 workflowBlocks（D-825）');
+  assert.equal((await r7.json()).config.configChangeHistory.at(-1).byRole, 'party-staff', '留痕标明党委代配置');
+  const r6 = await patchConfig(staff, { config: { blocks: null } });
+  assert.equal(r6.status, 200, '党委可经 blocks=null 恢复支部默认（D-825）');
+  assert.equal((await r6.json()).config.blocks, null, 'blocks 已恢复默认');
 });

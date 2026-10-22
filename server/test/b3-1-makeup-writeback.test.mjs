@@ -30,6 +30,7 @@ import { chromium } from 'playwright';
 const BASE = process.env.BASE || 'http://localhost:3000';
 const PW = process.env.LOGIN_PASSWORD || '123456';
 const DISC_PERSON = '2400012354';               // 纪检委员（`docs/src/data/mock/people.js`）
+const SEC_PERSON = '2300010001';                // 支书（支部级会议唯一合法创建人之一）
 const DISC_STUDENT = '2400012354';       // 上者的学号（登录页表单用学号）
 const MENTEE = '2400012349';                     // 被补课人
 const RID = Math.random().toString(36).slice(2, 8);
@@ -59,17 +60,22 @@ test('B3-1（API 级）补课完成 → 服务端考勤回写 made_up ＋ overdu
   const token = login.json.token;
   assert.ok(token, '登录未返回 token');
 
-  // 取一条活动（补课任务要挂活动；若库里没有活动就现造一条，日期用相对今天的有效值）
-  let activityId = (await api('GET', '/api/v1/activities', { token })).json?.[0]?.id;
-  if (!activityId) {
-    activityId = `act-b31-${RID}`;
-    const mk = await api('POST', '/api/v1/activities', { token, body: {
-      id: activityId, name: 'B3-1 测试活动', date: ABSENT_DATE, type: '支委会',
-    } });
-    assert.equal(mk.status, 201, `造活动失败：HTTP ${mk.status} ${mk.text.slice(0, 120)}`);
-  }
-  const activityName = (await api('GET', '/api/v1/activities', { token })).json
-    .find((a) => a.id === activityId)?.name || 'B3-1 测试活动';
+  // 2026-10-21 批次 501：**总是**造一条专属活动——不再复用 `activities[0]`：
+  //   复用会撞两类 409（活动已结束 ⇒ 考勤只读；同活动同人已有考勤 ⇒ 唯一性拒绝），
+  //   导致「造考勤记录失败」且随演示库状态漂移。专属活动 id/标题唯一，重复执行也稳定。
+  const activityId = `act-b31-${RID}`;
+  // 2026-10-21 批次 501：支部级会议（支委会）按现行门只允许支书/副书记/党委创建（`activityCreationDeny`），
+  //   纪检建活动一律 403 ⇒ 活动用支书令牌造，考勤/补课仍用纪检令牌（回写链的写入者不变）。
+  const secLogin = await api('POST', '/api/v1/auth/login', { body: { personId: SEC_PERSON, password: PW } });
+  assert.equal(secLogin.status, 200, `支书登录失败（HTTP ${secLogin.status} ${secLogin.text.slice(0, 120)}）`);
+  const secToken = secLogin.json.token;
+  const mk = await api('POST', '/api/v1/activities', { token: secToken, body: {
+    // 类型取「支部党员大会」：支委会在 `attendance.noAttendanceTypes` 内（口径一：规模小不考勤），
+    //   且该类型的记录位＝纪检（`recorderByType`）⇒ 纪检登考勤/补课才合法。
+    id: activityId, title: 'B3-1 测试活动', name: 'B3-1 测试活动', date: ABSENT_DATE, type: '支部党员大会', status: 'completed',
+  } });
+  assert.equal(mk.status, 201, `造活动失败：HTTP ${mk.status} ${mk.text.slice(0, 120)}`);
+  const activityName = 'B3-1 测试活动';
 
   // ── ② 以 API 造前置态：考勤（absent ＋ overdue）＋ 补课任务（pending，截止在未来）──
   assert.equal((await api('POST', '/api/v1/attendances', { token, body: {
@@ -131,9 +137,10 @@ test('B3-1（API 级）补课完成 → 服务端考勤回写 made_up ＋ overdu
   assert.equal(att.overdue, false, `overdue 应清除，实测 ${att.overdue}`);
   assert.ok(att.madeUpAt, '应记 madeUpAt');
 
-  // ── ⑤ 自清：不留测试数据 ──
+  // ── ⑤ 自清：不留测试数据（含本批新造的专属活动）──
   await api('DELETE', `/api/v1/makeupTasks/${MK_ID}`, { token });
   await api('DELETE', `/api/v1/attendances/${ATT_ID}`, { token });
+  await api('DELETE', `/api/v1/activities/${activityId}`, { token: secToken });
   const gone = (await api('GET', '/api/v1/attendances', { token })).json.find((r) => r.id === ATT_ID);
   assert.equal(gone, undefined, '清理应生效（否则测试库会被污染）');
 });

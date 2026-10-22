@@ -909,9 +909,9 @@ export function createResourcesRouter(db) {
     if (!hasModules && !hasBlocks && !hasWorkforce && !hasOrg && !hasPolicy && !hasCapabilityPackages) {
       return res.status(400).json({ error: '至少提供 config.modules / config.blocks / config.capabilityPackages / config.workforce / 组织档案字段(headerTitle/desc/themePreset) / policyOverrides 之一' });
     }
-    if (isStaff && (hasModules || hasBlocks || hasCapabilityPackages)) {
-      return res.status(403).json({ error: '无权限：党委维护能力目录与模板，支部自行选择工作台模块和流程块' });
-    }
+    // 2026-10-21 批次 501（D-825，支书裁「党委就是管理后台」）：**推翻批次 448 的写门**——
+    //   党委可代支部配置 modules / blocks / capabilityPackages（留痕行带 `byRole`，见下方 history）；
+    //   支部（支书 / 副支书）仍可自行修改、后写覆盖。未选支部时仍按 branchScope 拒绝（不回落 br-b1）。
     // 域负责人（无全量权）只允许 policyOverrides 且仅自己域节
     if (!fullRights && (hasModules || hasBlocks || hasWorkforce || hasOrg || hasCapabilityPackages || !hasPolicy)) {
       return res.status(403).json({ error: '无权限：域负责人仅可配置本域参数（config.policyOverrides）' });
@@ -1041,7 +1041,7 @@ export function createResourcesRouter(db) {
     const jsonEq = (a, b) => JSON.stringify(a ?? null) === JSON.stringify(b ?? null);
     for (const k of CONFIG_ROLLBACK_KEYS) {
       if (!jsonEq(prevConfig[k], nextConfig[k])) {
-        const row = { by: actor.id, at, what: k, from: prevConfig[k] ?? null, to: nextConfig[k] ?? null };
+        const row = { by: actor.id, byRole: actor.role || null, at, what: k, from: prevConfig[k] ?? null, to: nextConfig[k] ?? null };
         if (why !== undefined) row.why = why;
         history.push(row);
       }
@@ -1083,9 +1083,8 @@ export function createResourcesRouter(db) {
     if (!entry) {
       return res.status(400).json({ error: '未找到该条变更记录（须提供 targetEntryAt 或 index）' });
     }
-    if (isStaff && ['modules', 'blocks'].includes(entry.what)) {
-      return res.status(403).json({ error: '无权限：党委不能替支部回滚工作台模块或流程块选择' });
-    }
+    // 2026-10-22 批次 501（`D-825`）：党委即管理后台，代配置含回滚——原「党委不能回滚 modules/blocks」随写门一并撤销；
+    //   留痕（含回滚行）仍逐条追加，支部可再行覆盖。
     if (!CONFIG_ROLLBACK_KEYS.includes(entry.what)) {
       return res.status(400).json({ error: `该条为「${entry.what}」留痕（跨键/聚合/回滚），不支持单键回滚` });
     }

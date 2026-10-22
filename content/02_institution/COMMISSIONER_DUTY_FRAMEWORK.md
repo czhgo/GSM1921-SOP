@@ -2,7 +2,7 @@
 title: "支部组织与委员体系"
 type: design
 role: "[用户]+[AI]"
-last_updated: 2026-10-18
+last_updated: 2026-10-22
 status: active
 merged_from:
   - content/guides/COMMISSIONER_ORGANIZATION_ROLE.md (已删除)

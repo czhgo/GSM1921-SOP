@@ -2,7 +2,7 @@
 title: "2026年10月执行日志"
 type: execution_log
 role: "[工程师]+[AI]"
-last_updated: 2026-10-21
+last_updated: 2026-10-22
 status: active
 related_files: [CLAUDE.md, .ctx/logs/archive/2026-09-EXECUTION_LOG.md, .ctx/logs/EXECUTION_LOG_INDEX.md]
 ---
@@ -3332,5 +3332,46 @@ $body
 | 2 | 用户看不到就说明没写 | 成员页成功却提示失败＝**写链整批被拒**，读投影不是主因 | symptom_misread | IF 成功提示被反转 THEN 先查同批 snapshot 是否 403，不先改读口 |
 | 3 | mock 数据只要「看起来像」就行 | mock 必须是真实 API 结构的真值呈现 | definition_mismatch | IF mock 与 API 同表 THEN 字段集合与类型逐项相等，差异只许进白名单并写理由 |
 | 4 | 空白即「不可自动化」，登记 machine:false 即可 | 不可自动化必须有**探针证据**；能点开的就补真机 | evidence_gap | IF 校验点标 machine:false THEN 附真机探针结论与不可达原因；能造前置的必须补流程 |
+
+***
+
+## 批次 501（2026-10-22）：推翻 448 写门（党委代配置）＋ precommit 存量九红清零
+
+### 一、判据
+
+- 支书选中批次 500「未完成（已登记，未粉饰）」的 9 条 e2e 红，指令「规划并执行！！」，并按 `/plan` 走 `sample-diff-learning` + `grill-me`。
+- 复议 `D-448`（党委不能代支部选配）时支书原话：「党委就是 管理后台，这么看来，是否应当推翻448裁定内容？」⇒ 新裁定 `D-825` / `P-020`：党委可代支部配置，支部保留覆盖权，留痕标 `byRole`。
+- 九条里只有 1 条属产品能力（党委代配置），其余 8 条按现行产品口径改准测试；不改批次 500 已收口的十项口径。
+
+### 二、动作
+
+1. **党委代配置（产品）**：删 `server/routes/resources/index.js` 的 `isStaff` 403 分支；留痕行补 `byRole`；配置回滚端点同口径（删「党委不能回滚 modules/blocks」分支）；向导 chip / 排序 / 能力包对党委只在「未选支部」时只读；`_resetModules` 去掉党委早退；`branch.js` 注释、`SYSTEM_ROLE_PERMISSION §9h`、`README-server` §2.2.8 / §6 改准。
+2. **向导读不到完整 config（真机定位）**：`GET /branches` 对未选中支部只投影 summary（仅 `headerTitle`）⇒ 保存成功但重进读不到。新增 `branch.js::ensureBranchConfigLoaded`，向导挂载与切支部前按支部补取完整行；不把全量配置广播给目录页。
+3. **八条测试改准**：`agenda-closure`（`party-group-meeting`→`branch-committee`，`apiLogin` 补口令）、`b3-1`（支书令牌造「支部党员大会」，纪检令牌登考勤 / 补课，自清也用支书令牌）、`multi-tab`（判据A 改用宣传委员；判据D 先 `waitIdle`+`settle`+`waitIdle`）、`a11y-tree` A5（该 tab 空态是 `projects-tab.js` 自定义文案，改断言 `/暂无|无匹配/`）、form-loop 两条（待办退回原因改由客户端确认队列播种；名册新增补必填学号，计数改 `countUp:1`）、`module-config-e2e` / `block-config-ui-e2e`（改签到 `/wizard.html?branch=br-b1`）。
+4. **随全量验证暴露并按 D-825 改准的三条非 e2e**：`workgroup-api`（党委改选能力包 → 200 + `byRole`）、`policy-config` ⑦（党委写 modules/blocks 与回滚 → 200）、`participant-scope`（党委写 blocks → 200）；`block-entry-guard-e2e` 四行旧注释改准（仍走支部写口）。
+5. **台账行号同步**：`org-setup-wizard.js` 增行后两处校验点漂移（源支部 1434→1449、首任支书 396→401）；`resources/index.js` 净 −1 行后 `README-server` 四处引用改签（1124→1123、1107-1138→1106-1137、1214→1213、1087-1098→1086-1097）。
+
+### 三、读数
+
+- 逐项：`module-config-e2e` 1/1、`block-config-ui-e2e` 1/1、`agenda-closure` 1/1、`b3-1` 1/1、`multi-tab-sync` 6/6、`a11y-tree` 5/5、`workflow-block-config` + `block-field-policy` + `module-config` 8/8。
+- form-loop（`FORM_LOOP_PAGES=secretary,org` + `FORM_LOOP_TABS=待办,成员名册`）：S0–S7 台账守卫 + 4 条机器流程 + 1 条成功路径 = **13/13**。
+- `npm run test:daily`：**1386 / 1386 通过、0 失败**（91s）。
+- `SWEEP_SHARD=all node run-suite.mjs`（带 `DISABLE_PASSWORD_CHECK=1` / `DEMO_READONLY=0`）：**[node] 1388 / 1388**、**[e2e-A] 57 过 + 1 skip（58）**、**[e2e-B] 179 / 179** ⇒ **三通道全绿、0 失败**；墙钟 **1226.7s**（略超 H25 全量 ≤1200s 的纪律线 26.7s，如实登记：本批新增的真机与守卫往返所致，未删判据换时间）。
+- 版本戳 20261021c → **20261022a**；`version-stamp` / `doc-line-ref`（R1–R6）/ `doc-consistency`（S1–S21）/ `timestamps-note-guard` / `frontmatter-freshness` 全绿。
+- 环境坑（如实）：① 直跑 `node --test` 未带 `DISABLE_PASSWORD_CHECK=1` 时，`module-config` / `workflow-block-config` / `block-entry-guard-e2e` / `todo-role-write-gate` 会因缺口令 401 假红；未带 `DEMO_READONLY=0` 时 `issue-anonymity` 的 mock 分支会按「浏览模式不可写」报错——两者都是脚本档既有注入，非判据面变化。② 全量首跑误用裸 `node run-suite.mjs`（未注入上述两个变量）⇒ 三通道各 1 红，带变量复跑全绿。
+
+### 四、边界（如实）
+
+- 党委代配置不改变「支部自治」：支部后写覆盖；`byRole` 只标来源，不做「谁优先」的自动裁决。
+- 目录页仍是 summary：向导是**按支部补取**，不是把跨支部配置一次性下发。
+- `b3-1` 依赖 `:3000` 外部 server（既有口径），本轮按运行中的实例验证并自清。
+
+### 五、sample-diff 三样本（AI 假设 → 支书意图）
+
+| # | AI 假设 | 支书意图 | 偏差类型 | 可复用规则（Boolean） |
+|---|---|---|---|---|
+| 1 | 448 写门是「支部自治」的制度表达，应当遵守 | 党委就是管理后台，后台必须能代办 | principle_misread | IF 该角色是本系统的运维后台 THEN 允许代配置，但留痕来源并保留下级覆盖权 |
+| 2 | 服务端 PATCH 200 且库里已写 ⇒ 保存链没问题 | 真实根因是读投影只给 summary，向导没补取 | evidence_gap | IF 写成功但重进读不到 THEN 先查读投影范围，不先改写链 |
+| 3 | 红项多半要放开产品才能过 | 九条里八条是测试与现行口径脱节 | attribution_error | IF 红项定级 THEN 先判「产品能力缺失 or 测试口径过期」，只有前者改产品 |
 
 

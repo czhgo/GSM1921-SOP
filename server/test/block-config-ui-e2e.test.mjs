@@ -47,7 +47,7 @@ async function loginParty(page) {
     page.click('button[type="submit"]'),
   ]);
   // P0-2 形态断言（2026-09-23 支书裁定「形态必须可断言」）：本文件真机用例必须在 API 形态下跑
-  await page.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20261021c')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
+  await page.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20261022a')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
 }
 async function clickTab(page, sel, text) {
   await page.waitForFunction(({ s, t }) => {
@@ -59,10 +59,11 @@ async function clickTab(page, sel, text) {
   }, { s: sel, t: text });
 }
 
-/** 进党委台「支部配置」tab → 换组织向导步骤②「模块/块组合」（目标支部 br-b1） */
+/** 进换组织向导步骤②「模块/块组合」（目标支部 br-b1）
+ *  2026-10-21 批次 501：可切支部的 guided 向导在独立页 `/wizard.html`（党委台「支部管理」不再挂 `#pc-wizard-host`）。 */
 async function gotoWizardStep2(page) {
-  await clickTab(page, '.ws-tab-scroll button', '支部管理');
-  await page.waitForSelector('#pc-wizard-host', { timeout: 15000 });
+  // `?branch=br-b1` = 向导入口的目标支部；目录行只有 summary，完整 config 由组件挂载时按支部补取。
+  await page.goto(`${base}/wizard.html?branch=br-b1`, { waitUntil: 'domcontentloaded' });
   await page.waitForSelector('#wz-branch-select', { timeout: 15000 });
   await page.selectOption('#wz-branch-select', 'br-b1');
   await page.waitForFunction(() => document.querySelector('#wz-branch-select')?.value === 'br-b1', null, { timeout: 8000 });

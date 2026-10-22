@@ -15,9 +15,9 @@ import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { createApp } from '../app.js';
 import { seedDatabase } from '../seed.js';
-import { resolveVoterIds, resolveParticipantIds } from '../../docs/src/services/activity/vote-config.js?v=20261021c';
-import { cleanParticipantPolicies } from '../../docs/src/services/branch/config-clean.js?v=20261021c';
-import { getWorkflowBlockParticipantPolicy } from '../../docs/src/services/branch/branch.js?v=20261021c';
+import { resolveVoterIds, resolveParticipantIds } from '../../docs/src/services/activity/vote-config.js?v=20261022a';
+import { cleanParticipantPolicies } from '../../docs/src/services/branch/config-clean.js?v=20261022a';
+import { getWorkflowBlockParticipantPolicy } from '../../docs/src/services/branch/branch.js?v=20261022a';
 
 let server, base;
 
@@ -127,8 +127,9 @@ test('③ HTTP：participantPolicies 净化往返 / 未写不引入该段 / bloc
   assert.equal(r3.status, 200, 'blocks=null 恢复默认');
   assert.equal((await r3.json()).config.blocks, null, 'blocks 全清');
 
-  // 党委不代支部选配（routes/resources/index.js:827）：写 blocks 一律 403
-  assert.equal((await patchConfig(staff, { config: { blocks: { workflowBlocks: { hiddenBlockIds: [] } } } })).status, 403,
-    '党委不得写 config.blocks');
-  assert.equal((await patchConfig(staff, { config: { blocks: null } })).status, 403, '党委不得恢复支部 blocks 默认');
+  // 2026-10-22 批次 501（`D-825`）：党委可代支部写 blocks（留痕 byRole），支部仍可覆盖
+  const staffWrite = await patchConfig(staff, { config: { blocks: { workflowBlocks: { hiddenBlockIds: [] } } } });
+  assert.equal(staffWrite.status, 200, '党委可代支部写 config.blocks（D-825）');
+  assert.equal((await staffWrite.json()).config.configChangeHistory.at(-1).byRole, 'party-staff', '留痕标明党委代配置');
+  assert.equal((await patchConfig(staff, { config: { blocks: null } })).status, 200, '党委可代支部恢复 blocks 默认');
 });

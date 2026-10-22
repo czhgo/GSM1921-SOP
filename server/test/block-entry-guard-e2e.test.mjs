@@ -63,7 +63,7 @@ async function openWriteStep1(page) {
   ]);
   await page.waitForFunction(() => [...document.querySelectorAll('.secretary-tab-btn')].some(b => b.textContent.includes('活动')), null, { timeout: 12000 });
   // P0-2 形态断言（2026-09-23 支书裁定「形态必须可断言」）：本文件真机用例必须在 API 形态下跑
-  await page.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20261021c')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
+  await page.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20261022a')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
   await page.evaluate(() => [...document.querySelectorAll('.secretary-tab-btn')].find(b => b.textContent.includes('活动'))?.click());
   await page.waitForFunction(() => document.getElementById('ws-sec-write-btn'), null, { timeout: 10000 });
   await page.evaluate(() => document.getElementById('ws-sec-write-btn')?.click());
@@ -71,7 +71,7 @@ async function openWriteStep1(page) {
 }
 
 test('S4 主题党日块入口守卫：停用 → Step1 模板卡消失 → 恢复默认回归', async () => {
-  // 党委不代支部选配流程块（`workflow-block-config`：党委写 blocks 403）⇒ 用本支部书记改配置。
+  // 党委不代支部选配流程块（`workflow-block-config`：D-825 起党委可代配置，本用例仍走支部写口）⇒ 用本支部书记改配置。
   const staffToken = await apiLogin('2300010001');
 
   // ① 基线：默认主题党日模板卡（data-tpl-click="1"）存在
@@ -115,7 +115,7 @@ async function readThreeMeetingSubtypes(page) {
 }
 
 test('S4+ 三会一课块入口守卫（2026-09-28 批次 248）：停用「党课块」→ 该场景模板按钮消失 → 恢复回归', async () => {
-  // 同上：用本支部书记（党委写 blocks 403）。
+  // 同上：用本支部书记（D-825 起党委可代配置，本用例仍走支部写口）。
   const staffToken = await apiLogin('2300010001');
 
   // ① 基线：三会一课三个子类按钮都在
@@ -156,7 +156,7 @@ test('S4+ 三会一课块入口守卫（2026-09-28 批次 248）：停用「党�
 });
 
 test('S4++ 三会一课四块全停用（2026-09-29 批次 249）：子类按钮全消失 ＋ 空态文案 ＋ 提示逐块点名 → 恢复回归', async () => {
-  // 同上：用本支部书记（党委写 blocks 403）。
+  // 同上：用本支部书记（D-825 起党委可代配置，本用例仍走支部写口）。
   const staffToken = await apiLogin('2300010001');
   const ALL4 = ['branch-party-meeting', 'branch-committee', 'party-group-meeting', 'party-lecture'];
 
@@ -203,7 +203,7 @@ const CALENDAR_TAB_SRC = fileURLToPath(new URL('../../docs/src/entries/tabs/secr
 const MANIFEST_HINT = '如：学习两会精神主题党日';
 
 test('S4 表单元数据单一源（真机）：主题党日标题 hint 来自 manifest ＋ 反证不硬编码 ＋ 三会一课对照无', async () => {
-  // 同上：用本支部书记（党委写 blocks 403）。
+  // 同上：用本支部书记（D-825 起党委可代配置，本用例仍走支部写口）。
   const staffToken = await apiLogin('2300010001');
   await patchBlocks(staffToken, null); // 默认全开（守卫前置：块停用会让模板卡消失、选不到模板）
 

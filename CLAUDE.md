@@ -2,7 +2,7 @@
 title: "Org OS — 系统路线图与 Harness"
 type: roadmap
 role: "[工程师]+[AI]"
-last_updated: "2026-10-21"
+last_updated: "2026-10-22"
 status: active
 related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/DOC_MAP.md, content/01_strategy/SECRETARY_DIRECTIVES.md, content/01_strategy/, content/02_institution/, content/03_doc_system/, content/04_web_design/, content/05_ai_coding/, content/insights/, server/, .ctx/logs/]
 ---
@@ -829,14 +829,14 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/DOC
 | --- | --- | --- | --- |
 | B-500-1 | 第五轮审查 P2/P3 按三路报告的修复顺序排批（空态、动画、反馈落点、字号双标、原生 confirm 等） | `.ctx/logs/archive/2026-10/AUDIT_R5_*.md` + `H21` | 待启动 |
 | B-500-2 | IA P2/P3 余项（R3 报告与三路审查重叠部分） | `.ctx/logs/archive/2026-10/UI_AUDIT_R3.md` + `AUDIT_R5_*.md` | 待启动 |
-| B-500-3 | form-loop / precommit 存量红：按台账逐条造前置或改判据（批次 500 收尾实测 9 条：e2e-B `A5 项目分工空态` · `S3 工作流块配置区` · `secretary-todo-reject-reason` · `org-roster-member-add-save`；e2e-A `核心闭环议程→归档` · `B3-1 补课回写` · `党委支部配置向导` · `判据A 跨标签` · `判据D 断服静默`（自污染）） | `form-loop-registry.mjs` + `TEST_AND_VERIFICATION.md` + 批次 500 执行日志 §四 | 在办 |
+| B-500-3 | form-loop / precommit 存量红：按台账逐条造前置或改判据（批次 500 收尾实测 9 条：e2e-B `A5 项目分工空态` · `S3 工作流块配置区` · `secretary-todo-reject-reason` · `org-roster-member-add-save`；e2e-A `核心闭环议程→归档` · `B3-1 补课回写` · `党委支部配置向导` · `判据A 跨标签` · `判据D 断服静默`（自污染）） | `form-loop-registry.mjs` + `TEST_AND_VERIFICATION.md` + 批次 500 执行日志 §四 | 已完成（批次 501 九条全清，见执行日志批次 501） |
 | B-500-4 | 数据保留期策略（归档 / 通知 / 待办）——须支书裁定后才允许 cleanup `--apply` 删业务记录 | `DATA_MODEL.md` + `.ctx/ENGINEERING_ASSESSMENT.md §四` | 待裁定 |
 | B-500-5 | 宽表 P2：动态列（活动参与汇总）、党委目录、个人档案子表 | `DESIGN_SYSTEM.md §4.20` + `responsive-cards-guard` | 待启动 |
 | B-500-6 | 任命通用 CRUD 收口：`PATCH /branches/:id` 直改 `secretaryId`、`POST /appointmentRecords` 绕语义端点 | `server/routes/resources/index.js` + `semantic-routes.js` | 待启动 |
 | B-500-7 | 待办派生的下一步：把通知 / 生命周期派生迁到服务端，客户端只读（Plan B） | `todo.js` + `H32` | 后续（当前 Plan A 已止血） |
 | B-500-8 | mock 真值持续：新表 / 新字段必须进 `seed-manifest` 并过 parity | `seed-manifest.js` + `mock-api-parity-structure` | 持续 |
 | B-500-9 | 测试分层预算维持：新增测试同批登记层级，预算只降不升 | `test-tier-registry.mjs` + `test-tier-guard` | 持续 |
-| B-500-10 | 「支部配置」引导向导的落点：`#pc-wizard-host` 现只在 `branch-config.html`（sections 模式）挂载，党委台「支部管理」页不再有可切支部的 guided 向导 ⇒ `module-config-e2e` / `block-config-ui-e2e` 两条真机红 | `branches-tab.js` + `party-config-tab.js` + `branch-config-entry.js` | 待启动 |
+| B-500-10 | 「支部配置」引导向导的落点：`#pc-wizard-host` 现只在 `branch-config.html`（sections 模式）挂载，党委台「支部管理」页不再有可切支部的 guided 向导 ⇒ `module-config-e2e` / `block-config-ui-e2e` 两条真机红 | `branches-tab.js` + `party-config-tab.js` + `branch-config-entry.js` | 已完成（批次 501：党委在 `wizard.html` 可切支部并代配置（`D-825`）；两条 e2e 改签到 `/wizard.html?branch=br-b1`；向导按支部补取完整 config） |
 
 ***
 
