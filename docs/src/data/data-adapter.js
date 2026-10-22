@@ -21,12 +21,14 @@
 // 本文件避免静态引入业务服务以防环依赖；静态依赖仅限零依赖叶子模块：
 //   · pending-writes：persist() 排程时必须同步登记写入，不能等 await（批次 49）。
 //   · page-url：纯 URL 解析，无数据或业务依赖，不形成反向依赖。
-import { trackWrite } from '../core/session/pending-writes.js?v=20261022c';
-import { resolveDocumentUrl } from '../core/base/page-url.js?v=20261022c';
+import { trackWrite } from '../core/session/pending-writes.js?v=20261022d';
+import { resolveDocumentUrl } from '../core/base/page-url.js?v=20261022d';
 // 角色集单一源（constants.js 只引零依赖叶子 date.js ⇒ 不形成业务环依赖）。
-import { BRANCH_COMMISSION_ROLES, PARTY_STAFF_ROLE } from '../core/domain/constants.js?v=20261022c';
+import { BRANCH_COMMISSION_ROLES, PARTY_STAFF_ROLE } from '../core/domain/constants.js?v=20261022d';
+// 工作组「在办」判据单一源（禁止裸状态数组回潮）
+import { isWorkgroupClosed } from '../core/domain/domain.js?v=20261022d';
 // @deprecated 旧 p* 人员 id 映射：仅迁移路径（本文件 + mock-adapter）可引用，业务代码禁止直接 import。
-import { isLegacyPersonId, mapPersonId } from './legacy-person-ids.js?v=20261022c';
+import { isLegacyPersonId, mapPersonId } from './legacy-person-ids.js?v=20261022d';
 
 /**
  * 旧 p* 人员 id → 学号/工号（迁移期兼容；已是学号原样返回，未知旧 id 返回 null）。
@@ -231,7 +233,7 @@ export async function init() {
       ]);
 
       // 填充 mockDB 缓存（供服务层同步读取）
-      const { mockDB } = await import('../core/domain/domain.js?v=20261022c');
+      const { mockDB } = await import('../core/domain/domain.js?v=20261022d');
       // 缓存引用：pagehide 同步冲刷时不能再 await 动态 import（文档卸载中挂起），
       // 必须直接同步读取（见 _flushSnapshotSync）
       _cachedMockDB = mockDB;
@@ -323,7 +325,7 @@ export async function init() {
       } catch (e) {
         console.warn('[DataAdapter] init: niche/新域集合拉取失败，回退本地备份：', e);
         try {
-          const { restoreNicheCollections } = await import('./mock-adapter.js?v=20261022c');
+          const { restoreNicheCollections } = await import('./mock-adapter.js?v=20261022d');
           restoreNicheCollections();
         } catch (e2) {
           console.warn('[DataAdapter] init: 本地 niche 备份恢复失败：', e2);
@@ -356,8 +358,8 @@ export async function init() {
       //   （批 47-X 真机实测入口计数 0，批 47-Y 按 R-78 造出可达且自洽的前置后转正）。
       if (SEED_FALLBACK && (!mockDB.attendances.length || !mockDB.inspections.length)) {
         try {
-          const { ATTENDANCE_RECORDS } = await import('./mock/attendance.js?v=20261022c');
-          const { INSPECTION_RECORDS } = await import('./mock/inspection.js?v=20261022c');
+          const { ATTENDANCE_RECORDS } = await import('./mock/attendance.js?v=20261022d');
+          const { INSPECTION_RECORDS } = await import('./mock/inspection.js?v=20261022d');
           const filled = ['attendances', 'inspections'].filter((k) => !mockDB[k].length); // 实际被回退注入的键
           for (const k of filled) mockDB[k] = (k === 'attendances' ? ATTENDANCE_RECORDS : INSPECTION_RECORDS).map(r => ({ ...r }));
           _commitBase(mockDB, filled); // 2026-09-26 批次 206：只登记实际注入的键（原先并列写死 ⇒ 未回退的键也被推基线 ⇒ 并发写丢）
@@ -368,7 +370,7 @@ export async function init() {
       }
       if (SEED_FALLBACK && !mockDB.todos.length) {
         try {
-          const { SEED_TODOS } = await import('../services/governance/todo.js?v=20261022c');
+          const { SEED_TODOS } = await import('../services/governance/todo.js?v=20261022d');
           mockDB.todos = _seedTodosForCurrentRole(SEED_TODOS);
           _commitBase(mockDB, ['todos']); // 回退值计入基线 ⇒ 不上传
           console.info('[DataAdapter] init: 待办空集合已按当前角色回退本地 seed');
@@ -601,7 +603,7 @@ async function _flushSnapshot() {
   // 党委账号未选支部：本轮没有支部写范围，快照必被服务端 403 ⇒ 不发（不把成功提示反转为失败）
   if (_isPartyStaffWithoutBranch()) { deferred?.resolve(); return; }
   try {
-    const { mockDB } = await import('../core/domain/domain.js?v=20261022c');
+    const { mockDB } = await import('../core/domain/domain.js?v=20261022d');
     _cachedMockDB = mockDB;
     const dirty = _collectDirty(mockDB);
     if (!dirty) { deferred?.resolve(); return; } // 无脏集合：跳过上传（2026-09-02 增量快照）
@@ -758,11 +760,11 @@ async function _recoverFromConflict(e) {
     console.warn('[DataAdapter] 409 冲突但未给出冲突集合清单，无法定向刷新');
     return;
   }
-  const { mockDB } = await import('../core/domain/domain.js?v=20261022c');
+  const { mockDB } = await import('../core/domain/domain.js?v=20261022d');
   await _refreshCollections(names, mockDB);
   // 业务语言提示（既有告警通道 + 支书要求的可读文案）
   try {
-    const { showToast } = await import('../core/base/utils.js?v=20261022c');
+    const { showToast } = await import('../core/base/utils.js?v=20261022d');
     showToast('info', '数据已被他人更新，已为你刷新');
   } catch (err) {
     console.warn('[DataAdapter] 冲突提示渲染失败：', err);
@@ -943,12 +945,12 @@ export async function hydrateDataSource({ apiAdapter, loadMock } = {}) {
 
 // 部署形态常量（`getRuntimeMode().stage` 的取值来源）：server=同源后端（Node 动态注入）/ static=静态托管。
 // ⚠ 同本文件既有纪律：**置尾**以保上文行号（README-server.md 的 `文件:行号` 取证引用）；import 声明被提升，置尾不影响语义。
-import { DEPLOY_MODE, DEMO_READONLY } from '../config/deploy.js?v=20261022c';
+import { DEPLOY_MODE, DEMO_READONLY } from '../config/deploy.js?v=20261022d';
 // `SEED_FALLBACK`（空域 seed 回退开关）**用命名空间导入**：Node 托管形态下 `/src/config/deploy.js`
 //   由 `server/app.js` 注入，**已带上该常量**（值由 env `SEED_FALLBACK=0` 决定，缺省 `true`）。仍保持
 //   命名空间导入（不用命名导入）：托管形态不止一种，命名导入遇上缺导出的宿主会 **SyntaxError**
 //   ⇒ 取不到即按**默认 `true`**（＝既有行为）。完整语义见 `config/deploy.js` 与本文件 `_deployConfig`。
-import * as _deployConfig from '../config/deploy.js?v=20261022c';
+import * as _deployConfig from '../config/deploy.js?v=20261022d';
 const SEED_FALLBACK = _deployConfig.SEED_FALLBACK !== undefined ? _deployConfig.SEED_FALLBACK : true;
 
 // ════════════════════════════════════════════════════════════════
@@ -1019,7 +1021,7 @@ async function _loadAuxCollections(mockDB) {
   await pull('workgroups', 'workgroups', []);
   await pull('workgroups.members', 'workgroupMembers', []);
   await pull('workgroups.grants', 'workgroupGrants', [], 'listMine');
-  await pull('attendanceRosters', 'attendanceRosters', []);
+  await pull('attendanceRosters', 'attendanceRosters', []); await _loadWorkgroupAux(mockDB); // R9 Task 4.4：workgroup_tasks / outputs 首屏装载（函数体置文件末尾，保上文行号取证引用）
 }
 
 // ════════════════════════════════════════════════════════════════
@@ -1318,7 +1320,7 @@ export function demoReadOnlyMessage() {
 export async function refreshRemoteCollections(names, opts = {}) {
   if (DATA_SOURCE !== 'api') throw new Error('[DataAdapter] refreshRemoteCollections 仅用于 API 数据源');
   const uniqueNames = [...new Set((Array.isArray(names) ? names : []).filter((name) => typeof name === 'string'))];
-  const { mockDB } = await import('../core/domain/domain.js?v=20261022c');
+  const { mockDB } = await import('../core/domain/domain.js?v=20261022d');
   return _refreshCollections(uniqueNames, mockDB, opts);
 }
 
@@ -1344,4 +1346,54 @@ function _currentLoginRole() {
 function _seedTodosForCurrentRole(seeds) {
   const role = _currentLoginRole();
   return (Array.isArray(seeds) ? seeds : []).filter(t => role && t.role === role).map(t => ({ ...t }));
+}
+
+/**
+ * R9 Task 4.4：装载工作组的任务与产出（首屏一次批量）。
+ * 服务端只有 `GET /workgroups/:id/tasks|outputs`（按组读口）⇒ 按已装载的工作组批量拉；
+ * 全部成功才在缓存标记 `workgroupAuxLoaded`——首页据此区分「无任务（0/—）」与「尚未装载（加载中）」。
+ * ⚠ 置尾：上文行号是 README-server.md / doc-line-ref 的取证靶点；函数声明提升 ⇒ 上方调用安全。
+ * @param {Object} mockDB
+ */
+async function _loadWorkgroupAux(mockDB) {
+  const adapter = getAdapter();
+  const active = (Array.isArray(mockDB.workgroups) ? mockDB.workgroups : [])
+    .filter((group) => group && group.id && !isWorkgroupClosed(group.status))
+    .slice()
+    .sort((a, b) => String(b.createdAt || '').localeCompare(String(a.createdAt || ''))
+      || String(a.name || '').localeCompare(String(b.name || '')));
+  // 只拉首页可见组（每类前 3，与 components/dashboard/taskforce-list.js 同口径）——
+  //   不为整库工作组逐组发请求；未拉到的组在首页显示「加载中」，不冒充「无任务」。
+  const visible = [
+    ...active.filter((group) => group.kind === 'activity').slice(0, 3),
+    ...active.filter((group) => group.kind === 'taskforce').slice(0, 3),
+  ];
+  if (visible.length === 0) {
+    mockDB.workgroupTasks = Array.isArray(mockDB.workgroupTasks) ? mockDB.workgroupTasks : [];
+    mockDB.workgroupOutputs = Array.isArray(mockDB.workgroupOutputs) ? mockDB.workgroupOutputs : [];
+    mockDB.workgroupAuxLoaded = { tasks: [], outputs: [] };
+    return;
+  }
+  const requests = visible.flatMap((group) => ([
+    Promise.resolve()
+      .then(() => adapter.workgroups?.tasks?.list?.(group.id))
+      .then((rows) => ({ kind: 'tasks', groupId: group.id, rows }))
+      .catch((e) => { console.warn(`[DataAdapter] init: ${group.id} 任务装载失败（首页显示加载中）：`, e); return null; }),
+    Promise.resolve()
+      .then(() => adapter.workgroups?.outputs?.list?.(group.id))
+      .then((rows) => ({ kind: 'outputs', groupId: group.id, rows }))
+      .catch((e) => { console.warn(`[DataAdapter] init: ${group.id} 产出装载失败（首页显示加载中）：`, e); return null; }),
+  ]));
+  const results = await Promise.all(requests);
+  const tasks = [];
+  const outputs = [];
+  const loaded = { tasks: [], outputs: [] };
+  for (const result of results) {
+    if (!result || !Array.isArray(result.rows)) continue;
+    if (result.kind === 'tasks') { tasks.push(...result.rows); loaded.tasks.push(result.groupId); }
+    else { outputs.push(...result.rows); loaded.outputs.push(result.groupId); }
+  }
+  if (tasks.length || !Array.isArray(mockDB.workgroupTasks)) mockDB.workgroupTasks = tasks;
+  if (outputs.length || !Array.isArray(mockDB.workgroupOutputs)) mockDB.workgroupOutputs = outputs;
+  mockDB.workgroupAuxLoaded = loaded;
 }

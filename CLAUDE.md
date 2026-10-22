@@ -837,13 +837,20 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/DOC
 | B-500-8 | mock 真值持续：新表 / 新字段必须进 `seed-manifest` 并过 parity | `seed-manifest.js` + `mock-api-parity-structure` | 持续 |
 | B-500-9 | 测试分层预算维持：新增测试同批登记层级，预算只降不升 | `test-tier-registry.mjs` + `test-tier-guard` | 持续 |
 | B-500-10 | 「支部配置」引导向导的落点：`#pc-wizard-host` 现只在 `branch-config.html`（sections 模式）挂载，党委台「支部管理」页不再有可切支部的 guided 向导 ⇒ `module-config-e2e` / `block-config-ui-e2e` 两条真机红 | `branches-tab.js` + `party-config-tab.js` + `branch-config-entry.js` | 已完成（批次 501：党委在 `wizard.html` 可切支部并代配置（`D-825`）；两条 e2e 改签到 `/wizard.html?branch=br-b1`；向导按支部补取完整 config） |
-| B-502-1 | 第八轮专项：**最小三成本原则**复审（学习成本 / 使用成本 / 维护成本；含「同一任务只留一个权威处理位」与空值词表） | `REVIEW_QUEUE 附录⑤` + `content/04_web_design/evolution/DESIGN_METHODOLOGY.md` + `H25` | 待启动（支书 2026-10-22 圈定再走 3–4 轮） |
+| B-502-1 | 第八轮专项：**最小三成本原则**复审（**信息成本 / 操作成本 / 适应学习成本**——权威源 `DESIGN_METHODOLOGY` / `REVIEW_QUEUE 附录⑤`；维护成本属工程维度，归 `ENGINEERING_ASSESSMENT §2.4`；含「同一任务只留一个权威处理位」与空值词表） | `REVIEW_QUEUE 附录⑤` + `content/04_web_design/evolution/DESIGN_METHODOLOGY.md` + `H25` | 待启动（支书 2026-10-22 圈定再走 3–4 轮） |
 | B-502-2 | 第九轮专项：**功能与美观提升**＋**全栈数据结构设计**复审（页面质感 / 组件复用 / 数据模型与派生口径） | `DESIGN_SYSTEM.md` + `DATA_MODEL.md` + `FULLSTACK_AUDIT_R3.md` | 待启动 |
 | B-502-3 | 第六轮前端审查 P3 余项（21 条；报告 `.ctx/logs/2026-10-AUDIT_R6_FRONTEND.md`），含 `constants.js` 28 行引语块与 `server/seed.js` 墓志铭注释两处禁区项 | `2026-10-AUDIT_R6_FRONTEND.md` + `copy-*` 守卫 | 待启动 |
 | B-502-4 | 第七轮数据生命周期 P3 余项（23 条；报告 `.ctx/logs/2026-10-AUDIT_R7_DATA.md`），含「缺省支部」之外的 id 形态与 mock 时间老化 | `2026-10-AUDIT_R7_DATA.md` + `seed-manifest.js` | 待启动 |
 | B-502-5 | 账号重命名后的边界：旧 token 仍有效、旧 `person.html?id=旧学号` 与收藏外链会 404（已如实登记，不自动改写） | `server/routes/member.js` + `person-entry.js` | 后续（需支书定是否做旧链接跳转） |
 | B-502-6 | 补课文案与设置页仍各写「T+7」：`disc/makeup-tab.js` / `settings-entry.js` 未接统一 `makeupScopeHint()` 派生（R7-15 部分落地） | `services/activity/makeup.js` + `settings-entry.js` | 待启动 |
 | B-502-7 | `u_*` 系统账号口径：`getAll()` 保留（空支部基线可登录），成员面向名单走 `getMembers()`；不视为幽灵数据 | `services/member/person.js` + `reset-tier-init` | 已澄清（无需再改） |
+| B-503-1 | 第八轮最小三成本（信息/操作/适应学习）：旧账 133 条对账、真机两任务实测、P1 七条已修；真机发现的「纪检确认考勤 403」已按「确认权独立于上传位」修复 | `2026-10-AUDIT_R8_RECONCILE.md`、`2026-10-AUDIT_R8_THREE_COSTS.md`、`r3-data-permission-regression` R3-04b | 已完成（批次 503） |
+| B-503-2 | 第九轮 9A：权威源/派生矩阵（16 行）＋ 跨层抽查（10 实体）＋ schema 方案（Todo `branchId` v11 / 分页与索引 / 宽表拆分触发条件）已出，**本轮不实施** | `2026-10-AUDIT_R9_DATA_STRUCTURE.md` | 已完成（诊断）；schema 待 P13 / 多支部形态裁定 |
+| B-503-3 | 第九轮 9A 数据 P1：种子修复不回滚运行时、专班成员/贡献走主源、活动↔工作组同步、工作组任务首屏装载 | `seed-manifest.js`、`activity-workgroup-sync.js`、`data-adapter.js::_loadWorkgroupAux` | 已完成（批次 503） |
+| B-503-4 | 第九轮 9B：功能 P1（假成功/失败态/键盘可达/刷新错误卡/首屏加载）＋ 视觉 P2 八条（标题层级、hover、危险按钮、返回、过渡、help-note、登录错误、名册字段错误） | `notification-tab.js`、`report-up-tab.js`、`ui-motion-guard`、`frontend-foundations-guard::F8` | 已完成（批次 503） |
+| B-503-5 | 待支书裁定四项：登录页品牌渐变 vs §5.3、首页 hero 党徽 vs §4.25、同名页签是否加范围后缀、支书台是否改名「反馈与回复」 | `DESIGN_SYSTEM.md` §5.3/§4.25、`login.html`、`index.html` | 待裁 |
+| B-503-6 | 余项：R6 P3（21）＋ R7 P3（23）＋ 第八轮 P2/P3 ＋ 帮助注释未迁移 9 处（`party-committee-meeting-entry.js`） | 两轮报告与 `B-502-3/4` | 下一轮（实施前先重钉行号） |
+| B-503-7 | schema 方案落地（Todo `branchId` v11、列表分页、宽表拆分）——须与 P13 服务端支部读过滤同批 | `ENGINEERING_ASSESSMENT §一/§四` | 待裁（部署形态） |
 
 ***
 

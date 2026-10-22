@@ -8,11 +8,11 @@
 
 
 
-import { icon } from '../../core/base/icons.js?v=20261022c';
+import { icon } from '../../core/base/icons.js?v=20261022d';
 
 // R6 导航守卫（2026-09-03 P2a）：初始/目标 tab 决策收敛到纯函数 tab-nav.js（防「被支部隐藏后静默白屏」）
 
-import { resolveInitialTab, resolveTargetTab } from '../../core/boot/tab-nav.js?v=20261022c';
+import { resolveInitialTab, resolveTargetTab } from '../../core/boot/tab-nav.js?v=20261022d';
 
 
 
@@ -88,6 +88,16 @@ export function tabContentSkeletonHtml(text = '加载中…') {
 
     </div>`;
 
+}
+
+/** R3-U03：页签加载 / 刷新失败统一错误卡（**单一源**：tab-bar 切页签失败 与 workspace-shell
+ *  数据刷新失败 渲染同一张卡；重试按钮标记 `data-ws-tab-retry`，绑定由各自调用方负责）。 */
+export function tabErrorCardHtml() {
+  return `
+      <div class="card rounded-xl p-6 text-center" data-ws-tab-error role="alert">
+        <p class="text-sm text-gray-600">这个页签暂时没加载出来</p>
+        <button type="button" class="btn-outline text-xs px-3 py-1.5 mt-3" data-ws-tab-retry>重试</button>
+      </div>`;
 }
 
 const FALLBACK_ACCENT = {
@@ -348,11 +358,7 @@ export function renderTabBar({ prefix, tabs, accentColor, defaultTab, extraRight
     const el = _tabContentEl();
     if (!el) return;
     _endTabLoading();
-    el.innerHTML = `
-      <div class="card rounded-xl p-6 text-center" data-ws-tab-error>
-        <p class="text-sm text-gray-600">这个页签暂时没加载出来</p>
-        <button type="button" class="btn-outline text-xs px-3 py-1.5 mt-3" data-ws-tab-retry>重试</button>
-      </div>`;
+    el.innerHTML = tabErrorCardHtml();
     el.querySelector('[data-ws-tab-retry]')?.addEventListener('click', () => {
       // 清掉失败缓存后重新走同一渲染链（含占位 / 并行去重 / 陈旧纠正）。
       _renderInFlight.delete(tab.id);

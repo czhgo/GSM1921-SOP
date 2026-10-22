@@ -10,21 +10,21 @@
 //   · 会议实体 = mockDB.activities（type==='支委会' 或 scenarioId==='branch-committee'）；
 //     应到人数 = services/activity/vote-config.js::resolveVoterIds('committee')（与本场应到名单同一口径）。
 //   · 表格 = components/ui/data-table.js（.data-table 单一源）；行内选人 = components/governance/pickers.js::PersonPicker。
-import { mockDB } from '../../../core/domain/domain.js?v=20261022c';
-import { AuthStore } from '../../../services/core/auth.js?v=20261022c';
-import { PersonStore, getPersonById } from '../../../services/member/person.js?v=20261022c';
+import { mockDB } from '../../../core/domain/domain.js?v=20261022d';
+import { AuthStore } from '../../../services/core/auth.js?v=20261022d';
+import { PersonStore, getPersonById } from '../../../services/member/person.js?v=20261022d';
 import {
   listBranchCommissioners,
   appointBranchCommissioner,
   revokeBranchCommissioner,
-} from '../../../services/branch/appointment.js?v=20261022c';
-import { DEFAULT_BRANCH_ID, ROLE_LABELS, BRANCH_COMMISSIONER_ASSIGNABLE_ROLES } from '../../../core/domain/constants.js?v=20261022c';
-import { resolveVoterIds } from '../../../services/activity/vote-config.js?v=20261022c';
-import { renderDataTable, tableHeadHtml } from '../../../components/ui/data-table.js?v=20261022c';
-import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261022c';
-import { PersonPicker } from '../../../components/governance/pickers.js?v=20261022c';
-import { getAppliedAccentColors } from '../../../core/boot/theme.js?v=20261022c';
-import { showToast, escHtml as esc } from '../../../core/base/utils.js?v=20261022c';
+} from '../../../services/branch/appointment.js?v=20261022d';
+import { DEFAULT_BRANCH_ID, ROLE_LABELS, BRANCH_COMMISSIONER_ASSIGNABLE_ROLES } from '../../../core/domain/constants.js?v=20261022d';
+import { resolveVoterIds } from '../../../services/activity/vote-config.js?v=20261022d';
+import { renderDataTable, tableHeadHtml } from '../../../components/ui/data-table.js?v=20261022d';
+import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261022d';
+import { PersonPicker } from '../../../components/governance/pickers.js?v=20261022d';
+import { getAppliedAccentColors } from '../../../core/boot/theme.js?v=20261022d';
+import { showToast, escHtml as esc } from '../../../core/base/utils.js?v=20261022d';
 
 /** 本支部 id（登录人归属；缺省 br-b1，与全仓同口径） */
 function branchId() {

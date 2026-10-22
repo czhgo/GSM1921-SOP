@@ -11,10 +11,10 @@
 //  依赖方向正确：组件 → 服务（不是服务 → 组件）。守卫：issue-branch.test.mjs（结构层）。
 // ════════════════════════════════════════════════════════════════
 
-import { renderFilteredList } from '../ui/list-filter.js?v=20261022c';
-import { renderTabHeader } from '../shell/page-frame.js?v=20261022c';
-import { escHtml, showToast } from '../../core/base/utils.js?v=20261022c';
-import { IssueStore, IssueNotify, deriveIssueDisplayState, REPORT_CATEGORIES, displayNameOf as _displayName } from '../../services/governance/issues.js?v=20261022c';
+import { renderFilteredList } from '../ui/list-filter.js?v=20261022d';
+import { renderTabHeader } from '../shell/page-frame.js?v=20261022d';
+import { escHtml, showToast } from '../../core/base/utils.js?v=20261022d';
+import { IssueStore, IssueNotify, deriveIssueDisplayState, REPORT_CATEGORIES, displayNameOf as _displayName } from '../../services/governance/issues.js?v=20261022d';
 
 // ════════════════════════════════════════════════════════════════
 //  「我的处置」Tab 渲染工具（各角色工作台复用）
@@ -100,6 +100,18 @@ export function bindMyDispatchEvents(container, role, userId, opts = {}) {
       : item.row[k]),
   });
 
+  // 5.3（2026-10-22 第九轮）：行容器可点但不是原生控件 —— Enter / Space 与点击等效。
+  //   委托挂在宿主上（引擎翻页/筛选只重绘其内部），故重绘后仍有效。
+  const bindRowKeydown = (host) => {
+    host?.addEventListener('keydown', (e) => {
+      if (e.key !== 'Enter' && e.key !== ' ' && e.key !== 'Spacebar') return;
+      const row = e.target.closest('[data-mydispatch-action][role="button"]');
+      if (!row || row !== e.target) return;
+      e.preventDefault();
+      row.click();
+    });
+  };
+
   // 待我处理（请我汇报 + 指派给我的反馈）
   const pendingHost = container.querySelector('#mydispatch-pending-host');
   if (pendingHost) {
@@ -133,6 +145,7 @@ export function bindMyDispatchEvents(container, role, userId, opts = {}) {
       const openEl = e.target.closest('[data-mydispatch-action="open"]');
       if (openEl) _renderMyDispatchDetail(openEl.dataset.issueId, role, userId, container);
     });
+    bindRowKeydown(pendingHost);
   }
 
   // 我已处理（我发起的汇报 + 我提交 / 参与的反馈）
@@ -157,6 +170,7 @@ export function bindMyDispatchEvents(container, role, userId, opts = {}) {
       const issueEl = e.target.closest('[data-mydispatch-action="open-my-issue"]');
       if (issueEl) _renderMyIssueDetail(issueEl.dataset.issueId, role, userId, container);
     });
+    bindRowKeydown(doneHost);
   }
 }
 
@@ -178,7 +192,7 @@ function _assignedIssueRowHtml(issue, userId) {
   const ds = deriveIssueDisplayState(issue);
   const dispatchNote = (issue.dispatchHistory || []).find(d => d.to === userId);
   return `
-        <div class="p-3 rounded-xl bg-white border border-gray-100 hover:border-gray-200 cursor-pointer transition-all" data-mydispatch-action="open" data-issue-id="${issue.id}">
+        <div class="p-3 rounded-xl bg-white border border-gray-100 hover:border-gray-200 cursor-pointer transition-colors" role="button" tabindex="0" data-mydispatch-action="open" data-issue-id="${issue.id}">
           <div class="flex items-center justify-between mb-1">
             <span class="text-xs text-gray-500 font-mono">#${issue.number}</span>
             <span class="text-xs px-1.5 py-0.5 rounded-full ${ds.badgeClass}">${ds.label}</span>
@@ -193,7 +207,7 @@ function _assignedIssueRowHtml(issue, userId) {
 function _myReportRowHtml(r) {
   const ds = deriveIssueDisplayState(r);
   return `
-        <div class="flex items-center gap-2 py-1.5 px-1 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors" data-mydispatch-action="open-report" data-issue-id="${r.id}">
+        <div class="flex items-center gap-2 py-1.5 px-1 rounded-lg border border-gray-100 cursor-pointer hover:bg-gray-50 transition-colors" role="button" tabindex="0" data-mydispatch-action="open-report" data-issue-id="${r.id}">
           <span class="text-xs px-1.5 py-0.5 rounded-full ${ds.badgeClass}">${ds.label}</span>
           <span class="text-xs text-gray-500">${REPORT_CATEGORIES[r.reportCategory] || '进度'}</span>
           <span class="text-sm text-gray-800 flex-1 min-w-0 truncate">${r.title}</span>
@@ -205,7 +219,7 @@ function _myReportRowHtml(r) {
 function _myIssueRowHtml(issue) {
   const ds = deriveIssueDisplayState(issue);
   return `
-        <div class="flex items-center gap-2 py-1.5 px-1 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors" data-mydispatch-action="open-my-issue" data-issue-id="${issue.id}">
+        <div class="flex items-center gap-2 py-1.5 px-1 rounded-lg border border-gray-100 cursor-pointer hover:bg-gray-50 transition-colors" role="button" tabindex="0" data-mydispatch-action="open-my-issue" data-issue-id="${issue.id}">
           <span class="text-xs text-gray-500 font-mono flex-shrink-0">#${issue.number}</span>
           <span class="text-xs px-1.5 py-0.5 rounded-full ${ds.badgeClass} flex-shrink-0">${ds.label}</span>
           <span class="text-sm text-gray-800 flex-1 min-w-0 truncate">${issue.title}</span>

@@ -9,24 +9,24 @@ import {
   mockDB, TaskforceStatus, TASKFORCE_TERMINAL_STATUSES, TASKFORCE_PRE_OPEN_STATUSES,
   TASKFORCE_DIRECT_TRANSITIONS, WorkgroupStatus, workgroupStatusForTaskforce,
   TASK_TERMINAL_STATUSES, OUTPUT_TERMINAL_STATUSES,
-} from '../../core/domain/domain.js?v=20261022c';
-import { getAdapter, getDataSource, notifyDataChanged, persist } from '../../data/data-adapter.js?v=20261022c';
-import { bumpToken } from '../../core/base/version-token.js?v=20261022c'; // P0 域缓存失效（spec §二.3）
-import { MOCK_TASKFORCES } from '../../data/mock/index.js?v=20261022c';
-import { isInitStateActive } from '../core/init-reset.js?v=20261022c'; // C2 修复（2026-09-08）：init 态跳过演示种子兜底
-import { getPersonName } from '../member/person.js?v=20261022c';
-import { evaluateWorkforceVotes } from '../branch/workforce.js?v=20261022c';
+} from '../../core/domain/domain.js?v=20261022d';
+import { getAdapter, getDataSource, notifyDataChanged, persist, refreshRemoteCollections } from '../../data/data-adapter.js?v=20261022d';
+import { bumpToken } from '../../core/base/version-token.js?v=20261022d'; // P0 域缓存失效（spec §二.3）
+import { MOCK_TASKFORCES } from '../../data/mock/index.js?v=20261022d';
+import { isInitStateActive } from '../core/init-reset.js?v=20261022d'; // C2 修复（2026-09-08）：init 态跳过演示种子兜底
+import { getPersonName } from '../member/person.js?v=20261022d';
+import { evaluateWorkforceVotes } from '../branch/workforce.js?v=20261022d';
 // 附录⑩ B批（3.3）专班议案排入支委会表决所需的活动/通知基建：
 // 与 services/branch/workforce.js 同路径（BranchService.createActivity + NoticeStore.add），
 // 仅函数体内使用（懒加载语义），不新增模块初始化期副作用。
-import { BranchService } from '../core/runtime.js?v=20261022c';
-import { NoticeStore } from '../governance/notice.js?v=20261022c';
-import { defaultVoteConfig, resolveVoterIds } from './vote-config.js?v=20261022c';
-import { loadActivities } from './activity.js?v=20261022c';
-import { AuthStore } from '../core/auth.js?v=20261022c';
-import { DEFAULT_BRANCH_ID, BRANCH_COMMISSION_ROLES } from '../../core/domain/constants.js?v=20261022c'; // 支委层应到名单单一源（勿手写）
-import { generateId } from '../../core/base/id.js?v=20261022c';
-import { todayLocal } from '../../core/base/utils.js?v=20261022c';
+import { BranchService } from '../core/runtime.js?v=20261022d';
+import { NoticeStore } from '../governance/notice.js?v=20261022d';
+import { defaultVoteConfig, resolveVoterIds } from './vote-config.js?v=20261022d';
+import { loadActivities } from './activity.js?v=20261022d';
+import { AuthStore } from '../core/auth.js?v=20261022d';
+import { DEFAULT_BRANCH_ID, BRANCH_COMMISSION_ROLES } from '../../core/domain/constants.js?v=20261022d'; // 支委层应到名单单一源（勿手写）
+import { generateId } from '../../core/base/id.js?v=20261022d';
+import { todayLocal } from '../../core/base/utils.js?v=20261022d';
 
 // 附录⑩ B批（S3 专班生命周期 · 支书裁定 2026-09-06）：
 //   治理按事项判定：仅制度或议程明确要求的发起/解散事项进入支委会表决；其余按业务流程办理并留痕。
@@ -150,8 +150,8 @@ export const TaskForceRecordStore = {
       const me = AuthStore.getCurrentUser && AuthStore.getCurrentUser();
       const pid = newRecord.manager || newRecord.initiator || (me && (me.personId || me.id)) || null;
       Promise.all([
-        import('../governance/todo.js?v=20261022c'),
-        import('../branch/branch.js?v=20261022c'),
+        import('../governance/todo.js?v=20261022d'),
+        import('../branch/branch.js?v=20261022d'),
       ]).then(([{ LifecycleTodoDeriver }, branch]) => {
         const snapshot = branch.getBranchWorkforce(branch.getBranchIdOfPerson(pid));
         LifecycleTodoDeriver.deriveFromTaskforceCreate(newRecord, { snapshot });
@@ -181,8 +181,8 @@ export const TaskForceRecordStore = {
     if (getDataSource() === 'api' && created.members.length === 0) {
       const actorId = created.manager || created.initiator || actor?.personId || actor?.id || null;
       Promise.all([
-        import('../governance/todo.js?v=20261022c'),
-        import('../branch/branch.js?v=20261022c'),
+        import('../governance/todo.js?v=20261022d'),
+        import('../branch/branch.js?v=20261022d'),
       ]).then(([{ LifecycleTodoDeriver }, branch]) => {
         const snapshot = branch.getBranchWorkforce(branch.getBranchIdOfPerson(actorId));
         LifecycleTodoDeriver.deriveFromTaskforceCreate(created, { snapshot });
@@ -374,11 +374,46 @@ export const TaskForceRecordStore = {
     return this.update(taskforceId, { progressList: list.filter(p => p && p.id !== progressId) });
   },
 
-  addMember(tfId, member) {
+  /**
+   * 加入专班成员（R9 Task 4.2 单一源）：
+   *   ① 先写**工作组主源** `workgroup_members`（适配器 `members.add`，服务端同事务回写
+   *      `taskforces.members` 兼容镜像；旧镜像此后只读保留）；
+   *   ② 再把服务端 / mock 权威行同步进本店缓存，供同步读口立即看到。
+   * 失败不落本地镜像（不制造「界面加上了、主源没写」的假成功）。
+   * @returns {Promise<Object|null>} 同步后的专班记录
+   */
+  async addMember(tfId, member) {
     const tf = this._records.find(r => r.id === tfId);
-    if (!tf) return null;
-    const newMember = { ...member, contributions: member.contributions || [] };
-    return this.update(tfId, { members: [...tf.members, newMember] });
+    if (!tf || !member?.personId) return null;
+    const workgroupId = tf.workgroupId || `wg-taskforce-${tfId}`;
+    try {
+      await getAdapter().workgroups.members.add(workgroupId, { personId: member.personId, role: member.role });
+    } catch (e) {
+      console.warn('[TaskForceRecordStore] 专班成员写入工作组主源失败：', e);
+      return null;
+    }
+    const stored = (Array.isArray(mockDB.taskforces) ? mockDB.taskforces : []).find(r => r.id === tfId) || tf;
+    const mirrored = (Array.isArray(stored.members) && stored.members.some(m => m?.personId === member.personId))
+      ? stored
+      : { ...stored, members: [...(stored.members || []), { ...member, contributions: member.contributions || [] }] };
+    this._records = this._records.map(r => r.id === tfId ? mirrored : r);
+    bumpToken('taskforce');
+    mockDB.taskforces = (Array.isArray(mockDB.taskforces) ? mockDB.taskforces : [])
+      .map(r => r.id === tfId ? mirrored : r);
+    if (getDataSource() === 'mock') {
+      persist();
+    } else {
+      // 服务端成员端点已 bump taskforces 版本 ⇒ 重拉缓存与版本基线，避免后续快照以陈旧成员表撞 409/403。
+      try {
+        await refreshRemoteCollections(['taskforces']);
+        const authoritative = (Array.isArray(mockDB.taskforces) ? mockDB.taskforces : []).find(r => r.id === tfId);
+        if (authoritative) this._records = this._records.map(r => r.id === tfId ? authoritative : r);
+      } catch (e) {
+        console.warn('[TaskForceRecordStore] 专班成员写入后刷新缓存失败（本地镜像已保留）：', e);
+      }
+      notifyDataChanged();
+    }
+    return mirrored;
   },
 
   // ══════════════════════════════════════════════════════════════
@@ -392,8 +427,13 @@ export const TaskForceRecordStore = {
   //  兼容旧数据：老成员无 contributions 字段（undefined）按 [] 处理。
   // ══════════════════════════════════════════════════════════════
 
-  /** 录入/填报贡献（by=填报成员本人或组织委员代录；desc 非空且 personIds 均为该专班成员才受理） */
-  addContributions(taskforceId, { personIds = [], desc = '', by = null } = {}) {
+  /**
+   * 录入/填报贡献（by=填报成员本人或组织委员代录；desc 非空且 personIds 均为该专班成员才受理）
+   * R9 Task 4.2：贡献先进**工作组主源** `workgroup_outputs`（每人一条产出，kind='contribution'）；
+   *   `taskforces.members[].contributions` 作为兼容镜像同步（旧核验读口只读沿用）。
+   *   本地镜像在首个 await 前同步落好（旧同步读口保持即时可见），主源写入失败仅告警不吞业务事实。
+   */
+  async addContributions(taskforceId, { personIds = [], desc = '', by = null } = {}) {
     const tf = this._records.find(r => r.id === taskforceId);
     const note = String(desc || '').trim();
     const ids = Array.isArray(personIds) ? [...new Set(personIds.filter(Boolean))] : [];
@@ -402,16 +442,36 @@ export const TaskForceRecordStore = {
     const memberIds = (tf.members || []).map(m => m && m.personId);
     if (!ids.every(pid => memberIds.includes(pid))) return null;
     const at = new Date().toISOString();
+    const addedIds = [];
     const members = (tf.members || []).map(m => {
       if (!m || !ids.includes(m.personId)) return m;
       const list = Array.isArray(m.contributions) ? m.contributions : [];
-      return {
-        ...m,
-        contributions: [...list, { id: generateId('tc', '-'), desc: note, by: by || null, at }],
-      };
+      const entry = { id: generateId('tc', '-'), desc: note, by: by || null, at };
+      addedIds.push({ personId: m.personId, contributionId: entry.id });
+      return { ...m, contributions: [...list, entry] };
     });
     const updated = this.update(taskforceId, { members });
     if (!updated) return null;
+    // 工作组主源：产出登记（mock / api 适配器同名口）
+    try {
+      const adapter = getAdapter();
+      const workgroupId = tf.workgroupId || `wg-taskforce-${taskforceId}`;
+      for (const item of addedIds) {
+        const output = await adapter.workgroups.outputs.create(workgroupId, {
+          title: note, description: note, personId: item.personId,
+          kind: 'contribution', contributionId: item.contributionId,
+        });
+        if (output?.id) {
+          mockDB.workgroupOutputs = [
+            ...(Array.isArray(mockDB.workgroupOutputs) ? mockDB.workgroupOutputs : []).filter((row) => row.id !== output.id),
+            output,
+          ];
+        }
+      }
+      notifyDataChanged();
+    } catch (e) {
+      console.warn('[TaskForceRecordStore] 贡献写入工作组产出失败（镜像已保留）：', e);
+    }
     return { added: ids.length };
   },
 

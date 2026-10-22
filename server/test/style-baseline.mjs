@@ -579,7 +579,6 @@ export const P_TEXT_TIER_BASELINE = {
   'docs/src/components/governance/person-edit-modal.js': { c: 2, v: [11] },
   'docs/src/components/governance/resolution-followup-manager.js': { c: 2, v: [11] },
   'docs/src/components/governance/signup-panel.js': { c: 1, v: [11] },
-  'docs/src/entries/tabs/leader/review-tab.js': { c: 1, v: [11] },
   'docs/src/entries/tabs/leader/write-tab.js': { c: 1, v: [11] },
   // ⚠ 2026-10-01 批次 321：`org/development-tab.js` 条目已删（文件随「并入人才库」删除）。
   // ⚠ 2026-10-20 第二轮界面细化：`notice-entry.js` / `org/inspection-tab.js` / `org/roster-tab.js` /
@@ -587,9 +586,7 @@ export const P_TEXT_TIER_BASELINE = {
   //   （文件数 21 → 17、段落处数 63 → 58）。
   'docs/src/entries/tabs/org/taskforce-tab.js': { c: 4, v: [11] },
   'docs/src/entries/tabs/prop/archive-tab.js': { c: 3, v: [11] },
-  'docs/src/entries/tabs/secretary/assign-tab.js': { c: 4, v: [11] },
   'docs/src/entries/tabs/secretary/calendar-tab.js': { c: 6, v: [11] },
-  'docs/src/entries/tabs/secretary/notification-tab.js': { c: 1, v: [11] },
   'docs/src/entries/tabs/secretary/todo-tab.js': { c: 1, v: [11] },
   'docs/src/entries/tabs/secretary/workforce-panel.js': { c: 4, v: [11] },
   'docs/src/entries/tabs/visitor/thought-report-tab.js': { c: 1, v: [11] },
@@ -610,12 +607,13 @@ export const P_TEXT_TIER_BASELINE = {
  *    ⇒ 按收基线纪律删除条目，文件数 **23 → 22**、段落处数 **73 → 72**。
  *  ⚠ 2026-10-18 Task 4：`party-committee-meeting-entry.js` 的 9 处 `<p>` 11px 改 12px 后清零
  *    ⇒ 按收基线纪律删除条目，文件数 **22 → 21**、段落处数 **72 → 63**。
- *  ⚠ 2026-10-20 第二轮界面细化：四处说明句删除 ⇒ 再删 4 个文件条目，文件数 **21 → 17**、
- *    段落处数 **63 → 58**。 */
-export const P_TEXT_TIER_TOTAL_BASELINE = 58;
-export const P_TEXT_TIER_FILE_BASELINE = 17;
-/** 按值台账（只报不判；9/10px 是禁止档，恒为 0）——11 档总数为 58（2026-10-20 第二轮界面细化收基线） */
-export const P_TEXT_TIER_BY_VALUE_BASELINE = { 11: 58, 10: 0, 9: 0 };
+ *  ⚠ 2026-10-22 批次 503：`leader/review-tab.js`（1）· `secretary/assign-tab.js`（4）·
+ *    `secretary/notification-tab.js`（1）的 11px `<p>` 随帮助注释迁移 `.help-note` 清零
+ *    ⇒ 按收基线纪律删条目，文件数 **17 → 14**、段落处数 **58 → 52**。 */
+export const P_TEXT_TIER_TOTAL_BASELINE = 52;
+export const P_TEXT_TIER_FILE_BASELINE = 14;
+/** 按值台账（只报不判；9/10px 是禁止档，恒为 0）——11 档总数为 52（2026-10-22 批次 503 收基线） */
+export const P_TEXT_TIER_BY_VALUE_BASELINE = { 11: 52, 10: 0, 9: 0 };
 
 /** 「零引用类」台账（2026-09-28 死码清理批，给 `server/test/dead-selector-guard.test.mjs` 消费）
  *

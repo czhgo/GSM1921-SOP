@@ -7,13 +7,12 @@
 // 文案由 components/record/todo-list.js actionLabels 收敛为「去考勤管理/去考察管理」（跳管理页队列，
 // 确认唯一位=考勤管理/考察管理页），补课回执交接行=「去补课制度」跳转——本文件无逻辑改动。
 
-import { showToast } from '../../../core/base/utils.js?v=20261022c';
-import { TodoSourceType, TodoCategory, TodoActionType, seedTodos, REALTIME_GROUP_DOMAIN } from '../../../services/governance/todo.js?v=20261022c';
-import { createTodoTab } from '../../../components/record/todo-tab-shell.js?v=20261022c';
-import { loadActiveAttendanceRecords } from '../../../services/activity/attendance.js?v=20261022c';
-import { AttendanceStatus } from '../../../core/domain/domain.js?v=20261022c';
-import { loadActiveInspectionRecords } from '../../../services/activity/inspection.js?v=20261022c';
-import { getPersonName } from '../../../services/member/person.js?v=20261022c';
+import { showToast, getBasePath } from '../../../core/base/utils.js?v=20261022d';
+import { TodoSourceType, TodoCategory, TodoActionType, seedTodos, REALTIME_GROUP_DOMAIN } from '../../../services/governance/todo.js?v=20261022d';
+import { createTodoTab } from '../../../components/record/todo-tab-shell.js?v=20261022d';
+import { loadActiveAttendanceRecords, isAttendancePendingConfirm } from '../../../services/activity/attendance.js?v=20261022d';
+import { loadActiveInspectionRecords } from '../../../services/activity/inspection.js?v=20261022d';
+import { getPersonName } from '../../../services/member/person.js?v=20261022d';
 
 // ── 纪检实时聚合组（2026-08-07 闭环化） ────────────────────────
 // 真实闭环：考勤/考察待确认数量由业务数据实时计算，确认后数量自动下降，
@@ -26,9 +25,7 @@ function _buildDiscRealtimeGroups() {
   // 动态组1：考勤待确认（T-304 第5轮 · 源头审校+异常驱动：出勤/已补上传方已审校自动确认，
   // 纪检只处理异常=缺勤/请假未确认；仅活跃活动，归档活动退出工作区）
   // 2026-10-18 繁专项 Task 15：与管理页队列同口径——**已打回**记录交组织方重新确认，不计入纪检待确认。
-  const pendingAtt = loadActiveAttendanceRecords().filter(r =>
-    !r.recordedBy && !r.returnedBy && r.status !== AttendanceStatus.PRESENT && r.status !== AttendanceStatus.MADE_UP
-  );
+  const pendingAtt = loadActiveAttendanceRecords().filter(isAttendancePendingConfirm);
   if (pendingAtt.length > 0) {
     dynamic.push({
       groupKey: 'disc-commissioner:attendance-confirm',
@@ -41,7 +38,7 @@ function _buildDiscRealtimeGroups() {
       flow: '考勤上传 → 纪检确认 → 考勤明细',
       deadline: null,
       count: pendingAtt.length,
-      items: pendingAtt.map(r => ({ id: r.id, title: `确认考勤：${getPersonName(r.personId)}`, sourceType: TodoSourceType.ACTIVITY, sourceId: r.activityId })),
+      items: pendingAtt.map(r => ({ id: r.id, activityId: r.activityId, title: `确认考勤：${getPersonName(r.personId)}`, sourceType: TodoSourceType.ACTIVITY, sourceId: r.activityId })),
     });
   }
   // 动态组2：考察待确认（status 非 confirmed；仅活跃活动，专班类保留）
@@ -59,7 +56,7 @@ function _buildDiscRealtimeGroups() {
       flow: '纪检录入考察 → 纪检确认 → 组织建档',
       deadline: null,
       count: pendingInsp.length,
-      items: pendingInsp.map(r => ({ id: r.id, title: `确认考察：${getPersonName(r.personId)}`, sourceType: TodoSourceType.ACTIVITY, sourceId: r.activityId ? `insp_${r.id}` : null })),
+      items: pendingInsp.map(r => ({ id: r.id, activityId: r.activityId || '', title: `确认考察：${getPersonName(r.personId)}`, sourceType: TodoSourceType.ACTIVITY, sourceId: r.activityId || null })),
     });
   }
   return dynamic;
@@ -79,6 +76,20 @@ function _handleTodoAction(todo) {
   };
   const target = jump[todo.actionKey] || jump[todo.actionType];
   if (target) {
+    // 考勤 / 考察待确认：带目标 id 直达（focusActivityId / focusRecordId），目标页过滤或高亮该行；
+    // 未命中才由目标页 toast，源页不再先报「已跳转」。
+    if (todo.actionKey === 'attendance-confirm' || todo.actionKey === 'inspection-confirm') {
+      const first = Array.isArray(todo.items) ? todo.items[0] : null;
+      const qs = new URLSearchParams({ tab: target.tab });
+      const activityId = first?.activityId || first?.sourceId || '';
+      if (activityId) qs.set('focusActivityId', activityId);
+      if (first?.id) qs.set('focusRecordId', first.id);
+      // 静态拼接（不做模板插值）：L2 只校验 `location.href` 直接字面量/插值片段，
+      //   拼成变量再赋值可避免把 workspace 子路径误判为根目录页面。
+      const discWorkspace = 'workspace/disc.html';
+      window.location.href = getBasePath() + discWorkspace + '?' + qs.toString();
+      return;
+    }
     const go = () => {
       const btn = document.querySelector(`.disc-tab-btn[data-disc-tab="${target.tab}"]`);
       if (btn) btn.click();
@@ -86,7 +97,7 @@ function _handleTodoAction(todo) {
     };
     if (target.segment) {
       // 先置一级分段再切 tab（分段由 attendance-tab 模块级记忆，见其 focusSegment 导出）
-      import('../../../entries/tabs/disc/attendance-tab.js?v=20261022c')
+      import('../../../entries/tabs/disc/attendance-tab.js?v=20261022d')
         .then(m => { m.focusSegment(target.segment); go(); })
         .catch(go);
     } else {

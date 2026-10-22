@@ -48,15 +48,15 @@ globalThis.localStorage = makeStorage();
 
 import { createApp } from '../app.js';
 import { seedDatabase } from '../seed.js';
-import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261022c';
-import { getRuntimeMode, init, setDataSource } from '../../docs/src/data/data-adapter.js?v=20261022c';
+import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261022d';
+import { getRuntimeMode, init, setDataSource } from '../../docs/src/data/data-adapter.js?v=20261022d';
 // ── mock 形态语料（单一源；服务端 seed.js 亦从这些具名导出播种 ⇒ 两侧本应逐值相同）──
-import { MOCK_NOTICES } from '../../docs/src/data/mock/notices.js?v=20261022c';
-import { ATTENDANCE_RECORDS } from '../../docs/src/data/mock/attendance.js?v=20261022c';
-import { INSPECTION_RECORDS } from '../../docs/src/data/mock/inspection.js?v=20261022c';
-import { SEED_MAKEUP_TASKS } from '../../docs/src/data/mock/seed.js?v=20261022c';
+import { MOCK_NOTICES } from '../../docs/src/data/mock/notices.js?v=20261022d';
+import { ATTENDANCE_RECORDS } from '../../docs/src/data/mock/attendance.js?v=20261022d';
+import { INSPECTION_RECORDS } from '../../docs/src/data/mock/inspection.js?v=20261022d';
+import { SEED_MAKEUP_TASKS } from '../../docs/src/data/mock/seed.js?v=20261022d';
 // `SEED_TODOS` 不在 `mock/**`（它是服务层常量，前端 seedTodos() 读的正是它）——服务端 seed.js 同源 import
-import { SEED_TODOS } from '../../docs/src/services/governance/todo.js?v=20261022c';
+import { SEED_TODOS } from '../../docs/src/services/governance/todo.js?v=20261022d';
 
 // ════════════════════════════════════════════════════════════════
 //  B 类现场（api 形态）：内存服务 + 真登录取 token + init() 把服务端全量灌进 mockDB 缓存
@@ -152,6 +152,19 @@ test('P2 两形态读数一致：init() 后 mockDB 缓存（api 形态）与 moc
     if (d.length) problems.push(`[${t.label}] mockDB.${t.key}：\n      ${d.slice(0, 8).join('\n      ')}`);
   }
   assert.deepEqual(problems, [], `两形态读数不一致：\n  ${problems.join('\n  ')}`);
+});
+
+// ── P4（R9 Task 4.4）：workgroup_tasks / outputs 首屏装载 ──
+test('P4 init 批量装载 workgroup_tasks / outputs，并标记 loaded（首页不再把未装载当无任务）', () => {
+  const loaded = mockDB.workgroupAuxLoaded;
+  assert.ok(loaded && Array.isArray(loaded.tasks) && Array.isArray(loaded.outputs), 'init 完成后须标记已装载组清单');
+  assert.ok(Array.isArray(mockDB.workgroupTasks), 'workgroupTasks 必须是数组');
+  assert.ok(mockDB.workgroupTasks.length > 0, '首页可见专班的任务应在 init 装载后可见（否则首页仍显「任务 —」）');
+  assert.ok(Array.isArray(mockDB.workgroupOutputs), 'workgroupOutputs 必须是数组');
+  assert.ok(mockDB.workgroupTasks.every((row) => row && row.workgroupId), '任务必须带 workgroupId（首页按组汇总）');
+  for (const groupId of new Set(mockDB.workgroupTasks.map((row) => row.workgroupId))) {
+    assert.ok(loaded.tasks.includes(groupId), `${groupId} 的任务已装载，标记里必须含该组（否则首页误显示加载中）`);
+  }
 });
 
 // ── P3 非空转：抽取面下限 ＋ 逐表断言为真 ＋ 比较器自检 ──

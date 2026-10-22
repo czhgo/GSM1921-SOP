@@ -5,13 +5,13 @@
 //  视图模式：月/周/日/列表 四种切换
 // ════════════════════════════════════════════════════════════════
 
-import { getAppState, setState } from '../../core/base/state.js?v=20261022c';
-import { ROLE_COLORS, getActivityColor, ACTIVITY_CATEGORY_COLORS, ACTIVITY_TYPE_LABELS, ACTIVITY_TYPE_SHORT } from '../../core/domain/constants.js?v=20261022c';
-import { _fmtDate, _currentYearMonth } from '../../core/base/utils.js?v=20261022c';
-import { tokenOf } from '../../core/base/version-token.js?v=20261022c'; // P2 视图渲染守卫数据版本（spec §四.2）
-import { filterTasksByManagementRole, activityLifecycleBadgeHtml } from './inspector.js?v=20261022c';
+import { getAppState, setState } from '../../core/base/state.js?v=20261022d';
+import { ROLE_COLORS, getActivityColor, ACTIVITY_CATEGORY_COLORS, ACTIVITY_TYPE_LABELS, ACTIVITY_TYPE_SHORT } from '../../core/domain/constants.js?v=20261022d';
+import { _fmtDate, _currentYearMonth } from '../../core/base/utils.js?v=20261022d';
+import { tokenOf } from '../../core/base/version-token.js?v=20261022d'; // P2 视图渲染守卫数据版本（spec §四.2）
+import { filterTasksByManagementRole, activityLifecycleBadgeHtml } from './inspector.js?v=20261022d';
 // 活动「已完成 / 已取消」闭环判据单一源（R7-16）：替代手写 ['completed','cancelled']
-import { isActivityClosed } from '../../core/domain/domain.js?v=20261022c';
+import { isActivityClosed } from '../../core/domain/domain.js?v=20261022d';
 
 // ── 内联标签深色变量对（与 constants.js _applyDark 生成的 bgDark/textDark/borderDark 配套）──
 // 标签/卡片：三件套（bg/text/border）；纯文字：仅 text；圆点：仅实色提亮（--acc-dot-dark）
@@ -221,7 +221,7 @@ function _renderViewSwitcher(currentView) {
   switcher.innerHTML = `
     <div class="flex items-center gap-1.5">
       ${Object.entries(VIEW_LABELS).map(([key, label]) => `
-        <button class="btn-tab cal-view-btn px-3 py-1.5 rounded-lg text-xs font-medium border transition-all duration-200 ${key === currentView ? 'bg-[var(--app-accent-bg)] border-[var(--app-accent)] [color:color-mix(in_srgb,var(--app-accent)_60%,#000)]' : 'bg-white border-neutral-200 text-gray-600 hover:bg-gray-50'}"${key === currentView ? ' style="--acc-text-dark:color-mix(in srgb, var(--app-accent) 55%, #fff)"' : ''} data-view="${key}">${label}</button>
+        <button class="btn-tab cal-view-btn px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors duration-200 ${key === currentView ? 'bg-[var(--app-accent-bg)] border-[var(--app-accent)] [color:color-mix(in_srgb,var(--app-accent)_60%,#000)]' : 'bg-white border-neutral-200 text-gray-600 hover:bg-gray-50'}"${key === currentView ? ' style="--acc-text-dark:color-mix(in srgb, var(--app-accent) 55%, #fff)"' : ''} data-view="${key}">${label}</button>
       `).join('')}
     </div>
   `;
@@ -314,7 +314,7 @@ function _renderCompactCellContent(dateKey, dayActs, ct, viaTasks, state) {
   dayActs.slice(0, 3).forEach(act => {
     const color = getActivityColor(act);
     const shortLabel = ACTIVITY_TYPE_SHORT[act.scenarioId] || ACTIVITY_TYPE_SHORT[act.type] || (act.type ? act.type.slice(0, 2) : '活动');
-    html += `<div class="cal-activity-tag cal-activity-item cursor-pointer hover:brightness-95 transition-all" data-act-id="${act.id || ''}" data-date="${dateKey}" tabindex="0" role="button" aria-label="查看活动：${act.title || ''}" style="${_accDark(color)}background:${color.bg};${_tagText(color)}border:1px solid ${color.border};" title="${act.title || ''}">` +
+    html += `<div class="cal-activity-tag cal-activity-item cursor-pointer hover:brightness-95 transition-[filter]" data-act-id="${act.id || ''}" data-date="${dateKey}" tabindex="0" role="button" aria-label="查看活动：${act.title || ''}" style="${_accDark(color)}background:${color.bg};${_tagText(color)}border:1px solid ${color.border};" title="${act.title || ''}">` +
             `<span class="cal-activity-dot" style="${_accDot(color)}background:${color.text};"></span>` +
             `<span>${shortLabel}</span></div>`;
   });
@@ -548,7 +548,7 @@ function _renderCellContent(dateKey, dayActs, ct, hasActivity, viaTasks, state, 
   if (viewType === 'participant') {
     dayActs.slice(0, maxItems).forEach(act => {
       const color = getActivityColor(act);
-      html += `<div class="cal-activity-tag cal-activity-item cursor-pointer hover:brightness-95 transition-all" data-act-id="${act.id || ''}" data-date="${dateKey}" tabindex="0" role="button" aria-label="查看活动：${act.title || ''}" style="${_accDark(color)}background:${color.bg};${_tagText(color)}border:1px solid ${color.border};" title="${act.title || ''}">` +
+      html += `<div class="cal-activity-tag cal-activity-item cursor-pointer hover:brightness-95 transition-[filter]" data-act-id="${act.id || ''}" data-date="${dateKey}" tabindex="0" role="button" aria-label="查看活动：${act.title || ''}" style="${_accDark(color)}background:${color.bg};${_tagText(color)}border:1px solid ${color.border};" title="${act.title || ''}">` +
               `<span class="cal-activity-dot" style="${_accDot(color)}background:${color.text};"></span>` +
               `<span class="truncate">${act.title || ''}</span></div>`;
     });
@@ -558,7 +558,7 @@ function _renderCellContent(dateKey, dayActs, ct, hasActivity, viaTasks, state, 
     if (dayActs.length > 0) {
       dayActs.slice(0, maxItems).forEach(act => {
         const color = getActivityColor(act);
-        html += `<div class="cal-activity-tag cal-activity-item cursor-pointer hover:brightness-95 transition-all" data-act-id="${act.id || ''}" data-date="${dateKey}" tabindex="0" role="button" aria-label="查看活动：${act.title || ''}" style="${_accDark(color)}background:${color.bg};${_tagText(color)}border:1px solid ${color.border};" title="${act.title || ''}">` +
+        html += `<div class="cal-activity-tag cal-activity-item cursor-pointer hover:brightness-95 transition-[filter]" data-act-id="${act.id || ''}" data-date="${dateKey}" tabindex="0" role="button" aria-label="查看活动：${act.title || ''}" style="${_accDark(color)}background:${color.bg};${_tagText(color)}border:1px solid ${color.border};" title="${act.title || ''}">` +
                 `<span class="cal-activity-dot" style="${_accDot(color)}background:${color.text};"></span>` +
                 `<span class="truncate">${act.title || ''}</span></div>`;
       });
@@ -1017,7 +1017,7 @@ function _renderMonthViewCompact(grid, activeActivities, month, state, mode) {
     dayActs.slice(0, 3).forEach(act => {
       const color = getActivityColor(act);
       const shortLabel = ACTIVITY_TYPE_SHORT[act.scenarioId] || ACTIVITY_TYPE_SHORT[act.type] || (act.type ? act.type.slice(0, 2) : '活动');
-      html += `<div class="cal-activity-tag cal-activity-item cursor-pointer hover:brightness-95 transition-all" data-act-id="${act.id || ''}" data-date="${k}" tabindex="0" role="button" aria-label="查看活动：${act.title || ''}" style="${_accDark(color)}background:${color.bg};${_tagText(color)}border:1px solid ${color.border};" title="${act.title || ''}">` +
+      html += `<div class="cal-activity-tag cal-activity-item cursor-pointer hover:brightness-95 transition-[filter]" data-act-id="${act.id || ''}" data-date="${k}" tabindex="0" role="button" aria-label="查看活动：${act.title || ''}" style="${_accDark(color)}background:${color.bg};${_tagText(color)}border:1px solid ${color.border};" title="${act.title || ''}">` +
               `<span class="cal-activity-dot" style="${_accDot(color)}background:${color.text};"></span>` +
               `<span>${shortLabel}</span></div>`;
     });

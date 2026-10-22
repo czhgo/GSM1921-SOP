@@ -5,14 +5,14 @@
 //  职责单一：统计卡渲染 + 考勤明细弹窗（点击统计卡查看本月考勤）。
 // ════════════════════════════════════════════════════════════════
 
-import { NoticeStore } from '../../services/governance/notice.js?v=20261022c';
-import { _fmtDate } from '../../core/base/utils.js?v=20261022c';
-import { icon } from '../../core/base/icons.js?v=20261022c';
+import { NoticeStore } from '../../services/governance/notice.js?v=20261022d';
+import { _fmtDate } from '../../core/base/utils.js?v=20261022d';
+import { icon } from '../../core/base/icons.js?v=20261022d';
 // 活动「已归档」口径单一源（2026-09-13 收敛）：替代手写 !a.archived
-import { isActivityArchived } from '../../core/domain/constants.js?v=20261022c';
-import { isTaskforceActiveStatus } from '../../core/domain/domain.js?v=20261022c';
+import { isActivityArchived } from '../../core/domain/constants.js?v=20261022d';
+import { isTaskforceActiveStatus } from '../../core/domain/domain.js?v=20261022d';
 // R2-47：出勤率语义单一源——首页「个人考勤」按应到人次（不是按已录记录），未录显示「待录入」
-import { summarizePersonAttendanceByRoster, attendanceRateTone } from '../../services/activity/attendance.js?v=20261022c';
+import { summarizePersonAttendanceByRoster, attendanceRateTone } from '../../services/activity/attendance.js?v=20261022d';
 
 const ATTENDANCE_STATUS_DOT = {
   present:  { text: '出勤', cls: 'text-green-700', dot: 'var(--functional-success)' },
@@ -101,8 +101,8 @@ export function renderDashboardStats({ activities, taskforces, notices, attendan
   // T-304 Q2 点击热区：不可点卡（前三张）不再 hover 上浮（纯展示卡不加 hover 伪装，DESIGN_SYSTEM §4.3）；
   // 仅可点卡（个人考勤）保留 hover 反馈。统一 cursor：可点卡 pointer / 展示卡 default。
   container.innerHTML = stats.map(s => `
-    <div class="card rounded-xl p-4 flex items-center gap-3 ${s.interactive ? 'card--interactive hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 cursor-pointer' : ''}"
-         ${s.interactive ? 'data-attendance-popover="1"' : ''} ${s.title ? `title="${s.title}"` : ''}>
+    <div class="card rounded-xl p-4 flex items-center gap-3 ${s.interactive ? 'card--interactive transition-colors duration-200 cursor-pointer' : ''}"
+         ${s.interactive ? 'role="button" tabindex="0" data-attendance-popover="1"' : ''} ${s.title ? `title="${s.title}"` : ''}>
       <div class="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 stat-icon-tint" style="--tint:${s.color};">
         ${icon(s.icon, { strokeWidth: 1.8, stroke: s.color, className: 'w-5 h-5' })}
       </div>
@@ -131,6 +131,13 @@ function _bindAttendancePopover(activities, attendanceRecords, thisMonth, user) 
     popover.style.cssText = 'position:absolute;z-index:50;background:var(--surface-card);border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,0.12);border:1px solid var(--neutral-200);padding:12px;width:300px;display:none;';
     document.body.appendChild(popover);
   }
+
+  // 5.3（2026-10-22 第九轮）：可点卡不是原生按钮 —— 补原子 Enter / Space 触发（与鼠标等效）。
+  trigger.addEventListener('keydown', (e) => {
+    if (e.key !== 'Enter' && e.key !== ' ' && e.key !== 'Spacebar') return;
+    e.preventDefault();
+    trigger.click();
+  });
 
   trigger.addEventListener('click', (e) => {
     e.stopPropagation();

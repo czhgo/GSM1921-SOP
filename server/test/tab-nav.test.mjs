@@ -4,7 +4,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { resolveInitialTab, resolveTargetTab } from '../../docs/src/core/boot/tab-nav.js?v=20261022c';
+import { resolveInitialTab, resolveTargetTab } from '../../docs/src/core/boot/tab-nav.js?v=20261022d';
 
 const shellSrc = readFileSync(new URL('../../docs/src/components/shell/workspace-shell.js', import.meta.url), 'utf8');
 const branchFilterSrc = readFileSync(new URL('../../docs/src/components/governance/branch-filter.js', import.meta.url), 'utf8');
@@ -50,14 +50,17 @@ test('目标 tab 回退：可见命中原样返回；被隐藏回退首位并标
 //  IA 深链契约（2026-10-20 IA 修复 Task 2/3 · 静态守卫）
 // ════════════════════════════════════════════════════════════════
 
-test('壳：focusActivityId 只做定位，不进 legacy onNavTarget 分支', () => {
+test('壳：focusActivityId / focusRecordId 只做定位，不进 legacy onNavTarget 分支', () => {
   assert.match(shellSrc, /const focusActivityId = urlParams\.focusActivityId \|\| null;/, '须读取 ?focusActivityId=');
-  assert.match(shellSrc, /focusActivityId,? \}/, '须写入 _navTarget.focusActivityId');
+  assert.match(shellSrc, /const focusRecordId = urlParams\.focusRecordId \|\| null;/, '须读取 ?focusRecordId=');
+  assert.match(shellSrc, /_navTarget = \{[^}]*focusActivityId/, '须写入 _navTarget.focusActivityId');
   assert.match(shellSrc, /focusActivityId: _navTarget \? \(_navTarget\.focusActivityId \|\| null\) : null,/, '_renderCtx 须暴露 focusActivityId');
-  assert.match(shellSrc, /CrossPageState\.clearParam\('focusActivityId'\)/, '须清理 URL 参数');
+  assert.match(shellSrc, /focusRecordId: _navTarget \? \(_navTarget\.focusRecordId \|\| null\) : null,/, '_renderCtx 须暴露 focusRecordId');
+  assert.match(shellSrc, /CrossPageState\.clearParam\('focusActivityId'\)/, '须清理 focusActivityId URL 参数');
+  assert.match(shellSrc, /CrossPageState\.clearParam\('focusRecordId'\)/, '须清理 focusRecordId URL 参数');
   const legacyLine = shellSrc.match(/const hasLegacyNav = .*;/);
   assert.ok(legacyLine, '须保留 hasLegacyNav 判据');
-  assert.doesNotMatch(legacyLine[0], /focusActivityId/, 'focusActivityId 不得进入 legacy 分支');
+  assert.doesNotMatch(legacyLine[0], /focusActivityId|focusRecordId/, '定位参数不得进入 legacy 分支');
 });
 
 test('壳：对象级高亮选择器含 [data-act-id]，且 highlightType 按类型收窄', () => {
@@ -108,5 +111,10 @@ test('材料页深链：十处承载页签均消费 ctx.focusActivityId', () => 
   for (const rel of consumers) {
     const src = readFileSync(new URL(rel, import.meta.url), 'utf8');
     assert.match(src, /focusActivityAnchor\([^)]*ctx\?\.focusActivityId/, `${rel} 未消费 focusActivityId`);
+  }
+  // 第八轮 2.2：纪检待办带 recordId 直达的两处承载页签须消费 ctx.focusRecordId
+  for (const rel of ['../../docs/src/entries/tabs/disc/attendance-tab.js', '../../docs/src/entries/tabs/disc/inspection-tab.js']) {
+    const src = readFileSync(new URL(rel, import.meta.url), 'utf8');
+    assert.match(src, /ctx\?\.focusRecordId/, `${rel} 未消费 focusRecordId`);
   }
 });

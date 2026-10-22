@@ -88,7 +88,7 @@ export const SEED_MANIFEST = [
     initTier: 'clear',
     seedOwnedFields: [
       'id', 'title', 'date', 'type', 'organizer', 'direction', 'location', 'scenarioId', 'domain',
-      'assignments', 'isBrand', 'brandName', 'carriers', 'isOutdoor', 'agenda', 'galleryFeatured',
+      'carriers', 'isOutdoor', 'galleryFeatured',
       'isJoint', 'galleryPinned', 'hostGroup', 'voteConfig',
       // 装载默认 / 种子归一的组织落点字段（见文件头注释）
       'visibility', 'createdBy', 'createdAt', 'organizingScope', 'hostGroupId',
@@ -97,6 +97,11 @@ export const SEED_MANIFEST = [
     runtimeFields: [
       'status', 'archived', 'archivedAt', 'workgroupId', 'participants', 'brandRevokedAt',
       'votesLocked', 'voteTally', 'noticeSentAt', 'executor', 'supervisor',
+      // R9 Task 4.1：以下字段虽由种子给出**初始形态**，但一经业务动作即归运行时所有——
+      //   assignments＝报名审核 / 成员语义接口写入；agenda 的对象条目会被议程结果回写（result/…）；
+      //   isBrand / brandName＝支委会议程项「记录结果·通过」认定或品牌取消；
+      //   ⇒ 种子修复不得把它们整值换回种子版本，否则会回滚运行时治理结果。
+      'assignments', 'agenda', 'isBrand', 'brandName',
     ],
   },
   {
@@ -108,10 +113,14 @@ export const SEED_MANIFEST = [
     lifecycleClass: 'business',
     initTier: 'clear',
     seedOwnedFields: [
-      'id', 'name', 'task', 'manager', 'initiator', 'members', 'capacity', 'deadline',
+      'id', 'name', 'task', 'manager', 'initiator', 'capacity', 'deadline',
       'activityId', 'createdAt', 'reviewSummary',
     ],
-    runtimeFields: ['status', 'progressList', 'dissolvedAt', 'deletedAt', 'workgroupId', 'branchId'],
+    // R9 Task 4.1：members 由报名审核 / 成员语义接口与贡献填报写入（含 contributions），
+    //   ⇒ 归运行时字段，种子修复不得整值回滚。
+    runtimeFields: [
+      'status', 'progressList', 'dissolvedAt', 'deletedAt', 'workgroupId', 'branchId', 'members',
+    ],
   },
   {
     collection: 'tasks',
@@ -146,7 +155,7 @@ export const SEED_MANIFEST = [
     lifecycleClass: 'business',
     initTier: 'clear',
     seedOwnedFields: ['id', 'personId', 'activityId', 'studentId', 'developStage', 'partyGroup'],
-    runtimeFields: ['status', 'recordedBy', 'recordedAt', 'overdue', 'secretaryConfirmedAt', 'note'],
+    runtimeFields: ['status', 'recordedBy', 'recordedAt', 'confirmed', 'confirmedBy', 'confirmedAt', 'overdue', 'secretaryConfirmedAt', 'note'],
   },
   {
     collection: 'inspections',

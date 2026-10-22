@@ -20,33 +20,33 @@
 
 
 
-import { STATE, getAppState, setState, registerRenderCallback } from '../../core/base/state.js?v=20261022c';
+import { STATE, getAppState, setState, registerRenderCallback } from '../../core/base/state.js?v=20261022d';
 
-import { bootstrapPage } from '../../core/boot/bootstrap.js?v=20261022c';
-import { renderTabBar, tabContentSkeletonHtml } from './tab-bar.js?v=20261022c';
-import { flashHighlight, escHtml } from '../../core/base/utils.js?v=20261022c';
-import { CrossPageState } from '../../core/session/cross-page-state.js?v=20261022c';
-import { getCapabilities } from '../../core/boot/registry.js?v=20261022c';
-import { loadWorkspaceData } from '../../data/data-loader.js?v=20261022c';
+import { bootstrapPage } from '../../core/boot/bootstrap.js?v=20261022d';
+import { renderTabBar, tabContentSkeletonHtml, tabErrorCardHtml } from './tab-bar.js?v=20261022d';
+import { flashHighlight, escHtml } from '../../core/base/utils.js?v=20261022d';
+import { CrossPageState } from '../../core/session/cross-page-state.js?v=20261022d';
+import { getCapabilities } from '../../core/boot/registry.js?v=20261022d';
+import { loadWorkspaceData } from '../../data/data-loader.js?v=20261022d';
 // 待批活动的可见性单一源（2026-09-22 批次 151）：种子兜底路径同样按查看者角色收窄（与 data-loader 同判据）
-import { filterActivitiesForViewer } from '../../services/core/visibility.js?v=20261022c';
+import { filterActivitiesForViewer } from '../../services/core/visibility.js?v=20261022d';
 
-import { TodoStore } from '../../services/governance/todo.js?v=20261022c';
-import { AuthStore } from '../../services/core/auth.js?v=20261022c';
-import { BranchService } from '../../services/core/runtime.js?v=20261022c';
-import { applyTabPolicy, getBranchIdOfPerson, getBranchWorkforce } from '../../services/branch/branch.js?v=20261022c';
+import { TodoStore } from '../../services/governance/todo.js?v=20261022d';
+import { AuthStore } from '../../services/core/auth.js?v=20261022d';
+import { BranchService } from '../../services/core/runtime.js?v=20261022d';
+import { applyTabPolicy, getBranchIdOfPerson, getBranchWorkforce } from '../../services/branch/branch.js?v=20261022d';
 // 设置中心批2（2026-09-09 支书批准 v3）：个人 tab 顺序覆盖（个人层；支部层=applyTabPolicy 之上叠加）
-import { applyPersonalTabOrder } from '../../services/core/preferences.js?v=20261022c';
+import { applyPersonalTabOrder } from '../../services/core/preferences.js?v=20261022d';
 // （丁）归属可转移：可转移页签的**判据单一源**（2026-10-05 批次 379 · `D-771`）——模块主责快照派生，
 //   禁前端写死「哪个 tab 长在哪个台」。
-import { TRANSFERABLE_TAB_ROWS, transferRowOf, transferTabDecision, expandWorkforce } from '../../core/domain/work-map.js?v=20261022c';
+import { TRANSFERABLE_TAB_ROWS, transferRowOf, transferTabDecision, expandWorkforce } from '../../core/domain/work-map.js?v=20261022d';
 // 「归属可转移」**原台页签声明单一源**（迁入时取**同一份声明**，勿在本处复制 render）：
 //   ⚠ 台账：`TRANSFERABLE_TAB_ROWS` 的每个 `page` 都必须在此有对应声明（新增行时同批补），
 //     由 `server/test/work-map.test.mjs` 断言 `page ∈ {org, disc, leader}` 守住。
 //   ⚠ 统一取**声明常量**而非各台 `tabs()`：后者是**查看者上下文相关**的（如组长台按「组织者兜底进入」过滤）。
-import { ORG_WORKSPACE_TAB_DECLS } from '../../capabilities/org-workspace.js?v=20261022c';
-import { DISC_WORKSPACE_TAB_DECLS } from '../../capabilities/disc-workspace.js?v=20261022c';
-import { LEADER_WORKSPACE_TAB_DECLS } from '../../capabilities/leader-workspace.js?v=20261022c';
+import { ORG_WORKSPACE_TAB_DECLS } from '../../capabilities/org-workspace.js?v=20261022d';
+import { DISC_WORKSPACE_TAB_DECLS } from '../../capabilities/disc-workspace.js?v=20261022d';
+import { LEADER_WORKSPACE_TAB_DECLS } from '../../capabilities/leader-workspace.js?v=20261022d';
 
 /** 台 → 页签声明（归属可转移迁入取用；单一源＝各台能力模块的声明常量） */
 const TRANSFER_HOME_DECLS = {
@@ -296,6 +296,9 @@ export async function createWorkspaceShell(opts) {
       // 与 legacy activityId 分开：不被各台 onNavTarget 劫持（只做定位，不切详情）。
       focusActivityId: _navTarget ? (_navTarget.focusActivityId || null) : null,
 
+      // 待办 / 通知深链到「某一条业务记录」：各承载页签渲染后高亮该行；未命中由页签 toast。
+      focusRecordId: _navTarget ? (_navTarget.focusRecordId || null) : null,
+
       onNavLocated: () => { /* 高亮目标存活至抑制窗口结束（B1-5） */ },
 
     };
@@ -539,6 +542,16 @@ export async function createWorkspaceShell(opts) {
 
 
 
+  /** 5.4（2026-10-22 第九轮）：刷新路径失败 → **复用 tab-bar 同一张错误卡**（含重试），
+   *  不再只 `console.error` 把旧内容/空白留在页面上。重试＝重新渲染当前页签。 */
+  function _renderRefreshError(err) {
+    console.error(`[ws-${prefix}] tab 渲染失败`, err);
+    const el = document.getElementById(`${prefix}-tab-content`);
+    if (!el) return;
+    el.innerHTML = tabErrorCardHtml();
+    el.querySelector('[data-ws-tab-retry]')?.addEventListener('click', () => _renderCurrentTab(getAppState()));
+  }
+
   /** 渲染当前激活 Tab 内容（state 变化时增量刷新；tab.render 为懒加载动态 import，返回 Promise） */
 
   function _renderCurrentTab(state) {
@@ -553,11 +566,11 @@ export async function createWorkspaceShell(opts) {
 
       const r = tab.render(_renderCtx(state));
 
-      if (r && typeof r.catch === 'function') r.catch(e => console.error(`[ws-${prefix}] tab 渲染失败`, e));
+      if (r && typeof r.catch === 'function') r.catch(_renderRefreshError);
 
     } catch (e) {
 
-      console.error(`[ws-${prefix}] tab 渲染异常`, e);
+      _renderRefreshError(e);
 
     }
 
@@ -626,9 +639,11 @@ export async function createWorkspaceShell(opts) {
       // 免得被各台 onNavTarget 当成 activityId 打开详情。
       const focusActivityId = urlParams.focusActivityId || null;
 
-      if (tfId || actId || urlParams.view === 'activities' || tab || hl || focusActivityId) {
+      const focusRecordId = urlParams.focusRecordId || null;
 
-        _navTarget = { tfId, actId, view: urlParams.view === 'activities', tab, hl, highlightType, focusActivityId };
+      if (tfId || actId || urlParams.view === 'activities' || tab || hl || focusActivityId || focusRecordId) {
+
+        _navTarget = { tfId, actId, view: urlParams.view === 'activities', tab, hl, highlightType, focusActivityId, focusRecordId };
 
         CrossPageState.clearParam('activityId');
 
@@ -643,6 +658,8 @@ export async function createWorkspaceShell(opts) {
         CrossPageState.clearParam('highlightType');
 
         CrossPageState.clearParam('focusActivityId');
+
+        CrossPageState.clearParam('focusRecordId');
 
       }
 

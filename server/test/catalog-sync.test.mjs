@@ -34,6 +34,29 @@ function grabExport(relPath, name) {
 
 const CATALOG = 'docs/src/core/domain/function-catalog.js';
 
+/** 角色键 → 工作台能力注册文件（页签名单一源；`member` 共用成员台 `visitor.html`） */
+const ROLE_CAPABILITY_FILES = {
+  secretary: 'docs/src/capabilities/secretary-workspace.js',
+  org: 'docs/src/capabilities/org-workspace.js',
+  prop: 'docs/src/capabilities/prop-workspace.js',
+  disc: 'docs/src/capabilities/disc-workspace.js',
+  leader: 'docs/src/capabilities/leader-workspace.js',
+  member: 'docs/src/capabilities/visitor-workspace.js',
+};
+
+/** 从能力注册文件解析 `{ id, label }` 声明（与 doc-consistency 的 tabsOf 同口径） */
+function tabLabelsOf(relPath) {
+  const src = readFileSync(`${ROOT}${relPath}`, 'utf8');
+  const labels = new Set();
+  for (const line of src.split(/\r?\n/)) {
+    const t = line.trimStart();
+    if (t.startsWith('//') || !t.startsWith('{ id: ')) continue;
+    const label = /label: '([^']+)'/.exec(line)?.[1];
+    if (label) labels.add(label);
+  }
+  return labels;
+}
+
 // ── T1（原 function-catalog）：功能目录结构审计 ────────────────────────────────
 test('T1 FUNCTION_CATALOG 结构合法（id/group/kind/role/related 全量校验）', () => {
   const groups = grabExport(CATALOG, 'FUNCTION_GROUPS');
@@ -65,6 +88,23 @@ test('T1 FUNCTION_CATALOG 结构合法（id/group/kind/role/related 全量校验
   for (const required of ['flow-branch-committee', 'flow-general-meeting', 'flow-development', 'flow-institution', 'arch-layers']) {
     assert.ok(ids.has(required), `缺少必需条目 ${required}`);
   }
+
+  // usage 中的「页签名」必须属于该角色的能力注册 label 集（2026-10-22 第八轮 P1）：
+  //   只认**跨台已知页签名**为页签名——普通动作词（选模板 / 创建 / 审批）不参与判定；
+  //   出现在 usage 里却不在本角色 label 集，即「导航路径写到了别的台/已摘除的页签」。
+  const labelsByRole = new Map(Object.entries(ROLE_CAPABILITY_FILES).map(([role, file]) => [role, tabLabelsOf(file)]));
+  const allLabels = new Set([...labelsByRole.values()].flatMap((set) => [...set]));
+  const usageProblems = [];
+  for (const it of items.filter((i) => i.kind === 'feature' && i.role !== 'public' && i.usage)) {
+    const roleLabels = labelsByRole.get(it.role);
+    if (!roleLabels) continue;
+    for (const seg of String(it.usage).split('→').map((s) => s.trim())) {
+      if (allLabels.has(seg) && !roleLabels.has(seg)) {
+        usageProblems.push(`${it.id}（${it.role}）：usage 页签名「${seg}」不在该角色注册页签 {${[...roleLabels].join(' / ')}}`);
+      }
+    }
+  }
+  assert.deepEqual(usageProblems, [], `功能目录 usage 写了不属于该角色的页签名：\n  ${usageProblems.join('\n  ')}`);
 });
 
 // ── T2（原 flow-catalog-sync）：两份手写清单不得未同步（双向） ─────────────────

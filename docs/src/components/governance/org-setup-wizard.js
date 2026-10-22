@@ -16,35 +16,35 @@
 // 草稿：localStorage `wizard-draft-<branchId>`（当前步 + 每步完成标记 + 完成态），中断可续走。
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../../core/domain/domain.js?v=20261022c';
-import { getCapabilities } from '../../core/boot/registry.js?v=20261022c';
-import { OUTPUT_BLOCK_DEFS, BRANCH_COMMISSION_ROLES, ROLE_LABELS, getAccentColors, accentButtonColors } from '../../core/domain/constants.js?v=20261022c';
-import { CAPABILITY_PACKAGES } from '../../core/domain/capability-packages.js?v=20261022c';
-import { ORG_SUBJECT_LABELS, isBranchOrgSubject, ownerSubjectType } from '../../core/domain/work-map.js?v=20261022c';
+import { mockDB } from '../../core/domain/domain.js?v=20261022d';
+import { getCapabilities } from '../../core/boot/registry.js?v=20261022d';
+import { OUTPUT_BLOCK_DEFS, BRANCH_COMMISSION_ROLES, ROLE_LABELS, getAccentColors, accentButtonColors } from '../../core/domain/constants.js?v=20261022d';
+import { CAPABILITY_PACKAGES } from '../../core/domain/capability-packages.js?v=20261022d';
+import { ORG_SUBJECT_LABELS, isBranchOrgSubject, ownerSubjectType } from '../../core/domain/work-map.js?v=20261022d';
 // 副作用：注册支委层工作台能力（配置目录=其 tab 清单，单一源）
-import '../../capabilities/secretary-workspace.js?v=20261022c';
-import { BLOCK_MANIFESTS } from '../../workflow/blocks/manifests.js?v=20261022c';
+import '../../capabilities/secretary-workspace.js?v=20261022d';
+import { BLOCK_MANIFESTS } from '../../workflow/blocks/manifests.js?v=20261022d';
 // L3 流程组合（2026-09-28 批次 246）：把编排内核接进**生产路径**——配置面用它做「组合体检」
-import { composePlan } from '../../workflow/blocks/orchestration.js?v=20261022c';
-import { escHtml as esc, showToast, downloadBlob } from '../../core/base/utils.js?v=20261022c';
-import { readLoginSnapshot } from '../../core/session/login-snapshot.js?v=20261022c';
-import { WORK_MAP_MODULES } from '../../core/domain/work-map.js?v=20261022c';
+import { composePlan } from '../../workflow/blocks/orchestration.js?v=20261022d';
+import { escHtml as esc, showToast, downloadBlob } from '../../core/base/utils.js?v=20261022d';
+import { readLoginSnapshot } from '../../core/session/login-snapshot.js?v=20261022d';
+import { WORK_MAP_MODULES } from '../../core/domain/work-map.js?v=20261022d';
 import {
   getBranchById, getBranchOrg, getBranchTabPolicy, getCoreTabIds,
   getBranchOutputBlocks, getBranchCapabilityPackageState, getOutputBlockPolicy, getWorkflowBlockPolicy, orderByIds,
   updateBranchModules, updateBranchCapabilityPackages, getBranchWorkforce, updateBranchWorkforce, updateBranchOrg,
   applyConfigCopy, createBranch, getBranchIdOfPerson, ensureBranchConfigLoaded,
-} from '../../services/branch/branch.js?v=20261022c';
-import { buildConfigPackage, applyConfigPackage } from '../../services/branch/org-config-package.js?v=20261022c';
+} from '../../services/branch/branch.js?v=20261022d';
+import { buildConfigPackage, applyConfigPackage } from '../../services/branch/org-config-package.js?v=20261022d';
 import {
   buildPreviewTemplate, sanitizePreview, applyPreview, clearPreview, getPreviewState,
   PREVIEW_KIND, PREVIEW_VERSION,
-} from '../../services/branch/org-base-data-preview.js?v=20261022c';
-import { getRosterStats, isDetained } from '../../services/member/roster.js?v=20261022c';
-import { buildOrgWizardReport } from '../../services/branch/org-wizard-report.js?v=20261022c';
-import { PersonStore, getPersonName } from '../../services/member/person.js?v=20261022c';
+} from '../../services/branch/org-base-data-preview.js?v=20261022d';
+import { getRosterStats, isDetained } from '../../services/member/roster.js?v=20261022d';
+import { buildOrgWizardReport } from '../../services/branch/org-wizard-report.js?v=20261022d';
+import { PersonStore, getPersonName } from '../../services/member/person.js?v=20261022d';
 // R5-1（2026-09-06）：建空支部「就地任命首任骨干」——任命编排在 appointment.js 收口（含数据边界登记）
-import { appointInauguralOfficers } from '../../services/branch/appointment.js?v=20261022c';
+import { appointInauguralOfficers } from '../../services/branch/appointment.js?v=20261022d';
 
 // ── 步骤元信息（支书已批口径）────────────────────────────────────
 export const WIZARD_STEPS = [
@@ -595,7 +595,7 @@ function _step1Html(S, branch, org, isStaff) {
   const presetCards = THEME_PRESETS.map((p) => {
     const { accent, accentRgba, accentBorder } = _presetAccent(p.id);
     const on = preset.id === p.id;
-    return `<label class="flex items-start gap-2 rounded-xl border p-3 cursor-pointer transition-all ${on ? '' : 'border-gray-200 hover:border-gray-300'}" style="${on ? `background:${accentRgba};border-color:${accentBorder};` : ''}">
+    return `<label class="flex items-start gap-2 rounded-xl border p-3 cursor-pointer transition-[border-color,background-color] ${on ? '' : 'border-gray-200 hover:border-gray-300'}" style="${on ? `background:${accentRgba};border-color:${accentBorder};` : ''}">
       <input type="radio" name="wz-theme" value="${p.id}" data-wz-act="preset" class="mt-0.5" ${on ? 'checked' : ''}>
       <span class="min-w-0">
         <span class="flex items-center gap-1.5">
@@ -674,7 +674,7 @@ function _step2Html(S, branch, isStaff = false) {
   //   只有「未选支部」时保持只读（此时没有写入对象）。留痕 `byRole` 标明是党委代配。
   const locked = isStaff && !S.branchId;
   const chip = (attr, id, label, on) =>
-    `<button type="button" data-wz-chip="${attr}" data-id="${esc(id)}"${locked ? ' disabled aria-disabled="true"' : ''} class="btn-tab text-xs px-3 py-1.5 rounded-lg border transition-all ${on ? '' : 'opacity-45'} ${locked ? 'cursor-not-allowed' : ''}" style="${chipStyle(on)}">${esc(label)}</button>`;
+    `<button type="button" data-wz-chip="${attr}" data-id="${esc(id)}"${locked ? ' disabled aria-disabled="true"' : ''} class="btn-tab text-xs px-3 py-1.5 rounded-lg border transition-[border-color,background-color,opacity] ${on ? '' : 'opacity-45'} ${locked ? 'cursor-not-allowed' : ''}" style="${chipStyle(on)}">${esc(label)}</button>`;
   const chipOn = (attr, set) => !set.has(attr);
   // 可排序块行（工作流块专用）：chip 本体不变（`_paintChips` 仍按 `[data-wz-chip]` 重绘），右侧 ▲▼ 是
   //   **键盘可达的按钮等价路径**（拖拽只在设置页的 tab 顺序上；向导侧不引拖拽，免与 chip 点击混手势）。
@@ -1601,7 +1601,7 @@ function _paintChips(S) {
   S.host.querySelectorAll('[data-wz-chip]').forEach((btn) => {
     const attr = btn.getAttribute('data-wz-chip');
     const on = chipOn(attr)(btn.getAttribute('data-id'));
-    btn.className = `text-xs px-3 py-1.5 rounded-lg border transition-all ${on ? '' : 'opacity-45'}`;
+    btn.className = `text-xs px-3 py-1.5 rounded-lg border transition-[border-color,background-color,opacity] ${on ? '' : 'opacity-45'}`;
     btn.style.cssText = on
       ? `background:${accentRgba};border-color:${accentBorder};color:${accent};`
       : 'border:1px solid var(--neutral-200);color:var(--neutral-500);background:var(--neutral-100);';

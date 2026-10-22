@@ -1,28 +1,28 @@
 // role: [工程师]+[AI]
 // archive-entry.js — 归档库独立入口
 // 2026-07-30: Tab 分类（活动/专班/通知），替代原单一列表
-import { renderSidebar } from '../../components/shell/sidebar.js?v=20261022c';
-import { renderHeader } from '../../components/shell/header.js?v=20261022c';
-import { BranchService } from '../../services/core/runtime.js?v=20261022c';
-import { mockDB } from '../../core/domain/domain.js?v=20261022c';
-import { getPersonById } from '../../services/member/person.js?v=20261022c';
-import { loadActivities } from '../../services/activity/activity.js?v=20261022c';
-import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261022c';
-import { getActivityTypeColors } from '../../core/domain/constants.js?v=20261022c';
+import { renderSidebar } from '../../components/shell/sidebar.js?v=20261022d';
+import { renderHeader } from '../../components/shell/header.js?v=20261022d';
+import { BranchService } from '../../services/core/runtime.js?v=20261022d';
+import { mockDB } from '../../core/domain/domain.js?v=20261022d';
+import { getPersonById } from '../../services/member/person.js?v=20261022d';
+import { loadActivities } from '../../services/activity/activity.js?v=20261022d';
+import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261022d';
+import { getActivityTypeColors } from '../../core/domain/constants.js?v=20261022d';
 // 活动「已结束」口径单一源（2026-09-13 收敛）：替代手写 status==='completed' || archived
-import { isActivityEnded } from '../../core/domain/constants.js?v=20261022c';
-import { NoticeStore, resolveNoticeUrl } from '../../services/governance/notice.js?v=20261022c';
-import { getBasePath, todayLocal } from '../../core/base/utils.js?v=20261022c';
-import { AuthStore } from '../../services/core/auth.js?v=20261022c';
-import { badgeHtml } from '../../components/ui/badges.js?v=20261022c';
+import { isActivityEnded } from '../../core/domain/constants.js?v=20261022d';
+import { NoticeStore, resolveNoticeUrl } from '../../services/governance/notice.js?v=20261022d';
+import { getBasePath, todayLocal, escHtml } from '../../core/base/utils.js?v=20261022d';
+import { AuthStore } from '../../services/core/auth.js?v=20261022d';
+import { badgeHtml } from '../../components/ui/badges.js?v=20261022d';
 // 翻页控件单一源（批次 38：全站手写翻页一律并轨 pagerHtml）
-import { pagerHtml } from '../../components/ui/pager.js?v=20261022c';
-import { openModal } from '../../components/ui/modal.js?v=20261022c';
+import { pagerHtml } from '../../components/ui/pager.js?v=20261022d';
+import { openModal } from '../../components/ui/modal.js?v=20261022d';
 // 批次 87：本页必须先 hydrate API 数据源再渲染——与 activity.html（批次 83 修好后的标准形）同款。
 // 此前本页只调 BranchService.loadDB()（API 模式直接 return）⇒ api 形态下归档库读的是本地备份，
 // 服务端已归档的活动 / 专班 / 通知看不到。
-import { hydrateDataSource, notifyDataLoaded } from '../../data/data-adapter.js?v=20261022c';
-import { ApiAdapter } from '../../data/api-adapter.js?v=20261022c';
+import { hydrateDataSource, notifyDataLoaded } from '../../data/data-adapter.js?v=20261022d';
+import { ApiAdapter } from '../../data/api-adapter.js?v=20261022d';
 
 renderSidebar('archive');
 renderHeader('archive');
@@ -118,7 +118,7 @@ function renderActivityArchive() {
         const organizer = getPersonById(a.organizer);
         const isBrand = !!a.isBrand;
         return `
-          <div class="p-4 rounded-lg border border-gray-100 bg-gray-50/50 hover:shadow-sm hover:border-gray-200 transition-all cursor-pointer" data-archive-item data-archive-type="activity" data-archive-id="${a.id}">
+          <div class="p-4 rounded-lg border border-gray-100 bg-gray-50/50 hover:border-gray-200 transition-colors cursor-pointer" role="button" tabindex="0" data-archive-item data-archive-type="activity" data-archive-id="${a.id}">
             <div class="flex items-center justify-between mb-2">
               <div class="flex items-center gap-2">
                 <span class="text-sm font-medium text-gray-800">${a.title || '未命名活动'}</span>
@@ -158,7 +158,7 @@ function renderTaskforceArchive() {
       ${items.map(tf => {
         const initiator = getPersonById(tf.initiator);
         return `
-          <div class="p-4 rounded-lg border border-gray-100 bg-gray-50/50 hover:shadow-sm hover:border-gray-200 transition-all cursor-pointer" data-archive-item data-archive-type="taskforce" data-archive-id="${tf.id}">
+          <div class="p-4 rounded-lg border border-gray-100 bg-gray-50/50 hover:border-gray-200 transition-colors cursor-pointer" role="button" tabindex="0" data-archive-item data-archive-type="taskforce" data-archive-id="${tf.id}">
             <div class="flex items-center justify-between mb-2">
               <span class="text-sm font-medium text-gray-800">${tf.name || '未命名专班'}</span>
               ${badgeHtml('已归档', 'neutral')}
@@ -199,10 +199,16 @@ function renderNoticeArchive() {
     normal: badgeHtml('重要', 'info'),
   };
 
+  // 5.3（2026-10-22 第九轮）：通知归档条目是**导航**（去向是固定 URL）⇒ 改原生 `<a href>`，
+  //   键盘 / 读屏 / 新标签打开都由浏览器承担；落点仍走全站统一 resolveNoticeUrl（业务页直达优先）。
+  const currentRole = AuthStore.getCurrentUser()?.role || null;
   contentContainer.innerHTML = `
     <div class="space-y-3">
-      ${items.map(n => `
-        <div class="p-4 rounded-lg border border-gray-100 bg-gray-50/50 hover:shadow-sm transition-all cursor-pointer" data-notice-id="${n.id}">
+      ${items.map(n => {
+        const dest = resolveNoticeUrl(n, currentRole);
+        const href = dest.direct ? dest.url : `${getBasePath()}notice.html?id=${encodeURIComponent(n.id)}`;
+        return `
+        <a href="${escHtml(href)}" class="block p-4 rounded-lg border border-gray-100 bg-gray-50/50 transition-colors cursor-pointer" data-notice-id="${n.id}">
           <div class="flex items-center justify-between mb-2">
             <div class="flex items-center gap-2">
               ${priorityBadge[n.priority] || ''}
@@ -212,22 +218,12 @@ function renderNoticeArchive() {
             <span class="text-xs text-gray-500">${n.publishDate || ''}</span>
           </div>
           <p class="text-xs text-gray-500 line-clamp-2">${n.content || ''}</p>
-        </div>
-      `).join('')}
+        </a>
+      `;
+      }).join('')}
     </div>
     ${_renderPager(filtered.length, 'notice')}
   `;
-
-  // 点击跳转：业务页直达优先（与全站统一 resolveNoticeUrl）
-  contentContainer.querySelectorAll('[data-notice-id]').forEach(item => {
-    item.addEventListener('click', () => {
-      const id = item.dataset.noticeId;
-      const notice = NoticeStore._notices.find(n => n.id === id);
-      const dest = resolveNoticeUrl(notice, AuthStore.getCurrentUser()?.role || null);
-      const finalUrl = dest.direct ? dest.url : `${getBasePath()}notice.html?id=${id}`;
-      window.location.href = finalUrl;
-    });
-  });
 }
 
 // ── 搜索（重渲染 + 页码归 1）──
@@ -433,4 +429,13 @@ contentContainer?.addEventListener('click', (e) => {
     const tf = TaskForceRecordStore.getAll().find(t => t.id === id);
     if (tf) _showArchiveDetail(_renderTaskforceDetail(tf));
   }
+});
+
+// 5.3：归档条目（活动 / 专班）整行可点但不是原生控件 —— 补 Enter / Space（与鼠标等效）。
+contentContainer?.addEventListener('keydown', (e) => {
+  if (e.key !== 'Enter' && e.key !== ' ' && e.key !== 'Spacebar') return;
+  const item = e.target.closest('[data-archive-item][role="button"]');
+  if (!item || item !== e.target) return;
+  e.preventDefault();
+  item.click();
 });

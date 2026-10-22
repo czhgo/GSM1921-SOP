@@ -16,8 +16,8 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { describeWriteError } from '../../docs/src/core/base/utils.js?v=20261022c';
-import { NUDGE_TEXTS } from '../../docs/src/components/ui/modal.js?v=20261022c';
+import { describeWriteError } from '../../docs/src/core/base/utils.js?v=20261022d';
+import { NUDGE_TEXTS } from '../../docs/src/components/ui/modal.js?v=20261022d';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(HERE, '..', '..');
@@ -141,3 +141,72 @@ test('F7 活动详情：7 处原生对话框已全部改为 openModal', () => {
   assert.match(ACTIVITY, /activity-note-input/, '复盘要求应有 textarea');
   assert.match(ACTIVITY, /请写明一句要求内容/, '空值应就地报错');
 });
+
+// ════════════════════════════════════════════════════════════════
+//  F8 可点容器键盘可达（第九轮 9B-5.3，2026-10-22）
+//  规则：承载点击行为的容器要么是原生 `<a>` / `<button>`（浏览器自带键盘与读屏语义），
+//        要么在**同一标签内**声明 `role="button"` ＋ `tabindex="0"`
+//        （写法同 components/ui/list-row.js 的 master 行），且该文件有 Enter / Space 键处理。
+//  覆盖本轮改到的四处点击面：首页统计卡 / 首页活动行 / 归档库条目 / 我的处置行。
+// ════════════════════════════════════════════════════════════════
+test('F8 可点容器键盘可达：非原生容器必须 role=button + tabindex=0 且文件有 Enter/Space 处理', () => {
+  const targets = [
+    ['docs/src/components/dashboard/stats.js', ['data-attendance-popover']],
+    ['docs/src/components/dashboard/activity-panel.js', ['data-activity-id']],
+    ['docs/src/entries/pages/archive-entry.js', ['data-archive-item', 'data-notice-id']],
+    ['docs/src/components/feedback/issue-dispatch-view.js', [
+      'data-mydispatch-action="open"',
+      'data-mydispatch-action="open-report"',
+      'data-mydispatch-action="open-my-issue"',
+    ]],
+  ];
+  const escapeRe = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  for (const [rel, markers] of targets) {
+    const src = read(rel);
+    for (const marker of markers) {
+      const re = new RegExp(`<([a-z][a-z0-9]*)\\b([^>]*${escapeRe(marker)}[^>]*)>`, 'g');
+      const tags = [...src.matchAll(re)];
+      assert.ok(tags.length > 0, `${rel} 未见 ${marker} 容器（守卫口径失效，须同步标记）`);
+      for (const [, tag, attrs] of tags) {
+        if (tag === 'a' || tag === 'button') continue;
+        assert.match(attrs, /role="button"/, `${rel} 的 <${tag} ${marker}> 缺 role="button"`);
+        assert.match(attrs, /tabindex="0"/, `${rel} 的 <${tag} ${marker}> 缺 tabindex="0"`);
+      }
+    }
+    assert.match(src, /addEventListener\('keydown'/, `${rel} 缺 keydown：Enter / Space 与点击不等效`);
+    assert.match(src, /e\.key !== 'Enter'[\s\S]{0,140}e\.key !== ' '/,
+      `${rel} 的 keydown 应同时接受 Enter 与 Space`);
+  }
+});
+
+// ════════════════════════════════════════════════════════════════
+//  F9 写口失败不得提示成功（第九轮 9B-5.1 / 5.2，2026-10-22）
+//  规则：发布 / 上报这类「提交即离手」的写口，必须先判返回值或捕获异常；
+//        失败走原位 `role="alert"` ＋ 重试，**不得**先弹成功 toast。
+//  判据用「顺序」而非「是否存在」：成功 toast 必须排在失败分支之后。
+// ════════════════════════════════════════════════════════════════
+test('F9 写口失败不得提示成功：先判返回值/捕获异常，成功 toast 在失败分支之后', () => {
+  const NOTICE = read('docs/src/entries/tabs/secretary/notification-tab.js');
+  const REPORT = read('docs/src/entries/tabs/secretary/report-up-tab.js');
+
+  // 通知发布：NoticeStore.add 的返回值必须被接住，null ⇒ 原位报错并 return
+  assert.match(NOTICE, /created\s*=\s*NoticeStore\.add\(/, '发布必须接住 NoticeStore.add 的返回值');
+  assert.match(NOTICE, /if\s*\(!created\)\s*\{[\s\S]{0,160}return;/, '返回空值时须报错并中止，不得继续报成功');
+  assert.match(NOTICE, /data-notif-publish-error role="alert"/, '发布失败须原位 role="alert"');
+  assert.match(NOTICE, /data-notif-retry/, '发布失败须给重试入口');
+  const noticeFail = NOTICE.indexOf("_renderPublishError('通知未发出");
+  const noticeOk = NOTICE.indexOf("showToast('success', `通知「${title}」已发布");
+  assert.ok(noticeFail > 0 && noticeOk > noticeFail,
+    '成功 toast 必须排在失败分支之后（否则失败仍会先报成功）');
+
+  // 上报党委：提交中禁用 + try/catch + 失败保留表单并原位报错
+  assert.match(REPORT, /btn\.disabled\s*=\s*true/, '提交中须禁用按钮（防重复提交）');
+  assert.match(REPORT, /catch\s*\(error\)/, '上报失败须捕获异常');
+  assert.match(REPORT, /data-rq-error role="alert"/, '上报失败须原位 role="alert"');
+  assert.match(REPORT, /data-rq-retry/, '上报失败须给重试入口');
+  const reportCatch = REPORT.indexOf('catch (error)');
+  const reportOk = REPORT.indexOf("showToast('success'");
+  assert.ok(reportCatch > 0 && reportOk > reportCatch,
+    '成功 toast 必须排在 catch 之后（否则失败仍会先报成功）');
+});
+

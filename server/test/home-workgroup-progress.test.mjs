@@ -46,3 +46,8 @@ test('H5 卡内两类组名齐备', () => {
     assert.ok(source.includes(label), `taskforce-list.js 缺组名「${label}」`);
   }
 });
+
+test('H6 未装载任务时显示「加载中」，不把 0 / — 冒充空结果', () => {
+  assert.match(source, /workgroupAuxLoaded/, 'taskforce-list.js 未读装载标记 workgroupAuxLoaded');
+  assert.ok(source.includes('加载中'), 'taskforce-list.js 缺「加载中」态');
+});

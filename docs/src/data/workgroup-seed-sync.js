@@ -1,9 +1,9 @@
 // Mock 数据兼容迁移：为已有活动/专班建立稳定工作组主记录。
 // 不搬移普通参与者，不猜测旧专班任务/产出；原始业务记录仍是来源。
-import { WorkgroupStatus, workgroupStatusForTaskforce } from '../core/domain/domain.js?v=20261022c';
-import { DEFAULT_BRANCH_ID, ACTIVITY_SCOPES, isBranchLevelActivity, normalizeOrganizingScope } from '../core/domain/constants.js?v=20261022c';
-import { PARTY_GROUPS } from './mock/party-groups.js?v=20261022c';
-import { PEOPLE } from './mock/people.js?v=20261022c';
+import { WorkgroupStatus, workgroupStatusForTaskforce } from '../core/domain/domain.js?v=20261022d';
+import { DEFAULT_BRANCH_ID, ACTIVITY_SCOPES, isBranchLevelActivity, normalizeOrganizingScope } from '../core/domain/constants.js?v=20261022d';
+import { PARTY_GROUPS } from './mock/party-groups.js?v=20261022d';
+import { PEOPLE } from './mock/people.js?v=20261022d';
 
 const MEMBER_ROLES = new Set(['organizer', 'deep']);
 

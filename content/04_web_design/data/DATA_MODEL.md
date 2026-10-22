@@ -337,6 +337,9 @@ taskforce.members:    Array<{ personId, role: 'organizer' | 'deep' | 'participan
 | status | `'present'\|'absent'\|'leave'\|'made_up'` | 是 | -- | 出勤状态（出席/缺席/请假/已补） |
 | recordedBy | string | 是 | -- | 记录人用户 ID（纪检委员） |
 | recordedAt | string (ISO) | 是 | -- | 记录时间 |
+| confirmed | boolean | 否 | false | 是否已确认（纪检 / 支书 / 副支书确认；**独立于上传位**） |
+| confirmedBy | string | 否 | -- | 确认人 user ID；确认**不改** `recordedBy`（上传人留痕） |
+| confirmedAt | string (ISO) | 否 | -- | 确认时间 |
 | studentId | string | 否 | -- | 学号 |
 | developStage | `'积极分子'\|'发展对象'\|'预备党员'\|'正式党员'` | 否 | -- | 发展阶段（统一中文枚举） |
 | partyGroup | string | 否 | -- | 所属党小组 |

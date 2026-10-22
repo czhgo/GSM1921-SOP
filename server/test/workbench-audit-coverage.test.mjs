@@ -153,10 +153,15 @@ test('宣传/纪检台 Task 15：条线缺口有动作、归档单一源、实�
 
   // ③ 纪检待办：实时组排除已打回记录，分组计数与过滤后集合同源
   const discTodo = read('docs/src/entries/tabs/disc/todo-tab.js');
-  assert.match(discTodo, /!r\.recordedBy && !r\.returnedBy[\s\S]{0,120}AttendanceStatus\.PRESENT/, '考勤实时组须排除已打回');
+  assert.match(discTodo, /filter\(isAttendancePendingConfirm\)/, '考勤实时组须复用单一待确认判据（含已打回排除）');
   assert.match(discTodo, /r\.status !== 'confirmed' && !r\.returnedBy/, '考察实时组须排除已打回');
   assert.match(discTodo, /count: pendingAtt\.length/, '考勤实时组计数须同步');
   assert.match(discTodo, /count: pendingInsp\.length/, '考察实时组计数须同步');
+  // 2.2：考勤 / 考察待确认跳转须带目标 id（focusActivityId / focusRecordId），不得只切 tab。
+  assert.match(discTodo, /qs\.set\('focusActivityId'/, '待确认跳转须带 focusActivityId');
+  assert.match(discTodo, /qs\.set\('focusRecordId'/, '待确认跳转须带 focusRecordId');
+  // L2 只校验 `location.href` 的模板插值片段 ⇒ 落地页改为常量拼接（仍须落在纪检台同一页）。
+  assert.match(discTodo, /'workspace\/disc\.html'/, '跳转 URL 须落到纪检台对应页签');
 
   // ④ 纪检复盘：待批注只出「批注」；已批注（批注中）才出「打回/确认」
   const discReview = read('docs/src/entries/tabs/disc/review-tab.js');

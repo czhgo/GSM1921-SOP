@@ -24,16 +24,24 @@ export const TIERS = ['daily', 'precommit', 'weekly'];
  *  2026-10-21 R5 P1：新增 page-title-guard / ui-contrast-guard，并补登记既有
  *  ui-custom-select / ui-focus-ring（纯 node 守卫）⇒ 209 → 213。
  *  2026-10-22 第七轮 P2：新增 branch-id-literal-guard（缺省支部字面量守卫，纯 node）⇒ 213 → 214。
- *  2026-10-22 第七轮 R7-01：新增 account-rename（人员主键改名受控端点，纯 node）⇒ 214 → 215。 */
-export const DAILY_FILE_BUDGET = 215;
+ *  2026-10-22 第七轮 R7-01：新增 account-rename（人员主键改名受控端点，纯 node）⇒ 214 → 215。
+ *  2026-10-22 第九轮 Task 4：新增 activity-workgroup-sync / taskforce-workgroup-source（纯 node）⇒ 215 → 217。
+ *  2026-10-22 第九轮 Task 6：新增 ui-motion-guard（卡片悬停 / transition-all 棘轮，纯 node）⇒ 217 → 218。 */
+export const DAILY_FILE_BUDGET = 218;
 
 /** daily 静态 `test(` / `it(` 调用点预算（含子测试；新增断言须同批上调并写明理由）
  *  2026-10-21 R5 P1：页题守卫 4 条 + 对比度守卫 5 条 + 补登记的既有两条守卫 ⇒ 1351 → 1377。
  *  2026-10-21 批次 500 收尾：`todo-role-write-gate` 补 S5–S10（派生待办：支委代办 / 来源可证 / 伪造来源拒 / 无 actionKey 拒 / 推进仍归本人 / 无主 visitor 拒）⇒ 1377 → 1383。
  *  2026-10-22 第七轮 P2：`branch-id-literal-guard` 2 条 + 副组长同权用例 2 条 ⇒ 1383 → 1387。
  *  2026-10-22 第七轮 R7-33：`policy-config` 补考勤/复盘超期现算 2 条纯函数用例 ⇒ 1387 → 1389。
- *  2026-10-22 第七轮 R7-01：`account-rename` 4 条（成功 / 409 / 403 / p* 400）⇒ 1389 → 1393。 */
-export const DAILY_TEST_BUDGET = 1393;
+ *  2026-10-22 第七轮 R7-01：`account-rename` 4 条（成功 / 409 / 403 / p* 400）⇒ 1389 → 1393。
+ *  2026-10-22 第九轮 Task 4：新增 activity-workgroup-sync（4）/ taskforce-workgroup-source（2），
+ *    seed-drift +1、workgroup-api +1、mock-api-parity +1、home-workgroup-progress +1 ⇒ 1393 → 1403。
+ *  2026-10-22 第九轮 Task 5：`frontend-foundations-guard` 新增 F8（可点容器键盘可达）1 条 ⇒ 1403 → 1404。
+ *  2026-10-22 第八轮 Task 2.8：`r3-data-permission-regression` 新增「纪检确认考勤」1 条 ⇒ 1404 → 1405。
+ *  2026-10-22 第九轮 Task 6：新增 ui-motion-guard（M1 悬停 / M2 transition-all / M3 非空转）3 条 ⇒ 1405 → 1408。
+ *  2026-10-22 第九轮 Task 7.3：`frontend-foundations-guard` 新增 F9（写口失败不得提示成功）1 条 ⇒ 1408 → 1409。 */
+export const DAILY_TEST_BUDGET = 1409;
 
 const group = (tier, reason, list) => list.map((file) => ({ file, tier, reason }));
 
@@ -42,6 +50,8 @@ export const TEST_TIERS = [
   // daily · 权限 / 角色 / 受众 / 作用域
   ...group('daily', '权限 / 角色 / 受众 / 作用域', [
     'activity-member-privacy.test.mjs',
+    // 2026-10-22 第九轮 Task 4.3：活动 ↔ 工作组同事务同步（纯 node；含服务端 HTTP + mock 镜像）
+    'activity-workgroup-sync.test.mjs',
     'auth-audit-scope.test.mjs',
     'auth-password.test.mjs',
     'auth.test.js',
@@ -162,6 +172,8 @@ export const TEST_TIERS = [
     'ui-home-deeplink.test.mjs',
     'ui-home-hero.test.mjs',
     'ui-modal-form-guard.test.mjs',
+    // 2026-10-22 第九轮 Task 6：卡片悬停不得上浮/加阴影 ＋ transition-all 棘轮（纯 node）
+    'ui-motion-guard.test.mjs',
     'ui-phase2-urgent.test.mjs',
     'ui-picker-focus.test.mjs',
     'ui-preflight-context.test.mjs',
@@ -250,6 +262,8 @@ export const TEST_TIERS = [
     'system-notice-branch-source.test.mjs',
     'taskforce-history-copy.test.mjs',
     'taskforce-lifecycle.test.mjs',
+    // 2026-10-22 第九轮 Task 4.2：专班成员 / 贡献走工作组主源（纯 node）
+    'taskforce-workgroup-source.test.mjs',
     'theme-pref.test.mjs',
     'thought-report-panel.test.mjs',
     'thought-review.test.mjs',

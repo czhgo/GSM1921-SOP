@@ -741,6 +741,42 @@ test('停用活动组织能力后阻止新建，并保护已结束活动及其�
   assert.equal(snapshot.response.status, 403, '快照写入口不能绕过历史只读规则');
 });
 
+test('专班单加成员按 personId 合并历史 contributions，不清空既有镜像', async () => {
+  const created = await request('taskforces', '2400012355', 'POST', {
+    name: '贡献镜像合并', task: '锁定历史贡献', status: 'recruiting', branchId: 'br-b1', members: [],
+  });
+  assert.equal(created.response.status, 201);
+  const taskforce = JSON.parse(db.prepare('SELECT data FROM taskforces WHERE id = ?').get(created.data.id).data);
+  taskforce.members = [{ personId: '2400012352', role: 'deep', contributions: [{ id: 'tc-hist-1', desc: '历史贡献' }] }];
+  db.prepare('UPDATE taskforces SET data = ? WHERE id = ?').run(JSON.stringify(taskforce), taskforce.id);
+
+  const readded = await request(`workgroups/${created.data.workgroupId}/members`, '2400012355', 'POST', {
+    personId: '2400012352', role: 'deep',
+  });
+  assert.equal(readded.response.status, 201);
+  const after = JSON.parse(db.prepare('SELECT data FROM taskforces WHERE id = ?').get(created.data.id).data);
+  const mirror = after.members.find((row) => row.personId === '2400012352');
+  assert.ok(mirror, '重新加入后成员镜像仍在');
+  assert.deepEqual(mirror.contributions, [{ id: 'tc-hist-1', desc: '历史贡献' }], '按 personId 合并，历史 contributions 不得清空');
+
+  // 同一人再次加入（成员语义口幂等路径）：历史 contributions 仍不得被清空
+  const again = await request(`workgroups/${created.data.workgroupId}/members`, '2400012355', 'POST', {
+    personId: '2400012352', role: 'deep',
+  });
+  assert.equal(again.response.status, 200);
+  const afterAgain = JSON.parse(db.prepare('SELECT data FROM taskforces WHERE id = ?').get(created.data.id).data);
+  assert.deepEqual(afterAgain.members.find((row) => row.personId === '2400012352').contributions,
+    [{ id: 'tc-hist-1', desc: '历史贡献' }], '重复加入不得清空历史 contributions');
+
+  const addedOther = await request(`workgroups/${created.data.workgroupId}/members`, '2400012355', 'POST', {
+    personId: '2400012349', role: 'deep',
+  });
+  assert.equal(addedOther.response.status, 201);
+  const afterOther = JSON.parse(db.prepare('SELECT data FROM taskforces WHERE id = ?').get(created.data.id).data);
+  assert.deepEqual(afterOther.members.find((row) => row.personId === '2400012352').contributions,
+    [{ id: 'tc-hist-1', desc: '历史贡献' }], '加入他人不得清空既有成员贡献');
+});
+
 test('专班工作组批量与兼容授权入口均拒绝活动考勤权限', async () => {
   const taskforce = { id: 'tf-kind-permissions', name: '专班授权边界', task: '材料审查', status: 'active', branchId: 'br-b1', members: [] };
   const workgroupId = `wg-taskforce-${taskforce.id}`;

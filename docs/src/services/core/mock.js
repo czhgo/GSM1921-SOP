@@ -5,23 +5,25 @@
 //  依赖：domain.js, id.js（单向依赖，不依赖 UI 或 runtime）
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../../core/domain/domain.js?v=20261022c';
-import { generateId } from '../../core/base/id.js?v=20261022c';
-import { getDataSource, getAdapter, notifyDataLoaded, persist, refreshRemoteCollections } from '../../data/data-adapter.js?v=20261022c';
-import { bumpToken, resetAllTokens } from '../../core/base/version-token.js?v=20261022c'; // P0 域缓存失效（spec §二.3/§二.4）
+import { mockDB } from '../../core/domain/domain.js?v=20261022d';
+import { generateId } from '../../core/base/id.js?v=20261022d';
+import { getDataSource, getAdapter, notifyDataLoaded, persist, refreshRemoteCollections } from '../../data/data-adapter.js?v=20261022d';
+import { bumpToken, resetAllTokens } from '../../core/base/version-token.js?v=20261022d'; // P0 域缓存失效（spec §二.3/§二.4）
 // Mock 持久化/种子引擎（saveDB/loadDB/seed 同步）收敛到 data/mock-adapter.js 唯一实现
 // （T-2026-09-007 Step1：services 版私有引擎曾与 mock-adapter 同 Key 双写并缺
 //   imageRecords/agendaVotes 等新域恢复 → 刷新即丢；现统一由 MockAdapter 承担全量持久化域 34 个，含 users）
-import { MockAdapter } from '../../data/mock-adapter.js?v=20261022c';
+import { MockAdapter } from '../../data/mock-adapter.js?v=20261022d';
 // C3 一键初始化档（?reset=init，2026-09-08）：mock-adapter 禁改 → reset/清库逻辑经本
 // 可改入口兜底；init 档与 demo/preview 档并存（demo/preview 仍在 MockAdapter.loadDB
 // 内既有 handleResetIfRequested 处理，本档先于其检测、互不冲突——见 init-reset.js）。
 // C2 修复（2026-09-08）：init 档在浏览器形态被 adapter 判空回填（init≈demo）——
 // loadDB 委派 MockAdapter.loadDB 后按 init 态哨兵剔除演示种子（见 stripSeedRecordsIfInitState）。
-import { handleInitResetIfRequested, stripSeedRecordsIfInitState } from './init-reset.js?v=20261022c';
+import { handleInitResetIfRequested, stripSeedRecordsIfInitState } from './init-reset.js?v=20261022d';
 // 批4（2026-09-09 支书批「域参数」）：数据加载完成 → 读侧有效默认注入
 // （当前人所属支部 config.policyOverrides merge 进 POLICY_DEFAULTS；无 overrides = 保持默认）
-import { applyEffectivePolicyDefaultsForPerson } from '../branch/branch.js?v=20261022c';
+import { applyEffectivePolicyDefaultsForPerson } from '../branch/branch.js?v=20261022d';
+// R9 Task 4.3：活动 ↔ 工作组字段同步单一投影（编辑 / 归档 / 删除三处同步）
+import { applyActivityWorkgroupSync, activityWorkgroupIdsForDelete } from '../../data/activity-workgroup-sync.js?v=20261022d';
 
 const MOCK_DELAY_MS = 600;
 
@@ -176,6 +178,10 @@ export function updateActivity(id, patch) {
       updated,
       ...mockDB.activities.slice(idx + 1),
     ];
+    // R9 Task 4.3：编辑活动即同步工作组（name / organizingScope / hostGroupId / recruitmentScope…）。
+    mockDB.workgroups = applyActivityWorkgroupSync(mockDB.workgroups, updated, {
+      actorId: updated.createdBy, create: true,
+    });
     bumpToken('activity'); // P0：活动写口 bump（议程/状态/归档标记等修改统一失效聚合缓存）
     // 2026-09-01 点验修复：此前 updateActivity 缺 saveDB，议程记录/状态修改等
     // 所有经 BranchService 的活动更新都不落库（刷新即失）；补齐与 createActivity 一致。
@@ -238,6 +244,21 @@ function _purgeActivityChildren(activityId) {
   filterChanged('notices', (n) => n.targetType === 'activity' && n.targetId === activityId);
   filterChanged('todos', (t) => t.sourceType === 'activity' && t.sourceId === activityId);
   filterChanged('agendaVotes', (v) => v.activityId === activityId);
+  // R9 Task 4.3：删除活动 = 工作组按同一投影移除（成员 / 授权 / 任务 / 产出一并清理；
+  //   其他工作组里仅解除 activityId 引用，历史保留）。
+  const workgroupIds = activityWorkgroupIdsForDelete(mockDB.workgroups, activityId);
+  if (workgroupIds.size > 0) {
+    mockDB.workgroups = (mockDB.workgroups || []).filter((row) => !workgroupIds.has(row.id));
+    for (const key of ['workgroupMembers', 'workgroupGrants', 'workgroupTasks', 'workgroupOutputs']) {
+      if (Array.isArray(mockDB[key])) mockDB[key] = mockDB[key].filter((row) => !workgroupIds.has(row.workgroupId));
+    }
+    for (const key of ['workgroupTasks', 'workgroupOutputs']) {
+      if (Array.isArray(mockDB[key])) {
+        mockDB[key] = mockDB[key].map((row) => (row.activityId === activityId ? { ...row, activityId: null } : row));
+      }
+    }
+    changed.add('workgroups');
+  }
   if (mockDB.actSubRecords && Object.prototype.hasOwnProperty.call(mockDB.actSubRecords, activityId)) {
     const next = { ...mockDB.actSubRecords };
     delete next[activityId];
@@ -272,6 +293,10 @@ export function archiveActivity(id) {
       archived,
       ...mockDB.activities.slice(idx + 1),
     ];
+    // R9 Task 4.3：归档 ⇒ 活动工作组置 archived（写口随 closed 状态只读）。
+    mockDB.workgroups = applyActivityWorkgroupSync(mockDB.workgroups, archived, {
+      actorId: archived.createdBy, create: true,
+    });
     bumpToken('activity'); // P0：活动归档写口 bump（mock-adapter 触发路径禁改→长度指纹兜底）
     // 级联归档：将所有下属 Task 的 status 设为 completed（消灭孤儿任务）
     mockDB.tasks = mockDB.tasks.map(t =>
@@ -281,7 +306,7 @@ export function archiveActivity(id) {
     console.info('[MockAdapter] archiveActivity 成功，id=' + id
       + '，级联完成下属 tasks。');
     // 派生归档待办给宣传委员（最小三成本原则·阶段1C-3）
-    import('../governance/todo.js?v=20261022c').then(({ LifecycleTodoDeriver }) => {
+    import('../governance/todo.js?v=20261022d').then(({ LifecycleTodoDeriver }) => {
       LifecycleTodoDeriver.deriveFromActivityArchive(archived);
     }).catch(e => console.warn('[MockAdapter] 派生活动归档待办失败：', e));
     return archived;

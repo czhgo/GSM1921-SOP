@@ -14,8 +14,8 @@
 // ════════════════════════════════════════════════════════════════
 
 // Q-21-3 收敛（2026-09-13）：RESIDENCE 单一源 = core/domain/constants.js（原经 roster.js 转出）
-import { RESIDENCE } from '../../core/domain/constants.js?v=20261022c';
-import { getResidenceOf } from './roster.js?v=20261022c';
+import { RESIDENCE } from '../../core/domain/constants.js?v=20261022d';
+import { getResidenceOf } from './roster.js?v=20261022d';
 
 // ── 删除守卫：业务域 → 产品话术类别（removeMember 引用守卫 refs 的展示映射）──
 // 映射键 = PersonStore.findMemberRefs 的 domain（详见 services/member/person.js）；
@@ -89,23 +89,24 @@ export function buildGuardMessage(name, refs = []) {
  * @param {Object} [form] { name, studentId, enrollYear, partyGroup, developStage, residenceStatus, residenceNote }
  * @param {Object} [opts]
  * @param {string[]} [opts.existingStudentIds] 既有成员学号清单（提供则校验唯一性）
- * @returns {{ok:true, value:Object}|{ok:false, message:string}}
+ * @returns {{ok:true, value:Object}|{ok:false, message:string, field:string}} `field`＝出错字段键，
+ *   供 `openFormModal` 的 `{ok:false, errors}` 契约落到对应控件（aria-invalid ＋ 聚焦首错）。
  */
 export function validateMemberForm(form = {}, opts = {}) {
   const name = typeof form.name === 'string' ? form.name.trim() : '';
-  if (!name) return { ok: false, message: '请填写成员姓名（必填）' };
+  if (!name) return { ok: false, message: '请填写成员姓名（必填）', field: 'name' };
   const studentId = typeof form.studentId === 'string' ? form.studentId.trim() : '';
   const enrollYear = typeof form.enrollYear === 'string' ? form.enrollYear.trim() : (form.enrollYear == null ? '' : String(form.enrollYear).trim());
   const partyGroup = typeof form.partyGroup === 'string' ? form.partyGroup.trim() : '';
   const developStage = typeof form.developStage === 'string' ? form.developStage.trim() : '';
   const residenceStatus = form.residenceStatus ?? RESIDENCE.CAMPUS;
   if (![RESIDENCE.CAMPUS, RESIDENCE.DETAINED].includes(residenceStatus)) {
-    return { ok: false, message: '在册状态须为「在校」或「滞留」' };
+    return { ok: false, message: '在册状态须为「在校」或「滞留」', field: 'residenceStatus' };
   }
   // 学号唯一性：非空且与既有学号重复 → 拒绝（防「同一学号两人」）
   const existing = Array.isArray(opts.existingStudentIds) ? opts.existingStudentIds : null;
   if (studentId && existing && existing.some((s) => String(s) === studentId)) {
-    return { ok: false, message: `学号 ${studentId} 已存在（不可重复建档）` };
+    return { ok: false, message: `学号 ${studentId} 已存在（不可重复建档）`, field: 'studentId' };
   }
   let residenceNote = typeof form.residenceNote === 'string' ? form.residenceNote.trim() : '';
   if (residenceNote.length > 120) residenceNote = residenceNote.slice(0, 120); // 与输入 maxlength 对齐

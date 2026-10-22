@@ -1,4 +1,4 @@
-import { DEFAULT_BRANCH_ID } from '../../core/domain/constants.js?v=20261022c';
+import { DEFAULT_BRANCH_ID } from '../../core/domain/constants.js?v=20261022d';
 export const PEOPLE = [
   // ── 2026-09-06 基线刷新：首批 15 名成员姓名由「数字占位名」替换为常见真实人名（支书=储子禾 2300010001）──
   // ── S1–S4 滞留党员示范（2026-09-06 支书已批）：成员档案可选字段 residenceStatus('在校'|'滞留')/

@@ -1,4 +1,4 @@
-import { DEFAULT_BRANCH_ID } from '../../core/domain/constants.js?v=20261022c';
+import { DEFAULT_BRANCH_ID } from '../../core/domain/constants.js?v=20261022d';
 export const MOCK_NOTICES = [
   // ── 历史通知（多数已过期；有效期由 expireDate 决定，不以注释断言「当前有效」）──────
   {

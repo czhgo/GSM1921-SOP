@@ -19,15 +19,15 @@
 //    **不落 hex**。
 // ════════════════════════════════════════════════════════════════
 
-import { IssueStore, IssueNotify, REPORT_CATEGORIES } from '../../services/governance/issues.js?v=20261022c';
-import { AuthStore } from '../../services/core/auth.js?v=20261022c';
-import { showToast, getBasePath } from '../../core/base/utils.js?v=20261022c';
-import { getPersonName } from '../../services/member/person.js?v=20261022c';
-import { loadActivities } from '../../services/activity/activity.js?v=20261022c';
-import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261022c';
-import { SECRETARY_AND_DEPUTY_ROLES } from '../../core/domain/constants.js?v=20261022c';
-import { isTaskforceTerminalStatus } from '../../core/domain/domain.js?v=20261022c';
-import { openModal, closeModal } from '../ui/modal.js?v=20261022c';
+import { IssueStore, IssueNotify, REPORT_CATEGORIES } from '../../services/governance/issues.js?v=20261022d';
+import { AuthStore } from '../../services/core/auth.js?v=20261022d';
+import { showToast, getBasePath } from '../../core/base/utils.js?v=20261022d';
+import { getPersonName } from '../../services/member/person.js?v=20261022d';
+import { loadActivities } from '../../services/activity/activity.js?v=20261022d';
+import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261022d';
+import { SECRETARY_AND_DEPUTY_ROLES } from '../../core/domain/constants.js?v=20261022d';
+import { isTaskforceTerminalStatus } from '../../core/domain/domain.js?v=20261022d';
+import { openModal, closeModal } from '../ui/modal.js?v=20261022d';
 
 /** 当前用户未读汇报数（「支书请我汇报」＋「支书答复发回」） */
 function _unreadCount() {
@@ -134,7 +134,7 @@ async function openReportModal() {
     </div>
     <div class="flex items-center gap-2 mb-3">
       ${Object.entries(REPORT_CATEGORIES).map(([key, label]) => `
-        <button type="button" class="btn-tab report-cat-btn text-xs px-3 py-1.5 rounded-lg transition-all ${key === 'progress' ? 'report-cat-active' : 'bg-white text-gray-600 border border-gray-200 hover:border-gray-300'}"
+        <button type="button" class="btn-tab report-cat-btn text-xs px-3 py-1.5 rounded-lg transition-colors ${key === 'progress' ? 'report-cat-active' : 'bg-white text-gray-600 border border-gray-200 hover:border-gray-300'}"
           data-category="${key}">${label}</button>
       `).join('')}
     </div>
@@ -158,7 +158,7 @@ async function openReportModal() {
           category = btn.dataset.category;
           panel.querySelectorAll('.report-cat-btn').forEach(b => {
             const on = b === btn;
-            b.className = `report-cat-btn text-xs px-3 py-1.5 rounded-lg transition-all ${on ? 'report-cat-active' : 'bg-white text-gray-600 border border-gray-200 hover:border-gray-300'}`;
+            b.className = `report-cat-btn text-xs px-3 py-1.5 rounded-lg transition-colors ${on ? 'report-cat-active' : 'bg-white text-gray-600 border border-gray-200 hover:border-gray-300'}`;
           });
         });
       });

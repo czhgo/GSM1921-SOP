@@ -3,18 +3,18 @@
 // 2026-08-07 自 ws-secretary-entry.js 拆分。
 // GitHub Issue 风格反馈管理面板：草稿审核（通过/驳回）全部反馈列表 + 导出/清除 + 详情处置（指派/状态/评论/隐藏/合并）。
 
-import { IssueStore, deriveIssueDisplayState, IssueNotify, issueDomainLabel, issueDomainSuggest, issueDomainReplyHint } from '../../../services/governance/issues.js?v=20261022c';
-import { showToast, todayLocal } from '../../../core/base/utils.js?v=20261022c';
-import { scrollDetailIntoView } from '../../../components/ui/detail-anchor.js?v=20261022c';
-import { icon } from '../../../core/base/icons.js?v=20261022c';
-import { AuthStore } from '../../../services/core/auth.js?v=20261022c';
-import { ROLE_LABELS, DRAFT_TYPE_LABELS } from '../../../core/domain/constants.js?v=20261022c';
-import { getPersonName } from '../../../services/member/person.js?v=20261022c';
-import { PersonStore } from '../../../services/member/person.js?v=20261022c';
-import { badgeHtml, badgeVariantClass } from '../../../components/ui/badges.js?v=20261022c';
+import { IssueStore, deriveIssueDisplayState, IssueNotify, issueDomainLabel, issueDomainSuggest, issueDomainReplyHint } from '../../../services/governance/issues.js?v=20261022d';
+import { showToast, todayLocal } from '../../../core/base/utils.js?v=20261022d';
+import { scrollDetailIntoView } from '../../../components/ui/detail-anchor.js?v=20261022d';
+import { icon } from '../../../core/base/icons.js?v=20261022d';
+import { AuthStore } from '../../../services/core/auth.js?v=20261022d';
+import { ROLE_LABELS, DRAFT_TYPE_LABELS } from '../../../core/domain/constants.js?v=20261022d';
+import { getPersonName } from '../../../services/member/person.js?v=20261022d';
+import { PersonStore } from '../../../services/member/person.js?v=20261022d';
+import { badgeHtml, badgeVariantClass } from '../../../components/ui/badges.js?v=20261022d';
 // 翻页控件单一源（批次 38：全站手写翻页一律并轨 pagerHtml）
-import { pagerHtml } from '../../../components/ui/pager.js?v=20261022c';
-import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261022c';
+import { pagerHtml } from '../../../components/ui/pager.js?v=20261022d';
+import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261022d';
 
 const FEEDBACK_TAB_HTML = `
   ${renderTabHeader({ title: '反馈管理' })}
@@ -177,7 +177,7 @@ function renderIssueManagement() {
         const isReviewUnread = IssueNotify.getSecretaryReviewUnread().includes(i.id);
         const submitterTip = _submitterTip(i.submittedBy);
         return `
-          <div class="p-3 rounded-xl bg-white border border-gray-100 hover:border-gray-200 cursor-pointer transition-all" data-issue-action="open-detail" data-issue-id="${i.id}">
+          <div class="p-3 rounded-xl bg-white border border-gray-100 hover:border-gray-200 cursor-pointer transition-colors" data-issue-action="open-detail" data-issue-id="${i.id}">
             <div class="flex items-center justify-between mb-1">
               <span class="text-xs text-gray-500 font-mono">#${i.number}</span>
               <div class="flex items-center gap-1.5">
@@ -402,7 +402,7 @@ function renderIssueDetail(issueId) {
   html += `<div class="flex flex-wrap gap-2">`;
   _assigneeOptions().forEach(opt => {
     const isCurrent = issue.assignee === opt.personId && issue.assigneeRole === opt.role;
-    html += `<button data-detail-action="assign" data-assignee-id="${opt.personId}" data-assignee-role="${opt.role}" class="btn-tab text-xs px-3 py-1.5 rounded-lg transition-all ${isCurrent ? 'bg-blue-600 text-white' : 'bg-white text-gray-600 border border-gray-200 hover:border-blue-300'}">${opt.label}</button>`;
+    html += `<button data-detail-action="assign" data-assignee-id="${opt.personId}" data-assignee-role="${opt.role}" class="btn-tab text-xs px-3 py-1.5 rounded-lg transition-colors ${isCurrent ? 'bg-blue-600 text-white' : 'bg-white text-gray-600 border border-gray-200 hover:border-blue-300'}">${opt.label}</button>`;
   });
   html += `</div>`;
   html += `<div class="mt-2 flex items-center gap-2">`;

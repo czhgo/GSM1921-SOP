@@ -12,24 +12,24 @@
 //   · 材料读取：`mockDB.imageRecords` / `loadAttendanceRecords` / `mockDB.inspections` / `loadActivityReviews`；
 //   · 归档写口：`services/core/mock.js::archiveActivity`（经 BranchService 暴露，与宣传台 / 支书台同源）；
 //   · 空态：`components/ui/empty-state.js`；浮窗：`components/ui/modal.js`；版本戳：`core/base/version-token.js`。
-import { renderSidebar } from '../../components/shell/sidebar.js?v=20261022c';
-import { renderHeader } from '../../components/shell/header.js?v=20261022c';
-import { BranchService } from '../../services/core/runtime.js?v=20261022c';
-import { mockDB, ReviewStatus } from '../../core/domain/domain.js?v=20261022c';
-import { loadAttendanceRecords } from '../../services/activity/attendance.js?v=20261022c';
-import { loadActivityReviews } from '../../services/governance/review.js?v=20261022c';
-import { AuthStore } from '../../services/core/auth.js?v=20261022c';
-import { isActivityArchived } from '../../core/domain/constants.js?v=20261022c';
-import { getBasePath, escHtml as esc, showToast } from '../../core/base/utils.js?v=20261022c';
-import { resolveMaterialHref, resolveMaterialHandoff, resolveMaterialRoleNote } from '../../core/domain/material-links.js?v=20261022c';
+import { renderSidebar } from '../../components/shell/sidebar.js?v=20261022d';
+import { renderHeader } from '../../components/shell/header.js?v=20261022d';
+import { BranchService } from '../../services/core/runtime.js?v=20261022d';
+import { mockDB, ReviewStatus } from '../../core/domain/domain.js?v=20261022d';
+import { loadAttendanceRecords } from '../../services/activity/attendance.js?v=20261022d';
+import { loadActivityReviews } from '../../services/governance/review.js?v=20261022d';
+import { AuthStore } from '../../services/core/auth.js?v=20261022d';
+import { isActivityArchived } from '../../core/domain/constants.js?v=20261022d';
+import { getBasePath, escHtml as esc, showToast } from '../../core/base/utils.js?v=20261022d';
+import { resolveMaterialHref, resolveMaterialHandoff, resolveMaterialRoleNote } from '../../core/domain/material-links.js?v=20261022d';
 // 材料页可见性单一源（C11）：与活动列表 / 详情页同判据，待批活动不能凭 id 被非支委层读到
-import { isActivityVisibleTo } from '../../services/core/visibility.js?v=20261022c';
-import { emptyStateHtml } from '../../components/ui/empty-state.js?v=20261022c';
-import { openModal, closeModal } from '../../components/ui/modal.js?v=20261022c';
-import { bumpToken } from '../../core/base/version-token.js?v=20261022c';
-import { hydrateDataSource, notifyDataLoaded } from '../../data/data-adapter.js?v=20261022c';
-import { ApiAdapter } from '../../data/api-adapter.js?v=20261022c';
-import { settleWrites } from '../../core/session/pending-writes.js?v=20261022c';
+import { isActivityVisibleTo } from '../../services/core/visibility.js?v=20261022d';
+import { emptyStateHtml } from '../../components/ui/empty-state.js?v=20261022d';
+import { openModal, closeModal } from '../../components/ui/modal.js?v=20261022d';
+import { bumpToken } from '../../core/base/version-token.js?v=20261022d';
+import { hydrateDataSource, notifyDataLoaded } from '../../data/data-adapter.js?v=20261022d';
+import { ApiAdapter } from '../../data/api-adapter.js?v=20261022d';
+import { settleWrites } from '../../core/session/pending-writes.js?v=20261022d';
 
 renderSidebar('dashboard');
 renderHeader('dashboard');
@@ -78,7 +78,7 @@ function render() {
   }
   const me = AuthStore.getCurrentUser();
   if (!me) {
-    _renderMessage('材料闭环需登录后办理', `<a class="btn-outline text-xs px-3 py-1.5" href="${getBasePath()}login.html">去登录</a>`);
+    _renderMessage('材料与归档需登录后办理', `<a class="btn-outline text-xs px-3 py-1.5" href="${getBasePath()}login.html">去登录</a>`);
     return;
   }
   const act = mockDB.activities.find(a => a.id === activityId);
@@ -119,7 +119,7 @@ function render() {
   rootEl.innerHTML = `
     <div class="mb-5 pb-5 border-b border-gray-100">
       <div class="flex items-center gap-2.5 mb-2 flex-wrap">
-        <span class="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">活动材料与归档</span>
+        <span class="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">材料与归档</span>
         <span class="text-xs text-gray-500">活动编号：${esc(act.id)}</span>
         ${archived ? '<span class="text-xs px-2 py-0.5 rounded-full bg-green-50 text-green-700">已归档</span>' : ''}
       </div>
@@ -160,12 +160,15 @@ function render() {
         ${esc(resolveMaterialRoleNote({ role: me.role, isOrganizer }))}
         三类核心材料（宣传材料 / 考勤 / 考察）齐全后即可提交归档；归档后仍可补交材料。
       </div>
-      <div class="mt-2 text-xs ${coreReady ? 'text-green-700' : 'text-amber-700'}">
-        ${coreReady ? '核心材料已齐（宣传材料 / 考勤 / 考察）。' : `核心材料待补：${_missingText({ photos, attendance, inspections })}`}
+      <div class="mt-2 flex flex-wrap items-center gap-3">
+        <span class="text-xs ${coreReady ? 'text-green-700' : 'text-amber-700'}">
+          ${coreReady ? '核心材料已齐（宣传材料 / 考勤 / 考察）。' : `核心材料待补：${_missingText({ photos, attendance, inspections })}`}
+        </span>
+        ${archived ? '' : '<button type="button" id="materials-check-done-btn" class="btn-outline btn-sm">核对完成，去提交归档</button>'}
       </div>
     </section>
 
-    <section class="mt-6" aria-labelledby="materials-archive-title">
+    <section class="mt-6" id="materials-archive-section" aria-labelledby="materials-archive-title">
       <h3 id="materials-archive-title" class="text-sm font-semibold text-gray-800 mb-2">③ 提交归档</h3>
       ${archived ? `
         <div class="rounded-xl border border-green-100 bg-green-50/60 px-4 py-3">
@@ -185,6 +188,10 @@ function render() {
   `;
 
   document.getElementById('materials-archive-btn')?.addEventListener('click', () => _confirmArchive(act, { photos, attendance, inspections }));
+  document.getElementById('materials-check-done-btn')?.addEventListener('click', () => {
+    document.getElementById('materials-archive-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    document.getElementById('materials-archive-btn')?.focus();
+  });
 }
 
 /** 三步条（单调：已归档 ⇒ 三步全 done；否则 current = 第一个未完成项，done 之后不再出现 current） */
@@ -202,7 +209,7 @@ function _stepperHtml(archived, coreReady, hasAnyMaterial) {
     pending: 'bg-white border-neutral-200 text-gray-500',
   };
   return `
-    <ol class="grid grid-cols-3 gap-2" aria-label="材料闭环步骤">
+    <ol class="grid grid-cols-3 gap-2" aria-label="材料与归档步骤">
       ${steps.map(s => `
         <li class="rounded-xl border px-3 py-2 ${cls[s.state]}"${s.state === 'current' ? ' aria-current="step"' : ''}>
           <div class="text-xs font-semibold">${s.n} ${s.label}</div>

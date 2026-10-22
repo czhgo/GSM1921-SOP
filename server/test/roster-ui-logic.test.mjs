@@ -9,13 +9,13 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { PEOPLE } from '../../docs/src/data/mock/people.js?v=20261022c';
+import { PEOPLE } from '../../docs/src/data/mock/people.js?v=20261022d';
 // Q-21-3（2026-09-13）：在册状态枚举单一源 = core/domain/constants.js（原经 roster.js 转出）
-import { RESIDENCE } from '../../docs/src/core/domain/constants.js?v=20261022c';
+import { RESIDENCE } from '../../docs/src/core/domain/constants.js?v=20261022d';
 import {
   guardCategoryList, buildGuardMessage,
   validateMemberForm, diffMemberFields,
-} from '../../docs/src/services/member/roster-ui-logic.js?v=20261022c';
+} from '../../docs/src/services/member/roster-ui-logic.js?v=20261022d';
 
 const p_2400012345 = PEOPLE.find(p => p.id === '2400012345'); // 在校党员（第一党小组·正式党员，无种子滞留字段）
 const p_2400012349 = PEOPLE.find(p => p.id === '2400012349'); // 种子示范滞留党员（第二党小组·正式党员）
@@ -67,7 +67,7 @@ test('buildGuardMessage：多类措辞含类别清单、标题含姓名、不泄
 
 // ── c) 新增成员表单校验（姓名必填；枚举与数据一致；备注口径）────────
 test('validateMemberForm：姓名必填（含纯空格）；合法输入 trim 并净化', () => {
-  assert.deepEqual(validateMemberForm({}), { ok: false, message: '请填写成员姓名（必填）' });
+  assert.deepEqual(validateMemberForm({}), { ok: false, message: '请填写成员姓名（必填）', field: 'name' });
   assert.equal(validateMemberForm({ name: '   ' }).ok, false);
   assert.equal(validateMemberForm({ name: 123 }).ok, false);
 
@@ -81,6 +81,7 @@ test('validateMemberForm：学号唯一性（非空且与既有学号重复 → 
   const dup = validateMemberForm({ name: '王五', studentId: '2600010001' }, { existingStudentIds: existing });
   assert.equal(dup.ok, false);
   assert.match(dup.message, /已存在/);
+  assert.equal(dup.field, 'studentId', '学号重复须落到 studentId 字段级错误');
   const okNew = validateMemberForm({ name: '王五', studentId: '2600010999', enrollYear: '2026' }, { existingStudentIds: existing });
   assert.equal(okNew.ok, true);
   assert.equal(okNew.value.studentId, '2600010999');
@@ -93,7 +94,7 @@ test('validateMemberForm：学号唯一性（非空且与既有学号重复 → 
 
 test('validateMemberForm：在册状态枚举外拒绝（禁造新枚举）；在校清备注、滞留保备注且截断 120', () => {
   assert.deepEqual(validateMemberForm({ name: '李四', residenceStatus: '离校' }),
-    { ok: false, message: '在册状态须为「在校」或「滞留」' });
+    { ok: false, message: '在册状态须为「在校」或「滞留」', field: 'residenceStatus' });
   // 在校：备注不保留（防「在校挂滞留备注」错位）
   const on = validateMemberForm({ name: '李四', residenceStatus: RESIDENCE.CAMPUS, residenceNote: ' 滞留原因 ' });
   assert.equal(on.ok, true);

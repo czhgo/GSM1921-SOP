@@ -4,18 +4,18 @@
 // 专班列表（状态分组）+ 只读详情（成员/角色/贡献）。依据支书第五轮裁定「新建专班查看组件（列表+详情）」。
 // 支书设计原则：「无职责 不代表 没有知情权」。
 
-import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261022c';
-import { getPersonName } from '../../services/member/person.js?v=20261022c';
-import { mockDB } from '../../core/domain/domain.js?v=20261022c';
-import { AuthStore } from '../../services/core/auth.js?v=20261022c';
-import { canRevealActivityMemberNames } from '../../services/core/visibility.js?v=20261022c';
-import { badgeHtml } from '../ui/badges.js?v=20261022c';
-import { dotDarkVars } from '../../core/domain/constants.js?v=20261022c';
-import { flashHighlight, showToast, escHtml as esc } from '../../core/base/utils.js?v=20261022c';
-import { anchorDetailToTrigger } from '../ui/detail-anchor.js?v=20261022c';
+import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261022d';
+import { getPersonName } from '../../services/member/person.js?v=20261022d';
+import { mockDB } from '../../core/domain/domain.js?v=20261022d';
+import { AuthStore } from '../../services/core/auth.js?v=20261022d';
+import { canRevealActivityMemberNames } from '../../services/core/visibility.js?v=20261022d';
+import { badgeHtml } from '../ui/badges.js?v=20261022d';
+import { dotDarkVars } from '../../core/domain/constants.js?v=20261022d';
+import { flashHighlight, showToast, escHtml as esc } from '../../core/base/utils.js?v=20261022d';
+import { anchorDetailToTrigger } from '../ui/detail-anchor.js?v=20261022d';
 // 统一检索引擎（2026-09-14 裁定）：只读详情「成员贡献」（第一列是人 → 配姓名关键词）与
 // 「中间进度」（时间线 → 只给分页：keyword null + facets []）各接一个实例
-import { renderFilteredList } from '../ui/list-filter.js?v=20261022c';
+import { renderFilteredList } from '../ui/list-filter.js?v=20261022d';
 
 // 附录⑩ B批：状态词对齐「支委会表决」语义（pending_review=待支委会表决；dissolved=表决通过解散）
 const STATUS_LABEL = { draft: '草稿', pending_review: '待支委会表决', recruiting: '招募中', active: '运行中', completed: '已完结', archived: '已归档', dissolved: '已解散' };
@@ -149,7 +149,7 @@ function _renderTfCard(t) {
   const filled = (t.members || []).filter(m => m.personId).length;
   const color = STATUS_COLOR[t.status] || '#6B7280';
   return `
-    <div class="tfv-card p-4 rounded-xl bg-white border border-gray-100 cursor-pointer hover:border-gray-200 hover:shadow-sm transition-all" data-tf-id="${esc(t.id)}">
+    <div class="tfv-card p-4 rounded-xl bg-white border border-gray-100 cursor-pointer hover:border-gray-200 transition-colors" data-tf-id="${esc(t.id)}">
       <div class="flex items-start justify-between gap-2 mb-2">
         <span class="text-sm font-semibold text-gray-800 leading-snug">${esc(t.name)}</span>
         <span class="badge" style="${statusBadgeStyle(t.status)}">${statusText(t)}</span>

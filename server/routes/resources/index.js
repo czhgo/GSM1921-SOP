@@ -34,7 +34,7 @@ import { RESOURCE_WRITE_GATE, COMMISSIONER_WRITE_RESOURCES, _assertResourceWrite
 import { _activityApprovalGateDeny, _snapshotActivityApprovalGateDeny, _activityCreateGatePatch } from './approval-gates.js';
 import { _snapshotBaseVersions, _snapshotWrites, _snapshotMissingVersions, _allCollectionVersions, _snapshotVersionConflicts, _normalizeSnapshotAliases } from './snapshot-versions.js';
 import { registerExtraSemanticRoutes } from './semantic-routes.js';
-import { activityCreationDeny, activityOrganizerExceptionDeny, activityOperationAllowed, approvedTaskforceDissolutionWorkgroups, attendanceWriteDeny, createActivityWorkgroup, createTaskforceWorkgroup, snapshotScopeDeny, taskforceStatusWorkgroups } from './workgroup-routes.js';
+import { activityCreationDeny, activityOrganizerExceptionDeny, activityOperationAllowed, activityWorkgroupSyncUpdates, activityWorkgroupUpdate, approvedTaskforceDissolutionWorkgroups, attendanceWriteDeny, attendanceConfirmDeny, isAttendanceConfirmOnlyChange, createActivityWorkgroup, createTaskforceWorkgroup, snapshotScopeDeny, syncActivityWorkgroup, taskforceStatusWorkgroups } from './workgroup-routes.js';
 import { actorBranchId, aggregateWriteDeny, branchForNewResource, branchSelectionError, mergeAggregateBody, mergeScopedSnapshotWrites, recordBranchWriteDeny, requireAssignedBranch, resourceRowsForActor, resourceBranchId, scopedSnapshotWriteDeny } from './branch-scope.js';
 import { normalizeSignupCreate, normalizeSignupPatch, signupCreateDeny, signupSnapshotDeny } from './signup-write-guard.js';
 
@@ -565,15 +565,38 @@ export function createResourcesRouter(db) {
         if (_disabledActivityHistoryReadOnly(db, activityRow ? JSON.parse(activityRow.data) : null)) {
           return res.status(409).json({ error: '本支部已停用活动组织能力；已结束活动的考勤只读保留' });
         }
-        const deny = attendanceWriteDeny(db, req.actor, next);
-        if (deny) return res.status(deny.status).json({ error: deny.error });
-        const duplicate = db.prepare('SELECT id, data FROM attendances').all().map((r) => ({ id: r.id, ...JSON.parse(r.data) }))
-          .find((r) => r.id !== id && r.activityId === next.activityId && r.personId === next.personId);
-        if (duplicate) return res.status(409).json({ error: '同一活动与人员只能有一条考勤记录', id: duplicate.id });
-        if (next.recordedBy !== current.recordedBy && req.actor.role !== 'secretary' && req.actor.role !== 'deputy-secretary' && req.actor.role !== 'disc-commissioner') {
-          return res.status(403).json({ error: '无权限：不能伪造考勤记录人' });
+        // 2026-10-22（第八轮 2.8）：确认与上传留痕分离——只改确认字段时按确认权放行，
+        // 确认人一律取会话（不采信客户端自述），recordedBy 保持原值。
+        const wantsConfirm = !!req.body && ['confirmed', 'confirmedBy', 'confirmedAt']
+          .some((key) => Object.prototype.hasOwnProperty.call(req.body, key));
+        const confirmAt = new Date().toISOString();
+        const proposed = wantsConfirm
+          ? { ...current, ...(req.body || {}), confirmed: true, confirmedBy: req.actor.id, confirmedAt: confirmAt }
+          : next;
+        if (isAttendanceConfirmOnlyChange(current, proposed)) {
+          const confirmDeny = attendanceConfirmDeny(db, req.actor, current, proposed);
+          if (confirmDeny) return res.status(confirmDeny.status).json({ error: confirmDeny.error });
+          const at = confirmAt;
+          const confirmPatch = {
+            confirmed: true,
+            confirmedBy: req.actor.id,
+            confirmedAt: at,
+            updatedBy: req.actor.id,
+            updatedAt: at,
+          };
+          req.body = { ...current, ...confirmPatch };
+          Object.assign(merged, confirmPatch);
+        } else {
+          const deny = attendanceWriteDeny(db, req.actor, next);
+          if (deny) return res.status(deny.status).json({ error: deny.error });
+          const duplicate = db.prepare('SELECT id, data FROM attendances').all().map((r) => ({ id: r.id, ...JSON.parse(r.data) }))
+            .find((r) => r.id !== id && r.activityId === next.activityId && r.personId === next.personId);
+          if (duplicate) return res.status(409).json({ error: '同一活动与人员只能有一条考勤记录', id: duplicate.id });
+          if (next.recordedBy !== current.recordedBy && req.actor.role !== 'secretary' && req.actor.role !== 'deputy-secretary' && req.actor.role !== 'disc-commissioner') {
+            return res.status(403).json({ error: '无权限：不能伪造考勤记录人' });
+          }
+          req.body = { ...next, recordedBy: current.recordedBy, updatedBy: req.actor.id, updatedAt: new Date().toISOString() };
         }
-        req.body = { ...next, recordedBy: current.recordedBy, updatedBy: req.actor.id, updatedAt: new Date().toISOString() };
       }
       if (name === 'taskforces' && (merged.name !== JSON.parse(existing.data).name || merged.status !== JSON.parse(existing.data).status)) {
         const workgroup = db.prepare('SELECT data FROM workgroups WHERE id = ?').get(merged.workgroupId || `wg-taskforce-${id}`);
@@ -593,21 +616,11 @@ export function createResourcesRouter(db) {
       if (name === 'activities') {
         const agendaCheck = validateAgendaStructure(merged.agenda);
         if (!agendaCheck.ok) return res.status(400).json({ error: agendaCheck.error });
-        if (legacyHostGroupCompleted) {
-          delete merged.legacyHostGroup;
-          const wgRow = db.prepare('SELECT data FROM workgroups WHERE id = ?')
-            .get(merged.workgroupId || `wg-activity-${id}`);
-          if (wgRow) {
-            const currentGroup = JSON.parse(wgRow.data);
-            relatedWorkgroupUpdate = {
-              ...currentGroup,
-              organizingScope: merged.organizingScope,
-              hostGroupId: merged.hostGroupId,
-              migrationState: 'ready',
-              updatedBy: req.actor.id, updatedAt: new Date().toISOString(),
-            };
-          }
-        }
+        if (legacyHostGroupCompleted) delete merged.legacyHostGroup;
+        // R9 Task 4.3：活动改名 / 组织落点 / 招募范围 / 归档状态统一同步到活动工作组。
+        relatedWorkgroupUpdate = activityWorkgroupUpdate(db, merged, req.actor.id);
+        // 历史「待补承办组」补选完成后，工作组迁移态同步转 ready（其余编辑保留既有迁移态）。
+        if (relatedWorkgroupUpdate && legacyHostGroupCompleted) relatedWorkgroupUpdate.migrationState = 'ready';
       }
       const save = db.transaction(() => {
         db.prepare(`INSERT OR REPLACE INTO ${table} (id, data) VALUES (?, ?)`).run(id, JSON.stringify(merged));
@@ -786,15 +799,23 @@ export function createResourcesRouter(db) {
     if (!activityOperationAllowed(db, req.actor, current, 'activity.edit')) return res.status(403).json({ error: '无权限：不能归档其他范围的活动' });
     if (_disabledActivityHistoryReadOnly(db, current)) return res.status(409).json({ error: '本支部已停用活动组织能力；已结束活动只读保留' });
     const act = { ...current, id, archived: true };
-    db.prepare('INSERT OR REPLACE INTO activities (id, data) VALUES (?, ?)').run(id, JSON.stringify(act));
-    // 级联：归档后该活动相关任务全部完成（与前端 archiveActivity 行为一致）
-    const tasks = db.prepare('SELECT data FROM tasks').all().map(r => JSON.parse(r.data));
-    for (const t of tasks) {
-      if (t.activityId === id && t.status !== 'completed') {
-        db.prepare('INSERT OR REPLACE INTO tasks (id, data) VALUES (?, ?)')
-          .run(t.id, JSON.stringify({ ...t, status: 'completed' }));
+    const workgroupUpdate = activityWorkgroupUpdate(db, act, req.actor.id);
+    const purge = db.transaction(() => {
+      db.prepare('INSERT OR REPLACE INTO activities (id, data) VALUES (?, ?)').run(id, JSON.stringify(act));
+      if (workgroupUpdate) {
+        db.prepare('INSERT OR REPLACE INTO workgroups (id, data) VALUES (?, ?)')
+          .run(workgroupUpdate.id, JSON.stringify(workgroupUpdate));
       }
-    }
+      // 级联：归档后该活动相关任务全部完成（与前端 archiveActivity 行为一致）
+      const tasks = db.prepare('SELECT data FROM tasks').all().map(r => JSON.parse(r.data));
+      for (const t of tasks) {
+        if (t.activityId === id && t.status !== 'completed') {
+          db.prepare('INSERT OR REPLACE INTO tasks (id, data) VALUES (?, ?)')
+            .run(t.id, JSON.stringify({ ...t, status: 'completed' }));
+        }
+      }
+    });
+    purge();
     res.json(act);
   });
 
@@ -878,6 +899,8 @@ export function createResourcesRouter(db) {
     const workgroupUpdates = [
       ...taskforceStatusWorkgroups(db, validationPayload, req.actor),
       ...approvedTaskforceDissolutionWorkgroups(db, validationPayload, req.actor),
+      // R9 Task 4.3：活动改名 / 组织落点变化 / 归档随快照写穿同步到活动工作组（前端编辑走 persist 快照）
+      ...activityWorkgroupSyncUpdates(db, validationPayload, req.actor),
     ];
     const nextVersions = replaceCollectionsAtomic(db, writes, { workgroups: workgroupUpdates });
     return baseVersions ? res.json({ versions: nextVersions }) : res.status(204).end();
@@ -1379,7 +1402,7 @@ function deleteActivityCascade(db, id) {
     const activityWorkgroups = db.prepare('SELECT id, data FROM workgroups').all()
       .map((row) => ({ id: row.id, ...JSON.parse(row.data) }))
       .filter((row) => row.sourceType === 'activity' && row.sourceId === id);
-    const activityWorkgroupIds = new Set([...activityWorkgroups.map((row) => row.id), `wg-activity-${id}`]);
+    const activityWorkgroupIds = new Set([...activityWorkgroups.map((row) => row.id), syncActivityWorkgroup({ id }).id]);
     for (const table of ['workgroup_members', 'workgroup_grants', 'workgroup_tasks', 'workgroup_outputs']) {
       for (const row of db.prepare(`SELECT id, data FROM ${table}`).all()) {
         const data = JSON.parse(row.data);

@@ -3,24 +3,24 @@
 // 2026-08-07 自 ws-secretary-entry.js 拆分。
 // 数据源：NoticeStore（与首页/全局概况/visitor 同源，消除双数据源脱节）。
 
-import { NoticeStore, sendDirectMessage } from '../../../services/governance/notice.js?v=20261022c';
-import { AuthStore } from '../../../services/core/auth.js?v=20261022c';
-import { showToast, getBasePath, _fmtDate, todayLocal, escHtml } from '../../../core/base/utils.js?v=20261022c';
-import { badgeHtml } from '../../../components/ui/badges.js?v=20261022c';
-import { openModal, closeModal } from '../../../components/ui/modal.js?v=20261022c';
+import { NoticeStore, sendDirectMessage } from '../../../services/governance/notice.js?v=20261022d';
+import { AuthStore } from '../../../services/core/auth.js?v=20261022d';
+import { showToast, getBasePath, _fmtDate, todayLocal, escHtml } from '../../../core/base/utils.js?v=20261022d';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20261022d';
+import { openModal, closeModal } from '../../../components/ui/modal.js?v=20261022d';
 // 统一检索引擎（2026-09-14 批次 37）：已发布通知列表接入关键词（标题/正文）+ 分页
-import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261022c';
+import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261022d';
 // Q-22-1（2026-09-13）：受众选项改引 core/domain/constants.js 单一源（NOTICE_AUDIENCE_SENTINELS）——
 // 发布侧写入值必须与消费端可见性判定同源，勿再本地手写 sentinel 列表（否则 ['all'] 永不命中）。
-import { NOTICE_AUDIENCE_OPTIONS, ACTIVITY_CLASSIFICATION } from '../../../core/domain/constants.js?v=20261022c';
+import { NOTICE_AUDIENCE_OPTIONS, ACTIVITY_CLASSIFICATION } from '../../../core/domain/constants.js?v=20261022d';
 // SOP-B-5（D-293）：发布三会一课通知时选定本次活动 —— 被通知人在「确认读取」时填「能否线上参会」
-import { loadActivities } from '../../../services/activity/activity.js?v=20261022c';
+import { loadActivities } from '../../../services/activity/activity.js?v=20261022d';
 // B1（2026-09-12）：党委下钻支部的演示只读视图判定（单一源 = services/core/branch-demo-nav.js）
-import { isReadonlyBranchDrilldown } from '../../../services/core/branch-demo-nav.js?v=20261022c';
+import { isReadonlyBranchDrilldown } from '../../../services/core/branch-demo-nav.js?v=20261022d';
 // 站内信（批次 348 · 支书 `#4`「站内信是一个很重要的形式」）：受众「指定人（私发）」——选人用 PersonPicker
 //（选人规范 §2.2：姓名/学号搜索，不手写名单）
-import { PersonPicker } from '../../../components/governance/pickers.js?v=20261022c';
-import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261022c';
+import { PersonPicker } from '../../../components/governance/pickers.js?v=20261022d';
+import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261022d';
 
 const NOTIFICATION_TAB_HTML = `
   ${renderTabHeader({ title: '通知发布' })}
@@ -112,7 +112,7 @@ function renderNotificationForm() {
     html += `<option value="${a.id}">${a.title}（${a.date || '未排期'} · ${a.type}）</option>`;
   });
   html += `</select>`;
-  html += `<p class="text-[11px] mt-1"><a href="./help.html#card-copy-attendance-record" class="text-sky-600 hover:underline">见帮助 · 线上参会记录</a></p>`;
+  html += `<p class="help-note mt-1"><a href="./help.html#card-copy-attendance-record" class="help-note__link">见帮助 · 线上参会记录</a></p>`;
   html += `</div>`;
 
   // 发布按钮
@@ -274,14 +274,44 @@ function handlePublishNotification() {
 
   // 2026-09-19 批次 91（SOP-B-17）：发布权判定一并带 personId——白名单角色不变，
   //   本组通知另按「此人是否该场组织者」放行（支书台的发布口仍是全支部通知主位）。
-  NoticeStore.add(notification, _me.role || 'secretary', _me.personId || null);
+  // 2026-10-22 第九轮 9B-5.1：**判返回值**——`NoticeStore.add` 权限不足返回 null（见服务层），
+  //   原实现无条件报成功 ⇒ 「提示已发布、列表里没有」。失败时表单原位给 role="alert" + 重试，
+  //   且不重置任何已填内容。
+  let created = null;
+  try {
+    created = NoticeStore.add(notification, _me.role || 'secretary', _me.personId || null);
+  } catch (err) {
+    console.warn('[notification-tab] 通知写入异常', err);
+    created = null;
+  }
+  if (!created) {
+    _renderPublishError('通知未发出：当前账号可能无发布权，或本地暂存失败。已填内容已保留，可修正后重试。');
+    return;
+  }
 
+  // 成功提示：`showToast('success')` 内部已等 `settleWrites()` 落库确认（见 core/base/utils.js），
+  //   落库失败会改报失败文案，不再出现「提示成功、其实没存上」。
   showToast('success', `通知「${title}」已发布至${audienceLabels.join('、')}`);
 
   // 重置表单
   _selectedAudience = [];
   renderNotificationForm();
   renderNotificationList();
+}
+
+/** 5.1：发布失败的原位错误（role="alert" ＋ 重试；不动表单已填内容） */
+function _renderPublishError(message) {
+  const formArea = document.getElementById('notification-form-area');
+  if (!formArea) { showToast('error', message); return; }
+  formArea.querySelector('[data-notif-publish-error]')?.remove();
+  const html = `<div data-notif-publish-error role="alert" class="mt-2 flex flex-wrap items-center gap-2 text-xs text-red-700">
+      <span>${escHtml(message)}</span>
+      <button type="button" data-notif-retry class="btn-outline">重试发布</button>
+    </div>`;
+  const anchor = formArea.querySelector('[data-notif-action="publish"]');
+  if (anchor) anchor.insertAdjacentHTML('afterend', html);
+  else formArea.insertAdjacentHTML('beforeend', html);
+  formArea.querySelector('[data-notif-retry]')?.addEventListener('click', () => handlePublishNotification());
 }
 
 /** R5A-07：删除通知前二次确认（复用统一浮窗），确认后才物理删除并联动清理待办。 */
@@ -297,7 +327,7 @@ function _confirmDeleteNotice(noticeId) {
       <p class="mt-2 text-xs text-gray-500 leading-relaxed">删除后不可恢复，并将同步删除该通知关联的待办。</p>`,
     footerHtml: `
       <button type="button" data-modal-cancel="notice-delete-confirm" class="btn-outline text-sm px-3 py-1.5" style="cursor:pointer;">取消</button>
-      <button type="button" data-notice-delete-confirm class="btn-accent text-sm px-3 py-1.5 font-medium">删除</button>`,
+      <button type="button" data-notice-delete-confirm class="btn-danger-solid text-sm px-3 py-1.5 font-medium">删除</button>`,
     onMount: (panel) => {
       panel.querySelector('[data-notice-delete-confirm]')?.addEventListener('click', () => {
         NoticeStore.remove(noticeId, 'secretary');
@@ -342,7 +372,7 @@ function renderNotificationList() {
         : '';
       // B1（2026-09-12）：党委下钻只读视图 → 不渲染删除/编辑写入口
       const writeBtns = isReadonlyBranchDrilldown() ? '' : `
-          <button data-notif-action="delete" data-notif-id="${n.id}" class="btn-ghost text-xs ml-2 flex-shrink-0 px-3 py-1.5">删除</button>
+          <button data-notif-action="delete" data-notif-id="${n.id}" class="btn-danger text-xs ml-2 flex-shrink-0 px-3 py-1.5">删除</button>
           <!-- B 档 CRUD 补全：通知编辑（复用 NoticeStore.update，同源写穿） -->
           <button data-notif-action="edit" data-notif-id="${n.id}" class="btn-outline text-xs flex-shrink-0 px-3 py-1.5" title="编辑该通知">编辑</button>`;
       return `

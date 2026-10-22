@@ -5,15 +5,15 @@
 // 数据源：reviewRequests（services/governance/review-request.js，mock 与 API 双引擎同源）
 // 设计权威源：content/04_web_design/evolution/PARTY_COMMITTEE_DESIGN.md §5 P3
 
-import { mockDB } from '../../../core/domain/domain.js?v=20261022c';
-import { AuthStore } from '../../../services/core/auth.js?v=20261022c';
-import { getPersonName } from '../../../services/member/person.js?v=20261022c';
-import { getBranchIdOfPerson } from '../../../services/branch/branch.js?v=20261022c';
-import { submitReviewRequest, listReviewRequests } from '../../../services/governance/review-request.js?v=20261022c';
-import { showToast, escHtml as esc, fmtDt } from '../../../core/base/utils.js?v=20261022c';
+import { mockDB } from '../../../core/domain/domain.js?v=20261022d';
+import { AuthStore } from '../../../services/core/auth.js?v=20261022d';
+import { getPersonName } from '../../../services/member/person.js?v=20261022d';
+import { getBranchIdOfPerson } from '../../../services/branch/branch.js?v=20261022d';
+import { submitReviewRequest, listReviewRequests } from '../../../services/governance/review-request.js?v=20261022d';
+import { showToast, escHtml as esc, fmtDt, describeWriteError } from '../../../core/base/utils.js?v=20261022d';
 // 统一检索引擎（2026-09-14 批次 37）：上报记录列表接入关键词 + 状态分面 + 分页
-import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261022c';
-import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261022c';
+import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261022d';
+import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261022d';
 
 const TYPE_META = {
   'develop-node': { label: '发展节点', desc: '发展党员关键节点（确定积极分子/发展对象、接收预备党员、按期转正等）' },
@@ -126,7 +126,27 @@ function renderForm(branchId, me, tc) {
     const title = wrap.querySelector('#rq-title')?.value.trim();
     const content = wrap.querySelector('#rq-content')?.value.trim();
     if (!type || !title || !content) { showToast('error', '请填写事项类型、标题与说明'); return; }
-    await submitReviewRequest({ branchId, type, title, content, submittedBy: me.personId });
+    // 2026-10-22 第九轮 9B-5.2：提交中禁用（防重复提交）＋ 失败保留已填内容并原位给原因。
+    //   原实现直接 `await submitReviewRequest(...)` 后无条件报成功 —— 写口抛错时按钮仍可连点，
+    //   用户也拿不到「这次没发出去」的可恢复提示。
+    const btn = wrap.querySelector('#rq-form-submit');
+    const label = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = '提交中…';
+    wrap.querySelector('[data-rq-error]')?.remove();
+    try {
+      await submitReviewRequest({ branchId, type, title, content, submittedBy: me.personId });
+    } catch (error) {
+      console.warn('[report-up-tab] 上报失败', error);
+      btn.disabled = false;
+      btn.textContent = label;
+      wrap.insertAdjacentHTML('beforeend', `<p data-rq-error role="alert" class="mt-3 flex flex-wrap items-center gap-2 text-xs text-red-700">
+          <span>上报未成功：${esc(describeWriteError(error))}。已填内容已保留，可重试。</span>
+          <button type="button" data-rq-retry class="btn-outline">重试</button>
+        </p>`);
+      wrap.querySelector('[data-rq-retry]')?.addEventListener('click', () => btn.click());
+      return;
+    }
     showToast('success', `已提交：${TYPE_META[type].label}——等待党委批复`);
     wrap.classList.add('hidden');
     delete wrap.dataset.built;

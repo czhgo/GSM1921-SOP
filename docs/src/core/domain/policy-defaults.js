@@ -17,7 +17,7 @@
 //   组长学期提醒消费——一律改由本文件派生）。
 // ════════════════════════════════════════════════════════════════
 
-import { todayLocal } from '../base/date.js?v=20261022c';
+import { todayLocal } from '../base/date.js?v=20261022d';
 
 /** 深拷贝工具（policy 结构纯 JSON 数据；factory 基准深拷贝/复位用） */
 function _clone(v) {

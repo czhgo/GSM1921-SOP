@@ -10,9 +10,9 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { initDb, SCHEMA_VERSION } from '../db.js';
-import { detectSeedDrift, planSeedRepair } from '../../docs/src/data/seed-drift.js?v=20261022c';
+import { detectSeedDrift, planSeedRepair } from '../../docs/src/data/seed-drift.js?v=20261022d';
 import { loadSeedRowsForTable } from '../seed-rows.js';
-import { repairSeedRowsIfNeeded, readSeedMeta } from '../seed-repair.js';
+import { repairSeedRowsIfNeeded, repairExistingSeedRows, readSeedMeta } from '../seed-repair.js';
 
 const ENTRY = {
   collection: 'widgets',
@@ -105,6 +105,45 @@ test('D4 服务端 v9 seed_meta + 启动修复：只修既有 seed id、保留�
     assert.equal(second.skipped, true, '版本一致时应跳过');
     assert.equal(second.reason, 'version-match');
     assert.deepEqual(db.prepare('SELECT id, data FROM activities ORDER BY id').all(), snapshot, '二次启动零改写');
+  } finally {
+    db.close();
+  }
+});
+
+test('D5 修复不回滚运行时治理结果：assignments/agenda/isBrand/brandName/members 逐字节不变', async () => {
+  const db = initDb(':memory:');
+  try {
+    const activitySeeds = await loadSeedRowsForTable('activities');
+    const taskforceSeeds = await loadSeedRowsForTable('taskforces');
+    const activitySeed = activitySeeds[0];
+    const taskforceSeed = taskforceSeeds[0];
+    const runtimeAssignments = [{ personId: '2400012349', role: 'deep' }];
+    const runtimeAgenda = [{ id: 'ag-runtime-1', item: '运行时议程结果', host: '支书', result: 'passed' }];
+    const runtimeMembers = [{ personId: '2400012349', role: 'deep', contributions: [{ id: 'tc-runtime-1', desc: '运行时贡献' }] }];
+    const activityRow = {
+      ...activitySeed,
+      assignments: runtimeAssignments,
+      agenda: runtimeAgenda,
+      isBrand: true,
+      brandName: '运行时品牌名',
+    };
+    const taskforceRow = { ...taskforceSeed, members: runtimeMembers };
+    db.prepare('INSERT INTO activities (id, data) VALUES (?, ?)').run(activityRow.id, JSON.stringify(activityRow));
+    db.prepare('INSERT INTO taskforces (id, data) VALUES (?, ?)').run(taskforceRow.id, JSON.stringify(taskforceRow));
+
+    repairExistingSeedRows(db, {
+      seedRowsByTable: { activities: activitySeeds, taskforces: taskforceSeeds },
+      seedVersion: 'd5-runtime-fields',
+      log: false,
+    });
+
+    const repairedActivity = JSON.parse(db.prepare('SELECT data FROM activities WHERE id = ?').get(activityRow.id).data);
+    const repairedTaskforce = JSON.parse(db.prepare('SELECT data FROM taskforces WHERE id = ?').get(taskforceRow.id).data);
+    assert.equal(JSON.stringify(repairedActivity.assignments), JSON.stringify(runtimeAssignments), 'assignments 不得被种子回滚');
+    assert.equal(JSON.stringify(repairedActivity.agenda), JSON.stringify(runtimeAgenda), 'agenda 结果不得被种子回滚');
+    assert.equal(repairedActivity.isBrand, true, '品牌认定不得被种子回滚');
+    assert.equal(repairedActivity.brandName, '运行时品牌名', '品牌名不得被种子回滚');
+    assert.equal(JSON.stringify(repairedTaskforce.members), JSON.stringify(runtimeMembers), '专班成员与贡献不得被种子回滚');
   } finally {
     db.close();
   }

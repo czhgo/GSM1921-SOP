@@ -15,6 +15,10 @@ import { actorBranchId, branchSelectionError, selectedBranchRequiredError } from
 import { deriveExpectedRosterIds } from '../../../docs/src/services/activity/attendance-roster.js';
 import { isWorkgroupMemberRole, WORKGROUP_MEMBER_ROLES, workgroupMembers } from '../../../docs/src/services/activity/workgroup-members.js';
 import { WORKGROUP_PERMISSION_TEMPLATES_BY_KIND } from '../../../docs/src/core/domain/workgroup-policy.js';
+// R9 Task 4.3：活动 ↔ 工作组字段映射单一源（纯函数；前端 mock 镜像同用此文件）
+import { syncActivityWorkgroup } from '../../../docs/src/data/activity-workgroup-sync.js';
+// 供 resources/index.js 复用同一投影（避免在那边新增 import 行导致 README 行号引用漂移）
+export { syncActivityWorkgroup };
 
 const COMMITTEE = new Set(BRANCH_COMMISSION_ROLES);
 const SECRETARY = new Set(SECRETARY_AND_DEPUTY_ROLES);
@@ -54,6 +58,57 @@ const sendWorkgroupWriteDeny = (res, workgroup) => {
 };
 const workgroupIdFor = (kind, sourceId) => `wg-${kind}-${sourceId}`;
 const memberIdFor = (workgroupId, personId) => `wgm-${encodeURIComponent(workgroupId)}-${encodeURIComponent(personId)}`;
+
+/**
+ * 活动 → 工作组主记录（R9 Task 4.3 单一投影）。
+ * 创建 / PATCH / 归档 / 快照写穿四处共用；缺失时补建最小主记录（成员仍须走成员语义接口）。
+ * @param {Object} db
+ * @param {Object} activity 活动行（合并后的权威值）
+ * @param {string|null} actorId
+ * @returns {Object|null} 待写入的 workgroups 行
+ */
+export function activityWorkgroupUpdate(db, activity, actorId = null) {
+  const patch = syncActivityWorkgroup(activity);
+  if (!patch) return null;
+  const current = rowOf(db, 'workgroups', patch.id);
+  const at = new Date().toISOString();
+  if (!current) {
+    return {
+      ...patch,
+      branchId: activity.branchId || DEFAULT_BRANCH_ID,
+      kind: 'activity', sourceType: 'activity', sourceId: activity.id,
+      status: patch.status || 'active',
+      migrationState: activity.organizingScope ? 'ready' : 'pending-review',
+      createdBy: actorId || activity.createdBy || null,
+      createdAt: activity.createdAt || at,
+      updatedBy: actorId, updatedAt: at,
+    };
+  }
+  return { ...current, ...patch, updatedBy: actorId || current.updatedBy || null, updatedAt: at };
+}
+
+/**
+ * 快照写穿路径：payload.activities 里的活动 → 工作组同步更新清单。
+ * 前端编辑活动走 persist() 快照（而非 PATCH），故此处必须与 PATCH 同源。
+ */
+export function activityWorkgroupSyncUpdates(db, payload, actor) {
+  if (!Array.isArray(payload?.activities)) return [];
+  const updates = [];
+  for (const row of payload.activities) {
+    if (!row?.id) continue;
+    const current = rowOf(db, 'activities', row.id);
+    if (!current) continue;
+    const merged = { ...current, ...row };
+    const next = activityWorkgroupUpdate(db, merged, actor?.id || null);
+    if (!next) continue;
+    const before = rowOf(db, 'workgroups', next.id);
+    const fields = ['name', 'organizingScope', 'hostGroupId', 'hostGroup', 'recruitmentScope', 'crossGroupCoordinatorId', 'status'];
+    const unchanged = before && fields.every((field) => JSON.stringify(before[field]) === JSON.stringify(next[field]));
+    if (unchanged) continue;
+    updates.push(next);
+  }
+  return updates;
+}
 const isTaskforcePackageEnabled = (db, workgroup) => workgroup?.kind !== 'taskforce'
   || _assertCapabilityPackageEnabled(db, { branchId: workgroup.branchId }, 'taskforce-workgroup');
 const isDisabledTaskforceHistory = (db, workgroup) => {
@@ -296,6 +351,39 @@ export function attendanceWriteDeny(db, actor, attendance) {
   return null;
 }
 
+/** 确认权（2026-10-22 第八轮 P1）：考勤确认只看角色，不看「上传位」。 */
+export const ATTENDANCE_CONFIRM_ROLES = new Set(['disc-commissioner', ...SECRETARY_AND_DEPUTY_ROLES]);
+const ATTENDANCE_CONFIRM_FIELDS = new Set(['confirmed', 'confirmedBy', 'confirmedAt']);
+
+/** 是否为「只改确认字段」的变更（确认与上传留痕分离的判据）。 */
+export function isAttendanceConfirmOnlyChange(previous, next) {
+  if (!previous || !next) return false;
+  const keys = new Set([...Object.keys(previous), ...Object.keys(next)]);
+  const changed = [];
+  for (const key of keys) {
+    if (JSON.stringify(previous[key]) !== JSON.stringify(next[key])) changed.push(key);
+  }
+  return changed.length > 0 && changed.every((key) => ATTENDANCE_CONFIRM_FIELDS.has(key));
+}
+
+/**
+ * 考勤确认门：纪检 / 支书 / 副支书可确认本支部考勤；
+ * 只允许首次确认（已有确认人不得改写），且确认人必须是当前登录人。
+ * @returns {{status:number,error:string}|null}
+ */
+export function attendanceConfirmDeny(db, actor, previous, next) {
+  if (!actor) return { status: 401, error: '未登录' };
+  if (!ATTENDANCE_CONFIRM_ROLES.has(actor.role)) return { status: 403, error: '无权限：考勤确认仅限纪检委员 / 支书 / 副支书' };
+  if (!isAttendanceConfirmOnlyChange(previous, next)) return { status: 403, error: '无权限：考勤确认只能修改确认字段' };
+  const activity = next?.activityId && activityOf(db, next.activityId);
+  if (!activity) return { status: 400, error: '活动考勤必须关联已存在的活动' };
+  if (ownBranch(actor) !== (activity.branchId || DEFAULT_BRANCH_ID)) return { status: 403, error: '无权限：不能确认其他支部的考勤' };
+  if (previous.confirmedBy) return { status: 403, error: '考勤已确认，确认人留痕不可改写' };
+  if (previous.returnedBy) return { status: 403, error: '该记录已打回，须由上传方重新确认后再确认' };
+  if (next.confirmedBy !== actor.id) return { status: 403, error: '无权限：确认人须为当前登录人' };
+  return null;
+}
+
 export function snapshotScopeDeny(db, payload, actor) {
   if (!ownBranch(actor)) return NO_BRANCH_MESSAGE;
   if (['users', 'branches'].some((key) => Object.prototype.hasOwnProperty.call(payload, key))) {
@@ -391,6 +479,14 @@ export function snapshotScopeDeny(db, payload, actor) {
       if (!changed) continue;
       if (isDisabledActivityHistory(db, activityOf(db, row.activityId))) return '无权限：本支部已停用活动组织能力，已结束活动的考勤只读保留';
       if (old && old.recordedBy !== row.recordedBy) return '无权限：考勤记录人留痕不可通过快照修改';
+      // 2026-10-22（第八轮 2.8）：确认与「上传位 / 记录人留痕」分离——
+      //   确认只改 confirmed/confirmedBy/confirmedAt，按确认权（纪检 / 支书 / 副支书）放行；
+      //   不再拿 attendanceWriteDeny（上传位）去拦确认，也不允许借确认改 recordedBy。
+      if (old && isAttendanceConfirmOnlyChange(old, row)) {
+        const deny = attendanceConfirmDeny(db, actor, old, row);
+        if (deny) return deny.error;
+        continue;
+      }
       if (!old && row.recordedBy && row.recordedBy !== actor.id) return '无权限：不能伪造考勤记录人';
       // 本人「线上参会」申报（SOP-B-5 / `declareOnlineAttend`）：只允许本人新增
       // 「请假 + onlineAttend=true + 未确认」的自述行；不得记出勤、不得代他人、不得写确认人。
@@ -444,14 +540,11 @@ function validAssignments(db, actor, assignments, { allowFormalRoster = false, h
 
 export function createActivityWorkgroup(db, actor, activity) {
   const id = workgroupIdFor('activity', activity.id);
-  const workgroup = {
-    id, branchId: activity.branchId, kind: 'activity', sourceType: 'activity', sourceId: activity.id,
-    name: activity.title || activity.id, status: 'active', organizingScope: normalizeOrganizingScope(activity.organizingScope, activity),
-    hostGroupId: activity.hostGroupId || null, createdBy: actor.id, createdAt: activity.createdAt || new Date().toISOString(),
-    recruitmentScope: activity.recruitmentScope || 'group',
-    crossGroupCoordinatorId: activity.crossGroupCoordinatorId || null,
-    migrationState: 'ready',
-  };
+  // R9 Task 4.3：建组字段与编辑 / 归档同源（同一投影函数），避免两处各写一份。
+  const workgroup = activityWorkgroupUpdate(db, { ...activity, workgroupId: id }, actor.id);
+  workgroup.createdBy = actor.id;
+  workgroup.createdAt = activity.createdAt || new Date().toISOString();
+  workgroup.migrationState = 'ready';
   const assignmentRows = Array.isArray(activity.assignments) ? activity.assignments : [];
   const formalRoster = usesFormalMeetingRoster(activity);
   if (!formalRoster && assignmentRows.some((row) => row?.role === 'participant')) {
@@ -745,8 +838,15 @@ export function registerWorkgroupRoutes(router, db) {
       assignments.push({ personId, role: body.role, ...(crossGroup ? { crossGroup: true, coordinatedBy: workgroup.crossGroupCoordinatorId } : {}) });
       source.assignments = assignments;
     } else {
-      const members = (Array.isArray(source.members) ? source.members : []).filter((item) => item.personId !== personId);
-      members.push({ personId, role: body.role, contributions: previous?.contributions || [] });
+      const existingMembers = Array.isArray(source.members) ? source.members : [];
+      const priorMirror = existingMembers.find((item) => item.personId === personId);
+      const members = existingMembers.filter((item) => item.personId !== personId);
+      // R9 Task 4.2：按 personId 合并历史 contributions——加入 / 重加成员不得清空既有贡献镜像。
+      members.push({ personId, role: body.role, contributions: Array.isArray(priorMirror?.contributions) ? priorMirror.contributions : [] });
+      if (priorMirror?.crossGroup) {
+        members[members.length - 1].crossGroup = true;
+        members[members.length - 1].coordinatedBy = priorMirror.coordinatedBy || null;
+      }
       source.members = members;
     }
     const collection = workgroup.sourceType === 'activity' ? 'activities' : 'taskforces';

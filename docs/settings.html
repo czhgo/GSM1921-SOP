@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<script src="./src/theme-init.js?v=20261022c"></script>
+<script src="./src/theme-init.js?v=20261022d"></script>
 <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>设置 — GSM1921-SOP</title>
@@ -12,8 +12,8 @@
   <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;800&family=Noto+Serif+SC:wght@400;500;600;700;800&display=swap" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;800&family=Noto+Serif+SC:wght@400;500;600;700;800&display=swap" rel="stylesheet"></noscript>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="./src/tailwind-config.js?v=20261022c"></script>
-  <link rel="stylesheet" href="./src/styles.css?v=20261022c">
+  <script src="./src/tailwind-config.js?v=20261022d"></script>
+  <link rel="stylesheet" href="./src/styles.css?v=20261022d">
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
@@ -35,9 +35,24 @@
       <hr class="mt-4 mb-5 border-t border-gray-200">
 
       <!-- ========== 两栏：左分组（按角色发牌）+ 右内容 ========== -->
+      <!-- 5.5（2026-10-22 第九轮）：两栏动态区初始化前 aria-busy + 最小骨架（各 3 行占位），
+           settings-entry 首帧渲染后置 aria-busy="false"。 -->
       <div class="flex flex-col md:flex-row gap-6 md:gap-7 items-start">
-        <aside id="settings-groups" class="w-full flex flex-col gap-5 md:w-56 md:shrink-0 md:sticky md:top-20 md:max-h-[calc(100vh-6.5rem)] md:overflow-y-auto" aria-label="设置分组"></aside>
-        <section id="settings-panel" class="w-full min-w-0 flex-1" aria-label="设置内容"></section>
+        <aside id="settings-groups" class="w-full flex flex-col gap-5 md:w-56 md:shrink-0 md:sticky md:top-20 md:max-h-[calc(100vh-6.5rem)] md:overflow-y-auto" aria-label="设置分组" aria-busy="true">
+          <div data-settings-skeleton class="space-y-2" aria-hidden="true">
+            <div class="h-4 w-24 rounded bg-gray-100 animate-pulse"></div>
+            <div class="h-8 w-full rounded-lg bg-gray-100 animate-pulse"></div>
+            <div class="h-8 w-full rounded-lg bg-gray-100 animate-pulse"></div>
+          </div>
+        </aside>
+        <section id="settings-panel" class="w-full min-w-0 flex-1" aria-label="设置内容" aria-busy="true">
+          <div data-settings-skeleton class="space-y-3" aria-hidden="true">
+            <div class="h-5 w-28 rounded bg-gray-100 animate-pulse"></div>
+            <div class="h-4 w-full rounded bg-gray-100 animate-pulse"></div>
+            <div class="h-4 w-5/6 rounded bg-gray-100 animate-pulse"></div>
+          </div>
+          <p class="visually-hidden" role="status">正在加载设置…</p>
+        </section>
       </div>
 
       <div class="text-center pt-8 pb-2">
@@ -47,6 +62,6 @@
   </main>
 </div>
 
-<script type="module" src="./src/entries/pages/settings-entry.js?v=20261022c"></script>
+<script type="module" src="./src/entries/pages/settings-entry.js?v=20261022d"></script>
 </body>
 </html>

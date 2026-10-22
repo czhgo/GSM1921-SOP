@@ -12,10 +12,10 @@
 //  任务完成数＝completed 数 / 非 cancelled 任务总数，无任务显示「—」；两类皆空则整卡隐藏。
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB, isTaskforceActiveStatus } from '../../core/domain/domain.js?v=20261022c';
-import { listRowHtml, listGroupHtml } from '../ui/list-row.js?v=20261022c';
-import { AuthStore } from '../../services/core/auth.js?v=20261022c';
-import { getBasePath } from '../../core/base/utils.js?v=20261022c';
+import { mockDB, isTaskforceActiveStatus } from '../../core/domain/domain.js?v=20261022d';
+import { listRowHtml, listGroupHtml } from '../ui/list-row.js?v=20261022d';
+import { AuthStore } from '../../services/core/auth.js?v=20261022d';
+import { getBasePath } from '../../core/base/utils.js?v=20261022d';
 
 const GROUP_LIMIT = 3;
 const STATUS_BADGE = {
@@ -78,12 +78,17 @@ function _viewAllHref(kind) {
   return `${getBasePath()}workspace/${page}?tab=${tab}`;
 }
 
-/** 某工作组的任务口径：completed / 非 cancelled 总数（无任务时 total 为 0） */
+/** 某工作组的任务口径：completed / 非 cancelled 总数（无任务时 total 为 0）
+ *  R9 Task 4.4：`loaded` 区分「确实没有任务」与「任务尚未从服务端装载」——
+ *    后者必须显示「加载中」，不能用 0 / — 冒充空结果。 */
 function taskStats(workgroupId) {
+  const flag = mockDB.workgroupAuxLoaded?.tasks;
+  const loaded = flag === true || (Array.isArray(flag) && flag.includes(workgroupId));
   const tasks = (mockDB.workgroupTasks || []).filter(
     (task) => task.workgroupId === workgroupId && task.status !== 'cancelled',
   );
   return {
+    loaded,
     total: tasks.length,
     completed: tasks.filter((task) => task.status === 'completed').length,
   };
@@ -98,10 +103,11 @@ function memberCount(workgroupId) {
 
 /** 单条工作组行：组名 + 成员/进度（meta）+ 行尾状态徽章与「进入 →」；整行可点，落对应详情 */
 function groupRowHtml(group, sourceById) {
-  const { total, completed } = taskStats(group.id);
+  const { total, completed, loaded } = taskStats(group.id);
   const source = sourceById.get(group.sourceId) || null;
   let progress;
-  if (total > 0) progress = `任务 ${completed}/${total}`;
+  if (!loaded) progress = '任务 加载中';
+  else if (total > 0) progress = `任务 ${completed}/${total}`;
   else if (group.kind === 'activity') progress = source?.date ? `日期 ${source.date}` : '任务 —';
   else progress = source?.deadline ? `截止 ${source.deadline}` : '任务 —';
   const meta = [`成员 ${memberCount(group.id)} 人`, progress].join(' · ');

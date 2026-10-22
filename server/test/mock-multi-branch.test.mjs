@@ -30,17 +30,17 @@ globalThis.localStorage = storage;
 
 import { createApp } from '../app.js';
 import { seedDatabase } from '../seed.js';
-import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261022c';
-import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261022c';
-import { PEOPLE } from '../../docs/src/data/mock/people.js?v=20261022c';
-import { ACTIVITIES } from '../../docs/src/data/mock/activities.js?v=20261022c';
-import { MOCK_NOTICES } from '../../docs/src/data/mock/notices.js?v=20261022c';
-import { ATTENDANCE_RECORDS } from '../../docs/src/data/mock/attendance.js?v=20261022c';
-import { SEED_ASSIGNMENTS } from '../../docs/src/data/mock/seed.js?v=20261022c';
-import { SEED_TODOS } from '../../docs/src/services/governance/todo.js?v=20261022c';
-import { ensureLegacySourceWorkgroups, normalizeSeedActivitySeedRows } from '../../docs/src/data/workgroup-seed-sync.js?v=20261022c';
+import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261022d';
+import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261022d';
+import { PEOPLE } from '../../docs/src/data/mock/people.js?v=20261022d';
+import { ACTIVITIES } from '../../docs/src/data/mock/activities.js?v=20261022d';
+import { MOCK_NOTICES } from '../../docs/src/data/mock/notices.js?v=20261022d';
+import { ATTENDANCE_RECORDS } from '../../docs/src/data/mock/attendance.js?v=20261022d';
+import { SEED_ASSIGNMENTS } from '../../docs/src/data/mock/seed.js?v=20261022d';
+import { SEED_TODOS } from '../../docs/src/services/governance/todo.js?v=20261022d';
+import { ensureLegacySourceWorkgroups, normalizeSeedActivitySeedRows } from '../../docs/src/data/workgroup-seed-sync.js?v=20261022d';
 // R3-P1（F-06）：通知读口按受众投影（私信/定向）——本守卫的 api 侧同样经该判据，mock 侧须同源对齐。
-import { canReadNotice } from '../../docs/src/services/governance/notice.js?v=20261022c';
+import { canReadNotice } from '../../docs/src/services/governance/notice.js?v=20261022d';
 
 const BRANCH_B1 = 'br-b1';
 const BRANCH_B2 = 'br-b2';

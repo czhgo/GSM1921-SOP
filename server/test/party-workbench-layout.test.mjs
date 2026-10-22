@@ -23,10 +23,10 @@ test('治理页面使用受约束的流动版心和共享卡片节奏', async ()
 
 test('党委台只有一个页面标题，页签内容不重复页面标题', async () => {
   const page = await read('../../docs/workspace/party-committee.html');
-  assert.equal((page.match(/<h1\b/g) || []).length, 1, '页面只保留一个 <h1>');
+  // 2026-10-22 第九轮 9B-6.1：H1＝顶栏品牌（`header.js` 渲染，全站唯一）⇒ 页内标题降为 H2。
+  assert.equal((page.match(/<h1\b/g) || []).length, 0, '页面壳不得再渲染 <h1>（顶栏品牌是唯一 H1）');
   assert.match(page, /class="page-frame page-frame--wide"/);
-  assert.match(page, /page-frame__title">党委工作台</);
-  assert.doesNotMatch(page, /<h2[^>]*>\s*党委工作台\s*<\/h2>/, '页面壳不再重复渲染党委工作台 h2');
+  assert.match(page, /<h2 class="page-frame__title">党委工作台<\/h2>/, '页内标题须为 H2');
   assert.doesNotMatch(page, /返回主页/, '党委侧边栏无首页入口，页面不得出现指向首页的动作');
   assert.doesNotMatch(page, /page-frame__eyebrow|page-frame__description/, '页面级眉题与说明缀词已移除');
 

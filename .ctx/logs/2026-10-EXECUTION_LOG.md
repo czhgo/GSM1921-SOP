@@ -3420,4 +3420,57 @@ $body
 | 3 | 「未填写」只要有入口就算有信息 | 有入口但存不进＝死信息，按缺陷修 | symptom_misread | IF 字段可编辑 THEN 保存后读侧必须刷新；否则隐藏或标归属，不留死入口 |
 | 4 | 审查报告列出问题就算完成 | P1/P2 必须本批修，P3 要有去处 | evidence_gap | IF 审查产出 THEN P1/P2 同批修、P3 登记乙部并写清下一轮 |
 
+***
+
+## 批次 503（2026-10-22）：第八轮最小三成本 ＋ 第九轮功能/美观与全栈数据结构
+
+### 一、判据
+
+- 支书：继续走第八、九轮专项，**先并行只读审查、报告后再出 spec**，不要直接写 spec；使用 `grill-me` 与 `sample-diff-learning`。
+- 三成本口径按支书四答改准为**信息成本 / 操作成本 / 适应学习成本**（维护成本只作工程维度，指向 `ENGINEERING_ASSESSMENT §2.4`）。
+- 第八轮采「续审＋对账」（不重开旧号）；第九轮采「先诊断后实施」；数据结构采「**只诊断＋出方案**」（本轮不改 schema）。
+
+### 二、动作
+
+1. **旧账对账（先做）**：Round 2（36）＋ R5-B（22）＋ R5-C（23）＋ R6 P3（21）＋ R7 P3（23）＋ 乙部 8 项 ＝ **133 条**逐条回读当前 HEAD，判定「已消解 31 / 仍存在 101 / 已裁不做 1 / 待裁 0」；已消解项给当前 `文件:行号`，不重开。
+2. **第八轮真机两任务**（自托管 `:memory:` ＋ Playwright）：支书建活动 **5 击 / 0 页跳 / 1 签**、无 403、落库并刷新可回看；纪检确认考勤 **5 击 / 0 页跳 / 2 签**，待办**不带 id**、落地**需二次定位**，确认后 `POST /snapshot` **403** 且 UI 乐观更新、刷新回滚。
+3. **403 根因与修复（产品缺陷，非测试口径）**：快照写门把「记录人留痕」与「确认」混为一谈，而纪检委员不在上传位。按「**确认权独立于上传位**」拆开——新增 `attendanceConfirmerId/isAttendanceConfirmed/confirmAttendanceRecords`（只写 `confirmed/confirmedBy/confirmedAt`，**不动 `recordedBy`**）；服务端 `PATCH /attendances/:id` 支持确认-only（确认人取会话），快照门放行纯确认变更。
+4. **活动 ↔ 工作组同步单一投影**：新增 `activity-workgroup-sync.js`（服务端与 mock 共用）；创建 / 编辑 / 归档 / 删除四处同事务同步 `name/status/organizingScope/hostGroupId/recruitmentScope/coordinator`；**归档强制工作组 `archived`**，成员/任务/产出写口随 `workgroup.status` 拒绝。
+5. **专班成员与贡献走主源**：报名审核与代录贡献改走 `workgroups.members` / `workgroups.outputs`，`taskforces.members` 只作镜像；服务端加成员按 `personId` 合并历史 `contributions`（不再清空）。
+6. **种子修复不回滚治理结果**：`assignments / agenda / isBrand / brandName / members` 与 `confirmed/confirmedBy/confirmedAt` 移入 `seed-manifest` 的 `runtimeFields`；`agenda` 拆基底与运行时结果。
+7. **首页工作组任务装载**：`data-adapter._loadWorkgroupAux` 按首页可见组批量拉 `tasks/outputs` 并打 `workgroupAuxLoaded`；未装载显示「加载中」，不再恒为 0。
+8. **第八轮 P1 七条**：材料页一名到底（「材料与归档」）＋第②步补真实控件；纪检待办带 `focusActivityId/recordId` 直达并高亮、未命中才 toast；`function-catalog` 两条导航改准 ＋ `catalog-sync` 增断言；页签计数只由注册表现算；建活动统一「写入活动」＋无顶栏按钮时直接开表单；活动详情标题下加「下一步」动作行（按角色 1 主 2 次）。
+9. **第九轮 9B**：通知发布判返回值（失败不报成功、原位 `role="alert"`＋重试）；上报党委提交中禁用＋失败保留表单；可点容器补 `role="button" tabindex="0"`＋Enter/Space（能改 `<a>` 的改 `<a>`）；壳层刷新失败复用 `tab-bar` 错误卡；材料/档案/设置首屏 `aria-busy`＋骨架；设置卡头 H2→H3；登录错误 `role="alert"`＋`aria-invalid`＋聚焦首错；名册新增字段级错误（`aria-invalid`＋聚焦首错，同时保留 toast 以便真机探针可检测）。
+10. **守卫**：新增 `ui-motion-guard`（M1 卡片 hover 阴影/上浮＝0、M2 `transition-all`＝0、M3 非空转 3 条）；`frontend-foundations-guard` 增 F8（可点非原生控件必须键盘可达）与 F9（写口失败不得提示成功：成功 toast 必须排在失败分支之后）；均登记 `test-tier-registry`，预算 218 文件 / 1409 条并写明理由。
+11. **台账**：`CLAUDE.md` 乙部 `B-502-1` 三成本改准、新增 `B-503-1…7`；`DATA_MODEL` 补考勤确认三字段；`DESIGN_SYSTEM` 补「执行口径（批次 503）」6 条；`README*` 计数与行号改签；`SECRETARY_DIRECTIVES` P-018 补「跨组不是第三落点」；新增 `D-826`（两档落点）。
+
+### 三、读数
+
+- **第八轮真机**：支书 5 击/0 页跳/1 签/0 个 4xx；纪检 5 击/0 页跳/2 签，修前 403、修后确认落库且刷新可回看。三成本判定：A 信息中低 · 操作可接受 · 适应学习低—中；B 信息高 · 操作「表面可接受、实际不可完成」→ 修后可达 · 适应学习高→中。
+- **第九轮 9A 诊断**：16 个业务事实的权威源矩阵、10 实体 × 5 层抽查、15 条「同一事实多处写/读」、3 项 schema 方案（Todo `branchId` v11 / 分页与真实列索引 / JSON 宽表拆分触发条件）——**全部不实施**，待 P13 与多支部形态裁定。
+- `npm run test:daily`：**1412 / 1412 通过、0 失败**（75.8s）。
+- `SWEEP_SHARD=all`（带 `DISABLE_PASSWORD_CHECK=1` / `DEMO_READONLY=0`）：**[node] 1414 / 1414**、**[e2e-A] 57 过 + 1 skip（58）**、**[e2e-B] 179 / 179** ⇒ 三通道全绿、0 失败；墙钟 **1079.4s**（≤1200s）。
+- 守卫：`doc-consistency`（S1–S21）/ `doc-line-ref`（R1–R6）/ `link-integrity` / `timestamps-note-guard` / `frontmatter-freshness` / `version-stamp` 全绿。
+- 版本戳 `20261022c` → **`20261022d`**。
+- **环境坑（如实）**：全量命令最终退出码 1，来自 Playwright 沙箱拒绝写 `ms-playwright/**/debug.log`，**不是测试失败**；汇总行已打印「三通道全绿 · 0 失败」。
+- **一次瞬态红（如实）**：全量复跑中 `multi-tab-sync::判据C-②` 曾红一次（`干净集合应照常刷新` 为 false）。单跑该文件 6/6 绿，判定为**前置竞态**：满载并行时固定 1800ms 不足以等 A 的两笔写落库。处置＝把该例前置改成「有界轮询服务端真值（≤15s），超时直接红」，**判据语义一字未变**；改后单跑 6/6、全量复跑全绿。
+
+### 四、边界（如实）
+
+- **schema 未动**：本轮 0 迁移、`db-migration` 仍为 v10；Todo `branchId`、分页/索引、宽表拆分只出方案（`B-503-7` 待裁）。
+- **四项待支书裁定**（未自行改）：登录页品牌渐变 vs §5.3、首页 hero 党徽 vs §4.25、同名页签是否加范围后缀、支书台是否改名「反馈与回复」（`B-503-5`）。
+- **余项登记**：R6 P3（21）＋ R7 P3（23）＋ 第八轮 P2/P3 ＋ 帮助注释未迁移 9 处（`party-committee-meeting-entry.js`）入 `B-503-6`，下一轮实施前先重钉行号。
+- **考勤确认只负责「确认」**：不改 `recordedBy`、不代填出勤状态；确认人取会话、不信任请求体。
+- **活动↔工作组同步是镜像不是合并**：`workgroups` 为工作组事实主源，`activities` 仍保留落点字段供列表/权限读；归档只单向强制 `archived`，不反向解除。
+- **种子修复只保运行时字段**：`agenda` 的基底模板仍由种子提供，运行时结果不被 repair 覆盖；这是「不回滚治理结果」的边界，不是全表冻结。
+
+### 五、sample-diff 四样本（AI 假设 → 支书意图）
+
+| # | AI 假设 | 支书意图 | 偏差类型 | 可复用规则（Boolean） |
+|---|---|---|---|---|
+| 1 | 纪检确认失败是按钮或乐观更新问题，改 UI 反馈即可 | 确认是独立权限，不能被「上传位」绑架 | attribution_error | IF 动作失败在写门 THEN 先判「权限模型是否把两件事混成一个位」，再改文案/交互 |
+| 2 | 活动建组时同步过一次就够了 | 编辑 / 归档 / 删除都必须同事务同步，归档后工作组必须只读 | definition_mismatch | IF 两个实体互为镜像 THEN 每个写口（建/改/归档/删）都要同步，且归档是单向硬约束 |
+| 3 | 种子 repair 覆盖全部字段最省事 | 运行时产生的治理结果不能被种子回滚 | symptom_misread | IF 字段由用户行为产生 THEN 归 `runtimeFields`，repair 只重建基底 |
+| 4 | 数据结构审计发现问题就顺手改 schema | 本轮只诊断出方案，schema 变更须与部署形态同批裁定 | scope_creep | IF 变更触及 schema/索引 THEN 先出方案＋依赖清单，支书裁定后才实施 |
+
 

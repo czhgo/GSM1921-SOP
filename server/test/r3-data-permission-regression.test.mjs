@@ -18,9 +18,9 @@ import Database from 'better-sqlite3';
 import { createApp } from '../app.js';
 import { seedDatabase } from '../seed.js';
 import { migratePersonIdsToStudentNumbers } from '../db.js';
-import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261022c';
-import { setDataSource } from '../../docs/src/data/data-adapter.js?v=20261022c';
-import { TodoStore } from '../../docs/src/services/governance/todo.js?v=20261022c';
+import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261022d';
+import { setDataSource } from '../../docs/src/data/data-adapter.js?v=20261022d';
+import { TodoStore } from '../../docs/src/services/governance/todo.js?v=20261022d';
 
 let server;
 let base;
@@ -164,6 +164,53 @@ test('R3-04 组长保存本组考勤 200；他组同场考勤行保留（不误�
   const res = await snapshot(token, { attendances: payloadRows, _versions: { attendances: v.attendances } });
   assert.equal(res.status, 200, `★ 组长保存本组考勤应 200（不再 403）：${await res.clone().text()}`);
   assert.ok(rows('attendances').some((r) => r.id === 'att-r3-hidden'), '★ 他组考勤行保留（不得因本人不可见被当作删除）');
+});
+
+// ── 第八轮 2.8：纪检确认考勤（确认与上传留痕分离） ──────────────
+test('R3-04b 纪检确认他人上传的考勤：只落确认字段、recordedBy 不变、刷新保留；普通成员确认 403', async () => {
+  const actId = 'act-r3-confirm';
+  insert('activities', {
+    id: actId, title: 'R3 确认考勤回归', date: '2026-11-05', type: '主题党日',
+    status: 'published', archived: false, organizer: '2400012355', branchId: 'br-b1',
+  });
+  insert('attendances', {
+    id: 'att-r3-confirm-a', activityId: actId, personId: '2400012349', status: 'absent',
+    submittedBy: '2400012355', recordedBy: null, branchId: 'br-b1',
+  });
+  insert('attendances', {
+    id: 'att-r3-confirm-b', activityId: actId, personId: '2400012347', status: 'leave',
+    submittedBy: '2400012355', recordedBy: null, branchId: 'br-b1',
+  });
+
+  // 纪检（非上传人、且主题党日不在其上传位）确认 A：只改 confirmed/confirmedBy/confirmedAt
+  const discToken = await login('2400012354');
+  const v1 = await versions(discToken);
+  const visible = await (await fetch(`${base}/api/v1/attendances`, { headers: H(discToken) })).json();
+  const patched = visible.map((r) => (r.id === 'att-r3-confirm-a'
+    ? { ...r, confirmed: true, confirmedBy: '2400012354', confirmedAt: '2026-11-06T00:00:00.000Z' }
+    : r));
+  const ok = await snapshot(discToken, { attendances: patched, _versions: { attendances: v1.attendances } });
+  assert.equal(ok.status, 200, `纪检确认应放行：${await ok.clone().text()}`);
+
+  const saved = rows('attendances').find((r) => r.id === 'att-r3-confirm-a');
+  assert.equal(saved.recordedBy, null, '★ recordedBy（上传人留痕）不得被确认动作改写');
+  assert.equal(saved.confirmedBy, '2400012354', '确认人落 confirmedBy');
+  assert.equal(saved.confirmed, true);
+  const refreshed = await (await fetch(`${base}/api/v1/attendances`, { headers: H(discToken) })).json();
+  assert.equal(refreshed.find((r) => r.id === 'att-r3-confirm-a')?.confirmedBy, '2400012354', '刷新后确认状态保留');
+
+  // 普通成员确认自己的待确认记录 → 403（确认权仅纪检 / 支书 / 副支书）
+  const memberToken = await login('2400012347');
+  const v2 = await versions(memberToken);
+  const mine = await (await fetch(`${base}/api/v1/attendances`, { headers: H(memberToken) })).json();
+  const bad = mine.map((r) => (r.id === 'att-r3-confirm-b'
+    ? { ...r, confirmed: true, confirmedBy: '2400012347', confirmedAt: '2026-11-07T00:00:00.000Z' }
+    : r));
+  const deny = await snapshot(memberToken, { attendances: bad, _versions: { attendances: v2.attendances } });
+  assert.equal(deny.status, 403, `普通成员确认应 403：${await deny.clone().text()}`);
+  const untouched = rows('attendances').find((r) => r.id === 'att-r3-confirm-b');
+  assert.equal(untouched.confirmedBy, undefined, '被拒后未落确认人');
+  assert.equal(untouched.recordedBy, null, '被拒后 recordedBy 仍为空');
 });
 
 // ── P1-5（F-05）：未设门资源补门 ────────────────────────────────

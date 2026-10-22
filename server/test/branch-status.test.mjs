@@ -15,10 +15,10 @@
 import { test, before } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261022c';
-import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261022c';
-import { registerMockAdapter, setDataSource } from '../../docs/src/data/data-adapter.js?v=20261022c';
-import { setBranchActive, getBranchById } from '../../docs/src/services/branch/branch.js?v=20261022c';
+import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261022d';
+import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261022d';
+import { registerMockAdapter, setDataSource } from '../../docs/src/data/data-adapter.js?v=20261022d';
+import { setBranchActive, getBranchById } from '../../docs/src/services/branch/branch.js?v=20261022d';
 
 // ── localStorage 内存桩（member-persist 同款；key/length 供枚举）──
 const _store = new Map();

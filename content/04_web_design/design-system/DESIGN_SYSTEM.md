@@ -1804,6 +1804,15 @@ li + li { margin-top: 0.25em; }
 | 加载态 | 骨架屏（灰色占位块） | 脉冲透明度动画 |
 | 空状态 | SVG 图标 + 中性色提示文字 | SVG + `--neutral-400` 文字 |
 
+**执行口径（2026-10-22 批次 503，守卫 `ui-motion-guard` / `frontend-foundations-guard::F8`）**：
+
+1. **禁 `transition-all`**：只用显式属性（`transition-colors` / `transition-[border-color,background-color]` / `transition-transform`）；列表与卡片不得过渡宽高、阴影。
+2. **卡片 hover 不得 `shadow` / `translateY`**：展示卡不变，交互卡只变边框色或底色。
+3. **可点但非原生控件**（`div` 承载 `click`）必须 `role="button"` + `tabindex="0"` + Enter/Space；能改 `<a>` / `<button>` 的优先改原生。
+4. **独立页返回**用 `.btn-outline` 紧凑档（或纯导航 `<a>`），不得用裸文字按钮。
+5. **首屏加载态**：动态容器 `aria-busy="true"` + 3 行骨架；数据到达后置 `false`。加载中不得显示「0 / —」冒充无数据。
+6. **标题层级**：H1 只在顶栏；页内标题 H2；卡头 H3。
+
 ### 5.3 禁止的动效效果
 
 | 禁止项 | 原因 |

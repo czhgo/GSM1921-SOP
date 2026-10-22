@@ -3,7 +3,7 @@
 // 单一事实源：前端 domain mockDB.branches 首启 seed + server/seed.js 两级导入均引用本文件
 // 支部不预设名字——br-b1 是当前实例（本科生党支部），硕博等支部由党委在系统内动态创建/改名。
 
-import { DEFAULT_BRANCH_ID } from '../../core/domain/constants.js?v=20261022c';
+import { DEFAULT_BRANCH_ID } from '../../core/domain/constants.js?v=20261022d';
 export const PARTY_COMMITTEE = {
   id: 'pc-gsm',
   name: '光华管理学院党委',   // 院系级党委（支书 2026-09-02 澄清：非全校）

@@ -16,7 +16,7 @@ export const FUNCTION_GROUPS = [
 
 export const FUNCTION_CATALOG = [
   // ══════════ 党建 ══════════
-  { id: 'activity-create', name: '活动创建', group: '党建', role: 'secretary', tab: 'calendar', desc: '支书/党小组组长创建三会一课、主题党日等活动', usage: '工作台 → 活动管理 → 写入活动 → 选模板 → 创建', related: ['agenda', 'activity-signup'], generic: true, kind: 'feature' },
+  { id: 'activity-create', name: '活动创建', group: '党建', role: 'secretary', tab: 'calendar', desc: '支书/党小组组长创建三会一课、主题党日等活动', usage: '支书工作台顶栏 → 写入活动 → 选模板 → 创建', related: ['agenda', 'activity-signup'], generic: true, kind: 'feature' },
   { id: 'agenda', name: '会议议程', group: '党建', role: 'secretary', tab: 'calendar', desc: '活动议程含讨论文件/待讨论名单，会后记录通过并自动归档', usage: '创建活动时在「高级选项」添加议程 → 会后在议程下记录通过/未通过', related: ['flow-branch-committee', 'flow-general-meeting', 'branch-doc'], generic: true, kind: 'feature' },
   { id: 'three-meetings', name: '三会一课', group: '党建', role: 'secretary', tab: 'calendar', desc: '支部党员大会、支委会、党小组会、党课的统一归口', usage: '工作台 → 活动管理 → 模板「三会一课」', related: ['activity-create', 'theme-party'], generic: true, kind: 'feature' },
   { id: 'theme-party', name: '主题党日', group: '党建', role: 'secretary', tab: 'calendar', desc: '主题党日活动，支持共建/校外/载体维度，模板卡整卡可点（点击热区=全卡）', usage: '工作台 → 活动管理 → 模板「主题党日」', related: ['three-meetings', 'activity-create'], generic: true, kind: 'feature' },
@@ -42,7 +42,7 @@ export const FUNCTION_CATALOG = [
   { id: 'taskforce-create', name: '专班发起', group: '活动与专班', role: 'secretary', tab: 'taskforce', desc: '发起专班（跨小组跨职能集中推进）', usage: '支书/组长/三委员 → 专班发起', related: ['taskforce-recruit', 'flow-taskforce'], generic: true, kind: 'feature' },
   { id: 'taskforce-recruit', name: '招募统筹', group: '活动与专班', role: 'org', tab: 'taskforce', desc: '组织委员统筹专班招募与定人定责定岗', usage: '组织委员工作台 → 专班建设 → 招募统筹', related: ['taskforce-create', 'taskforce-assign'], generic: true, kind: 'feature' },
   { id: 'taskforce-assign', name: '定人定责定岗', group: '活动与专班', role: 'org', tab: 'taskforce', desc: '专班分工记录与工作量记录', usage: '组织委员工作台 → 专班建设 → 定人定责定岗', related: ['taskforce-recruit', 'external-dispatch'], generic: true, kind: 'feature' },
-  { id: 'external-dispatch', name: '外派任务', group: '活动与专班', role: 'disc', tab: 'my-dispatch', desc: '接收外派/布置外派，送达确认后归档', usage: '工作台 → 我的派发', related: ['taskforce-assign'], generic: false, kind: 'feature' },
+  { id: 'external-dispatch', name: '外派任务', group: '活动与专班', role: 'disc', tab: 'my-dispatch', desc: '接收支部派发的汇报与反馈，处置结果回看', usage: '纪检委员工作台 → 我的处置', related: ['taskforce-assign'], generic: false, kind: 'feature' },
   // ══════════ 公共 ══════════
   { id: 'homepage', name: '首页', group: '公共', role: 'public', desc: '活动日历/近期活动/通知与招募一览', usage: '公共页面 → 首页', related: ['activity-create', 'notification', 'search'], generic: true, kind: 'feature' },
   { id: 'search', name: '资料查询', group: '公共', role: 'public', desc: '官方制度文件与支部文件检索，已归档支部文件标注讨论来源', usage: '公共页面 → 资料查询', related: ['branch-doc', 'archive'], generic: true, kind: 'feature' },

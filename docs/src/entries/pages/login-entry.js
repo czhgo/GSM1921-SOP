@@ -2,9 +2,9 @@
 // login-entry.js — 登录页入口（重构版）
 // 支持: 账号密码 Mock 校验 + 开发模式直接选身份
 
-import { AuthStore } from '../../services/core/auth.js?v=20261022c';
-import { getAccentColors, solidAccentStyle, dotDarkVars, isBranchPendingUser } from '../../core/domain/constants.js?v=20261022c';
-import { escHtml } from '../../core/base/utils.js?v=20261022c';
+import { AuthStore } from '../../services/core/auth.js?v=20261022d';
+import { getAccentColors, solidAccentStyle, dotDarkVars, isBranchPendingUser } from '../../core/domain/constants.js?v=20261022d';
+import { escHtml } from '../../core/base/utils.js?v=20261022d';
 
 // C09（2026-10-20）：登录链接可带 `next`（目标页 URL）——登录成功后按 next 回跳，
 // 「未登录点活动 / 专班」不再只进工作台、丢掉原对象。只接受**同源** URL（防开放重定向），
@@ -116,15 +116,30 @@ if (devToggle) {
 // ── 账号密码登录 ──────────────────────────────────
 const loginForm = document.getElementById('login-form');
 if (loginForm) {
+  const studentIdEl = document.getElementById('student-id');
+  const passwordEl = document.getElementById('password');
+  const errorEl = document.getElementById('login-error');
+  /** 清空字段级错误态（aria-invalid） */
+  const _clearInvalid = () => [studentIdEl, passwordEl].forEach(el => el?.removeAttribute('aria-invalid'));
+
   loginForm.addEventListener('submit', (e) => {
     e.preventDefault();
-    const studentId = document.getElementById('student-id').value.trim();
-    const password = document.getElementById('password').value.trim();
-    const errorEl = document.getElementById('login-error');
+    const studentId = studentIdEl.value.trim();
+    const password = passwordEl.value.trim();
 
+    _clearInvalid();
     const result = AuthStore.verifyCredentials(studentId, password);
     if (!result.ok) {
+      // 2026-10-22 第九轮 9B-6.7：失败时给对应输入 aria-invalid，并聚焦首个错误字段
+      //   （空字段 → 该字段；二者皆非空 → 学号 / 密码都可能不符，两个都标，焦点回学号）。
+      const bad = [];
+      if (!studentId) bad.push(studentIdEl);
+      if (!password) bad.push(passwordEl);
+      if (!bad.length) bad.push(studentIdEl, passwordEl);
+      bad.forEach(el => el.setAttribute('aria-invalid', 'true'));
+      errorEl.textContent = '学号或密码错误，请重试';
       errorEl.classList.remove('hidden');
+      bad[0]?.focus();
       return;
     }
 
@@ -133,6 +148,10 @@ if (loginForm) {
     // 2026-09-03 P1b：向后端一并传递账号密码，供 /login 口令校验（演示账号 123456）
     AuthStore.login(result.personId, password).then(() => {
       _goToWorkspace(AuthStore.getCurrentUser()?.role);
+    }).catch(() => {
+      // 6.7：请求失败不得无声停留——原位错误行（role="alert"）给出可恢复提示。
+      errorEl.textContent = '登录请求未完成，请稍后重试；也可改用统一身份认证登录。';
+      errorEl.classList.remove('hidden');
     });
   });
 }
