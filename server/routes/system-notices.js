@@ -14,6 +14,7 @@ import { SYSTEM_NOTICE_KINDS } from '../system-notice-kinds.js';
 import { today as todayLocal } from '../services/reporting.js';
 import { actorBranchId, resourceBranchId } from './resources/branch-scope.js';
 import { RESOURCE_TABLES } from './resources/store.js';
+import { bumpCollectionVersion } from '../db.js';
 
 const SOURCE_RESOURCE_BY_KIND = Object.freeze({
   'periodic-archive-submitted': 'periodicArchives',
@@ -140,6 +141,8 @@ export function createSystemNoticesRouter(db) {
       publishDate: todayLocal(),
     };
     db.prepare('INSERT OR REPLACE INTO notices (id, data) VALUES (?, ?)').run(id, JSON.stringify(notice));
+    // R10-D02：系统通知是语义写口，必须推进 notices 版本，否则别的设备整表快照会删掉它。
+    bumpCollectionVersion(db, 'notices');
     res.status(201).json(notice);
   });
 

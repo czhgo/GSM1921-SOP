@@ -18,9 +18,9 @@ import Database from 'better-sqlite3';
 import { createApp } from '../app.js';
 import { seedDatabase } from '../seed.js';
 import { migratePersonIdsToStudentNumbers } from '../db.js';
-import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261022d';
-import { setDataSource } from '../../docs/src/data/data-adapter.js?v=20261022d';
-import { TodoStore } from '../../docs/src/services/governance/todo.js?v=20261022d';
+import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261023a';
+import { setDataSource } from '../../docs/src/data/data-adapter.js?v=20261023a';
+import { TodoStore } from '../../docs/src/services/governance/todo.js?v=20261023a';
 
 let server;
 let base;
@@ -266,7 +266,7 @@ test('R3-07 移出成员不在在册名册读口；治理侧显式读取仍见�
   const org = await login('2400012355'); // 组织委员
   const created = await fetch(`${base}/api/v1/members`, {
     method: 'POST', headers: H(org),
-    body: JSON.stringify({ id: '2026999902', name: 'R3 移出成员', partyGroup: '第一党小组' }),
+    body: JSON.stringify({ id: '2026999902', name: 'R3 移出成员', partyGroup: '第一党小组', developStage: '正式党员' }),
   });
   assert.equal(created.status, 201);
   const out = await fetch(`${base}/api/v1/members/2026999902/transfer-out`, { method: 'POST', headers: H(org), body: '{}' });
@@ -276,7 +276,9 @@ test('R3-07 移出成员不在在册名册读口；治理侧显式读取仍见�
   assert.equal(roster.find((u) => u.id === '2026999902'), undefined, '★ 移出成员刷新后不再出现（不复活）');
   const history = await (await fetch(`${base}/api/v1/users?branchId=br-b1&includeTransferredOut=1`, { headers: H(org) })).json();
   const row = history.find((u) => u.id === '2026999902');
-  assert.ok(row && row.transferOut === true, '历史行保留（治理侧显式读取）');
+  const dbRowRaw = db.prepare('SELECT data FROM users WHERE id = ?').get('2026999902');
+  assert.ok(row && row.transferOut === true,
+    `历史行保留（治理侧显式读取）：${JSON.stringify(row || null)}；库内=${dbRowRaw ? dbRowRaw.data : 'null'}`);
 
   const loginRes = await fetch(`${base}/api/v1/auth/login`, {
     method: 'POST', headers: { 'Content-Type': 'application/json' },

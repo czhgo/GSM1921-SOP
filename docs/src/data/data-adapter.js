@@ -21,14 +21,15 @@
 // 本文件避免静态引入业务服务以防环依赖；静态依赖仅限零依赖叶子模块：
 //   · pending-writes：persist() 排程时必须同步登记写入，不能等 await（批次 49）。
 //   · page-url：纯 URL 解析，无数据或业务依赖，不形成反向依赖。
-import { trackWrite } from '../core/session/pending-writes.js?v=20261022d';
-import { resolveDocumentUrl } from '../core/base/page-url.js?v=20261022d';
+import { trackWrite } from '../core/session/pending-writes.js?v=20261023a';
+import { resolveDocumentUrl } from '../core/base/page-url.js?v=20261023a';
 // 角色集单一源（constants.js 只引零依赖叶子 date.js ⇒ 不形成业务环依赖）。
-import { BRANCH_COMMISSION_ROLES, PARTY_STAFF_ROLE } from '../core/domain/constants.js?v=20261022d';
+import { BRANCH_COMMISSION_ROLES, PARTY_STAFF_ROLE } from '../core/domain/constants.js?v=20261023a';
 // 工作组「在办」判据单一源（禁止裸状态数组回潮）
-import { isWorkgroupClosed } from '../core/domain/domain.js?v=20261022d';
+// D10：首页工作组预载必须与 components/dashboard/taskforce-list.js 完全同口径 → 用其 active/recruiting 判据
+import { isTaskforceActiveStatus } from '../core/domain/domain.js?v=20261023a';
 // @deprecated 旧 p* 人员 id 映射：仅迁移路径（本文件 + mock-adapter）可引用，业务代码禁止直接 import。
-import { isLegacyPersonId, mapPersonId } from './legacy-person-ids.js?v=20261022d';
+import { isLegacyPersonId, mapPersonId } from './legacy-person-ids.js?v=20261023a';
 
 /**
  * 旧 p* 人员 id → 学号/工号（迁移期兼容；已是学号原样返回，未知旧 id 返回 null）。
@@ -233,7 +234,7 @@ export async function init() {
       ]);
 
       // 填充 mockDB 缓存（供服务层同步读取）
-      const { mockDB } = await import('../core/domain/domain.js?v=20261022d');
+      const { mockDB } = await import('../core/domain/domain.js?v=20261023a');
       // 缓存引用：pagehide 同步冲刷时不能再 await 动态 import（文档卸载中挂起），
       // 必须直接同步读取（见 _flushSnapshotSync）
       _cachedMockDB = mockDB;
@@ -325,7 +326,7 @@ export async function init() {
       } catch (e) {
         console.warn('[DataAdapter] init: niche/新域集合拉取失败，回退本地备份：', e);
         try {
-          const { restoreNicheCollections } = await import('./mock-adapter.js?v=20261022d');
+          const { restoreNicheCollections } = await import('./mock-adapter.js?v=20261023a');
           restoreNicheCollections();
         } catch (e2) {
           console.warn('[DataAdapter] init: 本地 niche 备份恢复失败：', e2);
@@ -358,8 +359,8 @@ export async function init() {
       //   （批 47-X 真机实测入口计数 0，批 47-Y 按 R-78 造出可达且自洽的前置后转正）。
       if (SEED_FALLBACK && (!mockDB.attendances.length || !mockDB.inspections.length)) {
         try {
-          const { ATTENDANCE_RECORDS } = await import('./mock/attendance.js?v=20261022d');
-          const { INSPECTION_RECORDS } = await import('./mock/inspection.js?v=20261022d');
+          const { ATTENDANCE_RECORDS } = await import('./mock/attendance.js?v=20261023a');
+          const { INSPECTION_RECORDS } = await import('./mock/inspection.js?v=20261023a');
           const filled = ['attendances', 'inspections'].filter((k) => !mockDB[k].length); // 实际被回退注入的键
           for (const k of filled) mockDB[k] = (k === 'attendances' ? ATTENDANCE_RECORDS : INSPECTION_RECORDS).map(r => ({ ...r }));
           _commitBase(mockDB, filled); // 2026-09-26 批次 206：只登记实际注入的键（原先并列写死 ⇒ 未回退的键也被推基线 ⇒ 并发写丢）
@@ -370,7 +371,7 @@ export async function init() {
       }
       if (SEED_FALLBACK && !mockDB.todos.length) {
         try {
-          const { SEED_TODOS } = await import('../services/governance/todo.js?v=20261022d');
+          const { SEED_TODOS } = await import('../services/governance/todo.js?v=20261023a');
           mockDB.todos = _seedTodosForCurrentRole(SEED_TODOS);
           _commitBase(mockDB, ['todos']); // 回退值计入基线 ⇒ 不上传
           console.info('[DataAdapter] init: 待办空集合已按当前角色回退本地 seed');
@@ -603,7 +604,7 @@ async function _flushSnapshot() {
   // 党委账号未选支部：本轮没有支部写范围，快照必被服务端 403 ⇒ 不发（不把成功提示反转为失败）
   if (_isPartyStaffWithoutBranch()) { deferred?.resolve(); return; }
   try {
-    const { mockDB } = await import('../core/domain/domain.js?v=20261022d');
+    const { mockDB } = await import('../core/domain/domain.js?v=20261023a');
     _cachedMockDB = mockDB;
     const dirty = _collectDirty(mockDB);
     if (!dirty) { deferred?.resolve(); return; } // 无脏集合：跳过上传（2026-09-02 增量快照）
@@ -638,6 +639,83 @@ export async function flushSnapshot() {
     _snapshotTimer = null;
   }
   await _flushSnapshot();
+}
+
+/**
+ * 采用服务端某集合的权威数据（直连语义写口用）。
+ *
+ * 与 `_refreshCollections` 同一顺序纪律（**先取版本、再拉数据**），但多一个 `keepLocal` 口径：
+ *   · `keepLocal:false` ⇒ 整表采用服务端（同冲突恢复）；
+ *   · `keepLocal:true`  ⇒ **按 id 合并，本机行优先**，并把基线记成「服务端那批」——
+ *     本机独有的行仍算脏、下次快照照常补写，不会因为一次服务端插入就把本地未落库的编辑吞掉。
+ *
+ * 用途（批次 504）：`POST /api/v1/system-notices` 这类**绕过适配器**的语义写口会在服务端插入通知
+ * 并推进 `notices` 版本；前端随后整表快照会因「基线旧了一版」被 409。这里在写成功后把服务端真值并回来
+ * 并推进版本，既不让用户看到假冲突，也不丢本地未落库的通知。
+ * @param {string} name 快照集合名
+ * @param {{keepLocal?:boolean}} [opts]
+ * @returns {Promise<boolean>} 是否采用成功
+ */
+export async function adoptCollectionFromServer(name, opts = {}) {
+  if (DATA_SOURCE !== 'api' || !name) return false;
+  const adapter = getAdapter();
+  const group = adapter[name];
+  if (!group || typeof group.list !== 'function') return false;
+  const { mockDB } = await import('../core/domain/domain.js?v=20261023a');
+  let versionResp = null;
+  try { versionResp = await adapter.versions(); } catch (e) {
+    console.warn(`[DataAdapter] 采用 ${name}：版本基线重取失败（保持旧值，下次快照会再拒一次）：`, e);
+  }
+  let serverRows = null;
+  try { serverRows = await group.list(); } catch (e) {
+    console.warn(`[DataAdapter] 采用 ${name}：服务端数据拉取失败（保持本地数据，不推进基线）：`, e);
+    return false;
+  }
+  const server = Array.isArray(serverRows) ? serverRows : [];
+  if (opts.keepLocal) {
+    const byId = new Map(server.filter((r) => r && r.id).map((r) => [r.id, r]));
+    for (const row of (Array.isArray(mockDB[name]) ? mockDB[name] : [])) {
+      if (row && row.id) byId.set(row.id, row);
+    }
+    mockDB[name] = [...byId.values()];
+  } else {
+    mockDB[name] = server;
+  }
+  // 基线＝服务端那批：keepLocal 下本机独有 / 本机更新的行仍为脏 ⇒ 下次快照照常补写
+  _base[name] = _serKey(server);
+  const v = versionResp && versionResp.versions ? versionResp.versions[name] : undefined;
+  if (typeof v === 'number') _versions[name] = v;
+  return true;
+}
+
+/**
+ * 直连资源写口（`POST/PATCH/DELETE /api/v1/<resource>`）成功后推进本地版本基线。
+ *
+ * 为什么需要（批次 504 · R10-D02）：服务端自本批起让**语义写口也推进集合版本**（否则别的设备用
+ * 旧 baseline 整表快照会把这一行删掉）。而直连写口写完一行后，页面仍会在防抖窗口里整表快照一次
+ * （本地 mockDB 已含该行 ⇒ 该集合是脏的）——若不推进基线，**自己刚写的那一版**就会把下一次快照挡成 409。
+ *
+ * 安全条件（与 `_refreshCollections` 的「宁可下次再拒」同一条纪律）：
+ *   只有「服务端版本恰好＝本机基线＋1」时才推进——这证明这次 bump 就是本次直连写造成的；
+ *   若更大 ⇒ 期间还有别人写过，**保持旧基线**，让下一次快照照常 409 并走冲突恢复（不吞掉别人的数据）。
+ * @param {string} name 快照集合名（与 `_buildSnapshotPayload` 的键一致）
+ * @returns {Promise<boolean>} 是否推进
+ */
+export async function advanceVersionBaselineAfterWrite(name) {
+  if (DATA_SOURCE !== 'api' || !name) return false;
+  const adapter = getAdapter();
+  if (typeof adapter.versions !== 'function') return false;
+  let resp = null;
+  try { resp = await adapter.versions(); } catch (e) {
+    console.warn('[DataAdapter] 直连写后取版本失败（保持旧基线，下次快照会再拒一次）：', e);
+    return false;
+  }
+  const v = resp && resp.versions ? resp.versions[name] : undefined;
+  if (typeof v !== 'number') return false;
+  const base = _versions[name] === undefined ? 0 : Number(_versions[name]);
+  if (v !== base + 1) return false;
+  _versions[name] = v;
+  return true;
 }
 
 /**
@@ -760,11 +838,11 @@ async function _recoverFromConflict(e) {
     console.warn('[DataAdapter] 409 冲突但未给出冲突集合清单，无法定向刷新');
     return;
   }
-  const { mockDB } = await import('../core/domain/domain.js?v=20261022d');
+  const { mockDB } = await import('../core/domain/domain.js?v=20261023a');
   await _refreshCollections(names, mockDB);
   // 业务语言提示（既有告警通道 + 支书要求的可读文案）
   try {
-    const { showToast } = await import('../core/base/utils.js?v=20261022d');
+    const { showToast } = await import('../core/base/utils.js?v=20261023a');
     showToast('info', '数据已被他人更新，已为你刷新');
   } catch (err) {
     console.warn('[DataAdapter] 冲突提示渲染失败：', err);
@@ -945,12 +1023,12 @@ export async function hydrateDataSource({ apiAdapter, loadMock } = {}) {
 
 // 部署形态常量（`getRuntimeMode().stage` 的取值来源）：server=同源后端（Node 动态注入）/ static=静态托管。
 // ⚠ 同本文件既有纪律：**置尾**以保上文行号（README-server.md 的 `文件:行号` 取证引用）；import 声明被提升，置尾不影响语义。
-import { DEPLOY_MODE, DEMO_READONLY } from '../config/deploy.js?v=20261022d';
+import { DEPLOY_MODE, DEMO_READONLY } from '../config/deploy.js?v=20261023a';
 // `SEED_FALLBACK`（空域 seed 回退开关）**用命名空间导入**：Node 托管形态下 `/src/config/deploy.js`
 //   由 `server/app.js` 注入，**已带上该常量**（值由 env `SEED_FALLBACK=0` 决定，缺省 `true`）。仍保持
 //   命名空间导入（不用命名导入）：托管形态不止一种，命名导入遇上缺导出的宿主会 **SyntaxError**
 //   ⇒ 取不到即按**默认 `true`**（＝既有行为）。完整语义见 `config/deploy.js` 与本文件 `_deployConfig`。
-import * as _deployConfig from '../config/deploy.js?v=20261022d';
+import * as _deployConfig from '../config/deploy.js?v=20261023a';
 const SEED_FALLBACK = _deployConfig.SEED_FALLBACK !== undefined ? _deployConfig.SEED_FALLBACK : true;
 
 // ════════════════════════════════════════════════════════════════
@@ -1320,7 +1398,7 @@ export function demoReadOnlyMessage() {
 export async function refreshRemoteCollections(names, opts = {}) {
   if (DATA_SOURCE !== 'api') throw new Error('[DataAdapter] refreshRemoteCollections 仅用于 API 数据源');
   const uniqueNames = [...new Set((Array.isArray(names) ? names : []).filter((name) => typeof name === 'string'))];
-  const { mockDB } = await import('../core/domain/domain.js?v=20261022d');
+  const { mockDB } = await import('../core/domain/domain.js?v=20261023a');
   return _refreshCollections(uniqueNames, mockDB, opts);
 }
 
@@ -1357,12 +1435,24 @@ function _seedTodosForCurrentRole(seeds) {
  */
 async function _loadWorkgroupAux(mockDB) {
   const adapter = getAdapter();
+  // D10：与首页 `components/dashboard/taskforce-list.js` **完全一致**的过滤 / 排序 / 上限：
+  //   ① 状态只取 active / recruiting（isTaskforceActiveStatus）；
+  //   ② 活动工作组要排除「活动已归档 / 已取消」（状态是建组时投影，业务记录才是真相）；
+  //   ③ 按 createdAt 倒序、同名按名称升序；
+  //   ④ 两类各前 3。原实现用 `!isWorkgroupClosed` 会预载首页根本不显示的组，
+  //   导致首页显示「任务 加载中」而预载结果落不到它 → 永久加载中。
+  const activitiesById = new Map((mockDB.activities || []).map((row) => [row.id, row]));
   const active = (Array.isArray(mockDB.workgroups) ? mockDB.workgroups : [])
-    .filter((group) => group && group.id && !isWorkgroupClosed(group.status))
+    .filter((group) => group && group.id && isTaskforceActiveStatus(group.status))
+    .filter((group) => {
+      if (group.kind !== 'activity') return true;
+      const source = activitiesById.get(group.sourceId);
+      return !!source && !source.archived && source.status !== 'cancelled';
+    })
     .slice()
     .sort((a, b) => String(b.createdAt || '').localeCompare(String(a.createdAt || ''))
       || String(a.name || '').localeCompare(String(b.name || '')));
-  // 只拉首页可见组（每类前 3，与 components/dashboard/taskforce-list.js 同口径）——
+  // 只拉首页可见组（每类前 3，与 taskforce-list.js 同口径）——
   //   不为整库工作组逐组发请求；未拉到的组在首页显示「加载中」，不冒充「无任务」。
   const visible = [
     ...active.filter((group) => group.kind === 'activity').slice(0, 3),

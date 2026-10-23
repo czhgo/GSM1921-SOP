@@ -2,7 +2,7 @@
 title: "2026年10月执行日志"
 type: execution_log
 role: "[工程师]+[AI]"
-last_updated: 2026-10-22
+last_updated: 2026-10-23
 status: active
 related_files: [CLAUDE.md, .ctx/logs/archive/2026-09-EXECUTION_LOG.md, .ctx/logs/EXECUTION_LOG_INDEX.md]
 ---
@@ -3474,3 +3474,51 @@ $body
 | 4 | 数据结构审计发现问题就顺手改 schema | 本轮只诊断出方案，schema 变更须与部署形态同批裁定 | scope_creep | IF 变更触及 schema/索引 THEN 先出方案＋依赖清单，支书裁定后才实施 |
 
 
+
+## 批次 504（2026-10-23）：R10 数据生命周期四批 ＋ 第九轮 schema 方案落地（v11）
+
+### 一、判据
+
+- 支书：**两份 spec「一推到底」**——`advance-r10-data-lifecycle`（十轮审查 75 条，按「数据安全 → 种子 → 制度 → 空字段」四批）与 `implement-r9-schema-plan`（v11：Todo 归属 / 热表下推 / 影子拆表）。
+- 四答锁定口径：① R10 按主题全量修；② 空字段「可派生则派生，否则必须可写」；③ 种子按产品口径重做演示数据；④ 拆表只建表回填＋影子比对，**不切权威源**，但必须写清「何时可切」。
+- 另两答：Todo `branchId` 保留 `NULL`＋一个兼容周期；测试预算 3 次（定向／daily／全量）。
+
+### 二、动作（指针）
+
+1. **v11 迁移**（`server/db.js`）：`todos.branch_id` 按「父行 → 所属人 → NULL」回填并计数 `unresolved`；五张热表加 generated **VIRTUAL** 列＋复合索引；建影子子表 `agenda_items` / `taskforce_contributions` 并回填；`replaceCollectionsAtomic` 覆盖活动/专班时重建影子；导出 `rebuildShadowTables` / `compareShadowTables` / `rollbackV11`。
+2. **Todo 归属 fail-closed**：`branch-scope.js::resourceBranchId('todos')` 不再回落默认支部；新写无支部 400（服务端与 mock 同口径）；历史 `NULL` 行仅本人/同角色可见并标 `branchLegacy`；兼容期常量在 `constants.js`。
+3. **热表下推＋可选分页**：`_listRowsWithPushdown`（`branch_id = ? OR branch_id IS NULL`，JS 侧统一判归属）与 `_paginateRows`（`(updated_at,id)` 游标、无 OFFSET、`pageSize ≤ 200`）；无 `page/cursor` 时仍返回原数组。
+4. **拆表判据**：新增 `server/scripts/schema-split-readiness.mjs`（C1 规模 / C2 409 / C3 子项查询 / C4 影子 mismatch / C5 保留期）＋ `CLAUDE.md B-504-1` 逐字登记「全真才可切」。
+5. **R10 第 1 批（数据安全）**：语义写口统一 bump 集合版本（系统通知 / 通用 CRUD / 工作组成员·授权·产出 / 支部配置）；专班移出改 tombstone 保留贡献；API 形态不再注入周期归档演示种子；考察快照强制会话记录人/确认人；恢复归档回收工作组；无父键归属 fail-closed；删除幽灵操作人兜底。
+6. **R10 第 2 批（种子与 mock）**：用户可编辑字段移入 `seed-manifest::runtimeFields`；种子派生复用产品同步；删违反制度的演示行（支委会考勤、报名样本、过期窗口）；补 `confirmedBy/confirmedAt` 三件套；`_mockSeedSources` 由 manifest 生成，8 个仅服务端集合迁入 `mock/auxiliary.js` 同源。
+7. **R10 第 3 批（制度单一源）**：SOP 任务可执行（支委会不生成考勤、执行人＝本场组织者、复盘期限现算）；`definitions.js` 只存 `sopTaskId`、`SLA_HOURS` 常量化、`WORKFLOW_ROLES` 断言；`policySectionsByRole()` / `committee` sentinel / `computeRosterStats()` / `groupOptions()` / `workgroupIdFor()` 收口；考勤确认统一 `confirmedBy`，`overdue` 停写并现算。
+8. **R10 第 4 批（空字段与体验）**：发展阶段/学号必填＋字段级错误＋历史空值「未登记（可补）」；会议名单读冻结应到；组织者读 `assignments`；通知收发人读真实字段；活动详情补时间/主持人/说明；归档显示上传人；停用项给启用落点；工作组预载与首页同谓词。
+
+### 三、读数
+
+- **定向（第 1 次）**：`node --test`（R9 九件 ＋ R10 十六件）＝ **126 / 126 通过、0 失败**。
+- **daily（第 2 次）**：`npm run test:daily` 首跑 **1418 / 1421（3 红：doc-line-ref R1/R2 ＋ timestamps N2）**；修后 `doc-line-ref` ＋ `timestamps-note-guard` **13 / 13 绿**（R1/R2 重钉 README-server 的 `data-adapter.js`/`db.js` 行号；N2 压缩本批备注列）。
+- **全量（第 3 次）**：`SWEEP_SHARD=all`（`DISABLE_PASSWORD_CHECK=1` / `DEMO_READONLY=0`）＝ **[node] 1423 / 1423**、**[e2e-A] 57 过 + 1 skip（58）**、**[e2e-B] 177 / 179（2 红）**；墙钟 **1120.8s**（≤1200s）。两红＝① `page-sweep` P6：新增的「有效期」`input[type=date]` 未带 `.text-xs` ⇒ 40px（日期控件的 38px 规则挂在 `.input-flat.text-xs[type=date]` 上）；② `today-action-groups-e2e` S12：支书种子待办已按 R2-33 收口为 0，今天页走**空态**布局而空态缺「全部 ›」标题行。处置：① 补 `.text-xs`；② 空态左卡改与正常态**同一标题行**（`data-today-all="todo"` 常在）。**单文件复跑** `page-sweep` ＋ `today-action-groups-e2e` ＝ **17 / 17 绿**——**如实登记为「非单一绿跑取证」**（其余 177 件在同一次全量里已全过，本批只改这两处渲染）。
+- 单文件诊断（不计入 3 次预算）：`form-loop-sweep` 85 / 85 绿（含 S0–S7 与 27 条真机流程）、`b3-1-makeup-writeback` 1 / 1 绿。
+- 版本戳 `20261022d` → **`20261023a`**（JS 255 / HTML 26 / CSS 2 / server-test 138）。
+
+### 四、两类红（如实登记）
+
+1. **v11 首跑启动崩**：`ALTER TABLE ... ADD ... STORED` 在**已有数据**的表上被 SQLite 拒绝 ⇒ 演示库启动失败、e2e-A 8 件连带红。改为 `VIRTUAL`，并改用 `PRAGMA table_xinfo` 识别生成列（否则重跑会重复加列）；`createIndex` 加 `hasTable` 守卫（最小库没有五张热表）。
+2. **e2e-B 真机 409（自写冲突）**：本批让语义写口推进集合版本后，直连写（`POST /activities`、`POST /system-notices`）先把服务端版本推高，页面随后的整表快照仍带旧基线 ⇒ **被自己刚写的那一版挡成 409**，用户看到「数据已被他人更新」。处置（客户端两处）：① `ApiAdapter` 的 `_post/_patch/_delete` 成功后调 `advanceVersionBaselineAfterWrite`（仅当「服务端版本＝基线＋1」才推进，期间有他人写则保持旧基线、照常走冲突恢复）；② `NoticeStore.addSystem` 成功后 `adoptCollectionFromServer('notices', { keepLocal:true })`（先取版本再拉数据、按 id 合并且本机行优先，不丢本地未落库通知）。
+
+### 五、边界（如实）
+
+- **拆表未切权威源**：`agenda_items` / `taskforce_contributions` 只是影子，读写仍走 JSON；切换须 `schema-split-readiness.mjs` 五项判据全真＋`B-504-1` 裁定，本批**不切**。
+- **Todo `NULL` 兼容期**：历史 `NULL` 行仍按「本人/同角色」可见；到期常量先到者为准（下一次 schema 升级或 2026-12-31），到期后才隐藏。
+- **generated 列是 VIRTUAL 不是 STORED**：SQLite 不支持给已有数据的表加 STORED；索引与读侧下推不受影响，但**磁盘上不物化**（后续若要物化须走 12 步表重建，未做）。
+- **`overdue` 存储值保留但不写不读**：读侧一律 `isAttendanceOverdue` 现算；历史行里的旧快照不再被消费。
+- **演示种子按当前日期重做**：10 月窗口、补课相对日期等会随日期漂移的样本改为相对/现算，后续再跑不会因「今天」变化而红。
+
+### 六、sample-diff 三样本（AI 假设 → 支书意图）
+
+| # | AI 假设 | 支书意图 | 偏差类型 | 可复用规则（Boolean） |
+|---|---|---|---|---|
+| 1 | 空字段先都补成「未填写」文案，保证界面不空 | 可派生就派生，派生不了才给写入口；「未填写」不是终点 | symptom_misread | IF 字段为空 THEN 先问「能否从既有事实派生」，否则必须给可写入口 |
+| 2 | 拆表＝直接把读路径切到子表，一步到位 | 先建表回填＋影子比对，判据全真才切，且要防 AI 忘掉条件 | scope_creep | IF 变更触及权威源 THEN 先影子双写＋判据脚本＋书面切换条件，不切权威源 |
+| 3 | 语义写口推进版本是「更安全」，不需要改前端 | 前端直连写与整表快照并存 ⇒ 必须同步推进本地基线，否则用户看到假冲突 | incomplete_contract | IF 服务端新增「写后 bump」THEN 同步检查所有客户端写路径的基线与冲突恢复 |

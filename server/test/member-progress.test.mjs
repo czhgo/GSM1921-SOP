@@ -22,7 +22,7 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { createApp } from '../app.js';
 import { seedDatabase } from '../seed.js';
-import { aggregateMemberProgress } from '../../docs/src/services/member/member-progress.js?v=20261022d';
+import { aggregateMemberProgress } from '../../docs/src/services/member/member-progress.js?v=20261023a';
 
 const ROOT = join(import.meta.dirname, '..', '..');
 const TODAY = '2026-09-15';
@@ -39,17 +39,17 @@ before(async () => {
     db.prepare(`INSERT OR REPLACE INTO ${table} (id, data) VALUES (?, ?)`).run(id, JSON.stringify(data));
 
   // 在办事项：1 条超期 + 1 条在办未超期 + 1 条已完成（已完成两条口径都不计）
-  put('todos', 'mp-t1', { id: 'mp-t1', personId: TARGET, title: '超期待办', status: 'pending', deadline: '2026-09-01' });
-  put('todos', 'mp-t2', { id: 'mp-t2', personId: TARGET, title: '在办未超期', status: 'pending', deadline: '2026-12-31' });
-  put('todos', 'mp-t3', { id: 'mp-t3', personId: TARGET, title: '已完成', status: 'completed' });
+  put('todos', 'mp-t1', { id: 'mp-t1', branchId: 'br-b1', personId: TARGET, title: '超期待办', status: 'pending', deadline: '2026-09-01' });
+  put('todos', 'mp-t2', { id: 'mp-t2', branchId: 'br-b1', personId: TARGET, title: '在办未超期', status: 'pending', deadline: '2026-12-31' });
+  put('todos', 'mp-t3', { id: 'mp-t3', branchId: 'br-b1', personId: TARGET, title: '已完成', status: 'completed' });
   // 出勤：1 缺勤 + 1 出席（只有缺勤计入）
-  put('attendances', 'mp-a1', { id: 'mp-a1', personId: TARGET, activityId: 'act-1', status: 'absent' });
-  put('attendances', 'mp-a2', { id: 'mp-a2', personId: TARGET, activityId: 'act-2', status: 'present' });
+  put('attendances', 'mp-a1', { id: 'mp-a1', branchId: 'br-b1', personId: TARGET, activityId: 'act-1', status: 'absent' });
+  put('attendances', 'mp-a2', { id: 'mp-a2', branchId: 'br-b1', personId: TARGET, activityId: 'act-2', status: 'present' });
   // 考察：1 条待确认
-  put('inspections', 'mp-i1', { id: 'mp-i1', personId: TARGET, status: 'pending', content: '考察内容' });
+  put('inspections', 'mp-i1', { id: 'mp-i1', branchId: 'br-b1', personId: TARGET, status: 'pending', content: '考察内容' });
   // 汇报：1 条卡点上报（open）
   put('issues', 'mp-r1', {
-    id: 'mp-r1', kind: 'report', submittedBy: TARGET, status: 'open',
+    id: 'mp-r1', branchId: 'br-b1', kind: 'report', submittedBy: TARGET, status: 'open',
     reportCategory: 'blocked', title: '卡点事由',
   });
   // 成员范围必须先存在于当前支部名册，接口再计算其汇总。

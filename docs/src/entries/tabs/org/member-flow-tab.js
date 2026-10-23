@@ -15,27 +15,27 @@
 //   登记者角色门 = canRegisterFlow（组织委员 + 支书/副支书）。
 // ════════════════════════════════════════════════════════════════
 
-import { DEFAULT_BRANCH_ID } from '../../../core/domain/constants.js?v=20261022d';
-import { AuthStore, currentUserId } from '../../../services/core/auth.js?v=20261022d';
-import { getBranchIdOfPerson } from '../../../services/branch/branch.js?v=20261022d';
-import { getPersonName } from '../../../services/member/person.js?v=20261022d';
+import { DEFAULT_BRANCH_ID, DEVELOP_STAGES } from '../../../core/domain/constants.js?v=20261023a';
+import { AuthStore, currentUserId } from '../../../services/core/auth.js?v=20261023a';
+import { getBranchIdOfPerson } from '../../../services/branch/branch.js?v=20261023a';
+import { getPersonName } from '../../../services/member/person.js?v=20261023a';
 // 党小组常态清单唯一来源（活组、按 seq 升序；新增/改名/解散后随渲染即时可见）——登记流入的「党小组」选项
-import { groupOptions } from '../../../services/member/party-group.js?v=20261022d';
-import { showToast, escHtml as esc, getBasePath, todayLocal } from '../../../core/base/utils.js?v=20261022d';
-import { getAuthToken, getApiBaseUrl } from '../../../data/data-adapter.js?v=20261022d';
-import { openModal, closeModal } from '../../../components/ui/modal.js?v=20261022d';
+import { groupOptions } from '../../../services/member/party-group.js?v=20261023a';
+import { showToast, escHtml as esc, getBasePath, todayLocal } from '../../../core/base/utils.js?v=20261023a';
+import { getAuthToken, getApiBaseUrl } from '../../../data/data-adapter.js?v=20261023a';
+import { openModal, closeModal } from '../../../components/ui/modal.js?v=20261023a';
 // 统一检索引擎（表格统一化批次 A）：台账表接入关键词 + 分面（≤8 行引擎自动不渲染检索条）
-import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261022d';
-import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261022d';
+import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261023a';
+import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261023a';
 // 成员流入/流出登记服务层（2026-09-14 批次 25 支书裁定）：登记即生效 + 台账 + 对账 + 撤销
 import {
   loadMemberFlows, reconcile, registerIntake, registerIntakeBatch,
   registerOutflow, revokeFlow, canRegisterFlow,
-} from '../../../services/member/member-flow.js?v=20261022d';
+} from '../../../services/member/member-flow.js?v=20261023a';
 // 选人规范：凡选择具体人一律 PersonPicker（禁 select 罗列人名）——登记流出选人
-import { PersonPicker } from '../../../components/governance/pickers.js?v=20261022d';
+import { PersonPicker } from '../../../components/governance/pickers.js?v=20261023a';
 // 自定义圆角下拉增强（select.input-flat.text-xs → cs-trigger；与全局 observer 幂等）
-import { enhanceSelects } from '../../../components/ui/custom-select.js?v=20261022d';
+import { enhanceSelects } from '../../../components/ui/custom-select.js?v=20261023a';
 
 // 模块级 ctx 缓存：登记/撤销后整页刷新复用首次渲染的 accent
 let _ctx = null;
@@ -277,6 +277,9 @@ function _skippedHtml(skipped) {
 function _openIntakeModal() {
   const accent = _ctx?.accent || 'var(--accent-blue)';
   const groupOpts = ['<option value="">未分组</option>', ...groupOptions().map(g => `<option value="${esc(g)}">${esc(g)}</option>`)].join('');
+  // A01：发展阶段必选（枚举单一源 = core/domain/constants.js::DEVELOP_STAGES）——
+  //   空阶段会让成员静默落在应到 / 表决名单之外，故在登记表单即收口。
+  const stageOpts = ['<option value="">请选择发展阶段</option>', ...DEVELOP_STAGES.map(s => `<option value="${esc(s)}">${esc(s)}</option>`)].join('');
   const inputStyle = '--acc-text-dark:#CBD5E1;color:var(--neutral-700);';
   const labelStyle = 'display:block;font-weight:500;color:var(--neutral-700);margin-bottom:4px;';
   const MODE_ON = 'btn-tab active text-xs px-3 py-1.5';
@@ -310,10 +313,18 @@ function _openIntakeModal() {
           <label for="flow-intake-party-group" class="text-body-sm" style="${labelStyle}">党小组</label>
           <select id="flow-intake-party-group" data-intake="partyGroup" class="input-flat w-full">${groupOpts}</select>
         </div>
+        <div style="margin-bottom:14px;">
+          <label for="flow-intake-develop-stage" class="text-body-sm" style="${labelStyle}">发展阶段 <span style="color:var(--functional-error);">*</span></label>
+          <select id="flow-intake-develop-stage" data-intake="developStage" required aria-required="true" class="input-flat w-full">${stageOpts}</select>
+        </div>
+        <div style="margin-bottom:14px;">
+          <label for="flow-intake-note" class="text-body-sm" style="${labelStyle}">备注（选填）</label>
+          <input id="flow-intake-note" data-intake="note" type="text" class="input-flat-sm w-full" placeholder="如：转入原因 / 原支部" style="${inputStyle}">
+        </div>
       </div>
       <div data-intake-pane="batch" class="hidden">
         <label for="flow-intake-text" class="text-body-sm" style="${labelStyle}">粘贴多行</label>
-        <textarea id="flow-intake-text" data-intake="text" rows="6" class="input-flat w-full" placeholder="一行一人：姓名、学号、届别、党小组（Tab 或逗号分隔）" style="${inputStyle}resize:vertical;"></textarea>
+        <textarea id="flow-intake-text" data-intake="text" rows="6" class="input-flat w-full" placeholder="一行一人：姓名、学号、届别、党小组、备注、发展阶段（Tab 或逗号分隔；第 6 列发展阶段必填）" style="${inputStyle}resize:vertical;"></textarea>
       </div>
       <div data-intake-errors class="hidden mt-3 text-xs text-red-700"></div>`,
     // 动作固定在 sticky footer（R3-10）
@@ -347,6 +358,7 @@ function _openIntakeModal() {
           const r = await registerIntake({
             name: val('name'), studentId: val('studentId'),
             enrollYear: val('enrollYear'), partyGroup: val('partyGroup'),
+            developStage: val('developStage'), note: val('note'),
             by, role, branchId,
           });
           if (r.ok) {

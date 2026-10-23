@@ -24,15 +24,15 @@
 // 消费点：纪检会议考勤录入（disc attendance-tab 候选与全选）、成员档案维护 UI、支书复核卡。
 // ════════════════════════════════════════════════════════════════
 
-import { POLICY_DEFAULTS } from '../../core/domain/policy-defaults.js?v=20261022d';
+import { POLICY_DEFAULTS } from '../../core/domain/policy-defaults.js?v=20261023a';
 // Q-21-3 收敛（2026-09-13）：在册状态枚举单一源 = core/domain/constants.js（本模块原先自持一份与
 //   org-base-data-preview 同值的副本，两处维护；现统一 import 叶子模块，防循环依赖见该文件注释）。
-import { RESIDENCE } from '../../core/domain/constants.js?v=20261022d';
-import { PersonStore } from './person.js?v=20261022d';
+import { RESIDENCE } from '../../core/domain/constants.js?v=20261023a';
+import { PersonStore } from './person.js?v=20261023a';
 // 双形态判定（mock/api）：api 形态下在册状态以服务端 users 行为权威，本模块不再读 localStorage 覆盖
 //   （2026-09-24 批次 169）。data-adapter 为零静态业务依赖的叶子模块（仅 import pending-writes）⇒ 无环。
-import { getDataSource } from '../../data/data-adapter.js?v=20261022d';
-import { mockDB } from '../../core/domain/domain.js?v=20261022d';
+import { getDataSource } from '../../data/data-adapter.js?v=20261023a';
+import { mockDB } from '../../core/domain/domain.js?v=20261023a';
 
 /** 运行期覆盖的 localStorage 键（组织委员维护写入；与 members UI / 纪检表单同源读取；
  *  ⚠ **仅 mock 形态生效**——api 形态本键恒不被读写，在册状态以服务端 users 行为单一权威） */
@@ -182,6 +182,36 @@ export function getMeetingRosterCandidates({ type, groupId, branchId } = {}) {
 }
 
 /**
+ * 应到口径统计（R10-B12 单一源）：任意成员行 → 应到＝党员−滞留，并按组统计。
+ * 纯函数（不读存储）：名册导入预览与成员预览共用，勿在各自模块复制公式。
+ * @param {Array} rows 成员行（含 developStage / residenceStatus / partyGroup）
+ * @param {string[]} [groups] 组序（缺省不产 perGroup；调用方传 groupOptions() 即活组）
+ * @returns {{ partyTotal:number, official:number, probationary:number, detained:number,
+ *            expected:number, perGroup:Object<string,{partyTotal:number,expected:number,detainedParty:number}> }}
+ */
+export function computeRosterStats(rows, groups = []) {
+  const cfg = getRosterConfig();
+  const isParty = p => cfg.partyStages.includes(p.developStage);
+  const isDetainedRow = p => p.residenceStatus === RESIDENCE.DETAINED;
+  const party = (Array.isArray(rows) ? rows : []).filter(isParty);
+  const official = party.filter(p => p.developStage === '正式党员').length;
+  const probationary = party.filter(p => p.developStage === '预备党员').length;
+  const detained = party.filter(isDetainedRow).length;
+  const expected = party.length - (cfg.excludeDetained ? detained : 0);
+  const perGroup = {};
+  for (const g of Array.isArray(groups) ? groups : []) {
+    const gp = party.filter(p => p.partyGroup === g);
+    const gd = gp.filter(isDetainedRow).length;
+    perGroup[g] = {
+      partyTotal: gp.length,
+      expected: gp.length - (cfg.excludeDetained ? gd : 0),
+      detainedParty: cfg.excludeDetained ? gd : 0,
+    };
+  }
+  return { partyTotal: party.length, official, probationary, detained, expected, perGroup };
+}
+
+/**
  * 应到清点统计（供界面展示「应到 N 人 / 滞留 M 人已剔除」）
  * @returns {{ expected:number, partyTotal:number, detainedParty:number }}
  *   expected = 应到（党员非滞留）；partyTotal = 同范围党员总数（正式+预备）；
@@ -194,12 +224,11 @@ export function getRosterStats({ type, groupId, branchId } = {}) {
     if (!groupId) return { expected: 0, partyTotal: 0, detainedParty: 0 };
     members = members.filter(p => p.partyGroup === groupId);
   }
-  const party = members.filter(p => isPartyMember(p, cfg));
-  const detained = party.filter(p => isDetained(p));
+  const { expected, partyTotal, detained } = computeRosterStats(members);
   return {
-    expected: party.length - (cfg.excludeDetained ? detained.length : 0),
-    partyTotal: party.length,
-    detainedParty: cfg.excludeDetained ? detained.length : 0,
+    expected,
+    partyTotal,
+    detainedParty: cfg.excludeDetained ? detained : 0,
   };
 }
 

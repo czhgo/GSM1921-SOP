@@ -6,19 +6,23 @@
 //         content/04_web_design/design-system/DESIGN_SYSTEM.md §一 第6条
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB, isTaskforceActiveStatus } from '../../core/domain/domain.js?v=20261022d';
-import { persist, getDataSource } from '../../data/data-adapter.js?v=20261022d';
-import { generateId } from '../../core/base/id.js?v=20261022d';
-import { bumpToken, tokenOf } from '../../core/base/version-token.js?v=20261022d';
+import { mockDB, isTaskforceActiveStatus } from '../../core/domain/domain.js?v=20261023a';
+import { persist, getDataSource } from '../../data/data-adapter.js?v=20261023a';
+import { generateId } from '../../core/base/id.js?v=20261023a';
+import { bumpToken, tokenOf } from '../../core/base/version-token.js?v=20261023a';
 // 待批活动状态值单一源（2026-09-22 批次 151 · 支书裁定「只支委层可见」）：待批活动**不是**「待参与」的活动
 // ——它还没获批（与 `draft` 同待遇），不为它派生「参与活动」待办（也免得从待办标题把没批的活动漏出去）。
-import { PENDING_APPROVAL_STATUS } from '../activity/activity.js?v=20261022d';
-import { todayLocal, _fmtDate } from '../../core/base/utils.js?v=20261022d';
-import { AuthStore } from '../core/auth.js?v=20261022d';
+import { PENDING_APPROVAL_STATUS } from '../activity/activity.js?v=20261023a';
+import { todayLocal, _fmtDate } from '../../core/base/utils.js?v=20261023a';
+import { DEFAULT_BRANCH_ID } from '../../core/domain/constants.js?v=20261023a';
+import { AuthStore } from '../core/auth.js?v=20261023a';
 // 周期键（月/季/半年/年）与「模块周期」单一源（2026-10-06 批次 423 · `R-29⑤` · `D-804`）——
 //   周期任务的**来源**＝`work-map.js::WORK_MAP_MODULES[].cycle`（不另立第二份映射，`D-803②`）。
-import { cyclePeriodOf, cyclePeriodLabel } from '../../core/base/period.js?v=20261022d';
-import { WORK_MAP_MODULES, expandWorkforce, ownerOfModule, moduleIdOfActivity } from '../../core/domain/work-map.js?v=20261022d';
+import { cyclePeriodOf, cyclePeriodLabel } from '../../core/base/period.js?v=20261023a';
+import { WORK_MAP_MODULES, expandWorkforce, ownerOfModule, moduleIdOfActivity } from '../../core/domain/work-map.js?v=20261023a';
+// R10-B03：种子待办截止 = 活动日 + 制度复盘/归档时限（单一源），不存死日期字面量。
+import { ACTIVITIES } from '../../data/mock/activities.js?v=20261023a';
+import { POLICY_DEFAULTS } from '../../core/domain/policy-defaults.js?v=20261023a';
 
 // ── 待办分类枚举 ──────────────────────────────────────────────
 export const TodoCategory = {
@@ -1622,6 +1626,7 @@ export const SEED_TODOS = [
   // 宣传委员待办
   {
     id: 'todo_seed_6',
+    branchId: DEFAULT_BRANCH_ID,
     title: '提交"红色徒步·香山行"活动新闻稿',
     description: '请撰写并提交"红色徒步·香山行"（纪念长征胜利 90 周年）活动新闻稿。',
     role: 'prop-commissioner',
@@ -1629,8 +1634,8 @@ export const SEED_TODOS = [
     priority: 'normal',
     status: TodoStatus.PENDING,
     // R2-34（2026-10-20）：原 deadline 12/31、sourceId:null ⇒ 与活动无派生关系，活动归档也不会自动销项。
-    //   改为挂真实活动 act-37，截止 = 活动日 10/22 + 7 天（宣传归档时限，与 review.deadlineDays 同一 T+7 口径）。
-    deadline: '2026-10-29',
+    //   改为挂真实活动 act-37；截止 = 活动日 + 制度复盘/宣传归档时限（R10-B03：读 review.deadlineDays，现算不存死）。
+    deadline: _addDays((ACTIVITIES.find(a => a.id === 'act-37') || {}).date, POLICY_DEFAULTS.review.deadlineDays),
     createdAt: '2026-07-05T08:00:00',
     sourceType: TodoSourceType.ACTIVITY,
     sourceId: 'act-37',

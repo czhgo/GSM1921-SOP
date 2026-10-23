@@ -3,7 +3,7 @@ import { Router } from 'express';
 import { randomUUID } from 'node:crypto';
 import { gunzipSync } from 'node:zlib';
 import { requireAuth, requireCommissioner, requireRole } from '../auth.js';
-import { replaceCollectionsAtomic, readCollectionVersions, bumpCollectionVersion } from '../../db.js';
+import { replaceCollectionsAtomic, readCollectionVersions, bumpCollectionVersion, rebuildShadowTables } from '../../db.js';
 import { deleteUploadedFile } from '../uploads.js';
 import { afterResourceWrite } from '../../services/mailer-hooks.js';
 // R-26③（2026-10-05 批次 388）：日期口径统一到**本地**（服务端单一源 `services/reporting.js`）
@@ -14,13 +14,14 @@ import { fmtLocal } from '../../services/reporting.js';
 import { sanitizeConfigModules, sanitizeConfigBlocks, sanitizeConfigWorkforce, sanitizeConfigOrg, sanitizeConfigPolicyOverrides, sanitizeConfigCapabilityPackages, CONFIG_HISTORY_MAX, CONFIG_ROLLBACK_WHAT, CONFIG_ROLLBACK_KEYS } from '../../../docs/src/services/branch/config-clean.js';
 import { CAPABILITY_PACKAGE_BY_ID } from '../../../docs/src/core/domain/capability-packages.js';
 // 批4（2026-09-09 支书批「域参数」）：policyOverrides 顶层节白名单（server 写口与前端 branch.js 同源校验）
-import { POLICY_DEFAULTS, POLICY_OVERRIDE_SECTIONS } from '../../../docs/src/core/domain/policy-defaults.js';
+import { POLICY_DEFAULTS, POLICY_OVERRIDE_SECTIONS, policySectionsByRole } from '../../../docs/src/core/domain/policy-defaults.js';
 // P2c（2026-09-03）：授权语义角色集单一源 = docs/src/core/domain/constants.js（勿手写）
 import { ACTIVITY_SCOPES, BRANCH_COMMISSION_ROLES, hashSubmitterToken, isActivityEnded, isBranchLevelActivity, normalizeOrganizingScope, isPartyGroupLeaderRole, DEFAULT_BRANCH_ID } from '../../../docs/src/core/domain/constants.js';
 import { projectMemberListRow } from '../../../docs/src/core/domain/profile-access.js';
 import {
-  TaskforceStatus, TASKFORCE_TERMINAL_STATUSES, isTaskforceStatus, workgroupStatusForTaskforce,
+  TaskforceStatus, TASKFORCE_TERMINAL_STATUSES, isTaskforceStatus, workgroupStatusForTaskforce, isActivityClosed,
 } from '../../../docs/src/core/domain/domain.js';
+import { workgroupIdFor } from '../../../docs/src/data/activity-workgroup-sync.js';
 import { validateAgendaStructure } from '../../../docs/src/services/activity/agenda-relations.js';
 import { deriveArchivePeriod } from '../../../docs/src/services/governance/periodic-archive.js';
 // R4-B04：思想汇报读口与前端同一判据（本人或支委层），单一源 = services/governance/thought-report.js
@@ -100,9 +101,15 @@ function _isActivityOrganizer(activity, actorId) {
       && activity.assignments.some((item) => item?.personId === actorId && item.role === 'organizer'));
 }
 
-/** 活动承办党小组（与前端 attendance.js/inspection.js::_activityPartyGroup 同口径） */
+/** 活动承办党小组（与前端 attendance.js/inspection.js::_activityPartyGroup 同口径；R10-D07）：
+ *  优先按 hostGroupId 现查 `party_groups` 组名（改名后权限/归属不断链），名称快照 hostGroup 仅作兜底。 */
 function _activityPartyGroup(db, activity) {
   if (!activity) return null;
+  if (activity.hostGroupId) {
+    const groupRow = db.prepare('SELECT data FROM party_groups WHERE id = ?').get(String(activity.hostGroupId));
+    const groupName = groupRow ? (JSON.parse(groupRow.data).name || null) : null;
+    if (groupName) return groupName;
+  }
   if (activity.hostGroup) return activity.hostGroup;
   const organizerId = activity.organizer
     || (Array.isArray(activity.assignments)
@@ -154,8 +161,77 @@ function _canReadTodoRow(row, actor) {
   return row.role === actor.role;
 }
 
+/** v11（批次 504）：可下推列白名单——只有这些集合允许用生成列/普通列在 SQL 侧过滤 */
+const PUSHDOWN_COLUMNS = {
+  attendances: ['branch_id', 'status', 'person_id', 'activity_id'],
+  inspections: ['branch_id', 'activity_id'],
+  notices: ['branch_id'],
+  activities: ['branch_id', 'status'],
+  todos: ['branch_id'],
+};
+
+function _listRowsWithPushdown(db, name, table, query = {}) {
+  const allowed = PUSHDOWN_COLUMNS[name];
+  if (!allowed) return listTable(db, table);
+  const clauses = [];
+  const params = [];
+  if (query.branchId && allowed.includes('branch_id')) {
+    // v11：NULL 行不直接丢弃——todos 可能是「父行可解析」的种子/历史行（branch_id 尚未回填），
+    //   统一交回 JS 侧 resourceBranchId（先父行、后所属人、最后待归属）判定。
+    clauses.push('(branch_id = ? OR branch_id IS NULL)'); params.push(String(query.branchId));
+  }
+  if (query.status && allowed.includes('status')) { clauses.push('status = ?'); params.push(String(query.status)); }
+  if (query.personId && allowed.includes('person_id')) { clauses.push('person_id = ?'); params.push(String(query.personId)); }
+  if (query.activityId && allowed.includes('activity_id')) { clauses.push('activity_id = ?'); params.push(String(query.activityId)); }
+  if (!clauses.length) return listTable(db, table);
+  return db.prepare(`SELECT data FROM ${table} WHERE ${clauses.join(' AND ')}`).all(...params).map((row) => JSON.parse(row.data));
+}
+
+/** 游标分页（`(updated_at,id)` 倒序；不用 OFFSET）；无 `page` 时调用方保持整表返回 */
+function _paginateRows(rows, query = {}) {
+  const pageSize = Math.max(1, Math.min(200, Number(query.pageSize) || 20));
+  const keyOf = (row) => `${row.updatedAt || row.updated_at || row.createdAt || row.created_at || ''}|${row.id || ''}`;
+  const sorted = [...rows].sort((a, b) => keyOf(b).localeCompare(keyOf(a)));
+  let start = 0;
+  if (query.cursor) {
+    let cursor = '';
+    try { cursor = Buffer.from(String(query.cursor), 'base64').toString('utf8'); } catch { cursor = ''; }
+    if (cursor) {
+      const found = sorted.findIndex((row) => keyOf(row) < cursor);
+      start = found === -1 ? sorted.length : found;
+    }
+  }
+  const slice = sorted.slice(start, start + pageSize);
+  const nextCursor = slice.length === pageSize
+    ? Buffer.from(keyOf(slice[slice.length - 1]), 'utf8').toString('base64') : null;
+  return { rows: slice, total: sorted.length, pageSize, nextCursor };
+}
+
+/** R10-D09（批次 504）：快照写穿的考察留痕必须由服务端复算，不能采信客户端。 */
+function _forceInspectionRecorders(db, writes, actor) {
+  return (writes || []).map((write) => {
+    if (write.name !== 'inspections') return write;
+    const rows = (write.rows || []).map((row) => {
+      if (!row || typeof row !== 'object') return row;
+      const prevRow = row.id ? db.prepare('SELECT data FROM inspections WHERE id = ?').get(String(row.id)) : null;
+      const prev = prevRow ? JSON.parse(prevRow.data) : null;
+      const next = { ...row };
+      // 新建行：记录人＝会话；已有行：保留原记录人（不允许经快照改署）。
+      next.recordedBy = prev ? (prev.recordedBy || actor.id) : actor.id;
+      if (next.confirmedBy !== undefined && next.confirmedBy !== prev?.confirmedBy) {
+        next.confirmedBy = actor.id; next.confirmedAt = new Date().toISOString();
+      }
+      if (next.returnedBy !== undefined && next.returnedBy !== prev?.returnedBy) {
+        next.returnedBy = actor.id; next.returnedAt = new Date().toISOString();
+      }
+      return next;
+    });
+    return { ...write, rows };
+  });
+}
+
 function _resourceRowsForActor(db, name, table, actor, requestedBranchId, opts = {}) {
-  let rows = resourceRowsForActor(db, name, listTable(db, table), actor, requestedBranchId);
+  let rows = resourceRowsForActor(db, name, _listRowsWithPushdown(db, name, table, opts.query || {}), actor, requestedBranchId);
   // R4-B04：思想汇报读口与前端 canReadThoughtReport 同一判据（本人或支委层）。
   if (name === 'thoughtReports') {
     rows = rows.filter((row) => canReadThoughtReport(row, { personId: actor?.id, role: actor?.role }));
@@ -213,7 +289,14 @@ export function createResourcesRouter(db) {
     router.get(`/${name}`, ...readAuth, (req, res) => {
       const deny = branchSelectionError(req.actor, req.query.branchId);
       if (deny) return res.status(403).json({ error: deny });
-      return res.json(_resourceRowsForActor(db, name, table, req.actor, req.query.branchId, req.query));
+      const rows = _resourceRowsForActor(db, name, table, req.actor, req.query.branchId, {
+        query: req.query, includeTransferredOut: req.query.includeTransferredOut,
+      });
+      // v11 可选分页：带 page 才分页；不带 page 仍是原数组（旧客户端不受影响）。
+      if (req.query.page !== undefined || req.query.cursor !== undefined) {
+        return res.json(_paginateRows(rows, req.query));
+      }
+      return res.json(rows);
     });
   }
 
@@ -262,6 +345,11 @@ export function createResourcesRouter(db) {
         if (['actSubRecords', 'tfSubRecords'].includes(name)) {
           const deny = aggregateWriteDeny(db, name, row.body || {}, req.actor);
           if (deny) return res.status(403).json({ error: deny });
+        }
+        // v11（批次 504）：待办必须能归属支部——解析不出就 400，不再靠 br-b1 兜底。
+        //   先于通用支部写门，保证党委未选支部时得到的是「待办须归属」而不是笼统 403。
+        if (name === 'todos' && !branchForNewResource(db, name, row, req.actor)) {
+          return res.status(400).json({ error: '待办须能归属到支部：请补来源父行或所属人员' });
         }
         if (!['users', 'branches', 'actSubRecords', 'tfSubRecords'].includes(name)) {
           const branchId = branchForNewResource(db, name, row, req.actor);
@@ -330,14 +418,14 @@ export function createResourcesRouter(db) {
             organizingScope: normalizeOrganizingScope(row.organizingScope, row),
             ...(isBranchLevelActivity(row) ? { hostGroupId: null, hostGroup: '' } : {}),
             createdBy: req.actor.id,
-            workgroupId: `wg-activity-${id}`,
+            workgroupId: workgroupIdFor('activity', id),
             ..._activityCreateGatePatch(db, req.actor),
           } : null),
           ...(name === 'taskforces' ? {
             branchId: req.actor.branchId || DEFAULT_BRANCH_ID,
             status: row.status || TaskforceStatus.RECRUITING,
             createdBy: req.actor.id,
-            workgroupId: `wg-taskforce-${id}`,
+            workgroupId: workgroupIdFor('taskforce', id),
           } : null),
           ...(name === 'attendances' ? { recordedBy: req.actor.id, branchId: req.actor.branchId || DEFAULT_BRANCH_ID } : null),
           // 考察记录人由会话决定（R4-D05：普通成员只可写自己组织的场次，不得代署记录人）
@@ -361,12 +449,22 @@ export function createResourcesRouter(db) {
         // 邮件双通道（部署文档 §五）：通知发布/待办提醒/反馈汇报触发邮件，异步 fire-and-forget，
         // 失败/未配置均不影响站内功能（降级不阻断）
         afterResourceWrite(db, name, data).catch(() => {});
+        // R10-D02（批次 504）：语义写口必须推进集合版本，否则别的设备用旧 baseline 整表快照会把这一行删掉。
+        bumpCollectionVersion(db, name);
+        // v11 影子表：活动/专班写后重建（非权威源，只做双写比对）
+        if (name === 'activities' || name === 'taskforces') rebuildShadowTables(db);
         res.status(201).json(data);
       });
     }
 
     // 更新：局部合并 patch（与前端 update(id, patch) 语义一致）
     router.patch(`/${name}/:id`, writeAuth, (req, res) => {
+      // R10-D16（批次 504）：支部配置只许走 /branches/:id/config（同一套净化＋逐键留痕），
+      //   通用 PATCH 不得旁路写 config。
+      if (name === 'branches' && req.body && typeof req.body === 'object'
+        && Object.prototype.hasOwnProperty.call(req.body, 'config')) {
+        return res.status(400).json({ error: '支部配置请走 /branches/:id/config（统一净化与留痕）' });
+      }
       // R4-B03：非党委账号对 users 的通用 PATCH 只允许「role」一个字段（支委身份配置），
       // 拒绝 branchId / transferOut / studentId / developStage 等夹带；目标支部严格等值由写门判据负责。
       if (name === 'users' && req.actor.role !== 'party-staff') {
@@ -499,7 +597,7 @@ export function createResourcesRouter(db) {
         if (typeChanged && (!currentBlockEnabled || !targetBlockEnabled)) {
           return res.status(403).json({ error: activityBlockDisabledMsg(effType) });
         }
-        if (!currentBlockEnabled && (['completed', 'executed', 'archived', 'cancelled'].includes(prevRow.status || '') || prevRow.archived === true)) {
+        if (!currentBlockEnabled && (isActivityClosed(prevRow))) {
           return res.status(409).json({ error: '该能力包已停用，历史活动只读保留' });
         }
       }
@@ -599,7 +697,7 @@ export function createResourcesRouter(db) {
         }
       }
       if (name === 'taskforces' && (merged.name !== JSON.parse(existing.data).name || merged.status !== JSON.parse(existing.data).status)) {
-        const workgroup = db.prepare('SELECT data FROM workgroups WHERE id = ?').get(merged.workgroupId || `wg-taskforce-${id}`);
+        const workgroup = db.prepare('SELECT data FROM workgroups WHERE id = ?').get(merged.workgroupId || workgroupIdFor('taskforce', id));
         if (workgroup) {
           const currentGroup = JSON.parse(workgroup.data);
           relatedWorkgroupUpdate = {
@@ -627,9 +725,12 @@ export function createResourcesRouter(db) {
         if (relatedWorkgroupUpdate) {
           db.prepare('INSERT OR REPLACE INTO workgroups (id, data) VALUES (?, ?)')
             .run(relatedWorkgroupUpdate.id, JSON.stringify(relatedWorkgroupUpdate));
+          bumpCollectionVersion(db, 'workgroups');
         }
+        bumpCollectionVersion(db, name);
       });
       save();
+      if (name === 'activities' || name === 'taskforces') rebuildShadowTables(db);
       res.json(merged);
     });
 
@@ -676,6 +777,7 @@ export function createResourcesRouter(db) {
         const id = req.params.id;
         const remove = deleteActivityCascade(db, id);
         if (!remove.found) return res.status(404).json({ error: 'not found' });
+        rebuildShadowTables(db);
         for (const filePath of remove.filePaths) deleteUploadedFile(filePath);
         return res.status(200).json({ id, versions: remove.versions });
       }
@@ -713,6 +815,7 @@ export function createResourcesRouter(db) {
       }
       const info = db.prepare(`DELETE FROM ${table} WHERE id = ?`).run(req.params.id);
       if (info.changes === 0) return res.status(404).json({ error: 'not found' });
+      bumpCollectionVersion(db, name);
       res.status(204).end();
     });
   }
@@ -787,6 +890,7 @@ export function createResourcesRouter(db) {
       createdAt: at,
     };
     db.prepare('INSERT OR REPLACE INTO branches (id, data) VALUES (?, ?)').run(id, JSON.stringify(branch));
+    bumpCollectionVersion(db, 'branches');
     res.status(201).json({ branch, ok: true });
   });
 
@@ -894,7 +998,7 @@ export function createResourcesRouter(db) {
     const baseVersions = _snapshotBaseVersions(payload);
     const missing = _snapshotMissingVersions(payload, baseVersions); if (missing.length) return res.status(428).json({ error: '快照被拒：payload 里的集合未随 `_versions` 给出基线版本（见本文件末「快照写穿的集合版本号协议」）', missingVersions: missing });
     if (baseVersions) { const conflicts = _snapshotVersionConflicts(db, payload, baseVersions); if (conflicts.length) return res.status(409).json({ error: '数据已被他人更新，本次写入未生效（版本冲突，请刷新后重试）', conflicts }); }
-    const writes = snapshotWrites;
+    const writes = _forceInspectionRecorders(db, snapshotWrites, req.actor);
     _freezeArchiveSnapshots(db, writes, req.actor);
     const workgroupUpdates = [
       ...taskforceStatusWorkgroups(db, validationPayload, req.actor),
@@ -924,7 +1028,7 @@ export function createResourcesRouter(db) {
     const isDeputyHere = actor.role === 'deputy-secretary' && (actor.branchId || DEFAULT_BRANCH_ID) === branch.id;
     // 批4（2026-09-09 支书批「域参数」）：域负责人（本支部纪检/组织/组长）仅可写自己域节 policyOverrides，
     //   与前端 branch.js::POLICY_SECTION_BY_DOMAIN_ROLE 同口径——一域可辖多节（2026-09-27 支书「补入口」批）。
-    const DOMAIN_SECTIONS_BY_ROLE = { 'disc-commissioner': ['inspection', 'attendance', 'review', 'makeup'], 'org-commissioner': ['memberConfirmation', 'thoughtReport'], leader: ['leader'], 'deputy-leader': ['leader'] };
+    const DOMAIN_SECTIONS_BY_ROLE = policySectionsByRole();
     let domainSections = [];
     if (!isStaff && !isSecretary && !isDeputyHere && (actor.branchId || DEFAULT_BRANCH_ID) === branch.id) {
       domainSections = DOMAIN_SECTIONS_BY_ROLE[actor.role] || [];
@@ -1088,6 +1192,7 @@ export function createResourcesRouter(db) {
 
     branch.config = nextConfig;
     db.prepare('UPDATE branches SET data = ? WHERE id = ?').run(JSON.stringify(branch), branch.id);
+    bumpCollectionVersion(db, 'branches');
     res.json(branch);
   });
 
@@ -1141,6 +1246,7 @@ export function createResourcesRouter(db) {
     };
     branch.config = nextConfig;
     db.prepare('UPDATE branches SET data = ? WHERE id = ?').run(JSON.stringify(branch), branch.id);
+    bumpCollectionVersion(db, 'branches');
     res.json(branch);
   });
 
@@ -1204,7 +1310,7 @@ export function createResourcesRouter(db) {
       }
       for (const activity of listTable(db, 'activities')) {
         if (activity.organizer === personId && (activity.branchId || DEFAULT_BRANCH_ID) === branchId) {
-          organizerWorkgroups.add(activity.workgroupId || `wg-activity-${activity.id}`);
+          organizerWorkgroups.add(activity.workgroupId || workgroupIdFor('activity', activity.id));
         }
       }
     }

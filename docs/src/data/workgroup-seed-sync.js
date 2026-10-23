@@ -1,9 +1,11 @@
 // Mock 数据兼容迁移：为已有活动/专班建立稳定工作组主记录。
 // 不搬移普通参与者，不猜测旧专班任务/产出；原始业务记录仍是来源。
-import { WorkgroupStatus, workgroupStatusForTaskforce } from '../core/domain/domain.js?v=20261022d';
-import { DEFAULT_BRANCH_ID, ACTIVITY_SCOPES, isBranchLevelActivity, normalizeOrganizingScope } from '../core/domain/constants.js?v=20261022d';
-import { PARTY_GROUPS } from './mock/party-groups.js?v=20261022d';
-import { PEOPLE } from './mock/people.js?v=20261022d';
+import { WorkgroupStatus, workgroupStatusForTaskforce } from '../core/domain/domain.js?v=20261023a';
+import { DEFAULT_BRANCH_ID, ACTIVITY_SCOPES, isBranchLevelActivity, normalizeOrganizingScope } from '../core/domain/constants.js?v=20261023a';
+// R10（2026-10-23）：活动工作组状态规则单一源——归档或取消 ⇒ archived（不再只看 source.archived）。
+import { syncActivityWorkgroup, workgroupIdFor } from './activity-workgroup-sync.js?v=20261023a';
+import { PARTY_GROUPS } from './mock/party-groups.js?v=20261023a';
+import { PEOPLE } from './mock/people.js?v=20261023a';
 
 const MEMBER_ROLES = new Set(['organizer', 'deep']);
 
@@ -73,7 +75,6 @@ export function normalizeSeedActivitySeedRows(activities) {
   }));
 }
 
-const groupIdFor = (kind, sourceId) => `wg-${kind}-${sourceId}`;
 const memberIdFor = (workgroupId, personId) => `wgm-${encodeURIComponent(workgroupId)}-${encodeURIComponent(personId)}`;
 
 /**
@@ -106,7 +107,7 @@ export function ensureLegacySourceWorkgroups(db) {
       }
 
       const existingWorkgroup = explicitGroup || sourceCandidate || null;
-      const workgroupId = existingWorkgroup?.id || source.workgroupId || groupIdFor(kind, source.id);
+      const workgroupId = existingWorkgroup?.id || source.workgroupId || workgroupIdFor(kind, source.id);
       let workgroup = existingWorkgroup;
       const branchId = source.branchId || workgroup?.branchId || DEFAULT_BRANCH_ID;
       const createdAt = source.createdAt || source.date || null;
@@ -114,6 +115,12 @@ export function ensureLegacySourceWorkgroups(db) {
       const sourceScope = kind === 'activity' && source.organizingScope
         ? normalizeOrganizingScope(source.organizingScope, source)
         : source.organizingScope;
+      // R10（2026-10-23）：活动工作组状态复用活动 ↔ 工作组投影的同一规则（archived / cancelled ⇒ archived），
+      //   不再只读 source.archived；专班仍按 canonical 状态映射。
+      const activityPatch = kind === 'activity' ? syncActivityWorkgroup(source) : null;
+      const derivedStatus = kind === 'activity'
+        ? (activityPatch?.status || WorkgroupStatus.ACTIVE)
+        : (source.deletedAt ? WorkgroupStatus.ARCHIVED : workgroupStatusForTaskforce(source.status));
       let createdGroup = false;
 
       if (!workgroup) {
@@ -121,10 +128,8 @@ export function ensureLegacySourceWorkgroups(db) {
           id: workgroupId, branchId, kind, sourceType: kind, sourceId: source.id,
           name: (kind === 'activity' ? source.title : source.name) || source.id,
           // 状态不得原样复制旧值：专班状态经 canonical 映射（历史别名 in_progress→active；
-          // 未知值→draft 只读待核），活动工作组只由 archived 标记派生 active/archived。
-          status: kind === 'activity'
-            ? (source.archived ? WorkgroupStatus.ARCHIVED : WorkgroupStatus.ACTIVE)
-            : (source.deletedAt ? WorkgroupStatus.ARCHIVED : workgroupStatusForTaskforce(source.status)),
+          // 未知值→draft 只读待核），活动工作组按 syncActivityWorkgroup 派生 active/archived。
+          status: derivedStatus,
           ...(kind === 'activity' ? {
             organizingScope: sourceScope || null,
             hostGroupId: source.hostGroupId || null,
@@ -132,11 +137,19 @@ export function ensureLegacySourceWorkgroups(db) {
             crossGroupCoordinatorId: source.crossGroupCoordinatorId || null,
           } : {}),
           migrationState: kind === 'taskforce' || !source.organizingScope ? 'pending-review' : 'ready',
+          // R10（2026-10-23）：派生组补审计创建人（活动取创建人，缺省回组织者）。
+          createdBy: source.createdBy || source.organizer || null,
           createdAt,
         };
         workgroups.push(workgroup);
         changed = true;
         createdGroup = true;
+      } else if (kind === 'activity' && derivedStatus === WorkgroupStatus.ARCHIVED
+        && workgroup.status !== WorkgroupStatus.ARCHIVED) {
+        // 仅收敛到终态（归档/取消），不反向重新激活——与 activity-workgroup-sync 同口径。
+        workgroup = { ...workgroup, status: WorkgroupStatus.ARCHIVED };
+        workgroups[workgroups.findIndex((row) => row.id === workgroup.id)] = workgroup;
+        changed = true;
       }
 
       if (source.workgroupId !== workgroup.id) {

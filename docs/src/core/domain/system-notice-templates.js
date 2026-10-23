@@ -21,9 +21,9 @@
 // ════════════════════════════════════════════════════════════════
 
 // 期次标签单一源（core/base/period.js）——勿在本文件另写季度格式化
-import { periodLabel } from '../base/period.js?v=20261022d';
+import { periodLabel } from '../base/period.js?v=20261023a';
 // 角色 → 工作台页单一源（F05/F12：按接收人角色生成落点，勿在本文件另写一张角色页表）
-import { ROLE_PAGE_MAP, SECRETARY_AND_DEPUTY_ROLES } from './constants.js?v=20261022d';
+import { ROLE_PAGE_MAP, SECRETARY_AND_DEPUTY_ROLES } from './constants.js?v=20261023a';
 
 /** 组装返回对象（跳过 undefined，保持通知结构精简；与原前端 add() 落库形态一致） */
 function pick(obj) {
@@ -186,7 +186,6 @@ const TEMPLATES = {
     source: 'committee',
     targetUrl: `workspace/party-committee.html?tab=review&highlight=${sourceId}`,
     actionRoles: ['party-staff'],
-    read: false,
   }),
 
   // ── 上报审批结论（review-request.js 迁移） ────────────────────────
@@ -198,7 +197,6 @@ const TEMPLATES = {
     source: 'committee',
     targetUrl: `workspace/secretary.html?tab=report-up&highlight=${sourceId}`,
     actionRoles: ['secretary', 'deputy-secretary'],
-    read: false,
   }),
 
   // ── 活动已创建请建核心群（decision-tree.js 迁移） ──────────────────
@@ -224,7 +222,6 @@ const TEMPLATES = {
     actionable: true,
     actionRoles,
     actionTask: '线上支委会表决待表态（专班议案）',
-    read: false,
   }),
 
   // ── 活动流程超时提醒（disc/review-tab.js 迁移） ────────────────────
@@ -238,7 +235,6 @@ const TEMPLATES = {
     actionable: true,
     actionRoles,
     actionTask: '活动流程超时提醒',
-    read: false,
   }),
 
   // ── 复盘超期提醒（disc/review-tab.js 迁移） ───────────────────────
@@ -252,7 +248,6 @@ const TEMPLATES = {
     actionable: true,
     actionRoles,
     actionTask: '复盘超期提醒',
-    read: false,
   }),
 
   // ── 活动预拟通知（secretary/calendar-tab.js 迁移；标题/正文由发布人填写） ──
@@ -264,7 +259,6 @@ const TEMPLATES = {
     targetModule: 'activity',
     targetType: 'activity',
     targetId: sourceId,
-    read: false,
   }),
 
   // ── 专班预拟通知（org/taskforce-tab.js 迁移；标题/正文由发布人填写） ──
@@ -276,7 +270,6 @@ const TEMPLATES = {
     targetModule: 'workspace',
     targetType: 'taskforce',
     targetId: sourceId,
-    read: false,
   }),
 
   // ── 补课材料催办（V-7 · 2026-10-01 批次 324；纪检委员催当事人） ──────
@@ -299,7 +292,6 @@ const TEMPLATES = {
       targetType: 'makeup',
       targetId: sourceId,
       targetUrl: home === 'workspace/visitor.html' ? `${home}?tab=attendance` : home,
-      read: false,
     });
   },
 
@@ -313,7 +305,6 @@ const TEMPLATES = {
     content,
     priority,
     targetModule: '',
-    read: false,
     publisher: '院党委（组织员）',
     recipients: '支部委员会（支委层）',
   }),
@@ -332,7 +323,6 @@ const TEMPLATES = {
     targetId: sourceId,
     // F06：`targetType+targetId` 优先（活动/专班详情页）；原固定 `workspace/visitor.html`
     //   对非成员角色会被身份门弹回且永不生效，删除死链。
-    read: false,
   }),
 
   // ── 待办作废已裁决（`#1`/`D-742`；2026-10-02 批次 340 · 支书裁「支书如果不认为能取消 /
@@ -354,7 +344,6 @@ const TEMPLATES = {
       priority: 'normal',
       audience,
       targetUrl: `${page}?tab=todo`,
-      read: false,
     });
   },
 
@@ -370,7 +359,6 @@ const TEMPLATES = {
       : `「${label || '该记录'}」的作废申请已获支委会确认，该记录已出列（原因：${reason || '未填'}）。`,
     priority: 'normal',
     audiencePersons,
-    read: false,
   }),
 };
 

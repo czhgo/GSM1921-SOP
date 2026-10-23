@@ -5,7 +5,7 @@
 //  v2.0: + 子状态追踪（考勤/宣传） + 角色流转守卫 + 前置校验
 // ════════════════════════════════════════════════════════════════
 
-import { isPartyGroupLeaderRole } from '../core/domain/constants.js?v=20261022d';
+import { isPartyGroupLeaderRole } from '../core/domain/constants.js?v=20261023a';
 
 /**
  * @typedef {Object} StateNodeConfig

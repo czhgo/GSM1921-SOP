@@ -19,18 +19,18 @@
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { PEOPLE } from '../../docs/src/data/mock/people.js?v=20261022d';
-import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261022d';
+import { PEOPLE } from '../../docs/src/data/mock/people.js?v=20261023a';
+import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261023a';
 import {
   MockAdapter, collectResetKeys, handleResetIfRequested,
-} from '../../docs/src/data/mock-adapter.js?v=20261022d';
+} from '../../docs/src/data/mock-adapter.js?v=20261023a';
 import {
   PersonStore, MEMBER_OVERLAY_KEY, getBaseMemberRecords, findMemberRefs,
-} from '../../docs/src/services/member/person.js?v=20261022d';
-import { getRosterStats } from '../../docs/src/services/member/roster.js?v=20261022d';
-import { setDataSource } from '../../docs/src/data/data-adapter.js?v=20261022d';
+} from '../../docs/src/services/member/person.js?v=20261023a';
+import { getRosterStats } from '../../docs/src/services/member/roster.js?v=20261023a';
+import { setDataSource } from '../../docs/src/data/data-adapter.js?v=20261023a';
 // Q-23-10（批次 30）实证：成员流动流入登记在 api 形态走 /members/intake（支书/副支书亦可）
-import { registerIntake } from '../../docs/src/services/member/member-flow.js?v=20261022d';
+import { registerIntake } from '../../docs/src/services/member/member-flow.js?v=20261023a';
 import { createApp } from '../app.js';
 import { seedDatabase } from '../seed.js';
 
@@ -412,7 +412,7 @@ test('api ⑩：R-10 三条链——支书在册镜像 / 组织委员在册行�
   // ③ 移出确认链（支书确认 approved → removeMember transferOut:true）→ 软标记
   setDataSource('api', { apiBaseUrl: base, authToken: orgToken });
   try {
-    const created = await PersonStore.saveMember({ id: 'p63', name: '待移出成员63', partyGroup: '第二党小组' }, { by: '2400012355' });
+    const created = await PersonStore.saveMember({ id: 'p63', name: '待移出成员63', partyGroup: '第二党小组', developStage: '正式党员' }, { by: '2400012355' });
     assert.equal(created.ok, true, JSON.stringify(created));
   } finally {
     setDataSource('mock');
@@ -444,7 +444,7 @@ test('api ⑪：Q-23-5 撤销流出清 server 软标记（流出后 401 → 撤�
   try {
     // ① 建档 + 流出（登记即生效的写原语：软标记 + 账号停用）
     const created = await PersonStore.saveMember({
-      id: '2026999901', name: '撤销流出测试', studentId: '2026999901', enrollYear: '2026',
+      id: '2026999901', name: '撤销流出测试', studentId: '2026999901', enrollYear: '2026', developStage: '正式党员',
     }, { by: '2400012355' });
     assert.equal(created.ok, true, `建档应成功：${JSON.stringify(created)}`);
     const out = await PersonStore.removeMember('2026999901', { by: '2400012355', guardRefs: false, transferOut: true });
@@ -464,6 +464,7 @@ test('api ⑪：Q-23-5 撤销流出清 server 软标记（流出后 401 → 撤�
       '仅走 profile 补丁不会清软标记（Q-23-5 病灶：撤销后成员仍回不来）');
 
     // ③ 撤销流出（revokeFlow 的实际调用形态）→ 清 server 软标记
+    //   ⚠ 撤销只清软标记：不再随带 developStage（该字段走支书专属端点，组织委员调用会 403）。
     const restored = await PersonStore.saveMember({
       id: '2026999901', name: '撤销流出测试', studentId: '2026999901', enrollYear: '2026',
     }, { by: '2400012355', restoreFromTransferOut: true });
@@ -500,7 +501,7 @@ test('api ⑫：Q-23-10 流入登记三角色皆可（/members/intake）；名�
   setDataSource('api', { apiBaseUrl: base, authToken: secToken });
   try {
     const r = await registerIntake({
-      name: '支书登记流入', studentId: '2699000002', enrollYear: '2026', by: '2300010001', role: 'secretary',
+      name: '支书登记流入', studentId: '2699000002', enrollYear: '2026', developStage: '正式党员', by: '2300010001', role: 'secretary',
     });
     assert.equal(r.ok, true, `★ 支书登记流入不应 403：${JSON.stringify(r)}`);
     const row = (await getUsers(secToken)).find((u) => u.id === r.person.id);
@@ -522,7 +523,7 @@ test('api ⑫：Q-23-10 流入登记三角色皆可（/members/intake）；名�
   setDataSource('api', { apiBaseUrl: base, authToken: depToken });
   try {
     const r = await registerIntake({
-      name: '副支书登记流入', studentId: '2699000003', enrollYear: '2026', by: '2300010002', role: 'deputy-secretary',
+      name: '副支书登记流入', studentId: '2699000003', enrollYear: '2026', developStage: '正式党员', by: '2300010002', role: 'deputy-secretary',
     });
     assert.equal(r.ok, true, `副支书登记流入不应 403：${JSON.stringify(r)}`);
   } finally {
@@ -533,7 +534,7 @@ test('api ⑫：Q-23-10 流入登记三角色皆可（/members/intake）；名�
   setDataSource('api', { apiBaseUrl: base, authToken: orgToken });
   try {
     const r = await registerIntake({
-      name: '组织委员登记流入', studentId: '2699000004', enrollYear: '2026', by: '2400012355', role: 'org-commissioner',
+      name: '组织委员登记流入', studentId: '2699000004', enrollYear: '2026', developStage: '正式党员', by: '2400012355', role: 'org-commissioner',
     });
     assert.equal(r.ok, true, `组织委员登记流入不应 403：${JSON.stringify(r)}`);
   } finally {

@@ -25,24 +25,24 @@
 //  Source: content/04_web_design/data/DATA_ARCHITECTURE.md
 // ════════════════════════════════════════════════════════════════
 
-import { DEFAULT_BRANCH_ID } from '../../core/domain/constants.js?v=20261022d';
-import { mockDB } from '../../core/domain/domain.js?v=20261022d';
+import { DEFAULT_BRANCH_ID } from '../../core/domain/constants.js?v=20261023a';
+import { mockDB } from '../../core/domain/domain.js?v=20261023a';
 // P0 域缓存失效（spec §二.3）：成员覆盖层写口 bump（支书台 semester-remind/成员组等读数新鲜度）
-import { bumpToken } from '../../core/base/version-token.js?v=20261022d';
-import { generateId } from '../../core/base/id.js?v=20261022d';
+import { bumpToken } from '../../core/base/version-token.js?v=20261023a';
+import { generateId } from '../../core/base/id.js?v=20261023a';
 // 修复（T175）：直接从 data/mock/people.js 导入 PEOPLE，
 // 断开 person.js ↔ data/mock/index.js 双向循环依赖（person.js 不再依赖 data/mock/index.js）
-import { PEOPLE } from '../../data/mock/people.js?v=20261022d';
+import { PEOPLE } from '../../data/mock/people.js?v=20261023a';
 // 成员基础数据预览叠加（立项④阶段三·目标1）：PersonStore 读取时套预览 override；
 // 依赖方向单向（person → preview，preview 不 import person/roster，无循环）
-import { overlayPreviewMembers } from '../branch/org-base-data-preview.js?v=20261022d';
+import { overlayPreviewMembers } from '../branch/org-base-data-preview.js?v=20261023a';
 // 双形态判定（mock/api）：data-adapter.js 不静态依赖业务服务；其静态依赖仅为零依赖叶子（无环）
-import { getDataSource, persist } from '../../data/data-adapter.js?v=20261022d';
+import { getDataSource, persist } from '../../data/data-adapter.js?v=20261023a';
 // 新成员 id 规则（P1-12，2026-10-20）：学号即唯一 id；不再 import generateId 生成 p_ 代理键
 // `D-788`（2026-10-05 · `V-10b`）：成员「自我描述」字段模型（**零依赖叶子**；写口按它净化）
-import { sanitizeSelfProfile } from '../../core/domain/self-profile.js?v=20261022d';
+import { sanitizeSelfProfile } from '../../core/domain/self-profile.js?v=20261023a';
 // R7-01（2026-10-22）：mock 形态账号改名要与登录账号层同步（新学号可登录、旧学号停用），保证演示可用
-import { createAccount, deactivateAccount } from '../core/accounts.js?v=20261022d';
+import { createAccount, deactivateAccount } from '../core/accounts.js?v=20261023a';
 
 // ════════════════════════════════════════════════════════════════
 //  PersonStore — 人员数据统一服务接口
@@ -156,7 +156,7 @@ export const PersonStore = {
     if (exists) return { ok: false, reason: '新学号已被占用' };
     if (getDataSource() === 'api') {
       try {
-        const { ApiAdapter } = await import('../../data/api-adapter.js?v=20261022d');
+        const { ApiAdapter } = await import('../../data/api-adapter.js?v=20261023a');
         await ApiAdapter.members.renameAccount(from, to);
         const member = _applyLocalRename(from, to, opts.by || null);
         return { ok: true, from, to, member };
@@ -492,6 +492,11 @@ function _mockSaveMember(updates, opts = {}) {
   const targetId = rawId || studentId;
   if (!targetId) return { ok: false, reason: '学号不能为空（学号即成员唯一 id）' };
   const existing = view.find(p => p.id === targetId) || null;
+  // A01：新成员的发展阶段必须由调用方显式传入（不再默认空串兜底）——空阶段会让成员静默落在
+  //   应到 / 表决名单之外。已有成员的局部补丁不在此校验（更新可不带该字段）。
+  if (!existing && !opts.restoreFromTransferOut && !String(updates.developStage ?? '').trim()) {
+    return { ok: false, reason: '新成员须登记发展阶段（正式党员 / 预备党员 / 发展对象 / 积极分子）' };
+  }
   // R2-19（2026-10-20）：新增成员的支部归属取**操作人**所属支部，不再写死 br-b1——
   //   否则非 br-b1 的组织委员新增成员会被静默归到演示支部。操作人缺失/无支部时写 null
   //   （IAAA 待归属语义），由支部确认链补；已有成员保持原 branchId。
@@ -503,7 +508,7 @@ function _mockSaveMember(updates, opts = {}) {
     name: '',
     studentId: '',
     partyGroup: '',
-    developStage: '',
+    // developStage 不设缺省：新成员必须由调用方传入（见上方 A01 校验）
     role: 'participant',
     branchId: actorBranchId,
   };
@@ -695,13 +700,13 @@ function _mockReplaceBranchMembers(records, branchId) {
 // ── api 形态实现（server users 表；ApiAdapter 动态导入防 mock 侧加载面扩大）──
 
 async function _apiAdapterUsers() {
-  const { ApiAdapter } = await import('../../data/api-adapter.js?v=20261022d');
+  const { ApiAdapter } = await import('../../data/api-adapter.js?v=20261023a');
   return ApiAdapter.users;
 }
 
 /** 名册成员变更确认链写口（C-2 方案 B）：支书专属阶段语义端点（ApiAdapter.members.setDevelopStage） */
 async function _apiAdapterMembers() {
-  const { ApiAdapter } = await import('../../data/api-adapter.js?v=20261022d');
+  const { ApiAdapter } = await import('../../data/api-adapter.js?v=20261023a');
   return ApiAdapter.members;
 }
 
@@ -803,6 +808,10 @@ async function _apiSaveMember(updates, opts = {}) {
     const targetId = rawId || studentId;
     if (!targetId) return { ok: false, reason: '学号不能为空（学号即成员唯一 id）' };
     const exists = list.some(u => u.id === targetId);
+    // A01：新成员须由调用方传发展阶段（与 mock 分支同口径；撤销流出复活行不受此限）。
+    if (!exists && !opts.restoreFromTransferOut && !String(updates.developStage ?? '').trim()) {
+      return { ok: false, reason: '新成员须登记发展阶段（正式党员 / 预备党员 / 发展对象 / 积极分子）' };
+    }
     const member = _cleanMemberRecord({ ...updates, id: targetId });
     // 姓名校验（与 mock 分支口径一致）：新增必填；局部更新未提供 → 不校验/不覆盖（由端点合并保留原值）
     if (member.name === undefined) {
@@ -874,7 +883,7 @@ async function _apiRemoveMember(personId, opts = {}) {
 
 async function _apiReplaceBranchMembers(records, branchId) {
   try {
-    const { ApiAdapter } = await import('../../data/api-adapter.js?v=20261022d');
+    const { ApiAdapter } = await import('../../data/api-adapter.js?v=20261023a');
     const users = ApiAdapter.users;
     // 存在性（服务器权威）：branches 表须有该实例
     const branches = await ApiAdapter.branches.list();

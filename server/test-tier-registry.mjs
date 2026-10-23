@@ -27,7 +27,7 @@ export const TIERS = ['daily', 'precommit', 'weekly'];
  *  2026-10-22 第七轮 R7-01：新增 account-rename（人员主键改名受控端点，纯 node）⇒ 214 → 215。
  *  2026-10-22 第九轮 Task 4：新增 activity-workgroup-sync / taskforce-workgroup-source（纯 node）⇒ 215 → 217。
  *  2026-10-22 第九轮 Task 6：新增 ui-motion-guard（卡片悬停 / transition-all 棘轮，纯 node）⇒ 217 → 218。 */
-export const DAILY_FILE_BUDGET = 218;
+export const DAILY_FILE_BUDGET = 220;
 
 /** daily 静态 `test(` / `it(` 调用点预算（含子测试；新增断言须同批上调并写明理由）
  *  2026-10-21 R5 P1：页题守卫 4 条 + 对比度守卫 5 条 + 补登记的既有两条守卫 ⇒ 1351 → 1377。
@@ -40,8 +40,9 @@ export const DAILY_FILE_BUDGET = 218;
  *  2026-10-22 第九轮 Task 5：`frontend-foundations-guard` 新增 F8（可点容器键盘可达）1 条 ⇒ 1403 → 1404。
  *  2026-10-22 第八轮 Task 2.8：`r3-data-permission-regression` 新增「纪检确认考勤」1 条 ⇒ 1404 → 1405。
  *  2026-10-22 第九轮 Task 6：新增 ui-motion-guard（M1 悬停 / M2 transition-all / M3 非空转）3 条 ⇒ 1405 → 1408。
- *  2026-10-22 第九轮 Task 7.3：`frontend-foundations-guard` 新增 F9（写口失败不得提示成功）1 条 ⇒ 1408 → 1409。 */
-export const DAILY_TEST_BUDGET = 1409;
+ *  2026-10-22 第九轮 Task 7.3：`frontend-foundations-guard` 新增 F9（写口失败不得提示成功）1 条 ⇒ 1408 → 1409。
+ *  2026-10-23 批次 504（schema v11）：新增 todo-branch-attribution（6）/ schema-split-shadow（3）⇒ 1409 → 1418。 */
+export const DAILY_TEST_BUDGET = 1418;
 
 const group = (tier, reason, list) => list.map((file) => ({ file, tier, reason }));
 
@@ -52,6 +53,9 @@ export const TEST_TIERS = [
     'activity-member-privacy.test.mjs',
     // 2026-10-22 第九轮 Task 4.3：活动 ↔ 工作组同事务同步（纯 node；含服务端 HTTP + mock 镜像）
     'activity-workgroup-sync.test.mjs',
+    // 2026-10-23 批次 504：v11 Todo 归属（回填 / 400 / 兼容期）与影子子表（回填 / 篡改 / 回滚）
+    'schema-split-shadow.test.mjs',
+    'todo-branch-attribution.test.mjs',
     'auth-audit-scope.test.mjs',
     'auth-password.test.mjs',
     'auth.test.js',

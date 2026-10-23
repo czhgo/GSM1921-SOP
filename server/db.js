@@ -133,6 +133,8 @@ export function replaceCollectionsAtomic(db, writes, { workgroups = [] } = {}) {
         .run(workgroup.id, JSON.stringify(workgroup));
     }
     if (relatedWorkgroups.length > 0) bumpCollectionVersion(db, 'workgroups');
+    // v11 影子表随快照整表重建（非权威源；只在快照覆盖活动/专班时执行）
+    if (items.some((it) => ['activities', 'taskforces'].includes(it.name))) rebuildShadowTables(db);
     return versions;
   });
   return run(writes, workgroups);
@@ -591,6 +593,83 @@ export const MIGRATIONS = [
       console.log(`[db] v10 活动组织落点两档：落点归一=${scopeNormalized} 待补承办组=${legacyMarked} 补跨组招募=${recruitmentFilled} 工作组镜像=${workgroupsNormalized}`);
     },
   },
+  {
+    // v11（2026-10-23 批次 504 · 第九轮 schema 方案 · 支书令「三项一起」）：
+    //   ① todos 增 branch_id 并回填（父行 → 所属人 → NULL，不猜测）；
+    //   ② 五张热表增 generated stored 列与复合索引（为 P13 读过滤下推）；
+    //   ③ 建影子子表 agenda_items / taskforce_contributions 并回填。
+    // ⚠ 影子表**不是权威源**：读写仍走 JSON；只有 schema-split-readiness 全真后才可切。
+    version: 11,
+    name: 'todo-branch-pushdown-shadow',
+    tables: ['agenda_items', 'taskforce_contributions'],
+    up(db) {
+      const hasTable = (name) => !!db.prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name = ?").get(name);
+      // ⚠ 用 table_xinfo（table_info 不列 generated 列）——否则重跑 v11 会误判「列不存在」而重复 ADD。
+      const columns = (table) => (hasTable(table) ? db.prepare(`PRAGMA table_xinfo(${table})`).all().map((c) => c.name) : []);
+      const parseAll = (table) => (hasTable(table) ? db.prepare(`SELECT data FROM ${table}`).all().map((row) => JSON.parse(row.data)) : []);
+
+      // ① Todo 归属列 + 回填
+      if (hasTable('todos') && !columns('todos').includes('branch_id')) {
+        db.exec('ALTER TABLE todos ADD COLUMN branch_id TEXT');
+      }
+      if (hasTable('todos')) {
+        const activityBranch = new Map(parseAll('activities').map((row) => [String(row.id), row.branchId || null]));
+        const taskforceBranch = new Map(parseAll('taskforces').map((row) => [String(row.id), row.branchId || null]));
+        const noticeBranch = new Map(parseAll('notices').map((row) => [String(row.id), row.branchId || null]));
+        const userBranch = new Map(parseAll('users').map((row) => [String(row.id), row.branchId || null]));
+        const update = db.prepare('UPDATE todos SET data = ?, branch_id = ? WHERE id = ?');
+        let filled = 0;
+        let unresolved = 0;
+        for (const row of db.prepare('SELECT id, data FROM todos').all()) {
+          const todo = JSON.parse(row.data);
+          if (todo.branchId) continue;
+          const parent = todo.sourceType === 'activity' ? activityBranch.get(String(todo.sourceId || ''))
+            : todo.sourceType === 'taskforce' ? taskforceBranch.get(String(todo.sourceId || ''))
+              : todo.sourceType === 'notice' ? noticeBranch.get(String(todo.sourceId || ''))
+                : null;
+          const branchId = parent || userBranch.get(String(todo.personId || '')) || null;
+          if (!branchId) { unresolved += 1; continue; }
+          todo.branchId = branchId;
+          update.run(JSON.stringify(todo), branchId, row.id);
+          filled += 1;
+        }
+        console.log(`[db] v11 待办归属回填：已归属=${filled} 待归属=${unresolved}`);
+        db.exec('CREATE INDEX IF NOT EXISTS idx_todos_branch ON todos(branch_id)');
+      }
+
+      // ② 热表可下推列（generated stored）+ 复合索引
+      const addGenerated = (table, column, expr) => {
+        if (!hasTable(table) || columns(table).includes(column)) return;
+        try {
+          // ⚠ SQLite 对**已有数据**的表不允许 `ALTER ... ADD ... STORED`（仅空表可用）⇒ 统一用 VIRTUAL：
+          //   读时计算、可建索引、无需表重建；升级既有演示库/真库都安全。
+          db.exec(`ALTER TABLE ${table} ADD COLUMN ${column} TEXT GENERATED ALWAYS AS (${expr}) VIRTUAL`);
+        } catch (e) {
+          throw new Error(`[db] v11 加列失败 ${table}.${column}：${e.message}（现有列：${columns(table).join(',')}）`);
+        }
+      };
+      addGenerated('attendances', 'branch_id', "json_extract(data,'$.branchId')");
+      addGenerated('attendances', 'status', "json_extract(data,'$.status')");
+      addGenerated('attendances', 'person_id', "json_extract(data,'$.personId')");
+      addGenerated('attendances', 'activity_id', "json_extract(data,'$.activityId')");
+      addGenerated('inspections', 'branch_id', "json_extract(data,'$.branchId')");
+      addGenerated('inspections', 'activity_id', "json_extract(data,'$.activityId')");
+      addGenerated('notices', 'branch_id', "json_extract(data,'$.branchId')");
+      addGenerated('activities', 'branch_id', "json_extract(data,'$.branchId')");
+      addGenerated('activities', 'status', "json_extract(data,'$.status')");
+      const createIndex = (table, sql) => { if (hasTable(table)) db.exec(sql); };
+      createIndex('attendances', 'CREATE INDEX IF NOT EXISTS idx_attendances_branch_status ON attendances(branch_id, status)');
+      createIndex('attendances', 'CREATE INDEX IF NOT EXISTS idx_attendances_branch_person_activity ON attendances(branch_id, person_id, activity_id)');
+      createIndex('inspections', 'CREATE INDEX IF NOT EXISTS idx_inspections_branch_activity ON inspections(branch_id, activity_id)');
+      createIndex('notices', 'CREATE INDEX IF NOT EXISTS idx_notices_branch ON notices(branch_id)');
+      createIndex('activities', 'CREATE INDEX IF NOT EXISTS idx_activities_branch_status ON activities(branch_id, status)');
+
+      // ③ 影子子表（非权威源）＋ 回填
+      db.exec('CREATE TABLE IF NOT EXISTS agenda_items (id TEXT PRIMARY KEY, data TEXT NOT NULL)');
+      db.exec('CREATE TABLE IF NOT EXISTS taskforce_contributions (id TEXT PRIMARY KEY, data TEXT NOT NULL)');
+      rebuildShadowTables(db);
+    },
+  },
 ];
 
 /** 迁移列表的最大版本（＝目标 schema 版本；守卫据此核 `user_version`，防「有迁移没跑」/「版本号被手改」） */
@@ -641,6 +720,109 @@ export function applyMigrations(db, list = MIGRATIONS) {
   const to = pending[pending.length - 1].version;
   console.log(`[db] schema v${to}（本次应用 ${pending.length} 项）`);
   return { from: current, to, applied: pending.map((m) => m.version) };
+}
+
+// ════════════════════════════════════════════════════════════════
+//  v11 影子子表（2026-10-23 批次 504）：**非权威源**，只做双写与比对
+// ════════════════════════════════════════════════════════════════
+// 切表判据见 `server/scripts/schema-split-readiness.mjs` 与 CLAUDE.md 乙部 B-504-1：
+//   只有「规模/409/子项查询」任一 + 影子连续 7 天 mismatch=0 + 保留期已裁，才可把权威源切到子表。
+//   本函数只重建影子表，不改 JSON 主表、不改任何读路径。
+export function rebuildShadowTables(db) {
+  const has = (name) => !!db.prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name = ?").get(name);
+  if (!has('agenda_items') || !has('taskforce_contributions')) return { agenda: 0, contributions: 0 };
+  const run = db.transaction(() => {
+    db.exec('DELETE FROM agenda_items');
+    db.exec('DELETE FROM taskforce_contributions');
+    const insAgenda = db.prepare('INSERT OR REPLACE INTO agenda_items (id, data) VALUES (?, ?)');
+    const insContribution = db.prepare('INSERT OR REPLACE INTO taskforce_contributions (id, data) VALUES (?, ?)');
+    let agenda = 0;
+    let contributions = 0;
+    if (has('activities')) {
+      for (const row of db.prepare('SELECT data FROM activities').all()) {
+        const activity = JSON.parse(row.data);
+        (Array.isArray(activity.agenda) ? activity.agenda : []).forEach((item, index) => {
+          const id = `${activity.id}:${index}:${item?.id || ''}`;
+          insAgenda.run(id, JSON.stringify({ id, activityId: activity.id, seq: index, ...item }));
+          agenda += 1;
+        });
+      }
+    }
+    if (has('taskforces')) {
+      for (const row of db.prepare('SELECT data FROM taskforces').all()) {
+        const taskforce = JSON.parse(row.data);
+        for (const member of (Array.isArray(taskforce.members) ? taskforce.members : [])) {
+          for (const [index, contribution] of (Array.isArray(member.contributions) ? member.contributions : []).entries()) {
+            const id = `${taskforce.id}:${member.personId}:${index}:${contribution?.id || ''}`;
+            insContribution.run(id, JSON.stringify({
+              id, taskforceId: taskforce.id, workgroupId: taskforce.workgroupId || null,
+              personId: member.personId, role: member.role || null, ...contribution,
+            }));
+            contributions += 1;
+          }
+        }
+      }
+    }
+    return { agenda, contributions };
+  });
+  return run();
+}
+
+/** 影子比对：JSON 主表展开后的行集 vs 子表行集（按稳定键比较，返回 mismatch 明细） */
+export function compareShadowTables(db) {
+  const has = (name) => !!db.prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name = ?").get(name);
+  if (!has('agenda_items') || !has('taskforce_contributions')) return { mismatch: 0, agenda: 0, contributions: 0, details: [] };
+  const expectedAgenda = new Map();
+  const expectedContributions = new Map();
+  if (has('activities')) {
+    for (const row of db.prepare('SELECT data FROM activities').all()) {
+      const activity = JSON.parse(row.data);
+      (Array.isArray(activity.agenda) ? activity.agenda : []).forEach((item, index) => {
+        const id = `${activity.id}:${index}:${item?.id || ''}`;
+        expectedAgenda.set(id, JSON.stringify({ id, activityId: activity.id, seq: index, ...item }));
+      });
+    }
+  }
+  if (has('taskforces')) {
+    for (const row of db.prepare('SELECT data FROM taskforces').all()) {
+      const taskforce = JSON.parse(row.data);
+      for (const member of (Array.isArray(taskforce.members) ? taskforce.members : [])) {
+        for (const [index, contribution] of (Array.isArray(member.contributions) ? member.contributions : []).entries()) {
+          const id = `${taskforce.id}:${member.personId}:${index}:${contribution?.id || ''}`;
+          expectedContributions.set(id, JSON.stringify({
+            id, taskforceId: taskforce.id, workgroupId: taskforce.workgroupId || null,
+            personId: member.personId, role: member.role || null, ...contribution,
+          }));
+        }
+      }
+    }
+  }
+  const details = [];
+  const check = (table, expected, label) => {
+    const actual = new Map(db.prepare(`SELECT id, data FROM ${table}`).all().map((row) => [row.id, row.data]));
+    for (const [id, json] of expected) {
+      if (!actual.has(id)) { details.push({ label, id, kind: 'missing' }); continue; }
+      if (actual.get(id) !== json) details.push({ label, id, kind: 'diff' });
+    }
+    for (const id of actual.keys()) if (!expected.has(id)) details.push({ label, id, kind: 'extra' });
+  };
+  check('agenda_items', expectedAgenda, 'agenda');
+  check('taskforce_contributions', expectedContributions, 'contributions');
+  return {
+    mismatch: details.length, agenda: expectedAgenda.size, contributions: expectedContributions.size,
+    details: details.slice(0, 20),
+  };
+}
+
+/** v11 回滚：只删影子表与索引；`todos.branch_id` 数据保留（列可留，符合「回滚不丢数据」） */
+export function rollbackV11(db) {
+  db.exec('DROP TABLE IF EXISTS agenda_items');
+  db.exec('DROP TABLE IF EXISTS taskforce_contributions');
+  for (const index of [
+    'idx_todos_branch', 'idx_attendances_branch_status', 'idx_attendances_branch_person_activity',
+    'idx_inspections_branch_activity', 'idx_notices_branch', 'idx_activities_branch_status',
+  ]) db.exec(`DROP INDEX IF EXISTS ${index}`);
+  db.pragma('user_version = 10');
 }
 
 // ════════════════════════════════════════════════════════════════

@@ -8,7 +8,8 @@
 //  并钳制于 [07-01, 活动日前 1 天]；signups（su-001~007，8 月）保留。
 
 // ── 任务种子（关联活动，时间随活动重排） ────────────────────
-import { DEFAULT_BRANCH_ID } from '../../core/domain/constants.js?v=20261022d';
+import { DEFAULT_BRANCH_ID } from '../../core/domain/constants.js?v=20261023a';
+import { _fmtDate, todayLocal } from '../../core/base/date.js?v=20261023a';
 export const SEED_TASKS = [
   { id: 'tsk-001', activityId: 'act-1', title: '预定会议室并通知参会人员', status: 'completed', createdAt: '2026-07-01T08:00:00Z' },
   { id: 'tsk-002', activityId: 'act-1', title: '整理会议记录并归档', status: 'completed', createdAt: '2026-07-01T08:00:00Z' },
@@ -47,17 +48,23 @@ export const SEED_ARCHIVE_RECORDS = [
   { id: 'ar6', activityName: '入党积极分子培训', archiveDate: '2026-07-18', category: '照片', status: 'in_progress' },
 ];
 
-// ── 报名种子（T233 报名渠道演示：含 approved 与 pending 两种流程） ──
-// 2026-09-06 基线刷新：su-001~007 均为 8 月数据（>07-01），时间与指向（tf-005/006/act-30）不变。
+// ── 报名种子（T233 报名渠道演示） ──
+// R10（2026-10-23）：按产品报名口径重做（C07）：
+//   · 在办报名只挂**运行中专班 tf-002**，且只用 organizer/deep（专班不设普通 participant）；
+//   · 已完成专班（tf-005/tf-006）不保留 pending——历史 participant/pending 一律落为 `rejected`，
+//     与 `SignupStore.review()`「专班普通参与身份只能保留核查或拒绝」的判据一致；
+//   · 活动报名仍挂 act-30（已结束活动为历史事实，approved 不再产生新流程）。
 export const SEED_SIGNUPS = [
-  // tf-005 建党105周年筹备专班（招募中，截止 8/20，2/8 已满编 2 名组织者）
-  { id: 'su-001', sourceType: 'taskforce', sourceId: 'tf-005', personId: '2400012351',  role: 'participant', status: 'approved', createdAt: '2026-08-10T09:00:00', reviewedBy: null, reviewedAt: null, note: '想参与活动筹备' },
-  { id: 'su-002', sourceType: 'taskforce', sourceId: 'tf-005', personId: '2500010008', role: 'deep',        status: 'pending',   createdAt: '2026-08-10T10:30:00', reviewedBy: null, reviewedAt: null, note: '可负责宣传物料' },
-  { id: 'su-003', sourceType: 'taskforce', sourceId: 'tf-005', personId: '2500010013', role: 'organizer',   status: 'pending',   createdAt: '2026-08-11T08:00:00', reviewedBy: null, reviewedAt: null, note: '有活动统筹经验' },
-  // tf-006 参访活动保障专班（招募中，截止 8/15，0/4）
-  { id: 'su-004', sourceType: 'taskforce', sourceId: 'tf-006', personId: '2400012350',  role: 'participant', status: 'approved', createdAt: '2026-08-09T14:00:00', reviewedBy: null, reviewedAt: null, note: null },
-  { id: 'su-005', sourceType: 'taskforce', sourceId: 'tf-006', personId: '2400012353',  role: 'deep',        status: 'pending',   createdAt: '2026-08-10T16:00:00', reviewedBy: null, reviewedAt: null, note: '负责后勤协调' },
-  // act-30 秋季学期工作部署会（published，8/28）
+  // 历史拒绝（tf-005 建党105周年筹备专班已完成）：保留核查痕迹，不再阻塞审核队列。
+  { id: 'su-001', sourceType: 'taskforce', sourceId: 'tf-005', personId: '2400012351', role: 'participant', status: 'rejected', createdAt: '2026-08-10T09:00:00', reviewedBy: '2400012355', reviewedAt: '2026-08-21T10:00:00.000Z', note: '专班已完成，普通参与身份不可转为成员' },
+  // tf-002 SOP 系统维护专班（active）：产品只允许 `recruiting` 专班接受新报名 ⇒ 这两条作为历史申请关闭，
+  //   不再伪造「运行中专班仍可报名」的待审项（R10-C07 收口）。
+  { id: 'su-002', sourceType: 'taskforce', sourceId: 'tf-002', personId: '2500010008', role: 'deep',      status: 'rejected', createdAt: '2026-10-18T10:30:00.000Z', reviewedBy: '2400012355', reviewedAt: '2026-10-19T09:00:00.000Z', note: '专班当前非招募中，历史申请已关闭' },
+  { id: 'su-003', sourceType: 'taskforce', sourceId: 'tf-002', personId: '2500010013', role: 'organizer', status: 'rejected', createdAt: '2026-10-18T11:00:00.000Z', reviewedBy: '2400012355', reviewedAt: '2026-10-19T09:05:00.000Z', note: '专班当前非招募中，历史申请已关闭' },
+  // 历史拒绝（tf-006 参访活动保障专班已完成）：同 su-001 口径。
+  { id: 'su-004', sourceType: 'taskforce', sourceId: 'tf-006', personId: '2400012350', role: 'participant', status: 'rejected', createdAt: '2026-08-09T14:00:00', reviewedBy: '2400012355', reviewedAt: '2026-08-16T10:00:00.000Z', note: '专班已完成，普通参与身份不可转为成员' },
+  { id: 'su-005', sourceType: 'taskforce', sourceId: 'tf-006', personId: '2400012353', role: 'deep',        status: 'rejected', createdAt: '2026-08-10T16:00:00', reviewedBy: '2400012355', reviewedAt: '2026-08-16T10:05:00.000Z', note: '专班已完成，报名不再进入审核' },
+  // act-30 秋季学期工作部署会（已结束；approved 为历史事实）
   { id: 'su-006', sourceType: 'activity', sourceId: 'act-30', personId: '2400012352',  role: 'participant', status: 'approved', createdAt: '2026-08-11T11:00:00', reviewedBy: null, reviewedAt: null, note: null },
   { id: 'su-007', sourceType: 'activity', sourceId: 'act-30', personId: '2500010001', role: 'participant', status: 'approved', createdAt: '2026-08-11T11:30:00', reviewedBy: null, reviewedAt: null, note: '反馈#4 提出者' },
 ];
@@ -79,7 +86,7 @@ export const SEED_REVIEW_REQUESTS = [
     branchId: DEFAULT_BRANCH_ID,
     type: 'activity-report',
     title: '关于赴香山开展主题党日的报备',
-    content: '拟定 8 月中旬组织支部党员赴香山开展主题党日，含往返交通、安全预案与经费说明，报请党委备案。',
+    content: '拟定 10 月中旬组织支部党员赴香山开展主题党日，含往返交通、安全预案与经费说明，报请党委备案（8 月报备、后按活动安排调整至 10 月 22 日）。',
     submittedBy: '2400012345',
     status: 'pending',
     createdAt: '2026-08-06T09:00:00.000Z',
@@ -100,6 +107,14 @@ export const SEED_REVIEW_REQUESTS = [
 //   ⇒ 挂过去也看不到（原登记说的「日期耦合」）。
 //   另：`proofContent: null` **必须保持为空**——该弹窗用 `initialValues.proofContent` 预填，
 //   若预填了内容，「请填写补课说明」这一支会被**默认预填**挡住（「默认预填藏必填分支」同族）。
+// R10（2026-10-23，B21）：截止日改为**相对今天**生成（今天 + 7 天），不再固定 2026-09-17，
+//   避免首启即逾期 36 天；缺勤日保持 att900 的真实日期（历史事实不改）。
+const _makeupDeadline = () => {
+  const day = new Date(`${todayLocal()}T00:00:00`);
+  day.setDate(day.getDate() + 7);
+  return _fmtDate(day);
+};
+
 export const SEED_MAKEUP_TASKS = [
   {
     id: 'mk-seed-1',
@@ -113,7 +128,7 @@ export const SEED_MAKEUP_TASKS = [
     activityName: '9月支部党员大会（线上异步表决）',
     personName: '宋佳宁',
     absentDate: '2026-09-10',
-    deadline: '2026-09-17',
+    deadline: _makeupDeadline(),
     status: 'pending',
     isMandatory: true,
     proofContent: null,

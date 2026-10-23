@@ -13,12 +13,12 @@
 import { test, before } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261022d';
-import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261022d';
-import { registerMockAdapter, setDataSource } from '../../docs/src/data/data-adapter.js?v=20261022d';
-import { createBranch, getBranchById } from '../../docs/src/services/branch/branch.js?v=20261022d';
-import { PersonStore } from '../../docs/src/services/member/person.js?v=20261022d';
-import { appointInauguralOfficers } from '../../docs/src/services/branch/appointment.js?v=20261022d';
+import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261023a';
+import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261023a';
+import { registerMockAdapter, setDataSource } from '../../docs/src/data/data-adapter.js?v=20261023a';
+import { createBranch, getBranchById } from '../../docs/src/services/branch/branch.js?v=20261023a';
+import { PersonStore } from '../../docs/src/services/member/person.js?v=20261023a';
+import { appointInauguralOfficers } from '../../docs/src/services/branch/appointment.js?v=20261023a';
 
 // ── localStorage 内存桩（member-persist 同款；key/length 供 handleResetIfRequested 枚举）──
 const _store = new Map();
@@ -167,6 +167,9 @@ function beginMockCase() {
   mockDB._loaded = false;
   setDataSource('mock'); // 数据源复位
   MockAdapter.loadDB();  // seed：activities/tasks/assignments/archiveRecords/signups/branches(br-b1, secretaryId 2300010001)
+  // 2026-10-23 批次 504（R10-C14）：mock 现与 api 同源播种 appointmentRecords；本文件以「零任期记录」为基线，
+  //   故在 loadDB 之后显式清空（只影响本文件的任命断言，不改产品种子）。
+  mockDB.appointmentRecords = [];
   mockDB.users = BASE_USERS.map(u => ({ ...u })); // loadDB 不重置 users → 显式回基线（防跨用例污染）
 }
 

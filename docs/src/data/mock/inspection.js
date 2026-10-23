@@ -9,7 +9,7 @@
 // 本文件退化为纯考察种子数据仓。
 // 2026-09-06 基线刷新：recordedAt 随关联活动/专班时间轴同步平移（活动新日期见 activities.js 头注）；
 //   注释中旧人名同步（与 people.js 一致）。
-import { ParticipationLevel, SourceType } from '../../core/domain/domain.js?v=20261022d';
+import { ParticipationLevel, SourceType } from '../../core/domain/domain.js?v=20261023a';
 
 export const INSPECTION_RECORDS = [
   // ── 活动考察记录 ──────────────────────────────────────────
@@ -88,8 +88,16 @@ export const INSPECTION_RECORDS = [
 // 为什么用派生循环而不是逐条改字面量：一处口径、不会漏改；mock 与 server/seed.js 同源 import 本数组，
 //   两形态同时生效（不另造服务端副本）。日期保持原 recordedAt——它们是历史事实，不随今天的日期伪造。
 const RECENT_PENDING_INSPECTION_IDS = new Set(['insp-24', 'insp-25', 'insp-26']);
+// R10（2026-10-23）：批量转 confirmed 时必须同时落**真实确认人**与确认时间（C10）——
+//   原先只改 status，读侧确认人为空。确认人取纪检委员 2400012354（董建军）；历史记录以原
+//   recordedAt 作为确认时间（不伪造新的业务时间）。
+const INSPECTION_CONFIRMER_ID = '2400012354';
 for (const record of INSPECTION_RECORDS) {
   if (record.status === 'pending' && !RECENT_PENDING_INSPECTION_IDS.has(record.id)) {
     record.status = 'confirmed';
+  }
+  if (record.status === 'confirmed' && !record.confirmedBy) {
+    record.confirmedBy = INSPECTION_CONFIRMER_ID;
+    record.confirmedAt = record.recordedAt;
   }
 }

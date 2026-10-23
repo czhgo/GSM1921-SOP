@@ -1,21 +1,22 @@
 // role: [工程师]+[AI]
 // notice-entry.js — 通知详情独立入口
 // 2026-07-30: 增加邮件要素（通知者/被通知者/时间），但不采用邮箱 UI
-import { renderSidebar } from '../../components/shell/sidebar.js?v=20261022d';
-import { renderHeader } from '../../components/shell/header.js?v=20261022d';
-import { NoticeStore, resolveNoticeUrl, canReadNotice } from '../../services/governance/notice.js?v=20261022d';
-import { getBasePath, showToast } from '../../core/base/utils.js?v=20261022d';
-import { AuthStore } from '../../services/core/auth.js?v=20261022d';
-import { getPersonById } from '../../services/member/person.js?v=20261022d';
-import { badgeHtml } from '../../components/ui/badges.js?v=20261022d';
+import { renderSidebar } from '../../components/shell/sidebar.js?v=20261023a';
+import { renderHeader } from '../../components/shell/header.js?v=20261023a';
+import { NoticeStore, resolveNoticeUrl, canReadNotice } from '../../services/governance/notice.js?v=20261023a';
+import { getBasePath, showToast } from '../../core/base/utils.js?v=20261023a';
+import { AuthStore } from '../../services/core/auth.js?v=20261023a';
+import { getPersonById, getPersonName } from '../../services/member/person.js?v=20261023a';
+import { badgeHtml } from '../../components/ui/badges.js?v=20261023a';
+import { NOTICE_AUDIENCE_SENTINELS } from '../../core/domain/constants.js?v=20261023a';
 // S1（2026-09-12）：通知详情页必须先完成数据 hydrate（loadDB/API init）再按 id 取数，
 // 否则 NoticeStore 只剩 MOCK_NOTICES 内存兜底 → 用户/服务端通知一律「不存在或已过期」。
-import { hydrateDataSource, notifyDataLoaded } from '../../data/data-adapter.js?v=20261022d';
-import { ApiAdapter } from '../../data/api-adapter.js?v=20261022d';
-import { BranchService } from '../../services/core/runtime.js?v=20261022d';
+import { hydrateDataSource, notifyDataLoaded } from '../../data/data-adapter.js?v=20261023a';
+import { ApiAdapter } from '../../data/api-adapter.js?v=20261023a';
+import { BranchService } from '../../services/core/runtime.js?v=20261023a';
 // SOP-B-5（D-293）：通知确认时填「能否线上参会」——线上参会落该场考勤为「请假 + 线上」、只免补课
-import { declareOnlineAttend } from '../../services/activity/attendance.js?v=20261022d';
-import { loadActivities } from '../../services/activity/activity.js?v=20261022d';
+import { declareOnlineAttend } from '../../services/activity/attendance.js?v=20261023a';
+import { loadActivities } from '../../services/activity/activity.js?v=20261023a';
 
 renderSidebar('dashboard');
 renderHeader('dashboard');
@@ -83,21 +84,46 @@ backBtn?.addEventListener('click', () => {
   }
 })();
 
-// ── 通知者推断 ──
-// 根据 targetModule 推断通知的发布角色
+// ── 通知者推断（A05）──
+// 优先读真实发布人 id（fromPersonId / publisherId / createdBy）→ 姓名；其次落款（publishedBy）；
+// 最后才按 targetModule 推断角色。不得让「系统」占位盖住已写入的人。
+function _personNameOf(id) {
+  if (!id) return '';
+  const name = getPersonName(id);
+  return name && name !== id ? name : '';
+}
+
 function inferPublisher(n) {
+  const personId = n.fromPersonId || n.publisherId || n.createdBy;
+  const personName = _personNameOf(personId);
+  if (personName) return personName;
+  if (n.publisher) return n.publisher;
+  if (n.publishedBy) return n.publishedBy;
   const modulePublisherMap = {
     activity: '支书',
     party: '组织委员',
     workspace: '支书',
     attendance: '纪检委员',
   };
-  return n.publisher || modulePublisherMap[n.targetModule] || '系统';
+  return modulePublisherMap[n.targetModule] || '系统';
 }
 
-// ── 被通知者推断 ──
-// 根据优先级和模块推断通知对象
+// ── 被通知者推断（A05）──
+// 优先 audienceLabel / audiencePersons（到人 → 姓名）/ audience（sentinel → 标签）；
+// 最后才回退模块推断。
 function inferRecipients(n) {
+  if (n.audienceLabel) return n.audienceLabel;
+  if (Array.isArray(n.audiencePersons) && n.audiencePersons.length) {
+    const names = n.audiencePersons.map((id) => _personNameOf(id) || id).filter(Boolean);
+    if (names.length) return names.join('、');
+  }
+  if (n.audience) {
+    const values = Array.isArray(n.audience) ? n.audience : [n.audience];
+    const labels = values
+      .map((value) => NOTICE_AUDIENCE_SENTINELS[value]?.label || value)
+      .filter(Boolean);
+    if (labels.length) return labels.join('、');
+  }
   if (n.recipients) return n.recipients;
   if (n.priority === 'urgent') return '全体党员、预备党员、积极分子';
   const moduleRecipientMap = {

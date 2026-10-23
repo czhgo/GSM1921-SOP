@@ -5,7 +5,7 @@
 // R-26③（2026-10-05 批次 388）：本件**只引一个零依赖叶子** `core/base/date.js`（取本地「今天」）——
 //   不成环、双端可载；**不得**引 `core/base/utils.js`（那会牵 `core/session/pending-writes.js`）。
 
-import { todayLocal } from '../base/date.js?v=20261022d';
+import { todayLocal } from '../base/date.js?v=20261023a';
 
 // ════════════════════════════════════════════════════════════════
 //  缺省支部 id（单一源，R2-17，2026-10-20）
@@ -732,6 +732,12 @@ export const ACTIVITY_SCOPES = {
   // 一律经 normalizeOrganizingScope() 归一为 'party-group'。新代码不得产出该值。
   CROSS_GROUP: 'cross-group',
 };
+// 招募范围（R10-B16 单一源）：与组织落点正交——跨组只表达「向其他党小组招募」，
+// 活动/专班仍有唯一承办组；落点一律取 ACTIVITY_SCOPES，不得把 cross-group 当第三种落点。
+export const RECRUITMENT_SCOPES = Object.freeze({
+  GROUP: 'group',
+  CROSS_GROUP: 'cross-group',
+});
 export const BRANCH_LEVEL_SCENARIOS = ['branch-committee', 'branch-party-meeting', 'party-lecture'];
 // 旧客户端可能只传 type、不传 scenarioId ⇒ 判支部级会议必须同时认两类入参（服务端与迁移共用）。
 export const BRANCH_LEVEL_ACTIVITY_TYPES = ['支委会', '支部党员大会', '党课'];
@@ -967,6 +973,8 @@ export const OUTPUT_BLOCK_DEFS = [
 // broadcast=true → 全员可见（含无登录会话）；roles/developStages → 命中其一即可见。
 export const NOTICE_AUDIENCE_SENTINELS = {
   all: { label: '全体党员', broadcast: true },
+  // 支委层（R10-B11）：本支部支委层受众；党委下发通道另有 source/scope 语义（见 notice.js），勿混为一谈。
+  committee: { label: '支委层', roles: [...BRANCH_COMMISSION_ROLES] },
   leaders: { label: '党小组组长', roles: ['leader'] },
   activists: { label: '入党积极分子', developStages: ['积极分子'] },
   candidates: { label: '发展对象', developStages: ['发展对象'] },

@@ -4,40 +4,40 @@
 // 私有状态（PersonPicker 实例）随模块自持；共享数据（taskforce 分类）经 ctx 传入。
 // 2026-10-20 第三轮 IA 判例④：活动视图已迁至「活动日历」页，本页不再消费 ctx.activities。
 
-import { setState } from '../../../core/base/state.js?v=20261022d';
-import { TaskForceRecordStore, isTaskforceOrganizer } from '../../../services/activity/taskforce.js?v=20261022d';
-import { legacyParticipantAssignmentRows, workgroupMembers } from '../../../services/activity/workgroup-members.js?v=20261022d';
-import { SignupStore, resolveSignupReviewer, SignupStatus, SIGNUP_ROLE_LABELS, SIGNUP_STATUS_LABELS } from '../../../services/activity/signup.js?v=20261022d';
-import { AuthStore } from '../../../services/core/auth.js?v=20261022d';
-import { loadTaskforceReviews, addTaskforceReview } from '../../../services/governance/review.js?v=20261022d';
-import { TodoStore, TodoSourceType, TodoCategory, TodoActionType } from '../../../services/governance/todo.js?v=20261022d';
-import { NoticeStore } from '../../../services/governance/notice.js?v=20261022d';
-import { mockDB, ReviewStatus, isTaskforceTerminalStatus, isTaskforceActiveStatus, TASK_TERMINAL_STATUSES, OUTPUT_TERMINAL_STATUSES } from '../../../core/domain/domain.js?v=20261022d'; // IA-C3 收敛单写入口 2026-09-06：ParticipationLevel 随考察写入口移除
-import { persist } from '../../../data/data-adapter.js?v=20261022d';
-import { settleWrites } from '../../../core/session/pending-writes.js?v=20261022d';
-import { showToast, escHtml as esc, getBasePath, todayLocal, flashHighlight } from '../../../core/base/utils.js?v=20261022d';
-import { generateId } from '../../../core/base/id.js?v=20261022d';
-import { solidAccentStyle } from '../../../core/domain/constants.js?v=20261022d';
-import { PersonPicker } from '../../../components/governance/pickers.js?v=20261022d';
-import { renderWorkgroupPermissionEditor, readWorkgroupPermissionEditor } from '../../../components/governance/workgroup-permissions.js?v=20261022d';
-import { renderWorkgroupMemberEditor, bindWorkgroupMemberEditor } from '../../../components/governance/workgroup-member-editor.js?v=20261022d';
-import { getAdapter } from '../../../data/data-adapter.js?v=20261022d';
-import { recordFormShell } from '../../../components/ui/forms.js?v=20261022d';
+import { setState } from '../../../core/base/state.js?v=20261023a';
+import { TaskForceRecordStore, isTaskforceOrganizer } from '../../../services/activity/taskforce.js?v=20261023a';
+import { legacyParticipantAssignmentRows, workgroupMembers } from '../../../services/activity/workgroup-members.js?v=20261023a';
+import { SignupStore, resolveSignupReviewer, SignupStatus, SIGNUP_ROLE_LABELS, SIGNUP_STATUS_LABELS } from '../../../services/activity/signup.js?v=20261023a';
+import { AuthStore } from '../../../services/core/auth.js?v=20261023a';
+import { loadTaskforceReviews, addTaskforceReview } from '../../../services/governance/review.js?v=20261023a';
+import { TodoStore, TodoSourceType, TodoCategory, TodoActionType } from '../../../services/governance/todo.js?v=20261023a';
+import { NoticeStore } from '../../../services/governance/notice.js?v=20261023a';
+import { mockDB, ReviewStatus, isTaskforceTerminalStatus, isTaskforceActiveStatus, TASKFORCE_TERMINAL_STATUSES, TASK_TERMINAL_STATUSES, OUTPUT_TERMINAL_STATUSES } from '../../../core/domain/domain.js?v=20261023a'; // IA-C3 收敛单写入口 2026-09-06：ParticipationLevel 随考察写入口移除
+import { persist } from '../../../data/data-adapter.js?v=20261023a';
+import { settleWrites } from '../../../core/session/pending-writes.js?v=20261023a';
+import { showToast, escHtml as esc, getBasePath, todayLocal, flashHighlight } from '../../../core/base/utils.js?v=20261023a';
+import { generateId } from '../../../core/base/id.js?v=20261023a';
+import { solidAccentStyle } from '../../../core/domain/constants.js?v=20261023a';
+import { PersonPicker } from '../../../components/governance/pickers.js?v=20261023a';
+import { renderWorkgroupPermissionEditor, readWorkgroupPermissionEditor } from '../../../components/governance/workgroup-permissions.js?v=20261023a';
+import { renderWorkgroupMemberEditor, bindWorkgroupMemberEditor } from '../../../components/governance/workgroup-member-editor.js?v=20261023a';
+import { getAdapter } from '../../../data/data-adapter.js?v=20261023a';
+import { recordFormShell } from '../../../components/ui/forms.js?v=20261023a';
 // 「本位」nudge 确认弹窗（2026-09-23 支书裁定 · 单一源 = components/ui/modal.js::confirmNudge）
 // U-05：招募浮窗原为手写 overlay/panel（无 dialog 语义 / 无焦点接管）→ 改走同一组件的 openModal。
-import { confirmNudge, confirmWriteWithoutGrant, openModal, closeModal } from '../../../components/ui/modal.js?v=20261022d';
+import { confirmNudge, confirmWriteWithoutGrant, openModal, closeModal } from '../../../components/ui/modal.js?v=20261023a';
 // 转交组织者（SOP-G-2-② · 2026-10-01 批次 327 · 支书裁「乙：直接转交 ＋ 留痕」）：判据 / 写口 /
 //   弹窗单一源＝`components/governance/organizer-transfer.js`（本台只挂入口，不复制一份实现）。
-import { canTransferOrganizer, openOrganizerTransfer } from '../../../components/governance/organizer-transfer.js?v=20261022d';
-import { badgeHtml } from '../../../components/ui/badges.js?v=20261022d';
+import { canTransferOrganizer, openOrganizerTransfer, organizerOf } from '../../../components/governance/organizer-transfer.js?v=20261023a';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20261023a';
 // 人×项目矩阵单一源（支书 2026-09-14 裁定：把宽表推广到其它二元关系域 → 本批「专班报名」域）
-import { renderRelationMatrix } from '../../../components/ui/relation-matrix.js?v=20261022d';
-import { getPersonName, PersonStore } from '../../../services/member/person.js?v=20261022d';
+import { renderRelationMatrix } from '../../../components/ui/relation-matrix.js?v=20261023a';
+import { getPersonName, PersonStore } from '../../../services/member/person.js?v=20261023a';
 // 统一检索引擎（2026-09-13 表格统一化批次 A）：报名名单等按人段落接入关键词 + 分面
-import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261022d';
-import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261022d';
+import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261023a';
+import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261023a';
 // 详情锚定单一源（2026-10-18 繁专项 Task 14）：与 taskforce-view.js 同款「触点即落点」
-import { anchorDetailToTrigger, scrollDetailIntoView } from '../../../components/ui/detail-anchor.js?v=20261022d';
+import { anchorDetailToTrigger, scrollDetailIntoView } from '../../../components/ui/detail-anchor.js?v=20261023a';
 // 私有状态（随模块自持，不污染入口）
 let _recruitOrganizerPicker = null;
 let _recruitDeepPicker = null;
@@ -78,7 +78,7 @@ export function renderContent(ctx) {
 
   // 获取已完结专班（含 completed / archived 归档 / dissolved 表决通过解散），T223 新者在前
   const completed = TaskForceRecordStore.getAll()
-    .filter(t => t.status === 'completed' || t.status === 'archived' || t.status === 'dissolved')
+    .filter(t => TASKFORCE_TERMINAL_STATUSES.includes(t.status))
     .sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
 
   container.innerHTML = `
@@ -696,11 +696,16 @@ async function _tfRenderRolesBlock(panel, tf, ctx) {
   const storedMembers = mockDB.workgroupMembers.filter((row) => row.workgroupId === workgroupId && row.status !== 'removed');
   const members = storedMembers.length ? workgroupMembers(storedMembers) : _tfAssignsOf(tf);
   const _meId = AuthStore.getCurrentUser()?.personId;
-  const _canTransfer = canTransferOrganizer('taskforce', tf.id, _meId);
+  // A03：转交要求「先有现任组织者」（写口否则必然失败）⇒ 无组织者时不渲染「转交」，
+  //   改为提示在下方工作组成员编辑中指定（复用现有编辑面）。
+  const _organizerId = organizerOf('taskforce', tf.id);
+  const _canInitiateTransfer = canTransferOrganizer('taskforce', tf.id, _meId);
+  const _canTransfer = _canInitiateTransfer && !!_organizerId;
   const editorCanEdit = canEdit && !grantsError;
   mount.innerHTML = `
     ${isClosedHistory ? `<p class="mb-2 text-xs text-gray-500">工作组已结束，成员与授权记录只读保留。${isDisabledHistory ? '本支部已停用该能力包。' : ''}</p>` : ''}
     ${_canTransfer && !isClosedHistory ? '<div class="mt-4 flex justify-end"><button id="btn-transfer-tf-org" type="button" class="btn-outline min-h-10 px-3 text-sm">转交组织者</button></div>' : ''}
+    ${_canInitiateTransfer && !_organizerId && !isClosedHistory ? '<p class="mt-4 text-xs text-gray-500">本专班尚未指定组织者：请在下方工作组成员中把一人设为组织者。</p>' : ''}
     ${renderWorkgroupMemberEditor({ workgroupId, kind: 'taskforce', canEdit: editorCanEdit, members, grants, legacyRows })}
     ${grantsError ? `<p class="mt-2 text-xs text-red-700" role="status">${esc(grantsError)}。${canEdit ? '为避免覆盖现有授权，成员编辑暂不可用。' : '授权明细暂不可读取。'}</p>` : ''}`;
 
@@ -1110,11 +1115,12 @@ function _tfRenderSubsBlock(panel, tf, ctx) {
           if (!_homeOk) return;
         }
         const cur = _tfSubsData(tf.id);
+        if (!currentUserId) { showToast('error', '登录状态已失效，请重新登录后重试'); return; }
         cur.materials.push({
           name,
           author: form.querySelector('.f-author').value.trim(),
           note: form.querySelector('.f-note').value.trim(),
-          recordedBy: currentUserId || 'u_org',
+          recordedBy: currentUserId,
           recordedAt: new Date().toISOString(),
         });
         _tfSaveSubs(tf.id, cur);

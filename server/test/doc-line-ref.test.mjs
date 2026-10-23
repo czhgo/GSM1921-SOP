@@ -270,6 +270,8 @@ test('R4 「零命中 / 检索不到消费点」类关键词取证仍成立（�
     'docs/src/capabilities/secretary-workspace.js',           // 支书台 tab 注册（组长 / 副组长行内管理）
     'docs/src/core/domain/constants.js',        // 身份键 / 标签 / 页面映射 / 颜色三处（文件末集中挂载）
     'docs/src/core/domain/function-catalog.js',               // 工作台目录（组长 / 副组长；2026-10-04 批次 373）
+    // 2026-10-23 批次 504（R10-B10）：域参数管理权由 POLICY_OVERRIDABLE 派生，`deputy-leader` 作为身份键在此登记。
+    'docs/src/core/domain/policy-defaults.js',
     'docs/src/entries/pages/login-entry.js',   // 开发身份卡「党小组副组长」
     'docs/src/entries/tabs/secretary/assign-tab.js',           // 常设赋权面板「身份」选择（组长 / 副组长）
     'docs/src/entries/tabs/secretary/group-progress-tab.js',   // 清单行内双身份展示 + 行内撤销

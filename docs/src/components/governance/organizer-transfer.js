@@ -13,21 +13,31 @@
 //   通知被赋权人）。⇒ 「退出与接手人」两者都在既有审计链里可查。
 // **不改权限门**：本件不新增任何写权限——能否转交由本文件判据决定，底层写入仍走既有写口。
 
-import { openModal, closeModal } from '../ui/modal.js?v=20261022d';
-import { PersonPicker } from './pickers.js?v=20261022d';
-import { AuthStore } from '../../services/core/auth.js?v=20261022d';
-import { getPersonName } from '../../services/member/person.js?v=20261022d';
-import { showToast, escHtml } from '../../core/base/utils.js?v=20261022d';
-import { mockDB } from '../../core/domain/domain.js?v=20261022d';
+import { openModal, closeModal } from '../ui/modal.js?v=20261023a';
+import { PersonPicker } from './pickers.js?v=20261023a';
+import { AuthStore } from '../../services/core/auth.js?v=20261023a';
+import { getPersonName } from '../../services/member/person.js?v=20261023a';
+import { showToast, escHtml } from '../../core/base/utils.js?v=20261023a';
+import { mockDB } from '../../core/domain/domain.js?v=20261023a';
 // 「做事即销待办」：转交完成＝本对象已完成「指定组织者」这件事 ⇒ 与两处既有「保存角色」同款，
 //   销掉该对象的赋权待办（`TodoSourceType.ACTIVITY` / `TASKFORCE`）——**不一致会留下悬空待办**。
-import { TodoStore, TodoSourceType } from '../../services/governance/todo.js?v=20261022d';
+import { TodoStore, TodoSourceType } from '../../services/governance/todo.js?v=20261023a';
 // 通知**被退出的原组织者**（2026-10-01 批次 330 · 支书裁「补：通知原组织者」）：走系统派生通知单一源
 //   （kind `organizer-transferred`，服务端按注册表复算授权；受众＝到人定向，文案/落点在模板单一源）。
-import { NoticeStore } from '../../services/governance/notice.js?v=20261022d';
+import { NoticeStore } from '../../services/governance/notice.js?v=20261023a';
 
 /** 可发起「转交组织者」的角色 —— **单一源**（支书 / 副支书 / 组织委员；现任组织者本人另按人判，见下） */
 const TRANSFER_ROLES = ['secretary', 'deputy-secretary', 'org-commissioner'];
+
+/** 该对象（活动 / 专班）的工作组 id（与页面读口同派生规则） */
+function _workgroupIdOf(subject, scopeRef) {
+  if (subject === 'taskforce') {
+    const tf = (mockDB.taskforces || []).find(t => t.id === scopeRef);
+    return tf?.workgroupId || `wg-taskforce-${scopeRef}`;
+  }
+  const act = (mockDB.activities || []).find(a => a.id === scopeRef);
+  return act?.workgroupId || `wg-activity-${scopeRef}`;
+}
 
 /** 取该对象（活动 / 专班）的项目角色行（organizer / deep） */
 function _projOf(subject, scopeRef) {
@@ -39,12 +49,23 @@ function _projOf(subject, scopeRef) {
   return act ? (act.assignments || []).filter(x => x && (x.role === 'organizer' || x.role === 'deep')) : null;
 }
 
-/** 该场**现任组织者** personId（无则空串） */
+/**
+ * 该场**现任组织者** personId（无则空串）。
+ * A03：判据与页面同源——优先工作组主源 `workgroup_members`（role=organizer），
+ *   其次项目角色行（assignments / members），最后才用活动 `organizer` 兼容镜像兜底。
+ */
 export function organizerOf(subject, scopeRef) {
-  const proj = _projOf(subject, scopeRef);
-  if (!proj) return '';
+  const workgroupId = _workgroupIdOf(subject, scopeRef);
+  const wgRow = (mockDB.workgroupMembers || [])
+    .find((row) => row && row.workgroupId === workgroupId && row.status !== 'removed' && row.role === 'organizer');
+  if (wgRow?.personId) return wgRow.personId;
+  const proj = _projOf(subject, scopeRef) || [];
   const row = proj.find(x => x.role === 'organizer');
-  return row ? row.personId : '';
+  if (row?.personId) return row.personId;
+  if (subject === 'activity') {
+    return (mockDB.activities || []).find(a => a.id === scopeRef)?.organizer || '';
+  }
+  return '';
 }
 
 /**

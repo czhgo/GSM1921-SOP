@@ -5,7 +5,7 @@
 //   docs/src/components/sections/help-catalog.js（浏览器：help 页功能地图/业务链路 mermaid 源）
 // 数据源：docs/src/core/domain/function-catalog.js（单一事实源；纯数据表达式，node 可直接 import）
 // 约定：本文件为纯 ESM，不依赖任何 node API / 浏览器 API，双端可加载
-import { FUNCTION_GROUPS, FUNCTION_CATALOG } from './function-catalog.js?v=20261022d';
+import { FUNCTION_GROUPS, FUNCTION_CATALOG } from './function-catalog.js?v=20261023a';
 
 function tag(it) {
   return it.generic ? '通用' : '特有';
@@ -31,10 +31,9 @@ export function generateMindmapText() {
 export const FLOW_LINKS = {
   // ── 活动型 ──
   'flow-branch-committee': [
-    'A[支书: 确定议题并提前通知] --> B[纪检委员: 签到考勤]',
-    'B --> C[支书: 主持并记录会议决议]',
-    'C --> D[宣传委员: 归档会议材料]',
-    'D --> E[纪检委员: 跟进请假缺勤补课]',
+    // R10-B13：支委会不考勤 ⇒ 去掉「纪检签到考勤 / 补课」节点（与 sopData 同源）。
+    'A[支书: 确定议题并提前通知] --> B[支书: 主持并记录会议决议]',
+    'B --> C[宣传委员: 归档会议材料]',
   ],
   'flow-online-committee': [
     'A[支书: 创建线上支委会并定稿议程] --> B[委员: 异步表态（同意/异议/附言）]',
@@ -42,12 +41,12 @@ export const FLOW_LINKS = {
     'C --> D[支书: 记录会议决议]',
   ],
   'flow-group-meeting': [
+    // R10-B13：党小组会＝组长录入考勤 + 纪检确认/汇总（与修订后的 sopData 一致）。
     'A[党小组组长: 统筹时间·确定主题·提前通知] --> B[党小组组长: 现场按应到名单录入考勤]',
-    'B --> C[纪检委员: 签到考勤]',
-    'C --> D[党员: 述职自评与互相批评]',
-    'D --> E[党小组组长: 总结·汇总会议记录]',
-    'E --> F[纪检委员: 考勤汇总·参与分层记录]',
-    'F --> G[宣传委员: 归档党小组会记录]',
+    'B --> C[党员: 述职自评与互相批评]',
+    'C --> D[党小组组长: 总结·汇总会议记录]',
+    'D --> E[纪检委员: 考勤汇总·参与分层记录]',
+    'E --> F[宣传委员: 归档党小组会记录]',
   ],
   'flow-party-lecture': [
     'A[支书: 发布党课通知与学习材料] --> B[支书: 提醒缺席党员补课]',

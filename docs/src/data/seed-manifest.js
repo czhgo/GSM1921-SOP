@@ -62,8 +62,9 @@ export const SEED_MANIFEST = [
     idPattern: '^pg-\\d+$',
     lifecycleClass: 'skeleton',
     initTier: 'clear',
-    seedOwnedFields: ['id', 'branchId', 'name', 'seq', 'status', 'createdAt', 'createdBy', 'note'],
-    runtimeFields: ['history', 'dissolvedAt', 'dissolvedBy'],
+    // R10（2026-10-23）：组名 / 备注有用户写口（改名、解散备注）⇒ 归运行时，修复不得回滚。
+    seedOwnedFields: ['id', 'branchId', 'seq', 'status', 'createdAt', 'createdBy'],
+    runtimeFields: ['name', 'note', 'history', 'dissolvedAt', 'dissolvedBy'],
   },
   {
     collection: 'milestones',
@@ -87,16 +88,18 @@ export const SEED_MANIFEST = [
     lifecycleClass: 'business',
     initTier: 'clear',
     seedOwnedFields: [
-      'id', 'title', 'date', 'type', 'organizer', 'direction', 'location', 'scenarioId', 'domain',
-      'carriers', 'isOutdoor', 'galleryFeatured',
-      'isJoint', 'galleryPinned', 'hostGroup', 'voteConfig',
-      // 装载默认 / 种子归一的组织落点字段（见文件头注释）
-      'visibility', 'createdBy', 'createdAt', 'organizingScope', 'hostGroupId',
-      'recruitmentScope', 'crossGroupCoordinatorId', 'legacyHostGroup',
+      'id', 'scenarioId', 'domain',
+      // 装载默认 / 种子归一的组织落点默认值（首次装载写入；其余见 runtimeFields）
+      'visibility', 'createdBy', 'createdAt',
     ],
     runtimeFields: [
+      // R10（2026-10-23）：活动内容与组织落点均有用户写口（编辑活动 / 补选承办党小组 / 转交组织者 /
+      //   活动风采收录 / 表决配置）⇒ 归运行时，种子修复不得把用户改过的值改回种子版本（C03）。
+      'title', 'date', 'type', 'direction', 'location', 'carriers', 'isOutdoor', 'isJoint',
+      'organizer', 'galleryFeatured', 'galleryPinned', 'hostGroup', 'voteConfig',
+      'organizingScope', 'hostGroupId', 'recruitmentScope', 'crossGroupCoordinatorId', 'legacyHostGroup',
       'status', 'archived', 'archivedAt', 'workgroupId', 'participants', 'brandRevokedAt',
-      'votesLocked', 'voteTally', 'noticeSentAt', 'executor', 'supervisor',
+      'votesLocked', 'voteTally', 'noticeSentAt',
       // R9 Task 4.1：以下字段虽由种子给出**初始形态**，但一经业务动作即归运行时所有——
       //   assignments＝报名审核 / 成员语义接口写入；agenda 的对象条目会被议程结果回写（result/…）；
       //   isBrand / brandName＝支委会议程项「记录结果·通过」认定或品牌取消；
@@ -114,12 +117,14 @@ export const SEED_MANIFEST = [
     initTier: 'clear',
     seedOwnedFields: [
       'id', 'name', 'task', 'manager', 'initiator', 'capacity', 'deadline',
-      'activityId', 'createdAt', 'reviewSummary',
+      'activityId', 'createdAt',
     ],
     // R9 Task 4.1：members 由报名审核 / 成员语义接口与贡献填报写入（含 contributions），
     //   ⇒ 归运行时字段，种子修复不得整值回滚。
+    // R10（2026-10-23）：approvalStatus 由支委会表决与发起报送写口落库 ⇒ 运行时。
     runtimeFields: [
       'status', 'progressList', 'dissolvedAt', 'deletedAt', 'workgroupId', 'branchId', 'members',
+      'approvalStatus',
     ],
   },
   {
@@ -155,7 +160,12 @@ export const SEED_MANIFEST = [
     lifecycleClass: 'business',
     initTier: 'clear',
     seedOwnedFields: ['id', 'personId', 'activityId', 'studentId', 'developStage', 'partyGroup'],
-    runtimeFields: ['status', 'recordedBy', 'recordedAt', 'confirmed', 'confirmedBy', 'confirmedAt', 'overdue', 'secretaryConfirmedAt', 'note'],
+    runtimeFields: [
+      'status', 'recordedBy', 'recordedAt', 'confirmed', 'confirmedBy', 'confirmedAt', 'overdue',
+      'secretaryConfirmedAt', 'note',
+      // R10（2026-10-23）：上传/打回/申诉/线上参会字段由业务写口落库，修复不得回滚。
+      'submittedBy', 'returnedBy', 'returnedAt', 'returnReason', 'absenceReason', 'onlineAttend',
+    ],
   },
   {
     collection: 'inspections',
@@ -169,7 +179,11 @@ export const SEED_MANIFEST = [
       'id', 'sourceType', 'activityId', 'sourceName', 'personId', 'level', 'role',
       'recordedBy', 'recordedAt', 'workgroupId', 'taskforceId',
     ],
-    runtimeFields: ['status', 'confirmedBy', 'confirmedAt', 'returnedBy', 'returnedAt'],
+    runtimeFields: [
+      'status', 'confirmedBy', 'confirmedAt', 'returnedBy', 'returnedAt',
+      // R10（2026-10-23）：打回原因 / 上传人由考察写口落库，修复不得回滚。
+      'returnReason', 'submittedBy',
+    ],
   },
   {
     collection: 'makeupTasks',
@@ -196,10 +210,14 @@ export const SEED_MANIFEST = [
     lifecycleClass: 'business',
     initTier: 'clear',
     seedOwnedFields: [
-      'id', 'title', 'content', 'priority', 'publishDate', 'expireDate', 'targetModule',
-      'targetType', 'targetId', 'branchId', 'source', 'createdBy', 'audience', 'audiencePersons',
+      'id', 'publishDate', 'targetModule', 'targetType', 'targetId', 'branchId', 'source', 'createdBy',
     ],
-    runtimeFields: ['read', 'reads', 'archived', 'archivedAt'],
+    // R10（2026-10-23）：通知可编辑字段（标题/正文/优先级/有效期/受众）有写口 ⇒ 归运行时，
+    //   修复不得把用户编辑撤回；`read` 仅为历史迁移兼容读取，读侧只用 reads[]。
+    runtimeFields: [
+      'title', 'content', 'priority', 'expireDate', 'audience', 'audiencePersons',
+      'read', 'reads', 'archived', 'archivedAt',
+    ],
   },
   {
     collection: 'todos',
@@ -263,8 +281,9 @@ export const SEED_MANIFEST = [
     idPattern: '^tr-\\d+$',
     lifecycleClass: 'business',
     initTier: 'clear',
-    seedOwnedFields: ['id', 'personId', 'personName', 'title', 'period', 'content', 'submittedAt'],
-    runtimeFields: ['reviewStatus', 'reviewHistory'],
+    seedOwnedFields: ['id', 'personId', 'personName', 'title', 'period'],
+    // R10（2026-10-23）：正文与提交时间由「修改重交」写口更新 ⇒ 归运行时，修复不得撤回。
+    runtimeFields: ['content', 'submittedAt', 'reviewStatus', 'reviewHistory'],
   },
   {
     collection: 'propTasks',
@@ -335,7 +354,7 @@ export const SEED_MANIFEST = [
   {
     collection: 'externalDispatches',
     table: 'external_dispatches',
-    seedModule: 'server/seed.js',
+    seedModule: 'docs/src/data/mock/auxiliary.js',
     seedExport: 'SEED_EXTERNAL_DISPATCHES',
     idPattern: '^ed-seed-\\d+$',
     lifecycleClass: 'business',
@@ -348,7 +367,7 @@ export const SEED_MANIFEST = [
   {
     collection: 'handoffs',
     table: 'handoffs',
-    seedModule: 'server/seed.js',
+    seedModule: 'docs/src/data/mock/auxiliary.js',
     seedExport: 'SEED_HANDOFFS',
     idPattern: '^ho-seed-\\d+$',
     lifecycleClass: 'business',
@@ -359,8 +378,11 @@ export const SEED_MANIFEST = [
   {
     collection: 'memberConfirmations',
     table: 'member_confirmations',
-    seedModule: 'server/seed.js',
+    seedModule: 'docs/src/data/mock/auxiliary.js',
     seedExport: 'SEED_MEMBER_CONFIRMATIONS',
+    // 仅 API 形态：mock 端成员变更确认走服务自管的独立 localStorage 键（非 mockDB 主库），
+    //   首启不播种主库同名集合，避免「种了却读不到」的假数据（R10 C14）。
+    form: 'api-only',
     idPattern: '^mc-seed-\\d+$',
     lifecycleClass: 'business',
     initTier: 'clear',
@@ -370,8 +392,10 @@ export const SEED_MANIFEST = [
   {
     collection: 'attendanceAppeals',
     table: 'attendance_appeals',
-    seedModule: 'server/seed.js',
+    seedModule: 'docs/src/data/mock/auxiliary.js',
     seedExport: 'SEED_ATTENDANCE_APPEALS',
+    // 仅 API 形态：申诉队列在 mock 端由服务经适配器语义接口维护，无 mockDB 持久化键。
+    form: 'api-only',
     idPattern: '^appeal-seed-\\d+$',
     lifecycleClass: 'business',
     initTier: 'clear',
@@ -381,8 +405,10 @@ export const SEED_MANIFEST = [
   {
     collection: 'inspectionAppeals',
     table: 'inspection_appeals',
-    seedModule: 'server/seed.js',
+    seedModule: 'docs/src/data/mock/auxiliary.js',
     seedExport: 'SEED_INSPECTION_APPEALS',
+    // 仅 API 形态：同 attendanceAppeals，mock 无同名 mockDB 持久化键。
+    form: 'api-only',
     idPattern: '^inspAppeal-seed-\\d+$',
     lifecycleClass: 'business',
     initTier: 'clear',
@@ -392,8 +418,10 @@ export const SEED_MANIFEST = [
   {
     collection: 'issueUnread',
     table: 'issue_unread',
-    seedModule: 'server/seed.js',
+    seedModule: 'docs/src/data/mock/auxiliary.js',
     seedExport: 'SEED_ISSUE_UNREAD',
+    // 仅 API 形态：未读标记由语义端点逐人维护，mock 端无主库持久化键。
+    form: 'api-only',
     idPattern: '^\\d{10}:issue-\\d+$',
     lifecycleClass: 'derived',
     initTier: 'clear',
@@ -405,7 +433,7 @@ export const SEED_MANIFEST = [
   {
     collection: 'appointmentRecords',
     table: 'appointment_records',
-    seedModule: 'server/seed.js',
+    seedModule: 'docs/src/data/mock/auxiliary.js',
     seedExport: 'SEED_APPOINTMENT_RECORDS',
     idPattern: '^appt-seed-\\d+$',
     lifecycleClass: 'archive',
@@ -416,8 +444,10 @@ export const SEED_MANIFEST = [
   {
     collection: 'authAudit',
     table: 'auth_audit',
-    seedModule: 'server/seed.js',
+    seedModule: 'docs/src/data/mock/auxiliary.js',
     seedExport: 'SEED_AUTH_AUDIT',
+    // 仅 API 形态：授权审计为服务端受保护留痕（mock 端无主库持久化键，读口按权限降级为空）。
+    form: 'api-only',
     idPattern: '^auth-seed-\\d+$',
     lifecycleClass: 'archive',
     initTier: 'keep',
@@ -435,10 +465,11 @@ export const SEED_MANIFEST = [
     lifecycleClass: 'derived',
     initTier: 'clear',
     seedOwnedFields: [
-      'id', 'branchId', 'kind', 'sourceType', 'sourceId', 'name', 'createdAt',
+      'id', 'branchId', 'kind', 'sourceType', 'sourceId', 'createdAt',
     ],
+    // R10（2026-10-23）：name 由活动标题派生，而标题已归运行时 ⇒ 种子修复不得把组名改回种子旧值。
     runtimeFields: [
-      'status', 'organizingScope', 'hostGroupId', 'recruitmentScope',
+      'name', 'status', 'organizingScope', 'hostGroupId', 'recruitmentScope',
       'crossGroupCoordinatorId', 'migrationState',
     ],
   },

@@ -17,7 +17,9 @@
 //   组长学期提醒消费——一律改由本文件派生）。
 // ════════════════════════════════════════════════════════════════
 
-import { todayLocal } from '../base/date.js?v=20261022d';
+import { todayLocal } from '../base/date.js?v=20261023a';
+// 状态中文枚举单一源（R10-B19；domain.js 零依赖，不引入循环）。
+import { ReviewStatus } from './domain.js?v=20261023a';
 
 /** 深拷贝工具（policy 结构纯 JSON 数据；factory 基准深拷贝/复位用） */
 function _clone(v) {
@@ -348,13 +350,18 @@ export function resetPolicyDefaults() {
  * @returns {number} 实际覆盖的叶数
  */
 export function applyPolicyOverrides(clean) {
+  return _applyCleanOverrides(POLICY_DEFAULTS, clean);
+}
+
+/** 就地覆盖实现（applyPolicyOverrides 与 effectivePolicyWith 共用，防两处合并口径分叉） */
+function _applyCleanOverrides(targetRoot, clean) {
   let n = 0;
   if (!clean || typeof clean !== 'object' || Array.isArray(clean)) return 0;
   for (const spec of POLICY_OVERRIDABLE) {
     const [s0, s1, s2] = spec.path;
     const holder = clean[s0];
     if (!holder || typeof holder !== 'object' || Array.isArray(holder)) continue;
-    const target = POLICY_DEFAULTS[s0];
+    const target = targetRoot[s0];
     if (!target || typeof target !== 'object' || Array.isArray(target)) continue;
     if (s2 === undefined) {
       if (!Object.prototype.hasOwnProperty.call(holder, s1)) continue;
@@ -371,6 +378,35 @@ export function applyPolicyOverrides(clean) {
     }
   }
   return n;
+}
+
+/**
+ * 纯函数：按「出厂基准 + 已净化 overrides」算出某支部的有效策略（**不改 POLICY_DEFAULTS 全局**）。
+ * 消费点：services/branch/branch.js::getEffectivePolicy（按当前支部 id 取，报送/提示同源）。
+ * @param {Object|null} clean 已过 sanitizeConfigPolicyOverrides 的节对象
+ * @returns {Object} 有效策略（独立副本）
+ */
+export function effectivePolicyWith(clean) {
+  const out = _clone(_FACTORY);
+  _applyCleanOverrides(out, clean);
+  return out;
+}
+
+/**
+ * 域负责人角色 → 可管节集合（由 POLICY_OVERRIDABLE[*].domain 派生，前后端共用单一源）。
+ * 一域可辖多节（如纪检域＝inspection/attendance/review/makeup）；副组长与组长同权。
+ * @returns {Object<string,string[]>}
+ */
+export function policySectionsByRole() {
+  const map = {};
+  for (const spec of POLICY_OVERRIDABLE) {
+    const role = spec.domain;
+    if (!role) continue;
+    if (!map[role]) map[role] = [];
+    if (!map[role].includes(spec.path[0])) map[role].push(spec.path[0]);
+  }
+  if (Array.isArray(map.leader) && !map['deputy-leader']) map['deputy-leader'] = [...map.leader];
+  return map;
 }
 
 // ════════════════════════════════════════════════════════════════
@@ -445,7 +481,7 @@ export function isReviewOverdue(record, { today = todayLocal(), policy = POLICY_
   if (!record) return false;
   if (record.confirmedAt) return false;                        // 已确认
   if (record.voided === true) return false;                    // 已作废（已处理）
-  const rejected = record.reviewStatus === '已打回';
+  const rejected = record.reviewStatus === ReviewStatus.REJECTED;
   if (record.submittedAt && !rejected) return false;           // 已上传 / 批注中：组织者已交
   const days = (policy.review || {}).deadlineDays;
   return _isPast(today, _deadlineOf(record, days, 10));

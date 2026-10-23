@@ -16,7 +16,13 @@ test('schema v4 migrates legacy weekly report rows into the generic periodic arc
     db.prepare('INSERT INTO weekly_reports (id, data) VALUES (?, ?)').run(legacy.id, JSON.stringify(legacy));
     db.pragma('user_version = 3');
 
-    const result = applyMigrations(db);
+    let result;
+    try {
+      result = applyMigrations(db);
+    } catch (e) {
+      console.error('[periodic-archive-migration] applyMigrations 失败：', e.message, e.stack);
+      throw e;
+    }
 
     assert.equal(result.to, SCHEMA_VERSION);
     const migrated = JSON.parse(db.prepare('SELECT data FROM periodic_archive_submissions WHERE id = ?').get(legacy.id).data);

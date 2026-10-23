@@ -7,7 +7,7 @@
 import { randomUUID } from 'node:crypto';
 import { requireAuth, requireRole } from '../auth.js';
 import { HANDOFF_TYPES as HANDOFF_TYPES_SRC, AUTO_CONFIRM_TYPES } from '../../../docs/src/services/governance/handoff.js';
-import { BRANCH_COMMISSION_ROLES, BRANCH_COMMISSIONER_ASSIGNABLE_ROLES, BRANCH_COMMISSIONER_FALLBACK_ROLE, branchCommissionerWriteDeny, PARTY_GROUP_LEADER_ROLES, DEFAULT_BRANCH_ID } from '../../../docs/src/core/domain/constants.js';
+import { BRANCH_COMMISSION_ROLES, BRANCH_COMMISSIONER_ASSIGNABLE_ROLES, BRANCH_COMMISSIONER_FALLBACK_ROLE, branchCommissionerWriteDeny, PARTY_GROUP_LEADER_ROLES, SECRETARY_AND_DEPUTY_ROLES, DEFAULT_BRANCH_ID } from '../../../docs/src/core/domain/constants.js';
 import { listTable, getRow, writeRow } from './store.js';
 import { ORG_COMMISSIONER_ROLE_SET, PARTY_STAFF_ROLE, SECRETARY_AND_DEPUTY_ROLE_SET } from './gates.js';
 // R-26③（2026-10-05 批次 388）：日期口径统一到**本地**（服务端单一源 `services/reporting.js`）
@@ -207,7 +207,7 @@ export function registerExtraSemanticRoutes(router, db) {
       if (!group || group.branchId !== targetBranchId || targetUser.partyGroup !== group.name) {
         return res.status(403).json({ error: '无权限：党小组长授权对象与党小组归属不一致' });
       }
-      if (!['secretary', 'deputy-secretary'].includes(req.actor.role) || actorBranchId(req.actor) !== group.branchId) {
+      if (!SECRETARY_AND_DEPUTY_ROLES.includes(req.actor.role) || actorBranchId(req.actor) !== group.branchId) {
         return res.status(403).json({ error: '无权限：党小组长身份只能由本支部支书或副书记配置' });
       }
       const latest = listTable(db, 'auth_audit')

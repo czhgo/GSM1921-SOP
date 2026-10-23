@@ -245,10 +245,10 @@ test('mock appointments.apply 失败注入：三数组深度等于调用前', as
   };
   globalThis.sessionStorage = { getItem: () => null, setItem: () => {}, removeItem: () => {} };
 
-  const { mockDB } = await import('../../docs/src/core/domain/domain.js?v=20261022d');
-  const { MockAdapter } = await import('../../docs/src/data/mock-adapter.js?v=20261022d');
-  const { registerMockAdapter, setDataSource } = await import('../../docs/src/data/data-adapter.js?v=20261022d');
-  const { PersonStore } = await import('../../docs/src/services/member/person.js?v=20261022d');
+  const { mockDB } = await import('../../docs/src/core/domain/domain.js?v=20261023a');
+  const { MockAdapter } = await import('../../docs/src/data/mock-adapter.js?v=20261023a');
+  const { registerMockAdapter, setDataSource } = await import('../../docs/src/data/data-adapter.js?v=20261023a');
+  const { PersonStore } = await import('../../docs/src/services/member/person.js?v=20261023a');
   registerMockAdapter(MockAdapter);
   setDataSource('mock');
   mockDB._loaded = true;

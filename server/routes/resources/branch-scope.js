@@ -170,6 +170,9 @@ export function resourceBranchId(db, name, row) {
   const linked = linkedBranch(db, name, row);
   if (direct && linked && direct !== linked) return null;
   if (direct) return direct;
+  // v11（批次 504）：待办不得回落缺省支部——解析不出就是 NULL（待归属），
+  //   读口按兼容期规则决定可见性；其余集合本轮保留原兜底（R10-D14 另批）。
+  if (name === 'todos') return linked || null;
   return linked || DEFAULT_BRANCH;
 }
 
@@ -217,6 +220,18 @@ export function resourceRowsForActor(db, name, rows, actor, requestedBranchId) {
   }
   if (AGGREGATE_PARENT[name]) return aggregateRows(db, name, rows, targetBranchId);
   if (!targetBranchId) return rows;
+  if (name === 'todos') {
+    // v11 兼容期：branchId=NULL 的旧待办只给本人或同角色看一个周期，并标 branchLegacy。
+    return rows
+      .filter((row) => {
+        const branchId = resourceBranchId(db, name, row);
+        if (branchId === targetBranchId) return true;
+        if (branchId !== null) return false;
+        if (row.personId) return String(row.personId) === String(actor?.id);
+        return !!row.role && row.role === actor?.role;
+      })
+      .map((row) => (resourceBranchId(db, name, row) === null ? { ...row, branchLegacy: true } : row));
+  }
   return rows.filter((row) => resourceBranchId(db, name, row) === targetBranchId);
 }
 

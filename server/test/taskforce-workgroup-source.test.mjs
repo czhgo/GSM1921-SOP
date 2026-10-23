@@ -25,11 +25,11 @@ function makeStorage() {
 globalThis.localStorage = makeStorage();
 globalThis.sessionStorage = makeStorage();
 
-import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261022d';
-import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261022d';
-import { registerMockAdapter, setDataSource } from '../../docs/src/data/data-adapter.js?v=20261022d';
-import { TaskForceRecordStore } from '../../docs/src/services/activity/taskforce.js?v=20261022d';
-import { SignupStore } from '../../docs/src/services/activity/signup.js?v=20261022d';
+import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261023a';
+import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261023a';
+import { registerMockAdapter, setDataSource } from '../../docs/src/data/data-adapter.js?v=20261023a';
+import { TaskForceRecordStore } from '../../docs/src/services/activity/taskforce.js?v=20261023a';
+import { SignupStore } from '../../docs/src/services/activity/signup.js?v=20261023a';
 
 const TF_ID = 'tf-001';
 const WORKGROUP_ID = `wg-taskforce-${TF_ID}`;
@@ -46,7 +46,11 @@ before(() => {
   assert.ok(tf, '种子须含 tf-001');
   tf.status = 'recruiting';
   tf.deadline = '2026-12-31';
-  assert.ok(mockDB.workgroups.some((row) => row.id === WORKGROUP_ID), '种子须含 tf-001 的工作组');
+  const wg = mockDB.workgroups.find((row) => row.id === WORKGROUP_ID);
+  assert.ok(wg, '种子须含 tf-001 的工作组');
+  // R10-C16（批次 504）：mock 与 API 同口径——终态工作组只读。本用例要验「报名审核写主源」，
+  //   前置须把工作组置于可写态（复现「招募中」的真实组合）。
+  wg.status = 'active';
 });
 
 test('W1/W2 报名审核通过：写 workgroup_members 主源，taskforces.members 兼容镜像同步', async () => {

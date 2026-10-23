@@ -26,6 +26,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { chromium } from 'playwright';
+// R10-D15：考勤超期不再读存储快照，一律按 `policy-defaults::isAttendanceOverdue` 现算。
+import { isAttendanceOverdue } from '../../docs/src/core/domain/policy-defaults.js?v=20261023a';
 
 const BASE = process.env.BASE || 'http://localhost:3000';
 const PW = process.env.LOGIN_PASSWORD || '123456';
@@ -38,7 +40,7 @@ const ATT_ID = `att-b31-${RID}`;
 const MK_ID = `mk-b31-${RID}`;
 const today = new Date();
 const dstr = (d) => d.toISOString().split('T')[0];
-const ABSENT_DATE = dstr(new Date(today.getTime() - 3 * 864e5));   // 活动日＝3 天前
+const ABSENT_DATE = dstr(new Date(today.getTime() - 10 * 864e5));  // 活动日＝10 天前（> 补课时限 7 天 ⇒ 现算超期）
 const DEADLINE = dstr(new Date(today.getTime() + 4 * 864e5));      // 截止＝4 天后（⇒「待补课」）
 
 const api = async (method, path, { token, body } = {}) => {
@@ -77,9 +79,10 @@ test('B3-1（API 级）补课完成 → 服务端考勤回写 made_up ＋ overdu
   assert.equal(mk.status, 201, `造活动失败：HTTP ${mk.status} ${mk.text.slice(0, 120)}`);
   const activityName = 'B3-1 测试活动';
 
-  // ── ② 以 API 造前置态：考勤（absent ＋ overdue）＋ 补课任务（pending，截止在未来）──
+  // ── ② 以 API 造前置态：考勤（absent）＋ 补课任务（pending，截止在未来）──
+  // R10-D15：不再写存储 `overdue`，超期由活动日 + makeup.deadlineDays 现算。
   assert.equal((await api('POST', '/api/v1/attendances', { token, body: {
-    id: ATT_ID, personId: MENTEE, activityId, status: 'absent', overdue: true,
+    id: ATT_ID, personId: MENTEE, activityId, status: 'absent',
     recordedBy: DISC_PERSON, recordedAt: new Date().toISOString(),
   } })).status, 201, '造考勤记录失败');
   assert.equal((await api('POST', '/api/v1/makeupTasks', { token, body: {
@@ -91,7 +94,7 @@ test('B3-1（API 级）补课完成 → 服务端考勤回写 made_up ＋ overdu
   // 反例锁死：确认前置态**确实是** absent＋overdue（否则「回写成功」可能是恒真）
   const before = (await api('GET', '/api/v1/attendances', { token })).json.find((r) => r.id === ATT_ID);
   assert.equal(before.status, 'absent', '前置态应为 absent（否则回写分支不会执行）');
-  assert.equal(before.overdue, true, '前置态应为 overdue=true（保持「overdue 清除」的检出力）');
+  assert.equal(isAttendanceOverdue({ ...before, date: ABSENT_DATE }), true, '前置态应按现算判据超期（活动日 +7 天已过）');
 
   // ── ③ 浏览器：走**真 API 登录**（登录页表单），再进纪检台的补课分段 ──
   const browser = await chromium.launch();
@@ -134,7 +137,7 @@ test('B3-1（API 级）补课完成 → 服务端考勤回写 made_up ＋ overdu
   assert.equal(task.status, 'completed', `补课任务应回写 completed，实测 ${task.status}`);
   assert.ok(task.completedAt, '应记 completedAt');
   assert.equal(att.status, 'made_up', `考勤应回写 made_up，实测 ${att.status}`);
-  assert.equal(att.overdue, false, `overdue 应清除，实测 ${att.overdue}`);
+  assert.equal(isAttendanceOverdue({ ...att, date: ABSENT_DATE }), false, 'overdue 应按现算判据清除（R10-D15：停止写存储值）');
   assert.ok(att.madeUpAt, '应记 madeUpAt');
 
   // ── ⑤ 自清：不留测试数据（含本批新造的专属活动）──

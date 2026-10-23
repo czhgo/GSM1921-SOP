@@ -9,13 +9,13 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { PEOPLE } from '../../docs/src/data/mock/people.js?v=20261022d';
+import { PEOPLE } from '../../docs/src/data/mock/people.js?v=20261023a';
 // Q-21-3（2026-09-13）：在册状态枚举单一源 = core/domain/constants.js（原经 roster.js 转出）
-import { RESIDENCE } from '../../docs/src/core/domain/constants.js?v=20261022d';
+import { RESIDENCE } from '../../docs/src/core/domain/constants.js?v=20261023a';
 import {
   guardCategoryList, buildGuardMessage,
   validateMemberForm, diffMemberFields,
-} from '../../docs/src/services/member/roster-ui-logic.js?v=20261022d';
+} from '../../docs/src/services/member/roster-ui-logic.js?v=20261023a';
 
 const p_2400012345 = PEOPLE.find(p => p.id === '2400012345'); // 在校党员（第一党小组·正式党员，无种子滞留字段）
 const p_2400012349 = PEOPLE.find(p => p.id === '2400012349'); // 种子示范滞留党员（第二党小组·正式党员）
@@ -71,46 +71,47 @@ test('validateMemberForm：姓名必填（含纯空格）；合法输入 trim �
   assert.equal(validateMemberForm({ name: '   ' }).ok, false);
   assert.equal(validateMemberForm({ name: 123 }).ok, false);
 
-  const v = validateMemberForm({ name: ' 张三 ', partyGroup: '第一党小组', developStage: '积极分子', residenceStatus: RESIDENCE.CAMPUS, residenceNote: ' 备注 ' });
+  const v = validateMemberForm({ name: ' 张三 ', studentId: '2600010002', partyGroup: '第一党小组', developStage: '积极分子', residenceStatus: RESIDENCE.CAMPUS, residenceNote: ' 备注 ' });
   assert.equal(v.ok, true);
-  assert.deepEqual(v.value, { name: '张三', studentId: '', enrollYear: '', partyGroup: '第一党小组', developStage: '积极分子', residenceStatus: '在校', residenceNote: '' });
+  assert.deepEqual(v.value, { name: '张三', studentId: '2600010002', enrollYear: '', partyGroup: '第一党小组', developStage: '积极分子', residenceStatus: '在校', residenceNote: '' });
 });
 
-test('validateMemberForm：学号唯一性（非空且与既有学号重复 → 拒绝；空学号放行；未传清单不判定）', () => {
+test('validateMemberForm：学号必填且唯一（空学号拒绝；重复 → 字段级错误）', () => {
   const existing = ['2400012345', '2600010001'];
-  const dup = validateMemberForm({ name: '王五', studentId: '2600010001' }, { existingStudentIds: existing });
+  const dup = validateMemberForm({ name: '王五', studentId: '2600010001', developStage: '正式党员' }, { existingStudentIds: existing });
   assert.equal(dup.ok, false);
   assert.match(dup.message, /已存在/);
   assert.equal(dup.field, 'studentId', '学号重复须落到 studentId 字段级错误');
-  const okNew = validateMemberForm({ name: '王五', studentId: '2600010999', enrollYear: '2026' }, { existingStudentIds: existing });
+  const okNew = validateMemberForm({ name: '王五', studentId: '2600010999', enrollYear: '2026', developStage: '正式党员' }, { existingStudentIds: existing });
   assert.equal(okNew.ok, true);
   assert.equal(okNew.value.studentId, '2600010999');
   assert.equal(okNew.value.enrollYear, '2026');
-  // 学号可选：空学号放行
-  assert.equal(validateMemberForm({ name: '王五' }, { existingStudentIds: existing }).ok, true);
-  // 未传既有清单 → 不做唯一性判定（向后兼容）
-  assert.equal(validateMemberForm({ name: '王五', studentId: '2600010001' }).ok, true);
+  // v11（R10-A15）：学号必填——空学号拒绝，不再「可暂缺」
+  const noId = validateMemberForm({ name: '王五', developStage: '正式党员' }, { existingStudentIds: existing });
+  assert.equal(noId.ok, false);
+  assert.equal(noId.field, 'studentId');
+  // 未传既有清单 → 只做必填校验，不做唯一性判定
+  assert.equal(validateMemberForm({ name: '王五', studentId: '2600010001', developStage: '正式党员' }).ok, true);
 });
 
 test('validateMemberForm：在册状态枚举外拒绝（禁造新枚举）；在校清备注、滞留保备注且截断 120', () => {
-  assert.deepEqual(validateMemberForm({ name: '李四', residenceStatus: '离校' }),
+  assert.deepEqual(validateMemberForm({ name: '李四', studentId: '2600010003', developStage: '正式党员', residenceStatus: '离校' }),
     { ok: false, message: '在册状态须为「在校」或「滞留」', field: 'residenceStatus' });
   // 在校：备注不保留（防「在校挂滞留备注」错位）
-  const on = validateMemberForm({ name: '李四', residenceStatus: RESIDENCE.CAMPUS, residenceNote: ' 滞留原因 ' });
+  const on = validateMemberForm({ name: '李四', studentId: '2600010004', developStage: '正式党员', residenceStatus: RESIDENCE.CAMPUS, residenceNote: ' 滞留原因 ' });
   assert.equal(on.ok, true);
   assert.equal(on.value.residenceNote, '');
   // 滞留：备注保留
-  const de = validateMemberForm({ name: '李四', residenceStatus: RESIDENCE.DETAINED, residenceNote: ' 交换一学期 ' });
+  const de = validateMemberForm({ name: '李四', studentId: '2600010005', developStage: '正式党员', residenceStatus: RESIDENCE.DETAINED, residenceNote: ' 交换一学期 ' });
   assert.equal(de.value.residenceNote, '交换一学期');
   // 超长截断（与输入 maxlength=120 对齐）
   const long = '滞'.repeat(121);
-  const c = validateMemberForm({ name: '李四', residenceStatus: RESIDENCE.DETAINED, residenceNote: long });
+  const c = validateMemberForm({ name: '李四', studentId: '2600010006', developStage: '正式党员', residenceStatus: RESIDENCE.DETAINED, residenceNote: long });
   assert.equal(c.value.residenceNote.length, 120);
-  // 党小组/发展阶段缺省 → 空串（可后续在行内补录）
+  // v11（R10-A01/A15）：学号与发展阶段均必填——只在姓名缺省时必须拒绝
   const g = validateMemberForm({ name: '李四' });
-  assert.equal(g.value.partyGroup, '');
-  assert.equal(g.value.developStage, '');
-  assert.equal(g.value.residenceStatus, RESIDENCE.CAMPUS);
+  assert.equal(g.ok, false);
+  assert.equal(g.field, 'studentId');
 });
 
 // ── d) 行内保存 diff（仅带变化字段；无变化 → 空补丁）───────────────

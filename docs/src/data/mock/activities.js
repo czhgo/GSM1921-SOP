@@ -111,10 +111,10 @@ export const ACTIVITIES = [
   //  红色徒步去香山（纪念长征胜利 90 周年）」）：
   //  act-36 党课、act-37 红色徒步主题党日两条自 10 月起亮相，
   //  供 mock 直读与 server/seed.js（同一份）两形态同源展示。
-  //  自洽校核（R2-31，2026-10-20）：act-36 日期 10/15 已过 ⇒ 由 published 收口为 completed；
-  //  act-37 日期 10/22 尚未到 ⇒ 保持 published（未到日期不得判为已执行/待归档）。
-  //  两条均为「计划中」，SEED_TASKS 未引用二者（无未完成任务挂靠）；均为非表决类，不加 voteConfig。
+  //  自洽校核（R2-31，2026-10-20）：act-36 日期 10/15 已过 ⇒ 由 published 收口为 completed。
+  //  R10（2026-10-23）：act-37 日期 10/22 已过 ⇒ 同步收口为 completed（日期不变，不整体平移 10 月窗口）。
+  //  两条均为非表决类，不加 voteConfig；SEED_TASKS 未引用二者（无未完成任务挂靠）。
   // ════════════════════════════════════════════════════════════════════
   { id: 'act-36', title: '党建思想学习会', date: '2026-10-15', type: '党课', organizer: '2300010001', direction: 'top-down', location: '光华1号楼101报告厅', status: 'completed', scenarioId: 'party-lecture', domain: 'party-building', assignments: [{ personId: '2300010001', role: 'organizer' }], agenda: [{ item: '主题讲授：深入学习党的创新理论', host: '支书' }] },
-  { id: 'act-37', title: '红色徒步·香山行（纪念长征胜利 90 周年）', date: '2026-10-22', type: '主题党日', organizer: '2400012347', direction: 'bottom-up', location: '香山公园', status: 'published', isBrand: true, brandName: '红色徒步', scenarioId: 'theme-party', domain: 'party-building', carriers: ['实践参访'], isOutdoor: true, assignments: [{ personId: '2400012347', role: 'organizer' }] },
+  { id: 'act-37', title: '红色徒步·香山行（纪念长征胜利 90 周年）', date: '2026-10-22', type: '主题党日', organizer: '2400012347', direction: 'bottom-up', location: '香山公园', status: 'completed', isBrand: true, brandName: '红色徒步', scenarioId: 'theme-party', domain: 'party-building', carriers: ['实践参访'], isOutdoor: true, assignments: [{ personId: '2400012347', role: 'organizer' }] },
 ];

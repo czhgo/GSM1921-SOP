@@ -234,6 +234,15 @@ export function workgroupStatusForTaskforce(status) {
  * @property {string}  [studentId] - 学号 - Source: content/02_institution/sop/常见工作场景快速指南.md#三会一课通用流程
  * @property {'积极分子'|'发展对象'|'预备党员'|'正式党员'} [developStage] - 发展阶段（四阶段，2026-08-01 支书决策移除【入党申请人】） - Source: content/02_institution/sop/纪检委员工作流程指南.md#二考勤管理三会一课 + content/04_web_design/data/DATA_ARCHITECTURE.md §2.5
  * @property {string}  [partyGroup] - 所属党小组 - Source: content/02_institution/sop/常见工作场景快速指南.md#三会一课通用流程
+ * @property {boolean} [confirmed] - 是否已确认（纪检/支书确认后为 true）
+ * @property {string}  [confirmedBy] - 确认人 personId（与上传人 recordedBy 分离）
+ * @property {string}  [confirmedAt] - 确认时间 ISO 字符串
+ * @property {string}  [submittedBy] - 上传人 personId（组织者上传即本人）
+ * @property {string}  [returnedBy] - 打回人 personId（打回回退态）
+ * @property {string}  [returnedAt] - 打回时间 ISO 字符串
+ * @property {string}  [returnReason] - 打回原因
+ * @property {string}  [absenceReason] - 未到固定枚举标因（leave/other 等，见 services/activity/attendance.js）
+ * @property {boolean} [onlineAttend] - 线上参会（记请假、只免补课）
  */
 
 /**
@@ -260,6 +269,26 @@ export function workgroupStatusForTaskforce(status) {
  * @property {string}  title       - 任务标题
  * @property {'pending'|'in_progress'|'completed'} status - 任务状态 - Source: knowledge/SOP/组织委员工作流程指南.md#四大工作场景
  * @property {string}  createdAt   - 创建时间 ISO 字符串（审计字段）
+ */
+
+/**
+ * 待办记录（运行时可派生、可落库；R10 补全归属与来源字段）。
+ * @typedef {Object} Todo
+ * @property {string}  id
+ * @property {string}  branchId     - 所属支部（v11 起必填；由来源父行 / 所属人员解析）
+ * @property {string}  title
+ * @property {string}  [description]
+ * @property {string}  role         - 角色视角（secretary / org-commissioner / visitor …）
+ * @property {'role'|'person'|null} [ownerType] - 归属类型：到角色 / 到人
+ * @property {string|null} [ownerId] - 归属对象（role 键或 personId）
+ * @property {string}  [flow]       - 流程说明文案
+ * @property {string}  [actionKey]  - 业务动作聚合键（与 role 组成聚合组）
+ * @property {string}  [sourceType] - 来源类型（activity / taskforce / notice / issue …）
+ * @property {string}  [sourceId]   - 来源业务 id
+ * @property {string}  [personId]   - 到人待办的 personId（visitor 视角行级写门用）
+ * @property {string}  [deadline]   - 截止日期 ISO 字符串
+ * @property {'pending'|'completed'} [status]
+ * @property {string}  [completedAt]
  */
 
 /**
@@ -340,6 +369,7 @@ export const REVIEW_STATUS_LABELS = {
  * @property {string}  activityId    - 关联活动 ID（活动复盘时必填）
  * @property {string}  [sourceType]  - 来源类型：'activity' | 'taskforce'（专班复盘时为 'taskforce'）
  * @property {string}  [sourceName]  - 来源名称（专班复盘时为专班名称）
+ * @property {string}  [workgroupId] - 稳定父键：复盘所挂工作组 ID（活动/专班均写）
  * @property {string}  organizerId   - 组织者人员 ID（须为活动/专班的实际 organizer）
  * @property {string}  progress      - 进度状态（如 '已完成'/'进行中'/'超时'）
  * @property {boolean} overdue       - 是否超时
@@ -350,6 +380,7 @@ export const REVIEW_STATUS_LABELS = {
  * @property {string}  [annotatedAt] - 批注时间 ISO 字符串
  * @property {string}  [submittedAt] - 提交时间 ISO 字符串（reviewStatus 非'未提交'时填写）
  * @property {string}  [confirmedAt] - 确认时间 ISO 字符串（reviewStatus='已确认'时填写）
+ * @property {Array<Object>} [issues] - 复盘发现的问题清单（纪检批注 / 跟进用）
  */
 
 /**
@@ -387,6 +418,12 @@ export const REVIEW_STATUS_LABELS = {
  * @property {string}  recordedBy    - 记录人 personId
  * @property {string}  recordedAt    - 记录时间 ISO 字符串
  * @property {'pending'|'confirmed'} [status] - 考察确认状态（纪检委员确认后录入考察总表）
+ * @property {string}  [confirmedBy] - 确认人 personId
+ * @property {string}  [confirmedAt] - 确认时间 ISO 字符串
+ * @property {string}  [returnedBy] - 打回人 personId
+ * @property {string}  [returnedAt] - 打回时间 ISO 字符串
+ * @property {string}  [returnReason] - 打回原因
+ * @property {string}  [submittedBy] - 上传人 personId
  */
 
 /**

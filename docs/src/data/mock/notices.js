@@ -1,6 +1,8 @@
-import { DEFAULT_BRANCH_ID } from '../../core/domain/constants.js?v=20261022d';
+import { DEFAULT_BRANCH_ID } from '../../core/domain/constants.js?v=20261023a';
 export const MOCK_NOTICES = [
   // ── 历史通知（多数已过期；有效期由 expireDate 决定，不以注释断言「当前有效」）──────
+  // R10（2026-10-23）：种子不再写旧的全局 `read` 布尔——读侧只用逐人 `reads[]`；
+  //   历史库里的旧 `read` 由 mock-adapter 的迁移读取兼容，回填后删除（D13）。
   {
     id: 'notice-101',
     title: '七月主题党日"深化改革"活动通知',
@@ -11,7 +13,6 @@ export const MOCK_NOTICES = [
     targetModule: 'activity',
     targetType: 'activity',
     targetId: 'act-21',
-    read: false,
   },
   {
     id: 'notice-102',
@@ -21,7 +22,6 @@ export const MOCK_NOTICES = [
     publishDate: '2026-07-14',
     expireDate: '2026-07-30',
     targetModule: 'party',
-    read: false,
   },
   {
     id: 'notice-103',
@@ -31,7 +31,6 @@ export const MOCK_NOTICES = [
     publishDate: '2026-07-12',
     expireDate: '2026-08-01',
     targetModule: 'workspace',
-    read: false,
   },
   {
     id: 'notice-104',
@@ -41,7 +40,6 @@ export const MOCK_NOTICES = [
     publishDate: '2026-07-05',
     expireDate: '2026-07-31',
     targetModule: 'activity',
-    read: true,
   },
   {
     id: 'notice-105',
@@ -51,7 +49,6 @@ export const MOCK_NOTICES = [
     publishDate: '2026-07-16',
     expireDate: '2026-07-28',
     targetModule: 'party',
-    read: false,
   },
   {
     id: 'notice-106',
@@ -61,7 +58,6 @@ export const MOCK_NOTICES = [
     publishDate: '2026-07-10',
     expireDate: '2026-07-20',
     targetModule: 'attendance',
-    read: false,
   },
   {
     id: 'notice-107',
@@ -71,7 +67,6 @@ export const MOCK_NOTICES = [
     publishDate: '2026-07-17',
     expireDate: '2026-08-31',
     targetModule: 'workspace',
-    read: false,
   },
   // ── 8 月通知（暑期特色，与 activities.js 保持数据协调）─────────
   {
@@ -84,7 +79,6 @@ export const MOCK_NOTICES = [
     targetModule: 'activity',
     targetType: 'activity',
     targetId: 'act-29',
-    read: false,
   },
   {
     id: 'notice-110',
@@ -94,7 +88,6 @@ export const MOCK_NOTICES = [
     publishDate: '2026-08-18',
     expireDate: '2026-08-28',
     targetModule: 'workspace',
-    read: false,
   },
   // ── 历史通知（已过期，仅供归档参考；2026-09-06 随关联活动重排）──
   {
@@ -105,7 +98,6 @@ export const MOCK_NOTICES = [
     publishDate: '2026-07-10',
     expireDate: '2026-07-13',
     targetModule: 'workspace',
-    read: true,
   },
   {
     id: 'notice-005',
@@ -117,7 +109,6 @@ export const MOCK_NOTICES = [
     targetModule: 'workspace',
     targetType: 'taskforce',
     targetId: 'tf-005',
-    read: true,
   },
   {
     id: 'notice-011',
@@ -127,21 +118,20 @@ export const MOCK_NOTICES = [
     publishDate: '2026-07-21',
     expireDate: '2026-07-23',
     targetModule: 'activity',
-    read: true,
   },
   // ── 10 月通知（2026-10 宣传基线，与 activities.js 保持数据协调）───────
-  //  expireDate 均不早于 2026-10-15（否则被视为过期通知、不派生阅读待办）。
+  // R10（2026-10-23）：两条 10 月通知的有效期顺延至 2026-12-31（C12）——act-37 已收口为 completed，
+  //   通知保留本学期的阅读/归档窗口，不再首启即全部过期。
   {
     id: 'notice-111',
     title: '开展"红色徒步·香山行"（纪念长征胜利 90 周年）活动的通知',
     content: '10月22日组织支部党员赴香山公园开展"红色徒步·香山行"主题党日（纪念长征胜利 90 周年），请全体党员、预备党员、积极分子做好参加准备。',
     priority: 'urgent',
     publishDate: '2026-10-08',
-    expireDate: '2026-10-22',
+    expireDate: '2026-12-31',
     targetModule: 'activity',
     targetType: 'activity',
     targetId: 'act-37',
-    read: false,
   },
   {
     id: 'notice-112',
@@ -149,11 +139,10 @@ export const MOCK_NOTICES = [
     content: '10月15日在光华1号楼101报告厅举办党建思想学习会，主题为深入学习党的创新理论，请全体党员准时参加。',
     priority: 'normal',
     publishDate: '2026-10-08',
-    expireDate: '2026-10-15',
+    expireDate: '2026-12-31',
     targetModule: 'activity',
     targetType: 'activity',
     targetId: 'act-36',
-    read: false,
   },
 ];
 

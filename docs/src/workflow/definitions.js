@@ -5,21 +5,46 @@
 //  两个分类依据：时长 / 发起方向（品牌为属性标签 isBrand，非工作流分类依据）
 // ════════════════════════════════════════════════════════════════
 
-import { ROLE_KEYS } from '../core/domain/constants.js?v=20261022d';
+import { ROLE_KEYS } from '../core/domain/constants.js?v=20261023a';
 
 // 工作流执行角色白名单（S10 单一事实源：键集必须 ⊆ ROLE_KEYS，新增角色须同步 SYSTEM_ROLE_PERMISSION.md §9a0）
 // 筹备/协调阶段参与方：组织者、党小组组长、支书、纪检委员（考勤/考察对接）、宣传委员（宣传统筹）；
 // 组织委员负责发展事务不参与活动筹备；participant/deputy/deep 非授权执行方（可经赋权/报名进入）。
-const WORKFLOW_ROLES = ['organizer', 'leader', 'secretary', 'disc-commissioner', 'prop-commissioner'];
-if (WORKFLOW_ROLES.some(r => !ROLE_KEYS.includes(r))) {
-  console.warn('[workflow] requiredRoles 含未知角色键，须与 core/domain/constants.js ROLE_KEYS 对齐');
+// R10-B20：业务角色新增须先登记 core/domain/constants.js::ROLE_KEYS（本表用断言 fail-fast，防静默漂移）。
+const WORKFLOW_ROLES = Object.freeze(['organizer', 'leader', 'secretary', 'disc-commissioner', 'prop-commissioner']);
+const _unknownWorkflowRoles = WORKFLOW_ROLES.filter(r => !ROLE_KEYS.includes(r));
+if (_unknownWorkflowRoles.length) {
+  throw new Error(`[workflow] 角色键未登记：${_unknownWorkflowRoles.join(', ')}（见 constants.js::ROLE_KEYS）`);
 }
+
+// ════════════════════════════════════════════════════════════════
+//  SLA 小时数（R10-B23，单一源）
+//  ⚠ 内部 SLA，非支部可调：仅用于工作流引擎超时/阻塞判定，不在 POLICY_OVERRIDABLE 内；
+//    调整须按制度裁决改本表。engine.js / renderer.js 只读节点上的 timeoutHours，不复制数字。
+// ════════════════════════════════════════════════════════════════
+const SLA_HOURS = Object.freeze({
+  DRAFT_SHORT: 168,
+  DRAFT_LONG: 336,
+  PENDING_EXPANDED_SHORT: 48,
+  PENDING_EXPANDED_LONG: 96,
+  APPROVED_SHORT: 72,
+  APPROVED_LONG: 168,
+  PREPARING: 72,
+  IN_PROGRESS: 36,
+  COMPLETED_SHORT: 96,
+  COMPLETED_LONG: 168,
+  IN_REVIEW_SHORT: 120,
+  IN_REVIEW_LONG: 168,
+  GROUP_FORMING: 168,
+  SYNCING: 336,
+  ARCHIVED: null,
+});
 
 // ════════════════════════════════════════════════════════════════
 //  A. 共享状态节点工厂
 // ════════════════════════════════════════════════════════════════
 
-const DRAFT = (timeoutHours = 168) => ({
+const DRAFT = (timeoutHours = SLA_HOURS.DRAFT_SHORT) => ({
   name: 'DRAFT',
   label: '草稿',
   allowedTransitions: ['PENDING_EXPANDED'],
@@ -27,7 +52,7 @@ const DRAFT = (timeoutHours = 168) => ({
   metadata: { phase: '策划', editable: true },
 });
 
-const PENDING_EXPANDED = (timeoutHours = 48) => ({
+const PENDING_EXPANDED = (timeoutHours = SLA_HOURS.PENDING_EXPANDED_SHORT) => ({
   name: 'PENDING_EXPANDED',
   label: '待支委扩大会讨论',
   allowedTransitions: ['APPROVED', 'DRAFT'],
@@ -35,7 +60,7 @@ const PENDING_EXPANDED = (timeoutHours = 48) => ({
   metadata: { phase: '审批', editable: false },
 });
 
-const APPROVED = (timeoutHours = 96) => ({
+const APPROVED = (timeoutHours = SLA_HOURS.APPROVED_SHORT) => ({
   name: 'APPROVED',
   label: '已审批',
   allowedTransitions: ['PREPARING', 'GROUP_FORMING', 'DRAFT'],
@@ -47,11 +72,11 @@ const IN_PROGRESS = () => ({
   name: 'IN_PROGRESS',
   label: '进行中',
   allowedTransitions: ['COMPLETED', 'DRAFT'],
-  timeoutHours: 36,
+  timeoutHours: SLA_HOURS.IN_PROGRESS,
   metadata: { phase: '实施', editable: true },
 });
 
-const COMPLETED = (timeoutHours = 96) => ({
+const COMPLETED = (timeoutHours = SLA_HOURS.COMPLETED_SHORT) => ({
   name: 'COMPLETED',
   label: '已完成',
   allowedTransitions: ['IN_REVIEW', 'ARCHIVED', 'IN_PROGRESS'],
@@ -59,7 +84,7 @@ const COMPLETED = (timeoutHours = 96) => ({
   metadata: { phase: '收尾', editable: true },
 });
 
-const IN_REVIEW = (timeoutHours = 120) => ({
+const IN_REVIEW = (timeoutHours = SLA_HOURS.IN_REVIEW_SHORT) => ({
   name: 'IN_REVIEW',
   label: '复核中',
   allowedTransitions: ['ARCHIVED', 'COMPLETED'],
@@ -71,7 +96,7 @@ const ARCHIVED = () => ({
   name: 'ARCHIVED',
   label: '已归档',
   allowedTransitions: [],
-  timeoutHours: null,
+  timeoutHours: SLA_HOURS.ARCHIVED,
   metadata: { phase: '归档', editable: false },
 });
 
@@ -84,7 +109,7 @@ const ARCHIVED = () => ({
  *
  * v2.0: 含子状态追踪 — 考勤对接 + 宣传统筹 必须完成后才能进入 IN_PROGRESS
  */
-const PREPARING = (timeoutHours = 72) => ({
+const PREPARING = (timeoutHours = SLA_HOURS.PREPARING) => ({
   name: 'PREPARING',
   label: '筹备中',
   allowedTransitions: ['IN_PROGRESS', 'DRAFT'],
@@ -125,7 +150,7 @@ const PREPARING = (timeoutHours = 72) => ({
  * 建核心群 = 各活动小组组织者 + 承办党小组组长 + 纪检委员 + 宣传委员。
  * 注意：活动小组 ≠ 党小组。
  */
-const GROUP_FORMING = (timeoutHours = 168) => ({
+const GROUP_FORMING = (timeoutHours = SLA_HOURS.GROUP_FORMING) => ({
   name: 'GROUP_FORMING',
   label: '组建活动小组',
   allowedTransitions: ['IN_PROGRESS', 'APPROVED'],
@@ -138,7 +163,7 @@ const GROUP_FORMING = (timeoutHours = 168) => ({
  *
  * v2.0: 含三个子状态 — 内容同步 + 考勤考察 + 协调层运作
  */
-const SYNCING = (timeoutHours = 336) => ({
+const SYNCING = (timeoutHours = SLA_HOURS.SYNCING) => ({
   name: 'SYNCING',
   label: '组织层同步',
   allowedTransitions: ['COMPLETED', 'IN_PROGRESS'],
@@ -187,6 +212,8 @@ const SYNCING = (timeoutHours = 336) => ({
 // ════════════════════════════════════════════════════════════════
 //  B. 主题党日活动模板（短期）
 //     对应 sopData.js §theme-party
+// ⚠ R10-B09：执行人 / 监督人 / 时间偏移 / 说明一律以 `sopTaskId` 回查 sopData.js
+//   （本文件不复制这四类字段；sopTaskTitle 仅作状态标题展示）。
 // ════════════════════════════════════════════════════════════════
 
 export const THEME_PARTY_DAY_DEFINITION = {
@@ -199,49 +226,35 @@ export const THEME_PARTY_DAY_DEFINITION = {
   sopScenarioId: 'theme-party',
   states: [
     {
-      ...DRAFT(168),
+      ...DRAFT(SLA_HOURS.DRAFT_SHORT),
       metadata: {
         phase: '策划',
         sopTaskId: '1b-1',
         sopTaskTitle: '活动发起',
-        sopExecutor: 'organizer',
-        sopSupervisor: 'leader',
-        sopTimeOffset: -7,
-        sopDesc: '组织者可由党小组组长担任或在群内/支部群招募。策划活动方案（参访、线下学习等一次性活动）。',
       },
     },
     {
-      ...PENDING_EXPANDED(48),
+      ...PENDING_EXPANDED(SLA_HOURS.PENDING_EXPANDED_SHORT),
       metadata: {
         phase: '审批',
         sopTaskId: '1b-2',
         sopTaskTitle: '活动报备',
-        sopExecutor: 'expanded-committee',
-        sopDesc: '党小组组长汇集活动信息，向支委扩大群报备（线上或线下），报备通过后方才写入活动。',
       },
     },
     {
-      ...APPROVED(72),
+      ...APPROVED(SLA_HOURS.APPROVED_SHORT),
       metadata: {
         phase: '审批',
         sopTaskId: '1b-3',
         sopTaskTitle: '联系条条委员',
-        sopExecutor: 'organizer',
-        sopSupervisor: 'leader',
-        sopTimeOffset: -7,
-        sopDesc: '建活动群 + 核心群（组织者+宣传对接人+纪检对接人）。招募深度参与者：前期学习材料筹备 + 宣传素材准备。',
       },
     },
     {
-      ...PREPARING(72),
+      ...PREPARING(SLA_HOURS.PREPARING),
       metadata: {
         phase: '筹备',
-        sopTaskId: '1b-3-prep',
+        sopTaskId: '1b-3',
         sopTaskTitle: '筹备材料与对接',
-        sopExecutor: 'organizer',
-        sopSupervisor: 'leader',
-        sopTimeOffset: -5,
-        sopDesc: '组织者对接纪检委员（确认签到要求） + 对接宣传委员（确认宣传标准）。宣传委员对接具体负责宣传的深度参与者统筹素材。',
       },
     },
     {
@@ -250,22 +263,14 @@ export const THEME_PARTY_DAY_DEFINITION = {
         phase: '实施',
         sopTaskId: '1b-6',
         sopTaskTitle: '活动实施',
-        sopExecutor: 'organizer',
-        sopSupervisor: 'leader',
-        sopTimeOffset: 0,
-        sopDesc: '组织者全程负责。核查清单：签到 · 现场拍照（全景/互动/细节各至少1张）· 关键发言记录。',
       },
     },
     {
-      ...COMPLETED(96),
+      ...COMPLETED(SLA_HOURS.COMPLETED_SHORT),
       metadata: {
         phase: '收尾',
         sopTaskId: '1b-7',
         sopTaskTitle: '活动复盘与汇总',
-        sopExecutor: 'organizer',
-        sopSupervisor: 'leader',
-        sopTimeOffset: 7,
-        sopDesc: '纪检汇总：考察记录 + 考勤（同通道→支委会，组织委员接收建档）。宣传统筹：对接深度参与者整理宣传产出。组织者完成复盘。',
       },
     },
     {
@@ -274,10 +279,6 @@ export const THEME_PARTY_DAY_DEFINITION = {
         phase: '归档',
         sopTaskId: '1b-9',
         sopTaskTitle: '材料归档',
-        sopExecutor: 'organizer',
-        sopSupervisor: 'leader',
-        sopTimeOffset: 7,
-        sopDesc: '将全部活动材料主动交给宣传委员归档。',
       },
     },
   ],
@@ -296,12 +297,12 @@ export const SHORT_TERM_DEFINITION = {
   direction: 'either',
   initialState: 'DRAFT',
   states: [
-    DRAFT(168),
-    PENDING_EXPANDED(48),
-    APPROVED(72),
-    PREPARING(72),
+    DRAFT(SLA_HOURS.DRAFT_SHORT),
+    PENDING_EXPANDED(SLA_HOURS.PENDING_EXPANDED_SHORT),
+    APPROVED(SLA_HOURS.APPROVED_SHORT),
+    PREPARING(SLA_HOURS.PREPARING),
     IN_PROGRESS(),
-    COMPLETED(96),
+    COMPLETED(SLA_HOURS.COMPLETED_SHORT),
     ARCHIVED(),
   ],
 };
@@ -320,19 +321,19 @@ export const LONG_TERM_DEFINITION = {
   initialState: 'DRAFT',
   states: [
     {
-      ...DRAFT(336),
+      ...DRAFT(SLA_HOURS.DRAFT_LONG),
       metadata: { note: '长期活动策划周期更长，需考虑活动小组拆分方案和组织者人选' },
     },
     {
-      ...PENDING_EXPANDED(96),
+      ...PENDING_EXPANDED(SLA_HOURS.PENDING_EXPANDED_LONG),
       metadata: { note: '长期活动审批需评估资源投入和持续性' },
     },
     {
-      ...APPROVED(168),
+      ...APPROVED(SLA_HOURS.APPROVED_LONG),
       metadata: { note: '建大活动群（全体参与者信息汇总群），筹备核心群人选' },
     },
     {
-      ...GROUP_FORMING(168),
+      ...GROUP_FORMING(SLA_HOURS.GROUP_FORMING),
       metadata: {
         note: '拆分活动小组：每个小组建小群+招募组织者+招募深度参与者。建核心群=各组织者+承办党小组组长+纪检委员+宣传委员。区分于党小组。',
       },
@@ -342,18 +343,18 @@ export const LONG_TERM_DEFINITION = {
       metadata: { note: '各活动小组并行推进。组织者把握组内方向，协调深度参与者工作。' },
     },
     {
-      ...SYNCING(336),
+      ...SYNCING(SLA_HOURS.SYNCING),
       metadata: {
         note: '组织层运作：组织者协调承办党小组组长（方向对齐）+纪检（考勤汇总）+宣传（内容同步）。深度参与者可离开，组织者长期深耕。',
         allowedTransitions: ['COMPLETED', 'IN_PROGRESS'],
       },
     },
     {
-      ...COMPLETED(168),
+      ...COMPLETED(SLA_HOURS.COMPLETED_LONG),
       metadata: { note: '各活动小组完成。纪检汇总全部考察记录+考勤记录。宣传统筹全部宣传产出。组织者完成复盘。' },
     },
     {
-      ...IN_REVIEW(168),
+      ...IN_REVIEW(SLA_HOURS.IN_REVIEW_LONG),
       metadata: { note: '支委复核复盘质量+材料完整性' },
     },
     ARCHIVED(),

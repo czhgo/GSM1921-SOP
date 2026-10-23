@@ -2,7 +2,7 @@
 title: "Org OS — 系统路线图与 Harness"
 type: roadmap
 role: "[工程师]+[AI]"
-last_updated: "2026-10-22"
+last_updated: "2026-10-23"
 status: active
 related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/DOC_MAP.md, content/01_strategy/SECRETARY_DIRECTIVES.md, content/01_strategy/, content/02_institution/, content/03_doc_system/, content/04_web_design/, content/05_ai_coding/, content/insights/, server/, .ctx/logs/]
 ---
@@ -850,7 +850,10 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/DOC
 | B-503-4 | 第九轮 9B：功能 P1（假成功/失败态/键盘可达/刷新错误卡/首屏加载）＋ 视觉 P2 八条（标题层级、hover、危险按钮、返回、过渡、help-note、登录错误、名册字段错误） | `notification-tab.js`、`report-up-tab.js`、`ui-motion-guard`、`frontend-foundations-guard::F8` | 已完成（批次 503） |
 | B-503-5 | 待支书裁定四项：登录页品牌渐变 vs §5.3、首页 hero 党徽 vs §4.25、同名页签是否加范围后缀、支书台是否改名「反馈与回复」 | `DESIGN_SYSTEM.md` §5.3/§4.25、`login.html`、`index.html` | 待裁 |
 | B-503-6 | 余项：R6 P3（21）＋ R7 P3（23）＋ 第八轮 P2/P3 ＋ 帮助注释未迁移 9 处（`party-committee-meeting-entry.js`） | 两轮报告与 `B-502-3/4` | 下一轮（实施前先重钉行号） |
-| B-503-7 | schema 方案落地（Todo `branchId` v11、列表分页、宽表拆分）——须与 P13 服务端支部读过滤同批 | `ENGINEERING_ASSESSMENT §一/§四` | 待裁（部署形态） |
+| B-503-7 | schema 方案落地（Todo `branchId` v11、列表分页、宽表拆分）——须与 P13 服务端支部读过滤同批 | `ENGINEERING_ASSESSMENT §一/§四` | 已实施（批次 504）；拆表见 `B-504-1` |
+| B-504-1 | **v11 三项**：Todo `branch_id` 回填＋索引；五张热表 generated **VIRTUAL** 列＋复合索引（SQLite 不允许给**已有数据**的表 `ADD ... STORED`，故一律 VIRTUAL；读侧按列下推仍走索引）；影子子表 `agenda_items` / `taskforce_contributions` 建表＋回填＋双写比对（**未切权威源**）。**可切判据（全真才可切）**：① 规模 `MAX(LENGTH(data))>256KB` 或 p95 `>32KB` 或单表 `>5000` 行或 JSON 总量 `>2MB`；② 同一行 7 天 409 ≥3；③ `agenda`/`contributions` 子项在 ≥2 读口被过滤/统计；④ 影子连续 7 天 `mismatch=0` 且四写路径双写 100%；⑤ `B-500-4` 保留期已裁。判据 1–3 任一 ＋ 4、5 才可切。可执行版＝`server/scripts/schema-split-readiness.mjs` | `.trae/specs/implement-r9-schema-plan/*`、`server/db.js::rebuildShadowTables/compareShadowTables` | 已实施（v11；拆表保持影子） |
+| B-504-2 | 第十轮数据生命周期 75 条（P1 13 / P2 35 / P3 27；报告 `.ctx/logs/2026-10-AUDIT_R10_DATA_LIFECYCLE.md`），按「数据安全 → 种子 → 制度 → 空字段」四批实施；测试预算固定 3 次（定向／daily／全量） | `.trae/specs/advance-r10-data-lifecycle/*` | 已完成（批次 504；全量 2 红已单文件复跑绿，见执行日志） |
+| B-504-3 | R10 余项（P3 文案与一致性）与拆表切换（待 `B-504-1` 判据全真） | `2026-10-AUDIT_R10_DATA_LIFECYCLE.md` | 下一轮 |
 
 ***
 

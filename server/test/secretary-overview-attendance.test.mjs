@@ -3,9 +3,9 @@
 // 未录出勤时返回 null（呈现「待录入」），不得用少量已录记录算出 100%。
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261022d';
-import { SecretaryOverviewStore } from '../../docs/src/services/governance/secretary-overview.js?v=20261022d';
-import { getMeetingRosterIds } from '../../docs/src/services/member/roster.js?v=20261022d';
+import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261023a';
+import { SecretaryOverviewStore } from '../../docs/src/services/governance/secretary-overview.js?v=20261023a';
+import { getMeetingRosterIds } from '../../docs/src/services/member/roster.js?v=20261023a';
 
 const MONTH = new Date().toISOString().slice(0, 7);
 const ACTIVITY_ID = 'act-overview-rate';

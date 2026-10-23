@@ -3,24 +3,24 @@
 // 2026-08-07 自 ws-secretary-entry.js 拆分。
 // 数据源：NoticeStore（与首页/全局概况/visitor 同源，消除双数据源脱节）。
 
-import { NoticeStore, sendDirectMessage } from '../../../services/governance/notice.js?v=20261022d';
-import { AuthStore } from '../../../services/core/auth.js?v=20261022d';
-import { showToast, getBasePath, _fmtDate, todayLocal, escHtml } from '../../../core/base/utils.js?v=20261022d';
-import { badgeHtml } from '../../../components/ui/badges.js?v=20261022d';
-import { openModal, closeModal } from '../../../components/ui/modal.js?v=20261022d';
+import { NoticeStore, sendDirectMessage } from '../../../services/governance/notice.js?v=20261023a';
+import { AuthStore } from '../../../services/core/auth.js?v=20261023a';
+import { showToast, getBasePath, _fmtDate, todayLocal, escHtml } from '../../../core/base/utils.js?v=20261023a';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20261023a';
+import { openModal, closeModal } from '../../../components/ui/modal.js?v=20261023a';
 // 统一检索引擎（2026-09-14 批次 37）：已发布通知列表接入关键词（标题/正文）+ 分页
-import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261022d';
+import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261023a';
 // Q-22-1（2026-09-13）：受众选项改引 core/domain/constants.js 单一源（NOTICE_AUDIENCE_SENTINELS）——
 // 发布侧写入值必须与消费端可见性判定同源，勿再本地手写 sentinel 列表（否则 ['all'] 永不命中）。
-import { NOTICE_AUDIENCE_OPTIONS, ACTIVITY_CLASSIFICATION } from '../../../core/domain/constants.js?v=20261022d';
+import { NOTICE_AUDIENCE_OPTIONS, ACTIVITY_CLASSIFICATION } from '../../../core/domain/constants.js?v=20261023a';
 // SOP-B-5（D-293）：发布三会一课通知时选定本次活动 —— 被通知人在「确认读取」时填「能否线上参会」
-import { loadActivities } from '../../../services/activity/activity.js?v=20261022d';
+import { loadActivities } from '../../../services/activity/activity.js?v=20261023a';
 // B1（2026-09-12）：党委下钻支部的演示只读视图判定（单一源 = services/core/branch-demo-nav.js）
-import { isReadonlyBranchDrilldown } from '../../../services/core/branch-demo-nav.js?v=20261022d';
+import { isReadonlyBranchDrilldown } from '../../../services/core/branch-demo-nav.js?v=20261023a';
 // 站内信（批次 348 · 支书 `#4`「站内信是一个很重要的形式」）：受众「指定人（私发）」——选人用 PersonPicker
 //（选人规范 §2.2：姓名/学号搜索，不手写名单）
-import { PersonPicker } from '../../../components/governance/pickers.js?v=20261022d';
-import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261022d';
+import { PersonPicker } from '../../../components/governance/pickers.js?v=20261023a';
+import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261023a';
 
 const NOTIFICATION_TAB_HTML = `
   ${renderTabHeader({ title: '通知发布' })}
@@ -102,6 +102,12 @@ function renderNotificationForm() {
     html += `<div id="notif-direct-host"></div>`;
     html += `</div>`;
   }
+
+  // 有效期（选填，A13）：到期后进入归档页「已过期」；留空 = 长期有效
+  html += `<div class="mb-5">`;
+  html += `<label class="text-xs text-gray-500 mb-1.5 block font-medium" for="notif-expire">有效期 <span class="text-gray-500">（选填；留空 = 长期有效）</span></label>`;
+  html += `<input type="date" id="notif-expire" class="input-flat text-xs w-full">`;
+  html += `</div>`;
 
   // 关联三会一课活动（选填，SOP-B-5）
   html += `<div class="mb-5">`;
@@ -255,14 +261,16 @@ function handlePublishNotification() {
   const meetingActivityId = document.getElementById('notif-meeting-activity')?.value || null;
 
   const audienceLabels = _audienceLabels(_selectedAudience);
+  // A13：有效期（选填）——为空 = 长期有效；到期后由归档页「自然过期」分支收口。
+  const expireDate = document.getElementById('notif-expire')?.value || null;
   const notification = {
     title,
     content,
     priority: 'normal',
     publishDate: todayLocal(),
-    expireDate: null,
+    expireDate,
     targetModule: 'workspace',
-    read: false,
+    // D13：不再写全局 `read` 布尔（逐人已读走 reads/NoticeStore.markRead；旧 read 只做迁移读）。
     audience: [..._selectedAudience],
     audienceLabel: audienceLabels.join('、'),
     // 关联的三会一课活动 id（不关联则 null）——通知→考勤的线上参会申报靠它定位活动

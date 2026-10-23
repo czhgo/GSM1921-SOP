@@ -3,28 +3,45 @@
 // SOP 复盘提交归「组织者」——组织者可能是党小组组长，也可能是被赋权的普通成员。
 // 本 tab 让担任组织者/深度参与者的成员在自己的工作台即可提交复盘，复盘提交人 = 当前用户（组织者）。
 
-import { loadActivities, reviewRequestOf } from '../../../services/activity/activity.js?v=20261022d';
+import { loadActivities, reviewRequestOf } from '../../../services/activity/activity.js?v=20261023a';
 // 复盘表单（字段/校验/提交链路）唯一实现 = services/governance/review.js（2026-09-10 A③）：
 // 成员端本 tab 与支书「代提交复盘」共用同一套字段与落库链路，勿在此另写表单。
-import { loadActivityReviews, renderActivityReviewFormHtml, submitActivityReviewForm } from '../../../services/governance/review.js?v=20261022d';
-import { ReviewStatus, REVIEW_STATUS_LABELS } from '../../../core/domain/domain.js?v=20261022d';
-import { liveMembers, PersonStore } from '../../../services/member/person.js?v=20261022d';
+import { loadActivityReviews, renderActivityReviewFormHtml, submitActivityReviewForm } from '../../../services/governance/review.js?v=20261023a';
+import { mockDB, ReviewStatus, REVIEW_STATUS_LABELS } from '../../../core/domain/domain.js?v=20261023a';
+import { liveMembers, PersonStore } from '../../../services/member/person.js?v=20261023a';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/member/person.js 获取（原直连 mock PEOPLE）
 // 实时视图（非快照）：成员增删即时可见——见 services/member/person.js liveMembers 说明
 const PEOPLE = liveMembers();
-import { AuthStore } from '../../../services/core/auth.js?v=20261022d';
+import { AuthStore } from '../../../services/core/auth.js?v=20261023a';
 // 待批活动的可见性单一源（2026-09-22 批次 151）：成员台非支委层 ⇒ 待批活动不进「我的复盘」清单
-import { filterActivitiesForViewer } from '../../../services/core/visibility.js?v=20261022d';
-import { showToast } from '../../../core/base/utils.js?v=20261022d';
-import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261022d';
-import { scrollDetailIntoView, focusActivityAnchor } from '../../../components/ui/detail-anchor.js?v=20261022d';
+import { filterActivitiesForViewer } from '../../../services/core/visibility.js?v=20261023a';
+import { showToast } from '../../../core/base/utils.js?v=20261023a';
+import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261023a';
+import { scrollDetailIntoView, focusActivityAnchor } from '../../../components/ui/detail-anchor.js?v=20261023a';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是活动的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
-import { renderFilteredList, activityKeyword, activityFacets } from '../../../components/ui/list-filter.js?v=20261022d';
+import { renderFilteredList, activityKeyword, activityFacets } from '../../../components/ui/list-filter.js?v=20261023a';
 // 活动「仍在办」口径单一源（2026-09-13 收敛）：替代手写 status!=='cancelled' && !archived
-import { isActivityLive } from '../../../core/domain/constants.js?v=20261022d';
+import { isActivityLive } from '../../../core/domain/constants.js?v=20261023a';
 
 // 私有状态（随模块自持，不污染入口）
 let _reviewExpandedId = null;
+
+/**
+ * A03：活动组织者判据（与活动详情 / organizer-transfer 同源）——
+ * 工作组主源 role=organizer 优先，`assignments` 次之，`act.organizer` 仅兜底。
+ * @returns {string[]} 组织者 personId 列表
+ */
+function _organizerIdsOf(act) {
+  const workgroupId = act.workgroupId || `wg-activity-${act.id}`;
+  const wgOrganizers = (mockDB.workgroupMembers || [])
+    .filter((row) => row && row.workgroupId === workgroupId && row.status !== 'removed' && row.role === 'organizer')
+    .map((row) => row.personId);
+  const assignmentOrganizers = Array.isArray(act.assignments)
+    ? act.assignments.filter((x) => x && x.role === 'organizer').map((x) => x.personId)
+    : [];
+  const derived = [...new Set([...wgOrganizers, ...assignmentOrganizers].filter(Boolean))];
+  return derived.length ? derived : (act.organizer ? [act.organizer] : []);
+}
 
 /**
  * 我的复盘 tab：展示当前用户担任组织者/深度参与者的活动，
@@ -41,8 +58,11 @@ export function renderContent(ctx) {
   // 我参与的活动（组织者/深度参与者）：assignments + authRecords 双源合并
   const myIds = new Set();
   for (const a of loadActivities()) {
+    // A03：组织者身份按派生判据（工作组主源 → assignments → organizer 兜底）；
+    //   深度参与者仍读 assignments（该角色只存在于项目角色行）。
+    if (_organizerIdsOf(a).includes(currentUserId)) myIds.add(a.id);
     if (Array.isArray(a.assignments)) {
-      a.assignments.forEach(x => { if (x.personId === currentUserId && ['organizer', 'deep'].includes(x.role)) myIds.add(a.id); });
+      a.assignments.forEach(x => { if (x.personId === currentUserId && x.role === 'deep') myIds.add(a.id); });
     }
   }
   for (const r of authRecords) {
@@ -92,7 +112,11 @@ export function renderContent(ctx) {
     const reqBadge = req
       ? `<span class="text-xs px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-700" title="支委会要求：${(req.note || '').replace(/"/g, '&quot;')}">支委会要求</span>`
       : '';
-    const orgName = act.organizer ? (PEOPLE.find(p => p.id === act.organizer)?.name || act.organizer) : '—';
+    // A03：组织者展示同走派生列表；无组织者时明确「未指定」（不渲染成「—」）。
+    const orgIds = _organizerIdsOf(act);
+    const orgName = orgIds.length
+      ? orgIds.map((id) => PEOPLE.find(p => p.id === id)?.name || id).join('、')
+      : '未指定';
     // 展开区（复盘填写表单 / 复盘详情）常驻 DOM，展开态由 hidden 控制（保态折叠 2026-09-06）：
     // 收合/切换只切 hidden，不整页重建，正在填写的复盘总结不因展开/收起丢失
     const bodyContent = isPending

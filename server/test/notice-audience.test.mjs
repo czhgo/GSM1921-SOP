@@ -32,12 +32,12 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
-import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261022d';
-import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261022d';
-import { setDataSource, registerMockAdapter } from '../../docs/src/data/data-adapter.js?v=20261022d';
-import { MOCK_NOTICES } from '../../docs/src/data/mock/index.js?v=20261022d';
-import { NOTICE_AUDIENCE_OPTIONS } from '../../docs/src/core/domain/constants.js?v=20261022d';
-import { NoticeStore, canReadNotice } from '../../docs/src/services/governance/notice.js?v=20261022d';
+import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261023a';
+import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261023a';
+import { setDataSource, registerMockAdapter } from '../../docs/src/data/data-adapter.js?v=20261023a';
+import { MOCK_NOTICES } from '../../docs/src/data/mock/index.js?v=20261023a';
+import { NOTICE_AUDIENCE_OPTIONS } from '../../docs/src/core/domain/constants.js?v=20261023a';
+import { NoticeStore, canReadNotice } from '../../docs/src/services/governance/notice.js?v=20261023a';
 
 // ── localStorage 内存桩 + sessionStorage 空桩（与 thought-report-panel.test.mjs 同做法）──
 // getCurrentUser 走 localStorage；A-11 防串扰仅在登录对象带 tabId 时才校验，本桩不带 tabId → 直取。
@@ -85,10 +85,10 @@ const visibleIds = () => NoticeStore.list().map((n) => n.id);
 // ════════════════════════════════════════════════════════════════
 
 test('N1 sentinel all（全体党员）= 广播：任意角色与无会话均可见', () => {
-  // 受众选项单一源声明序锁死（发布表单 4 项，顺序不得变动）
-  assert.deepEqual(NOTICE_AUDIENCE_OPTIONS.map((o) => o.value), ['all', 'leaders', 'activists', 'candidates'],
+  // 受众选项单一源声明序锁死（发布表单 5 项，顺序不得变动；2026-10-23 批次 504 补 committee）
+  assert.deepEqual(NOTICE_AUDIENCE_OPTIONS.map((o) => o.value), ['all', 'committee', 'leaders', 'activists', 'candidates'],
     '受众选项须派生自 NOTICE_AUDIENCE_SENTINELS（单一源）且保持声明序');
-  assert.deepEqual(NOTICE_AUDIENCE_OPTIONS.map((o) => o.label), ['全体党员', '党小组组长', '入党积极分子', '发展对象']);
+  assert.deepEqual(NOTICE_AUDIENCE_OPTIONS.map((o) => o.label), ['全体党员', '支委层', '党小组组长', '入党积极分子', '发展对象']);
 
   beginCase([{ ...BASE, id: 'notice-n1', audience: ['all'], audienceLabel: '全体党员' }]);
   loginAs('2300010001', 'secretary');  assert.ok(visibleIds().includes('notice-n1'), '支书可见（广播）');

@@ -16,9 +16,9 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261022d';
-import { PersonStore } from '../../docs/src/services/member/person.js?v=20261022d';
-import { setDataSource, getDataSource } from '../../docs/src/data/data-adapter.js?v=20261022d';
+import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261023a';
+import { PersonStore } from '../../docs/src/services/member/person.js?v=20261023a';
+import { setDataSource, getDataSource } from '../../docs/src/data/data-adapter.js?v=20261023a';
 
 // ── localStorage 内存桩（person.js 惰性访问）────────────────────────────
 const _store = new Map();

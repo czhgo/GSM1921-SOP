@@ -14,7 +14,7 @@
 //         content/04_web_design/data/DATA_ARCHITECTURE.md §8.4
 // ════════════════════════════════════════════════════════════════
 
-import { getApiBaseUrl, getAuthToken } from './data-adapter.js?v=20261022d';
+import { getApiBaseUrl, getAuthToken, advanceVersionBaselineAfterWrite } from './data-adapter.js?v=20261023a';
 
 // ── HTTP 工具函数 ──────────────────────────────────────────────
 
@@ -132,17 +132,47 @@ function _get(path) {
 
 /** POST 请求 */
 function _post(path, data) {
-  return _request(path, { method: 'POST', body: JSON.stringify(data) });
+  return _writeRequest(path, 'POST', data);
 }
 
 /** PATCH 请求 */
 function _patch(path, data) {
-  return _request(path, { method: 'PATCH', body: JSON.stringify(data) });
+  return _writeRequest(path, 'PATCH', data);
 }
 
 /** DELETE 请求 */
 function _delete(path) {
-  return _request(path, { method: 'DELETE' });
+  return _writeRequest(path, 'DELETE');
+}
+
+/**
+ * 直连写口 → 快照集合名（批次 504 · R10-D02）。
+ *
+ * 服务端自本批起让语义写口也推进集合版本；直连写完一行后，页面防抖快照仍会整表上传同一集合
+ * ⇒ 不推进本地基线就会「被自己刚写的那一版挡住」（409）。这里把 URL 资源段映射成快照键
+ * （绝大多数同名；`system-notices` 落 `notices`），其余（auth / 语义域）返回空串＝不处理。
+ * 只有「服务端版本＝基线＋1」时才推进（见 `advanceVersionBaselineAfterWrite`）。
+ */
+const WRITE_COLLECTION_ALIAS = { 'system-notices': 'notices' };
+function _writeCollectionName(path) {
+  const m = /^\/api\/v1\/([A-Za-z][A-Za-z-]*)/.exec(String(path || ''));
+  if (!m || m[1] === 'auth' || m[1] === 'snapshot') return '';
+  return WRITE_COLLECTION_ALIAS[m[1]] || m[1];
+}
+
+/** 写请求统一入口：成功后再推进该集合的本地版本基线（失败不推进，保持「宁可下次再拒」） */
+async function _writeRequest(path, method, data) {
+  const out = await _request(path, {
+    method,
+    ...(data !== undefined ? { body: JSON.stringify(data) } : {}),
+  });
+  const name = _writeCollectionName(path);
+  if (name) {
+    try { await advanceVersionBaselineAfterWrite(name); } catch (e) {
+      console.warn(`[ApiAdapter] 直连写后推进 ${name} 版本基线失败（下次快照会走冲突恢复）：`, e);
+    }
+  }
+  return out;
 }
 
 // ════════════════════════════════════════════════════════════════

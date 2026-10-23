@@ -9,24 +9,24 @@ import {
   mockDB, TaskforceStatus, TASKFORCE_TERMINAL_STATUSES, TASKFORCE_PRE_OPEN_STATUSES,
   TASKFORCE_DIRECT_TRANSITIONS, WorkgroupStatus, workgroupStatusForTaskforce,
   TASK_TERMINAL_STATUSES, OUTPUT_TERMINAL_STATUSES,
-} from '../../core/domain/domain.js?v=20261022d';
-import { getAdapter, getDataSource, notifyDataChanged, persist, refreshRemoteCollections } from '../../data/data-adapter.js?v=20261022d';
-import { bumpToken } from '../../core/base/version-token.js?v=20261022d'; // P0 域缓存失效（spec §二.3）
-import { MOCK_TASKFORCES } from '../../data/mock/index.js?v=20261022d';
-import { isInitStateActive } from '../core/init-reset.js?v=20261022d'; // C2 修复（2026-09-08）：init 态跳过演示种子兜底
-import { getPersonName } from '../member/person.js?v=20261022d';
-import { evaluateWorkforceVotes } from '../branch/workforce.js?v=20261022d';
+} from '../../core/domain/domain.js?v=20261023a';
+import { getAdapter, getDataSource, notifyDataChanged, persist, refreshRemoteCollections } from '../../data/data-adapter.js?v=20261023a';
+import { bumpToken } from '../../core/base/version-token.js?v=20261023a'; // P0 域缓存失效（spec §二.3）
+import { MOCK_TASKFORCES } from '../../data/mock/index.js?v=20261023a';
+import { isInitStateActive } from '../core/init-reset.js?v=20261023a'; // C2 修复（2026-09-08）：init 态跳过演示种子兜底
+import { getPersonName } from '../member/person.js?v=20261023a';
+import { evaluateWorkforceVotes } from '../branch/workforce.js?v=20261023a';
 // 附录⑩ B批（3.3）专班议案排入支委会表决所需的活动/通知基建：
 // 与 services/branch/workforce.js 同路径（BranchService.createActivity + NoticeStore.add），
 // 仅函数体内使用（懒加载语义），不新增模块初始化期副作用。
-import { BranchService } from '../core/runtime.js?v=20261022d';
-import { NoticeStore } from '../governance/notice.js?v=20261022d';
-import { defaultVoteConfig, resolveVoterIds } from './vote-config.js?v=20261022d';
-import { loadActivities } from './activity.js?v=20261022d';
-import { AuthStore } from '../core/auth.js?v=20261022d';
-import { DEFAULT_BRANCH_ID, BRANCH_COMMISSION_ROLES } from '../../core/domain/constants.js?v=20261022d'; // 支委层应到名单单一源（勿手写）
-import { generateId } from '../../core/base/id.js?v=20261022d';
-import { todayLocal } from '../../core/base/utils.js?v=20261022d';
+import { BranchService } from '../core/runtime.js?v=20261023a';
+import { NoticeStore } from '../governance/notice.js?v=20261023a';
+import { defaultVoteConfig, resolveVoterIds } from './vote-config.js?v=20261023a';
+import { loadActivities } from './activity.js?v=20261023a';
+import { AuthStore } from '../core/auth.js?v=20261023a';
+import { DEFAULT_BRANCH_ID, BRANCH_COMMISSION_ROLES } from '../../core/domain/constants.js?v=20261023a'; // 支委层应到名单单一源（勿手写）
+import { generateId } from '../../core/base/id.js?v=20261023a';
+import { todayLocal } from '../../core/base/utils.js?v=20261023a';
 
 // 附录⑩ B批（S3 专班生命周期 · 支书裁定 2026-09-06）：
 //   治理按事项判定：仅制度或议程明确要求的发起/解散事项进入支委会表决；其余按业务流程办理并留痕。
@@ -150,8 +150,8 @@ export const TaskForceRecordStore = {
       const me = AuthStore.getCurrentUser && AuthStore.getCurrentUser();
       const pid = newRecord.manager || newRecord.initiator || (me && (me.personId || me.id)) || null;
       Promise.all([
-        import('../governance/todo.js?v=20261022d'),
-        import('../branch/branch.js?v=20261022d'),
+        import('../governance/todo.js?v=20261023a'),
+        import('../branch/branch.js?v=20261023a'),
       ]).then(([{ LifecycleTodoDeriver }, branch]) => {
         const snapshot = branch.getBranchWorkforce(branch.getBranchIdOfPerson(pid));
         LifecycleTodoDeriver.deriveFromTaskforceCreate(newRecord, { snapshot });
@@ -181,8 +181,8 @@ export const TaskForceRecordStore = {
     if (getDataSource() === 'api' && created.members.length === 0) {
       const actorId = created.manager || created.initiator || actor?.personId || actor?.id || null;
       Promise.all([
-        import('../governance/todo.js?v=20261022d'),
-        import('../branch/branch.js?v=20261022d'),
+        import('../governance/todo.js?v=20261023a'),
+        import('../branch/branch.js?v=20261023a'),
       ]).then(([{ LifecycleTodoDeriver }, branch]) => {
         const snapshot = branch.getBranchWorkforce(branch.getBranchIdOfPerson(actorId));
         LifecycleTodoDeriver.deriveFromTaskforceCreate(created, { snapshot });
@@ -386,11 +386,22 @@ export const TaskForceRecordStore = {
     const tf = this._records.find(r => r.id === tfId);
     if (!tf || !member?.personId) return null;
     const workgroupId = tf.workgroupId || `wg-taskforce-${tfId}`;
+    let addedRow = null;
     try {
-      await getAdapter().workgroups.members.add(workgroupId, { personId: member.personId, role: member.role });
+      addedRow = await getAdapter().workgroups.members.add(workgroupId, { personId: member.personId, role: member.role });
     } catch (e) {
       console.warn('[TaskForceRecordStore] 专班成员写入工作组主源失败：', e);
       return null;
+    }
+    // D11：把服务端返回的成员行并入 mockDB.workgroupMembers（按 id / workgroupId+personId 去重）——
+    //   组织台同屏读的是这份缓存，不并入就得等下一次全量刷新才看得到新成员。
+    if (addedRow && addedRow.personId) {
+      const rows = Array.isArray(mockDB.workgroupMembers) ? mockDB.workgroupMembers : [];
+      const idx = rows.findIndex((row) => row && (row.id === addedRow.id
+        || (row.workgroupId === workgroupId && row.personId === addedRow.personId)));
+      mockDB.workgroupMembers = idx >= 0
+        ? rows.map((row, i) => (i === idx ? { ...row, ...addedRow } : row))
+        : [...rows, addedRow];
     }
     const stored = (Array.isArray(mockDB.taskforces) ? mockDB.taskforces : []).find(r => r.id === tfId) || tf;
     const mirrored = (Array.isArray(stored.members) && stored.members.some(m => m?.personId === member.personId))

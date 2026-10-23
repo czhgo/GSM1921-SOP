@@ -11,20 +11,20 @@
 //   分区——**写侧默认折叠**（`_toolOpen`，同 group-progress `_progressOpen` 体例），首屏只留读侧；展开后功能一字不减。
 // 2026-09-03 裁定沿用：本页禁 SVG 图标，类别/视图用文字与色点区分。
 
-import { escHtml as esc } from '../../../core/base/utils.js?v=20261022d';
-import { WORK_MAP_MODULES, ORG_SUBJECT_LABELS, isBranchOrgSubject } from '../../../core/domain/work-map.js?v=20261022d';
-import { ROLE_LABELS } from '../../../core/domain/constants.js?v=20261022d';
-import { AuthStore } from '../../../services/core/auth.js?v=20261022d';
-import { getBranchIdOfPerson, getBranchWorkforce } from '../../../services/branch/branch.js?v=20261022d';
-import { getPersonName } from '../../../services/member/person.js?v=20261022d';
+import { escHtml as esc } from '../../../core/base/utils.js?v=20261023a';
+import { WORK_MAP_MODULES, ORG_SUBJECT_LABELS, isBranchOrgSubject } from '../../../core/domain/work-map.js?v=20261023a';
+import { ROLE_LABELS } from '../../../core/domain/constants.js?v=20261023a';
+import { AuthStore } from '../../../services/core/auth.js?v=20261023a';
+import { getBranchIdOfPerson, getBranchWorkforce } from '../../../services/branch/branch.js?v=20261023a';
+import { getPersonName } from '../../../services/member/person.js?v=20261023a';
 // 人×工作项矩阵单一源（2026-09-14 批次 35）：按人 / 按项目 互为转置，勿自造表格与翻页
-import { renderRelationMatrix } from '../../../components/ui/relation-matrix.js?v=20261022d';
+import { renderRelationMatrix } from '../../../components/ui/relation-matrix.js?v=20261023a';
 // 责任关系表（2026-10-18 脏专项 Task 17）：逐项「模块 → 责任人 → 责任角色 → 责任说明」，
 // 表头与分页走统一检索引擎（勿在本文件手写 <table>，S12 台账只认引擎 / 矩阵两处单一源）。
-import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261022d';
-import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261022d';
+import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261023a';
+import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261023a';
 // L4 M2（2026-09-03）：分工调整工具（发起支委会议题 / 跟踪 / 采纳生效），仅支书/副支书可见
-import { mountWorkforcePanel } from './workforce-panel.js?v=20261022d';
+import { mountWorkforcePanel } from './workforce-panel.js?v=20261023a';
 
 // 2026-10-18 脏专项 Task 17：默认落「责任关系表」——14 项模块是 1:1 分派，
 // 逐行读出「谁负责什么」比 14×N 的稀疏矩阵直接；矩阵（按人 / 按项目）保留为可选视图。
@@ -34,10 +34,14 @@ let _view = 'relations'; // 视图：责任关系表 / 平铺模块 / 按人 / �
 //   写侧折叠为按钮；原 MODULE_UI_DESIGN.md §四 规划稿已清出，出处见 .ctx/logs/archive/2026-09-DECISION_LOG.md）。折叠体例照本仓既有 `_progressOpen`（group-progress-tab.js）：模块级布尔 + 卡片 + 单钮，
 //   展开态才挂载工具（未展开不 load，减负首屏）；功能不删（展开后 DOM/事件一字不减）。
 let _toolOpen = false;
+// A14：停用项「发起启用议题」→ 打开分工调整面板并预选该模块（一次性消费）。
+let _pendingReenableModule = null;
 
 /** 负责人显示名：role → ROLE_LABELS；person → 姓名；org → 组织型主体名（如支委会，不是自然人） */
 function _ownerLabel(assign) {
   if (!assign) return '未分工';
+  // A14：停用项不是「未指派」——明示「已停用 / 不开展」（模块卡 / 矩阵 / 责任关系表共用本函数）。
+  if (assign.ownerType === 'none') return '已停用 / 不开展';
   if (assign.ownerType === 'person') return getPersonName(assign.ownerId) || assign.ownerId;
   if (assign.ownerType === 'org') return ORG_SUBJECT_LABELS[assign.ownerId] || assign.ownerId;
   return ROLE_LABELS[assign.ownerId] || assign.ownerId;
@@ -90,17 +94,19 @@ function _relationRows(workforce) {
     return {
       id: m.id,
       module: m.name,
-      owner: disabled ? '未指派' : (superior ? `上级${_ownerLabel(assign)}` : _ownerLabel(assign)),
+      // A14：停用项不是「未指派」（那会让人以为是漏配）。明说「已停用 / 不开展」。
+      owner: disabled ? _ownerLabel(assign) : (superior ? `上级${_ownerLabel(assign)}` : _ownerLabel(assign)),
       role: disabled ? '停用' : (superior ? '上级主导' : '主责'),
       note: disabled
-        ? '本支部不开展该项工作方法（可由支部重新启用）'
+        ? '本支部不开展该项工作方法；可由支书 / 副支书发起启用议题'
         : (superior ? '由上级组织主导，支部按上级渠道对接' : (m.desc || '')),
+      disabled,
     };
   });
 }
 
 /** 责任关系表渲染（表头 / 空态 / 分页均由统一检索引擎产出） */
-function _renderRelations(workforce) {
+function _renderRelations(workforce, editable) {
   const host = document.getElementById('work-map-relations');
   if (!host) return;
   renderFilteredList(host, {
@@ -113,16 +119,23 @@ function _renderRelations(workforce) {
     emptyMessage: '暂无分工数据（支部尚未配置工作模块）',
     table: {
       responsive: true,
-      headHtml: '<tr><th>工作模块</th><th>责任人</th><th>责任角色</th><th>责任说明</th></tr>',
-      colSpan: 4,
+      headHtml: '<tr><th>工作模块</th><th>责任人</th><th>责任角色</th><th>责任说明</th><th>操作</th></tr>',
+      colSpan: 5,
     },
     rowHtml: (r) => {
       const roleCls = r.role === '主责' ? 'bg-red-50 text-red-700 border-red-100' : 'bg-neutral-100 text-neutral-600';
+      // A14：停用项的「发起启用议题」落点＝本页分工调整面板（复用既有写口，不新造表单）。
+      const action = r.disabled
+        ? (editable
+          ? `<button type="button" class="btn-outline btn-sm wm-reenable" data-module="${esc(r.id)}">发起启用议题</button>`
+          : '<span class="text-xs text-gray-500">由支书 / 副支书发起启用议题</span>')
+        : '<span class="text-xs text-gray-400">—</span>';
       return `<tr>
         <td data-label="工作模块" class="text-gray-800 font-medium">${esc(r.module)}</td>
         <td data-label="责任人" class="text-gray-700">${esc(r.owner)}</td>
         <td data-label="责任角色"><span class="text-xs px-1.5 py-0.5 rounded border ${roleCls}">${esc(r.role)}</span></td>
         <td data-label="责任说明" class="text-gray-600">${esc(r.note)}</td>
+        <td data-label="操作">${action}</td>
       </tr>`;
     },
   });
@@ -248,7 +261,7 @@ export function renderContent() {
 
   root.innerHTML = `${renderTabHeader({ title: '支部分工', description: '每项工作归谁负责；改派走支委会议题。' })}${switchBar}${body}${editable ? _toolFoldHtml() : ''}`;
   // 责任关系表 / 矩阵分别挂到各自宿主（_view → mode 映射在 _renderMatrix 内）
-  if (_view === 'relations') _renderRelations(workforce);
+  if (_view === 'relations') _renderRelations(workforce, editable);
   if (_view === 'persons' || _view === 'items') _renderMatrix(workforce);
   // 视图切换（纯排列切换，不换数据）；复用 overview 的 ov-sub-tab 激活样式
   root.querySelectorAll('.ov-sub-tab').forEach(btn => {
@@ -262,8 +275,30 @@ export function renderContent() {
     _toolOpen = !_toolOpen;
     renderContent();
   });
+  // A14：停用项行内「发起启用议题」——展开并预选该模块（写口仍是既有分工调整面板）。
+  root.querySelector('#work-map-relations')?.addEventListener('click', (e) => {
+    const btn = e.target.closest('.wm-reenable');
+    if (!btn) return;
+    _pendingReenableModule = btn.dataset.module || null;
+    _toolOpen = true;
+    renderContent();
+  });
   // 展开态才挂载工具（仅支书/副支书可见）
   if (editable && _toolOpen) {
-    mountWorkforcePanel(branchId, root.querySelector('#workforce-panel-host')).catch(e => console.error('[work-map] 分工调整面板渲染失败', e));
+    mountWorkforcePanel(branchId, root.querySelector('#workforce-panel-host'))
+      .then(() => {
+        if (!_pendingReenableModule) return;
+        const mod = _pendingReenableModule;
+        _pendingReenableModule = null;
+        const host = root.querySelector('#workforce-panel-host');
+        host?.querySelector('#wf-open')?.click();
+        const row = host?.querySelector('.wf-row');
+        if (row) {
+          const sel = row.querySelector('.wf-module');
+          if (sel) sel.value = mod;
+          row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      })
+      .catch(e => console.error('[work-map] 分工调整面板渲染失败', e));
   }
 }

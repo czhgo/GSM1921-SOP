@@ -23,23 +23,21 @@
 // 纯 ESM、无 DOM：localStorage 由 person.js 内部以 typeof 守卫惰性访问 → 浏览器 / Node 双端可载（单测直导）。
 // ════════════════════════════════════════════════════════════════
 
-import { getBaseMemberRecords } from './person.js?v=20261022d';
-import { DEVELOP_STAGE_OPTIONS, buildPreviewTemplate } from '../branch/org-base-data-preview.js?v=20261022d';
+import { getBaseMemberRecords } from './person.js?v=20261023a';
+// R10-B12：应到统计公式单一源 = roster.js::computeRosterStats（勿在本模块复制公式）。
+import { computeRosterStats } from './roster.js?v=20261023a';
+import { DEVELOP_STAGE_OPTIONS, buildPreviewTemplate } from '../branch/org-base-data-preview.js?v=20261023a';
 // 党小组活组清单单一源（2026-09-14 批次 29 硬编码审查评议）：原用种子枚举 PARTY_GROUP_OPTIONS
 // 校验导入行/派生按组统计 → 支书台「新增 / 改名 / 解散党小组」后导入侧不联动（新组名被回退、统计缺组）。
 // 种子枚举仍归 org-base-data-preview 的**预览种子期**口径，运行时消费一律走 groupOptions()。
-import { groupOptions } from './party-group.js?v=20261022d';
-import { POLICY_DEFAULTS } from '../../core/domain/policy-defaults.js?v=20261022d';
+import { groupOptions } from './party-group.js?v=20261023a';
 // Q-21-3 收敛（2026-09-13）：枚举单一源 = core/domain/constants.js（原经 org-base-data-preview 转出，现直取）
-import { RESIDENCE } from '../../core/domain/constants.js?v=20261022d';
+import { RESIDENCE } from '../../core/domain/constants.js?v=20261023a';
 
 /** 空支部名册包类型标识（与预览包 kind 区分；净化时兼容两 kind——预览模板行结构同源） */
 export const BRANCH_ROSTER_KIND = 'gsm1921-branch-roster';
 /** 名册包结构版本（当前 1；未来字段演进时 bump 并做迁移） */
 export const BRANCH_ROSTER_VERSION = 1;
-
-/** 应到口径（与 roster/preview 同单一源 = policy-defaults attendance.roster，勿在业务层写字面量） */
-const ROSTER_CFG = POLICY_DEFAULTS.attendance.roster;
 
 /**
  * 当前可迁成员档案（纯）：属支部成员（branchId 非空）→ 名册净化白名单 / 字段回退基底。
@@ -56,27 +54,10 @@ function _movableArchiveMap() {
   return map;
 }
 
-/** 应到口径统计（与 org-base-data-preview 同公式：应到 = 党员非滞留；党小组按活组清单保序）——
+/** 应到口径统计（单一源 = roster.js::computeRosterStats：应到 = 党员非滞留；党小组按活组清单保序）——
  *  groups 缺省现取 groupOptions()（活组单一源；支书台增/改名/解散即时反映） */
 function _computeStats(rows, groups = groupOptions()) {
-  const isParty = p => ROSTER_CFG.partyStages.includes(p.developStage);
-  const isDetained = p => p.residenceStatus === RESIDENCE.DETAINED;
-  const party = rows.filter(isParty);
-  const official = party.filter(p => p.developStage === '正式党员').length;
-  const probationary = party.filter(p => p.developStage === '预备党员').length;
-  const detained = party.filter(isDetained).length;
-  const expected = party.length - (ROSTER_CFG.excludeDetained ? detained : 0);
-  const perGroup = {};
-  for (const g of groups) {
-    const gp = party.filter(p => p.partyGroup === g);
-    const gd = gp.filter(isDetained).length;
-    perGroup[g] = {
-      partyTotal: gp.length,
-      expected: gp.length - (ROSTER_CFG.excludeDetained ? gd : 0),
-      detainedParty: ROSTER_CFG.excludeDetained ? gd : 0,
-    };
-  }
-  return { partyTotal: party.length, official, probationary, detained, expected, perGroup };
+  return computeRosterStats(rows, groups);
 }
 
 /**
@@ -92,7 +73,7 @@ export function buildBranchRosterTemplate() {
     exportedAt: new Date().toISOString(),
     usage: '空支部成员名册包（整支部导入/替换·正式保存）：模板列出成员档案中的现有成员（每行一名），'
       + '把要迁入本支部的行保留、其余删去即可。每行可改五项基础字段——name 姓名（不可为空）、'
-      + 'partyGroup 党小组归属（第一/第二/第三党小组）、developStage 发展阶段（正式党员/预备党员/发展对象/积极分子）、'
+      + `partyGroup 党小组归属（${groupOptions().join('/')}）、developStage 发展阶段（正式党员/预备党员/发展对象/积极分子）、`
       + 'residenceStatus 在校|滞留、residenceNote 滞留备注（自由文本，可为空）。'
       + 'id 为成员唯一标识不可改（不在现有成员档案中的行整条忽略）；非法枚举回退该成员档案原值、空姓名整条忽略。'
       + '导入 = 净化后预览统计 → 确认后一次保存（仅空支部可用；非空支部请逐人编辑成员档案，勿整表替换）。',

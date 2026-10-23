@@ -1,3 +1,5 @@
+import { DEFAULT_BRANCH_ID } from '../../core/domain/constants.js?v=20261023a';
+
 export const MOCK_TASKFORCES = [
   // 2026-09-06 基线刷新：createdAt/deadline/progressList 由全局时间函数
   // f(d) = 07-01 + round((d−03-01)/121×24) 线性压缩至 2026-07-01~07-25；
@@ -7,6 +9,7 @@ export const MOCK_TASKFORCES = [
   //   （常设维护，deadline 推到 2026-12-31）；不再存在「已截止仍招募」的 recruiting 种子。
   {
     id: 'tf-001',
+    branchId: DEFAULT_BRANCH_ID,
     name: '宣传专班（第二期）',
     task: '深度报道与专题视频制作 — 7月系列主题活动宣传任务',
     // R2-32（2026-10-20）：任务对象是「7 月系列主题活动」，deadline 7/17 早已过；
@@ -52,6 +55,7 @@ export const MOCK_TASKFORCES = [
   },
   {
     id: 'tf-002',
+    branchId: DEFAULT_BRANCH_ID,
     name: 'SOP 系统维护专班',
     task: 'SOP 文档体系维护、系统同步更新、经验蒸馏记录',
     status: 'active',
@@ -75,6 +79,7 @@ export const MOCK_TASKFORCES = [
   },
   {
     id: 'tf-003',
+    branchId: DEFAULT_BRANCH_ID,
     name: '五四主题党日筹备专班',
     task: '7月13日五四精神传承主题党日活动全流程筹备',
     status: 'completed',
@@ -88,11 +93,13 @@ export const MOCK_TASKFORCES = [
     ],
     capacity: 6,
     deadline: '2026-07-13',
-    activityId: null,
+    // R10（2026-10-23）：补齐真实关联活动（C19），不再全空。
+    activityId: 'act-10',
     createdAt: '2026-07-10',
   },
   {
     id: 'tf-004',
+    branchId: DEFAULT_BRANCH_ID,
     name: '共建座谈对接专班',
     task: '校企共建座谈（光华 x 中信证券）对接与执行',
     status: 'completed',
@@ -104,11 +111,12 @@ export const MOCK_TASKFORCES = [
     ],
     capacity: 4,
     deadline: '2026-07-17',
-    activityId: null,
+    activityId: 'act-12',
     createdAt: '2026-07-14',
   },
   {
     id: 'tf-005',
+    branchId: DEFAULT_BRANCH_ID,
     name: '建党105周年筹备专班',
     task: '7月23日建党105周年主题党日大型活动筹备',
     // R2-32：筹备对象 act-16 已于 7/23 举办，招募截止 8/20 也已过 ⇒ recruiting 不再成立，收口 completed。
@@ -122,11 +130,12 @@ export const MOCK_TASKFORCES = [
     ],
     capacity: 8,
     deadline: '2026-08-20',
-    activityId: null,
+    activityId: 'act-16',
     createdAt: '2026-07-15',
   },
   {
     id: 'tf-006',
+    branchId: DEFAULT_BRANCH_ID,
     name: '参访活动保障专班',
     task: '7月参访活动后勤保障与安全',
     // R2-32：保障对象（7 月参访）已结束，截止 8/15 也已过 ⇒ recruiting 收口 completed。
@@ -138,11 +147,12 @@ export const MOCK_TASKFORCES = [
     ],
     capacity: 4,
     deadline: '2026-08-15',
-    activityId: null,
+    activityId: 'act-14',
     createdAt: '2026-07-16',
   },
   {
     id: 'tf-007',
+    branchId: DEFAULT_BRANCH_ID,
     name: '两会精神学习专班',
     task: '两会精神学习材料整理与分享',
     status: 'completed',
@@ -159,6 +169,7 @@ export const MOCK_TASKFORCES = [
   },
   {
     id: 'tf-008',
+    branchId: DEFAULT_BRANCH_ID,
     name: '七月活动档案整理专班',
     task: '七月上旬活动归档整理、材料汇总与电子化',
     status: 'dissolved',
@@ -173,6 +184,5 @@ export const MOCK_TASKFORCES = [
     activityId: null,
     createdAt: '2026-07-06',
     dissolvedAt: '2026-07-11',
-    reviewSummary: '专班完成七月上旬 3 项活动的归档整理（act-1/act-2/act-3），形成电子档案 5 份、归档清单 1 份。组织者方文静完成材料汇总，深度参与者苏明哲完成 PPT 制作与电子化归档。工作量已记入考察总表，专班正式解散。',
   },
 ];

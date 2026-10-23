@@ -10,7 +10,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { initDb, SCHEMA_VERSION } from '../db.js';
-import { detectSeedDrift, planSeedRepair } from '../../docs/src/data/seed-drift.js?v=20261022d';
+import { detectSeedDrift, planSeedRepair } from '../../docs/src/data/seed-drift.js?v=20261023a';
 import { loadSeedRowsForTable } from '../seed-rows.js';
 import { repairSeedRowsIfNeeded, repairExistingSeedRows, readSeedMeta } from '../seed-repair.js';
 
@@ -81,7 +81,7 @@ test('D4 服务端 v9 seed_meta + 启动修复：只修既有 seed id、保留�
     const seedRows = await loadSeedRowsForTable('activities');
     assert.ok(seedRows.length > 0, '活动种子不应为空');
     const seed = seedRows[0];
-    const stale = { ...seed, title: '旧标题（漂移）', archived: true, participants: ['2400012345'], extraRuntime: 'keep' };
+    const stale = { ...seed, visibility: 'drifted-visibility', title: '旧标题（漂移）', archived: true, participants: ['2400012345'], extraRuntime: 'keep' };
     db.prepare('INSERT INTO activities (id, data) VALUES (?, ?)').run(seed.id, JSON.stringify(stale));
     // orphan：id 形态像活动种子，但当前种子集已无该 id
     db.prepare('INSERT INTO activities (id, data) VALUES (?, ?)').run('act-999999', JSON.stringify({ id: 'act-999999', title: '已下线种子', archived: true }));
@@ -91,7 +91,10 @@ test('D4 服务端 v9 seed_meta + 启动修复：只修既有 seed id、保留�
     assert.equal(first.skipped, false, '版本不一致时必须执行修复');
     assert.equal(readSeedMeta(db, 'seed_version'), 'test-seed-version', '修复后写回版本');
     const repaired = JSON.parse(db.prepare('SELECT data FROM activities WHERE id = ?').get(seed.id).data);
-    assert.equal(repaired.title, seed.title, 'seedOwned 字段按当前种子修复');
+    // 2026-10-23 批次 504（R10-C03）：title/date/location 属用户可编辑 ⇒ 归 runtime，修复不得回滚；
+    //   seedOwned 的校验改用 visibility（仍由种子负责的治理字段）。
+    assert.equal(repaired.visibility, seed.visibility, 'seedOwned 字段按当前种子修复');
+    assert.equal(repaired.title, '旧标题（漂移）', '运行时可编辑字段 title 不被修复回滚');
     assert.equal(repaired.archived, true, '运行时字段 archived 保留');
     assert.deepEqual(repaired.participants, ['2400012345'], '运行时字段 participants 保留');
     assert.equal(repaired.extraRuntime, 'keep', '未登记字段保留');

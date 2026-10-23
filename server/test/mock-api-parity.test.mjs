@@ -48,15 +48,15 @@ globalThis.localStorage = makeStorage();
 
 import { createApp } from '../app.js';
 import { seedDatabase } from '../seed.js';
-import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261022d';
-import { getRuntimeMode, init, setDataSource } from '../../docs/src/data/data-adapter.js?v=20261022d';
+import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261023a';
+import { getRuntimeMode, init, setDataSource } from '../../docs/src/data/data-adapter.js?v=20261023a';
 // ── mock 形态语料（单一源；服务端 seed.js 亦从这些具名导出播种 ⇒ 两侧本应逐值相同）──
-import { MOCK_NOTICES } from '../../docs/src/data/mock/notices.js?v=20261022d';
-import { ATTENDANCE_RECORDS } from '../../docs/src/data/mock/attendance.js?v=20261022d';
-import { INSPECTION_RECORDS } from '../../docs/src/data/mock/inspection.js?v=20261022d';
-import { SEED_MAKEUP_TASKS } from '../../docs/src/data/mock/seed.js?v=20261022d';
+import { MOCK_NOTICES } from '../../docs/src/data/mock/notices.js?v=20261023a';
+import { ATTENDANCE_RECORDS } from '../../docs/src/data/mock/attendance.js?v=20261023a';
+import { INSPECTION_RECORDS } from '../../docs/src/data/mock/inspection.js?v=20261023a';
+import { SEED_MAKEUP_TASKS } from '../../docs/src/data/mock/seed.js?v=20261023a';
 // `SEED_TODOS` 不在 `mock/**`（它是服务层常量，前端 seedTodos() 读的正是它）——服务端 seed.js 同源 import
-import { SEED_TODOS } from '../../docs/src/services/governance/todo.js?v=20261022d';
+import { SEED_TODOS } from '../../docs/src/services/governance/todo.js?v=20261023a';
 
 // ════════════════════════════════════════════════════════════════
 //  B 类现场（api 形态）：内存服务 + 真登录取 token + init() 把服务端全量灌进 mockDB 缓存
@@ -117,7 +117,8 @@ function diffOf(a, b) {
 const TABLES = [
   { key: 'todos', resource: 'todos', source: SEED_TODOS, label: '待办（本批补种）', min: 1 },
   { key: 'notices', resource: 'notices', source: MOCK_NOTICES, label: '通知（种子计数曾疑 12 vs 13）', min: 12 },
-  { key: 'attendances', resource: 'attendances', source: ATTENDANCE_RECORDS, label: '考勤（本批改 8 月 _ALL_PERSON_IDS）', min: 150 },
+  // 2026-10-23 批次 504（R10-C06）：删除支委会 act-27 的 8 条非法考勤 ⇒ 152 → 144；下限随之收至 140。
+  { key: 'attendances', resource: 'attendances', source: ATTENDANCE_RECORDS, label: '考勤（本批改 8 月 _ALL_PERSON_IDS）', min: 140 },
   { key: 'inspections', resource: 'inspections', source: INSPECTION_RECORDS, label: '考察（id 跳过 insp-17）', min: 42 },
   { key: 'makeupTasks', resource: 'makeupTasks', source: SEED_MAKEUP_TASKS, label: '补课任务（本批改 attendanceRecordId）', min: 1 },
 ];

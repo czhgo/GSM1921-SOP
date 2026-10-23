@@ -3,7 +3,7 @@ title: "数据模型与数据流"
 type: design
 role: "[工程师]+[AI]"
 version: "1.1"
-last_updated: 2026-10-22
+last_updated: 2026-10-23
 status: active
 related_files: [content/02_institution/SYSTEM_ROLE_PERMISSION.md, content/02_institution/COMMISSIONER_DUTY_FRAMEWORK.md, content/02_institution/sop/纪检委员工作流程指南.md, content/03_doc_system/ARCHITECTURE.md]
 ---
@@ -266,6 +266,19 @@ ActivityRecord (主记录)
 | `WorkGroupGrant` | `id, branchId, workgroupId, personId, templateKey?, permissionKeys[], status, grantedBy, grantedAt, revokedBy?, revokedAt?` | 独立授权留痕；可套用建议模板后调整；服务端按支部、活动与工作组范围校验每项操作 |
 | `WorkGroupTask` | `id, branchId, workgroupId, title, status, activityId?, capabilityPackageId?, isPurpose?` | `status` 为 `open/in_progress/completed/cancelled`；主任务 `isPurpose` 唯一。每个工作组至少有一项经确认的任务才可收尾。关联活动/能力包须同支部 |
 | `WorkGroupOutput` | `id, branchId, workgroupId, taskId?, activityId?, capabilityPackageId?, title, submittedBy, submittedAt, status` | 产出可关联任务、活动与能力包；跨支部或跨工作组引用由服务端拒绝。收尾需所有已登记产出完成登记 |
+
+#### 2.3.2 schema v11：可下推列与影子子表（非权威源）
+
+> 2026-10-23 批次 504（第九轮 schema 方案）。**JSON 主表仍是唯一权威源**；以下结构只用于读过滤下推、分页与切表准备。
+
+| 结构 | 内容 | 边界 |
+|---|---|---|
+| generated stored 列 | `attendances(branch_id,status,person_id,activity_id)`、`inspections(branch_id,activity_id)`、`notices(branch_id)`、`activities(branch_id,status)`、`todos(branch_id)` | 由 `json_extract(data, …)` 生成；只读，不参与业务写入 |
+| 复合索引 | `(branch_id,status)`、`(branch_id,person_id,activity_id)`、`(branch_id,activity_id)` 等 | 查询结果须与「整表读 + JS 过滤」逐行等价（`perf-index-equivalence`） |
+| `agenda_items` | `id` 主键 + `data` JSON（`activityId / seq / item / kinds / result …`） | **影子表**：由活动 `agenda[]` 回填/双写；读仍走 JSON |
+| `taskforce_contributions` | `id` 主键 + `data` JSON（`taskforceId / workgroupId / personId / desc / by / at / verified*`） | **影子表**：由 `taskforces.members[].contributions[]` 回填/双写；读仍走 JSON |
+
+**切表判据**：见 `CLAUDE.md B-504-1` 与 `server/scripts/schema-split-readiness.mjs`；只有规模/冲突/子项查询任一触发、影子连续 7 天 `mismatch=0`、保留期已裁时，才可把权威源切到子表。
 
 **工作组创建、权限与生命周期**：活动工作组随活动创建；专班工作组围绕自身任务创建，专班可由能力包承载，也可由一次性任务触发。活动工作组不是独立业务对象，活动记录仍是活动业务的唯一载体；活动组织落点 (`party-group/branch`)、参加资格和系统授权是不同维度。党小组组长只能创建本组活动；支书/副支书可建任意承办组活动，且须选择唯一承办党小组；支委会、党员大会、党课等支部级法定会议单列 `branch`，不塞党小组。组织者一般由承办党小组承担，他组同志须留例外说明；深度参与者可按需跨组招募，但必须有招募标记与组织委员协调人，成员行记 `crossGroup/coordinatedBy`。组织者与深度参与者是并列成员角色；具体操作权限经独立授权接口授予并留痕。活动、成员、任务和产出等跨记录写入都须由服务端校验支部归属。
 
@@ -814,13 +827,14 @@ taskforce.members:    Array<{ personId, role: 'organizer' | 'deep' | 'participan
 
 > **设计依据**：最小三成本原则（见 [DESIGN_SYSTEM.md §一 第2条](../design-system/DESIGN_SYSTEM.md)）——任务流默认直接展示在工作台，不要求用户额外操作才能看到"我需要做什么"。
 > **派生来源**：通知派生（§2.19）+ 活动生命周期事件派生 + 专班生命周期事件派生 + 手动创建。
-> **类型定义将位于** [domain.js](../../../docs/src/core/domain/domain.js)（待新增）。
+> **类型定义**：见 [domain.js](../../../docs/src/core/domain/domain.js) 的 `Todo` typedef（2026-10-23 批次 504 补登）。
 
 #### 2.18.1 字段定义
 
 | 字段名 | 类型 | 必填 | 默认值 | 说明 |
 |---|---|---|---|---|
 | id | string | 是 | `generateId('todo')` | 唯一标识符，前缀 `todo_` |
+| branchId | string \| null | 是 | -- | 所属支部（v11 `todos.branch_id`）；**解析不出即拒绝写入**，`null` 仅表示待归属旧行 |
 | title | string | 是 | -- | 待办标题 |
 | description | string | 否 | `''` | 待办描述 |
 | role | string | 是 | -- | 目标角色（secretary/deputy-secretary/org-commissioner/prop-commissioner/disc-commissioner/leader/participant/party-staff/organizer/deep；角色键权威见 constants.js ROLE_KEYS） |

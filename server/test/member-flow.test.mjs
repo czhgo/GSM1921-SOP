@@ -12,7 +12,7 @@ import { readFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const V = '?v=20261022d';
+const V = '?v=20261023a';
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const SRC_DIR = join(ROOT, 'docs', 'src');
 const read = (f) => readFileSync(f, 'utf8');
@@ -147,7 +147,7 @@ test('D1 单人流入：档案落档（含学号/届别）+ 台账一笔 + 账�
   const before = PersonStore.getMembers().length;
   const r = await registerIntake({
     name: '测试新生', studentId: '2600010001', enrollYear: '2026',
-    partyGroup: '第一党小组', note: '开学转入', by: '2400012355', role: 'org-commissioner',
+    partyGroup: '第一党小组', developStage: '正式党员', note: '开学转入', by: '2400012355', role: 'org-commissioner',
   });
   assert.equal(r.ok, true, JSON.stringify(r));
   assert.ok(r.person && r.person.id);
@@ -172,7 +172,7 @@ test('D1 单人流入：档案落档（含学号/届别）+ 台账一笔 + 账�
   assert.equal(login.personId, p.id);
   assert.equal(isAccountActive('2600010001'), true);
   // 学号重复 → 拒绝
-  const dup = await registerIntake({ name: '重复学号', studentId: '2600010001', by: '2400012355', role: 'org-commissioner' });
+  const dup = await registerIntake({ name: '重复学号', studentId: '2600010001', developStage: '正式党员', by: '2400012355', role: 'org-commissioner' });
   assert.equal(dup.ok, false);
   assert.match(dup.reason, /学号/);
 });
@@ -180,10 +180,10 @@ test('D1 单人流入：档案落档（含学号/届别）+ 台账一笔 + 账�
 test('D2 批量粘贴（含一行错误）→ errors 有行号且其它行照常成功', async () => {
   beginMockCase();
   const text = [
-    '批量甲\t2600020001\t2026\t第一党小组',
-    '批量乙,2600020002,2026,第二党小组',
+    '批量甲\t2600020001\t2026\t第一党小组\t\t正式党员',
+    '批量乙,2600020002,2026,第二党小组,,正式党员',
     '',                                              // 空行跳过
-    '批量丙\t2600020001\t2026\t第一党小组',           // 学号与第 1 行重复 → 行号 4 报错
+    '批量丙\t2600020001\t2026\t第一党小组\t\t正式党员', // 学号与第 1 行重复 → 行号 4 报错
   ].join('\n');
   const r = await registerIntakeBatch({ text, by: '2400012355', role: 'org-commissioner' });
   assert.equal(r.created.length, 2, '两行合法照常成功');
@@ -197,8 +197,8 @@ test('D2 批量粘贴（含一行错误）→ errors 有行号且其它行照常
 
 test('D3 多人流出：软标记 + 台账 + 账号停用 + 名册读链不再含该人', async () => {
   beginMockCase();
-  const a = await registerIntake({ name: '流出甲', studentId: '2600030001', by: '2400012355', role: 'org-commissioner' });
-  const b = await registerIntake({ name: '流出乙', studentId: '2600030002', by: '2400012355', role: 'org-commissioner' });
+  const a = await registerIntake({ name: '流出甲', studentId: '2600030001', developStage: '正式党员', by: '2400012355', role: 'org-commissioner' });
+  const b = await registerIntake({ name: '流出乙', studentId: '2600030002', developStage: '正式党员', by: '2400012355', role: 'org-commissioner' });
   const r = await registerOutflow({
     personIds: [a.person.id, b.person.id], date: '2026-09-14', note: '毕业转出', by: '2400012355', role: 'org-commissioner',
   });
@@ -232,8 +232,8 @@ test('D3 多人流出：软标记 + 台账 + 账号停用 + 名册读链不再�
 
 test('D4 撤销：台账留痕（revokedAt/revokedBy）+ 回滚在册状态 + 账号恢复/停用', async () => {
   beginMockCase();
-  const a = await registerIntake({ name: '撤销流出', studentId: '2600040001', enrollYear: '2026', partyGroup: '第一党小组', by: '2400012355', role: 'org-commissioner' });
-  const b = await registerIntake({ name: '撤销流入', studentId: '2600040002', by: '2400012355', role: 'org-commissioner' });
+  const a = await registerIntake({ name: '撤销流出', studentId: '2600040001', enrollYear: '2026', partyGroup: '第一党小组', developStage: '正式党员', by: '2400012355', role: 'org-commissioner' });
+  const b = await registerIntake({ name: '撤销流入', studentId: '2600040002', developStage: '正式党员', by: '2400012355', role: 'org-commissioner' });
   await registerOutflow({ personIds: [a.person.id], note: '误登流出', by: '2400012355', role: 'org-commissioner' });
   assert.equal(PersonStore.getMembers().some(p => p.id === a.person.id), false);
 
@@ -270,8 +270,8 @@ test('D5 reconcile 恒等：期初在册 + 流入合计 − 流出合计 = 当�
   assert.equal(before.openingCount, before.currentCount, '无台账时期初 = 当前在册');
   assert.equal(before.balanced, true);
 
-  const a = await registerIntake({ name: '对账甲', studentId: '2600050001', by: '2400012355', role: 'org-commissioner' });
-  await registerIntake({ name: '对账乙', studentId: '2600050002', by: '2400012355', role: 'org-commissioner' });
+  const a = await registerIntake({ name: '对账甲', studentId: '2600050001', developStage: '正式党员', by: '2400012355', role: 'org-commissioner' });
+  await registerIntake({ name: '对账乙', studentId: '2600050002', developStage: '正式党员', by: '2400012355', role: 'org-commissioner' });
   await registerOutflow({ personIds: [a.person.id], by: '2400012355', role: 'org-commissioner' });
 
   const r = reconcile({ branchId: 'br-b1' });

@@ -12,13 +12,15 @@
 //   也绕过了支书台归档前的材料 / 考勤闸门。本次不新增第二套归档写口（归档仍走活动详情的材料闸门），
 //   文案与提示只说「标记完成」，不再声称「完成即归档」。
 
-import { BranchService } from '../../services/core/runtime.js?v=20261022d';
-import { persist } from '../../data/data-adapter.js?v=20261022d';
-import { showToast, escHtml as esc } from '../../core/base/utils.js?v=20261022d';
-import { isActivityEnded } from '../../core/domain/constants.js?v=20261022d';
-import { getPersonName } from '../../services/member/person.js?v=20261022d';
-import { badgeHtml } from '../ui/badges.js?v=20261022d';
-import { renderQueryView } from './query-view.js?v=20261022d';
+import { BranchService } from '../../services/core/runtime.js?v=20261023a';
+import { persist } from '../../data/data-adapter.js?v=20261023a';
+import { showToast, escHtml as esc } from '../../core/base/utils.js?v=20261023a';
+import { isActivityEnded } from '../../core/domain/constants.js?v=20261023a';
+// A03：组织者判据与活动详情同源——工作组主源优先，项目角色行次之，`organizer` 仅兜底。
+import { mockDB } from '../../core/domain/domain.js?v=20261023a';
+import { getPersonName } from '../../services/member/person.js?v=20261023a';
+import { badgeHtml } from '../ui/badges.js?v=20261023a';
+import { renderQueryView } from './query-view.js?v=20261023a';
 
 /**
  * 渲染活动进展分段（全部活动查询 + 材料出口 + 标记完成）。
@@ -60,11 +62,18 @@ export function renderActivityProgress(host, { activities = [], accent, onChange
       const ended = isActivityEnded(a);
       const scopeLabel = a.organizingScope === 'branch' ? '支部级' : `承办党小组：${a.hostGroup || '待补'}`;
       const recruitLabel = a.recruitmentScope === 'cross-group' ? ' · 跨组招募（组织委员协调）' : '';
+      const workgroupId = a.workgroupId || `wg-activity-${a.id}`;
+      const wgOrganizers = (mockDB.workgroupMembers || [])
+        .filter((row) => row && row.workgroupId === workgroupId && row.status !== 'removed' && row.role === 'organizer')
+        .map((row) => row.personId);
+      const assignmentOrganizers = Array.isArray(a.assignments)
+        ? a.assignments.filter((member) => member.role === 'organizer').map((member) => member.personId)
+        : [];
       const organizers = [...new Set([
-        a.organizer,
-        ...(Array.isArray(a.assignments)
-          ? a.assignments.filter((member) => member.role === 'organizer').map((member) => member.personId)
-          : []),
+        ...wgOrganizers,
+        ...assignmentOrganizers,
+        // 兼容镜像仅在没有派生结果时兜底
+        ...(wgOrganizers.length || assignmentOrganizers.length ? [] : [a.organizer]),
       ].filter(Boolean))];
       const deepCount = Array.isArray(a.assignments)
         ? a.assignments.filter((member) => member.role === 'deep').length : 0;

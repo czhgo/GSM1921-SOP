@@ -5,24 +5,24 @@
 //  独立于 mockDB 内存结构，通过 mockDB.notices 统一持久化
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../../core/domain/domain.js?v=20261022d';
-import { generateId } from '../../core/base/id.js?v=20261022d';
-import { persist, getDataSource, getApiBaseUrl, getAuthToken } from '../../data/data-adapter.js?v=20261022d';
-import { buildSystemNotice } from '../../core/domain/system-notice-templates.js?v=20261022d';
-import { bumpToken } from '../../core/base/version-token.js?v=20261022d'; // P0 域缓存失效（spec §二.3）
-import { MOCK_NOTICES } from '../../data/mock/index.js?v=20261022d';
-import { isInitStateActive } from '../core/init-reset.js?v=20261022d'; // C2 修复（2026-09-08）：init 态跳过演示种子兜底
-import { getBasePath, todayLocal } from '../../core/base/utils.js?v=20261022d';
-import { AuthStore } from '../core/auth.js?v=20261022d';
-import {  getPersonById } from '../member/person.js?v=20261022d';
-import { NoticeTodoDeriver, TodoStore, TodoSourceType, TodoStatus } from './todo.js?v=20261022d';
+import { mockDB } from '../../core/domain/domain.js?v=20261023a';
+import { generateId } from '../../core/base/id.js?v=20261023a';
+import { persist, getDataSource, getApiBaseUrl, getAuthToken, adoptCollectionFromServer } from '../../data/data-adapter.js?v=20261023a';
+import { buildSystemNotice } from '../../core/domain/system-notice-templates.js?v=20261023a';
+import { bumpToken } from '../../core/base/version-token.js?v=20261023a'; // P0 域缓存失效（spec §二.3）
+import { MOCK_NOTICES } from '../../data/mock/index.js?v=20261023a';
+import { isInitStateActive } from '../core/init-reset.js?v=20261023a'; // C2 修复（2026-09-08）：init 态跳过演示种子兜底
+import { getBasePath, todayLocal } from '../../core/base/utils.js?v=20261023a';
+import { AuthStore } from '../core/auth.js?v=20261023a';
+import {  getPersonById } from '../member/person.js?v=20261023a';
+import { NoticeTodoDeriver, TodoStore, TodoSourceType, TodoStatus } from './todo.js?v=20261023a';
 // 组织者身份读取单一源（2026-09-19 批次 91 · SOP-B-17）——发布权随「被指定为该场组织者」动态获得
-import {  getOrganizedActivities } from '../activity/activity.js?v=20261022d';
+import {  getOrganizedActivities } from '../activity/activity.js?v=20261023a';
 import {
   NOTICE_PUBLISH_ROLES, NOTICE_MANAGE_ROLES, BRANCH_COMMISSION_ROLES,
   NOTICE_AUDIENCE_SENTINELS, ROLE_LABELS,
   DEFAULT_BRANCH_ID,
-} from '../../core/domain/constants.js?v=20261022d';
+} from '../../core/domain/constants.js?v=20261023a';
 
 function _loadNotices() {
   try {
@@ -137,6 +137,9 @@ function _audienceHit(n, ctx) {
   // 裸角色键兼容（含既有 audience: ['org-commissioner'] 等写法；sentinel 值不会与真实角色键冲突）
   if (ctx.role && n.audience.includes(ctx.role)) return true;
   return n.audience.some((s) => {
+    // committee＝「本支部支委层」受众：须带支部比对，由 list() 的专用分支判定；
+    //   此处不做全局角色命中，避免跨支部支委越权读到别的支部支委会通知。
+    if (s === 'committee') return false;
     const def = NOTICE_AUDIENCE_SENTINELS[s];
     if (!def) return false;
     if (def.broadcast) return true;
@@ -144,6 +147,23 @@ function _audienceHit(n, ctx) {
     if (Array.isArray(def.developStages) && ctx.developStage && def.developStages.includes(ctx.developStage)) return true;
     return false;
   });
+}
+
+/** audience 是否含指定 sentinel（裸字符串或数组；R10-B11：committee 判定统一查 NOTICE_AUDIENCE_SENTINELS） */
+function _audienceSentinelPresent(n, sentinel) {
+  const a = n && n.audience;
+  return Array.isArray(a) ? a.includes(sentinel) : a === sentinel;
+}
+
+/** 指定 sentinel 的受众命中（按 NOTICE_AUDIENCE_SENTINELS 的 roles/developStages/broadcast 判定） */
+function _audienceSentinelHit(n, sentinel, ctx) {
+  if (!_audienceSentinelPresent(n, sentinel)) return false;
+  const def = NOTICE_AUDIENCE_SENTINELS[sentinel];
+  if (!def) return false;
+  if (def.broadcast) return true;
+  if (Array.isArray(def.roles) && ctx.role && def.roles.includes(ctx.role)) return true;
+  if (Array.isArray(def.developStages) && ctx.developStage && def.developStages.includes(ctx.developStage)) return true;
+  return false;
 }
 
 /** audiencePersons 到人定向命中（既有口径，不改） */
@@ -163,7 +183,6 @@ function _audienceActionRolesHit(n, ctx) {
  */
 function _hasAudience(n) {
   return (Array.isArray(n.audience) && n.audience.length > 0)
-    || n.audience === 'committee'
     || !!NOTICE_AUDIENCE_SENTINELS[n.audience]
     || (Array.isArray(n.audiencePersons) && n.audiencePersons.length > 0)
     || (Array.isArray(n.actionRoles) && n.actionRoles.length > 0);
@@ -301,7 +320,7 @@ export const NoticeStore = {
     // 背景（用户实报）：「支书的界面为什么会出现支书的催办？」根因＝消费端（铃铛/首页未读/角标/待办未读条）
     //   从未按受众过滤——签发人自己下发的催办又回到自己的未读里；且通知发布页所选受众（audience 数组）
     //   从未生效（选「党小组组长」实际全员可见）。
-    // 规则：① audience==='committee' → 仅本支部支委层（党委下发通道，既有）
+    // 规则：① audience 含 committee sentinel → 仅本支部支委层（党委下发通道，既有；见 NOTICE_AUDIENCE_SENTINELS）
     //       ② audience 为 sentinel 数组（发布侧写入「全体党员/党小组组长/入党积极分子/发展对象」）→
     //          经 NOTICE_AUDIENCE_SENTINELS 单一源判定（广播 sentinel 全员可见；roles/developStages 命中即可见）；
     //          未登记裸值回退角色键直比（兼容既有 audience:['org-commissioner'] 等写法）——Q-22-1 修正
@@ -315,22 +334,21 @@ export const NoticeStore = {
     {
       const _me = AuthStore.getCurrentUser();
       const _role = _me && _me.role;
-      const _isComm = !!_role && BRANCH_COMMISSION_ROLES.includes(_role);
       const _myBranch = _me ? (getPersonById(_me.personId)?.branchId || DEFAULT_BRANCH_ID) : null;
       // 受众命中走单一源（Q-22-1）：sentinel 经 NOTICE_AUDIENCE_SENTINELS 判定，裸角色键回退直比
       const _ctx = _noticeViewerCtx(_me);
       const _hitPersons = (n) => _audiencePersonsHit(n, _ctx);
       const _hitRoles = (n) => _audienceHit(n, _ctx);
       const _hitActions = (n) => _audienceActionRolesHit(n, _ctx);
-      // 党委台铃铛（scope:'committee'）下，党委组织员可读党委下发通道（audience==='committee' 或其数组写法）——
-      // 该角色不属于任何支部（branchId:null），故不做本支部比对；默认不传 scope 时保持原行为（列表页不变）。
+      // 党委台铃铛（scope:'committee'）下，党委组织员可读党委下发通道（audience 含 committee sentinel）——
+      // ⚠ 这是「党委下发通道」的独立语义（source/scope），与「支委层受众」的 roles 判定分开；
+      // 该角色不属于任何支部（branchId:null），故不做本支部比对；默认不传 scope 时保持原行为。
       const _staffCommitteeScope = filter.scope === 'committee' && _role === 'party-staff';
       result = result.filter((n) => {
         if (!_hasAudience(n)) return true;   // 广播
         if (!_role) return true;         // 无会话：不按受众收窄（保持既有行为）
-        if (_staffCommitteeScope
-          && (n.audience === 'committee' || (Array.isArray(n.audience) && n.audience.includes('committee')))) return true;
-        if (n.audience === 'committee' && _isComm && !!_myBranch && (n.branchId || DEFAULT_BRANCH_ID) === _myBranch) return true;
+        if (_staffCommitteeScope && _audienceSentinelPresent(n, 'committee')) return true;
+        if (_audienceSentinelHit(n, 'committee', _ctx) && !!_myBranch && (n.branchId || DEFAULT_BRANCH_ID) === _myBranch) return true;
         if (_hitPersons(n) || _hitRoles(n) || _hitActions(n)) return true;
         return false;
       });
@@ -346,8 +364,7 @@ export const NoticeStore = {
         const _ctxScope = _noticeViewerCtx(_meScope);
         result = result.filter((n) => (
           n.source === 'committee'
-          || n.audience === 'committee'
-          || (Array.isArray(n.audience) && n.audience.includes('committee'))
+          || _audienceSentinelPresent(n, 'committee')
           || _audiencePersonsHit(n, _ctxScope) // 发给本人的私信
         ));
       }
@@ -395,8 +412,14 @@ export const NoticeStore = {
     // 2026-09-19 批次 91（SOP-B-17）：本组通知另按「此人是否该场组织者」放行（见 NoticePermission.canPublish）。
     // R-22（2026-09-13）：原「不传 actorRole 即打标 systemDerived」已随旧通道关闭而移除——
     //   系统派生通知改由 addSystem() 走服务端生成（POST /api/v1/system-notices）。
+    // A05：有人类 actor 时补写发布人 / 创建人 id（供通知详情的「通知者」解析姓名；
+    //   调用方已显式给出时不覆盖）。
+    const actorPatch = actorPersonId
+      ? { publisherId: notice.publisherId || actorPersonId, createdBy: notice.createdBy || actorPersonId }
+      : {};
     const newNotice = {
       ...notice,
+      ...actorPatch,
       id: notice.id || generateId('notice', '-'),
       publishDate: notice.publishDate || todayLocal(),
     };
@@ -479,6 +502,12 @@ export const NoticeStore = {
           this._notices = [...this._notices, notice];
           mockDB.notices = [...(mockDB.notices || []), notice];
           bumpToken('notice');
+        }
+        // 批次 504（R10-D02）：服务端插入系统通知会推进 `notices` 集合版本；本地若不把服务端真值并回来
+        //   并推进基线，紧随其后的整表快照会「被自己刚写的那一版」挡成 409（用户看到假的「已被他人更新」）。
+        //   `keepLocal:true`＝按 id 合并、本机行优先：本地未落库的通知不会被这次采用吞掉。
+        try { await adoptCollectionFromServer('notices', { keepLocal: true }); } catch (e) {
+          console.warn('[NoticeStore] 系统通知落库后采用服务端真值失败（下次快照走冲突恢复）：', e);
         }
         // 行动性通知本地派生对应角色待办（与 add() 一致；服务端仅存通知本身）
         try {
@@ -695,11 +724,10 @@ export function canReadNotice(notice, viewer) {
   }
   if (!_hasAudience(n) || _isBroadcastAudience(n)) return true; // ① 无受众 / 广播 → 人人可读
   if (!ctx.role) return false;                                  // ② 无登录会话：仅广播/无受众
-  // ③ 党委组织员（party-staff）可读党委下发通道（audience==='committee' 或其数组写法）——
+  // ③ 党委组织员（party-staff）可读党委下发通道（audience 含 committee sentinel）——
   //    与 list() 受众门同口径；否则顶栏铃铛可见、点开详情却「不可读」。
   if (ctx.role === 'party-staff'
-    && (n.source === 'committee' || n.audience === 'committee'
-      || (Array.isArray(n.audience) && n.audience.includes('committee')))) return true;
+    && (n.source === 'committee' || _audienceSentinelPresent(n, 'committee'))) return true;
   if (_isPublisher(n, ctx)) return true;                        // ④ 发布者恒可读
   if (BRANCH_COMMISSION_ROLES.includes(ctx.role)) return true;  // ⑤ 支委层可读
   return _audiencePersonsHit(n, ctx)                            // ⑥ 命中受众可读
@@ -758,7 +786,7 @@ export function sendDirectMessage({ title, content, toPersonIds, actorRole, acto
       publishDate: todayLocal(),
       expireDate: null,
       targetModule: 'workspace',
-      read: false,
+      // D13：新写入不再带全局 `read` 布尔（逐人已读走 reads）
       noticeType: 'message',
       fromPersonId: pid,
       audiencePersons: [to],
