@@ -3522,3 +3522,50 @@ $body
 | 1 | 空字段先都补成「未填写」文案，保证界面不空 | 可派生就派生，派生不了才给写入口；「未填写」不是终点 | symptom_misread | IF 字段为空 THEN 先问「能否从既有事实派生」，否则必须给可写入口 |
 | 2 | 拆表＝直接把读路径切到子表，一步到位 | 先建表回填＋影子比对，判据全真才切，且要防 AI 忘掉条件 | scope_creep | IF 变更触及权威源 THEN 先影子双写＋判据脚本＋书面切换条件，不切权威源 |
 | 3 | 语义写口推进版本是「更安全」，不需要改前端 | 前端直连写与整表快照并存 ⇒ 必须同步推进本地基线，否则用户看到假冲突 | incomplete_contract | IF 服务端新增「写后 bump」THEN 同步检查所有客户端写路径的基线与冲突恢复 |
+
+## 批次 505（2026-10-23）：组件层收敛 ＋ 反馈可信化 ＋ R10 收尾
+
+### 一、判据
+
+- 支书九条 UI 判例（黑边/缺描边/控件不一、页签分区标识、今天待办脏、summary 三角、按钮文字色与逼仄、按钮单薄、字体字号组件脏乱繁、toast/modal 功能、CLAUDE 清理）＋ 一条数据判据（R10 P3 与拆表闸门）。
+- 支书产品裁定：按钮按「外围—内围」分层（最外围实底主题色、内围浅主题底 + 深主题字、工具位白底描边、行内无框）；行内允许浅底与描边并用；尺寸 36/32/28；「太单薄」＝高度偏矮 + 描边/底色太淡。
+- 审查先行：用 `frontend-design` / `better-*` / `design-with-taste` / `uicraft` / `web-design-guidelines` 出 R11 报告，再按 P0/P1 施工。
+
+### 二、动作（指针）
+
+1. **组件层单源**：`.input-flat-sm` 补齐完整字段（32px/白底/1px `--neutral-200`/8px/13px/焦点）；日期钉高改为匹配所有 `.input-flat`；搜索类输入并入同口径；全仓删除控件上的 `text-sm`/`rounded`/无颜色 `border`；`text-[11px]` 统一并入 `text-xs`（12px，251 处 / 41 文件）。
+2. **按钮**：尺寸 36/32/28；`.btn-accent` 补同色描边；`.btn-accent-soft` 改浅主题底（36% 主题色）+ 深主题字 `--app-accent-deep`（45% 主题色 + 深中性）+ 同色描边，补 disabled 与深色主题；行内动作去死尺寸类。
+3. **页签**：`tab-bar.js` 为每个分组（含首组）渲染可见组名 + 组间 `.tab-group-sep`；≤1280 只隐藏组名。
+4. **今天/待办**：指标带白底 + 24px 数值 + 12px 标签；字号收敛 12/13/14/16，删除 11px；「逾期 > 0」才着色；空态与正常态共用标题行。
+5. **summary**：全局去 UA 三角 + 单一 chevron（展开旋转），33 处统一，删除逐点 `list-none`。
+6. **反馈可信**：`pending-writes` 增动作作用域（`beginWriteScope/settleScope`），`showToast('success', …, {scope})` 只等本动作；失败走 `describeWriteError` 分级；toast 可关闭/暂停/去重/上限 3/error 用 `role=alert`；修 `activity-entry`、`activity-materials-entry`、`issues`、`roster-tab`、`workflow/engine` 五处假成功。
+7. **弹窗**：滚动锁定、焦点陷阱、提交中禁 Esc/遮罩/×/取消 + `aria-busy`、未保存关闭确认、错误区 `role=alert`、字段错误播报与清除、`undefined` 不再当成功、移除三处原生 `prompt/confirm`。
+8. **R10 P3**：R6 21 条（已改 20、部分 1）、R7 18 条（已改 16、保留 2）、帮助注释 9 处全部迁移；对账表 `.ctx/logs/2026-10-R10_P3_CLOSURE.md`。
+9. **拆表闸门**：新增 `snapshot_conflicts` / `shadow_history` 两张懒建表与 `getConflictCounts/getShadowHistory`；脚本 C2 读真实 409、C4 读近 7 天历史（不足 7 天即 false）；C5 仍读 `B-500-4`；**未切权威源**。
+10. **CLAUDE 清理**：乙部删 10 行（8 条已完成 + `B-504-1`/`B-503-2` 先迁正文/残项）；`B-504-1` 判据归位脚本 + `DATA_MODEL §2.3.2`；保留 `B-500-4`/T-903/评议空表头。
+11. **守卫**：新增 `ui-control-system-guard`（SD-1/2/3/4/6/9/10）、`feedback-integrity`、`modal-contract`、`schema-split-gate`；更新按钮/页签/指标带/分页/字号基线；台账 26 处行号改签。
+
+### 三、读数
+
+- **定向（第 1 次）**：静态 216 / 216 绿；浏览器 `page-sweep` ＋ `form-loop-sweep` 100 / 100 绿。
+- **daily（第 2 次）**：`npm run test:daily` **1449 / 1449 绿**。
+- **全量（第 3 次）**：`SWEEP_SHARD=all`（`DISABLE_PASSWORD_CHECK=1` / `DEMO_READONLY=0`）＝ **[node] 1451 / 1451**、**[e2e-A] 57 过 + 1 skip（58）**、**[e2e-B] 179 / 179**；墙钟 **1104.4s**（≤1200s），三通道全绿、0 失败。
+- 版本戳 `20261023a` → **`20261023b`**（JS 256 / HTML 26 / CSS 2 / server-test 139）。
+
+### 四、修复过程（如实）
+
+- daily 首跑 13 红：根因是 R7-31 修复把既有成员 `2400012347` 的角色从 `participant` 改为 `deputy-leader`（并新增账号），连带权限/投影/跟进/报名等用例；**已回退**该演示数据改动，R7-31 保留到下一轮（需新增独立演示账号，不得改变既有成员角色）。
+- 其余红：新埋点用 UTC 切日（已改本地 `gateLocalDay`）、toast 常量名 `__pending__` 被判为存储键（改名 `TOAST_PENDING_ID`）、成员流动表头改为动态 `heads` 数组导致守卫解析不到列（守卫改为读 heads）、空值词表由 `return '—'` 改为 `EMPTY_TEXT`（守卫改断言常量）、6 台工作台版心例外注释被 P3 清理删除（守卫锚点，已恢复）。
+- 按钮/页签/字号基线的更新均为 spec 显式变更（36/32/28、`--text-xs` 12px、组名可见），逐条在守卫内加注释，不是为变绿削弱断言。
+
+### 五、边界（如实）
+
+- **拆表仍 NOT_READY**：C1/C2 false、C3 true、C4 因历史 `0/7` 改判 false、C5 待 `B-500-4`；读路径全部走 JSON，本轮**不切权威源**。
+- **11px 未全站清零**：今天/待办为 0；`person-edit-modal` / `taskforce-tab` / `secretary/todo-tab` 仍各有 1–4 处 11px（收基线台账保留），不在本轮 UI 面内。
+- **R7-31 保留**：副组长演示身份未新增独立账号；当前演示库无 `deputy-leader` 种子（改既有成员会破坏权限用例）。
+- **弹窗 toast 返回 Promise**：非 success 也 resolve；调用方不要依赖返回值判断业务成功，`onSubmit` 必须显式 `return true`。
+- **`--app-accent-deep` 用 `color-mix`**：不支持该函数的内核回退 `--app-accent-text`（近黑），可读但不呈主题色。
+
+### 六、sample-diff（本轮支书反馈 → 规则）
+
+见 `DESIGN_SYSTEM.md §十二.12.6`：SD-1 控件单一源；SD-2 边框必须 token；SD-3 圆角按组件角色；SD-4 summary 单一 chevron；SD-5 按钮按外围—内围；SD-6 浅主题底不得近白；SD-7 成功只属本动作；SD-8 提交中不得关闭；SD-9 组名必须可见；SD-10 正文 12/13/14/16；SD-11 删「繁」不得删防错信息。

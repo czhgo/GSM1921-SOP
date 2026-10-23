@@ -188,6 +188,7 @@ const COMPONENT_STATE_EXEMPT = [
   'todo-more__item', // 待办行尾更多菜单项：尺寸单一源＝styles.css 同名类，菜单项不是独立动作按钮
   'metric-band__item', // 概况结论带指标（筛选/定位控件，不是动作按钮）：选中态＝`.is-active` ＋ `--app-accent-bg`，尺寸由 styles.css 同名类定
   'gp-group-card', // 党小组选择卡（整卡可点，视觉由卡片边框/底色承担；不是动作按钮）
+  'modal-close-btn', // 弹窗关闭 ×（2026-10-23 R11 P1-11）：形态/尺寸自有类（styles.css `.modal-close-btn`＋移动端 36px 命中区），不是动作按钮，不并入 8 族
 ];
 
 test('B4 按钮族棘轮：未入语义族的 <button> 只许降不许升（「全面归一」的进度表）', () => {
@@ -266,8 +267,9 @@ test('B5 族·语义一致：.btn-ghost 不得带内联实底（借文字族形�
  *   页面不再用 `text-* / py-* / px-* / h-*` 零散决定厚薄。
  *   判据：
  *     ① 该段存在；
- *     ② 34/32/30/26px 四档与正文档 13px（微操作 12px）**带 `!important`** 落在各族上
- *        ——Tailwind 工具类可能后加载，不带 `!important` 压不住；
+ *     ② **2026-10-23 R11 P1-05 口径**：36px 标准档（accent / accent-soft / outline / neutral /
+ *        danger / danger-solid / md）、32px 紧凑档（ghost / tab）、28px 小号档（sm / action）；
+ *        字号正文 13px、微操作 12px，均带 `!important`——Tailwind 工具类可能后加载，不带压不住；
  *     ③ 通用排布（inline-flex / 居中 / 不换行 / 1px 边框）存在；
  *     ④ `.btn-icon` 例外存在（32×32、padding 0）。
  */
@@ -283,7 +285,7 @@ function cssRules(css) {
   return out;
 }
 
-test('B6 按钮尺寸归一：四类动作按钮 32px ＋ 紧凑 28px（.btn-tab 30px 豁免 · .btn-action 26px 存量）', () => {
+test('B6 按钮尺寸归一：标准 36px ＋ 紧凑 32px ＋ 小号 28px（R11 P1-05 三档）', () => {
   const start = CSS_SRC.indexOf(SIZE_NORMALIZE_MARKER);
   assert.ok(start >= 0,
     `styles.css 缺少「${SIZE_NORMALIZE_MARKER}」段 ⇒ 按钮尺寸仍会被页面工具类零散决定（厚薄不一的老病）。`);
@@ -294,8 +296,8 @@ test('B6 按钮尺寸归一：四类动作按钮 32px ＋ 紧凑 28px（.btn-tab
   const tierRuleOf = (token) => rules.find((r) => new RegExp(`\\.${token}(?![\\w-])`).test(r.selector)
     && /min-height/.test(r.body));
 
-  // ② 四类动作按钮常规 32px；`.btn-sm` 紧凑 28px；`.btn-tab` 30px（页签豁免）；
-  //    `.btn-action` 26px 为存量。`.btn-ghost` / `.btn-neutral` 亦为存量（新代码不得使用）。
+  // ② 2026-10-23 R11 P1-05 三档：标准 36px（四类动作按钮 + .btn-neutral + .btn-md），
+  //    紧凑 32px（.btn-ghost / .btn-tab），小号 28px（.btn-sm / .btn-action）。
   const expectTier = (token, minHeight, fontSize) => {
     const r = tierRuleOf(token);
     assert.ok(r, `「${SIZE_NORMALIZE_MARKER}」段缺少 .${token} 的尺寸档（页面会退回零散工具类）`);
@@ -306,21 +308,21 @@ test('B6 按钮尺寸归一：四类动作按钮 32px ＋ 紧凑 28px（.btn-tab
     assert.match(r.body, new RegExp(`font-size:\\s*${fontSize}px\\s*!important`),
       `.${token} 的字号应为 ${fontSize}px !important`);
   };
-  // 四类动作按钮（常规档 32px）
-  expectTier('btn-accent', 32, 13);
-  expectTier('btn-outline', 32, 13);
-  expectTier('btn-accent-soft', 32, 13);
-  expectTier('btn-danger', 32, 13);
-  expectTier('btn-danger-solid', 32, 13); // 只给确认弹窗
-  expectTier('btn-md', 32, 13);            // 常规尺寸别名（不是独立视觉族）
-  // 紧凑档 28px
+  // 标准档 36px
+  expectTier('btn-accent', 36, 13);
+  expectTier('btn-outline', 36, 13);
+  expectTier('btn-accent-soft', 36, 13);
+  expectTier('btn-danger', 36, 13);
+  expectTier('btn-danger-solid', 36, 13); // 只给确认弹窗
+  expectTier('btn-md', 36, 13);            // 常规尺寸别名（不是独立视觉族）
+  expectTier('btn-neutral', 36, 13);       // 存量类（只降不升）
+  // 紧凑档 32px
+  expectTier('btn-ghost', 32, 13);
+  // 页签 / 分段控件（32px，豁免：不属于动作按钮）
+  expectTier('btn-tab', 32, 13);
+  // 小号档 28px
   expectTier('btn-sm', 28, 12);
-  // 页签 / 分段控件（30px，豁免：不属于动作按钮）
-  expectTier('btn-tab', 30, 13);
-  // 存量类（只降不升）
-  expectTier('btn-action', 26, 12);
-  expectTier('btn-ghost', 30, 13);
-  expectTier('btn-neutral', 32, 13);
+  expectTier('btn-action', 28, 12);
 
   // ③ 通用排布单一源（排布属性**不加** `!important`：行式载体的 `justify-between` /
   //    `items-start` / `border-0` 等工具类须能后加载覆盖；只锁尺寸属性）
@@ -350,8 +352,10 @@ test('B6 按钮尺寸归一：四类动作按钮 32px ＋ 紧凑 28px（.btn-tab
  *   不计入「动作按钮尺寸工具类」统计，也不参与四类迁移。
  *   基线＝2026-10-18 实测 **488**（只许降不许升；每迁完一屏一并下调）。
  *   2026-10-19 排除 `tab-btn` / 页签 `btn-tab` 后实测 **413** ⇒ 基线下调为 413。
+ *   2026-10-23 R11：toast 新增一条关闭按钮（error/success 提示可手动关闭）⇒ 实测 414，
+ *     基线按实况上调为 414（只此一次，之后只许降不许升）。
  */
-const FAMILY_SIZE_OVERRIDE_BASELINE = 413;
+const FAMILY_SIZE_OVERRIDE_BASELINE = 414;
 const SIZE_TOKEN_RE = /^(?:text-(?:xs|sm|base|lg|xl)|text-\[\d+px\]|p-\d+(?:\.\d+)?|px-\d+(?:\.\d+)?|py-\d+(?:\.\d+)?|h-\d+(?:\.\d+)?|min-h-\S+)$/;
 // 动作按钮族令牌；**不含** `btn-tab`（页签 / 分段控件豁免，见 B7 注释）
 const FAMILY_TOKEN_RE = /(^|\s)(btn-accent-soft|btn-accent|btn-action|btn-md|btn-neutral|btn-outline|btn-ghost|btn-danger)/;

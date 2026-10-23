@@ -2,27 +2,27 @@
 // 纪检委员工作台 Tab：复盘（T-279 M3 拆分；2026-10-04 批次 368 页签名由「活动监督复盘」改「复盘」——原名＝动作＋对象混轴）
 // 活动流程监督（超时提醒）+ 活动复盘监督（批注/打回/确认）+ 经验沉淀督促清单。
 
-import { mockDB, ReviewStatus } from '../../../core/domain/domain.js?v=20261023a';
-import { persist } from '../../../data/data-adapter.js?v=20261023a';
-import { reviewToDisplay } from '../../../services/governance/review.js?v=20261023a';
-import { loadActiveActivityReviews, loadTaskforceReviews, updateReviewById } from '../../../services/governance/review.js?v=20261023a';
-import { loadActivities } from '../../../services/activity/activity.js?v=20261023a';
+import { mockDB, ReviewStatus } from '../../../core/domain/domain.js?v=20261023b';
+import { persist } from '../../../data/data-adapter.js?v=20261023b';
+import { reviewToDisplay } from '../../../services/governance/review.js?v=20261023b';
+import { loadActiveActivityReviews, loadTaskforceReviews, updateReviewById } from '../../../services/governance/review.js?v=20261023b';
+import { loadActivities } from '../../../services/activity/activity.js?v=20261023b';
 // R7-33：复盘「超期」按「活动日 + 复盘提交期限（policy）」现算，不再直读记录上的 overdue 快照
-import { isReviewOverdue } from '../../../core/domain/policy-defaults.js?v=20261023a';
-import { showToast, escHtml } from '../../../core/base/utils.js?v=20261023a';
-import { openFormModal } from '../../../components/ui/modal.js?v=20261023a';
+import { isReviewOverdue } from '../../../core/domain/policy-defaults.js?v=20261023b';
+import { showToast, escHtml } from '../../../core/base/utils.js?v=20261023b';
+import { openFormModal, openModal, closeModal } from '../../../components/ui/modal.js?v=20261023b';
 // 批次 352（`D-746` · `D-744`② 业务过程类余项）：经验沉淀「作废（软）」——统一写口 ＋ 支委层判据
-import * as SoftVoid from '../../../services/governance/soft-void.js?v=20261023a';
-import { openVoidModal } from '../../../components/ui/void-record.js?v=20261023a';
-import { NoticeStore } from '../../../services/governance/notice.js?v=20261023a';
-import { generateId } from '../../../core/base/id.js?v=20261023a';
-import { getPersonById } from '../../../services/member/person.js?v=20261023a';
-import { requireDiscCommissionerId } from './_shared.js?v=20261023a';
+import * as SoftVoid from '../../../services/governance/soft-void.js?v=20261023b';
+import { openVoidModal } from '../../../components/ui/void-record.js?v=20261023b';
+import { NoticeStore } from '../../../services/governance/notice.js?v=20261023b';
+import { generateId } from '../../../core/base/id.js?v=20261023b';
+import { getPersonById } from '../../../services/member/person.js?v=20261023b';
+import { requireDiscCommissionerId } from './_shared.js?v=20261023b';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是活动的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
-import { renderFilteredList, activityKeyword, activityFacets } from '../../../components/ui/list-filter.js?v=20261023a';
-import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261023a';
+import { renderFilteredList, activityKeyword, activityFacets } from '../../../components/ui/list-filter.js?v=20261023b';
+import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261023b';
 // 材料页深链 focusActivityId 的通用定位（只滚动 + 闪烁，不另造筛选器）
-import { focusActivityAnchor } from '../../../components/ui/detail-anchor.js?v=20261023a';
+import { focusActivityAnchor } from '../../../components/ui/detail-anchor.js?v=20261023b';
 
 // ── 超期提醒真实触达（2026-09-10）───────────────────────────────
 // 依据：纪检委员工作流程指南 §3.1「超时确认后可触发邮件提醒」、党小组组长工作手册
@@ -382,9 +382,9 @@ export function renderContent(ctx) {
       // 2026-09-21 批次 139：每台浮窗页脚一条「相关设置」深链（纪检台 → 纪检职责参数）
       settingsLink: { href: './settings.html#domain-disc', text: '制度参数 →' },
       fields: [
-        { key: 'title', label: '沉淀主题', type: 'input', required: true, placeholder: `如：${activityName}的组织经验` },
+        { key: 'title', label: '沉淀主题', type: 'text', required: true, placeholder: `如：${activityName}的组织经验` },
         { key: 'content', label: '经验内容', type: 'textarea', required: true, placeholder: '做了什么、怎么做的、为什么这样做（可操作、有边界）' },
-        { key: 'scenario', label: '适用场景', type: 'input', required: false, placeholder: '什么情况下可用这条经验（选填）' },
+        { key: 'scenario', label: '适用场景', type: 'text', required: false, placeholder: '什么情况下可用这条经验（选填）' },
         { key: 'counter', label: '常见误区/反例', type: 'textarea', required: false, placeholder: '不这样做会怎样 / 什么情况下不适用（选填）' },
       ],
       submitLabel: '保存经验沉淀',
@@ -410,6 +410,7 @@ export function renderContent(ctx) {
         if (reviewId) updateReviewById(reviewId, { remindedAt: new Date().toISOString(), reminderType: 'deposit', depositedAt: new Date().toISOString() });
         showToast('success', '经验沉淀已记录');
         renderContent(ctx);
+        return true;
       },
       accentColor: ctx.accent || 'var(--accent-disc-commissioner)'
     });
@@ -465,9 +466,10 @@ export function renderContent(ctx) {
             annotatedBy,
             annotatedAt: new Date().toISOString(),
           });
-          if (!updated) { showToast('error', '复盘记录不存在'); return; }
+          if (!updated) { showToast('error', '复盘记录不存在'); return { ok: false, reason: '复盘记录不存在' }; }
           showToast('success', '批注已添加，复盘状态更新为批注中');
           renderContent(ctx);
+          return true;
         },
         accentColor: ctx.accent || 'var(--accent-disc-commissioner)'
       });
@@ -477,19 +479,35 @@ export function renderContent(ctx) {
     if (reject) {
       const id = reject.dataset.reviewId;
       const item = _reviewItemOf(id);
+      const rejectSubject = (item && (item.sourceName || item.activity)) || '该复盘';
       // C2 危险操作二次确认：打回即流转要求组织者重交，先确认再落库（2026-09-12）
-      if (!window.confirm(`确认打回「${(item && (item.sourceName || item.activity)) || '该复盘'}」？打回后要求组织者重新提交复盘总结。`)) return;
-      // P1-10：打回人＝现任纪检委员（角色派生），无该角色不写。
-      const annotatedBy = requireDiscCommissionerId();
-      if (!annotatedBy) return;
-      const updated = updateReviewById(id, {
-        reviewStatus: ReviewStatus.REJECTED,
-        annotatedBy,
-        annotatedAt: new Date().toISOString(),
+      // 2026-10-23：原生 confirm 改统一浮窗（不另造确认体系）
+      openModal({
+        id: 'disc-review-reject-confirm',
+        title: '打回复盘',
+        width: '420px',
+        accentColor: ctx.accent || 'var(--accent-disc-commissioner)',
+        bodyHtml: `<p style="margin:0;font-size:0.8rem;line-height:1.75;color:var(--neutral-700);">确认打回「${escHtml(rejectSubject)}」？打回后要求组织者重新提交复盘总结。</p>`,
+        footerHtml: `
+          <button type="button" data-modal-cancel="disc-review-reject-confirm" class="btn-outline text-sm px-4 py-1.5">取消</button>
+          <button type="button" data-disc-reject-ok class="btn-accent text-sm px-4 py-1.5 font-medium">打回</button>`,
+        onMount: (panel) => {
+          panel.querySelector('[data-disc-reject-ok]')?.addEventListener('click', () => {
+            closeModal('disc-review-reject-confirm');
+            // P1-10：打回人＝现任纪检委员（角色派生），无该角色不写。
+            const annotatedBy = requireDiscCommissionerId();
+            if (!annotatedBy) return;
+            const updated = updateReviewById(id, {
+              reviewStatus: ReviewStatus.REJECTED,
+              annotatedBy,
+              annotatedAt: new Date().toISOString(),
+            });
+            if (!updated) { showToast('error', '复盘记录不存在'); return; }
+            showToast('success', '复盘已打回，要求重新提交');
+            renderContent(ctx);
+          });
+        },
       });
-      if (!updated) { showToast('error', '复盘记录不存在'); return; }
-      showToast('success', '复盘已打回，要求重新提交');
-      renderContent(ctx);
       return;
     }
     const confirmBtn = e.target.closest('.btn-disc-confirm');

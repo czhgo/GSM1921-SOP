@@ -37,12 +37,12 @@ const _store = makeStorage();
 globalThis.localStorage = _store;
 globalThis.sessionStorage = makeStorage();
 
-const { mockDB } = await import('../../docs/src/core/domain/domain.js?v=20261023a');
-const { MockAdapter } = await import('../../docs/src/data/mock-adapter.js?v=20261023a');
-const { getAdapter } = await import('../../docs/src/data/data-adapter.js?v=20261023a');
+const { mockDB } = await import('../../docs/src/core/domain/domain.js?v=20261023b');
+const { MockAdapter } = await import('../../docs/src/data/mock-adapter.js?v=20261023b');
+const { getAdapter } = await import('../../docs/src/data/data-adapter.js?v=20261023b');
 // runtime 注册 mock/api 适配器并 setDataSource('mock')
-const { BranchService } = await import('../../docs/src/services/core/runtime.js?v=20261023a');
-const { writeActivityWithSOP } = await import('../../docs/src/services/activity/decision-tree.js?v=20261023a');
+const { BranchService } = await import('../../docs/src/services/core/runtime.js?v=20261023b');
+const { writeActivityWithSOP } = await import('../../docs/src/services/activity/decision-tree.js?v=20261023b');
 
 const ORIGINAL = {
   activities: mockDB.activities,

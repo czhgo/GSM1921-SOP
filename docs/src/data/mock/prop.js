@@ -17,7 +17,7 @@
  * 周期归档演示基线（当前示例采用周策略）。
  * 形状 = `PeriodicArchiveSubmission`；周只是 `periodUnit` 的取值，不改变记录实体。
  */
-import { DEFAULT_BRANCH_ID } from '../../core/domain/constants.js?v=20261023a';
+import { DEFAULT_BRANCH_ID } from '../../core/domain/constants.js?v=20261023b';
 export const PERIODIC_ARCHIVES_SEED = [
   { id: 'pa1', branchId: DEFAULT_BRANCH_ID, periodUnit: 'week', periodKey: '2026-W30', periodLabel: '第30周', periodRange: '2026-07-20 ~ 2026-07-24', content: '1. 七一主题党日活动新闻稿发布\n2. 发展对象公示推送排版完成\n3. 上半年活动照片归档整理进行中', status: 'submitted', submittedAt: '2026-07-24' },
   { id: 'pa2', branchId: DEFAULT_BRANCH_ID, periodUnit: 'week', periodKey: '2026-W29', periodLabel: '第29周', periodRange: '2026-07-13 ~ 2026-07-17', content: '1. 入党积极分子培训资料归档完成\n2. 组织生活会预告推送发布\n3. 配合组织委员完成发展对象材料审核', status: 'submitted', submittedAt: '2026-07-17' },
@@ -27,15 +27,17 @@ export const PERIODIC_ARCHIVES_SEED = [
 
 /**
  * 宣传任务基线（8 条）。
- * 形状 = `{ id, source, type, summary, status:'pending'|'in_progress'|'submitted', createdAt }`。
+ * 形状 = `{ id, source, sourceRole?, sourceOrg?, type, summary, status:'pending'|'in_progress'|'submitted', createdAt }`。
+ * `source` 只是展示快照；来源的稳定键用 `sourceRole`（ROLE_KEYS）/ `sourceOrg`（work-map 组织型主体 id），
+ * 角色改名或换人不影响归因（R7-34）。
  */
 export const PROP_TASKS_SEED = [
-  { id: 'pt1', source: '支部委员会', type: '新闻稿', summary: '七一主题党日活动新闻稿', status: 'pending', createdAt: '2026-07-25' },
-  { id: 'pt2', source: '副支书', type: '推送排版', summary: '发展对象公示推送排版', status: 'in_progress', createdAt: '2026-07-24' },
-  { id: 'pt3', source: '支部委员会', type: '素材归档', summary: '上半年活动照片归档整理', status: 'in_progress', createdAt: '2026-07-22' },
-  { id: 'pt4', source: '组织委员', type: '周报报送', summary: '第30周党建工作周报', status: 'submitted', createdAt: '2026-07-21' },
-  { id: 'pt5', source: '支部委员会', type: '新闻稿', summary: '预备党员转正大会新闻稿', status: 'pending', createdAt: '2026-07-20' },
-  { id: 'pt6', source: '副支书', type: '推送排版', summary: '组织生活会预告推送', status: 'pending', createdAt: '2026-07-19' },
-  { id: 'pt7', source: '支部委员会', type: '素材归档', summary: '入党积极分子培训资料归档', status: 'submitted', createdAt: '2026-07-18' },
-  { id: 'pt8', source: '组织委员', type: '周报报送', summary: '第29周党建工作周报', status: 'submitted', createdAt: '2026-07-14' },
+  { id: 'pt1', source: '支部委员会', sourceOrg: 'branch-committee', type: '新闻稿', summary: '七一主题党日活动新闻稿', status: 'pending', createdAt: '2026-07-25' },
+  { id: 'pt2', source: '副支书', sourceRole: 'deputy-secretary', type: '推送排版', summary: '发展对象公示推送排版', status: 'in_progress', createdAt: '2026-07-24' },
+  { id: 'pt3', source: '支部委员会', sourceOrg: 'branch-committee', type: '素材归档', summary: '上半年活动照片归档整理', status: 'in_progress', createdAt: '2026-07-22' },
+  { id: 'pt4', source: '组织委员', sourceRole: 'org-commissioner', type: '周报报送', summary: '第30周党建工作周报', status: 'submitted', createdAt: '2026-07-21' },
+  { id: 'pt5', source: '支部委员会', sourceOrg: 'branch-committee', type: '新闻稿', summary: '预备党员转正大会新闻稿', status: 'pending', createdAt: '2026-07-20' },
+  { id: 'pt6', source: '副支书', sourceRole: 'deputy-secretary', type: '推送排版', summary: '组织生活会预告推送', status: 'pending', createdAt: '2026-07-19' },
+  { id: 'pt7', source: '支部委员会', sourceOrg: 'branch-committee', type: '素材归档', summary: '入党积极分子培训资料归档', status: 'submitted', createdAt: '2026-07-18' },
+  { id: 'pt8', source: '组织委员', sourceRole: 'org-commissioner', type: '周报报送', summary: '第29周党建工作周报', status: 'submitted', createdAt: '2026-07-14' },
 ];

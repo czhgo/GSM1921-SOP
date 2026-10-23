@@ -29,7 +29,7 @@
 //   · .state-badge / .state-badge--neutral / .state-badge--success / .state-badge--warning
 //   · .state-badge--info / .state-badge--accent · .section-accent-left
 //   · 行型样式：.list-row[data-row-type="nav|action|select|display|master"]（本件输出 data-row-type）。
-import { escHtml as esc } from '../../core/base/utils.js?v=20261023a';
+import { escHtml as esc } from '../../core/base/utils.js?v=20261023b';
 
 /** dataAttrs 对象 → HTML 属性串（键名只允许字母开头的属性名；值统一转义） */
 function dataAttrsHtml(dataAttrs) {

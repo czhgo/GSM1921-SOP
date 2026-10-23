@@ -4,21 +4,21 @@
 //  活动详情页（activity-entry.js）与专班详情页（taskforce-entry.js）共用，
 //  避免「活动/专班统一报名逻辑」在两处重复散落（C-2 一改具改巡检，支书 2026-08-11 裁定专班独立页面）。
 // ════════════════════════════════════════════════════════════════
-import { SignupStore, resolveSignupReviewer, SignupStatus, SIGNUP_ROLE_LABELS } from '../../services/activity/signup.js?v=20261023a';
-import { getPersonById, getPersonName } from '../../services/member/person.js?v=20261023a';
-import { getBasePath, showToast, todayLocal } from '../../core/base/utils.js?v=20261023a';
-import { badgeHtml } from '../ui/badges.js?v=20261023a';
+import { SignupStore, resolveSignupReviewer, SignupStatus, SIGNUP_ROLE_LABELS } from '../../services/activity/signup.js?v=20261023b';
+import { getPersonById, getPersonName } from '../../services/member/person.js?v=20261023b';
+import { getBasePath, showToast, todayLocal } from '../../core/base/utils.js?v=20261023b';
+import { badgeHtml } from '../ui/badges.js?v=20261023b';
 // 活动「已归档」口径单一源（2026-09-13 收敛）：替代手写 source.archived
-import { isActivityArchived, BRANCH_COMMISSION_ROLES } from '../../core/domain/constants.js?v=20261023a';
+import { isActivityArchived, BRANCH_COMMISSION_ROLES } from '../../core/domain/constants.js?v=20261023b';
 // 统一检索引擎（2026-09-14 批次 37）：报名名单（已通过）接入关键词 + 分页
-import { renderFilteredList } from '../ui/list-filter.js?v=20261023a';
+import { renderFilteredList } from '../ui/list-filter.js?v=20261023b';
 // 批次 49 口径（「存好了才报成功」）：刷新前先等在途落库结算，见 _reloadAfterSettle
-import { settleWrites } from '../../core/session/pending-writes.js?v=20261023a';
+import { settleWrites } from '../../core/session/pending-writes.js?v=20261023b';
 // 2026-10-03 批次 358（`D-751`）：报名记录「作废（软）」——弹窗**单一源** ＋ 支委层判据单一源
-import { openVoidModal } from '../ui/void-record.js?v=20261023a';
-import { AuthStore } from '../../services/core/auth.js?v=20261023a';
-import { usesFormalMeetingRoster } from '../../core/domain/constants.js?v=20261023a';
-import { isTaskforceActiveStatus } from '../../core/domain/domain.js?v=20261023a';
+import { openVoidModal } from '../ui/void-record.js?v=20261023b';
+import { AuthStore } from '../../services/core/auth.js?v=20261023b';
+import { usesFormalMeetingRoster } from '../../core/domain/constants.js?v=20261023b';
+import { isTaskforceActiveStatus } from '../../core/domain/domain.js?v=20261023b';
 
 /**
  * 落库结算后再整页刷新（2026-09-18 批次 83 · SOP-B-2）
@@ -91,12 +91,12 @@ export function renderSignupSection({ sourceType, sourceId, source, title, signu
     </fieldset>` : '';
   const signupFields = (noteLabel = '附加说明（选填）') => `
     <label class="flex min-w-[180px] flex-col gap-1 text-xs text-gray-600">报名角色
-      <select id="signup-role-select" class="input-flat w-full text-sm">
+      <select id="signup-role-select" class="input-flat w-full">
         ${roleOptions.map(o => `<option value="${o.value}">${o.label}</option>`).join('')}
       </select>
     </label>
     <label class="flex min-w-[200px] flex-1 flex-col gap-1 text-xs text-gray-600">${noteLabel}
-      <input id="signup-note-input" type="text" placeholder="附加说明（选填，如可承担的角色）" class="input-flat w-full text-sm">
+      <input id="signup-note-input" type="text" placeholder="附加说明（选填，如可承担的角色）" class="input-flat w-full">
     </label>`;
 
   let body;
@@ -171,7 +171,7 @@ export function renderSignupList({ sourceType, sourceId, source, signups, myId }
       <p class="text-xs font-medium text-gray-500 mb-2">待审核申请（${pendingList.length}）</p>
       ${pendingList.map(s => `
         <div class="flex items-center gap-2.5 py-2">
-          <span class="w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-semibold text-white flex-shrink-0" style="background:var(--functional-warning);">${(getPersonById(s.personId)?.name || '?').slice(0, 1)}</span>
+          <span class="w-6 h-6 rounded-full flex items-center justify-center text-xs font-semibold text-white flex-shrink-0" style="background:var(--functional-warning);">${(getPersonById(s.personId)?.name || '?').slice(0, 1)}</span>
           <a href="${getBasePath()}person.html?id=${encodeURIComponent(s.personId)}" class="text-sm font-medium text-gray-700 hover:underline hover:text-sky-700 transition-colors" title="查看完整档案">${getPersonName(s.personId)}</a>
           <span class="text-xs text-gray-500">${roleLabel(s.role, sourceType)}</span>
           ${onsiteSignupLabel(sourceType, source, s) ? `<span class="text-xs text-gray-600">${onsiteSignupLabel(sourceType, source, s)}</span>` : ''}
@@ -208,7 +208,7 @@ export function renderSignupList({ sourceType, sourceId, source, signups, myId }
       ${onsiteSummary}
       <div data-signup-list-host></div>
       ${pendingRows}
-      ${others ? `<p class="text-[11px] text-gray-500 mt-2">${others}</p>` : ''}
+      ${others ? `<p class="text-xs text-gray-500 mt-2">${others}</p>` : ''}
     </div>
   `;
 }
@@ -290,12 +290,12 @@ export function bindSignupEvents({ sourceType, sourceId, source, title, myId, ca
       emptyMessage: '暂无已报名成员',
       rowHtml: (s) => `
         <div class="flex items-center gap-2.5 py-2">
-          <span class="w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-semibold text-white flex-shrink-0" style="background:var(--party-red);">${(getPersonById(s.personId)?.name || '?').slice(0, 1)}</span>
+          <span class="w-6 h-6 rounded-full flex items-center justify-center text-xs font-semibold text-white flex-shrink-0" style="background:var(--party-red);">${(getPersonById(s.personId)?.name || '?').slice(0, 1)}</span>
           <a href="${getBasePath()}person.html?id=${encodeURIComponent(s.personId)}" class="text-sm font-medium text-gray-700 hover:underline hover:text-sky-700 transition-colors" title="查看完整档案">${getPersonName(s.personId)}</a>
           <span class="text-xs text-gray-500">${roleLabel(s.role, sourceType)}</span>
           ${onsiteSignupLabel(sourceType, source, s) ? `<span class="text-xs text-gray-600">${onsiteSignupLabel(sourceType, source, s)}</span>` : ''}
           ${s.note ? `<span class="text-xs text-gray-500 truncate max-w-[160px]">${s.note}</span>` : ''}
-          <span class="ml-auto inline-flex items-center gap-2">${badgeHtml('已通过', 'success')}${canVoidSignup ? `<button class="btn-ghost signup-void-btn text-xs px-2 py-0.5" data-signup-id="${s.id}" title="作废（软 · 留痕）">作废</button>` : ''}</span>
+          <span class="ml-auto inline-flex items-center gap-2">${badgeHtml('已通过', 'success')}${canVoidSignup ? `<button class="btn-ghost signup-void-btn text-xs px-2 py-0.5" data-signup-id="${s.id}">作废</button>` : ''}</span>
         </div>`,
     });
   }

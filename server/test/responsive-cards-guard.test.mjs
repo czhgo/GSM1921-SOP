@@ -178,8 +178,14 @@ test('C4b 引擎卡式表：成员流动 8 列 / 支委两表 5 列全覆盖', (
   for (const label of ['类型', '姓名', '学号', '届别', '日期', '经手人', '备注', '操作']) {
     assert.ok(flowLabels.includes(label), `成员流动台账 td 缺 data-label="${label}"`);
   }
+  // 2026-10-23 批次 505（R7-08）：成员流动表头改为 `heads` 数组（空列按 hasValue 动态隐藏），
+  //   `headHtml` 只剩 `${heads}`；表头列名改从 heads 数组的 <th> 字面量收集，判据（列数一致 + 覆盖）不变。
   const flowHeads = /headHtml: '<tr>(.*?)<\/tr>'/.exec(FLOW)?.[1] || '';
-  const flowHeadCols = [...flowHeads.matchAll(/<th>([^<]+)<\/th>/g)].map((m) => norm(m[1]));
+  let flowHeadCols = [...flowHeads.matchAll(/<th>([^<]+)<\/th>/g)].map((m) => norm(m[1]));
+  if (flowHeadCols.length === 0) {
+    const headsBlock = /const heads = \[([\s\S]*?)\]\.filter\(Boolean\)/.exec(FLOW)?.[1] || '';
+    flowHeadCols = [...headsBlock.matchAll(/<th>([^<]+)<\/th>/g)].map((m) => norm(m[1]));
+  }
   assert.equal(flowLabels.length, flowHeadCols.length, `成员流动台账 td 数 ${flowLabels.length} 与表头列数 ${flowHeadCols.length} 不一致`);
   assert.deepEqual(flowHeadCols.filter((h) => !new Set(flowLabels.map(norm)).has(h)), [], '成员流动台账 data-label 未覆盖全部列名');
 

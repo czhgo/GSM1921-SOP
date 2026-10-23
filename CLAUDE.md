@@ -829,31 +829,21 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/DOC
 | --- | --- | --- | --- |
 | B-500-1 | 第五轮审查 P2/P3 按三路报告的修复顺序排批（空态、动画、反馈落点、字号双标、原生 confirm 等） | `.ctx/logs/archive/2026-10/AUDIT_R5_*.md` + `H21` | 待启动 |
 | B-500-2 | IA P2/P3 余项（R3 报告与三路审查重叠部分） | `.ctx/logs/archive/2026-10/UI_AUDIT_R3.md` + `AUDIT_R5_*.md` | 待启动 |
-| B-500-3 | form-loop / precommit 存量红：按台账逐条造前置或改判据（批次 500 收尾实测 9 条：e2e-B `A5 项目分工空态` · `S3 工作流块配置区` · `secretary-todo-reject-reason` · `org-roster-member-add-save`；e2e-A `核心闭环议程→归档` · `B3-1 补课回写` · `党委支部配置向导` · `判据A 跨标签` · `判据D 断服静默`（自污染）） | `form-loop-registry.mjs` + `TEST_AND_VERIFICATION.md` + 批次 500 执行日志 §四 | 已完成（批次 501 九条全清，见执行日志批次 501） |
 | B-500-4 | 数据保留期策略（归档 / 通知 / 待办）——须支书裁定后才允许 cleanup `--apply` 删业务记录 | `DATA_MODEL.md` + `.ctx/ENGINEERING_ASSESSMENT.md §四` | 待裁定 |
 | B-500-5 | 宽表 P2：动态列（活动参与汇总）、党委目录、个人档案子表 | `DESIGN_SYSTEM.md §4.20` + `responsive-cards-guard` | 待启动 |
 | B-500-6 | 任命通用 CRUD 收口：`PATCH /branches/:id` 直改 `secretaryId`、`POST /appointmentRecords` 绕语义端点 | `server/routes/resources/index.js` + `semantic-routes.js` | 待启动 |
 | B-500-7 | 待办派生的下一步：把通知 / 生命周期派生迁到服务端，客户端只读（Plan B） | `todo.js` + `H32` | 后续（当前 Plan A 已止血） |
 | B-500-8 | mock 真值持续：新表 / 新字段必须进 `seed-manifest` 并过 parity | `seed-manifest.js` + `mock-api-parity-structure` | 持续 |
 | B-500-9 | 测试分层预算维持：新增测试同批登记层级，预算只降不升 | `test-tier-registry.mjs` + `test-tier-guard` | 持续 |
-| B-500-10 | 「支部配置」引导向导的落点：`#pc-wizard-host` 现只在 `branch-config.html`（sections 模式）挂载，党委台「支部管理」页不再有可切支部的 guided 向导 ⇒ `module-config-e2e` / `block-config-ui-e2e` 两条真机红 | `branches-tab.js` + `party-config-tab.js` + `branch-config-entry.js` | 已完成（批次 501：党委在 `wizard.html` 可切支部并代配置（`D-825`）；两条 e2e 改签到 `/wizard.html?branch=br-b1`；向导按支部补取完整 config） |
 | B-502-1 | 第八轮专项：**最小三成本原则**复审（**信息成本 / 操作成本 / 适应学习成本**——权威源 `DESIGN_METHODOLOGY` / `REVIEW_QUEUE 附录⑤`；维护成本属工程维度，归 `ENGINEERING_ASSESSMENT §2.4`；含「同一任务只留一个权威处理位」与空值词表） | `REVIEW_QUEUE 附录⑤` + `content/04_web_design/evolution/DESIGN_METHODOLOGY.md` + `H25` | 待启动（支书 2026-10-22 圈定再走 3–4 轮） |
 | B-502-2 | 第九轮专项：**功能与美观提升**＋**全栈数据结构设计**复审（页面质感 / 组件复用 / 数据模型与派生口径） | `DESIGN_SYSTEM.md` + `DATA_MODEL.md` + `FULLSTACK_AUDIT_R3.md` | 待启动 |
 | B-502-3 | 第六轮前端审查 P3 余项（21 条；报告 `.ctx/logs/2026-10-AUDIT_R6_FRONTEND.md`），含 `constants.js` 28 行引语块与 `server/seed.js` 墓志铭注释两处禁区项 | `2026-10-AUDIT_R6_FRONTEND.md` + `copy-*` 守卫 | 待启动 |
 | B-502-4 | 第七轮数据生命周期 P3 余项（23 条；报告 `.ctx/logs/2026-10-AUDIT_R7_DATA.md`），含「缺省支部」之外的 id 形态与 mock 时间老化 | `2026-10-AUDIT_R7_DATA.md` + `seed-manifest.js` | 待启动 |
 | B-502-5 | 账号重命名后的边界：旧 token 仍有效、旧 `person.html?id=旧学号` 与收藏外链会 404（已如实登记，不自动改写） | `server/routes/member.js` + `person-entry.js` | 后续（需支书定是否做旧链接跳转） |
 | B-502-6 | 补课文案与设置页仍各写「T+7」：`disc/makeup-tab.js` / `settings-entry.js` 未接统一 `makeupScopeHint()` 派生（R7-15 部分落地） | `services/activity/makeup.js` + `settings-entry.js` | 待启动 |
-| B-502-7 | `u_*` 系统账号口径：`getAll()` 保留（空支部基线可登录），成员面向名单走 `getMembers()`；不视为幽灵数据 | `services/member/person.js` + `reset-tier-init` | 已澄清（无需再改） |
-| B-503-1 | 第八轮最小三成本（信息/操作/适应学习）：旧账 133 条对账、真机两任务实测、P1 七条已修；真机发现的「纪检确认考勤 403」已按「确认权独立于上传位」修复 | `2026-10-AUDIT_R8_RECONCILE.md`、`2026-10-AUDIT_R8_THREE_COSTS.md`、`r3-data-permission-regression` R3-04b | 已完成（批次 503） |
-| B-503-2 | 第九轮 9A：权威源/派生矩阵（16 行）＋ 跨层抽查（10 实体）＋ schema 方案（Todo `branchId` v11 / 分页与索引 / 宽表拆分触发条件）已出，**本轮不实施** | `2026-10-AUDIT_R9_DATA_STRUCTURE.md` | 已完成（诊断）；schema 待 P13 / 多支部形态裁定 |
-| B-503-3 | 第九轮 9A 数据 P1：种子修复不回滚运行时、专班成员/贡献走主源、活动↔工作组同步、工作组任务首屏装载 | `seed-manifest.js`、`activity-workgroup-sync.js`、`data-adapter.js::_loadWorkgroupAux` | 已完成（批次 503） |
-| B-503-4 | 第九轮 9B：功能 P1（假成功/失败态/键盘可达/刷新错误卡/首屏加载）＋ 视觉 P2 八条（标题层级、hover、危险按钮、返回、过渡、help-note、登录错误、名册字段错误） | `notification-tab.js`、`report-up-tab.js`、`ui-motion-guard`、`frontend-foundations-guard::F8` | 已完成（批次 503） |
 | B-503-5 | 待支书裁定四项：登录页品牌渐变 vs §5.3、首页 hero 党徽 vs §4.25、同名页签是否加范围后缀、支书台是否改名「反馈与回复」 | `DESIGN_SYSTEM.md` §5.3/§4.25、`login.html`、`index.html` | 待裁 |
 | B-503-6 | 余项：R6 P3（21）＋ R7 P3（23）＋ 第八轮 P2/P3 ＋ 帮助注释未迁移 9 处（`party-committee-meeting-entry.js`） | 两轮报告与 `B-502-3/4` | 下一轮（实施前先重钉行号） |
-| B-503-7 | schema 方案落地（Todo `branchId` v11、列表分页、宽表拆分）——须与 P13 服务端支部读过滤同批 | `ENGINEERING_ASSESSMENT §一/§四` | 已实施（批次 504）；拆表见 `B-504-1` |
-| B-504-1 | **v11 三项**：Todo `branch_id` 回填＋索引；五张热表 generated **VIRTUAL** 列＋复合索引（SQLite 不允许给**已有数据**的表 `ADD ... STORED`，故一律 VIRTUAL；读侧按列下推仍走索引）；影子子表 `agenda_items` / `taskforce_contributions` 建表＋回填＋双写比对（**未切权威源**）。**可切判据（全真才可切）**：① 规模 `MAX(LENGTH(data))>256KB` 或 p95 `>32KB` 或单表 `>5000` 行或 JSON 总量 `>2MB`；② 同一行 7 天 409 ≥3；③ `agenda`/`contributions` 子项在 ≥2 读口被过滤/统计；④ 影子连续 7 天 `mismatch=0` 且四写路径双写 100%；⑤ `B-500-4` 保留期已裁。判据 1–3 任一 ＋ 4、5 才可切。可执行版＝`server/scripts/schema-split-readiness.mjs` | `.trae/specs/implement-r9-schema-plan/*`、`server/db.js::rebuildShadowTables/compareShadowTables` | 已实施（v11；拆表保持影子） |
-| B-504-2 | 第十轮数据生命周期 75 条（P1 13 / P2 35 / P3 27；报告 `.ctx/logs/2026-10-AUDIT_R10_DATA_LIFECYCLE.md`），按「数据安全 → 种子 → 制度 → 空字段」四批实施；测试预算固定 3 次（定向／daily／全量） | `.trae/specs/advance-r10-data-lifecycle/*` | 已完成（批次 504；全量 2 红已单文件复跑绿，见执行日志） |
-| B-504-3 | R10 余项（P3 文案与一致性）与拆表切换（待 `B-504-1` 判据全真） | `2026-10-AUDIT_R10_DATA_LIFECYCLE.md` | 下一轮 |
+| B-504-3 | R10 余项（P3 文案与一致性）与拆表切换（待 `schema-split-readiness.mjs` 输出 READY） | `2026-10-AUDIT_R10_DATA_LIFECYCLE.md` | 下一轮 |
 
 ***
 

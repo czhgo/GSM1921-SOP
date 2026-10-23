@@ -7,24 +7,24 @@
 //         content/04_web_design/design-system/DESIGN_SYSTEM.md §一 第2条 最小三成本
 // ════════════════════════════════════════════════════════════════
 
-import { loadAttendanceRecords, loadActiveAttendanceRecords, listLowAttendanceSessions, summarizeAttendanceByActivity } from '../activity/attendance.js?v=20261023a';
-import { loadActivities } from '../activity/activity.js?v=20261023a';
-import { loadInspectionRecords, getOverdueRecords } from '../activity/inspection.js?v=20261023a';
-import { TaskForceRecordStore } from '../activity/taskforce.js?v=20261023a';
-import { loadActivityReviews, loadActiveActivityReviews } from './review.js?v=20261023a';
-import { NoticeStore } from './notice.js?v=20261023a';
-import { TodoStore, seedTodos, TodoCategory, TodoActionType, REALTIME_GROUP_DOMAIN, WORK_DOMAIN } from './todo.js?v=20261023a';
-import { tokenOf } from '../../core/base/version-token.js?v=20261023a'; // P0 域缓存失效（spec §二.3/§二.4）
-import { PEOPLE } from '../../data/mock/index.js?v=20261023a';
-import { getPersonById } from '../member/person.js?v=20261023a';
-import { ROLE_LABELS, isActivityEnded, isActivityArchived, isActivityInProgress } from '../../core/domain/constants.js?v=20261023a';
-import { mockDB, AttendanceStatus, ReviewStatus, isTaskforceActiveStatus } from '../../core/domain/domain.js?v=20261023a';
-import { persist } from '../../data/data-adapter.js?v=20261023a'; // 周期归档审核写口落盘（SOP-B-40 ②）
+import { loadAttendanceRecords, loadActiveAttendanceRecords, listLowAttendanceSessions, summarizeAttendanceByActivity } from '../activity/attendance.js?v=20261023b';
+import { loadActivities } from '../activity/activity.js?v=20261023b';
+import { loadInspectionRecords, getOverdueRecords } from '../activity/inspection.js?v=20261023b';
+import { TaskForceRecordStore } from '../activity/taskforce.js?v=20261023b';
+import { loadActivityReviews, loadActiveActivityReviews } from './review.js?v=20261023b';
+import { NoticeStore } from './notice.js?v=20261023b';
+import { TodoStore, seedTodos, TodoCategory, TodoActionType, REALTIME_GROUP_DOMAIN, WORK_DOMAIN } from './todo.js?v=20261023b';
+import { tokenOf } from '../../core/base/version-token.js?v=20261023b'; // P0 域缓存失效（spec §二.3/§二.4）
+import { PEOPLE } from '../../data/mock/index.js?v=20261023b';
+import { getPersonById } from '../member/person.js?v=20261023b';
+import { ROLE_LABELS, isActivityEnded, isActivityArchived, isActivityInProgress } from '../../core/domain/constants.js?v=20261023b';
+import { mockDB, AttendanceStatus, ReviewStatus, isTaskforceActiveStatus } from '../../core/domain/domain.js?v=20261023b';
+import { persist } from '../../data/data-adapter.js?v=20261023b'; // 周期归档审核写口落盘（SOP-B-40 ②）
 // 批4（2026-09-09 支书批「域参数」副本收编）：本文件 4 组提醒阈值/deadline 一律引 policy 单一源派生，
 // 勿再写字面量（attendance.entryRemindDays/summaryDeadlineDays · inspection.overdueDays ·
 // review.overdueDays/deadlineDays——读侧注入后自动跟随域覆盖值）
-import { POLICY_DEFAULTS } from '../../core/domain/policy-defaults.js?v=20261023a';
-import { todayLocal, _fmtDate } from '../../core/base/utils.js?v=20261023a';
+import { POLICY_DEFAULTS } from '../../core/domain/policy-defaults.js?v=20261023b';
+import { todayLocal, _fmtDate } from '../../core/base/utils.js?v=20261023b';
 
 // ════════════════════════════════════════════════════════════════
 //  工具函数
@@ -247,17 +247,17 @@ export const SecretaryOverviewStore = {
     //   **提示线 ≠ 制度门槛**，母本不设达标线）；此处按本月**场次**取偏低项，供支书/支委会概况呈现。
     const lowRate = listLowAttendanceSessions({ month: thisMonth });
 
-    // 缺勤人员列表（本月 absent 状态）
+    // 缺勤人员列表（本月 absent 状态）——R7-24：返回**完整**名单，不截断、不拼「+N 人」伪条目。
+    //   预览条数与折叠由呈现层决定；如以后要设上限，应作为呈现层参数，勿在数据层写裸数字。
+    //   名单元素为姓名（解析不到时为 personId），与 absentCount 同源、同为去重后集合。
+    //   这一层不关心名单长度，只保证「需要处置的人一个不少」。
+    //   若呈现层需要「前 N 人 + 更多」，由它自己折叠，并在同一处给出下钻入口。
     const absentPersonIds = [...new Set(monthAbsent)];
     const absentCount = absentPersonIds.length;
-    const absentPeople = absentPersonIds.slice(0, 5).map(id => {
+    const absentPeople = absentPersonIds.map(id => {
       const person = getPersonById(id);
       return person ? person.name : id;
     });
-    const overflow = absentPersonIds.length - 5;
-    if (overflow > 0) {
-      absentPeople.push(`+${overflow}人`);
-    }
 
     // 补课未完成数：absent 且无对应 made_up 记录
     const makeupPending = [...absentIds].filter(id => !madeUpIds.has(id)).length;

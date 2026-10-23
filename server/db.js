@@ -667,7 +667,7 @@ export const MIGRATIONS = [
       // ③ 影子子表（非权威源）＋ 回填
       db.exec('CREATE TABLE IF NOT EXISTS agenda_items (id TEXT PRIMARY KEY, data TEXT NOT NULL)');
       db.exec('CREATE TABLE IF NOT EXISTS taskforce_contributions (id TEXT PRIMARY KEY, data TEXT NOT NULL)');
-      rebuildShadowTables(db);
+      rebuildShadowTables(db, { record: false });
     },
   },
 ];
@@ -725,10 +725,10 @@ export function applyMigrations(db, list = MIGRATIONS) {
 // ════════════════════════════════════════════════════════════════
 //  v11 影子子表（2026-10-23 批次 504）：**非权威源**，只做双写与比对
 // ════════════════════════════════════════════════════════════════
-// 切表判据见 `server/scripts/schema-split-readiness.mjs` 与 CLAUDE.md 乙部 B-504-1：
+// 切表判据见 `server/scripts/schema-split-readiness.mjs` 与 `content/04_web_design/data/DATA_MODEL.md §2.3.2`：
 //   只有「规模/409/子项查询」任一 + 影子连续 7 天 mismatch=0 + 保留期已裁，才可把权威源切到子表。
 //   本函数只重建影子表，不改 JSON 主表、不改任何读路径。
-export function rebuildShadowTables(db) {
+export function rebuildShadowTables(db, { record = true } = {}) {
   const has = (name) => !!db.prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name = ?").get(name);
   if (!has('agenda_items') || !has('taskforce_contributions')) return { agenda: 0, contributions: 0 };
   const run = db.transaction(() => {
@@ -765,7 +765,10 @@ export function rebuildShadowTables(db) {
     }
     return { agenda, contributions };
   });
-  return run();
+  const rebuilt = run();
+  // C4 证据：重建后立即记一条当日比对结果（每日一条、幂等覆盖；写失败不影响本次重建）
+  if (record) recordShadowSnapshot(db);
+  return rebuilt;
 }
 
 /** 影子比对：JSON 主表展开后的行集 vs 子表行集（按稳定键比较，返回 mismatch 明细） */
@@ -810,6 +813,8 @@ export function compareShadowTables(db) {
   check('taskforce_contributions', expectedContributions, 'contributions');
   return {
     mismatch: details.length, agenda: expectedAgenda.size, contributions: expectedContributions.size,
+    // 按子表拆分（C4 历史要分别留 agenda / contributions 的 mismatch 数；details 只留前 20 条供定位）
+    mismatchByLabel: { agenda: details.filter((d) => d.label === 'agenda').length, contributions: details.filter((d) => d.label === 'contributions').length },
     details: details.slice(0, 20),
   };
 }
@@ -1000,3 +1005,153 @@ export function migratePersonIdsToStudentNumbers(db) {
 
 // 迁移专用映射（置尾：import 声明被提升，避免上文 README-server.md 取证行号漂移）
 import { isLegacyPersonId, mapPersonId } from './migrations/legacy-person-ids.js';
+
+// ════════════════════════════════════════════════════════════════
+//  拆表闸门证据（2026-10-23 · spec refine-ui-system-and-close-r10 Task 10）
+// ════════════════════════════════════════════════════════════════
+// C2「同一行 7 天乐观锁 409」与 C4「影子每日比对历史」都要**可复核**，故各留一张证据表：
+//   · snapshot_conflicts：快照版本冲突（真正返回 409 的那一批）逐集合记一行；
+//   · shadow_history：每日一条 `compareShadowTables` 结果（agenda / contributions 分别记 mismatch 与行数）。
+// 两张表**首次写入时懒建**（`CREATE TABLE IF NOT EXISTS`），不进 `initDb`：
+//   新建库的表集合因此不变（db-integrity-guard 的冻结表基线不动），也不参与任何读路径。
+// ⚠ 证据仅供 `server/scripts/schema-split-readiness.mjs` 判定；JSON 主表仍是唯一权威源，本段不改读写路径。
+// ⚠ 所有写入 try/catch + `console.warn`：埋点失败不得改变 409 语义，也不得让快照写入失败。
+
+/** 409 埋点表（懒建；只增不改，无业务读取入口） */
+export const SNAPSHOT_CONFLICTS_TABLE = 'snapshot_conflicts';
+
+/** 影子比对历史表（懒建；day 主键 ⇒ 每日最多一条、重复记录幂等覆盖） */
+export const SHADOW_HISTORY_TABLE = 'shadow_history';
+
+/** 409 的「行」粒度：快照版本协议是**整批 409**，冲突清单只到集合级 ⇒ row_id='*' 表示该集合整体冲突 */
+const CONFLICT_ROW_SENTINEL = '*';
+
+const GATE_TABLES_DDL = `
+CREATE TABLE IF NOT EXISTS ${SNAPSHOT_CONFLICTS_TABLE} (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  collection TEXT NOT NULL,
+  row_id TEXT NOT NULL,
+  occurred_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_snapshot_conflicts_row ON ${SNAPSHOT_CONFLICTS_TABLE}(collection, row_id, occurred_at);
+CREATE TABLE IF NOT EXISTS ${SHADOW_HISTORY_TABLE} (
+  day TEXT PRIMARY KEY,
+  agenda_mismatch INTEGER NOT NULL,
+  contribution_mismatch INTEGER NOT NULL,
+  agenda_rows INTEGER NOT NULL,
+  contribution_rows INTEGER NOT NULL,
+  recorded_at TEXT NOT NULL
+);
+`;
+
+function gateTableExists(db, table) {
+  return !!db.prepare("SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = ?").get(table);
+}
+
+function gateIso(value) {
+  const date = value instanceof Date ? value : new Date(value);
+  return Number.isNaN(date.getTime()) ? new Date().toISOString() : date.toISOString();
+}
+
+/** 本地自然日（YYYY-MM-DD）；与 D1 日期口径一致，不用 UTC 切串 */
+function gateLocalDay(value = new Date()) {
+  const date = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(date.getTime())) return '';
+  const pad = (n) => String(n).padStart(2, '0');
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+}
+
+/**
+ * 记一条 409 冲突（写入点＝`snapshot-versions.js::recordSnapshotConflicts`，由快照路由在真正返回 409 时调用）。
+ * @returns {boolean} 是否写入成功（失败只 warn，不抛）
+ */
+export function recordSnapshotConflict(db, { collection, rowId = CONFLICT_ROW_SENTINEL, at = new Date() } = {}) {
+  if (!collection) return false;
+  try {
+    db.exec(GATE_TABLES_DDL);
+    db.prepare(`INSERT INTO ${SNAPSHOT_CONFLICTS_TABLE} (collection, row_id, occurred_at) VALUES (?, ?, ?)`)
+      .run(String(collection), rowId == null ? CONFLICT_ROW_SENTINEL : String(rowId), gateIso(at));
+    return true;
+  } catch (e) {
+    console.warn(`[db] 409 埋点写入失败（不影响 409 响应）：${e.message}`);
+    return false;
+  }
+}
+
+/**
+ * 近 N 天 409 计数（只读；表不存在 ⇒ 全 0，不建表）。
+ * 按 (collection,rowId) 聚合 ⇒ `maxByRow` 就是「同一行/N 天最多冲突几次」。
+ * @returns {{windowDays:number, since:string, total:number, byRow:Array<{collection:string,rowId:string,count:number}>, maxByRow:number}}
+ */
+export function getConflictCounts(db, days = 7) {
+  const windowDays = Number(days) > 0 ? Number(days) : 7;
+  const since = new Date(Date.now() - windowDays * 86400000).toISOString();
+  if (!gateTableExists(db, SNAPSHOT_CONFLICTS_TABLE)) return { windowDays, since, total: 0, byRow: [], maxByRow: 0 };
+  const rows = db.prepare(
+    `SELECT collection, row_id, COUNT(*) AS n FROM ${SNAPSHOT_CONFLICTS_TABLE}
+      WHERE occurred_at >= ? GROUP BY collection, row_id ORDER BY n DESC, collection ASC, row_id ASC`,
+  ).all(since);
+  const byRow = rows.map((row) => ({ collection: row.collection, rowId: row.row_id, count: Number(row.n) }));
+  return {
+    windowDays, since,
+    total: byRow.reduce((sum, row) => sum + row.count, 0),
+    byRow,
+    maxByRow: byRow.length ? byRow[0].count : 0,
+  };
+}
+
+/**
+ * 记一条当日影子比对结果（每日一条、幂等覆盖）。影子子表不存在则不记（避免把「未建表」记成 mismatch=0）。
+ * @returns {Object|null} 写入的读数；失败/跳过返回 null
+ */
+export function recordShadowSnapshot(db, at = new Date()) {
+  try {
+    if (!gateTableExists(db, 'agenda_items') || !gateTableExists(db, 'taskforce_contributions')) return null;
+    const shadow = compareShadowTables(db);
+    db.exec(GATE_TABLES_DDL);
+    const day = gateLocalDay(at);
+    db.prepare(
+      `INSERT OR REPLACE INTO ${SHADOW_HISTORY_TABLE}
+        (day, agenda_mismatch, contribution_mismatch, agenda_rows, contribution_rows, recorded_at) VALUES (?, ?, ?, ?, ?, ?)`,
+    ).run(day, shadow.mismatchByLabel.agenda, shadow.mismatchByLabel.contributions, shadow.agenda, shadow.contributions, gateIso(at));
+    return {
+      day,
+      agendaMismatch: shadow.mismatchByLabel.agenda,
+      contributionMismatch: shadow.mismatchByLabel.contributions,
+      mismatch: shadow.mismatch,
+      agendaRows: shadow.agenda,
+      contributionsRows: shadow.contributions,
+    };
+  } catch (e) {
+    console.warn(`[db] 影子比对历史写入失败（不影响快照）：${e.message}`);
+    return null;
+  }
+}
+
+/**
+ * 近 N 天影子比对历史（只读；表不存在 ⇒ 空列表，不建表）。按 day 倒序。
+ * @returns {{windowDays:number, sinceDay:string, dayCount:number, zeroMismatchDays:number, days:Array}}
+ */
+export function getShadowHistory(db, days = 7) {
+  const windowDays = Number(days) > 0 ? Number(days) : 7;
+  const sinceDay = gateLocalDay(new Date(Date.now() - (windowDays - 1) * 86400000));
+  if (!gateTableExists(db, SHADOW_HISTORY_TABLE)) {
+    return { windowDays, sinceDay, dayCount: 0, zeroMismatchDays: 0, days: [] };
+  }
+  const rows = db.prepare(`SELECT * FROM ${SHADOW_HISTORY_TABLE} WHERE day >= ? ORDER BY day DESC`).all(sinceDay);
+  const list = rows.map((row) => ({
+    day: row.day,
+    agendaMismatch: Number(row.agenda_mismatch),
+    contributionMismatch: Number(row.contribution_mismatch),
+    mismatch: Number(row.agenda_mismatch) + Number(row.contribution_mismatch),
+    agendaRows: Number(row.agenda_rows),
+    contributionsRows: Number(row.contribution_rows),
+    recordedAt: row.recorded_at,
+  }));
+  return {
+    windowDays, sinceDay,
+    dayCount: list.length,
+    zeroMismatchDays: list.filter((row) => row.mismatch === 0).length,
+    days: list,
+  };
+}

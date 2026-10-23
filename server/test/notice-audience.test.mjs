@@ -32,12 +32,12 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
-import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261023a';
-import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261023a';
-import { setDataSource, registerMockAdapter } from '../../docs/src/data/data-adapter.js?v=20261023a';
-import { MOCK_NOTICES } from '../../docs/src/data/mock/index.js?v=20261023a';
-import { NOTICE_AUDIENCE_OPTIONS } from '../../docs/src/core/domain/constants.js?v=20261023a';
-import { NoticeStore, canReadNotice } from '../../docs/src/services/governance/notice.js?v=20261023a';
+import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261023b';
+import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261023b';
+import { setDataSource, registerMockAdapter } from '../../docs/src/data/data-adapter.js?v=20261023b';
+import { MOCK_NOTICES } from '../../docs/src/data/mock/index.js?v=20261023b';
+import { NOTICE_AUDIENCE_OPTIONS } from '../../docs/src/core/domain/constants.js?v=20261023b';
+import { NoticeStore, canReadNotice } from '../../docs/src/services/governance/notice.js?v=20261023b';
 
 // ── localStorage 内存桩 + sessionStorage 空桩（与 thought-report-panel.test.mjs 同做法）──
 // getCurrentUser 走 localStorage；A-11 防串扰仅在登录对象带 tabId 时才校验，本桩不带 tabId → 直取。

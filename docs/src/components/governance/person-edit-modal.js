@@ -29,19 +29,19 @@
 //      并标「随在册状态变更填写」——不留「可输入却存不进」的死入口（R7-02）。
 // ════════════════════════════════════════════════════════════════
 
-import { openModal, closeModal } from '../ui/modal.js?v=20261023a';
-import { PersonStore } from '../../services/member/person.js?v=20261023a';
-import { getBranchById } from '../../services/branch/branch.js?v=20261023a';
+import { openModal, closeModal, setModalBusy } from '../ui/modal.js?v=20261023b';
+import { PersonStore } from '../../services/member/person.js?v=20261023b';
+import { getBranchById } from '../../services/branch/branch.js?v=20261023b';
 // Q-21-3 收敛（2026-09-13）：在册状态枚举单一源 = core/domain/constants.js（原经 org-base-data-preview 转出）
-import { ROLE_LABELS, DEVELOP_STAGES, RESIDENCE } from '../../core/domain/constants.js?v=20261023a';
-import { submitMemberChange } from '../../services/member/member-confirmation.js?v=20261023a';
-import { AuthStore } from '../../services/core/auth.js?v=20261023a';
-import { showToast, escHtml as esc, getBasePath, todayLocal } from '../../core/base/utils.js?v=20261023a';
+import { ROLE_LABELS, DEVELOP_STAGES, RESIDENCE } from '../../core/domain/constants.js?v=20261023b';
+import { submitMemberChange } from '../../services/member/member-confirmation.js?v=20261023b';
+import { AuthStore } from '../../services/core/auth.js?v=20261023b';
+import { showToast, escHtml as esc, getBasePath, todayLocal, describeWriteError } from '../../core/base/utils.js?v=20261023b';
 // `D-788`（2026-10-05 · `V-10b`）：成员「自我描述」字段模型（**零依赖叶子**）——表单控件由它逐字段生成（单一源）
 import {
   SELF_PROFILE_FIELDS, sanitizeSelfProfile,
   selfProfileListToText, selfProfileListFromText,
-} from '../../core/domain/self-profile.js?v=20261023a';
+} from '../../core/domain/self-profile.js?v=20261023b';
 
 /** 模态 id（openModal / closeModal 定位键） */
 const MODAL_ID = 'person-edit-modal';
@@ -330,7 +330,14 @@ export function openPersonEditModal(opts = {}) {
     e.preventDefault();
     const panelEl = panel;
     const btn = panelEl?.querySelector(`[data-modal-submit="${MODAL_ID}"]`);
+    const cancelBtn = panelEl?.querySelector(`[data-modal-cancel="${MODAL_ID}"]`);
     const read = (f) => panelEl?.querySelector(`[data-field="${f}"]`)?.value ?? '';
+    // 提交中：禁用主/次按钮 + 面板 aria-busy；Esc / 遮罩 / × / 取消四条路径由 modal.js 统一挂起
+    const setSaving = (busy) => {
+      setModalBusy(MODAL_ID, busy, `[data-modal-submit="${MODAL_ID}"]`);
+      if (btn) btn.disabled = busy;
+      if (cancelBtn) cancelBtn.disabled = busy;
+    };
 
     // `selfOnly`（本人自助）：无档案控件 ⇒ 跳过姓名校验与档案差异，只算「自我描述」
     const next = selfOnly ? null : {
@@ -376,7 +383,7 @@ export function openPersonEditModal(opts = {}) {
     const stageChanged = 'developStage' in patch;
     const resStatusChanged = 'residenceStatus' in patch;
 
-    if (btn) btn.disabled = true;
+    setSaving(true);
 
     // ① 立即生效组：档案属性直改（失败不关闭，便于修正后重试）
     let savedMember = member;
@@ -386,11 +393,11 @@ export function openPersonEditModal(opts = {}) {
       try {
         r = await PersonStore.saveMember({ id: member.id, ...instantPatch });
       } catch (err) {
-        r = { ok: false, reason: err?.message || '保存失败' };
+        r = { ok: false, reason: describeWriteError(err) };
       }
       if (!r || !r.ok) {
-        if (btn) btn.disabled = false;
-        showToast('error', r?.reason || '保存失败');
+        setSaving(false);
+        showToast('error', r?.reason || '保存未完成，请稍后重试');
         return;
       }
       savedMember = r.member || { ...member, ...instantPatch };
@@ -417,11 +424,18 @@ export function openPersonEditModal(opts = {}) {
       if (r.ok) submitted += 1; else errors.push(r.reason || '在册状态变更报送失败');
     }
 
-    if (btn) btn.disabled = false;
+    setSaving(false);
 
-    if (errors.length) showToast('error', errors.join('；'));
+    // 失败时只报失败、不报成功（同一次保存不得同时弹 error 与 success），浮窗保留便于修正。
+    if (errors.length) {
+      showToast('error', errors.join('；'));
+      if (savedCount > 0 && typeof opts.onSaved === 'function') {
+        try { opts.onSaved(savedMember); } catch (err) { console.warn('[person-edit-modal] onSaved 回调异常：', err); }
+      }
+      return;
+    }
 
-    if (savedCount + submitted === 0) return; // 无实际落档（报送失败）：保留模态便于修正
+    if (savedCount + submitted === 0) return; // 无实际落档：保留模态便于修正
 
     showToast('success', `已保存 ${savedCount} 项 · 已报送支书确认 ${submitted} 项`);
     if (typeof opts.onSaved === 'function') {

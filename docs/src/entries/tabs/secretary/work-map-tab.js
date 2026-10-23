@@ -11,20 +11,20 @@
 //   分区——**写侧默认折叠**（`_toolOpen`，同 group-progress `_progressOpen` 体例），首屏只留读侧；展开后功能一字不减。
 // 2026-09-03 裁定沿用：本页禁 SVG 图标，类别/视图用文字与色点区分。
 
-import { escHtml as esc } from '../../../core/base/utils.js?v=20261023a';
-import { WORK_MAP_MODULES, ORG_SUBJECT_LABELS, isBranchOrgSubject } from '../../../core/domain/work-map.js?v=20261023a';
-import { ROLE_LABELS } from '../../../core/domain/constants.js?v=20261023a';
-import { AuthStore } from '../../../services/core/auth.js?v=20261023a';
-import { getBranchIdOfPerson, getBranchWorkforce } from '../../../services/branch/branch.js?v=20261023a';
-import { getPersonName } from '../../../services/member/person.js?v=20261023a';
+import { escHtml as esc } from '../../../core/base/utils.js?v=20261023b';
+import { WORK_MAP_MODULES, ORG_SUBJECT_LABELS, isBranchOrgSubject } from '../../../core/domain/work-map.js?v=20261023b';
+import { ROLE_LABELS } from '../../../core/domain/constants.js?v=20261023b';
+import { AuthStore } from '../../../services/core/auth.js?v=20261023b';
+import { getBranchIdOfPerson, getBranchWorkforce } from '../../../services/branch/branch.js?v=20261023b';
+import { getPersonName } from '../../../services/member/person.js?v=20261023b';
 // 人×工作项矩阵单一源（2026-09-14 批次 35）：按人 / 按项目 互为转置，勿自造表格与翻页
-import { renderRelationMatrix } from '../../../components/ui/relation-matrix.js?v=20261023a';
+import { renderRelationMatrix } from '../../../components/ui/relation-matrix.js?v=20261023b';
 // 责任关系表（2026-10-18 脏专项 Task 17）：逐项「模块 → 责任人 → 责任角色 → 责任说明」，
 // 表头与分页走统一检索引擎（勿在本文件手写 <table>，S12 台账只认引擎 / 矩阵两处单一源）。
-import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261023a';
-import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261023a';
+import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261023b';
+import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261023b';
 // L4 M2（2026-09-03）：分工调整工具（发起支委会议题 / 跟踪 / 采纳生效），仅支书/副支书可见
-import { mountWorkforcePanel } from './workforce-panel.js?v=20261023a';
+import { mountWorkforcePanel } from './workforce-panel.js?v=20261023b';
 
 // 2026-10-18 脏专项 Task 17：默认落「责任关系表」——14 项模块是 1:1 分派，
 // 逐行读出「谁负责什么」比 14×N 的稀疏矩阵直接；矩阵（按人 / 按项目）保留为可选视图。
@@ -66,14 +66,14 @@ function _modulesHtml(workforce) {
         const ownerText = superior ? `上级${_ownerLabel(assign)}` : _ownerLabel(assign);
         const ownerTitle = superior ? '非支部分工：该事项由上级组织主导（支部侧按上级渠道对接），故不占支部承担方位' : `负责人：${_ownerLabel(assign)}`;
         const chips = (m.sub || []).map(s => `
-          <span class="text-[11px] px-1.5 py-0.5 rounded bg-red-50 text-red-700 border border-red-100">${esc(s)}</span>`).join('');
+          <span class="text-xs px-1.5 py-0.5 rounded bg-red-50 text-red-700 border border-red-100">${esc(s)}</span>`).join('');
         const outputs = (m.outputs || []).map(o => `
-          <span class="text-[11px] px-1.5 py-0.5 rounded bg-neutral-100 text-neutral-600" style="--acc-text-dark:#CBD5E1">产出·${esc(o)}</span>`).join('');
+          <span class="text-xs px-1.5 py-0.5 rounded bg-neutral-100 text-neutral-600" style="--acc-text-dark:#CBD5E1">产出·${esc(o)}</span>`).join('');
         return `
         <div class="rounded-lg border border-gray-200 bg-white p-3.5 flex flex-col gap-2">
           <div class="flex items-start justify-between gap-2">
             <p class="font-title-cn text-sm font-bold text-gray-800">${esc(m.name)}</p>
-            <span class="shrink-0 text-[11px] px-2 py-0.5 rounded-full ${ownerCls}" title="${esc(ownerTitle)}">${esc(ownerText)}</span>
+            <span class="shrink-0 text-xs px-2 py-0.5 rounded-full ${ownerCls}" title="${esc(ownerTitle)}">${esc(ownerText)}</span>
           </div>
           ${chips ? `<div class="flex flex-wrap gap-1">${chips}</div>` : ''}
           <p class="text-xs text-gray-500 leading-5">${esc(m.desc)}</p>
@@ -186,7 +186,7 @@ function _renderMatrix(workforce) {
       const assign = workforce[moduleId];
       // 命中该工作项负责人 → 「主责」徽标（朴素文本标记，本页禁 SVG）；否则 null → 组件渲染灰色「—」
       return `${assign.ownerType}:${assign.ownerId}` === personKey
-        ? '<span class="text-[11px] px-1.5 py-0.5 rounded bg-red-50 text-red-700 border border-red-100">主责</span>'
+        ? '<span class="text-xs px-1.5 py-0.5 rounded bg-red-50 text-red-700 border border-red-100">主责</span>'
         : null;
     },
     personLabel: '负责人',

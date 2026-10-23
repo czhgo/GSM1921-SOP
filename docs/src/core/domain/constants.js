@@ -5,7 +5,7 @@
 // R-26③（2026-10-05 批次 388）：本件**只引一个零依赖叶子** `core/base/date.js`（取本地「今天」）——
 //   不成环、双端可载；**不得**引 `core/base/utils.js`（那会牵 `core/session/pending-writes.js`）。
 
-import { todayLocal } from '../base/date.js?v=20261023a';
+import { todayLocal } from '../base/date.js?v=20261023b';
 
 // ════════════════════════════════════════════════════════════════
 //  缺省支部 id（单一源，R2-17，2026-10-20）
@@ -1108,3 +1108,9 @@ export function isPartyGroupLeaderRole(role) {
 //   「活动写门放行、通知受众不放行」（或反之）。本集为两处**唯一**判据源。
 // 口径：对齐 SYSTEM_ROLE_PERMISSION §9a 与组长手册（组长限办本组党小组会 / 主题党日）。
 export const LEADER_CREATABLE_ACTIVITY_TYPES = Object.freeze(['党小组会', '主题党日']);
+
+// ── 空值词表（R7-05 单一源；追加在文件末，避免上方行号引用漂移）────────
+// 缺失 / 未填 ⇒ EMPTY_TEXT；角色或条件不涉及 ⇒ EMPTY_NOT_APPLICABLE（不适用）。
+// 档案页、人才库、考勤总表等读侧共用本词表，勿各写一套（旧词「未填写」已并入 EMPTY_TEXT）。
+export const EMPTY_TEXT = '—';
+export const EMPTY_NOT_APPLICABLE = '不适用';

@@ -1,5 +1,5 @@
 /* 组件样式（@import 必须位于文件顶部） */
-@import url('components/person-picker.css?v=20261023a');
+@import url('components/person-picker.css?v=20261023b');
 
 /* ═══════════════════════════════════════════════════════════════
    GSM1921-SOP DESIGN SYSTEM v11.0 — Matte Flat
@@ -111,6 +111,12 @@
   --app-accent-strong: var(--app-accent);
   --app-accent-ink: #1F2937;
   --app-accent-text: #1F2937;
+  /* 「深主题字」（2026-10-23 R11 P1-04）：内围浅主题底上的文字色——把主题色压深到仍能看出「这是主题动作」，
+     同时满足小字 ≥4.5:1。取主题色 45% + 最深中性档：
+       · 亮色下 = 压深的主题色（默认金约「赭金」，vs 白 5.65:1、vs soft 浅金底 4.70:1）；
+       · 深色下 --neutral-900 反转为近白 ⇒ 自动得到「提亮的主题色」，不会变成深字叠深底。
+     （62% 主题色的实测 vs 白仅 3.67:1，未达本 spec 的 ≥4.5 要求，故落到 45%。） */
+  --app-accent-deep:   color-mix(in srgb, var(--app-accent) 45%, var(--neutral-900));
 
   /* 焦点指示环（2026-10-21 R5A-04/05）：亮色用深灰（vs 白/页面底 ≥14:1），
      暗色在 html.theme-dark 覆盖为党徽金（vs #0B1220 ≈ 13:1）。
@@ -148,7 +154,9 @@
   --shadow-dropdown: 0 4px 16px rgba(0,0,0,0.12);
 
   /* ── Type — 字号层级 ── */
-  --text-xs:   0.625rem;
+  /* 2026-10-23 R11 P0-08：Caption 档由 10px 抬到 12px（档位表最低的正文档；
+     10px 在档位表内不存在，正文/描述不得再用）。 */
+  --text-xs:   0.75rem;
   --text-sm:   0.75rem;
   --text-base: 0.875rem;
   --text-md:   1rem;
@@ -169,7 +177,7 @@
 
 /* ── 字体二档调节：大档覆盖（等差递增·小字多加 +3px） ── */
 html.font-size-large {
-  --text-xs:   0.8125rem;   /* 10px → 13px (+3) */
+  --text-xs:   0.9375rem;   /* 12px → 15px (+3) */
   --text-sm:   0.9375rem;   /* 12px → 15px (+3) */
   --text-base: 1.0625rem;   /* 14px → 17px (+3) */
   --text-md:   1.1875rem;   /* 16px → 19px (+3) */
@@ -212,6 +220,42 @@ html.font-size-large .btn-md        { font-size: 0.9375rem !important; }   /* 12
 a {
   color: inherit;
   text-decoration: inherit;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   COMPONENT: Disclosure（summary 单一源 · 2026-10-23 R11 P0-07）
+   ── 病灶：全仓 33 处 <summary> 只有 3 处去了原生三角，其余保留 UA marker，
+      且没有一处 chevron ⇒ 同一披露控件出现「有三角 / 无三角」两种指示。
+   ── 口径：全局去 UA marker，统一用一个 6px 边框箭头；展开时箭头由「右」转「下」。
+      逐点的 `list-style:none` / `::-webkit-details-marker` 已删除，只此一处定义。
+   ── 布局：箭头是 inline 内容，不改变各调用点既有的 display / 对齐；
+      `.row-more > summary`、`.modal-fieldset__summary` 只复用视觉，各自布局保持原样。 */
+summary {
+  list-style: none;
+  cursor: pointer;
+}
+summary::-webkit-details-marker {
+  display: none;
+}
+summary::marker {
+  content: '';
+}
+summary::before {
+  content: '';
+  display: inline-block;
+  flex: none;
+  width: 6px;
+  height: 6px;
+  margin-right: 6px;
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  transform: rotate(-45deg);          /* 收起：指向右 */
+  transform-origin: 55% 55%;
+  vertical-align: middle;
+  transition: transform var(--transition-fast);
+}
+details[open] > summary::before {
+  transform: rotate(45deg);           /* 展开：指向下 */
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -697,12 +741,36 @@ select.input-flat:focus {
   border-color: var(--party-gold);
 }
 
-/* Input — small variant (table-embedded, compact forms) */
+/* Input — 紧凑档（表格行内编辑位 / 弹窗多行文本）
+   2026-10-23 R11 P0-01：此前只有 padding / font-size / radius，**无背景、无描边、无 placeholder、无 focus**
+   ⇒ 单独使用处（modal.js、member-flow-tab.js 等 10 处）呈现为「没有灰色描边的输入框」。
+   现补齐为完整字段：与 .input-flat 同源（白底 / 1px 中性 200 / 8px 圆角 / 13px / placeholder 400 / 金边 focus）。
+   高度算式：7 + 7 + 16（line-height 1rem） + 2（边框） = 32px（紧凑档）。 */
 .input-flat-sm {
-  padding: 6px 12px;
-  /* 字号已随单档统一为 13px；此处只保留较小内边距（表格行内编辑位，不与行高抢空间） */
-  font-size: 0.8125rem;
+  background-color: var(--neutral-0);
+  border: 1px solid var(--neutral-200);
   border-radius: var(--radius-sm);
+  padding: 7px 12px;
+  font-size: 0.8125rem;
+  line-height: 1rem;
+  color: var(--neutral-800);
+  outline: none;
+  transition: border-color var(--transition-fast), background-color var(--transition-fast);
+}
+
+.input-flat-sm:focus {
+  background-color: var(--neutral-0);
+  border-color: var(--party-gold);
+}
+
+.input-flat-sm::placeholder {
+  color: var(--neutral-400);
+}
+
+/* 多行文本（弹窗 / 活动备注）沿用紧凑档的内边距与字号，但高度由 rows 决定。 */
+textarea.input-flat-sm {
+  padding: 8px 12px;
+  line-height: 1.5;
 }
 
 /* Textarea */
@@ -820,14 +888,23 @@ textarea.input-flat {
   border-top: 1px solid var(--neutral-100);
   padding-top: 6px;
 }
-/* 日期类原生控件高度统一（2026-09-13 尺寸统一彻查；2026-09-14 批次 33 并档为 38px）：
+/* 日期类原生控件高度统一（2026-09-13 尺寸统一彻查；2026-09-14 批次 33 并档为 38px；
+   2026-10-23 R11 P1-10 去掉 `.text-xs` 限定——此前不带该历史类名的 10 处日期框不享受钉高）：
    日期类控件的内部编辑框自带高度，不随 padding 走算式，会与同排文本框差 2px——显式钉死。 */
-input.input-flat.text-xs[type="date"],
-input.input-flat.text-xs[type="month"],
-input.input-flat.text-xs[type="week"],
-input.input-flat.text-xs[type="time"],
-input.input-flat.text-xs[type="datetime-local"] {
+input.input-flat[type="date"],
+input.input-flat[type="month"],
+input.input-flat[type="week"],
+input.input-flat[type="time"],
+input.input-flat[type="datetime-local"] {
   height: 38px;
+}
+/* 紧凑档日期框：与 §2 的 32px 同档（表格行内编辑位）。 */
+input.input-flat-sm[type="date"],
+input.input-flat-sm[type="month"],
+input.input-flat-sm[type="week"],
+input.input-flat-sm[type="time"],
+input.input-flat-sm[type="datetime-local"] {
+  height: 32px;
 }
 /* 支部分工表单行（#wf-form-zone）：统一为单档 38px，避免同行内多值并存。 */
 #wf-form-zone .cs-trigger.input-flat.text-xs {
@@ -915,20 +992,44 @@ button:disabled { cursor: not-allowed; }
 .btn-accent {
   background: var(--app-accent-strong);
   color: var(--app-accent-ink, #fff);
+  /* 2026-10-23 R11 P1-05：尺寸归一后 border-width 恒为 1px，此前未声明 border-color
+     ⇒ 透明边框把内容盒挤窄 2px。补同色系描边，实底不出现「薄边/透明边」。 */
+  border: 1px solid var(--app-accent-strong);
   border-radius: var(--radius-sm);
   transition: filter var(--transition-fast), opacity var(--transition-fast);
 }
 .btn-accent:hover { filter: brightness(0.92); }
 .btn-accent:disabled { opacity: 0.5; cursor: not-allowed; }
 
+/* 内围强调次操作（2026-10-23 R11 P1-04/SD-6）：
+   ① 底色必须「看得见」——旧值 --app-accent-bg（14% 主题色 + 透明）叠白仅 1.07:1，等同白底。
+      按 spec 的「与纯白 ≥1.2:1」目标取主题色 36% 直接混白；实测（默认金）1.20:1、党建红 1.92:1、
+      天蓝 1.69:1。（12% 的写法对金只有 1.06:1，达不到目标，故未采用。）
+   ② 描边取同色系 60%，比底色深一档（36% 底 + 38% 边会几乎同色 ⇒ 描边不可见）。
+   ③ 文字用深主题字 --app-accent-deep（不是中性近黑 #1F2937）⇒ 读得出「这是主题动作」，
+      且 vs 白 5.65:1 / vs 浅主题底 4.70:1（默认金最差值）。 */
 .btn-accent-soft {
-  background: var(--app-accent-bg);
+  background: color-mix(in srgb, var(--app-accent) 36%, var(--neutral-0));
+  border: 1px solid color-mix(in srgb, var(--app-accent) 60%, var(--neutral-0));
+  /* 兜底（不支持 color-mix 的内核）→ 升级为深主题字 */
   color: var(--app-accent-text, var(--app-accent));
-  border: 1px solid var(--app-accent-border);
+  color: var(--app-accent-deep);
   border-radius: var(--radius-sm);
   transition: background-color var(--transition-fast), filter var(--transition-fast);
 }
 .btn-accent-soft:hover { filter: brightness(0.96); }
+/* 深色：浅主题底改为「主题色 24% 叠深底」，文字取 deep（深色下 --neutral-900 反转为近白 ⇒ 自动提亮），
+   不会出现「深字叠深底」；默认金实测文字 vs 底色 7.96:1。 */
+html.theme-dark .btn-accent-soft {
+  background: color-mix(in srgb, var(--app-accent) 24%, var(--neutral-0));
+  border-color: color-mix(in srgb, var(--app-accent) 50%, var(--neutral-0));
+  color: var(--app-accent-deep);
+}
+/* 2026-10-23 R11 P1-05：soft 族此前只写了 :hover，缺 disabled 视觉。 */
+.btn-accent-soft:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
 
 /* ── 动作按钮四类（2026-10-19 收口 · 单一源＝`DESIGN_SYSTEM §4.1.1`）──
    **新代码只准用这四类**：
@@ -1012,8 +1113,12 @@ button:disabled { cursor: not-allowed; }
   background: var(--app-accent-bg) !important;
   color: var(--app-accent-text) !important;
 }
-/* 主题色文字（步骤指示/强调文字）——亮金底上取压深字（--app-accent-text），不直接用本色 */
-.text-accent { color: var(--app-accent-text) !important; }
+/* 主题色文字（步骤指示/强调文字）——2026-10-23 R11 P1-04：改取「深主题字」，与 .btn-accent-soft 同源；
+   不支持 color-mix 的内核回落到 --app-accent-text。 */
+.text-accent {
+  color: var(--app-accent-text) !important;
+  color: var(--app-accent-deep) !important;
+}
 /* 列表行选中态（无边框，用于模板/子项选中） */
 .sel-accent-on {
   background: var(--app-accent-bg) !important;
@@ -1113,14 +1218,25 @@ html.theme-dark .accent-avatar {
   flex-shrink: 0;
   color: var(--neutral-400);
 }
+/* 内嵌搜索框并入控件单源（2026-10-23 R11 Task 2）：1px 中性描边 + 8px 圆角 + 金边 focus + 焦点环。
+   此前是 border:none + transparent ⇒ 与同屏 .input-flat 不是同一种控件。 */
 .cs-search-input {
   flex: 1;
   min-width: 0;
-  border: none;
+  padding: 6px 8px;
+  border: 1px solid var(--neutral-200);
+  border-radius: var(--radius-sm);
   outline: none;
-  background: transparent;
+  background: var(--neutral-0);
   font-size: 0.75rem;
   color: var(--neutral-800);
+  transition: border-color var(--transition-fast);
+}
+.cs-search-input:focus,
+.cs-search-input:focus-visible {
+  border-color: var(--party-gold);
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 1px;
 }
 .cs-search-input::placeholder {
   color: var(--neutral-400);
@@ -2053,19 +2169,42 @@ html.theme-dark .cal-cell-large.is-today, html.theme-dark .cal-cell-mobile.is-to
   border: 1px solid var(--tab-accent-border);
 }
 
-/* ── 页签分组分隔（2026-10-21 R5-C01）：1px 竖线，不再是与选中页签同色同形的胶囊；
-   ≤1024px 不渲染分组标签（窄屏把宽度全部让给可点页签）。 ── */
+/* ── 页签分组标识（2026-10-23 R11 P0-06 · 取代 2026-10-21 R5-C01 的「1px 竖线」）──
+   桌面端：每组前显示可见组名（含首组），组间以 .tab-group-sep 的 1px 线分隔；
+   ≤1280px：只隐藏组名，分隔线保留（宽度让给可点页签）；
+   ≤1024px：分隔线也保留，仅缩小左右外边距，页签条由 .ws-tab-scroll 保证单行不换行。 */
 .tab-group-label {
-  display: inline-block;
-  width: 1px;
-  height: 14px;
-  margin: 0 4px;
+  display: inline-flex;
+  align-items: center;
+  align-self: center;
   flex-shrink: 0;
-  background: var(--neutral-200);
+  margin: 0 8px 0 0;
+  padding: 0;
+  background: none;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1;
+  color: var(--neutral-500);
+  white-space: nowrap;
   vertical-align: middle;
 }
-@media (max-width: 1024px) {
+.tab-group-label:first-child {
+  margin-left: 0;
+}
+.tab-group-sep {
+  display: inline-block;
+  flex-shrink: 0;
+  align-self: center;
+  width: 1px;
+  height: 14px;
+  margin: 0 8px;
+  background: var(--neutral-200);
+}
+@media (max-width: 1280px) {
   .tab-group-label { display: none; }
+}
+@media (max-width: 1024px) {
+  .tab-group-sep { margin: 0 4px; }
 }
 
 /* ── Tab 栏单行横向平滑滚动（2026-08-23 支书裁定：tab 数量增加禁止随机换行成 2 行） ──
@@ -2765,6 +2904,13 @@ input.login-input:focus,
 input.login-input:focus-visible,
 .cs-trigger:focus,
 .cs-trigger:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 1px;
+  box-shadow: none;
+}
+/* 紧凑档字段同一口径（2026-10-23 R11 P0-01）：键盘聚焦必须有 ≥3:1 的实线环。 */
+.input-flat-sm:focus,
+.input-flat-sm:focus-visible {
   outline: 2px solid var(--focus-ring);
   outline-offset: 1px;
   box-shadow: none;
@@ -4062,14 +4208,12 @@ html.theme-dark .settings-group-item.active {
       （display / 对齐 / 不换行 / border-width）**不加 `!important`**——留给页面工具类
       （行式载体的 `justify-between` / `items-start` / `border-0` 等）后加载覆盖。
       **不压**颜色、圆角、hover、disabled——族语义外观仍归上方各 `.btn-*` 段。
-   分档（高度 = 内容行高 + 上下内边距 + 边框 2px）：
-     32px  .btn-accent / .btn-outline / .btn-accent-soft / .btn-danger /
-           .btn-danger-solid（仅确认弹窗）/ .btn-md（常规尺寸别名）
-                                                     四类动作按钮的常规档
-     28px  .btn-sm                                  紧凑档（行内紧凑动作）
-     30px  .btn-tab                                 页签 / 分段控件（豁免，不算动作按钮）
-     26px  .btn-action                              存量微操作（新代码不得使用）
-     30px  .btn-ghost / 32px .btn-neutral           存量类（新代码不得使用）
+   分档（高度 = 内容行高 + 上下内边距 + 边框 2px · 2026-10-23 R11 P1-05 由 32/28/30/26 收为三档）：
+     36px  .btn-accent / .btn-accent-soft / .btn-outline / .btn-neutral /
+           .btn-danger / .btn-danger-solid（仅确认弹窗）/ .btn-md（常规尺寸别名）
+                                                     标准档（与 38px 输入框同排时改用 .lf-btn 的 38px）
+     32px  .btn-ghost / .btn-tab                    紧凑档（行内辅助 / 页签 / 分段控件）
+     28px  .btn-sm / .btn-action                    小号档（行内动作；.btn-action 为存量类）
    ═══════════════════════════════════════════════════════════════ */
 .btn-accent,
 .btn-accent-soft,
@@ -4091,19 +4235,19 @@ html.theme-dark .settings-group-item.active {
   border-width: 1px;
 }
 
-/* 32px 常规档：四类动作按钮（`.btn-md` 为常规尺寸别名，不是独立视觉族） */
+/* 36px 标准档：四类动作按钮（`.btn-md` 为常规尺寸别名，不是独立视觉族） */
 .btn-accent,
 .btn-accent-soft,
 .btn-outline,
 .btn-danger,
 .btn-danger-solid,
 .btn-md {
-  min-height: 32px !important;
+  min-height: 36px !important;
   padding: 0 12px !important;
   font-size: 13px !important;
 }
 
-/* 28px 紧凑档：行内紧凑动作（`.btn-sm`） */
+/* 28px 小号档：行内紧凑动作（`.btn-sm`） */
 .btn-sm {
   min-height: 28px !important;
   padding: 0 10px !important;
@@ -4111,30 +4255,30 @@ html.theme-dark .settings-group-item.active {
   gap: 4px !important;
 }
 
-/* 存量类：`.btn-neutral` 并入次操作（`.btn-outline`）；尺寸保持不变，仅待迁移 */
+/* 存量类：`.btn-neutral` 并入次操作（`.btn-outline`）；尺寸随标准档 36px，仅待迁移 */
 .btn-neutral {
-  min-height: 32px !important;
+  min-height: 36px !important;
   padding: 0 12px !important;
   font-size: 13px !important;
 }
 
-/* 存量类：`.btn-ghost` 不再作为动作按钮类型；尺寸保持不变，仅待迁移 */
+/* 紧凑档：`.btn-ghost` 仍是行内辅助（无框文字），与页签同 32px */
 .btn-ghost {
-  min-height: 30px !important;
+  min-height: 32px !important;
   padding: 0 8px !important;
   font-size: 13px !important;
 }
 
-/* 30px 档：页签 / 分段控件（**豁免**：不属于动作按钮，六台顶部 tab 保持现状） */
+/* 32px 档：页签 / 分段控件（不属于动作按钮，但不与动作按钮分叉成第四档） */
 .btn-tab {
-  min-height: 30px !important;
+  min-height: 32px !important;
   padding: 0 10px !important;
   font-size: 13px !important;
 }
 
-/* 26px 档：存量微操作（`.btn-action*` 已并入次操作 / 危险，新代码不得使用） */
+/* 28px 档：存量微操作（`.btn-action*` 已并入次操作 / 危险，新代码不得使用） */
 .btn-action {
-  min-height: 26px !important;
+  min-height: 28px !important;
   padding: 0 8px !important;
   font-size: 12px !important;
 }
@@ -4194,6 +4338,8 @@ html.theme-dark .settings-group-item.active {
 }
 .help-note__link:hover { text-decoration: underline; }
 html.theme-dark .help-note__link { color: color-mix(in srgb, var(--functional-info) 80%, #fff); }
+/* 2026-10-23 R11：继承所在容器文字色（用于标题旁 / 深色底上的帮助注释，不强制中性灰）。 */
+.help-note--inherit { color: inherit; }
 
 /* ═══════════════════════════════════════════════════════════════
    列表行边框收敛（2026-10-18）
@@ -4606,14 +4752,16 @@ html.theme-dark .help-note__link { color: color-mix(in srgb, var(--functional-in
   min-height: 44px;
 }
 
-/* ── 结论带：一条横向带，不是四张 KPI 小卡（数字 26px/600 + 标签 12px）── */
+/* ── 结论带：一条横向带，不是四张 KPI 小卡（数值 24px/600 + 标签 12px）──
+   2026-10-23 R11 P1-01：去掉 neutral-50 整块灰底，改白底 + 中性描边（与卡片同底色），
+   圆角与卡片同源 12px；item 的 hover/选中底色是内层，取同心圆角 8px（外 12 − 内缩 4）。 */
 .metric-band {
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
   gap: 0;
   padding: var(--space-3) var(--space-4);
-  background: var(--neutral-50);
+  background: var(--neutral-0);
   border: 1px solid var(--neutral-200);
   border-radius: var(--radius-md);
 }
@@ -4622,6 +4770,8 @@ html.theme-dark .help-note__link { color: color-mix(in srgb, var(--functional-in
   align-items: baseline;
   gap: var(--space-2);
   padding: 0 var(--space-4);
+  /* 同心圆角：带外圈 12px，指标项的 hover / 选中底色取内层 8px（不为 4/6px 例外，也不做胶囊）。 */
+  border-radius: var(--radius-sm);
   border-left: 1px solid var(--neutral-100);
 }
 /* 结论带指标是可点按钮：保留 metric 的排版，补 hover / focus / 选中态。 */
@@ -4676,7 +4826,7 @@ button.metric-band__item--filter.is-active {
 /* chip 档的首项保留胶囊内边距（与上一行同特异性，故必须写在它之后）。 */
 .metric-band__item--filter:first-child { padding-left: var(--space-3); }
 .metric-band__value {
-  font-size: 1.625rem;
+  font-size: 1.5rem;
   font-weight: 600;
   line-height: 1;
   font-variant-numeric: tabular-nums;
@@ -4686,12 +4836,15 @@ button.metric-band__item--filter.is-active {
   font-size: var(--text-sm);
   color: var(--neutral-500);
 }
+/* 逾期警示色（2026-10-23 R11 P1-01）：只在「逾期 > 0」时由 JS 挂 `--warning` 类；
+   CSS 判不了计数 0，故这里只保留类本身，不再默认着色。 */
 .metric-band__value--warning {
   color: var(--functional-warning);
 }
-/* 存量指标，不与逾期争重心：在办是过程量，降到脚注级（18px / neutral-500）。 */
+/* 存量指标，不与逾期争重心：在办是过程量，降到脚注级 16px / neutral-500
+   （2026-10-23 R11 P2-01：由 18px 降一档，与数值 24px / 标签 12px 拉开但不另立第四档）。 */
 .metric-band__value--muted {
-  font-size: 1.125rem;
+  font-size: 1rem;
   font-weight: 500;
   color: var(--neutral-500);
 }
@@ -4957,12 +5110,9 @@ html.theme-dark .state-badge--accent {
   position: relative;
   display: inline-block;
 }
+/* 去三角 / chevron 见文件顶部「COMPONENT: Disclosure」单源；此处只保留行尾菜单的布局与光标。 */
 .row-more > summary {
-  list-style: none;
   cursor: pointer;
-}
-.row-more > summary::-webkit-details-marker {
-  display: none;
 }
 .row-more__menu {
   position: absolute;
@@ -5103,6 +5253,16 @@ html.theme-dark .state-badge--accent {
   margin-top: auto;
 }
 
+/* 弹窗关闭按钮（×）：形态由工具类承担，hover / focus 反馈统一在此，避免各调用点各写一套。 */
+.modal-close-btn:hover {
+  background: var(--neutral-100);
+  color: var(--neutral-600);
+}
+.modal-close-btn:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
 /* ═══════════════════════════════════════════════════════════════
    移动端命中区（2026-10-19 · P2-6）
    ── 只抬「关闭 / 更多 / 危险」三类高风险控件；普通紧凑按钮仍 28px，桌面不动。
@@ -5207,15 +5367,13 @@ html.theme-dark .state-badge--accent {
   font-weight: 600;
   color: var(--neutral-700);
 }
+/* 去三角 / chevron 见文件顶部「COMPONENT: Disclosure」单源；这里只保留分组标题的排版，
+   「展开 / 收起」文字降为辅助信息（箭头在左，文字在右）。 */
 .modal-fieldset__summary {
   cursor: pointer;
   font-size: var(--text-xs);
   font-weight: 600;
   color: var(--neutral-700);
-  list-style: none;
-}
-.modal-fieldset__summary::-webkit-details-marker {
-  display: none;
 }
 .modal-fieldset__summary::after {
   content: '展开';

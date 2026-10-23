@@ -2,20 +2,20 @@
 // 宣传委员工作台 Tab：宣传任务（T-279 M3 拆分，照 M2 样板）
 // 任务状态流转：待接收 → 进行中 → 已提交（seed 常量 + mockDB 持久化，刷新不再丢失）。
 
-import { mockDB } from '../../../core/domain/domain.js?v=20261023a';
-import { persist } from '../../../data/data-adapter.js?v=20261023a';
-import { showToast, downloadCSV, _fmtDate, todayLocal, escHtml } from '../../../core/base/utils.js?v=20261023a';
-import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261023a';
-import { generateId } from '../../../core/base/id.js?v=20261023a';
-import { isActivityLive } from '../../../core/domain/constants.js?v=20261023a';
-// 2026-10-03 批次 358（`D-751`）：宣传任务「作废（软）」——弹窗**单一源**（原因必填那句校验只此一处）
-import { openVoidModal } from '../../../components/ui/void-record.js?v=20261023a';
-import { filterActive } from '../../../services/governance/soft-void.js?v=20261023a';
+import { mockDB } from '../../../core/domain/domain.js?v=20261023b';
+import { persist } from '../../../data/data-adapter.js?v=20261023b';
+import { showToast, downloadCSV, _fmtDate, todayLocal, escHtml } from '../../../core/base/utils.js?v=20261023b';
+import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261023b';
+import { generateId } from '../../../core/base/id.js?v=20261023b';
+import { isActivityLive, ROLE_LABELS } from '../../../core/domain/constants.js?v=20261023b';
+import { ORG_SUBJECT_LABELS } from '../../../core/domain/work-map.js?v=20261023b';
+import { openVoidModal } from '../../../components/ui/void-record.js?v=20261023b';
+import { filterActive } from '../../../services/governance/soft-void.js?v=20261023b';
 
 // ── 宣传任务 mock 数据（2026-08-05：seed 常量 + mockDB 持久化，刷新不再丢失）──
 // 2026-09-28 批次 234：常量**搬到内容单一源** `docs/src/data/mock/prop.js`（服务端 `server/seed.js` 同源 import，
 //   原先此处私有常量被服务端逐字复刻一份 ⇒ 两份字面量，本批收成一份；取值与顺序一字未改）。
-import { PROP_TASKS_SEED } from '../../../data/mock/prop.js?v=20261023a';
+import { PROP_TASKS_SEED } from '../../../data/mock/prop.js?v=20261023b';
 
 // 从 mockDB 读取（seed 兜底注入一次）；写操作须更新 mockDB.propTasks 后调用 persist()
 function _loadPropTasks() {
@@ -228,7 +228,7 @@ function _renderTaskCard(task, activityMap = new Map()) {
     ? `<button class="btn-accent-soft task-advance-btn text-xs px-3 py-1.5 mt-1" data-task-id="${task.id}" onclick="event.stopPropagation();">${advanceLabel}</button>`
     : '';
   // 批次 358（`D-751`）：行内「作废（软）」键（软作废 · 留痕 · 默认列表出列；原因必填在弹窗单一源里）
-  const voidBtn = `<button class="btn-ghost prop-task-void-btn text-xs px-2 py-1 mt-1" data-task-id="${task.id}" title="作废（软 · 留痕）">作废</button>`;
+  const voidBtn = `<button class="btn-ghost prop-task-void-btn text-xs px-2 py-1 mt-1" data-task-id="${task.id}">作废</button>`;
   const typeStyle = TASK_TYPE_STYLE[task.type] || 'bg-gray-50 text-gray-700';
   const statusStyle = TASK_STATUS_STYLE[task.status];
   const activity = task.activityId ? activityMap.get(task.activityId) : null;
@@ -242,8 +242,15 @@ function _renderTaskCard(task, activityMap = new Map()) {
       </div>
       <div class="text-sm font-medium text-gray-800 mt-1">${escHtml(task.summary)}</div>
       <div class="flex items-center justify-between mt-1.5">
-        <span class="text-xs text-gray-500">来自：${escHtml(task.source)} · ${escHtml(task.createdAt)}${related}</span>
+        <span class="text-xs text-gray-500">来自：${escHtml(sourceLabelOf(task))} · ${escHtml(task.createdAt)}${related}</span>
         <span class="inline-flex items-center gap-1.5">${advanceBtn}${voidBtn}</span>
       </div>
     </div>`;
+}
+
+/** 来源展示：优先按稳定键（角色键 / 组织型主体 id）现取标签，source 只作兜底快照（R7-34） */
+function sourceLabelOf(task) {
+  if (task.sourceRole) return ROLE_LABELS[task.sourceRole] || task.source;
+  if (task.sourceOrg) return ORG_SUBJECT_LABELS[task.sourceOrg] || task.source;
+  return task.source;
 }

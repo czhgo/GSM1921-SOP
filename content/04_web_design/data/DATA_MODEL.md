@@ -273,12 +273,12 @@ ActivityRecord (主记录)
 
 | 结构 | 内容 | 边界 |
 |---|---|---|
-| generated stored 列 | `attendances(branch_id,status,person_id,activity_id)`、`inspections(branch_id,activity_id)`、`notices(branch_id)`、`activities(branch_id,status)`、`todos(branch_id)` | 由 `json_extract(data, …)` 生成；只读，不参与业务写入 |
+| generated VIRTUAL 列 | `attendances(branch_id,status,person_id,activity_id)`、`inspections(branch_id,activity_id)`、`notices(branch_id)`、`activities(branch_id,status)`、`todos(branch_id)` | 由 `json_extract(data, …)` 生成；只读，不参与业务写入。**一律 VIRTUAL、不是 STORED**——SQLite 不允许给**已有数据**的表 `ALTER … ADD … STORED`；读时计算、可建复合索引 |
 | 复合索引 | `(branch_id,status)`、`(branch_id,person_id,activity_id)`、`(branch_id,activity_id)` 等 | 查询结果须与「整表读 + JS 过滤」逐行等价（`perf-index-equivalence`） |
 | `agenda_items` | `id` 主键 + `data` JSON（`activityId / seq / item / kinds / result …`） | **影子表**：由活动 `agenda[]` 回填/双写；读仍走 JSON |
 | `taskforce_contributions` | `id` 主键 + `data` JSON（`taskforceId / workgroupId / personId / desc / by / at / verified*`） | **影子表**：由 `taskforces.members[].contributions[]` 回填/双写；读仍走 JSON |
 
-**切表判据**：见 `CLAUDE.md B-504-1` 与 `server/scripts/schema-split-readiness.mjs`；只有规模/冲突/子项查询任一触发、影子连续 7 天 `mismatch=0`、保留期已裁时，才可把权威源切到子表。
+**切表判据（全真才可切 · 可执行版＝`server/scripts/schema-split-readiness.mjs`）**：**C1 规模**——单行 JSON `MAX(LENGTH(data))` > 256KB 或 p95 > 32KB 或单表 > 5000 行或 JSON 总量 > 2MB（任一）；**C2 冲突**——同一行 7 天内乐观锁 409 ≥ 3 次（读数＝`snapshot_conflicts` 埋点）；**C3 查询**——`agenda` / `contributions` 子项在 ≥ 2 个读口被按子项过滤/统计；**C4 影子稳定**——影子连续 7 天**每天** `mismatch=0` 且四写路径双写 100%；**C5 制度前置**——`B-500-4` 保留期已裁。**C1–C3 任一 ＋ C4、C5 全真**才可把权威源从 JSON 主表切到子表；未全真时读路径保持 JSON。
 
 **工作组创建、权限与生命周期**：活动工作组随活动创建；专班工作组围绕自身任务创建，专班可由能力包承载，也可由一次性任务触发。活动工作组不是独立业务对象，活动记录仍是活动业务的唯一载体；活动组织落点 (`party-group/branch`)、参加资格和系统授权是不同维度。党小组组长只能创建本组活动；支书/副支书可建任意承办组活动，且须选择唯一承办党小组；支委会、党员大会、党课等支部级法定会议单列 `branch`，不塞党小组。组织者一般由承办党小组承担，他组同志须留例外说明；深度参与者可按需跨组招募，但必须有招募标记与组织委员协调人，成员行记 `crossGroup/coordinatedBy`。组织者与深度参与者是并列成员角色；具体操作权限经独立授权接口授予并留痕。活动、成员、任务和产出等跨记录写入都须由服务端校验支部归属。
 

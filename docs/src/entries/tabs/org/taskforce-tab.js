@@ -4,40 +4,40 @@
 // 私有状态（PersonPicker 实例）随模块自持；共享数据（taskforce 分类）经 ctx 传入。
 // 2026-10-20 第三轮 IA 判例④：活动视图已迁至「活动日历」页，本页不再消费 ctx.activities。
 
-import { setState } from '../../../core/base/state.js?v=20261023a';
-import { TaskForceRecordStore, isTaskforceOrganizer } from '../../../services/activity/taskforce.js?v=20261023a';
-import { legacyParticipantAssignmentRows, workgroupMembers } from '../../../services/activity/workgroup-members.js?v=20261023a';
-import { SignupStore, resolveSignupReviewer, SignupStatus, SIGNUP_ROLE_LABELS, SIGNUP_STATUS_LABELS } from '../../../services/activity/signup.js?v=20261023a';
-import { AuthStore } from '../../../services/core/auth.js?v=20261023a';
-import { loadTaskforceReviews, addTaskforceReview } from '../../../services/governance/review.js?v=20261023a';
-import { TodoStore, TodoSourceType, TodoCategory, TodoActionType } from '../../../services/governance/todo.js?v=20261023a';
-import { NoticeStore } from '../../../services/governance/notice.js?v=20261023a';
-import { mockDB, ReviewStatus, isTaskforceTerminalStatus, isTaskforceActiveStatus, TASKFORCE_TERMINAL_STATUSES, TASK_TERMINAL_STATUSES, OUTPUT_TERMINAL_STATUSES } from '../../../core/domain/domain.js?v=20261023a'; // IA-C3 收敛单写入口 2026-09-06：ParticipationLevel 随考察写入口移除
-import { persist } from '../../../data/data-adapter.js?v=20261023a';
-import { settleWrites } from '../../../core/session/pending-writes.js?v=20261023a';
-import { showToast, escHtml as esc, getBasePath, todayLocal, flashHighlight } from '../../../core/base/utils.js?v=20261023a';
-import { generateId } from '../../../core/base/id.js?v=20261023a';
-import { solidAccentStyle } from '../../../core/domain/constants.js?v=20261023a';
-import { PersonPicker } from '../../../components/governance/pickers.js?v=20261023a';
-import { renderWorkgroupPermissionEditor, readWorkgroupPermissionEditor } from '../../../components/governance/workgroup-permissions.js?v=20261023a';
-import { renderWorkgroupMemberEditor, bindWorkgroupMemberEditor } from '../../../components/governance/workgroup-member-editor.js?v=20261023a';
-import { getAdapter } from '../../../data/data-adapter.js?v=20261023a';
-import { recordFormShell } from '../../../components/ui/forms.js?v=20261023a';
+import { setState } from '../../../core/base/state.js?v=20261023b';
+import { TaskForceRecordStore, isTaskforceOrganizer } from '../../../services/activity/taskforce.js?v=20261023b';
+import { legacyParticipantAssignmentRows, workgroupMembers } from '../../../services/activity/workgroup-members.js?v=20261023b';
+import { SignupStore, resolveSignupReviewer, SignupStatus, SIGNUP_ROLE_LABELS, SIGNUP_STATUS_LABELS } from '../../../services/activity/signup.js?v=20261023b';
+import { AuthStore } from '../../../services/core/auth.js?v=20261023b';
+import { loadTaskforceReviews, addTaskforceReview } from '../../../services/governance/review.js?v=20261023b';
+import { TodoStore, TodoSourceType, TodoCategory, TodoActionType } from '../../../services/governance/todo.js?v=20261023b';
+import { NoticeStore } from '../../../services/governance/notice.js?v=20261023b';
+import { mockDB, ReviewStatus, isTaskforceTerminalStatus, isTaskforceActiveStatus, TASKFORCE_TERMINAL_STATUSES, TASK_TERMINAL_STATUSES, OUTPUT_TERMINAL_STATUSES } from '../../../core/domain/domain.js?v=20261023b'; // IA-C3 收敛单写入口 2026-09-06：ParticipationLevel 随考察写入口移除
+import { persist } from '../../../data/data-adapter.js?v=20261023b';
+import { settleWrites } from '../../../core/session/pending-writes.js?v=20261023b';
+import { showToast, escHtml as esc, getBasePath, todayLocal, flashHighlight } from '../../../core/base/utils.js?v=20261023b';
+import { generateId } from '../../../core/base/id.js?v=20261023b';
+import { solidAccentStyle } from '../../../core/domain/constants.js?v=20261023b';
+import { PersonPicker } from '../../../components/governance/pickers.js?v=20261023b';
+import { renderWorkgroupPermissionEditor, readWorkgroupPermissionEditor } from '../../../components/governance/workgroup-permissions.js?v=20261023b';
+import { renderWorkgroupMemberEditor, bindWorkgroupMemberEditor } from '../../../components/governance/workgroup-member-editor.js?v=20261023b';
+import { getAdapter } from '../../../data/data-adapter.js?v=20261023b';
+import { recordFormShell } from '../../../components/ui/forms.js?v=20261023b';
 // 「本位」nudge 确认弹窗（2026-09-23 支书裁定 · 单一源 = components/ui/modal.js::confirmNudge）
 // U-05：招募浮窗原为手写 overlay/panel（无 dialog 语义 / 无焦点接管）→ 改走同一组件的 openModal。
-import { confirmNudge, confirmWriteWithoutGrant, openModal, closeModal } from '../../../components/ui/modal.js?v=20261023a';
+import { confirmNudge, confirmWriteWithoutGrant, openModal, closeModal, setModalBusy } from '../../../components/ui/modal.js?v=20261023b';
 // 转交组织者（SOP-G-2-② · 2026-10-01 批次 327 · 支书裁「乙：直接转交 ＋ 留痕」）：判据 / 写口 /
 //   弹窗单一源＝`components/governance/organizer-transfer.js`（本台只挂入口，不复制一份实现）。
-import { canTransferOrganizer, openOrganizerTransfer, organizerOf } from '../../../components/governance/organizer-transfer.js?v=20261023a';
-import { badgeHtml } from '../../../components/ui/badges.js?v=20261023a';
+import { canTransferOrganizer, openOrganizerTransfer, organizerOf } from '../../../components/governance/organizer-transfer.js?v=20261023b';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20261023b';
 // 人×项目矩阵单一源（支书 2026-09-14 裁定：把宽表推广到其它二元关系域 → 本批「专班报名」域）
-import { renderRelationMatrix } from '../../../components/ui/relation-matrix.js?v=20261023a';
-import { getPersonName, PersonStore } from '../../../services/member/person.js?v=20261023a';
+import { renderRelationMatrix } from '../../../components/ui/relation-matrix.js?v=20261023b';
+import { getPersonName, PersonStore } from '../../../services/member/person.js?v=20261023b';
 // 统一检索引擎（2026-09-13 表格统一化批次 A）：报名名单等按人段落接入关键词 + 分面
-import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261023a';
-import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261023a';
+import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261023b';
+import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261023b';
 // 详情锚定单一源（2026-10-18 繁专项 Task 14）：与 taskforce-view.js 同款「触点即落点」
-import { anchorDetailToTrigger, scrollDetailIntoView } from '../../../components/ui/detail-anchor.js?v=20261023a';
+import { anchorDetailToTrigger, scrollDetailIntoView } from '../../../components/ui/detail-anchor.js?v=20261023b';
 // 私有状态（随模块自持，不污染入口）
 let _recruitOrganizerPicker = null;
 let _recruitDeepPicker = null;
@@ -818,7 +818,7 @@ function _tfRenderVerifyBlock(panel, tf) {
     keyword: { keys: ['_memberName'], placeholder: '搜索成员姓名…' },
     countUnit: '条',
     listClass: 'space-y-2',
-    emptyMessage: '暂无待核条目——专班成员在本专班详情「我的产出填报」提交产出后，此处逐条核验',
+    emptyMessage: '暂无待核条目',
     rowHtml: (c) => {
       const actions = c.verifiedStatus ? '' : `
             <button class="btn-action-green tf-contrib-verify-btn px-2.5 py-1 flex-shrink-0" data-contrib-id="${c.id}" data-decision="approve">同意入档</button>
@@ -1331,6 +1331,13 @@ function _showTaskforceDissolutionDialog(tf) {
       const basisWrap = card.querySelector('#tf-dissolve-basis-wrap');
       const basis = card.querySelector('#tf-dissolve-basis');
       const submit = card.querySelector('#tf-dissolve-submit');
+      const cancelBtn = card.querySelector('#tf-dissolve-cancel');
+      // 提交中：主/次按钮禁用 + aria-busy；Esc / 遮罩 / × / 取消四条路径由 modal.js 统一挂起
+      const setBusy = (busy) => {
+        setModalBusy(MODAL_ID, busy, '#tf-dissolve-submit');
+        if (submit) submit.disabled = busy;
+        if (cancelBtn) cancelBtn.disabled = busy;
+      };
       vote.addEventListener('change', () => {
         basisWrap.classList.toggle('hidden', !vote.checked);
         basis.required = vote.checked;
@@ -1344,7 +1351,7 @@ function _showTaskforceDissolutionDialog(tf) {
           basis.focus();
           return;
         }
-        submit.disabled = true;
+        setBusy(true);
         const currentUserId = AuthStore.getCurrentUser()?.personId || '';
         try {
           const updated = await TaskForceRecordStore.dissolve(tf.id, {
@@ -1355,7 +1362,7 @@ function _showTaskforceDissolutionDialog(tf) {
           });
           if (!updated) {
             showToast('error', '工作组收尾失败：请刷新后检查状态与权限');
-            submit.disabled = false;
+            setBusy(false);
             return;
           }
           if (!vote.checked) {
@@ -1369,7 +1376,7 @@ function _showTaskforceDissolutionDialog(tf) {
             : `工作组「${tf.name}」已结束，历史记录保留`);
           setState({});
         } catch (error) {
-          submit.disabled = false;
+          setBusy(false);
           showToast('error', error?.message || '工作组收尾失败，请稍后重试');
         }
       });
@@ -1584,10 +1591,13 @@ export function openRecruitForm(ctx) {
         if (submitBtn?.disabled) return;
         if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = '发布中…'; submitBtn.classList.add('opacity-50'); }
         if (cancelBtn) cancelBtn.disabled = true;
+        // 提交中：四条关闭路径（Esc / 遮罩 / × / 取消）统一由 modal.js 挂起
+        setModalBusy('recruit-form-modal', true, '[data-modal-submit="recruit-form-modal"]');
         let ok = false;
         try {
           ok = await _submitRecruitForm(ctx);
         } finally {
+          setModalBusy('recruit-form-modal', false);
           if (!ok && panel.isConnected) {
             if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = '发布'; submitBtn.classList.remove('opacity-50'); }
             if (cancelBtn) cancelBtn.disabled = false;

@@ -295,9 +295,9 @@ const BASELINE_C5 = {
 };
 /** C6：空态 >30 的现存命中（全站实测 4 处，与 §4.18.2 C6 的「全站实测 4 处」一致；最长 41 字） */
 const BASELINE_C6 = {
-  'docs/src/entries/tabs/org/taskforce-tab.js': [
-    '暂无待核条目——专班成员在本专班详情「我的产出填报」提交产出后，此处逐条核验',
-  ],
+  // 2026-10-23 R10 P3-14：`org/taskforce-tab.js` 的 37 字空态
+  //   「暂无待核条目——专班成员在本专班详情…逐条核验」已收成「暂无待核条目」⇒ 该命中不再成立、
+  //   条目移除（收基线）；`BASE_C6_FILES` 3 → 2、`BASE_C6_TOTAL` 3 → 2。
   // 2026-10-04 批次 373：原 `group-progress-tab.js` 的「党小组活动」空态**随分区迁 `calendar-tab.js`**
   //   并改短为 ≤30（`暂无党小组发起的活动（新建时选「自下而上」）`）⇒ 该命中不再成立、条目移除（收基线）；
   //   `BASE_C6_FILES` 4 → 3、`BASE_C6_TOTAL` 4 → 3。
@@ -320,8 +320,8 @@ const BASE_C2_FILES = 4;
 const BASE_C2_TOTAL = 5;
 const BASE_C5_FILES = 3;
 const BASE_C5_TOTAL = 3;
-const BASE_C6_FILES = 3;
-const BASE_C6_TOTAL = 3;
+const BASE_C6_FILES = 2;
+const BASE_C6_TOTAL = 2;
 
 /** 「导语候选」下限（非空转：L1 若一个卡片都认不出 ⇒ 恒真） */
 const LEAD_CANDIDATE_FLOOR = 100;

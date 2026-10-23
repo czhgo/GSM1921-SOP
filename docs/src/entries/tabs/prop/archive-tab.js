@@ -2,37 +2,37 @@
 // 宣传委员工作台 Tab：档案归档（T-279 M3 拆分，照 M2 样板）
 // 归档记录纯读 + 材料标准/模板 + 归档推进浮窗（材料确认清单）+ 上传宣传材料（attachments 双模式）。
 
-import { icon } from '../../../core/base/icons.js?v=20261023a';
-import { solidAccentStyle, activityTypeBadgeVariant, isActivityArchived } from '../../../core/domain/constants.js?v=20261023a';
-import { POLICY_DEFAULTS } from '../../../core/domain/policy-defaults.js?v=20261023a';
+import { icon } from '../../../core/base/icons.js?v=20261023b';
+import { solidAccentStyle, activityTypeBadgeVariant, isActivityArchived } from '../../../core/domain/constants.js?v=20261023b';
+import { POLICY_DEFAULTS } from '../../../core/domain/policy-defaults.js?v=20261023b';
 // 活动类型胶囊（批次 301）：类别色走单一源（三会一课＝brand 红 / 主题党日＝gold 金），渲染唯一源 badge.js
-import { badgeHtml } from '../../../components/ui/badges.js?v=20261023a'; // 扎口出口（批次 304 收回，勿直连 badge.js）
-import { showToast, downloadCSV, downloadBlob, downloadUrl, _fmtDate, escHtml, todayLocal } from '../../../core/base/utils.js?v=20261023a';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20261023b'; // 扎口出口（批次 304 收回，勿直连 badge.js）
+import { showToast, downloadCSV, downloadBlob, downloadUrl, _fmtDate, escHtml, todayLocal } from '../../../core/base/utils.js?v=20261023b';
 // 2026-09-21 批次 139：页脚「相关设置」深链由 modal.js 的 `settingsLinkHTML` 单点渲染；
 //   2026-10-21 批次 497：本 tab 四个浮层（上传材料 / 文件外发 / 上传照片 / 标注照片）全部改走 `openModal`，
 //   不再自建 overlay（统一 dialog 语义、sticky footer 与取消语义）。
-import { openModal, closeModal } from '../../../components/ui/modal.js?v=20261023a';
-import { persist, getAuthToken, getApiBaseUrl, getAdapter } from '../../../data/data-adapter.js?v=20261023a';
-import { withSelectedBranchScope } from '../../../data/api-adapter.js?v=20261023a';
-import { mockDB } from '../../../core/domain/domain.js?v=20261023a';
-import { bumpToken } from '../../../core/base/version-token.js?v=20261023a'; // P0 域缓存失效（spec §二.3）
-import { loadActivities, listPublicityDrafts, setPublicityDraftStatus, PUBLICITY_DRAFT_STATUS, listGalleryCandidates, setGalleryFeatured, setGalleryPinned, isGalleryFeatured, isGalleryPinned } from '../../../services/activity/activity.js?v=20261023a';
-import { isApiMode } from '../../../services/core/runtime.js?v=20261023a';
-import { AuthStore, currentUserId } from '../../../services/core/auth.js?v=20261023a';
-import { getPersonName } from '../../../services/member/person.js?v=20261023a';
+import { openModal, closeModal } from '../../../components/ui/modal.js?v=20261023b';
+import { persist, getAuthToken, getApiBaseUrl, getAdapter } from '../../../data/data-adapter.js?v=20261023b';
+import { withSelectedBranchScope } from '../../../data/api-adapter.js?v=20261023b';
+import { mockDB } from '../../../core/domain/domain.js?v=20261023b';
+import { bumpToken } from '../../../core/base/version-token.js?v=20261023b'; // P0 域缓存失效（spec §二.3）
+import { loadActivities, listPublicityDrafts, setPublicityDraftStatus, PUBLICITY_DRAFT_STATUS, listGalleryCandidates, setGalleryFeatured, setGalleryPinned, isGalleryFeatured, isGalleryPinned } from '../../../services/activity/activity.js?v=20261023b';
+import { isApiMode } from '../../../services/core/runtime.js?v=20261023b';
+import { AuthStore, currentUserId } from '../../../services/core/auth.js?v=20261023b';
+import { getPersonName } from '../../../services/member/person.js?v=20261023b';
 // 批次 352（`D-746` · `D-744`② 业务过程类余项）：照片记录「作废（软）」——统一写口 ＋ 支委层判据
-import * as SoftVoid from '../../../services/governance/soft-void.js?v=20261023a';
-import { openVoidModal } from '../../../components/ui/void-record.js?v=20261023a';
-import { addExternalDispatch, loadExternalDispatches, loadActiveDispatches } from '../../../services/activity/external-dispatch.js?v=20261023a';
+import * as SoftVoid from '../../../services/governance/soft-void.js?v=20261023b';
+import { openVoidModal } from '../../../components/ui/void-record.js?v=20261023b';
+import { addExternalDispatch, loadExternalDispatches, loadActiveDispatches } from '../../../services/activity/external-dispatch.js?v=20261023b';
 // R2-40：归档材料写口（mock/api 同源）——api 落 archive_records、mock 落 localStorage
-import { ArchiveStore } from '../../../services/activity/archive.js?v=20261023a';
+import { ArchiveStore } from '../../../services/activity/archive.js?v=20261023b';
 // A② 归档缺口判据单一源（支书台「宣传材料待归档」实时组同源）：已归档但无归档记录的活动
-import { getArchiveGapActivities, getEndedUnarchivedActivities } from '../../../services/governance/secretary-overview.js?v=20261023a';
+import { getArchiveGapActivities, getEndedUnarchivedActivities } from '../../../services/governance/secretary-overview.js?v=20261023b';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是活动的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
-import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261023a';
-import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261023a';
+import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261023b';
+import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261023b';
 // 材料页深链 focusActivityId 的通用定位（只滚动 + 闪烁，不另造筛选器）
-import { focusActivityAnchor } from '../../../components/ui/detail-anchor.js?v=20261023a';
+import { focusActivityAnchor } from '../../../components/ui/detail-anchor.js?v=20261023b';
 
 // ── 档案归档 ─────────────────────────────────────────────
 // 种子数据已提升为全局（data/mock/seed.js SEED_ARCHIVE_RECORDS，loadDB 时注入），
@@ -87,7 +87,7 @@ export function renderContent(ctx) {
     ${_renderWeeklySlot()}
 
     <div class="mb-4 flex flex-col sm:flex-row gap-3 items-center justify-end">
-      <button id="archive-upload-btn" class="btn-accent-soft text-xs px-3 py-2 flex-shrink-0 flex items-center justify-center gap-1.5" >
+      <button id="archive-upload-btn" class="btn-accent-soft flex-shrink-0 flex items-center justify-center gap-1.5" >
         ${icon('upload', { className: 'w-3.5 h-3.5' })}
         <span>上传材料</span>
       </button>
@@ -419,7 +419,7 @@ let _weeklyOpen = false;
 /** 懒挂周报内容到宿主容器（`weekly-tab.js` 的 `renderContent(ctx, host)` 已支持传入宿主） */
 function _mountWeekly(host, ctx) {
   host.dataset.weeklyMounted = '1';
-  import('./weekly-tab.js?v=20261023a').then(m => {
+  import('./weekly-tab.js?v=20261023b').then(m => {
     if (host.isConnected) m.renderContent(ctx, host);
   });
 }
@@ -560,7 +560,7 @@ function _archiveRowHtml(r) {
   // B4（2026-09-12）：无材料文件时不再静默隐藏入口 → 给出可见依据提示（避免「入口完全不可见」）
   const dispatchHtml = r.fileName
     ? _renderDispatchCell(r)
-    : `<span class="text-[11px] text-gray-400 flex-shrink-0">上传材料后可标记外发</span>`;
+    : `<span class="text-xs text-gray-400 flex-shrink-0">上传材料后可标记外发</span>`;
   // 2026-09-22 批次 145（支书裁定二「归档页补一个」）：党建平台上报留痕——与既有那枚「标记已发送（微信/对外）」
   //   并列、两个动作分开记（母本 `宣传委员工作流程指南.md:49` 步 7；同文件 `:88` 周报步 4 已指周报页那枚）。
   const platformHtml = _renderPlatformCell(r);
@@ -597,7 +597,7 @@ function _renderDispatchCell(r) {
   const confirmed = recs.some(d => d.confirmedAt);
   const badge = `<span class="text-xs px-1.5 py-0.5 rounded-full border shrink-0 ${confirmed ? 'bg-green-50 text-green-700 border-green-200' : 'bg-amber-50 text-amber-700 border-amber-200'}">${confirmed ? '已确认收到' : '已外发·待确认'}</span>`;
   const voidKey = latest.voidPending && !latest.voided
-    ? '<span class="text-[11px] text-gray-500">待支委会确认</span>'
+    ? '<span class="text-xs text-gray-500">待支委会确认</span>'
     : `<button class="btn-action btn-action-gray archive-dispatch-void-btn" data-ed-id="${escHtml(latest.id)}" title="软作废：该外发记录出列（发送方与接收方同时不再显示）、留痕可回查；支委可直接作废，其余人报支委会确认" style="cursor:pointer;">作废</button>`;
   return `${badge}${voidKey}`;
 }
@@ -854,7 +854,7 @@ function _showArchiveUploadModal(ctx) {
             class="block w-full text-xs text-gray-600 file:mr-3 file:px-3 file:py-1.5 file:rounded-lg file:border-0 file:bg-blue-50 file:text-blue-600 file:text-xs hover:file:bg-blue-100 transition-colors cursor-pointer" />
           <div id="upload-preview" class="mt-2 space-y-1.5"></div>
         </div>
-        <div class="rounded-lg px-3 py-2 text-[11px] leading-relaxed ${apiMode ? 'bg-teal-50 text-teal-700 border border-teal-100' : 'bg-amber-50 text-amber-700 border border-amber-100'}">
+        <div class="rounded-lg px-3 py-2 text-xs leading-relaxed ${apiMode ? 'bg-teal-50 text-teal-700 border border-teal-100' : 'bg-amber-50 text-amber-700 border border-amber-100'}">
           ${apiMode
             ? '服务端模式：文件落服务器磁盘（jpg/png/pdf/doc/docx/xlsx/mp4，单文件 ≤' + maxMB + 'MB），元数据写入文件空间记录，产出物区同步可见。'
             : '本地模式：文件以 base64 存入本地存储（单文件 ≤' + maxMB + 'MB），刷新不丢失；产出物区/关闭校验同步可见。'}
@@ -877,7 +877,7 @@ function _showArchiveUploadModal(ctx) {
             ${thumb}
             <div class="flex-1 min-w-0">
               <p class="text-xs text-gray-700 truncate">${escHtml(f.name)}</p>
-              <p class="text-[11px] text-gray-500">${(f.size / 1024).toFixed(1)} KB</p>
+              <p class="text-xs text-gray-500">${(f.size / 1024).toFixed(1)} KB</p>
             </div>
             <button class="btn-ghost upload-file-remove text-sm leading-none" data-idx="${i}">&times;</button>
           </div>`;
@@ -962,7 +962,7 @@ function _promptExternalDispatch(activityId, activityName, ctx, onSent) {
     size: 'md',
     bodyHtml: `
       <div class="space-y-3.5">
-        <div class="rounded-lg px-3 py-2 text-[11px] leading-relaxed bg-amber-50 text-amber-700 border border-amber-100">
+        <div class="rounded-lg px-3 py-2 text-xs leading-relaxed bg-amber-50 text-amber-700 border border-amber-100">
           宣传材料已归档到系统。若还需通过<b>微信</b>把文件发给对方确认（如新闻稿送支书审核），
           请在此标记「已外发」——对方收到后会在其工作台确认，形成可审计记录（谁 / 何时 / 发给谁 / 何时确认）。
         </div>
@@ -1163,11 +1163,11 @@ function _photoGroupHtml(group) {
         </div>
         <figcaption class="p-2">
           <p class="text-xs text-gray-800 truncate" title="${escHtml(r.title || '未命名照片')}">${escHtml(r.title || '未命名照片')}</p>
-          <p class="text-[11px] text-gray-500 truncate">拍摄主体：${escHtml(r.subject || '—')}</p>
+          <p class="text-xs text-gray-500 truncate">拍摄主体：${escHtml(r.subject || '—')}</p>
           <div class="flex items-center gap-1.5 mt-1">
             <button type="button" class="btn-outline pw-annotate-btn px-2 py-1" data-photo-id="${escHtml(r.id)}" style="cursor:pointer;">标注</button>
             ${r.voidPending && !r.voided
-              ? '<span class="text-[11px] text-gray-500">待支委会确认</span>'
+              ? '<span class="text-xs text-gray-500">待支委会确认</span>'
               : `<button type="button" class="btn-action btn-action-gray pw-void-btn" data-photo-id="${escHtml(r.id)}" title="软作废：照片从墙上出列、留痕可回查；支委可直接作废，其余人报支委会确认">作废</button>`}
           </div>
         </figcaption>
@@ -1259,7 +1259,7 @@ function _showPhotoUploadModal(ctx) {
             class="block w-full text-xs text-gray-600 file:mr-3 file:px-3 file:py-1.5 file:rounded-lg file:border-0 file:bg-blue-50 file:text-blue-600 file:text-xs hover:file:bg-blue-100 transition-colors cursor-pointer" />
           <div id="photo-upload-preview" class="mt-2 space-y-1.5"></div>
         </div>
-        <div class="rounded-lg px-3 py-2 text-[11px] leading-relaxed bg-teal-50 text-teal-700 border border-teal-100">
+        <div class="rounded-lg px-3 py-2 text-xs leading-relaxed bg-teal-50 text-teal-700 border border-teal-100">
           照片走服务端上传接口（jpg / png，单张 ≤10MB）落盘，元数据进图片记录；同批照片共用上方日期与标注。
         </div>
       </div>`,
@@ -1274,7 +1274,7 @@ function _showPhotoUploadModal(ctx) {
             <img src="${previewUrls[i]}" class="w-9 h-9 rounded object-cover border border-gray-200 flex-shrink-0" alt="" />
             <div class="flex-1 min-w-0">
               <p class="text-xs text-gray-700 truncate">${escHtml(f.name)}</p>
-              <p class="text-[11px] text-gray-500">${(f.size / 1024).toFixed(1)} KB</p>
+              <p class="text-xs text-gray-500">${(f.size / 1024).toFixed(1)} KB</p>
             </div>
             <button class="btn-ghost photo-file-remove text-sm leading-none" data-idx="${i}">&times;</button>
           </div>`).join('') || '<p class="text-xs text-gray-500 text-center py-3">尚未选择图片</p>';

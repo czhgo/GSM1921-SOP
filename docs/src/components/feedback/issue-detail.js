@@ -1,15 +1,16 @@
 // role: [工程师]+[AI]
 // issue-detail.js — 反馈详情渲染
 
-import { IssueStore, issueDomainLabel, issueDomainSuggest, issueDomainReplyHint } from '../../services/governance/issues.js?v=20261023a';
-import { MilestoneStore } from '../../services/governance/milestones.js?v=20261023a';
-import { AuthStore } from '../../services/core/auth.js?v=20261023a';
-import { showToast } from '../../core/base/utils.js?v=20261023a';
-import { icon } from '../../core/base/icons.js?v=20261023a';
-import { getPersonName } from '../../services/member/person.js?v=20261023a';
-import { renderReactions, bindReactions } from './reactions.js?v=20261023a';
-import { ISSUE_STATUS_LABELS, ISSUE_CLOSED_REASON_LABELS } from '../../core/domain/constants.js?v=20261023a';
-import { badgeHtml } from '../ui/badges.js?v=20261023a';
+import { IssueStore, issueDomainLabel, issueDomainSuggest, issueDomainReplyHint } from '../../services/governance/issues.js?v=20261023b';
+import { MilestoneStore } from '../../services/governance/milestones.js?v=20261023b';
+import { AuthStore } from '../../services/core/auth.js?v=20261023b';
+import { showToast } from '../../core/base/utils.js?v=20261023b';
+import { icon } from '../../core/base/icons.js?v=20261023b';
+import { getPersonName } from '../../services/member/person.js?v=20261023b';
+import { renderReactions, bindReactions } from './reactions.js?v=20261023b';
+import { ISSUE_STATUS_LABELS, ISSUE_CLOSED_REASON_LABELS } from '../../core/domain/constants.js?v=20261023b';
+import { badgeHtml } from '../ui/badges.js?v=20261023b';
+import { openFormModal } from '../ui/modal.js?v=20261023b';
 
 const SCOPE_LABELS = {
   permanent: '底层架构',
@@ -150,11 +151,11 @@ export function renderIssueDetail(issueId) {
           <div class="mb-3">
             <p class="text-gray-500 mb-1">状态</p>
             ${canManage
-              ? `<select id="status-select" class="input-flat w-full text-xs rounded font-sans">
+              ? `<select id="status-select" class="input-flat w-full text-xs font-sans">
                   <option value="open" ${issue.status === 'open' ? 'selected' : ''}>开放中</option>
                   <option value="closed" ${issue.status === 'closed' ? 'selected' : ''}>已关闭</option>
                 </select>
-                <select id="closed-reason-select" class="input-flat w-full text-xs rounded mt-1 font-sans ${issue.status === 'open' ? 'hidden' : ''}">
+                <select id="closed-reason-select" class="input-flat w-full text-xs mt-1 font-sans ${issue.status === 'open' ? 'hidden' : ''}">
                   <option value="completed" ${issue.closedReason === 'completed' ? 'selected' : ''}>已解决</option>
                   <option value="duplicate" ${issue.closedReason === 'duplicate' ? 'selected' : ''}>重复</option>
                   <option value="wontfix" ${issue.closedReason === 'wontfix' ? 'selected' : ''}>不修复</option>
@@ -283,10 +284,20 @@ function bindDetailEvents(issue) {
     btn.addEventListener('click', () => {
       const issueId = btn.dataset.issueId;
       const commentId = btn.dataset.commentId;
-      const reason = prompt('请输入隐藏原因（可选）') || '不当言论';
-      IssueStore.hideComment(issueId, commentId, reason);
-      showToast('success', '评论已隐藏');
-      renderIssueDetail(issueId);
+      // 2026-10-23：原生 prompt 改统一单行输入浮窗（留空仍按「不当言论」记录）
+      openFormModal({
+        id: 'hide-comment',
+        title: '隐藏评论',
+        fields: [{ key: 'reason', label: '请输入隐藏原因（可选）', type: 'text', placeholder: '留空按「不当言论」记录' }],
+        submitLabel: '隐藏',
+        onSubmit: (values) => {
+          const reason = String(values.reason || '').trim() || '不当言论';
+          IssueStore.hideComment(issueId, commentId, reason);
+          showToast('success', '评论已隐藏');
+          renderIssueDetail(issueId);
+          return true;
+        },
+      });
     });
   });
 }

@@ -2142,3 +2142,72 @@ li + li { margin-top: 0.25em; }
 | 架构分层与目录结构 | [ARCHITECTURE.md](../../03_doc_system/ARCHITECTURE.md) |
 | 组件与样式的实现母本（代码） | `docs/src/styles.css` · `docs/src/components/*` |
 | 沿革与「哪一批做了什么」 | `.ctx/logs/archive/2026-09-EXECUTION_LOG.md` |
+
+## 十二、组件层执行口径（2026-10-23 批次 505 · 现行）
+
+> 本节是支书 2026-10-23 九条 UI 判例的执行口径；与 §3.2 / §4.1 / §4.3 的旧尺寸表冲突时，**以本节为准**（旧表保留作沿革）。
+> 机检＝`server/test/ui-control-system-guard.test.mjs`；真机抽检＝`page-sweep`。
+
+### 12.1 控件（唯一源）
+
+| 项 | 标准 | 紧凑 |
+|---|---|---|
+| 类 | `.input-flat` | `.input-flat-sm` |
+| 高度 | 38px | 32px |
+| 内边距 | 10px 16px | 7px 12px（含 1px 边框） |
+| 字号/行高 | 13px / 16px | 13px / 16px |
+| 描边 | 1px `--neutral-200` | 1px `--neutral-200` |
+| 圆角 | 8px（`--radius-sm`） | 8px |
+| focus | 金边 + 2px `--focus-ring` | 同左 |
+| 日期控件 | 所有 `.input-flat[type=date…]` 钉 38px | 所有 `.input-flat-sm[…]` 钉 32px |
+
+- 控件上**禁止**叠加 `text-sm` / `rounded` / `rounded-lg` / 无颜色 `border`。
+- 搜索类输入（`person-picker-search` / `help-search-input` / `cs-search-input`）必须与上表同描边、同 8px 圆角、同焦点环；它们是**登记在案的白名单**，新增白名单须给理由。
+
+### 12.2 按钮（外围—内围）
+
+**强度按结构位置，不按「主/次」：**
+
+| 位置 | 族 | 外观 |
+|---|---|---|
+| 最外围（页头 / 空态主行动 / 弹窗主行动） | `.btn-accent` | 主题色实底 + 白字 |
+| 内围（卡片 / 区块内） | `.btn-accent-soft` | 浅主题底（≥12% 主题色，不得近白）+ 深主题字 `--app-accent-deep` + 同色 1px 描边 |
+| 工具位（行尾 / 筛选 / 次级） | `.btn-outline` | 白底 + `--neutral-200` 描边 + `--neutral-700` 字 |
+| 行内辅助（更多 / 展开） | `.btn-ghost` | 无框文字 |
+
+- **禁止**「白底 + 主题色文字」的按钮形态。
+- 尺寸：标准 **36px**（accent / accent-soft / outline / neutral / danger / md）、紧凑 **32px**（ghost / tab）、小号 **28px**（sm / action）；与 38px 输入框同排的主行动可 38px。
+- 行内动作水平内边距 ≥10px、图标与文字间距 ≥6px；同一行最多一个浅底按钮。
+
+### 12.3 页签分组
+
+- 每个分组（**含首组**）渲染可见组名（12px / `--neutral-500`）；组间 `.tab-group-sep` 为 1px × 14px 竖线。
+- ≤1280px 只隐藏组名、保留分隔线；任何断点都不得让页签换行或遮挡末页签。
+
+### 12.4 今天页 / 待办
+
+- 字号只用 12 / 13 / 14 / 16；正文区禁止 10px / 11px。
+- 层级：页面/卡片标题 16、段标题 14/600、计数 13/500、行标题 13–14、meta 12。
+- `.metric-band`：白底 + `--neutral-200` 描边 + 12px 圆角；数值 24/600、标签 12/`--neutral-500`；仅「逾期 > 0」用警示色。
+
+### 12.5 披露控件（summary）
+
+- 全局 `summary { list-style:none }` + 唯一一处 `::-webkit-details-marker{display:none}`。
+- 统一一个 chevron（`summary::before`，展开旋转）；禁止逐点 `list-none` 例外。
+
+### 12.6 本轮设计学习（可检验规则）
+
+| ID | 规则（Boolean） |
+|---|---|
+| SD-1 | IF 文本/日期/下拉/多行控件 THEN class ∈ {input-flat, input-flat-sm} 且无 `text-sm`/`rounded`/独立 `border` |
+| SD-2 | IF 元素有可见边框 THEN `border-color` ∈ token 变量集合，不得为 `currentColor` |
+| SD-3 | IF 控件 THEN 8px；IF 卡片/指标带 THEN 12px；IF 胶囊 THEN 999px；不得出现 4/6px |
+| SD-4 | IF 元素是 `summary` THEN UA marker 已移除且恰有一个 chevron |
+| SD-5 | IF 页头/空态/弹窗主行动 THEN 实底主题色；IF 卡片内 THEN 浅主题底；IF 工具位 THEN 白底描边；IF 行内辅助 THEN 无框 |
+| SD-6 | IF 按钮用浅主题底 THEN 背景 ≠ `--neutral-0` 且描边为同色系 |
+| SD-7 | IF 显示成功 THEN 该动作自己的写已 resolve；失败不得被报成成功 |
+| SD-8 | IF 弹窗提交中 THEN Esc/遮罩/×/取消均不关闭且 `aria-busy=true` |
+| SD-9 | IF 页签有 groupLabel THEN 桌面端渲染非空文本（含首组） |
+| SD-10 | IF 正文/元信息 THEN font-size ∈ {12,13,14,16}px；today/todo 中 10/11px 计数为 0 |
+| SD-11 | IF 删除一句文案 THEN 该句不含唯一动作/状态/风险信息；破坏性确认与权限原因不得删 |
+

@@ -99,7 +99,9 @@ test('P2 非空转：抽取口径正/负例 ＋ 扫描面规模下限 ＋ 反例
   const files = rows.length;
   const total11 = rows.reduce((a, r) => a + (r.sizes[ALLOWED_FLOOR] || 0), 0);
   assert.ok(files >= 80, `扫描面过窄（实测 ${files} 文件，下限 80）——P1 可能因范围被削而恒绿`);
-  assert.ok(total11 >= 200, `档位表内 Overline 档（11px）实测过少（${total11} 处，下限 200）——抽取口径可能失效`);
+  // ⚠ 2026-10-23 批次 505：全站 `text-[11px]` 统一并入 `text-xs`（12px），实测 11px 由 362 降到 66
+  //   ⇒ 非空转下限随之下调（仍远高于「抽取器失效」的 0；上限基线只降不升）。
+  assert.ok(total11 >= 50, `档位表内 Overline 档（11px）实测过少（${total11} 处，下限 50）——抽取口径可能失效`);
 });
 
 // ── P3 缩减进度（只报不判）─────────────────────────────────────────

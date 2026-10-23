@@ -3,7 +3,7 @@ title: "工程化评估与改造行动线"
 type: audit_report
 role: "[工程师]+[AI]"
 created: 2026-09-03
-last_updated: "2026-10-22"
+last_updated: "2026-10-23"
 status: active
 related_files: [content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md, content/04_web_design/evolution/WORKFLOW_BLOCK_CONTRACT.md, content/04_web_design/evolution/PARTY_COMMITTEE_DESIGN.md, content/04_web_design/module/SOP_WEBSITE_GUIDE.md, content/04_web_design/deploy/DEPLOYMENT_GUIDE.md, .ctx/REVIEW_QUEUE.md, CLAUDE.md, content/03_doc_system/DOC_MAP.md, content/insights/README.md, content/insights/工程与AI协作的全栈实践.md, server/README.md, docs/help.html]
 ---
@@ -271,6 +271,7 @@ Git 从 2026-03-14 至 2026-10-14 共 1,133 条提交记录；按提交日期分
 | 跨组不是第三落点（`D-826`） | 数据模型/权限 | ✅ | 已收口（批次 502）：落点两档 `party-group`/`branch`，跨组只表示招募范围；迁移 v10；服务端补组织者例外校验 | `constants.js::normalizeOrganizingScope`、`server/db.js` v10、`DECISION_LOG D-826` |
 | 第六轮前端脏乱繁复审 | 审查 | ✅ 报告；P1/P2 已修 | P3 余项登记 `CLAUDE.md B-502-3` | `.ctx/logs/2026-10-AUDIT_R6_FRONTEND.md` |
 | 第七轮数据生命周期 | 审查 | ✅ 报告；P1/P2 已修 | P3 余项登记 `CLAUDE.md B-502-4`；补课文案余项 `B-502-6` | `.ctx/logs/2026-10-AUDIT_R7_DATA.md` |
+| 多支部形态与 P13 余项（承 `B-503-2`） | 数据/权限 | 🟡 在办 | 来源＝第九轮 9A 诊断残项：**多支部形态待支书裁定**；裁定后与 P13 的服务端读过滤下推、写门同批排（schema 方案已出、本轮不实施） | `.ctx/logs/2026-10-AUDIT_R9_DATA_STRUCTURE.md`、本文件 §四 P13 行 |
 
 ---
 

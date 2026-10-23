@@ -1,7 +1,8 @@
-import { PersonPicker } from './pickers.js?v=20261023a';
-import { getAdapter } from '../../data/data-adapter.js?v=20261023a';
-import { getPersonById } from '../../services/member/person.js?v=20261023a';
-import { WORKGROUP_PERMISSION_LABELS, WORKGROUP_ROLE_LABELS, workgroupPermissionTemplates } from '../../core/domain/workgroup-policy.js?v=20261023a';
+import { PersonPicker } from './pickers.js?v=20261023b';
+import { getAdapter } from '../../data/data-adapter.js?v=20261023b';
+import { getPersonById } from '../../services/member/person.js?v=20261023b';
+import { describeWriteError } from '../../core/base/utils.js?v=20261023b';
+import { WORKGROUP_PERMISSION_LABELS, WORKGROUP_ROLE_LABELS, workgroupPermissionTemplates } from '../../core/domain/workgroup-policy.js?v=20261023b';
 
 const esc = (value) => String(value ?? '').replace(/[&<>"']/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
 const permissionName = (key) => WORKGROUP_PERMISSION_LABELS[key] || key;
@@ -49,7 +50,7 @@ function renderMemberRow(member, grant, kind, canEdit) {
   }
 
   return `<details class="rounded-lg border border-gray-200 bg-white px-3 py-2" data-wg-member="${esc(personId)}" data-template-key="${esc(grant?.templateKey || '')}">
-    <summary class="flex cursor-pointer list-none flex-wrap items-center gap-x-2 gap-y-1 text-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700">
+    <summary class="flex cursor-pointer flex-wrap items-center gap-x-2 gap-y-1 text-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700">
       <span class="font-medium text-gray-800">${esc(name)}</span>
       <span class="rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-600">${WORKGROUP_ROLE_LABELS[role]}</span>
       ${groupLabel}
@@ -57,7 +58,7 @@ function renderMemberRow(member, grant, kind, canEdit) {
     </summary>
     <div class="mt-3 border-t border-gray-100 pt-2">
       ${canEdit ? `<label class="block max-w-xs text-xs text-gray-600">工作组分工
-        <select class="input-flat mt-1 w-full text-sm" data-member-role aria-label="${esc(name)}的工作组分工">
+        <select class="input-flat mt-1 w-full" data-member-role aria-label="${esc(name)}的工作组分工">
           ${Object.entries(WORKGROUP_ROLE_LABELS).map(([key, label]) => `<option value="${key}"${role === key ? ' selected' : ''}>${label}</option>`).join('')}
         </select>
       </label>` : ''}
@@ -214,7 +215,8 @@ export function bindWorkgroupMemberEditor(root, { onSaved } = {}) {
       status.textContent = '成员和权限已保存。';
       if (typeof onSaved === 'function') await onSaved();
     } catch (error) {
-      status.textContent = error?.message ? `保存失败：${error.message}` : '保存失败；当前编辑内容已保留，请重试。';
+      // 失败文案统一走 describeWriteError（不直接展示 error.message 里的技术串）
+      status.textContent = `保存失败：${describeWriteError(error)}；当前编辑内容已保留，请重试。`;
       button.disabled = false;
     }
   });

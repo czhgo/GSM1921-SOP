@@ -13,18 +13,18 @@
 //   通知被赋权人）。⇒ 「退出与接手人」两者都在既有审计链里可查。
 // **不改权限门**：本件不新增任何写权限——能否转交由本文件判据决定，底层写入仍走既有写口。
 
-import { openModal, closeModal } from '../ui/modal.js?v=20261023a';
-import { PersonPicker } from './pickers.js?v=20261023a';
-import { AuthStore } from '../../services/core/auth.js?v=20261023a';
-import { getPersonName } from '../../services/member/person.js?v=20261023a';
-import { showToast, escHtml } from '../../core/base/utils.js?v=20261023a';
-import { mockDB } from '../../core/domain/domain.js?v=20261023a';
+import { openModal, closeModal, setModalBusy } from '../ui/modal.js?v=20261023b';
+import { PersonPicker } from './pickers.js?v=20261023b';
+import { AuthStore } from '../../services/core/auth.js?v=20261023b';
+import { getPersonName } from '../../services/member/person.js?v=20261023b';
+import { showToast, escHtml } from '../../core/base/utils.js?v=20261023b';
+import { mockDB } from '../../core/domain/domain.js?v=20261023b';
 // 「做事即销待办」：转交完成＝本对象已完成「指定组织者」这件事 ⇒ 与两处既有「保存角色」同款，
 //   销掉该对象的赋权待办（`TodoSourceType.ACTIVITY` / `TASKFORCE`）——**不一致会留下悬空待办**。
-import { TodoStore, TodoSourceType } from '../../services/governance/todo.js?v=20261023a';
+import { TodoStore, TodoSourceType } from '../../services/governance/todo.js?v=20261023b';
 // 通知**被退出的原组织者**（2026-10-01 批次 330 · 支书裁「补：通知原组织者」）：走系统派生通知单一源
 //   （kind `organizer-transferred`，服务端按注册表复算授权；受众＝到人定向，文案/落点在模板单一源）。
-import { NoticeStore } from '../../services/governance/notice.js?v=20261023a';
+import { NoticeStore } from '../../services/governance/notice.js?v=20261023b';
 
 /** 可发起「转交组织者」的角色 —— **单一源**（支书 / 副支书 / 组织委员；现任组织者本人另按人判，见下） */
 const TRANSFER_ROLES = ['secretary', 'deputy-secretary', 'org-commissioner'];
@@ -138,7 +138,7 @@ export function openOrganizerTransfer({ subject, scopeRef, subjectName = '', onD
       <div id="ot-picker-slot"></div>
       <p style="margin:10px 0 0;font-size:0.72rem;line-height:1.7;color:var(--neutral-500);">更换会记入本${label}的角色变更留痕（谁转给谁、何时），并通知接手人；这不改动任何权限。</p>`,
     footerHtml: `
-      <button type="button" data-ot-cancel class="btn-outline text-sm px-4 py-1.5" style="cursor:pointer;">取消</button>
+      <button type="button" data-ot-cancel data-modal-cancel="${MODAL_ID}" class="btn-outline text-sm px-4 py-1.5" style="cursor:pointer;">取消</button>
       <button type="button" data-ot-confirm class="btn-accent text-sm px-4 py-1.5 font-medium">转交</button>`,
     // 取消 = 放弃本次编辑：销毁选人器（Esc / 遮罩 / × 同样生效）
     onCancel: () => { if (picker) { picker.destroy(); picker = null; } },
@@ -148,20 +148,34 @@ export function openOrganizerTransfer({ subject, scopeRef, subjectName = '', onD
         picker = new PersonPicker({ mode: 'single', placeholder: '搜索姓名或学号选择接手人', onSelect: () => {} });
         picker.render(slot);
       }
-      panel.querySelector('[data-ot-cancel]')?.addEventListener('click', () => closeModal(MODAL_ID));
+      const confirmBtn = panel.querySelector('[data-ot-confirm]');
+      const cancelBtn = panel.querySelector('[data-ot-cancel]');
+      // 提交中：主/次按钮禁用 + aria-busy；Esc / 遮罩 / × / 取消四条路径由 modal.js 统一挂起
+      const setBusy = (busy) => {
+        setModalBusy(MODAL_ID, busy, '[data-ot-confirm]');
+        if (confirmBtn) confirmBtn.disabled = busy;
+        if (cancelBtn) cancelBtn.disabled = busy;
+      };
       panel.querySelector('[data-ot-confirm]')?.addEventListener('click', async () => {
         const to = (picker?.getSelected() || [])[0] || '';
         if (!to) { showToast('error', '请选择接手人'); return; }
-        closeModal(MODAL_ID);
-        const r = await transferOrganizer({
-          subject, scopeRef, toPersonId: to, actorId: AuthStore.getCurrentUser()?.personId,
-        });
-        if (r.ok) {
-          showToast('success', `已转交：${getPersonName(r.from) || r.from} → ${getPersonName(r.to) || r.to}`);
-          if (typeof onDone === 'function') onDone();
-        } else {
+        setBusy(true);
+        let r;
+        try {
+          r = await transferOrganizer({
+            subject, scopeRef, toPersonId: to, actorId: AuthStore.getCurrentUser()?.personId,
+          });
+        } catch (err) {
+          setBusy(false);
           showToast('error', '转交未生效，请刷新后重试');
+          console.warn('[organizer-transfer] 转交失败：', err);
+          return;
         }
+        // 失败保留弹窗（已选接手人仍在，可重试）；只有成功才关窗
+        if (!r?.ok) { setBusy(false); showToast('error', '转交未生效，请刷新后重试'); return; }
+        closeModal(MODAL_ID);
+        showToast('success', `已转交：${getPersonName(r.from) || r.from} → ${getPersonName(r.to) || r.to}`);
+        if (typeof onDone === 'function') onDone();
       });
     },
   });

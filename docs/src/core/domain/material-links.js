@@ -10,11 +10,13 @@
 // 纪律：纯函数、不依赖 DOM / 不 import 任何浏览器模块 ⇒ Node 可直接 import
 //   （守卫：server/test/material-link-truth.test.mjs）。role 取 AuthStore.getCurrentUser().role 的值。
 
+import { SECRETARY_AND_DEPUTY_ROLES, rolesForPage } from './constants.js?v=20261023b';
+
 export const MATERIAL_ROWS = ['photos', 'attendance', 'inspection', 'review'];
 
-const SECRETARY_ROLES = new Set(['secretary', 'deputy-secretary']);
-// `deputy-leader` 与 `leader` 共用同一套工作台（D-571），落点也同一份。
-const LEADER_ROLES = new Set(['leader', 'deputy-leader']);
+// 角色集单一源：支书/副支书引 constants；组长层（含副职）由 ROLE_PAGE_MAP 反查派生（同页同台同落点，D-571）。
+const SECRETARY_ROLES = new Set(SECRETARY_AND_DEPUTY_ROLES);
+const LEADER_ROLES = new Set(rolesForPage('leader.html'));
 
 const _id = (actId) => (actId == null ? '' : String(actId));
 

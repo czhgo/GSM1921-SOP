@@ -21,15 +21,15 @@
 // 本文件避免静态引入业务服务以防环依赖；静态依赖仅限零依赖叶子模块：
 //   · pending-writes：persist() 排程时必须同步登记写入，不能等 await（批次 49）。
 //   · page-url：纯 URL 解析，无数据或业务依赖，不形成反向依赖。
-import { trackWrite } from '../core/session/pending-writes.js?v=20261023a';
-import { resolveDocumentUrl } from '../core/base/page-url.js?v=20261023a';
+import { trackWrite } from '../core/session/pending-writes.js?v=20261023b';
+import { resolveDocumentUrl } from '../core/base/page-url.js?v=20261023b';
 // 角色集单一源（constants.js 只引零依赖叶子 date.js ⇒ 不形成业务环依赖）。
-import { BRANCH_COMMISSION_ROLES, PARTY_STAFF_ROLE } from '../core/domain/constants.js?v=20261023a';
+import { BRANCH_COMMISSION_ROLES, PARTY_STAFF_ROLE } from '../core/domain/constants.js?v=20261023b';
 // 工作组「在办」判据单一源（禁止裸状态数组回潮）
 // D10：首页工作组预载必须与 components/dashboard/taskforce-list.js 完全同口径 → 用其 active/recruiting 判据
-import { isTaskforceActiveStatus } from '../core/domain/domain.js?v=20261023a';
+import { isTaskforceActiveStatus } from '../core/domain/domain.js?v=20261023b';
 // @deprecated 旧 p* 人员 id 映射：仅迁移路径（本文件 + mock-adapter）可引用，业务代码禁止直接 import。
-import { isLegacyPersonId, mapPersonId } from './legacy-person-ids.js?v=20261023a';
+import { isLegacyPersonId, mapPersonId } from './legacy-person-ids.js?v=20261023b';
 
 /**
  * 旧 p* 人员 id → 学号/工号（迁移期兼容；已是学号原样返回，未知旧 id 返回 null）。
@@ -234,7 +234,7 @@ export async function init() {
       ]);
 
       // 填充 mockDB 缓存（供服务层同步读取）
-      const { mockDB } = await import('../core/domain/domain.js?v=20261023a');
+      const { mockDB } = await import('../core/domain/domain.js?v=20261023b');
       // 缓存引用：pagehide 同步冲刷时不能再 await 动态 import（文档卸载中挂起），
       // 必须直接同步读取（见 _flushSnapshotSync）
       _cachedMockDB = mockDB;
@@ -326,7 +326,7 @@ export async function init() {
       } catch (e) {
         console.warn('[DataAdapter] init: niche/新域集合拉取失败，回退本地备份：', e);
         try {
-          const { restoreNicheCollections } = await import('./mock-adapter.js?v=20261023a');
+          const { restoreNicheCollections } = await import('./mock-adapter.js?v=20261023b');
           restoreNicheCollections();
         } catch (e2) {
           console.warn('[DataAdapter] init: 本地 niche 备份恢复失败：', e2);
@@ -359,8 +359,8 @@ export async function init() {
       //   （批 47-X 真机实测入口计数 0，批 47-Y 按 R-78 造出可达且自洽的前置后转正）。
       if (SEED_FALLBACK && (!mockDB.attendances.length || !mockDB.inspections.length)) {
         try {
-          const { ATTENDANCE_RECORDS } = await import('./mock/attendance.js?v=20261023a');
-          const { INSPECTION_RECORDS } = await import('./mock/inspection.js?v=20261023a');
+          const { ATTENDANCE_RECORDS } = await import('./mock/attendance.js?v=20261023b');
+          const { INSPECTION_RECORDS } = await import('./mock/inspection.js?v=20261023b');
           const filled = ['attendances', 'inspections'].filter((k) => !mockDB[k].length); // 实际被回退注入的键
           for (const k of filled) mockDB[k] = (k === 'attendances' ? ATTENDANCE_RECORDS : INSPECTION_RECORDS).map(r => ({ ...r }));
           _commitBase(mockDB, filled); // 2026-09-26 批次 206：只登记实际注入的键（原先并列写死 ⇒ 未回退的键也被推基线 ⇒ 并发写丢）
@@ -371,7 +371,7 @@ export async function init() {
       }
       if (SEED_FALLBACK && !mockDB.todos.length) {
         try {
-          const { SEED_TODOS } = await import('../services/governance/todo.js?v=20261023a');
+          const { SEED_TODOS } = await import('../services/governance/todo.js?v=20261023b');
           mockDB.todos = _seedTodosForCurrentRole(SEED_TODOS);
           _commitBase(mockDB, ['todos']); // 回退值计入基线 ⇒ 不上传
           console.info('[DataAdapter] init: 待办空集合已按当前角色回退本地 seed');
@@ -471,6 +471,14 @@ let _snapshotTimer = null;
 /** 当前排程对应的结算器（批次 49）：flush 落地/失败时结算，供成功提示侧等待 */
 let _flushDeferred = null;
 
+/**
+ * 本防抖窗口内**每一次** `persist()` 的结算器（R11 P0-03 动作作用域）。
+ * 防抖合并时多个动作共享同一次 flush：只保留一个 `_flushDeferred` 会让
+ * 「排程已存在」的后一次写**不登记等待对象**，其作用域看不到失败 ⇒ 假成功。
+ * 故每次排程都追加一个结算器，flush 完成/失败时统一结算。
+ */
+let _flushWaiters = new Set();
+
 /** 快照写穿防抖间隔（ms）：多次连续写合并为一次全量快照 */
 const SNAPSHOT_DEBOUNCE_MS = 800;
 
@@ -537,15 +545,27 @@ function _commitBase(mockDB, keys) {
  * 若等到 flush 真正执行时才登记，紧随其后的成功提示会在「排程刚建好、flush 还没跑」的
  * 空窗里看到「无在途写」而**立即报成功**，判据就白设了。故此处同步建一个 deferred、
  * 交给 `trackWrite` 登记，`_flushSnapshot` 完成（或失败）时结算它。
- * 防抖合并天然生效：同一窗口内的多次写共用同一个 deferred。
+ * 防抖合并天然生效：同一窗口内的多次写共用同一次 flush；但**每次写各自登记一个
+ * waiter**（`_flushWaiters`）——否则窗口内的第二个动作在作用域里看不到自己的等待对象，
+ * 会把「已排程、未 flush」当成成功（R11 P0-03）。
  */
 function _scheduleSnapshot() {
-  if (_snapshotTimer) return;
   let resolve, reject;
   const promise = new Promise((res, rej) => { resolve = res; reject = rej; });
-  _flushDeferred = { resolve, reject };
+  const waiter = { resolve, reject };
+  _flushWaiters.add(waiter);
+  // 只在「新开一个窗口」时更新 pagehide 用的排程指针；合并窗口内每个 waiter 都各自登记
+  if (!_snapshotTimer) _flushDeferred = waiter;
   trackWrite(promise);
+  if (_snapshotTimer) return;
   _snapshotTimer = setTimeout(() => { _flushSnapshot().catch(() => {}); }, SNAPSHOT_DEBOUNCE_MS);
+}
+
+/** 结算**本次 flush 开始时**已登记的全部 waiter（flush 期间新排程的写归下一次，不在此结算） */
+function _settleFlushWaiters(waiters, error) {
+  for (const w of waiters) {
+    if (error) w.reject(error); else w.resolve();
+  }
 }
 
 /**
@@ -599,15 +619,18 @@ async function _flushSnapshot() {
   _snapshotTimer = null;
   const deferred = _flushDeferred;
   _flushDeferred = null;
+  // 本次 flush 开始时已登记的全部 waiter（合并窗口内可能有多个动作）
+  const waiters = [..._flushWaiters];
+  _flushWaiters = new Set();
   // flush 时若数据源已切回 mock（如服务器不可达回退），跳过写穿
-  if (DATA_SOURCE !== 'api') { deferred?.resolve(); return; }
+  if (DATA_SOURCE !== 'api') { deferred?.resolve(); _settleFlushWaiters(waiters); return; }
   // 党委账号未选支部：本轮没有支部写范围，快照必被服务端 403 ⇒ 不发（不把成功提示反转为失败）
-  if (_isPartyStaffWithoutBranch()) { deferred?.resolve(); return; }
+  if (_isPartyStaffWithoutBranch()) { deferred?.resolve(); _settleFlushWaiters(waiters); return; }
   try {
-    const { mockDB } = await import('../core/domain/domain.js?v=20261023a');
+    const { mockDB } = await import('../core/domain/domain.js?v=20261023b');
     _cachedMockDB = mockDB;
     const dirty = _collectDirty(mockDB);
-    if (!dirty) { deferred?.resolve(); return; } // 无脏集合：跳过上传（2026-09-02 增量快照）
+    if (!dirty) { deferred?.resolve(); _settleFlushWaiters(waiters); return; } // 无脏集合：跳过上传（2026-09-02 增量快照）
     // P0-1：随 payload 带 `_versions`（各脏集合的基线版本）→ 服务端逐集合乐观锁比对
     const { keys, payload } = _withVersions(dirty);
     const resp = await getAdapter().snapshot(payload);
@@ -615,9 +638,11 @@ async function _flushSnapshot() {
     _commitBase(mockDB, keys);            // 上传成功 → 数据基线推进
     _postDataChangedBroadcast(keys);      // P1-1：同源其它标签**零网络**即知（不必等轮询周期）
     deferred?.resolve();
+    _settleFlushWaiters(waiters);
   } catch (e) {
     console.warn('[DataAdapter] 增量快照写穿失败（已保留本地备份，下次 flush 自动重试）：', e);
     deferred?.reject(e);
+    _settleFlushWaiters(waiters, e);
     // P0-1 409（同集合被别人先写）：不推进基线 + 重拉冲突集合 + 提示用户（`_recoverFromConflict` 内部给 showToast）
     if (e && e.status === 409) {
       await _recoverFromConflict(e).catch((err) => console.warn('[DataAdapter] 版本冲突后刷新失败：', err));
@@ -661,7 +686,7 @@ export async function adoptCollectionFromServer(name, opts = {}) {
   const adapter = getAdapter();
   const group = adapter[name];
   if (!group || typeof group.list !== 'function') return false;
-  const { mockDB } = await import('../core/domain/domain.js?v=20261023a');
+  const { mockDB } = await import('../core/domain/domain.js?v=20261023b');
   let versionResp = null;
   try { versionResp = await adapter.versions(); } catch (e) {
     console.warn(`[DataAdapter] 采用 ${name}：版本基线重取失败（保持旧值，下次快照会再拒一次）：`, e);
@@ -734,16 +759,20 @@ function _flushSnapshotSync() {
     _flushSnapshot().catch(() => {});
     return;
   }
+  // 卸载路径：本上下文无法再观测结果 ⇒ 结算本窗口全部 waiter（不只是排程指针）
+  const waiters = [..._flushWaiters];
+  _flushWaiters = new Set();
   try {
     // snapshot(payload, {keepalive:true}) 内部为 async：fetch 在同步调用栈内发出
     // （≤ 体量上限走 keepalive，超限由 ApiAdapter 回退普通请求并告警）；
     // 卸载后剩余 await 可忽略；rejection 兜底避免 unhandledrejection
     const dirty = _collectDirty(_cachedMockDB);
-    if (!dirty) { _flushDeferred?.resolve(); _flushDeferred = null; return; } // 无脏集合：跳过（2026-09-02 增量快照）
+    if (!dirty) { _flushDeferred?.resolve(); _flushDeferred = null; _settleFlushWaiters(waiters); return; } // 无脏集合：跳过（2026-09-02 增量快照）
     // 批次 49：卸载路径由浏览器接管请求完成，本上下文无法再观测结果 ⇒ **结算排程**，
     // 否则 deferred 永远挂着、`settleWrites()` 会在它上面空等（真机表现为成功提示不出）。
     _flushDeferred?.resolve();
     _flushDeferred = null;
+    _settleFlushWaiters(waiters);
     // P0-1：同样带 `_versions`——`_withVersions` 覆盖 dirty 的全部键（T5 批次 163 起服务端**拒收**缺版本的集合）
     const { payload } = _withVersions(dirty);
     getAdapter().snapshot(payload, { keepalive: true }).catch((e) => {
@@ -752,6 +781,7 @@ function _flushSnapshotSync() {
   } catch (e) {
     _flushDeferred?.resolve();
     _flushDeferred = null;
+    _settleFlushWaiters(waiters);
     console.warn('[DataAdapter] pagehide 快照发起失败（已保留本地备份）：', e);
   }
 }
@@ -838,11 +868,11 @@ async function _recoverFromConflict(e) {
     console.warn('[DataAdapter] 409 冲突但未给出冲突集合清单，无法定向刷新');
     return;
   }
-  const { mockDB } = await import('../core/domain/domain.js?v=20261023a');
+  const { mockDB } = await import('../core/domain/domain.js?v=20261023b');
   await _refreshCollections(names, mockDB);
   // 业务语言提示（既有告警通道 + 支书要求的可读文案）
   try {
-    const { showToast } = await import('../core/base/utils.js?v=20261023a');
+    const { showToast } = await import('../core/base/utils.js?v=20261023b');
     showToast('info', '数据已被他人更新，已为你刷新');
   } catch (err) {
     console.warn('[DataAdapter] 冲突提示渲染失败：', err);
@@ -1023,12 +1053,12 @@ export async function hydrateDataSource({ apiAdapter, loadMock } = {}) {
 
 // 部署形态常量（`getRuntimeMode().stage` 的取值来源）：server=同源后端（Node 动态注入）/ static=静态托管。
 // ⚠ 同本文件既有纪律：**置尾**以保上文行号（README-server.md 的 `文件:行号` 取证引用）；import 声明被提升，置尾不影响语义。
-import { DEPLOY_MODE, DEMO_READONLY } from '../config/deploy.js?v=20261023a';
+import { DEPLOY_MODE, DEMO_READONLY } from '../config/deploy.js?v=20261023b';
 // `SEED_FALLBACK`（空域 seed 回退开关）**用命名空间导入**：Node 托管形态下 `/src/config/deploy.js`
 //   由 `server/app.js` 注入，**已带上该常量**（值由 env `SEED_FALLBACK=0` 决定，缺省 `true`）。仍保持
 //   命名空间导入（不用命名导入）：托管形态不止一种，命名导入遇上缺导出的宿主会 **SyntaxError**
 //   ⇒ 取不到即按**默认 `true`**（＝既有行为）。完整语义见 `config/deploy.js` 与本文件 `_deployConfig`。
-import * as _deployConfig from '../config/deploy.js?v=20261023a';
+import * as _deployConfig from '../config/deploy.js?v=20261023b';
 const SEED_FALLBACK = _deployConfig.SEED_FALLBACK !== undefined ? _deployConfig.SEED_FALLBACK : true;
 
 // ════════════════════════════════════════════════════════════════
@@ -1398,7 +1428,7 @@ export function demoReadOnlyMessage() {
 export async function refreshRemoteCollections(names, opts = {}) {
   if (DATA_SOURCE !== 'api') throw new Error('[DataAdapter] refreshRemoteCollections 仅用于 API 数据源');
   const uniqueNames = [...new Set((Array.isArray(names) ? names : []).filter((name) => typeof name === 'string'))];
-  const { mockDB } = await import('../core/domain/domain.js?v=20261023a');
+  const { mockDB } = await import('../core/domain/domain.js?v=20261023b');
   return _refreshCollections(uniqueNames, mockDB, opts);
 }
 

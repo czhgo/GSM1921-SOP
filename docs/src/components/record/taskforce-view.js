@@ -4,18 +4,18 @@
 // 专班列表（状态分组）+ 只读详情（成员/角色/贡献）。依据支书第五轮裁定「新建专班查看组件（列表+详情）」。
 // 支书设计原则：「无职责 不代表 没有知情权」。
 
-import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261023a';
-import { getPersonName } from '../../services/member/person.js?v=20261023a';
-import { mockDB } from '../../core/domain/domain.js?v=20261023a';
-import { AuthStore } from '../../services/core/auth.js?v=20261023a';
-import { canRevealActivityMemberNames } from '../../services/core/visibility.js?v=20261023a';
-import { badgeHtml } from '../ui/badges.js?v=20261023a';
-import { dotDarkVars } from '../../core/domain/constants.js?v=20261023a';
-import { flashHighlight, showToast, escHtml as esc } from '../../core/base/utils.js?v=20261023a';
-import { anchorDetailToTrigger } from '../ui/detail-anchor.js?v=20261023a';
+import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261023b';
+import { getPersonName } from '../../services/member/person.js?v=20261023b';
+import { mockDB } from '../../core/domain/domain.js?v=20261023b';
+import { AuthStore } from '../../services/core/auth.js?v=20261023b';
+import { canRevealActivityMemberNames } from '../../services/core/visibility.js?v=20261023b';
+import { badgeHtml } from '../ui/badges.js?v=20261023b';
+import { dotDarkVars } from '../../core/domain/constants.js?v=20261023b';
+import { flashHighlight, showToast, escHtml as esc } from '../../core/base/utils.js?v=20261023b';
+import { anchorDetailToTrigger } from '../ui/detail-anchor.js?v=20261023b';
 // 统一检索引擎（2026-09-14 裁定）：只读详情「成员贡献」（第一列是人 → 配姓名关键词）与
 // 「中间进度」（时间线 → 只给分页：keyword null + facets []）各接一个实例
-import { renderFilteredList } from '../ui/list-filter.js?v=20261023a';
+import { renderFilteredList } from '../ui/list-filter.js?v=20261023b';
 
 // 附录⑩ B批：状态词对齐「支委会表决」语义（pending_review=待支委会表决；dissolved=表决通过解散）
 const STATUS_LABEL = { draft: '草稿', pending_review: '待支委会表决', recruiting: '招募中', active: '运行中', completed: '已完结', archived: '已归档', dissolved: '已解散' };
@@ -166,12 +166,12 @@ function _renderTfCard(t) {
 function _contribTagOf(c) {
   if (!c || typeof c !== 'object' || !c.id) return '';
   if (c.verifiedStatus === 'approved') {
-    return `<span class="ml-1 inline-block align-middle text-[11px] px-1.5 py-0.5 rounded-full bg-green-50 text-green-700">已入档${c.verifiedBy ? ' · ' + esc(getPersonName(c.verifiedBy)) : ''}</span>`;
+    return `<span class="ml-1 inline-block align-middle text-xs px-1.5 py-0.5 rounded-full bg-green-50 text-green-700">已入档${c.verifiedBy ? ' · ' + esc(getPersonName(c.verifiedBy)) : ''}</span>`;
   }
   if (c.verifiedStatus === 'rejected') {
-    return `<span class="ml-1 inline-block align-middle text-[11px] px-1.5 py-0.5 rounded-full bg-red-50 text-red-700">已退回${c.rejectNote ? ' · ' + esc(c.rejectNote) : ''}</span>`;
+    return `<span class="ml-1 inline-block align-middle text-xs px-1.5 py-0.5 rounded-full bg-red-50 text-red-700">已退回${c.rejectNote ? ' · ' + esc(c.rejectNote) : ''}</span>`;
   }
-  return '<span class="ml-1 inline-block align-middle text-[11px] px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-700">待核</span>';
+  return '<span class="ml-1 inline-block align-middle text-xs px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-700">待核</span>';
 }
 
 /** 只读详情：基本信息 + 历史分工 + 结构化工作产出登记 */
@@ -224,9 +224,9 @@ async function _renderTfDetail(container, tf, highlightId) {
       <h5 class="font-title-cn text-xs font-bold text-gray-600 mb-2">登记工作产出 <span class="text-gray-500 font-normal">· 保存到结构化工作产出记录</span></h5>
       <div class="rounded-lg bg-gray-50 p-2.5">
         <label for="tfv-output-title" class="block text-xs text-gray-600">产出名称（必填）</label>
-        <input id="tfv-output-title" class="input-flat mt-1 w-full text-sm" maxlength="160" placeholder="例如：专题稿件初稿">
+        <input id="tfv-output-title" class="input-flat mt-1 w-full" maxlength="160" placeholder="例如：专题稿件初稿">
         <label for="tfv-output-task" class="block mt-2 text-xs text-gray-600">关联任务（选填）</label>
-        <select id="tfv-output-task" class="input-flat mt-1 w-full text-sm">
+        <select id="tfv-output-task" class="input-flat mt-1 w-full">
           <option value="">暂不关联具体任务</option>
           ${tasks.map((task) => `<option value="${esc(task.id)}">${esc(task.title || task.name || '未命名任务')}</option>`).join('')}
         </select>
@@ -246,7 +246,7 @@ async function _renderTfDetail(container, tf, highlightId) {
       <h5 class="font-title-cn text-xs font-bold text-gray-600 mb-2">工作产出（${outputs.length}）</h5>
       ${outputs.length ? `<ul class="space-y-2">${outputs.map((output) => `
         <li class="rounded-lg bg-gray-50 px-3 py-2">
-          <div class="flex flex-wrap items-center gap-2"><span class="text-xs font-medium text-gray-800">${esc(output.title || '未命名产出')}</span><span class="rounded-full bg-white px-2 py-0.5 text-[11px] text-gray-600">${esc(outputStatus[output.status] || '已登记')}</span></div>
+          <div class="flex flex-wrap items-center gap-2"><span class="text-xs font-medium text-gray-800">${esc(output.title || '未命名产出')}</span><span class="rounded-full bg-white px-2 py-0.5 text-xs text-gray-600">${esc(outputStatus[output.status] || '已登记')}</span></div>
           ${output.taskId ? `<p class="mt-1 text-xs text-gray-500">任务：${esc(tasks.find((task) => task.id === output.taskId)?.title || output.taskId)}</p>` : ''}
           ${output.description ? `<p class="mt-1 whitespace-pre-wrap text-xs text-gray-600">${esc(output.description)}</p>` : ''}
         </li>`).join('')}</ul>` : '<p class="text-xs text-gray-500">暂无结构化工作产出。</p>'}
@@ -290,7 +290,7 @@ async function _renderTfDetail(container, tf, highlightId) {
           ? `<ul class="mt-1 space-y-0.5">${(m.contributions || []).map(c => {
               const desc = typeof c === 'string' ? c : (c.desc || c.description || c.title || JSON.stringify(c));
               const meta = (c && typeof c === 'object' && (c.by || c.at))
-                ? `<span class="text-[11px] text-gray-500"> · ${[c.by ? esc(getPersonName(c.by)) : '', c.at ? esc(String(c.at).slice(0, 16).replace('T', ' ')) : ''].filter(Boolean).join(' ')}</span>`
+                ? `<span class="text-xs text-gray-500"> · ${[c.by ? esc(getPersonName(c.by)) : '', c.at ? esc(String(c.at).slice(0, 16).replace('T', ' ')) : ''].filter(Boolean).join(' ')}</span>`
                 : '';
               return `<li class="text-[12px] text-gray-500 pl-2">${esc(desc)}${meta}${_contribTagOf(c)}</li>`;
             }).join('')}</ul>`
@@ -325,9 +325,9 @@ async function _renderTfDetail(container, tf, highlightId) {
             <span class="mt-1.5 w-1.5 h-1.5 rounded-full flex-shrink-0" style="background:var(--functional-success);"></span>
             <div class="flex-1 min-w-0">
               <div class="flex items-center gap-2 flex-wrap">
-                ${p.stage ? `<span class="text-[11px] px-1.5 py-0.5 rounded-full flex-shrink-0" style="background:#10B98115;color:#0D9488;">${esc(p.stage)}</span>` : ''}
-                <span class="text-[11px] text-gray-500">${esc((p.at || '').slice(0, 16).replace('T', ' '))}</span>
-                <span class="text-[11px] text-gray-500">${p.by ? (canRevealNames ? esc(getPersonName(p.by)) : '成员') : ''}</span>
+                ${p.stage ? `<span class="text-xs px-1.5 py-0.5 rounded-full flex-shrink-0" style="background:#10B98115;color:#0D9488;">${esc(p.stage)}</span>` : ''}
+                <span class="text-xs text-gray-500">${esc((p.at || '').slice(0, 16).replace('T', ' '))}</span>
+                <span class="text-xs text-gray-500">${p.by ? (canRevealNames ? esc(getPersonName(p.by)) : '成员') : ''}</span>
               </div>
               <p class="text-xs text-gray-600 leading-relaxed mt-0.5">${esc(p.note || '')}</p>
             </div>

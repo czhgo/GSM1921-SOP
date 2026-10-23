@@ -19,23 +19,23 @@
 // 视觉沿用 card/rounded 既有体系（四档列表渲染在 components/record/todo-list.js renderUrgencyTodoList）。
 // 设计权威源：content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md §六 M6（共性抽象净减）
 
-import { TodoStore, urgeRolesOf, WORK_DOMAIN, WORK_DOMAIN_LABELS, realtimeGroupDomainOf, buildModuleCycleRemindGroup } from '../../services/governance/todo.js?v=20261023a';
+import { TodoStore, urgeRolesOf, WORK_DOMAIN, WORK_DOMAIN_LABELS, realtimeGroupDomainOf, buildModuleCycleRemindGroup } from '../../services/governance/todo.js?v=20261023b';
 // S3②（2026-09-12）：未读通知计数单一来源——与顶栏角标/首页同源（NoticeStore activeOnly+read 过滤），
 // 不再用「通知类待办」现算（口径不同致三处不一致）。
-import { NoticeStore, NOTICE_MODULE_ROLE_PAGES } from '../../services/governance/notice.js?v=20261023a';
-import { buildUrgencySections, renderUrgencyTodoList } from './todo-list.js?v=20261023a';
-import { badgeHtml } from '../ui/badges.js?v=20261023a';
-import { showToast, escHtml, todayLocal, flashHighlight } from '../../core/base/utils.js?v=20261023a';
-import { ROLE_LABELS, BRANCH_COMMISSION_ROLES } from '../../core/domain/constants.js?v=20261023a';
-import { openModal, closeModal } from '../ui/modal.js?v=20261023a';
-import { AuthStore } from '../../services/core/auth.js?v=20261023a';
-import { mockDB } from '../../core/domain/domain.js?v=20261023a';
-import { tokenOf } from '../../core/base/version-token.js?v=20261023a'; // P0 域写版本戳（spec §二.4）
-import { resolveDocumentUrl } from '../../core/base/page-url.js?v=20261023a';
-import { memoizeRender } from '../ui/memoize-render.js?v=20261023a'; // P2 渲染守卫（spec §四.1）
-import { renderTabHeader } from '../shell/page-frame.js?v=20261023a'; // 页题单一源（H2）
+import { NoticeStore, NOTICE_MODULE_ROLE_PAGES } from '../../services/governance/notice.js?v=20261023b';
+import { buildUrgencySections, renderUrgencyTodoList } from './todo-list.js?v=20261023b';
+import { badgeHtml } from '../ui/badges.js?v=20261023b';
+import { showToast, escHtml, todayLocal, flashHighlight } from '../../core/base/utils.js?v=20261023b';
+import { ROLE_LABELS, BRANCH_COMMISSION_ROLES } from '../../core/domain/constants.js?v=20261023b';
+import { openModal, closeModal } from '../ui/modal.js?v=20261023b';
+import { AuthStore } from '../../services/core/auth.js?v=20261023b';
+import { mockDB } from '../../core/domain/domain.js?v=20261023b';
+import { tokenOf } from '../../core/base/version-token.js?v=20261023b'; // P0 域写版本戳（spec §二.4）
+import { resolveDocumentUrl } from '../../core/base/page-url.js?v=20261023b';
+import { memoizeRender } from '../ui/memoize-render.js?v=20261023b'; // P2 渲染守卫（spec §四.1）
+import { renderTabHeader } from '../shell/page-frame.js?v=20261023b'; // 页题单一源（H2）
 // 模块周期提醒（`R-29⑤` · `D-804`）：分工快照取法与 `components/governance/workforce-duty-card.js` 同口径
-import { getBranchIdOfPerson, getBranchWorkforce } from '../../services/branch/branch.js?v=20261023a';
+import { getBranchIdOfPerson, getBranchWorkforce } from '../../services/branch/branch.js?v=20261023b';
 
 // ── P0 组合数据复合键（2026-09-07 · spec §二.4）──────────────────
 // 组合点（buildRealtimeGroups + mergeRealtimeDomains + getUnreadNotices）以
@@ -159,7 +159,8 @@ function _applyNavHighlight(container, id, matchedGroup) {
 /**
  * 顶部四数摘要带（逾期 / 今日 / 本周 / 待处理）——一条横向带，不拆四张 KPI 卡。
  * 数值由 buildUrgencySections 与列表共用同一批分组数据算出，不另立口径。
- * 视觉：.metric-band（数字 26px/600 + 标签 12px + 细竖线）；只有逾期用 warning，其余中性。
+ * 视觉：.metric-band（数字 + 标签 12px + 细竖线）；**仅逾期件数 > 0 时**加 `metric-band__value--warning`，
+ *   0 件时保持中性（颜色只表状态，不得恒加警示类）。
  */
 function _urgencySummaryHtml(summary) {
   const item = (label, value, tone) => `
@@ -167,9 +168,10 @@ function _urgencySummaryHtml(summary) {
       <span class="metric-band__value${tone ? ` metric-band__value--${tone}` : ''}">${value || 0}</span>
       <span class="metric-band__label">${label}</span>
     </span>`;
+  const overdueTone = (Number(summary.overdue) || 0) > 0 ? 'warning' : '';
   return `
     <div class="metric-band mb-4" role="group" aria-label="待办摘要">
-      ${item('逾期', summary.overdue, 'warning')}
+      ${item('逾期', summary.overdue, overdueTone)}
       ${item('今日', summary.today, '')}
       ${item('本周', summary.week, '')}
       ${item('待处理', summary.pending, '')}
@@ -384,8 +386,8 @@ export function createTodoTab(opts) {
       <details class="todo-strip card rounded-xl mb-4 card--static"${_stripOpen ? ' open' : ''}>
         <summary class="cursor-pointer select-none px-4 py-2.5">
           <span class="inline-flex items-center gap-2">
-            <span role="heading" aria-level="3" class="font-title-cn text-sm font-bold text-gray-800">待答复与未读通知</span>
-            ${count > 0 ? `<span class="state-badge state-badge--neutral tabular-nums">${count}</span>` : ''}
+            <span role="heading" aria-level="3" class="font-title-cn text-sm font-semibold text-gray-800">待答复与未读通知</span>
+            ${count > 0 ? `<span class="state-badge state-badge--neutral tabular-nums text-[13px]">${count}</span>` : ''}
           </span>
         </summary>
         <div class="px-4 pb-3 border-t border-gray-100">

@@ -1,10 +1,10 @@
 // role: [工程师]+[AI]
 // issue-form.js — 反馈新建表单
 
-import { IssueStore, ISSUE_DOMAINS, issueDomainSuggest, issueDomainReplyHint } from '../../services/governance/issues.js?v=20261023a';
-import { showToast } from '../../core/base/utils.js?v=20261023a';
-import { icon } from '../../core/base/icons.js?v=20261023a';
-import { badgeHtml } from '../ui/badges.js?v=20261023a';
+import { IssueStore, ISSUE_DOMAINS, issueDomainSuggest, issueDomainReplyHint } from '../../services/governance/issues.js?v=20261023b';
+import { showToast } from '../../core/base/utils.js?v=20261023b';
+import { icon } from '../../core/base/icons.js?v=20261023b';
+import { badgeHtml } from '../ui/badges.js?v=20261023b';
 
 const SCOPE_OPTIONS = [
   { value: 'permanent', label: '底层架构' },
@@ -38,12 +38,12 @@ export function renderIssueForm() {
       <div class="space-y-4">
         <div>
           <label class="text-xs text-gray-500 mb-1.5 block font-medium">标题 <span class="text-red-600">*</span></label>
-          <input type="text" id="form-title" class="input-flat w-full font-sans" placeholder="一句话说清反馈的核心">
+          <input type="text" id="form-title" class="input-flat w-full font-sans" placeholder="如：报名名单与实际不符">
         </div>
 
         <div>
           <label class="text-xs text-gray-500 mb-1.5 block font-medium">正文 <span class="text-red-600">*</span></label>
-          <textarea id="form-body" rows="6" class="input-flat w-full font-sans" placeholder="详细描述：背景/痛点/期望/参考资料"></textarea>
+          <textarea id="form-body" rows="6" class="input-flat w-full font-sans" placeholder="如：活动名称 + 时间 + 具体情况"></textarea>
         </div>
 
         <div class="grid grid-cols-2 gap-3">

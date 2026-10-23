@@ -25,50 +25,50 @@
 //   ⚠ 计数只留一处（§4.14）：各组计数只在**组标题**出现一次（`_segHead`；异步注入汇报时同步 +n）。
 //   ⚠ 未读通知 / 待我表态 / 待处理的汇报**不再各起段头**——按 `SOURCE_ACTION` 归入「阅读 / 参与 / 审核」组；
 //     未读通知跳转与顶栏铃铛同一解析 `resolveNoticeUrl`；待处理汇报＝顶栏「一键汇报」角标同一集合。
-// 字号：一律沿用 DESIGN_SYSTEM §3.2.2 档位表（支书 2026-09-30 裁「字号全仓库统一」）——
-//   主卡标题 h3 `text-base`(16) · 段标题 h4 `text-sm font-bold`(14) · 行标题 `text-sm`(14) ·
-//   类型胶囊 `text-xs`(12) · 时间 / 截止 meta `text-[11px]`（沿用全站现状档）。
+// 字号：一律沿用 DESIGN_SYSTEM §3.2.2 档位表 + 今天/待办视觉基线（只取 12/13/14/16 四档）——
+//   卡片/页面标题 16px · 段标题 h4 14px/600 · 计数 13px/500 · 行标题 13px · 胶囊与 meta 12px。
+//   **正文区禁止 10/11px**（真源＝`.text-xs` 12px / `.text-sm` 14px / `text-[13px]` 13px）。
 // 主题色 = 各工作台 accent 的样式变量（--app-accent 等，不新造体系，同 overview/统计卡用法）。
 // 注入防护：标题/内容/截止等用户可控数据一律经 escHtml 后入 innerHTML。
 // ════════════════════════════════════════════════════════════════
 
-import { escHtml as esc, _fmtDate } from '../../../core/base/utils.js?v=20261023a';
-import { icon } from '../../../core/base/icons.js?v=20261023a';
-import { buildTodaySummary, TODO_ACTION_ORDER, TODO_ACTION_LABELS } from '../../../services/governance/today-summary.js?v=20261023a';
+import { escHtml as esc, _fmtDate } from '../../../core/base/utils.js?v=20261023b';
+import { icon } from '../../../core/base/icons.js?v=20261023b';
+import { buildTodaySummary, TODO_ACTION_ORDER, TODO_ACTION_LABELS } from '../../../services/governance/today-summary.js?v=20261023b';
 // 批次 47-I（Q-23-41 ②，支书 2026-09-15 裁定）：本组组员进展**由服务端汇总**——
 // api 态打服务端汇总接口、mock 态调同一纯函数（单一入口 `loadMemberProgress`）。
-import { loadMemberProgress } from '../../../services/member/member-progress.js?v=20261023a';
-import { resolveVisibleTargets } from '../../../services/core/visibility.js?v=20261023a';
-import { mockDB } from '../../../core/domain/domain.js?v=20261023a';
-import { tokenOf } from '../../../core/base/version-token.js?v=20261023a'; // P0 域写版本戳（spec §二.4）
-import { RESIDENCE_KEY } from '../../../services/member/roster.js?v=20261023a'; // 滞留覆盖 raw 源（roster 禁改不内改）
-import { PREVIEW_KEY } from '../../../services/branch/org-base-data-preview.js?v=20261023a'; // 基础数据预览 raw 源
-import { memoizeRender } from '../../../components/ui/memoize-render.js?v=20261023a'; // P2 渲染守卫（spec §四.1）
+import { loadMemberProgress } from '../../../services/member/member-progress.js?v=20261023b';
+import { resolveVisibleTargets } from '../../../services/core/visibility.js?v=20261023b';
+import { mockDB } from '../../../core/domain/domain.js?v=20261023b';
+import { tokenOf } from '../../../core/base/version-token.js?v=20261023b'; // P0 域写版本戳（spec §二.4）
+import { RESIDENCE_KEY } from '../../../services/member/roster.js?v=20261023b'; // 滞留覆盖 raw 源（roster 禁改不内改）
+import { PREVIEW_KEY } from '../../../services/branch/org-base-data-preview.js?v=20261023b'; // 基础数据预览 raw 源
+import { memoizeRender } from '../../../components/ui/memoize-render.js?v=20261023b'; // P2 渲染守卫（spec §四.1）
 // 批4（2026-09-09 支书批「域参数」）：组长学期组员进展归集提醒开关（读侧注入后 = 当前支部有效默认）
-import { POLICY_DEFAULTS } from '../../../core/domain/policy-defaults.js?v=20261023a';
+import { POLICY_DEFAULTS } from '../../../core/domain/policy-defaults.js?v=20261023b';
 // 批次 299「待我处理」两源——**单一源复用**，不另立取数口径：
 //   · 未读通知 ＝ 顶栏铃铛同一取数（NoticeStore.list retention:'visible'）＋ 同一跳转解析（resolveNoticeUrl）
 //   · 待处理汇报 ＝ 顶栏「一键汇报」角标同一集合（IssueNotify.getUnread(我)）
-import { NoticeStore, resolveNoticeUrl } from '../../../services/governance/notice.js?v=20261023a';
-import { IssueStore, IssueNotify } from '../../../services/governance/issues.js?v=20261023a';
+import { NoticeStore, resolveNoticeUrl } from '../../../services/governance/notice.js?v=20261023b';
+import { IssueStore, IssueNotify } from '../../../services/governance/issues.js?v=20261023b';
 // 批次 304「待我表态」三件——**判据与读口皆单一源**，不在本文件重写投票规则：
 //   · 我是否应到表决人 ＝ `vote-config.js::isVoterOf`（角色无关，只看固化名单）
 //   · 我是否已对某议程项表态 ＝ `committee-vote.js::hasVoted`
 //   · 当前登录人 ＝ `AuthStore.getCurrentUser()`
-import { AuthStore } from '../../../services/core/auth.js?v=20261023a';
-import { isVoterOf } from '../../../services/activity/vote-config.js?v=20261023a';
-import { hasVoted } from '../../../services/activity/committee-vote.js?v=20261023a';
+import { AuthStore } from '../../../services/core/auth.js?v=20261023b';
+import { isVoterOf } from '../../../services/activity/vote-config.js?v=20261023b';
+import { hasVoted } from '../../../services/activity/committee-vote.js?v=20261023b';
 // 活动类型胶囊（批次 301）：变体判据＝单一源 `activityTypeBadgeVariant`（三会一课＝brand 红 / 主题党日＝gold 金），
 //   渲染唯一源＝`components/ui/badge.js`；**本文件不手写类型色值**。
-import { activityTypeBadgeVariant, WORK_DOMAIN_COLORS, accDarkVars } from '../../../core/domain/constants.js?v=20261023a';
-import { resolveDocumentUrl } from '../../../core/base/page-url.js?v=20261023a';
+import { activityTypeBadgeVariant, WORK_DOMAIN_COLORS, accDarkVars } from '../../../core/domain/constants.js?v=20261023b';
+import { resolveDocumentUrl } from '../../../core/base/page-url.js?v=20261023b';
 // 徽章扎口出口（2026-09-30 批次 304 改准）：`components/ui/badges.js` 是**唯一调用口**
 //   （其文件头明写「调用方一律 import badges.js；内部实现文件 badge.js / status-badge.js 可各自演进」）；
 //   批次 301 我直连了实现文件 `badge.js` ⇒ 本批收回归口，**零行为变化**。
-import { badgeHtml } from '../../../components/ui/badges.js?v=20261023a';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20261023b';
 // 2026-10-18 繁专项 Task 7：汇报类行统一落到待办「待答复」收件箱（PendingTarget 一次性定位）。
 // 提交入口只在「我的处置」；今天页只读、不重复提供提交位。
-import { PendingTarget } from '../../../core/session/pending-target.js?v=20261023a';
+import { PendingTarget } from '../../../core/session/pending-target.js?v=20261023b';
 
 // 工作台主题色走 CSS 变量（各台 bootstrap 已按 accent 注入；缺省兜底党建红），同 overview/统计卡用法
 const ACCENT = 'var(--app-accent)';
@@ -124,7 +124,7 @@ function _shortDate(dateStr) {
 // 状态由**行左 3px 竖色条**自陈（色随紧迫度/状态），不再用「圆点」点缀；分类走胶囊；
 // 有时间者走时间轴行。行式载体（w-full ＋ text-left）是「操作可见性」（§4.1）的合法例外 ⇒ 仍用 `.btn-ghost`。
 
-/** 段标题（卡片内小分组）：h4 ＋ `text-sm`（§3.2.2 内嵌面板标题档）；`n` 给计数，`allKind` 给右上「全部 ›」 */
+/** 段标题（卡片内小分组）：h4 ＋ `text-sm`（14px/600）；`n` 给计数，`allKind` 给右上「全部 ›」 */
 function _segHead(title, n = null, allKind = '') {
   const count = (n !== null && n > 0) ? _count(n) : '';
   const all = allKind
@@ -132,14 +132,14 @@ function _segHead(title, n = null, allKind = '') {
     : '';
   return `
     <div class="flex items-center justify-between mb-2">
-      <h4 class="font-title-cn text-sm font-bold text-gray-700">${title}${count}</h4>
+      <h4 class="font-title-cn text-sm font-semibold text-gray-700">${title}${count}</h4>
       ${all}
     </div>`;
 }
 
-/** 段头数字（仅 n>0 显示） */
+/** 段头数字（仅 n>0 显示）：13px/500——**下级计数不得大于组标题**（层级：标题 14 > 计数 13） */
 function _count(n) {
-  return n > 0 ? `<span class="text-base font-bold ml-1.5 tabular-nums" style="--acc-text-dark:${ACCENT};color:color-mix(in srgb, ${ACCENT} 60%, #000);">${n}</span>` : '';
+  return n > 0 ? `<span class="text-[13px] font-medium ml-1.5 tabular-nums" style="--acc-text-dark:${ACCENT};color:color-mix(in srgb, ${ACCENT} 60%, #000);">${n}</span>` : '';
 }
 
 /** 清单行（行式载体）：左 3px 竖色条＝状态自陈；`bar`＝色条色，`inner`＝行内其余内容 */
@@ -188,9 +188,9 @@ function _todoEntry(it, today) {
   return {
     key: it.deadline || '9999-12-31',
     bar,
-    inner: `<span class="text-sm flex-1 min-w-0 truncate ${titleCls}">${esc(it.title || '未命名待办')}</span>
+    inner: `<span class="text-[13px] flex-1 min-w-0 truncate ${titleCls}">${esc(it.title || '未命名待办')}</span>
        ${_domainChip(it.domain, it.domainLabel)}
-       <span class="text-[11px] tabular-nums flex-shrink-0 ${metaCls}">${esc(it.deadline || '')}</span>`,
+       <span class="text-xs tabular-nums flex-shrink-0 ${metaCls}">${esc(it.deadline || '')}</span>`,
     attrs: `data-go="todo" title="${esc(it.title || '')}"`,
   };
 }
@@ -200,7 +200,7 @@ function _dutyEntry(d) {
   return {
     key: '9999-12-31',
     bar: 'var(--neutral-400)',
-    inner: `<span class="text-sm text-gray-800 flex-1 min-w-0 truncate">${esc(d.activityTitle || '未命名活动')}</span>
+    inner: `<span class="text-[13px] text-gray-800 flex-1 min-w-0 truncate">${esc(d.activityTitle || '未命名活动')}</span>
        ${_chip(d.role)}
        <span class="text-xs text-gray-500 flex-shrink-0">›</span>`,
     attrs: `data-go="activity" data-act-id="${esc(d.activityId)}" title="${esc(d.activityTitle || '')}"`,
@@ -212,7 +212,7 @@ function _voteEntry(a) {
   return {
     key: '9999-12-31',
     bar: 'var(--neutral-400)',
-    inner: `<span class="text-sm text-gray-800 flex-1 min-w-0 truncate">${esc(a.title || '未命名活动')}</span>
+    inner: `<span class="text-[13px] text-gray-800 flex-1 min-w-0 truncate">${esc(a.title || '未命名活动')}</span>
        <span class="text-xs text-gray-500 flex-shrink-0">›</span>`,
     attrs: `data-go="activity" data-act-id="${esc(a.id)}" title="前往活动详情页表态"`,
   };
@@ -223,8 +223,8 @@ function _noticeEntry(n) {
   return {
     key: '9999-12-31',
     bar: 'var(--neutral-400)',
-    inner: `<span class="text-sm text-gray-800 flex-1 min-w-0 truncate">${esc(n.title || n.content || '未命名通知')}</span>
-       <span class="text-[11px] tabular-nums text-gray-500 flex-shrink-0">${esc(n.publishDate || '')}</span>`,
+    inner: `<span class="text-[13px] text-gray-800 flex-1 min-w-0 truncate">${esc(n.title || n.content || '未命名通知')}</span>
+       <span class="text-xs tabular-nums text-gray-500 flex-shrink-0">${esc(n.publishDate || '')}</span>`,
     attrs: `data-go="notice" data-notice-id="${esc(n.id)}" title="${esc(n.title || '')}"`,
   };
 }
@@ -234,7 +234,7 @@ function _reportEntry(i) {
   return {
     key: '9999-12-31',
     bar: 'var(--neutral-400)',
-    inner: `<span class="text-sm text-gray-800 flex-1 min-w-0 truncate">${esc(i.title || i.body || '待处理汇报')}</span>
+    inner: `<span class="text-[13px] text-gray-800 flex-1 min-w-0 truncate">${esc(i.title || i.body || '待处理汇报')}</span>
        <span class="text-xs text-gray-500 flex-shrink-0">›</span>`,
     attrs: `data-go="todo" data-report-id="${esc(i.id)}" title="前往待办「待答复」处理"`,
   };
@@ -251,8 +251,8 @@ function _entryRow(e) { return _row(e.bar, e.inner, e.attrs); }
 function _domainChip(domain, label) {
   if (!label) return '';
   const c = WORK_DOMAIN_COLORS[domain];
-  if (!c) return `<span class="text-[11px] px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-600 flex-shrink-0">${esc(label)}</span>`;
-  return `<span class="text-[11px] px-1.5 py-0.5 rounded-full flex-shrink-0" data-domain="${esc(domain)}" style="background:${c.bg};color:${c.text};border:1px solid ${c.border};${accDarkVars(c.text)}">${esc(label)}</span>`;
+  if (!c) return `<span class="text-xs px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-600 flex-shrink-0">${esc(label)}</span>`;
+  return `<span class="text-xs px-1.5 py-0.5 rounded-full flex-shrink-0" data-domain="${esc(domain)}" style="background:${c.bg};color:${c.text};border:1px solid ${c.border};${accDarkVars(c.text)}">${esc(label)}</span>`;
 }
 
 /**
@@ -379,8 +379,8 @@ function _navPending(btn, onNav) {
 /** 时间轴行：时间（tabular-nums）＋ 标题 ＋ 类型胶囊 ＋ ›；点击 → activity.html */
 function _meetingRow(m) {
   return _row(ACCENT,
-    `<span class="text-[11px] tabular-nums text-gray-500 w-11 flex-shrink-0">${esc(m.start || '—')}</span>
-     <span class="text-sm text-gray-800 font-medium flex-1 min-w-0 truncate">${esc(m.title || '未命名会议')}</span>
+    `<span class="text-xs tabular-nums text-gray-500 w-11 flex-shrink-0">${esc(m.start || '—')}</span>
+     <span class="text-[13px] text-gray-800 font-medium flex-1 min-w-0 truncate">${esc(m.title || '未命名会议')}</span>
      ${_typeChip(m.type)}
      <span class="text-xs text-gray-500 flex-shrink-0">›</span>`,
     `data-go="activity" data-act-id="${esc(m.activityId)}" title="${esc(m.title || '')}"`);
@@ -406,8 +406,8 @@ function _activityEntryBlock(withCreate) {
   return `
     ${_segHead('活动管理')}
     <div class="flex items-center gap-2">
-      ${withCreate ? '<button type="button" class="btn-ghost today-go flex-1 flex items-center justify-center gap-1.5 px-3 py-2 text-sm" data-go="create-activity" title="写入活动（打开既有写入表单）">写入活动</button>' : ''}
-      <button type="button" class="btn-ghost today-go flex-1 flex items-center justify-center gap-1.5 px-3 py-2 text-sm" data-go="calendar" title="打开活动日历（日历仍显示全部活动）">看日历</button>
+      ${withCreate ? '<button type="button" class="btn-ghost today-go flex-1 flex items-center justify-center gap-1.5 px-3 py-2 text-sm" data-go="create-activity">写入活动</button>' : ''}
+      <button type="button" class="btn-ghost today-go flex-1 flex items-center justify-center gap-1.5 px-3 py-2 text-sm" data-go="calendar">看日历</button>
     </div>`;
 }
 
@@ -415,8 +415,8 @@ function _activityEntryBlock(withCreate) {
 function _upcomingBlock(s) {
   const items = Array.isArray(s.upcoming) ? s.upcoming : [];
   const rows = items.map(u => _row('var(--neutral-400)',
-    `<span class="text-[11px] tabular-nums text-gray-500 w-9 flex-shrink-0">${esc(_shortDate(u.date))}</span>
-     <span class="text-sm text-gray-800 flex-1 min-w-0 truncate">${esc(u.title || '未命名活动')}</span>
+    `<span class="text-xs tabular-nums text-gray-500 w-9 flex-shrink-0">${esc(_shortDate(u.date))}</span>
+     <span class="text-[13px] text-gray-800 flex-1 min-w-0 truncate">${esc(u.title || '未命名活动')}</span>
      ${_typeChip(u.type)}`,
     `data-go="activity" data-act-id="${esc(u.activityId)}" title="${esc(u.title || '')}"`)).join('');
   // B02：与「今天」同属一条时间轴，作为「日程」卡的后续小节；空态留到卡级统一说。
@@ -511,7 +511,7 @@ function _leaderSemesterRemindHtml(personId) {
       <div class="flex items-start gap-3">
         <span class="flex-none w-8 h-8 rounded-lg flex items-center justify-center" style="background:${ACCENT_BG};color:${ACCENT};">${icon('bell', { className: 'icon-base w-4 h-4' })}</span>
         <div class="flex-1 min-w-0">
-          <p class="font-title-cn text-sm font-bold text-gray-800">本学期组员进展</p>
+          <p class="font-title-cn text-sm font-semibold text-gray-800">本学期组员进展</p>
           <p class="text-xs text-gray-700 mt-1.5" data-lsr-facts>正在汇总…</p>
           <div class="flex flex-wrap items-center gap-2 mt-2.5">
             <button type="button" class="btn-accent text-xs px-3 py-1.5 font-medium" data-lsr-act="go">去「组员进展」看汇总</button>

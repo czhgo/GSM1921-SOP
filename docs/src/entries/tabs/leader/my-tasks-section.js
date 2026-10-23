@@ -9,12 +9,12 @@
 // 与「待办」页的口径区分（写进页面文案，避免两处被读成同一份清单）：
 //   · 本段＝**按项目身份**（组织者 / 深度参与者）派给本人的 SOP 任务节点；
 //   · 「待办」页＝`TodoStore` 的待办聚合（含通知 / 审核 / 催办等派生项，来源与生命周期不同）。
-import { listMyProjectTasks, completeMyProjectTask, deepWorkModeOf, DEEP_WORK_MODE, DEEP_WORK_MODE_LABEL } from '../../../services/activity/activity.js?v=20261023a';
-import { isActivityVisibleTo } from '../../../services/core/visibility.js?v=20261023a';
-import { AuthStore } from '../../../services/core/auth.js?v=20261023a';
-import { ROLE_LABELS } from '../../../core/domain/constants.js?v=20261023a';
-import { escHtml as esc, showToast, docAnchorHref } from '../../../core/base/utils.js?v=20261023a';
-import { emptyStateHtml } from '../../../components/ui/empty-state.js?v=20261023a';
+import { listMyProjectTasks, completeMyProjectTask, deepWorkModeOf, DEEP_WORK_MODE, DEEP_WORK_MODE_LABEL } from '../../../services/activity/activity.js?v=20261023b';
+import { isActivityVisibleTo } from '../../../services/core/visibility.js?v=20261023b';
+import { AuthStore } from '../../../services/core/auth.js?v=20261023b';
+import { ROLE_LABELS } from '../../../core/domain/constants.js?v=20261023b';
+import { escHtml as esc, showToast, docAnchorHref } from '../../../core/base/utils.js?v=20261023b';
+import { emptyStateHtml } from '../../../components/ui/empty-state.js?v=20261023b';
 
 const STATUS_LABEL = { pending: '待办', in_progress: '进行中', completed: '已完成' };
 const STATUS_CLASS = {
@@ -68,13 +68,13 @@ function _rowHtml(r) {
   const done = r.status === 'completed';
   const offline = r.deepMode === DEEP_WORK_MODE.OFFLINE;
   const modeChip = r.deepMode
-    ? `<span class="text-[11px] px-1.5 py-0.5 rounded-full border flex-shrink-0 ${offline ? 'bg-amber-50 text-amber-700 border-amber-100' : 'bg-emerald-50 text-emerald-700 border-emerald-100'}" title="${offline ? '组织者已标为「去线下做」——线下完成，由组织者确认' : '组织者已标为「系统内做」——完成后由系统同步产出'}">${DEEP_WORK_MODE_LABEL[r.deepMode]}</span>`
+    ? `<span class="text-xs px-1.5 py-0.5 rounded-full border flex-shrink-0 ${offline ? 'bg-amber-50 text-amber-700 border-amber-100' : 'bg-emerald-50 text-emerald-700 border-emerald-100'}" title="${offline ? '组织者已标为「去线下做」——线下完成，由组织者确认' : '组织者已标为「系统内做」——完成后由系统同步产出'}">${DEEP_WORK_MODE_LABEL[r.deepMode]}</span>`
     : '';
   return `
     <div class="flex items-center justify-between gap-3 rounded-xl bg-white border border-gray-100 px-3 py-2.5">
       <div class="min-w-0">
         <div class="flex items-center gap-2">
-          <span class="text-[11px] px-1.5 py-0.5 rounded-full flex-shrink-0 ${STATUS_CLASS[r.status] || 'bg-gray-100 text-gray-600'}">${STATUS_LABEL[r.status] || r.status}</span>
+          <span class="text-xs px-1.5 py-0.5 rounded-full flex-shrink-0 ${STATUS_CLASS[r.status] || 'bg-gray-100 text-gray-600'}">${STATUS_LABEL[r.status] || r.status}</span>
           <span class="text-sm font-medium text-gray-800 truncate">${esc(r.name)}</span>
         </div>
         <div class="mt-1 flex items-center gap-2 text-[12px] text-gray-500 min-w-0">

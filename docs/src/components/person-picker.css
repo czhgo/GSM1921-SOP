@@ -162,12 +162,14 @@
   background: var(--neutral-200);
 }
 
-/* 搜索框：高度 34px（Task 6 口径）、字号 13px；左内边距留给放大镜图标 */
+/* 搜索框：高度 34px（Task 6 口径）、字号 13px；左内边距留给放大镜图标。
+   2026-10-23 R11：并入控件单一口径——1px --neutral-200、8px 圆角（--radius-sm）、
+   焦点与 .input-flat 同源（金边 + 2px --focus-ring 实线外环，无发光）。 */
 .person-picker-search {
   width: 100%;
   height: 34px;
   padding: 0 var(--space-3) 0 34px;
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   border: 1px solid var(--neutral-200);
   font-size: 0.8125rem;
   outline: none;
@@ -178,7 +180,10 @@
 }
 
 .person-picker-search:focus {
-  border-color: var(--pp-accent);
+  border-color: var(--party-gold);
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 1px;
+  box-shadow: none;
 }
 
 /* ── 党小组筛选 Tab ────────────────────────────────────────────── */

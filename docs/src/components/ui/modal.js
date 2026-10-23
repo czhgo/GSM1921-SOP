@@ -5,7 +5,7 @@
 //  设计原则：点击按钮→弹出浮窗→在浮窗中完成写入→关闭浮窗
 //  页面保持清爽，所有表单/编辑器都在浮窗中完成
 
-import { escHtml } from '../../core/base/utils.js?v=20261023a';
+import { escHtml, describeWriteError } from '../../core/base/utils.js?v=20261023b';
 
 // 2026-09-13 修复（成员档案模态走查暴露）：Esc 监听原只在「按 Esc 关闭」这一条路径上注销，
 // 走遮罩点击/关闭按钮/程序化 closeModal 关闭时监听残留 → 反复打开同一 id 浮窗会累积 keydown
@@ -29,6 +29,22 @@ const _inertState = new Map();
 // `_requestCancel`，先执行调用方的 `onCancel` 清临时状态，再关窗。提交成功走 `closeModal`（不触发）。
 // 为什么集中在这里：取消语义必须是「放弃本次编辑」，若每个调用点各写一套，总有一条路径会漏（R3-02 即此）。
 const _cancelHandlers = new Map();
+
+// 2026-10-23 Task 8（弹窗交互闭环）：
+//   · `_busyIds`    —— 提交中的浮窗：Esc / 遮罩 / × / [data-modal-cancel] 四条关闭路径统一早退；
+//   · `_snapshots`  —— 打开时对 `[data-field]` 取快照，关闭前若值有变则二次确认（防止误触丢表单）；
+//   · `_stack`      —— 当前打开的浮窗栈（焦点陷阱只让**最上层**生效，嵌套确认窗不互相抢 Tab）；
+//   · `_confirming` —— 二次确认进行中标记（避免同一浮窗连开两个确认窗）；
+//   · `_openIds`    —— 真正打开过的 id（body 滚动锁计数只对真实打开/关闭生效）。
+const _busyIds = new Set();
+const _snapshots = new Map();
+const _stack = [];
+const _confirming = new Set();
+const _openIds = new Set();
+const _trapHandlers = new Map();
+// body 滚动锁：多浮窗共用计数，只在第一层记录原 overflow、最后一层恢复
+let _scrollLocks = 0;
+let _prevBodyOverflow = '';
 
 /** 浮窗尺寸档（统一体例；调用方仍可用 width 覆盖） */
 const MODAL_SIZES = { sm: '400px', md: '480px', lg: '720px' };
@@ -63,8 +79,91 @@ function _applyInert(overlay, id) {
   _inertState.set(id, saved);
 }
 
-/** 「取消」统一入口：先跑调用方的 onCancel（清临时状态），再关窗 */
-function _requestCancel(id) {
+/** 打开浮窗时锁 body 滚动（计数：嵌套浮窗全部关闭后才恢复原值） */
+function _lockBodyScroll() {
+  if (_scrollLocks === 0) {
+    _prevBodyOverflow = document.body.style.overflow || '';
+    document.body.style.overflow = 'hidden';
+  }
+  _scrollLocks += 1;
+}
+
+/** 关闭浮窗时还滚动锁（计数归零才恢复，避免底层浮窗关闭时误解除上层锁定） */
+function _unlockBodyScroll() {
+  if (_scrollLocks <= 0) return;
+  _scrollLocks -= 1;
+  if (_scrollLocks === 0) document.body.style.overflow = _prevBodyOverflow;
+}
+
+/** 浮窗内可聚焦元素（排除 disabled / hidden / tabindex="-1"） */
+function _focusableItems(panel) {
+  return Array.from(panel.querySelectorAll(_FOCUSABLE))
+    .filter((el) => !el.disabled && !el.hidden && !el.closest('[hidden]'));
+}
+
+/**
+ * 焦点陷阱：Tab / Shift+Tab 在面板内循环，不逃逸到浏览器 UI。
+ * 只对**最上层**浮窗生效（嵌套确认窗打开时，底层浮窗不得抢焦点）。
+ */
+function _applyFocusTrap(overlay, id) {
+  const handler = (e) => {
+    if (e.key !== 'Tab') return;
+    if (_stack[_stack.length - 1] !== id) return;
+    const panel = overlay.querySelector('.modal-panel');
+    if (!panel) return;
+    const items = _focusableItems(panel);
+    if (!items.length) { e.preventDefault(); panel.setAttribute('tabindex', '-1'); panel.focus(); return; }
+    const first = items[0];
+    const last = items[items.length - 1];
+    const active = document.activeElement;
+    if (!panel.contains(active)) { e.preventDefault(); first.focus(); return; }
+    if (e.shiftKey && active === first) { e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && active === last) { e.preventDefault(); first.focus(); }
+  };
+  document.addEventListener('keydown', handler);
+  _trapHandlers.set(id, handler);
+}
+
+/** `[data-field]` 值快照（打开时取；关闭前比对，判断是否有未保存改动） */
+function _snapshotFields(id, panel) {
+  const pairs = Array.from(panel.querySelectorAll('[data-field]'))
+    .map((el) => [el, String(el.value == null ? '' : el.value)]);
+  _snapshots.set(id, pairs);
+}
+
+/** 是否有未保存改动（只看仍在文档里的 `[data-field]`） */
+function _hasUnsavedChanges(id) {
+  const pairs = _snapshots.get(id);
+  if (!pairs || !pairs.length) return false;
+  return pairs.some(([el, value]) => el && el.isConnected && String(el.value == null ? '' : el.value) !== value);
+}
+
+/** 关闭前的「放弃未保存改动」确认：复用文件内既有的「必须点按钮才能关」机制（`_mustPressConfirm`） */
+async function _confirmDiscard(id) {
+  return _mustPressConfirm({
+    id: `discard-${id}`,
+    title: '放弃未保存的改动？',
+    confirmLabel: '放弃并关闭',
+    cancelLabel: '继续编辑',
+    bodyHtml: '<p style="margin:0;font-size:0.8rem;line-height:1.75;color:var(--neutral-700);">表单里有尚未保存的改动，关闭后这些内容会丢失。</p>',
+  });
+}
+
+/**
+ * 统一取消入口：提交中直接忽略（Esc / 遮罩 / × / [data-modal-cancel] 四条路径都经过这里）；
+ * 有未保存改动时先二次确认；确认放弃后再执行调用方 `onCancel` 并关窗。
+ */
+async function _requestCancel(id) {
+  // M1：提交中禁止任何关闭路径（完成后由调用方 setModalBusy(false) 恢复）
+  if (_busyIds.has(id)) return;
+  if (_confirming.has(id)) return;
+  if (_hasUnsavedChanges(id)) {
+    _confirming.add(id);
+    let ok = false;
+    try { ok = await _confirmDiscard(id); } finally { _confirming.delete(id); }
+    if (!ok) return;
+    if (_busyIds.has(id)) return; // 确认期间转入提交：仍然不关
+  }
   const fn = _cancelHandlers.get(id);
   _cancelHandlers.delete(id);
   if (typeof fn === 'function') {
@@ -72,6 +171,36 @@ function _requestCancel(id) {
   }
   closeModal(id);
 }
+
+/**
+ * 标记浮窗提交中 / 提交结束（Task 8 · P0-05）。
+ * 提交中：面板与提交按钮挂 `aria-busy="true"`，且四条关闭路径在 `_requestCancel` 早退。
+ * @param {string} id 浮窗 id
+ * @param {boolean} busy 是否提交中
+ * @param {string} [submitSelector] 额外要标 aria-busy 的提交控件选择器（手写弹窗用）
+ */
+export function setModalBusy(id, busy, submitSelector = '') {
+  const overlay = document.getElementById(`modal-overlay-${id}`);
+  if (!overlay) return;
+  if (busy) _busyIds.add(id); else _busyIds.delete(id);
+  const panel = overlay.querySelector('.modal-panel');
+  if (panel) panel.setAttribute('aria-busy', busy ? 'true' : 'false');
+  const targets = new Set(Array.from(overlay.querySelectorAll('[data-modal-submit], [data-modal-confirm]')));
+  if (submitSelector) overlay.querySelectorAll(submitSelector).forEach((el) => targets.add(el));
+  targets.forEach((el) => {
+    if (busy) el.setAttribute('aria-busy', 'true');
+    else el.removeAttribute('aria-busy');
+  });
+}
+
+/**
+ * `onSubmit` 结果契约（单一源）：只有显式 `true` 或 `{ok:true}` 才关窗。
+ * `undefined` / `false` / `{ok:false}` 一律保留浮窗（调用方忘记 return 不再被当成成功）。
+ */
+export function shouldCloseOnResult(result) {
+  return result === true || (!!result && result.ok === true);
+}
+
 
 /** 关闭浮窗时：还原 inert 原值 + 把焦点还给打开它的元素 */
 function _releaseInert(id) {
@@ -174,8 +303,10 @@ export function openModal({
 
   // dismissable=false（「本位」nudge 专用，见 confirmNudge）：**不渲染右上角 ×**——
   // 那种弹窗只给两个动作按钮（主 / 次），不给第二条退出路径（2026-09-23 支书裁定）。
+  // P1-11：基础布局走工具类，hover / focus-visible 反馈由 `.modal-close-btn` 的 CSS 承担
+  //   （不再用内联 onmouseover/onmouseout——鼠标专属、与组件层相悖）；命中区 32×32。
   const closeBtnHTML = dismissable
-    ? `<button data-modal-close="${id}" aria-label="关闭" style="background:none;border:none;cursor:pointer;color:var(--neutral-400);line-height:1;padding:4px 8px;border-radius:var(--radius-sm);transition:background-color 0.15s ease, color 0.15s ease;" class="btn-ghost text-xl modal-close-btn" onmouseover="this.style.background='var(--neutral-100)';this.style.color='var(--neutral-600)'" onmouseout="this.style.background='none';this.style.color='var(--neutral-400)'">&times;</button>`
+    ? `<button type="button" data-modal-close="${id}" aria-label="关闭" class="modal-close-btn inline-flex items-center justify-center w-8 h-8 p-0 bg-transparent border-0 cursor-pointer text-gray-400 rounded">&times;</button>`
     : '';
 
   // 页脚：动作行固定在 `.modal-body` 之外（长表单滚到底也能点），sticky 吃 safe-area。
@@ -206,6 +337,12 @@ export function openModal({
   _applyInert(overlay, id);
   _openers.set(id, opener);
   if (typeof onCancel === 'function') _cancelHandlers.set(id, onCancel);
+  // 滚动锁 + 焦点陷阱（P0-05）：滚动锁按「打开的浮窗层数」计数，焦点陷阱只对最上层生效
+  _openIds.add(id);
+  _stack.push(id);
+  _lockBodyScroll();
+  _applyFocusTrap(overlay, id);
+
 
   // 取消按钮（footer / body 内任意 [data-modal-cancel]）走统一入口，调用方无需各绑一次
   panel.addEventListener('click', (e) => {
@@ -242,6 +379,9 @@ export function openModal({
   // 焦点接管：最后一步移入浮窗（在 onMount 之后，确保业务自己绑的控件已在位）
   _focusInto(panel);
 
+  // 未保存改动基线（P1-12）：打开完成后取快照，关闭时比对
+  _snapshotFields(id, panel);
+
   return panel;
 }
 
@@ -252,6 +392,16 @@ export function openModal({
 export function closeModal(id) {
   _blockingModalIds.delete(id); // blocking 浮窗关闭即摘牌（Esc 让位随之解除）
   _cancelHandlers.delete(id);   // 程序化关闭 / 提交成功 = 不执行 onCancel（取消语义只走 _requestCancel）
+  _confirming.delete(id);
+  _busyIds.delete(id);
+  _snapshots.delete(id);
+  const stackIdx = _stack.indexOf(id);
+  if (stackIdx !== -1) _stack.splice(stackIdx, 1);
+  const trapHandler = _trapHandlers.get(id);
+  if (trapHandler) {
+    document.removeEventListener('keydown', trapHandler);
+    _trapHandlers.delete(id);
+  }
   const escHandler = _escHandlers.get(id);
   if (escHandler) {
     document.removeEventListener('keydown', escHandler);
@@ -273,6 +423,8 @@ export function closeModal(id) {
       setTimeout(() => overlay.remove(), 150);
     }
   }
+  // 只有真正打开过的浮窗才还滚动锁（openModal 开头的防御性 closeModal 不得误减计数）
+  if (_openIds.delete(id)) _unlockBodyScroll();
   _releaseInert(id); // 还原背景 inert + 焦点还给打开它的元素（无浮窗时是空操作）
 }
 
@@ -293,6 +445,20 @@ export function closeModal(id) {
  * @param {Function} [options.onCancel] - 取消（含 Esc / 遮罩 / ×）时清理临时状态
  * @param {{href:string,text:string}} [options.settingsLink] - 页脚「设置」入口（透传 openModal，可选）
  */
+/**
+ * 开发期判定（未知字段类型要「开发期报错、生产期降级」）：
+ * 静态站点无打包器，用本地/文件协议作为开发期判据。
+ */
+function _isDevEnv() {
+  try {
+    const { protocol, hostname } = window.location;
+    return protocol === 'file:' || hostname === '' || hostname === 'localhost'
+      || hostname === '127.0.0.1' || hostname === '::1';
+  } catch (_) {
+    return false;
+  }
+}
+
 export function openFormModal({
   id, title, fields, onSubmit, submitLabel = '保存',
   accentColor = 'var(--accent-blue)', initialValues = {}, settingsLink = null,
@@ -303,11 +469,17 @@ export function openFormModal({
   const controlStyle = '--acc-text-dark:#CBD5E1;color:var(--neutral-700);';
   const fieldId = (key) => `${id}-${key}`;
   const errorHtml = (fid, key) =>
-    `<p class="text-xs text-red-600 mt-1" id="${escHtml(fid)}-err" data-field-error="${escHtml(key)}" hidden></p>`;
-  // 未知 type 一律回退 text（R3-28：原样输出 type="input" 是非法类型）
+    `<p class="text-xs text-red-600 mt-1" id="${escHtml(fid)}-err" data-field-error="${escHtml(key)}" role="alert" hidden></p>`;
+  // 未知 type：开发期直接报错（不静默变 text），生产期回退 text 但留告警
   const inputType = (t) => {
     const known = ['text', 'number', 'date', 'time', 'email', 'tel', 'url', 'password'];
-    return known.includes(t) ? t : 'text';
+    if (!t || known.includes(t)) return 'text';
+    if (_isDevEnv()) {
+      console.error(`[modal] 未知字段类型：${t}（openFormModal: ${id}）`);
+      throw new Error(`未知字段类型：${t}`);
+    }
+    console.warn(`[modal] 未知字段类型：${t}，已回退为 text`);
+    return 'text';
   };
 
   const fieldHtml = (f) => {
@@ -343,7 +515,7 @@ export function openFormModal({
   const bodyHtml = `<form id="${escHtml(formId)}" data-modal-form="${escHtml(id)}" novalidate>${fieldsHtml}</form>`;
 
   const footerHtml = `
-    <p class="modal-form-error" data-modal-error hidden></p>
+    <p class="modal-form-error" data-modal-error role="alert" hidden></p>
     <button type="button" data-modal-cancel="${escHtml(id)}" class="btn-outline" style="cursor:pointer;">取消</button>
     <button type="submit" form="${escHtml(formId)}" data-modal-submit="${escHtml(id)}" class="btn-accent">${escHtml(submitLabel)}</button>`;
 
@@ -375,6 +547,16 @@ export function openFormModal({
         });
         if (generalError) { generalError.textContent = ''; generalError.hidden = true; }
       };
+      /** 用户修正字段时清除该字段的错误态（aria-invalid / 错误文本），避免旧错误久挂 */
+      const clearFieldError = (key) => {
+        const control = fieldEl(key);
+        const errEl = errorEl(key);
+        if (control) {
+          control.removeAttribute('aria-invalid');
+          if (errEl && control.getAttribute('aria-describedby') === errEl.id) control.removeAttribute('aria-describedby');
+        }
+        if (errEl) { errEl.textContent = ''; errEl.hidden = true; }
+      };
       /** 渲染字段错误行（aria-invalid / aria-describedby）并聚焦首个错误字段 */
       const showErrors = (errors) => {
         let firstControl = null;
@@ -401,6 +583,8 @@ export function openFormModal({
         generalError.hidden = false;
       };
       const setBusy = (busy) => {
+        // 提交中：面板与提交按钮 aria-busy；四条关闭路径由 `_requestCancel` 早退统一挂起
+        setModalBusy(id, busy);
         if (submitBtn) {
           submitBtn.disabled = busy;
           submitBtn.textContent = busy ? '提交中…' : submitLabel;
@@ -409,8 +593,17 @@ export function openFormModal({
         if (cancelBtn) cancelBtn.disabled = busy;
       };
 
+      const formEl = panel.querySelector(`[data-modal-form="${id}"]`);
+      // 用户一改动该字段就清掉它的错误态（spec：字段错误在修正后清除 aria-invalid）
+      const onFieldEdit = (e) => {
+        const key = e.target?.dataset?.field;
+        if (key) clearFieldError(key);
+      };
+      formEl?.addEventListener('input', onFieldEdit);
+      formEl?.addEventListener('change', onFieldEdit);
+
       // 提交（取消由 openModal 统一处理：取消 = 放弃本次编辑）
-      panel.querySelector(`[data-modal-form="${id}"]`)?.addEventListener('submit', async (e) => {
+      formEl?.addEventListener('submit', async (e) => {
         e.preventDefault();
         if (submitBtn?.disabled) return;
         clearErrors();
@@ -421,16 +614,22 @@ export function openFormModal({
         setBusy(true);
         try {
           const result = await onSubmit(values);
-          if (result === false) { setBusy(false); return; } // onSubmit 返回 false 表示验证失败，不关闭浮窗
+          // 契约：只有显式 true / {ok:true} 才关窗；undefined / false / {ok:false} 一律保留
+          if (shouldCloseOnResult(result)) { closeModal(id); return; }
           if (result && result.ok === false) {
-            showErrors(result.errors);
+            const errors = result.errors && typeof result.errors === 'object' ? result.errors : null;
+            const hasFieldErrors = !!errors && Object.keys(errors).length > 0;
+            if (hasFieldErrors) showErrors(errors);
             if (result.reason) showGeneralError(result.reason);
-            setBusy(false);
-            return;
+            else if (!hasFieldErrors) showGeneralError('提交未完成，请稍后重试');
+          } else if (result === undefined) {
+            // 调用方忘记 return：不再被当成功；给出通用失败文案
+            showGeneralError('提交未完成，请稍后重试');
           }
-          closeModal(id);
+          setBusy(false);
         } catch (err) {
-          showGeneralError(err?.message || '提交失败，请稍后重试');
+          // 不直接展示 err.message（可能含 HTTP 状态/技术串），统一走 describeWriteError
+          showGeneralError(describeWriteError(err));
           setBusy(false);
         }
       });

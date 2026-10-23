@@ -19,35 +19,35 @@
 //
 // 数据源装配：与 activity-entry.js / notice-entry.js 同款——有 API 会话时先切数据源并 init() 拉全量
 //   再渲染（`module-load.test.mjs::E2` 独立页装配断言要求）。
-import { renderSidebar } from '../../components/shell/sidebar.js?v=20261023a';
-import { renderHeader } from '../../components/shell/header.js?v=20261023a';
-import { hydrateDataSource, notifyDataLoaded, getAdapter, persist } from '../../data/data-adapter.js?v=20261023a';
-import { ApiAdapter } from '../../data/api-adapter.js?v=20261023a';
-import { mockDB } from '../../core/domain/domain.js?v=20261023a';
-import { AuthStore } from '../../services/core/auth.js?v=20261023a';
-import { PersonStore, getPersonName } from '../../services/member/person.js?v=20261023a';
-import { BranchService } from '../../services/core/runtime.js?v=20261023a';
-import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261023a';
-import { IssueStore } from '../../services/governance/issues.js?v=20261023a';
-import { resolveVoterIds, defaultVoteConfig, optionSetOf, isAnonymousActivity } from '../../services/activity/vote-config.js?v=20261023a';
-import { fetchVotes, tallyForItem } from '../../services/activity/committee-vote.js?v=20261023a';
-import { agendaDecisionSource } from '../../services/activity/agenda-relations.js?v=20261023a';
-import { renderVoteWidget } from '../../components/governance/vote-widget.js?v=20261023a';
-import { renderVoteSummary } from '../../components/governance/vote-summary-panel.js?v=20261023a';
-import { recordAgendaResultForActivity } from '../../services/activity/agenda-follow-up.js?v=20261023a';
+import { renderSidebar } from '../../components/shell/sidebar.js?v=20261023b';
+import { renderHeader } from '../../components/shell/header.js?v=20261023b';
+import { hydrateDataSource, notifyDataLoaded, getAdapter, persist } from '../../data/data-adapter.js?v=20261023b';
+import { ApiAdapter } from '../../data/api-adapter.js?v=20261023b';
+import { mockDB } from '../../core/domain/domain.js?v=20261023b';
+import { AuthStore } from '../../services/core/auth.js?v=20261023b';
+import { PersonStore, getPersonName } from '../../services/member/person.js?v=20261023b';
+import { BranchService } from '../../services/core/runtime.js?v=20261023b';
+import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261023b';
+import { IssueStore } from '../../services/governance/issues.js?v=20261023b';
+import { resolveVoterIds, defaultVoteConfig, optionSetOf, isAnonymousActivity } from '../../services/activity/vote-config.js?v=20261023b';
+import { fetchVotes, tallyForItem } from '../../services/activity/committee-vote.js?v=20261023b';
+import { agendaDecisionSource } from '../../services/activity/agenda-relations.js?v=20261023b';
+import { renderVoteWidget } from '../../components/governance/vote-widget.js?v=20261023b';
+import { renderVoteSummary } from '../../components/governance/vote-summary-panel.js?v=20261023b';
+import { recordAgendaResultForActivity } from '../../services/activity/agenda-follow-up.js?v=20261023b';
 // 「拟上会」清单单一源（2026-09-21 批次 127 · `SOP-B-33` 取（乙）档）：本页的「提取议程」
 // 与写入活动的议程区块共用**同一张清单**（agenda-form.js::buildAgendaCandidates）——
 // 原按来源分两块的呈现（专班报送 / 意见反馈）已按乙档收为一张清单（不按来源各做导入口）。
-import { buildAgendaCandidates, AGENDA_CANDIDATE_GROUPS } from '../tabs/secretary/agenda-form.js?v=20261023a';
-import { listDocs as listBranchDocs, isAgendaDraftDoc, isInstitutionDraftAgendaItem } from '../../services/branch/branch-doc.js?v=20261023a';
+import { buildAgendaCandidates, AGENDA_CANDIDATE_GROUPS } from '../tabs/secretary/agenda-form.js?v=20261023b';
+import { listDocs as listBranchDocs, isAgendaDraftDoc, isInstitutionDraftAgendaItem } from '../../services/branch/branch-doc.js?v=20261023b';
 // 党小组组长（含代组长）清单单一源——2026-09-23 支书裁定甲「支委扩大会…党小组组长（代组长）是可以
 //   打包的」；**不另造组长名单**（同 services/member/party-group.js 的组清单同源；组内无组长时由该源回落次选身份）
-import { listPartyGroups } from '../../services/member/group-view.js?v=20261023a';
-import { loadStageEntryDates } from '../../services/member/member-confirmation.js?v=20261023a';
+import { listPartyGroups } from '../../services/member/group-view.js?v=20261023b';
+import { loadStageEntryDates } from '../../services/member/member-confirmation.js?v=20261023b';
 // 品牌认定提案（2026-09-21 批次 132 · 支书口径二「提案 → 支委会通过后确定」）——判据单一源
-import { listBrandProposals } from '../../services/activity/activity.js?v=20261023a';
-import { showToast, escHtml as esc, todayLocal } from '../../core/base/utils.js?v=20261023a';
-import { generateId } from '../../core/base/id.js?v=20261023a';
+import { listBrandProposals } from '../../services/activity/activity.js?v=20261023b';
+import { showToast, escHtml as esc, todayLocal } from '../../core/base/utils.js?v=20261023b';
+import { generateId } from '../../core/base/id.js?v=20261023b';
 
 renderSidebar('dashboard');
 renderHeader('dashboard');
@@ -156,7 +156,7 @@ function renderShellDenied() {
   ROOT.innerHTML = `
     <div class="card rounded-xl p-5 text-center">
       <p class="font-title-cn text-base font-bold text-gray-800">你在支委会会议页没有可见的会议</p>
-      <p class="text-sm text-gray-500 mt-2">你不在此页可见范围内。<a href="./help.html#card-copy-pcm-scope" class="text-sky-600 hover:underline">见帮助 · 支委会页可见范围</a></p>
+      <p class="help-note mt-2">你不在此页可见范围内。<a href="./help.html#card-copy-pcm-scope" class="help-note__link">见帮助 · 支委会页可见范围</a></p>
       <p class="text-sm mt-4"><a href="./workspace/${esc(page)}" class="text-blue-600 hover:underline">← 返回我的工作台</a></p>
     </div>`;
 }
@@ -182,7 +182,7 @@ function expandedScopeNoticeHtml(n) {
   return `
     <div class="rounded-xl border border-blue-100 bg-blue-50/50 p-4">
       <p class="text-xs font-semibold text-blue-800">你被扩大进 ${n} 场支委会（支委扩大会）</p>
-      <p class="text-xs text-blue-800 mt-1.5 leading-relaxed">本页只列扩大到你的场次。<a href="./help.html#card-copy-pcm-scope" class="text-sky-600 hover:underline">见帮助 · 支委会页可见范围</a></p>
+      <p class="help-note help-note--inherit mt-1.5">本页只列扩大到你的场次。<a href="./help.html#card-copy-pcm-scope" class="help-note__link">见帮助 · 支委会页可见范围</a></p>
     </div>`;
 }
 
@@ -211,9 +211,9 @@ function selectSectionHtml(hasMeeting) {
         </label>
         <button id="pcm-create" type="button" class="btn-outline" data-pcm-primary="${!hasMeeting ? '1' : '0'}">新建线上支委会</button>` : ''}
       </div>
-      <p class="text-xs text-gray-500 mt-2">${committeeViewer
-        ? '线上召开沿用本场活动的异步表决配置。<a href="./help.html#card-dom31-vote" class="text-sky-600 hover:underline">见帮助 · 线上异步表决</a>'
-        : '这里只列扩大到你的支委会场次。<a href="./help.html#card-copy-pcm-scope" class="text-sky-600 hover:underline">见帮助 · 支委会页可见范围</a>'}</p>
+      <p class="help-note mt-2">${committeeViewer
+        ? '线上召开沿用本场活动的异步表决配置。<a href="./help.html#card-dom31-vote" class="help-note__link">见帮助 · 线上异步表决</a>'
+        : '这里只列扩大到你的支委会场次。<a href="./help.html#card-copy-pcm-scope" class="help-note__link">见帮助 · 支委会页可见范围</a>'}</p>
     </div>`;
 }
 
@@ -248,7 +248,7 @@ function scopeSectionHtml(act, step) {
         <input type="checkbox" class="pcm-expand-person" value="${esc(g.id)}"${expandedIds.includes(g.id) ? ' checked' : ''}>
         <span class="text-gray-700">${esc(getPersonName(g.id) || g.id)}</span>
         <span class="text-gray-400">${esc(g.groupName)} 组长</span>
-        ${committee.includes(g.id) ? '<span class="text-[11px] text-gray-400">（已是支委）</span>' : ''}
+        ${committee.includes(g.id) ? '<span class="text-xs text-gray-400">（已是支委）</span>' : ''}
       </label>`).join('')
     : '<p class="text-xs text-gray-400">当前没有在册的党小组组长（可到支书台「党小组」确认组长设置）</p>';
   const rangeText = `当前应到 ${voterIds.length || committee.length} 人 ＝ 支委 ${committee.length} 人`
@@ -256,7 +256,7 @@ function scopeSectionHtml(act, step) {
   return `
     <div class="card rounded-xl p-5">
       <p class="text-sm font-semibold text-gray-700 mb-1">范围 · 本场参会范围</p>
-      <p class="text-xs text-gray-500 mb-3"><a href="./help.html#card-copy-pcm-scope" class="text-sky-600 hover:underline">见帮助 · 支委会页可见范围</a></p>
+      <p class="help-note mb-3"><a href="./help.html#card-copy-pcm-scope" class="help-note__link">见帮助 · 支委会页可见范围</a></p>
       ${editable ? `
       <label class="flex items-center gap-2 text-sm text-gray-700">
         <input type="checkbox" id="pcm-expanded"${expandedIds.length ? ' checked' : ''}>
@@ -266,13 +266,13 @@ function scopeSectionHtml(act, step) {
         <label class="flex items-center gap-2 text-xs text-gray-700">
           <input type="checkbox" id="pcm-expand-all">
           <span class="font-medium">全体党小组组长（代组长）</span>
-          <span class="text-[11px] text-gray-400">一键打包</span>
+          <span class="text-xs text-gray-400">一键打包</span>
         </label>
         <div class="mt-1">${leaderRows}</div>
       </div>
       <div class="mt-3 flex items-center gap-3 flex-wrap">
         <button id="pcm-save-scope" type="button" class="btn-outline" data-pcm-primary="${step === 0 ? '1' : '0'}">保存本场参会范围</button>
-        <span class="text-[11px] text-gray-500">${esc(rangeText)}</span>
+        <span class="text-xs text-gray-500">${esc(rangeText)}</span>
       </div>` : `
       <p class="text-xs text-gray-600">${esc(rangeText)}</p>
       <p class="text-xs text-gray-500 mt-1.5">按应到名单表态。</p>`}
@@ -318,7 +318,7 @@ function extractSectionHtml(act, candidates = [], step = 1) {
       <input type="checkbox" class="pcm-cand mt-0.5" value="${esc(c.refId)}" data-group="${esc(c.group)}"${used ? ' disabled' : ''}>
       <span class="flex-1 min-w-0">
         <span class="block text-xs font-medium text-gray-700">${esc(c.text)}</span>
-        <span class="block text-[11px] text-gray-500 mt-0.5">${esc(c.meta)}${used ? ' · 已在议程中' : ''}</span>
+        <span class="block text-xs text-gray-500 mt-0.5">${esc(c.meta)}${used ? ' · 已在议程中' : ''}</span>
       </span>
     </label>`;
   };
@@ -327,7 +327,7 @@ function extractSectionHtml(act, candidates = [], step = 1) {
       const list = candidates.filter((c) => c.group === g.key);
       if (!list.length) return '';
       return `<div>
-          <p class="text-xs font-medium text-gray-600 mb-1.5">${esc(g.label)} · ${list.length}<span class="text-[11px] text-gray-500 font-normal ml-1.5">${esc(g.hint)}</span></p>
+          <p class="text-xs font-medium text-gray-600 mb-1.5">${esc(g.label)} · ${list.length}<span class="text-xs text-gray-500 font-normal ml-1.5">${esc(g.hint)}</span></p>
           <div class="space-y-1.5">${list.map(row).join('')}</div>
         </div>`;
     }).join('')
@@ -335,11 +335,11 @@ function extractSectionHtml(act, candidates = [], step = 1) {
   return `
     <div class="card rounded-xl p-5">
       <p class="text-sm font-semibold text-gray-700 mb-1">提取议程</p>
-      <p class="text-xs text-gray-500 mb-3">勾选后加入本场议程，不改动来源本身。<a href="./help.html#card-dom31-vote" class="text-sky-600 hover:underline">见帮助 · 线上异步表决</a></p>
+      <p class="help-note mb-3">勾选后加入本场议程，不改动来源本身。<a href="./help.html#card-dom31-vote" class="help-note__link">见帮助 · 线上异步表决</a></p>
       <div class="space-y-3">${groupsHtml}</div>
       <div class="mt-3 flex items-center gap-3">
         <button id="pcm-extract" type="button" class="btn-outline" data-pcm-primary="${step === 1 ? '1' : '0'}">加入本场议程</button>
-        <span class="text-[11px] text-gray-500">勾选后可一次加入多条</span>
+        <span class="text-xs text-gray-500">勾选后可一次加入多条</span>
       </div>
     </div>`;
 }
@@ -351,8 +351,8 @@ function agendaSectionHtml(act) {
   const canVote = !!me && voterIds.includes(me.personId);
   const items = (act.agenda || []).filter((a) => a && a.item);
   const stepBadge = (a) => a.agendaStep === 'discussion'
-    ? '<span class="inline-flex items-center px-1.5 py-0.5 rounded text-[11px] font-medium text-indigo-700 bg-indigo-50">讨论项</span>'
-    : (a.agendaStep === 'vote' ? '<span class="inline-flex items-center px-1.5 py-0.5 rounded text-[11px] font-medium text-rose-700 bg-rose-50">表决项</span>' : '');
+    ? '<span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium text-indigo-700 bg-indigo-50">讨论项</span>'
+    : (a.agendaStep === 'vote' ? '<span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium text-rose-700 bg-rose-50">表决项</span>' : '');
   if (!items.length) {
     return `
       <div class="card rounded-xl p-5">
@@ -368,19 +368,19 @@ function agendaSectionHtml(act) {
           <div class="flex items-center gap-2 flex-wrap">
             <span class="text-sm font-medium text-gray-700">${esc(a.item)}</span>
             ${stepBadge(a)}
-            ${a.result ? `<span class="inline-flex items-center px-1.5 py-0.5 rounded text-[11px] font-medium ${a.result === 'passed' ? 'text-green-700 bg-green-50' : 'text-red-700 bg-red-50'}">${a.result === 'passed' ? '已通过' : (a.result === 'partial' ? '部分通过' : '未通过')}</span>` : ''}
+            ${a.result ? `<span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium ${a.result === 'passed' ? 'text-green-700 bg-green-50' : 'text-red-700 bg-red-50'}">${a.result === 'passed' ? '已通过' : (a.result === 'partial' ? '部分通过' : '未通过')}</span>` : ''}
           </div>
           ${a.host || a.discussionAgendaItemId ? `<div class="text-xs text-gray-500 mt-0.5">${a.host ? `（主持人：${esc(a.host)}）` : ''}${a.discussionAgendaItemId ? `${a.host ? ' · ' : ''}对应讨论：${esc(items.find((item) => item.id === a.discussionAgendaItemId)?.item || '议程关系无效')}` : ''}</div>` : ''}
         </div>
       </div>
       ${a.agendaStep === 'discussion'
-        ? '<div class="text-[11px] text-gray-500 mt-2">讨论过程项；表态与决议结果记录在关联表决项</div>'
-        : (a.id ? `<div class="vote-widget-slot mt-2" data-vote-item-id="${esc(a.id)}"></div>` : '<div class="text-[11px] text-gray-500 mt-2">该条无表决编号，仅作议程记录。</div>')}
+        ? '<div class="text-xs text-gray-500 mt-2">讨论过程项；表态与决议结果记录在关联表决项</div>'
+        : (a.id ? `<div class="vote-widget-slot mt-2" data-vote-item-id="${esc(a.id)}"></div>` : '<div class="text-xs text-gray-500 mt-2">该条无表决编号，仅作议程记录。</div>')}
     </div>`).join('');
   return `
     <div class="card rounded-xl p-5">
       <p class="text-sm font-semibold text-gray-700 mb-1">表态 · 议程与表态</p>
-      <p class="text-xs text-gray-500 mb-3">${canVote ? '你是本场应到表决人，可就表决项表态。<a href="./help.html#card-dom31-vote" class="text-sky-600 hover:underline">见帮助 · 线上异步表决</a>' : '你不在本场应到表决名单内，以下为只读议程。'}</p>
+      <p class="help-note mb-3">${canVote ? '你是本场应到表决人，可就表决项表态。<a href="./help.html#card-dom31-vote" class="help-note__link">见帮助 · 线上异步表决</a>' : '你不在本场应到表决名单内，以下为只读议程。'}</p>
       <div class="space-y-3">${rows}</div>
     </div>`;
 }
@@ -433,14 +433,14 @@ function resultSectionHtml(act, votes) {
           <span class="text-xs text-gray-500 flex-shrink-0 w-5 pt-0.5">${i + 1}.</span>
           <div class="flex-1 min-w-0">
             <p class="text-sm font-medium text-gray-700">${esc(a.item)}</p>
-            ${a.agendaStep === 'discussion' ? '<span class="inline-flex items-center mt-1 px-1.5 py-0.5 rounded text-[11px] font-medium text-indigo-700 bg-indigo-50">讨论项</span>' : (a.agendaStep === 'vote' ? '<span class="inline-flex items-center mt-1 px-1.5 py-0.5 rounded text-[11px] font-medium text-rose-700 bg-rose-50">表决项</span>' : '')}
+            ${a.agendaStep === 'discussion' ? '<span class="inline-flex items-center mt-1 px-1.5 py-0.5 rounded text-xs font-medium text-indigo-700 bg-indigo-50">讨论项</span>' : (a.agendaStep === 'vote' ? '<span class="inline-flex items-center mt-1 px-1.5 py-0.5 rounded text-xs font-medium text-rose-700 bg-rose-50">表决项</span>' : '')}
             ${a.discussionAgendaItemId ? `<p class="text-xs text-gray-500 mt-1">对应讨论：${esc((act.agenda || []).find((item) => item.id === a.discussionAgendaItemId)?.item || '议程关系无效')}</p>` : ''}
             <p class="text-xs text-gray-500 mt-1">表态记录：${esc(detail)}</p>
             <p class="text-xs text-gray-500 mt-0.5">讨论结果：${esc(resultLabel)}${a.reportToPartyMeeting ? '（报送党员大会表决）' : ''}${recorder ? '（记录人 ' + esc(recorder) + '）' : ''}</p>
             ${canRecord && !isDiscussion ? `<div class="mt-2 flex items-center gap-2 flex-wrap">
               <button type="button" class="btn-outline pcm-record text-xs px-2.5 py-1" data-item-id="${esc(a.id)}" data-result="passed">记录通过</button>
               <button type="button" class="btn-outline pcm-record text-xs px-2.5 py-1" data-item-id="${esc(a.id)}" data-result="rejected">记录未通过</button>
-              ${instDraft ? `<label class="text-[11px] text-gray-500 flex items-center gap-1"><input type="checkbox" class="pcm-report-party" data-item-id="${esc(a.id)}" style="cursor:pointer;">报送党员大会表决</label>` : ''}
+              ${instDraft ? `<label class="text-xs text-gray-500 flex items-center gap-1"><input type="checkbox" class="pcm-report-party" data-item-id="${esc(a.id)}" style="cursor:pointer;">报送党员大会表决</label>` : ''}
             </div>` : ''}
           </div>
         </div>
@@ -449,7 +449,7 @@ function resultSectionHtml(act, votes) {
   return `
     <div class="card rounded-xl p-5">
       <p class="text-sm font-semibold text-gray-700 mb-1">留存 · 讨论结果</p>
-      <p class="text-xs text-gray-500 mb-3"><a href="./help.html#card-copy-pcm-scope" class="text-sky-600 hover:underline">见帮助 · 支委会页可见范围</a></p>
+      <p class="help-note mb-3"><a href="./help.html#card-copy-pcm-scope" class="help-note__link">见帮助 · 支委会页可见范围</a></p>
       <div class="space-y-3" id="pcm-result">${body}</div>
       <p class="text-xs text-gray-500 mt-3">也可在 <a href="./activity.html?id=${encodeURIComponent(act.id)}" class="text-blue-600 hover:underline">活动详情</a> 查看全部记录。</p>
     </div>`;
@@ -507,7 +507,7 @@ async function render() {
         <div class="flex items-start justify-between gap-3 flex-wrap">
           <div class="min-w-0">
             <h2 class="font-title-cn text-xl font-bold text-gray-800">支委会会议（线上召开）</h2>
-            <p class="text-xs text-gray-500 mt-1"><span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] bg-gray-100 text-gray-600">线上＝线下效力</span><a href="./help.html#card-copy-pcm-scope" class="text-sky-600 hover:underline ml-2">见帮助</a></p>
+            <p class="text-xs text-gray-500 mt-1"><span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs bg-gray-100 text-gray-600">线上＝线下效力</span><a href="./help.html#card-copy-pcm-scope" class="help-note__link ml-2">见帮助</a></p>
           </div>
           <a href="./workspace/${esc(page)}" class="text-sm text-blue-600 hover:underline flex-shrink-0">← 返回我的工作台</a>
         </div>

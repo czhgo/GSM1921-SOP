@@ -1,11 +1,12 @@
 // role: [工程师]+[AI]
 // 个人档案页的「本人自述」展示：折叠摘要 + 5 个子组。
 // 字段顺序与含义沿用自我描述字段单一源（core/domain/self-profile.js）。
-import { escHtml as esc } from '../../core/base/utils.js?v=20261023a';
+import { escHtml as esc } from '../../core/base/utils.js?v=20261023b';
 import {
   isSelfProfileEmpty, SELF_PROFILE_FIELDS,
-} from '../../core/domain/self-profile.js?v=20261023a';
-import { listRowHtml, listGroupHtml } from '../ui/list-row.js?v=20261023a';
+} from '../../core/domain/self-profile.js?v=20261023b';
+import { EMPTY_TEXT } from '../../core/domain/constants.js?v=20261023b';
+import { listRowHtml, listGroupHtml } from '../ui/list-row.js?v=20261023b';
 
 /** 15 个自述字段的展示子组（顺序＝展开后的阅读顺序；键集≡SELF_PROFILE_FIELDS） */
 export const SELF_PROFILE_GROUPS = [
@@ -66,7 +67,7 @@ export function selfProfileMissingGroupNames(selfProfile) {
 function emptyTextFor(key, selfProfile) {
   const dep = DEPENDENT_FIELDS[key];
   if (dep && selfProfile?.[dep.parent] === false) return dep.empty;
-  return '未填写';
+  return EMPTY_TEXT;
 }
 
 /** 子表：表头 + 行（不为每行做白卡；子项不再加 data-field） */
@@ -76,11 +77,12 @@ function listTableHtml(field, value, emptyText) {
       && Object.values(row).some((cell) => String(cell == null ? '' : cell).trim()))
     : [];
   if (!rows.length) return esc(emptyText);
-  const cols = field.itemFields || [];
+  // 空列整列不渲染（列声明 emptyText，全空即无信息）
+  const cols = (field.itemFields || []).filter((col) => rows.some((row) => String(row[col.key] == null ? '' : row[col.key]).trim()));
   return `<div class="overflow-x-auto">
     <table class="data-table">
       <thead><tr>${cols.map((col) => `<th scope="col">${esc(col.label)}</th>`).join('')}</tr></thead>
-      <tbody>${rows.map((row) => `<tr class="border-t border-gray-100 align-top">${cols.map((col) => `<td class="break-words whitespace-pre-wrap">${esc(row[col.key] || '—')}</td>`).join('')}</tr>`).join('')}</tbody>
+      <tbody>${rows.map((row) => `<tr class="border-t border-gray-100 align-top">${cols.map((col) => `<td class="break-words whitespace-pre-wrap">${esc(row[col.key] || EMPTY_TEXT)}</td>`).join('')}</tr>`).join('')}</tbody>
     </table>
   </div>`;
 }
@@ -90,7 +92,7 @@ function fieldValueHtml(field, selfProfile) {
   if (field.type === 'bool') {
     if (value === true) return '是';
     if (value === false) return '否';
-    return '未填写';
+    return EMPTY_TEXT;
   }
   if (field.type === 'multi') {
     const values = Array.isArray(value) ? value.filter((item) => String(item == null ? '' : item).trim()) : [];

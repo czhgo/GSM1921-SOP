@@ -15,15 +15,15 @@
 //   判据复用既有 `reviewHistory`（打回是唯一留痕动作），不新增字段、不复活旧 `pending` 状态。
 //   它只提示「还没看过」，不拦归档、不产生写动作。
 
-import { listAllThoughtReports, comparePeriodDesc, periodOf } from '../../../services/governance/thought-report.js?v=20261023a';
-import { getPersonName, liveMembers } from '../../../services/member/person.js?v=20261023a';
-import { AuthStore } from '../../../services/core/auth.js?v=20261023a';
-import { escHtml as esc, getBasePath } from '../../../core/base/utils.js?v=20261023a';
-import { ROLE_LABELS } from '../../../core/domain/constants.js?v=20261023a';
-import { listRowHtml } from '../../../components/ui/list-row.js?v=20261023a';
+import { listAllThoughtReports, comparePeriodDesc, periodOf } from '../../../services/governance/thought-report.js?v=20261023b';
+import { getPersonName, liveMembers } from '../../../services/member/person.js?v=20261023b';
+import { AuthStore } from '../../../services/core/auth.js?v=20261023b';
+import { escHtml as esc, getBasePath } from '../../../core/base/utils.js?v=20261023b';
+import { ROLE_LABELS } from '../../../core/domain/constants.js?v=20261023b';
+import { listRowHtml } from '../../../components/ui/list-row.js?v=20261023b';
 // 例外清单仍是按人表：接统一引擎只为**分页**（无关键词 / 无分面时引擎自动不渲染检索条）。
-import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261023a';
-import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261023a';
+import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261023b';
+import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261023b';
 
 const STATUS_LABEL = {
   needs_revision: '已打回 · 待补充',
@@ -146,7 +146,7 @@ export function renderContent(ctx) { // ctx 对齐 org 其它 tab（本 tab 不�
           return `<section aria-label="${esc(g.title)}">
             <div class="flex items-baseline justify-between gap-2 mb-1.5">
               <h4 class="text-sm font-semibold text-gray-700">${esc(g.title)} <span class="tabular-nums text-gray-500">${rows.length}</span></h4>
-              <span class="text-[11px] text-gray-500">${esc(g.hint)}</span>
+              <span class="text-xs text-gray-500">${esc(g.hint)}</span>
             </div>
             ${rows.length
               ? `<div id="tr-group-${g.key}"></div>`

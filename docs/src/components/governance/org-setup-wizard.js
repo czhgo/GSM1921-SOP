@@ -16,35 +16,35 @@
 // 草稿：localStorage `wizard-draft-<branchId>`（当前步 + 每步完成标记 + 完成态），中断可续走。
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../../core/domain/domain.js?v=20261023a';
-import { getCapabilities } from '../../core/boot/registry.js?v=20261023a';
-import { OUTPUT_BLOCK_DEFS, BRANCH_COMMISSION_ROLES, ROLE_LABELS, getAccentColors, accentButtonColors } from '../../core/domain/constants.js?v=20261023a';
-import { CAPABILITY_PACKAGES } from '../../core/domain/capability-packages.js?v=20261023a';
-import { ORG_SUBJECT_LABELS, isBranchOrgSubject, ownerSubjectType } from '../../core/domain/work-map.js?v=20261023a';
+import { mockDB } from '../../core/domain/domain.js?v=20261023b';
+import { getCapabilities } from '../../core/boot/registry.js?v=20261023b';
+import { OUTPUT_BLOCK_DEFS, BRANCH_COMMISSION_ROLES, ROLE_LABELS, getAccentColors, accentButtonColors } from '../../core/domain/constants.js?v=20261023b';
+import { CAPABILITY_PACKAGES } from '../../core/domain/capability-packages.js?v=20261023b';
+import { ORG_SUBJECT_LABELS, isBranchOrgSubject, ownerSubjectType } from '../../core/domain/work-map.js?v=20261023b';
 // 副作用：注册支委层工作台能力（配置目录=其 tab 清单，单一源）
-import '../../capabilities/secretary-workspace.js?v=20261023a';
-import { BLOCK_MANIFESTS } from '../../workflow/blocks/manifests.js?v=20261023a';
+import '../../capabilities/secretary-workspace.js?v=20261023b';
+import { BLOCK_MANIFESTS } from '../../workflow/blocks/manifests.js?v=20261023b';
 // L3 流程组合（2026-09-28 批次 246）：把编排内核接进**生产路径**——配置面用它做「组合体检」
-import { composePlan } from '../../workflow/blocks/orchestration.js?v=20261023a';
-import { escHtml as esc, showToast, downloadBlob } from '../../core/base/utils.js?v=20261023a';
-import { readLoginSnapshot } from '../../core/session/login-snapshot.js?v=20261023a';
-import { WORK_MAP_MODULES } from '../../core/domain/work-map.js?v=20261023a';
+import { composePlan } from '../../workflow/blocks/orchestration.js?v=20261023b';
+import { escHtml as esc, showToast, downloadBlob } from '../../core/base/utils.js?v=20261023b';
+import { readLoginSnapshot } from '../../core/session/login-snapshot.js?v=20261023b';
+import { WORK_MAP_MODULES } from '../../core/domain/work-map.js?v=20261023b';
 import {
   getBranchById, getBranchOrg, getBranchTabPolicy, getCoreTabIds,
   getBranchOutputBlocks, getBranchCapabilityPackageState, getOutputBlockPolicy, getWorkflowBlockPolicy, orderByIds,
   updateBranchModules, updateBranchCapabilityPackages, getBranchWorkforce, updateBranchWorkforce, updateBranchOrg,
   applyConfigCopy, createBranch, getBranchIdOfPerson, ensureBranchConfigLoaded,
-} from '../../services/branch/branch.js?v=20261023a';
-import { buildConfigPackage, applyConfigPackage } from '../../services/branch/org-config-package.js?v=20261023a';
+} from '../../services/branch/branch.js?v=20261023b';
+import { buildConfigPackage, applyConfigPackage } from '../../services/branch/org-config-package.js?v=20261023b';
 import {
   buildPreviewTemplate, sanitizePreview, applyPreview, clearPreview, getPreviewState,
   PREVIEW_KIND, PREVIEW_VERSION,
-} from '../../services/branch/org-base-data-preview.js?v=20261023a';
-import { getRosterStats, isDetained } from '../../services/member/roster.js?v=20261023a';
-import { buildOrgWizardReport } from '../../services/branch/org-wizard-report.js?v=20261023a';
-import { PersonStore, getPersonName } from '../../services/member/person.js?v=20261023a';
+} from '../../services/branch/org-base-data-preview.js?v=20261023b';
+import { getRosterStats, isDetained } from '../../services/member/roster.js?v=20261023b';
+import { buildOrgWizardReport } from '../../services/branch/org-wizard-report.js?v=20261023b';
+import { PersonStore, getPersonName } from '../../services/member/person.js?v=20261023b';
 // R5-1（2026-09-06）：建空支部「就地任命首任骨干」——任命编排在 appointment.js 收口（含数据边界登记）
-import { appointInauguralOfficers } from '../../services/branch/appointment.js?v=20261023a';
+import { appointInauguralOfficers } from '../../services/branch/appointment.js?v=20261023b';
 
 // ── 步骤元信息（支书已批口径）────────────────────────────────────
 export const WIZARD_STEPS = [
@@ -336,12 +336,12 @@ function _headHtml(S, branch, org, isStaff) {
     ? `<div class="flex flex-wrap items-center gap-2">
         <label for="wz-branch-select" class="text-xs text-gray-500 shrink-0">目标支部</label>
         <select id="wz-branch-select" class="input-flat w-full max-w-xs min-w-0">${options}</select>
-        <span class="text-[11px] px-2 py-0.5 rounded-full bg-blue-50 text-blue-600 border border-blue-100 shrink-0">党委 · 任意支部</span>
+        <span class="text-xs px-2 py-0.5 rounded-full bg-blue-50 text-blue-600 border border-blue-100 shrink-0">党委 · 任意支部</span>
       </div>`
     : `<div class="flex flex-wrap items-center gap-2">
         <span class="text-xs text-gray-500 shrink-0">目标支部</span>
         <span class="text-xs font-medium text-gray-800">${esc(branch.name)}</span>
-        <span class="text-[11px] px-2 py-0.5 rounded-full shrink-0 ${S.actor.role === 'party-staff' ? 'bg-blue-50 text-blue-700 border border-blue-100' : 'bg-red-50 text-red-700 border border-red-100'}">${whoBadge}${S.actor.role === 'party-staff' ? '' : ' · 限本支部'}</span>
+        <span class="text-xs px-2 py-0.5 rounded-full shrink-0 ${S.actor.role === 'party-staff' ? 'bg-blue-50 text-blue-700 border border-blue-100' : 'bg-red-50 text-red-700 border border-red-100'}">${whoBadge}${S.actor.role === 'party-staff' ? '' : ' · 限本支部'}</span>
       </div>`;
   return `
     <div class="${S.navigationMode === 'sections' ? 'space-y-2' : 'rounded-xl border border-gray-200 bg-white p-4 space-y-2'}">
@@ -393,30 +393,30 @@ function _createPanelHtml(S, isStaff) {
           <input type="checkbox" id="wz-create-appoint" ${appointOn ? 'checked' : ''} class="shrink-0">
           就地任命首任骨干（首任支书 + 组织委员各 1 人，任命后立即建册）
         </label>
-        <p class="text-[11px] text-gray-500 leading-relaxed">新支部为空、支书席位空缺：勾选后创建时一并就地任命首任骨干——新任支书凭本人账号登录即可接管该支部（组织信息/模块/名册可在支书工作台与支部配置中继续完善）。任命对象来自现有成员（如跨支部兼任/调任）：若其在原支部任支委/组长，原支部对应席位将空缺（界面明示）；人员后续也可在成员管理/名单导入中补入新支部后再次调整。</p>
+        <p class="text-xs text-gray-500 leading-relaxed">新支部为空、支书席位空缺：勾选后创建时一并就地任命首任骨干——新任支书凭本人账号登录即可接管该支部（组织信息/模块/名册可在支书工作台与支部配置中继续完善）。任命对象来自现有成员（如跨支部兼任/调任）：若其在原支部任支委/组长，原支部对应席位将空缺（界面明示）；人员后续也可在成员管理/名单导入中补入新支部后再次调整。</p>
         <div id="wz-create-appoint-fields" class="grid grid-cols-1 md:grid-cols-2 gap-2 ${appointOn ? '' : 'hidden'}">
           <div>
-            <label class="text-[11px] text-gray-500 block mb-1" for="wz-create-appoint-secretary">首任支书 <span class="text-red-600">*</span>（勾选时必选）</label>
+            <label class="text-xs text-gray-500 block mb-1" for="wz-create-appoint-secretary">首任支书 <span class="text-red-600">*</span>（勾选时必选）</label>
             <select id="wz-create-appoint-secretary" class="input-flat w-full" ${appointOn ? '' : 'disabled'}>
               <option value="">请选择首任支书…</option>${secretaryOptions}
             </select>
           </div>
           <div>
-            <label class="text-[11px] text-gray-500 block mb-1" for="wz-create-appoint-org">组织委员（可选）</label>
+            <label class="text-xs text-gray-500 block mb-1" for="wz-create-appoint-org">组织委员（可选）</label>
             <select id="wz-create-appoint-org" class="input-flat w-full" ${appointOn ? '' : 'disabled'}>
               <option value="">不任命（创建后可补任）</option>${orgOptions}
             </select>
           </div>
         </div>
-        <p id="wz-create-appoint-conflict" class="hidden text-[11px] text-red-600">首任支书与组织委员不能为同一人——请更换人选，或取消勾选就地任命。</p>
+        <p id="wz-create-appoint-conflict" class="hidden text-xs text-red-600">首任支书与组织委员不能为同一人——请更换人选，或取消勾选就地任命。</p>
       </div>`
     : `
       <div class="rounded-lg border border-amber-200 bg-amber-50/60 p-2.5">
-        <p class="text-[11px] text-amber-700">当前没有可任命的现役成员（已剔除滞留党员）——请先经下方「成员名册预览」导入成员名单，或到成员管理补入成员后，再创建支部并就地任命首任骨干。</p>
+        <p class="text-xs text-amber-700">当前没有可任命的现役成员（已剔除滞留党员）——请先经下方「成员名册预览」导入成员名单，或到成员管理补入成员后，再创建支部并就地任命首任骨干。</p>
       </div>`;
   return `
     <div class="rounded-lg border border-blue-100 bg-blue-50/40 p-3 space-y-2">
-      <p class="text-xs font-semibold text-gray-700">新建支部… <span class="text-[11px] font-normal text-gray-500">（从空组织模板起步，或复制现有支部为模板；创建后当前向导自动切到新支部）</span></p>
+      <p class="text-xs font-semibold text-gray-700">新建支部… <span class="text-xs font-normal text-gray-500">（从空组织模板起步，或复制现有支部为模板；创建后当前向导自动切到新支部）</span></p>
       <div class="flex flex-wrap items-center gap-4">
         <label class="flex items-center gap-1.5 text-xs text-gray-600 cursor-pointer">
           <input type="radio" name="wz-create-mode" value="empty" ${isCopy ? '' : 'checked'} class="shrink-0">
@@ -429,16 +429,16 @@ function _createPanelHtml(S, isStaff) {
       </div>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
         <div>
-          <label class="text-[11px] text-gray-500 block mb-1" for="wz-create-name">支部名（留空 = ${nameDefault}，向导步骤①可改）</label>
+          <label class="text-xs text-gray-500 block mb-1" for="wz-create-name">支部名（留空 = ${nameDefault}，向导步骤①可改）</label>
           <input id="wz-create-name" type="text" class="input-flat w-full" maxlength="80" placeholder="支部全称，如 光华管理学院硕士党支部">
         </div>
         <div id="wz-create-source-wrap" class="${isCopy ? '' : 'hidden'}">
-          <label class="text-[11px] text-gray-500 block mb-1" for="wz-create-source">源支部（配置/组织档案/workforce 复制源）</label>
+          <label class="text-xs text-gray-500 block mb-1" for="wz-create-source">源支部（配置/组织档案/workforce 复制源）</label>
           <select id="wz-create-source" class="input-flat w-full" ${isCopy ? '' : 'disabled'}>${sourceOptions}</select>
         </div>
       </div>
       ${appointSection}
-      <p class="text-[11px] text-gray-500">新支部为空：config 默认全开、业务域为空、支书席位空缺——勾选上方「就地任命首任骨干」时随创建一并任命（已就地任命首任支书/组织委员者，创建后即建册、支书登录即可接管新支部）；不勾选则按原路径：创建后在下方分步填入组织信息/模块/分工，或按「换壳工作单」补数据。<span class="text-gray-500">记录变更：config.configChangeHistory 追加 <code class="text-[11px] bg-white px-1 py-0.5 rounded border border-blue-100">branch-created</code>。</span></p>
+      <p class="text-xs text-gray-500">新支部为空：config 默认全开、业务域为空、支书席位空缺——勾选上方「就地任命首任骨干」时随创建一并任命（已就地任命首任支书/组织委员者，创建后即建册、支书登录即可接管新支部）；不勾选则按原路径：创建后在下方分步填入组织信息/模块/分工，或按「换壳工作单」补数据。<span class="text-gray-500">记录变更：config.configChangeHistory 追加 <code class="text-xs bg-white px-1 py-0.5 rounded border border-blue-100">branch-created</code>。</span></p>
       <div class="flex items-center justify-end gap-2">
         <button type="button" data-wz-act="toggle-create" class="btn-outline ${subtle}">取消</button>
         <button type="button" data-wz-act="do-create" class="btn-accent px-3 py-1.5 text-xs font-medium">创建支部</button>
@@ -453,7 +453,7 @@ function _toolbarHtml(S, isStaff) {
   const subtle = 'btn-outline text-xs px-2.5 py-1.5 transition-colors';
   const row = `
     <div class="flex flex-wrap items-center gap-2 pt-2.5 mt-2.5 border-t border-gray-100">
-      <span class="text-[11px] text-gray-500 shrink-0">配置工具</span>
+      <span class="text-xs text-gray-500 shrink-0">配置工具</span>
       <button type="button" data-wz-act="export-pkg" class="btn-outline ${subtle}">导出 JSON 配置包</button>
       ${!isStaff ? `<button type="button" data-wz-act="import-pkg" class="btn-outline ${subtle}">导入 JSON 配置包</button>` : ''}
       <input type="file" id="wz-pkg-file" accept=".json,application/json" class="hidden" data-wz-file="pkg">
@@ -461,7 +461,7 @@ function _toolbarHtml(S, isStaff) {
   const panel = '';
   const baseRow = `
     <div class="flex flex-wrap items-center gap-2 pt-2.5 mt-2.5 border-t border-gray-100">
-      <span class="text-[11px] text-gray-500 shrink-0">数据预览</span>
+      <span class="text-xs text-gray-500 shrink-0">数据预览</span>
       <button type="button" data-wz-act="toggle-base" class="btn-outline ${subtle}">${S.baseOpen ? '收起' : ''}成员名册预览…</button>
     </div>`;
   const basePanel = S.baseOpen ? _basePanelHtml(S) : '';
@@ -475,17 +475,17 @@ function _basePanelHtml(S) {
   const n = st.rows.length;
   return `
     <div class="rounded-lg border border-blue-100 bg-blue-50/40 p-3 mt-2.5 space-y-2">
-      <p class="text-xs font-semibold text-gray-700">成员基础数据预览 <span class="text-[11px] font-normal text-gray-500">（本地预览：仅覆盖姓名/党小组归属/发展阶段/在校·滞留，不改动已保存数据）</span></p>
-      <p class="text-[11px] text-gray-500">下载「成员名单模板」→ 按真实名册改 JSON → 「导入名单(JSON)预览」：应到人数与党员分布即时变化；「清除预览」回到初始名册。</p>
-      <p class="text-[11px] text-amber-700">注意：业务历史（活动/考勤/议程/专班等）仍关联历史成员；需人工替换的项见「换壳工作单」。</p>
+      <p class="text-xs font-semibold text-gray-700">成员基础数据预览 <span class="text-xs font-normal text-gray-500">（本地预览：仅覆盖姓名/党小组归属/发展阶段/在校·滞留，不改动已保存数据）</span></p>
+      <p class="text-xs text-gray-500">下载「成员名单模板」→ 按真实名册改 JSON → 「导入名单(JSON)预览」：应到人数与党员分布即时变化；「清除预览」回到初始名册。</p>
+      <p class="text-xs text-amber-700">注意：业务历史（活动/考勤/议程/专班等）仍关联历史成员；需人工替换的项见「换壳工作单」。</p>
       <div class="flex flex-wrap items-center gap-2">
         <button type="button" data-wz-act="download-base-template" class="btn-outline ${subtle}">下载成员名单模板</button>
         <button type="button" data-wz-act="import-base" class="btn-outline ${subtle}">导入名单(JSON)预览</button>
         <button type="button" data-wz-act="clear-base" ${st.active ? '' : 'disabled'} class="btn-outline ${subtle} ${st.active ? '' : 'opacity-40 cursor-not-allowed'}">清除预览</button>
-        <span class="text-[11px] text-gray-500">${st.active ? `当前已应用（${n} 条成员行叠加生效）` : '当前为种子初始读数'}</span>
+        <span class="text-xs text-gray-500">${st.active ? `当前已应用（${n} 条成员行叠加生效）` : '当前为种子初始读数'}</span>
       </div>
       ${st.active ? `
-      <div class="rounded-lg border border-green-200 bg-green-50/60 px-3 py-2 text-[11px] text-gray-600">
+      <div class="rounded-lg border border-green-200 bg-green-50/60 px-3 py-2 text-xs text-gray-600">
         <p><b class="text-green-700">预览已生效</b>：成员名册 / 应到名单 / 发展阶段分布按导入名单读数——到 ⑤「验证与重置」可核对支部党员大会应到现值（纪检考勤等消费点同源）。</p>
       </div>` : ''}
       ${S.baseDraft ? _baseDraftHtml(S, S.baseDraft) : ''}
@@ -496,9 +496,9 @@ function _basePanelHtml(S) {
 /** 预览统计单格（label + 主读数 + 副注） */
 function _baseStatBox(label, main, sub) {
   return `<div class="rounded-lg border border-blue-100 bg-white p-2.5">
-    <p class="text-[11px] text-gray-500">${esc(label)}</p>
+    <p class="text-xs text-gray-500">${esc(label)}</p>
     <p class="text-base font-bold text-gray-800 leading-tight">${main}</p>
-    ${sub ? `<p class="text-[11px] text-gray-500 mt-0.5">${esc(sub)}</p>` : ''}
+    ${sub ? `<p class="text-xs text-gray-500 mt-0.5">${esc(sub)}</p>` : ''}
   </div>`;
 }
 
@@ -506,12 +506,12 @@ function _baseStatBox(label, main, sub) {
 function _baseDraftHtml(S, draft) {
   const s = draft.stats;
   const groupParts = Object.entries(s.perGroup).map(([g, v]) =>
-    `<span class="whitespace-nowrap">${esc(g)} <b class="text-gray-800">${v.expected}</b><span class="text-[11px] text-gray-500"> / 在册 ${v.partyTotal}</span></span>`).join(' · ');
+    `<span class="whitespace-nowrap">${esc(g)} <b class="text-gray-800">${v.expected}</b><span class="text-xs text-gray-500"> / 在册 ${v.partyTotal}</span></span>`).join(' · ');
   return `
     <div class="rounded-lg border border-green-200 bg-white p-3 space-y-2">
       <div class="flex flex-wrap items-center justify-between gap-2">
         <p class="text-xs font-semibold text-gray-700">导入预览 · 应用前读数</p>
-        <span class="text-[11px] text-gray-500">有效 ${draft.people.length} 条${draft.dropped ? ` · 已忽略非法/白名单外 ${draft.dropped} 条` : ''}</span>
+        <span class="text-xs text-gray-500">有效 ${draft.people.length} 条${draft.dropped ? ` · 已忽略非法/白名单外 ${draft.dropped} 条` : ''}</span>
       </div>
       <div class="grid grid-cols-2 lg:grid-cols-4 gap-2">
         ${_baseStatBox('在册党员（应到基数）', `${s.partyTotal}<span class="text-xs font-normal text-gray-500"> 人</span>`, `正式 ${s.official} + 预备 ${s.probationary}`)}
@@ -520,7 +520,7 @@ function _baseDraftHtml(S, draft) {
         ${_baseStatBox('各党小组会应到', groupParts || '—', '组内党员 − 组内滞留')}
       </div>
       <div class="flex flex-wrap items-center justify-between gap-2">
-        <p class="text-[11px] text-gray-500">确认应用后：成员名册 / 应到名单 / 发展阶段分布按上表变化（本地预览，可「清除预览」回种子）；「放弃」不写入。</p>
+        <p class="text-xs text-gray-500">确认应用后：成员名册 / 应到名单 / 发展阶段分布按上表变化（本地预览，可「清除预览」回种子）；「放弃」不写入。</p>
         <div class="flex gap-2">
           <button type="button" data-wz-act="discard-base" class="btn-outline text-xs px-3 py-1.5">放弃</button>
           <button type="button" data-wz-act="apply-base" class="btn-accent px-3 py-1.5 text-xs font-medium">确认应用</button>
@@ -537,13 +537,13 @@ function _copyPanelHtml(S, branches) {
     ? targets.map(b => `
       <label class="flex items-center gap-2 py-1 px-1 rounded cursor-pointer hover:bg-white">
         <input type="checkbox" data-wz-copy-target value="${esc(b.id)}" ${S.copySel.has(b.id) ? 'checked' : ''} class="shrink-0">
-        <span class="text-xs text-gray-700 min-w-0 truncate">${esc(b.name)}<span class="text-[11px] text-gray-500">（${esc(b.id)}）</span></span>
+        <span class="text-xs text-gray-700 min-w-0 truncate">${esc(b.name)}<span class="text-xs text-gray-500">（${esc(b.id)}）</span></span>
       </label>`).join('')
-    : '<p class="text-[11px] text-gray-500 py-1">暂无其它支部可复制——请先由党委在「支部管理」中创建支部。</p>';
+    : '<p class="text-xs text-gray-500 py-1">暂无其它支部可复制——请先由党委在「支部管理」中创建支部。</p>';
   return `
     <div class="rounded-lg border border-blue-100 bg-blue-50/40 p-3 mt-2.5 space-y-2">
       <p class="text-xs font-semibold text-gray-700">复制配置到支部…</p>
-      <p class="text-[11px] text-gray-500">源：<b class="text-gray-700">${sourceName}</b>；将模块/块组合、角色分工与组织档案（页眉/自述/主题预设）复制给勾选的目标支部。</p>
+      <p class="text-xs text-gray-500">源：<b class="text-gray-700">${sourceName}</b>；将模块/块组合、角色分工与组织档案（页眉/自述/主题预设）复制给勾选的目标支部。</p>
       <div class="rounded-lg bg-white border border-blue-100 px-2 py-1 max-h-44 overflow-y-auto">${rows}</div>
       <div class="flex items-center justify-end gap-2">
         <button type="button" data-wz-act="toggle-copy" class="btn-outline text-xs px-2.5 py-1.5">取消</button>
@@ -561,8 +561,8 @@ function _stepperHtml(S) {
     const isCur = S.step === st.id;
     const clickable = S.navigationMode === 'sections' || isDone || st.id <= maxReached;
     const badge = isDone
-      ? '<span class="inline-flex items-center justify-center w-5 h-5 rounded-full text-[11px] font-bold text-white shrink-0" style="background:#16A34A;">✓</span>'
-      : `<span class="inline-flex items-center justify-center w-5 h-5 rounded-full text-[11px] font-bold shrink-0 ${isCur ? 'text-white' : 'text-gray-600 bg-gray-100'}" style="${isCur ? `background:${accent};` : ''}">${st.id}</span>`;
+      ? '<span class="inline-flex items-center justify-center w-5 h-5 rounded-full text-xs font-bold text-white shrink-0" style="background:#16A34A;">✓</span>'
+      : `<span class="inline-flex items-center justify-center w-5 h-5 rounded-full text-xs font-bold shrink-0 ${isCur ? 'text-white' : 'text-gray-600 bg-gray-100'}" style="${isCur ? `background:${accent};` : ''}">${st.id}</span>`;
     return `<button type="button" data-wz-step="${st.id}" ${clickable && !isCur ? '' : 'disabled'} ${isCur ? 'aria-current="step"' : ''}
       class="btn-tab inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs transition-colors ${isCur ? 'font-semibold' : ''} ${clickable && !isCur ? 'hover:bg-gray-100 text-gray-600' : ''} ${!clickable ? 'opacity-45 cursor-not-allowed' : ''}"
       style="${isCur ? `--acc-text-dark:color-mix(in srgb, ${accent} 55%, #fff);background:${accentRgba};color:${accent};border:1px solid ${accentBorder};` : ''}">${badge}${esc(st.label)}</button>`;
@@ -602,22 +602,22 @@ function _step1Html(S, branch, org, isStaff) {
           <span class="w-4 h-4 rounded-full shrink-0" style="background:${accent};box-shadow:inset 0 0 0 1px rgba(0,0,0,0.08);"></span>
           <span class="text-xs font-semibold text-gray-700">${esc(p.name)}</span>
         </span>
-        <span class="block text-[11px] text-gray-600 mt-0.5">${esc(p.note)}</span>
+        <span class="block text-xs text-gray-600 mt-0.5">${esc(p.note)}</span>
       </span>
     </label>`;
   }).join('');
   const fixedChips = FIXED_THEME_TOKENS.map((t) =>
-    `<span class="inline-flex items-center gap-1.5 text-[11px] px-2.5 py-1.5 rounded-lg border border-gray-200 bg-gray-50 text-gray-500">
-      <span class="w-3 h-3 rounded-full" style="background:${t.hex};"></span>${esc(t.name)}<span class="text-[11px] text-gray-500">固定</span></span>`).join('');
+    `<span class="inline-flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-lg border border-gray-200 bg-gray-50 text-gray-500">
+      <span class="w-3 h-3 rounded-full" style="background:${t.hex};"></span>${esc(t.name)}<span class="text-xs text-gray-500">固定</span></span>`).join('');
   return `
     <div class="rounded-xl border border-gray-200 bg-white p-4 space-y-3">
       <div class="flex items-center justify-between">
         <p class="text-xs font-bold text-gray-700">① 组织信息</p>
-        <span class="text-[11px] text-gray-500">保存即写入支部档案并记录变更（即时生效）</span>
+        <span class="text-xs text-gray-500">保存即写入支部档案并记录变更（即时生效）</span>
       </div>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
         <label class="flex flex-col gap-1 text-xs text-gray-500">
-          支部名称（官方名）${canEditName ? '' : '<span class="text-[11px] text-amber-700">党委管理，支书只读</span>'}
+          支部名称（官方名）${canEditName ? '' : '<span class="text-xs text-amber-700">党委管理，支书只读</span>'}
           <input id="wz-org-name" type="text" value="${esc(org.name)}" placeholder="支部官方名" ${canEditName ? '' : 'disabled'}
             class="input-flat w-full ${canEditName ? '' : 'bg-gray-50 text-gray-500'}">
         </label>
@@ -631,7 +631,7 @@ function _step1Html(S, branch, org, isStaff) {
         <textarea id="wz-org-desc" rows="2" placeholder="例：以高质量党建引领人才培养的样板支部……" class="input-flat w-full">${esc(org.desc)}</textarea>
       </label>
       <div>
-        <p class="text-xs font-semibold text-gray-600 mb-1.5">主题预设 <span class="text-[11px] font-normal text-gray-500">（仅可调令牌=强调色 --app-accent 三件套；固定红/金不可提供更改）</span></p>
+        <p class="text-xs font-semibold text-gray-600 mb-1.5">主题预设 <span class="text-xs font-normal text-gray-500">（仅可调令牌=强调色 --app-accent 三件套；固定红/金不可提供更改）</span></p>
         <p class="text-xs text-gray-500 mb-2">主题预设只影响未登录访客页；登录用户主题色在设置中个人调整，预设卡片仅作预览。</p>
         <div class="flex flex-wrap items-center gap-1.5 mb-2">${fixedChips}</div>
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">${presetCards}</div>
@@ -674,7 +674,7 @@ function _step2Html(S, branch, isStaff = false) {
   //   只有「未选支部」时保持只读（此时没有写入对象）。留痕 `byRole` 标明是党委代配。
   const locked = isStaff && !S.branchId;
   const chip = (attr, id, label, on) =>
-    `<button type="button" data-wz-chip="${attr}" data-id="${esc(id)}"${locked ? ' disabled aria-disabled="true"' : ''} class="btn-tab text-xs px-3 py-1.5 rounded-lg border transition-[border-color,background-color,opacity] ${on ? '' : 'opacity-45'} ${locked ? 'cursor-not-allowed' : ''}" style="${chipStyle(on)}">${esc(label)}</button>`;
+    `<button type="button" data-wz-chip="${attr}" data-id="${esc(id)}"${locked ? ' disabled aria-disabled="true"' : ''} class="btn-tab text-xs px-3 py-1.5 rounded-lg transition-[border-color,background-color,opacity] ${on ? '' : 'opacity-45'} ${locked ? 'cursor-not-allowed' : ''}" style="${chipStyle(on)}">${esc(label)}</button>`;
   const chipOn = (attr, set) => !set.has(attr);
   // 可排序块行（工作流块专用）：chip 本体不变（`_paintChips` 仍按 `[data-wz-chip]` 重绘），右侧 ▲▼ 是
   //   **键盘可达的按钮等价路径**（拖拽只在设置页的 tab 顺序上；向导侧不引拖拽，免与 chip 点击混手势）。
@@ -709,14 +709,14 @@ function _step2Html(S, branch, isStaff = false) {
     return `<div class="rounded-lg border border-gray-200 bg-white px-3 py-2.5">
       <div class="flex items-start justify-between gap-3">
         <div class="min-w-0">
-          <p class="text-xs font-semibold text-gray-700">${esc(item.name)} <span class="ml-1 text-[11px] font-normal text-gray-500">v${esc(item.version)} · ${applicabilityLabel[item.applicability] || item.applicability}</span></p>
+          <p class="text-xs font-semibold text-gray-700">${esc(item.name)} <span class="ml-1 text-xs font-normal text-gray-500">v${esc(item.version)} · ${applicabilityLabel[item.applicability] || item.applicability}</span></p>
           <p class="mt-1 text-xs leading-4 text-gray-500">${esc(children.join('、') || '待关联子能力')} · 制度依据：${esc(item.basisStatus)}（${esc(basis)}）</p>
           ${item.dependencies?.length ? `<p class="mt-0.5 text-xs text-gray-500">依赖：${esc(item.dependencies.join('、'))}</p>` : ''}
         </div>
         ${canSelect ? `<label class="inline-flex shrink-0 items-center gap-2 text-xs text-gray-700">
           <input type="checkbox" data-wz-capability="${esc(item.id)}" ${enabled ? 'checked' : ''} ${locked ? 'disabled' : ''}>
           <span>${enabled ? '已选用' : '已停用'}</span>
-        </label>` : '<span class="shrink-0 text-[11px] text-gray-500">依据确认前不下放开关</span>'}
+        </label>` : '<span class="shrink-0 text-xs text-gray-500">依据确认前不下放开关</span>'}
       </div>
     </div>`;
   }).join('');
@@ -724,19 +724,19 @@ function _step2Html(S, branch, isStaff = false) {
     <div class="rounded-xl border border-gray-200 bg-white p-4 space-y-3">
       <div class="flex items-center justify-between">
         <p class="text-xs font-bold text-gray-700">② 模块 / 块组合</p>
-        <span class="text-[11px] ${isStaff ? 'text-amber-700' : 'text-gray-500'}">${locked ? '先选目标支部；未选支部时本页只读' : (isStaff ? '党委代配置（留痕），支部可覆盖；点击开关 → 保存本步' : '对支部工作台成员「下次进入」生效；点击开关 → 保存本步')}</span>
+        <span class="text-xs ${isStaff ? 'text-amber-700' : 'text-gray-500'}">${locked ? '先选目标支部；未选支部时本页只读' : (isStaff ? '党委代配置（留痕），支部可覆盖；点击开关 → 保存本步' : '对支部工作台成员「下次进入」生效；点击开关 → 保存本步')}</span>
       </div>
       <div>
-        <p class="text-xs font-bold text-gray-600 mb-1.5">业务模块 <span class="text-[11px] font-normal text-gray-500">（支书工作台 tab；核心组固定不可关）</span></p>
-        <div class="flex flex-wrap gap-2 mb-1">${coreTabs.map(t => `<span class="inline-flex items-center gap-1 text-xs px-3 py-1.5 rounded-lg border border-gray-200 bg-gray-50 text-gray-500">${esc(t.label)}<span class="text-[11px] text-gray-500">固定</span></span>`).join('')}</div>
+        <p class="text-xs font-bold text-gray-600 mb-1.5">业务模块 <span class="text-xs font-normal text-gray-500">（支书工作台 tab；核心组固定不可关）</span></p>
+        <div class="flex flex-wrap gap-2 mb-1">${coreTabs.map(t => `<span class="inline-flex items-center gap-1 text-xs px-3 py-1.5 rounded-lg border border-gray-200 bg-gray-50 text-gray-500">${esc(t.label)}<span class="text-xs text-gray-500">固定</span></span>`).join('')}</div>
         <div class="flex flex-wrap gap-2 mt-2">${businessTabs.map(t => chip('module', t.id, t.label, !hidden.has(t.id))).join('')}</div>
       </div>
       <div>
-        <p class="text-xs font-bold text-gray-600 mb-1.5">活动产出块 <span class="text-[11px] font-normal text-gray-500">（活动详情「添加记录」按钮集）</span></p>
+        <p class="text-xs font-bold text-gray-600 mb-1.5">活动产出块 <span class="text-xs font-normal text-gray-500">（活动详情「添加记录」按钮集）</span></p>
         <div class="flex flex-wrap gap-2">${OUTPUT_BLOCK_DEFS.map(d => chip('block', d.id, d.label, !bHidden.has(d.id))).join('')}</div>
       </div>
       <div>
-        <p class="text-xs font-bold text-gray-600 mb-1.5">工作流块 <span class="text-[11px] font-normal text-gray-500">（整条 SOP 入口，L3 愿景；目录源 workflow/blocks。▲▼ 调顺序＝流程组合）</span></p>
+        <p class="text-xs font-bold text-gray-600 mb-1.5">工作流块 <span class="text-xs font-normal text-gray-500">（整条 SOP 入口，L3 愿景；目录源 workflow/blocks。▲▼ 调顺序＝流程组合）</span></p>
         <div class="flex flex-wrap items-center gap-2">${wbRows}</div>
         ${composeHint}
       </div>
@@ -748,7 +748,7 @@ function _step2Html(S, branch, isStaff = false) {
         <div class="space-y-2">${packageRows}</div>
       </div>
       ${locked ? '<p class="text-xs text-gray-500 border-t border-gray-100 pt-2">先在上方选择目标支部；未选支部时本页只读（没有写入对象）。</p>' : `<div class="flex gap-2 justify-end pt-2 border-t border-gray-100">
-        ${isStaff ? '<span class="mr-auto self-center text-[11px] text-gray-500">党委代配置会写入支部配置留痕（`byRole=party-staff`），支部可自行覆盖。</span>' : ''}
+        ${isStaff ? '<span class="mr-auto self-center text-xs text-gray-500">党委代配置会写入支部配置留痕（`byRole=party-staff`），支部可自行覆盖。</span>' : ''}
         <button type="button" data-wz-act="reset-modules" class="btn-outline text-xs px-3 py-1.5">恢复默认（全开）</button>
         <button type="button" data-wz-act="save-step" data-step="2" class="btn-accent px-3 py-1.5 text-xs font-medium">保存本步</button>
       </div>`}
@@ -775,11 +775,11 @@ function _step3Html(S, branch) {
         // 2026-09-30 批次 302（支书裁「我们支部就是支部内务，不涉及党委」）：**上级组织**不占支部承担方位，
         //   只作客观回显（不可当支部内务的负责人指派）；对象本身仍在 ORG_SUBJECTS（换届选举主责未撤销）。
         : `<option value="org:${esc(assign.ownerId)}" selected>上级${esc(ORG_SUBJECT_LABELS[assign.ownerId] || assign.ownerId)}（非支部分工项 · 保留现状）</option>` : '';
-    const sub = m.sub && m.sub.length ? `<span class="text-[11px] text-gray-500">（${esc(m.sub.join('·'))}）</span>` : '';
+    const sub = m.sub && m.sub.length ? `<span class="text-xs text-gray-500">（${esc(m.sub.join('·'))}）</span>` : '';
     return `<div class="grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_auto] gap-2 items-center py-1.5 border-b border-gray-50 last:border-0">
       <div class="min-w-0">
         <p class="text-xs font-medium text-gray-700 truncate">${esc(m.name)}${sub}</p>
-        <p class="text-[11px] text-gray-500 truncate">${esc(m.desc || '')}</p>
+        <p class="text-xs text-gray-500 truncate">${esc(m.desc || '')}</p>
       </div>
       <select data-wz-wf-sel data-module="${esc(m.id)}" class="input-flat text-xs min-w-[180px]">
         ${personOpt}
@@ -794,9 +794,9 @@ function _step3Html(S, branch) {
     <div class="rounded-xl border border-gray-200 bg-white p-4 space-y-3">
       <div class="flex items-center justify-between">
         <p class="text-xs font-bold text-gray-700">③ 角色分工</p>
-        <span class="text-[11px] text-gray-500">模块负责人归属</span>
+        <span class="text-xs text-gray-500">模块负责人归属</span>
       </div>
-      <p class="text-[11px] text-gray-500">此处修改立即生效并留痕；日常分工调整请走支书台「支部分工」的支委会议题流程。</p>
+      <p class="text-xs text-gray-500">此处修改立即生效并留痕；日常分工调整请走支书台「支部分工」的支委会议题流程。</p>
       <div class="rounded-lg border border-gray-100 bg-gray-50/50 px-3 py-2">${rows}</div>
       <div class="flex gap-2 justify-end pt-1 border-t border-gray-100">
         <button type="button" data-wz-act="reset-workforce" class="btn-outline text-xs px-3 py-1.5">恢复默认分工</button>
@@ -818,7 +818,7 @@ function _step4Html(S, branch) {
   ].map(([t, d]) =>
     `<div class="flex items-start gap-2 py-1.5 border-b border-gray-50 last:border-0">
       <span class="text-xs font-semibold text-gray-700 shrink-0 w-28">${esc(t)}</span>
-      <span class="text-[11px] text-gray-500">${esc(d)}</span>
+      <span class="text-xs text-gray-500">${esc(d)}</span>
     </div>`).join('');
   return `
     <div class="rounded-xl border border-gray-200 bg-white p-4 space-y-3">
@@ -828,7 +828,7 @@ function _step4Html(S, branch) {
       <div class="rounded-lg border border-gray-100 bg-gray-50/50 px-3 py-1">${guide}</div>
       <div class="rounded-xl border border-dashed border-red-200 bg-red-50/40 p-3.5">
         <p class="text-xs font-semibold text-gray-700">生成「换壳工作单」（Markdown 下载）</p>
-        <p class="text-[11px] text-gray-500 mt-1">汇总：已完成配置摘要 + 待替换材料清单。</p>
+        <p class="text-xs text-gray-500 mt-1">汇总：已完成配置摘要 + 待替换材料清单。</p>
         <button type="button" data-wz-act="download-report" class="btn-accent mt-2 px-3 py-1.5 text-xs font-medium">生成并下载工作单</button>
       </div>
     </div>`;
@@ -838,19 +838,19 @@ function _step4Html(S, branch) {
 function _step5Html(S, branch, org) {
   const stats = getRosterStats({ type: '支部党员大会' });
   const doneList = WIZARD_STEPS.map((st) =>
-    `<span class="inline-flex items-center gap-1 text-[11px] px-2 py-1 rounded-lg border ${S.done[st.id] ? 'border-green-200 bg-green-50 text-green-700' : 'border-gray-200 bg-white text-gray-500'}">${S.done[st.id] ? '✓' : '○'} ${st.id}.${esc(st.label)}</span>`).join('');
+    `<span class="inline-flex items-center gap-1 text-xs px-2 py-1 rounded-lg border ${S.done[st.id] ? 'border-green-200 bg-green-50 text-green-700' : 'border-gray-200 bg-white text-gray-500'}">${S.done[st.id] ? '✓' : '○'} ${st.id}.${esc(st.label)}</span>`).join('');
   return `
     <div class="rounded-xl border border-gray-200 bg-white p-4 space-y-3">
       <p class="text-xs font-bold text-gray-700">⑤ 验证与重置</p>
       <div class="rounded-xl border border-blue-100 bg-blue-50/50 p-3">
         <p class="text-xs font-semibold text-gray-700">应到名单核对（现读数）</p>
-        <p class="text-[11px] text-gray-500 mt-1">支部党员大会/党课等应到 = 在册党员（正式 + 预备）非滞留；滞留剔除。</p>
+        <p class="text-xs text-gray-500 mt-1">支部党员大会/党课等应到 = 在册党员（正式 + 预备）非滞留；滞留剔除。</p>
         <p class="text-xs text-gray-700 mt-2">在册党员 <b class="text-gray-900">${stats.partyTotal}</b> 人 − 滞留剔除 <b class="text-gray-900">${stats.detainedParty}</b> 人 = 应到 <b class="text-red-600">${stats.expected}</b> 人</p>
-        <p class="text-[11px] text-gray-500 mt-1">按支部制度参数计算（换数据后回本页复查读数）。</p>
+        <p class="text-xs text-gray-500 mt-1">按支部制度参数计算（换数据后回本页复查读数）。</p>
       </div>
       <div class="rounded-xl border border-amber-100 bg-amber-50/50 p-3">
         <p class="text-xs font-semibold text-gray-700">重置 ?reset=1</p>
-        <p class="text-[11px] text-gray-500 mt-1">本地浏览模式：在任意页面 URL 末尾加 <code class="text-[11px] bg-white px-1 py-0.5 rounded border border-amber-200">?reset=1</code> 访问，一键清除本域全部本地存储并回到种子初始态（含本向导配置）——仅本地形态，生产数据不受影响。</p>
+        <p class="text-xs text-gray-500 mt-1">本地浏览模式：在任意页面 URL 末尾加 <code class="text-xs bg-white px-1 py-0.5 rounded border border-amber-200">?reset=1</code> 访问，一键清除本域全部本地存储并回到种子初始态（含本向导配置）——仅本地形态，生产数据不受影响。</p>
       </div>
       <div>
         <p class="text-xs font-semibold text-gray-600 mb-1.5">步骤完成情况（存档于 localStorage 草稿，可续走）</p>
@@ -872,7 +872,7 @@ function _completeHtml(S, branch, org) {
   const wbHidden = (blk.wbHiddenLabels || []).length;
   const chipDot = (bad) => bad ? '#EF4444' : '#16A34A';
   const chip = (dot, text) =>
-    `<span class="inline-flex items-center gap-1.5 text-[11px] px-2.5 py-1 rounded-lg border border-gray-200 bg-white text-gray-600"><span class="w-1.5 h-1.5 rounded-full shrink-0" style="background:${dot};"></span>${text}</span>`;
+    `<span class="inline-flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-lg border border-gray-200 bg-white text-gray-600"><span class="w-1.5 h-1.5 rounded-full shrink-0" style="background:${dot};"></span>${text}</span>`;
   const summaryChips = [
     chip(chipDot(hiddenMod), `业务模块启用 ${mod.visibleCount ?? mod.total ?? 0}/${mod.total ?? 0}${hiddenMod ? ` · 停用 ${hiddenMod}` : ''}`),
     chip(chipDot(outHidden), outHidden ? `产出块停用 ${outHidden}` : '活动产出块全开'),
@@ -883,25 +883,25 @@ function _completeHtml(S, branch, org) {
     <div class="rounded-xl border border-green-200 bg-green-50/40 p-4 space-y-3">
       <div class="flex items-center gap-2">
         <p class="font-title-cn text-base font-bold text-gray-800">完成 · ${esc(branch.name)}</p>
-        <span class="text-[11px] px-2 py-0.5 rounded-full bg-green-100 text-green-700">配置已生效</span>
+        <span class="text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-700">配置已生效</span>
       </div>
       <p class="text-xs text-gray-500">以下改动已即时生效并留痕；需人工替换的项见下载的工作单。</p>
       <div class="flex flex-wrap gap-1.5">${summaryChips}</div>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs">
         <div class="rounded-lg bg-white border border-green-100 p-2.5">
-          <p class="text-gray-500 text-[11px] mb-0.5">页眉显示名</p>
+          <p class="text-gray-500 text-xs mb-0.5">页眉显示名</p>
           <p class="font-medium text-gray-800">${esc(org.headerTitle)}</p>
         </div>
         <div class="rounded-lg bg-white border border-green-100 p-2.5">
-          <p class="text-gray-500 text-[11px] mb-0.5">主题预设（可调强调色）</p>
+          <p class="text-gray-500 text-xs mb-0.5">主题预设（可调强调色）</p>
           <p class="font-medium text-gray-800">${esc(preset.name)}</p>
         </div>
         <div class="rounded-lg bg-white border border-green-100 p-2.5">
-          <p class="text-gray-500 text-[11px] mb-0.5">支部自述</p>
+          <p class="text-gray-500 text-xs mb-0.5">支部自述</p>
           <p class="text-gray-700 truncate">${esc(org.desc || '（未填写）')}</p>
         </div>
         <div class="rounded-lg bg-white border border-green-100 p-2.5">
-          <p class="text-gray-500 text-[11px] mb-0.5">应到名单（支部党员大会现读数）</p>
+          <p class="text-gray-500 text-xs mb-0.5">应到名单（支部党员大会现读数）</p>
           <p class="font-medium text-gray-800">应到 ${stats.expected} 人（在册 ${stats.partyTotal} − 滞留 ${stats.detainedParty}）</p>
         </div>
       </div>

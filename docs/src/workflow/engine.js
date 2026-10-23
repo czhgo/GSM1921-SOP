@@ -5,7 +5,7 @@
 //  v2.0: + 子状态追踪（考勤/宣传） + 角色流转守卫 + 前置校验
 // ════════════════════════════════════════════════════════════════
 
-import { isPartyGroupLeaderRole } from '../core/domain/constants.js?v=20261023a';
+import { isPartyGroupLeaderRole } from '../core/domain/constants.js?v=20261023b';
 
 /**
  * @typedef {Object} StateNodeConfig
@@ -137,7 +137,6 @@ export class WorkflowEngine {
     if (this.states.has(config.name)) throw new Error(`Duplicate state: ${config.name}`);
     this.states.set(config.name, new StateNode(config));
 
-    // 初始化子状态追踪器
     if (config.subStates) {
       for (const ss of Object.values(config.subStates)) {
         this.subStateTrackers.set(ss.name, new SubStateTracker(
@@ -158,7 +157,6 @@ export class WorkflowEngine {
     state.enteredAt = now;
     this._record(null, initialStateName, 'INIT', operator);
 
-    // 初始化当前状态的子状态
     this._initSubStates(initialStateName);
 
     return this.getStatus();
@@ -215,19 +213,23 @@ export class WorkflowEngine {
     this.currentState = targetName;
     next.enteredAt = now;
 
+    // onEnter 抛错不得被吞成「流转成功」：错误随结果返回，调用方可见
+    let onEnterError = null;
     if (typeof next.onEnter === 'function') {
       try { next.onEnter({ from, to: targetName, event, operator, operatorRole, engine: this }); }
-      catch (e) { console.warn(`[WorkflowEngine] onEnter error at "${targetName}":`, e); }
+      catch (e) {
+        onEnterError = e;
+        console.warn(`[WorkflowEngine] onEnter error at "${targetName}":`, e);
+      }
     }
 
     this._record(from, targetName, event.type, operator, { ...event.payload, operatorRole });
 
     if (this.blockedNodes.has(from)) this.blockedNodes.delete(from);
 
-    // 初始化新状态的子状态
     this._initSubStates(targetName);
 
-    return { from, to: targetName, success: true };
+    return { from, to: targetName, success: !onEnterError, error: onEnterError };
   }
 
   // ── v2.0 子状态操作 ───────────────────────────────────────────

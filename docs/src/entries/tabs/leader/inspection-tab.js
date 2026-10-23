@@ -3,28 +3,28 @@
 // 党小组活动考察：组织者上传 → 纪检委员确认 → 录入考察总表。
 // 业务口径：考察依托工作组——考察记录挂工作组，考察对象为该工作组成员；sourceType/activityId/taskforceId 是工作组类型的投影。
 
-import { loadInspectionRecords, saveInspectionRecords, canUploadInspection } from '../../../services/activity/inspection.js?v=20261023a';
-import { loadInspectionAppeals, reconfirmReturnedInspectionRecord, resolveInspectionAppeal, isInspectionHomePosition } from '../../../services/activity/inspection.js?v=20261023a';
-import { loadActivities, getOrganizedActivities } from '../../../services/activity/activity.js?v=20261023a';
+import { loadInspectionRecords, saveInspectionRecords, canUploadInspection } from '../../../services/activity/inspection.js?v=20261023b';
+import { loadInspectionAppeals, reconfirmReturnedInspectionRecord, resolveInspectionAppeal, isInspectionHomePosition } from '../../../services/activity/inspection.js?v=20261023b';
+import { loadActivities, getOrganizedActivities } from '../../../services/activity/activity.js?v=20261023b';
 // 待批活动的可见性单一源（2026-09-22 批次 151）：组长台为非支委层 ⇒ 待批活动不进本页来源下拉
-import { filterActivitiesForViewer } from '../../../services/core/visibility.js?v=20261023a';
-import { TaskForceRecordStore, isTaskforceOrganizer } from '../../../services/activity/taskforce.js?v=20261023a';
-import { AuthStore } from '../../../services/core/auth.js?v=20261023a';
-import { PersonPicker } from '../../../components/governance/pickers.js?v=20261023a';
+import { filterActivitiesForViewer } from '../../../services/core/visibility.js?v=20261023b';
+import { TaskForceRecordStore, isTaskforceOrganizer } from '../../../services/activity/taskforce.js?v=20261023b';
+import { AuthStore } from '../../../services/core/auth.js?v=20261023b';
+import { PersonPicker } from '../../../components/governance/pickers.js?v=20261023b';
 // 「本位」nudge 确认弹窗（2026-09-23 支书裁定 · 单一源 = components/ui/modal.js::confirmNudge）
-import { confirmNudge } from '../../../components/ui/modal.js?v=20261023a';
-import { inspectionToLong } from '../../../services/activity/inspection.js?v=20261023a';
-import { getPersonById, getPersonName } from '../../../services/member/person.js?v=20261023a';
-import { SourceType, ParticipationLevel } from '../../../core/domain/domain.js?v=20261023a';
-import { showToast, escHtml as esc, getBasePath } from '../../../core/base/utils.js?v=20261023a';
-import { solidAccentStyle, accDarkVars } from '../../../core/domain/constants.js?v=20261023a';
-import { currentLeaderGroup } from './_shared.js?v=20261023a';
-import { generateId } from '../../../core/base/id.js?v=20261023a';
+import { confirmNudge } from '../../../components/ui/modal.js?v=20261023b';
+import { inspectionToLong } from '../../../services/activity/inspection.js?v=20261023b';
+import { getPersonById, getPersonName } from '../../../services/member/person.js?v=20261023b';
+import { SourceType, ParticipationLevel } from '../../../core/domain/domain.js?v=20261023b';
+import { showToast, escHtml as esc, getBasePath } from '../../../core/base/utils.js?v=20261023b';
+import { solidAccentStyle, accDarkVars } from '../../../core/domain/constants.js?v=20261023b';
+import { currentLeaderGroup } from './_shared.js?v=20261023b';
+import { generateId } from '../../../core/base/id.js?v=20261023b';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是人的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
-import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261023a';
-import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261023a';
+import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261023b';
+import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261023b';
 // 材料页深链 focusActivityId 的通用定位（只滚动 + 闪烁，不另造筛选器）
-import { focusActivityAnchor } from '../../../components/ui/detail-anchor.js?v=20261023a';
+import { focusActivityAnchor } from '../../../components/ui/detail-anchor.js?v=20261023b';
 
 // 私有状态（随模块自持，不污染入口）
 let _inspFormVisible = false;

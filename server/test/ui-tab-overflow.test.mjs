@@ -53,11 +53,11 @@ test('T4 不改 tab 尺寸 / 选中态 / 顺序', () => {
   // 页签按钮模板保持原尺寸档（shrink-0 min-h-9 px-4 py-2 text-xs）。
   assert.match(TAB_BAR, /shrink-0 min-h-9 px-4 py-2 text-xs font-medium rounded-lg transition-colors/,
     '页签按钮尺寸/样式模板被改动');
-  // `.btn-tab` 仍是 30px / 13px 档（页签豁免，不属于动作按钮）。
+  // `.btn-tab` 已是 32px / 13px 档（2026-10-23 R11：页签与 .btn-ghost 同属紧凑档，不属于动作按钮）。
   const btnTab = [...CSS.matchAll(/\.btn-tab\s*\{([^}]*)\}/g)]
     .map((m) => m[1])
-    .find((body) => /min-height:\s*30px\s*!important/.test(body));
-  assert.ok(btnTab, '未找到 .btn-tab 的 30px 尺寸档');
+    .find((body) => /min-height:\s*32px\s*!important/.test(body));
+  assert.ok(btnTab, '未找到 .btn-tab 的 32px 尺寸档');
   assert.match(btnTab, /font-size:\s*13px\s*!important/, '.btn-tab 字号应保持 13px');
   // tab 按钮本身不应新增尺寸工具类（滚动箭头不是 tab）。
   const tabBtnLine = TAB_BAR.split('\n').find((line) => line.includes('tab-btn${activeClass}')) || '';

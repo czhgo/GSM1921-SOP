@@ -3,18 +3,19 @@
 // 2026-08-07 自 ws-secretary-entry.js 拆分。
 // GitHub Issue 风格反馈管理面板：草稿审核（通过/驳回）全部反馈列表 + 导出/清除 + 详情处置（指派/状态/评论/隐藏/合并）。
 
-import { IssueStore, deriveIssueDisplayState, IssueNotify, issueDomainLabel, issueDomainSuggest, issueDomainReplyHint } from '../../../services/governance/issues.js?v=20261023a';
-import { showToast, todayLocal } from '../../../core/base/utils.js?v=20261023a';
-import { scrollDetailIntoView } from '../../../components/ui/detail-anchor.js?v=20261023a';
-import { icon } from '../../../core/base/icons.js?v=20261023a';
-import { AuthStore } from '../../../services/core/auth.js?v=20261023a';
-import { ROLE_LABELS, DRAFT_TYPE_LABELS } from '../../../core/domain/constants.js?v=20261023a';
-import { getPersonName } from '../../../services/member/person.js?v=20261023a';
-import { PersonStore } from '../../../services/member/person.js?v=20261023a';
-import { badgeHtml, badgeVariantClass } from '../../../components/ui/badges.js?v=20261023a';
+import { IssueStore, deriveIssueDisplayState, IssueNotify, issueDomainLabel, issueDomainSuggest, issueDomainReplyHint } from '../../../services/governance/issues.js?v=20261023b';
+import { showToast, todayLocal } from '../../../core/base/utils.js?v=20261023b';
+import { scrollDetailIntoView } from '../../../components/ui/detail-anchor.js?v=20261023b';
+import { icon } from '../../../core/base/icons.js?v=20261023b';
+import { AuthStore } from '../../../services/core/auth.js?v=20261023b';
+import { ROLE_LABELS, DRAFT_TYPE_LABELS } from '../../../core/domain/constants.js?v=20261023b';
+import { getPersonName } from '../../../services/member/person.js?v=20261023b';
+import { PersonStore } from '../../../services/member/person.js?v=20261023b';
+import { badgeHtml, badgeVariantClass } from '../../../components/ui/badges.js?v=20261023b';
 // 翻页控件单一源（批次 38：全站手写翻页一律并轨 pagerHtml）
-import { pagerHtml } from '../../../components/ui/pager.js?v=20261023a';
-import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261023a';
+import { pagerHtml } from '../../../components/ui/pager.js?v=20261023b';
+import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261023b';
+import { openFormModal } from '../../../components/ui/modal.js?v=20261023b';
 
 const FEEDBACK_TAB_HTML = `
   ${renderTabHeader({ title: '反馈管理' })}
@@ -656,10 +657,20 @@ function bindDraftEvents() {
   document.querySelectorAll('.btn-reject-draft').forEach(btn => {
     btn.addEventListener('click', () => {
       const id = btn.dataset.draftId;
-      const reason = prompt('请输入驳回原因') || '不符合要求';
-      IssueStore.rejectDraft(id, reason);
-      showToast('info', '草稿已驳回');
-      renderIssueManagement();
+      // 2026-10-23：原生 prompt 改统一单行输入浮窗（留空仍按「不符合要求」记录）
+      openFormModal({
+        id: 'reject-draft',
+        title: '驳回草稿',
+        fields: [{ key: 'reason', label: '请输入驳回原因', type: 'text', placeholder: '留空按「不符合要求」记录' }],
+        submitLabel: '驳回',
+        onSubmit: (values) => {
+          const reason = String(values.reason || '').trim() || '不符合要求';
+          IssueStore.rejectDraft(id, reason);
+          showToast('info', '草稿已驳回');
+          renderIssueManagement();
+          return true;
+        },
+      });
     });
   });
 }

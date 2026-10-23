@@ -1,4 +1,8 @@
-import { DEFAULT_BRANCH_ID } from '../../core/domain/constants.js?v=20261023a';
+import { DEFAULT_BRANCH_ID } from '../../core/domain/constants.js?v=20261023b';
+import { PEOPLE } from './people.js?v=20261023b';
+
+// R7-35：统筹人从角色派生（演示快照仍指向现任组织委员，换人后自动跟随）
+const ORG_COMMISSIONER_ID = PEOPLE.find((p) => p.role === 'org-commissioner')?.id || null;
 
 export const MOCK_TASKFORCES = [
   // 2026-09-06 基线刷新：createdAt/deadline/progressList 由全局时间函数
@@ -15,7 +19,7 @@ export const MOCK_TASKFORCES = [
     // R2-32（2026-10-20）：任务对象是「7 月系列主题活动」，deadline 7/17 早已过；
     //   继续留在 active 会让「活跃专班」虚高，也违反「已截止仍招募」的读写矛盾 ⇒ 收口为 completed。
     status: 'completed',
-    manager: '2400012355',
+    manager: ORG_COMMISSIONER_ID,
     initiator: '2400012356',
     members: [
       { personId: '2400012352', role: 'deep', contributions: [] },
@@ -59,7 +63,7 @@ export const MOCK_TASKFORCES = [
     name: 'SOP 系统维护专班',
     task: 'SOP 文档体系维护、系统同步更新、经验蒸馏记录',
     status: 'active',
-    manager: '2400012355',
+    manager: ORG_COMMISSIONER_ID,
     initiator: '2300010001',
     members: [
       { personId: '2400012348', role: 'organizer', contributions: ['更新7月活动归档', '同步术语表'] },
@@ -83,7 +87,7 @@ export const MOCK_TASKFORCES = [
     name: '五四主题党日筹备专班',
     task: '7月13日五四精神传承主题党日活动全流程筹备',
     status: 'completed',
-    manager: '2400012355',
+    manager: ORG_COMMISSIONER_ID,
     initiator: '2400012345',
     members: [
       { personId: '2400012347', role: 'organizer', contributions: ['策划方案', '场地预约'] },
@@ -103,7 +107,7 @@ export const MOCK_TASKFORCES = [
     name: '共建座谈对接专班',
     task: '校企共建座谈（光华 x 中信证券）对接与执行',
     status: 'completed',
-    manager: '2400012355',
+    manager: ORG_COMMISSIONER_ID,
     initiator: '2300010001',
     members: [
       { personId: '2400012355', role: 'organizer', contributions: ['嘉宾邀请', '议程设计'] },
@@ -121,7 +125,7 @@ export const MOCK_TASKFORCES = [
     task: '7月23日建党105周年主题党日大型活动筹备',
     // R2-32：筹备对象 act-16 已于 7/23 举办，招募截止 8/20 也已过 ⇒ recruiting 不再成立，收口 completed。
     status: 'completed',
-    manager: '2400012355',
+    manager: ORG_COMMISSIONER_ID,
     initiator: '2300010001',
     members: [
       { personId: '2400012345', role: 'organizer', contributions: [] },
@@ -140,7 +144,7 @@ export const MOCK_TASKFORCES = [
     task: '7月参访活动后勤保障与安全',
     // R2-32：保障对象（7 月参访）已结束，截止 8/15 也已过 ⇒ recruiting 收口 completed。
     status: 'completed',
-    manager: '2400012355',
+    manager: ORG_COMMISSIONER_ID,
     initiator: '2400012345',
     members: [
       { personId: '2400012350', role: 'participant', contributions: [] },
@@ -156,7 +160,7 @@ export const MOCK_TASKFORCES = [
     name: '两会精神学习专班',
     task: '两会精神学习材料整理与分享',
     status: 'completed',
-    manager: '2400012355',
+    manager: ORG_COMMISSIONER_ID,
     initiator: '2400012356',
     members: [
       { personId: '2400012356', role: 'organizer', contributions: ['材料整理', '分享会主持'] },
@@ -173,7 +177,7 @@ export const MOCK_TASKFORCES = [
     name: '七月活动档案整理专班',
     task: '七月上旬活动归档整理、材料汇总与电子化',
     status: 'dissolved',
-    manager: '2400012355',
+    manager: ORG_COMMISSIONER_ID,
     initiator: '2300010001',
     members: [
       { personId: '2400012356', role: 'organizer', contributions: ['材料汇总', '归档清单'] },

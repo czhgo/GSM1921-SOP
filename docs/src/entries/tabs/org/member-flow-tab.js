@@ -15,27 +15,27 @@
 //   登记者角色门 = canRegisterFlow（组织委员 + 支书/副支书）。
 // ════════════════════════════════════════════════════════════════
 
-import { DEFAULT_BRANCH_ID, DEVELOP_STAGES } from '../../../core/domain/constants.js?v=20261023a';
-import { AuthStore, currentUserId } from '../../../services/core/auth.js?v=20261023a';
-import { getBranchIdOfPerson } from '../../../services/branch/branch.js?v=20261023a';
-import { getPersonName } from '../../../services/member/person.js?v=20261023a';
+import { DEFAULT_BRANCH_ID, DEVELOP_STAGES } from '../../../core/domain/constants.js?v=20261023b';
+import { AuthStore, currentUserId } from '../../../services/core/auth.js?v=20261023b';
+import { getBranchIdOfPerson } from '../../../services/branch/branch.js?v=20261023b';
+import { getPersonName } from '../../../services/member/person.js?v=20261023b';
 // 党小组常态清单唯一来源（活组、按 seq 升序；新增/改名/解散后随渲染即时可见）——登记流入的「党小组」选项
-import { groupOptions } from '../../../services/member/party-group.js?v=20261023a';
-import { showToast, escHtml as esc, getBasePath, todayLocal } from '../../../core/base/utils.js?v=20261023a';
-import { getAuthToken, getApiBaseUrl } from '../../../data/data-adapter.js?v=20261023a';
-import { openModal, closeModal } from '../../../components/ui/modal.js?v=20261023a';
+import { groupOptions } from '../../../services/member/party-group.js?v=20261023b';
+import { showToast, escHtml as esc, getBasePath, todayLocal } from '../../../core/base/utils.js?v=20261023b';
+import { getAuthToken, getApiBaseUrl } from '../../../data/data-adapter.js?v=20261023b';
+import { openModal, closeModal } from '../../../components/ui/modal.js?v=20261023b';
 // 统一检索引擎（表格统一化批次 A）：台账表接入关键词 + 分面（≤8 行引擎自动不渲染检索条）
-import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261023a';
-import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261023a';
+import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261023b';
+import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261023b';
 // 成员流入/流出登记服务层（2026-09-14 批次 25 支书裁定）：登记即生效 + 台账 + 对账 + 撤销
 import {
   loadMemberFlows, reconcile, registerIntake, registerIntakeBatch,
   registerOutflow, revokeFlow, canRegisterFlow,
-} from '../../../services/member/member-flow.js?v=20261023a';
+} from '../../../services/member/member-flow.js?v=20261023b';
 // 选人规范：凡选择具体人一律 PersonPicker（禁 select 罗列人名）——登记流出选人
-import { PersonPicker } from '../../../components/governance/pickers.js?v=20261023a';
+import { PersonPicker } from '../../../components/governance/pickers.js?v=20261023b';
 // 自定义圆角下拉增强（select.input-flat.text-xs → cs-trigger；与全局 observer 幂等）
-import { enhanceSelects } from '../../../components/ui/custom-select.js?v=20261023a';
+import { enhanceSelects } from '../../../components/ui/custom-select.js?v=20261023b';
 
 // 模块级 ctx 缓存：登记/撤销后整页刷新复用首次渲染的 accent
 let _ctx = null;
@@ -129,7 +129,7 @@ function _flowCardHtml(canRegister) {
           <button id="flow-intake-btn" type="button" class="btn-accent-soft text-xs px-3 py-1.5 whitespace-nowrap" style="cursor:pointer;">＋ 登记流入</button>
           <button id="flow-outflow-btn" type="button" class="btn-danger text-xs px-3 py-1.5 whitespace-nowrap" style="cursor:pointer;">登记流出</button>
         </div>` : `
-        <span class="text-[11px] px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">只读</span>`}
+        <span class="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">只读</span>`}
       </div>
       <div id="flow-reconcile-host" class="mb-3"></div>
       <div class="overflow-x-auto" id="flow-table-host"></div>
@@ -222,6 +222,17 @@ function _renderFlowBody() {
       ${r.balanced ? '' : '<span class="text-gray-500">台账流水与在册人数暂不一致，请核对下方记录与撤销留痕</span>'}
     </div>`;
   const flows = _flowRows();
+  // R7-08：学号 / 届别 / 备注是登记快照（无改写入口）——空值标注快照语义，整列全空则不渲染该列。
+  const SNAPSHOT_TITLE = '登记时未采集（登记快照）';
+  const colHasValue = (key) => flows.some((f) => String(f[key] == null ? '' : f[key]).trim());
+  const showCols = {
+    studentId: colHasValue('studentId'),
+    enrollYear: colHasValue('enrollYear'),
+    note: colHasValue('note'),
+  };
+  const heads = ['<th>类型</th>', '<th>姓名</th>',
+    showCols.studentId ? '<th>学号</th>' : '', showCols.enrollYear ? '<th>届别</th>' : '',
+    '<th>日期</th>', '<th>经手人</th>', showCols.note ? '<th>备注</th>' : '', '<th>操作</th>'].filter(Boolean).join('');
   renderFilteredList(tableHost, {
     stateKey: 'org-member-flow-table',
     rows: flows,
@@ -234,17 +245,17 @@ function _renderFlowBody() {
     facetStyle: 'chip',
     countUnit: '条',
     table: {
-      headHtml: '<tr><th>类型</th><th>姓名</th><th>学号</th><th>届别</th><th>日期</th><th>经手人</th><th>备注</th><th>操作</th></tr>',
-      colSpan: 8,
+      headHtml: `<tr>${heads}</tr>`,
+      colSpan: 5 + [showCols.studentId, showCols.enrollYear, showCols.note].filter(Boolean).length,
       responsive: true,
     },
-    emptyMessage: flows.length ? '无匹配台账记录' : '台账暂无记录，点上方「登记流入 / 登记流出」录入',
-    rowHtml: (f) => _flowRowHtml(f),
+    emptyMessage: flows.length ? '无匹配台账记录' : '暂无台账记录（撤销后重新登记是唯一更正路径）',
+    rowHtml: (f) => _flowRowHtml(f, showCols, SNAPSHOT_TITLE),
   });
 }
 
 /** 台账单行（已撤销行中性灰显示「已撤销」并保留在表中留痕） */
-function _flowRowHtml(f) {
+function _flowRowHtml(f, showCols, snapshotTitle) {
   const revoked = !!f.revokedAt;
   const inDir = f.direction === 'in';
   const tdc = revoked ? 'text-gray-400' : 'text-gray-700';
@@ -253,11 +264,11 @@ function _flowRowHtml(f) {
     <tr>
       <td class="${revoked ? 'text-gray-400' : (inDir ? 'text-sky-700' : 'text-red-700')}" data-label="类型">${inDir ? '流入' : '流出'}</td>
       <td class="${tdc}" data-label="姓名">${esc(f.name || '—')}</td>
-      <td class="${tdc}" data-label="学号">${esc(f.studentId || '—')}</td>
-      <td class="${tdc}" data-label="届别">${esc(f.enrollYear || '—')}</td>
+      ${showCols.studentId ? `<td class="${tdc}" data-label="学号"${f.studentId ? '' : ` title="${snapshotTitle}"`}>${esc(f.studentId || '—')}</td>` : ''}
+      ${showCols.enrollYear ? `<td class="${tdc}" data-label="届别"${f.enrollYear ? '' : ` title="${snapshotTitle}"`}>${esc(f.enrollYear || '—')}</td>` : ''}
       <td class="${tdc}" data-label="日期">${esc(f.date || '—')}</td>
       <td class="${tdc}" data-label="经手人">${esc(operator)}</td>
-      <td class="${tdc}" data-label="备注" title="${esc(f.note || '')}">${esc(f.note || '—')}</td>
+      ${showCols.note ? `<td class="${tdc}" data-label="备注" title="${esc(f.note || snapshotTitle)}">${esc(f.note || '—')}</td>` : ''}
       <td data-label="操作">${revoked
         ? `<span class="text-gray-400" title="已于 ${esc(String(f.revokedAt).slice(0, 10))} 撤销">已撤销</span>`
         : `<button type="button" class="flow-revoke btn-action btn-action-gray" data-flow-id="${esc(f.id)}" style="cursor:pointer;">撤销</button>`}</td>

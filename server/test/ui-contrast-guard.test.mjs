@@ -5,7 +5,8 @@
 //   K1 金色徽章 `.badge--gold`：#92400E on #FDE68A ≥ 4.5:1（小字）；
 //   K2 选中页签金色派生文字：color-mix(accent 45%, #000) on 10% accent 底（合成页面底色）≥ 4.5:1；
 //     党建红 accent 同式亦须 ≥ 4.5:1；
-//   K3 分组标签不再画彩色胶囊（无文字 ⇒ 不再有金色小字对比问题）；
+//   K3 分组名恢复为可见文本：`.tab-group-label` 12px / neutral-500；组间 `.tab-group-sep` 1px 线；
+//      ≤1280px 只隐藏组名、分隔线保留（2026-10-23 R11 P0-06 取代 R5-C01 的「1px 竖线」口径）；
 //   K4 逾期统一 warning：今天页「逾期」附近不得出现 --functional-error；
 //   K5 二级分段 `.btn-tab.active` 跟随主题色（--app-accent-text / --app-accent-bg），不再固定红。
 import { test } from 'node:test';
@@ -64,13 +65,21 @@ test('K2 选中页签金色派生文字 ≥ 4.5:1（45% 压深档）', () => {
   assert.ok(redRatio >= 4.5, `党建红选中页签对比度 ${redRatio.toFixed(2)}:1 低于 4.5`);
 });
 
-test('K3 分组标签不再画彩色胶囊（无文字 ⇒ 无小字对比问题）', () => {
-  const line = TAB_BAR.split('\n').find((l) => l.includes('tab-group-label')) || '';
-  assert.ok(line, 'tab-bar 未渲染 .tab-group-label');
-  assert.doesNotMatch(line, /color\s*:|background\s*:/, '分组标签不得再带彩色文字 / 胶囊底色');
-  assert.match(CSS, /\.tab-group-label\s*\{[^}]*width:\s*1px/, '分组标签应为 1px 竖线');
-  assert.match(CSS, /@media \(max-width: 1024px\) \{[\s\S]*?\.tab-group-label \{ display: none; \}/,
-    '≤1024px 不得渲染分组标签');
+test('K3 分组名是可见组名（12px / neutral-500），组间 1px 分隔线，≤1280 只隐藏组名', () => {
+  // 组名必须是可见文本，不是空 span（R5-C01 曾把组名整段移成 1px 竖线）。
+  const nameLine = TAB_BAR.split('\n').find((l) => /tab-group-label/.test(l) && /\$\{groupName\}/.test(l)) || '';
+  assert.ok(nameLine, 'tab-bar 未把 groupLabel 渲染为可见文本（.tab-group-label 内应为 ${groupName}）');
+  assert.match(CSS, /\.tab-group-label\s*\{[^}]*font-size:\s*12px/, '组名应为 12px');
+  assert.match(CSS, /\.tab-group-label\s*\{[^}]*color:\s*var\(--neutral-500\)/, '组名应为 neutral-500');
+  assert.doesNotMatch(CSS, /\.tab-group-label\s*\{[^}]*width:\s*1px/, '组名不得再退化为 1px 竖线');
+  // 组间分隔线单独成类。
+  assert.ok(TAB_BAR.includes('tab-group-sep'), 'tab-bar 未渲染组间分隔线 .tab-group-sep');
+  assert.match(CSS, /\.tab-group-sep\s*\{[^}]*width:\s*1px/, '.tab-group-sep 应为 1px 线');
+  // ≤1280px 只隐藏组名；分隔线保留（≤1024 仅缩外边距）。
+  assert.match(CSS, /@media \(max-width: 1280px\) \{[\s\S]*?\.tab-group-label \{ display: none; \}/,
+    '≤1280px 应只隐藏组名');
+  assert.doesNotMatch(CSS, /@media \(max-width: 1280px\) \{[\s\S]*?\.tab-group-sep \{[^}]*display:\s*none/,
+    '≤1280px 不得隐藏分隔线');
 });
 
 test('K4 今天页「逾期」使用 warning，不再用 error', () => {

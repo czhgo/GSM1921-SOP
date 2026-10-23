@@ -40,7 +40,7 @@ async function patchConfig(token, body) {
   });
 }
 
-const V = '?v=20261023a';
+const V = '?v=20261023b';
 const BLOCK_IDS = ['theme-party-day', 'taskforce'];
 
 test('S3 工作流块策略（纯函数）：默认全开 / 隐藏过滤 / 缺段兼容', async () => {

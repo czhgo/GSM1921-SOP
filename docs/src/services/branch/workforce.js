@@ -9,21 +9,21 @@
 //   议题 extras 记 voteOutcome {status,tally,needed,evaluatedAt}；会前草稿=支书台暂存。
 // R2-3（2026-09-06 支书裁，附录⑩ S2）：门槛改「应到会人数超过 2/3 且无反对」——
 //   出席须严格超过应到 2/3（整界不过），反对=0（'object' 异议与 'oppose' 反对同口径），弃权允许。
-import { BranchService } from '../core/runtime.js?v=20261023a';
-import { NoticeStore } from '../governance/notice.js?v=20261023a';
-import { defaultVoteConfig, resolveVoterIds } from '../activity/vote-config.js?v=20261023a';
-import { ROLE_LABELS } from '../../core/domain/constants.js?v=20261023a';
-import { POLICY_DEFAULTS } from '../../core/domain/policy-defaults.js?v=20261023a';
-import { WORK_MAP_MODULES, mergeWorkforceSnapshot, canDisableModule, ORG_SUBJECT_LABELS } from '../../core/domain/work-map.js?v=20261023a';
-import { getPersonName } from '../member/person.js?v=20261023a';
-import { AuthStore, currentUserId } from '../core/auth.js?v=20261023a';
-import { getBranchWorkforce, updateBranchWorkforce } from './branch.js?v=20261023a';
-import { fetchVotesStrict } from '../activity/committee-vote.js?v=20261023a';
-import { TodoStore, TodoCategory, TodoSourceType, WORK_DOMAIN } from '../governance/todo.js?v=20261023a';
+import { BranchService } from '../core/runtime.js?v=20261023b';
+import { NoticeStore } from '../governance/notice.js?v=20261023b';
+import { defaultVoteConfig, resolveVoterIds } from '../activity/vote-config.js?v=20261023b';
+import { ROLE_LABELS } from '../../core/domain/constants.js?v=20261023b';
+import { POLICY_DEFAULTS } from '../../core/domain/policy-defaults.js?v=20261023b';
+import { WORK_MAP_MODULES, mergeWorkforceSnapshot, canDisableModule, ORG_SUBJECT_LABELS } from '../../core/domain/work-map.js?v=20261023b';
+import { getPersonName } from '../member/person.js?v=20261023b';
+import { AuthStore, currentUserId } from '../core/auth.js?v=20261023b';
+import { getBranchWorkforce, updateBranchWorkforce } from './branch.js?v=20261023b';
+import { fetchVotesStrict } from '../activity/committee-vote.js?v=20261023b';
+import { TodoStore, TodoCategory, TodoSourceType, WORK_DOMAIN } from '../governance/todo.js?v=20261023b';
 // 2026-09-28 修（去表决 dogfood）：议题议程项须带 id，线上表态位（.vote-widget-slot / .vote-panel-slot
 //   仅在议程项含 id 时渲染）才成立；原实现无 id ⇒ 表决入口页「该条无表决编号」，谁也投不了票。
-import { generateId } from '../../core/base/id.js?v=20261023a';
-import { todayLocal } from '../../core/base/utils.js?v=20261023a';
+import { generateId } from '../../core/base/id.js?v=20261023b';
+import { todayLocal } from '../../core/base/utils.js?v=20261023b';
 
 export const WORKFORCE_PROPOSAL_KIND = 'workforce-proposal';
 
@@ -257,6 +257,11 @@ const DUTY_DOMAIN = {
   'rule-making': WORK_DOMAIN.PROJECT,
   'info-platform': WORK_DOMAIN.ARCHIVE,
 };
+// R7-23：键集与 work-map 模块目录同源守卫——新增/改名模块漏登记时 fail-fast，不静默落默认域。
+const _dutyMissing = WORK_MAP_MODULES.map((m) => m.id).filter((id) => !(id in DUTY_DOMAIN));
+if (_dutyMissing.length) {
+  throw new Error(`[workforce] DUTY_DOMAIN 缺少模块映射：${_dutyMissing.join(', ')}（见 core/domain/work-map.js::WORK_MAP_MODULES）`);
+}
 
 /**
  * 分工自动传递（2026-09-13 支书裁定「通过线上的调整实现信息和任务的算法自动传递」）：

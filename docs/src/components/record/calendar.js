@@ -5,13 +5,13 @@
 //  视图模式：月/周/日/列表 四种切换
 // ════════════════════════════════════════════════════════════════
 
-import { getAppState, setState } from '../../core/base/state.js?v=20261023a';
-import { ROLE_COLORS, getActivityColor, ACTIVITY_CATEGORY_COLORS, ACTIVITY_TYPE_LABELS, ACTIVITY_TYPE_SHORT } from '../../core/domain/constants.js?v=20261023a';
-import { _fmtDate, _currentYearMonth } from '../../core/base/utils.js?v=20261023a';
-import { tokenOf } from '../../core/base/version-token.js?v=20261023a'; // P2 视图渲染守卫数据版本（spec §四.2）
-import { filterTasksByManagementRole, activityLifecycleBadgeHtml } from './inspector.js?v=20261023a';
+import { getAppState, setState } from '../../core/base/state.js?v=20261023b';
+import { ROLE_COLORS, getActivityColor, ACTIVITY_CATEGORY_COLORS, ACTIVITY_TYPE_LABELS, ACTIVITY_TYPE_SHORT } from '../../core/domain/constants.js?v=20261023b';
+import { _fmtDate, _currentYearMonth } from '../../core/base/utils.js?v=20261023b';
+import { tokenOf } from '../../core/base/version-token.js?v=20261023b'; // P2 视图渲染守卫数据版本（spec §四.2）
+import { filterTasksByManagementRole, activityLifecycleBadgeHtml } from './inspector.js?v=20261023b';
 // 活动「已完成 / 已取消」闭环判据单一源（R7-16）：替代手写 ['completed','cancelled']
-import { isActivityClosed } from '../../core/domain/domain.js?v=20261023a';
+import { isActivityClosed } from '../../core/domain/domain.js?v=20261023b';
 
 // ── 内联标签深色变量对（与 constants.js _applyDark 生成的 bgDark/textDark/borderDark 配套）──
 // 标签/卡片：三件套（bg/text/border）；纯文字：仅 text；圆点：仅实色提亮（--acc-dot-dark）
@@ -318,7 +318,7 @@ function _renderCompactCellContent(dateKey, dayActs, ct, viaTasks, state) {
             `<span class="cal-activity-dot" style="${_accDot(color)}background:${color.text};"></span>` +
             `<span>${shortLabel}</span></div>`;
   });
-  if (dayActs.length > 3) html += `<div class=" text-[11px] text-gray-500 text-center mt-0.5">+${dayActs.length - 3} 项</div>`;
+  if (dayActs.length > 3) html += `<div class=" text-xs text-gray-500 text-center mt-0.5">+${dayActs.length - 3} 项</div>`;
   // 无活动时才显示任务标签（紧凑，最多 2 条，避免挤爆方形格）
   if (dayActs.length === 0) {
     // P1：viaTasks 已由日索引预分组（等价原 tasks.filter(!t.date && activityId∈当日)）
@@ -552,7 +552,7 @@ function _renderCellContent(dateKey, dayActs, ct, hasActivity, viaTasks, state, 
               `<span class="cal-activity-dot" style="${_accDot(color)}background:${color.text};"></span>` +
               `<span class="truncate">${act.title || ''}</span></div>`;
     });
-    if (dayActs.length > maxItems) html += `<div class=" text-[11px] text-gray-500 text-center mt-0.5">+${dayActs.length - maxItems} 项活动</div>`;
+    if (dayActs.length > maxItems) html += `<div class=" text-xs text-gray-500 text-center mt-0.5">+${dayActs.length - maxItems} 项活动</div>`;
   } else {
     // 非参与者模式：先渲染活动条目（可点击进入详情）
     if (dayActs.length > 0) {
@@ -562,7 +562,7 @@ function _renderCellContent(dateKey, dayActs, ct, hasActivity, viaTasks, state, 
                 `<span class="cal-activity-dot" style="${_accDot(color)}background:${color.text};"></span>` +
                 `<span class="truncate">${act.title || ''}</span></div>`;
       });
-      if (dayActs.length > maxItems) html += `<div class=" text-[11px] text-gray-500 text-center mt-0.5">+${dayActs.length - maxItems} 项活动</div>`;
+      if (dayActs.length > maxItems) html += `<div class=" text-xs text-gray-500 text-center mt-0.5">+${dayActs.length - maxItems} 项活动</div>`;
     } else if (hasActivity) {
       // 仅有活动标记但无具体活动条目时，保留原角色点指示
       // R2-13（2026-10-20）：活动不再有 executor 字段；颜色按**活动类型**取（getActivityColor），
@@ -589,7 +589,7 @@ function _renderCellContent(dateKey, dayActs, ct, hasActivity, viaTasks, state, 
               `<span class="task-dot" style="${_accDot(c)}background:${c.text};"></span>` +
               `<span class="truncate">${t.title}</span></div>`;
     });
-    if (focusedTasks.length > maxItems) html += `<div class=" text-[11px] text-gray-500 mt-0.5">+${focusedTasks.length - maxItems} 项任务</div>`;
+    if (focusedTasks.length > maxItems) html += `<div class=" text-xs text-gray-500 mt-0.5">+${focusedTasks.length - maxItems} 项任务</div>`;
   }
   return html;
 }
@@ -1021,7 +1021,7 @@ function _renderMonthViewCompact(grid, activeActivities, month, state, mode) {
               `<span class="cal-activity-dot" style="${_accDot(color)}background:${color.text};"></span>` +
               `<span>${shortLabel}</span></div>`;
     });
-    if (dayActs.length > 3) html += `<div class=" text-[11px] text-gray-500 text-center mt-0.5">+${dayActs.length - 3} 项</div>`;
+    if (dayActs.length > 3) html += `<div class=" text-xs text-gray-500 text-center mt-0.5">+${dayActs.length - 3} 项</div>`;
     html += '</div>';
   }
   html += '</div></div>';

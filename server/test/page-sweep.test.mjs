@@ -16,7 +16,7 @@
 //      （`textarea` 例外：多行，只核字号）
 //   P7 数据格档：`.data-table th/td` 渲染字号须 13px（含**首列**——支书实报「人作首列的表格字体小」即此处）
 //   P8 裸控件：可见的原生表单件若未挂 `.input-flat`，其字号/高度走 UA 默认档 → 不受单档约束即为离群
-//   P9 分页钮档：`.page-btn` / `.page-num` 是**明载例外**（30px），断言不被顺手改成 38px
+//   P9 分页钮档：`.page-btn` / `.page-num` 是**明载例外**（32px，2026-10-23 R11 由 30px 上调），断言不被顺手改成 38px
 // 批次 47-C（支书 2026-09-15 裁定「先补普查盲区」）扩围**两个盲区**：
 //   盲区①**只看默认视图**——故对每个 tab 追加「二级视图」审次：点开 `[data-rm-toggle]`（矩阵显示全部 N 项）、
 //     按 `[data-view]` 的不同取值逐一切换（转置视图），每个态都跑同一套 P1–P11；
@@ -66,7 +66,7 @@ after(async () => {
 const MIN_ROWS = 8;
 
 /** 单档取值（来源＝docs/src/styles.css，见 filter-row D1/D2/D3 的算式断言；此处只做真机复核） */
-const DECK = { ctrlH: 38, cellPx: 13, pagerH: 30 };
+const DECK = { ctrlH: 38, cellPx: 13, pagerH: 32 };
 
 /** 被静音的外部资源台账（批次 47-B 纪律）：真机量测值必须与生产一致——凡静音项都要写明
  *  「为何不影响被测属性」；若某资源确实会影响被测属性，则必须先在被测属性上做出与它无关的保障
@@ -194,7 +194,7 @@ const AUDIT = (cfg) => {
     stats.bareCtrl += 1;
     v.push({ rule: 'P8 裸控件（未挂单档类）', tag: el.tagName, cls: String(el.className).slice(0, 50), h: el.offsetHeight, px: fs(el) });
   });
-  // P9 分页钮档：分页控件是明载例外（30px），断言其不被顺手改成 38px
+  // P9 分页钮档：分页控件是明载例外（32px），断言其不被顺手改成 38px
   document.querySelectorAll('.page-btn, .page-num').forEach((el) => {
     if (!visible(el)) return;
     stats.pagers += 1;
@@ -276,7 +276,7 @@ for (const w of WORKS) {
       }
       await page.waitForTimeout(800);
       // P0-2 形态断言（2026-09-23 支书裁定「形态必须可断言、不许静默降级」）：本文件真机用例必须在 API 形态下跑
-      await page.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20261023a')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
+      await page.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20261023b')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
 
       // ── 1440 页签条不溢出（2026-10-21 R5-C01）──
       //   判据：`.ws-tab-scroll` 的 scrollWidth ≤ clientWidth（分组胶囊改竖线 + 滚动区右留 40px 后，
@@ -517,7 +517,7 @@ test('S21 组织台活动深链：?activityId / ?view=activities 落「活动日
     await page.waitForTimeout(800);
     // 取一个真实活动（优先「非当前月」者，顺带验证切月）
     const acts = await page.evaluate(async () => {
-      const m = await import('/src/core/base/state.js?v=20261023a');
+      const m = await import('/src/core/base/state.js?v=20261023b');
       return ((m.getAppState() || {}).activities || []).map((x) => ({ id: x.id, date: x.date }));
     });
     assert.ok(acts.length > 0, '组织台活动深链用例：未取到任何活动（样本不足）');

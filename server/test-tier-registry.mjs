@@ -26,8 +26,10 @@ export const TIERS = ['daily', 'precommit', 'weekly'];
  *  2026-10-22 第七轮 P2：新增 branch-id-literal-guard（缺省支部字面量守卫，纯 node）⇒ 213 → 214。
  *  2026-10-22 第七轮 R7-01：新增 account-rename（人员主键改名受控端点，纯 node）⇒ 214 → 215。
  *  2026-10-22 第九轮 Task 4：新增 activity-workgroup-sync / taskforce-workgroup-source（纯 node）⇒ 215 → 217。
- *  2026-10-22 第九轮 Task 6：新增 ui-motion-guard（卡片悬停 / transition-all 棘轮，纯 node）⇒ 217 → 218。 */
-export const DAILY_FILE_BUDGET = 220;
+ *  2026-10-22 第九轮 Task 6：新增 ui-motion-guard（卡片悬停 / transition-all 棘轮，纯 node）⇒ 217 → 218。
+ *  2026-10-23 R11 Task 12.1：补登 feedback-integrity / modal-contract / schema-split-gate
+ *    （此前只落盘未登记）＋ 新增 ui-control-system-guard（均纯 node）⇒ 220 → 224。 */
+export const DAILY_FILE_BUDGET = 224;
 
 /** daily 静态 `test(` / `it(` 调用点预算（含子测试；新增断言须同批上调并写明理由）
  *  2026-10-21 R5 P1：页题守卫 4 条 + 对比度守卫 5 条 + 补登记的既有两条守卫 ⇒ 1351 → 1377。
@@ -41,8 +43,10 @@ export const DAILY_FILE_BUDGET = 220;
  *  2026-10-22 第八轮 Task 2.8：`r3-data-permission-regression` 新增「纪检确认考勤」1 条 ⇒ 1404 → 1405。
  *  2026-10-22 第九轮 Task 6：新增 ui-motion-guard（M1 悬停 / M2 transition-all / M3 非空转）3 条 ⇒ 1405 → 1408。
  *  2026-10-22 第九轮 Task 7.3：`frontend-foundations-guard` 新增 F9（写口失败不得提示成功）1 条 ⇒ 1408 → 1409。
- *  2026-10-23 批次 504（schema v11）：新增 todo-branch-attribution（6）/ schema-split-shadow（3）⇒ 1409 → 1418。 */
-export const DAILY_TEST_BUDGET = 1418;
+ *  2026-10-23 批次 504（schema v11）：新增 todo-branch-attribution（6）/ schema-split-shadow（3）⇒ 1409 → 1418。
+ *  2026-10-23 R11 Task 12.1：补登 feedback-integrity（12）/ modal-contract（5）/ schema-split-gate（4）
+ *    ＋ 新增 ui-control-system-guard（7）⇒ 1418 → 1446。 */
+export const DAILY_TEST_BUDGET = 1446;
 
 const group = (tier, reason, list) => list.map((file) => ({ file, tier, reason }));
 
@@ -106,6 +110,8 @@ export const TEST_TIERS = [
     'person-consistency.test.mjs',
     'reset-tier-init.test.mjs',
     'reset-tier.test.mjs',
+    // 2026-10-23 R11 Task 12.1：拆表切换闸门（C2 埋点 / C4 历史 / NOT_READY 不切读路径，纯 node）
+    'schema-split-gate.test.mjs',
     'seed-baseline.test.mjs',
     'seed-drift.test.mjs',
   ]),
@@ -134,12 +140,16 @@ export const TEST_TIERS = [
     'copy-master-guard.test.mjs',
     'date-canon-guard.test.mjs',
     'dead-selector-guard.test.mjs',
+    // 2026-10-23 R11 Task 12.1：操作结果反馈可信（作用域写等待 / 失败不报成功，纯 node）
+    'feedback-integrity.test.mjs',
     'filter-row.test.mjs',
     'frontend-foundations-guard.test.mjs',
     'gold-accent-guard.test.mjs',
     'hex-hardcode-guard.test.mjs',
     'ia-critical-guard.test.mjs',
     'localstorage-key-guard.test.mjs',
+    // 2026-10-23 R11 Task 12.1：弹窗交互闭环契约（提交中禁止关闭 / alert / onSubmit 契约，纯 node）
+    'modal-contract.test.mjs',
     'modal-escape-guard.test.mjs',
     'page-title-guard.test.mjs',
     'party-branch-directory-context.test.mjs',
@@ -169,6 +179,8 @@ export const TEST_TIERS = [
     'ui-button-four-types.test.mjs',
     'ui-color-semantics.test.mjs',
     'ui-contrast-guard.test.mjs',
+    // 2026-10-23 R11 Task 12.1：控件层单一源（SD-1/2/3/4/6/9/10 静态断言，纯 node）
+    'ui-control-system-guard.test.mjs',
     'ui-custom-select.test.mjs',
     'ui-first-screen-order.test.mjs',
     'ui-focus-ring.test.mjs',

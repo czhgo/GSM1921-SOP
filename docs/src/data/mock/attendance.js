@@ -1,7 +1,7 @@
 // 数据域接线批次二（2026-09-03）：展示格式化 attendanceToLong 已提升至 services/activity/attendance.js；
 // 本文件退化为纯考勤种子数据仓（PEOPLE 供全员出席名单生成）。
-import { PEOPLE } from './people.js?v=20261023a';
-import { AttendanceStatus } from '../../core/domain/domain.js?v=20261023a';
+import { PEOPLE } from './people.js?v=20261023b';
+import { AttendanceStatus } from '../../core/domain/domain.js?v=20261023b';
 
 // 最后更新：2026-09-06（演示数据基线刷新）
 // 显式段 att1~att43 的 recordedAt 随关联活动重排同步平移（recordedAt = 活动日当天），
@@ -78,19 +78,9 @@ export const ATTENDANCE_RECORDS = [
   { id: 'att43', personId: '2400012352',  activityId: 'act-19', status: AttendanceStatus.LEAVE,    recordedBy: '2400012354', recordedAt: '2026-07-19T18:00:00Z', studentId: '2400012352', developStage: '正式党员', partyGroup: '第二党小组' },
 
   // ── act-31 (2026-09-10) 9月支部党员大会：线上异步表决 ──────────
-  // 批次 47-Y（2026-09-16，承 R-78 口径）：**9 月**缺勤一条——为成员台「考勤概况 · 去补课 → 补课说明」造可达前置。
-  // **为什么必须是 9 月**：该页只列**当月**活动（`entries/tabs/visitor/attendance-tab.js:24-25` 的 `thisMonth` 过滤），
-  //   而 9 月此前**只有 act-31 且它一条考勤记录都没有** ⇒ 补课入口在 9 月没有任何可挂的行
-  //   （原登记说「日期耦合」，其实还是**结构性不可达**：换任何月份都会撞上同一个问题）。
-  // **为什么 `recordedBy: '2400012354'`（已确认）而不是 `null`（待确认）**：补课任务由「**纪检确认考勤**」时才
-  //   派生（`autoGenerateMakeupTask()`）——若这条记录还是待确认态，却已经存在补课任务，两者**自相矛盾**。
-  //   与 `att38`（2400012349 · 缺勤 · recordedBy 2400012354）同形，故本条与 `data/mock/seed.js::SEED_MAKEUP_TASKS` 互为因果、自洽。
-  // ⚠⚠ **id 必须是 `att` + 纯数字**（本批首跑被 `reset-tier-init::C2` 当场抓住）：本仓的**种子识别口径**
-  //   是 `init-reset.js::INIT_SEED_ID_PATTERNS.attendances = /^att\d+$/`（`mock-adapter.js` 的 merge 同判据），
-  //   `?reset=init` 靠它把演示种子从库里剔除。本条初版 id 写成 `att-sep-1`（**不匹配**）⇒ 剔除漏掉它
-  //   ⇒ 空态不空（`attendances.length` 1 !== 0）。**「造种子」不只是造出内容，还要落在既有的种子 id 空间里。**
-  // ⚠ 取 `att900`（**隔离段**）：避开 8 月生成器的连续区间（现 `att44` 起、随 `_AUGUST_EVENTS` 增长而增长），
-  //   留足余量以免将来撞号（真撞了 M1 的唯一性断言也会红，不会静默）。
+  // 三条约束：① 必须是 **9 月**——成员台考勤只列当月活动，而 9 月只有 act-31 可挂补课入口；
+  //   ② `recordedBy` 用已确认纪检（非 null）——补课任务由「纪检确认考勤」派生，待确认态与已存在补课任务自相矛盾；
+  //   ③ id 取 `att900` 隔离段并落在 `^att\d+$` 种子 id 空间（`init-reset.js::INIT_SEED_ID_PATTERNS.attendances`）。
   { id: 'att900', personId: '2400012349', activityId: 'act-31', status: AttendanceStatus.ABSENT, recordedBy: '2400012354', recordedAt: '2026-09-10T18:00:00Z' },
 ];
 

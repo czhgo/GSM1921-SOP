@@ -12,24 +12,24 @@
 //   · 材料读取：`mockDB.imageRecords` / `loadAttendanceRecords` / `mockDB.inspections` / `loadActivityReviews`；
 //   · 归档写口：`services/core/mock.js::archiveActivity`（经 BranchService 暴露，与宣传台 / 支书台同源）；
 //   · 空态：`components/ui/empty-state.js`；浮窗：`components/ui/modal.js`；版本戳：`core/base/version-token.js`。
-import { renderSidebar } from '../../components/shell/sidebar.js?v=20261023a';
-import { renderHeader } from '../../components/shell/header.js?v=20261023a';
-import { BranchService } from '../../services/core/runtime.js?v=20261023a';
-import { mockDB, ReviewStatus } from '../../core/domain/domain.js?v=20261023a';
-import { loadAttendanceRecords } from '../../services/activity/attendance.js?v=20261023a';
-import { loadActivityReviews } from '../../services/governance/review.js?v=20261023a';
-import { AuthStore } from '../../services/core/auth.js?v=20261023a';
-import { isActivityArchived } from '../../core/domain/constants.js?v=20261023a';
-import { getBasePath, escHtml as esc, showToast } from '../../core/base/utils.js?v=20261023a';
-import { resolveMaterialHref, resolveMaterialHandoff, resolveMaterialRoleNote } from '../../core/domain/material-links.js?v=20261023a';
+import { renderSidebar } from '../../components/shell/sidebar.js?v=20261023b';
+import { renderHeader } from '../../components/shell/header.js?v=20261023b';
+import { BranchService } from '../../services/core/runtime.js?v=20261023b';
+import { mockDB, ReviewStatus } from '../../core/domain/domain.js?v=20261023b';
+import { loadAttendanceRecords } from '../../services/activity/attendance.js?v=20261023b';
+import { loadActivityReviews } from '../../services/governance/review.js?v=20261023b';
+import { AuthStore } from '../../services/core/auth.js?v=20261023b';
+import { isActivityArchived } from '../../core/domain/constants.js?v=20261023b';
+import { getBasePath, escHtml as esc, showToast, describeWriteError } from '../../core/base/utils.js?v=20261023b';
+import { resolveMaterialHref, resolveMaterialHandoff, resolveMaterialRoleNote } from '../../core/domain/material-links.js?v=20261023b';
 // 材料页可见性单一源（C11）：与活动列表 / 详情页同判据，待批活动不能凭 id 被非支委层读到
-import { isActivityVisibleTo } from '../../services/core/visibility.js?v=20261023a';
-import { emptyStateHtml } from '../../components/ui/empty-state.js?v=20261023a';
-import { openModal, closeModal } from '../../components/ui/modal.js?v=20261023a';
-import { bumpToken } from '../../core/base/version-token.js?v=20261023a';
-import { hydrateDataSource, notifyDataLoaded } from '../../data/data-adapter.js?v=20261023a';
-import { ApiAdapter } from '../../data/api-adapter.js?v=20261023a';
-import { settleWrites } from '../../core/session/pending-writes.js?v=20261023a';
+import { isActivityVisibleTo } from '../../services/core/visibility.js?v=20261023b';
+import { emptyStateHtml } from '../../components/ui/empty-state.js?v=20261023b';
+import { openModal, closeModal } from '../../components/ui/modal.js?v=20261023b';
+import { bumpToken } from '../../core/base/version-token.js?v=20261023b';
+import { hydrateDataSource, notifyDataLoaded } from '../../data/data-adapter.js?v=20261023b';
+import { ApiAdapter } from '../../data/api-adapter.js?v=20261023b';
+import { beginWriteScope, endWriteScope } from '../../core/session/pending-writes.js?v=20261023b';
 
 renderSidebar('dashboard');
 renderHeader('dashboard');
@@ -275,14 +275,18 @@ async function _archiveActivity(id) {
   const btn = document.getElementById('materials-archive-btn');
   if (btn) { btn.disabled = true; btn.textContent = '归档中…'; }
   _archiveError = '';
+  // 动作作用域：归档的落库结果只归本次动作，成功/失败不与他人互相污染
+  const scope = beginWriteScope();
   try {
     await BranchService.archiveActivity(id);
     bumpToken('archiveRecord');
-    try { await settleWrites(); } catch (e) { console.warn('[activity-materials] 落库未结算，仍以本地结果刷新：', e); }
-    showToast('success', '活动已归档（材料可在宣传台继续补交）');
+    // 失败由 showToast 统一改报（旧实现 catch 吞错后仍报成功）
+    const outcome = await showToast('success', '活动已归档（材料可在宣传台继续补交）', { scope });
+    if (!outcome.ok) _archiveError = outcome.message;
     render();
   } catch (err) {
-    _archiveError = (err && err.message) || String(err);
+    endWriteScope(scope);
+    _archiveError = describeWriteError(err);
     render();
     showToast('error', `归档失败：${_archiveError}`);
   }

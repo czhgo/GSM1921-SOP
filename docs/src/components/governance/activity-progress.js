@@ -12,15 +12,15 @@
 //   也绕过了支书台归档前的材料 / 考勤闸门。本次不新增第二套归档写口（归档仍走活动详情的材料闸门），
 //   文案与提示只说「标记完成」，不再声称「完成即归档」。
 
-import { BranchService } from '../../services/core/runtime.js?v=20261023a';
-import { persist } from '../../data/data-adapter.js?v=20261023a';
-import { showToast, escHtml as esc } from '../../core/base/utils.js?v=20261023a';
-import { isActivityEnded } from '../../core/domain/constants.js?v=20261023a';
+import { BranchService } from '../../services/core/runtime.js?v=20261023b';
+import { persist } from '../../data/data-adapter.js?v=20261023b';
+import { showToast, escHtml as esc } from '../../core/base/utils.js?v=20261023b';
+import { isActivityEnded } from '../../core/domain/constants.js?v=20261023b';
 // A03：组织者判据与活动详情同源——工作组主源优先，项目角色行次之，`organizer` 仅兜底。
-import { mockDB } from '../../core/domain/domain.js?v=20261023a';
-import { getPersonName } from '../../services/member/person.js?v=20261023a';
-import { badgeHtml } from '../ui/badges.js?v=20261023a';
-import { renderQueryView } from './query-view.js?v=20261023a';
+import { mockDB } from '../../core/domain/domain.js?v=20261023b';
+import { getPersonName } from '../../services/member/person.js?v=20261023b';
+import { badgeHtml } from '../ui/badges.js?v=20261023b';
+import { renderQueryView } from './query-view.js?v=20261023b';
 
 /**
  * 渲染活动进展分段（全部活动查询 + 材料出口 + 标记完成）。
@@ -82,7 +82,7 @@ export function renderActivityProgress(host, { activities = [], accent, onChange
           <div class="flex-1 min-w-0">
             <div class="text-sm font-medium ${ended ? 'text-gray-500' : 'text-gray-800'}">${esc(a.title || '未命名')}</div>
             <div class="text-xs text-gray-500 mt-0.5">${esc(a.date || '')}${a.type ? ' · ' + esc(a.type) : ''}${a.location ? ' · ' + esc(a.location) : ''}</div>
-            <div class="text-[11px] text-gray-500 mt-1">${scopeLabel}${recruitLabel} · 组织者：${organizers.length ? organizers.map((id) => getPersonName(id)).join('、') : '待指定'} · 深度参与 ${deepCount} 人</div>
+            <div class="text-xs text-gray-500 mt-1">${scopeLabel}${recruitLabel} · 组织者：${organizers.length ? organizers.map((id) => getPersonName(id)).join('、') : '待指定'} · 深度参与 ${deepCount} 人</div>
           </div>
           <div class="flex items-center gap-2">
             ${ended ? badgeHtml('已结束', 'neutral') : badgeHtml('进行中', 'success')}

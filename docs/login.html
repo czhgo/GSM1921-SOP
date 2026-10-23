@@ -3,7 +3,7 @@
 <html lang="zh-CN">
 <head>
   
-<script src="./src/theme-init.js?v=20261023a"></script>
+<script src="./src/theme-init.js?v=20261023b"></script>
 <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>登录 — GSM1921-SOP</title>
@@ -13,8 +13,8 @@
   <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;800&family=Noto+Serif+SC:wght@400;500;600;700;800&display=swap" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;800&family=Noto+Serif+SC:wght@400;500;600;700;800&display=swap" rel="stylesheet"></noscript>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="./src/tailwind-config.js?v=20261023a"></script>
-  <link rel="stylesheet" href="./src/styles.css?v=20261023a">
+  <script src="./src/tailwind-config.js?v=20261023b"></script>
+  <link rel="stylesheet" href="./src/styles.css?v=20261023b">
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
@@ -110,11 +110,11 @@
       <form id="login-form" class="space-y-4" novalidate>
         <div>
           <label for="student-id" class="block text-xs font-medium text-gray-600 mb-1.5">学号</label>
-          <input type="text" id="student-id" class="login-input w-full px-3 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none" placeholder="请输入学号" autocomplete="username">
+          <input type="text" id="student-id" class="login-input w-full px-3 py-2 rounded-[var(--radius-sm)] border border-[var(--neutral-200)] text-[13px]" placeholder="请输入学号" autocomplete="username">
         </div>
         <div>
           <label for="password" class="block text-xs font-medium text-gray-600 mb-1.5">密码</label>
-          <input type="password" id="password" class="login-input w-full px-3 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none" placeholder="请输入密码" autocomplete="current-password">
+          <input type="password" id="password" class="login-input w-full px-3 py-2 rounded-[var(--radius-sm)] border border-[var(--neutral-200)] text-[13px]" placeholder="请输入密码" autocomplete="current-password">
         </div>
         <p id="login-error" class="text-xs text-red-600 hidden" role="alert">学号或密码错误，请重试</p>
         <button type="submit" class="login-btn w-full text-sm px-4 py-[7px] rounded-lg border border-gray-300 text-gray-700 bg-white font-medium hover:bg-gray-50">登录</button>
@@ -154,6 +154,6 @@
     </div>
   </div>
 
-  <script type="module" src="./src/entries/pages/login-entry.js?v=20261023a"></script>
+  <script type="module" src="./src/entries/pages/login-entry.js?v=20261023b"></script>
 </body>
 </html>

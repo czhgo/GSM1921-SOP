@@ -8,11 +8,11 @@
 
 
 
-import { icon } from '../../core/base/icons.js?v=20261023a';
+import { icon } from '../../core/base/icons.js?v=20261023b';
 
 // R6 导航守卫（2026-09-03 P2a）：初始/目标 tab 决策收敛到纯函数 tab-nav.js（防「被支部隐藏后静默白屏」）
 
-import { resolveInitialTab, resolveTargetTab } from '../../core/boot/tab-nav.js?v=20261023a';
+import { resolveInitialTab, resolveTargetTab } from '../../core/boot/tab-nav.js?v=20261023b';
 
 
 
@@ -206,13 +206,13 @@ export function renderTabBar({ prefix, tabs, accentColor, defaultTab, extraRight
 
   // 生成 Tab 按钮 HTML（active 状态由 CSS 类 + CSS 变量驱动）
 
-  // groupLabel 去重：同组只在首项前渲染标签（独立元素，不嵌在 button 内）
+  // groupLabel 去重：同组只在首项前渲染组名（独立元素，不嵌在 button 内）
 
-  // 首组（整行第一个出现的标签）不加竖线，后续组加竖线分隔
+  // 首组同样显示组名，但组前不加分隔线；后续每组前加 1px 分隔线（组名可见、分隔线 aria-hidden）
 
   const seenGroups = new Set();
 
-  let isFirstGroup = true; // 整行第一个 groupLabel 不加竖线
+  let isFirstGroup = true; // 整行第一个分组之前不渲染分隔线
 
   const btnsHtml = tabs.map(({ id, label, groupLabel }) => {
 
@@ -226,23 +226,27 @@ export function renderTabBar({ prefix, tabs, accentColor, defaultTab, extraRight
 
       : '';
 
-    // groupLabel 只在该组首次出现时渲染（独立元素，不被 button 选中态影响）
+    // 2026-10-23 Spec「页签分区标识」：每个分组（含首组）渲染**可见组名**；
+    //   组间单独渲染 1px 分隔线（aria-hidden），首组之前不画线。
+    //   组名 = groupLabel 去首尾空白；空组名不渲染文字，但仍按分组边界处理分隔线。
+    //   判重保留：同一组只在组内首项前渲染一次（非连续同名组不会重复出组名）。
+    //   尺寸/溢出：组名与分隔线不改变 tab 按钮的任何属性；`.tab-group-label` 自身 flex-shrink:0，
+    //   窄屏由 styles.css 只隐藏组名、保留分隔线，末页签仍可滚动可达。
+    const groupName = String(groupLabel ?? '').trim();
 
     let groupHtml = '';
 
-    if (groupLabel && !seenGroups.has(groupLabel)) {
+    if (!seenGroups.has(groupName)) {
 
-      seenGroups.add(groupLabel);
+      seenGroups.add(groupName);
 
-      // 2026-10-21 R5-C01：分组不再画与选中页签同色同形的胶囊（22 枚胶囊占 258px，
-      //   1440 下 secretary / visitor 即被挤出末页签）；桌面端只留 1px 竖线作分隔，
-      //   ≤1024px 由 styles.css 整段隐藏（窄屏不渲染分组标签）。
-      //   首组前不画线（组顺序已在页签顺序中自陈）。
-      groupHtml = isFirstGroup
+      const sepHtml = isFirstGroup ? '' : '<span class="tab-group-sep" aria-hidden="true"></span>';
 
-        ? ''
+      const nameHtml = groupName
+        ? `<span class="tab-group-label" role="presentation">${groupName}</span>`
+        : '';
 
-        : '<span class="tab-group-label" role="presentation" aria-hidden="true"></span>';
+      groupHtml = sepHtml + nameHtml;
 
       isFirstGroup = false;
 

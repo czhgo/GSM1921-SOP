@@ -13,11 +13,11 @@
 //    沿用其既有 id（`makeup-void-modal` / `#makeup-void-reason` / `[data-makeup-void-ok]`），
 //    以免动到已在册的真机流 `disc-makeup-void-reason` 的选择器。
 // ════════════════════════════════════════════════════════════════
-import * as SoftVoid from '../../services/governance/soft-void.js?v=20261023a';
-import { BRANCH_COMMISSION_ROLES } from '../../core/domain/constants.js?v=20261023a';
-import { AuthStore } from '../../services/core/auth.js?v=20261023a';
-import { openModal, closeModal } from './modal.js?v=20261023a';
-import { showToast, escHtml } from '../../core/base/utils.js?v=20261023a';
+import * as SoftVoid from '../../services/governance/soft-void.js?v=20261023b';
+import { BRANCH_COMMISSION_ROLES } from '../../core/domain/constants.js?v=20261023b';
+import { AuthStore } from '../../services/core/auth.js?v=20261023b';
+import { openModal, closeModal, setModalBusy } from './modal.js?v=20261023b';
+import { showToast, escHtml, describeWriteError } from '../../core/base/utils.js?v=20261023b';
 
 /**
  * 打开「作废（软）」弹窗（原因必填 → 支委直接作废 / 其余人报支委会）。
@@ -49,21 +49,37 @@ export function openVoidModal({
     accentColor: 'var(--functional-error)',
     bodyHtml: `
       <p class="text-sm text-gray-700 mb-1">作废「${escHtml(subject || id)}」这条${escHtml(label)}？作废＝<b>软作废</b>（留痕、默认列表出列），<b>不硬删</b>；支委可直接作废，其余人需报支委会确认。</p>
-      <textarea id="${reasonId}" class="input-flat text-xs w-full mt-2" rows="3" maxlength="200" placeholder="作废原因（必填）"></textarea>`,
+      <textarea id="${reasonId}" data-field="reason" class="input-flat text-xs w-full mt-2" rows="3" maxlength="200" placeholder="作废原因（必填）"></textarea>`,
     footerHtml: `
-      <button type="button" ${cancelAttr} class="btn-outline text-sm px-4 py-1.5" style="cursor:pointer;">取消</button>
+      <button type="button" ${cancelAttr} data-modal-cancel="${modalId}" class="btn-outline text-sm px-4 py-1.5" style="cursor:pointer;">取消</button>
       <button type="button" ${okAttr} class="btn-neutral text-sm px-4 py-1.5">确认作废</button>`,
     onMount: (panel) => {
-      panel.querySelector(`[${cancelAttr}]`)?.addEventListener('click', () => closeModal(modalId));
+      const okBtn = panel.querySelector(`[${okAttr}]`);
+      const cancelBtn = panel.querySelector(`[data-modal-cancel="${modalId}"]`);
+      // 提交中：主/次按钮禁用 + aria-busy；Esc / 遮罩 / × / 取消四条路径由 modal.js 统一挂起
+      const setBusy = (busy) => {
+        setModalBusy(modalId, busy, `[${okAttr}]`);
+        if (okBtn) okBtn.disabled = busy;
+        if (cancelBtn) cancelBtn.disabled = busy;
+      };
       panel.querySelector(`[${okAttr}]`)?.addEventListener('click', async () => {
         const reason = (panel.querySelector(`#${reasonId}`)?.value || '').trim();
         if (!reason) { showToast('error', '请填写作废原因（必填）'); return; }
+        setBusy(true);
+        let r = null;
+        try {
+          r = isCommittee
+            ? await SoftVoid.confirmVoid(resource, id, { byPersonId: me.personId || '', note: reason })
+            : await SoftVoid.requestVoid(resource, id, { reason, byPersonId: me.personId || '' });
+        } catch (err) {
+          setBusy(false);
+          showToast('error', describeWriteError(err));
+          return;
+        }
+        // 失败保留弹窗（原因仍在，可重试）；只有成功才关窗
+        if (!r) { setBusy(false); showToast('error', '作废失败：请确认原因已填且该记录存在'); return; }
         closeModal(modalId);
-        const r = isCommittee
-          ? await SoftVoid.confirmVoid(resource, id, { byPersonId: me.personId || '', note: reason })
-          : await SoftVoid.requestVoid(resource, id, { reason, byPersonId: me.personId || '' });
-        if (r) showToast('success', isCommittee ? '已作废（留痕、已出列）' : '已报支委会确认——确认后该条出列');
-        else showToast('error', '作废失败：请确认原因已填且该记录存在');
+        showToast('success', isCommittee ? '已作废（留痕、已出列）' : '已报支委会确认——确认后该条出列');
         if (typeof onDone === 'function') onDone();
       });
     },

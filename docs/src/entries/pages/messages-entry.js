@@ -9,20 +9,20 @@
 //   · **回复线程**：`replyToMessage()` 生成「我 → 对方」的新私信并带 `replyTo` ⇒ 一来一往成线。
 //  ⚠ 与通知（公告）分列：本页**只**显示 `noticeType:'message'`，不含支部公告/系统派生通知。
 // ════════════════════════════════════════════════════════════════
-import { renderSidebar } from '../../components/shell/sidebar.js?v=20261023a';
-import { renderHeader } from '../../components/shell/header.js?v=20261023a';
+import { renderSidebar } from '../../components/shell/sidebar.js?v=20261023b';
+import { renderHeader } from '../../components/shell/header.js?v=20261023b';
 import {
   listMyMessages, sendDirectMessage, replyToMessage, canSendDirectMessage, NoticeStore,
-} from '../../services/governance/notice.js?v=20261023a';
-import { AuthStore } from '../../services/core/auth.js?v=20261023a';
-import { getPersonName } from '../../services/member/person.js?v=20261023a';
-import { showToast, escHtml as esc, getBasePath } from '../../core/base/utils.js?v=20261023a';
-import { badgeHtml } from '../../components/ui/badges.js?v=20261023a';
-import { PersonPicker } from '../../components/governance/pickers.js?v=20261023a';
+} from '../../services/governance/notice.js?v=20261023b';
+import { AuthStore } from '../../services/core/auth.js?v=20261023b';
+import { getPersonName } from '../../services/member/person.js?v=20261023b';
+import { showToast, escHtml as esc, getBasePath } from '../../core/base/utils.js?v=20261023b';
+import { badgeHtml } from '../../components/ui/badges.js?v=20261023b';
+import { PersonPicker } from '../../components/governance/pickers.js?v=20261023b';
 // S1（2026-09-12 通知详情页同款）：必须先完成数据 hydrate（loadDB / API init）再取数
-import { hydrateDataSource, notifyDataLoaded } from '../../data/data-adapter.js?v=20261023a';
-import { ApiAdapter } from '../../data/api-adapter.js?v=20261023a';
-import { BranchService } from '../../services/core/runtime.js?v=20261023a';
+import { hydrateDataSource, notifyDataLoaded } from '../../data/data-adapter.js?v=20261023b';
+import { ApiAdapter } from '../../data/api-adapter.js?v=20261023b';
+import { BranchService } from '../../services/core/runtime.js?v=20261023b';
 
 renderSidebar('messages');
 renderHeader('messages');
@@ -63,7 +63,7 @@ function _messageRowHtml(m) {
   const who = getPersonName(m.counterpartId) || m.counterpartId || '—';
   const open = _expandedId === m.id;
   const unreadDot = (inbound && !m.read) ? '<span class="w-2 h-2 rounded-full bg-red-500 inline-block" title="未读"></span>' : '';
-  const replyBadge = m.replyTo ? '<span class="text-[11px] text-gray-400">回复</span>' : '';
+  const replyBadge = m.replyTo ? '<span class="text-xs text-gray-400">回复</span>' : '';
   return `
     <div class="rounded-xl border border-gray-100 bg-white" data-msg-id="${esc(m.id)}">
       <button type="button" class="btn-ghost msg-toggle w-full text-left p-3 flex items-start justify-between gap-3" style="cursor:pointer;">
@@ -81,9 +81,10 @@ function _messageRowHtml(m) {
       <div class="px-3 pb-3">
         <div class="rounded-lg bg-gray-50 p-2.5 text-xs text-gray-700 whitespace-pre-line mb-2">${esc(m.content || '（无正文）')}</div>
         <div class="flex items-end gap-2">
-          <textarea class="msg-reply-input input-flat text-xs w-full" rows="2" maxlength="2000" placeholder="回复 ${esc(who)}（回信只你与对方可见）"></textarea>
+          <textarea class="msg-reply-input input-flat text-xs w-full" rows="2" maxlength="2000" placeholder="回复 ${esc(who)}"></textarea>
           <button type="button" class="msg-reply-btn btn-accent text-xs px-3 py-1.5 flex-shrink-0" data-msg-id="${esc(m.id)}" style="cursor:pointer;">回复</button>
         </div>
+        <p class="help-note mt-1.5">回信只你与对方可见。</p>
       </div>` : ''}
     </div>`;
 }

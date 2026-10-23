@@ -8,14 +8,14 @@
 //  责任人候选 = 支委角色 + 具体成员（与 workforce-panel 发起分工的负责人下拉同口径）。
 // ════════════════════════════════════════════════════════════════
 
-import { escHtml as esc, showToast } from '../../core/base/utils.js?v=20261023a';
-import { BRANCH_COMMISSION_ROLES, ROLE_LABELS } from '../../core/domain/constants.js?v=20261023a';
-import { PersonStore } from '../../services/member/person.js?v=20261023a';
-import { AuthStore } from '../../services/core/auth.js?v=20261023a';
+import { escHtml as esc, showToast } from '../../core/base/utils.js?v=20261023b';
+import { BRANCH_COMMISSION_ROLES, ROLE_LABELS } from '../../core/domain/constants.js?v=20261023b';
+import { PersonStore } from '../../services/member/person.js?v=20261023b';
+import { AuthStore } from '../../services/core/auth.js?v=20261023b';
 import {
   saveFollowups, completeFollowup, reopenFollowup,
   FOLLOWUP_STATUS, ownerLabelOf,
-} from '../../services/governance/resolution-followup.js?v=20261023a';
+} from '../../services/governance/resolution-followup.js?v=20261023b';
 
 /** 责任人下拉选项（value 编码 type:id，与 workforce-panel 同口径） */
 function _ownerOptionsHtml() {
@@ -51,11 +51,11 @@ function _cardHtml(activity, item, { canManage }) {
   const followups = Array.isArray(item.followups) ? item.followups : [];
   const doneCount = followups.filter((f) => f.status === FOLLOWUP_STATUS.COMPLETED).length;
   const chip = followups.length > 0
-    ? `<span class="text-[11px] px-1.5 py-0.5 rounded-full ${doneCount === followups.length ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}">落实 ${doneCount}/${followups.length}</span>`
+    ? `<span class="text-xs px-1.5 py-0.5 rounded-full ${doneCount === followups.length ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}">落实 ${doneCount}/${followups.length}</span>`
     : '';
   const rows = followups.length > 0
     ? followups.map((f) => _rowHtml(f, { canManage })).join('')
-    : `<div class="text-[11px] text-gray-500 mb-1.5">决议已通过；如需跟踪落实，请在下栏添加「待落实」项（责任人＋时限）。</div>`;
+    : `<div class="text-xs text-gray-500 mb-1.5">决议已通过；如需跟踪落实，请在下栏添加「待落实」项（责任人＋时限）。</div>`;
   const addForm = canManage ? `
     <div class="mt-2 pt-2 border-t border-dashed border-gray-200 flex flex-col gap-1.5">
       <div class="flex flex-wrap items-center gap-1.5">
@@ -64,7 +64,7 @@ function _cardHtml(activity, item, { canManage }) {
         <input type="date" class="fu-new-deadline input-flat text-xs" title="落实时限" />
         <button type="button" class="btn-danger-solid fu-add px-2.5 py-1.5 text-xs font-medium">添加待落实</button>
       </div>
-      <p class="text-[11px] text-gray-500">保存即生成责任人跟进待办：到期当天可见（催办），逾期自动进支书工作台待办督办。</p>
+      <p class="text-xs text-gray-500">保存即生成责任人跟进待办：到期当天可见（催办），逾期自动进支书工作台待办督办。</p>
     </div>` : '';
   return `
     <div class="fu-card rounded-xl border border-gray-200 bg-white p-3.5 mt-3" data-activity-id="${esc(activity.id)}" data-item-id="${esc(item.id)}">
@@ -87,7 +87,7 @@ export function resolutionFollowupSectionHtml({ activity, canManage = false }) {
   if (passedItems.length === 0) return '';
   return `
     <div class="mt-3 pt-3 border-t border-gray-100">
-      <p class="text-[11px] text-gray-500 mb-1">决议待落实 · 自动督办（生成跟进任务 → 到期催办 → 逾期进支书工作台待办）</p>
+      <p class="text-xs text-gray-500 mb-1">决议待落实 · 自动督办（生成跟进任务 → 到期催办 → 逾期进支书工作台待办）</p>
       ${passedItems.map((item) => _cardHtml(activity, item, { canManage })).join('')}
     </div>`;
 }

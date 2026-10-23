@@ -15,7 +15,7 @@
  */
 
 // 翻页控件单一源（批次 38：全站手写翻页一律并轨 pagerHtml）
-import { pagerHtml } from '../ui/pager.js?v=20261023a';
+import { pagerHtml } from '../ui/pager.js?v=20261023b';
 
 /** 属性/文本转义（子类下拉选项由配置派生，仍统一转义） */
 function _esc(s) {
@@ -53,7 +53,6 @@ export function renderQueryView(container, config) {
     brandChip = null,    // { label } → 布尔开关「只看品牌」
   } = config;
 
-  // 生成唯一 ID
   const uid = 'qv-' + Math.random().toString(36).slice(2, 8);
 
   // 搜索栏 + 筛选器 HTML（筛选行载体单一源：styles.css::.lf-bar / .lf-kw / .lf-select / .lf-btn；
@@ -184,7 +183,6 @@ export function renderQueryView(container, config) {
     applyFilters();
   }
 
-  // 绑定事件
   searchEl?.addEventListener('input', resetPageAndApply);
   filters.forEach(f => {
     const el = document.getElementById(`${uid}-filter-${f.key}`);

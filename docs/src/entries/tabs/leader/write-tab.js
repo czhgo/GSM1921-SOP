@@ -3,37 +3,37 @@
 // 党小组组长可创建党小组会、主题党日活动，写入后自动生成SOP任务节点。
 // 含决策树引导式写入（DecisionTreeState）+ 活动详情/子记录内联编辑 + 活动角色赋权。
 
-import { setState, getAppState } from '../../../core/base/state.js?v=20261023a';
-import { BranchService } from '../../../services/core/runtime.js?v=20261023a';
-import { DecisionTreeState, DECISION_TREE_CONFIGS, renderWorkflowPanel, writeActivityWithSOP, hostGroups as buildHostGroupOptions } from '../../../services/activity/decision-tree.js?v=20261023a';
+import { setState, getAppState } from '../../../core/base/state.js?v=20261023b';
+import { BranchService } from '../../../services/core/runtime.js?v=20261023b';
+import { DecisionTreeState, DECISION_TREE_CONFIGS, renderWorkflowPanel, writeActivityWithSOP, hostGroups as buildHostGroupOptions } from '../../../services/activity/decision-tree.js?v=20261023b';
 // 党小组常态清单唯一来源（活组、按 seq 升序）——承办党小组选项不再写死
-import { groupOptions, loadPartyGroups } from '../../../services/member/party-group.js?v=20261023a';
+import { groupOptions, loadPartyGroups } from '../../../services/member/party-group.js?v=20261023b';
 // 2026-10-21 批次 499：跨党小组深参/组织者需按成员所属组判定（组织者一般本组，跨组深参由组织委员协调）
-import { PersonStore } from '../../../services/member/person.js?v=20261023a';
-import { AuthStore, currentUserId } from '../../../services/core/auth.js?v=20261023a';
-import { TodoStore, TodoSourceType } from '../../../services/governance/todo.js?v=20261023a';
-import { mockDB, OutputType, deriveOutputRoute } from '../../../core/domain/domain.js?v=20261023a';
-import { persist } from '../../../data/data-adapter.js?v=20261023a';
-import { PersonPicker } from '../../../components/governance/pickers.js?v=20261023a';
-import { renderWorkgroupPermissionEditor, readWorkgroupPermissionEditor } from '../../../components/governance/workgroup-permissions.js?v=20261023a';
-import { recordFormShell } from '../../../components/ui/forms.js?v=20261023a';
-import { getBranchIdOfPerson, getBranchOutputBlocks, applyOutputBlockPolicy } from '../../../services/branch/branch.js?v=20261023a';
-import { badgeHtml } from '../../../components/ui/badges.js?v=20261023a';
+import { PersonStore } from '../../../services/member/person.js?v=20261023b';
+import { AuthStore, currentUserId } from '../../../services/core/auth.js?v=20261023b';
+import { TodoStore, TodoSourceType } from '../../../services/governance/todo.js?v=20261023b';
+import { mockDB, OutputType, deriveOutputRoute } from '../../../core/domain/domain.js?v=20261023b';
+import { persist } from '../../../data/data-adapter.js?v=20261023b';
+import { PersonPicker } from '../../../components/governance/pickers.js?v=20261023b';
+import { renderWorkgroupPermissionEditor, readWorkgroupPermissionEditor } from '../../../components/governance/workgroup-permissions.js?v=20261023b';
+import { recordFormShell } from '../../../components/ui/forms.js?v=20261023b';
+import { getBranchIdOfPerson, getBranchOutputBlocks, applyOutputBlockPolicy } from '../../../services/branch/branch.js?v=20261023b';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20261023b';
 // 活动生命周期展示态单一源（草稿/已发布/进行中/待归档/已执行/已归档/已取消）——勿在本文件另造中文标签
-import { activityLifecycleBadgeHtml } from '../../../components/record/inspector.js?v=20261023a';
-import { showToast, escHtml, todayLocal } from '../../../core/base/utils.js?v=20261023a';
+import { activityLifecycleBadgeHtml } from '../../../components/record/inspector.js?v=20261023b';
+import { showToast, escHtml, todayLocal } from '../../../core/base/utils.js?v=20261023b';
 // 组织者的发布口（2026-09-19 批次 91 · SOP-B-17）：本人被指定为该场组织者时，本台即可发布本组通知
-import { isActivityOrganizer, findActivityById, OUTDOOR_CHECKLIST, isOutdoorActivity, PUBLICITY_DRAFT_STATUS, PUBLICITY_DRAFT_LABELS, publicityDraftStatusOf, setPublicityDraftStatus, DEEP_WORK_MODE } from '../../../services/activity/activity.js?v=20261023a';
-import { openModal, closeModal } from '../../../components/ui/modal.js?v=20261023a';
-import { openGroupNoticeComposer } from '../../../components/governance/notice-view.js?v=20261023a';
-import { DEFAULT_BRANCH_ID, solidAccentStyle, accDarkVars, accDarkParts, OUTPUT_BLOCK_DEFS, isActivityEnded, ACTIVITY_SUBTYPES, normalizeActivityType, ACTIVITY_SCOPES, RECRUITMENT_SCOPES } from '../../../core/domain/constants.js?v=20261023a';
-import { filterByRole, getCurrentLeaderId, currentLeaderGroup } from './_shared.js?v=20261023a';
-import { anchorDetailToTrigger } from '../../../components/ui/detail-anchor.js?v=20261023a';
+import { isActivityOrganizer, findActivityById, OUTDOOR_CHECKLIST, isOutdoorActivity, PUBLICITY_DRAFT_STATUS, PUBLICITY_DRAFT_LABELS, publicityDraftStatusOf, setPublicityDraftStatus, DEEP_WORK_MODE } from '../../../services/activity/activity.js?v=20261023b';
+import { openModal, closeModal } from '../../../components/ui/modal.js?v=20261023b';
+import { openGroupNoticeComposer } from '../../../components/governance/notice-view.js?v=20261023b';
+import { DEFAULT_BRANCH_ID, solidAccentStyle, accDarkVars, accDarkParts, OUTPUT_BLOCK_DEFS, isActivityEnded, ACTIVITY_SUBTYPES, normalizeActivityType, ACTIVITY_SCOPES, RECRUITMENT_SCOPES } from '../../../core/domain/constants.js?v=20261023b';
+import { filterByRole, getCurrentLeaderId, currentLeaderGroup } from './_shared.js?v=20261023b';
+import { anchorDetailToTrigger } from '../../../components/ui/detail-anchor.js?v=20261023b';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是活动的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
-import { renderFilteredList, activityKeyword, activityFacets } from '../../../components/ui/list-filter.js?v=20261023a';
-import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261023a';
+import { renderFilteredList, activityKeyword, activityFacets } from '../../../components/ui/list-filter.js?v=20261023b';
+import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261023b';
 // U-35：「我的任务」承载面（按项目身份派给组长的 SOP 任务；数据与写口复用 services/activity/activity.js）
-import { myTasksSectionHtml, bindMyTasksSection } from './my-tasks-section.js?v=20261023a';
+import { myTasksSectionHtml, bindMyTasksSection } from './my-tasks-section.js?v=20261023b';
 
 /**
  * 活动角色可编辑性（dogfood 权限专项 2026-09-13）
@@ -294,7 +294,7 @@ export function renderContent(ctx) {
             <div class="flex items-center justify-between gap-2 mb-1.5">
               <h5 class="text-xs font-bold font-title-cn" style="color:${cfg.color}">${cfg.label} (${items.length})</h5>
               ${effectiveReadOnly
-                ? `<span class="text-[11px] text-amber-700 text-right">${type === 'attendance' ? '考勤请到「考勤管理」录入' : type === 'inspection' ? '考察请到「考察管理」录入' : '支部级（定向）活动由支书侧维护，本页只读'}</span>`
+                ? `<span class="text-xs text-amber-700 text-right">${type === 'attendance' ? '考勤请到「考勤管理」录入' : type === 'inspection' ? '考察请到「考察管理」录入' : '支部级（定向）活动由支书侧维护，本页只读'}</span>`
                 : `<button class="btn-outline act-sub-add-btn text-xs px-3 py-1.5" style="color:${cfg.color};border-color:${cfg.color}40" data-type="${type}">+ 添加</button>`}
             </div>
             <div class="act-sub-table-host"></div>
@@ -330,7 +330,7 @@ export function renderContent(ctx) {
       detailPanel.innerHTML = `
         <div class="flex items-center justify-between gap-2 mb-3">
           <div class="flex items-center gap-2 min-w-0">
-            <h5 class="font-title-cn text-sm font-bold text-gray-700 truncate">${activity.title || '未命名'}</h5>${roleEditable ? '' : '<span class="text-[11px] px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-600 flex-shrink-0">支部级 · 只读</span>'}
+            <h5 class="font-title-cn text-sm font-bold text-gray-700 truncate">${activity.title || '未命名'}</h5>${roleEditable ? '' : '<span class="text-xs px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-600 flex-shrink-0">支部级 · 只读</span>'}
           </div>
           <button id="btn-close-act-detail" class="btn-ghost text-xs">收起</button>
         </div>
@@ -477,7 +477,7 @@ export function renderContent(ctx) {
 
           // T-224 §5.5：投递去向由产出类型派生（系统内置），组织者只见「提交」不见「发送对象」
           const route = type === 'publicity' ? deriveOutputRoute(OutputType.PUBLICITY) : null;
-          const routeHint = route ? `<div class="text-[11px] text-gray-500 mb-2">提交后自动投递：${route.route} → ${route.sink}</div>` : '';
+          const routeHint = route ? `<div class="text-xs text-gray-500 mb-2">提交后自动投递：${route.route} → ${route.sink}</div>` : '';
 
           const formHtml = recordFormShell({
             title: `添加${type === 'publicity' ? '宣传' : '材料'}记录`,
@@ -853,7 +853,7 @@ function _dtDeepWorkHtml() {
   return `
       <div class="mb-4 rounded-lg border border-gray-100 bg-gray-50/60 p-3">
         <div class="text-xs text-gray-500 mb-1.5 font-medium">深度参与者分工：逐项选择是否在系统内完成</div>
-        <p class="text-[11px] text-gray-500 mb-2 leading-5">系统内可承载的（如宣传文稿），由深度参与者在网页上完成、产出由系统在后台同步；系统无法承载的走线下（微信等）完成、<b>由组织者确认完成</b>。<b>不勾＝去线下做</b>。</p>
+        <p class="text-xs text-gray-500 mb-2 leading-5">系统内可承载的（如宣传文稿），由深度参与者在网页上完成、产出由系统在后台同步；系统无法承载的走线下（微信等）完成、<b>由组织者确认完成</b>。<b>不勾＝去线下做</b>。</p>
         ${items.map(t => `
         <label class="flex items-start gap-2 cursor-pointer select-none py-1">
           <input type="checkbox" data-deep-work="${escHtml(t.taskId)}" class="mt-0.5 accent-red-600" style="cursor:pointer;" ${dtDraft.deepWork && dtDraft.deepWork[t.taskId] === false ? '' : 'checked'}>
@@ -878,7 +878,7 @@ function _openOutdoorChecklistModal(activityTitle) {
     bodyHtml: `
       <div class="text-xs text-gray-500 mb-3 leading-5">活动「${escHtml(activityTitle || '未命名')}」已写入。以下是<b>外出活动</b>的提醒清单（已收起在该活动行下方，随时可展开）：</div>
       <ul class="list-disc pl-5 text-sm text-gray-700 space-y-0.5">${items}</ul>
-      <div class="mt-3 text-[11px] text-gray-500 leading-5">该清单是<b>提醒</b>——不是必填项，也不作系统校验；写不写、什么时候做，由组织者按现场情况把握。</div>`,
+      <div class="mt-3 text-xs text-gray-500 leading-5">该清单是<b>提醒</b>——不是必填项，也不作系统校验；写不写、什么时候做，由组织者按现场情况把握。</div>`,
     footerHtml: `
       <button type="button" id="outdoor-checklist-ok" class="btn-accent text-sm px-4 py-1.5 font-medium">知道了</button>`,
     onMount: (root) => {
@@ -892,9 +892,9 @@ function _outdoorChecklistDetailsHtml(a) {
   if (!isOutdoorActivity(a)) return '';
   return `
     <details class="leader-outdoor-check mt-1">
-      <summary class="text-[11px] text-gray-500 cursor-pointer select-none">外出提醒清单（${OUTDOOR_CHECKLIST.length} 项）</summary>
-      <ul class="mt-1 pl-4 list-disc text-[11px] text-gray-500 leading-5">${OUTDOOR_CHECKLIST.map(x => `<li>${escHtml(x)}</li>`).join('')}</ul>
-      <div class="mt-0.5 text-[11px] text-gray-400">提醒，非必填、不校验</div>
+      <summary class="text-xs text-gray-500 cursor-pointer select-none">外出提醒清单（${OUTDOOR_CHECKLIST.length} 项）</summary>
+      <ul class="mt-1 pl-4 list-disc text-xs text-gray-500 leading-5">${OUTDOOR_CHECKLIST.map(x => `<li>${escHtml(x)}</li>`).join('')}</ul>
+      <div class="mt-0.5 text-xs text-gray-400">提醒，非必填、不校验</div>
     </details>`;
 }
 

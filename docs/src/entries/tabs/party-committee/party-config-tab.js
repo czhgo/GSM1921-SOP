@@ -10,10 +10,10 @@
 // 权限：党委台仅 party-staff 进入（canSwitchBranch 任意支部）；现任支书走独立页 wizard.html?branch=
 // 写口：branch 服务既有校验语义（config 写口 = party-staff / 本支部现任支书）+ 即时生效留痕。
 
-import { AuthStore } from '../../../services/core/auth.js?v=20261023a';
-import { mountOrgSetupWizard } from '../../../components/governance/org-setup-wizard.js?v=20261023a';
-import { getAuthToken, getApiBaseUrl, getDataSource } from '../../../data/data-adapter.js?v=20261023a';
-import { describeWriteError, escHtml } from '../../../core/base/utils.js?v=20261023a';
+import { AuthStore } from '../../../services/core/auth.js?v=20261023b';
+import { mountOrgSetupWizard } from '../../../components/governance/org-setup-wizard.js?v=20261023b';
+import { getAuthToken, getApiBaseUrl, getDataSource } from '../../../data/data-adapter.js?v=20261023b';
+import { describeWriteError, escHtml } from '../../../core/base/utils.js?v=20261023b';
 
 // ════════════════════════════════════════════════════════════════
 //  「部署与对接」面板（2026-09-29 批次 273 新增）
@@ -90,7 +90,7 @@ async function renderDeployPanel(host) {
         <button id="pc-copy-env" class="btn-outline mt-2 text-xs px-3 py-1.5">
           复制环境变量模板</button>
         <span id="pc-copy-msg" class="text-xs text-green-700 ml-2"></span>
-        <pre class="mt-2 text-[11px] leading-5 bg-gray-50 border border-gray-200 rounded p-2 overflow-x-auto">${esc(data.envTemplate)}</pre>
+        <pre class="mt-2 text-xs leading-5 bg-gray-50 border border-gray-200 rounded p-2 overflow-x-auto">${esc(data.envTemplate)}</pre>
       </details>
     </div>`;
 

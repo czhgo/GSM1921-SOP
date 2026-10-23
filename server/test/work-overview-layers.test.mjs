@@ -64,7 +64,7 @@ test('W4 六个角色键与四数齐备', () => {
   // 在办 = 存量指标，降为脚注级；逾期才占主数值档。
   assert.match(OVERVIEW, /key: 'active', label: '在办'[^\n]*muted: true/, '在办须标记 muted');
   assert.match(OVERVIEW, /metric-band__value--muted/, '在办须输出 muted 数值档');
-  assert.match(STYLES, /\.metric-band__value--muted\s*\{[^}]*font-size:\s*1\.125rem/, '在办 muted 档须为 18px');
+  assert.match(STYLES, /\.metric-band__value--muted\s*\{[^}]*font-size:\s*1rem/, '在办 muted 档须为 16px');
   assert.match(STYLES, /\.metric-band__value--muted\s*\{[^}]*color:\s*var\(--neutral-500\)/, '在办 muted 档须为 neutral-500');
 });
 

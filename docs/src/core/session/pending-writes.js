@@ -5,69 +5,113 @@
 //  依赖：无（**叶子模块**，禁止 import 任何业务模块 —— 防循环）
 // ════════════════════════════════════════════════════════════════
 //
-// 由来（2026-09-17 批次 49，支书裁定「全站统一」）
-//
-//   病灶：全站成功提示原有一类结构性偏差 —— **先弹「成功」，落库在后台跑**。
-//   实测（批次 49 全站清点）：`showToast('success', …)` 共 175 处，其中约 113 处属此类。
-//   根因只有一条：持久化汇聚点 `data/data-adapter.js::persist()` 是**同步 void 函数**
-//   （api 形态下它只 `setTimeout` 排一次 800ms 防抖快照），**调用方无法 await**，
-//   而快照失败只 `console.warn` —— 用户端零反馈。
-//   后果：提交后立刻关页/刷新，可能「提示成功、其实没存上」，且用户无从察觉。
-//
-// 机制（一处收口，不逐站点改）
+// 不变式
 //
 //   凡「后台落库」一律 `trackWrite(promise)` 登记；成功提示在渲染前先
 //   `await settleWrites()` —— 全部落库真正落地才报成功，任一失败则改报失败。
-//   登记点放在**持久化层与外部写链**（而非各业务调用点），故**新增写口天然受约束**，
-//   不会因为「忘了加 await」而复发（对照批 47「同一病灶只修一处＝没修完」：这里不是修
-//   113 处，而是把 113 处都变成同一个判断）。
+//   登记点放在**持久化层与外部写链**（而非各业务调用点），故**新增写口天然受约束**。
+//   判据放在「用户看到『成功』的那一刻」，与写口数量解耦。
 //
-//   为什么不是「把 113 处调用点逐个改成 await」：那样每次新增写口都要人记得加 await，
-//   且服务层函数要集体改成 async（波及所有同步消费返回值的调用点）。本机制把判据放在
-//   **用户看到「成功」的那一刻**，与写口数量解耦。
+// 动作作用域（2026-10-23 批次 · R11 P0-03）
+//
+//   全局等待有一个固有缺陷：A 动作失败会改判同时完成的 B 动作。故新增「动作作用域」：
+//     const scope = beginWriteScope();      // 动作开始
+//     await service.doThing();              // 期间的写（persist/scheduleSnapshot）自动归属该 scope
+//     await showToast('success', '已保存', { scope });   // 只等本动作的写
+//   未显式传 scope 的 `trackWrite` 在存在活动作用域时归属该作用域；全局 `_pending`
+//   仍保留全部在途写的兜底视图（`settleWrites` / `hasPendingWrites()` 行为不变）。
+//   失败按作用域保存：`settleScope` 只取走本作用域的错误，互不污染，且**幂等**
+//   （第二次调用不再抛）。`peekLastError()` 可在不清空的前提下查看全局兜底错误。
 //
 // 纪律
 //   · 本文件是叶子模块：只登记 promise，不在此引入任何依赖。
-//   · 失败只报一次、且必须报出来：`settleWrites()` 会把失败抛给等待方（成功提示据此改报失败），
-//     不允许静默吞掉（对照 R-77「判据之间不得互相冒充」的同一精神：失败的证据不得被成功吞没）。
+//   · 失败只报一次、且必须报出来：`settleWrites()` / `settleScope()` 会把失败抛给等待方
+//     （成功提示据此改报失败），不允许静默吞掉（对照 R-77「判据之间不得互相冒充」的同一精神：
+//     失败的证据不得被成功吞没）。
 // ════════════════════════════════════════════════════════════════
 
 /** 在途的后台落库（元素为「永不 reject」的包装 promise，避免产生 unhandledrejection） */
 const _pending = new Set();
 
-/** 最近一次后台落库失败的原因（由 `settleWrites()` 取走并清空 ⇒ 失败只报一次） */
+/** 最近一次**未归入任何作用域**的后台落库失败（由 `settleWrites()` 取走并清空 ⇒ 失败只报一次） */
 let _lastError = null;
+
+/** 当前活动作用域（LIFO 嵌套：内层作用域结束即回落到外层） */
+let _activeScope = null;
+
+let _scopeSeq = 0;
+
+/**
+ * 开一个「动作作用域」：本动作期间的写归属它，成功/失败只按它判定。
+ * @returns {{ id: number, pending: Set<Promise<boolean>>, error: any, consumed: boolean, parent: any }}
+ */
+export function beginWriteScope() {
+  const scope = {
+    id: ++_scopeSeq,
+    pending: new Set(),
+    error: null,
+    consumed: false,
+    parent: _activeScope,
+  };
+  _activeScope = scope;
+  return scope;
+}
+
+/**
+ * 关闭作用域（恢复外层）。作用域非当前活动作用域时为空操作 —— 幂等。
+ * @param {any} scope — `beginWriteScope()` 的返回值
+ */
+export function endWriteScope(scope) {
+  if (!scope) return;
+  if (_activeScope === scope) _activeScope = scope.parent;
+}
 
 /**
  * 登记一条后台落库，返回可 await 的原 promise。
  * 调用方可以什么都不做（不 await 也不会产生 unhandledrejection）；
  * 真正决定「要不要等」的是 `showToast` 侧的统一等待。
  * @param {Promise<any>|any} promise — 后台落库（如快照写穿 / 外部写链）
+ * @param {any} [scope] — 动作作用域（缺省＝当前活动作用域；再缺省＝全局兜底）
  * @returns {Promise<any>} 原 promise（调用方可自行 await 并捕获）
  */
-export function trackWrite(promise) {
+export function trackWrite(promise, scope) {
+  const target = scope || _activeScope;
   const raw = Promise.resolve(promise);
   const entry = raw.then(
     () => true,
     (e) => {
-      if (!_lastError) _lastError = e;
+      // 有作用域 ⇒ 只记在该作用域（不污染同时完成的其它动作）；无作用域 ⇒ 全局兜底
+      if (target) { if (!target.error) target.error = e; }
+      else if (!_lastError) _lastError = e;
       return false;
     },
   );
   _pending.add(entry);
-  entry.then(() => { _pending.delete(entry); });
+  if (target) target.pending.add(entry);
+  entry.then(() => {
+    _pending.delete(entry);
+    if (target) target.pending.delete(entry);
+  });
   return raw;
 }
 
-/** 是否还有在途的后台落库（供 UI 决定要不要先给一个「保存中」的过渡态） */
-export function hasPendingWrites() {
-  return _pending.size > 0;
+/**
+ * 是否还有在途的后台落库（供 UI 决定要不要先给一个「保存中」的过渡态）。
+ * @param {any} [scope] — 传作用域时只判该作用域
+ */
+export function hasPendingWrites(scope) {
+  return scope ? scope.pending.size > 0 : _pending.size > 0;
+}
+
+/** 查看全局兜底失败（不清空；配套 `settleWrites()` 的「取走即清空」） */
+export function peekLastError() {
+  return _lastError;
 }
 
 /**
- * 等待全部在途后台落库落地。
+ * 等待全部在途后台落库落地（全局兜底；不带作用域的既有调用点行为不变）。
  * · 全部成功 → 正常返回（调用方可以安全地报「成功」）。
- * · 任一失败 → 抛出（调用方必须改报失败，不得静默）。
+ * · 任一**未归入作用域**的失败 → 抛出（调用方必须改报失败，不得静默）。
  * · 等待期间又有新登记（长链操作逐条落库）→ 继续等，直到结算干净（上限 100 轮防御）。
  */
 export async function settleWrites() {
@@ -78,4 +122,24 @@ export async function settleWrites() {
   const err = _lastError;
   _lastError = null;
   if (err) throw err;
+}
+
+/**
+ * 等待本作用域的在途写并取走它的失败（幂等：第二次调用不再抛）。
+ * 只影响该作用域 —— A 动作失败不会改判同时完成的 B 动作。
+ * @param {any} scope — `beginWriteScope()` 的返回值
+ */
+export async function settleScope(scope) {
+  if (!scope) return settleWrites();
+  let guard = 0;
+  while (scope.pending.size && guard++ < 100) {
+    await Promise.all([...scope.pending]);
+  }
+  endWriteScope(scope);
+  if (scope.error && !scope.consumed) {
+    scope.consumed = true;
+    const err = scope.error;
+    scope.error = null;
+    throw err;
+  }
 }
