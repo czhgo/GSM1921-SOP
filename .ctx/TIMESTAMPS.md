@@ -233,10 +233,13 @@ dynamic_role:
 | server/test/style-baseline.mjs | 2026-09-28 | — | [工程师]+[AI] | **（批次 236：沿革已整段迁出**——本行的逐批沿革（3832 字）见 `.ctx/logs/archive/2026-09-EXECUTION_LOG.md`「附：TIMESTAMPS 备注列迁出的逐批沿革（批次 236）」；本列只写**现状 / 边界 / 为什么**）** |
 | server/test/form-loop-registry.mjs | 2026-10-23 | — | [工程师]+[AI] | 表单闭环台账；批次 504/505 改签行号。真机见 `form-loop-sweep.test.mjs`。 |
 | server/test/todo-branch-attribution.test.mjs | 2026-10-23 | — | [工程师]+[AI] | Todo 归属 fail-closed：无支部 400、历史 NULL 兼容、到期隐藏。 |
-| server/test/feedback-integrity.test.mjs | 2026-10-23 | — | [工程师]+[AI] | 反馈可信：按动作作用域写等待、catch 后不得报成功、失败分级文案。 |
-| server/test/modal-contract.test.mjs | 2026-10-23 | — | [工程师]+[AI] | 弹窗契约：提交中禁关、aria-busy、错误播报、undefined 不关窗。 |
+| server/test/feedback-integrity.test.mjs | 2026-10-23 | — | [工程师]+[AI] | 反馈可信：作用域写等待、失败分级。 |
+| server/test/modal-contract.test.mjs | 2026-10-23 | — | [工程师]+[AI] | 弹窗契约：提交中禁关、错误播报。 |
 | server/test/schema-split-gate.test.mjs | 2026-10-23 | — | [工程师]+[AI] | 拆表闸门：C2 409 计数、C4 七天影子历史、NOT_READY 不切读路径。 |
-| server/test/ui-control-system-guard.test.mjs | 2026-10-23 | — | [工程师]+[AI] | 组件层守卫：控件单一源、边框 token、圆角档、summary、按钮层级、页签组名、字号档。 |
+| server/test/ui-control-system-guard.test.mjs | 2026-10-23 | — | [工程师]+[AI] | 组件层守卫：控件单一源、边框/圆角/字号档。 |
+| server/test/theme-palette-guard.test.mjs | 2026-10-23 | — | [工程师]+[AI] | 主题色板 7×2×8 守卫。 |
+| server/test/density-spacing-guard.test.mjs | 2026-10-23 | — | [工程师]+[AI] | 密度/间距/命中区守卫。 |
+| server/test/hover-state-guard.test.mjs | 2026-10-23 | — | [工程师]+[AI] | 交互三态与 hover 门控守卫。 |
 | server/test/schema-split-shadow.test.mjs | 2026-10-23 | — | [工程师]+[AI] | v11 影子表双写比对与回滚；构造 mismatch 必须 `NOT_READY`。 |
 | server/scripts/schema-split-readiness.mjs | 2026-10-23 | — | [工程师]+[AI] | 拆表切源判据脚本（五项布尔＋结论），只读不切源。 |
 | server/run-suite.mjs | 2026-10-03 | — | [工程师]+[AI] | 测试分片启动器：按 `SWEEP_SHARD` 选片（非 e2e 每片全跑 ＋ 本片 e2e），透传退出码。 |

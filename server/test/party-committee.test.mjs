@@ -126,7 +126,12 @@ test('党委组织员登录直达党委工作台：台账见支部、可创建�
     // reload 后回到默认 tab（支部上报，不含支部明细）→ 切「支部管理」应列出多个支部（含新建）
     await page.waitForFunction(() => Boolean(document.querySelector('.ws-tab-scroll button')), { timeout: 15000 });
     await page.click('.ws-tab-scroll button:has-text("支部管理")');
-    await waitForBodyText(page, branchName);
+    // 2026-10-23 批次 506：并发跑时「正文已出现支部名」可能来自支部筛选下拉，表格行尚未渲染
+    //   ⇒ 计数前显式等**卡片行**就位（只收紧等待，不改断言口径）
+    await page.waitForFunction((name) => {
+      const rows = [...document.querySelectorAll('[data-branch-card]')];
+      return rows.length >= 2 && rows.some((r) => r.textContent.includes(name));
+    }, branchName, { timeout: 15000 });
     const branchCardCount = await page.evaluate(() => document.querySelectorAll('[data-branch-card]').length);
     assert.ok(branchCardCount >= 2, `支部管理应能看到多个支部，实际 ${branchCardCount} 个`);
   } finally {
@@ -154,7 +159,7 @@ test('党委未选支部时只看党委下发通知，支部内其他通知不�
   assert.deepEqual(scoped.map((row) => row.id), ['n1', 'n2'], '选定支部后按原有支部范围读取');
 });
 
-test('设置页主题色色块与页面 --app-accent 同源，默认显示金（默认）', async () => {
+test('设置页主题选择器：7 项 × 2 枚小样，默认金，且与页面 --app-accent 同源', async () => {
   const page = await browser.newPage();
   await page.route('**://fonts.googleapis.com/**', (r) => r.abort());
   await page.route('**://fonts.gstatic.com/**', (r) => r.abort());
@@ -168,19 +173,33 @@ test('设置页主题色色块与页面 --app-accent 同源，默认显示金（
       page.click('button[type="submit"]'),
     ]);
     await page.goto(`${base}/settings.html#appearance`, { waitUntil: 'domcontentloaded' });
-    await page.waitForFunction(() => Boolean(document.querySelector('#appearance-accent-swatch')), { timeout: 15000 });
+    await page.waitForFunction(() => Boolean(document.querySelector('[data-accent-key]')), { timeout: 15000 });
     const actual = await page.evaluate(() => {
-      const swatch = document.querySelector('#appearance-accent-swatch');
+      // 批次 505：主题项 = 带 data-accent-key 的按钮；每项内含两枚 data-accent-sample 小样
+      //（soft = 浅底+深字 / strong = 实底+字），不再有单色块 #appearance-accent-swatch。
+      const options = [...document.querySelectorAll('[data-accent-key]:not([data-accent-sample])')];
+      const gold = options.find((el) => el.dataset.accentKey === 'gold');
+      const soft = gold?.querySelector('[data-accent-sample="soft"]');
+      const strong = gold?.querySelector('[data-accent-sample="strong"]');
       return {
-        swatch: getComputedStyle(swatch).backgroundColor,
+        count: options.length,
+        keys: options.map((el) => el.dataset.accentKey),
+        sampleCounts: options.map((el) => el.querySelectorAll('[data-accent-sample]').length),
+        ariaPressed: gold?.getAttribute('aria-pressed'),
+        softBg: soft ? getComputedStyle(soft).backgroundColor : '',
+        strongBg: strong ? getComputedStyle(strong).backgroundColor : '',
         pageAccent: getComputedStyle(document.documentElement).getPropertyValue('--app-accent').trim().toLowerCase(),
         text: document.getElementById('settings-panel')?.textContent || '',
-        current: swatch.dataset.currentRole,
       };
     });
-    assert.equal(actual.swatch, 'rgb(245, 197, 24)', '主题色色块取实际生效的默认金（#F5C518）');
-    assert.equal(actual.pageAccent, '#f5c518', '页面 --app-accent 与色块同源');
-    assert.equal(actual.current, 'participant', '色块 data-current-role 应为实际解析键');
+    assert.equal(actual.count, 7, `主题项应为 7 个，实际 ${actual.count}（${actual.keys.join('/')}）`);
+    assert.deepEqual([...actual.keys].sort(), ['blue', 'cyan', 'gold', 'green', 'orange', 'purple', 'red'],
+      '主题键应为金/红/橙/绿/青/蓝/紫');
+    assert.ok(actual.sampleCounts.every((n) => n === 2), `每项应有 2 枚小样，实际 ${actual.sampleCounts.join('/')}`);
+    assert.equal(actual.ariaPressed, 'true', '默认金项应 aria-pressed="true"');
+    assert.equal(actual.softBg, 'rgb(251, 243, 220)', '金 soft 小样应为 gold.light.softBg #FBF3DC');
+    assert.equal(actual.strongBg, 'rgb(154, 107, 15)', '金 strong 小样应为 gold.light.strongBg #9A6B0F');
+    assert.equal(actual.pageAccent, '#a97a12', '页面 --app-accent 应为默认金 base #A97A12（与主题表同源）');
     assert.ok(actual.text.includes('金（默认）'), '设置页标签应显示「金（默认）」');
     assert.ok(actual.text.includes('主题色'), '设置页用户可见文案应为「主题色」');
   } finally {
@@ -209,7 +228,7 @@ test('支部主题预设只做预览，不覆盖登录用户主题色', async ()
     await page.evaluate(() => document.querySelector('input[name="wz-theme"][value="green"]').click());
     await page.waitForTimeout(300);
     const after = await page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--app-accent').trim().toLowerCase());
-    assert.equal(before, '#f5c518', '登录用户默认主题色为金（#F5C518）');
+    assert.equal(before, '#a97a12', '登录用户默认主题色为金（#A97A12）');
     assert.equal(after, before, '支部主题预设不得写全局 --app-accent');
   } finally {
     await page.close();
@@ -235,9 +254,9 @@ test('P2 支书任命：任命宋佳宁(2400012349)为支书 → 2400012349 登�
       return h && h.textContent.includes('光华管理学院党委');
     }, { timeout: 10000 });
     const appoint = await page.evaluate(async () => {
-      const { appointSecretary } = await import('/src/services/branch/appointment.js?v=20261023b');
+      const { appointSecretary } = await import('/src/services/branch/appointment.js?v=20261023c');
       await appointSecretary({ branchId: 'br-b1', personId: '2400012349', note: 'E2E 换届测试' });
-      const { mockDB } = await import('/src/core/domain/domain.js?v=20261023b');
+      const { mockDB } = await import('/src/core/domain/domain.js?v=20261023c');
       const branch = (mockDB.branches || []).find(b => b.id === 'br-b1');
       const recs = (mockDB.appointmentRecords || []).filter(r => r.branchId === 'br-b1');
       return { secretaryId: branch?.secretaryId, recs: recs.length, currentTo: (recs.find(r => !r.to) || {}).secretaryId };
@@ -311,7 +330,7 @@ test('党委「查看该支部」进入独立只读视图：范围明确、无�
       '党委登录后应为 API 会话（存在 gsm1921-api-token）'
     );
     // P0-2 形态断言（2026-09-23 支书裁定「形态必须可断言」）：真机用例的数据源形态单一源 = data/data-adapter.js::getRuntimeMode()
-    await page.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20261023b')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
+    await page.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20261023c')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
     await page.waitForFunction(() => Boolean(document.getElementById('app-header')), { timeout: 15000 });
 
     // 2. 「支部管理」→ 点 br-b1 的「查看该支部」
@@ -355,7 +374,7 @@ test('党委「查看该支部」进入独立只读视图：范围明确、无�
 
     // 5. 只读下钻保持 party-staff 身份，不借用支书身份
     const perms = await page.evaluate(async () => {
-      const { AuthStore } = await import('/src/services/core/auth.js?v=20261023b');
+      const { AuthStore } = await import('/src/services/core/auth.js?v=20261023c');
       const me = AuthStore.getCurrentUser();
       return {
         role: me && me.role,

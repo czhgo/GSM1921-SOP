@@ -6,24 +6,24 @@
 // 请假且线上参会的**不补课**（判据单一源 = services/activity/makeup.js::shouldGenerateMakeupTask）。
 // B3-1 修复（T-280）：确认补课完成时回写考勤 status=made_up——完成必须对应真实产物（打卡化判定）。
 
-import { loadMakeupTasks, saveMakeupTasks, makeupScopeHint } from '../../../services/activity/makeup.js?v=20261023b';
-import { loadAttendanceRecords, saveAttendanceRecords } from '../../../services/activity/attendance.js?v=20261023b';
-import { AttendanceStatus } from '../../../core/domain/domain.js?v=20261023b';
-import { getPersonById, getPersonName } from '../../../services/member/person.js?v=20261023b';
-import { badgeHtml } from '../../../components/ui/badges.js?v=20261023b';
-import { showToast, getBasePath, escHtml as esc } from '../../../core/base/utils.js?v=20261023b';
-import { renderHandoffInboxHtml, bindHandoffInbox } from '../../../components/governance/handoff-inbox.js?v=20261023b';
+import { loadMakeupTasks, saveMakeupTasks, makeupScopeHint } from '../../../services/activity/makeup.js?v=20261023c';
+import { loadAttendanceRecords, saveAttendanceRecords } from '../../../services/activity/attendance.js?v=20261023c';
+import { AttendanceStatus } from '../../../core/domain/domain.js?v=20261023c';
+import { getPersonById, getPersonName } from '../../../services/member/person.js?v=20261023c';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20261023c';
+import { showToast, getBasePath, escHtml as esc } from '../../../core/base/utils.js?v=20261023c';
+import { renderHandoffInboxHtml, bindHandoffInbox } from '../../../components/governance/handoff-inbox.js?v=20261023c';
 // R1-A 点⑤（2026-09-09）：强调色渲染统一 person-aware 动态解析（替代 resolveAccentRole 只读全局键快照）
-import { getAppliedAccentColors } from '../../../core/boot/theme.js?v=20261023b';
+import { getAppliedAccentColors } from '../../../core/boot/theme.js?v=20261023c';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是人的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
-import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261023b';
+import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261023c';
 // V-7（2026-10-01 批次 324）：纪检「催当事人」走系统派生通知单一入口（服务端 kind 注册表复算授权）
-import { NoticeStore } from '../../../services/governance/notice.js?v=20261023b';
+import { NoticeStore } from '../../../services/governance/notice.js?v=20261023c';
 // 批次 346（`D-744`②）：补课任务「作废（软）」——统一写口 ＋ 支委层判据（支委可直接作废，其余报支委会）
-import * as SoftVoid from '../../../services/governance/soft-void.js?v=20261023b';
+import * as SoftVoid from '../../../services/governance/soft-void.js?v=20261023c';
 // 批次 352（`D-746`）：作废弹窗改走**单一源**（`components/ui/void-record.js`）——本板块沿用既有 id，
 //   故真机流 `disc-makeup-void-reason` 的选择器一字未改
-import { openVoidModal } from '../../../components/ui/void-record.js?v=20261023b';
+import { openVoidModal } from '../../../components/ui/void-record.js?v=20261023c';
 
 /**
  * @param {HTMLElement} [containerEl] — 挂载容器（缺省本台 tab 内容容器）。
@@ -67,7 +67,7 @@ export function renderContent(containerEl) {
     const rowBg = isOverdue ? 'bg-red-50/40' : t.status === 'completed' ? '' : 'bg-orange-50/20';
     return `
               <tr${rowBg ? ` class="${rowBg}"` : ''}>
-                <td data-label="姓名" class="font-medium text-gray-800"><a href="${getBasePath()}person.html?id=${encodeURIComponent(t.personId)}" class="hover:underline hover:text-sky-700 transition-colors" title="查看完整档案">${esc(getPersonName(t.personId))}</a></td>
+                <td data-label="姓名" class="font-medium text-gray-800"><a href="${getBasePath()}person.html?id=${encodeURIComponent(t.personId)}" class="hover:underline hover:text-accent transition-colors" title="查看完整档案">${esc(getPersonName(t.personId))}</a></td>
                 <td data-label="缺席活动" class="text-gray-600">${t.activityName || '—'}</td>
                 <td data-label="补课方式" class="text-gray-600">${t.isMandatory ? badgeHtml('必修', 'danger') + ' 自学+心得' : badgeHtml('选修', 'info') + ' 自学'}</td>
                 <td data-label="截止日期" class="text-gray-600">${t.deadline || '—'}</td>

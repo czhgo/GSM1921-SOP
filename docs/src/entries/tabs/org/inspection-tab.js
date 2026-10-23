@@ -3,22 +3,22 @@
 // 专班考察：专班负责人/组织委员上传 → 纪检委员确认 → 录入考察总表。
 // 业务口径：考察依托工作组——考察记录挂工作组，考察对象为该工作组成员；sourceType/activityId/taskforceId 是工作组类型的投影。
 
-import { loadInspectionRecords, saveInspectionRecords } from '../../../services/activity/inspection.js?v=20261023b';
-import { reconfirmReturnedInspectionRecord, isInspectionHomePosition } from '../../../services/activity/inspection.js?v=20261023b';
-import { TaskForceRecordStore } from '../../../services/activity/taskforce.js?v=20261023b';
-import { anchorDetailToTrigger } from '../../../components/ui/detail-anchor.js?v=20261023b';
-import { currentUserId } from '../../../services/core/auth.js?v=20261023b';
-import { PersonPicker } from '../../../components/governance/pickers.js?v=20261023b';
+import { loadInspectionRecords, saveInspectionRecords } from '../../../services/activity/inspection.js?v=20261023c';
+import { reconfirmReturnedInspectionRecord, isInspectionHomePosition } from '../../../services/activity/inspection.js?v=20261023c';
+import { TaskForceRecordStore } from '../../../services/activity/taskforce.js?v=20261023c';
+import { anchorDetailToTrigger } from '../../../components/ui/detail-anchor.js?v=20261023c';
+import { currentUserId } from '../../../services/core/auth.js?v=20261023c';
+import { PersonPicker } from '../../../components/governance/pickers.js?v=20261023c';
 // 「本位」nudge 确认弹窗（2026-09-23 支书裁定 · 单一源 = components/ui/modal.js::confirmNudge）
-import { confirmNudge } from '../../../components/ui/modal.js?v=20261023b';
-import { inspectionToLong } from '../../../services/activity/inspection.js?v=20261023b';
-import { getPersonById, getPersonName } from '../../../services/member/person.js?v=20261023b';
-import { SourceType, ParticipationLevel, isTaskforceActiveStatus } from '../../../core/domain/domain.js?v=20261023b';
-import { showToast, escHtml as esc, getBasePath } from '../../../core/base/utils.js?v=20261023b';
-import { solidAccentStyle, accDarkVars } from '../../../core/domain/constants.js?v=20261023b';
-import { generateId } from '../../../core/base/id.js?v=20261023b';
+import { confirmNudge } from '../../../components/ui/modal.js?v=20261023c';
+import { inspectionToLong } from '../../../services/activity/inspection.js?v=20261023c';
+import { getPersonById, getPersonName } from '../../../services/member/person.js?v=20261023c';
+import { SourceType, ParticipationLevel, isTaskforceActiveStatus } from '../../../core/domain/domain.js?v=20261023c';
+import { showToast, escHtml as esc, getBasePath } from '../../../core/base/utils.js?v=20261023c';
+import { solidAccentStyle } from '../../../core/domain/constants.js?v=20261023c';
+import { generateId } from '../../../core/base/id.js?v=20261023c';
 // 统一检索引擎（2026-09-13 表格统一化批次 A）：考察明细表接入关键词 + 分面（≤8 行引擎自动不渲染检索条）
-import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261023b';
+import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261023c';
 
 // 私有状态（随模块自持，不污染入口）
 let _orgInspFormVisible = false;
@@ -35,7 +35,6 @@ export function renderContent(ctx, container) {
   if (!container) return;
 
   const { accent, accentRgba, accentBorder } = ctx;
-  const _accVars = accDarkVars(accent);
 
   if (_orgInspPickerInstance) { _orgInspPickerInstance.destroy(); _orgInspPickerInstance = null; }
 
@@ -80,7 +79,7 @@ export function renderContent(ctx, container) {
     <div class="card rounded-xl p-5">
       <div class="flex items-center justify-between mb-4">
         <h3 class="font-title-cn text-base font-semibold text-gray-800">专班事项考察记录</h3>
-        <button class="btn-md" id="btn-org-upload-insp" style="${_accVars}background:${accentRgba};color:color-mix(in srgb, ${accent} 60%, #000);border:1px solid ${accentBorder};">${_orgInspFormVisible ? '收起表单' : '录入事项考察'}</button>
+        <button class="btn-md" id="btn-org-upload-insp" style="background:var(--app-accent-soft-bg);color:var(--app-accent-soft-text);border:1px solid var(--app-accent-soft-border);">${_orgInspFormVisible ? '收起表单' : '录入事项考察'}</button>
       </div>
       <div class="text-xs text-gray-500 mb-3">仅为制度、议程或事项明确要求的专班录入考察；工作组成员名单不会自动生成考察名单。提交后由纪检委员确认。</div>
       ${formHtml}
@@ -156,7 +155,7 @@ export function renderContent(ctx, container) {
     },
     rowHtml: (i) => `
             <tr class="cursor-pointer" data-insp-detail="${esc(i.id)}" title="点击查看考察详情">
-              <td data-label="姓名" class="font-medium text-gray-800"><a href="${getBasePath()}person.html?id=${encodeURIComponent(i.personId)}" class="hover:underline hover:text-sky-700 transition-colors" title="查看完整档案">${esc(getPersonName(i.personId))}</a></td>
+              <td data-label="姓名" class="font-medium text-gray-800"><a href="${getBasePath()}person.html?id=${encodeURIComponent(i.personId)}" class="hover:underline hover:text-[var(--app-accent-soft-text)] transition-colors" title="查看完整档案">${esc(getPersonName(i.personId))}</a></td>
               <td data-label="专班" class="text-gray-600">${esc(i.source)}</td>
               <td data-label="标签"><span class="px-1.5 py-0.5 rounded text-xs ${tagColor[i.sourceType] || 'bg-gray-50 text-gray-500'}">专班</span></td>
               <td data-label="考察内容" class="text-gray-600">${esc(i.content)}</td>
@@ -196,7 +195,7 @@ export function renderContent(ctx, container) {
           </div>
           <div class="text-xs">
             <div class="grid grid-cols-2 gap-x-6 py-1.5" style="border-bottom:1px solid var(--neutral-200);">
-              <p style="color:var(--neutral-700);">姓名 <a href="${getBasePath()}person.html?id=${encodeURIComponent(rec.personId)}" class="hover:underline hover:text-sky-700 transition-colors" style="color:var(--neutral-800);font-weight:500;" title="查看完整档案">${esc(long.name)}</a></p>
+              <p style="color:var(--neutral-700);">姓名 <a href="${getBasePath()}person.html?id=${encodeURIComponent(rec.personId)}" class="hover:underline hover:text-[var(--app-accent-soft-text)] transition-colors" style="color:var(--neutral-800);font-weight:500;" title="查看完整档案">${esc(long.name)}</a></p>
               <p style="color:var(--neutral-700);">专班 <span style="color:var(--neutral-800);font-weight:500;">${long.source}</span></p>
             </div>
             <div class="grid grid-cols-2 gap-x-6 py-1.5" style="border-bottom:1px solid var(--neutral-200);">

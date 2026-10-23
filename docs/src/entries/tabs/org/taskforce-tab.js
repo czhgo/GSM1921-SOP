@@ -4,40 +4,40 @@
 // 私有状态（PersonPicker 实例）随模块自持；共享数据（taskforce 分类）经 ctx 传入。
 // 2026-10-20 第三轮 IA 判例④：活动视图已迁至「活动日历」页，本页不再消费 ctx.activities。
 
-import { setState } from '../../../core/base/state.js?v=20261023b';
-import { TaskForceRecordStore, isTaskforceOrganizer } from '../../../services/activity/taskforce.js?v=20261023b';
-import { legacyParticipantAssignmentRows, workgroupMembers } from '../../../services/activity/workgroup-members.js?v=20261023b';
-import { SignupStore, resolveSignupReviewer, SignupStatus, SIGNUP_ROLE_LABELS, SIGNUP_STATUS_LABELS } from '../../../services/activity/signup.js?v=20261023b';
-import { AuthStore } from '../../../services/core/auth.js?v=20261023b';
-import { loadTaskforceReviews, addTaskforceReview } from '../../../services/governance/review.js?v=20261023b';
-import { TodoStore, TodoSourceType, TodoCategory, TodoActionType } from '../../../services/governance/todo.js?v=20261023b';
-import { NoticeStore } from '../../../services/governance/notice.js?v=20261023b';
-import { mockDB, ReviewStatus, isTaskforceTerminalStatus, isTaskforceActiveStatus, TASKFORCE_TERMINAL_STATUSES, TASK_TERMINAL_STATUSES, OUTPUT_TERMINAL_STATUSES } from '../../../core/domain/domain.js?v=20261023b'; // IA-C3 收敛单写入口 2026-09-06：ParticipationLevel 随考察写入口移除
-import { persist } from '../../../data/data-adapter.js?v=20261023b';
-import { settleWrites } from '../../../core/session/pending-writes.js?v=20261023b';
-import { showToast, escHtml as esc, getBasePath, todayLocal, flashHighlight } from '../../../core/base/utils.js?v=20261023b';
-import { generateId } from '../../../core/base/id.js?v=20261023b';
-import { solidAccentStyle } from '../../../core/domain/constants.js?v=20261023b';
-import { PersonPicker } from '../../../components/governance/pickers.js?v=20261023b';
-import { renderWorkgroupPermissionEditor, readWorkgroupPermissionEditor } from '../../../components/governance/workgroup-permissions.js?v=20261023b';
-import { renderWorkgroupMemberEditor, bindWorkgroupMemberEditor } from '../../../components/governance/workgroup-member-editor.js?v=20261023b';
-import { getAdapter } from '../../../data/data-adapter.js?v=20261023b';
-import { recordFormShell } from '../../../components/ui/forms.js?v=20261023b';
+import { setState } from '../../../core/base/state.js?v=20261023c';
+import { TaskForceRecordStore, isTaskforceOrganizer } from '../../../services/activity/taskforce.js?v=20261023c';
+import { legacyParticipantAssignmentRows, workgroupMembers } from '../../../services/activity/workgroup-members.js?v=20261023c';
+import { SignupStore, resolveSignupReviewer, SignupStatus, SIGNUP_ROLE_LABELS, SIGNUP_STATUS_LABELS } from '../../../services/activity/signup.js?v=20261023c';
+import { AuthStore } from '../../../services/core/auth.js?v=20261023c';
+import { loadTaskforceReviews, addTaskforceReview } from '../../../services/governance/review.js?v=20261023c';
+import { TodoStore, TodoSourceType, TodoCategory, TodoActionType } from '../../../services/governance/todo.js?v=20261023c';
+import { NoticeStore } from '../../../services/governance/notice.js?v=20261023c';
+import { mockDB, ReviewStatus, isTaskforceTerminalStatus, isTaskforceActiveStatus, TASKFORCE_TERMINAL_STATUSES, TASK_TERMINAL_STATUSES, OUTPUT_TERMINAL_STATUSES } from '../../../core/domain/domain.js?v=20261023c'; // IA-C3 收敛单写入口 2026-09-06：ParticipationLevel 随考察写入口移除
+import { persist } from '../../../data/data-adapter.js?v=20261023c';
+import { settleWrites } from '../../../core/session/pending-writes.js?v=20261023c';
+import { showToast, escHtml as esc, getBasePath, todayLocal, flashHighlight } from '../../../core/base/utils.js?v=20261023c';
+import { generateId } from '../../../core/base/id.js?v=20261023c';
+import { solidAccentStyle } from '../../../core/domain/constants.js?v=20261023c';
+import { PersonPicker } from '../../../components/governance/pickers.js?v=20261023c';
+import { renderWorkgroupPermissionEditor, readWorkgroupPermissionEditor } from '../../../components/governance/workgroup-permissions.js?v=20261023c';
+import { renderWorkgroupMemberEditor, bindWorkgroupMemberEditor } from '../../../components/governance/workgroup-member-editor.js?v=20261023c';
+import { getAdapter } from '../../../data/data-adapter.js?v=20261023c';
+import { recordFormShell } from '../../../components/ui/forms.js?v=20261023c';
 // 「本位」nudge 确认弹窗（2026-09-23 支书裁定 · 单一源 = components/ui/modal.js::confirmNudge）
 // U-05：招募浮窗原为手写 overlay/panel（无 dialog 语义 / 无焦点接管）→ 改走同一组件的 openModal。
-import { confirmNudge, confirmWriteWithoutGrant, openModal, closeModal, setModalBusy } from '../../../components/ui/modal.js?v=20261023b';
+import { confirmNudge, confirmWriteWithoutGrant, openModal, closeModal, setModalBusy } from '../../../components/ui/modal.js?v=20261023c';
 // 转交组织者（SOP-G-2-② · 2026-10-01 批次 327 · 支书裁「乙：直接转交 ＋ 留痕」）：判据 / 写口 /
 //   弹窗单一源＝`components/governance/organizer-transfer.js`（本台只挂入口，不复制一份实现）。
-import { canTransferOrganizer, openOrganizerTransfer, organizerOf } from '../../../components/governance/organizer-transfer.js?v=20261023b';
-import { badgeHtml } from '../../../components/ui/badges.js?v=20261023b';
+import { canTransferOrganizer, openOrganizerTransfer, organizerOf } from '../../../components/governance/organizer-transfer.js?v=20261023c';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20261023c';
 // 人×项目矩阵单一源（支书 2026-09-14 裁定：把宽表推广到其它二元关系域 → 本批「专班报名」域）
-import { renderRelationMatrix } from '../../../components/ui/relation-matrix.js?v=20261023b';
-import { getPersonName, PersonStore } from '../../../services/member/person.js?v=20261023b';
+import { renderRelationMatrix } from '../../../components/ui/relation-matrix.js?v=20261023c';
+import { getPersonName, PersonStore } from '../../../services/member/person.js?v=20261023c';
 // 统一检索引擎（2026-09-13 表格统一化批次 A）：报名名单等按人段落接入关键词 + 分面
-import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261023b';
-import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261023b';
+import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261023c';
+import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261023c';
 // 详情锚定单一源（2026-10-18 繁专项 Task 14）：与 taskforce-view.js 同款「触点即落点」
-import { anchorDetailToTrigger, scrollDetailIntoView } from '../../../components/ui/detail-anchor.js?v=20261023b';
+import { anchorDetailToTrigger, scrollDetailIntoView } from '../../../components/ui/detail-anchor.js?v=20261023c';
 // 私有状态（随模块自持，不污染入口）
 let _recruitOrganizerPicker = null;
 let _recruitDeepPicker = null;
@@ -74,7 +74,6 @@ export function renderContent(ctx) {
   // 附录⑩ B批（R3-1/R3-2）：状态词对齐「支委会表决」语义——pending_review=待支委会表决；
   // 已完结桶含 completed / archived / dissolved（解散表决通过后置 dissolved，见服务层 applyCommitteeDecision）
   const statusLabel = { pending_review: '待支委会表决', recruiting: '招募中', active: '运行中', completed: '已完结', archived: '已归档', dissolved: '已解散', draft: '草稿' };
-  const statusColor = { pending_review: '#6366F1', recruiting: '#D97706', active: '#10B981', completed: '#3B82F6', archived: '#6B7280', dissolved: '#DC2626', draft: '#6B7280' };
 
   // 获取已完结专班（含 completed / archived 归档 / dissolved 表决通过解散），T223 新者在前
   const completed = TaskForceRecordStore.getAll()
@@ -88,7 +87,7 @@ export function renderContent(ctx) {
           本页不得再出现活动查询/活动收尾动作——页签名「专班管理」只覆盖专班域。 -->
     <div class="flex items-center justify-between flex-wrap gap-2 mb-3">
       <div class="flex items-center gap-2" id="org-tf-view-btns" role="group" aria-label="专班工作视图">
-        <button type="button" class="btn-tab org-tf-view-btn px-3 py-1.5 text-xs font-medium [color:color-mix(in_srgb,var(--app-accent)_60%,#000)]" style="--acc-text-dark:color-mix(in srgb, var(--app-accent) 55%, #fff)" data-view="workgroups" aria-pressed="true">专班工作组</button>
+        <button type="button" class="btn-tab org-tf-view-btn px-3 py-1.5 text-xs font-medium [color:var(--app-accent-soft-text)]" data-view="workgroups" aria-pressed="true">专班工作组</button>
         <button type="button" class="btn-tab org-tf-view-btn px-3 py-1.5 text-xs font-medium" data-view="matrix" aria-pressed="false">报名总表</button>
       </div>
       <!-- A04：原「知情查看」页的对象级只读集合并入本页；默认关闭，不改变原有看板口径。 -->
@@ -135,9 +134,9 @@ export function renderContent(ctx) {
     //（workflow/blocks/manifests.js: provenance='branch-custom'），看板**空分桶不保留常驻占位卡**
     //（原三桶恒渲染、空桶显「暂无…专班」并撑 min-h-[120px]）。改为只渲染**有内容**的分桶，列数随桶数自适应。
     const BUCKETS = [
-      { key: 'pending', title: '待支委会表决', list: fp, tint: '#6366F1', tintDark: '#A5B4FC' },
-      { key: 'recruiting', title: '招募中', list: fr, tint: '#D97706', tintDark: '#FBBF24' },
-      { key: 'active', title: '运行中', list: fa, tint: '#8B5CF6', tintDark: '#C4B5FD' },
+      { key: 'pending', title: '待支委会表决', list: fp, tone: 'purple' },
+      { key: 'recruiting', title: '招募中', list: fr, tone: 'amber' },
+      { key: 'active', title: '运行中', list: fa, tone: 'green' },
     ].filter((b) => b.list.length > 0);
     const colsClass = BUCKETS.length >= 3 ? 'md:grid-cols-3' : BUCKETS.length === 2 ? 'md:grid-cols-2' : 'md:grid-cols-1';
     const emptyAll = BUCKETS.length === 0 && fc.length === 0;
@@ -145,13 +144,13 @@ export function renderContent(ctx) {
       ${BUCKETS.length ? `<div class="grid grid-cols-1 ${colsClass} gap-4 mb-4">
         ${BUCKETS.map((b) => `
         <div class="card rounded-xl p-0 overflow-hidden">
-          <div class="px-4 py-3 font-title-cn text-sm font-bold tf-section-head" style="--tint:${b.tint};--acc-text-dark:${b.tintDark};color:color-mix(in srgb, ${b.tint} 60%, #000);">${b.title} (${b.list.length})</div>
+          <div class="px-4 py-3 font-title-cn text-sm font-bold tint-section tint-section--head" data-tone="${b.tone}">${b.title} (${b.list.length})</div>
           <div class="p-3" id="tf-bucket-${b.key}"></div>
         </div>`).join('')}
       </div>` : ''}
       ${fc.length > 0 ? `
       <details class="card rounded-xl p-0 overflow-hidden">
-        <summary class="px-4 py-3 font-title-cn text-sm font-bold cursor-pointer select-none tf-section-head" style="--tint:#3B82F6;--acc-text-dark:#60A5FA;color:color-mix(in srgb, var(--accent-blue) 60%, #000);">已完结 (${fc.length})</summary>
+        <summary class="px-4 py-3 font-title-cn text-sm font-bold cursor-pointer select-none tint-section tint-section--head" data-tone="info">已完结 (${fc.length})</summary>
         <div class="p-3" id="tf-bucket-completed"></div>
       </details>` : ''}
       ${emptyAll ? (onlyMine
@@ -185,7 +184,7 @@ export function renderContent(ctx) {
         countUnit: '个',
         listClass: 'space-y-3',
         emptyMessage,
-        rowHtml: (t) => _renderTfCard(t, statusLabel, statusColor),
+        rowHtml: (t) => _renderTfCard(t, statusLabel),
       });
       bindCardClicks(host);
       bindStatusButtons(host);
@@ -251,10 +250,9 @@ export function renderContent(ctx) {
     viewBtnsEl.querySelectorAll('.org-tf-view-btn').forEach(b => {
       const on = b === btn;
       b.setAttribute('aria-pressed', on ? 'true' : 'false');
-      b.classList.toggle('bg-[var(--app-accent-bg)]', on);
+      b.classList.toggle('bg-[var(--app-accent-soft-bg)]', on);
       b.classList.toggle('border-[var(--app-accent)]', on);
-      b.classList.toggle('[color:color-mix(in_srgb,var(--app-accent)_60%,#000)]', on);
-      if (on) b.style.setProperty('--acc-text-dark', 'color-mix(in srgb, var(--app-accent) 55%, #fff)'); else b.style.removeProperty('--acc-text-dark');
+      b.classList.toggle('[color:var(--app-accent-soft-text)]', on);
       b.classList.toggle('bg-white', !on);
       b.classList.toggle('border-neutral-200', !on);
       b.classList.toggle('text-gray-600', !on);
@@ -775,7 +773,7 @@ function _tfRenderWorkBlock(panel, tf) {
         return `
         <div class="py-2 border-b border-gray-50 last:border-b-0">
           <div class="flex items-center justify-between">
-            <a href="${getBasePath()}person.html?id=${encodeURIComponent(m.personId)}" class="text-xs font-medium text-gray-700 hover:underline hover:text-sky-700 transition-colors" title="查看完整档案">${esc(getPersonName(m.personId))}</a>
+            <a href="${getBasePath()}person.html?id=${encodeURIComponent(m.personId)}" class="text-xs font-medium text-gray-700 hover:underline hover:text-[var(--app-accent-soft-text)] transition-colors" title="查看完整档案">${esc(getPersonName(m.personId))}</a>
             <div class="flex items-center gap-2">
               ${badgeHtml(m.role === 'participant' ? '历史记录待核' : (m.role || '深度参与者'), m.role === 'participant' ? 'warning' : 'neutral')}
               <span class="text-xs text-gray-500">贡献 ${contribCount} 项</span>
@@ -965,7 +963,7 @@ function _tfRenderSignupBlock(panel, tf, ctx) {
     emptyMessage: '暂无报名',
     rowHtml: (s) => `
       <div class="flex items-center gap-2 py-1.5">
-        <a href="${getBasePath()}person.html?id=${encodeURIComponent(s.personId)}" class="text-xs font-medium text-gray-700 hover:underline hover:text-sky-700 transition-colors" title="查看完整档案">${esc(getPersonName(s.personId))}</a>
+        <a href="${getBasePath()}person.html?id=${encodeURIComponent(s.personId)}" class="text-xs font-medium text-gray-700 hover:underline hover:text-[var(--app-accent-soft-text)] transition-colors" title="查看完整档案">${esc(getPersonName(s.personId))}</a>
         <span class="text-[11px] text-gray-500">${esc(s.role)}</span>
         ${s.note ? `<span class="text-[11px] text-gray-500 truncate max-w-[120px]">${esc(s.note)}</span>` : ''}
         ${s._pendingRow
@@ -1002,7 +1000,7 @@ function _tfSaveSubs(tfId, tfSubs) {
 /** 子记录表（统一检索引擎 table 模式）：返回块壳 shellHtml + 表格件 table/rowHtml（供 renderFilteredList 消费） */
 function _tfSubTableHtml(type, items, readOnly) {
   const label = type === 'inspection' ? '考察记录' : '材料记录';
-  const color = type === 'inspection' ? '#D97706' : '#3B82F6';
+  const tone = type === 'inspection' ? 'amber' : 'info';
   const fields = type === 'inspection'
     ? [{ key: 'person', label: '被考察人' }, { key: 'content', label: '考察内容' }, { key: 'result', label: '考察结论' }, { key: 'time', label: '时间' }]
     : [{ key: 'name', label: '材料名称' }, { key: 'author', label: '提交人' }, { key: 'note', label: '备注' }, { key: 'time', label: '时间' }];
@@ -1014,10 +1012,10 @@ function _tfSubTableHtml(type, items, readOnly) {
     shellHtml: `
     <div class="mt-3">
       <div class="flex items-center justify-between gap-2 mb-1.5">
-        <h5 class="text-xs font-bold font-title-cn" style="--acc-text-dark:${color};color:color-mix(in srgb, ${color} 60%, #000)">${label} (${items.length})</h5>
+        <h5 class="text-xs font-bold font-title-cn tint-text" data-tone="${tone}">${label} (${items.length})</h5>
         ${readOnly
           ? '<span class="text-[11px] text-amber-700 text-right">专班考察请统一到组织台『人才库』页底「录入考察」录入</span>'
-          : `<button class="btn-outline sub-add-btn text-xs px-3 py-1.5" style="--acc-text-dark:${color};color:color-mix(in srgb, ${color} 60%, #000);border-color:${color}40" data-type="${type}">+ 添加</button>`}
+          : `<button class="tint-action sub-add-btn text-xs px-3 py-1.5" data-tone="${tone}" data-type="${type}">+ 添加</button>`}
       </div>
       <div id="tf-sub-host-${type}"></div>
     </div>`,
@@ -1384,16 +1382,15 @@ function _showTaskforceDissolutionDialog(tf) {
   });
 }
 
-function _renderTfCard(t, statusLabel, statusColor) {
+function _renderTfCard(t, statusLabel) {
   const filled = _tfAssignsOf(t).length;
   // B批 R3-1/R3-2：committeeRequest（pending）优先表达「待支委会表决/待解散表决」，状态字面值不变
   const pendReq = (t.committeeRequest && t.committeeRequest.status === 'pending') ? t.committeeRequest : null;
   const pendText = pendReq ? (pendReq.kind === 'dissolve' ? '待解散表决' : '待支委会表决') : null;
-  const pendHex = pendReq ? (pendReq.kind === 'dissolve' ? '#D97706' : '#6366F1') : null;
-  const color = pendHex || statusColor[t.status] || '#6B7280';
-  // 内联徽章深色亮色映射（深色下提亮一档，由 html.theme-dark [style*="--acc-bg-dark"] 规则应用）
-  const darkColorMap = { pending_review: '#A5B4FC', recruiting: '#FBBF24', active: '#34D399', completed: '#60A5FA', archived: '#94A3B8', dissolved: '#F87171', draft: '#94A3B8' };
-  const darkColor = (pendHex ? (pendHex === '#D97706' ? '#FBBF24' : '#A5B4FC') : (darkColorMap[t.status])) || '#94A3B8';
+  // 卡片状态徽标 → 固定语义 tone（不随主题）
+  const pendTone = pendReq ? (pendReq.kind === 'dissolve' ? 'amber' : 'purple') : null;
+  const STATUS_TONE = { pending_review: 'purple', recruiting: 'amber', active: 'green', completed: 'info', archived: 'neutral', dissolved: 'danger', draft: 'neutral' };
+  const tone = pendTone || STATUS_TONE[t.status] || 'neutral';
   // 卡片状态徽标：待表决（committeeRequest pending）> draft（表决未通过退回）特判 > 状态映射
   const badgeText = pendText
     || ((t.status === 'draft' && t.approvalStatus === 'rejected') ? '未通过·草稿' : (statusLabel[t.status] || t.status));
@@ -1422,7 +1419,7 @@ function _renderTfCard(t, statusLabel, statusColor) {
     <div class="kanban-card p-4 rounded-xl bg-white cursor-pointer tf-store-card" data-tf-id="${t.id}" role="button" tabindex="0" aria-label="查看专班：${esc(t.name)}">
       <div class="flex items-start justify-between gap-2 mb-2">
         <span class="text-sm font-semibold text-gray-800 leading-snug">${t.name}</span>
-        <span class="badge" style="background:${color}15;color:color-mix(in srgb, ${color} 60%, #000);--acc-bg-dark:${darkColor}24;--acc-text-dark:${darkColor};">${badgeText}</span>
+        <span class="tint-pill" data-tone="${tone}">${badgeText}</span>
       </div>
       <p class="text-xs text-gray-500 mb-2 line-clamp-2">${t.task}</p>
       <div class="flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-500">

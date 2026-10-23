@@ -1,16 +1,16 @@
 // role: [工程师]+[AI]
 // issue-detail.js — 反馈详情渲染
 
-import { IssueStore, issueDomainLabel, issueDomainSuggest, issueDomainReplyHint } from '../../services/governance/issues.js?v=20261023b';
-import { MilestoneStore } from '../../services/governance/milestones.js?v=20261023b';
-import { AuthStore } from '../../services/core/auth.js?v=20261023b';
-import { showToast } from '../../core/base/utils.js?v=20261023b';
-import { icon } from '../../core/base/icons.js?v=20261023b';
-import { getPersonName } from '../../services/member/person.js?v=20261023b';
-import { renderReactions, bindReactions } from './reactions.js?v=20261023b';
-import { ISSUE_STATUS_LABELS, ISSUE_CLOSED_REASON_LABELS } from '../../core/domain/constants.js?v=20261023b';
-import { badgeHtml } from '../ui/badges.js?v=20261023b';
-import { openFormModal } from '../ui/modal.js?v=20261023b';
+import { IssueStore, issueDomainLabel, issueDomainSuggest, issueDomainReplyHint } from '../../services/governance/issues.js?v=20261023c';
+import { MilestoneStore } from '../../services/governance/milestones.js?v=20261023c';
+import { AuthStore } from '../../services/core/auth.js?v=20261023c';
+import { showToast } from '../../core/base/utils.js?v=20261023c';
+import { icon } from '../../core/base/icons.js?v=20261023c';
+import { getPersonName } from '../../services/member/person.js?v=20261023c';
+import { renderReactions, bindReactions } from './reactions.js?v=20261023c';
+import { ISSUE_STATUS_LABELS, ISSUE_CLOSED_REASON_LABELS } from '../../core/domain/constants.js?v=20261023c';
+import { badgeHtml } from '../ui/badges.js?v=20261023c';
+import { openFormModal } from '../ui/modal.js?v=20261023c';
 
 const SCOPE_LABELS = {
   permanent: '底层架构',
@@ -26,26 +26,16 @@ const TYPE_LABELS = {
   question: '疑问',
 };
 
-const TYPE_COLORS = {
-  bug: '#CE1126',
-  enhancement: '#A16207',
-  proposal: '#2563EB',
-  question: '#6B7280',
+// 反馈类型 → 固定语义 badge 变体（深色由 .badge--* 自带，不随主题）
+const TYPE_BADGE = {
+  bug: 'danger',
+  enhancement: 'warning',
+  proposal: 'info',
+  question: 'neutral',
 };
 
-// 内联徽章深色亮色映射（深色下提亮一档，与 badge--* 深色语义一致；由 html.theme-dark [style*="--acc-bg-dark"] 规则应用）
-const TYPE_COLORS_DARK = {
-  bug: '#F87171',
-  enhancement: '#FBBF24',
-  proposal: '#60A5FA',
-  question: '#94A3B8',
-};
-
-// 内联徽章双套色：日 = 原色 15% 透明底 + 原色字；夜 = 亮色 24% 透明底 + 亮色字
-function typeBadgeStyle(t) {
-  const c = TYPE_COLORS[t] || '#6B7280';
-  const dc = TYPE_COLORS_DARK[t] || '#94A3B8';
-  return `background:${c}15;color:color-mix(in srgb, ${c} 60%, #000);--acc-bg-dark:${dc}24;--acc-text-dark:${dc}`;
+function typeBadgeClass(t) {
+  return `badge--${TYPE_BADGE[t] || 'neutral'}`;
 }
 
 /** 获取当前登录用户 personId（plan 中为 AuthStore.getCurrentPersonId，修正为实际 API） */
@@ -102,7 +92,7 @@ export function renderIssueDetail(issueId) {
 
           <div class="flex items-center gap-2 mb-4 text-xs text-gray-500 flex-wrap">
             ${(issue.types || []).map(t =>
-              `<span class="badge" style="${typeBadgeStyle(t)}">${TYPE_LABELS[t] || t}</span>`
+              `<span class="badge ${typeBadgeClass(t)}">${TYPE_LABELS[t] || t}</span>`
             ).join('')}
             <span>·</span>
             <span>${SCOPE_LABELS[issue.scope] || issue.scope}</span>
@@ -161,7 +151,7 @@ export function renderIssueDetail(issueId) {
                   <option value="wontfix" ${issue.closedReason === 'wontfix' ? 'selected' : ''}>不修复</option>
                   <option value="not_planned" ${issue.closedReason === 'not_planned' ? 'selected' : ''}>暂不计划</option>
                 </select>
-                <button id="btn-apply-status" class="btn-accent-soft mt-2 w-full text-sm px-4 py-1.5 font-sans" style="--acc-text-dark:color-mix(in srgb, var(--app-accent) 55%, #fff)">应用</button>`
+                <button id="btn-apply-status" class="btn-accent-soft mt-2 w-full text-sm px-4 py-1.5 font-sans">应用</button>`
               : `<p class="text-gray-700 font-sans">${ISSUE_STATUS_LABELS[issue.status] || issue.status}${issue.closedReason ? ' · ' + (ISSUE_CLOSED_REASON_LABELS[issue.closedReason] || issue.closedReason) : ''}</p>`
             }
           </div>
@@ -171,7 +161,7 @@ export function renderIssueDetail(issueId) {
             <div class="flex flex-wrap gap-1">
               ${badgeHtml(SCOPE_LABELS[issue.scope] || issue.scope, 'neutral')}
               ${(issue.types || []).map(t =>
-                `<span class="badge" style="${typeBadgeStyle(t)}">${TYPE_LABELS[t] || t}</span>`
+                `<span class="badge ${typeBadgeClass(t)}">${TYPE_LABELS[t] || t}</span>`
               ).join('')}
             </div>
           </div>

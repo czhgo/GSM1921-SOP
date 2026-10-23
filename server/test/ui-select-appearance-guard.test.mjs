@@ -46,11 +46,21 @@ test('S1 大字号：菜单四项都有字号覆盖（不再 11–12px 卡在 17
   }
 });
 
-test('S2 深色：选中项用近白字 + 主题色淡底，不得深字叠深底', () => {
-  const body = ruleBody(STYLES, 'html.theme-dark .cs-option.is-selected');
-  assert.ok(body, 'styles.css 缺少 html.theme-dark .cs-option.is-selected');
-  assert.match(body, /(?:^|[;\s])color:\s*var\(--neutral-900\)/, '深色选中项文字应为 var(--neutral-900)（深色变量下为近白）');
-  assert.match(body, /(?:^|[;\s])background:\s*color-mix\(/, '深色选中项底色应为主题色淡底（color-mix）');
+test('S2 深色：选中项走主题 soft 三件套（亮/暗由 token 别名选边），不逐点覆盖', () => {
+  // 2026-10-23 批次 506：深色不再逐点写 `html.theme-dark .cs-option.is-selected` 补丁——
+  //   浅底/深字改为消费 `--app-accent-soft-bg/-soft-text`，`html.theme-dark` 段把 8 个别名
+  //   整体切到 `*-dark`（见 theme-palette-guard T1），故日夜同源、也不会「深字叠深底」。
+  const body = ruleBody(STYLES, '.cs-option.is-selected');
+  assert.ok(body, 'styles.css 缺少 .cs-option.is-selected');
+  assert.match(body, /(?:^|[;\s])background:\s*var\(--app-accent-soft-bg\)/, '选中项底色应为 --app-accent-soft-bg');
+  assert.match(body, /(?:^|[;\s])color:\s*var\(--app-accent-soft-text\)/, '选中项文字应为 --app-accent-soft-text');
+  assert.equal(
+    ruleBody(STYLES, 'html.theme-dark .cs-option.is-selected'), '',
+    '不应再保留深色逐点补丁（暗色由 --app-accent-soft-* 的 *-dark 别名承担）'
+  );
+  const darkBlock = STYLES.slice(STYLES.indexOf('html.theme-dark {'));
+  assert.match(darkBlock, /--app-accent-soft-bg:\s*var\(--app-accent-soft-bg-dark\)/, '深色段应把 softBg 别名切到 *-dark');
+  assert.match(darkBlock, /--app-accent-soft-text:\s*var\(--app-accent-soft-text-dark\)/, '深色段应把 softText 别名切到 *-dark');
 });
 
 test('S3 禁用：select.disabled 同步到触发器（disabled + aria-disabled），并监听属性变化', () => {

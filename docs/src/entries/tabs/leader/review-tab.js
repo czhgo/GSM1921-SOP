@@ -6,20 +6,20 @@
 //   本区块并入「组员进展」页（leader/members-tab.js 挂载）——模块改为可嵌入区块导出：
 //   reviewStatusSectionHtml(ctx) → 整卡 HTML 字符串；bindReviewStatusSection(container, rerender) → 绑定展开。
 
-import { loadActivities } from '../../../services/activity/activity.js?v=20261023b';
+import { loadActivities } from '../../../services/activity/activity.js?v=20261023c';
 // 待批活动的可见性单一源（2026-09-22 批次 151）：组长台为非支委层 ⇒ 待批活动不进本页复盘桶
-import { filterActivitiesForViewer } from '../../../services/core/visibility.js?v=20261023b';
-import { loadActivityReviews } from '../../../services/governance/review.js?v=20261023b';
-import { ReviewStatus, REVIEW_STATUS_LABELS } from '../../../core/domain/domain.js?v=20261023b';
-import { liveMembers, PersonStore } from '../../../services/member/person.js?v=20261023b';
+import { filterActivitiesForViewer } from '../../../services/core/visibility.js?v=20261023c';
+import { loadActivityReviews } from '../../../services/governance/review.js?v=20261023c';
+import { ReviewStatus, REVIEW_STATUS_LABELS } from '../../../core/domain/domain.js?v=20261023c';
+import { liveMembers, PersonStore } from '../../../services/member/person.js?v=20261023c';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/member/person.js 获取（原直连 mock PEOPLE）
 // 实时视图（非快照）：成员增删即时可见——见 services/member/person.js liveMembers 说明
 const PEOPLE = liveMembers();
-import { currentLeaderGroup } from './_shared.js?v=20261023b';
+import { currentLeaderGroup } from './_shared.js?v=20261023c';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是活动的表格一律接入（关键词 + 分面）
-import { renderFilteredList, activityKeyword, activityFacets } from '../../../components/ui/list-filter.js?v=20261023b';
+import { renderFilteredList, activityKeyword, activityFacets } from '../../../components/ui/list-filter.js?v=20261023c';
 // 活动「仍在办」口径单一源（2026-09-13 收敛）：替代手写 status!=='cancelled' && !archived
-import { isActivityLive } from '../../../core/domain/constants.js?v=20261023b';
+import { isActivityLive } from '../../../core/domain/constants.js?v=20261023c';
 
 // 私有状态（随模块自持，不污染入口）
 let _reviewExpandedId = null;
@@ -98,7 +98,7 @@ function renderCompletedCard(item) {
   const statusColor = REVIEW_STATUS_COLOR[rev?.reviewStatus] || 'bg-gray-100 text-gray-600';
   const isExpanded = _reviewExpandedId === act.id;
   return `
-    <div class="leader-review-item p-3 rounded-xl bg-white hover:bg-gray-50 transition-colors cursor-pointer review-toggle" data-act-id="${act.id}">
+    <div class="leader-review-item p-3 rounded-xl bg-white hover:bg-[var(--surface-hover)] transition-colors cursor-pointer review-toggle" data-act-id="${act.id}">
       <div class="flex items-center justify-between">
         <div class="flex-1 min-w-0">
           <div class="text-sm font-medium text-gray-800">${act.title || '未命名'}</div>
@@ -199,7 +199,7 @@ function _renderReviewDetail(rev) {
       <div class="text-xs text-gray-600 p-2 bg-gray-50 rounded-lg border border-gray-100">${rev.reviewContent || ''}</div>
       ${issues.length ? `<div class="mt-2 p-2 rounded-lg border border-amber-100 bg-amber-50">
         <div class="text-xs text-amber-700 font-bold mb-1">提出的真问题（${issues.length}）</div>
-        <ul class="space-y-0.5">${issues.map(i => `<li class="text-xs text-amber-800" style="--acc-text-dark:#FBBF24;">· ${i}</li>`).join('')}</ul>
+        <ul class="space-y-0.5">${issues.map(i => `<li class="text-xs text-amber-700">· ${i}</li>`).join('')}</ul>
       </div>` : ''}
       ${rev.submittedAt ? `<div class="text-xs text-gray-500 mt-1">提交时间：${rev.submittedAt.slice(0, 16).replace('T', ' ')}</div>` : ''}
       ${rev.annotation ? `

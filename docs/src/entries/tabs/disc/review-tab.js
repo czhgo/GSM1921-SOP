@@ -2,27 +2,27 @@
 // 纪检委员工作台 Tab：复盘（T-279 M3 拆分；2026-10-04 批次 368 页签名由「活动监督复盘」改「复盘」——原名＝动作＋对象混轴）
 // 活动流程监督（超时提醒）+ 活动复盘监督（批注/打回/确认）+ 经验沉淀督促清单。
 
-import { mockDB, ReviewStatus } from '../../../core/domain/domain.js?v=20261023b';
-import { persist } from '../../../data/data-adapter.js?v=20261023b';
-import { reviewToDisplay } from '../../../services/governance/review.js?v=20261023b';
-import { loadActiveActivityReviews, loadTaskforceReviews, updateReviewById } from '../../../services/governance/review.js?v=20261023b';
-import { loadActivities } from '../../../services/activity/activity.js?v=20261023b';
+import { mockDB, ReviewStatus } from '../../../core/domain/domain.js?v=20261023c';
+import { persist } from '../../../data/data-adapter.js?v=20261023c';
+import { reviewToDisplay } from '../../../services/governance/review.js?v=20261023c';
+import { loadActiveActivityReviews, loadTaskforceReviews, updateReviewById } from '../../../services/governance/review.js?v=20261023c';
+import { loadActivities } from '../../../services/activity/activity.js?v=20261023c';
 // R7-33：复盘「超期」按「活动日 + 复盘提交期限（policy）」现算，不再直读记录上的 overdue 快照
-import { isReviewOverdue } from '../../../core/domain/policy-defaults.js?v=20261023b';
-import { showToast, escHtml } from '../../../core/base/utils.js?v=20261023b';
-import { openFormModal, openModal, closeModal } from '../../../components/ui/modal.js?v=20261023b';
+import { isReviewOverdue } from '../../../core/domain/policy-defaults.js?v=20261023c';
+import { showToast, escHtml } from '../../../core/base/utils.js?v=20261023c';
+import { openFormModal, openModal, closeModal } from '../../../components/ui/modal.js?v=20261023c';
 // 批次 352（`D-746` · `D-744`② 业务过程类余项）：经验沉淀「作废（软）」——统一写口 ＋ 支委层判据
-import * as SoftVoid from '../../../services/governance/soft-void.js?v=20261023b';
-import { openVoidModal } from '../../../components/ui/void-record.js?v=20261023b';
-import { NoticeStore } from '../../../services/governance/notice.js?v=20261023b';
-import { generateId } from '../../../core/base/id.js?v=20261023b';
-import { getPersonById } from '../../../services/member/person.js?v=20261023b';
-import { requireDiscCommissionerId } from './_shared.js?v=20261023b';
+import * as SoftVoid from '../../../services/governance/soft-void.js?v=20261023c';
+import { openVoidModal } from '../../../components/ui/void-record.js?v=20261023c';
+import { NoticeStore } from '../../../services/governance/notice.js?v=20261023c';
+import { generateId } from '../../../core/base/id.js?v=20261023c';
+import { getPersonById } from '../../../services/member/person.js?v=20261023c';
+import { requireDiscCommissionerId } from './_shared.js?v=20261023c';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是活动的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
-import { renderFilteredList, activityKeyword, activityFacets } from '../../../components/ui/list-filter.js?v=20261023b';
-import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261023b';
+import { renderFilteredList, activityKeyword, activityFacets } from '../../../components/ui/list-filter.js?v=20261023c';
+import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261023c';
 // 材料页深链 focusActivityId 的通用定位（只滚动 + 闪烁，不另造筛选器）
-import { focusActivityAnchor } from '../../../components/ui/detail-anchor.js?v=20261023b';
+import { focusActivityAnchor } from '../../../components/ui/detail-anchor.js?v=20261023c';
 
 // ── 超期提醒真实触达（2026-09-10）───────────────────────────────
 // 依据：纪检委员工作流程指南 §3.1「超时确认后可触发邮件提醒」、党小组组长工作手册
@@ -99,7 +99,7 @@ function _depositParentKey(deposit) {
 /** 已沉淀清单行（批次 352 · `D-746`）：行尾「作废（软）」——支委可直接作废、其余人报支委会 */
 function depositRecordRowHtml(d) {
   return `
-    <div class="p-3 rounded-xl bg-white hover:bg-gray-50 transition-colors flex items-start justify-between gap-3">
+    <div class="p-3 rounded-xl bg-white transition-colors flex items-start justify-between gap-3">
       <div class="min-w-0">
         <p class="text-sm font-medium text-gray-800 truncate">${escHtml(d.title || '未命名沉淀')}</p>
         <p class="text-xs text-gray-500 mt-0.5 truncate">来源活动：${escHtml(d.sourceName || '—')} · 记录于 ${escHtml((d.createdAt || '').slice(0, 10) || '—')}</p>
@@ -198,7 +198,7 @@ export function renderContent(ctx) {
               ${r.reviewContent ? `<div class="text-xs text-gray-600 mb-2 p-2 bg-white rounded-lg border border-gray-100">${r.reviewContent}</div>` : ''}
               ${(r.issues && r.issues.length) ? `<div class="mb-2 p-2 rounded-lg border border-amber-100 bg-amber-50">
                 <div class="text-[11px] text-amber-700 font-bold mb-0.5">提出的真问题（${r.issues.length}）</div>
-                <ul class="space-y-0.5">${r.issues.map(i => `<li class="text-xs text-amber-800" style="--acc-text-dark:#FBBF24;">· ${i}</li>`).join('')}</ul>
+                <ul class="space-y-0.5">${r.issues.map(i => `<li class="text-xs text-amber-700">· ${i}</li>`).join('')}</ul>
               </div>` : ''}
               <div class="flex gap-2">
                 ${r.reviewStatus === ReviewStatus.UPLOADED ? `

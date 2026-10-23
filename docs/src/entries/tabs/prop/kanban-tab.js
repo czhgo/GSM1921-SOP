@@ -2,18 +2,18 @@
 // 宣传委员工作台 Tab：项目看板（T-279 M3 拆分，照 M2 样板）
 // 活动/专班合并看板（活动+专班分桶）+ 专班工作量区块；从 TaskForceRecordStore 动态派生（H-1 数据断裂修复）。
 
-import { badgeHtml } from '../../../components/ui/badges.js?v=20261023b';
-import { BranchService } from '../../../services/core/runtime.js?v=20261023b';
-import { TodoStore, TodoSourceType } from '../../../services/governance/todo.js?v=20261023b';
-import { persist } from '../../../data/data-adapter.js?v=20261023b';
-import { showToast, escHtml as esc } from '../../../core/base/utils.js?v=20261023b';
-import { setState } from '../../../core/base/state.js?v=20261023b';
-import { resolveDocumentUrl } from '../../../core/base/page-url.js?v=20261023b';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20261023c';
+import { BranchService } from '../../../services/core/runtime.js?v=20261023c';
+import { TodoStore, TodoSourceType } from '../../../services/governance/todo.js?v=20261023c';
+import { persist } from '../../../data/data-adapter.js?v=20261023c';
+import { showToast, escHtml as esc } from '../../../core/base/utils.js?v=20261023c';
+import { setState } from '../../../core/base/state.js?v=20261023c';
+import { resolveDocumentUrl } from '../../../core/base/page-url.js?v=20261023c';
 // 「已归档」判据单一源（只看 archived === true；不得再把 status === 'completed' 当归档）
-import { isActivityArchived } from '../../../core/domain/constants.js?v=20261023b';
+import { isActivityArchived } from '../../../core/domain/constants.js?v=20261023c';
 // 统一检索引擎（2026-09-14 批次 37）：三桶各接一个实例（keyword null + facets [] → 仅分页，保持三桶观感）
-import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261023b';
-import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261023b';
+import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261023c';
+import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261023c';
 
 export function renderContent(ctx) {
   const container = document.getElementById('prop-tab-content');
@@ -49,11 +49,11 @@ export function renderContent(ctx) {
     ${renderTabHeader({ title: '项目看板', description: '活动与专班合并看板：待启动 / 进行中。' })}
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
       <div class="card rounded-xl p-0 overflow-hidden">
-        <div class="px-4 py-3 font-title-cn text-sm font-bold" style="--acc-bg-dark:rgba(96,165,250,0.10);--acc-text-dark:#60A5FA;--acc-border-dark:rgba(96,165,250,0.25);background:rgba(37,99,235,0.06);color:var(--accent-prop-commissioner);border-bottom:2px solid rgba(37,99,235,0.15);">待启动 (${pending.length})</div>
+        <div class="px-4 py-3 font-title-cn text-sm font-bold tint-section tint-section--head" data-tone="info">待启动 (${pending.length})</div>
         <div class="p-3 space-y-2 min-h-[120px]" id="kanban-pending-host"></div>
       </div>
       <div class="card rounded-xl p-0 overflow-hidden">
-        <div class="px-4 py-3 font-title-cn text-sm font-bold" style="--acc-bg-dark:rgba(96,165,250,0.10);--acc-text-dark:#60A5FA;--acc-border-dark:rgba(96,165,250,0.25);background:rgba(59,130,246,0.06);color:color-mix(in srgb, var(--accent-blue) 60%, #000);border-bottom:2px solid rgba(59,130,246,0.15);">进行中 (${active.length})</div>
+        <div class="px-4 py-3 font-title-cn text-sm font-bold tint-section tint-section--head" data-tone="info">进行中 (${active.length})</div>
         <div class="p-3 space-y-2 min-h-[120px]" id="kanban-active-host"></div>
       </div>
     </div>
@@ -135,7 +135,7 @@ function _renderKanbanItem(item, showCompleteBtn = false) {
     ? `<button class="btn-accent-soft activity-complete-btn text-xs px-3 py-1.5 mt-1" data-act-id="${item.id}" onclick="event.stopPropagation();">确认完成</button>`
     : (showCompleteBtn && isTf ? '<span class="text-xs text-gray-500">收尾由组织委员办理</span>' : '');
   return `
-    <div class="kanban-card p-3 rounded-xl bg-white hover:bg-gray-200 transition-colors cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#CE1126]" role="button" tabindex="0" aria-label="查看 ${esc(item.title || '未命名')} 详情" data-kt="${item._type}" data-ki="${item.id}">
+    <div class="kanban-card p-3 rounded-xl bg-white hover:bg-surface-hover transition-colors cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#CE1126]" role="button" tabindex="0" aria-label="查看 ${esc(item.title || '未命名')} 详情" data-kt="${item._type}" data-ki="${item.id}">
       <div class="flex items-center gap-2 mb-0.5">
         <span class="text-sm font-medium text-gray-800">${item.title || '未命名'}</span>
         ${typeTag}

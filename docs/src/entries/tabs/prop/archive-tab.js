@@ -2,37 +2,37 @@
 // 宣传委员工作台 Tab：档案归档（T-279 M3 拆分，照 M2 样板）
 // 归档记录纯读 + 材料标准/模板 + 归档推进浮窗（材料确认清单）+ 上传宣传材料（attachments 双模式）。
 
-import { icon } from '../../../core/base/icons.js?v=20261023b';
-import { solidAccentStyle, activityTypeBadgeVariant, isActivityArchived } from '../../../core/domain/constants.js?v=20261023b';
-import { POLICY_DEFAULTS } from '../../../core/domain/policy-defaults.js?v=20261023b';
+import { icon } from '../../../core/base/icons.js?v=20261023c';
+import { solidAccentStyle, activityTypeBadgeVariant, isActivityArchived } from '../../../core/domain/constants.js?v=20261023c';
+import { POLICY_DEFAULTS } from '../../../core/domain/policy-defaults.js?v=20261023c';
 // 活动类型胶囊（批次 301）：类别色走单一源（三会一课＝brand 红 / 主题党日＝gold 金），渲染唯一源 badge.js
-import { badgeHtml } from '../../../components/ui/badges.js?v=20261023b'; // 扎口出口（批次 304 收回，勿直连 badge.js）
-import { showToast, downloadCSV, downloadBlob, downloadUrl, _fmtDate, escHtml, todayLocal } from '../../../core/base/utils.js?v=20261023b';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20261023c'; // 扎口出口（批次 304 收回，勿直连 badge.js）
+import { showToast, downloadCSV, downloadBlob, downloadUrl, _fmtDate, escHtml, todayLocal } from '../../../core/base/utils.js?v=20261023c';
 // 2026-09-21 批次 139：页脚「相关设置」深链由 modal.js 的 `settingsLinkHTML` 单点渲染；
 //   2026-10-21 批次 497：本 tab 四个浮层（上传材料 / 文件外发 / 上传照片 / 标注照片）全部改走 `openModal`，
 //   不再自建 overlay（统一 dialog 语义、sticky footer 与取消语义）。
-import { openModal, closeModal } from '../../../components/ui/modal.js?v=20261023b';
-import { persist, getAuthToken, getApiBaseUrl, getAdapter } from '../../../data/data-adapter.js?v=20261023b';
-import { withSelectedBranchScope } from '../../../data/api-adapter.js?v=20261023b';
-import { mockDB } from '../../../core/domain/domain.js?v=20261023b';
-import { bumpToken } from '../../../core/base/version-token.js?v=20261023b'; // P0 域缓存失效（spec §二.3）
-import { loadActivities, listPublicityDrafts, setPublicityDraftStatus, PUBLICITY_DRAFT_STATUS, listGalleryCandidates, setGalleryFeatured, setGalleryPinned, isGalleryFeatured, isGalleryPinned } from '../../../services/activity/activity.js?v=20261023b';
-import { isApiMode } from '../../../services/core/runtime.js?v=20261023b';
-import { AuthStore, currentUserId } from '../../../services/core/auth.js?v=20261023b';
-import { getPersonName } from '../../../services/member/person.js?v=20261023b';
+import { openModal, closeModal } from '../../../components/ui/modal.js?v=20261023c';
+import { persist, getAuthToken, getApiBaseUrl, getAdapter } from '../../../data/data-adapter.js?v=20261023c';
+import { withSelectedBranchScope } from '../../../data/api-adapter.js?v=20261023c';
+import { mockDB } from '../../../core/domain/domain.js?v=20261023c';
+import { bumpToken } from '../../../core/base/version-token.js?v=20261023c'; // P0 域缓存失效（spec §二.3）
+import { loadActivities, listPublicityDrafts, setPublicityDraftStatus, PUBLICITY_DRAFT_STATUS, listGalleryCandidates, setGalleryFeatured, setGalleryPinned, isGalleryFeatured, isGalleryPinned } from '../../../services/activity/activity.js?v=20261023c';
+import { isApiMode } from '../../../services/core/runtime.js?v=20261023c';
+import { AuthStore, currentUserId } from '../../../services/core/auth.js?v=20261023c';
+import { getPersonName } from '../../../services/member/person.js?v=20261023c';
 // 批次 352（`D-746` · `D-744`② 业务过程类余项）：照片记录「作废（软）」——统一写口 ＋ 支委层判据
-import * as SoftVoid from '../../../services/governance/soft-void.js?v=20261023b';
-import { openVoidModal } from '../../../components/ui/void-record.js?v=20261023b';
-import { addExternalDispatch, loadExternalDispatches, loadActiveDispatches } from '../../../services/activity/external-dispatch.js?v=20261023b';
+import * as SoftVoid from '../../../services/governance/soft-void.js?v=20261023c';
+import { openVoidModal } from '../../../components/ui/void-record.js?v=20261023c';
+import { addExternalDispatch, loadExternalDispatches, loadActiveDispatches } from '../../../services/activity/external-dispatch.js?v=20261023c';
 // R2-40：归档材料写口（mock/api 同源）——api 落 archive_records、mock 落 localStorage
-import { ArchiveStore } from '../../../services/activity/archive.js?v=20261023b';
+import { ArchiveStore } from '../../../services/activity/archive.js?v=20261023c';
 // A② 归档缺口判据单一源（支书台「宣传材料待归档」实时组同源）：已归档但无归档记录的活动
-import { getArchiveGapActivities, getEndedUnarchivedActivities } from '../../../services/governance/secretary-overview.js?v=20261023b';
+import { getArchiveGapActivities, getEndedUnarchivedActivities } from '../../../services/governance/secretary-overview.js?v=20261023c';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是活动的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
-import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261023b';
-import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261023b';
+import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261023c';
+import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261023c';
 // 材料页深链 focusActivityId 的通用定位（只滚动 + 闪烁，不另造筛选器）
-import { focusActivityAnchor } from '../../../components/ui/detail-anchor.js?v=20261023b';
+import { focusActivityAnchor } from '../../../components/ui/detail-anchor.js?v=20261023c';
 
 // ── 档案归档 ─────────────────────────────────────────────
 // 种子数据已提升为全局（data/mock/seed.js SEED_ARCHIVE_RECORDS，loadDB 时注入），
@@ -395,7 +395,7 @@ function _galleryRowHtml(a) {
   const on = isGalleryFeatured(a);
   const pinned = isGalleryPinned(a);
   const btnCls = on
-    ? 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
+    ? 'bg-white text-gray-600 border-gray-200 hover:bg-surface-hover'
     : 'bg-sky-50 text-sky-700 border-sky-200 hover:bg-sky-100';
   return `
       <div class="p-3 rounded-xl bg-white border border-gray-100 flex items-center justify-between gap-3">
@@ -403,7 +403,7 @@ function _galleryRowHtml(a) {
           <div class="text-sm font-medium text-gray-800 truncate">${escHtml(a.title || '未命名活动')}</div>
           <span class="text-xs text-gray-500">${escHtml(a.date || '—')}</span>
         </a>
-        ${on ? `<button type="button" class="btn-outline gallery-pin-btn text-xs px-3 py-1.5 rounded-lg border transition-colors flex-shrink-0 ${pinned ? 'bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'}"
+        ${on ? `<button type="button" class="btn-outline gallery-pin-btn text-xs px-3 py-1.5 rounded-lg border transition-colors flex-shrink-0 ${pinned ? 'bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100' : 'bg-white text-gray-600 border-gray-200 hover:bg-surface-hover'}"
                 data-activity-id="${escHtml(a.id)}" data-on="${pinned ? 'true' : 'false'}">${pinned ? '取消置顶' : '置顶'}</button>` : ''}
         <button type="button" class="btn-outline gallery-feature-btn text-xs px-3 py-1.5 rounded-lg border transition-colors flex-shrink-0 ${btnCls}"
                 data-activity-id="${escHtml(a.id)}" data-on="${on ? 'true' : 'false'}">${on ? '撤下' : '收录到活动风采'}</button>
@@ -419,7 +419,7 @@ let _weeklyOpen = false;
 /** 懒挂周报内容到宿主容器（`weekly-tab.js` 的 `renderContent(ctx, host)` 已支持传入宿主） */
 function _mountWeekly(host, ctx) {
   host.dataset.weeklyMounted = '1';
-  import('./weekly-tab.js?v=20261023b').then(m => {
+  import('./weekly-tab.js?v=20261023c').then(m => {
     if (host.isConnected) m.renderContent(ctx, host);
   });
 }
@@ -480,7 +480,7 @@ function _endedUnarchivedCardHtml(a) {
 function _renderPublicityDraftSection(rows) {
   if (!rows || rows.length === 0) return '';
   const items = rows.map(r => `
-      <div class="p-3 rounded-xl bg-white hover:bg-gray-50 transition-colors flex items-center justify-between gap-3">
+      <div class="p-3 rounded-xl bg-white flex items-center justify-between gap-3">
         <a href="./activity.html?id=${encodeURIComponent(r.activity.id || '')}" class="flex-1 min-w-0" style="text-decoration:none;color:inherit;" title="查看活动详情">
           <div class="flex items-center gap-2 mb-0.5">
             <span class="text-sm font-medium text-gray-800 truncate">${escHtml(r.rec.title || '未命名初稿')}</span>
@@ -578,7 +578,7 @@ function _archiveRowHtml(r) {
     ? `<a href="./activity.html?id=${encodeURIComponent(r.activityId)}" class="flex-1 min-w-0" style="text-decoration:none;color:inherit;" title="查看关联活动详情">${titleBlock}</a>`
     : `<div class="flex-1 min-w-0">${titleBlock}</div>`;
   return `
-    <div class="p-3 rounded-xl bg-white hover:bg-gray-50 transition-colors flex items-center justify-between gap-3"${r.activityId ? ` data-archive-id="${r.activityId}"` : ''}>
+    <div class="p-3 rounded-xl bg-white flex items-center justify-between gap-3"${r.activityId ? ` data-archive-id="${r.activityId}"` : ''}>
       ${leftBlock}
       <div class="flex items-center gap-2 flex-shrink-0">${fileBtn}${platformHtml}${dispatchHtml}${advanceBtn}</div>
     </div>`;
@@ -737,7 +737,7 @@ function _showArchiveAdvancePopover(record, _triggerBtn, ctx) {
     checklist.forEach((item, i) => {
       bodyHtml += `<label class="flex items-start gap-2.5 cursor-pointer group">`;
       bodyHtml += `<input type="checkbox" class="archive-checklist-item mt-0.5 rounded border-gray-300 text-blue-600 focus:ring-blue-300" data-check-idx="${i}" />`;
-      bodyHtml += `<span class="text-xs text-gray-700 leading-relaxed group-hover:text-gray-900">${escHtml(item)}</span>`;
+      bodyHtml += `<span class="text-xs text-gray-700 leading-relaxed group-hover:text-[var(--neutral-900)]">${escHtml(item)}</span>`;
       bodyHtml += `</label>`;
     });
     bodyHtml += `</div>`;
@@ -872,7 +872,7 @@ function _showArchiveUploadModal(ctx) {
           const isImage = f.type && f.type.startsWith('image/');
           const thumb = isImage
             ? `<img src="${previewUrls[i]}" class="w-9 h-9 rounded object-cover border border-gray-200 flex-shrink-0" alt="" />`
-            : `<span class="w-9 h-9 rounded flex items-center justify-center flex-shrink-0" style="--acc-bg-dark:rgba(96,165,250,0.16);--acc-text-dark:#60A5FA;background:rgba(59,130,246,0.1);color:var(--accent-blue);">${icon('fileText', { className: 'w-4 h-4' })}</span>`;
+            : `<span class="w-9 h-9 rounded flex items-center justify-center flex-shrink-0 tint-fill" data-tone="info">${icon('fileText', { className: 'w-4 h-4' })}</span>`;
           return `<div class="flex items-center gap-2 p-2 rounded-lg bg-gray-50">
             ${thumb}
             <div class="flex-1 min-w-0">

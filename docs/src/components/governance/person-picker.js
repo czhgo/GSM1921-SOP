@@ -7,15 +7,15 @@
 //  样式：提取至 person-picker.css，主题色通过 CSS 变量 --pp-* 注入
 // ════════════════════════════════════════════════════════════════
 
-import { liveMembers, PersonStore } from '../../services/member/person.js?v=20261023b';
+import { liveMembers, PersonStore } from '../../services/member/person.js?v=20261023c';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/member/person.js 获取（原直连 mock PEOPLE）
 // 实时视图（非快照）：成员增删即时可见——见 services/member/person.js liveMembers 说明
 const PEOPLE = liveMembers();
-import { getPersonById } from '../../services/member/person.js?v=20261023b';
+import { getPersonById } from '../../services/member/person.js?v=20261023c';
 // 党小组清单单一源（活组按 seq 升序；2026-09-14 批次 29 收敛——见文件头「党小组清单」说明）
-import { groupOptions } from '../../services/member/party-group.js?v=20261023b';
-import { icon } from '../../core/base/icons.js?v=20261023b';
-import { ROLE_LABELS, ACCENT_COLORS, applyDark } from '../../core/domain/constants.js?v=20261023b';
+import { groupOptions } from '../../services/member/party-group.js?v=20261023c';
+import { icon } from '../../core/base/icons.js?v=20261023c';
+import { ROLE_LABELS, ACCENT_COLORS } from '../../core/domain/constants.js?v=20261023c';
 
 // ── 辅助：从 hex 生成 rgba 字符串 ──────────────────────────────
 function hexToRgba(hex, alpha) {
@@ -57,13 +57,13 @@ const STAGE_LABELS = {
   '积极分子': '积极',
 };
 
-// ── 发展阶段颜色映射（applyDark 补深色三件套，深色下由 --acc-*-dark 变量提亮）──
-const STAGE_COLORS = applyDark({
-  '正式党员': { bg: 'rgba(206,17,38,0.08)', text: '#991B1B', border: 'rgba(206,17,38,0.20)' },
-  '预备党员': { bg: 'rgba(59,130,246,0.08)', text: '#1D4ED8', border: 'rgba(59,130,246,0.20)' },
-  '发展对象': { bg: 'rgba(245,158,11,0.08)', text: '#A16207', border: 'rgba(245,158,11,0.20)' },
-  '积极分子': { bg: 'rgba(16,185,129,0.08)', text: '#047857', border: 'rgba(16,185,129,0.20)' },
-});
+// ── 发展阶段 → 固定语义 tone（不随主题）──
+const STAGE_TONE = {
+  '正式党员': 'danger',
+  '预备党员': 'info',
+  '发展对象': 'warning',
+  '积极分子': 'success',
+};
 
 // ════════════════════════════════════════════════════════════════
 //  PersonPicker 类
@@ -513,7 +513,7 @@ export class PersonPicker {
       const disabledTitle = isDisabled
         ? ((this._disabledTitle && this._disabledTitle(person)) || '该人员当前不可选')
         : '';
-      const stageColor = STAGE_COLORS[person.developStage] || STAGE_COLORS['正式党员'];
+      const stageTone = STAGE_TONE[person.developStage] || 'neutral';
       const stageLabel = STAGE_LABELS[person.developStage] || person.developStage;
       const roleLabel = person.role ? (ROLE_LABELS[person.role] || person.role) : '';
 
@@ -528,7 +528,7 @@ export class PersonPicker {
             <span class="person-picker-item-name-row">
               <span class="person-picker-item-name">${person.name}</span>
               ${isDisabled ? `<span class="person-picker-item-lock">${_escAttr(disabledLabel)}</span>` : ''}
-              <span class="person-picker-item-stage" style="--acc-bg-dark:${stageColor.bgDark};--acc-text-dark:${stageColor.textDark};background:${stageColor.bg};color:color-mix(in srgb, ${stageColor.text} 60%, #000);">${stageLabel}</span>
+              <span class="person-picker-item-stage tint-fill" data-tone="${stageTone}">${stageLabel}</span>
             </span>
             <span class="person-picker-item-meta">
               <span class="person-picker-item-meta-text">${person.studentId}</span>

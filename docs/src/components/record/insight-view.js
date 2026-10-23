@@ -13,16 +13,16 @@
 //   缺省（不传）＝两段都有 ⇒ **既有 5 台行为零变化**，逐台分批再切。
 
 // 分段当前值（'activity' | 'taskforce'）；模块级记忆，同台内切换后保留（参照既有 tab 的 _view 模式）
-import { renderTabHeader } from '../shell/page-frame.js?v=20261023b';
+import { renderTabHeader } from '../shell/page-frame.js?v=20261023c';
 
 let _view = null;
 // 已消费的深链定位目标：同一目标只强制分段一次，之后不覆盖用户手动的分段选择
 let _consumedHighlight = null;
 
 const SEG_ON_CLASSES = [
-  'bg-[var(--app-accent-bg)]',
+  'bg-[var(--app-accent-soft-bg)]',
   'border-[var(--app-accent)]',
-  '[color:color-mix(in_srgb,var(--app-accent)_60%,#000)]',
+  '[color:var(--app-accent-soft-text)]',
 ];
 const SEG_OFF_CLASSES = ['bg-white', 'border-neutral-200', 'text-gray-600'];
 
@@ -32,8 +32,6 @@ function _syncSegBtns(container, view) {
     const on = btn.dataset.iview === view;
     SEG_ON_CLASSES.forEach(c => btn.classList.toggle(c, on));
     SEG_OFF_CLASSES.forEach(c => btn.classList.toggle(c, !on));
-    if (on) btn.style.setProperty('--acc-text-dark', 'color-mix(in srgb, var(--app-accent) 55%, #fff)');
-    else btn.style.removeProperty('--acc-text-dark');
   });
 }
 
@@ -110,16 +108,16 @@ export function renderInsightView(container, opts = {}) {
 
   if (view === 'group') {
     // 「其他组」只读一览（组长台；见组件头注：看≠做、判据单一源＝group-view.js）
-    return import('./other-groups-view.js?v=20261023b').then(m => m.renderOtherGroupsView(body));
+    return import('./other-groups-view.js?v=20261023c').then(m => m.renderOtherGroupsView(body));
   }
   if (view === 'taskforce') {
-    return import('./taskforce-view.js?v=20261023b').then(m => m.renderTaskforceView(body, {
+    return import('./taskforce-view.js?v=20261023c').then(m => m.renderTaskforceView(body, {
       highlightId: opts.highlightTfId || null,
       taskforces: opts.taskforces,
       onLocated: opts.onLocated,
     }));
   }
-  return import('./activity-view.js?v=20261023b').then(m => m.renderActivityView(body, {
+  return import('./activity-view.js?v=20261023c').then(m => m.renderActivityView(body, {
     highlightId: opts.highlightActId || null,
     // 知情查看 = 只读形态（组织台原「活动查看（只读）」的 readonly:true 合并后保持不变）
     readonly: opts.readonly !== false,

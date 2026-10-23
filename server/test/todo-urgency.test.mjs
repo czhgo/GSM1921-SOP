@@ -18,7 +18,7 @@ import { join } from 'node:path';
 import {
   buildUrgencySections,
   renderUrgencyTodoList,
-} from '../../docs/src/components/record/todo-list.js?v=20261023b';
+} from '../../docs/src/components/record/todo-list.js?v=20261023c';
 
 const ROOT = join(import.meta.dirname, '..', '..');
 const read = (rel) => readFileSync(join(ROOT, rel), 'utf8');

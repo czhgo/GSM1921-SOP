@@ -85,7 +85,10 @@ const TIERS = [
  *   ① `sr-only` 隐藏语义按钮；
  *   ② **纯文字动作**（无 `px-`/`py-`/`btn`，如「全部 ›」）——导航，不是按钮；
  *   ③ **行式载体**（`w-full` ＋ `text-left`，如首页「今天有会/本岗待办」整行可点条）——
- *      高度由行内容决定，属 `§4.19` 内嵌行块，**不是按钮档**；强塞 25/30/34px 会破坏行布局。
+ *      高度由行内容决定，属 `§4.19` 内嵌行块，**不是按钮档**；强塞 25/30/34px 会破坏行布局；
+ *   ④ **主题预览卡**（2026-10-23 批次 505）：`appearance-controls.js` 的 7 个主题项是
+ *      「带 `aria-pressed` 的主题色预览控件」（内含两枚 20px 小样），不是动作按钮；
+ *      尺寸由 `.appearance-*` 段与 `min-w-[104px]` 自身口径决定，不并入动作按钮四档。
  *   ⚠ 批次 288 修正：早前 `py-\[7px\]\b` 中的 `\]` 后接空格 ⇒ `\b` 永不成立，
  *      导致**「主 CTA 档」被整体误判为越轨**（错数由此虚高）。**已修**。
  */
@@ -96,6 +99,9 @@ const isExempt = (c) => /\bsr-only\b/.test(c)
   || !/\bpy-/.test(c)
   // 行式载体（整行可点条目）：`w-full` **或** `flex-1` ＋ `text-left` ⇒ 高度由行内容决定（归 `§4.19`）。
   || (/\b(w-full|flex-1)\b/.test(c) && /\btext-left\b/.test(c));
+
+/** 主题预览卡放行判据（见例外④）：标签同时带 `data-accent-key` 与 `aria-pressed` */
+const isThemePreview = (tag) => /\bdata-accent-key=/.test(tag) && /\baria-pressed=/.test(tag);
 
 /** 棘轮上限（越轨数）：**已归零（批次 290）** ⇒ 此后**任何**新按钮都必须落档，零容忍 */
 const BUTTON_OFF_BUDGET_CEILING = 0;
@@ -147,7 +153,10 @@ test('B2 按钮尺寸档：<button> 必须命中四档之一（或命名族）',
     let m;
     while ((m = re.exec(src)) !== null) {
       const cls = m[1];
+      const tagEnd = src.indexOf('>', re.lastIndex);
+      const tag = src.slice(m.index, tagEnd === -1 ? src.length : tagEnd + 1);
       if (isExempt(cls)) continue;
+      if (isThemePreview(tag)) continue; // 例外④：主题预览卡（不是动作按钮）
       if (isCssNamedFamily(cls)) continue;
       if (TIERS.some((t) => t.hit(cls))) continue;
       total += 1;
@@ -189,6 +198,10 @@ const COMPONENT_STATE_EXEMPT = [
   'metric-band__item', // 概况结论带指标（筛选/定位控件，不是动作按钮）：选中态＝`.is-active` ＋ `--app-accent-bg`，尺寸由 styles.css 同名类定
   'gp-group-card', // 党小组选择卡（整卡可点，视觉由卡片边框/底色承担；不是动作按钮）
   'modal-close-btn', // 弹窗关闭 ×（2026-10-23 R11 P1-11）：形态/尺寸自有类（styles.css `.modal-close-btn`＋移动端 36px 命中区），不是动作按钮，不并入 8 族
+  // 2026-10-23 批次 505：`.tint-action`＝**组件自带固定语义色**的动作按钮（`data-tone` 驱动金/成功/信息/危险，
+  //   不随主题色变化；见 inspector.js / taskforce-tab.js）。它是「组件自有强调色」的既有豁免类，
+  //   尺寸走动作按钮档 2（text-xs + py-1.5），故不并入主题色 8 族。
+  'tint-action',
 ];
 
 test('B4 按钮族棘轮：未入语义族的 <button> 只许降不许升（「全面归一」的进度表）', () => {
@@ -202,6 +215,7 @@ test('B4 按钮族棘轮：未入语义族的 <button> 只许降不许升（「�
   };
   let handwritten = 0;
   let exempt = 0;
+  let themePreview = 0;
   const perFile = new Map();
   const re = /<button[^>]*\bclass="([^"]*)"/g;
   for (const f of walk(SRC)) {
@@ -209,6 +223,10 @@ test('B4 按钮族棘轮：未入语义族的 <button> 只许降不许升（「�
     let m;
     while ((m = re.exec(src)) !== null) {
       const cls = m[1];
+      const tagEnd = src.indexOf('>', re.lastIndex);
+      const tag = src.slice(m.index, tagEnd === -1 ? src.length : tagEnd + 1);
+      // 2026-10-23 批次 505：主题预览卡＝带 aria-pressed 的预览控件（例外④），不是动作按钮。
+      if (isThemePreview(tag)) { themePreview += 1; continue; }
       // ⚑ 2026-09-30 批次 297-2 **收窄判据**（支书裁「**组件自带强调色的控件豁免并回退**」＋
       //   「把这些页头 tab 恢复到之前的模式」）：**组件自带选中态强调色**（用自己的 `--xxx-accent`
       //   变量，不随通用主题族走）的控件**不并入 8 族**——它们各自就是「命名族」。
@@ -222,7 +240,7 @@ test('B4 按钮族棘轮：未入语义族的 <button> 只许降不许升（「�
   }
   const ledger = [...perFile.entries()].sort((a, b) => b[1] - a[1])
     .map(([f, n]) => `  ${String(n).padStart(3)}  ${relative(join(__dirname, '..', '..'), f)}`);
-  console.log(`[button-system-guard] 未入语义族的 <button> 共 ${handwritten} 个（棘轮上限 ${HANDWRITTEN_BUTTON_BASELINE}）；组件自有类豁免 ${exempt} 个（${COMPONENT_STATE_EXEMPT.join(' / ')}）：\n${ledger.join('\n')}`);
+  console.log(`[button-system-guard] 未入语义族的 <button> 共 ${handwritten} 个（棘轮上限 ${HANDWRITTEN_BUTTON_BASELINE}）；组件自有类豁免 ${exempt} 个（${COMPONENT_STATE_EXEMPT.join(' / ')}）；主题预览卡 ${themePreview} 个：\n${ledger.join('\n')}`);
   assert.ok(
     handwritten <= HANDWRITTEN_BUTTON_BASELINE,
     `未入语义族的 <button> 由 ${HANDWRITTEN_BUTTON_BASELINE} 升到 ${handwritten} 个 ⇒ 新按钮须走 8 族之一（${FAMILY_TOKENS.join(' / ')}）；每迁完一屏请一并下调基线。`,
@@ -261,16 +279,17 @@ test('B5 族·语义一致：.btn-ghost 不得带内联实底（借文字族形�
 });
 
 /**
- * B6【尺寸归一单一源】（2026-10-18 立）
+ * B6【尺寸归一单一源】（2026-10-18 立；2026-10-23 Task 6 改为 padding + line-height 推导）
  *   来源：支书反馈「有的厚、有的薄；有的字大、有的字小」⇒ 裁定**全局 CSS 归一**：
  *   8 个语义族的高度 / 字号 / 内边距只由 `styles.css` 的「按钮尺寸归一（2026-10-18）」段决定，
  *   页面不再用 `text-* / py-* / px-* / h-*` 零散决定厚薄。
  *   判据：
  *     ① 该段存在；
- *     ② **2026-10-23 R11 P1-05 口径**：36px 标准档（accent / accent-soft / outline / neutral /
+ *     ② **2026-10-23 Task 6 口径**：36px 标准档（accent / accent-soft / outline / neutral /
  *        danger / danger-solid / md）、32px 紧凑档（ghost / tab）、28px 小号档（sm / action）；
- *        字号正文 13px、微操作 12px，均带 `!important`——Tailwind 工具类可能后加载，不带压不住；
- *     ③ 通用排布（inline-flex / 居中 / 不换行 / 1px 边框）存在；
+ *        高度 = 上下 padding + 显式 line-height + 边框 2px，**不得再用 min-height 撑高**；
+ *        字号正文 13px、微操作 12px，均带 `!important`。
+ *     ③ 通用排布（inline-flex / 居中 / 不换行 / gap / 1px 边框）存在；
  *     ④ `.btn-icon` 例外存在（32×32、padding 0）。
  */
 const SIZE_NORMALIZE_MARKER = '按钮尺寸归一（2026-10-18）';
@@ -285,7 +304,23 @@ function cssRules(css) {
   return out;
 }
 
-test('B6 按钮尺寸归一：标准 36px ＋ 紧凑 32px ＋ 小号 28px（R11 P1-05 三档）', () => {
+/** 纵向 padding（忽略 !important） */
+function paddingY(body) {
+  const m = /(?:^|;)\s*padding\s*:\s*([^;]+)/.exec(body);
+  if (!m) return NaN;
+  const parts = m[1].replace(/!important/gi, '').trim().split(/\s+/).filter((x) => /^\d+(?:\.\d+)?px$/.test(x));
+  const top = parseFloat(parts[0]);
+  const bottom = parts.length > 2 ? parseFloat(parts[2]) : top;
+  return top + bottom;
+}
+
+/** 显式 px 行高 */
+function lineHeightPx(body) {
+  const m = /line-height\s*:\s*(\d+(?:\.\d+)?)px/.exec(body);
+  return m ? parseFloat(m[1]) : NaN;
+}
+
+test('B6 按钮尺寸归一：标准 36px ＋ 紧凑 32px ＋ 小号 28px（padding + line-height 推导）', () => {
   const start = CSS_SRC.indexOf(SIZE_NORMALIZE_MARKER);
   assert.ok(start >= 0,
     `styles.css 缺少「${SIZE_NORMALIZE_MARKER}」段 ⇒ 按钮尺寸仍会被页面工具类零散决定（厚薄不一的老病）。`);
@@ -294,17 +329,15 @@ test('B6 按钮尺寸归一：标准 36px ＋ 紧凑 32px ＋ 小号 28px（R11 
     .replace(/\/\*[\s\S]*?\*\//g, '');
   const rules = cssRules(section);
   const tierRuleOf = (token) => rules.find((r) => new RegExp(`\\.${token}(?![\\w-])`).test(r.selector)
-    && /min-height/.test(r.body));
+    && /padding/.test(r.body) && /line-height\s*:\s*\d+(?:\.\d+)?px/.test(r.body));
 
-  // ② 2026-10-23 R11 P1-05 三档：标准 36px（四类动作按钮 + .btn-neutral + .btn-md），
-  //    紧凑 32px（.btn-ghost / .btn-tab），小号 28px（.btn-sm / .btn-action）。
-  const expectTier = (token, minHeight, fontSize) => {
+  const expectTier = (token, height, fontSize) => {
     const r = tierRuleOf(token);
     assert.ok(r, `「${SIZE_NORMALIZE_MARKER}」段缺少 .${token} 的尺寸档（页面会退回零散工具类）`);
-    assert.match(r.body, new RegExp(`min-height:\\s*${minHeight}px\\s*!important`),
-      `.${token} 应为 min-height: ${minHeight}px !important`);
-    assert.match(r.body, /padding:\s*0\s+\d+px\s*!important/,
-      `.${token} 的 padding 应为「0 Npx !important」`);
+    const derived = paddingY(r.body) + lineHeightPx(r.body) + 2;
+    assert.equal(derived, height,
+      `.${token} 应由 padding + line-height + 2px 边框推导为 ${height}px（实际 ${derived}）`);
+    assert.doesNotMatch(r.body, /min-height/, `.${token} 不得用 min-height 撑高（高度须由文字行高参与计算）`);
     assert.match(r.body, new RegExp(`font-size:\\s*${fontSize}px\\s*!important`),
       `.${token} 的字号应为 ${fontSize}px !important`);
   };
@@ -329,11 +362,10 @@ test('B6 按钮尺寸归一：标准 36px ＋ 紧凑 32px ＋ 小号 28px（R11 
   const common = rules.find((r) => /display:\s*inline-flex/.test(r.body)
     && /align-items:\s*center/.test(r.body)
     && /justify-content:\s*center/.test(r.body)
-    && /gap:\s*0\.375rem\s*!important/.test(r.body)
-    && /line-height:\s*1\s*!important/.test(r.body)
+    && /gap:\s*var\(--space-1\)\s*!important/.test(r.body)
     && /white-space:\s*nowrap/.test(r.body)
     && /border-width:\s*1px/.test(r.body));
-  assert.ok(common, `「${SIZE_NORMALIZE_MARKER}」段缺少通用排布规则（inline-flex / 居中 / gap:0.375rem!important / line-height:1!important / nowrap / border-width:1px）`);
+  assert.ok(common, `「${SIZE_NORMALIZE_MARKER}」段缺少通用排布规则（inline-flex / 居中 / gap:var(--space-1)!important / nowrap / border-width:1px）`);
 
   // ④ 图标型例外
   const icon = rules.find((r) => /\.btn-icon(?![\w-])/.test(r.selector) && /width:\s*32px/.test(r.body));
@@ -354,8 +386,10 @@ test('B6 按钮尺寸归一：标准 36px ＋ 紧凑 32px ＋ 小号 28px（R11 
  *   2026-10-19 排除 `tab-btn` / 页签 `btn-tab` 后实测 **413** ⇒ 基线下调为 413。
  *   2026-10-23 R11：toast 新增一条关闭按钮（error/success 提示可手动关闭）⇒ 实测 414，
  *     基线按实况上调为 414（只此一次，之后只许降不许升）。
+ *   2026-10-23 批次 505（Task 7/8 收口后）：实测 **396**（族内尺寸工具类随主题/密度收敛下降）
+ *     ⇒ 按收基线纪律下调为 396（只降不升）。
  */
-const FAMILY_SIZE_OVERRIDE_BASELINE = 414;
+const FAMILY_SIZE_OVERRIDE_BASELINE = 396;
 const SIZE_TOKEN_RE = /^(?:text-(?:xs|sm|base|lg|xl)|text-\[\d+px\]|p-\d+(?:\.\d+)?|px-\d+(?:\.\d+)?|py-\d+(?:\.\d+)?|h-\d+(?:\.\d+)?|min-h-\S+)$/;
 // 动作按钮族令牌；**不含** `btn-tab`（页签 / 分段控件豁免，见 B7 注释）
 const FAMILY_TOKEN_RE = /(^|\s)(btn-accent-soft|btn-accent|btn-action|btn-md|btn-neutral|btn-outline|btn-ghost|btn-danger)/;

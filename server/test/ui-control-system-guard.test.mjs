@@ -284,17 +284,21 @@ test('SD-4 披露控件统一：全局移除 summary 三角，且 <summary> 上�
   assert.equal(listNone, 0, `逐点 list-none 例外必须清零（全局规则已统一），实际 ${listNone} 个`);
 });
 
-test('SD-6 浅主题底不显白：.btn-accent-soft 不用 --neutral-0；存在 --app-accent-deep', () => {
-  assert.match(CSS, /--app-accent-deep\s*:/, '缺少主题色深字令牌 --app-accent-deep');
+test('SD-6 浅主题底不显白：.btn-accent-soft 消费 soft 三件套（手选 hex，非 color-mix）', () => {
+  // 2026-10-23 批次 506：浅底/深字不再由 color-mix 派生——每主题 softBg/softText 是手选 hex，
+  //   非法 `--neutral-0` 近白仍禁止；`--app-accent-deep` 仅作兼容别名（= softText），不再是独立令牌。
+  assert.match(CSS, /--app-accent-soft-bg:\s*var\(--app-accent-soft-bg-light\)/, '缺少 softBg 别名');
+  assert.match(CSS, /--app-accent-soft-text:\s*var\(--app-accent-soft-text-light\)/, '缺少 softText 别名');
   const soft = /\.btn-accent-soft\s*\{([^}]*)\}/.exec(CSS);
   assert.ok(soft, '缺少 .btn-accent-soft 规则');
   const bg = /background(?:-color)?\s*:\s*([^;]+);/.exec(soft[1]);
   assert.ok(bg, '.btn-accent-soft 必须显式声明背景');
   const value = bg[1].trim();
   assert.notEqual(value, 'var(--neutral-0)', '.btn-accent-soft 的背景不得为 --neutral-0（近白）');
-  assert.ok(/color-mix\(in srgb,\s*var\(--app-accent\)/.test(value),
-    `.btn-accent-soft 的背景必须是主题色混白（明显着色），实际：${value}`);
-  assert.match(soft[1], /color:\s*var\(--app-accent-deep\)/, '.btn-accent-soft 的文字必须用 --app-accent-deep');
+  assert.ok(/var\(--app-accent-soft-bg\)/.test(value),
+    `.btn-accent-soft 的背景必须是 softBg token（明显着色），实际：${value}`);
+  assert.ok(!/color-mix\(/.test(value), `.btn-accent-soft 的背景不得再用 color-mix 派生，实际：${value}`);
+  assert.match(soft[1], /color:\s*var\(--app-accent-soft-text\)/, '.btn-accent-soft 的文字必须用 softText token');
 });
 
 test('SD-9 页签组名可见：groupLabel 渲染为非空文本，且存在 .tab-group-sep', () => {

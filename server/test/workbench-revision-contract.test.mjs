@@ -144,9 +144,11 @@ test('支部附件下载继承党委工作台所选支部，服务端下载不�
 
 test('专班卡片人数只汇总组织者与深度参与者，不读历史普通参与人', async () => {
   const source = await read('../../docs/src/entries/tabs/org/taskforce-tab.js');
-  const cardStart = source.indexOf('function _renderTfCard(t, statusLabel, statusColor) {');
-  assert.ok(cardStart >= 0);
-  assert.match(source.slice(cardStart, cardStart + 120), /const filled = _tfAssignsOf\(t\)\.length/);
+  // 锚点只锁函数名（形参随展示层演进，2026-10-23 批次 506 去掉了 statusColor）；
+  //   判据仍是「人数取 _tfAssignsOf(t)」——它只含组织者与深度参与者。
+  const cardStart = source.search(/function _renderTfCard\(t[,)]/);
+  assert.ok(cardStart >= 0, '未找到 _renderTfCard（函数被改名 ⇒ 本判据需重新对齐）');
+  assert.match(source.slice(cardStart, cardStart + 200), /const filled = _tfAssignsOf\(t\)\.length/);
 });
 
 test('共享概况把支书实时派生组并入待办，待答复与答复收件箱同源', async () => {

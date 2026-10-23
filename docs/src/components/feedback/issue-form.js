@@ -1,10 +1,10 @@
 // role: [工程师]+[AI]
 // issue-form.js — 反馈新建表单
 
-import { IssueStore, ISSUE_DOMAINS, issueDomainSuggest, issueDomainReplyHint } from '../../services/governance/issues.js?v=20261023b';
-import { showToast } from '../../core/base/utils.js?v=20261023b';
-import { icon } from '../../core/base/icons.js?v=20261023b';
-import { badgeHtml } from '../ui/badges.js?v=20261023b';
+import { IssueStore, ISSUE_DOMAINS, issueDomainSuggest, issueDomainReplyHint } from '../../services/governance/issues.js?v=20261023c';
+import { showToast } from '../../core/base/utils.js?v=20261023c';
+import { icon } from '../../core/base/icons.js?v=20261023c';
+import { badgeHtml } from '../ui/badges.js?v=20261023c';
 
 const SCOPE_OPTIONS = [
   { value: 'permanent', label: '底层架构' },
@@ -13,11 +13,12 @@ const SCOPE_OPTIONS = [
   { value: 'scenario', label: '特定场景' },
 ];
 
+// 固定语义 badge 变体（不随主题）
 const TYPE_OPTIONS = [
-  { value: 'bug', label: '缺陷', color: '#CE1126', darkColor: '#F87171' },
-  { value: 'enhancement', label: '增强', color: '#A16207', darkColor: '#FBBF24' },
-  { value: 'proposal', label: '提案', color: '#2563EB', darkColor: '#60A5FA' },
-  { value: 'question', label: '疑问', color: '#6B7280', darkColor: '#94A3B8' },
+  { value: 'bug', label: '缺陷', badge: 'danger' },
+  { value: 'enhancement', label: '增强', badge: 'warning' },
+  { value: 'proposal', label: '提案', badge: 'info' },
+  { value: 'question', label: '疑问', badge: 'neutral' },
 ];
 
 /** 渲染新建反馈表单（默认匿名；服务端受保护记录保留身份，mock 浏览器存储不留身份） */
@@ -60,7 +61,7 @@ export function renderIssueForm() {
               ${TYPE_OPTIONS.map(t => `
                 <label class="flex items-center gap-2 text-xs cursor-pointer font-sans">
                   <input type="checkbox" name="form-type" value="${t.value}" class="rounded">
-                  <span class="badge" style="background:${t.color}15;color:color-mix(in srgb, ${t.color} 60%, #000);--acc-bg-dark:${t.darkColor}24;--acc-text-dark:${t.darkColor}">${t.label}</span>
+                  <span class="badge badge--${t.badge}">${t.label}</span>
                 </label>
               `).join('')}
             </div>
@@ -82,7 +83,7 @@ export function renderIssueForm() {
             匿名提交
           </label>
           <div class="flex gap-2">
-            <a href="./feedback.html" class="px-4 py-2 text-sm rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 font-sans">取消</a>
+            <a href="./feedback.html" class="px-4 py-2 text-sm rounded-lg border border-gray-200 text-gray-600 hover:bg-surface-hover font-sans">取消</a>
             <button id="btn-submit-issue" class="btn-accent text-sm px-4 py-1.5 font-sans">提交反馈</button>
           </div>
         </div>

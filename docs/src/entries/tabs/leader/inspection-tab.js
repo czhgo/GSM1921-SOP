@@ -3,28 +3,28 @@
 // 党小组活动考察：组织者上传 → 纪检委员确认 → 录入考察总表。
 // 业务口径：考察依托工作组——考察记录挂工作组，考察对象为该工作组成员；sourceType/activityId/taskforceId 是工作组类型的投影。
 
-import { loadInspectionRecords, saveInspectionRecords, canUploadInspection } from '../../../services/activity/inspection.js?v=20261023b';
-import { loadInspectionAppeals, reconfirmReturnedInspectionRecord, resolveInspectionAppeal, isInspectionHomePosition } from '../../../services/activity/inspection.js?v=20261023b';
-import { loadActivities, getOrganizedActivities } from '../../../services/activity/activity.js?v=20261023b';
+import { loadInspectionRecords, saveInspectionRecords, canUploadInspection } from '../../../services/activity/inspection.js?v=20261023c';
+import { loadInspectionAppeals, reconfirmReturnedInspectionRecord, resolveInspectionAppeal, isInspectionHomePosition } from '../../../services/activity/inspection.js?v=20261023c';
+import { loadActivities, getOrganizedActivities } from '../../../services/activity/activity.js?v=20261023c';
 // 待批活动的可见性单一源（2026-09-22 批次 151）：组长台为非支委层 ⇒ 待批活动不进本页来源下拉
-import { filterActivitiesForViewer } from '../../../services/core/visibility.js?v=20261023b';
-import { TaskForceRecordStore, isTaskforceOrganizer } from '../../../services/activity/taskforce.js?v=20261023b';
-import { AuthStore } from '../../../services/core/auth.js?v=20261023b';
-import { PersonPicker } from '../../../components/governance/pickers.js?v=20261023b';
+import { filterActivitiesForViewer } from '../../../services/core/visibility.js?v=20261023c';
+import { TaskForceRecordStore, isTaskforceOrganizer } from '../../../services/activity/taskforce.js?v=20261023c';
+import { AuthStore } from '../../../services/core/auth.js?v=20261023c';
+import { PersonPicker } from '../../../components/governance/pickers.js?v=20261023c';
 // 「本位」nudge 确认弹窗（2026-09-23 支书裁定 · 单一源 = components/ui/modal.js::confirmNudge）
-import { confirmNudge } from '../../../components/ui/modal.js?v=20261023b';
-import { inspectionToLong } from '../../../services/activity/inspection.js?v=20261023b';
-import { getPersonById, getPersonName } from '../../../services/member/person.js?v=20261023b';
-import { SourceType, ParticipationLevel } from '../../../core/domain/domain.js?v=20261023b';
-import { showToast, escHtml as esc, getBasePath } from '../../../core/base/utils.js?v=20261023b';
-import { solidAccentStyle, accDarkVars } from '../../../core/domain/constants.js?v=20261023b';
-import { currentLeaderGroup } from './_shared.js?v=20261023b';
-import { generateId } from '../../../core/base/id.js?v=20261023b';
+import { confirmNudge } from '../../../components/ui/modal.js?v=20261023c';
+import { inspectionToLong } from '../../../services/activity/inspection.js?v=20261023c';
+import { getPersonById, getPersonName } from '../../../services/member/person.js?v=20261023c';
+import { SourceType, ParticipationLevel } from '../../../core/domain/domain.js?v=20261023c';
+import { showToast, escHtml as esc, getBasePath } from '../../../core/base/utils.js?v=20261023c';
+import { solidAccentStyle } from '../../../core/domain/constants.js?v=20261023c';
+import { currentLeaderGroup } from './_shared.js?v=20261023c';
+import { generateId } from '../../../core/base/id.js?v=20261023c';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是人的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
-import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261023b';
-import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261023b';
+import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261023c';
+import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261023c';
 // 材料页深链 focusActivityId 的通用定位（只滚动 + 闪烁，不另造筛选器）
-import { focusActivityAnchor } from '../../../components/ui/detail-anchor.js?v=20261023b';
+import { focusActivityAnchor } from '../../../components/ui/detail-anchor.js?v=20261023c';
 
 // 私有状态（随模块自持，不污染入口）
 let _inspFormVisible = false;
@@ -42,7 +42,6 @@ export function renderContent(ctx, host, opts = {}) {
   const rerender = () => renderContent(ctx, host, opts);
 
   const { accent, accentRgba, accentBorder } = ctx;
-  const _accVars = accDarkVars(accent);
 
   // 清理旧的 PersonPicker 实例
   if (_inspPickerInstance) { _inspPickerInstance.destroy(); _inspPickerInstance = null; }
@@ -141,7 +140,7 @@ export function renderContent(ctx, host, opts = {}) {
     <div class="card rounded-xl p-5">
       <div class="flex items-center justify-between mb-4">
         <h3 class="font-title-cn text-base font-semibold text-gray-800">${isOrganizerScope ? '考察上传位' : '考察管理'}</h3>
-        <button class="btn-md" id="btn-leader-upload-insp" style="${_accVars}background:${accentRgba};color:color-mix(in srgb, ${accent} 60%, #000);border:1px solid ${accentBorder};">${_inspFormVisible ? '收起表单' : '上传考察表单'}</button>
+        <button class="btn-md" id="btn-leader-upload-insp" style="background:var(--app-accent-soft-bg);color:var(--app-accent-soft-text);border:1px solid var(--app-accent-soft-border);">${_inspFormVisible ? '收起表单' : '上传考察表单'}</button>
       </div>
       <div class="help-note mb-3"><a href="./help.html#card-dom34-upload" class="help-note__link">见帮助 · 考察上传</a></div>
       ${formHtml}
@@ -204,7 +203,7 @@ export function renderContent(ctx, host, opts = {}) {
         const statusLabel = i.status === 'confirmed' ? '已确认' : (selfRecorded ? '待确认 · 本人提交' : '待确认');
         return `
               <tr data-act-id="${esc(i.activityId || '')}">
-                <td data-label="姓名" class="font-medium text-gray-800"><a href="${getBasePath()}person.html?id=${encodeURIComponent(i.personId)}" class="hover:underline hover:text-sky-700 transition-colors" title="查看完整档案">${esc(getPersonName(i.personId))}</a></td>
+                <td data-label="姓名" class="font-medium text-gray-800"><a href="${getBasePath()}person.html?id=${encodeURIComponent(i.personId)}" class="hover:underline hover:text-[var(--app-accent-soft-text)] transition-colors" title="查看完整档案">${esc(getPersonName(i.personId))}</a></td>
                 <td data-label="活动" class="text-gray-600">${i.activityId ? `<a class="text-blue-600 hover:underline" href="./activity.html?id=${i.activityId}">${esc(i.source)}</a>` : esc(i.source)}</td>
                 <td data-label="考察内容" class="text-gray-600">${esc(i.content || i.role)}</td>
                 <td data-label="确认状态"><span class="px-1.5 py-0.5 rounded-full text-xs ${i.status === 'confirmed' ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'}"${selfRecorded && i.status !== 'confirmed' ? ' title="本人提交的记录不能由本人确认，待纪检/支书/副支书确认"' : ''}>${statusLabel}</span></td>

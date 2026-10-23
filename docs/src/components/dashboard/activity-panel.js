@@ -5,20 +5,20 @@
 //  职责单一：日历/列表双视图切换 + ?view=?month= URL 同步 + 活动列表（前 10 条）。
 // ════════════════════════════════════════════════════════════════
 
-import { setState, getAppState } from '../../core/base/state.js?v=20261023b';
-import { _fmtDate, getBasePath } from '../../core/base/utils.js?v=20261023b';
-import { getPersonName } from '../../services/member/person.js?v=20261023b';
-import { CrossPageState } from '../../core/session/cross-page-state.js?v=20261023b';
-import { AuthStore } from '../../services/core/auth.js?v=20261023b';
-import { getActivityTypeColors, DASHBOARD_LIMITS } from '../../core/domain/constants.js?v=20261023b';
+import { setState, getAppState } from '../../core/base/state.js?v=20261023c';
+import { _fmtDate, getBasePath } from '../../core/base/utils.js?v=20261023c';
+import { getPersonName } from '../../services/member/person.js?v=20261023c';
+import { CrossPageState } from '../../core/session/cross-page-state.js?v=20261023c';
+import { AuthStore } from '../../services/core/auth.js?v=20261023c';
+import { getActivityTypeColors, DASHBOARD_LIMITS } from '../../core/domain/constants.js?v=20261023c';
 // 活动「已归档」口径单一源（2026-09-13 收敛）：替代手写 !a.archived
-import { isActivityArchived } from '../../core/domain/constants.js?v=20261023b';
-import { badgeHtml } from '../ui/badges.js?v=20261023b';
+import { isActivityArchived } from '../../core/domain/constants.js?v=20261023c';
+import { badgeHtml } from '../ui/badges.js?v=20261023c';
 // 活动「已完成 / 已取消」闭环判据单一源（R7-16）：替代手写 ['completed','cancelled']
-import { isActivityClosed } from '../../core/domain/domain.js?v=20261023b';
-import { deriveActivityLifecycleStatus, ACTIVITY_LIFECYCLE } from '../record/inspector.js?v=20261023b';
-import { populateMonthSelector } from '../record/calendar.js?v=20261023b';
-import { getCapabilities, mountCapability, getRuntimeEnv } from '../../core/boot/registry.js?v=20261023b';
+import { isActivityClosed } from '../../core/domain/domain.js?v=20261023c';
+import { deriveActivityLifecycleStatus, ACTIVITY_LIFECYCLE } from '../record/inspector.js?v=20261023c';
+import { populateMonthSelector } from '../record/calendar.js?v=20261023c';
+import { getCapabilities, mountCapability, getRuntimeEnv } from '../../core/boot/registry.js?v=20261023c';
 
 const DASHBOARD_DEFAULT_VIEW = 'calendar';
 const ACTIVITY_TYPE_COLORS = getActivityTypeColors({ withLabel: true });
@@ -66,9 +66,8 @@ export function switchActivityView(view) {
   document.querySelectorAll('.activity-tab-btn').forEach(btn => {
     const isActive = btn.dataset.view === view;
     btn.className = `activity-tab-btn px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors duration-200 ${
-      isActive ? 'bg-[var(--app-accent-bg)] border-[var(--app-accent)] [color:color-mix(in_srgb,var(--app-accent)_60%,#000)]' : 'bg-white border-neutral-200 text-gray-600 hover:bg-gray-50'
+      isActive ? 'bg-[var(--app-accent-soft-bg)] border-[var(--app-accent)] [color:var(--app-accent-soft-text)]' : 'bg-white border-neutral-200 text-gray-600 hover:bg-[var(--surface-hover)]'
     }`;
-    if (isActive) btn.style.setProperty('--acc-text-dark', 'color-mix(in srgb, var(--app-accent) 55%, #fff)'); else btn.style.removeProperty('--acc-text-dark');
   });
 
   // 同步 URL
@@ -109,7 +108,7 @@ export function renderActivityList(activities, user) {
     ? CrossPageState.buildURL(getBasePath() + 'workspace/' + (AuthStore.getPageForRole('workspace', user.role) || 'visitor.html'), { view: 'activities' })
     : getBasePath() + 'login.html';
   const moreHtml = sorted.length > display.length
-    ? `<a href="${moreUrl}" class="mt-2 flex items-center justify-center gap-1 py-2 text-xs font-medium rounded-lg transition-colors hover:bg-gray-50" style="color:var(--accent-blue);">查看更多活动（共 ${sorted.length} 条）→</a>`
+    ? `<a href="${moreUrl}" class="mt-2 flex items-center justify-center gap-1 py-2 text-xs font-medium rounded-lg transition-colors hover:bg-[var(--surface-hover)]" style="color:var(--accent-blue);">查看更多活动（共 ${sorted.length} 条）→</a>`
     : '';
 
   container.innerHTML = '<div class="space-y-2">' + display.map(a => {
@@ -125,9 +124,9 @@ export function renderActivityList(activities, user) {
            role="button" tabindex="0"
            data-activity-id="${a.id || ''}"
            title="${a.title || '未命名活动'} | ${dateLabel} | ${color.label}${a.location ? ' | ' + a.location : ''}">
-        <div class="w-2.5 h-2.5 rounded-full flex-shrink-0 group-hover:scale-125 transition-transform" style="background: ${color.dot}${color.dotBorder ? `;border:1px solid ${color.dotBorder}` : ''}"></div>
+        <div class="w-2.5 h-2.5 rounded-full flex-shrink-0" style="background: ${color.dot}${color.dotBorder ? `;border:1px solid ${color.dotBorder}` : ''}"></div>
         <div class="flex-1 min-w-0">
-          <p class="text-sm font-medium text-gray-800 truncate group-hover:text-blue-700 transition-colors">${a.title || '未命名活动'}</p>
+          <p class="text-sm font-medium text-gray-800 truncate group-hover:text-[var(--app-accent-soft-text)] transition-colors">${a.title || '未命名活动'}</p>
           <p class="text-xs text-gray-500 mt-0.5">${dateLabel} · ${color.label}${organizerName ? ' · ' + organizerName : ''}${a.location ? ' · ' + a.location : ''}</p>
         </div>
         ${badgeHtml(lifecycle.label, lifecycle.variant)}

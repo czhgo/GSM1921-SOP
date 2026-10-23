@@ -44,42 +44,42 @@
 //   ⚠ **只动渲染顺序 / 分层与落点**，不改任何功能、权限判定与写口——DOM ID 全保留，真机流程不失配。
 // ════════════════════════════════════════════════════════════════
 
-import { AuthStore } from '../../../services/core/auth.js?v=20261023b';
-import { PersonStore, getPersonName } from '../../../services/member/person.js?v=20261023b';
-import { getBranchIdOfPerson } from '../../../services/branch/branch.js?v=20261023b';
-import { IssueStore } from '../../../services/governance/issues.js?v=20261023b';
-import { loadActivities } from '../../../services/activity/activity.js?v=20261023b';
-import { loadActivityReviews } from '../../../services/governance/review.js?v=20261023b';
-import { loadAttendanceRecords } from '../../../services/activity/attendance.js?v=20261023b';
-import { AttendanceStatus, ReviewStatus, REVIEW_STATUS_LABELS } from '../../../core/domain/domain.js?v=20261023b';
-import { getMeetingRosterIds } from '../../../services/member/roster.js?v=20261023b';
-import { showToast, escHtml as esc, getBasePath, todayLocal } from '../../../core/base/utils.js?v=20261023b';
+import { AuthStore } from '../../../services/core/auth.js?v=20261023c';
+import { PersonStore, getPersonName } from '../../../services/member/person.js?v=20261023c';
+import { getBranchIdOfPerson } from '../../../services/branch/branch.js?v=20261023c';
+import { IssueStore } from '../../../services/governance/issues.js?v=20261023c';
+import { loadActivities } from '../../../services/activity/activity.js?v=20261023c';
+import { loadActivityReviews } from '../../../services/governance/review.js?v=20261023c';
+import { loadAttendanceRecords } from '../../../services/activity/attendance.js?v=20261023c';
+import { AttendanceStatus, ReviewStatus, REVIEW_STATUS_LABELS } from '../../../core/domain/domain.js?v=20261023c';
+import { getMeetingRosterIds } from '../../../services/member/roster.js?v=20261023c';
+import { showToast, escHtml as esc, getBasePath, todayLocal } from '../../../core/base/utils.js?v=20261023c';
 // 统一检索引擎（2026-09-13 表格统一化批次 A）：组员进展摘要（按人）接入关键词 + 分面
-import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261023b';
+import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261023c';
 // 活动类型胶囊（批次 301）：变体判据＝单一源 `activityTypeBadgeVariant`（三会一课＝brand 红 / 主题党日＝gold 金），
 //   渲染唯一源＝`components/ui/badge.js`；**不在本文件手写色值**（支书 2026-09-30：颜色是最好的信息展示方式）。
-import { activityTypeBadgeVariant, DEFAULT_BRANCH_ID } from '../../../core/domain/constants.js?v=20261023b';
-import { badgeHtml } from '../../../components/ui/badges.js?v=20261023b'; // 扎口出口（批次 304 收回，勿直连 badge.js）
-import { openModal, closeModal } from '../../../components/ui/modal.js?v=20261023b';
-import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261023b';
+import { activityTypeBadgeVariant, DEFAULT_BRANCH_ID } from '../../../core/domain/constants.js?v=20261023c';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20261023c'; // 扎口出口（批次 304 收回，勿直连 badge.js）
+import { openModal, closeModal } from '../../../components/ui/modal.js?v=20261023c';
+import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261023c';
 // 党小组一等实体服务层（组清单 / 写口 / 权限门 / 留痕——组名唯一来源，禁本文件手写组名数组）
 import {
   loadPartyGroups, groupOptions, defaultGroupName, nextGroupSeq,
   addGroup, renameGroup, dissolveGroup, assignMemberToGroup, ungroupedMembers,
   canManagePartyGroups, listGroupHistory,
-} from '../../../services/member/party-group.js?v=20261023b';
+} from '../../../services/member/party-group.js?v=20261023c';
 import {
   listPartyGroups, memberScopeOfGroup, countOpenReportsByGroup,
   groupActivitiesOf, reviewBucketOf, GROUP_REVIEW_COLOR, groupLeadershipOf,
   groupReportRowsOf, reportRowStateOf,
-} from '../../../services/member/group-view.js?v=20261023b';
+} from '../../../services/member/group-view.js?v=20261023c';
 // 赋权分块（2026-09-25 支书裁「全按对象归位」）：情景①a（设党小组组长 / 副组长）由本 tab「党小组清单」卡内
 //   行内管理（2026-10-04 批次 373 去冗余：撤独立「组长指派」块，改由清单行内「设/改」开同一面板）；
 //   **情景①b 支委身份配置已按 2026-09-27 支书裁定迁「支委会」**；**情景②③ 项目赋权整卡按 2026-10-04
 //   批次 373 迁「活动管理」页**（`calendar-tab.js`）。
 //   实现单一源＝entries/tabs/secretary/assign-tab.js（该文件已不注册为 tab，仅余 mount* 分块）
 //   ⇒ **不新造第二套视觉/表单**，只把既有分块挂到本 tab 的落点。
-import { mountLeaderAssign, openLeaderAssignPanel } from './assign-tab.js?v=20261023b';
+import { mountLeaderAssign, openLeaderAssignPanel } from './assign-tab.js?v=20261023c';
 
 // R2-17：缺省支部单一源 = core/domain/constants.js::DEFAULT_BRANCH_ID。
 
@@ -213,7 +213,7 @@ function _ungroupedRowHtml(p, options, canAssign) {
     : '<span class="text-xs text-gray-500">未分组</span>';
   return `
     <div class="flex items-center gap-2 shrink-0">
-      <a href="${getBasePath()}person.html?id=${encodeURIComponent(p.id)}" class="text-xs text-gray-800 hover:underline hover:text-sky-700 transition-colors" title="查看完整档案">${esc(p.name || getPersonName(p.id))}</a>
+      <a href="${getBasePath()}person.html?id=${encodeURIComponent(p.id)}" class="text-xs text-gray-800 hover:underline hover:text-[var(--app-accent-soft-text)] transition-colors" title="查看完整档案">${esc(p.name || getPersonName(p.id))}</a>
       ${control}
     </div>`;
 }
@@ -291,7 +291,7 @@ function _leaderCellHtml(g, assign, canManage) {
   const deputies = (assign && assign.deputies) || [];
   const chips = (persons) => persons.length
     ? persons.map(p => `<span class="inline-flex items-center gap-1 min-w-0">
-        <a href="${getBasePath()}person.html?id=${encodeURIComponent(p.personId)}" class="text-xs text-gray-800 min-w-0 truncate hover:underline hover:text-sky-700 transition-colors" title="查看完整档案">${esc(getPersonName(p.personId))}</a>
+        <a href="${getBasePath()}person.html?id=${encodeURIComponent(p.personId)}" class="text-xs text-gray-800 min-w-0 truncate hover:underline hover:text-[var(--app-accent-soft-text)] transition-colors" title="查看完整档案">${esc(getPersonName(p.personId))}</a>
         ${canManage && p.recordId ? `<button type="button" class="gp-revoke-leader btn-danger btn-sm" data-record-id="${esc(p.recordId)}" data-group="${esc(g.name)}" title="撤销该赋权（回落普通成员）">撤销</button>` : ''}
       </span>`).join('、')
     : '<span class="text-xs text-gray-500">未设</span>';
@@ -431,9 +431,9 @@ function _groupCardHtml(g, activeGroup, issues, leaderAssign) {
     ? leaderIds.map((id) => esc(getPersonName(id))).join('、')
     : '<span class="text-gray-500">未设置</span>';
   return `
-    <button type="button" class="gp-group-card text-left rounded-xl border border-[var(--neutral-200)] p-3 transition-colors ${isActive ? '' : 'bg-white hover:bg-gray-50'}"
+    <button type="button" class="gp-group-card text-left rounded-xl border border-[var(--neutral-200)] p-3 transition-colors ${isActive ? '' : 'bg-white hover:bg-[var(--surface-hover)]'}"
       data-group="${esc(g.groupName)}"
-      style="${isActive ? 'border-color:var(--app-accent-border);background:var(--app-accent-bg);' : 'border-color:var(--neutral-100);'}">
+      style="${isActive ? 'border-color:var(--app-accent-soft-border);background:var(--app-accent-soft-bg);' : 'border-color:var(--neutral-100);'}">
       <div class="flex items-center justify-between gap-2">
         <span class="text-sm font-semibold text-gray-800">${esc(g.groupName)}</span>
         <span class="gp-open-badge text-xs px-1.5 py-0.5 rounded-full ${openCount ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-gray-600'}">
@@ -519,11 +519,11 @@ function _renderReportsList(hostEl, group, allIssues, leaderAssign) {
              data-note="${esc(`本组组员汇报待跟进：${submitterName} · ${r.title}`)}">请组长关注</button>`
         : '';
       return `
-      <div class="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors">
+      <div class="flex items-center gap-2.5 px-3 py-2 rounded-lg">
         ${_reportDot(r)}
         <div class="min-w-0 flex-1">
           <div class="flex items-center gap-2 min-w-0">
-            <a href="${getBasePath()}person.html?id=${encodeURIComponent(r.submittedBy)}" class="text-sm font-medium text-gray-800 shrink-0 hover:underline hover:text-sky-700 transition-colors" title="查看完整档案">${esc(submitterName)}</a>
+            <a href="${getBasePath()}person.html?id=${encodeURIComponent(r.submittedBy)}" class="text-sm font-medium text-gray-800 shrink-0 hover:underline hover:text-[var(--app-accent-soft-text)] transition-colors" title="查看完整档案">${esc(submitterName)}</a>
             <span class="text-xs text-gray-600 flex-1 min-w-0 truncate">${esc(r.title)}</span>
           </div>
           <div class="text-xs text-gray-500">${esc(r.submittedAt || '')}${r.requestedBy ? ' · ' + esc(getPersonName(r.requestedBy)) + ' 请汇报' : ''}</div>
@@ -603,7 +603,7 @@ function _reviewStatusCardHtml(group, members, activities, reviews) {
     : completed.map(({ act, rev }) => {
         const isExpanded = _expandedReviewId === act.id;
         return `
-          <div class="gp-review-item p-2.5 rounded-lg bg-white cursor-pointer hover:bg-gray-50 transition-colors gp-review-toggle" data-act-id="${act.id}">
+          <div class="gp-review-item p-2.5 rounded-lg bg-white cursor-pointer hover:bg-[var(--surface-hover)] transition-colors gp-review-toggle" data-act-id="${act.id}">
             <div class="flex items-center justify-between gap-3">
               <div class="min-w-0 flex-1">
                 <div class="text-sm font-medium text-gray-800 truncate">${esc(act.title || '未命名')}</div>
@@ -644,7 +644,7 @@ function _reviewDetailHtml(rev) {
       <div class="text-xs text-gray-600 p-2 bg-gray-50 rounded-lg border border-gray-100 whitespace-pre-wrap">${esc(rev.reviewContent || '')}</div>
       ${issues.length ? `<div class="mt-2 p-2 rounded-lg border border-amber-100 bg-amber-50">
         <div class="text-xs text-amber-700 font-bold mb-1">提出的真问题（${issues.length}）</div>
-        <ul class="space-y-0.5">${issues.map(i => `<li class="text-xs text-amber-800" style="--acc-text-dark:#FBBF24;">· ${esc(i)}</li>`).join('')}</ul>
+        <ul class="space-y-0.5">${issues.map(i => `<li class="text-xs text-amber-700">· ${esc(i)}</li>`).join('')}</ul>
       </div>` : ''}
       ${rev.submittedAt ? `<div class="text-xs text-gray-500 mt-1">提交时间：${esc(String(rev.submittedAt).slice(0, 16).replace('T', ' '))}</div>` : ''}
       ${rev.annotation ? `
@@ -952,7 +952,7 @@ export function openActivityWriteEntry() {
   const topBtn = document.getElementById('ws-sec-write-btn');
   if (topBtn) { topBtn.click(); return; }
   // 顶栏未挂出（只读形态 / 顶栏尚未渲染）时不得静默无效：直接打开既有写入表单（单一写入口）。
-  import('./calendar-tab.js?v=20261023b')
+  import('./calendar-tab.js?v=20261023c')
     .then((m) => m.openActivityWriteForm())
     .catch((err) => console.warn('[group-progress] 打开写入活动表单失败：', err));
 }

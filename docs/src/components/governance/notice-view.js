@@ -10,14 +10,14 @@
 //  依赖方向正确：组件 → 服务（不是服务 → 组件）。守卫见 notice-audience / doc-consistency。
 // ════════════════════════════════════════════════════════════════
 
-import { badgeHtml } from '../ui/badges.js?v=20261023b';
-import { openFormModal } from '../ui/modal.js?v=20261023b';
-import { showToast, getBasePath, todayLocal } from '../../core/base/utils.js?v=20261023b';
-import { ROLE_LABELS } from '../../core/domain/constants.js?v=20261023b';
-import { AuthStore } from '../../services/core/auth.js?v=20261023b';
-import { getPersonById, liveMembers } from '../../services/member/person.js?v=20261023b';
-import { isActivityOrganizer } from '../../services/activity/activity.js?v=20261023b';
-import { NoticeStore, NoticePermission, resolveNoticeUrl } from '../../services/governance/notice.js?v=20261023b';
+import { badgeHtml } from '../ui/badges.js?v=20261023c';
+import { openFormModal } from '../ui/modal.js?v=20261023c';
+import { showToast, getBasePath, todayLocal } from '../../core/base/utils.js?v=20261023c';
+import { ROLE_LABELS } from '../../core/domain/constants.js?v=20261023c';
+import { AuthStore } from '../../services/core/auth.js?v=20261023c';
+import { getPersonById, liveMembers } from '../../services/member/person.js?v=20261023c';
+import { isActivityOrganizer } from '../../services/activity/activity.js?v=20261023c';
+import { NoticeStore, NoticePermission, resolveNoticeUrl } from '../../services/governance/notice.js?v=20261023c';
 
 function committeeSourceChip() {
   return '<span style="display:inline-flex;align-items:center;padding:0 6px;border-radius:9999px;background:var(--party-red);color:#fff;font-size:10px;line-height:16px;flex-shrink:0;">党委下发</span>';
@@ -94,16 +94,16 @@ export function renderNoticeList(containerId, limit = 5, opts = {}) {
     return dest.direct && dest.url ? dest.url : `${getBasePath()}notice.html?id=${encodeURIComponent(n.id)}`;
   };
   const rowHtml = (n) => `
-    <a href="${noticeHref(n)}" class="notice-item notice-row row-quiet w-full p-0 text-left cursor-pointer hover:bg-gray-50 rounded-lg transition-colors group"
+    <a href="${noticeHref(n)}" class="notice-item notice-row row-quiet w-full text-left cursor-pointer hover:bg-[var(--surface-hover)] rounded-lg transition-colors group"
          data-target="${n.targetModule || ''}" data-notice-id="${n.id}" data-target-url="${n.targetUrl || ''}"
          title="${n.title} — ${n.content}">
       ${priorityBadge[n.priority] || ''}
       <div class="notice-row__main">
-        <div class="flex items-center gap-1.5 min-w-0">
+        <div class="flex items-center gap-2 min-w-0">
           ${n.source === 'committee' ? committeeSourceChip() : ''}
-          <span class="notice-row__title group-hover:text-blue-700 transition-colors">${n.title}</span>
+          <span class="notice-row__title group-hover:text-[var(--app-accent-soft-text)] transition-colors">${n.title}</span>
         </div>
-        <span class="notice-row__meta line-clamp-2">${n.content}</span>
+        <span class="notice-row__meta line-clamp-1">${n.content}</span>
       </div>
       <div class="notice-row__actions">
         <span class="notice-row__meta notice-row__meta--flush">${n.publishDate}</span>
@@ -128,7 +128,7 @@ export function renderNoticeList(containerId, limit = 5, opts = {}) {
     //   展开态与收起态之间加一条分隔线（`[open] > summary` 的下边框）。
     summaryHtml = `<div class="notice-group-bar">${byClassList.map(([label, list]) => `
       <details class="notice-group-chip">
-        <summary class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg cursor-pointer text-sm text-gray-800 hover:bg-gray-50 transition-colors">
+        <summary class="flex items-center gap-2 px-2 py-2 rounded-lg cursor-pointer text-sm text-gray-800 hover:bg-[var(--surface-hover)] transition-colors">
           <span class="font-medium">${label}</span>${countCircle(list.length)}
         </summary>
         <div class="notice-group-body row-divider divide-y divide-gray-100">${list.map(rowHtml).join('')}</div>

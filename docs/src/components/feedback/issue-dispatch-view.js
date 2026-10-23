@@ -11,10 +11,10 @@
 //  依赖方向正确：组件 → 服务（不是服务 → 组件）。守卫：issue-branch.test.mjs（结构层）。
 // ════════════════════════════════════════════════════════════════
 
-import { renderFilteredList } from '../ui/list-filter.js?v=20261023b';
-import { renderTabHeader } from '../shell/page-frame.js?v=20261023b';
-import { escHtml, showToast } from '../../core/base/utils.js?v=20261023b';
-import { IssueStore, IssueNotify, deriveIssueDisplayState, REPORT_CATEGORIES, displayNameOf as _displayName } from '../../services/governance/issues.js?v=20261023b';
+import { renderFilteredList } from '../ui/list-filter.js?v=20261023c';
+import { renderTabHeader } from '../shell/page-frame.js?v=20261023c';
+import { escHtml, showToast } from '../../core/base/utils.js?v=20261023c';
+import { IssueStore, IssueNotify, deriveIssueDisplayState, REPORT_CATEGORIES, displayNameOf as _displayName } from '../../services/governance/issues.js?v=20261023c';
 
 // ════════════════════════════════════════════════════════════════
 //  「我的处置」Tab 渲染工具（各角色工作台复用）
@@ -207,7 +207,7 @@ function _assignedIssueRowHtml(issue, userId) {
 function _myReportRowHtml(r) {
   const ds = deriveIssueDisplayState(r);
   return `
-        <div class="flex items-center gap-2 py-1.5 px-1 rounded-lg border border-gray-100 cursor-pointer hover:bg-gray-50 transition-colors" role="button" tabindex="0" data-mydispatch-action="open-report" data-issue-id="${r.id}">
+        <div role="button" tabindex="0" data-mydispatch-action="open-report" data-issue-id="${r.id}" class="flex items-center gap-2 py-1.5 px-1 rounded-lg border border-gray-100 cursor-pointer hover:bg-surface-hover transition-colors">
           <span class="text-xs px-1.5 py-0.5 rounded-full ${ds.badgeClass}">${ds.label}</span>
           <span class="text-xs text-gray-500">${REPORT_CATEGORIES[r.reportCategory] || '进度'}</span>
           <span class="text-sm text-gray-800 flex-1 min-w-0 truncate">${r.title}</span>
@@ -219,7 +219,7 @@ function _myReportRowHtml(r) {
 function _myIssueRowHtml(issue) {
   const ds = deriveIssueDisplayState(issue);
   return `
-        <div class="flex items-center gap-2 py-1.5 px-1 rounded-lg border border-gray-100 cursor-pointer hover:bg-gray-50 transition-colors" role="button" tabindex="0" data-mydispatch-action="open-my-issue" data-issue-id="${issue.id}">
+        <div class="flex items-center gap-2 py-1.5 px-1 rounded-lg border border-gray-100 cursor-pointer hover:bg-surface-hover transition-colors" role="button" tabindex="0" data-mydispatch-action="open-my-issue" data-issue-id="${issue.id}">
           <span class="text-xs text-gray-500 font-mono flex-shrink-0">#${issue.number}</span>
           <span class="text-xs px-1.5 py-0.5 rounded-full ${ds.badgeClass} flex-shrink-0">${ds.label}</span>
           <span class="text-sm text-gray-800 flex-1 min-w-0 truncate">${issue.title}</span>
@@ -260,9 +260,9 @@ function _renderMyReportDetail(issueId, role, userId, container, opts = {}) {
   } else {
     comments.forEach(c => {
       const kindIcon = c.kind === 'dispatch' ? '→' : c.kind === 'result' ? '✓' : c.kind === 'reply' ? '答' : c.kind === 'verdict' ? '★' : '';
-      const kindBg = c.kind === 'dispatch' ? 'bg-blue-50' : c.kind === 'result' ? 'bg-green-50' : c.kind === 'reply' ? 'bg-red-50/70' : c.kind === 'verdict' ? 'bg-amber-50' : 'bg-gray-50';
-      const kindDark = c.kind === 'reply' ? ' style="--acc-bg-dark:rgba(239,68,68,0.12);"' : '';
-      html += `<div class="rounded-lg p-2.5 ${kindBg}"${kindDark}>`;
+      // 评论类型固定语义 tone（不随主题）：指派=信息 / 结果=成功 / 正式答复=危险 / 判定=提醒 / 其余=中性
+      const kindTone = c.kind === 'dispatch' ? 'info' : c.kind === 'result' ? 'success' : c.kind === 'reply' ? 'danger' : c.kind === 'verdict' ? 'warning' : 'neutral';
+      html += `<div class="rounded-lg p-2.5 tint-section" data-tone="${kindTone}">`;
       html += `<span class="text-xs font-medium text-gray-700">${kindIcon} ${_displayName(c.author)}</span>`;
       if (c.kind === 'reply') {
         html += `<span class="text-xs px-1 py-0.5 rounded font-medium" style="background:var(--app-accent-bg);color:var(--app-accent);">正式答复</span>`;

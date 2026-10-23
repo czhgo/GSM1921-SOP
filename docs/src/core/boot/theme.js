@@ -12,15 +12,15 @@
 //   · 全局键（workflowos_theme / workflowos_font_size / workflowos_accent_role）只服务未登录访客，
 //     访客读写与历史行为完全一致；登录用户的行为绝不写入/读取访客键空间；
 //   · syncAppearanceForActiveUser()（sidebar 模块顶层 + DOMContentLoaded 后二次，见下）把
-//     当前登录人 person 偏好应用到 DOM（主题/字号 <html> class、accent → --app-accent 变量），
+//     当前登录人 person 偏好应用到 DOM（主题/字号 <html> class、accent → 16 个主题色原始变量），
 //     不经过全局键；冻结读取点（theme-init.js 首帧 / bootstrap.js 字号 / constants.js
 //     resolveAccentRole / init-reset）保持只读全局键（服务访客与首帧兜底）不改——
 //     登录人页面在冻结读取点取到的是全局键残留/默认 → 首帧小闪烁为已接受局限（5c 前记录，不变），
 //     DOMContentLoaded 二次 sync 以本人 person 值作最终覆盖。主题算法与 CSS 变量体系不变。
 
-import { readLoginSnapshot } from '../session/login-snapshot.js?v=20261023b';
-// 强调色 DOM 生效（person 覆盖 → --app-accent 三件套）与解析复用 constants 纯静态表；constants 零依赖，无环
-import { ACCENT_COLORS, getAccentColors, accentButtonColors } from '../domain/constants.js?v=20261023b';
+import { readLoginSnapshot } from '../session/login-snapshot.js?v=20261023c';
+// 主题色 DOM 生效（person 覆盖 → 8 token × 亮/暗 原始变量）与解析复用 constants 纯静态表；constants 零依赖，无环
+import { getAccentColors, normalizeAccentKey } from '../domain/constants.js?v=20261023c';
 
 const THEME_KEY = 'workflowos_theme';        // 主题（历史全局键；访客回落 / theme-init 首帧读取）
 const FONT_KEY = 'workflowos_font_size';     // 字号（历史全局键；bootstrap.js 启动读取）
@@ -173,48 +173,74 @@ export function setAccentRolePreference(roleKey) {
 }
 
 /**
- * 当前作用域生效强调色角色键解析（R1-A person-aware 版；替代消费方对 constants
+ * 当前作用域生效主题键解析（R1-A person-aware 版；替代消费方对 constants
  * resolveAccentRole 的直接调用——resolveAccentRole 只读全局键、仅服务访客/冻结读取点）：
- *   · 登录用户：person 覆盖键合法（ACCENT_COLORS 内）→ 用之；无/非法 → 默认金色；
- *   · 访客：全局键合法 → 用之；无/非法 → 默认金色（2026-10-18：默认金色，不再取角色固有色）。
+ *   · 登录用户：person 覆盖键 → 归一后取 7 主题之一（旧角色键 / 已删除色相走 ACCENT_KEY_ALIASES）；
+ *   · 访客：全局键 → 同上；
+ *   · 无覆盖 / 非法 → 默认金色（gold，2026-10-23 批次 505 起主题键与角色键解耦）。
  * @param {string} roleFallback 页面默认角色键（保留以兼容调用方；默认值不再取角色色）
- * @returns {string} 生效的角色键
+ * @returns {string} 生效的主题键（7 项之一）
  */
 export function resolveAppliedAccentRole(roleFallback) {
   const override = getAccentRolePreference();
-  return override && ACCENT_COLORS[override] ? override : 'participant';
+  return override ? normalizeAccentKey(override) : 'gold';
+}
+
+// ── 主题色注入（批次 505）──────────────────────────────────────────
+// 8 个 token × 亮/暗 = 16 个**原始变量**：--app-accent-base-light / -soft-bg-light / -soft-border-light /
+// -soft-text-light / -strong-bg-light / -strong-ink-light / -hover-bg-light / -active-bg-light（-dark 同理）。
+// styles.css 的 8 个别名负责「亮/暗选边」（:root 指 *-light，html.theme-dark 指 *-dark），
+// ⇒ 切换日夜**不需要**重新注入；消费方只读别名（--app-accent / --app-accent-soft-bg / …）。
+const ACCENT_TOKEN_SUFFIXES = ['base', 'soft-bg', 'soft-border', 'soft-text', 'strong-bg', 'strong-ink', 'hover-bg', 'active-bg'];
+
+/**
+ * 主题键 → 16 个原始变量的键值对（纯函数，供注入与测试核对）
+ * @param {string} key 主题键 / 角色键 / 旧键
+ * @returns {Record<string,string>} CSS 变量名 → hex
+ */
+export function accentThemeTokenVars(key) {
+  const themeKey = normalizeAccentKey(key);
+  const light = getAccentColors(themeKey, 'light');
+  const dark = getAccentColors(themeKey, 'dark');
+  const lightTokens = [light.base, light.softBg, light.softBorder, light.softText, light.strongBg, light.strongInk, light.hoverBg, light.activeBg];
+  const darkTokens = [dark.base, dark.softBg, dark.softBorder, dark.softText, dark.strongBg, dark.strongInk, dark.hoverBg, dark.activeBg];
+  const out = {};
+  ACCENT_TOKEN_SUFFIXES.forEach((suffix, i) => {
+    out[`--app-accent-${suffix}-light`] = lightTokens[i];
+    out[`--app-accent-${suffix}-dark`] = darkTokens[i];
+  });
+  return out;
 }
 
 /**
- * 当前作用域生效强调色三件套（R1-A 点⑤ 统一口径，2026-09-09）：渲染时动态解析——
- * 内部 = getAccentColors(resolveAppliedAccentRole(roleFallback))。
- * 消费方（组件/模块渲染取色）一律用本函数替代「模块加载期 resolveAccentRole 快照 + 写死 hex」：
- * 登录人 person 覆盖在渲染时生效，与 header/sidebar/settings/--app-accent 同一解析源，
- * 不再出现「settings 已改强调色、工作台内色点/按钮仍是角色默认红」的残留不一致。
- * @param {string} roleFallback 页面默认角色键（访客/无覆盖时回落；非法回落串交由 getAccentColors 兜底）
- * @param {number} [bgAlpha=0.1] — 背景透明度（entry 自带 bg 覆盖时忽略）
- * @param {number} [borderAlpha=0.3] — 边框透明度（entry 自带 border 覆盖时忽略）
- * @returns {{ accent: string, accentRgba: string, accentBorder: string }}
+ * 把当前主题的 16 个原始变量写到指定元素（幂等；亮/暗切换不再重注入）
+ * @param {HTMLElement} el — 通常为 document.documentElement
+ * @param {string} key — 主题键 / 角色键 / 旧键
  */
-export function getAppliedAccentColors(roleFallback, bgAlpha = 0.1, borderAlpha = 0.3) {
-  return getAccentColors(resolveAppliedAccentRole(roleFallback), bgAlpha, borderAlpha);
+export function applyAccentThemeTokens(el, key) {
+  if (!el || !el.style) return;
+  const vars = accentThemeTokenVars(key);
+  for (const [name, value] of Object.entries(vars)) el.style.setProperty(name, value);
 }
 
-/** 登录用户主题色 → --app-accent 三件套：无覆盖/非法也写默认金色（避免支部主题预设残留覆盖） */
+/**
+ * 当前作用域生效主题色（8 token + 兼容别名的平面对象，R1-A 点⑤ 统一口径）：
+ * 渲染时动态解析——内部 = getAccentColors(resolveAppliedAccentRole(roleFallback))。
+ * 消费方（组件/模块渲染取色）一律用本函数替代「模块加载期快照 + 写死 hex」。
+ * @param {string} roleFallback 页面默认角色键（访客/无覆盖时回落；非法回落串交由 getAccentColors 兜底）
+ * @param {number} [bgAlpha] — 历史参数，显式 token 后不再生效（保留签名兼容）
+ * @param {number} [borderAlpha] — 历史参数，同上
+ * @returns {ReturnType<typeof getAccentColors>}
+ */
+export function getAppliedAccentColors(roleFallback, bgAlpha = 0.1, borderAlpha = 0.3) {
+  return getAccentColors(resolveAppliedAccentRole(roleFallback), 'light');
+}
+
+/** 登录用户主题色 → 16 个原始变量：无覆盖/非法也写默认金色（避免支部主题预设残留覆盖） */
 function applyPersonAccent() {
   if (typeof document === 'undefined' || !document.documentElement) return;
   if (!getActivePersonId()) return; // 访客：accent 变量由页面既有 resolveAccentRole 路径负责
-  const override = getAccentRolePreference();
-  const key = override && ACCENT_COLORS[override] ? override : 'participant';
-  const { accent, accentRgba, accentBorder } = getAccentColors(key);
-  const root = document.documentElement;
-  root.style.setProperty('--app-accent', accent);
-  root.style.setProperty('--app-accent-bg', accentRgba);
-  root.style.setProperty('--app-accent-border', accentBorder);
-  const btn = accentButtonColors(accent);
-  root.style.setProperty('--app-accent-strong', btn.strong);
-  root.style.setProperty('--app-accent-ink', btn.ink);
-  root.style.setProperty('--app-accent-text', btn.text);
+  applyAccentThemeTokens(document.documentElement, resolveAppliedAccentRole());
 }
 
 let _resyncScheduled = false;

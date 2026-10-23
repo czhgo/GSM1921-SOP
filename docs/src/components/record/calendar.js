@@ -5,22 +5,30 @@
 //  视图模式：月/周/日/列表 四种切换
 // ════════════════════════════════════════════════════════════════
 
-import { getAppState, setState } from '../../core/base/state.js?v=20261023b';
-import { ROLE_COLORS, getActivityColor, ACTIVITY_CATEGORY_COLORS, ACTIVITY_TYPE_LABELS, ACTIVITY_TYPE_SHORT } from '../../core/domain/constants.js?v=20261023b';
-import { _fmtDate, _currentYearMonth } from '../../core/base/utils.js?v=20261023b';
-import { tokenOf } from '../../core/base/version-token.js?v=20261023b'; // P2 视图渲染守卫数据版本（spec §四.2）
-import { filterTasksByManagementRole, activityLifecycleBadgeHtml } from './inspector.js?v=20261023b';
+import { getAppState, setState } from '../../core/base/state.js?v=20261023c';
+import { ROLE_COLORS, getActivityColor, ACTIVITY_CATEGORY_COLORS, ACTIVITY_TYPE_LABELS, ACTIVITY_TYPE_SHORT } from '../../core/domain/constants.js?v=20261023c';
+import { _fmtDate, _currentYearMonth } from '../../core/base/utils.js?v=20261023c';
+import { tokenOf } from '../../core/base/version-token.js?v=20261023c'; // P2 视图渲染守卫数据版本（spec §四.2）
+import { filterTasksByManagementRole, activityLifecycleBadgeHtml } from './inspector.js?v=20261023c';
 // 活动「已完成 / 已取消」闭环判据单一源（R7-16）：替代手写 ['completed','cancelled']
-import { isActivityClosed } from '../../core/domain/domain.js?v=20261023b';
+import { isActivityClosed } from '../../core/domain/domain.js?v=20261023c';
 
-// ── 内联标签深色变量对（与 constants.js _applyDark 生成的 bgDark/textDark/borderDark 配套）──
-// 标签/卡片：三件套（bg/text/border）；纯文字：仅 text；圆点：仅实色提亮（--acc-dot-dark）
-const _accDark = (c) => `--acc-bg-dark:${c.bgDark};--acc-text-dark:${c.textDark};--acc-border-dark:${c.borderDark};`;
-const _accText = (c) => `--acc-text-dark:${c.textDark};`;
+// ── 固定语义色 tone（不随主题）──
+// 活动类别：三会一课（红）→ danger；主题党日（金）→ gold；其余 → neutral。
+const _activityTone = (act) => {
+  const sid = act && act.scenarioId;
+  if (sid === 'theme-party') return 'gold';
+  return sid ? 'danger' : 'neutral';
+};
+// 角色色 → 固定 tone（与 ROLE_COLORS 同族；见 DESIGN_SYSTEM §2.8 角色识别层）
+const _ROLE_TONE = {
+  'deputy-secretary': 'danger', secretary: 'danger', leader: 'green',
+  commissioner: 'amber', 'disc-commissioner': 'amber', 'org-commissioner': 'cyan', organizer: 'cyan',
+  'prop-commissioner': 'info', deep: 'purple', initiator: 'purple', participant: 'neutral', all: 'cyan',
+};
+const _roleTone = (role) => _ROLE_TONE[role] || 'neutral';
+// 圆点仍用实色提亮变量（--acc-dot-dark 只管圆点背景，不属于固定语义色标记）
 const _accDot = (c) => `--acc-dot-dark:${c.textDark};`;
-// 标签字色：类型色压深 72%（原 60% 在浅底仅 3.73:1，不达正文 4.5:1）；
-// 深色模式仍由 --acc-text-dark 变量接管，不因压深而失去对比。
-const _tagText = (c) => `color:color-mix(in srgb, ${c.text} 72%, #000);`;
 
 const VIEW_LABELS = { month: '月', week: '周', day: '日', list: '列表' };
 
@@ -221,7 +229,7 @@ function _renderViewSwitcher(currentView) {
   switcher.innerHTML = `
     <div class="flex items-center gap-1.5">
       ${Object.entries(VIEW_LABELS).map(([key, label]) => `
-        <button class="btn-tab cal-view-btn px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors duration-200 ${key === currentView ? 'bg-[var(--app-accent-bg)] border-[var(--app-accent)] [color:color-mix(in_srgb,var(--app-accent)_60%,#000)]' : 'bg-white border-neutral-200 text-gray-600 hover:bg-gray-50'}"${key === currentView ? ' style="--acc-text-dark:color-mix(in srgb, var(--app-accent) 55%, #fff)"' : ''} data-view="${key}">${label}</button>
+        <button class="btn-tab cal-view-btn px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors duration-200 ${key === currentView ? 'bg-[var(--app-accent-soft-bg)] border-[var(--app-accent)] [color:var(--app-accent-soft-text)]' : 'bg-white border-neutral-200 text-gray-600 hover:bg-[var(--surface-hover)]'}" data-view="${key}">${label}</button>
       `).join('')}
     </div>
   `;
@@ -314,7 +322,7 @@ function _renderCompactCellContent(dateKey, dayActs, ct, viaTasks, state) {
   dayActs.slice(0, 3).forEach(act => {
     const color = getActivityColor(act);
     const shortLabel = ACTIVITY_TYPE_SHORT[act.scenarioId] || ACTIVITY_TYPE_SHORT[act.type] || (act.type ? act.type.slice(0, 2) : '活动');
-    html += `<div class="cal-activity-tag cal-activity-item cursor-pointer hover:brightness-95 transition-[filter]" data-act-id="${act.id || ''}" data-date="${dateKey}" tabindex="0" role="button" aria-label="查看活动：${act.title || ''}" style="${_accDark(color)}background:${color.bg};${_tagText(color)}border:1px solid ${color.border};" title="${act.title || ''}">` +
+    html += `<div class="cal-activity-tag cal-activity-item tint-fill tint-fill--outline cursor-pointer transition-colors" data-tone="${_activityTone(act)}" data-act-id="${act.id || ''}" data-date="${dateKey}" tabindex="0" role="button" aria-label="查看活动：${act.title || ''}" title="${act.title || ''}">` +
             `<span class="cal-activity-dot" style="${_accDot(color)}background:${color.text};"></span>` +
             `<span>${shortLabel}</span></div>`;
   });
@@ -326,7 +334,7 @@ function _renderCompactCellContent(dateKey, dayActs, ct, viaTasks, state) {
     const filteredTasks = filterTasksByManagementRole(allDayTasks, managementRole);
     filteredTasks.slice(0, 2).forEach(t => {
       const c = ROLE_COLORS[t.executor] || ROLE_COLORS.all;
-      html += `<div class="cal-task-tag" style="${_accDark(c)}background:${c.bg};${_tagText(c)}border:1px solid ${c.border};"><span class="task-dot" style="${_accDot(c)}background:${c.text};"></span><span class="truncate">${t.title}</span></div>`;
+      html += `<div class="cal-task-tag tint-fill tint-fill--outline" data-tone="${_roleTone(t.executor)}"><span class="task-dot" style="${_accDot(c)}background:${c.text};"></span><span class="truncate">${t.title}</span></div>`;
     });
   }
   return html;
@@ -443,8 +451,8 @@ function _renderDayView(grid, activeActivities, tasks, month, state) {
       html += `<div class="mb-4"><div class="text-xs font-bold text-gray-500 mb-2">活动 (${dayActivities.length})</div>`;
       dayActivities.forEach(act => {
         const color = getActivityColor(act);
-        html += `<div class="p-3 rounded-xl mb-2 border" style="${_accDark(color)}background:${color.bg};border-color:${color.border};">`;
-        html += `<div class="flex items-center gap-2 mb-1"><span class="cal-activity-dot" style="${_accDot(color)}background:${color.text};"></span><span class="text-sm font-medium" style="${_accText(color)}${_tagText(color)}">${act.title || '未命名'}</span></div>`;
+        html += `<div class="p-3 rounded-xl mb-2 tint-section tint-section--outlined" data-tone="${_activityTone(act)}">`;
+        html += `<div class="flex items-center gap-2 mb-1"><span class="cal-activity-dot" style="${_accDot(color)}background:${color.text};"></span><span class="text-sm font-medium">${act.title || '未命名'}</span></div>`;
         html += `<div class="text-xs text-gray-500">${act.type || ''} ${act.location ? '· ' + act.location : ''}</div>`;
         html += `</div>`;
       });
@@ -456,8 +464,8 @@ function _renderDayView(grid, activeActivities, tasks, month, state) {
       html += `<div><div class="text-xs font-bold text-gray-500 mb-2">任务 (${allTasks.length})</div>`;
       allTasks.forEach(t => {
         const c = ROLE_COLORS[t.executor] || ROLE_COLORS.all;
-        html += `<div class="p-3 rounded-xl mb-2 border" style="${_accDark(c)}background:${c.bg};border-color:${c.border};">`;
-        html += `<div class="flex items-center gap-2"><span class="task-dot" style="${_accDot(c)}background:${c.text};"></span><span class="text-sm font-medium" style="${_accText(c)}${_tagText(c)}">${t.title}</span></div>`;
+        html += `<div class="p-3 rounded-xl mb-2 tint-section tint-section--outlined" data-tone="${_roleTone(t.executor)}">`;
+        html += `<div class="flex items-center gap-2"><span class="task-dot" style="${_accDot(c)}background:${c.text};"></span><span class="text-sm font-medium">${t.title}</span></div>`;
         if (t.desc) html += `<div class="text-xs text-gray-500 mt-1">${t.desc}</div>`;
         html += `</div>`;
       });
@@ -514,7 +522,7 @@ function _renderListView(grid, activeActivities, tasks, month, state) {
         html += `<div class=" text-xs font-bold text-gray-500 mt-3 mb-1.5 pb-1 border-b border-gray-100">${d.getMonth()+1}月${d.getDate()}日 周${WEEKDAY[d.getDay()]}</div>`;
       }
       const color = getActivityColor(act);
-      html += `<div class="flex items-center gap-2 p-2.5 rounded-lg hover:bg-gray-50 cursor-pointer cal-list-item" data-act-id="${act.id}" data-date="${act.date}">`;
+      html += `<div class="flex items-center gap-2 p-2.5 rounded-lg hover:bg-[var(--surface-hover)] cursor-pointer cal-list-item" data-act-id="${act.id}" data-date="${act.date}">`;
       html += `<span class="cal-activity-dot" style="${_accDot(color)}background:${color.text};"></span>`;
       html += `<div class="flex-1 min-w-0">`;
       html += `<div class="text-sm font-medium text-gray-800 truncate">${act.title || '未命名'}</div>`;
@@ -548,7 +556,7 @@ function _renderCellContent(dateKey, dayActs, ct, hasActivity, viaTasks, state, 
   if (viewType === 'participant') {
     dayActs.slice(0, maxItems).forEach(act => {
       const color = getActivityColor(act);
-      html += `<div class="cal-activity-tag cal-activity-item cursor-pointer hover:brightness-95 transition-[filter]" data-act-id="${act.id || ''}" data-date="${dateKey}" tabindex="0" role="button" aria-label="查看活动：${act.title || ''}" style="${_accDark(color)}background:${color.bg};${_tagText(color)}border:1px solid ${color.border};" title="${act.title || ''}">` +
+      html += `<div class="cal-activity-tag cal-activity-item tint-fill tint-fill--outline cursor-pointer transition-colors" data-tone="${_activityTone(act)}" data-act-id="${act.id || ''}" data-date="${dateKey}" tabindex="0" role="button" aria-label="查看活动：${act.title || ''}" title="${act.title || ''}">` +
               `<span class="cal-activity-dot" style="${_accDot(color)}background:${color.text};"></span>` +
               `<span class="truncate">${act.title || ''}</span></div>`;
     });
@@ -558,7 +566,7 @@ function _renderCellContent(dateKey, dayActs, ct, hasActivity, viaTasks, state, 
     if (dayActs.length > 0) {
       dayActs.slice(0, maxItems).forEach(act => {
         const color = getActivityColor(act);
-        html += `<div class="cal-activity-tag cal-activity-item cursor-pointer hover:brightness-95 transition-[filter]" data-act-id="${act.id || ''}" data-date="${dateKey}" tabindex="0" role="button" aria-label="查看活动：${act.title || ''}" style="${_accDark(color)}background:${color.bg};${_tagText(color)}border:1px solid ${color.border};" title="${act.title || ''}">` +
+        html += `<div class="cal-activity-tag cal-activity-item tint-fill tint-fill--outline cursor-pointer transition-colors" data-tone="${_activityTone(act)}" data-act-id="${act.id || ''}" data-date="${dateKey}" tabindex="0" role="button" aria-label="查看活动：${act.title || ''}" title="${act.title || ''}">` +
                 `<span class="cal-activity-dot" style="${_accDot(color)}background:${color.text};"></span>` +
                 `<span class="truncate">${act.title || ''}</span></div>`;
       });
@@ -585,7 +593,7 @@ function _renderCellContent(dateKey, dayActs, ct, hasActivity, viaTasks, state, 
       : filteredTasks;
     focusedTasks.slice(0, maxItems).forEach(t => {
       const c = ROLE_COLORS[t.executor] || ROLE_COLORS.all;
-      html += `<div class="cal-task-tag" style="${_accDark(c)}background:${c.bg};${_tagText(c)}border:1px solid ${c.border};">` +
+      html += `<div class="cal-task-tag tint-fill tint-fill--outline" data-tone="${_roleTone(t.executor)}">` +
               `<span class="task-dot" style="${_accDot(c)}background:${c.text};"></span>` +
               `<span class="truncate">${t.title}</span></div>`;
     });
@@ -764,7 +772,7 @@ function _showMobileDayDetail(dateKey, activeActivities, tasks, state) {
       filteredTasks.forEach(t => {
         const c = ROLE_COLORS[t.executor] || ROLE_COLORS.all;
         html += `<div class="cal-mobile-detail-card" style="border-left:3px solid ${c.text};">`;
-        html += `<div class="text-sm font-medium" style="--acc-text-dark:${c.text};${_tagText(c)}">${t.title}</div>`;
+        html += `<div class="text-sm font-medium tint-text" data-tone="${_roleTone(t.executor)}">${t.title}</div>`;
         if (t.desc) html += `<div class="text-xs text-gray-500 mt-1">${t.desc}</div>`;
         html += `</div>`;
       });
@@ -904,19 +912,28 @@ let _hoverTimer = null;
 
 function _bindHoverPreview(grid, dayIndex) {
   if (window.innerWidth < 768) return;
+  // 2026-10-23 Task 7：悬停预览只在具备 hover 能力的设备绑定；触屏用点击进入详情。
+  const canHover = !window.matchMedia || window.matchMedia('(hover: hover)').matches;
   const cells = grid.querySelectorAll('.cal-cell-large.has-tasks');
   cells.forEach(cell => {
-    cell.addEventListener('mouseenter', () => {
+    const show = () => {
       clearTimeout(_hoverTimer);
       const dateKey = cell.dataset.date;
       // P1：hover 复用渲染前分组的日索引（原 activeActivities.filter 逐格全扫）
       const dayActs = (dayIndex.acts && dayIndex.acts.get(dateKey)) || [];
       if (dayActs.length === 0) return;
       _showHoverPopover(cell, dateKey, dayActs);
-    });
-    cell.addEventListener('mouseleave', () => {
+    };
+    const hide = () => {
       _hoverTimer = setTimeout(() => _hideHoverPopover(), 150);
-    });
+    };
+    if (canHover) {
+      cell.addEventListener('mouseenter', show);
+      cell.addEventListener('mouseleave', hide);
+    }
+    // 2026-10-23 Task 7：hover-only 的日历预览补键盘等价（格子本身 tabindex=0）。
+    cell.addEventListener('focus', show);
+    cell.addEventListener('blur', hide);
   });
 }
 
@@ -1017,7 +1034,7 @@ function _renderMonthViewCompact(grid, activeActivities, month, state, mode) {
     dayActs.slice(0, 3).forEach(act => {
       const color = getActivityColor(act);
       const shortLabel = ACTIVITY_TYPE_SHORT[act.scenarioId] || ACTIVITY_TYPE_SHORT[act.type] || (act.type ? act.type.slice(0, 2) : '活动');
-      html += `<div class="cal-activity-tag cal-activity-item cursor-pointer hover:brightness-95 transition-[filter]" data-act-id="${act.id || ''}" data-date="${k}" tabindex="0" role="button" aria-label="查看活动：${act.title || ''}" style="${_accDark(color)}background:${color.bg};${_tagText(color)}border:1px solid ${color.border};" title="${act.title || ''}">` +
+      html += `<div class="cal-activity-tag cal-activity-item tint-fill tint-fill--outline cursor-pointer transition-colors" data-tone="${_activityTone(act)}" data-act-id="${act.id || ''}" data-date="${k}" tabindex="0" role="button" aria-label="查看活动：${act.title || ''}" title="${act.title || ''}">` +
               `<span class="cal-activity-dot" style="${_accDot(color)}background:${color.text};"></span>` +
               `<span>${shortLabel}</span></div>`;
     });

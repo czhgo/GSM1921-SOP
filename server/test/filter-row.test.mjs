@@ -292,17 +292,20 @@ test('S12 手写表格收敛台账：`<table` 只允许出现在登记在案的�
 
 // ── 口径层 ──────────────────────────────────────────────────────────
 
-test('D1 单档口径同源：全站只剩「38px 高 / 13px 字」一套（2026-09-14 批次 33 支书裁定折中值）', () => {
+test('D1 单档口径同源：全站只剩「40px 控件 / 13px 字」一套（2026-10-23 Task 6 抬档）', () => {
   const css = read(CSS);
-  assert.match(css, /\.lf-btn\s*\{[^}]*height:\s*38px/, '.lf-btn 高度须为 38px（单档）');
+  // 2026-10-23 批次 506：控件档由 38 抬到 40（内边距 8+8 ＋ 行高 22 ＋ 边框 2），
+  //   `.lf-btn` 按位置取 36（8+8+18+2），不再写死 height。
+  assert.match(css, /\.lf-btn\s*\{[^}]*padding:\s*8px 10px/, '.lf-btn 内边距须为 8px 10px（36px 档的推导源）');
+  assert.match(css, /\.lf-btn\s*\{[^}]*line-height:\s*18px/, '.lf-btn 须显式声明行高 18px（8+8+18+2=36）');
   assert.match(css, /\.data-table\s*\{[^}]*font-size:\s*0\.8125rem/, '.data-table 字号须与全站正文同（0.8125rem）');
   assert.match(css, /\.data-table\s*\{[^}]*line-height:\s*1\.25rem/, '.data-table 行高须为 1.25rem（13px 正文配 20px 行高）');
   assert.match(css, /\.lf-btn\s*\{[^}]*font-size:\s*0\.8125rem/, '.lf-btn 字号须为 0.8125rem');
-  // 输入框档：input.input-flat.text-xs 上下 10px + 行高 16px + 边框 2px = 38px
-  assert.match(css, /input\.input-flat\.text-xs\s*\{[^}]*padding-top:\s*10px/, '输入框须为 10px 上内边距（38px 档）');
-  assert.match(css, /input\.input-flat\.text-xs\s*\{[^}]*padding-bottom:\s*10px/, '输入框须为 10px 下内边距（38px 档）');
+  // 输入框档：上下 8px + 行高 22px + 边框 2px = 40px
+  assert.match(css, /\.input-flat\s*\{[^}]*padding:\s*8px 16px/, '输入框须为 8px 16px 内边距（40px 档）');
+  assert.match(css, /\.input-flat\s*\{[^}]*line-height:\s*22px/, '输入框须显式声明行高 22px（8+8+22+2=40）');
   // 并档断言：旧的「第二档」数值不得回潮（34px 控件 / 12px 表格正文 / 14px 表单控件）
-  assert.ok(!/\.lf-btn\s*\{[^}]*height:\s*34px/.test(css), '不得残留 34px 旧档（批次 33 已并档为 38px）');
+  assert.ok(!/\.lf-btn\s*\{[^}]*height:\s*34px/.test(css), '不得残留 34px 旧档（批次 33 已并档）');
   assert.ok(!/\.data-table\s*\{[^}]*font-size:\s*0\.75rem/.test(css), '不得残留 12px 表格正文（批次 33 已并为 13px）');
   assert.ok(!/\.input-flat\s*\{[^}]*font-size:\s*0\.875rem/.test(css), '不得残留 14px 表单控件（批次 33 已并为 13px）');
 });
@@ -313,7 +316,7 @@ test('D1 单档口径同源：全站只剩「38px 高 / 13px 字」一套（2026
 //   text-* 工具类提供：环境一变（离线、CDN 被挡、裸 input 取继承行高）就退化，
 //   同一表单内曾实测出 42 / 43 / 47 三值并存（触发器 43、无 text 类的裸输入框 47）。
 //   故把算式本身锁死：五处载体的高度必须由显式行高算出，且等于规范档位。
-test('D2 档位算式显式（内边距 + 显式行高 + 边框 = 38），禁靠 UA 或 CDN 工具类给行高', () => {
+test('D2 档位算式显式（内边距 + 显式行高 + 边框 = 40），禁靠 UA 或 CDN 工具类给行高', () => {
   // 去注释：说明文字里含「行高」「38px」等字样，不剥掉会被当成声明误读
   const css = read(CSS).replace(/\/\*[\s\S]*?\*\//g, ' ');
   const escRe = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -341,11 +344,11 @@ test('D2 档位算式显式（内边距 + 显式行高 + 边框 = 38），禁靠
   };
 
   const CASES = [
-    ['.input-flat', 38, '表单输入框'],
-    ['input.input-flat.text-xs', 38, '筛选行关键词框'],
-    ['select.input-flat.text-xs', 38, '原生下拉'],
-    ['.cs-trigger.input-flat', 38, '下拉触发器'],
-    ['.cs-trigger.input-flat.text-xs', 38, '下拉触发器（带 text-xs 类名）'],
+    ['.input-flat', 40, '表单输入框'],
+    ['input.input-flat.text-xs', 40, '筛选行关键词框'],
+    ['select.input-flat.text-xs', 40, '原生下拉'],
+    ['.cs-trigger.input-flat', 40, '下拉触发器'],
+    ['.cs-trigger.input-flat.text-xs', 40, '下拉触发器（带 text-xs 类名）'],
   ];
   const bad = [];
   for (const [sel, want, label] of CASES) {

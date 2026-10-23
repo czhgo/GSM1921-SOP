@@ -3569,3 +3569,53 @@ $body
 ### 六、sample-diff（本轮支书反馈 → 规则）
 
 见 `DESIGN_SYSTEM.md §十二.12.6`：SD-1 控件单一源；SD-2 边框必须 token；SD-3 圆角按组件角色；SD-4 summary 单一 chevron；SD-5 按钮按外围—内围；SD-6 浅主题底不得近白；SD-7 成功只属本动作；SD-8 提交中不得关闭；SD-9 组名必须可见；SD-10 正文 12/13/14/16；SD-11 删「繁」不得删防错信息。
+
+## 批次 506（2026-10-23）：主题色板 7×2×8 全手选 ＋ 密度/间距重排 ＋ hover 三态门控
+
+### 一、判据
+
+- 支书追问三件：①「淡色底 + 主题色字」的设计在 origin 里是什么、为什么现在这么脏；②列表行高与按钮高度要相对整页排布重排（`a` 太窄、`button` 太厚、`p` 贴着 `summary`）；③ hover 到底怎么落地的，要做一轮前端设计专项。
+- 支书补充三条产品取向：**党徽金 ≠ 主题金**、**主题党日 / 三会一课与主题色无关**（固定语义色）；**「沉稳但是鲜活」**（不要用艳丽/高对比把界面做成色块拼贴）；**颜色维护不过来就削减**（紫只一个、蓝只一个）。
+- 审查先行：`frontend-design` / `better-colors` / `better-ui` / `better-layout` / `web-design-guidelines` 多路并行出结论，`grill-me` 逐条压问后再落 spec。
+
+### 二、动作（指针）
+
+1. **色板 10 → 7、每部分手选**：`ACCENT_COLORS` 由「1 hex + rgba/color-mix 公式」改为「每主题 × 亮/暗 × 8 手选 hex」（`base/softBg/softBorder/softText/strongBg/strongInk/hoverBg/activeBg`）；删天蓝 / 亮蓝 / 雾紫；旧键回落 `sky|light-blue→blue`、`deep→purple`。origin 的「浅底深字」是 `color-mix(X 45%, neutral-900)`——在绿/天蓝/雾紫上只有 1.59–2.51:1，这就是「脏」的根因（`DESIGN_SYSTEM §2.11`）。
+2. **注入契约**：`theme.js::accentThemeTokenVars/applyAccentThemeTokens` 写 16 个原始变量（`--app-accent-*-light/-dark`）；`styles.css` 8 个别名负责亮/暗选边 ⇒ 切日夜不重注入；JS 侧不再把亮色 token 内联写到 `<html>`。
+3. **消费方清零**：`styles.css` 17 处主题色 `color-mix` → 0；37 处旧别名迁移；`filter/brightness`、`opacity` 作 hover → 0。JS 侧 `--acc-text-dark/-bg-dark/-border-dark` 112 处 → 0，主题色 `color-mix` → 0。
+4. **固定语义色分离**：党徽金 `#FFD700`、三会一课 `#CE1126`、主题党日亮金 + 金黄字 `#A16207` 走 `--party-*` 与固定常量，**不读任何主题 token**；活动类别 / 角色标记改 `data-tone` 类（`.badge--*` / `.tint-pill` / `.tint-section` / `.tint-fill`），只做小面积。
+5. **密度与间距**：输入 40（紧凑 34）、按钮按位置 36/32/28、列表 48/56/44、表格行 40、`summary` ≥40；高度一律「padding + 显式 line-height + 边框」推导，**不再写 `min-height`**；间距只取 4/8/12/16/24。
+6. **hover 三态**：`hoverBg` / `activeBg` / soft 三件套；全部 `:hover` 包进 `@media (hover:hover)`，Tailwind `future.hoverOnlyWhenSupported`；静态行/卡去 hover（`.card:hover` 整条退场）；行内按钮 28 视觉 + 44 命中区。
+7. **触屏底线**：≤640px 输入 ≥16px；placeholder 提到 `--neutral-500`；页码 / 图标按钮 / 主题色块命中区 ≥44。
+8. **主题选择器**：7 项 × 两枚小样（浅底深字 / 实底字），取色走 `getAccentColors`，本文件零 hex；旧键提示不写浏览器存储（未重选前每次进设置页可见）。
+9. **守卫**：新增 `theme-palette-guard`（T1–T5）、`density-spacing-guard`（D1–D7）、`hover-state-guard`（H1–H5）；更新 `theme-pref` / `gold-accent-guard` / `ui-primary-cta-color` / `ui-contrast-guard` / `ui-tab-overflow` / `button-system-guard` / `page-sweep` / `style-baseline` / `hex-hardcode-guard`（新增 H6）/ `filter-row` / `ui-control-system-guard` / `ui-select-appearance-guard` / `ui-phase2-urgent` / `workbench-revision-contract` / `dead-selector-guard` / `doc-line-ref` 等基线。
+
+### 三、读数
+
+- **定向（第 1 次）**：静态 132 / 132 绿；浏览器 `page-sweep` ＋ `form-loop-sweep` 100 例（其中 S6 台账行号 50 处漂移，改签后单跑绿）；`page-sweep` 在 CSS 死码删除后复跑 16 / 16 绿。
+- **daily（第 2 次）**：`npm run test:daily` **1467 / 1467 绿**（81.7s）。
+- **全量（第 3 次）**：`SWEEP_SHARD=all` ＝ **[node] 1469 / 1469 绿**、**[e2e-B] 179 / 179 绿**、**[e2e-A] 56 / 58**（1 红：`multi-tab-sync` 判据C-② 的前置竞态）；墙钟 **1048.9s**（≤1200s）。
+- 版本戳 `20261023b` → **`20261023c`**（JS 256 / HTML 26 / CSS 2 / server-test 141）。
+- 对比度实测：`softText/softBg` 6.88–9.33、`strongInk/strongBg` 4.64–8.64、`strongBg/卡片` 4.20–8.64、`softBg` 与白 1.11–1.15、`strongBg` 饱和度 23%–82%（全部 ≤85%）。
+
+### 四、修复过程（如实）
+
+- `page-sweep` 3 红（支书「知情查看」/ 成员「专班动态」缺页级 H2 ＋ S1 审次级联）：真因不是页头缺失，而是 `taskforce-view.js::_renderTfCard` 留着已删常量 `STATUS_COLOR` 的**死变量**——tab 渲染抛 `ReferenceError`，整块退化成「这个页签暂时没加载出来」。删该行即绿（早前一度去改 `insight-view` 的骨架重建条件，属**治错对象**，已回退）。
+- `form-loop-sweep::S6` 红：本批 CSS/JS 改动使台账 50 处行号漂移——按「实际行号」逐条改签（台账指错地方＝读的人一定读歪）。
+- daily 首跑 11 红：① `filter-row` D1/D2 仍按 38px 旧档（已抬 40）；② `ui-phase2-urgent` U2/U4 仍断言 72% `color-mix` 与 `.card:hover`（两者本批已退场）；③ `ui-select-appearance-guard` S2 仍要求深色逐点补丁（现由 `*-dark` 别名承担）；④ `ui-control-system-guard` SD-6 仍要求 `color-mix` 与独立 `--app-accent-deep`；⑤ `dead-selector-guard` 报 7 个零引用类（`tf-section-head`、`bg-gray-200`、`hover:bg-gray-50/100/200`、`bg-cyan-100`、`text-cyan-700`）——CSS 死码，**删规则**而不是登记白名单；⑥ `localstorage-key-guard` 报 `workflowos_accent_legacy_notice`——**去掉该存储**（旧键提示改为每次进设置页可见），不给本机偏好再加一个键；⑦ `doc-line-ref` 13 处 `constants.js` 行号漂移——改准；⑧ `workbench-revision-contract` 锁死了 `_renderTfCard` 的旧形参——锚点收窄为函数名，判据（人数取 `_tfAssignsOf`）不变。
+- 全量 `[e2e-A]` 唯一红（`multi-tab-sync` 判据C-②）：**整文件跑红、单跑绿**，插桩后复绿 ⇒ 是就绪竞态而非丢写。根因：该例只 `waitIdle(B)` 没等 A 的 `init()`，A 的首份快照可能晚于用例 `mockDB.push` 把两行覆盖掉。补 `waitIdle(A)` 后整文件连跑两次 6 / 6 绿（**只等就绪，判据语义一字未改**）。
+- 另发现并修正 `ui-control-system-guard` SD-2：主题色选项按钮用了裸 `border`（无同串色类）⇒ 补 `border-neutral-200`（产品代码修，不是改断言）。
+
+### 五、边界（如实）
+
+- **分页钮仍 30px**：`page-sweep::DECK.pagerH` 按 CSS 实况取 30（明载例外），本批未并入 40 控件档；若要抬到 32 须同批改 CSS ＋ DECK。
+- **Tailwind `1.5/2.5/3.5` 未清零**：全量 1056 处，本批只登记「只降不升」基线，未逐处改。
+- **兼容别名保留一轮**：`--app-accent-bg/-border/-text/-deep/strong/ink` 仍存在（指向新 token），标注「批次 506 消费方迁移后删除」；下一批可整体退场。
+- **`--acc-dot-dark` 保留**（12 处）：只管实色圆点的暗色提亮，不属于主题色三件套。
+- **`html.theme-dark` 的 token 别名仍带 `!important`**：仅作旧缓存 bundle 的兜底，`docs/src` 已无内联写入。
+- **两支固定语义色仍是 hex 字面量**（党徽金 / 党建红）：它们是合规色，不走主题注入，`hex-hardcode-guard` 按既有台账计数。
+
+### 六、sample-diff（本轮支书反馈 → 规则）
+
+见 `DESIGN_SYSTEM.md §12.7–§12.9` ＋ SD-12…SD-21：主题 token 必须手选 hex（零 `color-mix/rgba/brightness`）；`softText` 可与 `strongBg` 不同但 ≥4.5:1；行内 28 / 卡片 32 / 页面 36 且不许 `min-height` 撑高；列表 48/56/44 且文本上下 ≥8；hover 用 `hoverBg` 且必须门控；静态行/卡无 hover；标题→次级→描述 8px；党徽/活动类别色切主题前后不变；正文 4.5–9:1、`softBg` 与白 1.08–1.35、强色小面积且饱和度 ≤85%；主题选择器恰 7 项、无两个紫或两个蓝。
+

@@ -214,8 +214,8 @@ related_files: [docs/src/styles.css, ../evolution/DESIGN_METHODOLOGY.md, ../data
 | `--accent-prop-commissioner` | `#2563EB` | ██ | 宣传委员 | 海蓝系 | 宣传传播 |
 | `--accent-disc-commissioner` | `#C2410C` | ██ | 纪检委员 | 深橙系 | 监督警示 |
 | `--accent-organizer` | `#7DD3FC` | ██ | 组织者 | 亮天蓝系 | 执行核心，分工记录 |
-| `--accent-deep` | `#A78BFA` | ██ | 深度参与者 | 雾紫系 | 承担分工（雾紫系，与语义色 `#7C3AED` 同源提亮——见 `docs/src/core/domain/constants.js` `ACCENT_COLORS.deep`；`styles.css :root` 的 `--accent-deep`/`--accent-deep-light` 同步雾紫系） |
-| `--accent-participant` | `#A16207`（三件套即主题党日胶囊） | ██ | 普通参与者 | 金色系（金黄） | 「金」主题色即主题党日胶囊：亮金底 `rgba(255,215,0,0.12)` + 金黄字 `#A16207` + 亮金边框 `rgba(255,215,0,0.35)`（2026-08-10 裁定"再黄一点"） |
+| `--accent-deep` | `#A78BFA` | ██ | 深度参与者 | 雾紫系 | 承担分工（主题侧见 §2.11 `purple`；`styles.css :root` 的 `--accent-deep`/`--accent-deep-light` 为角色识别色） |
+| 普通成员（主题金） | 见 §2.11 `gold` | ██ | 普通参与者 / 默认 | 琥珀金 | 主题色走 `gold` 主题表（不再共用主题党日胶囊）；`--accent-participant` 的旧红值已于批次 505 退场（同名两值消除） |
 
 **使用约束**：
 - 角色色条（左侧 4px）使用对应 accent 色
@@ -271,6 +271,11 @@ related_files: [docs/src/styles.css, ../evolution/DESIGN_METHODOLOGY.md, ../data
 | `--surface-active` | `#FEE2E2` | ██ | 激活态表面 |
 
 ### 2.7 主体色配色规则（给定主体主题色 X）— 打样样板
+
+> **⚠ 2026-10-23 批次 505 起，本节规则 1 的「三件套公式」已由 §2.11 取代**：浅底 / 边框 / 深字不再由
+> `rgba(X, 0.10~0.12)` + `rgba(X,0.30)` + X 文字运行时派生，而是每个主题 × 亮/暗各 8 个手选 token
+> （`softBg/softBorder/softText/strongBg/strongInk/hoverBg/activeBg`）。本节保留为历史样板与
+> 「品牌金做统一层 / 状态色全局统一 / 暖白底 / 灰只做中性」四条的出处；取色一律以 §2.11 为准。
 
 > **来源：**普通参与者界面视觉重设计打样（2026-08-01，批准）。本规则是"给定主体主题色 X 时如何搭配全页色彩"的可复用样板，其他角色改版按此规则推广。
 
@@ -419,6 +424,10 @@ related_files: [docs/src/styles.css, ../evolution/DESIGN_METHODOLOGY.md, ../data
 
 ### 2.9.1 U1「选中态卡片底色档」（2026-09-28 立 · 据既有合规样本归纳）
 
+> **⚠ 2026-10-23 批次 505 起「0.10 / 0.30 公式」由 §2.11 取代**：选中态改用显式 `softBg` +
+> `softBorder` + `softText`（每主题手选 hex），不再由主题色乘透明度得到；`--app-accent-bg/-border/-text`
+> 仅作为批次 506 前的一轮兼容别名存在。本条保留为「选中态一律三件套、不许自写 rgba」的出处。
+
 > **为什么要立（诊断依据，非凭空）**：§2.7 规则 1 只写「主题色浅底 `rgba(X,0.10~0.12)`」——**给的是区间、不是一档**；
 > 实现层于是 3 种不透明度并存：`--app-accent-bg`（**0.10**）· Tailwind `bg-red-50/50` 类（**≈0.12**，alpha 由 Tailwind 生成）·
 > 新写组件里的 `rgba(185,28,28,0.45)`（**0.45**，`entries/tabs/secretary/group-progress-tab.js`，2026-09-28 前批已改走 `var(--app-accent-*)`）。
@@ -529,6 +538,90 @@ related_files: [docs/src/styles.css, ../evolution/DESIGN_METHODOLOGY.md, ../data
 1. **整圈红边**：卡片 / 会议卡用整圈彩色边框表示「重要」——同时像主题色、错误色和选中态，用户无法判断语义；改用章节头计数、左侧 2px 单色规则或状态徽章。
 2. **功能色主按钮**：用 `--functional-success` / `--functional-error` 做实底主按钮——功能色只表状态，主行动归主题色。
 3. **主题色状态徽章**：用 `--app-accent-*` 做「在任 / 待召开 / 已留存」等状态——身份色与状态色混层，状态一律走 `--functional-*`。
+
+### 2.11 主题色板：7 主题 × 亮/暗 × 8 显式 token（2026-10-23 批次 506 立 · **取代 §2.7 / §2.9.1 的三件套公式**）
+
+> **单一源**：`docs/src/core/domain/constants.js → ACCENT_COLORS`（数据）+ `getAccentColors` / `accentButtonColors` /
+> `solidAccentStyle`（查表 API）+ `docs/src/core/boot/theme.js → accentThemeTokenVars / applyAccentThemeTokens`（注入）
+> + `docs/src/styles.css`（`--app-accent-*-light/-dark` 原始变量与 8 个别名）。改色只改这张表，别处不得写主题色 hex。
+
+**三条设计原则**
+
+1. **党徽金 ≠ 主题金**。党徽金 `#FFD700`、党建红 `#CE1126`、主题党日亮金 + 金黄字 `#A16207` 是**固定语义色 / 合规底线**，
+   走 `_C.partyGold / _C.partyRedBrand / _C.yellow700` 与 `--party-gold / --party-red`；主题金是另一档更沉稳的琥珀金
+   （亮 `#A97A12`、暗 `#E0B24C`）。两者同屏时**不要求同值**。
+2. **活动类别色固定**。`ACTIVITY_CAT_COLOR` / `ACTIVITY_CLASSIFICATION` / `_ACTIVITY_TYPE_BASE` 只消费固定常量，
+   **不读任何主题 token**——用户把主题从红切到蓝，三会一课徽章仍是党建红、主题党日仍是亮金（spec SD-19）。
+   只用于徽章 / 圆点 / 左条等小面积标记，不整卡铺色。
+3. **沉稳但是鲜活**。大面积表面保持中性或低彩度 `softBg`（与白 1.11–1.15）；正文深墨；每个视图最多一个高强调
+   （主 CTA 或一个语义徽章）；高饱和只允许出现在按钮 / 徽章 / 圆点 / 左条等小面积元素。
+
+**为什么要削到 7 个（10 → 7）**
+
+原色板 10 项里有 3 个重复色相（天蓝 / 亮蓝同蓝、雾紫 / 紫同紫），而**浅底/深字由一条公式生成**：
+浅底 `rgba(X,0.10)`、边框 `rgba(X,0.30)`、深字 `color-mix(X 45%, neutral-900 55%)`。公式的后果是可测的：
+origin 的「主题色字」在绿 / 天蓝 / 雾紫 / 亮蓝上只有 2.09 / 2.51 / 2.49 / 1.59:1（不可读）；现行 deep 虽过 4.5，
+但饱和度从 92% 跌到 28–58%（橙变褐、绿变灰绿、亮蓝变钢蓝）——这就是「灰度太高、太脏」的根因。
+⇒ 删除天蓝、雾紫、亮蓝；**紫只留一个、蓝只留一个**；每个主题的每一部分改为**手选 hex**，不再派生。
+旧值回落：`sky` / `light-blue` → `blue`，`deep` → `purple`（`ACCENT_KEY_ALIASES`，`normalizeAccentKey()` 使用）。
+
+**8 个 token 的语义**（每主题 × 亮/暗各一套）
+
+| token | 角色 | 消费点 |
+|---|---|---|
+| `base` | 主题身份色 | `--app-accent`：色条 / 圆点 / 描边 / radio / accent-color |
+| `softBg` | 浅底 | 选中态 / chip / 次级按钮底（`--app-accent-soft-bg`） |
+| `softBorder` | 浅底边框 | 选中态 / chip 边框（`--app-accent-soft-border`） |
+| `softText` | 浅底上的深字 | 选中态文字 / `.text-accent` / 旧 `--app-accent-text`、`--app-accent-deep` |
+| `strongBg` | 实底（主 CTA） | `.btn-accent` 背景（`--app-accent-strong-bg`） |
+| `strongInk` | 实底上的字 | `.btn-accent` 文字（`--app-accent-strong-ink`） |
+| `hoverBg` | hover 加深一档 | 页签 / 行 / 次级按钮 hover（`--app-accent-hover-bg`） |
+| `activeBg` | 按压态 | `:active`（`--app-accent-active-bg`） |
+
+注入：16 个**原始变量**（`--app-accent-{base,soft-bg,soft-border,soft-text,strong-bg,strong-ink,hover-bg,active-bg}-{light,dark}`），
+亮/暗由 CSS 别名选边（`:root` → `*-light`，`html.theme-dark` → `*-dark`）⇒ **切换日夜不需要重新注入**。
+
+**7 × 2 验收表**（WCAG 2.x 相对亮度实测；卡片底亮 `#FFFFFF` / 暗 `#141D2F`；页面底亮 `#FAFAF5` / 暗 `#0B1220`）
+
+| 主题 | 模式 | base | softBg | softBorder | softText | strongBg | strongInk | hoverBg | activeBg | softText/softBg | strongInk/strongBg | strongBg/卡片 | strongBg 饱和度 |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 金 gold | 亮 | `#A97A12` | `#FBF3DC` | `#E8D5A3` | `#6E4E08` | `#9A6B0F` | `#FFFFFF` | `#F6EAC6` | `#F0DFAC` | 6.88 | 4.68 | 4.68 | 82% |
+| 金 gold | 暗 | `#E0B24C` | `#2F2717` | `#54441E` | `#E8C97A` | `#C89A34` | `#1E1503` | `#38301C` | `#423821` | 9.18 | 6.98 | 6.52 | 59% |
+| 红 red | 亮 | `#A32B24` | `#FBEEEC` | `#EFC8C2` | `#7A201B` | `#9B2C22` | `#FFFFFF` | `#F7E2DE` | `#F2D3CE` | 9.05 | 7.56 | 7.56 | 64% |
+| 红 red | 暗 | `#E0796F` | `#372220` | `#5C332E` | `#F0B5AC` | `#D25A4E` | `#1C0A08` | `#402925` | `#49302C` | 8.43 | 4.85 | 4.26 | 59% |
+| 橙 orange | 亮 | `#B45B33` | `#FBF0E9` | `#EDCDB9` | `#7A3A16` | `#A9502A` | `#FFFFFF` | `#F7E4D8` | `#F2D8C7` | 7.67 | 5.43 | 5.43 | 60% |
+| 橙 orange | 暗 | `#E39B6F` | `#33241A` | `#573827` | `#EDBA96` | `#C1663B` | `#1E0F07` | `#3C2B1F` | `#453225` | 8.57 | 4.64 | 4.20 | 53% |
+| 绿 green | 亮 | `#2F6B4F` | `#EDF5F0` | `#C4DCD0` | `#1F5238` | `#2B6449` | `#FFFFFF` | `#E3F0E9` | `#D8E9E0` | 8.15 | 6.95 | 6.95 | 40% |
+| 绿 green | 暗 | `#7CC4A0` | `#1A2C24` | `#2F4E3E` | `#9FD3B6` | `#4E9B76` | `#07130E` | `#21342B` | `#273C32` | 8.72 | 5.66 | 5.03 | 33% |
+| 青 cyan | 亮 | `#0F6D7B` | `#E9F4F6` | `#B9DCE2` | `#0B4F5A` | `#0C6371` | `#FFFFFF` | `#DFEFF2` | `#D3E7EB` | 8.22 | 6.91 | 6.91 | 81% |
+| 青 cyan | 暗 | `#63B8C7` | `#162A30` | `#254A52` | `#8FCBD6` | `#2A93A6` | `#04161A` | `#1D333A` | `#243C44` | 8.30 | 5.13 | 4.67 | 60% |
+| 蓝 blue | 亮 | `#3D4E9C` | `#EEF0F9` | `#C8CEE9` | `#2B3A78` | `#36468F` | `#FFFFFF` | `#E4E8F5` | `#DAE0F0` | 9.33 | 8.64 | 8.64 | 45% |
+| 蓝 blue | 暗 | `#8F9EDB` | `#1D2645` | `#303C5E` | `#A9B6E0` | `#667AD4` | `#0A0E1C` | `#242F52` | `#2B375E` | 7.39 | 4.85 | 4.25 | 56% |
+| 紫 purple | 亮 | `#6D5382` | `#F4F0F7` | `#D8CCE2` | `#523C66` | `#654C7A` | `#FFFFFF` | `#ECE4F1` | `#E4DBEC` | 8.49 | 7.32 | 7.32 | 23% |
+| 紫 purple | 暗 | `#B79FCB` | `#2B2439` | `#443654` | `#C3B0D6` | `#8E75AE` | `#140E1B` | `#332B43` | `#3B324D` | 7.43 | 4.79 | 4.26 | 26% |
+
+**读数区间**：`softText/softBg` 6.88（金·亮）– 9.33（蓝·亮）；`strongInk/strongBg` 4.64（橙·暗）– 8.64（蓝·亮）；
+`strongBg/卡片` 4.20（橙·暗）– 8.64（蓝·亮）；`softBg` 与底色 1.11–1.15；`strongBg` 饱和度 23%–82%（全部 ≤85%）。
+补充：`softText` 直接落在卡片上 7.39–10.61（≥4.5），`softText/hoverBg` 6.35–8.67（hover 后仍可读）。
+
+**角色 → 主题映射（7 项收敛）**：默认 / 普通成员 → `gold`；支书 / 副支书 / 党委组织员 → `red`；
+纪检委员（含遗留 `commissioner`）→ `orange`；组长 / 副组长 → `green`；组织委员 / 组织者 → `cyan`；
+宣传委员 / 发起人 → `blue`；深度参与者 → `purple`。色板旧键：`participant`（金）→ `gold`、`all`（旧色板「青」档）→ `cyan`。
+实现见 `constants.js → ACCENT_KEY_ALIASES`，角色键不进色板。
+
+**三个代表页的用色判断（设计自检）**
+
+- **今天**：中性暖白页面 + 深墨正文；主题色只出现在页头身份标签与「去处理」主 CTA（≤1 处高强调）；
+  活动类别色仅作日历圆点 / 类型徽章的小面积点睛——大面积不铺色。
+- **待办**：行内只有状态徽章（功能色）与主题色软底选中态；hover 加深一档 `hoverBg`，不用 filter / 阴影；
+  不出现「红主题 + 红色块」拼贴。
+- **通知**：未读用固定语义红点（小面积），已读行为中性；主题色只在当前页签与主操作上出现一次，
+  长列表保持中性表面，靠字重与间距而不是颜色分层。
+
+**禁止**：主题链路出现 `color-mix(...--app-accent`、`rgba(主题色, α)`、`filter: brightness`、`opacity`
+派生主题色；把活动类别色 / 党徽金写成主题 token；在主题表外新增主题色 hex（守卫：`theme-palette-guard`，Task 9）。
+**兼容边界**：`--app-accent-bg / -border / -text / -deep / -strong / -ink` 为**批次 506 迁移后删除**的别名，
+新代码只写 8 个新 token。
 
 ---
 
@@ -2210,4 +2303,53 @@ li + li { margin-top: 0.25em; }
 | SD-9 | IF 页签有 groupLabel THEN 桌面端渲染非空文本（含首组） |
 | SD-10 | IF 正文/元信息 THEN font-size ∈ {12,13,14,16}px；today/todo 中 10/11px 计数为 0 |
 | SD-11 | IF 删除一句文案 THEN 该句不含唯一动作/状态/风险信息；破坏性确认与权限原因不得删 |
+
+### 12.7 密度与间距（批次 506 现行）
+
+| 组件 | 高度 | 构成 |
+|---|---|---|
+| 输入/下拉 `.input-flat` | 40px | 8 + 8 + 22（13px×1.7）+ 2 |
+| 紧凑输入 `.input-flat-sm` | 34px | 8 + 8 + 16 + 2 |
+| 页面/弹窗按钮（accent/outline/danger/neutral/md） | 36px | 8 + 8 + 18 + 2 |
+| 卡片/页签按钮（ghost/tab） | 32px | 4 + 4 + 22 + 2 |
+| 行内按钮（sm/action） | 28px | 4 + 4 + 18 + 2；命中区 44px |
+| 列表单行 / 双行 / 紧凑行 | 48 / 56 / 44px | 语义行型 |
+| 表格行 | 40px | 不再写无效的 `tr{min-height}` |
+| `summary` | ≥40px | 命中区 |
+
+- 间距只取 4/8/12/16/24；标题→次级→描述 8；页头说明→内容 8–12。
+- 按钮宽度由内容 + 水平 10/8/8；不得用 `min-height` 撑高脱离文字行高。
+
+### 12.8 交互三态（批次 506 现行）
+
+| 状态 | 主题色控件 | 中性控件 |
+|---|---|---|
+| hover | `--app-accent-hover-bg` | `--surface-hover` |
+| active | `--app-accent-active-bg` | `--surface-active` |
+| selected | `--app-accent-soft-bg/-soft-border/-soft-text` | `.is-current` 等既有类 |
+
+- 所有 `:hover` 必须位于 `@media (hover: hover)`；Tailwind `hover:` 由 `future.hoverOnlyWhenSupported` 自动门控。
+- hover 只改颜色；禁止 `filter/opacity/transform/translate/box-shadow` 作为 hover。
+- 静态行/卡不加 hover；页签与 `summary` 必须有 hover/active/focus-visible。
+- 触屏用 `:active`；键盘用 `focus-visible`。
+
+### 12.9 主题与语义色（批次 506）
+
+- 主题只保留 7 个：金/红/橙/绿/青/蓝/紫；紫一个、蓝一个。
+- 每个主题亮/暗各 8 个手选 token：`base/softBg/softBorder/softText/strongBg/strongInk/hoverBg/activeBg`；运行时禁止 `color-mix/rgba/brightness` 生成。
+- 党徽金 `#FFD700`、三会一课 `#CE1126`、主题党日亮金是固定语义色，不随主题变化；只用于小面积标记。
+- 「沉稳但是鲜活」：大面积中性、强调克制、每屏最多一个高强调；`softText vs softBg` 4.5–12:1，`softBg` 与白 1.08–1.35，`strongBg` 饱和度 ≤85%（固定语义色除外）。
+
+| ID | 规则（Boolean） |
+|---|---|
+| SD-12 | IF 主题色 token THEN 来自主题表显式 hex，`color-mix/rgba(主题色)/brightness` 计数为 0 |
+| SD-13 | IF softText THEN 与 strongBg 可不同，且 softText vs softBg ≥4.5 |
+| SD-14 | IF 行内按钮 THEN 28；卡片 32；页面/弹窗 36；高度不得由 min-height 脱离文字行高 |
+| SD-15 | IF 列表单行 THEN 48；双行 56；紧凑 44；文本上下留白 ≥8 |
+| SD-16 | IF hover THEN 用 hoverBg 且在 `@media (hover:hover)` 内；filter/opacity/translate/shadow 计数为 0 |
+| SD-17 | IF 元素无 `data-interactive`/原生可点 THEN 无 hover 背景与 pointer |
+| SD-18 | IF 标题→次级→描述 THEN 8px；IF 组件内边距 THEN ∈{4,8,12,16,24} |
+| SD-19 | IF 党徽/活动类别 THEN 固定语义色，切换主题前后 computed 值不变 |
+| SD-20 | IF 正文/浅底 THEN 对比度 4.5–9:1（≤12）；softBg 1.08–1.35；强色仅小面积且饱和度 ≤85% |
+| SD-21 | IF 主题选择器 THEN 恰 7 项；无两个紫或两个蓝；删除项有回落映射 |
 

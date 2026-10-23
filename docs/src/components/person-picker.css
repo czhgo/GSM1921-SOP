@@ -48,10 +48,15 @@
   max-width: none;
 }
 
-.person-picker-trigger:hover,
 .person-picker-trigger.open {
   border-color: var(--pp-accent);
   box-shadow: 0 2px 8px var(--pp-accent-10);
+}
+/* 2026-10-23 Task 7：hover 只改描边（不再加阴影），并由 hover 能力门控。 */
+@media (hover: hover) {
+  .person-picker-trigger:hover {
+    border-color: var(--pp-accent);
+  }
 }
 
 .person-picker-trigger-name {
@@ -158,8 +163,10 @@
   transition: background 0.15s;
 }
 
-.person-picker-close-btn:hover {
-  background: var(--neutral-200);
+@media (hover: hover) {
+  .person-picker-close-btn:hover {
+    background: var(--surface-hover);
+  }
 }
 
 /* 搜索框：高度 34px（Task 6 口径）、字号 13px；左内边距留给放大镜图标。
@@ -266,8 +273,10 @@
   outline-offset: -2px;
 }
 
-.person-picker-list .person-picker-item:not(.selected):hover {
-  background: var(--surface-hover);
+@media (hover: hover) {
+  .person-picker-list .person-picker-item:not(.selected):hover {
+    background: var(--surface-hover);
+  }
 }
 
 /* 选中态：只用整行主题色 6% 底 + 右侧勾，不加边框 */
@@ -284,8 +293,10 @@
   outline: 2px solid var(--neutral-300);
   outline-offset: -2px;
 }
-.person-picker-list .person-picker-item.disabled:hover {
-  background: transparent;
+@media (hover: hover) {
+  .person-picker-list .person-picker-item.disabled:hover {
+    background: transparent;
+  }
 }
 .person-picker-item.disabled .person-picker-item-name {
   color: var(--neutral-400);
@@ -392,9 +403,11 @@
   cursor: pointer;
   transition: background-color 0.15s, border-color 0.15s, color 0.15s;
 }
-.person-picker-batch-chip:hover {
-  border-color: var(--pp-accent);
-  color: var(--pp-accent);
+@media (hover: hover) {
+  .person-picker-batch-chip:hover {
+    border-color: var(--pp-accent);
+    color: var(--pp-accent);
+  }
 }
 .person-picker-batch-chip.active {
   background: var(--pp-accent-10);
@@ -420,8 +433,10 @@
   transition: background 0.15s;
 }
 
-.person-picker-confirm:hover {
-  background: var(--pp-accent-darker);
+@media (hover: hover) {
+  .person-picker-confirm:hover {
+    background: var(--pp-accent-darker);
+  }
 }
 
 /* ── 深色主题适配（系统跟随，T-207 补漏 2026-08-07）── */
@@ -444,8 +459,10 @@
     background: var(--neutral-100);
     color: var(--neutral-500);
   }
-  html.theme-dark .person-picker-close-btn:hover {
-    background: var(--neutral-200);
+  @media (hover: hover) {
+    html.theme-dark .person-picker-close-btn:hover {
+      background: var(--neutral-200);
+    }
   }
   html.theme-dark .person-picker-search {
     background-color: var(--surface-card);
@@ -457,8 +474,10 @@
     color: var(--neutral-500);
     border-color: var(--neutral-200);
   }
-  html.theme-dark .person-picker-item:not(.selected):hover {
-    background: var(--surface-hover);
+  @media (hover: hover) {
+    html.theme-dark .person-picker-item:not(.selected):hover {
+      background: var(--surface-hover);
+    }
   }
   /* 行结构：姓名 / 元信息 / 行间分隔线与选中态同步深色（无头像） */
   html.theme-dark .person-picker-list .person-picker-item + .person-picker-item {

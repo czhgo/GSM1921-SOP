@@ -53,12 +53,15 @@ test('T4 不改 tab 尺寸 / 选中态 / 顺序', () => {
   // 页签按钮模板保持原尺寸档（shrink-0 min-h-9 px-4 py-2 text-xs）。
   assert.match(TAB_BAR, /shrink-0 min-h-9 px-4 py-2 text-xs font-medium rounded-lg transition-colors/,
     '页签按钮尺寸/样式模板被改动');
-  // `.btn-tab` 已是 32px / 13px 档（2026-10-23 R11：页签与 .btn-ghost 同属紧凑档，不属于动作按钮）。
-  const btnTab = [...CSS.matchAll(/\.btn-tab\s*\{([^}]*)\}/g)]
-    .map((m) => m[1])
-    .find((body) => /min-height:\s*32px\s*!important/.test(body));
-  assert.ok(btnTab, '未找到 .btn-tab 的 32px 尺寸档');
-  assert.match(btnTab, /font-size:\s*13px\s*!important/, '.btn-tab 字号应保持 13px');
+  // `.btn-tab` 已是 32px / 13px 档（2026-10-23 Task 6：页签与 .btn-ghost 同属紧凑档，
+  // 高度 = 4+4 padding + 22 line-height + 2 边框 = 32，不再用 min-height 撑高）。
+  const btnTab = [...CSS.matchAll(/([^{}]+)\{([^{}]*)\}/g)]
+    .map((m) => ({ selector: m[1], body: m[2] }))
+    .find(({ selector, body }) => selector.split(',').map((s) => s.trim()).includes('.btn-tab')
+      && /padding:\s*4px\s+8px/.test(body) && /line-height:\s*22px/.test(body));
+  assert.ok(btnTab, '未找到 .btn-tab 的 32px 尺寸档（padding 4px 8px + line-height 22px）');
+  assert.match(btnTab.body, /font-size:\s*13px\s*!important/, '.btn-tab 字号应保持 13px');
+  assert.doesNotMatch(btnTab.body, /min-height/, '.btn-tab 不得再用 min-height 撑高');
   // tab 按钮本身不应新增尺寸工具类（滚动箭头不是 tab）。
   const tabBtnLine = TAB_BAR.split('\n').find((line) => line.includes('tab-btn${activeClass}')) || '';
   assert.ok(tabBtnLine, '未找到页签按钮模板');

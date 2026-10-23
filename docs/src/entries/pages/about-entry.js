@@ -5,10 +5,10 @@
 // 动画：Lenis 平滑滚动 + CSS 滚动驱动（animation-timeline: view()）+ 原生 JS 驱动
 // 签名元素：收束致谢（三层小字）+ 探索区 SVG 关系网络 + 对话卡日出日落公转（文字正立）
 
-import { renderSidebar } from '../../components/shell/sidebar.js?v=20261023b';
-import { renderHeader } from '../../components/shell/header.js?v=20261023b';
-import { getBasePath } from '../../core/base/utils.js?v=20261023b';
-import { icon } from '../../core/base/icons.js?v=20261023b';
+import { renderSidebar } from '../../components/shell/sidebar.js?v=20261023c';
+import { renderHeader } from '../../components/shell/header.js?v=20261023c';
+import { getBasePath } from '../../core/base/utils.js?v=20261023c';
+import { icon } from '../../core/base/icons.js?v=20261023c';
 
 // ── 公开访问：不检查登录 ──
 // 静态壳模式（2026-08-12）：about 为纯静态文档，不加载 auth/notice 数据链（约 50 模块），
@@ -887,7 +887,7 @@ function safe(name, fn) {
     return fn();
   } catch (e) {
     console.error(`[renderAboutContent] ${name} ERROR:`, e);
-    return `<div style="--acc-bg-dark:rgba(248,113,113,0.16);--acc-text-dark:#F87171;--acc-border-dark:#F87171;padding:20px;background:#fee;border:2px solid red;color:#900;">[${name} 渲染失败: ${e.message}]</div>`;
+    return `<div style="padding:20px;background:#fee;border:2px solid red;color:#900;">[${name} 渲染失败: ${e.message}]</div>`;
   }
 }
 
@@ -968,7 +968,6 @@ function bindLenis() {
 
 function bindTOC() {
   const tocItems = document.querySelectorAll('.ab-toc-dot-item');
-  const tocNav = document.querySelector('.ab-toc-nav');
   const sections = document.querySelectorAll('.ab-page[data-toc-id]');
   if (!tocItems.length || !sections.length) return;
 
@@ -1017,10 +1016,7 @@ function bindTOC() {
     });
   });
 
-  if (tocNav) {
-    tocNav.addEventListener('mouseenter', () => tocNav.classList.add('is-hovered'));
-    tocNav.addEventListener('mouseleave', () => tocNav.classList.remove('is-hovered'));
-  }
+  // 2026-10-23 Task 7：目录提亮改由 `.help-toc-nav:focus-within` 触发（键盘等价），不再绑 mouseenter。
 
   let currentId = null;
   const setActive = (id) => {

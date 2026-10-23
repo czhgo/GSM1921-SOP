@@ -99,305 +99,239 @@
 //   一次子串替换即成对同步；**23 文件 c 下调**（清单与「改前→改后」见执行报告）；`docs/src/services/governance/issues.js` 清零 ⇒ 删条目（81→80）。
 //   distinct 值仍 167；`HEX_TOTAL_BASELINE` 有意保持 2025。**有意不碰**见下方 `HEX_FILE_BASELINE` 前的本批注。
 
+// ── 2026-10-23 批次 505 重设（spec `redesign-theme-palette-and-density` Task 9）──
+// 主题色板改为 **7 主题 × 亮/暗 × 8 个手选 hex**（112 个 token；其中与既有中性值重合的仅 #FFFFFF）。
+// 因此 `constants.js` / `styles.css` 的 (文件, 值) 与处数**必然上涨**——这是「主题色只能在表内定义」的
+// **明确例外**，不是新增游离 hardcode：
+//   · 例外面 = `docs/src/core/domain/constants.js` 的 `ACCENT_COLORS` 表
+//     ＋ `docs/src/styles.css` 的默认金 16 个原始变量；两处逐值来自同一张表（hex-hardcode-guard::H6 机检：
+//     除 #FFFFFF 外，全部色板值只允许出现在这两个文件）。
+//   · 同批 Task 4/5/7/8 已把 JS 内联派生（`--acc-text-dark: color-mix(...)` 等）清零 ⇒
+//     23 个文件的 hex 条目按收基线纪律删除（appearance-controls / calendar / insight-view / issue-detail /
+//     issue-form / modal / reactions / settings-entry / disc/review / leader/{attendance,inspection,members,review} /
+//     org/{inspection,talent} / prop/tasks / secretary/{assign,feedback,work-map} / today / visitor/{inspection,projects,review}）。
+//   · 处数 1545 → 1419、distinct 168 → 287、文件 74 → 51（全部按实况重算；H1/H2 仍逐文件判红）。
+// 收基线纪律不变：不得为变绿补条目；新增游离值仍由 H1/H2 判红。
 export const HEX_BASELINE = {
-  'docs/help.html': { c: 568, v: [
-      '#0369a1', '#047857', '#059669', '#06b6d4', '#0891b2', '#10b981',
-      '#111827', '#15803d', '#1d4ed8', '#1f2937', '#2563eb', '#374151',
-      '#3b82f6', '#4b5563', '#4d7c0f', '#65a30d', '#6b7280', '#7a0010',
-      '#7c3aed', '#7c5a14', '#86efac', '#8b5cf6', '#92400e', '#93c5fd',
-      '#991b1b', '#9a3412', '#9ca3af', '#a7f3d0', '#b45309', '#b91c1c',
-      '#bae6fd', '#ce1126', '#d1d5db', '#d97706', '#e5e7eb', '#ecfdf5',
-      '#edeef0', '#eeeff2', '#f0dfa8', '#f1f2f4', '#f3f4f6', '#f6d1d1',
-      '#f8f9fa', '#fafaf5', '#fafaf9', '#fca5a5', '#fcfcfb', '#fdba74',
-      '#fde68a', '#fdf2f2', '#fdfbf4', '#fecaca', '#fef2f2', '#ffd700',
-      '#fff', '#fffbeb', '#fffbfb', '#ffffff'
+  'docs/help.html': { c: 555, v: [
+      '#0369a1', '#047857', '#059669', '#06b6d4', '#0891b2', '#10b981', '#111827',
+      '#15803d', '#1d4ed8', '#1f2937', '#2563eb', '#374151', '#3b82f6', '#4b5563',
+      '#4d7c0f', '#65a30d', '#6b7280', '#7a0010', '#7c3aed', '#7c5a14', '#86efac',
+      '#8b5cf6', '#92400e', '#93c5fd', '#991b1b', '#9a3412', '#9ca3af', '#a7f3d0',
+      '#b45309', '#b91c1c', '#bae6fd', '#ce1126', '#d1d5db', '#d97706', '#e5e7eb',
+      '#ecfdf5', '#edeef0', '#eeeff2', '#f0dfa8', '#f1f2f4', '#f3f4f6', '#f6d1d1',
+      '#f8f9fa', '#fafaf5', '#fafaf9', '#fca5a5', '#fcfcfb', '#fdba74', '#fde68a',
+      '#fdf2f2', '#fdfbf4', '#fecaca', '#fef2f2', '#ffd700', '#fff', '#fffbeb',
+      '#fffbfb', '#ffffff',
   ] },
-  'docs/login.html': { c: 5, v: [
-      '#7a0010', '#9b0000', '#ce1126', '#e5e7eb', '#fecaca'
+  'docs/login.html': { c: 3, v: [
+      '#7a0010', '#9b0000', '#e5e7eb',
   ] },
-  // `docs/settings.html` 条目已于 2026-09-25 移除（收基线）：该页整体重做后
-  //   页面级 <style> 归零、页面内硬编码 hex 清零 ⇒ 按本守卫自身纪律（收基线＝删条目）删去。
   'docs/src/about.css': { c: 50, v: [
-      '#14161a', '#1b1e24', '#22262d', '#33383f', '#3b3226', '#6c6254',
-      '#756b5d', '#7c5c14', '#7e7870', '#94897a', '#948e85', '#a80f1c',
-      '#a9a398', '#aba191', '#c9a227', '#ce1126', '#e3c24f', '#e6dfd2',
-      '#e8e4dc', '#f0ebe2', '#f6f2eb', '#faf8f4', '#fbe9e4', '#fdf1ea',
-      '#fff', '#fff8ee', '#fffdf6'
+      '#14161a', '#1b1e24', '#22262d', '#33383f', '#3b3226', '#6c6254', '#756b5d',
+      '#7c5c14', '#7e7870', '#94897a', '#948e85', '#a80f1c', '#a9a398', '#aba191',
+      '#c9a227', '#ce1126', '#e3c24f', '#e6dfd2', '#e8e4dc', '#f0ebe2', '#f6f2eb',
+      '#faf8f4', '#fbe9e4', '#fdf1ea', '#fff', '#fff8ee', '#fffdf6',
   ] },
-  'docs/src/components/record/activity-view.js': { c: 4, v: [
-      '#16a34a', '#9ca3af', '#d97706'
+  'docs/src/components/dashboard/activity-panel.js': { c: 2, v: [
+      '#6b7280', '#f9fafb',
   ] },
-  'docs/src/components/shell/appearance-controls.js': { c: 5, v: [
-      '#000', '#b91c1c', '#fff'
-  ] },
-  'docs/src/components/record/calendar.js': { c: 11, v: [
-      '#000', '#fff'
-  ] },
-  'docs/src/components/dashboard/activity-panel.js': { c: 4, v: [
-      '#000', '#6b7280', '#f9fafb', '#fff'
-  ] },
-  'docs/src/components/dashboard/gallery.js': { c: 19, v: [
-      '#6b7280', '#a7f3d0', '#bae6fd', '#bfdbfe', '#c4b5fd', '#d9f99d',
-      '#e5e7eb', '#ecfdf5', '#eff6ff', '#f0f9ff', '#f5f3ff', '#f7fee7',
-      '#f9fafb', '#fbcfe8', '#fde68a', '#fdf2f8', '#fecaca', '#fef2f2',
-      '#fffbeb'
+  'docs/src/components/dashboard/gallery.js': { c: 1, v: [
+      '#6b7280',
   ] },
   'docs/src/components/dashboard/stats.js': { c: 15, v: [
-      '#059669', '#3b82f6', '#94a3b8', '#9ca3af', '#d1d5db', '#d97706',
-      '#dc2626', '#f59e0b', '#f97316'
+      '#059669', '#3b82f6', '#94a3b8', '#9ca3af', '#d1d5db', '#d97706', '#dc2626',
+      '#f59e0b', '#f97316',
   ] },
-  // 2026-10-19 补齐历史漏登记（批次 485 新增文件未入基线）：3 处内联 `#1F2937` / `#fff`。
-  'docs/src/components/ui/relation-matrix.js': { c: 3, v: [
-      '#1f2937', '#fff'
-  ] },
-  'docs/src/components/shell/header.js': { c: 5, v: [
-      '#000', '#7a0010', '#fff', '#ffffff'
-  ] },
-  'docs/src/components/record/insight-view.js': { c: 2, v: [
-      '#000', '#fff'
-  ] },
-  'docs/src/components/record/inspector.js': { c: 19, v: [
-      '#15803d', '#16a34a', '#34d399', '#4ade80', '#60a5fa', '#92400e',
-      '#9ca3af', '#b91c1c', '#ce1126', '#d97706', '#f87171', '#fbbf24'
-  ] },
-  'docs/src/components/feedback/issue-detail.js': { c: 12, v: [
-      '#000', '#2563eb', '#60a5fa', '#6b7280', '#94a3b8', '#a16207',
-      '#ce1126', '#f87171', '#fbbf24', '#fff'
-  ] },
-  'docs/src/components/feedback/issue-form.js': { c: 9, v: [
-      '#000', '#2563eb', '#60a5fa', '#6b7280', '#94a3b8', '#a16207',
-      '#ce1126', '#f87171', '#fbbf24'
-  ] },
-  'docs/src/components/feedback/issue-list.js': { c: 14, v: [
-      '#000', '#2563eb', '#60a5fa', '#6b7280', '#94a3b8', '#991b1b',
-      '#a16207', '#ce1126', '#f87171', '#fbbf24'
+  'docs/src/components/feedback/issue-list.js': { c: 1, v: [
+      '#ce1126',
   ] },
   'docs/src/components/governance/member-change-panel.js': { c: 1, v: [
-      '#b91c1c'
-  ] },
-  'docs/src/components/ui/modal.js': { c: 6, v: [
-      '#cbd5e1', '#f87171'
-  ] },
-  'docs/src/components/governance/org-setup-wizard.js': { c: 8, v: [
-      '#16a34a', '#ce1126', '#ef4444', '#ffd700', '#fff'
-  ] },
-  'docs/src/components/governance/overview-dispatch-bar.js': { c: 1, v: [
-      '#b91c1c'
-  ] },
-  'docs/src/components/person-picker.css': { c: 4, v: [
-      '#92400e', '#f9fafb', '#fef3c7'
-  ] },
-  'docs/src/components/governance/person-picker.js': { c: 8, v: [
-      '#000', '#047857', '#1d4ed8', '#6b7280', '#991b1b', '#a16207',
-      '#ce1126'
-  ] },
-  'docs/src/components/governance/query-view.js': { c: 2, v: [
-      '#3b82f6'
-  ] },
-  'docs/src/components/feedback/reactions.js': { c: 10, v: [
-      '#000', '#059669', '#1e293b', '#334155', '#3b82f6', '#6b7280',
-      '#cbd5e1', '#d97706', '#dc2626', '#f3f4f6'
-  ] },
-  'docs/src/components/record/report-inbox.js': { c: 5, v: [
-      '#16a34a', '#b91c1c', '#ef4444', '#f59e0b', '#f87171'
-  ] },
-  'docs/src/components/ui/status-badge.js': { c: 1, v: [
-      '#9ca3af'
-  ] },
-  'docs/src/components/shell/tab-bar.js': { c: 4, v: [
-      '#000', '#334155', '#b91c1c', '#ffd700'
-  ] },
-  'docs/src/components/record/taskforce-view.js': { c: 24, v: [
-      '#000', '#0d9488', '#10b981', '#10b98115', '#34d399', '#3b82f6',
-      '#60a5fa', '#6366f1', '#6b7280', '#94a3b8', '#a5b4fc', '#d97706',
-      '#dc2626', '#f87171', '#fbbf24'
-  ] },
-  'docs/src/components/governance/work-overview.js': { c: 12, v: [
-      '#0ea5e9', '#16a34a', '#4f46e5', '#60a5fa', '#94a3b8', '#b91c1c',
-      '#cbd5e1', '#ef4444', '#f59e0b'
-  ] },
-  'docs/src/core/domain/constants.js': { c: 74, v: [
-      '#000', '#0369a1', '#047857', '#059669', '#0e7490', '#0ea5e9',
-      '#10b981', '#16a34a', '#1d4ed8', '#1f2937', '#22c55e', '#22d3ee', '#2563eb',
-      '#34d399', '#38bdf8', '#3b82f6', '#4ade80', '#4b5563', '#4f46e5',
-      '#60a5fa', '#6b7280', '#7c3aed', '#7dd3fc', '#92400e', '#94a3b8',
-      '#991b1b', '#9b0000', '#a16207', '#a5b4fc', '#a78bfa', '#b91c1c',
-      '#c2410c', '#c4b5fd', '#cbd5e1', '#ce1126', '#d4af37', '#d97706',
-      '#dc2626', '#f5c518', '#f87171', '#fb923c', '#fbbf24', '#fee2e2',
-      '#fef2f2', '#fefce8', '#ffd700', '#fff'
-  ] },
-  'docs/src/data/data-adapter.js': { c: 7, v: [
-      '#111827', '#374151', '#6b7280', '#9ca3af', '#d1d5db', '#f9fafb',
-      '#fff'
-  ] },
-  'docs/src/core/base/icons.js': { c: 1, v: [
-      '#fff'
-  ] },
-  'docs/src/core/base/utils.js': { c: 15, v: [
-      '#16a34a', '#1e293b', '#1f2937', '#3b82f6', '#e2e8f0', '#ef4444',
-      '#eff6ff', '#f0fdf4', '#fef2f2', '#fff'
-  ] },
-  'docs/src/entries/pages/about-entry.js': { c: 20, v: [
-      '#0e7490', '#0ea5e9', '#15803d', '#2563eb', '#64748b', '#6b7280',
-      '#900', '#b91c1c', '#c2410c', '#ce1126', '#f87171', '#fee',
-      '#ffd700'
-  ] },
-  'docs/src/entries/pages/activity-entry.js': { c: 10, v: [
-      '#000', '#6b7280', '#94a3b8', '#a16207', '#ce1126', '#f87171',
-      '#fbbf24', '#fde68a', '#ffd700'
-  ] },
-  'docs/src/entries/pages/archive-entry.js': { c: 1, v: [
-      '#6b7280'
-  ] },
-  'docs/src/entries/pages/help-entry.js': { c: 4, v: [
-      '#7a0010', '#ce1126', '#d1d5db', '#fdf2f2'
-  ] },
-  'docs/src/entries/pages/settings-entry.js': { c: 6, v: [
-      '#fff'
-  ] },
-  'docs/src/entries/tabs/disc/attendance-tab.js': { c: 13, v: [
-      '#000', '#14b8a6', '#16a34a', '#94a3b8', '#ef4444', '#f59e0b',
-      '#fff'
-  ] },
-  'docs/src/entries/tabs/disc/inspection-tab.js': { c: 6, v: [
-      '#000', '#94a3b8', '#b45309', '#fff'
-  ] },
-  'docs/src/entries/tabs/disc/review-tab.js': { c: 1, v: [
-      '#fbbf24'
-  ] },
-  'docs/src/entries/tabs/leader/attendance-tab.js': { c: 1, v: [
-      '#000'
-  ] },
-  'docs/src/entries/tabs/leader/inspection-tab.js': { c: 1, v: [
-      '#000'
-  ] },
-  'docs/src/entries/tabs/leader/members-tab.js': { c: 3, v: [
-      '#000', '#60a5fa', '#fff'
-  ] },
-  'docs/src/entries/tabs/leader/review-tab.js': { c: 1, v: [
-      '#fbbf24'
-  ] },
-  'docs/src/entries/tabs/leader/write-tab.js': { c: 22, v: [
-      '#000', '#0e7490', '#10b981', '#1e293b', '#334155', '#3b82f6',
-      '#475569', '#6b7280', '#94a3b8', '#cbd5e1', '#ce1126', '#d1d5db',
-      '#d97706', '#e5e7eb'
-  ] },
-  // ⚠ 2026-10-01 批次 321：`org/development-tab.js` 条目**已删**——该文件按支书 V-10 裁定
-  //   「整页并入人才库」而**删除**（其样式随之消失）⇒ 按收基线纪律**同批删条目**（不得留着指向不存在的文件）。
-  'docs/src/entries/tabs/org/inspection-tab.js': { c: 1, v: [
-      '#000'
-  ] },
-  'docs/src/entries/tabs/org/talent-tab.js': { c: 1, v: [
-      '#67e8f9'
-  ] },
-  'docs/src/entries/tabs/org/taskforce-tab.js': { c: 46, v: [
-      '#000', '#0d9488', '#10b981', '#10b98115', '#34d399', '#3b82f6',
-      '#60a5fa', '#6366f1', '#6b7280', '#8b5cf6', '#94a3b8', '#a5b4fc',
-      '#c4b5fd', '#d97706', '#dc2626', '#f87171', '#fbbf24', '#fff'
-  ] },
-  // ⚠ 2026-10-20 第三轮 IA 收口：`org/thought-review-tab.js` 的最后一处 `#000` 随浮窗体例迁移清零
-  //   ⇒ 按收基线纪律删条目（文件数 75 → 74；`HEX_TOTAL_BASELINE` 仍为存量起点）。
-  'docs/src/entries/tabs/prop/archive-tab.js': { c: 2, v: [
-      '#60a5fa', '#999'
-  ] },
-  'docs/src/entries/tabs/prop/kanban-tab.js': { c: 5, v: [
-      '#000', '#60a5fa', '#94a3b8', '#ce1126'
-  ] },
-  'docs/src/entries/tabs/prop/tasks-tab.js': { c: 6, v: [
-      '#000', '#34d399', '#60a5fa', '#fbbf24'
-  ] },
-  'docs/src/entries/tabs/secretary/assign-tab.js': { c: 3, v: [
-      '#f87171', '#fff'
-  ] },
-  'docs/src/entries/tabs/secretary/calendar-tab.js': { c: 7, v: [
-      '#ce1126', '#ffd700', '#fff'
-  ] },
-  'docs/src/entries/tabs/secretary/feedback-tab.js': { c: 1, v: [
-      '#fff'
-  ] },
-  'docs/src/entries/tabs/secretary/group-progress-tab.js': { c: 7, v: [
-      '#16a34a', '#ce1126', '#ef4444', '#f59e0b', '#fbbf24'
-  ] },
-  'docs/src/entries/tabs/secretary/notification-tab.js': { c: 4, v: [
-      '#ce1126', '#fff'
-  ] },
-  'docs/src/entries/tabs/secretary/report-up-tab.js': { c: 3, v: [
-      '#16a34a', '#6b7280', '#d97706'
-  ] },
-  'docs/src/entries/tabs/secretary/todo-tab.js': { c: 1, v: [
-      '#6b7280'
-  ] },
-  'docs/src/entries/tabs/secretary/work-map-tab.js': { c: 3, v: [
-      '#000', '#cbd5e1', '#fff'
-  ] },
-  'docs/src/entries/tabs/today/today-tab.js': { c: 2, v: [
-      '#000'
-  ] },
-  'docs/src/entries/tabs/visitor/activities-tab.js': { c: 11, v: [
-      '#6b7280', '#ce1126', '#f9fafb', '#fca5a5'
-  ] },
-  'docs/src/entries/tabs/visitor/attendance-tab.js': { c: 2, v: [
-      '#3b82f6'
-  ] },
-  'docs/src/entries/tabs/visitor/inspection-tab.js': { c: 1, v: [
-      '#000'
-  ] },
-  'docs/src/entries/tabs/visitor/projects-tab.js': { c: 6, v: [
-      '#000', '#fca5a5', '#fff'
-  ] },
-  'docs/src/entries/tabs/visitor/review-tab.js': { c: 1, v: [
-      '#fbbf24'
-  ] },
-  'docs/src/entries/tabs/visitor/todo-tab.js': { c: 3, v: [
-      '#a16207', '#fbbf24', '#ffd700'
-  ] },
-  'docs/src/components/sections/references.js': { c: 16, v: [
-      '#047857', '#1d4ed8', '#b45309', '#d1fae5', '#dbeafe', '#ecfdf5',
-      '#fef3c7'
-  ] },
-  'docs/src/services/branch/branch-doc.js': { c: 1, v: [
-      '#b45309'
-  ] },
-  'docs/src/services/activity/decision-tree.js': { c: 4, v: [
-      '#ce1126', '#ffd700'
+      '#b91c1c',
   ] },
   'docs/src/components/governance/notice-view.js': { c: 2, v: [
-      '#3b82f6', '#fff'
+      '#3b82f6', '#fff',
+  ] },
+  'docs/src/components/governance/org-setup-wizard.js': { c: 7, v: [
+      '#16a34a', '#ce1126', '#ef4444', '#ffd700',
+  ] },
+  'docs/src/components/governance/overview-dispatch-bar.js': { c: 1, v: [
+      '#b91c1c',
+  ] },
+  'docs/src/components/governance/person-picker.js': { c: 3, v: [
+      '#6b7280', '#ce1126',
+  ] },
+  'docs/src/components/governance/query-view.js': { c: 2, v: [
+      '#3b82f6',
+  ] },
+  'docs/src/components/governance/work-overview.js': { c: 1, v: [
+      '#b91c1c',
+  ] },
+  'docs/src/components/person-picker.css': { c: 2, v: [
+      '#92400e', '#fef3c7',
+  ] },
+  'docs/src/components/record/activity-view.js': { c: 4, v: [
+      '#16a34a', '#9ca3af', '#d97706',
+  ] },
+  'docs/src/components/record/inspector.js': { c: 4, v: [
+      '#16a34a', '#9ca3af', '#ce1126', '#d97706',
+  ] },
+  'docs/src/components/record/report-inbox.js': { c: 4, v: [
+      '#16a34a', '#b91c1c', '#ef4444', '#f59e0b',
+  ] },
+  'docs/src/components/record/taskforce-view.js': { c: 7, v: [
+      '#0d9488', '#10b981', '#10b98115', '#3b82f6', '#6366f1', '#6b7280', '#d97706',
+  ] },
+  'docs/src/components/sections/references.js': { c: 16, v: [
+      '#047857', '#1d4ed8', '#b45309', '#d1fae5', '#dbeafe', '#ecfdf5', '#fef3c7',
+  ] },
+  'docs/src/components/shell/header.js': { c: 2, v: [
+      '#fff', '#ffffff',
+  ] },
+  'docs/src/components/shell/tab-bar.js': { c: 2, v: [
+      '#b91c1c', '#ffd700',
+  ] },
+  'docs/src/components/ui/relation-matrix.js': { c: 2, v: [
+      '#1f2937',
+  ] },
+  'docs/src/components/ui/status-badge.js': { c: 1, v: [
+      '#9ca3af',
+  ] },
+  'docs/src/core/base/icons.js': { c: 1, v: [
+      '#fff',
+  ] },
+  'docs/src/core/base/utils.js': { c: 12, v: [
+      '#16a34a', '#1f2937', '#3b82f6', '#ef4444', '#eff6ff', '#f0fdf4', '#fef2f2',
+      '#fff',
+  ] },
+  'docs/src/core/domain/constants.js': { c: 179, v: [
+      '#000', '#0369a1', '#04161a', '#047857', '#059669', '#07130e', '#0a0e1c',
+      '#0b4f5a', '#0c6371', '#0e7490', '#0ea5e9', '#0f6d7b', '#10b981', '#140e1b',
+      '#162a30', '#16a34a', '#1a2c24', '#1c0a08', '#1d2645', '#1d333a', '#1d4ed8',
+      '#1e0f07', '#1e1503', '#1f5238', '#21342b', '#22c55e', '#22d3ee', '#242f52',
+      '#243c44', '#254a52', '#2563eb', '#273c32', '#2a93a6', '#2b2439', '#2b375e',
+      '#2b3a78', '#2b6449', '#2f2717', '#2f4e3e', '#2f6b4f', '#303c5e', '#33241a',
+      '#332b43', '#34d399', '#36468f', '#372220', '#38301c', '#38bdf8', '#3b324d',
+      '#3b82f6', '#3c2b1f', '#3d4e9c', '#402925', '#423821', '#443654', '#453225',
+      '#49302c', '#4ade80', '#4b5563', '#4e9b76', '#4f46e5', '#523c66', '#54441e',
+      '#573827', '#5c332e', '#60a5fa', '#63b8c7', '#654c7a', '#667ad4', '#6b7280',
+      '#6d5382', '#6e4e08', '#7a201b', '#7a3a16', '#7c3aed', '#7cc4a0', '#7dd3fc',
+      '#8e75ae', '#8f9edb', '#8fcbd6', '#92400e', '#94a3b8', '#991b1b', '#9a6b0f',
+      '#9b0000', '#9b2c22', '#9fd3b6', '#a16207', '#a32b24', '#a5b4fc', '#a78bfa',
+      '#a9502a', '#a97a12', '#a9b6e0', '#b45b33', '#b79fcb', '#b91c1c', '#b9dce2',
+      '#c1663b', '#c2410c', '#c3b0d6', '#c4b5fd', '#c4dcd0', '#c89a34', '#c8cee9',
+      '#cbd5e1', '#ce1126', '#d25a4e', '#d3e7eb', '#d4af37', '#d8cce2', '#d8e9e0',
+      '#d97706', '#dae0f0', '#dc2626', '#dfeff2', '#e0796f', '#e0b24c', '#e39b6f',
+      '#e3f0e9', '#e4dbec', '#e4e8f5', '#e8c97a', '#e8d5a3', '#e9f4f6', '#ece4f1',
+      '#edba96', '#edcdb9', '#edf5f0', '#eef0f9', '#efc8c2', '#f0b5ac', '#f0dfac',
+      '#f2d3ce', '#f2d8c7', '#f4f0f7', '#f6eac6', '#f7e2de', '#f7e4d8', '#f87171',
+      '#fb923c', '#fbbf24', '#fbeeec', '#fbf0e9', '#fbf3dc', '#fee2e2', '#fef2f2',
+      '#fefce8', '#ffd700', '#fff', '#ffffff',
+  ] },
+  'docs/src/data/data-adapter.js': { c: 7, v: [
+      '#111827', '#374151', '#6b7280', '#9ca3af', '#d1d5db', '#f9fafb', '#fff',
+  ] },
+  'docs/src/entries/pages/about-entry.js': { c: 18, v: [
+      '#0e7490', '#0ea5e9', '#15803d', '#2563eb', '#64748b', '#6b7280', '#900',
+      '#b91c1c', '#c2410c', '#ce1126', '#fee', '#ffd700',
+  ] },
+  'docs/src/entries/pages/activity-entry.js': { c: 5, v: [
+      '#6b7280', '#a16207', '#ce1126', '#ffd700',
+  ] },
+  'docs/src/entries/pages/archive-entry.js': { c: 1, v: [
+      '#6b7280',
+  ] },
+  'docs/src/entries/pages/help-entry.js': { c: 4, v: [
+      '#7a0010', '#ce1126', '#d1d5db', '#fdf2f2',
+  ] },
+  'docs/src/entries/tabs/disc/attendance-tab.js': { c: 7, v: [
+      '#14b8a6', '#16a34a', '#94a3b8', '#ef4444', '#f59e0b',
+  ] },
+  'docs/src/entries/tabs/disc/inspection-tab.js': { c: 1, v: [
+      '#94a3b8',
+  ] },
+  'docs/src/entries/tabs/leader/write-tab.js': { c: 11, v: [
+      '#0e7490', '#10b981', '#3b82f6', '#475569', '#6b7280', '#ce1126', '#d1d5db',
+      '#d97706', '#e5e7eb',
+  ] },
+  'docs/src/entries/tabs/org/taskforce-tab.js': { c: 2, v: [
+      '#0d9488', '#10b98115',
+  ] },
+  'docs/src/entries/tabs/prop/archive-tab.js': { c: 1, v: [
+      '#999',
+  ] },
+  'docs/src/entries/tabs/prop/kanban-tab.js': { c: 1, v: [
+      '#ce1126',
+  ] },
+  'docs/src/entries/tabs/secretary/calendar-tab.js': { c: 2, v: [
+      '#ce1126', '#ffd700',
+  ] },
+  'docs/src/entries/tabs/secretary/group-progress-tab.js': { c: 6, v: [
+      '#16a34a', '#ce1126', '#ef4444', '#f59e0b',
+  ] },
+  'docs/src/entries/tabs/secretary/notification-tab.js': { c: 1, v: [
+      '#ce1126',
+  ] },
+  'docs/src/entries/tabs/secretary/report-up-tab.js': { c: 3, v: [
+      '#16a34a', '#6b7280', '#d97706',
+  ] },
+  'docs/src/entries/tabs/secretary/todo-tab.js': { c: 1, v: [
+      '#6b7280',
+  ] },
+  'docs/src/entries/tabs/visitor/activities-tab.js': { c: 6, v: [
+      '#6b7280', '#ce1126', '#f9fafb',
+  ] },
+  'docs/src/entries/tabs/visitor/attendance-tab.js': { c: 2, v: [
+      '#3b82f6',
+  ] },
+  'docs/src/entries/tabs/visitor/todo-tab.js': { c: 1, v: [
+      '#ffd700',
+  ] },
+  'docs/src/services/activity/decision-tree.js': { c: 4, v: [
+      '#ce1126', '#ffd700',
+  ] },
+  'docs/src/services/branch/branch-doc.js': { c: 1, v: [
+      '#b45309',
   ] },
   'docs/src/services/branch/org-wizard-report.js': { c: 4, v: [
-      '#ce1126', '#ffd700'
+      '#ce1126', '#ffd700',
   ] },
-  'docs/src/styles.css': { c: 304, v: [
-      '#000', '#0284c7', '#059669', '#0b1220', '#0ea5e9', '#0f172a',
-      '#10b981', '#111827', '#141d2f', '#15803d', '#1a2438', '#1b1e24',
-      '#1d4ed8', '#1e293b', '#1f2937', '#22c55e', '#22d3ee', '#243244',
-      '#2563eb', '#2a1a22', '#334155', '#34d399', '#374151', '#38bdf8',
-      '#3b82f6', '#475569', '#4a000a', '#4ade80', '#4b5563', '#5eead4',
-      '#60a5fa', '#6366f1', '#64748b', '#67e8f9', '#6b7280', '#6ee7b7',
-      '#7a0010', '#7a838f', '#7c3aed', '#7dd3fc', '#86efac', '#8a6d1f',
-      '#8b5cf6', '#93c5fd', '#94a3b8', '#991b1b', '#9b0000', '#9ca3af',
-      '#a16207', '#a3e635', '#a78bfa', '#aeb6c2', '#b91c1c', '#bae6fd',
-      '#bbf7d0', '#bef264', '#bfdbfe', '#c2410c', '#c4b5fd', '#c9a227',
-      '#cbd5e1', '#ce1126', '#d1d5db', '#d1fae5', '#d4af37', '#d8b4fe',
-      '#d97706', '#dbeafe', '#dc2626', '#dcfce7', '#e0f2fe', '#e2e8f0',
-      '#e5e7eb', '#ede9fe', '#ef4444', '#eff6ff', '#f0fdf4', '#f1f5f9',
-      '#f3f4f6', '#f59e0b', '#f5c518', '#f87171', '#f8f9fa', '#f8fafc', '#f9fafb',
-      '#facc15', '#fafaf5', '#fb923c', '#fbbf24', '#fca5a5', '#fcd34d',
-      '#fda4af', '#fdba74', '#fde047', '#fde68a', '#fecaca', '#fed7aa',
-      '#fee2e2', '#fef2f2', '#fef3c7', '#ffd700', '#fff', '#fff7ed',
-      '#fffbeb', '#ffffff'
+  'docs/src/styles.css': { c: 402, v: [
+      '#000', '#0284c7', '#059669', '#0b1220', '#0e7490', '#0ea5e9', '#0f172a',
+      '#102a32', '#10b981', '#111827', '#12291f', '#141d2f', '#15803d', '#16233a',
+      '#1a2438', '#1b1e24', '#1d4ed8', '#1d5a69', '#1e1503', '#1e293b', '#1e5c44',
+      '#1f2937', '#22c55e', '#22d3ee', '#243244', '#251a38', '#2563eb', '#29456e',
+      '#2a171a', '#2a1a22', '#2e2410', '#2e2510', '#2f2717', '#334155', '#34d399',
+      '#374151', '#38301c', '#38bdf8', '#3b82f6', '#423821', '#475569', '#48346b',
+      '#4a000a', '#4ade80', '#4b5563', '#54441e', '#5a2a2f', '#5c4718', '#5eead4',
+      '#60a5fa', '#6366f1', '#64748b', '#67e8f9', '#6b7280', '#6e4e08', '#6ee7b7',
+      '#7a0010', '#7a838f', '#7c3aed', '#7dd3fc', '#7e22ce', '#86efac', '#8a6d1f',
+      '#8b5cf6', '#92400e', '#93c5fd', '#94a3b8', '#990c1b', '#991b1b', '#9a6b0f',
+      '#9b0000', '#9ca3af', '#a16207', '#a3e635', '#a5f3fc', '#a78bfa', '#a97a12',
+      '#aeb6c2', '#b00e20', '#b91c1c', '#bae6fd', '#bbf7d0', '#bef264', '#bfdbfe',
+      '#c2410c', '#c4b5fd', '#c89a34', '#c9a227', '#cbd5e1', '#ce1126', '#cffafe',
+      '#d1d5db', '#d1fae5', '#d4af37', '#d8b4fe', '#d97706', '#dbeafe', '#dc2626',
+      '#dcfce7', '#e0b24c', '#e0f2fe', '#e2e8f0', '#e5e7eb', '#e8c97a', '#e8d5a3',
+      '#e9d5ff', '#ede9fe', '#ef4444', '#f0dfac', '#f0fdf4', '#f1f5f9', '#f3e8ff',
+      '#f3f4f6', '#f59e0b', '#f6eac6', '#f87171', '#f8f9fa', '#f8fafc', '#f9fafb',
+      '#fafaf5', '#fb923c', '#fbbf24', '#fbf3dc', '#fca5a5', '#fcd34d', '#fda4af',
+      '#fdba74', '#fde047', '#fde68a', '#fecaca', '#fed7aa', '#fee2e2', '#fef2f2',
+      '#fef3c7', '#fef9c3', '#ffd700', '#ffedd5', '#fff', '#fff7ed', '#fffbeb',
+      '#ffffff',
   ] },
-  'docs/src/tailwind-config.js': { c: 50, v: [
-      '#10b981', '#111827', '#1f2937', '#374151', '#3b82f6', '#4a000a',
-      '#4b5563', '#6b7280', '#7a0010', '#8b5cf6', '#9b0000', '#9ca3af',
-      '#ce1126', '#d1d5db', '#d97706', '#dc2626', '#e5e7eb', '#ef4444',
-      '#f3f4f6', '#f87171', '#f8f9fa', '#fca5a5', '#fde68a', '#fecaca',
-      '#fee2e2', '#fef2f2', '#ffd700', '#ffffff'
+  'docs/src/tailwind-config.js': { c: 48, v: [
+      '#10b981', '#111827', '#1f2937', '#374151', '#3b82f6', '#4a000a', '#4b5563',
+      '#6b7280', '#7a0010', '#8b5cf6', '#9b0000', '#9ca3af', '#ce1126', '#d1d5db',
+      '#d97706', '#dc2626', '#e5e7eb', '#ef4444', '#f3f4f6', '#f87171', '#f8f9fa',
+      '#fca5a5', '#fde68a', '#fecaca', '#fee2e2', '#fef2f2', '#ffd700', '#ffffff',
   ] },
 };
 
 /** 硬编码 hex 规模下限（守卫的非空转判据：低于此值说明抽取口径失效或台账被删减） */
-export const HEX_TOTAL_BASELINE = 2025;
+// 2026-10-23 批次 505：存量按实况重设为 **1419 处**（原 2025 为 2026-09-24 起点；
+// 中间各批已降到 1545，本批因色板 112 个手选 hex 与 23 个文件清零相抵后为 1419）。
+// H4 仍只报不判；真正的棘轮是 H1（新增值）/ H2（处数上涨）/ H3（僵尸登记）。
+export const HEX_TOTAL_BASELINE = 1419;
 // 93 → 92（2026-09-25）：`docs/settings.html` 整体重做后其硬编码 hex 清零 ⇒ 该条目按收基线纪律删除，
 //   条目数随之 −1（H3 要求「基线条目数 ＝ 声明文件数」，两处必须同步动）。
 //   `HEX_TOTAL_BASELINE` **有意保持 2025**：它是「存量起点」，H4 会据此显示 ↓15 的缩减进度（该文件真少了 15 处）。
@@ -466,8 +400,12 @@ export const HEX_TOTAL_BASELINE = 2025;
 //   ⇒ 该文件 hex 清零，按收基线纪律删条目、文件数声明 75 → 74（与实况同值；H3 防呆下限同步下沉）。
 // ⚠ 2026-10-20 第三轮 IA 收口：`org/thought-review-tab.js` hex 清零 ⇒ 条目删除、文件数 75 → **74**
 //   （与实况同值；H3 防呆下限保持 74）。
-export const HEX_FILE_BASELINE = 74;
-export const HEX_VALUE_BASELINE = 168;
+// ⚠ 2026-10-23 批次 505（本批）：7 主题 × 亮/暗 × 8 token 的手选色板落地 ⇒ 按实况重设：
+//   文件数 74 → **51**（23 个文件的内联派生清零、条目按纪律删除）、distinct 167/168 → **287**、
+//   处数 → **1419**（见 HEX_BASELINE 头注）。上面历史注释里的 2025 / 74 / 168 均为各批当时的实况，
+//   仅作审计线索，**不得**据此回调本批数值。
+export const HEX_FILE_BASELINE = 51;
+export const HEX_VALUE_BASELINE = 287;
 
 /** 搬移例外台账（**人工填写**；守卫**不自动放宽**）——2026-09-25 支书裁定「开搬移例外」。
  *
@@ -504,15 +442,8 @@ export const HEX_MOVE_LEDGER = [
       + '同批 `services/governance/issues.js` 的「我的处置」视图段搬往 components/feedback/issue-dispatch-view.js，'
       + '该段本无硬编码色值 ⇒ 不生成台账条目。',
   },
-  {
-    id: 'org-roster → org-member-flow（R10 成员流动拆 tab）',
-    from: 'docs/src/entries/tabs/org/roster-tab.js',
-    to: ['docs/src/entries/tabs/org/member-flow-tab.js'],
-    values: ['#cbd5e1'],
-    fromValues: ['#cbd5e1'],
-    reason: '2026-09-28 批次 220 · R10：把原「成员名册」tab 内的「成员流动」面板（含流入/流出登记浮窗）'
-      + '整体拆为独立 tab ⇒ 其内联覆盖 `--acc-text-dark:#CBD5E1` 两处随代码搬到新文件；值集不变、未加深色。',
-  },
+  // 2026-10-23 批次 505（Task 4）：内联 `--acc-text-dark: color-mix(...)` 全量清零 ⇒
+  //   历史条目「org-roster → org-member-flow / #cbd5e1」两侧都已无值，搬移不再成立，按收基线纪律删除。
 ];
 
 

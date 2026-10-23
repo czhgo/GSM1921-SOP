@@ -1,14 +1,14 @@
 // role: [工程师]+[AI]
 // issue-list.js — 反馈列表渲染
 
-import { IssueStore } from '../../services/governance/issues.js?v=20261023b';
-import { AuthStore } from '../../services/core/auth.js?v=20261023b';
-import { icon } from '../../core/base/icons.js?v=20261023b';
-import { getPersonName } from '../../services/member/person.js?v=20261023b';
-import { ISSUE_STATUS_LABELS, ISSUE_CLOSED_REASON_LABELS } from '../../core/domain/constants.js?v=20261023b';
-import { badgeHtml } from '../ui/badges.js?v=20261023b';
+import { IssueStore } from '../../services/governance/issues.js?v=20261023c';
+import { AuthStore } from '../../services/core/auth.js?v=20261023c';
+import { icon } from '../../core/base/icons.js?v=20261023c';
+import { getPersonName } from '../../services/member/person.js?v=20261023c';
+import { ISSUE_STATUS_LABELS, ISSUE_CLOSED_REASON_LABELS } from '../../core/domain/constants.js?v=20261023c';
+import { badgeHtml } from '../ui/badges.js?v=20261023c';
 // 翻页控件单一源（批次 38：全站手写翻页一律并轨 pagerHtml）
-import { pagerHtml } from '../ui/pager.js?v=20261023b';
+import { pagerHtml } from '../ui/pager.js?v=20261023c';
 
 const SCOPE_LABELS = {
   permanent: '底层架构',
@@ -24,26 +24,16 @@ const TYPE_LABELS = {
   question: '疑问',
 };
 
-const TYPE_COLORS = {
-  bug: '#CE1126',
-  enhancement: '#A16207',
-  proposal: '#2563EB',
-  question: '#6B7280',
+// 反馈类型 → 固定语义 badge 变体（深色由 .badge--* 自带，不随主题）
+const TYPE_BADGE = {
+  bug: 'danger',
+  enhancement: 'warning',
+  proposal: 'info',
+  question: 'neutral',
 };
 
-// 内联徽章深色亮色映射（深色下提亮一档，由 html.theme-dark [style*="--acc-bg-dark"] 规则应用）
-const TYPE_COLORS_DARK = {
-  bug: '#F87171',
-  enhancement: '#FBBF24',
-  proposal: '#60A5FA',
-  question: '#94A3B8',
-};
-
-// 内联徽章双套色：日 = 原色 15% 透明底 + 原色字；夜 = 亮色 24% 透明底 + 亮色字
-function typeBadgeStyle(t) {
-  const c = TYPE_COLORS[t] || '#6B7280';
-  const dc = TYPE_COLORS_DARK[t] || '#94A3B8';
-  return `background:${c}15;color:color-mix(in srgb, ${c} 60%, #000);--acc-bg-dark:${dc}24;--acc-text-dark:${dc}`;
+function typeBadgeClass(t) {
+  return `badge--${TYPE_BADGE[t] || 'neutral'}`;
 }
 
 let _filterState = { status: 'all', scope: 'all', type: 'all', milestone: 'all', keyword: '' };
@@ -79,7 +69,7 @@ export function renderIssueList() {
     <div class="card rounded-xl p-5 mb-4">
       <div class="flex items-center justify-between mb-3">
         <h3 class="font-title-cn text-base font-semibold text-gray-800">全部意见 <span class="text-xs font-normal text-gray-500">开放中 ${counts.open} · 已关闭 ${counts.closed}</span></h3>
-        ${canCreate ? `<button id="btn-new-issue" class="btn-accent text-sm px-4 py-1.5 font-medium" onmouseover="this.style.background='#991B1B'" onmouseout="this.style.background='#CE1126'">+ 新反馈</button>` : ''}
+        ${canCreate ? `<button id="btn-new-issue" class="btn-accent text-sm px-4 py-1.5 font-medium">+ 新反馈</button>` : ''}
       </div>
 
       <!-- 筛选行（2026-09-14 批次 27 统一：载体 styles.css::.lf-bar/.lf-kw/.lf-select/.lf-btn；
@@ -116,7 +106,7 @@ export function renderIssueList() {
 
 function renderIssueRow(issue) {
   const typeBadges = (issue.types || []).map(t =>
-    `<span class="badge" style="${typeBadgeStyle(t)}">${TYPE_LABELS[t] || t}</span>`
+    `<span class="badge ${typeBadgeClass(t)}">${TYPE_LABELS[t] || t}</span>`
   ).join('');
 
   const statusBadge = issue.status === 'open'
@@ -130,7 +120,7 @@ function renderIssueRow(issue) {
   }).join(' ');
 
   return `
-    <div class="issue-row p-3 rounded-xl border border-gray-100 hover:border-gray-200 hover:bg-gray-50 cursor-pointer transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#CE1126]" data-issue-id="${issue.id}" role="button" tabindex="0" aria-label="查看反馈 #${issue.number ?? '—'} ${issue.title || '(无标题)'}">
+    <div class="issue-row p-3 rounded-xl border border-gray-100 hover:border-gray-200 hover:bg-[var(--surface-hover)] cursor-pointer transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#CE1126]" data-issue-id="${issue.id}" role="button" tabindex="0" aria-label="查看反馈 #${issue.number ?? '—'} ${issue.title || '(无标题)'}">
       <div class="flex items-start justify-between gap-3">
         <div class="flex-1 min-w-0">
           <div class="flex items-center gap-2 mb-1">

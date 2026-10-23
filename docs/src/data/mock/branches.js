@@ -3,8 +3,8 @@
 // 单一事实源：前端 domain mockDB.branches 首启 seed + server/seed.js 两级导入均引用本文件
 // 支部不预设名字——br-b1 是当前实例（本科生党支部），硕博等支部由党委在系统内动态创建/改名。
 
-import { DEFAULT_BRANCH_ID } from '../../core/domain/constants.js?v=20261023b';
-import { PEOPLE } from './people.js?v=20261023b';
+import { DEFAULT_BRANCH_ID } from '../../core/domain/constants.js?v=20261023c';
+import { PEOPLE } from './people.js?v=20261023c';
 
 // R7-35：现任支书从角色派生（换人后种子自动跟随，不在数据里写死学号）
 const SECRETARY_ID = PEOPLE.find((p) => p.role === 'secretary')?.id || null;

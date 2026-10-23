@@ -3,19 +3,19 @@
 // 2026-08-07 自 ws-secretary-entry.js 拆分。
 // GitHub Issue 风格反馈管理面板：草稿审核（通过/驳回）全部反馈列表 + 导出/清除 + 详情处置（指派/状态/评论/隐藏/合并）。
 
-import { IssueStore, deriveIssueDisplayState, IssueNotify, issueDomainLabel, issueDomainSuggest, issueDomainReplyHint } from '../../../services/governance/issues.js?v=20261023b';
-import { showToast, todayLocal } from '../../../core/base/utils.js?v=20261023b';
-import { scrollDetailIntoView } from '../../../components/ui/detail-anchor.js?v=20261023b';
-import { icon } from '../../../core/base/icons.js?v=20261023b';
-import { AuthStore } from '../../../services/core/auth.js?v=20261023b';
-import { ROLE_LABELS, DRAFT_TYPE_LABELS } from '../../../core/domain/constants.js?v=20261023b';
-import { getPersonName } from '../../../services/member/person.js?v=20261023b';
-import { PersonStore } from '../../../services/member/person.js?v=20261023b';
-import { badgeHtml, badgeVariantClass } from '../../../components/ui/badges.js?v=20261023b';
+import { IssueStore, deriveIssueDisplayState, IssueNotify, issueDomainLabel, issueDomainSuggest, issueDomainReplyHint } from '../../../services/governance/issues.js?v=20261023c';
+import { showToast, todayLocal } from '../../../core/base/utils.js?v=20261023c';
+import { scrollDetailIntoView } from '../../../components/ui/detail-anchor.js?v=20261023c';
+import { icon } from '../../../core/base/icons.js?v=20261023c';
+import { AuthStore } from '../../../services/core/auth.js?v=20261023c';
+import { ROLE_LABELS, DRAFT_TYPE_LABELS } from '../../../core/domain/constants.js?v=20261023c';
+import { getPersonName } from '../../../services/member/person.js?v=20261023c';
+import { PersonStore } from '../../../services/member/person.js?v=20261023c';
+import { badgeHtml, badgeVariantClass } from '../../../components/ui/badges.js?v=20261023c';
 // 翻页控件单一源（批次 38：全站手写翻页一律并轨 pagerHtml）
-import { pagerHtml } from '../../../components/ui/pager.js?v=20261023b';
-import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261023b';
-import { openFormModal } from '../../../components/ui/modal.js?v=20261023b';
+import { pagerHtml } from '../../../components/ui/pager.js?v=20261023c';
+import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261023c';
+import { openFormModal } from '../../../components/ui/modal.js?v=20261023c';
 
 const FEEDBACK_TAB_HTML = `
   ${renderTabHeader({ title: '反馈管理' })}
@@ -30,7 +30,7 @@ const FEEDBACK_TAB_HTML = `
     <p class="text-xs text-gray-500 mb-4">开源讨论集思广益；支书保留处置权（指派/审核/状态/隐藏/合并）</p>
 
     <!-- 待审核草稿 -->
-    <details class="mb-4 rounded-lg border border-orange-200 bg-orange-50/40" id="issue-drafts-details" style="--acc-bg-dark:rgba(249,115,22,0.10);">
+    <details class="mb-4 rounded-lg tint-section tint-section--outlined" id="issue-drafts-details" data-tone="warning">
       <summary class="px-3 py-2 cursor-pointer text-sm font-medium text-orange-700 flex items-center justify-between">
         <span>待审核草稿</span>
         <span id="issue-drafts-count" class="badge ${badgeVariantClass('warning')}">0</span>
@@ -398,7 +398,7 @@ function renderIssueDetail(issueId) {
     html += `<p class="text-xs text-gray-500">尚未指派</p>`;
   }
   // 指派选择器（默认隐藏）
-  html += `<div id="issue-assign-selector" class="hidden mt-2 p-3 rounded-lg bg-blue-50/50 border border-blue-100" style="--acc-bg-dark:rgba(96,165,250,0.10);">`;
+  html += `<div id="issue-assign-selector" class="hidden mt-2 p-3 rounded-lg tint-section tint-section--outlined" data-tone="info">`;
   html += `<p class="text-xs text-blue-700 mb-2">选择指派目标</p>`;
   html += `<div class="flex flex-wrap gap-2">`;
   _assigneeOptions().forEach(opt => {
@@ -466,10 +466,10 @@ function renderIssueDetail(issueId) {
       if (c.hidden) return; // 支书可看隐藏评论，但默认不显示
       const isReply = c.kind === 'reply';
       const kindIcon = c.kind === 'dispatch' ? '→' : c.kind === 'result' ? '✓' : c.kind === 'verdict' ? '★' : '';
-      const kindBg = c.kind === 'dispatch' ? 'bg-blue-50' : c.kind === 'result' ? 'bg-green-50' : isReply ? 'bg-red-50/70' : c.kind === 'verdict' ? 'bg-amber-50' : 'bg-gray-50';
-      const kindDark = isReply ? ' style="--acc-bg-dark:rgba(239,68,68,0.12);"' : '';
+      // 评论类型固定语义 tone（不随主题）：指派=信息 / 结果=成功 / 正式答复=危险 / 判定=提醒 / 其余=中性
+      const kindTone = c.kind === 'dispatch' ? 'info' : c.kind === 'result' ? 'success' : isReply ? 'danger' : c.kind === 'verdict' ? 'warning' : 'neutral';
       const authorName = getPersonName(c.author) || '匿名';
-      html += `<div class="rounded-lg p-2.5 ${kindBg}"${kindDark}>`;
+      html += `<div class="rounded-lg p-2.5 tint-section" data-tone="${kindTone}">`;
       html += `<div class="flex items-center gap-1.5 mb-1">`;
       html += `<span class="text-xs font-medium text-gray-700">${kindIcon} ${authorName}</span>`;
       if (isReply) {
@@ -491,7 +491,7 @@ function renderIssueDetail(issueId) {
     html += `<div class="pt-3 border-t border-gray-100 space-y-2">`;
     html += `<div class="flex gap-2">`;
     html += `<input type="text" id="issue-comment-input" class="input-flat flex-1" placeholder="添加评论…">`;
-    html += `<button data-detail-action="add-comment" class="btn-accent-soft text-xs px-3 py-2" style="--acc-text-dark:color-mix(in srgb, var(--app-accent) 55%, #fff)">评论</button>`;
+    html += `<button data-detail-action="add-comment" class="btn-accent-soft text-xs px-3 py-2">评论</button>`;
     html += `<button data-detail-action="add-verdict" class="btn-accent text-xs px-3 py-2">批复</button>`;
     html += `</div>`;
     html += `<div class="flex gap-2">`;

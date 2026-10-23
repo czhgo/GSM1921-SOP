@@ -12,44 +12,44 @@
 //   - 活动无上限 → 必须提供活动筛选（含时间区间）便于考察
 //   - 条目不得使用浅色底板（支书反感）→ 白底 + 左侧状态色条
 
-import { AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../../core/domain/domain.js?v=20261023b';
-import { generateId } from '../../../core/base/id.js?v=20261023b';
-import { attendanceToLong, loadAttendanceRecords, loadActiveAttendanceRecords, loadAttendanceRosterSnapshots, saveAttendanceRecords, canUploadAttendance, upsertMeetingAttendance, MEETING_ATTENDANCE_TYPES as MEETING_TYPES, ABSENCE_REASONS, absenceReasonLabel, absenceReasonNote, recorderRolesOf, listGroupMeetingAttendance, loadAttendanceAppeals, returnAttendanceAppeal, closeAttendanceAppeal, returnAttendanceRecord, summarizeAttendanceByActivity, isAttendanceHomePosition, freezeExpectedRosterForActivity, isAttendancePendingConfirm, isAttendanceConfirmed, isAutoConfirmedAttendance, attendanceConfirmerId, confirmAttendanceRecords } from '../../../services/activity/attendance.js?v=20261023b';
-import { buildAttendanceMatrixModel } from '../../../services/activity/attendance-matrix.js?v=20261023b';
-import { getPersonName } from '../../../services/member/person.js?v=20261023b';
+import { AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../../core/domain/domain.js?v=20261023c';
+import { generateId } from '../../../core/base/id.js?v=20261023c';
+import { attendanceToLong, loadAttendanceRecords, loadActiveAttendanceRecords, loadAttendanceRosterSnapshots, saveAttendanceRecords, canUploadAttendance, upsertMeetingAttendance, MEETING_ATTENDANCE_TYPES as MEETING_TYPES, ABSENCE_REASONS, absenceReasonLabel, absenceReasonNote, recorderRolesOf, listGroupMeetingAttendance, loadAttendanceAppeals, returnAttendanceAppeal, closeAttendanceAppeal, returnAttendanceRecord, summarizeAttendanceByActivity, isAttendanceHomePosition, freezeExpectedRosterForActivity, isAttendancePendingConfirm, isAttendanceConfirmed, isAutoConfirmedAttendance, attendanceConfirmerId, confirmAttendanceRecords } from '../../../services/activity/attendance.js?v=20261023c';
+import { buildAttendanceMatrixModel } from '../../../services/activity/attendance-matrix.js?v=20261023c';
+import { getPersonName } from '../../../services/member/person.js?v=20261023c';
 // S1–S4 滞留党员设计（2026-09-06 支书已批）：会议考勤「应到清点/全选范围」= 应到名单口径
 // （党员 正式+预备 且非滞留；滞留者「可见但禁用」、党课列席不计应到），不再全支部 50 人候选
 // 附录⑩ A批·S1（2026-09-06 支书裁定）：滞留线下到场可「到场补录」计入到席（实际应到=预应到 K + 补录 L）
-import { getMeetingRoster, getRosterStats, getMeetingRosterCandidates } from '../../../services/member/roster.js?v=20261023b';
-import { solidAccentStyle, ROLE_LABELS, isActivityArchived, isActivityLive } from '../../../core/domain/constants.js?v=20261023b';
-import { loadActivities } from '../../../services/activity/activity.js?v=20261023b';
+import { getMeetingRoster, getRosterStats, getMeetingRosterCandidates } from '../../../services/member/roster.js?v=20261023c';
+import { solidAccentStyle, ROLE_LABELS, isActivityArchived, isActivityLive } from '../../../core/domain/constants.js?v=20261023c';
+import { loadActivities } from '../../../services/activity/activity.js?v=20261023c';
 // R7-33：考勤「超期」按「活动日 + 补课时限（policy）」现算，不再直读记录上的 overdue 快照
-import { isAttendanceOverdue } from '../../../core/domain/policy-defaults.js?v=20261023b';
+import { isAttendanceOverdue } from '../../../core/domain/policy-defaults.js?v=20261023c';
 // SOP-B-2（D-288）：考勤候选默认选中「已通过报名者」——报名名单的来源单一源 = SignupStore
-import { getApprovedSignupPersonIds } from '../../../services/activity/signup.js?v=20261023b';
-import { autoGenerateMakeupTask } from '../../../services/activity/makeup.js?v=20261023b';
-import { TodoStore, TodoSourceType } from '../../../services/governance/todo.js?v=20261023b';
-import { NoticeStore } from '../../../services/governance/notice.js?v=20261023b';
-import { enhanceSelects } from '../../../components/ui/custom-select.js?v=20261023b';
-import { badgeHtml } from '../../../components/ui/badges.js?v=20261023b';
+import { getApprovedSignupPersonIds } from '../../../services/activity/signup.js?v=20261023c';
+import { autoGenerateMakeupTask } from '../../../services/activity/makeup.js?v=20261023c';
+import { TodoStore, TodoSourceType } from '../../../services/governance/todo.js?v=20261023c';
+import { NoticeStore } from '../../../services/governance/notice.js?v=20261023c';
+import { enhanceSelects } from '../../../components/ui/custom-select.js?v=20261023c';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20261023c';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是人的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
 // pagerHtml = 翻页控件单一源（批次 38：全站手写翻页一律并轨；叶子件，避免与矩阵相互成环）
-import { pagerHtml } from '../../../components/ui/pager.js?v=20261023b';
+import { pagerHtml } from '../../../components/ui/pager.js?v=20261023c';
 // 人×项目矩阵单一源（支书 2026-09-14 批次 35 裁定：宽表默认 + 矩阵推广）
-import { renderRelationMatrix } from '../../../components/ui/relation-matrix.js?v=20261023b';
-import { showToast, downloadCSV, triggerPrint, _fmtDate, escHtml as esc, getBasePath, flashHighlight } from '../../../core/base/utils.js?v=20261023b';
-import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261023b';
-import { requireDiscCommissionerId } from './_shared.js?v=20261023b';
-import { HandoffStore } from '../../../services/governance/handoff.js?v=20261023b';
-import { currentUserId } from '../../../services/core/auth.js?v=20261023b';
-import { PersonPicker } from '../../../components/governance/pickers.js?v=20261023b';
+import { renderRelationMatrix } from '../../../components/ui/relation-matrix.js?v=20261023c';
+import { showToast, downloadCSV, triggerPrint, _fmtDate, escHtml as esc, getBasePath, flashHighlight } from '../../../core/base/utils.js?v=20261023c';
+import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261023c';
+import { requireDiscCommissionerId } from './_shared.js?v=20261023c';
+import { HandoffStore } from '../../../services/governance/handoff.js?v=20261023c';
+import { currentUserId } from '../../../services/core/auth.js?v=20261023c';
+import { PersonPicker } from '../../../components/governance/pickers.js?v=20261023c';
 // 通用浮窗 + 「本位」nudge 确认弹窗（2026-09-23 支书裁定 · 单一源 = components/ui/modal.js）
 // U-04：申诉打回原用 `window.prompt`（无对话框语义、无焦点接管、移动端样式原生）→ 换本组件 openModal。
-import { confirmNudge, openModal, closeModal } from '../../../components/ui/modal.js?v=20261023b';
+import { confirmNudge, openModal, closeModal } from '../../../components/ui/modal.js?v=20261023c';
 // 「补课」分段整段复用原独立 tab 的渲染（2026-09-15 支书裁定：补课并入考勤管理，内部逻辑不改写）
-import { renderContent as renderMakeupContent } from './makeup-tab.js?v=20261023b';
+import { renderContent as renderMakeupContent } from './makeup-tab.js?v=20261023c';
 // 材料页深链 focusActivityId 的通用定位（只滚动 + 闪烁，不另造筛选器）
-import { focusActivityAnchor } from '../../../components/ui/detail-anchor.js?v=20261023b';
+import { focusActivityAnchor } from '../../../components/ui/detail-anchor.js?v=20261023c';
 
 const PAGE_SIZE = 20; // 分页铁律：全量总表每页 20 条
 let _page = 1;        // 模块级分页状态（随模块自持）
@@ -64,16 +64,15 @@ let _attendanceView = 'process';
 let _deepLinkNavTarget = null;
 
 /** 分段钮激活态类（沿用本台矩阵视图钮笔法：主题浅底 + 主题色字/边框，不新增 CSS 类族） */
-const SEG_ON_CLASSES = ['bg-[var(--app-accent-bg)]', 'border-[var(--app-accent)]', '[color:color-mix(in_srgb,var(--app-accent)_60%,#000)]'];
+const SEG_ON_CLASSES = ['bg-[var(--app-accent-soft-bg)]', 'border-[var(--app-accent)]', '[color:var(--app-accent-soft-text)]'];
 const SEG_OFF_CLASSES = ['bg-white', 'border-neutral-200', 'text-gray-600'];
 
 /** 一级分段钮组 HTML（考勤 / 补课，互斥） */
 function _segmentBarHtml() {
   const btn = (seg, label) => {
     const on = _segment === seg;
-    const cls = on ? SEG_ON_CLASSES.join(' ') : `${SEG_OFF_CLASSES.join(' ')} hover:bg-gray-50`;
-    const style = on ? ' style="--acc-text-dark:color-mix(in srgb, var(--app-accent) 55%, #fff)"' : '';
-    return `<button type="button" class="btn-tab att-seg-btn px-3 py-1.5 rounded-lg text-xs font-medium transition-colors duration-200 ${cls}" data-seg="${seg}"${style}>${label}</button>`;
+    const cls = on ? SEG_ON_CLASSES.join(' ') : `${SEG_OFF_CLASSES.join(' ')} hover:bg-[var(--surface-hover)]`;
+    return `<button type="button" class="btn-tab att-seg-btn px-3 py-1.5 rounded-lg text-xs font-medium transition-colors duration-200 ${cls}" data-seg="${seg}">${label}</button>`;
   };
   return `<div class="flex items-center gap-2 mb-4">${btn('attendance', '考勤')}${btn('makeup', '补课')}</div>`;
 }
@@ -429,10 +428,9 @@ export function renderContent(ctx) {
       // UI-A（2026-09-07）：激活态=主题浅底+主题色字/边框（独立小圆角钮，无衬不再用 ov-sub-tab-active）
       container.querySelectorAll('.att-mtx-view-btn').forEach(b => {
         const on = b === btn;
-        b.classList.toggle('bg-[var(--app-accent-bg)]', on);
+        b.classList.toggle('bg-[var(--app-accent-soft-bg)]', on);
         b.classList.toggle('border-[var(--app-accent)]', on);
-        b.classList.toggle('[color:color-mix(in_srgb,var(--app-accent)_60%,#000)]', on);
-        if (on) b.style.setProperty('--acc-text-dark', 'color-mix(in srgb, var(--app-accent) 55%, #fff)'); else b.style.removeProperty('--acc-text-dark');
+        b.classList.toggle('[color:var(--app-accent-soft-text)]', on);
         b.classList.toggle('bg-white', !on);
         b.classList.toggle('border-neutral-200', !on);
         b.classList.toggle('text-gray-600', !on);
@@ -589,12 +587,12 @@ function _buildQueueHTML(items, returnedRecs, leaveCount, absentCount, overdueCo
     const checked = _queueChecked.has(r.id);
     const rowStatusLabel = r.status === AttendanceStatus.ABSENT ? '缺勤' : '请假';
     return `
-        <div class="flex items-center gap-3 py-2 rounded-xl hover:bg-gray-50 transition-colors cursor-pointer" data-att-record-row="${r.id}" title="点按整行勾选；矩阵中点按状态也回到这里">
+        <div class="flex items-center gap-3 py-2 rounded-xl transition-colors cursor-pointer hover:bg-[var(--surface-hover)]" data-att-record-row="${r.id}" title="点按整行勾选；矩阵中点按状态也回到这里">
           <input type="checkbox" class="att-queue-check w-3.5 h-3.5 rounded shrink-0" data-record-id="${r.id}"${checked ? ' checked' : ''} aria-label="${esc(getPersonName(r.personId) || r.personId)} · ${esc(act?.title || '活动已下架')} · ${rowStatusLabel}">
           <span class="w-2 h-2 rounded-full flex-shrink-0" style="background:${color}"></span>
           <div class="flex-1 min-w-0">
             <div class="flex items-center gap-2">
-              <a href="${getBasePath()}person.html?id=${encodeURIComponent(r.personId)}" class="text-sm font-medium text-gray-800 hover:underline hover:text-sky-700 transition-colors" title="查看完整档案">${esc(getPersonName(r.personId))}</a>
+              <a href="${getBasePath()}person.html?id=${encodeURIComponent(r.personId)}" class="text-sm font-medium text-gray-800 hover:underline hover:text-[var(--app-accent-soft-text)] transition-colors" title="查看完整档案">${esc(getPersonName(r.personId))}</a>
               ${r.status === AttendanceStatus.ABSENT ? badgeHtml('缺勤', 'danger') : badgeHtml('请假', 'warning')}
               ${isAttendanceOverdue({ ...r, date: act?.date || r.date }) ? badgeHtml('超期', 'danger') : ''}
             </div>
@@ -804,11 +802,11 @@ function _buildAppealCardHTML(pendingAppeals, returnedAppeals, actById, accent, 
   if (pendingAppeals.length === 0 && returnedAppeals.length === 0) return '';
   const row = (a, canAct) => {
     const act = actById.get(a.activityId);
-    return `<div class="flex items-center gap-3 py-2 rounded-xl hover:bg-gray-50 transition-colors">
+    return `<div class="flex items-center gap-3 py-2 rounded-xl">
       <span class="w-2 h-2 rounded-full flex-shrink-0" style="background:var(--accent-sky)"></span>
       <div class="flex-1 min-w-0">
         <div class="flex items-center gap-2">
-          <a href="${getBasePath()}person.html?id=${encodeURIComponent(a.personId)}" class="text-sm font-medium text-gray-800 hover:underline hover:text-sky-700 transition-colors" title="查看完整档案">${esc(getPersonName(a.personId))}</a>
+          <a href="${getBasePath()}person.html?id=${encodeURIComponent(a.personId)}" class="text-sm font-medium text-gray-800 hover:underline hover:text-[var(--app-accent-soft-text)] transition-colors" title="查看完整档案">${esc(getPersonName(a.personId))}</a>
           ${badgeHtml('我参加了但没记上', 'info')}
         </div>
         <div class="text-xs text-gray-500 truncate mt-0.5">${act ? esc(act.title) : '活动已下架'}${act?.date ? ' · ' + act.date : ''}</div>
@@ -970,7 +968,7 @@ function _renderDiscMeetDetainedMakeup() {
       ${detained.map(p => {
         const checked = _meetMakeupIds.has(p.id);
         return `
-        <label class="inline-flex items-center gap-1.5 px-2 py-1 rounded-lg border transition-colors cursor-pointer select-none ${checked ? 'border-amber-300 bg-amber-50' : 'border-gray-200 bg-white hover:bg-gray-50'}"
+        <label class="inline-flex items-center gap-1.5 px-2 py-1 rounded-lg border transition-colors cursor-pointer select-none ${checked ? 'border-amber-300 bg-amber-50' : 'border-gray-200 bg-white hover:bg-[var(--surface-hover)]'}"
           title="${esc(p.residenceNote || '滞留：组织关系保留、应到剔除、通知照发')}">
           <input type="checkbox" id="disc-meet-makeup-${p.id}" ${checked ? 'checked' : ''} class="accent-amber-600" style="cursor:pointer;">
           <span class="text-xs font-medium text-gray-700">${esc(p.name)}</span>
@@ -1128,7 +1126,7 @@ function _buildMatrixCardHTML(ctx, matrixModel, filterActivityId, accent, accent
         <!-- UI-A（2026-09-07）：互斥视图切换回退=独立小圆角钮组（去胶囊底衬；激活=主题浅底+主题色字/边框，data-view 逻辑照旧） -->
         <!-- 批次 35（2026-09-14）：默认翻为「按人」宽表（支书裁定 long form/按活动不该为主） -->
         <div class="flex items-center gap-2">
-          <button class="btn-tab att-mtx-view-btn px-3 py-1.5 text-xs font-medium [color:color-mix(in_srgb,var(--app-accent)_60%,#000)]" style="--acc-text-dark:color-mix(in srgb, var(--app-accent) 55%, #fff)" data-view="byPerson">按人</button>
+          <button class="btn-tab att-mtx-view-btn px-3 py-1.5 text-xs font-medium [color:var(--app-accent-soft-text)]" data-view="byPerson">按人</button>
           <button class="btn-tab att-mtx-view-btn px-3 py-1.5 text-xs font-medium" data-view="byActivity">按活动</button>
         </div>
       </div>
@@ -1197,7 +1195,7 @@ function _renderMatrix(matrixView, matrixModel, actById, allRecords, ctx, accent
     const label = `${esc(getPersonName(personId))} · ${esc(ATTENDANCE_STATUS_LABELS[state.status] || state.status)}`;
     const inner = `<span class="w-2 h-2 rounded-full" style="background:${m.dot}"></span><span class="text-xs text-gray-600">${m.label}</span>`;
     if (actionable) {
-      return `<button type="button" class="btn-ghost inline-flex items-center gap-1 rounded px-1 hover:bg-gray-100 transition-colors" data-att-record-id="${esc(state.recordId)}" title="${label} · 点此到待确认队列">${inner}</button>`;
+      return `<button type="button" class="btn-ghost inline-flex items-center gap-1 rounded px-1 hover:bg-[var(--surface-hover)] transition-colors" data-att-record-id="${esc(state.recordId)}" title="${label} · 点此到待确认队列">${inner}</button>`;
     }
     return `<span class="inline-flex items-center gap-1" title="${label}">${inner}</span>`;
   };
@@ -1335,7 +1333,7 @@ function _renderTable(longData, allRecords, actById, accent, accentBorder, ctx, 
           const statusColor = a.status === AttendanceStatus.PRESENT ? 'text-green-700' : a.status === AttendanceStatus.ABSENT ? 'text-red-700' : a.status === AttendanceStatus.MADE_UP ? 'text-teal-700' : 'text-orange-700';
           return `
           <tr>
-            <td class="font-medium text-gray-800" data-label="姓名"><a href="${getBasePath()}person.html?id=${encodeURIComponent(a.personId)}" class="hover:underline hover:text-sky-700 transition-colors" title="查看完整档案">${a.name}</a></td>
+            <td class="font-medium text-gray-800" data-label="姓名"><a href="${getBasePath()}person.html?id=${encodeURIComponent(a.personId)}" class="hover:underline hover:text-[var(--app-accent-soft-text)] transition-colors" title="查看完整档案">${a.name}</a></td>
             ${showCols.studentId ? `<td class="text-gray-600" data-label="学号"${a.studentId ? '' : ` title="${SNAPSHOT_TITLE}"`}>${a.studentId || '—'}</td>` : ''}
             ${showCols.developStage ? `<td class="text-gray-600" data-label="发展阶段"${a.developStage ? '' : ` title="${SNAPSHOT_TITLE}"`}>${a.developStage || '—'}</td>` : ''}
             ${showCols.partyGroup ? `<td class="text-gray-600" data-label="所属党小组"${a.partyGroup ? '' : ` title="${SNAPSHOT_TITLE}"`}>${a.partyGroup || '—'}</td>` : ''}

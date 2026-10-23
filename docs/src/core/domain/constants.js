@@ -5,7 +5,7 @@
 // R-26③（2026-10-05 批次 388）：本件**只引一个零依赖叶子** `core/base/date.js`（取本地「今天」）——
 //   不成环、双端可载；**不得**引 `core/base/utils.js`（那会牵 `core/session/pending-writes.js`）。
 
-import { todayLocal } from '../base/date.js?v=20261023b';
+import { todayLocal } from '../base/date.js?v=20261023c';
 
 // ════════════════════════════════════════════════════════════════
 //  缺省支部 id（单一源，R2-17，2026-10-20）
@@ -20,10 +20,10 @@ export function resolveBranchId(value) {
   return value === undefined || value === '' ? DEFAULT_BRANCH_ID : value;
 }
 
-// ── 内联标签深色适配：深色三件套自动生成 ──────────────────────────
-// 深色模式下内联样式（background/color/border 浅底深字）不随主题反转，按「同色系提亮一档」为每个颜色条目
-// 补 bgDark/textDark/borderDark（映射来自 _TEXT_DARK_MAP），由 JS 模板写入 --acc-bg-dark/--acc-text-dark/
-// --acc-border-dark，CSS html.theme-dark [style*="--acc-bg-dark"] 规则完成覆盖（与 badge--* 深色语义平行）。
+// ── 深色三件套（固定语义色历史辅助）────────────────────────────────
+// 按「同色系提亮一档」为每个颜色条目补 bgDark/textDark/borderDark（映射来自 _TEXT_DARK_MAP）。
+// 批次 507 起：固定语义标签统一走 styles.css `[data-tone]` 表；本表仅保留 `textDark`
+// 供实色圆点（--acc-dot-dark）提亮复用，不再由模板写 --acc-bg/text/border-dark。
 // _C ＝ 本文件**唯一硬编码色值源**（DESIGN_SYSTEM §2.8）：其余颜色一律引用此处、不再写裸 hex；表项名＝语义名/色阶名。
 // ⚠ 大小写即语义：amber600 / blue500 / emerald500 写小写（沿用 _TEXT_DARK_MAP 原有键的字符形态）——accDarkParts 按串精确查表、不做归一化，改大写即查不到而回落 slate300。
 const _C = {
@@ -59,23 +59,12 @@ function _applyDark(map) {
 }
 
 /**
- * 为颜色对象映射表补深色三件套（bgDark/textDark/borderDark）——供组件内联标签使用，与 CSS
- * `html.theme-dark [style*="--acc-bg-dark"]` 覆盖规则配套。
+ * 为颜色对象映射表补深色三件套（bgDark/textDark/borderDark）——现行仅 `textDark` 供实色圆点提亮复用。
  * @param {Object<string,{bg:string,text:string,border:string}>} map
  * @returns 深色三件套增强版映射表
  */
 export function applyDark(map) {
   return _applyDark(map);
-}
-
-/**
- * accent hex → 深色三件套内联变量串（标签/按钮统一深色方案：16% 透明提亮底 + 提亮字 + 35% 提亮边框）。
- * @param {string} hex — 日间文字色（如 '#B91C1C'）
- * @returns {string} — '--acc-bg-dark:...;--acc-text-dark:...;--acc-border-dark:...;'
- */
-export function accDarkVars(hex) {
-  const p = accDarkParts(hex);
-  return `--acc-bg-dark:${p.bg};--acc-text-dark:${p.text};--acc-border-dark:${p.border};`;
 }
 
 /**
@@ -123,7 +112,9 @@ export const ROLE_COLORS = _applyDark({
 
 // ── 活动类别颜色（两大类：三会一课=党建红 / 主题党日=党建金）──
 // 支书 2026-07-31 指示：活动顶层分类为两大类，三会一课固定分类，主题党日使用正交维度
-
+// 2026-10-23 批次 505：**固定语义色，只消费本文件的品牌常量**（党建红 #CE1126 / 党徽金 #FFD700 /
+//   金黄字 #A16207），**不读任何主题 token**——用户把主题从红切到蓝，三会一课徽章仍是党建红、
+//   主题党日仍是亮金（spec SD-19）。只用于徽章 / 圆点 / 左条等小面积标记，不得整卡铺色。
 const ACTIVITY_CAT_COLOR = _applyDark({
   // ── 三会一课系（党建红 #CE1126）──
   'branch-party-meeting': { bg: 'rgba(206, 17, 38, 0.08)',  text: _C.red800, border: 'rgba(206, 17, 38, 0.25)' },  // 支部党员大会
@@ -440,151 +431,185 @@ export const ROLE_THEME_CLASS = {
   secretary:           'role-theme-secretary',
 };
 
-// ── 角色强调色（accent 三件套统一来源）──────────────────────────
-// 每个角色对应一个主色 hex，bg/border 由 hexToRgba 派生
-
-/**
- * hex 转 rgba 字符串
- * @param {string} hex — 如 '#CE1126' 或 '#3B82F6'
- * @param {number} alpha — 0~1
- * @returns {string} — 如 'rgba(206,17,38,0.1)'
- */
-function hexToRgba(hex, alpha) {
-  const r = parseInt(hex.slice(1, 3), 16);
-  const g = parseInt(hex.slice(3, 5), 16);
-  const b = parseInt(hex.slice(5, 7), 16);
-  return `rgba(${r},${g},${b},${alpha})`;
-}
-
+// ── 主题色板（7 主题 × 亮/暗 × 8 显式 token）────────────────────
+// 2026-10-23 批次 505（spec `redesign-theme-palette-and-density` Task 1/2）：
+//   · 主题由 10 个削减为 7 个：金 / 红 / 橙 / 绿 / 青 / 蓝 / 紫；天蓝、雾紫、亮蓝退场（紫只留一个、蓝只留一个）。
+//   · 每主题的每一部分都是**手选 hex**：浅底 / 边框 / 深字 / 实底 / 实底字 / hover / active 各自独立设计，
+//     **不许**再用 `color-mix` / `rgba(主题色)` / `filter: brightness` 运行时派生——旧「一条公式十色共用」
+//     把橙压成褐、绿压成灰绿、亮蓝压成钢蓝，是「灰度太高、太脏」的根因。
+//   · 气质「沉稳但是鲜活」：softBg 低彩度（与白/深底 1.08–1.35）、softText 同色相压深、strongBg 中等彩度；
+//     高饱和只允许出现在小面积语义标记与实底按钮。
+//   · 验收（逐项实测见 DESIGN_SYSTEM.md §2.11）：softText vs softBg ≥4.5:1 且 ≤12:1；
+//     strongInk vs strongBg ≥4.5:1；strongBg vs 卡片/页面底 ≥3:1；softBg vs 白/深底 1.08–1.35；
+//     strongBg HSL 饱和度 ≤85%（固定语义色除外）。
+//   · **固定语义色不入本表、不随主题切换**：党徽金 `#FFD700`、三会一课党建红 `#CE1126`、
+//     主题党日亮金 + 金黄字 `#A16207` 仍走 `_C.partyGold` / `_C.partyRedBrand` / `_C.yellow700`；
+//     主题金是另一档更沉稳的琥珀金，两者不要求同值（支书口径「党徽金 ≠ 主题金」）。
 export const ACCENT_COLORS = {
-  secretary:           { hex: _C.partyRed },  // 党建红（不动）
-  'deputy-secretary':  { hex: _C.partyRed },  // 党建红（同支书）
-  leader:              { hex: _C.green500 },  // 翠绿
-  'org-commissioner':  { hex: _C.sky500 },  // 天蓝
-  'prop-commissioner': { hex: _C.blue600 },  // 海蓝
-  'disc-commissioner': { hex: _C.orange700 },  // 深橙
-  commissioner:        { hex: _C.orange700 },  // 同纪检（遗留键）
-  organizer:           { hex: _C.sky300 },  // 亮天蓝 = 语义色 #0369A1（sky-700）同色系提亮（sky-300），同源（S6）
-  deep:                { hex: _C.violet400 },  // 雾紫 = 语义色 #7C3AED（violet-600）同色系提亮（violet-400），同源（S6）
-  participant:         { hex: '#F5C518', bg: 'rgba(245,197,24,0.14)', border: 'rgba(245,197,24,0.45)' },  // 金（现代金 #F5C518，2026-10-19 支书圈定；亮金底+深金字+亮金边框）
-  all:                 { hex: _C.cyan700 },  // 深青
-  purple:              { hex: _C.violet600 },  // 紫罗兰 = deep 语义色本身；色板专用别名键（非角色键，S8），供主题色选色板取用
+  gold: {
+    key: 'gold', label: '金',
+    light: { base: '#A97A12', softBg: '#FBF3DC', softBorder: '#E8D5A3', softText: '#6E4E08', strongBg: '#9A6B0F', strongInk: '#FFFFFF', hoverBg: '#F6EAC6', activeBg: '#F0DFAC' },
+    dark:  { base: '#E0B24C', softBg: '#2F2717', softBorder: '#54441E', softText: '#E8C97A', strongBg: '#C89A34', strongInk: '#1E1503', hoverBg: '#38301C', activeBg: '#423821' },
+  },
+  red: {
+    key: 'red', label: '红',
+    light: { base: '#A32B24', softBg: '#FBEEEC', softBorder: '#EFC8C2', softText: '#7A201B', strongBg: '#9B2C22', strongInk: '#FFFFFF', hoverBg: '#F7E2DE', activeBg: '#F2D3CE' },
+    dark:  { base: '#E0796F', softBg: '#372220', softBorder: '#5C332E', softText: '#F0B5AC', strongBg: '#D25A4E', strongInk: '#1C0A08', hoverBg: '#402925', activeBg: '#49302C' },
+  },
+  orange: {
+    key: 'orange', label: '橙',
+    light: { base: '#B45B33', softBg: '#FBF0E9', softBorder: '#EDCDB9', softText: '#7A3A16', strongBg: '#A9502A', strongInk: '#FFFFFF', hoverBg: '#F7E4D8', activeBg: '#F2D8C7' },
+    dark:  { base: '#E39B6F', softBg: '#33241A', softBorder: '#573827', softText: '#EDBA96', strongBg: '#C1663B', strongInk: '#1E0F07', hoverBg: '#3C2B1F', activeBg: '#453225' },
+  },
+  green: {
+    key: 'green', label: '绿',
+    light: { base: '#2F6B4F', softBg: '#EDF5F0', softBorder: '#C4DCD0', softText: '#1F5238', strongBg: '#2B6449', strongInk: '#FFFFFF', hoverBg: '#E3F0E9', activeBg: '#D8E9E0' },
+    dark:  { base: '#7CC4A0', softBg: '#1A2C24', softBorder: '#2F4E3E', softText: '#9FD3B6', strongBg: '#4E9B76', strongInk: '#07130E', hoverBg: '#21342B', activeBg: '#273C32' },
+  },
+  cyan: {
+    key: 'cyan', label: '青',
+    light: { base: '#0F6D7B', softBg: '#E9F4F6', softBorder: '#B9DCE2', softText: '#0B4F5A', strongBg: '#0C6371', strongInk: '#FFFFFF', hoverBg: '#DFEFF2', activeBg: '#D3E7EB' },
+    dark:  { base: '#63B8C7', softBg: '#162A30', softBorder: '#254A52', softText: '#8FCBD6', strongBg: '#2A93A6', strongInk: '#04161A', hoverBg: '#1D333A', activeBg: '#243C44' },
+  },
+  blue: {
+    key: 'blue', label: '蓝',
+    light: { base: '#3D4E9C', softBg: '#EEF0F9', softBorder: '#C8CEE9', softText: '#2B3A78', strongBg: '#36468F', strongInk: '#FFFFFF', hoverBg: '#E4E8F5', activeBg: '#DAE0F0' },
+    dark:  { base: '#8F9EDB', softBg: '#1D2645', softBorder: '#303C5E', softText: '#A9B6E0', strongBg: '#667AD4', strongInk: '#0A0E1C', hoverBg: '#242F52', activeBg: '#2B375E' },
+  },
+  purple: {
+    key: 'purple', label: '紫',
+    light: { base: '#6D5382', softBg: '#F4F0F7', softBorder: '#D8CCE2', softText: '#523C66', strongBg: '#654C7A', strongInk: '#FFFFFF', hoverBg: '#ECE4F1', activeBg: '#E4DBEC' },
+    dark:  { base: '#B79FCB', softBg: '#2B2439', softBorder: '#443654', softText: '#C3B0D6', strongBg: '#8E75AE', strongInk: '#140E1B', hoverBg: '#332B43', activeBg: '#3B324D' },
+  },
 };
 
-// ── 主题色个性化（支书指令 2026-08-06：侧边栏设置，所有角色均可选）──
-// 语义色（ROLE_COLORS：日历任务色点/考察等级/参与者标识/活动类别色）全站固定，不受此设置影响；
-// 强调色（ACCENT_COLORS：按钮/标签/卡片强调）可通过侧边栏「主题色」选择器个性化。
+/**
+ * 旧键 → 主题键回落映射（批次 505）。
+ * 两类键并表：① 已删除的重复色相（天蓝 / 亮蓝 → blue，雾紫 / deep → purple）；
+ * ② 历史 localStorage 与调用方仍在用的**角色键 / 色板旧键**（无覆盖时默认 gold）。
+ * 角色 → 主题收敛为 7 项（与 spec 建议一致）：
+ *   默认 / 普通成员 → gold；支书 / 副支书 / 党委组织员 → red；纪检（含遗留 commissioner）→ orange；
+ *   组长 / 副组长 → green；组织委员 / 组织者 → cyan；宣传委员 / 发起人 → blue；深度参与者 → purple。
+ * 色板旧键：participant（金）→ gold；all（旧色板「青」档）→ cyan。
+ */
+export const ACCENT_KEY_ALIASES = {
+  sky: 'blue',
+  'light-blue': 'blue',
+  secretary: 'red',
+  'deputy-secretary': 'red',
+  'party-staff': 'red',
+  'disc-commissioner': 'orange',
+  commissioner: 'orange',
+  leader: 'green',
+  'deputy-leader': 'green',
+  'org-commissioner': 'cyan',
+  organizer: 'cyan',
+  'prop-commissioner': 'blue',
+  initiator: 'blue',
+  deep: 'purple',
+  participant: 'gold',
+  all: 'cyan', // 遗留色板键「全体相关」在旧色板里是「青」档 ⇒ 保留青的观感
+};
 
 /**
- * 侧边栏「主题色」选色板的可选色（支书指令 2026-08-06：颜色就是颜色，不与人挂钩）
- * 按色相规律排列，2 行 × 5 个；key = 色板键（映射 ACCENT_COLORS 取衍生色），label = 颜色名
- * S8 键集对齐：色板键集 ⊂ ACCENT_COLORS——deputy-secretary（同支书红）、commissioner（遗留键）
- * 不入色板；participant 金为专用胶囊三件套；purple 为 deep 语义色别名（紫罗兰）。色板键若
- * 被 resolveAccentRole 读取后写入 ACCENT_COLORS，须保证二者键集一致。
+ * 任意主题键 / 角色键 / 已删除旧键 → 7 主题键之一（无法识别 → 'gold'）。
+ * @param {string} key
+ * @returns {'gold'|'red'|'orange'|'green'|'cyan'|'blue'|'purple'}
+ */
+export function normalizeAccentKey(key) {
+  const k = typeof key === 'string' ? key.trim() : '';
+  if (ACCENT_COLORS[k]) return k;
+  return ACCENT_KEY_ALIASES[k] || 'gold';
+}
+
+/** 主题键 / 角色键 / 主题表内 hex → 主题条目（hex 查表供 solidAccentStyle 等按旧入参取色；未知 → gold） */
+function _accentEntry(value) {
+  const raw = typeof value === 'string' ? value.trim().toLowerCase() : '';
+  for (const entry of Object.values(ACCENT_COLORS)) {
+    if (entry.light.base.toLowerCase() === raw || entry.dark.base.toLowerCase() === raw) return entry;
+  }
+  return ACCENT_COLORS[normalizeAccentKey(raw)];
+}
+
+/** 主题条目的 8 个 token（按亮/暗取一套；未知 mode 按亮色） */
+function _accentTokens(role, mode) {
+  const entry = _accentEntry(role);
+  return mode === 'dark' ? entry.dark : entry.light;
+}
+
+// ── 主题色个性化（支书指令 2026-08-06：侧边栏设置，所有角色均可选）──
+// 语义色（ROLE_COLORS：日历任务色点/考察等级/参与者标识）与活动类别色（ACTIVITY_CAT_COLOR）全站固定，
+// 不受此设置影响；主题色（按钮/标签/选中态/交互强调）可通过「主题选择」个性化。
+
+/**
+ * 「主题色」选色板（批次 505：10 → 7 项，紫只一个、蓝只一个）
+ * key = 主题键（查 ACCENT_COLORS），label = 颜色名，hex = 该主题亮色 base（色块预览用）。
+ * 主题键与角色键解耦：角色经 ACCENT_KEY_ALIASES 收敛到本表 7 项。
  */
 export const ACCENT_PALETTE = [
-  { key: 'secretary',          hex: ACCENT_COLORS.secretary.hex,            label: '红' },
-  { key: 'disc-commissioner',  hex: ACCENT_COLORS['disc-commissioner'].hex, label: '橙' },
-  { key: 'participant',        hex: ACCENT_COLORS.participant.hex, label: '金（默认）' },
-  { key: 'leader',             hex: ACCENT_COLORS.leader.hex,               label: '绿' },
-  { key: 'all',                hex: ACCENT_COLORS.all.hex,                  label: '青' },
-  { key: 'org-commissioner',   hex: ACCENT_COLORS['org-commissioner'].hex,  label: '天蓝' },
-  { key: 'prop-commissioner',  hex: ACCENT_COLORS['prop-commissioner'].hex, label: '海蓝' },
-  { key: 'purple',             hex: ACCENT_COLORS.purple.hex,               label: '紫' },
-  { key: 'deep',               hex: ACCENT_COLORS.deep.hex,                 label: '雾紫' },
-  { key: 'organizer',          hex: ACCENT_COLORS.organizer.hex,            label: '亮蓝' },
+  { key: 'gold',   hex: ACCENT_COLORS.gold.light.base,   label: '金（默认）' },
+  { key: 'red',    hex: ACCENT_COLORS.red.light.base,    label: '红' },
+  { key: 'orange', hex: ACCENT_COLORS.orange.light.base, label: '橙' },
+  { key: 'green',  hex: ACCENT_COLORS.green.light.base,  label: '绿' },
+  { key: 'cyan',   hex: ACCENT_COLORS.cyan.light.base,   label: '青' },
+  { key: 'blue',   hex: ACCENT_COLORS.blue.light.base,   label: '蓝' },
+  { key: 'purple', hex: ACCENT_COLORS.purple.light.base, label: '紫' },
 ];
 
 /**
- * 解析当前生效的强调色角色键（主题色个性化覆盖）
- * 优先读取 localStorage workflowos_accent_role（侧边栏「主题色」写入），
- * 未设置或键无效时回退到默认金色（participant 键）。
+ * 解析当前生效的主题键（冻结读取点：只读全局键，服务访客与首帧兜底）
+ * 优先读取 localStorage workflowos_accent_role，未设置 / 非法 / 已删除旧键 → 归一后回落 gold。
  * @param {string} preferredRole — 页面默认角色键（保留以兼容调用方；默认值不再取角色色）
- * @returns {string} 生效的角色键
+ * @returns {string} 生效的主题键（7 项之一）
  */
 export function resolveAccentRole(preferredRole) {
   const stored = localStorage.getItem('workflowos_accent_role');
-  if (stored && ACCENT_COLORS[stored]) return stored;
-  // 2026-10-18：无有效全局键 → 默认金色（participant 键），不再按角色固有色回退。
-  return 'participant';
+  return normalizeAccentKey(stored || '');
 }
 
 /**
- * 获取角色的 accent 三件套
- * @param {string} role — 角色键名
- * @param {number} [bgAlpha=0.1] — 背景色透明度（entry 自带 bg 覆盖时忽略）
- * @param {number} [borderAlpha=0.3] — 边框色透明度（entry 自带 border 覆盖时忽略）
- * @returns {{ accent: string, accentRgba: string, accentBorder: string }}
+ * 获取主题的 8 个 token（平面对象 + 兼容别名）
+ * 平面 token：base / softBg / softBorder / softText / strongBg / strongInk / hoverBg / activeBg
+ * 兼容别名（指向新 token，供旧消费方逐步迁移）：bg / border / text / strong / ink / hover / active；
+ * accentRgba / accentBorder 为历史命名，同样指向 softBg / softBorder。
+ * @param {string} role — 主题键 / 角色键 / 旧键（经 normalizeAccentKey 归一）
+ * @param {'light'|'dark'} [mode='light']
+ * @returns {{ accent:string, base:string, softBg:string, softBorder:string, softText:string,
+ *   strongBg:string, strongInk:string, hoverBg:string, activeBg:string,
+ *   bg:string, border:string, text:string, strong:string, ink:string, hover:string, active:string,
+ *   accentRgba:string, accentBorder:string }}
  */
-export function getAccentColors(role, bgAlpha = 0.1, borderAlpha = 0.3) {
-  // 2026-10-18：无匹配 → 默认金色（participant 主题），不再回退 all 青。
-  const entry = ACCENT_COLORS[role] || ACCENT_COLORS.participant;
+export function getAccentColors(role, mode = 'light') {
+  const t = _accentTokens(role, mode);
   return {
-    accent: entry.hex,
-    // 覆盖字段优先：participant「金」主题色 = 主题党日胶囊（亮金底 + 深金字 + 亮金边框，
-    // 支书 2026-08-08 四审定稿——金色就该和主题党日胶囊一致）
-    accentRgba: entry.bg || hexToRgba(entry.hex, bgAlpha),
-    accentBorder: entry.border || hexToRgba(entry.hex, borderAlpha),
+    accent: t.base,
+    base: t.base,
+    softBg: t.softBg,
+    softBorder: t.softBorder,
+    softText: t.softText,
+    strongBg: t.strongBg,
+    strongInk: t.strongInk,
+    hoverBg: t.hoverBg,
+    activeBg: t.activeBg,
+    // 兼容别名（批次 505；批次 506 消费方迁移后删）
+    bg: t.softBg,
+    border: t.softBorder,
+    text: t.softText,
+    strong: t.strongBg,
+    ink: t.strongInk,
+    hover: t.hoverBg,
+    active: t.activeBg,
+    accentRgba: t.softBg,
+    accentBorder: t.softBorder,
   };
 }
 
-// ── 功能色「统一 tab 风格」规则（支书 2026-08-11 二审裁定 + 四审纠正）────────────────
-// 支书：亮色和暗色的处理逻辑我不太理解——因为金色和亮蓝我认为都很亮。
-// 二审：统一都变成 tab 风格的「浅底深字」；浅色才应该浅底深字，之前想反了。
-// 三审（深色模式反馈）：夜间「提亮字」在深色页面上看不清——淡底深字应像 span 状态徽章
-// （bg-cyan-100+text-cyan-700）一样保持「淡底 + 深字」，否则看不见。
-// 四审（2026-08-11 深夜反馈）：「近不透明淡底 + 边框」视觉臃肿——夜间改「完全不透明浅底深字」
-// （span 徽章风格，无边框）；header 身份显示例外：主题色实底 + 白字（见 header.js _roleLabelHTML）。
-// 即：所有 accent（不分深浅）一律「同色系高亮浅底 + 深色字」；夜间 = 完全不透明浅底 + 同款深字。
-// 与 tab 激活态（wp-dim-on）同源：浅底 + accent 色字；深字由 accent 亮度自适应——
-//   · 深色 accent（感知亮度 < 0.25，如金/红/橙/海蓝/深青/紫）：深字 = accent 本身（已够深）
-//   · 浅色 accent（感知亮度 ≥ 0.25，如天蓝/翠绿/亮蓝/灰）：深字 = accent 调暗至 30% 明度（保证可读对比度）
-// 日/夜两套由元素内联 CSS 变量驱动：--acc-bg/--acc-text（日）+ --acc-bg-dark/--acc-text-dark（夜），
-// 夜间切换由 styles.css `html.theme-dark [style*="--acc-bg-dark"]` 规则完成（!important 覆盖内联）。
-// 背景：2026-08-08 支书裁定金色浅底深字；2026-08-10 曾改为实底白字；
-// 2026-08-11 上午 T-218 二审为「深浅分流（深色浅底深字/浅色实底白字）」；
-// 2026-08-11 下午支书再判「想反了——浅色才应该浅底深字」→ 统一浅底深字，废除实底白字分支；
-// 2026-08-11 三审「夜间提亮字看不清」→ 夜间近不透明淡底+边框；四审「边框臃肿」→ 去掉边框，改完全不透明浅底。
-
-// 品牌亮色映射：金色日/夜淡底统一用亮金底 #FFD700（主题党日胶囊同源，支书 2026-08-08 四审定稿）
-const DEEP_ACCENT_RULES = {
-  [_C.yellow700]: { light: _C.partyGold },
-};
-
-/** hex → [h, s, l]（h:0-360, s:0-1, l:0-1） */
-function _hexToHsl(hex) {
-  const r = parseInt(hex.slice(1, 3), 16) / 255;
-  const g = parseInt(hex.slice(3, 5), 16) / 255;
-  const b = parseInt(hex.slice(5, 7), 16) / 255;
-  const max = Math.max(r, g, b), min = Math.min(r, g, b);
-  const l = (max + min) / 2;
-  let h = 0, s = 0;
-  if (max !== min) {
-    const d = max - min;
-    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
-    if (max === r) h = ((g - b) / d + (g < b ? 6 : 0)) * 60;
-    else if (max === g) h = ((b - r) / d + 2) * 60;
-    else h = ((r - g) / d + 4) * 60;
-  }
-  return [h, s, l];
-}
-
-/** [h, s, l] → hex（#RRGGBB） */
-function _hslToHex(h, s, l) {
-  const c = (1 - Math.abs(2 * l - 1)) * s;
-  const hp = h / 60;
-  const x = c * (1 - Math.abs((hp % 2) - 1));
-  let r = 0, g = 0, b = 0;
-  if (hp < 1) { r = c; g = x; }
-  else if (hp < 2) { r = x; g = c; }
-  else if (hp < 3) { g = c; b = x; }
-  else if (hp < 4) { g = x; b = c; }
-  else if (hp < 5) { r = x; b = c; }
-  else { r = c; b = x; }
-  const m = l - c / 2;
-  const toHex = (v) => Math.round((v + m) * 255).toString(16).padStart(2, '0');
-  return '#' + toHex(r) + toHex(g) + toHex(b);
-}
+// ── 主题色消费口径（批次 505 改写）────────────────────────────────
+// 旧「按 accent 感知亮度分流」的推导（深色浅底深字 / 浅色压深字 / 夜间 color-mix 提亮 / 金色特例
+// DEEP_ACCENT_RULES）全部退场——每主题浅底深字已在 ACCENT_COLORS 表里手选，消费方只读 token。
+// 批次 507：内联主题色样式改读 --app-accent-soft-* 别名（亮/暗由 styles.css 选边），
+// 不再写元素级 --acc-*-dark 变量；固定语义色标记统一走 styles.css 的 [data-tone] 表。
+// header 身份标签例外：主题色实底 + 白字（见 header.js _roleLabelHTML）。
 
 /** 感知亮度（WCAG relative luminance 近似），用于「深浅」判定 */
 function _relativeLuminance(hex) {
@@ -598,75 +623,26 @@ function _relativeLuminance(hex) {
 /** 感知亮度对外出口（header 身份标签等需按 accent 明暗分流白字对比的消费点复用，勿各自手写） */
 export const relativeLuminance = _relativeLuminance;
 
-/** 调亮：HSL 明度提到 targetL（0-100，饱和度不变） */
-function _lighten(hex, targetL) {
-  const [h, s] = _hexToHsl(hex);
-  return _hslToHex(h, s, targetL / 100);
-}
-
-/** 调暗：HSL 明度压到 targetL（0-100，饱和度不变） */
-function _darken(hex, targetL) {
-  const [h, s] = _hexToHsl(hex);
-  return _hslToHex(h, s, targetL / 100);
-}
-
-/** hex → rgba(…, alpha) */
-function _rgba(hex, alpha) {
-  const r = parseInt(hex.slice(1, 3), 16);
-  const g = parseInt(hex.slice(3, 5), 16);
-  const b = parseInt(hex.slice(5, 7), 16);
-  return `rgba(${r},${g},${b},${alpha})`;
+/**
+ * 实底按钮取色（查表）：底 = 该主题 `strongBg`，字 = `strongInk`。
+ * 批次 505 起**无亮度分流**：亮金底深字与深色底白字都由主题表逐项手选，不再用感知亮度阈值判定。
+ * @param {string} role — 主题键 / 角色键 / 主题表内 hex（兼容四处旧注入点传 accent hex）
+ * @param {'light'|'dark'} [mode='light']
+ * @returns {{ bg:string, text:string, strong:string, ink:string }}（strong / ink 为旧字段别名）
+ */
+export function accentButtonColors(role, mode = 'light') {
+  const t = _accentTokens(role, mode);
+  return { bg: t.strongBg, text: t.strongInk, strong: t.strongBg, ink: t.strongInk };
 }
 
 /**
- * accent hex → 实底按钮三件套（底 / 字 / 次操作淡底字）。
- * 亮色（金/黄，WCAG 相对亮度 > 0.42）用本色底 + 深字；暗色用 58% 压深底 + 白字，
- * 保证主 CTA 与淡底次操作在两种色相下都可读。
- * @param {string} hex — 强调色 hex（如 '#F5C518'）
- * @returns {{ strong:string, ink:string, text:string }}
+ * 主题色「浅底深字」内联样式（批次 507：只消费注入别名，不再写元素级日/夜内联变量）。
+ * `--app-accent-soft-bg` / `--app-accent-soft-text` 在 styles.css 已按亮/暗选边，
+ * 切换主题或日夜均自动跟随（旧 `--acc-*` 内联变量退场）。
+ * @returns {string} 内联样式串（background / color）
  */
-export function accentButtonColors(hex) {
-  const h = String(hex || '').replace('#', '');
-  if (h.length !== 6) return { strong: 'var(--app-accent)', ink: '#fff', text: 'var(--app-accent)' };
-  const r = parseInt(h.slice(0, 2), 16), g = parseInt(h.slice(2, 4), 16), b = parseInt(h.slice(4, 6), 16);
-  const rel = (c) => { c /= 255; return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4; };
-  const L = 0.2126 * rel(r) + 0.7152 * rel(g) + 0.0722 * rel(b);
-  // 亮色（金/黄）用本色底 + 深字；暗色用 58% 压深底 + 白字
-  return L > 0.42
-    ? { strong: hex, ink: '#1F2937', text: '#1F2937' }
-    : { strong: `color-mix(in srgb, ${hex} 58%, black)`, ink: '#fff', text: `color-mix(in srgb, ${hex} 60%, black)` };
-}
-
-/**
- * 功能色「统一 tab 风格」规则（支书 2026-08-11 二审裁定 + 四审纠正）
- * 所有 accent（不分深浅）一律「同色系高亮浅底 + 深色字」；夜间改为「完全不透明浅底深字」——
- * span 状态徽章风格（如 bg-cyan-100+text-cyan-700），深色页面清晰可见、无边框不臃肿
- * （支书：「淡底深字应该变成 span 类似这样的淡底深字」；「你的做法让视觉非常臃肿」→ 去边框）：
- *   · 底（日）：accent 调亮至 84% 明度 @12% 透明（tab 风格浅底）
- *   · 字（日/夜一致）：深色 accent 用 accent 本身；浅色 accent 调暗至 30% 明度（保证可读）
- *   · 底（夜）：accent 调亮至 86% 明度完全不透明（span 徽章实底，叠深背景仍为淡底 chip）
- * 日/夜两套内联 --acc-bg/--acc-text（日）+ --acc-bg-dark/--acc-text-dark（夜），
- * 夜间切换由 styles.css `html.theme-dark [style*="--acc-bg-dark"]` 规则完成（!important 覆盖内联）。
- * @param {string} accent — 当前生效强调色 hex
- * @returns {string} 内联样式串（background / color，含深浅两套变量）
- */
-export function solidAccentStyle(accent, border) {
-  // 兜底：bootstrap 首帧渲染时 accent 可能为 undefined（瞬态，随后 setState 重渲染），
-  // 此时返回党建红实底白字（系统默认色），避免 _relativeLuminance 对非 hex 输入崩溃。
-  if (!accent || typeof accent !== 'string' || !/^#[0-9a-fA-F]{6}$/.test(accent)) {
-    return `background:${_C.partyRed};color:${_C.white}`;
-  }
-  const branded = DEEP_ACCENT_RULES[accent];
-  // 深字（日/夜一致）：深色 accent（感知亮度 < 0.25）用本身；浅色 accent 调暗至 30% 明度（淡底可读）
-  const text = branded ? accent : (_relativeLuminance(accent) < 0.25 ? accent : _darken(accent, 30));
-  // 夜间深字（R-9 ⑥ 2026-09-11 对比度收口）：夜间底色为不透明浅底，浅底上原深字对比仅 3.3–4.8，
-  // 统一再压深一档（65% 原字 + 35% 黑）——浅底仍为同色系淡底深字，全 accent ≥ 4.5（实测 5.99–9.79）。
-  const textDark = `color-mix(in srgb, ${text} 65%, ${_C.black})`;
-  // 淡底（日）：accent 调亮至 84% 明度 @12% 透明
-  const bg = _rgba(branded ? branded.light : _lighten(accent, 84), 0.12);
-  // 淡底（夜）：accent 调亮至 86% 明度完全不透明——span 状态徽章风格（如 bg-cyan-100），叠深背景仍清晰可见
-  const bgDark = branded ? branded.light : _lighten(accent, 86);
-  return `--acc-bg:${bg};--acc-text:${text};--acc-bg-dark:${bgDark};--acc-text-dark:${textDark};background:var(--acc-bg);color:var(--acc-text,${_C.white})`;
+export function solidAccentStyle() {
+  return 'background:var(--app-accent-soft-bg);color:var(--app-accent-soft-text)';
 }
 
 // ── 活动类型颜色（中文标签版，用于卡片/列表视图）──────────────────
@@ -1004,7 +980,8 @@ ROLE_KEYS.push('deputy-leader');
 ROLE_LABELS['deputy-leader'] = '党小组副组长';
 ROLE_PAGE_MAP.workspace['deputy-leader'] = 'leader.html'; // 同组长一套工作台（同页同台）
 ROLE_COLORS['deputy-leader'] = { ...ROLE_COLORS.leader };
-ACCENT_COLORS['deputy-leader'] = { ...ACCENT_COLORS.leader };
+// 2026-10-23 批次 505：ACCENT_COLORS 已收敛为 7 个主题键（批次 505），不再按角色键扩表——
+//   副组长经 ACCENT_KEY_ALIASES['deputy-leader'] → green 取主题色。
 ROLE_THEME_CLASS['deputy-leader'] = ROLE_THEME_CLASS.leader;
 
 // ════════════════════════════════════════════════════════════════

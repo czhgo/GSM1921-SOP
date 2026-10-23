@@ -10,13 +10,15 @@
 //   P3 手写表格（`.data-table` 且不在引擎/矩阵内）：行数 > 10 时该 tab 内**必须**有翻页控件
 //   P4 「第一列是人」的引擎表（首列表头＝姓名/成员/姓名…）必须配有搜索框（关键词）
 //   P5 每个 tab 打开过程**零 pageerror**（普查同时充当全站冒烟）
-// 批次 47-B（支书 2026-09-15 裁定「全站单档」：控件 38px × 文字 13px）在本普查内增补**真机尺规复核**
-//   （算式判据仍归 `filter-row.test.mjs` D1/D2/D3，本处只核「真渲染出来的值」）：
-//   P6 控件档：`.lf-btn` / `input.input-flat` / `select.input-flat` / `.cs-trigger` 渲染高须 38px、字 13px
+// 批次 47-B（支书 2026-09-15 裁定「全站单档」）在本普查内增补**真机尺规复核**
+//   （算式判据改归 `density-spacing-guard.test.mjs` D1/D2/D7，本处只核「真渲染出来的值」）：
+//   P6 控件档（2026-10-23 Task 6）：`input.input-flat` / `select.input-flat` / `.cs-trigger` 渲染高须 40px、
+//      字 13px；`.lf-btn` 按位置取页面档 36px（与 40px 控件基线对齐）
 //      （`textarea` 例外：多行，只核字号）
 //   P7 数据格档：`.data-table th/td` 渲染字号须 13px（含**首列**——支书实报「人作首列的表格字体小」即此处）
 //   P8 裸控件：可见的原生表单件若未挂 `.input-flat`，其字号/高度走 UA 默认档 → 不受单档约束即为离群
-//   P9 分页钮档：`.page-btn` / `.page-num` 是**明载例外**（32px，2026-10-23 R11 由 30px 上调），断言不被顺手改成 38px
+//   P9 分页钮档：`.page-btn` / `.page-num` 是**明载例外**（按实际 CSS 30px；旧注释误写 32，见 DECK 注释），
+//      断言不被顺手改回 40/36
 // 批次 47-C（支书 2026-09-15 裁定「先补普查盲区」）扩围**两个盲区**：
 //   盲区①**只看默认视图**——故对每个 tab 追加「二级视图」审次：点开 `[data-rm-toggle]`（矩阵显示全部 N 项）、
 //     按 `[data-view]` 的不同取值逐一切换（转置视图），每个态都跑同一套 P1–P11；
@@ -65,8 +67,11 @@ after(async () => {
 /** 引擎「检索条出现门槛」的单一源（docs/src/core/domain/constants.js::SEARCH_FILTER_MIN_ROWS）——见下方 S0 断言 */
 const MIN_ROWS = 8;
 
-/** 单档取值（来源＝docs/src/styles.css，见 filter-row D1/D2/D3 的算式断言；此处只做真机复核） */
-const DECK = { ctrlH: 38, cellPx: 13, pagerH: 32 };
+/** 单档取值（来源＝docs/src/styles.css，见 density-spacing-guard D1/D2/D7 的算式断言；此处只做真机复核）
+ *  P9 分页钮：**按实际 CSS** `.page-btn / .page-num { height: 30px }`（styles.css:1573-1594）。
+ *  2026-10-23 批次 505 发现：旧注释写「R11 由 30 上调到 32」，但 CSS 实况仍是 30、真机实测也是 30
+ *  ⇒ 本守卫按实况取 30。若后续把分页钮提升到 32，须同批改 CSS 与本常量（并注明）。 */
+const DECK = { inputH: 40, lfBtnH: 36, cellPx: 13, pagerH: 30 };
 
 /** 被静音的外部资源台账（批次 47-B 纪律）：真机量测值必须与生产一致——凡静音项都要写明
  *  「为何不影响被测属性」；若某资源确实会影响被测属性，则必须先在被测属性上做出与它无关的保障
@@ -153,7 +158,7 @@ const AUDIT = (cfg) => {
       v.push({ rule: 'P4 首列是人但无搜索框', first, total });
     }
   });
-  // ── 尺规（批次 47-B，支书裁定「全站单档 38px × 13px」；只做真机复核，算式判据见 filter-row D1/D2/D3）──
+  // ── 尺规（2026-10-23 Task 6：控件 40 / 筛选行按钮 36 / 数据格 13px；算式判据见 density-spacing-guard D1/D2）──
   const visible = (el) => {
     const r = el.getBoundingClientRect();
     if (r.width < 8 || r.height < 8) return false; // 隐藏件（如 .cs-native 1px 桩）
@@ -161,21 +166,26 @@ const AUDIT = (cfg) => {
     return cs.visibility !== 'hidden' && cs.display !== 'none' && cs.opacity !== '0';
   };
   const fs = (el) => Math.round(parseFloat(getComputedStyle(el).fontSize) * 100) / 100;
-  // P6 控件档：凡声明单档的控件载体，渲染高必须 38px（textarea 例外：多行，只查字号）
-  document.querySelectorAll('.lf-btn, input.input-flat, select.input-flat, .cs-trigger').forEach((el) => {
+  // P6 控件档：输入/下拉 40px；筛选行 `.lf-btn` 按位置取页面档 36px（与 40px 控件基线对齐，不再拉成同高）。
+  //   textarea 例外：多行，只查字号。
+  const checkCtrl = (el, expectH) => {
     if (!visible(el)) return;
+    stats.ctrls += 1;
+    if (el.offsetHeight !== expectH) {
+      v.push({ rule: 'P6 控件档离群（应 ' + expectH + 'px）', tag: el.tagName, cls: String(el.className).slice(0, 50), h: el.offsetHeight });
+    }
+    if (fs(el) !== deck.cellPx) {
+      v.push({ rule: 'P6 控件字号离群', tag: el.tagName, cls: String(el.className).slice(0, 50), px: fs(el) });
+    }
+  };
+  document.querySelectorAll('.lf-btn').forEach((el) => checkCtrl(el, deck.lfBtnH));
+  document.querySelectorAll('input.input-flat, select.input-flat, .cs-trigger').forEach((el) => {
     if (el.tagName === 'TEXTAREA') {
       stats.ctrls += 1;
       if (fs(el) !== deck.cellPx) v.push({ rule: 'P6 控件字号离群', tag: 'TEXTAREA', px: fs(el) });
       return;
     }
-    stats.ctrls += 1;
-    if (el.offsetHeight !== deck.ctrlH) {
-      v.push({ rule: 'P6 控件档离群（应 ' + deck.ctrlH + 'px）', tag: el.tagName, cls: String(el.className).slice(0, 50), h: el.offsetHeight });
-    }
-    if (fs(el) !== deck.cellPx) {
-      v.push({ rule: 'P6 控件字号离群', tag: el.tagName, cls: String(el.className).slice(0, 50), px: fs(el) });
-    }
+    checkCtrl(el, deck.inputH);
   });
   // P7 数据格档：表格 th/td 的渲染字号必须 13px（含首列——支书实报「人作首列字体小」即此处）
   document.querySelectorAll('.data-table th, .data-table td').forEach((el) => {
@@ -194,7 +204,7 @@ const AUDIT = (cfg) => {
     stats.bareCtrl += 1;
     v.push({ rule: 'P8 裸控件（未挂单档类）', tag: el.tagName, cls: String(el.className).slice(0, 50), h: el.offsetHeight, px: fs(el) });
   });
-  // P9 分页钮档：分页控件是明载例外（32px），断言其不被顺手改成 38px
+  // P9 分页钮档：分页控件是明载例外（32px），断言其不被顺手改成 40/36
   document.querySelectorAll('.page-btn, .page-num').forEach((el) => {
     if (!visible(el)) return;
     stats.pagers += 1;
@@ -276,7 +286,7 @@ for (const w of WORKS) {
       }
       await page.waitForTimeout(800);
       // P0-2 形态断言（2026-09-23 支书裁定「形态必须可断言、不许静默降级」）：本文件真机用例必须在 API 形态下跑
-      await page.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20261023b')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
+      await page.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20261023c')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
 
       // ── 1440 页签条不溢出（2026-10-21 R5-C01）──
       //   判据：`.ws-tab-scroll` 的 scrollWidth ≤ clientWidth（分组胶囊改竖线 + 滚动区右留 40px 后，
@@ -517,7 +527,7 @@ test('S21 组织台活动深链：?activityId / ?view=activities 落「活动日
     await page.waitForTimeout(800);
     // 取一个真实活动（优先「非当前月」者，顺带验证切月）
     const acts = await page.evaluate(async () => {
-      const m = await import('/src/core/base/state.js?v=20261023b');
+      const m = await import('/src/core/base/state.js?v=20261023c');
       return ((m.getAppState() || {}).activities || []).map((x) => ({ id: x.id, date: x.date }));
     });
     assert.ok(acts.length > 0, '组织台活动深链用例：未取到任何活动（样本不足）');

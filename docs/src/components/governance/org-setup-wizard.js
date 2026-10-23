@@ -16,35 +16,36 @@
 // 草稿：localStorage `wizard-draft-<branchId>`（当前步 + 每步完成标记 + 完成态），中断可续走。
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../../core/domain/domain.js?v=20261023b';
-import { getCapabilities } from '../../core/boot/registry.js?v=20261023b';
-import { OUTPUT_BLOCK_DEFS, BRANCH_COMMISSION_ROLES, ROLE_LABELS, getAccentColors, accentButtonColors } from '../../core/domain/constants.js?v=20261023b';
-import { CAPABILITY_PACKAGES } from '../../core/domain/capability-packages.js?v=20261023b';
-import { ORG_SUBJECT_LABELS, isBranchOrgSubject, ownerSubjectType } from '../../core/domain/work-map.js?v=20261023b';
+import { mockDB } from '../../core/domain/domain.js?v=20261023c';
+import { getCapabilities } from '../../core/boot/registry.js?v=20261023c';
+import { OUTPUT_BLOCK_DEFS, BRANCH_COMMISSION_ROLES, ROLE_LABELS, getAccentColors } from '../../core/domain/constants.js?v=20261023c';
+import { applyAccentThemeTokens } from '../../core/boot/theme.js?v=20261023c';
+import { CAPABILITY_PACKAGES } from '../../core/domain/capability-packages.js?v=20261023c';
+import { ORG_SUBJECT_LABELS, isBranchOrgSubject, ownerSubjectType } from '../../core/domain/work-map.js?v=20261023c';
 // 副作用：注册支委层工作台能力（配置目录=其 tab 清单，单一源）
-import '../../capabilities/secretary-workspace.js?v=20261023b';
-import { BLOCK_MANIFESTS } from '../../workflow/blocks/manifests.js?v=20261023b';
+import '../../capabilities/secretary-workspace.js?v=20261023c';
+import { BLOCK_MANIFESTS } from '../../workflow/blocks/manifests.js?v=20261023c';
 // L3 流程组合（2026-09-28 批次 246）：把编排内核接进**生产路径**——配置面用它做「组合体检」
-import { composePlan } from '../../workflow/blocks/orchestration.js?v=20261023b';
-import { escHtml as esc, showToast, downloadBlob } from '../../core/base/utils.js?v=20261023b';
-import { readLoginSnapshot } from '../../core/session/login-snapshot.js?v=20261023b';
-import { WORK_MAP_MODULES } from '../../core/domain/work-map.js?v=20261023b';
+import { composePlan } from '../../workflow/blocks/orchestration.js?v=20261023c';
+import { escHtml as esc, showToast, downloadBlob } from '../../core/base/utils.js?v=20261023c';
+import { readLoginSnapshot } from '../../core/session/login-snapshot.js?v=20261023c';
+import { WORK_MAP_MODULES } from '../../core/domain/work-map.js?v=20261023c';
 import {
   getBranchById, getBranchOrg, getBranchTabPolicy, getCoreTabIds,
   getBranchOutputBlocks, getBranchCapabilityPackageState, getOutputBlockPolicy, getWorkflowBlockPolicy, orderByIds,
   updateBranchModules, updateBranchCapabilityPackages, getBranchWorkforce, updateBranchWorkforce, updateBranchOrg,
   applyConfigCopy, createBranch, getBranchIdOfPerson, ensureBranchConfigLoaded,
-} from '../../services/branch/branch.js?v=20261023b';
-import { buildConfigPackage, applyConfigPackage } from '../../services/branch/org-config-package.js?v=20261023b';
+} from '../../services/branch/branch.js?v=20261023c';
+import { buildConfigPackage, applyConfigPackage } from '../../services/branch/org-config-package.js?v=20261023c';
 import {
   buildPreviewTemplate, sanitizePreview, applyPreview, clearPreview, getPreviewState,
   PREVIEW_KIND, PREVIEW_VERSION,
-} from '../../services/branch/org-base-data-preview.js?v=20261023b';
-import { getRosterStats, isDetained } from '../../services/member/roster.js?v=20261023b';
-import { buildOrgWizardReport } from '../../services/branch/org-wizard-report.js?v=20261023b';
-import { PersonStore, getPersonName } from '../../services/member/person.js?v=20261023b';
+} from '../../services/branch/org-base-data-preview.js?v=20261023c';
+import { getRosterStats, isDetained } from '../../services/member/roster.js?v=20261023c';
+import { buildOrgWizardReport } from '../../services/branch/org-wizard-report.js?v=20261023c';
+import { PersonStore, getPersonName } from '../../services/member/person.js?v=20261023c';
 // R5-1（2026-09-06）：建空支部「就地任命首任骨干」——任命编排在 appointment.js 收口（含数据边界登记）
-import { appointInauguralOfficers } from '../../services/branch/appointment.js?v=20261023b';
+import { appointInauguralOfficers } from '../../services/branch/appointment.js?v=20261023c';
 
 // ── 步骤元信息（支书已批口径）────────────────────────────────────
 export const WIZARD_STEPS = [
@@ -83,23 +84,16 @@ function _presetAccent(presetId) {
 }
 
 /**
- * 应用主题预设：运行时写 :root CSS 变量（仅可调令牌集 = --app-accent 三件套）；
- * 固定令牌（--party-red/--party-gold 等品牌统一层/状态层/中性层）不动。
+ * 应用主题预设：运行时按预设主题键注入 8 token × 亮/暗 的 16 个原始变量
+ * （亮/暗选边由 styles.css 别名承担，不在 JS 里判模式）；固定令牌（--party-red/--party-gold
+ * 等品牌统一层/状态层/中性层）不动。
  * 2026-10-18：支部主题预设降为访客默认——登录用户主题色在设置中个人调整，预设不得覆盖。
  * @param {string} presetId
  */
 export function applyThemePreset(presetId) {
   if (typeof document === 'undefined') return;
   if (readLoginSnapshot()) return; // 登录用户：主题色以个人偏好/默认金色为准，预设只做预览
-  const { accent, accentRgba, accentBorder } = _presetAccent(presetId);
-  const root = document.documentElement;
-  root.style.setProperty('--app-accent', accent);
-  root.style.setProperty('--app-accent-bg', accentRgba);
-  root.style.setProperty('--app-accent-border', accentBorder);
-  const btn = accentButtonColors(accent);
-  root.style.setProperty('--app-accent-strong', btn.strong);
-  root.style.setProperty('--app-accent-ink', btn.ink);
-  root.style.setProperty('--app-accent-text', btn.text);
+  applyAccentThemeTokens(document.documentElement, _presetOf(presetId).accentRole);
 }
 
 // ── 草稿（localStorage，按支部一份）─────────────────────────────
@@ -547,14 +541,13 @@ function _copyPanelHtml(S, branches) {
       <div class="rounded-lg bg-white border border-blue-100 px-2 py-1 max-h-44 overflow-y-auto">${rows}</div>
       <div class="flex items-center justify-end gap-2">
         <button type="button" data-wz-act="toggle-copy" class="btn-outline text-xs px-2.5 py-1.5">取消</button>
-        <button type="button" data-wz-act="do-copy" ${S.copySel.size ? '' : 'disabled'} class="btn-accent px-3 py-1.5 rounded-lg text-xs font-medium text-white transition-opacity hover:opacity-90 ${S.copySel.size ? '' : 'opacity-40 cursor-not-allowed'}" style="background:var(--party-red);">确认复制（已选 ${S.copySel.size}）</button>
+        <button type="button" data-wz-act="do-copy" ${S.copySel.size ? '' : 'disabled'} class="btn-accent btn-party-solid px-3 py-1.5 rounded-lg text-xs font-medium text-white ${S.copySel.size ? '' : 'opacity-40 cursor-not-allowed'}">确认复制（已选 ${S.copySel.size}）</button>
       </div>
     </div>`;
 }
 
 /** 章节导航：日常配置可直达分区；引导模式仍按已完成步骤解锁。 */
 function _stepperHtml(S) {
-  const { accent, accentRgba, accentBorder } = _presetAccent(getBranchOrg(S.branchId).themePreset || 'red');
   const maxReached = Math.max(1, ...Object.keys(S.done).map(Number), S.step);
   const items = WIZARD_STEPS.map((st) => {
     const isDone = !!S.done[st.id];
@@ -562,10 +555,10 @@ function _stepperHtml(S) {
     const clickable = S.navigationMode === 'sections' || isDone || st.id <= maxReached;
     const badge = isDone
       ? '<span class="inline-flex items-center justify-center w-5 h-5 rounded-full text-xs font-bold text-white shrink-0" style="background:#16A34A;">✓</span>'
-      : `<span class="inline-flex items-center justify-center w-5 h-5 rounded-full text-xs font-bold shrink-0 ${isCur ? 'text-white' : 'text-gray-600 bg-gray-100'}" style="${isCur ? `background:${accent};` : ''}">${st.id}</span>`;
+      : `<span class="inline-flex items-center justify-center w-5 h-5 rounded-full text-xs font-bold shrink-0 ${isCur ? 'text-white' : 'text-gray-600 bg-gray-100'}" style="${isCur ? 'background:var(--app-accent);' : ''}">${st.id}</span>`;
     return `<button type="button" data-wz-step="${st.id}" ${clickable && !isCur ? '' : 'disabled'} ${isCur ? 'aria-current="step"' : ''}
-      class="btn-tab inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs transition-colors ${isCur ? 'font-semibold' : ''} ${clickable && !isCur ? 'hover:bg-gray-100 text-gray-600' : ''} ${!clickable ? 'opacity-45 cursor-not-allowed' : ''}"
-      style="${isCur ? `--acc-text-dark:color-mix(in srgb, ${accent} 55%, #fff);background:${accentRgba};color:${accent};border:1px solid ${accentBorder};` : ''}">${badge}${esc(st.label)}</button>`;
+      class="btn-tab inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs transition-colors ${isCur ? 'font-semibold' : ''} ${clickable && !isCur ? 'hover:bg-[var(--surface-hover)] text-gray-600' : ''} ${!clickable ? 'opacity-45 cursor-not-allowed' : ''}"
+      style="${isCur ? 'background:var(--app-accent-soft-bg);color:var(--app-accent-soft-text);border:1px solid var(--app-accent-soft-border);' : ''}">${badge}${esc(st.label)}</button>`;
   }).join('');
   if (S.navigationMode === 'sections') {
     const options = WIZARD_STEPS.map((step) => `<option value="${step.id}" ${step.id === S.step ? 'selected' : ''}>${esc(step.label)}</option>`).join('');
@@ -922,7 +915,7 @@ function _footerHtml(S, isStaff) {
   const nextLabel = last ? '完成向导' : '下一步';
   return `
     <div class="flex items-center justify-between">
-      <button type="button" data-wz-act="prev" ${S.step > 1 ? '' : 'disabled'} class="px-3 py-1.5 rounded-lg text-xs border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors ${S.step <= 1 ? 'opacity-40 cursor-not-allowed' : ''}">← 上一步</button>
+      <button type="button" data-wz-act="prev" ${S.step > 1 ? '' : 'disabled'} class="px-3 py-1.5 rounded-lg text-xs border border-gray-200 text-gray-600 hover:bg-[var(--surface-hover)] transition-colors ${S.step <= 1 ? 'opacity-40 cursor-not-allowed' : ''}">← 上一步</button>
       <button type="button" data-wz-act="next" class="btn-accent px-4 py-1.5 text-xs font-medium">${nextLabel}</button>
     </div>`;
 }

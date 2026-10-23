@@ -28,8 +28,10 @@ export const TIERS = ['daily', 'precommit', 'weekly'];
  *  2026-10-22 第九轮 Task 4：新增 activity-workgroup-sync / taskforce-workgroup-source（纯 node）⇒ 215 → 217。
  *  2026-10-22 第九轮 Task 6：新增 ui-motion-guard（卡片悬停 / transition-all 棘轮，纯 node）⇒ 217 → 218。
  *  2026-10-23 R11 Task 12.1：补登 feedback-integrity / modal-contract / schema-split-gate
- *    （此前只落盘未登记）＋ 新增 ui-control-system-guard（均纯 node）⇒ 220 → 224。 */
-export const DAILY_FILE_BUDGET = 224;
+ *    （此前只落盘未登记）＋ 新增 ui-control-system-guard（均纯 node）⇒ 220 → 224。
+ *  2026-10-23 批次 505（spec redesign-theme-palette-and-density Task 9）：新增
+ *    theme-palette-guard / density-spacing-guard / hover-state-guard（均纯 node）⇒ 224 → 227。 */
+export const DAILY_FILE_BUDGET = 227;
 
 /** daily 静态 `test(` / `it(` 调用点预算（含子测试；新增断言须同批上调并写明理由）
  *  2026-10-21 R5 P1：页题守卫 4 条 + 对比度守卫 5 条 + 补登记的既有两条守卫 ⇒ 1351 → 1377。
@@ -45,8 +47,10 @@ export const DAILY_FILE_BUDGET = 224;
  *  2026-10-22 第九轮 Task 7.3：`frontend-foundations-guard` 新增 F9（写口失败不得提示成功）1 条 ⇒ 1408 → 1409。
  *  2026-10-23 批次 504（schema v11）：新增 todo-branch-attribution（6）/ schema-split-shadow（3）⇒ 1409 → 1418。
  *  2026-10-23 R11 Task 12.1：补登 feedback-integrity（12）/ modal-contract（5）/ schema-split-gate（4）
- *    ＋ 新增 ui-control-system-guard（7）⇒ 1418 → 1446。 */
-export const DAILY_TEST_BUDGET = 1446;
+ *    ＋ 新增 ui-control-system-guard（7）⇒ 1418 → 1446。
+ *  2026-10-23 批次 505（Task 9）：新增 theme-palette-guard（5）/ density-spacing-guard（7）/
+ *    hover-state-guard（5）⇒ 按实况 1464（上批声明 1446 与实际差 1，本批一并校准）。 */
+export const DAILY_TEST_BUDGET = 1464;
 
 const group = (tier, reason, list) => list.map((file) => ({ file, tier, reason }));
 
@@ -140,12 +144,16 @@ export const TEST_TIERS = [
     'copy-master-guard.test.mjs',
     'date-canon-guard.test.mjs',
     'dead-selector-guard.test.mjs',
+    // 2026-10-23 批次 505（Task 9）：组件密度 / 按钮高度 / 间距五档 / Tailwind 数值档棘轮（纯 node）
+    'density-spacing-guard.test.mjs',
     // 2026-10-23 R11 Task 12.1：操作结果反馈可信（作用域写等待 / 失败不报成功，纯 node）
     'feedback-integrity.test.mjs',
     'filter-row.test.mjs',
     'frontend-foundations-guard.test.mjs',
     'gold-accent-guard.test.mjs',
     'hex-hardcode-guard.test.mjs',
+    // 2026-10-23 批次 505（Task 9）：hover/active/selected 三态、@media (hover:hover) 门控、静态行无 hover（纯 node）
+    'hover-state-guard.test.mjs',
     'ia-critical-guard.test.mjs',
     'localstorage-key-guard.test.mjs',
     // 2026-10-23 R11 Task 12.1：弹窗交互闭环契约（提交中禁止关闭 / alert / onSubmit 契约，纯 node）
@@ -176,6 +184,8 @@ export const TEST_TIERS = [
     'tab-nav.test.mjs',
     'table-type-scale-guard.test.mjs',
     'text-tier-guard.test.mjs',
+    // 2026-10-23 批次 505（Task 9）：7 主题 × 亮/暗 × 8 token 色板、对比度/彩度、固定语义色分离（纯 node）
+    'theme-palette-guard.test.mjs',
     'ui-button-four-types.test.mjs',
     'ui-color-semantics.test.mjs',
     'ui-contrast-guard.test.mjs',

@@ -30,11 +30,14 @@ test('U1 日历小字：紧凑活动标签与任务标签均 ≥ 11px', () => {
   assert.doesNotMatch(compact, /font-size:\s*0\.625rem/, '紧凑日历标签不得回落到 10px');
 });
 
-test('U2 日历标签字色压深到 72%，不再用 60%', () => {
+test('U2 日历标签字色：固定 tone 类（tint-fill + data-tone），不再用文字 color-mix 压深', () => {
   const src = read('docs/src/components/record/calendar.js');
-  assert.match(src, /const _tagText = \(c\) => `color:color-mix\(in srgb, \$\{c\.text\} 72%, #000\);`/,
-    'calendar.js 应以 _tagText 统一输出 72% 压深字色');
-  assert.doesNotMatch(src, /60%, #000/, '日历标签不得回落到 60% 压深（浅底 3.73:1）');
+  // 2026-10-23 批次 506：文字色不再由 `color-mix(主题色 N%, #000)` 派生，改为固定语义 tone
+  //   （`.tint-fill` + `data-tone`），浅底深字取自固定语义色表，不随主题切换改色。
+  assert.match(src, /cal-activity-tag[^`]*tint-fill[^`]*data-tone="\$\{_activityTone\(act\)\}"/,
+    '活动标签应挂 tint-fill 与固定 tone（不随主题变）');
+  assert.match(src, /data-tone="\$\{_roleTone\(t\.executor\)\}"/, '任务标签应挂固定角色 tone');
+  assert.doesNotMatch(src, /color-mix\(in srgb/, '日历不得再用 color-mix 派生文字 / 底色');
 });
 
 test('U3 个人考勤空态：数值为「—」且标签写明「本月无记录」', () => {
@@ -44,11 +47,12 @@ test('U3 个人考勤空态：数值为「—」且标签写明「本月无记�
     '空态数值应保持「—」，不得改成 0 或空白');
 });
 
-test('U4 卡片 hover：默认不变色，只有 card--interactive 才给主题色边框', () => {
+test('U4 卡片 hover：默认无 hover 规则，只有 card--interactive 才给主题色边框', () => {
   const css = read('docs/src/styles.css');
-  const base = ruleBlock(css, '.card:hover');
+  // 2026-10-23 批次 506（SD-17）：静态卡不得有 hover 背景/边框反馈 ⇒ `.card:hover` 整条退场。
+  const bare = css.replace(/\/\*[\s\S]*?\*\//g, ' ');
+  assert.equal(bare.indexOf('.card:hover'), -1, '默认卡片不得再有 hover 规则（静态卡无反馈）');
   const interactive = ruleBlock(css, '.card--interactive:hover');
-  assert.doesNotMatch(base, /primary-300/, '默认 .card:hover 不得再出现主题色边框');
   assert.match(interactive, /primary-300/, '.card--interactive:hover 应保留可点反馈');
   const stats = read('docs/src/components/dashboard/stats.js');
   assert.match(stats, /card--interactive/, '首页个人考勤卡应显式声明 card--interactive');

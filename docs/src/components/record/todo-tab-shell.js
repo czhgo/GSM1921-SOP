@@ -19,23 +19,23 @@
 // 视觉沿用 card/rounded 既有体系（四档列表渲染在 components/record/todo-list.js renderUrgencyTodoList）。
 // 设计权威源：content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md §六 M6（共性抽象净减）
 
-import { TodoStore, urgeRolesOf, WORK_DOMAIN, WORK_DOMAIN_LABELS, realtimeGroupDomainOf, buildModuleCycleRemindGroup } from '../../services/governance/todo.js?v=20261023b';
+import { TodoStore, urgeRolesOf, WORK_DOMAIN, WORK_DOMAIN_LABELS, realtimeGroupDomainOf, buildModuleCycleRemindGroup } from '../../services/governance/todo.js?v=20261023c';
 // S3②（2026-09-12）：未读通知计数单一来源——与顶栏角标/首页同源（NoticeStore activeOnly+read 过滤），
 // 不再用「通知类待办」现算（口径不同致三处不一致）。
-import { NoticeStore, NOTICE_MODULE_ROLE_PAGES } from '../../services/governance/notice.js?v=20261023b';
-import { buildUrgencySections, renderUrgencyTodoList } from './todo-list.js?v=20261023b';
-import { badgeHtml } from '../ui/badges.js?v=20261023b';
-import { showToast, escHtml, todayLocal, flashHighlight } from '../../core/base/utils.js?v=20261023b';
-import { ROLE_LABELS, BRANCH_COMMISSION_ROLES } from '../../core/domain/constants.js?v=20261023b';
-import { openModal, closeModal } from '../ui/modal.js?v=20261023b';
-import { AuthStore } from '../../services/core/auth.js?v=20261023b';
-import { mockDB } from '../../core/domain/domain.js?v=20261023b';
-import { tokenOf } from '../../core/base/version-token.js?v=20261023b'; // P0 域写版本戳（spec §二.4）
-import { resolveDocumentUrl } from '../../core/base/page-url.js?v=20261023b';
-import { memoizeRender } from '../ui/memoize-render.js?v=20261023b'; // P2 渲染守卫（spec §四.1）
-import { renderTabHeader } from '../shell/page-frame.js?v=20261023b'; // 页题单一源（H2）
+import { NoticeStore, NOTICE_MODULE_ROLE_PAGES } from '../../services/governance/notice.js?v=20261023c';
+import { buildUrgencySections, renderUrgencyTodoList } from './todo-list.js?v=20261023c';
+import { badgeHtml } from '../ui/badges.js?v=20261023c';
+import { showToast, escHtml, todayLocal, flashHighlight } from '../../core/base/utils.js?v=20261023c';
+import { ROLE_LABELS, BRANCH_COMMISSION_ROLES } from '../../core/domain/constants.js?v=20261023c';
+import { openModal, closeModal } from '../ui/modal.js?v=20261023c';
+import { AuthStore } from '../../services/core/auth.js?v=20261023c';
+import { mockDB } from '../../core/domain/domain.js?v=20261023c';
+import { tokenOf } from '../../core/base/version-token.js?v=20261023c'; // P0 域写版本戳（spec §二.4）
+import { resolveDocumentUrl } from '../../core/base/page-url.js?v=20261023c';
+import { memoizeRender } from '../ui/memoize-render.js?v=20261023c'; // P2 渲染守卫（spec §四.1）
+import { renderTabHeader } from '../shell/page-frame.js?v=20261023c'; // 页题单一源（H2）
 // 模块周期提醒（`R-29⑤` · `D-804`）：分工快照取法与 `components/governance/workforce-duty-card.js` 同口径
-import { getBranchIdOfPerson, getBranchWorkforce } from '../../services/branch/branch.js?v=20261023b';
+import { getBranchIdOfPerson, getBranchWorkforce } from '../../services/branch/branch.js?v=20261023c';
 
 // ── P0 组合数据复合键（2026-09-07 · spec §二.4）──────────────────
 // 组合点（buildRealtimeGroups + mergeRealtimeDomains + getUnreadNotices）以
@@ -258,7 +258,7 @@ export function createTodoTab(opts) {
       <div data-ws-todo-skeleton class="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <div class="lg:col-span-2 order-last lg:order-none card rounded-xl p-5" style="min-height:340px;">
           <div class="h-4 w-20 rounded bg-gray-100 animate-pulse mb-4"></div>
-          <div class="space-y-2.5">${row}${row}${row}${row}${row}</div>
+          <div class="space-y-2">${row}${row}${row}${row}${row}</div>
         </div>
         <div class="lg:col-span-1 order-first lg:order-none card rounded-xl p-5" style="min-height:220px;">
           <div class="h-4 w-12 rounded bg-gray-100 animate-pulse mb-4"></div>
@@ -371,7 +371,7 @@ export function createTodoTab(opts) {
     }).join('');
     return `
       <details class="todo-strip__section todo-strip__section--unread mt-1">
-        <summary class="cursor-pointer select-none py-1">
+        <summary class="cursor-pointer select-none py-2">
           <span class="text-xs font-medium text-gray-500">未读通知 <span class="tabular-nums">${notices.length}</span></span>
         </summary>
         <div class="divide-y divide-gray-100">${rows}</div>
@@ -384,7 +384,7 @@ export function createTodoTab(opts) {
     if (!extraHtml && !unreadHtml) return '';
     return `
       <details class="todo-strip card rounded-xl mb-4 card--static"${_stripOpen ? ' open' : ''}>
-        <summary class="cursor-pointer select-none px-4 py-2.5">
+        <summary class="cursor-pointer select-none px-4 py-2">
           <span class="inline-flex items-center gap-2">
             <span role="heading" aria-level="3" class="font-title-cn text-sm font-semibold text-gray-800">待答复与未读通知</span>
             ${count > 0 ? `<span class="state-badge state-badge--neutral tabular-nums text-[13px]">${count}</span>` : ''}
@@ -656,9 +656,9 @@ function _openVoidModal(group, { isCommittee, onDone } = {}) {
         ? `确认作废「${escHtml(label)}」？作废＝不办了（留痕、可追溯），与「完成」不同。`
         : `申请作废「${escHtml(label)}」？须填写原因；提交后报支委会确认，确认前该待办仍在。`}</p>
       <textarea id="todo-void-reason" class="input-flat text-xs w-full mt-2" rows="3" maxlength="200" placeholder="作废原因（必填）">${escHtml(prefill)}</textarea>
-      <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:14px;">
-        <button type="button" data-todo-void-cancel class="btn-outline text-xs px-3 py-1.5" style="cursor:pointer;">取消</button>
-        <button type="button" data-todo-void-ok class="btn-neutral text-xs px-3 py-1.5">${isCommittee ? '确认作废' : '提交申请'}</button>
+      <div style="display:flex;gap:12px;justify-content:flex-end;margin-top:16px;">
+        <button type="button" data-todo-void-cancel class="btn-outline" style="cursor:pointer;">取消</button>
+        <button type="button" data-todo-void-ok class="btn-neutral">${isCommittee ? '确认作废' : '提交申请'}</button>
       </div>`,
     onMount: (panel) => {
       panel.querySelector('[data-todo-void-cancel]')?.addEventListener('click', () => closeModal('todo-void-modal'));

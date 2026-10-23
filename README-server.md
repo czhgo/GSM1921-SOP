@@ -88,7 +88,7 @@
 | 12 | `commissioner` | 条条委员 | 遗留键 | — | **不参与权限判定**，仅兼容兜底 |
 | 13 | `initiator` | 发起人 | 遗留键 | — | 同上 |
 
-**依据**：`docs/src/core/domain/constants.js:202-208,963-968`（`ROLE_KEYS`——`deputy-leader` 于该文件末挂载）、`:209`（`ROLE_LEGACY_KEYS`）、`:353-367`（`ROLE_LABELS`）、`:371-383`（`ROLE_PAGE_MAP`）；`content/02_institution/SYSTEM_ROLE_PERMISSION.md:24-38`（§9a0 角色键全表）。
+**依据**：`docs/src/core/domain/constants.js:193-199`（`ROLE_KEYS`）、`:200`（`ROLE_LEGACY_KEYS`）、`:344-358`（`ROLE_LABELS`）、`:362-374`（`ROLE_PAGE_MAP`）；`content/02_institution/SYSTEM_ROLE_PERMISSION.md:24-38`（§9a0 角色键全表）。
 
 **两点易错约定**：
 - **「访客」不是角色**：未登录即访客（无角色键）。`visitor.html` 里的 `visitor` 只是**页面/页签前缀**，与「未登录访客」不是一回事。**另，「全体相关」（`all`）不是角色键**，故不在上表；其展示标签仍保留，见 §2.2.11。**同族同步**：`content/02_institution/SYSTEM_ROLE_PERMISSION.md` 的 §9a0 角色键全表**亦为 13 键**。
@@ -121,9 +121,9 @@
 | 不能做什么 | 不持 `record_attendance`（不直接记考勤）、不持 `summarize_inspection`（不汇总考察）、不持 `assign_project_role`（项目角色赋权走组长/组织者链） |
 | 审批位 | ① 成员变更申请**确认**（组织委员审批后由支书确认生效）；② 支部**上报党委**的发起方；③ 意见反馈**处置**（指派/关闭/重开/隐藏/合并/里程碑/终审）——**归支委会：支委层五角色（支书 / 副支书 / 组织 / 宣传 / 纪检）均可**；④ **品牌认定**：本角色可**提案**，认定本身须经**支委会审议通过**后确定 |
 | 特例 / 边界 | ① **看不到匿名反馈的真实提交人**——匿名反馈只在所属支部内闭环，当前任何角色均无系统揭名入口（`D-824`）；② 支部 config 全量可写，但**不含支部官方名 `name`**（仅 `party-staff` 可改）；③ 党小组管理（新增/改名/解散/归组）仅支书（含副支书）；④ **代归档兜底在本台集成**——待办「宣传材料待归档」组「代归档」按钮**本台浮窗直执**（判据与写口与宣传台归档面同源；原「进宣传工作台只放行档案归档页」的跨台形态已撤，`D-807④`）；⑤ **支委身份配置**：可把**本支部成员**配为组织 / 宣传 / 纪检委员（可改派、可撤销）——**支书本人与副支书的身份由党委配置**，不在此列；**副支书与支书同权**（两者均可配） |
-| 依据 | `docs/src/services/core/auth.js:92`、`:68-75`、`docs/src/core/domain/constants.js:215-217`（`BRANCH_COMMISSION_ROLES`）、`content/02_institution/SYSTEM_ROLE_PERMISSION.md:188-199`（§9j）、`server/routes/resources/gates.js:24-36`（党小组门）、`docs/src/entries/tabs/secretary/todo-tab.js`（代归档本台直执，`D-807④`） |
+| 依据 | `docs/src/services/core/auth.js:92`、`:68-75`、`docs/src/core/domain/constants.js:206-208`（`BRANCH_COMMISSION_ROLES`）、`content/02_institution/SYSTEM_ROLE_PERMISSION.md:188-199`（§9j）、`server/routes/resources/gates.js:24-36`（党小组门）、`docs/src/entries/tabs/secretary/todo-tab.js`（代归档本台直执，`D-807④`） |
 
-> **⚠「仍专属支书」的清单**：「**品牌认定**」「**意见处置**」已归支委会 / 支委层，**仍专属支书**的为——① **活动信息编辑**（巡查面板按钮，前端按 `SECRETARY_ROLES` 判：`docs/src/components/record/inspector.js:946-947`）；② **全支部通知发布**（本组通知发布口的注释明写「全支部通知仍归支书」：`docs/src/components/governance/notice-view.js:182`）；③ **名册成员变更确认链的阶段语义端点**（服务端走 `SECRETARY_AND_DEPUTY_ROLES`，属既有支书写链：`server/routes/member.js:129`）。`SECRETARY_ROLES` 的注释写明「品牌认定、意见处置已移出本集」（`docs/src/core/domain/constants.js:218`）。
+> **⚠「仍专属支书」的清单**：「**品牌认定**」「**意见处置**」已归支委会 / 支委层，**仍专属支书**的为——① **活动信息编辑**（巡查面板按钮，前端按 `SECRETARY_ROLES` 判：`docs/src/components/record/inspector.js:946-947`）；② **全支部通知发布**（本组通知发布口的注释明写「全支部通知仍归支书」：`docs/src/components/governance/notice-view.js:182`）；③ **名册成员变更确认链的阶段语义端点**（服务端走 `SECRETARY_AND_DEPUTY_ROLES`，属既有支书写链：`server/routes/member.js:129`）。`SECRETARY_ROLES` 的注释写明「品牌认定、意见处置已移出本集」（`docs/src/core/domain/constants.js:209`）。
 
 #### 2.2.2 `deputy-secretary` 副支书
 
@@ -191,7 +191,7 @@
 | 能做什么 | 看公开/本人相关视图；提交意见反馈与评论、表态、提及/引用、编辑自己提交的内容；提交思想汇报；提交本人复盘（组织者/深度参与者身份时）；报名活动/专班 |
 | 不能做什么 | 任何「记录类」写入（考勤、考察、复盘批注、名册、通知发布、活动创建…）一律不可 |
 | 特例 | 不持 `record_inspection`——本人素材走**活动参与记录**（制度矩阵 §9d 该键为 `--`） |
-| 依据 | `docs/src/services/core/auth.js:98`、`content/02_institution/SYSTEM_ROLE_PERMISSION.md:80-84`（§9d）、`docs/src/core/domain/constants.js:289`（`DEVELOP_STAGES`） |
+| 依据 | `docs/src/services/core/auth.js:98`、`content/02_institution/SYSTEM_ROLE_PERMISSION.md:80-84`（§9d）、`docs/src/core/domain/constants.js:280`（`DEVELOP_STAGES`） |
 
 #### 2.2.8 `party-staff` 党委组织员（组织级）
 
@@ -238,13 +238,13 @@
 | `initiator` | 发起人 | 同上 |
 | `all` | 全体相关 | **非角色键**（已自 `ROLE_LEGACY_KEYS` 撤除）；原在 SOP 场景任务的 `executor` 字段里表示「全员参与」，该用点随 `org-life` 场景一并删除；现仅作参考指南展示键（标签 / 色值保留） |
 
-**依据**：`docs/src/core/domain/constants.js:209`（`ROLE_LEGACY_KEYS`——**已自其中撤除「全体相关」**）、`:353-367`（`ROLE_LABELS`，「全体相关」的展示标签仍保留）；⚠ **`all` 现非角色键**，且已不再出现在任何 SOP 场景任务的 `executor` 里——原来那三处用点随 `org-life` 场景一并删除（`executor` 的现行取值见 §4.15）。
+**依据**：`docs/src/core/domain/constants.js:200`（`ROLE_LEGACY_KEYS`——**已自其中撤除「全体相关」**）、`:344-358`（`ROLE_LABELS`，「全体相关」的展示标签仍保留）；⚠ **`all` 现非角色键**，且已不再出现在任何 SOP 场景任务的 `executor` 里——原来那三处用点随 `org-life` 场景一并删除（`executor` 的现行取值见 §4.15）。
 
 > ⚠ **注意区分两组同名集合**（后端实现权限时极易踩坑）：
 > - **授权语义**（含支书/副支书）＝ `BRANCH_COMMISSION_ROLES`（5 个键）：服务端 `requireCommissioner` 与前端「是否支委」判定用它。
 > - **业务语义「条条委员」**（三委员，**不含**支书/副支书）＝ `COMMISSIONER_ROLES`（`commissioner`/`org-commissioner`/`prop-commissioner`/`disc-commissioner`）。
 >
-> **依据**：`docs/src/core/domain/constants.js:215-217`（`BRANCH_COMMISSION_ROLES`）、`:424-426`（`COMMISSIONER_ROLES`）、`server/routes/auth.js:102-107`、`content/02_institution/SYSTEM_ROLE_PERMISSION.md:43`。
+> **依据**：`docs/src/core/domain/constants.js:206-208`（`BRANCH_COMMISSION_ROLES`）、`:415-417`（`COMMISSIONER_ROLES`）、`server/routes/auth.js:102-107`、`content/02_institution/SYSTEM_ROLE_PERMISSION.md:43`。
 
 ### 2.3 权限矩阵（键级，取自代码）
 
@@ -461,7 +461,7 @@
 
 三个页签使用统一“党委治理”分组标签，不再把首页与全院治理拆成两个导航小组。登录落点为「支部上报」（先看待批复队列）。需要支部明细时先明确选择单一支部；支部目录保留创建、配置和只读查看入口，改名、任命、状态维护和空支部名册导入集中在独立配置页。意见反馈始终在支部内闭环，不进入党委工作台；党委共享顶栏不提供“我的档案”。
 
-**依据（3.2 全节）**：`docs/src/capabilities/{secretary,org,prop,disc,leader,visitor,party-committee}-workspace.js`（逐台的 `tabs()` 数组）；`docs/src/core/domain/constants.js:310`（核心页签判定 `isCoreTab`）；`server/test/doc-consistency.test.mjs:64-72`（七台注册文件与分组轴口径）。
+**依据（3.2 全节）**：`docs/src/capabilities/{secretary,org,prop,disc,leader,visitor,party-committee}-workspace.js`（逐台的 `tabs()` 数组）；`docs/src/core/domain/constants.js:301`（核心页签判定 `isCoreTab`）；`server/test/doc-consistency.test.mjs:64-72`（七台注册文件与分组轴口径）。
 
 ### 3.3 设置中心（`settings.html`）
 
@@ -552,7 +552,7 @@
 
 > **`deepWorkMode` 补充说明**：该字段有母本依据（《常见工作场景快速指南》:120）；**已列入 `DATA_MODEL.md` §2.1 字段表**（同属来源 A）。**依据**：`docs/src/services/activity/activity.js`（`DEEP_WORK_MODE` / `DEEP_WORK_MODE_LABEL` / `deepWorkModeOf` 单一源）、`docs/src/services/activity/decision-tree.js`（`DecisionTreeState.deepItems` 项清单）、`docs/src/entries/tabs/leader/write-tab.js` 的勾选排、`docs/src/entries/tabs/visitor/projects-tab.js` 的「我的任务」完成方式位。
 
-> **来源 C · 原字段表尾行补充**：本节**原字段表**最后 7 行（`organizer`→`voteConfig`）与 `isOutdoor` 同属「代码确实写入 / 读取」的字段，**现均已列入 `DATA_MODEL.md` §2.1**（同属来源 A）；其代码出处保留如下，后端建模不得漏。**依据**：`docs/src/data/mock/activities.js:12-14,61-66`（`organizer` / `direction` / `hostGroup` / `assignments` 的实存形态）、`docs/src/services/activity/decision-tree.js:362`（`organizer` 写入）、`docs/src/services/core/auth.js:239-243`（`assignments` 写读）、`docs/src/entries/tabs/leader/write-tab.js:1182-1184`（`signupEnabled` / `requireMakeup` 写入）、`docs/src/entries/tabs/secretary/calendar-tab.js:1604-1620`（`voteConfig` 写入）、`docs/src/services/activity/vote-config.js:41,44`（`voteConfig` 取值）、`docs/src/services/activity/attendance.js:150-166`（`hostGroup` 判据）、`server/routes/resources/gates.js:98-104`、`server/routes/resources/index.js:404`（`voteConfig` 写侧校验）。
+> **来源 C · 原字段表尾行补充**：本节**原字段表**最后 7 行（`organizer`→`voteConfig`）与 `isOutdoor` 同属「代码确实写入 / 读取」的字段，**现均已列入 `DATA_MODEL.md` §2.1**（同属来源 A）；其代码出处保留如下，后端建模不得漏。**依据**：`docs/src/data/mock/activities.js:12-14,61-66`（`organizer` / `direction` / `hostGroup` / `assignments` 的实存形态）、`docs/src/services/activity/decision-tree.js:362`（`organizer` 写入）、`docs/src/services/core/auth.js:239-243`（`assignments` 写读）、`docs/src/entries/tabs/leader/write-tab.js:1181-1183`（`signupEnabled` / `requireMakeup` 写入）、`docs/src/entries/tabs/secretary/calendar-tab.js:1604-1620`（`voteConfig` 写入）、`docs/src/services/activity/vote-config.js:41,44`（`voteConfig` 取值）、`docs/src/services/activity/attendance.js:150-166`（`hostGroup` 判据）、`server/routes/resources/gates.js:98-104`、`server/routes/resources/index.js:404`（`voteConfig` 写侧校验）。
 
 **活动存储状态取值**：`draft` 草稿 / `pending-approval` 待批（**仅活动批准门开启时出现**，默认关不写入） / `published` 已发布 / `ongoing` 进行中 / `completed` 已结束 / `cancelled` 已取消。
 **活动生命周期展示态（派生，不落库）**：`draft` / `pending_approval`（待批） / `published` / `ongoing` / `pending_archive`（待归档，悬停显示缺项）/ `executed`（已执行）/ `archived` / `cancelled`。
@@ -575,7 +575,7 @@
 | brandRevokedBy | string \| null | **取消认定**留痕 · 操作人 personId（取消限支委层；重新认定仍须支委会审议通过） |
 | brandRevokedAt | string（ISO）\| null | 取消认定时间 |
 
-**依据**：`docs/src/services/activity/activity.js:269-280`（`BRAND_PROPOSER_ROLES` / `canProposeBrand`）、`docs/src/services/activity/activity.js:415-453`（`applyBrandDesignationResult`：通过才置 `isBrand`）、`docs/src/services/activity/activity.js:484-494`（`commitBrandDesignationResult` 落库口）、`server/routes/resources/index.js:246-253`（`POST /activities/:id/brand` **只能取消、不能认定**）、`docs/src/entries/pages/activity-entry.js:358`（`signupClosed` 与品牌三动作）。
+**依据**：`docs/src/services/activity/activity.js:269-280`（`BRAND_PROPOSER_ROLES` / `canProposeBrand`）、`docs/src/services/activity/activity.js:415-453`（`applyBrandDesignationResult`：通过才置 `isBrand`）、`docs/src/services/activity/activity.js:484-494`（`commitBrandDesignationResult` 落库口）、`server/routes/resources/index.js:246-253`（`POST /activities/:id/brand` **只能取消、不能认定**）、`docs/src/entries/pages/activity-entry.js:359`（`signupClosed` 与品牌三动作）。
 
 **活动批准门（支部可开关的制度参数，默认关）**：办活动要不要先过一道批准门，做成支部可调制度参数 `activityApproval.mode`（三态 `off` / `secretary` / `branch-committee`，默认 `off`）。**关闭（默认）时活动写入链与全部行为与改动前完全一致**（写入照常、状态链不多一态）；开启后**写入即落「待批」**（`status='pending-approval'` ＋ `approval` 轨迹字段 `{required,mode,state,at,by,note?}`），批准前不推进、批准后转 `published`、不批准转 `cancelled`。门在写入之后、推进之前（依母本《常见工作场景快速指南》共建活动八步流程 `:245`「必须经支书同意后方可推进；不批准则终止」）；默认档支书批准（可改支委会档）；**待批活动的可见性＝只支委层可见 ＋ 组织者本人可见**（详见下方）。界面落点：设置中心·支部制度参数区「活动批准门」卡（支书 / 副支书可改，写口 `docs/src/services/branch/branch.js` 的 `savePolicyOverrides`）；活动详情页对「待批」活动给「批准发布 / 不批准（终止）」两动作。**未新增表 / 未新增页面**，`approval` 字段落在活动主源。
 **依据**：`docs/src/services/activity/decision-tree.js:350-375`（`writeActivityWithSOP` 写入门）；`docs/src/core/domain/policy-defaults.js`（`activityApproval` ＋ 白名单 `POLICY_OVERRIDABLE` 的 `['activityApproval','mode']`）；`docs/src/services/activity/activity.js`（`pendingApprovalPatchOnWrite` / `approveActivity` / `rejectActivity` / `canApproveActivity`）；`docs/src/components/record/inspector.js`（`ACTIVITY_LIFECYCLE.pending_approval` 徽章与两动作）；`docs/src/entries/pages/settings-entry.js`（`activityApprovalCardHtml`）。

@@ -2,19 +2,19 @@
 // ws-org-commissioner-entry.js — 组织委员工作台入口（T-279 M3 拆分；T-304 代码减负 2026-08-30：骨架并入 workspace-shell）
 // 入口职责：壳配置（注册表 tab 清单 + 导航落点 + 数据加载），角色特有逻辑仅保留。
 
-import { getAppState, setState } from '../../core/base/state.js?v=20261023b';
-import { createWorkspaceShell } from '../../components/shell/workspace-shell.js?v=20261023b';
-import { flashHighlight } from '../../core/base/utils.js?v=20261023b';
-import { loadActivities } from '../../services/activity/activity.js?v=20261023b';
-import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261023b';
-import { SignupStore } from '../../services/activity/signup.js?v=20261023b';
-import { seedTodos } from '../../services/governance/todo.js?v=20261023b';
-import { solidAccentStyle } from '../../core/domain/constants.js?v=20261023b';
-import { AuthStore } from '../../services/core/auth.js?v=20261023b';
-import { getBranchIdOfPerson, getBranchCapabilityPackageState } from '../../services/branch/branch.js?v=20261023b';
-import { openRecruitForm } from '../tabs/org/taskforce-tab.js?v=20261023b';
+import { getAppState, setState } from '../../core/base/state.js?v=20261023c';
+import { createWorkspaceShell } from '../../components/shell/workspace-shell.js?v=20261023c';
+import { flashHighlight } from '../../core/base/utils.js?v=20261023c';
+import { loadActivities } from '../../services/activity/activity.js?v=20261023c';
+import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261023c';
+import { SignupStore } from '../../services/activity/signup.js?v=20261023c';
+import { seedTodos } from '../../services/governance/todo.js?v=20261023c';
+import { solidAccentStyle } from '../../core/domain/constants.js?v=20261023c';
+import { AuthStore } from '../../services/core/auth.js?v=20261023c';
+import { getBranchIdOfPerson, getBranchCapabilityPackageState } from '../../services/branch/branch.js?v=20261023c';
+import { openRecruitForm } from '../tabs/org/taskforce-tab.js?v=20261023c';
 // 副作用导入触发组织委员工作台能力注册（tab 清单；含 立项⑥B波 成员名册 tab）
-import '../../capabilities/org-workspace.js?v=20261023b';
+import '../../capabilities/org-workspace.js?v=20261023c';
 
 await createWorkspaceShell({
   accentRole: 'org-commissioner',
@@ -43,7 +43,7 @@ await createWorkspaceShell({
     const me = AuthStore.getCurrentUser?.();
     const branchId = getBranchIdOfPerson(me?.personId || me?.id);
     const enabled = getBranchCapabilityPackageState(branchId)['taskforce-workgroup'] !== false;
-    return '<button id="btn-publish-tf" ' + (enabled ? '' : 'disabled aria-disabled="true" title="本支部已停用专班工作组；可继续处理在办事项并查阅历史" ') + 'style="' + solidAccentStyle(accent, accentBorder) + ';border:none;padding:6px 16px;border-radius:var(--radius-sm);font-size:0.75rem;font-weight:500;cursor:' + (enabled ? 'pointer' : 'not-allowed') + ';opacity:' + (enabled ? '1' : '.55') + ';transition:opacity 0.15s;"' + (enabled ? ' onmouseover="this.style.opacity=\'0.9\'" onmouseout="this.style.opacity=\'1\'"' : '') + '>发布招募</button>';
+    return '<button id="btn-publish-tf" ' + (enabled ? '' : 'disabled aria-disabled="true" title="本支部已停用专班工作组；可继续处理在办事项并查阅历史" ') + 'style="' + solidAccentStyle(accent, accentBorder) + ';border:none;padding:6px 16px;border-radius:var(--radius-sm);font-size:0.75rem;font-weight:500;cursor:' + (enabled ? 'pointer' : 'not-allowed') + ';opacity:' + (enabled ? '1' : '.55') + ';"' + '>发布招募</button>';
   },
   bindExtras: (container, shell) => {
     container.querySelector('#btn-publish-tf')?.addEventListener('click', (event) => {

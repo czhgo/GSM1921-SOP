@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
   
-<script src="./src/theme-init.js?v=20261023b"></script>
+<script src="./src/theme-init.js?v=20261023c"></script>
 <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>帮助 — GSM1921-SOP</title>
@@ -13,8 +13,8 @@
   <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;800&family=Noto+Serif+SC:wght@400;500;600;700;800&display=swap" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;800&family=Noto+Serif+SC:wght@400;500;600;700;800&display=swap" rel="stylesheet"></noscript>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="./src/tailwind-config.js?v=20261023b"></script>
-  <link rel="stylesheet" href="./src/styles.css?v=20261023b">
+  <script src="./src/tailwind-config.js?v=20261023c"></script>
+  <link rel="stylesheet" href="./src/styles.css?v=20261023c">
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
@@ -50,7 +50,9 @@
     .qn-common { display:flex; align-items:center; gap:8px; flex-wrap:wrap; border:1px solid #EEEFF2; border-radius:14px; background:#FCFCFB; padding:10px 14px; margin:12px 0 2px; }
     .qn-common-label { font-size:0.72rem; font-weight:700; color:#6B7280; letter-spacing:0.06em; }
     .qn-chip { display:inline-flex; align-items:center; gap:5px; font-size:0.7rem; color:#374151; background:#FFFFFF; border:1px solid #E5E7EB; border-radius:999px; padding:2px 10px; line-height:1.5; text-decoration:none; transition:border-color 0.2s, background-color 0.2s; }
-    .qn-chip:hover { border-color:#9CA3AF; background:#F8F9FA; }
+    @media (hover: hover) {
+      .qn-chip:hover { border-color:#9CA3AF; background:var(--surface-hover); }
+    }
     /* 2026-09-24 无障碍（焦点环统一口径）：本页原用 #CE1126 焦点环，与全局金环成了「一页两种焦点环」——
        下面 4 处（.qn-chip / a.qn-fn / .help-toc-item / 搜索框）全部并入全局统一口径：
        金环 2px / offset 2px + 深色补环（外圈 vs #FAFAF5 ≈ 4.7:1）。 */
@@ -66,7 +68,9 @@
     .qn-role-dot { width:7px; height:7px; border-radius:50%; flex-shrink:0; }
     .qn-cell { display:flex; flex-direction:column; gap:4px; }
     a.qn-fn { font-size:0.7rem; color:#374151; background:#fff; border:1px solid; border-radius:999px; padding:1px 8px; line-height:1.6; text-decoration:none; width:fit-content; transition:background-color 0.2s, border-color 0.2s; }
-    a.qn-fn:hover { background:#F8F9FA; }
+    @media (hover: hover) {
+      a.qn-fn:hover { background:var(--surface-hover); }
+    }
     a.qn-fn:focus-visible { outline:2px solid var(--party-gold); outline-offset:2px; box-shadow:0 0 0 6px rgba(0,0,0,0.55); }
     a.qn-fn-leader { border-color:#86EFAC; color:#15803D; }
     a.qn-fn-org    { border-color:#BAE6FD; color:#0369A1; }
@@ -123,7 +127,9 @@
     .help-main { flex:1; min-width:0; }
     .help-toc { display:flex; flex-direction:column; gap:2px; border-left:1px solid #EEEFF2; padding-left:12px; }
     .help-toc-item { display:block; font-size:0.84rem; color:#4B5563; text-decoration:none; padding:5px 10px; border-radius:var(--radius-sm); line-height:1.5; transition:background-color .15s,color .15s; }
-    .help-toc-item:hover { background:#F8F9FA; color:#111827; }
+    @media (hover: hover) {
+      .help-toc-item:hover { background:var(--surface-hover); color:#111827; }
+    }
     .help-toc-item:focus-visible { outline:2px solid var(--party-gold); outline-offset:2px; box-shadow:0 0 0 6px rgba(0,0,0,0.55); }
     .toc-anchor { display:block; scroll-margin-top:76px; }
 
@@ -137,7 +143,10 @@
     .help-search-input:focus,.help-role-filter:focus-visible { border-color:var(--party-gold); outline:2px solid var(--focus-ring); outline-offset:1px; box-shadow:none; }
     .help-search-results { position:relative; margin-top:6px; background:var(--surface-elevated); border:1px solid var(--neutral-200); border-radius:var(--radius-md); box-shadow:0 8px 24px rgba(0,0,0,0.08); z-index:2; max-height:min(48vh,420px); overflow-y:auto; padding:5px; }
     .help-search-result { display:block; width:100%; text-align:left; padding:9px 11px; font-size:0.86rem; color:var(--neutral-700); background:transparent; border:none; border-radius:var(--radius-sm); text-decoration:none; }
-    .help-search-result:hover,.help-search-result:focus-visible { background:var(--surface-hover); color:var(--app-accent); }
+    @media (hover: hover) {
+       .help-search-result:hover { background:var(--surface-hover); color:var(--app-accent); }
+     }
+     .help-search-result:focus-visible { background:var(--surface-hover); color:var(--app-accent); }
     .help-search-result:focus-visible,.help-quick-tasks a:focus-visible,.help-browse summary:focus-visible { outline:2px solid var(--party-gold); outline-offset:2px; }
     .help-search-result-heading { display:flex; align-items:baseline; justify-content:space-between; gap:12px; }
     .help-search-result-heading small { flex:none; color:var(--neutral-500); font-size:0.72rem; font-weight:500; }
@@ -150,13 +159,15 @@
     .help-quick-tasks { display:flex; align-content:flex-start; align-items:center; flex-wrap:wrap; gap:7px; }
     .help-quick-tasks-label { width:100%; color:var(--neutral-600); font-size:0.76rem; }
     .help-quick-tasks a { padding:6px 10px; border:1px solid var(--neutral-200); border-radius:999px; color:var(--neutral-700); background:var(--surface-elevated); text-decoration:none; }
-    .help-quick-tasks a:hover { border-color:var(--app-accent); color:var(--app-accent); }
+    @media (hover: hover) {
+      .help-quick-tasks a:hover { border-color:var(--app-accent); color:var(--app-accent); }
+    }
 
     /* ── 功能章节卡片 ── */
     .help-catalog-cards { display:flex; flex-direction:column; gap:26px; }
     .help-card-group { scroll-margin-top:76px; }
     .help-card-group .doc-divider { margin:14px 0 4px; }
-    .help-card { background:#FFFFFF; border:1px solid #EEEFF2; border-radius:var(--radius-md); padding:16px 20px; margin-top:12px; scroll-margin-top:76px; transition:box-shadow .2s, background-color .2s; }
+    .help-card { background:#FFFFFF; border:1px solid #EEEFF2; border-radius:var(--radius-md); padding:16px 20px; margin-top:12px; scroll-margin-top:76px; transition:background-color .2s; }
     .help-card-group > .help-card:first-of-type { margin-top:0; }
     .help-card-group > #mermaid-flows > .help-card:first-child { margin-top:0; }
     .help-card-title { display:flex; align-items:center; gap:8px; font-size:0.95rem; font-weight:700; color:#111827; margin:0 0 6px; }
@@ -164,7 +175,9 @@
     .help-card-usage { font-size:0.82rem; line-height:1.8; color:#6B7280; margin:6px 0 0; }
     .help-card-rel-line { font-size:0.82rem; color:#6B7280; margin:6px 0 0; }
     .help-card-rel { color:#CE1126; text-decoration:none; margin-right:8px; }
-    .help-card-rel:hover { text-decoration:underline; }
+    @media (hover: hover) {
+      .help-card-rel:hover { text-decoration:underline; }
+    }
     .help-card.is-highlighted { outline:2px solid rgba(206,17,38,0.35); outline-offset:2px; background:#FFFBFB; }
     .doc-card.is-highlighted { outline:2px solid rgba(206,17,38,0.3); outline-offset:4px; }
     .help-badge { display:inline-flex; align-items:center; font-size:0.68rem; font-weight:600; padding:1px 8px; border-radius:999px; line-height:1.6; letter-spacing:0.04em; }
@@ -200,8 +213,11 @@
     .rh-line-v { color:#7C3AED; background:rgba(124,58,237,0.08); }
     .rh-line-h { color:#0891B2; background:rgba(8,145,178,0.08); }
     .rh-cards-row { display:flex; gap:10px; flex-wrap:wrap; justify-content:center; }
-    .rh-card { border-radius:var(--radius-md); padding:14px 18px; text-align:center; min-width:110px; transition:all 0.2s; border:1px solid transparent; }
-    .rh-card:hover { transform:translateY(-2px); box-shadow:0 4px 12px rgba(0,0,0,0.08); }
+    .rh-card { border-radius:var(--radius-md); padding:14px 18px; text-align:center; min-width:110px; transition:border-color 0.2s, background-color 0.2s; border:1px solid transparent; }
+    /* 2026-10-23 Task 7：静态卡不再上浮 + 阴影，hover 只加深描边。 */
+    @media (hover: hover) {
+      .rh-card:hover { border-color:#D1D5DB; }
+    }
     .rh-name { font-family:'Noto Sans SC',sans-serif; font-size:0.85rem; font-weight:700; margin-bottom:4px; }
     .rh-tag { font-size:0.7rem; opacity:0.8; }
     .rh-desc { font-size:0.7rem; opacity:0.65; margin-top:4px; }
@@ -1791,6 +1807,6 @@
   </main>
 </div>
 
-<script type="module" src="./src/entries/pages/help-entry.js?v=20261023b"></script>
+<script type="module" src="./src/entries/pages/help-entry.js?v=20261023c"></script>
 </body>
 </html>

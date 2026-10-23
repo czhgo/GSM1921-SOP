@@ -1,8 +1,8 @@
 // role: [工程师]+[AI]
-// ui-primary-cta-color.test.mjs — 主 CTA 角色色全强度守卫（2026-10-19 · Spec Task 4）
+// ui-primary-cta-color.test.mjs — 主 CTA 主题色实底守卫（2026-10-19 立；2026-10-23 批次 505 改口径）
 //
-// 口径：`.btn-accent` 背景不得再与深灰 #1F2937 混合（泥褐）；必须使用角色色令牌
-// （`var(--app-accent)` 全强度或其专用压深档 `var(--app-accent-strong)`）。
+// 口径：`.btn-accent` 背景不得再与深灰混合（泥褐），也不得再用 color-mix 压深；
+// 批次 505 起实底 = 主题表的 `strongBg`、实底字 = `strongInk`（8 token 显式表，逐主题手选）。
 // 运行：node --test server/test/ui-primary-cta-color.test.mjs
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -33,12 +33,16 @@ test('C2 主 CTA 使用角色色令牌', () => {
   assert.match(body, /var\(--app-accent/, '.btn-accent 背景未使用 --app-accent 令牌');
 });
 
-test('C3 压深档仍取角色色相（亮色本色+深字 / 暗色压深+白字）', () => {
-  // 2026-10-19 支书裁定默认金 #F5C518：亮色主题不再压深成棕，而是本色底 + 深字；
-  // 暗色角色仍由 accentButtonColors() 生成 58% 压深底 + 白字，保持色相。
-  assert.match(CSS, /--app-accent-strong:\s*var\(--app-accent\)/,
-    '默认主题应使用本色底（亮色主题不再压深成棕）');
-  assert.match(CONSTANTS, /color-mix\(in srgb, \$\{hex\} 58%, black\)/,
-    '暗色角色应由 accentButtonColors 压深到 58% 并保持色相');
+test('C3 实底/实底字查表：strongBg + strongInk（无 color-mix 压深）', () => {
+  // 批次 505：每个主题的实底与实底字都是手选 hex（strongBg / strongInk），
+  // 不再用 `color-mix(in srgb, 主题色 58%, black)` 按亮度压深。
+  assert.match(CSS, /\.btn-accent\s*\{[^}]*background:\s*var\(--app-accent-strong-bg\)/,
+    '.btn-accent 背景应为 var(--app-accent-strong-bg)（查表 strongBg）');
+  assert.match(CSS, /\.btn-accent\s*\{[^}]*color:\s*var\(--app-accent-strong-ink\)/,
+    '.btn-accent 文字色应为 var(--app-accent-strong-ink)（查表 strongInk）');
+  assert.doesNotMatch(CSS, /color-mix\([^)]*var\(--app-accent[^)]*black/i,
+    'styles.css 不得再用 color-mix(主题色 … black) 生成实底');
+  assert.match(CONSTANTS, /return \{ bg: t\.strongBg, text: t\.strongInk, strong: t\.strongBg, ink: t\.strongInk \};/,
+    'accentButtonColors 应直接查表返回 strongBg / strongInk');
   assert.match(CONSTANTS, /export function accentButtonColors/, '缺少 accentButtonColors 单一源');
 });

@@ -33,27 +33,27 @@
 // 制度口径（各情景「本位＝谁」与 2 处折叠说明）已搬入 `docs/help.html` 定点（`#card-copy-assign-*`），
 //   界面只留一行 + 深链（DESIGN_SYSTEM §4.18 C7：制度原文不进界面）。
 
-import { showToast, getBasePath, escHtml as esc } from '../../../core/base/utils.js?v=20261023b';
-import { AuthStore } from '../../../services/core/auth.js?v=20261023b';
+import { showToast, getBasePath, escHtml as esc } from '../../../core/base/utils.js?v=20261023c';
+import { AuthStore } from '../../../services/core/auth.js?v=20261023c';
 // 成员档案读链（2026-09-03 数据域接线收口）：一律经 services/member/person.js（原直连 mock PEOPLE 已收口）
-import { getPersonById, getPersonName } from '../../../services/member/person.js?v=20261023b';
+import { getPersonById, getPersonName } from '../../../services/member/person.js?v=20261023c';
 // 党小组常态清单唯一来源（活组、按 seq 升序；新增/改名/解散后随渲染即时可见）——禁再手写组名数组
-import { groupOptions } from '../../../services/member/party-group.js?v=20261023b';
-import { TaskForceRecordStore } from '../../../services/activity/taskforce.js?v=20261023b';
-import { PersonPicker } from '../../../components/governance/pickers.js?v=20261023b';
+import { groupOptions } from '../../../services/member/party-group.js?v=20261023c';
+import { TaskForceRecordStore } from '../../../services/activity/taskforce.js?v=20261023c';
+import { PersonPicker } from '../../../components/governance/pickers.js?v=20261023c';
 // 本位 nudge 单一源（2026-09-27：赋权三情景各自本位不同——非本位操作人写库前弹确认）
-import { confirmNudge } from '../../../components/ui/modal.js?v=20261023b';
-import { DEFAULT_BRANCH_ID, ROLE_LABELS, PROJECT_ROLES, BRANCH_COMMISSIONER_ASSIGNABLE_ROLES } from '../../../core/domain/constants.js?v=20261023b';
+import { confirmNudge } from '../../../components/ui/modal.js?v=20261023c';
+import { DEFAULT_BRANCH_ID, ROLE_LABELS, PROJECT_ROLES, BRANCH_COMMISSIONER_ASSIGNABLE_ROLES } from '../../../core/domain/constants.js?v=20261023c';
 // 2026-09-23 支书裁定（情景①）：支委身份配置写口单一源 = services/branch/appointment.js
 //（本 tab 只做表单/列表渲染，不直接改 mockDB；白名单与写门判据同源 core/domain/constants.js）
-import { appointBranchCommissioner, revokeBranchCommissioner, listBranchCommissioners } from '../../../services/branch/appointment.js?v=20261023b';
+import { appointBranchCommissioner, revokeBranchCommissioner, listBranchCommissioners } from '../../../services/branch/appointment.js?v=20261023c';
 // R1-A 点⑤（2026-09-09）：强调色渲染统一 person-aware 动态解析（替代模块级 resolveAccentRole 快照）
-import { getAppliedAccentColors } from '../../../core/boot/theme.js?v=20261023b';
-import { loadActivities } from '../../../services/activity/activity.js?v=20261023b';
-import { badgeHtml } from '../../../components/ui/badges.js?v=20261023b';
-import { TodoStore } from '../../../services/governance/todo.js?v=20261023b';
+import { getAppliedAccentColors } from '../../../core/boot/theme.js?v=20261023c';
+import { loadActivities } from '../../../services/activity/activity.js?v=20261023c';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20261023c';
+import { TodoStore } from '../../../services/governance/todo.js?v=20261023c';
 // 统一检索引擎（2026-09-13 表格统一化批次 A）：赋权记录列表（第一列是人）接入关键词 + 分面
-import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261023b';
+import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261023c';
 
 // 生效强调色 hex（R1-A 点⑤：登录人强调色=person 键覆盖，禁止模块加载期快照写死——
 // 一律渲染时经 getAppliedAccentColors 动态解析，改色后随重渲染/刷新生效，与 --app-accent 同源）
@@ -383,11 +383,11 @@ function renderProjectAuthRecords(cfg) {
     listClass: 'space-y-0',
     emptyMessage: `暂无${cfg.label}项目角色赋权记录`,
     rowHtml: (r) => `
-      <div class="flex items-center justify-between py-2 px-3 rounded-lg hover:bg-gray-50">
+      <div class="flex items-center justify-between py-2 px-3 rounded-lg">
         <div>
-          <a href="${getBasePath()}person.html?id=${encodeURIComponent(r.targetPersonId)}" class="text-sm font-medium text-gray-700 hover:underline hover:text-sky-700 transition-colors" title="查看完整档案">${esc(r._personName)}</a>
+          <a href="${getBasePath()}person.html?id=${encodeURIComponent(r.targetPersonId)}" class="text-sm font-medium text-gray-700 hover:underline hover:text-[var(--app-accent-soft-text)] transition-colors" title="查看完整档案">${esc(r._personName)}</a>
           <span class="text-xs text-gray-500 ml-2">${r._projectName}</span>
-          <span class="badge ml-2" style="--acc-bg-dark:rgba(248,113,113,0.16);--acc-text-dark:#F87171;--acc-border-dark:rgba(248,113,113,0.35);background:var(--primary-100);color:var(--primary-800);">${r._roleLabel}</span>
+          <span class="badge badge--danger ml-2">${r._roleLabel}</span>
           <span class="text-xs text-gray-500 ml-2">${r.authorizedAt || ''}</span>
         </div>
         <button type="button" class="btn-ghost revoke-project-auth text-xs" data-record-id="${r.id}">撤销</button>
@@ -463,7 +463,7 @@ function renderAuthPanel(assignArea) {
   partyGroups.forEach(group => {
     const isSelected = authPanel.selectedGroup === group;
     const cls = `chip-option text-sm px-4 py-2 rounded-lg ${isSelected ? 'chip-accent-on font-medium' : ''}`;
-    html += `<button data-auth-action="select-group" data-value="${group}" class="btn-tab ${cls}"${isSelected ? ' style="--acc-text-dark:color-mix(in srgb, var(--app-accent) 55%, #fff)"' : ''}>${group}</button>`;
+    html += `<button data-auth-action="select-group" data-value="${group}" class="btn-tab ${cls}">${group}</button>`;
   });
   html += `</div>`;
   html += `</div>`;
@@ -677,7 +677,7 @@ function renderCommissionerList(bid) {
           <div class="accent-avatar w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 text-xs font-bold">${esc(r.name).charAt(0)}</div>
           <div class="min-w-0 flex-1">
             <div class="flex items-center gap-2 flex-wrap">
-              <a href="${getBasePath()}person.html?id=${encodeURIComponent(r.personId)}" class="text-sm font-medium text-gray-700 hover:underline hover:text-sky-700 transition-colors" title="查看完整档案">${esc(r.name)}</a>
+              <a href="${getBasePath()}person.html?id=${encodeURIComponent(r.personId)}" class="text-sm font-medium text-gray-700 hover:underline hover:text-[var(--app-accent-soft-text)] transition-colors" title="查看完整档案">${esc(r.name)}</a>
               ${badgeHtml(r._roleLabel, 'danger')}
             </div>
             ${r._since ? `<p class="text-xs text-gray-500 mt-0.5">赋权于 ${esc(r._since)}</p>` : ''}

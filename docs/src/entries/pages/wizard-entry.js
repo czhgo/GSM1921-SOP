@@ -5,15 +5,15 @@
 //   · 党委（party-staff）→ 任意支部可选（canSwitchBranch）
 //   · 未登录 / 其它角色 / 非现任支书 → 提示卡（无权限不渲染向导）
 // 主体共用 components/governance/org-setup-wizard.js（party-config tab 同源）。
-import { BranchService } from '../../services/core/runtime.js?v=20261023b'; // 副作用注册适配器 + BranchService 绑定（loadDB）
-import { hydrateDataSource } from '../../data/data-adapter.js?v=20261023b';
-import { ApiAdapter } from '../../data/api-adapter.js?v=20261023b';
-import { AuthStore } from '../../services/core/auth.js?v=20261023b';
-import { getBranchById, getBranchIdOfPerson } from '../../services/branch/branch.js?v=20261023b';
-import { mountOrgSetupWizard } from '../../components/governance/org-setup-wizard.js?v=20261023b';
-import { renderSidebar } from '../../components/shell/sidebar.js?v=20261023b';
-import { renderHeader } from '../../components/shell/header.js?v=20261023b';
-import { escHtml as esc } from '../../core/base/utils.js?v=20261023b';
+import { BranchService } from '../../services/core/runtime.js?v=20261023c'; // 副作用注册适配器 + BranchService 绑定（loadDB）
+import { hydrateDataSource } from '../../data/data-adapter.js?v=20261023c';
+import { ApiAdapter } from '../../data/api-adapter.js?v=20261023c';
+import { AuthStore } from '../../services/core/auth.js?v=20261023c';
+import { getBranchById, getBranchIdOfPerson } from '../../services/branch/branch.js?v=20261023c';
+import { mountOrgSetupWizard } from '../../components/governance/org-setup-wizard.js?v=20261023c';
+import { renderSidebar } from '../../components/shell/sidebar.js?v=20261023c';
+import { renderHeader } from '../../components/shell/header.js?v=20261023c';
+import { escHtml as esc } from '../../core/base/utils.js?v=20261023c';
 
 renderSidebar('wizard');
 renderHeader('wizard');
@@ -60,8 +60,8 @@ if (!me) {
     <p class="font-title-cn text-sm font-bold text-gray-800">请先登录</p>
     <p class="text-xs text-gray-500 mt-1">换组织向导需要登录态：党委组织员可配置任意支部；现任支书可直达本支部（wizard.html?branch=自己的支部）。</p>
     <div class="flex gap-2 mt-3">
-      <a href="./login.html" class="px-3 py-1.5 rounded-lg text-xs font-medium text-white hover:opacity-90" style="background:var(--party-red);">去登录</a>
-      <a href="./index.html" class="px-3 py-1.5 rounded-lg text-xs border border-gray-200 text-gray-600 hover:bg-gray-50">返回主页</a>
+      <a href="./login.html" class="btn-accent btn-party-solid inline-block px-3 py-1.5 rounded-lg text-xs font-medium text-white">去登录</a>
+      <a href="./index.html" class="px-3 py-1.5 rounded-lg text-xs border border-gray-200 text-gray-600 hover:bg-surface-hover">返回主页</a>
     </div>
     <p class="text-xs text-gray-600 mt-3">本地快捷进入：本地访问可用 <code class="text-xs bg-gray-100 px-1 py-0.5 rounded">?dev=party-staff</code> 或 <code class="text-xs bg-gray-100 px-1 py-0.5 rounded">?dev=secretary</code> 快速进入。</p>`);
 } else if (me.role === 'party-staff') {
@@ -76,7 +76,7 @@ if (!me) {
     showNotice(`
       <p class="font-title-cn text-sm font-bold text-gray-800">仅限本支部</p>
       <p class="text-xs text-gray-500 mt-1">现任支书只能配置自己的支部（${esc(own)}）；请求的支部「${esc(reqBranch)}」不在权限范围。</p>
-      <a href="./wizard.html?branch=${esc(own)}" class="inline-block mt-3 px-3 py-1.5 rounded-lg text-xs font-medium text-white hover:opacity-90" style="background:var(--party-red);">进入本支部向导</a>`);
+      <a href="./wizard.html?branch=${esc(own)}" class="btn-accent btn-party-solid inline-block mt-3 px-3 py-1.5 rounded-lg text-xs font-medium text-white">进入本支部向导</a>`);
   } else if (!branch || branch.secretaryId !== me.personId) {
     showNotice(`
       <p class="font-title-cn text-sm font-bold text-gray-800">非现任支书</p>
@@ -88,7 +88,7 @@ if (!me) {
   showNotice(`
     <p class="font-title-cn text-sm font-bold text-gray-800">无配置权限</p>
     <p class="text-xs text-gray-500 mt-1">换组织向导配置权限：党委组织员（party-staff）任意支部、现任支书本支部；当前角色（${esc(ROLE_LABEL(me.role))}）不在权限范围。</p>
-    <a href="./index.html" class="inline-block mt-3 px-3 py-1.5 rounded-lg text-xs border border-gray-200 text-gray-600 hover:bg-gray-50">返回主页</a>`);
+    <a href="./index.html" class="inline-block mt-3 px-3 py-1.5 rounded-lg text-xs border border-gray-200 text-gray-600 hover:bg-surface-hover">返回主页</a>`);
 }
 
 /** 角色名（轻量本地映射，避免整表 import constants——与 auth 展示一致） */

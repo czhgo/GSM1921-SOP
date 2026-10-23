@@ -8,11 +8,11 @@
 
 
 
-import { icon } from '../../core/base/icons.js?v=20261023b';
+import { icon } from '../../core/base/icons.js?v=20261023c';
 
 // R6 导航守卫（2026-09-03 P2a）：初始/目标 tab 决策收敛到纯函数 tab-nav.js（防「被支部隐藏后静默白屏」）
 
-import { resolveInitialTab, resolveTargetTab } from '../../core/boot/tab-nav.js?v=20261023b';
+import { resolveInitialTab, resolveTargetTab } from '../../core/boot/tab-nav.js?v=20261023c';
 
 
 
@@ -256,7 +256,7 @@ export function renderTabBar({ prefix, tabs, accentColor, defaultTab, extraRight
     //   页头 tab **自带选中态强调色**（`.tab-btn-active` ＋ 内联 `--tab-accent`）⇒ **不并入通用族**，
     //   回到迁移前 markup。此处把 `${btnClass}` **内联成字面**（DOM 输出不变），
     //   使 `button-system-guard::B4` 的字面扫描能认出这是「组件自有类」并豁免（见该守卫 COMPONENT_STATE_EXEMPT）。
-    return `${groupHtml}<button type="button" id="${prefix}-tab-${id}" role="tab" aria-selected="${isActive ? 'true' : 'false'}" aria-controls="${contentId}" tabindex="${isActive ? 0 : -1}" class="${prefix}-tab-btn${activeClass} shrink-0 min-h-9 px-4 py-2 text-xs font-medium rounded-lg transition-colors" ${dataAttr}="${id}"${activeStyle}>${label}</button>`;
+    return `${groupHtml}<button type="button" id="${prefix}-tab-${id}" role="tab" aria-selected="${isActive ? 'true' : 'false'}" aria-controls="${contentId}" tabindex="${isActive ? 0 : -1}" class="${prefix}-tab-btn tab-btn${activeClass} shrink-0 min-h-9 px-4 py-2 text-xs font-medium rounded-lg transition-colors" ${dataAttr}="${id}"${activeStyle}>${label}</button>`;
 
   }).join('\n');
 

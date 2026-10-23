@@ -3,17 +3,14 @@
 // 变化: 去掉 mode 标签与只读视角切换；2026-08-10 支书裁定（原则12 工作台集成制）：
 // 「切换工作台」下拉为冗余要素（每个人就是每个人，任务集成在工作台，跨台经待办/通知直达）→ 删除
 
-import { getAccentColors, ROLE_LABELS, relativeLuminance, DASHBOARD_LIMITS } from '../../core/domain/constants.js?v=20261023b';
-// R1-A 点⑤（2026-09-09）：身份标签取色走 person-aware 解析（登录 person 覆盖 / 访客全局键 / 角色默认），
-// 替代 constants resolveAccentRole（只读全局键=旧残留/默认）——支书改强调色后 header 角色标签同金。
-import { resolveAppliedAccentRole } from '../../core/boot/theme.js?v=20261023b';
-import { getBasePath } from '../../core/base/utils.js?v=20261023b';
-import { icon } from '../../core/base/icons.js?v=20261023b';
-import { DATA_CHANGED_EVENT, DATA_LOADED_EVENT } from '../../data/data-adapter.js?v=20261023b';
-import { badgeHtml } from '../ui/badges.js?v=20261023b';
-import { readLoginSnapshot } from '../../core/session/login-snapshot.js?v=20261023b';
+import { ROLE_LABELS, DASHBOARD_LIMITS } from '../../core/domain/constants.js?v=20261023c';
+import { getBasePath } from '../../core/base/utils.js?v=20261023c';
+import { icon } from '../../core/base/icons.js?v=20261023c';
+import { DATA_CHANGED_EVENT, DATA_LOADED_EVENT } from '../../data/data-adapter.js?v=20261023c';
+import { badgeHtml } from '../ui/badges.js?v=20261023c';
+import { readLoginSnapshot } from '../../core/session/login-snapshot.js?v=20261023c';
 // P1 党委后台（2026-09-02）：header 品牌软编码——标题随支部配置档案更换（person→branchId→branches.config.headerTitle）
-import { getHeaderTitle } from '../../services/branch/branch.js?v=20261023b';
+import { getHeaderTitle } from '../../services/branch/branch.js?v=20261023c';
 
 // ── 数据层按需加载（静态页隔离，2026-08-12）──
 // about/help 等纯静态文档页以 staticShell 渲染 header：不加载 auth/notice 数据链
@@ -22,18 +19,18 @@ import { getHeaderTitle } from '../../services/branch/branch.js?v=20261023b';
 let _authModule = null;
 let _noticeModule = null;
 function loadAuth() {
-  if (!_authModule) _authModule = import('../../services/core/auth.js?v=20261023b');
+  if (!_authModule) _authModule = import('../../services/core/auth.js?v=20261023c');
   return _authModule;
 }
 function loadNotice() {
-  if (!_noticeModule) _noticeModule = import('../../services/governance/notice.js?v=20261023b');
+  if (!_noticeModule) _noticeModule = import('../../services/governance/notice.js?v=20261023c');
   return _noticeModule;
 }
 // 2026-09-30 批次 297-2：跨台通用动作「一键汇报」收进顶栏唯一固定位 ⇒ 顶栏按需加载其入口模块
 // （与 auth / notice 同一策略：静态壳页不加载，app 模式渲染后加载，模块缓存后即时）
 let _reportEntryModule = null;
 function loadReportEntry() {
-  if (!_reportEntryModule) _reportEntryModule = import('../record/report-entry.js?v=20261023b');
+  if (!_reportEntryModule) _reportEntryModule = import('../record/report-entry.js?v=20261023c');
   return _reportEntryModule;
 }
 
@@ -197,16 +194,11 @@ function _roleLabelHTML(role) {
   if (!role) return '';
   // 普通参与者默认无标记：没有标记就是普通参与者的标记（支书 2026-08-01 决策）
   if (role === 'participant') return '';
-  const { accent } = getAccentColors(resolveAppliedAccentRole(role));
   const label = ROLE_LABELS[role] || role;
-  // 2026-08-11 四审纠正：header 身份显示 = 主题色实底（正常饱和度）+ 白字，
-  // 与整个 header（深红底白字）一致；淡底深字/边框在 header 上突兀臃肿，日/夜一致。
-  // R-9 ①（2026-09-11 对比度收口）：亮色 accent（感知亮度 > 0.18，如翠绿 0.41/天蓝 0.33）
-  // 实底白字仅 2.28–2.77 → 底色压深一档（60% 原色 + 40% 黑），白字达 AA（≥ 5.0）；
-  // 深色 accent（党建红/深橙/海蓝/金）对比已达标，保持正常饱和度不动。
-  const chipBg = relativeLuminance(accent) > 0.18 ? `color-mix(in srgb, ${accent} 60%, #000)` : accent;
+  // 2026-08-11 四审纠正：header 身份显示 = 主题色实底 + 实底字，与整个 header 一致。
+  // 批次 506：底色/字色直接取主题表的 strongBg / strongInk（不再按感知亮度分流 + 混色压深）。
   return `
-    <div class="role-label" id="role-label" style="display:flex;align-items:center;gap:4px;padding:5px 10px;border-radius:var(--radius-sm);background:${chipBg};color:#fff;">
+    <div class="role-label" id="role-label" style="display:flex;align-items:center;gap:4px;padding:5px 10px;border-radius:var(--radius-sm);background:var(--app-accent-strong-bg);color:var(--app-accent-strong-ink);">
       <span class="text-xs font-medium">${label}</span>
     </div>
   `;
@@ -408,13 +400,9 @@ function _bindNotificationBell(header) {
 
       // 绑定点击：标记已读 + 统一跳转（resolveNoticeUrl 业务页直达优先，与全站一致）
       // C4（2026-09-12）：条目为不可聚焦 div → 语义化为可聚焦按钮，鼠标/键盘 Enter/Space 等效
+      // 2026-10-23 Task 7：hover 交给 `.notif-dropdown-item` 的 CSS 状态（含 hover 门控），
+      //   这里不再用 mouseenter 写内联 background。
       dropdown.querySelectorAll('.notif-dropdown-item').forEach(item => {
-        item.addEventListener('mouseenter', () => {
-          item.style.background = 'var(--surface-hover)';
-        });
-        item.addEventListener('mouseleave', () => {
-          item.style.background = 'transparent';
-        });
         const open = () => {
           const id = item.dataset.noticeId;
           const notice = NoticeStore._notices.find(n => n.id === id);

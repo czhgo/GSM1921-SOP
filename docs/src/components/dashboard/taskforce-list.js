@@ -12,10 +12,10 @@
 //  任务完成数＝completed 数 / 非 cancelled 任务总数，无任务显示「—」；两类皆空则整卡隐藏。
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB, isTaskforceActiveStatus } from '../../core/domain/domain.js?v=20261023b';
-import { listRowHtml, listGroupHtml } from '../ui/list-row.js?v=20261023b';
-import { AuthStore } from '../../services/core/auth.js?v=20261023b';
-import { getBasePath } from '../../core/base/utils.js?v=20261023b';
+import { mockDB, isTaskforceActiveStatus } from '../../core/domain/domain.js?v=20261023c';
+import { listRowHtml, listGroupHtml } from '../ui/list-row.js?v=20261023c';
+import { AuthStore } from '../../services/core/auth.js?v=20261023c';
+import { getBasePath } from '../../core/base/utils.js?v=20261023c';
 
 const GROUP_LIMIT = 3;
 const STATUS_BADGE = {

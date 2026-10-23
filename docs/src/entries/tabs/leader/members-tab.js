@@ -5,24 +5,24 @@
 // P-011 知情边界：看 ≠ 做——组长只知情与温和「了解进展」，答复由支书完成，不跳转他人工作台。
 // 本视图禁用 SVG 图标，类别用色点+文字区分。
 
-import { currentUserId } from '../../../services/core/auth.js?v=20261023b';
-import { IssueStore } from '../../../services/governance/issues.js?v=20261023b';
-import { renderReportInboxHtml, bindReportInbox, filterReportsByScope } from '../../../components/record/reporting.js?v=20261023b';
+import { currentUserId } from '../../../services/core/auth.js?v=20261023c';
+import { IssueStore } from '../../../services/governance/issues.js?v=20261023c';
+import { renderReportInboxHtml, bindReportInbox, filterReportsByScope } from '../../../components/record/reporting.js?v=20261023c';
 // 批次 47-I（Q-23-41 ②，支书 2026-09-15 裁定「改为服务端汇总」）：四项聚合口径下沉单一源
 // `services/member/member-progress.js`——api 态由**服务端**汇总接口计算、mock 态调**同一个**纯函数。
 // 故原先此处的四源直读与内联判定（TodoStore / TodoStatus / isTodoExpired / AttendanceStatus /
 // loadAttendanceRecords / loadActiveInspectionRecords）**全部移除**：判定逻辑不再在本文件出现。
-import { loadMemberProgress, blockersOf, REPORT_KIND } from '../../../services/member/member-progress.js?v=20261023b';
-import { resolveVisibleTargets } from '../../../services/core/visibility.js?v=20261023b';
-import { getPersonById, getPersonName } from '../../../services/member/person.js?v=20261023b';
-import { showToast, getBasePath, escHtml as esc, todayLocal } from '../../../core/base/utils.js?v=20261023b';
+import { loadMemberProgress, blockersOf, REPORT_KIND } from '../../../services/member/member-progress.js?v=20261023c';
+import { resolveVisibleTargets } from '../../../services/core/visibility.js?v=20261023c';
+import { getPersonById, getPersonName } from '../../../services/member/person.js?v=20261023c';
+import { showToast, getBasePath, escHtml as esc, todayLocal } from '../../../core/base/utils.js?v=20261023c';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是人的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
-import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261023b';
-import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261023b';
+import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261023c';
+import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261023c';
 // D8 裁决批二（2026-09-08）：本组活动复盘状态只读区块并入「组员进展」页（原独立「复盘状态」tab 已删）
-import { reviewStatusSectionHtml, bindReviewStatusSection } from './review-tab.js?v=20261023b';
+import { reviewStatusSectionHtml, bindReviewStatusSection } from './review-tab.js?v=20261023c';
 // 材料页深链 focusActivityId 的通用定位（只滚动 + 闪烁，不另造筛选器）
-import { focusActivityAnchor } from '../../../components/ui/detail-anchor.js?v=20261023b';
+import { focusActivityAnchor } from '../../../components/ui/detail-anchor.js?v=20261023c';
 
 // 模块级 ctx 缓存：重渲染（了解进展/行内答复后刷新）复用首次渲染的 accent
 let _ctx = null;
@@ -101,12 +101,11 @@ export async function renderContent(ctx) {
   // 引擎行渲染器（批次 47-H）：卡点一条。行内「了解进展」由容器委托（见 _bindMembersEvents），
   // 故引擎翻页/筛选重绘行后按钮依旧有监听。
   const blockerRowHtml = (b) => `
-        <div class="flex items-center gap-3 py-2.5 px-3 rounded-lg hover:bg-gray-50 transition-colors">
+        <div class="flex items-center gap-3 py-2.5 px-3 rounded-lg">
           <span class="w-2 h-2 rounded-full flex-shrink-0" style="background:var(--functional-error);"></span>
           <span class="text-sm font-medium text-gray-700 w-16 flex-shrink-0">${b.name}</span>
           <span class="text-xs text-gray-600 flex-1 min-w-0 truncate">${b.title}</span>
           <button type="button" class="leader-ask-report btn-accent-soft text-xs px-2.5 py-1 flex-shrink-0"
-            style="--acc-text-dark:color-mix(in srgb, var(--app-accent) 55%, #fff);color:color-mix(in srgb, var(--app-accent) 60%, #000);"
             data-person-id="${b.personId}" data-role="${b.role}" data-note="${b.title}">了解进展</button>
         </div>`;
 
@@ -115,7 +114,7 @@ export async function renderContent(ctx) {
   // ⚠ 数据格不挂 text-xs（P7：.data-table 单档 13px，正文 12–13px 由表样式承载）。
   const progressRowHtml = (r) => `
     <tr>
-      <td data-label="姓名" class="font-medium text-gray-800"><a href="${getBasePath()}person.html?id=${encodeURIComponent(r.personId)}" class="hover:underline hover:text-sky-700 transition-colors" title="查看完整档案">${esc(getPersonName(r.personId))}</a></td>
+      <td data-label="姓名" class="font-medium text-gray-800"><a href="${getBasePath()}person.html?id=${encodeURIComponent(r.personId)}" class="hover:underline hover:text-[var(--app-accent-soft-text)] transition-colors" title="查看完整档案">${esc(getPersonName(r.personId))}</a></td>
       <td data-label="在办 / 超期" class="text-gray-600 tabular-nums">${r.active}${r.overdue ? ` · <span class="text-red-600 font-medium">超期 ${r.overdue}</span>` : ''}</td>
       <td data-label="考勤" class="text-gray-600 tabular-nums ${r.absent ? 'text-red-600 font-medium' : ''}">缺勤 ${r.absent}</td>
       <td data-label="考察" class="text-gray-600 tabular-nums ${r.inspPending ? 'text-amber-700 font-medium' : ''}">待确认 ${r.inspPending}</td>

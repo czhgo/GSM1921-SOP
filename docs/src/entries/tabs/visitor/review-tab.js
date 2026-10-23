@@ -3,25 +3,25 @@
 // SOP 复盘提交归「组织者」——组织者可能是党小组组长，也可能是被赋权的普通成员。
 // 本 tab 让担任组织者/深度参与者的成员在自己的工作台即可提交复盘，复盘提交人 = 当前用户（组织者）。
 
-import { loadActivities, reviewRequestOf } from '../../../services/activity/activity.js?v=20261023b';
+import { loadActivities, reviewRequestOf } from '../../../services/activity/activity.js?v=20261023c';
 // 复盘表单（字段/校验/提交链路）唯一实现 = services/governance/review.js（2026-09-10 A③）：
 // 成员端本 tab 与支书「代提交复盘」共用同一套字段与落库链路，勿在此另写表单。
-import { loadActivityReviews, renderActivityReviewFormHtml, submitActivityReviewForm } from '../../../services/governance/review.js?v=20261023b';
-import { mockDB, ReviewStatus, REVIEW_STATUS_LABELS } from '../../../core/domain/domain.js?v=20261023b';
-import { liveMembers, PersonStore } from '../../../services/member/person.js?v=20261023b';
+import { loadActivityReviews, renderActivityReviewFormHtml, submitActivityReviewForm } from '../../../services/governance/review.js?v=20261023c';
+import { mockDB, ReviewStatus, REVIEW_STATUS_LABELS } from '../../../core/domain/domain.js?v=20261023c';
+import { liveMembers, PersonStore } from '../../../services/member/person.js?v=20261023c';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/member/person.js 获取（原直连 mock PEOPLE）
 // 实时视图（非快照）：成员增删即时可见——见 services/member/person.js liveMembers 说明
 const PEOPLE = liveMembers();
-import { AuthStore } from '../../../services/core/auth.js?v=20261023b';
+import { AuthStore } from '../../../services/core/auth.js?v=20261023c';
 // 待批活动的可见性单一源（2026-09-22 批次 151）：成员台非支委层 ⇒ 待批活动不进「我的复盘」清单
-import { filterActivitiesForViewer } from '../../../services/core/visibility.js?v=20261023b';
-import { showToast } from '../../../core/base/utils.js?v=20261023b';
-import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261023b';
-import { scrollDetailIntoView, focusActivityAnchor } from '../../../components/ui/detail-anchor.js?v=20261023b';
+import { filterActivitiesForViewer } from '../../../services/core/visibility.js?v=20261023c';
+import { showToast } from '../../../core/base/utils.js?v=20261023c';
+import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261023c';
+import { scrollDetailIntoView, focusActivityAnchor } from '../../../components/ui/detail-anchor.js?v=20261023c';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是活动的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
-import { renderFilteredList, activityKeyword, activityFacets } from '../../../components/ui/list-filter.js?v=20261023b';
+import { renderFilteredList, activityKeyword, activityFacets } from '../../../components/ui/list-filter.js?v=20261023c';
 // 活动「仍在办」口径单一源（2026-09-13 收敛）：替代手写 status!=='cancelled' && !archived
-import { isActivityLive } from '../../../core/domain/constants.js?v=20261023b';
+import { isActivityLive } from '../../../core/domain/constants.js?v=20261023c';
 
 // 私有状态（随模块自持，不污染入口）
 let _reviewExpandedId = null;
@@ -127,7 +127,7 @@ export function renderContent(ctx) {
       : '';
 
     return `
-      <div class="visitor-review-item p-3 rounded-xl bg-white hover:bg-gray-50 transition-colors ${rev?.reviewStatus === ReviewStatus.REJECTED ? 'border border-red-100' : ''}" data-act-id="${act.id}">
+      <div class="visitor-review-item p-3 rounded-xl bg-white hover:bg-[var(--surface-hover)] transition-colors ${rev?.reviewStatus === ReviewStatus.REJECTED ? 'border border-red-100' : ''}" data-act-id="${act.id}">
         <div class="flex items-center justify-between cursor-pointer review-toggle">
           <div class="flex-1 min-w-0">
             <div class="text-sm font-medium text-gray-800">${act.title || '未命名'}</div>
@@ -263,7 +263,7 @@ function _renderReviewDetail(rev) {
       <div class="text-xs text-gray-600 p-2 bg-gray-50 rounded-lg border border-gray-100">${rev.reviewContent || ''}</div>
       ${issues.length ? `<div class="mt-2 p-2 rounded-lg border border-amber-200" style="border-left:3px solid var(--functional-warning);">
         <div class="flex items-center gap-1.5 text-xs text-amber-700 font-bold mb-1"><span class="w-1.5 h-1.5 rounded-full" style="background:var(--functional-warning);"></span>提出的真问题（${issues.length}）</div>
-        <ul class="space-y-0.5">${issues.map(i => `<li class="text-xs text-amber-800" style="--acc-text-dark:#FBBF24;">· ${i}</li>`).join('')}</ul>
+        <ul class="space-y-0.5">${issues.map(i => `<li class="text-xs text-amber-700">· ${i}</li>`).join('')}</ul>
       </div>` : ''}
       ${rev.submittedAt ? `<div class="text-xs text-gray-500 mt-1">提交时间：${rev.submittedAt.slice(0, 16).replace('T', ' ')}</div>` : ''}
       ${rev.annotation ? `

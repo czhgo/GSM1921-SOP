@@ -5,7 +5,7 @@
 //  设计原则：点击按钮→弹出浮窗→在浮窗中完成写入→关闭浮窗
 //  页面保持清爽，所有表单/编辑器都在浮窗中完成
 
-import { escHtml, describeWriteError } from '../../core/base/utils.js?v=20261023b';
+import { escHtml, describeWriteError } from '../../core/base/utils.js?v=20261023c';
 
 // 2026-09-13 修复（成员档案模态走查暴露）：Esc 监听原只在「按 Esc 关闭」这一条路径上注销，
 // 走遮罩点击/关闭按钮/程序化 closeModal 关闭时监听残留 → 反复打开同一 id 浮窗会累积 keydown
@@ -465,8 +465,8 @@ export function openFormModal({
   size = 'md', footerSticky = true, onCancel = null,
   groupTitle = '填写内容',
 }) {
-  const labelStyle = '--acc-text-dark:#CBD5E1;display:block;font-weight:500;color:var(--neutral-700);margin-bottom:4px;';
-  const controlStyle = '--acc-text-dark:#CBD5E1;color:var(--neutral-700);';
+  const labelStyle = 'display:block;font-weight:500;color:var(--neutral-700);margin-bottom:4px;';
+  const controlStyle = 'color:var(--neutral-700);';
   const fieldId = (key) => `${id}-${key}`;
   const errorHtml = (fid, key) =>
     `<p class="text-xs text-red-600 mt-1" id="${escHtml(fid)}-err" data-field-error="${escHtml(key)}" role="alert" hidden></p>`;
@@ -485,7 +485,7 @@ export function openFormModal({
   const fieldHtml = (f) => {
     const val = initialValues[f.key] != null ? initialValues[f.key] : '';
     const fid = fieldId(f.key);
-    const reqMark = f.required ? '<span style="--acc-text-dark:#F87171;color:var(--functional-error);">*</span>' : '';
+    const reqMark = f.required ? '<span style="color:var(--functional-error);">*</span>' : '';
     const requiredAttr = f.required ? ' required aria-required="true"' : '';
     const label = `<label for="${escHtml(fid)}" style="${labelStyle}" class="text-body-sm">${escHtml(f.label)}${reqMark}</label>`;
     if (f.type === 'select') {

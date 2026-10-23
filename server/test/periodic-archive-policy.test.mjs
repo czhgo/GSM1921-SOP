@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
 const { deriveArchivePeriod, attachArchivePolicySnapshot, compareArchivePeriodDesc } = await import(
-  '../../docs/src/services/governance/periodic-archive.js?v=20261023b'
+  '../../docs/src/services/governance/periodic-archive.js?v=20261023c'
 );
 
 test('周期归档按周生成稳定期次与工作日区间', () => {

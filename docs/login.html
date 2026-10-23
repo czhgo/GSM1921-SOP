@@ -3,7 +3,7 @@
 <html lang="zh-CN">
 <head>
   
-<script src="./src/theme-init.js?v=20261023b"></script>
+<script src="./src/theme-init.js?v=20261023c"></script>
 <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>登录 — GSM1921-SOP</title>
@@ -13,8 +13,8 @@
   <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;800&family=Noto+Serif+SC:wght@400;500;600;700;800&display=swap" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;800&family=Noto+Serif+SC:wght@400;500;600;700;800&display=swap" rel="stylesheet"></noscript>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="./src/tailwind-config.js?v=20261023b"></script>
-  <link rel="stylesheet" href="./src/styles.css?v=20261023b">
+  <script src="./src/tailwind-config.js?v=20261023c"></script>
+  <link rel="stylesheet" href="./src/styles.css?v=20261023c">
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
@@ -56,21 +56,18 @@
        （真机浅/深两态计算值逐值相同：聚焦边框与发光均不变）。 */
     /* 登录按钮 */
     .login-btn {
-      transition: background 0.15s, transform 0.1s, box-shadow 0.15s;
+      transition: background-color 0.15s, border-color 0.15s;
     }
-    .login-btn:hover {
-      box-shadow: 0 2px 8px rgba(122,0,16,0.18);
+    /* 2026-10-23 Task 7：hover 只改颜色（不再加阴影 / 位移）。 */
+    @media (hover: hover) {
+      .login-btn:hover {
+        background-color: var(--surface-hover);
+      }
     }
     .login-btn:active {
-      transform: scale(0.98);
+      background-color: var(--surface-active);
     }
-    /* 开发模式卡片 */
-    .login-card { transition: box-shadow 0.2s, transform 0.2s, border-color 0.2s; }
-    .login-card:hover {
-      box-shadow: 0 4px 14px rgba(0,0,0,0.06);
-      transform: translateY(-1px);
-      border-color: #FECACA;
-    }
+    /* 开发模式卡片：静态卡不加 hover 伪装（2026-10-23 Task 7）。 */
     .dev-mode-section { display: none; }
     .dev-mode-section.visible { display: block; }
     /* 分隔条 */
@@ -117,7 +114,7 @@
           <input type="password" id="password" class="login-input w-full px-3 py-2 rounded-[var(--radius-sm)] border border-[var(--neutral-200)] text-[13px]" placeholder="请输入密码" autocomplete="current-password">
         </div>
         <p id="login-error" class="text-xs text-red-600 hidden" role="alert">学号或密码错误，请重试</p>
-        <button type="submit" class="login-btn w-full text-sm px-4 py-[7px] rounded-lg border border-gray-300 text-gray-700 bg-white font-medium hover:bg-gray-50">登录</button>
+        <button type="submit" class="login-btn w-full text-sm px-4 py-[7px] rounded-lg border border-gray-300 text-gray-700 bg-white font-medium hover:bg-surface-hover">登录</button>
       </form>
       <div class="login-divider my-5"></div>
     </div>
@@ -138,7 +135,7 @@
       <p class="text-xs text-gray-500 mb-4">选择你所属的支部并提交；提交后需由支部确认，确认前看不到支部内容。</p>
       <div id="branch-list" class="space-y-2"></div>
       <p id="branch-note" class="text-xs mt-3 leading-relaxed"></p>
-      <button type="button" id="branch-refresh" class="login-btn w-full text-sm px-4 py-[7px] rounded-lg border border-gray-300 text-gray-700 bg-white font-medium mt-3 hover:bg-gray-50">刷新确认状态</button>
+      <button type="button" id="branch-refresh" class="login-btn w-full text-sm px-4 py-[7px] rounded-lg border border-gray-300 text-gray-700 bg-white font-medium mt-3 hover:bg-surface-hover">刷新确认状态</button>
     </div>
 
     <!-- 开发模式开关 -->
@@ -154,6 +151,6 @@
     </div>
   </div>
 
-  <script type="module" src="./src/entries/pages/login-entry.js?v=20261023b"></script>
+  <script type="module" src="./src/entries/pages/login-entry.js?v=20261023c"></script>
 </body>
 </html>

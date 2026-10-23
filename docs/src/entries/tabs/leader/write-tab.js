@@ -3,37 +3,37 @@
 // 党小组组长可创建党小组会、主题党日活动，写入后自动生成SOP任务节点。
 // 含决策树引导式写入（DecisionTreeState）+ 活动详情/子记录内联编辑 + 活动角色赋权。
 
-import { setState, getAppState } from '../../../core/base/state.js?v=20261023b';
-import { BranchService } from '../../../services/core/runtime.js?v=20261023b';
-import { DecisionTreeState, DECISION_TREE_CONFIGS, renderWorkflowPanel, writeActivityWithSOP, hostGroups as buildHostGroupOptions } from '../../../services/activity/decision-tree.js?v=20261023b';
+import { setState, getAppState } from '../../../core/base/state.js?v=20261023c';
+import { BranchService } from '../../../services/core/runtime.js?v=20261023c';
+import { DecisionTreeState, DECISION_TREE_CONFIGS, renderWorkflowPanel, writeActivityWithSOP, hostGroups as buildHostGroupOptions } from '../../../services/activity/decision-tree.js?v=20261023c';
 // 党小组常态清单唯一来源（活组、按 seq 升序）——承办党小组选项不再写死
-import { groupOptions, loadPartyGroups } from '../../../services/member/party-group.js?v=20261023b';
+import { groupOptions, loadPartyGroups } from '../../../services/member/party-group.js?v=20261023c';
 // 2026-10-21 批次 499：跨党小组深参/组织者需按成员所属组判定（组织者一般本组，跨组深参由组织委员协调）
-import { PersonStore } from '../../../services/member/person.js?v=20261023b';
-import { AuthStore, currentUserId } from '../../../services/core/auth.js?v=20261023b';
-import { TodoStore, TodoSourceType } from '../../../services/governance/todo.js?v=20261023b';
-import { mockDB, OutputType, deriveOutputRoute } from '../../../core/domain/domain.js?v=20261023b';
-import { persist } from '../../../data/data-adapter.js?v=20261023b';
-import { PersonPicker } from '../../../components/governance/pickers.js?v=20261023b';
-import { renderWorkgroupPermissionEditor, readWorkgroupPermissionEditor } from '../../../components/governance/workgroup-permissions.js?v=20261023b';
-import { recordFormShell } from '../../../components/ui/forms.js?v=20261023b';
-import { getBranchIdOfPerson, getBranchOutputBlocks, applyOutputBlockPolicy } from '../../../services/branch/branch.js?v=20261023b';
-import { badgeHtml } from '../../../components/ui/badges.js?v=20261023b';
+import { PersonStore } from '../../../services/member/person.js?v=20261023c';
+import { AuthStore, currentUserId } from '../../../services/core/auth.js?v=20261023c';
+import { TodoStore, TodoSourceType } from '../../../services/governance/todo.js?v=20261023c';
+import { mockDB, OutputType, deriveOutputRoute } from '../../../core/domain/domain.js?v=20261023c';
+import { persist } from '../../../data/data-adapter.js?v=20261023c';
+import { PersonPicker } from '../../../components/governance/pickers.js?v=20261023c';
+import { renderWorkgroupPermissionEditor, readWorkgroupPermissionEditor } from '../../../components/governance/workgroup-permissions.js?v=20261023c';
+import { recordFormShell } from '../../../components/ui/forms.js?v=20261023c';
+import { getBranchIdOfPerson, getBranchOutputBlocks, applyOutputBlockPolicy } from '../../../services/branch/branch.js?v=20261023c';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20261023c';
 // 活动生命周期展示态单一源（草稿/已发布/进行中/待归档/已执行/已归档/已取消）——勿在本文件另造中文标签
-import { activityLifecycleBadgeHtml } from '../../../components/record/inspector.js?v=20261023b';
-import { showToast, escHtml, todayLocal } from '../../../core/base/utils.js?v=20261023b';
+import { activityLifecycleBadgeHtml } from '../../../components/record/inspector.js?v=20261023c';
+import { showToast, escHtml, todayLocal } from '../../../core/base/utils.js?v=20261023c';
 // 组织者的发布口（2026-09-19 批次 91 · SOP-B-17）：本人被指定为该场组织者时，本台即可发布本组通知
-import { isActivityOrganizer, findActivityById, OUTDOOR_CHECKLIST, isOutdoorActivity, PUBLICITY_DRAFT_STATUS, PUBLICITY_DRAFT_LABELS, publicityDraftStatusOf, setPublicityDraftStatus, DEEP_WORK_MODE } from '../../../services/activity/activity.js?v=20261023b';
-import { openModal, closeModal } from '../../../components/ui/modal.js?v=20261023b';
-import { openGroupNoticeComposer } from '../../../components/governance/notice-view.js?v=20261023b';
-import { DEFAULT_BRANCH_ID, solidAccentStyle, accDarkVars, accDarkParts, OUTPUT_BLOCK_DEFS, isActivityEnded, ACTIVITY_SUBTYPES, normalizeActivityType, ACTIVITY_SCOPES, RECRUITMENT_SCOPES } from '../../../core/domain/constants.js?v=20261023b';
-import { filterByRole, getCurrentLeaderId, currentLeaderGroup } from './_shared.js?v=20261023b';
-import { anchorDetailToTrigger } from '../../../components/ui/detail-anchor.js?v=20261023b';
+import { isActivityOrganizer, findActivityById, OUTDOOR_CHECKLIST, isOutdoorActivity, PUBLICITY_DRAFT_STATUS, PUBLICITY_DRAFT_LABELS, publicityDraftStatusOf, setPublicityDraftStatus, DEEP_WORK_MODE } from '../../../services/activity/activity.js?v=20261023c';
+import { openModal, closeModal } from '../../../components/ui/modal.js?v=20261023c';
+import { openGroupNoticeComposer } from '../../../components/governance/notice-view.js?v=20261023c';
+import { DEFAULT_BRANCH_ID, solidAccentStyle, accDarkParts, OUTPUT_BLOCK_DEFS, isActivityEnded, ACTIVITY_SUBTYPES, normalizeActivityType, ACTIVITY_SCOPES, RECRUITMENT_SCOPES } from '../../../core/domain/constants.js?v=20261023c';
+import { filterByRole, getCurrentLeaderId, currentLeaderGroup } from './_shared.js?v=20261023c';
+import { anchorDetailToTrigger } from '../../../components/ui/detail-anchor.js?v=20261023c';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是活动的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
-import { renderFilteredList, activityKeyword, activityFacets } from '../../../components/ui/list-filter.js?v=20261023b';
-import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261023b';
+import { renderFilteredList, activityKeyword, activityFacets } from '../../../components/ui/list-filter.js?v=20261023c';
+import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261023c';
 // U-35：「我的任务」承载面（按项目身份派给组长的 SOP 任务；数据与写口复用 services/activity/activity.js）
-import { myTasksSectionHtml, bindMyTasksSection } from './my-tasks-section.js?v=20261023b';
+import { myTasksSectionHtml, bindMyTasksSection } from './my-tasks-section.js?v=20261023c';
 
 /**
  * 活动角色可编辑性（dogfood 权限专项 2026-09-13）
@@ -159,11 +159,10 @@ export function renderContent(ctx) {
   if (!container) return;
 
   const { accent, accentRgba, accentBorder } = ctx;
-  const _accVars = accDarkVars(accent);
   const _dtSelDark = accDarkParts(accent);
   const _dtBtnStyle = (selected) => selected
-    ? `--acc-bg-dark:${_dtSelDark.bg};--acc-text-dark:${_dtSelDark.text};--acc-border-dark:${_dtSelDark.border};background:${accentRgba};color:color-mix(in srgb, ${accent} 60%, #000);border:1.5px solid ${accentBorder};`
-    : `--acc-bg-dark:#1E293B;--acc-text-dark:#CBD5E1;--acc-border-dark:#334155;background:white;color:#6B7280;border:1.5px solid #E5E7EB;`;
+    ? `background:var(--app-accent-soft-bg);color:var(--app-accent-soft-text);border:1.5px solid var(--app-accent-soft-border);`
+    : `background:white;color:#6B7280;border:1.5px solid #E5E7EB;`;
 
   const activities = ctx.filteredActivities || [];
   _dtActivities = activities; // C② 默认预选数据源（本人既有同类活动）
@@ -187,7 +186,7 @@ export function renderContent(ctx) {
     <div class="card rounded-xl p-5">
       <div class="flex items-center justify-between mb-4">
         <h3 class="font-title-cn text-base font-semibold text-gray-800">本组活动</h3>
-        <button class="btn-md" id="btn-leader-create" style="${_accVars}background:${accentRgba};color:color-mix(in srgb, ${accent} 60%, #000);border:1px solid ${accentBorder};">${panelVisible ? '收起面板' : '创建活动'}</button>
+        <button class="btn-md" id="btn-leader-create" style="background:var(--app-accent-soft-bg);color:var(--app-accent-soft-text);border:1px solid var(--app-accent-soft-border);">${panelVisible ? '收起面板' : '创建活动'}</button>
       </div>
       <div class="text-xs text-gray-500 mb-3">创建本组活动并登记责任 / 产出；本组创建 / 承办的活动可写入，支部级（定向）活动只读。</div>
       <div id="dt-panel-wrap" class="${panelVisible ? '' : 'hidden'}">
@@ -213,7 +212,7 @@ export function renderContent(ctx) {
   // 支部级（top-down）活动不再混进写入列表；两组共用同一行模板与同一事件委托宿主。
   // 2026-10-19 恢复半透明主题底体例：发布本组通知＝高频推进动作。
   const _actRowHtml = (a) => `
-              <div class="leader-act-item flex items-center justify-between p-3 rounded-xl bg-white hover:bg-gray-50 transition-colors cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#CE1126]" role="button" tabindex="0" aria-label="展开 ${escHtml(a.title || '未命名')} 详情与子记录" data-act-id="${a.id}">
+              <div class="leader-act-item flex items-center justify-between p-3 rounded-xl bg-white hover:bg-[var(--surface-hover)] transition-colors cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#CE1126]" role="button" tabindex="0" aria-label="展开 ${escHtml(a.title || '未命名')} 详情与子记录" data-act-id="${a.id}">
                 <div class="flex-1 min-w-0">
                   <div class="text-sm font-medium text-gray-800">${escHtml(a.title || '未命名')}</div>
                   <div class="text-xs text-gray-500 mt-0.5">${a.date || ''} ${a.type ? '· ' + a.type : ''}</div>
@@ -645,8 +644,8 @@ function _renderDecisionTreePanel({ accent, accentRgba, accentBorder, _dtBtnStyl
         return `
           ${i > 0 ? `<div class="flex-1 h-0.5 rounded" style="--acc-dot-dark:${lineColor === accent ? _dtSelDark.text : '#475569'};background:${lineColor};"></div>` : ''}
           <div class="flex items-center gap-1.5 flex-shrink-0">
-            <div class="w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold" style="--acc-bg-dark:${isDone || isActive ? _dtSelDark.bg : '#1E293B'};--acc-text-dark:${isDone || isActive ? _dtSelDark.text : '#94A3B8'};--acc-border-dark:${isDone || isActive ? _dtSelDark.border : '#475569'};background:${isDone || isActive ? accentRgba : 'var(--neutral-100)'};color:color-mix(in srgb, ${dotColor} 60%, #000);border:1.5px solid ${dotColor};">${isDone ? '&#10003;' : i + 1}</div>
-            <span class="text-xs ${isActive ? 'font-bold' : ''}" style="--acc-text-dark:${dotColor === accent ? _dtSelDark.text : '#CBD5E1'};color:color-mix(in srgb, ${dotColor} 60%, #000);">${s}</span>
+            <div class="w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold" style="${isDone || isActive ? 'background:var(--app-accent-soft-bg);color:var(--app-accent-soft-text);border:1.5px solid var(--app-accent-soft-border);' : 'background:var(--neutral-100);color:var(--neutral-600);border:1.5px solid var(--neutral-200);'}">${isDone ? '&#10003;' : i + 1}</div>
+            <span class="text-xs ${isActive ? 'font-bold' : ''}" style="${dotColor === accent ? 'color:var(--app-accent-soft-text);' : 'color:var(--neutral-600);'}">${s}</span>
           </div>
         `;
       }).join('')}

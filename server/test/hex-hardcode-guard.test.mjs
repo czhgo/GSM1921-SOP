@@ -27,6 +27,7 @@ import { fileURLToPath } from 'node:url';
 import {
   HEX_BASELINE, HEX_TOTAL_BASELINE, HEX_FILE_BASELINE, HEX_VALUE_BASELINE, HEX_MOVE_LEDGER,
 } from './style-baseline.mjs';
+import { ACCENT_COLORS } from '../../docs/src/core/domain/constants.js?v=20261023c';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(HERE, '..', '..');
@@ -204,9 +205,13 @@ test('H3 非空转：抽取口径可用 + 基线规模达标 + 无僵尸登记',
   //   （全在该文件注释里）随「brand/gold 不再挂内联字色 ＋ brand 改回党建红用 `var(--party-red)`」**清零**
   //   ⇒ 按收基线纪律删该文件条目、声明 76 → **75**，本「防呆下限」随实况同步下沉。
   //   **不是放宽**：真正的判红项是 H1（新增值）/ H2（处数上涨）/ 僵尸登记——本下限只防「台账被悄悄删空」。
-  assert.ok(HEX_FILE_BASELINE >= 74 && files.length >= 74, `hex 基线文件数过少（实测 ${files.length} / 声明 ${HEX_FILE_BASELINE}，下限 74）`);
-  assert.ok(HEX_TOTAL_BASELINE >= 1700, `hex 基线处数过少（声明 ${HEX_TOTAL_BASELINE}，下限 1700）`);
-  assert.ok(HEX_VALUE_BASELINE >= 140, `hex 基线值数过少（声明 ${HEX_VALUE_BASELINE}，下限 140）`);
+  // ⚠ 2026-10-23 批次 505：7 主题 × 亮/暗 × 8 token 的手选色板落地（112 个 token）⇒ 按实况重设：
+  //   文件数 74 → 51（23 个文件的内联派生清零）、distinct 168 → 287、处数 → 1419。
+  //   下限随实况同步下沉，**不是放宽**——真正判红的是 H1（新增值）/ H2（处数上涨）/ 僵尸登记；
+  //   色板本身的合法性由 H6 单独核（除 #FFFFFF 外只允许出现在两个色板定义文件）。
+  assert.ok(HEX_FILE_BASELINE >= 51 && files.length >= 51, `hex 基线文件数过少（实测 ${files.length} / 声明 ${HEX_FILE_BASELINE}，下限 51）`);
+  assert.ok(HEX_TOTAL_BASELINE >= 1400, `hex 基线处数过少（声明 ${HEX_TOTAL_BASELINE}，下限 1400）`);
+  assert.ok(HEX_VALUE_BASELINE >= 280, `hex 基线值数过少（声明 ${HEX_VALUE_BASELINE}，下限 280）`);
   assert.equal(files.length, HEX_FILE_BASELINE, '基线条目数与声明的文件数不一致（台账被改动须同步声明值）');
   // ③ 僵尸登记：基线文件必须真实存在，且该文件仍应有 hex 命中
   const gone = files.filter((f) => !existsSync(join(ROOT, f)));
@@ -298,4 +303,40 @@ test(`H5 搬移例外台账：逐值对照 ＋ 不许借搬移加深色 ＋ 总�
     [{ from: 'a.js', to: ['b.js'], values: ['#fff'], fromValues: ['#fff'], reason }],
     mkCtx({ 'a.js': [], 'b.js': ['#fff'] }, 200, 168)).some((p) => p.includes('不得升')),
     '非空转失效：总量上升没被校验器判出');
+});
+
+// ── H6 主题色板例外（2026-10-23 批次 505） ───────────────────────────
+// 病灶：色板从「10 个 hex + 公式」升级为「7 主题 × 亮/暗 × 8 手选 hex」后，constants.js / styles.css
+//   必然新增 100+ 个色值。若放任它们散落到组件里，就成了新的「游离 hardcode」。
+// 判据（**只放宽声明点**，不放宽其它）：
+//   ① 色板值必须全部能在 `constants.js` 的 `ACCENT_COLORS` 表里找到（可追溯）；
+//   ② 除 `#FFFFFF`（与中性白同值，全站共用）外，任何色板值只允许出现在
+//      `docs/src/core/domain/constants.js` 与 `docs/src/styles.css` 两个「色板定义文件」。
+test('H6 主题色板例外：除 #FFFFFF 外，色板值只允许出现在 constants.js / styles.css', () => {
+  const PALETTE_FILES = new Set([
+    'docs/src/core/domain/constants.js',
+    'docs/src/styles.css',
+  ]);
+  const values = new Set();
+  for (const entry of Object.values(ACCENT_COLORS)) {
+    for (const mode of ['light', 'dark']) {
+      for (const v of Object.values(entry[mode])) values.add(String(v).toLowerCase());
+    }
+  }
+  assert.ok(values.size >= 100, `色板值只收集到 ${values.size} 个（7×2×8 应 ≥100）：非空转`);
+
+  const constantsSrc = readFileSync(join(ROOT, 'docs/src/core/domain/constants.js'), 'utf8').toLowerCase();
+  const missingInTable = [...values].filter((v) => !constantsSrc.includes(v));
+  assert.deepEqual(missingInTable, [], `以下色板值未出现在 constants.js（主题色必须在表内定义）：${missingInTable.join(' ')}`);
+
+  const leaks = [];
+  for (const { file, hits } of scan()) {
+    if (PALETTE_FILES.has(file)) continue;
+    const hitSet = new Set(hits.map((h) => h.toLowerCase()));
+    for (const v of values) {
+      if (v === '#ffffff') continue; // 中性白：全站共用，不算主题色泄漏
+      if (hitSet.has(v)) leaks.push(`${file} → ${v}`);
+    }
+  }
+  assert.deepEqual(leaks, [], `主题色板值出现在色板定义文件之外（组件不得直写主题色 hex）：\n  ${leaks.join('\n  ')}`);
 });

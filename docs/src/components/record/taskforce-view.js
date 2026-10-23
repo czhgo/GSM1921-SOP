@@ -4,29 +4,25 @@
 // 专班列表（状态分组）+ 只读详情（成员/角色/贡献）。依据支书第五轮裁定「新建专班查看组件（列表+详情）」。
 // 支书设计原则：「无职责 不代表 没有知情权」。
 
-import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261023b';
-import { getPersonName } from '../../services/member/person.js?v=20261023b';
-import { mockDB } from '../../core/domain/domain.js?v=20261023b';
-import { AuthStore } from '../../services/core/auth.js?v=20261023b';
-import { canRevealActivityMemberNames } from '../../services/core/visibility.js?v=20261023b';
-import { badgeHtml } from '../ui/badges.js?v=20261023b';
-import { dotDarkVars } from '../../core/domain/constants.js?v=20261023b';
-import { flashHighlight, showToast, escHtml as esc } from '../../core/base/utils.js?v=20261023b';
-import { anchorDetailToTrigger } from '../ui/detail-anchor.js?v=20261023b';
+import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261023c';
+import { getPersonName } from '../../services/member/person.js?v=20261023c';
+import { mockDB } from '../../core/domain/domain.js?v=20261023c';
+import { AuthStore } from '../../services/core/auth.js?v=20261023c';
+import { canRevealActivityMemberNames } from '../../services/core/visibility.js?v=20261023c';
+import { badgeHtml } from '../ui/badges.js?v=20261023c';
+import { dotDarkVars } from '../../core/domain/constants.js?v=20261023c';
+import { flashHighlight, showToast, escHtml as esc } from '../../core/base/utils.js?v=20261023c';
+import { anchorDetailToTrigger } from '../ui/detail-anchor.js?v=20261023c';
 // 统一检索引擎（2026-09-14 裁定）：只读详情「成员贡献」（第一列是人 → 配姓名关键词）与
 // 「中间进度」（时间线 → 只给分页：keyword null + facets []）各接一个实例
-import { renderFilteredList } from '../ui/list-filter.js?v=20261023b';
+import { renderFilteredList } from '../ui/list-filter.js?v=20261023c';
 
 // 附录⑩ B批：状态词对齐「支委会表决」语义（pending_review=待支委会表决；dissolved=表决通过解散）
 const STATUS_LABEL = { draft: '草稿', pending_review: '待支委会表决', recruiting: '招募中', active: '运行中', completed: '已完结', archived: '已归档', dissolved: '已解散' };
-const STATUS_COLOR = { pending_review: '#6366F1', recruiting: '#D97706', active: '#10B981', completed: '#3B82F6', archived: '#6B7280', dissolved: '#DC2626', draft: '#6B7280' };
-// 内联徽章深色亮色映射（深色下提亮一档，由 html.theme-dark [style*="--acc-bg-dark"] 规则应用）
-const STATUS_COLOR_DARK = { pending_review: '#A5B4FC', recruiting: '#FBBF24', active: '#34D399', completed: '#60A5FA', archived: '#94A3B8', dissolved: '#F87171', draft: '#94A3B8' };
-// 内联徽章双套色：日 = 原色 15% 透明底 + 原色字；夜 = 亮色 24% 透明底 + 亮色字
-function statusBadgeStyle(status) {
-  const c = STATUS_COLOR[status] || '#6B7280';
-  const dc = STATUS_COLOR_DARK[status] || '#94A3B8';
-  return `background:${c}15;color:color-mix(in srgb, ${c} 60%, #000);--acc-bg-dark:${dc}24;--acc-text-dark:${dc}`;
+// 专班状态 → 固定语义 tone（不随主题）
+const STATUS_TONE = { pending_review: 'purple', recruiting: 'amber', active: 'green', completed: 'info', archived: 'neutral', dissolved: 'danger', draft: 'neutral' };
+function statusTone(status) {
+  return STATUS_TONE[status] || 'neutral';
 }
 // B批：徽标文字（committeeRequest pending / draft 未通过 优先于纯状态映射）
 function statusText(t) {
@@ -147,12 +143,11 @@ export function renderTaskforceView(container, opts = {}) {
 /** 专班卡片（只读，无流转按钮） */
 function _renderTfCard(t) {
   const filled = (t.members || []).filter(m => m.personId).length;
-  const color = STATUS_COLOR[t.status] || '#6B7280';
   return `
     <div class="tfv-card p-4 rounded-xl bg-white border border-gray-100 cursor-pointer hover:border-gray-200 transition-colors" data-tf-id="${esc(t.id)}">
       <div class="flex items-start justify-between gap-2 mb-2">
         <span class="text-sm font-semibold text-gray-800 leading-snug">${esc(t.name)}</span>
-        <span class="badge" style="${statusBadgeStyle(t.status)}">${statusText(t)}</span>
+        <span class="tint-pill" data-tone="${statusTone(t.status)}">${statusText(t)}</span>
       </div>
       ${t.task ? `<p class="text-xs text-gray-500 mb-2 line-clamp-2">${esc(t.task)}</p>` : ''}
       <div class="flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-500">
@@ -255,7 +250,7 @@ async function _renderTfDetail(container, tf, highlightId) {
   panel.innerHTML = `
     <div class="flex items-start justify-between gap-2 mb-3">
       <h4 class="font-title-cn text-sm font-bold text-gray-800">${esc(tf.name)}</h4>
-      <span class="badge" style="${statusBadgeStyle(tf.status)}">${statusText(tf)}</span>
+      <span class="tint-pill" data-tone="${statusTone(tf.status)}">${statusText(tf)}</span>
     </div>
     <div class="space-y-1.5 text-xs text-gray-600 mb-4">
       ${tf.task ? `<p><span class="text-gray-500">任务：</span>${esc(tf.task)}</p>` : ''}

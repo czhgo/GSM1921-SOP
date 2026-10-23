@@ -13,24 +13,24 @@
 //  （2026-09-21 批次 124：支书 2026-09-20 定案「只给提交人本人」——支委层读他人的汇报时看不到该标记，
 //   组织侧不经手篇幅）；**一律不影响提交与归档**。
 // ════════════════════════════════════════════════════════════════
-import { renderSidebar } from '../../components/shell/sidebar.js?v=20261023b';
-import { renderHeader } from '../../components/shell/header.js?v=20261023b';
-import { BranchService } from '../../services/core/runtime.js?v=20261023b';
-import { AuthStore } from '../../services/core/auth.js?v=20261023b';
+import { renderSidebar } from '../../components/shell/sidebar.js?v=20261023c';
+import { renderHeader } from '../../components/shell/header.js?v=20261023c';
+import { BranchService } from '../../services/core/runtime.js?v=20261023c';
+import { AuthStore } from '../../services/core/auth.js?v=20261023c';
 // D-484（批次 87）：本页必须先 hydrate API 数据源再取数——与 activity / notice 独立页同款标准形。
 // 此前本页只调 BranchService.loadDB()，而该函数在 API 模式直接 return（数据由 data-adapter.init()
 // 从服务器填充）⇒ 本页从未切数据源 / init ⇒ api 形态下退回本地 mock 读（种子打得开、新提交报「不存在」）。
-import { hydrateDataSource, notifyDataLoaded } from '../../data/data-adapter.js?v=20261023b';
-import { ApiAdapter } from '../../data/api-adapter.js?v=20261023b';
-import { getPersonName } from '../../services/member/person.js?v=20261023b';
-import { getBasePath, showToast, escHtml as esc, fmtDt } from '../../core/base/utils.js?v=20261023b';
-import { badgeHtml } from '../../components/ui/badges.js?v=20261023b';
+import { hydrateDataSource, notifyDataLoaded } from '../../data/data-adapter.js?v=20261023c';
+import { ApiAdapter } from '../../data/api-adapter.js?v=20261023c';
+import { getPersonName } from '../../services/member/person.js?v=20261023c';
+import { getBasePath, showToast, escHtml as esc, fmtDt } from '../../core/base/utils.js?v=20261023c';
+import { badgeHtml } from '../../components/ui/badges.js?v=20261023c';
 import {
   loadThoughtReports, listThoughtReportsByPerson, listThoughtReportsByPersonGrouped,
   canReadThoughtReport, canReviewThoughtReport,
   rejectThoughtReport, resubmitThoughtReport,
   wordCountHint, periodLabel, comparePeriodDesc, THOUGHT_REVIEW_STATUS,
-} from '../../services/governance/thought-report.js?v=20261023b';
+} from '../../services/governance/thought-report.js?v=20261023c';
 
 renderSidebar('dashboard');
 renderHeader('dashboard');
@@ -209,7 +209,7 @@ function renderSingleView(rec) {
           <p class="text-xs text-gray-500 mb-1">${esc(g.label)} · ${g.items.length} 篇</p>
           <div class="space-y-1.5">
             ${g.items.map(r => `
-              <a href="thought-report.html?id=${r.id}" class="flex items-center gap-2 p-2 rounded-lg hover:bg-gray-50 transition-colors">
+              <a href="thought-report.html?id=${r.id}" class="flex items-center gap-2 p-2 rounded-lg hover:bg-surface-hover transition-colors">
                 <span class="text-xs font-medium text-gray-700 truncate flex-1">${esc(r.title || '思想汇报')}</span>
                 <span class="text-xs text-gray-500 flex-shrink-0">${esc(fmtDt(r.submittedAt))}</span>
                 ${statusBadge(statusOf(r))}
@@ -227,7 +227,7 @@ function renderSingleView(rec) {
     </div>
 
     <h2 class="text-xl font-semibold text-gray-900 leading-snug">${esc(rec.title || '思想汇报')}</h2>
-    <p class="text-sm text-gray-500 mt-2"><a href="${getBasePath()}person.html?id=${encodeURIComponent(rec.personId)}" class="hover:underline hover:text-sky-700 transition-colors" title="查看完整档案">${esc(getPersonName(rec.personId) || rec.personId)}</a> · ${esc(fmtDt(rec.submittedAt))} · ${esc(periodLabel(rec.period))}</p>
+    <p class="text-sm text-gray-500 mt-2"><a href="${getBasePath()}person.html?id=${encodeURIComponent(rec.personId)}" class="hover:underline hover:text-accent transition-colors" title="查看完整档案">${esc(getPersonName(rec.personId) || rec.personId)}</a> · ${esc(fmtDt(rec.submittedAt))} · ${esc(periodLabel(rec.period))}</p>
 
     <div class="mt-6 text-base leading-relaxed whitespace-pre-wrap text-gray-800">${esc(rec.content || '（无正文）')}</div>
 
@@ -319,7 +319,7 @@ function renderPerson(pid) {
         </div>
         <div class="space-y-1.5">
           ${g.items.map(r => `
-            <a href="thought-report.html?id=${r.id}" class="flex items-center gap-2.5 p-3 rounded-xl bg-white border border-gray-50 hover:bg-gray-50 transition-colors">
+            <a href="thought-report.html?id=${r.id}" class="flex items-center gap-2.5 p-3 rounded-xl bg-white border border-gray-50 hover:bg-surface-hover transition-colors">
               <span class="text-sm font-medium text-gray-700 truncate flex-1">${esc(r.title || '思想汇报')}</span>
               <span class="text-xs text-gray-500 flex-shrink-0">${esc(fmtDt(r.submittedAt))}</span>
               <span class="text-xs text-gray-400 tabular-nums flex-shrink-0">${wordCountHint(r.content).count} 字</span>

@@ -1,23 +1,25 @@
 // role: [工程师]+[AI]
-// gold-accent-guard.test.mjs — 默认「现代金 #F5C518」与金色按钮深色字守卫（S 类，2026-10-19 支书圈定）
+// gold-accent-guard.test.mjs — 主题色实底 / 浅底 token 收口守卫（spec redesign-theme-palette-and-density · Task 9）
 //
-// 背景：默认金曾是深棕 #A16207（白字对比度够），2026-10-19 支书圈定改回真金 #F5C518。
-//   真金是亮色 ⇒ 实底主 CTA 必须用**深色字**（#1F2937），不能沿用白字；
-//   淡底次操作同理改走 --app-accent-text。四处注入点（theme / bootstrap / settings / wizard）
-//   须统一用 accentButtonColors 按亮度分流，避免「金底白字」与「暗色底深字」两类回归。
+// 历史：本守卫原为「默认现代金 #F5C518 + 深色字」而设（2026-10-19）。
+// 批次 505 起主题色改为 **7 主题 × 亮/暗 × 8 个手选 hex**：金主题是更沉稳的琥珀金 #A97A12，
+// 实底/实底字/浅底/浅底字各自独立成 token，`filter: brightness`、`--app-accent-strong: var(--app-accent)`
+// `--app-accent-text: #1F2937` 等旧派生机制全部退场。本守卫改为锁「新 token 语义」，
+// 同时保留党徽金 / 党建红固定色的断言（它们不随主题变化）。
 //
 // 断言：
-//   G1 styles.css 默认金 / 深色字令牌 / 两个按钮族的取色变量正确；
-//   G2 constants.js 的 participant.hex 为 #F5C518 且导出 accentButtonColors；
-//   G3 四个注入点都调用 accentButtonColors 并写入三件套；
-//   G4 内存样本自检（亮金 → 本色底 + 深字；党建红 → 压深底 + 白字）。
+//   G1 styles.css：无 #F5C518 / 无 brightness；默认金 8 token 齐备；旧派生写法绝迹；党徽金/党建红固定；
+//   G2 constants.js：gold 主题 8 token 为手选 hex；accentButtonColors 查表返回 strongBg/strongInk；
+//   G3 四个注入点都走 applyAccentThemeTokens / getAccentColors（16 个原始变量），不再写旧三件套；
+//   G4 内存样本：gold 实底 #9A6B0F + 白字、red 实底 #9B2C22 + 白字；非法入参回落 gold（不是 var()）；
+//   G5 文字色/焦点环：浅底深字只走 --app-accent-soft-text；不得直接用裸 var(--app-accent)。
 // 运行：node --test server/test/gold-accent-guard.test.mjs
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { ACCENT_COLORS, accentButtonColors } from '../../docs/src/core/domain/constants.js?v=20261023b';
+import { ACCENT_COLORS, accentButtonColors } from '../../docs/src/core/domain/constants.js?v=20261023c';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(HERE, '..', '..');
@@ -26,56 +28,77 @@ const read = (rel) => readFileSync(join(ROOT, rel), 'utf8');
 const STYLES = read('docs/src/styles.css');
 const CONSTANTS = read('docs/src/core/domain/constants.js');
 
-/** 取某选择器的规则体（极简：选择器 { … }，不含嵌套 at-rule） */
+/** 取某选择器的规则体（逗号分隔后精确匹配；先剥注释） */
 function ruleBody(css, selector) {
-  const re = new RegExp(`(^|[\\s}])${selector.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*\\{([^}]*)\\}`);
-  const m = re.exec(css);
-  return m ? m[2] : '';
+  const clean = css.replace(/\/\*[\s\S]*?\*\//g, '');
+  for (const m of clean.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
+    if (m[1].trim().split(',').map((s) => s.trim()).includes(selector)) return m[2];
+  }
+  return '';
 }
 
-test('G1 styles.css：默认金 #F5C518 + 深色字令牌 + 两个按钮族取色变量', () => {
-  assert.match(STYLES, /--accent-default:\s*#F5C518\s*;/,
-    '默认金令牌 --accent-default 应为 #F5C518');
-  assert.match(STYLES, /--accent-default-bg:\s*rgba\(245,\s*197,\s*24,\s*0\.14\)\s*;/,
-    '默认金淡底 --accent-default-bg 应为 rgba(245, 197, 24, 0.14)');
-  assert.match(STYLES, /--accent-default-border:\s*rgba\(245,\s*197,\s*24,\s*0\.45\)\s*;/,
-    '默认金边框 --accent-default-border 应为 rgba(245, 197, 24, 0.45)');
-  assert.match(STYLES, /--app-accent-strong:\s*var\(--app-accent\)\s*;/,
-    '--app-accent-strong 默认应为本色（var(--app-accent)）');
-  assert.match(STYLES, /--app-accent-ink:\s*#1F2937\s*;/,
-    '--app-accent-ink 默认应为深色字 #1F2937');
-  assert.match(STYLES, /--app-accent-text:\s*#1F2937\s*;/,
-    '--app-accent-text 默认应为深色字 #1F2937');
+test('G1 styles.css：默认金 8 token 齐备；无 #F5C518 / brightness / 旧派生；固定语义色不动', () => {
+  // 注释里会写「2026-10-23 Task 7：hover 不再用 filter: brightness」，负例先剥注释再判。
+  const bare = STYLES.replace(/\/\*[\s\S]*?\*\//g, '');
+  // 旧实现退场：真金 #F5C518 与亮度派生都不得回来
+  assert.doesNotMatch(bare, /#F5C518/i, 'styles.css 不得再出现旧默认金 #F5C518');
+  assert.doesNotMatch(bare, /filter\s*:\s*brightness/i, 'hover 不得再用 filter: brightness（改用 hoverBg）');
+  assert.doesNotMatch(bare, /--app-accent-strong\s*:\s*var\(--app-accent\)\s*;/,
+    '--app-accent-strong 不得退回「本色」别名（实底必须查 strongBg）');
+  assert.doesNotMatch(bare, /--app-accent-text\s*:\s*#1F2937/i,
+    '--app-accent-text 不得退回中性近黑（浅底字必须查 softText）');
 
-  const accent = ruleBody(STYLES, '.btn-accent');
-  assert.ok(accent, 'styles.css 缺少 .btn-accent 规则');
-  assert.match(accent, /background:\s*var\(--app-accent-strong\)/,
-    '.btn-accent 应使用 var(--app-accent-strong) 作底色');
-  assert.match(accent, /color:\s*var\(--app-accent-ink/,
-    '.btn-accent 的字体色应使用 var(--app-accent-ink, …)（金色实底配深字）');
+  // 默认金（:root 的亮/暗两套原始变量）
+  const light = ACCENT_COLORS.gold.light;
+  const dark = ACCENT_COLORS.gold.dark;
+  for (const [suffix, value] of [
+    ['base', light.base], ['soft-bg', light.softBg], ['soft-border', light.softBorder],
+    ['soft-text', light.softText], ['strong-bg', light.strongBg], ['strong-ink', light.strongInk],
+    ['hover-bg', light.hoverBg], ['active-bg', light.activeBg],
+  ]) {
+    assert.match(STYLES, new RegExp(`--app-accent-${suffix}-light:\\s*${value}\\s*;`, 'i'),
+      `styles.css 缺少默认金 --app-accent-${suffix}-light: ${value}`);
+  }
+  for (const [suffix, value] of [
+    ['base', dark.base], ['soft-bg', dark.softBg], ['soft-border', dark.softBorder],
+    ['soft-text', dark.softText], ['strong-bg', dark.strongBg], ['strong-ink', dark.strongInk],
+    ['hover-bg', dark.hoverBg], ['active-bg', dark.activeBg],
+  ]) {
+    assert.match(STYLES, new RegExp(`--app-accent-${suffix}-dark:\\s*${value}\\s*;`, 'i'),
+      `styles.css 缺少默认金 --app-accent-${suffix}-dark: ${value}`);
+  }
+  // 亮/暗选边别名
+  assert.match(STYLES, /--app-accent-strong-bg:\s*var\(--app-accent-strong-bg-light\)/,
+    '--app-accent-strong-bg 应指向 *-light（亮色选边）');
+  assert.match(STYLES, /--app-accent-soft-text:\s*var\(--app-accent-soft-text-light\)/,
+    '--app-accent-soft-text 应指向 *-light（亮色选边）');
 
-  const soft = ruleBody(STYLES, '.btn-accent-soft');
-  assert.ok(soft, 'styles.css 缺少 .btn-accent-soft 规则');
-  assert.match(soft, /color:\s*var\(--app-accent-text/,
-    '.btn-accent-soft 的字体色应使用 var(--app-accent-text, …)（金色淡底配深字）');
-
-  assert.match(STYLES, /\.btn-accent:hover\s*\{[^}]*filter:/, '保留 .btn-accent:hover');
-  assert.match(STYLES, /\.btn-accent:disabled\s*\{[^}]*opacity:/, '保留 .btn-accent:disabled');
+  // 固定语义色：党徽金 / 党建红不随主题变化
+  assert.match(STYLES, /--party-gold:\s*#FFD700\s*;/, '党徽金应固定为 #FFD700');
+  assert.match(STYLES, /--party-red:\s*#CE1126\s*;/, '党建红应固定为 #CE1126');
+  assert.doesNotMatch(STYLES, /--party-gold:\s*var\(--app-accent/, '党徽金不得指向主题色');
 });
 
-test('G2 constants.js：participant.hex = #F5C518 且导出 accentButtonColors', () => {
-  assert.equal(ACCENT_COLORS.participant.hex, '#F5C518',
-    'ACCENT_COLORS.participant.hex 应为现代金 #F5C518');
-  assert.equal(ACCENT_COLORS.participant.bg, 'rgba(245,197,24,0.14)',
-    'participant.bg 应为 rgba(245,197,24,0.14)');
-  assert.equal(ACCENT_COLORS.participant.border, 'rgba(245,197,24,0.45)',
-    'participant.border 应为 rgba(245,197,24,0.45)');
-  assert.match(CONSTANTS, /export function accentButtonColors\(hex\)/,
-    'constants.js 应导出 accentButtonColors(hex)');
+test('G2 constants.js：gold 主题 8 token 为手选 hex；accentButtonColors 查表', () => {
+  const g = ACCENT_COLORS.gold;
+  assert.equal(g.light.base, '#A97A12', 'gold.light.base 应为沉稳琥珀金 #A97A12');
+  assert.equal(g.light.softBg, '#FBF3DC', 'gold.light.softBg 应为 #FBF3DC');
+  assert.equal(g.light.softBorder, '#E8D5A3', 'gold.light.softBorder 应为 #E8D5A3');
+  assert.equal(g.light.softText, '#6E4E08', 'gold.light.softText 应为 #6E4E08');
+  assert.equal(g.light.strongBg, '#9A6B0F', 'gold.light.strongBg 应为 #9A6B0F');
+  assert.equal(g.light.strongInk, '#FFFFFF', 'gold.light.strongInk 应为白字');
+  assert.equal(g.light.hoverBg, '#F6EAC6', 'gold.light.hoverBg 应为 #F6EAC6');
+  assert.equal(g.light.activeBg, '#F0DFAC', 'gold.light.activeBg 应为 #F0DFAC');
+  assert.equal(g.dark.strongBg, '#C89A34', 'gold.dark.strongBg 应为 #C89A34');
+  assert.equal(g.dark.strongInk, '#1E1503', 'gold.dark.strongInk 应为深字 #1E1503');
+
+  assert.match(CONSTANTS, /export function accentButtonColors/, 'constants.js 应导出 accentButtonColors');
   assert.equal(typeof accentButtonColors, 'function', 'accentButtonColors 应可直接 import');
+  assert.match(CONSTANTS, /return \{ bg: t\.strongBg, text: t\.strongInk, strong: t\.strongBg, ink: t\.strongInk \};/,
+    'accentButtonColors 应直接查表返回 strongBg / strongInk（无亮度分流）');
 });
 
-test('G3 四个注入点都调用 accentButtonColors 并写入三件套', () => {
+test('G3 四个注入点都走 16 个原始变量（applyAccentThemeTokens / getAccentColors）', () => {
   const sites = [
     'docs/src/core/boot/theme.js',
     'docs/src/core/boot/bootstrap.js',
@@ -84,20 +107,40 @@ test('G3 四个注入点都调用 accentButtonColors 并写入三件套', () => 
   ];
   for (const rel of sites) {
     const src = read(rel);
-    assert.match(src, /import[^;]*accentButtonColors[^;]*domain\/constants\.js\?v=\d{8}[a-z]/,
-      `${rel} 应从 core/domain/constants.js 导入 accentButtonColors（带版本戳）`);
-    assert.match(src, /accentButtonColors\(accent\)/,
-      `${rel} 应在注入 --app-accent 三件套处调用 accentButtonColors(accent)`);
-    assert.match(src, /--app-accent-strong',\s*btn\.strong\)/,
-      `${rel} 应写入 --app-accent-strong`);
-    assert.match(src, /--app-accent-ink',\s*btn\.ink\)/,
-      `${rel} 应写入 --app-accent-ink`);
-    assert.match(src, /--app-accent-text',\s*btn\.text\)/,
-      `${rel} 应写入 --app-accent-text`);
+    assert.match(src, /(applyAccentThemeTokens|getAccentColors)\(/, `${rel} 应经主题表取色 / 注入（不写死旧三件套）`);
+    assert.doesNotMatch(src, /--app-accent-text',\s*btn\.text/, `${rel} 不应再写旧 --app-accent-text 三件套`);
+    assert.doesNotMatch(src, /--app-accent-strong',\s*btn\.strong/, `${rel} 不应再写旧 --app-accent-strong 三件套`);
   }
+  // 原始变量清单 = 8 个 token × 亮/暗
+  const theme = read('docs/src/core/boot/theme.js');
+  assert.match(theme, /const ACCENT_TOKEN_SUFFIXES = \['base', 'soft-bg', 'soft-border', 'soft-text', 'strong-bg', 'strong-ink', 'hover-bg', 'active-bg'\]/,
+    'theme.js 应一次注入 8 个 token 的亮/暗两套');
+  assert.match(theme, /--app-accent-\$\{suffix\}-light/, 'theme.js 应写 *-light 原始变量');
+  assert.match(theme, /--app-accent-\$\{suffix\}-dark/, 'theme.js 应写 *-dark 原始变量');
 });
 
-test('G5 金色文字 / 焦点环压深：不得直接用裸 var(--app-accent)', () => {
+test('G4 内存样本：gold 实底白字 / red 实底白字 / 非法入参回落 gold', () => {
+  const gold = accentButtonColors('gold');
+  assert.equal(gold.strong, '#9A6B0F', 'gold 实底应为 strongBg #9A6B0F');
+  assert.equal(gold.ink, '#FFFFFF', 'gold 实底字应为 strongInk #FFFFFF');
+  assert.equal(gold.bg, '#9A6B0F', '旧字段 bg 应指向 strongBg');
+
+  const red = accentButtonColors('red');
+  assert.equal(red.strong, '#9B2C22', 'red 实底应为 strongBg #9B2C22');
+  assert.equal(red.ink, '#FFFFFF', 'red 实底字应为白字');
+
+  // 暗色档按表取 *-dark
+  const goldDark = accentButtonColors('gold', 'dark');
+  assert.equal(goldDark.strong, '#C89A34', 'gold 暗色实底应为 #C89A34');
+  assert.equal(goldDark.ink, '#1E1503', 'gold 暗色实底字应为 #1E1503');
+
+  // 非法输入兜底：不崩溃、回落到 gold 主题（不是运行时 var()）
+  assert.deepEqual(accentButtonColors(''), {
+    bg: '#9A6B0F', text: '#FFFFFF', strong: '#9A6B0F', ink: '#FFFFFF',
+  }, '非法入参应回落 gold 主题的显式 token');
+});
+
+test('G5 浅底深字 / 焦点环：不得直接用裸 var(--app-accent)', () => {
   const textRules = [
     '.text-accent',
     '.chip-option:hover',
@@ -116,8 +159,8 @@ test('G5 金色文字 / 焦点环压深：不得直接用裸 var(--app-accent)',
   for (const selector of textRules) {
     const body = ruleBody(STYLES, selector);
     assert.ok(body, `styles.css 缺少 ${selector} 规则`);
-    assert.match(body, /(?:^|[;\s])color:\s*(?:var\(--app-accent-text\)|color-mix\(in srgb, var\(--app-accent\) 55%, #000\))/,
-      `${selector} 的文字色应使用 --app-accent-text（或加深金），不得直接用本色`);
+    assert.match(body, /(?:^|[;\s])color:\s*var\(--app-accent-soft-text\)/,
+      `${selector} 的文字色应走 --app-accent-soft-text（浅底深字显式查表）`);
     assert.doesNotMatch(body, /(?:^|[;\s])color:\s*var\(--app-accent\)\s*(?:!important)?\s*;/,
       `${selector} 仍在使用裸 var(--app-accent) 作文字色`);
   }
@@ -137,30 +180,10 @@ test('G5 金色文字 / 焦点环压深：不得直接用裸 var(--app-accent)',
     const re = new RegExp(`${selector}\\s*\\{([^}]*)\\}`);
     const m = re.exec(STYLES);
     assert.ok(m, `styles.css 缺少 ${selector} 规则`);
-    // R5A-04/05（2026-10-21）：焦点环统一走 --focus-ring（亮色深灰 / 暗色党徽金），
-    // 不得再用 --app-accent-text——它在暗色下仍是深灰，深底上 ≈1.15:1。
+    // 焦点环统一走 --focus-ring（亮色深灰 / 暗色党徽金），不得再用浅底深字 token。
     assert.match(m[1], /outline:\s*2px solid var\(--focus-ring\)/,
       `${selector} 的焦点环应使用 --focus-ring（按主题取色）`);
-    assert.doesNotMatch(m[1], /outline:\s*2px solid var\(--app-accent-text\)/,
-      `${selector} 仍在使用暗色下不可见的 --app-accent-text 作焦点环`);
-    assert.doesNotMatch(m[1], /outline:\s*2px solid var\(--app-accent\)\s*;/,
-      `${selector} 仍在使用裸 var(--app-accent) 作焦点环`);
+    assert.doesNotMatch(m[1], /outline:\s*2px solid var\(--app-accent/,
+      `${selector} 不得用主题色 token 作焦点环`);
   }
-});
-
-test('G4 内存样本自检：亮金本色底深字 / 党建红压深底白字', () => {
-  const gold = accentButtonColors('#F5C518');
-  assert.equal(gold.strong, '#F5C518', '亮金实底应为本色（不压深）');
-  assert.equal(gold.ink, '#1F2937', '亮金实底字应为深色 #1F2937');
-  assert.equal(gold.text, '#1F2937', '亮金淡底字应为深色 #1F2937');
-
-  const red = accentButtonColors('#CE1126');
-  assert.match(red.strong, /^color-mix\(in srgb, #CE1126 58%, black\)$/,
-    '党建红实底应压深至 58% + 黑');
-  assert.equal(red.ink, '#fff', '暗色实底字应为白字');
-  assert.match(red.text, /^color-mix\(in srgb, #CE1126 60%, black\)$/,
-    '暗色淡底字应压深至 60% + 黑');
-
-  // 非法输入兜底：不崩溃、回落到运行时变量
-  assert.deepEqual(accentButtonColors(''), { strong: 'var(--app-accent)', ink: '#fff', text: 'var(--app-accent)' });
 });

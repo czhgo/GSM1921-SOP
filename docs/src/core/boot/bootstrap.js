@@ -4,27 +4,28 @@
 // 第3轮 Task 9: dev 参数读取改用 CrossPageState.getParam（统一入口）
 // 2026-07-30: 改为 async，统一预加载所有 Service（IssueStore/MilestoneStore），消除跨页面数据不同步
 
-import { renderSidebar } from '../../components/shell/sidebar.js?v=20261023b';
-import { renderHeader } from '../../components/shell/header.js?v=20261023b';
-import { AuthStore } from '../../services/core/auth.js?v=20261023b';
-import { IssueStore } from '../../services/governance/issues.js?v=20261023b';
-import { MilestoneStore } from '../../services/governance/milestones.js?v=20261023b';
-import { CrossPageState } from '../session/cross-page-state.js?v=20261023b';
-import { getBasePath } from '../base/utils.js?v=20261023b';
-import { resolveDocumentUrl } from '../base/page-url.js?v=20261023b';
-import { enhanceSelects } from '../../components/ui/custom-select.js?v=20261023b';
-import { isBranchPendingUser, accentButtonColors } from '../domain/constants.js?v=20261023b';
-// 强调色解析（R1-A 点⑤，2026-09-09）：person-aware 渲染时取色——替代只读全局键的
-// constants resolveAccentRole（冻结读取点语义，仅服务访客与首帧兜底）；--app-accent 与
-// 返回值（壳 ctx.accent → tab-bar/各 tab）统一取「当前作用域生效覆盖」，登录人改强调色后同源。
-import { getAppliedAccentColors } from './theme.js?v=20261023b';
-import { registerApiAdapter, init, renderDataSourceError, hydrateDataSource } from '../../data/data-adapter.js?v=20261023b';
-import { ApiAdapter } from '../../data/api-adapter.js?v=20261023b';
-import { getCapabilities } from './registry.js?v=20261023b';
+import { renderSidebar } from '../../components/shell/sidebar.js?v=20261023c';
+import { renderHeader } from '../../components/shell/header.js?v=20261023c';
+import { AuthStore } from '../../services/core/auth.js?v=20261023c';
+import { IssueStore } from '../../services/governance/issues.js?v=20261023c';
+import { MilestoneStore } from '../../services/governance/milestones.js?v=20261023c';
+import { CrossPageState } from '../session/cross-page-state.js?v=20261023c';
+import { getBasePath } from '../base/utils.js?v=20261023c';
+import { resolveDocumentUrl } from '../base/page-url.js?v=20261023c';
+import { enhanceSelects } from '../../components/ui/custom-select.js?v=20261023c';
+import { isBranchPendingUser } from '../domain/constants.js?v=20261023c';
+// 主题色解析（R1-A 点⑤，2026-09-09）：person-aware 渲染时取色——替代只读全局键的
+// constants resolveAccentRole（冻结读取点语义，仅服务访客与首帧兜底）；返回值（壳 ctx.accent →
+// tab-bar/各 tab）统一取「当前作用域生效主题」，与 styles.css 别名同源。
+// 批次 505：注入改为 8 token × 亮/暗共 16 个原始变量（applyAccentThemeTokens），不再写 --app-accent 旧四件套。
+import { getAppliedAccentColors, resolveAppliedAccentRole, applyAccentThemeTokens } from './theme.js?v=20261023c';
+import { registerApiAdapter, init, renderDataSourceError, hydrateDataSource } from '../../data/data-adapter.js?v=20261023c';
+import { ApiAdapter } from '../../data/api-adapter.js?v=20261023c';
+import { getCapabilities } from './registry.js?v=20261023c';
 // M4 数据源注册化：副作用导入触发 mock/api 数据源能力注册，bootstrap 经注册表选择数据源
-import '../../capabilities/data-source.js?v=20261023b';
+import '../../capabilities/data-source.js?v=20261023c';
 // M6（2026-08-30）：共享组件能力随全局引导注册（todo-list/calendar/custom-select），所有页面可发现组件清单
-import '../../capabilities/components.js?v=20261023b';
+import '../../capabilities/components.js?v=20261023c';
 
 // ════════════════════════════════════════════════════════════════
 // S2 自定义圆角下拉：全局自动增强（MutationObserver 防抖扫描）
@@ -214,24 +215,15 @@ export async function bootstrapPage({ module, accentRole, accentAlpha }) {
   renderSidebar(module);
   renderHeader(module);
 
-  // 强调色（主题色个性化：R1-A 后按作用域解析——登录人 person 覆盖 / 访客全局键 /
-  // 无覆盖回落角色默认，渲染时取当前值；与 settings/--app-accent 同源，
-  // 替代原 constants resolveAccentRole 全局键读取（冻结读取点语义，服务访客与首帧兜底））
+  // 主题色（批次 505：8 token × 亮/暗 = 16 个原始变量；R1-A 后按作用域解析——登录人 person 覆盖 /
+  // 访客全局键 / 无覆盖回落默认金，渲染时取当前值；与 settings/theme.js 同源）。
+  // 只注入原始变量，--app-accent / -soft-bg / -strong-bg 等**别名由 styles.css 按日夜选边**承接，
+  // 故切换亮/暗无需重新注入（幂等）。
   let accent, accentRgba, accentBorder;
   if (accentRole) {
-    ({ accent, accentRgba, accentBorder } = accentAlpha
-      ? getAppliedAccentColors(accentRole, accentAlpha[0], accentAlpha[1])
-      : getAppliedAccentColors(accentRole));
-    // 全局主题色变量（--app-accent 三件套）：cs-menu 选中项 / chips 选中态等
-    // 「统一主题色渲染」跟随当前用户主题色（支书 2026-08-08 三审定稿，弃用金实底）
-    const root = document.documentElement;
-    root.style.setProperty('--app-accent', accent);
-    root.style.setProperty('--app-accent-bg', accentRgba);
-    root.style.setProperty('--app-accent-border', accentBorder);
-    const btn = accentButtonColors(accent);
-    root.style.setProperty('--app-accent-strong', btn.strong);
-    root.style.setProperty('--app-accent-ink', btn.ink);
-    root.style.setProperty('--app-accent-text', btn.text);
+    const appliedKey = resolveAppliedAccentRole(accentRole);
+    ({ accent, accentRgba, accentBorder } = getAppliedAccentColors(accentRole));
+    applyAccentThemeTokens(document.documentElement, appliedKey);
   }
 
   // 统一预加载所有 Service（并行，不阻塞渲染但保证后续同步调用有数据）

@@ -15,15 +15,15 @@
 //   判据复用既有 `reviewHistory`（打回是唯一留痕动作），不新增字段、不复活旧 `pending` 状态。
 //   它只提示「还没看过」，不拦归档、不产生写动作。
 
-import { listAllThoughtReports, comparePeriodDesc, periodOf } from '../../../services/governance/thought-report.js?v=20261023b';
-import { getPersonName, liveMembers } from '../../../services/member/person.js?v=20261023b';
-import { AuthStore } from '../../../services/core/auth.js?v=20261023b';
-import { escHtml as esc, getBasePath } from '../../../core/base/utils.js?v=20261023b';
-import { ROLE_LABELS } from '../../../core/domain/constants.js?v=20261023b';
-import { listRowHtml } from '../../../components/ui/list-row.js?v=20261023b';
+import { listAllThoughtReports, comparePeriodDesc, periodOf } from '../../../services/governance/thought-report.js?v=20261023c';
+import { getPersonName, liveMembers } from '../../../services/member/person.js?v=20261023c';
+import { AuthStore } from '../../../services/core/auth.js?v=20261023c';
+import { escHtml as esc, getBasePath } from '../../../core/base/utils.js?v=20261023c';
+import { ROLE_LABELS } from '../../../core/domain/constants.js?v=20261023c';
+import { listRowHtml } from '../../../components/ui/list-row.js?v=20261023c';
 // 例外清单仍是按人表：接统一引擎只为**分页**（无关键词 / 无分面时引擎自动不渲染检索条）。
-import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261023b';
-import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261023b';
+import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261023c';
+import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261023c';
 
 const STATUS_LABEL = {
   needs_revision: '已打回 · 待补充',
