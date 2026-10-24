@@ -2,7 +2,7 @@
 title: "系统快照"
 type: snapshot
 role: "[AI]"
-last_updated: "2026-10-23"
+last_updated: "2026-10-24"
 status: "ACTIVE"
 date: "2026-10-23"
 version: "v61"
@@ -195,3 +195,11 @@ GSM1921-SOP/
 ## VI. 版本里程碑
 
 > **本节（原版本里程碑）已按 2026-09-17 裁定移入 `.ctx/logs/archive/2026-09-EXECUTION_LOG.md` 的「附：SNAPSHOT 版本沿革」节。**
+
+## 批次 509 小结（2026-10-24）
+
+- **做了什么**：治理 `.ctx`（五桶 + `README.md` 索引 + 检索入口 + 与 `content` 三问同步判据）；复建「每批阶段小结」的唯一落点；实证分析「落地后被弃用」的根因；指令层补 `H21` 前置矩阵与 `H50.1` 删除前迁 `content` / 批次收尾小结；`EXECUTION_LOG_INDEX` 增「已被 content 吸收」列。
+- **结论**：机制能否存活不取决于「立过」，而取决于**触发条件 / 唯一落点 / 检查方式**是否齐全。`阶段小结`（2026-09 有收官小结、2026-10 全文 0 处）与 `SNAPSHOT` 归档规则（要求每版复制、实际只有 v3）是两个可举证的反例。
+- **未决**：① `docs-governance-guard` 尚无实现（现 `ctx-hygiene-guard` 只守顶层白名单与归档指针）；② `.ctx/README.md` 成为顶层第 8 项，`H26.3` 白名单与 `ctx-hygiene-guard` ① 断言待同步（本批未改 `server/**`）；③ `.ctx/TIMESTAMPS.md` 不在本批授权面：三处 `last_updated` 表行与 `.ctx/README.md` 新行均未登记（`doc-consistency::S13` 会报前两处漂移，需同批授权补刷）。
+- **已迁 content 的条目**：`content/05_ai_coding/REVIEW_AND_EXPRESSION.md` 新增「审查漏项的结构性原因」（弃用判例 + 因果链 + 防逃逸三件套 + 正反例对照）；本批无其它需迁 `content` 的规范 / 判例 / 索引。
+- **下批入口**：① 读本段 + `.ctx/README.md` §三 / §四；② 补 `docs-governance-guard` 的「最近一批小结段存在且 5 行齐全」断言；③ 把 `.ctx/README.md` 纳入 `H26.3` 白名单与 `ctx-hygiene-guard` ①；④ 每批收尾在 `SNAPSHOT.md` 追加 5 行。

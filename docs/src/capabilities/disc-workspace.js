@@ -4,9 +4,9 @@
 // 读取本能力，tab 声明（含懒加载 render）不再硬编码在入口。
 // 设计权威源：content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md §四/§六
 
-import { registerCapability } from '../core/boot/registry.js?v=20261024b';
-import { rolesForPage } from '../core/domain/constants.js?v=20261024b';
-import { AuthStore } from '../services/core/auth.js?v=20261024b';
+import { registerCapability } from '../core/boot/registry.js?v=20261024c';
+import { rolesForPage } from '../core/domain/constants.js?v=20261024c';
+import { AuthStore } from '../services/core/auth.js?v=20261024c';
 
 // 8 个 tab 清单：render 为懒加载动态 import（相对本模块解析到 entries/tabs/disc/）
 // tab 私有状态随模块自持；共享只读配置（accent/activities/导航目标）经 ctx 传入。
@@ -26,7 +26,7 @@ export const DISC_WORKSPACE_TAB_DECLS = [
     // 到期/逾期行 → onNav('todo')（todo tab 六台同 id）；会议/分工行在 today-tab 内直跳 activity.html；
     // 会议「全部」→ onNav('activities')，下方映射到本台活动承载 tab（纪检台=活动日历 calendar；
     //   2026-10-18 繁专项 Top 10：原落考勤管理 attendance，改为落活动日历）
-    { id: 'today', label: '今天', groupLabel: '工作台', coreTab: true, render: (ctx) => import('../entries/tabs/today/today-tab.js?v=20261024b').then(m => {
+    { id: 'today', label: '今天', groupLabel: '工作台', coreTab: true, render: (ctx) => import('../entries/tabs/today/today-tab.js?v=20261024c').then(m => {
       const el = document.getElementById('disc-tab-content');
       if (el) m.renderTodayTab(el, {
         personId: ctx?.personId || AuthStore.getCurrentUser()?.personId,
@@ -38,25 +38,25 @@ export const DISC_WORKSPACE_TAB_DECLS = [
         },
       });
     }) },
-    { id: 'todo', label: '待办', groupLabel: '工作台', coreTab: true, render: (ctx) => import('../entries/tabs/disc/todo-tab.js?v=20261024b').then(m => m.renderContent(ctx)) },
+    { id: 'todo', label: '待办', groupLabel: '工作台', coreTab: true, render: (ctx) => import('../entries/tabs/disc/todo-tab.js?v=20261024c').then(m => m.renderContent(ctx)) },
     // 工作概况（支书 2026-08-10 裁定：全部角色新增——汇报/卡点/在办三区总览 + 条线数据注入）
-    { id: 'overview', label: '工作概况', groupLabel: '工作台', coreTab: true, render: (ctx) => import('../entries/tabs/disc/overview-tab.js?v=20261024b').then(m => m.renderContent(ctx)) },
+    { id: 'overview', label: '工作概况', groupLabel: '工作台', coreTab: true, render: (ctx) => import('../entries/tabs/disc/overview-tab.js?v=20261024c').then(m => m.renderContent(ctx)) },
     // 活动日历（2026-09-30 批次 310 支书裁定「每个人应该都有这样的活动日历界面」）：与其余台同用
     //   **只读共享页签**（entries/tabs/shared/activity-calendar-tab.js）。
     // 2026-10-04 批次 368（`#10` 单一轴）：它是**人人有的通用面**（与「今天 / 待办 / 工作概况」同类）
     //   ⇒ **组归属由「知情查看」改为「工作台」**；⚠ **注册序也必须落进「工作台」段内**
     //   （页签条按注册序分段渲染 ⇒ 留在原处会多出一个「工作台」分节）。
-    { id: 'calendar', label: '活动日历', groupLabel: '工作台', render: () => import('../entries/tabs/shared/activity-calendar-tab.js?v=20261024b').then(m => m.renderContent(document.getElementById('disc-tab-content'))) },
+    { id: 'calendar', label: '活动日历', groupLabel: '工作台', render: () => import('../entries/tabs/shared/activity-calendar-tab.js?v=20261024c').then(m => m.renderContent(document.getElementById('disc-tab-content'))) },
     // 本轮（2026-09-15）五台统一：原「反馈」组并入「制度与答复」（与支书台同名），组内以「我的处置」为成员；
     //   2026-10-18 繁专项 Top 2：制度与答复整组前移到「工作台」之后、「我的职责」之前。
-    { id: 'my-dispatch', label: '我的处置', groupLabel: '制度与答复', render: (ctx) => import('../entries/tabs/disc/my-dispatch-tab.js?v=20261024b').then(m => m.renderContent(ctx)) },
+    { id: 'my-dispatch', label: '我的处置', groupLabel: '制度与答复', render: (ctx) => import('../entries/tabs/disc/my-dispatch-tab.js?v=20261024c').then(m => m.renderContent(ctx)) },
     // 分组「我的职责」= 2026-09-14 裁定按行为性质四组之一；本轮（2026-09-15）五台统一：原「党建」组改名「我的职责」
-    { id: 'attendance', label: '考勤管理', groupLabel: '我的职责', render: (ctx) => import('../entries/tabs/disc/attendance-tab.js?v=20261024b').then(m => m.renderContent(ctx)) },
+    { id: 'attendance', label: '考勤管理', groupLabel: '我的职责', render: (ctx) => import('../entries/tabs/disc/attendance-tab.js?v=20261024c').then(m => m.renderContent(ctx)) },
     // 2026-10-04 批次 368（`#10` 单一轴 · 支书圈**甲**）：原名「**活动监督复盘**」＝**动作（监督）＋ 对象（复盘）混轴**
     //   ⇒ **改名「复盘」**（对象轴；与同组「考勤管理 / 考察管理」同构）。页内四块（流程监督 / 复盘监督 /
     //   经验沉淀督促清单 / 已沉淀清单）一字未动；实现文件仍是 `entries/tabs/disc/review-tab.js`。
-    { id: 'review', label: '复盘', groupLabel: '我的职责', render: (ctx) => import('../entries/tabs/disc/review-tab.js?v=20261024b').then(m => m.renderContent(ctx)) },
-    { id: 'inspection', label: '考察管理', groupLabel: '我的职责', render: (ctx) => import('../entries/tabs/disc/inspection-tab.js?v=20261024b').then(m => m.renderContent(ctx)) },
+    { id: 'review', label: '复盘', groupLabel: '我的职责', render: (ctx) => import('../entries/tabs/disc/review-tab.js?v=20261024c').then(m => m.renderContent(ctx)) },
+    { id: 'inspection', label: '考察管理', groupLabel: '我的职责', render: (ctx) => import('../entries/tabs/disc/inspection-tab.js?v=20261024c').then(m => m.renderContent(ctx)) },
     // 2026-10-20 批次 489（IA-A01 裁定）：**删除「知情查看」页签**——纪检名下的知情查看长期是
     //   稳定空壳（`downstreamViewSegments` 派生为空集）；专班知情改由 `taskforce.html?id=` 承载，
     //   活动知情由「活动日历」承载 ⇒ 本台不再保留第九个页签（9 → 8）。旧深链别名由壳统一处理。

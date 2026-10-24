@@ -4,7 +4,9 @@
 // 病灶：`.ctx` 顶层长期混放审计原文（`AUDIT_*`）、脚本产物（`IA_*`）、历史草稿（`*_DRAFT.md`）
 //   与真正的台账/日志 ⇒ 新会话分不清「现行台账」与「一次性审计原文」，目录变成筐。
 // 判据（四条，均可机械核验）：
-//   ① 顶层只允许白名单 7 项（logs / evidence / TIMESTAMPS / SNAPSHOT / REVIEW_QUEUE / ACTIVE_RULINGS / ENGINEERING_ASSESSMENT）；
+//   ① 顶层只允许白名单 9 项（logs / evidence / TIMESTAMPS / SNAPSHOT / REVIEW_QUEUE / ACTIVE_RULINGS /
+//      ENGINEERING_ASSESSMENT / README / AGENTS）；2026-10-24 批次 509 补登后两项（索引与智能体说明是
+//      顶层准入的正常入口，不是一次性审计产物）；
 //   ② 顶层不得出现 `AUDIT_*` / `IA_*` / `*_DRAFT.md` / `snapshots/`；
 //   ③ 归档文件必须在正式文档或 2026-10 执行日志中有指针（防「移了等于丢了」）；
 //   ④ 脚本生成的产物必须有对应脚本（`IA_INVENTORY` ↔ `ia-inventory.mjs`）。
@@ -25,6 +27,8 @@ const ALLOWED = new Set([
   'REVIEW_QUEUE.md',
   'ACTIVE_RULINGS.md',
   'ENGINEERING_ASSESSMENT.md',
+  'README.md',
+  'AGENTS.md',
 ]);
 
 const ARCHIVED_AUDITS = [
@@ -54,7 +58,7 @@ const POINTER_FILES = [
   '.ctx/logs/2026-10-EXECUTION_LOG.md',
 ];
 
-test('① `.ctx` 顶层只允许白名单项', () => {
+test('① `.ctx` 顶层只允许白名单项（9 项）', () => {
   const entries = readdirSync(CTX);
   const extra = entries.filter((name) => !ALLOWED.has(name));
   assert.deepEqual(extra, [], `.ctx 顶层出现白名单外条目：${extra.join(' / ')}——先沉淀到正式文档，再归档到 logs/archive/YYYY-MM/`);

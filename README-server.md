@@ -33,10 +33,10 @@
 ### 1.2 与「SOP 母本」的关系
 
 - **制度文本是唯一母本**：`content/02_institution/` 及其 `sop/` 子目录是支部制度与工作规程的落点；改一处制度，系统行为随之调整（改文本在前、改代码在后）。
-- **母本 → 子本（系统）**：所有系统逻辑、数据模型、界面行为都要求从母本推导（`content/README.md:24` 引 `CLAUDE.md` H30.2）。
+- **母本 → 子本（系统）**：所有系统逻辑、数据模型、界面行为都要求从母本推导（`content/README.md:15` 引 `CLAUDE.md` H30.2）。
 - **制度参数（可调 vs 固定）**：并非所有制度数字都写死在代码里。系统把「一件事在几天内办完」这类**过程时限**归为**支部可调的制度参数**，默认值取母本所写的数字；而「考察意见每半年一次」等属**制度固定**项，所有支部一致。数据单一源＝`docs/src/core/domain/policy-defaults.js`（逐项标注 `branch-default`＝支部可调 / `institutional`＝制度固定须支书裁决）。其中「**活动批准门**」（办活动要不要先过一道批准门）也是**支部可调的制度参数，默认关**——默认关时活动写入与改动前完全一致（见 §4.1）。
 
-**依据**：`content/README.md:24`；`content/02_institution/SYSTEM_ROLE_PERMISSION.md:217-273`（§9l 可调口径）；`docs/src/core/domain/policy-defaults.js:1-15`（kind 标注说明）。
+**依据**：`content/README.md:15`；`content/02_institution/SYSTEM_ROLE_PERMISSION.md:217-273`（§9l 可调口径）；`docs/src/core/domain/policy-defaults.js:1-15`（kind 标注说明）。
 
 ### 1.3 当前处于什么阶段（**示例/演示 与 真实部署的区别**）
 
@@ -1211,7 +1211,7 @@ npm start                   # 启动服务，默认端口 3000（PORT 可覆盖�
 
 | # | 要替换的 | 做法 | 依据 |
 |---|---|---|---|
-| 1 | **示例成员与账号** | 换 `docs/src/data/mock/people.js`、`accounts.js`、`branches.js`、`party-groups.js`、`activities.js`、`notices.js`、`taskforces.js`、`seed.js`；或**空库起步**（`DISABLE_SEED=1`）后从系统内录入 | `server/seed.js:41-83`、`README.md:198`。首启播种的表含 15 张（考勤 / 考察 / 活动复盘 / 专班复盘 / 思想汇报 / 宣传周报 / 宣传任务 / 文件流外发确认 / 支书任期记录 / 三委数据交接 / 成员变更确认队列 / 出勤与考察申诉队列 / 反馈未读标记 / 授权审计留痕），使「只有结构、没有数据」的表首启即有真行；另补 `todos`（同为单据型种子，见 §4.19；同源 `docs/src/services/governance/todo.js::SEED_TODOS`）⇒ 合计 16 张。逐表口径见 `server/seed.js` 末尾「待办基线种子」段 |
+| 1 | **示例成员与账号** | 换 `docs/src/data/mock/people.js`、`accounts.js`、`branches.js`、`party-groups.js`、`activities.js`、`notices.js`、`taskforces.js`、`seed.js`；或**空库起步**（`DISABLE_SEED=1`）后从系统内录入 | `server/seed.js:41-83`、`README.md:199`。首启播种的表含 15 张（考勤 / 考察 / 活动复盘 / 专班复盘 / 思想汇报 / 宣传周报 / 宣传任务 / 文件流外发确认 / 支书任期记录 / 三委数据交接 / 成员变更确认队列 / 出勤与考察申诉队列 / 反馈未读标记 / 授权审计留痕），使「只有结构、没有数据」的表首启即有真行；另补 `todos`（同为单据型种子，见 §4.19；同源 `docs/src/services/governance/todo.js::SEED_TODOS`）⇒ 合计 16 张。逐表口径见 `server/seed.js` 末尾「待办基线种子」段 |
 | 2 | **登录口令** | 设 `LOGIN_PASSWORD`（**并确认未开 `DISABLE_PASSWORD_CHECK`**）；接入学校统一认证（IAAA）时替换 `POST /auth/login` 的校验逻辑 | `server/routes/auth.js:12-18`、`content/04_web_design/deploy/DEPLOYMENT_GUIDE.md:209,217` |
 | 3 | **演示支委名单 / 默认支部 id** | `COMMITTEE_IDS` 与 `'br-b1'` 兜底常量（见 §5.5 第 16、17 条） | 同上 |
 | 4 | **示例反馈种子** | `docs/data/issues.json`（服务端播种时读取；匿名反馈保持匿名，内部汇报保留业务署名；两类均按登录与支部范围控制读取） | `server/seed.js:19-39`、`:67` |
@@ -1485,7 +1485,7 @@ npm start                   # 启动服务，默认端口 3000（PORT 可覆盖�
 | 14 | **邮件通道实际不会发出任何邮件** | 三重原因叠加：① 收件人从成员档案 `email` 读取，而**示例数据无该字段**；② 需 `MAIL_ENABLED=true` 且 `SMTP_*` 齐备；③ 即便发出，也只覆盖「通知发布 / 待办提醒 / 汇报」三类触发点，受众解析**只实现了 activity 定向与全体两种**（党小组/角色定向统一按全体处理） | `server/services/mailer.js:93-106`、`server/services/mailer-hooks.js:19-37` |
 | 15 | **`handoffs`（三委数据交接记录）：服务端已有表** | 前端 mockDB 有 `handoffs` 域；**服务端现有同名表 `handoffs`**（语义端点组 = `server/db.js::SEMANTIC_TABLES`，写读口见 §6 末「语义端点」段）⇒ API 形态下该域**已落库**，且 `init()` 会拉取填充 | `docs/src/core/domain/domain.js:477`、`server/db.js:157-161`（`SEMANTIC_TABLES`）、`server/routes/resources/semantic-routes.js:256-311`（handoffs 三端点：列表 / 发起 / 接收确认） |
 | 16 | **`pendingMemberConfirmations`：服务端已有表** | 前端 mockDB 数组承载内存读链；**服务端现有表 `member_confirmations`**（语义端点组 = `server/db.js::SEMANTIC_TABLES`）⇒ API 形态下该队列**已落库**、清浏览器缓存不丢（写读口见 §6 末「语义端点」段）；浏览器 localStorage 键 `gsm1921-member-confirmations` 仍作 mock 形态的持久化通道，两形态并存 | `docs/src/core/domain/domain.js:591`（`pendingMemberConfirmations`）、`server/db.js:157-161`、`server/routes/resources/semantic-routes.js:312-359`（入队 / 支书决策两端点） |
-| 17 | **「副组长」身份已落地** | 制度文本规定「每个党小组设 1 名组长 + 1-2 名副组长，副组长可共享同组组长工作台的相关内容」；系统已把 `deputy-leader` 落成**可与组长区分的第二个身份**——**同页同台、同权限集，任务优先给组长、不硬切分正副职责**；**支书台「党小组」清单行内可赋权 / 撤销副组长（与组长同列双身份）** | `content/02_institution/SYSTEM_ROLE_PERMISSION.md:46`、`content/02_institution/sop/支委与党小组定人定责定岗说明.md:40`、`content/02_institution/sop/党小组组长工作手册.md:46-48`；载体名单（`docs/` 内「副组长」命中集）见 `server/test/doc-line-ref.test.mjs:268-275` |
+| 17 | **「副组长」身份已落地** | 制度文本规定「每个党小组设 1 名组长 + 1-2 名副组长，副组长可共享同组组长工作台的相关内容」；系统已把 `deputy-leader` 落成**可与组长区分的第二个身份**——**同页同台、同权限集，任务优先给组长、不硬切分正副职责**；**支书台「党小组」清单行内可赋权 / 撤销副组长（与组长同列双身份）** | `content/02_institution/SYSTEM_ROLE_PERMISSION.md:46`、`content/02_institution/sop/支委与党小组定人定责定岗说明.md:40`、`content/02_institution/sop/党小组组长工作手册.md:46-48`；载体名单（`docs/` 内「副组长」命中集）见 `server/test/docs-governance-guard.test.mjs:268-275` |
 | 18 | **`party-staff` 无可见性配置** | 「谁能看谁」（`ROLE_VISIBILITY`）表中**没有 `party-staff` 键** ⇒ 该角色的可见目标投影恒为空 | `docs/src/services/core/visibility.js:48-56`、`:99-101` |
 
 ### 7.3 未接入 / 无代码类（规划中）

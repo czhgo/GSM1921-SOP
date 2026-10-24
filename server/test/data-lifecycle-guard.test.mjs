@@ -18,10 +18,10 @@ import Database from 'better-sqlite3';
 import { initDb } from '../db.js';
 import {
   classifyPersistKey, classifyTable,
-} from '../../docs/src/data/seed-manifest.js?v=20261024b';
+} from '../../docs/src/data/seed-manifest.js?v=20261024c';
 import {
   INIT_BLOB_KEEP_KEYS, INIT_BLOB_CLEAR_DEFAULTS, trimInitBlob,
-} from '../../docs/src/services/core/init-reset.js?v=20261024b';
+} from '../../docs/src/services/core/init-reset.js?v=20261024c';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));

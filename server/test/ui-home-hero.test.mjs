@@ -82,7 +82,7 @@ test('E5 非空转自检：正则正样本命中、负样本不命中', () => {
   assert.match('<p id="dashboard-hero-subtitle" class="text-sm">x</p>', HERO_SUBTITLE_RE,
     '副标题正则须能识别回潮元素（反向断言依赖它）');
 
-  const posImport = "import { getHeaderTitle } from '../../services/branch/branch.js?v=20261024b';";
+  const posImport = "import { getHeaderTitle } from '../../services/branch/branch.js?v=20261024c';";
   const negImport = "import { getHeaderTitle } from '../../services/branch/branch.js';";
   assert.match(posImport, IMPORT_RE);
   assert.doesNotMatch(negImport, IMPORT_RE);

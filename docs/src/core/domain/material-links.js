@@ -10,7 +10,7 @@
 // 纪律：纯函数、不依赖 DOM / 不 import 任何浏览器模块 ⇒ Node 可直接 import
 //   （守卫：server/test/material-link-truth.test.mjs）。role 取 AuthStore.getCurrentUser().role 的值。
 
-import { SECRETARY_AND_DEPUTY_ROLES, rolesForPage } from './constants.js?v=20261024b';
+import { SECRETARY_AND_DEPUTY_ROLES, rolesForPage } from './constants.js?v=20261024c';
 
 export const MATERIAL_ROWS = ['photos', 'attendance', 'inspection', 'review'];
 

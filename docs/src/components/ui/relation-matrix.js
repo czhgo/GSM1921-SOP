@@ -12,10 +12,10 @@
 //   · **窄屏（≤640px）＝同一关系行的响应式形态**：仍是这一张表，只是每行按「行表头（人/项目）＋
 //     逐列 `data-label` 值」堆叠成卡；不新造第二套矩阵、不改 cell 口径。与引擎表共用 styles.css 的
 //     `[data-responsive="cards"]` 一套规则（thead 隐藏、sticky/min-width 清零）。
-import { escHtml as esc } from '../../core/base/utils.js?v=20261024b';
+import { escHtml as esc } from '../../core/base/utils.js?v=20261024c';
 // 翻页控件单一源（批次 38）：矩阵的人维分页与统一检索引擎共用同一套 .page-btn / .page-num 标记
 // （叶子件 pager.js——不经 list-filter 引入，避免 list-filter→inspector→vote-summary-panel 与本节成环）
-import { pagerHtml } from './pager.js?v=20261024b';
+import { pagerHtml } from './pager.js?v=20261024c';
 
 /** 项目维缺省列上限（最近 N 项） */
 export const MATRIX_COL_LIMIT = 6;

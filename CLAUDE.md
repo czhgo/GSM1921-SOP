@@ -248,6 +248,7 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/DOC
 
 **协议八条**：
 
+0. **前置：逐条作答再分 lens（2026-10-24 批次 509）**：每轮先按 `content/05_ai_coding/REVIEW_QUESTION_SET.md` 逐条回答并填 `QUESTION_HIT_MATRIX`，再分 lens；**未填矩阵不算完成**。
 1. **定题**：主代理写清范围、文件/页面清单、四个待回答问题；一轮只审一个范围。
 2. **独立审查**：并行启动 N 个子代理；**每个代理只加载一个 skill**，不读其他代理报告，不共享中间结论。
 3. **证据**：每条发现必须带 `file:line`、DOM/计算样式、截图或运行结果；禁止只有形容词。
@@ -391,7 +392,7 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/DOC
 □ 3. 一改具改：全仓库搜索相关引用，逐一同步更新；完成后 Grep 验证零残留（H30.1）
 □ 4. 术语合规：修改内容是否符合 OPERATIONS_GUIDE.md §19（《运行与协作规范》术语使用规范；原 USAGE_POLICY.md）？
 □ 5. 母本优先：若涉及 SOP 制度变更，先改 content/02_institution/sop/ 再改代码
-□ 6. YAML 更新：🔴 任何有 YAML frontmatter 的文件被修改后，必须更新 last_updated 字段。子任务修改文件时同样必须遵守。遗漏即违规。（机检＝`server/test/frontmatter-freshness.test.mjs`：`content/**` 的 `last_updated` 不得早于该文件最后一次提交日；**改过须同批刷 frontmatter 并同步 `TIMESTAMPS.md` 表行**——见 `R-83`）
+□ 6. YAML 更新：🔴 任何有 YAML frontmatter 的文件被修改后，必须更新 last_updated 字段。子任务修改文件时同样必须遵守。遗漏即违规。（机检＝`server/test/docs-governance-guard.test.mjs`：`content/**` 的 `last_updated` 不得早于该文件最后一次提交日；**改过须同批刷 frontmatter 并同步 `TIMESTAMPS.md` 表行**——见 `R-83`）
 □ 7. 记录日志：写入 .ctx/logs/YYYY-MM-EXECUTION_LOG.md
 □ 8. 乙部更新：若涉及执行事项，更新 CLAUDE.md 乙部
 □ 9. 表达合规：若本次修改涉及支书原话展开，必须调用 OPERATIONS_GUIDE.md §20（《运行与协作规范》AI 展开原则，含 20.3 五条可复用检查规则）自查（"而非"警惕/"所以"因果链/反面假设/私加强调/元叙事标签）
@@ -466,6 +467,10 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/DOC
 **2. 更新**：开始执行→🔄进行中 / 暂停→⏸️暂停 / 描述不准→更新描述
 
 **3. 完成退出**：已写入执行日志 → 从乙部表格直接删去（禁止仅标✅不删除）
+
+**3.1 删除前先迁 content（2026-10-24 批次 509）**：乙部条目删除前，若产生可复用结论，必须按四类分职落到 `content`（规范 / 判例 / 索引），并在 `EXECUTION_LOG_INDEX` 标「已被 content 吸收」；未沉淀的只许留在 `logs/`，不得随删行一并消失。
+
+**3.2 每批收尾小结（2026-10-24 批次 509）**：每批收尾必须在 `.ctx/SNAPSHOT.md` 追加 5 行小结（做了什么 / 结论 / 未决 / 已迁 content 的条目 / 下批入口），并写全触发条件 / 唯一落点 / 检查方式（判据见 `.ctx/README.md` §四）。
 
 ### H50.2 丙部待决策机制
 

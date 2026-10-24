@@ -10,13 +10,13 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261024b';
-import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261024b';
-import { setDataSource } from '../../docs/src/data/data-adapter.js?v=20261024b';
+import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261024c';
+import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261024c';
+import { setDataSource } from '../../docs/src/data/data-adapter.js?v=20261024c';
 import {
   TodoStore, TodoStatus, TodoSourceType, VisitorTodoDeriver, seedTodos,
-} from '../../docs/src/services/governance/todo.js?v=20261024b';
-import { NoticeStore } from '../../docs/src/services/governance/notice.js?v=20261024b';
+} from '../../docs/src/services/governance/todo.js?v=20261024c';
+import { NoticeStore } from '../../docs/src/services/governance/notice.js?v=20261024c';
 
 // ── localStorage 内存桩（member-persist 同款）─────────────────────
 const _store = new Map();

@@ -12,10 +12,10 @@
 //  任务完成数＝completed 数 / 非 cancelled 任务总数，无任务显示「—」；两类皆空则整卡隐藏。
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB, isTaskforceActiveStatus } from '../../core/domain/domain.js?v=20261024b';
-import { listRowHtml, listGroupHtml } from '../ui/list-row.js?v=20261024b';
-import { AuthStore } from '../../services/core/auth.js?v=20261024b';
-import { getBasePath } from '../../core/base/utils.js?v=20261024b';
+import { mockDB, isTaskforceActiveStatus } from '../../core/domain/domain.js?v=20261024c';
+import { listRowHtml, listGroupHtml } from '../ui/list-row.js?v=20261024c';
+import { AuthStore } from '../../services/core/auth.js?v=20261024c';
+import { getBasePath } from '../../core/base/utils.js?v=20261024c';
 
 const GROUP_LIMIT = 3;
 // 2026-10-24 批次 508：状态色调对齐专班查看组件——招募中由 info（信息蓝）改为 warning（需要关注）；

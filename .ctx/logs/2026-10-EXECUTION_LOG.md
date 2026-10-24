@@ -3727,3 +3727,52 @@ $body
 
 
 
+## 批次 509（2026-10-24）：文档分职 ＋ 旧轮倒查 ＋ .ctx 治理 ＋ 守卫精简（spec `clarify-doc-scope-and-review-question-set`）
+
+### 一、判据
+
+- 支书四点修正：① 不是把「要求与判例」堆进同一份文档，而是**文档之间各司其职**；② 问题集倒查太少，至少 **40 轮**（spec 文件都还在 `.trae`）；③ `.ctx` 又脏又全，要当重要信息源，**过去的阶段性小结要延续**，并查清「为什么落地过的总结后来被弃用」（指令不清 ⇒ AI 逃逸）；④ **守卫太多**，要合并到「能充分暴露问题的最优数量」。
+- 取证：`.trae/specs` **35 个**、`server/test` **264 个**文件（guard 类 **72 个**、断言 **435 条**）、`.ctx` **124 个**文件混放 8 类。
+
+### 二、动作（指针）
+
+1. **四类分职**：`OPERATIONS_GUIDE §32` 定职责表（规范/判例/索引/过程）、判例编号规则（`D-`/`SD-`/`SR-`/`OP-`）与三条硬规；新建 `CASES_INDEX.md`（21 条）＋ 三个域 `CASES.md`（design 11 / institution 5 / ai-coding 5）；`DESIGN_SYSTEM` 的 SD-22…SD-32 只搬「为什么/反例/沿革」，正文留编号＋判据＋守卫＋判例指针。
+2. **问题集**：倒查 35 spec ＋ 40 条批次日志 ＋ 14 份审计 → `REVIEW_QUESTION_SET.md` **20 条**（四组 16 ＋ 低频高危 4）；`QUESTION_HIT_MATRIX.md` 35×20（非空率 94.3%）；`H21`/`PARALLEL_SKILL_AUDIT` 增「先跑问题集、填矩阵」前置。
+3. **.ctx 治理**：新建 `.ctx/README.md`（五桶：evidence / logs / archive / state / index；三问同步判据）；`SNAPSHOT.md` 恢复「每批 5 行小结」；弃用根因实证（阶段小结 2026-09 有、2026-10 零命中；Snapshot 归档 58 版未归档；批次 376 删节丢项）＋防逃逸三件套；`H50.1` 增两条。
+4. **README/AGENTS**：16 个 README 按 7 字段重写/新建（`docs/`、`deploy/`、`.ctx/`、`04` 五子目录等）；6 个 `AGENTS.md`（每个 45–48 行，含可复制验证命令）；根 README 增「去哪找什么」路由表。
+5. **守卫精简**：`GUARD_INVENTORY.md` 清点 72 件 → 本次合并 3 组（文档 4→1、颜色 2→1、交互 2→1），72 → **68 件**，目标 **54 ± 3**（后续 510–513 分批）；每组做故障注入（红→还原绿），断言一条未删。
+
+### 三、读数
+
+- **定向**：`doc-consistency` ＋ `docs-governance-guard` ＋ 颜色/交互合并件 ＋ `test-tier` ＋ `ctx-hygiene` ＋ `version-stamp` ＝ **97 / 97 绿**。
+- **daily**：`npm run test:daily` **1502 / 1502 绿**（98.5s）。
+- **全量**：`SWEEP_SHARD=all` ＝ **[node] 1504 / 1504 绿**、**[e2e-A] 绿**、**[e2e-B] 179 / 179 绿**；墙钟 **1141.0s**（≤1200s）。
+  （进程退出码非零仍来自收尾写 Playwright 自身 `debug.log` 被判沙箱限制；套件汇总行为「全通道绿」。）
+- 版本戳：`20261024b` → **`20261024c`**（JS 256 / HTML 26 / CSS 2 / server-test 141 个文件改写，陈旧戳 0 残留）。
+
+### 四、修复过程（如实）
+
+- **合并后的引用漂移**：`DATA_CONSISTENCY_CHECKLIST §0.2`、根 `README.md`、`server/README.md`、`.ctx/AGENTS.md` 等仍指被删的 4 个守卫文件 ⇒ 统一改指新文件（历史日志里的旧名保留，不动）。
+- **S13 存量漂移 12 行**：README 批次改动使 frontmatter 变 10-24，而 `TIMESTAMPS` 表行滞后 ⇒ 以 frontmatter 为准刷表行。
+- **R1 三处指向空行**：`README-server.md` 引 `content/README.md:24`（空行）与 `README.md:198`（空行）⇒ 改指 `:15` / `:199`。
+- **`ctx-hygiene-guard` 白名单**：`.ctx` 顶层新增 `README.md` 与 `AGENTS.md`，白名单 7 → 9。
+- **文档族红项归属**：`docs-governance-guard::R1` 合并前即红（`README-server.md` 存量 3 处），本批修准；不是合并引入。
+- **`GUARD_INVENTORY.md` 无 frontmatter 首跑红**：`daily` 首跑 `doc-consistency::S13` 报「markdown 类文件无 frontmatter 且未登记进 `TIMESTAMPS_NO_FM_MD_OK`」⇒ 补 5 字段 frontmatter（与其他 `content/05` 引导件同形），不走近路加白名单；随后 daily 与全量全绿。
+
+### 五、边界（如实）
+
+- **只合并 3 组**：其余重叠（`ui-color-semantics` / `activity-tone` 并入颜色族；`field-shell` / `hover-state` / `density-spacing` 并入交互族）登记 510–513，避免一次动太大。
+- **`.ctx` 不做物理搬迁**：只做逻辑分桶＋README 索引，避免 124 个文件的引用断链。
+- **判例迁移只做 SD-22…32**：SD-01…21 的判例化登记为后续批次，不在本批强行重写。
+- **TIMESTAMPS 只增 6 行**（问题集/矩阵/清点/判例索引/新守卫/.ctx README），其余新 README 由 `docs-governance-guard` 覆盖，不再逐行进台账（控制备注预算）。
+
+### 六、sample-diff（本轮支书反馈 → 规则）
+
+- **样本 1**：「要求与判例堆一起」→ 不是结构问题，是**载体未分职**。
+  → §32 四类载体表；判例不得产生规范效力；README/AGENTS 不得承载条文。
+- **样本 2**：问题集只倒查 6 轮 → **样本面决定结论可信度**。
+  → Q-01…Q-20 附 35 spec 清单与命中矩阵；「低频高危」单列，防被频次淹没。
+- **样本 3**：`.ctx` 脏但全 → **脏不是删的理由，是分桶的理由**。
+  → 五桶 + 三问同步判据；阶段小结以 `SNAPSHOT.md` 为唯一落点。
+- **样本 4**：守卫 72 个 → **数量不是质量，定位才是**。
+  → 合并以「任一故障能被唯一守卫定位」为约束；每组必须过故障注入才允许合。

@@ -33,8 +33,11 @@ export const TIERS = ['daily', 'precommit', 'weekly'];
  *    theme-palette-guard / density-spacing-guard / hover-state-guard（均纯 node）⇒ 224 → 227。
  *  2026-10-23 批次 507（spec unify-link-and-press-states）：新增 link-color-guard（纯 node）⇒ 227 → 228。
  *  2026-10-24 批次 508：新增 activity-tone-guard / field-shell-guard / motion-guard /
- *    archive-deeplink-guard（均纯 node）⇒ 228 → 232。 */
-export const DAILY_FILE_BUDGET = 232;
+ *    archive-deeplink-guard（均纯 node）⇒ 228 → 232。
+ *  2026-10-24 批次 509：frontmatter-freshness / timestamps-note-guard / doc-line-ref / gold-accent-guard /
+ *    button-system-guard 五件合并为 docs-governance-guard / theme-palette-guard / ui-control-system-guard
+ *    （3+2+2 → 1+1+1）⇒ 232 − 5 ＋ 1 = 228。 */
+export const DAILY_FILE_BUDGET = 228;
 
 /** daily 静态 `test(` / `it(` 调用点预算（含子测试；新增断言须同批上调并写明理由）
  *  2026-10-21 R5 P1：页题守卫 4 条 + 对比度守卫 5 条 + 补登记的既有两条守卫 ⇒ 1351 → 1377。
@@ -55,8 +58,11 @@ export const DAILY_FILE_BUDGET = 232;
  *    hover-state-guard（5）⇒ 按实况 1464（上批声明 1446 与实际差 1，本批一并校准）。
  *  2026-10-23 批次 507：新增 link-color-guard（5）＋ hover-state-guard 增补按压 H6/H7（2）⇒ 1464 → 1471。
  *  2026-10-24 批次 508：新增 activity-tone-guard（4）/ field-shell-guard（6）/ motion-guard（6）/
- *    archive-deeplink-guard（5）＋ theme-palette-guard 增补 strongHover T6/T7（2）⇒ 1471 → 1494。 */
-export const DAILY_TEST_BUDGET = 1494;
+ *    archive-deeplink-guard（5）＋ theme-palette-guard 增补 strongHover T6/T7（2）⇒ 1471 → 1494。
+ *  2026-10-24 批次 509：删 5 件（doc-line-ref 6 / frontmatter-freshness 3 / timestamps-note-guard 4 /
+ *    gold-accent-guard 5 / button-system-guard 7 ＝ 25）＋ docs-governance-guard 18（F1–F3 3 ＋ N1–N7 4
+ *    ＋ R1–R6 6 ＋ G4–G8 5）⇒ 净 −7。按守卫实算 **1499**（上批预算 1494 与实况差 12，本批一并按实况校准）。 */
+export const DAILY_TEST_BUDGET = 1499;
 
 const group = (tier, reason, list) => list.map((file) => ({ file, tier, reason }));
 
@@ -130,10 +136,10 @@ export const TEST_TIERS = [
     'claude-parallel-audit.test.mjs',
     'ctx-hygiene-guard.test.mjs',
     'doc-consistency.test.mjs',
-    'doc-line-ref.test.mjs',
-    'frontmatter-freshness.test.mjs',
+    // 2026-10-24 批次 509：frontmatter-freshness / timestamps-note-guard / doc-line-ref 三件合并为
+    //   docs-governance-guard（F1–F3 / N1–N7 / R1–R6 断言全数搬入，另加 README / AGENTS / SNAPSHOT / 判例索引）
+    'docs-governance-guard.test.mjs',
     'import-path-guard.test.mjs',
-    'timestamps-note-guard.test.mjs',
     'version-stamp.test.mjs',
   ]),
   // daily · 静态结构 / UI / 文案 / 防假绿守卫
@@ -145,7 +151,6 @@ export const TEST_TIERS = [
     'archive-deeplink-guard.test.mjs',
     'block-orchestration.test.mjs',
     'branch-id-literal-guard.test.mjs',
-    'button-system-guard.test.mjs',
     'committee-meeting-density.test.mjs',
     'committee-tab-density.test.mjs',
     'control-font-guard.test.mjs',
@@ -162,7 +167,6 @@ export const TEST_TIERS = [
     'feedback-integrity.test.mjs',
     'filter-row.test.mjs',
     'frontend-foundations-guard.test.mjs',
-    'gold-accent-guard.test.mjs',
     'hex-hardcode-guard.test.mjs',
     // 2026-10-23 批次 505（Task 9）：hover/active/selected 三态、@media (hover:hover) 门控、静态行无 hover（纯 node）
     'hover-state-guard.test.mjs',

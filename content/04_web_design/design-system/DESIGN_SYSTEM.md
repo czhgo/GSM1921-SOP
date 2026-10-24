@@ -2333,7 +2333,8 @@ li + li { margin-top: 0.25em; }
 - 静态行/卡不加 hover；页签与 `summary` 必须有 hover/active/focus-visible。
 - 触屏用 `:active`；键盘用 `focus-visible`。
 - **按压三源（507）**：中性控件＝中性灰；主题色控件（选中页签 / 主题 chip）＝该主题 `activeBg`；
-  党建红实底＝`--party-red-active`。**不得**让中性控件按出红色（旧 `--surface-active: #FEE2E2` 已废）。
+  党建红实底＝`--party-red-active`。**不得**让中性控件按出红色。
+- 守卫：`hover-state-guard` · 判例：CASE-DESIGN-002（SD-23）
 
 ### 12.9 主题与语义色（批次 506）
 
@@ -2366,6 +2367,9 @@ li + li { margin-top: 0.25em; }
 | SD-31 | IF 活动类别 THEN 由 `activityTypeTone` 唯一产出（party-red/gold/neutral）；类别与状态路径 `info` 计数为 0（白名单除外） |
 | SD-32 | IF 深链落点 THEN 目标页必须消费其参数；定位失败必须有可见提示；无承载面的入口不得渲染 |
 
+> **SD-22…SD-32 判例指针**（2026-10-24 抽取）：判例正文在 [CASES.md](CASES.md)（`CASE-DESIGN-001…011`），总目录见 [CASES_INDEX.md](../../03_doc_system/CASES_INDEX.md)；本表只留编号与布尔判据。
+> SD-32 深链落点 · 守卫：`archive-deeplink-guard` / `link-target-guard` · 判例：CASE-DESIGN-011
+
 ### 12.10 链接与按压（批次 507）
 
 **链接（`a`）单一源**
@@ -2376,7 +2380,6 @@ li + li { margin-top: 0.25em; }
 | 信息态（徽章 / 状态字 / 带 `bg-*` 的按钮型链接） | 既有 `.badge--info` / `tint-*` | 固定 info 蓝或语义色 | 按各自组件规则 |
 
 - 蓝色**不再承担链接**；`text-blue-*` 只允许出现在信息态徽章、状态色 map、表单控件修饰上。
-- hover 不改色：`soft-text` 已是浅底上可读的深字，hover 再加深会掉对比度。
 - 禁止在 `<a>` 上写 `text-blue-600 hover:text-blue-800` 这类 Tailwind 组合。
 
 **按压（`:active`）**
@@ -2391,6 +2394,7 @@ li + li { margin-top: 0.25em; }
 
 - 内阴影**只写一次**（`:is(.btn-…, .btn-tab, .cs-option, summary, …):active`），新增按钮族并入该行，不得逐点再写。
 - 按下不得推挤相邻内容：不写 `transform: scale()` / `translateY()`。
+- 守卫：`link-color-guard`（SD-22）/ `hover-state-guard`（SD-23、SD-24）/ `gold-accent-guard`（SD-26） · 判例：CASE-DESIGN-001 / 002 / 003 / 005
 
 ### 12.11 状态语言（批次 508）
 
@@ -2404,9 +2408,10 @@ li + li { margin-top: 0.25em; }
 | 我填对了吗 | **invalid** | 红边 + toast 文案（不新增内联错误行） | 仅靠颜色不配文案 |
 | 我能改吗 | **disabled / readonly** | 禁用＝浅灰底灰字；只读＝透明边浅底 | 用 `opacity` 混作两态 |
 
-- **侧边栏是唯一豁免**：`.module-tab.active` 保留浅灰（需要纵深）；其余选中一律主题 soft。
+- **侧边栏是唯一豁免**：`.module-tab.active` 保留浅灰；其余选中一律主题 soft。
 - 实例：`.list-row[data-selected]`、`.cal-cell-large.selected`（桌面/移动同源）、`.subtab[aria-selected]`、`.cs-option:focus-visible`、`.status-badge-option.is-active`、支委会步骤条当前步。
 - 实底按钮 hover＝第 9 个主题 token `--app-accent-strong-hover`（同色相加深），**不得落灰**。
+- 守卫：`hover-state-guard` / `theme-palette-guard` · 判例：CASE-DESIGN-004（SD-25）/ CASE-DESIGN-005（SD-26）
 
 ### 12.12 字段外壳（批次 508）
 
@@ -2421,9 +2426,10 @@ li + li { margin-top: 0.25em; }
 | 禁用 | 1px `--neutral-200` | 浅灰底、灰字 | 真不可用 |
 | 只读 | 透明边 | 浅底、正文色 | 可读可复制 |
 
-- 禁止「金边 + 黑环」双答；暗色 `--focus-ring` 不再设为党徽金。
+- 禁止「金边 + 黑环」双答。
 - **选择器统一**：原生 `<select>` 一律经 `enhanceSelects` 增强，面板与页面同一套 token；原生控件只作值载体。
 - **大选项集一般化框架**：搜索（`data-cs-search`）、近期优先（`data-cs-priority="recent"`）、分批渲染（`data-cs-limit`）、空态「没有匹配项」；选人继续走 `person-picker`。
+- 守卫：`field-shell-guard` / `ui-focus-ring` · 判例：CASE-DESIGN-006（SD-27）/ CASE-DESIGN-007（SD-28）/ CASE-DESIGN-008（SD-29）
 
 ### 12.13 动效令（批次 508）
 
@@ -2440,6 +2446,7 @@ li + li { margin-top: 0.25em; }
 - **只允许过渡** `opacity / transform / color / background-color / border-color / box-shadow`；禁止 `height/width/max-height/padding/top/left/margin` 与 `transition: all`。
 - 折叠用 `grid-template-rows` 取代 `max-height + padding`；进度用 `transform: scaleX()` 取代 `width`。
 - `prefers-reduced-motion` 下 `transition-delay / animation-delay` 归零。
+- 守卫：`motion-guard` · 判例：CASE-DESIGN-009（SD-30）
 
 ### 12.14 活动类别与信息态色（批次 508）
 
@@ -2452,4 +2459,7 @@ li + li { margin-top: 0.25em; }
 - 唯一判据：`constants.js::activityTypeTone(type)`；组件不得自己写类别色，也不得用 `info` 兜底。
 - **状态色不借类别色**：进行中＝warning、完成＝success、打回＝warning、计数＝neutral。
 - 允许 info 蓝的白名单：通知「重要」、活动「已发布」、汇报路由态、建议 / 选修、配置项标注（守卫逐条登记，新增即红）。
+- 守卫：`activity-tone-guard` · 判例：CASE-DESIGN-010（SD-31）
+
+> 其余条目（SD-01…SD-21）的判例迁移登记为后续批次。
 

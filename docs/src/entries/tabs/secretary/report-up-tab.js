@@ -5,15 +5,15 @@
 // 数据源：reviewRequests（services/governance/review-request.js，mock 与 API 双引擎同源）
 // 设计权威源：content/04_web_design/evolution/PARTY_COMMITTEE_DESIGN.md §5 P3
 
-import { mockDB } from '../../../core/domain/domain.js?v=20261024b';
-import { AuthStore } from '../../../services/core/auth.js?v=20261024b';
-import { getPersonName } from '../../../services/member/person.js?v=20261024b';
-import { getBranchIdOfPerson } from '../../../services/branch/branch.js?v=20261024b';
-import { submitReviewRequest, listReviewRequests } from '../../../services/governance/review-request.js?v=20261024b';
-import { showToast, escHtml as esc, fmtDt, describeWriteError } from '../../../core/base/utils.js?v=20261024b';
+import { mockDB } from '../../../core/domain/domain.js?v=20261024c';
+import { AuthStore } from '../../../services/core/auth.js?v=20261024c';
+import { getPersonName } from '../../../services/member/person.js?v=20261024c';
+import { getBranchIdOfPerson } from '../../../services/branch/branch.js?v=20261024c';
+import { submitReviewRequest, listReviewRequests } from '../../../services/governance/review-request.js?v=20261024c';
+import { showToast, escHtml as esc, fmtDt, describeWriteError } from '../../../core/base/utils.js?v=20261024c';
 // 统一检索引擎（2026-09-14 批次 37）：上报记录列表接入关键词 + 状态分面 + 分页
-import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261024b';
-import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261024b';
+import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261024c';
+import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261024c';
 
 const TYPE_META = {
   'develop-node': { label: '发展节点', desc: '发展党员关键节点（确定积极分子/发展对象、接收预备党员、按期转正等）' },

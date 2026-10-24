@@ -2,8 +2,8 @@
 title: "全局文档导航映射"
 type: governance
 role: "[工程师]+[AI]"
-last_updated: "2026-10-20"
-version: "2.5"
+last_updated: "2026-10-24"
+version: "2.6"
 status: active
 related_files: [OPERATIONS_GUIDE.md, CLAUDE.md, ARCHITECTURE.md, .ctx/REVIEW_QUEUE.md, .ctx/ENGINEERING_ASSESSMENT.md, content/insights/README.md]
 ---
@@ -250,3 +250,58 @@ insights 单文件膨胀后（10+ 章 / 1000+ 行），按**知识类型**拆分
 | 查看文档权威层级 | content/03_doc_system/OPERATIONS_GUIDE.md §1.1 | 本文档 §二 |
 | 查看母本子本关系 | content/03_doc_system/ARCHITECTURE.md §十 | content/03_doc_system/OPERATIONS_GUIDE.md §1.1 |
 | 查看支书重要论断 | content/01_strategy/SECRETARY_DIRECTIVES.md | CLAUDE.md H90 |
+
+---
+
+## 五、目录作用表（2026-10-24 立）
+
+> **本表回答什么**：一个目录**为什么存在、有没有自己的 README、权威源在哪、是否保留原始材料**。
+> **不回答什么**：规范条文与判例正文——分职规则见 [OPERATIONS_GUIDE.md §32](OPERATIONS_GUIDE.md#32-文档分职与判例编号2026-10-24-立)；判例见 [CASES_INDEX.md](CASES_INDEX.md)。
+> **AGENTS 列口径（2026-10-24 批次 509 更新）**：全仓现有 6 份 `AGENTS.md`（`docs/src` / `server` / `server/test` / `content/04_web_design` / `content/05_ai_coding` / `.ctx`），用于「进入该目录前读什么、改什么、禁什么、怎么验」；根 `CLAUDE.md` 仍承担全局纪律。其余目录记「无」。
+
+| 路径 | 作用一句话 | README 是否已有 | AGENTS | 权威源 | 是否保留原始材料 |
+|---|---|---|---|---|---|
+| `content/` | 五类知识类型的权威源总目录（01–05 ＋ insights） | 有（`content/README.md`） | 无 | 本文件 §二 ＋ 各层 README | 是（`01_strategy/references/` 存原文） |
+| `content/01_strategy/` | 支部战略、支书论断与发展路径 | 有 | 无 | `SECRETARY_DIRECTIVES.md` / `DEVELOPMENT_PATH.md` | 是（`references/` 存合规与会议原文） |
+| `content/01_strategy/references/` | 合规文件、历史会议材料、建设探索原文存档 | 有 | 无 | 原文本身（T1 制度原文） | 是（只存不改） |
+| `content/02_institution/` | 支部组织、角色权限、SOP 与制度判例 | 有 | 无 | `SYSTEM_ROLE_PERMISSION.md` / `COMMISSIONER_DUTY_FRAMEWORK.md` / `sop/INDEX.md`；判例 `CASES.md` | 否 |
+| `content/02_institution/sop/` | 各委员与党小组组长的操作流程 | 有 | 无 | `sop/*.md` 本身（母本） | 否 |
+| `content/03_doc_system/` | 文档治理、运行规范、导航与判例总索引 | 有 | 无 | `OPERATIONS_GUIDE.md`（§32 分职与编号）/ `ARCHITECTURE.md` / 本文件 / `CASES_INDEX.md` | 否 |
+| `content/04_web_design/` | 网站设计、数据模型、部署与设计演进 | 有 | 无 | `design-system/DESIGN_SYSTEM.md` / `data/DATA_MODEL.md` / `deploy/DEPLOYMENT_GUIDE.md` | 否 |
+| `content/04_web_design/design-system/` | 设计系统正文与 design 域判例 | 有 | 无 | `DESIGN_SYSTEM.md`；判例 `CASES.md` | 否 |
+| `content/04_web_design/data/` | 数据模型与数据流 | 有 | 无 | `DATA_MODEL.md` | 否 |
+| `content/04_web_design/deploy/` | 部署路径、认证门控与对外对接 | 有 | 无 | `DEPLOYMENT_GUIDE.md` / `SERVER_DEPLOY_MANUAL.md` | 否 |
+| `content/04_web_design/module/` | 页面与模块设计、SOP-系统联动 | 有 | 无 | `SOP_WEBSITE_GUIDE.md`；其余为论证档案 | 否 |
+| `content/04_web_design/evolution/` | 架构演进、契约与设计方法论 | 有 | 无 | `WORKFLOW_BLOCK_CONTRACT.md` / `DESIGN_METHODOLOGY.md` | 否 |
+| `content/05_ai_coding/` | AI 协作方法论五个分篇与 ai-coding 判例 | 有 | 无 | `README.md`（索引）＋五个分篇；判例 `CASES.md` | 否 |
+| `content/insights/` | 面向人的经验沉淀与学习入口 | 有 | 无 | 不承担规范；规范回 03 / 04 / 05 | 否 |
+| `docs/` | 前端实现（页面、组件、服务、样式、数据适配） | 有 | 无 | `content/04_web_design/**` ＋ `content/03_doc_system/ARCHITECTURE.md §十一` | 是（源码） |
+| `docs/src/` | 前端代码：core / services / components / entries / workflow | 无 | 无 | 设计规范在 04，代码为子本 | 是 |
+| `docs/workspace/` | 七个角色工作台壳页面 | 无 | 无 | `docs/src/entries/workspace/**` | 是 |
+| `deploy/` | 部署、安装、体检与打包脚本 | 有 | 无 | `content/04_web_design/deploy/DEPLOYMENT_GUIDE.md` | 是（脚本与模板） |
+| `server/` | 服务端 API、种子、迁移与运行脚本 | 有 | 无 | `README-server.md` / `server/README.md` | 是（服务端源码与种子） |
+| `server/test/` | 测试与守卫（`.test.js` / `.test.mjs`） | 无（见 `server/README.md`） | 无 | `README-server.md`「测试」＋ `DATA_CONSISTENCY_CHECKLIST.md §0.2` | 是 |
+| `server/routes/` | 资源路由与权限门（含 `resources/`） | 无 | 无 | `SYSTEM_ROLE_PERMISSION.md` ＋ `README-server.md` | 是 |
+| `server/services/` | 邮件、汇报等服务实现 | 无 | 无 | `README-server.md` | 是 |
+| `.ctx/` | 审计底座：日志、证据、快照、评议、裁定 | 有 | 无 | `logs/*-DECISION_LOG.md`（裁定权威）/ `TIMESTAMPS.md` | 是（日志与证据原文） |
+| `.ctx/logs/` | 执行日志、决策日志与归档审计 | 无 | 无 | `EXECUTION_LOG_INDEX.md` / `DECISION_LOG.md` | 是 |
+| `.ctx/logs/archive/` | 已闭环的一次性审计与轮次报告 | 无 | 无 | 归档原文 | 是（只存不改） |
+| `.ctx/evidence/` | 真机截图与量测读数 | 无 | 无 | 对应执行日志条目 | 是 |
+| `.trae/specs/` | 临时 spec / 任务清单（用后即删） | 无 | 无 | 任务本身；结论回流 content / `.ctx` | 否（不长期保留） |
+
+---
+
+## 六、四类载体索引（2026-10-24 立）
+
+> 分职规则（四类载体各写什么、禁止什么）见 [OPERATIONS_GUIDE.md §32](OPERATIONS_GUIDE.md#32-文档分职与判例编号2026-10-24-立)。本表只给入口。
+
+| 载体 | 入口 | 承载什么 |
+|---|---|---|
+| 规范 ① | [SECRETARY_DIRECTIVES.md](../01_strategy/SECRETARY_DIRECTIVES.md) | 战略与支书论断（元命题 / 战略路线级） |
+| 规范 ② | [SYSTEM_ROLE_PERMISSION.md](../02_institution/SYSTEM_ROLE_PERMISSION.md) | 角色权限矩阵与制度参数（键级权威） |
+| 规范 ③ | [OPERATIONS_GUIDE.md](OPERATIONS_GUIDE.md) | 文档治理、运行标准、分职与判例编号（§32） |
+| 规范 ④ | [DESIGN_SYSTEM.md](../04_web_design/design-system/DESIGN_SYSTEM.md) | 前端视觉、组件与点击落点（数据侧见 [DATA_MODEL.md](../04_web_design/data/DATA_MODEL.md)） |
+| 规范 ⑤ | [content/05_ai_coding/README.md](../05_ai_coding/README.md) ＋五个分篇 | AI 协作方法（分篇为规范，README 为索引） |
+| 判例库入口 | [CASES_INDEX.md](CASES_INDEX.md) | 全部判例的编号、一句话、所属域、文件链接、对应规范编号 |
+| 索引入口 | 本文件 ＋ 各层 `README.md` | 目录作用、文件一句话、权威源指针 |
+| 过程记录入口 | [.ctx/logs/EXECUTION_LOG_INDEX.md](../../.ctx/logs/EXECUTION_LOG_INDEX.md) → 月度执行日志；[.ctx/logs/DECISION_LOG.md](../../.ctx/logs/DECISION_LOG.md) → 月度决策日志 | 当时做了什么、什么时候定了什么 |
