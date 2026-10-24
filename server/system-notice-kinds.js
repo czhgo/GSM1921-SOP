@@ -275,6 +275,9 @@ const KINDS = {
       const tf = rowOf(ctx.db, 'taskforces', ctx.sourceId);
       if (act && act.title) vars.projectName = act.title;
       else if (tf && tf.name) vars.projectName = tf.name;
+      // Task 3（2026-10-25）：对象坐标按源表复算（不信客户端自述），保证非公告消息必有 targetType+targetId。
+      if (act) vars.targetType = 'activity';
+      else if (tf) vars.targetType = 'taskforce';
       return buildSystemNotice('project-auth-granted', vars);
     },
   },

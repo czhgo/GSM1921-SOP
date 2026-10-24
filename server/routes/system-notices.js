@@ -52,6 +52,51 @@ function sourceRow(db, resource, sourceId) {
   return found ? JSON.parse(found.data) : null;
 }
 
+/** 从 targetUrl 解析对象坐标（Task 3：模板只给 URL 时补齐 targetType/targetId；不改 URL 兜底语义） */
+function coordsFromTargetUrl(url) {
+  if (typeof url !== 'string' || !url) return null;
+  const grab = (key) => {
+    const m = new RegExp(`[?&]${key}=([^&]+)`).exec(url);
+    return m ? decodeURIComponent(m[1]) : null;
+  };
+  if (/thought-report\.html/.test(url)) {
+    const id = grab('id');
+    return id ? { targetType: 'thoughtReport', targetId: id } : null;
+  }
+  if (/taskforce\.html/.test(url)) {
+    const id = grab('id');
+    return id ? { targetType: 'taskforce', targetId: id } : null;
+  }
+  if (/activity\.html/.test(url)) {
+    const id = grab('id');
+    return id ? { targetType: 'activity', targetId: id } : null;
+  }
+  const activityId = grab('activityId');
+  if (activityId) return { targetType: 'activity', targetId: activityId };
+  return null;
+}
+
+/** 系统通知落库前的模型收口：kind='system'、archivedBy 归一；非公告必须带坐标，补不出则降级公告。 */
+function normalizeSystemNotice(built) {
+  const notice = {
+    ...built,
+    kind: built.kind || 'system',
+    archivedBy: Array.isArray(built.archivedBy) ? built.archivedBy : [],
+  };
+  if (!notice.targetType || !notice.targetId) {
+    const coords = coordsFromTargetUrl(notice.targetUrl);
+    if (coords) {
+      notice.targetType = notice.targetType || coords.targetType;
+      notice.targetId = notice.targetId || coords.targetId;
+    }
+  }
+  // 「非公告必须有 targetType+targetId」只约束系统通知；私信不在本端点生成。
+  if (notice.kind === 'system' && !(notice.targetType && notice.targetId)) {
+    notice.kind = 'announcement';
+  }
+  return notice;
+}
+
 function noticeSource(db, kind, sourceId, payload) {
   if (kind === 'record-void-decided') {
     const resource = payload?.resource;
@@ -134,12 +179,12 @@ export function createSystemNoticesRouter(db) {
     }
     // id/publishDate 由服务端补齐并覆盖，杜绝客户端携带同名锚点字段
     const id = `ntc-${randomUUID().slice(0, 8)}`;
-    const notice = {
+    const notice = normalizeSystemNotice({
       ...built,
       ...((sourceBranchId || ownBranch) ? { branchId: sourceBranchId || ownBranch } : {}),
       id,
       publishDate: todayLocal(),
-    };
+    });
     db.prepare('INSERT OR REPLACE INTO notices (id, data) VALUES (?, ?)').run(id, JSON.stringify(notice));
     // R10-D02：系统通知是语义写口，必须推进 notices 版本，否则别的设备整表快照会删掉它。
     bumpCollectionVersion(db, 'notices');

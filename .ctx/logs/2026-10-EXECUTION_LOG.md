@@ -2,7 +2,7 @@
 title: "2026年10月执行日志"
 type: execution_log
 role: "[工程师]+[AI]"
-last_updated: 2026-10-23
+last_updated: 2026-10-25
 status: active
 related_files: [CLAUDE.md, .ctx/logs/archive/2026-09-EXECUTION_LOG.md, .ctx/logs/EXECUTION_LOG_INDEX.md]
 ---
@@ -3776,3 +3776,64 @@ $body
   → 五桶 + 三问同步判据；阶段小结以 `SNAPSHOT.md` 为唯一落点。
 - **样本 4**：守卫 72 个 → **数量不是质量，定位才是**。
   → 合并以「任一故障能被唯一守卫定位」为约束；每组必须过故障注入才允许合。
+
+## 批次 510（2026-10-25）：统一消息中心 ＋ 数据真相 ＋ 工作台视觉 ＋ 守卫判例（spec `rebuild-notification-and-data-truth`）
+
+### 一、判据
+
+- 支书 8 条反馈 ＋ 三方独立审查（前端 / 后端 / 运算逻辑）：消息被拆成 4 个承载面、3 套已读、2 套归档；「待召开」是支委会页签的第二套状态机；归档完成后才派生无法销项的待办；工作关系 5 列表格第 5 列全空；分组胶囊在 ≤1280px 被隐藏；知情查看调用方写死 `views:['taskforce']`；mock 种子用手写结果代替事实。
+- 支书裁定：通知与私信合并为「消息」对象（A 方案）；通知必须带对象坐标；mock「只存事实，其余派生」。
+- 同批完成 Task 1–6：事实化种子与派生器、状态 / 归档 / 待办单一源、统一消息中心、工作台视觉与卡内构成、知情查看工作组、守卫与判例收尾。
+
+### 二、动作（指针）
+
+1. **事实化（Task 1）**：新增 `docs/src/data/mock/derive.js`（`applyDerivedFacts`、`deriveActivityStatus`、`deriveMeetingStatus` 等）；种子删除 `activities.status`、`review.progress/overdue`、`inspection.status`、`taskforce.status`、`notices.expireDate`、归档记录的结果字段与考勤人员快照；mock 三条装载路径与 `server/seed.js` 共用同一派生器。事实 / 派生矩阵写入 `DATA_MODEL §2.30`。
+2. **单一源（Task 2）**：删除支委会 `meetingStatus()`；归档动作在同一事务内同步活动、归档记录、消息系统归档与待办销项（mock / API 两形态）；待办加 `sourceType+sourceId+action` 幂等键；催办只增通知不增待办；补齐 60% 考察确认事实与 3 条非活动归档材料。
+3. **消息中心（Task 3）**：`notices` 增 `kind / archivedBy[]`；`messages.html` 升级为唯一列表（全部/未读/已读/已归档 × 来源），`notice.html` 升级为唯一全貌（公告 / 系统 / 私信三种布局）；入口收口到详情页；归档页 notice tab 退役；发布表单强制「关联对象 / 公告」。
+4. **视觉（Task 4）**：分组名改四组「总览 / 我的职责 / 协作与知情 / 制度与答复」并恢复小胶囊；卡头收为 `renderCardHeader`；工作关系改主从两栏；11px 清零；六台壳与党委台统一。
+5. **知情查看（Task 5）**：新增 `workgroup-view.js`，`insight-view` 分段扩为 `workgroup / taskforce / group`。
+6. **规范**：`DESIGN_SYSTEM.md` 增 SD-33（消息承载面唯一与落点坐标）、SD-34（逐人状态 / 已读≠回执，含状态单一派生与种子只存事实）、SD-35（卡内构成）、SD-36（页签分组胶囊）；§12.15 只写适用范围、布尔判据、守卫指针与判例编号。
+7. **判例**：`design-system/CASES.md` 增 `CASE-DESIGN-012…016`（通知跳工作台 / 待召开双状态机 / 归档倒序待办 / 工作关系 5 列空列 / mock 结果字段）；`CASES_INDEX.md` 增 5 行索引，design 域 11 → 16。
+8. **问题集**：`REVIEW_QUESTION_SET.md` 增 Q-21「同一用户对象只有一个承载面」（低频高危）；全文 20 → 21 条，附录样本 35 spec / 40 批次 → 36 / 42；`QUESTION_HIT_MATRIX.md` 加 Q-21 列（历史 35 行留空）并新增本 spec 一行；`PARALLEL_SKILL_AUDIT` / `AGENTS.md` 的 Q-01…Q-20 与「20 条」同步改准。
+9. **守卫台账**：`GUARD_INVENTORY.md` 记明本批**未新增 / 删除 guard 文件**（68 件不变）＋ §七扩展记录；`resolveNoticeUrl` 全仓无消费者（Q-14），删除导出与残留引用，`notice-deeplink-guard::F06` 改为断言「不得再有该导出」。
+10. **遗留修复**：`checkActivityCloseConditions` 从 `inspector.js` 迁至 `services/activity/close-conditions.js`（服务层复用，避免 todo ↔ inspector 成环）；`derivePendingArchiveTodos` 加 `canClose` 门；`workforce.js::DUTY_DOMAIN` 改懒建以断开循环引用。
+
+### 三、读数
+
+- **定向**：`docs-governance-guard` ＋ `doc-consistency` ＋ `todo-domain` ＋ `todo-domain-view` ＋ `notice-deeplink-guard` ＋ `notice-audience` ＋ `claude-parallel-audit` ＝ **87 / 87 绿**。
+- **补充定向**（本批触及的其余守卫）：`state-enum-guard` ＋ `mock-api-parity-structure` ＋ `notice-message` ＋ `workbench-audit-coverage` ＋ `todo-deriver-domain` ＋ `work-map` ＝ **44 / 44 绿**。
+- **daily**：`npm run test:daily` **1514 / 1514 绿**（78.5s；补三条守卫断言后复跑）。
+- **全量三通道**：`SWEEP_SHARD=all` ＝ **[node] 1516 / 1516 绿**、**[e2e-A] 57 过 + 1 skip（58）**、**[e2e-B] 179 / 179 绿**；墙钟 **1056.9s**（≤1200s）。
+  （进程退出码非零来自运行器收尾写 Playwright 自身 `debug.log` 被判沙箱限制；汇总行为「全通道绿」。）
+- **版本戳**：`20261024c` → **`20261024d`**（JS 259 / HTML 26 / CSS 2 / server-test 141 个文件改写，陈旧戳 0 残留）。
+- **待归档待办**：改前 hydrate 生成 **34 条**；改后 **0 条**（种子内无关闭条件齐备的活动）。注入验证：补齐 act-1 会议纪要后生成 **1 条**；置 `archived=true` 并 `completeByAction('activity','act-1','activity-archive')` 后销项，再次 hydrate **0 条**。
+
+### 四、修复过程（如实）
+
+- **服务层复用关闭条件**：直接把 `inspector.js` 引入 `todo.js` 触发 `todo → inspector → workforce → todo` 循环（`WORK_DOMAIN` TDZ），改为**迁出判据**到 `services/activity/close-conditions.js` ＋ `workforce.js` 的 `DUTY_DOMAIN` 懒建，两个改动同批落地后才绿。
+- **删除死码后的连锁**：`resolveNoticeUrl` 删除后 `getBasePath` 在 `notice.js` 变成无引用，一并移除；`README-server.md` 的 `inspector.js:681` 因迁出判据位移到 `:639`，按 `docs-governance-guard::R2` 改签。
+- **S13 漂移**：本批改了 6 份 `content/**`（DESIGN_SYSTEM / CASES_INDEX / DOC_MAP / REVIEW_QUESTION_SET / QUESTION_HIT_MATRIX / GUARD_INVENTORY）＋ 4 份 `.ctx` / 数据文件（TIMESTAMPS / SNAPSHOT / EXECUTION_LOG / DATA_MODEL），首跑 S13 红；以 frontmatter 为准同批刷 `TIMESTAMPS` 表行。
+- **判例索引计数**：`CASES_INDEX` 的 design 域条数与域入口表同步为 16，避免索引与判例库不一致。
+- **首跑全量 e2e-A 红（M1）**：`mock-integrity` 直接审计原始种子，事实化后 35 条活动「缺必填 status」⇒ 改为先用 `applyDerivedFacts` 补齐运行时形状再审计；不是给种子写回结果字段。
+- **首跑全量 e2e-B 红（form-loop-sweep）**：`inspector.js` 迁出关闭条件后行号位移，4 处台账（表态 / 活动名称 / 日期 / 活动地点）按实际行号改签（629→587、1458→1416、1459→1417、1460→1418）。
+- **收尾**：bump 版本戳 → daily 复跑 → 全量三通道复跑（第二轮全绿）；中文提交，不 push。
+
+### 五、边界（如实）
+
+- 版本戳、全量三通道与提交由收尾统一执行（见三、读数）。
+- 待归档待办降为 **0** 是数据事实（种子活动均缺会议纪要 / 考察确认 / 复盘等关闭前置），不是查询失效；归档面仍以只读列表展示已结束未归档活动。
+- SD-36（分组胶囊）本批只立判据、**暂无判例**（本轮 8 条反馈中无新增胶囊样本）。
+- Q-21 为 2026-10-25 新立，命中矩阵历史 35 行该列留空（当时未问），不追填。
+
+### 六、sample-diff（本轮支书反馈 → 规则）
+
+| # | 样本 | 根因 | 规则 | 守卫 |
+|---:|---|---|---|---|
+| 1 | 点击会议通知落工作台首页，`notice.html` 被绕过 | `targetModule:'workspace'` 兜底 ＋ `resolveNoticeUrl` direct 分支 ＋ 入口各自判断 | SD-33 / CASE-DESIGN-012 | `notice-deeplink-guard::F06` |
+| 2 | 支委会历史会议已考勤、已复盘仍显示「待召开」 | 页签自带 `meetingStatus()` 第二套状态机，只按日期判定 | SD-34 / CASE-DESIGN-013 | `state-enum-guard` ＋ `workbench-revision-contract` |
+| 3 | 归档完成后才派生「归档材料」待办，无人能销项 | 待办生成时点在归档之后，且用「活动结束」代替「关闭条件已齐」 | SD-34 / CASE-DESIGN-014 | `todo-domain` / `todo-deriver-domain` |
+| 4 | 工作关系表 5 列，第 5 列全「—」并分两页 | 无用列保留列位，把表格当作唯一形态 | SD-35 / CASE-DESIGN-015 | `workbench-audit-coverage` |
+| 5 | ≤1280px 分组名整体隐藏；「知情查看」组名＝页签名 | 分组名被当作可裁剪装饰，未按「可见但非按钮」处理 | SD-36（暂无判例） | `doc-consistency::S3` ＋ 键盘序列人工检查 |
+| 6 | 知情查看写死 `views:['taskforce']`，活动工作组不可见 | 分段集合由调用方写死，组件从未提供「工作组」段 | Task 5 分段契约（SD-35 同类：卡内构成） | `workbench-audit-coverage`（Task 5 用例） |
+| 7 | mock 35 条活动状态逐行手写；复盘 `overdue` 快照；归档两套状态；通知正文抄日期 | 种子存派生结果，派生器与种子形成两套真相 | SD-34 / CASE-DESIGN-016 | `state-enum-guard::G4` ＋ `mock-api-parity-structure` |
+| 8 | 消息四个承载面、三套已读语义、两套归档语义 | 同一用户对象没有唯一列表 / 全貌 / 状态机 | Q-21 ＋ SD-33 / SD-34 / CASE-DESIGN-012 / 013 | `notice-deeplink-guard` ＋ `notice-audience::N13–N16` ＋ `notice-message::N5` |

@@ -159,8 +159,10 @@ export const SEED_MANIFEST = [
     idPattern: '^att\\d+$',
     lifecycleClass: 'business',
     initTier: 'clear',
-    seedOwnedFields: ['id', 'personId', 'activityId', 'studentId', 'developStage', 'partyGroup'],
+    seedOwnedFields: ['id', 'personId', 'activityId'],
     runtimeFields: [
+      // Task 1（2026-10-25）：人员三字段是派生快照（derive.js::deriveAttendanceSnapshot 按 personId 现取）。
+      'studentId', 'developStage', 'partyGroup',
       'status', 'recordedBy', 'recordedAt', 'confirmed', 'confirmedBy', 'confirmedAt', 'overdue',
       'secretaryConfirmedAt', 'note',
       // R10（2026-10-23）：上传/打回/申诉/线上参会字段由业务写口落库，修复不得回滚。
@@ -210,13 +212,14 @@ export const SEED_MANIFEST = [
     lifecycleClass: 'business',
     initTier: 'clear',
     seedOwnedFields: [
-      'id', 'publishDate', 'targetModule', 'targetType', 'targetId', 'branchId', 'source', 'createdBy',
+      'id', 'publishDate', 'targetModule', 'targetType', 'targetId', 'branchId', 'source', 'createdBy', 'kind',
     ],
     // R10（2026-10-23）：通知可编辑字段（标题/正文/优先级/有效期/受众）有写口 ⇒ 归运行时，
     //   修复不得把用户编辑撤回；`read` 仅为历史迁移兼容读取，读侧只用 reads[]。
+    // Task 3（2026-10-25）：`archivedBy` 为逐人归档状态（用户可写、可恢复）⇒ 运行时字段。
     runtimeFields: [
       'title', 'content', 'priority', 'expireDate', 'audience', 'audiencePersons',
-      'read', 'reads', 'archived', 'archivedAt',
+      'read', 'reads', 'archived', 'archivedAt', 'archivedBy',
     ],
   },
   {
@@ -315,9 +318,14 @@ export const SEED_MANIFEST = [
     idPattern: '^ar\\d+$',
     lifecycleClass: 'archive',
     initTier: 'clear',
-    seedOwnedFields: ['id', 'activityId', 'activityName', 'archiveDate', 'category'],
+    // Task 1（2026-10-25）：归档唯一事实 = activityId（哪个活动被归档）；
+    //   activityName（取活动标题）/ status='archived' / archiveDate（上传动作写入）均归运行时。
+    // Task 2（2026-10-25）：`materialOnly:true` 的非活动材料自带 `title/category/archiveDate` 事实，
+    //   派生器只用 title 作显示名、不用活动标题覆盖；archiveDate 仍列运行时（活动材料行由上传动作写入）。
+    seedOwnedFields: ['id', 'activityId', 'category', 'materialOnly', 'title'],
     runtimeFields: [
-      'status', 'filePath', 'fileName', 'fileSize', 'note', 'secretaryConfirmedAt', 'submittedAt',
+      'activityName', 'archiveDate', 'status', 'filePath', 'fileName', 'fileSize', 'note',
+      'secretaryConfirmedAt', 'submittedAt', 'uploadedBy',
     ],
   },
 

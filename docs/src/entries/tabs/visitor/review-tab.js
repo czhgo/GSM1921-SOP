@@ -3,25 +3,25 @@
 // SOP 复盘提交归「组织者」——组织者可能是党小组组长，也可能是被赋权的普通成员。
 // 本 tab 让担任组织者/深度参与者的成员在自己的工作台即可提交复盘，复盘提交人 = 当前用户（组织者）。
 
-import { loadActivities, reviewRequestOf } from '../../../services/activity/activity.js?v=20261024c';
+import { loadActivities, reviewRequestOf } from '../../../services/activity/activity.js?v=20261024d';
 // 复盘表单（字段/校验/提交链路）唯一实现 = services/governance/review.js（2026-09-10 A③）：
 // 成员端本 tab 与支书「代提交复盘」共用同一套字段与落库链路，勿在此另写表单。
-import { loadActivityReviews, renderActivityReviewFormHtml, submitActivityReviewForm } from '../../../services/governance/review.js?v=20261024c';
-import { mockDB, ReviewStatus, REVIEW_STATUS_LABELS } from '../../../core/domain/domain.js?v=20261024c';
-import { liveMembers, PersonStore } from '../../../services/member/person.js?v=20261024c';
+import { loadActivityReviews, renderActivityReviewFormHtml, submitActivityReviewForm } from '../../../services/governance/review.js?v=20261024d';
+import { mockDB, ReviewStatus, REVIEW_STATUS_LABELS } from '../../../core/domain/domain.js?v=20261024d';
+import { liveMembers, PersonStore } from '../../../services/member/person.js?v=20261024d';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/member/person.js 获取（原直连 mock PEOPLE）
 // 实时视图（非快照）：成员增删即时可见——见 services/member/person.js liveMembers 说明
 const PEOPLE = liveMembers();
-import { AuthStore } from '../../../services/core/auth.js?v=20261024c';
+import { AuthStore } from '../../../services/core/auth.js?v=20261024d';
 // 待批活动的可见性单一源（2026-09-22 批次 151）：成员台非支委层 ⇒ 待批活动不进「我的复盘」清单
-import { filterActivitiesForViewer } from '../../../services/core/visibility.js?v=20261024c';
-import { showToast } from '../../../core/base/utils.js?v=20261024c';
-import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261024c';
-import { scrollDetailIntoView, focusActivityAnchor } from '../../../components/ui/detail-anchor.js?v=20261024c';
+import { filterActivitiesForViewer } from '../../../services/core/visibility.js?v=20261024d';
+import { showToast } from '../../../core/base/utils.js?v=20261024d';
+import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261024d';
+import { scrollDetailIntoView, focusActivityAnchor } from '../../../components/ui/detail-anchor.js?v=20261024d';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是活动的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
-import { renderFilteredList, activityKeyword, activityFacets } from '../../../components/ui/list-filter.js?v=20261024c';
+import { renderFilteredList, activityKeyword, activityFacets } from '../../../components/ui/list-filter.js?v=20261024d';
 // 活动「仍在办」口径单一源（2026-09-13 收敛）：替代手写 status!=='cancelled' && !archived
-import { isActivityLive } from '../../../core/domain/constants.js?v=20261024c';
+import { isActivityLive } from '../../../core/domain/constants.js?v=20261024d';
 
 // 私有状态（随模块自持，不污染入口）
 let _reviewExpandedId = null;
@@ -148,7 +148,7 @@ export function renderContent(ctx) {
     ${renderTabHeader({ title: '我的复盘', description: '组织者 / 深度参与者提交复盘 → 纪检批注确认 → 活动办结。' })}
     <div class="card rounded-xl p-5">
       <div class="flex items-center justify-between mb-4">
-        <h3 class="font-title-cn text-sm font-bold text-gray-700">我的复盘</h3>
+        <h3 class="font-title-cn text-sm font-bold text-gray-700">复盘清单（待复盘 ${pending.length} · 已复盘 ${completed.length}）</h3>
         <span class="text-xs text-gray-500">我担任组织者/深度参与者的活动 · 提交人即组织者</span>
       </div>
       <div class="text-xs text-gray-500 mb-4">提交活动复盘总结 → 纪检委员批注/确认 → 活动办结</div>

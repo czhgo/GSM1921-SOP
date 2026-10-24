@@ -3,7 +3,7 @@ title: "数据模型与数据流"
 type: design
 role: "[工程师]+[AI]"
 version: "1.1"
-last_updated: 2026-10-23
+last_updated: 2026-10-25
 status: active
 related_files: [content/02_institution/SYSTEM_ROLE_PERMISSION.md, content/02_institution/COMMISSIONER_DUTY_FRAMEWORK.md, content/02_institution/sop/纪检委员工作流程指南.md, content/03_doc_system/ARCHITECTURE.md]
 ---
@@ -1220,6 +1220,57 @@ pending ──用户开始处理──→ in_progress ──完成──→ comp
 1. `/api/v1/issues/reveal` 仅作为旧客户端兼容路径保留；当前所有登录请求均返回 **403**，不读真身、不新增留痕。未登录请求先由认证层返回 **401**。
 2. 本表不在通用资源读写映射内；前端不能通过快照或通用 CRUD 查询、制造或修改留痕。
 3. 既有留痕只用于历史审计，不能反推当前授权，也不能替代未来可能另行裁定的核查流程。
+
+### 2.30 事实 / 派生矩阵（mock 种子事实化，Task 1 · 2026-10-25）
+
+> **判据**：`docs/src/data/mock/**` 只写**事实**（日期、确认动作、归档指向、参会、报名…）；状态、进度、有效期与展示快照一律由唯一派生器 `docs/src/data/mock/derive.js::applyDerivedFacts` 在 hydrate / 播种时补回。派生器纯函数、幂等，只写派生字段，不覆盖 `title` / `date` 等运行时字段；天数取 `core/domain/policy-defaults.js`。
+> **调用点**：mock 三条装载路径（`mock-adapter.js` 的 `_seedInitialData` / `_syncDemoSeedRows` / `repairExistingSeedRows`）与 `server/seed.js::seedDatabase` 落库后，共用同一个 `applyDerivedFacts`。
+
+| 集合 | 字段 | 类别 | 输入（事实） | 派生函数 |
+|---|---|---|---|---|
+| activities | status | derived | `cancelled:true` / `draft:true` / 显式 `draft`、`pending-approval`、未来 `published` / `date` 与今天 | `deriveActivityStatus` |
+| activityReviews | progress | derived | 关联活动是否已结束（`isActivityEnded`） | `deriveReviewProgress` |
+| activityReviews | overdue | derived | 活动日 + `review.deadlineDays`、`reviewStatus` / `submittedAt` / `confirmedAt` | `deriveReviewOverdue`（复用 `isReviewOverdue`） |
+| activities | 会议展示态（待召开 / 进行中 / 已召开 / 已归档 / 已取消） | derived | `cancelled` / `archived` 事实、`date` 与今天、`votesLocked`、考勤 / 复盘 / 议程 `result` | `deriveMeetingStatus`（支委会页签唯一判据，替代页签本地四态 `meetingStatus()`） |
+| inspections | status | derived | `confirmedBy` / `confirmedAt` 确认动作；缺省（含打回后未再确认）＝`pending` | `deriveInspectionStatus` |
+| taskforces | status | derived | `dissolvedAt` / `deletedAt` / `draft` / `pendingReview` / `archived` / `deadline` 与今天 | `deriveTaskforceStatus`（canonical 七态） |
+| archiveRecords | activityName | derived | 归档事实 `activityId` → 活动标题；`materialOnly:true` 行取自带 `title` | `deriveArchiveState` |
+| archiveRecords | status | derived | 归档事实 `activityId` → `archived`；`materialOnly:true` 恒 `archived`；无父键且非材料行保留现值 | `deriveArchiveState` |
+| archiveRecords | archiveDate | runtime / fact | 上传动作写入；`materialOnly:true` 的非活动材料自带 `archiveDate` 事实 | — |
+| archiveRecords | materialOnly / title | fact | **非活动材料**（无 `activityId`）的自带事实；派生器不得用活动标题覆盖 | — |
+| notices | expireDate | derived / fact | `targetType==='activity'` → 活动日 + `review.deadlineDays`；其余通知保留发布人显式 `expireDate` | `deriveNoticeExpiry` |
+| attendances | studentId / developStage / partyGroup | derived | `personId` → 人员档案同名字段（改名 / 转组即时跟随） | `deriveAttendanceSnapshot` |
+| activities | cancelled / draft / date / title | fact | 业务事实，种子与写口负责 | — |
+| attendances | personId / activityId / status | fact | 参会事实（考勤状态由上传动作写入） | — |
+| notices | targetType / targetId / publishDate | fact | 消息对象坐标与发布事实 | — |
+
+#### 2.30.1 会议状态派生判据（`deriveMeetingStatus`）
+
+> 支委会页签、会议详情共用；页签不得再声明本地状态机。判据只读事实，不写库。
+
+| 输入（按优先级） | 输出 |
+|---|---|
+| `cancelled:true` / `status='cancelled'` | 已取消 |
+| `archived:true` | 已归档 |
+| 有考勤 / 复盘 / 议程项 `result` 等会后事实 | 已召开 |
+| `date` 晚于今天且 `votesLocked !== true` | 待召开（**唯一**入口） |
+| `date` 晚于今天且已锁定，或 `date` 等于今天 | 进行中 |
+| `date` 早于今天 | 已召开 |
+| 无 `date` | 进行中（日期缺失不构成「待召开」） |
+
+「应到」单一口径：`attendanceRosters` 冻结名单优先；无冻结名单时回落 `resolveVoterIds('committee')` 现算，并在行内标注「实时」；两者不得相加或互相覆盖。
+
+#### 2.30.2 归档单一事实与同事务同步
+
+> 活动归档动作是唯一事实：`activities.archived`、`archiveRecords`、通知系统归档、待归档待办销项必须在**同一次归档动作**内完成；重复归档不得新增记录、不得报错。
+
+| 形态 | 写口 | 同事务动作 |
+|---|---|---|
+| mock | `docs/src/services/core/mock.js::archiveActivity`（BranchService） | 置 `archived`；`upsertActivityArchiveRecord` 创建/同步归档记录；`NoticeStore.archiveBySource('activity', id)`；`TodoStore.completeByAction('activity', id, 'activity-archive')` |
+| mock（适配器旧口） | `docs/src/data/mock-adapter.js::activities.archive` | 同上（同一纯函数与同一 Store 入口） |
+| API | `server/routes/resources/index.js::POST /activities/:id/archive` | 同一 `db.transaction` 内更新 activities / archive_records / notices / todos |
+
+「待归档」待办改阶段：活动结束（`isActivityEnded`）即由 `LifecycleTodoDeriver.derivePendingArchiveTodos` 生成一条（幂等键 `sourceType+sourceId+actionKey`），归档动作负责完成；历史「归档完成后新建」的滞留待办由 `migrateStaleArchiveTodos` 一次性作废（幂等）。
 
 ---
 

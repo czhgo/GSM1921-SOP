@@ -314,7 +314,8 @@ test('宣传任务页提供登记表单并写入 propTasks', async () => {
   assert.match(source, /activityId/);
 });
 
-test('五台注册序：我的处置位于工作台之后、我的职责之前', async () => {
+// 2026-10-24 Task 4.1：分组轴重裁定「工作台」→「总览」；本用例只改期望值（顺序判据一字未动）。
+test('五台注册序：我的处置位于总览之后、我的职责之前', async () => {
   const files = [
     'org-workspace.js',
     'prop-workspace.js',
@@ -332,29 +333,33 @@ test('五台注册序：我的处置位于工作台之后、我的职责之前',
         group: /groupLabel: '([^']+)'/.exec(line)?.[1],
       }));
     const dispatch = tabs.findIndex((tab) => tab.id === 'my-dispatch');
-    const workEnd = tabs.findLastIndex((tab) => tab.group === '工作台');
+    const workEnd = tabs.findLastIndex((tab) => tab.group === '总览');
     const dutyStart = tabs.findIndex((tab) => tab.group === '我的职责');
     assert.ok(dispatch > -1, `${file} 未注册 my-dispatch`);
-    assert.ok(workEnd > -1, `${file} 未注册工作台分组`);
+    assert.ok(workEnd > -1, `${file} 未注册总览分组`);
     assert.ok(dutyStart > -1, `${file} 未注册我的职责分组`);
     assert.ok(dispatch > workEnd,
-      `${file}：我的处置应位于工作台分组之后（下标 ${dispatch} ≤ 工作台末位 ${workEnd}）`);
+      `${file}：我的处置应位于总览分组之后（下标 ${dispatch} ≤ 总览末位 ${workEnd}）`);
     assert.ok(dispatch < dutyStart,
       `${file}：我的处置应位于我的职责分组之前（下标 ${dispatch} ≥ 我的职责首位 ${dutyStart}）`);
   }
 });
 
-test('知情查看只保留有新增对象的段：宣传/纪检不再保留空壳页签，支书只出专班段', async () => {
+test('知情查看只保留有新增对象的段：宣传/纪检不再保留空壳页签，支书补回工作组段', async () => {
   // 2026-10-20 批次 489（IA-A01/A02）：纪检/宣传的「知情查看」空壳页签已删除（文件随之移除）
   //   ——专班知情改由 taskforce.html 承载，活动知情由活动日历承载。
   for (const page of ['prop', 'disc']) {
     const source = await read(`../../docs/src/capabilities/${page}-workspace.js`);
     assert.doesNotMatch(source, /id:\s*'tf-view'/, `${page} 台能力注册不应再含 tf-view 页签`);
   }
+  // 2026-10-24 spec Task 5（支书「工作组 为什么只有专班？」）：支书台补「工作组」段、默认工作组；
+  //   「活动一览」仍不回到本页（活动管理承载）⇒ 原「不得出现 activity」断言改为「不得出现 activity 段」。
   const registry = await read('../../docs/src/capabilities/secretary-workspace.js');
   const row = registry.split('\n').find((line) => line.includes("id: 'tf-view'")) || '';
-  assert.match(row, /views: \['taskforce'\]/, '支书知情查看只出专班段');
-  assert.doesNotMatch(row, /activity/, '支书知情查看不再渲染活动段');
+  assert.match(row, /views: \['workgroup', 'taskforce'\]/, '支书知情查看须含工作组 + 专班两段');
+  assert.match(row, /defaultView: 'workgroup'/, '支书知情查看默认落工作组段');
+  assert.doesNotMatch(row, /views: \['activity'|'activity', 'workgroup'/, '支书知情查看不再渲染活动一览段');
+  assert.doesNotMatch(row, /views: \['taskforce'\]/, '支书知情查看不得只剩专班段（本批根因）');
 
   // A04（2026-10-20 IA 修复批次）：组织台「知情查看」页签撤页，能力并入「专班管理」页。
   const orgRegistry = await read('../../docs/src/capabilities/org-workspace.js');
@@ -388,7 +393,9 @@ test('反馈管理只留反馈：列表与合并目标排除 kind=report', async
   assert.match(source, /!i\.hidden && !i\.mergedInto && i\.kind !== 'report'/, '反馈列表须排除工作汇报');
   assert.match(source, /const mergeTargets = IssueStore\.getAll\(\)\.filter\(i => i\.id !== issueId && !i\.hidden && !i\.mergedInto && i\.kind !== 'report'\)/, '合并目标同样不得混入工作汇报');
   assert.match(source, /无匹配反馈/);
-  assert.match(source, />反馈管理</);
+  // 2026-10-24 Task 4.2：卡头 H3 不再逐字复述页签名「反馈管理」，改由 renderCardHeader 渲染「反馈列表」。
+  //   本用例仍守「反馈页存在卡片标题」这一覆盖面，只改期望值。
+  assert.match(source, /title: '反馈列表'/);
 });
 
 test('工作概况汇报区只读：无提交入口，唯一动作跳「我的处置」', async () => {
@@ -460,13 +467,15 @@ test('纯展示列表行只用分隔线，整卡可点的交互卡片仍保留�
     `交互卡片缺少边框 ${missingCardBorder.length} 处（基线 ${CARD_BORDER_BASELINE}）：\n${missingCardBorder.join('\n')}`);
 });
 
-test('侧栏导航图标语义唯一：我的私信=mail、意见反馈=message，同一导航数组不得复用图标', async () => {
+test('侧栏导航图标语义唯一：消息=mail、意见反馈=message，同一导航数组不得复用图标', async () => {
   const source = await read('../../docs/src/components/shell/sidebar.js');
   const start = source.indexOf('function getNavItems()');
   const end = source.indexOf('function getFooterItems()');
   assert.ok(start >= 0 && end > start, '未找到 sidebar 导航数组');
   const navBlock = source.slice(start, end);
-  assert.match(navBlock, /label: '我的私信'[^}]*icon: icon\('mail'/, '「我的私信」须使用信封图标 mail');
+  // 期望更新（Task 3 · 2026-10-25）：入口从「我的私信」升级为「消息」中心（公告 / 系统 / 私信同列）；
+  //   图标语义不变（信封 mail），module 与 href 也不变。
+  assert.match(navBlock, /label: '消息'[^}]*icon: icon\('mail'/, '「消息」须使用信封图标 mail');
   assert.match(navBlock, /label: '意见反馈'[^}]*icon: icon\('message'/, '「意见反馈」须保留对话气泡图标 message');
   const icons = [...navBlock.matchAll(/icon\('([A-Za-z]+)'/g)].map((m) => m[1]);
   assert.ok(icons.length >= 5, `导航图标抽取过少（${icons.length}），守卫可能空转`);

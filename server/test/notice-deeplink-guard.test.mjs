@@ -24,7 +24,7 @@ import assert from 'node:assert/strict';
 import { readFileSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
 
-import { buildSystemNotice } from '../../docs/src/core/domain/system-notice-templates.js?v=20261024c';
+import { buildSystemNotice, SYSTEM_NOTICE_KIND_NAMES } from '../../docs/src/core/domain/system-notice-templates.js?v=20261024d';
 
 const ROOT = join(import.meta.dirname, '..', '..');
 const read = (...parts) => readFileSync(join(ROOT, ...parts), 'utf8');
@@ -34,6 +34,11 @@ const REVIEW_TAB = read('docs/src/entries/tabs/party-committee/review-tab.js');
 const TODO_SHELL = read('docs/src/components/record/todo-tab-shell.js');
 const NOTICE_SVC = read('docs/src/services/governance/notice.js');
 const NOTICE_VIEW = read('docs/src/components/governance/notice-view.js');
+const NOTICE_ENTRY = read('docs/src/entries/pages/notice-entry.js');
+const HEADER = read('docs/src/components/shell/header.js');
+const ARCHIVE_ENTRY = read('docs/src/entries/pages/archive-entry.js');
+const TODO_JUMP = read('docs/src/components/record/todo-jump.js');
+const TODAY_TAB = read('docs/src/entries/tabs/today/today-tab.js');
 const MEMBER_PANEL = read('docs/src/components/governance/member-change-panel.js');
 const AUTH = read('docs/src/services/core/auth.js');
 
@@ -94,17 +99,50 @@ test('F02/F12 targetUrl 守卫：page 存在于 docs/，tab 存在于该角色�
   }
 });
 
-// ── F06：targetType+targetId 优先，targetUrl 仅兜底 ─────────────────
-test('F06 优先级：模板头注与 resolveNoticeUrl 同源，消费端不各自分叉', () => {
+// ── F06：targetType+targetId 优先，targetUrl 仅兜底；入口统一先落全貌页 ─────
+test('F06 优先级与入口收口：非公告必须有坐标；所有通知入口先落 notice.html?id=', () => {
   assert.match(TEMPLATES, /targetType\+targetId 优先/, '模板文件头须声明优先契约');
   assert.match(TEMPLATES, /targetUrl.*兜底/, '模板文件头须声明 targetUrl 仅兜底');
 
-  const typeIdx = NOTICE_SVC.indexOf('if (n.targetType && n.targetId)');
-  const urlIdx = NOTICE_SVC.indexOf('if (n.targetUrl)');
-  assert.ok(typeIdx >= 0 && urlIdx >= 0, 'resolveNoticeUrl 必须同时处理两类落点');
-  assert.ok(typeIdx < urlIdx, 'resolveNoticeUrl 必须先判 targetType/targetId，再兜底 targetUrl');
-  assert.match(NOTICE_SVC, /F06 优先契约/, '消费端须引用同一契约（同源注释）');
-  assert.match(NOTICE_VIEW, /resolveNoticeUrl\(n\)/, '通知行 href 必须复用 resolveNoticeUrl（新标签打开也不分叉）');
+  // Task 3（2026-10-25）：非公告（系统通知）必须有 targetType + targetId。
+  // 期望更新：原 F06 只断言「有 targetUrl 时优先 targetType」，未要求每类系统通知都带坐标；
+  //   现按消息对象模型逐 kind 构建，断言 kind='system' 且坐标齐全（缺坐标者写入侧会降级为公告）。
+  const vars = {
+    sourceId: 'obj-1', targetType: 'activity', targetId: 'obj-1', title: 't', content: 'c',
+    personId: 'p-1', personName: '张三', activityTitle: '活动', activity: '活动',
+    branchLabel: '支部', subject: '事项', submitterName: '李四', decision: 'confirmed',
+    receiverRole: 'secretary', targetPage: 'workspace/visitor.html',
+    removedPersonId: 'p-1', projectName: '项目', fromName: '甲', toName: '乙',
+    actorRole: 'secretary', todoTitle: '待办', label: '记录', resource: 'activities',
+  };
+  for (const kind of SYSTEM_NOTICE_KIND_NAMES) {
+    const n = buildSystemNotice(kind, vars);
+    assert.equal(n.kind, 'system', `${kind} 的系统通知 kind 必须为 system`);
+    assert.ok(n.targetType && n.targetId, `${kind} 的系统通知缺 targetType/targetId（非公告必须有坐标）`);
+  }
+
+  // Task 6（2026-10-25 批次 510）：`resolveNoticeUrl` 的页面级兜底与 direct 直跳已退役，且全仓无消费者
+  //   ⇒ 导出本身就是死码（Q-14）。坐标优先契约改由「模板声明 + 详情页对象卡」承担。
+  assert.doesNotMatch(NOTICE_SVC, /export function resolveNoticeUrl/,
+    'Q-14：resolveNoticeUrl 已无消费者，不得再保留导出（页面级兜底随统一消息中心退役）');
+  assert.match(NOTICE_ENTRY, /const type = n\.targetType;/, '消息详情页必须消费 targetType');
+  assert.match(NOTICE_ENTRY, /const id = n\.targetId;/, '消息详情页必须消费 targetId');
+
+  // Task 3：所有通知入口统一先落全貌页；direct 直跳与页面级兜底已退役。
+  for (const [name, src] of [['header.js', HEADER], ['notice-view.js', NOTICE_VIEW]]) {
+    assert.doesNotMatch(src, /resolveNoticeUrl\s*\(/, `${name} 不得再走通知 direct 直跳`);
+    assert.doesNotMatch(src, /dest\.direct/, `${name} 不得再判 direct 分支`);
+    assert.match(src, /notice\.html\?id=/, `${name} 的通知行必须以 notice.html?id= 为落点`);
+  }
+  // 铃铛 = 未读全量可滚动，不再按 DASHBOARD_LIMITS 裁剪（容器自行滚动）。
+  assert.doesNotMatch(HEADER, /DASHBOARD_LIMITS\.notices/, 'header 不得再把铃铛列表裁到固定条数');
+  assert.match(HEADER, /messages\.html\?filter=unread/, '铃铛底部「查看全部」应进消息中心未读');
+  assert.doesNotMatch(ARCHIVE_ENTRY, /renderNoticeArchive/, '归档库不得再保留通知列表（第二入口）');
+  assert.doesNotMatch(ARCHIVE_ENTRY, /resolveNoticeUrl/, '归档库不得再解析通知落点');
+  assert.match(TODO_JUMP, /resolveDocumentUrl\('notice\.html'/, '通知类待办必须回消息详情');
+  assert.match(TODAY_TAB, /resolveDocumentUrl\('notice\.html'/, '今天页未读通知必须回消息详情');
+  assert.doesNotMatch(TODAY_TAB, /resolveNoticeUrl\s*\(/, '今天页不得再走通知 direct 直跳');
+  assert.doesNotMatch(TODAY_TAB, /NoticeStore\.markRead\(noticeId\)/, '今天页不得在导航前预写已读');
 
   // 不得再出现「写了 targetUrl 却永不生效」的死链
   assert.doesNotMatch(TEMPLATE_CODE, /targetUrl:\s*'workspace\/leader\.html'/, 'F06：targetType 在前的模板不得再写死 leader 台');

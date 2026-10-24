@@ -22,6 +22,8 @@ import {
   TaskforceStatus, TASKFORCE_TERMINAL_STATUSES, isTaskforceStatus, workgroupStatusForTaskforce, isActivityClosed,
 } from '../../../docs/src/core/domain/domain.js';
 import { workgroupIdFor } from '../../../docs/src/data/activity-workgroup-sync.js';
+// Task 2.2（2026-10-25）：归档单一事实——归档记录同步纯函数与 mock 同源
+import { upsertActivityArchiveRecord } from '../../../docs/src/data/mock/derive.js';
 import { validateAgendaStructure } from '../../../docs/src/services/activity/agenda-relations.js';
 import { deriveArchivePeriod } from '../../../docs/src/services/governance/periodic-archive.js';
 // R4-B04：思想汇报读口与前端同一判据（本人或支委层），单一源 = services/governance/thought-report.js
@@ -955,6 +957,9 @@ export function createResourcesRouter(db) {
   });
 
   // 活动归档特例（与前端 BranchService.archiveActivity 语义对齐）
+  // Task 2.2（2026-10-25）· 归档单一事实（同一事务、幂等）：
+  //   置 activity.archived → 归档记录创建/同步（activityName 现取）→ 关联通知系统归档 →
+  //   销项「待归档」待办（activity-archive）。重复归档不新增记录、不报错。
   router.post('/activities/:id/archive', requireAuth(db), (req, res) => {
     const id = req.params.id;
     const existing = db.prepare('SELECT data FROM activities WHERE id = ?').get(id);
@@ -964,6 +969,8 @@ export function createResourcesRouter(db) {
     if (_disabledActivityHistoryReadOnly(db, current)) return res.status(409).json({ error: '本支部已停用活动组织能力；已结束活动只读保留' });
     const act = { ...current, id, archived: true };
     const workgroupUpdate = activityWorkgroupUpdate(db, act, req.actor.id);
+    const today = fmtLocal(new Date());
+    const at = new Date().toISOString();
     const purge = db.transaction(() => {
       db.prepare('INSERT OR REPLACE INTO activities (id, data) VALUES (?, ?)').run(id, JSON.stringify(act));
       if (workgroupUpdate) {
@@ -978,6 +985,44 @@ export function createResourcesRouter(db) {
             .run(t.id, JSON.stringify({ ...t, status: 'completed' }));
         }
       }
+      // ① 关联通知系统归档（与前端 NoticeStore.archiveBySource 同口径：坐标命中或深链携带 activityId）
+      let noticesChanged = false;
+      for (const row of db.prepare('SELECT id, data FROM notices').all()) {
+        const n = JSON.parse(row.data);
+        if (!n || n.archived) continue;
+        const urlCarriesActivity = typeof n.targetUrl === 'string' && n.targetUrl.includes(`activityId=${id}`);
+        if ((n.targetType === 'activity' && n.targetId === id) || urlCarriesActivity) {
+          db.prepare('INSERT OR REPLACE INTO notices (id, data) VALUES (?, ?)')
+            .run(row.id, JSON.stringify({ ...n, archived: true, archivedAt: today }));
+          noticesChanged = true;
+        }
+      }
+      if (noticesChanged) bumpCollectionVersion(db, 'notices');
+      // ② 归档记录与活动归档同源（已有记录同步名称/状态；没有则补一条最小归档记录）
+      const recordRows = db.prepare('SELECT id, data FROM archive_records').all()
+        .map((row) => ({ id: row.id, ...JSON.parse(row.data) }));
+      const previousById = new Map(recordRows.map((row) => [row.id, row]));
+      const nextRecords = upsertActivityArchiveRecord(recordRows, act, { now: today });
+      if (nextRecords !== recordRows) {
+        for (const row of nextRecords) {
+          if (JSON.stringify(previousById.get(row.id)) === JSON.stringify(row)) continue;
+          db.prepare('INSERT OR REPLACE INTO archive_records (id, data) VALUES (?, ?)')
+            .run(row.id, JSON.stringify(row));
+        }
+        bumpCollectionVersion(db, 'archiveRecords');
+      }
+      // ③ 销项「待归档」待办（归档动作是唯一销项点；不在归档后新建待办）
+      let todosChanged = false;
+      for (const row of db.prepare('SELECT id, data FROM todos').all()) {
+        const t = JSON.parse(row.data);
+        if (!t || t.voided || t.status === 'completed') continue;
+        if (t.sourceType !== 'activity' || String(t.sourceId) !== id) continue;
+        if ((t.actionKey || t.actionType) !== 'activity-archive') continue;
+        db.prepare('INSERT OR REPLACE INTO todos (id, data) VALUES (?, ?)')
+          .run(row.id, JSON.stringify({ ...t, status: 'completed', completedAt: at }));
+        todosChanged = true;
+      }
+      if (todosChanged) bumpCollectionVersion(db, 'todos');
     });
     purge();
     res.json(act);
@@ -1640,7 +1685,15 @@ function _projectResourceRowsExt(db, name, rows, actor) {
   const viewer = actor
     ? { personId: actor.id, role: actor.role, developStage: actor.developStage }
     : null;
-  return rows.filter((row) => canReadNotice(row, viewer));
+  // Task 3（2026-10-25）：通知投影透传消息对象模型字段（kind / archivedBy），
+  // 缺省按 kindOf 迁移、archivedBy 归一为数组——客户端不再各自补默认值。
+  return rows
+    .filter((row) => canReadNotice(row, viewer))
+    .map((row) => ({
+      ...row,
+      kind: kindOf(row),
+      archivedBy: Array.isArray(row.archivedBy) ? row.archivedBy : [],
+    }));
 }
 
 /** 行级读投影集合：非支委层快照写穿时，保留「本次未出现且本人不可见」的存量行 */
@@ -1671,6 +1724,6 @@ export function _retainRowScopedSnapshotRows(db, writes, actor) {
 }
 
 // 受众判定单一源 = 前端 `canReadNotice`（私信 / 定向 / 角色 sentinel 同一套规则；勿另写一份）
-import { canReadNotice } from '../../../docs/src/services/governance/notice.js';
+import { canReadNotice, kindOf } from '../../../docs/src/services/governance/notice.js';
 // 反馈 / 汇报的受众判定单一源 = domain 层纯函数（服务端不能 import issues.js：那件牵 localStorage/适配器）
 import { canReadIssue } from '../../../docs/src/core/domain/issue-visibility.js';

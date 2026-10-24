@@ -1,4 +1,4 @@
-import { DEFAULT_BRANCH_ID } from '../../core/domain/constants.js?v=20261024c';
+import { DEFAULT_BRANCH_ID } from '../../core/domain/constants.js?v=20261024d';
 export const MOCK_NOTICES = [
   // ── 历史通知（多数已过期；有效期由 expireDate 决定，不以注释断言「当前有效」）──────
   // R10（2026-10-23）：种子不再写旧的全局 `read` 布尔——读侧只用逐人 `reads[]`；
@@ -9,7 +9,6 @@ export const MOCK_NOTICES = [
     content: '7月25日下午14:00在光华1号楼101报告厅召开"深化改革"主题党日，请全体党员、预备党员、积极分子准时参加。',
     priority: 'urgent',
     publishDate: '2026-07-15',
-    expireDate: '2026-07-25',
     targetModule: 'activity',
     targetType: 'activity',
     targetId: 'act-21',
@@ -75,7 +74,6 @@ export const MOCK_NOTICES = [
     content: '8月4日下午14:00在光华1号楼101报告厅举行暑期实践总结分享会，请各党小组组织成员回顾暑期实践成果并做好分享准备。',
     priority: 'normal',
     publishDate: '2026-08-01',
-    expireDate: '2026-08-04',
     targetModule: 'activity',
     targetType: 'activity',
     targetId: 'act-29',
@@ -120,15 +118,14 @@ export const MOCK_NOTICES = [
     targetModule: 'activity',
   },
   // ── 10 月通知（2026-10 宣传基线，与 activities.js 保持数据协调）───────
-  // R10（2026-10-23）：两条 10 月通知的有效期顺延至 2026-12-31（C12）——act-37 已收口为 completed，
-  //   通知保留本学期的阅读/归档窗口，不再首启即全部过期。
+  // Task 1（2026-10-25）：活动类通知不再手写 `expireDate`，由
+  //   `data/mock/derive.js::deriveNoticeExpiry` 按「活动日 + 活动收尾窗口」现算。
   {
     id: 'notice-111',
     title: '开展"红色徒步·香山行"（纪念长征胜利 90 周年）活动的通知',
     content: '10月22日组织支部党员赴香山公园开展"红色徒步·香山行"主题党日（纪念长征胜利 90 周年），请全体党员、预备党员、积极分子做好参加准备。',
     priority: 'urgent',
     publishDate: '2026-10-08',
-    expireDate: '2026-12-31',
     targetModule: 'activity',
     targetType: 'activity',
     targetId: 'act-37',
@@ -139,7 +136,6 @@ export const MOCK_NOTICES = [
     content: '10月15日在光华1号楼101报告厅举办党建思想学习会，主题为深入学习党的创新理论，请全体党员准时参加。',
     priority: 'normal',
     publishDate: '2026-10-08',
-    expireDate: '2026-12-31',
     targetModule: 'activity',
     targetType: 'activity',
     targetId: 'act-36',
@@ -175,6 +171,10 @@ for (const notice of MOCK_NOTICES) {
   //   编辑/撤回这些通知（发布者判据读 createdBy），审计也会显示错误发布者。种子统一记为系统通知
   //   （createdBy:null），读侧按「系统初始通知」处理；真实发布的通知仍写当前登录人。
   notice.createdBy = notice.createdBy ?? null;
+  // Task 3（2026-10-25）：消息对象模型字段随种子落库——kind 为语义事实（种子均为支部公告），
+  //   archivedBy 为逐人归档状态（初始为空）；与 API 投影 / 历史规范化同形，保证两形态读数一致。
+  notice.kind = notice.kind ?? 'announcement';
+  if (!Array.isArray(notice.archivedBy)) notice.archivedBy = [];
   if (notice.audience === undefined && !Array.isArray(notice.audiencePersons)) {
     Object.assign(notice, NOTICE_AUDIENCE_SEED[notice.id] || { audience: ['all'] });
   }

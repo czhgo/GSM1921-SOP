@@ -11,7 +11,7 @@
 //   G2 枚举单一源：状态判据/授权/迁移/服务端写口文件必须从 `domain.js` 取判据，不得本地再声明状态数组。
 //   G3 无裸状态数组：`docs/src/**` 与 `server/**`（测试除外）不得出现仅由状态字面量组成的数组；
 //      状态集合只能引用 domain.js 的导出。
-//   G4 mock 数据不出现枚举外值：`MOCK_TASKFORCES[].status` 必须在 TASKFORCE_STATUSES 内；
+//   G4 mock 数据不出现枚举外值：`derive.js` 从事实派生的专班状态必须在 TASKFORCE_STATUSES 内；
 //      由 mock 生成的工作组 status 必须在 WORKGROUP_STATUSES 内。
 //   G5 迁移不复制未知状态：历史别名 in_progress → active；未知值 → draft（只读待核）。
 //   G6 文档同步：DATA_MODEL.md 含 canonical 集合与 2.3.2 小节。
@@ -27,9 +27,10 @@ import {
   TASKFORCE_TERMINAL_STATUSES, TASKFORCE_DIRECT_TRANSITIONS,
   WorkgroupStatus, WORKGROUP_STATUSES, WORKGROUP_WRITABLE_STATUSES, WORKGROUP_CLOSED_STATUSES,
   isTaskforceStatus, workgroupStatusForTaskforce,
-} from '../../docs/src/core/domain/domain.js?v=20261024c';
-import { MOCK_TASKFORCES } from '../../docs/src/data/mock/taskforces.js?v=20261024c';
-import { ensureLegacySourceWorkgroups } from '../../docs/src/data/workgroup-seed-sync.js?v=20261024c';
+} from '../../docs/src/core/domain/domain.js?v=20261024d';
+import { MOCK_TASKFORCES } from '../../docs/src/data/mock/taskforces.js?v=20261024d';
+import { applyDerivedFacts } from '../../docs/src/data/mock/derive.js?v=20261024d';
+import { ensureLegacySourceWorkgroups } from '../../docs/src/data/workgroup-seed-sync.js?v=20261024d';
 
 const ROOT = join(import.meta.dirname, '..', '..');
 const SELF = join(import.meta.dirname, 'state-enum-guard.test.mjs');
@@ -69,6 +70,14 @@ function walk(dir, out = []) {
 }
 
 const read = (relPath) => readFileSync(join(ROOT, relPath), 'utf8');
+
+/** 取顶层 `function <name>` / `export function <name>` 的函数体（到列 0 的 `}` 为止；静态扫描够用） */
+function functionBody(source, name) {
+  const start = source.indexOf(`function ${name}`);
+  if (start < 0) return null;
+  const end = source.indexOf('\n}', start);
+  return source.slice(start, end < 0 ? undefined : end + 2);
+}
 
 test('G1 canonical 集合：三分类不重不漏，直接流转仅 recruiting → active', () => {
   assert.deepEqual([...TASKFORCE_STATUSES], EXPECTED, 'TaskforceStatus 必须是 canonical 七态');
@@ -128,15 +137,18 @@ test('G3 无裸状态数组：应用面不得出现仅由状态字面量组成�
     + hits.join('\n  '));
 });
 
-test('G4 mock 数据：专班状态必须落在 canonical 枚举内，生成的工作组状态同源', () => {
+test('G4 mock 数据：专班派生状态必须落在 canonical 枚举内，生成的工作组状态同源', () => {
   assert.ok(MOCK_TASKFORCES.length >= 8, 'mock 专班语料缺失，判据会变空转');
-  const illegal = MOCK_TASKFORCES.filter((row) => !isTaskforceStatus(row.status));
+  // Task 1（2026-10-25）：种子不再写 status；状态由 derive.js 从截止日 / 解散事实派生。
+  const derivedTaskforces = MOCK_TASKFORCES.map((row) => ({ ...row }));
+  applyDerivedFacts({ activities: [], taskforces: derivedTaskforces });
+  const illegal = derivedTaskforces.filter((row) => !isTaskforceStatus(row.status));
   assert.deepEqual(illegal.map((row) => `${row.id}:${row.status}`), [],
-    'mock 专班出现枚举外状态');
+    'mock 专班派生状态出现枚举外值');
 
   const db = {
     activities: [],
-    taskforces: MOCK_TASKFORCES.map((row) => ({ ...row })),
+    taskforces: derivedTaskforces.map((row) => ({ ...row })),
     workgroups: [], workgroupMembers: [], workgroupGrants: [],
   };
   ensureLegacySourceWorkgroups(db);
@@ -146,7 +158,7 @@ test('G4 mock 数据：专班状态必须落在 canonical 枚举内，生成的�
     'mock 生成的工作组出现枚举外状态');
 
   for (const group of db.workgroups) {
-    const source = MOCK_TASKFORCES.find((row) => row.id === group.sourceId);
+    const source = derivedTaskforces.find((row) => row.id === group.sourceId);
     assert.equal(group.status, workgroupStatusForTaskforce(source.status),
       `${group.sourceId} 的工作组状态应由专班状态 canonical 映射`);
   }
@@ -181,4 +193,76 @@ test('G6 文档同步：DATA_MODEL.md 写明 canonical 集合与状态分离', (
   assert.match(doc, /WORKGROUP_STATUSES/, 'DATA_MODEL.md 未指向工作组状态单一源');
   assert.match(doc, /不得把活动的 `published\/ongoing\/cancelled\/pending-approval` 写入专班或工作组/,
     'DATA_MODEL.md 未声明活动状态与专班/工作组状态分离');
+});
+
+// ═════════════════════════════════════════════════════════════════════════════
+// 二、活动 / 消息状态单一源（批次 510 · SD-34）
+//   判据：状态集合由 UI 流程反推，页面不得再写本地状态机；同一状态只能有一个派生器 / 一个种类判定。
+//   G7 支委会页签：会议状态只认 `deriveMeetingStatus`，不得回落本地 `meetingStatus()`；
+//   G8 派生器：`deriveActivityStatus` / `deriveMeetingStatus` 必须导出，活动状态返回值 ⊆ 五态；
+//   G9 消息种类：`kindOf` 单一源，kind 只认 announcement / system / message，规范化必须处理逐人归档。
+// ═════════════════════════════════════════════════════════════════════════════
+
+test('G7 支委会页签：会议状态不再本地判定，统一走 deriveMeetingStatus（批次 510 · SD-34）', () => {
+  const rel = 'docs/src/entries/tabs/secretary/committee-meeting-tab.js';
+  const source = read(rel);
+  assert.ok(source.length > 1000,
+    `${rel} 只读到 ${source.length} 字符（下限 1000）：读取面被写坏，本条会变恒真`);
+
+  assert.ok(!/function\s+meetingStatus\s*\(/.test(source),
+    `${rel} 又出现本地状态机 function meetingStatus()——会议状态判据唯一源是 data/mock/derive.js::deriveMeetingStatus`);
+  // 「待召开」只允许作为徽章档的展示键出现；判定 / 返回该值＝页签又自算状态。
+  assert.ok(!/(?:return|=>)\s*'待召开'/.test(source) && !/[=!]==?\s*'待召开'/.test(source),
+    `${rel} 出现「待召开」字面量判定 / 返回分支——页面不得自行判会议状态，应由 deriveMeetingStatus 返回后只做展示映射`);
+  assert.match(source, /import\s*\{[^}]*\bderiveMeetingStatus\b[^}]*\}\s*from\s*'[^']*data\/mock\/derive\.js/,
+    `${rel} 未从 data/mock/derive.js 导入 deriveMeetingStatus（会议状态单一源）`);
+});
+
+test('G8 派生器单源：deriveActivityStatus / deriveMeetingStatus 必须导出，活动状态返回值 ⊆ 五态（批次 510 · SD-34）', () => {
+  const rel = 'docs/src/data/mock/derive.js';
+  const source = read(rel);
+  assert.ok(source.length > 1000,
+    `${rel} 只读到 ${source.length} 字符（下限 1000）：读取面被写坏，本条会变恒真`);
+
+  const activityBody = functionBody(source, 'deriveActivityStatus');
+  const meetingBody = functionBody(source, 'deriveMeetingStatus');
+  assert.ok(activityBody, `${rel} 未导出 deriveActivityStatus`);
+  assert.ok(meetingBody, `${rel} 未导出 deriveMeetingStatus`);
+
+  // 静态扫描（不执行）：只看 `return <expr>;` 里的字符串字面量；`return a.status` 这类透传不计。
+  const returns = [...activityBody.matchAll(/return\s+([^;]+);/g)].map((m) => m[1]);
+  const literals = returns.flatMap((expr) => [...expr.matchAll(/'([^']+)'/g)].map((m) => m[1]));
+  assert.ok(literals.length >= 4,
+    `deriveActivityStatus 只抽到 ${literals.length} 个返回字面量（下限 4）：函数被改写或扫描口径失效，本条会变恒真`);
+
+  const allowed = new Set(['draft', 'published', 'ongoing', 'completed', 'cancelled']);
+  const illegal = [...new Set(literals.filter((value) => !allowed.has(value)))];
+  assert.deepEqual(illegal, [],
+    `deriveActivityStatus 返回了五态之外的值：${illegal.map((v) => `'${v}'`).join(' / ')}` +
+    `（允许集合 = draft / published / ongoing / completed / cancelled）——请改派生器，不要放宽本断言`);
+});
+
+test('G9 消息种类单一源：notice.js 导出 kindOf，kind 判定只认三种身份，规范化含 archivedBy（批次 510 · SD-34）', () => {
+  const rel = 'docs/src/services/governance/notice.js';
+  const source = read(rel);
+  assert.ok(source.length > 1000,
+    `${rel} 只读到 ${source.length} 字符（下限 1000）：读取面被写坏，本条会变恒真`);
+
+  assert.match(source, /export function kindOf\s*\(/,
+    `${rel} 未导出 kindOf（消息种类判定的单一源）`);
+
+  const checks = [...source.matchAll(/\bkind\s*[!=]==?\s*'([^']+)'/g)].map((m) => m[1]);
+  assert.ok(checks.length >= 3,
+    `只扫到 ${checks.length} 处 kind 字面量判定（下限 3）：判定写法被改写，本条会变恒真`);
+
+  const allowed = new Set(['announcement', 'system', 'message']);
+  const illegal = [...new Set(checks.filter((value) => !allowed.has(value)))];
+  assert.deepEqual(illegal, [],
+    `${rel} 的 kind 判定出现三种消息身份之外的值：${illegal.map((v) => `'${v}'`).join(' / ')}` +
+    `（只允许 announcement / system / message）——请改 kindOf，不要放宽本断言`);
+
+  const normalizeBody = functionBody(source, '_normalizeNotice');
+  assert.ok(normalizeBody, `${rel} 未找到历史行规范化函数 _normalizeNotice`);
+  assert.match(normalizeBody, /archivedBy/,
+    `${rel}::_normalizeNotice 未处理 archivedBy（逐人归档名单）——归档会退回「一条收藏，全站跟着没」的旧口径`);
 });

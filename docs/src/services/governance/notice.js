@@ -5,24 +5,120 @@
 //  独立于 mockDB 内存结构，通过 mockDB.notices 统一持久化
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../../core/domain/domain.js?v=20261024c';
-import { generateId } from '../../core/base/id.js?v=20261024c';
-import { persist, getDataSource, getApiBaseUrl, getAuthToken, adoptCollectionFromServer } from '../../data/data-adapter.js?v=20261024c';
-import { buildSystemNotice } from '../../core/domain/system-notice-templates.js?v=20261024c';
-import { bumpToken } from '../../core/base/version-token.js?v=20261024c'; // P0 域缓存失效（spec §二.3）
-import { MOCK_NOTICES } from '../../data/mock/index.js?v=20261024c';
-import { isInitStateActive } from '../core/init-reset.js?v=20261024c'; // C2 修复（2026-09-08）：init 态跳过演示种子兜底
-import { getBasePath, todayLocal } from '../../core/base/utils.js?v=20261024c';
-import { AuthStore } from '../core/auth.js?v=20261024c';
-import {  getPersonById } from '../member/person.js?v=20261024c';
-import { NoticeTodoDeriver, TodoStore, TodoSourceType, TodoStatus } from './todo.js?v=20261024c';
+import { mockDB } from '../../core/domain/domain.js?v=20261024d';
+import { generateId } from '../../core/base/id.js?v=20261024d';
+import { persist, getDataSource, getApiBaseUrl, getAuthToken, adoptCollectionFromServer } from '../../data/data-adapter.js?v=20261024d';
+import { buildSystemNotice } from '../../core/domain/system-notice-templates.js?v=20261024d';
+import { bumpToken } from '../../core/base/version-token.js?v=20261024d'; // P0 域缓存失效（spec §二.3）
+import { MOCK_NOTICES } from '../../data/mock/index.js?v=20261024d';
+import { isInitStateActive } from '../core/init-reset.js?v=20261024d'; // C2 修复（2026-09-08）：init 态跳过演示种子兜底
+import { todayLocal } from '../../core/base/utils.js?v=20261024d';
+import { AuthStore } from '../core/auth.js?v=20261024d';
+import {  getPersonById, getPersonName } from '../member/person.js?v=20261024d';
+import { NoticeTodoDeriver, TodoStore, TodoSourceType, TodoStatus } from './todo.js?v=20261024d';
 // 组织者身份读取单一源（2026-09-19 批次 91 · SOP-B-17）——发布权随「被指定为该场组织者」动态获得
-import {  getOrganizedActivities } from '../activity/activity.js?v=20261024c';
+import {  getOrganizedActivities } from '../activity/activity.js?v=20261024d';
 import {
   NOTICE_PUBLISH_ROLES, NOTICE_MANAGE_ROLES, BRANCH_COMMISSION_ROLES,
   NOTICE_AUDIENCE_SENTINELS, ROLE_LABELS,
   DEFAULT_BRANCH_ID,
-} from '../../core/domain/constants.js?v=20261024c';
+} from '../../core/domain/constants.js?v=20261024d';
+
+// ════════════════════════════════════════════════════════════════
+//  消息对象模型（Task 3 · 2026-10-25）
+//  一条消息只有一个身份：公告 announcement / 系统通知 system / 私信 message。
+//  历史行缺 `kind` 时按 `kindOf()` 迁移；缺坐标时尽量从 `targetUrl` / `meetingActivityId` 补齐，
+//  补不出坐标的非公告行降级为 announcement（「非公告必须有 targetType+targetId」的落库口径）。
+// ════════════════════════════════════════════════════════════════
+
+/** 消息种类（单一源）：显式 kind 优先；私信 → message；系统来源 → system；其余 → announcement */
+export function kindOf(n) {
+  if (!n) return 'announcement';
+  if (n.kind === 'announcement' || n.kind === 'system' || n.kind === 'message') return n.kind;
+  if (n.noticeType === 'message') return 'message';
+  if (n.sourceType || n.systemKind || n.derivedFromSystem === true) return 'system';
+  return 'announcement';
+}
+
+/** 逐人归档名单（旧行无 archivedBy = 未归档） */
+function _archivedByOf(n) {
+  return Array.isArray(n && n.archivedBy) ? n.archivedBy.filter(Boolean) : [];
+}
+
+/** 逐人归档：系统归档（archived）不可恢复；用户归档（archivedBy）可恢复 */
+export function isArchivedFor(n, viewerId) {
+  if (!n) return false;
+  if (n.archived === true) return true;
+  return !!viewerId && _archivedByOf(n).includes(viewerId);
+}
+
+function _isExpired(n, today = todayLocal()) {
+  return !!(n && n.expireDate && n.expireDate < today);
+}
+
+/** 列表口径的「已归档」：用户归档 / 系统归档 / 自然过期（过期即系统归档，见 spec「消息过期」） */
+function _archivedForViewer(n, viewerId) {
+  return isArchivedFor(n, viewerId) || _isExpired(n);
+}
+
+function _isReadBy(n, viewerId) {
+  return !!(viewerId && _readsOf(n).includes(viewerId));
+}
+
+/** 私信对当前人是否为「发出」（自己发给自己以外的人）——自己的发件不计未读 */
+function _isOwnOutboundMessage(n, viewerId, ctx) {
+  if (kindOf(n) !== 'message' || !viewerId) return false;
+  if (!ctx) ctx = _noticeViewerCtx(AuthStore.getCurrentUser());
+  return !!n.fromPersonId && n.fromPersonId === viewerId && !_audiencePersonsHit(n, ctx);
+}
+
+/** 从落点 URL 解析对象坐标（历史行规范化用；不改变 targetUrl 本身的兜底地位） */
+function _coordsFromUrl(url) {
+  if (typeof url !== 'string' || !url) return null;
+  const grab = (key) => {
+    const m = new RegExp(`[?&]${key}=([^&]+)`).exec(url);
+    return m ? decodeURIComponent(m[1]) : null;
+  };
+  if (/thought-report\.html/.test(url)) {
+    const id = grab('id');
+    return id ? { targetType: 'thoughtReport', targetId: id } : null;
+  }
+  if (/taskforce\.html/.test(url)) {
+    const id = grab('id');
+    return id ? { targetType: 'taskforce', targetId: id } : null;
+  }
+  if (/activity\.html/.test(url)) {
+    const id = grab('id');
+    return id ? { targetType: 'activity', targetId: id } : null;
+  }
+  const activityId = grab('activityId');
+  if (activityId) return { targetType: 'activity', targetId: activityId };
+  return null;
+}
+
+/** 历史行规范化（幂等）：补 reads / archivedBy / kind / 坐标；不改业务字段 */
+function _normalizeNotice(n, viewerId) {
+  const row = { ...n, archived: n.archived === true };
+  if (!Array.isArray(row.reads)) {
+    row.reads = row.read === true && viewerId ? [viewerId] : [];
+  }
+  delete row.read;
+  if (!Array.isArray(row.archivedBy)) row.archivedBy = [];
+  if (!row.kind) row.kind = kindOf(row);
+  if (!row.targetType || !row.targetId) {
+    const coords = _coordsFromUrl(row.targetUrl)
+      || (row.meetingActivityId ? { targetType: 'activity', targetId: row.meetingActivityId } : null);
+    if (coords) {
+      row.targetType = row.targetType || coords.targetType;
+      row.targetId = row.targetId || coords.targetId;
+    }
+  }
+  // 「非公告必须有 targetType+targetId」只约束系统通知；私信没有对象坐标是合法形态。
+  if (row.kind === 'system' && !(row.targetType && row.targetId)) {
+    row.kind = 'announcement';
+  }
+  return row;
+}
 
 function _loadNotices() {
   try {
@@ -30,14 +126,7 @@ function _loadNotices() {
     // R2-49（2026-10-20）：已读改为逐人 `reads: personId[]`；旧全局 `read` 只做一次性回填——
     //   只回填给**当前登录人**（无会话则按未读），随后删除该字段；不把「某人读过」扩散成全站已读。
     const viewerId = _viewerPersonId();
-    return (mockDB.notices || []).map(n => {
-      const row = { ...n, archived: n.archived === true };
-      if (!Array.isArray(row.reads)) {
-        row.reads = row.read === true && viewerId ? [viewerId] : [];
-      }
-      delete row.read;
-      return row;
-    });
+    return (mockDB.notices || []).map(n => _normalizeNotice(n, viewerId));
   } catch (e) {
     console.warn('[NoticeStore] 加载失败：', e);
     return [];
@@ -72,9 +161,14 @@ function _viewerPersonId() {
   return AuthStore.getCurrentUser()?.personId || null;
 }
 
-/** 给通知副本投影当前人的 read（不修改源行，避免把观看者信息写回共享记录） */
+/** 给通知副本投影当前人的 read / kind / 归档（不修改源行，避免把观看者信息写回共享记录） */
 function _withViewerRead(n, viewerId) {
-  return { ...n, read: viewerId ? _readsOf(n).includes(viewerId) : false };
+  return {
+    ...n,
+    kind: kindOf(n),
+    read: _isReadBy(n, viewerId),
+    archivedForViewer: _archivedForViewer(n, viewerId),
+  };
 }
 
 // ════════════════════════════════════════════════════════════════
@@ -290,8 +384,11 @@ export const NoticeStore = {
    * archived 等运行时字段丢失的问题。
    */
   _current() {
+    const viewerId = _viewerPersonId();
     if (mockDB.notices && mockDB.notices.length > 0) {
-      return mockDB.notices;
+      // Task 3（2026-10-25）：读口同样做幂等规范化（kind / archivedBy / 可解析坐标），
+      // 历史行不必等到下次写回才具备消息对象模型。
+      return mockDB.notices.map(n => _normalizeNotice(n, viewerId));
     }
     return this._notices;
   },
@@ -312,8 +409,9 @@ export const NoticeStore = {
     let result = [...this._current()].map(n => _withViewerRead(n, viewerId));
 
     // 2026-08-08 归档闭环：默认排除已归档通知（随活动/专班归档退出工作区）
+    // Task 3（2026-10-25）：逐人归档 `archivedBy[]` 同样让该条对本人退出默认列表（不影响其他收件人）。
     if (filter.includeArchived !== true) {
-      result = result.filter(n => !n.archived);
+      result = result.filter(n => !n.archived && !(viewerId && _archivedByOf(n).includes(viewerId)));
     }
 
     // ── 受众门（2026-09-13 彻查批次：消费端统一过滤）─────────────────────────────
@@ -422,6 +520,8 @@ export const NoticeStore = {
       ...actorPatch,
       id: notice.id || generateId('notice', '-'),
       publishDate: notice.publishDate || todayLocal(),
+      kind: notice.kind || kindOf(notice),
+      archivedBy: Array.isArray(notice.archivedBy) ? [...notice.archivedBy] : [],
     };
     this._syncWithStore();
     this._notices = [...this._notices, newNotice];
@@ -636,6 +736,124 @@ export const NoticeStore = {
     return count;
   },
 
+  // ════════════════════════════════════════════════════════════════
+  //  用户归档（逐人，可恢复）——Task 3 · 2026-10-25
+  //  系统归档（archived=true，随活动归档 / 过期）与用户归档（archivedBy[]）分离：
+  //  前者不可恢复，后者只影响本人，不改其他收件人的列表。
+  // ════════════════════════════════════════════════════════════════
+
+  /** 本人归档一条消息（系统归档不可再归档；已归档幂等） */
+  archiveForViewer(id, on = true) {
+    const viewerId = _viewerPersonId();
+    if (!viewerId) { console.warn('[NoticeStore] 未登录，无法归档消息'); return false; }
+    this._syncWithStore();
+    const idx = this._notices.findIndex(n => n.id === id);
+    if (idx === -1) return false;
+    const row = this._notices[idx];
+    if (row.archived === true || _isExpired(row)) return false; // 系统归档不可改
+    const list = _archivedByOf(row);
+    const has = list.includes(viewerId);
+    if (on === has) return true;
+    const next = { ...row, archivedBy: on ? [...list, viewerId] : list.filter(pid => pid !== viewerId) };
+    this._notices = [...this._notices.slice(0, idx), next, ...this._notices.slice(idx + 1)];
+    _saveNotices(this._notices);
+    return true;
+  },
+
+  /** 本人恢复一条已归档消息（系统归档不可恢复 → false） */
+  restoreForViewer(id) {
+    return this.archiveForViewer(id, false);
+  },
+
+  /**
+   * 消息中心统一读口（列表 / 角标 / 详情共用）。
+   * box：all = 未归档（未读＋已读）；unread；read = 已读且未归档；archived = 本人或系统已归档。
+   * q：标题 / 正文 / 对方姓名；source：announcement | system | message | all。
+   * @returns {{ items:Object[], total:number, page:number, pageSize:number, pages:number }}
+   */
+  listMessages({ viewerId = null, box = 'all', source = 'all', q = '', page = 1, pageSize = 20, scope = null } = {}) {
+    if (this._notices.length === 0) this.init();
+    const me = AuthStore.getCurrentUser();
+    const viewer = viewerId || _viewerPersonId();
+    const viewerUser = viewer ? { ...(me || {}), personId: viewer } : me;
+    const ctx = _noticeViewerCtx(viewerUser);
+    // 可见性单一源 = canReadNotice（私信 / 定向 / sentinel 同一判据；发布者恒可读自己的私信）。
+    // 不用 list()：list 的受众门没有「发布者恒可读」，会把本人发出的私信排除在消息中心之外。
+    let rows = this.getAll({ includeArchived: true }).filter((n) => canReadNotice(n, viewerUser));
+    // 党委台视野与 list(scope:'committee') 同口径（党委下发 / 党委 sentinel / 发给本人的私信）。
+    if (scope === 'committee' && me?.role === 'party-staff') {
+      rows = rows.filter((n) => (
+        n.source === 'committee'
+        || _audienceSentinelPresent(n, 'committee')
+        || _audiencePersonsHit(n, ctx)
+      ));
+    }
+    rows = rows.map((n) => {
+      const inbound = kindOf(n) === 'message' && _audiencePersonsHit(n, ctx);
+      const counterpartId = kindOf(n) === 'message'
+        ? (inbound ? (n.fromPersonId || null) : ((n.audiencePersons || [])[0] || null))
+        : null;
+      return {
+        ...n,
+        kind: kindOf(n),
+        read: _isReadBy(n, viewer),
+        archivedForViewer: _archivedForViewer(n, viewer),
+        ownOutbound: _isOwnOutboundMessage(n, viewer, ctx),
+        counterpartId,
+        counterpartName: counterpartId ? (getPersonName(counterpartId) || counterpartId) : '',
+        sortTime: String(n.createdAt || n.publishDate || ''),
+      };
+    }).filter((n) => {
+      if (source && source !== 'all' && n.kind !== source) return false;
+      if (box === 'archived') return n.archivedForViewer;
+      if (n.archivedForViewer) return false;
+      if (box === 'unread') return !n.read && !n.ownOutbound;
+      if (box === 'read') return n.read;
+      return true; // all
+    }).filter((n) => {
+      const keyword = String(q || '').trim().toLowerCase();
+      if (!keyword) return true;
+      return [n.title, n.content, n.counterpartName].some((value) => String(value || '').toLowerCase().includes(keyword));
+    }).sort((a, b) => b.sortTime.localeCompare(a.sortTime));
+
+    const size = Math.max(1, Number(pageSize) || 20);
+    const total = rows.length;
+    const pages = Math.max(1, Math.ceil(total / size));
+    const cur = Math.min(Math.max(1, Number(page) || 1), pages);
+    return { items: rows.slice((cur - 1) * size, cur * size), total, page: cur, pageSize: size, pages };
+  },
+
+  /** 未读数（列表 / 角标 / 铃铛同一读数；私信自己的发件不计未读） */
+  countUnread(viewerId = null, extra = {}) {
+    const viewer = viewerId || _viewerPersonId();
+    return this.listMessages({ viewerId: viewer, box: 'unread', pageSize: 100000, ...extra }).total;
+  },
+
+  /** 私信会话线程：同一 replyTo 根链上的全部可见消息，按时间升序。 */
+  messageThreadOf(id) {
+    if (!id) return [];
+    const me = AuthStore.getCurrentUser() || {};
+    if (!me.role) return [];
+    const all = this.getAll({ includeArchived: true })
+      .filter((n) => kindOf(n) === 'message' && canReadNotice(n, me));
+    const byId = new Map(all.map((n) => [n.id, n]));
+    const rootOf = (n) => {
+      let cur = n;
+      const seen = new Set();
+      while (cur && cur.replyTo && byId.has(cur.replyTo) && !seen.has(cur.id)) {
+        seen.add(cur.id);
+        cur = byId.get(cur.replyTo);
+      }
+      return cur ? cur.id : n.id;
+    };
+    const current = byId.get(id);
+    if (!current) return [];
+    const root = rootOf(current);
+    return all
+      .filter((n) => rootOf(n) === root)
+      .sort((a, b) => String(a.createdAt || a.publishDate || '').localeCompare(String(b.createdAt || b.publishDate || '')));
+  },
+
   markRead(id) {
     const me = AuthStore.getCurrentUser();
     const viewerId = _viewerPersonId();
@@ -674,17 +892,22 @@ export const NoticeStore = {
     return true;
   },
 
-  markAllRead() {
-    const viewerId = _viewerPersonId();
-    if (!viewerId) {
+  /** 全部已读：只作用于「当前人可见、未归档、未读」的消息；系统归档 / 用户归档不参与。 */
+  markAllRead(viewerId = null) {
+    const viewer = viewerId || _viewerPersonId();
+    if (!viewer) {
       console.warn('[NoticeStore] 未登录，无法全部标记已读；请重新登录');
       return false;
     }
+    // 可见性单一源 = 消息中心列表（canReadNotice 投影；与列表同源）。
+    const visible = new Set(this.listMessages({ viewerId: viewer, box: 'all', pageSize: 100000 }).items.map(n => n.id));
     this._syncWithStore();
     this._notices = this._notices.map(n => {
+      if (!visible.has(n.id)) return n;
+      if (_archivedForViewer(n, viewer)) return n;
       const reads = _readsOf(n);
-      if (reads.includes(viewerId)) return n;
-      const next = { ...n, reads: [...reads, viewerId] };
+      if (reads.includes(viewer)) return n;
+      const next = { ...n, reads: [...reads, viewer] };
       delete next.read;
       return next;
     });
@@ -819,8 +1042,10 @@ export function replyToMessage(originalId, { title, content, actorRole, actorPer
 }
 
 // ════════════════════════════════════════════════════════════════
-//  通知跳转统一解析（业务页直达优先，2026-08-06）
-//  全站所有通知跳转入口共用此函数，杜绝多入口逻辑分叉。
+//  通知模块 → 角色页映射（2026-08-06 立；2026-10-25 批次 510 起只服务工作台内跳转）
+//  `resolveNoticeUrl` 的页面级兜底与 `direct` 直跳已随 A 统一消息中心退役（Q-14 死码清理）：
+//  所有消息入口统一 `notice.html?id=`，对象跳转由详情页内的唯一动作承担。
+//   消费者：components/record/todo-tab-shell.js（催办 / 履职待办落本角色工作台）。
 // ════════════════════════════════════════════════════════════════
 
 // targetModule → 业务页（角色感知）：模块语义决定业务落点
@@ -828,7 +1053,7 @@ export function replyToMessage(originalId, { title, content, actorRole, actorPer
 //  - attendance（考勤）→ 纪检委员考勤管理 / 支书考勤概况
 //  - party（发展党员/考察）→ 组织委员档案与发展党员 / 纪检委员考察管理 / 支书工作台
 //  - workspace（工作部署/筹备）→ 支委各归其位 / 组长工作台 / 其余首页
-// A①（2026-09-10）：导出供通知生产点复用同一映射计算对象级落点页（不改变下文 resolveNoticeUrl 兜底语义）。
+// A①（2026-09-10）：导出供工作台自跳复用同一映射（`todo-tab-shell.js` 催办 / 履职落点）。
 export const NOTICE_MODULE_ROLE_PAGES = {
   activity: {
     '*': 'index.html',
@@ -856,56 +1081,5 @@ export const NOTICE_MODULE_ROLE_PAGES = {
     '*': 'index.html',
   },
 };
-
-/**
- * 解析通知跳转目标
- * 规则（业务页直达优先）：
- *   1. 有 targetUrl → 直达目标业务页（系统通知显式指定，如催办/赋权，含 activityId 定位参数）
- *   2. 无 targetUrl → 按 targetModule 映射到与当前角色匹配的业务页
- *   3. 行动性通知（actionRoles）→ 仅目标角色直达业务页，其余仅进详情页
- *   4. 模块映射结果与当前页相同 → 回退通知详情页（避免原地刷新"循环"；显式 targetUrl 不适用此条）
- * @param {Object} n 通知对象
- * @param {string} [currentRole] 当前角色；缺省时读取 AuthStore
- * @returns {{ url: string|null, direct: boolean }} url 为可直接赋给 location.href 的地址（已含 basePath）
- */
-export function resolveNoticeUrl(n, currentRole = null) {
-  if (!n) return { url: null, direct: false };
-  if (!currentRole) {
-    try { currentRole = AuthStore.getCurrentUser()?.role || null; } catch (_) { currentRole = null; }
-  }
-  // 3. 行动性通知受众过滤：仅目标角色可直达业务页
-  if (Array.isArray(n.actionRoles) && n.actionRoles.length > 0) {
-    if (!currentRole || !n.actionRoles.includes(currentRole)) {
-      return { url: null, direct: false };
-    }
-  }
-  // 0. T233 targetType/targetId 显式定位 → 直达详情页（招募/报名类通知，活动/专班分页）
-  //    F06 优先契约（2026-10-20）：**targetType+targetId 优先，targetUrl 仅作无类型兜底**。
-  //    本步骤必须先于步骤 1；templates 文件头同源声明。新增跳转入口一律复用本函数。
-  if (n.targetType && n.targetId) {
-    const detailFile = n.targetType === 'taskforce' ? 'taskforce.html' : n.targetType === 'activity' ? 'activity.html' : null;
-    if (detailFile) {
-      return { url: getBasePath() + `${detailFile}?id=${n.targetId}`, direct: true };
-    }
-  }
-  // 1. targetUrl 兜底（无类型 / 该类型无详情页；显式指定，不做同页回退）
-  if (n.targetUrl) {
-    return { url: getBasePath() + n.targetUrl, direct: true };
-  }
-  // 2. targetModule 角色感知映射
-  let page = null;
-  if (n.targetModule) {
-    const roleMap = NOTICE_MODULE_ROLE_PAGES[n.targetModule] || {};
-    page = roleMap[currentRole] || roleMap['*'] || null;
-  }
-  if (!page) return { url: null, direct: false };
-  // 4. 模块映射结果与当前页相同 → 回退详情页（避免原地刷新"循环"）
-  const currentFile = (window.location.pathname.split('/').pop() || 'index.html').split('?')[0];
-  const targetFile = (page.split('/').pop() || '').split('?')[0];
-  if (currentFile === targetFile) {
-    return { url: null, direct: false };
-  }
-  return { url: getBasePath() + page, direct: true };
-}
 
 /** P3 党委下发来源徽标（红底白字，与支部自发的通知区分；下发=党委→支委层治理通道） */

@@ -9,12 +9,12 @@
 // 与「待办」页的口径区分（写进页面文案，避免两处被读成同一份清单）：
 //   · 本段＝**按项目身份**（组织者 / 深度参与者）派给本人的 SOP 任务节点；
 //   · 「待办」页＝`TodoStore` 的待办聚合（含通知 / 审核 / 催办等派生项，来源与生命周期不同）。
-import { listMyProjectTasks, completeMyProjectTask, deepWorkModeOf, DEEP_WORK_MODE, DEEP_WORK_MODE_LABEL } from '../../../services/activity/activity.js?v=20261024c';
-import { isActivityVisibleTo } from '../../../services/core/visibility.js?v=20261024c';
-import { AuthStore } from '../../../services/core/auth.js?v=20261024c';
-import { ROLE_LABELS } from '../../../core/domain/constants.js?v=20261024c';
-import { escHtml as esc, showToast, docAnchorHref } from '../../../core/base/utils.js?v=20261024c';
-import { emptyStateHtml } from '../../../components/ui/empty-state.js?v=20261024c';
+import { listMyProjectTasks, completeMyProjectTask, deepWorkModeOf, DEEP_WORK_MODE, DEEP_WORK_MODE_LABEL } from '../../../services/activity/activity.js?v=20261024d';
+import { isActivityVisibleTo } from '../../../services/core/visibility.js?v=20261024d';
+import { AuthStore } from '../../../services/core/auth.js?v=20261024d';
+import { ROLE_LABELS } from '../../../core/domain/constants.js?v=20261024d';
+import { escHtml as esc, showToast, docAnchorHref } from '../../../core/base/utils.js?v=20261024d';
+import { emptyStateHtml } from '../../../components/ui/empty-state.js?v=20261024d';
 
 const STATUS_LABEL = { pending: '待办', in_progress: '进行中', completed: '已完成' };
 const STATUS_CLASS = {

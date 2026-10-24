@@ -5,50 +5,52 @@
 //        renderInspectorList, renderInspectorDetail
 // ════════════════════════════════════════════════════════════════
 
-import { setState, STATE, getAppState } from '../../core/base/state.js?v=20261024c';
-import { ROLE_COLORS, ROLE_LABELS, ROLE_THEME_CLASS, COMMISSIONER_ROLES, SECRETARY_ROLES, ACTIVITY_CLASSIFICATION } from '../../core/domain/constants.js?v=20261024c';
-import { _fmtChinese, showToast, escHtml as esc } from '../../core/base/utils.js?v=20261024c';
-import { icon } from '../../core/base/icons.js?v=20261024c';
-import { openModal, closeModal } from '../ui/modal.js?v=20261024c';
+import { setState, STATE, getAppState } from '../../core/base/state.js?v=20261024d';
+import { ROLE_COLORS, ROLE_LABELS, ROLE_THEME_CLASS, COMMISSIONER_ROLES, SECRETARY_ROLES, ACTIVITY_CLASSIFICATION } from '../../core/domain/constants.js?v=20261024d';
+import { _fmtChinese, showToast, escHtml as esc } from '../../core/base/utils.js?v=20261024d';
+import { icon } from '../../core/base/icons.js?v=20261024d';
+import { openModal, closeModal } from '../ui/modal.js?v=20261024d';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/member/person.js 获取（原直连 mock PEOPLE）
 // 实时视图（非快照）：成员增删即时可见——见 services/member/person.js liveMembers 说明
 const PEOPLE = liveMembers();
-import { getPersonById } from '../../services/member/person.js?v=20261024c';
-import { BranchService } from '../../services/core/runtime.js?v=20261024c';
-import { AuthStore } from '../../services/core/auth.js?v=20261024c';
-import { liveMembers, PersonStore, getPersonName } from '../../services/member/person.js?v=20261024c';
-import { statusBadgeHtml, bindStatusBadge, badgeHtml } from '../ui/badges.js?v=20261024c';
+import { getPersonById } from '../../services/member/person.js?v=20261024d';
+import { BranchService } from '../../services/core/runtime.js?v=20261024d';
+import { AuthStore } from '../../services/core/auth.js?v=20261024d';
+import { liveMembers, PersonStore, getPersonName } from '../../services/member/person.js?v=20261024d';
+import { statusBadgeHtml, bindStatusBadge, badgeHtml } from '../ui/badges.js?v=20261024d';
 // 表态权判据单一源（2026-09-30 批次 304 立 · 批次 312 补齐）：`isVoterOf` —— **角色无关**，只看本场固化应到名单。
 // 依据：支书 2026-09-30 原话「**即使是支部书记 / 其他支委 投票，在投票的时候也就是普通党员**」。
 // ⚠ 批次 304 只改了「表态位是否挂」（下方 slot 那行）；**表态面板的动作门与填充循环仍是 `isCommittee`**
 //   ⇒ 应到名单内的普通党员在支书台**挂得出空槽**（面板无按钮 / 循环根本不填）。批次 312 把这两处一并收口。
-import { isVoterOf } from '../../services/activity/vote-config.js?v=20261024c';
+import { isVoterOf } from '../../services/activity/vote-config.js?v=20261024d';
 // 批次 352b（`D-746` · 支书取「活动详情页行内作废」）：任务「作废（软）」——单一源弹窗
-import { openVoidModal } from '../ui/void-record.js?v=20261024c';
-import { persist, getAuthToken, getApiBaseUrl, getAdapter } from '../../data/data-adapter.js?v=20261024c';
-import { withSelectedBranchScope } from '../../data/api-adapter.js?v=20261024c';
-import { recordAgendaResultForActivity } from '../../services/activity/agenda-follow-up.js?v=20261024c';
+import { openVoidModal } from '../ui/void-record.js?v=20261024d';
+import { persist, getAuthToken, getApiBaseUrl, getAdapter } from '../../data/data-adapter.js?v=20261024d';
+import { withSelectedBranchScope } from '../../data/api-adapter.js?v=20261024d';
+import { recordAgendaResultForActivity } from '../../services/activity/agenda-follow-up.js?v=20261024d';
 // 制度链（2026-09-21 批次 129）：制度草案议程项在「记录结果」旁给一个「报送党员大会表决」勾选位——
 // 判据单一源在 branch-doc.js（勿在界面另写一份 purpose/status 判断）。
-import { isInstitutionDraftAgendaItem } from '../../services/branch/branch-doc.js?v=20261024c';
+import { isInstitutionDraftAgendaItem } from '../../services/branch/branch-doc.js?v=20261024d';
 // 品牌认定（2026-09-21 批次 132 · 支书口径二「支委/党小组组长均可以提案，支委会通过后确定」）：判据与写口单一源 = services/activity/activity.js；
 // 本处只渲染「提案 / 撤回 / 取消认定」三种动作，**不再有「点一下即认定」**；同源另取三项（2026-09-21 批次 135）：追加复盘要求进关闭判据。
-import { canProposeBrand, brandProposalOf, proposeBrandDesignation, withdrawBrandProposal, revokeBrandDesignation, reviewRequestOf, isReviewReturned, isReviewRequestEligibleActivity, PENDING_APPROVAL_STATUS, canApproveActivity, approveActivity, rejectActivity, activityApprovalVoteOf, openCommitteeVoteForActivity } from '../../services/activity/activity.js?v=20261024c';
+import { canProposeBrand, brandProposalOf, proposeBrandDesignation, withdrawBrandProposal, revokeBrandDesignation, PENDING_APPROVAL_STATUS, canApproveActivity, approveActivity, rejectActivity, activityApprovalVoteOf, openCommitteeVoteForActivity } from '../../services/activity/activity.js?v=20261024d';
 // 活动批准门当前档位（2026-09-22 批次 150）：参数本体单一源 = core/domain/policy-defaults.js::activityApproval.mode
-import { activityApprovalMode, ACTIVITY_APPROVAL_MODE_LABELS } from '../../core/domain/policy-defaults.js?v=20261024c';
+import { activityApprovalMode, ACTIVITY_APPROVAL_MODE_LABELS } from '../../core/domain/policy-defaults.js?v=20261024d';
 // 议程行内编辑纯函数（2026-09-06 复用激活）：createEditableAgenda 整对象投影随行保留扩展字段；
 // normalizeEditedAgenda 保存时 {...原对象, item/host} 重建并剔空行——修复编辑丢 id/配置/结果的数据安全事故
-import { createEditableAgenda, normalizeEditedAgenda } from '../../services/activity/agenda-editing.js?v=20261024c';
-import { agendaDecisionSource, validateAgendaStructure } from '../../services/activity/agenda-relations.js?v=20261024c';
+import { createEditableAgenda, normalizeEditedAgenda } from '../../services/activity/agenda-editing.js?v=20261024d';
+import { agendaDecisionSource, validateAgendaStructure } from '../../services/activity/agenda-relations.js?v=20261024d';
 // 议程更新后通知全员（活动锚定，targetType/targetId 供归档联动）
-import { NoticeStore } from '../../services/governance/notice.js?v=20261024c';
-import { fetchVotes, submitVote } from '../../services/activity/committee-vote.js?v=20261024c';
-import { optionSetOf, resolveVoterIds, OPTION_SETS, isAnonymousActivity } from '../../services/activity/vote-config.js?v=20261024c';
-import { renderVoteSummary } from '../governance/vote-summary-panel.js?v=20261024c';
-import { loadAttendanceRecords, canUploadAttendance, isAttendanceConfirmed } from '../../services/activity/attendance.js?v=20261024c';
-import { loadInspectionRecords } from '../../services/activity/inspection.js?v=20261024c';
-import { loadActivityReviews } from '../../services/governance/review.js?v=20261024c';
-import { mockDB, OutputType, deriveOutputRoute, ReviewStatus, AttendanceStatus } from '../../core/domain/domain.js?v=20261024c';
+import { NoticeStore } from '../../services/governance/notice.js?v=20261024d';
+import { fetchVotes, submitVote } from '../../services/activity/committee-vote.js?v=20261024d';
+import { optionSetOf, resolveVoterIds, OPTION_SETS, isAnonymousActivity } from '../../services/activity/vote-config.js?v=20261024d';
+import { renderVoteSummary } from '../governance/vote-summary-panel.js?v=20261024d';
+import { loadAttendanceRecords, canUploadAttendance, isAttendanceConfirmed } from '../../services/activity/attendance.js?v=20261024d';
+import { loadInspectionRecords } from '../../services/activity/inspection.js?v=20261024d';
+import { loadActivityReviews } from '../../services/governance/review.js?v=20261024d';
+import { mockDB, OutputType, deriveOutputRoute, ReviewStatus } from '../../core/domain/domain.js?v=20261024d';
+// 2026-10-25 批次 510：关闭条件判据迁到服务层（待办派生也要用同一判据）；本文件只转出，调用点不变。
+import { checkActivityCloseConditions } from '../../services/activity/close-conditions.js?v=20261024d';
 
 // T-217 §2.4：任务状态定义（status-badge 用，色点 + 文字）
 const TASK_STATUSES = {
@@ -437,53 +439,9 @@ function _buildOutputsSectionHTML(activity) {
 //  产出缺失阻塞关闭，缺失项在关闭入口明确显示（最小信息成本）。
 // ════════════════════════════════════════════════════════════════
 // 三会四子类单一源 = ACTIVITY_CLASSIFICATION['three-meetings'].subtypes（2026-09-03 去重收口，勿再手写清单）
-const MEETING_TYPES = ACTIVITY_CLASSIFICATION['three-meetings'].subtypes;
-
-export function checkActivityCloseConditions(activity) {
-  const actId = activity.id;
-  const type = activity.type || '';
-  const missing = [];
-
-  const atts = loadAttendanceRecords().filter(r => r.activityId === actId);
-  const inss = loadInspectionRecords().filter(r => r.activityId === actId);
-  const review = loadActivityReviews().find(r => r.activityId === actId) || null;
-  const actSubs = (mockDB.actSubRecords && mockDB.actSubRecords[actId]) || {};
-  const pubItems = [
-    ...(actSubs.publicity || []),
-    ...(mockDB.archiveRecords || []).filter(r =>
-      (r.activityId && r.activityId === actId) || (!r.activityId && r.activityName === activity.title)
-    ),
-  ];
-
-  if (MEETING_TYPES.includes(type)) {
-    // 三会一课：请假已确认 + 缺勤补课闭环 + 会议纪要
-    const leavePending = atts.filter(r => r.status === AttendanceStatus.LEAVE && !isAttendanceConfirmed(r)).length;
-    const absentUnclosed = atts.filter(r => r.status === AttendanceStatus.ABSENT).length;
-    if (leavePending > 0) missing.push(`请假确认（${leavePending} 条待确认）`);
-    if (absentUnclosed > 0) missing.push(`缺勤补课（${absentUnclosed} 人缺勤未补）`);
-    if ((actSubs.materials || []).length === 0) missing.push('会议纪要');
-  } else if (type === '主题党日') {
-    // 主题党日：考勤确认 + 考察确认 + 复盘确认 + 宣传归档
-    if (atts.length === 0) {
-      missing.push('考勤');
-    } else {
-      const attPending = atts.filter(r => !isAttendanceConfirmed(r)).length;
-      if (attPending > 0) missing.push(`考勤确认（${attPending} 条待确认）`);
-    }
-    if (inss.length === 0) {
-      missing.push('考察');
-    } else {
-      const inspPending = inss.filter(r => r.status !== 'confirmed').length;
-      if (inspPending > 0) missing.push(`考察确认（${inspPending} 条待确认）`);
-    }
-    if (!review || review.reviewStatus !== ReviewStatus.CONFIRMED) missing.push('复盘确认');
-    if (pubItems.length === 0) missing.push('宣传归档');
-  }
-  // 其他活动类型无强制关闭前置
-  if (reviewRequestOf(activity) && isReviewRequestEligibleActivity(activity) && !isReviewReturned(review)) missing.push('追加复盘（支委会要求）尚未交回'); // 2026-09-21 批次 135 · 裁定二「按推荐档落」：只判到「交回」不到「确认」；三会一课不适用
-
-  return { canClose: missing.length === 0, missing };
-}
+// 2026-10-25 批次 510：关闭条件判据整段迁至 services/activity/close-conditions.js（服务层复用，避免 UI↔服务成环）；
+//   本文件原样转出，调用点与对外导出名不变。
+export { checkActivityCloseConditions };
 
 function _showCloseBlockModal(activity, missing) {
   openModal({

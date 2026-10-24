@@ -16,8 +16,8 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { describeWriteError } from '../../docs/src/core/base/utils.js?v=20261024c';
-import { NUDGE_TEXTS } from '../../docs/src/components/ui/modal.js?v=20261024c';
+import { describeWriteError } from '../../docs/src/core/base/utils.js?v=20261024d';
+import { NUDGE_TEXTS } from '../../docs/src/components/ui/modal.js?v=20261024d';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(HERE, '..', '..');
@@ -153,7 +153,9 @@ test('F8 可点容器键盘可达：非原生容器必须 role=button + tabindex
   const targets = [
     ['docs/src/components/dashboard/stats.js', ['data-attendance-popover']],
     ['docs/src/components/dashboard/activity-panel.js', ['data-activity-id']],
-    ['docs/src/entries/pages/archive-entry.js', ['data-archive-item', 'data-notice-id']],
+    // 期望更新（Task 3 · 2026-10-25）：归档库「通知」页签退役，通知条目只存在于消息中心，
+    //   本文件只剩活动 / 专班两类归档条目（仍须键盘可达）。
+    ['docs/src/entries/pages/archive-entry.js', ['data-archive-item']],
     ['docs/src/components/feedback/issue-dispatch-view.js', [
       'data-mydispatch-action="open"',
       'data-mydispatch-action="open-report"',

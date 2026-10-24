@@ -13,17 +13,17 @@
 //
 //  落点优先级（F06 · 2026-10-20 IA 修复）：通知同时带 `targetType+targetId` 与 `targetUrl` 时，
 //  **一律 targetType+targetId 优先**（能直达详情页）；`targetUrl` 仅在无类型/该类型无详情页时兜底。
-//  消费端唯一实现 = services/governance/notice.js::resolveNoticeUrl（步骤 0 先于步骤 1），
-//  任一入口都必须复用它，不得自写第二套判断——否则会出现「写了 targetUrl 却永不生效」。
+//  消费端：所有消息入口先落 `notice.html?id=`（唯一全貌），对象跳转由详情页内的唯一动作按
+//  `targetType+targetId` 承担；`resolveNoticeUrl` 的页面级兜底与 direct 直跳已于 2026-10-25 批次 510 删除。
 //
 //  跨台落点（F12 · 同一批）：落点必须按**接收人角色**生成；对当前角色不可达的目标（如支书→prop.html）
 //  改本位落点或纯文本，不得让点开即被身份门弹回。
 // ════════════════════════════════════════════════════════════════
 
 // 期次标签单一源（core/base/period.js）——勿在本文件另写季度格式化
-import { periodLabel } from '../base/period.js?v=20261024c';
+import { periodLabel } from '../base/period.js?v=20261024d';
 // 角色 → 工作台页单一源（F05/F12：按接收人角色生成落点，勿在本文件另写一张角色页表）
-import { ROLE_PAGE_MAP, SECRETARY_AND_DEPUTY_ROLES } from './constants.js?v=20261024c';
+import { ROLE_PAGE_MAP, SECRETARY_AND_DEPUTY_ROLES } from './constants.js?v=20261024d';
 
 /** 组装返回对象（跳过 undefined，保持通知结构精简；与原前端 add() 落库形态一致） */
 function pick(obj) {
@@ -50,6 +50,8 @@ const buildPeriodicArchiveSubmitted = ({ sourceId, periodLabel, periodRange, wee
   content: `${submitterName || '提交人'} 已提交周期归档${periodLabel || week ? `「${periodLabel || week}」` : ''}${periodRange || weekRange ? `（${periodRange || weekRange}）` : ''}，请审核（通过 / 退回）。`,
   priority: 'normal',
   audience: ['secretary', 'deputy-secretary'],
+  targetType: 'periodicArchive',
+  targetId: sourceId,
   targetUrl: `workspace/secretary.html?tab=overview&highlight=${sourceId}`,
 });
 
@@ -65,6 +67,8 @@ const TEMPLATES = {
     content: `${personName} 已提交${period ? `（${periodLabel(period)}）` : ''}思想汇报，系统已自动归档归集至其个人档案，可前往「思想汇报」台账查看调用。`,
     priority: 'normal',
     audience: ['org-commissioner'],
+    targetType: 'thoughtReport',
+    targetId: sourceId,
     // F02（IA-F02）：思想汇报的单一承载面是独立详情页 `thought-report.html?id=<trId>`——
     //   原 `tab=thought-review&highlight` 在壳清参后无人消费、台账也无对应锚点，深链等于失效。
     //   `canReadThoughtReport` 对支委层放行（组织委员在内）⇒ 该接收角色可达。
@@ -105,6 +109,8 @@ const TEMPLATES = {
     // F03（IA-F03）：highlight 传**待确认申请 id**（与 member-change-panel 批量行
     //   `data-mc-request-id` 同源）；todo-tab-shell 消费 `ctx.navTarget.hl` 真正定位到那一条，
     //   不再只落 tab（壳会先清掉 URL 参数，tab 内读 location.search 恒为空）。
+    targetType: 'memberChange',
+    targetId: sourceId,
     targetUrl: `workspace/secretary.html?tab=todo&highlight=${sourceId}`,
   }),
 
@@ -143,6 +149,8 @@ const TEMPLATES = {
     title: '线上支委会表态更新',
     content: `「线上支委会」已有 ${voted}/${total} 位委员表态`,
     priority: 'normal',
+    targetType: 'activity',
+    targetId: sourceId,
     targetUrl: `workspace/secretary.html?activityId=${sourceId}`,
     actionRoles: ['secretary'],
   }),
@@ -152,23 +160,29 @@ const TEMPLATES = {
     title: '线上支委会表决截止',
     content: '支委会议程已截止，请记录决议',
     priority: 'normal',
+    targetType: 'activity',
+    targetId: sourceId,
     targetUrl: `workspace/secretary.html?activityId=${sourceId}`,
     actionRoles: ['secretary'],
   }),
 
   // ── 赋权通知（auth.js 迁移） ────────────────────────────────────
-  'project-auth-granted': ({ targetPage, authorizerName, projectName, roleLabel }) => pick({
+  'project-auth-granted': ({ sourceId, targetPage, authorizerName, projectName, roleLabel, targetType }) => pick({
     title: '赋权通知',
     content: `${authorizerName} 已将您赋权为「${projectName}」的${roleLabel}。点击前往工作台。`,
     priority: 'normal',
+    targetType: targetType || (String(sourceId || '').startsWith('tf-') ? 'taskforce' : 'activity'),
+    targetId: sourceId,
     targetUrl: targetPage,
   }),
 
   // ── 材料外发待确认（external-dispatch.js 迁移） ───────────────────
-  'external-dispatch-created': ({ senderName, refLabel, receiverRole }) => pick({
+  'external-dispatch-created': ({ sourceId, senderName, refLabel, receiverRole }) => pick({
     title: '材料外发待确认',
     content: `${senderName} 已标记通过微信外发「${refLabel}」${receiverRole ? '给' + receiverRole : ''}。请前往微信群完成交接，收到后回系统确认。`,
     priority: 'normal',
+    targetType: 'externalDispatch',
+    targetId: sourceId,
     // F12（IA-F12）：落点按**接收人角色**生成本位工作台（确认位在各自工作概况里）——
     //   原固定 `workspace/visitor.html` 会让支书/纪检/组织接收人被身份门弹回；
     //   受众同时收窄到该接收角色（本通知就是发给「选定的接收方」的）。
@@ -181,6 +195,8 @@ const TEMPLATES = {
     title: '支部上报待批复',
     content: `${branchLabel} 提交${subject}，由 ${submitterName} 发起，请党委审批。`,
     priority: 'normal',
+    targetType: 'reviewRequest',
+    targetId: sourceId,
     // 党委跨支部通知：`branch-scope` 对未选支部的 party-staff 只放行 source='committee'
     // （2026-10-18 规则）⇒ 支部上报必须显式标为党委级来源，否则党委读不到待批复通知。
     source: 'committee',
@@ -193,6 +209,8 @@ const TEMPLATES = {
     title: approved ? '上报已获党委批准' : '上报被党委驳回',
     content: `${branchLabel} 的${subject}已${approved ? '批准' : '驳回'}${approved ? '' : '，请按党委意见整改后重新上报'}${decisionNote ? '。党委意见：' + decisionNote : '。'}`,
     priority: 'normal',
+    targetType: 'reviewRequest',
+    targetId: sourceId,
     // 与提交通知同口径：党委未选支部时只读 source='committee'，结论通知须显式标为党委级来源。
     source: 'committee',
     targetUrl: `workspace/secretary.html?tab=report-up&highlight=${sourceId}`,
@@ -305,6 +323,8 @@ const TEMPLATES = {
     content,
     priority,
     targetModule: '',
+    targetType: 'branch',
+    targetId: sourceId,
     publisher: '院党委（组织员）',
     recipients: '支部委员会（支委层）',
   }),
@@ -343,6 +363,8 @@ const TEMPLATES = {
         : `「${todoTitle}」的作废申请已获支委会确认，该待办已出列（原因：${reason || '未填'}）。若这是流程本身可优化的信号，请留意相应环节。`,
       priority: 'normal',
       audience,
+      targetType: 'todo',
+      targetId: sourceId,
       targetUrl: `${page}?tab=todo`,
     });
   },
@@ -359,6 +381,8 @@ const TEMPLATES = {
       : `「${label || '该记录'}」的作废申请已获支委会确认，该记录已出列（原因：${reason || '未填'}）。`,
     priority: 'normal',
     audiencePersons,
+    targetType: 'record',
+    targetId: sourceId,
   }),
 };
 
@@ -371,7 +395,9 @@ const TEMPLATES = {
 export function buildSystemNotice(kind, vars = {}) {
   const t = TEMPLATES[kind];
   if (!t) throw new Error(`未知的系统通知类型：${kind}`);
-  return t(vars);
+  // Task 3（2026-10-25）：系统派生通知统一带 kind='system'（消息对象模型单一身份）；
+  // 个别模板可显式覆盖（如纯公告型），未带坐标的历史模板由写入侧 / 历史规范化降级为 announcement。
+  return { kind: 'system', ...t(vars) };
 }
 
 /** 全部 kind 名（供守卫/调试） */

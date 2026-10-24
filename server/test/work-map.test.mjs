@@ -12,9 +12,9 @@ import {
   ORG_SUBJECT_IDS, ORG_SUBJECT_LABELS, BRANCH_ORG_SUBJECT_IDS, isOrgSubject, isBranchOrgSubject,
   INSTITUTION_DOMAINS, INSTITUTION_DOMAIN_IDS, INSTITUTION_COLLECTIVE_SUBJECTS, institutionSubjectOfDomain,
   transferRowOf, transferTabDecision, TRANSFERABLE_TAB_ROWS,
-} from '../../docs/src/core/domain/work-map.js?v=20261024c';
-import { sanitizeConfigWorkforce } from '../../docs/src/services/branch/config-clean.js?v=20261024c';
-import { ROLE_KEYS, ROLE_PAGE_MAP } from '../../docs/src/core/domain/constants.js?v=20261024c';
+} from '../../docs/src/core/domain/work-map.js?v=20261024d';
+import { sanitizeConfigWorkforce } from '../../docs/src/services/branch/config-clean.js?v=20261024d';
+import { ROLE_KEYS, ROLE_PAGE_MAP } from '../../docs/src/core/domain/constants.js?v=20261024d';
 
 let server, base, token;
 
@@ -163,17 +163,27 @@ test('分层与停用（2026-09-13 支书裁定）：tier ∈ {norm,method}；�
   );
 });
 
-// 2026-10-18 脏专项 Task 17：支部分工页「关系表缺表头/责任列」回修守卫
+// 2026-10-24 Task 4.4：责任关系由「5 列表格 + 10 条分页」改为**主从两栏**
+//   （左列模块清单 / 右列责任角色 + 责任说明 + 停用项启用入口）。
+//   原断言「表头四列齐全 + 走 renderFilteredList」随被替换的结构退场，**改为断言新结构**（未删覆盖面）：
+//   listbox/option 键盘语义、右侧两字段、停用项操作、无空「操作」列与「每行读法」、无分页。
 const WORK_MAP_UI = readFileSync(new URL('../../docs/src/entries/tabs/secretary/work-map-tab.js', import.meta.url), 'utf8');
 
-test('UI 责任关系表：表头与责任列齐全（模块 / 责任人 / 责任角色 / 责任说明），空态明确', () => {
-  assert.match(WORK_MAP_UI, /let _view = 'relations'/, '默认视图须落「责任关系表」');
-  for (const th of ['工作模块', '责任人', '责任角色', '责任说明']) {
-    assert.ok(WORK_MAP_UI.includes(`<th>${th}</th>`), `关系表须有表头「${th}」`);
+test('UI 责任关系主从两栏：左列 listbox 模块清单、右列责任角色 / 责任说明、停用项才有操作', () => {
+  assert.match(WORK_MAP_UI, /let _view = 'relations'/, '默认视图须落「责任关系」');
+  assert.match(WORK_MAP_UI, /role="listbox"/, '左列模块清单须有 listbox 语义');
+  assert.match(WORK_MAP_UI, /role="option"/, '每个模块须是可选项（role=option）');
+  assert.match(WORK_MAP_UI, /aria-activedescendant/, 'listbox 须用 aria-activedescendant 暴露当前项');
+  assert.match(WORK_MAP_UI, /ArrowDown[\s\S]{0,200}ArrowUp/, '左列须支持 ↑ / ↓ 键盘选择');
+  for (const label of ['责任角色', '责任说明']) {
+    assert.ok(WORK_MAP_UI.includes(`<dt>${label}</dt>`), `右列须有字段「${label}」`);
   }
-  assert.match(WORK_MAP_UI, /renderFilteredList\(/, '关系表须走统一检索引擎（表头/空态/分页单一源）');
-  assert.match(WORK_MAP_UI, /emptyMessage: '暂无分工数据/, '关系表须有明确空态');
-  assert.match(WORK_MAP_UI, /role: disabled \? '停用'/, '停用项须给出责任角色（不得空白）');
+  assert.match(WORK_MAP_UI, /wm-reenable/, '停用项须保留「发起启用议题」入口');
+  assert.ok(!WORK_MAP_UI.includes('每行读法'), '不得再复述表头读法');
+  assert.ok(!WORK_MAP_UI.includes('<th>操作</th>'), '不得再有空的「操作」列');
+  assert.ok(!WORK_MAP_UI.includes('renderFilteredList'), '主从两栏不再走分页引擎（14 项单屏可览）');
+  assert.ok(!/pageSize\s*:\s*10/.test(WORK_MAP_UI), '不得保留 10 条分页');
+  assert.match(WORK_MAP_UI, /暂无分工数据/, '须有明确空态');
 });
 
 test('HTTP：支书 PATCH config.workforce 落库（净化生效），null 恢复默认', async () => {

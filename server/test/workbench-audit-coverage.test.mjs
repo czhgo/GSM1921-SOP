@@ -201,7 +201,9 @@ test('组长/成员台 Task 16：写入口径、考察范围、组员进度与�
   // ① 组长 write：页签标题与 h3 一致；列表分可写 / 只读；roleEditable=false 关闭子记录写口
   const write = read('docs/src/entries/tabs/leader/write-tab.js');
   assert.ok(!write.includes('>活动写入</h3>'), 'h3 不得再写「活动写入」');
-  assert.match(write, /<h3[^>]*>本组活动<\/h3>/, 'h3 须与页签名一致为「本组活动」');
+  // 2026-10-24 Task 4.2：卡头改用 renderCardHeader，H3 不得逐字复述页签名「本组活动」
+  //   ⇒ 卡内标题改「活动清单」；页签名仍由 renderTabHeader 的 H2 承担（断言随结构改准，覆盖面不变）。
+  assert.match(write, /renderCardHeader\(\{[\s\S]{0,140}title: '活动清单'/, '卡头 H3 须为「活动清单」（不重复页签名）');
   assert.match(write, /id="leader-activity-readonly-list"/, '须单列「可见活动（只读）」');
   assert.match(write, /可见活动（只读）/, '只读分组须明示');
   assert.match(write, /const effectiveReadOnly = readOnly \|\| !roleEditable;/, '未授权活动须进入只读分支');
@@ -245,4 +247,43 @@ test('组长/成员台 Task 16：写入口径、考察范围、组员进度与�
   assert.match(view, /id="mydispatch-pending-host"/, '须有「待我处理」段宿主');
   assert.match(view, /id="mydispatch-done-host"/, '须有「我已处理」段宿主');
   assert.doesNotMatch(view, /unread\.forEach\(id => IssueNotify\.markRead\(userId, id\)\);/, '不得整批标已读');
+});
+
+// ── 2026-10-24 spec Task 5：知情查看补齐活动工作组 ────────────────────────────
+// 根因守卫：分段曾是「调用方写死」（支书台 `views:['taskforce']`），组件从未提供「工作组」段。
+//   ① 各台注册的 tf-view 渲染入口都至少含 `workgroup` 段（组长额外含 `group`）；
+//   ② 工作组件只读：不出现成员增删 / 授权 / 编辑控件（写口一律回活动详情）；
+//   ③ 深链参数被消费：`highlightWorkgroupId` / 旧 `highlightActId` 都进入工作组段；
+//   ④ 活动一览不再由本组件重复（`activity-view.js` 引用已移除）。
+test('知情查看 Task 5：各台 tf-view 均含工作组段，工作组件只读且消费深链', () => {
+  const read = (rel) => readFileSync(join(ROOT, rel), 'utf8');
+
+  // ① 分段集合：支书（能力注册行）/ 组长 / 成员（各自 tf-view 薄壳）
+  const secretary = read('docs/src/capabilities/secretary-workspace.js')
+    .split('\n').find((line) => line.includes("id: 'tf-view'")) || '';
+  const leader = read('docs/src/entries/tabs/leader/tf-view-tab.js');
+  const visitor = read('docs/src/entries/tabs/visitor/tf-view-tab.js');
+  for (const [name, src] of [['支书', secretary], ['组长', leader], ['成员', visitor]]) {
+    assert.match(src, /views:\s*\[[^\]]*'workgroup'/, `${name}台 tf-view 的 views 须含 workgroup`);
+  }
+  assert.match(leader, /views:\s*\['workgroup',\s*'taskforce',\s*'group'\]/, '组长台须保留「其他组」段');
+  assert.match(leader, /defaultView:\s*'group'/, '组长台默认段仍落「其他组」');
+
+  // ② 工作组件只读：无成员编辑 / 授权 / 表单控件
+  const wgv = read('docs/src/components/record/workgroup-view.js');
+  assert.doesNotMatch(wgv, /<input\b|<select\b|<textarea\b/, '工作组段不得出现表单控件');
+  for (const marker of ['data-wg-remove', 'data-wg-permission', 'data-wg-apply-template', 'workgroup-member-editor', 'addMember(']) {
+    assert.ok(!wgv.includes(marker), `工作组段不得出现写入口标记「${marker}」`);
+  }
+  assert.match(wgv, /activity\.html\?id=/, '工作组条目须链接到活动详情');
+  assert.match(wgv, /listRowHtml/, '行结构须复用 list-row 单一源');
+
+  // ③ 深链参数被消费（段切换 + 目标映射）
+  const insight = read('docs/src/components/record/insight-view.js');
+  assert.match(insight, /opts\.highlightWorkgroupId/, 'insight-view 须消费 highlightWorkgroupId');
+  assert.match(insight, /highlightActId\)\s*\?\s*'workgroup'|highlightWorkgroupId \|\| opts\.highlightActId/, '旧 activityId 须映射到工作组段');
+  assert.match(insight, /renderWorkgroupView\(body,\s*\{[\s\S]{0,200}highlightWorkgroupId[\s\S]{0,200}highlightActId/, '工作组段须同时接收新旧深链参数');
+
+  // ④ 活动一览不再在本组件重复（activity-view.js 仅由 work-overview 使用）
+  assert.ok(!insight.includes("import('./activity-view.js"), 'insight-view 不得再引用活动一览组件');
 });

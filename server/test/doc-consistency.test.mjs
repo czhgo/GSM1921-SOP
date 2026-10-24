@@ -10,7 +10,7 @@
 // 本守卫把「说明文件里的口径」变成**测试常驻断言**（判据一律以代码实测为准，不引用文档自述）：
 //   S1 各台 tab 数与代码注册数组长度一致（help.html 两处：§0.1 表与 §2.x 标题）
 //   S2 各台 tab 名称齐备且已删 tab 名不得复现（帮助页 §2.x 区块内逐名核对）
-//   S3 分组名只有一套轴：支部角色台＝工作台/我的职责/知情查看/制度与答复；党委台＝首页/全院治理/支部治理
+//   S3 分组名只有一套轴：支部角色台＝总览/我的职责/协作与知情/制度与答复；党委台＝党委治理
 //   S4 旧界面名黑名单零命中（考勤总表 / 按人浏览 / 公邮）——防「文档又写回旧名」
 //   S5 数据五数（mockDB / mock-adapter / db.js / 资源名 / 快照键）文档声明与代码实测一致
 //   S6 页面数（根页 + 工作台）文档声明与 `docs/` 实况一致
@@ -146,7 +146,10 @@ test('S2 各台 tab 名称齐备；已删 / 已改名 tab 名不得在帮助页�
 });
 
 test('S3 分组名只有一套轴：支部角色台四组、党委台统一治理组（且「党建 / 反馈」组名不得回潮）', () => {
-  const BRANCH_GROUPS = new Set(['工作台', '我的职责', '知情查看', '制度与答复']);
+  // 2026-10-24 Task 4.1：分组轴重裁定为「总览 / 我的职责 / 协作与知情 / 制度与答复」——
+  //   「工作台」→「总览」（与党委台「党委治理」区分）、「知情查看」→「协作与知情」
+  //   （消除支书台组名与组内页签名逐字相同）。本处只改期望值，断言结构一字未动。
+  const BRANCH_GROUPS = new Set(['总览', '我的职责', '协作与知情', '制度与答复']);
   // 2026-10-17：党委五个任务页签属于同一治理区，只保留一个分组标签，避免“首页 / 全院治理”在导航中散落。
   const PC_GROUPS = new Set(['党委治理']);
   const problems = [];
@@ -646,9 +649,9 @@ function enumCount(line) {
 
 test('S14 可数事实对账：文档里的「枚举 / 计数」必须等于代码 / 数据的实然值', async () => {
   const problems = [];
-  const { WORK_MAP_MODULES } = await import('../../docs/src/core/domain/work-map.js?v=20261024c');
-  const { sopDatabase } = await import('../../docs/src/workflow/sopData.js?v=20261024c');
-  const { ROLE_KEYS, ROLE_LEGACY_KEYS } = await import('../../docs/src/core/domain/constants.js?v=20261024c');
+  const { WORK_MAP_MODULES } = await import('../../docs/src/core/domain/work-map.js?v=20261024d');
+  const { sopDatabase } = await import('../../docs/src/workflow/sopData.js?v=20261024d');
+  const { ROLE_KEYS, ROLE_LEGACY_KEYS } = await import('../../docs/src/core/domain/constants.js?v=20261024d');
   const { SYSTEM_NOTICE_KIND_NAMES } = await import('../system-notice-kinds.js');
 
   /** 对账一条：`got` 为文档里抽出的数（null＝抽不出，判红并提示是判据失效而非「文档错」） */

@@ -19,23 +19,23 @@
 // 视觉沿用 card/rounded 既有体系（四档列表渲染在 components/record/todo-list.js renderUrgencyTodoList）。
 // 设计权威源：content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md §六 M6（共性抽象净减）
 
-import { TodoStore, urgeRolesOf, WORK_DOMAIN, WORK_DOMAIN_LABELS, realtimeGroupDomainOf, buildModuleCycleRemindGroup } from '../../services/governance/todo.js?v=20261024c';
+import { TodoStore, urgeRolesOf, WORK_DOMAIN, WORK_DOMAIN_LABELS, realtimeGroupDomainOf, buildModuleCycleRemindGroup } from '../../services/governance/todo.js?v=20261024d';
 // S3②（2026-09-12）：未读通知计数单一来源——与顶栏角标/首页同源（NoticeStore activeOnly+read 过滤），
 // 不再用「通知类待办」现算（口径不同致三处不一致）。
-import { NoticeStore, NOTICE_MODULE_ROLE_PAGES } from '../../services/governance/notice.js?v=20261024c';
-import { buildUrgencySections, renderUrgencyTodoList } from './todo-list.js?v=20261024c';
-import { badgeHtml } from '../ui/badges.js?v=20261024c';
-import { showToast, escHtml, todayLocal, flashHighlight } from '../../core/base/utils.js?v=20261024c';
-import { ROLE_LABELS, BRANCH_COMMISSION_ROLES } from '../../core/domain/constants.js?v=20261024c';
-import { openModal, closeModal } from '../ui/modal.js?v=20261024c';
-import { AuthStore } from '../../services/core/auth.js?v=20261024c';
-import { mockDB } from '../../core/domain/domain.js?v=20261024c';
-import { tokenOf } from '../../core/base/version-token.js?v=20261024c'; // P0 域写版本戳（spec §二.4）
-import { resolveDocumentUrl } from '../../core/base/page-url.js?v=20261024c';
-import { memoizeRender } from '../ui/memoize-render.js?v=20261024c'; // P2 渲染守卫（spec §四.1）
-import { renderTabHeader } from '../shell/page-frame.js?v=20261024c'; // 页题单一源（H2）
+import { NoticeStore, NOTICE_MODULE_ROLE_PAGES } from '../../services/governance/notice.js?v=20261024d';
+import { buildUrgencySections, renderUrgencyTodoList } from './todo-list.js?v=20261024d';
+import { badgeHtml } from '../ui/badges.js?v=20261024d';
+import { showToast, escHtml, todayLocal, flashHighlight } from '../../core/base/utils.js?v=20261024d';
+import { ROLE_LABELS, BRANCH_COMMISSION_ROLES } from '../../core/domain/constants.js?v=20261024d';
+import { openModal, closeModal } from '../ui/modal.js?v=20261024d';
+import { AuthStore } from '../../services/core/auth.js?v=20261024d';
+import { mockDB } from '../../core/domain/domain.js?v=20261024d';
+import { tokenOf } from '../../core/base/version-token.js?v=20261024d'; // P0 域写版本戳（spec §二.4）
+import { resolveDocumentUrl } from '../../core/base/page-url.js?v=20261024d';
+import { memoizeRender } from '../ui/memoize-render.js?v=20261024d'; // P2 渲染守卫（spec §四.1）
+import { renderTabHeader } from '../shell/page-frame.js?v=20261024d'; // 页题单一源（H2）
 // 模块周期提醒（`R-29⑤` · `D-804`）：分工快照取法与 `components/governance/workforce-duty-card.js` 同口径
-import { getBranchIdOfPerson, getBranchWorkforce } from '../../services/branch/branch.js?v=20261024c';
+import { getBranchIdOfPerson, getBranchWorkforce } from '../../services/branch/branch.js?v=20261024d';
 
 // ── P0 组合数据复合键（2026-09-07 · spec §二.4）──────────────────
 // 组合点（buildRealtimeGroups + mergeRealtimeDomains + getUnreadNotices）以
@@ -709,7 +709,7 @@ function _urgeDueText(group) {
   return `${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 }
 
-/** 催办通知跳转目标模块（按责任域；目标角色经 resolveNoticeUrl 站内角色感知映射落地） */
+/** 催办通知跳转目标模块（按责任域；目标角色经 `NOTICE_MODULE_ROLE_PAGES` 角色感知映射落地） */
 function _urgeTargetModule(group) {
   const d = realtimeGroupDomainOf(group);
   if (d === WORK_DOMAIN.ATTENDANCE) return 'attendance';
@@ -799,7 +799,9 @@ export function createUrgeController({ selfRoles = [], context, onDone, titleSuf
             ? `${page}?tab=todo${hlId ? `&highlight=${encodeURIComponent(hlId)}` : ''}`
             : page)
           : undefined,
-        actionable: true,
+        // 催办只增通知、不派生新待办（Task 2.4）：被催办人本来就持有该聚合组待办，
+        //   再按每条催办通知派生「阅读通知」会让连续催办无限叠加待办。
+        actionable: false,
         actionRoles: [role],
         actionTask: group.title,
         publishedBy: ROLE_LABELS[_actorRole] || '支书',

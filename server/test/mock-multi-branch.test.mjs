@@ -30,17 +30,19 @@ globalThis.localStorage = storage;
 
 import { createApp } from '../app.js';
 import { seedDatabase } from '../seed.js';
-import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261024c';
-import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261024c';
-import { PEOPLE } from '../../docs/src/data/mock/people.js?v=20261024c';
-import { ACTIVITIES } from '../../docs/src/data/mock/activities.js?v=20261024c';
-import { MOCK_NOTICES } from '../../docs/src/data/mock/notices.js?v=20261024c';
-import { ATTENDANCE_RECORDS } from '../../docs/src/data/mock/attendance.js?v=20261024c';
-import { SEED_ASSIGNMENTS } from '../../docs/src/data/mock/seed.js?v=20261024c';
-import { SEED_TODOS } from '../../docs/src/services/governance/todo.js?v=20261024c';
-import { ensureLegacySourceWorkgroups, normalizeSeedActivitySeedRows } from '../../docs/src/data/workgroup-seed-sync.js?v=20261024c';
+import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261024d';
+import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261024d';
+import { PEOPLE } from '../../docs/src/data/mock/people.js?v=20261024d';
+import { ACTIVITIES } from '../../docs/src/data/mock/activities.js?v=20261024d';
+import { MOCK_NOTICES } from '../../docs/src/data/mock/notices.js?v=20261024d';
+import { ATTENDANCE_RECORDS } from '../../docs/src/data/mock/attendance.js?v=20261024d';
+import { SEED_ASSIGNMENTS } from '../../docs/src/data/mock/seed.js?v=20261024d';
+import { SEED_TODOS } from '../../docs/src/services/governance/todo.js?v=20261024d';
+import { ensureLegacySourceWorkgroups, normalizeSeedActivitySeedRows } from '../../docs/src/data/workgroup-seed-sync.js?v=20261024d';
+// Task 1（2026-10-25）：种子只存事实；mock 侧用同一派生器补回运行时形状后再与 API 比对。
+import { applyDerivedFacts } from '../../docs/src/data/mock/derive.js?v=20261024d';
 // R3-P1（F-06）：通知读口按受众投影（私信/定向）——本守卫的 api 侧同样经该判据，mock 侧须同源对齐。
-import { canReadNotice } from '../../docs/src/services/governance/notice.js?v=20261024c';
+import { canReadNotice } from '../../docs/src/services/governance/notice.js?v=20261024d';
 
 const BRANCH_B1 = 'br-b1';
 const BRANCH_B2 = 'br-b2';
@@ -57,7 +59,7 @@ const B2 = {
     { id: 'act-b2', branchId: BRANCH_B2, title: '第二支部活动', status: 'active', assignments: [] },
   ],
   notices: [
-    { id: 'notice-b2', branchId: BRANCH_B2, title: '第二支部通知', content: '第二支部专用通知', publishDate: '2026-09-01', read: false },
+    { id: 'notice-b2', branchId: BRANCH_B2, title: '第二支部通知', content: '第二支部专用通知', publishDate: '2026-09-01', read: false, kind: 'announcement', archivedBy: [] },
   ],
   attendances: [
     { id: 'att-b2', personId: 'p-b2', activityId: 'act-b2', status: 'present', recordedBy: null, recordedAt: '2026-09-01T00:00:00Z', overdue: false },
@@ -85,6 +87,7 @@ mockDB.assignments = SEED_ASSIGNMENTS.map((row) => ({ ...row }));
 mockDB.workgroups = [];
 mockDB.workgroupMembers = [];
 mockDB.workgroupGrants = [];
+applyDerivedFacts(mockDB, { people: PEOPLE });
 ensureLegacySourceWorkgroups(mockDB);
 for (const [key, rows] of Object.entries(B2)) {
   if (key === 'users') continue; // users.list 读 PEOPLE + members 覆盖层

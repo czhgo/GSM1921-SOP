@@ -9,24 +9,24 @@
 //   · 读侧数据不动写（除页面跳转外无任何保存/报送控件）。
 // 保留「人才库=只读画像、名册=档案维护」页内注释与引导文案。
 
-import { loadInspectionRecords } from '../../../services/activity/inspection.js?v=20261024c';
+import { loadInspectionRecords } from '../../../services/activity/inspection.js?v=20261024d';
 // ⚠ 2026-10-01 批次 321（支书 V-10 取「乙：整页并入人才库」）：原「发展数据」tab 的**活动参与汇总**卡
 //   并入本页——「参与工作情况」正是**考察**的主体，支书原话「**考察就是维护人才库的过程！！**」。
-import { listActivityParticipationByPerson } from '../../../services/activity/attendance.js?v=20261024c';
+import { listActivityParticipationByPerson } from '../../../services/activity/attendance.js?v=20261024d';
 // R2-15（2026-10-20）：预备期月数改由制度参数派生（原 12/9 写死在本页）
-import { POLICY_DEFAULTS } from '../../../core/domain/policy-defaults.js?v=20261024c';
-import { loadThoughtReports } from '../../../services/governance/thought-report.js?v=20261024c';
-import { PersonStore, getPersonName } from '../../../services/member/person.js?v=20261024c';
+import { POLICY_DEFAULTS } from '../../../core/domain/policy-defaults.js?v=20261024d';
+import { loadThoughtReports } from '../../../services/governance/thought-report.js?v=20261024d';
+import { PersonStore, getPersonName } from '../../../services/member/person.js?v=20261024d';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/member/person.js 获取（原直连 mock PEOPLE）
-import { getResidenceOf } from '../../../services/member/roster.js?v=20261024c';
+import { getResidenceOf } from '../../../services/member/roster.js?v=20261024d';
 // Q-21-3 收敛（2026-09-13）：在册状态枚举单一源 = core/domain/constants.js（原经 roster.js 转出）
-import { RESIDENCE } from '../../../core/domain/constants.js?v=20261024c';
+import { RESIDENCE } from '../../../core/domain/constants.js?v=20261024d';
 // B5（2026-09-12）：搜索 + 阶段/党小组筛选已统一接入 components/ui/list-filter.js（分面枚举由引擎 auto 派生）
-import { listPendingConfirmations, lastApprovedStageChange } from '../../../services/member/member-confirmation.js?v=20261024c';
-import { escHtml as esc, getBasePath } from '../../../core/base/utils.js?v=20261024c';
+import { listPendingConfirmations, lastApprovedStageChange } from '../../../services/member/member-confirmation.js?v=20261024d';
+import { escHtml as esc, getBasePath } from '../../../core/base/utils.js?v=20261024d';
 // 统一检索引擎（2026-09-13 表格统一化批次 A）：成员卡列表接入关键词 + 分面（替代原手写三控件显隐过滤）
-import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261024c';
-import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261024c';
+import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261024d';
+import { renderTabHeader, renderCardHeader } from '../../../components/shell/page-frame.js?v=20261024d';
 
 // 发展阶段顺序（发展流程正向：入党申请人 → 积极分子 → 发展对象 → 预备党员 → 正式党员）
 const STAGE_ORDER = ['积极分子', '发展对象', '预备党员', '正式党员'];
@@ -123,12 +123,9 @@ function _devTips(person, counts, ctx) {
 function _participationCardHtml(part) {
   return `
     <div class="card rounded-xl p-5 mt-4">
-      <div class="flex items-center justify-between mb-3">
-        <h3 class="font-title-cn text-base font-semibold text-gray-800">活动参与汇总</h3>
-        <span class="text-xs text-gray-500">${part.rows.length} 人 · 以人为第一列（写工作总结可直接引用）</span>
-      </div>
-      <p class="text-xs text-gray-500 mb-3">参与＝出勤 / 已补；请假 / 缺勤不计。</p>
+      ${renderCardHeader({ title: '活动参与汇总', meta: `${part.rows.length} 人 · 以人为第一列` })}
       <div class="overflow-x-auto"><div id="org-part-list"></div></div>
+      <p class="text-xs text-gray-500 mt-2 mb-0">参与＝出勤 / 已补；请假 / 缺勤不计。</p>
     </div>
   `;
 }
@@ -232,23 +229,21 @@ export function renderContent(ctx) {
   container.innerHTML = `
     ${renderTabHeader({ title: '人才库', description: '成员发展观察、考察摘要与活动参与汇总。' })}
     <div class="card rounded-xl p-5">
-      <div class="flex items-center justify-between mb-2 flex-wrap gap-2">
-        <h3 class="font-title-cn text-base font-semibold text-gray-800">人才库</h3>
-        <div class="flex items-center flex-wrap justify-end gap-x-3 gap-y-0.5 text-xs text-gray-500">
-          <span>成员 <span class="tabular-nums font-medium text-gray-700">${people.length}</span> 人</span>
+      ${renderCardHeader({
+        title: '成员发展',
+        meta: `<span>成员 <span class="tabular-nums font-medium text-gray-700">${people.length}</span> 人</span>
           <span>考察摘要 <span class="tabular-nums font-medium text-gray-700">${inspections.filter(r => r && r.personId).length}</span> 条</span>
           <span>思想汇报已归档 <span class="tabular-nums font-medium text-gray-700">${thoughts.filter(t => t && t.personId).length}</span> 篇</span>
-          <span>发展提示 <span class="tabular-nums font-medium ${tipCount > 0 ? 'text-amber-700' : 'text-gray-700'}">${tipCount}</span> 人</span>
-        </div>
-      </div>
+          <span>发展提示 <span class="tabular-nums font-medium ${tipCount > 0 ? 'text-amber-700' : 'text-gray-700'}">${tipCount}</span> 人</span>`,
+      })}
       <!-- 2026-10-01 批次 315（支书 V-9 取甲「全删」）：本块原为「人才库 = 发展观察（只读画像）…本页读侧数据不动写」
            整段说明，**已整块删除**——页面自己能说清；这类「本页是什么 / 写位在哪」属**替界面说话**
            （判据同 2026-09-29 批次 295 删同类空态解释）。支书原话：「要学会 用 UI 设计让信息 speak for themselves」。
            同批（支书 V-11）：「† 口径」里删去「不含党委组织员等非本支部人员」一句——本仓即**支部系统**，
            在册成员的取值本不含非本支部人员，多这一句只是把界面上本已成立的事再讲一遍。 -->
 
-      ${inspGapCount ? `<p class="text-xs text-gray-500 mb-1">${inspGapCount} 人尚无考察记录，发展材料待积累</p>` : ''}
       <div id="talent-list"></div>
+      ${inspGapCount ? `<p class="text-xs text-gray-500 mt-2 mb-0">${inspGapCount} 人尚无考察记录，发展材料待积累</p>` : ''}
     </div>
     ${_participationCardHtml(part)}
     <div id="talent-insp-host" class="mt-4"></div>`;
@@ -324,7 +319,7 @@ function _renderInspectionSlot(container, ctx) {
     _renderInspectionSlot(container, ctx);
   });
   if (_inspSlotOpen) {
-    import('./inspection-tab.js?v=20261024c').then((m) => {
+    import('./inspection-tab.js?v=20261024d').then((m) => {
       const body = host.querySelector('#talent-insp-body');
       m.renderContent(ctx, body);
       _normalizeInspectionCopy(body);

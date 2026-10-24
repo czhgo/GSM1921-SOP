@@ -8,52 +8,52 @@
 //   buildRealtimeGroups 一次 merge 进对应域（考勤纪律/考察/活动项目/归档宣传/成员发展/决议上报）；
 //   种子行动类（设党小组组长）由壳按域聚合；自定义详情/专班待议/待答复收件箱/成员变更面板照旧挂载。
 
-import { showToast, escHtml as esc, flashHighlight } from '../../../core/base/utils.js?v=20261024c';
+import { showToast, escHtml as esc, flashHighlight } from '../../../core/base/utils.js?v=20261024d';
 // D2 裁决批二（2026-09-08）：概况汇报区只读摘要「去待办处理」→ 定位消费（展开该答复详情并滚动到视口）
-import { PendingTarget } from '../../../core/session/pending-target.js?v=20261024c';
-import { createTodoTab, createUrgeController } from '../../../components/record/todo-tab-shell.js?v=20261024c';
+import { PendingTarget } from '../../../core/session/pending-target.js?v=20261024d';
+import { createTodoTab, createUrgeController } from '../../../components/record/todo-tab-shell.js?v=20261024d';
 // 本位 nudge 单一源（2026-09-27：材料催办 → 组织委员为本位；支书 / 副支书催办属例外代办）
-import { confirmNudge } from '../../../components/ui/modal.js?v=20261024c';
-import { TodoStore, seedTodos, TodoCategory, REALTIME_GROUP_DOMAIN, WORK_DOMAIN } from '../../../services/governance/todo.js?v=20261024c';
+import { confirmNudge } from '../../../components/ui/modal.js?v=20261024d';
+import { TodoStore, seedTodos, TodoCategory, REALTIME_GROUP_DOMAIN, WORK_DOMAIN } from '../../../services/governance/todo.js?v=20261024d';
 // `#1`/`D-742`：作废裁决后的**站内知会**（知会「相关委员管理上可优化」）——走系统派生通知单一源
 // （`addSystem` → 服务端按 `todo-void-decided` kind 复算授权与受众；mock 模式本地同模板镜像）。
-import { NoticeStore } from '../../../services/governance/notice.js?v=20261024c';
-import { SecretaryTodoDeriver, getEndedUnarchivedActivities, getArchiveGapActivities } from '../../../services/governance/secretary-overview.js?v=20261024c';
-import { badgeHtml } from '../../../components/ui/badges.js?v=20261024c';
-import { loadAttendanceRecords, saveAttendanceRecords } from '../../../services/activity/attendance.js?v=20261024c';
-import { loadInspectionRecords, saveInspectionRecords } from '../../../services/activity/inspection.js?v=20261024c';
-import { updateActivityReview, loadActivityReviews, renderActivityReviewFormHtml, submitActivityReviewForm } from '../../../services/governance/review.js?v=20261024c';
-import { loadActivities } from '../../../services/activity/activity.js?v=20261024c';
+import { NoticeStore } from '../../../services/governance/notice.js?v=20261024d';
+import { SecretaryTodoDeriver, getEndedUnarchivedActivities, getArchiveGapActivities } from '../../../services/governance/secretary-overview.js?v=20261024d';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20261024d';
+import { loadAttendanceRecords, saveAttendanceRecords } from '../../../services/activity/attendance.js?v=20261024d';
+import { loadInspectionRecords, saveInspectionRecords } from '../../../services/activity/inspection.js?v=20261024d';
+import { updateActivityReview, loadActivityReviews, renderActivityReviewFormHtml, submitActivityReviewForm } from '../../../services/governance/review.js?v=20261024d';
+import { loadActivities } from '../../../services/activity/activity.js?v=20261024d';
 // 批次 346（`D-744`②）：业务记录「作废（软）」统一写口——待确认申请并入**同一个**「作废待确认」组
-import * as SoftVoid from '../../../services/governance/soft-void.js?v=20261024c';
-import { mockDB } from '../../../core/domain/domain.js?v=20261024c';
-import { persist } from '../../../data/data-adapter.js?v=20261024c';
-import { bumpToken } from '../../../core/base/version-token.js?v=20261024c'; // P0 域缓存失效（spec §二.3）
-import { getPersonById, getPersonName, PersonStore } from '../../../services/member/person.js?v=20261024c';
-import { solidAccentStyle, ROLE_LABELS, activityTypeBadgeVariant } from '../../../core/domain/constants.js?v=20261024c';
+import * as SoftVoid from '../../../services/governance/soft-void.js?v=20261024d';
+import { mockDB } from '../../../core/domain/domain.js?v=20261024d';
+import { persist } from '../../../data/data-adapter.js?v=20261024d';
+import { bumpToken } from '../../../core/base/version-token.js?v=20261024d'; // P0 域缓存失效（spec §二.3）
+import { getPersonById, getPersonName, PersonStore } from '../../../services/member/person.js?v=20261024d';
+import { solidAccentStyle, ROLE_LABELS, activityTypeBadgeVariant } from '../../../core/domain/constants.js?v=20261024d';
 // 代归档写口（D-807④）：与宣传台归档面同一写口（软删 archived=true + 级联完成下属任务）
-import { BranchService } from '../../../services/core/runtime.js?v=20261024c';
+import { BranchService } from '../../../services/core/runtime.js?v=20261024d';
 // R1-A 点⑤（2026-09-09）：强调色渲染统一 person-aware 动态解析（替代模块级 resolveAccentRole 快照）
-import { getAppliedAccentColors } from '../../../core/boot/theme.js?v=20261024c';
-import { IssueStore } from '../../../services/governance/issues.js?v=20261024c';
-import { TaskForceRecordStore, createTaskforceVoteActivity, findTaskforceVoteActivity } from '../../../services/activity/taskforce.js?v=20261024c';
-import { fetchVotes } from '../../../services/activity/committee-vote.js?v=20261024c';
-import { resolveVoterIds } from '../../../services/activity/vote-config.js?v=20261024c';
-import { renderReportInboxHtml, bindReportInbox } from '../../../components/record/reporting.js?v=20261024c';
+import { getAppliedAccentColors } from '../../../core/boot/theme.js?v=20261024d';
+import { IssueStore } from '../../../services/governance/issues.js?v=20261024d';
+import { TaskForceRecordStore, createTaskforceVoteActivity, findTaskforceVoteActivity } from '../../../services/activity/taskforce.js?v=20261024d';
+import { fetchVotes } from '../../../services/activity/committee-vote.js?v=20261024d';
+import { resolveVoterIds } from '../../../services/activity/vote-config.js?v=20261024d';
+import { renderReportInboxHtml, bindReportInbox } from '../../../components/record/reporting.js?v=20261024d';
 // 2026-09-08 裁决批一（D1/D3）：成员变更=域内确认+批量去顶卡——顶卡面板移除，
 // 确认位唯一化 = 「成员发展」域实时组内批量块（buildMcBulkRows/renderMcBulkRowsHtml/bindMcBulk）。
-import { preloadMemberChangeRequests, getCachedMemberChangeRequests, buildMcBulkRows, renderMcBulkRowsHtml, bindMcBulk } from '../../../components/governance/member-change-panel.js?v=20261024c';
-import { tryDirectJump } from '../../../components/record/todo-jump.js?v=20261024c';
-import { buildOverdueRemindGroupNow } from '../../../services/governance/resolution-followup.js?v=20261024c';
+import { preloadMemberChangeRequests, getCachedMemberChangeRequests, buildMcBulkRows, renderMcBulkRowsHtml, bindMcBulk } from '../../../components/governance/member-change-panel.js?v=20261024d';
+import { tryDirectJump } from '../../../components/record/todo-jump.js?v=20261024d';
+import { buildOverdueRemindGroupNow } from '../../../services/governance/resolution-followup.js?v=20261024d';
 // C 批 附录⑩ S4：名册成员变更确认复核（组织委员发起 → 支书确认/退回）+ 学期末滞留集中复核提醒
 // 批4（2026-09-09）：窗口判定与窗口文案单一源 = policy（memberConfirmation.semesterDetainedWindows）
-import { listPendingConfirmations, decideConfirmation, shouldShowSemesterDetainedRemind, semesterDetainedWindowsLabel, MC_ACTION_LABEL } from '../../../services/member/member-confirmation.js?v=20261024c';
-import { getDetainedMembers, getResidenceOf } from '../../../services/member/roster.js?v=20261024c';
-import { AuthStore, currentUserId } from '../../../services/core/auth.js?v=20261024c';
+import { listPendingConfirmations, decideConfirmation, shouldShowSemesterDetainedRemind, semesterDetainedWindowsLabel, MC_ACTION_LABEL } from '../../../services/member/member-confirmation.js?v=20261024d';
+import { getDetainedMembers, getResidenceOf } from '../../../services/member/roster.js?v=20261024d';
+import { AuthStore, currentUserId } from '../../../services/core/auth.js?v=20261024d';
 // 逐条催办（2026-09-10 支书裁定；2026-09-18 批次 88 抽到共享壳 createUrgeController，
 // 与组织委员台共用同一实现；判据仍在 services/governance/todo.js::urgeRolesOf，未改）
-import { setState } from '../../../core/base/state.js?v=20261024c';
-import { openModal, closeModal } from '../../../components/ui/modal.js?v=20261024c';
+import { setState } from '../../../core/base/state.js?v=20261024d';
+import { openModal, closeModal } from '../../../components/ui/modal.js?v=20261024d';
 
 // 生效强调色三件套（R1-A 点⑤：登录人强调色=person 键覆盖，禁止模块加载期快照写死——
 // 一律渲染时经 getAppliedAccentColors 动态解析，改色后随重渲染/刷新生效，与 --app-accent 同源）
@@ -239,7 +239,7 @@ function _openDelegateArchiveModal() {
         </a>
         <span class="flex items-center gap-2 flex-shrink-0">
           <a href="./activity-materials.html?id=${encodeURIComponent(a.id || '')}" class="text-xs text-accent hover:underline">材料与归档</a>
-          <span class="text-[11px] text-gray-400">材料补交归宣传委员</span>
+          <span class="text-xs text-gray-400">材料补交归宣传委员</span>
         </span>
       </div>`;
   const me = AuthStore.getCurrentUser();
@@ -470,7 +470,7 @@ function renderRemindDetail(group) {
   const rows = items.slice(0, 8).map(it => `
     <div class="flex items-center justify-between gap-2">
       <span class="text-xs text-gray-600 truncate">${it.name || it.title || it.id}</span>
-      <span class="text-[11px] text-gray-500 flex-shrink-0">${it.date || ''}</span>
+      <span class="text-xs text-gray-500 flex-shrink-0">${it.date || ''}</span>
     </div>
   `).join('');
   const more = items.length > 8 ? `<div class="text-xs text-gray-500">… 另有 ${items.length - 8} 项</div>` : '';
@@ -482,7 +482,7 @@ function renderRemindDetail(group) {
     <div class="space-y-3">
       <div class="flex items-center gap-2">
         <span class="agg-count-badge text-xs px-1.5 py-0.5 rounded-full font-semibold tabular-nums">${group.count} 项待跟进</span>
-        ${group.deadline ? `<span class="text-[11px] text-gray-500">最早 ${group.deadline}</span>` : ''}
+        ${group.deadline ? `<span class="text-xs text-gray-500">最早 ${group.deadline}</span>` : ''}
       </div>
       <p class="font-title-cn text-base font-semibold text-gray-800">${group.title}</p>
       ${group.flow ? `<p class="text-xs text-gray-600 leading-relaxed">${group.flow}</p>` : ''}
@@ -667,8 +667,8 @@ function renderVoidConfirmDetail(group) {
       <div class="rounded-lg border border-gray-100 bg-gray-50/40 p-2.5 space-y-1.5" data-void-card="${esc(t.id)}" data-void-label="${esc(t.title || '未命名待办')}">
         <div class="flex items-center gap-1.5 flex-wrap">
           <span class="text-sm font-medium text-gray-800">${esc(t.title || '未命名待办')}</span>
-          ${roleLabel ? `<span class="text-[11px] px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-600 flex-shrink-0">${esc(roleLabel)}</span>` : ''}
-          <span class="text-[11px] text-gray-500 ml-auto">${esc(byName)} · ${atText}</span>
+          ${roleLabel ? `<span class="text-xs px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-600 flex-shrink-0">${esc(roleLabel)}</span>` : ''}
+          <span class="text-xs text-gray-500 ml-auto">${esc(byName)} · ${atText}</span>
         </div>
         <div class="text-xs text-gray-600 leading-relaxed"><span class="font-medium text-gray-700">作废原因：</span>${esc(vp.reason || '—')}</div>
         <div class="flex gap-2 pt-1">
@@ -722,7 +722,7 @@ function renderMemberConfirmDetail(group) {
     <div class="space-y-3">
       <div class="flex items-center gap-2">
         <span class="agg-count-badge text-xs px-1.5 py-0.5 rounded-full font-semibold tabular-nums">${items.length} 条逐项待确认</span>
-        ${agendaCount > 0 ? `<span class="text-[11px] text-gray-500">另 ${agendaCount} 条议程链项见左列批量块</span>` : ''}
+        ${agendaCount > 0 ? `<span class="text-xs text-gray-500">另 ${agendaCount} 条议程链项见左列批量块</span>` : ''}
       </div>
       <p class="font-title-cn text-base font-semibold text-gray-800">成员变更待确认</p>
       <p class="text-xs text-gray-600 leading-relaxed">组织委员发起的变更须支书确认后生效，或退回原状。</p>
@@ -743,9 +743,9 @@ function _mcReqCard(req) {
   return `
     <div class="rounded-lg border border-gray-100 bg-gray-50/40 p-2.5 space-y-1.5" data-mc-card="${esc(req.id)}">
       <div class="flex items-center gap-1.5 flex-wrap">
-        <span class="text-[11px] px-1.5 py-0.5 rounded-full flex-shrink-0 ${kindCls}">${kindLabel}</span>
+        <span class="text-xs px-1.5 py-0.5 rounded-full flex-shrink-0 ${kindCls}">${kindLabel}</span>
         <span class="text-sm font-medium text-gray-800">${esc(req.name || req.personId)}</span>
-        <span class="text-[11px] text-gray-500 ml-auto">${esc(byName)} · ${atText}</span>
+        <span class="text-xs text-gray-500 ml-auto">${esc(byName)} · ${atText}</span>
       </div>
       <div class="text-xs text-gray-600 leading-relaxed">
         <span class="font-medium text-gray-700">${esc(req.from || '')} → ${esc(req.to || '')}</span>
@@ -768,11 +768,11 @@ function _mcRefsSummaryHtml(summary) {
   const keep = summary.keep || [];
   const safeTotal = safe.reduce((s, x) => s + (x.count || 0), 0);
   const keepTotal = keep.reduce((s, x) => s + (x.count || 0), 0);
-  const chip = (x, cls) => `<span class="text-[11px] px-1.5 py-0.5 rounded-full ${cls} whitespace-nowrap">${esc(x.label)} ×${x.count}</span>`;
+  const chip = (x, cls) => `<span class="text-xs px-1.5 py-0.5 rounded-full ${cls} whitespace-nowrap">${esc(x.label)} ×${x.count}</span>`;
   const safeChips = safe.map(x => chip(x, 'bg-green-50 text-green-700 border border-green-100'));
   const keepChips = keep.map(x => chip(x, 'bg-gray-50 text-gray-600 border border-gray-200'));
   return `
-    <div class="rounded-lg bg-white border border-gray-100 p-2 text-[11px] text-gray-500 space-y-1">
+    <div class="rounded-lg bg-white border border-gray-100 p-2 text-xs text-gray-500 space-y-1">
       <p>保持记录摘要：自动解除 <span class="tabular-nums font-medium text-gray-700">${safeTotal}</span> 项 · 转已转出标注 <span class="tabular-nums font-medium text-gray-700">${keepTotal}</span> 条</p>
       ${(safeChips.length || keepChips.length) ? `
       <details>
@@ -790,7 +790,7 @@ function renderSemesterDetainedDetail(group) {
   const rows = (group.items || []).map(it => `
     <div class="flex items-start justify-between gap-2 py-0.5">
       <span class="text-xs text-gray-700 font-medium flex-shrink-0">${esc(it.name)}</span>
-      <span class="text-[11px] text-gray-500 text-right min-w-0 truncate" title="${esc(it.note || '')}">${esc(it.note || '—')}</span>
+      <span class="text-xs text-gray-500 text-right min-w-0 truncate" title="${esc(it.note || '')}">${esc(it.note || '—')}</span>
     </div>`).join('');
   return `
     <div class="space-y-3">
@@ -1138,10 +1138,10 @@ function expandAssignPanelForTodo(todo) {
   const sourceId = todo.actionData?.sourceId;
   if (scope === 'leader') {
     // 组长 / 副组长赋权：置模块态后由 group-progress 挂载时补渲（tab 异步渲染也能落到位）
-    import('./assign-tab.js?v=20261024c').then(m => m.openLeaderAssignPanel({}));
+    import('./assign-tab.js?v=20261024d').then(m => m.openLeaderAssignPanel({}));
   } else if (scope === 'activity' || scope === 'taskforce') {
     // 项目赋权（整卡在「活动管理」页）：先按模块态切到该块，等宿主就位后再预选项目 + 滚到该块表单
-    import('./assign-tab.js?v=20261024c').then(m => m.selectProjectAuthKind(scope));
+    import('./assign-tab.js?v=20261024d').then(m => m.selectProjectAuthKind(scope));
     const cfg = scope === 'taskforce'
       ? { selectId: 'tf-project-select', panelId: 'tf-auth-panel' }
       : { selectId: 'project-id-select', panelId: 'project-auth-panel' };
@@ -1182,17 +1182,17 @@ function _committeeTfRowHtml(req, act) {
   const byName = req.by ? getPersonName(req.by) : '组织委员';
   const atText = String(req.at || '').slice(0, 16).replace('T', ' ');
   const ops = act
-    ? `<span class="text-[11px] px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 flex-shrink-0">已排入表决</span>
+    ? `<span class="text-xs px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 flex-shrink-0">已排入表决</span>
        <button type="button" class="btn-accent-soft btn-sm tf-cr-result flex-shrink-0" data-tf-id="${req.id}" data-activity-id="${act.id}">查看表决结果并生效</button>`
     : `<button type="button" class="btn-accent-soft btn-sm tf-cr-arrange flex-shrink-0" data-tf-id="${req.id}" data-kind="${req.kind}">排入支委会表决</button>`;
   return `
     <div class="rounded-xl border border-gray-100 bg-gray-50/40 p-3">
       <div class="flex items-start gap-2">
-        <span class="text-[11px] px-1.5 py-0.5 rounded-full flex-shrink-0 ${kindCls}">${kindLabel}</span>
+        <span class="text-xs px-1.5 py-0.5 rounded-full flex-shrink-0 ${kindCls}">${kindLabel}</span>
         <div class="flex-1 min-w-0">
           <p class="font-title-cn text-sm font-bold text-gray-800 truncate">${req.name || '未命名专班'}</p>
           ${req.task ? `<p class="text-xs text-gray-500 truncate mt-0.5">${req.task}</p>` : ''}
-          <p class="text-[11px] text-gray-500 mt-0.5">报送人 ${byName} · ${atText || ''}${req.note ? ` · ${req.note}` : ''}</p>
+          <p class="text-xs text-gray-500 mt-0.5">报送人 ${byName} · ${atText || ''}${req.note ? ` · ${req.note}` : ''}</p>
         </div>
         <div class="flex flex-col items-end gap-1.5 flex-shrink-0">${ops}</div>
       </div>

@@ -5,13 +5,13 @@
 //  视图模式：月/周/日/列表 四种切换
 // ════════════════════════════════════════════════════════════════
 
-import { getAppState, setState } from '../../core/base/state.js?v=20261024c';
-import { ROLE_COLORS, getActivityColor, ACTIVITY_CATEGORY_COLORS, ACTIVITY_TYPE_LABELS, ACTIVITY_TYPE_SHORT, activityTypeTone } from '../../core/domain/constants.js?v=20261024c';
-import { _fmtDate, _currentYearMonth } from '../../core/base/utils.js?v=20261024c';
-import { tokenOf } from '../../core/base/version-token.js?v=20261024c'; // P2 视图渲染守卫数据版本（spec §四.2）
-import { filterTasksByManagementRole, activityLifecycleBadgeHtml } from './inspector.js?v=20261024c';
+import { getAppState, setState } from '../../core/base/state.js?v=20261024d';
+import { ROLE_COLORS, getActivityColor, ACTIVITY_CATEGORY_COLORS, ACTIVITY_TYPE_LABELS, ACTIVITY_TYPE_SHORT, activityTypeTone } from '../../core/domain/constants.js?v=20261024d';
+import { _fmtDate, _currentYearMonth } from '../../core/base/utils.js?v=20261024d';
+import { tokenOf } from '../../core/base/version-token.js?v=20261024d'; // P2 视图渲染守卫数据版本（spec §四.2）
+import { filterTasksByManagementRole, activityLifecycleBadgeHtml } from './inspector.js?v=20261024d';
 // 活动「已完成 / 已取消」闭环判据单一源（R7-16）：替代手写 ['completed','cancelled']
-import { isActivityClosed } from '../../core/domain/domain.js?v=20261024c';
+import { isActivityClosed } from '../../core/domain/domain.js?v=20261024d';
 
 // ── 固定语义色 tone（不随主题）──
 // 2026-10-24 批次 508：活动类别色改由单一源 activityTypeTone 判定——

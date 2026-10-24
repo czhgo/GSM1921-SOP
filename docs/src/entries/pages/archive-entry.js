@@ -1,31 +1,30 @@
 // role: [工程师]+[AI]
 // archive-entry.js — 归档库独立入口
-// 2026-07-30: Tab 分类（活动/专班/通知），替代原单一列表
-import { renderSidebar } from '../../components/shell/sidebar.js?v=20261024c';
-import { renderHeader } from '../../components/shell/header.js?v=20261024c';
-import { BranchService } from '../../services/core/runtime.js?v=20261024c';
-import { mockDB, TaskforceStatus, TASKFORCE_TERMINAL_STATUSES } from '../../core/domain/domain.js?v=20261024c';
-import { getPersonById, getPersonName } from '../../services/member/person.js?v=20261024c';
-import { loadActivities } from '../../services/activity/activity.js?v=20261024c';
-import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261024c';
-import { getActivityTypeColors } from '../../core/domain/constants.js?v=20261024c';
+// 2026-07-30: Tab 分类（活动/专班），替代原单一列表
+// Task 3（2026-10-25）：`?tab=notice` 退役——消息有了唯一列表与「已归档」筛选，归档页只留活动、专班两栏。
+import { renderSidebar } from '../../components/shell/sidebar.js?v=20261024d';
+import { renderHeader } from '../../components/shell/header.js?v=20261024d';
+import { BranchService } from '../../services/core/runtime.js?v=20261024d';
+import { mockDB, TaskforceStatus, TASKFORCE_TERMINAL_STATUSES } from '../../core/domain/domain.js?v=20261024d';
+import { getPersonById, getPersonName } from '../../services/member/person.js?v=20261024d';
+import { loadActivities } from '../../services/activity/activity.js?v=20261024d';
+import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261024d';
+import { getActivityTypeColors } from '../../core/domain/constants.js?v=20261024d';
 // 活动「已结束」口径单一源（2026-09-13 收敛）：替代手写 status==='completed' || archived
 // 2026-10-24 批次 508：归档库的「已归档活动」改用 `isActivityArchived`（仅看 archived 软标记），
 //   与宣传台「档案归档」同口径——原 `isActivityEnded`（archived ∨ status==='completed'）会把
 //   **已结束但尚未归档**的活动也算进归档库，与同页其它两栏（专班/通知只收归档件）不一致。
-import { isActivityArchived } from '../../core/domain/constants.js?v=20261024c';
-import { NoticeStore, resolveNoticeUrl } from '../../services/governance/notice.js?v=20261024c';
-import { getBasePath, todayLocal, escHtml } from '../../core/base/utils.js?v=20261024c';
-import { AuthStore } from '../../services/core/auth.js?v=20261024c';
-import { badgeHtml } from '../../components/ui/badges.js?v=20261024c';
+import { isActivityArchived } from '../../core/domain/constants.js?v=20261024d';
+import { getBasePath, escHtml } from '../../core/base/utils.js?v=20261024d';
+import { badgeHtml } from '../../components/ui/badges.js?v=20261024d';
 // 翻页控件单一源（批次 38：全站手写翻页一律并轨 pagerHtml）
-import { pagerHtml } from '../../components/ui/pager.js?v=20261024c';
-import { openModal } from '../../components/ui/modal.js?v=20261024c';
+import { pagerHtml } from '../../components/ui/pager.js?v=20261024d';
+import { openModal } from '../../components/ui/modal.js?v=20261024d';
 // 批次 87：本页必须先 hydrate API 数据源再渲染——与 activity.html（批次 83 修好后的标准形）同款。
 // 此前本页只调 BranchService.loadDB()（API 模式直接 return）⇒ api 形态下归档库读的是本地备份，
 // 服务端已归档的活动 / 专班 / 通知看不到。
-import { hydrateDataSource, notifyDataLoaded } from '../../data/data-adapter.js?v=20261024c';
-import { ApiAdapter } from '../../data/api-adapter.js?v=20261024c';
+import { hydrateDataSource, notifyDataLoaded } from '../../data/data-adapter.js?v=20261024d';
+import { ApiAdapter } from '../../data/api-adapter.js?v=20261024d';
 
 renderSidebar('archive');
 renderHeader('archive');
@@ -48,16 +47,20 @@ async function _hydrateData() {
 const ARCHIVE_TABS = [
   { id: 'activity', label: '党建活动' },
   { id: 'taskforce', label: '专班' },
-  { id: 'notice', label: '通知' },
 ];
 let _activeTab = 'activity';
 // 2026-10-24 批次 508：归档库此前不读任何 URL 参数——外部深链（`?tab=taskforce&id=…`）一律落回
-//   默认「党建活动」且不打开详情。现按既有三页签 id 取值（非法值回落 activity），`id` 在首帧渲染后
+//   默认「党建活动」且不打开详情。现按既有页签 id 取值（非法值回落 activity），`id` 在首帧渲染后
 //   打开对应详情浮窗（见 init 末尾 `_openArchivedDetail`）。
+// Task 3（2026-10-25）：`?tab=notice` 已退役，重定向到消息中心「已归档」。
 const _urlParams = new URLSearchParams(location.search);
 const _tabParam = _urlParams.get('tab');
 if (ARCHIVE_TABS.some(t => t.id === _tabParam)) _activeTab = _tabParam;
 const _focusArchiveId = _urlParams.get('id') || '';
+const _legacyNoticeTab = _tabParam === 'notice';
+if (_legacyNoticeTab) {
+  window.location.replace(`${getBasePath()}messages.html?filter=archived`);
+}
 
 const tabContainer = document.getElementById('archive-tabs');
 const contentContainer = document.getElementById('archive-tab-content');
@@ -83,12 +86,11 @@ function renderContent() {
 
   if (_activeTab === 'activity') renderActivityArchive();
   else if (_activeTab === 'taskforce') renderTaskforceArchive();
-  else if (_activeTab === 'notice') renderNoticeArchive();
 }
 
 // ── 分页（支书 2026-08-08：归档数据无上限增长 → 前端分页，复用 query-view 分页模式）──
 const PAGE_SIZE = 10;
-const _pageState = { activity: 1, taskforce: 1, notice: 1 };
+const _pageState = { activity: 1, taskforce: 1 };
 
 /** 搜索匹配（任一字段命中即显示） */
 function _matchesQuery(...fields) {
@@ -183,60 +185,6 @@ function renderTaskforceArchive() {
   `;
 }
 
-// ── 通知归档 ──
-function renderNoticeArchive() {
-  // 2026-08-08 归档闭环：归档库只承载「已退出工作区」的通知——
-  //   ① 随活动/专班归档的通知（archived=true）
-  //   ② 自然过期（expireDate < 今天）的历史通知
-  // 工作区（首页/支书通知发布/全局概况）仅保留未归档的有效通知，杜绝列表爆炸。
-  const today = todayLocal();
-  const all = NoticeStore.getAll({ includeArchived: true })
-    .filter(n => n.archived === true || (n.expireDate && n.expireDate < today));
-
-  if (all.length === 0) {
-    contentContainer.innerHTML = '<p class="text-sm text-gray-500 text-center py-12">暂无归档通知</p>';
-    return;
-  }
-  const filtered = all.filter(n => _matchesQuery(n.title, n.content, n.publishDate));
-  if (filtered.length === 0) {
-    contentContainer.innerHTML = '<p class="text-sm text-gray-500 text-center py-12">无匹配归档通知</p>';
-    return;
-  }
-  const cur = Math.min(_pageState.notice, Math.max(1, Math.ceil(filtered.length / PAGE_SIZE)));
-  const items = filtered.slice((cur - 1) * PAGE_SIZE, cur * PAGE_SIZE);
-
-  const priorityBadge = {
-    urgent: badgeHtml('紧急', 'danger'),
-    normal: badgeHtml('重要', 'info'),
-  };
-
-  // 5.3（2026-10-22 第九轮）：通知归档条目是**导航**（去向是固定 URL）⇒ 改原生 `<a href>`，
-  //   键盘 / 读屏 / 新标签打开都由浏览器承担；落点仍走全站统一 resolveNoticeUrl（业务页直达优先）。
-  const currentRole = AuthStore.getCurrentUser()?.role || null;
-  contentContainer.innerHTML = `
-    <div class="space-y-3">
-      ${items.map(n => {
-        const dest = resolveNoticeUrl(n, currentRole);
-        const href = dest.direct ? dest.url : `${getBasePath()}notice.html?id=${encodeURIComponent(n.id)}`;
-        return `
-        <a href="${escHtml(href)}" class="block p-4 rounded-lg border border-gray-100 bg-gray-50/50 transition-colors cursor-pointer" data-notice-id="${n.id}">
-          <div class="flex items-center justify-between mb-2">
-            <div class="flex items-center gap-2">
-              ${priorityBadge[n.priority] || ''}
-              <span class="text-sm font-medium text-gray-800">${n.title}</span>
-              ${n.archived === true ? badgeHtml('已归档', 'neutral') : badgeHtml('已过期', 'neutral')}
-            </div>
-            <span class="text-xs text-gray-500">${n.publishDate || ''}</span>
-          </div>
-          <p class="text-xs text-gray-500 line-clamp-2">${n.content || ''}</p>
-        </a>
-      `;
-      }).join('')}
-    </div>
-    ${_renderPager(filtered.length, 'notice')}
-  `;
-}
-
 // ── 搜索（重渲染 + 页码归 1）──
 const archiveSearch = document.getElementById('archive-search');
 let _searchQuery = '';
@@ -249,12 +197,12 @@ archiveSearch?.addEventListener('input', (e) => {
 
 // ── 初始渲染（先 hydrate 再初始化各 Store / 渲染，见 _hydrateData 注释）──
 (async () => {
+  if (_legacyNoticeTab) return; // 已重定向到消息中心（见文件头 Task 3 说明）
   await _hydrateData();
   TaskForceRecordStore.init();
-  NoticeStore.init();
   renderTabs();
   renderContent();
-  // 2026-10-24 批次 508：?id= 命中则渲染后打开对应详情浮窗（通知页签无详情浮窗，不做假入口）
+  // 2026-10-24 批次 508：?id= 命中则渲染后打开对应详情浮窗（活动 / 专班）
   _openArchivedDetail(_focusArchiveId);
 })();
 

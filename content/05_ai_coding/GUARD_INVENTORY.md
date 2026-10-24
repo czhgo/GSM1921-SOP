@@ -2,11 +2,11 @@
 title: "守卫清点与合并台账（72 → 68 件）"
 type: guide
 role: "[工程师]+[AI]"
-last_updated: "2026-10-24"
+last_updated: "2026-10-25"
 status: active
 ---
 
-# 守卫清点与合并台账（2026-10-24 批次 509）
+# 守卫清点与合并台账（2026-10-24 批次 509；2026-10-25 批次 510 补扩展记录）
 
 > **本文件回答什么**：仓库里有哪些「守卫 / 真值 / 完整性 / 契约 / 对账 / 基线 / 一致性」类测试，
 > 各查什么、多少断言、覆盖多大、近 3 批是否命中、与谁重叠；以及**本次合并了哪几组、后续批次还要并哪几组**。
@@ -17,6 +17,10 @@ status: active
 > 不等于运行时真正读取的文件数）；近 3 批＝`2026-10-EXECUTION_LOG.md` 的批次 506/507/508 段内是否出现该守卫名。
 
 ## 一、清点总表（合并后现行 68 件）
+
+> **批次 510（2026-10-25）**：**未新增 / 删除 guard 文件**，件数仍为 **68 件**（清点口径不变）。
+> 本批只做**扩展**：6 件守卫新增 / 改写断言，明细见 §七；其中 `notice-audience` / `notice-message` /
+> `workbench-audit-coverage` 三件不在本表的「文件名含 guard/truth/…」口径内（表内 68 件未含），按实登记。
 
 > 合并前实点 **72 件**（下表 68 件 ＋ 本批合并掉的 `frontmatter-freshness` / `timestamps-note-guard` /
 > `doc-line-ref` / `gold-accent-guard` / `button-system-guard`）。断言数合计 **435**（72 件口径：现行 68 件 410 条
@@ -171,3 +175,21 @@ status: active
 | `DAILY_TEST_BUDGET` | 1494 | **1499** | 删 5 件静态 25 条、增 `docs-governance-guard` 18 条；按守卫实算校准（上批预算与实况差 12） |
 | `test:daily` 文件数 | 232 | **228** | 同步删 5 个文件名、加 `docs-governance-guard.test.mjs` |
 | `test:fast` | 含 3 个已删文件名 | 替换为 `docs-governance-guard` / `ui-control-system-guard` | 避免悬空引用 |
+
+## 七、批次 510 扩展记录（2026-10-25 · 无新增 / 删除 guard 文件）
+
+> 计数口径与 §一 相同：`test(` / `it(` / `t.test(` 调用点。`HEAD` 数取批次 509 提交，`现行` 为本批实读。
+
+| 守卫 | 扩展内容 | `HEAD` test 数 | 现行 test 数 | 本批 +test |
+|---|---|---:|---:|---:|
+| `notice-deeplink-guard` | F06：非公告必须带 `targetType+targetId`（逐 kind 构建）；所有入口先落 `notice.html?id=`；`resolveNoticeUrl` 导出删除后改为断言「无导出」＋详情页消费坐标 | 7 | 7 | 0（既有 test 内加断言） |
+| `notice-audience` | 新增 N13 逐人归档 / 恢复 / 系统归档、N14 角标与列表同源、N15 筛选语义、N16 私信线程 | 12 | 16 | **+4** |
+| `notice-message` | 新增 N5 `kindOf` / `isArchivedFor` 纯函数（三种身份单一映射、逐人归档与系统归档分离） | 4 | 5 | **+1** |
+| `state-enum-guard` | G4 比较面由「种子手写 `status`」改为「`derive.js` 派生后的状态」，期望值改准（理由：种子只存事实，SD-34） | 6 | 6 | 0（期望值改准） |
+| `mock-api-parity-structure` | 比较面改用 `applyDerivedFacts` 后的派生形状（种子只存事实，派生字段不再与 API 静态比对） | 4 | 4 | 0（既有 test 内改比较面） |
+| `workbench-audit-coverage` | 新增 Task 5 知情查看：各台 `views` 含 `workgroup`、工作组段只读、深链参数被消费 | 8 | 9 | **+1** |
+| `docs-governance-guard` | 本批未改（仍在守 frontmatter / 备注列 / README / AGENTS / SNAPSHOT / 判例索引） | 18 | 18 | 0 |
+| `ui-control-system-guard` | 本批未改；SD-36 的胶囊语义当前由 `doc-consistency::S3`（分组名）＋键盘序列人工检查承担，未新增机检 | 14 | 14 | 0 |
+
+- **Q-14 死码清理**：`docs/src/services/governance/notice.js::resolveNoticeUrl` 全仓无消费者（各入口已改 `notice.html?id=`），本批删除该导出及 `getBasePath` 残留引用；`notice-deeplink-guard::F06` 同步改为「不得再有该导出」，而非保留空实现。
+- **断言只增不删**：本批未删除任何既有断言；`state-enum-guard::G4` 与 `mock-api-parity-structure` 的期望值改准已在表内写明理由（种子事实化后派生形状才是比较面）。

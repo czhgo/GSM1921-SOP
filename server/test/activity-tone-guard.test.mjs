@@ -24,7 +24,7 @@ import { join, dirname, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
   activityTypeTone, activityTypeBadgeVariant, activityTypeClassification,
-} from '../../docs/src/core/domain/constants.js?v=20261024c';
+} from '../../docs/src/core/domain/constants.js?v=20261024d';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(HERE, '..', '..');
@@ -122,7 +122,7 @@ const INFO_EXCEPTIONS = [
   { file: 'docs/src/components/shell/header.js', snippet: "normal: badgeHtml('重要', 'info'),", reason: '通知重要（normal 优先级）' },
   { file: 'docs/src/components/governance/notice-view.js', snippet: "normal: badgeHtml('重要', 'info'),", reason: '通知重要（normal 优先级）' },
   { file: 'docs/src/components/record/todo-tab-shell.js', snippet: "n.priority === 'normal' ? badgeHtml('重要', 'info')", reason: '通知重要（normal 优先级）' },
-  { file: 'docs/src/entries/pages/archive-entry.js', snippet: "normal: badgeHtml('重要', 'info'),", reason: '通知重要（normal 优先级）' },
+  // Task 3（2026-10-25）：归档库「通知」页签退役（归档页只留活动 / 专班），原白名单随之撤下。
 
   { file: 'docs/src/components/record/inspector.js', snippet: "label: '已发布', variant: 'info'", reason: '已发布（活动生命周期信息态；非类别恒灰问题）' },
 

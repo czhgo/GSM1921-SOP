@@ -484,10 +484,12 @@ export const CTRL_SMALL_FILE_BASELINE = 0;
  *   Overline 11px；判据与守卫＝`server/test/small-text-guard.test.mjs`）⇒ 现存 28 处 `text-[10px]`
  *   全数改到 `text-[11px]`（档位表内 Overline 档）。故按值基线由 `{'text-[11px]':321,'text-[10px]':49}`
  *   改写为 `{'text-[11px]':362,'text-[10px]':0}`（**不是**「为变绿补条目」——总量口径始终只报不判，
- *   此改是让台账与「9/10px 禁止」的新口径一致）。`SMALL_TEXT_TOTAL_BASELINE` 保持 370 起点不动。 */
-export const SMALL_TEXT_TOTAL_BASELINE = 370;
-export const SMALL_TEXT_FILE_BASELINE = 56;
-export const SMALL_TEXT_BY_VALUE_BASELINE = {"text-[11px]":362,"text-[10px]":0};
+ *   此改是让台账与「9/10px 禁止」的新口径一致）。`SMALL_TEXT_TOTAL_BASELINE` 保持 370 起点不动。
+ *  2026-10-24 Task 4.3：`secretary/todo-tab.js`（14 处）与 `org/roster-tab.js`（10 处）的 11px
+ *   正文 / 元信息改 12px ⇒ 全站 11px 由 362 降到 338、文件数由 56 降到 54（收基线，只降不升）。 */
+export const SMALL_TEXT_TOTAL_BASELINE = 346;
+export const SMALL_TEXT_FILE_BASELINE = 54;
+export const SMALL_TEXT_BY_VALUE_BASELINE = {"text-[11px]":338,"text-[10px]":0};
 
 /** 「段落/导语档」基线（2026-09-27 文本档位统一批，给 `text-tier-guard.test.mjs` 消费）
  *  `文件 → { c: 处数, v: 出现档位（px） }`
@@ -508,7 +510,6 @@ export const SMALL_TEXT_BY_VALUE_BASELINE = {"text-[11px]":362,"text-[10px]":0};
 export const P_TEXT_TIER_BASELINE = {
   'docs/src/components/governance/person-edit-modal.js': { c: 2, v: [11] },
   'docs/src/entries/tabs/org/taskforce-tab.js': { c: 4, v: [11] },
-  'docs/src/entries/tabs/secretary/todo-tab.js': { c: 1, v: [11] },
 };
 
 /** 段落/导语档规模（非空转下限；防台账被悄悄删空 ⇒ 与 P_TEXT_TIER_BASELINE 同批收基线）
@@ -529,11 +530,13 @@ export const P_TEXT_TIER_BASELINE = {
  *    `secretary/notification-tab.js`（1）的 11px `<p>` 随帮助注释迁移 `.help-note` 清零
  *    ⇒ 按收基线纪律删条目，文件数 **17 → 14**、段落处数 **58 → 52**。
  *  ⚠ 2026-10-23 批次 505：全站 `text-[11px]` 统一并入 `text-xs`（12px）；11 个文件的段落档
- *    随之清零 ⇒ 按收基线删条目，文件数 **14 → 3**、段落处数 **52 → 7**。 */
-export const P_TEXT_TIER_TOTAL_BASELINE = 7;
-export const P_TEXT_TIER_FILE_BASELINE = 3;
-/** 按值台账（只报不判；9/10px 是禁止档，恒为 0）——11 档总数为 7（2026-10-23 批次 505 收基线） */
-export const P_TEXT_TIER_BY_VALUE_BASELINE = { 11: 7, 10: 0, 9: 0 };
+ *    随之清零 ⇒ 按收基线删条目，文件数 **14 → 3**、段落处数 **52 → 7**。
+ *  ⚠ 2026-10-24 Task 4.3：`secretary/todo-tab.js` 的 11px 正文 / 元信息全部改 `text-xs`（12px），
+ *    其唯一 11px `<p>`（「报送人…」）随之清零 ⇒ 按收基线删条目，文件数 **3 → 2**、段落处数 **7 → 6**。 */
+export const P_TEXT_TIER_TOTAL_BASELINE = 6;
+export const P_TEXT_TIER_FILE_BASELINE = 2;
+/** 按值台账（只报不判；9/10px 是禁止档，恒为 0）——11 档总数 6（2026-10-24 Task 4.3 收基线） */
+export const P_TEXT_TIER_BY_VALUE_BASELINE = { 11: 6, 10: 0, 9: 0 };
 
 /** 「零引用类」台账（2026-09-28 死码清理批，给 `server/test/dead-selector-guard.test.mjs` 消费）
  *

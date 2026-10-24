@@ -2,7 +2,7 @@
 title: "判例库总索引"
 type: index
 role: "[工程师]+[AI]"
-last_updated: "2026-10-24"
+last_updated: "2026-10-25"
 status: active
 related_files: [OPERATIONS_GUIDE.md, DOC_MAP.md, content/04_web_design/design-system/CASES.md, content/02_institution/CASES.md, content/05_ai_coding/CASES.md]
 ---
@@ -35,6 +35,11 @@ related_files: [OPERATIONS_GUIDE.md, DOC_MAP.md, content/04_web_design/design-sy
 | CASE-DESIGN-009 | 过渡时长与属性收敛到唯一源 | design | [CASES.md](../04_web_design/design-system/CASES.md) | SD-30 | 批次 508 |
 | CASE-DESIGN-010 | 活动类别 tone 单一源，状态色不借类别色 | design | [CASES.md](../04_web_design/design-system/CASES.md) | SD-31 | 批次 508 |
 | CASE-DESIGN-011 | 深链目标页必须消费参数，失败须可见 | design | [CASES.md](../04_web_design/design-system/CASES.md) | SD-32 | 批次 508 |
+| CASE-DESIGN-012 | 消息入口先落唯一全貌，不再兜底到工作台 | design | [CASES.md](../04_web_design/design-system/CASES.md) | SD-33 | 批次 510 |
+| CASE-DESIGN-013 | 活动状态只能一套派生，不得页签本地再算 | design | [CASES.md](../04_web_design/design-system/CASES.md) | SD-34 | 批次 510 |
+| CASE-DESIGN-014 | 待归档待办在关闭条件齐备时生成，归档动作销项 | design | [CASES.md](../04_web_design/design-system/CASES.md) | SD-34 | 批次 510 |
+| CASE-DESIGN-015 | 空列不保留列位，改为删列或主从两栏 | design | [CASES.md](../04_web_design/design-system/CASES.md) | SD-35 | 批次 510 |
+| CASE-DESIGN-016 | mock 只存事实，派生结果不写种子 | design | [CASES.md](../04_web_design/design-system/CASES.md) | SD-34 | 批次 510 |
 | CASE-INST-001 | 匿名反馈改裁为支部内闭环、无系统揭名入口 | institution | [CASES.md](../02_institution/CASES.md) | `SYSTEM_ROLE_PERMISSION §9j`（SR 待编号） | 2026-10-16（D-824） |
 | CASE-INST-002 | 意见处置与品牌认定归支委会，支书主持 | institution | [CASES.md](../02_institution/CASES.md) | `SYSTEM_ROLE_PERMISSION §9j`（SR 待编号） | 2026-09-18 |
 | CASE-INST-003 | 过程时限统一属可配置制度参数 | institution | [CASES.md](../02_institution/CASES.md) | `SYSTEM_ROLE_PERMISSION §9l`（SR 待编号） | 2026-09-17 |
@@ -50,6 +55,6 @@ related_files: [OPERATIONS_GUIDE.md, DOC_MAP.md, content/04_web_design/design-sy
 
 | 域 | 判例文件 | 现有条数 |
 |---|---|---|
-| design（网站设计） | [04_web_design/design-system/CASES.md](../04_web_design/design-system/CASES.md) | 11 |
+| design（网站设计） | [04_web_design/design-system/CASES.md](../04_web_design/design-system/CASES.md) | 16 |
 | institution（制度） | [02_institution/CASES.md](../02_institution/CASES.md) | 5 |
 | ai-coding（AI 协作） | [05_ai_coding/CASES.md](../05_ai_coding/CASES.md) | 5 |

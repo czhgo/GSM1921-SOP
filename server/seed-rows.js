@@ -26,6 +26,8 @@ import { THOUGHT_REPORTS } from '../docs/src/data/mock/thought-reports.js';
 import { PERIODIC_ARCHIVES_SEED, PROP_TASKS_SEED } from '../docs/src/data/mock/prop.js';
 import { ACTIVITIES } from '../docs/src/data/mock/activities.js';
 import { SEED_TODOS } from '../docs/src/services/governance/todo.js';
+// Task 1（2026-10-25）：阅读侧种子行也按同一派生器补回状态，工作组的 canonical 状态才与播种一致。
+import { applyDerivedFacts } from '../docs/src/data/mock/derive.js';
 import {
   seedIssues, seedMilestones,
   SEED_EXTERNAL_DISPATCHES, SEED_HANDOFFS, SEED_MEMBER_CONFIRMATIONS,
@@ -85,6 +87,7 @@ async function derivedWorkgroupRows() {
     workgroupMembers: [],
     workgroupGrants: [],
   };
+  applyDerivedFacts(seed, { people: PEOPLE });
   ensureLegacySourceWorkgroups(seed);
   ensureDemoWorkgroupGrants(seed);
   derivedCache = seed;

@@ -8,23 +8,26 @@
 //     revokeBranchCommissioner）；可授予身份白名单 = core/domain/constants.js::BRANCH_COMMISSIONER_ASSIGNABLE_ROLES；
 //     支书 / 副支书身份归党委配置，本 tab 只读。
 //   · 会议实体 = mockDB.activities（type==='支委会' 或 scenarioId==='branch-committee'）；
-//     应到人数 = services/activity/vote-config.js::resolveVoterIds('committee')（与本场应到名单同一口径）。
+//     会议状态 = `data/mock/derive.js::deriveMeetingStatus`（全站唯一判据，本页不得再写本地状态机）。
+//     应到 = `attendanceRosters` 冻结名单优先，无冻结时回落 `services/activity/vote-config.js::resolveVoterIds('committee')`
+//     并标注「实时」；两种口径不混算。
 //   · 表格 = components/ui/data-table.js（.data-table 单一源）；行内选人 = components/governance/pickers.js::PersonPicker。
-import { mockDB } from '../../../core/domain/domain.js?v=20261024c';
-import { AuthStore } from '../../../services/core/auth.js?v=20261024c';
-import { PersonStore, getPersonById } from '../../../services/member/person.js?v=20261024c';
+import { mockDB } from '../../../core/domain/domain.js?v=20261024d';
+import { AuthStore } from '../../../services/core/auth.js?v=20261024d';
+import { PersonStore, getPersonById } from '../../../services/member/person.js?v=20261024d';
 import {
   listBranchCommissioners,
   appointBranchCommissioner,
   revokeBranchCommissioner,
-} from '../../../services/branch/appointment.js?v=20261024c';
-import { DEFAULT_BRANCH_ID, ROLE_LABELS, BRANCH_COMMISSIONER_ASSIGNABLE_ROLES } from '../../../core/domain/constants.js?v=20261024c';
-import { resolveVoterIds } from '../../../services/activity/vote-config.js?v=20261024c';
-import { renderDataTable, tableHeadHtml } from '../../../components/ui/data-table.js?v=20261024c';
-import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261024c';
-import { PersonPicker } from '../../../components/governance/pickers.js?v=20261024c';
-import { getAppliedAccentColors } from '../../../core/boot/theme.js?v=20261024c';
-import { showToast, escHtml as esc } from '../../../core/base/utils.js?v=20261024c';
+} from '../../../services/branch/appointment.js?v=20261024d';
+import { DEFAULT_BRANCH_ID, ROLE_LABELS, BRANCH_COMMISSIONER_ASSIGNABLE_ROLES } from '../../../core/domain/constants.js?v=20261024d';
+import { resolveVoterIds } from '../../../services/activity/vote-config.js?v=20261024d';
+import { deriveMeetingStatus } from '../../../data/mock/derive.js?v=20261024d';
+import { renderDataTable, tableHeadHtml } from '../../../components/ui/data-table.js?v=20261024d';
+import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261024d';
+import { PersonPicker } from '../../../components/governance/pickers.js?v=20261024d';
+import { getAppliedAccentColors } from '../../../core/boot/theme.js?v=20261024d';
+import { showToast, escHtml as esc } from '../../../core/base/utils.js?v=20261024d';
 
 /** 本支部 id（登录人归属；缺省 br-b1，与全仓同口径） */
 function branchId() {
@@ -106,39 +109,41 @@ function meetingRows() {
     .slice(0, 8);
 }
 
-/** 会议状态 → 徽章档（四选一：待召开 / 线上表态中 / 已截止 / 已留存） */
+/** 会议状态 → 徽章档（统一派生五态；状态判据单一源 = data/mock/derive.js::deriveMeetingStatus） */
 const MEETING_STATUS_VARIANT = {
   '待召开': 'info',
-  '线上表态中': 'accent',
-  '已截止': 'neutral',
-  '已留存': 'success',
+  '进行中': 'accent',
+  '已召开': 'success',
+  '已归档': 'neutral',
+  '已取消': 'neutral',
 };
 
-/** 会议状态四选一：待召开 / 线上表态中 / 已截止 / 已留存（判据只用既有字段） */
-function meetingStatus(act) {
-  if (act.votesLocked === true) {
-    const items = (act.agenda || []).filter((x) => x && x.id);
-    return items.length > 0 && items.every((x) => x.result) ? '已留存' : '已截止';
-  }
-  if (act.voteConfig && act.voteConfig.mode === 'async' && (act.agenda || []).some((x) => x && x.id)) {
-    return '线上表态中';
-  }
-  return '待召开';
+/** 本场会议相关事实（考勤 / 复盘）——只供 deriveMeetingStatus 判「已召开」 */
+function meetingFacts(activityId) {
+  return {
+    attendances: (mockDB.attendances || []).filter((row) => row && row.activityId === activityId),
+    reviews: (mockDB.activityReviews || []).filter((row) => row && row.activityId === activityId),
+  };
 }
 
-/** 应到人数（本场固化名单优先；未固化时回落支委名单同一口径） */
-function attendeeCount(act) {
-  const ids = Array.isArray(act.voteConfig?.voterIds) ? act.voteConfig.voterIds : [];
-  return ids.length || resolveVoterIds('committee').length;
+/** 应到名单：冻结名单（attendanceRosters）优先；无冻结时回落 resolveVoterIds 现算并标注「实时」。 */
+function attendeeOf(act) {
+  const roster = (mockDB.attendanceRosters || [])
+    .find((row) => row && row.activityId === act.id && row.frozen === true);
+  if (roster && Array.isArray(roster.personIds)) {
+    return { count: roster.personIds.length, live: false };
+  }
+  return { count: resolveVoterIds('committee').length, live: true };
 }
 
 function meetingRowHtml(act) {
-  const status = meetingStatus(act);
+  const status = deriveMeetingStatus(act, meetingFacts(act.id));
+  const attendee = attendeeOf(act);
   return `<tr>
     <td data-label="日期" class="whitespace-nowrap">${esc(act.date || '—')}</td>
     <td data-label="议题">${esc(act.title || '未命名会议')}</td>
     <td data-label="状态">${statusBadge(status, MEETING_STATUS_VARIANT[status] || 'neutral')}</td>
-    <td class="is-numeric" data-label="应到">${attendeeCount(act)}</td>
+    <td class="is-numeric" data-label="应到">${attendee.count}${attendee.live ? '<span class="text-gray-400 text-xs"> 实时</span>' : ''}</td>
     <td data-label="操作"><a href="./party-committee-meeting.html?id=${encodeURIComponent(act.id)}" class="btn-outline btn-sm" style="text-decoration:none;">进入 ›</a></td>
   </tr>`;
 }

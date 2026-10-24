@@ -1,23 +1,23 @@
 ---
-title: "审查问题集 v1——从 35 个 spec 与 40 个批次倒查出的可复用判据"
+title: "审查问题集 v1——从 36 个 spec 与 42 个批次倒查出的可复用判据"
 type: guide
 role: "[工程师]+[AI]"
-last_updated: "2026-10-24"
+last_updated: "2026-10-25"
 status: active
 ---
 
 # 审查问题集 v1
 
-> **定位：** 这不是又一份审查方法论，而是把 `.trae/specs` 35 个 spec、执行日志最近 40 个批次、14 份审计报告中的**用户反馈原句 / 根因 / 修复动作**倒查成一张可逐条回答的清单。
+> **定位：** 这不是又一份审查方法论，而是把 `.trae/specs` 36 个 spec、执行日志最近 42 个批次、14 份审计报告中的**用户反馈原句 / 根因 / 修复动作**倒查成一张可逐条回答的清单。
 > **与 `PARALLEL_SKILL_AUDIT.md` 的关系：** 后者管「怎么分 lens、怎么汇总、怎么裁定」；本文管「每轮开工前必须先回答什么」。两者串联顺序见 `PARALLEL_SKILL_AUDIT.md §0`。
 > **read_strategy：** `on-demand`——每轮审查开工时读；日常任务不需要常驻。
-> **规模：** 四组 16 条（语义 4 / 状态 4 / 闭环 4 / 结构 4）＋ 低频高危 4 条，共 **20 条**。
+> **规模：** 四组 16 条（语义 4 / 状态 4 / 闭环 4 / 结构 4）＋ 低频高危 5 条，共 **21 条**。
 
 ---
 
 ## 怎么用
 
-1. **先逐条回答，再分 lens。** 对 Q-01…Q-20 每条给出三选一：`有`（本轮范围存在该问题）/ `无`（已核对不存在）/ `不适用＋理由`（说明为什么该问题不可能出现在本轮范围）。不允许只写「已关注」「基本一致」。
+1. **先逐条回答，再分 lens。** 对 Q-01…Q-21 每条给出三选一：`有`（本轮范围存在该问题）/ `无`（已核对不存在）/ `不适用＋理由`（说明为什么该问题不可能出现在本轮范围）。不允许只写「已关注」「基本一致」。
 2. **回答必须带证据。** `有` 给 `文件:行号`、批次号或审计条目；`无` 给核对过的范围（页面/文件清单）；`不适用` 给范围理由。证据口径沿用 `PARALLEL_SKILL_AUDIT.md §4`。
 3. **再分 lens。** 问题集回答完成后，才按本轮主题选 3 路 lens；问题集里答「有」的条目优先成为四个待回答问题的输入，答「无」的条目不再重复开题。
 4. **输出命中矩阵才算完成。** 每轮开工时先填本轮在 `QUESTION_HIT_MATRIX.md` 的一行：`●` 本轮命中并处理 / `○` 本轮范围不适用 / 空白 本轮未问；填完才进入分 lens。未填矩阵的轮次不算完成。
@@ -171,7 +171,7 @@ status: active
 
 ## 五、低频高危（不按频次挤掉）
 
-> 下列 4 条在 35 个 spec / 40 个批次里出现次数少（1–2 次），但一次命中的代价是可展示性崩塌、数据丢失或整页不可用；每轮必须单独回答，不得因为「上一轮没提」而跳过。
+> 下列 5 条在 36 个 spec / 42 个批次里出现次数少（1–2 次），但一次命中的代价是可展示性崩塌、数据丢失或整页不可用；每轮必须单独回答，不得因为「上一轮没提」而跳过。
 
 ### Q-17 归档空壳
 
@@ -205,17 +205,25 @@ status: active
 - **误报边界：** 显式 `runtimeFields` 之外的种子字段允许修复；单机 mock 无并发时不触发 409，但版本推进仍须保留。
 - **来源轮次：** `advance-r10-data-lifecycle`、`implement-r9-schema-plan`、`run-round8-9-audits-and-polish`；批次 504。
 
+### Q-21 同一用户对象只有一个承载面
+
+- **判据：** 同一用户对象（消息 / 待办 / 通知 / 私信）是否只有一个列表承载面、一个全貌承载面与一套状态机；是否存在页面级兜底把点击导向「首页 / 工作台」而不是对象本身？
+- **真实反例：** 本轮 `rebuild-notification-and-data-truth`：消息被拆成公告、系统通知、私信三种投递源与四个承载面（`notice.html` / `messages.html` / `archive.html?tab=notice` / 铃铛下拉），并存三套已读语义、两套归档语义；点击会议通知落工作台首页（`targetModule:'workspace'` ＋ `resolveNoticeUrl` 的 `direct` 直跳，`docs/src/services/governance/notice.js` 旧实现）。
+- **机检守卫：** `notice-deeplink-guard.test.mjs`（入口收口 / 坐标必填 / 无 `direct` 直跳 / 无 `resolveNoticeUrl` 导出）、`notice-audience.test.mjs`（N13–N16 逐人状态）、`notice-message.test.mjs`（N5 模型纯函数）；人工检查点：列出该对象的全部入口与列表页，确认只有一个列表、一个全貌，点击均先落全貌。
+- **误报边界：** 同一对象面向不同角色可以有不同入口（铃铛 / 侧栏 / 首页卡），但必须指向同一列表或全貌；展示型摘要卡不算第二承载面；系统归档与用户归档是两个状态，不是两个承载面；待办的聚合组与被聚合对象不算同一对象。
+- **来源轮次：** `rebuild-notification-and-data-truth`；批次 510。
+
 ---
 
 ## 附录：样本清单
 
-### A. 35 个 spec（按时间倒序，与矩阵行一致）
+### A. 36 个 spec（按时间倒序，与矩阵行一致）
 
-`clarify-doc-scope-and-review-question-set`、`unify-field-shell-and-interaction-states`、`unify-link-and-press-states`、`redesign-theme-palette-and-density`、`refine-ui-system-and-close-r10`、`advance-r10-data-lifecycle`、`implement-r9-schema-plan`、`run-round8-9-audits-and-polish`、`run-round6-7-audits-and-cross-group-hosting`、`round5-dirty-audit-and-truth-baseline`、`report-parent-and-issue-projection`、`consolidate-modal-surface`、`close-special-projects-batch-500`、`assign-cross-group-activity-to-party-group`、`audit-information-architecture-critical`、`audit-round3-modals-and-ia`、`refine-interface-and-unify-student-id`、`slim-ctx-audit-artifacts`、`ia-critical-remediation`、`migrate-inspection-workgroup-key`、`restore-homepage-brand-and-gold`、`audit-round2-minimum-three-costs`、`round1-workbench-structure-remediation`、`plan-four-round-audit-program`、`generalize-parallel-skill-audit`、`phase2-home-and-urgent-fixes`、`upgrade-workbench-page-quality`、`repair-workbench-blockers-and-findings`、`reflect-minimum-three-costs`、`rebuild-workbench-density-and-composition`、`polish-workbench-visual-language`、`harden-mobile-and-primary-actions`、`establish-workbench-quality-program`、`fix-october-activity-and-homepage-tagline`、`strip-demo-branding-for-publicity`。
+`rebuild-notification-and-data-truth`、`clarify-doc-scope-and-review-question-set`、`unify-field-shell-and-interaction-states`、`unify-link-and-press-states`、`redesign-theme-palette-and-density`、`refine-ui-system-and-close-r10`、`advance-r10-data-lifecycle`、`implement-r9-schema-plan`、`run-round8-9-audits-and-polish`、`run-round6-7-audits-and-cross-group-hosting`、`round5-dirty-audit-and-truth-baseline`、`report-parent-and-issue-projection`、`consolidate-modal-surface`、`close-special-projects-batch-500`、`assign-cross-group-activity-to-party-group`、`audit-information-architecture-critical`、`audit-round3-modals-and-ia`、`refine-interface-and-unify-student-id`、`slim-ctx-audit-artifacts`、`ia-critical-remediation`、`migrate-inspection-workgroup-key`、`restore-homepage-brand-and-gold`、`audit-round2-minimum-three-costs`、`round1-workbench-structure-remediation`、`plan-four-round-audit-program`、`generalize-parallel-skill-audit`、`phase2-home-and-urgent-fixes`、`upgrade-workbench-page-quality`、`repair-workbench-blockers-and-findings`、`reflect-minimum-three-costs`、`rebuild-workbench-density-and-composition`、`polish-workbench-visual-language`、`harden-mobile-and-primary-actions`、`establish-workbench-quality-program`、`fix-october-activity-and-homepage-tagline`、`strip-demo-branding-for-publicity`。
 
-### B. 40 个批次小节
+### B. 42 个批次小节
 
-批次 458、459、460、461、462、463、464、465、466、467–471、472、482、483、474、473、484、485、486、487、488、489、490、491、492、493、494、495、496、497、498、499、500、501、502、503、504、505、506、507、508（源：`.ctx/logs/2026-10-EXECUTION_LOG.md`，按 `## 批次` 切分的最后 40 节）。
+批次 458、459、460、461、462、463、464、465、466、467–471、472、482、483、474、473、484、485、486、487、488、489、490、491、492、493、494、495、496、497、498、499、500、501、502、503、504、505、506、507、508、509、510（源：`.ctx/logs/2026-10-EXECUTION_LOG.md`，按 `## 批次` 切分的最后 42 节）。
 
 ### C. 审计报告（14 份）
 

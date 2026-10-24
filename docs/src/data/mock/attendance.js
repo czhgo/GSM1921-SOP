@@ -1,7 +1,7 @@
 // 数据域接线批次二（2026-09-03）：展示格式化 attendanceToLong 已提升至 services/activity/attendance.js；
 // 本文件退化为纯考勤种子数据仓（PEOPLE 供全员出席名单生成）。
-import { PEOPLE } from './people.js?v=20261024c';
-import { AttendanceStatus } from '../../core/domain/domain.js?v=20261024c';
+import { PEOPLE } from './people.js?v=20261024d';
+import { AttendanceStatus } from '../../core/domain/domain.js?v=20261024d';
 
 // 最后更新：2026-09-06（演示数据基线刷新）
 // 显式段 att1~att43 的 recordedAt 随关联活动重排同步平移（recordedAt = 活动日当天），
@@ -70,12 +70,13 @@ export const ATTENDANCE_RECORDS = [
   { id: 'att38', personId: '2400012349',  activityId: 'act-11', status: AttendanceStatus.ABSENT,   recordedBy: '2400012354', recordedAt: '2026-07-14T18:00:00Z' },
 
   // ── act-19 (2026-07-19) 7月组织生活会 ──────────────────────
-  // 组织生活会考勤记录需补充 studentId/developStage/partyGroup（D-239 中文枚举）
-  { id: 'att39', personId: '2400012345',  activityId: 'act-19', status: AttendanceStatus.PRESENT,  recordedBy: '2400012354', recordedAt: '2026-07-19T18:00:00Z', studentId: '2400012345', developStage: '正式党员', partyGroup: '第一党小组' },
-  { id: 'att40', personId: '2400012348',  activityId: 'act-19', status: AttendanceStatus.PRESENT,  recordedBy: '2400012354', recordedAt: '2026-07-19T18:00:00Z', studentId: '2400012348', developStage: '正式党员', partyGroup: '第三党小组' },
-  { id: 'att41', personId: '2400012350',  activityId: 'act-19', status: AttendanceStatus.PRESENT,  recordedBy: '2400012354', recordedAt: '2026-07-19T18:00:00Z', studentId: '2400012350', developStage: '发展对象', partyGroup: '第一党小组' },
-  { id: 'att42', personId: '2400012351',  activityId: 'act-19', status: AttendanceStatus.ABSENT,   recordedBy: '2400012354', recordedAt: '2026-07-19T18:00:00Z', studentId: '2400012351', developStage: '积极分子', partyGroup: '第三党小组' },
-  { id: 'att43', personId: '2400012352',  activityId: 'act-19', status: AttendanceStatus.LEAVE,    recordedBy: '2400012354', recordedAt: '2026-07-19T18:00:00Z', studentId: '2400012352', developStage: '正式党员', partyGroup: '第二党小组' },
+  // Task 1（2026-10-25 · mock 事实化）：行内不再存 studentId/developStage/partyGroup 快照，
+  // 运行时由 `data/mock/derive.js::deriveAttendanceSnapshot` 按 personId 从人员事实现取补回。
+  { id: 'att39', personId: '2400012345',  activityId: 'act-19', status: AttendanceStatus.PRESENT,  recordedBy: '2400012354', recordedAt: '2026-07-19T18:00:00Z' },
+  { id: 'att40', personId: '2400012348',  activityId: 'act-19', status: AttendanceStatus.PRESENT,  recordedBy: '2400012354', recordedAt: '2026-07-19T18:00:00Z' },
+  { id: 'att41', personId: '2400012350',  activityId: 'act-19', status: AttendanceStatus.PRESENT,  recordedBy: '2400012354', recordedAt: '2026-07-19T18:00:00Z' },
+  { id: 'att42', personId: '2400012351',  activityId: 'act-19', status: AttendanceStatus.ABSENT,   recordedBy: '2400012354', recordedAt: '2026-07-19T18:00:00Z' },
+  { id: 'att43', personId: '2400012352',  activityId: 'act-19', status: AttendanceStatus.LEAVE,    recordedBy: '2400012354', recordedAt: '2026-07-19T18:00:00Z' },
 
   // ── act-31 (2026-09-10) 9月支部党员大会：线上异步表决 ──────────
   // 三条约束：① 必须是 **9 月**——成员台考勤只列当月活动，而 9 月只有 act-31 可挂补课入口；

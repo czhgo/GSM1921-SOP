@@ -17,17 +17,17 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261024c';
+import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261024d';
 import {
   MockAdapter,
-} from '../../docs/src/data/mock-adapter.js?v=20261024c';
-import { setDataSource } from '../../docs/src/data/data-adapter.js?v=20261024c';
+} from '../../docs/src/data/mock-adapter.js?v=20261024d';
+import { setDataSource } from '../../docs/src/data/data-adapter.js?v=20261024d';
 import {
   WORK_DOMAIN, WORK_DOMAIN_LABELS, DOMAIN_ORDER,
   TodoStore, TodoCategory, TodoStatus,
   realtimeGroupDomainOf,
   urgeRolesOf,
-} from '../../docs/src/services/governance/todo.js?v=20261024c';
+} from '../../docs/src/services/governance/todo.js?v=20261024d';
 // A① 通知对象级深链守卫（2026-09-10）：静态扫描 docs/src 全部通知生产点（纯 fs，无需浏览器）
 import { readFileSync, readdirSync } from 'node:fs';
 import { join, relative } from 'node:path';
@@ -358,7 +358,7 @@ test('⑦ urgeRolesOf：持久化待办按 role；实时组静态映射/决议 o
 // ═══════════════ ⑧ A① 通知对象级深链守卫（2026-09-10 支书裁定） ═══════════════
 // 口径：凡 actionable:true 的通知生产点，其 NoticeStore.add 调用内必须携带对象级锚点——
 //   · targetUrl 对象级深链（如 workspace/x.html?tab=<tab>&highlight=<对象id>、activity.html?id=），或
-//   · targetType + targetId（resolveNoticeUrl 优先级 0 → 直达 activity.html?id=/taskforce.html?id=）。
+//   · targetType + targetId（消息详情页对象卡的唯一动作 → activity.html?id=/taskforce.html?id=）。
 // 防回归：若某生产点漏锚点，本测试即红。白名单仅接受「按角色自适应落点 / 无单一对象 id」的显式豁免。
 const NOTICE_ANCHOR_EXEMPT = [
   // 目前所有 actionable 生产点均已对象级锚定（review-tab 活动复盘→targetType/targetId；

@@ -2,6 +2,8 @@
 import { DEFAULT_BRANCH_ID } from '../docs/src/core/domain/constants.js';
 import { readFileSync } from 'node:fs';
 import { replaceCollection } from './db.js';
+// Task 1（2026-10-25）：种子只写事实；派生字段统一由 mock/derive.js 补回，API 与 mock 同源。
+import { applyDerivedFacts } from '../docs/src/data/mock/derive.js';
 
 /**
  * 反馈域基线种子（R-24，2026-09-13 支书裁定「分形态各接各的源」）：
@@ -80,6 +82,8 @@ export async function seedDatabase(db) {
     taskforces: taskforcesMod.MOCK_TASKFORCES.map((row) => ({ ...row })),
     workgroups: [], workgroupMembers: [], workgroupGrants: [],
   };
+  // Task 1：专班状态是派生态；先补回 canonical 状态，工作组镜像才能按同一枚举建组。
+  applyDerivedFacts(workgroupSeed, { people: peopleMod.PEOPLE });
   workgroupSyncMod.ensureLegacySourceWorkgroups(workgroupSeed);
   workgroupSyncMod.ensureDemoWorkgroupGrants(workgroupSeed);
   const replaceWorkgroupTable = (table, rows) => {
@@ -209,6 +213,34 @@ export async function seedDatabase(db) {
   //   否则 API 形态按支部读待办会空。缺省归属沿用部署默认支部（与消息/活动种子同口径）。
   replaceCollection(db, 'todos', SEED_TODOS.map((row) => ({ ...row, branchId: row.branchId || DEFAULT_BRANCH_ID })));
   db.prepare("UPDATE todos SET branch_id = json_extract(data, '$.branchId')").run();
+
+  // ════════════════════════════════════════════════════════════════
+  //  Task 1（2026-10-25）：事实 → 派生（与 mock hydrate 同一个 applyDerivedFacts）
+  // ════════════════════════════════════════════════════════════════
+  // 种子文件只写事实（日期 / 确认动作 / 归档指向 / 参会 / 报名）；下列派生字段在落库后统一补回，
+  // 保证 API 形态与 mock 形态读到的形状一致：
+  //   activities.status · activityReviews.progress/overdue · inspections.status ·
+  //   taskforces.status · archiveRecords.activityName/status · notices.expireDate ·
+  //   attendances.studentId/developStage/partyGroup
+  const DERIVED_TABLES = [
+    ['activities', 'activities'],
+    ['activity_reviews', 'activityReviews'],
+    ['inspections', 'inspections'],
+    ['taskforces', 'taskforces'],
+    ['archive_records', 'archiveRecords'],
+    ['notices', 'notices'],
+    ['attendances', 'attendances'],
+  ];
+  const derivedRows = {};
+  for (const [table, key] of DERIVED_TABLES) {
+    derivedRows[key] = db.prepare(`SELECT data FROM ${table}`).all().map((row) => JSON.parse(row.data));
+  }
+  if (applyDerivedFacts(derivedRows, { people: peopleMod.PEOPLE })) {
+    for (const [table, key] of DERIVED_TABLES) {
+      const update = db.prepare(`UPDATE ${table} SET data = ? WHERE id = ?`);
+      for (const row of derivedRows[key]) update.run(JSON.stringify(row), row.id);
+    }
+  }
 }
 
 // ════════════════════════════════════════════════════════════════

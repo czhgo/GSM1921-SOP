@@ -3,31 +3,29 @@
 // 2026-08-07 自 ws-secretary-entry.js 拆分。
 // GitHub Issue 风格反馈管理面板：草稿审核（通过/驳回）全部反馈列表 + 导出/清除 + 详情处置（指派/状态/评论/隐藏/合并）。
 
-import { IssueStore, deriveIssueDisplayState, IssueNotify, issueDomainLabel, issueDomainSuggest, issueDomainReplyHint } from '../../../services/governance/issues.js?v=20261024c';
-import { showToast, todayLocal } from '../../../core/base/utils.js?v=20261024c';
-import { scrollDetailIntoView } from '../../../components/ui/detail-anchor.js?v=20261024c';
-import { icon } from '../../../core/base/icons.js?v=20261024c';
-import { AuthStore } from '../../../services/core/auth.js?v=20261024c';
-import { ROLE_LABELS, DRAFT_TYPE_LABELS } from '../../../core/domain/constants.js?v=20261024c';
-import { getPersonName } from '../../../services/member/person.js?v=20261024c';
-import { PersonStore } from '../../../services/member/person.js?v=20261024c';
-import { badgeHtml, badgeVariantClass } from '../../../components/ui/badges.js?v=20261024c';
+import { IssueStore, deriveIssueDisplayState, IssueNotify, issueDomainLabel, issueDomainSuggest, issueDomainReplyHint } from '../../../services/governance/issues.js?v=20261024d';
+import { showToast, todayLocal } from '../../../core/base/utils.js?v=20261024d';
+import { scrollDetailIntoView } from '../../../components/ui/detail-anchor.js?v=20261024d';
+import { icon } from '../../../core/base/icons.js?v=20261024d';
+import { AuthStore } from '../../../services/core/auth.js?v=20261024d';
+import { ROLE_LABELS, DRAFT_TYPE_LABELS } from '../../../core/domain/constants.js?v=20261024d';
+import { getPersonName } from '../../../services/member/person.js?v=20261024d';
+import { PersonStore } from '../../../services/member/person.js?v=20261024d';
+import { badgeHtml, badgeVariantClass } from '../../../components/ui/badges.js?v=20261024d';
 // 翻页控件单一源（批次 38：全站手写翻页一律并轨 pagerHtml）
-import { pagerHtml } from '../../../components/ui/pager.js?v=20261024c';
-import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261024c';
-import { openFormModal } from '../../../components/ui/modal.js?v=20261024c';
+import { pagerHtml } from '../../../components/ui/pager.js?v=20261024d';
+import { renderTabHeader, renderCardHeader } from '../../../components/shell/page-frame.js?v=20261024d';
+import { openFormModal } from '../../../components/ui/modal.js?v=20261024d';
 
 const FEEDBACK_TAB_HTML = `
   ${renderTabHeader({ title: '反馈管理' })}
   <!-- 列表面板 -->
   <div id="issue-list-panel" class="card rounded-xl p-5">
-    <div class="flex items-center justify-between mb-4">
-      <h3 class="font-title-cn text-base font-semibold text-gray-800">反馈管理</h3>
-      <div class="flex items-center gap-2 text-xs">
-        <span id="issue-summary-pill" class="badge ${badgeVariantClass('neutral')}">0 条</span>
-      </div>
-    </div>
-    <p class="text-xs text-gray-500 mb-4">开源讨论集思广益；支书保留处置权（指派/审核/状态/隐藏/合并）</p>
+    ${renderCardHeader({
+      title: '反馈列表',
+      meta: '本支部 · 全部反馈',
+      actions: `<span id="issue-summary-pill" class="badge ${badgeVariantClass('neutral')}">0 条</span>`,
+    })}
 
     <!-- 待审核草稿 -->
     <details class="mb-4 rounded-lg tint-section tint-section--outlined" id="issue-drafts-details" data-tone="warning">
@@ -63,6 +61,7 @@ const FEEDBACK_TAB_HTML = `
 
     <!-- 全部反馈 -->
     <div id="issue-secretary-list" class="space-y-2"></div>
+    <p class="text-xs text-gray-500 mt-3 mb-0">开源讨论集思广益；支书保留处置权（指派/审核/状态/隐藏/合并）</p>
 
     <!-- 工具区 -->
     <div class="pt-3 mt-3 border-t border-gray-100 text-right space-x-2">

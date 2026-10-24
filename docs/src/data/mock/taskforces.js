@@ -1,5 +1,5 @@
-import { DEFAULT_BRANCH_ID } from '../../core/domain/constants.js?v=20261024c';
-import { PEOPLE } from './people.js?v=20261024c';
+import { DEFAULT_BRANCH_ID } from '../../core/domain/constants.js?v=20261024d';
+import { PEOPLE } from './people.js?v=20261024d';
 
 // R7-35：统筹人从角色派生（演示快照仍指向现任组织委员，换人后自动跟随）
 const ORG_COMMISSIONER_ID = PEOPLE.find((p) => p.role === 'org-commissioner')?.id || null;
@@ -18,7 +18,6 @@ export const MOCK_TASKFORCES = [
     task: '深度报道与专题视频制作 — 7月系列主题活动宣传任务',
     // R2-32（2026-10-20）：任务对象是「7 月系列主题活动」，deadline 7/17 早已过；
     //   继续留在 active 会让「活跃专班」虚高，也违反「已截止仍招募」的读写矛盾 ⇒ 收口为 completed。
-    status: 'completed',
     manager: ORG_COMMISSIONER_ID,
     initiator: '2400012356',
     members: [
@@ -62,7 +61,6 @@ export const MOCK_TASKFORCES = [
     branchId: DEFAULT_BRANCH_ID,
     name: 'SOP 系统维护专班',
     task: 'SOP 文档体系维护、系统同步更新、经验蒸馏记录',
-    status: 'active',
     manager: ORG_COMMISSIONER_ID,
     initiator: '2300010001',
     members: [
@@ -86,7 +84,6 @@ export const MOCK_TASKFORCES = [
     branchId: DEFAULT_BRANCH_ID,
     name: '五四主题党日筹备专班',
     task: '7月13日五四精神传承主题党日活动全流程筹备',
-    status: 'completed',
     manager: ORG_COMMISSIONER_ID,
     initiator: '2400012345',
     members: [
@@ -106,7 +103,6 @@ export const MOCK_TASKFORCES = [
     branchId: DEFAULT_BRANCH_ID,
     name: '共建座谈对接专班',
     task: '校企共建座谈（光华 x 中信证券）对接与执行',
-    status: 'completed',
     manager: ORG_COMMISSIONER_ID,
     initiator: '2300010001',
     members: [
@@ -124,7 +120,6 @@ export const MOCK_TASKFORCES = [
     name: '建党105周年筹备专班',
     task: '7月23日建党105周年主题党日大型活动筹备',
     // R2-32：筹备对象 act-16 已于 7/23 举办，招募截止 8/20 也已过 ⇒ recruiting 不再成立，收口 completed。
-    status: 'completed',
     manager: ORG_COMMISSIONER_ID,
     initiator: '2300010001',
     members: [
@@ -143,7 +138,6 @@ export const MOCK_TASKFORCES = [
     name: '参访活动保障专班',
     task: '7月参访活动后勤保障与安全',
     // R2-32：保障对象（7 月参访）已结束，截止 8/15 也已过 ⇒ recruiting 收口 completed。
-    status: 'completed',
     manager: ORG_COMMISSIONER_ID,
     initiator: '2400012345',
     members: [
@@ -159,7 +153,6 @@ export const MOCK_TASKFORCES = [
     branchId: DEFAULT_BRANCH_ID,
     name: '两会精神学习专班',
     task: '两会精神学习材料整理与分享',
-    status: 'completed',
     manager: ORG_COMMISSIONER_ID,
     initiator: '2400012356',
     members: [
@@ -176,7 +169,6 @@ export const MOCK_TASKFORCES = [
     branchId: DEFAULT_BRANCH_ID,
     name: '七月活动档案整理专班',
     task: '七月上旬活动归档整理、材料汇总与电子化',
-    status: 'dissolved',
     manager: ORG_COMMISSIONER_ID,
     initiator: '2300010001',
     members: [

@@ -36,26 +36,27 @@ import {
 } from '../seed.js';
 import {
   SEED_MANIFEST, SEED_MANIFEST_BY_TABLE, SEED_LIFECYCLE_CLASSES, SEED_INIT_TIERS,
-} from '../../docs/src/data/seed-manifest.js?v=20261024c';
+} from '../../docs/src/data/seed-manifest.js?v=20261024d';
 import {
   normalizeSeedActivitySeedRows, ensureLegacySourceWorkgroups, ensureDemoWorkgroupGrants,
-} from '../../docs/src/data/workgroup-seed-sync.js?v=20261024c';
-import { PEOPLE } from '../../docs/src/data/mock/people.js?v=20261024c';
-import { BRANCHES } from '../../docs/src/data/mock/branches.js?v=20261024c';
-import { ACTIVITIES } from '../../docs/src/data/mock/activities.js?v=20261024c';
-import { MOCK_NOTICES } from '../../docs/src/data/mock/notices.js?v=20261024c';
-import { MOCK_TASKFORCES } from '../../docs/src/data/mock/taskforces.js?v=20261024c';
+} from '../../docs/src/data/workgroup-seed-sync.js?v=20261024d';
+import { PEOPLE } from '../../docs/src/data/mock/people.js?v=20261024d';
+import { BRANCHES } from '../../docs/src/data/mock/branches.js?v=20261024d';
+import { ACTIVITIES } from '../../docs/src/data/mock/activities.js?v=20261024d';
+import { MOCK_NOTICES } from '../../docs/src/data/mock/notices.js?v=20261024d';
+import { MOCK_TASKFORCES } from '../../docs/src/data/mock/taskforces.js?v=20261024d';
 import {
   SEED_TASKS, SEED_ASSIGNMENTS, SEED_ARCHIVE_RECORDS, SEED_SIGNUPS,
   SEED_REVIEW_REQUESTS, SEED_MAKEUP_TASKS,
-} from '../../docs/src/data/mock/seed.js?v=20261024c';
-import { PARTY_GROUPS } from '../../docs/src/data/mock/party-groups.js?v=20261024c';
-import { ATTENDANCE_RECORDS } from '../../docs/src/data/mock/attendance.js?v=20261024c';
-import { INSPECTION_RECORDS } from '../../docs/src/data/mock/inspection.js?v=20261024c';
-import { REVIEW_RECORDS, TASKFORCE_REVIEW_RECORDS } from '../../docs/src/data/mock/review.js?v=20261024c';
-import { THOUGHT_REPORTS } from '../../docs/src/data/mock/thought-reports.js?v=20261024c';
-import { PERIODIC_ARCHIVES_SEED, PROP_TASKS_SEED } from '../../docs/src/data/mock/prop.js?v=20261024c';
-import { SEED_TODOS } from '../../docs/src/services/governance/todo.js?v=20261024c';
+} from '../../docs/src/data/mock/seed.js?v=20261024d';
+import { PARTY_GROUPS } from '../../docs/src/data/mock/party-groups.js?v=20261024d';
+import { ATTENDANCE_RECORDS } from '../../docs/src/data/mock/attendance.js?v=20261024d';
+import { INSPECTION_RECORDS } from '../../docs/src/data/mock/inspection.js?v=20261024d';
+import { REVIEW_RECORDS, TASKFORCE_REVIEW_RECORDS } from '../../docs/src/data/mock/review.js?v=20261024d';
+import { THOUGHT_REPORTS } from '../../docs/src/data/mock/thought-reports.js?v=20261024d';
+import { PERIODIC_ARCHIVES_SEED, PROP_TASKS_SEED } from '../../docs/src/data/mock/prop.js?v=20261024d';
+import { SEED_TODOS } from '../../docs/src/services/governance/todo.js?v=20261024d';
+import { applyDerivedFacts } from '../../docs/src/data/mock/derive.js?v=20261024d';
 
 const readJson = (rel) => JSON.parse(readFileSync(new URL(rel, import.meta.url), 'utf8'));
 
@@ -72,8 +73,22 @@ const workgroupSeed = {
   workgroupMembers: [],
   workgroupGrants: [],
 };
+// Task 1（2026-10-25）：种子只存事实；比较面＝服务端落库后的派生形状（与 server/seed.js 同一个派生器）。
+applyDerivedFacts(workgroupSeed, { people: PEOPLE });
 ensureLegacySourceWorkgroups(workgroupSeed);
 ensureDemoWorkgroupGrants(workgroupSeed);
+
+const derivedSeedRows = {
+  attendances: ATTENDANCE_RECORDS.map((row) => ({ ...row })),
+  inspections: INSPECTION_RECORDS.map((row) => ({ ...row })),
+  activityReviews: REVIEW_RECORDS.map((row) => ({ ...row })),
+  notices: MOCK_NOTICES.map((row) => ({ ...row })),
+  archiveRecords: SEED_ARCHIVE_RECORDS.map((row) => ({ ...row })),
+};
+applyDerivedFacts({
+  activities: workgroupSeed.activities,
+  ...derivedSeedRows,
+}, { people: PEOPLE });
 
 /**
  * 每张表对应的同源行（key = 物理表名）。
@@ -90,18 +105,18 @@ const EXPECTED = {
   taskforces: workgroupSeed.taskforces,
   tasks: SEED_TASKS,
   assignments: SEED_ASSIGNMENTS,
-  attendances: ATTENDANCE_RECORDS,
-  inspections: INSPECTION_RECORDS,
+  attendances: derivedSeedRows.attendances,
+  inspections: derivedSeedRows.inspections,
   makeup_tasks: SEED_MAKEUP_TASKS,
-  notices: MOCK_NOTICES,
+  notices: derivedSeedRows.notices,
   todos: SEED_TODOS,
   signups: SEED_SIGNUPS,
-  activity_reviews: REVIEW_RECORDS,
+  activity_reviews: derivedSeedRows.activityReviews,
   taskforce_reviews: TASKFORCE_REVIEW_RECORDS,
   thought_reports: THOUGHT_REPORTS,
   prop_tasks: PROP_TASKS_SEED,
   periodic_archive_submissions: PERIODIC_ARCHIVES_SEED,
-  archive_records: SEED_ARCHIVE_RECORDS,
+  archive_records: derivedSeedRows.archiveRecords,
   issues: readJson('../../docs/data/issues.json').issues,
   review_requests: SEED_REVIEW_REQUESTS,
   external_dispatches: SEED_EXTERNAL_DISPATCHES,
@@ -335,4 +350,67 @@ test('C3 比较器自检：多字段 / 缺字段 / 类型不符 / 增删行都�
   // 增行 / 删行
   assert.ok(pick([...base, { id: 'x-3', name: '丙', count: 3, tags: [], note: null }]).problems.some((p) => p.field === '(row)'), '未判出多行');
   assert.ok(pick(base.slice(1)).problems.some((p) => p.field === '(row)'), '未判出缺行');
+});
+
+// ── S3 反向断言：mock 种子不得含派生结果字段（批次 510 · SD-34 / DATA_MODEL §2.30）──
+// 口径：`docs/src/data/mock/**` 只写**事实**（日期 / 取消 / 确认动作 / 归档指向…）；
+//   status / archived / progress / overdue 一律由 `data/mock/derive.js::applyDerivedFacts` 现算。
+//   种子若把派生结果写死，改一条事实不会让状态跟随（§2.30「改一条事实，全站跟随」失效）。
+// 唯一例外：review.js 的专班复盘展示快照（见 S3 内注）——derive.js 尚未覆盖 taskforceReviews，
+//   纪检复盘页仍靠它渲染进度胶囊；按 §2.30「保留演示快照必须登记并写理由」就地登记。
+const MOCK_DIR = new URL('../../docs/src/data/mock/', import.meta.url);
+const readMock = (name) => readFileSync(new URL(name, MOCK_DIR), 'utf8');
+const mockIdCount = (src) => (src.match(/\bid\s*:\s*'/g) || []).length;
+const lineOf = (src, index) => src.slice(0, index).split(/\r?\n/).length;
+
+test('S3 mock 不得含派生结果字段：activities / review / inspection / taskforces（批次 510 · SD-34 / DATA_MODEL §2.30）', () => {
+  const sources = {
+    'activities.js': readMock('activities.js'),
+    'review.js': readMock('review.js'),
+    'inspection.js': readMock('inspection.js'),
+    'taskforces.js': readMock('taskforces.js'),
+  };
+
+  // 非空转：四个种子文件必须读得到、且各有 ≥3 条 id 记录（防「文件被截断 / 正则失效 ⇒ 恒真」）。
+  for (const [name, src] of Object.entries(sources)) {
+    assert.ok(src.length > 1000, `mock/${name} 只读到 ${src.length} 字符（下限 1000）：读取面被写坏，S3 会变恒真`);
+    const ids = mockIdCount(src);
+    assert.ok(ids >= 3, `mock/${name} 只解析到 ${ids} 条 id 记录（下限 3）：种子被截断，S3 会变恒真`);
+  }
+
+  const hitsOf = (src, fields) => [...src.matchAll(new RegExp(`(?<![A-Za-z0-9_$])(?:${fields})\\s*:`, 'g'))]
+    .map((m) => ({ field: m[0].replace(/\s*:$/, ''), index: m.index }));
+
+  // ① activities：不得出现行级 status / archived；cancelled:true / draft:true 是事实，允许。
+  const activityHits = hitsOf(sources['activities.js'], 'status|archived');
+  assert.match(sources['activities.js'], /\bcancelled\s*:\s*true/,
+    '（非空转）activities.js 里连 cancelled:true 事实都没有了——取消事实被误删，S3 的「允许事实」口径失效');
+  assert.deepEqual(activityHits.map((h) => `activities.js:${lineOf(sources['activities.js'], h.index)} ${h.field}:`), [],
+    'mock/activities.js 写死了派生结果字段（行级 status / archived）——请改种子（删除该字段，只留 date / cancelled / draft 等事实），不要改本断言');
+
+  // ② review：活动复盘（REVIEW_RECORDS）不得出现 progress / overdue。
+  //    豁免范围＝`export const TASKFORCE_REVIEW_RECORDS` 块（专班复盘展示快照，2 条 × progress/overdue）。
+  const reviewSrc = sources['review.js'];
+  const tfStart = reviewSrc.indexOf('export const TASKFORCE_REVIEW_RECORDS');
+  const tfEnd = tfStart < 0 ? -1 : reviewSrc.indexOf('];', tfStart);
+  assert.ok(tfStart >= 0 && tfEnd > tfStart,
+    'mock/review.js 未找到 TASKFORCE_REVIEW_RECORDS 导出块：快照豁免范围失效，S3 会误判');
+  const reviewHits = hitsOf(reviewSrc, 'progress|overdue')
+    .filter((h) => !(h.index > tfStart && h.index < tfEnd))
+    .map((h) => `review.js:${lineOf(reviewSrc, h.index)} ${h.field}:`);
+  assert.deepEqual(reviewHits, [],
+    'mock/review.js（活动复盘 / TASKFORCE_REVIEW_RECORDS 块外）写死了派生结果字段 progress / overdue' +
+    '——请改种子（只留 activityId / reviewStatus / submittedAt 等事实），不要改本断言');
+
+  // ③ inspection：不得出现行级 status；confirmedBy / confirmedAt 是确认动作事实，允许。
+  const inspectionHits = hitsOf(sources['inspection.js'], 'status');
+  assert.match(sources['inspection.js'], /\bconfirmed(?:By|At)\b/,
+    '（非空转）inspection.js 里连 confirmedBy / confirmedAt 确认事实都没有了——考察确认事实被误删，S3 的「允许事实」口径失效');
+  assert.deepEqual(inspectionHits.map((h) => `inspection.js:${lineOf(sources['inspection.js'], h.index)} ${h.field}:`), [],
+    'mock/inspection.js 写死了派生结果字段（行级 status）——请改种子（只留 confirmedBy / confirmedAt 等确认动作事实），不要改本断言');
+
+  // ④ taskforces：不得出现 status；状态由截止日 / 解散事实派生。
+  const taskforceHits = hitsOf(sources['taskforces.js'], 'status');
+  assert.deepEqual(taskforceHits.map((h) => `taskforces.js:${lineOf(sources['taskforces.js'], h.index)} ${h.field}:`), [],
+    'mock/taskforces.js 写死了派生结果字段（status）——请改种子（只留 deadline / dissolvedAt / draft 等事实），不要改本断言');
 });

@@ -8,8 +8,8 @@
 //  并钳制于 [07-01, 活动日前 1 天]；signups（su-001~007，8 月）保留。
 
 // ── 任务种子（关联活动，时间随活动重排） ────────────────────
-import { DEFAULT_BRANCH_ID } from '../../core/domain/constants.js?v=20261024c';
-import { _fmtDate, todayLocal } from '../../core/base/date.js?v=20261024c';
+import { DEFAULT_BRANCH_ID } from '../../core/domain/constants.js?v=20261024d';
+import { _fmtDate, todayLocal } from '../../core/base/date.js?v=20261024d';
 export const SEED_TASKS = [
   { id: 'tsk-001', activityId: 'act-1', title: '预定会议室并通知参会人员', status: 'completed', createdAt: '2026-07-01T08:00:00Z' },
   { id: 'tsk-002', activityId: 'act-1', title: '整理会议记录并归档', status: 'completed', createdAt: '2026-07-01T08:00:00Z' },
@@ -34,18 +34,19 @@ export const SEED_ASSIGNMENTS = [
 ];
 
 // ── 档案归档种子 ─────────────────────────────────────────────
-// 关联键统一用 activityId（2026-08-06 支书裁决），activityName 仅作展示；
-// 非活动类材料（发展对象公示等）无 activityId，靠 activityName 兜底展示。
-// 种子提升为全局（2026-08-06）：loadDB 时注入，供产出物区/关闭条件同源读取，
-// 不再依赖先访问宣传委员工作台才注入（违反「同一套数据」）。
-// 2026-09-06：ar5 归档对象 act-19 重排至 7/19，archiveDate 顺延至 7/26。
+// Task 1（2026-10-25 · mock 事实化）：归档的**唯一事实**是「哪个活动被归档」——
+//   种子只写 `activityId + category`；`activityName`（取活动标题）与 `status='archived'`
+//   由 `data/mock/derive.js::deriveArchiveState` 在 hydrate 时补回。
+// Task 2（2026-10-25）：恢复 ar3/ar4/ar6 三条**非活动材料**——它们不以活动为父键，
+//   用 `materialOnly:true` + 自带 `title/category/archiveDate` 作为事实保留；
+//   派生器只把 title 映射为显示名、状态恒 archived，绝不用活动标题覆盖（activityId 为空）。
 export const SEED_ARCHIVE_RECORDS = [
-  { id: 'ar1', activityId: 'act-25', activityName: '七一建党105周年活动', archiveDate: '2026-07-15', category: '新闻稿', status: 'archived' },
-  { id: 'ar2', activityId: 'act-25', activityName: '七一建党105周年活动', archiveDate: '2026-07-15', category: '照片', status: 'archived' },
-  { id: 'ar3', activityName: '发展对象公示', archiveDate: '2026-07-22', category: '新闻稿', status: 'pending' },
-  { id: 'ar4', activityName: '预备党员转正大会', archiveDate: '2026-07-28', category: '视频', status: 'pending' },
-  { id: 'ar5', activityId: 'act-19', activityName: '7月组织生活会', archiveDate: '2026-07-26', category: '其他', status: 'archived' },
-  { id: 'ar6', activityName: '入党积极分子培训', archiveDate: '2026-07-18', category: '照片', status: 'in_progress' },
+  { id: 'ar1', activityId: 'act-25', category: '新闻稿' },
+  { id: 'ar2', activityId: 'act-25', category: '照片' },
+  { id: 'ar3', activityId: null, materialOnly: true, title: '2026 年上半年支部党员大会会议记录汇编', category: '其他', archiveDate: '2026-08-15' },
+  { id: 'ar4', activityId: null, materialOnly: true, title: '2026 年上半年发展党员材料（归档卷）', category: '其他', archiveDate: '2026-07-05' },
+  { id: 'ar5', activityId: 'act-19', category: '其他' },
+  { id: 'ar6', activityId: null, materialOnly: true, title: '支部 2026 年度工作计划（归档件）', category: '其他', archiveDate: '2026-03-01' },
 ];
 
 // ── 报名种子（T233 报名渠道演示） ──

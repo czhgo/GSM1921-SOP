@@ -61,8 +61,15 @@ export const DAILY_FILE_BUDGET = 228;
  *    archive-deeplink-guard（5）＋ theme-palette-guard 增补 strongHover T6/T7（2）⇒ 1471 → 1494。
  *  2026-10-24 批次 509：删 5 件（doc-line-ref 6 / frontmatter-freshness 3 / timestamps-note-guard 4 /
  *    gold-accent-guard 5 / button-system-guard 7 ＝ 25）＋ docs-governance-guard 18（F1–F3 3 ＋ N1–N7 4
- *    ＋ R1–R6 6 ＋ G4–G8 5）⇒ 净 −7。按守卫实算 **1499**（上批预算 1494 与实况差 12，本批一并按实况校准）。 */
-export const DAILY_TEST_BUDGET = 1499;
+ *    ＋ R1–R6 6 ＋ G4–G8 5）⇒ 净 −7。按守卫实算 **1499**（上批预算 1494 与实况差 12，本批一并按实况校准）。
+ *  2026-10-24 spec rebuild-notification-and-data-truth · Task 5：workbench-audit-coverage 增补 1 条
+ *    「各台 tf-view 均含工作组段 / 工作组件只读 / 深链被消费」守卫（原 1499 + 1）⇒ 1499 → 1500。
+ *  2026-10-25 同 spec · Task 3：notice-audience 增补 N13–N16（逐人归档 / countUnread 同源 /
+ *    筛选语义 / 私信线程，4 条）＋ notice-message 增补 N5（kindOf / isArchivedFor，1 条）⇒ 1500 → 1505。
+ *  2026-10-25 同 spec · Task 6.1（批次 510 · SD-34）：state-enum-guard 增补 G7–G9（页签状态单一源 /
+ *    派生器导出与五态 / 消息种类单一源，3 条）＋ docs-governance-guard 增补 G9–G10（一 tab 一 H2 /
+ *    卡头单一源，2 条）＋ mock-api-parity-structure 增补 S3（mock 不得含派生字段，1 条）⇒ 1505 → 1511。 */
+export const DAILY_TEST_BUDGET = 1511;
 
 const group = (tier, reason, list) => list.map((file) => ({ file, tier, reason }));
 

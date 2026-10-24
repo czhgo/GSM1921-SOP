@@ -2,7 +2,7 @@
 title: "系统快照"
 type: snapshot
 role: "[AI]"
-last_updated: "2026-10-24"
+last_updated: "2026-10-25"
 status: "ACTIVE"
 date: "2026-10-23"
 version: "v61"
@@ -203,3 +203,11 @@ GSM1921-SOP/
 - **未决**：① `docs-governance-guard` 尚无实现（现 `ctx-hygiene-guard` 只守顶层白名单与归档指针）；② `.ctx/README.md` 成为顶层第 8 项，`H26.3` 白名单与 `ctx-hygiene-guard` ① 断言待同步（本批未改 `server/**`）；③ `.ctx/TIMESTAMPS.md` 不在本批授权面：三处 `last_updated` 表行与 `.ctx/README.md` 新行均未登记（`doc-consistency::S13` 会报前两处漂移，需同批授权补刷）。
 - **已迁 content 的条目**：`content/05_ai_coding/REVIEW_AND_EXPRESSION.md` 新增「审查漏项的结构性原因」（弃用判例 + 因果链 + 防逃逸三件套 + 正反例对照）；本批无其它需迁 `content` 的规范 / 判例 / 索引。
 - **下批入口**：① 读本段 + `.ctx/README.md` §三 / §四；② 补 `docs-governance-guard` 的「最近一批小结段存在且 5 行齐全」断言；③ 把 `.ctx/README.md` 纳入 `H26.3` 白名单与 `ctx-hygiene-guard` ①；④ 每批收尾在 `SNAPSHOT.md` 追加 5 行。
+
+## 批次 510 小结（2026-10-25）
+
+- **做了什么**：`DESIGN_SYSTEM` 增 SD-33…SD-36（消息承载 / 逐人状态 / 卡内构成 / 分组胶囊）；设计域判例增 `CASE-DESIGN-012…016` 与总索引；审查问题集增 Q-21（同一用户对象只有一个承载面），全文 20 → 21 条；`GUARD_INVENTORY` 补本批扩展记录；删除无消费者的 `resolveNoticeUrl`。遗留修复：待归档待办改为「关闭条件已齐」才生成。
+- **结论**：本轮 8 条支书反馈可归为三条结构病——**同一对象多个承载面**（消息 4 面 / 3 已读 / 2 归档）、**派生结果被写成事实**（种子手写状态、归档后才派生待办）、**卡内构成无单一源**（空列 / 双 H2 / 群组名不可见）。判据与判例按四类分职落位，`content/05` 只留索引与问题集。
+- **未决**：① 全量三通道与版本戳 bump 留给主代理收尾；② SD-36 分组胶囊暂无判例；③ 待归档待办现为 0（种子无关闭条件齐备的活动），演示若要展示需补一份齐备活动材料。
+- **已迁 content 的条目**：SD-33…36 落 `content/04_web_design/design-system/DESIGN_SYSTEM.md`；5 条判例落 `content/04_web_design/design-system/CASES.md` 与 `content/03_doc_system/CASES_INDEX.md`；Q-21 落 `content/05_ai_coding/REVIEW_QUESTION_SET.md` 与 `QUESTION_HIT_MATRIX.md`；守卫扩展落 `content/05_ai_coding/GUARD_INVENTORY.md`。
+- **下批入口**：① 先跑定向 7 件 ＋ daily，再决定是否补三通道；② 若要展示「待归档」待办，补一份关闭条件齐备的活动；③ 后续批次把 SD-36 的胶囊断言语义补成机检（当前仅分组名 `S3` ＋ 键盘人工检查）。

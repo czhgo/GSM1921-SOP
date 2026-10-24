@@ -2,7 +2,7 @@
 title: "设计系统"
 type: design
 role: "[工程师]+[AI]"
-last_updated: 2026-10-24
+last_updated: 2026-10-25
 status: active
 related_files: [docs/src/styles.css, ../evolution/DESIGN_METHODOLOGY.md, ../data/DATA_MODEL.md]
 ---
@@ -2103,10 +2103,10 @@ li + li { margin-top: 0.25em; }
 | 首页（未登录/访客态） | 跳 login.html（带对象 ID 意图） | 未登录统一直达登录页，消除绕路 |
 | 工作台内日历/列表 | 同页详情面板（setState 内嵌） | 工作台上下文内处理，不跳页 |
 | 参与者活动动态 tab | 独立详情页 `activity.html?id=` | visitor 只读浏览视角 |
-| 通知内的活动/专班链接 | 独立详情页（`activity.html?id=` / `taskforce.html?id=`） | 通知直达详情（`resolveNoticeUrl` 统一出口） |
+| 通知内的活动/专班链接 | 消息详情 `notice.html?id=` → 对象卡唯一动作（`activity.html?id=` / `taskforce.html?id=`） | 先落全貌，再由对象卡按 `targetType+targetId` 直达（`resolveNoticeUrl` 已退役，SD-33） |
 | 归档库条目 | 弹窗展示归档详情 | 档案浏览场景（archive-entry） |
 
-**统一出口**：跨页跳转统一经 `core/session/cross-page-state.js` 的 `buildURL`；通知链接统一经 `services/governance/notice.js` 的 `resolveNoticeUrl`（杜绝多入口逻辑分叉）。
+**统一出口**：跨页跳转统一经 `core/session/cross-page-state.js` 的 `buildURL`；消息链接统一先落 `notice.html?id=`，对象跳转由详情页唯一动作承担（SD-33，不再有页面级兜底）。
 
 ### 10.2 活动条目落点映射表
 
@@ -2366,9 +2366,14 @@ li + li { margin-top: 0.25em; }
 | SD-30 | IF 过渡 THEN 时长 ∈{120,180,200,240}ms 且属性 ∈{opacity,transform,color,background-color,border-color,box-shadow}；布局属性与 `all` 计数为 0 |
 | SD-31 | IF 活动类别 THEN 由 `activityTypeTone` 唯一产出（party-red/gold/neutral）；类别与状态路径 `info` 计数为 0（白名单除外） |
 | SD-32 | IF 深链落点 THEN 目标页必须消费其参数；定位失败必须有可见提示；无承载面的入口不得渲染 |
+| SD-33 | IF 消息入口或消息列表 THEN 落点仅为 `messages.html`（唯一列表）或 `notice.html?id=`（唯一全貌）；非公告消息必须带 `targetType+targetId`；页面级兜底（`targetModule`→工作台、`direct` 直跳、`resolveNoticeUrl`）计数为 0 |
+| SD-34 | IF 消息状态 THEN 已读=`reads[]`、用户归档=`archivedBy[]`（可恢复）、系统归档=`archived`（不可恢复），回执独立落库；IF 活动/会议状态或种子字段 THEN 只由唯一派生函数现算，页面第二套状态机与种子派生字段计数为 0 |
+| SD-35 | IF tab 内卡片 THEN 恰 1 个 H2；卡头 H3 带范围且不复述页签名；说明在主体之后；同口径指标一屏 1 次；标题左、计数/动作右 |
+| SD-36 | IF 页签分组 THEN 组名以非按钮胶囊渲染（可见、非强调色、无 hover、`role="presentation"`）；≤1280px 只隐藏文字、保留分隔 |
 
-> **SD-22…SD-32 判例指针**（2026-10-24 抽取）：判例正文在 [CASES.md](CASES.md)（`CASE-DESIGN-001…011`），总目录见 [CASES_INDEX.md](../../03_doc_system/CASES_INDEX.md)；本表只留编号与布尔判据。
+> **SD-22…SD-36 判例指针**（2026-10-24 抽取 · 2026-10-25 批次 510 补 SD-33…36）：判例正文在 [CASES.md](CASES.md)（`CASE-DESIGN-001…016`），总目录见 [CASES_INDEX.md](../../03_doc_system/CASES_INDEX.md)；本表只留编号与布尔判据。
 > SD-32 深链落点 · 守卫：`archive-deeplink-guard` / `link-target-guard` · 判例：CASE-DESIGN-011
+> SD-33…SD-36 的适用范围与守卫指针见 §12.15。
 
 ### 12.10 链接与按压（批次 507）
 
@@ -2460,6 +2465,15 @@ li + li { margin-top: 0.25em; }
 - **状态色不借类别色**：进行中＝warning、完成＝success、打回＝warning、计数＝neutral。
 - 允许 info 蓝的白名单：通知「重要」、活动「已发布」、汇报路由态、建议 / 选修、配置项标注（守卫逐条登记，新增即红）。
 - 守卫：`activity-tone-guard` · 判例：CASE-DESIGN-010（SD-31）
+
+### 12.15 消息承载、逐人状态、卡内构成与分组胶囊（批次 510）
+
+| ID | 适用范围 | 判据（Boolean） | 守卫 / 检查点 | 判例 |
+|---|---|---|---|---|
+| SD-33 | 公告 / 系统通知 / 私信的列表、详情与所有入口 | 列表面唯一＝`messages.html`；全貌面唯一＝`notice.html?id=`；公告外的消息必带 `targetType+targetId`（公告可 `kind='announcement'`）；`targetModule` 页面级兜底、`direct` 直跳、`resolveNoticeUrl` 计数为 0 | `notice-deeplink-guard` / `notice-audience` / `notice-message` | CASE-DESIGN-012 |
+| SD-34 | 消息逐人状态；活动 / 会议状态；mock 种子字段 | 已读只写 `reads[]`；用户归档只写 `archivedBy[]`（可恢复）；系统归档写 `archived`（不可恢复）；回执独立；全局 `read` / `archived` 不得替代逐人状态；活动 / 会议状态由唯一派生函数现算，第二套状态机与种子派生字段计数为 0 | `notice-audience`（N13–N16）/ `notice-message`（N5）/ `state-enum-guard` / `mock-api-parity-structure` | CASE-DESIGN-013 / 014 / 016 |
+| SD-35 | 工作台 tab 内卡片与卡头 | 一 tab 恰 1 个 H2；卡头 H3 带范围且不复述页签名；说明文字在主体之后；同口径指标一屏只出现 1 次；标题左、计数 / 动作右 | `workbench-audit-coverage` / `workbench-revision-contract` | CASE-DESIGN-015 |
+| SD-36 | 页签分组名（含首组） | 组名可见且为非按钮胶囊：非强调色、无 hover、`role="presentation"`、不进 tab 序列；≤1280px 只隐藏文字、保留分隔 | `doc-consistency::S3`（分组名）＋人工检查点（键盘序列不含组名） | —（本批无判例） |
 
 > 其余条目（SD-01…SD-21）的判例迁移登记为后续批次。
 

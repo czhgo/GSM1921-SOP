@@ -15,27 +15,27 @@
 //   登记者角色门 = canRegisterFlow（组织委员 + 支书/副支书）。
 // ════════════════════════════════════════════════════════════════
 
-import { DEFAULT_BRANCH_ID, DEVELOP_STAGES } from '../../../core/domain/constants.js?v=20261024c';
-import { AuthStore, currentUserId } from '../../../services/core/auth.js?v=20261024c';
-import { getBranchIdOfPerson } from '../../../services/branch/branch.js?v=20261024c';
-import { getPersonName } from '../../../services/member/person.js?v=20261024c';
+import { DEFAULT_BRANCH_ID, DEVELOP_STAGES } from '../../../core/domain/constants.js?v=20261024d';
+import { AuthStore, currentUserId } from '../../../services/core/auth.js?v=20261024d';
+import { getBranchIdOfPerson } from '../../../services/branch/branch.js?v=20261024d';
+import { getPersonName } from '../../../services/member/person.js?v=20261024d';
 // 党小组常态清单唯一来源（活组、按 seq 升序；新增/改名/解散后随渲染即时可见）——登记流入的「党小组」选项
-import { groupOptions } from '../../../services/member/party-group.js?v=20261024c';
-import { showToast, escHtml as esc, getBasePath, todayLocal } from '../../../core/base/utils.js?v=20261024c';
-import { getAuthToken, getApiBaseUrl } from '../../../data/data-adapter.js?v=20261024c';
-import { openModal, closeModal } from '../../../components/ui/modal.js?v=20261024c';
+import { groupOptions } from '../../../services/member/party-group.js?v=20261024d';
+import { showToast, escHtml as esc, getBasePath, todayLocal } from '../../../core/base/utils.js?v=20261024d';
+import { getAuthToken, getApiBaseUrl } from '../../../data/data-adapter.js?v=20261024d';
+import { openModal, closeModal } from '../../../components/ui/modal.js?v=20261024d';
 // 统一检索引擎（表格统一化批次 A）：台账表接入关键词 + 分面（≤8 行引擎自动不渲染检索条）
-import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261024c';
-import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261024c';
+import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261024d';
+import { renderTabHeader, renderCardHeader } from '../../../components/shell/page-frame.js?v=20261024d';
 // 成员流入/流出登记服务层（2026-09-14 批次 25 支书裁定）：登记即生效 + 台账 + 对账 + 撤销
 import {
   loadMemberFlows, reconcile, registerIntake, registerIntakeBatch,
   registerOutflow, revokeFlow, canRegisterFlow,
-} from '../../../services/member/member-flow.js?v=20261024c';
+} from '../../../services/member/member-flow.js?v=20261024d';
 // 选人规范：凡选择具体人一律 PersonPicker（禁 select 罗列人名）——登记流出选人
-import { PersonPicker } from '../../../components/governance/pickers.js?v=20261024c';
+import { PersonPicker } from '../../../components/governance/pickers.js?v=20261024d';
 // 自定义圆角下拉增强（select.input-flat.text-xs → cs-trigger；与全局 observer 幂等）
-import { enhanceSelects } from '../../../components/ui/custom-select.js?v=20261024c';
+import { enhanceSelects } from '../../../components/ui/custom-select.js?v=20261024d';
 
 // 模块级 ctx 缓存：登记/撤销后整页刷新复用首次渲染的 accent
 let _ctx = null;
@@ -119,18 +119,13 @@ export function renderContent(ctx) {
 function _flowCardHtml(canRegister) {
   return `
     <div class="card rounded-xl p-4" id="flow-card">
-      <div class="flex items-center justify-between flex-wrap gap-2 mb-3">
-        <div class="flex items-center gap-3">
-          <h3 class="font-title-cn text-base font-semibold text-gray-800">成员流动</h3>
-          <span class="text-xs text-gray-500">流入 / 流出登记与对账台账</span>
-        </div>
-        ${canRegister ? `
-        <div class="flex items-center gap-2">
+      ${renderCardHeader({
+        title: '流动台账',
+        meta: '流入 / 流出',
+        actions: canRegister ? `
           <button id="flow-intake-btn" type="button" class="btn-accent-soft text-xs px-3 py-1.5 whitespace-nowrap" style="cursor:pointer;">＋ 登记流入</button>
-          <button id="flow-outflow-btn" type="button" class="btn-danger text-xs px-3 py-1.5 whitespace-nowrap" style="cursor:pointer;">登记流出</button>
-        </div>` : `
-        <span class="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">只读</span>`}
-      </div>
+          <button id="flow-outflow-btn" type="button" class="btn-danger text-xs px-3 py-1.5 whitespace-nowrap" style="cursor:pointer;">登记流出</button>` : '<span class="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">只读</span>',
+      })}
       <div id="flow-reconcile-host" class="mb-3"></div>
       <div class="overflow-x-auto" id="flow-table-host"></div>
     </div>`;
@@ -148,10 +143,7 @@ function _flowCardHtml(canRegister) {
 function _iaaaPendingCardHtml() {
   return `
     <div class="card rounded-xl p-4" id="iaaa-pending-card">
-      <div class="flex items-center gap-3 mb-3">
-        <h3 class="font-title-cn text-base font-semibold text-gray-800">待确认入站</h3>
-        <span class="text-xs text-gray-500">统一身份认证新建且已选本支部的申请</span>
-      </div>
+      ${renderCardHeader({ title: '待确认入站', meta: '统一身份认证新建且已选本支部的申请' })}
       <div id="iaaa-pending-host"></div>
     </div>`;
 }

@@ -1,11 +1,11 @@
 // Party dispatch reuses the notice domain; this page separates composing from sent history.
-import { mockDB } from '../../../core/domain/domain.js?v=20261024c';
-import { AuthStore } from '../../../services/core/auth.js?v=20261024c';
-import { NoticeStore } from '../../../services/governance/notice.js?v=20261024c';
-import { textField, textareaField } from '../../../components/ui/forms.js?v=20261024c';
-import { showToast, escHtml as esc } from '../../../core/base/utils.js?v=20261024c';
-import { renderBranchFilter, filterByBranch } from '../../../components/governance/branch-filter.js?v=20261024c';
-import { renderSectionHeader, renderTabHeader } from '../../../components/shell/page-frame.js?v=20261024c';
+import { mockDB } from '../../../core/domain/domain.js?v=20261024d';
+import { AuthStore } from '../../../services/core/auth.js?v=20261024d';
+import { NoticeStore } from '../../../services/governance/notice.js?v=20261024d';
+import { textField, textareaField } from '../../../components/ui/forms.js?v=20261024d';
+import { showToast, escHtml as esc } from '../../../core/base/utils.js?v=20261024d';
+import { renderBranchFilter, filterByBranch } from '../../../components/governance/branch-filter.js?v=20261024d';
+import { renderSectionHeader, renderTabHeader } from '../../../components/shell/page-frame.js?v=20261024d';
 
 const BRANCH_FILTER_STATE = 'pc-dispatch';
 // 2026-10-24 批次 508：`view` 是**工作台壳的既有协议参数**（`view=activities` 一类旧导航落点），

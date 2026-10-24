@@ -804,3 +804,70 @@ test('G8 非空转下限：目录 ≥15 · AGENTS=6 · 判例 ≥15 · README �
   assert.ok(cases.length >= 15, `判例数 ${cases.length} < 15：判例索引被删减`);
   assert.ok(README_ROWS.length >= 15, `README 覆盖数 ${README_ROWS.length} < 15：目录 README 被删减或列被写坏`);
 });
+
+// ═════════════════════════════════════════════════════════════════════════════
+// 五、一 tab 一 H2 / 卡头单一源（2026-10-25 批次 510 · Task 6.1）
+// ═════════════════════════════════════════════════════════════════════════════
+//
+// 病灶（批次 509 遗留）：一个 tab 的页签名被 `renderTabHeader` 渲染成 H2 后，卡内又用一个
+//   `<h3>同名</h3>` 逐字复述一次 ⇒ 同一句话在一屏里出现两遍，读者分不清「页面」与「分区」。
+// 判据：tab 文件里 `renderTabHeader({ title: '<X>' })` 的 X，不得再以 `<h3>X</h3>`（逐字）出现；
+//   卡头允许带范围 / 口径信息（如「在册 50 人」「任务清单（本月）」）。
+// 非空转：扫到的 tab 文件数 ≥ 20、通过「不重复」检查的文件 ≥ 6（防扫描面被写坏 ⇒ 本条恒真）。
+
+const TABS_DIR = join(ROOT, 'docs', 'src', 'entries', 'tabs');
+/** `renderTabHeader({ ... title: '<X>' ... })`；允许跨行（title 在 `{` 后 400 字符内） */
+const TAB_HEADER_RE = /renderTabHeader\s*\(\s*\{[\s\S]{0,400}?\btitle\s*:\s*'([^']+)'/g;
+
+test('G9 一 tab 一 H2：页签名不得在同一文件的卡头 H3 里逐字复述（卡头须带范围信息）', () => {
+  const files = [];
+  (function walk(dir) {
+    for (const n of readdirSync(dir)) {
+      const f = join(dir, n);
+      if (statSync(f).isDirectory()) { walk(f); continue; }
+      if (n.endsWith('.js')) files.push(f);
+    }
+  })(TABS_DIR);
+
+  const scanned = [];
+  const passed = [];
+  const problems = [];
+  for (const abs of files) {
+    const src = read(abs);
+    const rel = relative(ROOT, abs).replace(/\\/g, '/');
+    const titles = [...src.matchAll(TAB_HEADER_RE)].map((m) => m[1]);
+    if (!titles.length) continue;
+    scanned.push(rel);
+    let bad = false;
+    for (const title of titles) {
+      const esc = title.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      if (new RegExp(`<h3[^>]*>\\s*${esc}\\s*</h3>`).test(src)) {
+        problems.push(`${rel}：页签名「${title}」又在卡头 H3 里逐字出现` +
+          `——卡头应写范围 / 口径（如「在册 50 人」「任务清单（本月）」），不要复述页签名`);
+        bad = true;
+      }
+    }
+    if (!bad) passed.push(rel);
+  }
+
+  assert.ok(scanned.length >= 20,
+    `只扫到 ${scanned.length} 个使用 renderTabHeader 的 tab 文件（下限 20）：扫描面被写坏，本条会变恒真`);
+  assert.ok(passed.length >= 6,
+    `只有 ${passed.length} 个 tab 文件通过「不逐字复述页签名」检查（下限 6）：抽取面异常`);
+  assert.deepEqual(problems, [], `一 tab 一 H2 被破坏（同一页签名出现两次）：\n  ${problems.join('\n  ')}`);
+});
+
+test('G10 卡头单一源：page-frame.js 导出 renderCardHeader，函数体含 h3 与 card-head__title', () => {
+  const rel = 'docs/src/components/shell/page-frame.js';
+  const src = read(join(ROOT, rel));
+  assert.ok(src.length > 1000, `${rel} 只读到 ${src.length} 字符（下限 1000）：读取面被写坏，本条会变恒真`);
+  assert.match(src, /export function renderCardHeader\s*\(/,
+    `${rel} 未导出 renderCardHeader（卡头单一源）——各 tab 会退回手写 <div class="card-head"><h3>…`);
+
+  const start = src.indexOf('export function renderCardHeader');
+  const end = src.indexOf('\n}', start);
+  const body = src.slice(start, end < 0 ? undefined : end + 2);
+  assert.match(body, /<h3\b/, 'renderCardHeader 未渲染 H3 卡头（一个 tab 只保留页头 H2，卡内标题必须是 H3）');
+  assert.match(body, /card-head__title/,
+    'renderCardHeader 未使用 .card-head__title（卡头样式 / 单一源选择器被改坏）');
+});

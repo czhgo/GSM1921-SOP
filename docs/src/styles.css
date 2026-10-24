@@ -1,5 +1,5 @@
 /* 组件样式（@import 必须位于文件顶部） */
-@import url('components/person-picker.css?v=20261024c');
+@import url('components/person-picker.css?v=20261024d');
 
 /* ═══════════════════════════════════════════════════════════════
    GSM1921-SOP DESIGN SYSTEM v11.0 — Matte Flat
@@ -565,6 +565,130 @@ body {
   flex-wrap: wrap;
   align-items: center;
   gap: 0.5rem;
+}
+/* 卡头单一源（2026-10-24 Task 4.2 · components/shell/page-frame.js::renderCardHeader）
+   —— 卡内标题左、计数与动作右；说明不得压在主体之前（§10.5）。 */
+.card-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-2);
+  margin-bottom: var(--space-3);
+}
+.card-head__title {
+  margin: 0;
+}
+.card-head__aside {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  margin-left: auto;
+}
+.card-head__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-xs);
+  color: var(--neutral-500);
+}
+.card-head__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+/* 支部分工 · 责任关系（2026-10-24 Task 4.4）：主从两栏——左列模块清单、右列责任详情。
+   清单单屏可览不分页；窄屏改上下排列。 */
+.wm-split {
+  display: grid;
+  grid-template-columns: minmax(200px, 260px) minmax(0, 1fr);
+  gap: var(--space-4);
+  align-items: start;
+}
+.wm-module-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  max-height: 60vh;
+  overflow-y: auto;
+  padding-right: var(--space-2);
+  border-right: 1px solid var(--neutral-100);
+}
+.wm-module-list:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+.wm-module-item {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background-color var(--transition-press), color var(--transition-press);
+}
+@media (hover: hover) {
+  .wm-module-item:hover:not(.is-selected) {
+    background: var(--surface-hover);
+  }
+}
+.wm-module-item.is-selected {
+  background: var(--app-accent-soft-bg);
+  color: var(--app-accent-soft-text);
+  box-shadow: inset 3px 0 0 var(--app-accent);
+}
+.wm-module-item__name {
+  min-width: 0;
+  font-size: var(--text-base);
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.wm-module-item__owner {
+  flex-shrink: 0;
+  font-size: var(--text-xs);
+  color: var(--neutral-500);
+}
+.wm-module-item.is-selected .wm-module-item__owner {
+  color: var(--app-accent-soft-text);
+}
+.wm-detail__title {
+  margin: 0;
+}
+.wm-detail__row {
+  display: grid;
+  grid-template-columns: 72px minmax(0, 1fr);
+  gap: var(--space-2);
+  padding: 4px 0;
+  border-top: 1px solid var(--neutral-100);
+}
+.wm-detail__row:first-child {
+  border-top: 0;
+}
+.wm-detail__row dt {
+  font-size: var(--text-xs);
+  color: var(--neutral-500);
+}
+.wm-detail__row dd {
+  margin: 0;
+  font-size: var(--text-base);
+  color: var(--neutral-700);
+}
+@media (max-width: 768px) {
+  .wm-split { grid-template-columns: 1fr; }
+  .wm-module-list {
+    max-height: none;
+    padding-right: 0;
+    padding-bottom: var(--space-2);
+    border-right: 0;
+    border-bottom: 1px solid var(--neutral-100);
+  }
 }
 .page-section-stack {
   display: flex;
@@ -2368,20 +2492,26 @@ html.theme-dark .cal-cell-large.is-today, html.theme-dark .cal-cell-mobile.is-to
    桌面端：每组前显示可见组名（含首组），组间以 .tab-group-sep 的 1px 线分隔；
    ≤1280px：只隐藏组名，分隔线保留（宽度让给可点页签）；
    ≤1024px：分隔线也保留，仅缩小左右外边距，页签条由 .ws-tab-scroll 保证单行不换行。 */
+/* 2026-10-24 Task 4.1：组名恢复为**可见小胶囊**——12px、中性底（非主题强调色）、
+   左右 6px 内边距、胶囊圆角；非按钮（role="presentation"）⇒ 无 hover、无 cursor:pointer、
+   不进入 tab 序列。≤1280px 仍只隐藏组名、保留组间分隔线（下方既有规则）。 */
 .tab-group-label {
   display: inline-flex;
   align-items: center;
   align-self: center;
   flex-shrink: 0;
   margin: 0 8px 0 0;
-  padding: 0;
-  background: none;
+  padding: 2px 6px;
+  border-radius: 999px;
+  background: var(--neutral-100);
   font-size: 12px;
   font-weight: 500;
-  line-height: 1;
+  line-height: 1.2;
   color: var(--neutral-500);
   white-space: nowrap;
   vertical-align: middle;
+  cursor: default;
+  user-select: none;
 }
 .tab-group-label:first-child {
   margin-left: 0;

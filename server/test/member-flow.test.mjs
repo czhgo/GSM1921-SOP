@@ -12,7 +12,7 @@ import { readFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const V = '?v=20261024c';
+const V = '?v=20261024d';
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const SRC_DIR = join(ROOT, 'docs', 'src');
 const read = (f) => readFileSync(f, 'utf8');
@@ -98,7 +98,9 @@ test('S5 成员流动页首文案中性，不再写死「成员名册」', () =>
   // 2026-10-20 第二轮界面细化：页首三句说明（含「在册成员与档案状态以成员档案为准」）
   //   按「此地无银」判据整句删除，页面只留卡片标题与台账本身。
   assert.doesNotMatch(src, /在册成员与档案状态以成员档案为准/, '页首长说明已删，不再复述标题');
-  assert.match(src, /font-title-cn[^>]*>成员流动</, '卡片标题保留');
+  // 2026-10-24 Task 4.2：卡头改用 renderCardHeader；H3 不得逐字复述页签名「成员流动」
+  //   ⇒ 卡内标题改为带范围的「流动台账」（断言随结构改准，语义仍是「卡片标题保留」）。
+  assert.match(src, /renderCardHeader\(\{[\s\S]{0,120}title: '流动台账'/, '卡片标题保留（流动台账）');
 });
 
 test('S3 写门角色集来自单一源（不得手写角色字符串）', () => {

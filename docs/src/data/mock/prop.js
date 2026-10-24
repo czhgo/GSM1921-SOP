@@ -17,7 +17,7 @@
  * 周期归档演示基线（当前示例采用周策略）。
  * 形状 = `PeriodicArchiveSubmission`；周只是 `periodUnit` 的取值，不改变记录实体。
  */
-import { DEFAULT_BRANCH_ID } from '../../core/domain/constants.js?v=20261024c';
+import { DEFAULT_BRANCH_ID } from '../../core/domain/constants.js?v=20261024d';
 export const PERIODIC_ARCHIVES_SEED = [
   { id: 'pa1', branchId: DEFAULT_BRANCH_ID, periodUnit: 'week', periodKey: '2026-W30', periodLabel: '第30周', periodRange: '2026-07-20 ~ 2026-07-24', content: '1. 七一主题党日活动新闻稿发布\n2. 发展对象公示推送排版完成\n3. 上半年活动照片归档整理进行中', status: 'submitted', submittedAt: '2026-07-24' },
   { id: 'pa2', branchId: DEFAULT_BRANCH_ID, periodUnit: 'week', periodKey: '2026-W29', periodLabel: '第29周', periodRange: '2026-07-13 ~ 2026-07-17', content: '1. 入党积极分子培训资料归档完成\n2. 组织生活会预告推送发布\n3. 配合组织委员完成发展对象材料审核', status: 'submitted', submittedAt: '2026-07-17' },

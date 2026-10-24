@@ -2,20 +2,20 @@
 // 宣传委员工作台 Tab：宣传任务（T-279 M3 拆分，照 M2 样板）
 // 任务状态流转：待接收 → 进行中 → 已提交（seed 常量 + mockDB 持久化，刷新不再丢失）。
 
-import { mockDB } from '../../../core/domain/domain.js?v=20261024c';
-import { persist } from '../../../data/data-adapter.js?v=20261024c';
-import { showToast, downloadCSV, _fmtDate, todayLocal, escHtml } from '../../../core/base/utils.js?v=20261024c';
-import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261024c';
-import { generateId } from '../../../core/base/id.js?v=20261024c';
-import { isActivityLive, ROLE_LABELS } from '../../../core/domain/constants.js?v=20261024c';
-import { ORG_SUBJECT_LABELS } from '../../../core/domain/work-map.js?v=20261024c';
-import { openVoidModal } from '../../../components/ui/void-record.js?v=20261024c';
-import { filterActive } from '../../../services/governance/soft-void.js?v=20261024c';
+import { mockDB } from '../../../core/domain/domain.js?v=20261024d';
+import { persist } from '../../../data/data-adapter.js?v=20261024d';
+import { showToast, downloadCSV, _fmtDate, todayLocal, escHtml } from '../../../core/base/utils.js?v=20261024d';
+import { renderTabHeader, renderCardHeader } from '../../../components/shell/page-frame.js?v=20261024d';
+import { generateId } from '../../../core/base/id.js?v=20261024d';
+import { isActivityLive, ROLE_LABELS } from '../../../core/domain/constants.js?v=20261024d';
+import { ORG_SUBJECT_LABELS } from '../../../core/domain/work-map.js?v=20261024d';
+import { openVoidModal } from '../../../components/ui/void-record.js?v=20261024d';
+import { filterActive } from '../../../services/governance/soft-void.js?v=20261024d';
 
 // ── 宣传任务 mock 数据（2026-08-05：seed 常量 + mockDB 持久化，刷新不再丢失）──
 // 2026-09-28 批次 234：常量**搬到内容单一源** `docs/src/data/mock/prop.js`（服务端 `server/seed.js` 同源 import，
 //   原先此处私有常量被服务端逐字复刻一份 ⇒ 两份字面量，本批收成一份；取值与顺序一字未改）。
-import { PROP_TASKS_SEED } from '../../../data/mock/prop.js?v=20261024c';
+import { PROP_TASKS_SEED } from '../../../data/mock/prop.js?v=20261024d';
 
 // 从 mockDB 读取（seed 兜底注入一次）；写操作须更新 mockDB.propTasks 后调用 persist()
 function _loadPropTasks() {
@@ -62,10 +62,11 @@ export function renderContent(ctx = {}) {
   container.innerHTML = `
     ${renderTabHeader({ title: '宣传任务', description: '素材归档、新闻稿、推送排版与周期归档任务的登记与推进。' })}
     ${_renderCreateForm(ctx)}
-    <div class="flex items-center justify-between mb-4">
-      <h3 class="font-title-cn text-base font-semibold text-gray-800">宣传任务</h3>
-      <button class="prop-task-export-btn btn-tab" style="cursor:pointer;">导出 CSV</button>
-    </div>
+    ${renderCardHeader({
+      title: '任务清单',
+      meta: '本支部 · 按状态分列',
+      actions: '<button class="prop-task-export-btn btn-tab" style="cursor:pointer;">导出 CSV</button>',
+    })}
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
       <div class="card rounded-xl p-0 overflow-hidden">
         <div class="px-4 py-3 font-title-cn text-sm font-bold tint-section tint-section--head" data-tone="warning">待接收 (${pending.length})</div>

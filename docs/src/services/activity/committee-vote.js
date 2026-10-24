@@ -2,13 +2,13 @@
 // committee-vote.js — 线上支委会表态服务
 // 数据源：mockDB.agendaVotes（本地）或 /api/v1/agenda-votes（API 模式）
 // 闭环：委员异步表态（同意/异议/附言）→ 支书汇总 → 截止锁定（votesLocked 写入活动）
-import { mockDB } from '../../core/domain/domain.js?v=20261024c';
-import { persist, getAdapter, getAuthToken, getApiBaseUrl, getDataSource } from '../../data/data-adapter.js?v=20261024c';
-import { AuthStore } from '../core/auth.js?v=20261024c';
-import { NoticeStore } from '../governance/notice.js?v=20261024c';
-import { resolveVoterIds } from './vote-config.js?v=20261024c';
+import { mockDB } from '../../core/domain/domain.js?v=20261024d';
+import { persist, getAdapter, getAuthToken, getApiBaseUrl, getDataSource } from '../../data/data-adapter.js?v=20261024d';
+import { AuthStore } from '../core/auth.js?v=20261024d';
+import { NoticeStore } from '../governance/notice.js?v=20261024d';
+import { resolveVoterIds } from './vote-config.js?v=20261024d';
 // 域写版本戳（2026-09-30 批次 304）：表态 / 截止都是**源写**，须 bump 供消费方（今天页「待我表态」等）失效重算。
-import { bumpToken } from '../../core/base/version-token.js?v=20261024c';
+import { bumpToken } from '../../core/base/version-token.js?v=20261024d';
 
 // 支委总数（通知文案「已有 N/M 位委员表态」的分母）
 // 单一源化（2026-09-02）：改引权威名单 vote-config.js resolveVoterIds('committee')
@@ -49,9 +49,8 @@ async function notifySecretaryProgress(activityId) {
 }
 
 // 提醒支支书录决议（截止后触发；失败不阻断主流程）
-// actionRoles: ['secretary'] —— 复用 notice.js 既有门控（resolveNoticeUrl），
-// 仅支书可由此通知直达工作台，其余角色不跳转。targetUrl 带 activityId 定位参数，
-// 直达该活动 inspector（2026-09-05 补全，见 notice.js archiveBySource 活动号匹配）。
+// actionRoles: ['secretary'] —— 复用消息受众门控（`canReadNotice`）；
+// 点击先落 `notice.html?id=`（唯一全貌），再由详情页唯一动作按坐标直达活动。
 function remindRecordDecision(activityId) {
   try {
     // R-22（2026-09-13）：系统派生通知改由服务端生成；activityId 作为落点锚点由服务端派生

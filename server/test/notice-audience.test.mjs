@@ -32,12 +32,12 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
-import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261024c';
-import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261024c';
-import { setDataSource, registerMockAdapter } from '../../docs/src/data/data-adapter.js?v=20261024c';
-import { MOCK_NOTICES } from '../../docs/src/data/mock/index.js?v=20261024c';
-import { NOTICE_AUDIENCE_OPTIONS } from '../../docs/src/core/domain/constants.js?v=20261024c';
-import { NoticeStore, canReadNotice } from '../../docs/src/services/governance/notice.js?v=20261024c';
+import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261024d';
+import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261024d';
+import { setDataSource, registerMockAdapter } from '../../docs/src/data/data-adapter.js?v=20261024d';
+import { MOCK_NOTICES } from '../../docs/src/data/mock/index.js?v=20261024d';
+import { NOTICE_AUDIENCE_OPTIONS } from '../../docs/src/core/domain/constants.js?v=20261024d';
+import { NoticeStore, canReadNotice } from '../../docs/src/services/governance/notice.js?v=20261024d';
 
 // ── localStorage 内存桩 + sessionStorage 空桩（与 thought-report-panel.test.mjs 同做法）──
 // getCurrentUser 走 localStorage；A-11 防串扰仅在登录对象带 tabId 时才校验，本桩不带 tabId → 直取。
@@ -203,6 +203,86 @@ test('N8 actionRoles 路径不受影响：仅 actionRoles:[leader] 的通知，�
   loginAs('2400012345', 'leader');      assert.ok(visibleIds().includes('notice-n8'), '目标角色（组长）可见');
   loginAs('2400012347', 'participant'); assert.ok(!visibleIds().includes('notice-n8'), '普通成员不可见');
   loginAs('2300010001', 'secretary');  assert.ok(!visibleIds().includes('notice-n8'), '非目标角色（支书）不可见');
+});
+
+// ════════════════════════════════════════════════════════════════
+//  N13~N16 消息对象模型 / 逐人状态机（Task 3 · 2026-10-25）
+// ════════════════════════════════════════════════════════════════
+
+test('N13 逐人归档：只影响本人；可恢复；系统归档不可恢复', () => {
+  beginCase([
+    { ...BASE, id: 'n13-a', audience: ['all'] },
+    { ...BASE, id: 'n13-sys', audience: ['all'], archived: true },
+  ]);
+  loginAs('2300010001', 'secretary');
+  assert.equal(NoticeStore.archiveForViewer('n13-a', true), true, '本人可归档');
+  assert.ok(!NoticeStore.list().some((n) => n.id === 'n13-a'), '归档后退出本人默认列表');
+  assert.equal(mockDB.notices.find((n) => n.id === 'n13-a').archivedBy.includes('2300010001'), true,
+    '归档写入 archivedBy（不改全局 archived）');
+
+  loginAs('2400012345', 'leader');
+  assert.ok(NoticeStore.list().some((n) => n.id === 'n13-a'), '其他收件人不受影响');
+  assert.ok(NoticeStore.listMessages({ viewerId: '2400012345', box: 'all' }).items.some((n) => n.id === 'n13-a'),
+    '他人「全部」仍可见');
+
+  loginAs('2300010001', 'secretary');
+  assert.ok(NoticeStore.listMessages({ viewerId: '2300010001', box: 'archived' }).items.some((n) => n.id === 'n13-a'),
+    '本人「已归档」可查');
+  assert.equal(NoticeStore.restoreForViewer('n13-a'), true, '用户归档可恢复');
+  assert.ok(NoticeStore.list().some((n) => n.id === 'n13-a'), '恢复后回到「全部」');
+  assert.equal(NoticeStore.restoreForViewer('n13-sys'), false, '系统归档不可恢复');
+});
+
+test('N14 countUnread 与 listMessages 同源；markAllRead 只作用于未归档未读', () => {
+  beginCase([
+    { ...BASE, id: 'n14-a', audience: ['all'], publishDate: '2026-09-01' },
+    { ...BASE, id: 'n14-b', audience: ['all'], publishDate: '2026-09-02', reads: ['2300010001'] },
+    { ...BASE, id: 'n14-expired', audience: ['all'], publishDate: '2026-09-03', expireDate: '2026-01-01' },
+  ]);
+  loginAs('2300010001', 'secretary');
+  const unreadBox = NoticeStore.listMessages({ viewerId: '2300010001', box: 'unread' });
+  assert.equal(NoticeStore.countUnread('2300010001'), 1, '未读读数＝未归档未读（过期与已读不计）');
+  assert.equal(unreadBox.total, 1, '列表未读数与 countUnread 同源');
+  assert.deepEqual(unreadBox.items.map((n) => n.id), ['n14-a']);
+
+  // 归档一条未读 → 「全部」不再包含它；「全部已读」不得把它标成已读。
+  NoticeStore.archiveForViewer('n14-a', true);
+  NoticeStore.markAllRead('2300010001');
+  assert.equal(NoticeStore.countUnread('2300010001'), 0, '归档的未读不参与全部已读');
+  assert.equal(mockDB.notices.find((n) => n.id === 'n14-a').reads.includes('2300010001'), false,
+    '已归档消息不被 markAllRead 改写');
+  assert.equal(mockDB.notices.find((n) => n.id === 'n14-expired').reads.includes('2300010001'), false,
+    '过期（系统归档）消息不被 markAllRead 改写');
+  assert.equal(NoticeStore.listMessages({ viewerId: '2300010001', box: 'archived' }).total, 2,
+    '「已归档」= 用户归档 ＋ 过期系统归档');
+});
+
+test('N15 筛选语义：all＝未归档（未读＋已读）、read＝已读且未归档', () => {
+  beginCase([
+    { ...BASE, id: 'n15-a', audience: ['all'], publishDate: '2026-09-01' },
+    { ...BASE, id: 'n15-b', audience: ['all'], publishDate: '2026-09-02', reads: ['2300010001'] },
+    { ...BASE, id: 'n15-sys', audience: ['all'], publishDate: '2026-09-03', archived: true },
+  ]);
+  loginAs('2300010001', 'secretary');
+  const all = NoticeStore.listMessages({ viewerId: '2300010001', box: 'all' }).items.map((n) => n.id).sort();
+  const read = NoticeStore.listMessages({ viewerId: '2300010001', box: 'read' }).items.map((n) => n.id);
+  assert.deepEqual(all, ['n15-a', 'n15-b'], '全部＝未归档（含已读）');
+  assert.deepEqual(read, ['n15-b'], '已读＝已读且未归档');
+  const archived = NoticeStore.listMessages({ viewerId: '2300010001', box: 'archived' }).items.map((n) => n.id);
+  assert.deepEqual(archived, ['n15-sys'], '已归档＝系统归档 / 用户归档');
+});
+
+test('N16 私信会话：同一 replyTo 链按时间升序成线程', () => {
+  beginCase([
+    { ...BASE, id: 'n16-root', noticeType: 'message', fromPersonId: '2300010001', audiencePersons: ['2400012349'], createdAt: '2026-10-01T08:00:00.000Z' },
+    { ...BASE, id: 'n16-reply', noticeType: 'message', fromPersonId: '2400012349', audiencePersons: ['2300010001'], replyTo: 'n16-root', createdAt: '2026-10-01T09:00:00.000Z' },
+  ]);
+  loginAs('2300010001', 'secretary');
+  const thread = NoticeStore.messageThreadOf('n16-reply').map((n) => n.id);
+  assert.deepEqual(thread, ['n16-root', 'n16-reply'], '线程含根信与回复，按时间升序');
+  loginAs('2400012349', 'participant');
+  assert.deepEqual(NoticeStore.messageThreadOf('n16-root').map((n) => n.id), ['n16-root', 'n16-reply'],
+    '收件人视角同一线程');
 });
 
 // ════════════════════════════════════════════════════════════════

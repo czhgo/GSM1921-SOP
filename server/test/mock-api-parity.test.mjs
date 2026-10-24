@@ -48,15 +48,18 @@ globalThis.localStorage = makeStorage();
 
 import { createApp } from '../app.js';
 import { seedDatabase } from '../seed.js';
-import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261024c';
-import { getRuntimeMode, init, setDataSource } from '../../docs/src/data/data-adapter.js?v=20261024c';
+import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261024d';
+import { getRuntimeMode, init, setDataSource } from '../../docs/src/data/data-adapter.js?v=20261024d';
 // ── mock 形态语料（单一源；服务端 seed.js 亦从这些具名导出播种 ⇒ 两侧本应逐值相同）──
-import { MOCK_NOTICES } from '../../docs/src/data/mock/notices.js?v=20261024c';
-import { ATTENDANCE_RECORDS } from '../../docs/src/data/mock/attendance.js?v=20261024c';
-import { INSPECTION_RECORDS } from '../../docs/src/data/mock/inspection.js?v=20261024c';
-import { SEED_MAKEUP_TASKS } from '../../docs/src/data/mock/seed.js?v=20261024c';
+import { MOCK_NOTICES } from '../../docs/src/data/mock/notices.js?v=20261024d';
+import { ATTENDANCE_RECORDS } from '../../docs/src/data/mock/attendance.js?v=20261024d';
+import { INSPECTION_RECORDS } from '../../docs/src/data/mock/inspection.js?v=20261024d';
+import { SEED_MAKEUP_TASKS } from '../../docs/src/data/mock/seed.js?v=20261024d';
+import { ACTIVITIES } from '../../docs/src/data/mock/activities.js?v=20261024d';
+import { PEOPLE } from '../../docs/src/data/mock/people.js?v=20261024d';
+import { applyDerivedFacts } from '../../docs/src/data/mock/derive.js?v=20261024d';
 // `SEED_TODOS` 不在 `mock/**`（它是服务层常量，前端 seedTodos() 读的正是它）——服务端 seed.js 同源 import
-import { SEED_TODOS } from '../../docs/src/services/governance/todo.js?v=20261024c';
+import { SEED_TODOS } from '../../docs/src/services/governance/todo.js?v=20261024d';
 
 // ════════════════════════════════════════════════════════════════
 //  B 类现场（api 形态）：内存服务 + 真登录取 token + init() 把服务端全量灌进 mockDB 缓存
@@ -111,15 +114,29 @@ function diffOf(a, b) {
 }
 
 /**
+ * Task 1（2026-10-25）：种子只存事实；mock 语料按同一派生器补回运行时形状后再与 API 比对。
+ * （否则比较的是「种子静态行」与「服务端派生行」，必然把派生字段判成漂移。）
+ */
+const DERIVED_SOURCES = {
+  notices: MOCK_NOTICES.map((row) => ({ ...row })),
+  attendances: ATTENDANCE_RECORDS.map((row) => ({ ...row })),
+  inspections: INSPECTION_RECORDS.map((row) => ({ ...row })),
+};
+applyDerivedFacts({
+  activities: ACTIVITIES.map((row) => ({ ...row })),
+  ...DERIVED_SOURCES,
+}, { people: PEOPLE });
+
+/**
  * 表集合：`key`=mockDB 缓存键（init 灌入）· `resource`=API 资源名 · `source`=mock 形态语料
  * @type {Array<{key:string, resource:string, source:Array, label:string, min:number}>}
  */
 const TABLES = [
   { key: 'todos', resource: 'todos', source: SEED_TODOS, label: '待办（本批补种）', min: 1 },
-  { key: 'notices', resource: 'notices', source: MOCK_NOTICES, label: '通知（种子计数曾疑 12 vs 13）', min: 12 },
+  { key: 'notices', resource: 'notices', source: DERIVED_SOURCES.notices, label: '通知（种子计数曾疑 12 vs 13）', min: 12 },
   // 2026-10-23 批次 504（R10-C06）：删除支委会 act-27 的 8 条非法考勤 ⇒ 152 → 144；下限随之收至 140。
-  { key: 'attendances', resource: 'attendances', source: ATTENDANCE_RECORDS, label: '考勤（本批改 8 月 _ALL_PERSON_IDS）', min: 140 },
-  { key: 'inspections', resource: 'inspections', source: INSPECTION_RECORDS, label: '考察（id 跳过 insp-17）', min: 42 },
+  { key: 'attendances', resource: 'attendances', source: DERIVED_SOURCES.attendances, label: '考勤（本批改 8 月 _ALL_PERSON_IDS）', min: 140 },
+  { key: 'inspections', resource: 'inspections', source: DERIVED_SOURCES.inspections, label: '考察（id 跳过 insp-17）', min: 42 },
   { key: 'makeupTasks', resource: 'makeupTasks', source: SEED_MAKEUP_TASKS, label: '补课任务（本批改 attendanceRecordId）', min: 1 },
 ];
 

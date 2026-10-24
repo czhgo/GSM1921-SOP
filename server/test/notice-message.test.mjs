@@ -13,7 +13,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { canReadNotice } from '../../docs/src/services/governance/notice.js?v=20261024c';
+import { canReadNotice, kindOf, isArchivedFor } from '../../docs/src/services/governance/notice.js?v=20261024d';
 import { _snapshotNoticeMessageGateDeny, NOTICE_MESSAGE_DENY_MSG } from '../routes/resources/gates.js';
 
 const MSG = {
@@ -48,6 +48,20 @@ test('N2 对照：普通通知的既有可见性口径未被误伤', () => {
     '④「支委层可读任意通知」既有口径未改（普通通知仍可被支委层读到）');
   assert.equal(canReadNotice({ id: 'n5', title: '给组长', audience: ['leader'], read: false }, BYSTANDER), false,
     '非受众、非支委 → 仍不可读（非恒真）');
+});
+
+// ── N5（Task 3 · 2026-10-25）：消息对象模型纯函数（kindOf / isArchivedFor）──
+test('N5 kindOf / isArchivedFor：三种身份单一映射；逐人归档与系统归档分离', () => {
+  assert.equal(kindOf({ noticeType: 'message' }), 'message', '私信 → message');
+  assert.equal(kindOf({ sourceType: 'activity' }), 'system', '系统来源 → system');
+  assert.equal(kindOf({ kind: 'announcement', targetType: 'activity', targetId: 'a1' }), 'announcement',
+    '显式 kind 优先（公告可带对象坐标）');
+  assert.equal(kindOf({}), 'announcement', '其余 → announcement');
+
+  const row = { archived: false, archivedBy: ['p-1'] };
+  assert.equal(isArchivedFor(row, 'p-1'), true, '本人归档命中');
+  assert.equal(isArchivedFor(row, 'p-2'), false, '他人不受影响');
+  assert.equal(isArchivedFor({ archived: true, archivedBy: [] }, 'p-1'), true, '系统归档命中');
 });
 
 // ── N3 / N4（2026-10-05 批次 393）：服务端**快照口私信写门**（发送权于批次 406 · `D-793` 放开到全体成员）──

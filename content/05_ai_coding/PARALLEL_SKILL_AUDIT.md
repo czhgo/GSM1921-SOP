@@ -2,7 +2,7 @@
 title: "多代理独立审查操作手册"
 type: methodology
 role: "[工程师]+[AI]"
-last_updated: "2026-10-22"
+last_updated: "2026-10-25"
 status: active
 related_files: [CLAUDE.md, .trae/specs/generalize-parallel-skill-audit/spec.md]
 ---
@@ -18,9 +18,9 @@ related_files: [CLAUDE.md, .trae/specs/generalize-parallel-skill-audit/spec.md]
 
 ## 0. 前置：先跑问题集
 
-> 本文管「怎么分 lens、怎么汇总、怎么裁定」；`REVIEW_QUESTION_SET.md` 管「每轮开工前必须先回答什么」。顺序不可倒：**先逐条回答 Q-01…Q-20，再分 lens。**
+> 本文管「怎么分 lens、怎么汇总、怎么裁定」；`REVIEW_QUESTION_SET.md` 管「每轮开工前必须先回答什么」。顺序不可倒：**先逐条回答 Q-01…Q-21，再分 lens。**
 
-1. **逐条回答，不跳过。** 每轮开工先对 `REVIEW_QUESTION_SET.md` 的 20 条各给一个结论：`有`（本轮范围存在，附 `文件:行号`/批次/审计条目）/ `无`（附已核对范围）/ `不适用＋理由`。Q-17…Q-20 四条低频高危必须单独回答，不得以「本轮主题不相关」跳过。
+1. **逐条回答，不跳过。** 每轮开工先对 `REVIEW_QUESTION_SET.md` 的 21 条各给一个结论：`有`（本轮范围存在，附 `文件:行号`/批次/审计条目）/ `无`（附已核对范围）/ `不适用＋理由`。Q-17…Q-21 五条低频高危必须单独回答，不得以「本轮主题不相关」跳过。
 2. **先填矩阵，再分 lens。** 把本轮结论写入 `QUESTION_HIT_MATRIX.md`：`●` 命中并处理 / `○` 本轮范围不适用 / 空白 本轮未问。**未填矩阵的轮次不算完成**，不得进入 §2 的选 lens 与并行审查。
 3. **用问题集收敛四个待回答问题。** 答「有」的条目优先转成 §3.3 的四个待回答问题；上一轮空白最多的 3 条在本轮范围相同时优先补问。
 4. **lens 只负责「怎么看」，不负责「看没看全」。** 问题集负责覆盖，lens 负责深度与分歧；两者都完成，才进入 §5 汇总与 §6 裁定。

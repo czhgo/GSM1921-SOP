@@ -86,8 +86,12 @@ test('D2 archive-entry.js：读 URLSearchParams 的 tab 与 id，tab 值域含�
   const tabs = /const ARCHIVE_TABS\s*=\s*\[([\s\S]*?)\];/.exec(src)?.[1] || '';
   assert.ok(tabs, 'archive-entry.js 缺少 ARCHIVE_TABS 声明');
   const ids = [...tabs.matchAll(/id:\s*['"]([^'"]+)['"]/g)].map((m) => m[1]);
-  assert.deepEqual([...ids].sort(), ['activity', 'notice', 'taskforce'],
-    `归档页签值域应恰为 activity/notice/taskforce，实际：${ids.join('/')}`);
+  // 期望更新（Task 3 · 2026-10-25）：`?tab=notice` 退役——通知已有唯一列表与「已归档」筛选，
+  //   归档页只留活动、专班两栏；旧深链在前端重定向到 messages.html?filter=archived。
+  assert.deepEqual([...ids].sort(), ['activity', 'taskforce'],
+    `归档页签值域应恰为 activity/taskforce，实际：${ids.join('/')}`);
+  // Task 3：旧深链必须重定向到消息中心「已归档」，不得静默落回活动页签。
+  assert.match(src, /messages\.html\?filter=archived/, 'archive-entry.js 未把 ?tab=notice 重定向到消息中心已归档');
 
   // 合法 tab 才切换（非法值回落 activity）
   assert.match(src, /ARCHIVE_TABS\.some\([^)]*_tabParam[^)]*\)/, 'archive-entry.js 未校验 tab 值域（非法值应回落 activity）');

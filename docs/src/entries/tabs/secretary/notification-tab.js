@@ -3,24 +3,26 @@
 // 2026-08-07 自 ws-secretary-entry.js 拆分。
 // 数据源：NoticeStore（与首页/全局概况/visitor 同源，消除双数据源脱节）。
 
-import { NoticeStore, sendDirectMessage } from '../../../services/governance/notice.js?v=20261024c';
-import { AuthStore } from '../../../services/core/auth.js?v=20261024c';
-import { showToast, getBasePath, _fmtDate, todayLocal, escHtml } from '../../../core/base/utils.js?v=20261024c';
-import { badgeHtml } from '../../../components/ui/badges.js?v=20261024c';
-import { openModal, closeModal } from '../../../components/ui/modal.js?v=20261024c';
+import { NoticeStore, sendDirectMessage } from '../../../services/governance/notice.js?v=20261024d';
+import { AuthStore } from '../../../services/core/auth.js?v=20261024d';
+import { showToast, getBasePath, _fmtDate, todayLocal, escHtml } from '../../../core/base/utils.js?v=20261024d';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20261024d';
+import { openModal, closeModal } from '../../../components/ui/modal.js?v=20261024d';
 // 统一检索引擎（2026-09-14 批次 37）：已发布通知列表接入关键词（标题/正文）+ 分页
-import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261024c';
+import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261024d';
 // Q-22-1（2026-09-13）：受众选项改引 core/domain/constants.js 单一源（NOTICE_AUDIENCE_SENTINELS）——
 // 发布侧写入值必须与消费端可见性判定同源，勿再本地手写 sentinel 列表（否则 ['all'] 永不命中）。
-import { NOTICE_AUDIENCE_OPTIONS, ACTIVITY_CLASSIFICATION } from '../../../core/domain/constants.js?v=20261024c';
-// SOP-B-5（D-293）：发布三会一课通知时选定本次活动 —— 被通知人在「确认读取」时填「能否线上参会」
-import { loadActivities } from '../../../services/activity/activity.js?v=20261024c';
+import { NOTICE_AUDIENCE_OPTIONS, ACTIVITY_CLASSIFICATION } from '../../../core/domain/constants.js?v=20261024d';
+// SOP-B-5（D-293）：发布三会一课通知时选定本次活动 —— 被通知人在「确认收到」时填「能否线上参会」
+import { loadActivities } from '../../../services/activity/activity.js?v=20261024d';
+import { TaskForceRecordStore } from '../../../services/activity/taskforce.js?v=20261024d';
+import { TaskforceStatus } from '../../../core/domain/domain.js?v=20261024d';
 // B1（2026-09-12）：党委下钻支部的演示只读视图判定（单一源 = services/core/branch-demo-nav.js）
-import { isReadonlyBranchDrilldown } from '../../../services/core/branch-demo-nav.js?v=20261024c';
+import { isReadonlyBranchDrilldown } from '../../../services/core/branch-demo-nav.js?v=20261024d';
 // 站内信（批次 348 · 支书 `#4`「站内信是一个很重要的形式」）：受众「指定人（私发）」——选人用 PersonPicker
 //（选人规范 §2.2：姓名/学号搜索，不手写名单）
-import { PersonPicker } from '../../../components/governance/pickers.js?v=20261024c';
-import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261024c';
+import { PersonPicker } from '../../../components/governance/pickers.js?v=20261024d';
+import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261024d';
 
 const NOTIFICATION_TAB_HTML = `
   ${renderTabHeader({ title: '通知发布' })}
@@ -57,8 +59,8 @@ function renderNotificationPanel() {
   renderNotificationList();
 }
 
-/** 渲染发布表单 */
-function renderNotificationForm() {
+/** 渲染发布表单（重渲染时默认保留已填内容；发布成功后传 reset=true 清空） */
+function renderNotificationForm(reset = false) {
   const formArea = document.getElementById('notification-form-area');
   if (!formArea) return;
 
@@ -68,18 +70,25 @@ function renderNotificationForm() {
     return;
   }
 
+  const draft = reset ? {} : {
+    title: document.getElementById('notif-title')?.value || '',
+    content: document.getElementById('notif-content')?.value || '',
+    expire: document.getElementById('notif-expire')?.value || '',
+    objectId: document.getElementById('notif-object-id')?.value || '',
+  };
+
   let html = '';
 
   // 通知标题
   html += `<div class="mb-4">`;
   html += `<label class="text-xs text-gray-500 mb-1.5 block font-medium">通知标题 <span class="text-red-600">*</span></label>`;
-  html += `<input type="text" id="notif-title" class="input-flat w-full" placeholder="通知标题">`;
+  html += `<input type="text" id="notif-title" class="input-flat w-full" placeholder="通知标题" value="${escHtml(draft.title || '')}">`;
   html += `</div>`;
 
   // 通知内容
   html += `<div class="mb-4">`;
   html += `<label class="text-xs text-gray-500 mb-1.5 block font-medium">通知内容 <span class="text-red-600">*</span></label>`;
-  html += `<textarea id="notif-content" rows="4" class="input-flat w-full" placeholder="通知正文"></textarea>`;
+  html += `<textarea id="notif-content" rows="4" class="input-flat w-full" placeholder="通知正文">${escHtml(draft.content || '')}</textarea>`;
   html += `</div>`;
 
   // 目标受众
@@ -103,22 +112,37 @@ function renderNotificationForm() {
     html += `</div>`;
   }
 
-  // 有效期（选填，A13）：到期后进入归档页「已过期」；留空 = 长期有效
+  // 有效期（选填，A13）：到期后进入消息中心「已归档」；留空 = 长期有效
   html += `<div class="mb-5">`;
   html += `<label class="text-xs text-gray-500 mb-1.5 block font-medium" for="notif-expire">有效期 <span class="text-gray-500">（选填；留空 = 长期有效）</span></label>`;
-  html += `<input type="date" id="notif-expire" class="input-flat text-xs w-full">`;
+  html += `<input type="date" id="notif-expire" class="input-flat text-xs w-full" value="${escHtml(draft.expire || '')}">`;
   html += `</div>`;
 
-  // 关联三会一课活动（选填，SOP-B-5）
+  // 落点（Task 3 · 2026-10-25）：强制二选一「公告（无对象）」/「关联对象」。
+  // 关联对象时写 targetType + targetId；活动同时并入 meetingActivityId（线上参会回执靠它定位）。
   html += `<div class="mb-5">`;
-  html += `<label class="text-xs text-gray-500 mb-1.5 block font-medium" for="notif-meeting-activity">关联会议活动 <span class="text-gray-500">（选填；发布三会一课通知时选定本次活动）</span></label>`;
-  html += `<select id="notif-meeting-activity" class="input-flat w-full">`;
-  html += `<option value="">不关联（普通通知）</option>`;
-  _meetingActivityOptions().forEach(a => {
-    html += `<option value="${a.id}">${a.title}（${a.date || '未排期'} · ${a.type}）</option>`;
-  });
-  html += `</select>`;
-  html += `<p class="help-note mt-1"><a href="./help.html#card-copy-attendance-record" class="help-note__link">见帮助 · 线上参会记录</a></p>`;
+  html += `<label class="text-xs text-gray-500 mb-2 block font-medium">落点 <span class="text-red-600">*</span></label>`;
+  html += `<div class="flex flex-wrap gap-2 mb-2">`;
+  html += `<button data-notif-action="mode-announcement" class="btn-tab chip-option text-sm px-4 py-2 rounded-lg${_objectMode ? '' : ' chip-accent-on font-medium'}">公告（不关联对象）</button>`;
+  html += `<button data-notif-action="mode-object" class="btn-tab chip-option text-sm px-4 py-2 rounded-lg${_objectMode ? ' chip-accent-on font-medium' : ''}">关联对象</button>`;
+  html += `</div>`;
+  if (_objectMode) {
+    html += `<div class="rounded-lg border border-gray-200 bg-white p-3">`;
+    html += `<label class="text-xs text-gray-500 mb-2 block font-medium" for="notif-object-type">对象类型</label>`;
+    html += `<select id="notif-object-type" class="input-flat w-full mb-2">`;
+    html += `<option value="activity"${_objectType === 'activity' ? ' selected' : ''}>活动</option>`;
+    html += `<option value="taskforce"${_objectType === 'taskforce' ? ' selected' : ''}>专班</option>`;
+    html += `</select>`;
+    html += `<label class="text-xs text-gray-500 mb-2 block font-medium" for="notif-object-id">关联对象</label>`;
+    html += `<select id="notif-object-id" class="input-flat w-full">`;
+    html += `<option value="">请选择关联对象</option>`;
+    _objectOptions().forEach((o) => {
+      html += `<option value="${o.id}"${draft.objectId === o.id ? ' selected' : ''}>${escHtml(o.label)}</option>`;
+    });
+    html += `</select>`;
+    html += `<p class="help-note mt-1"><a href="./help.html#card-copy-attendance-record" class="help-note__link">见帮助 · 线上参会记录</a></p>`;
+    html += `</div>`;
+  }
   html += `</div>`;
 
   html += `<button data-notif-action="publish" class="btn-accent text-sm px-4 py-1.5 font-medium">发布通知</button>`;
@@ -127,6 +151,11 @@ function renderNotificationForm() {
 
   formArea.querySelectorAll('[data-notif-action]').forEach(el => {
     el.addEventListener('click', handleNotifAction);
+  });
+  // 对象类型切换：重渲染以换用对应对象清单（标题/正文/有效期保留）
+  formArea.querySelector('#notif-object-type')?.addEventListener('change', (e) => {
+    _objectType = e.target.value === 'taskforce' ? 'taskforce' : 'activity';
+    renderNotificationForm();
   });
 
   // 站内信（批次 348）：指定人档的选人器（每次重渲染重建；destroy 防叠加）
@@ -144,6 +173,9 @@ let _selectedAudience = [];
 /** 站内信（私发）状态（批次 348）：是否切到「指定人」档 ＋ 选人器实例 */
 let _directMode = false;
 let _directPicker = null;
+/** 落点状态（Task 3）：false = 公告（无对象）；true = 关联对象（activity / taskforce） */
+let _objectMode = false;
+let _objectType = 'activity';
 
 /** 处理通知面板操作 */
 function handleNotifAction(e) {
@@ -175,6 +207,18 @@ function handleNotifAction(e) {
       break;
     }
 
+    case 'mode-announcement': {
+      _objectMode = false;
+      renderNotificationForm();
+      break;
+    }
+
+    case 'mode-object': {
+      _objectMode = true;
+      renderNotificationForm();
+      break;
+    }
+
     case 'publish': {
       handlePublishNotification();
       break;
@@ -202,6 +246,17 @@ function _meetingActivityOptions() {
   return loadActivities()
     .filter(a => a && !a.archived && a.status !== 'cancelled' && types.includes(a.type))
     .sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+}
+
+/** 关联对象清单（活动 / 专班）：活动优先三会一课，专班排除已解散。 */
+function _objectOptions() {
+  if (_objectType === 'taskforce') {
+    return TaskForceRecordStore.getAll()
+      .filter(tf => tf && tf.status !== TaskforceStatus.DISSOLVED)
+      .sort((a, b) => (b.deadline || b.createdAt || '').localeCompare(a.deadline || a.createdAt || ''))
+      .map(tf => ({ id: tf.id, label: `${tf.name || '未命名专班'}（${tf.deadline || '未排期'}）` }));
+  }
+  return _meetingActivityOptions().map(a => ({ id: a.id, label: `${a.title}（${a.date || '未排期'} · ${a.type}）` }));
 }
 
 /** 发布通知（写入 NoticeStore，与首页/全局概况/visitor 同源） */
@@ -246,16 +301,26 @@ function handlePublishNotification() {
     showToast('success', `站内信「${title}」已发送给 ${sent} 人（仅你与收件人可见）`);
     _selectedAudience = [];
     _directMode = false;
-    renderNotificationForm();
+    renderNotificationForm(true);
     renderNotificationList();
     return;
   }
 
-  // 关联会议活动（选填，SOP-B-5）：关联后该通知的「确认读取」可填「能否线上参会」，落该场考勤
-  const meetingActivityId = document.getElementById('notif-meeting-activity')?.value || null;
+  // 落点（Task 3）：关联对象时 targetType + targetId 是唯一锚点；活动并入 meetingActivityId（回执定位）。
+  let targetType = null;
+  let targetId = null;
+  let objectLabel = '';
+  if (_objectMode) {
+    targetType = _objectType === 'taskforce' ? 'taskforce' : 'activity';
+    const objectSelect = document.getElementById('notif-object-id');
+    targetId = objectSelect?.value || null;
+    objectLabel = objectSelect?.selectedOptions?.[0]?.textContent || targetId || '';
+    if (!targetId) { showToast('error', '请选择关联对象'); return; }
+  }
+  const meetingActivityId = targetType === 'activity' ? targetId : null;
 
   const audienceLabels = _audienceLabels(_selectedAudience);
-  // A13：有效期（选填）——为空 = 长期有效；到期后由归档页「自然过期」分支收口。
+  // A13：有效期（选填）——为空 = 长期有效；到期后由消息中心「已归档」分支收口。
   const expireDate = document.getElementById('notif-expire')?.value || null;
   const notification = {
     title,
@@ -263,10 +328,16 @@ function handlePublishNotification() {
     priority: 'normal',
     publishDate: todayLocal(),
     expireDate,
-    targetModule: 'workspace',
+    // 公告（无对象）显式 kind='announcement'；关联对象时是带对象卡与唯一动作的系统型通知。
+    kind: _objectMode ? 'system' : 'announcement',
     // D13：不再写全局 `read` 布尔（逐人已读走 reads/NoticeStore.markRead；旧 read 只做迁移读）。
     audience: [..._selectedAudience],
     audienceLabel: audienceLabels.join('、'),
+    ...(targetType ? {
+      targetType,
+      targetId,
+      targetUrl: `${targetType === 'taskforce' ? 'taskforce' : 'activity'}.html?id=${encodeURIComponent(targetId)}`,
+    } : {}),
     // 关联的三会一课活动 id（不关联则 null）——通知→考勤的线上参会申报靠它定位活动
     meetingActivityId,
     // 落款按实际发布角色（dogfood 权限专项 2026-09-13）：此前硬编码「支书」，
@@ -293,11 +364,17 @@ function handlePublishNotification() {
 
   // 成功提示：`showToast('success')` 内部已等 `settleWrites()` 落库确认（见 core/base/utils.js），
   //   落库失败会改报失败文案，不再出现「提示成功、其实没存上」。
-  showToast('success', `通知「${title}」已发布至${audienceLabels.join('、')}`);
+  // Task 3：提示写清落点（公告 / 关联对象），避免「发布后不知道去哪看」。
+  const landing = _objectMode
+    ? `消息中心 · ${targetType === 'taskforce' ? '关联专班' : '关联活动'}「${objectLabel}」`
+    : '消息中心 · 公告';
+  showToast('success', `通知「${title}」已发布至${audienceLabels.join('、')}；落点：${landing}`);
 
   // 重置表单
   _selectedAudience = [];
-  renderNotificationForm();
+  _objectMode = false;
+  _objectType = 'activity';
+  renderNotificationForm(true);
   renderNotificationList();
 }
 

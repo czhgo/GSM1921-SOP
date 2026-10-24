@@ -367,8 +367,8 @@ function _snapshotNoticeWriteDeny(db, rows, actor) {
     const changed = Object.keys({ ...prev, ...row })
       .filter((key) => !sameField(prev[key], row[key]));
     if (changed.length === 0) continue;
-    // 已读是个人状态：任何成员都可推进自己的 read / reads 标记（前端 markRead / markAllRead）
-    if (_noticeSelfReadChange(prev, row, actor, changed)) continue;
+    // 已读 / 逐人归档都是个人状态：任何成员都可推进自己的 read / reads / archivedBy 标记
+    if (_noticeSelfStateChange(prev, row, actor, changed)) continue;
     if (!_assertResourceWrite(actor, 'notices', 'patch', row, row.id, db)) return _writeDenyMsg('notices');
   }
   return null;
@@ -757,21 +757,24 @@ function _assertResourceWriteTail(need, db, actor, method, body, targetId) {
 }
 
 /**
- * 通知「已读」变更是否只作用于本人（R3-P1 / F-03）。
+ * 通知「个人状态」变更是否只作用于本人（R3-P1 / F-03；Task 3 · 2026-10-25 扩到逐人归档）。
  * · `read`（旧全局布尔）沿用既有放行；
- * · `reads[]`（逐人已读）：只允许**追加本人**，不得移除/新增他人 id。
+ * · `reads[]`（逐人已读）：只允许**追加本人**，不得移除/新增他人 id；
+ * · `archivedBy[]`（逐人归档）：只允许**本人进出**，不得改动他人归档状态。
  */
-function _noticeSelfReadChange(prev, row, actor, changed) {
-  if (!changed.length || changed.some((key) => key !== 'read' && key !== 'reads')) return false;
-  if (!changed.includes('reads')) return true;
+function _noticeSelfStateChange(prev, row, actor, changed) {
+  const allowed = new Set(['read', 'reads', 'archivedBy']);
+  if (!changed.length || changed.some((key) => !allowed.has(key))) return false;
   if (!actor) return false;
-  const before = Array.isArray(prev.reads) ? prev.reads : [];
-  const after = Array.isArray(row.reads) ? row.reads : [];
   const self = String(actor.id);
-  // 不得改动他人已读
-  const touchedOthers = before.some((id) => String(id) !== self && !after.map(String).includes(String(id)))
-    || after.some((id) => String(id) !== self && !before.map(String).includes(String(id)));
-  if (touchedOthers) return false;
-  // 只允许追加本人（删除本人已读也放行：属本人状态）
+  const selfIdsOnly = (before, after) => {
+    const b = Array.isArray(before) ? before : [];
+    const a = Array.isArray(after) ? after : [];
+    const touchedOthers = b.some((id) => String(id) !== self && !a.map(String).includes(String(id)))
+      || a.some((id) => String(id) !== self && !b.map(String).includes(String(id)));
+    return !touchedOthers;
+  };
+  if (changed.includes('reads') && !selfIdsOnly(prev.reads, row.reads)) return false;
+  if (changed.includes('archivedBy') && !selfIdsOnly(prev.archivedBy, row.archivedBy)) return false;
   return true;
 }
