@@ -75,7 +75,7 @@ export function requireAuth(db) {
   };
 }
 
-function getSessionUser(db, req) {
+export function getSessionUser(db, req) { // 2026-10-24 批次 508：导出供公开归档读口做「可选登录」（有 token 按登录口径，无 token 按匿名公开口径）
   const token = (req.headers.authorization || '').replace('Bearer ', '');
   const session = token ? db.prepare('SELECT * FROM sessions WHERE token = ?').get(token) : null;
   if (!session) return null;

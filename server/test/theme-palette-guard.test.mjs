@@ -2,17 +2,20 @@
 // theme-palette-guard.test.mjs — 7 主题显式色板守卫（spec redesign-theme-palette-and-density · Task 9）
 //
 // 为什么要有本守卫：
-//   · 批次 505 把主题色从「1 个 hex + color-mix 公式」改成「7 主题 × 亮/暗 × 8 个手选 hex」。
+//   · 批次 505 把主题色从「1 个 hex + color-mix 公式」改成「7 主题 × 亮/暗 × 9 个手选 hex」。
 //     公式退场后，**没有任何守卫校验色值本身**：改错一个 hex、少写一个 token、把某主题
 //     退回 color-mix，都不会有红灯。本文件把色板结构、对比度、彩度与「固定语义色分离」
 //     钉成可机检判据。
 //   · 判据（与 spec「ADDED Requirements」逐条对应）：
-//       T1 结构：ACCENT_COLORS 恰 7 主题；每主题 light/dark 各 8 个合法 hex
+//       T1 结构：ACCENT_COLORS 恰 7 主题；每主题 light/dark 各 9 个合法 hex
 //       T2 对比度：softText/softBg 4.5–12；strongInk/strongBg ≥4.5；strongBg/卡片底 ≥3；
 //                  softBg 与白 1.08–1.35；strongBg HSL 饱和度 ≤85%
 //       T3 色板：ACCENT_PALETTE 恰 7 项、旧键（sky/light-blue/deep）不在其中且有别名回落
 //       T4 选择器：appearance-controls.js 只列 7 项、每项 2 枚小样、消费 getAccentColors、无 hex 字面量
 //       T5 语义色分离：活动类别色 / 党徽金不读 --app-accent*
+//       T6 strongHover（批次 508 第 9 token）：与 strongBg 同色相且不同值、与 strongInk ≥4.5:1、
+//          不得等于 activeBg（否则 hover 与选中态无法区分）
+//       T7 strongHover 非空转：7 主题 × 亮/暗都真实存在（不是 undefined），且注入 / 别名链齐备
 //   · 非空转：每类断言都先核「命中数 >0」，避免正则/解析写坏导致恒真。
 // 运行：node --test server/test/theme-palette-guard.test.mjs
 import { test } from 'node:test';
@@ -22,14 +25,14 @@ import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
   ACCENT_COLORS, ACCENT_PALETTE, ACCENT_KEY_ALIASES, normalizeAccentKey, getAccentColors,
-} from '../../docs/src/core/domain/constants.js?v=20261024a';
+} from '../../docs/src/core/domain/constants.js?v=20261024b';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(HERE, '..', '..');
 const read = (rel) => readFileSync(join(ROOT, rel), 'utf8');
 
 const THEME_KEYS = ['gold', 'red', 'orange', 'green', 'cyan', 'blue', 'purple'];
-const TOKEN_KEYS = ['base', 'softBg', 'softBorder', 'softText', 'strongBg', 'strongInk', 'hoverBg', 'activeBg'];
+const TOKEN_KEYS = ['base', 'softBg', 'softBorder', 'softText', 'strongBg', 'strongInk', 'strongHover', 'hoverBg', 'activeBg'];
 const OLD_KEYS = ['sky', 'light-blue', 'deep'];
 const HEX_VALUE_RE = /^#[0-9A-Fa-f]{6}$/;
 const CARD_LIGHT = '#FFFFFF';
@@ -61,8 +64,25 @@ const hslSaturation = (hex) => {
   if (max === min) return 0;
   return ((max - min) / (1 - Math.abs(max + min - 1))) * 100;
 };
+/** HSL 色相（0–360），用于判 strongHover 与 strongBg 是否同色相 */
+const hue = (hex) => {
+  const [r, g, b] = rgb(hex).map((v) => v / 255);
+  const max = Math.max(r, g, b);
+  const min = Math.min(r, g, b);
+  const d = max - min;
+  if (d === 0) return 0;
+  let h;
+  if (max === r) h = ((g - b) / d) % 6;
+  else if (max === g) h = (b - r) / d + 2;
+  else h = (r - g) / d + 4;
+  return (h * 60 + 360) % 360;
+};
+const hueDiff = (a, b) => {
+  const d = Math.abs(hue(a) - hue(b));
+  return Math.min(d, 360 - d);
+};
 
-test('T1 结构：ACCENT_COLORS 恰 7 主题 × 亮/暗 × 8 个合法 hex token', () => {
+test('T1 结构：ACCENT_COLORS 恰 7 主题 × 亮/暗 × 9 个合法 hex token', () => {
   const keys = Object.keys(ACCENT_COLORS);
   assert.equal(keys.length, 7, `主题数应为 7，实际 ${keys.length}：${keys.join('/')}`);
   assert.deepEqual([...keys].sort(), [...THEME_KEYS].sort(), '主题键必须恰为 gold/red/orange/green/cyan/blue/purple');
@@ -76,7 +96,7 @@ test('T1 结构：ACCENT_COLORS 恰 7 主题 × 亮/暗 × 8 个合法 hex token
       const tokens = entry[mode];
       assert.ok(tokens, `${key}.${mode} 缺失`);
       const tokenKeys = Object.keys(tokens);
-      assert.equal(tokenKeys.length, 8, `${key}.${mode} 应有 8 个 token，实际 ${tokenKeys.length}：${tokenKeys.join('/')}`);
+      assert.equal(tokenKeys.length, 9, `${key}.${mode} 应有 9 个 token，实际 ${tokenKeys.length}：${tokenKeys.join('/')}`);
       assert.deepEqual([...tokenKeys].sort(), [...TOKEN_KEYS].sort(), `${key}.${mode} token 名不符`);
       for (const name of TOKEN_KEYS) {
         const value = tokens[name];
@@ -86,7 +106,7 @@ test('T1 结构：ACCENT_COLORS 恰 7 主题 × 亮/暗 × 8 个合法 hex token
       }
     }
   }
-  assert.equal(tokenCount, 7 * 2 * 8, `token 总数应为 112，实际 ${tokenCount}`);
+  assert.equal(tokenCount, 7 * 2 * 9, `token 总数应为 126，实际 ${tokenCount}`);
 });
 
 test('T2 对比度与彩度：7 主题 × 亮/暗逐项达标', () => {
@@ -132,7 +152,7 @@ test('T3 色板：ACCENT_PALETTE 恰 7 项、旧键退场且有别名回落', ()
   assert.equal(normalizeAccentKey('participant'), 'gold', 'participant 应回落 gold（默认金）');
   assert.equal(normalizeAccentKey('secretary'), 'red', 'secretary 应收敛 red');
   assert.equal(normalizeAccentKey('totally-unknown'), 'gold', '未知键应回落 gold');
-  // 查表返回 8 个 token + 旧别名，且不再做亮度分流
+  // 查表返回 9 个 token + 旧别名，且不再做亮度分流
   const t = getAccentColors('gold', 'light');
   for (const name of TOKEN_KEYS) assert.equal(t[name], ACCENT_COLORS.gold.light[name], `getAccentColors 未按表返回 ${name}`);
   assert.equal(t.bg, t.softBg, '兼容别名 bg 应指向 softBg');
@@ -179,4 +199,56 @@ test('T5 固定语义色分离：活动类别色 / 党徽金不读 --app-accent*
   assert.doesNotMatch(styles, /--party-gold:\s*var\(--app-accent/, '党徽金不得指向主题色变量');
   // 主题金与党徽金不同值（支书口径「党徽金 ≠ 主题金」）
   assert.notEqual(ACCENT_COLORS.gold.light.base.toLowerCase(), '#ffd700', '主题金不应等于党徽金 #FFD700（主题金应更沉稳）');
+});
+
+test('T6 strongHover：与 strongBg 同色相且不同值、与 strongInk ≥4.5:1、不得等于 activeBg', () => {
+  const problems = [];
+  const readings = [];
+  for (const key of THEME_KEYS) {
+    for (const mode of ['light', 'dark']) {
+      const t = ACCENT_COLORS[key][mode];
+      const hd = hueDiff(t.strongBg, t.strongHover);
+      const ink = contrast(t.strongInk, t.strongHover);
+      readings.push(`${key}.${mode}: hueΔ ${hd.toFixed(2)}° / ink-hover ${ink.toFixed(2)} / hover≠bg ${t.strongHover !== t.strongBg} / hover≠active ${t.strongHover !== t.activeBg}`);
+      if (hd > 3) problems.push(`${key}.${mode} strongHover 与 strongBg 色相差 ${hd.toFixed(2)}° > 3°（实底 hover 必须同色相加深，不得换色相）`);
+      if (t.strongHover === t.strongBg) problems.push(`${key}.${mode} strongHover 与 strongBg 同值（hover 无可见变化）`);
+      if (t.strongHover === t.activeBg) problems.push(`${key}.${mode} strongHover 与 activeBg 同值（hover 与选中态无法区分）`);
+      // 留 1e-9 容差：暗色红/橙/蓝/紫实测 4.50 恰好贴线，避免浮点尾差误判
+      if (ink < 4.5 - 1e-9) problems.push(`${key}.${mode} strongInk/strongHover=${ink.toFixed(2)} < 4.5`);
+    }
+  }
+  assert.equal(readings.length, 14, `应产出 14 行读数，实际 ${readings.length}`);
+  console.log(`[theme-palette] strongHover 实测：\n  ${readings.join('\n  ')}`);
+  assert.deepEqual(problems, [], `strongHover 不达标：\n  ${problems.join('\n  ')}`);
+});
+
+test('T7 strongHover 非空转：7 主题 × 亮/暗都真实存在，且注入 / 别名链齐备', () => {
+  const presets = [];
+  for (const key of THEME_KEYS) {
+    for (const mode of ['light', 'dark']) {
+      const tokens = ACCENT_COLORS[key][mode];
+      assert.ok(Object.prototype.hasOwnProperty.call(tokens, 'strongHover'),
+        `${key}.${mode} 缺少 strongHover 键（undefined / 未登记）`);
+      assert.equal(typeof tokens.strongHover, 'string', `${key}.${mode}.strongHover 必须是字符串`);
+      assert.match(tokens.strongHover, HEX_VALUE_RE, `${key}.${mode}.strongHover 必须是 6 位 hex`);
+      const viaLookup = getAccentColors(key, mode).strongHover;
+      assert.equal(viaLookup, tokens.strongHover, `getAccentColors('${key}','${mode}') 未返回 strongHover`);
+      assert.notEqual(viaLookup, undefined, `${key}.${mode} getAccentColors().strongHover 为 undefined`);
+      presets.push(viaLookup);
+    }
+  }
+  assert.equal(presets.length, 14, `应核对 14 个 strongHover 值，实际 ${presets.length}`);
+
+  // 注入链：theme.js 的 9 个后缀与 token 数组都含 strongHover；styles.css 有亮/暗原始变量与选边别名。
+  const theme = read('docs/src/core/boot/theme.js');
+  assert.match(theme, /ACCENT_TOKEN_SUFFIXES\s*=\s*\[[^\]]*'strong-hover'[^\]]*\]/,
+    'theme.js 的 ACCENT_TOKEN_SUFFIXES 缺 strong-hover（第 9 token 不会注入）');
+  assert.match(theme, /light\.strongHover/, 'theme.js 亮色 token 数组缺 strongHover');
+  assert.match(theme, /dark\.strongHover/, 'theme.js 暗色 token 数组缺 strongHover');
+  const styles = read('docs/src/styles.css');
+  for (const name of ['--app-accent-strong-hover-light', '--app-accent-strong-hover-dark', '--app-accent-strong-hover']) {
+    assert.ok(styles.includes(`${name}:`), `styles.css 缺 ${name} 定义`);
+  }
+  assert.match(styles, /html\.theme-dark\s*\{[\s\S]*?--app-accent-strong-hover:\s*var\(--app-accent-strong-hover-dark\)/,
+    'styles.css 暗色段未把 --app-accent-strong-hover 选边到 *-dark');
 });

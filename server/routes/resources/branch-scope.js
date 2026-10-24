@@ -111,7 +111,16 @@ function linkedBranch(db, name, row) {
   const activityId = row.activityId || (name === 'activities' ? null : null);
   if (activityId) {
     const activity = get(db, 'activities', activityId);
-    if (activity) return activity.branchId || DEFAULT_BRANCH;
+    // 2026-10-24 批次 508：归档记录只认「记录自身 branchId」或「activityId → 活动归属」；
+    //   活动的归属按**活动读口的同一口径**解析（历史活动无 branchId 时仍为 br-b1，与支部视图一致，
+    //   否则老活动下的归档材料会忽然对支部不可见、上传写门也会误拒）。
+    //   两者都解析不出（无 activityId / 活动不存在）⇒ 返回 null（未归属，只对党委可见），不塞默认支部。
+    //   其余资源保持原口径（R10-D14 另批）。
+    if (activity) {
+      return name === 'archiveRecords'
+        ? (activity.branchId || resourceBranchId(db, 'activities', activity))
+        : (activity.branchId || DEFAULT_BRANCH);
+    }
   }
   const workgroup = row.workgroupId ? get(db, 'workgroups', row.workgroupId) : null;
   if (workgroup) return workgroup.branchId || DEFAULT_BRANCH;
@@ -173,6 +182,9 @@ export function resourceBranchId(db, name, row) {
   // v11（批次 504）：待办不得回落缺省支部——解析不出就是 NULL（待归属），
   //   读口按兼容期规则决定可见性；其余集合本轮保留原兜底（R10-D14 另批）。
   if (name === 'todos') return linked || null;
+  // 2026-10-24 批次 508：归档记录同样不回落缺省支部——自身无 branchId、activityId 也解析不出归属时
+  //   返回 null（未归属），该行只对党委可见（见 resourceRowsForActor），支部账号一概不可见。
+  if (name === 'archiveRecords') return linked || null;
   return linked || DEFAULT_BRANCH;
 }
 
@@ -212,6 +224,8 @@ export function resourceRowsForActor(db, name, rows, actor, requestedBranchId) {
     // 支部上报审批是**党委本职台账**（跨支部待批复队列）——党委未选支部时也必须能看到
     // 全部待批复上报，否则「支部上报」页恒空（P3 党委后台闭环，party-committee-review P3）。
     if (name === 'reviewRequests') return rows;
+    // 2026-10-24 批次 508：未归属支部的归档记录「只对党委可见」——党委未选支部时给出这批待归属行。
+    if (name === 'archiveRecords') return rows.filter((row) => resourceBranchId(db, name, row) === null);
     if (AGGREGATE_PARENT[name]) return aggregateRows(db, name, rows, null);
     return [];
   }
@@ -231,6 +245,14 @@ export function resourceRowsForActor(db, name, rows, actor, requestedBranchId) {
         return !!row.role && row.role === actor?.role;
       })
       .map((row) => (resourceBranchId(db, name, row) === null ? { ...row, branchLegacy: true } : row));
+  }
+  // 2026-10-24 批次 508：归档记录读口——选中支部时给出「本支部 + 未归属（仅党委）」；
+  //   支部账号的 targetBranchId 恒非空且不会命中 null，故未归属行对支部账号不可见。
+  if (name === 'archiveRecords') {
+    return rows.filter((row) => {
+      const branchId = resourceBranchId(db, name, row);
+      return branchId === targetBranchId || (actor?.role === PARTY_STAFF && branchId === null);
+    });
   }
   return rows.filter((row) => resourceBranchId(db, name, row) === targetBranchId);
 }

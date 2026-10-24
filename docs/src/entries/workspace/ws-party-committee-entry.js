@@ -6,11 +6,13 @@
 // 2026-10-20 IA 修复批次（A06）：治理总览撤页（「组织待补」已并入支部管理的组织提醒列）
 //   ⇒ 登录落点改为「支部上报」（review）：党委进入工作台先看待批复队列，再下发通知 / 管理支部。
 
-import { createWorkspaceShell } from '../../components/shell/workspace-shell.js?v=20261024a';
-import { loadActivities } from '../../services/activity/activity.js?v=20261024a';
-import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261024a';
+import { createWorkspaceShell } from '../../components/shell/workspace-shell.js?v=20261024b';
+import { loadActivities } from '../../services/activity/activity.js?v=20261024b';
+import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261024b';
+// 2026-10-24 批次 508：活动深链的显式落点（提示 + 跳活动详情）需要这两个工具出口
+import { showToast, getBasePath } from '../../core/base/utils.js?v=20261024b';
 // 副作用导入触发党委工作台能力注册（tab 清单）
-import '../../capabilities/party-committee-workspace.js?v=20261024a';
+import '../../capabilities/party-committee-workspace.js?v=20261024b';
 
 await createWorkspaceShell({
   accentRole: 'party-staff',
@@ -22,6 +24,16 @@ await createWorkspaceShell({
   // 不设 tab 记忆（storageKey 缺省）——每次进入都先落待批复，与「首页放最前」口径一致。
   defaultTab: 'review',
   renderCtxExtras: (state) => ({ activities: state.activities || [] }),
+  // 2026-10-24 批次 508：本台三个页签（下发通知 / 支部上报 / 支部管理）都**没有活动承载面**，
+  //   原实现不写 onNavTarget ⇒ 首页/通知带 `?activityId=` 进来时目标被壳静默丢弃（页面毫无变化）。
+  //   这里改为显式落点：先给可见提示，再跳到活动详情页（既有深链，不新造承载页/不复制详情面）。
+  onNavTarget: (nav) => {
+    if (!nav.actId) return false;
+    const id = encodeURIComponent(nav.actId);
+    showToast('info', '本台无活动页签，已转到活动详情');
+    window.location.assign(`${getBasePath()}activity.html?id=${id}`);
+    return { tabId: 'review' };
+  },
   loadOptions: {
     role: 'party-staff',
     storeInits: [() => TaskForceRecordStore.init()],

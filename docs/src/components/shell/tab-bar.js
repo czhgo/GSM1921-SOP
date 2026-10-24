@@ -8,11 +8,11 @@
 
 
 
-import { icon } from '../../core/base/icons.js?v=20261024a';
+import { icon } from '../../core/base/icons.js?v=20261024b';
 
 // R6 导航守卫（2026-09-03 P2a）：初始/目标 tab 决策收敛到纯函数 tab-nav.js（防「被支部隐藏后静默白屏」）
 
-import { resolveInitialTab, resolveTargetTab } from '../../core/boot/tab-nav.js?v=20261024a';
+import { resolveInitialTab, resolveTargetTab } from '../../core/boot/tab-nav.js?v=20261024b';
 
 
 
@@ -220,11 +220,9 @@ export function renderTabBar({ prefix, tabs, accentColor, defaultTab, extraRight
 
     const activeClass = isActive ? ' tab-btn-active' : '';
 
-    const activeStyle = isActive
-
-      ? ` style="--tab-accent:${accent};--tab-accent-bg:${accentRgba};--tab-accent-border:${accentBorder}"`
-
-      : '';
+    // 2026-10-24 批次 508：选中态改由 .tab-btn-active 直接消费 --app-accent-soft-* 令牌，
+    //   不再逐按钮注入 --tab-accent* 内联变量（同名两套机制退场）。
+    const activeStyle = '';
 
     // 2026-10-23 Spec「页签分区标识」：每个分组（含首组）渲染**可见组名**；
     //   组间单独渲染 1px 分隔线（aria-hidden），首组之前不画线。
@@ -322,9 +320,18 @@ export function renderTabBar({ prefix, tabs, accentColor, defaultTab, extraRight
     if (!el.innerHTML.trim()) {
       el.innerHTML = tabContentSkeletonHtml();
     } else {
-      el.style.opacity = '0.45';
+      // 2026-10-24 批次 508：原实现在同一帧里直接 `opacity=0.45` ⇒ 切页签瞬间「整块变暗」的硬闪。
+      //   改为先挂 `.motion-enter`（过渡令牌来自 styles.css），下一帧再改透明度；
+      //   「先占位后填充」的既有逻辑（旧内容在位 + 顶部 loading 行）完全不变。
+      el.classList.add('motion-enter');
       el.style.pointerEvents = 'none';
       el.insertAdjacentHTML('afterbegin', TAB_LOADING_BAR_HTML);
+      const dim = () => {
+        // 渲染可能快于一帧（缓存模块）：收尾已清标记时不再压暗，避免残留半透明
+        if (el.dataset.wsTabLoading === '1') el.style.opacity = '0.45';
+      };
+      if (typeof requestAnimationFrame === 'function') requestAnimationFrame(dim);
+      else dim();
     }
     // U3（2026-09-07）：overview「待答复」直达条槽（内容容器前兄弟）随切 tab 收起——条仅属 overview，
     // 由 overview 外壳 mount 时按需重建，避免条残留显示在其它 tab 内容上方
@@ -350,6 +357,10 @@ export function renderTabBar({ prefix, tabs, accentColor, defaultTab, extraRight
     el.style.opacity = '';
 
     el.style.pointerEvents = '';
+
+    // 2026-10-24 批次 508：切完即摘掉入场过渡类（内容已由各 tab 自己写入；留着会在后续
+    //   无关的样式变更上继续叠过渡）。透明度恢复与摘类同帧完成，新内容直接以全亮呈现，不硬闪。
+    el.classList.remove('motion-enter');
 
     el.querySelectorAll('[data-ws-tab-loading-bar]').forEach(n => n.remove());
 
@@ -507,7 +518,7 @@ export function renderTabBar({ prefix, tabs, accentColor, defaultTab, extraRight
         });
         // 激活当前 Tab（添加 active 类 + 注入 CSS 变量）
         btn.classList.add('tab-btn-active');
-        btn.setAttribute('style', `--tab-accent:${accent};--tab-accent-bg:${accentRgba};--tab-accent-border:${accentBorder}`);
+
         const tabId = btn.getAttribute(dataAttr);
         _syncTabA11y(tabId);
         // 记忆到 localStorage
@@ -599,7 +610,7 @@ export function renderTabBar({ prefix, tabs, accentColor, defaultTab, extraRight
       const btn = boundContainer.querySelector(`.${btnClass}[${dataAttr}="${tabId}"]`);
       if (btn) {
         btn.classList.add('tab-btn-active');
-        btn.setAttribute('style', `--tab-accent:${accent};--tab-accent-bg:${accentRgba};--tab-accent-border:${accentBorder}`);
+
         // R3-D05：激活页签若在横向滚动视口外，滚到最近可见位置（尊重减少动效偏好）。
         try {
           btn.scrollIntoView({

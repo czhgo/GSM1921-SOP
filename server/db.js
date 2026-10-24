@@ -67,7 +67,7 @@ export function initDb(dbPath) {
     db.exec(`CREATE TABLE IF NOT EXISTS ${t} (id TEXT PRIMARY KEY, data TEXT NOT NULL)`);
   }
   db.exec(`CREATE TABLE IF NOT EXISTS ${COLLECTION_VERSIONS_TABLE} (name TEXT PRIMARY KEY, version INTEGER NOT NULL DEFAULT 0)`);
-  applyMigrations(db); return db; // 迁移机制接入点（2026-09-25）：与 return 同行 ⇒ 上文行号零漂移（db.js 是 README-server.md 取证靶点）
+  applyMigrations(db); ensureActivityArchiveIndexes(db); return db; // 迁移机制接入点（2026-09-25）：与 return 同行 ⇒ 上文行号零漂移（db.js 是 README-server.md 取证靶点）；2026-10-24 批次 508 追加归档读口索引（幂等、不抬 schema 版本）
 }
 
 // 辅助：整表替换写入（写穿透快照用）。table 限定白名单，杜绝 SQL 注入。
@@ -1154,4 +1154,18 @@ export function getShadowHistory(db, days = 7) {
     zeroMismatchDays: list.filter((row) => row.mismatch === 0).length,
     days: list,
   };
+}
+
+// ════════════════════════════════════════════════════════════════
+//  2026-10-24 批次 508：活动归档读口索引（幂等，不新增 schema 版本）
+// ════════════════════════════════════════════════════════════════
+// 理由：`GET /activities?archived=true` 的过滤已下推到 SQL（`server/routes/resources/index.js`），
+//   若 activities 上无归档相关索引，按支部/归档态取数只能全表扫（归档库逐年增长）。
+// 写法说明：v11 已为 activities 建了 `branch_id` / `status` 生成列与 `idx_activities_branch_status`，
+//   但**没有** archived 列；为避免为一个索引抬 schema 版本（会触发全库迁移登记），此处用
+//   **表达式索引**，且表达式与读口 WHERE 逐字一致（`IFNULL(json_extract(data,'$.archived'),0)`），
+//   保证查询能命中索引；`IF NOT EXISTS` ⇒ 可幂等重入（新库 / 存量库 / 回滚后均安全）。
+//   列序按「归档态在前、状态在后」：归档读口的主判据是 archived（选择性最高），status 供可选状态过滤。
+export function ensureActivityArchiveIndexes(db) {
+  db.exec("CREATE INDEX IF NOT EXISTS idx_activities_archived_status ON activities(IFNULL(json_extract(data,'$.archived'),0), status)");
 }

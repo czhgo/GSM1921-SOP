@@ -42,7 +42,7 @@ test('C3 实底/实底字查表：strongBg + strongInk（无 color-mix 压深）
     '.btn-accent 文字色应为 var(--app-accent-strong-ink)（查表 strongInk）');
   assert.doesNotMatch(CSS, /color-mix\([^)]*var\(--app-accent[^)]*black/i,
     'styles.css 不得再用 color-mix(主题色 … black) 生成实底');
-  assert.match(CONSTANTS, /return \{ bg: t\.strongBg, text: t\.strongInk, strong: t\.strongBg, ink: t\.strongInk \};/,
-    'accentButtonColors 应直接查表返回 strongBg / strongInk');
+  assert.match(CONSTANTS, /return \{ bg: t\.strongBg, text: t\.strongInk, strong: t\.strongBg, ink: t\.strongInk, strongHover: t\.strongHover \};/,
+    'accentButtonColors 应直接查表返回 strongBg / strongInk / strongHover');
   assert.match(CONSTANTS, /export function accentButtonColors/, '缺少 accentButtonColors 单一源');
 });

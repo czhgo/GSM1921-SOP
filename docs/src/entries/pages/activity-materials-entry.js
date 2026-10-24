@@ -12,24 +12,24 @@
 //   · 材料读取：`mockDB.imageRecords` / `loadAttendanceRecords` / `mockDB.inspections` / `loadActivityReviews`；
 //   · 归档写口：`services/core/mock.js::archiveActivity`（经 BranchService 暴露，与宣传台 / 支书台同源）；
 //   · 空态：`components/ui/empty-state.js`；浮窗：`components/ui/modal.js`；版本戳：`core/base/version-token.js`。
-import { renderSidebar } from '../../components/shell/sidebar.js?v=20261024a';
-import { renderHeader } from '../../components/shell/header.js?v=20261024a';
-import { BranchService } from '../../services/core/runtime.js?v=20261024a';
-import { mockDB, ReviewStatus } from '../../core/domain/domain.js?v=20261024a';
-import { loadAttendanceRecords } from '../../services/activity/attendance.js?v=20261024a';
-import { loadActivityReviews } from '../../services/governance/review.js?v=20261024a';
-import { AuthStore } from '../../services/core/auth.js?v=20261024a';
-import { isActivityArchived } from '../../core/domain/constants.js?v=20261024a';
-import { getBasePath, escHtml as esc, showToast, describeWriteError } from '../../core/base/utils.js?v=20261024a';
-import { resolveMaterialHref, resolveMaterialHandoff, resolveMaterialRoleNote } from '../../core/domain/material-links.js?v=20261024a';
+import { renderSidebar } from '../../components/shell/sidebar.js?v=20261024b';
+import { renderHeader } from '../../components/shell/header.js?v=20261024b';
+import { BranchService } from '../../services/core/runtime.js?v=20261024b';
+import { mockDB, ReviewStatus } from '../../core/domain/domain.js?v=20261024b';
+import { loadAttendanceRecords } from '../../services/activity/attendance.js?v=20261024b';
+import { loadActivityReviews } from '../../services/governance/review.js?v=20261024b';
+import { AuthStore } from '../../services/core/auth.js?v=20261024b';
+import { isActivityArchived } from '../../core/domain/constants.js?v=20261024b';
+import { getBasePath, escHtml as esc, showToast, describeWriteError } from '../../core/base/utils.js?v=20261024b';
+import { resolveMaterialHref, resolveMaterialHandoff, resolveMaterialRoleNote } from '../../core/domain/material-links.js?v=20261024b';
 // 材料页可见性单一源（C11）：与活动列表 / 详情页同判据，待批活动不能凭 id 被非支委层读到
-import { isActivityVisibleTo } from '../../services/core/visibility.js?v=20261024a';
-import { emptyStateHtml } from '../../components/ui/empty-state.js?v=20261024a';
-import { openModal, closeModal } from '../../components/ui/modal.js?v=20261024a';
-import { bumpToken } from '../../core/base/version-token.js?v=20261024a';
-import { hydrateDataSource, notifyDataLoaded } from '../../data/data-adapter.js?v=20261024a';
-import { ApiAdapter } from '../../data/api-adapter.js?v=20261024a';
-import { beginWriteScope, endWriteScope } from '../../core/session/pending-writes.js?v=20261024a';
+import { isActivityVisibleTo } from '../../services/core/visibility.js?v=20261024b';
+import { emptyStateHtml } from '../../components/ui/empty-state.js?v=20261024b';
+import { openModal, closeModal } from '../../components/ui/modal.js?v=20261024b';
+import { bumpToken } from '../../core/base/version-token.js?v=20261024b';
+import { hydrateDataSource, notifyDataLoaded } from '../../data/data-adapter.js?v=20261024b';
+import { ApiAdapter } from '../../data/api-adapter.js?v=20261024b';
+import { beginWriteScope, endWriteScope } from '../../core/session/pending-writes.js?v=20261024b';
 
 renderSidebar('dashboard');
 renderHeader('dashboard');
@@ -205,7 +205,7 @@ function _stepperHtml(archived, coreReady, hasAnyMaterial) {
   ].map((s, i) => ({ ...s, state: doneFlags[i] ? 'done' : (i === currentIdx ? 'current' : 'pending') }));
   const cls = {
     done: 'bg-green-50 border-green-200 text-green-800',
-    current: 'bg-[var(--app-accent-bg)] border-[var(--app-accent)] text-gray-800',
+    current: 'bg-[var(--app-accent-soft-bg)] border-[var(--app-accent)] text-gray-800',
     pending: 'bg-white border-neutral-200 text-gray-500',
   };
   return `

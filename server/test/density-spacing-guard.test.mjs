@@ -156,8 +156,11 @@ test('D3 行型：单行 48 / 双行 56 / 紧凑 44 / 表格 40 / summary 40，�
   const todoRow = ruleBody(STYLES, '.todo-row.list-row');
   assert.match(todoRow, /--row-standard:\s*var\(--row-comfortable\)/, '.todo-row 应把单行档改写为双行 56');
 
-  const summary = ruleBody(STYLES, 'summary');
-  assert.match(summary, /min-height:\s*var\(--row-summary\)/, 'summary 最小命中高应为 var(--row-summary)（40）');
+ // 2026-10-24 批次 508：summary 的 40 命中高只作用于「非按钮摘要」，
+  //   按钮族 summary（.btn-outline/.btn-sm/…）按按钮档取高，不再 40/32/28 三值并存。
+  const summary = ruleBody(STYLES, 'summary:not(.btn-outline):not(.btn-accent-soft):not(.btn-ghost):not(.btn-sm):not(.btn-tab)');
+  assert.match(summary, /min-height:\s*var\(--row-summary\)/,
+    '非按钮 summary 最小命中高应为 var(--row-summary)（40）——按钮族 summary 由按钮档接管');
   assert.match(STYLES, /--row-summary:\s*40px/, '--row-summary 应为 40px');
 });
 

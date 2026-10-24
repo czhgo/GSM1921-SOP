@@ -4,17 +4,17 @@
 // 日历视图（复用 calendar.js 渲染引擎）+ 只读活动详情（点击日历条目）。
 // 形态依据支书第四轮裁定：「支书的日历视图只要删去写入活动等功能，就可以提供很好的活动详情」。
 
-import { getAppState, setState } from '../../core/base/state.js?v=20261024a';
-import { renderCalendarByActivities } from './calendar.js?v=20261024a';
-import { _fmtDate, _currentYearMonth, flashHighlight, downloadCSV, showToast, escHtml as esc } from '../../core/base/utils.js?v=20261024a';
-import { badgeHtml } from '../ui/badges.js?v=20261024a';
-import { ROLE_COLORS, dotDarkVars, isActivityArchived } from '../../core/domain/constants.js?v=20261024a';
-import { activityLifecycleBadgeHtml } from './inspector.js?v=20261024a';
-import { getPersonById } from '../../services/member/person.js?v=20261024a';
-import { AuthStore } from '../../services/core/auth.js?v=20261024a';
-import { fetchVotes } from '../../services/activity/committee-vote.js?v=20261024a';
+import { getAppState, setState } from '../../core/base/state.js?v=20261024b';
+import { renderCalendarByActivities } from './calendar.js?v=20261024b';
+import { _fmtDate, _currentYearMonth, flashHighlight, downloadCSV, showToast, escHtml as esc } from '../../core/base/utils.js?v=20261024b';
+import { badgeHtml } from '../ui/badges.js?v=20261024b';
+import { ROLE_COLORS, dotDarkVars, isActivityArchived, activityTypeBadgeVariant } from '../../core/domain/constants.js?v=20261024b';
+import { activityLifecycleBadgeHtml } from './inspector.js?v=20261024b';
+import { getPersonById } from '../../services/member/person.js?v=20261024b';
+import { AuthStore } from '../../services/core/auth.js?v=20261024b';
+import { fetchVotes } from '../../services/activity/committee-vote.js?v=20261024b';
 // 表决组件（AV4.5 公共端：复用 activity.html 同款 renderVoteWidget，授权按 voterIds 判定）
-import { renderVoteWidget } from '../governance/vote-widget.js?v=20261024a';
+import { renderVoteWidget } from '../governance/vote-widget.js?v=20261024b';
 
 // 任务状态元数据（状态点 + 文案，轻量自包含，避免依赖 status-badge 全家桶）
 const _TASK_STATUS_META = {
@@ -179,10 +179,12 @@ function _renderDetail(state, activities, tasks, highlightId, readonly = false) 
       </ol>
     </div>`;
 
+  // 2026-10-24 批次 508：活动类别徽章改走单一源 activityTypeBadgeVariant（三会一课=brand 红 / 主题党日=gold）。
+  // 原固定 'neutral' 使所有活动类别在详情面板里恒为灰色，类别信息完全丢失。
   panel.innerHTML = `
     <h4 class="font-title-cn text-sm font-bold text-gray-800 mb-3">${act.title || '未命名活动'}</h4>
     <div class="flex flex-wrap gap-1.5 mb-3">
-      ${badgeHtml(act.type || '活动', 'neutral')}
+      ${badgeHtml(act.type || '活动', activityTypeBadgeVariant(act.type))}
       ${activityLifecycleBadgeHtml(act, tasks)}
     </div>
     <div class="space-y-1.5 text-xs text-gray-600 mb-4">

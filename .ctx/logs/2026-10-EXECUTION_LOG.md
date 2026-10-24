@@ -3670,4 +3670,60 @@ $body
   → **SD-24**：按压反馈唯一源 `--press-shadow` + `--transition-press` 180ms；`transform/scale/translate` 计数 0。
   → 推广：**复用令牌前先核语义**——「active 就是红」这类命名会让红泄漏到中性控件；令牌名要绑定「用途」而不是「状态词」。
 
+## 批次 508（2026-10-24）：字段外壳 ＋ 状态语言 ＋ 动效令 ＋ 数据闭环（spec `unify-field-shell-and-interaction-states`）
+
+### 一、判据
+
+- 支书六条：① 选中灰太深、且不该用灰表达选中；② 动效要按「不跳帧」的思路做可复用模块；③ 数据功能链接要落到真实信息（活动去归档落空）；④ input/select 出现黑边黄边、原生下拉不与设计统一；⑤ 深色按钮悬停变灰；⑥ 同行 `summary` 与 `button` 厚薄不一。
+- 三路并行取证（前端交互 / 颜色纪律 / 数据链路）结论：都不是单点样式问题，而是**缺一套状态语言**。硬证据：`login.html:63` 的 `.login-btn:hover` 把深色键刷成 `#F3F4F6`；`.input-flat:focus` 金边（`#FFD700`）＋ `outline:2px #1F2937` 双答；`summary` 全局 `min-height:40` 与 `.btn-sm` 28 并存；`activity-view.js:185` 恒 `neutral`；`archive.html` 不读任何 URL 参数。
+- 四问四答（`grill-me`）：选中改主题 soft；深色键 hover 同色相加深；输入控件采用 **B 字段外壳**（并求「更一般化的产品思路」）；错误仍走 toast（真正要补的是闭环）；范围＝全量收口。
+
+### 二、动作（指针）
+
+1. **状态语言**：`.list-row[data-selected]`、`.cal-cell-large.selected`（桌面/移动同源）、`.subtab[aria-selected]`、`.cs-option:focus-visible`、`.status-badge-option.is-active`、支委会步骤条 → 主题 soft 三件套；侧边栏 `.module-tab.active` 保留浅灰并注明「唯一豁免」。
+2. **实底 hover**：主题表新增第 9 token `strongHover`（7×2 手选 hex，与 `strongInk` ≥4.5:1）；`.btn-accent:hover` 同色相加深；删除 `login.html` 的 `.login-btn:hover/:active` 灰覆盖。
+3. **字段外壳**：静置 1px `--neutral-300`、悬停 `--neutral-400`、活动态＝主题色边 + 3px 主题浅晕、`:focus-visible` 才出 2px 主题色环、禁用/只读分态；删除 `:focus` 的 outline 与金边框双答；暗色 `--focus-ring` 不再用党徽金。
+4. **选择器统一**：`custom-select` 增 `data-cs-search` / `data-cs-priority="recent"` / `data-cs-limit`（搜索 / 近期优先 / 分批渲染 / 空态），`#pcm-pick` 与设置页 select 接入 `enhanceSelects`。
+5. **动效令**：`--motion-fast/base/slow/enter` + 两个 easing；`.motion-enter/.motion-collapse/.motion-press/.motion-scale-in`；折叠改 `grid-template-rows`、进度改 `transform`；裸 `0.15s` 全部并回令牌；删死 keyframes；reduced-motion 补 delay 归零；切页签不再两帧硬切。
+6. **活动类别色**：新增 `activityTypeTone(type)`（三会一课=`#CE1126`、主题党日=`#A16207`、其余中性）与 `data-tone="party-red"` 档；修 6 处「恒灰 / 兜底蓝 / 第三种红」；状态色与类别色分离（完成→success、招募→warning、打回→warning、计数→neutral）。
+7. **数据闭环**：归档页首屏空态卡、命中 `focusActivityId` 先展开折叠区、定位失败 toast；`archive.html` 消费 `?tab=`/`?id=` 并与宣传台同用 `isActivityArchived`；删掉「复盘」落 `talent/archive` 的假入口；`view` 深链改走 `navTarget`/`subview`；`person.html?personId=` 兼容；党委台补 `onNavTarget`、组织台补 `setHighlight`。
+8. **后端**：`GET /activities` 支持 `archived`/`status` SQL 下推与分页；`archive_records` 无 `activityId` 时按 `branchId` 归属（不再塞默认支部，未归属只党委可见）；归档只读子集（`activities?archived=true` + `archiveRecords`）免登录并带 `X-Data-Mode: public-archive`；补 `(archived,status)` 索引。
+9. **遗留收口**：分页钮 30→32（CSS＋`page-sweep::DECK`）；`--tab-accent*` 并入 `--app-accent-soft-*` 并删内联注入；`--app-accent-bg/-border/-text/-deep/-strong/-ink` 兼容别名退场（9 个消费方迁移）；CLAUDE 乙部删两条已完成项、增一条「只留在办项」纪律。
+
+### 三、读数
+
+- **定向**：静态 188 / 188 绿（含 4 个新守卫 28 条）；`page-sweep` 16 / 16 绿；`form-loop::S6`、`doc-line-ref`、`timestamps-note` 全绿。
+- **daily**：`npm run test:daily` **1497 / 1497 绿**（86.1s）。
+- **全量**：`SWEEP_SHARD=all` ＝ **[node] 1499 / 1499 绿**、**[e2e-A] 57 过 + 1 skip（58）**、**[e2e-B] 179 / 179 绿**；墙钟 **1080.7s**（≤1200s）。
+  （进程退出码非零仍来自收尾写 Playwright 自身 `debug.log` 被判沙箱限制；三通道汇总行为「全绿」。）
+- 版本戳 `20261024a` → **`20261024b`**。
+
+### 四、修复过程（如实）
+
+- **按压内阴影首版不生效**：聚合规则放在了文件中段，被 `.ws-tab-arrow` 等后段同特异性 `box-shadow` 压掉 ⇒ 整段移到文件末尾（并在注释写明）。
+- **顶栏页签漏接**：工作台页签是 `.tab-btn` / `.tab-btn-active`，不是 `.btn-tab` / `.active` ⇒ 首版按压规则未覆盖，补入聚合选择器与 `activeBg` 分支。
+- **`package.json` 被写出 BOM**：`Set-Content` 默认带 BOM，`doc-consistency::S16` 的 `JSON.parse` 直接报错 ⇒ 改用 node 写文件。
+- **守卫基线一次性重算**：新增 14 个主题 hex 使 `HEX_VALUE_BASELINE` 287→300、`HEX_TOTAL_BASELINE` 1419→1433；分页钮抬档使 `page-sweep::DECK.pagerH` 30→32；`summary` 分档使 `density-spacing-guard::D3` 改判「非按钮 summary」。每处都在守卫内注明理由，不是为变绿削弱断言。
+- **`--tab-accent*` 退场**：内联注入删除后，深色段的 `color-mix(--tab-accent …)` 覆盖一并删除（主题 soft 别名已承担暗色）。
+
+### 五、边界（如实）
+
+- **错误态仍走 toast**：按支书裁定不加内联错误行；控件只保留红边，`aria-invalid` 沿用既有校验链。真正的「闭环」由本批的深链与假入口修复承担。
+- **`badge--info` 白名单 69 处**：由 `activity-tone-guard::A3` 逐条登记（通知重要 / 已发布 / 待汇报 / 建议选修 / 配置标注等），新增即红；但「重要 vs 紧急」的档位统一留待下一批。
+- **大选项集只做「搜索 / 近期优先 / 分批渲染」**：虚拟滚动与远端分页未做（当前数据量下分批足够）；选人仍走 `person-picker`。
+- **`calendar-tab.js` / `kanban-tab.js` 的类别兜底**仍登记为待迁移例外（存量违规，守卫已白名单化并防僵尸）。
+- **`about.css` / `help.html`** 仍属文档页例外，未并入动效令与外壳。
+
+### 六、sample-diff（本轮支书反馈 → 规则）
+
+- **样本 1**：待办选中行 `#F3F4F6`、日历选中格 `#E5E7EB`、二级页签近黑 —— 三种「选中」三种灰。
+  → **SD-25**：选中＝主题 soft 三件套；侧边栏唯一豁免；hover/active 令牌不得表达 selected。
+- **样本 2**：输入框「金边＋黑环」，暗色「双金边」。
+  → **SD-27**：活动态＝主题色边＋浅晕；`:focus` 不出 outline；`:focus-visible` 才出环；禁用/只读分态（SD-28）。
+- **样本 3**：`summary` 40 / `button` 32 / 行内按钮 28 同排。
+  → 推广：**同一视觉档位必须有唯一源**——`min-height` 这类「兜底尺寸」只能作用于自己的语义类，不得污染按钮族。
+- **样本 4**：`归档` 点击后空页 / 落错页。
+  → **SD-32**：深链落点必须消费参数、定位失败必须可见提示、无承载面不得渲染入口。
+
+
 

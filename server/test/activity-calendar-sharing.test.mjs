@@ -17,7 +17,11 @@ test('成员台保留活动动态入口，同时复用各角色共享的只读�
   assert.match(visitor, /_demoteCalendarToolbar/, '日历内层工具条须降级');
   assert.match(visitor, /querySelector\('\[data-view="list"\]'\)\?\.remove\(\)/, '日历视图内不得出现内层「列表」');
   assert.match(visitor, /visitor-cal-granularity-label/, '内层工具条须有次级标识');
-  assert.match(visitor, /params\.get\('subview'\) \|\| params\.get\('view'\)/, '深链视图参数须同时兼容 subview / view');
+  // 2026-10-24 批次 508：`view` 是工作台壳的协议参数（壳会消费并清掉），页签改读
+  //   ① 壳透传的 `ctx.navTarget.view`；② `?subview=` 深链。不再保留读不到的 `?view=` 分支。
+  assert.match(visitor, /get\('subview'\)/, '深链视图参数须兼容 subview');
+  assert.match(visitor, /ctx\?\.navTarget\?\.view/, '须消费壳透传的 navTarget.view');
+  assert.doesNotMatch(visitor.replace(/\/\/[^\n]*/g, ''), /params\.get\('view'\)/, '不得再读已被壳清掉的 ?view=（注释除外）');
 });
 
 test('四个只读角色入口仍指向相同的共享渲染器；支书保留含写入的活动管理页', () => {

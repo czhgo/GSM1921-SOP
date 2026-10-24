@@ -5,7 +5,7 @@
 // R-26③（2026-10-05 批次 388）：本件**只引一个零依赖叶子** `core/base/date.js`（取本地「今天」）——
 //   不成环、双端可载；**不得**引 `core/base/utils.js`（那会牵 `core/session/pending-writes.js`）。
 
-import { todayLocal } from '../base/date.js?v=20261024a';
+import { todayLocal } from '../base/date.js?v=20261024b';
 
 // ════════════════════════════════════════════════════════════════
 //  缺省支部 id（单一源，R2-17，2026-10-20）
@@ -42,7 +42,7 @@ const _TEXT_DARK_MAP = {
   [_C.red800]: _C.red400, [_C.yellow700]: _C.amber400, [_C.gray600]: _C.slate400, [_C.partyRed]: _C.red400, [_C.orange700]: _C.orange400,
   [_C.sky700]: _C.sky400, [_C.violet600]: _C.violet400, [_C.gray500]: _C.slate400, [_C.cyan700]: _C.cyan400, [_C.indigo600]: _C.indigo300,
   [_C.green500]: _C.green400, [_C.sky500]: _C.sky400, [_C.blue600]: _C.blue400, [_C.blue700]: _C.blue400, [_C.emerald700]: _C.emerald400,
-  [_C.amber800]: _C.amber400, [_C.amber600]: _C.amber400, [_C.blue500]: _C.blue400, [_C.emerald500]: _C.emerald400, [_C.redBrandDeep]: _C.red400,
+  [_C.amber800]: _C.amber400, [_C.amber600]: _C.amber400, [_C.blue500]: _C.blue400, [_C.emerald500]: _C.emerald400, [_C.redBrandDeep]: _C.red400, [_C.partyRedBrand]: _C.red400,
   [_C.green600]: _C.green400, [_C.emerald600]: _C.emerald400, [_C.red600]: _C.red400, [_C.sky300]: _C.sky300, [_C.violet400]: _C.violet300,
 };
 function _hexToRgbStr(hex) {
@@ -116,11 +116,11 @@ export const ROLE_COLORS = _applyDark({
 //   金黄字 #A16207），**不读任何主题 token**——用户把主题从红切到蓝，三会一课徽章仍是党建红、
 //   主题党日仍是亮金（spec SD-19）。只用于徽章 / 圆点 / 左条等小面积标记，不得整卡铺色。
 const ACTIVITY_CAT_COLOR = _applyDark({
-  // ── 三会一课系（党建红 #CE1126）──
-  'branch-party-meeting': { bg: 'rgba(206, 17, 38, 0.08)',  text: _C.red800, border: 'rgba(206, 17, 38, 0.25)' },  // 支部党员大会
-  'branch-committee':      { bg: 'rgba(206, 17, 38, 0.08)',  text: _C.red800, border: 'rgba(206, 17, 38, 0.25)' },  // 支委会
-  'party-group-meeting':   { bg: 'rgba(206, 17, 38, 0.08)',  text: _C.red800, border: 'rgba(206, 17, 38, 0.25)' },  // 党小组会
-  'party-lecture':         { bg: 'rgba(206, 17, 38, 0.08)',  text: _C.red800, border: 'rgba(206, 17, 38, 0.25)' },  // 党课
+  // ── 三会一课系（党建红 #CE1126：text / bg / border 三件套统一到同一党建红，不再用 #991B1B 深红）──
+  'branch-party-meeting': { bg: 'rgba(206, 17, 38, 0.08)',  text: _C.partyRedBrand, border: 'rgba(206, 17, 38, 0.25)' },  // 支部党员大会
+  'branch-committee':      { bg: 'rgba(206, 17, 38, 0.08)',  text: _C.partyRedBrand, border: 'rgba(206, 17, 38, 0.25)' },  // 支委会
+  'party-group-meeting':   { bg: 'rgba(206, 17, 38, 0.08)',  text: _C.partyRedBrand, border: 'rgba(206, 17, 38, 0.25)' },  // 党小组会
+  'party-lecture':         { bg: 'rgba(206, 17, 38, 0.08)',  text: _C.partyRedBrand, border: 'rgba(206, 17, 38, 0.25)' },  // 党课
   // ── 主题党日系（党徽金 #FFD700，2026-08-01 支书要求"再亮一些"，原 #D4AF37 偏灰/脏）──
   'theme-party':           { bg: 'rgba(255, 215, 0, 0.12)', text: _C.yellow700, border: 'rgba(255, 215, 0, 0.35)' },  // 主题党日
   // ── 默认 ──
@@ -431,7 +431,7 @@ export const ROLE_THEME_CLASS = {
   secretary:           'role-theme-secretary',
 };
 
-// ── 主题色板（7 主题 × 亮/暗 × 8 显式 token）────────────────────
+// ── 主题色板（7 主题 × 亮/暗 × 9 显式 token）────────────────────
 // 2026-10-23 批次 505（spec `redesign-theme-palette-and-density` Task 1/2）：
 //   · 主题由 10 个削减为 7 个：金 / 红 / 橙 / 绿 / 青 / 蓝 / 紫；天蓝、雾紫、亮蓝退场（紫只留一个、蓝只留一个）。
 //   · 每主题的每一部分都是**手选 hex**：浅底 / 边框 / 深字 / 实底 / 实底字 / hover / active 各自独立设计，
@@ -448,38 +448,38 @@ export const ROLE_THEME_CLASS = {
 export const ACCENT_COLORS = {
   gold: {
     key: 'gold', label: '金',
-    light: { base: '#A97A12', softBg: '#FBF3DC', softBorder: '#E8D5A3', softText: '#6E4E08', strongBg: '#9A6B0F', strongInk: '#FFFFFF', hoverBg: '#F6EAC6', activeBg: '#F0DFAC' },
-    dark:  { base: '#E0B24C', softBg: '#2F2717', softBorder: '#54441E', softText: '#E8C97A', strongBg: '#C89A34', strongInk: '#1E1503', hoverBg: '#38301C', activeBg: '#423821' },
+    light: { base: '#A97A12', softBg: '#FBF3DC', softBorder: '#E8D5A3', softText: '#6E4E08', strongBg: '#9A6B0F', strongInk: '#FFFFFF', strongHover: '#91650D', hoverBg: '#F6EAC6', activeBg: '#F0DFAC' },
+    dark:  { base: '#E0B24C', softBg: '#2F2717', softBorder: '#54441E', softText: '#E8C97A', strongBg: '#C89A34', strongInk: '#1E1503', strongHover: '#BD9231', hoverBg: '#38301C', activeBg: '#423821' },
   },
   red: {
     key: 'red', label: '红',
-    light: { base: '#A32B24', softBg: '#FBEEEC', softBorder: '#EFC8C2', softText: '#7A201B', strongBg: '#9B2C22', strongInk: '#FFFFFF', hoverBg: '#F7E2DE', activeBg: '#F2D3CE' },
-    dark:  { base: '#E0796F', softBg: '#372220', softBorder: '#5C332E', softText: '#F0B5AC', strongBg: '#D25A4E', strongInk: '#1C0A08', hoverBg: '#402925', activeBg: '#49302C' },
+    light: { base: '#A32B24', softBg: '#FBEEEC', softBorder: '#EFC8C2', softText: '#7A201B', strongBg: '#9B2C22', strongInk: '#FFFFFF', strongHover: '#932920', hoverBg: '#F7E2DE', activeBg: '#F2D3CE' },
+    dark:  { base: '#E0796F', softBg: '#372220', softBorder: '#5C332E', softText: '#F0B5AC', strongBg: '#D25A4E', strongInk: '#1C0A08', strongHover: '#CA564B', hoverBg: '#402925', activeBg: '#49302C' },
   },
   orange: {
     key: 'orange', label: '橙',
-    light: { base: '#B45B33', softBg: '#FBF0E9', softBorder: '#EDCDB9', softText: '#7A3A16', strongBg: '#A9502A', strongInk: '#FFFFFF', hoverBg: '#F7E4D8', activeBg: '#F2D8C7' },
-    dark:  { base: '#E39B6F', softBg: '#33241A', softBorder: '#573827', softText: '#EDBA96', strongBg: '#C1663B', strongInk: '#1E0F07', hoverBg: '#3C2B1F', activeBg: '#453225' },
+    light: { base: '#B45B33', softBg: '#FBF0E9', softBorder: '#EDCDB9', softText: '#7A3A16', strongBg: '#A9502A', strongInk: '#FFFFFF', strongHover: '#A04B27', hoverBg: '#F7E4D8', activeBg: '#F2D8C7' },
+    dark:  { base: '#E39B6F', softBg: '#33241A', softBorder: '#573827', softText: '#EDBA96', strongBg: '#C1663B', strongInk: '#1E0F07', strongHover: '#BE643A', hoverBg: '#3C2B1F', activeBg: '#453225' },
   },
   green: {
     key: 'green', label: '绿',
-    light: { base: '#2F6B4F', softBg: '#EDF5F0', softBorder: '#C4DCD0', softText: '#1F5238', strongBg: '#2B6449', strongInk: '#FFFFFF', hoverBg: '#E3F0E9', activeBg: '#D8E9E0' },
-    dark:  { base: '#7CC4A0', softBg: '#1A2C24', softBorder: '#2F4E3E', softText: '#9FD3B6', strongBg: '#4E9B76', strongInk: '#07130E', hoverBg: '#21342B', activeBg: '#273C32' },
+    light: { base: '#2F6B4F', softBg: '#EDF5F0', softBorder: '#C4DCD0', softText: '#1F5238', strongBg: '#2B6449', strongInk: '#FFFFFF', strongHover: '#285F45', hoverBg: '#E3F0E9', activeBg: '#D8E9E0' },
+    dark:  { base: '#7CC4A0', softBg: '#1A2C24', softBorder: '#2F4E3E', softText: '#9FD3B6', strongBg: '#4E9B76', strongInk: '#07130E', strongHover: '#49936F', hoverBg: '#21342B', activeBg: '#273C32' },
   },
   cyan: {
     key: 'cyan', label: '青',
-    light: { base: '#0F6D7B', softBg: '#E9F4F6', softBorder: '#B9DCE2', softText: '#0B4F5A', strongBg: '#0C6371', strongInk: '#FFFFFF', hoverBg: '#DFEFF2', activeBg: '#D3E7EB' },
-    dark:  { base: '#63B8C7', softBg: '#162A30', softBorder: '#254A52', softText: '#8FCBD6', strongBg: '#2A93A6', strongInk: '#04161A', hoverBg: '#1D333A', activeBg: '#243C44' },
+    light: { base: '#0F6D7B', softBg: '#E9F4F6', softBorder: '#B9DCE2', softText: '#0B4F5A', strongBg: '#0C6371', strongInk: '#FFFFFF', strongHover: '#0B5E6B', hoverBg: '#DFEFF2', activeBg: '#D3E7EB' },
+    dark:  { base: '#63B8C7', softBg: '#162A30', softBorder: '#254A52', softText: '#8FCBD6', strongBg: '#2A93A6', strongInk: '#04161A', strongHover: '#278B9D', hoverBg: '#1D333A', activeBg: '#243C44' },
   },
   blue: {
     key: 'blue', label: '蓝',
-    light: { base: '#3D4E9C', softBg: '#EEF0F9', softBorder: '#C8CEE9', softText: '#2B3A78', strongBg: '#36468F', strongInk: '#FFFFFF', hoverBg: '#E4E8F5', activeBg: '#DAE0F0' },
-    dark:  { base: '#8F9EDB', softBg: '#1D2645', softBorder: '#303C5E', softText: '#A9B6E0', strongBg: '#667AD4', strongInk: '#0A0E1C', hoverBg: '#242F52', activeBg: '#2B375E' },
+    light: { base: '#3D4E9C', softBg: '#EEF0F9', softBorder: '#C8CEE9', softText: '#2B3A78', strongBg: '#36468F', strongInk: '#FFFFFF', strongHover: '#324287', hoverBg: '#E4E8F5', activeBg: '#DAE0F0' },
+    dark:  { base: '#8F9EDB', softBg: '#1D2645', softBorder: '#303C5E', softText: '#A9B6E0', strongBg: '#667AD4', strongInk: '#0A0E1C', strongHover: '#6275CB', hoverBg: '#242F52', activeBg: '#2B375E' },
   },
   purple: {
     key: 'purple', label: '紫',
-    light: { base: '#6D5382', softBg: '#F4F0F7', softBorder: '#D8CCE2', softText: '#523C66', strongBg: '#654C7A', strongInk: '#FFFFFF', hoverBg: '#ECE4F1', activeBg: '#E4DBEC' },
-    dark:  { base: '#B79FCB', softBg: '#2B2439', softBorder: '#443654', softText: '#C3B0D6', strongBg: '#8E75AE', strongInk: '#140E1B', hoverBg: '#332B43', activeBg: '#3B324D' },
+    light: { base: '#6D5382', softBg: '#F4F0F7', softBorder: '#D8CCE2', softText: '#523C66', strongBg: '#654C7A', strongInk: '#FFFFFF', strongHover: '#5F4873', hoverBg: '#ECE4F1', activeBg: '#E4DBEC' },
+    dark:  { base: '#B79FCB', softBg: '#2B2439', softBorder: '#443654', softText: '#C3B0D6', strongBg: '#8E75AE', strongInk: '#140E1B', strongHover: '#8971A8', hoverBg: '#332B43', activeBg: '#3B324D' },
   },
 };
 
@@ -531,7 +531,7 @@ function _accentEntry(value) {
   return ACCENT_COLORS[normalizeAccentKey(raw)];
 }
 
-/** 主题条目的 8 个 token（按亮/暗取一套；未知 mode 按亮色） */
+/** 主题条目的 9 个 token（按亮/暗取一套；未知 mode 按亮色） */
 function _accentTokens(role, mode) {
   const entry = _accentEntry(role);
   return mode === 'dark' ? entry.dark : entry.light;
@@ -568,14 +568,15 @@ export function resolveAccentRole(preferredRole) {
 }
 
 /**
- * 获取主题的 8 个 token（平面对象 + 兼容别名）
- * 平面 token：base / softBg / softBorder / softText / strongBg / strongInk / hoverBg / activeBg
+ * 获取主题的 9 个 token（平面对象 + 兼容别名）
+ * 平面 token：base / softBg / softBorder / softText / strongBg / strongInk / strongHover / hoverBg / activeBg
+ * strongHover 只服务「实底按钮 hover 同色相加深」，与 hoverBg（浅底 hover）语义不同，勿混用。
  * 兼容别名（指向新 token，供旧消费方逐步迁移）：bg / border / text / strong / ink / hover / active；
  * accentRgba / accentBorder 为历史命名，同样指向 softBg / softBorder。
  * @param {string} role — 主题键 / 角色键 / 旧键（经 normalizeAccentKey 归一）
  * @param {'light'|'dark'} [mode='light']
  * @returns {{ accent:string, base:string, softBg:string, softBorder:string, softText:string,
- *   strongBg:string, strongInk:string, hoverBg:string, activeBg:string,
+ *   strongBg:string, strongInk:string, strongHover:string, hoverBg:string, activeBg:string,
  *   bg:string, border:string, text:string, strong:string, ink:string, hover:string, active:string,
  *   accentRgba:string, accentBorder:string }}
  */
@@ -589,6 +590,7 @@ export function getAccentColors(role, mode = 'light') {
     softText: t.softText,
     strongBg: t.strongBg,
     strongInk: t.strongInk,
+    strongHover: t.strongHover,
     hoverBg: t.hoverBg,
     activeBg: t.activeBg,
     // 兼容别名（批次 505；批次 506 消费方迁移后删）
@@ -628,11 +630,11 @@ export const relativeLuminance = _relativeLuminance;
  * 批次 505 起**无亮度分流**：亮金底深字与深色底白字都由主题表逐项手选，不再用感知亮度阈值判定。
  * @param {string} role — 主题键 / 角色键 / 主题表内 hex（兼容四处旧注入点传 accent hex）
  * @param {'light'|'dark'} [mode='light']
- * @returns {{ bg:string, text:string, strong:string, ink:string }}（strong / ink 为旧字段别名）
+ * @returns {{ bg:string, text:string, strong:string, ink:string, strongHover:string }}（strong / ink 为旧字段别名）
  */
 export function accentButtonColors(role, mode = 'light') {
   const t = _accentTokens(role, mode);
-  return { bg: t.strongBg, text: t.strongInk, strong: t.strongBg, ink: t.strongInk };
+  return { bg: t.strongBg, text: t.strongInk, strong: t.strongBg, ink: t.strongInk, strongHover: t.strongHover };
 }
 
 /**
@@ -735,12 +737,12 @@ export function normalizeOrganizingScope(value, activity = null) {
   return value === ACTIVITY_SCOPES.BRANCH ? ACTIVITY_SCOPES.BRANCH : ACTIVITY_SCOPES.PARTY_GROUP;
 }
 
-/** type → 大类（three-meetings | theme-party） */
+/** type → 权威分类键（three-meetings | theme-party | other）；判据唯一实现在 activityTypeClassification */
 export function classifyActivityType(type) {
-  if (!type) return null;
-  if (_THREE_MEETINGS_SUBTYPES.includes(type)) return 'three-meetings';
-  if (type === '组织生活会') return 'three-meetings'; // 内容维度：以三会形式召开，大类仍属三会一课
-  return 'theme-party'; // 主题党日 及未知类型兜底归主题党日系
+  // 兜底收敛：未登记类型返回 'other'（与 activityTypeTone 的 'neutral' 对应），不再归主题党日系；
+  // 判据唯一实现在 activityTypeClassification（勿在此另写一份）。
+  if (!type) return 'other';
+  return activityTypeClassification(type);
 }
 
 // ════════════════════════════════════════════════════════════════
@@ -880,9 +882,9 @@ export function getActivityTypeColors({ withLabel = false, useGradient = false }
  * @returns {'brand'|'gold'|'neutral'}
  */
 export function activityTypeBadgeVariant(type) {
-  const base = _ACTIVITY_TYPE_BASE[normalizeActivityType(type)];
-  if (!base) return 'neutral';
-  return base.dot === _C.partyRedBrand ? 'brand' : 'gold';
+  const tone = activityTypeTone(type);
+  // 固定语义 tone → 徽章变体（判据只剩 activityTypeTone 一处，本函数不再查 _ACTIVITY_TYPE_BASE）
+  return tone === 'party-red' ? 'brand' : tone === 'gold' ? 'gold' : 'neutral';
 }
 
 /** 将 #FEF2F2 这种浅色再加深一档，用于渐变终点（RGB 各通道 -16，与 HSL 版 _darken 区分） */
@@ -1091,3 +1093,53 @@ export const LEADER_CREATABLE_ACTIVITY_TYPES = Object.freeze(['党小组会', '�
 // 档案页、人才库、考勤总表等读侧共用本词表，勿各写一套（旧词「未填写」已并入 EMPTY_TEXT）。
 export const EMPTY_TEXT = '—';
 export const EMPTY_NOT_APPLICABLE = '不适用';
+
+// ════════════════════════════════════════════════════════════════
+//  活动类别语义 tone（单一判据，2026-10-24 批次 508 · 追加在文件末避免行号漂移）
+// ════════════════════════════════════════════════════════════════
+// 病灶：三会一课 / 主题党日的红金判据此前分散在 `_ACTIVITY_TYPE_BASE`（按 dot 色再查一次）、
+//   `activityTypeBadgeVariant`（自己查表）与 `classifyActivityType`（未知兜底归主题党日）三处，
+//   新增载体（理论学习等）时容易只改一处。现收敛为一条链（每层只判一件事）：
+//     activityTypeClassification（大类：three-meetings / theme-party / other）
+//       → activityTypeTone（固定语义 tone：party-red / gold / neutral）
+//       → activityTypeBadgeVariant（组件变体：brand / gold / neutral，只做映射）。
+// 判据来源仍是既有 `_ACTIVITY_TYPE_BASE`（已登记的 7 类）+ `ACTIVITY_CLASSIFICATION`（子类 / 载体）+
+//   `normalizeActivityType`（'大类·子类' 归一），**不新造第二张类别表**。
+
+/** 主题党日载体（复用 ACTIVITY_CLASSIFICATION.carriers；'其他' 是泛化兜底载体，不参与固定语义配色） */
+const _THEME_PARTY_CARRIERS = ACTIVITY_CLASSIFICATION['theme-party'].carriers.filter((c) => c !== '其他');
+
+/**
+ * 活动类型 → 权威分类键（单一判据；未登记 / 空值 → 'other'，不再兜底 'theme-party'）。
+ * · 三会一课族（四个子类 / 组织生活会 / 大类名「三会一课」）→ 'three-meetings'
+ * · 主题党日及载体（主题党日 / 理论学习 / 实践参访 / 交流座谈 / 共建 / 参访 / 座谈）→ 'theme-party'
+ * · 其余（未登记）→ 'other'
+ * 与 activityTypeTone 的关系：本函数判「大类」，tone 把大类映射为固定语义色，二者同源、不得各写一份。
+ * @param {string} type
+ * @returns {'three-meetings'|'theme-party'|'other'}
+ */
+export function activityTypeClassification(type) {
+  const t = normalizeActivityType(type);
+  if (!t) return 'other';
+  if (t === ACTIVITY_CLASSIFICATION['three-meetings'].label) return 'three-meetings';
+  if (t === '组织生活会') return 'three-meetings'; // 内容维度：以三会形式召开，大类仍属三会一课
+  if (t === ACTIVITY_CLASSIFICATION['theme-party'].label) return 'theme-party';
+  if (_ACTIVITY_TYPE_BASE[t]) return _ACTIVITY_TYPE_BASE[t].dot === _C.partyRedBrand ? 'three-meetings' : 'theme-party';
+  if (_THEME_PARTY_CARRIERS.includes(t)) return 'theme-party';
+  return 'other';
+}
+
+/**
+ * 活动类别 → 固定语义 tone（唯一判据；不随主题变化）。
+ * · 三会一课族（支部党员大会 / 支委会 / 党小组会 / 党课 / 组织生活会 / 大类名「三会一课」）→ 'party-red'
+ * · 主题党日及载体（理论学习 / 实践参访 / 交流座谈 / 共建 / 参访 / 座谈）→ 'gold'
+ * · 其余（未登记）→ 'neutral'
+ * @param {string} type
+ * @returns {'party-red'|'gold'|'neutral'}
+ */
+export function activityTypeTone(type) {
+  const cls = activityTypeClassification(type);
+  if (cls === 'three-meetings') return 'party-red';
+  if (cls === 'theme-party') return 'gold';
+  return 'neutral';
+}

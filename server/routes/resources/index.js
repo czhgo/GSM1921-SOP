@@ -2,7 +2,7 @@
 import { Router } from 'express';
 import { randomUUID } from 'node:crypto';
 import { gunzipSync } from 'node:zlib';
-import { requireAuth, requireCommissioner, requireRole } from '../auth.js';
+import { requireAuth, requireCommissioner, requireRole, getSessionUser } from '../auth.js';
 import { replaceCollectionsAtomic, readCollectionVersions, bumpCollectionVersion, rebuildShadowTables } from '../../db.js';
 import { deleteUploadedFile } from '../uploads.js';
 import { afterResourceWrite } from '../../services/mailer-hooks.js';
@@ -170,7 +170,14 @@ const PUSHDOWN_COLUMNS = {
   todos: ['branch_id'],
 };
 
-function _listRowsWithPushdown(db, name, table, query = {}) {
+function _listRowsWithPushdown(db, name, table, query = {}, opts = {}) {
+  // 2026-10-24 批次 508：公开归档读口只返回「已归档材料」（status=archived 或历史缺字段）。
+  // 理由：/archiveRecords 对未登录放行后，若把待归档/处理中材料（工作未完成态）一并公开，等于扩大暴露面；
+  //   过滤在 SQL 内完成，避免全量拉回内存再筛。
+  if (name === 'archiveRecords' && opts.publicArchive) {
+    return db.prepare(`SELECT data FROM ${table} WHERE IFNULL(json_extract(data,'$.status'),'archived') = 'archived'`)
+      .all().map((row) => JSON.parse(row.data));
+  }
   const allowed = PUSHDOWN_COLUMNS[name];
   if (!allowed) return listTable(db, table);
   const clauses = [];
@@ -180,7 +187,27 @@ function _listRowsWithPushdown(db, name, table, query = {}) {
     //   统一交回 JS 侧 resourceBranchId（先父行、后所属人、最后待归属）判定。
     clauses.push('(branch_id = ? OR branch_id IS NULL)'); params.push(String(query.branchId));
   }
-  if (query.status && allowed.includes('status')) { clauses.push('status = ?'); params.push(String(query.status)); }
+  // 2026-10-24 批次 508：活动归档读口过滤下推（`archived` → 记录自身 archived；`status` 支持逗号分隔）。
+  // 理由：归档库逐年增长，若全量拉进 Node 再筛会拖垮 list 读口；两列均可在 SQL 侧判定，且
+  //   `IFNULL(json_extract(data,'$.archived'),0)` 与 db.js 的表达式索引逐字一致（可命中索引）。
+  if (name === 'activities' && query.archived !== undefined) {
+    const flag = String(query.archived).toLowerCase();
+    if (['true', '1', 'false', '0'].includes(flag)) {
+      clauses.push("IFNULL(json_extract(data,'$.archived'),0) = ?");
+      params.push(flag === 'true' || flag === '1' ? 1 : 0);
+    }
+  }
+  if (query.status && allowed.includes('status')) {
+    // 2026-10-24 批次 508：仅 activities 开放逗号分隔多状态（其余资源保持原单值语义，避免顺带改口径）。
+    const statuses = name === 'activities'
+      ? String(query.status).split(',').map((item) => item.trim()).filter(Boolean)
+      : [String(query.status)];
+    if (statuses.length === 1) { clauses.push('status = ?'); params.push(statuses[0]); }
+    else if (statuses.length > 1) {
+      clauses.push(`status IN (${statuses.map(() => '?').join(',')})`);
+      params.push(...statuses);
+    }
+  }
   if (query.personId && allowed.includes('person_id')) { clauses.push('person_id = ?'); params.push(String(query.personId)); }
   if (query.activityId && allowed.includes('activity_id')) { clauses.push('activity_id = ?'); params.push(String(query.activityId)); }
   if (!clauses.length) return listTable(db, table);
@@ -231,7 +258,7 @@ function _forceInspectionRecorders(db, writes, actor) {
 }
 
 function _resourceRowsForActor(db, name, table, actor, requestedBranchId, opts = {}) {
-  let rows = resourceRowsForActor(db, name, _listRowsWithPushdown(db, name, table, opts.query || {}), actor, requestedBranchId);
+  let rows = resourceRowsForActor(db, name, _listRowsWithPushdown(db, name, table, opts.query || {}, opts), actor, requestedBranchId);
   // R4-B04：思想汇报读口与前端 canReadThoughtReport 同一判据（本人或支委层）。
   if (name === 'thoughtReports') {
     rows = rows.filter((row) => canReadThoughtReport(row, { personId: actor?.id, role: actor?.role }));
@@ -248,6 +275,25 @@ function _resourceRowsForActor(db, name, table, actor, requestedBranchId, opts =
     role: actor?.role,
     branchId: actorBranchId(actor) || resourceBranchId(db, 'users', row),
   }));
+}
+
+// 2026-10-24 批次 508：归档库是**公共入口**（侧栏 `archive.html` 未登录可点）。
+// 选型 A 的**最小只读子集**：仅 `GET /activities?archived=true`（只出已归档活动）与
+//   `GET /archiveRecords`（只出非待归档材料）免登录；taskforces / notices 等其他归档资源不放行。
+// 理由：整体不放行只能靠前端另做「请登录」空态；而这两类数据已结束/已归档、只读、不含在办工作面，
+//   公开读取风险最低。**仅 GET**：`_isPublicArchiveRead` 先拒非 GET，写口门一字未动。
+const PUBLIC_READ_RESOURCES = new Set(['archiveRecords']);
+const PUBLIC_ARCHIVED_RESOURCES = new Set(['activities']);
+
+function _isPublicArchiveRead(req) {
+  if (req.method !== 'GET') return false;
+  const path = String(req.path || '');
+  if (PUBLIC_READ_RESOURCES.has(path.slice(1))) return true;
+  if (PUBLIC_ARCHIVED_RESOURCES.has(path.slice(1))) {
+    const flag = String(req.query?.archived ?? '').toLowerCase();
+    return flag === 'true' || flag === '1';
+  }
+  return false;
 }
 
 export function createResourcesRouter(db) {
@@ -269,6 +315,16 @@ export function createResourcesRouter(db) {
   router.use((req, res, next) => {
     if (req.method === 'OPTIONS') return next();
     if (/^\/auth\/iaaa(?=\/|\?|$)/i.test(req.path)) return next();
+    // 2026-10-24 批次 508：归档库公共读口（上方 PUBLIC_READ_RESOURCES / PUBLIC_ARCHIVED_RESOURCES 注释）
+    //   在 router 级一并放行，否则路由内的 readAuth 永远到不了。
+    //   注意是「可选登录」：带有效 token 仍按登录口径（支部隔离不变），无 token 才按匿名公开口径。
+    if (_isPublicArchiveRead(req)) {
+      const sessionUser = getSessionUser(db, req);
+      if (!sessionUser) return next();
+      req.session = sessionUser.session;
+      req.actor = sessionUser.user;
+      return assignedBranchGuard(req, res, next);
+    }
     authGuard(req, res, (err) => {
       if (err) return next(err);
       assignedBranchGuard(req, res, next);
@@ -278,20 +334,24 @@ export function createResourcesRouter(db) {
   // ── 读口收紧（2026-09-18 批次 81；支书 2026-09-18 裁定「授权收紧」）──────────────
   // 病灶（批次 80 实测）：未登录 GET 30 张资源表一律 200，`users`（含姓名/学号/角色/联系方式）
   //   可被全量列举。裁定：**默认要登录**，**只给「明写公开」的留白名单**（宁严勿松）。
-  // 白名单口径＝「**有明确裁定公开的才公开**」：当前没有公开读取的资源；意见反馈也必须登录且仅支部内可读。
-  //   且**不走在下方循环里**，故本循环白名单当前为空集；保留该集合是为了让
-  //   「哪几张放行」在代码里显式可见（改口径时只动这一处）。
-  // **不放行 `branches`**：批次 80 对它的判断标注为「判断存疑」⇒ 本批按「不放行」处理。
-  const PUBLIC_READ = new Set();
+  // 2026-10-24 批次 508：白名单从「空集」改为**归档库最小只读子集**（见上方 PUBLIC_READ_RESOURCES 注释）：
+  //   `archiveRecords` 常开、`activities` 仅 `?archived=true`；其余资源（含 branches）仍一律 requireAuth。
   // 每个资源 GET list
   for (const [name, table] of Object.entries(RESOURCE_TABLES)) {
-    const readAuth = PUBLIC_READ.has(name) ? [] : [requireAuth(db)];
+    const readAuth = (PUBLIC_READ_RESOURCES.has(name) || PUBLIC_ARCHIVED_RESOURCES.has(name))
+      // 双保险：即使 router 级放行判据将来被改，路由内仍按同一 `_isPublicArchiveRead` 复核。
+      ? [(req, res, next) => (_isPublicArchiveRead(req) ? next() : requireAuth(db)(req, res, next))]
+      : [requireAuth(db)];
     router.get(`/${name}`, ...readAuth, (req, res) => {
       const deny = branchSelectionError(req.actor, req.query.branchId);
       if (deny) return res.status(403).json({ error: deny });
+      // 2026-10-24 批次 508：未登录的公共归档读口走 SQL 过滤（activities=archived、archiveRecords 排除待归档），
+      //   并标记数据模式，供前端标注「公开归档数据」。
+      const publicArchive = !req.actor && _isPublicArchiveRead(req);
       const rows = _resourceRowsForActor(db, name, table, req.actor, req.query.branchId, {
-        query: req.query, includeTransferredOut: req.query.includeTransferredOut,
+        query: req.query, includeTransferredOut: req.query.includeTransferredOut, publicArchive,
       });
+      if (publicArchive) res.set('X-Data-Mode', 'public-archive');
       // v11 可选分页：带 page 才分页；不带 page 仍是原数组（旧客户端不受影响）。
       if (req.query.page !== undefined || req.query.cursor !== undefined) {
         return res.json(_paginateRows(rows, req.query));
@@ -308,7 +368,7 @@ export function createResourcesRouter(db) {
   // （写入方与 `POST /api/v1/uploads` 是同一批人：宣传委员，见 `archive-tab.js` 的上传材料链与本批照片墙）。
   // 原状是「仅 requireAuth」⇒ 任一登录成员可直连塞入图片/文件记录（`D-448` ④ 越权取用，批次 80 审计实测
   // **未登录即可列举**、任一登录成员可写；`SOP-B-40` 第 4 项登记项，本批随照片墙一并收口）。
-  // 未登录/非支委层一律 403；读口仍按 `PUBLIC_READ` 之外的 requireAuth 口径（未改）。
+  // 未登录/非支委层一律 403；读口仍按公开只读子集之外的 requireAuth 口径（2026-10-24 批次 508 仅放行归档只读）。
   const COMMISSIONER_WRITE = COMMISSIONER_WRITE_RESOURCES;
   for (const [name, table] of Object.entries(RESOURCE_TABLES)) {
     const writeAuth = COMMISSIONER_WRITE.has(name) ? requireCommissioner(db) : requireAuth(db);

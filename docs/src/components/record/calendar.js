@@ -5,22 +5,26 @@
 //  视图模式：月/周/日/列表 四种切换
 // ════════════════════════════════════════════════════════════════
 
-import { getAppState, setState } from '../../core/base/state.js?v=20261024a';
-import { ROLE_COLORS, getActivityColor, ACTIVITY_CATEGORY_COLORS, ACTIVITY_TYPE_LABELS, ACTIVITY_TYPE_SHORT } from '../../core/domain/constants.js?v=20261024a';
-import { _fmtDate, _currentYearMonth } from '../../core/base/utils.js?v=20261024a';
-import { tokenOf } from '../../core/base/version-token.js?v=20261024a'; // P2 视图渲染守卫数据版本（spec §四.2）
-import { filterTasksByManagementRole, activityLifecycleBadgeHtml } from './inspector.js?v=20261024a';
+import { getAppState, setState } from '../../core/base/state.js?v=20261024b';
+import { ROLE_COLORS, getActivityColor, ACTIVITY_CATEGORY_COLORS, ACTIVITY_TYPE_LABELS, ACTIVITY_TYPE_SHORT, activityTypeTone } from '../../core/domain/constants.js?v=20261024b';
+import { _fmtDate, _currentYearMonth } from '../../core/base/utils.js?v=20261024b';
+import { tokenOf } from '../../core/base/version-token.js?v=20261024b'; // P2 视图渲染守卫数据版本（spec §四.2）
+import { filterTasksByManagementRole, activityLifecycleBadgeHtml } from './inspector.js?v=20261024b';
 // 活动「已完成 / 已取消」闭环判据单一源（R7-16）：替代手写 ['completed','cancelled']
-import { isActivityClosed } from '../../core/domain/domain.js?v=20261024a';
+import { isActivityClosed } from '../../core/domain/domain.js?v=20261024b';
 
 // ── 固定语义色 tone（不随主题）──
-// 活动类别：三会一课（红）→ danger；主题党日（金）→ gold；其余 → neutral。
+// 2026-10-24 批次 508：活动类别色改由单一源 activityTypeTone 判定——
+//   主题党日（scenarioId=theme-party）→ gold；其余类别（三会一课等）→ party-red；无 type → neutral。
+// 原实现「任意其它 scenarioId 一律 danger」会把除主题党日外的所有活动都涂成危险红，
+//   与「三会一课=党建红、主题党日=党徽金」的类别语义不符（danger 仅用于错误/危险语义）。
 const _activityTone = (act) => {
   const sid = act && act.scenarioId;
   if (sid === 'theme-party') return 'gold';
-  return sid ? 'danger' : 'neutral';
+  return (act && act.type) ? activityTypeTone(act.type) : 'neutral';
 };
 // 角色色 → 固定 tone（与 ROLE_COLORS 同族；见 DESIGN_SYSTEM §2.8 角色识别层）
+// 2026-10-24 批次 508：本表是**角色/任务** tone，与活动类别无关，其中的 danger 保持不变。
 const _ROLE_TONE = {
   'deputy-secretary': 'danger', secretary: 'danger', leader: 'green',
   commissioner: 'amber', 'disc-commissioner': 'amber', 'org-commissioner': 'cyan', organizer: 'cyan',

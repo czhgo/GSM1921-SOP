@@ -238,9 +238,13 @@ dynamic_role:
 | server/test/schema-split-gate.test.mjs | 2026-10-23 | — | [工程师]+[AI] | 拆表闸门：C2 409 计数、C4 七天影子历史、NOT_READY 不切读路径。 |
 | server/test/ui-control-system-guard.test.mjs | 2026-10-23 | — | [工程师]+[AI] | 组件层守卫：控件单一源、边框/圆角/字号档。 |
 | server/test/theme-palette-guard.test.mjs | 2026-10-23 | — | [工程师]+[AI] | 主题色板 7×2×8 守卫。 |
-| server/test/density-spacing-guard.test.mjs | 2026-10-23 | — | [工程师]+[AI] | 密度/间距/命中区守卫。 |
+| server/test/density-spacing-guard.test.mjs | 2026-10-23 | — | [工程师]+[AI] | 密度间距守卫。 |
 | server/test/hover-state-guard.test.mjs | 2026-10-23 | — | [工程师]+[AI] | 交互三态与 hover 门控守卫。 |
-| server/test/link-color-guard.test.mjs | 2026-10-23 | — | [工程师]+[AI] | 链接颜色单一源守卫。 |
+| server/test/link-color-guard.test.mjs | 2026-10-23 | — | [工程师]+[AI] | 链接色守卫。 |
+| server/test/activity-tone-guard.test.mjs | 2026-10-24 | — | [工程师]+[AI] | 活动类别守卫。 |
+| server/test/field-shell-guard.test.mjs | 2026-10-24 | — | [工程师]+[AI] | 字段外壳守卫。 |
+| server/test/motion-guard.test.mjs | 2026-10-24 | — | [工程师]+[AI] | 动效令守卫。 |
+| server/test/archive-deeplink-guard.test.mjs | 2026-10-24 | — | [工程师]+[AI] | 归档深链守卫。 |
 | server/test/schema-split-shadow.test.mjs | 2026-10-23 | — | [工程师]+[AI] | v11 影子表双写比对与回滚；构造 mismatch 必须 `NOT_READY`。 |
 | server/scripts/schema-split-readiness.mjs | 2026-10-23 | — | [工程师]+[AI] | 拆表切源判据脚本（五项布尔＋结论），只读不切源。 |
 | server/run-suite.mjs | 2026-10-03 | — | [工程师]+[AI] | 测试分片启动器：按 `SWEEP_SHARD` 选片（非 e2e 每片全跑 ＋ 本片 e2e），透传退出码。 |

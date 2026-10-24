@@ -12,11 +12,11 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261024a';
-import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261024a';
-import { setDataSource, registerMockAdapter } from '../../docs/src/data/data-adapter.js?v=20261024a';
-import { POLICY_DEFAULTS } from '../../docs/src/core/domain/policy-defaults.js?v=20261024a';
-import * as TR from '../../docs/src/services/governance/thought-report.js?v=20261024a';
+import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261024b';
+import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261024b';
+import { setDataSource, registerMockAdapter } from '../../docs/src/data/data-adapter.js?v=20261024b';
+import { POLICY_DEFAULTS } from '../../docs/src/core/domain/policy-defaults.js?v=20261024b';
+import * as TR from '../../docs/src/services/governance/thought-report.js?v=20261024b';
 
 // ── localStorage 内存桩（与 thought-review.test.mjs 同做法）──
 const _store = new Map();

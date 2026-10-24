@@ -204,8 +204,10 @@ export const HEX_BASELINE = {
       '#16a34a', '#1f2937', '#3b82f6', '#ef4444', '#eff6ff', '#f0fdf4', '#fef2f2',
       '#fff',
   ] },
-  'docs/src/core/domain/constants.js': { c: 179, v: [
-      '#000', '#0369a1', '#04161a', '#047857', '#059669', '#07130e', '#0a0e1c',
+  'docs/src/core/domain/constants.js': { c: 194, v: [
+      '#000', '#0b5e6b', '#278b9d', '#285f45', '#324287', '#49936f', '#5f4873', '#6275cb',
+      '#8971a8', '#91650d', '#932920', '#a04b27', '#bd9231', '#be643a', '#ca564b',
+      '#0369a1', '#04161a', '#047857', '#059669', '#07130e', '#0a0e1c',
       '#0b4f5a', '#0c6371', '#0e7490', '#0ea5e9', '#0f6d7b', '#10b981', '#140e1b',
       '#162a30', '#16a34a', '#1a2c24', '#1c0a08', '#1d2645', '#1d333a', '#1d4ed8',
       '#1e0f07', '#1e1503', '#1f5238', '#21342b', '#22c55e', '#22d3ee', '#242f52',
@@ -297,7 +299,7 @@ export const HEX_BASELINE = {
       '#ce1126', '#ffd700',
   ] },
   'docs/src/styles.css': { c: 402, v: [
-      '#000', '#0284c7', '#059669', '#0b1220', '#0e7490', '#0ea5e9', '#0f172a',
+      '#000', '#91650d', '#bd9231', '#0284c7', '#059669', '#0b1220', '#0e7490', '#0ea5e9', '#0f172a',
       '#102a32', '#10b981', '#111827', '#12291f', '#141d2f', '#15803d', '#16233a',
       '#1a2438', '#1b1e24', '#1d4ed8', '#1d5a69', '#1e1503', '#1e293b', '#1e5c44',
       '#1f2937', '#22c55e', '#22d3ee', '#243244', '#251a38', '#2563eb', '#29456e',
@@ -331,7 +333,7 @@ export const HEX_BASELINE = {
 // 2026-10-23 批次 505：存量按实况重设为 **1419 处**（原 2025 为 2026-09-24 起点；
 // 中间各批已降到 1545，本批因色板 112 个手选 hex 与 23 个文件清零相抵后为 1419）。
 // H4 仍只报不判；真正的棘轮是 H1（新增值）/ H2（处数上涨）/ H3（僵尸登记）。
-export const HEX_TOTAL_BASELINE = 1419;
+export const HEX_TOTAL_BASELINE = 1433;
 // 93 → 92（2026-09-25）：`docs/settings.html` 整体重做后其硬编码 hex 清零 ⇒ 该条目按收基线纪律删除，
 //   条目数随之 −1（H3 要求「基线条目数 ＝ 声明文件数」，两处必须同步动）。
 //   `HEX_TOTAL_BASELINE` **有意保持 2025**：它是「存量起点」，H4 会据此显示 ↓15 的缩减进度（该文件真少了 15 处）。
@@ -405,7 +407,7 @@ export const HEX_TOTAL_BASELINE = 1419;
 //   处数 → **1419**（见 HEX_BASELINE 头注）。上面历史注释里的 2025 / 74 / 168 均为各批当时的实况，
 //   仅作审计线索，**不得**据此回调本批数值。
 export const HEX_FILE_BASELINE = 51;
-export const HEX_VALUE_BASELINE = 287;
+export const HEX_VALUE_BASELINE = 300;
 
 /** 搬移例外台账（**人工填写**；守卫**不自动放宽**）——2026-09-25 支书裁定「开搬移例外」。
  *
@@ -566,6 +568,21 @@ export const DEAD_SELECTOR_BASELINE = [
  *  纪律（守卫逐条机检，见 Z3）：① 每条**必须仍是零引用**（若已能字面命中 ⇒ 应删条目：僵尸登记判红）；
  *  ② 必须**仍存在于 CSS**（否则应删条目）；③ 必须带 ≥20 字理由。 */
 export const DYNAMIC_SELECTOR_WHITELIST = [
+  {
+    name: 'motion-collapse',
+    reason: '动效工具类库（批次 508）：`docs/src/styles.css` 的可复用折叠类，供后续组件按需拼接 `.motion-collapse.is-open`；'
+      + '当前无调用点属「库类尚未消费」，不是游离死码。',
+  },
+  {
+    name: 'motion-press',
+    reason: '动效工具类库（批次 508）：按压内阴影的统一工具类，现有组件走聚合 `:is(...):active` 规则；'
+      + '本类保留给动态生成的按钮（如 custom-select 的「显示更多」）使用。',
+  },
+  {
+    name: 'motion-scale-in',
+    reason: '动效工具类库（批次 508）：入场缩放工具类，供弹层 / 详情面板后续接入；'
+      + '定义与 keyframes 同批落地，当前无调用点。',
+  },
   {
     name: 'ab-edge--task',
     reason: '关于页工作流 SVG 连线：`docs/src/entries/pages/about-entry.js:637` 以 `` class: `ab-edge ab-edge--${e.type}` `` '

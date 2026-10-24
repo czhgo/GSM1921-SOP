@@ -1,5 +1,5 @@
 /* 组件样式（@import 必须位于文件顶部） */
-@import url('components/person-picker.css?v=20261024a');
+@import url('components/person-picker.css?v=20261024b');
 
 /* ═══════════════════════════════════════════════════════════════
    GSM1921-SOP DESIGN SYSTEM v11.0 — Matte Flat
@@ -112,6 +112,9 @@
   --app-accent-strong-ink-light:   #FFFFFF;
   --app-accent-hover-bg-light:     #F6EAC6;
   --app-accent-active-bg-light:    #F0DFAC;
+  /* 2026-10-24 批次 508：实底按钮 hover 专用第 9 token——同色相再深一档，替代落灰。
+     下面两行只是默认金主题的兜底值，真实值由 JS 按当前主题注入。 */
+  --app-accent-strong-hover-light: #91650D;
   --app-accent-base-dark:          #E0B24C;
   --app-accent-soft-bg-dark:       #2F2717;
   --app-accent-soft-border-dark:   #54441E;
@@ -120,9 +123,11 @@
   --app-accent-strong-ink-dark:    #1E1503;
   --app-accent-hover-bg-dark:      #38301C;
   --app-accent-active-bg-dark:     #423821;
+  /* 2026-10-24 批次 508：暗色实底 hover 兜底（真实值由 JS 注入），比 strong-bg 深一档。 */
+  --app-accent-strong-hover-dark:  #BD9231;
 
   /* 亮/暗选边别名：:root 指 *-light；html.theme-dark 指 *-dark（见深色段）。
-     消费方只读这 8 个别名 ⇒ 切换日夜不需要重新注入。 */
+     消费方只读这些别名 ⇒ 切换日夜不需要重新注入。 */
   --app-accent:             var(--app-accent-base-light);
   --app-accent-soft-bg:     var(--app-accent-soft-bg-light);
   --app-accent-soft-border: var(--app-accent-soft-border-light);
@@ -131,15 +136,11 @@
   --app-accent-strong-ink:  var(--app-accent-strong-ink-light);
   --app-accent-hover-bg:    var(--app-accent-hover-bg-light);
   --app-accent-active-bg:   var(--app-accent-active-bg-light);
+  /* 2026-10-24 批次 508：第 9 个选边别名——实底 hover 色（同色相加深，不落灰）。 */
+  --app-accent-strong-hover: var(--app-accent-strong-hover-light);
 
-  /* 兼容别名（批次 506 消费方迁移后删除）：旧四件套/实底三件套由新 token 承接。
-     --app-accent-deep 语义 = 浅底上的主题深字 ⇒ 指向 soft-text（不再是 color-mix 派生）。 */
-  --app-accent-bg:     var(--app-accent-soft-bg);
-  --app-accent-border: var(--app-accent-soft-border);
-  --app-accent-text:   var(--app-accent-soft-text);
-  --app-accent-deep:   var(--app-accent-soft-text);
-  --app-accent-strong: var(--app-accent-strong-bg);
-  --app-accent-ink:    var(--app-accent-strong-ink);
+  /* 2026-10-24 批次 508：兼容别名（--app-accent-bg/-border/-text/-deep/-strong/-ink）已退场，
+     消费方全部改用 --app-accent-soft-* / --app-accent-strong-*。 */
 
   /* 焦点指示环（2026-10-21 R5A-04/05）：亮色用深灰（vs 白/页面底 ≥14:1），
      暗色在 html.theme-dark 覆盖为党徽金（vs #0B1220 ≈ 13:1）。
@@ -180,13 +181,20 @@
   --row-table: 40px;
   --row-summary: 40px;
 
-  /* ── Motion — 过渡 ── */
-  --transition-fast:   150ms ease-out;
-  --transition-normal: 200ms ease-out;
-  --transition-slow:   250ms ease-out;
+  /* ── Motion — 过渡（2026-10-24 批次 508：时长 / 曲线收敛为唯一源） ── */
+  --motion-fast: 120ms;
+  --motion-base: 180ms;
+  --motion-slow: 240ms;
+  --motion-enter: 200ms;
+  --ease-standard: cubic-bezier(0.2, 0.6, 0.36, 1);
+  --ease-enter: cubic-bezier(0.22, 0.61, 0.36, 1);
+  /* 2026-10-24 批次 508：旧名保留为别名（全站约 35 处消费方，改了会断链）。 */
+  --transition-fast:   var(--motion-fast) var(--ease-standard);
+  --transition-normal: var(--motion-base) var(--ease-standard);
+  --transition-slow:   var(--motion-slow) var(--ease-standard);
   /* 2026-10-23 批次 507：按压态 180ms（比 hover 略慢，手指按下不闪）；
      反馈只用 1px 内阴影「按进去」，不做位移 / 缩放（不推挤相邻内容）。 */
-  --transition-press:  180ms ease-out;
+  --transition-press:  var(--motion-base) var(--ease-standard);
   --press-shadow:      inset 0 1px 2px rgba(15, 23, 42, 0.10);
 
   --shadow-dropdown: 0 4px 16px rgba(0,0,0,0.12);
@@ -212,6 +220,16 @@
   --tracking-normal: 0;
   --tracking-wide: 0.02em;
 }
+
+/* 2026-10-24 批次 508：可复用动效四件套（入场 / 折叠 / 按压 / 缩放），
+   时长与曲线全部取自上方 motion 令牌，组件不得再自写毫秒数。 */
+.motion-enter { transition: opacity var(--motion-enter) var(--ease-enter), transform var(--motion-enter) var(--ease-enter); }
+.motion-collapse { display: grid; grid-template-rows: 0fr; transition: grid-template-rows var(--motion-base) var(--ease-standard); }
+.motion-collapse > * { overflow: hidden; }
+.motion-collapse.is-open { grid-template-rows: 1fr; }
+.motion-press:active { box-shadow: var(--press-shadow); }
+.motion-scale-in { animation: motionScaleIn var(--motion-enter) var(--ease-enter) both; }
+@keyframes motionScaleIn { from { opacity: 0; transform: scale(.98); } to { opacity: 1; transform: none; } }
 
 /* ── 字体二档调节：大档覆盖（等差递增·小字多加 +3px） ── */
 html.font-size-large {
@@ -271,10 +289,14 @@ a {
 summary {
   list-style: none;
   cursor: pointer;
-  /* 2026-10-23 Task 6：披露条命中高 ≥40，与列表行/表格行同档。 */
-  min-height: var(--row-summary);
+  /* 2026-10-24 批次 508：min-height 仅给非按钮族披露条（见下条规则），
+     避免按钮族 summary 被 40px 撑高、与同行 28/32 档错位。 */
   /* 2026-10-23 批次 507：披露条按压背景 / 内阴影走 --transition-press（只过渡这两项，不动箭头旋转）。 */
   transition: background-color var(--transition-press), box-shadow var(--transition-press);
+}
+/* 2026-10-24 批次 508：披露条命中高只在「非按钮族」生效。 */
+summary:not(.btn-outline):not(.btn-accent-soft):not(.btn-ghost):not(.btn-sm):not(.btn-tab) {
+  min-height: var(--row-summary);
 }
 summary::-webkit-details-marker {
   display: none;
@@ -592,8 +614,9 @@ body {
   cursor: pointer;
 }
 .subtab[aria-selected="true"] {
-  border-bottom-color: var(--neutral-900);
-  color: var(--neutral-900);
+  /* 2026-10-24 批次 508：二级页签选中改走主题色（原中性深灰与一级页签同屏两套语义）。 */
+  border-bottom-color: var(--app-accent);
+  color: var(--app-accent);
   font-weight: 600;
 }
 .subtab:focus-visible {
@@ -690,7 +713,8 @@ body {
    ═══════════════════════════════════════════════════════════════ */
 .input-flat {
   background-color: var(--neutral-0);
-  border: 1px solid var(--neutral-200);
+  /* 2026-10-24 批次 508：字段外壳统一——静默 1px neutral-300，hover 加深，focus 主题色 + soft 环。 */
+  border: 1px solid var(--neutral-300);
   border-radius: var(--radius-sm);
   /* 单档口径（2026-10-23 Task 6）：全站控件 40px、正文 13px。
      控件高 = 内边距 8 + 8 + 显式行高 22 + 边框 2 = 40px；行高必须显式声明，不得靠 UA
@@ -703,10 +727,13 @@ body {
   transition: border-color var(--transition-fast), background-color var(--transition-fast);
 }
 
-.input-flat:focus {
-  background-color: var(--neutral-0);
-  border-color: var(--party-gold);
-}
+/* 2026-10-24 批次 508：字段外壳（B 立场）—— hover 只加深边框；focus 用主题色边框 + soft 底环；
+   focus-visible 叠实线环保对比度；disabled / readonly 各有明确外壳。 */
+@media (hover: hover) { .input-flat:hover:not(:disabled):not(:focus) { border-color: var(--neutral-400); } }
+.input-flat:focus, .cs-trigger:focus-within { border-color: var(--app-accent); box-shadow: 0 0 0 3px var(--app-accent-soft-bg); outline: none; }
+.input-flat:focus-visible, .cs-trigger:focus-visible { outline: 2px solid var(--app-accent); outline-offset: 1px; }
+.input-flat:disabled { background: var(--neutral-100); border-color: var(--neutral-200); color: var(--neutral-400); cursor: not-allowed; }
+.input-flat[readonly] { background: var(--neutral-50); border-color: transparent; color: var(--neutral-700); }
 
 .input-flat::placeholder {
   /* 2026-10-23 Task 8：neutral-400 对白仅 ≈2.5:1；placeholder 须 ≥4.5:1。 */
@@ -810,11 +837,8 @@ select.input-flat.text-xs {
   line-height: 22px;
 }
 
-select.input-flat:focus {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239CA3AF' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
-  background-color: var(--neutral-0);
-  border-color: var(--party-gold);
-}
+/* 2026-10-24 批次 508：select 的焦点态并入 `.input-flat:focus` 字段外壳（3.2），
+   删除此处独立的党徽金边；appearance / 内联箭头保留。 */
 
 /* Input — 紧凑档（表格行内编辑位 / 弹窗多行文本）
    2026-10-23 Task 6：与 .input-flat 同源（白底 / 1px 中性 200 / 8px 圆角 / 13px / placeholder 400 / 金边 focus）。
@@ -1009,7 +1033,8 @@ input.input-flat-sm[type="datetime-local"] {
 }
 /* R5A-03：键盘焦点落在选项上时必须可见（此前选项不可聚焦，只能靠 hover 判断当前位置）。 */
 .cs-option:focus-visible {
-  background: var(--neutral-100);
+  /* 2026-10-24 批次 508：键盘焦点背景改走主题 hover 底，不再回落到中性灰。 */
+  background: var(--app-accent-hover-bg);
   outline: 2px solid var(--focus-ring);
   outline-offset: -2px;
 }
@@ -1080,12 +1105,12 @@ button:disabled { cursor: not-allowed; }
   /* 2026-10-23 批次 507：按压时长改走 --transition-press（180ms），并把内阴影纳入过渡。 */
   transition: background-color var(--transition-press), border-color var(--transition-press), box-shadow var(--transition-press);
 }
-/* 实底没有「更深一档」token（hoverBg 是浅底档，白字叠上去不可读）⇒ hover 只换描边，
-   底色恒为 strong-bg；filter/opacity 作为状态色已在批次 506 删除。 */
+/* 2026-10-24 批次 508：实底 hover 同色相加深，不再落灰。
+   第 9 token --app-accent-strong-hover 由 JS 按主题注入，描边与底色同色。 */
 @media (hover: hover) {
   .btn-accent:hover {
-    background: var(--app-accent-strong-bg);
-    border-color: var(--app-accent-base);
+    background: var(--app-accent-strong-hover);
+    border-color: var(--app-accent-strong-hover);
   }
 }
 .btn-accent:active {
@@ -1592,7 +1617,7 @@ button:disabled { cursor: not-allowed; }
 /* ═══════════════════════════════════════════════════════════════
    COMPONENT: Pagination（分页控件）——全站单一源，2026-09-14 批次 28 裁定
    口径（§COMPONENT: Button「默认档 30px」）：翻页钮 .page-btn 与页码钮 .page-num
-   同高（30px）、同边框、同圆角、同字号（12px）；当前页用 **自有类 .is-current**——
+   同高（32px）、同边框、同圆角、同字号（12px）；当前页用 **自有类 .is-current**——
    原状四处借 `.chip-accent-on` 表选中态，其 `!important` 反而掩盖了「当前页按钮缺基础边框与底色」
    的缺陷，且 chip 语义被借用（chip 只属表单多选与展示）。
    颜色一律走主题变量（--neutral-* / --app-accent-*），深色主题自动跟随，无需再写深色覆盖。
@@ -1602,7 +1627,9 @@ button:disabled { cursor: not-allowed; }
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  height: 30px;
+  /* 2026-10-24 批次 508：分页钮由 30 抬到 32，与卡片/页签档（4+4+22+2）对齐，
+     不再自成一档；改高须同批改 `page-sweep::DECK.pagerH`。 */
+  height: 32px;
   padding: 0 12px;
   font-size: 0.75rem;
   line-height: 1;
@@ -1661,14 +1688,15 @@ button:disabled { cursor: not-allowed; }
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  padding: 4px 10px;
+  /* 2026-10-24 批次 508：尺寸由下方单档块统一提供（此处 padding 被 !important 压死，删除死代码）。 */
   font-size: 0.75rem;
   line-height: 1.4;
   font-weight: 500;
   border-radius: var(--radius-sm);
   border: 1px solid transparent;
   cursor: pointer;
-  transition: background-color 150ms ease-out, border-color 150ms ease-out;
+  /* 2026-10-24 批次 508：硬编码时长改走 motion 令牌。 */
+  transition: background-color var(--motion-fast) var(--ease-standard), border-color var(--motion-fast) var(--ease-standard);
   white-space: nowrap;
 }
 
@@ -1699,7 +1727,7 @@ button:disabled { cursor: not-allowed; }
    只做导航与视图切换，不参与四类动作按钮迁移；尺寸 / 底色 / 选中态保持现状。
    六台顶部 tab 使用 `.tab-btn`（`components/shell/tab-bar.js`），同样豁免、不改任何规则。 */
 .btn-tab {
-  padding: 8px 16px;
+  /* 2026-10-24 批次 508：尺寸由下方单档块统一提供（此处 padding 被 !important 压死，删除死代码）。 */
   font-size: 0.75rem;
   font-weight: 500;
   border-radius: var(--radius-sm);
@@ -1735,7 +1763,7 @@ button:disabled { cursor: not-allowed; }
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 6px 14px;
+  /* 2026-10-24 批次 508：尺寸由下方单档块统一提供（此处 padding 被 !important 压死，删除死代码）。 */
   font-size: 0.75rem;
   font-weight: 500;
   border-radius: var(--radius-sm);
@@ -1935,7 +1963,8 @@ button:disabled { cursor: not-allowed; }
   background-color: var(--surface-sidebar);
   border-right: 1px solid var(--neutral-200);
   transform: translateX(0);
-  transition: transform 0.35s ease-out;
+  /* 2026-10-24 批次 508：硬编码时长改走 motion 令牌。 */
+  transition: transform var(--motion-slow) var(--ease-standard);
 }
 
 #sidebar-main.sidebar-collapsed,
@@ -1955,7 +1984,8 @@ button:disabled { cursor: not-allowed; }
   opacity: 0;
   visibility: hidden;
   pointer-events: none; /* 关闭态不拦截点击：visibility 过渡期间仍保持可命中，必须显式放行（浏览器验证 2026-08-07） */
-  transition: opacity 0.3s ease-out, visibility 0.3s ease-out;
+  /* 2026-10-24 批次 508：硬编码时长改走 motion 令牌。 */
+  transition: opacity var(--motion-slow) var(--ease-standard), visibility var(--motion-slow) var(--ease-standard);
 }
 
 #sidebar-overlay.visible {
@@ -1994,6 +2024,7 @@ button:disabled { cursor: not-allowed; }
 }
 
 .module-tab.active {
+  /* 2026-10-24 批次 508：唯一豁免——侧边栏需要纵深，选中保留浅灰；其余选中一律主题 soft。 */
   background-color: var(--surface-active);
   color: var(--primary-700);
   border: none;
@@ -2093,8 +2124,9 @@ button:disabled { cursor: not-allowed; }
 }
 
 .cal-cell-large.selected {
-  border-color: var(--primary-700) !important;
-  background-color: var(--surface-active) !important;
+  /* 2026-10-24 批次 508：选中 = 主题 soft 底 + 主题描边（桌面/移动同源）。 */
+  border-color: var(--app-accent) !important;
+  background-color: var(--app-accent-soft-bg) !important;
 }
 
 .task-dot {
@@ -2133,7 +2165,8 @@ button:disabled { cursor: not-allowed; }
   font-size: 0.6875rem; /* 10.4px → 11px（A-05 全量上调一档） */
   font-weight: 500;
   white-space: nowrap;
-  transition: outline-color 0.15s ease-out;
+  /* 2026-10-24 批次 508：硬编码时长改走 motion 令牌。 */
+  transition: outline-color var(--motion-fast) var(--ease-standard);
 }
 /* 2026-10-23 Task 7：日历活动条 hover 不再用 `hover:brightness-95`（filter），
    改为同色系描边加深（不改底色 / 不改几何）。 */
@@ -2201,8 +2234,9 @@ button:disabled { cursor: not-allowed; }
 html.theme-dark .cal-cell-large.is-today, html.theme-dark .cal-cell-mobile.is-today { background-color: color-mix(in srgb, var(--primary-700) 16%, var(--surface-card)) !important; border-color: color-mix(in srgb, var(--primary-700) 45%, var(--neutral-200)) !important; }
 
 .cal-cell-mobile.selected {
-  border-color: var(--primary-700) !important;
-  background-color: var(--primary-50) !important;
+  /* 2026-10-24 批次 508：桌面/移动同源——与 .cal-cell-large.selected 同一主题 soft 三件套。 */
+  border-color: var(--app-accent) !important;
+  background-color: var(--app-accent-soft-bg) !important;
 }
 
 .cal-mobile-dots {
@@ -2228,16 +2262,27 @@ html.theme-dark .cal-cell-large.is-today, html.theme-dark .cal-cell-mobile.is-to
 }
 
 .cal-mobile-detail {
-  max-height: 0;
+  /* 2026-10-24 批次 508：展开 / 收起改用 grid-template-rows（0fr→1fr），
+     不再过渡 max-height / padding；.visible 类名语义保留。
+     面板由 JS 注入多个直接子节点，故显式行与隐式行（grid-auto-rows）一起收敛。 */
+  display: grid;
+  grid-template-rows: 0fr;
+  grid-auto-rows: 0fr;
   overflow: hidden;
-  transition: max-height 0.3s ease-out, padding 0.3s ease-out;
+  transition: grid-template-rows var(--motion-slow) var(--ease-standard), grid-auto-rows var(--motion-slow) var(--ease-standard);
   background-color: var(--neutral-0);
   border-radius: var(--radius-md);
   margin-top: 8px;
 }
 
+.cal-mobile-detail > * {
+  overflow: hidden;
+  min-height: 0;
+}
+
 .cal-mobile-detail.visible {
-  max-height: 60vh;
+  grid-template-rows: 1fr;
+  grid-auto-rows: 1fr;
   overflow-y: auto;
   padding: 12px;
   border: 1px solid var(--neutral-200);
@@ -2310,13 +2355,13 @@ html.theme-dark .cal-cell-large.is-today, html.theme-dark .cal-cell-mobile.is-to
   outline-offset: 2px;
 }
 
-/* ── Tab 按钮 active 状态（CSS 变量驱动，替代 inline style） ── */
+/* ── Tab 按钮 active 状态（2026-10-24 批次 508：改消费主题 soft 三件套，不再注入 --tab-accent*） ── */
 .tab-btn-active {
-  background: var(--tab-accent-bg);
+  background: var(--app-accent-soft-bg);
   /* 2026-10-23 批次 507：选中页签的文字改取主题 softText（浅底深字手选值），
      删除 `color-mix(--tab-accent 45%, #000)` 的运行时派生——与全站链接/选中态同源。 */
   color: var(--app-accent-soft-text);
-  border: 1px solid var(--tab-accent-border);
+  border: 1px solid var(--app-accent-soft-border);
 }
 
 /* ── 页签分组标识（2026-10-23 R11 P0-06 · 取代 2026-10-21 R5-C01 的「1px 竖线」）──
@@ -2449,7 +2494,8 @@ html.theme-dark .cal-cell-large.is-today, html.theme-dark .cal-cell-mobile.is-to
   user-select: none;
 }
 .ov-sub-tab svg {
-  transition: opacity 0.2s ease;
+  /* 2026-10-24 批次 508：硬编码时长改走 motion 令牌。 */
+  transition: opacity var(--motion-enter) var(--ease-standard);
 }
 .ov-sub-tab-active {
   background: var(--app-accent-soft-bg);
@@ -2752,7 +2798,8 @@ html.theme-dark .stat-icon-tint {
   cursor: pointer;
   white-space: nowrap;
   user-select: none;
-  transition: background-color 0.15s ease-out, border-color 0.15s ease-out, box-shadow 0.15s ease-out;
+  /* 2026-10-24 批次 508：硬编码时长改走 motion 令牌。 */
+  transition: background-color var(--motion-fast) var(--ease-standard), border-color var(--motion-fast) var(--ease-standard), box-shadow var(--motion-fast) var(--ease-standard);
 }
 /* R-14 特批三：pending 灰阶按主题分档——浅色加深，使「色点+小字」双态对比度均 ≥4.5。
    徽章色值由 JS 行内 style 写入 --sb-color，故此处需 !important 覆盖；仅命中 pending，
@@ -2834,6 +2881,10 @@ html.theme-dark .stat-icon-tint {
   background-color: var(--surface-active);
 }
 .status-badge-option.is-active {
+  /* 2026-10-24 批次 508：选中补主题 soft 外壳（原来只有文字色，选中几乎不可辨）。 */
+  background: var(--app-accent-soft-bg);
+  box-shadow: inset 0 0 0 1px var(--app-accent-soft-border);
+  border-radius: var(--radius-sm);
   color: var(--sb-color);
 }
 .status-badge-check {
@@ -2854,7 +2905,8 @@ html.theme-dark .stat-icon-tint {
   border: 1px solid var(--neutral-200);
   background-color: var(--neutral-0);
   text-decoration: none;
-  transition: border-color 0.15s ease-out, background-color 0.15s ease-out;
+  /* 2026-10-24 批次 508：硬编码时长改走 motion 令牌。 */
+  transition: border-color var(--motion-fast) var(--ease-standard), background-color var(--motion-fast) var(--ease-standard);
 }
 
 @media (hover: hover) {
@@ -2977,7 +3029,8 @@ html.theme-dark .stat-icon-tint {
   font-size: 0.7rem;
   font-weight: 500;
   text-decoration: none;
-  transition: background-color 0.15s ease-out;
+  /* 2026-10-24 批次 508：硬编码时长改走 motion 令牌。 */
+  transition: background-color var(--motion-fast) var(--ease-standard);
   white-space: nowrap;
 }
 
@@ -3000,7 +3053,8 @@ html.theme-dark .stat-icon-tint {
   font-weight: 500;
   border: none;
   cursor: pointer;
-  transition: background-color 0.15s ease-out;
+  /* 2026-10-24 批次 508：硬编码时长改走 motion 令牌。 */
+  transition: background-color var(--motion-fast) var(--ease-standard);
 }
 
 @media (hover: hover) {
@@ -3022,7 +3076,8 @@ html.theme-dark .stat-icon-tint {
   font-size: 0.7rem;
   cursor: pointer;
   white-space: nowrap;
-  transition: background-color 0.15s ease-out, border-color 0.15s ease-out, color 0.15s ease-out;
+  /* 2026-10-24 批次 508：硬编码时长改走 motion 令牌。 */
+  transition: background-color var(--motion-fast) var(--ease-standard), border-color var(--motion-fast) var(--ease-standard), color var(--motion-fast) var(--ease-standard);
 }
 
 @media (hover: hover) {
@@ -3052,7 +3107,8 @@ html.theme-dark .stat-icon-tint {
    COMPONENT: Commissioner Kanban — 条条支委看板（两列+详情展开）
    ═══════════════════════════════════════════════════════════════ */
 .kanban-card {
-  transition: border-color 0.15s ease-out, background-color var(--transition-fast);
+  /* 2026-10-24 批次 508：硬编码时长改走 motion 令牌。 */
+  transition: border-color var(--motion-fast) var(--ease-standard), background-color var(--transition-fast);
 }
 @media (hover: hover) {
   .kanban-card:hover {
@@ -3083,18 +3139,8 @@ a:focus-visible {
   box-shadow: 0 0 0 6px var(--focus-halo);
 }
 
-/* 有边框的输入 / 下拉 / 登录控件聚焦：R5A-04 起除「边框变金」外必须叠加 ≥3:1 的
-   outline（金边 vs 白仅 1.4:1）。外圈仍不加发光（§5.3），只用实线 outline 承担对比度。 */
-.input-flat:focus,
-.input-flat:focus-visible,
-input.login-input:focus,
-input.login-input:focus-visible,
-.cs-trigger:focus,
-.cs-trigger:focus-visible {
-  outline: 2px solid var(--focus-ring);
-  outline-offset: 1px;
-  box-shadow: none;
-}
+/* 2026-10-24 批次 508：焦点统一走 3.2 的字段外壳；不再叠近黑外环。
+   （原此处给 .input-flat / login-input / .cs-trigger 统一加 2px --focus-ring 外环，已整段删除。） */
 /* 紧凑档字段同一口径（2026-10-23 R11 P0-01）：键盘聚焦必须有 ≥3:1 的实线环。 */
 .input-flat-sm:focus,
 .input-flat-sm:focus-visible {
@@ -3102,11 +3148,10 @@ input.login-input:focus-visible,
   outline-offset: 1px;
   box-shadow: none;
 }
-/* login 页自带 .login-input:focus 的红边与下拉触发器 .cs-trigger 的默认边框：聚焦一并归金。 */
+/* login 页自带 .login-input:focus 的红边：聚焦归党徽金（登录页独立口径）。
+   .cs-trigger 已在 3.2 字段外壳里改走主题色，此处不再重复下发金边。 */
 input.login-input:focus,
-input.login-input:focus-visible,
-.cs-trigger:focus,
-.cs-trigger:focus-visible {
+input.login-input:focus-visible {
   border-color: var(--party-gold);
 }
 
@@ -3199,7 +3244,8 @@ input.login-input:focus-visible,
     box-shadow: 0 8px 24px rgba(0,0,0,0.12);
     border-radius: 0 0 var(--radius-lg) var(--radius-lg);
     transform: translateY(0);
-    transition: transform 0.3s ease-out;
+    /* 2026-10-24 批次 508：硬编码时长改走 motion 令牌。 */
+    transition: transform var(--motion-slow) var(--ease-standard);
   }
 
   #sidebar-main.sidebar-collapsed,
@@ -3351,7 +3397,10 @@ input.login-input:focus-visible,
   height: 100%;
   background: var(--primary-700);
   border-radius: var(--radius-sm);
-  transition: width 0.4s ease-out;
+  /* 2026-10-24 批次 508：宽度过渡改 transform: scaleX()（不触发布局）；
+     JS 侧由调用方保证缩放比例，本任务只改 CSS。 */
+  transform-origin: left center;
+  transition: transform var(--motion-slow) var(--ease-standard);
 }
 
 .workflow-progress-bar.blocked {
@@ -3747,34 +3796,20 @@ input.login-input:focus-visible,
 
 }
 
-/* ═══════════════════════════════════════════════════════════════
-   工作台身份选择模态框动画
-   ═══════════════════════════════════════════════════════════════ */
-@keyframes ws-fade-in {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-@keyframes ws-scale-in {
-  from {
-    opacity: 0;
-    transform: scale(0.9);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
+/* 2026-10-24 批次 508：此处原有无引用的 @keyframes ws-fade-in / ws-scale-in（全仓 0 处消费），
+   整段删除；入场动效统一走上方 motion 令牌与 .motion-* 类。 */
 
 /* ── 首页近期活动 Tab 样式 ─────────────────────────── */
 .activity-tab-btn {
-  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+  /* 2026-10-24 批次 508：硬编码时长改走 motion 令牌。 */
+  transition: background-color var(--motion-fast) var(--ease-standard), border-color var(--motion-fast) var(--ease-standard), color var(--motion-fast) var(--ease-standard);
 }
 
 /* ── 日历悬停浮窗 ─────────────────────────────── */
 #cal-hover-popover {
   pointer-events: auto;
-  transition: opacity 0.15s ease;
+  /* 2026-10-24 批次 508：硬编码时长改走 motion 令牌。 */
+  transition: opacity var(--motion-fast) var(--ease-standard);
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -3823,6 +3858,8 @@ input.login-input:focus-visible,
     --app-accent-strong-ink:  var(--app-accent-strong-ink-dark) !important;
     --app-accent-hover-bg:    var(--app-accent-hover-bg-dark) !important;
     --app-accent-active-bg:   var(--app-accent-active-bg-dark) !important;
+    /* 2026-10-24 批次 508：第 9 个选边别名随暗色切换。 */
+    --app-accent-strong-hover: var(--app-accent-strong-hover-dark) !important;
 
     /* Functional：深色底上状态色提亮一档 */
     --functional-success: #34D399;
@@ -3834,8 +3871,8 @@ input.login-input:focus-visible,
     /* 2026-10-23 批次 507：暗底上 10% 的深色内阴影几乎不可见，加深到 45%（仍只 1px，不位移/缩放）。 */
     --press-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.45);
 
-    /* 焦点环（R5A-05）：暗底上党徽金 ≈13:1；外圈用浅色描边，不再用融于深底的纯黑。 */
-    --focus-ring: var(--party-gold);
+    /* 焦点环（2026-10-24 批次 508）：暗底上改用主题色，不再用党徽金当通用焦点环。 */
+    --focus-ring: var(--app-accent);
     --focus-halo: rgba(15, 23, 42, 0.9);
 
     /* help 页文字变量反向 */
@@ -4034,12 +4071,8 @@ input.login-input:focus-visible,
   html.theme-dark .rh-card.role-deep .rh-name { color: #6EE7B7 !important; }
   html.theme-dark .rh-card.role-deep .rh-tag { color: var(--functional-success) !important; }
 
-  /* ── ④ 激活 Tab：内联 --tab-accent-bg 是浅色透明叠加，深色下直接覆盖为 深色底+强调色 ── */
-  html.theme-dark .tab-btn-active {
-    background: color-mix(in srgb, var(--tab-accent) 18%, var(--surface-card)) !important;
-    border-color: color-mix(in srgb, var(--tab-accent) 60%, var(--neutral-200)) !important;
-    color: color-mix(in srgb, var(--tab-accent) 55%, white) !important;
-  }
+  /* 2026-10-24 批次 508：激活 Tab 的深色覆盖整段删除——`.tab-btn-active` 已消费
+     `--app-accent-soft-*`，暗色由 CSS 别名切到 `*-dark`，不再需要逐点补丁。 */
   /* R5-C05：二级分段选中态由 `.btn-tab.active` 的 soft 三件套承担；
      深色不再逐点补丁（别名已切 *-dark）。批次 506 删除本段覆盖。 */
 
@@ -4116,6 +4149,9 @@ input.login-input:focus-visible,
 [data-tone="warning"] { --tone-bg: #FEF3C7; --tone-text: #92400E; --tone-border: #FDE68A; }
 [data-tone="danger"]  { --tone-bg: #FEF2F2; --tone-text: #B91C1C; --tone-border: #FECACA; }
 [data-tone="info"]    { --tone-bg: #DBEAFE; --tone-text: #1D4ED8; --tone-border: #BFDBFE; }
+/* 2026-10-24 批次 508：三会一课/活动类别专用红档（党建红 #CE1126），
+   与 danger（功能错误红 #B91C1C）分开——类别色不得借状态色。 */
+[data-tone="party-red"] { --tone-bg: #FEF2F2; --tone-text: #CE1126; --tone-border: rgba(206, 17, 38, 0.25); }
 
 html.theme-dark [data-tone="red"]     { --tone-bg: #2A171A; --tone-text: #F87171; --tone-border: #5A2A2F; }
 html.theme-dark [data-tone="amber"]   { --tone-bg: #2E2410; --tone-text: #FBBF24; --tone-border: #5C4718; }
@@ -4129,6 +4165,7 @@ html.theme-dark [data-tone="success"] { --tone-bg: #12291F; --tone-text: #34D399
 html.theme-dark [data-tone="warning"] { --tone-bg: #2E2410; --tone-text: #FBBF24; --tone-border: #5C4718; }
 html.theme-dark [data-tone="danger"]  { --tone-bg: #2A171A; --tone-text: #F87171; --tone-border: #5A2A2F; }
 html.theme-dark [data-tone="info"]    { --tone-bg: #16233A; --tone-text: #60A5FA; --tone-border: #29456E; }
+html.theme-dark [data-tone="party-red"] { --tone-bg: #2A171A; --tone-text: #F87171; --tone-border: #5A2A2F; }
 
 .tint-pill[data-tone] {
   background: var(--tone-bg);
@@ -4294,7 +4331,7 @@ html.theme-dark .agg-count-badge {
    components/modal.js 的 overlay / panel 内联样式声明了 `animation:fadeIn .15s` / `animation:slideUp .2s`，
    但全仓此前**没有 @keyframes fadeIn / slideUp**（tailwind-config.js 里虽定义了同名 keyframes，
    但 Play CDN 只为「被用到的 animate-* 工具类」生成，本站无人使用 ⇒ 每次开浮窗都是硬切）。
-   此处补上同名关键帧让那两条声明生效（0.15s 淡入 / 0.2s 上浮），并纳入下方「减少动效」兜底。
+   此处补上同名关键帧让那两条声明生效（快速淡入 / 上浮），并纳入下方「减少动效」兜底。
    ═══════════════════════════════════════════════════════════════ */
 @keyframes fadeIn {
   from { opacity: 0; }
@@ -4320,6 +4357,9 @@ html.theme-dark .agg-count-badge {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+    /* 2026-10-24 批次 508：延迟一并归零，避免「0 时长但仍在等待」的假动效。 */
+    transition-delay: 0s !important;
+    animation-delay: 0s !important;
     scroll-behavior: auto !important;
   }
 }
@@ -4871,7 +4911,10 @@ html.theme-dark .help-note__link { color: color-mix(in srgb, var(--functional-in
   margin-left: auto;
 }
 .list-row[data-selected="true"] {
-  background: var(--surface-hover);
+  /* 2026-10-24 批次 508：行选中改主题 soft 三件套；左侧 3px 主题条表示选中，不用灰底。 */
+  background: var(--app-accent-soft-bg);
+  color: var(--app-accent-soft-text);
+  box-shadow: inset 3px 0 0 var(--app-accent);
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -5603,7 +5646,8 @@ html.theme-dark .state-badge--neutral {
    ── 只抬「关闭 / 更多 / 危险」三类高风险控件；普通紧凑按钮仍 28px，桌面不动。
    ── 依据：触屏误点成本高于表格密度损失；WCAG 2.5.8 下限 24px，36px 为舒适档。 */
 @media (max-width: 640px) {
-  .row-more > summary,
+  /* 2026-10-24 批次 508：`.row-more > summary` 不再单独抬到 36——非按钮族 summary 统一 40，
+     按钮族 summary 随同行档，不再出现 40/32/28 之外的第二套值。 */
   .row-more__menu > .btn-sm,
   .todo-more__item,
   .btn-sm.btn-danger,
@@ -5674,11 +5718,8 @@ html.theme-dark .state-badge--neutral {
   z-index: 2;
   padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
 }
-.modal-footer .btn-outline,
-.modal-footer .btn-accent {
-  /* 2026-10-23 Task 6：页面/弹窗档 36 已由 padding + line-height 推导，此处不再用 min-height。 */
-  padding: 8px 10px !important;
-}
+/* 2026-10-24 批次 508：页面 / 弹窗档 36px 已由上方「按钮尺寸归一」单档块统一提供，
+   此处重复的 padding 已删（避免第二处尺寸源）。 */
 .modal-form-error {
   flex-basis: 100%;
   margin: 0 0 2px;

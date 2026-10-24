@@ -12,15 +12,17 @@
 //  任务完成数＝completed 数 / 非 cancelled 任务总数，无任务显示「—」；两类皆空则整卡隐藏。
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB, isTaskforceActiveStatus } from '../../core/domain/domain.js?v=20261024a';
-import { listRowHtml, listGroupHtml } from '../ui/list-row.js?v=20261024a';
-import { AuthStore } from '../../services/core/auth.js?v=20261024a';
-import { getBasePath } from '../../core/base/utils.js?v=20261024a';
+import { mockDB, isTaskforceActiveStatus } from '../../core/domain/domain.js?v=20261024b';
+import { listRowHtml, listGroupHtml } from '../ui/list-row.js?v=20261024b';
+import { AuthStore } from '../../services/core/auth.js?v=20261024b';
+import { getBasePath } from '../../core/base/utils.js?v=20261024b';
 
 const GROUP_LIMIT = 3;
+// 2026-10-24 批次 508：状态色调对齐专班查看组件——招募中由 info（信息蓝）改为 warning（需要关注）；
+// 本卡只列 active / recruiting 两类工作组，故无 completed 键（完成态对齐见 record/taskforce-view.js）。
 const STATUS_BADGE = {
   active: { label: '运行中', tone: 'success' },
-  recruiting: { label: '招募中', tone: 'info' },
+  recruiting: { label: '招募中', tone: 'warning' },
 };
 
 // 「查看全部」按两类分组分别落地（2026-10-19）：

@@ -1,21 +1,34 @@
 // Party dispatch reuses the notice domain; this page separates composing from sent history.
-import { mockDB } from '../../../core/domain/domain.js?v=20261024a';
-import { AuthStore } from '../../../services/core/auth.js?v=20261024a';
-import { NoticeStore } from '../../../services/governance/notice.js?v=20261024a';
-import { textField, textareaField } from '../../../components/ui/forms.js?v=20261024a';
-import { showToast, escHtml as esc } from '../../../core/base/utils.js?v=20261024a';
-import { renderBranchFilter, filterByBranch } from '../../../components/governance/branch-filter.js?v=20261024a';
-import { renderSectionHeader, renderTabHeader } from '../../../components/shell/page-frame.js?v=20261024a';
+import { mockDB } from '../../../core/domain/domain.js?v=20261024b';
+import { AuthStore } from '../../../services/core/auth.js?v=20261024b';
+import { NoticeStore } from '../../../services/governance/notice.js?v=20261024b';
+import { textField, textareaField } from '../../../components/ui/forms.js?v=20261024b';
+import { showToast, escHtml as esc } from '../../../core/base/utils.js?v=20261024b';
+import { renderBranchFilter, filterByBranch } from '../../../components/governance/branch-filter.js?v=20261024b';
+import { renderSectionHeader, renderTabHeader } from '../../../components/shell/page-frame.js?v=20261024b';
 
 const BRANCH_FILTER_STATE = 'pc-dispatch';
-const initialView = new URLSearchParams(window.location.search).get('view');
-let dispatchView = initialView === 'history' ? 'history' : 'compose';
+// 2026-10-24 批次 508：`view` 是**工作台壳的既有协议参数**（`view=activities` 一类旧导航落点），
+//   壳在导航时会消费并清掉它 ⇒ 本页原来的 `location.search.get('view')` 永远读不到，恒落「撰写」。
+//   现改为：① 读壳透传的 `ctx.navTarget.view`（布尔，仅表示旧导航落点，不是本页视图名）；
+//   ② 本页视图名深链统一用 `subview`（壳不清该参数，由承载页自行消费）；
+//   两者都没有 ⇒ 默认「撰写」，不再保留永远读不到的 `location.search?view=` 分支。
+let dispatchView = null;
 let draft = null;
+
+/** 首帧视图（只消费一次；之后由页内切换/`subview` 记忆决定） */
+function _initialView(ctx) {
+  const navView = ctx?.navTarget?.view;
+  const fromCtx = typeof navView === 'string' ? navView : '';
+  const fromQuery = new URLSearchParams(window.location.search).get('subview') || '';
+  return (fromCtx || fromQuery) === 'history' ? 'history' : 'compose';
+}
 
 function setDispatchView(view) {
   dispatchView = view === 'history' ? 'history' : 'compose';
   const url = new URL(window.location.href);
-  url.searchParams.set('view', dispatchView);
+  // 2026-10-24 批次 508：写回与读取侧同名（`subview`）——写 `view` 会被壳清掉、下次进页读不到
+  url.searchParams.set('subview', dispatchView);
   window.history.replaceState({}, '', url);
 }
 
@@ -31,10 +44,12 @@ function readDraft(el) {
   };
 }
 
-export function renderContent() {
+export function renderContent(ctx) {
   const host = document.getElementById('party-committee-tab-content');
   if (!host) return;
   host.dataset.currentTab = 'dispatch';
+  // 2026-10-24 批次 508：首帧视图只消费一次（后续重渲染沿用页内当前视图，不被 URL 回拉）
+  if (dispatchView == null) dispatchView = _initialView(ctx);
   const actor = AuthStore.getCurrentUser();
   if (!actor) return;
   draft = readDraft(host) || draft || {

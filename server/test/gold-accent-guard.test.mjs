@@ -19,7 +19,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { ACCENT_COLORS, accentButtonColors } from '../../docs/src/core/domain/constants.js?v=20261024a';
+import { ACCENT_COLORS, accentButtonColors } from '../../docs/src/core/domain/constants.js?v=20261024b';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(HERE, '..', '..');
@@ -94,8 +94,9 @@ test('G2 constants.js：gold 主题 8 token 为手选 hex；accentButtonColors �
 
   assert.match(CONSTANTS, /export function accentButtonColors/, 'constants.js 应导出 accentButtonColors');
   assert.equal(typeof accentButtonColors, 'function', 'accentButtonColors 应可直接 import');
-  assert.match(CONSTANTS, /return \{ bg: t\.strongBg, text: t\.strongInk, strong: t\.strongBg, ink: t\.strongInk \};/,
-    'accentButtonColors 应直接查表返回 strongBg / strongInk（无亮度分流）');
+  // 2026-10-24 批次 508：第 9 token strongHover 一并返回（实底 hover 同色相加深）。
+  assert.match(CONSTANTS, /return \{ bg: t\.strongBg, text: t\.strongInk, strong: t\.strongBg, ink: t\.strongInk, strongHover: t\.strongHover \};/,
+    'accentButtonColors 应直接查表返回 strongBg / strongInk / strongHover（无亮度分流）');
 });
 
 test('G3 四个注入点都走 16 个原始变量（applyAccentThemeTokens / getAccentColors）', () => {
@@ -111,10 +112,10 @@ test('G3 四个注入点都走 16 个原始变量（applyAccentThemeTokens / get
     assert.doesNotMatch(src, /--app-accent-text',\s*btn\.text/, `${rel} 不应再写旧 --app-accent-text 三件套`);
     assert.doesNotMatch(src, /--app-accent-strong',\s*btn\.strong/, `${rel} 不应再写旧 --app-accent-strong 三件套`);
   }
-  // 原始变量清单 = 8 个 token × 亮/暗
+  // 原始变量清单 = 9 个 token × 亮/暗（批次 508 增补 strong-hover）
   const theme = read('docs/src/core/boot/theme.js');
-  assert.match(theme, /const ACCENT_TOKEN_SUFFIXES = \['base', 'soft-bg', 'soft-border', 'soft-text', 'strong-bg', 'strong-ink', 'hover-bg', 'active-bg'\]/,
-    'theme.js 应一次注入 8 个 token 的亮/暗两套');
+  assert.match(theme, /const ACCENT_TOKEN_SUFFIXES = \['base', 'soft-bg', 'soft-border', 'soft-text', 'strong-bg', 'strong-ink', 'strong-hover', 'hover-bg', 'active-bg'\]/,
+    'theme.js 应一次注入 9 个 token 的亮/暗两套');
   assert.match(theme, /--app-accent-\$\{suffix\}-light/, 'theme.js 应写 *-light 原始变量');
   assert.match(theme, /--app-accent-\$\{suffix\}-dark/, 'theme.js 应写 *-dark 原始变量');
 });
@@ -136,7 +137,7 @@ test('G4 内存样本：gold 实底白字 / red 实底白字 / 非法入参回�
 
   // 非法输入兜底：不崩溃、回落到 gold 主题（不是运行时 var()）
   assert.deepEqual(accentButtonColors(''), {
-    bg: '#9A6B0F', text: '#FFFFFF', strong: '#9A6B0F', ink: '#FFFFFF',
+    bg: '#9A6B0F', text: '#FFFFFF', strong: '#9A6B0F', ink: '#FFFFFF', strongHover: '#91650D',
   }, '非法入参应回落 gold 主题的显式 token');
 });
 

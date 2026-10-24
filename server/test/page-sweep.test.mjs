@@ -68,10 +68,9 @@ after(async () => {
 const MIN_ROWS = 8;
 
 /** 单档取值（来源＝docs/src/styles.css，见 density-spacing-guard D1/D2/D7 的算式断言；此处只做真机复核）
- *  P9 分页钮：**按实际 CSS** `.page-btn / .page-num { height: 30px }`（styles.css:1573-1594）。
- *  2026-10-23 批次 505 发现：旧注释写「R11 由 30 上调到 32」，但 CSS 实况仍是 30、真机实测也是 30
- *  ⇒ 本守卫按实况取 30。若后续把分页钮提升到 32，须同批改 CSS 与本常量（并注明）。 */
-const DECK = { inputH: 40, lfBtnH: 36, cellPx: 13, pagerH: 30 };
+ *  P9 分页钮：2026-10-24 批次 508 由 30 抬到 32（卡片/页签档同高 4+4+22+2）。
+ *  改高必须同批改 CSS 与本常量（并注明）。 */
+const DECK = { inputH: 40, lfBtnH: 36, cellPx: 13, pagerH: 32 };
 
 /** 被静音的外部资源台账（批次 47-B 纪律）：真机量测值必须与生产一致——凡静音项都要写明
  *  「为何不影响被测属性」；若某资源确实会影响被测属性，则必须先在被测属性上做出与它无关的保障
@@ -286,7 +285,7 @@ for (const w of WORKS) {
       }
       await page.waitForTimeout(800);
       // P0-2 形态断言（2026-09-23 支书裁定「形态必须可断言、不许静默降级」）：本文件真机用例必须在 API 形态下跑
-      await page.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20261024a')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
+      await page.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20261024b')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
 
       // ── 1440 页签条不溢出（2026-10-21 R5-C01）──
       //   判据：`.ws-tab-scroll` 的 scrollWidth ≤ clientWidth（分组胶囊改竖线 + 滚动区右留 40px 后，
@@ -527,7 +526,7 @@ test('S21 组织台活动深链：?activityId / ?view=activities 落「活动日
     await page.waitForTimeout(800);
     // 取一个真实活动（优先「非当前月」者，顺带验证切月）
     const acts = await page.evaluate(async () => {
-      const m = await import('/src/core/base/state.js?v=20261024a');
+      const m = await import('/src/core/base/state.js?v=20261024b');
       return ((m.getAppState() || {}).activities || []).map((x) => ({ id: x.id, date: x.date }));
     });
     assert.ok(acts.length > 0, '组织台活动深链用例：未取到任何活动（样本不足）');

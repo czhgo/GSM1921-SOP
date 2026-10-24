@@ -7,6 +7,14 @@
 //      全部继续工作，零侵入迁移
 //    - 菜单每次展开时从 select.options 实时重建，动态填充即时生效
 //  用法：渲染完 DOM 后调用 enhanceSelects(container)
+//  ── 大数据量 / 无限增长三条用法（2026-10-24 批次 508）────────────────
+//   ① 搜索：<select data-cs-search="true">（强制出现搜索框；选项数 >10 时仍自动出现）
+//   ② 近期优先：<select data-cs-priority="recent"> + <option data-recent="true">
+//      命中项置顶并加「近期」分组标题（原生 option 顺序不变）
+//   ③ 分批渲染：<select data-cs-limit="20"> 首屏只渲染 20 项，底部「显示更多（剩余 M 项）」
+//      按钮每点一次再追加 20 项；搜索时对全量选项匹配，不受分批限制
+//   三项能力只影响增强菜单的呈现，隐藏的原生 select 仍是唯一值载体（value / change 语义零变化），
+//   enhanceSelects 依 data-cs-enhanced 保持幂等。
 // ════════════════════════════════════════════════════════════════
 
 const ICON_CHEVRON =
@@ -128,13 +136,69 @@ function _positionMenu(wrapper, menu, trigger) {
   wrapper.classList.toggle('cs-open-up', openUp);
 }
 
+/**
+ * 增强菜单可见性同步（2026-10-24 批次 508）——搜索过滤 / 分批渲染的统一收口：
+ *  - 无搜索词：只显示前 shownCount 项（shownCount=全部时为全量）；
+ *  - 有搜索词：对**全量**选项匹配（不受分批限制），命中的都显示；
+ *  - 分组标题在其后没有可见选项时隐藏（避免出现孤立标题）；
+ *  - 「显示更多」仅在未搜索且仍有剩余时出现；空态沿用 .cs-empty，文案「没有匹配项」。
+ * 只改增强菜单内节点的 display，不触碰原生 select（值载体）与任何颜色。
+ * @param {HTMLElement} menu 菜单容器
+ * @param {HTMLElement[]} options 全量 .cs-option 节点（菜单内顺序）
+ * @param {number} shownCount 当前已展开的项数
+ * @param {HTMLElement|null} moreBtn 「显示更多」按钮
+ */
+function _syncCsVisibility(menu, options, shownCount, moreBtn) {
+  const q = (menu.querySelector('.cs-search-input')?.value || '').trim().toLowerCase();
+  let visible = 0;
+  options.forEach((el, i) => {
+    const hit = !q || el.textContent.toLowerCase().includes(q);
+    const within = !!q || i < shownCount;
+    const show = hit && within;
+    el.style.display = show ? '' : 'none';
+    if (show) visible++;
+  });
+  menu.querySelectorAll('.cs-group-label').forEach((label) => {
+    let hasVisible = false;
+    for (let n = label.nextElementSibling; n; n = n.nextElementSibling) {
+      if (n.classList.contains('cs-group-label')) break;
+      if (n.classList.contains('cs-option') && n.style.display !== 'none') { hasVisible = true; break; }
+    }
+    label.style.display = hasVisible ? '' : 'none';
+  });
+  if (options.length > 0) {
+    let empty = menu.querySelector('.cs-empty');
+    if (visible === 0) {
+      if (!empty) {
+        empty = document.createElement('div');
+        empty.className = 'cs-empty';
+        menu.appendChild(empty);
+      }
+      empty.textContent = '没有匹配项';
+    } else if (empty) {
+      empty.remove();
+    }
+  }
+  if (moreBtn) {
+    const remain = options.length - shownCount;
+    const showMore = !q && remain > 0;
+    moreBtn.style.display = showMore ? '' : 'none';
+    if (showMore) moreBtn.textContent = `显示更多（剩余 ${remain} 项）`;
+  }
+}
+
 function _openMenu(wrapper, menu, trigger, sel) {
   // 每次展开从 select.options 重建，保证动态填充即时生效
   menu.innerHTML = '';
   const frag = document.createDocumentFragment();
 
-  // 选项数超阈值 → 菜单顶部内嵌搜索框
-  const needsSearch = sel.options.length > SEARCH_THRESHOLD;
+  // 2026-10-24 批次 508：大数据量开关（只作用于增强菜单呈现，原生 select 的值载体地位不变）
+  //  - data-cs-search="true"：强制显示搜索框（选项数超阈值时仍自动显示）
+  //  - data-cs-priority="recent"：<option data-recent="true"> 置顶并加「近期」分组
+  //  - data-cs-limit="N"：首屏只显示 N 项，底部「显示更多」逐批追加
+  const needsSearch = sel.dataset.csSearch === 'true' || sel.options.length > SEARCH_THRESHOLD;
+  const limit = Math.max(0, parseInt(sel.dataset.csLimit || '0', 10) || 0);
+  const recentFirst = sel.dataset.csPriority === 'recent';
   if (needsSearch) {
     const search = document.createElement('div');
     search.className = 'cs-search';
@@ -162,12 +226,35 @@ function _openMenu(wrapper, menu, trigger, sel) {
       item.classList.add('is-selected');
       item.setAttribute('aria-selected', 'true');
     }
+    optionEls.push(item);
     parent.appendChild(item);
   };
+  // 2026-10-24 批次 508：记录菜单内全部选项节点（分批渲染 / 搜索都基于它，原生顺序不改）
+  const optionEls = [];
+  // 「近期」置顶：仅重排增强菜单的呈现顺序，原生 select 的 option 顺序与值完全不动
+  const recentSet = new Set(
+    recentFirst ? Array.from(sel.options).filter((opt) => opt.dataset && opt.dataset.recent === 'true') : []
+  );
+  if (recentSet.size > 0) {
+    const recentHead = document.createElement('div');
+    recentHead.className = 'cs-group-label';
+    recentHead.textContent = '近期';
+    recentHead.setAttribute('role', 'presentation');
+    frag.appendChild(recentHead);
+    Array.from(sel.options).forEach((opt) => {
+      if (!recentSet.has(opt)) return;
+      // 原属禁用 optgroup 的「近期」项仍保持禁用（状态语义不因置顶而丢失）
+      const parentGroup = opt.parentElement && opt.parentElement.tagName === 'OPTGROUP' ? opt.parentElement : null;
+      appendOption(opt, frag, !!(parentGroup && parentGroup.disabled));
+    });
+  }
   const childNodes = Array.from(sel.children || []);
   if (childNodes.some((n) => n.tagName === 'OPTGROUP')) {
     childNodes.forEach((node) => {
       if (node.tagName === 'OPTGROUP') {
+        // 已置顶的「近期」项不再重复渲染；整组都属近期时也不落空标题
+        const groupOpts = Array.from(node.children).filter((o) => !recentSet.has(o));
+        if (groupOpts.length === 0) return;
         const head = document.createElement('div');
         head.className = 'cs-group-label';
         // 分组禁用须同时落到标题与子项（2026-10-20）：只灰标题而子项可点，状态就不一致。
@@ -178,13 +265,14 @@ function _openMenu(wrapper, menu, trigger, sel) {
         head.textContent = node.label || '';
         head.setAttribute('role', 'presentation');
         frag.appendChild(head);
-        Array.from(node.children).forEach((o) => appendOption(o, frag, !!node.disabled));
+        groupOpts.forEach((o) => appendOption(o, frag, !!node.disabled));
       } else if (node.tagName === 'OPTION') {
+        if (recentSet.has(node)) return;
         appendOption(node, frag);
       }
     });
   } else {
-    Array.from(sel.options).forEach((opt) => appendOption(opt, frag));
+    Array.from(sel.options).forEach((opt) => { if (!recentSet.has(opt)) appendOption(opt, frag); });
   }
   // 0 选项时菜单原本是一片空白，用户会以为没加载出来（C-05）；这里给明确空态。
   if (sel.options.length === 0) {
@@ -194,6 +282,30 @@ function _openMenu(wrapper, menu, trigger, sel) {
     frag.appendChild(placeholder);
   }
   menu.appendChild(frag);
+
+  // 2026-10-24 批次 508：分批渲染——首屏只显示前 N 项，底部按钮逐批追加。
+  // 已选项若在首批之外，自动展开到它所在批次，避免「打开菜单看不到当前值」。
+  let shownCount = limit > 0 ? Math.min(limit, optionEls.length) : optionEls.length;
+  if (limit > 0) {
+    const selectedIndex = optionEls.findIndex((el) => el.classList.contains('is-selected'));
+    if (selectedIndex >= shownCount) shownCount = selectedIndex + 1;
+  }
+  let moreBtn = null;
+  if (limit > 0 && optionEls.length > limit) {
+    moreBtn = document.createElement('button');
+    moreBtn.type = 'button';
+    moreBtn.dataset.csMore = '1';
+    // 复用既有文字类，不引入新色值（颜色一律走 token/类）
+    moreBtn.className = 'w-full text-xs text-gray-600 py-2';
+    moreBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      shownCount = Math.min(optionEls.length, shownCount + limit);
+      _syncCsVisibility(menu, optionEls, shownCount, moreBtn);
+    });
+    menu.appendChild(moreBtn);
+  }
+  _syncCsVisibility(menu, optionEls, shownCount, moreBtn);
 
   menu.classList.remove('hidden');
   trigger.setAttribute('aria-expanded', 'true');
@@ -217,25 +329,10 @@ function _openMenu(wrapper, menu, trigger, sel) {
   if (needsSearch) {
     const searchInput = menu.querySelector('.cs-search-input');
     searchInput.focus();
+    // 2026-10-24 批次 508：搜索与分批渲染统一交给 _syncCsVisibility（搜索对全量选项生效，
+    //   不清空已展开批次；空态文案固定「没有匹配项」）。
     searchInput.addEventListener('input', () => {
-      const q = searchInput.value.trim().toLowerCase();
-      let visible = 0;
-      menu.querySelectorAll('.cs-option').forEach(opt => {
-        const hit = opt.textContent.toLowerCase().includes(q);
-        opt.style.display = hit ? '' : 'none';
-        if (hit) visible++;
-      });
-      const empty = menu.querySelector('.cs-empty');
-      if (visible === 0) {
-        if (!empty) {
-          const placeholder = document.createElement('div');
-          placeholder.className = 'cs-empty';
-          placeholder.textContent = '无匹配项';
-          menu.appendChild(placeholder);
-        }
-      } else if (empty) {
-        empty.remove();
-      }
+      _syncCsVisibility(menu, optionEls, shownCount, moreBtn);
     });
     // 键盘：Enter 选择首个可见项；Esc 先清空再关闭；↑/↓ 把焦点移入选项
     searchInput.addEventListener('keydown', (e) => {
@@ -397,6 +494,12 @@ function enhanceSelect(sel) {
     const moveTo = (next) => {
       if (!items.length) return;
       e.preventDefault();
+      // 2026-10-24 批次 508：分批渲染时允许从最后一个可见项 ↓ 落到「显示更多」按钮，
+      // 键盘用户同样能逐批展开（按钮本身对 Enter/Space 有原生激活）。
+      if (next > items.length - 1) {
+        const more = menu.querySelector('[data-cs-more]');
+        if (more && more.style.display !== 'none') { more.focus(); return; }
+      }
       items[Math.max(0, Math.min(items.length - 1, next))]?.focus();
     };
     switch (e.key) {

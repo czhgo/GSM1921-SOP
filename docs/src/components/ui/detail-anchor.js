@@ -17,7 +17,34 @@
  *   anchorDetailToTrigger(detailEl, triggerEl, { block: 'center', smooth: true });
  */
 
-import { flashHighlight } from '../../core/base/utils.js?v=20261024a';
+import { flashHighlight } from '../../core/base/utils.js?v=20261024b';
+
+/**
+ * 先沿父链展开所有折叠的 `<details>`（2026-10-24 批次 508）：
+ * 定位目标常位于可折叠区（材料、历史记录等）内——折叠时既不参与布局，`scrollIntoView` 也无效，
+ * 且 `offsetParent` 为 null。因此所有定位函数都必须「先展开，再测量/滚动」。
+ * @param {HTMLElement} el 目标节点
+ */
+function _openAncestorDetails(el) {
+  let node = el || null;
+  while (node) {
+    if (node.tagName === 'DETAILS') node.open = true;
+    node = node.parentElement;
+  }
+}
+
+/**
+ * 目标是否具备可测量的布局盒（2026-10-24 批次 508）：
+ * `offsetParent === null`（display:none 祖先等）或宽/高为 0 → 视为不可见。
+ * 定位函数据此显式返回 false（由调用方提示），不得静默「滚了但页面没动」。
+ * @param {HTMLElement} el 目标节点
+ * @returns {boolean}
+ */
+function _hasLayout(el) {
+  if (!el || el.offsetParent === null) return false;
+  const rect = el.getBoundingClientRect();
+  return rect.width > 0 && rect.height > 0;
+}
 
 /**
  * 材料页深链 `focusActivityId` 的通用落点（2026-10-20 IA 修复）：
@@ -39,7 +66,9 @@ export function focusActivityAnchor(root, actId) {
   }
   if (!anchor) return false;
   const target = anchor.closest('tr, [data-act-id], [data-archive-id], .card, .rounded-xl') || anchor;
-  scrollDetailIntoView(target, { block: 'center', smooth: true });
+  // 2026-10-24 批次 508：定位失败（目标在折叠/隐藏容器内）时返回 false，调用方可提示用户；
+  // scrollDetailIntoView 内部已先展开父链 <details> 并做布局可见性判定。
+  if (!scrollDetailIntoView(target, { block: 'center', smooth: true })) return false;
   flashHighlight(target);
   return true;
 }
@@ -54,8 +83,12 @@ export function focusActivityAnchor(root, actId) {
  */
 export function scrollDetailIntoView(el, opts = {}) {
   if (!el) return false;
+  // 2026-10-24 批次 508：先展开父链 <details> 再测量——折叠态节点无法滚动，也不能静默成功。
+  _openAncestorDetails(el);
+  if (!_hasLayout(el)) return false;
   const { block = 'start', smooth = false, offset = 0 } = opts;
   const doScroll = () => {
+    if (!_hasLayout(el)) return;
     try {
       el.scrollIntoView({ block, inline: 'nearest', behavior: smooth ? 'smooth' : 'auto' });
       if (offset) window.scrollBy({ top: offset, behavior: smooth ? 'smooth' : 'auto' });
@@ -83,8 +116,13 @@ export function anchorDetailToTrigger(detailEl, triggerEl, opts = {}) {
     triggerEl.insertAdjacentElement('afterend', detailEl);
   }
   detailEl.classList.remove('hidden');
+  // 2026-10-24 批次 508：展开父链 <details> 并确认有可测量布局盒；不可见则返回 false，
+  // 不执行「滚了但没动」的静默滚动（调用方仍照常渲染详情）。
+  _openAncestorDetails(detailEl);
+  if (!_hasLayout(detailEl)) return false;
   // ② 滚入视野：requestAnimationFrame 保证渲染完成后再测量（首帧高度常为 0）
   const doScroll = () => {
+    if (!_hasLayout(detailEl)) return;
     try {
       detailEl.scrollIntoView({ block, inline: 'nearest', behavior: smooth ? 'smooth' : 'auto' });
       if (offset) window.scrollBy({ top: offset, behavior: smooth ? 'smooth' : 'auto' });

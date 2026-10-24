@@ -19,35 +19,37 @@
 //
 // 数据源装配：与 activity-entry.js / notice-entry.js 同款——有 API 会话时先切数据源并 init() 拉全量
 //   再渲染（`module-load.test.mjs::E2` 独立页装配断言要求）。
-import { renderSidebar } from '../../components/shell/sidebar.js?v=20261024a';
-import { renderHeader } from '../../components/shell/header.js?v=20261024a';
-import { hydrateDataSource, notifyDataLoaded, getAdapter, persist } from '../../data/data-adapter.js?v=20261024a';
-import { ApiAdapter } from '../../data/api-adapter.js?v=20261024a';
-import { mockDB } from '../../core/domain/domain.js?v=20261024a';
-import { AuthStore } from '../../services/core/auth.js?v=20261024a';
-import { PersonStore, getPersonName } from '../../services/member/person.js?v=20261024a';
-import { BranchService } from '../../services/core/runtime.js?v=20261024a';
-import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261024a';
-import { IssueStore } from '../../services/governance/issues.js?v=20261024a';
-import { resolveVoterIds, defaultVoteConfig, optionSetOf, isAnonymousActivity } from '../../services/activity/vote-config.js?v=20261024a';
-import { fetchVotes, tallyForItem } from '../../services/activity/committee-vote.js?v=20261024a';
-import { agendaDecisionSource } from '../../services/activity/agenda-relations.js?v=20261024a';
-import { renderVoteWidget } from '../../components/governance/vote-widget.js?v=20261024a';
-import { renderVoteSummary } from '../../components/governance/vote-summary-panel.js?v=20261024a';
-import { recordAgendaResultForActivity } from '../../services/activity/agenda-follow-up.js?v=20261024a';
+import { renderSidebar } from '../../components/shell/sidebar.js?v=20261024b';
+import { renderHeader } from '../../components/shell/header.js?v=20261024b';
+import { hydrateDataSource, notifyDataLoaded, getAdapter, persist } from '../../data/data-adapter.js?v=20261024b';
+import { ApiAdapter } from '../../data/api-adapter.js?v=20261024b';
+import { mockDB } from '../../core/domain/domain.js?v=20261024b';
+import { AuthStore } from '../../services/core/auth.js?v=20261024b';
+import { PersonStore, getPersonName } from '../../services/member/person.js?v=20261024b';
+import { BranchService } from '../../services/core/runtime.js?v=20261024b';
+import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261024b';
+import { IssueStore } from '../../services/governance/issues.js?v=20261024b';
+import { resolveVoterIds, defaultVoteConfig, optionSetOf, isAnonymousActivity } from '../../services/activity/vote-config.js?v=20261024b';
+import { fetchVotes, tallyForItem } from '../../services/activity/committee-vote.js?v=20261024b';
+import { agendaDecisionSource } from '../../services/activity/agenda-relations.js?v=20261024b';
+import { renderVoteWidget } from '../../components/governance/vote-widget.js?v=20261024b';
+import { renderVoteSummary } from '../../components/governance/vote-summary-panel.js?v=20261024b';
+import { recordAgendaResultForActivity } from '../../services/activity/agenda-follow-up.js?v=20261024b';
 // 「拟上会」清单单一源（2026-09-21 批次 127 · `SOP-B-33` 取（乙）档）：本页的「提取议程」
 // 与写入活动的议程区块共用**同一张清单**（agenda-form.js::buildAgendaCandidates）——
 // 原按来源分两块的呈现（专班报送 / 意见反馈）已按乙档收为一张清单（不按来源各做导入口）。
-import { buildAgendaCandidates, AGENDA_CANDIDATE_GROUPS } from '../tabs/secretary/agenda-form.js?v=20261024a';
-import { listDocs as listBranchDocs, isAgendaDraftDoc, isInstitutionDraftAgendaItem } from '../../services/branch/branch-doc.js?v=20261024a';
+import { buildAgendaCandidates, AGENDA_CANDIDATE_GROUPS } from '../tabs/secretary/agenda-form.js?v=20261024b';
+import { listDocs as listBranchDocs, isAgendaDraftDoc, isInstitutionDraftAgendaItem } from '../../services/branch/branch-doc.js?v=20261024b';
 // 党小组组长（含代组长）清单单一源——2026-09-23 支书裁定甲「支委扩大会…党小组组长（代组长）是可以
 //   打包的」；**不另造组长名单**（同 services/member/party-group.js 的组清单同源；组内无组长时由该源回落次选身份）
-import { listPartyGroups } from '../../services/member/group-view.js?v=20261024a';
-import { loadStageEntryDates } from '../../services/member/member-confirmation.js?v=20261024a';
+import { listPartyGroups } from '../../services/member/group-view.js?v=20261024b';
+import { loadStageEntryDates } from '../../services/member/member-confirmation.js?v=20261024b';
 // 品牌认定提案（2026-09-21 批次 132 · 支书口径二「提案 → 支委会通过后确定」）——判据单一源
-import { listBrandProposals } from '../../services/activity/activity.js?v=20261024a';
-import { showToast, escHtml as esc, todayLocal } from '../../core/base/utils.js?v=20261024a';
-import { generateId } from '../../core/base/id.js?v=20261024a';
+import { listBrandProposals } from '../../services/activity/activity.js?v=20261024b';
+import { showToast, escHtml as esc, todayLocal } from '../../core/base/utils.js?v=20261024b';
+import { generateId } from '../../core/base/id.js?v=20261024b';
+// 2026-10-24 批次 508：场次下拉是「随时间单调增长」的列表 ⇒ 接统一自定义下拉（搜索 / 近期置顶 / 分批）
+import { enhanceSelects } from '../../components/ui/custom-select.js?v=20261024b';
 
 renderSidebar('dashboard');
 renderHeader('dashboard');
@@ -122,13 +124,19 @@ function currentStepOf(act, votes) {
   return Array.isArray(votes) && votes.length > 0 ? 3 : 2;
 }
 
-/** 步骤条：只做状态显示，不另造组件；当前步用深色序号 + 深色文字，其余降为灰色 */
+/** 步骤条：只做状态显示，不另造组件；当前步用主题 soft 底色 + soft 文字，其余降为中性灰。
+ *  2026-10-24 批次 508：原当前步是 `bg-gray-800 text-white` 的硬深色块（与全站 accent 语义脱节，
+ *  暗色主题下又是一块死灰）⇒ 改为 token 驱动的 soft 态（class + 内联 token，无 hex）；
+ *  未选步用 neutral-50/neutral-500。当前步多 1px 主题 soft 边框，未选步补 1px 透明边框对齐尺寸。 */
 function stepBarHtml(step) {
   const parts = PCM_STEPS.map((label, i) => {
     const on = i === step;
-    const numClass = on ? 'bg-gray-800 text-white' : 'bg-gray-100 text-gray-500';
+    const numClass = on ? 'pcm-step-now' : 'pcm-step-idle';
+    const numStyle = on
+      ? 'background:var(--app-accent-soft-bg);color:var(--app-accent-soft-text);border:1px solid var(--app-accent-soft-border);'
+      : 'background:var(--neutral-50);color:var(--neutral-500);border:1px solid transparent;';
     return `<span class="inline-flex items-center gap-1 ${on ? 'font-medium text-gray-800' : 'text-gray-400'}">
-      <span class="inline-flex h-5 w-5 items-center justify-center rounded-full ${numClass}">${i + 1}</span>${label}
+      <span class="inline-flex h-5 w-5 items-center justify-center rounded-full ${numClass}" style="${numStyle}">${i + 1}</span>${label}
     </span>`;
   });
   return `<div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs" aria-label="支委会流程">${parts.join('<span class="text-gray-300" aria-hidden="true">→</span>')}</div>`;
@@ -192,16 +200,22 @@ function selectSectionHtml(hasMeeting) {
   const committeeViewer = isCommitteeMember(me?.personId);
   // 场次下拉＝本人可见场次单一源（被扩大者只列扩大到他的那些场次）
   const list = visibleMeetingsFor(me?.personId);
-  const opts = list.map((a) => {
+  // 2026-10-24 批次 508：场次列表随时间单调增长 ⇒ 增强下拉三件：可搜索 / 首屏 12 项分批 /
+  //   最近 5 场置顶（`data-recent`）。`list` 已按日期新→旧排（见 `meetings()`），故前 5 项即最近 5 场；
+  //   原生 option 顺序与 value 语义完全不变（增强菜单只改呈现）。
+  const opts = list.map((a, i) => {
     const tag = a.votesLocked === true ? '已截止' : (isAsync(a) ? '线上召开' : '线下/未开表决');
-    return `<option value="${esc(a.id)}"${a.id === currentId ? ' selected' : ''}>${esc(a.date || '—')} · ${esc(a.title || '未命名')}（${tag}）</option>`;
+    return `<option value="${esc(a.id)}"${a.id === currentId ? ' selected' : ''}${i < 5 ? ' data-recent="true"' : ''}>${esc(a.date || '—')} · ${esc(a.title || '未命名')}（${tag}）</option>`;
   }).join('');
   return `
     <div class="card rounded-xl p-5">
       <p class="text-sm font-semibold text-gray-700 mb-3">范围 · 选一场支委会</p>
       <div class="flex flex-wrap items-end gap-2">
         <label class="text-xs text-gray-500">现有支委会场次
-          <select id="pcm-pick" class="input-flat text-xs mt-1 block" style="min-width:320px">
+          <!-- 2026-10-24 批次 508：宽度改走 min-w-[320px] 布局类——增强下拉只继承布局类到 wrapper，
+               内联 style 会留在被隐藏的原生 select 上、触发器读不到（同 org-setup-wizard 既有写法）。 -->
+          <select id="pcm-pick" class="input-flat text-xs mt-1 block min-w-[320px]"
+                  data-cs-search="true" data-cs-limit="12" data-cs-priority="recent">
             ${opts || '<option value="">（暂无支委会场次）</option>'}
           </select>
         </label>
@@ -518,6 +532,8 @@ async function render() {
       ${currentBlock}
     </div>`;
   applyPrimaryButtons();
+  // 2026-10-24 批次 508：场次下拉渲染后统一增强（`data-cs-*` 只在增强菜单生效；原生 select 仍是值载体）
+  enhanceSelects(ROOT);
 
   bindSelectSection();
   if (act) {

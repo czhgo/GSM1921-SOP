@@ -11,37 +11,37 @@
 //  2026-10-18 乱专项：按「L0 结论带 → 组织事实 → 在册与留痕 → 本人自述 → 系统说明」重排；
 //        27 个档案字段各有且仅有一个 data-field 落点；同一事实不跨层重复。
 // ════════════════════════════════════════════════════════════════
-import { renderSidebar } from '../../components/shell/sidebar.js?v=20261024a';
-import { renderHeader } from '../../components/shell/header.js?v=20261024a';
-import { BranchService } from '../../services/core/runtime.js?v=20261024a';
-import { AuthStore } from '../../services/core/auth.js?v=20261024a';
-import { PersonStore, getPersonName, renameMemberAccount, deriveDevelopStageSince } from '../../services/member/person.js?v=20261024a';
-import { getDataSource, migrateLegacyPersonId } from '../../data/data-adapter.js?v=20261024a';
-import { loadMemberProfile } from '../../services/member/profile.js?v=20261024a';
-import { getBranchById } from '../../services/branch/branch.js?v=20261024a';
-import { openPersonEditModal } from '../../components/governance/pickers.js?v=20261024a';
+import { renderSidebar } from '../../components/shell/sidebar.js?v=20261024b';
+import { renderHeader } from '../../components/shell/header.js?v=20261024b';
+import { BranchService } from '../../services/core/runtime.js?v=20261024b';
+import { AuthStore } from '../../services/core/auth.js?v=20261024b';
+import { PersonStore, getPersonName, renameMemberAccount, deriveDevelopStageSince } from '../../services/member/person.js?v=20261024b';
+import { getDataSource, migrateLegacyPersonId } from '../../data/data-adapter.js?v=20261024b';
+import { loadMemberProfile } from '../../services/member/profile.js?v=20261024b';
+import { getBranchById } from '../../services/branch/branch.js?v=20261024b';
+import { openPersonEditModal } from '../../components/governance/pickers.js?v=20261024b';
 import {
   renderSelfDescriptionSection, countSelfProfileFilled, SELF_PROFILE_TOTAL,
   renderThoughtReportsSection,
-} from '../../components/governance/person-profile-sections.js?v=20261024a';
+} from '../../components/governance/person-profile-sections.js?v=20261024b';
 // 思想汇报按人归集（既有服务读口；制度承诺「提交即入库、算法归集至个人档案」的落地）
 import {
   listThoughtReportsByPerson, canReadThoughtReport,
-} from '../../services/governance/thought-report.js?v=20261024a';
+} from '../../services/governance/thought-report.js?v=20261024b';
 // 待确认请求读口（单一源：服务层现有读口；api 形态由 init() 从服务端填充同一缓存）
 import {
   listPendingConfirmations, MC_ACTION_LABEL,
-} from '../../services/member/member-confirmation.js?v=20261024a';
+} from '../../services/member/member-confirmation.js?v=20261024b';
 // Q-21-3 收敛（2026-09-13）：在册状态枚举单一源 = core/domain/constants.js（原经 org-base-data-preview 转出）
-import { ROLE_LABELS, RESIDENCE, EMPTY_TEXT, EMPTY_NOT_APPLICABLE } from '../../core/domain/constants.js?v=20261024a';
-import { canMaintainMemberProfileFields } from '../../core/domain/profile-access.js?v=20261024a';
-import { getBasePath, escHtml as esc, fmtDt } from '../../core/base/utils.js?v=20261024a';
-import { badgeHtml } from '../../components/ui/badges.js?v=20261024a';
+import { ROLE_LABELS, RESIDENCE, EMPTY_TEXT, EMPTY_NOT_APPLICABLE } from '../../core/domain/constants.js?v=20261024b';
+import { canMaintainMemberProfileFields } from '../../core/domain/profile-access.js?v=20261024b';
+import { getBasePath, escHtml as esc, fmtDt } from '../../core/base/utils.js?v=20261024b';
+import { badgeHtml } from '../../components/ui/badges.js?v=20261024b';
 // 批次 87：本页必须先 hydrate API 数据源再渲染（成员档案读 + 编辑写）——与 activity.html 标准形同款。
 // 此前本页只调 BranchService.loadDB()（API 模式直接 return）⇒ api 形态下档案读的是本地备份，
 // 且「编辑档案」按 mock 数据源落本机、服务端 users 表不更新。
-import { hydrateDataSource, notifyDataLoaded } from '../../data/data-adapter.js?v=20261024a';
-import { ApiAdapter } from '../../data/api-adapter.js?v=20261024a';
+import { hydrateDataSource, notifyDataLoaded } from '../../data/data-adapter.js?v=20261024b';
+import { ApiAdapter } from '../../data/api-adapter.js?v=20261024b';
 
 renderSidebar('dashboard');
 renderHeader('dashboard');
@@ -74,7 +74,9 @@ const selectedBranchId = params.get('branchId') || '';
 // 2026-10-02 批次 347（支书 `#5`「我们是否落地一个 profile 界面【自己看自己】……和既有的 person 界面
 //   可以共用一些代码脚手架」）：**无 `?id=` ⇒ 自己**——复用本页同一套脚手架与只读档案版式；
 //   带 `?id=` 仍是「查阅他人档案」（名册 / 各处链接照旧，行为一字未改）。
-let personId = params.get('id') || (viewer?.personId || '');
+// 2026-10-24 批次 508：兼容 `?personId=`（旧别名，思想汇报页等既有深链用它）——与 `?id=` 等义；
+//   两者同时出现时 `id` 优先（新协议为准，避免两个参数指向不同人时行为不定）。
+let personId = params.get('id') || params.get('personId') || (viewer?.personId || '');
 // 迁移期（2026-10-20）：旧链接 `?id=p13` 按映射换学号并一次性改写地址栏（不 404）
 const legacyMappedId = personId ? migrateLegacyPersonId(personId) : personId;
 if (legacyMappedId && legacyMappedId !== personId) {

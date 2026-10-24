@@ -27,7 +27,7 @@ import { fileURLToPath } from 'node:url';
 import {
   HEX_BASELINE, HEX_TOTAL_BASELINE, HEX_FILE_BASELINE, HEX_VALUE_BASELINE, HEX_MOVE_LEDGER,
 } from './style-baseline.mjs';
-import { ACCENT_COLORS } from '../../docs/src/core/domain/constants.js?v=20261024a';
+import { ACCENT_COLORS } from '../../docs/src/core/domain/constants.js?v=20261024b';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(HERE, '..', '..');

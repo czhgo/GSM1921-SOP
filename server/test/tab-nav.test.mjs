@@ -4,7 +4,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { resolveInitialTab, resolveTargetTab } from '../../docs/src/core/boot/tab-nav.js?v=20261024a';
+import { resolveInitialTab, resolveTargetTab } from '../../docs/src/core/boot/tab-nav.js?v=20261024b';
 
 const shellSrc = readFileSync(new URL('../../docs/src/components/shell/workspace-shell.js', import.meta.url), 'utf8');
 const branchFilterSrc = readFileSync(new URL('../../docs/src/components/governance/branch-filter.js', import.meta.url), 'utf8');
@@ -110,7 +110,10 @@ test('材料页深链：十处承载页签均消费 ctx.focusActivityId', () => 
   ];
   for (const rel of consumers) {
     const src = readFileSync(new URL(rel, import.meta.url), 'utf8');
-    assert.match(src, /focusActivityAnchor\([^)]*ctx\?\.focusActivityId/, `${rel} 未消费 focusActivityId`);
+    // 2026-10-24 批次 508：允许先把 ctx.focusActivityId 取出（含判空/展开折叠区）再传给定位函数；
+    //   判据仍是「读 ctx.focusActivityId ＋ 调用 focusActivityAnchor」两件都在。
+    assert.match(src, /ctx\?\.focusActivityId/, `${rel} 未消费 focusActivityId`);
+    assert.match(src, /focusActivityAnchor\(/, `${rel} 未调用 focusActivityAnchor 定位`);
   }
   // 第八轮 2.2：纪检待办带 recordId 直达的两处承载页签须消费 ctx.focusRecordId
   for (const rel of ['../../docs/src/entries/tabs/disc/attendance-tab.js', '../../docs/src/entries/tabs/disc/inspection-tab.js']) {

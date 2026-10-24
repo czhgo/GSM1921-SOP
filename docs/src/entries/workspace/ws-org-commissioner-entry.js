@@ -2,19 +2,19 @@
 // ws-org-commissioner-entry.js — 组织委员工作台入口（T-279 M3 拆分；T-304 代码减负 2026-08-30：骨架并入 workspace-shell）
 // 入口职责：壳配置（注册表 tab 清单 + 导航落点 + 数据加载），角色特有逻辑仅保留。
 
-import { getAppState, setState } from '../../core/base/state.js?v=20261024a';
-import { createWorkspaceShell } from '../../components/shell/workspace-shell.js?v=20261024a';
-import { flashHighlight } from '../../core/base/utils.js?v=20261024a';
-import { loadActivities } from '../../services/activity/activity.js?v=20261024a';
-import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261024a';
-import { SignupStore } from '../../services/activity/signup.js?v=20261024a';
-import { seedTodos } from '../../services/governance/todo.js?v=20261024a';
-import { solidAccentStyle } from '../../core/domain/constants.js?v=20261024a';
-import { AuthStore } from '../../services/core/auth.js?v=20261024a';
-import { getBranchIdOfPerson, getBranchCapabilityPackageState } from '../../services/branch/branch.js?v=20261024a';
-import { openRecruitForm } from '../tabs/org/taskforce-tab.js?v=20261024a';
+import { getAppState, setState } from '../../core/base/state.js?v=20261024b';
+import { createWorkspaceShell } from '../../components/shell/workspace-shell.js?v=20261024b';
+import { flashHighlight } from '../../core/base/utils.js?v=20261024b';
+import { loadActivities } from '../../services/activity/activity.js?v=20261024b';
+import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261024b';
+import { SignupStore } from '../../services/activity/signup.js?v=20261024b';
+import { seedTodos } from '../../services/governance/todo.js?v=20261024b';
+import { solidAccentStyle } from '../../core/domain/constants.js?v=20261024b';
+import { AuthStore } from '../../services/core/auth.js?v=20261024b';
+import { getBranchIdOfPerson, getBranchCapabilityPackageState } from '../../services/branch/branch.js?v=20261024b';
+import { openRecruitForm } from '../tabs/org/taskforce-tab.js?v=20261024b';
 // 副作用导入触发组织委员工作台能力注册（tab 清单；含 立项⑥B波 成员名册 tab）
-import '../../capabilities/org-workspace.js?v=20261024a';
+import '../../capabilities/org-workspace.js?v=20261024b';
 
 await createWorkspaceShell({
   accentRole: 'org-commissioner',
@@ -73,6 +73,10 @@ await createWorkspaceShell({
       // 专班定位：轮询直至卡片出现再展开详情+高亮（B1-5）
       shell.activate('taskforce');
       const tfId = nav.tfId;
+      // 2026-10-24 批次 508：同时把高亮目标登记给壳（选择器与本处轮询锚点一致）——
+      //   原实现只在本函数内轮询点击/闪烁，壳的高亮快照仍为空 ⇒ 导航抑制窗口内一旦重渲染，
+      //   专班卡片被换掉、定位链路就断在半路（列表在、高亮不在）。登记后两条链路同源。
+      shell.setHighlight(tfId, `.tf-store-card[data-tf-id="${tfId}"]`);
       let attempts = 0;
       const tryLocate = () => {
         const card = document.querySelector(`.tf-store-card[data-tf-id="${tfId}"]`);

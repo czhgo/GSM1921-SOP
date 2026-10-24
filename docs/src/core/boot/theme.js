@@ -18,9 +18,9 @@
 //     登录人页面在冻结读取点取到的是全局键残留/默认 → 首帧小闪烁为已接受局限（5c 前记录，不变），
 //     DOMContentLoaded 二次 sync 以本人 person 值作最终覆盖。主题算法与 CSS 变量体系不变。
 
-import { readLoginSnapshot } from '../session/login-snapshot.js?v=20261024a';
+import { readLoginSnapshot } from '../session/login-snapshot.js?v=20261024b';
 // 主题色 DOM 生效（person 覆盖 → 8 token × 亮/暗 原始变量）与解析复用 constants 纯静态表；constants 零依赖，无环
-import { getAccentColors, normalizeAccentKey } from '../domain/constants.js?v=20261024a';
+import { getAccentColors, normalizeAccentKey } from '../domain/constants.js?v=20261024b';
 
 const THEME_KEY = 'workflowos_theme';        // 主题（历史全局键；访客回落 / theme-init 首帧读取）
 const FONT_KEY = 'workflowos_font_size';     // 字号（历史全局键；bootstrap.js 启动读取）
@@ -186,15 +186,15 @@ export function resolveAppliedAccentRole(roleFallback) {
   return override ? normalizeAccentKey(override) : 'gold';
 }
 
-// ── 主题色注入（批次 505）──────────────────────────────────────────
-// 8 个 token × 亮/暗 = 16 个**原始变量**：--app-accent-base-light / -soft-bg-light / -soft-border-light /
-// -soft-text-light / -strong-bg-light / -strong-ink-light / -hover-bg-light / -active-bg-light（-dark 同理）。
-// styles.css 的 8 个别名负责「亮/暗选边」（:root 指 *-light，html.theme-dark 指 *-dark），
+// ── 主题色注入（批次 505；批次 508 增补 strongHover）────────────────
+// 9 个 token × 亮/暗 = 18 个**原始变量**：--app-accent-base-light / -soft-bg-light / -soft-border-light /
+// -soft-text-light / -strong-bg-light / -strong-ink-light / -strong-hover-light / -hover-bg-light / -active-bg-light（-dark 同理）。
+// styles.css 的别名负责「亮/暗选边」（:root 指 *-light，html.theme-dark 指 *-dark），
 // ⇒ 切换日夜**不需要**重新注入；消费方只读别名（--app-accent / --app-accent-soft-bg / …）。
-const ACCENT_TOKEN_SUFFIXES = ['base', 'soft-bg', 'soft-border', 'soft-text', 'strong-bg', 'strong-ink', 'hover-bg', 'active-bg'];
+const ACCENT_TOKEN_SUFFIXES = ['base', 'soft-bg', 'soft-border', 'soft-text', 'strong-bg', 'strong-ink', 'strong-hover', 'hover-bg', 'active-bg'];
 
 /**
- * 主题键 → 16 个原始变量的键值对（纯函数，供注入与测试核对）
+ * 主题键 → 18 个原始变量的键值对（纯函数，供注入与测试核对）
  * @param {string} key 主题键 / 角色键 / 旧键
  * @returns {Record<string,string>} CSS 变量名 → hex
  */
@@ -202,8 +202,8 @@ export function accentThemeTokenVars(key) {
   const themeKey = normalizeAccentKey(key);
   const light = getAccentColors(themeKey, 'light');
   const dark = getAccentColors(themeKey, 'dark');
-  const lightTokens = [light.base, light.softBg, light.softBorder, light.softText, light.strongBg, light.strongInk, light.hoverBg, light.activeBg];
-  const darkTokens = [dark.base, dark.softBg, dark.softBorder, dark.softText, dark.strongBg, dark.strongInk, dark.hoverBg, dark.activeBg];
+  const lightTokens = [light.base, light.softBg, light.softBorder, light.softText, light.strongBg, light.strongInk, light.strongHover, light.hoverBg, light.activeBg];
+  const darkTokens = [dark.base, dark.softBg, dark.softBorder, dark.softText, dark.strongBg, dark.strongInk, dark.strongHover, dark.hoverBg, dark.activeBg];
   const out = {};
   ACCENT_TOKEN_SUFFIXES.forEach((suffix, i) => {
     out[`--app-accent-${suffix}-light`] = lightTokens[i];
@@ -213,7 +213,7 @@ export function accentThemeTokenVars(key) {
 }
 
 /**
- * 把当前主题的 16 个原始变量写到指定元素（幂等；亮/暗切换不再重注入）
+ * 把当前主题的 18 个原始变量写到指定元素（幂等；亮/暗切换不再重注入）
  * @param {HTMLElement} el — 通常为 document.documentElement
  * @param {string} key — 主题键 / 角色键 / 旧键
  */

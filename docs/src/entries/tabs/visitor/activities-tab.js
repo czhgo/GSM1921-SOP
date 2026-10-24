@@ -3,23 +3,23 @@
 // 三视图：列表（分页）/ 日历 / 查询；列表与日历为纯展示，查询复用全局查询组件。
 // URL 落点高亮（?activityId=）经 ctx.highlightId 一次性消费（对齐单体版参数清除后的行为）。
 
-import { icon } from '../../../core/base/icons.js?v=20261024a';
-import { renderQueryView } from '../../../components/governance/query-view.js?v=20261024a';
-import { flashHighlight } from '../../../core/base/utils.js?v=20261024a';
-import { getActivityTypeColors } from '../../../core/domain/constants.js?v=20261024a';
+import { icon } from '../../../core/base/icons.js?v=20261024b';
+import { renderQueryView } from '../../../components/governance/query-view.js?v=20261024b';
+import { flashHighlight } from '../../../core/base/utils.js?v=20261024b';
+import { getActivityTypeColors } from '../../../core/domain/constants.js?v=20261024b';
 // 活动「仍在办」口径单一源（2026-09-13 收敛）：替代手写 !archived && status!=='cancelled'
-import { isActivityLive } from '../../../core/domain/constants.js?v=20261024a';
-import { canSignup } from '../../../components/governance/signup-panel.js?v=20261024a';
-import { AuthStore } from '../../../services/core/auth.js?v=20261024a';
+import { isActivityLive } from '../../../core/domain/constants.js?v=20261024b';
+import { canSignup } from '../../../components/governance/signup-panel.js?v=20261024b';
+import { AuthStore } from '../../../services/core/auth.js?v=20261024b';
 // 组织者按活动身份读（2026-09-19 批次 91 · SOP-B-17）：本人被指定为某场活动的组织者时，
 // 该场的发布口与上传位从该行可达——「组织者是这场事上被指定的人」，不是静态角色。
-import { isActivityOrganizer, findActivityById } from '../../../services/activity/activity.js?v=20261024a';
-import { openGroupNoticeComposer } from '../../../components/governance/notice-view.js?v=20261024a';
+import { isActivityOrganizer, findActivityById } from '../../../services/activity/activity.js?v=20261024b';
+import { openGroupNoticeComposer } from '../../../components/governance/notice-view.js?v=20261024b';
 // 翻页控件单一源（批次 38：全站手写翻页一律并轨 pagerHtml）
-import { pagerHtml } from '../../../components/ui/pager.js?v=20261024a';
-import { getAppState } from '../../../core/base/state.js?v=20261024a';
-import { renderContent as renderSharedActivityCalendar } from '../shared/activity-calendar-tab.js?v=20261024a';
-import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261024a';
+import { pagerHtml } from '../../../components/ui/pager.js?v=20261024b';
+import { getAppState } from '../../../core/base/state.js?v=20261024b';
+import { renderContent as renderSharedActivityCalendar } from '../shared/activity-calendar-tab.js?v=20261024b';
+import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261024b';
 
 const ACTIVITY_TYPE_COLORS = getActivityTypeColors();
 
@@ -93,7 +93,7 @@ let _programmaticViewClick = false;
 // 日历视图内层「月/周/日」工具条的降级守卫（共享日历每次切视图会重绘该工具条）
 let _calToolbarObserver = null;
 
-const _VIEW_ACTIVE = { background: 'var(--app-accent-bg)', color: 'var(--app-accent)', border: '1px solid var(--app-accent)' };
+const _VIEW_ACTIVE = { background: 'var(--app-accent-soft-bg)', color: 'var(--app-accent-soft-text)', border: '1px solid var(--app-accent)' };
 const _VIEW_IDLE = { background: 'var(--surface-card)', color: 'var(--neutral-500)', border: '1px solid var(--neutral-200)' };
 
 function _paintViewButtons(tc, active) {
@@ -152,9 +152,15 @@ export function renderContent(ctx) {
 
   if (!_viewParamConsumed) {
     _viewParamConsumed = true;
-    // `?subview=` 是既有深链协议；同时接受 `?view=`（活动动态被作为落点时的同义写法）。
-    const params = new URLSearchParams(location.search);
-    const v = params.get('subview') || params.get('view');
+    // 2026-10-24 批次 508：`?view=` 是**工作台壳的协议参数**（`view=activities`），壳导航时会消费并
+    //   清掉它 ⇒ 原 `params.get('view')` 分支永远读不到（等于死代码）。现按两处可读来源取值：
+    //   ① 壳透传的 `ctx.navTarget.view`（布尔 true＝旧 `view=activities` 落点，对应默认「列表」视图）；
+    //   ② `?subview=` 深链（首页「完整日历 →」用的就是它，壳不清）。
+    //   两者都没有 ⇒ 直接走默认视图，不再保留读不到的 `location.search?view=` 分支。
+    const navView = ctx?.navTarget?.view;
+    const fromCtx = typeof navView === 'string' ? navView : (navView === true ? 'list' : '');
+    const fromQuery = new URLSearchParams(location.search).get('subview') || '';
+    const v = fromCtx || fromQuery;
     if (v && ['list', 'calendar', 'query'].includes(v)) _pendingView = v;
   }
 

@@ -31,8 +31,10 @@ export const TIERS = ['daily', 'precommit', 'weekly'];
  *    （此前只落盘未登记）＋ 新增 ui-control-system-guard（均纯 node）⇒ 220 → 224。
  *  2026-10-23 批次 505（spec redesign-theme-palette-and-density Task 9）：新增
  *    theme-palette-guard / density-spacing-guard / hover-state-guard（均纯 node）⇒ 224 → 227。
- *  2026-10-23 批次 507（spec unify-link-and-press-states）：新增 link-color-guard（纯 node）⇒ 227 → 228。 */
-export const DAILY_FILE_BUDGET = 228;
+ *  2026-10-23 批次 507（spec unify-link-and-press-states）：新增 link-color-guard（纯 node）⇒ 227 → 228。
+ *  2026-10-24 批次 508：新增 activity-tone-guard / field-shell-guard / motion-guard /
+ *    archive-deeplink-guard（均纯 node）⇒ 228 → 232。 */
+export const DAILY_FILE_BUDGET = 232;
 
 /** daily 静态 `test(` / `it(` 调用点预算（含子测试；新增断言须同批上调并写明理由）
  *  2026-10-21 R5 P1：页题守卫 4 条 + 对比度守卫 5 条 + 补登记的既有两条守卫 ⇒ 1351 → 1377。
@@ -51,8 +53,10 @@ export const DAILY_FILE_BUDGET = 228;
  *    ＋ 新增 ui-control-system-guard（7）⇒ 1418 → 1446。
  *  2026-10-23 批次 505（Task 9）：新增 theme-palette-guard（5）/ density-spacing-guard（7）/
  *    hover-state-guard（5）⇒ 按实况 1464（上批声明 1446 与实际差 1，本批一并校准）。
- *  2026-10-23 批次 507：新增 link-color-guard（5）＋ hover-state-guard 增补按压 H6/H7（2）⇒ 1464 → 1471。 */
-export const DAILY_TEST_BUDGET = 1471;
+ *  2026-10-23 批次 507：新增 link-color-guard（5）＋ hover-state-guard 增补按压 H6/H7（2）⇒ 1464 → 1471。
+ *  2026-10-24 批次 508：新增 activity-tone-guard（4）/ field-shell-guard（6）/ motion-guard（6）/
+ *    archive-deeplink-guard（5）＋ theme-palette-guard 增补 strongHover T6/T7（2）⇒ 1471 → 1494。 */
+export const DAILY_TEST_BUDGET = 1494;
 
 const group = (tier, reason, list) => list.map((file) => ({ file, tier, reason }));
 
@@ -135,6 +139,10 @@ export const TEST_TIERS = [
   // daily · 静态结构 / UI / 文案 / 防假绿守卫
   ...group('daily', '静态结构 / UI / 文案 / 防假绿守卫', [
     'activity-block-gate.test.mjs',
+    // 2026-10-24 批次 508：活动类别 tone 单一源 / info 语义隔离 / 党建红 ≠ 错误红（纯 node）
+    'activity-tone-guard.test.mjs',
+    // 2026-10-24 批次 508：归档 ?tab=/?id= 深链、focusActivityId 展开折叠区、复盘落点（纯 node）
+    'archive-deeplink-guard.test.mjs',
     'block-orchestration.test.mjs',
     'branch-id-literal-guard.test.mjs',
     'button-system-guard.test.mjs',
@@ -146,6 +154,8 @@ export const TEST_TIERS = [
     'copy-master-guard.test.mjs',
     'date-canon-guard.test.mjs',
     'dead-selector-guard.test.mjs',
+    // 2026-10-24 批次 508：字段外壳焦点态唯一源 / 禁用只读分态 / select 统一增强（纯 node）
+    'field-shell-guard.test.mjs',
     // 2026-10-23 批次 505（Task 9）：组件密度 / 按钮高度 / 间距五档 / Tailwind 数值档棘轮（纯 node）
     'density-spacing-guard.test.mjs',
     // 2026-10-23 R11 Task 12.1：操作结果反馈可信（作用域写等待 / 失败不报成功，纯 node）
@@ -163,6 +173,8 @@ export const TEST_TIERS = [
     // 2026-10-23 R11 Task 12.1：弹窗交互闭环契约（提交中禁止关闭 / alert / onSubmit 契约，纯 node）
     'modal-contract.test.mjs',
     'modal-escape-guard.test.mjs',
+    // 2026-10-24 批次 508：动效令牌 / 时长与属性白名单 / reduced-motion / .motion-* 四件套（纯 node）
+    'motion-guard.test.mjs',
     'page-title-guard.test.mjs',
     'party-branch-directory-context.test.mjs',
     'party-branch-directory-guard.test.mjs',

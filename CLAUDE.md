@@ -780,6 +780,7 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/DOC
 > 4. 已完成事项的详细信息归档于 `.ctx/logs/DECISION_LOG.md` 和月度执行日志
 > 5. 大任务必须按 OPERATIONS\_GUIDE.md §10.5 分片规则提前拆分
 > 6. **合批判据（「三条不可分」，现行）**：① 改判据必须与改实现同批（否则守卫把新实现判红）；② 动同一处 DOM / 同一套信息架构的，一次做完；③ 落点在同一份母本上的，同址落
+> 7. **乙部只留在办项**（2026-10-24 批次 508）：设计细则、令牌表、状态口径一律写 `DESIGN_SYSTEM`（§12.11–§12.14 与 SD-22…SD-32），本表只留「还剩什么没做」与指针；已完成项按 `H50.1 §3` 整行删除。
 
 ***
 
@@ -792,7 +793,7 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/DOC
 | ID    | 事项                                                                                                                                                                                                                           | 引用流程                                                                                     | 修改对象                                              | 状态    |
 | ----- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- | ------------------------------------------------- | ----- |
 | C-3   | **经验沉淀**：从执行日志和决策日志中提炼可复用模式，写入 insights                                                                                                                                                                                      | H30.4 + OPERATIONS\_GUIDE.md §10.1 → [党支部管理与实务经验沉淀.md](content/insights/党支部管理与实务经验沉淀.md) | `content/insights/`                               | 🔄 持续 |
-| C-4   | **视觉体验持续优化**：颜色方案调优 + 卡片设计（嵌套/并列/顺序排布）审校修订                                                                                                                                                                                   | DATA\_ARCHITECTURE.md §三 参与者数据流设计 + DESIGN\_SYSTEM.md                                    | `docs/src/styles.css` + 各 entry JS                | 🔄 持续 |
+| C-4   | **视觉体验持续优化**：颜色方案调优 + 卡片设计（嵌套/并列/顺序排布）审校修订                                                                                                                                                                                   | DATA\_ARCHITECTURE.md §三 参与者数据流设计 + DESIGN\_SYSTEM.md（**现行细则**：§12.11 状态语言 / §12.12 字段外壳 / §12.13 动效令 / §12.14 选择器）                                    | `docs/src/styles.css` + 各 entry JS                | 🔄 持续 |
 
 ***
 
@@ -842,8 +843,6 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/DOC
 | B-502-5 | 账号重命名后的边界：旧 token 仍有效、旧 `person.html?id=旧学号` 与收藏外链会 404（已如实登记，不自动改写） | `server/routes/member.js` + `person-entry.js` | 后续（需支书定是否做旧链接跳转） |
 | B-502-6 | 补课文案与设置页仍各写「T+7」：`disc/makeup-tab.js` / `settings-entry.js` 未接统一 `makeupScopeHint()` 派生（R7-15 部分落地） | `services/activity/makeup.js` + `settings-entry.js` | 待启动 |
 | B-503-5 | 待支书裁定四项：登录页品牌渐变 vs §5.3、首页 hero 党徽 vs §4.25、同名页签是否加范围后缀、支书台是否改名「反馈与回复」 | `DESIGN_SYSTEM.md` §5.3/§4.25、`login.html`、`index.html` | 待裁 |
-| B-503-6 | 余项：R6 P3（21）＋ R7 P3（23）＋ 第八轮 P2/P3 ＋ 帮助注释未迁移 9 处（`party-committee-meeting-entry.js`） | 两轮报告与 `B-502-3/4` | 下一轮（实施前先重钉行号） |
-| B-504-3 | R10 余项（P3 文案与一致性）与拆表切换（待 `schema-split-readiness.mjs` 输出 READY） | `2026-10-AUDIT_R10_DATA_LIFECYCLE.md` | 下一轮 |
 
 ***
 

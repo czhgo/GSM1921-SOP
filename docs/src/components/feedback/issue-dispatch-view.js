@@ -11,10 +11,10 @@
 //  依赖方向正确：组件 → 服务（不是服务 → 组件）。守卫：issue-branch.test.mjs（结构层）。
 // ════════════════════════════════════════════════════════════════
 
-import { renderFilteredList } from '../ui/list-filter.js?v=20261024a';
-import { renderTabHeader } from '../shell/page-frame.js?v=20261024a';
-import { escHtml, showToast } from '../../core/base/utils.js?v=20261024a';
-import { IssueStore, IssueNotify, deriveIssueDisplayState, REPORT_CATEGORIES, displayNameOf as _displayName } from '../../services/governance/issues.js?v=20261024a';
+import { renderFilteredList } from '../ui/list-filter.js?v=20261024b';
+import { renderTabHeader } from '../shell/page-frame.js?v=20261024b';
+import { escHtml, showToast } from '../../core/base/utils.js?v=20261024b';
+import { IssueStore, IssueNotify, deriveIssueDisplayState, REPORT_CATEGORIES, displayNameOf as _displayName } from '../../services/governance/issues.js?v=20261024b';
 
 // ════════════════════════════════════════════════════════════════
 //  「我的处置」Tab 渲染工具（各角色工作台复用）
@@ -265,7 +265,7 @@ function _renderMyReportDetail(issueId, role, userId, container, opts = {}) {
       html += `<div class="rounded-lg p-2.5 tint-section" data-tone="${kindTone}">`;
       html += `<span class="text-xs font-medium text-gray-700">${kindIcon} ${_displayName(c.author)}</span>`;
       if (c.kind === 'reply') {
-        html += `<span class="text-xs px-1 py-0.5 rounded font-medium" style="background:var(--app-accent-bg);color:var(--app-accent);">正式答复</span>`;
+        html += `<span class="text-xs px-1 py-0.5 rounded font-medium" style="background:var(--app-accent-soft-bg);color:var(--app-accent-soft-text);">正式答复</span>`;
       }
       html += `<span class="text-xs text-gray-500 ml-1">${c.createdAt}</span>`;
       html += `<p class="text-xs text-gray-600 mt-0.5">${c.body}</p></div>`;
@@ -427,7 +427,7 @@ function _renderMyIssueDetail(issueId, role, userId, container) {
       html += `<div class="rounded-lg p-2.5 ${kindBg}">`;
       html += `<span class="text-xs font-medium text-gray-700">${kindIcon} ${_displayName(c.author)}</span>`;
       if (c.kind === 'reply') {
-        html += `<span class="text-xs px-1 py-0.5 rounded font-medium ml-1" style="background:var(--app-accent-bg);color:var(--app-accent);">正式答复</span>`;
+        html += `<span class="text-xs px-1 py-0.5 rounded font-medium ml-1" style="background:var(--app-accent-soft-bg);color:var(--app-accent-soft-text);">正式答复</span>`;
       }
       html += `<span class="text-xs text-gray-500 ml-1">${c.createdAt}</span>`;
       html += `<p class="text-xs text-gray-600 mt-0.5">${c.body}</p></div>`;

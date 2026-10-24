@@ -1267,8 +1267,8 @@ li + li { margin-top: 0.25em; }
 | 6 | 进度与占比 | 进度条 / 迷你条 | 面向「未完成」的推进度 | 本 §4.10「执行层仪表盘」KPI 进度条 | 「已完成 N/总数」无差异存量统计（违 §一 原则11） | **并入既有**（本 §4.10 执行层仪表盘；只补判据） |
 | 7 | 少量关键数 | KPI 条（页首内联一行） | ≤ 约 5 个摘要数、进入即见 | `docs/src/entries/tabs/secretary/report-up-tab.js:39-40`（统计条）；`docs/src/entries/tabs/party-committee/governance-overview-tab.js` | `docs/src/entries/tabs/secretary/committee-meeting-tab.js:29-31`「支委会场次 N」＝累计存量数（原则11 违例候选） | **并入既有**（本 §4.10 执行层仪表盘 KPI 顶栏；只补判据） |
 | 8 | 两两关系 | 关系图 / 矩阵 | 关系是主体、非时序 | 单一源同第 3 行 `docs/src/components/ui/relation-matrix.js` | 各域自造矩阵（已收，守卫 `server/test/relation-matrix.test.mjs`） | **并入既有**（同第 3 行单一源；只补判据） |
-| 9 | 可逐项勾选的清单 | 复选列表 | 逐项独立、需一次提交多条 | `docs/src/entries/pages/party-committee-meeting-entry.js:292`（拟上会清单 `pcm-cand` 复选）；`docs/src/entries/tabs/party-committee/dispatch-tab.js`（支部勾选） | chip 承担筛选（禁，本 §4.12「筛选行载体」） | **新增**（视图＝§4.10 表外既有实现；判据 / 反例新增） |
-| 10 | 一句话结论 | 提示条（notice bar） | 结论 / 口径需常驻可见、不占流程序号 | `docs/src/entries/pages/party-committee-meeting-entry.js:421-430`（效力口径提示条） | 制度原文进界面（违 §4.18.3 C7） | **新增**（视图＝§4.10 表外既有实现；判据 / 反例新增） |
+| 9 | 可逐项勾选的清单 | 复选列表 | 逐项独立、需一次提交多条 | `docs/src/entries/pages/party-committee-meeting-entry.js:332`（拟上会清单 `pcm-cand` 复选）；`docs/src/entries/tabs/party-committee/dispatch-tab.js`（支部勾选） | chip 承担筛选（禁，本 §4.12「筛选行载体」） | **新增**（视图＝§4.10 表外既有实现；判据 / 反例新增） |
+| 10 | 一句话结论 | 提示条（notice bar） | 结论 / 口径需常驻可见、不占流程序号 | `docs/src/entries/pages/party-committee-meeting-entry.js:511-524`（效力口径提示条） | 制度原文进界面（违 §4.18.3 C7） | **新增**（视图＝§4.10 表外既有实现；判据 / 反例新增） |
 | 11 | 时间分布 | 日历（月 / 周 / 日 / 列表四视图） | 以「日期」为主索引 | `docs/src/components/record/calendar.js`；本 §4.10 日历视图行 | — | **并入既有**（本 §4.10 日历视图行；只补判据） |
 | 12 | 表单录入 | 表单视图（载体四选一：悬浮 / 就地 / 内联 / 跳转） | 录入动作，按字段数与主次选载体 | 本 §4.12 交互载体决策规范；`#calendar-create-panel` | 载体误用（本 §4.12 明写防两极化） | **并入既有**（本 §4.12；只补判据） |
 
@@ -2114,12 +2114,12 @@ li + li { margin-top: 0.25em; }
 |---|---|---|---|
 | A1 | 首页活动列表 `components/dashboard/activity-panel.js:121` + `main-entry.js:87-95` | 工作台 `?activityId=` / 未登录 login | ✓ 分层① |
 | A2 | 首页活动风采 `components/dashboard/gallery.js:53` + `main-entry.js:105-113` | 同上 | ✓ 分层① |
-| A3 | visitor 活动动态 `entries/tabs/visitor/activities-tab.js:58,61,208` | 独立详情页 `activity.html?id=` | ✓ 分层④ |
+| A3 | visitor 活动动态 `entries/tabs/visitor/activities-tab.js:58,61,215` | 独立详情页 `activity.html?id=` | ✓ 分层④ |
 | A4 | org 工作台日历 `components/record/calendar.js:479-495` + `activity-view.js` | 同页只读详情面板 | ✓ 分层③ |
 | A5 | 支书工作台日历 `calendar-tab.js:103` + `inspector.js` | 同页可操作详情面板 | ✓ 分层③（可操作） |
 | A6 | 工作台日历列表视图 `calendar.js:396-400` | 同页详情 | ✓ 分层③ |
 | A7 | 通知活动链接 `notice.js:309-314` | 独立详情页 | ✓ 分层⑤ |
-| A8 | 归档库条目 `archive-entry.js:116` | 弹窗详情 | ✓ 分层⑥ |
+| A8 | 归档库条目 `archive-entry.js:131` | 弹窗详情 | ✓ 分层⑥ |
 
 ### 10.3 专班条目落点映射表
 
@@ -2357,6 +2357,14 @@ li + li { margin-top: 0.25em; }
 | SD-22 | IF 页面内跳转链接 THEN 类为 `.link` / `.text-accent`（色 `--app-accent-soft-text`）；`<a>` 上 `text-blue/sky/indigo` 计数为 0（带 `bg-*` 的信息态按钮型链接除外） |
 | SD-23 | IF 中性控件 `:active` THEN 背景 `--surface-active` = `var(--neutral-200)`（不得出现红色）；主题色控件用 `--app-accent-active-bg` |
 | SD-24 | IF 按压反馈 THEN 唯一源 `--press-shadow`（1px 内阴影）＋ `--transition-press` 180ms；`transform/scale/translate` 计数为 0 |
+| SD-25 | IF 选中态 THEN 主题 soft 三件套（底/字/左条）；侧边栏是唯一浅灰豁免；`--surface-hover/active` 不得表达 selected |
+| SD-26 | IF 实底按钮 hover THEN `--app-accent-strong-hover`（同色相加深）；底色落中性灰计数为 0 |
+| SD-27 | IF 输入类控件 THEN 走字段外壳：活动态＝主题色边 1px + 3px 浅晕；`:focus` 不出 outline；`:focus-visible` 才出 2px 主题色环 |
+| SD-28 | IF 控件禁用/只读 THEN 两态可辨（禁用灰底灰字、只读透明边浅底）；`opacity` 混作两态计数为 0 |
+| SD-29 | IF 原生 `<select>` THEN 必须经 `enhanceSelects`（值载体仍是原生）；大选项集提供搜索 / 近期优先 / 分批渲染 |
+| SD-30 | IF 过渡 THEN 时长 ∈{120,180,200,240}ms 且属性 ∈{opacity,transform,color,background-color,border-color,box-shadow}；布局属性与 `all` 计数为 0 |
+| SD-31 | IF 活动类别 THEN 由 `activityTypeTone` 唯一产出（party-red/gold/neutral）；类别与状态路径 `info` 计数为 0（白名单除外） |
+| SD-32 | IF 深链落点 THEN 目标页必须消费其参数；定位失败必须有可见提示；无承载面的入口不得渲染 |
 
 ### 12.10 链接与按压（批次 507）
 
@@ -2383,4 +2391,65 @@ li + li { margin-top: 0.25em; }
 
 - 内阴影**只写一次**（`:is(.btn-…, .btn-tab, .cs-option, summary, …):active`），新增按钮族并入该行，不得逐点再写。
 - 按下不得推挤相邻内容：不写 `transform: scale()` / `translateY()`。
+
+### 12.11 状态语言（批次 508）
+
+一个控件只回答五个问题，且五态**视觉正交**（可同屏并辨）：
+
+| 问题 | 态 | 载体 | 禁止 |
+|---|---|---|---|
+| 我现在在这里吗 | **selected**（持续） | 主题 soft 三件套：`--app-accent-soft-bg` + `--app-accent-soft-text` + 左条 `inset 3px 0 0 var(--app-accent)` | 用 `--surface-hover/--surface-active` 表达选中 |
+| 我正按着吗 | **active**（瞬时） | 中性灰 / 主题 `activeBg` / 党建红 `--party-red-active` | 与 selected 共用令牌 |
+| 我能点吗 | **hover** | `--surface-hover` 或主题 `hoverBg`，仅颜色 | 位移 / 阴影 / 缩放 |
+| 我填对了吗 | **invalid** | 红边 + toast 文案（不新增内联错误行） | 仅靠颜色不配文案 |
+| 我能改吗 | **disabled / readonly** | 禁用＝浅灰底灰字；只读＝透明边浅底 | 用 `opacity` 混作两态 |
+
+- **侧边栏是唯一豁免**：`.module-tab.active` 保留浅灰（需要纵深）；其余选中一律主题 soft。
+- 实例：`.list-row[data-selected]`、`.cal-cell-large.selected`（桌面/移动同源）、`.subtab[aria-selected]`、`.cs-option:focus-visible`、`.status-badge-option.is-active`、支委会步骤条当前步。
+- 实底按钮 hover＝第 9 个主题 token `--app-accent-strong-hover`（同色相加深），**不得落灰**。
+
+### 12.12 字段外壳（批次 508）
+
+输入类控件（input / select / textarea / 日期 / 搜索）共用一个外壳，五个问题同一个答案：
+
+| 态 | 边框 | 底 / 字 | 备注 |
+|---|---|---|---|
+| 静置 | 1px `--neutral-300` | 白底、`--neutral-800` | — |
+| 悬停 | 1px `--neutral-400` | 不变 | 仅 `@media (hover:hover)` |
+| 活动（鼠标或键盘） | 1px `--app-accent` ＋ `box-shadow: 0 0 0 3px var(--app-accent-soft-bg)` | 不变 | **不出近黑外环** |
+| 键盘保险 | 另出 `outline: 2px solid var(--app-accent)` | — | 仅 `:focus-visible`，与浅晕同色系 |
+| 禁用 | 1px `--neutral-200` | 浅灰底、灰字 | 真不可用 |
+| 只读 | 透明边 | 浅底、正文色 | 可读可复制 |
+
+- 禁止「金边 + 黑环」双答；暗色 `--focus-ring` 不再设为党徽金。
+- **选择器统一**：原生 `<select>` 一律经 `enhanceSelects` 增强，面板与页面同一套 token；原生控件只作值载体。
+- **大选项集一般化框架**：搜索（`data-cs-search`）、近期优先（`data-cs-priority="recent"`）、分批渲染（`data-cs-limit`）、空态「没有匹配项」；选人继续走 `person-picker`。
+
+### 12.13 动效令（批次 508）
+
+| 令牌 | 值 | 用途 |
+|---|---|---|
+| `--motion-fast` | 120ms | 小范围颜色 / 边框 |
+| `--motion-base` | 180ms | 常规过渡、按压 |
+| `--motion-enter` | 200ms | 入场 |
+| `--motion-slow` | 240ms | 折叠 / 大块位移 |
+| `--ease-standard` | `cubic-bezier(.2,.6,.36,1)` | 常规 |
+| `--ease-enter` | `cubic-bezier(.22,.61,.36,1)` | 入场 |
+
+- 可复用类：`.motion-enter`（opacity + translateY）、`.motion-collapse`（`grid-template-rows` 0fr→1fr）、`.motion-press`（内阴影）、`.motion-scale-in`（入场缩放）。
+- **只允许过渡** `opacity / transform / color / background-color / border-color / box-shadow`；禁止 `height/width/max-height/padding/top/left/margin` 与 `transition: all`。
+- 折叠用 `grid-template-rows` 取代 `max-height + padding`；进度用 `transform: scaleX()` 取代 `width`。
+- `prefers-reduced-motion` 下 `transition-delay / animation-delay` 归零。
+
+### 12.14 活动类别与信息态色（批次 508）
+
+| 类别 | tone | 徽章 | 色 |
+|---|---|---|---|
+| 三会一课（支部党员大会 / 支委会 / 党小组会 / 党课 / 组织生活会） | `party-red` | `badge--brand` | `#CE1126`（党建红，**不是** danger 的 `#B91C1C`） |
+| 主题党日及载体（理论学习 / 实践参访 / 交流座谈 / 共建） | `gold` | `badge--gold` | 亮金底 + `#A16207` |
+| 未登记 | `neutral` | `badge--neutral` | 中性 |
+
+- 唯一判据：`constants.js::activityTypeTone(type)`；组件不得自己写类别色，也不得用 `info` 兜底。
+- **状态色不借类别色**：进行中＝warning、完成＝success、打回＝warning、计数＝neutral。
+- 允许 info 蓝的白名单：通知「重要」、活动「已发布」、汇报路由态、建议 / 选修、配置项标注（守卫逐条登记，新增即红）。
 

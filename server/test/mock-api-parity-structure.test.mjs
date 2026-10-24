@@ -36,26 +36,26 @@ import {
 } from '../seed.js';
 import {
   SEED_MANIFEST, SEED_MANIFEST_BY_TABLE, SEED_LIFECYCLE_CLASSES, SEED_INIT_TIERS,
-} from '../../docs/src/data/seed-manifest.js?v=20261024a';
+} from '../../docs/src/data/seed-manifest.js?v=20261024b';
 import {
   normalizeSeedActivitySeedRows, ensureLegacySourceWorkgroups, ensureDemoWorkgroupGrants,
-} from '../../docs/src/data/workgroup-seed-sync.js?v=20261024a';
-import { PEOPLE } from '../../docs/src/data/mock/people.js?v=20261024a';
-import { BRANCHES } from '../../docs/src/data/mock/branches.js?v=20261024a';
-import { ACTIVITIES } from '../../docs/src/data/mock/activities.js?v=20261024a';
-import { MOCK_NOTICES } from '../../docs/src/data/mock/notices.js?v=20261024a';
-import { MOCK_TASKFORCES } from '../../docs/src/data/mock/taskforces.js?v=20261024a';
+} from '../../docs/src/data/workgroup-seed-sync.js?v=20261024b';
+import { PEOPLE } from '../../docs/src/data/mock/people.js?v=20261024b';
+import { BRANCHES } from '../../docs/src/data/mock/branches.js?v=20261024b';
+import { ACTIVITIES } from '../../docs/src/data/mock/activities.js?v=20261024b';
+import { MOCK_NOTICES } from '../../docs/src/data/mock/notices.js?v=20261024b';
+import { MOCK_TASKFORCES } from '../../docs/src/data/mock/taskforces.js?v=20261024b';
 import {
   SEED_TASKS, SEED_ASSIGNMENTS, SEED_ARCHIVE_RECORDS, SEED_SIGNUPS,
   SEED_REVIEW_REQUESTS, SEED_MAKEUP_TASKS,
-} from '../../docs/src/data/mock/seed.js?v=20261024a';
-import { PARTY_GROUPS } from '../../docs/src/data/mock/party-groups.js?v=20261024a';
-import { ATTENDANCE_RECORDS } from '../../docs/src/data/mock/attendance.js?v=20261024a';
-import { INSPECTION_RECORDS } from '../../docs/src/data/mock/inspection.js?v=20261024a';
-import { REVIEW_RECORDS, TASKFORCE_REVIEW_RECORDS } from '../../docs/src/data/mock/review.js?v=20261024a';
-import { THOUGHT_REPORTS } from '../../docs/src/data/mock/thought-reports.js?v=20261024a';
-import { PERIODIC_ARCHIVES_SEED, PROP_TASKS_SEED } from '../../docs/src/data/mock/prop.js?v=20261024a';
-import { SEED_TODOS } from '../../docs/src/services/governance/todo.js?v=20261024a';
+} from '../../docs/src/data/mock/seed.js?v=20261024b';
+import { PARTY_GROUPS } from '../../docs/src/data/mock/party-groups.js?v=20261024b';
+import { ATTENDANCE_RECORDS } from '../../docs/src/data/mock/attendance.js?v=20261024b';
+import { INSPECTION_RECORDS } from '../../docs/src/data/mock/inspection.js?v=20261024b';
+import { REVIEW_RECORDS, TASKFORCE_REVIEW_RECORDS } from '../../docs/src/data/mock/review.js?v=20261024b';
+import { THOUGHT_REPORTS } from '../../docs/src/data/mock/thought-reports.js?v=20261024b';
+import { PERIODIC_ARCHIVES_SEED, PROP_TASKS_SEED } from '../../docs/src/data/mock/prop.js?v=20261024b';
+import { SEED_TODOS } from '../../docs/src/services/governance/todo.js?v=20261024b';
 
 const readJson = (rel) => JSON.parse(readFileSync(new URL(rel, import.meta.url), 'utf8'));
 

@@ -44,12 +44,14 @@ function _contrast(a, b) {
   return (hi + 0.05) / (lo + 0.05);
 }
 
-test('F1 亮色 / 暗色各有一套 --focus-ring，暗色取党徽金', () => {
+test('F1 亮色 / 暗色各有一套 --focus-ring（暗色改主题色，不再用党徽金）', () => {
+  // 2026-10-24 批次 508：暗色环由党徽金改为主题色——金环与金边框会叠成「双金边」。
   const light = STYLES.match(/--focus-ring:\s*([^;]+);/)?.[1]?.trim() || '';
   assert.equal(light, '#1F2937', `亮色 --focus-ring 应为深灰 #1F2937，实测 ${light}`);
   const darkBlock = STYLES.match(/html\.theme-dark\s*\{([\s\S]*?)\n\s*\}/)?.[1] || '';
   assert.ok(darkBlock, '缺少 html.theme-dark 变量块');
-  assert.match(darkBlock, /--focus-ring:\s*var\(--party-gold\)/, '暗色 --focus-ring 应为党徽金');
+  assert.match(darkBlock, /--focus-ring:\s*var\(--app-accent\)/, '暗色 --focus-ring 应为主题色');
+  assert.doesNotMatch(darkBlock, /--focus-ring:\s*var\(--party-gold\)/, '暗色不得再用党徽金当通用焦点环');
   assert.doesNotMatch(darkBlock, /--focus-ring:\s*#1F2937/, '暗色不得沿用深灰焦点环');
 });
 
@@ -62,22 +64,27 @@ test('F2 全局 button/a 焦点环只有一条 outline，且不被 --app-accent-
   assert.doesNotMatch(body, /var\(--app-accent-text\)/, '焦点环不得再用 --app-accent-text');
 });
 
-test('F3 输入族聚焦除边框外必须有 outline（不得只改 border-color）', () => {
-  const body = _ruleBody(STYLES, '.cs-trigger:focus,\n.cs-trigger:focus-visible');
-  assert.ok(body, '缺少输入族统一 focus 规则（应覆盖 .input-flat / 登录框 / .cs-trigger）');
-  assert.match(body, /outline:\s*2px solid var\(--focus-ring\)/, '输入族聚焦需 ≥3:1 的实线 outline');
-  assert.doesNotMatch(body, /outline:\s*none/, '输入族聚焦不得把 outline 收回 none');
-  const consolidated = _ruleBody(STYLES, '.input-flat:focus,\n.input-flat:focus-visible');
-  assert.match(consolidated, /outline:\s*2px solid var\(--focus-ring\)/, '.input-flat 聚焦需叠加 outline');
-  assert.match(STYLES, /\.input-flat:focus,[\s\S]{0,320}input\.login-input:focus/, '登录框应并入同一焦点规则');
-  assert.match(STYLES, /\.input-flat:focus,[\s\S]{0,320}\.cs-trigger:focus,/, '.cs-trigger 应并入同一焦点规则');
+test('F3 输入族：活动态＝主题色边＋浅晕；键盘 :focus-visible 才出 outline', () => {
+  // 2026-10-24 批次 508（字段外壳）：鼠标点击/聚焦只改边框＋3px 浅晕，不再叠近黑外环；
+  //   键盘保险由 :focus-visible 的 2px 主题色环承担（a11y 底线不降）。
+  const focus = _ruleBody(STYLES, '.input-flat:focus,\n.cs-trigger:focus-within')
+    || _ruleBody(STYLES, '.input-flat:focus');
+  assert.ok(focus, '缺少 .input-flat:focus 字段外壳规则');
+  assert.match(focus, /border-color:\s*var\(--app-accent\)/, '活动态边框应为主题色');
+  assert.match(focus, /box-shadow:\s*0 0 0 3px var\(--app-accent-soft-bg\)/, '活动态应有 3px 主题浅晕');
+  assert.doesNotMatch(focus.replace(/outline:\s*none;?/g, ''), /outline:\s*(?!none)/,
+    '鼠标活动态不得再出 outline（近黑外环的来源）');
+  const kb = _ruleBody(STYLES, '.input-flat:focus-visible');
+  assert.ok(kb, '缺少 .input-flat:focus-visible 键盘保险');
+  assert.match(kb, /outline:\s*2px solid var\(--app-accent\)/, '键盘焦点需 2px 主题色实线环');
 });
 
 test('F4 对比度：焦点环 vs 底色 ≥ 3:1', () => {
+  // 2026-10-24 批次 508：暗色环改主题色，按默认金主题的 base（#A97A12）核算。
   assert.ok(_contrast('#1F2937', LIGHT_SURFACE) >= 3, '亮色焦点环 vs 页面底不足 3:1');
-  assert.ok(_contrast(GOLD, DARK_SURFACE) >= 3, '暗色党徽金焦点环 vs 深底不足 3:1');
-  assert.ok(_contrast(GOLD, LIGHT_SURFACE) < 3,
-    '反证失败：党徽金在亮色底本就不足 3:1，故亮色必须用深灰 --focus-ring');
+  assert.ok(_contrast('#A97A12', DARK_SURFACE) >= 3, '暗色主题色焦点环 vs 深底不足 3:1');
+  assert.ok(_contrast('#1F2937', DARK_SURFACE) < 3,
+    '反证失败：深灰在暗底本就不足 3:1，故暗色必须换主题色环');
 });
 
 test('F5 非空转：对比度函数与规则抽取有正/负例', () => {

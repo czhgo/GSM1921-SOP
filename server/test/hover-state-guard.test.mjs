@@ -168,8 +168,13 @@ test('H5 非空转：hover 规则规模下限', () => {
   const total = [...byFile.values()].reduce((n, r) => n + r.length, 0);
   console.log(`[hover] 规则分布：${counts}`);
   // 2026-10-23 批次 505 实测 101 条（styles 82 / person-picker 8 / about 3 / help 7 / login 1）。
-  assert.ok(total >= 90, `hover 规则只有 ${total} 条（下限 90）：解析面被削或规则被误删`);
-  for (const [f, r] of byFile) assert.ok(r.length > 0, `${f} 未解析到 hover 规则（该文件的选择器写法可能已变）`);
+  // 2026-10-24 批次 508：login.html 的 hover 覆盖已删除（深色键曾因此变灰），
+  //   该页现在继承各按钮族自己的 hover ⇒ 允许 0 条，但仍要求其余文件非空。
+  assert.ok(total >= 85, `hover 规则只有 ${total} 条（下限 85）：解析面被削或规则被误删`);
+  for (const [f, r] of byFile) {
+    if (f === 'docs/login.html') continue;
+    assert.ok(r.length > 0, `${f} 未解析到 hover 规则（该文件的选择器写法可能已变）`);
+  }
 });
 
 // ── H6 / H7：按压态（2026-10-23 批次 507）────────────────────────────────
@@ -193,14 +198,16 @@ test('H6 按压配色三源：中性灰 / 主题 activeBg / 党建红 active', (
 
 test('H7 按压反馈唯一源：180ms + 1px 内阴影，且无位移 / 缩放', () => {
   const css = read('docs/src/styles.css');
-  assert.match(css, /--transition-press:\s*180ms/, '缺少 --transition-press: 180ms');
+  // 2026-10-24 批次 508：按压时长改由 --motion-base（180ms）承担，--transition-press 保留为别名。
+  assert.match(css, /--transition-press:\s*(?:180ms|var\(--motion-base\))/, '缺少 --transition-press（180ms 或 --motion-base 别名）');
   const shadows = (css.match(/--press-shadow:\s*[^;]+;/g) || []);
   assert.equal(shadows.length, 2, `--press-shadow 应在 :root 与深色段各一处（实测 ${shadows.length}）`);
-  // 唯一源：只有那条聚合 :active 规则消费它
+  // 唯一源：聚合 :active 规则 ＋ `.motion-press` 工具类各一处（后者供动态生成按钮）
   const consumers = (css.match(/box-shadow:\s*var\(--press-shadow\)/g) || []);
-  assert.equal(consumers.length, 1, `内阴影消费点应恰 1 处（实测 ${consumers.length}）`);
+  assert.equal(consumers.length, 2, `内阴影消费点应恰 2 处（实测 ${consumers.length}）`);
   // 按压不得位移 / 缩放：聚合规则体内不得出现 transform / scale / translate
-  const idx = css.indexOf('box-shadow: var(--press-shadow)');
+  const idx = css.indexOf(':is(.btn-accent');
+  assert.ok(idx > -1, '缺少按压聚合规则 :is(.btn-accent, …):active');
   const block = css.slice(idx, css.indexOf('}', idx));
   assert.doesNotMatch(block, /transform|scale|translate/, '按压反馈不得用位移 / 缩放');
   // 聚合规则必须覆盖四类按钮与关键控件

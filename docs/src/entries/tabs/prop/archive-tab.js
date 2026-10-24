@@ -2,37 +2,37 @@
 // 宣传委员工作台 Tab：档案归档（T-279 M3 拆分，照 M2 样板）
 // 归档记录纯读 + 材料标准/模板 + 归档推进浮窗（材料确认清单）+ 上传宣传材料（attachments 双模式）。
 
-import { icon } from '../../../core/base/icons.js?v=20261024a';
-import { solidAccentStyle, activityTypeBadgeVariant, isActivityArchived } from '../../../core/domain/constants.js?v=20261024a';
-import { POLICY_DEFAULTS } from '../../../core/domain/policy-defaults.js?v=20261024a';
+import { icon } from '../../../core/base/icons.js?v=20261024b';
+import { solidAccentStyle, activityTypeBadgeVariant, isActivityArchived } from '../../../core/domain/constants.js?v=20261024b';
+import { POLICY_DEFAULTS } from '../../../core/domain/policy-defaults.js?v=20261024b';
 // 活动类型胶囊（批次 301）：类别色走单一源（三会一课＝brand 红 / 主题党日＝gold 金），渲染唯一源 badge.js
-import { badgeHtml } from '../../../components/ui/badges.js?v=20261024a'; // 扎口出口（批次 304 收回，勿直连 badge.js）
-import { showToast, downloadCSV, downloadBlob, downloadUrl, _fmtDate, escHtml, todayLocal } from '../../../core/base/utils.js?v=20261024a';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20261024b'; // 扎口出口（批次 304 收回，勿直连 badge.js）
+import { showToast, downloadCSV, downloadBlob, downloadUrl, _fmtDate, escHtml, todayLocal } from '../../../core/base/utils.js?v=20261024b';
 // 2026-09-21 批次 139：页脚「相关设置」深链由 modal.js 的 `settingsLinkHTML` 单点渲染；
 //   2026-10-21 批次 497：本 tab 四个浮层（上传材料 / 文件外发 / 上传照片 / 标注照片）全部改走 `openModal`，
 //   不再自建 overlay（统一 dialog 语义、sticky footer 与取消语义）。
-import { openModal, closeModal } from '../../../components/ui/modal.js?v=20261024a';
-import { persist, getAuthToken, getApiBaseUrl, getAdapter } from '../../../data/data-adapter.js?v=20261024a';
-import { withSelectedBranchScope } from '../../../data/api-adapter.js?v=20261024a';
-import { mockDB } from '../../../core/domain/domain.js?v=20261024a';
-import { bumpToken } from '../../../core/base/version-token.js?v=20261024a'; // P0 域缓存失效（spec §二.3）
-import { loadActivities, listPublicityDrafts, setPublicityDraftStatus, PUBLICITY_DRAFT_STATUS, listGalleryCandidates, setGalleryFeatured, setGalleryPinned, isGalleryFeatured, isGalleryPinned } from '../../../services/activity/activity.js?v=20261024a';
-import { isApiMode } from '../../../services/core/runtime.js?v=20261024a';
-import { AuthStore, currentUserId } from '../../../services/core/auth.js?v=20261024a';
-import { getPersonName } from '../../../services/member/person.js?v=20261024a';
+import { openModal, closeModal } from '../../../components/ui/modal.js?v=20261024b';
+import { persist, getAuthToken, getApiBaseUrl, getAdapter } from '../../../data/data-adapter.js?v=20261024b';
+import { withSelectedBranchScope } from '../../../data/api-adapter.js?v=20261024b';
+import { mockDB } from '../../../core/domain/domain.js?v=20261024b';
+import { bumpToken } from '../../../core/base/version-token.js?v=20261024b'; // P0 域缓存失效（spec §二.3）
+import { loadActivities, listPublicityDrafts, setPublicityDraftStatus, PUBLICITY_DRAFT_STATUS, listGalleryCandidates, setGalleryFeatured, setGalleryPinned, isGalleryFeatured, isGalleryPinned } from '../../../services/activity/activity.js?v=20261024b';
+import { isApiMode } from '../../../services/core/runtime.js?v=20261024b';
+import { AuthStore, currentUserId } from '../../../services/core/auth.js?v=20261024b';
+import { getPersonName } from '../../../services/member/person.js?v=20261024b';
 // 批次 352（`D-746` · `D-744`② 业务过程类余项）：照片记录「作废（软）」——统一写口 ＋ 支委层判据
-import * as SoftVoid from '../../../services/governance/soft-void.js?v=20261024a';
-import { openVoidModal } from '../../../components/ui/void-record.js?v=20261024a';
-import { addExternalDispatch, loadExternalDispatches, loadActiveDispatches } from '../../../services/activity/external-dispatch.js?v=20261024a';
+import * as SoftVoid from '../../../services/governance/soft-void.js?v=20261024b';
+import { openVoidModal } from '../../../components/ui/void-record.js?v=20261024b';
+import { addExternalDispatch, loadExternalDispatches, loadActiveDispatches } from '../../../services/activity/external-dispatch.js?v=20261024b';
 // R2-40：归档材料写口（mock/api 同源）——api 落 archive_records、mock 落 localStorage
-import { ArchiveStore } from '../../../services/activity/archive.js?v=20261024a';
+import { ArchiveStore } from '../../../services/activity/archive.js?v=20261024b';
 // A② 归档缺口判据单一源（支书台「宣传材料待归档」实时组同源）：已归档但无归档记录的活动
-import { getArchiveGapActivities, getEndedUnarchivedActivities } from '../../../services/governance/secretary-overview.js?v=20261024a';
+import { getArchiveGapActivities, getEndedUnarchivedActivities } from '../../../services/governance/secretary-overview.js?v=20261024b';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是活动的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
-import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261024a';
-import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261024a';
+import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261024b';
+import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261024b';
 // 材料页深链 focusActivityId 的通用定位（只滚动 + 闪烁，不另造筛选器）
-import { focusActivityAnchor } from '../../../components/ui/detail-anchor.js?v=20261024a';
+import { focusActivityAnchor } from '../../../components/ui/detail-anchor.js?v=20261024b';
 
 // ── 档案归档 ─────────────────────────────────────────────
 // 种子数据已提升为全局（data/mock/seed.js SEED_ARCHIVE_RECORDS，loadDB 时注入），
@@ -82,6 +82,11 @@ export function renderContent(ctx) {
   const archivedRecordCount = _loadArchiveRecords().length;
   const galleryCount = listGalleryCandidates().length;
   const photoCount = _loadImageRecords().length;
+  const publicityDrafts = listPublicityDrafts();
+  // 2026-10-24 批次 508：三块动作面（待归档活动 / 宣传初稿 / 归档缺口）全空时，页面原只剩标题 +
+  //   一个静默空壳（用户以为没加载出来）。改为在**主体位置**给一张空态卡，并把「已归档记录在下方
+  //   折叠区」这句去向写出来；「上传材料」按钮仍在上方可见（不藏入口，空态也能直接补材料）。
+  const actionFacesEmpty = endedUnarchived.length === 0 && publicityDrafts.length === 0 && pendingArchives.length === 0;
   container.innerHTML = `
     ${renderTabHeader({ title: '档案归档', description: '待归档活动、宣传初稿与待补材料；归档后即可回看。' })}
     ${_renderWeeklySlot()}
@@ -93,9 +98,11 @@ export function renderContent(ctx) {
       </button>
     </div>
 
+    ${actionFacesEmpty ? _renderEmptyStateCard() : ''}
+
     ${_renderEndedUnarchivedSection(endedUnarchived)}
 
-    ${_renderPublicityDraftSection(listPublicityDrafts())}
+    ${_renderPublicityDraftSection(publicityDrafts)}
 
     ${_renderPendingArchiveSection(pendingArchives)}
 
@@ -367,8 +374,17 @@ export function renderContent(ctx) {
     _showArchiveUploadModal(ctx);
   });
 
-  // 材料页深链（2026-10-20）：本场活动的归档行 / 待归档卡滚到视野（找不到则静默）。
-  focusActivityAnchor(container, ctx?.focusActivityId);
+  // 材料页深链（2026-10-20）：本场活动的归档行 / 待归档卡滚到视野。
+  // 2026-10-24 批次 508：归档行在「已归档展示」折叠区内——折叠时无法布局，定位必然落空。
+  //   ⇒ 先把折叠区展开，再定位；定位函数返回 false（找不到该活动 / 仍不可见）时给明确提示，
+  //   不再「滚了但页面没动」的静默失败。
+  if (ctx?.focusActivityId) {
+    const fold = document.getElementById('archive-display-fold');
+    if (fold) fold.open = true;
+    if (!focusActivityAnchor(container, ctx.focusActivityId)) {
+      showToast('info', '未找到该活动的归档行（可能尚未归档或材料未上传）');
+    }
+  }
 }
 
 /** 活动风采「收录」管理（2026-09-29 批次 294 · 支书裁：「活动是否上传到活动风采」＝宣传委员之权）。
@@ -419,7 +435,7 @@ let _weeklyOpen = false;
 /** 懒挂周报内容到宿主容器（`weekly-tab.js` 的 `renderContent(ctx, host)` 已支持传入宿主） */
 function _mountWeekly(host, ctx) {
   host.dataset.weeklyMounted = '1';
-  import('./weekly-tab.js?v=20261024a').then(m => {
+  import('./weekly-tab.js?v=20261024b').then(m => {
     if (host.isConnected) m.renderContent(ctx, host);
   });
 }
@@ -438,6 +454,16 @@ function _renderWeeklySlot() {
         <span class="archive-weekly-toggle-label text-xs text-gray-500">${_weeklyOpen ? '收起' : '展开'}</span>
       </button>
       <div id="archive-weekly-host" class="px-4 pb-4 ${_weeklyOpen ? '' : 'hidden'}"></div>
+    </div>`;
+}
+
+/** 动作面全空时的主体空态卡（2026-10-24 批次 508）：
+ *  原实现在三块全空时主体一片空白（只剩标题），用户读不出「是没有待办，还是没加载出来」。
+ *  这里只补一句事实 + 一句去向（已归档记录在下方折叠区），不放动作按钮——「上传材料」在页头恒在。 */
+function _renderEmptyStateCard() {
+  return `
+    <div class="card rounded-xl p-6 mb-6 text-center" data-archive-empty role="status">
+      <p class="text-sm text-gray-600">暂无可归档内容 · 已归档记录在下方折叠区</p>
     </div>`;
 }
 
