@@ -11,37 +11,37 @@
 //  2026-10-18 乱专项：按「L0 结论带 → 组织事实 → 在册与留痕 → 本人自述 → 系统说明」重排；
 //        27 个档案字段各有且仅有一个 data-field 落点；同一事实不跨层重复。
 // ════════════════════════════════════════════════════════════════
-import { renderSidebar } from '../../components/shell/sidebar.js?v=20261023c';
-import { renderHeader } from '../../components/shell/header.js?v=20261023c';
-import { BranchService } from '../../services/core/runtime.js?v=20261023c';
-import { AuthStore } from '../../services/core/auth.js?v=20261023c';
-import { PersonStore, getPersonName, renameMemberAccount, deriveDevelopStageSince } from '../../services/member/person.js?v=20261023c';
-import { getDataSource, migrateLegacyPersonId } from '../../data/data-adapter.js?v=20261023c';
-import { loadMemberProfile } from '../../services/member/profile.js?v=20261023c';
-import { getBranchById } from '../../services/branch/branch.js?v=20261023c';
-import { openPersonEditModal } from '../../components/governance/pickers.js?v=20261023c';
+import { renderSidebar } from '../../components/shell/sidebar.js?v=20261024a';
+import { renderHeader } from '../../components/shell/header.js?v=20261024a';
+import { BranchService } from '../../services/core/runtime.js?v=20261024a';
+import { AuthStore } from '../../services/core/auth.js?v=20261024a';
+import { PersonStore, getPersonName, renameMemberAccount, deriveDevelopStageSince } from '../../services/member/person.js?v=20261024a';
+import { getDataSource, migrateLegacyPersonId } from '../../data/data-adapter.js?v=20261024a';
+import { loadMemberProfile } from '../../services/member/profile.js?v=20261024a';
+import { getBranchById } from '../../services/branch/branch.js?v=20261024a';
+import { openPersonEditModal } from '../../components/governance/pickers.js?v=20261024a';
 import {
   renderSelfDescriptionSection, countSelfProfileFilled, SELF_PROFILE_TOTAL,
   renderThoughtReportsSection,
-} from '../../components/governance/person-profile-sections.js?v=20261023c';
+} from '../../components/governance/person-profile-sections.js?v=20261024a';
 // 思想汇报按人归集（既有服务读口；制度承诺「提交即入库、算法归集至个人档案」的落地）
 import {
   listThoughtReportsByPerson, canReadThoughtReport,
-} from '../../services/governance/thought-report.js?v=20261023c';
+} from '../../services/governance/thought-report.js?v=20261024a';
 // 待确认请求读口（单一源：服务层现有读口；api 形态由 init() 从服务端填充同一缓存）
 import {
   listPendingConfirmations, MC_ACTION_LABEL,
-} from '../../services/member/member-confirmation.js?v=20261023c';
+} from '../../services/member/member-confirmation.js?v=20261024a';
 // Q-21-3 收敛（2026-09-13）：在册状态枚举单一源 = core/domain/constants.js（原经 org-base-data-preview 转出）
-import { ROLE_LABELS, RESIDENCE, EMPTY_TEXT, EMPTY_NOT_APPLICABLE } from '../../core/domain/constants.js?v=20261023c';
-import { canMaintainMemberProfileFields } from '../../core/domain/profile-access.js?v=20261023c';
-import { getBasePath, escHtml as esc, fmtDt } from '../../core/base/utils.js?v=20261023c';
-import { badgeHtml } from '../../components/ui/badges.js?v=20261023c';
+import { ROLE_LABELS, RESIDENCE, EMPTY_TEXT, EMPTY_NOT_APPLICABLE } from '../../core/domain/constants.js?v=20261024a';
+import { canMaintainMemberProfileFields } from '../../core/domain/profile-access.js?v=20261024a';
+import { getBasePath, escHtml as esc, fmtDt } from '../../core/base/utils.js?v=20261024a';
+import { badgeHtml } from '../../components/ui/badges.js?v=20261024a';
 // 批次 87：本页必须先 hydrate API 数据源再渲染（成员档案读 + 编辑写）——与 activity.html 标准形同款。
 // 此前本页只调 BranchService.loadDB()（API 模式直接 return）⇒ api 形态下档案读的是本地备份，
 // 且「编辑档案」按 mock 数据源落本机、服务端 users 表不更新。
-import { hydrateDataSource, notifyDataLoaded } from '../../data/data-adapter.js?v=20261023c';
-import { ApiAdapter } from '../../data/api-adapter.js?v=20261023c';
+import { hydrateDataSource, notifyDataLoaded } from '../../data/data-adapter.js?v=20261024a';
+import { ApiAdapter } from '../../data/api-adapter.js?v=20261024a';
 
 renderSidebar('dashboard');
 renderHeader('dashboard');
@@ -140,11 +140,11 @@ async function render() {
   renderMessage('正在加载档案…');
   cardEl.setAttribute('aria-busy', 'true');
   if (!viewer) {
-    renderMessage(`请先登录后查看成员档案 · <a class="text-sky-600 hover:underline" href="${getBasePath()}login.html">去登录</a>`);
+    renderMessage(`请先登录后查看成员档案 · <a class="text-accent hover:underline" href="${getBasePath()}login.html">去登录</a>`);
     return;
   }
   if (!personId) {
-    renderMessage(`未指定成员 · <a class="text-sky-600 hover:underline" href="${getBasePath()}workspace/org.html">去成员名册</a>`);
+    renderMessage(`未指定成员 · <a class="text-accent hover:underline" href="${getBasePath()}workspace/org.html">去成员名册</a>`);
     return;
   }
   if (viewer.role === 'party-staff' && !selectedBranchId) {

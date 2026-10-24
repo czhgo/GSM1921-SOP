@@ -1,22 +1,22 @@
 // role: [工程师]+[AI]
 // notice-entry.js — 通知详情独立入口
 // 2026-07-30: 增加邮件要素（通知者/被通知者/时间），但不采用邮箱 UI
-import { renderSidebar } from '../../components/shell/sidebar.js?v=20261023c';
-import { renderHeader } from '../../components/shell/header.js?v=20261023c';
-import { NoticeStore, resolveNoticeUrl, canReadNotice } from '../../services/governance/notice.js?v=20261023c';
-import { getBasePath, showToast } from '../../core/base/utils.js?v=20261023c';
-import { AuthStore } from '../../services/core/auth.js?v=20261023c';
-import { getPersonById, getPersonName } from '../../services/member/person.js?v=20261023c';
-import { badgeHtml } from '../../components/ui/badges.js?v=20261023c';
-import { NOTICE_AUDIENCE_SENTINELS } from '../../core/domain/constants.js?v=20261023c';
+import { renderSidebar } from '../../components/shell/sidebar.js?v=20261024a';
+import { renderHeader } from '../../components/shell/header.js?v=20261024a';
+import { NoticeStore, resolveNoticeUrl, canReadNotice } from '../../services/governance/notice.js?v=20261024a';
+import { getBasePath, showToast } from '../../core/base/utils.js?v=20261024a';
+import { AuthStore } from '../../services/core/auth.js?v=20261024a';
+import { getPersonById, getPersonName } from '../../services/member/person.js?v=20261024a';
+import { badgeHtml } from '../../components/ui/badges.js?v=20261024a';
+import { NOTICE_AUDIENCE_SENTINELS } from '../../core/domain/constants.js?v=20261024a';
 // S1（2026-09-12）：通知详情页必须先完成数据 hydrate（loadDB/API init）再按 id 取数，
 // 否则 NoticeStore 只剩 MOCK_NOTICES 内存兜底 → 用户/服务端通知一律「不存在或已过期」。
-import { hydrateDataSource, notifyDataLoaded } from '../../data/data-adapter.js?v=20261023c';
-import { ApiAdapter } from '../../data/api-adapter.js?v=20261023c';
-import { BranchService } from '../../services/core/runtime.js?v=20261023c';
+import { hydrateDataSource, notifyDataLoaded } from '../../data/data-adapter.js?v=20261024a';
+import { ApiAdapter } from '../../data/api-adapter.js?v=20261024a';
+import { BranchService } from '../../services/core/runtime.js?v=20261024a';
 // SOP-B-5（D-293）：通知确认时填「能否线上参会」——线上参会落该场考勤为「请假 + 线上」、只免补课
-import { declareOnlineAttend } from '../../services/activity/attendance.js?v=20261023c';
-import { loadActivities } from '../../services/activity/activity.js?v=20261023c';
+import { declareOnlineAttend } from '../../services/activity/attendance.js?v=20261024a';
+import { loadActivities } from '../../services/activity/activity.js?v=20261024a';
 
 renderSidebar('dashboard');
 renderHeader('dashboard');
@@ -76,7 +76,7 @@ backBtn?.addEventListener('click', () => {
     if (cardEl) {
       cardEl.innerHTML = `
         <p class="text-sm text-gray-500 text-center py-12">无权查看该通知</p>
-        ${noSession ? `<div class="text-center pb-12"><a href="${getBasePath()}login.html" class="text-sm text-blue-600 hover:text-blue-800">去登录</a></div>` : ''}
+        ${noSession ? `<div class="text-center pb-12"><a href="${getBasePath()}login.html" class="text-sm text-accent hover:underline">去登录</a></div>` : ''}
       `;
     }
   } else {

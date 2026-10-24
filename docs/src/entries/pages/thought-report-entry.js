@@ -13,24 +13,24 @@
 //  （2026-09-21 批次 124：支书 2026-09-20 定案「只给提交人本人」——支委层读他人的汇报时看不到该标记，
 //   组织侧不经手篇幅）；**一律不影响提交与归档**。
 // ════════════════════════════════════════════════════════════════
-import { renderSidebar } from '../../components/shell/sidebar.js?v=20261023c';
-import { renderHeader } from '../../components/shell/header.js?v=20261023c';
-import { BranchService } from '../../services/core/runtime.js?v=20261023c';
-import { AuthStore } from '../../services/core/auth.js?v=20261023c';
+import { renderSidebar } from '../../components/shell/sidebar.js?v=20261024a';
+import { renderHeader } from '../../components/shell/header.js?v=20261024a';
+import { BranchService } from '../../services/core/runtime.js?v=20261024a';
+import { AuthStore } from '../../services/core/auth.js?v=20261024a';
 // D-484（批次 87）：本页必须先 hydrate API 数据源再取数——与 activity / notice 独立页同款标准形。
 // 此前本页只调 BranchService.loadDB()，而该函数在 API 模式直接 return（数据由 data-adapter.init()
 // 从服务器填充）⇒ 本页从未切数据源 / init ⇒ api 形态下退回本地 mock 读（种子打得开、新提交报「不存在」）。
-import { hydrateDataSource, notifyDataLoaded } from '../../data/data-adapter.js?v=20261023c';
-import { ApiAdapter } from '../../data/api-adapter.js?v=20261023c';
-import { getPersonName } from '../../services/member/person.js?v=20261023c';
-import { getBasePath, showToast, escHtml as esc, fmtDt } from '../../core/base/utils.js?v=20261023c';
-import { badgeHtml } from '../../components/ui/badges.js?v=20261023c';
+import { hydrateDataSource, notifyDataLoaded } from '../../data/data-adapter.js?v=20261024a';
+import { ApiAdapter } from '../../data/api-adapter.js?v=20261024a';
+import { getPersonName } from '../../services/member/person.js?v=20261024a';
+import { getBasePath, showToast, escHtml as esc, fmtDt } from '../../core/base/utils.js?v=20261024a';
+import { badgeHtml } from '../../components/ui/badges.js?v=20261024a';
 import {
   loadThoughtReports, listThoughtReportsByPerson, listThoughtReportsByPersonGrouped,
   canReadThoughtReport, canReviewThoughtReport,
   rejectThoughtReport, resubmitThoughtReport,
   wordCountHint, periodLabel, comparePeriodDesc, THOUGHT_REVIEW_STATUS,
-} from '../../services/governance/thought-report.js?v=20261023c';
+} from '../../services/governance/thought-report.js?v=20261024a';
 
 renderSidebar('dashboard');
 renderHeader('dashboard');
@@ -94,7 +94,7 @@ const pidParam = params.get('personId') || '';
 (async () => {
   await _hydrateData();
   if (!viewer) {
-    renderMessage(`请先登录后查看思想汇报 · <a class="text-sky-600 hover:underline" href="${getBasePath()}login.html">去登录</a>`);
+    renderMessage(`请先登录后查看思想汇报 · <a class="text-accent hover:underline" href="${getBasePath()}login.html">去登录</a>`);
   } else if (idParam) {
     renderSingle(idParam);
   } else if (pidParam) {
@@ -107,7 +107,7 @@ const pidParam = params.get('personId') || '';
 // ── 无参数：提示未指定对象（2026-09-18 批次 86：原「组织委员待初阅队列」已随初阅门取消撤除）──
 function renderDefault() {
   if (!cardEl) return;
-  renderMessage(`未指定对象 · <a class="text-sky-600 hover:underline" href="${getBasePath()}workspace/visitor.html">去我的工作台查看/提交思想汇报</a>`);
+  renderMessage(`未指定对象 · <a class="text-accent hover:underline" href="${getBasePath()}workspace/visitor.html">去我的工作台查看/提交思想汇报</a>`);
   return;
 }
 

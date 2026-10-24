@@ -56,15 +56,19 @@ test('K1 .badge--gold 深琥珀字 on #FEF9C3 ≥ 4.5:1', () => {
   assert.ok(ratio >= 4.5, `badge--gold 对比度 ${ratio.toFixed(2)}:1 低于 4.5`);
 });
 
-test('K2 选中页签金色派生文字 ≥ 4.5:1（45% 压深档）', () => {
-  assert.match(CSS, /\.tab-btn-active\s*\{[^}]*color:\s*color-mix\(in srgb, var\(--tab-accent, #B91C1C\) 45%, #000\)/,
-    '选中页签文字应压深至 accent 45% + 黑');
-  const onGold = contrast(mix(GOLD, BLACK, 0.45), mix(GOLD, PAGE, 0.1));
-  const onWhite = contrast(mix(GOLD, BLACK, 0.45), mix(GOLD, WHITE, 0.1));
-  assert.ok(Math.min(onGold, onWhite) >= 4.5,
-    `金色选中页签对比度 ${Math.min(onGold, onWhite).toFixed(2)}:1 低于 4.5`);
-  const redRatio = contrast(mix(RED, BLACK, 0.45), mix(RED, PAGE, 0.1));
-  assert.ok(redRatio >= 4.5, `党建红选中页签对比度 ${redRatio.toFixed(2)}:1 低于 4.5`);
+test('K2 选中页签文字走主题 softText（不再 color-mix 派生）且 ≥ 4.5:1', () => {
+  // 2026-10-23 批次 507：选中页签文字由 `color-mix(--tab-accent 45%, #000)` 改为主题 softText
+  // （每主题手选 hex，7 主题对比度全量核在 theme-palette-guard::T2；此处只作页签侧的定点复核）。
+  const block = (/\.tab-btn-active\s*\{([^}]*)\}/.exec(CSS)?.[1] || '').replace(/\/\*[\s\S]*?\*\//g, '');
+  assert.match(block, /color:\s*var\(--app-accent-soft-text\)/, '选中页签文字应为 --app-accent-soft-text');
+  assert.doesNotMatch(block, /color-mix\(/, '选中页签文字不得再用 color-mix 派生');
+  const tok = (name) => {
+    const m = new RegExp(`${name}:\\s*(#[0-9A-Fa-f]{6})`).exec(CSS);
+    assert.ok(m, `styles.css 缺少 ${name}`);
+    return m[1];
+  };
+  const ratio = contrast(rgb(tok('--app-accent-soft-text-light')), rgb(tok('--app-accent-soft-bg-light')));
+  assert.ok(ratio >= 4.5, `金色选中页签对比度 ${ratio.toFixed(2)}:1 低于 4.5`);
 });
 
 test('K3 分组名是可见组名（12px / neutral-500），组间 1px 分隔线，≤1280 只隐藏组名', () => {

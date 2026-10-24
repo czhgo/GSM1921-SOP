@@ -5,20 +5,20 @@
 //  职责单一：日历/列表双视图切换 + ?view=?month= URL 同步 + 活动列表（前 10 条）。
 // ════════════════════════════════════════════════════════════════
 
-import { setState, getAppState } from '../../core/base/state.js?v=20261023c';
-import { _fmtDate, getBasePath } from '../../core/base/utils.js?v=20261023c';
-import { getPersonName } from '../../services/member/person.js?v=20261023c';
-import { CrossPageState } from '../../core/session/cross-page-state.js?v=20261023c';
-import { AuthStore } from '../../services/core/auth.js?v=20261023c';
-import { getActivityTypeColors, DASHBOARD_LIMITS } from '../../core/domain/constants.js?v=20261023c';
+import { setState, getAppState } from '../../core/base/state.js?v=20261024a';
+import { _fmtDate, getBasePath } from '../../core/base/utils.js?v=20261024a';
+import { getPersonName } from '../../services/member/person.js?v=20261024a';
+import { CrossPageState } from '../../core/session/cross-page-state.js?v=20261024a';
+import { AuthStore } from '../../services/core/auth.js?v=20261024a';
+import { getActivityTypeColors, DASHBOARD_LIMITS } from '../../core/domain/constants.js?v=20261024a';
 // 活动「已归档」口径单一源（2026-09-13 收敛）：替代手写 !a.archived
-import { isActivityArchived } from '../../core/domain/constants.js?v=20261023c';
-import { badgeHtml } from '../ui/badges.js?v=20261023c';
+import { isActivityArchived } from '../../core/domain/constants.js?v=20261024a';
+import { badgeHtml } from '../ui/badges.js?v=20261024a';
 // 活动「已完成 / 已取消」闭环判据单一源（R7-16）：替代手写 ['completed','cancelled']
-import { isActivityClosed } from '../../core/domain/domain.js?v=20261023c';
-import { deriveActivityLifecycleStatus, ACTIVITY_LIFECYCLE } from '../record/inspector.js?v=20261023c';
-import { populateMonthSelector } from '../record/calendar.js?v=20261023c';
-import { getCapabilities, mountCapability, getRuntimeEnv } from '../../core/boot/registry.js?v=20261023c';
+import { isActivityClosed } from '../../core/domain/domain.js?v=20261024a';
+import { deriveActivityLifecycleStatus, ACTIVITY_LIFECYCLE } from '../record/inspector.js?v=20261024a';
+import { populateMonthSelector } from '../record/calendar.js?v=20261024a';
+import { getCapabilities, mountCapability, getRuntimeEnv } from '../../core/boot/registry.js?v=20261024a';
 
 const DASHBOARD_DEFAULT_VIEW = 'calendar';
 const ACTIVITY_TYPE_COLORS = getActivityTypeColors({ withLabel: true });
@@ -108,7 +108,7 @@ export function renderActivityList(activities, user) {
     ? CrossPageState.buildURL(getBasePath() + 'workspace/' + (AuthStore.getPageForRole('workspace', user.role) || 'visitor.html'), { view: 'activities' })
     : getBasePath() + 'login.html';
   const moreHtml = sorted.length > display.length
-    ? `<a href="${moreUrl}" class="mt-2 flex items-center justify-center gap-1 py-2 text-xs font-medium rounded-lg transition-colors hover:bg-[var(--surface-hover)]" style="color:var(--accent-blue);">查看更多活动（共 ${sorted.length} 条）→</a>`
+    ? `<a href="${moreUrl}" class="mt-2 flex items-center justify-center gap-1 py-2 text-xs font-medium rounded-lg text-accent hover:underline transition-colors hover:bg-[var(--surface-hover)]">查看更多活动（共 ${sorted.length} 条）→</a>`
     : '';
 
   container.innerHTML = '<div class="space-y-2">' + display.map(a => {

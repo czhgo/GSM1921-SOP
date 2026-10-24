@@ -171,3 +171,42 @@ test('H5 非空转：hover 规则规模下限', () => {
   assert.ok(total >= 90, `hover 规则只有 ${total} 条（下限 90）：解析面被削或规则被误删`);
   for (const [f, r] of byFile) assert.ok(r.length > 0, `${f} 未解析到 hover 规则（该文件的选择器写法可能已变）`);
 });
+
+// ── H6 / H7：按压态（2026-10-23 批次 507）────────────────────────────────
+// 病灶：`--surface-active` 曾是党建红浅底（亮 #FEE2E2 / 暗 #2A1A22），中性按钮一按就闪红，
+//   被读成「危险 / 失败」。裁定：中性控件按压＝中性灰，主题色控件＝主题 activeBg，
+//   党建红实底＝--party-red-active；反馈只用 1px 内阴影（不位移 / 不缩放），时长 180ms。
+test('H6 按压配色三源：中性灰 / 主题 activeBg / 党建红 active', () => {
+  const css = read('docs/src/styles.css');
+  const active = /--surface-active:\s*([^;]+);/.exec(css);
+  assert.ok(active, 'styles.css 缺少 --surface-active');
+  assert.equal(active[1].trim(), 'var(--neutral-200)',
+    `--surface-active 必须是中性灰 var(--neutral-200)，实际「${active[1].trim()}」`);
+  assert.doesNotMatch(css, /--surface-active:\s*#(?:FEE2E2|2A1A22)/i,
+    '不得回落到红色浅底（#FEE2E2 / #2A1A22）——中性控件按下不得闪红');
+  assert.match(css, /\.btn-tab\.active:active[\s\S]{0,80}?var\(--app-accent-active-bg\)/,
+    '主题色选中页签（.btn-tab.active / .tab-btn-active）的按压必须走 --app-accent-active-bg');
+  assert.match(css, /\.tab-btn-active:active[\s\S]{0,80}?var\(--app-accent-active-bg\)/,
+    '顶栏工作台选中页签的按压必须走 --app-accent-active-bg');
+  assert.match(css, /--party-red-active:/, '党建红实底按压仍用 --party-red-active（不得被中性灰顶掉）');
+});
+
+test('H7 按压反馈唯一源：180ms + 1px 内阴影，且无位移 / 缩放', () => {
+  const css = read('docs/src/styles.css');
+  assert.match(css, /--transition-press:\s*180ms/, '缺少 --transition-press: 180ms');
+  const shadows = (css.match(/--press-shadow:\s*[^;]+;/g) || []);
+  assert.equal(shadows.length, 2, `--press-shadow 应在 :root 与深色段各一处（实测 ${shadows.length}）`);
+  // 唯一源：只有那条聚合 :active 规则消费它
+  const consumers = (css.match(/box-shadow:\s*var\(--press-shadow\)/g) || []);
+  assert.equal(consumers.length, 1, `内阴影消费点应恰 1 处（实测 ${consumers.length}）`);
+  // 按压不得位移 / 缩放：聚合规则体内不得出现 transform / scale / translate
+  const idx = css.indexOf('box-shadow: var(--press-shadow)');
+  const block = css.slice(idx, css.indexOf('}', idx));
+  assert.doesNotMatch(block, /transform|scale|translate/, '按压反馈不得用位移 / 缩放');
+  // 聚合规则必须覆盖四类按钮与关键控件
+  const selStart = css.lastIndexOf(':is(', idx);
+  const selectors = css.slice(selStart, css.indexOf(')', selStart));
+  for (const s of ['.btn-accent', '.btn-tab', '.btn-outline', '.cs-option', 'summary']) {
+    assert.ok(selectors.includes(s), `按压聚合选择器缺 ${s}`);
+  }
+});

@@ -1,10 +1,10 @@
 // role: [工程师]+[AI]
 // issue-form.js — 反馈新建表单
 
-import { IssueStore, ISSUE_DOMAINS, issueDomainSuggest, issueDomainReplyHint } from '../../services/governance/issues.js?v=20261023c';
-import { showToast } from '../../core/base/utils.js?v=20261023c';
-import { icon } from '../../core/base/icons.js?v=20261023c';
-import { badgeHtml } from '../ui/badges.js?v=20261023c';
+import { IssueStore, ISSUE_DOMAINS, issueDomainSuggest, issueDomainReplyHint } from '../../services/governance/issues.js?v=20261024a';
+import { showToast } from '../../core/base/utils.js?v=20261024a';
+import { icon } from '../../core/base/icons.js?v=20261024a';
+import { badgeHtml } from '../ui/badges.js?v=20261024a';
 
 const SCOPE_OPTIONS = [
   { value: 'permanent', label: '底层架构' },
@@ -28,7 +28,7 @@ export function renderIssueForm() {
 
   container.innerHTML = `
     <div class="mb-4">
-      <a href="./feedback.html" class="text-xs text-blue-600 hover:text-blue-800 flex items-center gap-1">
+      <a href="./feedback.html" class="text-xs text-accent hover:underline flex items-center gap-1">
         ${icon('chevronLeft', { className: 'w-3 h-3' })} 返回列表
       </a>
     </div>

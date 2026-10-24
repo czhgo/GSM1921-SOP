@@ -30,8 +30,9 @@ export const TIERS = ['daily', 'precommit', 'weekly'];
  *  2026-10-23 R11 Task 12.1：补登 feedback-integrity / modal-contract / schema-split-gate
  *    （此前只落盘未登记）＋ 新增 ui-control-system-guard（均纯 node）⇒ 220 → 224。
  *  2026-10-23 批次 505（spec redesign-theme-palette-and-density Task 9）：新增
- *    theme-palette-guard / density-spacing-guard / hover-state-guard（均纯 node）⇒ 224 → 227。 */
-export const DAILY_FILE_BUDGET = 227;
+ *    theme-palette-guard / density-spacing-guard / hover-state-guard（均纯 node）⇒ 224 → 227。
+ *  2026-10-23 批次 507（spec unify-link-and-press-states）：新增 link-color-guard（纯 node）⇒ 227 → 228。 */
+export const DAILY_FILE_BUDGET = 228;
 
 /** daily 静态 `test(` / `it(` 调用点预算（含子测试；新增断言须同批上调并写明理由）
  *  2026-10-21 R5 P1：页题守卫 4 条 + 对比度守卫 5 条 + 补登记的既有两条守卫 ⇒ 1351 → 1377。
@@ -49,8 +50,9 @@ export const DAILY_FILE_BUDGET = 227;
  *  2026-10-23 R11 Task 12.1：补登 feedback-integrity（12）/ modal-contract（5）/ schema-split-gate（4）
  *    ＋ 新增 ui-control-system-guard（7）⇒ 1418 → 1446。
  *  2026-10-23 批次 505（Task 9）：新增 theme-palette-guard（5）/ density-spacing-guard（7）/
- *    hover-state-guard（5）⇒ 按实况 1464（上批声明 1446 与实际差 1，本批一并校准）。 */
-export const DAILY_TEST_BUDGET = 1464;
+ *    hover-state-guard（5）⇒ 按实况 1464（上批声明 1446 与实际差 1，本批一并校准）。
+ *  2026-10-23 批次 507：新增 link-color-guard（5）＋ hover-state-guard 增补按压 H6/H7（2）⇒ 1464 → 1471。 */
+export const DAILY_TEST_BUDGET = 1471;
 
 const group = (tier, reason, list) => list.map((file) => ({ file, tier, reason }));
 
@@ -155,6 +157,8 @@ export const TEST_TIERS = [
     // 2026-10-23 批次 505（Task 9）：hover/active/selected 三态、@media (hover:hover) 门控、静态行无 hover（纯 node）
     'hover-state-guard.test.mjs',
     'ia-critical-guard.test.mjs',
+    // 2026-10-23 批次 507：跳转链接颜色单一源（`<a>` 不得用 Tailwind 蓝；`.link` 消费 softText，纯 node）
+    'link-color-guard.test.mjs',
     'localstorage-key-guard.test.mjs',
     // 2026-10-23 R11 Task 12.1：弹窗交互闭环契约（提交中禁止关闭 / alert / onSubmit 契约，纯 node）
     'modal-contract.test.mjs',

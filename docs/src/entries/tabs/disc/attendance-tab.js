@@ -12,44 +12,44 @@
 //   - 活动无上限 → 必须提供活动筛选（含时间区间）便于考察
 //   - 条目不得使用浅色底板（支书反感）→ 白底 + 左侧状态色条
 
-import { AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../../core/domain/domain.js?v=20261023c';
-import { generateId } from '../../../core/base/id.js?v=20261023c';
-import { attendanceToLong, loadAttendanceRecords, loadActiveAttendanceRecords, loadAttendanceRosterSnapshots, saveAttendanceRecords, canUploadAttendance, upsertMeetingAttendance, MEETING_ATTENDANCE_TYPES as MEETING_TYPES, ABSENCE_REASONS, absenceReasonLabel, absenceReasonNote, recorderRolesOf, listGroupMeetingAttendance, loadAttendanceAppeals, returnAttendanceAppeal, closeAttendanceAppeal, returnAttendanceRecord, summarizeAttendanceByActivity, isAttendanceHomePosition, freezeExpectedRosterForActivity, isAttendancePendingConfirm, isAttendanceConfirmed, isAutoConfirmedAttendance, attendanceConfirmerId, confirmAttendanceRecords } from '../../../services/activity/attendance.js?v=20261023c';
-import { buildAttendanceMatrixModel } from '../../../services/activity/attendance-matrix.js?v=20261023c';
-import { getPersonName } from '../../../services/member/person.js?v=20261023c';
+import { AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../../core/domain/domain.js?v=20261024a';
+import { generateId } from '../../../core/base/id.js?v=20261024a';
+import { attendanceToLong, loadAttendanceRecords, loadActiveAttendanceRecords, loadAttendanceRosterSnapshots, saveAttendanceRecords, canUploadAttendance, upsertMeetingAttendance, MEETING_ATTENDANCE_TYPES as MEETING_TYPES, ABSENCE_REASONS, absenceReasonLabel, absenceReasonNote, recorderRolesOf, listGroupMeetingAttendance, loadAttendanceAppeals, returnAttendanceAppeal, closeAttendanceAppeal, returnAttendanceRecord, summarizeAttendanceByActivity, isAttendanceHomePosition, freezeExpectedRosterForActivity, isAttendancePendingConfirm, isAttendanceConfirmed, isAutoConfirmedAttendance, attendanceConfirmerId, confirmAttendanceRecords } from '../../../services/activity/attendance.js?v=20261024a';
+import { buildAttendanceMatrixModel } from '../../../services/activity/attendance-matrix.js?v=20261024a';
+import { getPersonName } from '../../../services/member/person.js?v=20261024a';
 // S1–S4 滞留党员设计（2026-09-06 支书已批）：会议考勤「应到清点/全选范围」= 应到名单口径
 // （党员 正式+预备 且非滞留；滞留者「可见但禁用」、党课列席不计应到），不再全支部 50 人候选
 // 附录⑩ A批·S1（2026-09-06 支书裁定）：滞留线下到场可「到场补录」计入到席（实际应到=预应到 K + 补录 L）
-import { getMeetingRoster, getRosterStats, getMeetingRosterCandidates } from '../../../services/member/roster.js?v=20261023c';
-import { solidAccentStyle, ROLE_LABELS, isActivityArchived, isActivityLive } from '../../../core/domain/constants.js?v=20261023c';
-import { loadActivities } from '../../../services/activity/activity.js?v=20261023c';
+import { getMeetingRoster, getRosterStats, getMeetingRosterCandidates } from '../../../services/member/roster.js?v=20261024a';
+import { solidAccentStyle, ROLE_LABELS, isActivityArchived, isActivityLive } from '../../../core/domain/constants.js?v=20261024a';
+import { loadActivities } from '../../../services/activity/activity.js?v=20261024a';
 // R7-33：考勤「超期」按「活动日 + 补课时限（policy）」现算，不再直读记录上的 overdue 快照
-import { isAttendanceOverdue } from '../../../core/domain/policy-defaults.js?v=20261023c';
+import { isAttendanceOverdue } from '../../../core/domain/policy-defaults.js?v=20261024a';
 // SOP-B-2（D-288）：考勤候选默认选中「已通过报名者」——报名名单的来源单一源 = SignupStore
-import { getApprovedSignupPersonIds } from '../../../services/activity/signup.js?v=20261023c';
-import { autoGenerateMakeupTask } from '../../../services/activity/makeup.js?v=20261023c';
-import { TodoStore, TodoSourceType } from '../../../services/governance/todo.js?v=20261023c';
-import { NoticeStore } from '../../../services/governance/notice.js?v=20261023c';
-import { enhanceSelects } from '../../../components/ui/custom-select.js?v=20261023c';
-import { badgeHtml } from '../../../components/ui/badges.js?v=20261023c';
+import { getApprovedSignupPersonIds } from '../../../services/activity/signup.js?v=20261024a';
+import { autoGenerateMakeupTask } from '../../../services/activity/makeup.js?v=20261024a';
+import { TodoStore, TodoSourceType } from '../../../services/governance/todo.js?v=20261024a';
+import { NoticeStore } from '../../../services/governance/notice.js?v=20261024a';
+import { enhanceSelects } from '../../../components/ui/custom-select.js?v=20261024a';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20261024a';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是人的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
 // pagerHtml = 翻页控件单一源（批次 38：全站手写翻页一律并轨；叶子件，避免与矩阵相互成环）
-import { pagerHtml } from '../../../components/ui/pager.js?v=20261023c';
+import { pagerHtml } from '../../../components/ui/pager.js?v=20261024a';
 // 人×项目矩阵单一源（支书 2026-09-14 批次 35 裁定：宽表默认 + 矩阵推广）
-import { renderRelationMatrix } from '../../../components/ui/relation-matrix.js?v=20261023c';
-import { showToast, downloadCSV, triggerPrint, _fmtDate, escHtml as esc, getBasePath, flashHighlight } from '../../../core/base/utils.js?v=20261023c';
-import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261023c';
-import { requireDiscCommissionerId } from './_shared.js?v=20261023c';
-import { HandoffStore } from '../../../services/governance/handoff.js?v=20261023c';
-import { currentUserId } from '../../../services/core/auth.js?v=20261023c';
-import { PersonPicker } from '../../../components/governance/pickers.js?v=20261023c';
+import { renderRelationMatrix } from '../../../components/ui/relation-matrix.js?v=20261024a';
+import { showToast, downloadCSV, triggerPrint, _fmtDate, escHtml as esc, getBasePath, flashHighlight } from '../../../core/base/utils.js?v=20261024a';
+import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261024a';
+import { requireDiscCommissionerId } from './_shared.js?v=20261024a';
+import { HandoffStore } from '../../../services/governance/handoff.js?v=20261024a';
+import { currentUserId } from '../../../services/core/auth.js?v=20261024a';
+import { PersonPicker } from '../../../components/governance/pickers.js?v=20261024a';
 // 通用浮窗 + 「本位」nudge 确认弹窗（2026-09-23 支书裁定 · 单一源 = components/ui/modal.js）
 // U-04：申诉打回原用 `window.prompt`（无对话框语义、无焦点接管、移动端样式原生）→ 换本组件 openModal。
-import { confirmNudge, openModal, closeModal } from '../../../components/ui/modal.js?v=20261023c';
+import { confirmNudge, openModal, closeModal } from '../../../components/ui/modal.js?v=20261024a';
 // 「补课」分段整段复用原独立 tab 的渲染（2026-09-15 支书裁定：补课并入考勤管理，内部逻辑不改写）
-import { renderContent as renderMakeupContent } from './makeup-tab.js?v=20261023c';
+import { renderContent as renderMakeupContent } from './makeup-tab.js?v=20261024a';
 // 材料页深链 focusActivityId 的通用定位（只滚动 + 闪烁，不另造筛选器）
-import { focusActivityAnchor } from '../../../components/ui/detail-anchor.js?v=20261023c';
+import { focusActivityAnchor } from '../../../components/ui/detail-anchor.js?v=20261024a';
 
 const PAGE_SIZE = 20; // 分页铁律：全量总表每页 20 条
 let _page = 1;        // 模块级分页状态（随模块自持）
@@ -1337,7 +1337,7 @@ function _renderTable(longData, allRecords, actById, accent, accentBorder, ctx, 
             ${showCols.studentId ? `<td class="text-gray-600" data-label="学号"${a.studentId ? '' : ` title="${SNAPSHOT_TITLE}"`}>${a.studentId || '—'}</td>` : ''}
             ${showCols.developStage ? `<td class="text-gray-600" data-label="发展阶段"${a.developStage ? '' : ` title="${SNAPSHOT_TITLE}"`}>${a.developStage || '—'}</td>` : ''}
             ${showCols.partyGroup ? `<td class="text-gray-600" data-label="所属党小组"${a.partyGroup ? '' : ` title="${SNAPSHOT_TITLE}"`}>${a.partyGroup || '—'}</td>` : ''}
-            <td class="text-gray-600" data-label="活动"${recorderTitle ? ` title="${esc(recorderTitle)}"` : ''}>${a.activityId ? `<a class="text-blue-600 hover:underline" href="./activity.html?id=${a.activityId}">${activityTitle}</a>` : activityTitle}</td>
+            <td class="text-gray-600" data-label="活动"${recorderTitle ? ` title="${esc(recorderTitle)}"` : ''}>${a.activityId ? `<a class="text-accent hover:underline" href="./activity.html?id=${a.activityId}">${activityTitle}</a>` : activityTitle}</td>
             ${showCols.type ? `<td class="text-gray-600" data-label="类别"${a.type ? '' : ` title="${SNAPSHOT_TITLE}"`}>${a.type || '—'}</td>` : ''}
             <td data-label="状态"><span class="${statusColor}">${a.status}</span>${a.onlineAttend ? '<span class="ml-1 text-xs px-1 py-0.5 rounded bg-sky-50 text-sky-700 border border-sky-200 align-middle" title="线上参会：不计入出席（记「请假」），只免补课（D-293）">线上参会</span>' : ''}</td>
             ${groupMeetingView ? `<td class="text-gray-500" data-label="备注（标因/补录）">${groupMeetingNote}</td>` : ''}

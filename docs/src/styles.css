@@ -1,5 +1,5 @@
 /* 组件样式（@import 必须位于文件顶部） */
-@import url('components/person-picker.css?v=20261023c');
+@import url('components/person-picker.css?v=20261024a');
 
 /* ═══════════════════════════════════════════════════════════════
    GSM1921-SOP DESIGN SYSTEM v11.0 — Matte Flat
@@ -88,7 +88,9 @@
   --surface-header:   #7A0010;
   --surface-sidebar:  #FFFFFF;
   --surface-hover:    #F3F4F6;
-  --surface-active:   #FEE2E2;
+  /* 2026-10-23 批次 507：此前是党建红浅底 #FEE2E2，中性按钮按下会闪红、被误读成危险态；
+     现改为中性灰（暗色段删掉独立覆盖，靠 --neutral-200 的暗色重定义自动跟随）。 */
+  --surface-active:   var(--neutral-200);
 
   /* ── Functional — 状态指示色 ── */
   --functional-success: #10B981;
@@ -182,6 +184,10 @@
   --transition-fast:   150ms ease-out;
   --transition-normal: 200ms ease-out;
   --transition-slow:   250ms ease-out;
+  /* 2026-10-23 批次 507：按压态 180ms（比 hover 略慢，手指按下不闪）；
+     反馈只用 1px 内阴影「按进去」，不做位移 / 缩放（不推挤相邻内容）。 */
+  --transition-press:  180ms ease-out;
+  --press-shadow:      inset 0 1px 2px rgba(15, 23, 42, 0.10);
 
   --shadow-dropdown: 0 4px 16px rgba(0,0,0,0.12);
 
@@ -267,6 +273,8 @@ summary {
   cursor: pointer;
   /* 2026-10-23 Task 6：披露条命中高 ≥40，与列表行/表格行同档。 */
   min-height: var(--row-summary);
+  /* 2026-10-23 批次 507：披露条按压背景 / 内阴影走 --transition-press（只过渡这两项，不动箭头旋转）。 */
+  transition: background-color var(--transition-press), box-shadow var(--transition-press);
 }
 summary::-webkit-details-marker {
   display: none;
@@ -1069,7 +1077,8 @@ button:disabled { cursor: not-allowed; }
      ⇒ 透明边框把内容盒挤窄 2px。补同色系描边，实底不出现「薄边/透明边」。 */
   border: 1px solid var(--app-accent-strong-bg);
   border-radius: var(--radius-sm);
-  transition: background-color var(--transition-fast), border-color var(--transition-fast);
+  /* 2026-10-23 批次 507：按压时长改走 --transition-press（180ms），并把内阴影纳入过渡。 */
+  transition: background-color var(--transition-press), border-color var(--transition-press), box-shadow var(--transition-press);
 }
 /* 实底没有「更深一档」token（hoverBg 是浅底档，白字叠上去不可读）⇒ hover 只换描边，
    底色恒为 strong-bg；filter/opacity 作为状态色已在批次 506 删除。 */
@@ -1097,7 +1106,8 @@ button:disabled { cursor: not-allowed; }
   border: 1px solid var(--app-accent-soft-border);
   color: var(--app-accent-soft-text);
   border-radius: var(--radius-sm);
-  transition: background-color var(--transition-fast), border-color var(--transition-fast);
+  /* 2026-10-23 批次 507：按压时长 --transition-press，内阴影一并过渡。 */
+  transition: background-color var(--transition-press), border-color var(--transition-press), box-shadow var(--transition-press);
 }
 @media (hover: hover) {
   .btn-accent-soft:hover { background: var(--app-accent-hover-bg); }
@@ -1130,7 +1140,8 @@ button:disabled { cursor: not-allowed; }
   color: var(--neutral-700);
   border: 1px solid var(--neutral-200);
   border-radius: var(--radius-sm);
-  transition: background-color var(--transition-fast);
+  /* 2026-10-23 批次 507：按压时长 --transition-press，内阴影一并过渡。 */
+  transition: background-color var(--transition-press), box-shadow var(--transition-press);
 }
 @media (hover: hover) {
   .btn-neutral:hover { background: var(--surface-hover); }
@@ -1143,7 +1154,8 @@ button:disabled { cursor: not-allowed; }
   color: var(--neutral-700);
   border: 1px solid var(--neutral-200);
   border-radius: var(--radius-sm);
-  transition: background-color var(--transition-fast), border-color var(--transition-fast);
+  /* 2026-10-23 批次 507：按压时长 --transition-press，内阴影一并过渡。 */
+  transition: background-color var(--transition-press), border-color var(--transition-press), box-shadow var(--transition-press);
 }
 @media (hover: hover) {
   .btn-outline:hover { background: var(--surface-hover); border-color: var(--neutral-300); }
@@ -1156,7 +1168,8 @@ button:disabled { cursor: not-allowed; }
   color: var(--neutral-700);
   border: 1px solid transparent;
   border-radius: var(--radius-sm);
-  transition: background-color var(--transition-fast);
+  /* 2026-10-23 批次 507：按压时长 --transition-press，内阴影一并过渡。 */
+  transition: background-color var(--transition-press), box-shadow var(--transition-press);
 }
 @media (hover: hover) {
   .btn-ghost:hover { background: var(--surface-hover); }
@@ -1251,6 +1264,20 @@ button:disabled { cursor: not-allowed; }
 .text-accent {
   color: var(--app-accent-soft-text) !important;
 }
+/* 2026-10-23 批次 507：全站「跳转链接」的单一源（页内导航 / 帮助链接 / 行尾更多）。
+   色取主题 soft-text（亮/暗由别名选边）；hover 只加下划线、不改色——避免 hover 时掉对比度；
+   `.text-accent` 保留为等价别名（存量调用点不迁移）。 */
+.link {
+  color: var(--app-accent-soft-text);
+  text-decoration: none;
+  border-radius: 2px;
+  transition: color var(--transition-press), text-decoration-color var(--transition-press);
+}
+@media (hover: hover) {
+  .link:hover { text-decoration: underline; text-underline-offset: 2px; }
+}
+.link:active { color: var(--app-accent-soft-text); }
+.link:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 2px; }
 /* 列表行选中态（无边框，用于模板/子项选中） */
 .sel-accent-on {
   background: var(--app-accent-soft-bg) !important;
@@ -1585,7 +1612,8 @@ button:disabled { cursor: not-allowed; }
   border-radius: var(--radius-sm);
   white-space: nowrap;
   cursor: pointer;
-  transition: background-color var(--transition-fast), color var(--transition-fast);
+  /* 2026-10-23 批次 507：按压时长 --transition-press，内阴影一并过渡。 */
+  transition: background-color var(--transition-press), color var(--transition-press), box-shadow var(--transition-press);
 }
 .page-num {
   min-width: 30px;
@@ -1646,7 +1674,7 @@ button:disabled { cursor: not-allowed; }
 
 /* 2026-10-23 Task 7：hover / active 不再用 filter（4% 亮度低于感知阈值），
    hover 只换一档背景，触屏用 :active。 */
-.btn-action { transition: background-color var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast); }
+.btn-action { transition: background-color var(--transition-press), border-color var(--transition-press), color var(--transition-press), box-shadow var(--transition-press); }
 @media (hover: hover) {
   .btn-action-red:hover   { background: #FEE2E2; }
   .btn-action-green:hover { background: #DCFCE7; }
@@ -1679,7 +1707,8 @@ button:disabled { cursor: not-allowed; }
   background: var(--neutral-0);
   color: var(--neutral-600);
   cursor: pointer;
-  transition: background-color 150ms ease-out, border-color 150ms ease-out, color 150ms ease-out;
+  /* 2026-10-23 批次 507：按压时长 --transition-press，内阴影一并过渡。 */
+  transition: background-color var(--transition-press), border-color var(--transition-press), color var(--transition-press), box-shadow var(--transition-press);
 }
 
 @media (hover: hover) {
@@ -1712,7 +1741,8 @@ button:disabled { cursor: not-allowed; }
   border-radius: var(--radius-sm);
   border: 1px solid transparent;
   cursor: pointer;
-  transition: background-color 150ms ease-out, border-color 150ms ease-out;
+  /* 2026-10-23 批次 507：按压时长 --transition-press，内阴影一并过渡。 */
+  transition: background-color var(--transition-press), border-color var(--transition-press), box-shadow var(--transition-press);
   white-space: nowrap;
 }
 
@@ -2261,7 +2291,8 @@ html.theme-dark .cal-cell-large.is-today, html.theme-dark .cal-cell-mobile.is-to
    · 键盘 `:focus-visible` 与全局按钮同口径。 */
 .tab-btn {
   border: 1px solid transparent;
-  transition: background-color var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast);
+  /* 2026-10-23 批次 507：按压时长改走 --transition-press（180ms），并把内阴影纳入过渡。 */
+  transition: background-color var(--transition-press), border-color var(--transition-press), color var(--transition-press), box-shadow var(--transition-press);
 }
 @media (hover: hover) {
   .tab-btn:hover:not(.tab-btn-active) {
@@ -2282,8 +2313,9 @@ html.theme-dark .cal-cell-large.is-today, html.theme-dark .cal-cell-mobile.is-to
 /* ── Tab 按钮 active 状态（CSS 变量驱动，替代 inline style） ── */
 .tab-btn-active {
   background: var(--tab-accent-bg);
-  /* 2026-10-21 R5-C06：金色派生文字压深一档（55% → 45%），金色选中页签 ≥4.5:1。 */
-  color: color-mix(in srgb, var(--tab-accent, #B91C1C) 45%, #000);
+  /* 2026-10-23 批次 507：选中页签的文字改取主题 softText（浅底深字手选值），
+     删除 `color-mix(--tab-accent 45%, #000)` 的运行时派生——与全站链接/选中态同源。 */
+  color: var(--app-accent-soft-text);
   border: 1px solid var(--tab-accent-border);
 }
 
@@ -3775,7 +3807,8 @@ input.login-input:focus-visible,
     --surface-elevated: #1A2438;
     --surface-sidebar:  #0F172A;
     --surface-hover:    #1E293B;
-    --surface-active:   #2A1A22;
+    /* 2026-10-23 批次 507：--surface-active 不再单独覆盖（--neutral-200 已在本段重定义为 #334155，
+       var() 在同一元素上解析到暗色值），避免再次出现「暗色按压偏红」的第二套值。 */
 
     /* 主题色：8 个别名切到 *-dark 原始 token（原始 token 亮/暗两套已由 JS 注入，
        切换日夜只换选边、不重新注入；消费方无需感知 mode）。批次 505。
@@ -3798,6 +3831,8 @@ input.login-input:focus-visible,
     --functional-info:    #60A5FA;
 
     --shadow-dropdown: 0 4px 16px rgba(0, 0, 0, 0.5);
+    /* 2026-10-23 批次 507：暗底上 10% 的深色内阴影几乎不可见，加深到 45%（仍只 1px，不位移/缩放）。 */
+    --press-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.45);
 
     /* 焦点环（R5A-05）：暗底上党徽金 ≈13:1；外圈用浅色描边，不再用融于深底的纯黑。 */
     --focus-ring: var(--party-gold);
@@ -3854,10 +3889,6 @@ input.login-input:focus-visible,
   html.theme-dark .text-red-600    { color: var(--functional-error) !important; }
   html.theme-dark .text-blue-600   { color: var(--functional-info) !important; }
   html.theme-dark .text-amber-600  { color: var(--functional-warning) !important; }
-  html.theme-dark .text-sky-600    { color: #38BDF8 !important; }
-  @media (hover: hover) {
-    html.theme-dark .hover\:text-blue-800:hover  { color: #93C5FD !important; }
-  }
 
   /* ── ③ 硬编码浅色组件 ── */
   /* 状态徽章（T-217 行内状态轻交互胶囊：色点 + 文字 + 下拉） */
@@ -4012,8 +4043,8 @@ input.login-input:focus-visible,
   /* R5-C05：二级分段选中态由 `.btn-tab.active` 的 soft 三件套承担；
      深色不再逐点补丁（别名已切 *-dark）。批次 506 删除本段覆盖。 */
 
-  /* 侧边栏激活导航（module-tab.active）：深色底 --surface-active #2A1A22 + 原红字 #CE1126 对比仅 2.94:1，
-     提亮为功能红 #F87171（与 badge--danger 深色语义一致） */
+  /* 侧边栏激活导航（module-tab.active）：深色底 --surface-active 现已随中性灰（#334155）+ 原红字 #CE1126 对比不足，
+     提亮为功能红 #F87171（与 badge--danger 深色语义一致）；2026-10-23 批次 507 同步更新注释。 */
   html.theme-dark .module-tab.active { color: var(--functional-error) !important; }
   html.theme-dark .module-tab.active svg { color: var(--functional-error) !important; }
 
@@ -4533,16 +4564,7 @@ html.theme-dark .agg-count-badge {
   line-height: 18px !important;
 }
 
-/* 组件级例外（沿用组件**既有已裁定的尺寸口径**，字号仍随归一为 13px；颜色 / hover 不动）：
-   ① 顶栏动作 `.header-action-btn`：页面档 36px（8+8+18+2）。
-   ② 筛选行 `.lf-btn`：页面档 36px × 13px，与同排 40px 控件基线对齐（高度按位置分级，
-      不再为对齐输入框而改成 40）。
-      内边距保持 10px。 */
-.btn-ghost.header-action-btn {
-  padding: 8px 10px !important;
-  font-size: 13px !important;
-  line-height: 18px !important;
-}
+
 .btn-tab.lf-btn {
   padding: 8px 10px !important;
   font-size: 13px !important;
@@ -5810,3 +5832,34 @@ textarea::placeholder {
   }
 }
 
+/* 按压态「按进去」的实感（2026-10-23 批次 507 · 全站唯一源）：
+   只叠 1px 内阴影（--press-shadow），不做位移 / 缩放——按下不推挤相邻内容；
+   时长由各按钮族 transition 里的 --transition-press（180ms）承担。
+   选择器集中在此一处，新增按钮族只需并入本行，不得逐点再写 :active 内阴影。
+   ⚠ 本段位于文件末尾：组件自己的 `box-shadow`（如 .ws-tab-arrow 的下拉阴影）在本文件后段定义，
+     若把本段放前面会被它们按「同特异性、后写者胜」压掉（批次 507 实测按下无阴影）。 */
+:is(.btn-accent, .btn-accent-soft, .btn-outline, .btn-ghost, .btn-neutral, .btn-danger, .btn-tab, .btn-action, .btn-action-gray, .btn-sm, .btn-md, .tab-btn, .wp-dim-chip, .wp-brand-chip, .wp-agenda-kind, .cs-option, .settings-group-item, .page-btn, .page-num, summary, button.metric-band__item, a.metric-band__item):active {
+  box-shadow: var(--press-shadow);
+}
+/* 主题色控件的按压走主题 activeBg（不落到中性灰 --surface-active）：
+   否则已选中的 chip / 页签按下会「褪成灰」，与主题色选中态打架。 */
+.btn-tab.active:active,
+.tab-btn-active:active {
+  background: var(--app-accent-active-bg);
+}
+.wp-dim-chip.wp-dim-on:active,
+.wp-brand-chip.wp-brand-on:active,
+.wp-agenda-kind.wp-agenda-kind-on:active {
+  background-color: var(--app-accent-active-bg);
+}
+
+/* 组件级例外（沿用组件**既有已裁定的尺寸口径**，字号仍随归一为 13px；颜色 / hover 不动）：
+   ① 顶栏动作 `.header-action-btn`：页面档 36px（8+8+18+2）。
+   ② 筛选行 `.lf-btn`：页面档 36px × 13px，与同排 40px 控件基线对齐（高度按位置分级，
+      不再为对齐输入框而改成 40）。
+      内边距保持 10px。 */
+.btn-ghost.header-action-btn {
+  padding: 8px 10px !important;
+  font-size: 13px !important;
+  line-height: 18px !important;
+}

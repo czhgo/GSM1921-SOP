@@ -1,0 +1,111 @@
+// role: [工程师]+[AI]
+// link-color-guard.test.mjs — 「跳转链接」颜色单一源守卫（2026-10-23 批次 507）
+//
+// 为什么要有本守卫：
+//   同一个「跳转」语义，首页一处是 `text-accent`（主题色深字）、另一处是 `text-blue-600`（蓝）——
+//   读者无法从颜色判断「这是链接还是信息态」。批次 507 裁定：**全站链接统一主题色深字**
+//   （`.link` / `.text-accent` → `--app-accent-soft-text`），蓝色只保留「信息态」（徽章 / 状态字 /
+//   带背景色的按钮型链接）。没有本守卫，下一批新增页面又会把 Tailwind 蓝当链接色写回来。
+//
+// 判据：
+//   L1 非空转：扫描到的文件数 / `<a>` 标签数低于下限即红（解析面被削 ⇒ L2 恒真）
+//   L2 纯文本 `<a>`（class 里没有 `bg-*`）不得出现 `text-blue-*` / `text-sky-*` / `text-indigo-*`
+//   L3 `.link` 组件类单一源：色取 `--app-accent-soft-text`；hover 只加下划线且在 `@media (hover: hover)` 内
+//   L4 `.text-accent` 仍是等价别名（存量调用点依赖它）
+//   L5 蓝色文字类总量只降不升（棘轮；覆盖 JS 动态 className 这类 `<a>` 正则抓不到的写法）
+// 运行：node --test server/test/link-color-guard.test.mjs
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+import { readdirSync, readFileSync } from 'node:fs';
+import { join, dirname, relative } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const HERE = dirname(fileURLToPath(import.meta.url));
+const ROOT = join(HERE, '..', '..');
+const DOCS = join(ROOT, 'docs');
+const read = (rel) => readFileSync(join(ROOT, rel), 'utf8');
+
+/** 扫 docs/ 下的前端源（js/html），排除第三方产物 */
+function walk(dir) {
+  const out = [];
+  for (const name of readdirSync(dir)) {
+    const full = join(dir, name);
+    const rel = relative(ROOT, full).replace(/\\/g, '/');
+    if (rel.includes('assets/vendor') || rel.includes('node_modules')) continue;
+    let st;
+    try { st = readdirSync(full); } catch { st = null; }
+    if (st) { out.push(...walk(full)); continue; }
+    if (/\.(js|html)$/.test(name)) out.push(rel);
+  }
+  return out;
+}
+
+const FILES = walk(DOCS);
+
+/** `<a ...>` 开标签（含跨行的 class） */
+function anchors(src) {
+  return [...src.matchAll(/<a\b[^>]*>/g)].map((m) => m[0]);
+}
+
+const BLUE_TEXT_RE = /\btext-(?:blue|sky|indigo)-\d{2,3}\b/;
+
+test('L1 非空转：可扫描到前端源与 <a> 标签', () => {
+  assert.ok(FILES.length >= 150, `只扫描到 ${FILES.length} 个前端源文件（下限 150）`);
+  const total = FILES.reduce((n, f) => n + anchors(read(f)).length, 0);
+  assert.ok(total >= 200, `只扫描到 ${total} 个 <a> 标签（下限 200）：正则或目录口径失效，L2 会恒真`);
+});
+
+test('L2 纯文本链接不得用 Tailwind 蓝作链接色（信息态/带底色的按钮型链接除外）', () => {
+  const offenders = [];
+  let checked = 0;
+  for (const f of FILES) {
+    for (const tag of anchors(read(f))) {
+      checked += 1;
+      // 带底色的 `<a>` 是「按钮 / 徽章」形态（roster「档案」等），蓝色属信息态，不在链接口径内
+      if (/\bbg-[a-z]+-\d{2,3}\b/.test(tag)) continue;
+      const m = BLUE_TEXT_RE.exec(tag)
+        || /style="[^"]*color:\s*var\(--accent-/.exec(tag); // 旧角色色板 --accent-blue 等不得当链接色
+      if (m) offenders.push(`${f} → ${tag.replace(/\s+/g, ' ').slice(0, 120)}`);
+    }
+  }
+  console.log(`[link] 检查 <a> 标签 ${checked} 个，蓝链接 ${offenders.length} 个`);
+  assert.deepEqual(offenders, [],
+    `跳转链接必须用 text-accent（主题色深字），不得用 Tailwind 蓝：\n  ${offenders.join('\n  ')}`);
+});
+
+test('L3 .link 单一源：色取 softText，hover 只加下划线且在 hover 媒体查询内', () => {
+  const css = read('docs/src/styles.css');
+  const rule = /\.link\s*\{([^}]*)\}/.exec(css);
+  assert.ok(rule, 'styles.css 缺少 .link 组件类');
+  assert.match(rule[1], /color:\s*var\(--app-accent-soft-text\)/, '.link 的文字色必须是 --app-accent-soft-text');
+  assert.doesNotMatch(rule[1], /color-mix\(|#[0-9A-Fa-f]{6}/, '.link 不得回落到 color-mix / hex');
+
+  const hoverIdx = css.indexOf('.link:hover');
+  assert.ok(hoverIdx > -1, '.link 缺少 :hover 规则');
+  assert.match(css.slice(hoverIdx, hoverIdx + 160), /text-decoration:\s*underline/, '.link:hover 只加下划线');
+  // 门控：从最近的 @media (hover: hover) 到 .link:hover 之间不得出现右花括号（否则已离块）
+  const mediaIdx = css.lastIndexOf('@media (hover: hover)', hoverIdx);
+  assert.ok(mediaIdx > -1, '.link:hover 必须由 @media (hover: hover) 门控');
+  assert.equal(css.slice(mediaIdx, hoverIdx).includes('}'), false,
+    '.link:hover 位于 @media (hover: hover) 块外（触屏会粘住下划线）');
+});
+
+test('L4 .text-accent 仍是等价别名（存量调用点依赖）', () => {
+  const css = read('docs/src/styles.css');
+  const rule = /\.text-accent\s*\{([^}]*)\}/.exec(css);
+  assert.ok(rule, 'styles.css 缺少 .text-accent');
+  assert.match(rule[1], /color:\s*var\(--app-accent-soft-text\)/, '.text-accent 必须与 .link 同源（softText）');
+});
+
+test('L5 蓝色文字类总量只降不升（覆盖 JS 动态 className）', () => {
+  // 2026-10-23 批次 507 迁移后实测：docs/src/**/*.js 内 69 处（信息态徽章 / 状态 map / 表单控件），
+  //   链接已全量迁移。此数为冻结上限——新增即红；清理后可下调本常量。
+  const BASELINE = 70;
+  let total = 0;
+  for (const f of FILES) {
+    if (!f.startsWith('docs/src/') || !f.endsWith('.js')) continue;
+    total += (read(f).match(/\btext-(?:blue|sky|indigo)-\d{2,3}\b/g) || []).length;
+  }
+  assert.ok(total <= BASELINE,
+    `蓝色文字类 ${total} 处 > 基线 ${BASELINE}（链接须用 text-accent；新增必须说明为何是信息态）`);
+});

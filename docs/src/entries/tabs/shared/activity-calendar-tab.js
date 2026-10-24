@@ -30,10 +30,10 @@
 //   容器内容却没登记标记」时会把本页判成「已在位」而跳过骨架重建，留下空白（同 today-tab 2026-09-25
 //   真机实测的残留病）。
 
-import { getAppState } from '../../../core/base/state.js?v=20261023c';
-import { populateMonthSelector, renderCalendarByActivities } from '../../../components/record/calendar.js?v=20261023c';
-import { renderInspectorFromState } from '../../../components/record/inspector.js?v=20261023c';
-import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261023c';
+import { getAppState } from '../../../core/base/state.js?v=20261024a';
+import { populateMonthSelector, renderCalendarByActivities } from '../../../components/record/calendar.js?v=20261024a';
+import { renderInspectorFromState } from '../../../components/record/inspector.js?v=20261024a';
+import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261024a';
 
 const TAB_HTML = `
   ${renderTabHeader({ title: '活动日历', description: '月 / 周 / 日 / 列表四视图；点击日期查看当日活动。' })}
@@ -109,7 +109,7 @@ function _bindActivityDetailLinks(container) {
       const id = card.dataset.actId;
       if (!id) return;
       const link = document.createElement('a');
-      link.className = 'cal-activity-detail-link inline-flex items-center gap-1 mt-2 text-xs text-sky-700 hover:text-sky-800 hover:underline transition-colors';
+      link.className = 'cal-activity-detail-link inline-flex items-center gap-1 mt-2 text-xs text-accent hover:underline transition-colors';
       link.href = `./activity.html?id=${encodeURIComponent(id)}`;
       link.textContent = '查看活动详情 →';
       // 右栏卡片自身绑定了「打开摘要浮层」——链接点击不冒泡，直接走详情页。

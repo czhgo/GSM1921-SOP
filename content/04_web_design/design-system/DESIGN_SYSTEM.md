@@ -2,7 +2,7 @@
 title: "设计系统"
 type: design
 role: "[工程师]+[AI]"
-last_updated: 2026-10-23
+last_updated: 2026-10-24
 status: active
 related_files: [docs/src/styles.css, ../evolution/DESIGN_METHODOLOGY.md, ../data/DATA_MODEL.md]
 ---
@@ -2320,18 +2320,20 @@ li + li { margin-top: 0.25em; }
 - 间距只取 4/8/12/16/24；标题→次级→描述 8；页头说明→内容 8–12。
 - 按钮宽度由内容 + 水平 10/8/8；不得用 `min-height` 撑高脱离文字行高。
 
-### 12.8 交互三态（批次 506 现行）
+### 12.8 交互三态（批次 506 立 · 507 补按压三源）
 
 | 状态 | 主题色控件 | 中性控件 |
 |---|---|---|
 | hover | `--app-accent-hover-bg` | `--surface-hover` |
-| active | `--app-accent-active-bg` | `--surface-active` |
+| active | `--app-accent-active-bg` | `--surface-active`（= `var(--neutral-200)`） |
 | selected | `--app-accent-soft-bg/-soft-border/-soft-text` | `.is-current` 等既有类 |
 
 - 所有 `:hover` 必须位于 `@media (hover: hover)`；Tailwind `hover:` 由 `future.hoverOnlyWhenSupported` 自动门控。
 - hover 只改颜色；禁止 `filter/opacity/transform/translate/box-shadow` 作为 hover。
 - 静态行/卡不加 hover；页签与 `summary` 必须有 hover/active/focus-visible。
 - 触屏用 `:active`；键盘用 `focus-visible`。
+- **按压三源（507）**：中性控件＝中性灰；主题色控件（选中页签 / 主题 chip）＝该主题 `activeBg`；
+  党建红实底＝`--party-red-active`。**不得**让中性控件按出红色（旧 `--surface-active: #FEE2E2` 已废）。
 
 ### 12.9 主题与语义色（批次 506）
 
@@ -2352,4 +2354,33 @@ li + li { margin-top: 0.25em; }
 | SD-19 | IF 党徽/活动类别 THEN 固定语义色，切换主题前后 computed 值不变 |
 | SD-20 | IF 正文/浅底 THEN 对比度 4.5–9:1（≤12）；softBg 1.08–1.35；强色仅小面积且饱和度 ≤85% |
 | SD-21 | IF 主题选择器 THEN 恰 7 项；无两个紫或两个蓝；删除项有回落映射 |
+| SD-22 | IF 页面内跳转链接 THEN 类为 `.link` / `.text-accent`（色 `--app-accent-soft-text`）；`<a>` 上 `text-blue/sky/indigo` 计数为 0（带 `bg-*` 的信息态按钮型链接除外） |
+| SD-23 | IF 中性控件 `:active` THEN 背景 `--surface-active` = `var(--neutral-200)`（不得出现红色）；主题色控件用 `--app-accent-active-bg` |
+| SD-24 | IF 按压反馈 THEN 唯一源 `--press-shadow`（1px 内阴影）＋ `--transition-press` 180ms；`transform/scale/translate` 计数为 0 |
+
+### 12.10 链接与按压（批次 507）
+
+**链接（`a`）单一源**
+
+| 场景 | 类 | 颜色 | hover |
+|---|---|---|---|
+| 页面内跳转 / 行尾「查看全部 →」/ 返回链接 | `.link`（或等价别名 `.text-accent`） | `--app-accent-soft-text` | 只加下划线（`underline-offset: 2px`），不改色 |
+| 信息态（徽章 / 状态字 / 带 `bg-*` 的按钮型链接） | 既有 `.badge--info` / `tint-*` | 固定 info 蓝或语义色 | 按各自组件规则 |
+
+- 蓝色**不再承担链接**；`text-blue-*` 只允许出现在信息态徽章、状态色 map、表单控件修饰上。
+- hover 不改色：`soft-text` 已是浅底上可读的深字，hover 再加深会掉对比度。
+- 禁止在 `<a>` 上写 `text-blue-600 hover:text-blue-800` 这类 Tailwind 组合。
+
+**按压（`:active`）**
+
+| 令牌 | 值 | 用途 |
+|---|---|---|
+| `--surface-active` | `var(--neutral-200)` | 中性控件按压（亮 `#E5E7EB` / 暗 `#334155`） |
+| `--app-accent-active-bg` | 每主题手选 | 主题色控件按压 |
+| `--party-red-active` | `#990C1B` | 党建红实底按压（不随主题） |
+| `--transition-press` | `180ms ease-out` | 按压过渡（比 hover 略慢，按下不闪） |
+| `--press-shadow` | `inset 0 1px 2px` | 唯一按压反馈（不位移 / 不缩放） |
+
+- 内阴影**只写一次**（`:is(.btn-…, .btn-tab, .cs-option, summary, …):active`），新增按钮族并入该行，不得逐点再写。
+- 按下不得推挤相邻内容：不写 `transform: scale()` / `translateY()`。
 

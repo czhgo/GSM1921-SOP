@@ -8,21 +8,21 @@
 
 // R2-47（2026-10-20）：出勤率统一走服务层的两个显式语义（按应到 / 按已录），页面不再自己相除；
 //   R2-14：配色档位同源 attendanceRateTone（良好线 90 + 制度提示线 lowRateHint）。
-import { loadActiveAttendanceRecords, absenceReasonLabel, createAttendanceAppeal, summarizePersonAttendanceByRoster, summarizeAttendanceByActivity, attendanceRateTone } from '../../../services/activity/attendance.js?v=20261023c';
-import { getOrganizedActivities } from '../../../services/activity/activity.js?v=20261023c';
-import { loadMakeupTasks, saveMakeupTasks } from '../../../services/activity/makeup.js?v=20261023c';
-import { AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../../core/domain/domain.js?v=20261023c';
-import { POLICY_DEFAULTS, isAttendanceOverdue } from '../../../core/domain/policy-defaults.js?v=20261023c';
-import { AuthStore } from '../../../services/core/auth.js?v=20261023c';
-import { openFormModal } from '../../../components/ui/modal.js?v=20261023c';
-import { showToast, todayLocal } from '../../../core/base/utils.js?v=20261023c';
+import { loadActiveAttendanceRecords, absenceReasonLabel, createAttendanceAppeal, summarizePersonAttendanceByRoster, summarizeAttendanceByActivity, attendanceRateTone } from '../../../services/activity/attendance.js?v=20261024a';
+import { getOrganizedActivities } from '../../../services/activity/activity.js?v=20261024a';
+import { loadMakeupTasks, saveMakeupTasks } from '../../../services/activity/makeup.js?v=20261024a';
+import { AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../../core/domain/domain.js?v=20261024a';
+import { POLICY_DEFAULTS, isAttendanceOverdue } from '../../../core/domain/policy-defaults.js?v=20261024a';
+import { AuthStore } from '../../../services/core/auth.js?v=20261024a';
+import { openFormModal } from '../../../components/ui/modal.js?v=20261024a';
+import { showToast, todayLocal } from '../../../core/base/utils.js?v=20261024a';
 // 活动「已归档」口径单一源（2026-09-13 收敛）：替代手写 !a.archived
-import { isActivityArchived } from '../../../core/domain/constants.js?v=20261023c';
+import { isActivityArchived } from '../../../core/domain/constants.js?v=20261024a';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是活动的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
-import { renderFilteredList, activityKeyword, activityFacets } from '../../../components/ui/list-filter.js?v=20261023c';
+import { renderFilteredList, activityKeyword, activityFacets } from '../../../components/ui/list-filter.js?v=20261024a';
 // 材料页深链 focusActivityId 的通用定位（只滚动 + 闪烁，不另造筛选器）
-import { focusActivityAnchor } from '../../../components/ui/detail-anchor.js?v=20261023c';
-import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261023c';
+import { focusActivityAnchor } from '../../../components/ui/detail-anchor.js?v=20261024a';
+import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261024a';
 
 export function renderContent(ctx) {
   const tc = document.getElementById('visitor-tab-content');
@@ -65,7 +65,7 @@ export function renderContent(ctx) {
   // 挂「由我组织的活动」上传位（实现单一源＝leader/attendance-tab，host 复用；scope=organizer 只投影本人活动）
   const _orgAttHost = document.getElementById('visitor-org-att-host');
   if (_orgAttHost) {
-    import('../leader/attendance-tab.js?v=20261023c').then(m => { if (_orgAttHost.isConnected) m.renderContent(ctx, _orgAttHost, { scope: 'organizer' }); });
+    import('../leader/attendance-tab.js?v=20261024a').then(m => { if (_orgAttHost.isConnected) m.renderContent(ctx, _orgAttHost, { scope: 'organizer' }); });
   }
 
   // SOP-B-15 当事人可见侧（2026-09-20 批次 116 支书定案「支委会 ＋ 当事人本人」）：

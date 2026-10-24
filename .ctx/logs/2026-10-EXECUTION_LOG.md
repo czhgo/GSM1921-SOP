@@ -3619,3 +3619,55 @@ $body
 
 见 `DESIGN_SYSTEM.md §12.7–§12.9` ＋ SD-12…SD-21：主题 token 必须手选 hex（零 `color-mix/rgba/brightness`）；`softText` 可与 `strongBg` 不同但 ≥4.5:1；行内 28 / 卡片 32 / 页面 36 且不许 `min-height` 撑高；列表 48/56/44 且文本上下 ≥8；hover 用 `hoverBg` 且必须门控；静态行/卡无 hover；标题→次级→描述 8px；党徽/活动类别色切主题前后不变；正文 4.5–9:1、`softBg` 与白 1.08–1.35、强色小面积且饱和度 ≤85%；主题选择器恰 7 项、无两个紫或两个蓝。
 
+## 批次 507（2026-10-23/24）：链接语义色与按压态统一（spec `unify-link-and-press-states`）
+
+### 一、判据
+
+- 支书两条实报：① 同一页「查看全部 →」是主题色、「完整日历 →」是蓝色 —— 两种颜色都在承担「链接」，读者无法从颜色判断语义；② 按钮点下去瞬间变红、动效太快，「要么灰、要么主题色淡色变体」。
+- 取证：`<a>` 上的 Tailwind 蓝 **132 处 / 43 文件**（`text-accent` 仅 18 处）；`--surface-active` 亮 `#FEE2E2` / 暗 `#2A1A22`（党建红浅底），**约 20 个组件**的 `:active` 共用它 ⇒ 中性按钮按下必闪红。
+- 四问四答（`grill-me` 一轮）：链接统一主题色深字；中性灰 + 主题 `activeBg`；180ms + 1px 内阴影、不加位移；细则进设计文件、CLAUDE 另立专项。
+
+### 二、动作（指针）
+
+1. **`.link` 组件类**（`styles.css`）：色 `--app-accent-soft-text`；hover 只加下划线（`underline-offset: 2px`，不改色以免掉对比度）；`:active` 同色；`focus-visible` 焦点环；`.text-accent` 保留为等价别名。
+2. **迁移**：28 文件 45 处 `<a>` ＋ 3 个根页返回链接 ＋ `activity-panel.js` 的内联 `color:var(--accent-blue)`；信息态蓝（徽章 / 状态 map / 表单控件）**保留**，逐条登记。
+3. **按压三源**：`--surface-active` → `var(--neutral-200)`（亮 `#E5E7EB` / 暗 `#334155`，删暗色红覆盖）；主题色控件（`.btn-tab.active` / `.tab-btn-active` / 主题 chip）→ `--app-accent-active-bg`；党建红实底仍 `--party-red-active`。
+4. **动效**：`--transition-press: 180ms`、`--press-shadow: inset 0 1px 2px`；聚合 `:is(…):active` 为**唯一源**，置于文件末尾；按钮族 transition 换 press 令牌。
+5. **顺带收口**：`.tab-btn-active` 的文字由 `color-mix(--tab-accent 45%, #000)` 改为 `--app-accent-soft-text`（主题色链路的最后一条运行时派生）。
+6. **守卫**：新增 `link-color-guard`（L1–L5：`<a>` 禁蓝 / `.link` 单一源 / softText / 蓝类总量棘轮）；`hover-state-guard` 增 H6/H7（按压三源 + 唯一内阴影 + 无位移）；`ui-contrast-guard::K2` 改按 softText 核对比度；删两条零引用暗色覆盖（`text-sky-600` / `hover:text-blue-800`）。
+7. **文档**：`DESIGN_SYSTEM` §12.8 补「按压三源」、新增 §12.10（链接与按压）、SD-22…SD-24。
+
+### 三、读数
+
+- **定向**：静态 112 / 112 绿；`page-sweep` 16 / 16 绿；`ui-contrast` / `theme-palette` / `dead-selector` / `doc-*` / `version-stamp` 全绿。
+- **真机 computed**：未选中页签按下 `#E5E7EB` + `inset 0 1px 2px`；选中页签按下 `#F0DFAC`（金 activeBg）+ 同款内阴影；首页四个「→」链接均为 `#6E4E08`（= `--app-accent-soft-text`）。
+- **daily**：`npm run test:daily` **1474 / 1474 绿**。
+- **全量**：`SWEEP_SHARD=all` ＝ **[node] 1476 / 1476 绿**、**[e2e-A] 57 过 + 1 skip（58）**、**[e2e-B] 179 / 179 绿**；墙钟 **1175.9s**（≤1200s）。
+  （进程退出码非零来自运行器收尾时写 Playwright 自身 `debug.log` 被判沙箱限制，三通道汇总行是「全绿」；非用例失败。）
+- 版本戳 `20261023c` → **`20261024a`**。
+
+### 四、修复过程（如实）
+
+- **内阴影首版完全没生效**：聚合规则放在文件中段，被 `.ws-tab-arrow` 等**后段同特异性** `box-shadow` 规则压掉（真机按下 shadow=none）⇒ 整段移到文件末尾，并在注释里写明原因。
+- **工作台顶栏页签漏接**：它是 `.tab-btn` / `.tab-btn-active`，不是 `.btn-tab` / `.active` ⇒ 首版按压规则没覆盖；补入聚合选择器与 `activeBg` 分支（真机复验两个态都对）。
+- **`package.json` 被写出 BOM**：PowerShell `Set-Content` 默认带 BOM，`doc-consistency::S16` 的 `JSON.parse` 直接报错 ⇒ 用 node 重写去 BOM。
+- **日期翻页**：跨零点后 `frontmatter-freshness::F2` 报 `DESIGN_SYSTEM` 表行/头注释比最后提交日旧一天 ⇒ 刷 `last_updated` 与 TIMESTAMPS 三处（含自身行）。
+
+### 五、边界（如实）
+
+- **信息态蓝保留 69 处**（徽章 / 状态色 map / `file:text-blue-600` 等）：`link-color-guard::L5` 以 70 为棘轮上限，只降不升。
+- **`--tab-accent*` 内联三件套仍在**：选中页签的底/边仍用 tab-bar.js 注入的变量（文字已改 softText）；整体并入 `--app-accent-*` 留待下一批。
+- **`.btn-outline` 的真机按压未取到**：目标按钮位于会重渲的待办列表，`mousedown` 后节点被替换（量到的是新节点）；规则层面的覆盖由 H7 选择器断言保证。
+- **点击动效只做「颜色 + 内阴影」**：按支书裁定不加位移/缩放，因此观感上的「快」改善来自 180ms 与内阴影厚度，而不是动画时长的大幅加长。
+
+### 六、sample-diff（本轮支书反馈 → 规则）
+
+- **样本 1**：同一页两个「→」两种颜色（`text-accent` vs `text-blue-600 hover:text-blue-800`）。
+  → **SD-22**：`<a>` 的链接色只能来自 `.link` / `.text-accent`（`--app-accent-soft-text`）；`<a>` 上 `text-blue/sky/indigo` 计数为 0（带 `bg-*` 的信息态按钮型链接除外）。
+  → 推广：**「同一语义两种颜色」不是审美问题，是语义层缺单一源**；新增颜色先问「它属于哪个语义」，再问「有没有既有 token」。
+- **样本 2**：点击 `btn-tab` 瞬间变红（`--surface-active: #FEE2E2`）。
+  → **SD-23**：中性控件按压 = `--surface-active`（`var(--neutral-200)`）；主题色控件 = `--app-accent-active-bg`；党建红实底 = `--party-red-active`。
+  → **SD-24**：按压反馈唯一源 `--press-shadow` + `--transition-press` 180ms；`transform/scale/translate` 计数 0。
+  → 推广：**复用令牌前先核语义**——「active 就是红」这类命名会让红泄漏到中性控件；令牌名要绑定「用途」而不是「状态词」。
+
+

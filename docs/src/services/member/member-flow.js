@@ -17,16 +17,16 @@
 //  依赖：core(domain/data-adapter/id/version-token/constants) + services(person/member-confirmation/accounts)。
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../../core/domain/domain.js?v=20261023c';
-import { persist, getDataSource } from '../../data/data-adapter.js?v=20261023c';
-import { generateId } from '../../core/base/id.js?v=20261023c';
-import { bumpToken } from '../../core/base/version-token.js?v=20261023c';
+import { mockDB } from '../../core/domain/domain.js?v=20261024a';
+import { persist, getDataSource } from '../../data/data-adapter.js?v=20261024a';
+import { generateId } from '../../core/base/id.js?v=20261024a';
+import { bumpToken } from '../../core/base/version-token.js?v=20261024a';
 // 登记角色集单一源（勿手写角色名单——roles-sync 守卫会拦）
-import { MEMBER_FLOW_ROLES, DEFAULT_BRANCH_ID, DEVELOP_STAGES } from '../../core/domain/constants.js?v=20261023c';
-import { MEMBER_FLOWS } from '../../data/mock/index.js?v=20261023c';
-import { PersonStore } from './person.js?v=20261023c';
-import { submitTransferOut } from './member-confirmation.js?v=20261023c';
-import { createAccount, deactivateAccount, reactivateAccount } from '../core/accounts.js?v=20261023c';
+import { MEMBER_FLOW_ROLES, DEFAULT_BRANCH_ID, DEVELOP_STAGES } from '../../core/domain/constants.js?v=20261024a';
+import { MEMBER_FLOWS } from '../../data/mock/index.js?v=20261024a';
+import { PersonStore } from './person.js?v=20261024a';
+import { submitTransferOut } from './member-confirmation.js?v=20261024a';
+import { createAccount, deactivateAccount, reactivateAccount } from '../core/accounts.js?v=20261024a';
 
 // R2-17：缺省支部单一源 = core/domain/constants.js::DEFAULT_BRANCH_ID（老数据无 branchId 视为 br-b1）。
 /** 无权限文案（UI 与服务层同源） */

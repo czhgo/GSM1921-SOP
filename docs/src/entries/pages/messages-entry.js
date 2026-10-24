@@ -9,20 +9,20 @@
 //   · **回复线程**：`replyToMessage()` 生成「我 → 对方」的新私信并带 `replyTo` ⇒ 一来一往成线。
 //  ⚠ 与通知（公告）分列：本页**只**显示 `noticeType:'message'`，不含支部公告/系统派生通知。
 // ════════════════════════════════════════════════════════════════
-import { renderSidebar } from '../../components/shell/sidebar.js?v=20261023c';
-import { renderHeader } from '../../components/shell/header.js?v=20261023c';
+import { renderSidebar } from '../../components/shell/sidebar.js?v=20261024a';
+import { renderHeader } from '../../components/shell/header.js?v=20261024a';
 import {
   listMyMessages, sendDirectMessage, replyToMessage, canSendDirectMessage, NoticeStore,
-} from '../../services/governance/notice.js?v=20261023c';
-import { AuthStore } from '../../services/core/auth.js?v=20261023c';
-import { getPersonName } from '../../services/member/person.js?v=20261023c';
-import { showToast, escHtml as esc, getBasePath } from '../../core/base/utils.js?v=20261023c';
-import { badgeHtml } from '../../components/ui/badges.js?v=20261023c';
-import { PersonPicker } from '../../components/governance/pickers.js?v=20261023c';
+} from '../../services/governance/notice.js?v=20261024a';
+import { AuthStore } from '../../services/core/auth.js?v=20261024a';
+import { getPersonName } from '../../services/member/person.js?v=20261024a';
+import { showToast, escHtml as esc, getBasePath } from '../../core/base/utils.js?v=20261024a';
+import { badgeHtml } from '../../components/ui/badges.js?v=20261024a';
+import { PersonPicker } from '../../components/governance/pickers.js?v=20261024a';
 // S1（2026-09-12 通知详情页同款）：必须先完成数据 hydrate（loadDB / API init）再取数
-import { hydrateDataSource, notifyDataLoaded } from '../../data/data-adapter.js?v=20261023c';
-import { ApiAdapter } from '../../data/api-adapter.js?v=20261023c';
-import { BranchService } from '../../services/core/runtime.js?v=20261023c';
+import { hydrateDataSource, notifyDataLoaded } from '../../data/data-adapter.js?v=20261024a';
+import { ApiAdapter } from '../../data/api-adapter.js?v=20261024a';
+import { BranchService } from '../../services/core/runtime.js?v=20261024a';
 
 renderSidebar('messages');
 renderHeader('messages');
@@ -95,7 +95,7 @@ function render() {
   if (!me.role) {
     rootEl.innerHTML = `
       <h3 class="font-title-cn text-base font-semibold text-gray-800 mb-2">我的私信</h3>
-      <p class="text-sm text-gray-500">站内信需登录后查看。请先 <a href="${getBasePath()}login.html" class="text-sky-700 hover:underline">登录</a>。</p>`;
+      <p class="text-sm text-gray-500">站内信需登录后查看。请先 <a href="${getBasePath()}login.html" class="text-accent hover:underline">登录</a>。</p>`;
     return;
   }
 

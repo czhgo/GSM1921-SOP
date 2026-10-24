@@ -11,10 +11,10 @@
 //  依赖方向正确：组件 → 服务（不是服务 → 组件）。守卫：issue-branch.test.mjs（结构层）。
 // ════════════════════════════════════════════════════════════════
 
-import { renderFilteredList } from '../ui/list-filter.js?v=20261023c';
-import { renderTabHeader } from '../shell/page-frame.js?v=20261023c';
-import { escHtml, showToast } from '../../core/base/utils.js?v=20261023c';
-import { IssueStore, IssueNotify, deriveIssueDisplayState, REPORT_CATEGORIES, displayNameOf as _displayName } from '../../services/governance/issues.js?v=20261023c';
+import { renderFilteredList } from '../ui/list-filter.js?v=20261024a';
+import { renderTabHeader } from '../shell/page-frame.js?v=20261024a';
+import { escHtml, showToast } from '../../core/base/utils.js?v=20261024a';
+import { IssueStore, IssueNotify, deriveIssueDisplayState, REPORT_CATEGORIES, displayNameOf as _displayName } from '../../services/governance/issues.js?v=20261024a';
 
 // ════════════════════════════════════════════════════════════════
 //  「我的处置」Tab 渲染工具（各角色工作台复用）
@@ -58,7 +58,7 @@ export function renderMyDispatchTab(role, userId, opts = {}) {
   html += `<div class="card rounded-xl p-5">`;
   html += `<h3 class="font-title-cn text-sm font-bold text-gray-700 mb-2">我已处理 <span class="tabular-nums text-gray-500">${doneRows.length}</span></h3>`;
   // R3-08：原 100 字令牌机制说明移 help，界面只留一句可执行提示。
-  html += `<p class="text-xs text-gray-500 mb-2">可回看本浏览器提交或参与的反馈；换设备后无法回认。<a href="./help.html#card-dom39-my-dispatch" class="text-sky-700 hover:underline">帮助</a></p>`;
+  html += `<p class="text-xs text-gray-500 mb-2">可回看本浏览器提交或参与的反馈；换设备后无法回认。<a href="./help.html#card-dom39-my-dispatch" class="text-accent hover:underline">帮助</a></p>`;
   html += `<div id="mydispatch-done-host"></div>`;
   html += `</div>`;
   html += `</div>`;

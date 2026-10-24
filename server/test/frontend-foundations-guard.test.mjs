@@ -16,8 +16,8 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { describeWriteError } from '../../docs/src/core/base/utils.js?v=20261023c';
-import { NUDGE_TEXTS } from '../../docs/src/components/ui/modal.js?v=20261023c';
+import { describeWriteError } from '../../docs/src/core/base/utils.js?v=20261024a';
+import { NUDGE_TEXTS } from '../../docs/src/components/ui/modal.js?v=20261024a';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(HERE, '..', '..');

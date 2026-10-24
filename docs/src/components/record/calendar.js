@@ -5,13 +5,13 @@
 //  视图模式：月/周/日/列表 四种切换
 // ════════════════════════════════════════════════════════════════
 
-import { getAppState, setState } from '../../core/base/state.js?v=20261023c';
-import { ROLE_COLORS, getActivityColor, ACTIVITY_CATEGORY_COLORS, ACTIVITY_TYPE_LABELS, ACTIVITY_TYPE_SHORT } from '../../core/domain/constants.js?v=20261023c';
-import { _fmtDate, _currentYearMonth } from '../../core/base/utils.js?v=20261023c';
-import { tokenOf } from '../../core/base/version-token.js?v=20261023c'; // P2 视图渲染守卫数据版本（spec §四.2）
-import { filterTasksByManagementRole, activityLifecycleBadgeHtml } from './inspector.js?v=20261023c';
+import { getAppState, setState } from '../../core/base/state.js?v=20261024a';
+import { ROLE_COLORS, getActivityColor, ACTIVITY_CATEGORY_COLORS, ACTIVITY_TYPE_LABELS, ACTIVITY_TYPE_SHORT } from '../../core/domain/constants.js?v=20261024a';
+import { _fmtDate, _currentYearMonth } from '../../core/base/utils.js?v=20261024a';
+import { tokenOf } from '../../core/base/version-token.js?v=20261024a'; // P2 视图渲染守卫数据版本（spec §四.2）
+import { filterTasksByManagementRole, activityLifecycleBadgeHtml } from './inspector.js?v=20261024a';
 // 活动「已完成 / 已取消」闭环判据单一源（R7-16）：替代手写 ['completed','cancelled']
-import { isActivityClosed } from '../../core/domain/domain.js?v=20261023c';
+import { isActivityClosed } from '../../core/domain/domain.js?v=20261024a';
 
 // ── 固定语义色 tone（不随主题）──
 // 活动类别：三会一课（红）→ danger；主题党日（金）→ gold；其余 → neutral。
