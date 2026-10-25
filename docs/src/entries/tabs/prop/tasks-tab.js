@@ -2,20 +2,20 @@
 // 宣传委员工作台 Tab：宣传任务（T-279 M3 拆分，照 M2 样板）
 // 任务状态流转：待接收 → 进行中 → 已提交（seed 常量 + mockDB 持久化，刷新不再丢失）。
 
-import { mockDB } from '../../../core/domain/domain.js?v=20261024d';
-import { persist } from '../../../data/data-adapter.js?v=20261024d';
-import { showToast, downloadCSV, _fmtDate, todayLocal, escHtml } from '../../../core/base/utils.js?v=20261024d';
-import { renderTabHeader, renderCardHeader } from '../../../components/shell/page-frame.js?v=20261024d';
-import { generateId } from '../../../core/base/id.js?v=20261024d';
-import { isActivityLive, ROLE_LABELS } from '../../../core/domain/constants.js?v=20261024d';
-import { ORG_SUBJECT_LABELS } from '../../../core/domain/work-map.js?v=20261024d';
-import { openVoidModal } from '../../../components/ui/void-record.js?v=20261024d';
-import { filterActive } from '../../../services/governance/soft-void.js?v=20261024d';
+import { mockDB } from '../../../core/domain/domain.js?v=20261025a';
+import { persist } from '../../../data/data-adapter.js?v=20261025a';
+import { showToast, downloadCSV, _fmtDate, todayLocal, escHtml } from '../../../core/base/utils.js?v=20261025a';
+import { renderTabHeader, renderCardHeader } from '../../../components/shell/page-frame.js?v=20261025a';
+import { generateId } from '../../../core/base/id.js?v=20261025a';
+import { isActivityLive, ROLE_LABELS } from '../../../core/domain/constants.js?v=20261025a';
+import { ORG_SUBJECT_LABELS } from '../../../core/domain/work-map.js?v=20261025a';
+import { openVoidModal } from '../../../components/ui/void-record.js?v=20261025a';
+import { filterActive } from '../../../services/governance/soft-void.js?v=20261025a';
 
 // ── 宣传任务 mock 数据（2026-08-05：seed 常量 + mockDB 持久化，刷新不再丢失）──
 // 2026-09-28 批次 234：常量**搬到内容单一源** `docs/src/data/mock/prop.js`（服务端 `server/seed.js` 同源 import，
 //   原先此处私有常量被服务端逐字复刻一份 ⇒ 两份字面量，本批收成一份；取值与顺序一字未改）。
-import { PROP_TASKS_SEED } from '../../../data/mock/prop.js?v=20261024d';
+import { PROP_TASKS_SEED } from '../../../data/mock/prop.js?v=20261025a';
 
 // 从 mockDB 读取（seed 兜底注入一次）；写操作须更新 mockDB.propTasks 后调用 persist()
 function _loadPropTasks() {
@@ -51,6 +51,18 @@ const TASK_CREATE_TYPES = ['素材归档', '新闻稿', '推送排版', '周期�
 export function renderContent(ctx = {}) {
   const container = document.getElementById('prop-tab-content');
   if (!container) return;
+  renderBoard(container, ctx, { header: true });
+}
+
+/**
+ * 宣传任务板块（2026-10-25 IA 62→45）：本页签已并入「项目看板」页的「宣传任务」泳道，
+ * 渲染函数仍只此一份（`kanban-tab.js` 以 `renderBoard(host, ctx)` 复用），不复制列表/表单。
+ * @param {HTMLElement} container 承载容器
+ * @param {Object} ctx 工作台渲染上下文（activities 等）
+ * @param {{header?: boolean}} [opts] header=false 时不渲染页头 H2（泳道形态）
+ */
+export function renderBoard(container, ctx = {}, opts = {}) {
+  if (!container) return;
 
   // 按状态分组
   const pending = _activePropTasks().filter(t => t.status === 'pending');
@@ -60,7 +72,7 @@ export function renderContent(ctx = {}) {
   const activityMap = new Map((ctx.activities || []).map(a => [a.id, a]));
 
   container.innerHTML = `
-    ${renderTabHeader({ title: '宣传任务', description: '素材归档、新闻稿、推送排版与周期归档任务的登记与推进。' })}
+    ${opts.header ? renderTabHeader({ title: '宣传任务', description: '素材归档、新闻稿、推送排版与周期归档任务的登记与推进。' }) : ''}
     ${_renderCreateForm(ctx)}
     ${renderCardHeader({
       title: '任务清单',
@@ -123,7 +135,7 @@ export function renderContent(ctx = {}) {
     });
     persist();
     showToast('success', `已登记宣传任务「${summary}」`);
-    renderContent(ctx);
+    renderBoard(container, ctx, opts);
   });
 
   // T-304 A 档下载闭环：宣传任务导出 CSV
@@ -152,7 +164,7 @@ export function renderContent(ctx = {}) {
       task.status = nextStatus;
       persist();
       showToast('success', `任务「${task.summary}」状态已更新为「${TASK_STATUS_LABEL[nextStatus]}」`);
-      renderContent(ctx);
+      renderBoard(container, ctx, opts);
     });
   });
 
@@ -172,7 +184,7 @@ export function renderContent(ctx = {}) {
         reasonId: 'prop-task-void-reason',
         okAttr: 'data-prop-task-void-ok',
         cancelAttr: 'data-prop-task-void-cancel',
-        onDone: () => renderContent(ctx),
+        onDone: () => renderBoard(container, ctx, opts),
       });
     });
   });

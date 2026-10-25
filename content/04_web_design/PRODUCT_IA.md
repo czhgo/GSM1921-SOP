@@ -1,0 +1,177 @@
+---
+title: "产品 IA 派生索引（页签功能地图）"
+type: index
+role: "[工程师]+[AI]"
+last_updated: 2026-10-25
+version: "0.2"
+status: active
+related_files: [docs/src/core/domain/function-catalog.js, docs/src/capabilities/, content/03_doc_system/DOC_MAP.md]
+---
+
+# 产品 IA 派生索引（页签功能地图）
+
+> **定位：派生索引，不承担规范，禁止手改。** 本文件由 `docs/src/capabilities/*-workspace.js`（页签注册单一源）与 `docs/src/core/domain/function-catalog.js`（功能目录单一源）派生而来，只回答「哪台有哪些页签、各自归哪组、主对象与主操作是什么」。
+> **不负责什么**：页签的规范定义（分组轴见 [DESIGN_SYSTEM.md §4.6](design-system/DESIGN_SYSTEM.md)；组件与承载面见同文 §10.7 / §12.15）、页签注册本身（改 `capabilities/*`）、术语定义（见 [TERMINOLOGY.md](../03_doc_system/TERMINOLOGY.md)）。
+> **维护方式**：页签增删改 → 先改 `capabilities/*`，再同批按实况重写本表；`catalog-sync` 校验本表页签集合与注册表一致。**不得只改本表**。
+> **当前总数：45**（支书 10 / 组织 8 / 宣传 5 / 纪检 6 / 组长 6 / 成员 7 / 党委 3）。2026-10-25 Task 5 完成 62 → 45；被删/降的 17 项见文末「旧页签 → 新落点」重定向表。
+
+## 页签表（45）
+
+| 台 | 组 | 页签 | 渲染入口 | 一句话职责 | 主对象 | 主操作 | 新落点 |
+|---|---|---|---|---|---|---|---|
+| 支书 | 总览 | 今天 | `entries/tabs/today/today-tab.js` | 登录落点：今日待办、会议与分工速览 | 个人日程 / 待办 | 跳转待办 / 详情 | — |
+| 支书 | 总览 | 待办 | `entries/tabs/secretary/todo-tab.js` | 未读消息条 + 工作域折组的待办收件箱 | 待办 | 处理 / 跳转 | — |
+| 支书 | 总览 | 全局概况 | `entries/tabs/secretary/overview-tab.js` | L2 全局：统一待处理队列与责任线指标；页内「知情查看」卡 | 工作概况 / 工作组 | 处理队列 / 切工作组分段 | 承接原「知情查看」页签（卡内只读） |
+| 支书 | 我的职责 | 活动管理 | `entries/tabs/secretary/calendar-tab.js` | 全支部活动生命周期：日历 + 工具栏筛选（关键词 / 类别 / 品牌 / 党小组活动）+ 写入 | 活动 | 写入 / 筛选 / 记录 | 查询并入日历工具栏；活动赋权在活动详情 |
+| 支书 | 我的职责 | 支委会 | `entries/tabs/secretary/committee-meeting-tab.js` | 支委身份构成与支委会会议入口 | 支委会 / 会议 | 授予 / 改派 / 开会 | — |
+| 支书 | 我的职责 | 党小组 | `entries/tabs/secretary/group-progress-tab.js` | 党小组清单管理 + 跨组进展只读 | 党小组 | 新增 / 改名 / 解散 / 设组长 | — |
+| 支书 | 我的职责 | 通知发布 | `entries/tabs/secretary/notification-tab.js` | 发布与管理消息（公告 / 系统通知 / 私信） | 消息 | 发布 / 编辑 / 删除 | — |
+| 支书 | 我的职责 | 上报党委 | `entries/tabs/secretary/report-up-tab.js` | 支部关键事项上报党委并收回传结论 | 上报 | 提交 / 查看结论 | — |
+| 支书 | 协作与知情 | 支部分工 | `entries/tabs/secretary/work-map-tab.js` | 支部工作地图：模块定人定责定岗（默认责任关系主从） | 分工 | 查看 / 调整分工 | — |
+| 支书 | 制度与答复 | 反馈管理 | `entries/tabs/secretary/feedback-tab.js` | 收阅成员意见反馈并跟进处理 | 反馈 | 回复 / 关闭 | — |
+| 组织 | 总览 | 今天 | `entries/tabs/today/today-tab.js` | 登录落点：今日待办、会议与分工速览 | 个人日程 / 待办 | 跳转待办 / 详情 | — |
+| 组织 | 总览 | 待办 | `entries/tabs/org/todo-tab.js` | 未读消息条 + 工作域折组待办；页内「我经办的反馈」区 | 待办 / 反馈 | 处理 / 跳转 / 追加说明 | 承接原「我的处置」页签 |
+| 组织 | 总览 | 工作概况 | `entries/tabs/org/overview-tab.js` | 汇报 / 卡点 / 在办三区总览；页内「活动日历」折叠卡 | 工作概况 / 活动 | 查看 / 跳转 / 展开日历 | 承接原「活动日历」页签（含跨组招募与活动进展） |
+| 组织 | 我的职责 | 成员名册 | `entries/tabs/org/roster-tab.js` | 在册成员与档案状态维护 | 成员 | 新增 / 编辑 / 移出 | — |
+| 组织 | 我的职责 | 人才库 | `entries/tabs/org/talent-tab.js` | 按发展阶段观察成员；页底折叠区录入考察 | 成员发展 / 考察 | 查看 / 录入考察 | — |
+| 组织 | 我的职责 | 思想汇报 | `entries/tabs/org/thought-review-tab.js` | 思想汇报台账（人 × 期次）查看与打回 | 思想汇报 | 查看 / 打回 | — |
+| 组织 | 我的职责 | 专班管理 | `entries/tabs/org/taskforce-tab.js` | 专班全生命周期 + 专班工作组赋权（本页「项目赋权 · 专班」） | 专班 / 专班工作组 | 发起 / 统筹 / 赋权 / 归档 | 承接原支书台「项目赋权 · 专班」 |
+| 组织 | 我的职责 | 成员流动 | `entries/tabs/org/member-flow-tab.js` | 成员流入 / 流出登记与对账台账（本位） | 成员流动 | 登记 / 撤销 | 承接原支书台「成员流动」页签 |
+| 宣传 | 总览 | 今天 | `entries/tabs/today/today-tab.js` | 登录落点：今日待办、会议与分工速览 | 个人日程 / 待办 | 跳转待办 / 详情 | — |
+| 宣传 | 总览 | 待办 | `entries/tabs/prop/todo-tab.js` | 未读消息条 + 工作域折组待办；页内「我经办的反馈」区 | 待办 / 反馈 | 处理 / 跳转 / 追加说明 | 承接原「我的处置」页签 |
+| 宣传 | 总览 | 工作概况 | `entries/tabs/prop/overview-tab.js` | 汇报 / 卡点 / 在办三区总览；页内「活动日历」折叠卡 | 工作概况 / 活动 | 查看 / 跳转 / 展开日历 | 承接原「活动日历」页签 |
+| 宣传 | 我的职责 | 项目看板 | `entries/tabs/prop/kanban-tab.js` | 活动与专班合并看板 + 「宣传任务」泳道 | 项目 / 宣传任务 | 推进 / 接单 / 提交 | 承接原「宣传任务」页签 |
+| 宣传 | 我的职责 | 档案归档 | `entries/tabs/prop/archive-tab.js` | 活动材料归档、支部文件与周期报送 | 档案 / 材料 | 上传 / 归档 / 报送 | — |
+| 纪检 | 总览 | 今天 | `entries/tabs/today/today-tab.js` | 登录落点：今日待办、会议与分工速览 | 个人日程 / 待办 | 跳转待办 / 详情 | — |
+| 纪检 | 总览 | 待办 | `entries/tabs/disc/todo-tab.js` | 未读消息条 + 工作域折组待办；页内「我经办的反馈」区 | 待办 / 反馈 | 处理 / 跳转 / 追加说明 | 承接原「我的处置」页签 |
+| 纪检 | 总览 | 工作概况 | `entries/tabs/disc/overview-tab.js` | 汇报 / 卡点 / 在办三区总览；页内「活动日历」折叠卡 | 工作概况 / 活动 | 查看 / 跳转 / 展开日历 | 承接原「活动日历」页签 |
+| 纪检 | 我的职责 | 考勤管理 | `entries/tabs/disc/attendance-tab.js` | 全支部考勤管理，含「考勤 / 补课」一级分段 | 考勤 | 确认 / 上传 / 补课 | — |
+| 纪检 | 我的职责 | 复盘 | `entries/tabs/disc/review-tab.js` | 活动 / 专班复盘评议 | 复盘 | 批注 / 打回 / 确认 | — |
+| 纪检 | 我的职责 | 考察管理 | `entries/tabs/disc/inspection-tab.js` | 考察确认与建档归集 | 考察 | 查看 / 确认 | — |
+| 组长 | 总览 | 今天 | `entries/tabs/today/today-tab.js` | 登录落点：今日待办、会议与分工速览 | 个人日程 / 待办 | 跳转待办 / 详情 | — |
+| 组长 | 总览 | 待办 | `entries/tabs/leader/todo-tab.js` | 未读消息条 + 工作域折组待办；页内「我经办的反馈」区 | 待办 / 反馈 | 处理 / 跳转 / 追加说明 | 承接原「我的处置」页签 |
+| 组长 | 总览 | 工作概况 | `entries/tabs/leader/overview-tab.js` | 汇报 / 卡点 / 在办三区总览；页内「活动日历」折叠卡 | 工作概况 / 活动 | 查看 / 跳转 / 展开日历 | 承接原「活动日历」页签 |
+| 组长 | 我的职责 | 本组活动 | `entries/tabs/leader/write-tab.js` | 本组活动创建与现场考勤录入 | 活动（本组） | 写入 / 录入考勤 | — |
+| 组长 | 我的职责 | 考勤管理 | `entries/tabs/leader/attendance-tab.js` | 本组活动考勤上传 | 考勤 | 录入 / 上传 | — |
+| 组长 | 我的职责 | 组员进展 | `entries/tabs/leader/members-tab.js` | 本组组员进度 / 考勤 / 考察与复盘；独立区「其他党小组」+ 页内「上传考察」 | 成员 / 党小组 / 考察 | 查看 / 了解进展 / 上传考察 | 承接原「知情查看」「考察管理」页签 |
+| 成员 | 总览 | 今天 | `entries/tabs/today/today-tab.js` | 登录落点：今日待办、会议与分工速览 | 个人日程 / 待办 | 跳转待办 / 详情 | — |
+| 成员 | 总览 | 待办 | `entries/tabs/visitor/todo-tab.js` | 未读消息条 + 工作域折组待办；页内「我经办的反馈」区 | 待办 / 反馈 | 处理 / 跳转 / 追加说明 | 承接原「我的处置」页签 |
+| 成员 | 总览 | 工作概况 | `entries/tabs/visitor/overview-tab.js` | 汇报 / 卡点 / 在办三区（仅自我聚合） | 工作概况 | 查看 / 跳转 | — |
+| 成员 | 我的职责 | 活动动态 | `entries/tabs/visitor/activities-tab.js` | 活动浏览与报名，自带列表 / 日历 / 查询三视图 | 活动 | 报名 / 查看 | — |
+| 成员 | 我的职责 | 项目分工 | `entries/tabs/visitor/projects-tab.js` | 我的任务 / 我的分工 / 全局分工 + 「专班」区 | 活动 / 专班工作组 | 查看 / 勾掉任务 / 填报产出 | 承接原「专班动态」页签 |
+| 成员 | 我的职责 | 考勤概况 | `entries/tabs/visitor/attendance-tab.js` | 个人考勤与补课状态 | 考勤 | 查看 | — |
+| 成员 | 我的职责 | 我的成长 | `entries/tabs/visitor/growth-tab.js` | 思想汇报 / 我的考察 / 我的复盘三个子区 | 思想汇报 / 考察 / 复盘 | 提交 / 查看 / 申诉 / 复盘 | 合并原「思想汇报」「我的考察」「我的复盘」三页签 |
+| 党委 | 党委治理 | 下发通知 | `entries/tabs/party-committee/dispatch-tab.js` | 向目标支部下发治理通知 | 消息（党委下发） | 选支部 / 下发 | — |
+| 党委 | 党委治理 | 支部上报 | `entries/tabs/party-committee/review-tab.js` | 审批支部上报事项 | 上报 | 批准 / 驳回 | — |
+| 党委 | 党委治理 | 支部管理 | `entries/tabs/party-committee/branches-tab.js` | 支部实例目录与配置 | 支部 | 查看 / 配置 | — |
+
+## 统计
+
+| 台 | 页签数 |
+|---|---:|
+| 支书 | 10 |
+| 组织 | 8 |
+| 宣传 | 5 |
+| 纪检 | 6 |
+| 组长 | 6 |
+| 成员 | 7 |
+| 党委 | 3 |
+| **合计** | **45** |
+
+## 附：旧页签 → 新落点（重定向表）
+
+> 口径：旧 `?tab=<旧id>` 一律由 `components/shell/workspace-shell.js::_legacyTabAliases` 重定向到「新页签 + `section` / `filter` / `lane` 参数」，并给可见提示（toast）；书签 / 待办 / 通知深链不落空。跨台迁移（支书「成员流动」）走页面级重定向，落地后 toast 说明。
+
+| # | 台 | 旧页签（id） | 新页签（id） | 页内落点 / 参数 | 可见说明 |
+|---|---|---|---|---|---|
+| 1 | 支书 | 知情查看（`tf-view`） | 全局概况（`overview`） | `section=insight` → 页内「知情查看」卡（活动工作组 / 专班工作组） | toast「已并入工作概况」 |
+| 2 | 支书 | 成员流动（`member-flow`） | 组织台「成员流动」（`org.html?tab=member-flow`） | 跨页重定向 `legacy=member-flow` | 落地 toast「入口已收口到组织台」 |
+| 3 | 组织 | 活动日历（`calendar`） | 工作概况（`overview`） | `section=calendar` → 展开「活动日历」折叠卡（含跨组招募 / 活动进展） | toast「已并入工作概况」 |
+| 4 | 组织 | 我的处置（`my-dispatch`） | 待办（`todo`） | `filter=dispatch` → 滚到「我经办的反馈」区 | toast「已并入待办 · 我经办的反馈」 |
+| 5 | 宣传 | 活动日历（`calendar`） | 工作概况（`overview`） | `section=calendar` → 展开活动日历折叠卡 | toast「已并入工作概况」 |
+| 6 | 宣传 | 我的处置（`my-dispatch`） | 待办（`todo`） | `filter=dispatch` | toast「已并入待办 · 我经办的反馈」 |
+| 7 | 宣传 | 宣传任务（`tasks`） | 项目看板（`kanban`） | `lane=tasks` → 滚到「宣传任务」泳道 | toast「已并入项目看板」 |
+| 8 | 纪检 | 活动日历（`calendar`） | 工作概况（`overview`） | `section=calendar` | toast「已并入工作概况」 |
+| 9 | 纪检 | 我的处置（`my-dispatch`） | 待办（`todo`） | `filter=dispatch` | toast「已并入待办 · 我经办的反馈」 |
+| 10 | 组长 | 活动日历（`calendar`） | 工作概况（`overview`） | `section=calendar` | toast「已并入工作概况」 |
+| 11 | 组长 | 我的处置（`my-dispatch`） | 待办（`todo`） | `filter=dispatch` | toast「已并入待办 · 我经办的反馈」 |
+| 12 | 组长 | 知情查看（`tf-view`） | 组员进展（`members`） | `section=groups` → 「其他党小组」独立区 | toast「已并入组员进展」 |
+| 13 | 组长 | 考察管理（`inspection`） | 组员进展（`members`） | `section=inspection` → 页内「上传考察」折叠区 | toast「已降为组员进展页内动作」 |
+| 14 | 成员 | 我的处置（`my-dispatch`） | 待办（`todo`） | `filter=dispatch` | toast「已并入待办 · 我经办的反馈」 |
+| 15 | 成员 | 专班动态（`tf-view`） | 项目分工（`projects`） | `section=taskforce` → 「专班」区 | toast「已并入项目分工」 |
+| 16 | 成员 | 思想汇报（`thought-report`） | 我的成长（`growth`） | `section=thought` → 「思想汇报」子区 | toast「已并入我的成长」 |
+| 17a | 成员 | 我的考察（`inspection`） | 我的成长（`growth`） | `section=inspection` → 「我的考察」子区 | toast「已并入我的成长」 |
+| 17b | 成员 | 我的复盘（`review`） | 我的成长（`growth`） | `section=review` → 「我的复盘」子区 | toast「已并入我的成长」 |
+
+> 计数说明：目标表按「删/降项」计 17 项（成员台三项合并记 2 个减少量），页签净减 17 ⇒ 45。
+
+## 来源
+
+- 页签注册（台 / 组 / 页签名 / 渲染入口）：`docs/src/capabilities/{secretary,org,prop,disc,leader,visitor,party-committee}-workspace.js`
+- 功能目录（能力名 / 所属组 / 使用路径）：`docs/src/core/domain/function-catalog.js`
+- 旧深链承接：`docs/src/components/shell/workspace-shell.js::_legacyTabAliases` / `_legacyPageRedirects`
+
+## 样板屏元素清单（检查用，不是规范）
+
+> **这一步只回答「同一屏里同类元素能不能只出现一档」**，不新增规范、不改 IA。规范正文仍在
+> [DESIGN_SYSTEM.md](design-system/DESIGN_SYSTEM.md)；本清单是 Task 4「同屏纵向一致」的检查底稿，
+> 随样板屏实现同批维护，**不是**新的权威源。
+>
+> **维护边界**：本文件正文的页签表仍由代码派生、**禁止手改**；只有这一节「样板屏元素清单」是
+> 人工维护的检查附录——改样板屏时同批改这里，改页签注册表时只重派生上面的表。
+>
+> **总规矩：同屏同类元素只用一档。** 同一屏里，分区头只能有一种组件、折叠头只能有一种实现、
+> 同类动作只能有一个按钮档、同一个计数只能出现在一个位置、说明只能后置且不与标题复述。
+> 跨屏不要求逐字相同（各台可各有主题色与密度），但**屏内不得混档**。
+
+### 屏 1 · 支书台「活动管理」
+
+实现：`docs/src/entries/tabs/secretary/calendar-tab.js`（+ 共享 `components/record/calendar.js` / `inspector.js`）
+
+| 元素 | 允许的组件 / 类 | 档位 | 同屏约束 |
+|---|---|---|---|
+| 页面标题 | `renderTabHeader` | H2 · 20px · 600 | 一屏一个，不复述为卡头 |
+| 分区头（卡头） | `renderCardHeader` | H3 · 16px · 600 · 宋体 | 同屏只此一种；右侧只放动作 |
+| 统计条 | `#secretary-stats` 文本行 | 12px · 400（数值 600） | 只列活动域指标（待赋权 / 活跃 / 本月）；不挂徽章 |
+| 筛选控件 | `.input-flat` | 40px · 13px | 月份 / 关键词 / 类别 / 品牌 / 范围同高同字号 |
+| 筛选行动作 | `.btn-tab.lf-btn` | 36px · 13px | 只「清除」一档，与筛选控件基线对齐 |
+| 视图分段 | `.btn-tab` ＋ `.active` | 32px · 13px | 月 / 周 / 日 / 列表；分段控件不写成动作按钮 |
+| 卡头动作 | `.btn-accent-soft` | 36px · 13px | 「+ 新建党小组活动」次主操作一档 |
+| 折叠头 | `renderDisclosure` | 标题兄弟 H3 · `summary` 仅 `aria-labelledby` | 文件内不再手写 `details` / `summary`；同 chevron / 内边距（本屏仅写入浮窗两处） |
+| 行内徽章 | `badgeHtml`（生命周期 / 品牌） | 组件自带 | 不与 `state-badge` 混用 |
+| 说明 | `.text-xs .text-gray-500`，主体之后 | 12px · 400 | 页脚只留「活动赋权在活动详情、专班赋权在组织台」 |
+
+### 屏 2 · 支书台「全局概况」
+
+实现：`docs/src/entries/tabs/secretary/overview-tab.js` ＋ `components/governance/work-overview.js`
+＋ `components/record/insight-view.js`（`embedded` 形态）
+
+| 元素 | 允许的组件 / 类 | 档位 | 同屏约束 |
+|---|---|---|---|
+| 页面标题 | `renderTabHeader` | H2 · 20px · 600 | 一屏一个 |
+| 结论带 | `.metric-band` | 数值 28px / 标签 12px | 四个数固定，筛选与滚动分两种控件 |
+| 分区头（卡头） | `renderCardHeader` | H3 · 16px · 600 · 宋体 | 工作分工 / 待我处理 / 周期归档待审核 / 我已处理 同一档 |
+| 计数 | `.card-head__meta` | 12px · 400 · neutral-500 | 同一卡最多一处；不写进 H3；不与 `state-badge` 混用 |
+| 折叠头 | 原生 `details` ＋ 兄弟 H3（`aria-labelledby`） | 与分区头同档 | 只「我已处理」一处 |
+| 分段按钮 | `.btn-tab` ＋ `.active`（`insight-view`） | 32px · 13px | 只放「活动工作组 / 专班工作组」；「其他党小组」独立区 |
+| 行内动作 | `.btn-outline.btn-sm` | 28px · 12px | 待我处理行 / 周期归档行同一档 |
+| 徽章 | `state-badge`（逾期）/ `badgeHtml`（活动 · 专班） | 组件自带 | 计数列只用 `state-badge` |
+| 说明 | 分段内容之后 | 12px · 400 | 「活动工作组在活动详情可办事」后置；卡头「· 只读」不重复 |
+| 表格 | `.data-table` | 13px 单档 | 不另造表头样式 |
+
+### 屏 3 · 支书台「支部分工」
+
+实现：`docs/src/entries/tabs/secretary/work-map-tab.js`（`styles.css` 的 `.wm-*` 段）
+
+| 元素 | 允许的组件 / 类 | 档位 | 同屏约束 |
+|---|---|---|---|
+| 页面标题 | `renderTabHeader` | H2 · 20px · 600 | 一屏一个 |
+| 视图分段 | `.btn-tab` ＋ `.active` | 32px · 13px | 责任关系 / 平铺模块 / 按人 / 按项目 同档 |
+| 分区头（卡头） | `renderCardHeader` | H3 · 16px · 600 · 宋体 | 责任关系 / 分工调整工具 同一档 |
+| 左列主行 | `.wm-module-item__name` | 14px · 600 · 无衬线 | 与右列主标题同档 |
+| 左列次行 | `.wm-module-item__owner` | 12px · 400 · neutral-500 | 与右列 `dt` 同档 |
+| 右列主标题 | `.wm-detail__title` | 14px · 600 · 无衬线 | 与左列主行同档（不再用宋体 / 700） |
+| 右列字段行 | `.wm-detail__row` | 上下 4px / 左右 8px；`dt` 12px · `dd` 14px | 与左列模块项同内边距 |
+| 停用项动作 | `.btn-outline` | 36px · 13px | 与「展开分工调整工具」同档 |
+| 空态 | `emptyStateHtml` | 一句说明 ＋ 一个 `.btn-outline` | 不并列多个动作 |
+| 说明 | 主体与工具之后 | 12px · 400 | 只留「分工由本支部自行调整，改派走支委会议题」 |

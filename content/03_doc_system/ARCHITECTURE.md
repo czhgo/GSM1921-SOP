@@ -2,7 +2,7 @@
 title: "架构与单一事实源"
 type: architecture
 role: "[工程师]+[AI]"
-last_updated: "2026-10-22"
+last_updated: "2026-10-25"
 version: "7.4"
 status: active
 related_files: [CLAUDE.md, content/03_doc_system/DOC_MAP.md, content/02_institution/SYSTEM_ROLE_PERMISSION.md, content/04_web_design/]
@@ -12,7 +12,7 @@ related_files: [CLAUDE.md, content/03_doc_system/DOC_MAP.md, content/02_institut
 
 > **总述：** 本文是系统**架构与单一事实源**的唯一权威源，回答三件事——① **系统怎么分层、物理分布在哪**（§四 分层架构 / §五 仓库结构）；② **母本/子本关系怎么注册、变更怎么传播**（§八 SSOT 双向变更流水线 / §十 单一事实源注册表与权威源治理）；③ **系统有哪些服务、谁有权限**（§十一 统一服务目录与角色-服务权限矩阵）。三分互为依据：分层架构是物理承载，注册表规定「谁是母本、冲突以谁为准」，服务目录把架构与制度落成可盘的实现清单——任一处改动的溯源链路都回 §八 与 §十。
 > **受众：** [工程师]+[AI]
-> **本文不回答**：① **沿革与「哪一批做了什么」** → `.ctx/logs/YYYY-MM-EXECUTION_LOG.md`；② **数据结构与数据流（实体字段表 / 枚举 / 表结构）** → [DATA_MODEL.md](../04_web_design/data/DATA_MODEL.md)；③ **系统角色权限矩阵（角色键级权威）** → [SYSTEM_ROLE_PERMISSION.md](../02_institution/SYSTEM_ROLE_PERMISSION.md)；④ **文档导航与权威层级定义** → [DOC_MAP.md](./DOC_MAP.md) 与 [OPERATIONS_GUIDE.md §1.1](./OPERATIONS_GUIDE.md)；⑤ **术语与使用规范 / 文件角色分类** → [OPERATIONS_GUIDE.md](./OPERATIONS_GUIDE.md)（《运行与协作规范》：§19 术语 / §20 AI 展开 / §21 Emoji / §24–§31 文件角色分类）；⑥ **前端设计规范** → [DESIGN_SYSTEM.md](../04_web_design/design-system/DESIGN_SYSTEM.md)。
+> **本文不回答**：① **沿革与「哪一批做了什么」** → `.ctx/logs/YYYY-MM-EXECUTION_LOG.md`；② **数据结构与数据流（实体字段表 / 枚举 / 表结构）** → [DATA_MODEL.md](../04_web_design/data/DATA_MODEL.md)；③ **系统角色权限矩阵（角色键级权威）** → [SYSTEM_ROLE_PERMISSION.md](../02_institution/SYSTEM_ROLE_PERMISSION.md)；④ **文档导航与权威层级定义** → [DOC_MAP.md](./DOC_MAP.md) 与 [OPERATIONS_GUIDE.md §1.1](./OPERATIONS_GUIDE.md)；⑤ **术语定义** → [TERMINOLOGY.md](./TERMINOLOGY.md)（全仓唯一源）；**使用规范 / 文件角色分类** → [OPERATIONS_GUIDE.md](./OPERATIONS_GUIDE.md)（§20 AI 展开 / §21 Emoji / §24–§31 文件角色分类）；⑥ **前端设计规范** → [DESIGN_SYSTEM.md](../04_web_design/design-system/DESIGN_SYSTEM.md)。
 
 ---
 
@@ -135,7 +135,7 @@ Layer 7: 审计参考层（审计与参考）
 │   │   ├── leader.html                [用户]+[AI] 党小组组长工作台（活动写入+考勤管理+考察管理+复盘提交+待办）
 │   │   ├── org.html                   [用户]+[AI] 组织委员工作台（考察管理+专班管理+人才库+发展党员+待办）
 │   │   ├── prop.html                  [用户]+[AI] 宣传委员工作台（宣传任务+项目看板+档案归档+待办）
-│   │   ├── disc.html                  [用户]+[AI] 纪检委员工作台（考勤管理（含补课分段）+复盘+考察管理+知情查看+待办）
+│   │   ├── disc.html                  [用户]+[AI] 纪检委员工作台（考勤管理（含补课分段）+复盘+考察管理+待办）
 │   │   ├── visitor.html               [用户]+[AI] 成员工作台（含待办）
 │   │   └── party-committee.html       [工程师]+[AI] 党委后台工作台（支部实例+支书任命+支部上报，P1-P3）
 │   └── src/                           [工程师]+[AI] ESM 模块化源码
@@ -420,7 +420,7 @@ content/02_institution/sop/ → docs/src/workflow/ → core/constants/utils → 
 
 **区分「定义残留」与「合法功能分区」**：
 - **必须改**：与权威源不一致的旧定义——权威源变更后旧表述即属残留，须全仓同步；"那是旧的划分"这类表述同样不写，只讲"当前定义是什么"
-- **保留**：功能分区本身不是旧定义的载体——分区标题与 UI 标签归位到现行分区即可；工作台 Tab 组名按行为性质分「工作台 / 我的职责 / 知情查看 / 制度与答复」四组，不再出现党建/党务二分章节标题与场景前缀
+- **保留**：功能分区本身不是旧定义的载体——分区标题与 UI 标签归位到现行分区即可；工作台 Tab 组名按行为性质分「总览 / 我的职责 / 协作与知情 / 制度与答复」四组，不再出现党建/党务二分章节标题与场景前缀
 
 **Boolean 条件**：定义/术语变更传播完成 ⇔ 全仓 Grep 旧表述零残留（合法功能分区除外）**且** 权威源所有链接指向的下游文件已同步。
 

@@ -83,8 +83,12 @@ test('U6 活动风采：真图位、无渐变、无蓝 hover、无整卡上浮',
 
 test('U7 活动风采卡可键盘触发', () => {
   const src = read('docs/src/entries/pages/main-entry.js');
-  assert.match(src, /role="button"/, '活动风采卡应声明 role="button"');
-  assert.match(src, /addEventListener\('keydown'/, '活动风采卡应绑定键盘 Enter / Space');
+  // 2026-10-25 Task 3（组件契约）：整卡 div[role=button] 改为「H3 > 原生链接」——
+  //   键盘可达性由 `<a>` 承担，不再需要 role="button" 与 keydown 补救。
+  const gallery = read('docs/src/components/dashboard/gallery.js');
+  assert.match(gallery, /<h3 class="gallery-card__title"><a[^>]*data-gallery-activity-id=/, '活动风采卡标题应为原生链接（H3 > A）');
+  assert.doesNotMatch(gallery, /role="button"/, '活动风采卡不得再用 div[role=button]');
+  assert.doesNotMatch(src, /data-gallery-activity-id\]\[role="button"\]/, '键盘补救脚本应已删除（链接自带键盘可达）');
 });
 
 // ── 第二批：页标题 / 零值 / 数字对齐 ─────────────────────────────
@@ -107,17 +111,25 @@ test('U8 页标题层级：四页重点各一个 H2，卡头 H3，首页抬头�
   assert.match(overview, /renderTabHeader\(\{ title \}\)/, '概况 H2 应由 work-overview 参数化渲染');
   assert.match(read('docs/src/entries/tabs/secretary/overview-tab.js'), /title: '全局概况'/, '支书台概况应显式传「全局概况」');
   // 2026-10-20 界面细化：原「条线」是内部管理词，支书裁定改为「工作分工」。
-  assert.match(overview, /<h3 class="section-head__title">工作分工<\/h3>/, '工作分工须为 H3');
+  // 2026-10-25 Task 4（同屏纵向一致）：分区头改走单一源 renderCardHeader（其 H3 由
+  //   page-frame G10 核对）；断言从字面 `<h3 class="section-head__title">` 改为调用与标题，
+  //   覆盖「H3 载体 + 文案」不变。
+  assert.match(overview, /renderCardHeader\(\{ title: '工作分工' \}\)/, '工作分工须为 H3（renderCardHeader）');
   // 2026-10-20：分区标题改由单一常量 ACTIONS_TITLE 输出（结论带第二枚指标已改称「待办」），
   //   层级仍是 H3；断言钉住「常量值 + H3 载体」，避免改文案时漏掉语义。
   assert.match(overview, /const ACTIONS_TITLE = '待我处理';/, '待我处理标题文案应单一源');
-  assert.match(overview, /<h3 class="section-head__title">\$\{ACTIONS_TITLE\}<\/h3>/, '待我处理须为 H3');
+  assert.match(overview, /renderCardHeader\(\{ title: ACTIONS_TITLE \}\)/, '待我处理须为 H3（renderCardHeader）');
   assert.doesNotMatch(overview, /<h4[^>]*section-head__title/, '分区标题不得再用 H4');
 
   const todo = read(TODO_SHELL);
   // 2026-10-19 结构收口：待办页标题由页签承担，不再在内容区重复 H2。
   assert.doesNotMatch(todo, /renderTabHeader\(\{ title: '待办' \}\)/, '待办不再重复页签同名 H2');
-  assert.match(todo, /role="heading" aria-level="3"/, '折叠条标题应有 H3 语义（summary 内用 ARIA heading）');
+  // 2026-10-25 Task 3（组件契约）：标题不得进入交互元素 ⇒ 折叠条标题改为兄弟 H3，
+  //   `<summary>` 只用 aria-labelledby 关联；`role=heading` 进 summary 的写法已判红。
+  assert.match(todo, /<h3[^>]*id="todo-strip-title"/, '折叠条标题应为 summary 的兄弟 H3');
+  assert.doesNotMatch(todo, /<summary[^>]*>\s*<span[^>]*role="heading"/,
+    '标题不得进入 summary（须为兄弟节点，用 aria-labelledby 关联）');
+  assert.match(todo, /<summary[^>]*aria-labelledby="todo-strip-title"/, 'summary 应用 aria-labelledby 关联标题');
 
   const cm = read(COMMITTEE);
   assert.match(cm, /renderTabHeader\(\{[\s\S]*?title: '支委会'/, '支委会 H2 应走统一组件');
@@ -171,7 +183,8 @@ test('U12 卡片边界：跨组进展拆成并列四卡，不套外包卡', () =
   assert.ok(start >= 0, '未找到 _progressSectionHtml');
   const end = src.indexOf('\n}', start);
   const body = src.slice(start, end);
-  assert.match(body, /<section class="space-y-4" data-gp-progress>/, '跨组进展应为无卡分区');
+  // 2026-10-25 Task 3：分区根仍是无卡 section；折叠控件为内部原生 details（标题在 summary 外）
+  assert.match(body, /<section class="space-y-4" data-gp-progress/, '跨组进展应为无卡分区');
   assert.doesNotMatch(body, /class="card rounded-xl p-4 card--static"/, '跨组进展不得再套外包卡（卡中卡）');
   const order = ['_groupSwitchHtml', '_memberProgressCardHtml', '_reviewStatusCardHtml', '_activityAttendanceCardHtml'];
   const positions = order.map((fn) => body.indexOf(fn));

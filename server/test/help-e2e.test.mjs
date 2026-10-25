@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import { chromium } from 'playwright';
 import { createApp } from '../app.js';
 import { seedDatabase } from '../seed.js';
-import { FUNCTION_CATALOG } from '../../docs/src/core/domain/function-catalog.js?v=20261024d';
+import { FUNCTION_CATALOG } from '../../docs/src/core/domain/function-catalog.js?v=20261025a';
 
 let server, base, browser;
 
@@ -123,7 +123,7 @@ test('Help 搜索覆盖章节表格，并提供按角色与常见任务浏览', 
   const roleResults = await page.locator('.help-search-result').allTextContents();
   assert.ok(roleResults.some((text) => text.includes('组织委员')), '选择角色后显示相关入口');
 
-  const taskLink = page.getByRole('link', { name: '创建会议活动' });
+  const taskLink = page.getByRole('link', { name: '创建会议' });
   assert.equal(await taskLink.getAttribute('href'), '#card-dom31-meeting-create');
   await taskLink.click();
   assert.equal(new URL(page.url()).hash, '#card-dom31-meeting-create');

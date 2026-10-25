@@ -2,28 +2,28 @@
 // 参与者工作台 Tab：我的考察（T-279 M3 拆分，照 M2 样板）
 // 个人考察记录查询视图（spec §五 数据访问规则：支部成员对自己的历次活动参与考察情况有查询视图）。
 
-import { AuthStore } from '../../../services/core/auth.js?v=20261024d';
+import { AuthStore } from '../../../services/core/auth.js?v=20261025a';
 // 待批活动的可见性单一源（2026-09-22 批次 151 · 支书裁定「只支委层可见」）：成员台非支委层 ⇒ 待批活动
 // 不在本页「考察申诉选活动」下拉里出现。
-import { filterActivitiesForViewer } from '../../../services/core/visibility.js?v=20261024d';
-import { loadActiveInspectionRecords } from '../../../services/activity/inspection.js?v=20261024d';
-import { inspectionToDisplay, createInspectionAppeal, loadInspectionAppeals } from '../../../services/activity/inspection.js?v=20261024d';
-import { loadActivities, getOrganizedActivities } from '../../../services/activity/activity.js?v=20261024d';
-import { badgeHtml } from '../../../components/ui/badges.js?v=20261024d';
-import { showToast, escHtml as esc } from '../../../core/base/utils.js?v=20261024d';
+import { filterActivitiesForViewer } from '../../../services/core/visibility.js?v=20261025a';
+import { loadActiveInspectionRecords } from '../../../services/activity/inspection.js?v=20261025a';
+import { inspectionToDisplay, createInspectionAppeal, loadInspectionAppeals } from '../../../services/activity/inspection.js?v=20261025a';
+import { loadActivities, getOrganizedActivities } from '../../../services/activity/activity.js?v=20261025a';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20261025a';
+import { showToast, escHtml as esc } from '../../../core/base/utils.js?v=20261025a';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是活动的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
-import { renderFilteredList, activityKeyword, activityFacets } from '../../../components/ui/list-filter.js?v=20261024d';
+import { renderFilteredList, activityKeyword, activityFacets } from '../../../components/ui/list-filter.js?v=20261025a';
 // 材料页深链 focusActivityId 的通用定位（只滚动 + 闪烁，不另造筛选器）
-import { focusActivityAnchor } from '../../../components/ui/detail-anchor.js?v=20261024d';
-import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261024d';
+import { focusActivityAnchor } from '../../../components/ui/detail-anchor.js?v=20261025a';
+import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261025a';
 
-export function renderContent(ctx) {
-  const tc = document.getElementById('visitor-tab-content');
+export function renderContent(ctx, host) {
+  const tc = host || document.getElementById('visitor-tab-content');
   if (!tc) return;
 
   const user = AuthStore.getCurrentUser();
   if (!user) {
-    tc.innerHTML = `${renderTabHeader({ title: '我的考察' })}<p class="text-sm text-gray-500 text-center py-6">— 请先登录</p>`;
+    tc.innerHTML = `${host ? '' : renderTabHeader({ title: '我的考察' })}<p class="text-sm text-gray-500 text-center py-6">— 请先登录</p>`;
     return;
   }
 
@@ -59,7 +59,7 @@ export function renderContent(ctx) {
   // 2026-10-18 成员台组织者投影：本人考察记录与申诉在页首，组织者上传位放在个人内容之后；
   // 只渲染「由我组织」的活动 / 本人负责的专班，不再整页复用组长台的全支部视图。
   tc.innerHTML = `
-    ${renderTabHeader({ title: '我的考察', description: '本人历次活动参与考察记录与申诉入口。' })}
+    ${host ? '' : renderTabHeader({ title: '我的考察', description: '本人历次活动参与考察记录与申诉入口。' })}
     <div class="card rounded-xl p-5 mb-3 flex items-center gap-4">
       <div class="flex-1">
         <p class="text-sm font-semibold text-gray-800">我的考察记录</p>
@@ -90,7 +90,7 @@ export function renderContent(ctx) {
   // 挂「由我组织的活动」上传位（实现单一源＝leader/inspection-tab，host 复用；scope=organizer 只投影本人活动）
   const _orgInspHost = document.getElementById('visitor-org-insp-host');
   if (_orgInspHost) {
-    import('../leader/inspection-tab.js?v=20261024d').then(m => { if (_orgInspHost.isConnected) m.renderContent(ctx, _orgInspHost, { scope: 'organizer' }); });
+    import('../leader/inspection-tab.js?v=20261025a').then(m => { if (_orgInspHost.isConnected) m.renderContent(ctx, _orgInspHost, { scope: 'organizer' }); });
   }
 
   // 提交申诉（同考勤申诉口径：先去纪检核实，不直接改考察记录）
@@ -105,7 +105,7 @@ export function renderContent(ctx) {
       return;
     }
     showToast('success', '已提交给纪检委员，纪检会先核实再处理');
-    renderContent(ctx);
+    renderContent(ctx, host);
   });
 
   const listEl = document.getElementById('visitor-insp-list');

@@ -28,10 +28,12 @@ test('W1 三层骨架：结论带 / 工作分工表 / 待我处理标记齐备',
   for (const layer of ['summary', 'lines', 'actions']) {
     assert.match(OVERVIEW, new RegExp(`data-wo-layer="${layer}"`), `work-overview.js 缺 data-wo-layer="${layer}"`);
   }
-  assert.match(OVERVIEW, />工作分工<\/h3>/, '第二层须有「工作分工」表标题（H3）');
+  // 2026-10-25 Task 4（同屏纵向一致）：分区头改走单一源 renderCardHeader（其 H3 由 G10 核对），
+  //   断言从「字面 <h3>工作分工</h3>」改为「调用 renderCardHeader 且标题正确」——覆盖面等价。
+  assert.match(OVERVIEW, /renderCardHeader\(\{ title: '工作分工' \}\)/, '第二层须有「工作分工」表标题（renderCardHeader 的 H3）');
   // 2026-10-20 判例④：标题走 ACTIONS_TITLE 常量（值仍为「待我处理」），避免结论带再写一遍同词。
   assert.match(OVERVIEW, /const ACTIONS_TITLE = '待我处理'/, '第三层标题常量须为「待我处理」');
-  assert.match(OVERVIEW, /\$\{ACTIONS_TITLE\}<\/h3>/, '第三层须渲染 ACTIONS_TITLE 标题');
+  assert.match(OVERVIEW, /renderCardHeader\(\{ title: ACTIONS_TITLE \}\)/, '第三层须渲染 ACTIONS_TITLE 标题');
 });
 
 test('W2 删除独立「汇报」卡：不再出现 <h4>汇报</h4>', () => {
@@ -82,8 +84,8 @@ test('W6 复用模块与既有下钻仍在', () => {
   assert.match(OVERVIEW, /listGroupHtml/, '待我处理须用 list-group');
   assert.match(OVERVIEW, /emptyStateHtml/, '空态须用 empty-state');
   assert.match(OVERVIEW, /confirmExternalDispatch/, '文件外发确认须保留');
-  assert.match(OVERVIEW, /data-wo-go-dispatch/, '汇报动作须保留「去我的处置」');
-  assert.match(OVERVIEW, /data-\$\{prefix\}-tab="my-dispatch"/, '「去我的处置」须切本台 my-dispatch');
+  assert.match(OVERVIEW, /data-wo-go-dispatch/, '汇报动作须保留「去待办处理」');
+  assert.match(OVERVIEW, /data-\$\{prefix\}-tab="todo"/, '「去待办处理」须切本台待办（2026-10-25：我的处置已并入待办）');
   assert.match(OVERVIEW, /_woDetail = \{ kind: 'activity'/, '活动只读详情下钻须保留');
   assert.match(OVERVIEW, /_woDetail = \{ kind: 'taskforce'/, '专班只读详情下钻须保留');
   assert.match(OVERVIEW, /data-wo-jump="todo"/, '待办组定位须保留');
@@ -117,8 +119,14 @@ test('W8 结论带两种控件：筛选 chip（aria-pressed）/ 滚动链接（�
   assert.match(OVERVIEW, /function _pendingCellHtml\(row\)/, '「待处理」格须统一承载缺口与行内动作');
   assert.doesNotMatch(OVERVIEW, /section-head__count|section-head__meta/, '卡头不得重复计数 / 同义说明');
   // 两段：待我处理 + 我已处理（默认折叠的 details）。
+  // 2026-10-25 Task 3（组件契约）：折叠仍用原生 details，但标题移出 summary（兄弟 H3 + aria-labelledby），
+  //   卡片容器改为 section，故断言从「details 带 card 类」改为「section 卡 + details + 兄弟 H3」。
   assert.match(OVERVIEW, /data-wo-layer="done"/, '须有「我已处理」段');
-  assert.match(OVERVIEW, /<details class="card[^"]*" data-wo-layer="done">/, '「我已处理」须为默认折叠的 details');
+  assert.match(OVERVIEW, /<details class="disclosure" id="wo-done">/, '「我已处理」须为默认折叠的 details');
+  // 2026-10-25 Task 4：标题仍为 details 的兄弟 H3，但改由 renderCardHeader 以 titleId 生成
+  //   （H3 由 G10 核对）；断言改为「卡头调用带 titleId」，覆盖「兄弟标题 + aria-labelledby」不变。
+  assert.match(OVERVIEW, /renderCardHeader\(\{ title: '我已处理', titleId: 'wo-done-title'/, '「我已处理」标题须为 details 的兄弟 H3');
+  assert.match(OVERVIEW, /<summary[^>]*aria-labelledby="wo-done-title"/, 'summary 须用 aria-labelledby 关联标题');
   assert.match(OVERVIEW, /我已处理/, '「我已处理」标题须在位');
   // 条线表窄屏卡式行：表声明 data-responsive，每个 td 带 data-label。
   assert.match(OVERVIEW, /data-responsive="cards"/, '条线表须声明卡式行');

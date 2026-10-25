@@ -44,42 +44,42 @@
 //   ⚠ **只动渲染顺序 / 分层与落点**，不改任何功能、权限判定与写口——DOM ID 全保留，真机流程不失配。
 // ════════════════════════════════════════════════════════════════
 
-import { AuthStore } from '../../../services/core/auth.js?v=20261024d';
-import { PersonStore, getPersonName } from '../../../services/member/person.js?v=20261024d';
-import { getBranchIdOfPerson } from '../../../services/branch/branch.js?v=20261024d';
-import { IssueStore } from '../../../services/governance/issues.js?v=20261024d';
-import { loadActivities } from '../../../services/activity/activity.js?v=20261024d';
-import { loadActivityReviews } from '../../../services/governance/review.js?v=20261024d';
-import { loadAttendanceRecords } from '../../../services/activity/attendance.js?v=20261024d';
-import { AttendanceStatus, ReviewStatus, REVIEW_STATUS_LABELS } from '../../../core/domain/domain.js?v=20261024d';
-import { getMeetingRosterIds } from '../../../services/member/roster.js?v=20261024d';
-import { showToast, escHtml as esc, getBasePath, todayLocal } from '../../../core/base/utils.js?v=20261024d';
+import { AuthStore } from '../../../services/core/auth.js?v=20261025a';
+import { PersonStore, getPersonName } from '../../../services/member/person.js?v=20261025a';
+import { getBranchIdOfPerson } from '../../../services/branch/branch.js?v=20261025a';
+import { IssueStore } from '../../../services/governance/issues.js?v=20261025a';
+import { loadActivities } from '../../../services/activity/activity.js?v=20261025a';
+import { loadActivityReviews } from '../../../services/governance/review.js?v=20261025a';
+import { loadAttendanceRecords } from '../../../services/activity/attendance.js?v=20261025a';
+import { AttendanceStatus, ReviewStatus, REVIEW_STATUS_LABELS } from '../../../core/domain/domain.js?v=20261025a';
+import { getMeetingRosterIds } from '../../../services/member/roster.js?v=20261025a';
+import { showToast, escHtml as esc, getBasePath, todayLocal } from '../../../core/base/utils.js?v=20261025a';
 // 统一检索引擎（2026-09-13 表格统一化批次 A）：组员进展摘要（按人）接入关键词 + 分面
-import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261024d';
+import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261025a';
 // 活动类型胶囊（批次 301）：变体判据＝单一源 `activityTypeBadgeVariant`（三会一课＝brand 红 / 主题党日＝gold 金），
 //   渲染唯一源＝`components/ui/badge.js`；**不在本文件手写色值**（支书 2026-09-30：颜色是最好的信息展示方式）。
-import { activityTypeBadgeVariant, DEFAULT_BRANCH_ID } from '../../../core/domain/constants.js?v=20261024d';
-import { badgeHtml } from '../../../components/ui/badges.js?v=20261024d'; // 扎口出口（批次 304 收回，勿直连 badge.js）
-import { openModal, closeModal } from '../../../components/ui/modal.js?v=20261024d';
-import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261024d';
+import { activityTypeBadgeVariant, DEFAULT_BRANCH_ID } from '../../../core/domain/constants.js?v=20261025a';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20261025a'; // 扎口出口（批次 304 收回，勿直连 badge.js）
+import { openModal, closeModal } from '../../../components/ui/modal.js?v=20261025a';
+import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261025a';
 // 党小组一等实体服务层（组清单 / 写口 / 权限门 / 留痕——组名唯一来源，禁本文件手写组名数组）
 import {
   loadPartyGroups, groupOptions, defaultGroupName, nextGroupSeq,
   addGroup, renameGroup, dissolveGroup, assignMemberToGroup, ungroupedMembers,
   canManagePartyGroups, listGroupHistory,
-} from '../../../services/member/party-group.js?v=20261024d';
+} from '../../../services/member/party-group.js?v=20261025a';
 import {
   listPartyGroups, memberScopeOfGroup, countOpenReportsByGroup,
   groupActivitiesOf, reviewBucketOf, GROUP_REVIEW_COLOR, groupLeadershipOf,
   groupReportRowsOf, reportRowStateOf,
-} from '../../../services/member/group-view.js?v=20261024d';
+} from '../../../services/member/group-view.js?v=20261025a';
 // 赋权分块（2026-09-25 支书裁「全按对象归位」）：情景①a（设党小组组长 / 副组长）由本 tab「党小组清单」卡内
 //   行内管理（2026-10-04 批次 373 去冗余：撤独立「组长指派」块，改由清单行内「设/改」开同一面板）；
 //   **情景①b 支委身份配置已按 2026-09-27 支书裁定迁「支委会」**；**情景②③ 项目赋权整卡按 2026-10-04
 //   批次 373 迁「活动管理」页**（`calendar-tab.js`）。
 //   实现单一源＝entries/tabs/secretary/assign-tab.js（该文件已不注册为 tab，仅余 mount* 分块）
 //   ⇒ **不新造第二套视觉/表单**，只把既有分块挂到本 tab 的落点。
-import { mountLeaderAssign, openLeaderAssignPanel } from './assign-tab.js?v=20261024d';
+import { mountLeaderAssign, openLeaderAssignPanel } from './assign-tab.js?v=20261025a';
 
 // R2-17：缺省支部单一源 = core/domain/constants.js::DEFAULT_BRANCH_ID。
 
@@ -346,17 +346,19 @@ function _groupLeaderIdsOf(leaderAssign, groupName) {
 }
 
 // ── ③ 组级变更留痕（可折叠；服务层 history 汇总） ──────────────
+// 2026-10-25 Task 3：阅读型折叠改原生 `<details>`——标题在 summary 外，展开态在 `open` 上；
+//   `_historyOpen` 仅作「跨重渲染保态」镜像（渲染时写入 open 属性）。
 function _historyCardHtml(history) {
   const rows = history.slice(0, 10);
   return `
-    <div class="card rounded-xl p-4 card--static">
-      <div class="flex items-center justify-between">
-        <h4 class="font-title-cn text-sm font-bold text-gray-700">变更留痕 <span class="text-xs text-gray-500 font-normal">${history.length} 条</span></h4>
-        <button type="button" class="btn-outline btn-sm gp-history-toggle">${_historyOpen ? '收起' : '展开最近 10 条'}</button>
-      </div>
-      ${_historyOpen ? `<div class="mt-2.5 pt-2.5 border-t border-gray-100 divide-y divide-gray-50">
-        ${rows.map(_historyRowHtml).join('')}
-      </div>` : ''}
+    <div class="card rounded-xl p-4 card--static disclosure-host">
+      <h4 class="disclosure__title" id="gp-history-title">变更留痕 <span class="disclosure__meta">${history.length} 条</span></h4>
+      <details class="disclosure" id="gp-history"${_historyOpen ? ' open' : ''}>
+        <summary class="disclosure__summary gp-history-toggle" id="gp-history-toggle" aria-labelledby="gp-history-title"></summary>
+        ${_historyOpen ? `<div class="disclosure__body mt-2.5 pt-2.5 border-t border-gray-100 divide-y divide-gray-50">
+          ${rows.map(_historyRowHtml).join('')}
+        </div>` : ''}
+      </details>
     </div>`;
 }
 
@@ -386,17 +388,17 @@ function _progressSectionHtml(viewGroups, group, members, activities, reviews, a
   //   复盘状态 / 活动与考勤），不再套一张外包卡——外包卡会让四张子卡变成「卡中卡」。
   //   拆成并列四卡，阅读顺序＝先选组、再读汇报、再看复盘、最后看活动与考勤。
   return `
-    <section class="space-y-4" data-gp-progress>
-      <div class="flex items-center justify-between gap-2">
-        <h4 class="font-title-cn text-sm font-bold text-gray-700">跨组进展</h4>
-        <button type="button" class="btn-outline btn-sm gp-progress-toggle">${_progressOpen ? '收起' : '展开跨组进展'}</button>
-      </div>
-      ${_progressOpen ? `
-        ${_groupSwitchHtml(viewGroups, group, issues, leaderAssign)}
-        ${_memberProgressCardHtml(group, issues, leaderAssign)}
-        ${_reviewStatusCardHtml(group, members, activities, reviews)}
-        ${_activityAttendanceCardHtml(group, members, branchId, activities, attRecords)}
-      ` : ''}
+    <section class="space-y-4" data-gp-progress style="position:relative;">
+      <h4 class="disclosure__title" id="gp-progress-title">跨组进展</h4>
+      <details class="disclosure" id="gp-progress"${_progressOpen ? ' open' : ''}>
+        <summary class="disclosure__summary gp-progress-toggle" id="gp-progress-toggle" aria-labelledby="gp-progress-title"></summary>
+        ${_progressOpen ? `
+          ${_groupSwitchHtml(viewGroups, group, issues, leaderAssign)}
+          ${_memberProgressCardHtml(group, issues, leaderAssign)}
+          ${_reviewStatusCardHtml(group, members, activities, reviews)}
+          ${_activityAttendanceCardHtml(group, members, branchId, activities, attRecords)}
+        ` : ''}
+      </details>
     </section>`;
 }
 
@@ -603,19 +605,21 @@ function _reviewStatusCardHtml(group, members, activities, reviews) {
     : completed.map(({ act, rev }) => {
         const isExpanded = _expandedReviewId === act.id;
         return `
-          <div class="gp-review-item p-2.5 rounded-lg bg-white cursor-pointer hover:bg-[var(--surface-hover)] transition-colors gp-review-toggle" data-act-id="${act.id}">
-            <div class="flex items-center justify-between gap-3">
-              <div class="min-w-0 flex-1">
-                <div class="text-sm font-medium text-gray-800 truncate">${esc(act.title || '未命名')}</div>
-                <div class="text-xs text-gray-500 mt-0.5">${esc(act.date || '')}${act.type ? ' · ' + esc(act.type) : ''}</div>
-              </div>
-              <div class="flex items-center gap-2 shrink-0">
-                <span class="text-xs px-1.5 py-0.5 rounded-full ${statusColor(rev?.reviewStatus)}">${REVIEW_STATUS_LABELS[rev?.reviewStatus]}</span>
-                <span class="text-xs text-gray-500">${isExpanded ? '收起' : '详情'}</span>
-              </div>
-            </div>
+          <details class="gp-review-item p-2.5 rounded-lg bg-white transition-colors gp-review-toggle" data-act-id="${act.id}"${isExpanded ? ' open' : ''}>
+            <summary class="gp-review-toggle__summary">
+              <span class="flex items-center justify-between gap-3">
+                <span class="min-w-0 flex-1">
+                  <span class="block text-sm font-medium text-gray-800 truncate">${esc(act.title || '未命名')}</span>
+                  <span class="block text-xs text-gray-500 mt-0.5">${esc(act.date || '')}${act.type ? ' · ' + esc(act.type) : ''}</span>
+                </span>
+                <span class="flex items-center gap-2 shrink-0">
+                  <span class="text-xs px-1.5 py-0.5 rounded-full ${statusColor(rev?.reviewStatus)}">${REVIEW_STATUS_LABELS[rev?.reviewStatus]}</span>
+                  <span class="text-xs text-gray-500">${isExpanded ? '收起' : '详情'}</span>
+                </span>
+              </span>
+            </summary>
             ${isExpanded && rev ? _reviewDetailHtml(rev) : ''}
-          </div>`;
+          </details>`;
       }).join('');
 
   return `
@@ -726,11 +730,21 @@ function _bindEvents(container) {
     });
   });
 
-  // 已复盘行展开/收起（只读）
+  // 变更留痕 / 跨组进展（原生 details）：开合由浏览器承担，状态镜像到渲染变量后局部重渲染
+  container.querySelector('#gp-history')?.addEventListener('toggle', (e) => {
+    _historyOpen = e.target.open;
+    _renderAll(container);
+  });
+  container.querySelector('#gp-progress')?.addEventListener('toggle', (e) => {
+    _progressOpen = e.target.open;
+    _renderAll(container);
+  });
+
+  // 已复盘行展开/收起（只读 · 原生 details）：状态同步到 `_expandedReviewId` 后局部重渲染
   container.querySelectorAll('.gp-review-toggle').forEach(toggle => {
-    toggle.addEventListener('click', () => {
+    toggle.addEventListener('toggle', () => {
       const actId = toggle.closest('.gp-review-item')?.dataset.actId;
-      _expandedReviewId = _expandedReviewId === actId ? null : actId;
+      _expandedReviewId = toggle.open ? actId : null;
       _renderAll(container);
     });
   });
@@ -764,15 +778,6 @@ function _bindDelegated(container) {
     if (ren) { _openRenameModal(container, ren.dataset.id); return; }
     const dis = e.target.closest('.gp-dissolve');
     if (dis) { _openDissolveModal(container, dis.dataset.id); return; }
-    if (e.target.closest('.gp-history-toggle')) {
-      _historyOpen = !_historyOpen;
-      _renderAll(container);
-      return;
-    }
-    if (e.target.closest('.gp-progress-toggle')) {
-      _progressOpen = !_progressOpen;
-      _renderAll(container);
-    }
   });
 
   // Esc 收起行尾「更多」菜单（原生 details 不自行关闭）
@@ -952,7 +957,7 @@ export function openActivityWriteEntry() {
   const topBtn = document.getElementById('ws-sec-write-btn');
   if (topBtn) { topBtn.click(); return; }
   // 顶栏未挂出（只读形态 / 顶栏尚未渲染）时不得静默无效：直接打开既有写入表单（单一写入口）。
-  import('./calendar-tab.js?v=20261024d')
+  import('./calendar-tab.js?v=20261025a')
     .then((m) => m.openActivityWriteForm())
     .catch((err) => console.warn('[group-progress] 打开写入活动表单失败：', err));
 }

@@ -14,10 +14,11 @@
 //    催办状态、作废审批门、删除权限门（均由壳体注入回调，本件只渲染与转交）。
 // ════════════════════════════════════════════════════════════════
 
-import { listRowHtml } from '../ui/list-row.js?v=20261024d';
-import { emptyStateHtml } from '../ui/empty-state.js?v=20261024d';
-import { isTodoExpired } from '../../services/governance/todo.js?v=20261024d';
-import { escHtml, todayLocal } from '../../core/base/utils.js?v=20261024d';
+import { listRowHtml } from '../ui/list-row.js?v=20261025a';
+import { emptyStateHtml } from '../ui/empty-state.js?v=20261025a';
+import { renderMenuButton, bindMenuButtons } from '../ui/menu-button.js?v=20261025a';
+import { isTodoExpired } from '../../services/governance/todo.js?v=20261025a';
+import { escHtml, todayLocal } from '../../core/base/utils.js?v=20261025a';
 
 /** 四档展示顺序与组名（纯中文；空组由渲染层跳过） */
 const URGENCY_LEVELS = [
@@ -121,7 +122,8 @@ function _findGroup(sections, groupKey) {
   return null;
 }
 
-/** 行尾「更多」菜单（默认收起；button + aria-expanded；菜单项按权限渲染） */
+/** 行尾「更多」菜单（默认收起；button + aria-haspopup/expanded/controls；菜单项按权限渲染）
+ *  2026-10-25 Task 3：改走 `components/ui/menu-button.js` 单一实现（类名钩子保持原样）。 */
 function _moreMenuHtml(prefix, g, urge, canVoid, canDelete) {
   const items = [];
   if (urge) {
@@ -134,11 +136,14 @@ function _moreMenuHtml(prefix, g, urge, canVoid, canDelete) {
     items.push(`<button type="button" role="menuitem" class="todo-more__item todo-more__item--danger ${prefix}-todo-del-btn" data-group-key="${escHtml(g.groupKey)}" title="删除该组待办（不可恢复，仅支委层）">删除</button>`);
   }
   if (!items.length) return '';
-  return `
-    <div class="todo-more">
-      <button type="button" class="btn-outline btn-sm todo-more__btn" aria-haspopup="true" aria-expanded="false" aria-label="更多操作：${escHtml(g.title || '')}">更多</button>
-      <div class="todo-more__menu hidden" role="menu">${items.join('')}</div>
-    </div>`;
+  return renderMenuButton({
+    id: `${prefix}-todo-more-${g.groupKey}`,
+    label: '更多',
+    itemsHtml: items.join(''),
+    className: 'todo-more',
+    buttonClassName: 'btn-outline btn-sm todo-more__btn',
+    menuClassName: 'todo-more__menu',
+  });
 }
 
 /** 渲染一条待办组行（标题 + 一句说明 + 一个主行动 + 行尾更多） */
@@ -188,26 +193,15 @@ function _renderUrgencyRow(prefix, g, opts, today, selectedTodoId) {
 /** 关闭容器内全部「更多」菜单（点击外部 / Esc 共用） */
 function _closeMoreMenus(container) {
   container.querySelectorAll('.todo-more__menu').forEach(menu => {
-    menu.classList.add('hidden');
+    menu.hidden = true;
     const btn = menu.closest('.todo-more')?.querySelector('.todo-more__btn');
     btn?.setAttribute('aria-expanded', 'false');
   });
 }
 
-// 文档级「点击外部关闭」每个容器只挂一次（容器跨重建复用，避免重复绑定累积）
-const _menuDismissBound = new WeakSet();
+// 文档级「点击外部关闭」交给 MenuButton 单一实现（每容器只挂一次）
 function _bindMenuDismiss(container) {
-  if (_menuDismissBound.has(container)) return;
-  _menuDismissBound.add(container);
-  document.addEventListener('click', (e) => {
-    if (!container.isConnected) return;
-    if (e.target.closest('.todo-more')) return;
-    _closeMoreMenus(container);
-  });
-  document.addEventListener('keydown', (e) => {
-    if (e.key !== 'Escape' || !container.isConnected) return;
-    _closeMoreMenus(container);
-  });
+  bindMenuButtons(container);
 }
 
 /**
@@ -289,20 +283,7 @@ export function renderUrgencyTodoList(opts) {
       });
     });
 
-    // 「更多」展开 / 收起（键盘可达：原生 button + aria-expanded）
-    container.querySelectorAll('.todo-more__btn').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const menu = btn.closest('.todo-more')?.querySelector('.todo-more__menu');
-        if (!menu) return;
-        const willOpen = menu.classList.contains('hidden');
-        _closeMoreMenus(container);
-        if (willOpen) {
-          menu.classList.remove('hidden');
-          btn.setAttribute('aria-expanded', 'true');
-        }
-      });
-    });
+    // 「更多」展开 / 收起：由 `bindMenuButtons`（MenuButton 单一实现）承担，此处不再重复绑定
 
     // 主行动
     container.querySelectorAll(`.${prefix}-todo-action-btn[data-group-key]`).forEach(btn => {

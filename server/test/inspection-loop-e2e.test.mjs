@@ -31,7 +31,7 @@ after(async () => {
   }
 });
 
-async function loginAs(sid, ws, tab = '考察管理') {
+async function loginAs(sid, ws, tab = '组员进展', deepLink = '') {
   const page = await browser.newPage();
   await page.route('**://fonts.googleapis.com/**', (r) => r.abort());
   await page.route('**://fonts.gstatic.com/**', (r) => r.abort());
@@ -44,8 +44,13 @@ async function loginAs(sid, ws, tab = '考察管理') {
     page.click('button[type="submit"]'),
   ]);
   await page.waitForFunction(() => document.querySelectorAll('button[role="tab"]').length > 0, { timeout: 20000 });
+  if (deepLink) {
+    // 2026-10-25 IA 62→45：页内落点（section）必须在**整页导航**时由壳解析，登录后在原地补参数无效。
+    await page.goto(`${base}/workspace/${ws}.html${deepLink}`, { waitUntil: 'domcontentloaded' });
+    await page.waitForFunction(() => document.querySelectorAll('button[role="tab"]').length > 0, { timeout: 20000 });
+  }
   // P0-2 形态断言（2026-09-23 支书裁定「形态必须可断言」）：本文件真机用例必须在 API 形态下跑
-  await page.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20261024d')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
+  await page.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20261025a')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
   await page.evaluate((label) => {
     const b = [...document.querySelectorAll('button[role="tab"]')].find((x) => x.textContent.includes(label));
     b?.click();
@@ -70,9 +75,18 @@ const READ_TOTAL = () => {
   return document.querySelectorAll('#insp-list-host tbody tr').length;
 };
 
-test('组长台·考察管理：点选后「关面板即已选」也必须出现逐人填写框；改选不丢已填内容；提交落库', async () => {
-  const page = await loginAs('2400012345', 'leader');
+test('组长台·组员进展/上传考察：点选后「关面板即已选」也必须出现逐人填写框；改选不丢已填内容；提交落库', async () => {
+  // 2026-10-25 IA 62→45：原「考察管理」页签已删，降为「组员进展」页内「上传考察」折叠区
+  //   （`?tab=members&section=inspection` 深链直接展开并挂载；实现单一源仍是 leader/inspection-tab.js）。
+  const page = await loginAs('2400012345', 'leader', '组员进展', '?tab=members&section=inspection');
   try {
+    // 折叠体未自动展开时点其 summary（深链理应已展开，此处只作兜底，不改变断言链）。
+    await page.waitForFunction(() => {
+      const d = document.getElementById('leader-insp-fold');
+      if (!d) return false;
+      if (!d.open) d.querySelector('summary')?.click();
+      return d.open && !!document.getElementById('btn-leader-upload-insp');
+    }, null, { timeout: 20000 });
     await page.evaluate(() => document.getElementById('btn-leader-upload-insp')?.click());
     await page.waitForFunction(() => !!document.getElementById('insp-form-panel'), { timeout: 8000 });
 

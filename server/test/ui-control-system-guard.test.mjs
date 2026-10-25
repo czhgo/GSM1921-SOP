@@ -511,6 +511,142 @@ test('B2 按钮尺寸档：<button> 必须命中四档之一（或命名族）',
   );
 });
 
+// ═════════════════════════════════════════════════════════════════════════════
+// T3-1 … T3-3：组件契约（2026-10-25 · `.trae/specs/consolidate-ia-terms-and-components` Task 3）
+//   契约：折叠＝原生 details；菜单＝button + aria-expanded + aria-controls；浮窗＝modal.js；
+//         标题永远不进交互元素（兄弟节点 + aria-labelledby）。
+//   本组三条断言只做静态扫描（同本文件其它用例），不依赖真实 DOM。
+// ═════════════════════════════════════════════════════════════════════════════
+
+test('T3-1 交互元素内无标题：button / summary / role=button 内不得出现 h1..h6 或 role=heading', () => {
+  const hits = [];
+  let scanned = 0;
+  for (const f of FILES) {
+    // button / summary：原生元素不允许同类嵌套 ⇒ 非贪婪取到对应闭标签即可
+    const re = /<(button|summary)\b[^>]*>([\s\S]*?)<\/\1>/g;
+    let m;
+    while ((m = re.exec(f.code)) !== null) {
+      scanned += 1;
+      if (/<h[1-6]\b|role="heading"/.test(m[2])) {
+        hits.push(`${f.rel}:${lineOf(f.code, m.index)} <${m[1]}> 内出现标题`);
+      }
+    }
+    // role=button 容器：取到第一个同名闭标签（div / span / li / a / tr）
+    const reRole = /<([a-z][a-z0-9]*)\b[^>]*role="button"[^>]*>([\s\S]*?)<\/\1>/g;
+    let r;
+    while ((r = reRole.exec(f.code)) !== null) {
+      scanned += 1;
+      if (/<h[1-6]\b|role="heading"/.test(r[2])) {
+        hits.push(`${f.rel}:${lineOf(f.code, r.index)} role=button 容器内出现标题`);
+      }
+    }
+  }
+  // 非空转：交互元素面必须够大（口径写坏 / 面被截断 ⇒ 恒真）
+  assert.ok(scanned >= 200, `只扫描到 ${scanned} 个交互元素（下限 200）：T3-1 的扫描面被写坏`);
+  console.log(`[ui-control-system-guard] T3-1 交互元素 ${scanned} 个 · 内含标题 ${hits.length} 处`);
+  assert.deepEqual(hits, [],
+    `标题不得进入交互元素（须为兄弟节点，用 aria-labelledby 关联）：\n  ${hits.join('\n  ')}`);
+});
+
+test('T3-2 折叠状态可静态回读：summary 必在 details 内；aria-expanded 必带 aria-controls', () => {
+  const problems = [];
+  let detailFiles = 0;
+  let expandToggles = 0;
+  for (const f of FILES) {
+    const summaries = (f.code.match(/<summary\b/g) || []).length;
+    const details = (f.code.match(/<details\b/g) || []).length;
+    if (details > 0) detailFiles += 1;
+    if (summaries > details) {
+      problems.push(`${f.rel}: <summary> ${summaries} 个 > <details> ${details} 个（存在孤立 summary）`);
+    }
+    const re = /<[a-z][a-z0-9]*\b[^>]*\baria-expanded="[^"]*"[^>]*>/g;
+    let m;
+    while ((m = re.exec(f.code)) !== null) {
+      expandToggles += 1;
+      if (!/\baria-controls="/.test(m[0])) {
+        problems.push(`${f.rel}:${lineOf(f.code, m.index)} aria-expanded 缺 aria-controls`);
+      }
+    }
+  }
+  // 非空转：两种原语都必须有足够样本
+  assert.ok(detailFiles >= 8, `只有 ${detailFiles} 个文件使用 <details>（下限 8）：折叠口径被写坏`);
+  assert.ok(expandToggles >= 10, `只扫描到 ${expandToggles} 个静态 aria-expanded（下限 10）：口径被写坏`);
+  console.log(`[ui-control-system-guard] T3-2 details 文件 ${detailFiles} 个 · 静态 aria-expanded ${expandToggles} 个`);
+  assert.deepEqual(problems, [],
+    `折叠状态必须可静态回读（details/open 或 aria-expanded + aria-controls）：\n  ${problems.join('\n  ')}`);
+});
+
+test('T3-3 同一文件同类折叠只用一种原语（菜单除外）', () => {
+  const offenders = [];
+  let detailsFiles = 0;
+  for (const f of FILES) {
+    if (!/<details\b/.test(f.code)) continue;
+    detailsFiles += 1;
+    const re = /<button\b[^>]*\baria-expanded="[^"]*"[^>]*>/g;
+    let m;
+    while ((m = re.exec(f.code)) !== null) {
+      // 菜单（aria-haspopup）与导航抽屉（sidebar）不是「阅读型折叠」，不算同类
+      if (/aria-haspopup="(menu|true)"/.test(m[0])) continue;
+      if (/aria-controls="app-sidebar"/.test(m[0])) continue;
+      offenders.push(`${f.rel}:${lineOf(f.code, m.index)} 同一文件同时出现 details 与 aria-expanded 折叠`);
+    }
+  }
+  assert.ok(detailsFiles >= 8, `只有 ${detailsFiles} 个文件使用 <details>（下限 8）：T3-3 的扫描面被写坏`);
+  console.log(`[ui-control-system-guard] T3-3 details 文件 ${detailsFiles} 个 · 混用 ${offenders.length} 处`);
+  assert.deepEqual(offenders, [],
+    `同一文件同类折叠只能用一种原语（阅读型 details；动作型 aria-expanded；菜单除外）：\n  ${offenders.join('\n  ')}`);
+});
+
+/**
+ * T4-1【同一文件只允许一种折叠头实现】（2026-10-25 · Task 4「同屏纵向一致」）
+ *   判据：同一文件不得既用 `renderDisclosure(...)`（标题为兄弟 H3 的封装）又手写
+ *   `<details>` / `<summary>`（折叠头写在 summary 里）——两种折叠头会让**同一屏**出现
+ *   两种 chevron / 内边距 / 标题层级，正是支书指出的「纵向不一致」。
+ *   与 T3-3 的分工：T3-3 管「details ↔ aria-expanded」原语混用；本条管「封装 ↔ 手写」混用。
+ *   豁免（逐条给理由，且不得僵尸化）：组件定义自身 + 两处**行内清单**折叠（不是分区折叠头）。
+ */
+const FOLD_HEAD_EXEMPTIONS = [
+  {
+    rel: 'docs/src/components/ui/disclosure.js',
+    reason: '折叠封装的唯一实现本身：模板就是 `<details>/<summary>`，不是第二次手写',
+  },
+  {
+    rel: 'docs/src/entries/tabs/prop/archive-tab.js',
+    reason: '「已归档展示 / 归档模板」两处历史 `<details>`（行内展示折叠，非分区折叠头；'
+      + 'archive-display-fold 另被深链守卫按 id 依赖，迁移需单批）',
+  },
+  {
+    rel: 'docs/src/entries/tabs/leader/write-tab.js',
+    reason: '活动行内「外出提醒清单」`<details class="leader-outdoor-check">`（行内清单，'
+      + '不是分区折叠头；点击委托按该类名跳过）',
+  },
+];
+
+test('T4-1 同一文件只允许一种折叠头实现：renderDisclosure 与手写 details/summary 不混用', () => {
+  const offenders = [];
+  let rendererFiles = 0;
+  let markupFiles = 0;
+  for (const f of FILES) {
+    if (!f.rel.endsWith('.js')) continue;
+    const usesRenderer = /renderDisclosure\s*\(/.test(f.code);
+    const usesMarkup = /<(?:details|summary)\b/.test(f.code);
+    if (usesRenderer) rendererFiles += 1;
+    if (usesMarkup) markupFiles += 1;
+    if (usesRenderer && usesMarkup) offenders.push(f.rel);
+  }
+  // 非空转：两条实现路径都必须有足够样本（口径写坏 / 面被截断 ⇒ 本条恒真）
+  assert.ok(rendererFiles >= 2, `只有 ${rendererFiles} 个文件使用 renderDisclosure（下限 2）：扫描面被写坏`);
+  assert.ok(markupFiles >= 8, `只有 ${markupFiles} 个文件手写 details/summary（下限 8）：扫描面被写坏`);
+
+  const exempt = new Set(FOLD_HEAD_EXEMPTIONS.map((e) => e.rel));
+  const zombie = FOLD_HEAD_EXEMPTIONS.filter((e) => !offenders.includes(e.rel)).map((e) => e.rel);
+  assert.deepEqual(zombie, [], `FOLD_HEAD_EXEMPTIONS 里有已不混用的文件（僵尸豁免，请删除）：\n  ${zombie.join('\n  ')}`);
+  assert.deepEqual(offenders.filter((rel) => !exempt.has(rel)), [],
+    '同一文件混用了两种折叠头（renderDisclosure 与手写 details/summary）——同屏会出现两种折叠头形态：\n'
+    + offenders.filter((rel) => !exempt.has(rel)).map((rel) => `  ${rel}`).join('\n'));
+  console.log(`[ui-control-system-guard] T4-1 renderDisclosure 文件 ${rendererFiles} 个 · 手写折叠文件 ${markupFiles} 个 · 混用 ${offenders.length - zombie.length} 处（豁免 ${exempt.size}）`);
+});
+
 /** 语义族令牌（B4 判据单一源；与 `styles.css`「按钮族谱补全」段、`DESIGN_SYSTEM §4.1` 三处同源） */
 const FAMILY_TOKENS = [
   'btn-accent-soft', 'btn-accent', 'btn-action', 'btn-md', 'btn-tab',
@@ -553,6 +689,9 @@ test('B4 按钮族棘轮：未入语义族的 <button> 只许降不许升（「�
   const perFile = new Map();
   const re = /<button[^>]*\bclass="([^"]*)"/g;
   for (const f of walk(SRC)) {
+    // 2026-10-25 Task 3：MenuButton 的按钮类由**调用方**传入（必须落 8 族之一），
+    //   组件模板里的 `${buttonClassName}` 无法静态归族 ⇒ 该文件不参与本棘轮。
+    if (f.endsWith('menu-button.js')) continue;
     const src = readFileSync(f, 'utf8');
     let m;
     while ((m = re.exec(src)) !== null) {

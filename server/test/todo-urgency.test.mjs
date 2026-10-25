@@ -18,7 +18,7 @@ import { join } from 'node:path';
 import {
   buildUrgencySections,
   renderUrgencyTodoList,
-} from '../../docs/src/components/record/todo-list.js?v=20261024d';
+} from '../../docs/src/components/record/todo-list.js?v=20261025a';
 
 const ROOT = join(import.meta.dirname, '..', '..');
 const read = (rel) => readFileSync(join(ROOT, rel), 'utf8');
@@ -150,7 +150,8 @@ test('⑧ 首屏顺序：折叠条默认展开露 2 条待答复，未读通知�
   // 待答复 embedded 默认露 2 条，其余可展开
   assert.match(inbox, /embeddedLimit\s*=\s*2/, 'embedded 模式默认限制 2 条待答复');
   assert.match(inbox, /查看全部待答复/, '其余待答复经「查看全部待答复」展开');
-  const detailsStart = shell.indexOf('<details class="todo-strip card');
+  // 2026-10-25 Task 3：卡片类移到外层容器，`<details>` 只保留 `.todo-strip`（标题已移出 summary）
+  const detailsStart = shell.indexOf('<details class="todo-strip"');
   const detailsEnd = shell.indexOf('</details>', detailsStart);
   const body = shell.slice(detailsStart, detailsEnd);
   assert.ok(body.includes('${extraHtml}') && body.includes('${unreadHtml}'), '展开区应同时承载待答复与未读通知行');

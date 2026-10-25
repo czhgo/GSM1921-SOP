@@ -2,7 +2,7 @@
 title: "文档系统管理层索引——全仓库文档系统管理的技术方法"
 type: index
 role: "[工程师]+[AI]"
-last_updated: 2026-10-24
+last_updated: 2026-10-25
 status: active
 ---
 
@@ -25,7 +25,8 @@ status: active
 
 | 文件 | 一句话作用 | 权威源？（是/指针） |
 |------|-----------|-------------------|
-| [OPERATIONS_GUIDE.md](OPERATIONS_GUIDE.md) | 《运行与协作规范》：文档权威层级、术语、编码排版、日志、命名、文件角色分类（§24–§31）与分职规则（§32） | **是**——文档治理与运行标准唯一权威 |
+| [OPERATIONS_GUIDE.md](OPERATIONS_GUIDE.md) | 《运行与协作规范》：文档权威层级、术语使用规则、编码排版、日志、命名、文件角色分类（§24–§31）与分职规则（§32） | **是**——文档治理与运行标准唯一权威 |
+| [TERMINOLOGY.md](TERMINOLOGY.md) | 术语表：首批 18 条的 9 字段定义（词条 / 定义 / 层级 / 上位下位 / 并列集 / 禁用写法 / 权威文档 / 代码键 / 别名） | **是**——全仓唯一术语定义源 |
 | [DOC_MAP.md](DOC_MAP.md) | 全仓库文档导航：按五类知识类型列文件、受众与目录作用表 | **是**——全仓库导航唯一权威（索引类，不复述正文） |
 | [ARCHITECTURE.md](ARCHITECTURE.md) | 架构与单一事实源：分层、仓库结构、变更流水线与单一事实源注册表（§十）、服务目录（§十一） | **是**——架构与母本子本注册的唯一权威 |
 | [CASES_INDEX.md](CASES_INDEX.md) | 判例库总索引：编号、一句话、所属域、文件链接与对应规范编号 | 指针——判例正文在各域 `CASES.md` |
@@ -34,7 +35,7 @@ status: active
 
 ## 权威源与派生
 
-- **权威源**：`OPERATIONS_GUIDE.md`（规范条文）、`ARCHITECTURE.md`（架构与单一事实源）、`DOC_MAP.md`（导航）。
+- **权威源**：`OPERATIONS_GUIDE.md`（规范条文）、`TERMINOLOGY.md`（术语定义）、`ARCHITECTURE.md`（架构与单一事实源）、`DOC_MAP.md`（导航）。
 - **派生/索引**：本 README 与 `CASES_INDEX.md` 都是索引；`DOC_MAP §二` 的文件总览从各层正文派生，不反向定义正文。
 - **跨目录引用**：各层 `README.md` 与本目录 `DOC_MAP` 互指；判例编号与分职规则以 `OPERATIONS_GUIDE §32` 为准。
 

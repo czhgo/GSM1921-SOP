@@ -3,7 +3,7 @@
 <html lang="zh-CN">
 <head>
   
-<script src="./src/theme-init.js?v=20261024d"></script>
+<script src="./src/theme-init.js?v=20261025a"></script>
 <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>首页 — GSM1921-SOP</title>
@@ -15,9 +15,9 @@
   <noscript><link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;800&family=Noto+Serif+SC:wght@400;500;600;700;800&display=swap" rel="stylesheet"></noscript>
 
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="./src/tailwind-config.js?v=20261024d"></script>
+  <script src="./src/tailwind-config.js?v=20261025a"></script>
 
-  <link rel="stylesheet" href="./src/styles.css?v=20261024d">
+  <link rel="stylesheet" href="./src/styles.css?v=20261025a">
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
@@ -60,9 +60,19 @@
                   <button class="activity-tab-btn px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors duration-200 bg-white border-[var(--neutral-200)] text-gray-600 hover:bg-surface-hover" data-view="list">列表</button>
                 </div>
                 <a href="./workspace/visitor.html" class="text-xs text-accent hover:underline">工作台 →</a>
-                <!-- 按角色落真实存在的页签（data-ws-tab-<page>）；日历视图参数名用 subview（view 会被工作台壳消费）。 -->
+                <!-- 按角色落真实存在的页签（data-ws-tab-<page>）；日历视图参数名用 subview（view 会被工作台壳消费）。
+                     2026-10-25 IA 62→45：org/prop/disc/leader 的「活动日历」页签已降为「工作概况」页内折叠卡
+                     ⇒ 落 `?tab=overview&section=calendar`（data-ws-section-<page>）；支书台仍是活动管理。 -->
                 <a href="./workspace/visitor.html"
                    data-ws-tab="calendar"
+                   data-ws-tab-org="overview"
+                   data-ws-section-org="calendar"
+                   data-ws-tab-prop="overview"
+                   data-ws-section-prop="calendar"
+                   data-ws-tab-disc="overview"
+                   data-ws-section-disc="calendar"
+                   data-ws-tab-leader="overview"
+                   data-ws-section-leader="calendar"
                    data-ws-tab-visitor="activities"
                    data-ws-tab-party-committee="branches"
                    data-ws-view="calendar"
@@ -124,7 +134,7 @@
 
 
 
-<script type="module" src="./src/entries/pages/main-entry.js?v=20261024d"></script>
+<script type="module" src="./src/entries/pages/main-entry.js?v=20261025a"></script>
 
 </body>
 </html>

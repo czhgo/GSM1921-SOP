@@ -67,11 +67,14 @@ test('组织委员专班页只提供专班工作组与报名总表；活动进�
   assert.match(source, /btn-dissolve-tf[\s\S]*?closureReady/);
 });
 
-test('组织委员专班详情只保留共享工作组成员与授权编辑器', async () => {
+test('组织委员专班详情只保留共享工作组成员与授权编辑器；页底承接「项目赋权 · 专班」', async () => {
   const source = await read('../../docs/src/entries/tabs/org/taskforce-tab.js');
   assert.match(source, /renderWorkgroupMemberEditor/);
   assert.match(source, /bindWorkgroupMemberEditor/);
-  assert.doesNotMatch(source, /mountTaskforceProjectAuth/);
+  // 2026-10-25 IA 62→45：支书台「活动管理」的项目赋权整卡已移出，**本位承接**专班赋权
+  //   （实现单一源仍是 assign-tab.js::mountTaskforceProjectAuth，不复制表单）。原「不得出现」断言按新事实反转。
+  assert.match(source, /mountTaskforceProjectAuth/, '专班管理须承接「项目赋权 · 专班」（本位）');
+  assert.match(source, /id="tf-auth-host"/, '须有赋权宿主');
   assert.doesNotMatch(source, /btn-save-tf-roles/);
   assert.match(source, /btn-transfer-tf-org/, '组织者转交保留为单独的窄操作');
   assert.match(source, /renderWorkgroupPermissionEditor\('taskforce-create'/, '创建专班时仍可初始分配成员权限');
@@ -314,8 +317,9 @@ test('宣传任务页提供登记表单并写入 propTasks', async () => {
   assert.match(source, /activityId/);
 });
 
-// 2026-10-24 Task 4.1：分组轴重裁定「工作台」→「总览」；本用例只改期望值（顺序判据一字未动）。
-test('五台注册序：我的处置位于总览之后、我的职责之前', async () => {
+// 2026-10-25 Task 5（IA 62→45）：五台「我的处置」页签已删、并入待办「我经办的反馈」区。
+// 期望值按新事实改准：不再有 my-dispatch 注册；承接页 todo 必须存在，且 issue-dispatch-view 由 todo-tab-shell 挂载。
+test('五台不再注册「我的处置」；承接页待办存在且复用 issue-dispatch-view（不再有第二套列表）', async () => {
   const files = [
     'org-workspace.js',
     'prop-workspace.js',
@@ -325,43 +329,47 @@ test('五台注册序：我的处置位于总览之后、我的职责之前', as
   ];
   for (const file of files) {
     const source = await read(`../../docs/src/capabilities/${file}`);
-    const tabs = source.split(/\r?\n/)
+    const ids = source.split(/\r?\n/)
       .map((line) => line.trimStart())
       .filter((line) => line.startsWith('{ id: '))
-      .map((line) => ({
-        id: /id: '([^']+)'/.exec(line)?.[1],
-        group: /groupLabel: '([^']+)'/.exec(line)?.[1],
-      }));
-    const dispatch = tabs.findIndex((tab) => tab.id === 'my-dispatch');
-    const workEnd = tabs.findLastIndex((tab) => tab.group === '总览');
-    const dutyStart = tabs.findIndex((tab) => tab.group === '我的职责');
-    assert.ok(dispatch > -1, `${file} 未注册 my-dispatch`);
-    assert.ok(workEnd > -1, `${file} 未注册总览分组`);
-    assert.ok(dutyStart > -1, `${file} 未注册我的职责分组`);
-    assert.ok(dispatch > workEnd,
-      `${file}：我的处置应位于总览分组之后（下标 ${dispatch} ≤ 总览末位 ${workEnd}）`);
-    assert.ok(dispatch < dutyStart,
-      `${file}：我的处置应位于我的职责分组之前（下标 ${dispatch} ≥ 我的职责首位 ${dutyStart}）`);
+      .map((line) => /id: '([^']+)'/.exec(line)?.[1]);
+    assert.ok(!ids.includes('my-dispatch'), `${file} 仍注册已撤页签 my-dispatch（应并入待办「我经办的反馈」）`);
+    assert.ok(ids.includes('todo'), `${file} 缺待办承接页 todo`);
   }
+  const shell = await read('../../docs/src/components/record/todo-tab-shell.js');
+  assert.match(shell, /issue-dispatch-view/, '待办壳须复用 issue-dispatch-view（我经办的反馈区）');
+  assert.match(shell, /filter === 'dispatch'/, '旧深链 ?filter=dispatch 须滚到该区');
+  const dispatch = await read('../../docs/src/components/feedback/issue-dispatch-view.js');
+  assert.match(dispatch, /opts\.embedded \? '' : renderTabHeader/, '内嵌形态不得再渲染第二张页头');
 });
 
-test('知情查看只保留有新增对象的段：宣传/纪检不再保留空壳页签，支书补回工作组段', async () => {
-  // 2026-10-20 批次 489（IA-A01/A02）：纪检/宣传的「知情查看」空壳页签已删除（文件随之移除）
-  //   ——专班知情改由 taskforce.html 承载，活动知情由活动日历承载。
-  for (const page of ['prop', 'disc']) {
-    const source = await read(`../../docs/src/capabilities/${page}-workspace.js`);
-    assert.doesNotMatch(source, /id:\s*'tf-view'/, `${page} 台能力注册不应再含 tf-view 页签`);
-  }
-  // 2026-10-24 spec Task 5（支书「工作组 为什么只有专班？」）：支书台补「工作组」段、默认工作组；
-  //   「活动一览」仍不回到本页（活动管理承载）⇒ 原「不得出现 activity」断言改为「不得出现 activity 段」。
-  const registry = await read('../../docs/src/capabilities/secretary-workspace.js');
-  const row = registry.split('\n').find((line) => line.includes("id: 'tf-view'")) || '';
-  assert.match(row, /views: \['workgroup', 'taskforce'\]/, '支书知情查看须含工作组 + 专班两段');
-  assert.match(row, /defaultView: 'workgroup'/, '支书知情查看默认落工作组段');
-  assert.doesNotMatch(row, /views: \['activity'|'activity', 'workgroup'/, '支书知情查看不再渲染活动一览段');
-  assert.doesNotMatch(row, /views: \['taskforce'\]/, '支书知情查看不得只剩专班段（本批根因）');
+test('知情查看分层：一级只「活动工作组 / 专班工作组」；其他党小组走独立区（三处无同层混排）', async () => {
+  // 2026-10-25 Task 5：支书台页签删除（→ 全局概况页内卡）、组长台页签删除（→ 组员进展独立区）、
+  //   成员台「专班动态」删除（→ 项目分工「专班」区）。
+  const secretary = await read('../../docs/src/capabilities/secretary-workspace.js');
+  assert.doesNotMatch(secretary, /id: 'tf-view'/, '支书台能力注册不再含 tf-view 页签');
+  const secretaryOverview = await read('../../docs/src/entries/tabs/secretary/overview-tab.js');
+  assert.match(secretaryOverview, /renderInsightView/, '知情查看卡须复用 insight-view');
+  assert.match(secretaryOverview, /views: \['workgroup', 'taskforce'\]/, '支书知情卡仍只两段');
+  assert.match(secretaryOverview, /embedded: true/, '页内卡形态（不重复页头）');
 
-  // A04（2026-10-20 IA 修复批次）：组织台「知情查看」页签撤页，能力并入「专班管理」页。
+  const insight = await read('../../docs/src/components/record/insight-view.js');
+  assert.match(insight, /SEG_LABEL = \{ workgroup: '活动工作组', taskforce: '专班工作组' \}/,
+    '一级分段标签只能是「活动工作组 / 专班工作组」');
+  assert.match(insight, /SEG_TYPES = \['workgroup', 'taskforce'\]/, '分段集合不得再含 group（组织单元）');
+  assert.match(insight, /opts\.groupSection/, '其他党小组须为独立区（groupSection）');
+
+  const leader = await read('../../docs/src/capabilities/leader-workspace.js');
+  assert.doesNotMatch(leader, /id: 'tf-view'/, '组长台能力注册不再含 tf-view 页签');
+  const leaderMembers = await read('../../docs/src/entries/tabs/leader/members-tab.js');
+  assert.match(leaderMembers, /renderOtherGroupsView/, '其他党小组独立区须复用 other-groups-view');
+
+  const visitor = await read('../../docs/src/capabilities/visitor-workspace.js');
+  assert.doesNotMatch(visitor, /id: 'tf-view'/, '成员台能力注册不再含 tf-view 页签');
+  const visitorProjects = await read('../../docs/src/entries/tabs/visitor/projects-tab.js');
+  assert.match(visitorProjects, /renderTaskforceView/, '项目分工「专班」区须复用 taskforce-view');
+  assert.match(visitorProjects, /key: 'tf', label: '专班'/, '项目分工须有「专班」子视图');
+
   const orgRegistry = await read('../../docs/src/capabilities/org-workspace.js');
   assert.doesNotMatch(orgRegistry, /id: 'tf-view'/, '组织台能力注册不再含 tf-view');
   const orgTaskforce = await read('../../docs/src/entries/tabs/org/taskforce-tab.js');
@@ -398,12 +406,14 @@ test('反馈管理只留反馈：列表与合并目标排除 kind=report', async
   assert.match(source, /title: '反馈列表'/);
 });
 
-test('工作概况汇报区只读：无提交入口，唯一动作跳「我的处置」', async () => {
+test('工作概况汇报区只读：无提交入口，唯一动作跳待办「我经办的反馈」', async () => {
   const source = await read('../../docs/src/components/governance/work-overview.js');
   assert.match(source, /getReportRequestsFor\(personId\)/);
   assert.doesNotMatch(source, /wo-req-submit|data-report-submit|请填写汇报内容|renderFilteredList/, '概况不得保留汇报行内提交/校验载体');
   assert.match(source, /data-wo-go-dispatch/, '汇报摘要须给出唯一动作按钮');
-  assert.match(source, /data-\$\{prefix\}-tab="my-dispatch"/, '唯一动作须跳「我的处置」');
+  // 2026-10-25 Task 5：原「我的处置」页签已并入待办「我经办的反馈」区 ⇒ 落点改为待办 + 滚到该区。
+  assert.match(source, /data-\$\{prefix\}-tab="todo"/, '唯一动作须跳「待办」');
+  assert.match(source, /ws-dispatch-section/, '落点须滚到「我经办的反馈」区');
 });
 
 test('今天页汇报行落到待办「待答复」，不再指向反馈/我的处置', async () => {

@@ -100,7 +100,7 @@ test('C1 支书创建三会一课活动（支部党员大会）：点击次数�
       };
     }, uniqueTitle);
     const st = await page.evaluate(async (u) => {
-      const m = await import('/src/core/base/state.js?v=20261024d');
+      const m = await import('/src/core/base/state.js?v=20261025a');
       const acts = m.getAppState().activities || [];
       return {
         appStateCount: acts.length,
@@ -218,14 +218,14 @@ test('C4 组长建活动（默认预选）：决策点选 0 次、首屏无 L1�
       (document.getElementById('dt-panel-wrap').innerText.split('\n').find(l => l.includes('当前设置')) || '').trim());
     console.log(`[C4] 首屏默认摘要：${summary}`);
     const myGroup = await page.evaluate(async () => {
-      const m = await import('/src/entries/tabs/leader/_shared.js?v=20261024d');
+      const m = await import('/src/entries/tabs/leader/_shared.js?v=20261025a');
       return m.currentLeaderGroup().group;
     });
     assert.ok(summary.includes('活动类型'), '首屏应显示白话「活动类型」摘要');
     assert.ok(summary.includes(myGroup), `默认承办党小组应为组长本组（${myGroup}）`);
 
-    // ② 高级设置默认收起
-    const advHidden = await page.evaluate(() => document.getElementById('dt-adv-body')?.classList.contains('hidden'));
+    // ② 高级设置默认收起（2026-10-25 Task 3：折叠改为原生 details ⇒ 状态读 `open` 属性）
+    const advHidden = await page.evaluate(() => !document.getElementById('dt-adv')?.open);
     assert.equal(advHidden, true, '「高级设置（可选）」应默认收起');
 
     // ③ 填写（输入不计点击）→ 直接提交
@@ -256,10 +256,7 @@ test('C5 组长建活动（高级层展开）：仍可改 活动类型/形式/�
 
     // 展开高级设置 → 白话分区齐全、仍无 L1–L4
     await page.locator('#dt-adv-toggle').click();
-    await page.waitForFunction(() => {
-      const b = document.getElementById('dt-adv-body');
-      return b && !b.classList.contains('hidden');
-    }, { timeout: 5000 });
+    await page.waitForFunction(() => !!document.getElementById('dt-adv')?.open, { timeout: 5000 });
     const advText = await page.evaluate(() => document.getElementById('dt-adv-body').innerText);
     DECISION_TERMS.forEach((t) => assert.ok(!advText.includes(t), `高级区不应出现 ${t} 缩写`));
     WHITE_LABELS.forEach((label) => assert.ok(advText.includes(label), `高级区应含白话分区「${label}」`));
@@ -274,7 +271,7 @@ test('C5 组长建活动（高级层展开）：仍可改 活动类型/形式/�
     await page.locator('.dt-l4-btn[data-value="top-down"]').click();
     // L1 变更会重置承办党小组 → 回选组长本组
     const myGroup = await page.evaluate(async () => {
-      const m = await import('/src/entries/tabs/leader/_shared.js?v=20261024d');
+      const m = await import('/src/entries/tabs/leader/_shared.js?v=20261025a');
       return m.currentLeaderGroup().group;
     });
     await page.waitForSelector(`.dt-host-btn[data-value="${myGroup}"]`, { timeout: 5000 });

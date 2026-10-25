@@ -39,53 +39,114 @@ const WORKS = {
   'workspace:party-committee': 'party-committee-workspace.js',
 };
 
-/** 从壳源码里解析 `'workspace:<key>': { 旧id: '新id', … }` 别名块 */
-function aliasesOf(scope) {
+/** 取 `'workspace:<key>': { … }` 的对象体（大括号配对——2026-10-25 起别名值可为对象，不能再按首个 `}` 截断） */
+function aliasBlockOf(scope) {
   const src = read(SHELL);
   const esc = scope.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  const m = new RegExp(`'${esc}':\\s*\\{([^}]*)\\}`).exec(src);
+  const m = new RegExp(`'${esc}':\\s*\\{`).exec(src);
   if (!m) return null;
+  const start = src.indexOf('{', m.index);
+  let depth = 0;
+  for (let p = start; p < src.length; p += 1) {
+    if (src[p] === '{') depth += 1;
+    else if (src[p] === '}') {
+      depth -= 1;
+      if (depth === 0) return src.slice(start + 1, p);
+    }
+  }
+  return null;
+}
+
+/** 解析别名：值可为 `'新id'` 或 `{ tab: '新id', section/filter/lane }` */
+function aliasesOf(scope) {
+  const body = aliasBlockOf(scope);
+  if (body === null) return null;
   const out = {};
-  for (const p of m[1].matchAll(/(?:'([\w-]+)'|([\w-]+))\s*:\s*'([^']+)'/g)) {
-    out[p[1] || p[2]] = p[3];
+  for (const m of body.matchAll(/'?([\w-]+)'?\s*:\s*(?:\{([^}]*)\}|'([^']+)')/g)) {
+    const [, oldId, objBody, strVal] = m;
+    if (strVal) { out[oldId] = { tab: strVal }; continue; }
+    const tab = /tab:\s*'([^']+)'/.exec(objBody)?.[1];
+    if (!tab) continue;
+    out[oldId] = {
+      tab,
+      section: /section:\s*'([^']+)'/.exec(objBody)?.[1],
+      filter: /filter:\s*'([^']+)'/.exec(objBody)?.[1],
+      lane: /lane:\s*'([^']+)'/.exec(objBody)?.[1],
+    };
   }
   return out;
 }
 
-test('A01/A02/A04/A05/A06：已撤页签不得回潮', () => {
+test('已撤页签不得回潮（含 2026-10-25 IA 62→45 的 17 项）', () => {
   const gone = {
-    'disc-workspace.js': ['tf-view'],
-    'prop-workspace.js': ['tf-view'],
-    'org-workspace.js': ['tf-view'],
+    'disc-workspace.js': ['tf-view', 'calendar', 'my-dispatch'],
+    'prop-workspace.js': ['tf-view', 'calendar', 'my-dispatch', 'tasks'],
+    'org-workspace.js': ['tf-view', 'calendar', 'my-dispatch'],
+    'leader-workspace.js': ['tf-view', 'calendar', 'my-dispatch', 'inspection'],
+    'visitor-workspace.js': ['tf-view', 'my-dispatch', 'thought-report', 'inspection', 'review'],
+    'secretary-workspace.js': ['tf-view', 'member-flow'],
     'party-committee-workspace.js': ['monitor', 'governance-overview'],
   };
   for (const [file, ids] of Object.entries(gone)) {
     const live = tabIdsOf(file);
-    for (const id of ids) assert.ok(!live.has(id), `${file} 仍注册已撤页签 ${id}（IA A01/A02/A04/A05/A06）`);
+    for (const id of ids) assert.ok(!live.has(id), `${file} 仍注册已撤页签 ${id}（IA 62→45）`);
   }
 });
 
-test('旧 id 别名必须落到该台真实承接页（不白屏）', () => {
+test('旧 id 别名必须落到该台真实承接页（不白屏），且页内落点参数齐全', () => {
   const expected = {
-    'workspace:disc': { 'tf-view': 'calendar' },
-    'workspace:prop': { 'tf-view': 'kanban' },
-    'workspace:org': { 'tf-view': 'taskforce' },
-    'workspace:party-committee': { monitor: 'branches', 'governance-overview': 'review' },
+    'workspace:secretary': { 'tf-view': ['overview', 'insight'] },
+    'workspace:org': {
+      'tf-view': ['taskforce', null],
+      calendar: ['overview', 'calendar'],
+      'my-dispatch': ['todo', null, 'dispatch'],
+    },
+    'workspace:prop': {
+      'tf-view': ['kanban', null],
+      calendar: ['overview', 'calendar'],
+      'my-dispatch': ['todo', null, 'dispatch'],
+      tasks: ['kanban', null, null, 'tasks'],
+    },
+    'workspace:disc': {
+      makeup: ['attendance', null],
+      'tf-view': ['overview', 'calendar'],
+      calendar: ['overview', 'calendar'],
+      'my-dispatch': ['todo', null, 'dispatch'],
+    },
+    'workspace:leader': {
+      calendar: ['overview', 'calendar'],
+      'my-dispatch': ['todo', null, 'dispatch'],
+      'tf-view': ['members', 'groups'],
+      inspection: ['members', 'inspection'],
+    },
+    'workspace:visitor': {
+      'my-dispatch': ['todo', null, 'dispatch'],
+      'tf-view': ['projects', 'taskforce'],
+      'thought-report': ['growth', 'thought'],
+      inspection: ['growth', 'inspection'],
+      review: ['growth', 'review'],
+    },
+    'workspace:party-committee': { monitor: ['branches', null], 'governance-overview': ['review', null] },
   };
   for (const [scope, table] of Object.entries(expected)) {
     const aliases = aliasesOf(scope);
     assert.ok(aliases, `workspace-shell.js 缺 ${scope} 的旧 id 别名块`);
     const live = tabIdsOf(WORKS[scope]);
-    for (const [oldId, newId] of Object.entries(table)) {
-      assert.equal(aliases[oldId], newId, `${scope} 的旧 id「${oldId}」应落「${newId}」`);
+    for (const [oldId, [newId, section, filter, lane]] of Object.entries(table)) {
+      assert.ok(aliases[oldId], `${scope} 缺旧 id「${oldId}」别名`);
+      assert.equal(aliases[oldId].tab, newId, `${scope} 的旧 id「${oldId}」应落「${newId}」`);
       assert.ok(live.has(newId), `${scope} 的承接页「${newId}」不在能力注册里 —— 别名会指向空`);
+      if (section !== null) assert.equal(aliases[oldId].section, section, `${scope}/${oldId} 的 section 落点不符`);
+      if (filter) assert.equal(aliases[oldId].filter, filter, `${scope}/${oldId} 的 filter 落点不符`);
+      if (lane) assert.equal(aliases[oldId].lane, lane, `${scope}/${oldId} 的 lane 落点不符`);
     }
   }
 });
 
-test('未登记的台不凭空长别名（零影响现行 id）', () => {
-  for (const scope of ['workspace:secretary', 'workspace:leader', 'workspace:visitor']) {
-    const aliases = aliasesOf(scope);
-    assert.equal(aliases, null, `${scope} 不应新增别名块（本次裁定未涉及）`);
-  }
+test('跨台迁移（支书成员流动 → 组织台）走页面级重定向，且落地带 legacy 说明', () => {
+  // 2026-10-25 IA 62→45：同源组件两个页签位 ⇒ 收口组织台本位；本台不再有别名，改为换页。
+  const src = read(SHELL);
+  assert.match(src, /_legacyPageRedirects/, '缺跨台重定向表');
+  assert.match(src, /'member-flow': 'org\.html\?tab=member-flow&legacy=member-flow'/, '成员流动须跳组织台本位并带 legacy');
+  assert.match(src, /__wsLegacyNoticeShown/, '落地须给一次可见说明（toast）');
 });

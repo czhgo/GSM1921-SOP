@@ -1,20 +1,20 @@
 // Party committee branch directory: create and select; maintenance is in branch-config.html.
 
-import { mockDB } from '../../../core/domain/domain.js?v=20261024d';
+import { mockDB } from '../../../core/domain/domain.js?v=20261025a';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/member/person.js 获取（原直连 mock PEOPLE）；
 // 每次渲染现读（members 覆盖层即时吃到），不缓存在模块顶层
-import { PersonStore } from '../../../services/member/person.js?v=20261024d';
-import { createBranch } from '../../../services/branch/branch.js?v=20261024d';
-import { getRosterStats } from '../../../services/member/roster.js?v=20261024d';
-import { showToast, escHtml as esc, getBasePath } from '../../../core/base/utils.js?v=20261024d';
-import { bindBranchReadOnlyButtons } from '../../../services/core/branch-readonly-nav.js?v=20261024d';
-import { renderSectionHeader, renderTabHeader } from '../../../components/shell/page-frame.js?v=20261024d';
-import { DEFAULT_BRANCH_ID } from '../../../core/domain/constants.js?v=20261024d';
-import { getAdapter, getDataSource } from '../../../data/data-adapter.js?v=20261024d';
+import { PersonStore } from '../../../services/member/person.js?v=20261025a';
+import { createBranch } from '../../../services/branch/branch.js?v=20261025a';
+import { getRosterStats } from '../../../services/member/roster.js?v=20261025a';
+import { showToast, escHtml as esc, getBasePath } from '../../../core/base/utils.js?v=20261025a';
+import { bindBranchReadOnlyButtons } from '../../../services/core/branch-readonly-nav.js?v=20261025a';
+import { renderSectionHeader, renderTabHeader } from '../../../components/shell/page-frame.js?v=20261025a';
+import { DEFAULT_BRANCH_ID } from '../../../core/domain/constants.js?v=20261025a';
+import { getAdapter, getDataSource } from '../../../data/data-adapter.js?v=20261025a';
 // A05（2026-10-20 IA 修复批次）：「支部动态」撤页后，其「待批复数量列 + 支部筛选」并入本页。
 //   数据与筛选件一律复用既有单一源（review-request 服务 + branch-filter 共用件），不另写一份。
-import { listReviewRequests } from '../../../services/governance/review-request.js?v=20261024d';
-import { renderBranchFilter, getBranchFilter } from '../../../components/governance/branch-filter.js?v=20261024d';
+import { listReviewRequests } from '../../../services/governance/review-request.js?v=20261025a';
+import { renderBranchFilter, getBranchFilter } from '../../../components/governance/branch-filter.js?v=20261025a';
 
 const BRANCH_FILTER_STATE = 'pc-branches';
 
@@ -76,6 +76,7 @@ function renderBranchRosterRows(branchId) {
 function branchRosterRow(branchId) {
   const row = document.createElement('tr');
   row.className = 'branch-roster-row';
+  row.id = `branch-roster-${branchId}`;
   row.dataset.branchRosterFor = branchId;
   row.innerHTML = `<td colspan="10" class="bg-gray-50 p-3">${renderBranchRosterRows(branchId)}</td>`;
   return row;
@@ -122,11 +123,11 @@ export async function renderContent() {
       ${renderSectionHeader({
         title: '支部目录',
         description: `${branches.length} 个支部`,
-        actions: '<button id="branch-add-toggle" type="button" class="btn-accent px-3 py-2 text-sm font-medium">新建支部</button>',
+        actions: '<button id="branch-add-toggle" type="button" class="btn-accent px-3 py-2 text-sm font-medium" aria-expanded="false" aria-controls="branch-form-wrap">新建支部</button>',
         level: 3,
       })}
       <div id="pc-branches-branch-filter" class="mb-4 mt-4"></div>
-      <section id="branch-form-wrap" class="mt-4 hidden rounded-lg border border-gray-200 bg-gray-50 p-4" aria-label="新建支部">
+      <section id="branch-form-wrap" class="mt-4 rounded-lg border border-gray-200 bg-gray-50 p-4" aria-label="新建支部" hidden>
         <div class="grid grid-cols-1 gap-3 md:grid-cols-2">
           <div><label class="mb-1 block text-xs text-gray-600" for="branch-name-input">支部名称</label><input id="branch-name-input" type="text" class="input-flat w-full" placeholder="支部全称" /></div>
           <div><label class="mb-1 block text-xs text-gray-600" for="branch-type-input">类型（可选）</label><input id="branch-type-input" type="text" class="input-flat w-full" placeholder="如本科生、硕士生" /></div>
@@ -166,7 +167,7 @@ export async function renderContent() {
             <td data-label="活动" class="tabular-nums">${activityText}</td><td data-label="专班" class="tabular-nums">${taskforceText}</td><td data-label="通知" class="tabular-nums">${noticeText}</td>
             <td data-label="待批复" class="tabular-nums">${pendingCell}</td>
             <td data-label="组织提醒">${missingSecretary ? '<span class="text-sm text-amber-800">待任命支书</span>' : '<span class="text-sm text-gray-500">—</span>'}</td>
-            <td data-label="操作"><div class="flex flex-wrap gap-2"><button type="button" class="btn-outline whitespace-nowrap px-3 py-2 text-sm" data-branch-roster-toggle data-branch-id="${esc(bid)}" aria-expanded="false">名册</button><a class="btn-accent inline-flex whitespace-nowrap px-3 py-2 text-sm font-medium" href="${configureUrl}">支部设置</a><button type="button" class="btn-outline branch-readonly-enter whitespace-nowrap px-3 py-2 text-sm" data-branch-id="${esc(bid)}">查看该支部</button></div></td>
+            <td data-label="操作"><div class="flex flex-wrap gap-2"><button type="button" class="btn-outline whitespace-nowrap px-3 py-2 text-sm" data-branch-roster-toggle data-branch-id="${esc(bid)}" aria-expanded="false" aria-controls="branch-roster-${esc(bid)}">名册</button><a class="btn-accent inline-flex whitespace-nowrap px-3 py-2 text-sm font-medium" href="${configureUrl}">支部设置</a><button type="button" class="btn-outline branch-readonly-enter whitespace-nowrap px-3 py-2 text-sm" data-branch-id="${esc(bid)}">查看该支部</button></div></td>
           </tr>`;
         }).join('')}
         </tbody></table></div>` : `<p class="mt-4 py-8 text-sm text-gray-600" role="status">尚无支部。创建支部后，再进入其配置页完成组织设置。</p>`}
@@ -180,11 +181,19 @@ export async function renderContent() {
     onChange: () => renderContent(),
   });
 
-  // 新建表单开关
+  // 新建表单开关（2026-10-25 Task 3：`aria-expanded` + `hidden` 属性，不再用 `.hidden`）
   const toggle = el.querySelector('#branch-add-toggle');
   const formWrap = el.querySelector('#branch-form-wrap');
-  toggle?.addEventListener('click', () => formWrap?.classList.toggle('hidden'));
-  el.querySelector('#branch-form-cancel')?.addEventListener('click', () => formWrap?.classList.add('hidden'));
+  toggle?.addEventListener('click', () => {
+    if (!formWrap) return;
+    formWrap.hidden = !formWrap.hidden;
+    toggle.setAttribute('aria-expanded', String(!formWrap.hidden));
+  });
+  el.querySelector('#branch-form-cancel')?.addEventListener('click', () => {
+    if (!formWrap) return;
+    formWrap.hidden = true;
+    toggle?.setAttribute('aria-expanded', 'false');
+  });
 
   // 创建支部（立项⑤ 阶段A：写口升级为 createBranch 空模板双形态——建出的支部为空：
   // config 默认全开、业务域为空、席位空缺待任命；返回 { ok, branch?, reason? }）

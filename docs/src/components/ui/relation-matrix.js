@@ -12,10 +12,10 @@
 //   · **窄屏（≤640px）＝同一关系行的响应式形态**：仍是这一张表，只是每行按「行表头（人/项目）＋
 //     逐列 `data-label` 值」堆叠成卡；不新造第二套矩阵、不改 cell 口径。与引擎表共用 styles.css 的
 //     `[data-responsive="cards"]` 一套规则（thead 隐藏、sticky/min-width 清零）。
-import { escHtml as esc } from '../../core/base/utils.js?v=20261024d';
+import { escHtml as esc } from '../../core/base/utils.js?v=20261025a';
 // 翻页控件单一源（批次 38）：矩阵的人维分页与统一检索引擎共用同一套 .page-btn / .page-num 标记
 // （叶子件 pager.js——不经 list-filter 引入，避免 list-filter→inspector→vote-summary-panel 与本节成环）
-import { pagerHtml } from './pager.js?v=20261024d';
+import { pagerHtml } from './pager.js?v=20261025a';
 
 /** 项目维缺省列上限（最近 N 项） */
 export const MATRIX_COL_LIMIT = 6;
@@ -125,11 +125,11 @@ export function renderRelationMatrix(host, cfg) {
       ${(overLimit || hint) ? `
         <div class="flex items-center justify-between flex-wrap gap-2 mb-2">
           <span class="text-xs text-gray-500">${esc(hint)}</span>
-          ${overLimit ? `<button type="button" class="btn-tab lf-btn rm-toggle" data-rm-toggle="1">
+          ${overLimit ? `<button type="button" class="btn-tab lf-btn rm-toggle" data-rm-toggle="1" aria-expanded="${st.showAll ? 'true' : 'false'}" aria-controls="${esc(host.id || 'rm')}-table">
             ${st.showAll ? `只看最近 ${colLimit} 项` : `显示全部 ${items.length} 项`}
           </button>` : ''}
         </div>` : ''}
-      <div class="rm-scroll overflow-x-auto max-h-[420px] overflow-y-auto">
+      <div class="rm-scroll overflow-x-auto max-h-[420px] overflow-y-auto" id="${esc(host.id || 'rm')}-table">
         <table class="data-table rm-table" data-responsive="cards">
           <caption class="visually-hidden">关系矩阵：行与列交叉单元格</caption>
           <thead><tr>${headRow}</tr></thead>

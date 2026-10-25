@@ -40,6 +40,9 @@ related_files: [OPERATIONS_GUIDE.md, DOC_MAP.md, content/04_web_design/design-sy
 | CASE-DESIGN-014 | 待归档待办在关闭条件齐备时生成，归档动作销项 | design | [CASES.md](../04_web_design/design-system/CASES.md) | SD-34 | 批次 510 |
 | CASE-DESIGN-015 | 空列不保留列位，改为删列或主从两栏 | design | [CASES.md](../04_web_design/design-system/CASES.md) | SD-35 | 批次 510 |
 | CASE-DESIGN-016 | mock 只存事实，派生结果不写种子 | design | [CASES.md](../04_web_design/design-system/CASES.md) | SD-34 | 批次 510 |
+| CASE-DESIGN-017 | 并列项必须同层：工作组不与专班 / 党小组同排 | design | [CASES.md](../04_web_design/design-system/CASES.md) | SD-37 | 批次 511 |
+| CASE-DESIGN-018 | 标题不进交互元素；同类折叠同一原语 | design | [CASES.md](../04_web_design/design-system/CASES.md) | SD-38 / SD-39 | 批次 511 |
+| CASE-DESIGN-019 | 一功能一页签；跨台重复注册必须降级 | design | [CASES.md](../04_web_design/design-system/CASES.md) | SD-40 | 批次 511 |
 | CASE-INST-001 | 匿名反馈改裁为支部内闭环、无系统揭名入口 | institution | [CASES.md](../02_institution/CASES.md) | `SYSTEM_ROLE_PERMISSION §9j`（SR 待编号） | 2026-10-16（D-824） |
 | CASE-INST-002 | 意见处置与品牌认定归支委会，支书主持 | institution | [CASES.md](../02_institution/CASES.md) | `SYSTEM_ROLE_PERMISSION §9j`（SR 待编号） | 2026-09-18 |
 | CASE-INST-003 | 过程时限统一属可配置制度参数 | institution | [CASES.md](../02_institution/CASES.md) | `SYSTEM_ROLE_PERMISSION §9l`（SR 待编号） | 2026-09-17 |
@@ -55,6 +58,6 @@ related_files: [OPERATIONS_GUIDE.md, DOC_MAP.md, content/04_web_design/design-sy
 
 | 域 | 判例文件 | 现有条数 |
 |---|---|---|
-| design（网站设计） | [04_web_design/design-system/CASES.md](../04_web_design/design-system/CASES.md) | 16 |
+| design（网站设计） | [04_web_design/design-system/CASES.md](../04_web_design/design-system/CASES.md) | 19 |
 | institution（制度） | [02_institution/CASES.md](../02_institution/CASES.md) | 5 |
 | ai-coding（AI 协作） | [05_ai_coding/CASES.md](../05_ai_coding/CASES.md) | 5 |

@@ -12,10 +12,10 @@
 //  任务完成数＝completed 数 / 非 cancelled 任务总数，无任务显示「—」；两类皆空则整卡隐藏。
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB, isTaskforceActiveStatus } from '../../core/domain/domain.js?v=20261024d';
-import { listRowHtml, listGroupHtml } from '../ui/list-row.js?v=20261024d';
-import { AuthStore } from '../../services/core/auth.js?v=20261024d';
-import { getBasePath } from '../../core/base/utils.js?v=20261024d';
+import { mockDB, isTaskforceActiveStatus } from '../../core/domain/domain.js?v=20261025a';
+import { listRowHtml, listGroupHtml } from '../ui/list-row.js?v=20261025a';
+import { AuthStore } from '../../services/core/auth.js?v=20261025a';
+import { getBasePath } from '../../core/base/utils.js?v=20261025a';
 
 const GROUP_LIMIT = 3;
 // 2026-10-24 批次 508：状态色调对齐专班查看组件——招募中由 info（信息蓝）改为 warning（需要关注）；
@@ -42,13 +42,20 @@ const ROLE_PAGE = {
 const ACTIVITY_TAB = {
   secretary: 'calendar',
   'deputy-secretary': 'calendar',
+  // 2026-10-25 IA 62→45：活动日历页签降为工作概况页内折叠卡 ⇒ 落 overview + `section=calendar`。
+  'org-commissioner': 'overview',
+  'prop-commissioner': 'overview',
+  'disc-commissioner': 'overview',
+  leader: 'overview',
+  participant: 'activities',
+  // 2026-10-20 批次 489：党委台无活动日历页签，活动工作组「查看全部」落支部管理（汇总面）。
+  'party-staff': 'branches',
+};
+const ACTIVITY_SECTION = {
   'org-commissioner': 'calendar',
   'prop-commissioner': 'calendar',
   'disc-commissioner': 'calendar',
   leader: 'calendar',
-  participant: 'activities',
-  // 2026-10-20 批次 489：党委台无活动日历页签，活动工作组「查看全部」落支部管理（汇总面）。
-  'party-staff': 'branches',
 };
 // 2026-10-20 批次 489（IA-A01/A03 裁定）：纪检/组长台已不再用「知情查看」承载专班
 //   ⇒ 专班「查看全部」改落专班详情页（见 TASKFORCE_HREF）。
@@ -59,13 +66,19 @@ const TASKFORCE_HREF = {
   leader: 'taskforce.html',
 };
 const TASKFORCE_TAB = {
-  secretary: 'tf-view',
-  'deputy-secretary': 'tf-view',
+  // 2026-10-25 IA 62→45：支书台知情查看→全局概况页内卡；成员台专班动态→项目分工「专班」区。
+  secretary: 'overview',
+  'deputy-secretary': 'overview',
   'org-commissioner': 'taskforce',
   'prop-commissioner': 'kanban',
-  participant: 'tf-view',
+  participant: 'projects',
   // 2026-10-20 批次 489：党委台无专班页签，专班工作组「查看全部」落支部管理（汇总面）。
   'party-staff': 'branches',
+};
+const TASKFORCE_SECTION = {
+  secretary: 'insight',
+  'deputy-secretary': 'insight',
+  participant: 'taskforce',
 };
 
 function _viewAllHref(kind) {
@@ -76,8 +89,10 @@ function _viewAllHref(kind) {
   // 纪检/组长的专班知情已改由详情页承载（页签已删/不再出专班段）。
   if (kind === 'taskforce' && TASKFORCE_HREF[role]) return `${getBasePath()}${TASKFORCE_HREF[role]}`;
   const page = ROLE_PAGE[role] || 'visitor.html';
-  const tab = (kind === 'activity' ? ACTIVITY_TAB : TASKFORCE_TAB)[role] || 'tf-view';
-  return `${getBasePath()}workspace/${page}?tab=${tab}`;
+  const tab = (kind === 'activity' ? ACTIVITY_TAB : TASKFORCE_TAB)[role] || 'overview';
+  const section = (kind === 'activity' ? ACTIVITY_SECTION : TASKFORCE_SECTION)[role];
+  const sectionParam = section ? `&section=${encodeURIComponent(section)}` : '';
+  return `${getBasePath()}workspace/${page}?tab=${tab}${sectionParam}`;
 }
 
 /** 某工作组的任务口径：completed / 非 cancelled 总数（无任务时 total 为 0）

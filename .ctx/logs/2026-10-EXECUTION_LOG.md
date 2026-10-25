@@ -3837,3 +3837,57 @@ $body
 | 6 | 知情查看写死 `views:['taskforce']`，活动工作组不可见 | 分段集合由调用方写死，组件从未提供「工作组」段 | Task 5 分段契约（SD-35 同类：卡内构成） | `workbench-audit-coverage`（Task 5 用例） |
 | 7 | mock 35 条活动状态逐行手写；复盘 `overdue` 快照；归档两套状态；通知正文抄日期 | 种子存派生结果，派生器与种子形成两套真相 | SD-34 / CASE-DESIGN-016 | `state-enum-guard::G4` ＋ `mock-api-parity-structure` |
 | 8 | 消息四个承载面、三套已读语义、两套归档语义 | 同一用户对象没有唯一列表 / 全貌 / 状态机 | Q-21 ＋ SD-33 / SD-34 / CASE-DESIGN-012 / 013 | `notice-deeplink-guard` ＋ `notice-audience::N13–N16` ＋ `notice-message::N5` |
+
+## 批次 511（2026-10-25）：IA 62→45 ＋ 组件契约 ＋ 术语 Harness ＋ 文档补账（spec `consolidate-ia-terms-and-components`）
+
+### 一、判据
+
+- 支书 4 条反馈：① 上批探索的长期结论没有全部落进文档体系（`DATA_MODEL` 仍写旧消息模型）；② 同一折叠功能存在 `<details>` 与 `<button>` 两套实现，且 `button` 里嵌 `h3`、`summary` 里嵌 `role=heading`；③ 62 个页签中约 20 个是同一渲染器重复注册，支书台「活动管理」把日历、查询、党小组活动、项目赋权四件事塞在一页；④ 「工作组 / 专班 / 其他组」把协作结构、业务对象、党小组三个层级并列成一排按钮，全仓没有单一术语表。
+- 四份独立审计：文档落地（`DATA_MODEL §2.9` 仍用 `targetModule` ＋ 全局 `read`；help 四处漂移）· 组件（4 处标题嵌套 ＋ 4 个 `div` 伪开关 ＋ 24 个无 ARIA 折叠）· IA（62 页签中 17 项可删/降，实际收敛区间 10/8/5/6/6/7/3＝45）· 术语（0 份唯一术语源，并列关系全凭各台自己写）。
+- 支书裁定：组件按工程判断定契约；IA 全面重组 62→45；术语可新建唯一文件，但必须用 Harness 与 `OPERATIONS_GUIDE §19` / `sop/INDEX.md` 钉死关系；知情查看改「同层对象切换 ＋ 独立区」。
+
+### 二、动作（指针）
+
+1. **Task 1 文档补账**：`DATA_MODEL §2.9` 重写为消息对象（`kind` / `targetType+targetId` / `reads[]` / `archivedBy[]` / `archived` / `replyTo` / 有效期派生），删 `targetModule` 与全局 `read`；`§2.19` 同步逐人已读与待办幂等键；四组页签名统一为「总览 / 我的职责 / 协作与知情 / 制度与答复」；`DESIGN_SYSTEM` 增 SD-37/38/39/40；新建 `TERMINOLOGY.md`（20 条 × 9 字段）与 `PRODUCT_IA.md`（45 行派生索引）。
+2. **Task 2 术语 Harness**：`docs-governance-guard` 增 H-T1…H-T5（并列组层级 / 页签名覆盖 / 结构性标签登记 / 废弃写法零残留 / 术语表关系钉死），配套 `terminology-map.mjs` 与 `terminology-baseline.mjs`。
+3. **Task 3 组件契约**：新增 `components/ui/disclosure.js`（`details/summary` 封装）与 `menu-button.js`（`aria-expanded` ＋ `aria-controls` ＋ Esc/焦点归还）；修 4 处标题嵌套；4 个 `div` 伪开关升级为原生控件；24 个折叠迁移到统一原语；`ui-control-system-guard` 增 T3-1…T3-3 与 `frontend-foundations-guard::F8` 扩 4 个伪开关。
+4. **Task 4 同屏一致**：支书「活动管理 / 知情查看 / 支部分工」三屏按同一套折叠头、行内动作、计数与说明收口；活动管理统计条去掉组织域指标。
+5. **Task 5 IA 62→45**：活动管理只承担活动生命周期（查询并入日历工具栏、党小组活动改筛选并预置 `direction:'bottom-up'`、赋权移出）；专班赋权回组织台；知情查看一级只留「活动工作组 / 专班工作组」、「其他党小组」独立区；五台「我的处置」并入待办「我经办的反馈」；四台活动日历降为工作概况卡；成员「我的成长」三子区；宣传任务并入看板泳道；`catalog-sync` 增 T6 校验 IA 地图 ≡ 注册表（45 条）。
+6. **Task 6 收口**：`CASES.md` 增 CASE-DESIGN-017/018/019 并同步 `CASES_INDEX`；本条日志与 `SNAPSHOT` / `TIMESTAMPS` / `GUARD_INVENTORY` 补账。
+
+### 三、读数
+
+- **定向**：`node --test test/docs-governance-guard.test.mjs test/doc-consistency.test.mjs test/catalog-sync.test.mjs test/ui-control-system-guard.test.mjs test/frontend-foundations-guard.test.mjs` ＝ **82 / 82 绿**（docs-governance 28 ＋ catalog-sync 6 ＋ doc-consistency 21 ＋ ui-control 18 ＋ frontend-foundations 9）。
+- **术语 Harness 实测**：H-T3 结构性标签 **234** 处、命中术语表 **22** 处、未命中 **131** 个（全部已在基线，只降不升）、扫描 **78** 文件；H-T4 用户可见文案零命中；H-T5 术语表 **20** 条 × 9 字段齐，`§19` 与 `sop/INDEX.md` 只含指针。
+- **组件 Harness 实测**：T3-1 交互元素 **675** 个、内含标题 **0** 处；T3-2 `details` 文件 **32** 个、静态 `aria-expanded` **13** 个；T3-3 `details` 文件 **32** 个、混用 **0** 处；T4-1 `renderDisclosure` 文件 **4** 个、手写折叠 **32** 个、混用 **3** 处（**3 处豁免**）。
+- **IA 对账**：`catalog-sync::T6` 通过——IA 地图 **45** 条、逐台集合与注册表相等（支书 10 / 组织 8 / 宣传 5 / 纪检 6 / 组长 6 / 成员 7 / 党委 3）。
+- **daily（最终）**：`npm run test:daily` **1524 / 1524 绿**（102.2s；修复临时件与预算后复跑，bump 后再次 1524 / 1524）。
+- **全量三通道（最终）**：`SWEEP_SHARD=all` ＝ **[node] 1526 / 1526 绿**、**[e2e-A] 57 过 + 1 skip（58）**、**[e2e-B] 179 / 179 绿**；墙钟 **1117.3s**（≤1200s）。
+  （首跑 e2e-A/B 各 1 红：组长考察入口随页签降级、copy-screen 基线/下限与台账行号；逐条修复后第二轮全绿。）
+- **版本戳**：`20261024d` → **`20261025a`**（JS 262 / HTML 26 / CSS 2 / server-test 141 个文件改写，陈旧戳 0 残留）。
+
+### 四、修复过程（如实）
+
+- **Task 1 的 3 项 docs-governance 红（并行改动）**：Task 1（文档）与 Task 3（组件）文件不重叠、同批并行，守卫读到的是中间态——登记行日期与 `文件:行号` 引用追不上同批落地的文件。按实文件与 frontmatter 改准、并在 Task 3 落地后复跑，三项转绿。
+- **Task 2 的 H-T4 文案修复**：H-T4 首跑在 `docs/src/**` 的用户可见文案里命中废弃写法（注释存量按基线豁免）；把命中文案改为术语表规范词后零命中，**基线未放宽**（只降不升）。
+- **Task 3 的 daily 4 红**：组件迁移后 daily 首跑 4 红＝`ui-control-system-guard::T3-1`（标题进入交互元素）/ `T3-2`（折叠状态不可静态回读）/ `T3-3`（同文件混用原语）/ `T4-1`（封装与手写折叠混用）；逐条改代码（标题移兄弟节点、状态落 `open`/`aria-expanded`、择一原语）后转绿。
+- **Task 5 的阶段红**：按台分阶段删/降页签，每阶段都会先红——注册表已删而 `help.html` / `PRODUCT_IA` / 深链重定向未同批跟上时，`doc-consistency::S1/S2` 与 `catalog-sync::T6` 判红；按「新落点 ＋ 深链重定向 ＋ help 更新」三件齐备逐台收口后复绿。
+- **Task 4 的锚点同步**：样板屏改动使 `docs/src/entries/pages/main-entry.js` 等文件行号位移，`README-server.md` 的 `main-entry.js:241-253` → `:235-248` 等 `文件:行号` 锚点同批改签（`docs-governance-guard::R1/R2` 逐条核）。
+
+### 五、边界（如实）
+
+- **旧实现文件保留但取消注册**：`my-dispatch-tab.js`（五台）/ `activity-calendar-tab.js`（四台）/ `tf-view-tab.js`（纪检 / 宣传 / 组织）/ `thought-report-tab.js` / `visitor/inspection-tab.js` / `visitor/review-tab.js` 等仍在盘上、可被深链兼容层引用，但**不再注册为页签**；删除留给后续确认无消费者的批次。
+- **help 历史关键词保留**：`help.html` 搜索索引保留旧页签名（我的处置 / 活动日历 / 专班动态 / 思想汇报）作为关键词，命中后指向新落点；不是第二份页签表。
+- **工具栏控件三档高度未强制同高**：活动管理日历工具栏里的输入框 / 下拉 / 按钮分别走既有 36 / 32 / 28px 三档，本批只统一了排布与间距，**未**为「看起来齐」强行改控件高度。
+- **T4-1 三条豁免**：3 处文件同时存在 `renderDisclosure` 与手写 `details`（行内清单折叠不是分区折叠头），已在守卫内逐条豁免并写明理由；收口计划是逐文件择一原语。
+- **技能更新失败**：`npx skills check` 发现 18 个更新；`julianoczkowski/designer-skills@information-architecture`（5.9K）安装失败（git 克隆被网络拒绝），本批按本地 `frontend-design` / `web-design-guidelines` 执行，未把旧版技能当最新。
+- **daily 两红的归属**：`tmp-ia-check.mjs` 是本批 IA 校验的临时产物、按 `ctx-hygiene` 应先沉淀后归档；daily 断言预算上调属 `server/**` 授权面外——两项均如实留红，不在本收尾批改代码。
+
+### 六、sample-diff（支书 4 条反馈 → 规则）
+
+| 样本 | AI 假设 | 人类意图 | 泛化规则 | 守卫 |
+|---|---|---|---|---|
+| `DATA_MODEL §2.9` 仍写 `targetModule` ＋ 全局 `read`，上批消息模型结论只在日志里 | 设计结论记进执行日志就等于落地；代码与日志可替代母本 | 文档是母本：字段口径必须同批写进权威文档，日志只记沿革 | 长期结论必须落 `content/**` 权威源；唯一源之间用指针 ＋ Harness 钉死，禁止二次定义 | `docs-governance-guard::R1/R2` ＋ `H-T5`（关系钉死）；`DATA_MODEL` 字段级仍为人工核对 |
+| `calendar-tab.js` `button>h3`、`work-overview.js` `summary>h3`、`todo-tab-shell.js` `summary>role=heading`、`gallery.js` `role=button>h3`；4 个 `div` 伪开关 Tab 不可达 | 折叠头就是「一块可点的区域」，标题放进去最省事；`div` 加点击与原生控件等价 | 标题是结构、交互是动作，二者不能互相包裹；阅读型折叠、菜单、浮窗各有唯一原语 | 同类功能同一原语；标题永不进交互元素；折叠状态必须能由 `open` / `aria-expanded` 静态回读 | `ui-control-system-guard::T3-1/T3-2/T3-3/T4-1` ＋ `frontend-foundations-guard::F8`（CASE-DESIGN-018） |
+| 62 页签中约 20 个同一渲染器重复注册；支书台活动管理一页塞日历 ＋ 查询 ＋ 党小组活动 ＋ 项目赋权 | 页签是「每台自己的入口」，重复注册最直观；删页签只删注册行；辅助功能可以独立成页 | 一功能一页签；重复项要么是通用面（同名同组件），要么降为页内区 / 折叠卡；降级必须三件齐备 | 页签集合与 IA 地图必须逐台相等；已降级旧名不得重新注册；删除前先备「新落点 ＋ 深链重定向 ＋ help 更新」 | `catalog-sync::T6` ＋ `doc-consistency::S1/S2` ＋ `page-sweep`（CASE-DESIGN-019） |
+| 知情查看把「活动工作组 / 专班工作组 / 其他组」并成三枚同形按钮；各台 `views` 写死 `['taskforce']`；全仓无术语表 | 只要能只读就能放同一分段；分段集合由调用方按需传，组件不必管语义层级 | 工作组是协作结构、党小组是组织单元，不同层不能同排；「其他党小组」要看但须独立成区；通用能力由组件统一定义 | 并列项必须来自术语表同一「允许并列集」；跨层对象降为独立区或筛选器；每个词条必须显式写「允许并列集」 | `docs-governance-guard::H-T1/H-T2/H-T3/H-T4` ＋ `workbench-audit-coverage`（CASE-DESIGN-017） |

@@ -2,7 +2,7 @@
 title: "网站设计层索引——网站系统的设计想法"
 type: index
 role: "[工程师]+[AI]"
-last_updated: 2026-10-24
+last_updated: 2026-10-25
 status: active
 ---
 
@@ -35,12 +35,13 @@ status: active
 | [deploy/README.md](deploy/README.md) | 部署路径、认证门控与对外对接入口 | 指针 → `deploy/DEPLOYMENT_GUIDE.md`（唯一权威） |
 | [module/README.md](module/README.md) | 页面/模块设计与 SOP-系统联动入口 | 指针 → `module/SOP_WEBSITE_GUIDE.md` / `module/ABOUT_PAGE_DESIGN.md` |
 | [evolution/README.md](evolution/README.md) | 设计论证档案、契约与架构演进入口 | 指针 → `evolution/WORKFLOW_BLOCK_CONTRACT.md` / `BRANCH_WORK_MAP.md`；其余为档案 |
+| [PRODUCT_IA.md](PRODUCT_IA.md) | 产品 IA 派生索引：逐台逐页签的组 / 渲染入口 / 主对象 / 主操作 / 新落点（当前 62） | **派生索引**——由 `docs/src/capabilities/*` 与 `function-catalog.js` 派生，**不承担规范、禁止手改** |
 | `README.md` | 本层索引（回答什么问题、边界、权威源速查） | 指针 → 各子目录 README 与下节速查表 |
 
 ## 权威源与派生
 
 - **权威源**：视觉与组件 = [DESIGN_SYSTEM.md](design-system/DESIGN_SYSTEM.md)；数据与字段 = [DATA_MODEL.md](data/DATA_MODEL.md)；部署与对接 = [DEPLOYMENT_GUIDE.md](deploy/DEPLOYMENT_GUIDE.md)；SOP 与系统联动 = [SOP_WEBSITE_GUIDE.md](module/SOP_WEBSITE_GUIDE.md)。
-- **派生/档案**：本 README 与各子目录 README 是索引；已落地（landed）的模块与演进文档转为**设计论证档案**，只保留「为什么」，规范正文回各唯一权威源；判例见各域 `CASES.md`。
+- **派生/档案**：本 README 与各子目录 README 是索引；[PRODUCT_IA.md](PRODUCT_IA.md) 是**派生索引**（页签功能地图，由代码注册表派生，不承担规范、禁止手改）；已落地（landed）的模块与演进文档转为**设计论证档案**，只保留「为什么」，规范正文回各唯一权威源；判例见各域 `CASES.md`。
 - **逐文件口径**：见下节「权威源速查」，本节不重复其内容。
 
 ---
@@ -123,6 +124,7 @@ status: active
 ## 维护触发器
 
 - 新增、删除或重命名本目录任一层文件；
+- 页签增删改（`docs/src/capabilities/*`）导致 [PRODUCT_IA.md](PRODUCT_IA.md) 需要重派生；
 - 权威源变更（`DESIGN_SYSTEM` / `DATA_MODEL` / `DEPLOYMENT_GUIDE` / `SOP_WEBSITE_GUIDE` / `WORKFLOW_BLOCK_CONTRACT`）；
 - 某份设计文档状态变化（draft → landed → 论证档案）；
 - 子目录职责调整或新增子目录。

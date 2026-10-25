@@ -12,44 +12,44 @@
 //   - 活动无上限 → 必须提供活动筛选（含时间区间）便于考察
 //   - 条目不得使用浅色底板（支书反感）→ 白底 + 左侧状态色条
 
-import { AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../../core/domain/domain.js?v=20261024d';
-import { generateId } from '../../../core/base/id.js?v=20261024d';
-import { attendanceToLong, loadAttendanceRecords, loadActiveAttendanceRecords, loadAttendanceRosterSnapshots, saveAttendanceRecords, canUploadAttendance, upsertMeetingAttendance, MEETING_ATTENDANCE_TYPES as MEETING_TYPES, ABSENCE_REASONS, absenceReasonLabel, absenceReasonNote, recorderRolesOf, listGroupMeetingAttendance, loadAttendanceAppeals, returnAttendanceAppeal, closeAttendanceAppeal, returnAttendanceRecord, summarizeAttendanceByActivity, isAttendanceHomePosition, freezeExpectedRosterForActivity, isAttendancePendingConfirm, isAttendanceConfirmed, isAutoConfirmedAttendance, attendanceConfirmerId, confirmAttendanceRecords } from '../../../services/activity/attendance.js?v=20261024d';
-import { buildAttendanceMatrixModel } from '../../../services/activity/attendance-matrix.js?v=20261024d';
-import { getPersonName } from '../../../services/member/person.js?v=20261024d';
+import { AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../../core/domain/domain.js?v=20261025a';
+import { generateId } from '../../../core/base/id.js?v=20261025a';
+import { attendanceToLong, loadAttendanceRecords, loadActiveAttendanceRecords, loadAttendanceRosterSnapshots, saveAttendanceRecords, canUploadAttendance, upsertMeetingAttendance, MEETING_ATTENDANCE_TYPES as MEETING_TYPES, ABSENCE_REASONS, absenceReasonLabel, absenceReasonNote, recorderRolesOf, listGroupMeetingAttendance, loadAttendanceAppeals, returnAttendanceAppeal, closeAttendanceAppeal, returnAttendanceRecord, summarizeAttendanceByActivity, isAttendanceHomePosition, freezeExpectedRosterForActivity, isAttendancePendingConfirm, isAttendanceConfirmed, isAutoConfirmedAttendance, attendanceConfirmerId, confirmAttendanceRecords } from '../../../services/activity/attendance.js?v=20261025a';
+import { buildAttendanceMatrixModel } from '../../../services/activity/attendance-matrix.js?v=20261025a';
+import { getPersonName } from '../../../services/member/person.js?v=20261025a';
 // S1–S4 滞留党员设计（2026-09-06 支书已批）：会议考勤「应到清点/全选范围」= 应到名单口径
 // （党员 正式+预备 且非滞留；滞留者「可见但禁用」、党课列席不计应到），不再全支部 50 人候选
 // 附录⑩ A批·S1（2026-09-06 支书裁定）：滞留线下到场可「到场补录」计入到席（实际应到=预应到 K + 补录 L）
-import { getMeetingRoster, getRosterStats, getMeetingRosterCandidates } from '../../../services/member/roster.js?v=20261024d';
-import { solidAccentStyle, ROLE_LABELS, isActivityArchived, isActivityLive } from '../../../core/domain/constants.js?v=20261024d';
-import { loadActivities } from '../../../services/activity/activity.js?v=20261024d';
+import { getMeetingRoster, getRosterStats, getMeetingRosterCandidates } from '../../../services/member/roster.js?v=20261025a';
+import { solidAccentStyle, ROLE_LABELS, isActivityArchived, isActivityLive } from '../../../core/domain/constants.js?v=20261025a';
+import { loadActivities } from '../../../services/activity/activity.js?v=20261025a';
 // R7-33：考勤「超期」按「活动日 + 补课时限（policy）」现算，不再直读记录上的 overdue 快照
-import { isAttendanceOverdue } from '../../../core/domain/policy-defaults.js?v=20261024d';
+import { isAttendanceOverdue } from '../../../core/domain/policy-defaults.js?v=20261025a';
 // SOP-B-2（D-288）：考勤候选默认选中「已通过报名者」——报名名单的来源单一源 = SignupStore
-import { getApprovedSignupPersonIds } from '../../../services/activity/signup.js?v=20261024d';
-import { autoGenerateMakeupTask } from '../../../services/activity/makeup.js?v=20261024d';
-import { TodoStore, TodoSourceType } from '../../../services/governance/todo.js?v=20261024d';
-import { NoticeStore } from '../../../services/governance/notice.js?v=20261024d';
-import { enhanceSelects } from '../../../components/ui/custom-select.js?v=20261024d';
-import { badgeHtml } from '../../../components/ui/badges.js?v=20261024d';
+import { getApprovedSignupPersonIds } from '../../../services/activity/signup.js?v=20261025a';
+import { autoGenerateMakeupTask } from '../../../services/activity/makeup.js?v=20261025a';
+import { TodoStore, TodoSourceType } from '../../../services/governance/todo.js?v=20261025a';
+import { NoticeStore } from '../../../services/governance/notice.js?v=20261025a';
+import { enhanceSelects } from '../../../components/ui/custom-select.js?v=20261025a';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20261025a';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是人的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
 // pagerHtml = 翻页控件单一源（批次 38：全站手写翻页一律并轨；叶子件，避免与矩阵相互成环）
-import { pagerHtml } from '../../../components/ui/pager.js?v=20261024d';
+import { pagerHtml } from '../../../components/ui/pager.js?v=20261025a';
 // 人×项目矩阵单一源（支书 2026-09-14 批次 35 裁定：宽表默认 + 矩阵推广）
-import { renderRelationMatrix } from '../../../components/ui/relation-matrix.js?v=20261024d';
-import { showToast, downloadCSV, triggerPrint, _fmtDate, escHtml as esc, getBasePath, flashHighlight } from '../../../core/base/utils.js?v=20261024d';
-import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261024d';
-import { requireDiscCommissionerId } from './_shared.js?v=20261024d';
-import { HandoffStore } from '../../../services/governance/handoff.js?v=20261024d';
-import { currentUserId } from '../../../services/core/auth.js?v=20261024d';
-import { PersonPicker } from '../../../components/governance/pickers.js?v=20261024d';
+import { renderRelationMatrix } from '../../../components/ui/relation-matrix.js?v=20261025a';
+import { showToast, downloadCSV, triggerPrint, _fmtDate, escHtml as esc, getBasePath, flashHighlight } from '../../../core/base/utils.js?v=20261025a';
+import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261025a';
+import { requireDiscCommissionerId } from './_shared.js?v=20261025a';
+import { HandoffStore } from '../../../services/governance/handoff.js?v=20261025a';
+import { currentUserId } from '../../../services/core/auth.js?v=20261025a';
+import { PersonPicker } from '../../../components/governance/pickers.js?v=20261025a';
 // 通用浮窗 + 「本位」nudge 确认弹窗（2026-09-23 支书裁定 · 单一源 = components/ui/modal.js）
 // U-04：申诉打回原用 `window.prompt`（无对话框语义、无焦点接管、移动端样式原生）→ 换本组件 openModal。
-import { confirmNudge, openModal, closeModal } from '../../../components/ui/modal.js?v=20261024d';
+import { confirmNudge, openModal, closeModal } from '../../../components/ui/modal.js?v=20261025a';
 // 「补课」分段整段复用原独立 tab 的渲染（2026-09-15 支书裁定：补课并入考勤管理，内部逻辑不改写）
-import { renderContent as renderMakeupContent } from './makeup-tab.js?v=20261024d';
+import { renderContent as renderMakeupContent } from './makeup-tab.js?v=20261025a';
 // 材料页深链 focusActivityId 的通用定位（只滚动 + 闪烁，不另造筛选器）
-import { focusActivityAnchor } from '../../../components/ui/detail-anchor.js?v=20261024d';
+import { focusActivityAnchor } from '../../../components/ui/detail-anchor.js?v=20261025a';
 
 const PAGE_SIZE = 20; // 分页铁律：全量总表每页 20 条
 let _page = 1;        // 模块级分页状态（随模块自持）
@@ -296,24 +296,30 @@ export function renderContent(ctx) {
   // 不销毁 _meetPickerInstance、不重建 innerHTML，已选活动/人员/逐人状态保留；
   // 队列确认等外部 re-render 仍按 _meetFormVisible 原逻辑整容器重建（重建即重新展开
   // 并重建 picker、丢手选，属既有行为，可接受——保态折叠只覆盖用户手动折叠/展开路径）。
-  container.querySelector('#disc-meet-toggle')?.addEventListener('click', () => {
+  container.querySelector('#disc-meet-toggle')?.addEventListener('click', (e) => {
+    const btn = e.currentTarget;
     const bodyEl = container.querySelector('#disc-meet-body');
     if (!bodyEl) { // 首次打开（表单未渲染）：走 _meetFormVisible 打开并渲染表单 + 创建 picker
       _meetFormVisible = true;
       renderContent(ctx);
       return;
     }
-    const collapsed = bodyEl.classList.toggle('hidden');
-    const btn = container.querySelector('#disc-meet-toggle');
-    if (btn) btn.textContent = collapsed ? '录入会议考勤' : '收起';
+    // 2026-10-25 Task 3：展开态由 `aria-expanded` + `hidden` 属性表达（不再用 `.hidden` 类）
+    const willOpen = bodyEl.hidden;
+    bodyEl.hidden = !willOpen;
+    btn.setAttribute('aria-expanded', String(willOpen));
+    btn.textContent = willOpen ? '收起' : '录入会议考勤';
   });
   // 取消 = 保态折叠（保留已选，不销毁 picker）；仅提交成功后才重置会话（见下方 submit 成功分支）
   container.querySelector('#disc-meet-cancel')?.addEventListener('click', () => {
     const bodyEl = container.querySelector('#disc-meet-body');
     if (!bodyEl) return;
-    bodyEl.classList.add('hidden');
+    bodyEl.hidden = true;
     const btn = container.querySelector('#disc-meet-toggle');
-    if (btn) btn.textContent = '录入会议考勤';
+    if (btn) {
+      btn.setAttribute('aria-expanded', 'false');
+      btn.textContent = '录入会议考勤';
+    }
   });
   if (_meetFormVisible) {
     _initMeetForm(container, accent);
@@ -345,7 +351,7 @@ export function renderContent(ctx) {
   });
   container.querySelector('#disc-meet-submit')?.addEventListener('click', async () => {
     const activityId = container.querySelector('#disc-meet-activity')?.value;
-    if (!activityId) { showToast('error', '请选择会议活动'); return; }
+    if (!activityId) { showToast('error', '请选择会议 / 活动'); return; }
     const selectedIds = _meetPickerInstance ? _meetPickerInstance.getSelected() : [];
     // 滞留到场补录集合（纪检单独勾选；与全选应到互斥，重复防御）
     const makeupIds = [..._meetMakeupIds].filter(pid => !selectedIds.includes(pid));
@@ -848,7 +854,7 @@ function _buildMeetingCardHTML(ctx, accent, accentBorder, actById) {
     .filter(a => !isActivityArchived(a) && MEETING_TYPES.includes(a.type) && canUploadAttendance(viewerId, a.id))
     .sort((a, b) => (b.date || '').localeCompare(a.date || ''));
   const accentStyle = solidAccentStyle(accent, accentBorder);
-  const toggleBtn = `<button class="btn-md" id="disc-meet-toggle" style="${accentStyle}cursor:pointer;">${_meetFormVisible ? '收起' : '录入会议考勤'}</button>`;
+  const toggleBtn = `<button type="button" class="btn-md" id="disc-meet-toggle" aria-expanded="${_meetFormVisible}" aria-controls="disc-meet-body" style="${accentStyle}cursor:pointer;">${_meetFormVisible ? '收起' : '录入会议考勤'}</button>`;
 
   let body = '';
   if (_meetFormVisible) {
@@ -858,7 +864,7 @@ function _buildMeetingCardHTML(ctx, accent, accentBorder, actById) {
       : `
       <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
         <div>
-          <label for="disc-meet-activity" class="text-xs text-gray-500 mb-1.5 block font-medium">会议活动 <span class="text-red-600">*</span></label>
+          <label for="disc-meet-activity" class="text-xs text-gray-500 mb-1.5 block font-medium">会议 / 活动 <span class="text-red-600">*</span></label>
           <select id="disc-meet-activity" class="input-flat w-full">
             ${meetings.map(m => `<option value="${m.id}">${m.title}（${m.date}）</option>`).join('')}
           </select>
@@ -939,7 +945,7 @@ function _renderDiscMeetRosterHint() {
 /** 报名默认选中提示（SOP-B-2 / D-288）：默认值从哪来、可改；未报名而实际参加者手动勾选 */
 function _meetSignupHintHtml() {
   const activityId = document.getElementById('disc-meet-activity')?.value;
-  if (!activityId) return '<span class="text-gray-500">未选择会议活动：选中后按该场已通过报名者预选参会候选。</span>';
+  if (!activityId) return '<span class="text-gray-500">未选择会议 / 活动：选中后按该场已通过报名者预选参会候选。</span>';
   const approved = getApprovedSignupPersonIds('activity', activityId);
   if (approved.length === 0) return '<span class="text-gray-500">本场无已通过的报名者（默认不预选）；未报名而实际参加者请手动勾选。</span>';
   const { candidates, disabledIds } = getMeetingRosterCandidates({ type: _currentMeetActivityType() });

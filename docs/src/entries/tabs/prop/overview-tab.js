@@ -6,9 +6,10 @@
 // 顶部直达条属重复动作 ⇒ 外壳不再挂条，只保留骨架占位。
 // U3（2026-09-07）：先 beginOverviewShell 骨架/槽位占位 → 原地渲染概况（不推挤正文）。
 
-import { renderWorkOverview } from '../../../components/governance/work-overview.js?v=20261024d';
-import { currentUserId } from '../../../services/core/auth.js?v=20261024d';
-import { beginOverviewShell } from '../../../components/governance/overview-dispatch-bar.js?v=20261024d';
+import { renderWorkOverview } from '../../../components/governance/work-overview.js?v=20261025a';
+import { currentUserId } from '../../../services/core/auth.js?v=20261025a';
+import { beginOverviewShell } from '../../../components/governance/overview-dispatch-bar.js?v=20261025a';
+import { renderCalendarCard } from '../shared/activity-calendar-tab.js?v=20261025a';
 
 /**
  * 条线缺口行补真实动作（2026-10-18 繁专项 Task 15）。
@@ -72,6 +73,13 @@ export async function renderContent(ctx) {
     accent: ctx.accent,
     prefix: 'prop',
     title: '工作概况',
+    // 2026-10-25 IA 62→45：活动日历页签降为本页折叠卡（共享只读日历，单一源不复制）。
+    extraSections: [{
+      html: '<div id="ov-calendar-card-host"></div>',
+      mount: (host) => renderCalendarCard(host.querySelector('#ov-calendar-card-host'), undefined, {
+        open: ctx?.navTarget?.section === 'calendar',
+      }),
+    }],
   });
   _observeLineGapActions(el);
   return done;

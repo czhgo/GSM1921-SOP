@@ -3,40 +3,43 @@
 // 支书 2026-08-10 裁定第5点：区分「我的分工」（以人为中心）与「全局分工」（全局查询）。
 // REVIEW_QUEUE J2 裁定（2026-08-08）：首页专班跳转 → 项目分工 tab 定位高亮专班卡片（ctx.highlightTfId 一次性消费）。
 
-import { liveMembers, PersonStore } from '../../../services/member/person.js?v=20261024d';
+import { liveMembers, PersonStore } from '../../../services/member/person.js?v=20261025a';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/member/person.js 获取（原直连 mock PEOPLE）
 // 实时视图（非快照）：成员增删即时可见——见 services/member/person.js liveMembers 说明
 const PEOPLE = liveMembers();
-import { AuthStore } from '../../../services/core/auth.js?v=20261024d';
+import { AuthStore } from '../../../services/core/auth.js?v=20261025a';
 // 活动「仍在办」口径单一源（2026-09-13 收敛）：替代手写 !archived && status!=='cancelled'
-import { isActivityLive } from '../../../core/domain/constants.js?v=20261024d';
-import { isTaskforceTerminalStatus } from '../../../core/domain/domain.js?v=20261024d';
+import { isActivityLive } from '../../../core/domain/constants.js?v=20261025a';
+import { isTaskforceTerminalStatus } from '../../../core/domain/domain.js?v=20261025a';
 // 活动「已完成 / 已取消」闭环判据单一源（R7-16）：替代手写 archived || ['completed','cancelled']
-import { isActivityClosed } from '../../../core/domain/domain.js?v=20261024d';
-import { flashHighlight, todayLocal } from '../../../core/base/utils.js?v=20261024d';
-import { resolveDocumentUrl } from '../../../core/base/page-url.js?v=20261024d';
+import { isActivityClosed } from '../../../core/domain/domain.js?v=20261025a';
+import { flashHighlight, todayLocal } from '../../../core/base/utils.js?v=20261025a';
+import { resolveDocumentUrl } from '../../../core/base/page-url.js?v=20261025a';
 // 党小组筛选项单一源（活组按 seq 升序；2026-09-14 批次 29 收敛，原从成员档案派生）
-import { groupOptions } from '../../../services/member/party-group.js?v=20261024d';
+import { groupOptions } from '../../../services/member/party-group.js?v=20261025a';
 // 活动生命周期展示态单一源（2026-09-13 支书裁定：「活动与专班是并列的概念，各走各的」）——
 // 活动状态文案改走 components/record/inspector.js，专班状态词维持各自来源，不强行统一。
-import { deriveActivityLifecycleStatus, ACTIVITY_LIFECYCLE } from '../../../components/record/inspector.js?v=20261024d';
-import { getAppState } from '../../../core/base/state.js?v=20261024d';
+import { deriveActivityLifecycleStatus, ACTIVITY_LIFECYCLE } from '../../../components/record/inspector.js?v=20261025a';
+import { getAppState } from '../../../core/base/state.js?v=20261025a';
 // 统一检索引擎（支书 2026-09-14 裁定）：手写 lf-bar 筛选整体收敛为 keyword + facets + 分页
-import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261024d';
+import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261025a';
 // 「我的任务」承担人单一源（2026-09-19 批次 93 · SOP-B-31）：按项目内身份读，复用组织者身份单一源
 // 「勾掉即关闭」（2026-09-21 批次 137 · SOP-B-9 乙档）：写口同在这份单一源里（只认本人担的那步）
 // 深参分工的完成方式（2026-09-23 批次 156）：系统内做 / 去线下做 —— 判据与文案同一份单一源
-import { listMyProjectTasks, completeMyProjectTask, deepWorkModeOf, DEEP_WORK_MODE, DEEP_WORK_MODE_LABEL } from '../../../services/activity/activity.js?v=20261024d';
+import { listMyProjectTasks, completeMyProjectTask, deepWorkModeOf, DEEP_WORK_MODE, DEEP_WORK_MODE_LABEL } from '../../../services/activity/activity.js?v=20261025a';
 // 待批活动的可见性单一源（2026-09-22 批次 151 · 支书裁定「只支委层可见」）：「我的任务」按活动可见性收窄
-import { isActivityVisibleTo } from '../../../services/core/visibility.js?v=20261024d';
-import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261024d';
+import { isActivityVisibleTo } from '../../../services/core/visibility.js?v=20261025a';
+import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261025a';
 
 // 子视图（`SOP-B-31` 已定口径一）：**主口径＝「我的任务」**（按「我」切），
 // 「项目分工」是**同一份事实的转置**（按「项目」切）——同一份数据、两种切法，不建第二份清单。
 // 另保留既有「我的分工 / 全局分工」两档（支书 2026-08-10 裁定第5点：区分以人为中心与全局查询）。
-let _projSubView = 'tasks'; // 'tasks' | 'mine' | 'all'
+let _projSubView = 'tasks'; // 'tasks' | 'mine' | 'all' | 'tf'
 // 首页专班跳转定位目标（快照自 ctx，一次性消费后清除）
 let _highlightTfId = null;
+// 2026-10-25 IA 62→45：「专班动态」页签并入本页「专班」区（只读一览 + 本人产出填报），
+//   旧深链 `?tab=tf-view` 由壳落 `projects&section=taskforce`。
+let _tfSectionMounted = false;
 
 export function renderContent(ctx) {
   const tc = document.getElementById('visitor-tab-content');
@@ -102,13 +105,20 @@ export function renderContent(ctx) {
   const currentUserId = AuthStore.getCurrentUser()?.personId || '';
   // 首页专班跳转定位：目标专班可能不在「我的分工」中 → 强制切全局分工视图后再定位
   if (_highlightTfId) _projSubView = 'all';
+  // 深链：`?tab=projects&section=taskforce`（原专班动态）→ 直接落「专班」区
+  if (!_tfSectionMounted && ctx?.navTarget?.section === 'taskforce') {
+    _tfSectionMounted = true;
+    _projSubView = 'tf';
+  }
 
   // 子视图切换：主口径「我的任务」（按「我」切，`SOP-B-31` 已定口径一）；
-  // 「我的分工 / 全局分工」＝同一份事实按「项目」切（支书 2026-08-10 裁定第5点，保留）。
+  // 「我的分工 / 全局分工」＝同一份事实按「项目」切（支书 2026-08-10 裁定第5点，保留）；
+  // 「专班」＝专班工作组只读一览（原「专班动态」页签并入）。
   const subTabs = [
     { key: 'tasks', label: '我的任务' },
     { key: 'mine', label: '我的分工' },
     { key: 'all', label: '全局分工' },
+    { key: 'tf', label: '专班' },
   ];
   const subTabsHtml = `
     <div class="flex items-center gap-2 mb-3" role="group" aria-label="项目分工视图">
@@ -131,6 +141,8 @@ export function renderContent(ctx) {
   function renderList() {
     // 主口径「我的任务」：同一份事实按「我」切（承担人单一源见 services/activity/activity.js）
     if (_projSubView === 'tasks') { renderTaskList(); return; }
+    // 「专班」区：原「专班动态」页签（渲染函数单一源＝components/record/taskforce-view.js）
+    if (_projSubView === 'tf') { renderTaskforceSection(); return; }
 
     // 子视图基准：我的分工 = 我参与的项目（以人为中心）；全局分工 = 全部项目
     const base = _projSubView === 'mine'
@@ -175,6 +187,19 @@ export function renderContent(ctx) {
       _highlightTfId = null; // 一次性消费
       if (typeof ctx.onNavLocated === 'function') ctx.onNavLocated();
     }
+  }
+
+  // 「专班」区（2026-10-25 IA 62→45）：原「专班动态」页签内容——专班工作组只读一览；
+  //   渲染函数单一源＝`components/record/taskforce-view.js`，成员视角的文案/产出区增强复用
+  //   `visitor/tf-view-tab.js::enhanceTaskforceViewForMember`（不复制第二套列表）。
+  function renderTaskforceSection() {
+    import('../../../components/record/taskforce-view.js?v=20261025a').then((m) => {
+      if (!host.isConnected) return;
+      m.renderTaskforceView(host, {});
+      import('./tf-view-tab.js?v=20261025a').then((t) => {
+        if (host.isConnected) t.enhanceTaskforceViewForMember(host);
+      });
+    });
   }
 
   // 主口径「我的任务」（`SOP-B-31` 已定口径一 · 二）：只列**按项目内身份派给本人**的 SOP 任务节点

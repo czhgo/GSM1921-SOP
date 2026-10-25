@@ -4,10 +4,10 @@
 // （角色位 role 命中 / 到人位 personId 命中）名下负责的工作模块。
 // 行内「去履职」= 切到本工作台对应 tab（映射见 DUTY_TAB，tab id 须真实存在于该台能力清单；
 // 缺映射/被支部配置隐藏的模块仅展示，不硬跳）。
-import { AuthStore } from '../../services/core/auth.js?v=20261024d';
-import { getBranchIdOfPerson, getBranchWorkforce } from '../../services/branch/branch.js?v=20261024d';
-import { WORK_MAP_MODULES } from '../../core/domain/work-map.js?v=20261024d';
-import { escHtml as esc } from '../../core/base/utils.js?v=20261024d';
+import { AuthStore } from '../../services/core/auth.js?v=20261025a';
+import { getBranchIdOfPerson, getBranchWorkforce } from '../../services/branch/branch.js?v=20261025a';
+import { WORK_MAP_MODULES } from '../../core/domain/work-map.js?v=20261025a';
+import { escHtml as esc } from '../../core/base/utils.js?v=20261025a';
 
 /** 模块 → 各工作台 tab 跳转（key = 页面 prefix：secretary/org/prop/disc/leader/visitor）
  *  2026-09-22 批次 145：原「three-meetings」单模块按形式拆为 4 个模块（见 core/domain/work-map.js），
@@ -29,8 +29,10 @@ const DUTY_TAB = {
   org: { taskforce: 'taskforce', 'develop-party-member': 'talent', 'democratic-review': 'talent' },
   // 2026-10-20 批次 489（IA-A01/A03）：专班知情改由 taskforce.html 承载，纪检/组长履职卡不再硬跳
   //   「知情查看」（纪检页签已删、组长页签已不出专班段）；两台的 `taskforce` 保持无映射，仅展示。
-  disc: { 'attendance-inspection': 'attendance', 'feedback-handling': 'my-dispatch' },
-  prop: { 'info-platform': 'tasks', 'theme-party': 'kanban' },
+  // 2026-10-25 IA 62→45：`feedback-handling` 落待办「我经办的反馈」区（原 my-dispatch 页签已删）。
+  disc: { 'attendance-inspection': 'attendance', 'feedback-handling': 'todo' },
+  // 2026-10-25 IA 62→45：`info-platform` 落项目看板（原「宣传任务」页签已并入其泳道）。
+  prop: { 'info-platform': 'kanban', 'theme-party': 'kanban' },
   leader: {
     'branch-party-meeting': 'write', 'branch-committee-meeting': 'write',
     'party-group-meeting': 'write', 'party-lecture': 'write',

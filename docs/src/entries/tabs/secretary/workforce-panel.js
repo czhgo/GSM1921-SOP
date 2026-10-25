@@ -7,15 +7,15 @@
 //      已通过=可采纳；未达出席门槛/有反对=采纳禁用（去表决再议）。
 // 表决 UI 复用既有 agenda-votes 资产；本面板不重复实现投票。
 
-import { escHtml as esc, showToast, getBasePath, todayLocal } from '../../../core/base/utils.js?v=20261024d';
-import { WORK_MAP_MODULES, WORK_MAP_TIER_LABELS, canDisableModule } from '../../../core/domain/work-map.js?v=20261024d';
-import { BRANCH_COMMISSION_ROLES, ROLE_LABELS } from '../../../core/domain/constants.js?v=20261024d';
-import { PersonStore } from '../../../services/member/person.js?v=20261024d';
+import { escHtml as esc, showToast, getBasePath, todayLocal } from '../../../core/base/utils.js?v=20261025a';
+import { WORK_MAP_MODULES, WORK_MAP_TIER_LABELS, canDisableModule } from '../../../core/domain/work-map.js?v=20261025a';
+import { BRANCH_COMMISSION_ROLES, ROLE_LABELS } from '../../../core/domain/constants.js?v=20261025a';
+import { PersonStore } from '../../../services/member/person.js?v=20261025a';
 import {
   createWorkforceProposalActivity, listWorkforceProposals, adoptWorkforceProposal,
   getWorkforceVoteOutcome, ownerDisplay,
-} from '../../../services/branch/workforce.js?v=20261024d';
-import { getBranchWorkforce } from '../../../services/branch/branch.js?v=20261024d';
+} from '../../../services/branch/workforce.js?v=20261025a';
+import { getBranchWorkforce } from '../../../services/branch/branch.js?v=20261025a';
 
 const DRAFT_KEY = 'gsm1921-workforce-draft'; // 本机草稿（**仅本机·不上服务端**：未提交的拟定分工，属该设备上未完成的工作；白名单见 content/05_ai_coding/DATA_CONSISTENCY_CHECKLIST.md）
 
@@ -171,7 +171,7 @@ export async function mountWorkforcePanel(branchId, hostEl) {
   header.className = 'flex items-center gap-2 mb-2 mt-4';
   header.innerHTML = `
     <p class="font-title-cn text-sm font-bold text-gray-800">分工调整（走支委会议题）</p>
-    <button type="button" id="wf-open" class="btn-danger-solid ml-auto px-3 py-1 text-xs font-medium">＋ 发起调整</button>`;
+    <button type="button" id="wf-open" class="btn-danger-solid ml-auto px-3 py-1 text-xs font-medium" aria-expanded="false" aria-controls="wf-form-zone">＋ 发起调整</button>`;
   const body = document.createElement('div');
   body.id = 'workforce-panel-body';
   // 发起表单区独立于议题列表容器：renderBody 重建列表时不触碰表单 DOM——
@@ -262,6 +262,8 @@ export async function mountWorkforcePanel(branchId, hostEl) {
         showToast('success', '已发起支委会议题，等待表决');
         removeDraft(branchId);
         formZone.innerHTML = ''; // 发起成功后重置表单（下次展开为全新表单）
+        formZone.hidden = true;
+        header.querySelector('#wf-open')?.setAttribute('aria-expanded', 'false');
         renderBody();
       } catch (e) {
         console.error('[workforce] 发起失败', e);
@@ -299,9 +301,18 @@ export async function mountWorkforcePanel(branchId, hostEl) {
     });
   }
   // 「＋ 发起调整」：表单区为空则首次渲染（含草稿回填）；否则仅展开/收起已存在表单（保态）
-  header.querySelector('#wf-open').addEventListener('click', () => {
-    if (!formZone.innerHTML.trim()) { renderForm(formZone); return; }
-    formZone.classList.toggle('hidden');
+  // 2026-10-25 Task 3：展开态由 `aria-expanded` + `hidden` 属性表达（不再用 `.hidden` 类）。
+  header.querySelector('#wf-open').addEventListener('click', (e) => {
+    const btn = e.currentTarget;
+    if (!formZone.innerHTML.trim()) {
+      renderForm(formZone);
+      formZone.hidden = false;
+      btn.setAttribute('aria-expanded', 'true');
+      return;
+    }
+    const willOpen = formZone.hidden;
+    formZone.hidden = !willOpen;
+    btn.setAttribute('aria-expanded', String(willOpen));
   });
 
   await renderBody();

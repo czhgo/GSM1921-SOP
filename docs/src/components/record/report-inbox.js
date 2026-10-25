@@ -8,13 +8,13 @@
 //  本组件禁用 SVG 图标（支书 2026-08-10 裁定），类别用色点+文字标签区分
 // ════════════════════════════════════════════════════════════════
 
-import { IssueStore, deriveIssueDisplayState, REPORT_CATEGORIES } from '../../services/governance/issues.js?v=20261024d';
-import { AuthStore } from '../../services/core/auth.js?v=20261024d';
-import { showToast, escHtml } from '../../core/base/utils.js?v=20261024d';
-import { PersonStore, getPersonName } from '../../services/member/person.js?v=20261024d';
-import { solidAccentStyle } from '../../core/domain/constants.js?v=20261024d';
+import { IssueStore, deriveIssueDisplayState, REPORT_CATEGORIES } from '../../services/governance/issues.js?v=20261025a';
+import { AuthStore } from '../../services/core/auth.js?v=20261025a';
+import { showToast, escHtml } from '../../core/base/utils.js?v=20261025a';
+import { PersonStore, getPersonName } from '../../services/member/person.js?v=20261025a';
+import { solidAccentStyle } from '../../core/domain/constants.js?v=20261025a';
 // 统一检索引擎（2026-09-14 批次 37）：待答复汇报列表接入（关键词 事项/汇报人 + 引擎内置分页）
-import { renderFilteredList } from '../ui/list-filter.js?v=20261024d';
+import { renderFilteredList } from '../ui/list-filter.js?v=20261025a';
 
 // ── E-3（2026-09-09 · H60.7 面板保态复查③）：列表瞬态草稿互扰兜底 ──────
 // 某行正式答复成功 → onAnswered → 调用方整块重渲染（支书待办/组长组员汇报），
@@ -271,10 +271,10 @@ export function bindReportInbox(container, { role = 'secretary', scope = null, o
             </p>
           </div>
           <div class="notice-row__actions">
-            <button type="button" class="btn-accent-soft btn-sm rep-inbox-toggle" data-report-id="${r.id}">去处理</button>
+            <button type="button" class="btn-accent-soft btn-sm rep-inbox-toggle" data-report-id="${r.id}" aria-expanded="${rowOpen}" aria-controls="rep-inbox-detail-${r.id}">去处理</button>
           </div>
         </div>
-        <div id="rep-inbox-detail-${r.id}" class="px-3 pb-3 border-t border-gray-100${rowOpen ? '' : ' hidden'}">
+        <div id="rep-inbox-detail-${r.id}" class="px-3 pb-3 border-t border-gray-100"${rowOpen ? '' : ' hidden'}>
           ${_renderInboxDetail(r, payload.accent, (ui && ui.draft) || '')}
         </div>
       </div>`;
@@ -294,13 +294,16 @@ export function bindReportInbox(container, { role = 'secretary', scope = null, o
     e.currentTarget.closest('.rep-inbox-more')?.remove();
   });
   // 展开/收起详情（展开态写入模块态 → 整块重渲染后仍保持）
+  // 2026-10-25 Task 3：状态由 `aria-expanded` + `hidden` 属性表达（不再用 `.hidden` 类）。
   host?.addEventListener('click', (e) => {
     const toggle = e.target.closest('.rep-inbox-toggle');
     if (toggle) {
       const detail = document.getElementById('rep-inbox-detail-' + toggle.dataset.reportId);
       if (!detail) return;
-      detail.classList.toggle('hidden');
-      rowState(toggle.dataset.reportId).open = !detail.classList.contains('hidden');
+      const willOpen = detail.hidden;
+      detail.hidden = !willOpen;
+      toggle.setAttribute('aria-expanded', String(willOpen));
+      rowState(toggle.dataset.reportId).open = willOpen;
       return;
     }
     // 正式答复（kind='reply' → 发回汇报人，通知未读）

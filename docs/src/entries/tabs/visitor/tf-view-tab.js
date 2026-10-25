@@ -49,10 +49,22 @@ function _watchTfView(container) {
   _tfObserver.observe(container, { childList: true, subtree: true });
 }
 
+/**
+ * 成员视角的专班只读视图增强（2026-10-25 IA 62→45）：本页签已并入「项目分工 · 专班」区，
+ * 增强逻辑（文案归一 + 「我的产出登记」下移独立区）仍只此一份，供 `projects-tab.js` 复用。
+ * @param {HTMLElement} container 承载 `taskforce-view` 的容器
+ */
+export function enhanceTaskforceViewForMember(container) {
+  if (!container) return;
+  _syncTfCopy(container);
+  _liftOutputForm(container);
+  _watchTfView(container);
+}
+
 export function renderContent(ctx) {
   const el = document.getElementById('visitor-tab-content');
   if (!el) return null;
-  return import('../../../components/record/insight-view.js?v=20261024d').then(m => m.renderInsightView(el, {
+  return import('../../../components/record/insight-view.js?v=20261025a').then(m => m.renderInsightView(el, {
     title: '专班动态',
     // 工作组 + 专班两段（活动一览在「活动动态」——见头注）；页签名锁定「专班动态」⇒ 默认仍落专班
     views: ['workgroup', 'taskforce'],

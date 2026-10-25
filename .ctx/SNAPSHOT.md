@@ -211,3 +211,11 @@ GSM1921-SOP/
 - **未决**：① 全量三通道与版本戳 bump 留给主代理收尾；② SD-36 分组胶囊暂无判例；③ 待归档待办现为 0（种子无关闭条件齐备的活动），演示若要展示需补一份齐备活动材料。
 - **已迁 content 的条目**：SD-33…36 落 `content/04_web_design/design-system/DESIGN_SYSTEM.md`；5 条判例落 `content/04_web_design/design-system/CASES.md` 与 `content/03_doc_system/CASES_INDEX.md`；Q-21 落 `content/05_ai_coding/REVIEW_QUESTION_SET.md` 与 `QUESTION_HIT_MATRIX.md`；守卫扩展落 `content/05_ai_coding/GUARD_INVENTORY.md`。
 - **下批入口**：① 先跑定向 7 件 ＋ daily，再决定是否补三通道；② 若要展示「待归档」待办，补一份关闭条件齐备的活动；③ 后续批次把 SD-36 的胶囊断言语义补成机检（当前仅分组名 `S3` ＋ 键盘人工检查）。
+
+## 批次 511 小结（2026-10-25）
+
+- **做了什么**：IA 62→45（支书 10 / 组织 8 / 宣传 5 / 纪检 6 / 组长 6 / 成员 7 / 党委 3）；活动管理只承担生命周期（查询并入日历工具栏、党小组活动改筛选、赋权移出）；专班赋权回组织台；知情查看只留「活动工作组 / 专班工作组」＋「其他党小组」独立区；五台「我的处置」并入待办「我经办的反馈」；四台活动日历降为工作概况卡；成员「我的成长」三子区；宣传任务并入看板泳道。组件侧新增 `disclosure.js` / `menu-button.js`，修 4 处标题嵌套，4 个 `div` 伪开关升级，24 个折叠迁移；术语侧 `TERMINOLOGY.md` 20 条 ＋ `docs-governance-guard::H-T1…H-T5`；文档侧 `DATA_MODEL §2.9` 消息模型、四组页签名、SD-37/38/39/40、`PRODUCT_IA.md` 45 行、help 漂移修正。
+- **结论**：本轮 4 条反馈可归为三条结构病——**同一能力多个页签位**（17 项降级）、**同一交互多套原语**（标题进交互元素 ＋ `div` 伪开关）、**同一术语多处定义**（无唯一源）。收敛判据必须同时具备「单一源 ＋ 机检守卫 ＋ 三件齐备（新落点 / 深链重定向 / help 更新）」，否则下一批必回潮。
+- **未决**：① `T4-1` 有 3 处「封装 ＋ 手写」并存豁免待逐文件收口；② 技能更新未安装（git 克隆被网络拒绝）；③ daily 两红（`.ctx` 临时件、预算）已在收尾修复，最终 daily 1524 / 1524、全量三通道全绿。
+- **已迁 content 的条目**：`content/03_doc_system/TERMINOLOGY.md`（新，20 条）· `content/04_web_design/PRODUCT_IA.md`（新，45 行）· `DATA_MODEL §2.9/§2.19` · `DESIGN_SYSTEM` SD-37/38/39/40 · `design-system/CASES.md` CASE-DESIGN-017/018/019 ＋ `CASES_INDEX` · `MODULE_UI_DESIGN` / `ARCHITECTURE` / `sop/INDEX.md` 页签组名与术语指针 · `GUARD_INVENTORY` §八。
+- **下批入口**：① 对 `T4-1` 三处豁免逐文件择一原语；② 若要补 IA 技能的独立审查，先解决 git 克隆网络；③ 复核 copy-screen 的 M1/M2 基线（全局概况聚合页）是否可再降；④ 读本段 ＋ `.ctx/logs/2026-10-EXECUTION_LOG.md` 批次 511。

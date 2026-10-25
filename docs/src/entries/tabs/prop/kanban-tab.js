@@ -2,18 +2,18 @@
 // 宣传委员工作台 Tab：项目看板（T-279 M3 拆分，照 M2 样板）
 // 活动/专班合并看板（活动+专班分桶）+ 专班工作量区块；从 TaskForceRecordStore 动态派生（H-1 数据断裂修复）。
 
-import { badgeHtml } from '../../../components/ui/badges.js?v=20261024d';
-import { BranchService } from '../../../services/core/runtime.js?v=20261024d';
-import { TodoStore, TodoSourceType } from '../../../services/governance/todo.js?v=20261024d';
-import { persist } from '../../../data/data-adapter.js?v=20261024d';
-import { showToast, escHtml as esc } from '../../../core/base/utils.js?v=20261024d';
-import { setState } from '../../../core/base/state.js?v=20261024d';
-import { resolveDocumentUrl } from '../../../core/base/page-url.js?v=20261024d';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20261025a';
+import { BranchService } from '../../../services/core/runtime.js?v=20261025a';
+import { TodoStore, TodoSourceType } from '../../../services/governance/todo.js?v=20261025a';
+import { persist } from '../../../data/data-adapter.js?v=20261025a';
+import { showToast, escHtml as esc } from '../../../core/base/utils.js?v=20261025a';
+import { setState } from '../../../core/base/state.js?v=20261025a';
+import { resolveDocumentUrl } from '../../../core/base/page-url.js?v=20261025a';
 // 「已归档」判据单一源（只看 archived === true；不得再把 status === 'completed' 当归档）
-import { isActivityArchived } from '../../../core/domain/constants.js?v=20261024d';
+import { isActivityArchived } from '../../../core/domain/constants.js?v=20261025a';
 // 统一检索引擎（2026-09-14 批次 37）：三桶各接一个实例（keyword null + facets [] → 仅分页，保持三桶观感）
-import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261024d';
-import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261024d';
+import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261025a';
+import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261025a';
 
 export function renderContent(ctx) {
   const container = document.getElementById('prop-tab-content');
@@ -62,6 +62,11 @@ export function renderContent(ctx) {
       <a class="font-medium text-accent hover:underline" href="./workspace/prop.html?tab=archive">去档案归档</a>
       <span class="ml-1">（活动结束后的正式归档统一在档案归档页办理）</span>
     </p>
+    <!-- 宣传任务泳道（2026-10-25 IA 62→45）：原「宣传任务」页签并入本页；渲染函数单一源＝prop/tasks-tab.js::renderBoard -->
+    <div class="card rounded-xl p-0 overflow-hidden" id="prop-tasks-lane">
+      <div class="px-4 py-3 font-title-cn text-sm font-bold tint-section tint-section--head" data-tone="warning">宣传任务</div>
+      <div class="p-3" id="prop-tasks-host"></div>
+    </div>
   `;
 
   // 各桶各接一个引擎实例（keyword null + facets [] → 引擎不渲染检索条，只出分页；≤8 行不出翻页控件）。
@@ -121,6 +126,18 @@ export function renderContent(ctx) {
       card.click();
     });
   });
+
+  // 宣传任务泳道（2026-10-25 IA 62→45）：复用 `tasks-tab.js::renderBoard`（列表 / 登记 / 推进 / 作废单一源）。
+  const tasksHost = container.querySelector('#prop-tasks-host');
+  if (tasksHost) {
+    import('./tasks-tab.js?v=20261025a').then((m) => {
+      if (tasksHost.isConnected) m.renderBoard(tasksHost, ctx, { header: false });
+    });
+    // 旧深链 `?tab=kanban&lane=tasks`：滚到本条泳道并给可见落点。
+    if (ctx?.navTarget?.lane === 'tasks') {
+      container.querySelector('#prop-tasks-lane')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }
 }
 
 function _renderKanbanItem(item, showCompleteBtn = false) {

@@ -11,10 +11,10 @@
 //  依赖方向正确：组件 → 服务（不是服务 → 组件）。守卫：issue-branch.test.mjs（结构层）。
 // ════════════════════════════════════════════════════════════════
 
-import { renderFilteredList } from '../ui/list-filter.js?v=20261024d';
-import { renderTabHeader } from '../shell/page-frame.js?v=20261024d';
-import { escHtml, showToast } from '../../core/base/utils.js?v=20261024d';
-import { IssueStore, IssueNotify, deriveIssueDisplayState, REPORT_CATEGORIES, displayNameOf as _displayName } from '../../services/governance/issues.js?v=20261024d';
+import { renderFilteredList } from '../ui/list-filter.js?v=20261025a';
+import { renderTabHeader } from '../shell/page-frame.js?v=20261025a';
+import { escHtml, showToast } from '../../core/base/utils.js?v=20261025a';
+import { IssueStore, IssueNotify, deriveIssueDisplayState, REPORT_CATEGORIES, displayNameOf as _displayName } from '../../services/governance/issues.js?v=20261025a';
 
 // ════════════════════════════════════════════════════════════════
 //  「我的处置」Tab 渲染工具（各角色工作台复用）
@@ -46,7 +46,7 @@ export function renderMyDispatchTab(role, userId, opts = {}) {
     ...myIssues.map((row) => ({ __kind: 'my-issue', row })),
   ];
 
-  let html = renderTabHeader({
+  let html = opts.embedded ? '' : renderTabHeader({
     title: '我的处置',
     description: '支部派发的汇报与反馈在此处理；处理结果可回看。',
   });

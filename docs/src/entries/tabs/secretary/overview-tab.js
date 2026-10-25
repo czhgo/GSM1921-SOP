@@ -9,18 +9,19 @@
 //（listPeriodicArchivesPendingReview / reviewPeriodicArchive / PERIODIC_ARCHIVE_REVIEW_STATUS），
 // 本页只做呈现与交互，不另写状态名、不改后端 API/数据模型/权限链。
 
-import { currentUserId } from '../../../services/core/auth.js?v=20261024d';
-import { renderWorkOverview } from '../../../components/governance/work-overview.js?v=20261024d';
+import { currentUserId } from '../../../services/core/auth.js?v=20261025a';
+import { renderWorkOverview } from '../../../components/governance/work-overview.js?v=20261025a';
 import {
   listPeriodicArchivesPendingReview, reviewPeriodicArchive,
-} from '../../../services/governance/secretary-overview.js?v=20261024d';
-import { getPersonName } from '../../../services/member/person.js?v=20261024d';
-import { listRowHtml, listGroupHtml } from '../../../components/ui/list-row.js?v=20261024d';
-import { emptyStateHtml } from '../../../components/ui/empty-state.js?v=20261024d';
-import { openModal, closeModal } from '../../../components/ui/modal.js?v=20261024d';
+} from '../../../services/governance/secretary-overview.js?v=20261025a';
+import { getPersonName } from '../../../services/member/person.js?v=20261025a';
+import { listRowHtml, listGroupHtml } from '../../../components/ui/list-row.js?v=20261025a';
+import { emptyStateHtml } from '../../../components/ui/empty-state.js?v=20261025a';
+import { openModal, closeModal } from '../../../components/ui/modal.js?v=20261025a';
 import {
   showToast, flashHighlight, getBasePath, escHtml as esc,
-} from '../../../core/base/utils.js?v=20261024d';
+} from '../../../core/base/utils.js?v=20261025a';
+import { renderCardHeader } from '../../../components/shell/page-frame.js?v=20261025a';
 
 const OVERVIEW_TAB_HTML = `
   <div id="secretary-overview-content"></div>
@@ -66,12 +67,45 @@ export async function renderContent(ctx = {}) {
     extraSections: [{
       html: _periodicReviewSectionHtml(pendingReports),
       mount: (host) => _mountPeriodicReview(host, personId, ctx),
+    }, {
+      // 2026-10-25 IA 62→45：原「知情查看」页签降为本页卡（活动工作组 / 专班工作组两段只读）。
+      html: '<section id="secretary-insight-card" class="card rounded-xl card-standard stack-section card--static" aria-label="知情查看"></section>',
+      mount: (host) => _mountInsightCard(host.querySelector('#secretary-insight-card'), ctx),
     }],
   }).then(() => {
     if (!highlightId) return;
     _highlightConsumed = true;
     _locatePeriodicArchive(container, highlightId);
   });
+}
+
+// 知情查看页内卡（2026-10-25 IA 62→45）：支书台「知情查看」页签已删，改为全局概况页内卡。
+//   一级分段仍只「活动工作组 / 专班工作组」两枚（同层对象；SD-37），组件单一源＝
+//   `components/record/insight-view.js`（embedded 形态，不重复页头 H2）。
+let _insightMounted = false;
+function _mountInsightCard(host, ctx = {}) {
+  if (!host) return;
+  if (!host.querySelector('#secretary-insight-body')) {
+    // 2026-10-25 Task 4（同屏纵向一致）：卡头用 renderCardHeader 单一源；H3 带范围与权限，
+    //   不再用右侧 meta 复述下面两枚分段按钮的标签。
+    host.innerHTML = `${renderCardHeader({ title: '活动工作组与专班工作组 · 只读' })}
+      <div id="secretary-insight-body"></div>`;
+  }
+  const body = host.querySelector('#secretary-insight-body');
+  if (!body) return;
+  import('../../../components/record/insight-view.js?v=20261025a').then((m) => m.renderInsightView(body, {
+    embedded: true,
+    views: ['workgroup', 'taskforce'],
+    defaultView: 'workgroup',
+    highlightWorkgroupId: ctx?.highlightWorkgroupId || null,
+    highlightActId: ctx?.highlightActId || null,
+    highlightTfId: ctx?.highlightTfId || null,
+    onLocated: () => { if (ctx?.onNavLocated) ctx.onNavLocated(); },
+  }));
+  if (!_insightMounted && ctx?.navTarget?.section === 'insight') {
+    _insightMounted = true;
+    host.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
 }
 
 /** 「周期归档待审核」卡：期次 / 提交人 / 提交时间 + 行内通过、退回 */
@@ -97,10 +131,7 @@ function _periodicReviewSectionHtml(reports) {
     });
   });
   return `<section class="card rounded-xl card-standard stack-section card--static" data-wo-layer="periodic-review" aria-label="周期归档待审核">
-    <div class="section-head">
-      <h3 class="section-head__title">周期归档待审核</h3>
-      <span class="section-head__meta">共 ${(reports || []).length} 条</span>
-    </div>
+    ${renderCardHeader({ title: '周期归档待审核', meta: `共 ${(reports || []).length} 条` })}
     ${rows.length
       ? listGroupHtml(rows)
       : emptyStateHtml('暂无待审周期归档', {

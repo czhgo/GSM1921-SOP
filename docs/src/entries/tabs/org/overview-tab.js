@@ -9,9 +9,11 @@
 //   履职卡映射改在 workforce-duty-card.js 的 DUTY_TAB 单一源，条线缺口由 work-overview 的
 //   结构化 `gapTab` 直接渲染入口；文案或 DOM 结构再变也不会静默失效。
 
-import { renderWorkOverview } from '../../../components/governance/work-overview.js?v=20261024d';
-import { currentUserId } from '../../../services/core/auth.js?v=20261024d';
-import { beginOverviewShell } from '../../../components/governance/overview-dispatch-bar.js?v=20261024d';
+import { renderWorkOverview } from '../../../components/governance/work-overview.js?v=20261025a';
+import { currentUserId } from '../../../services/core/auth.js?v=20261025a';
+import { beginOverviewShell } from '../../../components/governance/overview-dispatch-bar.js?v=20261025a';
+import { renderCalendarCard } from '../shared/activity-calendar-tab.js?v=20261025a';
+import { renderCalendarView } from './activity-calendar-tab.js?v=20261025a';
 
 export async function renderContent(ctx) {
   const el = document.getElementById('org-tab-content');
@@ -29,6 +31,15 @@ export async function renderContent(ctx) {
     accent: ctx.accent,
     prefix: 'org',
     title: '工作概况',
+    // 2026-10-25 IA 62→45：原「活动日历」页签降为本页折叠卡（共享只读日历 + 跨组招募 + 活动进展）。
+    //   走 work-overview 的 extraSections（其内部重绘会重新 mount）⇒ 卡片不会因概况局部重绘而丢失。
+    extraSections: [{
+      html: '<div id="ov-calendar-card-host"></div>',
+      mount: (host) => renderCalendarCard(host.querySelector('#ov-calendar-card-host'), undefined, {
+        open: ctx?.navTarget?.section === 'calendar',
+        mountExtra: (body) => renderCalendarView(body, ctx || {}),
+      }),
+    }],
   });
   return null;
 }

@@ -1,28 +1,28 @@
 // role: [工程师]+[AI]
 // 参考资料板块 — 网站群展示 + 官方文件（党内法规位阶排序）+ 支部文件（支委写入/全员下载）
 
-import { icon } from '../../core/base/icons.js?v=20261024d';
-import { getBasePath, showToast } from '../../core/base/utils.js?v=20261024d';
-import { getAdapter, getDataSource, getAuthToken, getApiBaseUrl } from '../../data/data-adapter.js?v=20261024d';
-import { withSelectedBranchScope } from '../../data/api-adapter.js?v=20261024d';
-import { AuthStore } from '../../services/core/auth.js?v=20261024d';
-import { loadActivities } from '../../services/activity/activity.js?v=20261024d';
-import { PEOPLE } from '../../data/mock/people.js?v=20261024d';
+import { icon } from '../../core/base/icons.js?v=20261025a';
+import { getBasePath, showToast } from '../../core/base/utils.js?v=20261025a';
+import { getAdapter, getDataSource, getAuthToken, getApiBaseUrl } from '../../data/data-adapter.js?v=20261025a';
+import { withSelectedBranchScope } from '../../data/api-adapter.js?v=20261025a';
+import { AuthStore } from '../../services/core/auth.js?v=20261025a';
+import { loadActivities } from '../../services/activity/activity.js?v=20261025a';
+import { PEOPLE } from '../../data/mock/people.js?v=20261025a';
 // 立项⑧（E 批）：支部文件增强——制度文本（版本化 + 现行/停用态 + 网页读正文）纯逻辑服务
 // 2026-09-21 批次 129：制度链（草案 → 支委会审议 → 现行版 / 退回修改）——草案态与修改口同源于该服务
 import {
   isInstitutionManager, saveDoc, publishNewVersion, setDocStatus,
   updateInstitutionDraft, INSTITUTION_DRAFT, INSTITUTION_PENDING_PARTY_MEETING,
   buildDocVersionsView, renderDocBody, listDocs,
-} from '../../services/branch/branch-doc.js?v=20261024d';
+} from '../../services/branch/branch-doc.js?v=20261025a';
 // 统一检索引擎（2026-09-14 批次 37）：本页三处列表（站点网格 / 官方文件 / 支部文件）各接一个实例
-import { renderFilteredList } from '../ui/list-filter.js?v=20261024d';
-import { openModal, closeModal } from '../ui/modal.js?v=20261024d';
+import { renderFilteredList } from '../ui/list-filter.js?v=20261025a';
+import { openModal, closeModal } from '../ui/modal.js?v=20261025a';
 // 制度内容（领域）→ 对应【主体】：判据单一源（2026-10-05 批次 378 · `SOP-B-25` 第 ② 项「按草案落地」）
 import {
   INSTITUTION_DOMAINS, INSTITUTION_DOMAIN_LABELS, institutionSubjectOfDomain, ORG_SUBJECT_LABELS,
-} from '../../core/domain/work-map.js?v=20261024d';
-import { ROLE_LABELS } from '../../core/domain/constants.js?v=20261024d';
+} from '../../core/domain/work-map.js?v=20261025a';
+import { ROLE_LABELS } from '../../core/domain/constants.js?v=20261025a';
 
 /** 主体引用 → 显示名（角色键 → 角色名；组织型主体 id → 组织名，如「支委会」） */
 function _subjectLabelOf(subjectId) {
@@ -538,16 +538,18 @@ export class ReferencesModule {
             ${actions}
           </div>
         </div>
-        <div style="display:flex;gap:6px;margin-top:6px;">
-          <button type="button" class="btn-ghost ref-doc-action-btn" data-toggle-panel="ref-read-${uid}" data-label-close="阅读正文" data-label-open="收起正文">阅读正文</button>
-          ${histCount > 0
-            ? `<button type="button" class="btn-ghost ref-doc-action-btn" data-toggle-panel="ref-hist-${uid}" data-label-close="历史版本 (${histCount})" data-label-open="收起历史">历史版本 (${histCount})</button>`
-            : ''}
+        <div class="ref-doc-folds" style="display:flex;flex-direction:column;gap:6px;margin-top:6px;">
+          <details class="ref-doc-fold" id="ref-read-${uid}-fold">
+            <summary class="ref-doc-action-btn">阅读正文</summary>
+            <div id="ref-read-${uid}" style="margin-top:10px;padding-top:10px;border-top:1px solid var(--neutral-100);">
+              ${readPanel}
+            </div>
+          </details>
+          ${histCount > 0 ? `<details class="ref-doc-fold" id="ref-hist-${uid}-fold">
+            <summary class="ref-doc-action-btn">历史版本 (${histCount})</summary>
+            <div id="ref-hist-${uid}" style="margin-top:10px;padding-top:10px;border-top:1px solid var(--neutral-100);">${histPanel}</div>
+          </details>` : ''}
         </div>
-        <div id="ref-read-${uid}" class="hidden" style="margin-top:10px;padding-top:10px;border-top:1px solid var(--neutral-100);">
-          ${readPanel}
-        </div>
-        ${histCount > 0 ? `<div id="ref-hist-${uid}" class="hidden" style="margin-top:10px;padding-top:10px;border-top:1px solid var(--neutral-100);">${histPanel}</div>` : ''}
       </div>
     `;
   }
@@ -623,6 +625,7 @@ export class ReferencesModule {
       else if (action === 'disable') ReferencesModule._setInstitutionStatus(id, 'disabled');
       else if (action === 'enable') ReferencesModule._setInstitutionStatus(id, 'current');
       else if (btn.dataset.togglePanel) {
+        // 2026-10-25 Task 3：阅读正文 / 历史版本已改原生 details，此分支保留为兼容旧标记（当前无调用点）
         const panel = document.getElementById(btn.dataset.togglePanel);
         if (!panel) return;
         const closed = panel.classList.toggle('hidden');

@@ -5,13 +5,13 @@
 //  视图模式：月/周/日/列表 四种切换
 // ════════════════════════════════════════════════════════════════
 
-import { getAppState, setState } from '../../core/base/state.js?v=20261024d';
-import { ROLE_COLORS, getActivityColor, ACTIVITY_CATEGORY_COLORS, ACTIVITY_TYPE_LABELS, ACTIVITY_TYPE_SHORT, activityTypeTone } from '../../core/domain/constants.js?v=20261024d';
-import { _fmtDate, _currentYearMonth } from '../../core/base/utils.js?v=20261024d';
-import { tokenOf } from '../../core/base/version-token.js?v=20261024d'; // P2 视图渲染守卫数据版本（spec §四.2）
-import { filterTasksByManagementRole, activityLifecycleBadgeHtml } from './inspector.js?v=20261024d';
+import { getAppState, setState } from '../../core/base/state.js?v=20261025a';
+import { ROLE_COLORS, getActivityColor, ACTIVITY_CATEGORY_COLORS, ACTIVITY_TYPE_LABELS, ACTIVITY_TYPE_SHORT, activityTypeTone } from '../../core/domain/constants.js?v=20261025a';
+import { _fmtDate, _currentYearMonth } from '../../core/base/utils.js?v=20261025a';
+import { tokenOf } from '../../core/base/version-token.js?v=20261025a'; // P2 视图渲染守卫数据版本（spec §四.2）
+import { filterTasksByManagementRole, activityLifecycleBadgeHtml } from './inspector.js?v=20261025a';
 // 活动「已完成 / 已取消」闭环判据单一源（R7-16）：替代手写 ['completed','cancelled']
-import { isActivityClosed } from '../../core/domain/domain.js?v=20261024d';
+import { isActivityClosed } from '../../core/domain/domain.js?v=20261025a';
 
 // ── 固定语义色 tone（不随主题）──
 // 2026-10-24 批次 508：活动类别色改由单一源 activityTypeTone 判定——
@@ -230,10 +230,12 @@ function _renderViewSwitcher(currentView) {
 
   // 支书 2026-09-07：视图切换与月份选择器并排（calendar-tab 已把两者放同一工具行）；
   // 无槽时（fallback，如首页紧凑月）仍插到网格前。
+  // 2026-10-25 Task 4（同屏纵向一致）：分段控件只走 `.btn-tab`（32px / 13px）＋ `.active`
+  //   单一源，不再在本行手写 padding / 圆角 / 边框与两套选中色。
   switcher.innerHTML = `
     <div class="flex items-center gap-1.5">
       ${Object.entries(VIEW_LABELS).map(([key, label]) => `
-        <button class="btn-tab cal-view-btn px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors duration-200 ${key === currentView ? 'bg-[var(--app-accent-soft-bg)] border-[var(--app-accent)] [color:var(--app-accent-soft-text)]' : 'bg-white border-neutral-200 text-gray-600 hover:bg-[var(--surface-hover)]'}" data-view="${key}">${label}</button>
+        <button class="btn-tab cal-view-btn${key === currentView ? ' active' : ''}" data-view="${key}">${label}</button>
       `).join('')}
     </div>
   `;
@@ -898,13 +900,8 @@ function _renderLegend(activeActivities) {
     </div>`
   ).join('');
 
-  const toggleBtn = document.getElementById('toggle-legend-btn');
-  if (toggleBtn) {
-    toggleBtn.onclick = () => {
-      items.classList.toggle('hidden');
-      toggleBtn.textContent = items.classList.contains('hidden') ? '展开' : '收起';
-    };
-  }
+  // 2026-10-25 Task 3：原 `#toggle-legend-btn` 折叠钮在全仓无对应 DOM（死选择器），
+  // 图例本身已由调用方按需显隐——直接删除该段，不另造第二套折叠。
 }
 
 // ════════════════════════════════════════════════════════════════

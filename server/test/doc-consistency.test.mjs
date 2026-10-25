@@ -138,6 +138,14 @@ test('S2 各台 tab 名称齐备；已删 / 已改名 tab 名不得在帮助页�
     { name: '活动监督复盘', why: '已改名「复盘」（批次 368）' },
     { name: '周报报送', why: '已并入「档案归档」页内区（批次 367）' },
     { name: '赋权管理', why: '页签已撤（批次 190；赋权按对象归位）' },
+    // 2026-10-25 IA 62→45（spec Task 5）：被删/降的页签名不得再以表格行出现（新落点见 PRODUCT_IA 附录）。
+    { name: '活动日历', why: '页签已撤（四台降为工作概况页内折叠卡）' },
+    { name: '我的处置', why: '页签已撤（五台并入待办「我经办的反馈」区）' },
+    { name: '知情查看', why: '页签已撤（支书→概况页内卡；组长→组员进展独立区）' },
+    { name: '宣传任务', why: '页签已撤（并入项目看板泳道）' },
+    { name: '我的考察', why: '页签已撤（并入成员台「我的成长」子区）' },
+    { name: '我的复盘', why: '页签已撤（并入成员台「我的成长」子区）' },
+    { name: '专班动态', why: '页签已撤（并入项目分工「专班」区）' },
   ];
   for (const { name, why } of RENAMED_TABS) {
     assert.ok(!help.includes(`<td>${name}</td>`),
@@ -649,9 +657,9 @@ function enumCount(line) {
 
 test('S14 可数事实对账：文档里的「枚举 / 计数」必须等于代码 / 数据的实然值', async () => {
   const problems = [];
-  const { WORK_MAP_MODULES } = await import('../../docs/src/core/domain/work-map.js?v=20261024d');
-  const { sopDatabase } = await import('../../docs/src/workflow/sopData.js?v=20261024d');
-  const { ROLE_KEYS, ROLE_LEGACY_KEYS } = await import('../../docs/src/core/domain/constants.js?v=20261024d');
+  const { WORK_MAP_MODULES } = await import('../../docs/src/core/domain/work-map.js?v=20261025a');
+  const { sopDatabase } = await import('../../docs/src/workflow/sopData.js?v=20261025a');
+  const { ROLE_KEYS, ROLE_LEGACY_KEYS } = await import('../../docs/src/core/domain/constants.js?v=20261025a');
   const { SYSTEM_NOTICE_KIND_NAMES } = await import('../system-notice-kinds.js');
 
   /** 对账一条：`got` 为文档里抽出的数（null＝抽不出，判红并提示是判据失效而非「文档错」） */
@@ -972,8 +980,8 @@ test('S17 真机流 tab 名必须命中该台注册页签（漏改即红；带 p
   // 非空转：受检 flow 数与页签总量都要有规模（解析写坏 ⇒ 判据恒真 ⇒ 漏改也绿）
   const labelTotal = [...labelsOf.values()].reduce((n, s) => n + s.size, 0);
   // 2026-10-18 支委会行内改派退役一条表单 flow（59→58），受检面带减 1；下限随实然值下调，其余下限不变
-  assert.ok(checked >= 44 && exempt >= 10 && labelTotal >= 60,
-    `解析面不足（受检 ${checked} / 豁免 ${exempt} / 页签总量 ${labelTotal}，下限 44 / 10 / 60）：台账或注册解析被写坏`);
+  assert.ok(checked >= 44 && exempt >= 10 && labelTotal >= 44,
+    `解析面不足（受检 ${checked} / 豁免 ${exempt} / 页签总量 ${labelTotal}，下限 44 / 10 / 44）：台账或注册解析被写坏`);
   assert.deepEqual(problems, [],
     '真机流 `tab` 名与该台注册页签不一致（**改页签名必须同批改 `flow.tab`**，否则该 flow 切 tab 超时或静默归零）：\n'
     + `  ${problems.join('\n  ')}`);
@@ -1012,7 +1020,7 @@ test('S18 help.html §2.x 表行序必须等于台注册序（V-3 页签序；�
       .filter(Boolean);
     if (diff.length) problems.push(`${w.sec}（${w.name}）行序与注册序不一致：${diff.join('；')}`);
   }
-  assert.ok(checked >= 60, `解析面不足（累计表行 ${checked}，下限 60）：判据或解析被写坏`);
+  assert.ok(checked >= 44, `解析面不足（累计表行 ${checked}，下限 44）：判据或解析被写坏`);
   assert.deepEqual(problems, [],
     `help.html §2.x 表行**序**与台注册**序**不一致（V-3 页签序；**改注册序必须同批排本表**）：\n  ${problems.join('\n  ')}`);
 });

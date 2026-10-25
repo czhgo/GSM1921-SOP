@@ -16,8 +16,8 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { describeWriteError } from '../../docs/src/core/base/utils.js?v=20261024d';
-import { NUDGE_TEXTS } from '../../docs/src/components/ui/modal.js?v=20261024d';
+import { describeWriteError } from '../../docs/src/core/base/utils.js?v=20261025a';
+import { NUDGE_TEXTS } from '../../docs/src/components/ui/modal.js?v=20261025a';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(HERE, '..', '..');
@@ -161,23 +161,45 @@ test('F8 可点容器键盘可达：非原生容器必须 role=button + tabindex
       'data-mydispatch-action="open-report"',
       'data-mydispatch-action="open-my-issue"',
     ]],
+    // Task 3（2026-10-25）：4 个原 `div` 伪开关升级为原生控件（成员复盘 / 组长复盘 / 组内复盘 / 动态高级筛选）。
+    //   前三个行开关改为 `<summary>`（原生可聚焦）；动态高级筛选改走 `components/ui/disclosure.js`
+    //   （summary 由组件统一产出，故对组件文件校验）。
+    ['docs/src/entries/tabs/visitor/review-tab.js', ['review-toggle']],
+    ['docs/src/entries/tabs/leader/review-tab.js', ['review-toggle']],
+    ['docs/src/entries/tabs/secretary/group-progress-tab.js', ['gp-review-toggle']],
+    ['docs/src/components/ui/disclosure.js', ['disclosure__summary']],
   ];
   const escapeRe = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   for (const [rel, markers] of targets) {
     const src = read(rel);
+    let needsKeydown = false;
     for (const marker of markers) {
       const re = new RegExp(`<([a-z][a-z0-9]*)\\b([^>]*${escapeRe(marker)}[^>]*)>`, 'g');
       const tags = [...src.matchAll(re)];
       assert.ok(tags.length > 0, `${rel} 未见 ${marker} 容器（守卫口径失效，须同步标记）`);
       for (const [, tag, attrs] of tags) {
-        if (tag === 'a' || tag === 'button') continue;
+        // 原生可聚焦控件：a / button / summary（details 的开合钮）/ details（内部有原生 summary）
+        if (tag === 'a' || tag === 'button' || tag === 'summary' || tag === 'details') continue;
+        needsKeydown = true;
         assert.match(attrs, /role="button"/, `${rel} 的 <${tag} ${marker}> 缺 role="button"`);
         assert.match(attrs, /tabindex="0"/, `${rel} 的 <${tag} ${marker}> 缺 tabindex="0"`);
       }
     }
-    assert.match(src, /addEventListener\('keydown'/, `${rel} 缺 keydown：Enter / Space 与点击不等效`);
-    assert.match(src, /e\.key !== 'Enter'[\s\S]{0,140}e\.key !== ' '/,
-      `${rel} 的 keydown 应同时接受 Enter 与 Space`);
+    if (needsKeydown) {
+      assert.match(src, /addEventListener\('keydown'/, `${rel} 缺 keydown：Enter / Space 与点击不等效`);
+      assert.match(src, /e\.key !== 'Enter'[\s\S]{0,140}e\.key !== ' '/,
+        `${rel} 的 keydown 应同时接受 Enter 与 Space`);
+    }
+  }
+  // 4 个原 `div` 伪开关必须**已清零**（残留即红）
+  const retired = [
+    ['docs/src/entries/tabs/visitor/review-tab.js', /<div[^>]*review-toggle/],
+    ['docs/src/entries/tabs/leader/review-tab.js', /<div[^>]*review-toggle/],
+    ['docs/src/entries/tabs/secretary/group-progress-tab.js', /<div[^>]*gp-review-toggle/],
+    ['docs/src/entries/tabs/leader/write-tab.js', /<div[^>]*id="dt-adv-toggle"/],
+  ];
+  for (const [rel, re] of retired) {
+    assert.doesNotMatch(read(rel), re, `${rel} 仍残留 div 伪开关（应改原生 button / summary）`);
   }
 });
 

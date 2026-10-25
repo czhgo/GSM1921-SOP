@@ -5,7 +5,7 @@
 // R-26③（2026-10-05 批次 388）：本件**只引一个零依赖叶子** `core/base/date.js`（取本地「今天」）——
 //   不成环、双端可载；**不得**引 `core/base/utils.js`（那会牵 `core/session/pending-writes.js`）。
 
-import { todayLocal } from '../base/date.js?v=20261024d';
+import { todayLocal } from '../base/date.js?v=20261025a';
 
 // ════════════════════════════════════════════════════════════════
 //  缺省支部 id（单一源，R2-17，2026-10-20）

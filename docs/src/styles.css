@@ -1,5 +1,5 @@
 /* 组件样式（@import 必须位于文件顶部） */
-@import url('components/person-picker.css?v=20261024d');
+@import url('components/person-picker.css?v=20261025a');
 
 /* ═══════════════════════════════════════════════════════════════
    GSM1921-SOP DESIGN SYSTEM v11.0 — Matte Flat
@@ -338,6 +338,79 @@ summary:focus-visible {
   box-shadow: 0 0 0 6px var(--focus-halo);
 }
 
+/* ── Disclosure 封装（components/ui/disclosure.js · 2026-10-25 Task 3）
+    契约：分区标题是 details 的**兄弟节点**（标题不得进入交互元素），summary 只用
+    `aria-labelledby` 关联标题；视觉上折叠钮落在标题行右端。
+    折叠状态＝`details[open]`（可静态回读），不再用 `.hidden`，也不再手写 chevron。 */
+.disclosure-host {
+  position: relative;
+}
+.disclosure__title {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  margin: 0 0 var(--space-1);
+  padding-right: calc(var(--row-summary) + var(--space-2));
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--neutral-800);
+}
+.disclosure__meta {
+  font-size: var(--text-xs);
+  font-weight: 400;
+  color: var(--neutral-500);
+}
+.disclosure__summary {
+  position: absolute;
+  top: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--row-summary);
+  height: var(--row-summary);
+  color: var(--neutral-500);
+  border-radius: var(--radius-sm);
+}
+.disclosure__summary::before {
+  margin-right: 0;
+}
+.disclosure__body {
+  padding-top: var(--space-1);
+}
+/* 折叠卡若用 `.card-head` 作分区头：右侧预留 summary 折叠钮的位置，计数 / 动作不与 chevron 重叠。 */
+.disclosure-host > .card-head {
+  padding-right: calc(var(--row-summary) + var(--space-2));
+}
+
+/* ── MenuButton（components/ui/menu-button.js · 2026-10-25 Task 3）
+    菜单＝button + aria-haspopup/expanded/controls；展开态由 `hidden` 属性与
+    `aria-expanded` 共同表达（DOM 上可静态回读）。 */
+.menu-button {
+  position: relative;
+  display: inline-flex;
+}
+.menu-button__menu {
+  position: absolute;
+  top: calc(100% + var(--space-1));
+  right: 0;
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  min-width: 120px;
+  padding: var(--space-1);
+  background: var(--surface-elevated);
+  border: 1px solid var(--neutral-200);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-dropdown);
+}
+.menu-button__menu[hidden] {
+  display: none;
+}
+.todo-more__menu[hidden] {
+  display: none;
+}
+
 /* ═══════════════════════════════════════════════════════════════
    BASE — html / body
    ═══════════════════════════════════════════════════════════════ */
@@ -627,7 +700,7 @@ body {
   align-items: baseline;
   justify-content: space-between;
   gap: var(--space-2);
-  padding: 4px 8px;
+  padding: var(--space-1) var(--space-2);
   border-radius: var(--radius-sm);
   cursor: pointer;
   transition: background-color var(--transition-press), color var(--transition-press);
@@ -644,8 +717,9 @@ body {
 }
 .wm-module-item__name {
   min-width: 0;
+  /* 与右列详情主标题（.wm-detail__title）同档：14px / 600 / 无衬线。 */
   font-size: var(--text-base);
-  font-weight: 500;
+  font-weight: 600;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -665,7 +739,8 @@ body {
   display: grid;
   grid-template-columns: 72px minmax(0, 1fr);
   gap: var(--space-2);
-  padding: 4px 0;
+  /* 与左列模块项同档内边距（4px / 8px）。 */
+  padding: var(--space-1) var(--space-2);
   border-top: 1px solid var(--neutral-100);
 }
 .wm-detail__row:first-child {
@@ -5746,6 +5821,16 @@ html.theme-dark .state-badge--neutral {
     text-decoration-thickness: 1px;
     text-underline-offset: 3px;
   }
+}
+/* 2026-10-25 Task 3：整卡改为「标题 H3 ＋ 标题链」——交互元素是 <a>，不再用 div[role=button]，
+   键盘与读屏由原生链接承担；卡片本身不再可聚焦。 */
+.gallery-card__open {
+  color: inherit;
+  text-decoration: none;
+}
+.gallery-card__open:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
 }
 .gallery-card__meta {
   margin: 0;

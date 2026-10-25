@@ -31,7 +31,7 @@ import { fileURLToPath } from 'node:url';
 import {
   ACCENT_COLORS, ACCENT_PALETTE, ACCENT_KEY_ALIASES, normalizeAccentKey, getAccentColors,
   accentButtonColors,
-} from '../../docs/src/core/domain/constants.js?v=20261024d';
+} from '../../docs/src/core/domain/constants.js?v=20261025a';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(HERE, '..', '..');

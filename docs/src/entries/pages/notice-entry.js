@@ -6,23 +6,23 @@
 //   · 私信 message：会话线程（同一 replyTo 链，时间升序）+ 回复框
 // 已读与回执分离：进入详情即 markRead（只标记当前人）；「确认收到 / 线上参加」属业务回执，
 //   独立渲染、不因已读隐藏。
-import { renderSidebar } from '../../components/shell/sidebar.js?v=20261024d';
-import { renderHeader } from '../../components/shell/header.js?v=20261024d';
-import { NoticeStore, canReadNotice, kindOf, isArchivedFor, replyToMessage } from '../../services/governance/notice.js?v=20261024d';
-import { getBasePath, showToast, escHtml } from '../../core/base/utils.js?v=20261024d';
-import { AuthStore } from '../../services/core/auth.js?v=20261024d';
-import { getPersonName } from '../../services/member/person.js?v=20261024d';
-import { badgeHtml } from '../../components/ui/badges.js?v=20261024d';
-import { NOTICE_AUDIENCE_SENTINELS } from '../../core/domain/constants.js?v=20261024d';
+import { renderSidebar } from '../../components/shell/sidebar.js?v=20261025a';
+import { renderHeader } from '../../components/shell/header.js?v=20261025a';
+import { NoticeStore, canReadNotice, kindOf, isArchivedFor, replyToMessage } from '../../services/governance/notice.js?v=20261025a';
+import { getBasePath, showToast, escHtml } from '../../core/base/utils.js?v=20261025a';
+import { AuthStore } from '../../services/core/auth.js?v=20261025a';
+import { getPersonName } from '../../services/member/person.js?v=20261025a';
+import { badgeHtml } from '../../components/ui/badges.js?v=20261025a';
+import { NOTICE_AUDIENCE_SENTINELS } from '../../core/domain/constants.js?v=20261025a';
 // S1（2026-09-12）：通知详情页必须先完成数据 hydrate（loadDB/API init）再按 id 取数，
 // 否则 NoticeStore 只剩 MOCK_NOTICES 内存兜底 → 用户/服务端通知一律「不存在或已过期」。
-import { hydrateDataSource, notifyDataLoaded } from '../../data/data-adapter.js?v=20261024d';
-import { ApiAdapter } from '../../data/api-adapter.js?v=20261024d';
-import { BranchService } from '../../services/core/runtime.js?v=20261024d';
+import { hydrateDataSource, notifyDataLoaded } from '../../data/data-adapter.js?v=20261025a';
+import { ApiAdapter } from '../../data/api-adapter.js?v=20261025a';
+import { BranchService } from '../../services/core/runtime.js?v=20261025a';
 // SOP-B-5（D-293）：通知确认时填「能否线上参会」——线上参会落该场考勤为「请假 + 线上」、只免补课
-import { declareOnlineAttend, loadAttendanceRecords } from '../../services/activity/attendance.js?v=20261024d';
-import { loadActivities } from '../../services/activity/activity.js?v=20261024d';
-import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261024d';
+import { declareOnlineAttend, loadAttendanceRecords } from '../../services/activity/attendance.js?v=20261025a';
+import { loadActivities } from '../../services/activity/activity.js?v=20261025a';
+import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261025a';
 
 renderSidebar('messages');
 renderHeader('messages');
@@ -212,7 +212,7 @@ function _receiptHtml(n) {
   const receipted = _hasOnlineReceipt(meeting.id, me?.personId);
   return `
     <div class="mt-6 pt-4 border-t border-gray-100" data-notice-receipt>
-      <div class="text-xs text-gray-500 mb-2">业务回执 · 关联会议：<b class="text-gray-700">${escHtml(meeting.title || '会议活动')}</b>${meeting.date ? `（${escHtml(meeting.date)}）` : ''}</div>
+      <div class="text-xs text-gray-500 mb-2">业务回执 · 关联会议：<b class="text-gray-700">${escHtml(meeting.title || '会议 / 活动')}</b>${meeting.date ? `（${escHtml(meeting.date)}）` : ''}</div>
       ${receipted
         ? '<p class="text-xs text-gray-600">已申报线上参会：本场考勤记「请假」、不计出席、不补课。</p>'
         : `<label class="text-xs text-gray-500 mb-2 block font-medium" for="notice-online-attend">本次会议您能否线上参会？<span class="text-gray-500">（选填；确认收到时填写）</span></label>

@@ -195,3 +195,101 @@ test('T5 官方制度文件均链接至 12371 官方原文并在新标签页打�
     '有链接的文档按钮应在新标签页安全打开',
   );
 });
+
+// ── T6（2026-10-25 批次 511 · IA 62→45）：IA 地图 ↔ 页签注册表 ────────────────
+//   病灶：`PRODUCT_IA.md` 是**派生索引**（不承担规范、禁止手改），但它的页签表此前**无任何守卫**——
+//     62 → 45 收敛时漏改一处，地图就会「多一个已删页签 / 少一个现行页签」；而注册表、help.html
+//     各自为真（`doc-consistency::S1` 只对 help ↔ 注册），读者照着地图仍会找不到入口。
+//   判据（Boolean）：① 地图行数 ＝ 页签总数（**45**，固定值）；② 逐台 label 集合 ≡ 注册表
+//     （多一个 / 少一个 / 台名对不上都红）；③ 已降级的旧页签名不得在任何台重新注册
+//     （「一功能一页签」；跨台重复必须先降级为页内区 + 深链重定向，见 `PRODUCT_IA` 重定向表）。
+//   豁免：`成员流动` 的本位是组织台（支书台已降为页面级重定向）——只允许出现在组织台。
+//   非空转：解析到的台数 ≥ 7、地图行 ≥ 45、注册 label 总量 ≥ 45（解析写坏 ⇒ 本条恒真）。
+
+const IA_MAP = 'content/04_web_design/PRODUCT_IA.md';
+const IA_EXPECTED_TOTAL = 45;
+
+/** 台名（地图列）→ 注册文件 */
+const IA_PAGE_FILES = [
+  ['支书', 'docs/src/capabilities/secretary-workspace.js'],
+  ['组织', 'docs/src/capabilities/org-workspace.js'],
+  ['宣传', 'docs/src/capabilities/prop-workspace.js'],
+  ['纪检', 'docs/src/capabilities/disc-workspace.js'],
+  ['组长', 'docs/src/capabilities/leader-workspace.js'],
+  ['成员', 'docs/src/capabilities/visitor-workspace.js'],
+  ['党委', 'docs/src/capabilities/party-committee-workspace.js'],
+];
+
+/** 已降级的旧页签名 → 仍允许出现该名的台（空数组＝全站不得再注册） */
+const IA_RETIRED_LABELS = {
+  知情查看: [],
+  活动日历: [],
+  我的处置: [],
+  宣传任务: [],
+  我的考察: [],
+  我的复盘: [],
+  专班动态: [],
+  成员流动: ['组织'],
+};
+
+test('T6 IA 地图 ≡ 页签注册表（45 条 · 逐台集合相等 · 已降级旧名不得重注册）', () => {
+  const ia = readFileSync(`${ROOT}${IA_MAP}`, 'utf8');
+  const start = ia.search(/^##\s*页签表/m);
+  const end = ia.search(/^##\s*统计/m);
+  assert.ok(start >= 0 && end > start, `${IA_MAP} 找不到「## 页签表」/「## 统计」边界：表格结构被改写`);
+  const block = ia.slice(start, end);
+
+  // ① 表头声明的总数 ＝ 固定 45
+  const declared = Number(/##\s*页签表（(\d+)）/.exec(block)?.[1]);
+  assert.equal(declared, IA_EXPECTED_TOTAL,
+    `${IA_MAP} 表头声明的页签总数写 ${declared ?? '(缺)'}，应为 ${IA_EXPECTED_TOTAL}（IA 62→45 的目标）`);
+
+  // ② 逐行取「台 | 页签」
+  const iaRows = block.split(/\r?\n/).filter((l) => /^\|\s*(支书|组织|宣传|纪检|组长|成员|党委)\s*\|/.test(l));
+  const iaByPage = new Map(IA_PAGE_FILES.map(([p]) => [p, new Set()]));
+  for (const line of iaRows) {
+    const c = line.split('|').map((s) => s.trim());
+    iaByPage.get(c[1])?.add(c[3]);
+  }
+  assert.equal(iaRows.length, IA_EXPECTED_TOTAL,
+    `${IA_MAP} 页签表解析到 ${iaRows.length} 行，应为 ${IA_EXPECTED_TOTAL} 行`);
+  const statTotal = Number(/\|\s*\*\*合计\*\*\s*\|\s*\*\*(\d+)\*\*\s*\|/.exec(ia.slice(end))?.[1]);
+  assert.equal(statTotal, iaRows.length,
+    `${IA_MAP}「统计」合计写 ${statTotal ?? '(缺)'}，表体实为 ${iaRows.length} 行`);
+
+  // ③ 逐台集合 ≡ 注册表（多 / 少都报出来）
+  const problems = [];
+  let regTotal = 0;
+  for (const [page, file] of IA_PAGE_FILES) {
+    const labels = tabLabelsOf(file);
+    regTotal += labels.size;
+    const mapped = iaByPage.get(page);
+    assert.ok(mapped, `${IA_MAP} 缺「${page}」行组（台名与注册文件对不上）`);
+    for (const l of labels) {
+      if (!mapped.has(l)) problems.push(`${page}：注册表有「${l}」，${IA_MAP} 未登记`);
+    }
+    for (const l of mapped) {
+      if (!labels.has(l)) problems.push(`${page}：${IA_MAP} 写了「${l}」，注册表无此页签`);
+    }
+  }
+  assert.deepEqual(problems, [],
+    `IA 地图与页签注册表不一致（地图是派生物：先改 capabilities/*，再同批重派生本表）：\n  ${problems.join('\n  ')}`);
+
+  // ④ 一功能一页签：已降级的旧页签名不得重新注册（跨台重复必须降级）
+  const regress = [];
+  for (const [page, file] of IA_PAGE_FILES) {
+    for (const label of tabLabelsOf(file)) {
+      if (!Object.hasOwn(IA_RETIRED_LABELS, label)) continue;
+      if (!IA_RETIRED_LABELS[label].includes(page)) {
+        regress.push(`${page}：已降级页签名「${label}」被重新注册（旧名回潮）`);
+      }
+    }
+  }
+  assert.deepEqual(regress, [],
+    `已降级的页签不得以独立页签回潮（新落点见 ${IA_MAP} 重定向表）：\n  ${regress.join('\n  ')}`);
+
+  // ⑤ 非空转
+  assert.equal(iaByPage.size, 7, `IA 地图台数解析为 ${iaByPage.size}（应 7）`);
+  assert.ok(regTotal >= IA_EXPECTED_TOTAL,
+    `注册 label 总量只有 ${regTotal}（下限 ${IA_EXPECTED_TOTAL}）：注册解析被写坏，本条会恒真`);
+});

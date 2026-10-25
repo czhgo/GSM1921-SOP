@@ -3,37 +3,38 @@
 // 党小组组长可创建党小组会、主题党日活动，写入后自动生成SOP任务节点。
 // 含决策树引导式写入（DecisionTreeState）+ 活动详情/子记录内联编辑 + 活动角色赋权。
 
-import { setState, getAppState } from '../../../core/base/state.js?v=20261024d';
-import { BranchService } from '../../../services/core/runtime.js?v=20261024d';
-import { DecisionTreeState, DECISION_TREE_CONFIGS, renderWorkflowPanel, writeActivityWithSOP, hostGroups as buildHostGroupOptions } from '../../../services/activity/decision-tree.js?v=20261024d';
+import { setState, getAppState } from '../../../core/base/state.js?v=20261025a';
+import { BranchService } from '../../../services/core/runtime.js?v=20261025a';
+import { DecisionTreeState, DECISION_TREE_CONFIGS, renderWorkflowPanel, writeActivityWithSOP, hostGroups as buildHostGroupOptions } from '../../../services/activity/decision-tree.js?v=20261025a';
 // 党小组常态清单唯一来源（活组、按 seq 升序）——承办党小组选项不再写死
-import { groupOptions, loadPartyGroups } from '../../../services/member/party-group.js?v=20261024d';
+import { groupOptions, loadPartyGroups } from '../../../services/member/party-group.js?v=20261025a';
 // 2026-10-21 批次 499：跨党小组深参/组织者需按成员所属组判定（组织者一般本组，跨组深参由组织委员协调）
-import { PersonStore } from '../../../services/member/person.js?v=20261024d';
-import { AuthStore, currentUserId } from '../../../services/core/auth.js?v=20261024d';
-import { TodoStore, TodoSourceType } from '../../../services/governance/todo.js?v=20261024d';
-import { mockDB, OutputType, deriveOutputRoute } from '../../../core/domain/domain.js?v=20261024d';
-import { persist } from '../../../data/data-adapter.js?v=20261024d';
-import { PersonPicker } from '../../../components/governance/pickers.js?v=20261024d';
-import { renderWorkgroupPermissionEditor, readWorkgroupPermissionEditor } from '../../../components/governance/workgroup-permissions.js?v=20261024d';
-import { recordFormShell } from '../../../components/ui/forms.js?v=20261024d';
-import { getBranchIdOfPerson, getBranchOutputBlocks, applyOutputBlockPolicy } from '../../../services/branch/branch.js?v=20261024d';
-import { badgeHtml } from '../../../components/ui/badges.js?v=20261024d';
+import { PersonStore } from '../../../services/member/person.js?v=20261025a';
+import { AuthStore, currentUserId } from '../../../services/core/auth.js?v=20261025a';
+import { TodoStore, TodoSourceType } from '../../../services/governance/todo.js?v=20261025a';
+import { mockDB, OutputType, deriveOutputRoute } from '../../../core/domain/domain.js?v=20261025a';
+import { persist } from '../../../data/data-adapter.js?v=20261025a';
+import { PersonPicker } from '../../../components/governance/pickers.js?v=20261025a';
+import { renderWorkgroupPermissionEditor, readWorkgroupPermissionEditor } from '../../../components/governance/workgroup-permissions.js?v=20261025a';
+import { recordFormShell } from '../../../components/ui/forms.js?v=20261025a';
+import { getBranchIdOfPerson, getBranchOutputBlocks, applyOutputBlockPolicy } from '../../../services/branch/branch.js?v=20261025a';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20261025a';
 // 活动生命周期展示态单一源（草稿/已发布/进行中/待归档/已执行/已归档/已取消）——勿在本文件另造中文标签
-import { activityLifecycleBadgeHtml } from '../../../components/record/inspector.js?v=20261024d';
-import { showToast, escHtml, todayLocal } from '../../../core/base/utils.js?v=20261024d';
+import { activityLifecycleBadgeHtml } from '../../../components/record/inspector.js?v=20261025a';
+import { showToast, escHtml, todayLocal } from '../../../core/base/utils.js?v=20261025a';
 // 组织者的发布口（2026-09-19 批次 91 · SOP-B-17）：本人被指定为该场组织者时，本台即可发布本组通知
-import { isActivityOrganizer, findActivityById, OUTDOOR_CHECKLIST, isOutdoorActivity, PUBLICITY_DRAFT_STATUS, PUBLICITY_DRAFT_LABELS, publicityDraftStatusOf, setPublicityDraftStatus, DEEP_WORK_MODE } from '../../../services/activity/activity.js?v=20261024d';
-import { openModal, closeModal } from '../../../components/ui/modal.js?v=20261024d';
-import { openGroupNoticeComposer } from '../../../components/governance/notice-view.js?v=20261024d';
-import { DEFAULT_BRANCH_ID, solidAccentStyle, accDarkParts, OUTPUT_BLOCK_DEFS, isActivityEnded, ACTIVITY_SUBTYPES, normalizeActivityType, ACTIVITY_SCOPES, RECRUITMENT_SCOPES } from '../../../core/domain/constants.js?v=20261024d';
-import { filterByRole, getCurrentLeaderId, currentLeaderGroup } from './_shared.js?v=20261024d';
-import { anchorDetailToTrigger } from '../../../components/ui/detail-anchor.js?v=20261024d';
+import { isActivityOrganizer, findActivityById, OUTDOOR_CHECKLIST, isOutdoorActivity, PUBLICITY_DRAFT_STATUS, PUBLICITY_DRAFT_LABELS, publicityDraftStatusOf, setPublicityDraftStatus, DEEP_WORK_MODE } from '../../../services/activity/activity.js?v=20261025a';
+import { openModal, closeModal } from '../../../components/ui/modal.js?v=20261025a';
+import { renderDisclosure } from '../../../components/ui/disclosure.js?v=20261025a';
+import { openGroupNoticeComposer } from '../../../components/governance/notice-view.js?v=20261025a';
+import { DEFAULT_BRANCH_ID, solidAccentStyle, accDarkParts, OUTPUT_BLOCK_DEFS, isActivityEnded, ACTIVITY_SUBTYPES, normalizeActivityType, ACTIVITY_SCOPES, RECRUITMENT_SCOPES } from '../../../core/domain/constants.js?v=20261025a';
+import { filterByRole, getCurrentLeaderId, currentLeaderGroup } from './_shared.js?v=20261025a';
+import { anchorDetailToTrigger } from '../../../components/ui/detail-anchor.js?v=20261025a';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是活动的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
-import { renderFilteredList, activityKeyword, activityFacets } from '../../../components/ui/list-filter.js?v=20261024d';
-import { renderTabHeader, renderCardHeader } from '../../../components/shell/page-frame.js?v=20261024d';
+import { renderFilteredList, activityKeyword, activityFacets } from '../../../components/ui/list-filter.js?v=20261025a';
+import { renderTabHeader, renderCardHeader } from '../../../components/shell/page-frame.js?v=20261025a';
 // U-35：「我的任务」承载面（按项目身份派给组长的 SOP 任务；数据与写口复用 services/activity/activity.js）
-import { myTasksSectionHtml, bindMyTasksSection } from './my-tasks-section.js?v=20261024d';
+import { myTasksSectionHtml, bindMyTasksSection } from './my-tasks-section.js?v=20261025a';
 
 /**
  * 活动角色可编辑性（dogfood 权限专项 2026-09-13）
@@ -57,7 +58,8 @@ let _dtDeepPicker = null;     // 决策树表单：深度参与者多选
 let _detailOrgPicker = null;   // 活动详情：组织者多选（预填现有 assignments）
 let _detailDeepPicker = null;  // 活动详情：深度参与者多选
 let _dtActivities = [];        // C② 默认预选数据源：最近一次渲染的组长可见活动（ctx.filteredActivities）
-let _dtAdvOpen = false;        // C② 高级设置折叠区展开态（跨面板重建保态，便于连续选择）
+// 2026-10-25 Task 3：高级设置折叠区不再有 `_dtAdvOpen` 模块态——展开态由 `<details open>` 承载，
+//   面板重建前从 DOM 回读（见 `_refreshDtArea`），折叠语义单一源。
 
 // E-2 活动写入步骤草稿（2026-09-09 乙部评议待办）：
 // 步骤（L1-L4/承办党小组）重选或重进时会重建决策面板与输入框/角色 PersonPicker，
@@ -625,7 +627,7 @@ function _dtSummaryLine() {
   return parts.join(' · ');
 }
 
-function _renderDecisionTreePanel({ accent, accentRgba, accentBorder, _dtBtnStyle, _dtSelDark }) {
+function _renderDecisionTreePanel({ accent, accentRgba, accentBorder, _dtBtnStyle, _dtSelDark, advOpen = false }) {
   const { L1, L2, L3, L4, hostGroup } = dt.selections;
 
   // 当前进行到第几步（S6 修复：原代码引用未定义变量 step 导致面板渲染崩溃）
@@ -725,15 +727,19 @@ function _renderDecisionTreePanel({ accent, accentRgba, accentBorder, _dtBtnStyl
   ` : '';
 
   // 高级设置折叠区（默认收起）：L1–L4/承办党小组能力与「全选齐」校验保持不变，
-  // 展开后与原行为一致（步骤指示器 + 各层选择按钮）。展开态跨面板重建保态（_dtAdvOpen）。
+  // 展开后与原行为一致（步骤指示器 + 各层选择按钮）。2026-10-25 Task 3：改原生 details——
+  // 标题在 summary 外（兄弟 H4），展开态由 `open` 回读，不再手写 `▾/▴` 与 `.hidden`。
   const advBodyHtml = `${stepperHtml}${l1Html}${hostGroupHtml}${l2Html}${l3Html}${l4Html}`;
   const advHtml = `
     <div class="mb-4">
-      <div id="dt-adv-toggle" class="text-xs text-gray-500 cursor-pointer hover:text-gray-600 select-none flex items-center gap-1">
-        <span id="dt-adv-caret">${_dtAdvOpen ? '▴' : '▾'}</span>
-        <span>高级设置（可选）：活动类型 / 活动形式 / 时长 / 发起方向 / 承办党小组</span>
-      </div>
-      <div id="dt-adv-body" class="mt-3 ${_dtAdvOpen ? '' : 'hidden'}">${advBodyHtml}</div>
+      ${renderDisclosure({
+        id: 'dt-adv',
+        title: '高级设置（可选）',
+        meta: '活动类型 / 活动形式 / 时长 / 发起方向 / 承办党小组',
+        open: !!advOpen,
+        level: 4,
+        bodyHtml: `${advBodyHtml}`,
+      })}
     </div>
   `;
 
@@ -927,9 +933,10 @@ function _bindDecisionTreeEvents(container, ctx) {
     const wrap = container.querySelector('#dt-panel-wrap');
     if (!wrap) return;
     _dtDraftCapture(wrap); // 兜底：把 DOM 中已填值先落草稿再重建
+    const advOpen = !!wrap.querySelector('#dt-adv')?.open; // 折叠态从 DOM 回读（不再有模块级 _dtAdvOpen）
     if (_dtOrgPicker) { _dtOrgPicker.destroy(); _dtOrgPicker = null; }
     if (_dtDeepPicker) { _dtDeepPicker.destroy(); _dtDeepPicker = null; }
-    wrap.innerHTML = _renderDecisionTreePanel({ accent, accentRgba, accentBorder, _dtBtnStyle, _dtSelDark });
+    wrap.innerHTML = _renderDecisionTreePanel({ accent, accentRgba, accentBorder, _dtBtnStyle, _dtSelDark, advOpen });
     _dtBindPanelArea(container, ctx, _refreshDtArea);
     wrap.classList.toggle('hidden', !dt.showPanel);
     const btn = container.querySelector('#btn-leader-create');
@@ -951,14 +958,7 @@ function _dtBindPanelArea(container, ctx, refresh) {
   if (_dtOrgPicker) { _dtOrgPicker.destroy(); _dtOrgPicker = null; }
   if (_dtDeepPicker) { _dtDeepPicker.destroy(); _dtDeepPicker = null; }
 
-  // 高级设置折叠区（默认收起；展开态跨面板重建保态 _dtAdvOpen，便于连续选择各层）
-  wrap.querySelector('#dt-adv-toggle')?.addEventListener('click', () => {
-    _dtAdvOpen = !_dtAdvOpen;
-    const body = wrap.querySelector('#dt-adv-body');
-    const caret = wrap.querySelector('#dt-adv-caret');
-    if (body) body.classList.toggle('hidden', !_dtAdvOpen);
-    if (caret) caret.textContent = _dtAdvOpen ? '▴' : '▾';
-  });
+  // 高级设置折叠区（原生 details）：开合由浏览器承担，面板重建前的展开态在 `_refreshDtArea` 里回读。
 
   // 表单输入即存草稿（E-2）：步骤重选/重进重建面板时按草稿回填，不丢已填内容
   const draftFieldMap = { '#dt-target-date': 'date', '#dt-location': 'location', '#dt-title': 'title', '#dt-desc': 'desc' };
@@ -1084,7 +1084,8 @@ function _dtBindPanelArea(container, ctx, refresh) {
   wrap.querySelector('#dt-cancel')?.addEventListener('click', () => {
     dt.reset();
     _dtDraftClear();
-    _dtAdvOpen = false;
+    const advEl = wrap.querySelector('#dt-adv');
+    if (advEl) advEl.open = false;
     refresh();
   });
 
@@ -1233,7 +1234,8 @@ function _dtBindPanelArea(container, ctx, refresh) {
       // 5. 提交成功 → 重置决策树并清空步骤草稿（高级区回默认收起），刷新列表
       dt.reset();
       _dtDraftClear();
-      _dtAdvOpen = false;
+      const advEl = wrap.querySelector('#dt-adv');
+      if (advEl) advEl.open = false;
       const activities = await BranchService.listActivities();
       setState({ activities });
     } catch (err) {

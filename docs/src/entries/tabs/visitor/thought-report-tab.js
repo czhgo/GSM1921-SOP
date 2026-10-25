@@ -10,15 +10,15 @@
 //  · 提交表单新增期次（period）手填下拉（缺省 = 当前期次）；
 //  · 「我的汇报」按期次分组，逐篇点击跳**独立阅读页** docs/thought-report.html——
 //    只读正文与「修改重交」均收敛到该页，本 tab 不再行内展开/就地编辑。
-import { AuthStore } from '../../../services/core/auth.js?v=20261024d';
+import { AuthStore } from '../../../services/core/auth.js?v=20261025a';
 import {
   addThoughtReport, listThoughtReportsByPersonGrouped,
   wordCountHint, wordHint, wordSoftMin, periodOf, periodOptions,
-} from '../../../services/governance/thought-report.js?v=20261024d';
-import { showToast, escHtml as esc } from '../../../core/base/utils.js?v=20261024d';
+} from '../../../services/governance/thought-report.js?v=20261025a';
+import { showToast, escHtml as esc } from '../../../core/base/utils.js?v=20261025a';
 // 统一检索引擎（支书 2026-09-14 裁定）：按期次分组子列表复用其分页（无 keyword/facets → 不渲染检索条）
-import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261024d';
-import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261024d';
+import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261025a';
+import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261025a';
 
 // ── 状态徽标（与服务层 _effective 同语义：无状态 / 状态非法 / 旧 'pending' → 已入库）──
 const STATUS_META = {
@@ -34,13 +34,13 @@ const _statusBadgeHtml = (status) => {
   return `<span class="text-xs px-1.5 py-0.5 rounded-full font-medium ${m.cls}">${m.label}</span>`;
 };
 
-export function renderContent(ctx) {
-  const tc = document.getElementById('visitor-tab-content');
+export function renderContent(ctx, host) {
+  const tc = host || document.getElementById('visitor-tab-content');
   if (!tc) return;
 
   const user = AuthStore.getCurrentUser();
   if (!user) {
-    tc.innerHTML = `${renderTabHeader({ title: '思想汇报' })}<p class="text-sm text-gray-500 text-center py-6">— 请先登录</p>`;
+    tc.innerHTML = `${host ? '' : renderTabHeader({ title: '思想汇报' })}<p class="text-sm text-gray-500 text-center py-6">— 请先登录</p>`;
     return;
   }
   const personId = user.personId;
@@ -63,7 +63,7 @@ export function renderContent(ctx) {
           </div>`).join('');
 
     tc.innerHTML = `
-      ${renderTabHeader({ title: '思想汇报', description: '按期次提交与回看；提交即入库归档。' })}
+      ${host ? '' : renderTabHeader({ title: '思想汇报', description: '按期次提交与回看；提交即入库归档。' })}
       <div class="card rounded-xl p-5 mb-3">
         <p class="text-sm font-semibold text-gray-800">我的思想汇报</p>
         <p class="text-xs text-gray-500 mt-0.5">已提交 ${total} 篇</p>

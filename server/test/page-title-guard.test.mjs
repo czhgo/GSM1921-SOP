@@ -93,7 +93,8 @@ test('P1 每个 tab 的渲染模块都提供 H2（自身或登记共享件）', 
       else seen.set(`${cap}:${t.id}`, via);
     }
   }
-  assert.ok(seen.size >= 62, `页题覆盖数只有 ${seen.size}（基线 62）`);
+  // 2026-10-25 IA 62→45：基线随页签总数改准（原 62 → 45）。
+  assert.ok(seen.size >= 45, `页题覆盖数只有 ${seen.size}（基线 45）`);
   assert.deepEqual(missing, [], `以下 tab 缺页级 H2：\n  ${missing.join('\n  ')}`);
 });
 

@@ -8,17 +8,17 @@
 //   · 下半部是本台专属的「活动进展」分段（组件单一源 `components/governance/activity-progress.js`）。
 //   ⚠ 不新造页签、不改注册序；`?tab=calendar` / 旧 `?tab=tf-view` 别名均不受影响。
 
-import { getAppState, setState } from '../../../core/base/state.js?v=20261024d';
-import { renderContent as renderSharedCalendar } from '../shared/activity-calendar-tab.js?v=20261024d';
-import { renderActivityProgress } from '../../../components/governance/activity-progress.js?v=20261024d';
-import { mockDB } from '../../../core/domain/domain.js?v=20261024d';
-import { getAdapter } from '../../../data/data-adapter.js?v=20261024d';
-import { loadPartyGroups } from '../../../services/member/party-group.js?v=20261024d';
-import { getPersonName } from '../../../services/member/person.js?v=20261024d';
-import { AuthStore } from '../../../services/core/auth.js?v=20261024d';
-import { escHtml as esc, showToast } from '../../../core/base/utils.js?v=20261024d';
+import { getAppState, setState } from '../../../core/base/state.js?v=20261025a';
+import { renderContent as renderSharedCalendar } from '../shared/activity-calendar-tab.js?v=20261025a';
+import { renderActivityProgress } from '../../../components/governance/activity-progress.js?v=20261025a';
+import { mockDB } from '../../../core/domain/domain.js?v=20261025a';
+import { getAdapter } from '../../../data/data-adapter.js?v=20261025a';
+import { loadPartyGroups } from '../../../services/member/party-group.js?v=20261025a';
+import { getPersonName } from '../../../services/member/person.js?v=20261025a';
+import { AuthStore } from '../../../services/core/auth.js?v=20261025a';
+import { escHtml as esc, showToast } from '../../../core/base/utils.js?v=20261025a';
 // R10-B16：组织落点与招募范围单一源（禁止把 cross-group 当落点）
-import { ACTIVITY_SCOPES, RECRUITMENT_SCOPES } from '../../../core/domain/constants.js?v=20261024d';
+import { ACTIVITY_SCOPES, RECRUITMENT_SCOPES } from '../../../core/domain/constants.js?v=20261025a';
 
 // ── 跨组招募协调 / 待补责任党小组（2026-10-21 批次 499 · 组织委员协调面）──────
 // 口径：跨组只是参与/招募范围，活动仍有唯一责任党小组；跨党小组深度参与者由组织委员协调。
@@ -174,10 +174,25 @@ async function _hydrateWorkgroups() {
 export function renderContent(ctx = {}) {
   const container = document.getElementById('org-tab-content');
   if (!container) return;
-
   // 共享只读日历：六台同款「左日历 / 右详情」
   renderSharedCalendar(container);
+  _renderOrgExtras(container, ctx);
+}
 
+/**
+ * 组织台「活动日历」页内版（2026-10-25 IA 62→45）：页签已删，本函数把**同一份**三段内容
+ * （共享只读日历 / 跨组招募待协调 / 活动进展）挂进「工作概况」页的折叠卡宿主。
+ * ⚠ 不复制日历与面板实现——仍走 `renderSharedCalendar` 与本文件的 `_renderOrgExtras`。
+ * @param {HTMLElement} container 折叠卡 body（须已含 shared 面板槽位）
+ * @param {Object} [ctx]
+ */
+export function renderCalendarView(container, ctx = {}) {
+  if (!container) return;
+  if (!container.querySelector('#cal-main-grid')) return; // 由 shared::renderCalendarCard 先建槽
+  _renderOrgExtras(container, ctx);
+}
+
+function _renderOrgExtras(container, ctx = {}) {
   let recruitHost = container.querySelector('#org-recruitment');
   if (!recruitHost) {
     recruitHost = document.createElement('div');

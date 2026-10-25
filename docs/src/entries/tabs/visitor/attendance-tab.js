@@ -8,21 +8,21 @@
 
 // R2-47（2026-10-20）：出勤率统一走服务层的两个显式语义（按应到 / 按已录），页面不再自己相除；
 //   R2-14：配色档位同源 attendanceRateTone（良好线 90 + 制度提示线 lowRateHint）。
-import { loadActiveAttendanceRecords, absenceReasonLabel, createAttendanceAppeal, summarizePersonAttendanceByRoster, summarizeAttendanceByActivity, attendanceRateTone } from '../../../services/activity/attendance.js?v=20261024d';
-import { getOrganizedActivities } from '../../../services/activity/activity.js?v=20261024d';
-import { loadMakeupTasks, saveMakeupTasks } from '../../../services/activity/makeup.js?v=20261024d';
-import { AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../../core/domain/domain.js?v=20261024d';
-import { POLICY_DEFAULTS, isAttendanceOverdue } from '../../../core/domain/policy-defaults.js?v=20261024d';
-import { AuthStore } from '../../../services/core/auth.js?v=20261024d';
-import { openFormModal } from '../../../components/ui/modal.js?v=20261024d';
-import { showToast, todayLocal } from '../../../core/base/utils.js?v=20261024d';
+import { loadActiveAttendanceRecords, absenceReasonLabel, createAttendanceAppeal, summarizePersonAttendanceByRoster, summarizeAttendanceByActivity, attendanceRateTone } from '../../../services/activity/attendance.js?v=20261025a';
+import { getOrganizedActivities } from '../../../services/activity/activity.js?v=20261025a';
+import { loadMakeupTasks, saveMakeupTasks } from '../../../services/activity/makeup.js?v=20261025a';
+import { AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../../core/domain/domain.js?v=20261025a';
+import { POLICY_DEFAULTS, isAttendanceOverdue } from '../../../core/domain/policy-defaults.js?v=20261025a';
+import { AuthStore } from '../../../services/core/auth.js?v=20261025a';
+import { openFormModal } from '../../../components/ui/modal.js?v=20261025a';
+import { showToast, todayLocal } from '../../../core/base/utils.js?v=20261025a';
 // 活动「已归档」口径单一源（2026-09-13 收敛）：替代手写 !a.archived
-import { isActivityArchived } from '../../../core/domain/constants.js?v=20261024d';
+import { isActivityArchived } from '../../../core/domain/constants.js?v=20261025a';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是活动的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
-import { renderFilteredList, activityKeyword, activityFacets } from '../../../components/ui/list-filter.js?v=20261024d';
+import { renderFilteredList, activityKeyword, activityFacets } from '../../../components/ui/list-filter.js?v=20261025a';
 // 材料页深链 focusActivityId 的通用定位（只滚动 + 闪烁，不另造筛选器）
-import { focusActivityAnchor } from '../../../components/ui/detail-anchor.js?v=20261024d';
-import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261024d';
+import { focusActivityAnchor } from '../../../components/ui/detail-anchor.js?v=20261025a';
+import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261025a';
 
 export function renderContent(ctx) {
   const tc = document.getElementById('visitor-tab-content');
@@ -65,7 +65,7 @@ export function renderContent(ctx) {
   // 挂「由我组织的活动」上传位（实现单一源＝leader/attendance-tab，host 复用；scope=organizer 只投影本人活动）
   const _orgAttHost = document.getElementById('visitor-org-att-host');
   if (_orgAttHost) {
-    import('../leader/attendance-tab.js?v=20261024d').then(m => { if (_orgAttHost.isConnected) m.renderContent(ctx, _orgAttHost, { scope: 'organizer' }); });
+    import('../leader/attendance-tab.js?v=20261025a').then(m => { if (_orgAttHost.isConnected) m.renderContent(ctx, _orgAttHost, { scope: 'organizer' }); });
   }
 
   // SOP-B-15 当事人可见侧（2026-09-20 批次 116 支书定案「支委会 ＋ 当事人本人」）：
@@ -133,11 +133,11 @@ export function renderContent(ctx) {
           <div class="text-xs font-medium ${rateCls}">${rateText}</div>
         </div>
         <div class="flex flex-wrap items-center gap-2 px-3 pb-3">
-          <button type="button" class="btn-neutral visitor-att-detail-btn text-xs px-2.5 py-1" data-act-id="${act.id}" style="cursor:pointer;">查看个人明细</button>
+          <button type="button" class="btn-neutral visitor-att-detail-btn text-xs px-2.5 py-1" data-act-id="${act.id}" aria-expanded="false" aria-controls="visitor-att-detail-${act.id}" style="cursor:pointer;">查看个人明细</button>
           ${myMakeup ? `<button type="button" class="btn-accent-soft visitor-att-makeup-btn text-xs px-2.5 py-1" data-act-id="${act.id}" style="cursor:pointer;">${myMakeup.proofContent ? '修改补课说明' : '去补课 · 提交补课说明'}</button>` : ''}
           ${(!myRecord || myRecord.status === AttendanceStatus.ABSENT) ? `<button type="button" class="btn-accent-soft visitor-att-appeal-btn text-xs px-2.5 py-1" data-act-id="${act.id}" style="cursor:pointer;">我参加了但没记上</button>` : ''}
         </div>
-        <div class="visitor-att-detail hidden px-3 pb-3 pt-1 border-t border-gray-50" data-att-detail="${act.id}">
+        <div id="visitor-att-detail-${act.id}" class="visitor-att-detail px-3 pb-3 pt-1 border-t border-gray-50" data-att-detail="${act.id}" hidden>
           <div class="text-[12px] text-gray-600 space-y-0.5">
             <div>我的出勤：${myRecord ? `<span class="font-medium text-gray-800">${ATTENDANCE_STATUS_LABELS[myRecord.status] || myRecord.status}</span>${myRecord.status === AttendanceStatus.ABSENT || myRecord.status === AttendanceStatus.LEAVE ? `（${myOverdue ? '已超期' : '待补'}）` : ''}` : '<span class="text-gray-500">无你的出勤记录</span>'}</div>
             ${myRecord && myRecord.absenceReason ? `<div>未到标因：${absenceReasonLabel(myRecord.absenceReason)}</div>` : ''}
@@ -166,14 +166,16 @@ export function renderContent(ctx) {
   }
 
   // 查看个人明细（行内展开/收起）——事件委托：引擎筛选会重渲染行
+  // 2026-10-25 Task 3：状态由 `aria-expanded` + `hidden` 属性表达（不再用 `.hidden` 类）。
   listEl.addEventListener('click', (e) => {
     const btn = e.target.closest('.visitor-att-detail-btn');
     if (!btn) return;
     const detail = listEl.querySelector(`.visitor-att-detail[data-att-detail="${btn.dataset.actId}"]`);
     if (!detail) return;
-    const collapsed = detail.classList.contains('hidden');
-    detail.classList.toggle('hidden', !collapsed);
-    btn.textContent = collapsed ? '收起明细' : '查看个人明细';
+    const willOpen = detail.hidden;
+    detail.hidden = !willOpen;
+    btn.setAttribute('aria-expanded', String(willOpen));
+    btn.textContent = willOpen ? '收起明细' : '查看个人明细';
   });
 
   // 去补课 / 提交补课说明（仅本人待补课任务出现；提交写入 task.proofContent）

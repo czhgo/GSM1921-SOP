@@ -100,13 +100,22 @@ test('D2 首页「完整日历」每台解析后的目标页签都命中该台�
   }
 });
 
-test('D3 「完整日历」落各台真实日历页签', () => {
+test('D3 「完整日历」落各台真实落点（2026-10-25 IA 62→45 改准）', () => {
   for (const page of SIX_BRANCH_PAGES) {
-    const expected = page === 'visitor' ? 'activities' : 'calendar';
+    // 支书台仍为活动管理；org/prop/disc/leader 的活动日历页签已降为工作概况页内折叠卡；成员台为活动动态。
+    const expected = page === 'visitor' ? 'activities' : (page === 'secretary' ? 'calendar' : 'overview');
     assert.equal(
       targetTabFor(calendarLink, page),
       expected,
       `「完整日历」在 ${page} 台应落 ${expected}`,
+    );
+  }
+  // 降级四台必须带页内落点参数（section=calendar），否则只会落在工作概况顶部、看不见日历卡。
+  for (const page of ['org', 'prop', 'disc', 'leader']) {
+    assert.equal(
+      calendarLink.attrs[`section-${page}`],
+      'calendar',
+      `${page} 台「完整日历」须带 data-ws-section-${page}="calendar"`,
     );
   }
   // 成员台无独立日历页签：activities + subview=calendar（日历视图）
@@ -165,19 +174,23 @@ test('D4 工作组「查看全部」按活动 / 专班两类分别落到真实�
         `${role} 专班工作组落到不存在的 tab="${taskforceTab}"（${pageKey}）`);
     }
   }
-  // 抽样：成员台活动→activities、支书→calendar；组织台专班→taskforce；宣传→kanban；
-  //       纪检/组长→详情页覆盖；党委两台均→branches
+  // 抽样（2026-10-25 IA 62→45 改准）：成员台活动→activities、支书→calendar；组织台专班→taskforce；
+  //   宣传→kanban；纪检/组长→详情页覆盖；党委两台均→branches。
   assert.equal(ACTIVITY_TAB.participant, 'activities');
   assert.equal(ACTIVITY_TAB.secretary, 'calendar');
   assert.equal(ACTIVITY_TAB['party-staff'], 'branches', '党委台活动工作组应落支部管理');
   assert.equal(TASKFORCE_TAB['org-commissioner'], 'taskforce');
-  for (const role of ['secretary', 'participant']) {
-    assert.equal(TASKFORCE_TAB[role], 'tf-view', `${role} 专班工作组应落 tf-view`);
-  }
+  // 支书「知情查看」页签已并入全局概况页内卡；成员「专班动态」已并入项目分工「专班」区。
+  assert.equal(TASKFORCE_TAB.secretary, 'overview', '支书专班工作组应落工作概况（页内知情卡）');
+  assert.equal(TASKFORCE_TAB.participant, 'projects', '成员专班工作组应落项目分工「专班」区');
   assert.equal(TASKFORCE_TAB['prop-commissioner'], 'kanban', '宣传专班工作组应落项目看板');
   assert.equal(TASKFORCE_TAB['party-staff'], 'branches', '党委台应落支部管理');
   assert.deepEqual(Object.keys(TASKFORCE_HREF).sort(), ['disc-commissioner', 'leader'],
     '只有纪检/组长需要 taskforce.html 覆盖');
+  // 页内落点：activity 在降级四台带 section=calendar；taskforce 在支书/成员带 section。
+  const src = readFileSync(TASKFORCE_LIST, 'utf8');
+  assert.match(src, /const ACTIVITY_SECTION = \{/, '缺活动日历页内落点映射');
+  assert.match(src, /const TASKFORCE_SECTION = \{/, '缺专班页内落点映射');
 });
 
 test('D5 不再出现不存在的 tab=activities / tab=taskforce', () => {

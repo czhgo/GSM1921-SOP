@@ -24,7 +24,7 @@ import { join, dirname, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
   activityTypeTone, activityTypeBadgeVariant, activityTypeClassification,
-} from '../../docs/src/core/domain/constants.js?v=20261024d';
+} from '../../docs/src/core/domain/constants.js?v=20261025a';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(HERE, '..', '..');
@@ -63,11 +63,7 @@ const CATEGORY_LITERAL_RE = /badgeHtml\(([^\n]*\btype\b[^\n]*),\s*['"](neutral|i
  * ⚠ 只登记、不鼓励：新增任何一条都会让「命中集 ≠ 白名单」而红。
  */
 const CATEGORY_EXCEPTIONS = [
-  {
-    file: 'docs/src/entries/tabs/secretary/calendar-tab.js',
-    snippet: "badgeHtml(a.type || '活动', 'neutral')",
-    reason: '支书台活动查询结果行仍是中性灰类别标签（历史写法）；本批可改面仅 server/test，登记为待迁移项',
-  },
+  // 2026-10-25 IA 62→45：支书台「活动查询」结果行已删（查询并入日历工具栏）⇒ 该白名单条目僵尸化，按规则删除。
   {
     file: 'docs/src/entries/tabs/prop/kanban-tab.js',
     snippet: "badgeHtml(item.type, 'info')",

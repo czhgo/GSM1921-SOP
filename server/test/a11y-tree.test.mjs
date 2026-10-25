@@ -11,7 +11,7 @@
 //   A4 成员台「项目分工」三子视图按钮：AX 中 `pressed` 属性存在。
 //   A5 项目分工空态出口：无命中检索 → 空态出现；AX 中存在「去看我的分工」/「浏览全局分工」
 //      的 button/link 节点，且可聚焦（DOM tabIndex ≥ 0 / 原生按钮）。
-//   A6 纪检台「考勤管理」→「录入会议考勤」：AX 中存在 role=combobox、name 含「会议活动」的节点。
+//   A6 纪检台「考勤管理」→「录入会议考勤」：AX 中存在 role=combobox、name 含「会议 / 活动」的节点。
 //
 // ⚠ A5 的口径说明（与页面实现同源，不是放宽）：检索引擎 `list-filter.js` 按单一源
 //   `SEARCH_FILTER_MIN_ROWS=8` 决定是否渲染搜索框——当前种子成员（2400012349）「我的任务」为 **0 条**、
@@ -307,7 +307,7 @@ test('A5 项目分工空态出口：检索无命中后 AX 存在可聚焦的「�
 });
 
 // A6：纪检台会议考勤录入的 combobox
-test('A6 纪检台会议考勤：AX role=combobox、name 含「会议活动」', async (t) => {
+test('A6 纪检台会议考勤：AX role=combobox、name 含「会议 / 活动」', async (t) => {
   const page = await browser.newPage();
   try {
     await openWorkspace(page, '2400012354', 'disc');
@@ -331,9 +331,9 @@ test('A6 纪检台会议考勤：AX role=combobox、name 含「会议活动」',
     }
 
     const nodes = await axSnapshot(page);
-    const combo = nodes.find((node) => node.role === 'combobox' && node.name.includes('会议活动'));
+    const combo = nodes.find((node) => node.role === 'combobox' && node.name.includes('会议 / 活动'));
     assert.ok(combo,
-      'AX 中找不到 role=combobox、name 含「会议活动」的节点（读屏无法识别会议活动下拉）；'
+      'AX 中找不到 role=combobox、name 含「会议 / 活动」的节点（读屏无法识别会议 / 活动下拉）；'
       + `实际 combobox=${JSON.stringify(nodes.filter((n) => n.role === 'combobox').map((n) => n.name))}`);
     console.log('[AX] 会议活动下拉:', JSON.stringify({ role: combo.role, name: combo.name, properties: combo.properties }));
   } finally {

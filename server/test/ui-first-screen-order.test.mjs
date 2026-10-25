@@ -79,7 +79,8 @@ test('F4 待办首屏：折叠条默认展开露 2 条待答复；未读通知�
   assert.match(inbox, /embeddedLimit\s*=\s*2/, 'embedded 模式默认限制 2 条待答复');
   assert.match(inbox, /sorted\.slice\(0, limit\)|rows\.slice\(0, payload\.limit\)/, 'embedded 模式只渲染前 limit 条');
   assert.match(inbox, /查看全部待答复/, '其余待答复经「查看全部待答复」展开');
-  const detailsStart = src.indexOf('<details class="todo-strip card');
+  // 2026-10-25 Task 3：卡片类移到外层容器，`<details>` 只保留 `.todo-strip`（标题已移出 summary）
+  const detailsStart = src.indexOf('<details class="todo-strip"');
   const detailsEnd = src.indexOf('</details>', detailsStart);
   const stripBody = src.slice(detailsStart, detailsEnd);
   assert.ok(stripBody.includes('${extraHtml}') && stripBody.includes('${unreadHtml}'),

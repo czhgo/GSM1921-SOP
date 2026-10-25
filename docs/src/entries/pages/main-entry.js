@@ -4,27 +4,27 @@
 // 各区块渲染已拆至 components/dashboard/：stats（统计卡+考勤弹窗）/ activity-panel（活动日历+列表）/ taskforce-list / gallery。
 // 本文件仅保留：bootstrap、工作台链接修正、renderUI 调度、renderDashboard 组装+导航委托、数据变更即时刷新。
 
-import { BranchService } from '../../services/core/runtime.js?v=20261024d';
-import { STATE, setState, registerRenderCallback, getAppState } from '../../core/base/state.js?v=20261024d';
-import { NoticeStore } from '../../services/governance/notice.js?v=20261024d';
+import { BranchService } from '../../services/core/runtime.js?v=20261025a';
+import { STATE, setState, registerRenderCallback, getAppState } from '../../core/base/state.js?v=20261025a';
+import { NoticeStore } from '../../services/governance/notice.js?v=20261025a';
 // 视图层独立：renderNoticeList 属「通知视图层」（G1 第③项服务层不产 UI，2026-09-28 迁出）
-import { renderNoticeList } from '../../components/governance/notice-view.js?v=20261024d';
-import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261024d';
-import { getBasePath } from '../../core/base/utils.js?v=20261024d';
-import { loadAttendanceRecords, loadActiveAttendanceRecords } from '../../services/activity/attendance.js?v=20261024d';
-import { loadActivities } from '../../services/activity/activity.js?v=20261024d';
-import { CrossPageState } from '../../core/session/cross-page-state.js?v=20261024d';
-import { bootstrapPage } from '../../core/boot/bootstrap.js?v=20261024d';
-import { AuthStore } from '../../services/core/auth.js?v=20261024d';
-import { getHeaderTitle } from '../../services/branch/branch.js?v=20261024d';
-import { loadWorkspaceData } from '../../data/data-loader.js?v=20261024d';
-import { DATA_CHANGED_EVENT, probeRemoteChanges } from '../../data/data-adapter.js?v=20261024d';
-import '../../capabilities/activity-calendar.js?v=20261024d'; // 副作用导入：注册首页活动日历能力
+import { renderNoticeList } from '../../components/governance/notice-view.js?v=20261025a';
+import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261025a';
+import { getBasePath } from '../../core/base/utils.js?v=20261025a';
+import { loadAttendanceRecords, loadActiveAttendanceRecords } from '../../services/activity/attendance.js?v=20261025a';
+import { loadActivities } from '../../services/activity/activity.js?v=20261025a';
+import { CrossPageState } from '../../core/session/cross-page-state.js?v=20261025a';
+import { bootstrapPage } from '../../core/boot/bootstrap.js?v=20261025a';
+import { AuthStore } from '../../services/core/auth.js?v=20261025a';
+import { getHeaderTitle } from '../../services/branch/branch.js?v=20261025a';
+import { loadWorkspaceData } from '../../data/data-loader.js?v=20261025a';
+import { DATA_CHANGED_EVENT, probeRemoteChanges } from '../../data/data-adapter.js?v=20261025a';
+import '../../capabilities/activity-calendar.js?v=20261025a'; // 副作用导入：注册首页活动日历能力
 // ── 方案 B 入口拆分：dashboard 区块渲染模块 ──
-import { renderDashboardStats } from '../../components/dashboard/stats.js?v=20261024d';
-import { renderActivityList, renderActivityCalendar, initActivityTabs, getInitialActivityView } from '../../components/dashboard/activity-panel.js?v=20261024d';
-import { renderWorkgroupProgress } from '../../components/dashboard/taskforce-list.js?v=20261024d';
-import { renderGallery } from '../../components/dashboard/gallery.js?v=20261024d';
+import { renderDashboardStats } from '../../components/dashboard/stats.js?v=20261025a';
+import { renderActivityList, renderActivityCalendar, initActivityTabs, getInitialActivityView } from '../../components/dashboard/activity-panel.js?v=20261025a';
+import { renderWorkgroupProgress } from '../../components/dashboard/taskforce-list.js?v=20261025a';
+import { renderGallery } from '../../components/dashboard/gallery.js?v=20261025a';
 
 // ── 时序修复（2026-09-10「归属显示不一致」；正确先例 settings-entry.js:1236-1244）──
 // header 品牌标题经 getHeaderTitle 读 mockDB.branches，必须先完成 BranchService.loadDB()
@@ -73,7 +73,11 @@ if (user) {
     const view = a.dataset.wsView && tab === 'activities'
       ? `&subview=${encodeURIComponent(a.dataset.wsView)}`
       : '';
-    a.href = tab ? `${wsBase}?tab=${encodeURIComponent(tab)}${view}` : wsBase;
+    // 2026-10-25 IA 62→45：页内落点（旧「活动日历」页签在 org/prop/disc/leader 已降为工作概况折叠卡）
+    //   ——`data-ws-section-<page>` 覆盖 `data-ws-section`，拼成 `?tab=overview&section=calendar`。
+    const section = a.dataset[`wsSection${pageSuffix}`] || a.dataset.wsSection || '';
+    const sectionParam = section ? `&section=${encodeURIComponent(section)}` : '';
+    a.href = tab ? `${wsBase}?tab=${encodeURIComponent(tab)}${view}${sectionParam}` : wsBase;
   });
 } else {
   // C09：未登录入口保留 next（当前页），登录后回到原页而不是笼统进工作台。
@@ -170,14 +174,8 @@ function renderDashboard(state) {
     }
   });
 
-  // 活动风采卡：整卡可点，键盘 Enter / Space 与鼠标等效。
-  dashContainer.addEventListener('keydown', (e) => {
-    if (e.key !== 'Enter' && e.key !== ' ' && e.key !== 'Spacebar') return;
-    const item = e.target.closest('[data-gallery-activity-id][role="button"]');
-    if (!item) return;
-    e.preventDefault();
-    item.click();
-  });
+  // 活动风采卡（2026-10-25 Task 3）：标题改为原生链接（H3 > A），键盘 Enter 由浏览器承担；
+  // 原 div[role=button] + keydown 补救已删除（标题不再进入交互元素）。
 }
 
 // T223 修复：活动 tab 在模块初始化即绑定（tab 按钮为静态 HTML），

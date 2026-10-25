@@ -33,27 +33,27 @@
 // 制度口径（各情景「本位＝谁」与 2 处折叠说明）已搬入 `docs/help.html` 定点（`#card-copy-assign-*`），
 //   界面只留一行 + 深链（DESIGN_SYSTEM §4.18 C7：制度原文不进界面）。
 
-import { showToast, getBasePath, escHtml as esc } from '../../../core/base/utils.js?v=20261024d';
-import { AuthStore } from '../../../services/core/auth.js?v=20261024d';
+import { showToast, getBasePath, escHtml as esc } from '../../../core/base/utils.js?v=20261025a';
+import { AuthStore } from '../../../services/core/auth.js?v=20261025a';
 // 成员档案读链（2026-09-03 数据域接线收口）：一律经 services/member/person.js（原直连 mock PEOPLE 已收口）
-import { getPersonById, getPersonName } from '../../../services/member/person.js?v=20261024d';
+import { getPersonById, getPersonName } from '../../../services/member/person.js?v=20261025a';
 // 党小组常态清单唯一来源（活组、按 seq 升序；新增/改名/解散后随渲染即时可见）——禁再手写组名数组
-import { groupOptions } from '../../../services/member/party-group.js?v=20261024d';
-import { TaskForceRecordStore } from '../../../services/activity/taskforce.js?v=20261024d';
-import { PersonPicker } from '../../../components/governance/pickers.js?v=20261024d';
+import { groupOptions } from '../../../services/member/party-group.js?v=20261025a';
+import { TaskForceRecordStore } from '../../../services/activity/taskforce.js?v=20261025a';
+import { PersonPicker } from '../../../components/governance/pickers.js?v=20261025a';
 // 本位 nudge 单一源（2026-09-27：赋权三情景各自本位不同——非本位操作人写库前弹确认）
-import { confirmNudge } from '../../../components/ui/modal.js?v=20261024d';
-import { DEFAULT_BRANCH_ID, ROLE_LABELS, PROJECT_ROLES, BRANCH_COMMISSIONER_ASSIGNABLE_ROLES } from '../../../core/domain/constants.js?v=20261024d';
+import { confirmNudge } from '../../../components/ui/modal.js?v=20261025a';
+import { DEFAULT_BRANCH_ID, ROLE_LABELS, PROJECT_ROLES, BRANCH_COMMISSIONER_ASSIGNABLE_ROLES } from '../../../core/domain/constants.js?v=20261025a';
 // 2026-09-23 支书裁定（情景①）：支委身份配置写口单一源 = services/branch/appointment.js
 //（本 tab 只做表单/列表渲染，不直接改 mockDB；白名单与写门判据同源 core/domain/constants.js）
-import { appointBranchCommissioner, revokeBranchCommissioner, listBranchCommissioners } from '../../../services/branch/appointment.js?v=20261024d';
+import { appointBranchCommissioner, revokeBranchCommissioner, listBranchCommissioners } from '../../../services/branch/appointment.js?v=20261025a';
 // R1-A 点⑤（2026-09-09）：强调色渲染统一 person-aware 动态解析（替代模块级 resolveAccentRole 快照）
-import { getAppliedAccentColors } from '../../../core/boot/theme.js?v=20261024d';
-import { loadActivities } from '../../../services/activity/activity.js?v=20261024d';
-import { badgeHtml } from '../../../components/ui/badges.js?v=20261024d';
-import { TodoStore } from '../../../services/governance/todo.js?v=20261024d';
+import { getAppliedAccentColors } from '../../../core/boot/theme.js?v=20261025a';
+import { loadActivities } from '../../../services/activity/activity.js?v=20261025a';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20261025a';
+import { TodoStore } from '../../../services/governance/todo.js?v=20261025a';
 // 统一检索引擎（2026-09-13 表格统一化批次 A）：赋权记录列表（第一列是人）接入关键词 + 分面
-import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261024d';
+import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261025a';
 
 // 生效强调色 hex（R1-A 点⑤：登录人强调色=person 键覆盖，禁止模块加载期快照写死——
 // 一律渲染时经 getAppliedAccentColors 动态解析，改色后随重渲染/刷新生效，与 --app-accent 同源）
@@ -102,7 +102,7 @@ const GROUP_LEADER_IDENTITIES = [
 /** 情景①b 分块（支委身份配置）——落点＝支书台「支委会」tab 的**机构构成段**（2026-09-27 支书裁定
  *  「支委配置归支委会」，由「党小组与活动」迁入；宿主由 committee-meeting-tab.js 提供）。**卡壳由落点提供**
  *  （宿主 `#cm-commissioner-host` 所在的机构构成卡自带卡壳，故本块只出卡内容，不另包纯包裹 div——
- *  同 `#cal-activity-auth-host` 既有形态）。 */
+ *  同 `#cm-commissioner-host` 既有形态（宿主卡片由落点提供））。 */
 const COMMISSIONER_ASSIGN_HTML = `
     <h4 class="font-title-cn text-sm font-bold text-gray-700 mb-1">支委身份配置（组织 / 宣传 / 纪检委员）</h4>
     <div id="bc-assign-area"></div>`;

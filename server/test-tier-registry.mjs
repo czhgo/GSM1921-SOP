@@ -68,8 +68,16 @@ export const DAILY_FILE_BUDGET = 228;
  *    筛选语义 / 私信线程，4 条）＋ notice-message 增补 N5（kindOf / isArchivedFor，1 条）⇒ 1500 → 1505。
  *  2026-10-25 同 spec · Task 6.1（批次 510 · SD-34）：state-enum-guard 增补 G7–G9（页签状态单一源 /
  *    派生器导出与五态 / 消息种类单一源，3 条）＋ docs-governance-guard 增补 G9–G10（一 tab 一 H2 /
- *    卡头单一源，2 条）＋ mock-api-parity-structure 增补 S3（mock 不得含派生字段，1 条）⇒ 1505 → 1511。 */
-export const DAILY_TEST_BUDGET = 1511;
+ *    卡头单一源，2 条）＋ mock-api-parity-structure 增补 S3（mock 不得含派生字段，1 条）⇒ 1505 → 1511。
+ *  2026-10-25 同 spec · Task 3（组件契约）：ui-control-system-guard 增补 T3-1…T3-3
+ *    （交互元素内无标题 / 折叠可静态回读 / 同文件只用一种折叠原语，3 条）⇒ 1511 → 1514。
+ *  2026-10-25 同 spec · Task 2（术语对照 Harness）：docs-governance-guard 增补 H-T1…H-T5
+ *    （并列组层级 / 页签名覆盖段集合 / 结构性标签登记 / 废弃写法零残留 / 术语单一源，5 条；
+ *     均带非空转下限与故障注入说明）⇒ 1514 → 1519。
+ *  2026-10-25 同 spec · Task 4（同屏纵向一致）：ui-control-system-guard 增补 T4-1
+ *    （同一文件只允许一种折叠头实现：renderDisclosure ↔ 手写 details/summary，1 条；
+ *     带非空转下限与逐条理由豁免）⇒ 1519 → 1520。 */
+export const DAILY_TEST_BUDGET = 1521;
 
 const group = (tier, reason, list) => list.map((file) => ({ file, tier, reason }));
 

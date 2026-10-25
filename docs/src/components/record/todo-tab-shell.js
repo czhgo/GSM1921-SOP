@@ -19,23 +19,36 @@
 // 视觉沿用 card/rounded 既有体系（四档列表渲染在 components/record/todo-list.js renderUrgencyTodoList）。
 // 设计权威源：content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md §六 M6（共性抽象净减）
 
-import { TodoStore, urgeRolesOf, WORK_DOMAIN, WORK_DOMAIN_LABELS, realtimeGroupDomainOf, buildModuleCycleRemindGroup } from '../../services/governance/todo.js?v=20261024d';
+import { TodoStore, urgeRolesOf, WORK_DOMAIN, WORK_DOMAIN_LABELS, realtimeGroupDomainOf, buildModuleCycleRemindGroup } from '../../services/governance/todo.js?v=20261025a';
 // S3②（2026-09-12）：未读通知计数单一来源——与顶栏角标/首页同源（NoticeStore activeOnly+read 过滤），
 // 不再用「通知类待办」现算（口径不同致三处不一致）。
-import { NoticeStore, NOTICE_MODULE_ROLE_PAGES } from '../../services/governance/notice.js?v=20261024d';
-import { buildUrgencySections, renderUrgencyTodoList } from './todo-list.js?v=20261024d';
-import { badgeHtml } from '../ui/badges.js?v=20261024d';
-import { showToast, escHtml, todayLocal, flashHighlight } from '../../core/base/utils.js?v=20261024d';
-import { ROLE_LABELS, BRANCH_COMMISSION_ROLES } from '../../core/domain/constants.js?v=20261024d';
-import { openModal, closeModal } from '../ui/modal.js?v=20261024d';
-import { AuthStore } from '../../services/core/auth.js?v=20261024d';
-import { mockDB } from '../../core/domain/domain.js?v=20261024d';
-import { tokenOf } from '../../core/base/version-token.js?v=20261024d'; // P0 域写版本戳（spec §二.4）
-import { resolveDocumentUrl } from '../../core/base/page-url.js?v=20261024d';
-import { memoizeRender } from '../ui/memoize-render.js?v=20261024d'; // P2 渲染守卫（spec §四.1）
-import { renderTabHeader } from '../shell/page-frame.js?v=20261024d'; // 页题单一源（H2）
+import { NoticeStore, NOTICE_MODULE_ROLE_PAGES } from '../../services/governance/notice.js?v=20261025a';
+import { buildUrgencySections, renderUrgencyTodoList } from './todo-list.js?v=20261025a';
+import { badgeHtml } from '../ui/badges.js?v=20261025a';
+import { showToast, escHtml, todayLocal, flashHighlight } from '../../core/base/utils.js?v=20261025a';
+import { ROLE_LABELS, BRANCH_COMMISSION_ROLES } from '../../core/domain/constants.js?v=20261025a';
+import { openModal, closeModal } from '../ui/modal.js?v=20261025a';
+import { AuthStore } from '../../services/core/auth.js?v=20261025a';
+import { mockDB } from '../../core/domain/domain.js?v=20261025a';
+import { tokenOf } from '../../core/base/version-token.js?v=20261025a'; // P0 域写版本戳（spec §二.4）
+import { resolveDocumentUrl } from '../../core/base/page-url.js?v=20261025a';
+import { memoizeRender } from '../ui/memoize-render.js?v=20261025a'; // P2 渲染守卫（spec §四.1）
+import { renderTabHeader } from '../shell/page-frame.js?v=20261025a'; // 页题单一源（H2）
 // 模块周期提醒（`R-29⑤` · `D-804`）：分工快照取法与 `components/governance/workforce-duty-card.js` 同口径
-import { getBranchIdOfPerson, getBranchWorkforce } from '../../services/branch/branch.js?v=20261024d';
+import { getBranchIdOfPerson, getBranchWorkforce } from '../../services/branch/branch.js?v=20261025a';
+
+// ── 「我经办的反馈」区（2026-10-25 IA 62→45 · spec Task 5）──────────────
+// 五台原「我的处置」页签已删（与待办同属「我的待处理」，只是对象为反馈）⇒ 并入本页成一段。
+// 实现单一源＝`components/feedback/issue-dispatch-view.js`（embedded 形态：不渲染第二张页头 H2，
+// 列表 / 详情 / 评论 / 提交处置结果一字未改，不复制第二套）。
+// 旧深链 `?tab=my-dispatch` 由工作台壳落 `todo&filter=dispatch`（本区据此滚到视野）。
+const DISPATCH_SECTION_BY_ROLE = {
+  'org-commissioner': { roleKey: 'org-commissioner', opts: {} },
+  'prop-commissioner': { roleKey: 'prop-commissioner', opts: {} },
+  'disc-commissioner': { roleKey: 'disc-commissioner', opts: {} },
+  leader: { roleKey: 'leader', opts: { myIssuesFirst: true } },
+  visitor: { roleKey: 'participant', opts: { myIssuesFirst: true } },
+};
 
 // ── P0 组合数据复合键（2026-09-07 · spec §二.4）──────────────────
 // 组合点（buildRealtimeGroups + mergeRealtimeDomains + getUnreadNotices）以
@@ -215,6 +228,49 @@ function _urgencySummaryHtml(summary) {
  *        null=该条无催办入口（无责任人或责任人即本人）
  * @param {(group:Object, ctx:Object)=>void} [opts.onUrgeTodo] 催办按钮回调（需与 urgeStateOf 同传）
  */
+/**
+ * 「我经办的反馈」区骨架（2026-10-25 IA 62→45）：仅五台有（支书台用「反馈管理」承载反馈）。
+ * 标题是兄弟节点（不进 `<summary>`/按钮），区内容由 `issue-dispatch-view.js` 渲染。
+ */
+function _dispatchSectionHtml(role) {
+  if (!DISPATCH_SECTION_BY_ROLE[role]) return '';
+  return `<div class="card rounded-xl p-5 mt-4 card--static" id="ws-dispatch-section"
+    data-todo-dispatch="1">
+    <div class="flex items-center justify-between mb-2">
+      <h3 class="font-title-cn text-base font-semibold text-gray-800">我经办的反馈</h3>
+      <span class="text-xs text-gray-500">原「我的处置」已并入本页</span>
+    </div>
+    <p class="text-xs text-gray-500 mb-3">支部派发的汇报与反馈在此处理；处理结果可回看。</p>
+    <div id="ws-dispatch-host"></div>
+  </div>`;
+}
+
+/** 挂载「我经办的反馈」区（实现单一源＝issue-dispatch-view；embedded 不重复页头） */
+function _mountDispatchSection(container, role, ctx) {
+  const cfg = DISPATCH_SECTION_BY_ROLE[role];
+  const host = container?.querySelector('#ws-dispatch-host');
+  if (!cfg || !host) return;
+  const uid = AuthStore.getCurrentUser()?.personId;
+  if (!uid) {
+    host.innerHTML = '<p class="text-xs text-gray-500 text-center py-6">请先登录</p>';
+    return;
+  }
+  import('../feedback/issue-dispatch-view.js?v=20261025a').then((m) => {
+    if (!host.isConnected) return;
+    host.innerHTML = m.renderMyDispatchTab(cfg.roleKey, uid, { ...cfg.opts, embedded: true });
+    m.bindMyDispatchEvents(host, cfg.roleKey, uid, cfg.opts);
+  });
+  // 深链 `?filter=dispatch`（旧 `?tab=my-dispatch`）：滚到本区并闪烁。
+  let filter = ctx?.navTarget?.filter || '';
+  if (!filter) {
+    try { filter = new URLSearchParams(window.location.search).get('filter') || ''; } catch (_) { /* 非浏览器环境 */ }
+  }
+  if (filter === 'dispatch') {
+    container.querySelector('#ws-dispatch-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    flashHighlight(container.querySelector('#ws-dispatch-section'));
+  }
+}
+
 export function createTodoTab(opts) {
   const {
     containerId,
@@ -379,22 +435,25 @@ export function createTodoTab(opts) {
   }
 
   /** 页顶折叠条：默认展开——首屏直接露出前 2 条待答复；未读通知在条内做二级折叠。
-   *  主对象「我的待办」紧随其后，不被全部未读撑高。 */
+   *  主对象「我的待办」紧随其后，不被全部未读撑高。
+   *  Task 3（2026-10-25）：分区标题移出 `summary`（标题不得进入交互元素），
+   *  summary 只用 `aria-labelledby` 关联兄弟 H3；折叠态仍在 `open` 属性上。 */
   function _todoStripHtml(extraHtml, unreadHtml, count) {
     if (!extraHtml && !unreadHtml) return '';
     return `
-      <details class="todo-strip card rounded-xl mb-4 card--static"${_stripOpen ? ' open' : ''}>
-        <summary class="cursor-pointer select-none px-4 py-2">
-          <span class="inline-flex items-center gap-2">
-            <span role="heading" aria-level="3" class="font-title-cn text-sm font-semibold text-gray-800">待答复与未读通知</span>
-            ${count > 0 ? `<span class="state-badge state-badge--neutral tabular-nums text-[13px]">${count}</span>` : ''}
-          </span>
-        </summary>
-        <div class="px-4 pb-3 border-t border-gray-100">
-          ${extraHtml}
-          ${unreadHtml}
-        </div>
-      </details>`;
+      <div class="disclosure-host card rounded-xl mb-4 card--static">
+        <h3 class="font-title-cn text-sm font-semibold text-gray-800 px-4 pt-2 pb-1 inline-flex items-center gap-2" id="todo-strip-title" style="padding-right:calc(var(--row-summary) + var(--space-2));margin:0;">
+          待答复与未读通知
+          ${count > 0 ? `<span class="state-badge state-badge--neutral tabular-nums text-[13px]">${count}</span>` : ''}
+        </h3>
+        <details class="todo-strip" id="todo-strip"${_stripOpen ? ' open' : ''}>
+          <summary class="disclosure__summary" id="todo-strip-toggle" aria-labelledby="todo-strip-title"></summary>
+          <div class="px-4 pb-3">
+            ${extraHtml}
+            ${unreadHtml}
+          </div>
+        </details>
+      </div>`;
   }
 
   /** 窄屏选中待办后把详情卡滚入视野（详情列在 <lg 时 order-first，选中即见详情） */
@@ -575,6 +634,7 @@ export function createTodoTab(opts) {
             </div>
           </div>
         </div>
+        ${_dispatchSectionHtml(role)}
       `;
 
       // 域折组折叠 / 组行选中 / 行动按钮 / 删除
@@ -615,6 +675,9 @@ export function createTodoTab(opts) {
 
       // 角色扩展（handoff / 成员变更面板 / 自定义详情按钮如一键确认·逐项确认/退回 等）
       bindExtras?.(container, ctx, api);
+
+      // 「我经办的反馈」区（2026-10-25 IA 62→45）：五台统一，本页内一段；实现单一源见上。
+      _mountDispatchSection(container, role, ctx);
     };
 
     // 命中（返回 false）→ 整卡保留、异步面板不再重跑（其内容随 renderKey 未变而正确）

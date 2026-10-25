@@ -100,7 +100,8 @@ related_files: [OPERATIONS_GUIDE.md, CLAUDE.md, ARCHITECTURE.md, .ctx/REVIEW_QUE
 
 | 文件 | 受众 | 内容 | 被引用方 |
 |------|------|------|---------|
-| `content/03_doc_system/OPERATIONS_GUIDE.md` | [工程师]+[AI] | **《运行与协作规范》**（§1–§14 文档规范类：权威层级 §1、术语 §2、文档关系 §3、文件角色 §4、YAML §5、编码 §6、排版 §7、有机性 §8、编号 §9、日志 §10、反论 §11、命名 §12、面向用户表述 §13、角色操作 §14 ＋ §15–§18 流程机制类 ＋ §19–§23 使用规范类〔术语/AI 展开/Emoji/决策记录/词典〕 ＋ §24–§31 文件角色分类体系；**2026-09-26 批次 202 四份合一并迁入 `02_institution/ROLE_CLASSIFICATION`**：原 `PROCESS_GUIDE` / `USAGE_POLICY` / `ROLE_CLASSIFICATION` 已并入并删除） | CLAUDE.md（H40/H60/H70/H90 指针）、全仓库 |
+| `content/03_doc_system/OPERATIONS_GUIDE.md` | [工程师]+[AI] | **《运行与协作规范》**（§1–§14 文档规范类：权威层级 §1、术语 §2、文档关系 §3、文件角色 §4、YAML §5、编码 §6、排版 §7、有机性 §8、编号 §9、日志 §10、反论 §11、命名 §12、面向用户表述 §13、角色操作 §14 ＋ §15–§18 流程机制类 ＋ §19–§23 使用规范类〔术语使用规则/AI 展开/Emoji/决策记录/词典〕 ＋ §24–§31 文件角色分类体系；**2026-09-26 批次 202 四份合一并迁入 `02_institution/ROLE_CLASSIFICATION`**：原 `PROCESS_GUIDE` / `USAGE_POLICY` / `ROLE_CLASSIFICATION` 已并入并删除） | CLAUDE.md（H40/H60/H70/H90 指针）、全仓库 |
+| `content/03_doc_system/TERMINOLOGY.md` | [工程师]+[AI] | **术语表（全仓唯一术语定义源）**：首批 18 条的词条 / 定义 / 层级 / 上位下位 / 允许并列集 / 禁用写法 / 权威文档 / 代码键 / 合法别名；`OPERATIONS_GUIDE §19` 与 `sop/INDEX.md` 只留指针 | OPERATIONS_GUIDE.md §2/§19、ARCHITECTURE.md、DESIGN_SYSTEM.md |
 | `content/03_doc_system/DOC_MAP.md` | [工程师]+[AI] | 本文档：全局导航中心 | 所有文件 |
 | `content/03_doc_system/ARCHITECTURE.md` | [工程师]+[AI] | 架构与单一事实源（分层架构、仓库结构、数据模型、变更流水线 + 单一事实源注册表 + 统一服务目录） | README.md（架构图引用） |
 | `content/03_doc_system/工作模板/经验沉淀辅助提示词.md` | [用户]+[AI] | 经验沉淀辅助提示词模板 | content/04_web_design/module/SOP_WEBSITE_GUIDE.md |
@@ -128,6 +129,7 @@ related_files: [OPERATIONS_GUIDE.md, CLAUDE.md, ARCHITECTURE.md, .ctx/REVIEW_QUE
 | `content/04_web_design/evolution/DESIGN_METHODOLOGY.md` | [工程师]+[AI] | 设计理念与方法论承接（设计论证与方法档案：系统/工作台/前端实现方法论与判例、打卡化底线、叙述性人读方法论；2026-09-04 承接自 insights [4] 标签小节，出处注记保留） | DESIGN_SYSTEM.md（论证档案去向）；规范权威源 = DESIGN_SYSTEM / DATA_MODEL / SOP_WEBSITE_GUIDE |
 | `content/04_web_design/evolution/PARTY_COMMITTEE_DESIGN.md` | [工程师]+[AI] | 院系党委后台设计定案（支部多实例两级治理：P1 支部实例+台账 / P2 支书任命 / P3 支部上报+下发；支书逐段批准） | docs/src/capabilities/party-committee-workspace.js |
 | `content/04_web_design/README.md` | [工程师]+[AI] | 网站设计层目录索引 | — |
+| `content/04_web_design/PRODUCT_IA.md` | [工程师]+[AI] | **派生索引**：逐台逐页签的组 / 渲染入口 / 一句话职责 / 主对象 / 主操作 / 新落点（当前 62）；不承担规范、禁止手改 | `docs/src/capabilities/*`、`docs/src/core/domain/function-catalog.js` |
 
 ### 知识类型 5：网站系统的 AI coding 技术方法（content/05_ai_coding/）
 
@@ -267,7 +269,7 @@ insights 单文件膨胀后（10+ 章 / 1000+ 行），按**知识类型**拆分
 | `content/02_institution/` | 支部组织、角色权限、SOP 与制度判例 | 有 | 无 | `SYSTEM_ROLE_PERMISSION.md` / `COMMISSIONER_DUTY_FRAMEWORK.md` / `sop/INDEX.md`；判例 `CASES.md` | 否 |
 | `content/02_institution/sop/` | 各委员与党小组组长的操作流程 | 有 | 无 | `sop/*.md` 本身（母本） | 否 |
 | `content/03_doc_system/` | 文档治理、运行规范、导航与判例总索引 | 有 | 无 | `OPERATIONS_GUIDE.md`（§32 分职与编号）/ `ARCHITECTURE.md` / 本文件 / `CASES_INDEX.md` | 否 |
-| `content/04_web_design/` | 网站设计、数据模型、部署与设计演进 | 有 | 无 | `design-system/DESIGN_SYSTEM.md` / `data/DATA_MODEL.md` / `deploy/DEPLOYMENT_GUIDE.md` | 否 |
+| `content/04_web_design/` | 网站设计、数据模型、部署与设计演进；含派生索引 `PRODUCT_IA.md`（页签功能地图，不承担规范） | 有 | 无 | `design-system/DESIGN_SYSTEM.md` / `data/DATA_MODEL.md` / `deploy/DEPLOYMENT_GUIDE.md` | 否 |
 | `content/04_web_design/design-system/` | 设计系统正文与 design 域判例 | 有 | 无 | `DESIGN_SYSTEM.md`；判例 `CASES.md` | 否 |
 | `content/04_web_design/data/` | 数据模型与数据流 | 有 | 无 | `DATA_MODEL.md` | 否 |
 | `content/04_web_design/deploy/` | 部署路径、认证门控与对外对接 | 有 | 无 | `DEPLOYMENT_GUIDE.md` / `SERVER_DEPLOY_MANUAL.md` | 否 |
@@ -304,4 +306,5 @@ insights 单文件膨胀后（10+ 章 / 1000+ 行），按**知识类型**拆分
 | 规范 ⑤ | [content/05_ai_coding/README.md](../05_ai_coding/README.md) ＋五个分篇 | AI 协作方法（分篇为规范，README 为索引） |
 | 判例库入口 | [CASES_INDEX.md](CASES_INDEX.md) | 全部判例的编号、一句话、所属域、文件链接、对应规范编号 |
 | 索引入口 | 本文件 ＋ 各层 `README.md` | 目录作用、文件一句话、权威源指针 |
+| 派生索引入口 | [PRODUCT_IA.md](../04_web_design/PRODUCT_IA.md) | 页签功能地图（由 `capabilities/*` 与 `function-catalog.js` 派生，**不承担规范、禁止手改**） |
 | 过程记录入口 | [.ctx/logs/EXECUTION_LOG_INDEX.md](../../.ctx/logs/EXECUTION_LOG_INDEX.md) → 月度执行日志；[.ctx/logs/DECISION_LOG.md](../../.ctx/logs/DECISION_LOG.md) → 月度决策日志 | 当时做了什么、什么时候定了什么 |

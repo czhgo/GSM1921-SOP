@@ -13,24 +13,24 @@
 //  （2026-09-21 批次 124：支书 2026-09-20 定案「只给提交人本人」——支委层读他人的汇报时看不到该标记，
 //   组织侧不经手篇幅）；**一律不影响提交与归档**。
 // ════════════════════════════════════════════════════════════════
-import { renderSidebar } from '../../components/shell/sidebar.js?v=20261024d';
-import { renderHeader } from '../../components/shell/header.js?v=20261024d';
-import { BranchService } from '../../services/core/runtime.js?v=20261024d';
-import { AuthStore } from '../../services/core/auth.js?v=20261024d';
+import { renderSidebar } from '../../components/shell/sidebar.js?v=20261025a';
+import { renderHeader } from '../../components/shell/header.js?v=20261025a';
+import { BranchService } from '../../services/core/runtime.js?v=20261025a';
+import { AuthStore } from '../../services/core/auth.js?v=20261025a';
 // D-484（批次 87）：本页必须先 hydrate API 数据源再取数——与 activity / notice 独立页同款标准形。
 // 此前本页只调 BranchService.loadDB()，而该函数在 API 模式直接 return（数据由 data-adapter.init()
 // 从服务器填充）⇒ 本页从未切数据源 / init ⇒ api 形态下退回本地 mock 读（种子打得开、新提交报「不存在」）。
-import { hydrateDataSource, notifyDataLoaded } from '../../data/data-adapter.js?v=20261024d';
-import { ApiAdapter } from '../../data/api-adapter.js?v=20261024d';
-import { getPersonName } from '../../services/member/person.js?v=20261024d';
-import { getBasePath, showToast, escHtml as esc, fmtDt } from '../../core/base/utils.js?v=20261024d';
-import { badgeHtml } from '../../components/ui/badges.js?v=20261024d';
+import { hydrateDataSource, notifyDataLoaded } from '../../data/data-adapter.js?v=20261025a';
+import { ApiAdapter } from '../../data/api-adapter.js?v=20261025a';
+import { getPersonName } from '../../services/member/person.js?v=20261025a';
+import { getBasePath, showToast, escHtml as esc, fmtDt } from '../../core/base/utils.js?v=20261025a';
+import { badgeHtml } from '../../components/ui/badges.js?v=20261025a';
 import {
   loadThoughtReports, listThoughtReportsByPerson, listThoughtReportsByPersonGrouped,
   canReadThoughtReport, canReviewThoughtReport,
   rejectThoughtReport, resubmitThoughtReport,
   wordCountHint, periodLabel, comparePeriodDesc, THOUGHT_REVIEW_STATUS,
-} from '../../services/governance/thought-report.js?v=20261024d';
+} from '../../services/governance/thought-report.js?v=20261025a';
 
 renderSidebar('dashboard');
 renderHeader('dashboard');
@@ -167,8 +167,8 @@ function renderSingleView(rec) {
   if (isReviewer && status !== THOUGHT_REVIEW_STATUS.NEEDS_REVISION) {
     actionHtml = `
       <div class="mt-8 pt-6 border-t border-gray-100">
-        <button type="button" id="tr-reject-toggle" class="btn-accent-soft text-sm px-4 py-2 rounded-lg">打回（要求本人补充）</button>
-        <div id="tr-reject-box" class="hidden mt-3">
+        <button type="button" id="tr-reject-toggle" class="btn-accent-soft text-sm px-4 py-2 rounded-lg" aria-expanded="false" aria-controls="tr-reject-box">打回（要求本人补充）</button>
+        <div id="tr-reject-box" class="mt-3" hidden>
           <textarea id="tr-reject-note" rows="3" class="input-flat w-full resize-none" placeholder="打回意见（必填，提交者可见并可修改重交）"></textarea>
           <div class="flex justify-end mt-2">
             <button type="button" id="tr-reject-confirm" class="btn-accent-soft text-sm px-4 py-2 rounded-lg">确认打回</button>
@@ -178,8 +178,8 @@ function renderSingleView(rec) {
   } else if (isSelf && status === THOUGHT_REVIEW_STATUS.NEEDS_REVISION) {
     actionHtml = `
       <div class="mt-8 pt-6 border-t border-gray-100">
-        <button type="button" id="tr-resubmit-toggle" class="btn-accent-soft text-sm px-4 py-2 rounded-lg">修改并重新提交</button>
-        <div id="tr-resubmit-box" class="hidden mt-3">
+        <button type="button" id="tr-resubmit-toggle" class="btn-accent-soft text-sm px-4 py-2 rounded-lg" aria-expanded="false" aria-controls="tr-resubmit-box">修改并重新提交</button>
+        <div id="tr-resubmit-box" class="mt-3" hidden>
           <textarea id="tr-resubmit-content" rows="8" class="input-flat w-full resize-none" placeholder="请根据退回意见补充完善后重新提交">${esc(rec.content || '')}</textarea>
           <div class="flex items-center justify-between gap-2 mt-2">
             <span id="tr-resubmit-hint" class="text-xs text-gray-500"></span>
@@ -252,9 +252,13 @@ function bindActions(rec) {
   const id = rec.id;
 
   // 组织委员 · 打回（先展开必填意见）——事后反馈，不是提交的门
-  cardEl.querySelector('#tr-reject-toggle')?.addEventListener('click', () => {
+  // 2026-10-25 Task 3：展开态由 `aria-expanded` + `hidden` 属性表达（不再用 `.hidden` 类）。
+  cardEl.querySelector('#tr-reject-toggle')?.addEventListener('click', (e) => {
     const box = cardEl.querySelector('#tr-reject-box');
-    box?.classList.toggle('hidden');
+    if (!box) return;
+    const willOpen = box.hidden;
+    box.hidden = !willOpen;
+    e.currentTarget.setAttribute('aria-expanded', String(willOpen));
   });
   cardEl.querySelector('#tr-reject-confirm')?.addEventListener('click', () => {
     const note = (cardEl.querySelector('#tr-reject-note')?.value || '').trim();
@@ -266,9 +270,11 @@ function bindActions(rec) {
   });
 
   // 本人 · 被打回：修改并重新提交（实时提示，不作拦截；重交即入库归档）
-  cardEl.querySelector('#tr-resubmit-toggle')?.addEventListener('click', () => {
+  cardEl.querySelector('#tr-resubmit-toggle')?.addEventListener('click', (e) => {
     const box = cardEl.querySelector('#tr-resubmit-box');
-    box?.classList.remove('hidden');
+    if (!box) return;
+    box.hidden = false;
+    e.currentTarget.setAttribute('aria-expanded', 'true');
     syncResubmitHint();
   });
   const syncResubmitHint = () => {

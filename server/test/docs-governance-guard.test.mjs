@@ -30,6 +30,16 @@ import {
   NOTE_TOTAL_BUDGET, NOTE_TOTAL_HARD_CEIL, NOTE_LONG_MAX, BATCH_MENTION_MAX, ROWS_MIN,
   OVERLONG_BASELINE, WITH_TID_BASELINE, WITH_DATE_ECHO_BASELINE, WITH_BATCH_MENTION_BASELINE,
 } from './timestamps-note-baseline.mjs';
+import {
+  loadTerminology, makeLabelIndex, TERMINOLOGY_REL, stripComments,
+  extractCapabilityTabs, extractInsightSegments, extractInsightCallers, extractStructuralLabels,
+  definitionSentenceHits,
+} from './terminology-map.mjs';
+import {
+  REASON_CATEGORIES, STRUCTURAL_LABEL_BASELINE, TAB_LABEL_EXEMPTIONS,
+  LEGACY_INSIGHT_CALLERS, DEPRECATED_COPY_BASELINE, DEPRECATED_COPY_EXEMPTIONS,
+  DEFINITION_DUP_EXEMPTIONS,
+} from './terminology-baseline.mjs';
 
 const ROOT = join(import.meta.dirname, '..', '..');
 const TIMESTAMPS = join(ROOT, '.ctx', 'TIMESTAMPS.md');
@@ -870,4 +880,408 @@ test('G10 卡头单一源：page-frame.js 导出 renderCardHeader，函数体含
   assert.match(body, /<h3\b/, 'renderCardHeader 未渲染 H3 卡头（一个 tab 只保留页头 H2，卡内标题必须是 H3）');
   assert.match(body, /card-head__title/,
     'renderCardHeader 未使用 .card-head__title（卡头样式 / 单一源选择器被改坏）');
+});
+
+// ═════════════════════════════════════════════════════════════════════════════
+// 六、术语对照 Harness（2026-10-25 批次 511 · Task 2 · H-T1…H-T5）
+// ═════════════════════════════════════════════════════════════════════════════
+//
+// 为什么把「术语表 ↔ UI ↔ 旧文件」做成机检：全仓只有一份定义源（TERMINOLOGY.md）容易写成孤岛——
+//   术语表说「活动工作组 / 专班工作组」同层，UI 却把「工作组 / 专班 / 其他组」并列；术语表说「项目组」禁用，
+//   旧文案还留在 help / tab / 表头里。四条断言分别钉住四个失效面：
+//     H-T1 并列组层级 —— 同一按钮组里不许混层（协作结构 / 业务对象 / 组织单元）。
+//     H-T2 页签名覆盖 —— 页签名必须覆盖其内部分段的对象；含「活动」段不得只叫「专班动态」。
+//     H-T3 标签登记   —— 新增页签 / 表头 / 筛选项 / 选项必须先命中术语表，否则基线外即红。
+//     H-T4 废弃写法   —— `项目组` / `协作组` / `活动项目赋权` / `专班负责人` / `会议活动` 用户可见文案零残留。
+//     H-T5 关系钉死   —— 术语表 ≥18 条 9 字段齐；§19 与 sop/INDEX 只留指针；不得二次定义。
+//
+// 如何验证（故障注入，改一处→跑本文件→必红→还原）：
+//   · H-T1：把 `insight-view.js` 的 `SEG_LABEL.taskforce` 改成 `'专班'` ⇒ 分段组层级不一致（专班是 business-object）；
+//           或在 `secretary/overview-tab.js` 的 views 里加 `'group'` ⇒ 「未登记分段 / 不同层」。
+//   · H-T2：把 `capabilities/visitor-workspace.js` 的 `label: '项目分工'` 改成 `'专班动态'` ⇒ 「活动段 + 专班页签名」；
+//           或把 `TAB_LABEL_EXEMPTIONS` 里的「项目分工」删掉 ⇒ 上位页面名未登记。
+//   · H-T3：在任一 `capabilities/*` 新增一个 `label: '临时页签'` ⇒ 未命中术语表且不在基线 ⇒ 红；
+//           把某条基线清掉但标签仍在 ⇒ 红（新增）；修好标签但基线未撤 ⇒ 红（僵尸）。
+//   · H-T4：在 `docs/help.html` 写一句「专班负责人」⇒ 用户可见命中即红；
+//           在 `docs/src/**` 注释里写「协作组」⇒ 注释基线新增即红。
+//   · H-T5：把 `TERMINOLOGY.md` 某行的「合法别名」清空 ⇒ 9 字段缺；把 §19.2.1 的指针改回定义表 ⇒ 词条行/定义列判红。
+//
+// 非空转下限（防判据写坏 ⇒ 恒真）：分段 ≥2、可达 views 配置 ≥2、解析页签 ≥40、带分段页签 ≥2、
+//   结构性标签抽取 ≥60（扫描 ≥20 文件）、命中术语 ≥8、H-T4 扫描 ≥100 文件且注释命中 >0、content 定义句扫描 ≥40 文件。
+//
+// 误报边界（如实标注，避免把正常写法判红）：
+//   · H-T1 只判「一级分段按钮组」（insight-view 的 SEG_LABEL + 各台 views）与独立区结构；
+//     **父子嵌套按容器层级判定**——专班详情卡内再写「专班工作组」是小节标题，不进 data-iview 组，不在判据内。
+//     其他页面里的普通按钮组（如专班管理的「专班工作组 / 报名总表」）不在本批范围：它们不是术语并列组。
+//   · H-T2 只判「注册在 capabilities/* 的页签」；已删页签的遗留文件（如 visitor/tf-view-tab.js 的 renderContent）
+//     不注册、不生成页签，不在判据内。页签名仅从源码可识别的分段（views / subTabs）推对象类，不做语义猜测。
+//   · H-T3 跳过 mock / 注释 / 模板变量 / 长句 / 编号；表头字段名、占位文案等普通词登记在基线并写理由。
+//   · H-T4 只判 `docs/src/**` 与 `docs/help.html`；`content/**` 的否定句 / 禁用写法表 / 判例正文按任务豁免。
+//     `赋权` **不在禁用集**：产品文案仍大量使用（赋权链 / 常设赋权），且 TERMINOLOGY 只禁「赋权」替代「授权」这一用法；
+//     本批固定 5 词（含最坏的组合「活动项目赋权」）。
+
+const TERMS = loadTerminology(ROOT);
+const LABEL_INDEX = makeLabelIndex(TERMS);
+const SEGMENTS = extractInsightSegments(ROOT);
+
+/**
+ * 同一按钮组 / 表头 / 筛选行的层级与并列集判据（纯函数，H-T1 用它与正负例自检）。
+ * @returns {string[]} 问题串；空数组＝同层且在某一词条的允许并列集内
+ */
+function peerGroupProblems(labels, index) {
+  const out = [];
+  const entries = labels.map((label) => ({ label, entry: index.get(label) }));
+  for (const x of entries) {
+    if (!x.entry) out.push(`「${x.label}」未在 ${TERMINOLOGY_REL} 登记（无法判断层级，按不同层处理）`);
+  }
+  if (out.length) return out;
+  const layers = new Set(entries.map((x) => x.entry.layer));
+  if (layers.size > 1) {
+    out.push(`同一组标签层级不一致：${entries.map((x) => `${x.label}(${x.entry.layer})`).join(' / ')}`);
+  }
+  const legal = entries.some((x) => x.entry.peers
+    .some((g) => g.length === labels.length && labels.every((l) => g.includes(l))));
+  if (!legal) {
+    out.push(`「${labels.join(' + ')}」不是任何词条的「允许并列集」` +
+      `（合法例：{活动工作组, 专班工作组}；判红例：{工作组, 专班}、{工作组, 其他组}）`);
+  }
+  return out;
+}
+
+// ── H-T1 并列组层级一致 ────────────────────────────────────────────────────
+test('H-T1 并列组层级一致：分段同层 + 合法并列集 + 「其他党小组」独立区 + 各台 views 同判', () => {
+  // ① 分段标签与分段类型必须同源（SEG_LABEL 的键 ≡ SEG_TYPES）
+  assert.deepEqual(Object.keys(SEGMENTS.labels), SEGMENTS.types,
+    `${SEGMENTS.rel}：SEG_LABEL 的键与 SEG_TYPES 不一致——按钮集合与标签映射被拆成两份`);
+
+  // ② 一级分段：同层 + 合法并列集
+  const segLabels = SEGMENTS.types.map((t) => SEGMENTS.labels[t]);
+  assert.deepEqual(peerGroupProblems(segLabels, LABEL_INDEX), [],
+    `一级分段组「${segLabels.join(' + ')}」层级 / 并列集不合法（SD-37：只放同层对象）`);
+
+  // ③ 纯判据正负例：防「判据写反 ⇒ 恒真」
+  assert.deepEqual(peerGroupProblems(['活动工作组', '专班工作组'], LABEL_INDEX), [],
+    '合法组 {活动工作组, 专班工作组} 被误判红');
+  assert.ok(peerGroupProblems(['工作组', '专班'], LABEL_INDEX).length > 0,
+    '「工作组 + 专班」必须判红（协作结构 ≠ 业务对象）');
+  assert.ok(peerGroupProblems(['活动工作组', '其他党小组'], LABEL_INDEX).length > 0,
+    '「工作组 + 其他组」必须判红（组织单元不得与协作结构同排）');
+
+  // ④ 组织单元不得进入 data-iview 组；「其他党小组」必须是独立 section
+  assert.ok(!SEGMENTS.types.some((t) => /^(group|other|party-group)/.test(t)),
+    `分段类型里出现组织单元（${SEGMENTS.types.join(' / ')}）——其他党小组必须独立成区`);
+  const insightRel = SEGMENTS.rel;
+  const insightSrc = stripComments(read(join(ROOT, insightRel)));
+  assert.ok(!/data-iview="(?:group|other|party-group)"/.test(insightSrc),
+    `${insightRel} 的 data-iview 组里出现组织单元（group/other）——组织单元不得与工作组同排`);
+  const segGroup = /role="group" aria-label="工作组对象切换"[\s\S]{0,400}?<\/div>/.exec(insightSrc)?.[0] || '';
+  assert.ok(segGroup.length > 0,
+    `${insightRel} 找不到 aria-label="工作组对象切换" 的按钮组（分段按钮的容器单一源被改坏）`);
+  assert.ok(!/其他党小组/.test(segGroup),
+    `${insightRel}：「其他党小组」出现在一级分段按钮组内——必须独立成 section（groupSection）`);
+  assert.ok(/id="insight-group-section"/.test(insightSrc),
+    `${insightRel} 缺独立区 #insight-group-section（其他党小组的落点）`);
+  assert.ok(insightSrc.indexOf('id="insight-group-section"') > insightSrc.indexOf('aria-label="工作组对象切换"'),
+    `${insightRel}：独立区渲染在分段组之前——读屏顺序会把组织单元读成一级对象`);
+
+  // ⑤ 各台 `views` 配置：可达文件必须只含同层对象；遗留死文件只许在登记表里
+  const callers = extractInsightCallers(ROOT);
+  const reachable = callers.filter((c) => c.reachable);
+  const legacy = callers.filter((c) => !c.reachable).map((c) => c.rel).sort();
+  assert.ok(reachable.length >= 2,
+    `可达的 insight-view 调用方只有 ${reachable.length} 个（下限 2）：可达性解析被写坏，各台 views 会漏判`);
+  assert.ok(LEGACY_INSIGHT_CALLERS.length > 0, '遗留调用方登记表为空：不可达文件将无人看管');
+  assert.deepEqual(legacy, LEGACY_INSIGHT_CALLERS.map((e) => e.rel).sort(),
+    `不可达的 insight-view 调用方与登记表不符（新增死文件须登记理由；被重新 import 的文件会回到判红范围）：${legacy.join(' / ')}`);
+
+  const problems = [];
+  let viewsChecked = 0;
+  for (const c of reachable) {
+    if (!c.views.length) continue;
+    viewsChecked++;
+    const unknown = c.views.filter((id) => !SEGMENTS.labels[id]);
+    if (unknown.length) {
+      problems.push(`${c.rel}：views 含未在 SEG_LABEL 登记的分段 ${unknown.map((x) => `'${x}'`).join(' / ')}` +
+        `——组织单元 / 其他组一律不得进分段集合`);
+      continue;
+    }
+    const labels = c.views.map((id) => SEGMENTS.labels[id]);
+    problems.push(...peerGroupProblems(labels, LABEL_INDEX).map((p) => `${c.rel}：${p}`));
+  }
+  assert.deepEqual(problems, [], `各台知情查看分段配置不合法：\n  ${problems.join('\n  ')}`);
+
+  // 非空转：分段 ≥2、可达 views 配置 ≥2（防抽取面被写坏）
+  assert.ok(SEGMENTS.types.length >= 2, `分段只剩 ${SEGMENTS.types.length} 个（下限 2）`);
+  assert.ok(viewsChecked >= 2, `只检查到 ${viewsChecked} 个可达的 views 配置（下限 2）`);
+});
+
+// ── H-T2 页签名覆盖段集合 ──────────────────────────────────────────────────
+test('H-T2 页签名覆盖段集合：含「活动」段的页签不得叫「专班动态」；上位页面名逐条豁免', () => {
+  const tabs = extractCapabilityTabs(ROOT);
+  assert.ok(tabs.length >= 40,
+    `只解析到 ${tabs.length} 个页签声明（下限 40：当前 IA 45）：capabilities 声明格式被改坏，本条会变恒真`);
+  const exempt = new Map(TAB_LABEL_EXEMPTIONS.map((e) => [e.label, e]));
+  assert.equal(exempt.size, TAB_LABEL_EXEMPTIONS.length, 'TAB_LABEL_EXEMPTIONS 有重复 label');
+  const headerTitleRe = /renderTabHeader\s*\(\s*\{[\s\S]{0,400}?\btitle\s*:\s*'([^']+)'/g;
+  const problems = [];
+  const checked = [];
+  const titles = [];
+
+  for (const tab of tabs) {
+    // 页签名本身就不许再用废弃页签名（与内部分段无关，直接判）
+    if (/专班动态|专班查看/.test(tab.label)) {
+      problems.push(`${tab.file}：页签「${tab.id}」的 label 仍是废弃页签名「${tab.label}」` +
+        `——含工作组分段的页签不得只叫「专班动态」（对象集合被页签名缩窄）`);
+    }
+    if (!tab.renderRel || !existsSync(join(ROOT, tab.renderRel))) continue;
+    const src = stripComments(read(join(ROOT, tab.renderRel)));
+
+    // 内部分段的「对象类」：insight-view views + subTabs 里命中术语表的标签
+    const classes = [];
+    const viewsBlock = /views\s*:\s*\[([^\]]*)\]/.exec(src)?.[1] || '';
+    for (const m of viewsBlock.matchAll(/'([^']+)'/g)) {
+      if (SEGMENTS.labels[m[1]]) classes.push(SEGMENTS.labels[m[1]]);
+    }
+    const subTabs = /const\s+subTabs\s*=\s*\[([\s\S]*?)\]/.exec(src)?.[1] || '';
+    for (const m of subTabs.matchAll(/label\s*:\s*'([^']+)'/g)) {
+      if (LABEL_INDEX.has(m[1])) classes.push(m[1]);
+    }
+
+    for (const m of src.matchAll(headerTitleRe)) titles.push({ tab, title: m[1] });
+
+    const uniqueClasses = [...new Set(classes)];
+    if (!uniqueClasses.length) continue;
+    checked.push({ tab, classes: uniqueClasses });
+
+    // 规则①：含「活动」对象类时，页签名不得只落在「专班」——这是 spec 的判红样例
+    const narrowed = /专班/.test(tab.label) && uniqueClasses.some((c) => /^活动/.test(c));
+    // 规则②：页签名必须覆盖内部对象类（合称「项目」/ 上位「工作组」可覆盖；否则须进豁免表）
+    const own = LABEL_INDEX.get(tab.label);
+    const covers = Boolean(own) && (own.term === '项目' || uniqueClasses.every((c) => {
+      const e = LABEL_INDEX.get(c);
+      return e && (e.term === own.term || e.updown.includes(`上位＝${own.term}`));
+    }));
+    if (narrowed) {
+      problems.push(`${tab.file}：页签「${tab.label}」只写了「专班」，内部却有活动对象（${uniqueClasses.join(' / ')}）` +
+        `——页签名必须覆盖段集合（改叫上位名，或把活动段移出本页）`);
+    } else if (!covers && !exempt.has(tab.label)) {
+      problems.push(`${tab.file}：页签「${tab.label}」不是术语表词条，内部对象类为（${uniqueClasses.join(' / ')}）` +
+        `——若它是上位页面名，请在 TAB_LABEL_EXEMPTIONS 写理由；否则按对象改名`);
+    }
+  }
+
+  // renderTabHeader({title}) 同样受约束（页头是用户看到的第一层级名）
+  for (const { tab, title } of titles) {
+    if (!/专班动态|专班查看/.test(title)) continue;
+    problems.push(`${tab.renderRel}：renderTabHeader({title:'${title}'}) 仍是废弃页签名——页头必须覆盖内部分段对象`);
+  }
+
+  assert.ok(checked.length >= 2,
+    `只有 ${checked.length} 个页签能从内部源码看出对象类（下限 2：全局概况 / 项目分工）：抽取面被写坏，本条会变恒真`);
+  assert.ok(titles.length >= 20,
+    `只扫到 ${titles.length} 个 renderTabHeader 标题（下限 20）：页头判据的扫描面被写坏`);
+  assert.ok(TAB_LABEL_EXEMPTIONS.length > 0 && TAB_LABEL_EXEMPTIONS.length <= 3,
+    `上位页面名豁免 ${TAB_LABEL_EXEMPTIONS.length} 条（应为 1–3 条且逐条给理由）：豁免表只许收窄，不许变成垃圾桶`);
+  const zombies = TAB_LABEL_EXEMPTIONS
+    .filter((e) => !checked.some((c) => c.tab.label === e.label)).map((e) => e.label);
+  assert.deepEqual(zombies, [],
+    `TAB_LABEL_EXEMPTIONS 里有已不再承载分段 / 已改名的页签（僵尸豁免，请删除）：${zombies.join(' / ')}`);
+  assert.deepEqual(problems, [], `页签名与内部分段不匹配：\n  ${problems.join('\n  ')}`);
+});
+
+// ── H-T3 结构性标签登记 ────────────────────────────────────────────────────
+test('H-T3 结构性标签登记：未命中术语表 / 合法别名且不在基线 ⇒ 红（基线只降不升）', () => {
+  const { items, scannedFiles } = extractStructuralLabels(ROOT, SEGMENTS);
+  assert.ok(scannedFiles >= 20,
+    `只扫描到 ${scannedFiles} 个源码文件（下限 20）：抽取面被写坏，未命中项会漏报`);
+  assert.ok(items.length >= 60,
+    `只抽取到 ${items.length} 个结构性标签（下限 60：当前 200+）：页签 / 表头 / 筛选 / 选项的抽取正则被改坏`);
+
+  const matched = items.filter((i) => LABEL_INDEX.has(i.label));
+  assert.ok(matched.length >= 8,
+    `命中术语表的结构性标签只有 ${matched.length} 处（下限 8）：术语表或抽取口径被改坏，未命中清单会失真`);
+
+  const unknown = [...new Set(items.filter((i) => !LABEL_INDEX.has(i.label)).map((i) => i.label))];
+  assert.ok(unknown.length > 0,
+    '未命中术语表的标签为 0：要么全部登记完了（那请清空基线并说明），要么抽取面被改坏');
+
+  const base = new Map();
+  for (const e of STRUCTURAL_LABEL_BASELINE) {
+    assert.ok(!base.has(e.label), `STRUCTURAL_LABEL_BASELINE 重复登记「${e.label}」`);
+    const [cat, ...rest] = String(e.reason).split('：');
+    assert.ok(REASON_CATEGORIES.includes(cat),
+      `「${e.label}」的理由分类「${cat}」不在允许集合（${REASON_CATEGORIES.join(' / ')}）`);
+    assert.ok(rest.join('：').trim().length >= 3,
+      `「${e.label}」只写了分类，没有理由（基线条目必须说明「它是什么」）`);
+    base.set(e.label, e);
+  }
+  assert.ok(base.size > 0, 'STRUCTURAL_LABEL_BASELINE 为空：首轮存量必须收基线（非空转下限）');
+
+  const added = unknown.filter((l) => !base.has(l)).sort();
+  const zombie = [...base.keys()].filter((l) => !unknown.includes(l)).sort();
+  assert.deepEqual([...added, ...zombie], [], [
+    `结构性标签与基线不相等（未命中术语表且未登记）：`,
+    added.length ? `  ◀ 新增未登记 ${added.length} 个（先查术语表；确属普通字段名才允许登记并写理由）：\n    ${added.join('\n    ')}` : '',
+    zombie.length ? `  ▶ 已登记但不再出现 ${zombie.length} 个（标签已改 / 已删，请从基线撤下）：\n    ${zombie.join('\n    ')}` : '',
+  ].filter(Boolean).join('\n'));
+  assert.deepEqual([...unknown].sort(), [...base.keys()].sort(),
+    `未命中集合与基线集合不等（${unknown.length} vs ${base.size}）——见上一条诊断`);
+  console.log(`[H-T3] 结构性标签 ${items.length} 处 · 命中术语表 ${matched.length} 处 · 未命中 ${unknown.length} 个（已基线）· 扫描 ${scannedFiles} 文件`);
+});
+
+// ── H-T4 废弃写法零残留 ────────────────────────────────────────────────────
+const DEPRECATED_TERMS = ['项目组', '协作组', '活动项目赋权', '专班负责人', '会议活动'];
+
+test('H-T4 废弃写法零残留：docs/src/** 与 help.html 的用户可见文案命中即红（注释存量见基线）', () => {
+  const files = [];
+  (function walkAll(dir) {
+    for (const n of readdirSync(dir)) {
+      const f = join(dir, n);
+      if (statSync(f).isDirectory()) { walkAll(f); continue; }
+      if (/\.(?:js|mjs|html)$/.test(n)) files.push(f);
+    }
+  })(join(ROOT, 'docs', 'src'));
+  files.push(join(ROOT, 'docs', 'help.html'));
+  assert.ok(files.length >= 100,
+    `只扫描到 ${files.length} 个产品文件（下限 100）：扫描面被写坏，H-T4 会变成恒真`);
+
+  const visible = [];
+  const comments = [];
+  for (const abs of files) {
+    const raw = read(abs);
+    const clean = stripComments(raw);
+    const rel = relative(ROOT, abs).replace(/\\/g, '/');
+    for (const term of DEPRECATED_TERMS) {
+      if (clean.includes(term)) visible.push({ rel, term });
+      else if (raw.includes(term)) comments.push({ rel, term });
+    }
+  }
+  // 非空转：注释命中必须存在（证明「去注释后对照原文」这条口径真的在跑）
+  assert.ok(comments.length > 0,
+    '可见文案与注释都没有命中：要么 5 个禁用词真的清零（请同步删空基线），要么抽取口径被写坏');
+
+  const exempt = new Set(DEPRECATED_COPY_EXEMPTIONS.map((e) => `${e.file}|${e.term}`));
+  const badVisible = visible.filter((v) => !exempt.has(`${v.rel}|${v.term}`));
+  assert.deepEqual(badVisible.map((v) => `${v.rel} · ${v.term}`), [],
+    `用户可见文案仍有废弃写法（改文案，不要加豁免）：\n  ${badVisible.map((v) => `${v.rel} · ${v.term}`).join('\n  ')}`);
+
+  const base = new Map();
+  for (const e of DEPRECATED_COPY_BASELINE) {
+    const key = `${e.file}|${e.term}`;
+    assert.ok(!base.has(key), `DEPRECATED_COPY_BASELINE 重复登记 ${key}`);
+    assert.match(e.deadline, /^\d{4}-\d{2}-\d{2}$/, `${key} 的 deadline 不是日期（基线必须注明期限）`);
+    assert.ok(e.deadline >= '2026-10-25', `${key} 的期限 ${e.deadline} 早于立基线日（期限不得倒挂）`);
+    assert.ok(String(e.reason).trim().length >= 8, `${key} 缺理由（说明为什么本批不能修）`);
+    base.set(key, e);
+  }
+  const hitKeys = comments.map((c) => `${c.rel}|${c.term}`).sort();
+  const added = hitKeys.filter((k) => !base.has(k));
+  const zombie = [...base.keys()].filter((k) => !comments.some((c) => `${c.rel}|${c.term}` === k));
+  assert.deepEqual([...added, ...zombie], [], [
+    '内部注释的废弃写法与基线不相等：',
+    added.length ? `  ◀ 新增 ${added.length} 处（内部注释也不许再写废弃词）：\n    ${added.join('\n    ')}` : '',
+    zombie.length ? `  ▶ 已修好但基线未撤 ${zombie.length} 处（请从 DEPRECATED_COPY_BASELINE 删除）：\n    ${zombie.join('\n    ')}` : '',
+  ].filter(Boolean).join('\n'));
+  assert.deepEqual(hitKeys, [...base.keys()].sort(),
+    `注释命中集与基线集合不等（${hitKeys.length} vs ${base.size}）——见上一条诊断`);
+
+  const zombieEx = DEPRECATED_COPY_EXEMPTIONS.filter(
+    (e) => !visible.some((v) => v.rel === e.file && v.term === e.term));
+  assert.deepEqual(zombieEx.map((e) => `${e.file} · ${e.term}`), [],
+    'DEPRECATED_COPY_EXEMPTIONS 里有已不再命中的条目（僵尸豁免，请删除）');
+});
+
+// ── H-T5 关系钉死（术语唯一源 / 旧文件只留指针 / 不得二次定义）────────────────
+/** 正则转义（词条名进 new RegExp） */
+function escReTerm(s) { return String(s).replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+
+test('H-T5 术语单一源：TERMINOLOGY ≥18 条 9 字段齐；§19 与 sop/INDEX 只留指针；不得二次定义', () => {
+  const termFile = join(ROOT, TERMINOLOGY_REL);
+  assert.ok(existsSync(termFile), `术语表不存在：${TERMINOLOGY_REL}（全仓唯一术语定义源）`);
+  assert.ok(TERMS.length >= 18, `术语表只有 ${TERMS.length} 条（下限 18）：首批词条被删减`);
+
+  const problems = [];
+  for (const e of TERMS) {
+    const fields = {
+      词条: e.term,
+      定义: e.definition,
+      层级: e.layer,
+      上位下位: e.updown,
+      允许并列集: e.peersRaw,
+      禁用写法: e.forbidden,
+      权威文档: e.authority,
+      代码键: e.codeKey,
+      合法别名: e.aliasesRaw,
+    };
+    for (const [k, v] of Object.entries(fields)) {
+      if (!String(v || '').trim()) problems.push(`「${e.term}」缺字段「${k}」`);
+    }
+    if (!/[:：]\s*\d+|\.(?:md|js)(?::|`|$)|`[^`]+`/.test(e.authority)) {
+      problems.push(`「${e.term}」的权威文档「${e.authority}」不是「文件:行号」/「文件」/ 代码标识符格式`);
+    }
+  }
+  assert.deepEqual(problems, [], `术语表字段不齐：\n  ${problems.join('\n  ')}`);
+
+  // ① OPERATIONS_GUIDE §19 只留指针：无「定义」列表头、无词条行
+  const guide = read(join(ROOT, 'content', '03_doc_system', 'OPERATIONS_GUIDE.md'));
+  const gStart = guide.indexOf('\n## 19.');
+  const gEnd = guide.indexOf('\n## 20.', gStart);
+  assert.ok(gStart >= 0 && gEnd > gStart, '找不到 OPERATIONS_GUIDE §19 / §20 的边界：章节被改名或合并');
+  const sec19 = guide.slice(gStart, gEnd);
+  assert.ok(sec19.includes('TERMINOLOGY.md'), 'OPERATIONS_GUIDE §19 未指向 TERMINOLOGY.md（指针丢失）');
+  // 边界：§19.4/§19.5/§19.6 的「定义」列分别是文件角色 / T 层级 / 表达分类，不是词条定义；
+  //   判据只认「词条 + 定义」同表（词条定义表的表头特征），避免把无关表格误报成第二份术语表。
+  assert.ok(!/\|\s*词条\s*\|[^\n]*\|\s*定义\s*\|/.test(sec19),
+    'OPERATIONS_GUIDE §19 出现「词条 | 定义」表格——应只留指针，不许二次定义');
+  const termRows = TERMS
+    .filter((e) => new RegExp(`^\\|\\s*${escReTerm(e.term)}\\s*\\|`, 'm').test(sec19))
+    .map((e) => e.term);
+  assert.deepEqual(termRows, [],
+    `OPERATIONS_GUIDE §19 出现词条定义行（${termRows.join(' / ')}）——定义只许留在 TERMINOLOGY.md`);
+
+  // ② sop/INDEX.md 术语段只留指针
+  const index = read(join(ROOT, 'content', '02_institution', 'sop', 'INDEX.md'));
+  const iStart = index.indexOf('\n## 术语');
+  assert.ok(iStart >= 0, 'sop/INDEX.md 缺「## 术语」段');
+  const iEnd = index.indexOf('\n---', iStart);
+  const secIndex = index.slice(iStart, iEnd > iStart ? iEnd : undefined);
+  assert.ok(secIndex.includes('TERMINOLOGY.md'), 'sop/INDEX.md 术语段未指向 TERMINOLOGY.md（指针丢失）');
+  assert.ok(!/^\|/m.test(secIndex), 'sop/INDEX.md 术语段出现表格——应只留指针，不许二次定义');
+
+  // ③ 同一词条不得在其它 content 文件出现「定义句」
+  const contentDir = join(ROOT, 'content');
+  const mdFiles = [];
+  (function walk(dir) {
+    for (const n of readdirSync(dir)) {
+      const f = join(dir, n);
+      if (statSync(f).isDirectory()) { walk(f); continue; }
+      if (!n.endsWith('.md')) continue;
+      const rel = relative(ROOT, f).replace(/\\/g, '/');
+      if (rel === TERMINOLOGY_REL) continue;
+      mdFiles.push(rel);
+    }
+  })(contentDir);
+  assert.ok(mdFiles.length >= 40,
+    `只扫描到 ${mdFiles.length} 份 content/**/*.md（下限 40）：扫描面被写坏，重复定义判据会变恒真`);
+
+  const termNames = TERMS.map((e) => e.term);
+  const dupHits = [];
+  for (const rel of mdFiles) {
+    for (const h of definitionSentenceHits(read(join(ROOT, rel)), termNames)) {
+      if (!DEFINITION_DUP_EXEMPTIONS.some((x) => x.file === rel && x.term === h.term)) {
+        dupHits.push(`${rel} · «${h.term}»：${h.text.trim()}`);
+      }
+    }
+  }
+  assert.deepEqual(dupHits, [], `出现第二份定义句（定义只许留在 ${TERMINOLOGY_REL}）：\n  ${dupHits.join('\n  ')}`);
+
+  // ④ 判据自检（防启发式写死成恒真 / 恒假）
+  assert.equal(definitionSentenceHits('工作组是指活动 / 专班之上的协作结构。', ['工作组']).length, 1,
+    '「词条 + 是指」必须被识别为定义句');
+  assert.equal(definitionSentenceHits('活动，指有明确时间与地点的一次性业务记录。', ['活动']).length, 1,
+    '「词条，指…」必须被识别为定义句');
+  assert.equal(definitionSentenceHits('党小组组长负责本组。', ['党小组']).length, 0,
+    '「党小组组长」不是定义句（复合词不得误报）');
+  assert.equal(definitionSentenceHits('专班的负责人先移交。', ['专班']).length, 0,
+    '「专班的负责人」不是定义句（不得因「指」以外字面误报）');
 });

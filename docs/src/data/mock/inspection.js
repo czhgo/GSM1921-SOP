@@ -9,7 +9,7 @@
 // 本文件退化为纯考察种子数据仓。
 // 2026-09-06 基线刷新：recordedAt 随关联活动/专班时间轴同步平移（活动新日期见 activities.js 头注）；
 //   注释中旧人名同步（与 people.js 一致）。
-import { ParticipationLevel, SourceType } from '../../core/domain/domain.js?v=20261024d';
+import { ParticipationLevel, SourceType } from '../../core/domain/domain.js?v=20261025a';
 
 // Task 2.6（2026-10-25）：补「确认动作」事实（不写 status），让纪检台历史队列不再全是 pending。
 // 规则确定性、与 indexing 绑定：recordedAt 序号 `index % 5 ∈ {1,2,3}` 的约 60% 记录有确认动作；

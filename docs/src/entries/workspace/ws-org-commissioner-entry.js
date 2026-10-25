@@ -2,19 +2,19 @@
 // ws-org-commissioner-entry.js — 组织委员工作台入口（T-279 M3 拆分；T-304 代码减负 2026-08-30：骨架并入 workspace-shell）
 // 入口职责：壳配置（注册表 tab 清单 + 导航落点 + 数据加载），角色特有逻辑仅保留。
 
-import { getAppState, setState } from '../../core/base/state.js?v=20261024d';
-import { createWorkspaceShell } from '../../components/shell/workspace-shell.js?v=20261024d';
-import { flashHighlight } from '../../core/base/utils.js?v=20261024d';
-import { loadActivities } from '../../services/activity/activity.js?v=20261024d';
-import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261024d';
-import { SignupStore } from '../../services/activity/signup.js?v=20261024d';
-import { seedTodos } from '../../services/governance/todo.js?v=20261024d';
-import { solidAccentStyle } from '../../core/domain/constants.js?v=20261024d';
-import { AuthStore } from '../../services/core/auth.js?v=20261024d';
-import { getBranchIdOfPerson, getBranchCapabilityPackageState } from '../../services/branch/branch.js?v=20261024d';
-import { openRecruitForm } from '../tabs/org/taskforce-tab.js?v=20261024d';
+import { getAppState, setState } from '../../core/base/state.js?v=20261025a';
+import { createWorkspaceShell } from '../../components/shell/workspace-shell.js?v=20261025a';
+import { flashHighlight } from '../../core/base/utils.js?v=20261025a';
+import { loadActivities } from '../../services/activity/activity.js?v=20261025a';
+import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261025a';
+import { SignupStore } from '../../services/activity/signup.js?v=20261025a';
+import { seedTodos } from '../../services/governance/todo.js?v=20261025a';
+import { solidAccentStyle } from '../../core/domain/constants.js?v=20261025a';
+import { AuthStore } from '../../services/core/auth.js?v=20261025a';
+import { getBranchIdOfPerson, getBranchCapabilityPackageState } from '../../services/branch/branch.js?v=20261025a';
+import { openRecruitForm } from '../tabs/org/taskforce-tab.js?v=20261025a';
 // 副作用导入触发组织委员工作台能力注册（tab 清单；含 立项⑥B波 成员名册 tab）
-import '../../capabilities/org-workspace.js?v=20261024d';
+import '../../capabilities/org-workspace.js?v=20261025a';
 
 await createWorkspaceShell({
   accentRole: 'org-commissioner',
@@ -54,20 +54,17 @@ await createWorkspaceShell({
   // ── 首页跳转落点（支书 2026-08-08 裁定：activityId / view=activities / taskforceId 必须消费）──
   onNavTarget: (nav, state, shell) => {
     if (nav.actId || nav.view) {
-      // 活动深链改落「活动日历」（批次 366 登记的后续项 · 2026-10-05 批次 387 落地）：
-      //   「活动日历」＝活动的**通用承载面**（六台单一源 `entries/tabs/shared/activity-calendar-tab.js`）；
-      //   「知情查看」只承载该角色的**赋权下游**（组织委员当前＝专班）——不再为活动**临时并入** `activity` 段
-      //   （A04：知情查看 tf-view 已撤页，活动深链更不应在专班页临时并入 activity 段）
-      //   定位做法：把月份切到该活动所在月（否则旧月活动不在当前视图、高亮落空——同 2026-08-08 那条修复），
-      //   高亮锚点＝日历条目 `.cal-activity-item[data-act-id]`（由壳的定位轮询 `scrollIntoView` ＋ 闪烁）。
-      shell.activate('calendar');
+      // 2026-10-25 IA 62→45：「活动日历」页签已降为**工作概况页内折叠卡** ⇒ 深链落 overview 并展开该卡。
+      //   定位做法不变：把月份切到该活动所在月 + 高亮 `.cal-activity-item[data-act-id]`（壳的定位轮询）。
+      shell.activate('overview');
+      setTimeout(() => document.dispatchEvent(new CustomEvent('ws:open-calendar')), 300);
       if (nav.actId) {
         shell.setHighlight(nav.actId, `[data-act-id="${nav.actId}"]`);
         const act = (state.activities || []).find(a => a.id === nav.actId);
         setState({ displayMonth: act?.date?.slice(0, 7) || undefined, selectedActivityId: nav.actId });
-        return { tabId: 'calendar', highlightId: nav.actId };
+        return { tabId: 'overview', highlightId: nav.actId };
       }
-      return { tabId: 'calendar' };
+      return { tabId: 'overview' };
     }
     if (nav.tfId) {
       // 专班定位：轮询直至卡片出现再展开详情+高亮（B1-5）

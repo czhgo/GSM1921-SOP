@@ -285,7 +285,7 @@ for (const w of WORKS) {
       }
       await page.waitForTimeout(800);
       // P0-2 形态断言（2026-09-23 支书裁定「形态必须可断言、不许静默降级」）：本文件真机用例必须在 API 形态下跑
-      await page.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20261024d')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
+      await page.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20261025a')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
 
       // ── 1440 页签条不溢出（2026-10-21 R5-C01）──
       //   判据：`.ws-tab-scroll` 的 scrollWidth ≤ clientWidth（分组胶囊改竖线 + 滚动区右留 40px 后，
@@ -494,12 +494,11 @@ test('S20 tab 快速切换竞态：冷上下文连点全部 tab，内容不得�
   }
 });
 
-// S21（2026-10-05 批次 387）：**组织台活动深链落点**——`?activityId=` / `?view=activities` 必须落
-//   「活动日历」并定位（批次 366 登记的后续项）。原实现落「知情查看」并把 `activity` 段**临时并入**兜底
-//   （`org/tf-view-tab.js` 头注）；「活动日历」才是活动的通用承载面（六台单一源）。
-//   判据＝① 活动 tab 名 == 「活动日历」；② 日历骨架在位；③ 目标活动条目在月历里（**且月份切到该活动所在月**，
-//   否则旧月活动不在当前视图、高亮落空）。
-test('S21 组织台活动深链：?activityId / ?view=activities 落「活动日历」并定位', async () => {
+// S21（2026-10-05 批次 387；2026-10-25 IA 62→45 改准）：**组织台活动深链落点**——`?activityId=` / `?view=activities`
+//   必须落「工作概况」并**展开页内活动日历折叠卡**后定位（原「活动日历」页签已降为折叠卡）。
+//   判据＝① 活动 tab 名 == 「工作概况」；② 日历骨架在位且折叠卡已展开；③ 目标活动条目在月历里
+//   （**且月份切到该活动所在月**，否则旧月活动不在当前视图、高亮落空）。
+test('S21 组织台活动深链：?activityId / ?view=activities 落「工作概况」并展开日历卡定位', async () => {
   const w = WORKS[1]; // 组织委员台
   const page = await browser.newPage();
   const errs = [];
@@ -526,7 +525,7 @@ test('S21 组织台活动深链：?activityId / ?view=activities 落「活动日
     await page.waitForTimeout(800);
     // 取一个真实活动（优先「非当前月」者，顺带验证切月）
     const acts = await page.evaluate(async () => {
-      const m = await import('/src/core/base/state.js?v=20261024d');
+      const m = await import('/src/core/base/state.js?v=20261025a');
       return ((m.getAppState() || {}).activities || []).map((x) => ({ id: x.id, date: x.date }));
     });
     assert.ok(acts.length > 0, '组织台活动深链用例：未取到任何活动（样本不足）');
@@ -536,8 +535,9 @@ test('S21 组织台活动深链：?activityId / ?view=activities 落「活动日
     await page.goto(`${base}/workspace/${w.page}.html?activityId=${encodeURIComponent(act.id)}`, { waitUntil: 'domcontentloaded' });
     await tabReady();
     await page.waitForTimeout(2000);
-    assert.equal(await activeLabel(), '活动日历', '?activityId= 应落「活动日历」（原落「知情查看」）');
+    assert.equal(await activeLabel(), '工作概况', '?activityId= 应落「工作概况」（活动日历页签已降为页内卡）');
     assert.ok(await page.evaluate(() => !!document.querySelector('#cal-main-grid')), '活动日历骨架未渲染');
+    assert.ok(await page.evaluate(() => !!document.querySelector('#ov-calendar-card[open]')), '活动日历折叠卡未展开（深链丢落点）');
     const cnt = await page.evaluate((id) => document.querySelectorAll(`.cal-activity-item[data-act-id="${id}"]`).length, act.id);
     assert.ok(cnt >= 1, `定位失败：月历里找不到目标活动条目（${act.id}）——月份未切到该活动所在月？`);
     if (String(act.date || '').slice(0, 7) !== cur) {
@@ -548,7 +548,7 @@ test('S21 组织台活动深链：?activityId / ?view=activities 落「活动日
     await page.goto(`${base}/workspace/${w.page}.html?view=activities`, { waitUntil: 'domcontentloaded' });
     await tabReady();
     await page.waitForTimeout(1500);
-    assert.equal(await activeLabel(), '活动日历', '?view=activities 应落「活动日历」');
+    assert.equal(await activeLabel(), '工作概况', '?view=activities 应落「工作概况」（活动日历页签已降为页内卡）');
     assert.ok(await page.evaluate(() => !!document.querySelector('#cal-main-grid')), '?view=activities：活动日历骨架未渲染');
     assert.deepEqual(errs, [], `组织台活动深链出现脚本错误：\n${errs.join('\n')}`);
   } finally {
@@ -560,8 +560,8 @@ test('S21 组织台活动深链：?activityId / ?view=activities 落「活动日
 //    那 P1/P2/P3 就是**恒真**（查了个寂寞）。故断言普查确实覆盖到「本该分页」的样本。
 //    ⚠ 依赖顶层 test 串行执行（本仓 `npm test` 固定 `--test-concurrency=1`）。
 test('S1 普查非空转：确实覆盖到「本该分页的列表 / 矩阵人维 / 手写表格」样本', () => {
-  // 当前基线：62 个角色页签（2026-10-20 IA 修复批次后实测；单一源＝各台能力注册）。
-  const TAB_BASELINE = 62;
+  // 当前基线：45 个角色页签（2026-10-25 IA 62→45 后实测；单一源＝各台能力注册）。
+  const TAB_BASELINE = 45;
   console.log(`[普查覆盖] tab=${SWEEP.tabs} 引擎列表=${SWEEP.lists}（其中总数>10 的 ${SWEEP.listsOverPage}）矩阵=${SWEEP.matrices} 手写表格=${SWEEP.tables}`);
   // 总数由注册表现算（逐台实测累积），而不是散落的历史门槛：
   const registeredTabs = Object.values(SWEEP.byPage).reduce((sum, n) => sum + n, 0);

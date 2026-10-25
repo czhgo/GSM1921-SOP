@@ -16,25 +16,25 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261024d';
+import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261025a';
 import {
   MockAdapter,
-} from '../../docs/src/data/mock-adapter.js?v=20261024d';
+} from '../../docs/src/data/mock-adapter.js?v=20261025a';
 import {
   PersonStore, getPersonName, MEMBER_OVERLAY_KEY,
-} from '../../docs/src/services/member/person.js?v=20261024d';
+} from '../../docs/src/services/member/person.js?v=20261025a';
 import {
   getResidenceOf, saveResidenceChange, getDetainedMembers, RESIDENCE_KEY,
-} from '../../docs/src/services/member/roster.js?v=20261024d';
+} from '../../docs/src/services/member/roster.js?v=20261025a';
 // Q-21-3（2026-09-13）：在册状态枚举单一源 = core/domain/constants.js（原经 roster.js 转出）
-import { RESIDENCE } from '../../docs/src/core/domain/constants.js?v=20261024d';
+import { RESIDENCE } from '../../docs/src/core/domain/constants.js?v=20261025a';
 import {
   submitMemberChange, submitTransferOut, listPendingConfirmations,
   decideConfirmation, isTransferredOut, shouldShowSemesterDetainedRemind,
   MEMBER_CONFIRM_KEY, loadStageEntryDates,
-} from '../../docs/src/services/member/member-confirmation.js?v=20261024d';
-import { buildDevelopNodeRemindGroup } from '../../docs/src/services/governance/todo.js?v=20261024d';
-import { setDataSource } from '../../docs/src/data/data-adapter.js?v=20261024d';
+} from '../../docs/src/services/member/member-confirmation.js?v=20261025a';
+import { buildDevelopNodeRemindGroup } from '../../docs/src/services/governance/todo.js?v=20261025a';
+import { setDataSource } from '../../docs/src/data/data-adapter.js?v=20261025a';
 // R-26③（2026-10-05 批次 388）：测试的「今天 / 相对日」与生产同口径＝**本地**（服务端单一源）
 import { today as todayLocal, daysAgo } from '../services/reporting.js';
 
@@ -352,7 +352,7 @@ test('submitTransferOut（登记即生效）：专班负责人保留行 + 提示
   const orgRow = tfOrg.members.find(m => m.personId === '2400012351');
   assert.ok(orgRow, '专班负责人成员行保留（不因转出被移除）');
   assert.ok(orgRow.transferredOutAt);
-  assert.equal(orgRow.note, '专班负责人，转出前须先移交');
+  assert.equal(orgRow.note, '专班组织者，转出前须先移交');
   assert.equal(tfOrg.members.some(m => m.personId === '2500010012'), true, '其余成员不受影响');
   // 报名记录保留 + 标注
   const su = mockDB.signups.find(x => x.id === 'su-001');

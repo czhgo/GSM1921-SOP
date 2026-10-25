@@ -16,31 +16,31 @@
 //  本页禁用 SVG 图标（支书 2026-08-10 裁定），类别用色点 + 文字区分。
 // ════════════════════════════════════════════════════════════════
 
-import { showToast, flashHighlight, todayLocal, docAnchorHref, escHtml as esc } from '../../core/base/utils.js?v=20261024d';
-import { listRowHtml, listGroupHtml } from '../ui/list-row.js?v=20261024d';
-import { tableHeadHtml } from '../ui/data-table.js?v=20261024d';
-import { emptyStateHtml } from '../ui/empty-state.js?v=20261024d';
-import { renderTabHeader } from '../shell/page-frame.js?v=20261024d';
+import { showToast, flashHighlight, todayLocal, docAnchorHref, escHtml as esc } from '../../core/base/utils.js?v=20261025a';
+import { listRowHtml, listGroupHtml } from '../ui/list-row.js?v=20261025a';
+import { tableHeadHtml } from '../ui/data-table.js?v=20261025a';
+import { emptyStateHtml } from '../ui/empty-state.js?v=20261025a';
+import { renderTabHeader, renderCardHeader } from '../shell/page-frame.js?v=20261025a';
 import {
   TodoStore, seedTodos, isTodoExpired, WORK_DOMAIN, WORK_DOMAIN_LABELS, TodoStatus,
-} from '../../services/governance/todo.js?v=20261024d';
-import { IssueStore } from '../../services/governance/issues.js?v=20261024d';
+} from '../../services/governance/todo.js?v=20261025a';
+import { IssueStore } from '../../services/governance/issues.js?v=20261025a';
 import {
   isActivityEnded, isActivityArchived, isActivityInProgress, ROLE_LABELS, PARTY_GROUP_LEADER_ROLES,
-} from '../../core/domain/constants.js?v=20261024d';
-import { loadActivities } from '../../services/activity/activity.js?v=20261024d';
-import { filterActivitiesForViewer, resolveVisibleTargets } from '../../services/core/visibility.js?v=20261024d';
-import { loadActiveAttendanceRecords } from '../../services/activity/attendance.js?v=20261024d';
-import { loadInspectionRecords, getOverdueRecords } from '../../services/activity/inspection.js?v=20261024d';
-import { loadMakeupTasks } from '../../services/activity/makeup.js?v=20261024d';
-import { loadActiveActivityReviews, loadTaskforceReviews } from '../../services/governance/review.js?v=20261024d';
-import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261024d';
-import { listPendingByReceiver, confirmExternalDispatch } from '../../services/activity/external-dispatch.js?v=20261024d';
-import { getPersonName } from '../../services/member/person.js?v=20261024d';
-import { loadMemberProgress, REPORT_KIND } from '../../services/member/member-progress.js?v=20261024d';
-import { AttendanceStatus, ReviewStatus, mockDB, isTaskforceActiveStatus } from '../../core/domain/domain.js?v=20261024d';
-import { PROP_TASKS_SEED } from '../../data/mock/prop.js?v=20261024d';
-import { getBranchIdOfPerson, getBranchWorkforce } from '../../services/branch/branch.js?v=20261024d';
+} from '../../core/domain/constants.js?v=20261025a';
+import { loadActivities } from '../../services/activity/activity.js?v=20261025a';
+import { filterActivitiesForViewer, resolveVisibleTargets } from '../../services/core/visibility.js?v=20261025a';
+import { loadActiveAttendanceRecords } from '../../services/activity/attendance.js?v=20261025a';
+import { loadInspectionRecords, getOverdueRecords } from '../../services/activity/inspection.js?v=20261025a';
+import { loadMakeupTasks } from '../../services/activity/makeup.js?v=20261025a';
+import { loadActiveActivityReviews, loadTaskforceReviews } from '../../services/governance/review.js?v=20261025a';
+import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261025a';
+import { listPendingByReceiver, confirmExternalDispatch } from '../../services/activity/external-dispatch.js?v=20261025a';
+import { getPersonName } from '../../services/member/person.js?v=20261025a';
+import { loadMemberProgress, REPORT_KIND } from '../../services/member/member-progress.js?v=20261025a';
+import { AttendanceStatus, ReviewStatus, mockDB, isTaskforceActiveStatus } from '../../core/domain/domain.js?v=20261025a';
+import { PROP_TASKS_SEED } from '../../data/mock/prop.js?v=20261025a';
+import { getBranchIdOfPerson, getBranchWorkforce } from '../../services/branch/branch.js?v=20261025a';
 
 // 在办下钻详情目标（支书 2026-08-10 裁定：概况「在办」可下钻到活动/专班只读详情）
 let _woDetail = null; // { kind: 'activity' | 'taskforce', id } | null
@@ -188,7 +188,8 @@ const ROLE_OVERVIEW_CONFIG = {
       },
       {
         key: 'tf', label: '专班', ownerRole: 'org-commissioner', module: 'taskforce',
-        tab: 'tf-view', actionLabel: '知情查看',
+        // 2026-10-25 IA 62→45：知情查看页签已并入全局概况页内卡 ⇒ 条线动作落 overview。
+        tab: 'overview', actionLabel: '知情查看',
         stats: (c) => _taskforceStats(c.taskforces, c.today),
         gap: (c) => c.recruitingTaskforces ? `招募中 ${c.recruitingTaskforces} 个` : '',
       },
@@ -218,7 +219,8 @@ const ROLE_OVERVIEW_CONFIG = {
         gapTab: 'taskforce',
       },
       {
-        key: 'activity', label: '活动', ownerRole: 'org-commissioner', tab: 'calendar', actionLabel: '活动日历',
+        // 2026-10-25 IA 62→45：「活动日历」页签已降为工作概况页内折叠卡 ⇒ 条线动作落 overview + 展开该卡。
+        key: 'activity', label: '活动', ownerRole: 'org-commissioner', tab: 'overview', actionLabel: '活动日历', segment: 'calendar',
         stats: (c) => _activityStats(c.activities, c.today),
         // R3-24：原「赋权」条线与结论带第四数重复显示同一个数字。赋权是活动条线的缺口，
         //   并入本行只出现一次；「赋权」条线一并删除。
@@ -518,9 +520,7 @@ async function _renderOverviewContent(container, { role, personId, accent = '#B9
       </section>
 
       <section id="wo-lines" class="card rounded-xl card-standard stack-section card--static" data-wo-layer="lines">
-        <div class="section-head">
-          <h3 class="section-head__title">工作分工</h3>
-        </div>
+        ${renderCardHeader({ title: '工作分工' })}
         <div class="wo-lines-scroll">
           <table class="data-table wo-lines-table" data-responsive="cards">
             <thead>${tableHeadHtml(LINE_COLUMNS)}</thead>
@@ -530,20 +530,19 @@ async function _renderOverviewContent(container, { role, personId, accent = '#B9
       </section>
 
       <section id="wo-actions" class="card rounded-xl card-standard stack-section card--static" data-wo-layer="actions">
-        <div class="section-head">
-          <h3 class="section-head__title">${ACTIONS_TITLE}</h3>
-        </div>
+        ${renderCardHeader({ title: ACTIONS_TITLE })}
         ${actionRows.length ? listGroupHtml(actionRows) : emptyStateHtml(_metricFilter === 'overdue' ? '暂无逾期待办' : '暂无待我处理事项')}
       </section>
 
-      <details class="card rounded-xl card-standard stack-section card--static" data-wo-layer="done">
-        <summary class="section-head cursor-pointer select-none">
-          <h3 class="section-head__title">我已处理 <span class="tabular-nums text-gray-500">${doneItems.length}</span></h3>
-        </summary>
-        <div class="mt-2">
-          ${doneRows.length ? listGroupHtml(doneRows) : emptyStateHtml('暂无已处理事项')}
-        </div>
-      </details>
+      <section class="card rounded-xl card-standard stack-section card--static disclosure-host" data-wo-layer="done">
+        ${renderCardHeader({ title: '我已处理', titleId: 'wo-done-title', meta: `共 ${doneItems.length} 条` })}
+        <details class="disclosure" id="wo-done">
+          <summary class="disclosure__summary" id="wo-done-toggle" aria-labelledby="wo-done-title"></summary>
+          <div class="mt-2">
+            ${doneRows.length ? listGroupHtml(doneRows) : emptyStateHtml('暂无已处理事项')}
+          </div>
+        </details>
+      </section>
 
       ${extraSections.map((section) => section?.html || '').join('')}
     </div>`;
@@ -578,7 +577,7 @@ async function _buildContext(role, personId, today, config) {
 
   // 支书：概况维度 + 实时派生组（与待办页同源）
   if (role === 'secretary') {
-    const secretary = await import('../../services/governance/secretary-overview.js?v=20261024d');
+    const secretary = await import('../../services/governance/secretary-overview.js?v=20261025a');
     const realtime = secretary.SecretaryTodoDeriver.computeAggregates();
     const seen = new Set(ctx.todoGroups.map((group) => group.groupKey));
     ctx.todoGroups = [...ctx.todoGroups, ...realtime.filter((group) => !seen.has(group.groupKey))];
@@ -714,7 +713,7 @@ function _lineActionHtml(row) {
   if (!(row.gap || row.overdue > 0)) return '';
   const line = row.line;
   if (line.actionKind === 'dispatch') {
-    return `<button type="button" class="btn-outline btn-sm text-accent" data-wo-go-dispatch>去我的处置<span aria-hidden="true">›</span></button>`;
+    return `<button type="button" class="btn-outline btn-sm text-accent" data-wo-go-dispatch>去待办处理<span aria-hidden="true">›</span></button>`;
   }
   if (!line.tab) return '';
   const segment = line.segment ? ` data-wo-segment="${esc(line.segment)}"` : '';
@@ -796,7 +795,7 @@ function _buildActionItems(ctx, config) {
       reason: `${getPersonName(report.requestedBy) || '上级'}请汇报 · 上报与汇报`,
       overdue: false,
       deadline: '',
-      actionLabel: '去我的处置',
+      actionLabel: '去待办处理',
       attrs: 'data-wo-go-dispatch',
       lineKey: config.lineOf?.({ kind: 'report' }),
     });
@@ -946,21 +945,30 @@ function _bindWorkOverviewEvents(container, role, personId, prefix, rerender) {
       const tab = btn.dataset.woGotoTab;
       if (btn.dataset.woSegment === 'makeup') {
         try {
-          const module = await import('../../entries/tabs/disc/attendance-tab.js?v=20261024d');
+          const module = await import('../../entries/tabs/disc/attendance-tab.js?v=20261025a');
           module.focusSegment?.('makeup');
         } catch (_) { /* 分段记忆失败时仍进考勤页 */ }
       }
       const tabBtn = document.querySelector(`[data-${prefix}-tab="${tab}"]`);
       if (tabBtn) tabBtn.click();
+      // 2026-10-25 IA 62→45：`calendar` 已降为工作概况页内折叠卡（org）或不再承载（其它台）——
+      //   语义 id 仍作「活动日历」标记，落到 overview 后派发展开事件。
+      if (tab === 'calendar' || btn.dataset.woSegment === 'calendar') {
+        if (!tabBtn) document.querySelector(`[data-${prefix}-tab="overview"]`)?.click();
+        setTimeout(() => document.dispatchEvent(new CustomEvent('ws:open-calendar')), 300);
+      }
     });
   });
 }
 
-/** 跳转本台「我的处置」tab（汇报提交/处理的唯一入口） */
+/** 跳转本台「待办」页并滚到「我经办的反馈」区（2026-10-25 IA 62→45：原「我的处置」页签已并入待办） */
 function _jumpToDispatchTab(prefix) {
-  const tabBtn = document.querySelector(`[data-${prefix}-tab="my-dispatch"]`);
-  if (!tabBtn) { showToast('info', '当前角色无「我的处置」tab，汇报请到待办跟进'); return; }
+  const tabBtn = document.querySelector(`[data-${prefix}-tab="todo"]`);
+  if (!tabBtn) { showToast('info', '当前角色无「待办」tab，汇报请到待办跟进'); return; }
   tabBtn.click();
+  setTimeout(() => {
+    document.getElementById('ws-dispatch-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, 300);
 }
 
 /** 跳转工作台「待办」tab 并定位高亮目标聚合卡（按 groupKey） */
@@ -994,10 +1002,10 @@ async function _renderOverviewDetail(container, detail, accent, onBack) {
   const host = container.querySelector('#wo-detail-host');
   if (!host) return;
   if (detail.kind === 'activity') {
-    const { renderActivityView } = await import('../record/activity-view.js?v=20261024d');
+    const { renderActivityView } = await import('../record/activity-view.js?v=20261025a');
     renderActivityView(host, { highlightId: detail.id, accent });
   } else {
-    const { renderTaskforceView } = await import('../record/taskforce-view.js?v=20261024d');
+    const { renderTaskforceView } = await import('../record/taskforce-view.js?v=20261025a');
     renderTaskforceView(host, { highlightId: detail.id });
   }
 }

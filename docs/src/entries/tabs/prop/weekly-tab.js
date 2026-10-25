@@ -2,31 +2,31 @@
 // 宣传委员工作台 Tab：周报报送（T-279 M3 拆分，照 M2 样板）
 // 周报 seed 常量 + mockDB 持久化，刷新不再丢失；T-209 改进项②：新建周次内联表单。
 
-import { DEFAULT_BRANCH_ID } from '../../../core/domain/constants.js?v=20261024d';
-import { icon } from '../../../core/base/icons.js?v=20261024d';
-import { showToast, todayLocal } from '../../../core/base/utils.js?v=20261024d';
-import { persist, getRuntimeMode } from '../../../data/data-adapter.js?v=20261024d';
-import { mockDB } from '../../../core/domain/domain.js?v=20261024d';
-import { AuthStore } from '../../../services/core/auth.js?v=20261024d';
-import { POLICY_DEFAULTS } from '../../../core/domain/policy-defaults.js?v=20261024d';
+import { DEFAULT_BRANCH_ID } from '../../../core/domain/constants.js?v=20261025a';
+import { icon } from '../../../core/base/icons.js?v=20261025a';
+import { showToast, todayLocal } from '../../../core/base/utils.js?v=20261025a';
+import { persist, getRuntimeMode } from '../../../data/data-adapter.js?v=20261025a';
+import { mockDB } from '../../../core/domain/domain.js?v=20261025a';
+import { AuthStore } from '../../../services/core/auth.js?v=20261025a';
+import { POLICY_DEFAULTS } from '../../../core/domain/policy-defaults.js?v=20261025a';
 // R10-D06：报送/提示一律取「当前支部合并后的有效策略」，不直读 POLICY_DEFAULTS（含支部覆盖）。
-import { getEffectivePolicy } from '../../../services/branch/branch.js?v=20261024d';
-import { attachArchivePolicySnapshot, deriveArchivePeriod, compareArchivePeriodDesc } from '../../../services/governance/periodic-archive.js?v=20261024d';
-import { generateId } from '../../../core/base/id.js?v=20261024d';
-import { loadActivities } from '../../../services/activity/activity.js?v=20261024d';
-import { NoticeStore } from '../../../services/governance/notice.js?v=20261024d';
-import { getPersonName } from '../../../services/member/person.js?v=20261024d';
-import { PERIODIC_ARCHIVE_REVIEW_STATUS, PERIODIC_ARCHIVE_REVIEW_LABELS, periodicArchiveReviewStatusOf } from '../../../services/governance/secretary-overview.js?v=20261024d';
+import { getEffectivePolicy } from '../../../services/branch/branch.js?v=20261025a';
+import { attachArchivePolicySnapshot, deriveArchivePeriod, compareArchivePeriodDesc } from '../../../services/governance/periodic-archive.js?v=20261025a';
+import { generateId } from '../../../core/base/id.js?v=20261025a';
+import { loadActivities } from '../../../services/activity/activity.js?v=20261025a';
+import { NoticeStore } from '../../../services/governance/notice.js?v=20261025a';
+import { getPersonName } from '../../../services/member/person.js?v=20261025a';
+import { PERIODIC_ARCHIVE_REVIEW_STATUS, PERIODIC_ARCHIVE_REVIEW_LABELS, periodicArchiveReviewStatusOf } from '../../../services/governance/secretary-overview.js?v=20261025a';
 // 批次 352（`D-746` · `D-744`② 业务过程类余项）：周报「作废（软）」——统一写口 ＋ 支委层判据
-import * as SoftVoid from '../../../services/governance/soft-void.js?v=20261024d';
-import { openVoidModal } from '../../../components/ui/void-record.js?v=20261024d';
+import * as SoftVoid from '../../../services/governance/soft-void.js?v=20261025a';
+import { openVoidModal } from '../../../components/ui/void-record.js?v=20261025a';
 
 // ── 周报报送 seed 数据（2026-08-05：seed 常量 + mockDB 持久化，刷新不再丢失）──
 // 2026-09-12 修正：起止原整体晚一天（第30周误记 07-21~07-25 等）→ 按 ISO 周「周一~周五」口径校准
 //（第30周=2026-07-20~07-24 / 第31周=2026-07-27~07-31），与 _weekDefaults 派生同口径。
 // 2026-09-28 批次 234：常量**搬到内容单一源** `docs/src/data/mock/prop.js`（服务端 `server/seed.js` 同源 import，
 //   原先此处私有常量被服务端逐字复刻一份 ⇒ 两份字面量，本批收成一份；取值与顺序一字未改）。
-import { PERIODIC_ARCHIVES_SEED } from '../../../data/mock/prop.js?v=20261024d';
+import { PERIODIC_ARCHIVES_SEED } from '../../../data/mock/prop.js?v=20261025a';
 
 // 从 mockDB 读取（seed 兜底注入一次）；写操作更新 mockDB.periodicArchives 后调用 persist()
 function _loadPeriodicArchives() {
@@ -267,15 +267,16 @@ export function renderContent(ctx, host = null) {
     });
   });
 
-  // 展开/折叠历史详情
+  // 展开/折叠历史详情（原生 button + aria-expanded/aria-controls；状态不再靠 .hidden 表达）
   container.querySelectorAll('.weekly-detail-toggle').forEach(btn => {
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
       const detailEl = btn.closest('.weekly-report-item').querySelector('.weekly-detail-content');
-      if (detailEl) {
-        detailEl.classList.toggle('hidden');
-        btn.textContent = detailEl.classList.contains('hidden') ? '展开' : '收起';
-      }
+      if (!detailEl) return;
+      const willOpen = detailEl.hidden;
+      detailEl.hidden = !willOpen;
+      btn.setAttribute('aria-expanded', String(willOpen));
+      btn.textContent = willOpen ? '收起' : '展开';
     });
   });
 }
@@ -308,13 +309,13 @@ function _renderWeeklyReportItem(report) {
         <div class="flex items-center gap-2">
           ${platformHtml}
           ${isSubmitted && report.submittedAt ? `<span class="text-xs text-gray-500">报送于 ${report.submittedAt}</span>` : ''}
-          ${report.content ? `<button class="btn-neutral weekly-detail-toggle text-xs px-3 py-1.5">展开</button>` : ''}
+          ${report.content ? `<button type="button" class="btn-neutral weekly-detail-toggle text-xs px-3 py-1.5" aria-expanded="false" aria-controls="weekly-detail-${report.id}">展开</button>` : ''}
           ${report.voidPending && !report.voided
             ? '<span class="text-xs text-gray-500">待支委会确认</span>'
             : `<button class="btn-action btn-action-gray weekly-void-btn text-xs" data-id="${report.id}" title="软作废：记录从归档历史出列、留痕可回查；支委可直接作废，其余人报支委会确认">作废</button>`}
         </div>
       </div>
-      ${report.content ? `<div class="weekly-detail-content hidden mt-2 p-2.5 rounded-lg bg-gray-50 text-xs text-gray-600 whitespace-pre-line">${report.content}</div>` : '<p class="text-xs text-gray-500 mt-1">暂无内容</p>'}
+      ${report.content ? `<div id="weekly-detail-${report.id}" class="weekly-detail-content mt-2 p-2.5 rounded-lg bg-gray-50 text-xs text-gray-600 whitespace-pre-line" hidden>${report.content}</div>` : '<p class="text-xs text-gray-500 mt-1">暂无内容</p>'}
       ${reviewStatus === 'returned' && report.reviewNote ? `<p class="text-xs text-amber-700 mt-1">支书退回说明：${report.reviewNote}</p>` : ''}
     </div>`;
 }

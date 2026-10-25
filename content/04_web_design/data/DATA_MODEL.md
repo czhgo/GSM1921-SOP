@@ -470,20 +470,20 @@ taskforce.members:    Array<{ personId, role: 'organizer' | 'deep' | 'participan
 | createdAt | string (ISO) | 是 | -- | 创建时间 |
 | completedAt | string\|null (ISO) | 否 | `null` | 完成时间 |
 
-### 2.9 通知数据 (Notice)
-
-> 类型定义位于 [notice.js](../../../docs/src/services/governance/notice.js)
+### 2.9 消息（Notice：公告 / 系统通知 / 私信）
+> 类型定义与字段口径单一源：[notice.js](../../../docs/src/services/governance/notice.js) 的 `kindOf` / `_normalizeNotice` / `listMessages` / `archiveForViewer`。一条消息只有一个身份，不再按「模块」分页。
 
 | 字段名 | 类型 | 必填 | 默认值 | 说明 |
 |---|---|---|---|---|
-| id | string | 是 | `'notice-' + Date.now()` | 唯一标识符 |
-| title | string | 是 | -- | 通知标题 |
-| content | string | 是 | -- | 通知内容 |
-| priority | `'urgent'\|'normal'\|'low'` | 是 | `'normal'` | 优先级（紧急/一般/低优） |
-| publishDate | string (YYYY-MM-DD) | 是 | 当前日期 | 发布日期 |
-| expireDate | string\|null (YYYY-MM-DD) | 否 | `null` | 过期日期（过期后不展示） |
-| targetModule | string | 否 | -- | 目标模块（点击跳转用） |
-| read | boolean | 否 | `false` | 是否已读 |
+| id / title / content | string | 是 | -- | 唯一标识 / 标题 / 正文 |
+| kind | `'announcement'\|'system'\|'message'` | 是 | 由来源归一 | 单一身份：公告 / 系统通知 / 私信；`kindOf()` 归一，历史行按此迁移 |
+| priority / publishDate | string | 是 | `'normal'` / 当天 | 优先级（urgent / normal / low）与发布日 |
+| expireDate | string \| null | 否 | 派生 | 目标为活动时＝活动日 + 收尾窗口（`deriveNoticeExpiry`）；过期即系统归档 |
+| audience / audiencePersons / actionRoles | array | 否 | `[]` | 受众三源：sentinel / 角色键、到人 personId、行动角色；命中任一即可见 |
+| targetType / targetId | string | 系统通知与私信必填，公告可空 | -- | 对象坐标（activity / taskforce / thoughtReport）；非公告必须有坐标 |
+| reads | string[] | 是 | `[]` | 逐人已读 personId；读侧 `read` 布尔＝当前人在此表内 |
+| archivedBy / archived | string[] / boolean | 是 / 否 | `[]` / `false` | 逐人归档（可恢复）与系统归档（随活动归档 / 过期，不可恢复） |
+| replyTo / fromPersonId | string \| null | 否 | `null` | 私信回复线程原信 id；发件人 personId（私信仅收发双方可见） |
 
 ### 2.10 经验沉淀 (ExperienceDeposit)
 
@@ -826,7 +826,7 @@ taskforce.members:    Array<{ personId, role: 'organizer' | 'deep' | 'participan
 ### 2.18 待办任务数据 (Todo) — 最小三成本原则落地
 
 > **设计依据**：最小三成本原则（见 [DESIGN_SYSTEM.md §一 第2条](../design-system/DESIGN_SYSTEM.md)）——任务流默认直接展示在工作台，不要求用户额外操作才能看到"我需要做什么"。
-> **派生来源**：通知派生（§2.19）+ 活动生命周期事件派生 + 专班生命周期事件派生 + 手动创建。
+> **派生来源**：消息派生（§2.19）+ 活动生命周期事件派生 + 专班生命周期事件派生 + 手动创建。
 > **类型定义**：见 [domain.js](../../../docs/src/core/domain/domain.js) 的 `Todo` typedef（2026-10-23 批次 504 补登）。
 
 #### 2.18.1 字段定义
@@ -887,46 +887,46 @@ pending ──用户开始处理──→ in_progress ──完成──→ comp
 
 `expired` 不是终态——超期未处理自动转 `expired` 红色标记，用户仍可激活完成。
 
-### 2.19 通知→待办派生机制
+### 2.19 消息→待办派生机制
 
-> **设计依据**：通知分类（信息性 vs 行动性）+ 最小三成本原则——行动性通知自动派生为对应角色待办，用户无需手动从通知列表中筛选"我需要做什么"。
+> **设计依据**：消息分类（信息性 vs 行动性）+ 最小三成本原则——行动性消息自动派生为对应收件人待办，用户无需手动从消息列表筛选"我需要做什么"。
 
-#### 2.19.1 通知扩展字段
+#### 2.19.1 消息扩展字段
 
-通知数据结构（§2.9）新增字段：
+在 §2.9 消息对象上追加（已读沿用 `reads[]`）：
 
 | 字段名 | 类型 | 必填 | 默认值 | 说明 |
 |---|---|---|---|---|
-| actionable | boolean | 是 | `false` | 是否为行动性通知 |
+| actionable | boolean | 是 | `false` | 是否为行动性消息 |
 | actionRoles | string[] | 否 | `[]` | 需要执行的角色列表（actionable=true 时必填） |
 | actionTask | string | 否 | -- | 待办任务标题（actionable=true 时必填） |
 | actionDeadline | string (YYYY-MM-DD) | 否 | -- | 行动截止日期 |
-| readBy | string[] | 是 | `[]` | 已读人员 ID 列表（用于未读名单查看） |
+| actionKey | string | 否 | `'notice-read'` | 待办动作键；与 actionType 共同构成幂等键的动作位 |
 | reminderDays | number | 是 | `3` | 自动提醒触发天数（支书发布时配置） |
 | reminders | Array&lt;{type, sentAt, sentBy, targetPersonIds}&gt; | 是 | `[]` | 提醒记录（auto/manual） |
 
 #### 2.19.2 派生规则
 
-- 通知发布时，若 `actionable === true`，系统自动为 `actionRoles` 中的每个角色生成一条待办
-- 待办 `category = 'notice'`，`sourceType = 'notice'`，`sourceId = 通知ID`
-- 待办 `actionType` 由通知类型决定（如材料审核通知→`actionType='review'`）
-- 通知过期或被取消时，关联待办自动标记为 `expired`
+- 消息发布时，若 `actionable === true`，按 `actionRoles` 为每个角色生成一条待办；
+- 待办 `category='notice'`、`sourceType='notice'`、`sourceId=消息 id`，`actionType` 取 `actionKey || actionType`；
+- **幂等键＝`sourceType + sourceId + action + role + personId`**（`docs/src/services/governance/todo.js::_todoKey`）：同一收件人重复派生收敛为一条，不同收件人互不遮挡；
+- 消息过期或被取消时，关联待办标记为 `expired`；已读只销「本人 / 本角色」的阅读待办。
 
-#### 2.19.3 通知未读提醒机制
+#### 2.19.3 消息未读提醒机制
 
 | 提醒类型 | 触发条件 | 执行者 | 频率 |
 |---|---|---|---|
-| 自动提醒 | 发布后 `reminderDays` 天仍未读 | 系统 | 每条通知每用户仅触发一次 |
-| 手动催读 | 支书在通知管理中点击"催读" | 支书 | 可多次，记录写入 `reminders` 数组 |
+| 自动提醒 | 发布后 `reminderDays` 天仍未读（按 `reads[]` 逐人判） | 系统 | 每条消息每用户仅触发一次 |
+| 手动催读 | 支书在消息管理中点击"催读" | 支书 | 可多次，记录写入 `reminders` 数组 |
 
-**权限归属**：通知发布权=支书；自动提醒=系统；手动催读=支书。
+**权限归属**：消息发布权＝支书 / 副支书 / 组织委员 / 宣传委员（本场组织者另可发本场消息）；自动提醒＝系统；手动催读＝支书。
 
-#### 2.19.4 通知分类示例
+#### 2.19.4 消息分类示例
 
 | 类型 | 示例 | 处理方式 |
 |---|---|---|
-| 信息性通知 | "七一活动总结已发布" | 仅首页通知区展示 |
-| 行动性通知 | "本月发展党员材料审核截止7月30日" | 首页展示 + 自动生成组织委员待办 |
+| 信息性消息 | "七一活动总结已发布" | 仅消息中心与铃铛摘要展示 |
+| 行动性消息 | "本月发展党员材料审核截止7月30日" | 消息中心展示 + 自动生成组织委员待办 |
 
 ### 2.20 归档记录扩展字段
 
@@ -1062,7 +1062,7 @@ pending ──用户开始处理──→ in_progress ──完成──→ comp
 
 > P3 双向治理通道·下发半侧：党委选目标支部下发 → **复用通知实体**，仅目标支部支委层成员在通知入口可见（支书 2026-09-03 裁定：能复用就复用，不新建「下发箱」领域）。
 
-§2.9 通知基础字段不变，下发时额外写入：
+§2.9 消息基础字段不变，下发时额外写入：
 
 | 字段名 | 类型 | 必填 | 说明 |
 |---|---|---|---|
@@ -1070,7 +1070,7 @@ pending ──用户开始处理──→ in_progress ──完成──→ comp
 | audience | `'committee'` | 是 | 党委下发通知专用取值：常量 `'committee'`（字符串）表示「本支部支委层」；支部自发通知缺省不设本字段。注意区分 §2.19.1 的 `actionRoles`（行动性通知待办执行角色**数组**）——`audience` 是下发专用可见性过滤常量，二者语义不同 |
 | branchId | string | 是 | 目标支部（支部动态创建后自动可选） |
 | branchName | string | 否 | 目标支部名快照（支部后续改名不使历史下发未同步） |
-| publisher | string | 否 | 展示覆盖 `'院党委（组织员）'`（通知详情「通知者」不按 targetModule 推断） |
+| publisher | string | 否 | 展示覆盖 `'院党委（组织员）'`（详情「通知者」按 `publisherId` / `publishedBy` 解析，不按页面模块推断） |
 | recipients | string | 否 | 展示覆盖 `'支部委员会（支委层）'` |
 
 **受众过滤规则**（`NoticeStore.list()`）：`audience === 'committee'` 的通知仅对「目标 branchId 支部且角色为支委层（支书/副支书/组织/宣传/纪检）」的当前登录用户可见；普通党员、党委组织员（非支委）一律不可见。支部端「已发布通知」管理区不展示上级下发（只读治理信息，不可删改）。
@@ -1318,7 +1318,7 @@ pending ──用户开始处理──→ in_progress ──完成──→ comp
 | 考勤记录 (AttendanceRecord) | mockDB.attendances + localStorage | 随活动创建->随活动归档 | 纪检委员写入，全员可读 |
 | 分工记录 (AssignmentRecord) | mockDB.assignments + localStorage | 随活动创建->待办->进行中->已完成 | 组织者创建分工，深度参与者执行 |
 | 补课任务 (MakeupTask) | mockDB.makeupTasks + localStorage | 缺勤触发->待补课->已完成 | 纪检委员创建，缺勤者执行补课 |
-| 通知 (Notice) | mockDB.notices + localStorage | 创建->持久化 | 系统通知，按类型分级（含行动性通知派生待办机制，见 §2.19） |
+| 通知 (Notice) | mockDB.notices + localStorage | 创建->持久化 | 消息对象（公告 / 系统通知 / 私信），含行动性消息派生待办机制，见 §2.19 |
 | 待办任务 (Todo) | mockDB.todos + localStorage | 创建->pending->in_progress->completed/expired | 最小三成本原则落地——任务流默认直接展示在工作台（见 §2.18） |
 | 经验沉淀 (ExperienceDeposit) | mockDB.experienceDeposits + localStorage | 创建->持久化 | 深度参与者经验总结 |
 | ~~制度文件引用 (ComplianceReference)~~ | **已删（2026-10-02 批次 342 · `CRUD-1`）** | 死表：无 UI 消费方 / 无写口 / 无字段契约 |

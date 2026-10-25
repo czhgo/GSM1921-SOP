@@ -258,16 +258,23 @@ test('组长/成员台 Task 16：写入口径、考察范围、组员进度与�
 test('知情查看 Task 5：各台 tf-view 均含工作组段，工作组件只读且消费深链', () => {
   const read = (rel) => readFileSync(join(ROOT, rel), 'utf8');
 
-  // ① 分段集合：支书（能力注册行）/ 组长 / 成员（各自 tf-view 薄壳）
-  const secretary = read('docs/src/capabilities/secretary-workspace.js')
-    .split('\n').find((line) => line.includes("id: 'tf-view'")) || '';
-  const leader = read('docs/src/entries/tabs/leader/tf-view-tab.js');
-  const visitor = read('docs/src/entries/tabs/visitor/tf-view-tab.js');
-  for (const [name, src] of [['支书', secretary], ['组长', leader], ['成员', visitor]]) {
-    assert.match(src, /views:\s*\[[^\]]*'workgroup'/, `${name}台 tf-view 的 views 须含 workgroup`);
+  // ① 分段集合（2026-10-25 IA 62→45）：支书 / 组长 / 成员三处 tf-view 页签均已删——
+  //   支书→全局概况页内卡（embedded）、组长→组员进展「其他党小组」独立区、成员→项目分工「专班」区。
+  //   一级分段只允许「活动工作组 / 专班工作组」两组同层对象；「其他党小组」不进分段集合。
+  const secretaryOverview = read('docs/src/entries/tabs/secretary/overview-tab.js');
+  assert.match(secretaryOverview, /views:\s*\['workgroup',\s*'taskforce'\]/, '支书知情卡须含 workgroup + taskforce');
+  assert.match(secretaryOverview, /embedded:\s*true/, '支书知情卡为页内卡形态');
+  const leaderMembers = read('docs/src/entries/tabs/leader/members-tab.js');
+  assert.match(leaderMembers, /renderOtherGroupsView/, '组长台「其他党小组」独立区须复用 other-groups-view');
+  const visitorProjects = read('docs/src/entries/tabs/visitor/projects-tab.js');
+  assert.match(visitorProjects, /renderTaskforceView/, '成员台「专班」区须复用 taskforce-view');
+  for (const rel of [
+    'docs/src/capabilities/secretary-workspace.js',
+    'docs/src/capabilities/leader-workspace.js',
+    'docs/src/capabilities/visitor-workspace.js',
+  ]) {
+    assert.doesNotMatch(read(rel), /id:\s*'tf-view'/, `${rel} 不得再注册 tf-view（已降为页内区）`);
   }
-  assert.match(leader, /views:\s*\['workgroup',\s*'taskforce',\s*'group'\]/, '组长台须保留「其他组」段');
-  assert.match(leader, /defaultView:\s*'group'/, '组长台默认段仍落「其他组」');
 
   // ② 工作组件只读：无成员编辑 / 授权 / 表单控件
   const wgv = read('docs/src/components/record/workgroup-view.js');

@@ -128,8 +128,8 @@ test('D4 activity-entry.js：复盘不得再指向 tab=talent / tab=archive', ()
   assert.ok(map, 'activity-entry.js 缺少 reviewHrefOf 角色落点表');
   assert.match(map, /'disc-commissioner':\s*'workspace\/disc\.html\?tab=review'/,
     '纪检委员的复盘落点应为 disc 工作台复盘页签');
-  assert.match(map, /'participant':\s*'workspace\/visitor\.html\?tab=review'/,
-    '普通参与者的复盘落点应为成员台「我的复盘」');
+  assert.match(map, /'participant':\s*'workspace\/visitor\.html\?tab=growth&section=review'/,
+    '普通参与者的复盘落点应为成员台「我的成长 · 复盘子区」（2026-10-25 IA 62→45）');
   assert.match(src, /label:\s*'复盘'[\s\S]{0,160}focusActivityId=/, '复盘入口应携带 focusActivityId 深链参数');
 });
 

@@ -30,14 +30,12 @@
 //   容器内容却没登记标记」时会把本页判成「已在位」而跳过骨架重建，留下空白（同 today-tab 2026-09-25
 //   真机实测的残留病）。
 
-import { getAppState } from '../../../core/base/state.js?v=20261024d';
-import { populateMonthSelector, renderCalendarByActivities } from '../../../components/record/calendar.js?v=20261024d';
-import { renderInspectorFromState } from '../../../components/record/inspector.js?v=20261024d';
-import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261024d';
+import { getAppState } from '../../../core/base/state.js?v=20261025a';
+import { populateMonthSelector, renderCalendarByActivities } from '../../../components/record/calendar.js?v=20261025a';
+import { renderInspectorFromState } from '../../../components/record/inspector.js?v=20261025a';
+import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261025a';
 
-const TAB_HTML = `
-  ${renderTabHeader({ title: '活动日历', description: '月 / 周 / 日 / 列表四视图；点击日期查看当日活动。' })}
-  <div class="card rounded-xl p-5">
+const PANEL_HTML = `
     <div id="calendar-view-section" class="grid grid-cols-1 lg:grid-cols-5 gap-4">
       <div class="lg:col-span-3">
         <div class="flex flex-wrap items-center gap-2 mb-3">
@@ -56,7 +54,11 @@ const TAB_HTML = `
         </div>
       </div>
     </div>
-  </div>
+`;
+
+const TAB_HTML = `
+  ${renderTabHeader({ title: '活动日历', description: '月 / 周 / 日 / 列表四视图；点击日期查看当日活动。' })}
+  <div class="card rounded-xl p-5">${PANEL_HTML}</div>
 `;
 
 /**
@@ -66,12 +68,26 @@ const TAB_HTML = `
  */
 export function renderContent(container, state) {
   if (!container) return;
+  if (!container.querySelector('#cal-main-grid')) container.innerHTML = TAB_HTML;
+  renderCalendarPanel(container, state);
+}
 
-  if (!container.querySelector('#cal-main-grid')) {
-    container.innerHTML = TAB_HTML;
-    // 活动条目 → 活动详情页。capture 阶段截断：引擎在条目自身上还绑了「选中日期 → 内部详情」链路
-    // （本页右栏由 inspector 消费）。
-    container.querySelector('#cal-main-grid')?.addEventListener('click', (e) => {
+/**
+ * 只渲染两栏面板（不含页头/外卡）——供「工作概况」页内折叠卡复用（2026-10-25 IA 62→45）。
+ * 日历引擎与只读 inspector 的实现仍是本文件这一份（不复制第二套日历）。
+ * @param {HTMLElement} container — 已含面板槽位的容器（或本页页签容器）
+ * @param {Object} [state]
+ */
+export function renderCalendarPanel(container, state) {
+  if (!container) return;
+  if (!container.querySelector('#cal-main-grid')) container.innerHTML = PANEL_HTML;
+
+  // 活动条目 → 活动详情页。capture 阶段截断：引擎在条目自身上还绑了「选中日期 → 内部详情」链路
+  // （本页右栏由 inspector 消费）。
+  const grid = container.querySelector('#cal-main-grid');
+  if (grid && grid.dataset.actLinkBound !== '1') {
+    grid.dataset.actLinkBound = '1';
+    grid.addEventListener('click', (e) => {
       const item = e.target.closest?.('.cal-activity-item');
       if (!item) return;
       e.stopPropagation();
@@ -92,6 +108,71 @@ export function renderContent(container, state) {
   //   本页随之重渲染即刷新右栏。
   renderInspectorFromState({ ...st, activities, viewType: 'participant' });
   _bindActivityDetailLinks(container);
+}
+
+/**
+ * 「活动日历」页内折叠卡（2026-10-25 IA 62→45：四台页签降级后的唯一落点）。
+ * 标题在 `<summary>` 外（`aria-labelledby` 关联），展开态在 `open` 上；首次展开时才挂载引擎，
+ * 避免给工作概况首屏多加一次日历渲染。
+ * @param {HTMLElement} host — 卡片宿主（追加一个 `<details>`）
+ * @param {Object} [state]
+ * @param {{id?:string, open?:boolean, afterHtml?:string, mountExtra?:(body:HTMLElement)=>void}} [opts]
+ * @returns {HTMLDetailsElement|null}
+ */
+export function renderCalendarCard(host, state, opts = {}) {
+  if (!host) return null;
+  _bindCardOpenEvent();
+  const id = opts.id || 'ov-calendar-card';
+  if (host.querySelector(`#${id}`)) {
+    const old = host.querySelector(`#${id}`);
+    // 深链要求展开：即使卡片已存在也按参数打开
+    if (opts.open) old.open = true;
+    if (old.open) _mountCard(old);
+    return old;
+  }
+  const wrap = document.createElement('div');
+  wrap.className = 'card rounded-xl p-5 disclosure-host';
+  wrap.innerHTML = `
+    <h3 class="disclosure__title" id="${id}-title">月历与当日活动</h3>
+    <details class="disclosure" id="${id}"${opts.open ? ' open' : ''}>
+      <summary class="disclosure__summary" aria-labelledby="${id}-title">展开月历与当日活动（只读）</summary>
+      <div class="disclosure__body" data-cal-card-body>
+        ${PANEL_HTML}
+        ${opts.afterHtml || ''}
+      </div>
+    </details>`;
+  host.appendChild(wrap);
+  const details = wrap.querySelector(`#${id}`);
+  const body = wrap.querySelector('[data-cal-card-body]');
+  const mount = () => _mountCard(details);
+  mount();
+  details.addEventListener('toggle', () => { if (details.open) mount(); });
+  return details;
+
+  function _mountCard(el) {
+    if (!body) return;
+    if (body.dataset.calMounted !== '1') {
+      body.dataset.calMounted = '1';
+      renderCalendarPanel(body, state);
+      opts.mountExtra?.(body);
+    } else {
+      renderCalendarPanel(body, state);
+    }
+    if (opts.open && el) el.open = true;
+  }
+}
+
+/** 「展开活动日历」全局事件（2026-10-25 IA 62→45）：各台「今天」页的会议「全部」等入口
+ *  在切到「工作概况」后派发 `ws:open-calendar`，本卡据此展开并滚到视野（绑定一次）。 */
+function _bindCardOpenEvent() {
+  if (typeof document === 'undefined' || document.body?.dataset.calCardOpenBound === '1') return;
+  if (document.body) document.body.dataset.calCardOpenBound = '1';
+  document.addEventListener('ws:open-calendar', () => {
+    const card = document.querySelector('details[id$="calendar-card"]');
+    if (!card) return;
+    card.open = true;
+    card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  });
 }
 
 /**
