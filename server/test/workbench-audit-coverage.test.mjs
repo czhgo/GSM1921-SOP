@@ -282,7 +282,9 @@ test('知情查看 Task 5：各台 tf-view 均含工作组段，工作组件只�
   for (const marker of ['data-wg-remove', 'data-wg-permission', 'data-wg-apply-template', 'workgroup-member-editor', 'addMember(']) {
     assert.ok(!wgv.includes(marker), `工作组段不得出现写入口标记「${marker}」`);
   }
-  assert.match(wgv, /activity\.html\?id=/, '工作组条目须链接到活动详情');
+  // Task 6（2026-10-26）：详情 URL 收口到 objectDetailHref（缺 id 不给 href），
+  //   故不再断言字面量 `activity.html?id=`，改断言「条目经统一对象路由生成活动详情链接」。
+  assert.match(wgv, /objectDetailHref\('activity',\s*row\.sourceId/, '工作组条目须经统一详情路由链接到活动详情');
   assert.match(wgv, /listRowHtml/, '行结构须复用 list-row 单一源');
 
   // ③ 深链参数被消费（段切换 + 目标映射）

@@ -30,10 +30,12 @@
 //   容器内容却没登记标记」时会把本页判成「已在位」而跳过骨架重建，留下空白（同 today-tab 2026-09-25
 //   真机实测的残留病）。
 
-import { getAppState } from '../../../core/base/state.js?v=20261025a';
-import { populateMonthSelector, renderCalendarByActivities } from '../../../components/record/calendar.js?v=20261025a';
-import { renderInspectorFromState } from '../../../components/record/inspector.js?v=20261025a';
-import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261025a';
+import { getAppState } from '../../../core/base/state.js?v=20261025b';
+import { populateMonthSelector, renderCalendarByActivities } from '../../../components/record/calendar.js?v=20261025b';
+import { renderInspectorFromState } from '../../../components/record/inspector.js?v=20261025b';
+import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261025b';
+// Task 6：共享日历属「非对象所属工作台」的只读承载面 ⇒ 条目/详情卡直达完整详情页（direct）。
+import { objectDetailHref } from '../../../core/domain/object-route.js?v=20261025b';
 
 const PANEL_HTML = `
     <div id="calendar-view-section" class="grid grid-cols-1 lg:grid-cols-5 gap-4">
@@ -92,10 +94,12 @@ export function renderCalendarPanel(container, state) {
       if (!item) return;
       e.stopPropagation();
       const id = item.dataset.actId;
+      // 统计 query 由 objectDetailHref 单一出口生成；缺 id 不跳转（不生成空 id 链接）。
+      const href = objectDetailHref('activity', id, { entry: 'shared-calendar' });
       // 用 `window.location =`（不带 `.href`）——与 `today-tab.js` 同款：`link-integrity::L2`
       // 只扫「location 点 href 赋值」这一形态（连注释里的同形写法也会被它当跳转目标抽走），
       // 带 query 的拼接会被误判为「目标文件不存在」。
-      if (id) window.location = 'activity.html?id=' + encodeURIComponent(id);
+      if (href) window.location = href;
     }, true);
   }
 
@@ -188,10 +192,11 @@ function _bindActivityDetailLinks(container) {
     cards.querySelectorAll('.inspector-card[data-act-id]').forEach((card) => {
       if (card.querySelector('.cal-activity-detail-link')) return;
       const id = card.dataset.actId;
-      if (!id) return;
+      const href = objectDetailHref('activity', id, { entry: 'shared-calendar' });
+      if (!href) return;
       const link = document.createElement('a');
       link.className = 'cal-activity-detail-link inline-flex items-center gap-1 mt-2 text-xs text-accent hover:underline transition-colors';
-      link.href = `./activity.html?id=${encodeURIComponent(id)}`;
+      link.href = `./${href}`;
       link.textContent = '查看活动详情 →';
       // 右栏卡片自身绑定了「打开摘要浮层」——链接点击不冒泡，直接走详情页。
       link.addEventListener('click', (e) => e.stopPropagation());

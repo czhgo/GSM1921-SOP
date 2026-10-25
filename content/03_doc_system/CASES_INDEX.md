@@ -2,7 +2,7 @@
 title: "判例库总索引"
 type: index
 role: "[工程师]+[AI]"
-last_updated: "2026-10-25"
+last_updated: "2026-10-26"
 status: active
 related_files: [OPERATIONS_GUIDE.md, DOC_MAP.md, content/04_web_design/design-system/CASES.md, content/02_institution/CASES.md, content/05_ai_coding/CASES.md]
 ---
@@ -43,6 +43,11 @@ related_files: [OPERATIONS_GUIDE.md, DOC_MAP.md, content/04_web_design/design-sy
 | CASE-DESIGN-017 | 并列项必须同层：工作组不与专班 / 党小组同排 | design | [CASES.md](../04_web_design/design-system/CASES.md) | SD-37 | 批次 511 |
 | CASE-DESIGN-018 | 标题不进交互元素；同类折叠同一原语 | design | [CASES.md](../04_web_design/design-system/CASES.md) | SD-38 / SD-39 | 批次 511 |
 | CASE-DESIGN-019 | 一功能一页签；跨台重复注册必须降级 | design | [CASES.md](../04_web_design/design-system/CASES.md) | SD-40 | 批次 511 |
+| CASE-DESIGN-020 | 分组胶囊全宽可见；判据必须含断点与对比度 | design | [CASES.md](../04_web_design/design-system/CASES.md) | SD-42 | 批次 512 |
+| CASE-DESIGN-021 | 动作按钮须有描边/底色；btn-ghost 只作行载体 | design | [CASES.md](../04_web_design/design-system/CASES.md) | SD-43 | 批次 512 |
+| CASE-DESIGN-022 | 关键宽表定列宽模板，末列不吃余量 | design | [CASES.md](../04_web_design/design-system/CASES.md) | SD-44 | 批次 512 |
+| CASE-DESIGN-023 | 详情入口按 direct/locate/none 分流，归档只读 | design | [CASES.md](../04_web_design/design-system/CASES.md) | SD-45 | 批次 512 |
+| CASE-DESIGN-024 | 主题色层与功能色层并列，功能色只小面积 | design | [CASES.md](../04_web_design/design-system/CASES.md) | SD-46 | 批次 512 |
 | CASE-INST-001 | 匿名反馈改裁为支部内闭环、无系统揭名入口 | institution | [CASES.md](../02_institution/CASES.md) | `SYSTEM_ROLE_PERMISSION §9j`（SR 待编号） | 2026-10-16（D-824） |
 | CASE-INST-002 | 意见处置与品牌认定归支委会，支书主持 | institution | [CASES.md](../02_institution/CASES.md) | `SYSTEM_ROLE_PERMISSION §9j`（SR 待编号） | 2026-09-18 |
 | CASE-INST-003 | 过程时限统一属可配置制度参数 | institution | [CASES.md](../02_institution/CASES.md) | `SYSTEM_ROLE_PERMISSION §9l`（SR 待编号） | 2026-09-17 |
@@ -53,11 +58,12 @@ related_files: [OPERATIONS_GUIDE.md, DOC_MAP.md, content/04_web_design/design-sy
 | CASE-AI-003 | 改名只改文件名，引用残留 | ai-coding | [CASES.md](../05_ai_coding/CASES.md) | `DOCUMENT_GOVERNANCE.md`「一改具改执行」 | 原 KNOWN_PITFALLS §2（2026-09-04 并入） |
 | CASE-AI-004 | 批量脚本重复执行误覆盖源文件 | ai-coding | [CASES.md](../05_ai_coding/CASES.md) | `FILE_OPERATION_RULES.md`「批量脚本沙箱重复执行」 | T-282（2026-08-24 立规） |
 | CASE-AI-005 | e2e 绕过前端写穿，被冲刷覆盖 | ai-coding | [CASES.md](../05_ai_coding/CASES.md) | `TEST_AND_VERIFICATION.md`「浏览器 e2e 写穿断言」 | 2026-08-27（e2e-login 回归） |
+| CASE-AI-006 | Tab 渲染竞态：冻结 ctx ＋ marker 不清 ＋ 持久绑定标记 | ai-coding | [CASES.md](../05_ai_coding/CASES.md) | `TEST_AND_VERIFICATION.md`「非闭环类缺陷的守卫写法」＋ `CLAUDE.md H25` | 批次 512 |
 
 ## 域入口
 
 | 域 | 判例文件 | 现有条数 |
 |---|---|---|
-| design（网站设计） | [04_web_design/design-system/CASES.md](../04_web_design/design-system/CASES.md) | 19 |
+| design（网站设计） | [04_web_design/design-system/CASES.md](../04_web_design/design-system/CASES.md) | 24 |
 | institution（制度） | [02_institution/CASES.md](../02_institution/CASES.md) | 5 |
-| ai-coding（AI 协作） | [05_ai_coding/CASES.md](../05_ai_coding/CASES.md) | 5 |
+| ai-coding（AI 协作） | [05_ai_coding/CASES.md](../05_ai_coding/CASES.md) | 6 |

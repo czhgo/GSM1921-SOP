@@ -2,7 +2,7 @@
 title: "AI 协作域判例库"
 type: governance
 role: "[工程师]+[AI]"
-last_updated: "2026-10-24"
+last_updated: "2026-10-26"
 status: active
 related_files: [README.md, content/03_doc_system/CASES_INDEX.md, content/03_doc_system/OPERATIONS_GUIDE.md]
 ---
@@ -60,3 +60,15 @@ related_files: [README.md, content/03_doc_system/CASES_INDEX.md, content/03_doc_
 - **边界**：只测服务端接口契约的测试可以直接打 API（它不经过页面生命周期）；一旦断言涉及「页面显示的最终数据」，就不得直打快照接口。
 - **对应规范编号**：`TEST_AND_VERIFICATION.md`「浏览器 e2e 写穿断言」＋ `CLAUDE.md H25`
 - **证据指针**：`content/05_ai_coding/TEST_AND_VERIFICATION.md:112-114`。
+
+## CASE-AI-006 Tab 渲染竞态：冻结 ctx ＋ marker 不清 ＋ 持久绑定标记
+
+- **编号**：CASE-AI-006
+- **样本（真实发生）**：支书台点击活动管理、全局概况时出现空白或旧快照；切月后切走再切回仍显示旧月份；离开活动管理再回来，关键词 / 类别 / 品牌 / 清除四个筛选控件全部失效。取证发现三条并存：`renderCtx` 在建栏时一次性求值（冻结 state）；`_renderCurrentTab` 不删 `dataset.currentTab`，守卫型 tab 直接跳过骨架；`calFiltersBound` / `organizerEntryBound` / `talentJumpBound` 挂在持久容器上，重建后的新控件不再绑定。另有 loading 占位 `pointer-events:none` 无超时、动态 import 无 catch 的静默空白。
+- **AI 假设**：首屏能渲染出来就说明 tab 生命周期正确；渲染上下文是稳定常量；绑定标记挂在容器上「只绑一次」更省事；loading 只是视觉占位，不需要超时。
+- **人类意图**：点击哪个 tab，最终渲染的就必须是**该 tab 的最新数据**；控件离开再回来仍要生效；失败要看得见，占位不能永久灰化。
+- **泛化规则（结论）**：渲染上下文取最新 state（函数化或每次点击重算）；所有渲染走同一生命周期（序号 ＋ 去重 ＋ 切前清 marker ＋ await ＋ 失败错误卡 ＋ loading 超时恢复）；「已绑定」标记挂在会被重建的元素自身或改用事件委托；验收必须包含「切月 → 切走 → 切回」「离开再回来筛选仍生效」两条行为用例，不能只测首屏。
+- **守卫**：`runtime-tab-lifecycle-guard::R1–R7`（行为用例 ＋ 静态保态）＋ `P1–P5`（延迟可配 / 单次 loadDB / 首屏不阻塞 / hover 先读后写 / 后台渲染不铺占位）。
+- **对应规范编号**：`TEST_AND_VERIFICATION.md`「非闭环类缺陷的守卫写法：真机闭环断言 + 静态保态断言」＋ `CLAUDE.md H25`
+- **边界**：本条针对「同一 tab 的渲染 / 绑定生命周期」；纯服务端接口契约测试不受此限。首屏性能读数（974→515ms、hover p95 3.5→0.9ms）属演示环境实测，不当作跨机器承诺。
+- **证据指针**：`docs/src/components/shell/tab-bar.js`（`renderCurrent` / `_safeRender` / `_armLoadingTimeout`）· `docs/src/components/shell/workspace-shell.js`（`renderCtx: () => _renderCtx(getAppState())`）· `server/test/runtime-tab-lifecycle-guard.test.mjs` · `.ctx/logs/2026-10-EXECUTION_LOG.md` 批次 512。

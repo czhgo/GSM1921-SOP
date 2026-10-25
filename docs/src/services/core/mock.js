@@ -5,29 +5,30 @@
 //  依赖：domain.js, id.js（单向依赖，不依赖 UI 或 runtime）
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../../core/domain/domain.js?v=20261025a';
-import { generateId } from '../../core/base/id.js?v=20261025a';
-import { getDataSource, getAdapter, notifyDataLoaded, persist, refreshRemoteCollections } from '../../data/data-adapter.js?v=20261025a';
-import { bumpToken, resetAllTokens } from '../../core/base/version-token.js?v=20261025a'; // P0 域缓存失效（spec §二.3/§二.4）
+import { mockDB } from '../../core/domain/domain.js?v=20261025b';
+import { generateId } from '../../core/base/id.js?v=20261025b';
+import { getDataSource, getAdapter, notifyDataLoaded, persist, refreshRemoteCollections } from '../../data/data-adapter.js?v=20261025b';
+import { bumpToken, resetAllTokens } from '../../core/base/version-token.js?v=20261025b'; // P0 域缓存失效（spec §二.3/§二.4）
 // Mock 持久化/种子引擎（saveDB/loadDB/seed 同步）收敛到 data/mock-adapter.js 唯一实现
 // （T-2026-09-007 Step1：services 版私有引擎曾与 mock-adapter 同 Key 双写并缺
 //   imageRecords/agendaVotes 等新域恢复 → 刷新即丢；现统一由 MockAdapter 承担全量持久化域 34 个，含 users）
-import { MockAdapter } from '../../data/mock-adapter.js?v=20261025a';
+import { MockAdapter, mockDelayMs } from '../../data/mock-adapter.js?v=20261025b';
 // C3 一键初始化档（?reset=init，2026-09-08）：mock-adapter 禁改 → reset/清库逻辑经本
 // 可改入口兜底；init 档与 demo/preview 档并存（demo/preview 仍在 MockAdapter.loadDB
 // 内既有 handleResetIfRequested 处理，本档先于其检测、互不冲突——见 init-reset.js）。
 // C2 修复（2026-09-08）：init 档在浏览器形态被 adapter 判空回填（init≈demo）——
 // loadDB 委派 MockAdapter.loadDB 后按 init 态哨兵剔除演示种子（见 stripSeedRecordsIfInitState）。
-import { handleInitResetIfRequested, stripSeedRecordsIfInitState } from './init-reset.js?v=20261025a';
+import { handleInitResetIfRequested, stripSeedRecordsIfInitState } from './init-reset.js?v=20261025b';
 // 批4（2026-09-09 支书批「域参数」）：数据加载完成 → 读侧有效默认注入
 // （当前人所属支部 config.policyOverrides merge 进 POLICY_DEFAULTS；无 overrides = 保持默认）
-import { applyEffectivePolicyDefaultsForPerson } from '../branch/branch.js?v=20261025a';
+import { applyEffectivePolicyDefaultsForPerson } from '../branch/branch.js?v=20261025b';
 // R9 Task 4.3：活动 ↔ 工作组字段同步单一投影（编辑 / 归档 / 删除三处同步）
-import { applyActivityWorkgroupSync, activityWorkgroupIdsForDelete } from '../../data/activity-workgroup-sync.js?v=20261025a';
+import { applyActivityWorkgroupSync, activityWorkgroupIdsForDelete } from '../../data/activity-workgroup-sync.js?v=20261025b';
 // Task 2.2（2026-10-25）：归档单一事实——活动归档与 archiveRecords 同事务同步（纯函数，server 同源）
-import { upsertActivityArchiveRecord } from '../../data/mock/derive.js?v=20261025a';
+import { upsertActivityArchiveRecord } from '../../data/mock/derive.js?v=20261025b';
 
-const MOCK_DELAY_MS = 600;
+// 2026-10-26 Task 2.1：延迟不再写死 600ms，统一取 data/mock-adapter.js::mockDelayMs()
+// （window.__MOCK_DELAY_MS / MOCK_DELAY_MS 环境变量可覆盖，默认 80ms）。
 
 // ── 持久化引擎 ──────────────────────────────────────────────────
 
@@ -72,7 +73,9 @@ export function loadDB() {
   // MockAdapter.loadDB 之前（其内 handleResetIfRequested 仅认 demo/preview，init 未命中
   // 返回 false 走既有档位；命中则清库整页导航并中止本次加载）。
   if (handleInitResetIfRequested()) return;
-  MockAdapter.loadDB();
+  // Task 2.2（2026-10-26）：MockAdapter.loadDB 已加页面级幂等锁——同一页面第二次调用返回 false，
+  // 此处直接复用首个结果，不再重置版本戳 / 重新注入生效策略（每页只做一次种子修复 + 派生）。
+  if (MockAdapter.loadDB() === false) return;
   // P0 重置/overlay 导入路径（mock-adapter 禁改 → 由本可改入口兜底）：loadDB 会整体恢复/
   // 重播种 mockDB（含 ?reset= 清理路径）→ 清空域写版本戳，聚合复合键归零自然重算。
   resetAllTokens();
@@ -100,13 +103,13 @@ function _loginPersonId() {
   } catch (_) { return null; }
 }
 
-/** 包装为带固定延迟的 Promise */
+/** 包装为带可配置延迟的 Promise（延迟源见 mock-adapter.js::mockDelayMs） */
 function _withDelay(fn) {
   return new Promise((resolve, reject) => {
     setTimeout(() => {
       try { resolve(fn()); }
       catch (e) { reject(e); }
-    }, MOCK_DELAY_MS);
+    }, mockDelayMs());
   });
 }
 
@@ -325,14 +328,14 @@ export function archiveActivity(id) {
       }
       // ③ 关联通知系统归档（NoticeStore 单一实现）
       try {
-        const { NoticeStore } = await import('../governance/notice.js?v=20261025a');
+        const { NoticeStore } = await import('../governance/notice.js?v=20261025b');
         NoticeStore.archiveBySource('activity', id);
       } catch (e) {
         console.warn('[MockAdapter] 归档关联通知失败：', e);
       }
       // ④ 销项「待归档」待办（归档动作是唯一销项点；不再新建）
       try {
-        const { TodoStore } = await import('../governance/todo.js?v=20261025a');
+        const { TodoStore } = await import('../governance/todo.js?v=20261025b');
         TodoStore.completeByAction('activity', id, 'activity-archive');
       } catch (e) {
         console.warn('[MockAdapter] 销项待归档待办失败：', e);

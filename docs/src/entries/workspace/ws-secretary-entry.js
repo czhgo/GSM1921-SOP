@@ -2,15 +2,15 @@
 // ws-secretary-entry.js — 支书工作台入口（T-279 拆分；T-304 代码减负 2026-08-30：骨架并入 workspace-shell）
 // 入口职责：壳配置（注册表 tab 清单 + 导航落点 + 数据加载），角色特有逻辑仅保留。
 
-import { getAppState, setState } from '../../core/base/state.js?v=20261025a';
-import { createWorkspaceShell } from '../../components/shell/workspace-shell.js?v=20261025a';
-import { _currentYearMonth } from '../../core/base/utils.js?v=20261025a';
-import { loadActivities } from '../../services/activity/activity.js?v=20261025a';
-import { BranchService } from '../../services/core/runtime.js?v=20261025a';
-import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261025a';
-import { SignupStore } from '../../services/activity/signup.js?v=20261025a';
+import { getAppState, setState } from '../../core/base/state.js?v=20261025b';
+import { createWorkspaceShell } from '../../components/shell/workspace-shell.js?v=20261025b';
+import { _currentYearMonth, showToast } from '../../core/base/utils.js?v=20261025b';
+import { loadActivities } from '../../services/activity/activity.js?v=20261025b';
+import { BranchService } from '../../services/core/runtime.js?v=20261025b';
+import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261025b';
+import { SignupStore } from '../../services/activity/signup.js?v=20261025b';
 // T-304 Q3 权限收敛：副作用导入触发支书工作台能力注册（tab 清单，与其余 5 工作台对齐）
-import '../../capabilities/secretary-workspace.js?v=20261025a';
+import '../../capabilities/secretary-workspace.js?v=20261025b';
 
 await createWorkspaceShell({
   accentRole: 'secretary',
@@ -80,18 +80,29 @@ await createWorkspaceShell({
 //   该入口——复用服务层同一份 `isReadonlyBranchDrilldown()`（单一源），且 `openWriteModal()` 内
 //   另有写口门兜底。
 const [{ mountHeaderCta }, { isReadonlyBranchDrilldown }, { AuthStore }] = await Promise.all([
-  import('../../components/shell/header.js?v=20261025a'),
-  import('../../services/core/branch-demo-nav.js?v=20261025a'),
-  import('../../services/core/auth.js?v=20261025a'),
-]);
+  import('../../components/shell/header.js?v=20261025b'),
+  import('../../services/core/branch-demo-nav.js?v=20261025b'),
+  import('../../services/core/auth.js?v=20261025b'),
+]).catch((e) => {
+  // 2026-10-25 Task 1.3：顶栏依赖 import 失败也要可见（并降级为不挂写入口），不抛裸 unhandledrejection。
+  console.error('[ws-secretary] 顶栏依赖加载失败，已降级为只读顶栏', e);
+  showToast('error', '顶栏功能加载失败，刷新后重试');
+  return [{}, { isReadonlyBranchDrilldown: () => true }, { AuthStore: { getCurrentUser: () => null } }];
+});
 // 只读下钻（党委选支只读视图 / 只读身份）不挂写入口：顶栏不渲染「写入活动」。
 const _canWriteActivity = !isReadonlyBranchDrilldown() && AuthStore.getCurrentUser()?.role !== 'party-staff';
 if (_canWriteActivity) {
   mountHeaderCta(
-    '<button id="ws-sec-write-btn" type="button" class="btn-ghost header-action-btn" aria-haspopup="dialog">写入活动</button>',
+    '<button id="ws-sec-write-btn" type="button" class="btn-outline header-action-btn" aria-haspopup="dialog">写入活动</button>',
     (slot) => {
       slot.querySelector('#ws-sec-write-btn')?.addEventListener('click', () => {
-        import('../../entries/tabs/secretary/calendar-tab.js?v=20261025a').then((m) => m.openActivityWriteForm());
+        // 2026-10-25 Task 1.3：动态 import 必须接住失败——可见 toast + 控制台，不再 unhandledrejection。
+        import('../../entries/tabs/secretary/calendar-tab.js?v=20261025b')
+          .then((m) => m.openActivityWriteForm())
+          .catch((e) => {
+            console.error('[ws-secretary] 写入活动面板加载失败', e);
+            showToast('error', '「写入活动」面板加载失败，请重试');
+          });
       });
     },
   );

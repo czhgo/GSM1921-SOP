@@ -9,25 +9,25 @@
 //   · 读侧数据不动写（除页面跳转外无任何保存/报送控件）。
 // 保留「人才库=只读画像、名册=档案维护」页内注释与引导文案。
 
-import { loadInspectionRecords } from '../../../services/activity/inspection.js?v=20261025a';
+import { loadInspectionRecords } from '../../../services/activity/inspection.js?v=20261025b';
 // ⚠ 2026-10-01 批次 321（支书 V-10 取「乙：整页并入人才库」）：原「发展数据」tab 的**活动参与汇总**卡
 //   并入本页——「参与工作情况」正是**考察**的主体，支书原话「**考察就是维护人才库的过程！！**」。
-import { listActivityParticipationByPerson } from '../../../services/activity/attendance.js?v=20261025a';
+import { listActivityParticipationByPerson } from '../../../services/activity/attendance.js?v=20261025b';
 // R2-15（2026-10-20）：预备期月数改由制度参数派生（原 12/9 写死在本页）
-import { POLICY_DEFAULTS } from '../../../core/domain/policy-defaults.js?v=20261025a';
-import { loadThoughtReports } from '../../../services/governance/thought-report.js?v=20261025a';
-import { PersonStore, getPersonName } from '../../../services/member/person.js?v=20261025a';
+import { POLICY_DEFAULTS } from '../../../core/domain/policy-defaults.js?v=20261025b';
+import { loadThoughtReports } from '../../../services/governance/thought-report.js?v=20261025b';
+import { PersonStore, getPersonName } from '../../../services/member/person.js?v=20261025b';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/member/person.js 获取（原直连 mock PEOPLE）
-import { getResidenceOf } from '../../../services/member/roster.js?v=20261025a';
+import { getResidenceOf } from '../../../services/member/roster.js?v=20261025b';
 // Q-21-3 收敛（2026-09-13）：在册状态枚举单一源 = core/domain/constants.js（原经 roster.js 转出）
-import { RESIDENCE } from '../../../core/domain/constants.js?v=20261025a';
+import { RESIDENCE } from '../../../core/domain/constants.js?v=20261025b';
 // B5（2026-09-12）：搜索 + 阶段/党小组筛选已统一接入 components/ui/list-filter.js（分面枚举由引擎 auto 派生）
-import { listPendingConfirmations, lastApprovedStageChange } from '../../../services/member/member-confirmation.js?v=20261025a';
-import { escHtml as esc, getBasePath } from '../../../core/base/utils.js?v=20261025a';
+import { listPendingConfirmations, lastApprovedStageChange } from '../../../services/member/member-confirmation.js?v=20261025b';
+import { escHtml as esc, getBasePath } from '../../../core/base/utils.js?v=20261025b';
 // 统一检索引擎（2026-09-13 表格统一化批次 A）：成员卡列表接入关键词 + 分面（替代原手写三控件显隐过滤）
-import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261025a';
-import { renderTabHeader, renderCardHeader } from '../../../components/shell/page-frame.js?v=20261025a';
-import { bindDisclosures } from '../../../components/ui/disclosure.js?v=20261025a';
+import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261025b';
+import { renderTabHeader, renderCardHeader } from '../../../components/shell/page-frame.js?v=20261025b';
+import { bindDisclosures } from '../../../components/ui/disclosure.js?v=20261025b';
 
 // 发展阶段顺序（发展流程正向：入党申请人 → 积极分子 → 发展对象 → 预备党员 → 正式党员）
 const STAGE_ORDER = ['积极分子', '发展对象', '预备党员', '正式党员'];
@@ -278,10 +278,11 @@ export function renderContent(ctx) {
 
   // ⚠ 2026-10-01 批次 321（支书 V-10 取「甲：阶段变更移到个人总表」）：原「去发展数据 →」跳转已废——
   //   「发展数据」页签并入本页，**阶段推进的写入位＝个人总表（`person.html`）** ⇒ 该按钮改为直达个人总表。
-  // 事件委托（容器持久）：引擎筛选重渲染后行内按钮仍可点；dataset 守卫防重复绑定
-  if (!container.dataset.talentJumpBound) {
-    container.dataset.talentJumpBound = '1';
-    container.addEventListener('click', (e) => {
+  // 事件委托（2026-10-25 Task 1.5）：改挂**本次 renderContent 新建**的 `#talent-list`（行随筛选重绘但宿主
+  //   在位），不再用持久容器 `#org-tab-content` 上的 dataset 标记 ⇒ 离开再回来新控件仍有监听。
+  const talentList = container.querySelector('#talent-list');
+  if (talentList) {
+    talentList.addEventListener('click', (e) => {
       const btn = e.target.closest('.talent-person-jump');
       if (btn && btn.dataset.personId) {
         window.location = getBasePath() + 'person.html?id=' + encodeURIComponent(btn.dataset.personId);
@@ -320,7 +321,7 @@ function _renderInspectionSlot(container, ctx) {
   const mount = () => {
     if (!body || body.dataset.inspectionMounted === '1') return;
     body.dataset.inspectionMounted = '1';
-    import('./inspection-tab.js?v=20261025a').then((m) => {
+    import('./inspection-tab.js?v=20261025b').then((m) => {
       if (!body.isConnected) return;
       m.renderContent(ctx, body);
       _normalizeInspectionCopy(body);

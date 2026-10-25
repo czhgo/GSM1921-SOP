@@ -5,7 +5,7 @@
 //  设计原则：点击按钮→弹出浮窗→在浮窗中完成写入→关闭浮窗
 //  页面保持清爽，所有表单/编辑器都在浮窗中完成
 
-import { escHtml, describeWriteError } from '../../core/base/utils.js?v=20261025a';
+import { escHtml, describeWriteError } from '../../core/base/utils.js?v=20261025b';
 
 // 2026-09-13 修复（成员档案模态走查暴露）：Esc 监听原只在「按 Esc 关闭」这一条路径上注销，
 // 走遮罩点击/关闭按钮/程序化 closeModal 关闭时监听残留 → 反复打开同一 id 浮窗会累积 keydown
@@ -223,7 +223,7 @@ function _releaseInert(id) {
  * @param {Function} options.onMount - 浮窗挂载后的回调（绑定事件等），参数为浮窗容器
  * @param {string} [options.width] - 覆盖宽度（一般不传，改用 size）
  * @param {'sm'|'md'|'lg'} [options.size='md'] - 尺寸档（400 / 480 / 720px）
- * @param {string} [options.accentColor='var(--accent-blue)'] - 标题栏强调色
+ * @param {string} [options.accentColor='var(--app-accent)'] - 标题栏强调色
  * @param {string} [options.footerHtml=''] - 页脚动作 HTML（取消 + 提交；**固定在 `.modal-body` 之外**）
  * @param {boolean} [options.footerSticky=true] - 页脚是否 sticky（默认即符合体例，调用方不必重复写）
  * @param {Function} [options.onCancel] - 「取消」回调（取消按钮 / Esc / 遮罩 / × 四条路径统一触发；
@@ -266,7 +266,7 @@ export function settingsLinkHTML(settingsLink) {
 export function openModal({
   id, title, bodyHtml, onMount,
   width = '', size = 'md',
-  accentColor = 'var(--accent-blue)', settingsLink = null,
+  accentColor = 'var(--app-accent)', settingsLink = null,
   dismissable = true,
   footerHtml = '', footerSticky = true,
   onCancel = null,
@@ -461,7 +461,7 @@ function _isDevEnv() {
 
 export function openFormModal({
   id, title, fields, onSubmit, submitLabel = '保存',
-  accentColor = 'var(--accent-blue)', initialValues = {}, settingsLink = null,
+  accentColor = 'var(--app-accent)', initialValues = {}, settingsLink = null,
   size = 'md', footerSticky = true, onCancel = null,
   groupTitle = '填写内容',
 }) {
@@ -485,7 +485,7 @@ export function openFormModal({
   const fieldHtml = (f) => {
     const val = initialValues[f.key] != null ? initialValues[f.key] : '';
     const fid = fieldId(f.key);
-    const reqMark = f.required ? '<span style="color:var(--functional-error);">*</span>' : '';
+    const reqMark = f.required ? '<span style="color:var(--status-error);">*</span>' : '';
     const requiredAttr = f.required ? ' required aria-required="true"' : '';
     const label = `<label for="${escHtml(fid)}" style="${labelStyle}" class="text-body-sm">${escHtml(f.label)}${reqMark}</label>`;
     if (f.type === 'select') {

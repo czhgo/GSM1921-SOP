@@ -19,23 +19,23 @@
 // 视觉沿用 card/rounded 既有体系（四档列表渲染在 components/record/todo-list.js renderUrgencyTodoList）。
 // 设计权威源：content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md §六 M6（共性抽象净减）
 
-import { TodoStore, urgeRolesOf, WORK_DOMAIN, WORK_DOMAIN_LABELS, realtimeGroupDomainOf, buildModuleCycleRemindGroup } from '../../services/governance/todo.js?v=20261025a';
+import { TodoStore, urgeRolesOf, WORK_DOMAIN, WORK_DOMAIN_LABELS, realtimeGroupDomainOf, buildModuleCycleRemindGroup } from '../../services/governance/todo.js?v=20261025b';
 // S3②（2026-09-12）：未读通知计数单一来源——与顶栏角标/首页同源（NoticeStore activeOnly+read 过滤），
 // 不再用「通知类待办」现算（口径不同致三处不一致）。
-import { NoticeStore, NOTICE_MODULE_ROLE_PAGES } from '../../services/governance/notice.js?v=20261025a';
-import { buildUrgencySections, renderUrgencyTodoList } from './todo-list.js?v=20261025a';
-import { badgeHtml } from '../ui/badges.js?v=20261025a';
-import { showToast, escHtml, todayLocal, flashHighlight } from '../../core/base/utils.js?v=20261025a';
-import { ROLE_LABELS, BRANCH_COMMISSION_ROLES } from '../../core/domain/constants.js?v=20261025a';
-import { openModal, closeModal } from '../ui/modal.js?v=20261025a';
-import { AuthStore } from '../../services/core/auth.js?v=20261025a';
-import { mockDB } from '../../core/domain/domain.js?v=20261025a';
-import { tokenOf } from '../../core/base/version-token.js?v=20261025a'; // P0 域写版本戳（spec §二.4）
-import { resolveDocumentUrl } from '../../core/base/page-url.js?v=20261025a';
-import { memoizeRender } from '../ui/memoize-render.js?v=20261025a'; // P2 渲染守卫（spec §四.1）
-import { renderTabHeader } from '../shell/page-frame.js?v=20261025a'; // 页题单一源（H2）
+import { NoticeStore, NOTICE_MODULE_ROLE_PAGES } from '../../services/governance/notice.js?v=20261025b';
+import { buildUrgencySections, renderUrgencyTodoList } from './todo-list.js?v=20261025b';
+import { badgeHtml } from '../ui/badges.js?v=20261025b';
+import { showToast, escHtml, todayLocal, flashHighlight } from '../../core/base/utils.js?v=20261025b';
+import { ROLE_LABELS, BRANCH_COMMISSION_ROLES } from '../../core/domain/constants.js?v=20261025b';
+import { openModal, closeModal } from '../ui/modal.js?v=20261025b';
+import { AuthStore } from '../../services/core/auth.js?v=20261025b';
+import { mockDB } from '../../core/domain/domain.js?v=20261025b';
+import { tokenOf } from '../../core/base/version-token.js?v=20261025b'; // P0 域写版本戳（spec §二.4）
+import { resolveDocumentUrl } from '../../core/base/page-url.js?v=20261025b';
+import { memoizeRender } from '../ui/memoize-render.js?v=20261025b'; // P2 渲染守卫（spec §四.1）
+import { renderTabHeader } from '../shell/page-frame.js?v=20261025b'; // 页题单一源（H2）
 // 模块周期提醒（`R-29⑤` · `D-804`）：分工快照取法与 `components/governance/workforce-duty-card.js` 同口径
-import { getBranchIdOfPerson, getBranchWorkforce } from '../../services/branch/branch.js?v=20261025a';
+import { getBranchIdOfPerson, getBranchWorkforce } from '../../services/branch/branch.js?v=20261025b';
 
 // ── 「我经办的反馈」区（2026-10-25 IA 62→45 · spec Task 5）──────────────
 // 五台原「我的处置」页签已删（与待办同属「我的待处理」，只是对象为反馈）⇒ 并入本页成一段。
@@ -172,8 +172,9 @@ function _applyNavHighlight(container, id, matchedGroup) {
 /**
  * 顶部四数摘要带（逾期 / 今日 / 本周 / 待处理）——一条横向带，不拆四张 KPI 卡。
  * 数值由 buildUrgencySections 与列表共用同一批分组数据算出，不另立口径。
- * 视觉：.metric-band（数字 + 标签 12px + 细竖线）；**仅逾期件数 > 0 时**加 `metric-band__value--warning`，
- *   0 件时保持中性（颜色只表状态，不得恒加警示类）。
+ * 视觉：.metric-band--static（只有 span，纯只读摘要 ⇒ 无 hover / 无边框交互态）；
+ *   **仅逾期件数 > 0 时**加 `metric-band__value--warning`，0 件时保持中性
+ *   （颜色只表状态，不得恒加警示类）。
  */
 function _urgencySummaryHtml(summary) {
   const item = (label, value, tone) => `
@@ -183,7 +184,7 @@ function _urgencySummaryHtml(summary) {
     </span>`;
   const overdueTone = (Number(summary.overdue) || 0) > 0 ? 'warning' : '';
   return `
-    <div class="metric-band mb-4" role="group" aria-label="待办摘要">
+    <div class="metric-band metric-band--static mb-4" role="group" aria-label="待办摘要">
       ${item('逾期', summary.overdue, overdueTone)}
       ${item('今日', summary.today, '')}
       ${item('本周', summary.week, '')}
@@ -255,7 +256,7 @@ function _mountDispatchSection(container, role, ctx) {
     host.innerHTML = '<p class="text-xs text-gray-500 text-center py-6">请先登录</p>';
     return;
   }
-  import('../feedback/issue-dispatch-view.js?v=20261025a').then((m) => {
+  import('../feedback/issue-dispatch-view.js?v=20261025b').then((m) => {
     if (!host.isConnected) return;
     host.innerHTML = m.renderMyDispatchTab(cfg.roleKey, uid, { ...cfg.opts, embedded: true });
     m.bindMyDispatchEvents(host, cfg.roleKey, uid, cfg.opts);
@@ -713,7 +714,7 @@ function _openVoidModal(group, { isCommittee, onDone } = {}) {
   openModal({
     id: 'todo-void-modal',
     title: isCommittee ? '作废待办' : '申请作废（报支委会）',
-    accentColor: 'var(--functional-error)',
+    accentColor: 'var(--status-error)',
     bodyHtml: `
       <p class="text-sm text-gray-700 mb-1">${isCommittee
         ? `确认作废「${escHtml(label)}」？作废＝不办了（留痕、可追溯），与「完成」不同。`

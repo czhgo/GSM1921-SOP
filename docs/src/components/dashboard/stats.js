@@ -5,20 +5,20 @@
 //  职责单一：统计卡渲染 + 考勤明细弹窗（点击统计卡查看本月考勤）。
 // ════════════════════════════════════════════════════════════════
 
-import { NoticeStore } from '../../services/governance/notice.js?v=20261025a';
-import { _fmtDate } from '../../core/base/utils.js?v=20261025a';
-import { icon } from '../../core/base/icons.js?v=20261025a';
+import { NoticeStore } from '../../services/governance/notice.js?v=20261025b';
+import { _fmtDate } from '../../core/base/utils.js?v=20261025b';
+import { icon } from '../../core/base/icons.js?v=20261025b';
 // 活动「已归档」口径单一源（2026-09-13 收敛）：替代手写 !a.archived
-import { isActivityArchived } from '../../core/domain/constants.js?v=20261025a';
-import { isTaskforceActiveStatus } from '../../core/domain/domain.js?v=20261025a';
+import { isActivityArchived } from '../../core/domain/constants.js?v=20261025b';
+import { isTaskforceActiveStatus } from '../../core/domain/domain.js?v=20261025b';
 // R2-47：出勤率语义单一源——首页「个人考勤」按应到人次（不是按已录记录），未录显示「待录入」
-import { summarizePersonAttendanceByRoster, attendanceRateTone } from '../../services/activity/attendance.js?v=20261025a';
+import { summarizePersonAttendanceByRoster, attendanceRateTone } from '../../services/activity/attendance.js?v=20261025b';
 
 const ATTENDANCE_STATUS_DOT = {
-  present:  { text: '出勤', cls: 'text-green-700', dot: 'var(--functional-success)' },
-  absent:   { text: '缺勤', cls: 'text-red-600',  dot: 'var(--functional-error)' },
+  present:  { text: '出勤', cls: 'text-green-700', dot: 'var(--status-success)' },
+  absent:   { text: '缺勤', cls: 'text-red-600',  dot: 'var(--status-error)' },
   leave:    { text: '请假', cls: 'text-orange-500', dot: '#F97316' },
-  made_up:  { text: '已补', cls: 'text-blue-500', dot: 'var(--functional-info)' },
+  made_up:  { text: '已补', cls: 'text-blue-500', dot: 'var(--status-info)' },
 };
 
 // 弹窗的 document 级关闭监听防重绑定（统计卡即时刷新会反复调用）
@@ -78,7 +78,7 @@ export function renderDashboardStats({ activities, taskforces, notices, attendan
 
   // A-01 修复：color 统一为 hex 常量，图标底色用 8 位 hex（${hex}15），var+hex 拼接无法解析
   // 2026-08-10 支书两次裁定·首页统计卡最终配色：活动=蓝 #3B82F6 / 专班=亮金 #F59E0B / 未读通知=红 #DC2626 / 考勤=状态三色
-  // 2026-09-12 R-13 浅色对比收口：专班亮金 #F59E0B 在浅底 2.15 不达大字 3:1，升档为既有色阶 --accent-amber #D97706（3.19）；
+  // 2026-09-12 R-13 浅色对比收口：专班亮金 #F59E0B 在浅底 2.15 不达大字 3:1，升档为状态警告色 --status-warning（3.19）；
   // 零值弱化色 #9CA3AF 不达 3:1，升档为 --neutral-500（浅 4.83 / 深 #94A3B8 6.57，深色不退化）
   // 卡片过拟合修正（2026-09-13 支书裁定「专班只是工作的一部分；三会一课是规范表达，专班是本支部自己的表达」）：
   // 「活跃专班」是**本支部自创工作方法**（workflow/blocks/manifests.js: provenance='branch-custom'），

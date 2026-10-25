@@ -76,7 +76,10 @@ test('W5 工作分工表列固定：工作分工 / 负责人 / 在办 / 逾期 /
   }
   assert.ok(!OVERVIEW.includes("label: '动作'"), 'R3-29：独立「动作」列已删除（并入「待处理」）');
   assert.match(OVERVIEW, /tableHeadHtml\(LINE_COLUMNS\)/, '表头须由 data-table 的 tableHeadHtml 生成');
-  assert.match(OVERVIEW, /class="data-table wo-lines-table"/, '工作分工表须使用 .data-table');
+  // 2026-10-26 Task 3.4：条线表加 table-layout:fixed 定列宽档（余量不再被末列吃掉），故类串多一个
+  //   `data-table--fixed`；仍是 .data-table 一套，覆盖面向「工作分工表」本体不变。
+  assert.match(OVERVIEW, /class="data-table data-table--fixed wo-lines-table"/,
+    '工作分工表须使用 .data-table（并挂定列宽档 .data-table--fixed）');
 });
 
 test('W6 复用模块与既有下钻仍在', () => {

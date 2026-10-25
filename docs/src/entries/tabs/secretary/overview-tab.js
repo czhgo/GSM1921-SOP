@@ -9,19 +9,21 @@
 //（listPeriodicArchivesPendingReview / reviewPeriodicArchive / PERIODIC_ARCHIVE_REVIEW_STATUS），
 // 本页只做呈现与交互，不另写状态名、不改后端 API/数据模型/权限链。
 
-import { currentUserId } from '../../../services/core/auth.js?v=20261025a';
-import { renderWorkOverview } from '../../../components/governance/work-overview.js?v=20261025a';
+import { currentUserId } from '../../../services/core/auth.js?v=20261025b';
+import { renderWorkOverview } from '../../../components/governance/work-overview.js?v=20261025b';
 import {
   listPeriodicArchivesPendingReview, reviewPeriodicArchive,
-} from '../../../services/governance/secretary-overview.js?v=20261025a';
-import { getPersonName } from '../../../services/member/person.js?v=20261025a';
-import { listRowHtml, listGroupHtml } from '../../../components/ui/list-row.js?v=20261025a';
-import { emptyStateHtml } from '../../../components/ui/empty-state.js?v=20261025a';
-import { openModal, closeModal } from '../../../components/ui/modal.js?v=20261025a';
+} from '../../../services/governance/secretary-overview.js?v=20261025b';
+import { getPersonName } from '../../../services/member/person.js?v=20261025b';
+import { listRowHtml, listGroupHtml } from '../../../components/ui/list-row.js?v=20261025b';
+import { emptyStateHtml } from '../../../components/ui/empty-state.js?v=20261025b';
+import { openModal, closeModal } from '../../../components/ui/modal.js?v=20261025b';
 import {
   showToast, flashHighlight, getBasePath, escHtml as esc,
-} from '../../../core/base/utils.js?v=20261025a';
-import { renderCardHeader } from '../../../components/shell/page-frame.js?v=20261025a';
+} from '../../../core/base/utils.js?v=20261025b';
+import { renderCardHeader } from '../../../components/shell/page-frame.js?v=20261025b';
+// 2026-10-25 Task 1.3：页内失败态（错误卡 + 重试）单一源，替代动态 import 无 catch 的静默失败。
+import { mountTabFailure } from '../../../components/shell/tab-bar.js?v=20261025b';
 
 const OVERVIEW_TAB_HTML = `
   <div id="secretary-overview-content"></div>
@@ -45,13 +47,14 @@ function _resolveHighlightId(ctx) {
 /** 渲染全局概况 tab（六台共用同一骨架 + 支书专属「周期归档待审核」卡） */
 export async function renderContent(ctx = {}) {
   const tc = document.getElementById('secretary-tab-content');
-  if (!tc) return null;
+  // 2026-10-25 Task 1.3：容器缺失不静默——抛出后由 tab-bar 生命周期落可见错误卡（含重试）。
+  if (!tc) throw new Error('[overview-tab] 缺少内容容器 #secretary-tab-content');
   if (tc.dataset.currentTab !== 'overview') {
     tc.innerHTML = OVERVIEW_TAB_HTML;
     tc.dataset.currentTab = 'overview';
   }
   const container = document.getElementById('secretary-overview-content');
-  if (!container) return null;
+  if (!container) throw new Error('[overview-tab] 缺少 #secretary-overview-content');
   // P1-11：失效会话不再回落到组长 p1（原兜底会把支书的写操作记到别人名下）；
   //   读口照常渲染，写口在 _mountPeriodicReview 内显式拒绝并提示重新登录。
   const personId = currentUserId();
@@ -92,8 +95,12 @@ function _mountInsightCard(host, ctx = {}) {
       <div id="secretary-insight-body"></div>`;
   }
   const body = host.querySelector('#secretary-insight-body');
-  if (!body) return;
-  import('../../../components/record/insight-view.js?v=20261025a').then((m) => m.renderInsightView(body, {
+  if (!body) {
+    mountTabFailure(host, { message: '知情查看卡加载失败，重试', onRetry: () => _mountInsightCard(host, ctx) });
+    return;
+  }
+  // 2026-10-25 Task 1.3：动态 import 必须接住失败——原位错误卡 + 重试，不再只有 unhandledrejection。
+  import('../../../components/record/insight-view.js?v=20261025b').then((m) => m.renderInsightView(body, {
     embedded: true,
     views: ['workgroup', 'taskforce'],
     defaultView: 'workgroup',
@@ -101,7 +108,10 @@ function _mountInsightCard(host, ctx = {}) {
     highlightActId: ctx?.highlightActId || null,
     highlightTfId: ctx?.highlightTfId || null,
     onLocated: () => { if (ctx?.onNavLocated) ctx.onNavLocated(); },
-  }));
+  })).catch((e) => {
+    console.error('[overview-tab] 知情查看卡加载失败', e);
+    mountTabFailure(body, { message: '知情查看卡加载失败，重试', onRetry: () => _mountInsightCard(host, ctx) });
+  });
   if (!_insightMounted && ctx?.navTarget?.section === 'insight') {
     _insightMounted = true;
     host.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -119,7 +129,7 @@ function _periodicReviewSectionHtml(reports) {
       : '时间未记录';
     return listRowHtml({
       rowType: 'action',
-      leading: '<span class="w-2 h-2 rounded-full flex-shrink-0" style="background:var(--functional-warning);"></span>',
+      leading: '<span class="w-2 h-2 rounded-full flex-shrink-0" style="background:var(--status-warning);"></span>',
       title: label,
       meta: `${submitter} · 提交于 ${submittedAt}`,
       description: range,

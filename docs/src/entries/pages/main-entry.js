@@ -4,27 +4,29 @@
 // 各区块渲染已拆至 components/dashboard/：stats（统计卡+考勤弹窗）/ activity-panel（活动日历+列表）/ taskforce-list / gallery。
 // 本文件仅保留：bootstrap、工作台链接修正、renderUI 调度、renderDashboard 组装+导航委托、数据变更即时刷新。
 
-import { BranchService } from '../../services/core/runtime.js?v=20261025a';
-import { STATE, setState, registerRenderCallback, getAppState } from '../../core/base/state.js?v=20261025a';
-import { NoticeStore } from '../../services/governance/notice.js?v=20261025a';
+import { BranchService } from '../../services/core/runtime.js?v=20261025b';
+import { STATE, setState, registerRenderCallback, getAppState } from '../../core/base/state.js?v=20261025b';
+import { NoticeStore } from '../../services/governance/notice.js?v=20261025b';
 // 视图层独立：renderNoticeList 属「通知视图层」（G1 第③项服务层不产 UI，2026-09-28 迁出）
-import { renderNoticeList } from '../../components/governance/notice-view.js?v=20261025a';
-import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261025a';
-import { getBasePath } from '../../core/base/utils.js?v=20261025a';
-import { loadAttendanceRecords, loadActiveAttendanceRecords } from '../../services/activity/attendance.js?v=20261025a';
-import { loadActivities } from '../../services/activity/activity.js?v=20261025a';
-import { CrossPageState } from '../../core/session/cross-page-state.js?v=20261025a';
-import { bootstrapPage } from '../../core/boot/bootstrap.js?v=20261025a';
-import { AuthStore } from '../../services/core/auth.js?v=20261025a';
-import { getHeaderTitle } from '../../services/branch/branch.js?v=20261025a';
-import { loadWorkspaceData } from '../../data/data-loader.js?v=20261025a';
-import { DATA_CHANGED_EVENT, probeRemoteChanges } from '../../data/data-adapter.js?v=20261025a';
-import '../../capabilities/activity-calendar.js?v=20261025a'; // 副作用导入：注册首页活动日历能力
+import { renderNoticeList } from '../../components/governance/notice-view.js?v=20261025b';
+import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261025b';
+import { getBasePath } from '../../core/base/utils.js?v=20261025b';
+import { loadAttendanceRecords, loadActiveAttendanceRecords } from '../../services/activity/attendance.js?v=20261025b';
+import { loadActivities } from '../../services/activity/activity.js?v=20261025b';
+import { CrossPageState } from '../../core/session/cross-page-state.js?v=20261025b';
+// Task 6：首页活动/专班行 → 完整详情页（首页是跨对象聚合面，不属对象工作台 ⇒ direct）。
+import { objectDetailHref } from '../../core/domain/object-route.js?v=20261025b';
+import { bootstrapPage } from '../../core/boot/bootstrap.js?v=20261025b';
+import { AuthStore } from '../../services/core/auth.js?v=20261025b';
+import { getHeaderTitle } from '../../services/branch/branch.js?v=20261025b';
+import { loadWorkspaceData } from '../../data/data-loader.js?v=20261025b';
+import { DATA_CHANGED_EVENT, probeRemoteChanges } from '../../data/data-adapter.js?v=20261025b';
+import '../../capabilities/activity-calendar.js?v=20261025b'; // 副作用导入：注册首页活动日历能力
 // ── 方案 B 入口拆分：dashboard 区块渲染模块 ──
-import { renderDashboardStats } from '../../components/dashboard/stats.js?v=20261025a';
-import { renderActivityList, renderActivityCalendar, initActivityTabs, getInitialActivityView } from '../../components/dashboard/activity-panel.js?v=20261025a';
-import { renderWorkgroupProgress } from '../../components/dashboard/taskforce-list.js?v=20261025a';
-import { renderGallery } from '../../components/dashboard/gallery.js?v=20261025a';
+import { renderDashboardStats } from '../../components/dashboard/stats.js?v=20261025b';
+import { renderActivityList, renderActivityCalendar, initActivityTabs, getInitialActivityView } from '../../components/dashboard/activity-panel.js?v=20261025b';
+import { renderWorkgroupProgress } from '../../components/dashboard/taskforce-list.js?v=20261025b';
+import { renderGallery } from '../../components/dashboard/gallery.js?v=20261025b';
 
 // ── 时序修复（2026-09-10「归属显示不一致」；正确先例 settings-entry.js:1236-1244）──
 // header 品牌标题经 getHeaderTitle 读 mockDB.branches，必须先完成 BranchService.loadDB()
@@ -133,22 +135,20 @@ function renderDashboard(state) {
     const wsBase = user
       ? getBasePath() + 'workspace/' + (AuthStore.getPageForRole('workspace', user.role) || 'visitor.html')
       : '';
-    // C08（2026-10-20）：党委台没有 onNavTarget，`party-committee.html?activityId=` 会丢对象 ⇒
-    // 党委组织员的活动 / 专班一律落公开详情页。
-    const isPartyStaff = !!user && user.role === 'party-staff';
+    // Task 6（2026-10-26）：首页活动/专班行按「direct」直达完整详情页。
+    // 首页是跨对象聚合面，不属于对象工作台 ⇒ 不落各台再定位（locate 只用于对象所属工作台内的入口）。
+    // 缺 id 时退回工作台/登录入口，不生成空 id 链接。
     /** 活动行落点：未登录 → 登录页（next＝活动详情，登录后回对象） */
     const activityUrl = (actId) => {
-      if (!actId) return user ? wsBase : _loginHrefFor(window.location.href);
-      if (!user) return _loginHrefFor(`${getBasePath()}activity.html?id=${encodeURIComponent(actId)}`);
-      if (isPartyStaff) return `${getBasePath()}activity.html?id=${encodeURIComponent(actId)}`;
-      return CrossPageState.buildURL(wsBase, { activityId: actId });
+      const href = objectDetailHref('activity', actId, { entry: 'home' });
+      if (!href) return user ? wsBase : _loginHrefFor(window.location.href);
+      return user ? `${getBasePath()}${href}` : _loginHrefFor(`${getBasePath()}${href}`);
     };
-    /** 专班行落点：同上（C08：党委台落 taskforce.html?id=） */
+    /** 专班行落点：同上（直接到 taskforce.html?id=） */
     const taskforceUrl = (tfId) => {
-      if (!tfId) return user ? wsBase : _loginHrefFor(window.location.href);
-      if (!user) return _loginHrefFor(`${getBasePath()}taskforce.html?id=${encodeURIComponent(tfId)}`);
-      if (isPartyStaff) return `${getBasePath()}taskforce.html?id=${encodeURIComponent(tfId)}`;
-      return CrossPageState.buildURL(wsBase, { taskforceId: tfId });
+      const href = objectDetailHref('taskforce', tfId, { entry: 'home' });
+      if (!href) return user ? wsBase : _loginHrefFor(window.location.href);
+      return user ? `${getBasePath()}${href}` : _loginHrefFor(`${getBasePath()}${href}`);
     };
 
     const actItem = e.target.closest('[data-activity-id]');

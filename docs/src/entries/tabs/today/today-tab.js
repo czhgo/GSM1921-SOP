@@ -32,43 +32,45 @@
 // 注入防护：标题/内容/截止等用户可控数据一律经 escHtml 后入 innerHTML。
 // ════════════════════════════════════════════════════════════════
 
-import { escHtml as esc, _fmtDate } from '../../../core/base/utils.js?v=20261025a';
-import { icon } from '../../../core/base/icons.js?v=20261025a';
-import { buildTodaySummary, TODO_ACTION_ORDER, TODO_ACTION_LABELS } from '../../../services/governance/today-summary.js?v=20261025a';
+import { escHtml as esc, _fmtDate } from '../../../core/base/utils.js?v=20261025b';
+import { icon } from '../../../core/base/icons.js?v=20261025b';
+import { buildTodaySummary, TODO_ACTION_ORDER, TODO_ACTION_LABELS } from '../../../services/governance/today-summary.js?v=20261025b';
 // 批次 47-I（Q-23-41 ②，支书 2026-09-15 裁定）：本组组员进展**由服务端汇总**——
 // api 态打服务端汇总接口、mock 态调同一纯函数（单一入口 `loadMemberProgress`）。
-import { loadMemberProgress } from '../../../services/member/member-progress.js?v=20261025a';
-import { resolveVisibleTargets } from '../../../services/core/visibility.js?v=20261025a';
-import { mockDB } from '../../../core/domain/domain.js?v=20261025a';
-import { tokenOf } from '../../../core/base/version-token.js?v=20261025a'; // P0 域写版本戳（spec §二.4）
-import { RESIDENCE_KEY } from '../../../services/member/roster.js?v=20261025a'; // 滞留覆盖 raw 源（roster 禁改不内改）
-import { PREVIEW_KEY } from '../../../services/branch/org-base-data-preview.js?v=20261025a'; // 基础数据预览 raw 源
-import { memoizeRender } from '../../../components/ui/memoize-render.js?v=20261025a'; // P2 渲染守卫（spec §四.1）
+import { loadMemberProgress } from '../../../services/member/member-progress.js?v=20261025b';
+import { resolveVisibleTargets } from '../../../services/core/visibility.js?v=20261025b';
+import { mockDB } from '../../../core/domain/domain.js?v=20261025b';
+import { tokenOf } from '../../../core/base/version-token.js?v=20261025b'; // P0 域写版本戳（spec §二.4）
+import { RESIDENCE_KEY } from '../../../services/member/roster.js?v=20261025b'; // 滞留覆盖 raw 源（roster 禁改不内改）
+import { PREVIEW_KEY } from '../../../services/branch/org-base-data-preview.js?v=20261025b'; // 基础数据预览 raw 源
+import { memoizeRender } from '../../../components/ui/memoize-render.js?v=20261025b'; // P2 渲染守卫（spec §四.1）
 // 批4（2026-09-09 支书批「域参数」）：组长学期组员进展归集提醒开关（读侧注入后 = 当前支部有效默认）
-import { POLICY_DEFAULTS } from '../../../core/domain/policy-defaults.js?v=20261025a';
+import { POLICY_DEFAULTS } from '../../../core/domain/policy-defaults.js?v=20261025b';
 // 批次 299「待我处理」两源——**单一源复用**，不另立取数口径：
 //   · 未读通知 ＝ 顶栏铃铛同一取数（NoticeStore.list retention:'visible'）＋ 统一落消息详情（notice.html?id=）
 //   · 待处理汇报 ＝ 顶栏「一键汇报」角标同一集合（IssueNotify.getUnread(我)）
-import { NoticeStore } from '../../../services/governance/notice.js?v=20261025a';
-import { IssueStore, IssueNotify } from '../../../services/governance/issues.js?v=20261025a';
+import { NoticeStore } from '../../../services/governance/notice.js?v=20261025b';
+import { IssueStore, IssueNotify } from '../../../services/governance/issues.js?v=20261025b';
 // 批次 304「待我表态」三件——**判据与读口皆单一源**，不在本文件重写投票规则：
 //   · 我是否应到表决人 ＝ `vote-config.js::isVoterOf`（角色无关，只看固化名单）
 //   · 我是否已对某议程项表态 ＝ `committee-vote.js::hasVoted`
 //   · 当前登录人 ＝ `AuthStore.getCurrentUser()`
-import { AuthStore } from '../../../services/core/auth.js?v=20261025a';
-import { isVoterOf } from '../../../services/activity/vote-config.js?v=20261025a';
-import { hasVoted } from '../../../services/activity/committee-vote.js?v=20261025a';
+import { AuthStore } from '../../../services/core/auth.js?v=20261025b';
+import { isVoterOf } from '../../../services/activity/vote-config.js?v=20261025b';
+import { hasVoted } from '../../../services/activity/committee-vote.js?v=20261025b';
 // 活动类型胶囊（批次 301）：变体判据＝单一源 `activityTypeBadgeVariant`（三会一课＝brand 红 / 主题党日＝gold 金），
 //   渲染唯一源＝`components/ui/badge.js`；**本文件不手写类型色值**。
-import { activityTypeBadgeVariant, WORK_DOMAIN_COLORS } from '../../../core/domain/constants.js?v=20261025a';
-import { resolveDocumentUrl } from '../../../core/base/page-url.js?v=20261025a';
+import { activityTypeBadgeVariant, WORK_DOMAIN_COLORS } from '../../../core/domain/constants.js?v=20261025b';
+import { resolveDocumentUrl } from '../../../core/base/page-url.js?v=20261025b';
 // 徽章扎口出口（2026-09-30 批次 304 改准）：`components/ui/badges.js` 是**唯一调用口**
 //   （其文件头明写「调用方一律 import badges.js；内部实现文件 badge.js / status-badge.js 可各自演进」）；
 //   批次 301 我直连了实现文件 `badge.js` ⇒ 本批收回归口，**零行为变化**。
-import { badgeHtml } from '../../../components/ui/badges.js?v=20261025a';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20261025b';
 // 2026-10-18 繁专项 Task 7：汇报类行统一落到待办「待答复」收件箱（PendingTarget 一次性定位）。
 // 提交入口只在「我的处置」；今天页只读、不重复提供提交位。
-import { PendingTarget } from '../../../core/session/pending-target.js?v=20261025a';
+import { PendingTarget } from '../../../core/session/pending-target.js?v=20261025b';
+// Task 6：「今天」是跨对象日程摘要，不属活动工作台 ⇒ direct；缺 id 不跳转。
+import { objectDetailHref } from '../../../core/domain/object-route.js?v=20261025b';
 
 // 工作台主题色走 CSS 变量（各台 bootstrap 已按 accent 注入；缺省兜底党建红），同 overview/统计卡用法
 const ACCENT = 'var(--app-accent)';
@@ -122,13 +124,16 @@ function _shortDate(dateStr) {
 
 // ── 信息自陈·形轴（2026-09-30 批次 299）──────────────────────────
 // 状态由**行左 3px 竖色条**自陈（色随紧迫度/状态），不再用「圆点」点缀；分类走胶囊；
-// 有时间者走时间轴行。行式载体（w-full ＋ text-left）是「操作可见性」（§4.1）的合法例外 ⇒ 仍用 `.btn-ghost`。
+// 有时间者走时间轴行。
+// 2026-10-26 Task 5：行式载体（w-full ＋ text-left）保留 `.btn-ghost`——它是**非动作行载体**
+//   （整行点击跳转），白名单理由见 ui-control-system-guard::V5；纯文字动作「全部 ›」改 `.link`
+//   （静态下划线 ＋ 尾随箭头），写入口「写入活动 / 看日历」改 `.btn-outline`（描边动作档）。
 
 /** 段标题（卡片内小分组）：h4 ＋ `text-sm`（14px/600）；`n` 给计数，`allKind` 给右上「全部 ›」 */
 function _segHead(title, n = null, allKind = '') {
   const count = (n !== null && n > 0) ? _count(n) : '';
   const all = allKind
-    ? `<button type="button" class="btn-ghost today-all flex-shrink-0 text-xs" data-today-all="${allKind}">全部 ›</button>`
+    ? `<button type="button" class="btn-text today-all flex-shrink-0 text-xs" data-today-all="${allKind}">全部 ›</button>`
     : '';
   return `
     <div class="flex items-center justify-between mb-2">
@@ -181,8 +186,8 @@ function _todoEntry(it, today) {
   const overdue = !!it.deadline && it.deadline < today;
   const dueToday = !!it.deadline && it.deadline === today;
   // 逾期＝warning（与待办同源）；error 只留给阻断 / 失败。
-  const bar = overdue ? 'var(--functional-warning)'
-    : dueToday ? 'var(--functional-warning)' : 'var(--neutral-400)';
+  const bar = overdue ? 'var(--status-warning)'
+    : dueToday ? 'var(--status-warning)' : 'var(--neutral-400)';
   const titleCls = overdue ? 'text-amber-700 font-medium' : 'text-gray-800';
   const metaCls = overdue ? 'text-amber-700 font-medium' : 'text-gray-500';
   return {
@@ -406,8 +411,8 @@ function _activityEntryBlock(withCreate) {
   return `
     ${_segHead('活动管理')}
     <div class="flex items-center gap-2">
-      ${withCreate ? '<button type="button" class="btn-ghost today-go flex-1 flex items-center justify-center gap-2" data-go="create-activity">写入活动</button>' : ''}
-      <button type="button" class="btn-ghost today-go flex-1 flex items-center justify-center gap-2" data-go="calendar">看日历</button>
+      ${withCreate ? '<button type="button" class="btn-outline today-go flex-1 flex items-center justify-center gap-2" data-go="create-activity">写入活动</button>' : ''}
+      <button type="button" class="btn-outline today-go flex-1 flex items-center justify-center gap-2" data-go="calendar">看日历</button>
     </div>`;
 }
 
@@ -431,24 +436,24 @@ function _upcomingBlock(s) {
 function _allEmptyHtml(activityEntry = '') {
   return `
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
-      <section class="lg:col-span-2 card rounded-xl p-5">
+      <div class="lg:col-span-2 card rounded-xl p-5">
         <div class="flex items-center justify-between">
           <h3 class="font-title-cn text-base font-semibold text-gray-800">今天要办</h3>
-          <button type="button" class="btn-ghost today-all flex-shrink-0 text-xs" data-today-all="todo">全部 ›</button>
+          <button type="button" class="btn-text today-all flex-shrink-0 text-xs" data-today-all="todo">全部 ›</button>
         </div>
         <div class="flex items-center gap-2 py-6">
           <span class="w-2 h-2 rounded-full bg-gray-300 flex-shrink-0"></span>
           <p class="text-sm text-gray-500">今天暂无待办</p>
         </div>
-      </section>
-      <section class="lg:col-span-1 card rounded-xl p-5">
+      </div>
+      <div class="lg:col-span-1 card rounded-xl p-5">
         <h3 class="font-title-cn text-base font-semibold text-gray-800 mb-3">日程</h3>
         <div class="flex items-center gap-2 py-6">
           <span class="w-2 h-2 rounded-full bg-gray-300 flex-shrink-0"></span>
           <p class="text-sm text-gray-500">今天暂无安排</p>
         </div>
         ${activityEntry ? `<div class="pt-4 mt-2 border-t border-gray-100">${activityEntry}</div>` : ''}
-      </section>
+      </div>
     </div>`;
 }
 
@@ -615,7 +620,7 @@ export function renderTodayTab(container, { personId, role, onNav, onCreateActiv
     const actionGroupsHtml = _actionGroupsBlock(summary);
     const leftCard = summaryError
       ? `
-      <section class="lg:col-span-2 card rounded-xl p-5 space-y-5 min-w-0">
+      <div class="lg:col-span-2 card rounded-xl p-5 space-y-5 min-w-0">
         <div class="flex items-center justify-between">
           <h3 class="font-title-cn text-base font-semibold text-gray-800">今天要办</h3>
         </div>
@@ -623,26 +628,26 @@ export function renderTodayTab(container, { personId, role, onNav, onCreateActiv
           <p class="text-sm text-gray-600">今天的汇总暂时读取失败</p>
           <button type="button" class="btn-outline mt-3" data-today-retry>重试</button>
         </div>
-      </section>`
+      </div>`
       : `
-      <section class="lg:col-span-2 card rounded-xl p-5 space-y-5 min-w-0">
+      <div class="lg:col-span-2 card rounded-xl p-5 space-y-5 min-w-0">
         <div class="flex items-center justify-between">
           <h3 class="font-title-cn text-base font-semibold text-gray-800">今天要办</h3>
-          <button type="button" class="btn-ghost today-all flex-shrink-0 text-xs" data-today-all="todo">全部 ›</button>
+          <button type="button" class="btn-text today-all flex-shrink-0 text-xs" data-today-all="todo">全部 ›</button>
         </div>
         <div data-today-groups class="space-y-5">${actionGroupsHtml}</div>
         ${actionGroupsHtml ? '' : '<p data-today-empty class="text-xs text-gray-500 px-1 py-2">今日暂无待办</p>'}
-      </section>`;
+      </div>`;
     // 右卡「日程」（B02）：今天与未来 7 天同属一条时间轴 ⇒ 合成一张卡（一个小标题在前、一个在后），
     //   同屏只保留一个卡头与一个空态；活动管理入口仍留在卡尾（写入口不并入时间轴）。
     const scheduleBlocks = `${_meetingBlock(summary)}${_upcomingBlock(summary)}`;
     const rightCard = `
       <div class="lg:col-span-1 space-y-5 min-w-0">
-        <section class="card rounded-xl p-5 space-y-5">
+        <div class="card rounded-xl p-5 space-y-5">
           <h3 class="font-title-cn text-base font-semibold text-gray-800">日程</h3>
           ${scheduleBlocks || '<p class="text-xs text-gray-500 px-1 py-2">今天暂无安排</p>'}
           ${activityEntry ? `<div>${activityEntry}</div>` : ''}
-        </section>
+        </div>
       </div>`;
 
     const body = summaryError
@@ -674,8 +679,8 @@ export function renderTodayTab(container, { personId, role, onNav, onCreateActiv
       btn.addEventListener('click', () => {
         const go = btn.dataset.go;
         if (go === 'activity') {
-          const id = btn.dataset.actId;
-          if (id) window.location = 'activity.html?id=' + encodeURIComponent(id);
+          const href = objectDetailHref('activity', btn.dataset.actId, { entry: 'today' });
+          if (href) window.location = href;
         } else if (go === 'todo' && typeof onNav === 'function') {
           if (btn.dataset.reportId) _navPending(btn, onNav);
           else onNav('todo');

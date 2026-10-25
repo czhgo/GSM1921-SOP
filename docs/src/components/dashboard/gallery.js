@@ -10,18 +10,20 @@
 //  收录权与排序不变（`galleryFeatured` / `galleryPinned` 单一源仍来自 activity.js）。
 // ════════════════════════════════════════════════════════════════
 
-import { getAppState } from '../../core/base/state.js?v=20261025a';
-import { _fmtDate, escHtml } from '../../core/base/utils.js?v=20261025a';
-import { getPersonName } from '../../services/member/person.js?v=20261025a';
-import { getActivityTypeColors, DASHBOARD_LIMITS } from '../../core/domain/constants.js?v=20261025a';
-import { icon } from '../../core/base/icons.js?v=20261025a';
-import { mockDB, isActivityClosed } from '../../core/domain/domain.js?v=20261025a';
-import { getAuthToken, getApiBaseUrl } from '../../data/data-adapter.js?v=20261025a';
-import { withSelectedBranchScope } from '../../data/api-adapter.js?v=20261025a';
+import { getAppState } from '../../core/base/state.js?v=20261025b';
+import { _fmtDate, escHtml } from '../../core/base/utils.js?v=20261025b';
+import { getPersonName } from '../../services/member/person.js?v=20261025b';
+import { getActivityTypeColors, DASHBOARD_LIMITS } from '../../core/domain/constants.js?v=20261025b';
+import { icon } from '../../core/base/icons.js?v=20261025b';
+import { mockDB, isActivityClosed } from '../../core/domain/domain.js?v=20261025b';
+import { getAuthToken, getApiBaseUrl } from '../../data/data-adapter.js?v=20261025b';
+import { withSelectedBranchScope } from '../../data/api-adapter.js?v=20261025b';
 // 2026-09-29 批次 294（支书裁：收录权归宣传委员）：本页收录改**人工**——判据单一源 = 活动主源 `galleryFeatured`。
-import { isGalleryFeatured, isGalleryPinned } from '../../services/activity/activity.js?v=20261025a';
-import { badgeHtml } from '../ui/badges.js?v=20261025a';
-import { deriveActivityLifecycleStatus, ACTIVITY_LIFECYCLE } from '../record/inspector.js?v=20261025a';
+import { isGalleryFeatured, isGalleryPinned } from '../../services/activity/activity.js?v=20261025b';
+import { badgeHtml } from '../ui/badges.js?v=20261025b';
+import { deriveActivityLifecycleStatus, ACTIVITY_LIFECYCLE } from '../record/inspector.js?v=20261025b';
+// Task 6：首页风采标题 → 活动完整详情页（direct）；缺 id 时渲染纯文本，不生成空链接。
+import { objectDetailHref } from '../../core/domain/object-route.js?v=20261025b';
 
 const ACTIVITY_TYPE_COLORS = getActivityTypeColors({ withLabel: true });
 
@@ -121,6 +123,7 @@ export function renderGallery(activities) {
       const lifecycle = ACTIVITY_LIFECYCLE[deriveActivityLifecycleStatus(a, getAppState()?.tasks || [])] || ACTIVITY_LIFECYCLE.draft;
       const hasPhoto = _imageByActivityId.has(a.id);
       const rec = hasPhoto ? _imageByActivityId.get(a.id) : null;
+      const detailHref = objectDetailHref('activity', a.id, { entry: 'home' });
 
       return `
         <div class="card card--static gallery-card"
@@ -137,7 +140,9 @@ export function renderGallery(activities) {
               <span class="gallery-card__dot" style="background:${color.dot};"></span>
               <span>${escHtml(color.label)}</span>
             </div>
-            <h3 class="gallery-card__title"><a class="gallery-card__open" href="./activity.html?id=${encodeURIComponent(a.id || '')}" data-gallery-activity-id="${escHtml(a.id)}" title="查看活动：${escHtml(a.title || '未命名活动')}">${escHtml(a.title || '未命名活动')}</a></h3>
+            <h3 class="gallery-card__title">${detailHref
+              ? `<a class="gallery-card__open" href="./${escHtml(detailHref)}" data-gallery-activity-id="${escHtml(a.id)}" title="查看活动：${escHtml(a.title || '未命名活动')}">${escHtml(a.title || '未命名活动')} →</a>`
+              : `<span>${escHtml(a.title || '未命名活动')}</span>`}</h3>
             <p class="gallery-card__meta">${a.date ? _fmtDate(new Date(a.date)) : ''}${organizerName ? ' · ' + escHtml(organizerName) : ''}</p>
             <div class="gallery-card__badge">${badgeHtml(lifecycle.label, lifecycle.variant)}</div>
           </div>

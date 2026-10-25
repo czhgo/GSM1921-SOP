@@ -3,33 +3,37 @@
 // 支书 2026-08-10 裁定第5点：区分「我的分工」（以人为中心）与「全局分工」（全局查询）。
 // REVIEW_QUEUE J2 裁定（2026-08-08）：首页专班跳转 → 项目分工 tab 定位高亮专班卡片（ctx.highlightTfId 一次性消费）。
 
-import { liveMembers, PersonStore } from '../../../services/member/person.js?v=20261025a';
+import { liveMembers, PersonStore } from '../../../services/member/person.js?v=20261025b';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/member/person.js 获取（原直连 mock PEOPLE）
 // 实时视图（非快照）：成员增删即时可见——见 services/member/person.js liveMembers 说明
 const PEOPLE = liveMembers();
-import { AuthStore } from '../../../services/core/auth.js?v=20261025a';
+import { AuthStore } from '../../../services/core/auth.js?v=20261025b';
 // 活动「仍在办」口径单一源（2026-09-13 收敛）：替代手写 !archived && status!=='cancelled'
-import { isActivityLive } from '../../../core/domain/constants.js?v=20261025a';
-import { isTaskforceTerminalStatus } from '../../../core/domain/domain.js?v=20261025a';
+import { isActivityLive } from '../../../core/domain/constants.js?v=20261025b';
+import { isTaskforceTerminalStatus } from '../../../core/domain/domain.js?v=20261025b';
 // 活动「已完成 / 已取消」闭环判据单一源（R7-16）：替代手写 archived || ['completed','cancelled']
-import { isActivityClosed } from '../../../core/domain/domain.js?v=20261025a';
-import { flashHighlight, todayLocal } from '../../../core/base/utils.js?v=20261025a';
-import { resolveDocumentUrl } from '../../../core/base/page-url.js?v=20261025a';
+import { isActivityClosed } from '../../../core/domain/domain.js?v=20261025b';
+import { flashHighlight, todayLocal, showToast } from '../../../core/base/utils.js?v=20261025b';
+import { resolveDocumentUrl } from '../../../core/base/page-url.js?v=20261025b';
 // 党小组筛选项单一源（活组按 seq 升序；2026-09-14 批次 29 收敛，原从成员档案派生）
-import { groupOptions } from '../../../services/member/party-group.js?v=20261025a';
+import { groupOptions } from '../../../services/member/party-group.js?v=20261025b';
 // 活动生命周期展示态单一源（2026-09-13 支书裁定：「活动与专班是并列的概念，各走各的」）——
 // 活动状态文案改走 components/record/inspector.js，专班状态词维持各自来源，不强行统一。
-import { deriveActivityLifecycleStatus, ACTIVITY_LIFECYCLE } from '../../../components/record/inspector.js?v=20261025a';
-import { getAppState } from '../../../core/base/state.js?v=20261025a';
+import { deriveActivityLifecycleStatus, ACTIVITY_LIFECYCLE } from '../../../components/record/inspector.js?v=20261025b';
+import { getAppState } from '../../../core/base/state.js?v=20261025b';
 // 统一检索引擎（支书 2026-09-14 裁定）：手写 lf-bar 筛选整体收敛为 keyword + facets + 分页
-import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261025a';
+import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261025b';
 // 「我的任务」承担人单一源（2026-09-19 批次 93 · SOP-B-31）：按项目内身份读，复用组织者身份单一源
 // 「勾掉即关闭」（2026-09-21 批次 137 · SOP-B-9 乙档）：写口同在这份单一源里（只认本人担的那步）
 // 深参分工的完成方式（2026-09-23 批次 156）：系统内做 / 去线下做 —— 判据与文案同一份单一源
-import { listMyProjectTasks, completeMyProjectTask, deepWorkModeOf, DEEP_WORK_MODE, DEEP_WORK_MODE_LABEL } from '../../../services/activity/activity.js?v=20261025a';
+import { listMyProjectTasks, completeMyProjectTask, deepWorkModeOf, DEEP_WORK_MODE, DEEP_WORK_MODE_LABEL } from '../../../services/activity/activity.js?v=20261025b';
 // 待批活动的可见性单一源（2026-09-22 批次 151 · 支书裁定「只支委层可见」）：「我的任务」按活动可见性收窄
-import { isActivityVisibleTo } from '../../../services/core/visibility.js?v=20261025a';
-import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261025a';
+import { isActivityVisibleTo } from '../../../services/core/visibility.js?v=20261025b';
+import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261025b';
+import { TaskForceRecordStore } from '../../../services/activity/taskforce.js?v=20261025b';
+// Task 6：成员「项目分工」是专班所属工作台 ⇒ 专班卡走 locate（同页详情 + 「打开完整页」）；
+// 活动卡是跨对象聚合行 ⇒ direct（完整活动详情页）。
+import { objectDetailHref } from '../../../core/domain/object-route.js?v=20261025b';
 
 // 子视图（`SOP-B-31` 已定口径一）：**主口径＝「我的任务」**（按「我」切），
 // 「项目分工」是**同一份事实的转置**（按「项目」切）——同一份数据、两种切法，不建第二份清单。
@@ -134,7 +138,7 @@ export function renderContent(ctx) {
   tc.innerHTML = `
     ${renderTabHeader({ title: '项目分工', description: '我的任务 / 我的分工 / 全局分工；同一份事实的三种切法。' })}
     ${subTabsHtml}
-    <div class="card rounded-xl p-5"><div id="visitor-proj-host"></div></div>
+    <div class="card rounded-xl p-5"><div id="visitor-proj-host"></div><div id="visitor-proj-detail" class="hidden mt-4"></div></div>
   `;
   const host = tc.querySelector('#visitor-proj-host');
 
@@ -193,10 +197,11 @@ export function renderContent(ctx) {
   //   渲染函数单一源＝`components/record/taskforce-view.js`，成员视角的文案/产出区增强复用
   //   `visitor/tf-view-tab.js::enhanceTaskforceViewForMember`（不复制第二套列表）。
   function renderTaskforceSection() {
-    import('../../../components/record/taskforce-view.js?v=20261025a').then((m) => {
+    document.getElementById('visitor-proj-detail')?.classList.add('hidden');
+    import('../../../components/record/taskforce-view.js?v=20261025b').then((m) => {
       if (!host.isConnected) return;
       m.renderTaskforceView(host, {});
-      import('./tf-view-tab.js?v=20261025a').then((t) => {
+      import('./tf-view-tab.js?v=20261025b').then((t) => {
         if (host.isConnected) t.enhanceTaskforceViewForMember(host);
       });
     });
@@ -249,6 +254,8 @@ export function renderContent(ctx) {
   function goSubView(key) {
     if (!key || key === _projSubView) return;
     _projSubView = key;
+    // 同页只保留一个完整详情面：切子视图时先收起上一视图的专班预览。
+    document.getElementById('visitor-proj-detail')?.classList.add('hidden');
     tc.querySelectorAll('.visitor-proj-sub').forEach(b => {
       const active = b.dataset.projSubview === key;
       b.setAttribute('aria-pressed', active ? 'true' : 'false');
@@ -282,9 +289,34 @@ export function renderContent(ctx) {
     const tfId = card.dataset.tfId;
     const actId = card.dataset.actId;
     if (!tfId && !actId) return;
-    const page = tfId ? 'taskforce.html' : 'activity.html';
-    window.location.href = resolveDocumentUrl(page, { searchParams: { id: tfId || actId } });
+    // Task 6：专班卡 → 同页详情（locate，保留筛选/列表）；活动卡 → 完整详情页（direct）。
+    if (tfId) {
+      openTaskforcePreview(tfId).catch(() => showToast('error', '专班详情加载失败，请稍后重试'));
+      return;
+    }
+    const href = objectDetailHref('activity', actId, { entry: 'workspace-aggregate' });
+    if (href) window.location.href = resolveDocumentUrl(href.split('?')[0], { searchParams: { id: actId } });
   });
+
+  // Task 6.6：可点卡片键盘同权（Enter / Space 与点击同路）。
+  host.addEventListener('keydown', (e) => {
+    const card = e.target.closest('.visitor-proj-card, .visitor-task-card');
+    if (!card || card !== e.target) return;
+    if (e.key !== 'Enter' && e.key !== ' ' && e.key !== 'Spacebar') return;
+    e.preventDefault();
+    card.click();
+  });
+
+  /** 专班卡同页详情（locate）：复用 taskforce-view 的唯一详情渲染器，不复制第二套。 */
+  async function openTaskforcePreview(tfId) {
+    const detailHost = document.getElementById('visitor-proj-detail');
+    const tf = TaskForceRecordStore.getAll().find(r => r.id === tfId);
+    if (!detailHost || !tf) { showToast('info', '未找到该专班（可能已删除）'); return; }
+    detailHost.classList.remove('hidden');
+    const { renderTaskforceDetailPanel } = await import('../../../components/record/taskforce-view.js?v=20261025b');
+    await renderTaskforceDetailPanel(detailHost, tf);
+    detailHost.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
 
   tc.querySelectorAll('.visitor-proj-sub').forEach(btn => {
     btn.addEventListener('click', () => goSubView(btn.dataset.projSubview));
@@ -379,7 +411,7 @@ function _renderTaskCard(r, statusLabel, statusClass) {
     : '';
   // 2026-10-19 恢复半透明主题底体例：勾掉＝推进任务关闭的高频行内动作。
   return `
-    <div class="visitor-task-card p-3 rounded-xl bg-white" data-act-id="${r.projectId}">
+    <div class="visitor-task-card p-3 rounded-xl bg-white border border-transparent cursor-pointer hover:border-[var(--color-border-strong)] hover:bg-[var(--surface-hover)] transition-colors" role="button" tabindex="0" aria-label="查看任务所属活动：${esc(r.project || r.name)}" data-act-id="${r.projectId}">
       <div class="flex items-center justify-between mb-1.5">
         <div class="flex items-center gap-2 min-w-0">
           <span class="text-xs px-1.5 py-0.5 rounded-full flex-shrink-0 ${statusClass[r.status] || 'bg-gray-100 text-gray-600'}">${statusLabel[r.status] || r.status}</span>
@@ -388,7 +420,7 @@ function _renderTaskCard(r, statusLabel, statusClass) {
         <span class="tint-pill inline-flex items-center gap-0.5 flex-shrink-0" data-tone="${_personnelRoleTone(r.role)}">${_personnelRoleLabel(r.role)}</span>
       </div>
       <div class="flex items-center gap-3 text-[12px] text-gray-500">
-        <span>${r.project}</span>
+        <span>${r.project} →</span>
         ${r.date ? `<span>${r.date}</span>` : ''}
         ${modeChip}
         ${(done || offline) ? '' : `<button type="button" data-complete-task="${r.taskId}" class="btn-accent-soft ml-auto text-xs px-2 py-0.5" style="cursor:pointer;">勾掉</button>`}
@@ -416,7 +448,7 @@ function _renderProjectCard(project, currentUserId) {
   };
 
   return `
-    <div class="visitor-proj-card p-3 rounded-xl bg-white" data-tf-id="${project.type === '专班' ? project.id : ''}" data-act-id="${project.type === '活动' ? project.id : ''}">
+    <div class="visitor-proj-card p-3 rounded-xl bg-white border border-transparent cursor-pointer hover:border-[var(--color-border-strong)] hover:bg-[var(--surface-hover)] transition-colors" role="button" tabindex="0" aria-label="查看${project.type}：${esc(project.name)}" data-tf-id="${project.type === '专班' ? project.id : ''}" data-act-id="${project.type === '活动' ? project.id : ''}">
       <div class="flex items-center justify-between mb-1.5">
         <div class="flex items-center gap-2 min-w-0">
           <span class="text-xs px-1.5 py-0.5 rounded-full font-medium flex-shrink-0 border ${project.type === '活动' ? 'text-red-700 border-red-200' : 'text-amber-700 border-amber-200'}">${project.typeBadge}</span>
@@ -427,6 +459,7 @@ function _renderProjectCard(project, currentUserId) {
       <div class="flex items-center gap-3 text-[12px] text-gray-500 mb-2">
         ${project.group ? `<span class="flex items-center gap-0.5">${project.group}</span>` : ''}
         ${project.date ? `<span class="flex items-center gap-0.5">${project.date}</span>` : ''}
+        <span class="ml-auto text-xs text-accent whitespace-nowrap">${project.type === '专班' ? '查看详情' : '打开详情'} →</span>
       </div>
       ${project.personnel.length > 0 ? `
         <div class="flex flex-wrap gap-1.5">

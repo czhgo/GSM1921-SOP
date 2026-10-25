@@ -2,7 +2,7 @@
 title: "产品 IA 派生索引（页签功能地图）"
 type: index
 role: "[工程师]+[AI]"
-last_updated: 2026-10-25
+last_updated: 2026-10-26
 version: "0.2"
 status: active
 related_files: [docs/src/core/domain/function-catalog.js, docs/src/capabilities/, content/03_doc_system/DOC_MAP.md]
@@ -110,6 +110,27 @@ related_files: [docs/src/core/domain/function-catalog.js, docs/src/capabilities/
 - 页签注册（台 / 组 / 页签名 / 渲染入口）：`docs/src/capabilities/{secretary,org,prop,disc,leader,visitor,party-committee}-workspace.js`
 - 功能目录（能力名 / 所属组 / 使用路径）：`docs/src/core/domain/function-catalog.js`
 - 旧深链承接：`docs/src/components/shell/workspace-shell.js::_legacyTabAliases` / `_legacyPageRedirects`
+
+## 详情路由矩阵（派生附录，检查用 · 2026-10-26）
+
+> **单一源**：`docs/src/core/domain/object-route.js::OBJECT_ROUTE_ENTRIES`。本表由该枚举派生、与代码同批维护，**不是**规范条文；规范判据见 [DESIGN_SYSTEM.md §12.15](design-system/DESIGN_SYSTEM.md)（SD-45），判例见 [CASES.md](design-system/CASES.md) CASE-DESIGN-023。
+> **读法**：`direct`＝直达完整详情页；`locate`＝先留在当前工作台 / 预览面，再给「打开完整页」；`none`＝不渲染可点入口。
+
+| 入口（`entry` 键） | 典型入口（页面 / 页签） | 对象 | mode | 落点 | 理由 |
+|---|---|---|---|---|---|
+| `notice` | 通知全貌 `notice.html?id=`、消息中心对象卡 | 活动 / 专班 | direct | `activity.html?id=` / `taskforce.html?id=` | 通知不在对象所属工作台内，对象卡是唯一动作 |
+| `todo` | 待办页签、待办跳转（`todo-jump.js`） | 活动 / 专班 | direct | 同上 | 跨工作台聚合，没有可保留的筛选 / 列表上下文 |
+| `home` | 首页活动风采卡、首页快捷入口 | 活动 / 专班 | direct | 同上 | 首页是跨对象聚合面，不是对象工作台 |
+| `today` | 今天页日程行 / 待办摘要 | 活动 | direct | `activity.html?id=` | 跨对象日程摘要，行上没有所属列表 |
+| `shared-calendar` | 六台共享日历（`tabs/shared/activity-calendar-tab.js`） | 活动 | direct | `activity.html?id=` | 只读日历不承载完整详情；同页再放完整面会形成第二落点 |
+| `cross-page-deeplink` | 分享 / 跨台深链（党委、组长、纪检入口、材料页） | 活动 / 专班 | direct | 对应详情页 | 没有来源工作台上下文，落台目标未知 |
+| `archive-row` | 档案归档页活动行（`tabs/prop/archive-tab.js`） | 活动 | direct | `activity.html?id=` | 归档库是跨对象聚合面，归档行不提供就地编辑 |
+| `workspace-aggregate` | 工作台内跨对象列表（项目分工活动卡、看板、复盘 / 考察 / 考勤的来源列） | 活动 / 专班 | direct | 对应详情页 | 列表本身不是该对象所属工作台，不承载完整详情 |
+| `owner-workspace` | 支书活动管理 inspector、组织台专班管理面板、成员项目分工专班卡 | 活动 / 专班 | locate | 同页预览 ＋「打开完整页」 | 已在对象所属工作台，整页跳走会丢失筛选 / 列表上下文 |
+| `archive-modal` | 归档库活动 / 专班弹窗 | 活动 / 专班 | locate | 弹窗预览 ＋「打开完整页」 | 弹窗是列表内预览面，跳走会丢列表与页码 |
+| `overview-preview` | 工作概况活动预览卡（`record/activity-view.js`） | 活动 | locate | 同页预览 ＋「打开完整页」 | 预览卡已是同页只读详情面，不再整页跳走 |
+
+**`none` 分支（不属于某个入口，对所有入口一致）**：缺 `id` → `none`；跨支部普通角色 → `none`；未登记入口 → `none`；党委（`party-staff`）/ 组织员（`org-commissioner`）放行。已归档活动与专班终态仍可点，但 `readOnly=true`，详情页写口关闭并显示「已归档，只读保留」。深链未命中必须有可见提示（归档库 / 组织台 `?taskforceId=`）。
 
 ## 样板屏元素清单（检查用，不是规范）
 

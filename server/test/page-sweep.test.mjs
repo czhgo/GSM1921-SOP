@@ -285,7 +285,7 @@ for (const w of WORKS) {
       }
       await page.waitForTimeout(800);
       // P0-2 形态断言（2026-09-23 支书裁定「形态必须可断言、不许静默降级」）：本文件真机用例必须在 API 形态下跑
-      await page.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20261025a')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
+      await page.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20261025b')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
 
       // ── 1440 页签条不溢出（2026-10-21 R5-C01）──
       //   判据：`.ws-tab-scroll` 的 scrollWidth ≤ clientWidth（分组胶囊改竖线 + 滚动区右留 40px 后，
@@ -410,12 +410,12 @@ for (const w of WORKS) {
           return {
             overflow: de.scrollWidth - window.innerWidth,
             matrix,
-            // R5-C01：≤1024px 不渲染分组标签（CSS display:none ⇒ offsetParent 为 null）。
+            // 2026-10-26 Task 3.5：分组胶囊在所有宽度可见（含 390）⇒ 窄屏只缩不隐藏。
             groupLabelsVisible: [...document.querySelectorAll('.tab-group-label')].filter((el) => el.offsetParent !== null).length,
           };
         }, `${w.page}-tab-content`);
         if (audit390.overflow > 1) narrowIssues.push(`[${label}] scrollWidth 超出视口 ${audit390.overflow}px`);
-        if (audit390.groupLabelsVisible > 0) narrowIssues.push(`[${label}] 390px 仍渲染 ${audit390.groupLabelsVisible} 个分组标签`);
+        if (audit390.groupLabelsVisible === 0) narrowIssues.push(`[${label}] 390px 未渲染分组标签（胶囊应全宽可见）`);
         if (audit390.matrix && !audit390.matrix.cardMode && !audit390.matrix.scrollFallback) {
           narrowIssues.push(`[${label}] 矩阵既未卡式化也无滚动兜底`);
         }
@@ -525,7 +525,7 @@ test('S21 组织台活动深链：?activityId / ?view=activities 落「工作概
     await page.waitForTimeout(800);
     // 取一个真实活动（优先「非当前月」者，顺带验证切月）
     const acts = await page.evaluate(async () => {
-      const m = await import('/src/core/base/state.js?v=20261025a');
+      const m = await import('/src/core/base/state.js?v=20261025b');
       return ((m.getAppState() || {}).activities || []).map((x) => ({ id: x.id, date: x.date }));
     });
     assert.ok(acts.length > 0, '组织台活动深链用例：未取到任何活动（样本不足）');

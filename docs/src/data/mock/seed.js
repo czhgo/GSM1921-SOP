@@ -8,8 +8,8 @@
 //  并钳制于 [07-01, 活动日前 1 天]；signups（su-001~007，8 月）保留。
 
 // ── 任务种子（关联活动，时间随活动重排） ────────────────────
-import { DEFAULT_BRANCH_ID } from '../../core/domain/constants.js?v=20261025a';
-import { _fmtDate, todayLocal } from '../../core/base/date.js?v=20261025a';
+import { DEFAULT_BRANCH_ID } from '../../core/domain/constants.js?v=20261025b';
+import { _fmtDate, todayLocal } from '../../core/base/date.js?v=20261025b';
 export const SEED_TASKS = [
   { id: 'tsk-001', activityId: 'act-1', title: '预定会议室并通知参会人员', status: 'completed', createdAt: '2026-07-01T08:00:00Z' },
   { id: 'tsk-002', activityId: 'act-1', title: '整理会议记录并归档', status: 'completed', createdAt: '2026-07-01T08:00:00Z' },

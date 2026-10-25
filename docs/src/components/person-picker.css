@@ -151,8 +151,9 @@
 }
 
 .person-picker-close-btn {
-  width: 28px;
-  height: 28px;
+  /* 2026-10-26 Task 5.3：图标按钮统一 32×32 视觉（命中区由 .person-picker-close-btn::after 扩到 44）。 */
+  width: 32px;
+  height: 32px;
   border-radius: var(--radius-sm);
   border: none;
   background: var(--neutral-100);

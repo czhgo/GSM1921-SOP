@@ -1,16 +1,16 @@
 // role: [工程师]+[AI]
 // issue-detail.js — 反馈详情渲染
 
-import { IssueStore, issueDomainLabel, issueDomainSuggest, issueDomainReplyHint } from '../../services/governance/issues.js?v=20261025a';
-import { MilestoneStore } from '../../services/governance/milestones.js?v=20261025a';
-import { AuthStore } from '../../services/core/auth.js?v=20261025a';
-import { showToast } from '../../core/base/utils.js?v=20261025a';
-import { icon } from '../../core/base/icons.js?v=20261025a';
-import { getPersonName } from '../../services/member/person.js?v=20261025a';
-import { renderReactions, bindReactions } from './reactions.js?v=20261025a';
-import { ISSUE_STATUS_LABELS, ISSUE_CLOSED_REASON_LABELS } from '../../core/domain/constants.js?v=20261025a';
-import { badgeHtml } from '../ui/badges.js?v=20261025a';
-import { openFormModal } from '../ui/modal.js?v=20261025a';
+import { IssueStore, issueDomainLabel, issueDomainSuggest, issueDomainReplyHint } from '../../services/governance/issues.js?v=20261025b';
+import { MilestoneStore } from '../../services/governance/milestones.js?v=20261025b';
+import { AuthStore } from '../../services/core/auth.js?v=20261025b';
+import { showToast } from '../../core/base/utils.js?v=20261025b';
+import { icon } from '../../core/base/icons.js?v=20261025b';
+import { getPersonName } from '../../services/member/person.js?v=20261025b';
+import { renderReactions, bindReactions } from './reactions.js?v=20261025b';
+import { ISSUE_STATUS_LABELS, ISSUE_CLOSED_REASON_LABELS } from '../../core/domain/constants.js?v=20261025b';
+import { badgeHtml } from '../ui/badges.js?v=20261025b';
+import { openFormModal } from '../ui/modal.js?v=20261025b';
 
 const SCOPE_LABELS = {
   permanent: '底层架构',
@@ -119,9 +119,9 @@ export function renderIssueDetail(issueId) {
               <textarea id="comment-input" rows="3" placeholder="添加评论...支持 @提及 与 #引用" class="input-flat w-full font-sans"></textarea>
               <div class="flex items-center justify-between mt-2">
                 <div class="text-xs text-gray-500 font-sans">
-                  <button id="btn-mention" class="btn-ghost">@提及</button>
+                  <button id="btn-mention" class="btn-outline btn-sm">@提及</button>
                   <span class="mx-1">·</span>
-                  <button id="btn-reference" class="btn-ghost">#引用</button>
+                  <button id="btn-reference" class="btn-outline btn-sm">#引用</button>
                 </div>
                 <button id="btn-submit-comment" class="btn-neutral text-sm px-4 py-1.5 font-sans">提交评论</button>
               </div>
@@ -210,7 +210,7 @@ export function renderIssueDetail(issueId) {
 function renderComment(comment, canManage, issueId) {
   const hiddenClass = comment.hidden ? 'opacity-50' : '';
   const hideButton = canManage && !comment.hidden
-    ? `<button class="btn-ghost btn-hide-comment text-xs ml-2 font-sans" data-issue-id="${issueId}" data-comment-id="${comment.id}">隐藏</button>`
+    ? `<button class="btn-outline btn-sm btn-hide-comment text-xs ml-2 font-sans" data-issue-id="${issueId}" data-comment-id="${comment.id}">隐藏</button>`
     : '';
 
   const hiddenNote = comment.hidden

@@ -4,51 +4,77 @@
 // 第3轮 Task 9: dev 参数读取改用 CrossPageState.getParam（统一入口）
 // 2026-07-30: 改为 async，统一预加载所有 Service（IssueStore/MilestoneStore），消除跨页面数据不同步
 
-import { renderSidebar } from '../../components/shell/sidebar.js?v=20261025a';
-import { renderHeader } from '../../components/shell/header.js?v=20261025a';
-import { AuthStore } from '../../services/core/auth.js?v=20261025a';
-import { IssueStore } from '../../services/governance/issues.js?v=20261025a';
-import { MilestoneStore } from '../../services/governance/milestones.js?v=20261025a';
-import { CrossPageState } from '../session/cross-page-state.js?v=20261025a';
-import { getBasePath } from '../base/utils.js?v=20261025a';
-import { resolveDocumentUrl } from '../base/page-url.js?v=20261025a';
-import { enhanceSelects } from '../../components/ui/custom-select.js?v=20261025a';
-import { isBranchPendingUser } from '../domain/constants.js?v=20261025a';
+import { renderSidebar } from '../../components/shell/sidebar.js?v=20261025b';
+import { renderHeader } from '../../components/shell/header.js?v=20261025b';
+import { AuthStore } from '../../services/core/auth.js?v=20261025b';
+import { IssueStore } from '../../services/governance/issues.js?v=20261025b';
+import { MilestoneStore } from '../../services/governance/milestones.js?v=20261025b';
+import { CrossPageState } from '../session/cross-page-state.js?v=20261025b';
+import { getBasePath } from '../base/utils.js?v=20261025b';
+import { resolveDocumentUrl } from '../base/page-url.js?v=20261025b';
+import { enhanceSelects } from '../../components/ui/custom-select.js?v=20261025b';
+import { isBranchPendingUser } from '../domain/constants.js?v=20261025b';
 // 主题色解析（R1-A 点⑤，2026-09-09）：person-aware 渲染时取色——替代只读全局键的
 // constants resolveAccentRole（冻结读取点语义，仅服务访客与首帧兜底）；返回值（壳 ctx.accent →
 // tab-bar/各 tab）统一取「当前作用域生效主题」，与 styles.css 别名同源。
 // 批次 505：注入改为 8 token × 亮/暗共 16 个原始变量（applyAccentThemeTokens），不再写 --app-accent 旧四件套。
-import { getAppliedAccentColors, resolveAppliedAccentRole, applyAccentThemeTokens } from './theme.js?v=20261025a';
-import { registerApiAdapter, init, renderDataSourceError, hydrateDataSource } from '../../data/data-adapter.js?v=20261025a';
-import { ApiAdapter } from '../../data/api-adapter.js?v=20261025a';
-import { getCapabilities } from './registry.js?v=20261025a';
+import { getAppliedAccentColors, resolveAppliedAccentRole, applyAccentThemeTokens } from './theme.js?v=20261025b';
+import { registerApiAdapter, init, renderDataSourceError, hydrateDataSource } from '../../data/data-adapter.js?v=20261025b';
+import { ApiAdapter } from '../../data/api-adapter.js?v=20261025b';
+import { getCapabilities } from './registry.js?v=20261025b';
 // M4 数据源注册化：副作用导入触发 mock/api 数据源能力注册，bootstrap 经注册表选择数据源
-import '../../capabilities/data-source.js?v=20261025a';
+import '../../capabilities/data-source.js?v=20261025b';
 // M6（2026-08-30）：共享组件能力随全局引导注册（todo-list/calendar/custom-select），所有页面可发现组件清单
-import '../../capabilities/components.js?v=20261025a';
+import '../../capabilities/components.js?v=20261025b';
 
 // ════════════════════════════════════════════════════════════════
-// S2 自定义圆角下拉：全局自动增强（MutationObserver 防抖扫描）
+// S2 自定义圆角下拉：全局自动增强（增量扫描）
 // 任何时刻动态渲染出的 .input-flat select 都会被增强为自定义圆角下拉，
 // 无需在各渲染点逐处调用（组件内 data-cs-enhanced 标记防重）。
+//
+// 2026-10-26 Task 2.4：原实现 = `MutationObserver(body, childList+subtree)` 每次 DOM 变更
+//   都排一次**全文档** `querySelectorAll('select')`（工作台一次整块重建上千节点即触发，
+//   鼠标 hover 时被同步布局扫描打断）。现改为：
+//     · 回调只收集**新增节点**（addedNodes），不在回调里做任何查询（不阻塞渲染帧）；
+//     · 60ms 合并后只扫描这些新增子树，且先剪掉被父根包含的子根、无 select 的根直接跳过；
+//     · 首次仍全量扫一次（DOMContentLoaded / 模块载入）。
 // ════════════════════════════════════════════════════════════════
 let _csScanTimer = null;
-function _scheduleEnhance() {
+let _csRoots = new Set();
+
+function _scheduleEnhance(node) {
+  if (node && node.nodeType === 1) _csRoots.add(node);
   if (_csScanTimer) return;
-  _csScanTimer = setTimeout(() => {
-    _csScanTimer = null;
-    enhanceSelects(document);
-  }, 60);
+  _csScanTimer = setTimeout(_flushEnhance, 60);
 }
+
+function _flushEnhance() {
+  _csScanTimer = null;
+  const roots = [..._csRoots].filter((n) => n && n.isConnected !== false);
+  _csRoots = new Set();
+  // 新增节点可能整棵大树都在同一批里：去掉被其它根包含的子根，只扫最外层
+  const outer = roots.filter((n) => !roots.some((other) => other !== n && other.contains(n)));
+  for (const root of outer) {
+    if (root.tagName === 'SELECT') {
+      enhanceSelects(root.parentElement || root);
+    } else if (root.querySelector && root.querySelector('select.input-flat:not([data-cs-enhanced])')) {
+      enhanceSelects(root);
+    }
+  }
+}
+
 if (typeof MutationObserver !== 'undefined' && document.body) {
-  new MutationObserver(_scheduleEnhance).observe(document.body, { childList: true, subtree: true });
-} else if (document.body) {
-  _scheduleEnhance();
+  new MutationObserver((records) => {
+    for (const m of records) {
+      for (const n of m.addedNodes) _scheduleEnhance(n);
+    }
+  }).observe(document.body, { childList: true, subtree: true });
 }
+// 首次全量一次（静态 HTML 里已有的 select）；此后只扫新增子树（Task 2.4）。
 if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', _scheduleEnhance);
+  document.addEventListener('DOMContentLoaded', () => enhanceSelects(document));
 } else {
-  _scheduleEnhance();
+  enhanceSelects(document);
 }
 
 // ════════════════════════════════════════════════════════════════
@@ -85,8 +111,9 @@ export async function bootstrapPage({ module, accentRole, accentAlpha }) {
   // 代码数据版本自检（2026-08-01 引入，配合 cross-page-state 的 CODE_VERSION）：
   // 旧 tab 持有旧 ES 模块时自动刷新一次加载新模块。必须放在最顶部（API 恢复/init 之前），
   // 否则部署后首次访问会 init 两遍（旧模块 + reload 后新模块各 10 个 fetch，P1 审查 M6）。
+  // 2026-10-26 Task 2.3：判定收窄在 `isStaleCodeVersion()` 内部——首次访问只记基线不 reload，
+  //   版本不一致时写回当前 CODE_VERSION 再 reload（reload 后即相等，不再每次新会话都双载）。
   if (CrossPageState.isStaleCodeVersion()) {
-    CrossPageState.bumpDataVersion();
     window.location.reload();
     return { user: null };
   }
@@ -211,6 +238,18 @@ export async function bootstrapPage({ module, accentRole, accentAlpha }) {
     }
   }
 
+  // ── 首屏不阻塞（2026-10-26 Task 2.3）──
+  // 反馈 / 里程碑首拉（mock 形态各是一次 fetch('./data/*.json')）原为「串行 await 后再进 tab 壳」，
+  // 把页签栏与首屏内容整体推迟至少一次网络往返。现只**发起**、不等待：
+  //   消费方（work-overview / overview-dispatch-bar / 各 tab）渲染前都会 await 同一 loadAll
+  //   （幂等缓存：首次完成后直接命中），数据到达即在原位补齐，不会把空快照当终态。
+  Promise.all([
+    IssueStore.loadAll(),
+    MilestoneStore.loadAll(),
+  ]).catch((e) => {
+    console.warn('[bootstrap] Service 预加载失败（不阻塞首屏）：', e);
+  });
+
   // 渲染侧边栏 + 顶栏
   renderSidebar(module);
   renderHeader(module);
@@ -228,14 +267,7 @@ export async function bootstrapPage({ module, accentRole, accentAlpha }) {
 
   // 统一预加载所有 Service（并行，不阻塞渲染但保证后续同步调用有数据）
   // 修复跨页面数据不同步：之前 ws-secretary-entry 同步调用 IssueStore.getAll() 拿到空数组
-  try {
-    await Promise.all([
-      IssueStore.loadAll(),
-      MilestoneStore.loadAll(),
-    ]);
-  } catch (e) {
-    console.warn('[bootstrap] Service 预加载失败：', e);
-  }
+  // 2026-10-26 Task 2.3：改为在 renderHeader 之前**发起**且不 await（见上），此处不再串行等待。
 
   return { user, accent, accentRgba, accentBorder };
 }

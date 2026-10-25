@@ -73,16 +73,23 @@ test('L2 纯文本链接不得用 Tailwind 蓝作链接色（信息态/带底色
     `跳转链接必须用 text-accent（主题色深字），不得用 Tailwind 蓝：\n  ${offenders.join('\n  ')}`);
 });
 
-test('L3 .link 单一源：色取 softText，hover 只加下划线且在 hover 媒体查询内', () => {
+test('L3 .link 单一源：色取 --color-link（→ softText），静态下划线 + hover 下划线', () => {
   const css = read('docs/src/styles.css');
+  assert.match(css, /--color-link:\s*var\(--app-accent-soft-text\)/,
+    'styles.css 应定义全站唯一链接色 --color-link = var(--app-accent-soft-text)');
   const rule = /\.link\s*\{([^}]*)\}/.exec(css);
   assert.ok(rule, 'styles.css 缺少 .link 组件类');
-  assert.match(rule[1], /color:\s*var\(--app-accent-soft-text\)/, '.link 的文字色必须是 --app-accent-soft-text');
+  assert.match(rule[1], /color:\s*var\(--color-link\)/, '.link 的文字色必须是 --color-link');
+  assert.match(rule[1], /text-decoration:\s*underline/, '.link 必须有静态下划线（非颜色线索）');
   assert.doesNotMatch(rule[1], /color-mix\(|#[0-9A-Fa-f]{6}/, '.link 不得回落到 color-mix / hex');
+
+  const aTextAccent = /a\.text-accent\s*\{([^}]*)\}/.exec(css);
+  assert.ok(aTextAccent, 'styles.css 缺少 a.text-accent 静态线索规则');
+  assert.match(aTextAccent[1], /text-decoration:\s*underline/, 'a.text-accent 也必须有静态下划线');
 
   const hoverIdx = css.indexOf('.link:hover');
   assert.ok(hoverIdx > -1, '.link 缺少 :hover 规则');
-  assert.match(css.slice(hoverIdx, hoverIdx + 160), /text-decoration:\s*underline/, '.link:hover 只加下划线');
+  assert.match(css.slice(hoverIdx, hoverIdx + 160), /text-decoration:\s*underline/, '.link:hover 保留下划线');
   // 门控：从最近的 @media (hover: hover) 到 .link:hover 之间不得出现右花括号（否则已离块）
   const mediaIdx = css.lastIndexOf('@media (hover: hover)', hoverIdx);
   assert.ok(mediaIdx > -1, '.link:hover 必须由 @media (hover: hover) 门控');
@@ -108,4 +115,50 @@ test('L5 蓝色文字类总量只降不升（覆盖 JS 动态 className）', () 
   }
   assert.ok(total <= BASELINE,
     `蓝色文字类 ${total} 处 > 基线 ${BASELINE}（链接须用 text-accent；新增必须说明为何是信息态）`);
+});
+
+test('L6 帮助链接：.help-note__link 并入 --color-link，静态下划线', () => {
+  const css = read('docs/src/styles.css');
+  const m = /\.help-note__link\s*\{([^}]*)\}/.exec(css);
+  assert.ok(m, 'styles.css 缺少 .help-note__link');
+  assert.match(m[1], /color:\s*var\(--color-link\)/, '.help-note__link 必须用全站唯一链接色 --color-link');
+  assert.match(m[1], /text-decoration:\s*underline/, '.help-note__link 必须有静态下划线');
+  assert.doesNotMatch(m[1], /--functional-info|--status-info|--accent-/, '.help-note__link 不得再用信息蓝 / 角色色当链接色');
+});
+
+test('L7 速查链接：a.qn-fn-* 颜色并入 --color-link，角色色只留边框', () => {
+  const help = read('docs/help.html');
+  assert.match(help, /a\.qn-fn\s*\{[^}]*color:var\(--color-link\)/,
+    'help.html 的 a.qn-fn 应以 --color-link 作链接色');
+  assert.match(help, /a\.qn-fn\s*\{[^}]*text-decoration:underline/,
+    'help.html 的 a.qn-fn 必须有静态下划线');
+  const lightRoleRules = [...help.matchAll(/a\.qn-fn-(?:leader|org|prop|disc|member|sec)\s*\{([^}]*)\}/g)];
+  assert.equal(lightRoleRules.length, 6, `速查链接角色档应为 6 条，实际 ${lightRoleRules.length}`);
+  for (const [, body] of lightRoleRules) {
+    assert.doesNotMatch(body, /(?:^|[;\s])color:/, `速查链接角色档不得再写文字色（应继承 --color-link）：${body}`);
+    assert.match(body, /border-color:/, '速查链接角色档只保留角色色边框');
+  }
+
+  const css = read('docs/src/styles.css');
+  const darkRoleRules = [...css.matchAll(/html\.theme-dark a\.qn-fn-(?:leader|org|prop|disc|member|sec)\s*\{([^}]*)\}/g)];
+  assert.equal(darkRoleRules.length, 6, `暗色速查链接角色档应为 6 条，实际 ${darkRoleRules.length}`);
+  for (const [, body] of darkRoleRules) {
+    assert.match(body, /color:\s*var\(--color-link\)\s*!important/,
+      `暗色速查链接必须并入 --color-link：${body}`);
+  }
+});
+
+test('L8 help / about 锚点不得用蓝色或角色色作链接色', () => {
+  const offenders = [];
+  for (const rel of ['docs/help.html', 'docs/about.html']) {
+    for (const tag of anchors(read(rel))) {
+      if (/\btext-(?:blue|sky|indigo)-\d{2,3}\b/.test(tag)
+        || /color:\s*var\(--accent-/.test(tag)
+        || /color:\s*var\(--color-identity-/.test(tag)
+        || /color:\s*#(?:2563eb|1d4ed8|3b82f6|0ea5e9)/i.test(tag)) {
+        offenders.push(`${rel} → ${tag.replace(/\s+/g, ' ').slice(0, 140)}`);
+      }
+    }
+  }
+  assert.deepEqual(offenders, [], `help / about 的锚点仍用蓝色或角色色当链接色：\n  ${offenders.join('\n  ')}`);
 });

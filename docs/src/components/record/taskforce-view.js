@@ -4,18 +4,20 @@
 // 专班列表（状态分组）+ 只读详情（成员/角色/贡献）。依据支书第五轮裁定「新建专班查看组件（列表+详情）」。
 // 支书设计原则：「无职责 不代表 没有知情权」。
 
-import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261025a';
-import { getPersonName } from '../../services/member/person.js?v=20261025a';
-import { mockDB } from '../../core/domain/domain.js?v=20261025a';
-import { AuthStore } from '../../services/core/auth.js?v=20261025a';
-import { canRevealActivityMemberNames } from '../../services/core/visibility.js?v=20261025a';
-import { badgeHtml } from '../ui/badges.js?v=20261025a';
-import { dotDarkVars } from '../../core/domain/constants.js?v=20261025a';
-import { flashHighlight, showToast, escHtml as esc } from '../../core/base/utils.js?v=20261025a';
-import { anchorDetailToTrigger } from '../ui/detail-anchor.js?v=20261025a';
+import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261025b';
+import { getPersonName } from '../../services/member/person.js?v=20261025b';
+import { mockDB } from '../../core/domain/domain.js?v=20261025b';
+import { AuthStore } from '../../services/core/auth.js?v=20261025b';
+import { canRevealActivityMemberNames } from '../../services/core/visibility.js?v=20261025b';
+import { badgeHtml } from '../ui/badges.js?v=20261025b';
+import { dotDarkVars } from '../../core/domain/constants.js?v=20261025b';
+import { flashHighlight, showToast, escHtml as esc } from '../../core/base/utils.js?v=20261025b';
+import { anchorDetailToTrigger } from '../ui/detail-anchor.js?v=20261025b';
 // 统一检索引擎（2026-09-14 裁定）：只读详情「成员贡献」（第一列是人 → 配姓名关键词）与
 // 「中间进度」（时间线 → 只给分页：keyword null + facets []）各接一个实例
-import { renderFilteredList } from '../ui/list-filter.js?v=20261025a';
+import { renderFilteredList } from '../ui/list-filter.js?v=20261025b';
+// Task 6：专班的完整详情页出口（同页预览 + 「打开完整页」）；入口已在工作台内 ⇒ locate。
+import { objectDetailHref } from '../../core/domain/object-route.js?v=20261025b';
 
 // 附录⑩ B批：状态词对齐「支委会表决」语义（pending_review=待支委会表决；dissolved=表决通过解散）
 const STATUS_LABEL = { draft: '草稿', pending_review: '待支委会表决', recruiting: '招募中', active: '运行中', completed: '已完结', archived: '已归档', dissolved: '已解散' };
@@ -101,10 +103,16 @@ export function renderTaskforceView(container, opts = {}) {
         `).join('');
   }
 
-  // 卡片点击 → 只读详情
+  // 卡片点击 → 只读详情（Task 6.6：卡片 role/tabindex + Enter/Space 与点击同路）
   container.querySelectorAll('.tfv-card').forEach(card => {
     if (card.dataset.bound) return;
     card.dataset.bound = '1';
+    card.addEventListener('keydown', (e) => {
+      if (e.target !== card) return;
+      if (e.key !== 'Enter' && e.key !== ' ' && e.key !== 'Spacebar') return;
+      e.preventDefault();
+      card.click();
+    });
     card.addEventListener('click', async () => {
       const tfId = card.dataset.tfId;
       const tf = taskforces.find(r => r.id === tfId);
@@ -146,15 +154,16 @@ export function renderTaskforceView(container, opts = {}) {
 function _renderTfCard(t) {
   const filled = (t.members || []).filter(m => m.personId).length;
   return `
-    <div class="tfv-card p-4 rounded-xl bg-white border border-gray-100 cursor-pointer hover:border-gray-200 transition-colors" data-tf-id="${esc(t.id)}">
+    <div class="tfv-card p-4 rounded-xl bg-white border border-gray-100 cursor-pointer hover:border-[var(--color-border-strong)] hover:bg-[var(--surface-hover)] transition-colors" role="button" tabindex="0" aria-label="查看专班：${esc(t.name)}" data-tf-id="${esc(t.id)}">
       <div class="flex items-start justify-between gap-2 mb-2">
         <span class="text-sm font-semibold text-gray-800 leading-snug">${esc(t.name)}</span>
-        <span class="tint-pill" data-tone="${statusTone(t.status)}">${statusText(t)}</span>
+        <span class="tint-pill" data-tone="${statusTone(t.status)}">${statusText(t.status)}</span>
       </div>
       ${t.task ? `<p class="text-xs text-gray-500 mb-2 line-clamp-2">${esc(t.task)}</p>` : ''}
       <div class="flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-500">
         <span>${filled}/${t.capacity || 0} 人</span>
         ${t.deadline ? `<span>截止 ${esc(t.deadline)}</span>` : ''}
+        <span class="ml-auto text-xs text-accent whitespace-nowrap">查看详情 →</span>
       </div>
     </div>`;
 }
@@ -249,10 +258,14 @@ async function _renderTfDetail(container, tf, highlightId) {
         </li>`).join('')}</ul>` : '<p class="text-xs text-gray-500">暂无结构化工作产出。</p>'}
     </div>`;
 
+  const fullHref = objectDetailHref('taskforce', tf.id, { entry: 'owner-workspace' });
   panel.innerHTML = `
     <div class="flex items-start justify-between gap-2 mb-3">
       <h4 class="font-title-cn text-sm font-bold text-gray-800">${esc(tf.name)}</h4>
-      <span class="tint-pill" data-tone="${statusTone(tf.status)}">${statusText(tf)}</span>
+      <div class="flex items-center gap-2 flex-shrink-0">
+        <span class="tint-pill" data-tone="${statusTone(tf.status)}">${statusText(tf.status)}</span>
+        ${fullHref ? `<a href="./${fullHref}" class="link text-xs" title="打开专班完整详情页">打开完整页 →</a>` : ''}
+      </div>
     </div>
     <div class="space-y-1.5 text-xs text-gray-600 mb-4">
       ${tf.task ? `<p><span class="text-gray-500">任务：</span>${esc(tf.task)}</p>` : ''}
@@ -319,7 +332,7 @@ async function _renderTfDetail(container, tf, highlightId) {
       emptyMessage: '暂无进度记录',
       rowHtml: (p) => `
           <div class="py-2 border-b border-gray-50 last:border-b-0 flex items-start gap-2">
-            <span class="mt-1.5 w-1.5 h-1.5 rounded-full flex-shrink-0" style="background:var(--functional-success);"></span>
+            <span class="mt-1.5 w-1.5 h-1.5 rounded-full flex-shrink-0" style="background:var(--status-success);"></span>
             <div class="flex-1 min-w-0">
               <div class="flex items-center gap-2 flex-wrap">
                 ${p.stage ? `<span class="text-xs px-1.5 py-0.5 rounded-full flex-shrink-0" style="background:#10B98115;color:#0D9488;">${esc(p.stage)}</span>` : ''}
@@ -353,4 +366,17 @@ async function _renderTfDetail(container, tf, highlightId) {
       button.disabled = false;
     }
   });
+}
+
+/**
+ * 同页专班详情（Task 6 · locate）：复用本文件唯一详情渲染器 `_renderTfDetail`，
+ * 供成员台「项目分工」专班卡 / 工作概况预览打开同页预览（不复制第二套详情）。
+ * @param {HTMLElement} host — 详情宿主（内部自动建 `#tfv-detail`）
+ * @param {Object} tf — 专班记录
+ * @param {{highlightId?:string}} [opts]
+ */
+export async function renderTaskforceDetailPanel(host, tf, opts = {}) {
+  if (!host || !tf) return;
+  if (!host.querySelector('#tfv-detail')) host.innerHTML = '<div id="tfv-detail" class="hidden card rounded-xl p-5"></div>';
+  await _renderTfDetail(host, tf, opts.highlightId || null);
 }

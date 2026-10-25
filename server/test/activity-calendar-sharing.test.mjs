@@ -51,7 +51,9 @@ test('四个只读角色入口仍指向相同的共享渲染器；支书保留�
 test('右栏活动卡与左栏同落点：提供「查看活动详情」链接到 activity.html', () => {
   const source = read('../../docs/src/entries/tabs/shared/activity-calendar-tab.js');
   assert.match(source, /function _bindActivityDetailLinks\(container\)/, '右栏须补详情出口');
-  assert.match(source, /link\.href = `\.\/activity\.html\?id=\$\{encodeURIComponent\(id\)\}`/, '右栏链接须与左栏同一落点');
+  // Task 6（2026-10-26）：左右栏落点统一由 objectDetailHref 生成（同一 `activity.html?id=` 形态、缺 id 不给链接），
+  //   故断言「同一 resolver → link.href」而非字面量 URL。
+  assert.match(source, /const href = objectDetailHref\('activity', id, \{ entry: 'shared-calendar' \}\);[\s\S]{0,600}link\.href = `\.\/\$\{href\}`/, '右栏链接须与左栏同一落点（经统一对象路由）');
   assert.match(source, /查看活动详情 →/, '右栏卡片须有明确文字出口');
   assert.match(source, /new MutationObserver\(enhance\)/, '日期切换重绘后须保持链接');
 });

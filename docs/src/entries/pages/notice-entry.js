@@ -6,23 +6,25 @@
 //   · 私信 message：会话线程（同一 replyTo 链，时间升序）+ 回复框
 // 已读与回执分离：进入详情即 markRead（只标记当前人）；「确认收到 / 线上参加」属业务回执，
 //   独立渲染、不因已读隐藏。
-import { renderSidebar } from '../../components/shell/sidebar.js?v=20261025a';
-import { renderHeader } from '../../components/shell/header.js?v=20261025a';
-import { NoticeStore, canReadNotice, kindOf, isArchivedFor, replyToMessage } from '../../services/governance/notice.js?v=20261025a';
-import { getBasePath, showToast, escHtml } from '../../core/base/utils.js?v=20261025a';
-import { AuthStore } from '../../services/core/auth.js?v=20261025a';
-import { getPersonName } from '../../services/member/person.js?v=20261025a';
-import { badgeHtml } from '../../components/ui/badges.js?v=20261025a';
-import { NOTICE_AUDIENCE_SENTINELS } from '../../core/domain/constants.js?v=20261025a';
+import { renderSidebar } from '../../components/shell/sidebar.js?v=20261025b';
+import { renderHeader } from '../../components/shell/header.js?v=20261025b';
+import { NoticeStore, canReadNotice, kindOf, isArchivedFor, replyToMessage } from '../../services/governance/notice.js?v=20261025b';
+import { getBasePath, showToast, escHtml } from '../../core/base/utils.js?v=20261025b';
+import { AuthStore } from '../../services/core/auth.js?v=20261025b';
+import { getPersonName } from '../../services/member/person.js?v=20261025b';
+import { badgeHtml } from '../../components/ui/badges.js?v=20261025b';
+import { NOTICE_AUDIENCE_SENTINELS } from '../../core/domain/constants.js?v=20261025b';
 // S1（2026-09-12）：通知详情页必须先完成数据 hydrate（loadDB/API init）再按 id 取数，
 // 否则 NoticeStore 只剩 MOCK_NOTICES 内存兜底 → 用户/服务端通知一律「不存在或已过期」。
-import { hydrateDataSource, notifyDataLoaded } from '../../data/data-adapter.js?v=20261025a';
-import { ApiAdapter } from '../../data/api-adapter.js?v=20261025a';
-import { BranchService } from '../../services/core/runtime.js?v=20261025a';
+import { hydrateDataSource, notifyDataLoaded } from '../../data/data-adapter.js?v=20261025b';
+import { ApiAdapter } from '../../data/api-adapter.js?v=20261025b';
+import { BranchService } from '../../services/core/runtime.js?v=20261025b';
 // SOP-B-5（D-293）：通知确认时填「能否线上参会」——线上参会落该场考勤为「请假 + 线上」、只免补课
-import { declareOnlineAttend, loadAttendanceRecords } from '../../services/activity/attendance.js?v=20261025a';
-import { loadActivities } from '../../services/activity/activity.js?v=20261025a';
-import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261025a';
+import { declareOnlineAttend, loadAttendanceRecords } from '../../services/activity/attendance.js?v=20261025b';
+import { loadActivities } from '../../services/activity/activity.js?v=20261025b';
+import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261025b';
+// Task 6：对象卡直达详情页（通知不在对象所属工作台内 ⇒ direct）。
+import { objectDetailHref } from '../../core/domain/object-route.js?v=20261025b';
 
 renderSidebar('messages');
 renderHeader('messages');
@@ -122,8 +124,8 @@ const _fmtTime = (n) => String(n.createdAt || n.publishDate || '').slice(0, 16).
 
 // ── 对象卡（只按 targetType/targetId 取数；取不到给可见提示）──────────
 const OBJECT_META = {
-  activity: { label: '活动', href: (id) => `activity.html?id=${encodeURIComponent(id)}`, action: '去活动详情' },
-  taskforce: { label: '专班', href: (id) => `taskforce.html?id=${encodeURIComponent(id)}`, action: '去专班详情' },
+  activity: { label: '活动', href: (id) => objectDetailHref('activity', id, { entry: 'notice' }), action: '去活动详情' },
+  taskforce: { label: '专班', href: (id) => objectDetailHref('taskforce', id, { entry: 'notice' }), action: '去专班详情' },
   thoughtReport: { label: '思想汇报', href: (id) => `thought-report.html?id=${encodeURIComponent(id)}`, action: '查看思想汇报' },
   person: { label: '成员', href: (id) => `person.html?id=${encodeURIComponent(id)}`, action: '查看成员档案' },
   member: { label: '成员', href: (id) => `person.html?id=${encodeURIComponent(id)}`, action: '查看成员档案' },
@@ -174,7 +176,9 @@ function _objectCardHtml(n) {
     <div class="rounded-lg border border-gray-200 bg-gray-50/50 p-3">
       <div class="flex items-center gap-2 mb-2">
         ${badgeHtml(obj.meta.label, 'neutral')}
-        <span class="text-sm font-medium text-gray-800">${escHtml(obj.title || obj.label)}</span>
+        ${obj.href
+          ? `<a href="${escHtml(obj.href)}" class="link text-sm font-medium" title="打开${escHtml(obj.meta.label)}完整页">${escHtml(obj.title || obj.label)} →</a>`
+          : `<span class="text-sm font-medium text-gray-800">${escHtml(obj.title || obj.label)}</span>`}
       </div>
       ${obj.fields.length ? `<p class="text-xs text-gray-500">${obj.fields.map(([k, v]) => `${escHtml(k)}：${escHtml(String(v))}`).join(' · ')}</p>` : ''}
     </div>`;

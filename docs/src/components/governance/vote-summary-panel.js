@@ -9,17 +9,17 @@
 //   committeeMembers.length。矩阵成员由调用方传入（有 voteConfig → voterIds 映射人员；无 → 权威支委名单
 //   resolveVoterIds('committee')，过滤见 inspector.js；server/routes/committee.js 旧活动
 //   回退名单同样按 users.role 派生（P1-09，勿再本地罗列支委成员）。选项集/标签权威 = vote-config.js OPTION_SETS（勿再本地硬编码）
-import { fetchVotes, lockVotes, votedCountOf, tallyOf } from '../../services/activity/committee-vote.js?v=20261025a';
-import { optionSetOf, isAnonymousActivity } from '../../services/activity/vote-config.js?v=20261025a';
-import { showToast, escHtml as esc } from '../../core/base/utils.js?v=20261025a';
+import { fetchVotes, lockVotes, votedCountOf, tallyOf } from '../../services/activity/committee-vote.js?v=20261025b';
+import { optionSetOf, isAnonymousActivity } from '../../services/activity/vote-config.js?v=20261025b';
+import { showToast, escHtml as esc } from '../../core/base/utils.js?v=20261025b';
 // R2-2（2026-09-06）：决议「待落实」跟进管理器（记录决议视图内勾选/保存/销项；本文件保留原版本串——
 //   唯一引用方 components/record/inspector.js 属禁改文件无法同步 ?v=，改动经子模块新版本串保证取新代码）
-import { loadActivities } from '../../services/activity/activity.js?v=20261025a';
+import { loadActivities } from '../../services/activity/activity.js?v=20261025b';
 import {
   resolutionFollowupSectionHtml, bindResolutionFollowupSection,
-} from './resolution-followup-manager.js?v=20261025a';
+} from './resolution-followup-manager.js?v=20261025b';
 // 批次 39：表态矩阵并入单一源「人 × 项目」矩阵（原 .vs-matrix 自建实现撤除，Q-23-18 收敛）
-import { renderRelationMatrix } from '../ui/relation-matrix.js?v=20261025a';
+import { renderRelationMatrix } from '../ui/relation-matrix.js?v=20261025b';
 
 // HTML 转义统一走 core/base/utils.js escHtml（2026-09-03 去重收口）
 
@@ -63,7 +63,7 @@ export async function renderVoteSummary(container, { activity, committeeMembers,
       <div class="vs-head">
         <strong>表态汇总</strong>
         <span class="vs-stat" title="应到＝有表决权党员（预备党员无表决权）">应到 ${total} · 已表态 ${votedCount} · 未表态 ${total - votedCount}</span>
-        ${locked ? '<span class="vs-locked">已截止</span>' : (canLock === true ? '<button class="btn-ghost vs-lock" type="button">截止表态</button>' : '<span class="text-xs text-gray-500">截止表态由支书/副支书操作</span>')}
+        ${locked ? '<span class="vs-locked">已截止</span>' : (canLock === true ? '<button class="btn-outline vs-lock" type="button">截止表态</button>' : '<span class="text-xs text-gray-500">截止表态由支书/副支书操作</span>')}
       </div>
       ${tallyHtml}
       ${quorumHtml}

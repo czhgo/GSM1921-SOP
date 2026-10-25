@@ -1,12 +1,12 @@
 ---
-title: "守卫清点与合并台账（72 → 68 件）"
+title: "守卫清点与合并台账（72 → 70 件）"
 type: guide
 role: "[工程师]+[AI]"
-last_updated: "2026-10-25"
+last_updated: "2026-10-26"
 status: active
 ---
 
-# 守卫清点与合并台账（2026-10-24 批次 509；2026-10-25 批次 510 / 511 补扩展记录）
+# 守卫清点与合并台账（2026-10-24 批次 509；2026-10-25 批次 510 / 511 补扩展记录；2026-10-26 批次 512 新增 2 件）
 
 > **本文件回答什么**：仓库里有哪些「守卫 / 真值 / 完整性 / 契约 / 对账 / 基线 / 一致性」类测试，
 > 各查什么、多少断言、覆盖多大、近 3 批是否命中、与谁重叠；以及**本次合并了哪几组、后续批次还要并哪几组**。
@@ -16,19 +16,20 @@ status: active
 > `test-tier-registry.mjs::countTestCases` 同口径）；覆盖文件数＝文件内出现的源码 / 文档路径字面量去重数（**粗估**，
 > 不等于运行时真正读取的文件数）；近 3 批＝`2026-10-EXECUTION_LOG.md` 的批次 506/507/508 段内是否出现该守卫名。
 
-## 一、清点总表（合并后现行 68 件）
+## 一、清点总表（合并后现行 70 件）
 
-> **批次 510（2026-10-25）**：**未新增 / 删除 guard 文件**，件数仍为 **68 件**（清点口径不变）。
-> 本批只做**扩展**：6 件守卫新增 / 改写断言，明细见 §七；其中 `notice-audience` / `notice-message` /
-> `workbench-audit-coverage` 三件不在本表的「文件名含 guard/truth/…」口径内（表内 68 件未含），按实登记。
+> **批次 510（2026-10-25）**：未新增 / 删除 guard 文件；本批只做**扩展**，明细见 §七。
+> **批次 511（2026-10-25）**：仍为 68 件（H-T1…H-T5 / T3-1…T4-1 落在既有文件），明细见 §八。
+> **批次 512（2026-10-26）**：新增 **2 件**——`runtime-tab-lifecycle-guard`（16 条）与 `object-route-guard`
+> （8 条）；件数 68 → **70**，明细见 §九。
 
-> 合并前实点 **72 件**（下表 68 件 ＋ 本批合并掉的 `frontmatter-freshness` / `timestamps-note-guard` /
-> `doc-line-ref` / `gold-accent-guard` / `button-system-guard`）。断言数合计 **435**（72 件口径：现行 68 件 410 条
-> ＋ 已合并 5 件 25 条）。
+> 合并前实点 **72 件**（批次 509 口径）。下表逐行按实读校准后，现行 **70 件 / 462 条**；另有已合并的
+> 5 件（`frontmatter-freshness` / `timestamps-note-guard` / `doc-line-ref` / `gold-accent-guard` /
+> `button-system-guard`，25 条）不在表内、不计入本表合计。
 
 | 文件 | 检查对象 | 断言数 | 覆盖文件数（粗估） | 近 3 批是否命中 | 与谁重叠 |
 |---|---|---:|---:|---|---|
-| `activity-tone-guard.test.mjs` | 数据 / 活动类别 tone | 4 | 20 | 是 | `ui-color-semantics`、`theme-palette-guard`（颜色语义） |
+| `activity-tone-guard.test.mjs` | 数据 / 活动类别 tone | 5 | 20 | 是 | `ui-color-semantics`、`theme-palette-guard`（颜色语义） |
 | `archive-action-guard.test.mjs` | 数据 / 归档写链 | 2 | 3 | — | `archive-record-write`、`write-path-guard` |
 | `archive-deeplink-guard.test.mjs` | 页面 / 归档深链 | 5 | 4 | — | `notice-deeplink-guard`、`ui-home-deeplink` |
 | `block-entry-guard-e2e.test.mjs` | 页面（真机） | 4 | 4 | — | `block-manifest`、`block-config-ui-e2e` |
@@ -46,7 +47,7 @@ status: active
 | `dead-selector-guard.test.mjs` | 组件 / CSS（零引用类） | 4 | 7 | 是 | `hex-hardcode-guard`、`ui-redundancy-guard` |
 | `density-spacing-guard.test.mjs` | 组件 / token（密度间距） | 7 | 1 | 是 | `spacing-scale-guard`、`ui-control-system-guard` |
 | `doc-consistency.test.mjs` | 文档（跨面口径 S1–S20） | 21 | 67 | 是 | `docs-governance-guard`、`ctx-hygiene-guard`、`test-tier-guard` |
-| `docs-governance-guard.test.mjs` | 文档（frontmatter / 备注列 / 行号引用 / README / AGENTS / SNAPSHOT / 判例） | 18 | 38 | — | `doc-consistency`、`ctx-hygiene-guard`、`link-integrity` |
+| `docs-governance-guard.test.mjs` | 文档（frontmatter / 备注列 / 行号引用 / README / AGENTS / SNAPSHOT / 判例 / 术语 Harness） | 25 | 38 | — | `doc-consistency`、`ctx-hygiene-guard`、`link-integrity` |
 | `feedback-integrity.test.mjs` | 页面 / 数据（写反馈可信） | 12 | 8 | — | `pending-writes`、`write-path-guard` |
 | `field-shell-guard.test.mjs` | 组件（字段外壳） | 6 | 5 | — | `ui-control-system-guard`、`hover-state-guard` |
 | `frontend-foundations-guard.test.mjs` | 组件 / 页面（前端底线） | 9 | 13 | — | `ui-motion-guard`、`hover-state-guard`、`hex-hardcode-guard` |
@@ -56,18 +57,19 @@ status: active
 | `ia-critical-guard.test.mjs` | 页面结构（IA 关键位） | 5 | 5 | — | `ui-first-screen-order`、`workbench-audit-coverage` |
 | `identity-student-id-guard.test.mjs` | 数据（学号身份） | 7 | 13 | — | `id-uniqueness`、`person-consistency` |
 | `import-path-guard.test.mjs` | 代码（ESM 路径） | 2 | 5 | — | `module-load`、`link-integrity` |
-| `link-color-guard.test.mjs` | token / 组件（链接色） | 5 | 1 | 是 | `theme-palette-guard`、`ui-color-semantics`、`ui-contrast-guard` |
+| `link-color-guard.test.mjs` | token / 组件（链接色） | 8 | 1 | 是 | `theme-palette-guard`、`ui-color-semantics`、`ui-contrast-guard` |
 | `link-integrity.test.mjs` | 页面 / 文档链接（真机） | 5 | 4 | — | `link-target-guard`、`docs-governance-guard::R1–R6` |
 | `link-target-guard.test.mjs` | 页面（JS 渲染 href） | 2 | 15 | — | `link-integrity` |
 | `localstorage-key-guard.test.mjs` | 代码 / 存储键 | 3 | 4 | 是 | `doc-consistency::S6`、`preferences` |
 | `material-link-truth.test.mjs` | 数据（材料链接真值） | 6 | 1 | — | `mock-api-parity`、`data-lifecycle-guard` |
-| `mock-api-parity-structure.test.mjs` | 数据（mock / API 结构） | 4 | 7 | — | `mock-api-parity`、`mock-integrity` |
+| `mock-api-parity-structure.test.mjs` | 数据（mock / API 结构） | 5 | 7 | — | `mock-api-parity`、`mock-integrity` |
 | `mock-api-parity.test.mjs` | 数据（mock / API 读数） | 5 | 4 | — | `mock-api-parity-structure`、`mock-integrity` |
 | `mock-integrity.test.mjs` | 数据（mock 完整性，真机） | 2 | 0 | — | `mock-api-parity`、`mock-api-parity-structure` |
 | `modal-contract.test.mjs` | 组件 / 交互（弹窗契约） | 5 | 4 | — | `modal-escape-guard`、`ui-modal-form-guard` |
 | `modal-escape-guard.test.mjs` | 组件 / 交互（ESC 关闭） | 3 | 1 | — | `modal-contract`、`ui-modal-form-guard` |
 | `motion-guard.test.mjs` | 组件 / token（动效令） | 6 | 1 | — | `ui-motion-guard`、`frontend-foundations-guard` |
 | `notice-deeplink-guard.test.mjs` | 页面（通知深链） | 7 | 23 | — | `archive-deeplink-guard`、`ui-home-deeplink` |
+| `object-route-guard.test.mjs` | 组件 / 路由（详情入口 direct / locate / none） | 8 | 12 | — | `archive-deeplink-guard`、`tab-alias-guard`、`frontend-foundations-guard::F8` |
 | `page-title-guard.test.mjs` | 页面（标题 / 面包屑） | 4 | 15 | — | `tab-alias-guard`、`ux-guard` |
 | `party-branch-directory-guard.test.mjs` | 页面 / 数据（支部名录） | 1 | 1 | — | `party-branch-directory-context`、`doc-consistency` |
 | `perf-render-guard.test.mjs` | 页面 / 性能（渲染预算） | 5 | 0 | — | `perf-todo-agg-cache`、`perf-index-equivalence` |
@@ -77,18 +79,19 @@ status: active
 | `roster-filter-guard.test.mjs` | 页面 / 组件（名册筛选） | 7 | 4 | — | `filter-row`、`list-filter` 相关守卫 |
 | `round1-remediation-guard.test.mjs` | 跨面（首轮整改回归） | 5 | 15 | — | `round3-4-batch1`、`structural-round3` |
 | `row-markup-guard.test.mjs` | 组件（列表行标记） | 4 | 8 | — | `table-type-scale-guard`、`ui-redundancy-guard` |
+| `runtime-tab-lifecycle-guard.test.mjs` | 组件 / 运行时（tab 渲染生命周期 / 绑定幂等 / 首屏性能） | 16 | 12 | — | `perf-render-guard`、`frontend-foundations-guard`、`tab-nav` |
 | `seed-baseline.test.mjs` | 数据（空库基线） | 3 | 2 | — | `seed-drift`、`db-integrity-guard` |
 | `self-evident-copy-guard.test.mjs` | 页面文案（自明性） | 2 | 0 | — | `copy-length-guard`、`ux-guard` |
 | `small-text-guard.test.mjs` | token / 页面（小字） | 3 | 1 | — | `control-font-guard`、`text-tier-guard` |
 | `spacing-scale-guard.test.mjs` | token / 组件（间距档） | 4 | 6 | — | `density-spacing-guard`、`table-type-scale-guard` |
-| `state-enum-guard.test.mjs` | 数据 / 代码（状态枚举） | 6 | 16 | — | `handoff-state-guard`、`doc-consistency::S14` |
+| `state-enum-guard.test.mjs` | 数据 / 代码（状态枚举） | 9 | 16 | — | `handoff-state-guard`、`doc-consistency::S14` |
 | `tab-alias-guard.test.mjs` | 页面 / 路由（页签别名） | 3 | 8 | — | `page-title-guard`、`tab-nav` |
 | `table-type-scale-guard.test.mjs` | 组件（表格字号档） | 4 | 2 | — | `text-tier-guard`、`row-markup-guard` |
 | `test-tier-guard.test.mjs` | 测试机制（分层 / 预算） | 6 | 6 | — | `doc-consistency::S16`、`suite-shard` |
 | `text-tier-guard.test.mjs` | token / 页面（段落档位） | 4 | 2 | — | `small-text-guard`、`control-font-guard` |
-| `theme-palette-guard.test.mjs` | token（7 主题色板） | 12 | 9 | 是 | `ui-contrast-guard`、`hex-hardcode-guard`、`ui-color-semantics` |
+| `theme-palette-guard.test.mjs` | token（7 主题色板 / 功能色层 / 僵尸 token） | 14 | 9 | 是 | `ui-contrast-guard`、`hex-hardcode-guard`、`ui-color-semantics` |
 | `ui-contrast-guard.test.mjs` | token（对比度） | 5 | 3 | 是 | `theme-palette-guard::T2`、`link-color-guard` |
-| `ui-control-system-guard.test.mjs` | 组件（控件单一源） | 14 | 19 | 是 | `ui-select-appearance-guard`、`field-shell-guard`、`density-spacing-guard` |
+| `ui-control-system-guard.test.mjs` | 组件（控件单一源 / 视觉基础 / 按钮三档） | 25 | 22 | 是 | `ui-select-appearance-guard`、`field-shell-guard`、`density-spacing-guard` |
 | `ui-modal-form-guard.test.mjs` | 组件（弹窗表单） | 10 | 13 | — | `modal-contract`、`modal-escape-guard` |
 | `ui-motion-guard.test.mjs` | 组件（卡片悬停 / transition） | 3 | 0 | — | `motion-guard`、`hover-state-guard` |
 | `ui-redundancy-guard.test.mjs` | 页面（冗余控件） | 2 | 7 | — | `dead-selector-guard`、`ux-guard` |
@@ -112,9 +115,9 @@ status: active
 ### 3.1 数量
 
 - 清点（合并前）：**72 件**守卫类测试。
-- 本次合并：5 件 → 3 件保留件（文档 3→1 新增、颜色 2→1、交互 2→1），净 **−2 件**的「组」变化，
-  文件数 **72 − 5 ＋ 1 = 68**。
-- 后续目标：**54 ± 3 件**（再合并约 14 件）。推导见 3.2。
+- 批次 509 合并：5 件 → 3 件保留件（文档 3→1 新增、颜色 2→1、交互 2→1），文件数 **72 − 5 ＋ 1 = 68**。
+- 批次 512 新增：`runtime-tab-lifecycle-guard` ＋ `object-route-guard` ⇒ 现行 **70 件 / 462 条**。
+- 后续目标：**56 ± 3 件**（按新增 2 件平移；再合并约 14 件）。推导见 3.2（其「现有 / 目标」为批次 509 时点）。
 
 ### 3.2 推导（按「同一检查对象 ＋ 同一失败根因」聚类，不按文件名拍脑袋）
 
@@ -210,3 +213,21 @@ status: active
 - **件数**：68 → **68**（H-T1…H-T5 落在既有 `docs-governance-guard`，T3-1…T4-1 落在既有 `ui-control-system-guard`，无新增 guard 文件）。
 - **非空转（本批实读）**：H-T3 实扫 **78** 文件 / 结构性标签 **234** 处（命中术语 22、未命中 131 已基线）；T3-1 实扫 **675** 个交互元素；T4-1 实扫 **4** 个 `renderDisclosure` 文件 ＋ **32** 个手写折叠文件；`catalog-sync::T6` 固定总数 **45**。
 - **故障注入（一红一绿）**：H-T1 把 `insight-view` 的 `taskforce` 段标签改成「专班」⇒ 层级不一致判红；T3-1 在任一 `button` 内放 `<h3>` ⇒ 判红；`catalog-sync::T6` 删 `PRODUCT_IA` 一行 ⇒ 总数 / 集合不符判红。
+
+## 九、批次 512 扩展记录（2026-10-26 · 新增 2 件 guard 文件）
+
+> 件数 **68 → 70**；计数口径同 §一（静态 `test(` / `it(` / `t.test(` 调用点，与 `test-tier-registry::countTestCases` 同口径）。
+> 本批以**新增**为主，另有 4 件守卫扩展断言（其中 `frontend-foundations-guard::F8` 为既有 test 内扩扫描面，0 条新增）。
+
+| 守卫 | 变更 | `HEAD` test 数 | 现行 test 数 | 本批 +test |
+|---|---|---:|---:|---:|
+| `runtime-tab-lifecycle-guard` | **新增**：R1 renderCtx 最新 state（含「切月 → 切走 → 切回」行为用例）· R2 统一生命周期（seq / 去重 / 清 marker / await）· R3 陈旧写回恢复快照 ＋ 失败错误卡 · R4 loading 8s 超时恢复 · R5 绑定标记改挂重建元素 / 事件委托 · R6 页内 import 与节点缺失可见失败 · R7 回退页签 toast · P1 延迟可配（默认 ≤120ms）· P2 loadDB 幂等锁 · P3 首屏不阻塞 · P4 hover 先读后写 / Observer 只扫新增 · P5 后台渲染不铺占位 | — | 16 | **+16（新文件）** |
+| `object-route-guard` | **新增**：R1 入口矩阵单一 mode ＋ 理由 · R2 direct / locate 落点 · R3 缺 id / 跨支部 / 特权角色门 · R4 已归档 / 终态 readOnly 与 activity-entry 写口门一致 · R5 生成点收口（裸 URL 0 处、`objectDetailHref` ≥30 调用）· R6 无空 id 可点 · R7 可点节点键盘可达 · R8 同一页只有一个完整详情落点 | — | 8 | **+8（新文件）** |
+| `ui-control-system-guard` | **V1** 容器语义（metric-band 两档 / section 可访问名 / list-row 四载体）· **V2** 胶囊全宽可见（无 display:none、≥24px、描边）· **V3** 关键表 fixed ＋ colgroup ＋ 末列贴列尾 ＋ ≤640 动作列 flex-start · **V4** btn-ghost 只作非动作行载体（6 处白名单）· **V5** btn-text 下划线 ＋ 箭头非 neutral-400 · **V6** 图标 32 视觉 ＋ 44 命中 ＋ 无障碍名 · **V7** hover 对白卡 / 页面底实测对比 | 18 | 25 | **+7** |
+| `theme-palette-guard` | **T8** 功能色层（状态 4 色 / 类别 3 色 / 身份色 ≡ `ROLE_COLORS` / 语义别名）· **T9** 僵尸 token 零消费者（12 个已删 token ＋ JS 不再写 `--functional-*`） | 12 | 14 | **+2** |
+| `link-color-guard` | **L6** 帮助链接并入 `--color-link` ＋ 静态下划线 · **L7** 速查链接颜色并入、角色色只留边框 · **L8** help / about 锚点不得用蓝色或角色色 | 5 | 8 | **+3** |
+| `frontend-foundations-guard` | **F8** 扩扫描面：`list-row` 的 `data-interactive="true"` 载体必须原生控件或 `role=button` ＋ `tabindex=0`，主从行须接受 Enter / Space；行载体必须有可见 hover | 9 | 9 | 0（既有 test 内扩扫描面） |
+
+- **件数**：68 → **70**；断言数 410（旧表）→ **462**（逐行实读校准 ＋ 新增 24 条）。
+- **非空转（实读）**：V1 扫到 `section.card` ≥8、list-row 四类行型齐；V4 白名单 5 文件 6 处逐一命中；V5 `.btn-text` ≥3 且「全部 / 查看 / 更多」≥3；V6 `.btn-icon` ≥6；object-route R5 扫 ≥180 个 `docs/src/*.js`、`objectDetailHref` 调用 ≥30；runtime P1 默认延迟 ≤120ms。
+- **故障注入（人工，不入仓）**：删 `delete el.dataset.currentTab` ⇒ R2 红；`renderCtx` 改回一次性求值 ⇒ R1 红；任一入口写回 `activity.html?id=${id}` ⇒ object-route R5 红；去掉 `!readOnly` ⇒ R4 红；`.tab-group-label` 加 `display:none` ⇒ V2 红；`btn-ghost` 新增一处动作按钮 ⇒ V4 红；`--color-identity-*` 改值不等 `ROLE_COLORS` ⇒ T8 红。

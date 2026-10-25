@@ -36,8 +36,10 @@ export const TIERS = ['daily', 'precommit', 'weekly'];
  *    archive-deeplink-guard（均纯 node）⇒ 228 → 232。
  *  2026-10-24 批次 509：frontmatter-freshness / timestamps-note-guard / doc-line-ref / gold-accent-guard /
  *    button-system-guard 五件合并为 docs-governance-guard / theme-palette-guard / ui-control-system-guard
- *    （3+2+2 → 1+1+1）⇒ 232 − 5 ＋ 1 = 228。 */
-export const DAILY_FILE_BUDGET = 228;
+ *    （3+2+2 → 1+1+1）⇒ 232 − 5 ＋ 1 = 228。
+ *  2026-10-25 spec restore-visual-hierarchy-and-runtime · Task 1：新增 runtime-tab-lifecycle-guard（纯 node）⇒ 228 → 229。
+ *  2026-10-26 同 spec · Task 6（详情路由 direct/locate）：新增 object-route-guard（纯 node）⇒ 229 → 230。 */
+export const DAILY_FILE_BUDGET = 230;
 
 /** daily 静态 `test(` / `it(` 调用点预算（含子测试；新增断言须同批上调并写明理由）
  *  2026-10-21 R5 P1：页题守卫 4 条 + 对比度守卫 5 条 + 补登记的既有两条守卫 ⇒ 1351 → 1377。
@@ -76,8 +78,25 @@ export const DAILY_FILE_BUDGET = 228;
  *     均带非空转下限与故障注入说明）⇒ 1514 → 1519。
  *  2026-10-25 同 spec · Task 4（同屏纵向一致）：ui-control-system-guard 增补 T4-1
  *    （同一文件只允许一种折叠头实现：renderDisclosure ↔ 手写 details/summary，1 条；
- *     带非空转下限与逐条理由豁免）⇒ 1519 → 1520。 */
-export const DAILY_TEST_BUDGET = 1521;
+ *     带非空转下限与逐条理由豁免）⇒ 1519 → 1520。
+ *  2026-10-25 spec restore-visual-hierarchy-and-runtime · Task 1（运行时正确性）：
+ *    新增 runtime-tab-lifecycle-guard（11 条：renderCtx 最新态 ×2 / 统一生命周期 ×2 / 陈旧写回与失败可见 ×2 /
+ *    loading 超时 ×2 / 绑定幂等 / 页内失败态 / 回退提示；含 3 条行为用例与故障注入说明）⇒ 1521 + 11 = 1532；
+ *    并入同批工作树里视觉侧已落地的 3 条（page-sweep / ui-contrast-guard / ui-control-system-guard）
+ *    ⇒ 按实况校准为 1535。
+ *  2026-10-26 同 spec · Task 2（关键性能：首屏 / 鼠标卡帧）：在既有 runtime-tab-lifecycle-guard
+ *    增补 P1–P5（可配置延迟 / 单次 loadDB / 首屏不阻塞 / hover 先读后写 + 观察器增量 / 后台刷新不铺占位，
+ *    5 条，含 1 条行为用例与故障注入说明；未新增守卫文件）⇒ 1535 + 5 = 1540。
+ *  2026-10-26 同 spec · Task 4（色彩分工）：既有守卫内新增 6 条（theme-palette-guard T8 功能色层 + T9 僵尸
+ *    token、activity-tone-guard A5 暗色分离、link-color-guard L6 帮助链接 + L7 速查链接 + L8 help/about 锚点），
+ *    未新增守卫文件 ⇒ 1540 + 6 = 1546。
+ *  2026-10-26 同 spec · Task 5（按钮三档与可点性）：ui-control-system-guard 内新增 V4–V7 四条
+ *    （btn-ghost 仅非动作行载体 / 纯文字动作下划线或箭头 / 图标按钮 32 视觉 + 44 命中 / 可点行 hover
+ *    对比与左条），未新增守卫文件 ⇒ 1546 + 4 = 1550。
+ *  2026-10-26 同 spec · Task 6（详情路由 direct/locate）：新增 object-route-guard 八条
+ *    （入口矩阵 / direct·locate 落点 / 门 / 已归档只读 / 生成点收口 / 无空 id / 可点节点可键盘 /
+ *     同页单一完整详情面；含故障注入说明）⇒ 1550 + 8 = 1558。 */
+export const DAILY_TEST_BUDGET = 1558;
 
 const group = (tier, reason, list) => list.map((file) => ({ file, tier, reason }));
 
@@ -209,6 +228,10 @@ export const TEST_TIERS = [
     'round1-remediation-guard.test.mjs',
     'round3-4-batch1.test.mjs',
     'row-markup-guard.test.mjs',
+    // 2026-10-25 Task 1：Tab 运行时正确性（renderCtx 最新态 / 统一生命周期 / loading 超时 / 绑定幂等，纯 node）
+    'runtime-tab-lifecycle-guard.test.mjs',
+    // 2026-10-26 Task 6：详情路由 direct/locate/none 矩阵、门、已归档只读、生成点收口（纯 node）
+    'object-route-guard.test.mjs',
     'self-evident-copy-guard.test.mjs',
     'small-text-guard.test.mjs',
     'spacing-scale-guard.test.mjs',

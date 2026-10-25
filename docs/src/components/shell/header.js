@@ -3,14 +3,14 @@
 // 变化: 去掉 mode 标签与只读视角切换；2026-08-10 支书裁定（原则12 工作台集成制）：
 // 「切换工作台」下拉为冗余要素（每个人就是每个人，任务集成在工作台，跨台经待办/通知直达）→ 删除
 
-import { ROLE_LABELS } from '../../core/domain/constants.js?v=20261025a';
-import { getBasePath } from '../../core/base/utils.js?v=20261025a';
-import { icon } from '../../core/base/icons.js?v=20261025a';
-import { DATA_CHANGED_EVENT, DATA_LOADED_EVENT } from '../../data/data-adapter.js?v=20261025a';
-import { badgeHtml } from '../ui/badges.js?v=20261025a';
-import { readLoginSnapshot } from '../../core/session/login-snapshot.js?v=20261025a';
+import { ROLE_LABELS } from '../../core/domain/constants.js?v=20261025b';
+import { getBasePath } from '../../core/base/utils.js?v=20261025b';
+import { icon } from '../../core/base/icons.js?v=20261025b';
+import { DATA_CHANGED_EVENT, DATA_LOADED_EVENT } from '../../data/data-adapter.js?v=20261025b';
+import { badgeHtml } from '../ui/badges.js?v=20261025b';
+import { readLoginSnapshot } from '../../core/session/login-snapshot.js?v=20261025b';
 // P1 党委后台（2026-09-02）：header 品牌软编码——标题随支部配置档案更换（person→branchId→branches.config.headerTitle）
-import { getHeaderTitle } from '../../services/branch/branch.js?v=20261025a';
+import { getHeaderTitle } from '../../services/branch/branch.js?v=20261025b';
 
 // ── 数据层按需加载（静态页隔离，2026-08-12）──
 // about/help 等纯静态文档页以 staticShell 渲染 header：不加载 auth/notice 数据链
@@ -19,18 +19,18 @@ import { getHeaderTitle } from '../../services/branch/branch.js?v=20261025a';
 let _authModule = null;
 let _noticeModule = null;
 function loadAuth() {
-  if (!_authModule) _authModule = import('../../services/core/auth.js?v=20261025a');
+  if (!_authModule) _authModule = import('../../services/core/auth.js?v=20261025b');
   return _authModule;
 }
 function loadNotice() {
-  if (!_noticeModule) _noticeModule = import('../../services/governance/notice.js?v=20261025a');
+  if (!_noticeModule) _noticeModule = import('../../services/governance/notice.js?v=20261025b');
   return _noticeModule;
 }
 // 2026-09-30 批次 297-2：跨台通用动作「一键汇报」收进顶栏唯一固定位 ⇒ 顶栏按需加载其入口模块
 // （与 auth / notice 同一策略：静态壳页不加载，app 模式渲染后加载，模块缓存后即时）
 let _reportEntryModule = null;
 function loadReportEntry() {
-  if (!_reportEntryModule) _reportEntryModule = import('../record/report-entry.js?v=20261025a');
+  if (!_reportEntryModule) _reportEntryModule = import('../record/report-entry.js?v=20261025b');
   return _reportEntryModule;
 }
 
@@ -256,7 +256,7 @@ export async function renderHeader(activeModule, opts = {}) {
 
   header.innerHTML = `
     <div class="header-content">
-      <button id="hamburger-btn" aria-label="打开导航菜单" aria-controls="app-sidebar" aria-expanded="false" class="btn-ghost hamburger-btn">
+      <button id="hamburger-btn" aria-label="打开导航菜单" aria-controls="app-sidebar" aria-expanded="false" class="btn-outline hamburger-btn">
         <span></span><span></span><span></span>
       </button>
       <div class="party-emblem-wrapper">
@@ -382,13 +382,13 @@ function _bindNotificationBell(header) {
             ${n.source === 'committee' ? '<span style="display:inline-flex;align-items:center;padding:0 6px;border-radius:9999px;background:var(--party-red);color:#fff;font-size:10px;line-height:16px;flex-shrink:0;">党委下发</span>' : ''}
             ${n.kind === 'message' ? badgeHtml('私信', 'brand') : ''}
             <p style="color:var(--neutral-700);margin:0;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" class="text-body-sm">${n.title || n.content}</p>
-            <button class="btn-ghost notif-mark-read text-xs px-1.5 py-0.5" data-notice-id="${n.id}" style="color:var(--functional-info);flex-shrink:0;">已读</button>
+            <button class="btn-outline notif-mark-read text-xs px-1.5 py-0.5" data-notice-id="${n.id}" style="color:var(--status-info);flex-shrink:0;">已读</button>
           </div>
           <p style="color:var(--neutral-500);margin:0;" class="text-[12px]">${n.publishDate || n.date || ''}</p>
         </div>
       `).join('')}
         </div>
-        <a href="${getBasePath()}messages.html?filter=unread" class="block text-center text-xs" style="padding:10px;color:var(--app-accent-soft-text);border-top:1px solid var(--neutral-200);">查看全部</a>`;
+        <a href="${getBasePath()}messages.html?filter=unread" class="block text-center text-xs" style="padding:10px;color:var(--app-accent-soft-text);border-top:1px solid var(--neutral-200);">查看全部 ›</a>`;
 
       // 绑定"已读"按钮：stopPropagation 防止触发外层跳转
       dropdown.querySelectorAll('.notif-mark-read').forEach(btn => {

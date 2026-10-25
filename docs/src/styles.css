@@ -1,5 +1,5 @@
 /* 组件样式（@import 必须位于文件顶部） */
-@import url('components/person-picker.css?v=20261025a');
+@import url('components/person-picker.css?v=20261025b');
 
 /* ═══════════════════════════════════════════════════════════════
    GSM1921-SOP DESIGN SYSTEM v11.0 — Matte Flat
@@ -31,42 +31,72 @@
   --primary-900: #7A0010;
   --primary-950: #4A000A;
 
-  /* ── LAYER 2: Accent — 党徽金 + 角色识别色 ── */
+  /* ── LAYER 2: Accent — 党徽金（固定语义，不随主题） ── */
   --accent-gold:       var(--party-gold);
   --accent-gold-light: var(--party-gold-light);
-  --accent-amber:      #D97706;
-  --accent-blue:       #3B82F6;
-  --accent-emerald:    #059669;
-  --accent-secretary:        #B91C1C;  /* 党支书 — 党建红（不动） */
-  --accent-deputy-secretary: #B91C1C;  /* 党支副支书 — 党建红（同支书） */
-  --accent-leader:           #22C55E;  /* 党小组组长 — 翠绿 */
-  --accent-org-commissioner: #0EA5E9;  /* 组织委员 — 天蓝 */
-  --accent-prop-commissioner:#2563EB;  /* 宣传委员 — 海蓝 */
-  --accent-disc-commissioner:#C2410C;  /* 纪检委员 — 深橙 */
-  --accent-organizer:        #7DD3FC;  /* 组织者 — 亮天蓝 */
-  --accent-deep:             #A78BFA;  /* 深度参与者 — 雾紫（2026-08-29 S6 提亮，替代旧浅灰蓝） */
-  /* 2026-10-23 批次 505：旧的「参与者」主题色（红）退场——它与 JS 侧「普通成员=金」同名两值，
-     是「换主题串色」的来源；普通成员的主题色现由 gold 主题（--app-accent*）负责。 */
 
-  /* ── 角色识别色 — Light 变体（用于 border-left / 浅底色等低饱和场景） ── */
-  --accent-secretary-light:        #FCA5A5;  /* red-300 */
-  --accent-deputy-secretary-light: #FCA5A5;  /* red-300 （同支书） */
-  --accent-leader-light:           #86EFAC;  /* green-200 */
-  --accent-org-commissioner-light: #BAE6FD;  /* sky-200 */
-  --accent-prop-commissioner-light:#93C5FD;  /* blue-300 */
-  --accent-disc-commissioner-light:#FDBA74;  /* orange-300 */
-  --accent-organizer-light:        #E0F2FE;  /* sky-100 */
-  --accent-deep-light:             #C4B5FD;  /* 雾紫-light（violet-300，随主色同步） */
-  /* 参与者主题色的 light 变体同步退场（批次 505），理由同上。 */
-  --accent-sky:         #0EA5E9;
-  --accent-indigo:      #6366F1;
-  --accent-violet:      #7C3AED;
-  --accent-violet-light:#8B5CF6;
-  --status-live:        #22c55e;
-  --brand-amber-dark:   #A16207;
-  --blue-hover:         #2563EB;
-  --sky-hover:          #0284C7;
-  --error-dark:         #991B1B;
+  /* ═══════════════════════════════════════════════════════════════
+     功能色层（2026-10-26 Task 4 · DESIGN_SYSTEM §2.13）
+     与主题色层**并列**、互不借用：
+       · 状态 4 色（success / warning / error / info）——只进徽章 / 圆点 / 提示条；
+       · 类别 3 色（三会一课 / 主题党日 / 其他）——只进类别徽章 / 圆点 / 左条 / 图例；
+       · 身份色（角色）——只进左条 / 圆点 / 角色卡 / 图例，同一源＝constants.js ROLE_COLORS；
+       · 语义别名（link / text / border）——组件只读这些名字，不直接读色阶或功能色。
+     组件只允许写 `--status-*`；`--functional-*` 仅作短期兼容别名，禁止新增消费。
+     ═══════════════════════════════════════════════════════════════ */
+  --status-success: #10B981;
+  --status-warning: #F59E0B;
+  --status-error:   #EF4444;
+  --status-info:    #3B82F6;
+  /* 短期别名（批次 512 前兼容；新代码不得再写 --functional-*） */
+  --functional-success: var(--status-success);
+  --functional-warning: var(--status-warning);
+  --functional-error:   var(--status-error);
+  --functional-info:    var(--status-info);
+
+  /* 类别色（固定语义，不随主题切换；暗色值见 html.theme-dark 段） */
+  --color-category-three-meetings: #CE1126;
+  --color-category-three-meetings-dark: #FCA5A5;
+  --color-category-theme-day: #A16207;
+  --color-category-theme-day-dot: #FFD700;
+  --color-category-theme-day-dark: #FCD34D;
+  --color-category-other: #6B7280;
+  --color-category-other-dark: #CBD5E1;
+
+  /* 身份色（单一源＝core/domain/constants.js → ROLE_COLORS；此处逐值同源，守卫核对） */
+  --color-identity-secretary: #B91C1C;
+  --color-identity-deputy-secretary: #B91C1C;
+  --color-identity-leader: #22C55E;
+  --color-identity-deputy-leader: #22C55E;
+  --color-identity-org-commissioner: #0EA5E9;
+  --color-identity-prop-commissioner: #2563EB;
+  --color-identity-disc-commissioner: #C2410C;
+  --color-identity-commissioner: #C2410C;
+  --color-identity-organizer: #0369A1;
+  --color-identity-deep: #7C3AED;
+  --color-identity-participant: #6B7280;
+  --color-identity-initiator: #4F46E5;
+  --color-identity-all: #0E7490;
+  --color-identity-secretary-dark: #F87171;
+  --color-identity-deputy-secretary-dark: #F87171;
+  --color-identity-leader-dark: #4ADE80;
+  --color-identity-deputy-leader-dark: #4ADE80;
+  --color-identity-org-commissioner-dark: #38BDF8;
+  --color-identity-prop-commissioner-dark: #60A5FA;
+  --color-identity-disc-commissioner-dark: #FB923C;
+  --color-identity-commissioner-dark: #FB923C;
+  --color-identity-organizer-dark: #38BDF8;
+  --color-identity-deep-dark: #A78BFA;
+  --color-identity-participant-dark: #94A3B8;
+  --color-identity-initiator-dark: #A5B4FC;
+  --color-identity-all-dark: #22D3EE;
+
+  /* 语义别名（组件只读这一层） */
+  --color-text-primary:   var(--neutral-800);
+  --color-text-secondary: var(--neutral-600);
+  --color-text-tertiary:  var(--neutral-500);
+  --color-border-subtle:  var(--neutral-200);
+  --color-border-strong:  var(--neutral-300);
 
   /* ── LAYER 3: Neutral — 灰度 11 阶 (0→900) ── */
   --neutral-0:   #FFFFFF;
@@ -87,16 +117,13 @@
   --surface-elevated: #FFFFFF;
   --surface-header:   #7A0010;
   --surface-sidebar:  #FFFFFF;
-  --surface-hover:    #F3F4F6;
+  /* 2026-10-26 Task 5.3：灰度加深一档。原 #F3F4F6 与白卡仅 1.11:1、与暖纸页面底 1.06:1，
+     「可点行 hover」读不出来；改取 --neutral-200（对白卡 1.24:1、对页面底 1.18:1），
+     并与可点行的 3px 主题左条叠加，保证非颜色线索。 */
+  --surface-hover:    var(--neutral-200);
   /* 2026-10-23 批次 507：此前是党建红浅底 #FEE2E2，中性按钮按下会闪红、被误读成危险态；
      现改为中性灰（暗色段删掉独立覆盖，靠 --neutral-200 的暗色重定义自动跟随）。 */
   --surface-active:   var(--neutral-200);
-
-  /* ── Functional — 状态指示色 ── */
-  --functional-success: #10B981;
-  --functional-warning: #F59E0B;
-  --functional-error:   #EF4444;
-  --functional-info:    #3B82F6;
 
   /* ── 主题色（7 主题 × 亮/暗 × 8 显式 token）· 批次 505 ──
      原始 token：8 个 × 亮/暗 = 16 个变量，由 bootstrapPage（core/boot/bootstrap.js）/ theme.js
@@ -138,6 +165,10 @@
   --app-accent-active-bg:   var(--app-accent-active-bg-light);
   /* 2026-10-24 批次 508：第 9 个选边别名——实底 hover 色（同色相加深，不落灰）。 */
   --app-accent-strong-hover: var(--app-accent-strong-hover-light);
+
+  /* 链接单色（2026-10-26 Task 4 · DESIGN_SYSTEM §12.10）：全站唯一链接色＝主题 soft-text。
+     帮助链接 / 速查链接 / 角色色链接 / about·help 内联蓝链一律并入本 token。 */
+  --color-link: var(--app-accent-soft-text);
 
   /* 2026-10-24 批次 508：兼容别名（--app-accent-bg/-border/-text/-deep/-strong/-ink）已退场，
      消费方全部改用 --app-accent-soft-* / --app-accent-strong-*。 */
@@ -375,8 +406,20 @@ summary:focus-visible {
 .disclosure__summary::before {
   margin-right: 0;
 }
+/* 2026-10-26 Task 5.3：折叠钮视觉 40×40（--row-summary），命中区补到 ≥44×44。
+   用 ::after 扩展命中面（::before 是 chevron，不能复用）。 */
+.disclosure__summary::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: max(100%, 44px);
+  height: max(100%, 44px);
+  transform: translate(-50%, -50%);
+}
 .disclosure__body {
-  padding-top: var(--space-1);
+  /* 2026-10-26 Task 3.2：折叠主体与摘要之间按「卡内组内 8px」留白（原 4px 过紧）。 */
+  padding-top: var(--space-2);
 }
 /* 折叠卡若用 `.card-head` 作分区头：右侧预留 summary 折叠钮的位置，计数 / 动作不与 chevron 重叠。 */
 .disclosure-host > .card-head {
@@ -1355,7 +1398,8 @@ button:disabled { cursor: not-allowed; }
    `.btn-danger-solid` 只给确认弹窗（危险操作的最终确认，不用于普通页面动作）。
    尺寸两档：常规 32px（`.btn-md` 为别名）· 紧凑 28px（`.btn-sm`，用于行内紧凑动作）。
    **存量类（新代码不得使用）**：
-     · `.btn-ghost` —— 不再作为动作按钮类型（无底色无边框不可辨识；纯导航 / 帮助改用 `<a>` 链接）
+     · `.btn-ghost` —— **不得作为动作按钮**；只保留给非动作行载体（整行导航 / 列表行 / 考勤矩阵入口，
+       白名单逐条见 ui-control-system-guard::V4）。纯文字动作改 `.btn-text`。
      · `.btn-neutral` —— 并入次操作（`.btn-outline`）
      · `.btn-action-*` —— 并入次操作 / 危险（`.btn-outline` / `.btn-danger`）
    色一律走令牌（不落 hex）；外观在下面各族，尺寸只在「按钮尺寸归一（2026-10-18）」段定义一次。 */
@@ -1401,24 +1445,44 @@ button:disabled { cursor: not-allowed; }
 .btn-ghost:active { background: var(--surface-active); }
 .btn-ghost:disabled { opacity: 0.5; cursor: not-allowed; }
 
+/* ── 第二档：纯文字动作 `.btn-text`（2026-10-26 Task 5.1）──
+   条件：改数据/跳转但不是「按钮」形态（如段头「全部 ›」、返回列表）。
+   最低静态线索＝**下划线**；调用方通常再带尾随箭头（`›` / `→`）。
+   不是动作按钮：不参与「按钮尺寸归一」四档，也不得用 `btn-ghost` 顶替。 */
+.btn-text {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 0;
+  background: transparent;
+  border: 0;
+  color: var(--color-link);
+  font: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  border-radius: 2px;
+  cursor: pointer;
+}
+.btn-text:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 2px; }
+
 .btn-danger {
-  background: color-mix(in srgb, var(--functional-error) 10%, var(--neutral-0));
-  color: var(--functional-error);
-  border: 1px solid color-mix(in srgb, var(--functional-error) 35%, var(--neutral-0));
+  background: color-mix(in srgb, var(--status-error) 10%, var(--neutral-0));
+  color: var(--status-error);
+  border: 1px solid color-mix(in srgb, var(--status-error) 35%, var(--neutral-0));
   border-radius: var(--radius-sm);
   transition: background-color var(--transition-fast);
 }
 @media (hover: hover) {
-  .btn-danger:hover { background: color-mix(in srgb, var(--functional-error) 16%, var(--neutral-0)); }
+  .btn-danger:hover { background: color-mix(in srgb, var(--status-error) 16%, var(--neutral-0)); }
 }
-.btn-danger:active { background: color-mix(in srgb, var(--functional-error) 24%, var(--neutral-0)); }
+.btn-danger:active { background: color-mix(in srgb, var(--status-error) 24%, var(--neutral-0)); }
 .btn-danger:disabled { opacity: 0.5; cursor: not-allowed; }
 
 /* 族 7 实底变体（2026-09-30 批次 297-2 按需增补；判据同 `.btn-accent`，色相走功能红） */
 .btn-danger-solid {
-  background: var(--functional-error);
+  background: var(--status-error);
   color: var(--neutral-0);
-  border: 1px solid var(--functional-error);
+  border: 1px solid var(--status-error);
   border-radius: var(--radius-sm);
   transition: background-color var(--transition-fast), border-color var(--transition-fast);
 }
@@ -1489,18 +1553,24 @@ button:disabled { cursor: not-allowed; }
   color: var(--app-accent-soft-text) !important;
 }
 /* 2026-10-23 批次 507：全站「跳转链接」的单一源（页内导航 / 帮助链接 / 行尾更多）。
-   色取主题 soft-text（亮/暗由别名选边）；hover 只加下划线、不改色——避免 hover 时掉对比度；
-   `.text-accent` 保留为等价别名（存量调用点不迁移）。 */
+   2026-10-26 Task 4：色取全站唯一链接 token `--color-link`（＝主题 soft-text，亮/暗由别名选边）；
+   静态下划线作非颜色线索（不得只靠颜色），hover 不再改色。
+   `.text-accent` 保留为等价别名（存量调用点不迁移）；`a.text-accent` 同样补静态下划线。 */
 .link {
-  color: var(--app-accent-soft-text);
-  text-decoration: none;
+  color: var(--color-link);
+  text-decoration: underline;
+  text-underline-offset: 2px;
   border-radius: 2px;
   transition: color var(--transition-press), text-decoration-color var(--transition-press);
+}
+a.text-accent {
+  text-decoration: underline;
+  text-underline-offset: 2px;
 }
 @media (hover: hover) {
   .link:hover { text-decoration: underline; text-underline-offset: 2px; }
 }
-.link:active { color: var(--app-accent-soft-text); }
+.link:active { color: var(--color-link); }
 .link:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 2px; }
 /* 列表行选中态（无边框，用于模板/子项选中） */
 .sel-accent-on {
@@ -1738,6 +1808,12 @@ button:disabled { cursor: not-allowed; }
      行高 20px + 上下内边距 8px = 36px 行高（表头与数据行同式） */
   font-size: 0.8125rem;
   line-height: 1.25rem;
+}
+/* 定列宽档（2026-10-26 Task 3.4）：需要「列宽不随内容伸缩」的宽表挂本类，
+   配合 <colgroup>（或 th 宽度模板）使用——否则余量会被末列吃掉（工作分工表即此病）。
+   不默认加到 .data-table 基类：窄表 / 矩阵表按内容定宽更合适（见 .rm-table）。 */
+.data-table--fixed {
+  table-layout: fixed;
 }
 /* 单档「直接声明」（2026-09-15 批次 47-B，支书特批第 6 次）：把正文档直接声明到 th/td 上。
    原因：本站在 workspace 页依赖 CDN Tailwind，其上表规则 `.text-xs`（12px）与本文件同特异性，
@@ -2498,8 +2574,9 @@ html.theme-dark .cal-cell-large.is-today, html.theme-dark .cal-cell-mobile.is-to
 }
 
 .cal-mobile-detail-close {
-  width: 28px;
-  height: 28px;
+  /* 2026-10-26 Task 5.3：图标按钮统一 32×32 视觉（命中区由 ::after 扩到 44）。 */
+  width: 32px;
+  height: 32px;
   border: none;
   background: var(--neutral-100);
   border-radius: 50%;
@@ -2564,24 +2641,26 @@ html.theme-dark .cal-cell-large.is-today, html.theme-dark .cal-cell-mobile.is-to
 }
 
 /* ── 页签分组标识（2026-10-23 R11 P0-06 · 取代 2026-10-21 R5-C01 的「1px 竖线」）──
-   桌面端：每组前显示可见组名（含首组），组间以 .tab-group-sep 的 1px 线分隔；
-   ≤1280px：只隐藏组名，分隔线保留（宽度让给可点页签）；
-   ≤1024px：分隔线也保留，仅缩小左右外边距，页签条由 .ws-tab-scroll 保证单行不换行。 */
-/* 2026-10-24 Task 4.1：组名恢复为**可见小胶囊**——12px、中性底（非主题强调色）、
-   左右 6px 内边距、胶囊圆角；非按钮（role="presentation"）⇒ 无 hover、无 cursor:pointer、
-   不进入 tab 序列。≤1280px 仍只隐藏组名、保留组间分隔线（下方既有规则）。 */
+   所有宽度：每组前显示可见组名（含首组），组间以 .tab-group-sep 的 1px 线分隔；
+   ≤1280px：只缩小内边距与字号，**不再隐藏组名**（2026-10-26 Task 3.5 删除 display:none 口径）；
+   ≤1024px：分隔线保留，仅缩小左右外边距，页签条由 .ws-tab-scroll 保证单行不换行、可横向滚动。 */
+/* 组名＝可见小胶囊——12px、中性底 + 深一档描边（形状与页面底对比 ≥1.5:1）、
+   左右 6px 内边距、高度 ≥24px；非按钮（role="presentation"）⇒ 无 hover、无 cursor:pointer、
+   不进入 tab 序列。 */
 .tab-group-label {
   display: inline-flex;
   align-items: center;
   align-self: center;
   flex-shrink: 0;
+  min-height: 24px;
   margin: 0 8px 0 0;
-  padding: 2px 6px;
+  padding: 1px 6px;
+  border: 1px solid var(--neutral-400);
   border-radius: 999px;
-  background: var(--neutral-100);
+  background: var(--neutral-200);
   font-size: 12px;
   font-weight: 500;
-  line-height: 1.2;
+  line-height: 16px;
   color: var(--neutral-500);
   white-space: nowrap;
   vertical-align: middle;
@@ -2601,7 +2680,12 @@ html.theme-dark .cal-cell-large.is-today, html.theme-dark .cal-cell-mobile.is-to
   background: var(--neutral-200);
 }
 @media (max-width: 1280px) {
-  .tab-group-label { display: none; }
+  /* 全宽可见（Task 3.5）：只缩内边距与字号；min-height 24px 不变，形状对比由描边承担。 */
+  .tab-group-label {
+    margin-right: 6px;
+    padding: 1px 5px;
+    font-size: 11px;
+  }
 }
 @media (max-width: 1024px) {
   .tab-group-sep { margin: 0 4px; }
@@ -2760,6 +2844,21 @@ html.theme-dark .stat-icon-tint {
   box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04);
 }
 /* 2026-10-23 Task 7：详情卡是展示卡（无点击行为），删除 hover 变边框的伪可点反馈。 */
+/* Task 6（2026-10-26）：只有真正可点的卡片才给 cursor/hover/焦点环；不可点的卡维持展示语义。 */
+.inspector-card--action {
+  cursor: pointer;
+  transition: border-color var(--transition-press), background-color var(--transition-press);
+}
+@media (hover: hover) {
+  .inspector-card--action:hover {
+    border-color: var(--color-border-strong);
+    background-color: var(--surface-hover);
+  }
+}
+.inspector-card--action:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
 
 .inspector-role-banner {
   display: inline-flex;
@@ -2767,31 +2866,24 @@ html.theme-dark .stat-icon-tint {
   gap: 6px;
   padding: 4px 12px;
   border-radius: var(--radius-sm);
+  border-left: 3px solid var(--color-border-strong);
   font-size: 0.7rem;
-  color: var(--neutral-600);
+  color: var(--color-text-secondary);
   background-color: var(--neutral-100);
   margin-bottom: 10px;
 }
 
-.inspector-role-banner.org-commissioner {
-  background-color: rgba(59,130,246,0.08);
-  color: var(--accent-blue);
-}
-
-.inspector-role-banner.prop-commissioner {
-  background-color: rgba(16,185,129,0.08);
-  color: var(--accent-emerald);
-}
-
-.inspector-role-banner.disc-commissioner {
-  background-color: rgba(217,119,6,0.08);
-  color: var(--accent-amber);
-}
-
-.inspector-role-banner.secretary {
-  background-color: rgba(206,17,38,0.08);
-  color: var(--primary-700);
-}
+/* 身份色只作小面积左条（DESIGN_SYSTEM §2.10 / §2.13）；文字保持中性以守正文对比度。
+   取值单一源＝constants.js ROLE_COLORS（CSS 侧同值 token 见 :root --color-identity-*）。 */
+.inspector-role-banner.role-theme-secretary { border-left-color: var(--color-identity-secretary); }
+.inspector-role-banner.role-theme-leader { border-left-color: var(--color-identity-leader); }
+.inspector-role-banner.role-theme-commissioner { border-left-color: var(--color-identity-commissioner); }
+.inspector-role-banner.role-theme-org { border-left-color: var(--color-identity-org-commissioner); }
+.inspector-role-banner.role-theme-prop { border-left-color: var(--color-identity-prop-commissioner); }
+.inspector-role-banner.role-theme-disc { border-left-color: var(--color-identity-disc-commissioner); }
+.inspector-role-banner.role-theme-organizer { border-left-color: var(--color-identity-organizer); }
+.inspector-role-banner.role-theme-deep { border-left-color: var(--color-identity-deep); }
+.inspector-role-banner.role-theme-participant { border-left-color: var(--color-identity-participant); }
 
 #inspector-container {
   min-height: 200px;
@@ -2842,7 +2934,7 @@ html.theme-dark .stat-icon-tint {
 @media (hover: hover) {
   .vote-btn:hover {
     border-color: var(--party-gold);
-    color: var(--brand-amber-dark);
+    color: var(--color-category-theme-day);
   }
 }
 .vote-btn:active {
@@ -3609,7 +3701,7 @@ input.login-input:focus-visible {
 }
 
 .workflow-progress-bar.blocked {
-  background: var(--functional-error);
+  background: var(--status-error);
 }
 
 /* ── State label ── */
@@ -3637,7 +3729,7 @@ input.login-input:focus-visible {
 }
 
 .workflow-state-dot.blocked {
-  background: var(--functional-error);
+  background: var(--status-error);
   box-shadow: 0 0 0 3px rgba(239,68,68,0.15);
 }
 
@@ -3814,7 +3906,7 @@ input.login-input:focus-visible {
 
 .workflow-substates-hint {
   font-size: 0.75rem;
-  color: var(--accent-amber);
+  color: var(--status-warning);
   margin-top: 8px;
   padding: 6px 10px;
   background: rgba(217,119,6,0.06);
@@ -3838,7 +3930,7 @@ input.login-input:focus-visible {
 }
 
 .workflow-banner-icon {
-  color: var(--functional-error);
+  color: var(--status-error);
   flex-shrink: 0;
   margin-top: 1px;
 }
@@ -4046,7 +4138,9 @@ input.login-input:focus-visible {
     --surface-card:     #141D2F;
     --surface-elevated: #1A2438;
     --surface-sidebar:  #0F172A;
-    --surface-hover:    #1E293B;
+    /* 2026-10-26 Task 5.3：暗色 hover 同样加深一档到 --neutral-200（#334155）：
+       对深卡 1.63:1、对页面底 1.81:1；原 #1E293B 对深卡仅 1.15:1。 */
+    --surface-hover:    var(--neutral-200);
     /* 2026-10-23 批次 507：--surface-active 不再单独覆盖（--neutral-200 已在本段重定义为 #334155，
        var() 在同一元素上解析到暗色值），避免再次出现「暗色按压偏红」的第二套值。 */
 
@@ -4066,11 +4160,11 @@ input.login-input:focus-visible {
     /* 2026-10-24 批次 508：第 9 个选边别名随暗色切换。 */
     --app-accent-strong-hover: var(--app-accent-strong-hover-dark) !important;
 
-    /* Functional：深色底上状态色提亮一档 */
-    --functional-success: #34D399;
-    --functional-warning: #FBBF24;
-    --functional-error:   #F87171;
-    --functional-info:    #60A5FA;
+    /* 功能色层 · 状态 4 色：深色底上提亮一档（组件只读 --status-*） */
+    --status-success: #34D399;
+    --status-warning: #FBBF24;
+    --status-error:   #F87171;
+    --status-info:    #60A5FA;
 
     --shadow-dropdown: 0 4px 16px rgba(0, 0, 0, 0.5);
     /* 2026-10-23 批次 507：暗底上 10% 的深色内阴影几乎不可见，加深到 45%（仍只 1px，不位移/缩放）。 */
@@ -4128,9 +4222,9 @@ input.login-input:focus-visible {
     html.theme-dark .hover\:bg-red-100:hover    { background-color: rgba(239, 68, 68, 0.16) !important; }
     html.theme-dark .hover\:bg-sky-100:hover    { background-color: rgba(56, 189, 248, 0.16) !important; }
   }
-  html.theme-dark .text-red-600    { color: var(--functional-error) !important; }
-  html.theme-dark .text-blue-600   { color: var(--functional-info) !important; }
-  html.theme-dark .text-amber-600  { color: var(--functional-warning) !important; }
+  html.theme-dark .text-red-600    { color: var(--status-error) !important; }
+  html.theme-dark .text-blue-600   { color: var(--status-info) !important; }
+  html.theme-dark .text-amber-600  { color: var(--status-warning) !important; }
 
   /* ── ③ 硬编码浅色组件 ── */
   /* 状态徽章（T-217 行内状态轻交互胶囊：色点 + 文字 + 下拉） */
@@ -4207,23 +4301,24 @@ input.login-input:focus-visible {
   html.theme-dark .qn-matrix td { color: var(--neutral-500) !important; border-bottom-color: #243244 !important; }
   html.theme-dark .qn-matrix td.qn-domain { color: var(--neutral-800) !important; }
   html.theme-dark td.qn-empty { background: var(--surface-page) !important; }
-  html.theme-dark a.qn-fn { color: var(--neutral-600) !important; background: var(--surface-card) !important; }
+  html.theme-dark a.qn-fn { color: var(--color-link) !important; background: var(--surface-card) !important; }
   @media (hover: hover) {
     html.theme-dark a.qn-fn:hover { background: var(--neutral-100) !important; }
   }
-  html.theme-dark a.qn-fn-leader { border-color: #4ADE80 !important; color: #4ADE80 !important; }
-  html.theme-dark a.qn-fn-org    { border-color: #38BDF8 !important; color: #38BDF8 !important; }
-  html.theme-dark a.qn-fn-prop   { border-color: var(--functional-info) !important; color: #93C5FD !important; }
-  html.theme-dark a.qn-fn-disc   { border-color: #FB923C !important; color: #FDBA74 !important; }
-  html.theme-dark a.qn-fn-member { border-color: #64748B !important; color: var(--neutral-600) !important; }
-  html.theme-dark a.qn-fn-sec    { border-color: var(--functional-error) !important; color: #FCA5A5 !important; }
+  /* 速查链接：暗色也只换链接色；角色色只留在边框（小面积身份线索）。 */
+  html.theme-dark a.qn-fn-leader { border-color: var(--color-identity-leader-dark) !important; color: var(--color-link) !important; }
+  html.theme-dark a.qn-fn-org    { border-color: var(--color-identity-org-commissioner-dark) !important; color: var(--color-link) !important; }
+  html.theme-dark a.qn-fn-prop   { border-color: var(--color-identity-prop-commissioner-dark) !important; color: var(--color-link) !important; }
+  html.theme-dark a.qn-fn-disc   { border-color: var(--color-identity-disc-commissioner-dark) !important; color: var(--color-link) !important; }
+  html.theme-dark a.qn-fn-member { border-color: var(--color-identity-participant-dark) !important; color: var(--color-link) !important; }
+  html.theme-dark a.qn-fn-sec    { border-color: var(--color-identity-secretary-dark) !important; color: var(--color-link) !important; }
   html.theme-dark .doc-table th { background: var(--neutral-50) !important; color: var(--neutral-600) !important; border-bottom-color: var(--neutral-200) !important; }
   html.theme-dark .doc-table td { color: var(--neutral-600) !important; border-bottom-color: #243244 !important; }
   html.theme-dark .doc-list li { color: var(--neutral-600) !important; }
   html.theme-dark .doc-list li::before { background: var(--party-red) !important; }
   html.theme-dark .doc-note { background: rgba(206, 17, 38, 0.12) !important; color: #FCA5A5 !important; }
   html.theme-dark .doc-key { background: rgba(206, 17, 38, 0.12) !important; color: #FCA5A5 !important; }
-  html.theme-dark .doc-key strong { color: var(--functional-error) !important; }
+  html.theme-dark .doc-key strong { color: var(--status-error) !important; }
   html.theme-dark .doc-duo-item { background: var(--neutral-100) !important; border-color: var(--neutral-200) !important; }
   html.theme-dark .doc-duo-item h4 { color: var(--neutral-700) !important; }
   html.theme-dark .doc-duo-item p { color: var(--neutral-600) !important; }
@@ -4232,9 +4327,9 @@ input.login-input:focus-visible {
   html.theme-dark .doc-fpair { color: var(--neutral-600) !important; background: var(--surface-card) !important; border-color: var(--neutral-300) !important; }
   html.theme-dark .doc-fpair strong { color: var(--neutral-800) !important; }
   html.theme-dark .doc-farrow { color: var(--neutral-300) !important; }
-  html.theme-dark .doc-quote { color: var(--functional-warning) !important; }
+  html.theme-dark .doc-quote { color: var(--status-warning) !important; }
   html.theme-dark .doc-mini { background: var(--neutral-100) !important; border-color: var(--neutral-200) !important; }
-  html.theme-dark .doc-mini h4 { color: var(--functional-error) !important; }
+  html.theme-dark .doc-mini h4 { color: var(--status-error) !important; }
   html.theme-dark .doc-mini p { color: var(--neutral-600) !important; }
   /* 免责声明卡（内联深金配色）深色微调 */
   html.theme-dark section#sec-disclaimer { background: #1B1E24 !important; border-color: #8A6D1F !important; }
@@ -4251,30 +4346,34 @@ input.login-input:focus-visible {
   html.theme-dark .rh-line-h { color: #22D3EE !important; background: rgba(34, 211, 238, 0.12) !important; }
   html.theme-dark .rh-card { border-color: var(--neutral-200) !important; }
   /* 2026-10-23 Task 7：`.rh-card` 是帮助页展示卡，删除深色 hover 阴影（静态卡不加 hover）。 */
-  html.theme-dark .rh-card.role-secretary { background: rgba(185, 28, 28, 0.22) !important; border-color: rgba(248, 113, 113, 0.35) !important; }
-  html.theme-dark .rh-card.role-secretary .rh-name { color: #FCA5A5 !important; }
-  html.theme-dark .rh-card.role-secretary .rh-tag { color: var(--functional-error) !important; }
-  html.theme-dark .rh-card.role-org { background: rgba(139, 92, 246, 0.18) !important; border-color: rgba(139, 92, 246, 0.35) !important; }
-  html.theme-dark .rh-card.role-org .rh-name { color: #C4B5FD !important; }
-  html.theme-dark .rh-card.role-org .rh-tag { color: #A78BFA !important; }
-  html.theme-dark .rh-card.role-prop { background: rgba(59, 130, 246, 0.18) !important; border-color: rgba(96, 165, 250, 0.35) !important; }
-  html.theme-dark .rh-card.role-prop .rh-name { color: #93C5FD !important; }
-  html.theme-dark .rh-card.role-prop .rh-tag { color: var(--functional-info) !important; }
-  html.theme-dark .rh-card.role-disc { background: rgba(217, 119, 6, 0.18) !important; border-color: rgba(251, 146, 60, 0.35) !important; }
-  html.theme-dark .rh-card.role-disc .rh-name { color: #FDBA74 !important; }
-  html.theme-dark .rh-card.role-disc .rh-tag { color: #FB923C !important; }
-  html.theme-dark .rh-card.role-leader { background: rgba(101, 163, 13, 0.18) !important; border-color: rgba(163, 230, 53, 0.30) !important; }
-  html.theme-dark .rh-card.role-leader .rh-name { color: #BEF264 !important; }
-  html.theme-dark .rh-card.role-leader .rh-tag { color: #A3E635 !important; }
-  html.theme-dark .rh-card.role-member { background: rgba(148, 163, 184, 0.15) !important; border-color: rgba(148, 163, 184, 0.30) !important; }
-  html.theme-dark .rh-card.role-member .rh-name { color: var(--neutral-700) !important; }
-  html.theme-dark .rh-card.role-member .rh-tag { color: var(--neutral-500) !important; }
-  html.theme-dark .rh-card.role-organizer { background: rgba(6, 182, 212, 0.15) !important; border-color: rgba(34, 211, 238, 0.30) !important; }
-  html.theme-dark .rh-card.role-organizer .rh-name { color: #67E8F9 !important; }
-  html.theme-dark .rh-card.role-organizer .rh-tag { color: #22D3EE !important; }
-  html.theme-dark .rh-card.role-deep { background: rgba(16, 185, 129, 0.15) !important; border-color: rgba(52, 211, 153, 0.30) !important; }
-  html.theme-dark .rh-card.role-deep .rh-name { color: #6EE7B7 !important; }
-  html.theme-dark .rh-card.role-deep .rh-tag { color: var(--functional-success) !important; }
+  /* 角色卡身份色（暗色）：一律读同一组身份 token 的 *-dark 档，不再逐卡写第二套色值。 */
+  html.theme-dark .rh-card.role-secretary { background: color-mix(in srgb, var(--color-identity-secretary-dark) 18%, transparent) !important; border-color: color-mix(in srgb, var(--color-identity-secretary-dark) 35%, transparent) !important; }
+  html.theme-dark .rh-card.role-secretary .rh-name { color: var(--color-identity-secretary-dark) !important; }
+  html.theme-dark .rh-card.role-secretary .rh-tag { color: var(--color-identity-secretary-dark) !important; }
+  html.theme-dark .rh-card.role-org { background: color-mix(in srgb, var(--color-identity-org-commissioner-dark) 18%, transparent) !important; border-color: color-mix(in srgb, var(--color-identity-org-commissioner-dark) 35%, transparent) !important; }
+  html.theme-dark .rh-card.role-org .rh-name { color: var(--color-identity-org-commissioner-dark) !important; }
+  html.theme-dark .rh-card.role-org .rh-tag { color: var(--color-identity-org-commissioner-dark) !important; }
+  html.theme-dark .rh-card.role-prop { background: color-mix(in srgb, var(--color-identity-prop-commissioner-dark) 18%, transparent) !important; border-color: color-mix(in srgb, var(--color-identity-prop-commissioner-dark) 35%, transparent) !important; }
+  html.theme-dark .rh-card.role-prop .rh-name { color: var(--color-identity-prop-commissioner-dark) !important; }
+  html.theme-dark .rh-card.role-prop .rh-tag { color: var(--color-identity-prop-commissioner-dark) !important; }
+  html.theme-dark .rh-card.role-disc { background: color-mix(in srgb, var(--color-identity-disc-commissioner-dark) 18%, transparent) !important; border-color: color-mix(in srgb, var(--color-identity-disc-commissioner-dark) 35%, transparent) !important; }
+  html.theme-dark .rh-card.role-disc .rh-name { color: var(--color-identity-disc-commissioner-dark) !important; }
+  html.theme-dark .rh-card.role-disc .rh-tag { color: var(--color-identity-disc-commissioner-dark) !important; }
+  html.theme-dark .rh-card.role-leader { background: color-mix(in srgb, var(--color-identity-leader-dark) 18%, transparent) !important; border-color: color-mix(in srgb, var(--color-identity-leader-dark) 30%, transparent) !important; }
+  html.theme-dark .rh-card.role-leader .rh-name { color: var(--color-identity-leader-dark) !important; }
+  html.theme-dark .rh-card.role-leader .rh-tag { color: var(--color-identity-leader-dark) !important; }
+  html.theme-dark .rh-card.role-member { background: color-mix(in srgb, var(--color-identity-participant-dark) 15%, transparent) !important; border-color: color-mix(in srgb, var(--color-identity-participant-dark) 30%, transparent) !important; }
+  html.theme-dark .rh-card.role-member .rh-name { color: var(--color-identity-participant-dark) !important; }
+  html.theme-dark .rh-card.role-member .rh-tag { color: var(--color-identity-participant-dark) !important; }
+  html.theme-dark .rh-card.role-organizer { background: color-mix(in srgb, var(--color-identity-organizer-dark) 15%, transparent) !important; border-color: color-mix(in srgb, var(--color-identity-organizer-dark) 30%, transparent) !important; }
+  html.theme-dark .rh-card.role-organizer .rh-name { color: var(--color-identity-organizer-dark) !important; }
+  html.theme-dark .rh-card.role-organizer .rh-tag { color: var(--color-identity-organizer-dark) !important; }
+  html.theme-dark .rh-card.role-deep { background: color-mix(in srgb, var(--color-identity-deep-dark) 15%, transparent) !important; border-color: color-mix(in srgb, var(--color-identity-deep-dark) 30%, transparent) !important; }
+  html.theme-dark .rh-card.role-deep .rh-name { color: var(--color-identity-deep-dark) !important; }
+  html.theme-dark .rh-card.role-deep .rh-tag { color: var(--color-identity-deep-dark) !important; }
+  /* 名称 / 说明保持中性（身份色只作卡片底与边框，守正文对比度）；写在角色规则之后以同特异性覆盖。 */
+  html.theme-dark .rh-card[class*="role-"] .rh-name { color: var(--neutral-900) !important; }
+  html.theme-dark .rh-card[class*="role-"] .rh-tag { color: var(--neutral-700) !important; }
 
   /* 2026-10-24 批次 508：激活 Tab 的深色覆盖整段删除——`.tab-btn-active` 已消费
      `--app-accent-soft-*`，暗色由 CSS 别名切到 `*-dark`，不再需要逐点补丁。 */
@@ -4283,8 +4382,8 @@ input.login-input:focus-visible {
 
   /* 侧边栏激活导航（module-tab.active）：深色底 --surface-active 现已随中性灰（#334155）+ 原红字 #CE1126 对比不足，
      提亮为功能红 #F87171（与 badge--danger 深色语义一致）；2026-10-23 批次 507 同步更新注释。 */
-  html.theme-dark .module-tab.active { color: var(--functional-error) !important; }
-  html.theme-dark .module-tab.active svg { color: var(--functional-error) !important; }
+  html.theme-dark .module-tab.active { color: var(--status-error) !important; }
+  html.theme-dark .module-tab.active svg { color: var(--status-error) !important; }
 
 /* ═══════════════════════════════════════════════════════════════
    T229 全站统一徽章组件（components/badge.js）
@@ -4310,7 +4409,7 @@ input.login-input:focus-visible {
 .badge--warning { background: #FEF3C7; color: #92400E; border-color: #FDE68A; }
 .badge--danger  { background: #FEF2F2; color: #B91C1C; border-color: #FECACA; }
 .badge--info    { background: #DBEAFE; color: #1D4ED8; border-color: #BFDBFE; }
-.badge--neutral { background: #F3F4F6; color: #4B5563; border-color: #E5E7EB; }
+.badge--neutral { background: #F3F4F6; color: var(--color-category-other); border-color: #E5E7EB; }
 .badge--brand   { background: #FEE2E2; color: var(--party-red); border: 1px solid rgba(206, 17, 38, 0.25); }
 .badge--gold    { background: #FEF9C3; color: #A16207; border-color: #FDE68A; font-weight: 600; }
 
@@ -4348,7 +4447,7 @@ input.login-input:focus-visible {
 [data-tone="green"]   { --tone-bg: #DCFCE7; --tone-text: #15803D; --tone-border: #BBF7D0; }
 [data-tone="purple"]  { --tone-bg: #F3E8FF; --tone-text: #7E22CE; --tone-border: #E9D5FF; }
 [data-tone="cyan"]    { --tone-bg: #CFFAFE; --tone-text: #0E7490; --tone-border: #A5F3FC; }
-[data-tone="gold"]    { --tone-bg: #FEF9C3; --tone-text: #A16207; --tone-border: #FDE68A; }
+[data-tone="gold"]    { --tone-bg: #FEF9C3; --tone-text: var(--color-category-theme-day); --tone-border: #FDE68A; }
 [data-tone="neutral"] { --tone-bg: #F3F4F6; --tone-text: #4B5563; --tone-border: #E5E7EB; }
 [data-tone="success"] { --tone-bg: #DCFCE7; --tone-text: #15803D; --tone-border: #BBF7D0; }
 [data-tone="warning"] { --tone-bg: #FEF3C7; --tone-text: #92400E; --tone-border: #FDE68A; }
@@ -4364,13 +4463,15 @@ html.theme-dark [data-tone="blue"]    { --tone-bg: #16233A; --tone-text: #60A5FA
 html.theme-dark [data-tone="green"]   { --tone-bg: #12291F; --tone-text: #34D399; --tone-border: #1E5C44; }
 html.theme-dark [data-tone="purple"]  { --tone-bg: #251A38; --tone-text: #C4B5FD; --tone-border: #48346B; }
 html.theme-dark [data-tone="cyan"]    { --tone-bg: #102A32; --tone-text: #67E8F9; --tone-border: #1D5A69; }
-html.theme-dark [data-tone="gold"]    { --tone-bg: #2E2510; --tone-text: #FDE68A; --tone-border: #5C4718; }
+html.theme-dark [data-tone="gold"]    { --tone-bg: #2E2510; --tone-text: var(--color-category-theme-day-dark); --tone-border: #5C4718; }
 html.theme-dark [data-tone="neutral"] { --tone-bg: #1E293B; --tone-text: #CBD5E1; --tone-border: #334155; }
 html.theme-dark [data-tone="success"] { --tone-bg: #12291F; --tone-text: #34D399; --tone-border: #1E5C44; }
 html.theme-dark [data-tone="warning"] { --tone-bg: #2E2410; --tone-text: #FBBF24; --tone-border: #5C4718; }
 html.theme-dark [data-tone="danger"]  { --tone-bg: #2A171A; --tone-text: #F87171; --tone-border: #5A2A2F; }
 html.theme-dark [data-tone="info"]    { --tone-bg: #16233A; --tone-text: #60A5FA; --tone-border: #29456E; }
-html.theme-dark [data-tone="party-red"] { --tone-bg: #2A171A; --tone-text: #F87171; --tone-border: #5A2A2F; }
+/* 2026-10-26 Task 4：暗色类别红与 danger 分开——文字取 --color-category-three-meetings-dark（#FCA5A5），
+   底与边也由党建红自身派生，不再与 [data-tone="danger"] 逐值相同。 */
+html.theme-dark [data-tone="party-red"] { --tone-bg: color-mix(in srgb, #CE1126 16%, #0F172A); --tone-text: var(--color-category-three-meetings-dark); --tone-border: color-mix(in srgb, #CE1126 35%, transparent); }
 
 .tint-pill[data-tone] {
   background: var(--tone-bg);
@@ -4446,18 +4547,18 @@ html.theme-dark [style*="--acc-dot-dark"] {
     border-color: var(--neutral-200) !important;
   }
   html.theme-dark .btn-action-red,
-  html.theme-dark .btn-md-red     { color: var(--functional-error) !important; }
-  html.theme-dark .btn-action-green { color: var(--functional-success) !important; }
-  html.theme-dark .btn-action-amber { color: var(--functional-warning) !important; }
+  html.theme-dark .btn-md-red     { color: var(--status-error) !important; }
+  html.theme-dark .btn-action-green { color: var(--status-success) !important; }
+  html.theme-dark .btn-action-amber { color: var(--status-warning) !important; }
   html.theme-dark .btn-action-orange { color: #FB923C !important; }
 
   html.theme-dark .badge--success { background: #12291F; color: #34D399; border-color: #1E5C44; }
   html.theme-dark .badge--warning { background: #2E2410; color: #FBBF24; border-color: #5C4718; }
   html.theme-dark .badge--danger  { background: #2A171A; color: #F87171; border-color: #5A2A2F; }
   html.theme-dark .badge--info    { background: #16233A; color: #60A5FA; border-color: #29456E; }
-  html.theme-dark .badge--neutral { background: #1E293B; color: #CBD5E1; border-color: #334155; }
-  html.theme-dark .badge--brand   { background: rgba(206, 17, 38, 0.18); color: var(--functional-error); border-color: rgba(206, 17, 38, 0.35); }
-  html.theme-dark .badge--gold    { background: #2E2510; color: #FDE68A; border-color: #5C4718; }
+  html.theme-dark .badge--neutral { background: #1E293B; color: var(--color-category-other-dark); border-color: #334155; }
+  html.theme-dark .badge--brand   { background: rgba(206, 17, 38, 0.18); color: var(--color-category-three-meetings-dark); border-color: rgba(206, 17, 38, 0.35); }
+  html.theme-dark .badge--gold    { background: #2E2510; color: var(--color-category-theme-day-dark); border-color: #5C4718; }
   /* 裸 .badge（无变体类）：基础类硬编码浅灰底 #F3F4F6 + 深灰字 #6B7280 未反转（深色下残留浅块），
      与 badge--neutral 同构覆盖。
      S7（2026-09-12，dogfood）：本条与上方 .badge--* 深色分支同特异性且位置在后 → 对带变体类的
@@ -4478,7 +4579,7 @@ html.theme-dark [style*="--acc-dot-dark"] {
   html.theme-dark .bg-emerald-50   { background-color: rgba(52, 211, 153, 0.10) !important; }
   html.theme-dark .bg-red-50\/40   { background-color: rgba(239, 68, 68, 0.06) !important; }
   html.theme-dark .text-orange-500 { color: #FB923C !important; }
-  html.theme-dark .text-blue-500   { color: var(--functional-info) !important; }
+  html.theme-dark .text-blue-500   { color: var(--status-info) !important; }
   html.theme-dark .text-red-700    { color: #FCA5A5 !important; }
   html.theme-dark .text-orange-700 { color: #FDBA74 !important; }
   html.theme-dark .text-green-700  { color: #86EFAC !important; }
@@ -4623,9 +4724,9 @@ html.theme-dark .agg-count-badge {
   min-height: 1.4em;
   margin: 8px 2px 0;
   font-size: 0.75rem;
-  color: var(--functional-success);
+  color: var(--status-success);
 }
-.status-line.is-err { color: var(--functional-error); }
+.status-line.is-err { color: var(--status-error); }
 
 /* ── 虚线提示块（浅底 + 虚边；可带前导点/徽标） ── */
 .hint-box {
@@ -4809,6 +4910,14 @@ html.theme-dark .agg-count-badge {
   line-height: 18px !important;
 }
 
+/* 今天页清单行 / 活动入口（2026-10-26 Task 5）：左侧状态竖条与文字 8px。
+   族规则 `.btn-ghost` / `.btn-outline` 的 `gap: var(--space-1) !important`（4px）会压掉行内 `gap-2`，
+   故以 `.today-go`（0,1,0 + !important，写在尺寸归一之后）覆盖，不改按钮族通用口径。
+   迁移后「写入活动 / 看日历」走 `.btn-outline today-go`，行载体仍走 `.btn-ghost today-go`。 */
+.today-go {
+  gap: var(--space-2) !important;
+}
+
 
 .btn-tab.lf-btn {
   padding: 8px 10px !important;
@@ -4868,8 +4977,9 @@ html.theme-dark .agg-count-badge {
 
 /* ═══════════════════════════════════════════════════════════════
    帮助注释（2026-10-19）
-   口径（DESIGN_SYSTEM §4.24）：一句正文 + 一个蓝链。
-   正文 12px 中性灰；链走信息蓝（不用 sky-600 手写链）。
+   口径（DESIGN_SYSTEM §4.24）：一句正文 + 一个链接。
+  正文 12px 中性灰；链走全站单一链接色 `--color-link`（主题 soft-text），
+  静态下划线作非颜色线索；不得再用信息蓝 / 角色色当链接色。
    长口径进 `help.html`，页面不再展开长篇说明。
    ═══════════════════════════════════════════════════════════════ */
 .help-note {
@@ -4880,15 +4990,16 @@ html.theme-dark .agg-count-badge {
   margin: 0;
 }
 .help-note__link {
-  color: var(--functional-info);
-  text-decoration: none;
+  color: var(--color-link);
+  text-decoration: underline;
+  text-underline-offset: 2px;
   margin-left: var(--space-1);
   white-space: nowrap;
 }
 @media (hover: hover) {
   .help-note__link:hover { text-decoration: underline; }
 }
-html.theme-dark .help-note__link { color: color-mix(in srgb, var(--functional-info) 80%, #fff); }
+/* 深色由 --color-link → --app-accent-soft-text 的选边自动跟随，不再单独补色。 */
 /* 2026-10-23 R11：继承所在容器文字色（用于标题旁 / 深色底上的帮助注释，不强制中性灰）。 */
 .help-note--inherit { color: inherit; }
 
@@ -4964,7 +5075,8 @@ html.theme-dark .help-note__link { color: color-mix(in srgb, var(--functional-in
       styles.css :root 的 --space-* 与 DESIGN_SYSTEM.md §4.21。
    ── 用途：只供新页面 / 新模块采用，不做存量批量替换。
       页面骨架 .stack-page（24）→ 区块 .stack-section（16）
-      → 卡内 .stack-card（12）；标准卡 16、紧凑卡 12。
+      → 卡内 .stack-card（8）；标准卡 16、紧凑卡 12。
+      （2026-10-26 Task 3.2：卡内组内统一 8px、组间 16px，`--space-3` 不再作组内默认值。）
    ── 采用点：components/ui/list-row.js 头注（供后续页面按图索骥）。 */
 .stack-page {
   display: flex;
@@ -4979,7 +5091,7 @@ html.theme-dark .help-note__link { color: color-mix(in srgb, var(--functional-in
 .stack-card {
   display: flex;
   flex-direction: column;
-  gap: var(--space-3);
+  gap: var(--space-2);
 }
 .card-standard {
   padding: var(--space-4);
@@ -5005,7 +5117,15 @@ html.theme-dark .help-note__link { color: color-mix(in srgb, var(--functional-in
   /* 5 列（工作分工 / 负责人 / 在办 / 逾期 / 待处理；R3-29 动作列已并入待处理）：
      40rem 足以让五列各得其所，又能在平板/分栏下触发表内横滑。 */
   min-width: 40rem;
+  /* 2026-10-26 Task 3.4：固定列宽——余量不再被末列吃掉（原 auto 布局下末列「向后伸展」）。
+     列宽模板由 work-overview.js 的 <colgroup>（wo-col-*）给出；此处只锁布局算法。 */
+  table-layout: fixed;
 }
+/* 显式列宽模板（工作分工 / 负责人 / 在办 / 逾期 / 待处理），合计 100%。 */
+.wo-col-name { width: 18%; }
+.wo-col-owner { width: 16%; }
+.wo-col-count { width: 9%; }
+.wo-col-pending { width: 48%; }
 .wo-lines-table th:first-child,
 .wo-lines-table td:first-child {
   position: sticky;
@@ -5013,18 +5133,44 @@ html.theme-dark .help-note__link { color: color-mix(in srgb, var(--functional-in
   z-index: 1;
   background: var(--surface-card);
 }
+/* 末列内容贴列尾：表头与单元格同向右对齐，并留 16px 尾部内边距（不贴边框）。
+   选择器取 thead/tbody 两段（0,2,2），高于 `.data-table thead th`（0,2,1）——
+   后者写在文件更下方且会重置 padding，不提高特异性就会被它压回 12px。 */
+.wo-lines-table thead th:last-child,
+.wo-lines-table tbody td:last-child {
+  padding-inline-end: var(--space-4);
+  text-align: end;
+}
+/* 末列内的动作行（缺口按钮 / 缺口 + 动作包裹层）随列尾一起右对齐。 */
+.wo-lines-table td:last-child > .inline-flex {
+  justify-content: flex-end;
+}
 @media (hover: hover) {
   .wo-lines-table tbody tr[data-interactive="true"]:hover td:first-child {
     background: var(--surface-hover);
   }
 }
 .wo-line-name {
+  /* 首列 nowrap 保留（表内不换行），但给最大宽并省略，避免长条线名把定宽列撑破。 */
+  max-width: 12rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
   font-weight: 500;
   color: var(--neutral-800);
   white-space: nowrap;
 }
 .wo-line-gap {
   max-width: 16rem;
+}
+/* 零值 / 行尾箭头：数据与可点线索不得用 neutral-400（2026-10-26 Task 3.3）。 */
+.wo-zero {
+  color: var(--neutral-600);
+  font-variant-numeric: tabular-nums;
+}
+.wo-jump {
+  color: var(--neutral-600);
+  font-size: var(--text-sm);
+  line-height: 1;
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -5062,7 +5208,14 @@ html.theme-dark .help-note__link { color: color-mix(in srgb, var(--functional-in
 }
 @media (hover: hover) {
   .list-row[data-interactive="true"]:hover {
-    background: var(--surface-hover);
+    /* 2026-10-26 Task 5.3：可点行 hover 不只换底——同时出 3px 主题左条（非颜色线索）。
+       底取 --surface-hover（对白卡 ≥1.2:1），左条用渐变绘制，不改布局、不引 box-shadow。 */
+    background-color: var(--surface-hover);
+    background-image: linear-gradient(to right, var(--app-accent) 0 3px, transparent 3px);
+  }
+  /* 选中态仍走主题 soft 三件套：hover 只允许把底拉回 soft-bg，不覆盖选中左条与文字色。 */
+  .list-row[data-interactive="true"][data-selected="true"]:hover {
+    background-color: var(--app-accent-soft-bg);
   }
 }
 .list-row[data-interactive="true"]:active {
@@ -5159,17 +5312,19 @@ html.theme-dark .help-note__link { color: color-mix(in srgb, var(--functional-in
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  padding: 0 var(--space-3) var(--space-1);
+  /* 2026-10-26 Task 3.2：组头与首行之间按卡内组内 8px（原 4px 过紧）。 */
+  padding: 0 var(--space-3) var(--space-2);
 }
 .todo-urgency-header__dot {
   width: 6px;
   height: 6px;
   border-radius: 999px;
   flex: none;
-  background: var(--neutral-400);
+  /* 2026-10-26 Task 3.3：状态点承载分组语义，取 neutral-600；neutral-400 只留装饰。 */
+  background: var(--neutral-600);
 }
 .todo-urgency-header__dot--warning {
-  background: var(--functional-warning);
+  background: var(--status-warning);
 }
 .todo-urgency-header__label {
   font-size: var(--text-base);
@@ -5232,7 +5387,7 @@ html.theme-dark .help-note__link { color: color-mix(in srgb, var(--functional-in
   cursor: not-allowed;
 }
 .todo-more__item--danger {
-  color: var(--functional-error);
+  color: var(--status-error);
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -5261,7 +5416,7 @@ html.theme-dark .help-note__link { color: color-mix(in srgb, var(--functional-in
    静雅公文 · 基础视觉类（2026-10-18 立 · Spec「工作台视觉语言」Task 1）
    ── 口径单一源：DESIGN_SYSTEM.md §2.10 颜色四问 / §4.21 间距五档 /
       §4.23 视觉语法。本段只新增类，不改写既有 .card / .list-row 基类。
-   ── 色值全部取 :root 既有令牌（--neutral-* / --functional-* / --app-accent-*），
+   ── 色值全部取 :root 既有令牌（--neutral-* / --status-* / --color-* / --app-accent-*），
       不新增硬编码 hex（守卫 server/test/hex-hardcode-guard.test.mjs）。
    ── 采用点：后续页面任务按 §4.23 取用；本节的选择器写在既有段之后，
       需要覆盖既有规则时以更高特异性声明，并在行内注释说明覆盖关系。 */
@@ -5329,27 +5484,39 @@ html.theme-dark .help-note__link { color: color-mix(in srgb, var(--functional-in
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
-  gap: 0;
+  /* 2026-10-26 Task 3.2：项间由 0 间距 + 1px 竖线改为 8px 间距（不再用左线分隔）。 */
+  gap: var(--space-2);
   padding: var(--space-3) var(--space-4);
   background: var(--neutral-0);
   border: 1px solid var(--neutral-200);
   border-radius: var(--radius-md);
 }
+/* 两档语义（2026-10-26 Task 3.1：同一 class 不再同时承载可交互与只读）：
+   --interactive：含 button / a，保留 hover / focus / 选中下划线；
+   --static：只有 span，纯摘要，无 hover、无指针、无边线。 */
+.metric-band--interactive .metric-band__item {
+  border-radius: var(--radius-sm);
+}
+.metric-band--static .metric-band__item {
+  cursor: default;
+}
+@media (hover: hover) {
+  .metric-band--static .metric-band__item:hover {
+    background: transparent;
+  }
+}
 .metric-band__item {
   display: flex;
   align-items: baseline;
   gap: var(--space-2);
-  padding: 0 var(--space-4);
+  padding: 0 var(--space-2);
   /* 同心圆角：带外圈 12px，指标项的 hover / 选中底色取内层 8px（不为 4/6px 例外，也不做胶囊）。 */
   border-radius: var(--radius-sm);
-  border-left: 1px solid var(--neutral-100);
 }
 /* 结论带指标是可点按钮：保留 metric 的排版，补 hover / focus / 选中态。 */
 button.metric-band__item {
   background: transparent;
-  border-top: 0;
-  border-right: 0;
-  border-bottom: 0;
+  border: 0;
   border-radius: var(--radius-sm);
   font: inherit;
   color: inherit;
@@ -5387,16 +5554,28 @@ a.metric-band__item:focus-visible {
 }
 .metric-band__item--filter {
   padding: 2px var(--space-3);
-  border-left: 0;
   border-radius: 999px;
+}
+/* 2026-10-26 Task 5.1：筛选 chip 是**可切换控件**，静态必须有描边/底色（不能只靠 hover）。
+   选择器带 `button` 以压过上方 `button.metric-band__item { border: 0 }` 的同族归零。 */
+button.metric-band__item--filter {
+  background: var(--neutral-0);
+  border: 1px solid var(--neutral-200);
+}
+@media (hover: hover) {
+  button.metric-band__item--filter:hover {
+    background: var(--surface-hover);
+    border-color: var(--neutral-300);
+  }
 }
 button.metric-band__item--filter.is-active {
   background: var(--app-accent-soft-bg);
+  border-color: var(--app-accent-soft-border);
   box-shadow: none;
 }
-.metric-band__jump { color: var(--neutral-400); font-size: var(--text-sm); line-height: 1; }
+/* 可点箭头是静态线索，不取 neutral-400（最浅中性色只留装饰）。 */
+.metric-band__jump { color: var(--neutral-600); font-size: var(--text-sm); line-height: 1; }
 .metric-band__item:first-child {
-  border-left: 0;
   padding-left: 0;
 }
 /* chip 档的首项保留胶囊内边距（与上一行同特异性，故必须写在它之后）。 */
@@ -5415,7 +5594,7 @@ button.metric-band__item--filter.is-active {
 /* 逾期警示色（2026-10-23 R11 P1-01）：只在「逾期 > 0」时由 JS 挂 `--warning` 类；
    CSS 判不了计数 0，故这里只保留类本身，不再默认着色。 */
 .metric-band__value--warning {
-  color: var(--functional-warning);
+  color: var(--status-warning);
 }
 /* 存量指标，不与逾期争重心：在办是过程量，降到脚注级 16px / neutral-500
    （2026-10-23 R11 P2-01：由 18px 降一档，与数值 24px / 标签 12px 拉开但不另立第四档）。 */
@@ -5448,20 +5627,20 @@ button.metric-band__item--filter.is-active {
   border-color: var(--neutral-200);
 }
 .state-badge--success {
-  background: color-mix(in srgb, var(--functional-success) 12%, transparent);
+  background: color-mix(in srgb, var(--status-success) 12%, transparent);
   /* 深字 = 功能色 70% + 中性最深档；深色模式下 --neutral-900 反转为近白 ⇒ 自动提亮 */
-  color: color-mix(in srgb, var(--functional-success) 70%, var(--neutral-900));
-  border-color: color-mix(in srgb, var(--functional-success) 28%, transparent);
+  color: color-mix(in srgb, var(--status-success) 70%, var(--neutral-900));
+  border-color: color-mix(in srgb, var(--status-success) 28%, transparent);
 }
 .state-badge--warning {
-  background: color-mix(in srgb, var(--functional-warning) 12%, transparent);
-  color: color-mix(in srgb, var(--functional-warning) 70%, var(--neutral-900));
-  border-color: color-mix(in srgb, var(--functional-warning) 28%, transparent);
+  background: color-mix(in srgb, var(--status-warning) 12%, transparent);
+  color: color-mix(in srgb, var(--status-warning) 70%, var(--neutral-900));
+  border-color: color-mix(in srgb, var(--status-warning) 28%, transparent);
 }
 .state-badge--info {
-  background: color-mix(in srgb, var(--functional-info) 12%, transparent);
-  color: color-mix(in srgb, var(--functional-info) 70%, var(--neutral-900));
-  border-color: color-mix(in srgb, var(--functional-info) 28%, transparent);
+  background: color-mix(in srgb, var(--status-info) 12%, transparent);
+  color: color-mix(in srgb, var(--status-info) 70%, var(--neutral-900));
+  border-color: color-mix(in srgb, var(--status-info) 28%, transparent);
 }
 .state-badge--accent {
   background: var(--app-accent-soft-bg);
@@ -5471,19 +5650,19 @@ button.metric-band__item--filter.is-active {
 /* 深色模式：底色略加深、文字提亮，保证浅底深字在深色底上仍可读（§7.2）。
    提亮基色取 --neutral-900：深色模式下它反转为近白（--neutral-0 反而变深）。 */
 html.theme-dark .state-badge--success {
-  background: color-mix(in srgb, var(--functional-success) 18%, transparent);
-  color: color-mix(in srgb, var(--functional-success) 78%, var(--neutral-900));
-  border-color: color-mix(in srgb, var(--functional-success) 38%, transparent);
+  background: color-mix(in srgb, var(--status-success) 18%, transparent);
+  color: color-mix(in srgb, var(--status-success) 78%, var(--neutral-900));
+  border-color: color-mix(in srgb, var(--status-success) 38%, transparent);
 }
 html.theme-dark .state-badge--warning {
-  background: color-mix(in srgb, var(--functional-warning) 18%, transparent);
-  color: color-mix(in srgb, var(--functional-warning) 78%, var(--neutral-900));
-  border-color: color-mix(in srgb, var(--functional-warning) 38%, transparent);
+  background: color-mix(in srgb, var(--status-warning) 18%, transparent);
+  color: color-mix(in srgb, var(--status-warning) 78%, var(--neutral-900));
+  border-color: color-mix(in srgb, var(--status-warning) 38%, transparent);
 }
 html.theme-dark .state-badge--info {
-  background: color-mix(in srgb, var(--functional-info) 18%, transparent);
-  color: color-mix(in srgb, var(--functional-info) 78%, var(--neutral-900));
-  border-color: color-mix(in srgb, var(--functional-info) 38%, transparent);
+  background: color-mix(in srgb, var(--status-info) 18%, transparent);
+  color: color-mix(in srgb, var(--status-info) 78%, var(--neutral-900));
+  border-color: color-mix(in srgb, var(--status-info) 38%, transparent);
 }
 html.theme-dark .state-badge--neutral {
   background: var(--neutral-100);
@@ -5495,13 +5674,17 @@ html.theme-dark .state-badge--neutral {
 /* ── 空席 / 风险行：左侧 2px 单色规则（§2.10 反例「整圈红边」的替代）──
    只用于空席 / 风险行，不做分区装饰（DESIGN_METHODOLOGY §1.5「同页左边条不得多色」）。 */
 .section-accent-left {
-  border-left: 2px solid var(--functional-warning);
+  border-left: 2px solid var(--status-warning);
   padding-left: var(--space-3);
 }
 
 /* ═══════════════════════════════════════════════════════════════
    行型交互（2026-10-18 立 · §10.4 五类行型矩阵的样式面）
    ── 单一源：components/ui/list-row.js 的 rowType → data-row-type。
+   ── 2026-10-26 Task 3.1 登记四类行载体（第五类 select 沿用同一通道）：
+      display 展示行（不可点，无 hover）· nav 导航行（整行跳转）·
+      action 动作行（行尾按钮，本行不可点）· master 主从行（整行选中 + 行尾动作）。
+      区分口径＝元素 + data-row-type + data-interactive 三者一致，不再另造第二套类名。
    ── 口径：默认不可点；只有 data-interactive="true" 才 pointer / hover / focus-visible；
       动作行（action）与展示行（display）不得有 cursor:pointer 或 hover 变底。
    ── 覆盖关系：本段写在既有 .list-row 段之后，以同特异性 + 后置覆盖 hover 兜底。 */
@@ -5509,6 +5692,12 @@ html.theme-dark .state-badge--neutral {
   cursor: default;
 }
 .list-row[data-interactive="true"] {
+  cursor: pointer;
+}
+/* 导航行 / 主从行 / 选择行：整行可点，键盘均可达（元素或 role=button + tabindex 由 JS 给出）。 */
+.list-row[data-row-type="nav"],
+.list-row[data-row-type="master"],
+.list-row[data-row-type="select"] {
   cursor: pointer;
 }
 .list-row[data-row-type="display"] {
@@ -5607,8 +5796,17 @@ html.theme-dark .state-badge--neutral {
     color: var(--neutral-500);
     overflow-wrap: anywhere;
   }
+  /* 末列＝动作列：值区自起排，动作紧跟标签，不甩到卡右缘
+     （2026-10-26 Task 3.4：原 flex-end 让按钮远离标签；值区占满余量）。 */
   .data-table[data-responsive="cards"] td:last-child {
-    justify-content: flex-end;
+    justify-content: flex-start;
+  }
+  .data-table[data-responsive="cards"] td:last-child > * {
+    flex: 0 1 auto;
+  }
+  /* 定宽列模板（colgroup）只服务桌面宽表；卡式行按块级顺序排，不参与定宽。 */
+  .data-table[data-responsive="cards"] colgroup {
+    display: none;
   }
   /* 矩阵末列不是「行尾动作」，保持左起；标签过长时截断，全文在 td[title]。 */
   .data-table[data-responsive="cards"].rm-table td:last-child {
@@ -5938,7 +6136,7 @@ html.theme-dark .state-badge--neutral {
 .modal-form-error {
   flex-basis: 100%;
   margin: 0 0 2px;
-  color: var(--functional-error);
+  color: var(--status-error);
   font-size: var(--text-xs);
   line-height: 1.6;
 }
@@ -6048,6 +6246,8 @@ textarea::placeholder {
 .page-num,
 .modal-close-btn,
 .person-picker-close-btn,
+.hamburger-btn,
+.cal-mobile-detail-close,
 .ws-tab-arrow,
 [data-accent-key]:not([data-accent-sample]) {
   position: relative;
@@ -6056,6 +6256,8 @@ textarea::placeholder {
 .page-num::after,
 .modal-close-btn::after,
 .person-picker-close-btn::after,
+.hamburger-btn::after,
+.cal-mobile-detail-close::after,
 .ws-tab-arrow::after,
 [data-accent-key]:not([data-accent-sample])::after {
   content: '';

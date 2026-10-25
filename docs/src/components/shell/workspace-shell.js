@@ -20,33 +20,33 @@
 
 
 
-import { STATE, getAppState, setState, registerRenderCallback } from '../../core/base/state.js?v=20261025a';
+import { STATE, getAppState, setState, registerRenderCallback } from '../../core/base/state.js?v=20261025b';
 
-import { bootstrapPage } from '../../core/boot/bootstrap.js?v=20261025a';
-import { renderTabBar, tabContentSkeletonHtml, tabErrorCardHtml } from './tab-bar.js?v=20261025a';
-import { flashHighlight, escHtml, showToast } from '../../core/base/utils.js?v=20261025a';
-import { CrossPageState } from '../../core/session/cross-page-state.js?v=20261025a';
-import { getCapabilities } from '../../core/boot/registry.js?v=20261025a';
-import { loadWorkspaceData } from '../../data/data-loader.js?v=20261025a';
+import { bootstrapPage } from '../../core/boot/bootstrap.js?v=20261025b';
+import { renderTabBar, tabContentSkeletonHtml } from './tab-bar.js?v=20261025b';
+import { flashHighlight, escHtml, showToast } from '../../core/base/utils.js?v=20261025b';
+import { CrossPageState } from '../../core/session/cross-page-state.js?v=20261025b';
+import { getCapabilities } from '../../core/boot/registry.js?v=20261025b';
+import { loadWorkspaceData } from '../../data/data-loader.js?v=20261025b';
 // 待批活动的可见性单一源（2026-09-22 批次 151）：种子兜底路径同样按查看者角色收窄（与 data-loader 同判据）
-import { filterActivitiesForViewer } from '../../services/core/visibility.js?v=20261025a';
+import { filterActivitiesForViewer } from '../../services/core/visibility.js?v=20261025b';
 
-import { TodoStore } from '../../services/governance/todo.js?v=20261025a';
-import { AuthStore } from '../../services/core/auth.js?v=20261025a';
-import { BranchService } from '../../services/core/runtime.js?v=20261025a';
-import { applyTabPolicy, getBranchIdOfPerson, getBranchWorkforce } from '../../services/branch/branch.js?v=20261025a';
+import { TodoStore } from '../../services/governance/todo.js?v=20261025b';
+import { AuthStore } from '../../services/core/auth.js?v=20261025b';
+import { BranchService } from '../../services/core/runtime.js?v=20261025b';
+import { applyTabPolicy, getBranchIdOfPerson, getBranchWorkforce } from '../../services/branch/branch.js?v=20261025b';
 // 设置中心批2（2026-09-09 支书批准 v3）：个人 tab 顺序覆盖（个人层；支部层=applyTabPolicy 之上叠加）
-import { applyPersonalTabOrder } from '../../services/core/preferences.js?v=20261025a';
+import { applyPersonalTabOrder } from '../../services/core/preferences.js?v=20261025b';
 // （丁）归属可转移：可转移页签的**判据单一源**（2026-10-05 批次 379 · `D-771`）——模块主责快照派生，
 //   禁前端写死「哪个 tab 长在哪个台」。
-import { TRANSFERABLE_TAB_ROWS, transferRowOf, transferTabDecision, expandWorkforce } from '../../core/domain/work-map.js?v=20261025a';
+import { TRANSFERABLE_TAB_ROWS, transferRowOf, transferTabDecision, expandWorkforce } from '../../core/domain/work-map.js?v=20261025b';
 // 「归属可转移」**原台页签声明单一源**（迁入时取**同一份声明**，勿在本处复制 render）：
 //   ⚠ 台账：`TRANSFERABLE_TAB_ROWS` 的每个 `page` 都必须在此有对应声明（新增行时同批补），
 //     由 `server/test/work-map.test.mjs` 断言 `page ∈ {org, disc, leader}` 守住。
 //   ⚠ 统一取**声明常量**而非各台 `tabs()`：后者是**查看者上下文相关**的（如组长台按「组织者兜底进入」过滤）。
-import { ORG_WORKSPACE_TAB_DECLS } from '../../capabilities/org-workspace.js?v=20261025a';
-import { DISC_WORKSPACE_TAB_DECLS } from '../../capabilities/disc-workspace.js?v=20261025a';
-import { LEADER_WORKSPACE_TAB_DECLS } from '../../capabilities/leader-workspace.js?v=20261025a';
+import { ORG_WORKSPACE_TAB_DECLS } from '../../capabilities/org-workspace.js?v=20261025b';
+import { DISC_WORKSPACE_TAB_DECLS } from '../../capabilities/disc-workspace.js?v=20261025b';
+import { LEADER_WORKSPACE_TAB_DECLS } from '../../capabilities/leader-workspace.js?v=20261025b';
 
 /** 台 → 页签声明（归属可转移迁入取用；单一源＝各台能力模块的声明常量） */
 const TRANSFER_HOME_DECLS = {
@@ -254,6 +254,9 @@ export async function createWorkspaceShell(opts) {
 
   let _tabBarInited = false;
 
+  // 2026-10-25 Task 1.2：首屏渲染完成信号（activate 已返回 Promise）——壳可据此知道首次渲染结束。
+  let _firstRender = Promise.resolve(false);
+
   let _currentTab = defaultTab;
 
   let _navTarget = null;         // { tfId, actId } URL 导航目标（跨重渲染保持，定位完成后清除）
@@ -269,7 +272,9 @@ export async function createWorkspaceShell(opts) {
   // ── 时序修复（2026-09-10「归属显示不一致」；正确先例 settings-entry.js:1236-1244）──
   // header 品牌标题经 getHeaderTitle 读 mockDB.branches；bootstrapPage 内 renderHeader 若先于
   // 分支数据加载，登录人 h1 会落在「数据未加载」兜底名（T-075① 记录的坑）。
-  // 故先完成 BranchService.loadDB()（幂等：data-loader Step1 再调一次无副作用）再进入 bootstrapPage。
+  // 故先完成 BranchService.loadDB() 再进入 bootstrapPage。
+  // 2026-10-26 Task 2.2：data-loader Step1 的那次调用已由 `data/mock-adapter.js::loadDB` 的
+  //   页面级幂等锁复用（只读一次 localStorage、只做一次种子修复 + applyDerivedFacts），不再双载。
   try {
     if (typeof BranchService.loadDB === 'function') BranchService.loadDB();
   } catch (e) {
@@ -568,7 +573,9 @@ export async function createWorkspaceShell(opts) {
 
       accentColor: { accent, accentRgba, accentBorder },
 
-      renderCtx: _renderCtx(state),
+      // 2026-10-25 Task 1.1：传**函数**而非建栏时快照——tab-bar 每次点击 / activate 时取最新 state
+      //   （原为 `_renderCtx(state)` 一次性冻结 ⇒ 切月 setState 后切走再切回仍显旧月份）。
+      renderCtx: () => _renderCtx(getAppState()),
 
       storageKey,
 
@@ -590,7 +597,7 @@ export async function createWorkspaceShell(opts) {
 
     bindExtras?.(container, { accent, accentRgba, accentBorder, renderCtx: _renderCtx, getState: getAppState });
 
-    _tabBar.activate(_tabBar.activeTab);
+    _firstRender = _tabBar.activate(_tabBar.activeTab);
 
     _tabBarInited = true;
 
@@ -623,37 +630,14 @@ export async function createWorkspaceShell(opts) {
 
 
 
-  /** 5.4（2026-10-22 第九轮）：刷新路径失败 → **复用 tab-bar 同一张错误卡**（含重试），
-   *  不再只 `console.error` 把旧内容/空白留在页面上。重试＝重新渲染当前页签。 */
-  function _renderRefreshError(err) {
-    console.error(`[ws-${prefix}] tab 渲染失败`, err);
-    const el = document.getElementById(`${prefix}-tab-content`);
-    if (!el) return;
-    el.innerHTML = tabErrorCardHtml();
-    el.querySelector('[data-ws-tab-retry]')?.addEventListener('click', () => _renderCurrentTab(getAppState()));
-  }
-
-  /** 渲染当前激活 Tab 内容（state 变化时增量刷新；tab.render 为懒加载动态 import，返回 Promise） */
-
+  /** 渲染当前激活 Tab 内容（state 变化时增量刷新）。
+   *  2026-10-25 Task 1.2：与点击共用 tab-bar 的同一套生命周期（seq / 去重 / **清 `dataset.currentTab`** /
+   *  等待 Promise / 失败可见 / 陈旧写回丢弃）——不再直调 `tab.render`、不再只 `.catch` 不等待。 */
   function _renderCurrentTab(state) {
 
-    if (!_tabBarInited) return;
+    if (!_tabBarInited || !_tabBar) return Promise.resolve(false);
 
-    const tab = _tabBar.tabs.find(t => t.id === _currentTab);
-
-    if (!tab || typeof tab.render !== 'function') return;
-
-    try {
-
-      const r = tab.render(_renderCtx(state));
-
-      if (r && typeof r.catch === 'function') r.catch(_renderRefreshError);
-
-    } catch (e) {
-
-      _renderRefreshError(e);
-
-    }
+    return _tabBar.renderCurrent(_renderCtx(state));
 
   }
 
@@ -803,7 +787,7 @@ export async function createWorkspaceShell(opts) {
 
         ? onNavTarget(_navTarget, state, {
 
-            activate: (tabId, ctx) => { _currentTab = tabId; _tabBar.activate(tabId, ctx || _renderCtx(state)); },
+            activate: (tabId, ctx) => { _currentTab = tabId; return _tabBar.activate(tabId, ctx || _renderCtx(state)); },
 
             setHighlight: (id, sel) => { _highlightId = id; _highlightSel = sel; if (id) setTimeout(() => { _highlightId = null; _highlightSel = null; }, NAV_SUPPRESS_MS); },
 
@@ -853,7 +837,7 @@ export async function createWorkspaceShell(opts) {
 
 
 
-  return { renderUI };
+  return { renderUI, get firstRender() { return _firstRender; } };
 
 }
 

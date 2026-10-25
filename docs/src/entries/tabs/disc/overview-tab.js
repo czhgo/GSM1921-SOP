@@ -6,10 +6,10 @@
 // 顶部直达条属重复动作 ⇒ 外壳不再挂条，只保留骨架占位。
 // U3（2026-09-07）：先 beginOverviewShell 骨架/槽位占位 → 原地渲染概况（不推挤正文）。
 
-import { renderWorkOverview } from '../../../components/governance/work-overview.js?v=20261025a';
-import { getDiscCommissionerId } from './_shared.js?v=20261025a';
-import { beginOverviewShell } from '../../../components/governance/overview-dispatch-bar.js?v=20261025a';
-import { renderCalendarCard } from '../shared/activity-calendar-tab.js?v=20261025a';
+import { renderWorkOverview } from '../../../components/governance/work-overview.js?v=20261025b';
+import { getDiscCommissionerId } from './_shared.js?v=20261025b';
+import { beginOverviewShell } from '../../../components/governance/overview-dispatch-bar.js?v=20261025b';
+import { renderCalendarCard } from '../shared/activity-calendar-tab.js?v=20261025b';
 
 /**
  * 条线缺口行补真实动作（2026-10-18 繁专项 Task 15）。
@@ -24,7 +24,7 @@ const DISC_GAP_TARGETS = [
 async function _goGapTarget(tab, segment) {
   if (segment === 'makeup') {
     try {
-      const m = await import('./attendance-tab.js?v=20261025a');
+      const m = await import('./attendance-tab.js?v=20261025b');
       m.focusSegment('makeup');
     } catch (_) { /* 分段记忆失败时仍进考勤页 */ }
   }
@@ -46,6 +46,8 @@ function _bindLineGapActions(container) {
     if (!target) return;
     const btn = document.createElement('button');
     btn.type = 'button';
+    // 2026-10-26 Task 5：把只读行升级为**整行导航载体**（w-full + text-left），
+    //   `.btn-ghost` 仅作尺寸族；可见 hover 由 `.btn-ghost:hover` 的 --surface-hover 承担。
     btn.className = `btn-ghost ${row.className} w-full text-left`;
     btn.dataset.woGap = target.tab;
     btn.dataset.woGapBound = '1';

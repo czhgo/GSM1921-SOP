@@ -2,13 +2,15 @@
 // ws-disc-commissioner-entry.js — 纪检委员工作台入口（T-279 M3 拆分；T-304 代码减负 2026-08-30：骨架并入 workspace-shell）
 // 入口职责：壳配置（注册表 tab 清单 + 导航落点 + 数据加载），角色特有逻辑仅保留。
 
-import { createWorkspaceShell } from '../../components/shell/workspace-shell.js?v=20261025a';
-import { getBasePath } from '../../core/base/utils.js?v=20261025a';
-import { loadActivities } from '../../services/activity/activity.js?v=20261025a';
-import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261025a';
-import { seedTodos } from '../../services/governance/todo.js?v=20261025a';
+import { createWorkspaceShell } from '../../components/shell/workspace-shell.js?v=20261025b';
+import { getBasePath } from '../../core/base/utils.js?v=20261025b';
+import { loadActivities } from '../../services/activity/activity.js?v=20261025b';
+import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261025b';
+import { seedTodos } from '../../services/governance/todo.js?v=20261025b';
+// Task 6：本台无专班承载面 ⇒ 跨页直达完整详情页（direct，objectDetailHref 统一出口）。
+import { objectDetailHref } from '../../core/domain/object-route.js?v=20261025b';
 // 副作用导入触发纪检工作台能力注册（tab 清单）
-import '../../capabilities/disc-workspace.js?v=20261025a';
+import '../../capabilities/disc-workspace.js?v=20261025b';
 
 await createWorkspaceShell({
   accentRole: 'disc-commissioner',
@@ -26,7 +28,8 @@ await createWorkspaceShell({
     if (nav.tfId) {
       // 2026-10-20 批次 489（IA-A01 裁定）：纪检台已删除「知情查看」页签 ⇒ 专班深链改跳详情页，
       //   不再借只读页签落地。
-      window.location.href = getBasePath() + 'taskforce.html?id=' + encodeURIComponent(nav.tfId);
+      const href = objectDetailHref('taskforce', nav.tfId, { entry: 'cross-page-deeplink' });
+      if (href) window.location.href = getBasePath() + href;
       return false;
     }
     // 活动：落考勤管理（纪检活动相关承载，现状即权限；activityId 直达该活动考勤）

@@ -2,7 +2,7 @@
 title: "2026年10月执行日志"
 type: execution_log
 role: "[工程师]+[AI]"
-last_updated: 2026-10-25
+last_updated: 2026-10-26
 status: active
 related_files: [CLAUDE.md, .ctx/logs/archive/2026-09-EXECUTION_LOG.md, .ctx/logs/EXECUTION_LOG_INDEX.md]
 ---
@@ -3891,3 +3891,72 @@ $body
 | `calendar-tab.js` `button>h3`、`work-overview.js` `summary>h3`、`todo-tab-shell.js` `summary>role=heading`、`gallery.js` `role=button>h3`；4 个 `div` 伪开关 Tab 不可达 | 折叠头就是「一块可点的区域」，标题放进去最省事；`div` 加点击与原生控件等价 | 标题是结构、交互是动作，二者不能互相包裹；阅读型折叠、菜单、浮窗各有唯一原语 | 同类功能同一原语；标题永不进交互元素；折叠状态必须能由 `open` / `aria-expanded` 静态回读 | `ui-control-system-guard::T3-1/T3-2/T3-3/T4-1` ＋ `frontend-foundations-guard::F8`（CASE-DESIGN-018） |
 | 62 页签中约 20 个同一渲染器重复注册；支书台活动管理一页塞日历 ＋ 查询 ＋ 党小组活动 ＋ 项目赋权 | 页签是「每台自己的入口」，重复注册最直观；删页签只删注册行；辅助功能可以独立成页 | 一功能一页签；重复项要么是通用面（同名同组件），要么降为页内区 / 折叠卡；降级必须三件齐备 | 页签集合与 IA 地图必须逐台相等；已降级旧名不得重新注册；删除前先备「新落点 ＋ 深链重定向 ＋ help 更新」 | `catalog-sync::T6` ＋ `doc-consistency::S1/S2` ＋ `page-sweep`（CASE-DESIGN-019） |
 | 知情查看把「活动工作组 / 专班工作组 / 其他组」并成三枚同形按钮；各台 `views` 写死 `['taskforce']`；全仓无术语表 | 只要能只读就能放同一分段；分段集合由调用方按需传，组件不必管语义层级 | 工作组是协作结构、党小组是组织单元，不同层不能同排；「其他党小组」要看但须独立成区；通用能力由组件统一定义 | 并列项必须来自术语表同一「允许并列集」；跨层对象降为独立区或筛选器；每个词条必须显式写「允许并列集」 | `docs-governance-guard::H-T1/H-T2/H-T3/H-T4` ＋ `workbench-audit-coverage`（CASE-DESIGN-017） |
+
+
+## 批次 512（2026-10-26）：视觉层级 ＋ 色彩双层 ＋ 按钮三档 ＋ 详情路由 ＋ 运行时竞态（spec `restore-visual-hierarchy-and-runtime`）
+
+### 一、判据
+
+- 支书 2026-10-26 抽样 7 条视觉反馈：① 分组胶囊「没恢复」；② 按钮无边框、看不出能点；③ 表格「向后伸展」；④ 同屏「单调」；⑤ 详情「什么时候可点」不清楚；⑥ 结论带挤在一起、竖条与文字只有 4px；⑦ 数据零值与可点箭头太浅。
+- 2 条运行时反馈：⑧ 点了 tab 渲染不出来 / 点 A 亮 B；⑨ 首屏慢、鼠标卡帧。
+- 取证读数：胶囊 `≤1280px` 直接 `display:none`、底色与页面底 **1.06:1**、高度 **18px**；`btn-ghost` 当动作按钮 **79 处**、hover 对白卡 **1.06–1.11:1**；全仓 `table-layout` **0 处**；颜色引用中性 : 强调 : 状态 : 类别 ≈ **4.9 : 2.4 : 0.8 : 1.0**、中性占 **54–76%**；同一活动有 **4 种**详情面、归档深链不校验状态；Tab 侧 `renderCtx` 冻结、`dataset.currentTab` 不清、绑定标记挂持久容器；首屏 1 个 **600ms** 硬等待、两次全库 `loadDB`、hover 浮窗「写 DOM → 读布局」。
+
+### 二、动作（指针）
+
+1. **运行时（Task 1）**：`workspace-shell.js` 的 `renderCtx` 改函数、每次点击取最新 state；`tab-bar.js` 统一 `_safeRender` / `renderCurrent` 生命周期（seq / 去重 / 清 marker / await / 快照恢复 / 错误卡 / `TAB_LOADING_TIMEOUT_MS` 8s）；`calFiltersBound` / `organizerEntryBound` / `talentJumpBound` 改挂重建元素或事件委托；回退页签 toast。
+2. **性能（Task 2）**：mock 延迟可配（默认 80ms，`window.__MOCK_DELAY_MS` / `MOCK_DELAY_MS`）；`loadDB` 幂等锁；`IssueStore` / `MilestoneStore` 不阻塞壳；hover 浮窗先读后写、Observer 只扫新增、后台 render 不铺占位。
+3. **视觉（Task 3）**：`metric-band` 拆 `--static` / `--interactive`；`section.card` 必有可访问名；`.list-row` 四载体 `data-row-type`；胶囊全宽可见（≥24px、neutral-400 描边、≤1280 只缩）；卡内 8/16 间距、竖条 8px、`neutral-400` 只装饰；`.wo-lines-table` fixed ＋ `colgroup` ＋ 末列贴列尾 ＋ ≤640 动作列 `flex-start`。
+4. **色彩（Task 4）**：主题色层 7×2×9 零改值并文档化（`DESIGN_SYSTEM §2.12`）；功能色层 `--status-*` / `--color-category-*` / `--color-identity-*` / `--color-link`（§2.13）；身份色单一源；暗色类别与 danger 分离；删除 12 个僵尸 token；链接全量收口。
+5. **按钮（Task 5）**：`btn-ghost` 迁移 67 处，保留 6 处非动作行载体白名单；纯文字动作 `.btn-text`（下划线 ＋ 箭头）；图标 32 视觉 / 44 命中；hover 对白卡 1.24:1、暗色 1.63:1。
+6. **详情（Task 6）**：`core/domain/object-route.js::resolveObjectRoute`（direct / locate / none）＋ `OBJECT_ROUTE_ENTRIES` 11 入口；通知/待办/首页/共享日历/归档行/跨页深链/工作台聚合 direct；支书活动管理/组织台专班/成员项目分工/工作概况预览/归档弹窗 locate；已归档只读、跨支部门、缺 id 不渲染、归档深链失败提示。
+7. **规范与判例（Task 7）**：`DESIGN_SYSTEM §12.15` 增 SD-41…SD-46 并同步 §2.12 / §2.13 指针（同时改准 SD-36 的「≤1280 隐藏」旧句）；`design-system/CASES.md` 增 CASE-DESIGN-020…024；`CASES_INDEX` design 19→24；`05_ai_coding/CASES.md` 增 CASE-AI-006、索引 ai-coding 5→6；`PRODUCT_IA` 增详情路由矩阵；`GUARD_INVENTORY` 增 §九。
+
+### 三、读数
+
+- **定向（本批终态，2026-10-26）**：`node --test test/docs-governance-guard.test.mjs test/doc-consistency.test.mjs test/runtime-tab-lifecycle-guard.test.mjs test/object-route-guard.test.mjs test/theme-palette-guard.test.mjs test/ui-control-system-guard.test.mjs` ＝ **112 / 112 绿**，`duration_ms 5442.43`（≈5.44s）。静态 `test(` 调用点 **109** 条；`N3–N6` 由 `for (const c of CHECKS)` 循环生成 4 条 ⇒ 运行 **112**。逐件：docs-governance 25 · doc-consistency 21 · runtime-tab-lifecycle 16 · object-route 8 · theme-palette 14 · ui-control 25。
+- **daily（终态）**：`npm run test:daily` ＝ **1561 / 1561 绿**（69.97s；bump 后复跑 1561 / 1561）。
+- **全量三通道（最终）**：`SWEEP_SHARD=all` ＝ **[node] 1563 / 1563 绿**、**[e2e-A] 57 过 + 1 skip（58）**、**[e2e-B] 179 / 179 绿**；墙钟 **986.2s**（≤1200s）。
+  （首跑 e2e-B 4 红：copy-screen 基线、台账行号 39 处、leader 建活动 409、今天页探针节点竞态；逐条修复后第二轮全绿。）
+- **版本戳**：`20261025a` → **`20261025b`**（JS 263 / HTML 26 / CSS 2 / server-test 143 个文件改写，陈旧戳 0 残留）。
+- **运行时读数（Task 1/2，演示环境实测）**：首屏内容出现 **974 → 515ms**；hover 处理 **p95 3.5 → 0.9ms**；mock 默认延迟 600 → **80ms**（可配）；`loadDB` 每页 2 → **1** 次；loading 占位超时 **8s**、超时后解除 `pointer-events:none` 并显示「加载超时」。
+- **视觉读数（Task 3/5）**：分组胶囊 5 个宽度（390/768/1024/1280/1440）均可见、高度 **≥24px**、描边对白底约 **2.5:1**；工作分工表 5 列 18/16/9/9/48%、末列 `text-align:end`；`btn-ghost` **67 迁移 / 6 白名单**；图标按钮 **9** 个全部 44 命中 ＋ 无障碍名；可点行 hover 亮色 **1.24:1**、暗色 **1.63:1**。
+- **色彩读数（Task 4）**：主题色盘 **7 × 2 × 9 = 126** 个 token 零改值；功能色层状态 4 / 类别 3 / 身份 12 角色齐备；暗色类别红 `#FCA5A5` ≠ danger `#F87171`、主题党日金 `#FCD34D` ≠ warning `#FBBF24`；删除 **12** 个僵尸 token、零残留；链接 **L6–L8** 帮助 / 速查 / about·help 全部并入 `--color-link`；关键配对对比度 **10+ 组**实测（正文 10.31:1、次要 7.56:1、辅助 4.83:1、暗色正文 11.35:1 等，详见 `DESIGN_SYSTEM §2.13`）。
+- **详情读数（Task 6）**：入口矩阵 **11** 条（direct 8 / locate 3）；`objectDetailHref` 调用点 ≥30；裸 `activity.html?id=` / `taskforce.html?id=` 生成点 **0**；已归档写口 **5** 处全部纳入 `!readOnly`；归档弹窗与工作概况 / 专班面板均有「打开完整页」。
+- **守卫台账（Task 7）**：`GUARD_INVENTORY` 件数 **68 → 70**、静态断言 **410 → 462**；新增 `runtime-tab-lifecycle-guard`（16）与 `object-route-guard`（8）。
+- **判例索引**：design **19 → 24**、ai-coding **5 → 6**；`docs-governance-guard::G7` 逐行核「所属域 / 对应规范编号」通过。
+
+### 四、修复过程（如实）
+
+- **首跑定向 111 / 112**：唯一红为 `docs-governance-guard::N2`——TIMESTAMPS 备注列合计 **31486** 字 > 预算 **31400** 字（本批新增 4 行注释所致）。按守卫给出的「等量置换」路径收短本批 4 行备注（CASES / CASES_INDEX / PRODUCT_IA / GUARD_INVENTORY），未上调预算、未删存量；复跑 **112 / 112**。
+- **规范自相矛盾**：SD-36 原写「≤1280px 只隐藏文字、保留分隔」，与 Task 3 落地和 V2 守卫直接冲突；本批改准为「只缩内边距 / 字号，不得隐藏」，并指向 SD-42 的可见性细则。
+- **运行时**：先改 `renderCtx` 为函数，再把 `_safeRender` 与 `_renderCurrentTab` 收成同一生命周期；`_lastGoodSnapshot` 用于陈旧写回前恢复；新增 `_armLoadingTimeout` 防永久灰化；三个持久绑定标记逐个改挂重建元素。
+- **视觉**：胶囊删除 `display:none` 断点→只缩；`metric-band` 拆两档并去掉 0 间距＋左线；`.today-go` 的 `gap:4px !important` 改 8px；工作分工表补 `colgroup` 与末列规则。
+- **色彩**：先补功能色 token 与暗色值，再迁移消费方（`--functional-*` 只留别名），最后删 12 个零消费者 token；身份色以 `ROLE_COLORS` 为唯一源逐值核对。
+- **按钮**：按三档逐页迁移 67 处 `btn-ghost`；纯文字动作统一 `.btn-text`；图标按钮补 `::after` 44 命中与 `aria-label`。
+- **详情**：新增纯函数路由后，16 个消费文件逐个接入；`activity-entry` 的 5 个写口统一加 `!readOnly`；归档库深链补未命中提示；专班终态统一 `isTaskforceTerminalStatus`。
+- **文档**：SD-41…SD-46 与 5 条判例同批落位；`CASES_INDEX` 与 `TIMESTAMPS` 同批刷卡；`PRODUCT_IA` 路由矩阵与 `OBJECT_ROUTE_ENTRIES` 逐条对齐（发现「组长本组活动」无实际 `owner-workspace` 调用，矩阵不列该入口）。
+
+### 五、边界（如实）
+
+- **不做**：版本戳 bump、全量三通道、提交与 push——全部留主代理收尾；本批只跑定向与 daily。
+- **SD-41 无独立判例**：容器语义由 `ui-control-system-guard::V1` 机检承担，本轮 7 条反馈中无单独「同 class 双语义」样本。
+- **`content/05_ai_coding/CASES.md` 无 TIMESTAMPS 登记行**：沿用本表「只登记不补行」的覆盖缺口处置；其 frontmatter 由 `docs-governance-guard::F2` 按 git 提交日核，不靠表行。
+- **PRODUCT_IA 路由矩阵是派生附录**：不是规范；`OBJECT_ROUTE_ENTRIES` 增删入口须同批改表，否则矩阵与代码脱节。
+- **性能读数为演示环境实测**：首屏 974→515ms、hover p95 3.5→0.9ms 不作为跨机器承诺；守卫只锁「默认延迟 ≤120ms / 单次 loadDB / 先读后写」等结构性判据。
+- **`frontend-foundations-guard::F8` 本批只扩扫描面**（0 条新增断言），台账按 9 条计；新增的 2 件 guard 才计入 68→70。
+- **三通道未跑**：`SWEEP_SHARD=all` 的真机页扫与 e2e 属收尾；本批「胶囊 390px 可见」「末列贴列尾」的最终真机确认留给三通道。
+
+### 六、sample-diff（支书 7 条视觉 ＋ 2 条运行时反馈 → 规则）
+
+| # | 样本 | AI 假设 | 人类意图 | 泛化规则 | 守卫 |
+|---:|---|---|---|---|---|
+| 1 | 分组胶囊「没恢复」：CSS 有 `.tab-group-label`，但 ≤1280 直接隐藏、底色 1.06:1、高 18px | 改了 CSS 就完成；组名是可裁剪装饰 | 要的是**可感知**，不是声明存在 | 判据必须含断点集合 ＋ 可见性 ＋ 高度 ≥24px ＋ 形状对比 ≥1.5:1，不只看声明存在；窄屏只缩不隐藏 | `ui-control-system-guard::V2` ＋ `ui-contrast-guard::K3` ＋ `page-sweep`（CASE-DESIGN-020） |
+| 2 | 按钮无边框：79 处 `btn-ghost` 当动作按钮，hover 仅 1.06–1.11:1 | 旧类名沿用最省事；hover 有变化就算可点 | 要**控件与内容可区分** | 动作按钮必有描边 / 底色；纯文字动作有下划线 / 箭头；图标 32 视觉 ＋ 44 命中；`btn-ghost` 只作非动作行载体 | `ui-control-system-guard::V4–V7` ＋ `frontend-foundations-guard::F8`（CASE-DESIGN-021） |
+| 3 | 表格「向后伸展」：全仓 0 处 `table-layout`，末列吃掉余量 | 只填内容，浏览器会自动排好 | 要的是**列宽模板**，同列对齐、末列贴列尾 | 关键宽表 `fixed` ＋ `colgroup`；首列 nowrap 有 max-width；末列 end ＋ 16px；≤640 动作列 flex-start | `ui-control-system-guard::V3`（CASE-DESIGN-022） |
+| 4 | 「单调」：中性 : 强调 : 状态 : 类别 ≈ 4.9 : 2.4 : 0.8 : 1.0，中性 54–76% | 把主题色当唯一强调；要解决就重做主题色盘 | 要**主题色层与功能色层并列**，功能色在小面积功能位 | 主题色盘值不改、只担四类角色；功能色独立 token / 暗色值 / 小面积边界；两层不互借 | `theme-palette-guard::T8/T9` ＋ `link-color-guard::L6–L8` ＋ `ui-contrast-guard`（CASE-DESIGN-024） |
+| 5 | 详情「什么时候可点」：同一对象 4 种详情面，归档深链不校验、缺 id 仍出链接 | 入口一刀切（全直达或全落台）；能打开就算对 | 要**最小三成本路由**：所属工作台内定位、工作台外直达、无门不可点 | 每入口只声明 `direct` / `locate`；未知 / 缺 id / 跨支部 → `none`；已归档只读；同页只有一个完整详情落点 | `object-route-guard::R1–R8`（CASE-DESIGN-023） |
+| 6 | 结论带挤在一起：`metric-band` 0 间距 ＋ 1px 左线；竖条与文字被 `gap:4px !important` 压成 4px | 项间贴紧更「紧凑」；线比间距省地方 | 卡内要**分组呼吸感**，组内 8 / 组间 16，竖条与文字 8px | `metric-band` 拆两档、项间 8–12px、去掉左线；`today-go` gap 8px；`disclosure__body` 4→8px | `ui-control-system-guard::V1` ＋ `density-spacing-guard`（SD-41） |
+| 7 | 数据零值 / 可点箭头太浅：`neutral-400` 同时用于装饰与信息 | 中性色越浅越「轻」 | `neutral-400` **只装饰**；数据与箭头要可读可辨 | 数据零值 / 可点箭头 / 状态点改 `neutral-600` 或主题 soft-text；正文对比 ≥4.5:1；箭头不得 neutral-400 | `ui-control-system-guard::V5` ＋ `ui-contrast-guard`（SD-43） |
+| 8 | tab「渲染不出来 / 点 A 亮 B」：冻结 `renderCtx`、marker 不清、持久绑定标记 | 首屏能渲染就代表生命周期正确；绑定一次永久有效 | 点哪个 tab，最终渲染的就是**该 tab 最新数据**；控件离开再回来仍生效 | 渲染上下文取最新 state；统一生命周期（seq / 去重 / 清 marker / await / 错误卡 / 8s 超时）；绑定标记挂重建元素或委托 | `runtime-tab-lifecycle-guard::R1–R7`（CASE-AI-006） |
+| 9 | 「卡」：首屏 600ms 硬等待、双 `loadDB`、hover 浮窗写后读、Observer 全文档扫 | 慢是网络 / 数据量问题；loading 只是视觉 | 首屏不被硬推迟，鼠标移动不被布局读取打断 | 延迟可配（默认 ≤120ms）；`loadDB` 幂等；首屏只派生一次；hover 先读后写；Observer 只扫新增；后台 render 不铺占位 | `runtime-tab-lifecycle-guard::P1–P5`（CASE-AI-006） |
+

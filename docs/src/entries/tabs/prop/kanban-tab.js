@@ -2,18 +2,20 @@
 // 宣传委员工作台 Tab：项目看板（T-279 M3 拆分，照 M2 样板）
 // 活动/专班合并看板（活动+专班分桶）+ 专班工作量区块；从 TaskForceRecordStore 动态派生（H-1 数据断裂修复）。
 
-import { badgeHtml } from '../../../components/ui/badges.js?v=20261025a';
-import { BranchService } from '../../../services/core/runtime.js?v=20261025a';
-import { TodoStore, TodoSourceType } from '../../../services/governance/todo.js?v=20261025a';
-import { persist } from '../../../data/data-adapter.js?v=20261025a';
-import { showToast, escHtml as esc } from '../../../core/base/utils.js?v=20261025a';
-import { setState } from '../../../core/base/state.js?v=20261025a';
-import { resolveDocumentUrl } from '../../../core/base/page-url.js?v=20261025a';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20261025b';
+import { BranchService } from '../../../services/core/runtime.js?v=20261025b';
+import { TodoStore, TodoSourceType } from '../../../services/governance/todo.js?v=20261025b';
+import { persist } from '../../../data/data-adapter.js?v=20261025b';
+import { showToast, escHtml as esc } from '../../../core/base/utils.js?v=20261025b';
+import { setState } from '../../../core/base/state.js?v=20261025b';
+import { resolveDocumentUrl } from '../../../core/base/page-url.js?v=20261025b';
 // 「已归档」判据单一源（只看 archived === true；不得再把 status === 'completed' 当归档）
-import { isActivityArchived } from '../../../core/domain/constants.js?v=20261025a';
+import { isActivityArchived, activityTypeBadgeVariant } from '../../../core/domain/constants.js?v=20261025b';
 // 统一检索引擎（2026-09-14 批次 37）：三桶各接一个实例（keyword null + facets [] → 仅分页，保持三桶观感）
-import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261025a';
-import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261025a';
+import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261025b';
+import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261025b';
+// Task 6：项目看板是跨对象聚合面 ⇒ 活动/专班卡直达完整详情页（direct）。
+import { objectDetailHref } from '../../../core/domain/object-route.js?v=20261025b';
 
 export function renderContent(ctx) {
   const container = document.getElementById('prop-tab-content');
@@ -49,11 +51,11 @@ export function renderContent(ctx) {
     ${renderTabHeader({ title: '项目看板', description: '活动与专班合并看板：待启动 / 进行中。' })}
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
       <div class="card rounded-xl p-0 overflow-hidden">
-        <div class="px-4 py-3 font-title-cn text-sm font-bold tint-section tint-section--head" data-tone="info">待启动 (${pending.length})</div>
+        <div class="px-4 py-3 font-title-cn text-sm font-bold tint-section tint-section--head" data-tone="neutral">待启动 (${pending.length})</div>
         <div class="p-3 space-y-2 min-h-[120px]" id="kanban-pending-host"></div>
       </div>
       <div class="card rounded-xl p-0 overflow-hidden">
-        <div class="px-4 py-3 font-title-cn text-sm font-bold tint-section tint-section--head" data-tone="info">进行中 (${active.length})</div>
+        <div class="px-4 py-3 font-title-cn text-sm font-bold tint-section tint-section--head" data-tone="neutral">进行中 (${active.length})</div>
         <div class="p-3 space-y-2 min-h-[120px]" id="kanban-active-host"></div>
       </div>
     </div>
@@ -64,7 +66,7 @@ export function renderContent(ctx) {
     </p>
     <!-- 宣传任务泳道（2026-10-25 IA 62→45）：原「宣传任务」页签并入本页；渲染函数单一源＝prop/tasks-tab.js::renderBoard -->
     <div class="card rounded-xl p-0 overflow-hidden" id="prop-tasks-lane">
-      <div class="px-4 py-3 font-title-cn text-sm font-bold tint-section tint-section--head" data-tone="warning">宣传任务</div>
+      <div class="px-4 py-3 font-title-cn text-sm font-bold tint-section tint-section--head" data-tone="neutral">宣传任务</div>
       <div class="p-3" id="prop-tasks-host"></div>
     </div>
   `;
@@ -112,8 +114,9 @@ export function renderContent(ctx) {
       if (!card) return;
       const id = card.dataset.ki;
       if (!id) return;
-      const page = card.dataset.kt === 'taskforce' ? 'taskforce.html' : 'activity.html';
-      window.location.href = resolveDocumentUrl(page, { searchParams: { id } });
+      const type = card.dataset.kt === 'taskforce' ? 'taskforce' : 'activity';
+      const href = objectDetailHref(type, id, { entry: 'workspace-aggregate' });
+      if (href) window.location.href = resolveDocumentUrl(href.split('?')[0], { searchParams: { id } });
     }, true);
     // dogfood #13（2026-09-12）：卡片为 role=button 的 div，补 Enter/Space 键盘激活
     host.addEventListener('keydown', (e) => {
@@ -130,7 +133,7 @@ export function renderContent(ctx) {
   // 宣传任务泳道（2026-10-25 IA 62→45）：复用 `tasks-tab.js::renderBoard`（列表 / 登记 / 推进 / 作废单一源）。
   const tasksHost = container.querySelector('#prop-tasks-host');
   if (tasksHost) {
-    import('./tasks-tab.js?v=20261025a').then((m) => {
+    import('./tasks-tab.js?v=20261025b').then((m) => {
       if (tasksHost.isConnected) m.renderBoard(tasksHost, ctx, { header: false });
     });
     // 旧深链 `?tab=kanban&lane=tasks`：滚到本条泳道并给可见落点。
@@ -144,7 +147,7 @@ function _renderKanbanItem(item, showCompleteBtn = false) {
   const isTf = item._type === 'taskforce';
   const typeTag = isTf
     ? badgeHtml('专班', 'success')
-    : (item.type ? badgeHtml(item.type, 'info') : '');
+    : (item.type ? badgeHtml(item.type, activityTypeBadgeVariant(item.type)) : '');
   const subInfo = isTf
     ? `<span class="text-xs text-gray-500">${item.filled}/${item.capacity} 人 × ${item.contributions} 产出</span>`
     : '';

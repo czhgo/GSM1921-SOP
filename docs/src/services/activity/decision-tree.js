@@ -2,17 +2,17 @@
 // services/activity/decision-tree.js — 统一决策树服务
 // 从 ws-leader-entry.js 和 ws-secretary-entry.js 中提取的共享逻辑
 // 包含：配置管理、状态管理、场景映射、工作流面板渲染、活动写入
-import { BranchService } from '../core/runtime.js?v=20261025a';
-import { showToast, _fmtDate } from '../../core/base/utils.js?v=20261025a';
-import { sopDatabase, instantiateSOP, renderWorkflow } from '../../workflow/index.js?v=20261025a';
-import { icon } from '../../core/base/icons.js?v=20261025a';
-import { NoticeStore } from '../governance/notice.js?v=20261025a';
+import { BranchService } from '../core/runtime.js?v=20261025b';
+import { showToast, _fmtDate } from '../../core/base/utils.js?v=20261025b';
+import { sopDatabase, instantiateSOP, renderWorkflow } from '../../workflow/index.js?v=20261025b';
+import { icon } from '../../core/base/icons.js?v=20261025b';
+import { NoticeStore } from '../governance/notice.js?v=20261025b';
 // P2b（2026-09-03）：写活动场景选择清单单一源 = core/domain/constants.js SCENARIO_WRITE_IDS/SCENARIO_LABELS
 //   （与 calendar-tab WRITE_TEMPLATES 同源，勿再手写四子会清单）
-import { SCENARIO_WRITE_IDS, SCENARIO_LABELS } from '../../core/domain/constants.js?v=20261025a';
+import { SCENARIO_WRITE_IDS, SCENARIO_LABELS } from '../../core/domain/constants.js?v=20261025b';
 // M4 场景注册化：经注册表读取 SOP 场景能力（sop-scenarios），行为零变化——能力缺省时回退直接读 sopDatabase
-import { getCapabilities } from '../../core/boot/registry.js?v=20261025a';
-import '../../capabilities/sop-scenarios.js?v=20261025a';
+import { getCapabilities } from '../../core/boot/registry.js?v=20261025b';
+import '../../capabilities/sop-scenarios.js?v=20261025b';
 
 /**
  * 经注册表读取场景（M4 场景注册化消费点）
@@ -369,8 +369,8 @@ export async function writeActivityWithSOP(activityData, scenarioId, targetDate)
   // 档位读 core/domain/policy-defaults.js::activityApprovalMode（call-time）。此处动态引入以不动本文件行号
   // （README-server.md 有指向本文件的 `文件:行号` 引用）。
   const [{ activityApprovalMode }, { pendingApprovalPatchOnWrite }] = await Promise.all([
-    import('../../core/domain/policy-defaults.js?v=20261025a'),
-    import('./activity.js?v=20261025a'),
+    import('../../core/domain/policy-defaults.js?v=20261025b'),
+    import('./activity.js?v=20261025b'),
   ]);
   const gatePatch = pendingApprovalPatchOnWrite(activityApprovalMode());
 
@@ -409,7 +409,7 @@ export async function writeActivityWithSOP(activityData, scenarioId, targetDate)
   // 自动广播（混合模式落地）：活动创建后通知建核心群（现场协调在微信群）
   // 待批活动**不广播**建群通知（2026-09-22 批次 151 · 支书裁定「只支委层可见」）：还没批就通知组织者/组长，
   // 等于从通知这一侧把「尚未获批的活动」传出去；批准门关闭时不产生待批活动 ⇒ 本判据恒真（零行为变化）。
-  if (!gatePatch) _broadcastActivityCreated(activity);
+  if (!gatePatch) await _broadcastActivityCreated(activity);
 
   return { activity, taskCount: createdCount };
 }
@@ -417,16 +417,21 @@ export async function writeActivityWithSOP(activityData, scenarioId, targetDate)
 // ── 自动广播（2026-08-30 支书批准，混合模式落地）────────────────
 // 活动创建后：站内通知组织者/组长「请前往微信群建核心群」——现场协调在微信群，
 // 资料归档交接在系统（支书 2026-08-30 裁决）。通知失败不影响活动创建主流程。
+// 2026-10-25 批次 512：改为**返回 Promise 并由调用方 await**——API 形态下服务端生成通知会推进
+//   `notices` 集合版本；若在通知落库前就发起整表快照，会拿旧 baseline 撞 409（leader 建活动实测）。
 function _broadcastActivityCreated(activity) {
   try {
     // R-22（2026-09-13）：系统派生通知改由服务端生成（kind 注册表复算授权；活动锚点 targetType/targetId
     // 由服务端按 sourceId 派生，活动归档时随 NoticeStore.archiveBySource 一并归档）
-    NoticeStore.addSystem('activity-created-broadcast', activity.id, {
+    return Promise.resolve(NoticeStore.addSystem('activity-created-broadcast', activity.id, {
       activityTitle: activity.title || '新活动',
       date: activity.date || '',
       location: activity.location,
+    })).catch((e) => {
+      console.warn('[DecisionTree] 建群广播失败（不影响活动创建）：', e);
     });
   } catch (e) {
     console.warn('[DecisionTree] 建群广播失败（不影响活动创建）：', e);
+    return Promise.resolve();
   }
 }

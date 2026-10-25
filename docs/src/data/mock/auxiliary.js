@@ -12,7 +12,7 @@
 //   `DEFAULT_BRANCH_ID` 是常量叶子，可安全共用。
 // ⚠ 引用一律取自既有实体（users / branches / activities），保持零孤立引用。
 
-import { DEFAULT_BRANCH_ID } from '../../core/domain/constants.js?v=20261025a';
+import { DEFAULT_BRANCH_ID } from '../../core/domain/constants.js?v=20261025b';
 
 /**
  * 文件流外发确认（形状 = `services/activity/external-dispatch.js::addExternalDispatch` 的落库对象）。

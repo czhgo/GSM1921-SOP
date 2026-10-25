@@ -3,13 +3,13 @@
 //  data-loader.js — 数据加载统一入口
 // ════════════════════════════════════════════════════════════════
 
-import { BranchService } from '../services/core/runtime.js?v=20261025a';
-import { getAppState, setState, STATE } from '../core/base/state.js?v=20261025a';
-import { notifyDataLoaded } from './data-adapter.js?v=20261025a';
-import { AuthStore } from '../services/core/auth.js?v=20261025a';
+import { BranchService } from '../services/core/runtime.js?v=20261025b';
+import { getAppState, setState, STATE } from '../core/base/state.js?v=20261025b';
+import { notifyDataLoaded } from './data-adapter.js?v=20261025b';
+import { AuthStore } from '../services/core/auth.js?v=20261025b';
 // 待批活动的可见性单一源（2026-09-22 批次 151 · 支书裁定「只支委层可见」）：`state.activities` 是仪表盘与各
 // 工作台 tab 的主读口 ⇒ 在本口按查看者角色收窄一次，覆盖首页活动日历/列表、成员台「活动动态」等全部消费点。
-import { filterActivitiesForViewer } from '../services/core/visibility.js?v=20261025a';
+import { filterActivitiesForViewer } from '../services/core/visibility.js?v=20261025b';
 
 /**
  * 将 mock ACTIVITIES 映射为带完整字段的 fallback 数据
@@ -54,6 +54,8 @@ export async function loadWorkspaceData({
   logTag = 'workspace',
 }) {
   // Step 1: loadDB + Store.init
+  // 2026-10-26 Task 2.2：工作台壳已先调过一次；此处由 mock-adapter 的页面级幂等锁复用
+  //   （重复调用直接返回，不再重读 localStorage / 重跑种子修复与派生）。
   try {
     if (typeof BranchService.loadDB === 'function') BranchService.loadDB();
     storeInits.forEach(fn => fn());

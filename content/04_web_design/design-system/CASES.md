@@ -2,7 +2,7 @@
 title: "设计域判例库"
 type: design
 role: "[工程师]+[AI]"
-last_updated: "2026-10-25"
+last_updated: "2026-10-26"
 status: active
 related_files: [DESIGN_SYSTEM.md, content/03_doc_system/CASES_INDEX.md, content/03_doc_system/OPERATIONS_GUIDE.md]
 ---
@@ -192,3 +192,63 @@ related_files: [DESIGN_SYSTEM.md, content/03_doc_system/CASES_INDEX.md, content/
 - **守卫**：`catalog-sync::T6`（IA 地图 ≡ 注册表 · 45 条 · 旧名不得重注册）＋ `doc-consistency::S1`（help ↔ 注册）＋ `S2`（旧页签名不得以表格行回潮）。
 - **对应规范编号**：SD-40
 - **边界**：每台都需要的通用面（今天 / 待办 / 工作概况）按「同功能同名同组件」保留，不属重复注册；同一功能的**不同视角**（如支书 L2「全局概况」与五台 L0/L1「工作概况」）可由职责差异支撑而保留，但必须能引母本说明差异。
+
+## CASE-DESIGN-020 分组胶囊「存在但不可见」
+
+- **编号**：CASE-DESIGN-020
+- **样本（真实发生）**：支书在 390 / 1024 / 1280 打开支书台，四枚分组胶囊只剩空白或一条分隔线；CSS 里 `.tab-group-label` 的声明**确实存在**，但 `@media (max-width:1280px)` 直接 `display:none`；亮色胶囊底色与页面底仅 **1.06:1**，高度 **18px**。
+- **AI 假设**：CSS 里写了规则＝「已恢复」；分组名是可裁剪的装饰，窄屏应让位给页签。
+- **人类意图**：「恢复」指用户在任何宽度都能**感知**到分组，而不是源码里存在一条声明；可见性必须在渲染后可测。
+- **泛化规则**：胶囊类判据必须同时含「断点集合 × 可见性 × 高度 ≥24px × 形状对比 ≥1.5:1」；窄屏只缩内边距 / 字号并让页签条横滑，不得用 `display:none` / `visibility:hidden` 隐藏。
+- **守卫**：`ui-control-system-guard::V2` ＋ `ui-contrast-guard::K3` ＋ `page-sweep`（390px `groupLabelsVisible` > 0）。
+- **对应规范编号**：SD-42
+- **边界**：组名仍是**非按钮**胶囊（SD-36）：可见性提高不等于可点击，不得进入 tab 序列或获得 hover；本条只管「看得见 / 量得到」，不管组名的控件语义。
+- **证据指针**：`docs/src/styles.css` 的 `.tab-group-label` 与 `@media (max-width:1280px)` 段；`server/test/ui-control-system-guard.test.mjs`（V2）；`server/test/ui-contrast-guard.test.mjs`（K3）；执行日志批次 512。
+
+## CASE-DESIGN-021 `btn-ghost` 写入口不可辨识
+
+- **编号**：CASE-DESIGN-021
+- **样本（真实发生）**：全仓 **79 处** `btn-ghost` 在当动作按钮用——今天页「写入活动 / 看日历 / 全部」、工作概况的筛选 chip 与「去待办」行、`list-row` 动作行等；无描边、无底色，`cursor:pointer` 是唯一线索；hover 与白卡色差仅 **1.06–1.11:1**。`btn-ghost` 此前已被判「无边框不可辨识」，但旧类名继续沿用。
+- **AI 假设**：沿用旧类名最省事；hover 有变化就算可点；`btn-ghost` 属于既有动作族，不必换档。
+- **人类意图**：控件与内容必须可区分——动作至少要有一种**静态**线索（描边 / 底色 / 下划线 / 箭头 / 可见 hover），不能靠光标形状。
+- **泛化规则**：按钮三档——动作按钮必有描边或底色；纯文字动作挂 `.btn-text`（静态下划线 ＋ 尾随箭头，箭头不得 `neutral-400`）；图标按钮视觉 32×32 ＋ 命中 ≥44×44。`btn-ghost` 只保留给**非动作行载体**（6 处白名单，逐条写明 hover 底或 3px 左条），新增即红。
+- **守卫**：`ui-control-system-guard::V4–V7` ＋ `frontend-foundations-guard::F8`。
+- **对应规范编号**：SD-43
+- **边界**：整行导航 / 行内定位载体可继续用 `btn-ghost`，但必须有可见 hover（底 / 边 / 左条，对白卡 ≥1.2:1）；白名单只许逐条收窄，不许当垃圾桶。
+- **证据指针**：`server/test/ui-control-system-guard.test.mjs`（V4 白名单 / V5 btn-text / V6 图标 / V7 hover 对比）；本批迁移 67 处、保留 6 处；执行日志批次 512。
+
+## CASE-DESIGN-022 表格末列吃掉余量
+
+- **编号**：CASE-DESIGN-022
+- **样本（真实发生）**：工作概况「工作分工」5 列表在 1440 下把余量全部给末列，按钮与「待处理」标签被甩到最右、与上方列头错位；全仓 `table-layout` 计数为 **0**；≤640 卡片化时动作列贴右缘。
+- **AI 假设**：表格只要把内容填进去就会自动排好；列宽交给浏览器按内容分配更「自适应」。
+- **人类意图**：表格要有**列宽模板**——同列在不同行必须对齐，末列内容贴列尾，而不是用余量把动作推到天边。
+- **泛化规则**：关键宽表 `table-layout: fixed` ＋ 显式列宽（工作分工 5 列 18% / 16% / 9% / 9% / 48%）；首列 `nowrap` 同时给 `max-width`；末列 `text-align:end` ＋ 16px 尾部内边距；≤640 卡片化动作列 `justify-content:flex-start`。
+- **守卫**：`ui-control-system-guard::V3`。
+- **对应规范编号**：SD-44
+- **边界**：只约束关键宽表（工作分工 / 负责人 / 在办 / 逾期 / 待处理）；两列窄表与只读键值表仍可用默认 `auto`，不强制 `colgroup`。
+- **证据指针**：`docs/src/styles.css` 的 `.wo-lines-table` / `.wo-col-*` / `[data-responsive="cards"]` 段；`docs/src/components/governance/work-overview.js` 的 `colgroup`；`server/test/ui-control-system-guard.test.mjs`（V3）；执行日志批次 512。
+
+## CASE-DESIGN-023 同一对象 4 种详情面 / 归档深链不校验
+
+- **编号**：CASE-DESIGN-023
+- **样本（真实发生）**：同一个活动可从 `activity.html`、支书活动管理同页 inspector、归档库弹窗、工作概况预览四处打开；归档库深链 `archive.html?tab=…&id=…` 不校验归档状态，未命中也不提示；跨支部对象 id 照常渲染详情；缺 id 时仍有 `activity.html?id=${id || ''}` 拼出的可点入口。专班有同样四处形态。
+- **AI 假设**：「能打开详情」就是入口正确；所有入口一步直达最好；归档只是列表过滤条件，不是对象状态。
+- **人类意图**：按**最小三成本**分流——入口已在对象所属工作台内 → 同页定位（保留筛选 / 列表上下文）；入口在工作台外 → 直达；无 id / 无权限 → 不可点。已归档对象可查但只读。
+- **泛化规则**：每个入口在单一矩阵里只声明 `direct | locate` 并写理由，未知入口 → `none`；缺 id / 跨支部普通角色 → `none`；已归档 / 专班终态 → `readOnly`；同一页只有一个完整详情落点（弹窗 / 预览保留并补「打开完整页」）；href 只经 `objectDetailHref`，裸 URL 生成点计数为 0。
+- **守卫**：`object-route-guard::R1–R8` ＋ `frontend-foundations-guard::F8`。
+- **对应规范编号**：SD-45
+- **边界**：`locate` 的同页面板是**操作面**（摘要 ＋ 就地动作），不是第二承载面；归档弹窗保留为预览，完整正文仍只在 `activity.html` / `taskforce.html`。
+- **证据指针**：`docs/src/core/domain/object-route.js`（`OBJECT_ROUTE_ENTRIES` / `resolveObjectRoute` / `canViewObjectDetail`）；`docs/src/entries/pages/activity-entry.js`（`readOnly` 写口门）；`server/test/object-route-guard.test.mjs`（R1–R8）；`.ctx/logs/2026-10-EXECUTION_LOG.md` 批次 512。
+
+## CASE-DESIGN-024 色彩被压成单一主题色相
+
+- **编号**：CASE-DESIGN-024
+- **样本（真实发生）**：全仓颜色引用抽样（中性 : 强调 : 状态 : 类别）≈ **4.9 : 2.4 : 0.8 : 1.0**；同屏只剩一个主题色相，中性占比 **54–76%**；状态与类别只出现在大面积渐变卡头与彩色按压里，徽章 / 圆点 / 左条等小面积功能位反而无色；暗色 `party-red` 与 `danger` 逐值相同。
+- **AI 假设**：统一成一个主题色＝一致；功能色是「装饰彩」，少用更稳；要解决单调就得重做主题色盘。
+- **人类意图**：不是否定现有主题色盘，而是让**功能色获得与主题色同等的规则层**——主题色只承担主行动 / 选中 / 链接 / 身份标签；状态 / 类别 / 身份只在小面积功能位出现，两层并列。
+- **泛化规则**：主题色层（7×2×9）值不改；功能色层 `--status-*` / `--color-category-*` / `--color-identity-*` 各有独立 token 与暗色值；两层不互相借用；功能色只在徽章 / 圆点 / 左条 / 图例 / 提示条；暗色类别红 / 金 ≠ danger / warning；身份色单一源；零消费者 token 删除。
+- **守卫**：`theme-palette-guard::T1/T2/T5/T8/T9` ＋ `link-color-guard::L3/L6–L8` ＋ `ui-contrast-guard`。
+- **对应规范编号**：SD-46
+- **边界**：党建红 `#CE1126` 与党徽金是**固定品牌层**，不随主题切换；类别色也不随主题切换。功能色恢复的是小面积语义位，不恢复渐变卡头与彩色按压。
+- **证据指针**：`DESIGN_SYSTEM.md §2.12` / `§2.13`（消费者清单与对比度实测）；`docs/src/styles.css` 的 `--status-*` / `--color-category-*` / `--color-identity-*` 段；`server/test/theme-palette-guard.test.mjs`（T8 / T9）；`server/test/link-color-guard.test.mjs`（L6–L8）；执行日志批次 512。

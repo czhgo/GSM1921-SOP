@@ -5,10 +5,11 @@
 // 动画：Lenis 平滑滚动 + CSS 滚动驱动（animation-timeline: view()）+ 原生 JS 驱动
 // 签名元素：收束致谢（三层小字）+ 探索区 SVG 关系网络 + 对话卡日出日落公转（文字正立）
 
-import { renderSidebar } from '../../components/shell/sidebar.js?v=20261025a';
-import { renderHeader } from '../../components/shell/header.js?v=20261025a';
-import { getBasePath } from '../../core/base/utils.js?v=20261025a';
-import { icon } from '../../core/base/icons.js?v=20261025a';
+import { renderSidebar } from '../../components/shell/sidebar.js?v=20261025b';
+import { renderHeader } from '../../components/shell/header.js?v=20261025b';
+import { getBasePath } from '../../core/base/utils.js?v=20261025b';
+import { icon } from '../../core/base/icons.js?v=20261025b';
+import { ROLE_COLORS } from '../../core/domain/constants.js?v=20261025b';
 
 // ── 公开访问：不检查登录 ──
 // 静态壳模式（2026-08-12）：about 为纯静态文档，不加载 auth/notice 数据链（约 50 模块），
@@ -67,10 +68,10 @@ const WORKFLOW_ROLES = {
   permission:{ name: '系统权限',     short: '系统权限',   color: '#64748B' },
   tasks:     { name: '登记任务',     short: '登记任务',   color: WF_EXEC_COLOR },
   outputs:   { name: '登记产出',     short: '登记产出',   color: '#2563EB' },
-  normal:    { name: '普通参与者',   short: '普通参与者', color: '#6B7280' }, // 灰·参与
-  orgComm:   { name: '组织委员',     short: '组织委员',   color: '#0EA5E9' }, // 天蓝·组织协调（DESIGN_SYSTEM §2.3.2）
-  discComm:  { name: '纪检委员',     short: '纪检委员',   color: '#C2410C' }, // 深橙·监督警示（DESIGN_SYSTEM §2.3.2）
-  propComm:  { name: '宣传委员',     short: '宣传委员',   color: '#2563EB' }, // 海蓝·宣传传播（DESIGN_SYSTEM §2.3.2）
+  normal:    { name: '普通参与者',   short: '普通参与者', color: ROLE_COLORS.participant.text }, // 灰·参与（身份色单一源）
+  orgComm:   { name: '组织委员',     short: '组织委员',   color: ROLE_COLORS['org-commissioner'].text }, // 天蓝·组织协调（DESIGN_SYSTEM §2.3.2）
+  discComm:  { name: '纪检委员',     short: '纪检委员',   color: ROLE_COLORS['disc-commissioner'].text }, // 深橙·监督警示（DESIGN_SYSTEM §2.3.2）
+  propComm:  { name: '宣传委员',     short: '宣传委员',   color: ROLE_COLORS['prop-commissioner'].text }, // 海蓝·宣传传播（DESIGN_SYSTEM §2.3.2）
   initiator: { name: '发起人',       short: '发起人',     color: '#B91C1C' }, // 党建红·发起
   committee: { name: '支委会',       short: '支委会',     color: '#B91C1C' }, // 党建红·制度、议程明确要求时作集体决策
   expanded:  { name: '支委扩大群',   short: '支委扩大群', color: '#B91C1C' }, // 党建红·活动报备（群内知悉，不另加审批门）

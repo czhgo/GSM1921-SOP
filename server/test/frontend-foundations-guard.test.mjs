@@ -16,8 +16,8 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { describeWriteError } from '../../docs/src/core/base/utils.js?v=20261025a';
-import { NUDGE_TEXTS } from '../../docs/src/components/ui/modal.js?v=20261025a';
+import { describeWriteError } from '../../docs/src/core/base/utils.js?v=20261025b';
+import { NUDGE_TEXTS } from '../../docs/src/components/ui/modal.js?v=20261025b';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(HERE, '..', '..');
@@ -201,6 +201,28 @@ test('F8 可点容器键盘可达：非原生容器必须 role=button + tabindex
   for (const [rel, re] of retired) {
     assert.doesNotMatch(read(rel), re, `${rel} 仍残留 div 伪开关（应改原生 button / summary）`);
   }
+
+  // ── 2026-10-26 Task 5：伪可点断言扩展到「行载体」 ─────────────────────────
+  // 规则：`data-interactive="true"` 即「整行可点」，元素必须是原生 <a>/<button>，
+  //       否则同标签必须有 role="button" + tabindex="0"，且消费方有 Enter/Space 处理。
+  //       （与 V4 的 btn-ghost 白名单配套：行载体保留 btn-ghost，但可点性必须可键盘回读。）
+  const LIST_ROW = read('docs/src/components/ui/list-row.js');
+  const interactiveTags = [...LIST_ROW.matchAll(/<([a-z][a-z0-9]*)\b([^>]*data-interactive="true"[^>]*)>/g)];
+  assert.ok(interactiveTags.length >= 4,
+    `list-row.js 只解析到 ${interactiveTags.length} 个 data-interactive 载体（下限 4）：伪可点断言扫描面被写坏`);
+  for (const [, tag, attrs] of interactiveTags) {
+    if (tag === 'a' || tag === 'button') continue;
+    assert.match(attrs, /role="button"/, `list-row.js 的 <${tag} data-interactive> 缺 role="button"`);
+    assert.match(attrs, /tabindex="0"/, `list-row.js 的 <${tag} data-interactive> 缺 tabindex="0"`);
+  }
+  // 主从行（div 承载整行选中）必须有键盘等价处理：Enter 与 Space 都要接受。
+  assert.match(read('docs/src/components/record/todo-list.js'),
+    /addEventListener\('keydown'[\s\S]{0,160}(e\.key !== 'Enter'[\s\S]{0,80}e\.key !== ' '|e\.key === 'Enter'[\s\S]{0,120}e\.key === ' ')/,
+    '主从行的 Enter/Space 键盘处理缺失（div 整行可点但键盘不可达）');
+  // 行载体的可见 hover 必须同时存在（不靠 cursor:pointer 假装可点）。
+  assert.match(read('docs/src/styles.css'),
+    /\.list-row\[data-interactive="true"\]:hover\s*\{[^}]*background-color:\s*var\(--surface-hover\)/,
+    '可点行缺可见 hover（底）');
 });
 
 // ════════════════════════════════════════════════════════════════

@@ -7,15 +7,15 @@
 //      已通过=可采纳；未达出席门槛/有反对=采纳禁用（去表决再议）。
 // 表决 UI 复用既有 agenda-votes 资产；本面板不重复实现投票。
 
-import { escHtml as esc, showToast, getBasePath, todayLocal } from '../../../core/base/utils.js?v=20261025a';
-import { WORK_MAP_MODULES, WORK_MAP_TIER_LABELS, canDisableModule } from '../../../core/domain/work-map.js?v=20261025a';
-import { BRANCH_COMMISSION_ROLES, ROLE_LABELS } from '../../../core/domain/constants.js?v=20261025a';
-import { PersonStore } from '../../../services/member/person.js?v=20261025a';
+import { escHtml as esc, showToast, getBasePath, todayLocal } from '../../../core/base/utils.js?v=20261025b';
+import { WORK_MAP_MODULES, WORK_MAP_TIER_LABELS, canDisableModule } from '../../../core/domain/work-map.js?v=20261025b';
+import { BRANCH_COMMISSION_ROLES, ROLE_LABELS } from '../../../core/domain/constants.js?v=20261025b';
+import { PersonStore } from '../../../services/member/person.js?v=20261025b';
 import {
   createWorkforceProposalActivity, listWorkforceProposals, adoptWorkforceProposal,
   getWorkforceVoteOutcome, ownerDisplay,
-} from '../../../services/branch/workforce.js?v=20261025a';
-import { getBranchWorkforce } from '../../../services/branch/branch.js?v=20261025a';
+} from '../../../services/branch/workforce.js?v=20261025b';
+import { getBranchWorkforce } from '../../../services/branch/branch.js?v=20261025b';
 
 const DRAFT_KEY = 'gsm1921-workforce-draft'; // 本机草稿（**仅本机·不上服务端**：未提交的拟定分工，属该设备上未完成的工作；白名单见 content/05_ai_coding/DATA_CONSISTENCY_CHECKLIST.md）
 
@@ -75,7 +75,7 @@ function _rowHtml(branchId, workforce, moduleId, ownerVal) {
     <div class="wf-row flex items-center gap-2">
       <select class="wf-module input-flat text-xs min-w-[200px]">${moduleOpts}</select>
       <select class="wf-owner input-flat text-xs min-w-[160px]"><option value="">新负责人…</option>${_ownerOptionsHtml()}</select>
-      <button type="button" class="btn-ghost wf-row-del px-2 py-1 text-xs" title="删除此行">删除</button>
+      <button type="button" class="btn-outline btn-sm wf-row-del" title="删除此行">删除</button>
     </div>`;
 }
 // ownerVal 回填：在 _fillRow 中以 JS 赋值（避免模板注入）
@@ -199,7 +199,7 @@ export async function mountWorkforcePanel(branchId, hostEl) {
         ${draft ? `<div class="flex items-center gap-2 text-xs text-gray-500 bg-white/70 rounded-lg px-2.5 py-1.5">
             <span>有草稿（${new Date(draft.updatedAt || Date.now()).toLocaleString('zh-CN', { hour12: false }).slice(0, 16)} 保存）：</span>
             <button type="button" id="wf-load-draft" class="btn-outline px-2 py-0.5">载入编辑</button>
-            <button type="button" id="wf-del-draft" class="btn-ghost px-2 py-0.5">删除草稿</button>
+            <button type="button" id="wf-del-draft" class="btn-outline btn-sm">删除草稿</button>
           </div>` : ''}
         <div id="wf-rows" class="flex flex-col gap-2">
           ${draftRows.length ? '' : '<div class="wf-empty-note text-xs text-gray-500">至少一行（模块 → 新负责人）</div>'}
@@ -215,7 +215,7 @@ export async function mountWorkforcePanel(branchId, hostEl) {
         </div>
         <div class="flex justify-end gap-2">
           <button type="button" id="wf-save-draft" class="btn-outline px-3 py-1.5 text-xs">存草稿</button>
-          <button type="button" id="wf-cancel" class="btn-ghost px-3 py-1.5 text-xs">收起</button>
+          <button type="button" id="wf-cancel" class="btn-outline btn-sm">收起</button>
           <button type="button" id="wf-submit" class="btn-danger-solid px-3 py-1.5 text-xs font-medium">直接发起支委会议题</button>
         </div>
       </div>`;

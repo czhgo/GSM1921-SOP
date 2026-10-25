@@ -40,7 +40,7 @@ test('H1 DESIGN_SYSTEM §4.24 帮助注释存在且口径齐备', () => {
   const src = readFileSync(DESIGN, 'utf8');
   const section = sliceBetween(src, '### 4.24 帮助注释', '## 五、交互反馈规范');
   assert.ok(section.length > 100, 'DESIGN_SYSTEM 缺 §4.24「帮助注释」或正文过短');
-  for (const key of ['.help-note__link', '.help-note', '一句正文 + 一个蓝链', 'help.html']) {
+  for (const key of ['.help-note__link', '.help-note', '一句正文 + 一个链接', 'help.html', '--color-link']) {
     assert.ok(section.includes(key), `§4.24 缺「${key}」`);
   }
   assert.ok(section.includes('反例'), '§4.24 缺反例（两种链接风格并存）');
@@ -57,18 +57,18 @@ test('H2 styles.css 定义 .help-note / .help-note__link', () => {
 
   const link = /\.help-note__link\s*\{([^}]*)\}/.exec(css)?.[1] || '';
   assert.ok(link, 'styles.css 缺 .help-note__link 规则');
-  assert.match(link, /color:\s*var\(--functional-info\)/, '.help-note__link 颜色应为 var(--functional-info)');
+  assert.match(link, /color:\s*var\(--color-link\)/, '.help-note__link 颜色应为全站唯一链接色 var(--color-link)');
   assert.match(link, /margin-left:\s*var\(--space-1\)/, '.help-note__link 左间距应为 var(--space-1)');
-  assert.match(link, /text-decoration:\s*none/, '.help-note__link 默认不应有下划线');
+  assert.match(link, /text-decoration:\s*underline/, '.help-note__link 必须有静态下划线（非颜色线索）');
   assert.match(css, /\.help-note__link:hover\s*\{[^}]*text-decoration:\s*underline/,
     '.help-note__link:hover 应有下划线');
 });
 
-test('H3 党小组 / 支委会页面必须用 .help-note__link 蓝链', () => {
+test('H3 党小组 / 支委会页面必须用 .help-note__link 链接', () => {
   for (const { label, file } of PAGES) {
     const src = readFileSync(file, 'utf8');
     assert.ok(src.includes('help-note'), `${label} 未使用 .help-note 统一帮助注释`);
-    assert.ok(src.includes('help-note__link'), `${label} 用了 .help-note 但缺 .help-note__link 蓝链`);
+    assert.ok(src.includes('help-note__link'), `${label} 用了 .help-note 但缺 .help-note__link 链接`);
     assert.ok(!/text-sky-600/.test(src), `${label} 仍有手写 text-sky-600 链，应收口到 .help-note__link`);
   }
 });

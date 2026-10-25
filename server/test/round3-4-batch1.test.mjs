@@ -45,10 +45,17 @@ test('R3-U03 页签模块加载/渲染失败落统一错误卡，可重试', () 
   assert.match(TAB_BAR, /这个页签暂时没加载出来/);
   assert.match(TAB_BAR, /data-ws-tab-error/);
   assert.match(TAB_BAR, /data-ws-tab-retry>重试<\/button>/);
-  assert.match(TAB_BAR, /function _renderTabError\(tab, ctx\)/, '错误卡应封装为统一渲染函数');
+  // 2026-10-25 Task 1.2（统一渲染生命周期）：错误卡函数不再接收过时刻的 ctx——
+  //   重试时由 `_resolveCtx()` 取最新 state，故签名收窄为 `(tab)`；判据仍是「统一错误卡函数」。
+  assert.match(TAB_BAR, /function _renderTabError\(tab\)/, '错误卡应封装为统一渲染函数');
   assert.match(TAB_BAR, /_renderInFlight\.delete\(tab\.id\)/, '重试前应清掉失败缓存');
-  assert.match(TAB_BAR, /_safeRender\(tab, ctx\)/, '重试应重新走 _safeRender');
-  assert.match(TAB_BAR, /p\.then\(\(\) => done\(true\), \(e\) => \{/, 'Promise reject 分支应进错误态');
+  // 同上：重试重新走 `_safeRender(tab)`（ctx 由渲染入口统一解析，避免重试沿用旧快照）。
+  assert.match(TAB_BAR, /_safeRender\(tab\);/, '重试应重新走 _safeRender');
+  // 同上：reject 分支改为 `Promise.resolve(rendered).then(ok, (e) => { … finish(false) })`
+  //   （去掉了私有 `done()` 包装，但「失败 → 错误卡」语义不变）。
+  assert.match(TAB_BAR, /Promise\.resolve\(rendered\)\.then\(\(\) => \{[\s\S]{0,900}?\}, \(e\) => \{/,
+    'Promise reject 分支应进错误态');
+  assert.match(TAB_BAR, /finish\(false\)/, 'reject / throw 分支应落到失败收尾');
 });
 
 test('R3-D05 激活页签滚入视口（尊重减少动效偏好）', () => {

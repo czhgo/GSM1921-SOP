@@ -1,10 +1,10 @@
 // role: [工程师]+[AI]
 // reactions.js — Issue 表态聚合组件
 
-import { IssueStore } from '../../services/governance/issues.js?v=20261025a';
-import { AuthStore } from '../../services/core/auth.js?v=20261025a';
-import { showToast } from '../../core/base/utils.js?v=20261025a';
-import { icon } from '../../core/base/icons.js?v=20261025a';
+import { IssueStore } from '../../services/governance/issues.js?v=20261025b';
+import { AuthStore } from '../../services/core/auth.js?v=20261025b';
+import { showToast } from '../../core/base/utils.js?v=20261025b';
+import { icon } from '../../core/base/icons.js?v=20261025b';
 
 // 固定语义色（不随主题）：赞同=成功 / 反对=危险 / 关注=信息 / 庆祝=提醒
 const REACTIONS = [
@@ -28,7 +28,7 @@ export function renderReactions(issue) {
         const list = issue.reactions?.[r.key] || [];
         const isActive = list.includes(currentUserId);
         return `
-          <button class="btn-ghost reaction-btn tint-pill px-2 py-0.5 rounded-full text-xs flex items-center gap-1"
+          <button class="btn-outline btn-sm reaction-btn tint-pill px-2 py-0.5 rounded-full text-xs flex items-center gap-1"
                   data-tone="${isActive ? r.tone : 'neutral'}"
                   data-issue-id="${issue.id}"
                   data-reaction="${r.key}"

@@ -25,13 +25,13 @@
 // 运行：node --test server/test/theme-palette-guard.test.mjs
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
-import { join, dirname } from 'node:path';
+import { readFileSync, readdirSync } from 'node:fs';
+import { join, dirname, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
   ACCENT_COLORS, ACCENT_PALETTE, ACCENT_KEY_ALIASES, normalizeAccentKey, getAccentColors,
-  accentButtonColors,
-} from '../../docs/src/core/domain/constants.js?v=20261025a';
+  accentButtonColors, ROLE_COLORS,
+} from '../../docs/src/core/domain/constants.js?v=20261025b';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(HERE, '..', '..');
@@ -272,7 +272,142 @@ test('T7 strongHover 非空转：7 主题 × 亮/暗都真实存在，且注入 
 });
 
 // ═════════════════════════════════════════════════════════════════════════════
-// G1–G5：原 `gold-accent-guard.test.mjs`（主题色实底 / 浅底 token 收口）逐条搬入
+// T8–T9：功能色层（2026-10-26 Task 4）
+//   T8 状态 / 类别 / 身份 token 齐备：--status-* 与别名；类别暗色 ≠ 状态暗色；
+//      --color-identity-* 逐值等于 ROLE_COLORS（text / textDark）；
+//      --color-link / --color-text-* / --color-border-* 语义别名存在。
+//   T9 僵尸 token 零消费者：12 个已删 token 在 docs/ 下不得再出现（注释也算）。
+// ═════════════════════════════════════════════════════════════════════════════
+
+/** 取 :root 内某变量值（先剥注释） */
+function rootVar(css, name) {
+  const clean = css.replace(/\/\*[\s\S]*?\*\//g, '');
+  const m = new RegExp(`${name}\\s*:\\s*([^;]+);`).exec(clean);
+  return m ? m[1].trim() : '';
+}
+
+/** 取 html.theme-dark 块文本（大括号配对） */
+function darkBlock(css) {
+  const src = css.replace(/\/\*[\s\S]*?\*\//g, '');
+  const i = src.indexOf('html.theme-dark {');
+  if (i < 0) return '';
+  const start = src.indexOf('{', i);
+  let depth = 0;
+  for (let p = start; p < src.length; p += 1) {
+    if (src[p] === '{') depth += 1;
+    else if (src[p] === '}') {
+      depth -= 1;
+      if (depth === 0) return src.slice(start + 1, p);
+    }
+  }
+  return '';
+}
+
+/** 递归收集 docs/src 下 .js */
+function walkJs(dir, out = []) {
+  for (const e of readdirSync(dir, { withFileTypes: true })) {
+    const p = join(dir, e.name);
+    if (e.isDirectory()) {
+      if (['vendor', 'fonts', 'images'].includes(e.name)) continue;
+      walkJs(p, out);
+      continue;
+    }
+    if (e.name.endsWith('.js')) out.push(p);
+  }
+  return out;
+}
+
+const IDENTITY_ROLES = Object.keys(ROLE_COLORS);
+
+test('T8 功能色层：状态 / 类别 / 身份 / 语义别名齐备且身份色与 ROLE_COLORS 同值', () => {
+  // ① 状态 4 色 + 短期别名（组件只读 --status-*）
+  for (const key of ['success', 'warning', 'error', 'info']) {
+    assert.match(rootVar(STYLES, `--status-${key}`), HEX_VALUE_RE, `styles.css 缺 --status-${key} 亮色值`);
+    assert.equal(rootVar(STYLES, `--functional-${key}`), `var(--status-${key})`,
+      `--functional-${key} 应仅为 --status-${key} 的兼容别名`);
+  }
+  const dark = darkBlock(STYLES);
+  assert.ok(dark, 'styles.css 缺少 html.theme-dark 块');
+  for (const key of ['success', 'warning', 'error', 'info']) {
+    assert.match(rootVar(dark, `--status-${key}`), HEX_VALUE_RE, `暗色段缺 --status-${key} 的暗色值`);
+  }
+
+  // ② 类别 3 色；暗色类别与状态色分开（不再逐值相同）
+  assert.match(rootVar(STYLES, '--color-category-three-meetings'), HEX_VALUE_RE, '缺类别红亮色 token');
+  assert.match(rootVar(STYLES, '--color-category-theme-day'), HEX_VALUE_RE, '缺主题党日金色 token');
+  assert.match(rootVar(STYLES, '--color-category-theme-day-dot'), HEX_VALUE_RE, '缺主题党日亮金点 token');
+  assert.match(rootVar(STYLES, '--color-category-other'), HEX_VALUE_RE, '缺类别中性 token');
+  const categoryRedDark = rootVar(STYLES, '--color-category-three-meetings-dark');
+  const categoryGoldDark = rootVar(STYLES, '--color-category-theme-day-dark');
+  const statusErrorDark = rootVar(dark, '--status-error');
+  const statusWarningDark = rootVar(dark, '--status-warning');
+  assert.match(categoryRedDark, HEX_VALUE_RE, '缺类别红暗色 token');
+  assert.match(categoryGoldDark, HEX_VALUE_RE, '缺主题党日金暗色 token');
+  assert.notEqual(categoryRedDark.toLowerCase(), statusErrorDark.toLowerCase(),
+    `暗色类别红 ${categoryRedDark} 不得等于 danger ${statusErrorDark}（类别不得借状态色）`);
+  assert.notEqual(categoryGoldDark.toLowerCase(), statusWarningDark.toLowerCase(),
+    `暗色主题党日金 ${categoryGoldDark} 不得等于 warning ${statusWarningDark}`);
+
+  // ③ 身份色逐值等于 ROLE_COLORS.text / textDark（单一源；CSS 只放同值 token）
+  assert.ok(IDENTITY_ROLES.length >= 10, `ROLE_COLORS 角色数过少（${IDENTITY_ROLES.length}）`);
+  for (const role of IDENTITY_ROLES) {
+    const expected = ROLE_COLORS[role].text;
+    const expectedDark = ROLE_COLORS[role].textDark;
+    assert.equal(rootVar(STYLES, `--color-identity-${role}`), expected,
+      `--color-identity-${role} 应等于 ROLE_COLORS['${role}'].text（${expected}）`);
+    assert.equal(rootVar(STYLES, `--color-identity-${role}-dark`), expectedDark,
+      `--color-identity-${role}-dark 应等于 ROLE_COLORS['${role}'].textDark（${expectedDark}）`);
+  }
+
+  // ④ 语义别名（组件只读这一层）
+  assert.equal(rootVar(STYLES, '--color-link'), 'var(--app-accent-soft-text)',
+    '--color-link 应指向主题 soft-text（全站唯一链接色）');
+  for (const [name, target] of [
+    ['--color-text-primary', 'var(--neutral-800)'],
+    ['--color-text-secondary', 'var(--neutral-600)'],
+    ['--color-text-tertiary', 'var(--neutral-500)'],
+    ['--color-border-subtle', 'var(--neutral-200)'],
+    ['--color-border-strong', 'var(--neutral-300)'],
+  ]) {
+    assert.equal(rootVar(STYLES, name), target, `${name} 应指向 ${target}`);
+  }
+});
+
+test('T9 僵尸 token 零消费者：12 个已删 token 在 docs 下不得再出现', () => {
+  const ZOMBIES = [
+    '--accent-sky', '--accent-indigo', '--accent-violet', '--accent-violet-light',
+    '--accent-blue', '--accent-emerald', '--accent-amber', '--status-live',
+    '--blue-hover', '--sky-hover', '--error-dark', '--brand-amber-dark',
+  ];
+  const files = [];
+  const walk = (dir) => {
+    for (const e of readdirSync(dir, { withFileTypes: true })) {
+      if (['vendor', 'fonts', 'images'].includes(e.name)) continue;
+      const p = join(dir, e.name);
+      if (e.isDirectory()) { walk(p); continue; }
+      if (/\.(js|mjs|css|html)$/.test(e.name)) files.push(p);
+    }
+  };
+  walk(join(ROOT, 'docs'));
+  assert.ok(files.length >= 100, `扫描面过小（${files.length} 个文件）`);
+  const hits = [];
+  for (const f of files) {
+    const src = readFileSync(f, 'utf8');
+    for (const token of ZOMBIES) {
+      if (src.includes(token)) hits.push(`${relative(ROOT, f)} → ${token}`);
+    }
+  }
+  assert.deepEqual(hits, [], `已删除的僵尸 token 仍有消费者 / 残留：\n  ${hits.join('\n  ')}`);
+
+  // 组件只写 --status-*：JS 源码不得再出现 --functional-*
+  const jsFiles = walkJs(join(ROOT, 'docs', 'src'));
+  const legacy = [];
+  for (const f of jsFiles) {
+    if (readFileSync(f, 'utf8').includes('--functional-')) legacy.push(relative(ROOT, f));
+  }
+  assert.deepEqual(legacy, [], `组件仍在使用 --functional-*（应改 --status-*）：\n  ${legacy.join('\n  ')}`);
+});
+
 // ═════════════════════════════════════════════════════════════════════════════
 //
 // 历史：该守卫原为「默认现代金 #F5C518 + 深色字」而设（2026-10-19）。

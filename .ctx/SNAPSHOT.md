@@ -2,7 +2,7 @@
 title: "系统快照"
 type: snapshot
 role: "[AI]"
-last_updated: "2026-10-25"
+last_updated: "2026-10-26"
 status: "ACTIVE"
 date: "2026-10-23"
 version: "v61"
@@ -219,3 +219,11 @@ GSM1921-SOP/
 - **未决**：① `T4-1` 有 3 处「封装 ＋ 手写」并存豁免待逐文件收口；② 技能更新未安装（git 克隆被网络拒绝）；③ daily 两红（`.ctx` 临时件、预算）已在收尾修复，最终 daily 1524 / 1524、全量三通道全绿。
 - **已迁 content 的条目**：`content/03_doc_system/TERMINOLOGY.md`（新，20 条）· `content/04_web_design/PRODUCT_IA.md`（新，45 行）· `DATA_MODEL §2.9/§2.19` · `DESIGN_SYSTEM` SD-37/38/39/40 · `design-system/CASES.md` CASE-DESIGN-017/018/019 ＋ `CASES_INDEX` · `MODULE_UI_DESIGN` / `ARCHITECTURE` / `sop/INDEX.md` 页签组名与术语指针 · `GUARD_INVENTORY` §八。
 - **下批入口**：① 对 `T4-1` 三处豁免逐文件择一原语；② 若要补 IA 技能的独立审查，先解决 git 克隆网络；③ 复核 copy-screen 的 M1/M2 基线（全局概况聚合页）是否可再降；④ 读本段 ＋ `.ctx/logs/2026-10-EXECUTION_LOG.md` 批次 511。
+
+## 批次 512 小结（2026-10-26）
+
+- **做了什么**：运行时统一 render 生命周期（renderCtx 函数化 / seq ＋ 去重 ＋ 清 marker ＋ await ＋ 错误卡 ＋ 8s 超时）与绑定幂等；视觉六项（容器语义 / 胶囊全宽可见 / 间距 8·16 / 竖条 8px / 只装饰用 neutral-400 / 表格定列宽）；色彩双层（主题色层 7×2×9 不改值 ＋ 功能色层独立 token）；按钮三档（btn-ghost 迁移 67 处、白名单 6 处）；详情路由 direct / locate / none（`object-route.js` ＋ 归档只读 ＋ 跨支部门）；新增 `runtime-tab-lifecycle-guard`（16）与 `object-route-guard`（8）。
+- **结论**：支书 7 条视觉 ＋ 2 条运行时反馈可归为六类结构病——「声明存在 ≠ 可感知」「旧类名沿用 ≠ 控件可辨」「填内容 ≠ 列宽模板」「单一主题色相 ≠ 有层级」「入口一刀切 ≠ 最小三成本」「首屏能渲染 ≠ 生命周期正确」；规范落 SD-41…SD-46，判例落 CASE-DESIGN-020…024 与 CASE-AI-006。
+- **未决**：① SD-41（容器语义）暂无独立判例，由 V1 机检承担；② `content/05_ai_coding/CASES.md` 在 `TIMESTAMPS` 无登记行（沿用「只登记不补行」），F2 仍按 frontmatter 核；③ PRODUCT_IA 路由矩阵为派生附录，`OBJECT_ROUTE_ENTRIES` 改动须同批改表；④ 收尾已完成：daily 1561、全量三通道全绿（node 1563 / e2e-A 57+1skip / e2e-B 179）、版本戳 20261025b。
+- **已迁 content 的条目**：`DESIGN_SYSTEM` SD-41…SD-46 ＋ §2.12 / §2.13 指针；`design-system/CASES.md` CASE-DESIGN-020…024；`CASES_INDEX` design 19→24、ai-coding 5→6；`PRODUCT_IA` 详情路由矩阵（11 入口）；`05_ai_coding/CASES.md` CASE-AI-006；`GUARD_INVENTORY` §九（70 件 / 462 条）。
+- **下批入口**：① 读本段 ＋ `.ctx/logs/2026-10-EXECUTION_LOG.md` 批次 512；② 若要给 SD-41 补判例，优先从「同名 class 兼作可点摘要与只读摘要」的真实样本取证；③ 真机复核胶囊在 390 的观感与 hover 浮窗 p95。

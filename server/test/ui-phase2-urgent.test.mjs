@@ -86,7 +86,9 @@ test('U7 活动风采卡可键盘触发', () => {
   // 2026-10-25 Task 3（组件契约）：整卡 div[role=button] 改为「H3 > 原生链接」——
   //   键盘可达性由 `<a>` 承担，不再需要 role="button" 与 keydown 补救。
   const gallery = read('docs/src/components/dashboard/gallery.js');
-  assert.match(gallery, /<h3 class="gallery-card__title"><a[^>]*data-gallery-activity-id=/, '活动风采卡标题应为原生链接（H3 > A）');
+  // Task 6（2026-10-26）口径更新：标题仍为 H3 > A，但 href 由 objectDetailHref 统一生成、
+  //   缺 id 时降级为纯文本（不再直写 `activity.html?id=`）。断言改为「标题内由 resolver 产出的原生链接」。
+  assert.match(gallery, /gallery-card__title">\$\{detailHref[\s\S]{0,240}<a[^>]*data-gallery-activity-id=/, '活动风采卡标题应为原生链接（H3 > A，href 经统一路由）');
   assert.doesNotMatch(gallery, /role="button"/, '活动风采卡不得再用 div[role=button]');
   assert.doesNotMatch(src, /data-gallery-activity-id\]\[role="button"\]/, '键盘补救脚本应已删除（链接自带键盘可达）');
 });
@@ -150,7 +152,11 @@ test('U9 零值口径：真实的 0 显示为 0；不得出现 0/0', () => {
   const src = read(OVERVIEW);
   assert.doesNotMatch(src, /row\.active \|\| '—'/, '在办 0 不得再用「—」代替');
   assert.match(src, /\$\{row\.active\}<\/td>/, '在办应直接输出数值（含 0）');
-  assert.match(src, /text-gray-400 tabular-nums">0</, '逾期 0 应显示弱化数字 0');
+  // 2026-10-26 Task 3.3：零值是数据，不是装饰 ⇒ 由 `.wo-zero`（neutral-600）承担弱化，
+  //   不再用 neutral-400（最浅中性色只留装饰）。判据从「字面 text-gray-400」改为「专用弱化类」。
+  assert.match(src, /class="wo-zero">0</, '逾期 0 应显示弱化数字 0（.wo-zero）');
+  assert.match(read('docs/src/styles.css'), /\.wo-zero\s*\{[^}]*color:\s*var\(--neutral-600\)/,
+    '零值弱化档应为 neutral-600（不得回到 neutral-400）');
   for (const file of FOUR_PAGES) {
     assert.doesNotMatch(read(file), /0\/0/, `${file} 不得出现 0/0`);
   }

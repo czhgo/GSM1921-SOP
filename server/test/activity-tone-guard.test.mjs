@@ -24,7 +24,7 @@ import { join, dirname, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
   activityTypeTone, activityTypeBadgeVariant, activityTypeClassification,
-} from '../../docs/src/core/domain/constants.js?v=20261025a';
+} from '../../docs/src/core/domain/constants.js?v=20261025b';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(HERE, '..', '..');
@@ -62,14 +62,7 @@ const CATEGORY_LITERAL_RE = /badgeHtml\(([^\n]*\btype\b[^\n]*),\s*['"](neutral|i
  * A2 例外白名单：存量直接写 neutral/info 的活动类别徽章。
  * ⚠ 只登记、不鼓励：新增任何一条都会让「命中集 ≠ 白名单」而红。
  */
-const CATEGORY_EXCEPTIONS = [
-  // 2026-10-25 IA 62→45：支书台「活动查询」结果行已删（查询并入日历工具栏）⇒ 该白名单条目僵尸化，按规则删除。
-  {
-    file: 'docs/src/entries/tabs/prop/kanban-tab.js',
-    snippet: "badgeHtml(item.type, 'info')",
-    reason: '宣传台看板把活动类别写成 info（类别借用状态色）；本批可改面仅 server/test，登记为待迁移项',
-  },
-];
+const CATEGORY_EXCEPTIONS = [];
 
 /** 找出活动类别徽章直接写 neutral/info 的站点 */
 function scanCategoryLiteralHits() {
@@ -141,13 +134,8 @@ const INFO_EXCEPTIONS = [
   { file: 'docs/src/components/record/todo-tab-shell.js', snippet: "in_progress: 'info',", reason: '待办进行中（非活动状态）' },
   { file: 'docs/src/entries/tabs/secretary/todo-tab.js', snippet: "in_progress: 'info',", reason: '待办进行中（非活动状态）' },
   { file: 'docs/src/entries/tabs/prop/archive-tab.js', snippet: 'data-tone="info"', reason: '归档材料文件图标标注（非活动类别 / 状态）' },
-  { file: 'docs/src/entries/tabs/prop/kanban-tab.js', snippet: 'data-tone="info">待启动', reason: '看板分组标题标注（非活动类别 / 状态）' },
-  { file: 'docs/src/entries/tabs/prop/kanban-tab.js', snippet: 'data-tone="info">进行中', reason: '看板分组标题标注（非活动类别 / 状态）' },
-  {
-    file: 'docs/src/entries/tabs/prop/kanban-tab.js',
-    snippet: "badgeHtml(item.type, 'info')",
-    reason: '活动类别误用 info 的已知例外（与 A2 同源，待迁移；本批不改 docs）',
-  },
+  // 2026-10-26 Task 4：宣传看板最后 3 处 info（类别徽章 + 两个分组标题）已迁移
+  //   （类别走 activityTypeBadgeVariant、标题改 neutral）⇒ 白名单条目按僵尸规则删除。
 ];
 
 /** 找出 A3 扫描面内所有语义 info 站点（排除注释与 showToast 过渡态） */
@@ -209,7 +197,9 @@ test('A1 非空转：activityTypeTone 是函数，8 个抽样类别返回预期 
 
 test('A2 单一源：活动类别徽章不得直接写 neutral/info，例外逐条登记', () => {
   const hits = scanCategoryLiteralHits();
-  assert.ok(hits.length > 0, 'A2 非空转失败：没有扫描到任何「类别 + 字面变体」写法（正则可能写坏）');
+  // 非空转改由合成样本承担（2026-10-26 Task 4：最后一处存量已迁移，实测命中集合法为空）
+  assert.equal(CATEGORY_LITERAL_RE.test("badgeHtml(item.type, 'info')"), true,
+    'A2 非空转失败：类别 + 字面变体正则写坏（合成样本未命中）');
 
   const unmatched = [];
   const used = new Map(CATEGORY_EXCEPTIONS.map((e) => [e, 0]));
@@ -299,7 +289,8 @@ test('A4 党建红：.badge--brand 与 [data-tone="party-red"] 用 #CE1126，不
   const brand = ruleBody(css, '.badge--brand');
   assert.ok(brand, 'styles.css 缺少 .badge--brand 规则');
   assert.match(brand, /var\(--party-red\)|#CE1126/i, '.badge--brand 必须使用党建红 #CE1126（或 --party-red）');
-  assert.doesNotMatch(brand, /#B91C1C|var\(--functional-error\)/i, '.badge--brand 不得用错误红 #B91C1C / --functional-error');
+  assert.doesNotMatch(brand, /#B91C1C|var\(--functional-error\)|var\(--status-error\)/i,
+    '.badge--brand 不得用错误红 #B91C1C / --functional-error / --status-error');
 
   const tone = ruleBody(css, '[data-tone="party-red"]');
   assert.ok(tone, 'styles.css 缺少 [data-tone="party-red"] 规则');
@@ -310,4 +301,32 @@ test('A4 党建红：.badge--brand 与 [data-tone="party-red"] 用 #CE1126，不
   const danger = ruleBody(css, '[data-tone="danger"]');
   assert.ok(danger, 'styles.css 缺少 [data-tone="danger"] 规则');
   assert.match(danger, /#B91C1C/i, 'danger 档应保留功能错误红 #B91C1C（与 party-red 分开）');
+});
+
+test('A5 暗色分离：类别红/金与 danger/warning 逐值不同，badge--brand 不借状态色', () => {
+  const css = read('docs/src/styles.css');
+
+  const darkPartyRed = ruleBody(css, 'html.theme-dark [data-tone="party-red"]');
+  const darkDanger = ruleBody(css, 'html.theme-dark [data-tone="danger"]');
+  assert.ok(darkPartyRed, 'styles.css 缺少暗色 [data-tone="party-red"] 规则');
+  assert.ok(darkDanger, 'styles.css 缺少暗色 [data-tone="danger"] 规则');
+  assert.notEqual(darkPartyRed.replace(/\s+/g, ' '), darkDanger.replace(/\s+/g, ' '),
+    '暗色类别红不得与 danger 逐值相同（类别不得借状态色）');
+  assert.match(darkPartyRed, /--color-category-three-meetings-dark|#FCA5A5/i,
+    '暗色类别红应读 --color-category-three-meetings-dark（#FCA5A5）');
+  assert.doesNotMatch(darkPartyRed, /#F87171/i, '暗色类别红不得用 danger 的 #F87171');
+
+  const darkGold = ruleBody(css, 'html.theme-dark [data-tone="gold"]');
+  const darkWarning = ruleBody(css, 'html.theme-dark [data-tone="warning"]');
+  assert.ok(darkGold && darkWarning, '缺少暗色 gold / warning 规则');
+  assert.match(darkGold, /--color-category-theme-day-dark|#FCD34D/i,
+    '暗色主题党日金应读 --color-category-theme-day-dark（#FCD34D）');
+  assert.doesNotMatch(darkGold, /#FBBF24/i, '暗色主题党日金不得用 warning 的 #FBBF24');
+
+  const darkBrand = ruleBody(css, 'html.theme-dark .badge--brand');
+  assert.ok(darkBrand, '缺少暗色 .badge--brand 规则');
+  assert.doesNotMatch(darkBrand, /--functional-error|--status-error|#F87171/i,
+    '暗色 .badge--brand 不得借状态错误色');
+  assert.match(darkBrand, /--color-category-three-meetings-dark/i,
+    '暗色 .badge--brand 应读类别红暗色 token');
 });

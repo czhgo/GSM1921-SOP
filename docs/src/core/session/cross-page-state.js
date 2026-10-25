@@ -13,7 +13,7 @@ const CPS_PREFIX = 'cps-';  // 单值参数前缀，与 SESSION_KEY 区隔
  * 每次更新 docs/src 下的 mock/服务代码时，将本常量 +1，所有页面首次打开会自动刷新一次加载新模块。
  * 自检逻辑见 bootstrapPage()。
  */
-const CODE_VERSION = 482; // 由 docs/scripts/bump-version.mjs 每次 bump 自增（勿手改；当前基线见 .ctx/SNAPSHOT.md）；旧 tab 持旧 ES 模块时据此自检并自动刷新一次
+const CODE_VERSION = 483; // 由 docs/scripts/bump-version.mjs 每次 bump 自增（勿手改；当前基线见 .ctx/SNAPSHOT.md）；旧 tab 持旧 ES 模块时据此自检并自动刷新一次
 
 export const CrossPageState = {
   save(session) {
@@ -47,13 +47,6 @@ export const CrossPageState = {
     window.location.href = page;
   },
 
-  bumpDataVersion() {
-    try {
-      const v = parseInt(localStorage.getItem(DATA_VERSION_KEY) || '0', 10) + 1;
-      localStorage.setItem(DATA_VERSION_KEY, String(v));
-    } catch (_) {}
-  },
-
   getDataVersion() {
     try {
       return parseInt(localStorage.getItem(DATA_VERSION_KEY) || '0', 10);
@@ -64,12 +57,24 @@ export const CrossPageState = {
   /**
    * 检测当前页面是否持有旧代码数据版本（需要自动刷新一次）
    * 防无限刷新：reload 后 sessionStorage 标记已处理，本会话内不再二次刷新
+   *
+   * 2026-10-26 Task 2.3：只在**确实需要**时 reload——
+   *   · 首次访问（本机从未记过版本）：只记下当前 CODE_VERSION 作为基线，**不 reload**
+   *     （原实现 `getDataVersion()=0 ≠ CODE_VERSION` ⇒ 每个新访客首访都白白 load 两遍）；
+   *   · 版本不一致：把基线**写成当前 CODE_VERSION** 再 reload，reload 后即相等，
+   *     不再出现「每次新开会话都再刷一次」（原实现是 +1，永远差一版）。
    * @returns {boolean}
    */
   isStaleCodeVersion() {
     try {
       if (sessionStorage.getItem(CPS_PREFIX + 'reloaded')) return false;
-      if (this.getDataVersion() === CODE_VERSION) return false;
+      const raw = localStorage.getItem(DATA_VERSION_KEY);
+      if (raw === null || raw === '') {
+        localStorage.setItem(DATA_VERSION_KEY, String(CODE_VERSION));
+        return false;
+      }
+      if (parseInt(raw, 10) === CODE_VERSION) return false;
+      localStorage.setItem(DATA_VERSION_KEY, String(CODE_VERSION));
       sessionStorage.setItem(CPS_PREFIX + 'reloaded', '1');
       return true;
     } catch (_) {

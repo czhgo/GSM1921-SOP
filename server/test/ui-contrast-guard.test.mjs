@@ -71,19 +71,29 @@ test('K2 选中页签文字走主题 softText（不再 color-mix 派生）且 �
   assert.ok(ratio >= 4.5, `金色选中页签对比度 ${ratio.toFixed(2)}:1 低于 4.5`);
 });
 
-test('K3 分组名是可见组名（12px / neutral-500），组间 1px 分隔线，≤1280 只隐藏组名', () => {
+test('K3 分组名全宽可见（12px / neutral-500 / ≥24px / 描边），≤1280 只缩不隐藏', () => {
   // 组名必须是可见文本，不是空 span（R5-C01 曾把组名整段移成 1px 竖线）。
   const nameLine = TAB_BAR.split('\n').find((l) => /tab-group-label/.test(l) && /\$\{groupName\}/.test(l)) || '';
   assert.ok(nameLine, 'tab-bar 未把 groupLabel 渲染为可见文本（.tab-group-label 内应为 ${groupName}）');
   assert.match(CSS, /\.tab-group-label\s*\{[^}]*font-size:\s*12px/, '组名应为 12px');
   assert.match(CSS, /\.tab-group-label\s*\{[^}]*color:\s*var\(--neutral-500\)/, '组名应为 neutral-500');
   assert.doesNotMatch(CSS, /\.tab-group-label\s*\{[^}]*width:\s*1px/, '组名不得再退化为 1px 竖线');
+  // 2026-10-26 Task 3.5：形状与页面底对比 ≥1.5:1（描边）＋ 高度 ≥24px；所有宽度可见。
+  assert.match(CSS, /\.tab-group-label\s*\{[^}]*min-height:\s*24px/, '组名胶囊高度须 ≥24px');
+  assert.match(CSS, /\.tab-group-label\s*\{[^}]*border:\s*1px solid var\(--neutral-400\)/,
+    '组名胶囊须有深一档描边（neutral-400 → 与白底约 2.5:1，形状可辨）');
+  assert.match(CSS, /\.tab-group-label\s*\{[^}]*flex-shrink:\s*0/, '组名不得被压缩（flex-shrink: 0）');
+  assert.doesNotMatch(CSS, /\.tab-group-label[^{}]*\{[^}]*display:\s*none/,
+    '分组胶囊不得用 display:none 隐藏（≤1280/≤1024 也不得隐藏）');
   // 组间分隔线单独成类。
   assert.ok(TAB_BAR.includes('tab-group-sep'), 'tab-bar 未渲染组间分隔线 .tab-group-sep');
   assert.match(CSS, /\.tab-group-sep\s*\{[^}]*width:\s*1px/, '.tab-group-sep 应为 1px 线');
-  // ≤1280px 只隐藏组名；分隔线保留（≤1024 仅缩外边距）。
-  assert.match(CSS, /@media \(max-width: 1280px\) \{[\s\S]*?\.tab-group-label \{ display: none; \}/,
-    '≤1280px 应只隐藏组名');
+  // ≤1280px 只缩小内边距 / 字号（不隐藏）；分隔线保留（≤1024 仅缩外边距）。
+  const narrow = /@media \(max-width: 1280px\) \{[\s\S]*?\.tab-group-label \{([\s\S]*?)\}[\s\S]*?\n\}/.exec(CSS);
+  assert.ok(narrow, '缺少 ≤1280px 的分组名规则');
+  assert.match(narrow[1], /padding:\s*1px 5px/, '≤1280px 组名应缩小内边距（1px 5px）');
+  assert.match(narrow[1], /font-size:\s*11px/, '≤1280px 组名应缩小字号（11px）');
+  assert.doesNotMatch(narrow[1], /display:\s*none/, '≤1280px 不得隐藏组名');
   assert.doesNotMatch(CSS, /@media \(max-width: 1280px\) \{[\s\S]*?\.tab-group-sep \{[^}]*display:\s*none/,
     '≤1280px 不得隐藏分隔线');
 });
@@ -94,10 +104,10 @@ test('K4 今天页「逾期」使用 warning，不再用 error', () => {
   let hasWarning = false;
   for (const idx of hits) {
     const nearby = TODAY.slice(Math.max(0, idx - 400), idx + 400);
-    assert.doesNotMatch(nearby, /--functional-error/, '逾期附近不得再使用 --functional-error');
-    if (nearby.includes('--functional-warning')) hasWarning = true;
+    assert.doesNotMatch(nearby, /--functional-error|--status-error/, '逾期附近不得再使用 error 状态色');
+    if (/--functional-warning|--status-warning/.test(nearby)) hasWarning = true;
   }
-  assert.ok(hasWarning, '逾期行应使用 --functional-warning');
+  assert.ok(hasWarning, '逾期行应使用 --status-warning');
 });
 
 test('K5 .btn-tab.active 跟随主题色（soft 三件套，不再固定党建红）', () => {

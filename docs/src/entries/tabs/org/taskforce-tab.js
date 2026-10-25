@@ -4,43 +4,45 @@
 // 私有状态（PersonPicker 实例）随模块自持；共享数据（taskforce 分类）经 ctx 传入。
 // 2026-10-20 第三轮 IA 判例④：活动视图已迁至「活动日历」页，本页不再消费 ctx.activities。
 
-import { setState } from '../../../core/base/state.js?v=20261025a';
-import { TaskForceRecordStore, isTaskforceOrganizer } from '../../../services/activity/taskforce.js?v=20261025a';
-import { legacyParticipantAssignmentRows, workgroupMembers } from '../../../services/activity/workgroup-members.js?v=20261025a';
-import { SignupStore, resolveSignupReviewer, SignupStatus, SIGNUP_ROLE_LABELS, SIGNUP_STATUS_LABELS } from '../../../services/activity/signup.js?v=20261025a';
-import { AuthStore } from '../../../services/core/auth.js?v=20261025a';
-import { loadTaskforceReviews, addTaskforceReview } from '../../../services/governance/review.js?v=20261025a';
-import { TodoStore, TodoSourceType, TodoCategory, TodoActionType } from '../../../services/governance/todo.js?v=20261025a';
-import { NoticeStore } from '../../../services/governance/notice.js?v=20261025a';
-import { mockDB, ReviewStatus, isTaskforceTerminalStatus, isTaskforceActiveStatus, TASKFORCE_TERMINAL_STATUSES, TASK_TERMINAL_STATUSES, OUTPUT_TERMINAL_STATUSES } from '../../../core/domain/domain.js?v=20261025a'; // IA-C3 收敛单写入口 2026-09-06：ParticipationLevel 随考察写入口移除
-import { persist } from '../../../data/data-adapter.js?v=20261025a';
-import { settleWrites } from '../../../core/session/pending-writes.js?v=20261025a';
-import { showToast, escHtml as esc, getBasePath, todayLocal, flashHighlight } from '../../../core/base/utils.js?v=20261025a';
-import { generateId } from '../../../core/base/id.js?v=20261025a';
-import { solidAccentStyle } from '../../../core/domain/constants.js?v=20261025a';
-import { PersonPicker } from '../../../components/governance/pickers.js?v=20261025a';
-import { renderWorkgroupPermissionEditor, readWorkgroupPermissionEditor } from '../../../components/governance/workgroup-permissions.js?v=20261025a';
-import { renderWorkgroupMemberEditor, bindWorkgroupMemberEditor } from '../../../components/governance/workgroup-member-editor.js?v=20261025a';
-import { getAdapter } from '../../../data/data-adapter.js?v=20261025a';
-import { recordFormShell } from '../../../components/ui/forms.js?v=20261025a';
+import { setState } from '../../../core/base/state.js?v=20261025b';
+import { TaskForceRecordStore, isTaskforceOrganizer } from '../../../services/activity/taskforce.js?v=20261025b';
+import { legacyParticipantAssignmentRows, workgroupMembers } from '../../../services/activity/workgroup-members.js?v=20261025b';
+import { SignupStore, resolveSignupReviewer, SignupStatus, SIGNUP_ROLE_LABELS, SIGNUP_STATUS_LABELS } from '../../../services/activity/signup.js?v=20261025b';
+import { AuthStore } from '../../../services/core/auth.js?v=20261025b';
+import { loadTaskforceReviews, addTaskforceReview } from '../../../services/governance/review.js?v=20261025b';
+import { TodoStore, TodoSourceType, TodoCategory, TodoActionType } from '../../../services/governance/todo.js?v=20261025b';
+import { NoticeStore } from '../../../services/governance/notice.js?v=20261025b';
+import { mockDB, ReviewStatus, isTaskforceTerminalStatus, isTaskforceActiveStatus, TASKFORCE_TERMINAL_STATUSES, TASK_TERMINAL_STATUSES, OUTPUT_TERMINAL_STATUSES } from '../../../core/domain/domain.js?v=20261025b'; // IA-C3 收敛单写入口 2026-09-06：ParticipationLevel 随考察写入口移除
+import { persist } from '../../../data/data-adapter.js?v=20261025b';
+import { settleWrites } from '../../../core/session/pending-writes.js?v=20261025b';
+import { showToast, escHtml as esc, getBasePath, todayLocal, flashHighlight } from '../../../core/base/utils.js?v=20261025b';
+import { generateId } from '../../../core/base/id.js?v=20261025b';
+import { solidAccentStyle } from '../../../core/domain/constants.js?v=20261025b';
+import { PersonPicker } from '../../../components/governance/pickers.js?v=20261025b';
+import { renderWorkgroupPermissionEditor, readWorkgroupPermissionEditor } from '../../../components/governance/workgroup-permissions.js?v=20261025b';
+import { renderWorkgroupMemberEditor, bindWorkgroupMemberEditor } from '../../../components/governance/workgroup-member-editor.js?v=20261025b';
+import { getAdapter } from '../../../data/data-adapter.js?v=20261025b';
+import { recordFormShell } from '../../../components/ui/forms.js?v=20261025b';
 // 「本位」nudge 确认弹窗（2026-09-23 支书裁定 · 单一源 = components/ui/modal.js::confirmNudge）
 // U-05：招募浮窗原为手写 overlay/panel（无 dialog 语义 / 无焦点接管）→ 改走同一组件的 openModal。
-import { confirmNudge, confirmWriteWithoutGrant, openModal, closeModal, setModalBusy } from '../../../components/ui/modal.js?v=20261025a';
+import { confirmNudge, confirmWriteWithoutGrant, openModal, closeModal, setModalBusy } from '../../../components/ui/modal.js?v=20261025b';
 // 转交组织者（SOP-G-2-② · 2026-10-01 批次 327 · 支书裁「乙：直接转交 ＋ 留痕」）：判据 / 写口 /
 //   弹窗单一源＝`components/governance/organizer-transfer.js`（本台只挂入口，不复制一份实现）。
-import { canTransferOrganizer, openOrganizerTransfer, organizerOf } from '../../../components/governance/organizer-transfer.js?v=20261025a';
-import { badgeHtml } from '../../../components/ui/badges.js?v=20261025a';
+import { canTransferOrganizer, openOrganizerTransfer, organizerOf } from '../../../components/governance/organizer-transfer.js?v=20261025b';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20261025b';
 // 人×项目矩阵单一源（支书 2026-09-14 裁定：把宽表推广到其它二元关系域 → 本批「专班报名」域）
-import { renderRelationMatrix } from '../../../components/ui/relation-matrix.js?v=20261025a';
-import { getPersonName, PersonStore } from '../../../services/member/person.js?v=20261025a';
+import { renderRelationMatrix } from '../../../components/ui/relation-matrix.js?v=20261025b';
+import { getPersonName, PersonStore } from '../../../services/member/person.js?v=20261025b';
 // 统一检索引擎（2026-09-13 表格统一化批次 A）：报名名单等按人段落接入关键词 + 分面
-import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261025a';
-import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261025a';
+import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261025b';
+import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261025b';
 // 详情锚定单一源（2026-10-18 繁专项 Task 14）：与 taskforce-view.js 同款「触点即落点」
-import { anchorDetailToTrigger, scrollDetailIntoView } from '../../../components/ui/detail-anchor.js?v=20261025a';
+import { anchorDetailToTrigger, scrollDetailIntoView } from '../../../components/ui/detail-anchor.js?v=20261025b';
 // 专班赋权（2026-10-25 IA 62→45）：自支书台「活动管理」整卡迁回本位——实现单一源仍是
 //   `secretary/assign-tab.js::mountTaskforceProjectAuth`（本页只给落点宿主，不复制表单）。
-import { mountTaskforceProjectAuth } from '../secretary/assign-tab.js?v=20261025a';
+import { mountTaskforceProjectAuth } from '../secretary/assign-tab.js?v=20261025b';
+// Task 6：本台「专班管理」是对象所属工作台 ⇒ locate（同页面板 + 「打开完整页」）。
+import { objectDetailHref } from '../../../core/domain/object-route.js?v=20261025b';
 // 私有状态（随模块自持，不污染入口）
 let _recruitOrganizerPicker = null;
 let _recruitDeepPicker = null;
@@ -186,7 +188,7 @@ export function renderContent(ctx) {
       </div>` : ''}
       ${fc.length > 0 ? `
       <details class="card rounded-xl p-0 overflow-hidden">
-        <summary class="px-4 py-3 font-title-cn text-sm font-bold cursor-pointer select-none tint-section tint-section--head" data-tone="info">已完结 (${fc.length})</summary>
+        <summary class="px-4 py-3 font-title-cn text-sm font-bold cursor-pointer select-none tint-section tint-section--head" data-tone="neutral">已完结 (${fc.length})</summary>
         <div class="p-3" id="tf-bucket-completed"></div>
       </details>` : ''}
       ${emptyAll ? (onlyMine
@@ -410,7 +412,9 @@ function _focusTaskforce(tfId, ctx) {
   const locate = () => {
     const card = document.querySelector(`.tf-store-card[data-tf-id="${tfId}"]`);
     if (!card) {
-      if (attempts++ < 20) setTimeout(locate, 200);
+      if (attempts++ < 20) { setTimeout(locate, 200); return; }
+      // Task 6：约 4 秒（20 × 200ms）仍定位不到 → 可见提示，不再静默（深链可能指向已删除/他支部专班）。
+      showToast('info', '未找到该专班（可能已删除、已解散或不在本支部）；请刷新列表后重试');
       return;
     }
     const details = card.closest('details');
@@ -491,6 +495,7 @@ function _openTfDetail(tfId, ctx, triggerEl = null) {
 
   const filled = _tfAssignsOf(tf).length;
   const legacyRows = _tfLegacyRowsOf(tf);
+  const fullHref = objectDetailHref('taskforce', tf.id, { entry: 'owner-workspace' });
   const sectionHead = (id, label) => `<h3 id="${id}" class="font-title-cn text-base font-semibold text-gray-800 mb-2">${label}</h3>`;
   panel.innerHTML = `
     <div class="flex items-start justify-between gap-3 mb-2">
@@ -502,6 +507,7 @@ function _openTfDetail(tfId, ctx, triggerEl = null) {
         <span>${filled}/${tf.capacity}</span>
         ${tf.deadline ? `<span>${tf.deadline}</span>` : ''}
         <span>发起: ${getPersonName(tf.initiator)}</span>
+        ${fullHref ? `<a href="./${fullHref}" class="link text-xs" title="打开专班完整详情页">打开完整页 →</a>` : ''}
       </div>
     </div>
     <div class="text-[13px] leading-5 text-gray-500">工作组成员：${_tfAssignsOf(tf).map(m => getPersonName(m.personId)).join('、') || '暂无'}</div>
@@ -1004,7 +1010,7 @@ function _tfRenderSignupBlock(panel, tf, ctx) {
         ${s.note ? `<span class="text-[11px] text-gray-500 truncate max-w-[120px]">${esc(s.note)}</span>` : ''}
         ${s._pendingRow
           ? `<span class="ml-auto flex items-center gap-1.5">
-              ${s.role === 'participant' ? '<span class="text-[11px] text-amber-700">历史身份待核，不得转为成员</span>' : '<button class="btn-tab tf-signup-review-btn px-2.5 py-1" data-signup-id="' + esc(s.id) + '" data-approve="1" style="background:var(--functional-success);">通过</button>'}
+              ${s.role === 'participant' ? '<span class="text-[11px] text-amber-700">历史身份待核，不得转为成员</span>' : '<button class="btn-tab tf-signup-review-btn px-2.5 py-1" data-signup-id="' + esc(s.id) + '" data-approve="1" style="background:var(--status-success);">通过</button>'}
               <button class="btn-tab tf-signup-review-btn px-2.5 py-1" data-signup-id="${esc(s.id)}" data-approve="0">拒绝</button>
             </span>`
           : badgeHtml('已通过', 'success')}
@@ -1067,7 +1073,7 @@ function _tfSubTableHtml(type, items, readOnly) {
     rowHtml: (item) => `
     <tr>
       ${fields.map(f => `<td data-label="${f.label}" class="text-gray-700">${cellOf(item, f.key)}</td>`).join('')}
-      ${readOnly ? '' : `<td data-label="操作" class="text-center"><button class="btn-ghost sub-del-btn text-xs" data-type="${type}" data-idx="${items.indexOf(item)}">删除</button></td>`}
+      ${readOnly ? '' : `<td data-label="操作" class="text-center"><button class="btn-outline btn-sm sub-del-btn" data-type="${type}" data-idx="${items.indexOf(item)}">删除</button></td>`}
     </tr>`,
   };
 }
@@ -1194,11 +1200,11 @@ function _tfRenderProgressBlock(panel, tf, ctx) {
     // 本人可删：仅填报人本人可见删除入口（旧数据无 by 时给组织委员兜底可删）
     const canDel = currentUserId && (!p.by || p.by === currentUserId);
     const delBtn = canDel
-      ? `<button class="btn-ghost tf-progress-del-btn" data-progress-id="${p.id}">删除</button>`
+      ? `<button class="btn-outline btn-sm tf-progress-del-btn" data-progress-id="${p.id}">删除</button>`
       : '';
     return `
       <div class="py-2 border-b border-gray-50 last:border-b-0 flex items-start gap-2">
-        <span class="mt-1.5 w-1.5 h-1.5 rounded-full flex-shrink-0" style="background:var(--functional-success);"></span>
+        <span class="mt-1.5 w-1.5 h-1.5 rounded-full flex-shrink-0" style="background:var(--status-success);"></span>
         <div class="flex-1 min-w-0">
           <div class="flex items-center gap-2 flex-wrap">
             ${stageTag}

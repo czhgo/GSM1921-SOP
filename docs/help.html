@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
   
-<script src="./src/theme-init.js?v=20261025a"></script>
+<script src="./src/theme-init.js?v=20261025b"></script>
 <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>帮助 — GSM1921-SOP</title>
@@ -13,8 +13,8 @@
   <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;800&family=Noto+Serif+SC:wght@400;500;600;700;800&display=swap" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;800&family=Noto+Serif+SC:wght@400;500;600;700;800&display=swap" rel="stylesheet"></noscript>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="./src/tailwind-config.js?v=20261025a"></script>
-  <link rel="stylesheet" href="./src/styles.css?v=20261025a">
+  <script src="./src/tailwind-config.js?v=20261025b"></script>
+  <link rel="stylesheet" href="./src/styles.css?v=20261025b">
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
@@ -67,17 +67,19 @@
     .qn-role { display:flex; align-items:center; gap:5px; }
     .qn-role-dot { width:7px; height:7px; border-radius:50%; flex-shrink:0; }
     .qn-cell { display:flex; flex-direction:column; gap:4px; }
-    a.qn-fn { font-size:0.7rem; color:#374151; background:#fff; border:1px solid; border-radius:999px; padding:1px 8px; line-height:1.6; text-decoration:none; width:fit-content; transition:background-color 0.2s, border-color 0.2s; }
+    a.qn-fn { font-size:0.7rem; color:var(--color-link); background:#fff; border:1px solid; border-radius:999px; padding:1px 8px; line-height:1.6; text-decoration:underline; text-underline-offset:2px; width:fit-content; transition:background-color 0.2s, border-color 0.2s; }
+    a.qn-fn::after { content:'›'; margin-left:4px; opacity:.7; }
     @media (hover: hover) {
       a.qn-fn:hover { background:var(--surface-hover); }
     }
     a.qn-fn:focus-visible { outline:2px solid var(--party-gold); outline-offset:2px; box-shadow:0 0 0 6px rgba(0,0,0,0.55); }
-    a.qn-fn-leader { border-color:#86EFAC; color:#15803D; }
-    a.qn-fn-org    { border-color:#BAE6FD; color:#0369A1; }
-    a.qn-fn-prop   { border-color:#93C5FD; color:#1D4ED8; }
-    a.qn-fn-disc   { border-color:#FDBA74; color:#9A3412; }
-    a.qn-fn-member { border-color:#E5E7EB; color:#4B5563; }
-    a.qn-fn-sec    { border-color:#FCA5A5; color:#991B1B; }
+    /* 速查链接：颜色一律 --color-link（全站单色）；角色色只保留在边框，不再当链接色。 */
+    a.qn-fn-leader { border-color:#86EFAC; }
+    a.qn-fn-org    { border-color:#BAE6FD; }
+    a.qn-fn-prop   { border-color:#93C5FD; }
+    a.qn-fn-disc   { border-color:#FDBA74; }
+    a.qn-fn-member { border-color:#E5E7EB; }
+    a.qn-fn-sec    { border-color:#FCA5A5; }
 
     /* ── 表格（权限 / 技术架构） ── */
     .doc-table { width:100%; border-collapse:collapse; font-size:0.9rem; margin:10px 0 6px; }
@@ -218,33 +220,19 @@
     @media (hover: hover) {
       .rh-card:hover { border-color:#D1D5DB; }
     }
-    .rh-name { font-family:'Noto Sans SC',sans-serif; font-size:0.85rem; font-weight:700; margin-bottom:4px; }
-    .rh-tag { font-size:0.7rem; opacity:0.8; }
+    .rh-name { font-family:'Noto Sans SC',sans-serif; font-size:0.85rem; font-weight:700; margin-bottom:4px; color:var(--color-text-primary); }
+    .rh-tag { font-size:0.7rem; opacity:0.8; color:var(--color-text-secondary); }
     .rh-desc { font-size:0.7rem; opacity:0.65; margin-top:4px; }
-    .rh-card.role-secretary { background:rgba(185,28,28,0.06); border-color:rgba(185,28,28,0.15); }
-    .rh-card.role-secretary .rh-name { color:#B91C1C; }
-    .rh-card.role-secretary .rh-tag { color:#991B1B; }
-    .rh-card.role-org { background:rgba(139,92,246,0.05); border-color:rgba(139,92,246,0.12); }
-    .rh-card.role-org .rh-name { color:#8B5CF6; }
-    .rh-card.role-org .rh-tag { color:#7C3AED; }
-    .rh-card.role-prop { background:rgba(59,130,246,0.05); border-color:rgba(59,130,246,0.12); }
-    .rh-card.role-prop .rh-name { color:#3B82F6; }
-    .rh-card.role-prop .rh-tag { color:#2563EB; }
-    .rh-card.role-disc { background:rgba(217,119,6,0.05); border-color:rgba(217,119,6,0.12); }
-    .rh-card.role-disc .rh-name { color:#D97706; }
-    .rh-card.role-disc .rh-tag { color:#B45309; }
-    .rh-card.role-leader { background:rgba(101,163,13,0.05); border-color:rgba(101,163,13,0.12); }
-    .rh-card.role-leader .rh-name { color:#65A30D; }
-    .rh-card.role-leader .rh-tag { color:#4D7C0F; }
-    .rh-card.role-member { background:rgba(107,114,128,0.05); border-color:rgba(107,114,128,0.12); }
-    .rh-card.role-member .rh-name { color:#4B5563; }
-    .rh-card.role-member .rh-tag { color:#6B7280; }
-    .rh-card.role-organizer { background:rgba(6,182,212,0.05); border-color:rgba(6,182,212,0.12); }
-    .rh-card.role-organizer .rh-name { color:#06B6D4; }
-    .rh-card.role-organizer .rh-tag { color:#0891B2; }
-    .rh-card.role-deep { background:rgba(16,185,129,0.05); border-color:rgba(16,185,129,0.12); }
-    .rh-card.role-deep .rh-name { color:#10B981; }
-    .rh-card.role-deep .rh-tag { color:#059669; }
+    /* 角色卡身份色（2026-10-26 Task 4）：一律读 --color-identity-*（单一源＝constants.js ROLE_COLORS），
+       角色色只作小面积卡片底 / 边框（名称与说明保持中性，守正文对比度），不另写第二套色值。 */
+    .rh-card.role-secretary { background:color-mix(in srgb, var(--color-identity-secretary) 6%, transparent); border-color:color-mix(in srgb, var(--color-identity-secretary) 15%, transparent); }
+    .rh-card.role-org { background:color-mix(in srgb, var(--color-identity-org-commissioner) 5%, transparent); border-color:color-mix(in srgb, var(--color-identity-org-commissioner) 12%, transparent); }
+    .rh-card.role-prop { background:color-mix(in srgb, var(--color-identity-prop-commissioner) 5%, transparent); border-color:color-mix(in srgb, var(--color-identity-prop-commissioner) 12%, transparent); }
+    .rh-card.role-disc { background:color-mix(in srgb, var(--color-identity-disc-commissioner) 5%, transparent); border-color:color-mix(in srgb, var(--color-identity-disc-commissioner) 12%, transparent); }
+    .rh-card.role-leader { background:color-mix(in srgb, var(--color-identity-leader) 5%, transparent); border-color:color-mix(in srgb, var(--color-identity-leader) 12%, transparent); }
+    .rh-card.role-member { background:color-mix(in srgb, var(--color-identity-participant) 5%, transparent); border-color:color-mix(in srgb, var(--color-identity-participant) 12%, transparent); }
+    .rh-card.role-organizer { background:color-mix(in srgb, var(--color-identity-organizer) 5%, transparent); border-color:color-mix(in srgb, var(--color-identity-organizer) 12%, transparent); }
+    .rh-card.role-deep { background:color-mix(in srgb, var(--color-identity-deep) 5%, transparent); border-color:color-mix(in srgb, var(--color-identity-deep) 12%, transparent); }
     .rh-bottom { display:flex; justify-content:center; align-items:flex-start; gap:24px; flex-wrap:wrap; }
   </style>
 </head>
@@ -1790,6 +1778,6 @@
   </main>
 </div>
 
-<script type="module" src="./src/entries/pages/help-entry.js?v=20261025a"></script>
+<script type="module" src="./src/entries/pages/help-entry.js?v=20261025b"></script>
 </body>
 </html>

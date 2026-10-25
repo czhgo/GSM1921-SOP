@@ -262,7 +262,7 @@ test('工作组成员不再自动出现在纪检考察清单中', async () => {
 test('宣传看板只承接在办项目，归档统一落档案归档页', async () => {
   // A07（2026-10-20 IA 修复批次）：看板撤归档桶，归档动作统一落 ?tab=archive（单一源仍在 archive-tab）。
   const source = await read('../../docs/src/entries/tabs/prop/kanban-tab.js');
-  assert.match(source, /import\s*\{\s*isActivityArchived\s*\}\s*from\s*'\.\.\/\.\.\/\.\.\/core\/domain\/constants\.js\?v=\d{8}[a-z]'/);
+  assert.match(source, /import\s*\{[^}]*\bisActivityArchived\b[^}]*\}\s*from\s*'\.\.\/\.\.\/\.\.\/core\/domain\/constants\.js\?v=\d{8}[a-z]'/);
   assert.doesNotMatch(source, /activities\.filter\(a => a\.status === 'completed'\)/, '不得再把 status=completed 当作已归档集合');
   assert.match(source, /activities\.filter\(a => !isActivityArchived\(a\)\)/);
   assert.doesNotMatch(source, /已归档 \(\$\{/, '看板不再保留已归档桶');

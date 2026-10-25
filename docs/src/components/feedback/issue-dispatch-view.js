@@ -11,10 +11,10 @@
 //  依赖方向正确：组件 → 服务（不是服务 → 组件）。守卫：issue-branch.test.mjs（结构层）。
 // ════════════════════════════════════════════════════════════════
 
-import { renderFilteredList } from '../ui/list-filter.js?v=20261025a';
-import { renderTabHeader } from '../shell/page-frame.js?v=20261025a';
-import { escHtml, showToast } from '../../core/base/utils.js?v=20261025a';
-import { IssueStore, IssueNotify, deriveIssueDisplayState, REPORT_CATEGORIES, displayNameOf as _displayName } from '../../services/governance/issues.js?v=20261025a';
+import { renderFilteredList } from '../ui/list-filter.js?v=20261025b';
+import { renderTabHeader } from '../shell/page-frame.js?v=20261025b';
+import { escHtml, showToast } from '../../core/base/utils.js?v=20261025b';
+import { IssueStore, IssueNotify, deriveIssueDisplayState, REPORT_CATEGORIES, displayNameOf as _displayName } from '../../services/governance/issues.js?v=20261025b';
 
 // ════════════════════════════════════════════════════════════════
 //  「我的处置」Tab 渲染工具（各角色工作台复用）
@@ -239,7 +239,7 @@ function _renderMyReportDetail(issueId, role, userId, container, opts = {}) {
   const hasReply = (issue.comments || []).some(c => c.kind === 'reply');
 
   let html = `<div class="card rounded-xl p-5">`;
-  html += `<button data-mydispatch-action="back" class="btn-ghost text-xs flex items-center gap-1 mb-4">← 返回列表</button>`;
+  html += `<button data-mydispatch-action="back" class="btn-outline btn-sm text-xs flex items-center gap-1 mb-4">← 返回列表</button>`;
   html += `<div class="flex items-center gap-2 mb-2">`;
   html += `<h3 class="text-base font-semibold text-gray-800">${issue.title}</h3>`;
   html += `<span class="text-xs px-2 py-0.5 rounded-full ${ds.badgeClass}">${ds.label}</span>`;
@@ -320,7 +320,7 @@ function _renderMyDispatchDetail(issueId, role, userId, container) {
   const ds = deriveIssueDisplayState(issue);
 
   let html = `<div class="card rounded-xl p-5">`;
-  html += `<button data-mydispatch-action="back" class="btn-ghost text-xs flex items-center gap-1 mb-4">← 返回列表</button>`;
+  html += `<button data-mydispatch-action="back" class="btn-outline btn-sm text-xs flex items-center gap-1 mb-4">← 返回列表</button>`;
   html += `<div class="flex items-center gap-2 mb-2">`;
   html += `<h3 class="text-base font-semibold text-gray-800">${issue.title}</h3>`;
   html += `<span class="text-xs px-2 py-0.5 rounded-full ${ds.badgeClass}">${ds.label}</span>`;
@@ -404,7 +404,7 @@ function _renderMyIssueDetail(issueId, role, userId, container) {
   const ds = deriveIssueDisplayState(issue);
 
   let html = `<div class="card rounded-xl p-5">`;
-  html += `<button data-mydispatch-action="back" class="btn-ghost text-xs flex items-center gap-1 mb-4">← 返回列表</button>`;
+  html += `<button data-mydispatch-action="back" class="btn-outline btn-sm text-xs flex items-center gap-1 mb-4">← 返回列表</button>`;
   html += `<div class="flex items-center gap-2 mb-2">`;
   html += `<h3 class="text-base font-semibold text-gray-800">${issue.title}</h3>`;
   html += `<span class="text-xs px-2 py-0.5 rounded-full ${ds.badgeClass}">${ds.label}</span>`;

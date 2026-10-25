@@ -7,15 +7,15 @@
 //  样式：提取至 person-picker.css，主题色通过 CSS 变量 --pp-* 注入
 // ════════════════════════════════════════════════════════════════
 
-import { liveMembers, PersonStore } from '../../services/member/person.js?v=20261025a';
+import { liveMembers, PersonStore } from '../../services/member/person.js?v=20261025b';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/member/person.js 获取（原直连 mock PEOPLE）
 // 实时视图（非快照）：成员增删即时可见——见 services/member/person.js liveMembers 说明
 const PEOPLE = liveMembers();
-import { getPersonById } from '../../services/member/person.js?v=20261025a';
+import { getPersonById } from '../../services/member/person.js?v=20261025b';
 // 党小组清单单一源（活组按 seq 升序；2026-09-14 批次 29 收敛——见文件头「党小组清单」说明）
-import { groupOptions } from '../../services/member/party-group.js?v=20261025a';
-import { icon } from '../../core/base/icons.js?v=20261025a';
-import { ROLE_LABELS, ACCENT_COLORS } from '../../core/domain/constants.js?v=20261025a';
+import { groupOptions } from '../../services/member/party-group.js?v=20261025b';
+import { icon } from '../../core/base/icons.js?v=20261025b';
+import { ROLE_LABELS, ACCENT_COLORS } from '../../core/domain/constants.js?v=20261025b';
 
 // ── 辅助：从 hex 生成 rgba 字符串 ──────────────────────────────
 function hexToRgba(hex, alpha) {
@@ -326,7 +326,7 @@ export class PersonPicker {
     header.innerHTML = `
       <div class="person-picker-header-row">
         <h4 class="person-picker-title ">选择人员</h4>
-        <button type="button" class="btn-ghost person-picker-close-btn" aria-label="关闭">
+        <button type="button" class="btn-outline btn-icon person-picker-close-btn" aria-label="关闭">
           ${icon('close', { stroke: '#6B7280', className: 'w-3.5 h-3.5', extra: ' aria-hidden="true"' })}
         </button>
       </div>

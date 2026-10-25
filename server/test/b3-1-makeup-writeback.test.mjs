@@ -27,7 +27,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { chromium } from 'playwright';
 // R10-D15：考勤超期不再读存储快照，一律按 `policy-defaults::isAttendanceOverdue` 现算。
-import { isAttendanceOverdue } from '../../docs/src/core/domain/policy-defaults.js?v=20261025a';
+import { isAttendanceOverdue } from '../../docs/src/core/domain/policy-defaults.js?v=20261025b';
 
 const BASE = process.env.BASE || 'http://localhost:3000';
 const PW = process.env.LOGIN_PASSWORD || '123456';

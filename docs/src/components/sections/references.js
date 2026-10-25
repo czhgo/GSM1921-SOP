@@ -1,28 +1,28 @@
 // role: [工程师]+[AI]
 // 参考资料板块 — 网站群展示 + 官方文件（党内法规位阶排序）+ 支部文件（支委写入/全员下载）
 
-import { icon } from '../../core/base/icons.js?v=20261025a';
-import { getBasePath, showToast } from '../../core/base/utils.js?v=20261025a';
-import { getAdapter, getDataSource, getAuthToken, getApiBaseUrl } from '../../data/data-adapter.js?v=20261025a';
-import { withSelectedBranchScope } from '../../data/api-adapter.js?v=20261025a';
-import { AuthStore } from '../../services/core/auth.js?v=20261025a';
-import { loadActivities } from '../../services/activity/activity.js?v=20261025a';
-import { PEOPLE } from '../../data/mock/people.js?v=20261025a';
+import { icon } from '../../core/base/icons.js?v=20261025b';
+import { getBasePath, showToast } from '../../core/base/utils.js?v=20261025b';
+import { getAdapter, getDataSource, getAuthToken, getApiBaseUrl } from '../../data/data-adapter.js?v=20261025b';
+import { withSelectedBranchScope } from '../../data/api-adapter.js?v=20261025b';
+import { AuthStore } from '../../services/core/auth.js?v=20261025b';
+import { loadActivities } from '../../services/activity/activity.js?v=20261025b';
+import { PEOPLE } from '../../data/mock/people.js?v=20261025b';
 // 立项⑧（E 批）：支部文件增强——制度文本（版本化 + 现行/停用态 + 网页读正文）纯逻辑服务
 // 2026-09-21 批次 129：制度链（草案 → 支委会审议 → 现行版 / 退回修改）——草案态与修改口同源于该服务
 import {
   isInstitutionManager, saveDoc, publishNewVersion, setDocStatus,
   updateInstitutionDraft, INSTITUTION_DRAFT, INSTITUTION_PENDING_PARTY_MEETING,
   buildDocVersionsView, renderDocBody, listDocs,
-} from '../../services/branch/branch-doc.js?v=20261025a';
+} from '../../services/branch/branch-doc.js?v=20261025b';
 // 统一检索引擎（2026-09-14 批次 37）：本页三处列表（站点网格 / 官方文件 / 支部文件）各接一个实例
-import { renderFilteredList } from '../ui/list-filter.js?v=20261025a';
-import { openModal, closeModal } from '../ui/modal.js?v=20261025a';
+import { renderFilteredList } from '../ui/list-filter.js?v=20261025b';
+import { openModal, closeModal } from '../ui/modal.js?v=20261025b';
 // 制度内容（领域）→ 对应【主体】：判据单一源（2026-10-05 批次 378 · `SOP-B-25` 第 ② 项「按草案落地」）
 import {
   INSTITUTION_DOMAINS, INSTITUTION_DOMAIN_LABELS, institutionSubjectOfDomain, ORG_SUBJECT_LABELS,
-} from '../../core/domain/work-map.js?v=20261025a';
-import { ROLE_LABELS } from '../../core/domain/constants.js?v=20261025a';
+} from '../../core/domain/work-map.js?v=20261025b';
+import { ROLE_LABELS } from '../../core/domain/constants.js?v=20261025b';
 
 /** 主体引用 → 显示名（角色键 → 角色名；组织型主体 id → 组织名，如「支委会」） */
 function _subjectLabelOf(subjectId) {
@@ -447,8 +447,8 @@ export class ReferencesModule {
     const downloadAttr = downloadable ? `download="${_esc(d.fileName || d.title || '文件')}"` : '';
     const fileTarget = d.filePath ? 'target="_blank" rel="noopener noreferrer"' : '';
     const actions = ReferencesModule._isCommissioner ? `
-      <button type="button" class="btn-ghost ref-doc-action-btn" data-action="edit" data-id="${_esc(d.id)}">修改</button>
-      <button type="button" class="btn-ghost ref-doc-action-btn ref-doc-action-danger" data-action="delete" data-id="${_esc(d.id)}">删除</button>
+      <button type="button" class="btn-outline ref-doc-action-btn" data-action="edit" data-id="${_esc(d.id)}">修改</button>
+      <button type="button" class="btn-outline ref-doc-action-btn ref-doc-action-danger" data-action="delete" data-id="${_esc(d.id)}">删除</button>
     ` : '';
     return `
       <div class="ref-doc-item" data-id="${_esc(d.id)}">
@@ -485,12 +485,12 @@ export class ReferencesModule {
     let actions = '';
     if (ReferencesModule._isInstitutionManager) {
       if (isDraft) {
-        actions += `<button type="button" class="btn-ghost ref-doc-action-btn" data-action="edit" data-id="${_esc(d.id)}">修改草案</button>`;
+        actions += `<button type="button" class="btn-outline ref-doc-action-btn" data-action="edit" data-id="${_esc(d.id)}">修改草案</button>`;
       } else if (isCurrent) {
-        actions += `<button type="button" class="btn-ghost ref-doc-action-btn" data-action="publish-version" data-id="${_esc(d.id)}">上传新版</button>`;
-        actions += `<button type="button" class="btn-ghost ref-doc-action-btn" data-action="disable" data-id="${_esc(d.id)}">停用</button>`;
+        actions += `<button type="button" class="btn-outline ref-doc-action-btn" data-action="publish-version" data-id="${_esc(d.id)}">上传新版</button>`;
+        actions += `<button type="button" class="btn-outline ref-doc-action-btn" data-action="disable" data-id="${_esc(d.id)}">停用</button>`;
       } else if (d.status === 'disabled') {
-        actions += `<button type="button" class="btn-ghost ref-doc-action-btn" data-action="enable" data-id="${_esc(d.id)}">重新启用</button>`;
+        actions += `<button type="button" class="btn-outline ref-doc-action-btn" data-action="enable" data-id="${_esc(d.id)}">重新启用</button>`;
       }
       // 「待党员大会表决」态不出操作：下一步在支部党员大会议程上（既有会议议程），本列表不另开入口
     }
@@ -694,7 +694,7 @@ export class ReferencesModule {
     const instBoxHtml = (editing && !editingDraft) ? '' : `
       <div id="ref-modal-inst-box" class="${editingDraft ? 'space-y-3.5' : 'hidden space-y-3.5'}">
         <div>
-          <label class="text-xs font-medium mb-1.5 block" style="color:var(--neutral-500);" for="ref-modal-domain">制度内容（领域） <span style="color:var(--functional-error);">*</span></label>
+          <label class="text-xs font-medium mb-1.5 block" style="color:var(--neutral-500);" for="ref-modal-domain">制度内容（领域） <span style="color:var(--status-error);">*</span></label>
           <select id="ref-modal-domain" class="input-flat w-full">
             <option value="">请选择制度内容（领域）</option>
             ${INSTITUTION_DOMAINS.map((dm) => `<option value="${dm.id}"${(editingDraft && editing.domain === dm.id) ? ' selected' : ''}>${dm.label} —— 起草与监督：${_subjectLabelOf(dm.subject)}</option>`).join('')}
@@ -727,7 +727,7 @@ export class ReferencesModule {
         <div class="space-y-3.5">
           ${purposeSelectHtml}
           <div>
-            <label class="text-xs font-medium mb-1.5 block" style="color:var(--neutral-500);">标题 <span style="color:var(--functional-error);">*</span></label>
+            <label class="text-xs font-medium mb-1.5 block" style="color:var(--neutral-500);">标题 <span style="color:var(--status-error);">*</span></label>
             <input id="ref-modal-title" class="input-flat w-full" placeholder="如：积极分子考察表模板 / 支部例会制度" value="${editing ? _esc(editing.title || '') : ''}" />
           </div>
           <div>
@@ -736,14 +736,14 @@ export class ReferencesModule {
           </div>
           ${instBoxHtml}
           <div>
-            <label class="text-xs font-medium mb-1.5 block" style="color:var(--neutral-500);" id="ref-modal-file-label">${editing ? '替换文件（可选，不选则保留原文件）' : '选择文件 <span style="color:var(--functional-error);">*</span>'}</label>
+            <label class="text-xs font-medium mb-1.5 block" style="color:var(--neutral-500);" id="ref-modal-file-label">${editing ? '替换文件（可选，不选则保留原文件）' : '选择文件 <span style="color:var(--status-error);">*</span>'}</label>
             <input id="ref-modal-file" type="file" accept=".jpg,.jpeg,.png,.pdf,.doc,.docx,.xlsx,.mp4"
               class="block w-full text-xs file:mr-3 file:px-3 file:py-1.5 file:rounded-lg file:border-0 file:bg-blue-50 file:text-blue-600 file:text-xs hover:file:bg-blue-100 transition-colors cursor-pointer" style="color:var(--neutral-600);" />
           </div>
           <div id="ref-modal-status" class="hidden text-xs rounded-lg px-3 py-2"></div>
         </div>`,
       footerHtml: `
-        <button id="ref-modal-cancel" type="button" data-modal-cancel="${MODAL_ID}" class="btn-ghost text-xs px-3 py-1.5">取消</button>
+        <button id="ref-modal-cancel" type="button" data-modal-cancel="${MODAL_ID}" class="btn-outline text-xs px-3 py-1.5">取消</button>
         <button id="ref-modal-confirm" type="button" class="btn-accent text-xs px-3 py-1.5">${editing ? '保存' : '写入'}</button>`,
       onMount: (card) => {
         const statusEl = card.querySelector('#ref-modal-status');
@@ -764,7 +764,7 @@ export class ReferencesModule {
         instBox.classList.toggle('hidden', !inst);
         fileLabel.innerHTML = inst
           ? '附件（可选；正文与附件可并存，正文优先网页阅读）'
-          : '选择文件 <span style="color:var(--functional-error);">*</span>';
+          : '选择文件 <span style="color:var(--status-error);">*</span>';
       };
       purposeSel.addEventListener('change', syncPurpose);
     }
@@ -863,7 +863,7 @@ export class ReferencesModule {
       bodyHtml: `
         <div class="space-y-3.5">
           <div>
-            <label class="text-xs font-medium mb-1.5 block" style="color:var(--neutral-500);">标题 <span style="color:var(--functional-error);">*</span></label>
+            <label class="text-xs font-medium mb-1.5 block" style="color:var(--neutral-500);">标题 <span style="color:var(--status-error);">*</span></label>
             <input id="ref-pub-title" class="input-flat w-full" value="${_esc(doc.title || '')}" />
           </div>
           <div>
@@ -878,7 +878,7 @@ export class ReferencesModule {
           <div id="ref-pub-status" class="hidden text-xs rounded-lg px-3 py-2"></div>
         </div>`,
       footerHtml: `
-        <button id="ref-pub-cancel" type="button" data-modal-cancel="${MODAL_ID}" class="btn-ghost text-xs px-3 py-1.5">取消</button>
+        <button id="ref-pub-cancel" type="button" data-modal-cancel="${MODAL_ID}" class="btn-outline text-xs px-3 py-1.5">取消</button>
         <button id="ref-pub-confirm" type="button" class="btn-accent text-xs px-3 py-1.5">发布新版</button>`,
       onMount: (card) => {
         const statusEl = card.querySelector('#ref-pub-status');

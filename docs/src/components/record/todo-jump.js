@@ -3,7 +3,9 @@
 // 2026-09-04 模块化扎口：org/leader/prop/visitor/secretary 五份 todo-tab 曾各自复制同源段，现收敛于此。
 // 兼容聚合卡（items[0] 取首条）与单条待办；命中并执行跳转返回 true，未命中返回 false（交调用方继续 tabMap 处理）。
 
-import { resolveDocumentUrl } from '../../core/base/page-url.js?v=20261025a';
+import { resolveDocumentUrl } from '../../core/base/page-url.js?v=20261025b';
+// Task 6：待办对象跳转走统一详情路由（入口不在对象所属工作台 ⇒ direct）。
+import { objectDetailHref } from '../../core/domain/object-route.js?v=20261025b';
 
 export function tryDirectJump(todo) {
   // 通知阅读待办（T-234 F1）：直达通知详情页（聚合时取首条 noticeId）
@@ -18,8 +20,9 @@ export function tryDirectJump(todo) {
     const first = (todo.items && todo.items[0]) || todo;
     const srcId = first.sourceId || (first.actionData && first.actionData.sourceId);
     if (srcId) {
-      const page = srcId.startsWith('tf-') ? 'taskforce.html' : 'activity.html';
-      window.location.href = resolveDocumentUrl(page, { searchParams: { id: srcId } });
+      const href = objectDetailHref(srcId.startsWith('tf-') ? 'taskforce' : 'activity', srcId, { entry: 'todo' });
+      if (!href) return false;
+      window.location.href = resolveDocumentUrl(href.split('?')[0], { searchParams: { id: srcId } });
       return true;
     }
   }
@@ -31,8 +34,9 @@ export function tryDirectJump(todo) {
       || (first.actionData && (first.actionData.activityId || first.actionData.taskforceId))
       || (todo.actionData && (todo.actionData.activityId || todo.actionData.taskforceId));
     if (srcId) {
-      const page = srcId.startsWith('tf-') ? 'taskforce.html' : 'activity.html';
-      window.location.href = resolveDocumentUrl(page, { searchParams: { id: srcId } });
+      const href = objectDetailHref(srcId.startsWith('tf-') ? 'taskforce' : 'activity', srcId, { entry: 'todo' });
+      if (!href) return false;
+      window.location.href = resolveDocumentUrl(href.split('?')[0], { searchParams: { id: srcId } });
       return true;
     }
   }

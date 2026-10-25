@@ -36,7 +36,7 @@ const PAGES = [
   'docs/src/components/governance/notice-view.js',
 ];
 
-const ERROR_TOKEN = '--functional-error';
+const ERROR_TOKENS = ['--functional-error', '--status-error'];
 const WINDOW = 120;
 
 /** 找出「逾期」附近 120 字符内出现 error 令牌的站点（导出便于非空转自检） */
@@ -48,7 +48,8 @@ export function overdueErrorSites(src) {
     if (i < 0) break;
     const start = Math.max(0, i - WINDOW);
     const end = Math.min(src.length, i + '逾期'.length + WINDOW);
-    if (src.slice(start, end).includes(ERROR_TOKEN)) hits.push(i);
+    const slice = src.slice(start, end);
+    if (ERROR_TOKENS.some((t) => slice.includes(t))) hits.push(i);
     from = i + 1;
   }
   return hits;
@@ -77,10 +78,10 @@ test('C3 关键页面「逾期」附近不得使用 --functional-error', () => {
     assert.ok(existsSync(file), `关键页面不存在：${rel}`);
     const src = readFileSync(file, 'utf8');
     const hits = overdueErrorSites(src);
-    if (hits.length) offenders.push(`${rel} → ${hits.length} 处（逾期附近 120 字符出现 ${ERROR_TOKEN}）`);
+    if (hits.length) offenders.push(`${rel} → ${hits.length} 处（逾期附近 120 字符出现 error 状态色）`);
   }
   assert.deepEqual(offenders, [],
-    `以下页面仍把「逾期」写成错误红（待后续页面任务修复：逾期改 --functional-warning，`
+    `以下页面仍把「逾期」写成错误红（待后续页面任务修复：逾期改 --status-warning，`
     + `error 只留给阻断 / 失败 / 删除 / 驳回）：\n  ${offenders.join('\n  ')}`);
 });
 
@@ -94,9 +95,11 @@ test('C4 §2.10 写明三个反例（整圈红边 / 功能色主按钮 / 主题�
 
 test('C5 非空转：邻近判定在正 / 负样本上分别命中 / 不命中', () => {
   assert.equal(overdueErrorSites('逾期 <span style="color:var(--functional-error)">').length, 1,
-    '邻近判定失效：逾期 + error 未被判出');
-  assert.equal(overdueErrorSites('逾期 <span style="color:var(--functional-warning)">').length, 0,
+    '邻近判定失效：逾期 + 旧 error token 未被判出');
+  assert.equal(overdueErrorSites('逾期 <span style="color:var(--status-error)">').length, 1,
+    '邻近判定失效：逾期 + --status-error 未被判出');
+  assert.equal(overdueErrorSites('逾期 <span style="color:var(--status-warning)">').length, 0,
     '邻近判定过宽：逾期 + warning 被误判');
-  const far = '逾期'.padEnd(WINDOW + 20, '。') + 'var(--functional-error)';
+  const far = '逾期'.padEnd(WINDOW + 20, '。') + 'var(--status-error)';
   assert.equal(overdueErrorSites(far).length, 0, '邻近判定过宽：超出 120 字符仍被误判');
 });

@@ -2,27 +2,29 @@
 // 纪检委员工作台 Tab：复盘（T-279 M3 拆分；2026-10-04 批次 368 页签名由「活动监督复盘」改「复盘」——原名＝动作＋对象混轴）
 // 活动流程监督（超时提醒）+ 活动复盘监督（批注/打回/确认）+ 经验沉淀督促清单。
 
-import { mockDB, ReviewStatus } from '../../../core/domain/domain.js?v=20261025a';
-import { persist } from '../../../data/data-adapter.js?v=20261025a';
-import { reviewToDisplay } from '../../../services/governance/review.js?v=20261025a';
-import { loadActiveActivityReviews, loadTaskforceReviews, updateReviewById } from '../../../services/governance/review.js?v=20261025a';
-import { loadActivities } from '../../../services/activity/activity.js?v=20261025a';
+import { mockDB, ReviewStatus } from '../../../core/domain/domain.js?v=20261025b';
+import { persist } from '../../../data/data-adapter.js?v=20261025b';
+import { reviewToDisplay } from '../../../services/governance/review.js?v=20261025b';
+import { loadActiveActivityReviews, loadTaskforceReviews, updateReviewById } from '../../../services/governance/review.js?v=20261025b';
+import { loadActivities } from '../../../services/activity/activity.js?v=20261025b';
 // R7-33：复盘「超期」按「活动日 + 复盘提交期限（policy）」现算，不再直读记录上的 overdue 快照
-import { isReviewOverdue } from '../../../core/domain/policy-defaults.js?v=20261025a';
-import { showToast, escHtml } from '../../../core/base/utils.js?v=20261025a';
-import { openFormModal, openModal, closeModal } from '../../../components/ui/modal.js?v=20261025a';
+import { isReviewOverdue } from '../../../core/domain/policy-defaults.js?v=20261025b';
+import { showToast, escHtml } from '../../../core/base/utils.js?v=20261025b';
+import { openFormModal, openModal, closeModal } from '../../../components/ui/modal.js?v=20261025b';
 // 批次 352（`D-746` · `D-744`② 业务过程类余项）：经验沉淀「作废（软）」——统一写口 ＋ 支委层判据
-import * as SoftVoid from '../../../services/governance/soft-void.js?v=20261025a';
-import { openVoidModal } from '../../../components/ui/void-record.js?v=20261025a';
-import { NoticeStore } from '../../../services/governance/notice.js?v=20261025a';
-import { generateId } from '../../../core/base/id.js?v=20261025a';
-import { getPersonById } from '../../../services/member/person.js?v=20261025a';
-import { requireDiscCommissionerId } from './_shared.js?v=20261025a';
+import * as SoftVoid from '../../../services/governance/soft-void.js?v=20261025b';
+import { openVoidModal } from '../../../components/ui/void-record.js?v=20261025b';
+import { NoticeStore } from '../../../services/governance/notice.js?v=20261025b';
+import { generateId } from '../../../core/base/id.js?v=20261025b';
+import { getPersonById } from '../../../services/member/person.js?v=20261025b';
+import { requireDiscCommissionerId } from './_shared.js?v=20261025b';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是活动的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
-import { renderFilteredList, activityKeyword, activityFacets } from '../../../components/ui/list-filter.js?v=20261025a';
-import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261025a';
+import { renderFilteredList, activityKeyword, activityFacets } from '../../../components/ui/list-filter.js?v=20261025b';
+import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261025b';
 // 材料页深链 focusActivityId 的通用定位（只滚动 + 闪烁，不另造筛选器）
-import { focusActivityAnchor } from '../../../components/ui/detail-anchor.js?v=20261025a';
+import { focusActivityAnchor } from '../../../components/ui/detail-anchor.js?v=20261025b';
+// Task 6：复盘监督是跨对象列表 ⇒ 活动行直达完整详情页（direct）。
+import { objectDetailHref } from '../../../core/domain/object-route.js?v=20261025b';
 
 // ── 超期提醒真实触达（2026-09-10）───────────────────────────────
 // 依据：纪检委员工作流程指南 §3.1「超时确认后可触发邮件提醒」、党小组组长工作手册
@@ -160,8 +162,8 @@ export function renderContent(ctx) {
     return `
             <div class="flex items-center justify-between p-3 rounded-xl bg-white ${overdue ? 'border border-red-100' : ''}" data-act-id="${escHtml(r.activityId || '')}">
               ${r.activityId
-                ? `<a href="./activity.html?id=${encodeURIComponent(r.activityId)}" class="flex-1 min-w-0" style="text-decoration:none;color:inherit;" title="查看活动详情">
-                     <div class="text-sm font-medium text-gray-800">${r.activity}</div>
+                ? `<a href="./${objectDetailHref('activity', r.activityId, { entry: 'workspace-aggregate' })}" class="flex-1 min-w-0 hover:underline" title="查看活动详情">
+                     <div class="text-sm font-medium text-gray-800">${r.activity} →</div>
                      <div class="text-xs text-gray-500 mt-0.5">组织者：${r.organizer}</div>
                    </a>`
                 : `<div class="flex-1 min-w-0">
@@ -187,7 +189,7 @@ export function renderContent(ctx) {
                   <input type="checkbox" class="js-batch-check w-3.5 h-3.5 rounded shrink-0"
                     data-review-id="${r.id}" ${checked ? 'checked' : ''} ${confirmable ? '' : 'disabled'}
                     title="${confirmable ? '勾选后可由「批量确认所选」统一确认' : '仅「批注中」复盘可勾选确认'}"
-                    style="accent-color:${ctx.accent || 'var(--accent-disc-commissioner)'};cursor:${confirmable ? 'pointer' : 'not-allowed'};${confirmable ? '' : 'opacity:0.45;'}" />` : ''}
+                    style="accent-color:${ctx.accent || 'var(--app-accent)'};cursor:${confirmable ? 'pointer' : 'not-allowed'};${confirmable ? '' : 'opacity:0.45;'}" />` : ''}
                   <div class="text-sm font-medium text-gray-800">${r.activity}</div>
                 </div>
                 <div class="flex items-center gap-2">
@@ -412,7 +414,7 @@ export function renderContent(ctx) {
         renderContent(ctx);
         return true;
       },
-      accentColor: ctx.accent || 'var(--accent-disc-commissioner)'
+      accentColor: ctx.accent || 'var(--app-accent)'
     });
   };
 
@@ -471,7 +473,7 @@ export function renderContent(ctx) {
           renderContent(ctx);
           return true;
         },
-        accentColor: ctx.accent || 'var(--accent-disc-commissioner)'
+        accentColor: ctx.accent || 'var(--app-accent)'
       });
       return;
     }
@@ -486,7 +488,7 @@ export function renderContent(ctx) {
         id: 'disc-review-reject-confirm',
         title: '打回复盘',
         width: '420px',
-        accentColor: ctx.accent || 'var(--accent-disc-commissioner)',
+        accentColor: ctx.accent || 'var(--app-accent)',
         bodyHtml: `<p style="margin:0;font-size:0.8rem;line-height:1.75;color:var(--neutral-700);">确认打回「${escHtml(rejectSubject)}」？打回后要求组织者重新提交复盘总结。</p>`,
         footerHtml: `
           <button type="button" data-modal-cancel="disc-review-reject-confirm" class="btn-outline text-sm px-4 py-1.5">取消</button>

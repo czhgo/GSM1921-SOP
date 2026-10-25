@@ -12,24 +12,26 @@
 //   · 材料读取：`mockDB.imageRecords` / `loadAttendanceRecords` / `mockDB.inspections` / `loadActivityReviews`；
 //   · 归档写口：`services/core/mock.js::archiveActivity`（经 BranchService 暴露，与宣传台 / 支书台同源）；
 //   · 空态：`components/ui/empty-state.js`；浮窗：`components/ui/modal.js`；版本戳：`core/base/version-token.js`。
-import { renderSidebar } from '../../components/shell/sidebar.js?v=20261025a';
-import { renderHeader } from '../../components/shell/header.js?v=20261025a';
-import { BranchService } from '../../services/core/runtime.js?v=20261025a';
-import { mockDB, ReviewStatus } from '../../core/domain/domain.js?v=20261025a';
-import { loadAttendanceRecords } from '../../services/activity/attendance.js?v=20261025a';
-import { loadActivityReviews } from '../../services/governance/review.js?v=20261025a';
-import { AuthStore } from '../../services/core/auth.js?v=20261025a';
-import { isActivityArchived } from '../../core/domain/constants.js?v=20261025a';
-import { getBasePath, escHtml as esc, showToast, describeWriteError } from '../../core/base/utils.js?v=20261025a';
-import { resolveMaterialHref, resolveMaterialHandoff, resolveMaterialRoleNote } from '../../core/domain/material-links.js?v=20261025a';
+import { renderSidebar } from '../../components/shell/sidebar.js?v=20261025b';
+import { renderHeader } from '../../components/shell/header.js?v=20261025b';
+import { BranchService } from '../../services/core/runtime.js?v=20261025b';
+import { mockDB, ReviewStatus } from '../../core/domain/domain.js?v=20261025b';
+import { loadAttendanceRecords } from '../../services/activity/attendance.js?v=20261025b';
+import { loadActivityReviews } from '../../services/governance/review.js?v=20261025b';
+import { AuthStore } from '../../services/core/auth.js?v=20261025b';
+import { isActivityArchived } from '../../core/domain/constants.js?v=20261025b';
+import { getBasePath, escHtml as esc, showToast, describeWriteError } from '../../core/base/utils.js?v=20261025b';
+import { resolveMaterialHref, resolveMaterialHandoff, resolveMaterialRoleNote } from '../../core/domain/material-links.js?v=20261025b';
 // 材料页可见性单一源（C11）：与活动列表 / 详情页同判据，待批活动不能凭 id 被非支委层读到
-import { isActivityVisibleTo } from '../../services/core/visibility.js?v=20261025a';
-import { emptyStateHtml } from '../../components/ui/empty-state.js?v=20261025a';
-import { openModal, closeModal } from '../../components/ui/modal.js?v=20261025a';
-import { bumpToken } from '../../core/base/version-token.js?v=20261025a';
-import { hydrateDataSource, notifyDataLoaded } from '../../data/data-adapter.js?v=20261025a';
-import { ApiAdapter } from '../../data/api-adapter.js?v=20261025a';
-import { beginWriteScope, endWriteScope } from '../../core/session/pending-writes.js?v=20261025a';
+import { isActivityVisibleTo } from '../../services/core/visibility.js?v=20261025b';
+import { emptyStateHtml } from '../../components/ui/empty-state.js?v=20261025b';
+import { openModal, closeModal } from '../../components/ui/modal.js?v=20261025b';
+import { bumpToken } from '../../core/base/version-token.js?v=20261025b';
+import { hydrateDataSource, notifyDataLoaded } from '../../data/data-adapter.js?v=20261025b';
+import { ApiAdapter } from '../../data/api-adapter.js?v=20261025b';
+import { beginWriteScope, endWriteScope } from '../../core/session/pending-writes.js?v=20261025b';
+// Task 6：材料页回活动详情 → direct（跨页深链，无对象所属工作台上下文）。
+import { objectDetailHref } from '../../core/domain/object-route.js?v=20261025b';
 
 renderSidebar('dashboard');
 renderHeader('dashboard');
@@ -50,7 +52,11 @@ backBtn?.addEventListener('click', () => {
       return;
     }
   } catch (_) { /* 空 / 非法 referrer：走下方活动详情兜底 */ }
-  if (activityId) { window.location.href = getBasePath() + `activity.html?id=${encodeURIComponent(activityId)}`; return; }
+  if (activityId) {
+    const href = objectDetailHref('activity', activityId, { entry: 'cross-page-deeplink' });
+    if (href) window.location.href = getBasePath() + href;
+    return;
+  }
   if (window.history.length > 1) window.history.back();
   else window.location.href = getBasePath() + 'index.html';
 });
@@ -126,7 +132,7 @@ function render() {
       <h2 class="font-title-cn text-xl font-bold text-gray-800 leading-snug">${esc(act.title || '未命名活动')}</h2>
       <p class="text-sm text-gray-500 mt-1">${esc(act.date || '—')}${act.location ? ' · ' + esc(act.location) : ''}</p>
       <div class="mt-3 flex items-center gap-3">
-        <a class="text-xs text-accent hover:underline" href="${getBasePath()}activity.html?id=${encodeURIComponent(activityId)}">查看活动详情 →</a>
+        <a class="text-xs text-accent hover:underline" href="${getBasePath()}${objectDetailHref('activity', activityId, { entry: 'cross-page-deeplink' })}">查看活动详情 →</a>
         ${propArchiveHref ? `<a class="text-xs text-gray-500 hover:underline" href="${propArchiveHref}">宣传台 · 档案归档 →</a>` : ''}
       </div>
     </div>

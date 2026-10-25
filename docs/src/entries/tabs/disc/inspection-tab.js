@@ -3,34 +3,36 @@
 // 仅展示已登记的考察事项；工作组成员名单不自动生成考察清单。
 // 业务口径：考察依托工作组——考察记录挂工作组，考察对象为该工作组成员；sourceType/activityId/taskforceId 是工作组类型的投影。
 
-import { loadActiveInspectionRecords, getOverdueRecords, confirmInspectionRecord, deleteInspectionRecord, listInspectionSupervision } from '../../../services/activity/inspection.js?v=20261025a';
-import { loadInspectionRecords, saveInspectionRecords, isInspectionHomePosition, inspectionConfirmDenyReason } from '../../../services/activity/inspection.js?v=20261025a';
-import { returnInspectionRecord, loadInspectionAppeals, returnInspectionAppeal, closeInspectionAppeal } from '../../../services/activity/inspection.js?v=20261025a';
-import { inspectionToLong, inspectionToWide } from '../../../services/activity/inspection.js?v=20261025a';
-import { getPersonById, getPersonName } from '../../../services/member/person.js?v=20261025a';
-import { SourceType, ParticipationLevel } from '../../../core/domain/domain.js?v=20261025a';
+import { loadActiveInspectionRecords, getOverdueRecords, confirmInspectionRecord, deleteInspectionRecord, listInspectionSupervision } from '../../../services/activity/inspection.js?v=20261025b';
+import { loadInspectionRecords, saveInspectionRecords, isInspectionHomePosition, inspectionConfirmDenyReason } from '../../../services/activity/inspection.js?v=20261025b';
+import { returnInspectionRecord, loadInspectionAppeals, returnInspectionAppeal, closeInspectionAppeal } from '../../../services/activity/inspection.js?v=20261025b';
+import { inspectionToLong, inspectionToWide } from '../../../services/activity/inspection.js?v=20261025b';
+import { getPersonById, getPersonName } from '../../../services/member/person.js?v=20261025b';
+import { SourceType, ParticipationLevel } from '../../../core/domain/domain.js?v=20261025b';
 // 超期天数单一源（设置中心可调）：只用于徽章 title，不在界面铺口径说明
-import { POLICY_DEFAULTS } from '../../../core/domain/policy-defaults.js?v=20261025a';
-import { badgeHtml } from '../../../components/ui/badges.js?v=20261025a';
-import { showToast, downloadCSV, triggerPrint, _fmtDate, escHtml as esc, getBasePath, flashHighlight } from '../../../core/base/utils.js?v=20261025a';
-import { HandoffStore } from '../../../services/governance/handoff.js?v=20261025a';
-import { requireDiscCommissionerId } from './_shared.js?v=20261025a';
+import { POLICY_DEFAULTS } from '../../../core/domain/policy-defaults.js?v=20261025b';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20261025b';
+import { showToast, downloadCSV, triggerPrint, _fmtDate, escHtml as esc, getBasePath, flashHighlight } from '../../../core/base/utils.js?v=20261025b';
+import { HandoffStore } from '../../../services/governance/handoff.js?v=20261025b';
+import { requireDiscCommissionerId } from './_shared.js?v=20261025b';
 // 统一检索引擎（支书 2026-09-13 裁定）：可搜索表一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
-import { renderFilteredList, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261025a';
-import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261025a';
+import { renderFilteredList, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261025b';
+import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261025b';
 // 人×项目矩阵单一源（支书 2026-09-14 批次 35 裁定：宽表默认 + 矩阵推广到其它二元关系域）
-import { renderRelationMatrix, MATRIX_COL_LIMIT } from '../../../components/ui/relation-matrix.js?v=20261025a';
+import { renderRelationMatrix, MATRIX_COL_LIMIT } from '../../../components/ui/relation-matrix.js?v=20261025b';
 // 考察代录位（2026-09-23 支书追裁「开一个代录位」）：写口与字段**完全复用**组长台「考察上传」，
 //   本位判据单一源 `services/activity/inspection.js::isInspectionHomePosition`，非本位代录走既有 nudge。
-import { loadActivities } from '../../../services/activity/activity.js?v=20261025a';
-import { filterActivitiesForViewer } from '../../../services/core/visibility.js?v=20261025a';
-import { currentUserId } from '../../../services/core/auth.js?v=20261025a';
-import { PersonPicker } from '../../../components/governance/pickers.js?v=20261025a';
+import { loadActivities } from '../../../services/activity/activity.js?v=20261025b';
+import { filterActivitiesForViewer } from '../../../services/core/visibility.js?v=20261025b';
+import { currentUserId } from '../../../services/core/auth.js?v=20261025b';
+import { PersonPicker } from '../../../components/governance/pickers.js?v=20261025b';
 // 「本位」nudge 确认弹窗（单一源 = components/ui/modal.js::confirmNudge）
-import { confirmNudge } from '../../../components/ui/modal.js?v=20261025a';
-import { generateId } from '../../../core/base/id.js?v=20261025a';
+import { confirmNudge } from '../../../components/ui/modal.js?v=20261025b';
+import { generateId } from '../../../core/base/id.js?v=20261025b';
+// Task 6：考察/申诉表格是跨对象聚合面 ⇒ 活动名直达完整详情页（direct）。
+import { objectDetailHref } from '../../../core/domain/object-route.js?v=20261025b';
 // 材料页深链 focusActivityId 的通用定位（只滚动 + 闪烁，不另造筛选器）
-import { focusActivityAnchor } from '../../../components/ui/detail-anchor.js?v=20261025a';
+import { focusActivityAnchor } from '../../../components/ui/detail-anchor.js?v=20261025b';
 
 // 考察代录表单状态（随模块自持，不污染入口；与组长 / 组织台考察上传同规）
 let _discInspFormVisible = false;
@@ -228,7 +230,7 @@ export function renderContent(ctx) {
         return `
             <tr data-act-id="${esc(i.activityId || '')}" data-insp-record-id="${esc(i.id)}" data-insp-person-id="${esc(i.personId)}"${rowBg ? ` class="${rowBg}"` : ''}>
               <td data-label="姓名" class="font-medium text-gray-800"><a href="${getBasePath()}person.html?id=${encodeURIComponent(i.personId)}" class="hover:underline hover:text-[var(--app-accent-soft-text)] transition-colors" title="查看完整档案">${esc(getPersonName(i.personId))}</a></td>
-              <td data-label="来源" class="text-gray-600">${i.activityId ? `<a class="text-accent hover:underline" href="./activity.html?id=${i.activityId}">${i.source}</a>` : i.source}</td>
+              <td data-label="来源" class="text-gray-600">${i.activityId ? `<a class="text-accent hover:underline" href="./${objectDetailHref('activity', i.activityId, { entry: 'workspace-aggregate' })}">${i.source}</a>` : i.source}</td>
               <td data-label="类别"><span class="px-1.5 py-0.5 rounded text-xs ${i.sourceType === '活动' ? tagColor.activity : tagColor.taskforce}">${i.sourceType === '活动' ? '活动' : '专班'}</span></td>
               <td data-label="内容" class="text-gray-600">${i.content || i.role}</td>
               <td data-label="记录人" class="text-gray-600"${i.recordedByName ? '' : ' title="登记时未采集（历史导入）"'}>${i.recordedByName ? esc(i.recordedByName) : '登记时未采集（历史导入）'}</td>
@@ -648,7 +650,7 @@ function _buildAppealCardHTML(pendingAppeals, returnedAppeals) {
       <div class="flex items-center gap-2 py-2 border-b border-gray-50 last:border-0">
         <a href="${getBasePath()}person.html?id=${encodeURIComponent(a.personId)}" class="text-sm font-medium text-gray-800 hover:underline hover:text-[var(--app-accent-soft-text)] transition-colors flex-shrink-0" title="查看完整档案">${esc(getPersonName(a.personId))}</a>
         <span class="flex-1 min-w-0">
-          <span class="block text-xs text-gray-600 truncate" title="${esc(title)}">${a.activityId ? `<a class="text-accent hover:underline" href="./activity.html?id=${encodeURIComponent(a.activityId)}">${esc(title)}</a>` : esc(title)}</span>
+          <span class="block text-xs text-gray-600 truncate" title="${esc(title)}">${a.activityId ? `<a class="text-accent hover:underline" href="./${objectDetailHref('activity', a.activityId, { entry: 'workspace-aggregate' })}">${esc(title)}</a>` : esc(title)}</span>
           ${a.note ? `<span class="block text-xs text-gray-500 truncate">申诉说明：${esc(a.note)}</span>` : ''}
           ${a.returnNote ? `<span class="block text-xs text-amber-700 truncate">打回说明：${esc(a.returnNote)}</span>` : ''}
         </span>

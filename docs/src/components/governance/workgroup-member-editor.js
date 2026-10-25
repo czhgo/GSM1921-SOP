@@ -1,8 +1,8 @@
-import { PersonPicker } from './pickers.js?v=20261025a';
-import { getAdapter } from '../../data/data-adapter.js?v=20261025a';
-import { getPersonById } from '../../services/member/person.js?v=20261025a';
-import { describeWriteError } from '../../core/base/utils.js?v=20261025a';
-import { WORKGROUP_PERMISSION_LABELS, WORKGROUP_ROLE_LABELS, workgroupPermissionTemplates } from '../../core/domain/workgroup-policy.js?v=20261025a';
+import { PersonPicker } from './pickers.js?v=20261025b';
+import { getAdapter } from '../../data/data-adapter.js?v=20261025b';
+import { getPersonById } from '../../services/member/person.js?v=20261025b';
+import { describeWriteError } from '../../core/base/utils.js?v=20261025b';
+import { WORKGROUP_PERMISSION_LABELS, WORKGROUP_ROLE_LABELS, workgroupPermissionTemplates } from '../../core/domain/workgroup-policy.js?v=20261025b';
 
 const esc = (value) => String(value ?? '').replace(/[&<>"']/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
 const permissionName = (key) => WORKGROUP_PERMISSION_LABELS[key] || key;
@@ -32,8 +32,8 @@ function renderMemberRow(member, grant, kind, canEdit) {
         <input class="input-flat mt-1 w-full text-xs" data-wg-reason maxlength="200" value="${esc(grant?.reason || '')}" placeholder="说明这项工作需要的操作">
       </label>
       <div class="mt-2 flex flex-wrap gap-2">
-        <button type="button" class="btn-ghost text-xs px-2 py-1" data-wg-apply-template>套用${WORKGROUP_ROLE_LABELS[role]}建议</button>
-        <button type="button" class="btn-ghost text-xs px-2 py-1 text-red-700" data-wg-remove>移出工作组</button>
+        <button type="button" class="btn-outline btn-sm" data-wg-apply-template>套用${WORKGROUP_ROLE_LABELS[role]}建议</button>
+        <button type="button" class="btn-outline btn-sm text-red-700" data-wg-remove>移出工作组</button>
       </div>`
     : `<p class="mt-2 text-xs text-gray-600">${activeKeys.size ? [...activeKeys].map(permissionName).map(esc).join('、') : '未授予操作权限'}</p>`;
 

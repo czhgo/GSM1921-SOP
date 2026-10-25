@@ -3,19 +3,19 @@
 // 2026-08-07 自 ws-secretary-entry.js 拆分。
 // GitHub Issue 风格反馈管理面板：草稿审核（通过/驳回）全部反馈列表 + 导出/清除 + 详情处置（指派/状态/评论/隐藏/合并）。
 
-import { IssueStore, deriveIssueDisplayState, IssueNotify, issueDomainLabel, issueDomainSuggest, issueDomainReplyHint } from '../../../services/governance/issues.js?v=20261025a';
-import { showToast, todayLocal } from '../../../core/base/utils.js?v=20261025a';
-import { scrollDetailIntoView } from '../../../components/ui/detail-anchor.js?v=20261025a';
-import { icon } from '../../../core/base/icons.js?v=20261025a';
-import { AuthStore } from '../../../services/core/auth.js?v=20261025a';
-import { ROLE_LABELS, DRAFT_TYPE_LABELS } from '../../../core/domain/constants.js?v=20261025a';
-import { getPersonName } from '../../../services/member/person.js?v=20261025a';
-import { PersonStore } from '../../../services/member/person.js?v=20261025a';
-import { badgeHtml, badgeVariantClass } from '../../../components/ui/badges.js?v=20261025a';
+import { IssueStore, deriveIssueDisplayState, IssueNotify, issueDomainLabel, issueDomainSuggest, issueDomainReplyHint } from '../../../services/governance/issues.js?v=20261025b';
+import { showToast, todayLocal } from '../../../core/base/utils.js?v=20261025b';
+import { scrollDetailIntoView } from '../../../components/ui/detail-anchor.js?v=20261025b';
+import { icon } from '../../../core/base/icons.js?v=20261025b';
+import { AuthStore } from '../../../services/core/auth.js?v=20261025b';
+import { ROLE_LABELS, DRAFT_TYPE_LABELS } from '../../../core/domain/constants.js?v=20261025b';
+import { getPersonName } from '../../../services/member/person.js?v=20261025b';
+import { PersonStore } from '../../../services/member/person.js?v=20261025b';
+import { badgeHtml, badgeVariantClass } from '../../../components/ui/badges.js?v=20261025b';
 // 翻页控件单一源（批次 38：全站手写翻页一律并轨 pagerHtml）
-import { pagerHtml } from '../../../components/ui/pager.js?v=20261025a';
-import { renderTabHeader, renderCardHeader } from '../../../components/shell/page-frame.js?v=20261025a';
-import { openFormModal } from '../../../components/ui/modal.js?v=20261025a';
+import { pagerHtml } from '../../../components/ui/pager.js?v=20261025b';
+import { renderTabHeader, renderCardHeader } from '../../../components/shell/page-frame.js?v=20261025b';
+import { openFormModal } from '../../../components/ui/modal.js?v=20261025b';
 
 const FEEDBACK_TAB_HTML = `
   ${renderTabHeader({ title: '反馈管理' })}
@@ -77,7 +77,7 @@ const FEEDBACK_TAB_HTML = `
 /** 渲染反馈管理 tab */
 export function renderContent() {
   const tc = document.getElementById('secretary-tab-content');
-  if (!tc) return;
+  if (!tc) throw new Error('[feedback-tab] 缺少内容容器 #secretary-tab-content');
   if (tc.dataset.currentTab !== 'feedback') {
     tc.innerHTML = FEEDBACK_TAB_HTML;
     tc.dataset.currentTab = 'feedback';
@@ -345,7 +345,7 @@ function renderIssueDetail(issueId) {
   // ── Header：返回按钮 + 编号 + 状态徽章 + 操作按钮 ──
   html += `<div class="flex items-center justify-between mb-4">`;
   html += `<div class="flex items-center gap-2">`;
-  html += `<button data-detail-action="back" class="btn-ghost text-xs flex items-center gap-1">`;
+  html += `<button data-detail-action="back" class="btn-outline btn-sm text-xs flex items-center gap-1">`;
   html += icon('chevronLeft', { className: 'w-3.5 h-3.5' });
   html += `返回列表</button>`;
   html += `<span class="text-xs text-gray-500 font-mono">#${issue.number}</span>`;
@@ -436,7 +436,7 @@ function renderIssueDetail(issueId) {
     if (mergeTargets.length > 0) {
       html += `<div class="space-y-1 max-h-32 overflow-y-auto">`;
       mergeTargets.forEach(t => {
-        html += `<button data-detail-action="confirm-merge" data-target-id="${t.id}" class="btn-ghost w-full text-xs px-3 py-1.5">${t.title} <span class="text-gray-600">#${t.number}</span></button>`;
+        html += `<button data-detail-action="confirm-merge" data-target-id="${t.id}" class="btn-outline w-full text-xs px-3 py-1.5">${t.title} <span class="text-gray-600">#${t.number}</span></button>`;
       });
       html += `</div>`;
     } else {

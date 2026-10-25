@@ -10,14 +10,16 @@
 //  依赖方向正确：组件 → 服务（不是服务 → 组件）。守卫见 notice-audience / doc-consistency。
 // ════════════════════════════════════════════════════════════════
 
-import { badgeHtml } from '../ui/badges.js?v=20261025a';
-import { openFormModal } from '../ui/modal.js?v=20261025a';
-import { showToast, getBasePath, todayLocal } from '../../core/base/utils.js?v=20261025a';
-import { ROLE_LABELS } from '../../core/domain/constants.js?v=20261025a';
-import { AuthStore } from '../../services/core/auth.js?v=20261025a';
-import { getPersonById, liveMembers } from '../../services/member/person.js?v=20261025a';
-import { isActivityOrganizer } from '../../services/activity/activity.js?v=20261025a';
-import { NoticeStore, NoticePermission } from '../../services/governance/notice.js?v=20261025a';
+import { badgeHtml } from '../ui/badges.js?v=20261025b';
+import { openFormModal } from '../ui/modal.js?v=20261025b';
+import { showToast, getBasePath, todayLocal } from '../../core/base/utils.js?v=20261025b';
+import { ROLE_LABELS } from '../../core/domain/constants.js?v=20261025b';
+import { AuthStore } from '../../services/core/auth.js?v=20261025b';
+import { getPersonById, liveMembers } from '../../services/member/person.js?v=20261025b';
+import { isActivityOrganizer } from '../../services/activity/activity.js?v=20261025b';
+import { NoticeStore, NoticePermission } from '../../services/governance/notice.js?v=20261025b';
+// Task 6：通知 targetUrl 属 direct 深链（通知不在活动工作台内）；缺 id 不写空 URL。
+import { objectDetailHref } from '../../core/domain/object-route.js?v=20261025b';
 
 function committeeSourceChip() {
   return '<span style="display:inline-flex;align-items:center;padding:0 6px;border-radius:9999px;background:var(--party-red);color:#fff;font-size:10px;line-height:16px;flex-shrink:0;">党委下发</span>';
@@ -202,7 +204,7 @@ export function openGroupNoticeComposer({ activity, accentColor = '#3B82F6', onP
         targetModule: 'activity',
         targetType: 'activity',
         targetId: activity.id,
-        targetUrl: `activity.html?id=${encodeURIComponent(activity.id)}`,
+        targetUrl: objectDetailHref('activity', activity.id, { entry: 'notice' }) || undefined,
         // D13：不再写全局 `read` 布尔（逐人已读走 reads/NoticeStore.markRead；旧 read 只做迁移读）。
         audience: [],
         audiencePersons: ids,

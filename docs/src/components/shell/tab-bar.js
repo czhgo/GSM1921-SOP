@@ -8,11 +8,12 @@
 
 
 
-import { icon } from '../../core/base/icons.js?v=20261025a';
+import { icon } from '../../core/base/icons.js?v=20261025b';
+import { showToast } from '../../core/base/utils.js?v=20261025b';
 
 // R6 导航守卫（2026-09-03 P2a）：初始/目标 tab 决策收敛到纯函数 tab-nav.js（防「被支部隐藏后静默白屏」）
 
-import { resolveInitialTab, resolveTargetTab } from '../../core/boot/tab-nav.js?v=20261025a';
+import { resolveInitialTab, resolveTargetTab } from '../../core/boot/tab-nav.js?v=20261025b';
 
 
 
@@ -92,13 +93,33 @@ export function tabContentSkeletonHtml(text = '加载中…') {
 
 /** R3-U03：页签加载 / 刷新失败统一错误卡（**单一源**：tab-bar 切页签失败 与 workspace-shell
  *  数据刷新失败 渲染同一张卡；重试按钮标记 `data-ws-tab-retry`，绑定由各自调用方负责）。 */
-export function tabErrorCardHtml() {
+export function tabErrorCardHtml(message = '这个页签暂时没加载出来') {
   return `
       <div class="card rounded-xl p-6 text-center" data-ws-tab-error role="alert">
-        <p class="text-sm text-gray-600">这个页签暂时没加载出来</p>
+        <p class="text-sm text-gray-600">${message}</p>
         <button type="button" class="btn-outline text-xs px-3 py-1.5 mt-3" data-ws-tab-retry>重试</button>
       </div>`;
 }
+
+/**
+ * 页内失败态（2026-10-25 Task 1.3）：容器 / 节点缺失、页内动态 import 失败统一走这一处——
+ * 错误卡 + 重试，替代「静默 return」。宿主不可用时返回 false（调用方再退 toast）。
+ * @param {Element|null} host 承载错误卡的容器
+ * @param {{ onRetry?: Function, message?: string }} [opts]
+ * @returns {boolean} 是否已渲染
+ */
+export function mountTabFailure(host, { onRetry, message = '加载失败，重试' } = {}) {
+  if (!host) return false;
+  host.innerHTML = tabErrorCardHtml(message);
+  host.querySelector('[data-ws-tab-retry]')?.addEventListener('click', () => {
+    try { onRetry?.(); } catch (e) { console.error('[tab-bar] 重试失败', e); }
+  });
+  return true;
+}
+
+/** 2026-10-25 Task 1.4：loading 占位上限（≤8s）。promise 永不落定时解除 pointer-events:none / 灰化，
+ *  停止 animate-pulse / animate-spin，并给出可见「加载超时」与重试入口——不得永久灰化。 */
+export const TAB_LOADING_TIMEOUT_MS = 8000;
 
 const FALLBACK_ACCENT = {
 
@@ -229,7 +250,8 @@ export function renderTabBar({ prefix, tabs, accentColor, defaultTab, extraRight
     //   组名 = groupLabel 去首尾空白；空组名不渲染文字，但仍按分组边界处理分隔线。
     //   判重保留：同一组只在组内首项前渲染一次（非连续同名组不会重复出组名）。
     //   尺寸/溢出：组名与分隔线不改变 tab 按钮的任何属性；`.tab-group-label` 自身 flex-shrink:0，
-    //   窄屏由 styles.css 只隐藏组名、保留分隔线，末页签仍可滚动可达。
+    //   所有宽度均可见（2026-10-26 Task 3.5 删除 ≤1280 隐藏口径）：窄屏只缩小内边距/字号，
+    //   页签条由 .ws-tab-scroll 横向滚动，末页签仍可滚动可达。
     const groupName = String(groupLabel ?? '').trim();
 
     let groupHtml = '';
@@ -300,6 +322,39 @@ export function renderTabBar({ prefix, tabs, accentColor, defaultTab, extraRight
 
   let _renderSeq = 0;
 
+  // 2026-10-25 Task 1.2/1.4：占位超时与「上一份完好内容」快照（陈旧写回 / 失败时恢复，不留半截 DOM）
+  let _loadingTimer = null;
+  let _lastGoodSnapshot = null;
+  // 去重期间又收到「重渲染当前 tab」的请求（setState / 再次点击）→ 本批完成后补渲一次最新态
+  const _renderRequested = new Set();
+  // 回退页签提示去重（同一请求 id 只提示一次，避免每次 setState 刷屏）
+  const _fallbackNotices = new Set();
+  // 2026-10-26 Task 2.4：状态驱动刷新（renderCurrent）不铺占位——
+  //   后台数据到达时不得让内容区 pointer-events:none / 压暗 / 插 loading 行（会打断 hover）。
+  let _backgroundRender = false;
+
+  /** 占位超时：promise 永不落定时解除灰化 + 停止动画 + 可见「加载超时」。 */
+  function _armLoadingTimeout(el) {
+    _clearLoadingTimer();
+    _loadingTimer = setTimeout(() => {
+      _loadingTimer = null;
+      if (!el || el.dataset.wsTabLoading !== '1') return;
+      _endTabLoading();
+      el.innerHTML = tabErrorCardHtml('加载超时');
+      el.querySelector('[data-ws-tab-error]')?.setAttribute('data-ws-tab-timeout', '1');
+      // 超时即视为该批失败：清掉 in-flight，否则再次点击 / 点重试只会拿到同一个永不落定的 Promise。
+      _renderInFlight.delete(currentTab);
+      el.querySelector('[data-ws-tab-retry]')?.addEventListener('click', () => {
+        const cur = tabs.find((t) => t.id === currentTab);
+        if (cur) { _renderInFlight.delete(cur.id); _safeRender(cur); }
+      });
+    }, TAB_LOADING_TIMEOUT_MS);
+  }
+
+  function _clearLoadingTimer() {
+    if (_loadingTimer != null) { clearTimeout(_loadingTimer); _loadingTimer = null; }
+  }
+
 
 
   /** 内容容器（tab-bar 生成的 #${contentId}） */
@@ -333,6 +388,8 @@ export function renderTabBar({ prefix, tabs, accentColor, defaultTab, extraRight
       if (typeof requestAnimationFrame === 'function') requestAnimationFrame(dim);
       else dim();
     }
+    // 2026-10-25 Task 1.4：占位必有时限（含首帧骨架）——超时解除灰化、停动画、给可见重试。
+    _armLoadingTimeout(el);
     // U3（2026-09-07）：overview「待答复」直达条槽（内容容器前兄弟）随切 tab 收起——条仅属 overview，
     // 由 overview 外壳 mount 时按需重建，避免条残留显示在其它 tab 内容上方
     const slot = el.previousElementSibling;
@@ -347,6 +404,8 @@ export function renderTabBar({ prefix, tabs, accentColor, defaultTab, extraRight
   /** 渲染完成/异常后收尾：移除 loading 行/骨架残留、还原置灰（内容由各 tab 自身 innerHTML 替换） */
 
   function _endTabLoading() {
+
+    _clearLoadingTimer();
 
     const el = _tabContentEl();
 
@@ -368,90 +427,147 @@ export function renderTabBar({ prefix, tabs, accentColor, defaultTab, extraRight
 
 
 
+  /** 渲染上下文解析（2026-10-25 Task 1.1）：壳传函数时**每次渲染取最新 state**，不再使用建栏时的冻结快照。
+   *  兼容旧调用方仍传对象（原样返回）。 */
+  function _resolveCtx(ctx) {
+    try {
+      if (typeof ctx === 'function') return ctx();
+      if (ctx !== undefined && ctx !== null) return ctx;
+      return typeof renderCtx === 'function' ? renderCtx() : renderCtx;
+    } catch (e) {
+      console.error('[tab-bar] 渲染上下文解析失败，按空上下文继续', e);
+      return {};
+    }
+  }
+
+  /** 重渲染当前 tab（陈旧写回纠正 / 去重补渲共用） */
+  function _rerenderCurrent() {
+    const cur = tabs.find((t) => t.id === currentTab);
+    if (cur) _safeRender(cur);
+  }
+
+  /** 恢复上一份完好内容（陈旧写回 / 失败时用；无快照则不动，交由随后的重渲染覆盖） */
+  function _restoreLastGood() {
+    const el = _tabContentEl();
+    if (el && typeof _lastGoodSnapshot === 'string') el.innerHTML = _lastGoodSnapshot;
+  }
+
   /** R3-U03：页签模块 import / 渲染失败 → 容器内统一错误卡（保留页签栏，不整页遮罩）。 */
-  function _renderTabError(tab, ctx) {
+  function _renderTabError(tab) {
     const el = _tabContentEl();
     if (!el) return;
     _endTabLoading();
-    el.innerHTML = tabErrorCardHtml();
-    el.querySelector('[data-ws-tab-retry]')?.addEventListener('click', () => {
-      // 清掉失败缓存后重新走同一渲染链（含占位 / 并行去重 / 陈旧纠正）。
-      _renderInFlight.delete(tab.id);
-      _safeRender(tab, ctx);
+    mountTabFailure(el, {
+      message: '这个页签暂时没加载出来',
+      onRetry: () => {
+        // 清掉失败缓存后重新走同一渲染链（含占位 / 并行去重 / 陈旧纠正）。
+        _renderInFlight.delete(tab.id);
+        _safeRender(tab);
+      },
     });
   }
 
+  /**
+   * 统一渲染生命周期（2026-10-25 Task 1.2/1.3/1.4）：
+   *   seq 序号 → 去重 → **切换前清 `dataset.currentTab`** → 等待 Promise → 失败可见（错误卡 + 重试）
+   *   → **陈旧写回先恢复上一快照再纠正当前 tab**（不得让旧 tab 的晚到覆盖新 tab，也不留半截 DOM）。
+   * @returns {Promise<boolean>} 本次渲染批次结束（永不 reject）
+   */
   function _safeRender(tab, ctx) {
 
-    if (!tab || typeof tab.render !== 'function') return;
+    if (!tab || typeof tab.render !== 'function') return Promise.resolve(false);
 
     let p = _renderInFlight.get(tab.id);
 
-    if (!p) {
-
-      try {
-
-        // U3a：渲染启动前先占位/置灰（首帧防 0 高弹跳；切 tab 防旧内容硬留到新内容突然整块替换）
-
-        const seq = ++_renderSeq;
-
-        _beginTabLoading();
-
-        // 跨 tab 共享容器约定 `dataset.currentTab`（见 today / group-progress / insight-view / calendar /
-        //   work-map / feedback / overview / notification / report-up 等十余处）＝「**标记符还在 ⇒ 我的骨架还在**」，
-        //   据此决定「是否重建骨架」。但**陈旧 tab 的覆盖写入不改该标记** ⇒ 上面那条「重渲染当前 tab」的纠正
-        //   会被该守卫挡住（标记仍指目标 tab、DOM 却已被换掉 ⇒ 目标 tab 找不到自己的 root 而静默 return，
-        //   残影照旧）。故：凡由本模块发起的渲染，先把该标记清掉，强制目标 tab 走**整段重渲染**、不留残影。
-        //   （状态变化重渲染走 `workspace-shell::_renderCurrentTab` → `tab.render` 直调，不经此处 ⇒ 该优化仍在。）
-        const _el0 = _tabContentEl();
-        if (_el0) delete _el0.dataset.currentTab;
-
-        p = Promise.resolve(tab.render(ctx));
-
-        const done = (ok) => {
-
-          if (seq === _renderSeq) {
-            _endTabLoading();
-            // R3-U03：reject / throw 一律落错误卡（仅当本次仍对着当前页签且容器里没有新内容时）
-            if (!ok && currentTab === tab.id) _renderTabError(tab, ctx);
-          }
-
-          if (_renderInFlight.get(tab.id) === p) _renderInFlight.delete(tab.id);
-
-          // 陈旧渲染纠正（2026-10-05 批次 386 · objective #7「tab 在切换和加载中存在加载不出来」）：
-          //   各 tab 的 render 由动态 import 驱动、**import 解析后才写共享容器** `#<prefix>-tab-content`
-          //   ⇒ 「先点（更早发起 import）的 tab 其模块后到」时，会把当前 tab 已渲染的内容覆盖掉
-          //   （症状＝高亮停在后点的 tab、内容却是先点的那个；快速连切时必现，读起来像「点了加载不出来」）。
-          //   故：本次渲染落定后若**已不是当前 tab**，则重渲染当前 tab 纠正之
-          //   （`_renderInFlight` 去重：当前 tab 若仍在渲染中则自然跳过，不会重复 import）。
-          if (ok && currentTab !== tab.id) {
-            const cur = tabs.find((t) => t.id === currentTab);
-            if (cur) _safeRender(cur, ctx);
-          }
-
-        };
-
-        p.then(() => done(true), (e) => {
-          console.error(`[tab-bar] tab「${tab.id}」渲染失败`, e);
-          done(false);
-        });
-
-      } catch (e) {
-
-        console.error(`[tab-bar] tab「${tab.id}」渲染异常`, e);
-
-        _endTabLoading(); // U3a：异常也收尾（防占位/置灰残留）
-        _renderTabError(tab, ctx);
-        return;
-
-      }
-
-      _renderInFlight.set(tab.id, p);
-
+    if (p) {
+      // 去重期间的新请求（setState / 再次点击同一 tab）→ 本批完成后按最新 state 补渲一次
+      if (currentTab === tab.id) _renderRequested.add(tab.id);
+      return p;
     }
 
-    p.catch(e => console.error(`[tab-bar] tab「${tab.id}」渲染失败`, e));
+    const seq = ++_renderSeq;
+    const el = _tabContentEl();
 
+    // U3a：渲染启动前先占位/置灰（首帧防 0 高弹跳；切 tab 防旧内容硬留到新内容突然整块替换）
+    // Task 2.4：状态驱动的后台刷新不铺占位（`_backgroundRender`），避免打断 hover / 整块变暗。
+    if (!_backgroundRender) _beginTabLoading();
+
+    // 跨 tab 共享容器约定 `dataset.currentTab`（见 today / group-progress / insight-view / calendar /
+    //   work-map / feedback / overview / notification / report-up 等十余处）＝「**标记符还在 ⇒ 我的骨架还在**」，
+    //   据此决定「是否重建骨架」。陈旧 tab 的覆盖写入不改该标记 ⇒ 纠正会被该守卫挡住（标记仍指目标 tab、
+    //   DOM 却已被换掉 ⇒ 目标 tab 找不到自己的 root 而静默 return，残影照旧）。
+    //   故：两条渲染路径（点击 / 状态刷新）都在渲染前清标记，强制目标 tab 走**整段重渲染**、不留残影。
+    if (el) delete el.dataset.currentTab;
+
+    let resolveInflight;
+    p = new Promise((resolve) => { resolveInflight = resolve; });
+    _renderInFlight.set(tab.id, p);
+
+    const finish = (ok) => {
+      if (_renderInFlight.get(tab.id) === p) _renderInFlight.delete(tab.id);
+      resolveInflight(ok);
+      if (_renderRequested.delete(tab.id) && currentTab === tab.id) {
+        Promise.resolve().then(() => { if (currentTab === tab.id) _safeRender(tab); });
+      }
+      return p;
+    };
+
+    let rendered;
+    try {
+      rendered = tab.render(_resolveCtx(ctx));
+    } catch (e) {
+      console.error(`[tab-bar] tab「${tab.id}」渲染异常`, e);
+      if (seq === _renderSeq) {
+        _endTabLoading();
+        _renderTabError(tab);
+      } else {
+        _restoreLastGood();
+        _rerenderCurrent();
+      }
+      return finish(false);
+    }
+
+    Promise.resolve(rendered).then(() => {
+      if (seq === _renderSeq && currentTab === tab.id) {
+        _endTabLoading();
+        const cur = _tabContentEl();
+        if (cur) _lastGoodSnapshot = cur.innerHTML;
+      } else {
+        // 陈旧写回（2026-10-05 批次 386 objective #7）：先恢复上一份完好内容（不留半截 DOM），
+        // 再重渲染当前 tab 纠正（去重：当前 tab 仍在渲染中则自然跳过）。
+        _restoreLastGood();
+        _rerenderCurrent();
+      }
+      finish(true);
+    }, (e) => {
+      console.error(`[tab-bar] tab「${tab.id}」渲染失败`, e);
+      if (seq === _renderSeq) {
+        _endTabLoading();
+        _renderTabError(tab);
+      } else {
+        _restoreLastGood();
+        _rerenderCurrent();
+      }
+      finish(false);
+    });
+
+    return p;
+
+  }
+
+  /** 状态变化触发的刷新（workspace-shell::_renderCurrentTab 唯一入口）——与点击共用同一生命周期。
+   *  2026-10-26 Task 2.4：与点击的区别只有「不铺占位」——后台数据到达时不得把内容区
+   *  `pointer-events:none` / 压暗并插入 loading 行（那会让正在 hover 的日历/列表失焦、整块闪一下）。
+   *  失败 / 陈旧写回 / 去重仍走同一套 `_safeRender` 分支。 */
+  function renderCurrent(ctx) {
+    const tab = tabs.find((t) => t.id === currentTab);
+    if (!tab) return Promise.resolve(false);
+    _backgroundRender = true;
+    try {
+      return _safeRender(tab, ctx);
+    } finally {
+      _backgroundRender = false;
+    }
   }
 
 
@@ -528,8 +644,9 @@ export function renderTabBar({ prefix, tabs, accentColor, defaultTab, extraRight
         const tab = tabs.find(t => t.id === tabId);
         currentTab = tabId;
         if (typeof onTabChange === 'function') onTabChange(tabId, tab);
-        // 懒加载支持：render 可能返回 Promise（动态 import），统一去重兜底（T-304）
-        _safeRender(tab, renderCtx);
+        // 懒加载支持：render 可能返回 Promise（动态 import），统一去重兜底（T-304）。
+        // 2026-10-25 Task 1.1：不传 ctx ⇒ 每次点击按 renderCtx() 取**最新 state**（切月 → 切走 → 切回）。
+        _safeRender(tab);
       });
     });
 
@@ -578,12 +695,19 @@ export function renderTabBar({ prefix, tabs, accentColor, defaultTab, extraRight
     if (fellBack) {
 
       console.warn(`[tab-bar] tab「${tabId}」不在当前可见清单（可能已被支部配置隐藏），回退到「${targetId}」`);
+      // 2026-10-25 Task 1.6：回退必须**可见说明**，不得「点 A 亮 B」无提示（同一请求只提示一次）。
+      if (tabId && targetId && !_fallbackNotices.has(tabId)) {
+        _fallbackNotices.add(tabId);
+        const from = (tabs.find((t) => t.id === tabId) || {}).label || tabId;
+        const to = (tabs.find((t) => t.id === targetId) || {}).label || targetId;
+        setTimeout(() => showToast('info', `「${from}」不在本角色的可见页签，已回到「${to}」`), 300);
+      }
 
     }
 
     tabId = targetId;
 
-    if (!tabId) return; // 无可渲染 tab（理论不发生：核心组固定保证至少一个可见）
+    if (!tabId) return Promise.resolve(false); // 无可渲染 tab（理论不发生：核心组固定保证至少一个可见）
 
     currentTab = tabId;
 
@@ -624,15 +748,16 @@ export function renderTabBar({ prefix, tabs, accentColor, defaultTab, extraRight
     _syncTabA11y(tabId);
     const tab = tabs.find(t => t.id === tabId);
 
-    // 懒加载支持：render 可能返回 Promise（动态 import），统一去重兜底（T-304）
+    // 懒加载支持：render 可能返回 Promise（动态 import），统一去重兜底（T-304）。
+    // 2026-10-25 Task 1.1/1.2：返回 Promise ⇒ 壳可等待首次渲染完成；ctx 缺省时按最新 state 解析。
 
-    _safeRender(tab, ctx || renderCtx);
+    return _safeRender(tab, ctx);
 
   }
 
 
 
-  return { html, bindEvents, activate, contentId, activeTab, tabs, get currentTab() { return currentTab; } };
+  return { html, bindEvents, activate, renderCurrent, contentId, activeTab, tabs, get currentTab() { return currentTab; } };
 
 }
 

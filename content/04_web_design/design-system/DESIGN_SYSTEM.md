@@ -2,7 +2,7 @@
 title: "设计系统"
 type: design
 role: "[工程师]+[AI]"
-last_updated: 2026-10-25
+last_updated: 2026-10-26
 status: active
 related_files: [docs/src/styles.css, ../evolution/DESIGN_METHODOLOGY.md, ../data/DATA_MODEL.md]
 ---
@@ -221,7 +221,7 @@ related_files: [docs/src/styles.css, ../evolution/DESIGN_METHODOLOGY.md, ../data
 - 角色色条（左侧 4px）使用对应 accent 色
 - `--accent-gold` 用于党徽相关元素（SVG 着色、装饰线）
 - 角色识别色在 SVG 关系网络节点、角色卡片、日历图例中必须严格按本表对应，不得混用
-- `--accent-amber` / `--accent-blue` / `--accent-emerald` 三个旧 Token 保留用于一般装饰用途（非角色识别），角色识别场景必须使用上述 8 个 `--accent-<role>` 变量
+- 角色识别色统一走 `--color-identity-<role>`（与 `constants.js::ROLE_COLORS` 同值，见 §2.13）；旧 `--accent-amber / --accent-blue / --accent-emerald` 已于 2026-10-26 删除，不得回潮
 
 **对象命名口径**：组织者 / 深度参与者是**活动工作组或专班工作组**的并列成员角色，不是独立的「项目组」；系统权限统一表述为「授权」（历史「赋权」同义）。
 
@@ -243,18 +243,21 @@ related_files: [docs/src/styles.css, ../evolution/DESIGN_METHODOLOGY.md, ../data
 
 ### 2.5 功能色（Functional）— 状态层（只表语义状态）
 
-| Token | 色值 | 色块 | 用途 |
-|-------|------|------|------|
-| `--functional-success` | `#10B981` | ██ | 成功/已完成 |
-| `--functional-warning` | `#F59E0B` | ██ | 警告/待处理 |
-| `--functional-error` | `#EF4444` | ██ | 错误/已逾期 |
-| `--functional-info` | `#3B82F6` | ██ | 信息/提示 |
-| API 模式青 | `teal-*` | ██ | API 模式标识（宣传委员） |
+> **2026-10-26 Task 4：token 改名 `--functional-*` → `--status-*`**。组件只允许读 `--status-*`；
+> `--functional-*` 仅作短期兼容别名（`var(--status-*)`），**禁止新增消费**。语义与色值不变。
+
+| Token（唯一可消费名） | 兼容别名 | 亮色值 | 暗色值 | 用途 |
+|-------|------|------|------|------|
+| `--status-success` | `--functional-success` | `#10B981` | `#34D399` | 成功 / 已完成 |
+| `--status-warning` | `--functional-warning` | `#F59E0B` | `#FBBF24` | 待处理 / 提醒 / 逾期 |
+| `--status-error` | `--functional-error` | `#EF4444` | `#F87171` | 阻断 / 失败 / 删除 / 驳回 |
+| `--status-info` | `--functional-info` | `#3B82F6` | `#60A5FA` | 信息 / 提示（白名单见 §12.14） |
 
 **使用约束**：
-- 仅用于 Badge、状态指示器、表单验证提示
+- 仅用于 Badge、状态指示器、表单验证提示、圆点 / 提示条 / 左条
 - 不可用作大面积背景色或装饰色
 - **状态层与品牌层/角色层互不混用**：状态蓝（进行中/信息）与角色蓝（组织委员/宣传委员）相区分；状态红（告警/超期）与品牌红（党建红主 CTA）相区分；状态琥珀（待处理）与品牌金（党徽金）相区分。同色相不同层按"语境"区分（见 §2.8 判例）。
+- 组件（`docs/src/**/*.js` 与 `styles.css` 组件段）只写 `--status-*`；`--functional-*` 只出现在 `:root` 别名定义处。
 
 **2026-10-18 改准（逾期 / 超期归 warning）**：上表 `--functional-error` 的用途中「已逾期」**改归** `--functional-warning`（琥珀）；`--functional-error` 只保留给**阻断 / 失败 / 删除 / 驳回**。上表原文保留为历史表述，现行口径以 §2.10「颜色四问与明暗档」为准。
 
@@ -394,12 +397,12 @@ related_files: [docs/src/styles.css, ../evolution/DESIGN_METHODOLOGY.md, ../data
 | **主题色 / 强调色** | `--app-accent` / `--app-accent-bg` / `--app-accent-border`（三件套；`styles.css :root` 有正式默认值，工作台由 `bootstrapPage` 覆盖） | tab 激活态、主按钮、次级按钮描边、选中项（chip / 列表行 / 卡片）、强调文字、强调卡边框、行内「主题色首字块」 | 状态语义（完成 / 告警 / 待处理 / 进行中）；品牌合规视觉（党徽金）；正文与边框的中性层级 | §2.7 规则1 · §2.8 ② · §2.8 兜底规则 |
 | ↳ 主题色·深色态派生 | `--acc-bg-dark` / `--acc-text-dark` / `--acc-border-dark` / `--acc-dot-dark`（**元素内联**变量；由 `styles.css` 的 `html.theme-dark [style*="--acc-*-dark"]` 规则消费；构造函数 `applyDark` / `accDarkVars` / `accDarkParts` / `dotDarkVars` 见 `docs/src/core/domain/constants.js`） | 主题色浅底块在**深色模式**下的同色系提亮（底 = 提亮色 @16%，字 = 提亮色，边框 = 提亮色 @35%；圆点 = 实色提亮）。**本批（2026-09-28）补登记**——此前只在代码注释里，规范未载 | 日间态；非主题色的状态块；**不得自造**本四件套之外的私有派生名（新增须先登记进本表） | §2.8 ② · §7.1 |
 | **语义动作类**（推荐的落法） | `.btn-accent`（主操作）· `.btn-accent-soft`（次级）· `.chip-accent-on`（chip 选中）· `.sel-accent-on`（行选中）· `.text-accent`（强调文字）· `.radio-accent` / `.checkbox-accent`（选择器）· `.accent-avatar`（主题色首字块） | 上表「主题色」各场景**优先用这些类**（类内已含日 / 夜两套与兜底） | 另写一份等价内联样式；另造同义类 | §2.8 语义动作类与选择器表 |
-| **功能色（状态层）** | `--functional-success` / `--functional-warning` / `--functional-error` / `--functional-info`；语义 Tailwind 类（`bg-amber-50` / `text-amber-700` / `bg-green-50` …）作日间落点 | 只表语义状态：完成 / 待处理 / 告警超期 / 进行中 / API 模式（Badge、状态指示器、表单校验提示） | 身份归属、装饰、大面积背景；与品牌红 / 品牌金 / 主题色互换 | §2.5 · §2.7 规则3 · §2.8 ③ |
-| ↳ 功能色·深色态 | `styles.css` 的 `html.theme-dark .bg-{red,orange,green,blue,amber}-{50,100}` 段（**已登记**映射） | 上列 Tailwind 状态类在深色模式的提亮映射 | 未登记的自造映射 | §7.2 |
+| **功能色（状态层）** | `--status-success` / `--status-warning` / `--status-error` / `--status-info`（`--functional-*` 仅短期别名）；语义 Tailwind 类（`bg-amber-50` / `text-amber-700` / `bg-green-50` …）作日间落点 | 只表语义状态：完成 / 待处理 / 告警超期 / 进行中 / API 模式（Badge、状态指示器、表单校验提示） | 身份归属、装饰、大面积背景；与品牌红 / 品牌金 / 主题色互换 | §2.5 · §2.7 规则3 · §2.8 ③ |
+| ↳ 功能色·深色态 | `styles.css` 的 `html.theme-dark` 段（**已登记**映射） | 上列 Tailwind 状态类在深色模式的提亮映射 | 未登记的自造映射 | §7.2 |
 | **中性阶** | `--neutral-0…900` | 文字层级（`--neutral-700/800` 正文标题）、边框（`--neutral-200`）、分割线、占位（`--neutral-400`）、辅助文字（`--neutral-500`） | 任何身份 / 状态 / 强调语义（§2.7 规则5「灰只做中性」） | §2.4 · §2.7 规则5 · §2.8 ④ |
 | **表面 / 背景** | `--surface-page`（页面底）· `--surface-card`（卡片）· `--surface-elevated`（浮层）· `--surface-header` · `--surface-sidebar` · `--surface-hover` · `--surface-active` | 组件层级深度：页面 / 卡片 / 浮层 / 悬停 / 激活 | 文字色；作强调语义；`--neutral-50` **不作页面底色** | §2.6 · §2.7 规则4 |
 | **品牌统一层** | `--party-red`(`#CE1126`) · `--party-gold`(`#FFD700`) / `--party-gold-light` / 金黄字 `#A16207` | 主 CTA、党务标签、强调卡边框、主题党日类别、待办行动按钮、通知徽章 | 角色识别（色条 / 标签）、状态指示、正文、任何「个人可选的强调 / 选中语义」 | §2.2 · §2.3.1 |
-| **角色识别色** | `ROLE_COLORS`（`docs/src/core/domain/constants.js`，角色键 → `{bg,text,border}`）· `--accent-<role>`（`styles.css`） | 身份标识场景：SVG 关系网络节点、角色卡片、日历图例、成员 chips、色条 | 主题色场景（tab 激活 / 按钮 / chips 选中——那归 `--app-accent`）；活动类别维度 | §2.3.2 · §2.7「角色色系与活动色系彻底分离」 |
+| **角色识别色** | `ROLE_COLORS`（`docs/src/core/domain/constants.js`，角色键 → `{bg,text,border}`）· `--color-identity-<role>`（`styles.css`，同值 token） | 身份标识场景：SVG 关系网络节点、角色卡片、日历图例、成员 chips、色条 | 主题色场景（tab 激活 / 按钮 / chips 选中——那归 `--app-accent`）；活动类别维度 | §2.3.2 · §2.13 |
 | **活动类别色** | `ACTIVITY_CAT_COLOR` / `getActivityTypeColors()`（`constants.js`） | 活动类型维度：日历圆点、类型徽章、主题党日系 | 角色身份维度 | §2.7 同上 |
 | **业务域识别色（现行：只给「项目」）** | `WORK_DOMAIN_COLORS`（`docs/src/core/domain/constants.js`，**恰一键**：`project`） | 待办「业务域」胶囊（今天页行内）——**2026-10-05 `D-787` 续 · 支书圈乙**「**只给『项目』配红金**」；色**不新造**——取**会务红族**（与「三会一课红」`ACTIVITY_CAT_COLOR` 同族——「红金」色彩语言里**红＝党色 / 项目主色**），**金族留给活动类别色**、不在两处重复占用 | 其余五类（考勤纪律 / 考察 / 成员发展 / 上报与汇报 / 归档宣传）**不配色**（中性胶囊＝不强调）；状态语义（完成 / 告警 / 超期）——那归功能色行 | §2.9 本表 ＋ §2.7 规则5（灰只做中性） |
 
@@ -622,6 +625,108 @@ origin 的「主题色字」在绿 / 天蓝 / 雾紫 / 亮蓝上只有 2.09 / 2.
 派生主题色；把活动类别色 / 党徽金写成主题 token；在主题表外新增主题色 hex（守卫：`theme-palette-guard`，Task 9）。
 **兼容边界**：`--app-accent-bg / -border / -text / -deep / -strong / -ink` 为**批次 506 迁移后删除**的别名，
 新代码只写 8 个新 token。
+
+### 2.12 主题色层（2026-10-26 Task 4 立 · 色盘值不改，只补规则）
+
+> **单一源**：`docs/src/core/domain/constants.js → ACCENT_COLORS`（7 主题 × 亮/暗 × 9 手选 hex）；
+> 注入 `docs/src/core/boot/theme.js → accentThemeTokenVars / applyAccentThemeTokens`；
+> CSS `docs/src/styles.css` 只放「默认金两套原始变量 + 亮/暗选边别名」。
+> **本层色值自批次 505/508 起已验证，Task 4 一字未改**（126 个 token 全量核 = `theme-palette-guard::T1/T2/G2`）。
+
+**7 主题 × 9 token**：`gold / red / orange / green / cyan / blue / purple` × `base / softBg / softBorder / softText / strongBg / strongInk / strongHover / hoverBg / activeBg` × `light / dark`。
+
+**允许承担的角色（只有四类）**
+
+| 角色 | 组合 | token |
+|---|---|---|
+| 主行动（主 CTA） | 实底 + 字 | `--app-accent-strong-bg` + `--app-accent-strong-ink`（hover 用 `--app-accent-strong-hover`） |
+| 选中 / 激活 | 浅底 + 边 + 深字 | `--app-accent-soft-bg` + `--app-accent-soft-border` + `--app-accent-soft-text` |
+| 链接 | 深字（全站唯一） | `--color-link` → `--app-accent-soft-text` |
+| 身份标签（页头角色徽章） | 实底 + 字 | `--app-accent-strong-bg` + `--app-accent-strong-ink` |
+
+其余组合：hover = `--app-accent-hover-bg`，按压 = `--app-accent-active-bg`，焦点环 = `--focus-ring`（暗色 = `--app-accent`）。
+
+**禁止借用（硬约束）**
+
+1. **状态**（完成 / 待处理 / 逾期 / 失败 / 进行中）——只走 `--status-*`（§2.5 / §2.13）；
+2. **活动类别**（三会一课 / 主题党日 / 其他）——只走 `--color-category-*`，不随主题切换；
+3. **身份色**（角色左条 / 圆点 / 角色卡）——只走 `--color-identity-*`（与 `ROLE_COLORS` 同源）；
+4. **大面积背景**（页面底、卡片底、栏目头、表单区、整卡铺色、渐变卡头）——一律中性 / Surface；
+5. **正文与结构性边框**——走 `--color-text-*` / `--color-border-*` / 中性阶，不用主题色当文字或分隔线；
+6. **彩色按压**——按压只用 `--surface-active` / `--app-accent-active-bg` / `--party-red-active`，
+   不得为按钮另造彩色 active 底或位移/缩放。
+
+**消费者清单（改主题只改这张表）**：`core/domain/constants.js`（表 + 查表 API）、`core/boot/theme.js`（注入）、
+`core/boot/bootstrap.js` / `entries/pages/settings-entry.js` / `components/governance/org-setup-wizard.js`（注入点）、
+`components/shell/appearance-controls.js`（7 项选择器）、`components/shell/tab-bar.js` / `components/ui/*`（读别名）、
+`docs/src/styles.css`（默认金两套 + 别名）。
+
+**不改值的证明**：`node --test test/theme-palette-guard.test.mjs` 的 T1（7×2×9=126 个合法 hex）、
+T2（soft/ink/strong/sat 全量读数）、G2（gold 逐值冻结）保持绿；Task 4 diff 只新增 `--status-*`、
+`--color-category-*`、`--color-identity-*`、`--color-link`、`--color-text-*`、`--color-border-*`，未触碰 `ACCENT_COLORS`。
+
+**规范编号**：SD-46（两层分工的布尔判据与守卫见 §12.15）· **判例**：CASE-DESIGN-024。
+
+### 2.13 功能色层（2026-10-26 Task 4 立 · 与主题色层并列）
+
+> 功能色层有自己的 token、暗色值与使用边界；**只允许小面积**（徽章 / 圆点 / 左条 / 图例 / 提示条）。
+> 栏目头、表单区、正文链接、整卡铺色**不得**借功能色。
+
+**① 状态 4 色**（`--status-*`，见 §2.5）：success / warning / error / info。light / dark 各一套，
+暗色在 `html.theme-dark` 段重定义；`--functional-*` 仅为别名。
+
+**② 类别 3 色**（固定语义，不随主题切换）
+
+| 类别 | 亮色 | 暗色（与状态色分开） | token |
+|---|---|---|---|
+| 三会一课 | `#CE1126` 党建红 | `#FCA5A5`（≠ danger `#F87171`） | `--color-category-three-meetings` / `-dark` |
+| 主题党日 | `#A16207` 金黄字＋`#FFD700` 亮金点 | `#FCD34D`（≠ warning `#FBBF24`） | `--color-category-theme-day` / `-dark` / `-dot` |
+| 其他 | `#6B7280` | `#CBD5E1` | `--color-category-other` / `-dark` |
+
+- 唯一判据仍是 `constants.js::activityTypeTone(type)`；组件不得自己写类别色。
+- `[data-tone="party-red"]` 暗色：文字 `#FCA5A5`、底 `color-mix(#CE1126 16%, #0F172A)`、边 `#CE1126 35%`，
+  **不再与 `[data-tone="danger"]`（`#2A171A` / `#F87171` / `#5A2A2F`）逐值相同**。
+- `badge--brand` 暗色文字改读 `--color-category-three-meetings-dark`，**不再借 `--functional-error`**。
+
+**③ 身份色**（单一源）
+
+- 唯一源：`constants.js → ROLE_COLORS[role].text / .textDark`（含 `deputy-leader` 继承 leader）。
+- CSS 侧同值 token：`--color-identity-<role>` / `--color-identity-<role>-dark`（`role ∈ secretary / deputy-secretary /
+  leader / commissioner / org-commissioner / prop-commissioner / disc-commissioner / organizer / deep / participant /
+  initiator / all`）。两处逐值相等由 `theme-palette-guard` 核对；改角色色只改 `ROLE_COLORS` 并同步该组 token。
+- 使用面：help 角色卡（`help.html .rh-card`）、inspector 角色横幅左条、日历/图例圆点、关于页角色图例。
+  **只作小面积**：左条 3px、圆点、卡片底 / 边框、图例；名称 / 说明文字保持中性（守正文对比度）；
+  **不进按钮、不进状态徽章、不作整页背景**。
+- 旧 `--accent-<role> / --accent-<role>-light`（CSS 第二份角色色）已删除；`disc/review-tab.js` 等消费方改读
+  `--app-accent`（浮窗强调）或 `--color-identity-*`（身份标记）。
+
+**④ 语义别名**（组件只读这一层）
+
+| Token | 指向 | 用途 |
+|---|---|---|
+| `--color-link` | `--app-accent-soft-text` | 全站唯一链接色（帮助 / 速查 / 角色色链接 / about·help 内联链） |
+| `--color-text-primary` / `-secondary` / `-tertiary` | `--neutral-800 / 600 / 500` | 正文 / 次要 / 辅助文字 |
+| `--color-border-subtle` / `-strong` | `--neutral-200 / 300` | 轻分隔 / 可辨边框 |
+
+**⑤ 已删除的 12 个零消费者 token**（Task 4）：`--accent-sky`、`--accent-indigo`、`--accent-violet`、
+`--accent-violet-light`、`--accent-blue`、`--accent-emerald`、`--accent-amber`、`--status-live`、`--blue-hover`、
+`--sky-hover`、`--error-dark`、`--brand-amber-dark`。删除前逐项 Grep 消费者并迁移：
+`--accent-blue/emerald/amber` → `--color-identity-*` / `--app-accent` / `--status-warning`；
+`--accent-sky` → `--status-info`；`--brand-amber-dark` → `--color-category-theme-day`；
+其余 5 项确认零消费者后直接删除。守卫 `theme-palette-guard` 增「僵尸 token 零消费者」。
+
+**⑥ 对比度实测（WCAG 2.x 相对亮度；详见 §2.11 7×2 表）**：正文 `#374151` on `#FFFFFF` = 10.31:1；
+次要 `#4B5563` = 7.56:1；辅助 `#6B7280` = 4.83:1；链接（金主题亮）`#6E4E08` on `#FBF3DC` = 6.88:1；
+暗色链接（金主题暗）`#E8C97A` on `#2F2717` = 9.18:1；状态徽章 success `#15803D` on `#DCFCE7` = 4.57:1；
+warning `#92400E` on `#FEF3C7` = 6.37:1；danger `#B91C1C` on `#FEF2F2` = 5.91:1；
+类别三会一课 `#CE1126` on `#FEF2F2` = 5.14:1；类别主题党日 `#A16207` on `#FEF9C3` = 4.58:1；
+暗色三会一课 `#FCA5A5` on `#2E1629` = 8.76:1；暗色主题党日 `#FCD34D` on `#2E2510` = 10.49:1；
+暗色 danger `#F87171` on `#2A171A` = 6.14:1；暗色正文 `#CBD5E1` on `#141D2F` = 11.35:1。
+**身份色原色作文字时**：支书 `#B91C1C` on 白 = 6.47:1（达标）；组长 `#22C55E` = 2.28:1、组织委员 `#0EA5E9` = 2.77:1（不达标）
+⇒ 角色卡 / inspector 横幅的**文字保持中性**，身份色只作底 / 边框 / 3px 左条 / 圆点（不承担正文对比度）。
+**不达标只报告、不改主题色盘值**（唯一同值 bug：暗色 `party-red` ≡ `danger`，本批已改为可辨值）。
+
+**规范编号**：SD-46（两层分工的布尔判据与守卫见 §12.15）· **判例**：CASE-DESIGN-024。
 
 ---
 
@@ -941,7 +1046,7 @@ li + li { margin-top: 0.25em; }
 
 **用色来源**：
 - 可交互强调卡（档位 1）：**品牌金** `var(--party-gold)`（品牌统一层，色值权威见 §2.3.1）
-- 角色职责核心卡（档位 2）：`--accent-<role>`（主色）或 `--accent-<role>-light`（低饱和 border-left / 浅底，styles.css :root L46 已声明）——属角色识别层，保留主题色
+- 角色职责核心卡（档位 2）：`--color-identity-<role>`（主色 / 左条 / 圆点；与 `ROLE_COLORS` 同值）——属身份色层，**只作小面积**，不替代主题色
 - 品牌/活动色：党徽金 `var(--party-gold)`（inspector 品牌卡边框；实现中 inspector.js 内联 `#EAB308` 不入权威色板，待收敛至 `var(--party-gold)`）
 - 嵌套灰色：`--neutral-200`
 
@@ -1778,12 +1883,12 @@ li + li { margin-top: 0.25em; }
 
 ### 4.24 帮助注释（Help Note · 2026-10-19 立）
 
-> **一句话**：帮助注释＝**一句正文 + 一个蓝链**；正文只说明「这一屏怎么用」，长口径进 `help.html`。
+> **一句话**：帮助注释＝**一句正文 + 一个链接**；正文只说明「这一屏怎么用」，长口径进 `help.html`。
 
 | 项 | 规定 |
 |---|---|
 | 正文 | **≤ 1 句**；12px 中性灰（`--neutral-500`）；`display:block` |
-| 链接 | **恰好 1 个**；信息蓝（`--functional-info`）；文案统一「见帮助 · <主题>」 |
+| 链接 | **恰好 1 个**；全站单一链接色 `--color-link`（＝主题 soft-text）；静态下划线作非颜色线索；文案统一「见帮助 · <主题>」 |
 | 位置 | 主对象**之后**或折叠内（§10.5「说明后置」） |
 | 统一类 | `.help-note`（容器）＋ `.help-note__link`（链接） |
 
@@ -2382,13 +2487,18 @@ li + li { margin-top: 0.25em; }
 
 **链接（`a`）单一源**
 
-| 场景 | 类 | 颜色 | hover |
+| 场景 | 类 | 颜色 | 非颜色线索 |
 |---|---|---|---|
-| 页面内跳转 / 行尾「查看全部 →」/ 返回链接 | `.link`（或等价别名 `.text-accent`） | `--app-accent-soft-text` | 只加下划线（`underline-offset: 2px`），不改色 |
+| 页面内跳转 / 行尾「查看全部 →」/ 返回链接 | `.link`（或等价别名 `a.text-accent`） | `--color-link`（＝`--app-accent-soft-text`） | 静态下划线（`underline-offset: 2px`）；hover 不改色 |
+| 帮助注释链接 | `.help-note__link` | `--color-link` | 静态下划线 |
+| 速查链接（help 角色 × 功能域矩阵） | `a.qn-fn` / `a.qn-fn-*` | `--color-link` | 静态下划线 + 尾随 `›`；角色色只保留在边框 |
 | 信息态（徽章 / 状态字 / 带 `bg-*` 的按钮型链接） | 既有 `.badge--info` / `tint-*` | 固定 info 蓝或语义色 | 按各自组件规则 |
 
+- **全站单一链接色**：`--color-link`（2026-10-26 Task 4 立）。帮助链接、速查链接、角色色链接、
+  about/help 内联蓝链一律并入；角色色**只能**留在边框 / 左条 / 圆点，不得当链接文字色。
 - 蓝色**不再承担链接**；`text-blue-*` 只允许出现在信息态徽章、状态色 map、表单控件修饰上。
 - 禁止在 `<a>` 上写 `text-blue-600 hover:text-blue-800` 这类 Tailwind 组合。
+- 链接必须有**下划线或箭头**等非颜色线索；可点箭头不得用 `neutral-400`（≥`neutral-600` 或 `--color-link`）。
 
 **按压（`:active`）**
 
@@ -2458,29 +2568,39 @@ li + li { margin-top: 0.25em; }
 
 ### 12.14 活动类别与信息态色（批次 508）
 
-| 类别 | tone | 徽章 | 色 |
-|---|---|---|---|
-| 三会一课（支部党员大会 / 支委会 / 党小组会 / 党课 / 组织生活会） | `party-red` | `badge--brand` | `#CE1126`（党建红，**不是** danger 的 `#B91C1C`） |
-| 主题党日及载体（理论学习 / 实践参访 / 交流座谈 / 共建） | `gold` | `badge--gold` | 亮金底 + `#A16207` |
-| 未登记 | `neutral` | `badge--neutral` | 中性 |
+| 类别 | tone | 徽章 | 亮色 | 暗色（与状态色分开） |
+|---|---|---|---|---|
+| 三会一课（支部党员大会 / 支委会 / 党小组会 / 党课 / 组织生活会） | `party-red` | `badge--brand` | `#CE1126`（党建红，**不是** danger 的 `#B91C1C`） | `#FCA5A5`（**不是** danger 的 `#F87171`） |
+| 主题党日及载体（理论学习 / 实践参访 / 交流座谈 / 共建） | `gold` | `badge--gold` | 亮金底 + `#A16207` | `#2E2510` 底 + `#FCD34D`（**不是** warning 的 `#FBBF24`） |
+| 未登记 | `neutral` | `badge--neutral` | `#6B7280` | `#CBD5E1` |
 
+- 类别 token：`--color-category-three-meetings` / `--color-category-theme-day` / `--color-category-other`
+  （及 `-dark` / `-dot`）；只允许徽章 / 圆点 / 左条 / 图例。
 - 唯一判据：`constants.js::activityTypeTone(type)`；组件不得自己写类别色，也不得用 `info` 兜底。
 - **状态色不借类别色**：进行中＝warning、完成＝success、打回＝warning、计数＝neutral。
+- **暗色类别不借状态色**：`[data-tone="party-red"]` 暗色文字 `#FCA5A5` ≠ danger `#F87171`；
+  主题党日暗色 `#FCD34D` ≠ warning `#FBBF24`；`badge--brand` 暗色文字不读 `--functional-error`。
 - 允许 info 蓝的白名单：通知「重要」、活动「已发布」、汇报路由态、建议 / 选修、配置项标注（守卫逐条登记，新增即红）。
 - 守卫：`activity-tone-guard` · 判例：CASE-DESIGN-010（SD-31）
 
-### 12.15 消息承载、逐人状态、卡内构成、分组胶囊与 IA 收敛（批次 510 · 2026-10-25 批次 511 补 SD-37…SD-40）
+### 12.15 消息承载、逐人状态、卡内构成、分组胶囊、IA 收敛与视觉层级（批次 510 · 2026-10-25 批次 511 补 SD-37…SD-40 · 2026-10-26 批次 512 补 SD-41…SD-46）
 
 | ID | 适用范围 | 判据（Boolean） | 守卫 / 检查点 | 判例 |
 |---|---|---|---|---|
 | SD-33 | 公告 / 系统通知 / 私信的列表、详情与所有入口 | 列表面唯一＝`messages.html`；全貌面唯一＝`notice.html?id=`；公告外的消息必带 `targetType+targetId`（公告可 `kind='announcement'`）；`targetModule` 页面级兜底、`direct` 直跳、`resolveNoticeUrl` 计数为 0 | `notice-deeplink-guard` / `notice-audience` / `notice-message` | CASE-DESIGN-012 |
 | SD-34 | 消息逐人状态；活动 / 会议状态；mock 种子字段 | 已读只写 `reads[]`；用户归档只写 `archivedBy[]`（可恢复）；系统归档写 `archived`（不可恢复）；回执独立；全局 `read` / `archived` 不得替代逐人状态；**进入详情即写入本人 `reads[]`（进入即已读）**；**回执区不因已读隐藏**；**导航前不预写已读**；活动 / 会议状态由唯一派生函数现算，第二套状态机与种子派生字段计数为 0 | `notice-audience`（N13–N16）/ `notice-message`（N5）/ `state-enum-guard` / `mock-api-parity-structure` | CASE-DESIGN-013 / 014 / 016 |
 | SD-35 | 工作台 tab 内卡片与卡头 | 一 tab 恰 1 个 H2；卡头 H3 带范围且不复述页签名；说明文字在主体之后；同口径指标一屏只出现 1 次；标题左、计数 / 动作右 | `workbench-audit-coverage` / `workbench-revision-contract` | CASE-DESIGN-015 |
-| SD-36 | 页签分组名（含首组） | 组名可见且为非按钮胶囊：非强调色、无 hover、`role="presentation"`、不进 tab 序列；≤1280px 只隐藏文字、保留分隔 | `doc-consistency::S3`（分组名）＋人工检查点（键盘序列不含组名） | —（本批无判例） |
+| SD-36 | 页签分组名（含首组） | 组名可见且为非按钮胶囊：非强调色、无 hover、`role="presentation"`、不进 tab 序列；≤1280px 只缩小内边距 / 字号，不得隐藏文字或分隔（可见性细则见 SD-42） | `doc-consistency::S3`（分组名）＋ `ui-control-system-guard::V2` ＋人工检查点（键盘序列不含组名） | —（本批无判例） |
 | SD-37 | 「协作与知情 · 知情查看」及各台 `views` | 一级分段只放「活动工作组 / 专班工作组」两枚同级按钮；「其他党小组」独立成区（二级入口，不与工作组同排）；各台 `views` 必含 `workgroup`，组长台另含 `group`；`{workgroup,taskforce,group}` 同排判红 | `docs-governance-guard`（H-T1 / H-T2）＋ `workbench-audit-coverage` | CASE-DESIGN-017 |
 | SD-38 | 折叠、菜单、浮窗三类交互 | 阅读型折叠＝原生 `details/summary`；菜单＝`MenuButton`（`button` + `aria-expanded` + `aria-controls`）；浮窗＝`Modal`；折叠状态可由 `open` 属性静态回读、菜单状态可由 `aria-expanded` 静态回读；同一文件同类折叠只用一种原语 | `ui-control-system-guard`（交互元素 / 状态回读 / 单一原语）＋人工检查点（键盘可达） | CASE-DESIGN-018 |
 | SD-39 | 全部交互元素 | `button` / `summary` / `role="button"` 的直接内容内 `h1..h6` 与 `role="heading"` 计数为 0；标题为兄弟节点，交互元素用 `aria-labelledby` 关联标题 | `ui-control-system-guard`（T3-1：交互元素内无标题）＋人工检查点（键盘可达） | CASE-DESIGN-018 |
 | SD-40 | 页签注册表与页内落点 | 一个功能恰 **1 个页签位**：同一台内不得重复注册同一页签；跨台同一功能要么同名同组件（通用面），要么只留一个本位页签、其余降级为页内区 / 折叠卡并配深链重定向与 help 新落点；已降级页签名不得以独立页签回潮 | `catalog-sync::T6`（IA 地图 ≡ 注册表 · 45 条 · 旧名不得重注册）＋ `doc-consistency::S1/S2` | CASE-DESIGN-019 |
+| SD-41 | `.card` / `.metric-band` / `.list-row` 等容器与行载体 | 同一视觉类只承担一种语义：可交互摘要＝`button`/`a` ＋ `--interactive` 档，只读摘要＝`span`/`div` ＋ `--static` 档；`section` 必带 `aria-label` 或 `aria-labelledby`（无名的 `section.card` 计数为 0）；`metric-band` 只有 `--static` / `--interactive` 两档（未分档计数为 0）；`.list-row` 四种载体由 `data-row-type="display\|nav\|action\|master"` 区分且不混用 | `ui-control-system-guard::V1` ＋ `frontend-foundations-guard::F8` ＋人工检查点（读屏 `group` / `region` 与视觉一致） | —（本批无独立判例；交互语义边界见 CASE-DESIGN-018） |
+| SD-42 | 页签分组胶囊（含首组） | 所有受支持宽度（390 / 768 / 1024 / 1280 / 1440）组名胶囊均可见：`display:none` / `visibility:hidden` 计数为 0；高度 ≥24px；与页面底的形状对比 ≥1.5:1（1px `neutral-400` 描边，实测约 2.5:1）；`flex-shrink:0`；≤1280px 只缩内边距（1px 5px）与字号（11px），页签条横向滚动 | `ui-control-system-guard::V2` ＋ `ui-contrast-guard::K3` ＋ `page-sweep`（390px `groupLabelsVisible` > 0） | CASE-DESIGN-020 |
+| SD-43 | 全部可点元素（动作按钮 / 纯文字动作 / 图标按钮 / 行载体） | 动作按钮必有 1px 描边或底色；`btn-ghost` 只允许非动作行载体（白名单 6 处、逐条写明可见线索）；纯文字动作挂 `.btn-text`（静态下划线 ＋ 尾随箭头，箭头不得 `neutral-400`）或 `.link`；图标按钮视觉 32×32、命中区 ≥44×44、必有 `aria-label`；行载体有可见 hover（底 / 边 / 3px 左条，色差 ≥1.2:1）；`cursor:pointer` 不算线索 | `ui-control-system-guard::V4–V7` ＋ `frontend-foundations-guard::F8` ＋人工检查点（键盘序列） | CASE-DESIGN-021 |
+| SD-44 | 工作概况等工作表（`.wo-lines-table` / `.data-table--fixed`） | 关键宽表 `table-layout: fixed` ＋ 显式列宽模板：工作分工 5 列为 18% / 16% / 9% / 9% / 48%（`colgroup` 列类齐备）；末列 `text-align:end` ＋ 16px 尾部内边距；首列 `nowrap` 同时给 `max-width`；≤640 卡片化时动作列 `justify-content:flex-start` | `ui-control-system-guard::V3` ＋人工检查点（1440 / 1280 末列贴列尾） | CASE-DESIGN-022 |
+| SD-45 | 活动 / 专班的全部详情入口 | 每个入口在 `OBJECT_ROUTE_ENTRIES` 只声明一种 mode（`direct` / `locate`）并写理由，未知入口 → `none`；缺 id / 跨支部普通角色 → `none`（不渲染可点入口），党委 / 组织员放行；已归档活动与专班终态可点但 `readOnly`，详情页写口全关并显示「已归档，只读保留」；`locate` 入口同页预览 ＋「打开完整页」，同一页只有一个完整详情落点；详情 href 只经 `objectDetailHref` / `resolveObjectRoute`（裸 `activity.html?id=` / `taskforce.html?id=` 生成点计数为 0）；可点卡片 / 行具备 `role` ＋ `tabindex="0"` ＋ Enter/Space 或原生 `a`/`button` | `object-route-guard::R1–R8` ＋ `frontend-foundations-guard::F8` ＋人工检查点（深链失败提示） | CASE-DESIGN-023 |
+| SD-46 | 主题色层与功能色层的全部消费者 | 主题色层沿用 7 主题 × 亮/暗 × 9 token，色盘值不改，只承担主行动 / 选中 / 链接 / 身份标签四类；功能色层 `--status-*` / `--color-category-*` / `--color-identity-*` 各有亮暗值，只用于徽章 / 圆点 / 左条 / 图例 / 提示条；两层不互借：状态 / 类别 / 身份不写主题 token，主题色不进大面积背景与正文；`--functional-*` 只作别名；暗色类别红 / 金 ≠ danger / warning；12 个零消费者 token 计数为 0；CSS 身份色与 `ROLE_COLORS` 逐值相等 | `theme-palette-guard::T1/T2/T5/T8/T9` ＋ `link-color-guard::L3/L6–L8` ＋ `ui-contrast-guard` ＋人工检查点（关键配对对比度实测） | CASE-DESIGN-024 |
 
 > 其余条目（SD-01…SD-21）的判例迁移登记为后续批次。
 

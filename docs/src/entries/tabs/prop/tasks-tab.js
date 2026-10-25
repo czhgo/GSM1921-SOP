@@ -2,20 +2,20 @@
 // 宣传委员工作台 Tab：宣传任务（T-279 M3 拆分，照 M2 样板）
 // 任务状态流转：待接收 → 进行中 → 已提交（seed 常量 + mockDB 持久化，刷新不再丢失）。
 
-import { mockDB } from '../../../core/domain/domain.js?v=20261025a';
-import { persist } from '../../../data/data-adapter.js?v=20261025a';
-import { showToast, downloadCSV, _fmtDate, todayLocal, escHtml } from '../../../core/base/utils.js?v=20261025a';
-import { renderTabHeader, renderCardHeader } from '../../../components/shell/page-frame.js?v=20261025a';
-import { generateId } from '../../../core/base/id.js?v=20261025a';
-import { isActivityLive, ROLE_LABELS } from '../../../core/domain/constants.js?v=20261025a';
-import { ORG_SUBJECT_LABELS } from '../../../core/domain/work-map.js?v=20261025a';
-import { openVoidModal } from '../../../components/ui/void-record.js?v=20261025a';
-import { filterActive } from '../../../services/governance/soft-void.js?v=20261025a';
+import { mockDB } from '../../../core/domain/domain.js?v=20261025b';
+import { persist } from '../../../data/data-adapter.js?v=20261025b';
+import { showToast, downloadCSV, _fmtDate, todayLocal, escHtml } from '../../../core/base/utils.js?v=20261025b';
+import { renderTabHeader, renderCardHeader } from '../../../components/shell/page-frame.js?v=20261025b';
+import { generateId } from '../../../core/base/id.js?v=20261025b';
+import { isActivityLive, ROLE_LABELS } from '../../../core/domain/constants.js?v=20261025b';
+import { ORG_SUBJECT_LABELS } from '../../../core/domain/work-map.js?v=20261025b';
+import { openVoidModal } from '../../../components/ui/void-record.js?v=20261025b';
+import { filterActive } from '../../../services/governance/soft-void.js?v=20261025b';
 
 // ── 宣传任务 mock 数据（2026-08-05：seed 常量 + mockDB 持久化，刷新不再丢失）──
 // 2026-09-28 批次 234：常量**搬到内容单一源** `docs/src/data/mock/prop.js`（服务端 `server/seed.js` 同源 import，
 //   原先此处私有常量被服务端逐字复刻一份 ⇒ 两份字面量，本批收成一份；取值与顺序一字未改）。
-import { PROP_TASKS_SEED } from '../../../data/mock/prop.js?v=20261025a';
+import { PROP_TASKS_SEED } from '../../../data/mock/prop.js?v=20261025b';
 
 // 从 mockDB 读取（seed 兜底注入一次）；写操作须更新 mockDB.propTasks 后调用 persist()
 function _loadPropTasks() {
@@ -81,14 +81,14 @@ export function renderBoard(container, ctx = {}, opts = {}) {
     })}
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
       <div class="card rounded-xl p-0 overflow-hidden">
-        <div class="px-4 py-3 font-title-cn text-sm font-bold tint-section tint-section--head" data-tone="warning">待接收 (${pending.length})</div>
+        <div class="px-4 py-3 font-title-cn text-sm font-bold tint-section tint-section--head" data-tone="neutral">待接收 (${pending.length})</div>
         <div class="p-3 space-y-2 min-h-[120px]">
           ${pending.length === 0 ? '<p class="text-xs text-gray-500 text-center py-6">暂无待接收任务</p>' :
             pending.map(t => _renderTaskCard(t, activityMap)).join('')}
         </div>
       </div>
       <div class="card rounded-xl p-0 overflow-hidden">
-        <div class="px-4 py-3 font-title-cn text-sm font-bold tint-section tint-section--head" data-tone="info">进行中 (${inProgress.length})</div>
+        <div class="px-4 py-3 font-title-cn text-sm font-bold tint-section tint-section--head" data-tone="neutral">进行中 (${inProgress.length})</div>
         <div class="p-3 space-y-2 min-h-[120px]">
           ${inProgress.length === 0 ? '<p class="text-xs text-gray-500 text-center py-6">暂无进行中任务</p>' :
             inProgress.map(t => _renderTaskCard(t, activityMap)).join('')}
@@ -97,7 +97,7 @@ export function renderBoard(container, ctx = {}, opts = {}) {
     </div>
     <!-- B08（2026-10-20）：终态「已提交」不再与两个行动列等权——进行中/待接收在前，已提交默认折叠（标题保留条数）。 -->
     <details class="card rounded-xl p-0 overflow-hidden mb-4" id="prop-task-submitted-fold">
-      <summary class="px-4 py-3 font-title-cn text-sm font-bold cursor-pointer select-none tint-section tint-section--head" data-tone="success">已提交 (${submitted.length})</summary>
+      <summary class="px-4 py-3 font-title-cn text-sm font-bold cursor-pointer select-none tint-section tint-section--head" data-tone="neutral">已提交 (${submitted.length})</summary>
       <div class="p-3 space-y-2">
         ${submitted.length === 0 ? '<p class="text-xs text-gray-500 text-center py-6">暂无已提交任务</p>' :
           submitted.map(t => _renderTaskCard(t, activityMap)).join('')}
@@ -241,7 +241,7 @@ function _renderTaskCard(task, activityMap = new Map()) {
     ? `<button class="btn-accent-soft task-advance-btn text-xs px-3 py-1.5 mt-1" data-task-id="${task.id}" onclick="event.stopPropagation();">${advanceLabel}</button>`
     : '';
   // 批次 358（`D-751`）：行内「作废（软）」键（软作废 · 留痕 · 默认列表出列；原因必填在弹窗单一源里）
-  const voidBtn = `<button class="btn-ghost prop-task-void-btn text-xs px-2 py-1 mt-1" data-task-id="${task.id}">作废</button>`;
+  const voidBtn = `<button class="btn-outline btn-sm prop-task-void-btn mt-1" data-task-id="${task.id}">作废</button>`;
   const typeStyle = TASK_TYPE_STYLE[task.type] || 'bg-gray-50 text-gray-700';
   const statusStyle = TASK_STATUS_STYLE[task.status];
   const activity = task.activityId ? activityMap.get(task.activityId) : null;

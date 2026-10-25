@@ -5,13 +5,15 @@
 //  视图模式：月/周/日/列表 四种切换
 // ════════════════════════════════════════════════════════════════
 
-import { getAppState, setState } from '../../core/base/state.js?v=20261025a';
-import { ROLE_COLORS, getActivityColor, ACTIVITY_CATEGORY_COLORS, ACTIVITY_TYPE_LABELS, ACTIVITY_TYPE_SHORT, activityTypeTone } from '../../core/domain/constants.js?v=20261025a';
-import { _fmtDate, _currentYearMonth } from '../../core/base/utils.js?v=20261025a';
-import { tokenOf } from '../../core/base/version-token.js?v=20261025a'; // P2 视图渲染守卫数据版本（spec §四.2）
-import { filterTasksByManagementRole, activityLifecycleBadgeHtml } from './inspector.js?v=20261025a';
+import { getAppState, setState } from '../../core/base/state.js?v=20261025b';
+import { ROLE_COLORS, getActivityColor, ACTIVITY_CATEGORY_COLORS, ACTIVITY_TYPE_LABELS, ACTIVITY_TYPE_SHORT, activityTypeTone } from '../../core/domain/constants.js?v=20261025b';
+import { _fmtDate, _currentYearMonth, showToast } from '../../core/base/utils.js?v=20261025b';
+// 2026-10-25 Task 1.3：节点缺失 / 页内失败统一走「错误卡 + 重试」单一源（tab-bar 同款）。
+import { mountTabFailure } from '../shell/tab-bar.js?v=20261025b';
+import { tokenOf } from '../../core/base/version-token.js?v=20261025b'; // P2 视图渲染守卫数据版本（spec §四.2）
+import { filterTasksByManagementRole, activityLifecycleBadgeHtml } from './inspector.js?v=20261025b';
 // 活动「已完成 / 已取消」闭环判据单一源（R7-16）：替代手写 ['completed','cancelled']
-import { isActivityClosed } from '../../core/domain/domain.js?v=20261025a';
+import { isActivityClosed } from '../../core/domain/domain.js?v=20261025b';
 
 // ── 固定语义色 tone（不随主题）──
 // 2026-10-24 批次 508：活动类别色改由单一源 activityTypeTone 判定——
@@ -174,7 +176,18 @@ function _ensureCalendarSlots(grid) {
 
 export function renderCalendarByActivities(state, targetMonth) {
   const grid  = document.getElementById('cal-main-grid');
-  if (!grid) return;
+  // 2026-10-25 Task 1.3：日历容器缺失时**不再静默 return**——在日历分区内落错误卡 + 重试；
+  //   分区也不可用时退到 toast（不能只剩 console / unhandledrejection）。
+  if (!grid) {
+    const host = document.getElementById('calendar-view-section');
+    const shown = mountTabFailure(host, {
+      message: '日历加载失败，重试',
+      onRetry: () => renderCalendarByActivities(getAppState() || {}, targetMonth),
+    });
+    if (!shown) showToast('error', '日历加载失败，请重试');
+    console.error('[calendar] 缺少日历容器 #cal-main-grid');
+    return;
+  }
   const { empty } = _ensureCalendarSlots(grid);
 
   const { activities: rawActivities, tasks: rawTasks, viewType, managementRole, viewArchived, calendarView } = state || {};
@@ -755,7 +768,7 @@ function _showMobileDayDetail(dateKey, activeActivities, tasks, state) {
 
   let html = `<div class="cal-mobile-detail-header">`;
   html += `<span class=" text-sm font-bold text-gray-700">${d.getMonth()+1}月${d.getDate()}日 周${WEEKDAY[d.getDay()]}</span>`;
-  html += `<button id="cal-mobile-detail-close" class="btn-ghost cal-mobile-detail-close">&times;</button>`;
+  html += `<button id="cal-mobile-detail-close" class="btn-outline btn-icon cal-mobile-detail-close" aria-label="关闭">&times;</button>`;
   html += `</div>`;
 
   if (dayActivities.length === 0 && filteredTasks.length === 0) {
@@ -939,6 +952,23 @@ function _bindHoverPreview(grid, dayIndex) {
 }
 
 function _showHoverPopover(anchor, dateKey, dayActs) {
+  // 2026-10-26 Task 2.4：**先读后写**——原实现先写 `innerHTML` 再读 `getBoundingClientRect()`，
+  //   等于每次 hover 都强制同步一次布局（写脏 DOM → 立刻读几何 = forced reflow），
+  //   整块日历重建期间这一下最容易被感知成「鼠标卡一下」。现在所有测量在写入之前完成，
+  //   写入阶段只有两个赋值（innerHTML / cssText），中间不再有任何读布局。
+  const rect = anchor.getBoundingClientRect();
+  const popoverWidth = 280;
+  let left = rect.right + window.scrollX + 8;
+  let top = rect.top + window.scrollY;
+
+  if (rect.right + popoverWidth + 16 > window.innerWidth) {
+    left = rect.left + window.scrollX - popoverWidth - 8;
+  }
+  if (left < window.scrollX) {
+    left = rect.left + window.scrollX;
+    top = rect.bottom + window.scrollY + 8;
+  }
+
   if (!_hoverPopover) {
     _hoverPopover = document.createElement('div');
     _hoverPopover.id = 'cal-hover-popover';
@@ -973,22 +1003,11 @@ function _showHoverPopover(anchor, dateKey, dayActs) {
     <div class="px-3 py-1.5 max-h-48 overflow-y-auto">${listHTML}</div>
   `;
 
-  const rect = anchor.getBoundingClientRect();
-  const popoverWidth = 280;
-  let left = rect.right + window.scrollX + 8;
-  let top = rect.top + window.scrollY;
-
-  if (rect.right + popoverWidth + 16 > window.innerWidth) {
-    left = rect.left + window.scrollX - popoverWidth - 8;
-  }
-  if (left < window.scrollX) {
-    left = rect.left + window.scrollX;
-    top = rect.bottom + window.scrollY + 8;
-  }
-
+  // 阴影降一档（Task 2.4 允许的唯一样式调整）：面积 24px→12px、模糊 8px→4px、透明度 0.12→0.10，
+  // 减少 hover 浮窗的绘制成本；层次仍清晰（卡片本身有边框）。
   _hoverPopover.style.cssText = `
     position:absolute;z-index:50;background:var(--surface-card);border-radius:12px;
-    box-shadow:0 8px 24px rgba(0,0,0,0.12);border:1px solid var(--neutral-200);
+    box-shadow:0 4px 12px rgba(0,0,0,0.10);border:1px solid var(--neutral-200);
     width:${popoverWidth}px;display:block;
     left:${left}px;top:${top}px;
   `;

@@ -38,6 +38,8 @@ const CSS_BARE = CSS.replace(/\/\*[\s\S]*?\*\//g, (m) => m.replace(/[^\n]/g, ' '
 const TAB_BAR = readFileSync(join(SRC, 'components', 'shell', 'tab-bar.js'), 'utf8');
 const TODAY = readFileSync(join(SRC, 'entries', 'tabs', 'today', 'today-tab.js'), 'utf8');
 const TODO_SHELL = readFileSync(join(SRC, 'components', 'record', 'todo-tab-shell.js'), 'utf8');
+const WORK_OVERVIEW = readFileSync(join(SRC, 'components', 'governance', 'work-overview.js'), 'utf8');
+const LIST_ROW = readFileSync(join(SRC, 'components', 'ui', 'list-row.js'), 'utf8');
 
 /** 递归收集 docs/src 的 .js ＋ docs/*.html（与 SD-1 的扫描面一致） */
 function collectFiles() {
@@ -651,6 +653,9 @@ test('T4-1 同一文件只允许一种折叠头实现：renderDisclosure 与手�
 const FAMILY_TOKENS = [
   'btn-accent-soft', 'btn-accent', 'btn-action', 'btn-md', 'btn-tab',
   'btn-neutral', 'btn-outline', 'btn-ghost', 'btn-danger',
+  // 2026-10-26 Task 5：第二档「纯文字动作」——无描边/底色，静态线索＝下划线；
+  //   它不是动作按钮族，但必须入册，才能让 B4（未入族 = 手写按钮）继续为零。
+  'btn-text',
 ];
 /** B4 棘轮基线（批次 297-2 全站归一后实测 **0**；**只许下调**） */
 const HANDWRITTEN_BUTTON_BASELINE = 0;
@@ -861,8 +866,9 @@ test('B6 按钮尺寸归一：标准 36px ＋ 紧凑 32px ＋ 小号 28px（padd
  *     基线按实况上调为 414（只此一次，之后只许降不许升）。
  *   2026-10-23 批次 505（Task 7/8 收口后）：实测 **396**（族内尺寸工具类随主题/密度收敛下降）
  *     ⇒ 按收基线纪律下调为 396（只降不升）。
+ *   2026-10-26 Task 5：btn-ghost 动作迁移后实测 **360** ⇒ 按收基线纪律下调为 360。
  */
-const FAMILY_SIZE_OVERRIDE_BASELINE = 396;
+const FAMILY_SIZE_OVERRIDE_BASELINE = 360;
 const SIZE_TOKEN_RE = /^(?:text-(?:xs|sm|base|lg|xl)|text-\[\d+px\]|p-\d+(?:\.\d+)?|px-\d+(?:\.\d+)?|py-\d+(?:\.\d+)?|h-\d+(?:\.\d+)?|min-h-\S+)$/;
 // 动作按钮族令牌；**不含** `btn-tab`（页签 / 分段控件豁免，见 B7 注释）
 const FAMILY_TOKEN_RE = /(^|\s)(btn-accent-soft|btn-accent|btn-action|btn-md|btn-neutral|btn-outline|btn-ghost|btn-danger)/;
@@ -901,8 +907,10 @@ test('B7 族内不得再写尺寸：动作按钮族上的 text-*/py-*/px-*/h-* �
  *   危险改 `.btn-danger`，纯导航/帮助用 `<a>`）。
  *   本批只锁**全站存量**（四页重点的页面级归零由 Task 9 `ui-button-four-types.test.mjs` 收紧）。
  *   基线＝2026-10-19 实测（只许降不许升；每迁完一屏一并下调）。
+ *   2026-10-26 Task 5：动作按钮全量迁移到 `.btn-outline` / `.btn-text`，只剩 4 处**非动作行载体**
+ *   （list-row ×2 / today 清单行 ×1 / 考勤矩阵入口 ×1，见 V4 白名单）⇒ 基线下调为 4。
  */
-const GHOST_BUTTON_BASELINE = 106; // 2026-10-19 实测 106（只许降不许升）
+const GHOST_BUTTON_BASELINE = 4; // 2026-10-26 Task 5 实测 4（均为非动作行载体）
 
 test('B8 btn-ghost 作为动作按钮的存量只许降不许升（新代码不得使用）', () => {
   let total = 0;
@@ -926,4 +934,366 @@ test('B8 btn-ghost 作为动作按钮的存量只许降不许升（新代码不�
     total <= GHOST_BUTTON_BASELINE,
     `btn-ghost 动作按钮由 ${GHOST_BUTTON_BASELINE} 升到 ${total} 个 ⇒ 新代码不得再用 btn-ghost；行内动作用 .btn-outline / .btn-accent-soft，危险用 .btn-danger。`,
   );
+});
+
+// ═════════════════════════════════════════════════════════════════════════════
+// V1–V3：视觉基础三组判据（2026-10-26 · `.trae/specs/restore-visual-hierarchy-and-runtime` Task 3）
+//   来源：支书反馈「分组胶囊没恢复 / 表格向后伸展 / 结论带挤在一起」。
+//   判据口径（静态，纯 node）：容器与行载体同 class 同语义、胶囊全宽可见且 ≥24px、
+//   关键宽表 table-layout:fixed ＋ 列宽模板。
+// ═════════════════════════════════════════════════════════════════════════════
+
+test('V1 容器语义：metric-band 拆两档 / section.card 必有可访问名 / list-row 四载体可区分', () => {
+  // ① metric-band 两档：工作概况（含 button/a）＝interactive；待办摘要（纯 span）＝static。
+  assert.match(WORK_OVERVIEW, /<section class="metric-band metric-band--interactive"/,
+    '工作概况结论带须为 .metric-band--interactive（含可点 button/a）');
+  assert.match(TODO_SHELL, /class="metric-band metric-band--static/,
+    '待办摘要须为 .metric-band--static（纯 span 只读摘要）');
+  assert.match(CSS, /\.metric-band--interactive\s+\.metric-band__item/,
+    'styles.css 缺 .metric-band--interactive 档');
+  assert.match(CSS, /\.metric-band--static\s+\.metric-band__item/,
+    'styles.css 缺 .metric-band--static 档');
+  // ② 结论带不再用 0 间距 + 左线分隔。
+  assert.doesNotMatch(CSS, /\.metric-band\s*\{[^}]*gap:\s*0\s*;/,
+    '.metric-band 不得再用 gap: 0（项间应为 8–12px）');
+  assert.doesNotMatch(CSS, /\.metric-band__item\s*\{[^}]*border-left/,
+    '.metric-band__item 不得再用左线分隔（由间距承担）');
+
+  // ③ section 只用于有可访问名的分区；.card 容器其余统一 div。
+  const offenders = [];
+  let cardSections = 0;
+  for (const f of FILES) {
+    const re = /<section\b[^>]*>/g;
+    let m;
+    while ((m = re.exec(f.code)) !== null) {
+      const tag = m[0];
+      if (!/(^|\s)card(\s|$)/.test(classOf(tag))) continue;
+      cardSections += 1;
+      if (!/\baria-label(?:ledby)?="/.test(tag)) {
+        offenders.push(`${f.rel}:${lineOf(f.code, m.index)} → ${tag.replace(/\s+/g, ' ').slice(0, 120)}`);
+      }
+    }
+  }
+  assert.ok(cardSections >= 8, `只扫描到 ${cardSections} 个 section.card（下限 8）：V1 的扫描面被写坏`);
+  assert.deepEqual(offenders, [],
+    `section 只能用于有可访问名（aria-label / aria-labelledby）的分区；其余卡容器请用 <div>：\n  ${offenders.join('\n  ')}`);
+
+  // ④ list-row 四类行载体：元素 + data-row-type + data-interactive 三者一致，类名不另造。
+  assert.match(LIST_ROW, /data-row-type="\$\{type\}"/, 'list-row.js 必须输出 data-row-type');
+  for (const type of ['display', 'nav', 'action', 'master']) {
+    assert.ok(LIST_ROW.includes(`'${type}'`), `list-row.js 行型白名单缺 ${type}`);
+  }
+  assert.match(CSS, /\.list-row\[data-row-type="display"\]/, 'styles.css 缺展示行样式');
+  assert.match(CSS, /\.list-row\[data-row-type="action"\]/, 'styles.css 缺动作行样式');
+  assert.match(CSS, /\.list-row\[data-row-type="nav"\][\s\S]{0,120}\.list-row\[data-row-type="master"\]/,
+    'styles.css 缺导航行 / 主从行的可点样式');
+});
+
+test('V2 分组胶囊全宽可见：无 display:none 断点、高度 ≥24px、描边形状可辨', () => {
+  assert.doesNotMatch(CSS, /\.tab-group-label[^{}]*\{[^}]*display:\s*none/,
+    '分组胶囊不得在任何断点用 display:none 隐藏');
+  assert.doesNotMatch(CSS, /\.tab-group-label[^{}]*\{[^}]*visibility:\s*hidden/,
+    '分组胶囊不得用 visibility:hidden 隐藏');
+  assert.match(CSS, /\.tab-group-label\s*\{[^}]*min-height:\s*24px/, '分组胶囊高度须 ≥24px');
+  assert.match(CSS, /\.tab-group-label\s*\{[^}]*border:\s*1px solid var\(--neutral-400\)/,
+    '分组胶囊须有描边（neutral-400，与白底约 2.5:1，满足 ≥1.5:1）');
+  assert.match(CSS, /\.tab-group-label\s*\{[^}]*flex-shrink:\s*0/, '组名不得被压缩（flex-shrink: 0）');
+  // ≤1280 只缩内边距 / 字号，不隐藏（页签条继续横向滚动）。
+  const narrow = /@media \(max-width: 1280px\) \{[\s\S]*?\.tab-group-label \{([\s\S]*?)\}[\s\S]*?\n\}/.exec(CSS);
+  assert.ok(narrow, '缺少 ≤1280px 的分组名规则');
+  assert.match(narrow[1], /padding:\s*1px 5px/, '≤1280px 组名应缩小内边距（1px 5px）');
+  assert.match(narrow[1], /font-size:\s*11px/, '≤1280px 组名应缩小字号（11px）');
+  assert.doesNotMatch(narrow[1], /display:\s*none/, '≤1280px 不得隐藏组名');
+});
+
+test('V3 关键表定列宽：wo-lines-table fixed ＋ colgroup 模板 ＋ 末列贴列尾', () => {
+  assert.match(CSS, /\.wo-lines-table\s*\{[^}]*table-layout:\s*fixed/,
+    '.wo-lines-table 必须 table-layout: fixed（否则末列吃掉余量）');
+  assert.match(CSS, /\.data-table--fixed\s*\{[^}]*table-layout:\s*fixed/,
+    'styles.css 须提供 .data-table--fixed 定列宽档供其它关键表采用');
+  assert.match(WORK_OVERVIEW, /<table class="data-table data-table--fixed wo-lines-table"/,
+    '工作分工表须挂 .data-table--fixed');
+  const cols = [...WORK_OVERVIEW.matchAll(/<col class="wo-col-([a-z]+)"\s*\/>/g)].map((m) => m[1]);
+  assert.deepEqual(cols, ['name', 'owner', 'count', 'count', 'pending'],
+    `工作分工表列宽模板应为 工作分工/负责人/在办/逾期/待处理，实测 ${JSON.stringify(cols)}`);
+  for (const cls of ['wo-col-name', 'wo-col-owner', 'wo-col-count', 'wo-col-pending']) {
+    assert.match(CSS, new RegExp(`\\.${cls}\\s*\\{[^}]*width:\\s*\\d+%`), `styles.css 缺列宽 ${cls}`);
+  }
+  // 末列贴列尾 + 首列 nowrap 保留但有最大宽。
+  assert.match(CSS, /\.wo-lines-table thead th:last-child,[\s\S]{0,80}\.wo-lines-table tbody td:last-child\s*\{[^}]*padding-inline-end:\s*var\(--space-4\)/,
+    '末列表头/单元格须留 16px 尾部内边距');
+  assert.match(CSS, /\.wo-lines-table thead th:last-child,[\s\S]{0,80}\.wo-lines-table tbody td:last-child\s*\{[^}]*text-align:\s*end/,
+    '末列内容须贴列尾（text-align: end）');
+  assert.match(CSS, /\.wo-line-name\s*\{[^}]*white-space:\s*nowrap/, '首列 nowrap 应保留');
+  assert.match(CSS, /\.wo-line-name\s*\{[^}]*max-width:/, '首列 nowrap 须同时给最大宽');
+  // ≤640 卡式行：动作列自起排（不甩到卡右缘）。
+  assert.match(CSS, /\.data-table\[data-responsive="cards"\] td:last-child\s*\{[^}]*justify-content:\s*flex-start/,
+    '≤640 卡式行动作列应为 justify-content: flex-start');
+});
+
+// ═════════════════════════════════════════════════════════════════════════════
+// V4–V7：按钮三档与可点性（2026-10-26 · `.trae/specs/restore-visual-hierarchy-and-runtime` Task 5）
+//   三档契约（支书裁定）：
+//     ① 动作按钮：必须 1px 描边或底色；`btn-ghost` 只保留给**非动作行载体**；
+//     ② 纯文字动作：静态下划线或尾随箭头，箭头不得 neutral-400；
+//     ③ 图标按钮：视觉 32×32 + 命中区 ≥44×44；
+//     ④ 行载体：可见 hover（底/边/左条），色差 ≥1.2:1。
+//   本组全部静态扫描（纯 node），并对白名单做「每条命中 ≥1 次」的非空转校验。
+// ═════════════════════════════════════════════════════════════════════════════
+
+/**
+ * V4 白名单：**唯一允许保留 `btn-ghost` 的场所＝非动作行载体**。
+ * 每条写明「为什么它不是动作按钮」＋「可见线索由谁提供」，并核实际处数（多一处即红）。
+ */
+const GHOST_ROW_WHITELIST = [
+  {
+    rel: 'docs/src/components/ui/list-row.js',
+    max: 2,
+    marker: 'data-row-type',
+    reason: '导航行 / 选择行的原生 <button> 整行载体（data-row-type + data-interactive）；'
+      + 'hover 底与 3px 主题左条见 .list-row[data-interactive="true"]:hover',
+  },
+  {
+    rel: 'docs/src/entries/tabs/today/today-tab.js',
+    max: 1,
+    marker: 'w-full',
+    reason: '今天页清单行（w-full + text-left）整行点击跳转；行左 3px 状态条 + hover 底',
+  },
+  {
+    rel: 'docs/src/entries/tabs/disc/overview-tab.js',
+    max: 1,
+    marker: 'w-full',
+    reason: '概况条线缺口行升级为整行导航载体（w-full + text-left）；hover 底由 .btn-ghost:hover 提供',
+  },
+  {
+    rel: 'docs/src/entries/tabs/prop/overview-tab.js',
+    max: 1,
+    marker: 'w-full',
+    reason: '宣传概况「待归档」行升级为整行导航载体（w-full + text-left）；hover 底由 .btn-ghost:hover 提供',
+  },
+  {
+    rel: 'docs/src/entries/tabs/disc/attendance-tab.js',
+    max: 1,
+    marker: 'hover:bg-[var(--surface-hover)]',
+    reason: '考勤矩阵记录入口＝行内定位载体（点此到待确认队列，不是写操作），自带可见 hover',
+  },
+];
+
+test('V4 btn-ghost 不得用于动作按钮：只允许白名单内的非动作行载体', () => {
+  const allowed = new Map(GHOST_ROW_WHITELIST.map((w) => [w.rel, w]));
+  const hits = new Map();
+  const offenders = [];
+  for (const f of FILES) {
+    if (!f.rel.endsWith('.js')) continue;
+    const w = allowed.get(f.rel);
+    f.code.split('\n').forEach((line, i) => {
+      if (!/(^|[\s"'`])btn-ghost(?![\w-])/.test(line)) return;
+      hits.set(f.rel, (hits.get(f.rel) || 0) + 1);
+      if (!w) {
+        offenders.push(`${f.rel}:${i + 1} ${line.trim().slice(0, 120)}`);
+        return;
+      }
+      if (!line.includes(w.marker)) {
+        offenders.push(`${f.rel}:${i + 1} 白名单标记「${w.marker}」不在该按钮上`
+          + '（行载体证据消失 ⇒ 它不是非动作行载体）');
+      }
+    });
+  }
+  // 非空转：白名单每条必须命中，且处数不多不少
+  for (const w of GHOST_ROW_WHITELIST) {
+    assert.ok(w.reason && w.reason.length >= 20,
+      `V4 白名单「${w.rel}」缺理由（≥20 字，说明为什么它不是动作按钮）`);
+    const n = hits.get(w.rel) || 0;
+    assert.ok(n >= 1, `V4 白名单「${w.rel}」一次都没命中（僵尸白名单，应删或改判据）`);
+    assert.equal(n, w.max, `${w.rel} 的 btn-ghost 处数应为 ${w.max}（实测 ${n}）；新增/减少都必须同步白名单并写理由`);
+  }
+  const totalRows = [...hits.values()].reduce((a, b) => a + b, 0);
+  assert.ok(totalRows >= 5, `只扫描到 ${totalRows} 个行载体（下限 5）：V4 的扫描面被写坏`);
+  console.log(`[ui-control-system-guard] V4 btn-ghost 仅剩非动作行载体 ${totalRows} 处（白名单 ${GHOST_ROW_WHITELIST.length} 文件）`);
+  assert.deepEqual(offenders, [],
+    `btn-ghost 不得再承担动作按钮（动作请改 .btn-outline / .btn-accent / .btn-danger）：\n  ${offenders.join('\n  ')}`);
+});
+
+test('V5 纯文字动作有静态线索：btn-text 下划线、尾随箭头非 neutral-400', () => {
+  // ① 第二档类本身必须有下划线（不能只靠 hover）。
+  const btnText = /(^|\n)\.btn-text\s*\{([^}]*)\}/.exec(CSS_BARE);
+  assert.ok(btnText, 'styles.css 缺少 .btn-text（纯文字动作档）');
+  assert.match(btnText[2], /text-decoration:\s*underline/, '.btn-text 必须有静态下划线');
+
+  // ② 全站 btn-text 按钮必须带尾随箭头（第二个非颜色线索）；并核对样本量。
+  let btnTextCount = 0;
+  const missingArrow = [];
+  for (const f of FILES) {
+    if (!f.rel.endsWith('.js')) continue;
+    const re = /<button\b[^>]*\bclass="([^"]*)"[^>]*>([\s\S]*?)<\/button>/g;
+    let m;
+    while ((m = re.exec(f.code)) !== null) {
+      if (!/(^|\s)btn-text(?![\w-])/.test(m[1])) continue;
+      btnTextCount += 1;
+      if (!/[›→»←]/.test(m[2])) missingArrow.push(`${f.rel}:${lineOf(f.code, m.index)}`);
+    }
+  }
+  assert.ok(btnTextCount >= 3, `只扫描到 ${btnTextCount} 个 .btn-text 按钮（下限 3）：V5 的扫描面被写坏`);
+  assert.deepEqual(missingArrow, [],
+    `纯文字动作必须有尾随箭头（或静态下划线之外的第二个线索）：\n  ${missingArrow.join('\n  ')}`);
+
+  // ③ 「全部 / 查看 / 更多」类纯文字按钮不得落在未入册的裸类上（btn-text / link 之外的按钮必须走按钮族）。
+  const bareTextActions = [];
+  let labelActions = 0;
+  for (const f of FILES) {
+    if (!f.rel.endsWith('.js')) continue;
+    const re = /<button\b([^>]*)>([\s\S]*?)<\/button>/g;
+    let m;
+    while ((m = re.exec(f.code)) !== null) {
+      const attrs = m[1];
+      const text = m[2].replace(/<[^>]*>/g, '').trim();
+      if (!/^(全部|查看|更多)(\s|›|→|$)/.test(text)) continue;
+      labelActions += 1;
+      const cls = (/class="([^"]*)"/.exec(attrs) || [null, ''])[1];
+      if (/(^|\s)btn-(text|outline|accent|accent-soft|ghost|neutral|danger|sm|md|tab|action)(?![\w-])/.test(cls)) continue;
+      if (/(^|\s)link(?![\w-])/.test(cls)) continue;
+      bareTextActions.push(`${f.rel}:${lineOf(f.code, m.index)} class="${cls.trim()}" → ${text.slice(0, 16)}`);
+    }
+  }
+  assert.ok(labelActions >= 3, `只扫描到 ${labelActions} 个「全部/查看/更多」动作（下限 3）：V5 口径被写坏`);
+  assert.deepEqual(bareTextActions, [],
+    `纯文字动作必须挂 .btn-text（下划线）或 .link，不得用裸类：\n  ${bareTextActions.join('\n  ')}`);
+
+  // ④ 可点箭头不得用最浅中性色 neutral-400 / text-gray-400。
+  const dullArrow = [];
+  for (const f of FILES) {
+    if (!f.rel.endsWith('.js') && !f.rel.endsWith('.html')) continue;
+    for (const line of f.code.split('\n')) {
+      if (/(text-gray-400|neutral-400)[^\n]{0,90}[›→»]|[›→»][^\n]{0,90}(text-gray-400|neutral-400)/.test(line)) {
+        dullArrow.push(`${f.rel} → ${line.trim().slice(0, 120)}`);
+      }
+    }
+  }
+  assert.doesNotMatch(CSS, /\.wo-jump\s*\{[^}]*neutral-400/, '.wo-jump（行尾箭头）不得用 neutral-400');
+  assert.doesNotMatch(CSS, /\.metric-band__jump\s*\{[^}]*neutral-400/, '.metric-band__jump 不得用 neutral-400');
+  console.log(`[ui-control-system-guard] V5 .btn-text ${btnTextCount} 个 · 「全部/查看/更多」${labelActions} 个 · 浅色箭头 ${dullArrow.length} 处`);
+  assert.deepEqual(dullArrow, [],
+    `可点箭头不得用 neutral-400 / text-gray-400（改 neutral-600 或主题 soft-text）：\n  ${dullArrow.join('\n  ')}`);
+});
+
+test('V6 图标按钮：视觉 32×32，命中区 ≥44×44，且有无障碍名', () => {
+  // ① .btn-icon 视觉 32 + ::after 44
+  const icon = /(^|\n)\.btn-icon\s*\{([^}]*)\}/.exec(CSS_BARE);
+  assert.ok(icon, 'styles.css 缺少 .btn-icon');
+  assert.match(icon[2], /width:\s*32px/, '.btn-icon 视觉宽应为 32px');
+  assert.match(icon[2], /height:\s*32px/, '.btn-icon 视觉高应为 32px');
+  const iconAfter = /\.btn-icon::after\s*\{([^}]*)\}/.exec(CSS_BARE);
+  assert.ok(iconAfter, '.btn-icon 缺少 ::after 命中区');
+  assert.match(iconAfter[1], /max\(100%,\s*44px\)/, '.btn-icon::after 命中区须为 max(100%, 44px)');
+
+  // ② 折叠钮 40×40 视觉 → 44 命中
+  const summaryAfter = /\.disclosure__summary::after\s*\{([^}]*)\}/.exec(CSS_BARE);
+  assert.ok(summaryAfter, '.disclosure__summary 缺少 ::after 命中区（40 视觉 → 44 命中）');
+  assert.match(summaryAfter[1], /max\(100%,\s*44px\)/, '.disclosure__summary::after 须为 max(100%, 44px)');
+  // ③ 其它自有图标钮（汉堡 / 日历浮层关闭 / 弹窗关闭 / 选人器关闭）统一进 44 命中组
+  for (const cls of ['.hamburger-btn', '.cal-mobile-detail-close', '.modal-close-btn', '.person-picker-close-btn']) {
+    assert.match(CSS, new RegExp(`${cls}::after[\\s\\S]{0,400}max\\(100%,\\s*44px\\)`),
+      `${cls} 缺 44×44 命中区（::after）`);
+  }
+
+  // ④ 所有 btn-icon 按钮必须有无障碍名，且样本量非空
+  let total = 0;
+  const unnamed = [];
+  for (const f of FILES) {
+    if (!f.rel.endsWith('.js')) continue;
+    const re = /<button\b[^>]*\bclass="([^"]*)"[^>]*>/g;
+    let m;
+    while ((m = re.exec(f.code)) !== null) {
+      if (!/(^|\s)btn-icon(?![\w-])/.test(m[1])) continue;
+      total += 1;
+      if (!/\baria-label(?:ledby)?="/.test(m[0])) {
+        unnamed.push(`${f.rel}:${lineOf(f.code, m.index)} class="${m[1].trim()}"`);
+      }
+    }
+  }
+  assert.ok(total >= 6, `只扫描到 ${total} 个 .btn-icon 按钮（下限 6）：V6 的扫描面被写坏`);
+  console.log(`[ui-control-system-guard] V6 图标按钮 ${total} 个（44 命中组 4 类 + .btn-icon）`);
+  assert.deepEqual(unnamed, [], `图标按钮必须有 aria-label / aria-labelledby：\n  ${unnamed.join('\n  ')}`);
+});
+
+/** 取 CSS 变量块（行首选择器 sel 后第一对花括号）；用于在 :root / 深色段内解析 var() */
+function cssVarBlock(css, sel) {
+  const esc = sel.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const m = new RegExp(`(^|\\n)\\s*${esc}\\s*\\{`).exec(css);
+  if (!m) return '';
+  const start = css.indexOf('{', m.index);
+  const end = css.indexOf('}', start);
+  return start < 0 || end < 0 ? '' : css.slice(start + 1, end);
+}
+/** 在块内解析 `var(--x)`（只解一层，找不到则回退到 root 块） */
+function resolveVar(block, root, name) {
+  const re = new RegExp(`--${name}\\s*:\\s*([^;]+);`);
+  const m = re.exec(block) || re.exec(root);
+  return m ? m[1].trim() : '';
+}
+function hexOf(value, block, root, depth = 0) {
+  if (depth > 4) return '';
+  const v = String(value || '').trim();
+  const ref = /^var\(--([\w-]+)\)$/.exec(v);
+  if (ref) return hexOf(resolveVar(block, root, ref[1]), block, root, depth + 1);
+  return /^#[0-9a-f]{3,8}$/i.test(v) ? v.toLowerCase() : '';
+}
+function relLum(hex) {
+  const h = hex.replace('#', '');
+  const full = h.length === 3 ? h.split('').map((c) => c + c).join('') : h;
+  const ch = [0, 2, 4].map((i) => parseInt(full.slice(i, i + 2), 16) / 255);
+  const lin = ch.map((c) => (c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4));
+  return 0.2126 * lin[0] + 0.7152 * lin[1] + 0.0722 * lin[2];
+}
+function contrast(a, b) {
+  const la = relLum(a);
+  const lb = relLum(b);
+  return (Math.max(la, lb) + 0.05) / (Math.min(la, lb) + 0.05);
+}
+
+test('V7 可点行 hover：--surface-hover 对比 ≥1.2:1（白卡），并叠加 3px 主题左条', () => {
+  const root = cssVarBlock(CSS_BARE, ':root');
+  const dark = cssVarBlock(CSS_BARE, 'html.theme-dark');
+  assert.ok(root && dark, 'styles.css 缺少 :root / html.theme-dark 变量块');
+
+  const hover = resolveVar(root, root, 'surface-hover');
+  const hoverDark = resolveVar(dark, root, 'surface-hover');
+  assert.ok(hover && hoverDark, '缺少 --surface-hover（亮/暗）');
+  // 旧值回归：1.06–1.11:1 的浅灰不得回来。
+  assert.doesNotMatch(CSS, /--surface-hover:\s*#F3F4F6/i, '--surface-hover 不得回落到 #F3F4F6（对白卡仅 1.11:1）');
+  assert.doesNotMatch(CSS, /--surface-hover:\s*#1E293B/i, '暗色 --surface-hover 不得回落到 #1E293B（对深卡仅 1.15:1）');
+
+  const cases = [
+    ['亮色', root, root],
+    ['暗色', dark, root],
+  ];
+  const readings = [];
+  for (const [label, block, base] of cases) {
+    const h = hexOf(resolveVar(block, base, 'surface-hover'), block, base);
+    const card = hexOf(resolveVar(block, base, 'surface-card'), block, base);
+    const page = hexOf(resolveVar(block, base, 'surface-page'), block, base);
+    assert.ok(h && card && page, `${label}：surface 变量无法解析为 hex（hover=${h} card=${card} page=${page}）`);
+    const cCard = contrast(h, card);
+    const cPage = contrast(h, page);
+    readings.push(`${label} hover ${h} vs 卡片 ${card}=${cCard.toFixed(2)}:1 · vs 页面 ${page}=${cPage.toFixed(2)}:1`);
+    assert.ok(cCard >= 1.2, `${label}：--surface-hover 对卡片仅 ${cCard.toFixed(2)}:1（要求 ≥1.2）`);
+    // 页面底（暖纸）上的可点行另有 3px 主题左条；数值下限取 1.15 防回退，实测见读数。
+    assert.ok(cPage >= 1.15, `${label}：--surface-hover 对页面底仅 ${cPage.toFixed(2)}:1（要求 ≥1.15，配左条）`);
+  }
+
+  // 可点行 hover 必须同时出底与左条（非颜色线索），且不得覆盖选中态。
+  const rowHover = /\.list-row\[data-interactive="true"\]:hover\s*\{([^}]*)\}/.exec(CSS_BARE);
+  assert.ok(rowHover, 'styles.css 缺 .list-row[data-interactive="true"]:hover');
+  assert.match(rowHover[1], /background-color:\s*var\(--surface-hover\)/, '可点行 hover 必须改底');
+  assert.match(rowHover[1], /linear-gradient\(to right,\s*var\(--app-accent\) 0 3px/, '可点行 hover 须同时出 3px 主题左条');
+  assert.match(CSS_BARE, /\.list-row\[data-interactive="true"\]\[data-selected="true"\]:hover\s*\{[^}]*background-color:\s*var\(--app-accent-soft-bg\)/,
+    '选中行 hover 必须保持主题 soft-bg（不得被 hover 底覆盖）');
+
+  // 结论带的筛选 chip 必须有静态描边/底色（可切换控件，不是纯文字）。
+  assert.match(CSS_BARE, /button\.metric-band__item--filter\s*\{[^}]*border:\s*1px solid var\(--neutral-200\)/,
+    '筛选 chip 必须有 1px 描边（可切换控件）');
+  assert.match(CSS_BARE, /button\.metric-band__item--filter\s*\{[^}]*background:\s*var\(--neutral-0\)/,
+    '筛选 chip 必须有底色');
+
+  console.log(`[ui-control-system-guard] V7 ${readings.join(' · ')}`);
 });
