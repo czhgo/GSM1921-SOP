@@ -10,16 +10,16 @@
 //  依赖方向正确：组件 → 服务（不是服务 → 组件）。守卫见 notice-audience / doc-consistency。
 // ════════════════════════════════════════════════════════════════
 
-import { badgeHtml } from '../ui/badges.js?v=20261026a';
-import { openFormModal } from '../ui/modal.js?v=20261026a';
-import { showToast, getBasePath, todayLocal } from '../../core/base/utils.js?v=20261026a';
-import { ROLE_LABELS } from '../../core/domain/constants.js?v=20261026a';
-import { AuthStore } from '../../services/core/auth.js?v=20261026a';
-import { getPersonById, liveMembers } from '../../services/member/person.js?v=20261026a';
-import { isActivityOrganizer } from '../../services/activity/activity.js?v=20261026a';
-import { NoticeStore, NoticePermission } from '../../services/governance/notice.js?v=20261026a';
+import { badgeHtml } from '../ui/badges.js?v=20261026b';
+import { openFormModal } from '../ui/modal.js?v=20261026b';
+import { showToast, getBasePath, todayLocal } from '../../core/base/utils.js?v=20261026b';
+import { ROLE_LABELS } from '../../core/domain/constants.js?v=20261026b';
+import { AuthStore } from '../../services/core/auth.js?v=20261026b';
+import { getPersonById, liveMembers } from '../../services/member/person.js?v=20261026b';
+import { isActivityOrganizer } from '../../services/activity/activity.js?v=20261026b';
+import { NoticeStore, NoticePermission } from '../../services/governance/notice.js?v=20261026b';
 // Task 6：通知 targetUrl 属 direct 深链（通知不在活动工作台内）；缺 id 不写空 URL。
-import { objectDetailHref } from '../../core/domain/object-route.js?v=20261026a';
+import { objectDetailHref } from '../../core/domain/object-route.js?v=20261026b';
 
 function committeeSourceChip() {
   return '<span style="display:inline-flex;align-items:center;padding:0 6px;border-radius:9999px;background:var(--party-red);color:#fff;font-size:10px;line-height:16px;flex-shrink:0;">党委下发</span>';
@@ -134,7 +134,7 @@ export function renderNoticeList(containerId, limit = 5, opts = {}) {
   const listHtml = shown.length ? `<div class="row-divider divide-y divide-gray-100">${shown.map(rowHtml).join('')}</div>`
     : '<p class="text-sm text-gray-500">暂无新通知</p>';
   container.innerHTML = summaryHtml + listHtml
-    + `<div class="pt-2 text-right"><a href="${getBasePath()}messages.html" class="text-xs text-accent hover:underline">查看更多 →</a></div>`;
+    + `<div class="pt-2 text-right"><a href="${getBasePath()}messages.html" class="text-xs text-accent">查看更多 →</a></div>`;
 
   // 整行为导航动作：统一先落消息详情（Task 3：删除导航前预写已读与 direct 直跳）
   container.querySelectorAll('.notice-item').forEach(item => {

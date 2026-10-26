@@ -1,0 +1,3446 @@
+﻿
+> gsm1921-sop-server@0.1.0 test:daily
+> set DISABLE_PASSWORD_CHECK=1&& set DEMO_READONLY=0&& node --test --test-concurrency=4 test/account-rename.test.mjs test/activity-block-gate.test.mjs test/activity-calendar-sharing.test.mjs test/activity-creation-transaction.test.mjs test/activity-delete-client.test.mjs test/activity-delete.test.mjs test/activity-member-privacy.test.mjs test/activity-workgroup-sync.test.mjs test/schema-split-shadow.test.mjs test/todo-branch-attribution.test.mjs test/activity-party-group-assignment.test.mjs test/agenda-closure-core.test.mjs test/agenda-editing.test.mjs test/agenda-follow-up.test.mjs test/agenda-quorum.test.mjs test/agenda-relations.test.mjs test/agenda-votes.test.mjs test/archive-action-guard.test.mjs test/archive-record-write.test.mjs test/attendance-batch.test.mjs test/attendance-matrix-model.test.mjs test/attendance-roster-union.test.mjs test/auth-audit-scope.test.mjs test/auth-password.test.mjs test/auth.test.js test/backup-restore.test.mjs test/base-data-preview.test.mjs test/block-field-policy.test.mjs test/block-orchestration.test.mjs test/branch-affiliation.test.mjs test/branch-appoint-inline.test.mjs test/branch-appointment-atomic.test.mjs test/branch-config-audit.test.mjs test/branch-doc.test.mjs test/branch-id-literal-guard.test.mjs test/branch-module-catalog.test.mjs test/branch-resource-isolation.test.mjs test/branch-roster-import.test.mjs test/branch-status.test.mjs test/capability-package-catalog.test.mjs test/capability-registry.test.mjs test/catalog-sync.test.mjs test/claude-parallel-audit.test.mjs test/committee-meeting-density.test.mjs test/committee-tab-density.test.mjs test/control-font-guard.test.mjs test/copy-fold-guard.test.mjs test/copy-length-guard.test.mjs test/copy-master-guard.test.mjs test/cross-group-activity-probe.test.mjs test/cross-group-recruitment.test.mjs test/ctx-hygiene-guard.test.mjs test/data-lifecycle-guard.test.mjs test/date-canon-guard.test.mjs test/db-integrity-guard.test.mjs test/db-migration.test.mjs test/dead-selector-guard.test.mjs test/demo-window-guard.test.mjs test/doc-consistency.test.mjs test/docs-governance-guard.test.mjs test/empty-template.test.mjs test/filter-row.test.mjs test/frontend-foundations-guard.test.mjs test/group-view.test.mjs test/handoff-state-guard.test.mjs test/hex-hardcode-guard.test.mjs test/home-workgroup-progress.test.mjs test/ia-critical-guard.test.mjs test/iaaa-onboarding.test.mjs test/id-uniqueness.test.mjs test/identity-student-id-guard.test.mjs test/import-path-guard.test.mjs test/inspection-workgroup-key.test.mjs test/inspection-write-gate.test.mjs test/issue-audience-projection.test.mjs test/issue-branch-policy.test.mjs test/issue-branch.test.mjs test/issue-mock-identity.test.mjs test/link-target-guard.test.mjs test/localstorage-key-guard.test.mjs test/material-link-truth.test.mjs test/meeting-attendance-rules.test.mjs test/member-change-cross-session.test.js test/member-change-flow.test.js test/member-confirmation.test.mjs test/member-flow.test.mjs test/member-persist.test.mjs test/member-progress.test.mjs test/member-roster-api-read.test.mjs test/mock-api-parity-structure.test.mjs test/mock-api-parity.test.mjs test/mock-multi-branch.test.mjs test/modal-escape-guard.test.mjs test/page-title-guard.test.mjs test/module-compose.test.mjs test/module-config.test.mjs test/module-cycle-remind.test.mjs test/module-owner-authz.test.mjs test/notice-audience.test.mjs test/notice-deeplink-guard.test.mjs test/notice-message.test.mjs test/org-config.test.mjs test/output-block-policy.test.mjs test/page-navigation-url.test.mjs test/participant-scope.test.mjs test/party-branch-directory-context.test.mjs test/party-branch-directory-guard.test.mjs test/party-group.test.mjs test/party-overview-model.test.mjs test/party-workbench-layout.test.mjs test/pending-writes.test.mjs test/perf-index-equivalence.test.mjs test/perf-render-guard.test.mjs test/perf-todo-agg-cache.test.mjs test/perf-version-token.test.mjs test/periodic-archive-api.test.mjs test/periodic-archive-migration.test.mjs test/periodic-archive-policy.test.mjs test/periodic-archive-scope.test.mjs test/permission-gate.test.mjs test/person-consistency.test.mjs test/person-picker-density.test.mjs test/person-profile-presentation.test.mjs test/person-profile-service.test.mjs test/policy-config.test.mjs test/publicity-static-guard.test.mjs test/r3-data-permission-regression.test.mjs test/report-branch-webhook.test.mjs test/report-count.test.mjs test/report.test.js test/reset-tier-init.test.mjs test/reset-tier.test.mjs test/resolution-followup.test.mjs test/responsive-cards-guard.test.mjs test/roles-sync.test.mjs test/roster-filter-guard.test.mjs test/roster-ui-logic.test.mjs test/roster.test.mjs test/round1-remediation-guard.test.mjs test/round3-4-batch1.test.mjs test/round3-4-security.test.mjs test/row-markup-guard.test.mjs test/scene-write-sync.test.mjs test/secretary-overview-attendance.test.mjs test/seed-baseline.test.mjs test/seed-drift.test.mjs test/self-evident-copy-guard.test.mjs test/self-profile-import.test.mjs test/self-profile.test.mjs test/server-base.test.mjs test/setup-status.test.mjs test/signup-onsite-roster.test.mjs test/skeleton.test.js test/small-text-guard.test.mjs test/soft-void.test.mjs test/spacing-scale-guard.test.mjs test/state-enum-guard.test.mjs test/structural-round3.test.mjs test/suite-shard.test.mjs test/system-notice-branch-source.test.mjs test/system-notice-project-auth-authorize.test.mjs test/tab-alias-guard.test.mjs test/tab-nav.test.mjs test/table-type-scale-guard.test.mjs test/taskforce-history-copy.test.mjs test/taskforce-lifecycle.test.mjs test/taskforce-workgroup-source.test.mjs test/test-tier-guard.test.mjs test/text-tier-guard.test.mjs test/theme-pref.test.mjs test/thought-report-panel.test.mjs test/thought-review.test.mjs test/today-summary.test.mjs test/todo-cross-role-safety.test.mjs test/todo-deriver-domain.test.mjs test/todo-domain-view.test.mjs test/todo-domain.test.mjs test/todo-role-write-gate.test.mjs test/todo-urgency.test.mjs test/todo-void-flow.test.mjs test/ui-button-four-types.test.mjs test/ui-color-semantics.test.mjs test/ui-contrast-guard.test.mjs test/ui-custom-select.test.mjs test/ui-first-screen-order.test.mjs test/ui-focus-ring.test.mjs test/ui-help-note.test.mjs test/ui-home-deeplink.test.mjs test/ui-home-hero.test.mjs test/ui-modal-form-guard.test.mjs test/ui-motion-guard.test.mjs test/ui-phase2-urgent.test.mjs test/ui-picker-focus.test.mjs test/ui-preflight-context.test.mjs test/ui-primary-cta-color.test.mjs test/ui-redundancy-guard.test.mjs test/ui-row-interaction.test.mjs test/ui-select-appearance-guard.test.mjs test/ui-tab-overflow.test.mjs test/ux-guard.test.mjs test/validation-site-coverage.test.mjs test/version-stamp.test.mjs test/wizard-config.test.mjs test/wizard-report.test.mjs test/work-map.test.mjs test/work-overview-layers.test.mjs test/workbench-audit-coverage.test.mjs test/workbench-revision-contract.test.mjs test/workflow-block-config.test.mjs test/workforce-gate.test.mjs test/workgroup-api.test.mjs test/workgroup-batch-adapter.test.mjs test/workgroup-branch-scope.test.mjs test/workgroup-member-editor.test.mjs test/workgroup-member-grant-revoke.test.mjs test/workgroup-member-semantics.test.mjs test/write-path-guard.test.mjs test/feedback-integrity.test.mjs test/modal-contract.test.mjs test/schema-split-gate.test.mjs test/ui-control-system-guard.test.mjs test/theme-palette-guard.test.mjs test/density-spacing-guard.test.mjs test/hover-state-guard.test.mjs test/link-color-guard.test.mjs test/activity-tone-guard.test.mjs test/archive-deeplink-guard.test.mjs test/field-shell-guard.test.mjs test/motion-guard.test.mjs test/runtime-tab-lifecycle-guard.test.mjs test/object-route-guard.test.mjs test/test-isolation-guard.test.mjs test/seed-contract-guard.test.mjs test/write-truth-guard.test.mjs
+
+[DataAdapter] 数据源切换为: mock
+[db] v7 人员主键迁移： {"total":0,"mapped":0,"unmapped":[],"rate":1}
+[db] v8 活动组织落点：支部级重分类=0 补承办范围=0 待补责任组=0
+[db] v10 活动组织落点两档：落点归一=0 待补承办组=0 补跨组招募=0 工作组镜像=0
+[db] v11 待办归属回填：已归属=0 待归属=0
+[db] v12 branchId 回填：活动=0 考勤=0 考察=0 归档=0 宣传=0 外发=0 交接=0 确认=0 审计=0 待办=0
+[db] schema v12（本次应用 12 项）
+✔ S1 改名成功：users / sessions / 业务 JSON 引用三处同事务变更，并写 auth_audit (344.4713ms)
+✔ S2 新 id 与既有 users.id 重复 → 409，且目标成员不被改写 (10.6721ms)
+✔ S3 非党委（支书）调用 → 403，且不产生写入 (8.3817ms)
+✔ S4 新 id 为旧 p* 形态 → 400 (7.2511ms)
+[DataAdapter] 数据源切换为: mock
+[db] v7 人员主键迁移： {"total":0,"mapped":0,"unmapped":[],"rate":1}
+[db] v8 活动组织落点：支部级重分类=0 补承办范围=0 待补责任组=0
+[db] v10 活动组织落点两档：落点归一=0 待补承办组=0 补跨组招募=0 工作组镜像=0
+[db] v11 待办归属回填：已归属=0 待归属=0
+[db] v12 branchId 回填：活动=0 考勤=0 考察=0 归档=0 宣传=0 外发=0 交接=0 确认=0 审计=0 待办=0
+[db] schema v12（本次应用 12 项）
+[server] 已建立**最小组织基线**：支部 1 个（光华管理学院本科生党支部） ＋ 党委账号 1 名（党委组织员 / 学号 9000000001）；**未灌任何成员名单**（名单请走 IAAA 登录 + 支部确认，或党委台「支部管理 → 导入成员名册」）
+✔ G1 默认零影响：支部未配置停用 ⇒ 活动照常可写（201） (180.6305ms)
+✔ G2 停用「支部党员大会」块 ⇒ 直连 API 写入被拒（403 ＋ 可懂原因） (14.4902ms)
+✔ G3 停用是**按块**的：同一支部其它场景不受影响 (13.4436ms)
+✔ G4 PATCH 把活动**改成**已停用块的场景 ⇒ 403（口径明列的第二处） (27.7109ms)
+✔ G5 别名生效：停用块 id `theme-party-day` ⇒ 场景「主题党日」被拒 (8.8123ms)
+✔ G6 反例锁死：hiddenBlockIds 为空数组 ⇒ 恢复可写（判据非恒真） (12.4786ms)
+✔ G7 停止新建但允许在办活动完成；活动完成后只读保留 (53.4429ms)
+✔ G8 停用专班能力后不再新建；在办工作组可办结，历史保留只读 (47.5771ms)
+✔ 成员台保留活动动态入口，同时复用各角色共享的只读日历实现 (5.9367ms)
+✔ 四个只读角色入口仍指向相同的共享渲染器；支书保留含写入的活动管理页 (12.4512ms)
+✔ 右栏活动卡与左栏同落点：提供「查看活动详情」链接到 activity.html (2.0213ms)
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] createActivity 成功，id=act_f1f2d4b2-d4c7-4176-99e1-b46ca17b0b59，workgroupId=wg-activity-act_f1f2d4b2-d4c7-4176-99e1-b46ca17b0b59，当前 activities 总数：1
+✔ T1 mock 写口创建活动 ⇒ 工作组与成员关系同事务建立，赋权不落空 (180.1726ms)
+[MockAdapter] createActivity 成功，id=act_9cf628a1-b9a2-4e13-a775-34919568281d，workgroupId=wg-activity-act_9cf628a1-b9a2-4e13-a775-34919568281d，当前 activities 总数：1
+[DecisionTree] createActivity 成功, id=act_9cf628a1-b9a2-4e13-a775-34919568281d
+[DecisionTree] instantiateSOP 生成 2 个任务节点
+[MockAdapter] createTask 成功，id=tsk_b9a99485-db43-4f77-9fac-89995d4c8df4，当前 tasks 总数：1
+[MockAdapter] createTask 成功，id=tsk_458ad206-d85a-4fb1-bc46-f13c4bc9f497，当前 tasks 总数：2
+✔ T2 writeActivityWithSOP 创建后，本会话内即读得到工作组与成员 (279.2174ms)
+[MockAdapter] createActivity 成功，id=act_62f32b40-5196-414a-8281-f17fbccb0022，workgroupId=wg-activity-act_62f32b40-5196-414a-8281-f17fbccb0022，当前 activities 总数：1
+[MockAdapter] 种子行修复：workgroupMembers 更新 2 行（运行时字段保留；不补缺、不删旧）
+✔ T3 刷新后不重复建组、不重复成员（幂等） (100.4199ms)
+[DataAdapter] 数据源切换为: mock
+[DataAdapter] 数据源切换为: api，API_BASE_URL=http://test.invalid
+[MockAdapter] 跳过持久化写入：mockDB 尚未加载（loadDB 未完成），防止空数据覆盖
+[MockAdapter] deleteActivity 成功，id=act-delete-client-route
+[DataAdapter] 数据源切换为: mock
+[DataAdapter] 数据源切换为: mock
+✔ API 模式的活动删除使用服务端级联删除端点 (166.5026ms)
+[MockAdapter] 跳过持久化写入：mockDB 尚未加载（loadDB 未完成），防止空数据覆盖
+[MockAdapter] deleteActivity 成功，id=act-delete-mock
+[DataAdapter] 数据源切换为: mock
+✔ mock 模式的活动删除清除报名、表决、补充记录和关联业务域 (98.4402ms)
+[MockAdapter] 跳过持久化写入：mockDB 尚未加载（loadDB 未完成），防止空数据覆盖
+✔ MockAdapter 活动删除接口与 BranchService 保持相同级联口径 (84.1619ms)
+[DataAdapter] 数据源切换为: mock
+[db] v7 人员主键迁移： {"total":0,"mapped":0,"unmapped":[],"rate":1}
+[db] v8 活动组织落点：支部级重分类=0 补承办范围=0 待补责任组=0
+[db] v10 活动组织落点两档：落点归一=0 待补承办组=0 补跨组招募=0 工作组镜像=0
+[db] v11 待办归属回填：已归属=0 待归属=0
+[db] v12 branchId 回填：活动=0 考勤=0 考察=0 归档=0 宣传=0 外发=0 交接=0 确认=0 审计=0 待办=0
+[db] schema v12（本次应用 12 项）
+✔ 删除活动会原子清理所有活动关联数据并保留其他活动子记录 (313.4573ms)
+[server] 未处理错误: SqliteError: forced child delete failure
+    at deleteMatching (file:///D:/GitHub/GSM1921-SOP/server/routes/resources/index.js:1614:61)
+    at file:///D:/GitHub/GSM1921-SOP/server/routes/resources/index.js:1631:5
+    at sqliteTransaction (D:\GitHub\GSM1921-SOP\server\node_modules\better-sqlite3\lib\methods\transaction.js:65:24)
+    at deleteActivityCascade (file:///D:/GitHub/GSM1921-SOP/server/routes/resources/index.js:1693:5)
+    at file:///D:/GitHub/GSM1921-SOP/server/routes/resources/index.js:862:24
+    at Layer.handle [as handle_request] (D:\GitHub\GSM1921-SOP\server\node_modules\express\lib\router\layer.js:95:5)
+    at next (D:\GitHub\GSM1921-SOP\server\node_modules\express\lib\router\route.js:149:13)
+    at file:///D:/GitHub/GSM1921-SOP/server/routes/auth.js:74:5
+    at Layer.handle [as handle_request] (D:\GitHub\GSM1921-SOP\server\node_modules\express\lib\router\layer.js:95:5)
+    at next (D:\GitHub\GSM1921-SOP\server\node_modules\express\lib\router\route.js:149:13) {
+  code: 'SQLITE_CONSTRAINT_TRIGGER'
+}
+✔ 关联记录删除失败时活动及已处理子记录全部回滚 (19.6248ms)
+[DataAdapter] 数据源切换为: mock
+✔ 活动与工作组姓名仅向登录且处于本支部或明确选中支部的查看者开放 (2.4419ms)
+✔ 活动与共享专班只读详情均执行姓名遮蔽判据 (5.291ms)
+[DataAdapter] 数据源切换为: mock
+[db] v7 人员主键迁移： {"total":0,"mapped":0,"unmapped":[],"rate":1}
+[db] v8 活动组织落点：支部级重分类=0 补承办范围=0 待补责任组=0
+[db] v10 活动组织落点两档：落点归一=0 待补承办组=0 补跨组招募=0 工作组镜像=0
+[db] v11 待办归属回填：已归属=0 待归属=0
+[db] v12 branchId 回填：活动=0 考勤=0 考察=0 归档=0 宣传=0 外发=0 交接=0 确认=0 审计=0 待办=0
+[db] schema v12（本次应用 12 项）
+✔ 支书创建跨组活动必须选择承办党小组；旧 cross-group 入参归一为 party-group (398.4366ms)
+✔ 组内活动责任组固定本组：组长不能把本组活动挂到其他党小组 (7.6665ms)
+✔ 副组长与组长同权（D-540 / D-571）：建本组活动 201、改本组活动 200 (26.2812ms)
+✔ 副组长不能操作他组活动（同权不跨组）：建他组活动 403 (7.9291ms)
+✔ 支部级法定会议单列 branch：不指定责任组；旧客户端不传 scope 时按 type 推断 (18.6733ms)
+✔ 历史 legacyHostGroup 只能补选承办组；组织委员仅可改落点三字段 (29.1966ms)
+✔ 非历史记录的承办范围创建后仍不可改 (26.6857ms)
+[activity-tone] 抽样：党课 → party-red/brand · 支委会 → party-red/brand · 党小组会 → party-red/brand · 支部党员大会 → party-red/brand · 组织生活会 → party-red/brand · 主题党日 → gold/gold · 理论学习 → gold/gold · 完全未登记的类别 → neutral/neutral
+✔ A1 非空转：activityTypeTone 是函数，8 个抽样类别返回预期 tone (4.1401ms)
+✔ A2 单一源：活动类别徽章不得直接写 neutral/info，例外逐条登记 (454.0529ms)
+✔ A3 语义隔离：活动类别/状态路径不得出现 info，允许站点清单 ≡ 实测命中集 (46.3692ms)
+✔ A4 党建红：.badge--brand 与 [data-tone="party-red"] 用 #CE1126，不得用 #B91C1C (13.414ms)
+✔ A5 暗色分离：类别红/金与 danger/warning 逐值不同，badge--brand 不借状态色 (17.0803ms)
+[DataAdapter] 数据源切换为: mock
+[db] v7 人员主键迁移： {"total":0,"mapped":0,"unmapped":[],"rate":1}
+[db] v8 活动组织落点：支部级重分类=0 补承办范围=0 待补责任组=0
+[db] v10 活动组织落点两档：落点归一=0 待补承办组=0 补跨组招募=0 工作组镜像=0
+[db] v11 待办归属回填：已归属=0 待归属=0
+[db] v12 branchId 回填：活动=0 考勤=0 考察=0 归档=0 宣传=0 外发=0 交接=0 确认=0 审计=0 待办=0
+[db] schema v12（本次应用 12 项）
+✔ S1/S2 创建与 PATCH 改名：工作组字段随活动投影同源 (391.624ms)
+✔ S3 归档：工作组置 archived，成员 / 任务 / 产出写口拒绝 (56.3403ms)
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+✔ S4 删除活动：工作组随之移除 (33.2964ms)
+[MockAdapter] createActivity 成功，id=act_231c8397-eee4-43c4-bb6c-eec9d9d4763e，workgroupId=wg-activity-act_231c8397-eee4-43c4-bb6c-eec9d9d4763e，当前 activities 总数：39
+[MockAdapter] updateActivity 成功，id=act_231c8397-eee4-43c4-bb6c-eec9d9d4763e
+[MockAdapter] archiveActivity 成功，id=act_231c8397-eee4-43c4-bb6c-eec9d9d4763e，级联完成下属 tasks。
+[MockAdapter] createActivity 成功，id=act_4e858dd3-dc83-4238-900d-9e83e05d59fc，workgroupId=wg-activity-act_4e858dd3-dc83-4238-900d-9e83e05d59fc，当前 activities 总数：40
+[MockAdapter] deleteActivity 成功，id=act_4e858dd3-dc83-4238-900d-9e83e05d59fc
+✔ M1 mock 形态：改名 / 归档 / 删除同步工作组缓存 (487.6234ms)
+[DataAdapter] 数据源切换为: mock
+✔ collectAgendaRows：议程行多类型不互斥，产出 kinds 数组与结构化字段 (10.5913ms)
+✔ collectAgendaRows：议程步骤与讨论关联独立于业务类型，并保留行 id (0.9088ms)
+✔ recordAgendaResultForActivity：记录通过后归档草案，并为名单每人创建待审批申请 (3.415ms)
+✔ recordAgendaResultForActivity：重复记录通过不重复建申请（幂等） (1.411ms)
+✔ 记录关联表决结果：沿用讨论项的成员变更数据并把决议落在表决项 (1.6829ms)
+✔ recordAgendaResultForActivity：服务层拒绝给讨论项记决议且不执行后续动作 (1.884ms)
+✔ 编辑议程文字时保留成员变更和文件讨论的结构字段 (5.2534ms)
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 跳过持久化写入：mockDB 尚未加载（loadDB 未完成），防止空数据覆盖
+[MockAdapter] 跳过持久化写入：mockDB 尚未加载（loadDB 未完成），防止空数据覆盖
+✔ 通过的文件讨论归档草案，并为成员变更创建待审批申请 (7.2068ms)
+✔ 未通过的成员变更不创建申请 (0.8892ms)
+✔ 品牌认定：支委会审议「通过」⇒ 置 isBrand 并留痕（提案随之清空）；这是产生 isBrand 的唯一路径 (3.5402ms)
+✔ 品牌认定：支委会审议「未通过」⇒ 不作认定（仍非品牌），提案保留＋退回意见（可再议） (1.4635ms)
+✔ 品牌认定：会议类型不符（挂到主题党日上）⇒ 不动（防从别的会上把品牌推出去） (1.0342ms)
+✔ 品牌认定纯函数：无提案 / 非支委会 两支的判据 (1.2654ms)
+[DataAdapter] 数据源切换为: mock
+✔ 投票门槛按场景分开：党员大会正式门槛、普通支委会讨论、分工提案专用门槛 (5.8372ms)
+✔ quorumCheck=true：出席不足拦截（1/4 表态，未严格超过应到人数一半），抛错且不写 result (4.0515ms)
+✔ quorumCheck=true：偶数应到恰好半数出席仍须拦截 (1.0406ms)
+✔ quorumCheck=true：出席达标但赞成不足拦截（2 approve + 1 abstain / 4） (1.2213ms)
+✔ quorumCheck=true：弃权计入出席（不计入赞成）——abstain 使出席过线，赞成仍不足按赞成拦截 (1.5511ms)
+✔ quorumCheck=true：出席与赞成均达标放行（2 approve + 1 abstain / 3，弃权不计赞成） (1.4339ms)
+✔ quorumCheck=false：不拦截（无任何表态也放行） (1.0975ms)
+✔ 无记名：赞成取自 tally（无逐人 position 亦放行） (1.15ms)
+✔ 无记名：弃权计入实到、不计赞成（tally abstain） (0.8011ms)
+✔ 无记名：实到按参与记录判定（出席不足拦截，含可督促提示） (1.2216ms)
+✔ 兼容未标步骤的历史议程与普通议题表态 (4.0306ms)
+✔ 同一活动内按顺序关联讨论项和表决项 (2.3173ms)
+✔ 拒绝孤立、倒序、错误类型和重复 id 的议程关系 (0.5689ms)
+✔ 显式议程关系必须使用规范字符串步骤、ID 和关联引用 (0.6155ms)
+✔ 显式讨论项不允许携带会议决议结果或结果留痕 (0.7369ms)
+✔ 表态目标必须是规范字符串 ID，不能靠去空格或类型转换命中 (0.4918ms)
+✔ 表态目标必须在本活动议程中且不能指向显式讨论项 (0.5892ms)
+✔ 表决结果沿用关联讨论项的既有业务回指，表决项自身字段优先 (1.3156ms)
+[DataAdapter] 数据源切换为: mock
+[db] v7 人员主键迁移： {"total":0,"mapped":0,"unmapped":[],"rate":1}
+[db] v8 活动组织落点：支部级重分类=0 补承办范围=0 待补责任组=0
+[db] v10 活动组织落点两档：落点归一=0 待补承办组=0 补跨组招募=0 工作组镜像=0
+[db] v11 待办归属回填：已归属=0 待归属=0
+[db] v12 branchId 回填：活动=0 考勤=0 考察=0 归档=0 宣传=0 外发=0 交接=0 确认=0 审计=0 待办=0
+[db] schema v12（本次应用 12 项）
+✔ 支委提交表态：201 且落库 (473.7014ms)
+✔ 重复表态幂等：同人同议题覆盖更新（200） (28.5321ms)
+✔ 异议无附言返回 400 (11.0988ms)
+✔ 表态不存在的活动返回 404 (8.4863ms)
+✔ 非支书调 lock 返回 403 (12.303ms)
+✔ 锁定后禁止表态：400 (25.7305ms)
+✔ lock 不存在的活动返回 404 (11.8747ms)
+✔ 普通成员表态被拒绝：403 (8.9119ms)
+✔ 未登录访问返回 401 (7.8145ms)
+✔ 表态议题必须属于所提交的活动 (16.0501ms)
+✔ 明确拆分的讨论项不可投票；其关联表决项可投票 (18.7343ms)
+✔ 活动写口拒绝没有先行讨论项的表决项，并接受有效关联 (60.383ms)
+✔ 无记名 formal：名单内正式党员 2400012347 表态 approve → 201 仅落参与记录 + tally（无逐人选项） (14.4328ms)
+✔ 无记名 formal：多人表态只累计 tally（2400012349 approve / 2400012352 abstain），参与名单可判谁已投 (37.1144ms)
+[server] 未处理错误: SqliteError: forced tally failure
+    at writeRow (file:///D:/GitHub/GSM1921-SOP/server/routes/committee.js:31:74)
+    at file:///D:/GitHub/GSM1921-SOP/server/routes/committee.js:155:9
+    at sqliteTransaction (D:\GitHub\GSM1921-SOP\server\node_modules\better-sqlite3\lib\methods\transaction.js:65:24)
+    at file:///D:/GitHub/GSM1921-SOP/server/routes/committee.js:157:9
+    at Layer.handle [as handle_request] (D:\GitHub\GSM1921-SOP\server\node_modules\express\lib\router\layer.js:95:5)
+    at next (D:\GitHub\GSM1921-SOP\server\node_modules\express\lib\router\route.js:149:13)
+    at file:///D:/GitHub/GSM1921-SOP/server/routes/auth.js:74:5
+    at Layer.handle [as handle_request] (D:\GitHub\GSM1921-SOP\server\node_modules\express\lib\router\layer.js:95:5)
+    at next (D:\GitHub\GSM1921-SOP\server\node_modules\express\lib\router\route.js:149:13)
+    at Route.dispatch (D:\GitHub\GSM1921-SOP\server\node_modules\express\lib\router\route.js:119:3) {
+  code: 'SQLITE_CONSTRAINT_TRIGGER'
+}
+✔ 无记名 tally 写入失败时，参与记录必须一起回滚 (25.1767ms)
+✔ 无记名 formal：同人重复提交幂等（不可改票、不重复计数） (15.9709ms)
+✔ 无记名 formal：存储层亦无逐人选项（原表逐行断言） (1.0201ms)
+✔ 无记名 formal：显式以 ballotMode=named 提交 → 400（制度强制防绕过） (10.8114ms)
+✔ formal 活动：agree 不在 formal 枚举：400 (9.1802ms)
+✔ formal 活动：不在 voterIds 的支委 2300010002 表态 approve：403 (16.7959ms)
+✔ 活动创建：formal + ballotMode=named → 400；formal + anonymous → 201 (30.6911ms)
+✔ 记名回归（deliberative + ballotMode=named）：逐人选项/附言可见、幂等改票覆盖 (17.2589ms)
+✔ formal 活动：voteConfig.optionSet 非法（formal2）：400 (9.6663ms)
+✔ formal 活动：voteConfig.voterIds 空数组：400（fail-closed，不回退支委白名单） (8.9496ms)
+✔ mock 形态：无记名只落参与记录 + tally、无逐人选项；记名保持逐人可见 (365.6977ms)
+✔ 宣传台档案归档：不再提供「归档活动」按钮与写链 (4.8197ms)
+✔ 活动归档能力仍在支书 / 组织者侧（撤的是第二写口，不是能力） (5.7932ms)
+✔ D1 非空转：归档入口 / 归档页签 / 活动详情 / 定位工具四个文件都可读 (10.3621ms)
+✔ D2 archive-entry.js：读 URLSearchParams 的 tab 与 id，tab 值域含三页签 (4.8507ms)
+✔ D3 prop/archive-tab.js：命中 focusActivityId 先展开折叠区，定位失败必须 showToast (3.2175ms)
+✔ D4 activity-entry.js：复盘不得再指向 tab=talent / tab=archive (3.3852ms)
+✔ D5 detail-anchor.js：逐级展开父链 <details>，不可见时返回 false (3.7466ms)
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 跳过持久化写入：mockDB 尚未加载（loadDB 未完成），防止空数据覆盖
+[MockAdapter] 跳过持久化写入：mockDB 尚未加载（loadDB 未完成），防止空数据覆盖
+[DataAdapter] 数据源切换为: mock
+[DataAdapter] 数据源切换为: api，API_BASE_URL=http://test.invalid
+[DataAdapter] 数据源切换为: mock
+✔ mock 形态：ArchiveStore 写入/删除都落 MockAdapter（localStorage 同源） (197.4651ms)
+✔ api 形态：ArchiveStore 必须调用 POST /api/v1/archiveRecords（刷新后仍可读） (94.8953ms)
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 跳过持久化写入：mockDB 尚未加载（loadDB 未完成），防止空数据覆盖
+[MockAdapter] 跳过持久化写入：mockDB 尚未加载（loadDB 未完成），防止空数据覆盖
+[MockAdapter] 跳过持久化写入：mockDB 尚未加载（loadDB 未完成），防止空数据覆盖
+[MockAdapter] 跳过持久化写入：mockDB 尚未加载（loadDB 未完成），防止空数据覆盖
+[MockAdapter] 跳过持久化写入：mockDB 尚未加载（loadDB 未完成），防止空数据覆盖
+[MockAdapter] 跳过持久化写入：mockDB 尚未加载（loadDB 未完成），防止空数据覆盖
+✔ 新增：组织者批量上传 2 条新人 → added:2/updated:0/skipped:0，落盘含 submittedBy/recordedBy=本人 (7.9792ms)
+✔ 旧语义：同人同活动再提交（不传 overwrite）→ skipped:1，原记录不变 (3.505ms)
+✔ 更正：本人对已录条 overwrite 提交 status=leave → updated:1，写 updatedBy/updatedAt (2.0587ms)
+✔ 更正：existing.recordedBy=他人权威（组织委员 2400012355）→ overwrite 仍 skipped，原记录不动 (0.815ms)
+✔ 批量混合：一批 3 条（2 新增 + 1 既有本人记录改状态）→ added:2/updated:1/skipped:0，落盘总量对 (4.3983ms)
+✔ 常量：MEETING_ATTENDANCE_TYPES 深等 policy attendance.meetingTypes（党课/支部党员大会/组织生活会；支委会不考勤不在内） (4.218ms)
+✔ 上传位：党课/支部党员大会＝纪检（支书/副支书例外）；支委会＝不考勤（任何人无上传位）；组织者位活动仍认组织者 (2.1724ms)
+✔ 待确认队列默认不选；全选限当前可见项；清空移除所有显式选择 (19.7451ms)
+✔ 纪检考勤：队列行与矩阵单元格共用同一确认落点，已打回行不再给「去打包确认」 (8.8437ms)
+✔ 考勤矩阵把冻结应到名单、考勤事实和跨活动人员关系合成一份可解释矩阵 (37.5537ms)
+✔ 无冻结名单时不把未知状态误标为未录或非应到 (0.6564ms)
+[DataAdapter] 数据源切换为: mock
+✔ 考勤分母是冻结原应到与实际到场的去重并集，重复考勤行不重复计数 (3.382ms)
+[DataAdapter] 数据源切换为: mock
+[db] v7 人员主键迁移： {"total":0,"mapped":0,"unmapped":[],"rate":1}
+[db] v8 活动组织落点：支部级重分类=0 补承办范围=0 待补责任组=0
+[db] v10 活动组织落点两档：落点归一=0 待补承办组=0 补跨组招募=0 工作组镜像=0
+[db] v11 待办归属回填：已归属=0 待归属=0
+[db] v12 branchId 回填：活动=0 考勤=0 考察=0 归档=0 宣传=0 外发=0 交接=0 确认=0 审计=0 待办=0
+[db] schema v12（本次应用 12 项）
+✔ 授权审计由服务端认定操作者，且只接受其有权执行的同支部工作组变更 (374.6296ms)
+[DataAdapter] 数据源切换为: mock
+[db] v7 人员主键迁移： {"total":0,"mapped":0,"unmapped":[],"rate":1}
+[db] v8 活动组织落点：支部级重分类=0 补承办范围=0 待补责任组=0
+[db] v10 活动组织落点两档：落点归一=0 待补承办组=0 补跨组招募=0 工作组镜像=0
+[db] v11 待办归属回填：已归属=0 待归属=0
+[db] v12 branchId 回填：活动=0 考勤=0 考察=0 归档=0 宣传=0 外发=0 交接=0 确认=0 审计=0 待办=0
+[db] schema v12（本次应用 12 项）
+✔ 默认开：仅凭 personId（无口令）登录被拒 (263.6036ms)
+✔ 默认开：错误口令被拒 (12.9771ms)
+✔ 默认开：正确口令（123456）放行并返回 token (10.2776ms)
+✔ 逃逸门：DISABLE_PASSWORD_CHECK=1 恢复仅凭 personId 登录 (9.0156ms)
+✔ env LOGIN_PASSWORD 可更换口令：更换后旧口令拒绝、新口令放行 (16.3715ms)
+[DataAdapter] 数据源切换为: mock
+[db] v7 人员主键迁移： {"total":0,"mapped":0,"unmapped":[],"rate":1}
+[db] v8 活动组织落点：支部级重分类=0 补承办范围=0 待补责任组=0
+[db] v10 活动组织落点两档：落点归一=0 待补承办组=0 补跨组招募=0 工作组镜像=0
+[db] v11 待办归属回填：已归属=0 待归属=0
+[db] v12 branchId 回填：活动=0 考勤=0 考察=0 归档=0 宣传=0 外发=0 交接=0 确认=0 审计=0 待办=0
+[db] schema v12（本次应用 12 项）
+✔ 登录成功返回 token 与用户信息 (300.7296ms)
+✔ 登录失败（未知人员）返回 401 (19.3414ms)
+[DataAdapter] 数据源切换为: api，API_BASE_URL=
+[AuthStore] 已切换至 API 数据源（服务端优先登录）
+✔ me 接口携带 token 返回当前用户 (23.8589ms)
+✔ 前端服务端优先：服务端真实账号（不在本地账号层）可登录，成功后才写登录态 (9.5113ms)
+✔ 前端服务端优先：后端 401 ⇒ 抛错且不写登录态（登录页停留，不跳工作台） (4.4029ms)
+✔ 登录页：catch 分支只显示错误、不调用跳转（后端失败不跳工作台） (2.2698ms)
+[db] v7 人员主键迁移： {"total":0,"mapped":0,"unmapped":[],"rate":1}
+[db] v8 活动组织落点：支部级重分类=0 补承办范围=0 待补责任组=0
+[db] v10 活动组织落点两档：落点归一=0 待补承办组=0 补跨组招募=0 工作组镜像=0
+[db] v11 待办归属回填：已归属=0 待归属=0
+[db] v12 branchId 回填：活动=0 考勤=0 考察=0 归档=0 宣传=0 外发=0 交接=0 确认=0 审计=0 待办=0
+[db] schema v12（本次应用 12 项）
+[B1] scripts/backup.mjs 输出：
+[backup] 数据库： C:\Users\储子禾\CODEX~1\tmp\gsm-backup-Fpw3xc\data.db
+[backup] ✔ 备份完成
+[backup]   备份目录：C:\Users\储子禾\CODEX~1\tmp\gsm-backup-Fpw3xc\bak
+[backup]   数据库  ：data.db（480.0 KB）· integrity_check=ok · users=3 行 · schema v12 · seed=未登记
+[backup]   清单    ：backup.json（52 张表 · 附件 1 个 · sha256=08a34dd93448…）
+[backup]   附件     ：1 个文件 / 25 B → C:\Users\储子禾\CODEX~1\tmp\gsm-backup-Fpw3xc\bak\uploads
+[backup]   恢复：停服 → 用备份的 data.db 覆盖库文件（并删除同目录 data.db-wal / data.db-shm）
+[backup]         → 用备份的 uploads/ 覆盖附件目录 → 启动。详见 server/README.md「备份与恢复」。
+[B1] 实测：WAL 未 checkpoint=819912 B · 备份副本 users=3 行 · 只拷主文件 users=0 行
+[B1] ✔ backup.json 清单校验通过（sha256 / user_version / 逐表行数 / 附件数）
+[B1] ✔ 破坏原库 → 恢复到新路径 → integrity_check=ok、行/字段逐值一致、附件还原
+[db] v7 人员主键迁移： {"total":0,"mapped":0,"unmapped":[],"rate":1}
+[db] v8 活动组织落点：支部级重分类=0 补承办范围=0 待补责任组=0
+[db] v10 活动组织落点两档：落点归一=0 待补承办组=0 补跨组招募=0 工作组镜像=0
+[db] v11 待办归属回填：已归属=0 待归属=0
+[db] v12 branchId 回填：活动=0 考勤=0 考察=0 归档=0 宣传=0 外发=0 交接=0 确认=0 审计=0 待办=0
+[db] schema v12（本次应用 12 项）
+[db] v7 人员主键迁移： {"total":0,"mapped":0,"unmapped":[],"rate":1}
+[db] v8 活动组织落点：支部级重分类=0 补承办范围=0 待补责任组=0
+[db] v10 活动组织落点两档：落点归一=0 待补承办组=0 补跨组招募=0 工作组镜像=0
+[db] v11 待办归属回填：已归属=0 待归属=0
+[db] v12 branchId 回填：活动=0 考勤=0 考察=0 归档=0 宣传=0 外发=0 交接=0 确认=0 审计=0 待办=0
+[db] schema v12（本次应用 12 项）
+✔ B1 备份→恢复演练：真跑 scripts/backup.mjs ⇒ 破坏原库 ⇒ 恢复到新路径 ⇒ 完整性 + 行/字段逐值一致 (599.2917ms)
+✔ B2 restore.mjs：真备份 → dry-run 不落盘 → 正式恢复（integrity + 行/字段 + 附件一致，旧件留档） (1521.314ms)
+✔ 常量：kind/version/键名与成员基底；RESIDENCE 取值契约（单一源 = core/domain/constants.js） (4.4672ms)
+✔ buildPreviewTemplate：50 行五项基础字段 + id 锚点；示范滞留 2400012349/2400012353 显式写出 (2.63ms)
+✔ sanitize：合法全量（数组与 {people} 包皆可）→ 50 条、dropped 0；stats = 种子口径（21 党员 / 19 应到 / 滞留 2） (5.9713ms)
+✔ sanitize：非法党小组 / 非法发展阶段 / 非法滞留状态 → 回退该成员种子原值，统计不变 (1.911ms)
+✔ sanitize：空姓名整条丢弃；白名单外 id 整条丢弃；仅剩无效行 → valid false (1.7621ms)
+✔ sanitize：部分文件（未列成员保持种子）——2400012349/2400012353 改在校 → 支部大会应到 21、滞留 0 (0.8241ms)
+✔ applyPreview → PersonStore 叠加（仅基础字段）；roster 应到即时变化；clearPreview 回种子 (5.8557ms)
+[DataAdapter] 数据源切换为: mock
+[db] v7 人员主键迁移： {"total":0,"mapped":0,"unmapped":[],"rate":1}
+[db] v8 活动组织落点：支部级重分类=0 补承办范围=0 待补责任组=0
+[db] v10 活动组织落点两档：落点归一=0 待补承办组=0 补跨组招募=0 工作组镜像=0
+[db] v11 待办归属回填：已归属=0 待归属=0
+[db] v12 branchId 回填：活动=0 考勤=0 考察=0 归档=0 宣传=0 外发=0 交接=0 确认=0 审计=0 待办=0
+[db] schema v12（本次应用 12 项）
+✔ ② 净化 + 读侧：cleanFieldPolicies 正/反样例（去重/丢非串/只收布尔/空壳不保留） (105.0526ms)
+✔ ② 对齐清单：carrier 过滤 + 隐藏 + 必填覆盖（且不原地改 manifest） (6.1107ms)
+✔ ② HTTP：fieldPolicies 写回（净化形状）/ 非法丢弃 / blocks=null 恢复默认 (244.0001ms)
+✔ O1 组合体检**不是恒真**（批次 239 修的真缺陷）：块清单键名 `blockId` 必须被认到 (4.6108ms)
+✔ O2 正样例：能端到端编排出 plan（含产出/事件的归并） (1.6252ms)
+✔ O3 反样例：错误**累积返回、不抛**（未知块 / 重复 / 闭包不完整 / 互斥 / 成环） (1.5299ms)
+✔ O4 拓扑序「只前移被依赖者」：同层保持调用方顺序 (0.6686ms)
+✔ O5 编译产物 = **既有 definition 形状的纯数据**（含函数即红；无模板的块只记 warning） (2.2451ms)
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+✔ ① getBoundBranch：person 不存在 / branchId null 或空 / branchId 查无 → null；查有 → 支部记录 (47.742ms)
+✔ ② getBranchIdOfPerson 保留兜底语义（undefined/查无档案/party-staff → br-b1） (15.0059ms)
+✔ ③ header：party-staff → 党委名；有归属 → config.headerTitle；登录无归属 → 中性「未绑定支部」 (12.7196ms)
+✔ ③ header：未登录/查无档案 → 支部显示名「光华管理学院本科生党支部」；数据未加载 → 静态兜底名 (9.3031ms)
+[DataAdapter] 数据源切换为: mock
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+✔ 就地任命首任支书+组织委员：secretaryId/任期记录/person.role/users 行/原支部不受影响 (46.4345ms)
+✔ 跨支部兼任：任命 br-b1 现任支书 2300010001 为新支部首任支书 → 原支部席位不清空、任期记录逐支部独立 (11.2195ms)
+✔ 支书=组织委员同人 → appointInauguralOfficers 拦截 throw，不产生任何任命痕迹 (10.4757ms)
+✔ 取消防任命（仅建空支部）→ 不产生 appointmentRecords、secretaryId null、成员角色不变 (7.4072ms)
+[DataAdapter] 数据源切换为: mock
+[db] v7 人员主键迁移： {"total":0,"mapped":0,"unmapped":[],"rate":1}
+[db] v8 活动组织落点：支部级重分类=0 补承办范围=0 待补责任组=0
+[db] v10 活动组织落点两档：落点归一=0 待补承办组=0 补跨组招募=0 工作组镜像=0
+[db] v11 待办归属回填：已归属=0 待归属=0
+[db] v12 branchId 回填：活动=0 考勤=0 考察=0 归档=0 宣传=0 外发=0 交接=0 确认=0 审计=0 待办=0
+[db] schema v12（本次应用 12 项）
+✔ 任命正常路径：branch/双方 users/任期封口与新建在同一事务落库 (365.0107ms)
+✔ 并发 expectedSecretaryId：同一基线只允许一个 200，其余 409 (43.7771ms)
+[server] 未处理错误: SqliteError: inject appointment failure
+    at writeRow (file:///D:/GitHub/GSM1921-SOP/server/routes/resources/store.js:74:74)
+    at file:///D:/GitHub/GSM1921-SOP/server/routes/resources/semantic-routes.js:323:9
+    at sqliteTransaction (D:\GitHub\GSM1921-SOP\server\node_modules\better-sqlite3\lib\methods\transaction.js:65:24)
+    at file:///D:/GitHub/GSM1921-SOP/server/routes/resources/semantic-routes.js:334:7
+    at Layer.handle [as handle_request] (D:\GitHub\GSM1921-SOP\server\node_modules\express\lib\router\layer.js:95:5)
+    at next (D:\GitHub\GSM1921-SOP\server\node_modules\express\lib\router\route.js:149:13)
+    at file:///D:/GitHub/GSM1921-SOP/server/routes/auth.js:97:5
+    at Layer.handle [as handle_request] (D:\GitHub\GSM1921-SOP\server\node_modules\express\lib\router\layer.js:95:5)
+    at next (D:\GitHub\GSM1921-SOP\server\node_modules\express\lib\router\route.js:149:13)
+    at Route.dispatch (D:\GitHub\GSM1921-SOP\server\node_modules\express\lib\router\route.js:119:3) {
+  code: 'SQLITE_CONSTRAINT_TRIGGER'
+}
+✔ appointment_records 写入失败（SQLite trigger）→ 500 且 branch/users 整体回滚 (20.8919ms)
+[server] 未处理错误: SqliteError: inject audit failure
+    at writeRow (file:///D:/GitHub/GSM1921-SOP/server/routes/resources/store.js:74:74)
+    at file:///D:/GitHub/GSM1921-SOP/server/routes/resources/semantic-routes.js:412:7
+    at sqliteTransaction (D:\GitHub\GSM1921-SOP\server\node_modules\better-sqlite3\lib\methods\transaction.js:65:24)
+    at file:///D:/GitHub/GSM1921-SOP/server/routes/resources/semantic-routes.js:415:7
+    at Layer.handle [as handle_request] (D:\GitHub\GSM1921-SOP\server\node_modules\express\lib\router\layer.js:95:5)
+    at next (D:\GitHub\GSM1921-SOP\server\node_modules\express\lib\router\route.js:149:13)
+    at file:///D:/GitHub/GSM1921-SOP/server/routes/auth.js:97:5
+    at Layer.handle [as handle_request] (D:\GitHub\GSM1921-SOP\server\node_modules\express\lib\router\layer.js:95:5)
+    at next (D:\GitHub\GSM1921-SOP\server\node_modules\express\lib\router\route.js:149:13)
+    at Route.dispatch (D:\GitHub\GSM1921-SOP\server\node_modules\express\lib\router\route.js:119:3) {
+  code: 'SQLITE_CONSTRAINT_TRIGGER'
+}
+[DataAdapter] 数据源切换为: mock
+✔ 支委身份配置：users.role 与 auth_audit 同事务；审计失败整体回滚 (79.6581ms)
+✔ mock appointments.apply 失败注入：三数组深度等于调用前 (177.8532ms)
+[DataAdapter] 数据源切换为: mock
+[DataAdapter] 数据源切换为: mock
+[db] v7 人员主键迁移： {"total":0,"mapped":0,"unmapped":[],"rate":1}
+[db] v8 活动组织落点：支部级重分类=0 补承办范围=0 待补责任组=0
+[db] v10 活动组织落点两档：落点归一=0 待补承办组=0 补跨组招募=0 工作组镜像=0
+[db] v11 待办归属回填：已归属=0 待归属=0
+[db] v12 branchId 回填：活动=0 考勤=0 考察=0 归档=0 宣传=0 外发=0 交接=0 确认=0 审计=0 待办=0
+[db] schema v12（本次应用 12 项）
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+✔ ① why 透传：modules/blocks/workforce/policyOverrides/org 写口留痕行带 why；缺省不写键 (706.6858ms)
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+✔ ② rollback：回滚最近一条单键变更 → to→from 写回，追加 rollback 留痕（from=回滚前现值/to=回滚值/by） (747.8271ms)
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+✔ ② rollback：角色门（支书现任/副书/party-staff 可；普通成员不可；非现任支书不可） (102.6848ms)
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+✔ ② rollback：跨键/聚合留痕（branch-created/config-copied 等）拒绝；未找到定位拒绝 (105.4734ms)
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+✔ ③ 裁剪：追加/回滚后保留最近 CONFIG_HISTORY_MAX 条（最早丢弃） (206.6425ms)
+✔ ④ HTTP：PATCH /branches/:id/config 带 body.why → 服务端留痕行落 why；支书可写 (275.8147ms)
+✔ ④ HTTP：rollback 端点（现任支书 200 → 单键写回 + rollback 留痕）；副书同权；party-staff 亦可 (103.1096ms)
+✔ ④ HTTP：rollback 拒绝路径（普通成员 403 / 未找到 400 / 聚合留痕 400） (43.081ms)
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+✔ ① 支书新建制度文本 = 现行版 v1（purpose/status/version/bodyText/versions 结构正确） (210.7005ms)
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+✔ ①b 副支书可新建；非支书（组织委员）新建制度被拒；普通文件新建不受影响 (180.5764ms)
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+✔ ② 上传新版：旧版入历史（superseded 全量元数据）→ 新版 current v2；再发 v3 累计历史升序 (461.0247ms)
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+✔ ②b 上传新版权限与前置拦截：非支书拒绝 / 普通文件拒绝 / 已停用拒绝 (558.2526ms)
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+✔ ③ 停用（current→disabled）与重新启用（disabled→current）；版本链/正文不改；越权/对象拦截 (636.5588ms)
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+✔ ④ 版本视图：自身+历史合并按版本号升序，每条含 by/at/note 全量；缺失 id 返回空 (544.4765ms)
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+✔ ④b 旧数据（无 purpose/versions 字段）兼容：listVersions 单条含 by/at；buildDocVersionsView 容错 (92.3955ms)
+✔ ⑤ renderDocBody 转义安全：脚本/事件/伪协议一律不执行（输出无可执行形态） (3.912ms)
+✔ ⑤b renderDocBody Markdown 子集生效（标题/加粗/列表/行内码/代码块/段落） (4.0699ms)
+✔ ⑤c renderDocBody 边界：非 string 返回空串；超长（>20000）截断并提示 (2.5862ms)
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+✔ ⑥ listDocs：只看制度 / 按状态过滤；updatedAt 倒序；旧 doc 数据混排不报错 (966.0908ms)
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+✔ ⑥c listDocs 按支部隔离：外支部文档对已归属者不可见（读侧过滤，数据不丢失） (284.7442ms)
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+✔ ⑥d listDocs 无归属不误伤：未登录 / 党委（party-staff）保持既有行为（不过滤） (362.2836ms)
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+✔ ⑦ 普通文件编辑（title/desc/替换附件）保留现状能力；旧数据可正常列出 (755.161ms)
+✔ ⑧ mock 刷新持久：新建+新版+停用后重 loadDB（模拟刷新）仍完整保留 (529.3156ms)
+✔ isInstitutionManager 角色判定：支书/副支书 true；其余 false (0.4677ms)
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 本地数据种子版本过旧（undefined → 2026-10-21a），已丢弃并按最新种子重建
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] _schema 版本不匹配（0 → 1），已丢弃本地库并回种子重建
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+✔ ⑨ 消费端经 listDocs 读支部文件（资料查询 / 活动写入会前草案），不再直读 adapter 全量 (9.6795ms)
+✔ ⑩ 旧种子版本本地库自动失效：_seedVersion 缺失/过旧 → 丢弃整库回新种子（含 act-36/act-37）并落盘 (9.5664ms)
+✔ ⑩b _schema 不匹配亦丢弃回种子（原有「中止→空页」隐患已修）：_schema 过旧 → 回新种子且不再空页 (9.148ms)
+✔ B1/B2 生产代码中的 br-b1 字面量除常量定义行外一律判红（注释行跳过） (593.1818ms)
+✔ B3 非空转：扫描面有规模、常量定义仍在，且判据真会判（内存副本注入反例） (134.1275ms)
+[DataAdapter] 数据源切换为: mock
+✔ L2：支部可勾选能力目录含工作台能力与 tab 元数据（注册表派生，画布数据源） (288.8947ms)
+✔ L2：默认全开；配置子集后业务 tab 过滤/排序生效，核心组固定不可关（纯函数） (2.5219ms)
+[DataAdapter] 数据源切换为: mock
+[db] v7 人员主键迁移： {"total":0,"mapped":0,"unmapped":[],"rate":1}
+[db] v8 活动组织落点：支部级重分类=0 补承办范围=0 待补责任组=0
+[db] v10 活动组织落点两档：落点归一=0 待补承办组=0 补跨组招募=0 工作组镜像=0
+[db] v11 待办归属回填：已归属=0 待归属=0
+[db] v12 branchId 回填：活动=0 考勤=0 考察=0 归档=0 宣传=0 外发=0 交接=0 确认=0 审计=0 待办=0
+[db] schema v12（本次应用 12 项）
+✔ 支部资源列表与 bootstrap 只返回本支部数据，关联记录按来源支部过滤 (542.7056ms)
+✔ 成员列表与 bootstrap 只向本人及本支部支委投影自我描述 (201.6795ms)
+✔ 党委未选支部时只可读取支部目录，选中后才可读取该支部明细 (191.5763ms)
+✔ 党委下载附件必须选择其所属支部，不能用文件 URL 绕过支部范围 (39.4912ms)
+✔ 支部账号不能通过查询参数或单行接口跨支部读取、改写 (33.3211ms)
+✔ 第二支部账号能看到本支部资源与成员，不会得到第一支部数据 (29.2097ms)
+✔ 支部局部快照不会覆盖其他支部，并自动标记新建记录归属 (28.0214ms)
+✔ 报名写入按来源支部、本人身份和业务状态变更逐项授权 (35.9145ms)
+✔ 报名快照不能伪造报名人、状态或移除留痕记录 (24.7818ms)
+✔ 系统通知的业务来源按资源精确校验支部，不能借未列举资源越界 (9.0137ms)
+✔ 快照拒绝绕过专用接口改写成员或支部治理记录 (20.7158ms)
+✔ 聚合子记录的单行接口拒绝跨支部键，并在本支部更新时保留其他支部键 (10.9566ms)
+[DataAdapter] 数据源切换为: mock
+[db] v7 人员主键迁移： {"total":0,"mapped":0,"unmapped":[],"rate":1}
+[db] v8 活动组织落点：支部级重分类=0 补承办范围=0 待补责任组=0
+[db] v10 活动组织落点两档：落点归一=0 待补承办组=0 补跨组招募=0 工作组镜像=0
+[db] v11 待办归属回填：已归属=0 待归属=0
+[db] v12 branchId 回填：活动=0 考勤=0 考察=0 归档=0 宣传=0 外发=0 交接=0 确认=0 审计=0 待办=0
+[db] schema v12（本次应用 12 项）
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+✔ 净化①：名册包净化 → valid + 净化行（档案字段继承/可改字段生效）+ 统计卡应到口径正确 (142.7877ms)
+✔ 净化②：白名单外 id / 空姓名 → 丢弃；非法枚举 → 回退档案原值（不丢人） (10.8599ms)
+✔ 净化③：坏文件 / 全非法 / 版本与 kind 门槛 → 可读原因；预览模板包可复用 (10.4648ms)
+✔ mock ④：净化 → 空支部 replaceBranchMembers 落库 → getRosterStats 即时变化 + 刷新持久 + 原支部减员 (13.9392ms)
+✔ mock ⑤：有历史支部（br-b1）整表替换被服务拒绝（防孤儿） (7.6958ms)
+[DataAdapter] 数据源切换为: api，API_BASE_URL=http://127.0.0.1:57399
+[DataAdapter] 数据源切换为: mock
+✔ api ⑥：replaceBranchMembers（api 形态）整支部替换落 server users——目标空支部建、源支部减员、缓存同步 (310.576ms)
+[DataAdapter] 数据源切换为: mock
+✔ api ⑦：PUT /branches/:id/roster 单事务替换；失败回滚旧名册不变；导入后成员可账号密码登录 (61.2871ms)
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+✔ B1 停用（软）：只置 status=inactive，不物理删、其余字段与任期档案一字不改 (92.9313ms)
+✔ B2 恢复：status 回 active（同一写口、可逆） (88.4361ms)
+✔ B3 非恒真（反例）：停用后该支部仍在（证「软停用不是删除」） (184.0559ms)
+✔ 业务能力包目录记录正交治理属性、页面子项与版本，未核实项保持待核 (2.4892ms)
+✔ 共享产出块只在全部所属业务能力包关闭时停用 (0.9201ms)
+[registry] 注销未注册能力「not-exist」
+✔ registerCapability + getCapabilities 按 scope/role/env 过滤 (21.3204ms)
+✔ unregisterCapability 注销（回滚=注销声明） (1.2243ms)
+✔ getRegistryVersion 聚合最大版本 (1.5842ms)
+✔ resolveDeps 返回未注册依赖（不阻断挂载） (5.3941ms)
+✔ listCapabilities 一次取齐 items/version/count (1.5017ms)
+✔ mountCapability 未注册抛错 (1.9334ms)
+✔ data-source.js 注册 mock/api 数据源能力（env/deps/apply） (9.341ms)
+✔ sop-scenarios.js 注册场景能力（scope/scenario + list/get） (5.5894ms)
+✔ decision-tree 消费点经注册表读取场景（getScenario 回退 sopDatabase） (3.5061ms)
+✔ requiredRoles 门禁被 workspace-shell 消费（先按角色查；两查皆空 ⇒ 显式提示卡，不静默空壳） (3.5176ms)
+✔ bootstrap 数据源选择经注册表（行为零变化：有 token 走 api，回退 mock） (2.7297ms)
+✔ components.js 注册共享组件能力（scope: component，M6） (3.8475ms)
+✔ M6/M7 功能断言：component scope 过滤 + env 按环境启用 (0.8101ms)
+✔ T1 FUNCTION_CATALOG 结构合法（id/group/kind/role/related 全量校验） (16.4275ms)
+✔ T2 FLOW_LINKS 键集 与 function-catalog flow id 键集双向一致（防止未同步的情况） (5.9672ms)
+✔ T3 根 README.md 功能地图标记块与实时生成一致（防止未同步的情况） (11.6982ms)
+✔ T4 server OPTION_ENUMS 与前端 vote-config OPTION_SETS 键集双向一致 (1.95ms)
+✔ T5 官方制度文件均链接至 12371 官方原文并在新标签页打开 (2.5902ms)
+✔ T6 IA 地图 ≡ 页签注册表（45 条 · 逐台集合相等 · 已降级旧名不得重注册） (15.9171ms)
+✔ C1 H21 存在且位于 H30 之前（正文非空转） (7.8073ms)
+✔ C2 H20.2 有 H21 前置入口（多视角审查前置） (3.3297ms)
+✔ C3 H21 协议关键词齐备（独立审查 / 证据 / 汇总 / 裁定 / 落 spec / 复盘） (3.6797ms)
+✔ C4 判例与四轮路线图齐备（三路 lens / 共识分歧裁定 / 逐轮启动） (3.3975ms)
+✔ C5 详版手册九章齐备（PARALLEL_SKILL_AUDIT.md） (10.7044ms)
+✔ C6 05 索引已登记 PARALLEL_SKILL_AUDIT.md 且为 on-demand (6.8785ms)
+✔ C7 守卫已登记 test:daily (1.9058ms)
+✔ M1 步骤条五词齐备：范围 → 议程 → 表态 → 截止 → 留存 (2.0867ms)
+✔ M2 主内容模板串内无超过 120 字的连续说明段 (1.483ms)
+✔ M3 btn-accent 主按钮不超过 2 处（当前步只留一个） (0.3787ms)
+✔ M4 议程行可见动作 ≤2（不出现第三个并列按钮） (0.544ms)
+✔ T1 支委构成表与会议表走统一数据表 (1.8468ms)
+✔ T2 不再挂载全局「选人 → 选身份 → 确认」表单 (0.3955ms)
+✔ T3 模板串内无超过 120 字的连续说明段 (1.3939ms)
+✔ T4 五类支委身份词齐备 (0.3402ms)
+✔ T5 含「新建线上支委会」入口 (0.3993ms)
+✔ T6 帮助注释在两张表之后（说明后置） (0.2876ms)
+✔ T7 标题区只有一个主操作按钮，且行内不再出现 btn-ghost (0.5586ms)
+✔ T8 委员表每行可见动作 ≤2：改派/补选 + 更多，撤销在菜单内 (0.4705ms)
+[控件小字] 站点 0（基线 0，持平） · 文件 0（基线 0，持平） · 按值 {}
+[全站 text-[9/10/11px]（含非控件落点，仅进度口径）] 处数 44（基线 346，↓302） · 文件 8（基线 54，↓46） · 基线按值 {"text-[11px]":338,"text-[10px]":0}
+[收基线提示] 清掉存量控件小字后同批删 style-baseline.mjs 对应条目 / 减小 c，进度即前进；不得为变绿补条目。
+✔ T1 控件小字回归：基线之外的 (文件, 标签|小字类) 判红（基线 0 处 / 0 文件） (461.799ms)
+✔ T2 处数 ratchet：逐文件控件小字站点数不得高于基线 (451.1504ms)
+✔ T3 非空转：抽取口径可用 + 台账规模自洽（空台账 ⇒ 全站须为 0）+ 无僵尸登记 (888.5634ms)
+✔ T4 缩减进度：控件口径与全站口径当前计数 (484.1542ms)
+[折叠区口径登记] 共 41 个折叠区：与 help 有 ≥20 字重合（**疑似已定点**）0 个 · 疑似未定点 41 个（**人检清单**：判它是不是制度口径、help 有无同义段落）
+  · [人检] docs/src/components/governance/activity-progress.js → 「按承办范围查看活动；归档仍在活动详情按材料/考勤闸门办理。…」（29 字）
+  · [人检] docs/src/components/governance/branch-roster-import-panel.js → 「仅空支部可以整表导入。先下载现有成员档案模板，保留要迁入的成员行并删除其他行；核对预览后一次保存…」（158 字）
+  · [人检] docs/src/components/governance/notice-view.js → 「${list.map(rowHtml).join('')}…」（29 字）
+  · [人检] docs/src/components/governance/person-edit-modal.js → 「${fields.map((f)=>formRow(f.label,selfProfileCon…」（100 字）
+  · [人检] docs/src/components/governance/person-profile-sections.js → 「${body}…」（7 字）
+  · [人检] docs/src/components/governance/work-overview.js → 「${doneRows.length?listGroupHtml(doneRows):emptyS…」（68 字）
+  · [人检] docs/src/components/governance/workgroup-member-editor.js → 「${canEdit?`工作组分工${Object.entries(WORKGROUP_ROLE_…」（144 字）
+  · [人检] docs/src/components/governance/workgroup-member-editor.js → 「${activity?'旧成员镜像保留查看，核实后再纳入活动名单。':'专班不设一般参与者；旧记…」（167 字）
+  · [人检] docs/src/components/governance/workgroup-permissions.js → 「${Object.entries(templates).map(([role,keys])=>`…」（192 字）
+  · [人检] docs/src/components/record/todo-tab-shell.js → 「${rows}…」（7 字）
+  · [人检] docs/src/components/record/todo-tab-shell.js → 「${extraHtml}${unreadHtml}…」（25 字）
+  · [人检] docs/src/components/sections/help-catalog.js → 「我以什么身份使用？选择角色查看相关说明${HELP_BROWSE_ROLES.map((role…」（148 字）
+  · [人检] docs/src/components/sections/references.js → 「${readPanel}…」（12 字）
+  · [人检] docs/src/components/sections/references.js → 「${histPanel}…」（12 字）
+  · [人检] docs/src/components/sections/references.js → 「${bodyHtml}…」（11 字）
+  · [人检] docs/src/components/ui/disclosure.js → 「${bodyHtml}…」（11 字）
+  · [人检] docs/src/entries/pages/activity-entry.js → 「汇报明细${renderReportInboxHtml({reports:visibleRepo…」（212 字）
+  · [人检] docs/src/entries/pages/activity-entry.js → 「汇报明细${renderReportInboxHtml({reports:visibleRepo…」（212 字）
+  · [人检] docs/src/entries/pages/person-entry.js → 「${hasResidenceNote?`当前备注${esc(String(member.resi…」（97 字）
+  · [人检] docs/src/entries/pages/person-entry.js → 「档案编号${textOrEmpty(member.studentId,EMPTY_TEXT)}…」（47 字）
+  · [人检] docs/src/entries/tabs/leader/review-tab.js → 「${isExpanded&&rev?_renderReviewDetail(rev):''}…」（46 字）
+  · [人检] docs/src/entries/tabs/leader/write-tab.js → 「${OUTDOOR_CHECKLIST.map(x=>`${escHtml(x)}`).join…」（63 字）
+  · [人检] docs/src/entries/tabs/org/activity-calendar-tab.js → 「跨组只影响招募范围；活动始终落到承办党小组，跨党小组深度参与者由组织委员协调。此处只标记协调状态…」（71 字）
+  · [人检] docs/src/entries/tabs/org/activity-calendar-tab.js → 「历史活动缺少承办党小组。系统不猜测归属，请按实际补选；补选后任务、考察与汇报可按党小组汇总。${…」（59 字）
+  · [人检] docs/src/entries/tabs/org/roster-tab.js → 「支部应到${stats.expected}人${groupStats.map(x=>`${esc…」（208 字）
+  · [人检] docs/src/entries/tabs/org/roster-tab.js → 「从问卷后台「导出」表格后，整块复制（含表头行）粘贴到此框（另存为CSV后复制亦可）；首行须为列名…」（116 字）
+  · [人检] docs/src/entries/tabs/org/taskforce-tab.js → 「专班不设普通参与成员；旧记录保留查看，不计入成员与名额。${legacyRows.map((me…」（102 字）
+  · [人检] docs/src/entries/tabs/party-committee/party-config-tab.js → 「${bad.map((c)=>`${c.short||c.label}·${c.howto}`)…」（58 字）
+  · [人检] docs/src/entries/tabs/party-committee/party-config-tab.js → 「${data.codeHint||''}复制环境变量模板${esc(data.envTempla…」（52 字）
+  · [人检] docs/src/entries/tabs/prop/archive-tab.js → 「归档记录${_renderGallerySection()}${_renderPhotoWall…」（61 字）
+  · [人检] docs/src/entries/tabs/prop/archive-tab.js → 「${ARCHIVE_TEMPLATES.map(t=>`${t.name}${t.categor…」（72 字）
+  · [人检] docs/src/entries/tabs/prop/tasks-tab.js → 「${submitted.length===0?'暂无已提交任务':submitted.map(t…」（91 字）
+  · [人检] docs/src/entries/tabs/prop/tasks-tab.js → 「类型*请选择类型${TASK_CREATE_TYPES.map(t=>`${t}`).join(…」（91 字）
+  · [人检] docs/src/entries/tabs/secretary/committee-meeting-tab.js → 「撤销…」（2 字）
+  · [人检] docs/src/entries/tabs/secretary/group-progress-tab.js → 「改名解散…」（4 字）
+  · [人检] docs/src/entries/tabs/secretary/group-progress-tab.js → 「${_historyOpen?`${rows.map(_historyRowHtml).join…」（58 字）
+  · [人检] docs/src/entries/tabs/secretary/group-progress-tab.js → 「${_progressOpen?`${_groupSwitchHtml(viewGroups,g…」（266 字）
+  · [人检] docs/src/entries/tabs/secretary/group-progress-tab.js → 「${isExpanded&&rev?_reviewDetailHtml(rev):''}…」（44 字）
+  · [人检] docs/src/entries/tabs/secretary/todo-tab.js → 「${safeChips.length?`自动解除：${safeChips.join('')}`:…」（102 字）
+  · [人检] docs/src/entries/tabs/shared/activity-calendar-tab.js → 「${PANEL_HTML}${opts.afterHtml||''}…」（34 字）
+  · [人检] docs/src/entries/tabs/visitor/review-tab.js → 「${bodyHtml}…」（11 字）
+[C8 结论] 「同义」机检不了（见文件头）：本守卫只登记 + 出人检清单，不判红；界面侧新增制度口径折叠区时，请同批在 help `#sec-copy-anchors` 加同义段落（或把它整段搬去 help 定点）。
+✔ F1 非空转：折叠区抽取口径可用 + 折叠区 / 定点卡片规模达标 (9.4018ms)
+✔ F2 折叠区口径登记（只报不判 / C8 机检不了「同义」）：41 个折叠区 vs help 定点 20 字疑似重合 (9.1289ms)
+[文案字数守卫] 卡片导语候选 118 · 说明段候选 1701
+  · C1 卡片导语 >60：命中 0 条（基线 0，持平）· 文件 0（基线 0）
+  · C2 单段 >80：命中 5 条（基线 5，持平）· 文件 4（基线 4）
+  · C5 单句括注 ≥3：命中 3 条（基线 3，持平）· 文件 3（基线 3）
+  · C6 空态 >30：命中 2 条（基线 2，持平）· 文件 2（基线 2）
+    C2 docs/src/components/governance/org-setup-wizard.js → 「新支部为空、支书席位空缺：勾选后创建时一并就地任命首任骨干——新任支书凭本人账号登录即可接管该支部（组织信息/模块/名册可在支书工作台与支部配置中继续完善）。任命对象来自现有成员（如跨支部兼任/调任）：若其在原支部任支委/组长，原支部对应席位将空缺（界面明示）；人员后续也可在成员管理/名单导入中补入新支部后再次调整。」
+    C2 docs/src/components/governance/org-setup-wizard.js → 「新支部为空：config默认全开、业务域为空、支书席位空缺——勾选上方「就地任命首任骨干」时随创建一并任命（已就地任命首任支书/组织委员者，创建后即建册、支书登录即可接管新支部）；不勾选则按原路径：创建后在下方分步填入组织信息/模块/分工，或按「换壳工作单」补数据。记录变更：config.configChangeHistory追加branch-created。」
+    C5 docs/src/components/governance/org-setup-wizard.js → 「新支部为空、支书席位空缺：勾选后创建时一并就地任命首任骨干——新任支书凭本人账号登录即可接管该支部（组织信息/模块/名册可在支书工作台与支部配置中继续完善）。任命对象来自现有成员（如跨支部兼任/调任）：若其在原支部任支委/组长，原支部对应席位将空缺（界面明示）；人员后续也可在成员管理/名单导入中补入新支部后再次调整。」
+    C6 docs/src/components/sections/references.js → 「暂无制度文本——可在「写入文件」中选择「制度文本」发布（支书/副支书）」
+    C2 docs/src/entries/pages/settings-entry.js → 「提示：排序与恢复默认仅对当前账号（）生效，不影响支部默认顺序与他人。核心固定页签「」为全员必有，不可拖动、隐藏或排序；新页签由支部统一配置后出现，默认排于业务页签之后。」
+    C2 docs/src/entries/tabs/leader/attendance-tab.js → 「考勤上传：组织者上传→纪检委员确认→录入考勤明细。仅列本组党小组会与本人为组织者的活动（主题党日/组织生活会等）；党课/支部党员大会的上传位在纪检委员（纪检台「会议考勤录入」），支委会不考勤；组长非组织者=本组监督位，督促上传」
+    C5 docs/src/entries/tabs/leader/attendance-tab.js → 「本组（）应到人（组内党员−滞留剔除）。滞留者已在候选中标灰禁选（悬浮查看备注）：」
+    C6 docs/src/entries/tabs/secretary/report-up-tab.js → 「暂无上报记录·支部关键事项（发展节点/重要活动）上报后，党委批/驳结论将显示在这里」
+    C5 docs/src/services/branch/branch-doc.js → 「if(!isInstitutionManager(role))return{ok:false,reason:'制度文本仅限支书（含副支书）操作'};」
+    C2 docs/src/services/core/init-reset.js → 「[InitReset]?reset=init已初始化为「新支部初始态」：业务过程数据已清空（个独立业务键移除+主库业务域置空），白名单保留（账号/成员档案/支部配置/在册状态/主题/登录会话），正在刷新」
+[收基线提示] 把长说明改成「一行摘要 ＋ <details> ＋ help 深链」后，同批删基线条目 / 减计数，进度即前进；不得为变绿补条目。
+✔ L1 面板/卡片导语 ≤60 字（基线 0 条 / 0 文件） (3.1703ms)
+✔ L2 单个连续说明段 ≤80 字（基线 5 条 / 4 文件） (0.8566ms)
+✔ L3 单句括注 ≤2 个（基线 3 条 / 3 文件） (0.7373ms)
+✔ L4 空态/错误态 ≤30 字（基线 2 条 / 2 文件） (0.6937ms)
+✔ L5 非空转：抽取口径可用（含 4 处阈值边界）+ 候选 / 基线规模达标 + 无僵尸登记 (3.0322ms)
+✔ L6 缩减进度：四类当前命中数与基线对照（逐条列出现存命中） (5.0813ms)
+[界面复述制度母本] 命中 6 条（基线 7，↓1） · 文件 5（基线 5，持平）· 阈值 ≥20 字
+  · docs/src/components/governance/org-setup-wizard.js → 「模块/块组合、角色分工与组织档案（页眉/自述/主题」（25 字）
+  · docs/src/components/governance/org-setup-wizard.js → 「；日常分工调整请走支书台「支部分工」的支委会议题流程」（26 字）
+  · docs/src/components/sections/references.js → 「该制度当前已停用，以下为最近版本正文（仅供查阅）」（24 字）
+  · docs/src/core/domain/system-notice-templates.js → 「已报送支委会表决，表决通过后将开放招募（截止」（22 字）
+  · docs/src/entries/pages/settings-entry.js → 「未找到您所属支部——请先由党委在『支部管理』中确认归属」（27 字）
+  · docs/src/entries/tabs/secretary/report-up-tab.js → 「节点（确定积极分子/发展对象、接收预备党员、按期转正等」（27 字）
+[只报不判 · C7 原文母本 16 份 content/**.md] 命中 3 条：
+  docs/src/core/domain/work-map.js → 「发展党员的考察与材料准备、考察档案体系建立」（21 字）
+  docs/src/entries/pages/about-entry.js → 「纪检考察只在制度、议程或具体事项明确要求时办理」（23 字）
+  docs/src/entries/tabs/leader/write-tab.js → 「系统内可承载的（如宣传文稿），由深度参与者在网页上完成、产出由系统在后台同步；系统无法承载的」（46 字）
+[收基线提示] 把复述改成「一行 ＋ help 深链」后，同批从 BASELINE 删条目 / 减小计数，进度即前进；不得为变绿补条目。
+✔ N1 界面复述制度母本：基线之外的「连续 ≥20 字重合」判红（基线 7 条 / 5 文件） (3.4112ms)
+✔ N2 逐文件 ratchet：某文件的重合条数不得高于基线（同一句再复述一遍也算新增） (1.2007ms)
+✔ N3 非空转：抽取口径可用（含 20/19 字边界）+ 基线规模达标 + 无僵尸登记 + 定点登记完整 + 深链可达 (525.1067ms)
+✔ N4 缩减进度：当前重合条数 / 文件数与基线对照（另打印 C7 原文母本 content/** 口径） (1974.4772ms)
+[DataAdapter] 数据源切换为: mock
+[db] v7 人员主键迁移： {"total":0,"mapped":0,"unmapped":[],"rate":1}
+[db] v8 活动组织落点：支部级重分类=0 补承办范围=0 待补责任组=0
+[db] v10 活动组织落点两档：落点归一=0 待补承办组=0 补跨组招募=0 工作组镜像=0
+[db] v11 待办归属回填：已归属=0 待归属=0
+[db] v12 branchId 回填：活动=0 考勤=0 考察=0 归档=0 宣传=0 外发=0 交接=0 确认=0 审计=0 待办=0
+[db] schema v12（本次应用 12 项）
+✔ API：跨组活动责任组 → 深参门 → 组织委员协调 完整链 (345.5311ms)
+[MockAdapter] 跳过持久化写入：mockDB 尚未加载（loadDB 未完成），防止空数据覆盖
+[MockAdapter] 跳过持久化写入：mockDB 尚未加载（loadDB 未完成），防止空数据覆盖
+[MockAdapter] 跳过持久化写入：mockDB 尚未加载（loadDB 未完成），防止空数据覆盖
+[MockAdapter] 跳过持久化写入：mockDB 尚未加载（loadDB 未完成），防止空数据覆盖
+[MockAdapter] 跳过持久化写入：mockDB 尚未加载（loadDB 未完成），防止空数据覆盖
+[MockAdapter] 跳过持久化写入：mockDB 尚未加载（loadDB 未完成），防止空数据覆盖
+[MockAdapter] 跳过持久化写入：mockDB 尚未加载（loadDB 未完成），防止空数据覆盖
+✔ mock：同一链路的结构与拒绝文案必须与 API 同口径 (731.7954ms)
+[DataAdapter] 数据源切换为: mock
+[db] v7 人员主键迁移： {"total":0,"mapped":0,"unmapped":[],"rate":1}
+[db] v8 活动组织落点：支部级重分类=0 补承办范围=0 待补责任组=0
+[db] v10 活动组织落点两档：落点归一=0 待补承办组=0 补跨组招募=0 工作组镜像=0
+[db] v11 待办归属回填：已归属=0 待归属=0
+[db] v12 branchId 回填：活动=0 考勤=0 考察=0 归档=0 宣传=0 外发=0 交接=0 确认=0 审计=0 待办=0
+[db] schema v12（本次应用 12 项）
+✔ 跨党小组深参未标记跨组招募 ⇒ 拒绝；标记并指定协调人 ⇒ 落 crossGroup/coordinatedBy (304.2355ms)
+✔ 单加跨组深参同样受招募标记约束；标记后写入跨组字段 (68.0218ms)
+✔ 组织委员标记协调完成 / 撤销；不获得活动写权，未标记活动不出现协调动作 (66.278ms)
+✔ ① `.ctx` 顶层只允许白名单项（9 项） (5.2418ms)
+✔ ② 顶层不得回潮审计原文 / 脚本产物 / 历史草稿 (1.8155ms)
+✔ ③ 归档审计原文必须有正式文档或当月执行日志指针 (85.1109ms)
+✔ ④ 生成类产物必须有对应脚本 (2.2922ms)
+[db] v7 人员主键迁移： {"total":0,"mapped":0,"unmapped":[],"rate":1}
+[db] v8 活动组织落点：支部级重分类=0 补承办范围=0 待补责任组=0
+[db] v10 活动组织落点两档：落点归一=0 待补承办组=0 补跨组招募=0 工作组镜像=0
+[db] v11 待办归属回填：已归属=0 待归属=0
+[db] v12 branchId 回填：活动=0 考勤=0 考察=0 归档=0 宣传=0 外发=0 交接=0 确认=0 审计=0 待办=0
+[db] schema v12（本次应用 12 项）
+[db] v7 人员主键迁移： {"total":0,"mapped":0,"unmapped":[],"rate":1}
+[db] v8 活动组织落点：支部级重分类=0 补承办范围=0 待补责任组=0
+[db] v10 活动组织落点两档：落点归一=0 待补承办组=0 补跨组招募=0 工作组镜像=0
+[db] v11 待办归属回填：已归属=0 待归属=0
+[db] v12 branchId 回填：活动=0 考勤=0 考察=0 归档=0 宣传=0 外发=0 交接=0 确认=0 审计=0 待办=0
+[db] schema v12（本次应用 12 项）
+✔ ① docs/src 不得出现 `|| 'pN'` 操作人兜底（P1-11） (414.294ms)
+✔ ② 不得写死支委名单 2400012354~2300010002（P1-09） (437.7665ms)
+✔ ③ 不得用 generateId('p') 生成成员 id（P1-12） (484.5793ms)
+✔ ④ 复盘/沉淀写口必须落稳定父键，不得只写 sourceName（P1-05/M1） (2.565ms)
+✔ ⑤ mockDB 不新增只写不读集合（允许清单 + 理由，P1-26） (659.9832ms)
+✔ ⑥ committeeBroadcasts 已停止写入（P1-26） (5.608ms)
+✔ ⑦ 建表清单不新增只写不读集合（允许清单 + 理由，P1-26） (361.5032ms)
+✔ ⑧ 分类完整性：mock 持久化键 / mockDB 键 / 物理表全部有归属（未分类即红） (8.2841ms)
+✔ ⑨ reset 分区：每个 mock 持久化键必须落在 init 的 keep 或 clear 分区 (0.7766ms)
+✔ ⑩ init 空态真实性：工作组域 / attendanceRosters / 旧 weeklyReports 均被清空 (1.1912ms)
+✔ ⑪ API token no-op：init 档仍以 sessionStorage token 为执行边界 (1.8451ms)
+✔ ⑫ 清理安全：cleanup 默认 dry-run；--apply 只删孤儿附件 / 悬空附件行 / 旧备份，业务记录不动 (819.0981ms)
+✔ ⑬ 重建边界：生产拒绝 demo、目标已存在拒绝、baseline 只写指定输出并写 seed_meta (2118.6475ms)
+✔ ⑭ 档案归档单删联动物理文件（或保留仍被其他表引用的文件） (3.5657ms)
+✔ ⑮ 测试残留清理：ID 前缀 ＋ 标题/日期 双条件命中，真实业务行不动；默认 dry-run (1032.1119ms)
+✔ D1 日期口径：应用面（docs/src ＋ server）不得用 UTC 切串取「今天」（R-26③） (1110.641ms)
+✔ D2 非空转：本地口径单一源在位（前端零依赖叶子 ＋ 服务端单一源 ＋ constants 叶子不变量） (8.8873ms)
+[db] v7 人员主键迁移： {"total":0,"mapped":0,"unmapped":[],"rate":1}
+[db] v8 活动组织落点：支部级重分类=0 补承办范围=0 待补责任组=0
+[db] v10 活动组织落点两档：落点归一=0 待补承办组=0 补跨组招募=0 工作组镜像=0
+[db] v11 待办归属回填：已归属=0 待归属=0
+[db] v12 branchId 回填：活动=0 考勤=0 考察=0 归档=0 宣传=0 外发=0 交接=0 确认=0 审计=0 待办=0
+[db] schema v12（本次应用 12 项）
+✔ G1/G2 完整性 + 版本对齐：临时库 integrity_check=ok，且 user_version=SCHEMA_VERSION (165.6838ms)
+✔ G3 迁移列表自检：version 严格递增且唯一、每项有 name 与 up 函数 (0.8511ms)
+✔ G4 非空转：抽取有基线 + 校验器在合成反例上必命中（防守卫恒真） (1.2283ms)
+✔ G5 纪律：db.js 自建表必须被「v1 冻结基线 ∪ 迁移声明」覆盖（新增结构没写 migration ⇒ 红） (0.7327ms)
+✔ G6 纪律：全 server/ 源码里的 ALTER TABLE 只许出现在 migration 段内 (149.4667ms)
+[db] v7 人员主键迁移： {"total":0,"mapped":0,"unmapped":[],"rate":1}
+[db] v8 活动组织落点：支部级重分类=0 补承办范围=0 待补责任组=0
+[db] v10 活动组织落点两档：落点归一=0 待补承办组=0 补跨组招募=0 工作组镜像=0
+[db] v11 待办归属回填：已归属=0 待归属=0
+[db] v12 branchId 回填：活动=0 考勤=0 考察=0 归档=0 宣传=0 外发=0 交接=0 确认=0 审计=0 待办=0
+[db] schema v12（本次应用 12 项）
+[db] v7 人员主键迁移： {"total":0,"mapped":0,"unmapped":[],"rate":1}
+[db] v8 活动组织落点：支部级重分类=0 补承办范围=0 待补责任组=0
+[db] v10 活动组织落点两档：落点归一=0 待补承办组=0 补跨组招募=0 工作组镜像=0
+[db] v11 待办归属回填：已归属=0 待归属=0
+[db] v12 branchId 回填：活动=0 考勤=0 考察=0 归档=0 宣传=0 外发=0 交接=0 确认=0 审计=0 待办=0
+[db] schema v12（本次应用 12 项）
+[db] v7 人员主键迁移： {"total":0,"mapped":0,"unmapped":[],"rate":1}
+[db] v8 活动组织落点：支部级重分类=0 补承办范围=0 待补责任组=0
+[db] v10 活动组织落点两档：落点归一=0 待补承办组=0 补跨组招募=0 工作组镜像=0
+[db] v11 待办归属回填：已归属=0 待归属=0
+[db] v12 branchId 回填：活动=0 考勤=0 考察=0 归档=0 宣传=0 外发=0 交接=0 确认=0 审计=0 待办=0
+[db] schema v12（本次应用 12 项）
+[db] v8 活动组织落点：支部级重分类=2 补承办范围=3 待补责任组=2
+[db] v10 活动组织落点两档：落点归一=1 待补承办组=0 补跨组招募=1 工作组镜像=1
+[db] v11 待办归属回填：已归属=0 待归属=0
+[db] v12 branchId 回填：活动=0 考勤=0 考察=0 归档=0 宣传=0 外发=0 交接=0 确认=0 审计=0 待办=0
+[db] schema v12（本次应用 5 项）
+✔ M1 全新库：initDb 自动应用迁移 ⇒ user_version=SCHEMA_VERSION，且打印启动日志 (140.1017ms)
+✔ M2 幂等 / 可重入：同一库再跑（initDb + applyMigrations）⇒ 应用 0 项、版本与数据不动 (155.9292ms)
+✔ M3 既有库兼容：user_version=0 + 有数据 ⇒ 升到最新且数据逐值一行未变 (130.0105ms)
+✔ M4 失败回滚：事务内 up() 抛 ⇒ user_version 与已建 DDL 一并回滚 (3.802ms)
+✔ M5 失败不吞：列表自检不过（重复版本号）⇒ applyMigrations 抛出 (1.6558ms)
+✔ M7 v8/v10 活动组织落点：两档归一 / legacy 标记 / 补跨组招募；重复执行幂等 (115.2216ms)
+✔ M6 非空转：迁移列表规模基线（防列表被清空导致守卫恒真） (0.8267ms)
+[零引用 CSS 类] 类选择器 840 个 · 零引用 12 个（台账 1 ＋ 动态白名单 11）
+[台账（允许存在的零引用类）] inline-full
+[动态白名单] motion-collapse · motion-press · motion-scale-in · ab-edge--task · ab-edge--info · ab-edge--file · ab-flow-line--task · ab-flow-line--info · ab-flow-line--file · lenis-smooth · lenis-stopped
+[不判红的零引用] lenis-smooth · lenis-stopped · ab-edge--task · ab-edge--info · ab-edge--file · ab-flow-line--task · ab-flow-line--info · ab-flow-line--file · motion-collapse · motion-press · motion-scale-in
+[收基线提示] 删零引用类后同批删 style-baseline.mjs 的 DEAD_SELECTOR_BASELINE 条目；不得为变绿补条目。
+✔ Z1 零引用类回归：现状之外出现「零引用且不在台账 / 动态白名单」的类 ⇒ 判红 (1470.1906ms)
+✔ Z2 僵尸登记：台账 / 白名单里的类若已不存在于 CSS ⇒ 判红（台账只减不增） (140.8624ms)
+✔ Z3 非空转：抽取口径正 / 负例 ＋ 分类对表 ＋ 规模下限 ＋ 台账 / 白名单自洽 (1225.1553ms)
+✔ Z4 缩减进度：类选择器 / 零引用 / 台账 / 白名单当前计数 (1381.4519ms)
+[DataAdapter] 数据源切换为: mock
+✔ W1 单一窗口：DEMO_WINDOW 精确等于 2026-08-01~2026-11-30，伪日期被拒绝（含故障注入） (3.9045ms)
+✔ W2 所有 mock 日期字段落在窗口内；白名单例外逐条有理由 (10.096ms)
+✔ W3 8/9/10/11 每月至少一场活动；11 月只 draft/published 且无考勤/复盘/归档 (5.8141ms)
+✔ W4 关键状态样本：复盘五态 / 考勤四态 / 专班三态 / 宣传·周期归档·外发·交接 (1.2037ms)
+✔ W5 级联顺序：考勤/活动考察/复盘不得早于所属活动日 (1.7068ms)
+[density] 组件内离档间距值 113 处（棘轮上限 113）
+[density] Tailwind 1.5/2.5/3.5：1028 处 / 97 文件（棘轮 1056 / 99）
+✔ D1 输入/下拉：40px 单档 + 34px 紧凑档（padding + 显式 line-height 推导） (1881.8389ms)
+✔ D2 按钮三档：36 / 32 / 28 由 padding + line-height 推导，主档不得用 min-height (47.9458ms)
+✔ D3 行型：单行 48 / 双行 56 / 紧凑 44 / 表格 40 / summary 40，且被实际消费 (2830.6167ms)
+✔ D4 行内 28px 按钮命中区 ≥44px（伪元素扩展，不改视觉高度） (678.2674ms)
+✔ D5 间距：--space-* 恰五档；组件内离档值（2/6/10/14/20）只降不升 (9.6155ms)
+✔ D6 Tailwind 1.5/2.5/3.5 数值档只降不升 (551.8157ms)
+✔ D7 页头说明→summary 8–12；标题→次级→描述 8 (2933.615ms)
+✔ S1 各台及全站 tab 数与代码注册数组一致（help.html 两处 + README-server 总数） (33.0138ms)
+✔ S2 各台 tab 名称齐备；已删 / 已改名 tab 名不得在帮助页复现（§2.x 逐名 ＋ 全篇 `<td>` 旧名黑名单） (14.7555ms)
+✔ S3 分组名只有一套轴：支部角色台四组、党委台统一治理组（且「党建 / 反馈」组名不得回潮） (33.6172ms)
+✔ S4 旧界面名黑名单零命中（考勤总表 / 按人浏览 / 公邮） (528.9501ms)
+✔ S5 数据五数：文档声明与代码实测一致（分口径，严禁互相代入） (17.5758ms)
+✔ S6 页面数：文档声明与 docs/ 实况一致（根页 + 工作台） (9.8302ms)
+✔ S7 单一源组件登记处：登记路径真实存在且至少被一处 import（防僵尸登记） (1019.2083ms)
+✔ S8 公邮（mailbox）废止防回潮：代码与数据侧零残留 (406.588ms)
+✔ S9 §0.2 总索引里的守卫引用必须真实存在（断言号不得写过时 / 写超前） (103.4007ms)
+✔ S10 §0.2 引用的守卫必须登记进 README 测试清单（防「守卫悄悄缺席」） (13.3288ms)
+✔ S11 README 里的守卫断言号必须真实存在（口径同 S9，覆盖 README） (106.5266ms)
+✔ S12 授权声明必须同行带可核验日期（防「注释伪造支书批」——Q-23-41） (463.924ms)
+✔ S13 TIMESTAMPS 表行日期必须等于文件 frontmatter 的 last_updated（漂移即红灯） (1076.182ms)
+✔ S14 可数事实对账：文档里的「枚举 / 计数」必须等于代码 / 数据的实然值 (281.0958ms)
+✔ S15 弱清单：有正当沿革 / 取值定义不清的枚举数字只登记（带基线，防僵尸与变松） (120.0605ms)
+✔ S16 守卫注册完整性：S 类测试文件必须全数列入 test:daily（防守卫孤儿化） (436.0224ms)
+✔ S17 真机流 tab 名必须命中该台注册页签（漏改即红；带 path 者豁免） (23.7555ms)
+✔ S18 help.html §2.x 表行序必须等于台注册序（V-3 页签序；只核序） (19.645ms)
+✔ S19 工作组概念口径：四个核心术语齐备、§G 开篇先讲载体、核心文档不回流「项目组」 (117.1714ms)
+✔ S20 设计权威文档：表格四类术语齐备；信息计算口径文件存在且五关键词齐全 (13.0377ms)
+✔ S21 考察依托工作组：制度 / 数据模型 / 信息计算三处口径一致 (26.5837ms)
+[docs-governance] §五 目录 27 个 · 标「有」README 18 个
+[H-T3] 结构性标签 234 处 · 命中术语表 22 处 · 未命中 131 个（已基线）· 扫描 78 文件
+✔ F1 「只加注、不刷日期」的痕迹：content/** 登记行的表行日期不得早于该行备注里的任何日期 (11.1787ms)
+✔ F2 frontmatter.last_updated 不得早于该文件最后一次提交日（git；浅克隆会判红、无 git 只报不判） (1706.9245ms)
+✔ F3 非空转：freshnessProblems 正负例（相等→过 · 早于→红 · 干净且晚于→红 · dirty 且晚于→过） (1.3966ms)
+✔ N1 非空转：TIMESTAMPS 登记行可解析且规模不低于下限 (0.561ms)
+✔ N2 备注列总量预算：合计字数 ≤ 预算，且预算 ≤ 冻结高水位（只降不升） (0.7971ms)
+✔ N3 单格过长：实测命中集 ≡ 存量基线（0 条 · 只降不升） (0.873ms)
+✔ N4 T-编号：实测命中集 ≡ 存量基线（0 条 · 只降不升） (1.1317ms)
+✔ N5 日期复述：实测命中集 ≡ 存量基线（0 条 · 只降不升） (1.2787ms)
+✔ N6 批次号罗列：实测命中集 ≡ 存量基线（0 条 · 只降不升） (1.0089ms)
+✔ N7 台账自检：**非空**清单互不相同（空表不参与比对 · 2026-10-05 支书核可收窄） (1.0197ms)
+✔ R1 每条 `文件:行号` 引用都指到真实位置（文件可解析 / 行号在范围内 / 区间非空） (1073.208ms)
+✔ R2 引用后括注里的符号必须逐个出现在声明区间内（词边界匹配；例外仅 1 条且写明理由） (180.5805ms)
+✔ R3 md 区间不得越到下一节（末个非空行不是标题；起点是标题时区间内无同级/更高级标题） (555.1795ms)
+✔ R4 「零命中 / 检索不到消费点」类关键词取证仍成立（防取证过期） (1238.7915ms)
+✔ R5 非空转：引用总数 / 被引文件数 / 带锚点引用数均有基线（防正则失效把守卫写成恒真） (0.6058ms)
+✔ R6 语义漂移防线：行为词型引用必须带可校验锚点（无锚即红）；弱引用清单有基线上下限 (2.3146ms)
+✔ G4 README 覆盖与 7 字段：§五 标「有」的目录必须真有 README，content/** README 七标题齐备 (81.0511ms)
+✔ G5 AGENTS.md：6 份均存在，含 6 段固定标题与可执行测试命令块 (22.4337ms)
+✔ G6 SNAPSHOT 含「批次 509 小结」段 (6.0076ms)
+✔ G7 判例索引：每条 CASE 行都有「所属域」与「对应规范编号」 (2.3901ms)
+✔ G8 非空转下限：目录 ≥15 · AGENTS=6 · 判例 ≥15 · README 覆盖 ≥15 (1.7476ms)
+✔ G9 一 tab 一 H2：页签名不得在同一文件的卡头 H3 里逐字复述（卡头须带范围信息） (113.2473ms)
+✔ G10 卡头单一源：page-frame.js 导出 renderCardHeader，函数体含 h3 与 card-head__title (1.8894ms)
+✔ H-T1 并列组层级一致：分段同层 + 合法并列集 + 「其他党小组」独立区 + 各台 views 同判 (850.549ms)
+✔ H-T2 页签名覆盖段集合：含「活动」段的页签不得叫「专班动态」；上位页面名逐条豁免 (135.9504ms)
+✔ H-T3 结构性标签登记：未命中术语表 / 合法别名且不在基线 ⇒ 红（基线只降不升） (230.9145ms)
+✔ H-T4 废弃写法零残留：docs/src/** 与 help.html 的用户可见文案命中即红（注释存量见基线） (724.2881ms)
+✔ H-T5 术语单一源：TERMINOLOGY ≥18 条 9 字段齐；§19 与 sop/INDEX 只留指针；不得二次定义 (470.4234ms)
+[DataAdapter] 数据源切换为: mock
+[db] v7 人员主键迁移： {"total":0,"mapped":0,"unmapped":[],"rate":1}
+[db] v8 活动组织落点：支部级重分类=0 补承办范围=0 待补责任组=0
+[db] v10 活动组织落点两档：落点归一=0 待补承办组=0 补跨组招募=0 工作组镜像=0
+[db] v11 待办归属回填：已归属=0 待归属=0
+[db] v12 branchId 回填：活动=0 考勤=0 考察=0 归档=0 宣传=0 外发=0 交接=0 确认=0 审计=0 待办=0
+[db] schema v12（本次应用 12 项）
+[MockAdapter] 跳过持久化写入：mockDB 尚未加载（loadDB 未完成），防止空数据覆盖
+[MockAdapter] 跳过持久化写入：mockDB 尚未加载（loadDB 未完成），防止空数据覆盖
+[MockAdapter] 跳过持久化写入：mockDB 尚未加载（loadDB 未完成），防止空数据覆盖
+[MockAdapter] 跳过持久化写入：mockDB 尚未加载（loadDB 未完成），防止空数据覆盖
+[MockAdapter] 跳过持久化写入：mockDB 尚未加载（loadDB 未完成），防止空数据覆盖
+[MockAdapter] 跳过持久化写入：mockDB 尚未加载（loadDB 未完成），防止空数据覆盖
+✔ empty：空模板创建 = 结构正确/config 默认全开/留痕 branch-created(empty-template) (106.0577ms)
+✔ empty：未给名 → 模板占位名「新支部（待配置）」（名待填） (0.8607ms)
+✔ copy：config/workforce/org 复制到新支部、源不动、留痕 from=branch:源、headerTitle 随新名 (3.7218ms)
+✔ copy：源不存在 → {ok:false, reason}；源缺省 config 域 → 目标 null（默认） (1.2919ms)
+✔ 校验：name 显式空（空白串/空串）/超长拒绝；缺省键 → 占位名 (0.8816ms)
+✔ 校验：非 party-staff（actorRole 入参）→ {ok:false, reason 无权限}；party-staff 放行 (0.6986ms)
+✔ 引用审计：空模板/空支部零问题；含业务域键/人物 id/任命 → 报问题 (0.6589ms)
+✔ HTTP：POST /branches 门控——party-staff 201；secretary 403；name 空/超长 400；无 mode 兼容旧表单 (227.0494ms)
+✔ HTTP：empty 创建与前端本地构造双形态一致（归一化逐位相等） (21.7304ms)
+✔ HTTP：copy 创建与前端本地构造双形态一致；源 br-b1 不被污染 (40.383ms)
+✔ HTTP：POST /branches 后 GET /branches 为目录投影；选中支部明细回读全字段（config 以明细/POST 为准） (48.6185ms)
+✔ F1 拥有的文件中不得存在「catch 之后仍报成功」 (26.1161ms)
+✔ F2a 两个作用域互不污染：A 失败不影响 B 的成功判定 (2.2768ms)
+✔ F2b 作用域内的失败不进入全局兜底；全局兜底仍可用于无作用域写入 (10.8818ms)
+✔ F2c 未显式传 scope 的写会归属当前活动作用域（持久化层登记即可受控） (1.2122ms)
+✔ F2d endWriteScope 幂等：重复关闭不抛、不破坏外层作用域 (0.6006ms)
+✔ F3a resolveToastOutcome 按 401/403/408/409/500 分级，不透出原始异常 (1.4232ms)
+✔ F3b showToast(success, …, { scope }) 在 scope 失败时 resolve 为失败文案 (1.9775ms)
+✔ F4a activity-entry：工作组保存失败不再报成功，成功后刷新 (2.54ms)
+✔ F4b activity-materials：归档用动作作用域，失败文案走 describeWriteError (1.6855ms)
+✔ F4c issues.approveDraft：写入必须 trackWrite，不得只 console.warn (2.1671ms)
+✔ F4d roster-tab：部分失败只报一条汇总 error，不得同时报成功 (2.4346ms)
+✔ F4e workflow.engine：onEnter 抛错时结果不得是 success:true (1.5239ms)
+✔ F1 非空转：styles.css 可解析到 .input-flat 与 :focus-visible 规则 (7.4462ms)
+✔ F2 活动态唯一源：.input-flat:focus 用主题色边 + 3px soft-bg 外晕，不得画第二种外环 (4.4328ms)
+✔ F3 键盘保险：.input-flat:focus-visible 含 outline: 2px solid var(--app-accent) (1.8871ms)
+✔ F4 禁双答：.input-flat:focus 不得配 2px --focus-ring，暗色 --focus-ring 不得为党徽金 (3.6343ms)
+✔ F5 禁用 / 只读分态：两者都存在且声明不同（禁用灰底 / 只读透明边） (4.3707ms)
+✔ F6 select 统一：本地增强 / data-cs-enhanced / .input-flat 全局增强，例外逐条登记 (377.0796ms)
+✔ S1 筛选行与表格类族在 styles.css 单一源在位 (5.8065ms)
+✔ S2 统一检索引擎的分面：两形态（默认下拉；chip 须走 .chip-option 单一源） (1.7849ms)
+✔ S3 全站表格只用单一源类（.data-table） (447.9243ms)
+✔ S4 表头/单元格重复声明不得回潮 (454.3094ms)
+✔ S5 控件档位唯一：清 10px 下拉死规则 + 触发器不再补 32px (10.5738ms)
+✔ S6 筛选行分面胶囊只许经引擎 opt-in（页面不得自写 .chip-option） (355.8742ms)
+✔ S7 自写搜索框须落在 .lf-kw（筛选行载体单一源） (496.4139ms)
+✔ S8 分页控件单一源（禁借 chip 选中态） (429.6777ms)
+✔ S9 选人载体：用 select 列人名的只允许「任命 / 指派到人」三处例外（详见 DESIGN_SYSTEM §4.13） (383.6864ms)
+✔ S10 分页内置统一引擎（翻页控件单一源；调用点不得私自关掉分页） (521.3997ms)
+✔ S11 翻页标记单一源：page-btn / page-num 只允许由 components/ui/pager.js 产出 (695.9094ms)
+✔ S12 手写表格收敛台账：`<table` 只允许出现在登记在案的位置 (780.8131ms)
+✔ D1 单档口径同源：全站只剩「40px 控件 / 13px 字」一套（2026-10-23 Task 6 抬档） (11.3437ms)
+✔ D2 档位算式显式（内边距 + 显式行高 + 边框 = 40），禁靠 UA 或 CDN 工具类给行高 (15.1794ms)
+✔ D3 表格单档须直接声明到 th/td（禁只靠 <table> 继承，防 CDN 工具类压过） (4.5346ms)
+✔ S13 数据格不得挂小字类（text-xs / text-[1Npx] 只许出现在单元格内部） (465.7959ms)
+✔ F1 label for/id：四个重点表单的 label 与控件 id 成对 (3.4063ms)
+✔ F2 必填与字段错误：required/aria-required + 错误行 + aria 关联 + 聚焦首错 (0.5346ms)
+✔ F3 describeWriteError：按状态码分流且界面不出现 HTTP 数字 (1.4823ms)
+✔ F4 API / 调用点：服务端 body.error 优先，party-config / calendar 走统一文案 (0.4452ms)
+✔ F5 nudge 动词：每个场景都有 verb，标题按「本步一般由{who}{verb}」 (0.6259ms)
+✔ F6 表单按钮与浮窗退出：默认「保存」+ 150ms 淡出 + inert/焦点立即回还 (0.4955ms)
+✔ F7 活动详情：7 处原生对话框已全部改为 openModal (0.7124ms)
+✔ F8 可点容器键盘可达：非原生容器必须 role=button + tabindex=0 且文件有 Enter/Space 处理 (23.7535ms)
+✔ F9 写口失败不得提示成功：先判返回值/捕获异常，成功 toast 在失败分支之后 (3.4656ms)
+[DataAdapter] 数据源切换为: mock
+[db] v7 人员主键迁移： {"total":0,"mapped":0,"unmapped":[],"rate":1}
+[db] v8 活动组织落点：支部级重分类=0 补承办范围=0 待补责任组=0
+[db] v10 活动组织落点两档：落点归一=0 待补承办组=0 补跨组招募=0 工作组镜像=0
+[db] v11 待办归属回填：已归属=0 待归属=0
+[db] v12 branchId 回填：活动=0 考勤=0 考察=0 归档=0 宣传=0 外发=0 交接=0 确认=0 审计=0 待办=0
+[db] schema v12（本次应用 12 项）
+[DataAdapter] 数据源切换为: api，API_BASE_URL=http://127.0.0.1:58469
+[DataAdapter] init: API 模式，已从后端拉取数据到缓存
+✔ S0 形态：api 形态 + 有会话 token（数据来自服务端，不是本地静态种子） (2.592ms)
+✔ 组清单：支部 partyGroup 聚合 3 组（档案顺序），组长=组内 role leader，不含空组/9000000001 (3.1344ms)
+✔ 组内党员数 = developStage ∈ partyStages（roster isPartyMember 同源，含滞留党员 2400012349/2400012353） (1.6117ms)
+✔ branchId 过滤：br-b1 全部命中；不存在支部（br-b2）→ 空清单 (0.7279ms)
+✔ 组员口径：组内非组长成员；无组长组 = 全组成员 (1.0666ms)
+✔ 开放数口径：仅组员发起 open 汇报；closed/hidden/merged/组长自身/请求行不计 (0.8851ms)
+✔ 本组活动：organizer 属本组且非取消/非归档；按 date 降序 (0.9681ms)
+✔ 复盘分桶：pending = 无记录/未提交/已打回；completed = 其余 (0.9539ms)
+[DataAdapter] 数据源切换为: mock
+[db] v7 人员主键迁移： {"total":0,"mapped":0,"unmapped":[],"rate":1}
+[db] v8 活动组织落点：支部级重分类=0 补承办范围=0 待补责任组=0
+[db] v10 活动组织落点两档：落点归一=0 待补承办组=0 补跨组招募=0 工作组镜像=0
+[db] v11 待办归属回填：已归属=0 待归属=0
+[db] v12 branchId 回填：活动=0 考勤=0 考察=0 归档=0 宣传=0 外发=0 交接=0 确认=0 审计=0 待办=0
+[db] schema v12（本次应用 12 项）
+[MockAdapter] 跳过持久化写入：mockDB 尚未加载（loadDB 未完成），防止空数据覆盖
+[MockAdapter] 跳过持久化写入：mockDB 尚未加载（loadDB 未完成），防止空数据覆盖
+[MockAdapter] 跳过持久化写入：mockDB 尚未加载（loadDB 未完成），防止空数据覆盖
+[MockAdapter] 跳过持久化写入：mockDB 尚未加载（loadDB 未完成），防止空数据覆盖
+[MockAdapter] 跳过持久化写入：mockDB 尚未加载（loadDB 未完成），防止空数据覆盖
+[MockAdapter] 跳过持久化写入：mockDB 尚未加载（loadDB 未完成），防止空数据覆盖
+[MockAdapter] 跳过持久化写入：mockDB 尚未加载（loadDB 未完成），防止空数据覆盖
+[MockAdapter] 跳过持久化写入：mockDB 尚未加载（loadDB 未完成），防止空数据覆盖
+[MockAdapter] 跳过持久化写入：mockDB 尚未加载（loadDB 未完成），防止空数据覆盖
+✔ D01：recordedBy === actor 时确认/打回均拒绝，且不改记录 (112.7408ms)
+✔ D01：纪检/支书/副支书可确认并落 confirmedBy/confirmedAt；组织委员与普通成员不可确认 (4.9218ms)
+✔ D01：打回同样落 returnedBy/returnedAt（复用既有字段） (1.0811ms)
+✔ D06(b)：会议考勤上传后 recordedBy 为录入人，且不进入待确认队列 (5.5551ms)
+✔ D06(b)：对照——组织者上传（recordedBy:null）的异常记录才进待确认队列 (1.9562ms)
+✔ D04：auto 交接不派生接收方待办；confirm 两次结果一致且只有一条交接记录 (2.9211ms)
+✔ D04：material-shortage（真待办类）仍派生纪检待办 (1.6259ms)
+✔ D08：前端判据 / 服务端写门 / constants 角色集合同源，且含 org-commissioner (1.4274ms)
+✔ D08/D01 服务端：组织委员可 POST 考察，但不能确认（确认白名单 + 自确认禁令） (195.5254ms)
+✔ D01 服务端：纪检自提交的考察，确认/打回均 403；支书/副支书可确认 (56.2154ms)
+[硬编码 hex 存量] 处数 1387（基线 1433，↓46） · 值 292（基线 300，↓8） · 文件 51（基线 51，持平）
+[存量最重五项] docs/help.html=533 · docs/src/styles.css=383 · docs/src/core/domain/constants.js=194 · docs/src/about.css=50 · docs/src/tailwind-config.js=48
+[收基线提示] 删存量后同批删 style-baseline.mjs 对应值 / 减小 c，进度即前进；不得为变绿补条目。
+✔ H1 硬编码 hex 回归：现状之外的 (文件, 值) 判红（基线 300 值 / 51 文件 / 1433 处） (650.7281ms)
+✔ H2 处数 ratchet：逐文件 hex 处数不得高于基线（同一值复制到同文件也算新增） (517.7586ms)
+✔ H3 非空转：抽取口径可用 + 基线规模达标 + 无僵尸登记 (425.0071ms)
+✔ H4 缩减进度：当前存量与基线对照 (423.3555ms)
+✔ H5 搬移例外台账：逐值对照 ＋ 不许借搬移加深色 ＋ 总量不得升（台账 1 条） (410.5512ms)
+✔ H6 主题色板例外：除 #FFFFFF 外，色板值只允许出现在 constants.js / styles.css (457.3982ms)
+✔ H1 首页标题为「工作组进展」，旧标题「专班进展」不再出现 (1.7318ms)
+✔ H2 同时处理活动工作组与专班工作组两类 (0.4954ms)
+✔ H3 任务完成数读 workgroupTasks，分母排除 cancelled (0.3307ms)
+✔ H4 不再以 capacity 报名填充率作为进度 (0.4567ms)
+✔ H5 卡内两类组名齐备 (0.694ms)
+✔ H6 未装载任务时显示「加载中」，不把 0 / — 冒充空结果 (0.548ms)
+✔ H7 今天页空态（2026-10-27 Task 6.4）：一张卡一行说明 + 单一主 CTA，卡内不再重复「写入活动」 (0.8745ms)
+[hover] 5 个文件共 103 条 :hover 规则，未门控 0 条
+[hover] 检查 hover 规则体 103 条，非颜色反馈 0 条
+[hover] 规则分布：docs/src/styles.css=85 · docs/src/components/person-picker.css=8 · docs/src/about.css=3 · docs/help.html=7 · docs/login.html=0
+✔ H1 全仓 :hover 规则必须由 @media (hover: hover) 门控 (51.2682ms)
+✔ H2 hover 反馈只改颜色：filter / opacity / transform / translate / box-shadow 计数为 0 (28.9827ms)
+✔ H3 页签与 summary 有三态；静态行/卡不假装可点 (24.4306ms)
+✔ H4 Tailwind hoverOnlyWhenSupported: true（触屏不触发 hover 工具类） (1.7494ms)
+✔ H5 非空转：hover 规则规模下限 (27.0919ms)
+✔ H6 按压配色三源：中性灰 / 主题 activeBg / 党建红 active (5.2403ms)
+✔ H7 按压反馈唯一源：180ms + 1px 内阴影，且无位移 / 缩放 (5.3908ms)
+✔ I1 四件落盘：IA 矩阵 / 批判性审计 / 链接真值 / H21.3 协议 (2.1317ms)
+✔ I2 协议含三问 / 数据适配功能 / 5 条 Boolean 规则 (7.4613ms)
+✔ I3 CLAUDE 含 H21.3 三问与 mock 可删改 (3.2767ms)
+✔ I4 矩阵非空转：tabs ≥ 60、links ≥ 30 (8.6527ms)
+✔ I5 审计报告覆盖六路编号；链接真值覆盖材料闭环与至少 10 条 (12.6799ms)
+[DataAdapter] 数据源切换为: mock
+[db] v7 人员主键迁移： {"total":0,"mapped":0,"unmapped":[],"rate":1}
+[db] v8 活动组织落点：支部级重分类=0 补承办范围=0 待补责任组=0
+[db] v10 活动组织落点两档：落点归一=0 待补承办组=0 补跨组招募=0 工作组镜像=0
+[db] v11 待办归属回填：已归属=0 待归属=0
+[db] v12 branchId 回填：活动=0 考勤=0 考察=0 归档=0 宣传=0 外发=0 交接=0 确认=0 审计=0 待办=0
+[db] schema v12（本次应用 12 项）
+[server] 已建立**最小组织基线**：支部 1 个（光华管理学院本科生党支部） ＋ 党委账号 1 名（党委组织员 / 学号 9000000001）；**未灌任何成员名单**（名单请走 IAAA 登录 + 支部确认，或党委台「支部管理 → 导入成员名册」）
+✔ T1 /login ⇒ 302 到 IAAA 回调（MOCK 假想 IAAA） (120.3234ms)
+✔ T2 无号 ⇒ 自动建号（participant / branchId null / needBranch）且能登录；同学号不重复建号 (30.4202ms)
+✔ T3 选支部：不存在的支部 ⇒ 400；存在 ⇒ 记 joinIntent 且**仍 branchId null** (65.5097ms)
+✔ T4 待确认清单：成员 403；本支部组织委员只看本支部申请 (36.781ms)
+✔ T5 确认入站：落 branchId ＋ auth_audit 留痕 ＋ 清单移除 (20.7389ms)
+✔ T6 越权：本支部组织委员不得批别支部申请（403）；党委可跨支部 (18.631ms)
+✔ T7 驳回：清意向、保持未归属（可重选）＋ 留痕 join-reject (21.1947ms)
+✔ T8 浏览器流的 302 落点必须是绝对路径（否则被相对请求 URL 解析 ⇒ 404） (9.4419ms)
+✔ D1 种子集合内 id 唯一、非空、同集合口径不分裂 (3.9105ms)
+✔ D2 同一 id 不得跨集合出现（id 维度上的「张冠李戴」） (0.7654ms)
+✔ D3 id 形态不与前缀契约冲突（tf- / notice- 连字符前缀不得被改成下划线形态） (1.2163ms)
+✔ D4 唯一源可用：generateId 保留前缀与分隔符，且连续生成互不相同 (12.7311ms)
+✔ S1 禁止「前缀 + Date.now()」生成实体 id（回潮即红） (385.7869ms)
+✔ S2 禁止 Math.random() 参与实体 id 生成 (394.5475ms)
+✔ S3 单一源在位：core/base/id.js 导出 generateId + randomHex（含降级链） (1.9638ms)
+[DataAdapter] 数据源切换为: mock
+[db] v7 人员主键迁移： {"total":0,"mapped":0,"unmapped":[],"rate":1}
+[db] v8 活动组织落点：支部级重分类=0 补承办范围=0 待补责任组=0
+[db] v10 活动组织落点两档：落点归一=0 待补承办组=0 补跨组招募=0 工作组镜像=0
+[db] v11 待办归属回填：已归属=0 待归属=0
+[db] v12 branchId 回填：活动=0 考勤=0 考察=0 归档=0 宣传=0 外发=0 交接=0 确认=0 审计=0 待办=0
+[db] schema v12（本次应用 12 项）
+[db] v7 人员主键迁移： {"total":0,"mapped":0,"unmapped":[],"rate":1}
+[db] v8 活动组织落点：支部级重分类=0 补承办范围=0 待补责任组=0
+[db] v10 活动组织落点两档：落点归一=0 待补承办组=0 补跨组招募=0 工作组镜像=0
+[db] v11 待办归属回填：已归属=0 待归属=0
+[db] v12 branchId 回填：活动=0 考勤=0 考察=0 归档=0 宣传=0 外发=0 交接=0 确认=0 审计=0 待办=0
+[db] schema v12（本次应用 12 项）
+✔ G1 mock 种子 / server 种子 / 反馈 JSON 不得出现 p* 人员 id (32.3789ms)
+✔ G2 业务代码不得引用 LEGACY_PERSON_ID_MAP（仅迁移文件） (452.9857ms)
+✔ G3 前端 legacy 映射只允许 data-adapter / mock-adapter 迁移路径引用 (392.1977ms)
+✔ G4 PEOPLE 的 id 必须等于 studentId（学号/工号即主键） (0.5439ms)
+✔ G5 播种库 users.id = studentId；v7 幂等（全为学号时 mapped=0） (183.2647ms)
+[auth] 检测到旧 p* 人员 id 登录别名（仅迁移期兼容），会话已改存学号
+[db] v7 人员主键迁移： {"total":0,"mapped":0,"unmapped":[],"rate":1}
+[db] v8 活动组织落点：支部级重分类=0 补承办范围=0 待补责任组=0
+[db] v10 活动组织落点两档：落点归一=0 待补承办组=0 补跨组招募=0 工作组镜像=0
+[db] v11 待办归属回填：已归属=0 待归属=0
+[db] v12 branchId 回填：活动=0 考勤=0 考察=0 归档=0 宣传=0 外发=0 交接=0 确认=0 审计=0 待办=0
+[db] schema v12（本次应用 12 项）
+✔ G6 旧 p* 只作登录别名：会话与返回用户一律存学号，users 表不落 p* (215.6026ms)
+✔ G7 v7 迁移把旧库里的 users / 引用 / 会话一并换成学号 (34.9555ms)
+✔ G1/G2 相对 ESM 规格符的路径必须存在（字面量查文件；模板前缀查目录） (775.6885ms)
+✔ G3 非空转：扫描面与抽取量有下限，且判据真会判（内存副本注入坏规格符，**不落盘**） (526.18ms)
+[DataAdapter] 数据源切换为: mock
+[db] v7 人员主键迁移： {"total":0,"mapped":0,"unmapped":[],"rate":1}
+[db] v8 活动组织落点：支部级重分类=0 补承办范围=0 待补责任组=0
+[db] v10 活动组织落点两档：落点归一=0 待补承办组=0 补跨组招募=0 工作组镜像=0
+[db] v11 待办归属回填：已归属=0 待归属=0
+[db] v12 branchId 回填：活动=0 考勤=0 考察=0 归档=0 宣传=0 外发=0 交接=0 确认=0 审计=0 待办=0
+[db] schema v12（本次应用 12 项）
+✔ ① 新建考察：专班带 workgroupId，活动带 activityId；专班缺键 → 400 (318.1996ms)
+[inspection-migrate] 考察工作组键回填：total=3 filled=1 legacy=1 rate=66.7%
+[inspection-migrate] 考察工作组键回填：total=3 filled=0 legacy=1 rate=66.7%
+✔ ② 专班改名后按 workgroupId 仍可查；同名专班不串数据 (66.0434ms)
+✔ ③ 回填幂等：第二次 filled=0、legacy 不增；legacy 记录确认/删除被拒 (20.5523ms)
+✔ ④ 跨组 / 跨支部写门拒绝 (24.0977ms)
+[inspection-migrate] 考察工作组键回填：total=2 filled=0 legacy=0 rate=100.0%
+[inspection-migrate] 考察工作组键回填：total=2 filled=2 legacy=0 rate=100.0%
+✔ ⑤ mock / api 两形态父键读数一致 (15.0647ms)
+[DataAdapter] 数据源切换为: mock
+[db] v7 人员主键迁移： {"total":0,"mapped":0,"unmapped":[],"rate":1}
+[db] v8 活动组织落点：支部级重分类=0 补承办范围=0 待补责任组=0
+[db] v10 活动组织落点两档：落点归一=0 待补承办组=0 补跨组招募=0 工作组镜像=0
+[db] v11 待办归属回填：已归属=0 待归属=0
+[db] v12 branchId 回填：活动=0 考勤=0 考察=0 归档=0 宣传=0 外发=0 交接=0 确认=0 审计=0 待办=0
+[db] schema v12（本次应用 12 项）
+✔ 普通成员非本场组织者：POST/PATCH/DELETE /inspections → 403，且删除不落库 (345.8393ms)
+✔ 本场组织者的普通成员：POST 本场考察 → 201，记录人取当前会话 (27.655ms)
+✔ 纪检（disc-commissioner）：POST / PATCH / DELETE → 201 / 200 / 204 (31.6013ms)
+✔ 支书（secretary）：POST / PATCH / DELETE → 201 / 200 / 204 (26.4728ms)
+[DataAdapter] 数据源切换为: mock
+[db] v7 人员主键迁移： {"total":0,"mapped":0,"unmapped":[],"rate":1}
+[db] v8 活动组织落点：支部级重分类=0 补承办范围=0 待补责任组=0
+[db] v10 活动组织落点两档：落点归一=0 待补承办组=0 补跨组招募=0 工作组镜像=0
+[db] v11 待办归属回填：已归属=0 待归属=0
+[db] v12 branchId 回填：活动=0 考勤=0 考察=0 归档=0 宣传=0 外发=0 交接=0 确认=0 审计=0 待办=0
+[db] schema v12（本次应用 12 项）
+✔ 内部汇报按新受众面收敛；隐藏反馈只给支书层与处置人 (297.7518ms)
+✔ 服务端按同一判据拒绝详情越权（列表与详情不出现两套口径） (17.982ms)
+✔ 支委层五角色可读本支部全部内部汇报 (47.7853ms)
+✔ 工作组组织者：只读本组汇报；非本组组织者读不到 (21.6447ms)
+✔ 党小组组长：可读本组成员汇报；非本组组长读不到 (30.1031ms)
+[DataAdapter] 数据源切换为: mock
+✔ 当事人与无关成员：提交人 / 被指派人 / 被请求人可读；无关成员列表读不到 (35.7963ms)
+✔ 直连判据 canReadIssue：五类支委 / 组织者 / 组长 / 当事人 / 无关成员 (4.6208ms)
+✔ 汇总 scope：按工作组 / 党小组过滤，条数与列表同一判据 (80.2065ms)
+✔ 前端直连读口 getById 与列表共用同一投影（非本组组织者读不到） (5.2772ms)
+✔ 一键汇报可选父键：落在本支部工作组上并回读；跨支部/不存在一律拒绝 (33.9495ms)
+✔ 党委账号不能提交汇报或反馈（支部内闭环） (8.0779ms)
+[DataAdapter] 数据源切换为: mock
+[db] v7 人员主键迁移： {"total":0,"mapped":0,"unmapped":[],"rate":1}
+[db] v8 活动组织落点：支部级重分类=0 补承办范围=0 待补责任组=0
+[db] v10 活动组织落点两档：落点归一=0 待补承办组=0 补跨组招募=0 工作组镜像=0
+[db] v11 待办归属回填：已归属=0 待归属=0
+[db] v12 branchId 回填：活动=0 考勤=0 考察=0 归档=0 宣传=0 外发=0 交接=0 确认=0 审计=0 待办=0
+[db] schema v12（本次应用 12 项）
+✔ issues list requires login and is limited to the actor branch; Party Committee gets no list (291.3496ms)
+✔ issue submission requires a branch account and derives branchId from the authenticated actor (26.5623ms)
+✔ issue disposition is branch-scoped and Party Committee cannot read or reveal identities (24.5384ms)
+[DataAdapter] 数据源切换为: mock
+[DataAdapter] 数据源切换为: mock
+✔ S1 docs/data/issues.json 存量 4 条 issue 均逐条携带 branchId（支部归属列） (8.734ms)
+✔ S2 写入口径锁定：前端 submitIssue/approveDraft 与服务端 POST/seed 均写 branchId (6.8112ms)
+✔ S3 读取过滤单一源：issues.js 经 branch.js 的 withinBranch 收敛（勿另写第二套支部口径） (2.818ms)
+✔ S4 成员参与接线：getMyIssues 出口 + 我的处置 tab「我提交/参与的反馈」区 (4.06ms)
+✔ S5 组长/成员「我的处置」：两段结构、打开行才标已读、令牌说明移 help (5.1015ms)
+✔ D1 存量迁移：缓存各条均带 branchId；viewer 取到本支部 issue (11.3359ms)
+✔ D2 跨支部不可见：br-b1 viewer 取不到 br-b2 issue，反之亦然 (4.0356ms)
+✔ D3 成员参与答复：participant 可对自己提交的 issue 追加说明（作者/计数落库） (6.0358ms)
+[DataAdapter] 数据源切换为: mock
+✔ mock 缓存与草稿迁除旧匿名身份，新增草稿也不持久化真身 (324.4638ms)
+[link] 检查 <a> 标签 259 个，蓝链接 0 个
+✔ L1 非空转：可扫描到前端源与 <a> 标签 (389.6917ms)
+✔ L2 纯文本链接不得用 Tailwind 蓝作链接色（信息态/带底色的按钮型链接除外） (367.7185ms)
+✔ L3 .link 单一源：色取 --color-link（→ softText），静态下划线 + hover 下划线 (5.3804ms)
+✔ L4 .text-accent 仍是等价别名（存量调用点依赖） (4.6694ms)
+✔ L5 蓝色文字类总量只降不升（覆盖 JS 动态 className） (393.4945ms)
+✔ L6 帮助链接：.help-note__link 并入 --color-link，静态下划线 (5.1067ms)
+✔ L7 速查链接：a.qn-fn-* 颜色并入 --color-link，角色色只留边框 (12.6907ms)
+✔ L8 help / about 锚点不得用蓝色或角色色作链接色 (8.9241ms)
+[L6] 渲染型 href/src 裸文件名：扫描 312 个 js / 223 处引用，其中裸名 6 处，不存在 0 处
+[L7] 非空转：js 312（下限 180）· 渲染引用 223（下限 100） · 已修样本 2 个（无裸名回退）
+✔ L6 裸文件名渲染 href/src：按 <base> 规则解析后目标必须真实存在（裸 x.html → docs/x.html） (485.0707ms)
+✔ L7 非空转：抽取口径可用 + 抽取面规模达标 + 已修样本可判 (612.3364ms)
+[localstorage-key-guard] 全仓键字面量归类（共 46 个键）：
+  · A 服务端权威：16 个 → gsm1921-attendance-appeals, gsm1921-feedback-migrated, gsm1921-feedback-submissions, gsm1921-inspection-appeals, gsm1921-issue-cache, gsm1921-issue-cache-v3, gsm1921-issue-cache-version, gsm1921-issue-unread-, gsm1921-member-confirmations, gsm1921-milestone-cache, gsm1921-residence-overrides, issue_reveals, sop_org_os_auth_audit, workflowos_branch_db_v1, workflowos_notices_v1, workflowos_taskforces_v1
+  · B 本机临时白名单：11 个 → gsm1921-accounts, gsm1921-base-data-preview, gsm1921-dev-stage-overrides, gsm1921-init-state, gsm1921-issue-drafts, gsm1921-issue-submitter-token, gsm1921-members-overlay, gsm1921-pending-writes-outbox, gsm1921-workforce-draft, wizard-draft-, workflowos_leader_activity_draft
+  · C UI 偏好与会话：19 个 → cps-, gsm1921-api-token, gsm1921-login-user, gsm1921-pref-, gsm1921-remote-probe, gsm1921-session-snap, gsm1921-tab-id, sop_org_os_assigned_roles, sop_org_os_data_version, sop_org_os_session, workflowos_accent_role, workflowos_font_size, workflowos_tab_disc, workflowos_tab_leader, workflowos_tab_org, workflowos_tab_prop, workflowos_tab_secretary, workflowos_tab_visitor, workflowos_theme
+[MockAdapter] 本地备份缺集合版本或已过期（missing-versions），不作为权威，改从服务端重拉
+✔ L1 全仓 localStorage / sessionStorage 键字面量 ⊆ 已知映射（未登记即红） (6.4509ms)
+✔ L2 白名单非空转 + 无僵尸登记（映射里的每个键都得真在代码里出现） (1.4474ms)
+✔ L3 抽取口径有基线（防正则失效 → 一个键都抽不到 → 断言恒真） (0.4064ms)
+✔ L4 全仓存储键必须落入四类清单（未登记 ⇒ unknown ⇒ 红） (1.1499ms)
+✔ L5 registry 不得有僵尸登记（精确键须真在代码出现；前缀须至少命中一个键） (1.0577ms)
+✔ L6 visual 键白名单：只允许主题 / 字号 / 强调色 / 页签顺序 / UI 偏好开关 (1.4542ms)
+✔ L7 业务读缓存备份必须带 `_versions` + `savedAt`，缺版本 / 过期 / 版本不一致 ⇒ 不得当权威 (4.9118ms)
+✔ L8 auth 键不得承载业务数据（token 只进 sessionStorage；auth 键与业务集合不相交） (435.0711ms)
+✔ L9 故障注入：新增未登记键 / 删掉备份版本，都必须红 (2.0532ms)
+✔ L10 读口拒收缺版本 / 过期备份（restoreNicheCollections 返回 false，由调用方重拉） (192.6829ms)
+✔ MATERIAL_ROWS：四类材料行顺序稳定 (2.8105ms)
+✔ 逐角色 × 四行：落点与真值表一致（null 行必须为 null） (0.9292ms)
+✔ participant 非组织者：四行全为 null（只给纯文本交接） (2.938ms)
+✔ 无本位动作的行有交接文案（不返回空串） (0.8519ms)
+✔ 未知角色 / 非法行一律 null（不产出跨台假链接） (0.5687ms)
+✔ 材料页入口不再硬编码跨台链接，改为消费 resolveMaterialHref (2.8272ms)
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 跳过持久化写入：mockDB 尚未加载（loadDB 未完成），防止空数据覆盖
+[MockAdapter] 跳过持久化写入：mockDB 尚未加载（loadDB 未完成），防止空数据覆盖
+[MockAdapter] 跳过持久化写入：mockDB 尚未加载（loadDB 未完成），防止空数据覆盖
+[MockAdapter] 跳过持久化写入：mockDB 尚未加载（loadDB 未完成），防止空数据覆盖
+[MockAdapter] 跳过持久化写入：mockDB 尚未加载（loadDB 未完成），防止空数据覆盖
+[MockAdapter] 跳过持久化写入：mockDB 尚未加载（loadDB 未完成），防止空数据覆盖
+✔ policy recorderByType：支部党员大会/党课=纪检（党课含支书/副支书）、党小组会=组长；组织生活会（组织者位）与支委会（不考勤）不入表 (5.0466ms)
+✔ policy reasons：未到标因固定枚举（事假/病假/无故/其它 + 时效 note，键唯一 + 中文标签），派生出口同源拷贝 (0.8002ms)
+✔ 滞留到场补录：纪检录入落行 present+detainedMakeup；K→L→K+L 统计；更正普通重提清除标记 (6.7191ms)
+✔ 标因落行：缺勤/请假携 absenceReason；纪检更正换因/转出勤清除旧标因 (2.42ms)
+✔ 只读视图：党小组会考勤按组聚合归属组长（组长=记录人 submittedBy 可辨）；无记录不占位 (31.3106ms)
+✔ 回归：滞留者仍在候选（灰态可见）但不在应到/全选范围；纪律与 roster 定义一致 (2.0382ms)
+[DataAdapter] 数据源切换为: mock
+[db] v7 人员主键迁移： {"total":0,"mapped":0,"unmapped":[],"rate":1}
+[db] v8 活动组织落点：支部级重分类=0 补承办范围=0 待补责任组=0
+[db] v10 活动组织落点两档：落点归一=0 待补承办组=0 补跨组招募=0 工作组镜像=0
+[db] v11 待办归属回填：已归属=0 待归属=0
+[db] v12 branchId 回填：活动=0 考勤=0 考察=0 归档=0 宣传=0 外发=0 交接=0 确认=0 审计=0 待办=0
+[db] schema v12（本次应用 12 项）
+✔ 独立支委会话读取支书确认后的同一服务器数据 (279.4317ms)
+[DataAdapter] 数据源切换为: mock
+[db] v7 人员主键迁移： {"total":0,"mapped":0,"unmapped":[],"rate":1}
+[db] v8 活动组织落点：支部级重分类=0 补承办范围=0 待补责任组=0
+[db] v10 活动组织落点两档：落点归一=0 待补承办组=0 补跨组招募=0 工作组镜像=0
+[db] v11 待办归属回填：已归属=0 待归属=0
+[db] v12 branchId 回填：活动=0 考勤=0 考察=0 归档=0 宣传=0 外发=0 交接=0 确认=0 审计=0 待办=0
+[db] schema v12（本次应用 12 项）
+✔ 组织委员审批后广播，支书确认后更新成员资料 (315.8113ms)
+[DataAdapter] 数据源切换为: mock
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+✔ submitMemberChange：成员不存在 / kind 非法 / 枚举外 / to=现值一致 均拒绝 (36.3454ms)
+✔ submitMemberChange：同 person+kind 已有 pending 拒绝；不同 kind 可并行（各自独立） (18.1885ms)
+✔ decideConfirmation approved（发展阶段）：落档案 + decidedBy/decidedAt；listPending 剔除 (12.9025ms)
+✔ decideConfirmation rejected：rejectNote 透传 + 默认提示；不生效 (13.9799ms)
+✔ decideConfirmation：decision 非法 / 找不到 pending 请求 → 拒绝 (10.3263ms)
+✔ C①-补（2026-09-28 服务端化）：阶段变更 entryDate 确认生效 → 成员档案 developStageSince，发展节点提醒恢复派生 (17.8551ms)
+✔ C①-补：entryDate 缺省 → 今日；退回不落档；非阶段变更不携带/不落档 (13.4926ms)
+✔ decideConfirmation approved（在册滞留）：roster 覆盖 + 留痕 updatedBy=支书 + 档案镜像 (11.1516ms)
+✔ submitTransferOut：现任支书（2300010001）拒绝需先交接；已有 pending 其它请求拦截 (7.8955ms)
+✔ submitTransferOut：无任何引用 → direct 直接移出（removedIds 对象含 name；不匿名） (10.4341ms)
+✔ submitTransferOut：仅安全引用（未开始分工/未生效报名/未读广播）→ direct + clearedSafe (6.9066ms)
+✔ submitTransferOut：有保留历史 → 登记即生效（安全解除 + keep 标注 + 成员即时移出；不建 pending） (6.9887ms)
+✔ submitTransferOut（登记即生效）：安全解除 + keep 标注 transferredOutAt + 专班普通成员移除 + 不匿名 (11.5321ms)
+✔ submitTransferOut（登记即生效）：专班负责人保留行 + 提示 note；不阻塞移出 (9.1632ms)
+✔ submitTransferOut（登记即生效）：memberChangeRequests 非终态作废 cancelled + 终态标注 (8.8785ms)
+✔ 成员变更确认队列跨刷新持久：清 mockDB 后经 localStorage 镜像恢复；已决策记录保留 (11.7413ms)
+✔ 旧 string removedIds 兼容：applyMemberOverlay 过滤 + getName 查不到名回退 id (6.0601ms)
+✔ shouldShowSemesterDetainedRemind：窗口 [06-15..07-15]∪[12-15..次年01-15] 且有滞留 → true；否则 false (11.2759ms)
+✔ listPendingConfirmations：仅 pending；含 name/action/from→to/by/at/note/kind (5.6194ms)
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+✔ S1 全站不得再出现「流出待支书确认」旧口径（transferOut pending 分支已移除） (4.4726ms)
+✔ S2 enrollYear 字段两侧白名单齐备（前端字段白名单 + server/routes/member.js） (7.0376ms)
+✔ S5 成员流动页首文案中性，不再写死「成员名册」 (2.232ms)
+✔ S3 写门角色集来自单一源（不得手写角色字符串） (7.0488ms)
+✔ S4 撤销流出须清 server 软标记（Q-23-5；三处接线齐备） (5.2765ms)
+✔ D1 单人流入：档案落档（含学号/届别）+ 台账一笔 + 账号可登录 (39.8942ms)
+✔ D2 批量粘贴（含一行错误）→ errors 有行号且其它行照常成功 (49.3945ms)
+✔ D3 多人流出：软标记 + 台账 + 账号停用 + 名册读链不再含该人 (26.3233ms)
+✔ D4 撤销：台账留痕（revokedAt/revokedBy）+ 回滚在册状态 + 账号恢复/停用 (15.9ms)
+✔ D5 reconcile 恒等：期初在册 + 流入合计 − 流出合计 = 当前在册 (16.6121ms)
+✔ D6 权限：组织委员/支书/副支书可登记，其它角色拒绝 (10.2055ms)
+[DataAdapter] 数据源切换为: mock
+[db] v7 人员主键迁移： {"total":0,"mapped":0,"unmapped":[],"rate":1}
+[db] v8 活动组织落点：支部级重分类=0 补承办范围=0 待补责任组=0
+[db] v10 活动组织落点两档：落点归一=0 待补承办组=0 补跨组招募=0 工作组镜像=0
+[db] v11 待办归属回填：已归属=0 待归属=0
+[db] v12 branchId 回填：活动=0 考勤=0 考察=0 归档=0 宣传=0 外发=0 交接=0 确认=0 审计=0 待办=0
+[db] schema v12（本次应用 12 项）
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+[MockAdapter] ?reset=1/demo 已清除演示存储键 11 个，正在回到种子初始态
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+✔ mock ①：saveMember 新增（显式新 id）→ 读链即时生效；getBaseMemberRecords 与 server users 对应物同视图 (111.0561ms)
+✔ mock ①b：saveMember 缺 id → 以学号作主键；学号也缺则拒绝（P1-12） (8.3275ms)
+✔ mock ②：saveMember 更新既有成员（字段级合并）→ 读链即时生效；重 loadDB（模拟刷新）覆盖层仍在 (6.8488ms)
+✔ mock ③：removeMember 引用守卫命中拒绝——活动分工（2400012347）与现任支书（2300010001） (11.5017ms)
+✔ mock ④：removeMember 空引用可删（临时成员）→ 读链剔除 + 刷新仍剔除；?reset=demo 回到种子基线 (12.199ms)
+✔ mock ⑤：replaceBranchMembers 到空支部生效且 roster 应到即时变化；到有历史支部（br-b1）默认拒绝 (10.8232ms)
+✔ mock ⑥：demo 重置集含 members 覆盖层键（gsm1921- 前缀自动纳入）；preview 档不清 (8.3474ms)
+✔ mock ⑥b：MockAdapter.users 资源组（members 持久覆盖层子域读写）与 api-adapter.users 接口对称 (542.0362ms)
+✔ api ⑦：server users 通用 CRUD 落库断言（POST 新增 / PATCH 更新 / DELETE 删除）；非 party-staff 403 (179.7869ms)
+[DataAdapter] 数据源切换为: api，API_BASE_URL=http://127.0.0.1:60414
+[DataAdapter] 数据源切换为: mock
+✔ api ⑧：PersonStore api 形态 saveMember/removeMember 经名册语义端点写 server（R-10 写链） (75.7505ms)
+[DataAdapter] 数据源切换为: api，API_BASE_URL=http://127.0.0.1:60414
+[DataAdapter] 数据源切换为: api，API_BASE_URL=http://127.0.0.1:60414
+[DataAdapter] 数据源切换为: mock
+✔ api ⑨：局部更新缺 name 不再失败；支书阶段写入经新端点落库（成员变更确认链 API 形态） (61.6376ms)
+[DataAdapter] 数据源切换为: api，API_BASE_URL=http://127.0.0.1:60414
+[DataAdapter] 数据源切换为: mock
+[DataAdapter] 数据源切换为: api，API_BASE_URL=http://127.0.0.1:60414
+[DataAdapter] 数据源切换为: mock
+[DataAdapter] 数据源切换为: api，API_BASE_URL=http://127.0.0.1:60414
+[DataAdapter] 数据源切换为: mock
+[DataAdapter] 数据源切换为: api，API_BASE_URL=http://127.0.0.1:60414
+[DataAdapter] 数据源切换为: mock
+✔ api ⑩：R-10 三条链——支书在册镜像 / 组织委员在册行内 / 支书移出软标记均落库 (71.6942ms)
+[DataAdapter] 数据源切换为: api，API_BASE_URL=http://127.0.0.1:60414
+[DataAdapter] 数据源切换为: mock
+✔ api ⑪：Q-23-5 撤销流出清 server 软标记（流出后 401 → 撤销后恢复可登录） (70.1775ms)
+[DataAdapter] 数据源切换为: api，API_BASE_URL=http://127.0.0.1:60414
+[DataAdapter] 数据源切换为: mock
+[DataAdapter] 数据源切换为: api，API_BASE_URL=http://127.0.0.1:60414
+[DataAdapter] 数据源切换为: mock
+[DataAdapter] 数据源切换为: api，API_BASE_URL=http://127.0.0.1:60414
+[DataAdapter] 数据源切换为: mock
+[DataAdapter] 数据源切换为: mock
+✔ api ⑫：Q-23-10 流入登记三角色皆可（/members/intake）；名册新增仍守 R-10 专属 (71.6475ms)
+[DataAdapter] 数据源切换为: mock
+[db] v7 人员主键迁移： {"total":0,"mapped":0,"unmapped":[],"rate":1}
+[db] v8 活动组织落点：支部级重分类=0 补承办范围=0 待补责任组=0
+[db] v10 活动组织落点两档：落点归一=0 待补承办组=0 补跨组招募=0 工作组镜像=0
+[db] v11 待办归属回填：已归属=0 待归属=0
+[db] v12 branchId 回填：活动=0 考勤=0 考察=0 归档=0 宣传=0 外发=0 交接=0 确认=0 审计=0 待办=0
+[db] schema v12（本次应用 12 项）
+✔ S1 单一源（结构）：接口不得自行聚合，口径必须来自 member-progress.js (200.745ms)
+✔ S2 四项真被算到（非空转）：在办 2 / 超期 1 / 缺勤 1 / 考察待确认 1 / 汇报=卡点 (28.3111ms)
+✔ S3 双态同源：mock 态调纯函数 ≡ api 态打接口（逐字相等） (17.9006ms)
+✔ S4 参数守卫：缺 personIds → 400（不得静默返回全量） (14.1315ms)
+[DataAdapter] 数据源切换为: api，API_BASE_URL=
+[DataAdapter] 数据源切换为: mock
+[DataAdapter] 数据源切换为: mock
+[DataAdapter] 数据源切换为: mock
+✔ R1 api 形态：getMembers() 必须读到「服务端新建成员」（名册读链回归） (2.9992ms)
+✔ R2 反例：mock 形态不得读到只在 mockDB.users 里的人（读链口径不混） (0.953ms)
+[DataAdapter] 数据源切换为: mock
+[db] v7 人员主键迁移： {"total":0,"mapped":0,"unmapped":[],"rate":1}
+[db] v8 活动组织落点：支部级重分类=0 补承办范围=0 待补责任组=0
+[db] v10 活动组织落点两档：落点归一=0 待补承办组=0 补跨组招募=0 工作组镜像=0
+[db] v11 待办归属回填：已归属=0 待归属=0
+[db] v12 branchId 回填：活动=0 考勤=0 考察=0 归档=0 宣传=0 外发=0 交接=0 确认=0 审计=0 待办=0
+[db] schema v12（本次应用 12 项）
+
+── mock ↔ API 结构对照（B-499-4）──
+[users] server=51 seed=51 多出=0 缺失=0 类型不符=0 白名单豁免=0
+[branches] server=1 seed=1 多出=0 缺失=0 类型不符=0 白名单豁免=0
+[party_groups] server=3 seed=3 多出=0 缺失=0 类型不符=0 白名单豁免=0
+[milestones] server=1 seed=1 多出=0 缺失=0 类型不符=0 白名单豁免=0
+[activities] server=38 seed=38 多出=0 缺失=0 类型不符=0 白名单豁免=0
+[taskforces] server=8 seed=8 多出=0 缺失=0 类型不符=0 白名单豁免=0
+[tasks] server=8 seed=8 多出=0 缺失=0 类型不符=0 白名单豁免=0
+[assignments] server=5 seed=5 多出=0 缺失=0 类型不符=0 白名单豁免=0
+[attendances] server=144 seed=144 多出=0 缺失=0 类型不符=0 白名单豁免=0
+[inspections] server=42 seed=42 多出=0 缺失=0 类型不符=0 白名单豁免=0
+[makeup_tasks] server=1 seed=1 多出=0 缺失=0 类型不符=0 白名单豁免=0
+[notices] server=14 seed=14 多出=0 缺失=0 类型不符=0 白名单豁免=0
+[todos] server=1 seed=1 多出=0 缺失=0 类型不符=0 白名单豁免=0
+[signups] server=7 seed=7 多出=0 缺失=0 类型不符=0 白名单豁免=0
+[activity_reviews] server=11 seed=11 多出=0 缺失=0 类型不符=0 白名单豁免=0
+[taskforce_reviews] server=2 seed=2 多出=0 缺失=0 类型不符=0 白名单豁免=0
+[thought_reports] server=5 seed=5 多出=0 缺失=0 类型不符=0 白名单豁免=0
+[prop_tasks] server=8 seed=8 多出=0 缺失=0 类型不符=0 白名单豁免=0
+[periodic_archive_submissions] server=4 seed=4 多出=0 缺失=0 类型不符=0 白名单豁免=0
+[archive_records] server=6 seed=6 多出=0 缺失=0 类型不符=0 白名单豁免=0
+[issues] server=6 seed=6 多出=0 缺失=0 类型不符=0 白名单豁免=4
+[review_requests] server=1 seed=1 多出=0 缺失=0 类型不符=0 白名单豁免=0
+[external_dispatches] server=2 seed=2 多出=0 缺失=0 类型不符=0 白名单豁免=0
+[handoffs] server=2 seed=2 多出=0 缺失=0 类型不符=0 白名单豁免=0
+[member_confirmations] server=1 seed=1 多出=0 缺失=0 类型不符=0 白名单豁免=0
+[attendance_appeals] server=1 seed=1 多出=0 缺失=0 类型不符=0 白名单豁免=0
+[inspection_appeals] server=1 seed=1 多出=0 缺失=0 类型不符=0 白名单豁免=0
+[issue_unread] server=2 seed=2 多出=0 缺失=0 类型不符=0 白名单豁免=0
+[appointment_records] server=1 seed=1 多出=0 缺失=0 类型不符=0 白名单豁免=0
+[auth_audit] server=1 seed=1 多出=0 缺失=0 类型不符=0 白名单豁免=0
+[workgroups] server=46 seed=46 多出=0 缺失=0 类型不符=0 白名单豁免=0
+[workgroup_members] server=103 seed=103 多出=0 缺失=0 类型不符=0 白名单豁免=0
+[workgroup_grants] server=2 seed=2 多出=0 缺失=0 类型不符=0 白名单豁免=0
+合计：行 529 / 种子行 529 / 字段比较 5905；多出=0 缺失=0 类型不符=0；白名单豁免=4
+✔ S1 结构真值：manifest 全表逐行比对字段集合 / 类型，输出多出 / 缺失 / 类型不符 (17.5257ms)
+✔ S2 manifest 完整性：必填字段 / 枚举 / idPattern 命中全部种子行 / seedOwned 与 runtime 不相交 (3.3804ms)
+✔ S2b manifest 覆盖服务端 seed.js 实际播种的全部表（双向） (2.6899ms)
+✔ C3 比较器自检：多字段 / 缺字段 / 类型不符 / 增删行都必须判出 (1.2694ms)
+✔ S3 mock 不得含派生结果字段：activities / review / inspection / taskforces（批次 510 · SD-34 / DATA_MODEL §2.30） (6.5538ms)
+[DataAdapter] 数据源切换为: mock
+[db] v7 人员主键迁移： {"total":0,"mapped":0,"unmapped":[],"rate":1}
+[db] v8 活动组织落点：支部级重分类=0 补承办范围=0 待补责任组=0
+[db] v10 活动组织落点两档：落点归一=0 待补承办组=0 补跨组招募=0 工作组镜像=0
+[db] v11 待办归属回填：已归属=0 待归属=0
+[db] v12 branchId 回填：活动=0 考勤=0 考察=0 归档=0 宣传=0 外发=0 交接=0 确认=0 审计=0 待办=0
+[db] schema v12（本次应用 12 项）
+[DataAdapter] 数据源切换为: api，API_BASE_URL=http://127.0.0.1:60420
+[DataAdapter] init: API 模式，已从后端拉取数据到缓存
+✔ S0 形态：api 形态 + 有会话 token（前端缓存来自服务端，不是本地静态种子） (1.3664ms)
+✔ P1 服务端表 ≡ mock 语料（逐表逐值）：GET 原始行与静态语料完全一致（＝服务端确已按同源播种） (38.7085ms)
+✔ P2 两形态读数一致：init() 后 mockDB 缓存（api 形态）与 mock 形态语料逐值相同 (6.3267ms)
+✔ P4 init 批量装载 workgroup_tasks / outputs，并标记 loaded（首页不再把未装载当无任务） (0.6203ms)
+✔ P3 非空转：表集合 ≥5、逐表读数 > 0、比对行数 ≥200，且比较器能判出人为差异 (0.7266ms)
+[DataAdapter] 数据源切换为: mock
+[db] v7 人员主键迁移： {"total":0,"mapped":0,"unmapped":[],"rate":1}
+[db] v8 活动组织落点：支部级重分类=0 补承办范围=0 待补责任组=0
+[db] v10 活动组织落点两档：落点归一=0 待补承办组=0 补跨组招募=0 工作组镜像=0
+[db] v11 待办归属回填：已归属=0 待归属=0
+[db] v12 branchId 回填：活动=0 考勤=0 考察=0 归档=0 宣传=0 外发=0 交接=0 确认=0 审计=0 待办=0
+[db] schema v12（本次应用 12 项）
+✔ M1 mock list({ branchId }) 只返回本支部：六张表逐表核对 (266.648ms)
+✔ M2 不传 branchId 保持全量行为（单支部演示不受影响） (86.2921ms)
+✔ M3 与 api 形态读数逐值一致（两支部 × 六张表） (1198.68ms)
+✔ M1 _requestCancel 在提交中早退（四条关闭路径统一挂起） (3.5365ms)
+✔ M2 setModalBusy 设置 aria-busy，openFormModal 提交态调用它 (0.6428ms)
+✔ M3 错误区与字段错误行使用 role="alert" (0.4156ms)
+✔ M4 onSubmit 契约：仅显式 true / {ok:true} 关窗，undefined 不关 (0.8081ms)
+✔ M5 三处原生 prompt / confirm 已移除并改用统一浮窗 (3.93ms)
+✔ M1 非空转自检：escHtml(...) 通过，裸用户数据必须被识别 (4.8041ms)
+✔ M2 openModal：title / settingsLink 以纯文本写入，不解释 HTML (1.0252ms)
+✔ M3 openFormModal：label / placeholder / value / option / 错误文本全部过 escHtml (0.7255ms)
+✔ assertComposeValid：组合干净返回 true (2.9325ms)
+✔ assertComposeValid：引用缺失抛错（含 引用方 -> 缺失 id） (0.9909ms)
+✔ assertComposeValid：互斥同含抛错（含双方 id） (0.4887ms)
+✔ assertComposeValid：depends 成环抛错（含环路径，含自依赖环） (0.5613ms)
+✔ resolveConflicts：收集式一次返回三类问题全集 (0.5843ms)
+✔ 接线：manifests.js 全量块清单 assertComposeValid 干净 + depends/conflictsWith 已声明 (0.5279ms)
+[DataAdapter] 数据源切换为: mock
+[db] v7 人员主键迁移： {"total":0,"mapped":0,"unmapped":[],"rate":1}
+[db] v8 活动组织落点：支部级重分类=0 补承办范围=0 待补责任组=0
+[db] v10 活动组织落点两档：落点归一=0 待补承办组=0 补跨组招募=0 工作组镜像=0
+[db] v11 待办归属回填：已归属=0 待归属=0
+[db] v12 branchId 回填：活动=0 考勤=0 考察=0 归档=0 宣传=0 外发=0 交接=0 确认=0 审计=0 待办=0
+[db] schema v12（本次应用 12 项）
+✔ L2 config：现任支书/本副支书/党委（D-825 代配置）可写，其它支委/普通成员 403；治理字段不受 body 影响 (328.1005ms)
+✔ L2 config 门控：外副支书 403（副书同权仅限本支部） (16.0556ms)
+✔ L2 config.blocks：产出块写回/单独写 blocks/恢复默认/结构校验 (38.694ms)
+[DataAdapter] 数据源切换为: mock
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+✔ C1 周期单一源：真实表当前**零启用**（支书裁「先不做」）；注入表则取值集与标签自洽 (6.0155ms)
+✔ C2 周期期键：四单位各取其自然周期；非法输入不抛错 (1.2964ms)
+✔ C3 本期未见对应活动 ⇒ 出组（组长台；会议与活动两个形态都出） (31.3195ms)
+✔ C4 本期已有对应活动 ⇒ 该模块不出（另一模块照出） (8.8245ms)
+✔ C5 非本台主体主责的模块一律不出（本台无周期模块 ⇒ null） (7.5091ms)
+✔ C6 支部改派随分工快照走（到人 ⇒ 该人可见；该角色不再出） (7.5466ms)
+✔ C7 两个模块本期都已开展 ⇒ 不出空组 (6.5796ms)
+✔ C8 组对象自带 actionKey 且域标注在位（供 T4 域折组） (6.5073ms)
+[DataAdapter] 数据源切换为: mock
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+✔ A1 活动 type=支委会 ⇒ 收件人＝该模块主责「支书」（不再一律组长） (43.2169ms)
+✔ A2 活动 type=党小组会 ⇒ 收件人＝该模块主责「党小组组长」 (15.208ms)
+✔ A3 活动无 type（归不到模块）⇒ 回退固定角色 leader（既有行为） (10.1245ms)
+✔ A4 改派到「人」⇒ 补 personId，role 回退固定角色（待办只有 role 索引 ⇒ 必须回退） (10.7747ms)
+✔ A5 改派到「角色」⇒ 收件人随分工走 (11.0265ms)
+✔ A6 主责＝组织型主体 ⇒ 回退固定角色（组织型主体不是登录身份、无台可落） (7.7938ms)
+✔ A7 专班缺省 ⇒ 收件人＝taskforce 模块主责「组织委员」（与既有行为一致） (8.5669ms)
+✔ A8 专班改派到「人」⇒ 补 personId、role 回退组织委员 (5.9315ms)
+✔ A12 `personId` 非空的待办只给本人看；角色档不受影响；未给本人身份时不过滤（既有行为不变） (39.9749ms)
+✔ A9 非空转：角色档能被 getByRole 取到（防「回退写错 ⇒ 待办不可见」） (10.6897ms)
+[MockAdapter] createActivity 成功，id=act_3d3d163a-1993-4723-afe5-36037b587f95，workgroupId=wg-activity-act_3d3d163a-1993-4723-afe5-36037b587f95，当前 activities 总数：39
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+✔ A10 活动写口（mock.js::createActivity）已把分工快照传进派生器 ⇒ 收件人随「支部改派」走 (168.9489ms)
+✔ A11 专班写口（TaskForceRecordStore.add）已把分工快照传进派生器 ⇒ 收件人随「支部改派」走 (78.6669ms)
+[motion-guard] 过渡属性：background-color / border-color / box-shadow / color / grid-auto-rows / grid-template-rows / opacity / outline-color / text-decoration-color / transform / visibility
+✔ M1 非空转：styles.css 解析到 ≥20 条 transition 声明 (1.9001ms)
+✔ M2 时长白名单：只允许 var(--motion-*) / 0s，裸值逐条登记（防新增） (2.5614ms)
+✔ M3 属性白名单：不得过渡 all / 布局属性；例外逐条登记 (6.4388ms)
+✔ M4 令牌齐备：--motion-fast/base/slow/enter 与 --ease-standard/enter 均存在 (0.9811ms)
+✔ M5 reduced-motion：兜底块把 transition-delay / animation-delay 归零 (0.998ms)
+✔ M6 可复用类：4 个 .motion-* 都存在，.motion-collapse 用 grid-template-rows (3.3646ms)
+[DataAdapter] 数据源切换为: mock
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+✔ N1 sentinel all（全体党员）= 广播：任意角色与无会话均可见 (28.6644ms)
+✔ N2 sentinel leaders：组长可见；非 leader 的成员/支书不可见 (10.5723ms)
+✔ N3 sentinel activists/candidates：按 developStage 命中；无关阶段不可见 (7.9801ms)
+✔ N4 裸角色键兼容：audience:[org-commissioner] 仅组织委员可见（回退判定生效） (10.4056ms)
+✔ N5 getById 契约：按 id 取数不受可见性门限制（签发人也能取到） (8.3611ms)
+✔ N6 canReadNotice：发布者/支委层/命中受众可读；无关成员不可读；广播人人可读；无会话仅广播可读 (6.993ms)
+✔ N7 无受众（audience:null，如种子 notice-101）→ 人人可见、可读 (9.1477ms)
+✔ N8 actionRoles 路径不受影响：仅 actionRoles:[leader] 的通知，组长可见、非组长不可见 (8.7657ms)
+✔ N13 逐人归档：只影响本人；可恢复；系统归档不可恢复 (33.9205ms)
+✔ N14 countUnread 与 listMessages 同源；markAllRead 只作用于未归档未读 (12.6846ms)
+✔ N15 筛选语义：all＝未归档（未读＋已读）、read＝已读且未归档 (8.1104ms)
+✔ N16 私信会话：同一 replyTo 链按时间升序成线程 (6.3525ms)
+✔ N9 scope committee：党委台铃铛只取党委级与本人私信，支部广播不返回 (7.6574ms)
+✔ N10 顶栏源码：party-staff 分支给铃铛与角标传 scope:committee (2.198ms)
+✔ N11 已读按人：A 点开广播后，B 仍为未读且共享行不写全局 read (7.0681ms)
+✔ N12 旧全局 read 一次性回填当前登录人；其他人按未读 (7.6918ms)
+✔ F01–F03 深链消费：review / todo 均读 ctx.navTarget.hl，失败可见 (5.2004ms)
+✔ F02/F12 targetUrl 守卫：page 存在于 docs/，tab 存在于该角色能力注册 (9.0268ms)
+✔ F06 优先级与入口收口：非公告必须有坐标；所有通知入口先落 notice.html?id= (4.4645ms)
+✔ F04 成员变更通知：audience + actionRoles 均锁定支书/副支书，不广播 (2.7702ms)
+✔ F05 作废裁决落点：按接收人角色生成本位工作台（不再固定支书台） (1.2463ms)
+✔ F07 待办深链：workspace/* 才拼 tab=todo，index.html 不带 tab；highlight 有消费 (0.6796ms)
+✔ F12 跨台落点：不得保留其他角色台的写死 URL；动态落点按接收人角色派生 (1.1027ms)
+[DataAdapter] 数据源切换为: mock
+✔ N1 站内信：发件人 ＋ 收件人可读；支委层他人 / 无关成员 / 无会话**不可读**（反例锁死） (2.3822ms)
+✔ N2 对照：普通通知的既有可见性口径未被误伤 (1.2234ms)
+✔ N5 kindOf / isArchivedFor：三种身份单一映射；逐人归档与系统归档分离 (0.617ms)
+✔ N3 服务端私信写门：新增私信须「发件人为本人」（发送权已放开到全体成员） (0.7409ms)
+✔ N4 服务端私信写门：既有私信「作者不可改 / 非作者不得改收件人 / 未变行放行」 (0.5577ms)
+✔ R1 入口矩阵：每个入口只声明一种 mode 并写理由，未知入口不得放行 (2.2655ms)
+✔ R2 落点：direct 直达详情页 / locate 同页定位但 href 仍指向完整页 (0.817ms)
+✔ R3 门：缺 id / 跨支部拒绝；同支部与党委/组织员放行 (0.4918ms)
+✔ R4 已归档/终态只读：resolveObjectRoute.readOnly 与 activity-entry 写口门一致 (2.4847ms)
+✔ R5 生成点收口：docs/src 无裸详情 URL 生成，入口文件都走统一路由 (434.5898ms)
+✔ R6 无空 id 可点：不得用 `|| ''` 拼详情链接 (461.1528ms)
+✔ R7 可点节点可键盘：卡片/行带 role + tabindex + keydown（或原生 a/button） (10.9185ms)
+✔ R8 同一页只有一个完整详情落点：弹窗/预览保留并补「打开完整页」 (10.4649ms)
+[DataAdapter] 数据源切换为: mock
+[db] v7 人员主键迁移： {"total":0,"mapped":0,"unmapped":[],"rate":1}
+[db] v8 活动组织落点：支部级重分类=0 补承办范围=0 待补责任组=0
+[db] v10 活动组织落点两档：落点归一=0 待补承办组=0 补跨组招募=0 工作组镜像=0
+[db] v11 待办归属回填：已归属=0 待归属=0
+[db] v12 branchId 回填：活动=0 考勤=0 考察=0 归档=0 宣传=0 外发=0 交接=0 确认=0 审计=0 待办=0
+[db] schema v12（本次应用 12 项）
+✔ org 档案：party-staff 写 headerTitle/desc/themePreset → 白名单净化 + 留痕 {by,at,what,from,to} (324.4457ms)
+✔ org 档案：现任支书/本副支书（副书同权）可写本支部 org 域；其它支委 403；越权 name 不生效 (50.9114ms)
+✔ org 档案：themePreset 非法值忽略（白名单净化）；headerTitle 空串回退支部名 (25.5157ms)
+✔ org 档案：重复提交相同值不产生冗余留痕 (28.0059ms)
+✔ 产出块：默认（null）全开且保持注册顺序 (115.3317ms)
+✔ 产出块：隐藏+排序生效（脏数据含未知 id 不崩） (0.7733ms)
+✔ 产出块：全部停用 → 空数组（消费端显示提示） (0.6553ms)
+✔ workspace fallbacks resolve from document base to the site root (2.2102ms)
+✔ workspace fallbacks preserve a project deployment prefix (0.6811ms)
+✔ session-expired and today-notice fallbacks use the shared document URL resolver (2.8608ms)
+✔ workspace navigation callers use the shared resolver and avoid escaping the project prefix (1.0109ms)
+✔ resolved fallback pages exist at the docs site root (0.8785ms)
+✔ 活动详情接受 id || activityId 别名，并按同一 sourceId 分流 (0.7648ms)
+✔ 思想汇报「完整记录」落个人档案，不得落名册聚合页 (0.4847ms)
+✔ 组长 todo tabMap 的每个值都存在于 leader-workspace 的 tab 集合 (1.1012ms)
+✔ 工作台 skip link 在 <base> 下必须落回当前文档（不得指向 docs 根） (11.9093ms)
+✔ 概况 / 组长任务 / 支部只读页的 # 锚点必须经 docAnchorHref 运行时归一 (5.0322ms)
+✔ R5A-02：跨 tab 链接写明工作台页面路径，不再用裸 ?tab= (3.503ms)
+✔ P0 页题单一源：renderTabHeader 产出 H2，字号 1.25rem (12.9217ms)
+✔ P1 每个 tab 的渲染模块都提供 H2（自身或登记共享件） (80.3986ms)
+✔ P2 登记共享件自身必须有 H2 (8.9644ms)
+✔ P3 卡头不得再用 H4 + 16px 冒充分区 (554.7743ms)
+✔ P4 工作台静态壳不再输出页题：唯一 H2 由页签 renderTabHeader 提供 (9.6557ms)
+✔ P5 活动/专班详情 H3/H4 顺序合法：H4 不得先于 H3，汇报收件箱前先出 H3 (3.3004ms)
+✔ P6 党委台卡头不复述页签名：支部上报只在页签 H2 出现一次 (2.6481ms)
+[DataAdapter] 数据源切换为: mock
+[db] v7 人员主键迁移： {"total":0,"mapped":0,"unmapped":[],"rate":1}
+[db] v8 活动组织落点：支部级重分类=0 补承办范围=0 待补责任组=0
+[db] v10 活动组织落点两档：落点归一=0 待补承办组=0 补跨组招募=0 工作组镜像=0
+[db] v11 待办归属回填：已归属=0 待归属=0
+[db] v12 branchId 回填：活动=0 考勤=0 考察=0 归档=0 宣传=0 外发=0 交接=0 确认=0 审计=0 待办=0
+[db] schema v12（本次应用 12 项）
+✔ ③ 净化 + 读侧：白名单收值 / 非法丢弃 / 空壳不保留 / 无覆盖 ⇒ {} (97.8566ms)
+✔ ③ 消费面：none 与 resolveVoterIds 逐字一致；organizer-deep 确定地并入指派层 (9.2171ms)
+✔ ③ HTTP：participantPolicies 净化往返 / 未写不引入该段 / blocks=null 恢复默认 (294.2422ms)
+✔ 党委支部目录只创建和选择；已有支部维护统一在所选支部配置上下文 (26.6543ms)
+✔ S 支部目录：活动/专班/通知三列 + 行内名册展开 (12.9056ms)
+✔ S1 全站不得写死组名清单（白名单＝种子/档案语料/演示注释） (536.3233ms)
+✔ S2 三处原硬编码点已收敛到活组清单 (13.9382ms)
+✔ S3 核心组由注册表显式声明（不再以显示标签反推） (16.97ms)
+✔ S4 组清单不得「派生化快照」或「用种子枚举代跑」（全局硬编码审查评议 · 2026-09-14 批次 29） (545.1526ms)
+✔ D1 活组清单：种子三组、按 seq 升序、已解散组不入清单 (0.9117ms)
+✔ D2 新增：默认命名「第 N 党小组」、活组重名拒绝、非管理者拒绝 (8.4031ms)
+✔ D3 改名：批量改写该组成员档案的 partyGroup (5.0208ms)
+✔ D4 解散非空组：成员转「未分组」、组状态转已解散、不可重复解散 (1.8525ms)
+✔ D5 未分组口径：仅 partyGroup 为空者，且按支部过滤 (1.0035ms)
+✔ D6 写权口径：支书/副支书可管理，其余不可 (0.9141ms)
+✔ Party overview queue count matches actionable pending review rows (46.7086ms)
+✔ only active branches without an appointed secretary are organizational exceptions (0.9342ms)
+✔ 治理页面使用受约束的流动版心和共享卡片节奏 (22.632ms)
+✔ 党委台只有一个页面标题，页签内容不重复页面标题 (13.6014ms)
+✔ 党委页签顺序为下发通知、支部上报、支部管理（A05/A06 合并后三项） (8.045ms)
+✔ 党委页头不提供个人档案入口 (3.3732ms)
+✔ 党委页签名与页面身份一致（A05/A06 撤页后只剩三项） (7.7172ms)
+✔ 党委三页共用页面骨架且不切换页面级版心 (13.1229ms)
+✔ 党委异常行有明确动作，页头不重复页签导航 (4.0525ms)
+✔ 党委二级切换使用从属样式 (7.5976ms)
+✔ 党委页内标签具备面板关联与方向键切换 (4.9221ms)
+✔ 党委支部管理用表格比较同类支部数据 (5.5977ms)
+✔ 支部配置以紧凑导航切换单一活动面板 (8.0665ms)
+✔ 支部配置用内容区范围胶囊承载当前支部，不再使用页面级眉题 (5.9986ms)
+✔ 窄屏折叠导航完整移出固定标题栏 (2.8888ms)
+✔ 支部只读名册提供可筛选分页的语义表格和独立活动区 (3.5686ms)
+✔ W1 在途写全部落地：settleWrites 正常返回，且返回时确已落地 (26.0144ms)
+✔ W2 在途写失败：settleWrites 必须抛出（成功提示据此改报失败），且失败只报一次 (2.7712ms)
+✔ W3 长链：等待期间新登记的在途写也要等到（不能只等第一轮） (66.9848ms)
+✔ W4 登记失败但调用方不 await：不得产生 unhandledrejection (32.952ms)
+✔ W5 单一等待点在位：success 提示必须先等落库落地再渲染 (3.3719ms)
+✔ W6 Toast 渲染单一源：只允许 core/base/utils.js 建 toast 容器 (378.5746ms)
+✔ W7 持久化层必须登记：persist 分支与快照排程都要 trackWrite (2.6868ms)
+✔ W8 快照失败必须能被等待方看见（不得只告警） (4.2936ms)
+✔ W9 不走 persist() 的外部写链也要登记；saveDB 不得再用动态 import 触发落库 (4.8044ms)
+[DataAdapter] 数据源切换为: mock
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+✔ ① calendar 日索引：acts / viaTasksByDate 分组输出与逐格扫描同集合同序 (8.3244ms)
+✔ ② 考勤缺口（_aggAttendanceRemind Map 化）：缺口活动序与旧嵌套对偶实现一致 (40.4926ms)
+✔ ③ 报名索引（buildApprovedSignupIndex/approvedSignupHit）：与旧 _approvedSignup .some 全表判定等价 (1.511ms)
+✔ ④ isTodoExpired：与旧四处判定等价（过期/到期当天/未来/完成/进行中/无 deadline/无 status 实时条目） (1.4464ms)
+[DataAdapter] 数据源切换为: mock
+✔ ① 数据键未变两次 memoizeRender：buildFn 仅执行 1 次且 container 内容未被覆盖（同 innerHTML） (2.7684ms)
+✔ ② 数据键变化两次 memoizeRender：buildFn 共 2 次且内容更新 (0.6599ms)
+✔ ③ 内容被外部清空（firstElementChild null）后同键再调 → 重建 (0.4559ms)
+✔ ④ marker：dataset.memoKey 残留但内容被异方整体替换（标记消失）→ 同键仍重建，防跨 tab 错留旧内容 (1.0163ms)
+✔ ⑤ calendar 视图缓存：同月同视图同数据仅 1 次网格重建；切月/切视图/数据变化重建 (1.4294ms)
+[DataAdapter] 数据源切换为: mock
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+✔ ① 未写时连续两次 getDomainsWithGroups：结果一致（同引用）且内部聚合只执行一次 (51.7754ms)
+✔ ② create 后：getDomainsWithGroups 结果变化（新引用、计数 +1） (14.237ms)
+✔ ③ complete 后：getDomainsWithGroups 结果变化（计数 +1，完成态排除） (14.67ms)
+✔ ④ refreshExpiredStatus 实际变更后：结果变化（计数 +1，条目转 expired） (16.2353ms)
+✔ ⑤ mergeRealtimeDomains 消费同轮缓存基准且不污染共享缓存；未写再次调用同引用 (38.2871ms)
+[DataAdapter] 数据源切换为: mock
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+✔ ① attendance：未写 tokenOf 不变；saveAttendanceRecords 写口后递增 (30.4796ms)
+✔ ② inspection：未写 tokenOf 不变；saveInspectionRecords 写口后递增 (8.9987ms)
+✔ ③ activityReview：未写 tokenOf 不变；addActivityReview 写口后递增 (7.2709ms)
+✔ ④ taskforce：未写 tokenOf 不变；TaskForceRecordStore.add 写口后递增 (10.9997ms)
+[MockAdapter] updateActivity 成功，id=act-p0
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+[MockAdapter] 无法映射的复合 id： wg-activity-act-p0
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+[MockAdapter] 无法映射的复合 id： wg-activity-act-p0
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+[MockAdapter] 无法映射的复合 id： wg-activity-act-p0
+✔ ⑤ resolution：未写 tokenOf 不变；saveFollowups 写口后递增（决议=活动 agenda 内嵌） (281.7628ms)
+✔ ⑥ signup：未写 tokenOf 不变；SignupStore.apply 写口后递增 (14.8221ms)
+✔ ⑦ bumpToken 单调 + resetAllTokens 生效后全部归零、可重新 bump (8.5407ms)
+✔ ⑧ 聚合入口复合键缓存：未写同引用；attendance 写口后重算（computeAggregates / getOverview） (52.7386ms)
+[DataAdapter] 数据源切换为: mock
+[db] v7 人员主键迁移： {"total":0,"mapped":0,"unmapped":[],"rate":1}
+[db] v8 活动组织落点：支部级重分类=0 补承办范围=0 待补责任组=0
+[db] v10 活动组织落点两档：落点归一=0 待补承办组=0 补跨组招募=0 工作组镜像=0
+[db] v11 待办归属回填：已归属=0 待归属=0
+[db] v12 branchId 回填：活动=0 考勤=0 考察=0 归档=0 宣传=0 外发=0 交接=0 确认=0 审计=0 待办=0
+[db] schema v12（本次应用 12 项）
+✔ 服务端以当前制度规则生成提交快照，并拒绝客户端伪造或改写历史快照 (275.6898ms)
+✔ 通用周期归档 API 与旧周报入口读写同一份提交记录 (26.2158ms)
+✔ 周期归档 PATCH 拒绝用 null 或空支部归属绕过不可变校验 (12.161ms)
+✔ 旧周报快照集合名写入同一周期归档表并沿用集合版本锁 (30.6241ms)
+✔ 活动归档专用 API 可以正常归档本支部活动 (12.2499ms)
+[db] v7 人员主键迁移： {"total":0,"mapped":0,"unmapped":[],"rate":1}
+[db] v12 branchId 回填：活动=0 考勤=0 考察=0 归档=0 宣传=0 外发=0 交接=0 确认=0 审计=0 待办=0
+[db] schema v12（本次应用 9 项）
+✔ schema v4 migrates legacy weekly report rows into the generic periodic archive table without changing history (40.284ms)
+✔ 周期归档按周生成稳定期次与工作日区间 (4.7155ms)
+✔ 周期归档按月生成自然月期次与完整日期区间 (0.6552ms)
+✔ 提交记录冻结当时的规则版本，旧快照不会被后续策略覆盖 (0.828ms)
+✔ 周期归档记录按实际期次起始日期排序，兼容周与月策略记录混存 (28.3716ms)
+✔ 周期归档快照只接受本支部记录，且允许服务端保留其他支部行 (20.1174ms)
+[DataAdapter] 数据源切换为: mock
+[db] v7 人员主键迁移： {"total":0,"mapped":0,"unmapped":[],"rate":1}
+[db] v8 活动组织落点：支部级重分类=0 补承办范围=0 待补责任组=0
+[db] v10 活动组织落点两档：落点归一=0 待补承办组=0 补跨组招募=0 工作组镜像=0
+[db] v11 待办归属回填：已归属=0 待归属=0
+[db] v12 branchId 回填：活动=0 考勤=0 考察=0 归档=0 宣传=0 外发=0 交接=0 确认=0 审计=0 待办=0
+[db] schema v12（本次应用 12 项）
+✔ 资源写角色门：治理档案写仅限 party-staff，支部成员一律 403 (252.5431ms)
+✔ reviewRequests：本支部支委可提交，党委可审批，异支部/非支委/普通成员被拒 (55.718ms)
+✔ 活动写门：支委层可建；普通成员 403；组长限党小组会/主题党日；未登录 401 (57.3044ms)
+✔ 通知写门：支书/副支书/组织/宣传可发布；纪检仅可管理；普通成员 403；未登录 401 (117.5576ms)
+✔ 系统派生通知端点：合法 kind 201（服务端生成文案/落点）；无资格 403；未知 kind 400；未登录 401 (73.6141ms)
+✔ 补课催办通知（V-7 裁甲）：纪检委员可触发且受众到人定向；非纪检 403；任务不存在 403 (29.9011ms)
+✔ 转交组织者通知（批次 330 裁）：支委层可触发且项目名按表复算；非支委且非本人 403；对象不存在 403 (26.8981ms)
+✔ 成员变更确认链阶段端点：支书/副支书本支部 200 且落库；非支书侧 403；跨支部 403；白名单/枚举 400 (95.8708ms)
+✔ R-10 名册写链端点：授权 200 落库；越权 403；注入 400；枚举/空字段 400；成员不存在 404；跨支部 403 (294.6418ms)
+✔ 成员变更确认端点：副支书本支部 200 且落库；组织委员/普通成员 403；跨支部 403 (79.8497ms)
+✔ 分工自动传递（2026-09-13 支书裁定）：分工生效通知的受众与行动计划由服务端按 extras.proposal 复算 (18.7636ms)
+✔ 支委身份写门：本支部现任支书 / 副支书可配本支部成员为组织/宣传/纪检委员（含改派与撤销位）；越权一律 403 (195.6723ms)
+✔ 站内信写门（api 面）：代他人伪造私信 → 403；本人发（任何角色）→ 放行 (36.1221ms)
+✔ READ_ONLY=1：读口与登录正常；snapshot / CRUD / 语义写 / 名册导入一律 403 + 只读文案 (69.0616ms)
+✔ D1 引用存在性：各域 personId 均存在于人员档案（防孤儿引用） (4.7839ms)
+✔ D2/D3 字段快照一致：记录内档案字段快照必须等于当前档案值（防陈旧快照） (0.9194ms)
+✔ D4 同域自洽：活动 organizer 必须是其 assignments 中 organizer 角色之一 (0.8849ms)
+✔ D5 登录账号：每个账号所属 personId 有且仅有唯一档案记录 (0.7585ms)
+✔ S1 禁止模块加载期人员快照：顶层 PersonStore.getMembers() 一律改 liveMembers() (434.5046ms)
+✔ S2 禁止凭姓名认身份：find(p => p.name === …)（重名/改名即错配） (377.8451ms)
+✔ S5 选人域唯一出口：除 governance/pickers.js 外全站不得直连实现文件（§3.1 扎口纪律） (324.1471ms)
+✔ S6 徽章域唯一出口：除 ui/badges.js 外全站不得直连 badge.js / status-badge.js（§3.1 扎口纪律） (433.7309ms)
+✔ S3 单一解析源在位：person.js 导出 liveMembers（S1 规则的落点） (2.5986ms)
+✔ S4 RESIDENCE 单一源：全站只允许 core/domain/constants.js 一处定义（Q-21-3 防回潮） (449.6876ms)
+✔ D1 选择人员不再输出姓氏头像框 (2.9513ms)
+✔ D2 行载体无完整边框，选中态不再写 border-color (2.8735ms)
+✔ D3 姓名 14px / 元信息 12px (1.3181ms)
+✔ D4 行高 40px、内边距 4/12 (0.9963ms)
+✔ D5 搜索框 34px、党小组筛选 28px (0.5789ms)
+✔ 自我描述按字段模型展示，长文本转义且列表结构可读 (28.821ms)
+✔ 自述 15 个字段各有一个 data-field 落点，且不再做成同权灰卡 (2.7213ms)
+✔ 空自我描述给本人清楚的编辑提示，但不伪造空经历 (0.8418ms)
+✔ 组织查看空自我描述时不提供本人编辑入口，但保留只读原因 (0.9047ms)
+✔ 组织委员代录走同一入口，文案为「代录自述」 (1.1264ms)
+✔ 主问题为否时关联字段显示「无 / 不适用」，与「未填写」区分 (1.3592ms)
+✔ 档案入口按 L0 结论带与三分区排列，字段各有唯一落点 (5.6592ms)
+✔ 档案入口沿用授权读口与页面状态提示，不自造折叠脚本 (6.3084ms)
+✔ mock profile read rejects unauthorized cached rows before rendering (2.9244ms)
+✔ API profile read uses the authorized semantic endpoint and never falls back to cached user data (0.671ms)
+✔ 本人和同支部支委通过统一策略读取 mock 档案 (0.4474ms)
+✔ 党委必须明确选择目标支部才能只读查看该支部档案 (0.6785ms)
+✔ 治理字段编辑按钮只显示给同支部组织委员 (0.4729ms)
+✔ 待归属（branchId:null）不得回落默认支部：组织委员不可读也不可维护 (0.6373ms)
+[DataAdapter] 数据源切换为: mock
+[DataAdapter] 数据源切换为: mock
+[db] v7 人员主键迁移： {"total":0,"mapped":0,"unmapped":[],"rate":1}
+[db] v8 活动组织落点：支部级重分类=0 补承办范围=0 待补责任组=0
+[db] v10 活动组织落点两档：落点归一=0 待补承办组=0 补跨组招募=0 工作组镜像=0
+[db] v11 待办归属回填：已归属=0 待归属=0
+[db] v12 branchId 回填：活动=0 考勤=0 考察=0 归档=0 宣传=0 外发=0 交接=0 确认=0 审计=0 待办=0
+[db] schema v12（本次应用 12 项）
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+✔ T1 policy 单一源：考察超期默认天数 = 7（branch-default 可覆盖） (124.1165ms)
+✔ T2 attendance 消费点：MEETING_ATTENDANCE_TYPES 深等于 policy attendance.meetingTypes（导出去重冻结导出面） (3.1782ms)
+✔ T3 attendance 消费点：支书/副支书例外角色数组与 policy attendance.uploaderExceptions.secretaryDeputy 一致 (0.348ms)
+✔ T4 workforce 消费点：WORKFORCE_VOTE_DEFAULT 与 policy voteThreshold 一致（quorum/vetoOnObject） (0.535ms)
+✔ T5 inspection 消费点：getOverdueRecords 缺省调用可运行（默认参数引用 policy 单一源）且与显式 7 天口径一致 (1.1099ms)
+✔ ① policy-defaults 批4：新节结构与默认值（memberConfirmation/leader/attendance/review） (0.7978ms)
+✔ ⑧ 批准门：默认关 + 三态白名单净化 + 关时写入补丁为 null（零行为变化） (3.1493ms)
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+✔ ⑧ 批准门：开启档位可经支书落库（savePolicyOverrides），关回去复原 (227.1416ms)
+✔ ② 净化：天数 int 钳 1..90、非整数/越界丢弃、未知键丢弃 (1.3863ms)
+✔ ② 净化：组长开关 boolean 严格、嵌套结构保留 (1.0492ms)
+✔ ② 净化：窗口数组合法月日、去重、限 2 窗、非法整体丢弃 (1.0561ms)
+✔ ③ 读侧注入：覆盖生效；无覆盖=保持默认；跨支部切换先复位不残留 (1.268ms)
+✔ ④ 角色守卫：支书/副/party-staff 全量；纪检/组织/组长仅本域；普通成员拒绝 (12.8013ms)
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+✔ ④ 域保存：纪检保存 overdueDays → 落库 policyOverrides.inspection；恢复默认=删该域键 (296.4687ms)
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+✔ ④ 域保存：组织窗口 / 组长开关 / party-staff 全量（含 leader 节） (378.0192ms)
+✔ ④ 守卫拒绝：普通成员与支部外域负责人不可写（写口不落地） (6.5121ms)
+✔ ⑤ 组长学期提醒：开学月学期键 + 首周窗口判定 (0.5964ms)
+✔ ⑥ 窗口文案单一源：semesterDetainedWindowsLabel 与 policy 默认一致 (0.6055ms)
+✔ ⑦ HTTP：支书可写 policyOverrides（合并/整清）；域负责人仅本域节（越域 400、modules 403） (182.2648ms)
+✔ ⑦ HTTP：普通成员 403；本支部组长可写自己 leader 节 (28.0901ms)
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+✔ ⑦ HTTP：党委可代支部启停功能与回滚（D-825）；支书可自治选择并留痕 (31.3124ms)
+✔ ⑨ 待批可见性：只支委层可见；非待批活动恒可见（关闭档位时过滤为空转） (1.0769ms)
+✔ ⑨ 支委会档：提请表决＝挂 activity-approval 议程项＋支委会档 voteConfig；通过⇒发布、未通过⇒终止 (11.846ms)
+✔ ⑨ HTTP：服务端门——待批活动改状态必须带批准语义且角色符合该活动固化的档位 (98.3014ms)
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+✔ ⑩ HTTP：快照口只拦不该发生的状态迁移（其余整表写入照旧放行）；直建口开启档落待批、关闭档照旧 (218.7305ms)
+✔ ⑪ 时限 / 补课 / 篇幅三族入白名单：净化值域 + 域负责人落库 + 域外拒绝 + 读侧生效 (199.1172ms)
+✔ R1 每个 policy 叶键恰属「白名单」或「固定台账」两类之一（无「未登记」第三态） (1.5202ms)
+✔ 个人自我描述查阅范围是全组织统一的制度固定项 (0.4814ms)
+✔ R2 固定台账每项写全 kind / why / src；institutional 不得混入白名单 (0.7289ms)
+✔ R3 非空转：叶键规模与两栏条数满足恒等式（防解析写坏后断言恒真） (0.5848ms)
+✔ ⑫ R7-33 考勤超期现算：历史 overdue:false 但已过补课时限 ⇒ 超期；已补课/线上参会不判 (0.6964ms)
+✔ ⑬ R7-33 复盘超期现算：未提交 / 已打回按期限判；已提交、已确认不判 (0.6156ms)
+[种子待办截止] 字面量 0 条：；计算式 1 条（下限 2026-10-01）
+✔ G1 静态页 / 用户可见面无「演示 / 示例组织 / Mock」可见文案 (22.711ms)
+✔ G2 十月两活动在册（act-36 党课 / act-37 红色徒步·纪念长征胜利 90 周年） (2.0131ms)
+✔ G3 种子待办无过去截止（SEED_TODOS 的日期型 deadline 不早于 2026-10-01） (4.6ms)
+✔ G4 静态托管形态自动判定（deploy.js 不再写死 server，两形态常量都在） (1.3107ms)
+[DataAdapter] 数据源切换为: mock
+[db] v7 人员主键迁移： {"total":0,"mapped":0,"unmapped":[],"rate":1}
+[db] v8 活动组织落点：支部级重分类=0 补承办范围=0 待补责任组=0
+[db] v10 活动组织落点两档：落点归一=0 待补承办组=0 补跨组招募=0 工作组镜像=0
+[db] v11 待办归属回填：已归属=0 待归属=0
+[db] v12 branchId 回填：活动=0 考勤=0 考察=0 归档=0 宣传=0 外发=0 交接=0 确认=0 审计=0 待办=0
+[db] schema v12（本次应用 12 项）
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 跳过持久化写入：mockDB 尚未加载（loadDB 未完成），防止空数据覆盖
+✔ R3-01 普通成员保存 todos / thoughtReports：同支部他人记录仍在（api 快照写穿） (294.4586ms)
+✔ R3-02 mock 形态：TodoStore 更新/完成不误删他人待办 (3.0558ms)
+✔ R3-03 通知 reads 增量放行；改写他人已读 403（api 快照写门） (42.7837ms)
+✔ R3-04 组长保存本组考勤 200；他组同场考勤行保留（不误判为删除） (132.2591ms)
+✔ R3-04b 纪检确认他人上传的考勤：只落确认字段、recordedBy 不变、刷新保留；普通成员确认 403 (123.6166ms)
+✔ R3-05 普通成员 PATCH/DELETE 同支部他人 todos / thoughtReports / tasks → 403 (29.2304ms)
+✔ R3-06 GET /notices：私信仅收发双方可见；audiencePersons 定向只给受众 (21.8486ms)
+✔ R3-07 移出成员不在在册名册读口；治理侧显式读取仍见历史行 (24.6675ms)
+✔ R3-08 v7 迁移：personStages 对象键 / 数字人员 id / p_<uuid> 覆盖 (4.8426ms)
+✔ R3-09 v7 迁移：目标主键冲突 → 列清单且不写库 (3.0398ms)
+[DataAdapter] 数据源切换为: mock
+[db] v7 人员主键迁移： {"total":0,"mapped":0,"unmapped":[],"rate":1}
+[db] v8 活动组织落点：支部级重分类=0 补承办范围=0 待补责任组=0
+[db] v10 活动组织落点两档：落点归一=0 待补承办组=0 补跨组招募=0 工作组镜像=0
+[db] v11 待办归属回填：已归属=0 待归属=0
+[db] v12 branchId 回填：活动=0 考勤=0 考察=0 归档=0 宣传=0 外发=0 交接=0 确认=0 审计=0 待办=0
+[db] schema v12（本次应用 12 项）
+[db] v7 人员主键迁移： {"total":0,"mapped":0,"unmapped":[],"rate":1}
+[db] v8 活动组织落点：支部级重分类=0 补承办范围=0 待补责任组=0
+[db] v10 活动组织落点两档：落点归一=0 待补承办组=0 补跨组招募=0 工作组镜像=0
+[db] v11 待办归属回填：已归属=0 待归属=0
+[db] v12 branchId 回填：活动=0 考勤=0 考察=0 归档=0 宣传=0 外发=0 交接=0 确认=0 审计=0 待办=0
+[db] schema v12（本次应用 12 项）
+✔ 定时上报逐支部使用独立接收端，payload 只含该支部数据 (114.5605ms)
+✔ 党委手动触发必须选择一个支部，并投递到该支部专属接收端 (283.0215ms)
+[db] v7 人员主键迁移： {"total":0,"mapped":0,"unmapped":[],"rate":1}
+[db] v8 活动组织落点：支部级重分类=0 补承办范围=0 待补责任组=0
+[db] v10 活动组织落点两档：落点归一=0 待补承办组=0 补跨组招募=0 工作组镜像=0
+[db] v11 待办归属回填：已归属=0 待归属=0
+[db] v12 branchId 回填：活动=0 考勤=0 考察=0 归档=0 宣传=0 外发=0 交接=0 确认=0 审计=0 待办=0
+[db] schema v12（本次应用 12 项）
+✔ activity participantCount：分配成员与有效报名按 personId 去重 (57.7366ms)
+[DataAdapter] 数据源切换为: mock
+[db] v7 人员主键迁移： {"total":0,"mapped":0,"unmapped":[],"rate":1}
+[db] v8 活动组织落点：支部级重分类=0 补承办范围=0 待补责任组=0
+[db] v10 活动组织落点两档：落点归一=0 待补承办组=0 补跨组招募=0 工作组镜像=0
+[db] v11 待办归属回填：已归属=0 待归属=0
+[db] v12 branchId 回填：活动=0 考勤=0 考察=0 归档=0 宣传=0 外发=0 交接=0 确认=0 审计=0 待办=0
+[db] schema v12（本次应用 12 项）
+✔ 未登录访问 /api/v1/report/:domain 返回 401 (236.0528ms)
+✔ activity 域 JSON 拉取（全时段） (20.5024ms)
+✔ activity 域 from/to 时段过滤 (10.3186ms)
+✔ member 域返回全量成员档案（脱敏：默认不报联系方式） (6.5607ms)
+✔ attendance 域仅输出已确认数据（排除 pending） (9.2672ms)
+✔ export CSV 导出（BOM + 表头 + 数据行） (14.6206ms)
+✔ 未知数据域返回 400 (5.3863ms)
+✔ 党委手动推送须选定单一支部；该支部未配置 webhook 时提示拉取模式 (9.9816ms)
+[InitReset] ?reset=init 已初始化为「新支部初始态」：业务过程数据已清空（21 个独立业务键移除 + 主库业务域置空），白名单保留（账号/成员档案/支部配置/在册状态/主题/登录会话），正在刷新
+[InitReset] ?reset=init 已初始化为「新支部初始态」：业务过程数据已清空（2 个独立业务键移除 + 主库业务域置空），白名单保留（账号/成员档案/支部配置/在册状态/主题/登录会话），正在刷新
+[InitReset] ?reset=init 已初始化为「新支部初始态」：业务过程数据已清空（21 个独立业务键移除 + 主库业务域置空），白名单保留（账号/成员档案/支部配置/在册状态/主题/登录会话），正在刷新
+[InitReset] ?reset=init 已初始化为「新支部初始态」：业务过程数据已清空（21 个独立业务键移除 + 主库业务域置空），白名单保留（账号/成员档案/支部配置/在册状态/主题/登录会话），正在刷新
+[InitReset] init 态：已剔除 loadDB 回填的演示种子（业务域保持空，白名单/用户记录保留）
+[InitReset] ?reset=init 已初始化为「新支部初始态」：业务过程数据已清空（21 个独立业务键移除 + 主库业务域置空），白名单保留（账号/成员档案/支部配置/在册状态/主题/登录会话），正在刷新
+[MockAdapter] ?reset=1/demo 已清除演示存储键 32 个，正在回到种子初始态
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+[InitReset] init 态：已剔除 loadDB 回填的演示种子（业务域保持空，白名单/用户记录保留）
+✔ trimInitBlob：白名单主库键原样保留；全部业务过程域置空默认；未知扩展键保留；入参不改 (4.6878ms)
+✔ init 后主库空态自洽：业务域零记录零演示成员引用；骨架键（账号/config）非空；落库往返不报错 (1.0001ms)
+✔ collectInitKeys：移除独立业务/过程键（精确+前缀）；白名单独立键与无关键不移除 (0.8609ms)
+✔ collectInitKeys：缺省现场 → 空清单（仅移除在场命中键，removeItem 幂等无副作用） (0.5286ms)
+✔ 执行：API 模式（sessionStorage 有 token）?reset=init 跳过——不动存储、不导航 (1.3786ms)
+✔ 执行：?reset=init 静态形态——主库裁剪写回（白名单保留/业务清空）+ 独立业务键移除 + 白名单保留 + 去参整页导航 (2.7944ms)
+✔ 执行：无主库现场（全新安装）→ 仅清独立业务键并导航，不报错 (1.1088ms)
+✔ 执行：非 init 档位（demo/preview/别名/未知/缺省）→ false 不动作（不抢占既有档位） (1.4553ms)
+✔ 接线：services/core/mock.js loadDB（mock 数据源）在 ?reset=init 下先于 MockAdapter.loadDB 执行初始化并导航 (1.4727ms)
+✔ C2 修复：init 后浏览器加载链多轮 loadDB——业务域空 / 白名单在 / 再次 loadDB 仍空不回填 (11.3425ms)
+✔ C2 修复：init 态用户后续真实写入（非种子 id）不被剔除——再次 loadDB 用户记录在、种子仍不回填 (1.5011ms)
+✔ C2 修复对照：demo 档仍回种子（无 init 哨兵 → loadDB 正常回填演示数据，行为不变） (19.7923ms)
+✔ C2 修复：stripSeedRecordsIfInitState——有哨兵只剔种子留用户记录与白名单；无哨兵不动；幂等 (1.4851ms)
+✔ C2 修复：loadActivities 读兜底——init 态空态返回 []（不回退演示种子）；无哨兵保持原回退 (11.0969ms)
+[MockAdapter] ?reset=1/demo 已清除演示存储键 14 个，正在回到种子初始态
+[MockAdapter] ?reset=1/demo 已清除演示存储键 14 个，正在回到种子初始态
+[MockAdapter] ?reset=preview 已清除运行时 overlay/预览键 3 个（向导草稿/成员预览），演示数据未动，正在刷新
+✔ resolveResetTier：?reset=1 = demo 档历史别名；demo/preview 分档；未知/缺省 → null (3.7154ms)
+✔ collectResetKeys(demo)：清演示前缀键 + 历史遗留键（含未出现者）；不清向导草稿与无关键 (1.2257ms)
+✔ collectResetKeys(preview)：只清运行时 overlay/预览键，演示数据本体与遗留键原样保留 (2.8493ms)
+✔ collectResetKeys：未知档位 → 空清单（不动作）；demo 档遗留键恒纳入 (0.8957ms)
+✔ 执行：API 模式（sessionStorage 有 token）demo/preview 两档均跳过——不动存储、不导航 (2.1942ms)
+✔ 执行：?reset=demo 清演示键 + 遗留键，去参整页导航 (3.0608ms)
+✔ 执行：?reset=1（历史别名）与 demo 同效 (4.0466ms)
+✔ 执行：?reset=preview 只清运行时 overlay/预览键，演示数据本体保留；URL 保留其它参数去 reset (1.7547ms)
+✔ 执行：无 reset 参数 / 未知 reset 值 → false 不动作 (1.8951ms)
+[DataAdapter] 数据源切换为: mock
+✔ A buildFollowupTodoPayloads：角色/到人映射正确，已销项跳过，deadline 透传 (3.3797ms)
+✔ B collectOverdue：deadline<today 未销项才计逾期；到期当天不算；已销项/非通过不计 (1.9779ms)
+✔ B buildOverdueRemindGroup：无逾期返回 null；有逾期组装支书台提醒组 (1.0377ms)
+[MockAdapter] 跳过持久化写入：mockDB 尚未加载（loadDB 未完成），防止空数据覆盖
+[MockAdapter] updateActivity 成功，id=act-fu
+[MockAdapter] 跳过持久化写入：mockDB 尚未加载（loadDB 未完成），防止空数据覆盖
+[MockAdapter] 跳过持久化写入：mockDB 尚未加载（loadDB 未完成），防止空数据覆盖
+[MockAdapter] updateActivity 成功，id=act-fu
+[MockAdapter] 跳过持久化写入：mockDB 尚未加载（loadDB 未完成），防止空数据覆盖
+[MockAdapter] 跳过持久化写入：mockDB 尚未加载（loadDB 未完成），防止空数据覆盖
+[MockAdapter] updateActivity 成功，id=act-fu
+[MockAdapter] 跳过持久化写入：mockDB 尚未加载（loadDB 未完成），防止空数据覆盖
+✔ C saveFollowups→completeFollowup→reopenFollowup：落库/待办派生/销项/恢复闭环 (653.3723ms)
+✔ C1 styles.css 卡式行单一源：thead 隐藏 / data-label / sticky 与 min-width 清零 (4.2144ms)
+✔ C2 打印恢复表格形态：@media print 覆盖卡式行 (1.4073ms)
+✔ C3 手写卡式表：每个数据 td 都有 data-label（考勤汇总 / 党小组 / 条线） (3.7243ms)
+✔ C4 全站引擎表扫描：列数 ≥5 的表格配置必须 opt-in 卡式行，且每个数据 td 有 data-label (656.8148ms)
+✔ C4b 引擎卡式表：成员流动 8 列 / 支委两表 5 列全覆盖 (1.2194ms)
+✔ C6 手写 data-table：静态表头 ≥5 列必须 data-responsive="cards" 且每格 data-label (375.8589ms)
+✔ C5 矩阵卡式结构：同一张表 + data-label + rm-scroll，保留 — / sticky / 列上限 (0.8383ms)
+✔ C7 日历折叠卡（2026-10-27 Task 6.3）：40×40 摘要槽只留 chevron + aria-label，不塞整句 (5.0405ms)
+✔ 授权语义角色集全部 ∈ ROLE_KEYS 业务角色枚举 (2.2482ms)
+✔ 授权支委集 = 5 支委且含支书/副支书；业务「条条三委员」为授权集子集（勿混淆语义） (2.3511ms)
+✔ 支委名单按角色派生（P1-09：不再维护 2400012354~2300010002 快照） (1.1831ms)
+✔ server 路由与前端鉴权不再手写 5 支委授权列表（特征串仅在 constants.js 出现 1 次） (12.006ms)
+✔ R1 名册首屏：1 个搜索 + 恰 3 个下拉（党小组 / 发展阶段 / 在册状态） (4.3744ms)
+✔ R2 不得回潮 4 组 chip：名册不得 opt-in chip / 自写胶囊 (0.5574ms)
+✔ R3 引擎两形态契约仍在（避免「删了 chip」时把 dropdown 一起删掉） (0.3022ms)
+✔ R4 390px 单列：名册检索条在窄屏逐行排布 (0.5307ms)
+✔ R5 守卫登记在 test:daily (0.3852ms)
+✔ R6 R3-17：待确认摘要不重复、pill title 只写「待支书确认」 (0.3267ms)
+✔ R7 R3-18：新增成员不写「推荐填写」，占位符只给例子 (0.3365ms)
+✔ guardCategoryList：同类别多域合并计数、按话术顺序、未知域兜底、空引用 → [] (2.9864ms)
+✔ buildGuardMessage：多类措辞含类别清单、标题含姓名、不泄技术键；无引用 → null (0.7942ms)
+✔ validateMemberForm：姓名必填（含纯空格）；合法输入 trim 并净化 (0.5663ms)
+✔ validateMemberForm：学号必填且唯一（空学号拒绝；重复 → 字段级错误） (0.6003ms)
+✔ validateMemberForm：在册状态枚举外拒绝（禁造新枚举）；在校清备注、滞留保备注且截断 120 (0.425ms)
+✔ diffMemberFields：分组/阶段变化 → 仅对应补丁字段；全同 → 空补丁 (0.5897ms)
+✔ diffMemberFields：滞留状态/备注变化 → 状态+备注同带；改回在校 → 备注清空；在校备注不落 (0.3746ms)
+[DataAdapter] 数据源切换为: mock
+[db] v7 人员主键迁移： {"total":0,"mapped":0,"unmapped":[],"rate":1}
+[db] v8 活动组织落点：支部级重分类=0 补承办范围=0 待补责任组=0
+[db] v10 活动组织落点两档：落点归一=0 待补承办组=0 补跨组招募=0 工作组镜像=0
+[db] v11 待办归属回填：已归属=0 待归属=0
+[db] v12 branchId 回填：活动=0 考勤=0 考察=0 归档=0 宣传=0 外发=0 交接=0 确认=0 审计=0 待办=0
+[db] schema v12（本次应用 12 项）
+[DataAdapter] 数据源切换为: api，API_BASE_URL=http://127.0.0.1:52755
+[DataAdapter] init: API 模式，已从后端拉取数据到缓存
+[DataAdapter] 数据源切换为: mock
+[DataAdapter] 数据源切换为: api，API_BASE_URL=http://127.0.0.1:52755
+✔ S0 形态：api 形态 + 有会话 token（数据来自服务端，不是本地静态种子） (3.2668ms)
+✔ S1 两形态同源：api 形态读数与原 mock 形态（静态种子）逐值一致（= mock-integrity 所守等价性） (7.7174ms)
+✔ policy 常量：roster 口径派生自 policy-defaults attendance.roster（partyStages/excludeDetained） (0.3979ms)
+✔ 基数：本支部在册党员 21（正式 12 + 预备 9）；示范滞留 2 名（2400012349/2400012353 均为正式党员） (0.7781ms)
+✔ 支部党员大会应到 = 党员非滞留 = 19（在册党员 21 − 滞留 2；示范 2400012349/2400012353 剔除） (0.9572ms)
+✔ 党课列席（积极分子/发展对象）不计应到：仅党员进候选 (0.8507ms)
+✔ 党小组会按组口径：第二党小组应到 7（组内党员 8 − 滞留 2400012349） (0.7285ms)
+✔ 党小组会：缺 groupId 或缺小组语境 → 空名单（不猜测全支部） (0.6323ms)
+✔ 候选集 = 全选范围（getMeetingRosterIds 同源）；9000000001 党委组织员（非党员/非本支部）不入选 (1.7393ms)
+✔ getRosterStats：支部大会 expected 19 = partyTotal 21 − detainedParty 2 (1.6385ms)
+✔ saveResidenceChange：写覆盖 + 留痕 {from,to,updatedBy,updatedAt}；应到即时剔除；无变化不产生冗余留痕 (2.4315ms)
+✔ ①支部会议候选 = 党员（含滞留 21 人）全可见；禁用集合 = 滞留党员 2400012349/2400012353；应到 = 候选 − 禁用 (1.1017ms)
+✔ ①党课/组织生活会同口径：党课列席不计候选（仅党员 21 可见） (1.0051ms)
+✔ ①党小组会候选 = 本组党员（含滞留）；第二党小组 8 可见、2400012349 禁选；应到 7 (0.9848ms)
+✔ ①党小组会缺 groupId → 空候选（不猜测全支部） (0.5617ms)
+✔ ②resolveVoterIds 现时剔滞留：formal-only = 10（12 正式 − 滞留 2400012349/2400012353），committee = 支委 5 (0.9013ms)
+✔ ②支部党员大会线上表决「正式+预备」范围 = 支部大会应到名单（与 roster 同集 19） (0.5109ms)
+✔ ②若支委滞留则剔（线上支委会=支委名单按现时状态）：标记 2400012354 滞留 → committee 剔除 2400012354 (1.4753ms)
+✔ ②历史快照不动：act-31 voterIds 保持原值（12 正式党员，含滞留 2400012349/2400012353）；仅新创建默认走现时 roster (0.7608ms)
+✔ ②新支委会活动默认生成（workforce.js 创建点同型公式）：voterIds = 现时支委应到 (0.7231ms)
+✔ ③组内候选 = roster：第二党小组候选 8（党员）→ 禁用 2400012349 → 上传可选 = 应到 7；统计一致 (1.0115ms)
+✔ 清理：移除内存桩覆盖，恢复服务端基线（滞留仅示范 2400012349/2400012353） (0.3707ms)
+✔ api 形态单轨：本机 RESIDENCE_KEY 覆盖对在册/滞留读数无效（服务端单一权威，清缓存不丢状态） (0.5215ms)
+✔ R1 U-04 纪检考勤：无 window.prompt · 会议 label 关联 · 视图 aria-pressed (5.4166ms)
+✔ R2 U-05 专班管理：招募浮窗走通用 modal · 视图 aria-pressed · 折叠 aria-expanded (7.5215ms)
+✔ R3 U-09 项目分工空态：两个出口 + aria-pressed + 无 transition-all (3.9779ms)
+✔ R4 U-23 活动材料闭环：页面 / 入口 / 三步 / 复用既有写口 (21.6631ms)
+✔ R5 U-35 组长台「我的任务」：承载面 + 复用单一口径 + 已接线 (5.6707ms)
+✔ R3-U01 页签右侧动作（发布招募）在滚动容器之外 (4.894ms)
+✔ R3-U03 页签模块加载/渲染失败落统一错误卡，可重试 (0.8115ms)
+✔ R3-D05 激活页签滚入视口（只改 scrollLeft，尊重减少动效偏好） (0.7701ms)
+✔ R3-F02 通知条目键盘守卫与铃铛未读数可读 (0.6201ms)
+✔ R3-U07 四类材料行恒显示，步骤条单调 (0.879ms)
+✔ R3-U08「今天」聚合失败显示错误态而非空态 (0.6314ms)
+✔ R3-F09 组长台卡点卡前置，无卡点一行绿提示 (0.5758ms)
+✔ R3-F10 活动行动作容器允许窄屏换行，标题区保持 min-w-0 (0.5065ms)
+✔ R4-F07 + R3-F03/B01 日历为空态/图例兜底，活动与日期格键盘可达 (0.871ms)
+✔ R4-D07 DATA_MODEL 校准：41 字段 / 6 工作组域 + _seedVersion / personId / 状态优先级 (1.4889ms)
+[DataAdapter] 数据源切换为: mock
+[db] v7 人员主键迁移： {"total":0,"mapped":0,"unmapped":[],"rate":1}
+[db] v8 活动组织落点：支部级重分类=0 补承办范围=0 待补责任组=0
+[db] v10 活动组织落点两档：落点归一=0 待补承办组=0 补跨组招募=0 工作组镜像=0
+[db] v11 待办归属回填：已归属=0 待归属=0
+[db] v12 branchId 回填：活动=0 考勤=0 考察=0 归档=0 宣传=0 外发=0 交接=0 确认=0 审计=0 待办=0
+[db] schema v12（本次应用 12 项）
+✔ A1 普通成员构造快照写 notices → 403，且不落库 (305.0559ms)
+✔ A2 普通成员构造快照替他人写 attendances → 403，且不落库 (62.9576ms)
+✔ A3 支书正常保存 notices + attendances → 200（前端 persist 路径不被误伤） (96.6334ms)
+✔ B1 actorBranchId：显式 null 不得回落 br-b1；历史缺字段才回落 (0.6454ms)
+✔ B2 IAAA 未归属账号：读/写 br-b1 资源一律 403；绑定端点仍可用 (60.9539ms)
+✔ C1 支书 patch users：role+branchId 等夹带字段 → 400/403；仅 role → 200 (44.5669ms)
+✔ D1 普通党员 GET /thoughtReports 只返回本人；支委层返回全量 (23.818ms)
+✔ E1 普通成员组织者可发本场通知；非组织者普通成员 403 (38.1133ms)
+✔ F1 非支委层 attendances / inspections / todos 按本人或职责投影；支委层全量 (78.0909ms)
+[row-markup-guard] 手写行容器 1 处（棘轮上限 12）：
+    1  docs/src/entries/tabs/leader/members-tab.js
+✔ R1 手写行容器存量只降不升（基线 12） (342.1388ms)
+✔ R2 list-row.js 存在并导出 listRowHtml / listGroupHtml (1.7101ms)
+✔ R3 七个复用模块文件均存在 (1.4012ms)
+✔ R4 DESIGN_SYSTEM §4.20.7/§4.20.8：三类行型与七个模块名齐备 (7.6504ms)
+[tab-bar] tab「boom」渲染异常 Error: boom
+    at Object.render (file:///D:/GitHub/GSM1921-SOP/server/test/runtime-tab-lifecycle-guard.test.mjs:142:62)
+    at _safeRender (file:///D:/GitHub/GSM1921-SOP/docs/src/components/shell/tab-bar.js?v=20261026a:519:22)
+    at Object.activate (file:///D:/GitHub/GSM1921-SOP/docs/src/components/shell/tab-bar.js?v=20261026a:795:12)
+    at TestContext.<anonymous> (file:///D:/GitHub/GSM1921-SOP/server/test/runtime-tab-lifecycle-guard.test.mjs:146:13)
+    at Test.runInAsyncScope (node:async_hooks:227:14)
+    at Test.run (node:internal/test_runner/test:1306:25)
+    at Test.processPendingSubtests (node:internal/test_runner/test:897:18)
+    at Test.postRun (node:internal/test_runner/test:1447:19)
+    at Test.run (node:internal/test_runner/test:1372:12)
+    at async Test.processPendingSubtests (node:internal/test_runner/test:897:7)
+✔ R1 壳必须传函数给 tab-bar（renderCtx 不是一次性常量） (3.3882ms)
+✔ R1 行为：切月 → 切走 → 切回，三个 tab 都拿到最新 state (4.9181ms)
+✔ R2 _renderCurrentTab 走 tab-bar 同一生命周期（清 marker / seq / 去重 / await） (0.6414ms)
+✔ R2 activate 返回 Promise，壳可等待首次渲染完成 (0.4214ms)
+✔ R3 陈旧写回先恢复上一快照，失败落错误卡（不留半截 DOM） (0.5879ms)
+✔ R3 行为：render 抛错时容器出现错误卡（不是空白 / 静默） (3.4374ms)
+✔ R4 loading 占位有 ≤8s 超时，超时停止动画并解除灰化 (0.5996ms)
+✔ R4 行为：渲染 promise 永不落定时超时移除占位并恢复可点 (1.0085ms)
+✔ R5 绑定标记不挂持久容器：改挂被重建元素自身 / 事件委托 (0.5834ms)
+✔ R6 页内 import / 节点缺失均有可见失败态（错误卡 + 重试或 toast） (0.8936ms)
+✔ R7 回退首个可见页签时必须给可见说明（不得点 A 亮 B 无提示） (0.4296ms)
+✔ P1 600ms 不再写死：默认 ≤120ms，可由 window.__MOCK_DELAY_MS / MOCK_DELAY_MS 覆盖 (130.4738ms)
+✔ P2 双 loadDB 收敛为一次：mock-adapter 页面级幂等锁（重复调用直接返回） (1.5084ms)
+✔ P3 首屏不阻塞：IssueStore/MilestoneStore 只发起不 await；版本过期才 reload (0.77ms)
+✔ P4 hover 浮窗先读后写 + 阴影降档；全局扫描器只看新增节点 (0.6872ms)
+✔ P5 状态驱动刷新不阻塞 hover：后台渲染不铺占位 / 不置灰 (0.3904ms)
+✔ SCENARIO_LABELS 键集 == SCENARIO_WRITE_IDS 平铺 id 全集 (4.5613ms)
+✔ 四子会中文名与 ACTIVITY_CLASSIFICATION.subtypes 逐序一致 (0.7532ms)
+✔ 全部写入 id ∈ SCENARIO_TO_CATEGORY（归类有效） (3.3776ms)
+✔ 块目录 ⊇ 写入选项目录（可写入的场景都必须有工作流块，禁「铺一半」） (0.5056ms)
+[DataAdapter] 数据源切换为: mock
+[db] v7 人员主键迁移： {"total":0,"mapped":0,"unmapped":[],"rate":1}
+[db] v8 活动组织落点：支部级重分类=0 补承办范围=0 待补责任组=0
+[db] v10 活动组织落点两档：落点归一=0 待补承办组=0 补跨组招募=0 工作组镜像=0
+[db] v11 待办归属回填：已归属=0 待归属=0
+[db] v12 branchId 回填：活动=0 考勤=0 考察=0 归档=0 宣传=0 外发=0 交接=0 确认=0 审计=0 待办=0
+[db] schema v12（本次应用 12 项）
+[db] v7 人员主键迁移： {"total":0,"mapped":0,"unmapped":[],"rate":1}
+[db] v8 活动组织落点：支部级重分类=0 补承办范围=0 待补责任组=0
+[db] v10 活动组织落点两档：落点归一=0 待补承办组=0 补跨组招募=0 工作组镜像=0
+[db] v11 待办归属回填：已归属=0 待归属=0
+[db] v12 branchId 回填：活动=0 考勤=0 考察=0 归档=0 宣传=0 外发=0 交接=0 确认=0 审计=0 待办=0
+[db] schema v12（本次应用 12 项）
+[db] v7 人员主键迁移： {"total":0,"mapped":0,"unmapped":[],"rate":1}
+[db] v8 活动组织落点：支部级重分类=0 补承办范围=0 待补责任组=0
+[db] v10 活动组织落点两档：落点归一=0 待补承办组=0 补跨组招募=0 工作组镜像=0
+[db] v11 待办归属回填：已归属=0 待归属=0
+[db] v12 branchId 回填：活动=0 考勤=0 考察=0 归档=0 宣传=0 外发=0 交接=0 确认=0 审计=0 待办=0
+[db] schema v12（本次应用 12 项）
+[db] v7 人员主键迁移： {"total":0,"mapped":0,"unmapped":[],"rate":1}
+[db] v8 活动组织落点：支部级重分类=0 补承办范围=0 待补责任组=0
+[db] v10 活动组织落点两档：落点归一=0 待补承办组=0 补跨组招募=0 工作组镜像=0
+[db] v11 待办归属回填：已归属=0 待归属=0
+[db] v12 branchId 回填：活动=0 考勤=0 考察=0 归档=0 宣传=0 外发=0 交接=0 确认=0 审计=0 待办=0
+[db] schema v12（本次应用 12 项）
+✔ G1 C2：一条 409 记录可见；2 条 false、3 条 true；7 天窗口外的记录不计 (1339.24ms)
+✔ G2 C4：历史不足 7 天 ⇒ false（n/7）；7 天全 0 ⇒ true；某天 mismatch>0 ⇒ false (2429.6275ms)
+✔ G3 未 READY 时读路径仍走 JSON：路由层无影子子表读 (511.2339ms)
+✔ G1b 真路由 409：响应体与状态码不变，同时落一条埋点 (225.6183ms)
+[db] v7 人员主键迁移： {"total":0,"mapped":0,"unmapped":[],"rate":1}
+[db] v8 活动组织落点：支部级重分类=0 补承办范围=0 待补责任组=0
+[db] v10 活动组织落点两档：落点归一=0 待补承办组=0 补跨组招募=0 工作组镜像=0
+[db] v11 待办归属回填：已归属=0 待归属=0
+[db] v12 branchId 回填：活动=0 考勤=0 考察=0 归档=0 宣传=0 外发=0 交接=0 确认=0 审计=0 待办=0
+[db] schema v12（本次应用 12 项）
+[db] v7 人员主键迁移： {"total":0,"mapped":0,"unmapped":[],"rate":1}
+[db] v8 活动组织落点：支部级重分类=0 补承办范围=0 待补责任组=0
+[db] v10 活动组织落点两档：落点归一=0 待补承办组=0 补跨组招募=0 工作组镜像=0
+[db] v11 待办归属回填：已归属=0 待归属=0
+[db] v12 branchId 回填：活动=0 考勤=0 考察=0 归档=0 宣传=0 外发=0 交接=0 确认=0 审计=0 待办=0
+[db] schema v12（本次应用 12 项）
+[db] v7 人员主键迁移： {"total":0,"mapped":0,"unmapped":[],"rate":1}
+[db] v8 活动组织落点：支部级重分类=0 补承办范围=0 待补责任组=0
+[db] v10 活动组织落点两档：落点归一=0 待补承办组=0 补跨组招募=0 工作组镜像=0
+[db] v11 待办归属回填：已归属=0 待归属=0
+[db] v12 branchId 回填：活动=0 考勤=0 考察=0 归档=0 宣传=0 外发=0 交接=0 确认=0 审计=0 待办=0
+[db] schema v12（本次应用 12 项）
+✔ S1 回填后影子一致；S2 篡改能判出 mismatch (230.7958ms)
+✔ S3 快照写穿后影子表随主表重建 (128.6755ms)
+✔ S4 回滚删影子表、保留 todos.branch_id 数据 (99.4265ms)
+[DataAdapter] 数据源切换为: mock
+✔ 出勤率分母 = 应到人次：4 人应到、仅 2 人出勤 ⇒ 50%（旧实现会算成 100%） (5.3997ms)
+✔ 本月有应到名单但零记录 ⇒ 出勤率 null（待录入），不显示 0% 或 100% (1.0461ms)
+✔ 名单未冻结时回退支部在册应到名单（不得把实际到场当分母） (3.5344ms)
+[DataAdapter] 数据源切换为: mock
+[db] v7 人员主键迁移： {"total":0,"mapped":0,"unmapped":[],"rate":1}
+[db] v8 活动组织落点：支部级重分类=0 补承办范围=0 待补责任组=0
+[db] v10 活动组织落点两档：落点归一=0 待补承办组=0 补跨组招募=0 工作组镜像=0
+[db] v11 待办归属回填：已归属=0 待归属=0
+[db] v12 branchId 回填：活动=0 考勤=0 考察=0 归档=0 宣传=0 外发=0 交接=0 确认=0 审计=0 待办=0
+[db] schema v12（本次应用 12 项）
+[server] 已建立**最小组织基线**：支部 1 个（光华管理学院本科生党支部） ＋ 党委账号 1 名（党委组织员 / 学号 9000000001）；**未灌任何成员名单**（名单请走 IAAA 登录 + 支部确认，或党委台「支部管理 → 导入成员名册」）
+[db] v7 人员主键迁移： {"total":0,"mapped":0,"unmapped":[],"rate":1}
+[db] v8 活动组织落点：支部级重分类=0 补承办范围=0 待补责任组=0
+[db] v10 活动组织落点两档：落点归一=0 待补承办组=0 补跨组招募=0 工作组镜像=0
+[db] v11 待办归属回填：已归属=0 待归属=0
+[db] v12 branchId 回填：活动=0 考勤=0 考察=0 归档=0 宣传=0 外发=0 交接=0 确认=0 审计=0 待办=0
+[db] schema v12（本次应用 12 项）
+[server] 已建立**最小组织基线**：支部 1 个（光华管理学院本科生党支部） ＋ 党委账号 1 名（党委组织员 / 学号 9000000001）；**未灌任何成员名单**（名单请走 IAAA 登录 + 支部确认，或党委台「支部管理 → 导入成员名册」）
+[db] v7 人员主键迁移： {"total":0,"mapped":0,"unmapped":[],"rate":1}
+[db] v8 活动组织落点：支部级重分类=0 补承办范围=0 待补责任组=0
+[db] v10 活动组织落点两档：落点归一=0 待补承办组=0 补跨组招募=0 工作组镜像=0
+[db] v11 待办归属回填：已归属=0 待归属=0
+[db] v12 branchId 回填：活动=0 考勤=0 考察=0 归档=0 宣传=0 外发=0 交接=0 确认=0 审计=0 待办=0
+[db] schema v12（本次应用 12 项）
+[server] 已建立**最小组织基线**：支部 1 个（光华管理学院本科生党支部） ＋ 党委账号 1 名（党委组织员 / 学号 9000000001）；**未灌任何成员名单**（名单请走 IAAA 登录 + 支部确认，或党委台「支部管理 → 导入成员名册」）
+[db] v7 人员主键迁移： {"total":0,"mapped":0,"unmapped":[],"rate":1}
+[db] v8 活动组织落点：支部级重分类=0 补承办范围=0 待补责任组=0
+[db] v10 活动组织落点两档：落点归一=0 待补承办组=0 补跨组招募=0 工作组镜像=0
+[db] v11 待办归属回填：已归属=0 待归属=0
+[db] v12 branchId 回填：活动=0 考勤=0 考察=0 归档=0 宣传=0 外发=0 交接=0 确认=0 审计=0 待办=0
+[db] schema v12（本次应用 12 项）
+[db] v7 人员主键迁移： {"total":0,"mapped":0,"unmapped":[],"rate":1}
+[db] v8 活动组织落点：支部级重分类=0 补承办范围=0 待补责任组=0
+[db] v10 活动组织落点两档：落点归一=0 待补承办组=0 补跨组招募=0 工作组镜像=0
+[db] v11 待办归属回填：已归属=0 待归属=0
+[db] v12 branchId 回填：活动=0 考勤=0 考察=0 归档=0 宣传=0 外发=0 交接=0 确认=0 审计=0 待办=0
+[db] schema v12（本次应用 12 项）
+✔ B1 生产空库能自举：支部 1 个（br-b1 · 光华管理学院本科生党支部）＋ 党委账号 1 名，其余全空 (54.7026ms)
+✔ B2 零名单：库内不含任何演示名册里的**支部成员**；B4 非空转：源名册确有 ≥50 人 (23.3947ms)
+✔ B3 幂等 + 不覆盖：连跑两次不变；已有支部 / 已有党委账号时一律不动 (53.4419ms)
+[db] v7 人员主键迁移： {"total":0,"mapped":0,"unmapped":[],"rate":1}
+[db] v8 活动组织落点：支部级重分类=0 补承办范围=0 待补责任组=0
+[db] v10 活动组织落点两档：落点归一=0 待补承办组=0 补跨组招募=0 工作组镜像=0
+[db] v11 待办归属回填：已归属=0 待归属=0
+[db] v12 branchId 回填：活动=0 考勤=0 考察=0 归档=0 宣传=0 外发=0 交接=0 确认=0 审计=0 待办=0
+[db] schema v12（本次应用 12 项）
+[db] v7 人员主键迁移： {"total":0,"mapped":0,"unmapped":[],"rate":1}
+[db] v8 活动组织落点：支部级重分类=0 补承办范围=0 待补责任组=0
+[db] v10 活动组织落点两档：落点归一=0 待补承办组=0 补跨组招募=0 工作组镜像=0
+[db] v11 待办归属回填：已归属=0 待归属=0
+[db] v12 branchId 回填：活动=0 考勤=0 考察=0 归档=0 宣传=0 外发=0 交接=0 确认=0 审计=0 待办=0
+[db] schema v12（本次应用 12 项）
+[db] v7 人员主键迁移： {"total":0,"mapped":0,"unmapped":[],"rate":1}
+[db] v8 活动组织落点：支部级重分类=0 补承办范围=0 待补责任组=0
+[db] v10 活动组织落点两档：落点归一=0 待补承办组=0 补跨组招募=0 工作组镜像=0
+[db] v11 待办归属回填：已归属=0 待归属=0
+[db] v12 branchId 回填：活动=0 考勤=0 考察=0 归档=0 宣传=0 外发=0 交接=0 确认=0 审计=0 待办=0
+[db] schema v12（本次应用 12 项）
+[db] v7 人员主键迁移： {"total":0,"mapped":0,"unmapped":[],"rate":1}
+[db] v8 活动组织落点：支部级重分类=0 补承办范围=0 待补责任组=0
+[db] v10 活动组织落点两档：落点归一=0 待补承办组=0 补跨组招募=0 工作组镜像=0
+[db] v11 待办归属回填：已归属=0 待归属=0
+[db] v12 branchId 回填：活动=0 考勤=0 考察=0 归档=0 宣传=0 外发=0 交接=0 确认=0 审计=0 待办=0
+[db] schema v12（本次应用 12 项）
+[server] 已建立**最小组织基线**：支部 1 个（光华管理学院本科生党支部） ＋ 党委账号 1 名（党委组织员 / 学号 9000000001）；**未灌任何成员名单**（名单请走 IAAA 登录 + 支部确认，或党委台「支部管理 → 导入成员名册」）
+[db] v7 人员主键迁移： {"total":0,"mapped":0,"unmapped":[],"rate":1}
+[db] v8 活动组织落点：支部级重分类=0 补承办范围=0 待补责任组=0
+[db] v10 活动组织落点两档：落点归一=0 待补承办组=0 补跨组招募=0 工作组镜像=0
+[db] v11 待办归属回填：已归属=0 待归属=0
+[db] v12 branchId 回填：活动=0 考勤=0 考察=0 归档=0 宣传=0 外发=0 交接=0 确认=0 审计=0 待办=0
+[db] schema v12（本次应用 12 项）
+[server] 已建立**最小组织基线**：支部 1 个（光华管理学院本科生党支部） ＋ 党委账号 1 名（党委组织员 / 学号 9000000001）；**未灌任何成员名单**（名单请走 IAAA 登录 + 支部确认，或党委台「支部管理 → 导入成员名册」）
+[db] v7 人员主键迁移： {"total":0,"mapped":0,"unmapped":[],"rate":1}
+[db] v8 活动组织落点：支部级重分类=0 补承办范围=0 待补责任组=0
+[db] v10 活动组织落点两档：落点归一=0 待补承办组=0 补跨组招募=0 工作组镜像=0
+[db] v11 待办归属回填：已归属=0 待归属=0
+[db] v12 branchId 回填：活动=0 考勤=0 考察=0 归档=0 宣传=0 外发=0 交接=0 确认=0 审计=0 待办=0
+[db] schema v12（本次应用 12 项）
+[seed] 跳过演示种子修复：seed_meta.mode=baseline（组织基线库不含演示种子）；仅读取 seed_meta，未写入。
+[seed] 跳过演示种子修复：生产形态不修复演示 seed id（避免覆盖真实账本）；仅读取 seed_meta，未写入。
+✔ B5 生产默认关闭前端演示回退：未显式 SEED_FALLBACK ⇒ 注入 false；非生产/显式值保持既有语义 (293.8211ms)
+✔ B6 生产启动闸门：空库基线不误伤；含演示种子行默认拒启，ALLOW_DEMO_DATA=1 才放行 (59.3334ms)
+✔ B7 seed-repair 在 baseline / 生产形态不修复演示 seed id，且 seed_meta 只读 (31.7553ms)
+[db] v7 人员主键迁移： {"total":0,"mapped":0,"unmapped":[],"rate":1}
+[db] v8 活动组织落点：支部级重分类=0 补承办范围=0 待补责任组=0
+[db] v10 活动组织落点两档：落点归一=0 待补承办组=0 补跨组招募=0 工作组镜像=0
+[db] v11 待办归属回填：已归属=0 待归属=0
+[db] v12 branchId 回填：活动=0 考勤=0 考察=0 归档=0 宣传=0 外发=0 交接=0 确认=0 审计=0 待办=0
+[db] schema v12（本次应用 12 项）
+[DataAdapter] 数据源切换为: mock
+[db] 影子表重建：2 条字符串 contributions 已按 {desc} 规范化（应改种子为对象）
+✔ C1 种子源 branchId：九类必须种子行非空且＝默认支部（含故障注入） (276.6953ms)
+✔ C2 播种后 branchId 全非空，考勤/考察与父行同支部 (7.3451ms)
+✔ C3 todos.branch_id 生成列：INSERT(id,data) 可用、JSON 一致、手写列报错 (1.6225ms)
+✔ C4 四组唯一索引存在，重复写入被 SQLite 拒绝 (1.7954ms)
+✔ C5 contributions 全对象数组；影子表无字符键；篡改能判出 mismatch (17.5271ms)
+✔ C6 考察 personId ∈ 父工作组成员（种子 0 违规 + 写口判据拒绝非成员） (5.5038ms)
+✔ C7 死表/半死表：issue_reveals 已删、committee_broadcasts 写口 409、NO_READ_ALLOWLIST (4.9504ms)
+✔ C8 DATA_MODEL / DATA_SEED_CONTRACT 已登记辅助表与 UI 写入字段 (6.4292ms)
+✔ C9 契约四类口径 + 语义 7 表 (1.7653ms)
+✔ C10 SEED_MANIFEST 把 branchId 登记为种子负责字段（含故障注入） (0.6475ms)
+[DataAdapter] 数据源切换为: mock
+[db] v7 人员主键迁移： {"total":0,"mapped":0,"unmapped":[],"rate":1}
+[db] v8 活动组织落点：支部级重分类=0 补承办范围=0 待补责任组=0
+[db] v10 活动组织落点两档：落点归一=0 待补承办组=0 补跨组招募=0 工作组镜像=0
+[db] v11 待办归属回填：已归属=0 待归属=0
+[db] v12 branchId 回填：活动=0 考勤=0 考察=0 归档=0 宣传=0 外发=0 交接=0 确认=0 审计=0 待办=0
+[db] schema v12（本次应用 12 项）
+[seed] 种子版本不一致（未登记 → test-seed-version）：开始安全修复既有种子行
+[seed] 仅修复既有种子行：更新 1 行 · 未变 0 行 · orphan 1（保留）· missing 473（不补） · seed_version=test-seed-version · 明细 party_groups:0, activities:1, taskforces:0, tasks:0, assignments:0, attendances:0, inspections:0, makeup_tasks:0, notices:0, todos:0, signups:0, activity_reviews:0, taskforce_reviews:0, thought_reports:0, prop_tasks:0, periodic_archive_submissions:0, archive_records:0, issues:0, review_requests:0, external_dispatches:0, handoffs:0, member_confirmations:0, attendance_appeals:0, inspection_appeals:0, issue_unread:0, workgroups:0, workgroup_members:0, workgroup_grants:0
+[db] v7 人员主键迁移： {"total":0,"mapped":0,"unmapped":[],"rate":1}
+[db] v8 活动组织落点：支部级重分类=0 补承办范围=0 待补责任组=0
+[db] v10 活动组织落点两档：落点归一=0 待补承办组=0 补跨组招募=0 工作组镜像=0
+[db] v11 待办归属回填：已归属=0 待归属=0
+[db] v12 branchId 回填：活动=0 考勤=0 考察=0 归档=0 宣传=0 外发=0 交接=0 确认=0 审计=0 待办=0
+[db] schema v12（本次应用 12 项）
+✔ D1 漂移三分类：stale 只比 seedOwnedFields；orphan / missing 只报告 (4.3377ms)
+✔ D2/D3 修复：只更新既有 seed id 的种子字段，保留运行时字段/用户行/orphan；不插不删；二次零改写 (1.1417ms)
+✔ D4 服务端 v9 seed_meta + 启动修复：只修既有 seed id、保留运行时字段、不增删；二次启动零写 (80.1304ms)
+✔ D5 修复不回滚运行时治理结果：assignments/agenda/isBrand/brandName/members 逐字节不变 (24.4679ms)
+✔ Z1「此地无银」自明句零命中：docs/src 不得出现替 UI 说话的多余说明 (404.0054ms)
+✔ Z2 非空转：黑名单匹配器对植入样本必须命中 (0.4601ms)
+✔ ① 解析门槛：行数不足 / 缺匹配键 / 无可识别列 ⇒ 明确拒绝（不静默） (4.769ms)
+✔ ② 分隔符检出：制表符 / 逗号 / 全角逗号 (0.7342ms)
+✔ ③ 真实问卷表头全列映射（顺序敏感：长列名不得被「学生工作」抢判） (6.0143ms)
+✔ ④ 匹配：学号优先 > 姓名唯一；重名 ambiguous；无此人 unmatched；无内容 empty (1.5056ms)
+✔ ⑤ 非空转：真表一行 ⇒ matched ≥ 1（防止「碰巧什么都没有」也判绿） (1.1368ms)
+[DataAdapter] 数据源切换为: mock
+[DataAdapter] 数据源切换为: api，API_BASE_URL=
+[db] v7 人员主键迁移： {"total":0,"mapped":0,"unmapped":[],"rate":1}
+[db] v8 活动组织落点：支部级重分类=0 补承办范围=0 待补责任组=0
+[db] v10 活动组织落点两档：落点归一=0 待补承办组=0 补跨组招募=0 工作组镜像=0
+[db] v11 待办归属回填：已归属=0 待归属=0
+[db] v12 branchId 回填：活动=0 考勤=0 考察=0 归档=0 宣传=0 外发=0 交接=0 确认=0 审计=0 待办=0
+[db] schema v12（本次应用 12 项）
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+✔ A1 字段表：15 字段 ＋ 四类形态（text / bool / multi / list），键唯一 (87.814ms)
+✔ A2 净化：白名单外键丢弃 / bool 归一 / multi 去空去重有限长 / list 只留声明列 / text trim 截断 (1.2848ms)
+✔ A3 净化不崩 ＋ 空值判定：非对象输入 → 空表单；全空 ⇒ isSelfProfileEmpty (0.9506ms)
+✔ B1 mock 写链：saveMember 落 selfProfile（净化后）；显式空对象 ⇒ 落空（支持「清空」） (26.2642ms)
+✔ C1 api：本人自填 selfProfile 200 落库；他人自填 403；本人改别的档案字段 400（不放宽） (236.7413ms)
+✔ C2 api：靶标不存在 404 · 非本支部 403 · 无非白名单字段 400（沿用既有口径，未被例外放宽） (27.6651ms)
+[DataAdapter] 数据源切换为: mock
+[db] v7 人员主键迁移： {"total":0,"mapped":0,"unmapped":[],"rate":1}
+[db] v8 活动组织落点：支部级重分类=0 补承办范围=0 待补责任组=0
+[db] v10 活动组织落点两档：落点归一=0 待补承办组=0 补跨组招募=0 工作组镜像=0
+[db] v11 待办归属回填：已归属=0 待归属=0
+[db] v12 branchId 回填：活动=0 考勤=0 考察=0 归档=0 宣传=0 外发=0 交接=0 确认=0 审计=0 待办=0
+[db] schema v12（本次应用 12 项）
+[db] v7 人员主键迁移： {"total":0,"mapped":0,"unmapped":[],"rate":1}
+[db] v8 活动组织落点：支部级重分类=0 补承办范围=0 待补责任组=0
+[db] v10 活动组织落点两档：落点归一=0 待补承办组=0 补跨组招募=0 工作组镜像=0
+[db] v11 待办归属回填：已归属=0 待归属=0
+[db] v12 branchId 回填：活动=0 考勤=0 考察=0 归档=0 宣传=0 外发=0 交接=0 确认=0 审计=0 待办=0
+[db] schema v12（本次应用 12 项）
+[db] v7 人员主键迁移： {"total":0,"mapped":0,"unmapped":[],"rate":1}
+[db] v8 活动组织落点：支部级重分类=0 补承办范围=0 待补责任组=0
+[db] v10 活动组织落点两档：落点归一=0 待补承办组=0 补跨组招募=0 工作组镜像=0
+[db] v11 待办归属回填：已归属=0 待归属=0
+[db] v12 branchId 回填：活动=0 考勤=0 考察=0 归档=0 宣传=0 外发=0 交接=0 确认=0 审计=0 待办=0
+[db] schema v12（本次应用 12 项）
+[db] v7 人员主键迁移： {"total":0,"mapped":0,"unmapped":[],"rate":1}
+[db] v8 活动组织落点：支部级重分类=0 补承办范围=0 待补责任组=0
+[db] v10 活动组织落点两档：落点归一=0 待补承办组=0 补跨组招募=0 工作组镜像=0
+[db] v11 待办归属回填：已归属=0 待归属=0
+[db] v12 branchId 回填：活动=0 考勤=0 考察=0 归档=0 宣传=0 外发=0 交接=0 确认=0 审计=0 待办=0
+[db] schema v12（本次应用 12 项）
+[db] v7 人员主键迁移： {"total":0,"mapped":0,"unmapped":[],"rate":1}
+[db] v8 活动组织落点：支部级重分类=0 补承办范围=0 待补责任组=0
+[db] v10 活动组织落点两档：落点归一=0 待补承办组=0 补跨组招募=0 工作组镜像=0
+[db] v11 待办归属回填：已归属=0 待归属=0
+[db] v12 branchId 回填：活动=0 考勤=0 考察=0 归档=0 宣传=0 外发=0 交接=0 确认=0 审计=0 待办=0
+[db] schema v12（本次应用 12 项）
+[db] v7 人员主键迁移： {"total":0,"mapped":0,"unmapped":[],"rate":1}
+[db] v8 活动组织落点：支部级重分类=0 补承办范围=0 待补责任组=0
+[db] v10 活动组织落点两档：落点归一=0 待补承办组=0 补跨组招募=0 工作组镜像=0
+[db] v11 待办归属回填：已归属=0 待归属=0
+[db] v12 branchId 回填：活动=0 考勤=0 考察=0 归档=0 宣传=0 外发=0 交接=0 确认=0 审计=0 待办=0
+[db] schema v12（本次应用 12 项）
+✔ initDb 建表成功，核心表存在 (112.2592ms)
+✔ JSON 资源表支持嵌套字段读写 (29.9122ms)
+✔ replaceCollection 整表替换写入 (31.1742ms)
+✔ replaceCollection 拒绝未知表名 (24.8858ms)
+✔ seedDatabase 写入 users 与 activities (90.7505ms)
+✔ activities list 返回活动数组 (194.9469ms)
+✔ bootstrap 返回全部资源分组 (54.2904ms)
+✔ 登录后上传附件返回元数据 (46.8455ms)
+✔ 未登录上传返回 401 (11.1077ms)
+✔ snapshot 全量覆盖保存后能读回字段修改（新增活动须走语义写入口） (89.2273ms)
+✔ snapshot 缺集合版本号 ⇒ 整批 428（不再无条件写） (33.4622ms)
+✔ snapshot 未登录返回 401 (3.9216ms)
+[DataAdapter] 数据源切换为: mock
+[db] v7 人员主键迁移： {"total":0,"mapped":0,"unmapped":[],"rate":1}
+[db] v8 活动组织落点：支部级重分类=0 补承办范围=0 待补责任组=0
+[db] v10 活动组织落点两档：落点归一=0 待补承办组=0 补跨组招募=0 工作组镜像=0
+[db] v11 待办归属回填：已归属=0 待归属=0
+[db] v12 branchId 回填：活动=0 考勤=0 考察=0 归档=0 宣传=0 外发=0 交接=0 确认=0 审计=0 待办=0
+[db] schema v12（本次应用 12 项）
+[server] 已建立**最小组织基线**：支部 1 个（光华管理学院本科生党支部） ＋ 党委账号 1 名（党委组织员 / 学号 9000000001）；**未灌任何成员名单**（名单请走 IAAA 登录 + 支部确认，或党委台「支部管理 → 导入成员名册」）
+✔ S1 门：成员 / 组织委员 403；党委 200 (167.5242ms)
+✔ S2 形状：五个块齐备，checklist 每条含 id/label/ok/howto (14.7603ms)
+✔ S3 安全底线：响应**不含任何密钥实值**（口令 / appID 不得回显） (25.5277ms)
+✔ S4 非空转且双向：SEED_FALLBACK 未设 ⇒ 判红；设 0 ⇒ 转绿 (27.1385ms)
+✔ S5 演示名册判据反例锁死：塞入旧演示 id p7 ⇒ 计数 1 且判红；移除 ⇒ 归零 (34.7134ms)
+✔ S6 envTemplate 只含键名与占位（不含任何实值） (14.0121ms)
+[DataAdapter] 数据源切换为: mock
+[db] v7 人员主键迁移： {"total":0,"mapped":0,"unmapped":[],"rate":1}
+[db] v8 活动组织落点：支部级重分类=0 补承办范围=0 待补责任组=0
+[db] v10 活动组织落点两档：落点归一=0 待补承办组=0 补跨组招募=0 工作组镜像=0
+[db] v11 待办归属回填：已归属=0 待归属=0
+[db] v12 branchId 回填：活动=0 考勤=0 考察=0 归档=0 宣传=0 外发=0 交接=0 确认=0 审计=0 待办=0
+[db] schema v12（本次应用 12 项）
+✔ 主题党日组织者/深度参与者必须选择线下；普通参与者默认线下且不能伪造缺席 (341.2048ms)
+✔ 专班不接受普通参与报名 (7.2405ms)
+✔ 三会一课使用正式名单，不开放活动报名 (6.4404ms)
+✔ 服务端冻结主题党日名单时合并报名规则并校验最终支部归属 (18.5517ms)
+✔ 主题党日冻结名单只合并有效线下报名，并从原名单移除明确不线下的工作组成员 (1.317ms)
+✔ 三会一课应到名单不受活动报名角色影响 (0.4819ms)
+✔ signup API writes and roster merge preserve SQLite integrity (4.7788ms)
+[DataAdapter] 数据源切换为: mock
+[db] v7 人员主键迁移： {"total":0,"mapped":0,"unmapped":[],"rate":1}
+[db] v8 活动组织落点：支部级重分类=0 补承办范围=0 待补责任组=0
+[db] v10 活动组织落点两档：落点归一=0 待补承办组=0 补跨组招募=0 工作组镜像=0
+[db] v11 待办归属回填：已归属=0 待归属=0
+[db] v12 branchId 回填：活动=0 考勤=0 考察=0 归档=0 宣传=0 外发=0 交接=0 确认=0 审计=0 待办=0
+[db] schema v12（本次应用 12 项）
+✔ 健康检查返回 ok (191.2302ms)
+[非控件小字口径] 9px=0 · 10px=0（禁止档，上限 0） · 11px=44（档位表内 Overline 档，合规）
+[全站 text-[9/10/11px]（含非控件落点，仅进度口径）] 处数 44（基线 346，↓302） · 文件 8（基线 54，↓46） · 基线按值 {"text-[11px]":338,"text-[10px]":0}
+[口径单一源] DESIGN_SYSTEM §3.2 字号层级（最低档 Overline 11px）＋ §4.3 ④（禁用 10px/11px 控件字号）；禁止档清存量后**不得**把新档补进基线。
+✔ P1 禁止档回归：全站不得出现 text-[9px] / text-[10px]（档位表最低档＝Overline 11px） (429.8445ms)
+✔ P2 非空转：抽取口径正/负例 ＋ 扫描面规模下限 ＋ 反例实测 (499.8626ms)
+✔ P3 缩减进度：全站 9/10/11px 按档计数（9/10 禁止档须为 0；11px 只报） (448.0906ms)
+[DataAdapter] 数据源切换为: mock
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+✔ V1 申请作废：落 voidPending（原因/申请人/时间），但该行**仍在**默认列表（申请 ≠ 出列） (97.8437ms)
+✔ V2 申请必填：空原因不改记录（非恒真） (0.8458ms)
+✔ V3 待确认映射：id 形如 `<资源>:<记录id>`，可回解（支书台据此路由） (2.9823ms)
+✔ V4 确认作废：落 voided（原因取申请）＋ 清 voidPending ＋ **出列** ＋ 行数不变 (84.6934ms)
+✔ V5 驳回作废：清 voidPending ＋ 落 voidRejected 留痕 ＋ 该行**回到默认列表** (182.5295ms)
+✔ V6 注册表扩容：周期归档使用同一套软作废语义（申请 → 确认 → 出列；行数不变） (184.0242ms)
+✔ V7 登记表 × 适配器完备性：每张登记表在两个适配器上都必须可写（防同型缺口复发） (1.7631ms)
+✔ V8（批次 405）已作废报名不再挡重复报名；有效报名（approved / pending）仍挡 (1.5107ms)
+[spacing-scale-guard] docs/src 自由间距值 0 个（棘轮上限 0）：
+
+✔ S1 间距五档令牌：styles.css 存在且值为 4/8/12/16/24px (5.2557ms)
+✔ S2 自由间距值存量只降不升（基线 0） (346.5203ms)
+✔ S3 新增四个复用模块不得出现自由间距值 (5.7032ms)
+✔ S4 DESIGN_SYSTEM §4.21：五档定义、组件族采用矩阵与禁止条款齐备 (7.3495ms)
+✔ G1 canonical 集合：三分类不重不漏，直接流转仅 recruiting → active (3.1123ms)
+✔ G2 枚举单一源：授权/迁移/服务端写口均引用 domain.js，不本地再声明状态数组 (17.5933ms)
+✔ G3 无裸状态数组：应用面不得出现仅由状态字面量组成的数组 (525.4846ms)
+✔ G4 mock 数据：专班派生状态必须落在 canonical 枚举内，生成的工作组状态同源 (4.2252ms)
+✔ G5 迁移映射：in_progress → active；未知状态不得原样复制（→ draft 只读待核） (0.8655ms)
+✔ G6 文档同步：DATA_MODEL.md 写明 canonical 集合与状态分离 (4.2222ms)
+✔ G7 支委会页签：会议状态不再本地判定，统一走 deriveMeetingStatus（批次 510 · SD-34） (2.2262ms)
+✔ G8 派生器单源：deriveActivityStatus / deriveMeetingStatus 必须导出，活动状态返回值 ⊆ 五态（批次 510 · SD-34） (2.971ms)
+✔ G9 消息种类单一源：notice.js 导出 kindOf，kind 判定只认三种身份，规范化含 archivedBy（批次 510 · SD-34） (3.1566ms)
+✔ S0 守卫自检：被测源文件非空且关键锚点可命中（防空转） (11.8077ms)
+✔ S1 待办窄屏：390 列表先于详情、未选中不渲染详情列，桌面仍双栏；选中滚入详情卡，详情卡 aria-live (4.6241ms)
+✔ S2 专班卡：role=button / tabindex=0 / aria-label，Enter·Space 展开且不劫持卡内控件 (3.171ms)
+✔ S3 概况标题：work-overview 支持 title 参数（默认「工作概况」），六台按身份传值 (8.3243ms)
+✔ S4 六台外壳：静态台名不再占 H2（唯一 H2 由页签提供）、版心不扩 (7.2791ms)
+✔ G1 分片池的应有全集 ≡ 磁盘上全部 e2e 文件（新增 e2e 未归片即红灯） (325.1998ms)
+✔ G2 片内文件真实存在且确实是 e2e (303.1723ms)
+✔ G3 分片互不重叠（同一文件只许出现在一片） (0.5906ms)
+✔ G4 非空转：片数 ≥2、每片非空、SHARD_PAGES 取值域 ≡ 真机流程里出现过的 page (0.8056ms)
+[DataAdapter] 数据源切换为: mock
+[db] v7 人员主键迁移： {"total":0,"mapped":0,"unmapped":[],"rate":1}
+[db] v8 活动组织落点：支部级重分类=0 补承办范围=0 待补责任组=0
+[db] v10 活动组织落点两档：落点归一=0 待补承办组=0 补跨组招募=0 工作组镜像=0
+[db] v11 待办归属回填：已归属=0 待归属=0
+[db] v12 branchId 回填：活动=0 考勤=0 考察=0 归档=0 宣传=0 外发=0 交接=0 确认=0 审计=0 待办=0
+[db] schema v12（本次应用 12 项）
+✔ member-change notice resolves its source row and rejects another branch source (313.5302ms)
+✔ A1 支委层放行（原授权面不变） (4.4345ms)
+✔ A2 党小组组长放行（甲案新增 · role key `leader`） (0.7579ms)
+✔ A3 该场现任组织者本人放行（甲案新增 · 活动侧 assignments） (0.6063ms)
+✔ A4 该场现任组织者本人放行（甲案新增 · 专班侧 members） (0.5451ms)
+✔ A5 无关成员仍拒（**不得**放宽到「人人可发」） (0.4978ms)
+✔ A6 非组织者的项目角色行（`deep`）不放行 (0.379ms)
+✔ A7 来源对象不存在一律拒（三档皆然） (0.3418ms)
+✔ A8 无 actor 一律拒（防未登录） (0.2932ms)
+✔ B1 活动名按表复算：伪造 payload.activityTitle 不得出现（3 个活动类 kind） (1.5302ms)
+✔ B2 活动已创建广播：表内 title/date/location 覆盖伪造值 (0.7343ms)
+✔ B3 专班议案：表内 title 覆盖伪造值；date 落 `publishDate`（该模板不把 date 写进正文） (0.6877ms)
+✔ B4 成员变更：fromStage/toStage 按表复算 (0.5951ms)
+✔ B5 材料外发：refLabel/receiverRole 按表复算 (0.7012ms)
+✔ B6 周期归档：旧期次字段按表复算，旧通知 kind 仍兼容 (1.094ms)
+✔ B7 非空转：11 个 kind 都真有 `build`（防判据被写成恒真） (0.3102ms)
+✔ B8 支部上报：支部名 / 事项摘要按表复算（伪造不得出现） (0.777ms)
+✔ B9 上报结论：approved 由 review_requests.status 复算（不采信 payload 自述） (0.9281ms)
+✔ B10 赋权通知：项目名按表复算（活动 title / 专班 name） (0.8977ms)
+✔ C1 记录作废裁决：支委层 + 已知资源 + 行存在 ⇒ 放行；非支委 / 未知资源 / 行不存在 ⇒ 拒 (0.7327ms)
+✔ C2 记录作废裁决（确认）：受众＝申请人本人（按记录行复算，到人定向、不广播） (2.6539ms)
+✔ C3 记录作废裁决（驳回）：受众＝原申请人（`voidRejected.byPersonId`）；无申请人 ⇒ 不设受众 (0.6123ms)
+✔ D1 人名按名册复算：payload 伪造 senderName 被在册名覆盖（external-dispatch-created） (0.6179ms)
+✔ D2 反例：名册查无此人 ⇒ 沿用 payload（不得产出空名） (0.4536ms)
+✔ D3 端口：`applyRosterNames` 只覆写「名册查得到」的 `<x>Id` —— 非人名 id 不误伤 (0.4245ms)
+✔ D4 余项**已收口**（2026-10-06 批次 426）：`member-change-approved` 的 payload 不带 `personId` 也按**源行** `personId` 复算 (0.6112ms)
+✔ E1 `periodic-archive-submitted`：源行 `submittedBy` ⇒ 按名册复算 `submitterName` (0.5748ms)
+✔ 周期归档通知按服务端冻结的周期快照展示，不采信客户端伪造期次 (0.6241ms)
+✔ E2 `review-request-submitted`：源行 `submittedBy` ⇒ 按名册复算 `submitterName` (0.5772ms)
+✔ E3 `project-auth-granted`：授权人＝服务端 `actor`、角色标签＝按 `role` 键复算（均不采信 payload） (0.6813ms)
+✔ E5 `project-auth-granted`：`role=deep` ⇒ 「深度参与者」（同一张 ROLE_LABELS 单一源） (0.5146ms)
+✔ E6 反例（如实）：payload 不带 `role` 键 ⇒ 角色标签沿用 payload（不空标签） (0.4581ms)
+✔ E4 反例：源行无人字段 ⇒ 仍沿用 payload（不得产出空名） (0.4922ms)
+✔ 已撤页签不得回潮（含 2026-10-25 IA 62→45 的 17 项） (11.6188ms)
+✔ 旧 id 别名必须落到该台真实承接页（不白屏），且页内落点参数齐全 (20.6589ms)
+✔ 跨台迁移（支书成员流动 → 组织台）走页面级重定向，且落地带 legacy 说明 (1.9525ms)
+✔ 初始决策优先级：priorityTab > savedTab > defaultTab > tabs[0] (2.6197ms)
+✔ 被隐藏（不在清单）的 defaultTab/savedTab/priorityTab 一律回退首个可见 tab (0.7722ms)
+✔ 空清单兜底 null（理论不发生：核心组固定） (0.3865ms)
+✔ 目标 tab 回退：可见命中原样返回；被隐藏回退首位并标记 fellBack (2.3844ms)
+✔ 壳：focusActivityId / focusRecordId 只做定位，不进 legacy onNavTarget 分支 (1.0644ms)
+✔ 壳：对象级高亮选择器含 [data-act-id]，且 highlightType 按类型收窄 (0.7354ms)
+✔ 壳：F08 目标页签不可用时给可见提示 + 回今天（不静默） (0.4839ms)
+✔ F11：branch-filter 空值不得被 || 回退，清除时删 URL 参数 (0.3012ms)
+✔ 材料页：消费契约 + 可见性 + referrer 返回 + 角色化交接 (0.6457ms)
+✔ 材料页深链：十处承载页签均消费 ctx.focusActivityId (21.3221ms)
+✔ 自称非空转：规则抽取正则能命中目标规则、且不误命中邻近规则 (5.4939ms)
+✔ P7 表头：`.data-table thead th` 为 0.8125rem 单档，不含 var(--text-sm) / 0.75rem (5.876ms)
+✔ P7 首列：`.data-table tbody td:first-child` 为 0.8125rem 单档，不含 0.875rem (5.3646ms)
+✔ P7 真机判据不放宽：page-sweep.test.mjs 仍为 cellPx: 13 (2.0931ms)
+✔ 旧工作量展示明确标为历史分工并与结构化任务产出分开 (5.6033ms)
+✔ 专班成员的新产出进入结构化产出接口，历史贡献字段只读保留 (2.0374ms)
+✔ 专班详情四对象各一顶层区，打开后锚定被点卡片并标 aria-current (4.9481ms)
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 跳过持久化写入：mockDB 尚未加载（loadDB 未完成），防止空数据覆盖
+[MockAdapter] 跳过持久化写入：mockDB 尚未加载（loadDB 未完成），防止空数据覆盖
+[MockAdapter] 跳过持久化写入：mockDB 尚未加载（loadDB 未完成），防止空数据覆盖
+[MockAdapter] 跳过持久化写入：mockDB 尚未加载（loadDB 未完成），防止空数据覆盖
+[MockAdapter] 跳过持久化写入：mockDB 尚未加载（loadDB 未完成），防止空数据覆盖
+[DataAdapter] 数据源切换为: api，API_BASE_URL=
+[TaskForceRecordStore] 发现含义待核对的历史键，原始数据已保留： [
+  {
+    key: 'propaganda_whitelist_legacy',
+    count: 1,
+    status: 'needs-review',
+    reason: '旧数据不能确定工作组任务、类型、成员角色或结束状态；原样保留，需人工核对后经语义接口登记。'
+  }
+]
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 跳过持久化写入：mockDB 尚未加载（loadDB 未完成），防止空数据覆盖
+[MockAdapter] 跳过持久化写入：mockDB 尚未加载（loadDB 未完成），防止空数据覆盖
+[MockAdapter] 跳过持久化写入：mockDB 尚未加载（loadDB 未完成），防止空数据覆盖
+[MockAdapter] 跳过持久化写入：mockDB 尚未加载（loadDB 未完成），防止空数据覆盖
+[MockAdapter] 跳过持久化写入：mockDB 尚未加载（loadDB 未完成），防止空数据覆盖
+[MockAdapter] 跳过持久化写入：mockDB 尚未加载（loadDB 未完成），防止空数据覆盖
+[MockAdapter] 跳过持久化写入：mockDB 尚未加载（loadDB 未完成），防止空数据覆盖
+[MockAdapter] 跳过持久化写入：mockDB 尚未加载（loadDB 未完成），防止空数据覆盖
+[MockAdapter] 跳过持久化写入：mockDB 尚未加载（loadDB 未完成），防止空数据覆盖
+[MockAdapter] 跳过持久化写入：mockDB 尚未加载（loadDB 未完成），防止空数据覆盖
+[MockAdapter] 跳过持久化写入：mockDB 尚未加载（loadDB 未完成），防止空数据覆盖
+[MockAdapter] 跳过持久化写入：mockDB 尚未加载（loadDB 未完成），防止空数据覆盖
+[MockAdapter] 跳过持久化写入：mockDB 尚未加载（loadDB 未完成），防止空数据覆盖
+[MockAdapter] 跳过持久化写入：mockDB 尚未加载（loadDB 未完成），防止空数据覆盖
+[MockAdapter] 跳过持久化写入：mockDB 尚未加载（loadDB 未完成），防止空数据覆盖
+[MockAdapter] 跳过持久化写入：mockDB 尚未加载（loadDB 未完成），防止空数据覆盖
+[MockAdapter] 跳过持久化写入：mockDB 尚未加载（loadDB 未完成），防止空数据覆盖
+[MockAdapter] 跳过持久化写入：mockDB 尚未加载（loadDB 未完成），防止空数据覆盖
+[MockAdapter] 跳过持久化写入：mockDB 尚未加载（loadDB 未完成），防止空数据覆盖
+[MockAdapter] 跳过持久化写入：mockDB 尚未加载（loadDB 未完成），防止空数据覆盖
+[MockAdapter] 跳过持久化写入：mockDB 尚未加载（loadDB 未完成），防止空数据覆盖
+[MockAdapter] 跳过持久化写入：mockDB 尚未加载（loadDB 未完成），防止空数据覆盖
+[MockAdapter] 跳过持久化写入：mockDB 尚未加载（loadDB 未完成），防止空数据覆盖
+[MockAdapter] 跳过持久化写入：mockDB 尚未加载（loadDB 未完成），防止空数据覆盖
+[MockAdapter] 跳过持久化写入：mockDB 尚未加载（loadDB 未完成），防止空数据覆盖
+[MockAdapter] 跳过持久化写入：mockDB 尚未加载（loadDB 未完成），防止空数据覆盖
+[MockAdapter] 跳过持久化写入：mockDB 尚未加载（loadDB 未完成），防止空数据覆盖
+[MockAdapter] 跳过持久化写入：mockDB 尚未加载（loadDB 未完成），防止空数据覆盖
+[MockAdapter] 跳过持久化写入：mockDB 尚未加载（loadDB 未完成），防止空数据覆盖
+[MockAdapter] 跳过持久化写入：mockDB 尚未加载（loadDB 未完成），防止空数据覆盖
+[MockAdapter] 跳过持久化写入：mockDB 尚未加载（loadDB 未完成），防止空数据覆盖
+[MockAdapter] 跳过持久化写入：mockDB 尚未加载（loadDB 未完成），防止空数据覆盖
+[MockAdapter] 跳过持久化写入：mockDB 尚未加载（loadDB 未完成），防止空数据覆盖
+[MockAdapter] 跳过持久化写入：mockDB 尚未加载（loadDB 未完成），防止空数据覆盖
+[MockAdapter] 跳过持久化写入：mockDB 尚未加载（loadDB 未完成），防止空数据覆盖
+[MockAdapter] 跳过持久化写入：mockDB 尚未加载（loadDB 未完成），防止空数据覆盖
+[MockAdapter] 跳过持久化写入：mockDB 尚未加载（loadDB 未完成），防止空数据覆盖
+[MockAdapter] 跳过持久化写入：mockDB 尚未加载（loadDB 未完成），防止空数据覆盖
+[MockAdapter] 跳过持久化写入：mockDB 尚未加载（loadDB 未完成），防止空数据覆盖
+[MockAdapter] 跳过持久化写入：mockDB 尚未加载（loadDB 未完成），防止空数据覆盖
+[MockAdapter] 跳过持久化写入：mockDB 尚未加载（loadDB 未完成），防止空数据覆盖
+[MockAdapter] 跳过持久化写入：mockDB 尚未加载（loadDB 未完成），防止空数据覆盖
+[MockAdapter] 跳过持久化写入：mockDB 尚未加载（loadDB 未完成），防止空数据覆盖
+✔ A1 submitForCommittee initiate：draft/pending_review 可报；recruiting/active 拒绝 (31.3844ms)
+✔ API 空支部不灌演示专班；旧含义不明 localStorage 键原样保留待核 (12.319ms)
+✔ A2 submitForCommittee dissolve：仅 active 可报解散；recruiting 拒绝 (6.5866ms)
+✔ B1 evaluateCommitteeVote：>2/3 出席且无反对 → passed (2.9486ms)
+✔ B2 evaluateCommitteeVote：恰 2/3 整界不过（应到 3 出席 2）→ pending (1.5215ms)
+✔ B3 evaluateCommitteeVote：有 object/oppose → failed；abstain 弃权允许 (1.8085ms)
+✔ C1 listCommitteeRequests：仅 pending、先报先议、字段齐全 (51.4622ms)
+✔ C2 listCommitteeRequests：先报先议（按报送时间升序） (1.0172ms)
+✔ D1 applyCommitteeDecision initiate approved：→ recruiting + approvalStatus + 留痕清请求 (3.6282ms)
+✔ D2 applyCommitteeDecision initiate rejected：→ draft 可改重报，二次报送成功 (10.386ms)
+✔ D3 applyCommitteeDecision dissolve approved：→ dissolved + dissolvedAt；rejected：→ 回 active (7.1654ms)
+✔ D4 applyCommitteeDecision：无 pending 请求 / 非法 decision → null (2.0291ms)
+✔ E1 verifyContributions approve：同意入档留痕；reject：退回补料带原因 (5.2835ms)
+✔ E2 verifyContributions：幂等跳过已核；历史字符串不参与；非法入参 → null/updated 0 (1.2305ms)
+[TaskForceRecordStore] 贡献写入工作组产出失败（镜像已保留）： Error: 工作组不存在
+    at file:///D:/GitHub/GSM1921-SOP/docs/src/data/mock-adapter.js?v=20261026a:2831:45
+    at Timeout._onTimeout (file:///D:/GitHub/GSM1921-SOP/docs/src/data/mock-adapter.js?v=20261026a:994:21)
+    at listOnTimeout (node:internal/timers:605:17)
+    at process.processTimers (node:internal/timers:541:7) {
+  type: 'NotFoundError'
+}
+[TaskForceRecordStore] 贡献写入工作组产出失败（镜像已保留）： Error: 工作组不存在
+    at file:///D:/GitHub/GSM1921-SOP/docs/src/data/mock-adapter.js?v=20261026a:2831:45
+    at Timeout._onTimeout (file:///D:/GitHub/GSM1921-SOP/docs/src/data/mock-adapter.js?v=20261026a:994:21)
+    at listOnTimeout (node:internal/timers:605:17)
+    at process.processTimers (node:internal/timers:541:7) {
+  type: 'NotFoundError'
+}
+[DataAdapter] 数据源切换为: mock
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+✔ W1/W2 报名审核通过：写 workgroup_members 主源，taskforces.members 兼容镜像同步 (116.0259ms)
+✔ W3 代录贡献：写 workgroup_outputs，镜像 contributions 同步 (85.8479ms)
+[DataAdapter] 数据源切换为: mock
+[db] v7 人员主键迁移： {"total":0,"mapped":0,"unmapped":[],"rate":1}
+[db] v8 活动组织落点：支部级重分类=0 补承办范围=0 待补责任组=0
+[db] v10 活动组织落点两档：落点归一=0 待补承办组=0 补跨组招募=0 工作组镜像=0
+[db] v11 待办归属回填：已归属=0 待归属=0
+[db] v12 branchId 回填：活动=0 考勤=0 考察=0 归档=0 宣传=0 外发=0 交接=0 确认=0 审计=0 待办=0
+[db] schema v12（本次应用 12 项）
+[server] 已建立**最小组织基线**：支部 1 个（光华管理学院本科生党支部） ＋ 党委账号 1 名（党委组织员 / 学号 9000000001）；**未灌任何成员名单**（名单请走 IAAA 登录 + 支部确认，或党委台「支部管理 → 导入成员名册」）
+✔ I1 每个测试文件都登记 fixtureClass，四类取值合法 (26.1933ms)
+✔ I2 external-write 必须有临时库或 finally 清理证据（含故障注入） (2.3107ms)
+✔ I3 连 :3000 的测试必须标 external-*；测试源码不得指向 server/data.db (784.9968ms)
+✔ I4 可运行检查：自托管临时库登录只写临时库，运行库 sessions / uploads 不增长 (451.8363ms)
+✔ T1 磁盘测试文件 ↔ 三层登记双向相等，且三层互不重叠 (8.3367ms)
+✔ T2 daily 不含 page-sweep / form-loop-sweep / 任何 *-e2e 重活 (1.1288ms)
+✔ T3 不 import playwright 的纯 node 测试必须全部在 daily（S16 同口径） (650.2637ms)
+✔ T4 daily 文件数与断言预算不得高于登记值 (317.2585ms)
+✔ T5 package.json 三个脚本与 registry 一致 (1.6926ms)
+✔ T6 非空转：规模下限、reason 完备、比较器能判出人为差异 (4.2646ms)
+[段落档位（<p>）] 站点 4（基线 6，↓2） · 文件 2（基线 2，持平） · 按值 {"11":4}（基线 {"9":0,"10":0,"11":6}）
+[全站 text-[9/10/11px]（含 <span>/<div> 标签落点，仅进度口径）] 处数 44 · 文件 8
+[口径单一源] DESIGN_SYSTEM §3.2 档位表（Overline 11px＝标签档）＋ §3.2.2（段落/导语＝Caption 12px 起）；9/10px 为档位表外禁止档。收基线后不得把新值补进基线。
+✔ T1 段落档位回归：`<p>` 上档位表外的 9/10px 判红；11px 基线之外新增判红（基线 6 处 / 2 文件） (518.9871ms)
+✔ T2 处数 ratchet：逐文件 <p> 的 11px 站点数不得高于基线 (509.6878ms)
+✔ T3 非空转：抽取口径正/负例 ＋ 台账规模自洽 ＋ 无僵尸登记 (497.1983ms)
+✔ T4 缩减进度：段落口径与全站 9/10/11px 口径当前计数 (1153.2491ms)
+[theme-palette] 对比度/彩度实测：
+  gold.light: soft 6.88 / ink 4.68 / strong-vs-card 4.68 / softBg-vs-white 1.11 / sat 82.2%
+  gold.dark: soft 9.18 / ink 6.98 / strong-vs-card 6.52 / softBg-vs-white 14.75 / sat 58.7%
+  red.light: soft 9.05 / ink 7.56 / strong-vs-card 7.56 / softBg-vs-white 1.13 / sat 64.0%
+  red.dark: soft 8.43 / ink 4.85 / strong-vs-card 4.26 / softBg-vs-white 14.87 / sat 59.5%
+  orange.light: soft 7.67 / ink 5.43 / strong-vs-card 5.43 / softBg-vs-white 1.12 / sat 60.2%
+  orange.dark: soft 8.57 / ink 4.64 / strong-vs-card 4.20 / softBg-vs-white 14.91 / sat 53.2%
+  green.light: soft 8.15 / ink 6.95 / strong-vs-card 6.95 / softBg-vs-white 1.11 / sat 39.9%
+  green.dark: soft 8.72 / ink 5.66 / strong-vs-card 5.03 / softBg-vs-white 14.69 / sat 33.0%
+  cyan.light: soft 8.22 / ink 6.91 / strong-vs-card 6.91 / softBg-vs-white 1.12 / sat 80.8%
+  cyan.dark: soft 8.30 / ink 5.13 / strong-vs-card 4.67 / softBg-vs-white 14.91 / sat 59.6%
+  blue.light: soft 9.33 / ink 8.64 / strong-vs-card 8.64 / softBg-vs-white 1.14 / sat 45.2%
+  blue.dark: soft 7.39 / ink 4.85 / strong-vs-card 4.25 / softBg-vs-white 14.84 / sat 56.1%
+  purple.light: soft 8.49 / ink 7.32 / strong-vs-card 7.32 / softBg-vs-white 1.13 / sat 23.2%
+  purple.dark: soft 7.43 / ink 4.79 / strong-vs-card 4.26 / softBg-vs-white 14.85 / sat 26.0%
+[theme-palette] strongHover 实测：
+  gold.light: hueΔ 0.29° / ink-hover 5.16 / hover≠bg true / hover≠active true
+  gold.dark: hueΔ 0.22° / ink-hover 6.29 / hover≠bg true / hover≠active true
+  red.light: hueΔ 0.26° / ink-hover 8.14 / hover≠bg true / hover≠active true
+  red.dark: hueΔ 0.26° / ink-hover 4.51 / hover≠bg true / hover≠active true
+  orange.light: hueΔ 0.10° / ink-hover 5.95 / hover≠bg true / hover≠active true
+  orange.dark: hueΔ 0.16° / ink-hover 4.50 / hover≠bg true / hover≠active true
+  green.light: hueΔ 0.06° / ink-hover 7.47 / hover≠bg true / hover≠active true
+  green.dark: hueΔ 0.36° / ink-hover 5.13 / hover≠bg true / hover≠active true
+  cyan.light: hueΔ 0.19° / ink-hover 7.43 / hover≠bg true / hover≠active true
+  cyan.dark: hueΔ 0.04° / ink-hover 4.64 / hover≠bg true / hover≠active true
+  blue.light: hueΔ 0.51° / ink-hover 9.27 / hover≠bg true / hover≠active true
+  blue.dark: hueΔ 0.05° / ink-hover 4.51 / hover≠bg true / hover≠active true
+  purple.light: hueΔ 0.52° / ink-hover 7.89 / hover≠bg true / hover≠active true
+  purple.dark: hueΔ 0.13° / ink-hover 4.50 / hover≠bg true / hover≠active true
+✔ T1 结构：ACCENT_COLORS 恰 7 主题 × 亮/暗 × 9 个合法 hex token (6.0632ms)
+✔ T2 对比度与彩度：7 主题 × 亮/暗逐项达标 (3.0882ms)
+✔ T3 色板：ACCENT_PALETTE 恰 7 项、旧键退场且有别名回落 (0.9166ms)
+✔ T4 主题选择器：只列 7 项、每项 2 枚小样、消费 getAccentColors、无 hex 字面量 (2.0396ms)
+✔ T5 固定语义色分离：活动类别色 / 党徽金不读 --app-accent* (6.2676ms)
+✔ T6 strongHover：与 strongBg 同色相且不同值、与 strongInk ≥4.5:1、不得等于 activeBg (1.4607ms)
+✔ T7 strongHover 非空转：7 主题 × 亮/暗都真实存在，且注入 / 别名链齐备 (5.7052ms)
+✔ T8 功能色层：状态 / 类别 / 身份 / 语义别名齐备且身份色与 ROLE_COLORS 同值 (40.7414ms)
+✔ T9 僵尸 token 零消费者：12 个已删 token 在 docs 下不得再出现 (993.8446ms)
+✔ G1 styles.css：默认金 8 token 齐备；无 #F5C518 / brightness / 旧派生；固定语义色不动 (4.1296ms)
+✔ G2 constants.js：gold 主题 8 token 为手选 hex；accentButtonColors 查表 (0.5991ms)
+✔ G3 四个注入点都走 16 个原始变量（applyAccentThemeTokens / getAccentColors） (9.7558ms)
+✔ G4 内存样本：gold 实底白字 / red 实底白字 / 非法入参回落 gold (1.1255ms)
+✔ G5 浅底深字 / 焦点环：不得直接用裸 var(--app-accent) (25.861ms)
+✔ R1-A：访客在全局键留下偏好后，新登录账号 person 无键 → 出厂默认不继承（不回退/不迁移写入） (7.7842ms)
+✔ R1-A：登录用户 set 只写 person 键，绝不材料化全局键 (1.5833ms)
+✔ R1-A：访客 set 只写全局键，get 读全局键；不产生任何 person 键 (1.7223ms)
+✔ R1-A：2300010001 与 2400012349 偏好互不污染；切号后读回各自 person 键（2400012349 无键=默认） (1.0893ms)
+✔ resolveAppliedAccentRole：登录无覆盖 → 默认 gold；有覆盖 → 覆盖键；非法覆盖 → 默认 gold (1.4612ms)
+✔ node 环境安全：sync/DOM 依赖 API 有 typeof 守卫，调用不抛 (1.2664ms)
+✔ getAppliedAccentColors：登录 person 覆盖生效 / 无覆盖=默认金 / 非法覆盖回落默认金 (1.7176ms)
+✔ getAppliedAccentColors：访客全局覆盖优先 / 无覆盖回落默认金 (0.9214ms)
+[DataAdapter] 数据源切换为: mock
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+✔ ① 期次：手填优先（跨季补交归对期次）；缺省/非法按 submittedAt 推导 (69.7712ms)
+✔ ② 面板数据：同一 personId 同一期次可多篇（无唯一性约束） (70.896ms)
+✔ ③ 按期次归集：组内多篇、组间期次倒序 (28.7543ms)
+✔ ④ 存量归一：无 period / 非法 period 的记录读取时按 submittedAt 推导 (20.6277ms)
+✔ ⑤ 篇幅口径（SOP-B-11）：建议 1500 / 警告审阅线 1200 / 一律不影响提交 (17.5658ms)
+✔ ⑥ 期次助手（单一源）：标签 / 排序 / 选项 (1.0701ms)
+[DataAdapter] 数据源切换为: mock
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+✔ ① addThoughtReport 新提交 → 提交即入库归档（archived）+ 通知文案含「已自动归档归集」 (100.6618ms)
+✔ ② rejectThoughtReport（组织委员）→ needs_revision + reviewHistory[0]；刷新重载仍成立 (20.3011ms)
+✔ ③ rejectThoughtReport 各类拒绝：空意见 / 越权 / 缺 role / 重复打回 (20.7891ms)
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+✔ ④ resubmitThoughtReport：仅 needs_revision 且仅本人；重交 → 回 archived (38.3487ms)
+✔ ⑤ 读取归一：无状态 / 非法状态 / 旧 pending → archived；needs_revision 保留 (8.569ms)
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+✔ ⑥ 闭环：提交(archived) → 打回(needs_revision) → 重交(archived)（留痕保留） (23.1204ms)
+✔ ⑦ 连提两篇不撞 id（crypto.randomUUID；原 Date.now 形态的回归位） (12.8137ms)
+[DataAdapter] 数据源切换为: mock
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+✔ ① 会-应到：在册非滞留党员 hasMeeting 含当日支部党员大会（项含 activityId/title/type/start）；党小组会按本人小组应到 (39.5103ms)
+✔ ② 报名参与型：非会类型活动经 signups(approved) 计入；pending 与未报名者不自动列入 (11.2327ms)
+✔ ③ 到期/逾期：deadline=昨日未完成 → overdue（含 id/title/deadline/action）且 dueToday 不含；=今日 → dueToday；完成/未来/无 deadline 排除 (11.7531ms)
+✔ ④ 分工：当日活动 assignments 含我 → myDuties 含 {activityId, activityTitle, role}（跨活动汇总） (10.1709ms)
+✔ ⑤ 空态：无会/无到期/无分工 → 四个数组全空，date 正确 (7.3661ms)
+✔ ⑥ 跨日边界：now 注入 → 明天活动不出现；now 切到明天则出现（dateKey 本地口径） (8.5409ms)
+✔ ⑦ byAction：按动作性质七类分组（空组不出现 / 组序固定 / 每行带业务域 / 无截止殿后） (11.6111ms)
+[DataAdapter] 数据源切换为: mock
+[db] v7 人员主键迁移： {"total":0,"mapped":0,"unmapped":[],"rate":1}
+[db] v8 活动组织落点：支部级重分类=0 补承办范围=0 待补责任组=0
+[db] v10 活动组织落点两档：落点归一=0 待补承办组=0 补跨组招募=0 工作组镜像=0
+[db] v11 待办归属回填：已归属=0 待归属=0
+[db] v12 branchId 回填：活动=0 考勤=0 考察=0 归档=0 宣传=0 外发=0 交接=0 确认=0 审计=0 待办=0
+[db] schema v12（本次应用 12 项）
+[db] v7 人员主键迁移： {"total":0,"mapped":0,"unmapped":[],"rate":1}
+[db] v8 活动组织落点：支部级重分类=0 补承办范围=0 待补责任组=0
+[db] v10 活动组织落点两档：落点归一=0 待补承办组=0 补跨组招募=0 工作组镜像=0
+[db] v11 待办归属回填：已归属=0 待归属=0
+[db] v12 branchId 回填：活动=0 考勤=0 考察=0 归档=0 宣传=0 外发=0 交接=0 确认=0 审计=0 待办=0
+[db] schema v12（本次应用 12 项）
+[db] v11 待办归属回填：已归属=2 待归属=1
+[db] v12 branchId 回填：活动=0 考勤=0 考察=0 归档=0 宣传=0 外发=0 交接=0 确认=0 审计=0 待办=0
+[db] schema v12（本次应用 2 项）
+✔ T1 全新库 v11：todos.branch_id 与索引存在 (456.6288ms)
+✔ T2 存量回填：父行/所属人可解析则写回，解析不出保持 NULL (20.5711ms)
+✔ T3 党委未选支部新建待办 ⇒ 400 (211.5542ms)
+✔ T4 支部账号新建待办 ⇒ 自动落本支部 (25.3507ms)
+✔ T5 兼容期：NULL 行只给本人/同角色看，并标 branchLegacy (43.701ms)
+✔ T6 回滚：删影子表与索引，user_version 回 10 (6.1303ms)
+[DataAdapter] 数据源切换为: mock
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+[DataAdapter] 数据源切换为: mock
+[DataAdapter] 数据源切换为: api，API_BASE_URL=
+[DataAdapter] 数据源切换为: mock
+✔ ① VisitorTodoDeriver 三条派生链：通知 / 活动 / 专班待办均带当前登录人 personId (36.5716ms)
+✔ ② stale 清理按 personId 收敛：乙的刷新不删除甲的待办 (15.4075ms)
+✔ ③ completeBySource：只销本人 / 本角色行，不跨人跨角色 (15.7408ms)
+✔ ③b completeBySource 未传 scope：有会话时按会话收窄（兼容调用也不跨角色） (12.0139ms)
+✔ ④ NoticeStore.markRead：只销本人 / 本角色的通知待办 (14.7908ms)
+✔ ⑤ refreshExpiredStatus：无会话不写任何行；有会话只写本人 / 本角色行 (11.4472ms)
+✔ ⑥ seedTodos：mock 形态保留演示种子；API 形态不补任何种子（含角色匹配者） (13.6485ms)
+[DataAdapter] 数据源切换为: mock
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+✔ ① 活动创建 → leader authorize：scenarioId 分域（三会→会务、theme-party→活动/项目）+ 稳定键 activity-authorize (36.8934ms)
+✔ ①b 专班创建 → org-commissioner authorize：domain=专班 + 稳定键 taskforce-authorize (12.3881ms)
+✔ ② 活动归档 → prop archive：domain=归档宣传 + 稳定键 activity-archive (10.1955ms)
+✔ ③ visitor 参与：活动/专班 participate + 稳定键 participate（三会活动→会务） (10.821ms)
+✔ ④ 通知派生（NoticeTodoDeriver / Visitor 通知扫描）：domain=NONE + 稳定键 notice-read (9.462ms)
+✔ ⑤ handoff 三型：auto 类不派生待办；补课回执→考勤纪律（D04） (14.1368ms)
+✔ ⑥ signup-review：活动(theme-party)→活动/项目、专班→专班；approved 报名 participate 同步打标 (20.184ms)
+[MockAdapter] updateActivity 成功，id=act-fu
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+✔ ⑦ resolution-followup：责任人跟进待办 domain=决议上报 + 稳定键（已设，锁定回归） (282.9905ms)
+✔ ⑧ 实时组域标签：导出映射覆盖支书 8 组/决议逾期/成员组/纪检队列，组对象带 domain（供 T4） (9.6596ms)
+✔ ⑨ 发展节点提醒：培养考察期满/预备期满派生组织委员实时组（域=成员发展 + 稳定键，幂等不重复） (3.8849ms)
+[DataAdapter] 数据源切换为: mock
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+✔ ① DOMAIN_ORDER：**6 类**固定顺序（项目→考勤纪律→考察→成员发展→上报与汇报→归档宣传），NONE 不入列 (3.6803ms)
+✔ ② getDomainsWithGroups：多域聚合（域序固定/无活不出/跨角色不混入/计数与逾期正确/NONE 不入列） (72.0481ms)
+✔ ③ 域内组排序：先逾期 → 按 deadline → 最后稳定 actionKey；组内条目过期置顶 (22.7934ms)
+✔ ④ getUnreadNotices：NONE 通知类未完成按 deadline/created 倒序（轻量未读区数据源） (19.1286ms)
+✔ ⑤ mergeRealtimeDomains：实时组并入对应域（新增域/域内追加/同 groupKey 去重/缺 domain 推断/domain=NONE 不入） (11.9736ms)
+✔ ⑥ 向后兼容：getGroupedByAction 平铺语义不变（完成态排除；组含 title/deadline/items/count/flow） (14.4854ms)
+✔ ⑦ urgeRolesOf：持久化待办按 role；实时组静态映射/决议 owner/复盘组织者解析；无责任→空 (1.7704ms)
+✔ ⑧ A① 对象级深链守卫：所有 actionable 通知携带 targetUrl 或 targetType+targetId (401.5837ms)
+✔ ⑨ 演示下钻放行门 + 代提交复盘表单复用（防未定义引用/字段分叉回归） (9.0202ms)
+[DataAdapter] 数据源切换为: mock
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+✔ ① WORK_DOMAIN：**6 类**业务域 + NONE（通知/未分类），WORK_DOMAIN_LABELS 中文齐全 (3.0331ms)
+✔ ② inferDomain：有 domain 原样返回（含显式 NONE），旧域键按 `D-787` 归一（不覆盖不推断） (0.6871ms)
+✔ ③ inferDomain：无 domain 按 actionKey/actionType 推断（spec 三节映射速查） (0.8662ms)
+✔ ④ inferDomain：authorize/participate 一律「项目」域（`D-787` 合并后 会务/活动/专班 同域） (0.7119ms)
+✔ ⑤ inferDomain：未知/空输入 → NONE 且不崩 (0.445ms)
+✔ ⑥ _buildTodo 兜底：create 无 domain 自动推断注入；显式 domain 保留 (43.2968ms)
+[DataAdapter] 数据源切换为: mock
+[db] v7 人员主键迁移： {"total":0,"mapped":0,"unmapped":[],"rate":1}
+[db] v8 活动组织落点：支部级重分类=0 补承办范围=0 待补责任组=0
+[db] v10 活动组织落点两档：落点归一=0 待补承办组=0 补跨组招募=0 工作组镜像=0
+[db] v11 待办归属回填：已归属=0 待归属=0
+[db] v12 branchId 回填：活动=0 考勤=0 考察=0 归档=0 宣传=0 外发=0 交接=0 确认=0 审计=0 待办=0
+[db] schema v12（本次应用 12 项）
+✔ S1 participant 快照新增 prop-commissioner 角色待办 → 403，同批 notices / activities 不落库 (401.8321ms)
+✔ S2 participant 上传带 personId 的 visitor 待办 → 200（到人归属放行） (34.6257ms)
+✔ S3 participant 上传无 personId 的 visitor 角色待办 → 403（历史跨角色行不放行） (22.5282ms)
+✔ S4 本人行 + 他人行同批 → 403 且整批不写（不是部分写入） (30.7907ms)
+✔ S5 支书新建 leader 角色待办 → 200（派生态新建放行） (27.6185ms)
+✔ S6 支书推进 / 删除他人角色待办 → 403（只有本人可推进） (19.3524ms)
+✔ S7 支书新建无 personId 的 visitor 行 → 403（visitor 不是登录角色，无从归属） (21.2868ms)
+✔ S8 participant 新建「来源可证」的派生行（真实活动 + actionKey）→ 200 (29.0139ms)
+✔ S9 participant 新建「来源不存在」的派生行 → 403（不能凭空指向） (22.6965ms)
+✔ S10 participant 新建缺 actionKey 的跨角色行 → 403（不构成派生行） (19.9348ms)
+[DataAdapter] 数据源切换为: mock
+✔ ① 壳体四数摘要为纯中文：逾期 / 今日 / 本周 / 待处理 (5.9677ms)
+✔ ② 列表四档组名：逾期 / 今日 / 本周 / 以后；空组不渲染 (2.46ms)
+✔ ③ 四档计算：逾期/今日/本周/以后 + 摘要四数与列表同源 (30.4362ms)
+✔ ④ 行内只保留标题/说明/主行动，作废等次要动作进入「更多」 (4.5724ms)
+✔ ⑤ 六台 todo-tab 仍共用 createTodoTab（不逐台复制四档渲染） (8.2346ms)
+✔ ⑥ 待办相关源码不出现 Overdue / Today / This week 等中英混排展示词 (12.638ms)
+✔ ⑦ 深链定位逻辑仍在：data-group-key 锚点 + groupKey 查找 (2.2307ms)
+✔ ⑧ 首屏顺序：折叠条默认展开露 2 条待答复，未读通知二级折叠，「我的待办」紧随其后 (4.5826ms)
+[DataAdapter] 数据源切换为: mock
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+✔ V1 无原因不得作废：requestVoid/confirmVoid 空原因一律拒绝 (46.7731ms)
+✔ V2 requestVoid：落 voidPending、列表照常可见、进入 getVoidPending (15.8052ms)
+✔ V3 confirmVoid：落 voided 且默认列表出列，includeVoided 可回看 (14.9749ms)
+✔ V4 rejectVoid：清 voidPending 回原状（列表可见）并留 voidRejected (18.1396ms)
+✔ V5 防回潮：硬删只在支委层渲染；作废/删除只对落库组渲染 (6.7847ms)
+✔ V6 待办详情：行尾隐藏动作的组不再出「去处理」；无 detailAction 也不回退主行动 (5.3616ms)
+✔ B1 四页重点不再出现旧动作按钮类 (11.2525ms)
+✔ B2 四页重点使用显式尺寸 btn-sm / btn-md (6.8427ms)
+✔ B3 tab / 页签 btn-tab 豁免：顶部 tab 文件不在本守卫统计面 (3.8511ms)
+✔ B4 非空转：四页重点确实含按钮标记 (7.3059ms)
+✔ B5 行内可见动作 ≤2：党小组 / 支委会每行 1 主 + 更多，危险动作在菜单内 (5.4639ms)
+✔ C1 DESIGN_SYSTEM 含颜色四问与逾期 / warning / error 口径 (10.367ms)
+✔ C2 styles.css 含状态徽章变体（warning / success / info / accent） (7.6961ms)
+✔ C3 关键页面「逾期」附近不得使用 --functional-error (17.3541ms)
+✔ C4 §2.10 写明三个反例（整圈红边 / 功能色主按钮 / 主题色状态徽章） (8.0838ms)
+✔ C5 非空转：邻近判定在正 / 负样本上分别命中 / 不命中 (1.1444ms)
+✔ K1 .badge--gold 深琥珀字 on #FEF9C3 ≥ 4.5:1 (5.3577ms)
+✔ K2 选中页签文字走主题 softText（不再 color-mix 派生）且 ≥ 4.5:1 (1.0909ms)
+✔ K3 分组名全宽可见（12px / 主题 soft-text 亮暗 ≥4.5:1 / 3px / ≥24px），≤1280 只缩不隐藏 (5.5885ms)
+✔ K4 今天页「逾期」使用 warning，不再用 error (1.3989ms)
+✔ K5 .btn-tab.active 跟随主题色（soft 三件套，不再固定党建红） (1.4682ms)
+[ui-control-system-guard] SD-1 控件 265 个（白名单命中 person-picker-search:1 · help-search-input:1 · cs-search-input:1 · login-input:2 · vote-note:2 · help-role-filter:1）
+[ui-control-system-guard] SD-2 solid 边框 100 条 · 带独立 border 的按钮 12 个
+[ui-control-system-guard] SD-3 border-radius 声明 123 条（4/6px 例外 0 条）
+[ui-control-system-guard] SD-4 <summary> 56 个 · list-none 例外 0 个
+[button-system-guard] 未命中档的 <button> 共 0 个（棘轮上限 0）：
+
+[ui-control-system-guard] T3-1 交互元素 690 个 · 内含标题 0 处
+[ui-control-system-guard] T3-2 details 文件 33 个 · 静态 aria-expanded 13 个
+[ui-control-system-guard] T3-3 details 文件 33 个 · 混用 0 处
+[ui-control-system-guard] T4-1 renderDisclosure 文件 4 个 · 手写折叠文件 32 个 · 混用 3 处（豁免 3）
+[button-system-guard] 未入语义族的 <button> 共 0 个（棘轮上限 0）；组件自有类豁免 22 个（-tab-btn / subtab / sidebar-footer-action / todo-more__item / metric-band__item / gp-group-card / modal-close-btn / tint-action）；主题预览卡 1 个：
+
+[button-system-guard] .btn-ghost 带内联实底的 <button> 共 0 个（棘轮上限 0）：
+
+[button-system-guard] 动作按钮族仍写尺寸工具类 360 个（棘轮上限 360；tab-btn / btn-tab 已排除）：
+   23  docs\src\entries\tabs\prop\archive-tab.js
+   20  docs\src\entries\tabs\org\taskforce-tab.js
+   17  docs\src\components\governance\org-setup-wizard.js
+   17  docs\src\entries\pages\activity-entry.js
+   17  docs\src\entries\pages\settings-entry.js
+   17  docs\src\entries\tabs\secretary\feedback-tab.js
+   15  docs\src\entries\tabs\disc\attendance-tab.js
+   15  docs\src\entries\tabs\disc\inspection-tab.js
+   13  docs\src\entries\tabs\secretary\todo-tab.js
+   12  docs\src\components\record\inspector.js
+   11  docs\src\entries\tabs\leader\write-tab.js
+   10  docs\src\entries\tabs\org\member-flow-tab.js
+    9  docs\src\components\feedback\issue-dispatch-view.js
+    8  docs\src\entries\tabs\org\roster-tab.js
+    8  docs\src\entries\tabs\prop\weekly-tab.js
+    7  docs\src\entries\tabs\secretary\calendar-tab.js
+    7  docs\src\entries\tabs\secretary\notification-tab.js
+    7  docs\src\entries\tabs\secretary\workforce-panel.js
+    6  docs\src\entries\tabs\secretary\group-progress-tab.js
+    5  docs\src\entries\tabs\leader\attendance-tab.js
+    5  docs\src\entries\tabs\party-committee\branches-tab.js
+    5  docs\src\entries\tabs\secretary\assign-tab.js
+    4  docs\src\components\governance\branch-roster-import-panel.js
+    4  docs\src\components\governance\signup-panel.js
+    4  docs\src\components\record\calendar.js
+    4  docs\src\components\sections\references.js
+    4  docs\src\entries\pages\thought-report-entry.js
+    3  docs\src\components\feedback\issue-detail.js
+    3  docs\src\components\governance\resolution-followup-manager.js
+    3  docs\src\entries\pages\branch-config-entry.js
+    3  docs\src\entries\pages\person-entry.js
+    3  docs\src\entries\tabs\disc\review-tab.js
+    3  docs\src\entries\tabs\leader\inspection-tab.js
+    3  docs\src\entries\tabs\org\activity-calendar-tab.js
+    3  docs\src\entries\tabs\org\inspection-tab.js
+    3  docs\src\entries\tabs\visitor\attendance-tab.js
+    3  docs\src\entries\tabs\visitor\projects-tab.js
+    2  docs\src\components\governance\organizer-transfer.js
+    2  docs\src\components\governance\person-edit-modal.js
+    2  docs\src\components\governance\person-profile-sections.js
+    2  docs\src\components\governance\workgroup-member-editor.js
+    2  docs\src\components\record\report-entry.js
+    2  docs\src\components\ui\form-shell.js
+    2  docs\src\components\ui\modal.js
+    2  docs\src\components\ui\void-record.js
+    2  docs\src\entries\pages\activity-materials-entry.js
+    2  docs\src\entries\pages\branch-readonly-entry.js
+    2  docs\src\entries\pages\login-entry.js
+    2  docs\src\entries\pages\party-committee-meeting-entry.js
+    2  docs\src\entries\tabs\party-committee\review-tab.js
+    2  docs\src\entries\tabs\prop\tasks-tab.js
+    2  docs\src\entries\tabs\secretary\overview-tab.js
+    2  docs\src\entries\tabs\secretary\report-up-tab.js
+    1  docs\src\components\feedback\issue-form.js
+    1  docs\src\components\feedback\issue-list.js
+    1  docs\src\components\feedback\reactions.js
+    1  docs\src\components\governance\activity-progress.js
+    1  docs\src\components\governance\handoff-inbox.js
+    1  docs\src\components\governance\member-change-panel.js
+    1  docs\src\components\governance\overview-dispatch-bar.js
+    1  docs\src\components\governance\workforce-duty-card.js
+    1  docs\src\components\record\activity-view.js
+    1  docs\src\components\record\taskforce-view.js
+    1  docs\src\components\shell\header.js
+    1  docs\src\components\shell\share-button.js
+    1  docs\src\components\shell\tab-bar.js
+    1  docs\src\components\shell\workspace-shell.js
+    1  docs\src\entries\pages\archive-entry.js
+    1  docs\src\entries\tabs\leader\members-tab.js
+    1  docs\src\entries\tabs\org\talent-tab.js
+    1  docs\src\entries\tabs\party-committee\dispatch-tab.js
+    1  docs\src\entries\tabs\party-committee\party-config-tab.js
+    1  docs\src\entries\tabs\prop\kanban-tab.js
+    1  docs\src\entries\tabs\visitor\activities-tab.js
+    1  docs\src\entries\tabs\visitor\inspection-tab.js
+    1  docs\src\entries\tabs\visitor\thought-report-tab.js
+    1  docs\src\services\governance\review.js
+[button-system-guard] 以 btn-ghost 作动作按钮的 <button> 共 4 个（棘轮上限 4）：
+    2  docs/src/components/ui/list-row.js
+    1  docs/src/entries/tabs/disc/attendance-tab.js
+    1  docs/src/entries/tabs/today/today-tab.js
+[ui-control-system-guard] V4 btn-ghost 仅剩非动作行载体 6 处（白名单 5 文件）
+[ui-control-system-guard] V5 .btn-text 5 个 · 「全部/查看/更多」3 个 · 浅色箭头 0 处
+[ui-control-system-guard] V6 图标按钮 9 个（44 命中组 4 类 + .btn-icon）
+[ui-control-system-guard] V7 亮色 hover #e5e7eb vs 卡片 #ffffff=1.24:1 · vs 页面 #fafaf5=1.18:1 · 暗色 hover #334155 vs 卡片 #141d2f=1.63:1 · vs 页面 #0b1220=1.81:1
+✔ SD-1 控件类单一源：input/select/textarea 必须挂 .input-flat(.input-flat-sm)，且不得再写 ad-hoc 覆盖 (72.1498ms)
+✔ SD-2 边框必须有颜色：CSS 无「无颜色 solid」；按钮独立 border 必须同串带色类 (76.0285ms)
+✔ SD-3 控件圆角 8px：CSS 字面量不得出现 4px / 6px；.input-flat(-sm) 走 --radius-sm (52.2988ms)
+✔ SD-4 披露控件统一：全局移除 summary 三角，且 <summary> 上无 list-none 例外 (4.9435ms)
+✔ SD-6 浅主题底不显白：.btn-accent-soft 消费 soft 三件套（手选 hex，非 color-mix） (1.1201ms)
+✔ SD-9 页签组名可见：groupLabel 渲染为非空文本，且存在 .tab-group-sep (1.284ms)
+✔ SD-10 正文字号下限：今天页 / 待办无 10/11px；--text-xs ≥ 0.75rem (1.1178ms)
+✔ B1 死字段：docs/src 不得引用已被移除的字段 (348.8228ms)
+✔ B2 按钮尺寸档：<button> 必须命中四档之一（或命名族） (319.5644ms)
+✔ T3-1 交互元素内无标题：button / summary / role=button 内不得出现 h1..h6 或 role=heading (19.3982ms)
+✔ T3-2 折叠状态可静态回读：summary 必在 details 内；aria-expanded 必带 aria-controls (18.41ms)
+✔ T3-3 同一文件同类折叠只用一种原语（菜单除外） (5.8476ms)
+✔ T4-1 同一文件只允许一种折叠头实现：renderDisclosure 与手写 details/summary 不混用 (11.5461ms)
+✔ B4 按钮族棘轮：未入语义族的 <button> 只许降不许升（「全面归一」的进度表） (399.7302ms)
+✔ B5 族·语义一致：.btn-ghost 不得带内联实底（借文字族形状伪装实底） (331.7867ms)
+✔ B6 按钮尺寸归一：标准 36px ＋ 紧凑 32px ＋ 小号 28px（padding + line-height 推导） (21.1768ms)
+✔ B7 族内不得再写尺寸：动作按钮族上的 text-*/py-*/px-*/h-* 只许降不许升（tab-btn / btn-tab 豁免） (341.3304ms)
+✔ B8 btn-ghost 作为动作按钮的存量只许降不许升（新代码不得使用） (373.5144ms)
+✔ V1 容器语义：metric-band 拆两档 / section.card 必有可访问名 / list-row 四载体可区分 (8.5281ms)
+✔ V2 分组胶囊全宽可见：无 display:none 断点、高度 ≥24px、3px 直角、描边形状可辨 (4.6362ms)
+✔ V3 关键表定列宽：wo-lines-table fixed ＋ colgroup 模板 ＋ 末列贴列尾 (3.7859ms)
+✔ V4 btn-ghost 不得用于动作按钮：只允许白名单内的非动作行载体 (33.1194ms)
+✔ V5 纯文字动作有静态线索：btn-text 下划线、尾随箭头非 neutral-400 (73.2342ms)
+✔ V6 图标按钮：视觉 32×32，命中区 ≥44×44，且有无障碍名 (7.4783ms)
+✔ V7 可点行 hover：--surface-hover 对比 ≥1.2:1（白卡），并叠加 3px 主题左条 (4.0864ms)
+✔ K1 触发器：id / aria-labelledby / combobox / haspopup / expanded / controls (4.6786ms)
+✔ K2 原生 select：tabIndex=-1 + aria-hidden，避免重复控件 (0.6237ms)
+✔ K3 listbox 选项可聚焦，方向键 / Home / End / Enter / Space / Esc 齐备 (0.894ms)
+✔ K4 打开焦点进 listbox；Esc 关闭后归还触发器 (0.6888ms)
+✔ K5 选项键盘焦点可见（--focus-ring） (0.8596ms)
+[ui-first-screen-order] 支书 · 全局概况 尚未迁移到 .help-note（页面顺序断言待后续 Task 9 收紧）
+[ui-first-screen-order] 支书 · 待办 尚未迁移到 .help-note（页面顺序断言待后续 Task 9 收紧）
+✔ F1 DESIGN_SYSTEM §10.5 首屏浏览顺序：四条规则 + 三条布尔条件 (8.8287ms)
+✔ F2 DESIGN_SYSTEM §10.6 10 个抽样页乱象登记齐备（4 已修 + 6 已审） (7.1215ms)
+✔ F4 待办首屏：折叠条默认展开露 2 条待答复；未读通知二级折叠；「我的待办」紧随其后 (4.4303ms)
+✔ F5 党小组表恰 5 列，负责人单元格不再有第三行嵌套 (4.907ms)
+✔ F3 四页重点主对象先于 help-note（党小组 / 支委会已迁移；概况 / 待办无 help-note） (11.357ms)
+✔ F1 亮色 / 暗色各有一套 --focus-ring（暗色改主题色，不再用党徽金） (5.0349ms)
+✔ F2 全局 button/a 焦点环只有一条 outline，且不被 --app-accent-text 覆盖 (0.7912ms)
+✔ F3 输入族：活动态＝主题色边＋浅晕；键盘 :focus-visible 才出 outline (0.9215ms)
+✔ F4 对比度：焦点环 vs 底色 ≥ 3:1 (0.9358ms)
+✔ F5 非空转：对比度函数与规则抽取有正/负例 (0.5304ms)
+✔ F6 顶栏深红底：焦点环作用域改党徽金且 ≥3:1，不改全站 token (0.8731ms)
+✔ H1 DESIGN_SYSTEM §4.24 帮助注释存在且口径齐备 (9.6416ms)
+✔ H2 styles.css 定义 .help-note / .help-note__link (6.7584ms)
+✔ H3 党小组 / 支委会页面必须用 .help-note__link 链接 (6.1122ms)
+✔ D1 首页「完整日历」走 data-ws-tab 深链；工作组「查看全部」由分组组件生成 (4.1986ms)
+✔ D2 首页「完整日历」每台解析后的目标页签都命中该台注册 tab id (0.61ms)
+✔ D3 「完整日历」落各台真实落点（2026-10-25 IA 62→45 改准） (0.6687ms)
+✔ D4 工作组「查看全部」按活动 / 专班两类分别落到真实页签或详情页 (4.8698ms)
+✔ D5 不再出现不存在的 tab=activities / tab=taskforce (0.8668ms)
+✔ D6 main-entry.js 按角色消费 data-ws-tab-<page>，subview 只在 activities 上附加 (2.64ms)
+✔ D7 index 与 main-entry 共用同一活动版本戳（发版不写死版本号） (4.0129ms)
+✔ E1 首页抬头块：党徽 + 标题，位于统计卡之前；副标题已裁删 (3.3461ms)
+✔ E2 标题走专属 id，不用区块标题选择器误伤其他 H2 (0.6362ms)
+✔ E3 main-entry.js 引入 getHeaderTitle 并按 user 分支设置标题 (0.798ms)
+✔ E4 首页不硬编码示例支部名 (0.517ms)
+✔ E5 非空转自检：正则正样本命中、负样本不命中 (1.8683ms)
+✔ E6 首页活动风采：一张照片都没有时不出 16:9 大图位，只留一行空态 +（有权限时）上传入口 (1.2571ms)
+✔ E7 首页统计卡：短标签 + 统一 min-height + 图标顶对齐（390 等高） (1.4917ms)
+✔ G1 非空转自检：能截取调用，且能识别 body 内 / footer 内的提交按钮 (5.362ms)
+✔ G2 modal.js：header 纯文本 / sticky footer / dvh / safe-area / onCancel 齐备 (2.2072ms)
+✔ G3 全站 openModal：提交按钮不得在 footerHtml 之外（白名单须写理由） (416.5407ms)
+✔ G4 成员档案浮窗：标题纯文本，完整档案入口在 body 内 (2.032ms)
+✔ G5 写入活动：取消 / Esc / 遮罩都清 pendingAuth (4.1351ms)
+✔ G6 非空转：hasFixedOverlay 能识别自建全屏层，且不误报普通 fixed 定位 (0.6296ms)
+✔ G7 浮层唯一实现：对话框不得自建全屏固定层（白名单须写理由） (394.5984ms)
+✔ G8 R3-25：六处 settingsLink 统一短文案，modal 做长度归一 / 兜底 (10.0466ms)
+✔ G9 通知删除：先 openModal 二次确认，确认后才 NoticeStore.remove（并说明联动删除待办） (2.6542ms)
+✔ G10 归档推进：不再自建 position:fixed / 380px 浮层，改走 openModal (2.7302ms)
+[ui-motion-guard] 卡片悬停阴影 / 上浮共 0 处（棘轮上限 0）：
+
+[ui-motion-guard] transition-all 共 0 处（棘轮上限 0）：
+
+✔ M1 卡片悬停不得上浮 / 加阴影：hover:shadow-* 与 hover:-translate-* 为零 (404.8321ms)
+✔ M2 transition-all 只降不升（列表悬停不得过渡宽高 / 阴影） (386.7232ms)
+✔ M3 非空转：扫描面覆盖页面源码，且显式过渡类仍存在 (347.7906ms)
+✔ U1 日历小字：紧凑活动标签与任务标签均 ≥ 11px (8.7439ms)
+✔ U2 日历标签字色：固定 tone 类（tint-fill + data-tone），不再用文字 color-mix 压深 (2.2674ms)
+✔ U3 个人考勤空态：数值为「—」且标签写明「本月无记录」 (1.7689ms)
+✔ U4 卡片 hover：默认无 hover 规则，只有 card--interactive 才给主题色边框 (6.4129ms)
+✔ U5 选人面板：向上展开有顶栏安全线；弹窗内不再叠第二层黑遮罩 (3.6893ms)
+✔ U6 活动风采：真图位、无渐变、无蓝 hover、无整卡上浮 (3.4087ms)
+✔ U7 活动风采卡可键盘触发 (4.318ms)
+✔ U8 页标题层级：四页重点各一个 H2，卡头 H3，首页抬头块按裁定恢复 (8.9815ms)
+✔ U9 零值口径：真实的 0 显示为 0；不得出现 0/0 (10.3164ms)
+✔ U10 数字对齐与状态列去重：scope / is-numeric / is-redundant 齐备 (8.2217ms)
+✔ U11 DESIGN_SYSTEM 写入标题层级与零值口径 (6.7128ms)
+✔ U12 卡片边界：跨组进展拆成并列四卡，不套外包卡 (10.3998ms)
+✔ F1 焦点陷阱：Tab / Shift+Tab 在面板内循环 (2.4398ms)
+✔ F2 打开锁 body 滚动，关闭恢复原值 (0.5528ms)
+✔ F3 Esc 关闭并回焦打开前的焦点 (0.5725ms)
+✔ F4 resize / orientationchange 重定位，390px 不出屏 (0.6117ms)
+✔ F5 CSS 不使用 transition: all (1.0435ms)
+✔ P1 CLAUDE.md H40.2 含 UI 变更前置卡与 10 问关键词 (6.2004ms)
+✔ P2 DESIGN_SYSTEM §0 含同一组 10 问关键词 (4.2683ms)
+✔ P3 两处互相指向（单一源关系可追溯） (6.3676ms)
+✔ P4 非空转：两节正文均可抽取且互不为空 (7.6766ms)
+✔ C1 主 CTA 不再混入深灰 #1F2937 (4.1653ms)
+✔ C2 主 CTA 使用角色色令牌 (0.8887ms)
+✔ C3 实底/实底字查表：strongBg + strongInk（无 color-mix 压深） (1.1561ms)
+✔ R1 固定冗余句不得回潮：docs/** 全量源码零命中 (460.718ms)
+✔ R2 非空转：正样本命中、负样本不命中，且扫描面覆盖关键文件 (43.8007ms)
+✔ R1 list-row.js：rowType / data-row-type / action & display 分支齐备 (3.6683ms)
+✔ R2 styles.css：展示行 / 动作行无 pointer，且 hover 不变底 (10.0394ms)
+✔ R3 可交互行有 :focus-visible (4.807ms)
+✔ R4 全站 transition: all 存量只降不升（基线 7） (407.111ms)
+✔ R5 非空转：transition 口径命中 all、不误命中具体属性 (0.6354ms)
+✔ S1 大字号：菜单四项都有字号覆盖（不再 11–12px 卡在 17px 触发器下） (5.1033ms)
+✔ S2 深色：选中项走主题 soft 三件套（亮/暗由 token 别名选边），不逐点覆盖 (1.4849ms)
+✔ S3 禁用：select.disabled 同步到触发器（disabled + aria-disabled），并监听属性变化 (0.9661ms)
+✔ S4 空态：0 选项时菜单渲染「暂无可选项」 (0.5226ms)
+✔ S5 分组禁用：optgroup.disabled 传递到标题与子项 (0.5283ms)
+✔ S6 非空转：选择器抽取正/负例 (0.4268ms)
+✔ T1 左右箭头与定位壳：tab-bar 输出 .ws-tab-shell / .ws-tab-arrow (1.9662ms)
+✔ T2 滚动行为：240px 平滑滚动 + scroll/resize 重算 (0.6571ms)
+✔ T3 样式：定位壳 / 箭头 / 右侧渐隐 (1.6397ms)
+✔ T5 键盘起点：激活页签只改 scrollLeft，不用元素级滚动定位 (0.7806ms)
+✔ T4 不改 tab 尺寸 / 选中态 / 顺序 (11.1647ms)
+✔ T6 页签条分层（2026-10-27 Task 6.1）：组名行独立在上、页签行只放页签与箭头 (1.091ms)
+✔ T7 分层样式（2026-10-27 Task 6.2）：组名行与页签行分列、1440 放开宽度、组名不隐藏 (1.8036ms)
+✔ ① 用户可见文案不得出现考核/机器话术（KPI · 以此计量 · 完成率） (583.0402ms)
+✔ ② 落款与销项主语不得写死「支书」单一角色（副书同权：应含副支书） (630.1171ms)
+✔ ③ 反馈指派与「我的处置」不得使用演示占位 ID（u_*），须取真实登录成员 personId (5.2946ms)
+✔ ④ 通知消费端（NoticeStore.list）必须按受众/行动角色过滤——签发人不得收到自己下发的催办 (2.3012ms)
+✔ ⑥ showToast 调用约定：首参必须是类型（success|warn|error|info）——不得参数写反 (1138.6286ms)
+✔ ⑦ 由 onSelect 渲染的「逐人输入行」必须保态（改选不得清空已填内容） (544.9131ms)
+✔ ⑤ 思想汇报系统通知 authorize 按服务端表复算（不采信客户端自述 personId） (5.4856ms)
+[漏登记检测] 候选 127 处 · 未登记 3 处（基线 3）
+✔ V1 漏登记增量检测：候选校验点不得新增未登记（`R-73` 第 ③ 缺 · 只降不升） (472.2643ms)
+✔ S1 bump-version 默认版本号由既有戳推导（禁写死「当天日期 + a」） (4.7103ms)
+✔ S2 bump-version 含「版本号只允许前进」断言 (2.0599ms)
+✔ S3 全站活动版本戳单一源（取值集合规模为 1） (1049.0893ms)
+✔ S4 server-test 段补戳判据走 version-next 单一源（禁自带第二套正则） (1.7046ms)
+✔ S5 server-test 段收尾自检与补戳同判据 (1.7297ms)
+✔ S6 server-test 段补戳幂等：以活动戳干跑零改写 (1721.5756ms)
+✔ S7 发版一致性：CHANGELOG 形态合法 · 与 package.json 取齐 · 预演可跑通且与判据同号 (1523.8785ms)
+✔ D1 同日续号：取该日最大字母 +1 (0.9969ms)
+✔ D2 跨日归零：他日戳不影响当日 (0.5415ms)
+✔ D3 空集合：首次发版为 a (0.7594ms)
+✔ D4 非法形态忽略：只认「8 位日期 + 1 位小写字母」 (0.6077ms)
+✔ D5 同日字母用尽：显式报错而非静默生成非法戳 (1.5416ms)
+✔ D6 只允许前进：新版本号不得小于现有最大戳 (0.7437ms)
+✔ D7 补戳只改缓存键语境：import/from/副作用 import 追加或替换 + 版本字面量替换 (0.7066ms)
+✔ D8 非 import 语境逐字不变（注释 / Node 读取 / 台账形态） (1.08ms)
+✔ D9 自检判据同源：只取缓存键语境下的戳（非语境与注释不计） (1.2589ms)
+✔ D10 语义化升号三档：BREAKING→主 / Added→次 / 其余→修订 (1.3261ms)
+✔ D11 语义化只允许前进 ＋ CHANGELOG 解析（占位条目不算是变更） (1.5926ms)
+✔ D12 多行动态 import 的路径行随缓存版本更新且进入同一收尾判据 (1.0273ms)
+✔ copy：源→单 target 生效（modules/blocks/workforce/org），逐 target 留痕 config-copied、源不被污染 (9.4556ms)
+✔ copy：源→多 target 各自生效并独立留痕；结果逐 target 返回 (1.573ms)
+✔ copy：includeOrg=false 不动 org（headerTitle/themePreset/desc 保持目标现值） (1.4379ms)
+✔ copy：目标不存在返回原因；混合成功+失败逐条返回 (1.9703ms)
+✔ copy：源不存在 / 目标=源 / 空目标清单 → 不写不崩 (1.1752ms)
+✔ copy：源 config 缺省域（默认全开/默认分工）→ 目标该域恢复默认（null），不污染源 (1.1685ms)
+✔ build：覆盖件含 kind/version/branchId/exportedAt/by 与 org+config 全键（保持既有结构） (1.3399ms)
+✔ build：config 缺省域导出为 null（默认全开/默认分工语义，与既有存储一致） (0.84ms)
+✔ build：支部不存在 → 抛错 (1.7109ms)
+✔ apply：合法包写入目标，headerTitle/themePreset/modules/blocks/workforce 生效且留痕 what=config-package-import (2.224ms)
+✔ apply：非法 themePreset（白名单外）/ 空 headerTitle 被净化丢弃，不写坏目标 (1.4803ms)
+✔ apply：非法 modules id（非字符串/超长）与非法 workforce 项被净化丢弃，不写坏 (3.2436ms)
+✔ apply：缺字段安全——org 只给部分键只改该键；无 org/config 的空包返回 unchanged (1.3319ms)
+✔ apply：kind/version 不符 / 目标不存在 → 抛错（前端捕获 toast），不写坏 (2.5332ms)
+✔ apply：与现状一致的包不写不留痕（重复应用无冗余条目） (1.678ms)
+✔ report：包含支部名与已完成配置摘要（含主题预设/自述） (2.8002ms)
+✔ report：模块/块摘要与角色分工行入文 (0.4408ms)
+✔ report：待手动替换文件清单要点齐全（mock/constants/权限/术语/制度/配色/policy） (0.3825ms)
+✔ report：验证点齐全（应到口径读数/?reset=1/npm test） (0.4944ms)
+✔ roster 衔接：getRosterStats 可 import 且现读数 ≥0、应到=党员−滞留 (2.0085ms)
+✔ report：空输入不抛（缺省分支） (0.4251ms)
+[DataAdapter] 数据源切换为: mock
+[db] v7 人员主键迁移： {"total":0,"mapped":0,"unmapped":[],"rate":1}
+[db] v8 活动组织落点：支部级重分类=0 补承办范围=0 待补责任组=0
+[db] v10 活动组织落点两档：落点归一=0 待补承办组=0 补跨组招募=0 工作组镜像=0
+[db] v11 待办归属回填：已归属=0 待归属=0
+[db] v12 branchId 回填：活动=0 考勤=0 考察=0 归档=0 宣传=0 外发=0 交接=0 确认=0 审计=0 待办=0
+[db] schema v12（本次应用 12 项）
+✔ 模块目录：14 项（「三会一课」批次 145 拆为 4 个模块），id 唯一，缺省主责 ∈ 角色键 ∪ 组织型主体 (245.5319ms)
+✔ 组织型主体＝「类似法人」不是自然人（批次 141）：取值与角色键不重叠、不进 ROLE_KEYS / 身份→页面映射；两模块缺省主责＝支委会 (2.6684ms)
+✔ expandWorkforce：null → 全缺省（role / org）；覆盖 person 项保留、其余兜底缺省 (0.5229ms)
+✔ mergeWorkforceSnapshot：按改派清单合并，未涉及模块原样保留（M2 采纳落库前置） (0.6888ms)
+✔ sanitizeConfigWorkforce：null→null；合法保留；未知模块/非法 owner 丢弃 (0.7294ms)
+✔ 分层与停用（2026-09-13 支书裁定）：tier ∈ {norm,method}；方法类可停用、规范类必办不可停用 (0.8177ms)
+✔ UI 责任关系主从两栏：左列 listbox 模块清单、右列责任角色 / 责任说明、停用项才有操作 (1.1356ms)
+✔ HTTP：支书 PATCH config.workforce 落库（净化生效），null 恢复默认 (29.1198ms)
+✔ 制度派单判据：领域 → 主体（角色键 ∪ 组织型主体）；id 唯一；未知领域 → null (1.2226ms)
+✔ 归属可转移：复合键（模块 × 台 × id）单一源；缺省＝granted；改派后原台 revoked / 新主责 granted；组织型主体 pinned (1.4029ms)
+✔ W1 三层骨架：结论带 / 工作分工表 / 待我处理标记齐备 (2.2432ms)
+✔ W2 删除独立「汇报」卡：不再出现 <h4>汇报</h4> (0.7356ms)
+✔ W3 六个 overview-tab 都走共享 renderWorkOverview (7.3457ms)
+✔ W4 六个角色键与四数齐备 (1.653ms)
+✔ W5 工作分工表列固定：工作分工 / 负责人 / 在办 / 逾期 / 待处理（R3-29 动作列并入待处理） (0.5855ms)
+✔ W6 复用模块与既有下钻仍在 (0.4554ms)
+✔ W7 390px：条线表横滑 + 首列 sticky (0.9485ms)
+✔ W8 结论带两种控件：筛选 chip（aria-pressed）/ 滚动链接（锚点）；两段与动作列收敛 (1.6567ms)
+✔ 脏专项覆盖率：七个工作台角色页签数量与 67 口径一致 (4.0214ms)
+✔ 脏专项覆盖率：每条记录都有结论与证据 (2.2859ms)
+✔ 脏专项覆盖率：覆盖状态表列出七个工作台与 67 总数 (1.3744ms)
+✔ 支书通知页：使命收窄为发布 + 台账，不把催读写成页面职责 (2.9728ms)
+✔ 台账：支书 notification 结论为合格，结项读数同步 (1.2572ms)
+✔ 支书台 Task 17 回修：党小组标题去重 + 活动卡完整页出口 + 待处理汇报落点 (0.8867ms)
+✔ 宣传/纪检台 Task 15：条线缺口有动作、归档单一源、实时组与状态动作一致 (10.523ms)
+✔ 组长/成员台 Task 16：写入口径、考察范围、组员进度与专班详情分层 (10.6752ms)
+✔ 知情查看 Task 5：各台 tf-view 均含工作组段，工作组件只读且消费深链 (11.8325ms)
+✔ 周期归档界面按期次日期混合排序并显示冻结规则标签 (27.2105ms)
+✔ 书记概况统一三层：结论带 / 条线表 / 待我处理，不再保留三卡 (5.1639ms)
+✔ 党委支部配置按分区导航只显示当前配置面板 (4.4041ms)
+✔ 组织委员专班页只提供专班工作组与报名总表；活动进展迁至活动日历 (7.4398ms)
+✔ 组织委员专班详情只保留共享工作组成员与授权编辑器；页底承接「项目赋权 · 专班」 (2.9506ms)
+✔ 已结束专班的成员与授权历史只读，待办联动写入完成后才刷新 (5.7809ms)
+✔ 党委支部筛选只纳入明确归属当前支部的记录，支部管理转义支部配置文本 (3.6607ms)
+✔ 党委选中支部后整页数据请求都带同一支部范围，未选择时不出现“全部明细”入口 (3.8493ms)
+✔ 党委支部管理只显示支部汇总，不展示个人身份和活动明细 (3.347ms)
+✔ 党委未选支部时支部管理只显示目录与汇总，选中后才开放该支部配置操作 (5.159ms)
+✔ 支部附件下载继承党委工作台所选支部，服务端下载不因缺少范围而误伤 (7.9114ms)
+✔ 专班卡片人数只汇总组织者与深度参与者，不读历史普通参与人 (3.2433ms)
+✔ 共享概况把支书实时派生组并入待办，待答复与答复收件箱同源 (2.9222ms)
+✔ 党委支部筛选与支部目录转义支部配置文本，避免存储型 XSS (4.7915ms)
+✔ 工作组结束入口不再保留绕过任务与产出闭合校验的直接归档按钮 (12.0607ms)
+✔ 专班招募创建走工作组语义 API，原始快照只承载后续可编辑字段 (4.7873ms)
+✔ API 形态活动与专班创建走语义写口并合并服务端返回行 (4.6744ms)
+✔ 支委会批准收尾后统一工作组主记录同步为已结束 (5.9694ms)
+✔ 工作组成员不再自动出现在纪检考察清单中 (5.5852ms)
+✔ 宣传看板只承接在办项目，归档统一落档案归档页 (2.816ms)
+✔ 成员台组织者上传位以 scope=organizer 投影，个人考勤与考察记录在页首 (8.0627ms)
+✔ 组长台考勤/考察页的组织者投影只保留本人上传面，不渲染全组/全支部明细 (6.5038ms)
+✔ 宣传任务页提供登记表单并写入 propTasks (2.1793ms)
+✔ 五台不再注册「我的处置」；承接页待办存在且复用 issue-dispatch-view（不再有第二套列表） (13.2034ms)
+✔ 知情查看分层：一级只「活动工作组 / 专班工作组」；其他党小组走独立区（三处无同层混排） (17.0316ms)
+✔ 党委待批复完整队列由支部上报页承担（治理总览已撤） (3.2269ms)
+✔ 支部管理待批复计数带 branchId 深链，按 secretaryId 恢复组织提醒 (1.8591ms)
+✔ 反馈管理只留反馈：列表与合并目标排除 kind=report (2.1391ms)
+✔ 工作概况汇报区只读：无提交入口，唯一动作跳待办「我经办的反馈」 (2.3785ms)
+✔ 今天页汇报行落到待办「待答复」，不再指向反馈/我的处置 (2.1221ms)
+✔ 纯展示列表行只用分隔线，整卡可点的交互卡片仍保留外框 (16.3164ms)
+✔ 侧栏导航图标语义唯一：消息=mail、意见反馈=message，同一导航数组不得复用图标 (2.7239ms)
+[DataAdapter] 数据源切换为: mock
+[db] v7 人员主键迁移： {"total":0,"mapped":0,"unmapped":[],"rate":1}
+[db] v8 活动组织落点：支部级重分类=0 补承办范围=0 待补责任组=0
+[db] v10 活动组织落点两档：落点归一=0 待补承办组=0 补跨组招募=0 工作组镜像=0
+[db] v11 待办归属回填：已归属=0 待归属=0
+[db] v12 branchId 回填：活动=0 考勤=0 考察=0 归档=0 宣传=0 外发=0 交接=0 确认=0 审计=0 待办=0
+[db] schema v12（本次应用 12 项）
+✔ S3 工作流块策略（纯函数）：默认全开 / 隐藏过滤 / 缺段兼容 (123.197ms)
+✔ S3 HTTP：workflowBlocks 写回/结构校验/恢复默认 (297.5524ms)
+[DataAdapter] 数据源切换为: mock
+✔ evaluateWorkforceVotes：4/5 出席且无反对 → 通过（>2/3 出席=4） (5.7571ms)
+✔ evaluateWorkforceVotes：3/5 出席（不足 >2/3）→ pending (2.3228ms)
+✔ evaluateWorkforceVotes：2/3 整界不过——应到 3 出席 2（=2/3）→ pending (0.6717ms)
+✔ evaluateWorkforceVotes：超过 2/3 通过——应到 3 全出席 → passed (0.5805ms)
+✔ evaluateWorkforceVotes：2/3 整界不过——应到 6 出席 4（=2/3）→ pending (1.2475ms)
+✔ evaluateWorkforceVotes：超过 2/3 通过——应到 6 出席 5 → passed (0.6765ms)
+✔ evaluateWorkforceVotes：足额但有异议（object）→ failed (0.6644ms)
+✔ evaluateWorkforceVotes：反对=1（正式 oppose 口径）→ failed (0.7624ms)
+✔ evaluateWorkforceVotes：无记名汇总读取实际异议票，不把参与记录误算成同意 (1.282ms)
+✔ evaluateWorkforceVotes：无记名 tally 与参与人数不一致时 fail-closed (1.28ms)
+✔ evaluateWorkforceVotes：弃权允许——出席过线且无反对 → passed（弃权不计赞成） (0.5773ms)
+✔ evaluateWorkforceVotes：弃权不否决但反对仍否决 → failed (0.4285ms)
+✔ evaluateWorkforceVotes：应到外人员/重复人不计票 (0.5072ms)
+✔ mergeWorkforceSnapshot：改派清单只覆盖目标模块，其余保持 (2.361ms)
+[DataAdapter] 数据源切换为: mock
+[db] v7 人员主键迁移： {"total":0,"mapped":0,"unmapped":[],"rate":1}
+[db] v8 活动组织落点：支部级重分类=0 补承办范围=0 待补责任组=0
+[db] v10 活动组织落点两档：落点归一=0 待补承办组=0 补跨组招募=0 工作组镜像=0
+[db] v11 待办归属回填：已归属=0 待归属=0
+[db] v12 branchId 回填：活动=0 考勤=0 考察=0 归档=0 宣传=0 外发=0 交接=0 确认=0 审计=0 待办=0
+[db] schema v12（本次应用 12 项）
+✔ 组长只能从本人党小组创建组内活动，组内范围不限制跨组参加者 (438.2066ms)
+✔ 工作组成员只登记组织者与深度参与者，普通活动参与者必须留在报名域 (42.5889ms)
+✔ 正式会议保留显式名单，但不把名单成员登记为工作组成员 (25.066ms)
+✔ 党小组会考勤记录人角色仍受活动承办党小组范围限制 (51.472ms)
+✔ 跨组活动由书记/副书记创建；参与者的党小组归属不受活动承办范围限制 (53.5315ms)
+✔ 书记旧客户端未传组织落点时，支部级会议按「支部级」写入活动与工作组 (13.703ms)
+✔ 工作组成员关系独立于权限；异支部成员与快照伪造授权均被拒绝或忽略 (125.9206ms)
+✔ 成员批量保存会原子替换成员与授权，移除时撤权，重新加入不复活旧授权 (57.6336ms)
+✔ 成员批量保存先验证全部条目与审计字段，非法末项不会部分写入 (29.4889ms)
+✔ 成员与授权批量保存中的数据库失败会回滚所有表及集合版本 (30.5405ms)
+✔ 专班批量保存只接收做事成员，并保留旧 participant 历史行 (23.8956ms)
+[db] 影子表重建：1 条字符串 contributions 已按 {desc} 规范化（应改种子为对象）
+✔ 专班成员、支部归属和工作组映射不能经通用快照绕过语义接口 (86.921ms)
+[db] 影子表重建：1 条字符串 contributions 已按 {desc} 规范化（应改种子为对象）
+✔ 应到名单快照只接受同支部成员，且活动关联需属于该活动支部 (22.7358ms)
+[db] 影子表重建：1 条字符串 contributions 已按 {desc} 规范化（应改种子为对象）
+✔ 任务与产出可关联能力包和同支部活动；跨支部引用、未知包及重复 ID 均拒绝 (36.5118ms)
+[db] 影子表重建：1 条字符串 contributions 已按 {desc} 规范化（应改种子为对象）
+✔ 独立工作组按任务治理：无制度/议程表决依据时可以直接进入招募 (15.8778ms)
+[db] 影子表重建：1 条字符串 contributions 已按 {desc} 规范化（应改种子为对象）
+[db] 影子表重建：1 条字符串 contributions 已按 {desc} 规范化（应改种子为对象）
+[db] 影子表重建：1 条字符串 contributions 已按 {desc} 规范化（应改种子为对象）
+✔ 工作组解散仅在有制度或议程依据时提交表决，否则直接结束并留痕 (158.7773ms)
+✔ 旧专班首次查看任务时幂等迁移主任务，待闭合工作组不得跳过登记事项 (15.155ms)
+[db] 影子表重建：1 条字符串 contributions 已按 {desc} 规范化（应改种子为对象）
+✔ 停用专班能力后停止新开，既有任务仍可完成，结束后记录只读保留 (52.0576ms)
+✔ 支部自主停用本地能力包后禁止新建工作组，党委可代支部改选（D-825） (13.1857ms)
+✔ 缺少原任务的旧工作组不自动猜测；人工核对补登记后可收尾 (18.671ms)
+[db] 影子表重建：1 条字符串 contributions 已按 {desc} 规范化（应改种子为对象）
+✔ 停用活动组织能力后阻止新建，并保护已结束活动及其考勤历史 (54.2861ms)
+[db] 影子表重建：1 条字符串 contributions 已按 {desc} 规范化（应改种子为对象）
+✔ 专班单加成员按 personId 合并历史 contributions，不清空既有镜像 (22.1686ms)
+✔ 专班工作组批量与兼容授权入口均拒绝活动考勤权限 (27.2831ms)
+[DataAdapter] 数据源切换为: api，API_BASE_URL=http://test.invalid
+[DataAdapter] 数据源切换为: mock
+✔ ApiAdapter exposes the transactional workgroup member save-all request (78.9329ms)
+[DataAdapter] 数据源切换为: mock
+[db] v7 人员主键迁移： {"total":0,"mapped":0,"unmapped":[],"rate":1}
+[db] v8 活动组织落点：支部级重分类=0 补承办范围=0 待补责任组=0
+[db] v10 活动组织落点两档：落点归一=0 待补承办组=0 补跨组招募=0 工作组镜像=0
+[db] v11 待办归属回填：已归属=0 待归属=0
+[db] v12 branchId 回填：活动=0 考勤=0 考察=0 归档=0 宣传=0 外发=0 交接=0 确认=0 审计=0 待办=0
+[db] schema v12（本次应用 12 项）
+✔ 党委未选支部：整库快照写入被拒且提示选择支部 (290.1564ms)
+✔ 党委未选支部：活动应到名单冻结被拒（不回落 br-b1） (19.8141ms)
+✔ 支部账号不受影响：支书可读本支部工作组列表 (18.4098ms)
+[DataAdapter] 数据源切换为: mock
+[MockAdapter] 已加载初始 seed 数据
+[MockAdapter] Seed 种子同步：活动/专班工作组映射、考勤、通知、档案归档与报名基线对齐
+✔ 活动成员编辑器把组织者/深度参与者与已通过报名的一般参与者分层展示 (5.1714ms)
+✔ 专班成员编辑器不提供一般参与或考勤，只把历史普通参与行标为待核 (1.6632ms)
+✔ 只读成员展示不暴露增删、角色编辑或授权表单 (1.2573ms)
+✔ 报名角色和说明控件有可见标签，已通过的主题党日组织者能看见线下意向 (3.6799ms)
+✔ 旧演示活动和专班补齐稳定工作组映射，participant 保留在原业务记录 (4.5106ms)
+✔ 旧数据同步清除指向类型冲突或异支部工作组的错误关联 (1.2164ms)
+✔ MockAdapter 首次加载的活动与专班种子都建立工作组主记录 (29.1879ms)
+✔ MockAdapter 保存全量成员与权限时撤销被移出成员的授权并同步活动镜像 (103.474ms)
+✔ 移出工作组成员时只撤回该成员在该工作组中的全部有效授权并保留审计字段 (5.2148ms)
+✔ 活动与专班工作组都只把组织者和深度参与者计为成员 (4.6809ms)
+✔ 取消普通参与报名不改变工作组角色；取消组织者/深度角色只移除同角色关系 (0.7183ms)
+✔ 三会一课与组织生活会使用正式名单，主题党日不受正式会议规则影响 (0.7779ms)
+✔ W1 通用资源端点（/api/v1/<资源名>）不得被 docs/src 直连 fetch (409.7082ms)
+✔ W2 服务层写口对象的私有字段不得在 services/** 之外被赋值 (238.499ms)
+✔ W3 白名单自检：语义端点不得与资源名撞名，且不得被掏空 (2.2382ms)
+✔ W4 会话引导期例外自检：≤2 个文件，且只能只读 (4.4189ms)
+[DataAdapter] 数据源切换为: api，API_BASE_URL=http://guard.local
+[DataAdapter] init: API 模式，已从后端拉取数据到缓存
+[DataAdapter] 增量快照写穿失败（已保留本地备份，下次 flush 自动重试）： Error: 「agendaVotes」字段 position 没有语义端点，本次改动未同步
+    at _collectionError (file:///D:/GitHub/GSM1921-SOP/docs/src/data/data-adapter.js?v=20261026a:528:24)
+    at _flushSemanticCollections (file:///D:/GitHub/GSM1921-SOP/docs/src/data/data-adapter.js?v=20261026a:592:17)
+    at _flushSnapshot (file:///D:/GitHub/GSM1921-SOP/docs/src/data/data-adapter.js?v=20261026a:746:13)
+    at async Module.flushSnapshot (file:///D:/GitHub/GSM1921-SOP/docs/src/data/data-adapter.js?v=20261026a:814:3)
+    at async TestContext.<anonymous> (file:///D:/GitHub/GSM1921-SOP/server/test/write-truth-guard.test.mjs:249:9)
+    at async Test.run (node:internal/test_runner/test:1313:7)
+    at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+  type: 'UnsyncedCollectionError',
+  collections: [ 'agendaVotes' ],
+  outbox: true,
+  syncState: 'unsynced'
+}
+[DataAdapter] 增量快照写穿失败（已保留本地备份，下次 flush 自动重试）： Error: Failed to fetch
+    at Proxy.snapshot (file:///D:/GitHub/GSM1921-SOP/server/test/write-truth-guard.test.mjs:192:57)
+    at _flushSnapshot (file:///D:/GitHub/GSM1921-SOP/docs/src/data/data-adapter.js?v=20261026a:754:39)
+    at async Module.flushSnapshot (file:///D:/GitHub/GSM1921-SOP/docs/src/data/data-adapter.js?v=20261026a:814:3)
+    at async TestContext.<anonymous> (file:///D:/GitHub/GSM1921-SOP/server/test/write-truth-guard.test.mjs:267:9)
+    at async Test.run (node:internal/test_runner/test:1313:7)
+    at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+  type: 'NetworkError'
+}
+[DataAdapter] 数据源切换为: mock
+✔ A1 六个读口/种子口：api 形态有显式闸门，且闸门在种子常量之前 (48.4378ms)
+✔ A2 集合级单一源：SNAPSHOT_COVERED 与 _buildSnapshotPayload 逐键一致，local-only 标 temp (10.3712ms)
+✔ A3 flush 必须按类别分流：语义端点 / 快照 / 本机 / 显式失败（无 agendaVotes 直通 resolve） (8.2603ms)
+✔ A4 outbox：持久键 / 重试 / 放弃三条路径在位 (5.2913ms)
+✔ B1 快照覆盖域：脏集合照常随 POST /snapshot 发出（带 _versions），并清掉 outbox (4.2573ms)
+✔ B2 非快照业务域：agendaVotes / memberChangeRequests 必须走语义端点，不得静默 resolve (2.3071ms)
+✔ B3 语义写域不支持的形状：带 collection 名显式失败并进入 outbox（成功提示会改报失败） (5.9915ms)
+✔ B4 快照写失败：进入 outbox + 「未同步」；重试成功后清空；放弃可移除 (5.2888ms)
+✔ B5 只应本机域：本地成功但显示「本机未同步」（registry 标 temp） (1.6028ms)
+ℹ tests 1617
+ℹ suites 0
+ℹ pass 1617
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 80638.5629

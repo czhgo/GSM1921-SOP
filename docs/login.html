@@ -3,7 +3,7 @@
 <html lang="zh-CN">
 <head>
   
-<script src="./src/theme-init.js?v=20261026a"></script>
+<script src="./src/theme-init.js?v=20261026b"></script>
 <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>登录 — GSM1921-SOP</title>
@@ -13,8 +13,8 @@
   <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;800&family=Noto+Serif+SC:wght@400;500;600;700;800&display=swap" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;800&family=Noto+Serif+SC:wght@400;500;600;700;800&display=swap" rel="stylesheet"></noscript>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="./src/tailwind-config.js?v=20261026a"></script>
-  <link rel="stylesheet" href="./src/styles.css?v=20261026a">
+  <script src="./src/tailwind-config.js?v=20261026b"></script>
+  <link rel="stylesheet" href="./src/styles.css?v=20261026b">
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
@@ -49,6 +49,10 @@
     /* 表单输入 */
     .login-input {
       transition: border-color 0.15s, box-shadow 0.15s;
+      /* 2026-10-27 Task 12.2：深色输入框补表面 token（亮色同值白，观感不变）；
+         placeholder 对比度由 styles.css 统一口径承担（--neutral-500：亮 4.83:1 / 暗 ≈6.5:1）。 */
+      background-color: var(--surface-card);
+      color: var(--neutral-800);
     }
     /* 聚焦态统一走 styles.css（input.login-input:focus）：边框变党徽金、无发光。
        原此处 border-color / box-shadow 属第二套 focus，特异性更低（.login-input:focus = 0,2,0 ＜
@@ -62,6 +66,21 @@
     /* 2026-10-24 批次 508：删除 .login-btn 的 hover / active 灰底规则——
        实底与描边按钮的反馈改由主题/描边同色相承担，不再落灰；
        transition 保留，供上述状态变化使用。 */
+    /* 2026-10-27 Task 12.1（细节与手感）：两枚提交按钮的按压反馈——
+       实底（统一身份认证）同色相加深 + 内阴影；描边（账号登录）描边压深 + 中性底色 + 内阴影；
+       两者同为 1px 下移。颜色不新造 hex（走主题/中性 token），减少动效时只保留颜色变化。 */
+    .login-btn:active {
+      transform: translateY(1px);
+    }
+    #iaaa-login:active {
+      filter: brightness(0.92);
+      box-shadow: var(--press-shadow);
+    }
+    #login-form button[type="submit"]:active {
+      background-color: var(--surface-active);
+      border-color: var(--neutral-400);
+      box-shadow: var(--press-shadow);
+    }
     /* 开发模式卡片：静态卡不加 hover 伪装（2026-10-23 Task 7）。 */
     .dev-mode-section { display: none; }
     .dev-mode-section.visible { display: block; }
@@ -76,6 +95,7 @@
         animation: none !important;
       }
       .login-btn, .login-card, .login-input { transition: none !important; }
+      .login-btn:active { transform: none; }
     }
   </style>
 </head>
@@ -146,6 +166,6 @@
     </div>
   </div>
 
-  <script type="module" src="./src/entries/pages/login-entry.js?v=20261026a"></script>
+  <script type="module" src="./src/entries/pages/login-entry.js?v=20261026b"></script>
 </body>
 </html>

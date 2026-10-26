@@ -58,9 +58,13 @@ test('R3-U03 页签模块加载/渲染失败落统一错误卡，可重试', () 
   assert.match(TAB_BAR, /finish\(false\)/, 'reject / throw 分支应落到失败收尾');
 });
 
-test('R3-D05 激活页签滚入视口（尊重减少动效偏好）', () => {
-  assert.match(TAB_BAR, /scrollIntoView\(\{[\s\S]*?inline: 'nearest'[\s\S]*?block: 'nearest'[\s\S]*?prefers-reduced-motion: reduce/,
-    'activate() 应把激活页签滚到最近可见位置');
+test('R3-D05 激活页签滚入视口（只改 scrollLeft，尊重减少动效偏好）', () => {
+  // 2026-10-27 Task 2（阶段一 · 键盘起点）同步口径：元素级滚动定位会把「顺序焦点导航起点」
+  //   挪到激活页签上，刷新后首次 Tab 不再落「跳到主要内容」。改为调整 .ws-tab-scroll 的 scrollLeft，
+  //   「激活页签可见」能力不变；减少动效偏好时用 auto 落位。
+  assert.doesNotMatch(TAB_BAR, /\.scrollIntoView\s*\(/, 'activate() 不得再用 scrollIntoView 定位页签');
+  assert.match(TAB_BAR, /scroller\.scrollLeft/, 'activate() 应把激活页签滚到最近可见位置（scrollLeft）');
+  assert.match(TAB_BAR, /prefers-reduced-motion: reduce/, '应尊重减少动效偏好');
 });
 
 test('R3-F02 通知条目键盘守卫与铃铛未读数可读', () => {

@@ -20,9 +20,15 @@ import { fileURLToPath } from 'node:url';
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const INDEX = join(ROOT, 'docs', 'index.html');
 const MAIN_ENTRY = join(ROOT, 'docs', 'src', 'entries', 'pages', 'main-entry.js');
+const GALLERY = join(ROOT, 'docs', 'src', 'components', 'dashboard', 'gallery.js');
+const STATS = join(ROOT, 'docs', 'src', 'components', 'dashboard', 'stats.js');
+const CSS = join(ROOT, 'docs', 'src', 'styles.css');
 
 const indexHtml = readFileSync(INDEX, 'utf8');
 const mainSource = readFileSync(MAIN_ENTRY, 'utf8');
+const gallerySource = readFileSync(GALLERY, 'utf8');
+const statsSource = readFileSync(STATS, 'utf8');
+const cssSource = readFileSync(CSS, 'utf8');
 
 // ── 正则：页面结构 ──
 const HERO_BLOCK_RE = /<div\b[^>]*\bid="dashboard-hero"[^>]*>([\s\S]*?)<\/div>/;
@@ -82,7 +88,7 @@ test('E5 非空转自检：正则正样本命中、负样本不命中', () => {
   assert.match('<p id="dashboard-hero-subtitle" class="text-sm">x</p>', HERO_SUBTITLE_RE,
     '副标题正则须能识别回潮元素（反向断言依赖它）');
 
-  const posImport = "import { getHeaderTitle } from '../../services/branch/branch.js?v=20261026a';";
+  const posImport = "import { getHeaderTitle } from '../../services/branch/branch.js?v=20261026b';";
   const negImport = "import { getHeaderTitle } from '../../services/branch/branch.js';";
   assert.match(posImport, IMPORT_RE);
   assert.doesNotMatch(negImport, IMPORT_RE);
@@ -94,4 +100,28 @@ test('E5 非空转自检：正则正样本命中、负样本不命中', () => {
 
   assert.match("document.querySelector('#view-dashboard h2.font-title-cn')", OLD_SELECTOR_RE);
   assert.doesNotMatch("document.getElementById('dashboard-hero-title')", OLD_SELECTOR_RE);
+});
+
+test('E6 首页活动风采：一张照片都没有时不出 16:9 大图位，只留一行空态 +（有权限时）上传入口', () => {
+  // 2026-10-27 Task 6.4：全无照片 → 一行「暂无活动照片」；不再铺 6 张空图位。
+  assert.match(gallerySource, /if \(!display\.some\(a => _imageByActivityId\.has\(a\.id\)\)\)/,
+    '缺少「入选活动一张照片都没有」的分支');
+  assert.match(gallerySource, /data-gallery-empty/, '空态容器缺少可断言标记');
+  assert.match(gallerySource, /暂无活动照片/, '空态文案缺失');
+  // 上传入口只在有写权时出现（照片写口＝宣传台档案归档，仅宣传委员）。
+  assert.match(gallerySource, /_photoUploadHref\(\)[\s\S]{0,220}role !== 'prop-commissioner'/,
+    '上传入口须按权限（宣传委员）判定');
+  // 空态分支内不得再出现图位容器（gallery-grid / 16:9 封面）。
+  const emptyStart = gallerySource.indexOf('data-gallery-empty');
+  const gridStart = gallerySource.indexOf("container.innerHTML = '<div class=\"gallery-grid\">'");
+  assert.ok(emptyStart > 0 && gridStart > emptyStart, '未能定位空态分支与图位分支的先后关系');
+  assert.doesNotMatch(gallerySource.slice(emptyStart, gridStart), /gallery-grid|gallery-card__cover/,
+    '空态分支不得再铺 16:9 图位');
+});
+
+test('E7 首页统计卡：短标签 + 统一 min-height + 图标顶对齐（390 等高）', () => {
+  assert.match(statsSource, /flex items-start gap-3 stat-card/, '统计卡须图标顶对齐并挂 .stat-card');
+  assert.match(statsSource, /label: '个人考勤'/, '考勤卡标签须为短标签（原「个人考勤（本月无记录）」会折行撑高）');
+  assert.match(statsSource, /本月无记录/, '空态说明须保留（降为第二行小字）');
+  assert.match(cssSource, /\.stat-card\s*\{[^}]*min-height:\s*\d+px/, 'styles.css 缺少统计卡统一 min-height');
 });

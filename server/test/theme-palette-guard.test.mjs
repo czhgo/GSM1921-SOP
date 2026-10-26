@@ -31,7 +31,7 @@ import { fileURLToPath } from 'node:url';
 import {
   ACCENT_COLORS, ACCENT_PALETTE, ACCENT_KEY_ALIASES, normalizeAccentKey, getAccentColors,
   accentButtonColors, ROLE_COLORS,
-} from '../../docs/src/core/domain/constants.js?v=20261026a';
+} from '../../docs/src/core/domain/constants.js?v=20261026b';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(HERE, '..', '..');
@@ -286,6 +286,14 @@ function rootVar(css, name) {
   return m ? m[1].trim() : '';
 }
 
+/** 解 var(--x) 别名链（只到 hex；用于功能色 → 类别色的单一源核对） */
+function resolveVarChain(css, value, depth = 0) {
+  const v = String(value || '').trim();
+  const m = /^var\((--[a-z0-9-]+)\)$/i.exec(v);
+  if (!m || depth > 8) return v;
+  return resolveVarChain(css, rootVar(css, m[1]), depth + 1);
+}
+
 /** 取 html.theme-dark 块文本（大括号配对） */
 function darkBlock(css) {
   const src = css.replace(/\/\*[\s\S]*?\*\//g, '');
@@ -333,16 +341,30 @@ test('T8 功能色层：状态 / 类别 / 身份 / 语义别名齐备且身份�
   }
 
   // ② 类别 3 色；暗色类别与状态色分开（不再逐值相同）
-  assert.match(rootVar(STYLES, '--color-category-three-meetings'), HEX_VALUE_RE, '缺类别红亮色 token');
-  assert.match(rootVar(STYLES, '--color-category-theme-day'), HEX_VALUE_RE, '缺主题党日金色 token');
-  assert.match(rootVar(STYLES, '--color-category-theme-day-dot'), HEX_VALUE_RE, '缺主题党日亮金点 token');
+  //    2026-10-27 Task 11.4：类别改为引用功能 color token（var 链），这里解析到最终 hex 再核。
+  const functionalRed = rootVar(STYLES, '--color-functional-red');
+  const functionalRedDark = rootVar(STYLES, '--color-functional-red-dark');
+  const functionalGold = rootVar(STYLES, '--color-functional-gold');
+  const functionalGoldDark = rootVar(STYLES, '--color-functional-gold-dark');
+  assert.match(functionalRed, HEX_VALUE_RE, '缺功能红亮色 token');
+  assert.match(functionalRedDark, HEX_VALUE_RE, '缺功能红暗色 token');
+  assert.match(functionalGold, HEX_VALUE_RE, '缺功能金亮色 token');
+  assert.match(functionalGoldDark, HEX_VALUE_RE, '缺功能金暗色 token');
+  assert.equal(resolveVarChain(STYLES, rootVar(STYLES, '--color-category-three-meetings')), functionalRed,
+    '类别红应引用 --color-functional-red（单一源）');
+  assert.equal(resolveVarChain(STYLES, rootVar(STYLES, '--color-category-three-meetings-dark')), functionalRedDark,
+    '类别红暗色应引用 --color-functional-red-dark');
+  assert.equal(resolveVarChain(STYLES, rootVar(STYLES, '--color-category-theme-day')), functionalGold,
+    '主题党日金应引用 --color-functional-gold');
+  assert.equal(resolveVarChain(STYLES, rootVar(STYLES, '--color-category-theme-day-dark')), functionalGoldDark,
+    '主题党日金暗色应引用 --color-functional-gold-dark');
+  assert.equal(resolveVarChain(STYLES, rootVar(STYLES, '--color-category-theme-day-dot')), '#FFD700',
+    '主题党日圆点应仍取党徽金 --party-gold（#FFD700）');
   assert.match(rootVar(STYLES, '--color-category-other'), HEX_VALUE_RE, '缺类别中性 token');
-  const categoryRedDark = rootVar(STYLES, '--color-category-three-meetings-dark');
-  const categoryGoldDark = rootVar(STYLES, '--color-category-theme-day-dark');
+  const categoryRedDark = functionalRedDark;
+  const categoryGoldDark = functionalGoldDark;
   const statusErrorDark = rootVar(dark, '--status-error');
   const statusWarningDark = rootVar(dark, '--status-warning');
-  assert.match(categoryRedDark, HEX_VALUE_RE, '缺类别红暗色 token');
-  assert.match(categoryGoldDark, HEX_VALUE_RE, '缺主题党日金暗色 token');
   assert.notEqual(categoryRedDark.toLowerCase(), statusErrorDark.toLowerCase(),
     `暗色类别红 ${categoryRedDark} 不得等于 danger ${statusErrorDark}（类别不得借状态色）`);
   assert.notEqual(categoryGoldDark.toLowerCase(), statusWarningDark.toLowerCase(),
@@ -406,6 +428,68 @@ test('T9 僵尸 token 零消费者：12 个已删 token 在 docs 下不得再出
     if (readFileSync(f, 'utf8').includes('--functional-')) legacy.push(relative(ROOT, f));
   }
   assert.deepEqual(legacy, [], `组件仍在使用 --functional-*（应改 --status-*）：\n  ${legacy.join('\n  ')}`);
+});
+
+// ═════════════════════════════════════════════════════════════════════════════
+// T10：功能色分离（2026-10-27 Task 11.4）
+//   功能红/金只服务三会一课 / 主题党日等类别；与 danger / warning / 7 主题 accent
+//   逐值不同，文字 vs 徽章底 ≥4.5:1。
+// ═════════════════════════════════════════════════════════════════════════════
+test('T10 功能色分离：亮/暗齐备、与 danger/warning/主题 accent 不撞值、文字 ≥4.5:1', () => {
+  const red = rootVar(STYLES, '--color-functional-red');
+  const redDark = rootVar(STYLES, '--color-functional-red-dark');
+  const gold = rootVar(STYLES, '--color-functional-gold');
+  const goldDark = rootVar(STYLES, '--color-functional-gold-dark');
+  const functional = [red, redDark, gold, goldDark].map((v) => v.toLowerCase());
+  assert.deepEqual(functional, ['#ce1126', '#fca5a5', '#a16207', '#fcd34d'],
+    `功能色应为红 #CE1126/#FCA5A5、金 #A16207/#FCD34D，实际 ${functional.join('/')}`);
+
+  // 与状态色逐值不同（亮/暗两档都要核）
+  for (const [mode, values] of [
+    ['light', ['--status-error', '--status-warning']],
+    ['dark', ['--status-error', '--status-warning']],
+  ]) {
+    const block = mode === 'light' ? STYLES : darkBlock(STYLES);
+    for (const name of values) {
+      const status = rootVar(block, name).toLowerCase();
+      assert.ok(!functional.includes(status), `${mode} ${name}（${status}）不得等于任何功能色`);
+    }
+  }
+
+  // 与 7 主题 × 亮/暗的所有 accent token 不撞值
+  const collisions = [];
+  for (const key of THEME_KEYS) {
+    for (const mode of ['light', 'dark']) {
+      for (const [name, value] of Object.entries(ACCENT_COLORS[key][mode])) {
+        if (functional.includes(String(value).toLowerCase())) collisions.push(`${key}.${mode}.${name}=${value}`);
+      }
+    }
+  }
+  assert.deepEqual(collisions, [], `功能色不得与主题 accent 同值：${collisions.join(' ')}`);
+
+  // 文字 vs 徽章底 ≥4.5:1
+  const mixHex = (a, b, p) => {
+    const [ar, ag, ab] = rgb(a);
+    const [br, bg, bb] = rgb(b);
+    return `#${[ar * p + br * (1 - p), ag * p + bg * (1 - p), ab * p + bb * (1 - p)]
+      .map((v) => Math.round(v).toString(16).padStart(2, '0')).join('')}`;
+  };
+  const redDarkBg = mixHex(red, '#0F172A', 0.16);
+  const readings = [
+    ['功能红/亮徽章底', contrast(red, '#FEF2F2')],
+    ['功能金/亮徽章底', contrast(gold, '#FEF9C3')],
+    ['功能红/暗徽章底', contrast(redDark, redDarkBg)],
+    ['功能金/暗徽章底', contrast(goldDark, '#2E2510')],
+  ].map(([label, ratio]) => `${label} ${ratio.toFixed(2)}:1`);
+  console.log(`[theme-palette] T10 功能色对比度：${readings.join(' · ')}`);
+  for (const [label, ratio] of [
+    ['功能红/亮徽章底', contrast(red, '#FEF2F2')],
+    ['功能金/亮徽章底', contrast(gold, '#FEF9C3')],
+    ['功能红/暗徽章底', contrast(redDark, redDarkBg)],
+    ['功能金/暗徽章底', contrast(goldDark, '#2E2510')],
+  ]) {
+    assert.ok(ratio >= 4.5, `${label} ${ratio.toFixed(2)}:1 < 4.5`);
+  }
 });
 
 // ═════════════════════════════════════════════════════════════════════════════

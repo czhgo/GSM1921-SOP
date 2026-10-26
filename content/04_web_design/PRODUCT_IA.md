@@ -2,7 +2,7 @@
 title: "产品 IA 派生索引（页签功能地图）"
 type: index
 role: "[工程师]+[AI]"
-last_updated: 2026-10-26
+last_updated: 2026-10-27
 version: "0.2"
 status: active
 related_files: [docs/src/core/domain/function-catalog.js, docs/src/capabilities/, content/03_doc_system/DOC_MAP.md]
@@ -110,6 +110,15 @@ related_files: [docs/src/core/domain/function-catalog.js, docs/src/capabilities/
 - 页签注册（台 / 组 / 页签名 / 渲染入口）：`docs/src/capabilities/{secretary,org,prop,disc,leader,visitor,party-committee}-workspace.js`
 - 功能目录（能力名 / 所属组 / 使用路径）：`docs/src/core/domain/function-catalog.js`
 - 旧深链承接：`docs/src/components/shell/workspace-shell.js::_legacyTabAliases` / `_legacyPageRedirects`
+
+## 附：About 撤路由（2026-10-27 批次 514）
+
+> **口径**：`about.html` **仅保留文件，不作路由**——不进入页面清单、侧边栏导航、帮助目录与 README 指针；旧外链 / 收藏仍可直达（不制造 404），但系统不再把它当维护中的页面入口。
+>
+> - **页面清单 / 导航**：本文件的页签表（45 项）与旧页签重定向表均不含 About；侧边栏、help 目录、README 的入口已删除。
+> - **文件保留**：`docs/about.html` 与 `docs/src/entries/pages/about-entry.js` 仍在仓库中，供历史外链直达；**不再新增**指向它的 href / `module: 'about'` 侧栏项 / 文档登记指针。
+> - **判据与守卫**：`no-about-route-guard::A1–A4`（HTML 零链接 / JS 零路由与侧栏项 / Markdown 零指针 / 文件仍存在且非空）；判例边界见 [CASES.md](design-system/CASES.md) CASE-DESIGN-026。
+> - **后续**：若要恢复「关于」入口，须同时补页面清单、导航、help 落点与守卫白名单，不得只加回一个链接。
 
 ## 详情路由矩阵（派生附录，检查用 · 2026-10-26）
 

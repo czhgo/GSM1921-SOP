@@ -8,7 +8,7 @@
 //   · 本文件只引零依赖叶子 `core/domain/constants.js`（取缺省支部 id），**不引 person.js**：
 //     org-base-data-preview.js 派生组枚举时直接 import 本文件（不依赖 person.js，防 person→preview→party-group 成环）。
 
-import { DEFAULT_BRANCH_ID } from '../../core/domain/constants.js?v=20261026a';
+import { DEFAULT_BRANCH_ID } from '../../core/domain/constants.js?v=20261026b';
 export const PARTY_GROUPS = [
   { id: 'pg-1', branchId: DEFAULT_BRANCH_ID, name: '第一党小组', seq: 1, status: 'active', createdAt: '2026-09-01', createdBy: '2400012345', note: '', history: [] },
   { id: 'pg-2', branchId: DEFAULT_BRANCH_ID, name: '第二党小组', seq: 2, status: 'active', createdAt: '2026-09-01', createdBy: '2400012345', note: '', history: [] },

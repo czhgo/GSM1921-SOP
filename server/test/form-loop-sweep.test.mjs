@@ -151,7 +151,7 @@ async function createSession(studentId, pageName) {
 
 /** P0-2 形态断言：本文件真机用例必须在 API 形态下跑（单一源 = data/data-adapter.js::getRuntimeMode） */
 async function assertApiMode(page) {
-  await page.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20261026a')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
+  await page.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20261026b')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
 }
 
 /** 等「上一态已清、本态已到」的**可判定条件**（替代原来的固定 `waitForTimeout(1500)`）。
@@ -165,7 +165,7 @@ async function assertApiMode(page) {
 async function waitShellSettled(page) {
   await page.waitForFunction(async () => {
     if (document.querySelectorAll('button[role="tab"]').length === 0) return false;
-    const { getAppState, STATE } = await import('/src/core/base/state.js?v=20261026a');
+    const { getAppState, STATE } = await import('/src/core/base/state.js?v=20261026b');
     const st = getAppState();
     // ⚠ 只判 `status === IDLE` **不够**：`status` 的初值就是 IDLE，而工作台壳层的 tab 条
     //   可能在 `loadWorkspaceData` 之前就已渲染 ⇒ 会「假就位」，此时切 tab 会被随后的
@@ -944,7 +944,12 @@ test('S7 降频开关不得让真机用例静默归零：每个请求的 tab 名
 function uncaughtErrors(page) {
   // 既收未捕获脚本错误，也收被服务端拒绝的请求（4xx/5xx）——后者是「未保存成功」类
   // 静默失败最直接的证据，不能只留在控制台。
-  return (page.__errs || []).filter((m) => /ReferenceError|TypeError|is not a function|is not defined|Cannot read/.test(m) || /^HTTP [45]\d\d/.test(m));
+  // 2026-10-26 批次 514：409 是乐观锁冲突，前端已用可见 toast「数据已被他人更新，已为你刷新」
+  //   恢复并让用户重试；它不是静默失败。只把它从“未捕获错误”里排除，400/401/403/428/5xx 仍全收。
+  return (page.__errs || []).filter((m) => {
+    if (/^HTTP 409\b/.test(m) && /数据已被他人更新/.test(m)) return false;
+    return /ReferenceError|TypeError|is not a function|is not defined|Cannot read/.test(m) || /^HTTP [45]\d\d/.test(m);
+  });
 }
 
 for (const flow of MACHINE_IN_SCOPE) {

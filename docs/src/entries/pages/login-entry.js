@@ -2,11 +2,11 @@
 // login-entry.js — 登录页入口（重构版）
 // 支持: 账号密码 Mock 校验 + 开发模式直接选身份
 
-import { AuthStore } from '../../services/core/auth.js?v=20261026a';
-import { getAccentColors, solidAccentStyle, dotDarkVars, isBranchPendingUser } from '../../core/domain/constants.js?v=20261026a';
-import { escHtml } from '../../core/base/utils.js?v=20261026a';
+import { AuthStore } from '../../services/core/auth.js?v=20261026b';
+import { getAccentColors, solidAccentStyle, dotDarkVars, isBranchPendingUser } from '../../core/domain/constants.js?v=20261026b';
+import { escHtml } from '../../core/base/utils.js?v=20261026b';
 // Task 2.1（2026-10-26）：服务端优先登录——静态托管 / 显式开发模式才走本地账号层。
-import { DEPLOY_MODE } from '../../config/deploy.js?v=20261026a';
+import { DEPLOY_MODE } from '../../config/deploy.js?v=20261026b';
 
 // C09（2026-10-20）：登录链接可带 `next`（目标页 URL）——登录成功后按 next 回跳，
 // 「未登录点活动 / 专班」不再只进工作台、丢掉原对象。只接受**同源** URL（防开放重定向），

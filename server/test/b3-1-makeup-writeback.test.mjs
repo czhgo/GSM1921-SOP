@@ -37,7 +37,7 @@ import { join } from 'node:path';
 import Database from 'better-sqlite3';
 import { chromium } from 'playwright';
 // R10-D15：考勤超期不再读存储快照，一律按 `policy-defaults::isAttendanceOverdue` 现算。
-import { isAttendanceOverdue } from '../../docs/src/core/domain/policy-defaults.js?v=20261026a';
+import { isAttendanceOverdue } from '../../docs/src/core/domain/policy-defaults.js?v=20261026b';
 import { createApp } from '../app.js';
 
 let BASE = '';

@@ -20,16 +20,16 @@
 //     预载后经缓存读取（签名未变秒回、变才 await 拉取）——todo-tab-shell _comboKeyOf 已并入
 //     该 token+长度指纹 → 确认/审批后渲染守卫键变化 → 重建而非命中跳过。
 
-import { getAdapter } from '../../data/data-adapter.js?v=20261026a';
-import { mockDB } from '../../core/domain/domain.js?v=20261026a';
-import { bumpToken } from '../../core/base/version-token.js?v=20261026a';
-import { getPersonById, getPersonName } from '../../services/member/person.js?v=20261026a';
-import { loadActivities } from '../../services/activity/activity.js?v=20261026a';
-import { showToast, escHtml as esc, getBasePath } from '../../core/base/utils.js?v=20261026a';
-import { NoticeStore } from '../../services/governance/notice.js?v=20261026a';
-import { currentUserId } from '../../services/core/auth.js?v=20261026a';
+import { getAdapter } from '../../data/data-adapter.js?v=20261026b';
+import { mockDB } from '../../core/domain/domain.js?v=20261026b';
+import { bumpToken } from '../../core/base/version-token.js?v=20261026b';
+import { getPersonById, getPersonName } from '../../services/member/person.js?v=20261026b';
+import { loadActivities } from '../../services/activity/activity.js?v=20261026b';
+import { showToast, escHtml as esc, getBasePath } from '../../core/base/utils.js?v=20261026b';
+import { NoticeStore } from '../../services/governance/notice.js?v=20261026b';
+import { currentUserId } from '../../services/core/auth.js?v=20261026b';
 // roster=名册报送确认链（组织委员发起 → 支书确认/退回；bulk 行仅确认，退回留在详情逐项）
-import { listPendingConfirmations, decideConfirmation, MC_ACTION_LABEL } from '../../services/member/member-confirmation.js?v=20261026a';
+import { listPendingConfirmations, decideConfirmation, MC_ACTION_LABEL } from '../../services/member/member-confirmation.js?v=20261026b';
 
 const _pendingStatusOf = (mode) => (mode === 'org-approve' ? 'pending-org-approval' : 'pending-secretary');
 
@@ -127,7 +127,7 @@ export function renderMcBulkRowsHtml(rows, { mode = 'secretary-confirm', accent 
         <span class="flex items-center gap-1.5 min-w-0 w-full">
           ${sourceBadge(r.source)}
           ${r.personId
-            ? `<a href="${getBasePath()}person.html?id=${encodeURIComponent(r.personId)}" class="text-sm font-medium text-gray-800 truncate hover:underline hover:text-accent transition-colors" title="查看完整档案">${esc(r.personName)}</a>`
+            ? `<a href="${getBasePath()}person.html?id=${encodeURIComponent(r.personId)}" class="text-sm font-medium text-gray-800 truncate hover:text-accent transition-colors" title="查看完整档案">${esc(r.personName)}</a>`
             : `<span class="text-sm font-medium text-gray-800 truncate">${esc(r.personName)}</span>`}
           <span class="text-xs text-gray-500 truncate">${esc(r.from || '')} → ${esc(r.to || '')}</span>
         </span>

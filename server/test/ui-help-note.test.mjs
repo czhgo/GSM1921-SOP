@@ -59,9 +59,10 @@ test('H2 styles.css 定义 .help-note / .help-note__link', () => {
   assert.ok(link, 'styles.css 缺 .help-note__link 规则');
   assert.match(link, /color:\s*var\(--color-link\)/, '.help-note__link 颜色应为全站唯一链接色 var(--color-link)');
   assert.match(link, /margin-left:\s*var\(--space-1\)/, '.help-note__link 左间距应为 var(--space-1)');
-  assert.match(link, /text-decoration:\s*underline/, '.help-note__link 必须有静态下划线（非颜色线索）');
-  assert.match(css, /\.help-note__link:hover\s*\{[^}]*text-decoration:\s*underline/,
-    '.help-note__link:hover 应有下划线');
+  assert.match(link, /font-weight:\s*600/, '.help-note__link 应用 600 字重作静态线索（下划线已全站清零）');
+  assert.doesNotMatch(link, /text-decoration:\s*underline/, '.help-note__link 不得再用文本下划线');
+  assert.match(css, /\.help-note__link:hover\s*\{[^}]*background:\s*var\(--app-accent-tint\)/,
+    '.help-note__link:hover 应有 10% 主题淡底');
 });
 
 test('H3 党小组 / 支委会页面必须用 .help-note__link 链接', () => {

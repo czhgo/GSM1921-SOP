@@ -6,22 +6,22 @@
 //   本区块并入「组员进展」页（leader/members-tab.js 挂载）——模块改为可嵌入区块导出：
 //   reviewStatusSectionHtml(ctx) → 整卡 HTML 字符串；bindReviewStatusSection(container, rerender) → 绑定展开。
 
-import { loadActivities } from '../../../services/activity/activity.js?v=20261026a';
+import { loadActivities } from '../../../services/activity/activity.js?v=20261026b';
 // 待批活动的可见性单一源（2026-09-22 批次 151）：组长台为非支委层 ⇒ 待批活动不进本页复盘桶
-import { filterActivitiesForViewer } from '../../../services/core/visibility.js?v=20261026a';
-import { loadActivityReviews } from '../../../services/governance/review.js?v=20261026a';
-import { ReviewStatus, REVIEW_STATUS_LABELS } from '../../../core/domain/domain.js?v=20261026a';
-import { liveMembers, PersonStore } from '../../../services/member/person.js?v=20261026a';
+import { filterActivitiesForViewer } from '../../../services/core/visibility.js?v=20261026b';
+import { loadActivityReviews } from '../../../services/governance/review.js?v=20261026b';
+import { ReviewStatus, REVIEW_STATUS_LABELS } from '../../../core/domain/domain.js?v=20261026b';
+import { liveMembers, PersonStore } from '../../../services/member/person.js?v=20261026b';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/member/person.js 获取（原直连 mock PEOPLE）
 // 实时视图（非快照）：成员增删即时可见——见 services/member/person.js liveMembers 说明
 const PEOPLE = liveMembers();
-import { currentLeaderGroup } from './_shared.js?v=20261026a';
+import { currentLeaderGroup } from './_shared.js?v=20261026b';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是活动的表格一律接入（关键词 + 分面）
-import { renderFilteredList, activityKeyword, activityFacets } from '../../../components/ui/list-filter.js?v=20261026a';
+import { renderFilteredList, activityKeyword, activityFacets } from '../../../components/ui/list-filter.js?v=20261026b';
 // 活动「仍在办」口径单一源（2026-09-13 收敛）：替代手写 status!=='cancelled' && !archived
-import { isActivityLive } from '../../../core/domain/constants.js?v=20261026a';
+import { isActivityLive } from '../../../core/domain/constants.js?v=20261026b';
 // Task 6：复盘收件是跨对象列表 ⇒ 活动行直达完整详情页（direct）。
-import { objectDetailHref } from '../../../core/domain/object-route.js?v=20261026a';
+import { objectDetailHref } from '../../../core/domain/object-route.js?v=20261026b';
 
 // 私有状态（随模块自持，不污染入口）
 let _reviewExpandedId = null;
@@ -80,7 +80,7 @@ function renderPendingCard(item) {
     <div class="leader-review-item p-3 rounded-xl bg-white ${rev?.reviewStatus === ReviewStatus.REJECTED ? 'border border-red-100' : 'border border-gray-50'}" data-act-id="${act.id}">
       <div class="flex items-center justify-between">
         <div class="flex-1 min-w-0">
-          <a href="./${objectDetailHref('activity', act.id, { entry: 'workspace-aggregate' })}" class="block hover:underline" title="查看活动详情">
+          <a href="./${objectDetailHref('activity', act.id, { entry: 'workspace-aggregate' })}" class="block hover:bg-[var(--surface-hover)] transition-colors" title="查看活动详情">
             <div class="text-sm font-medium text-gray-800">${act.title || '未命名'} →</div>
             <div class="text-xs text-gray-500 mt-0.5">${act.date || ''} ${act.type ? '· ' + act.type : ''}</div>
           </a>

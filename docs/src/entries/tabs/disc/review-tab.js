@@ -2,29 +2,29 @@
 // 纪检委员工作台 Tab：复盘（T-279 M3 拆分；2026-10-04 批次 368 页签名由「活动监督复盘」改「复盘」——原名＝动作＋对象混轴）
 // 活动流程监督（超时提醒）+ 活动复盘监督（批注/打回/确认）+ 经验沉淀督促清单。
 
-import { mockDB, ReviewStatus } from '../../../core/domain/domain.js?v=20261026a';
-import { persist } from '../../../data/data-adapter.js?v=20261026a';
-import { reviewToDisplay } from '../../../services/governance/review.js?v=20261026a';
-import { loadActiveActivityReviews, loadTaskforceReviews, updateReviewById } from '../../../services/governance/review.js?v=20261026a';
-import { loadActivities } from '../../../services/activity/activity.js?v=20261026a';
+import { mockDB, ReviewStatus } from '../../../core/domain/domain.js?v=20261026b';
+import { persist } from '../../../data/data-adapter.js?v=20261026b';
+import { reviewToDisplay } from '../../../services/governance/review.js?v=20261026b';
+import { loadActiveActivityReviews, loadTaskforceReviews, updateReviewById } from '../../../services/governance/review.js?v=20261026b';
+import { loadActivities } from '../../../services/activity/activity.js?v=20261026b';
 // R7-33：复盘「超期」按「活动日 + 复盘提交期限（policy）」现算，不再直读记录上的 overdue 快照
-import { isReviewOverdue } from '../../../core/domain/policy-defaults.js?v=20261026a';
-import { showToast, escHtml } from '../../../core/base/utils.js?v=20261026a';
-import { openFormModal, openModal, closeModal } from '../../../components/ui/modal.js?v=20261026a';
+import { isReviewOverdue } from '../../../core/domain/policy-defaults.js?v=20261026b';
+import { showToast, escHtml } from '../../../core/base/utils.js?v=20261026b';
+import { openFormModal, openModal, closeModal } from '../../../components/ui/modal.js?v=20261026b';
 // 批次 352（`D-746` · `D-744`② 业务过程类余项）：经验沉淀「作废（软）」——统一写口 ＋ 支委层判据
-import * as SoftVoid from '../../../services/governance/soft-void.js?v=20261026a';
-import { openVoidModal } from '../../../components/ui/void-record.js?v=20261026a';
-import { NoticeStore } from '../../../services/governance/notice.js?v=20261026a';
-import { generateId } from '../../../core/base/id.js?v=20261026a';
-import { getPersonById } from '../../../services/member/person.js?v=20261026a';
-import { requireDiscCommissionerId } from './_shared.js?v=20261026a';
+import * as SoftVoid from '../../../services/governance/soft-void.js?v=20261026b';
+import { openVoidModal } from '../../../components/ui/void-record.js?v=20261026b';
+import { NoticeStore } from '../../../services/governance/notice.js?v=20261026b';
+import { generateId } from '../../../core/base/id.js?v=20261026b';
+import { getPersonById } from '../../../services/member/person.js?v=20261026b';
+import { requireDiscCommissionerId } from './_shared.js?v=20261026b';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是活动的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
-import { renderFilteredList, activityKeyword, activityFacets } from '../../../components/ui/list-filter.js?v=20261026a';
-import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261026a';
+import { renderFilteredList, activityKeyword, activityFacets } from '../../../components/ui/list-filter.js?v=20261026b';
+import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261026b';
 // 材料页深链 focusActivityId 的通用定位（只滚动 + 闪烁，不另造筛选器）
-import { focusActivityAnchor } from '../../../components/ui/detail-anchor.js?v=20261026a';
+import { focusActivityAnchor } from '../../../components/ui/detail-anchor.js?v=20261026b';
 // Task 6：复盘监督是跨对象列表 ⇒ 活动行直达完整详情页（direct）。
-import { objectDetailHref } from '../../../core/domain/object-route.js?v=20261026a';
+import { objectDetailHref } from '../../../core/domain/object-route.js?v=20261026b';
 
 // ── 超期提醒真实触达（2026-09-10）───────────────────────────────
 // 依据：纪检委员工作流程指南 §3.1「超时确认后可触发邮件提醒」、党小组组长工作手册
@@ -162,7 +162,7 @@ export function renderContent(ctx) {
     return `
             <div class="flex items-center justify-between p-3 rounded-xl bg-white ${overdue ? 'border border-red-100' : ''}" data-act-id="${escHtml(r.activityId || '')}">
               ${r.activityId
-                ? `<a href="./${objectDetailHref('activity', r.activityId, { entry: 'workspace-aggregate' })}" class="flex-1 min-w-0 hover:underline" title="查看活动详情">
+                ? `<a href="./${objectDetailHref('activity', r.activityId, { entry: 'workspace-aggregate' })}" class="flex-1 min-w-0 hover:bg-[var(--surface-hover)] transition-colors" title="查看活动详情">
                      <div class="text-sm font-medium text-gray-800">${r.activity} →</div>
                      <div class="text-xs text-gray-500 mt-0.5">组织者：${r.organizer}</div>
                    </a>`

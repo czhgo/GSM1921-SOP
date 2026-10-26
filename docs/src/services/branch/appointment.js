@@ -6,18 +6,18 @@
 // 模式：一次语义调用（api：POST /branches/:id/appointments；mock：adapter.appointments.apply 快照回滚）；
 // 成功后用服务端/adapter 返回的 branch/users/appointmentRecords 刷新本地缓存（刷新不丢）。
 
-import { mockDB } from '../../core/domain/domain.js?v=20261026a';
-import { getAdapter, persist } from '../../data/data-adapter.js?v=20261026a';
+import { mockDB } from '../../core/domain/domain.js?v=20261026b';
+import { getAdapter, persist } from '../../data/data-adapter.js?v=20261026b';
 // R5-1（2026-09-06）：就地任命需补齐 person.role（角色双链读链 = person 档案，见 appointInauguralOfficers 注释）
-import { PersonStore } from '../member/person.js?v=20261026a';
+import { PersonStore } from '../member/person.js?v=20261026b';
 // 2026-09-23 支书裁定（情景①）：支书自配本支部支委身份——留痕复用既有审计快照（AuthStore），判据与白名单
 // 单一源 = core/domain/constants.js（勿在本文件另写角色名单；server/users 写门同源同一判据）
-import { AuthStore } from '../core/auth.js?v=20261026a';
+import { AuthStore } from '../core/auth.js?v=20261026b';
 import {
   ROLE_LABELS,
   BRANCH_COMMISSIONER_ASSIGNABLE_ROLES,
   DEFAULT_BRANCH_ID,
-} from '../../core/domain/constants.js?v=20261026a';
+} from '../../core/domain/constants.js?v=20261026b';
 
 function _syncBranch(next) {
   const idx = (mockDB.branches || []).findIndex(b => b.id === next.id);

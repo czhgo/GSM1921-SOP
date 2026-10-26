@@ -15,15 +15,15 @@
 //   判据复用既有 `reviewHistory`（打回是唯一留痕动作），不新增字段、不复活旧 `pending` 状态。
 //   它只提示「还没看过」，不拦归档、不产生写动作。
 
-import { listAllThoughtReports, comparePeriodDesc, periodOf } from '../../../services/governance/thought-report.js?v=20261026a';
-import { getPersonName, liveMembers } from '../../../services/member/person.js?v=20261026a';
-import { AuthStore } from '../../../services/core/auth.js?v=20261026a';
-import { escHtml as esc, getBasePath } from '../../../core/base/utils.js?v=20261026a';
-import { ROLE_LABELS } from '../../../core/domain/constants.js?v=20261026a';
-import { listRowHtml } from '../../../components/ui/list-row.js?v=20261026a';
+import { listAllThoughtReports, comparePeriodDesc, periodOf } from '../../../services/governance/thought-report.js?v=20261026b';
+import { getPersonName, liveMembers } from '../../../services/member/person.js?v=20261026b';
+import { AuthStore } from '../../../services/core/auth.js?v=20261026b';
+import { escHtml as esc, getBasePath } from '../../../core/base/utils.js?v=20261026b';
+import { ROLE_LABELS } from '../../../core/domain/constants.js?v=20261026b';
+import { listRowHtml } from '../../../components/ui/list-row.js?v=20261026b';
 // 例外清单仍是按人表：接统一引擎只为**分页**（无关键词 / 无分面时引擎自动不渲染检索条）。
-import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261026a';
-import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261026a';
+import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261026b';
+import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261026b';
 
 const STATUS_LABEL = {
   needs_revision: '已打回 · 待补充',
@@ -55,8 +55,8 @@ function _rowHtml({ personId, name, meta, statusText, reportId }) {
     title: name,
     meta: meta ? `${meta}${status ? ' · ' : ''}${status}` : '',
     trailing: `<div class="flex items-center gap-3">
-      ${reportId ? `<a href="${_reportHref(reportId)}" class="text-xs text-accent hover:underline">查看</a>` : ''}
-      <a href="${_personHref(personId)}" class="text-xs text-gray-500 hover:underline">档案</a>
+      ${reportId ? `<a href="${_reportHref(reportId)}" class="text-xs text-accent">查看</a>` : ''}
+      <a href="${_personHref(personId)}" class="text-xs text-gray-500 hover:text-accent">档案</a>
     </div>`,
   });
 }

@@ -26,7 +26,10 @@ test('党委台只有一个页面标题，页签内容不重复页面标题', as
   // 2026-10-22 第九轮 9B-6.1：H1＝顶栏品牌（`header.js` 渲染，全站唯一）⇒ 页内标题降为 H2。
   assert.equal((page.match(/<h1\b/g) || []).length, 0, '页面壳不得再渲染 <h1>（顶栏品牌是唯一 H1）');
   assert.match(page, /class="page-frame page-frame--wide"/);
-  assert.match(page, /<h2 class="page-frame__title">党委工作台<\/h2>/, '页内标题须为 H2');
+  // 2026-10-27 Task 5：静态台名不再占 H2；页面唯一 H2 由页签 renderTabHeader 提供。
+  assert.doesNotMatch(page, /<h2[^>]*>\s*党委工作台\s*<\/h2>/, '静态壳不得再渲染页题 H2');
+  assert.doesNotMatch(page, /page-frame__title/, '静态壳不得再出现页题元素');
+  assert.match(page, /page-frame page-frame--wide/, '页面骨架仍为 page-frame--wide');
   assert.doesNotMatch(page, /返回主页/, '党委侧边栏无首页入口，页面不得出现指向首页的动作');
   assert.doesNotMatch(page, /page-frame__eyebrow|page-frame__description/, '页面级眉题与说明缀词已移除');
 

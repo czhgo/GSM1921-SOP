@@ -3,25 +3,25 @@
 // 三视图：列表（分页）/ 日历 / 查询；列表与日历为纯展示，查询复用全局查询组件。
 // URL 落点高亮（?activityId=）经 ctx.highlightId 一次性消费（对齐单体版参数清除后的行为）。
 
-import { icon } from '../../../core/base/icons.js?v=20261026a';
-import { renderQueryView } from '../../../components/governance/query-view.js?v=20261026a';
-import { flashHighlight } from '../../../core/base/utils.js?v=20261026a';
-import { getActivityTypeColors } from '../../../core/domain/constants.js?v=20261026a';
+import { icon } from '../../../core/base/icons.js?v=20261026b';
+import { renderQueryView } from '../../../components/governance/query-view.js?v=20261026b';
+import { flashHighlight } from '../../../core/base/utils.js?v=20261026b';
+import { getActivityTypeColors } from '../../../core/domain/constants.js?v=20261026b';
 // 活动「仍在办」口径单一源（2026-09-13 收敛）：替代手写 !archived && status!=='cancelled'
-import { isActivityLive } from '../../../core/domain/constants.js?v=20261026a';
-import { canSignup } from '../../../components/governance/signup-panel.js?v=20261026a';
-import { AuthStore } from '../../../services/core/auth.js?v=20261026a';
+import { isActivityLive } from '../../../core/domain/constants.js?v=20261026b';
+import { canSignup } from '../../../components/governance/signup-panel.js?v=20261026b';
+import { AuthStore } from '../../../services/core/auth.js?v=20261026b';
 // 组织者按活动身份读（2026-09-19 批次 91 · SOP-B-17）：本人被指定为某场活动的组织者时，
 // 该场的发布口与上传位从该行可达——「组织者是这场事上被指定的人」，不是静态角色。
-import { isActivityOrganizer, findActivityById } from '../../../services/activity/activity.js?v=20261026a';
-import { openGroupNoticeComposer } from '../../../components/governance/notice-view.js?v=20261026a';
+import { isActivityOrganizer, findActivityById } from '../../../services/activity/activity.js?v=20261026b';
+import { openGroupNoticeComposer } from '../../../components/governance/notice-view.js?v=20261026b';
 // 翻页控件单一源（批次 38：全站手写翻页一律并轨 pagerHtml）
-import { pagerHtml } from '../../../components/ui/pager.js?v=20261026a';
-import { getAppState } from '../../../core/base/state.js?v=20261026a';
-import { renderContent as renderSharedActivityCalendar } from '../shared/activity-calendar-tab.js?v=20261026a';
-import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261026a';
+import { pagerHtml } from '../../../components/ui/pager.js?v=20261026b';
+import { getAppState } from '../../../core/base/state.js?v=20261026b';
+import { renderContent as renderSharedActivityCalendar } from '../shared/activity-calendar-tab.js?v=20261026b';
+import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261026b';
 // Task 6：活动动态属跨对象列表 ⇒ direct 完整详情页；缺 id 不渲染可点链接。
-import { objectDetailHref } from '../../../core/domain/object-route.js?v=20261026a';
+import { objectDetailHref } from '../../../core/domain/object-route.js?v=20261026b';
 
 const ACTIVITY_TYPE_COLORS = getActivityTypeColors();
 
@@ -72,7 +72,7 @@ function _activityRowHtml(a) {
   const href = detailHref ? `./${detailHref}` : '';
   return `
     <div class="flex flex-wrap items-center gap-3 p-3 rounded-lg bg-white hover:bg-surface-hover transition-colors" data-visitor-act-id="${a.id || ''}">
-      <a ${href ? `href="${href}"` : 'aria-disabled="true"'} class="flex items-center gap-3 flex-1 min-w-0 rounded-lg hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#CE1126]" aria-label="查看活动详情：${a.title || '未命名'}">
+      <a ${href ? `href="${href}"` : 'aria-disabled="true"'} class="flex items-center gap-3 flex-1 min-w-0 rounded-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#CE1126] hover:bg-[var(--surface-hover)] transition-colors" aria-label="查看活动详情：${a.title || '未命名'}">
         <div class="w-2.5 h-2.5 rounded-full flex-shrink-0" style="background:${color.dot}${color.dotBorder ? `;border:1px solid ${color.dotBorder}` : ''}"></div>
         <div class="flex-1 min-w-0">
           <p class="text-sm font-medium text-gray-800">${a.title || '未命名'}</p>

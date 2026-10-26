@@ -65,8 +65,11 @@ export const filesByFixtureClass = (fixtureClass) => TEST_TIERS
  *  2026-10-26 Task 6（测试残留隔离）：新增 test-isolation-guard（纯 node）⇒ 230 → 231。
  *  2026-10-26 同 spec · Task 4（schema v12 与种子契约）：新增 seed-contract-guard（纯 node，10 条）⇒ 231 → 232。
  *  2026-10-26 同 spec · Task 5（四个月演示窗口）：新增 demo-window-guard（纯 node，5 条）⇒ 232 → 233。
- *  2026-10-26 同 spec · Task 3（写成功可证）：新增 write-truth-guard（纯 node，9 条）⇒ 233 → 234。 */
-export const DAILY_FILE_BUDGET = 234;
+ *  2026-10-26 同 spec · Task 3（写成功可证）：新增 write-truth-guard（纯 node，9 条）⇒ 233 → 234。
+ *  2026-10-27 spec refine-ui-three-lenses · Task 12.4：新增 no-about-route-guard（纯 node，5 条）⇒ 234 → 235。
+ *  2026-10-27 同 spec · Task 9：新增 no-underline-guard（纯 node，4 条）⇒ 235 → 236。
+ *  2026-10-27 同 spec · Task 10：新增 loading-experience-guard（纯 node，6 条）⇒ 236 → 237。 */
+export const DAILY_FILE_BUDGET = 237;
 
 /** daily 静态 `test(` / `it(` 调用点预算（含子测试；新增断言须同批上调并写明理由）
  *  2026-10-21 R5 P1：页题守卫 4 条 + 对比度守卫 5 条 + 补登记的既有两条守卫 ⇒ 1351 → 1377。
@@ -142,8 +145,27 @@ export const DAILY_FILE_BUDGET = 234;
  *    （seed-baseline B5 生产默认 SEED_FALLBACK=false / B6 生产含演示种子拒启与 ALLOW_DEMO_DATA 放行 /
  *     B7 seed-repair baseline·生产不修演示 id；backup-restore B2 真跑 restore.mjs；branch-roster-import
  *     api⑦ 名册事务回滚 + 导入后真实账号可登录；permission-gate READ_ONLY 写口 403），未新增守卫文件
- *    ⇒ 1597 + 6 = 1603。 */
-export const DAILY_TEST_BUDGET = 1603;
+ *    ⇒ 1597 + 6 = 1603。
+ *  2026-10-27 Spec「refine-ui-three-lenses」阶段一 Task 2（操作成本 / a11y）：
+ *    ui-focus-ring 新增 F6（顶栏深红底焦点环作用域 ≥3:1）＋ ui-tab-overflow 新增 T5
+ *    （激活页签只改 scrollLeft，不用元素级滚动）两条，未新增守卫文件 ⇒ 1603 + 2 = 1605。
+ *  2026-10-27 Spec「refine-ui-three-lenses」阶段二 Task 5（页标题与重复动作）：
+ *    page-title-guard 新增 P4（静态壳不再输出页题）/ P5（活动·专班 H3/H4 顺序 + 原始 ID 移出正文）/
+ *    P6（党委台卡头不复述页签名）三条；todo-void-flow V6 随结构改准（断言数不变）。
+ *    同批并行专项另新增 6 条（a11y-tree / round3-4-batch1 / ui-tab-overflow 等）
+ *    ⇒ 实测 1605 + 3 + 6 = 1614。
+ *  2026-10-27 Spec「refine-ui-three-lenses」阶段三 Task 12（细节与手感）：
+ *    新增 no-about-route-guard 5 条（HTML 零链接 / JS 零路由与侧栏项 / MD 零指针 / 文件保留 / 非空转自检）
+ *    ⇒ 1614 + 5 = 1619。
+ *  2026-10-27 同 Spec · 阶段三 Task 9（美学）：新增 no-underline-guard 4 条
+ *    （扫描面自检 / 判红面清零 / PENDING 台账 / 只降不升）⇒ 1619 + 4 = 1623。
+ *  2026-10-27 同 Spec · 阶段三 Task 10（加载与过渡）：新增 loading-experience-guard 6 条
+ *    （判据全集 / 骨架形状 / 快速不闪骨架 / 慢渲染骨架与淡入 / 故障注入 / 跳转进度条）
+ *    ⇒ 1623 + 6 = 1629。
+ *  2026-10-27 同 Spec · 阶段三 Task 11（色彩角色）：ui-contrast-guard 新增 K6（warning 文字档
+ *    亮/暗 ≥4.5:1 + 填充语义）+ theme-palette-guard 新增 T10（功能红/金与 danger/warning/主题
+ *    accent 不撞值 + 文字对比）两条，未新增守卫文件 ⇒ 1629 + 2 = 1631。 */
+export const DAILY_TEST_BUDGET = 1631;
 
 const group = (tier, reason, list) => list.map((file) => ({ file, tier, reason }));
 
@@ -258,10 +280,16 @@ export const TEST_TIERS = [
     'ia-critical-guard.test.mjs',
     // 2026-10-23 批次 507：跳转链接颜色单一源（`<a>` 不得用 Tailwind 蓝；`.link` 消费 softText，纯 node）
     'link-color-guard.test.mjs',
+    // 2026-10-27 spec refine-ui-three-lenses · Task 10：加载体验（骨架/120ms/180ms 淡入/≤1s/跳转进度条，纯 node）
+    'loading-experience-guard.test.mjs',
     'localstorage-key-guard.test.mjs',
     // 2026-10-23 R11 Task 12.1：弹窗交互闭环契约（提交中禁止关闭 / alert / onSubmit 契约，纯 node）
     'modal-contract.test.mjs',
     'modal-escape-guard.test.mjs',
+    // 2026-10-27 spec refine-ui-three-lenses · Task 12.4：About 撤路由（HTML/JS/MD 零入口 + 文件保留，纯 node）
+    'no-about-route-guard.test.mjs',
+    // 2026-10-27 spec refine-ui-three-lenses · Task 9：全站文本下划线清零（源码口径 + PENDING 台账，纯 node）
+    'no-underline-guard.test.mjs',
     // 2026-10-24 批次 508：动效令牌 / 时长与属性白名单 / reduced-motion / .motion-* 四件套（纯 node）
     'motion-guard.test.mjs',
     'page-title-guard.test.mjs',

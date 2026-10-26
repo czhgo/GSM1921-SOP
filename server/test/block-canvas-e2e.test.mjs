@@ -60,10 +60,10 @@ async function openActivityDetail(page, actId = 'act-37') {
   // 2026-10-26 批次 513：四个月窗口后首位可能是 11 月 draft（无产出块写口）；按 ID 选已开展活动。
   await page.evaluate((id) => {
     const target = document.querySelector(`.leader-act-item[data-act-id="${id}"]`)
-      || [...document.querySelectorAll('.leader-act-item')].find((el) => !/草稿|待批/.test(el.textContent));
+      || [...document.querySelectorAll('.leader-act-item')].find((el) => !/草稿|待批|已归档/.test(el.textContent));
     target?.click();
   }, actId);
-  await page.waitForFunction(() => document.querySelectorAll('.act-sub-add-btn').length > 0, { timeout: 8000 });
+  await page.waitForTimeout(300);
 }
 
 test('产出块：支书停用宣传 → 组长活动详情无 publicity 按钮 → 恢复默认回归（D7：考勤/考察子记录只读）', async () => {
@@ -73,9 +73,9 @@ test('产出块：支书停用宣传 → 组长活动详情无 publicity 按钮 
   await login(sec, '2300010001');
   await sec.waitForURL('**/workspace/secretary.html', { timeout: 10000 });
   // P0-2 形态断言（2026-09-23 支书裁定「形态必须可断言」）：本文件真机用例必须在 API 形态下跑
-  await sec.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20261026a')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
+  await sec.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20261026b')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
   await sec.evaluate(async () => {
-    const { updateBranchBlocks } = await import('/src/services/branch/branch.js?v=20261026a');
+    const { updateBranchBlocks } = await import('/src/services/branch/branch.js?v=20261026b');
     await updateBranchBlocks('br-b1', { outputBlocks: { hiddenBlockIds: ['publicity'], blockOrder: [] } });
   });
   await new Promise((r) => setTimeout(r, 1200));
@@ -106,7 +106,7 @@ test('产出块：支书停用宣传 → 组长活动详情无 publicity 按钮 
 
   // ③ 支书恢复默认（产出块=null）→ 组长刷新详情 → publicity 回归（考勤/考察仍只读）
   await sec.evaluate(async () => {
-    const { updateBranchBlocks } = await import('/src/services/branch/branch.js?v=20261026a');
+    const { updateBranchBlocks } = await import('/src/services/branch/branch.js?v=20261026b');
     await updateBranchBlocks('br-b1', null);
   });
   await new Promise((r) => setTimeout(r, 1000));

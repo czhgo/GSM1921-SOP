@@ -12,10 +12,10 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
-import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261026a';
-import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261026a';
-import { setDataSource } from '../../docs/src/data/data-adapter.js?v=20261026a';
-import { TodoStore, TodoCategory } from '../../docs/src/services/governance/todo.js?v=20261026a';
+import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261026b';
+import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261026b';
+import { setDataSource } from '../../docs/src/data/data-adapter.js?v=20261026b';
+import { TodoStore, TodoCategory } from '../../docs/src/services/governance/todo.js?v=20261026b';
 
 const ROOT = join(import.meta.dirname, '..', '..');
 
@@ -147,10 +147,14 @@ test('V5 防回潮：硬删只在支委层渲染；作废/删除只对落库组�
   assert.match(list, /-todo-void-btn/, '作废键应有点击委托');
 });
 
-// ── V6（2026-10-18 繁专项 Task 14）：详情动作与行尾一致，不得空转 ──────
-test('V6 待办详情：hideActionBtn 组不再渲染空转「去处理」；detailAction 走真实落点', () => {
+// ── V6（2026-10-18 繁专项 Task 14；2026-10-27 Task 5 改准）：详情只出真实下一步，不重复行尾主行动 ──
+test('V6 待办详情：行尾隐藏动作的组不再出「去处理」；无 detailAction 也不回退主行动', () => {
   const shell = readFileSync(join(ROOT, 'docs/src/components/record/todo-tab-shell.js'), 'utf8');
-  assert.match(shell, /todo\.hideActionBtn \? '' : '去处理'/, '行尾隐藏动作的组，详情不得再出「去处理」');
+  // 2026-10-27 Task 5：行尾已有唯一主行动 ⇒ 详情不得再回退同名「去处理」（同义并排）。
+  // 断言随结构改准：由「hideActionBtn 才隐藏」改为「只有 detailAction 才渲染」。
+  assert.match(shell, /const actionLabel = action && action\.label \? action\.label : ''/,
+    '详情只渲染组自带真实落点；无 detailAction 时不得回退「去处理」');
+  assert.doesNotMatch(shell, /todo\.hideActionBtn \? '' : '去处理'/, '详情不得再保留旧的「去处理」回退分支');
   assert.match(shell, /group\.detailAction && typeof group\.detailAction\.run === 'function'/, '详情按钮须支持组自带真实落点');
   assert.match(shell, /aria-label="\$\{escHtml\(actionLabel\)\}/, '详情按钮保留无障碍名称');
 

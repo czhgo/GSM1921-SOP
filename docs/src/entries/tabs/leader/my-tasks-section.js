@@ -9,14 +9,14 @@
 // 与「待办」页的口径区分（写进页面文案，避免两处被读成同一份清单）：
 //   · 本段＝**按项目身份**（组织者 / 深度参与者）派给本人的 SOP 任务节点；
 //   · 「待办」页＝`TodoStore` 的待办聚合（含通知 / 审核 / 催办等派生项，来源与生命周期不同）。
-import { listMyProjectTasks, completeMyProjectTask, deepWorkModeOf, DEEP_WORK_MODE, DEEP_WORK_MODE_LABEL } from '../../../services/activity/activity.js?v=20261026a';
-import { isActivityVisibleTo } from '../../../services/core/visibility.js?v=20261026a';
-import { AuthStore } from '../../../services/core/auth.js?v=20261026a';
-import { ROLE_LABELS } from '../../../core/domain/constants.js?v=20261026a';
-import { escHtml as esc, showToast, docAnchorHref } from '../../../core/base/utils.js?v=20261026a';
-import { emptyStateHtml } from '../../../components/ui/empty-state.js?v=20261026a';
+import { listMyProjectTasks, completeMyProjectTask, deepWorkModeOf, DEEP_WORK_MODE, DEEP_WORK_MODE_LABEL } from '../../../services/activity/activity.js?v=20261026b';
+import { isActivityVisibleTo } from '../../../services/core/visibility.js?v=20261026b';
+import { AuthStore } from '../../../services/core/auth.js?v=20261026b';
+import { ROLE_LABELS } from '../../../core/domain/constants.js?v=20261026b';
+import { escHtml as esc, showToast, docAnchorHref } from '../../../core/base/utils.js?v=20261026b';
+import { emptyStateHtml } from '../../../components/ui/empty-state.js?v=20261026b';
 // Task 6：我的任务行跨项目 ⇒ 活动详情直达（direct）；缺 id 不渲染链接。
-import { objectDetailHref } from '../../../core/domain/object-route.js?v=20261026a';
+import { objectDetailHref } from '../../../core/domain/object-route.js?v=20261026b';
 
 const STATUS_LABEL = { pending: '待办', in_progress: '进行中', completed: '已完成' };
 const STATUS_CLASS = {
@@ -88,7 +88,7 @@ function _rowHtml(r) {
       </div>
       <span class="flex items-center gap-2 flex-shrink-0">
         ${objectDetailHref('activity', r.projectId, { entry: 'workspace-aggregate' })
-          ? `<a class="text-xs text-accent hover:underline" href="./${objectDetailHref('activity', r.projectId, { entry: 'workspace-aggregate' })}">详情 →</a>`
+          ? `<a class="text-xs text-accent" href="./${objectDetailHref('activity', r.projectId, { entry: 'workspace-aggregate' })}">详情 →</a>`
           : ''}
         ${(done || offline) ? '' : `<button type="button" class="btn-outline" data-my-task-complete="${esc(r.taskId)}" style="cursor:pointer;">勾掉</button>`}
       </span>

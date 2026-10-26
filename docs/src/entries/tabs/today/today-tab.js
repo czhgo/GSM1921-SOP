@@ -32,45 +32,45 @@
 // 注入防护：标题/内容/截止等用户可控数据一律经 escHtml 后入 innerHTML。
 // ════════════════════════════════════════════════════════════════
 
-import { escHtml as esc, _fmtDate } from '../../../core/base/utils.js?v=20261026a';
-import { icon } from '../../../core/base/icons.js?v=20261026a';
-import { buildTodaySummary, TODO_ACTION_ORDER, TODO_ACTION_LABELS } from '../../../services/governance/today-summary.js?v=20261026a';
+import { escHtml as esc, _fmtDate } from '../../../core/base/utils.js?v=20261026b';
+import { icon } from '../../../core/base/icons.js?v=20261026b';
+import { buildTodaySummary, TODO_ACTION_ORDER, TODO_ACTION_LABELS } from '../../../services/governance/today-summary.js?v=20261026b';
 // 批次 47-I（Q-23-41 ②，支书 2026-09-15 裁定）：本组组员进展**由服务端汇总**——
 // api 态打服务端汇总接口、mock 态调同一纯函数（单一入口 `loadMemberProgress`）。
-import { loadMemberProgress } from '../../../services/member/member-progress.js?v=20261026a';
-import { resolveVisibleTargets } from '../../../services/core/visibility.js?v=20261026a';
-import { mockDB } from '../../../core/domain/domain.js?v=20261026a';
-import { tokenOf } from '../../../core/base/version-token.js?v=20261026a'; // P0 域写版本戳（spec §二.4）
-import { RESIDENCE_KEY } from '../../../services/member/roster.js?v=20261026a'; // 滞留覆盖 raw 源（roster 禁改不内改）
-import { PREVIEW_KEY } from '../../../services/branch/org-base-data-preview.js?v=20261026a'; // 基础数据预览 raw 源
-import { memoizeRender } from '../../../components/ui/memoize-render.js?v=20261026a'; // P2 渲染守卫（spec §四.1）
+import { loadMemberProgress } from '../../../services/member/member-progress.js?v=20261026b';
+import { resolveVisibleTargets } from '../../../services/core/visibility.js?v=20261026b';
+import { mockDB } from '../../../core/domain/domain.js?v=20261026b';
+import { tokenOf } from '../../../core/base/version-token.js?v=20261026b'; // P0 域写版本戳（spec §二.4）
+import { RESIDENCE_KEY } from '../../../services/member/roster.js?v=20261026b'; // 滞留覆盖 raw 源（roster 禁改不内改）
+import { PREVIEW_KEY } from '../../../services/branch/org-base-data-preview.js?v=20261026b'; // 基础数据预览 raw 源
+import { memoizeRender } from '../../../components/ui/memoize-render.js?v=20261026b'; // P2 渲染守卫（spec §四.1）
 // 批4（2026-09-09 支书批「域参数」）：组长学期组员进展归集提醒开关（读侧注入后 = 当前支部有效默认）
-import { POLICY_DEFAULTS } from '../../../core/domain/policy-defaults.js?v=20261026a';
+import { POLICY_DEFAULTS } from '../../../core/domain/policy-defaults.js?v=20261026b';
 // 批次 299「待我处理」两源——**单一源复用**，不另立取数口径：
 //   · 未读通知 ＝ 顶栏铃铛同一取数（NoticeStore.list retention:'visible'）＋ 统一落消息详情（notice.html?id=）
 //   · 待处理汇报 ＝ 顶栏「一键汇报」角标同一集合（IssueNotify.getUnread(我)）
-import { NoticeStore } from '../../../services/governance/notice.js?v=20261026a';
-import { IssueStore, IssueNotify } from '../../../services/governance/issues.js?v=20261026a';
+import { NoticeStore } from '../../../services/governance/notice.js?v=20261026b';
+import { IssueStore, IssueNotify } from '../../../services/governance/issues.js?v=20261026b';
 // 批次 304「待我表态」三件——**判据与读口皆单一源**，不在本文件重写投票规则：
 //   · 我是否应到表决人 ＝ `vote-config.js::isVoterOf`（角色无关，只看固化名单）
 //   · 我是否已对某议程项表态 ＝ `committee-vote.js::hasVoted`
 //   · 当前登录人 ＝ `AuthStore.getCurrentUser()`
-import { AuthStore } from '../../../services/core/auth.js?v=20261026a';
-import { isVoterOf } from '../../../services/activity/vote-config.js?v=20261026a';
-import { hasVoted } from '../../../services/activity/committee-vote.js?v=20261026a';
+import { AuthStore } from '../../../services/core/auth.js?v=20261026b';
+import { isVoterOf } from '../../../services/activity/vote-config.js?v=20261026b';
+import { hasVoted } from '../../../services/activity/committee-vote.js?v=20261026b';
 // 活动类型胶囊（批次 301）：变体判据＝单一源 `activityTypeBadgeVariant`（三会一课＝brand 红 / 主题党日＝gold 金），
 //   渲染唯一源＝`components/ui/badge.js`；**本文件不手写类型色值**。
-import { activityTypeBadgeVariant, WORK_DOMAIN_COLORS } from '../../../core/domain/constants.js?v=20261026a';
-import { resolveDocumentUrl } from '../../../core/base/page-url.js?v=20261026a';
+import { activityTypeBadgeVariant, WORK_DOMAIN_COLORS } from '../../../core/domain/constants.js?v=20261026b';
+import { resolveDocumentUrl } from '../../../core/base/page-url.js?v=20261026b';
 // 徽章扎口出口（2026-09-30 批次 304 改准）：`components/ui/badges.js` 是**唯一调用口**
 //   （其文件头明写「调用方一律 import badges.js；内部实现文件 badge.js / status-badge.js 可各自演进」）；
 //   批次 301 我直连了实现文件 `badge.js` ⇒ 本批收回归口，**零行为变化**。
-import { badgeHtml } from '../../../components/ui/badges.js?v=20261026a';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20261026b';
 // 2026-10-18 繁专项 Task 7：汇报类行统一落到待办「待答复」收件箱（PendingTarget 一次性定位）。
 // 提交入口只在「我的处置」；今天页只读、不重复提供提交位。
-import { PendingTarget } from '../../../core/session/pending-target.js?v=20261026a';
+import { PendingTarget } from '../../../core/session/pending-target.js?v=20261026b';
 // Task 6：「今天」是跨对象日程摘要，不属活动工作台 ⇒ direct；缺 id 不跳转。
-import { objectDetailHref } from '../../../core/domain/object-route.js?v=20261026a';
+import { objectDetailHref } from '../../../core/domain/object-route.js?v=20261026b';
 
 // 工作台主题色走 CSS 变量（各台 bootstrap 已按 accent 注入；缺省兜底党建红），同 overview/统计卡用法
 const ACCENT = 'var(--app-accent)';
@@ -405,14 +405,15 @@ function _meetingBlock(s) {
  *  2026-09-25 支书裁定：党小组 tab 更名并收编党小组活动后，活动管理的写操作从 tab 名上不再一眼可寻
  *    ⇒ 今日页留一手（防高频动作被埋）。形态沿用本页「行」体例，不新造第三种视觉。
  *  2026-09-30 批次 310 支书裁定「**每个人应该都有这样的活动日历界面，可以从桌面的部分日历 跳转过来**」：
- *    「看日历」是**只读入口**（跳各台「活动日历」tab，五台同 id ⇒ 无需按台映射）⇒ 全角色呈现；
- *    「建活动」是**写入口**（只在接线了写入表单的台可用）⇒ 仍由 `onCreateActivity` 是否传入决定。 */
-function _activityEntryBlock(withCreate) {
+ *    「看日历」是**只读入口**（跳各台「活动日历」tab，五台同 id ⇒ 无需按台映射）⇒ 全角色呈现。
+ *  2026-10-27 Task 6.4（脏乱繁 · 重复动作）：「写入活动」在支书台已提顶栏 CTA
+ *    （`ws-secretary-entry` 的 header-actions），卡内再摆一枚属重复 ⇒ 本节只留「看日历」，
+ *    写入口仍从顶栏进，不改变任何写能力。 */
+function _activityEntryBlock() {
   return `
     ${_segHead('活动管理')}
     <div class="flex items-center gap-2">
-      ${withCreate ? '<button type="button" class="btn-outline today-go flex-1 flex items-center justify-center gap-2" data-go="create-activity">写入活动</button>' : ''}
-      <button type="button" class="btn-outline today-go flex-1 flex items-center justify-center gap-2" data-go="calendar">看日历</button>
+      <button type="button" class="btn-outline today-go flex items-center justify-center gap-2" data-go="calendar">看日历</button>
     </div>`;
 }
 
@@ -431,28 +432,22 @@ function _upcomingBlock(s) {
     <div class="space-y-2">${rows}</div>`;
 }
 
-/** 全空 → 两卡不消失、仅各示一句空态（若接了活动管理快捷入口，右卡底部仍留住入口，防空日把写操作埋掉）。
- *  B02：右卡与常规态同名「日程」，避免同一屏出现两种卡名。 */
-function _allEmptyHtml(activityEntry = '') {
+/** 全空 → **一张卡：一行说明 + 单一主 CTA**（看日历）。
+ *  2026-10-27 Task 6.4（脏乱繁 · 空态）：原「今天要办 / 日程」两卡各示一句空态、右卡尾部再放
+ *    「写入活动 / 看日历」两枚入口 ⇒ 首屏两张等权大卡 + 两个下一步。现合并为一张卡的一行说明；
+ *    卡头「全部 ›」与常规态同一处次级导航（不是主 CTA），主 CTA 仍只一枚。
+ *    卡内「写入活动」与顶栏 CTA 重复，已删（顶栏保留）。 */
+function _allEmptyHtml() {
   return `
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
-      <div class="lg:col-span-2 card rounded-xl p-5">
-        <div class="flex items-center justify-between">
-          <h3 class="font-title-cn text-base font-semibold text-gray-800">今天要办</h3>
-          <button type="button" class="btn-text today-all flex-shrink-0 text-xs" data-today-all="todo">全部 ›</button>
-        </div>
-        <div class="flex items-center gap-2 py-6">
-          <span class="w-2 h-2 rounded-full bg-gray-300 flex-shrink-0"></span>
-          <p class="text-sm text-gray-500">今天暂无待办</p>
-        </div>
+    <div class="card rounded-xl p-5" data-today-empty>
+      <div class="flex items-center justify-between">
+        <h3 class="font-title-cn text-base font-semibold text-gray-800">今天要办</h3>
+        <button type="button" class="btn-text today-all flex-shrink-0 text-xs" data-today-all="todo">全部 ›</button>
       </div>
-      <div class="lg:col-span-1 card rounded-xl p-5">
-        <h3 class="font-title-cn text-base font-semibold text-gray-800 mb-3">日程</h3>
-        <div class="flex items-center gap-2 py-6">
-          <span class="w-2 h-2 rounded-full bg-gray-300 flex-shrink-0"></span>
-          <p class="text-sm text-gray-500">今天暂无安排</p>
-        </div>
-        ${activityEntry ? `<div class="pt-4 mt-2 border-t border-gray-100">${activityEntry}</div>` : ''}
+      <div class="flex flex-wrap items-center gap-3 py-4">
+        <span class="w-2 h-2 rounded-full bg-gray-300 flex-shrink-0" aria-hidden="true"></span>
+        <p class="text-sm text-gray-500 flex-1 min-w-0">今天暂无待办与安排</p>
+        <button type="button" class="btn-outline today-go flex items-center justify-center gap-2" data-go="calendar">看日历</button>
       </div>
     </div>`;
 }
@@ -522,7 +517,7 @@ function _leaderSemesterRemindHtml(personId) {
             <button type="button" class="btn-accent font-medium" data-lsr-act="go">去「组员进展」看汇总</button>
             <button type="button" class="btn-outline" data-lsr-act="later">本学期已处理，不再提醒</button>
             <!-- 就近深链（2026-09-17 支书已裁）：本条提醒的开关就是本域可调参数，就地给去设置该分区的入口 -->
-            <a href="./settings.html#domain-leader" class="text-xs text-gray-500 hover:text-gray-700 underline transition-colors">本条提醒开关 → 组长职责参数（设置）</a>
+            <a href="./settings.html#domain-leader" class="text-xs text-gray-500 hover:text-gray-700 transition-colors">本条提醒开关 → 组长职责参数（设置）</a>
           </div>
         </div>
       </div>
@@ -609,8 +604,8 @@ export function renderTodayTab(container, { personId, role, onNav, onCreateActiv
 
     // 批4：组长开学周提醒条（仅组长角色；开关/窗口/防重复见 _leaderSemesterRemindHtml）
     const leaderSemReminder = role === 'leader' ? _leaderSemesterRemindHtml(personId) : '';
-    // 活动管理快捷入口（2026-09-30 批次 310：全角色呈现「看日历」；「建活动」只在接线了写入表单的台出现）
-    const activityEntry = _activityEntryBlock(typeof onCreateActivity === 'function');
+    // 活动管理快捷入口（2026-09-30 批次 310：全角色呈现「看日历」；写入口在顶栏 CTA，不在此重复）
+    const activityEntry = _activityEntryBlock();
 
     // 左卡「今天要办」＝ **单一轴：动作性质七类**（2026-10-01 批次 329 · 支书裁「甲 单一轴＝动作性质」「甲 「今天要办」」）。
     //   ⚠ 原「逾期区 / 今天到期 / 本岗待办 / 今日分工 / 待我表态 / 未读通知 / 待我处理的汇报」七段
@@ -653,7 +648,7 @@ export function renderTodayTab(container, { personId, role, onNav, onCreateActiv
     const body = summaryError
       ? `<div class="grid grid-cols-1 lg:grid-cols-3 gap-5">${leftCard}${rightCard}</div>`
       : total === 0
-        ? _allEmptyHtml(activityEntry)
+        ? _allEmptyHtml()
         : `<div class="grid grid-cols-1 lg:grid-cols-3 gap-5">${leftCard}${rightCard}</div>`;
 
     // 跨 tab 共享容器约定（同 todo/overview/assign/…）：本 tab 渲染时登记当前 tab 标记。

@@ -8,20 +8,20 @@
 //  · 读口单一源 = NoticeStore.listMessages；未读计数单一源 = NoticeStore.countUnread。
 //  · 可见性单一源 = canReadNotice（经 NoticeStore.list 受众门），本页不另写规则。
 // ════════════════════════════════════════════════════════════════
-import { renderSidebar } from '../../components/shell/sidebar.js?v=20261026a';
-import { renderHeader } from '../../components/shell/header.js?v=20261026a';
+import { renderSidebar } from '../../components/shell/sidebar.js?v=20261026b';
+import { renderHeader } from '../../components/shell/header.js?v=20261026b';
 import {
   NoticeStore, sendDirectMessage, canSendDirectMessage, kindOf,
-} from '../../services/governance/notice.js?v=20261026a';
-import { AuthStore } from '../../services/core/auth.js?v=20261026a';
-import { showToast, escHtml as esc, getBasePath } from '../../core/base/utils.js?v=20261026a';
-import { badgeHtml } from '../../components/ui/badges.js?v=20261026a';
-import { pagerHtml } from '../../components/ui/pager.js?v=20261026a';
-import { PersonPicker } from '../../components/governance/pickers.js?v=20261026a';
+} from '../../services/governance/notice.js?v=20261026b';
+import { AuthStore } from '../../services/core/auth.js?v=20261026b';
+import { showToast, escHtml as esc, getBasePath } from '../../core/base/utils.js?v=20261026b';
+import { badgeHtml } from '../../components/ui/badges.js?v=20261026b';
+import { pagerHtml } from '../../components/ui/pager.js?v=20261026b';
+import { PersonPicker } from '../../components/governance/pickers.js?v=20261026b';
 // S1（2026-09-12 通知详情页同款）：必须先完成数据 hydrate（loadDB / API init）再取数
-import { hydrateDataSource, notifyDataLoaded } from '../../data/data-adapter.js?v=20261026a';
-import { ApiAdapter } from '../../data/api-adapter.js?v=20261026a';
-import { BranchService } from '../../services/core/runtime.js?v=20261026a';
+import { hydrateDataSource, notifyDataLoaded } from '../../data/data-adapter.js?v=20261026b';
+import { ApiAdapter } from '../../data/api-adapter.js?v=20261026b';
+import { BranchService } from '../../services/core/runtime.js?v=20261026b';
 
 renderSidebar('messages');
 renderHeader('messages');
@@ -117,7 +117,7 @@ function render() {
   if (!me.role) {
     rootEl.innerHTML = `
       <h2 class="font-title-cn text-xl font-bold text-gray-800 mb-2">消息</h2>
-      <p class="text-sm text-gray-500">消息需登录后查看。请先 <a href="${getBasePath()}login.html" class="text-accent hover:underline">登录</a>。</p>`;
+      <p class="text-sm text-gray-500">消息需登录后查看。请先 <a href="${getBasePath()}login.html" class="text-accent">登录</a>。</p>`;
     return;
   }
 
@@ -143,7 +143,7 @@ function render() {
   const empty = !list.total
     ? (_box === 'all' && _source === 'all' && !_q
       ? `<p class="text-sm text-gray-500 py-8 text-center">还没有消息${canSend ? '——收到或发出后会在这里成线' : ''}</p>`
-      : `<p class="text-sm text-gray-500 py-8 text-center">当前筛选下没有消息 <a href="${getBasePath()}messages.html" class="text-accent hover:underline">查看全部</a></p>`)
+      : `<p class="text-sm text-gray-500 py-8 text-center">当前筛选下没有消息 <a href="${getBasePath()}messages.html" class="text-accent">查看全部</a></p>`)
     : '';
 
   rootEl.innerHTML = `

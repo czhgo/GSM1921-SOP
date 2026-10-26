@@ -1,12 +1,12 @@
 // role: [工程师]+[AI]
 // 个人档案页的「本人自述」展示：折叠摘要 + 5 个子组。
 // 字段顺序与含义沿用自我描述字段单一源（core/domain/self-profile.js）。
-import { escHtml as esc } from '../../core/base/utils.js?v=20261026a';
+import { escHtml as esc } from '../../core/base/utils.js?v=20261026b';
 import {
   isSelfProfileEmpty, SELF_PROFILE_FIELDS,
-} from '../../core/domain/self-profile.js?v=20261026a';
-import { EMPTY_TEXT } from '../../core/domain/constants.js?v=20261026a';
-import { listRowHtml, listGroupHtml } from '../ui/list-row.js?v=20261026a';
+} from '../../core/domain/self-profile.js?v=20261026b';
+import { EMPTY_TEXT } from '../../core/domain/constants.js?v=20261026b';
+import { listRowHtml, listGroupHtml } from '../ui/list-row.js?v=20261026b';
 
 /** 15 个自述字段的展示子组（顺序＝展开后的阅读顺序；键集≡SELF_PROFILE_FIELDS） */
 export const SELF_PROFILE_GROUPS = [
@@ -186,7 +186,7 @@ export function renderThoughtReportsSection({ reports = [], total = 0, viewAllHr
     rowType: 'action',
     title: r.title || '思想汇报',
     meta: `${r.period || '期次未记录'} · 提交 ${String(r.submittedAt || '').slice(0, 10) || '时间未记录'} · ${THOUGHT_STATUS[r.reviewStatus] || '已入库'}`,
-    trailing: `<a href="./thought-report.html?id=${encodeURIComponent(r.id)}" class="text-xs text-accent hover:underline">查看</a>`,
+    trailing: `<a href="./thought-report.html?id=${encodeURIComponent(r.id)}" class="text-xs text-accent">查看</a>`,
   }));
   return `<section id="person-thought-reports" aria-labelledby="person-thought-heading" class="mb-6 border-b border-gray-100 pb-6">
     <div class="flex flex-wrap items-baseline justify-between gap-2">
@@ -195,7 +195,7 @@ export function renderThoughtReportsSection({ reports = [], total = 0, viewAllHr
         <span class="text-xs text-gray-500">共 ${count} 篇 · 提交即入库</span>
       </div>
       ${count > shown.length && viewAllHref
-        ? `<a href="${viewAllHref}" class="text-xs text-accent hover:underline">全部 ${count} 篇 →</a>`
+        ? `<a href="${viewAllHref}" class="text-xs text-accent">全部 ${count} 篇 →</a>`
         : ''}
     </div>
     ${rows.length

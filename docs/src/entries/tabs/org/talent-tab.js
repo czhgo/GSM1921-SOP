@@ -9,25 +9,25 @@
 //   · 读侧数据不动写（除页面跳转外无任何保存/报送控件）。
 // 保留「人才库=只读画像、名册=档案维护」页内注释与引导文案。
 
-import { loadInspectionRecords } from '../../../services/activity/inspection.js?v=20261026a';
+import { loadInspectionRecords } from '../../../services/activity/inspection.js?v=20261026b';
 // ⚠ 2026-10-01 批次 321（支书 V-10 取「乙：整页并入人才库」）：原「发展数据」tab 的**活动参与汇总**卡
 //   并入本页——「参与工作情况」正是**考察**的主体，支书原话「**考察就是维护人才库的过程！！**」。
-import { listActivityParticipationByPerson } from '../../../services/activity/attendance.js?v=20261026a';
+import { listActivityParticipationByPerson } from '../../../services/activity/attendance.js?v=20261026b';
 // R2-15（2026-10-20）：预备期月数改由制度参数派生（原 12/9 写死在本页）
-import { POLICY_DEFAULTS } from '../../../core/domain/policy-defaults.js?v=20261026a';
-import { loadThoughtReports } from '../../../services/governance/thought-report.js?v=20261026a';
-import { PersonStore, getPersonName } from '../../../services/member/person.js?v=20261026a';
+import { POLICY_DEFAULTS } from '../../../core/domain/policy-defaults.js?v=20261026b';
+import { loadThoughtReports } from '../../../services/governance/thought-report.js?v=20261026b';
+import { PersonStore, getPersonName } from '../../../services/member/person.js?v=20261026b';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/member/person.js 获取（原直连 mock PEOPLE）
-import { getResidenceOf } from '../../../services/member/roster.js?v=20261026a';
+import { getResidenceOf } from '../../../services/member/roster.js?v=20261026b';
 // Q-21-3 收敛（2026-09-13）：在册状态枚举单一源 = core/domain/constants.js（原经 roster.js 转出）
-import { RESIDENCE } from '../../../core/domain/constants.js?v=20261026a';
+import { RESIDENCE } from '../../../core/domain/constants.js?v=20261026b';
 // B5（2026-09-12）：搜索 + 阶段/党小组筛选已统一接入 components/ui/list-filter.js（分面枚举由引擎 auto 派生）
-import { listPendingConfirmations, lastApprovedStageChange } from '../../../services/member/member-confirmation.js?v=20261026a';
-import { escHtml as esc, getBasePath } from '../../../core/base/utils.js?v=20261026a';
+import { listPendingConfirmations, lastApprovedStageChange } from '../../../services/member/member-confirmation.js?v=20261026b';
+import { escHtml as esc, getBasePath } from '../../../core/base/utils.js?v=20261026b';
 // 统一检索引擎（2026-09-13 表格统一化批次 A）：成员卡列表接入关键词 + 分面（替代原手写三控件显隐过滤）
-import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261026a';
-import { renderTabHeader, renderCardHeader } from '../../../components/shell/page-frame.js?v=20261026a';
-import { bindDisclosures } from '../../../components/ui/disclosure.js?v=20261026a';
+import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261026b';
+import { renderTabHeader, renderCardHeader } from '../../../components/shell/page-frame.js?v=20261026b';
+import { bindDisclosures } from '../../../components/ui/disclosure.js?v=20261026b';
 
 // 发展阶段顺序（发展流程正向：入党申请人 → 积极分子 → 发展对象 → 预备党员 → 正式党员）
 const STAGE_ORDER = ['积极分子', '发展对象', '预备党员', '正式党员'];
@@ -144,7 +144,7 @@ function _participationHeadHtml(types) {
 function _participationRowHtml(p, types) {
   return `
           <tr>
-            <td data-label="姓名" class="font-medium text-gray-800"><a href="${getBasePath()}person.html?id=${encodeURIComponent(p.personId)}" class="hover:underline hover:text-accent transition-colors" title="查看完整档案（学号 / 党小组可在档案补全）">${esc(p.name)}</a></td>
+            <td data-label="姓名" class="font-medium text-gray-800"><a href="${getBasePath()}person.html?id=${encodeURIComponent(p.personId)}" class="hover:text-accent transition-colors" title="查看完整档案（学号 / 党小组可在档案补全）">${esc(p.name)}</a></td>
             <td data-label="学号" class="text-gray-600">${esc(p.studentId || '—')}</td>
             <td data-label="所属党小组" class="text-gray-600">${esc(p.partyGroup || '—')}</td>
             ${types.map(t => `<td data-label="${esc(t)}" class="text-gray-600">${p.counts[t] || 0}</td>`).join('')}
@@ -212,7 +212,7 @@ export function renderContent(ctx) {
           <div class="p-3 rounded-xl bg-white border border-gray-50 hover:border-gray-100 transition-colors">
             <div class="talent-card block cursor-pointer" data-roster-jump="${esc(p.id)}" title="查看成员档案（成员名册）">
               <div class="flex items-center gap-2 flex-wrap">
-                <a href="${archiveHref}" class="text-sm font-semibold text-gray-800 hover:underline hover:text-accent transition-colors" title="查看完整档案">${esc(getPersonName(p.id))}</a>
+                <a href="${archiveHref}" class="text-sm font-semibold text-gray-800 hover:text-accent transition-colors" title="查看完整档案">${esc(getPersonName(p.id))}</a>
                 <span class="tint-pill" data-tone="${stageTone}">${esc(p.developStage || STAGE_OTHER)}</span>
                 ${p.partyGroup ? `<span class="text-xs text-gray-500">${esc(p.partyGroup)}</span>` : ''}
                 ${_residenceChipHtml(p)}
@@ -321,7 +321,7 @@ function _renderInspectionSlot(container, ctx) {
   const mount = () => {
     if (!body || body.dataset.inspectionMounted === '1') return;
     body.dataset.inspectionMounted = '1';
-    import('./inspection-tab.js?v=20261026a').then((m) => {
+    import('./inspection-tab.js?v=20261026b').then((m) => {
       if (!body.isConnected) return;
       m.renderContent(ctx, body);
       _normalizeInspectionCopy(body);

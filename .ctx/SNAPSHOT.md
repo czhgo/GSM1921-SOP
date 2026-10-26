@@ -2,7 +2,7 @@
 title: "系统快照"
 type: snapshot
 role: "[AI]"
-last_updated: "2026-10-26"
+last_updated: "2026-10-27"
 status: "ACTIVE"
 date: "2026-10-23"
 version: "v61"
@@ -235,3 +235,11 @@ GSM1921-SOP/
 - **未决**：① 收尾已完成：daily 1608、全量三通道全绿（node 1608 / e2e-A 92 / e2e-B 144+1skip）、版本戳 20261026a、提交待做；② SD-48 是边界条款，字段表 / 键清单 / 窗口 / 测试分层各自以权威源为准；③ `DATA_SEED_CONTRACT` 为本批新增的登记行，本表已补行（不同于「只登记不补行」的既有缺口）；④ 只读演练 / 名册导入已由定向与真机覆盖，仍需在真实部署环境复跑。
 - **已迁 content 的条目**：`DESIGN_SYSTEM` SD-47 / SD-48 ＋ §12.3 / SD-3 / SD-36 指针；`design-system/CASES.md` CASE-DESIGN-025、CASE-DATA-001 与 sample-diff 五列；`CASES_INDEX` design 25 / data 1；`DATA_MODEL` v12 摘要与种子契约指针；`PRODUCT_IA` 数据形态与缓存边界；`GUARD_INVENTORY` §十（74 件 / 501 条）。
 - **下批入口**：① 读本段 ＋ `.ctx/logs/2026-10-EXECUTION_LOG.md` 批次 513；② 真机复核胶囊在 390 的观感、hover 浮窗 p95、只读演练与名册导入；③ 若新增业务集合，先登记 `cache-registry` 四类与 `DATA_SEED_CONTRACT` 再改代码。
+
+## 批次 514 小结（2026-10-27）
+
+- **做了什么**：UI 三项专项收口——阶段一最小三成本（首次 Tab 落「跳到主要内容」、顶栏金焦点环、侧栏抽屉焦点、日历 roving grid、390 待办列表优先、五台「看日历」真实落点、成员工作台、幽灵提示删除）；阶段二脏乱繁（七台静态 H2 删除、党委台三连消除、每行 1 主行动 ＋ 1「更多」、页签条两层、40px 折叠摘要、首页无图不出 16:9、今天空态一行、390 统计卡 100px、帮助页 390 `scrollWidth=390`）；阶段三美学（组名 10% 淡底无边框、选中页签 solid soft ＋ accent 描边、下划线 110→0、字体 1 族三档、加载 120/180ms＋≤1s、逾期 7.09/11.68、暗色选中 6.44、help 目录 4.61、登录 placeholder 6.57、功能红 / 金、About 撤导航）。
+- **结论**：三阶段反馈可归为一条总病——**「改到存在 ≠ 可感知」**：胶囊同色、链接靠下划线、加载靠压暗、页标题靠静态 H2，都是「源码里有」但用户感知不到；判据必须同时含「相邻态差异可测」与「全站计数归零」，并配常驻守卫。
+- **未决**：① `text-xs` 仍剩 1911 处，未逐页迁移；② About 已撤导航，但 `function-catalog.js` 仍保留「关于」功能卡；③ 收尾实跑 daily **1634 / 1634**（与交接 1636 差 2，按实况记录），定向 64 / 64；全量三通道沿用主代理实测（node 1636 / e2e-A 94 / e2e-B 147＋1skip / 837.3s）；④ 版本戳 `20261026b` 未再 bump。
+- **已迁 content 的条目**：`DESIGN_SYSTEM` SD-49…SD-52 ＋ §12.3 / §12.10 / §4.24 / SD-3 / SD-36 / SD-42 / SD-43 / SD-46 / SD-47 交叉口径；`design-system/CASES.md` CASE-DESIGN-026 / 027；`CASES_INDEX` design 25 → 27；`PRODUCT_IA` About 撤路由附录；`GUARD_INVENTORY` §十一（77 件 / 526 条）。
+- **下批入口**：① 读本段 ＋ `.ctx/logs/2026-10-EXECUTION_LOG.md` 批次 514；② 若要收 `text-xs` 存量，先按「12px 只承担标签 / 元信息」逐页核，不批量替换；③ About 若恢复入口，须同批补页面清单、导航、help 落点与 `no-about-route-guard` 白名单；④ 复核 daily 是否回到 1636 口径（查 2 条差异来源）。

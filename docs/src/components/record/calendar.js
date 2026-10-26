@@ -5,15 +5,15 @@
 //  视图模式：月/周/日/列表 四种切换
 // ════════════════════════════════════════════════════════════════
 
-import { getAppState, setState } from '../../core/base/state.js?v=20261026a';
-import { ROLE_COLORS, getActivityColor, ACTIVITY_CATEGORY_COLORS, ACTIVITY_TYPE_LABELS, ACTIVITY_TYPE_SHORT, activityTypeTone } from '../../core/domain/constants.js?v=20261026a';
-import { _fmtDate, _currentYearMonth, showToast } from '../../core/base/utils.js?v=20261026a';
+import { getAppState, setState } from '../../core/base/state.js?v=20261026b';
+import { ROLE_COLORS, getActivityColor, ACTIVITY_CATEGORY_COLORS, ACTIVITY_TYPE_LABELS, ACTIVITY_TYPE_SHORT, activityTypeTone } from '../../core/domain/constants.js?v=20261026b';
+import { _fmtDate, _currentYearMonth, showToast } from '../../core/base/utils.js?v=20261026b';
 // 2026-10-25 Task 1.3：节点缺失 / 页内失败统一走「错误卡 + 重试」单一源（tab-bar 同款）。
-import { mountTabFailure } from '../shell/tab-bar.js?v=20261026a';
-import { tokenOf } from '../../core/base/version-token.js?v=20261026a'; // P2 视图渲染守卫数据版本（spec §四.2）
-import { filterTasksByManagementRole, activityLifecycleBadgeHtml } from './inspector.js?v=20261026a';
+import { mountTabFailure } from '../shell/tab-bar.js?v=20261026b';
+import { tokenOf } from '../../core/base/version-token.js?v=20261026b'; // P2 视图渲染守卫数据版本（spec §四.2）
+import { filterTasksByManagementRole, activityLifecycleBadgeHtml } from './inspector.js?v=20261026b';
 // 活动「已完成 / 已取消」闭环判据单一源（R7-16）：替代手写 ['completed','cancelled']
-import { isActivityClosed } from '../../core/domain/domain.js?v=20261026a';
+import { isActivityClosed } from '../../core/domain/domain.js?v=20261026b';
 
 // ── 固定语义色 tone（不随主题）──
 // 2026-10-24 批次 508：活动类别色改由单一源 activityTypeTone 判定——
@@ -292,13 +292,11 @@ function _renderMonthView(grid, activeActivities, tasks, month, state) {
   const firstDow = (rawFirst + 6) % 7;
   const daysInMonth = new Date(y, m, 0).getDate();
 
-  let html = `<div class="mb-6">`;
-  html += `<div class=" text-sm font-bold text-gray-700 mb-3 pb-2 border-b border-gray-100">${y}年 ${MN[m - 1]}</div>`;
-  html += `<div class="${isMobile ? 'cal-mobile-grid' : ''}" style="display:grid;grid-template-columns:repeat(7,1fr);grid-auto-rows:auto;gap:2px;">`;
-  DN.forEach(d => { html += `<div class=" text-[12px] text-gray-500 text-center pb-1.5 font-semibold">${d}</div>`; });
-
+  // 2026-10-27 Task 2（阶段一 · 日历键盘模型）：容器 role=grid、按周切 role=row，
+  //   行用 display:contents 保持原 7 列网格布局不变；日期格仍是 role=gridcell。
+  const dayCells = [];
   for (let i = 0; i < firstDow; i++) {
-    html += '<div class="cal-cell-large cal-cell-compact" style="background:transparent;border-color:transparent;"></div>';
+    dayCells.push('<div class="cal-cell-large cal-cell-compact" aria-hidden="true" style="background:transparent;border-color:transparent;"></div>');
   }
   for (let day = 1; day <= daysInMonth; day++) {
     const k = `${month}-${String(day).padStart(2, '0')}`;
@@ -311,17 +309,29 @@ function _renderMonthView(grid, activeActivities, tasks, month, state) {
     if (ct.length > 0 || hasActivity) cls += ' has-tasks';
     if (isT) cls += ' is-today';
 
-    html += `<div class="${cls}" data-date="${k}" tabindex="0" role="gridcell">`;
-    html += `<div class=" ${isMobile ? 'text-xs' : 'text-[12px]'} font-semibold mb-1 ${isT ? 'text-red-700' : 'text-gray-600'}">${day}</div>`;
+    let cellHtml = `<div class="${cls}" data-date="${k}" tabindex="0" role="gridcell">`;
+    cellHtml += `<div class=" ${isMobile ? 'text-xs' : 'text-[12px]'} font-semibold mb-1 ${isT ? 'text-red-700' : 'text-gray-600'}">${day}</div>`;
     if (isMobile) {
-      html += _renderMobileDots(dayActs, ct, hasActivity, viaTasks, state);
+      cellHtml += _renderMobileDots(dayActs, ct, hasActivity, viaTasks, state);
     } else {
-      html += _renderCompactCellContent(k, dayActs, ct, viaTasks, state);
+      cellHtml += _renderCompactCellContent(k, dayActs, ct, viaTasks, state);
     }
-    html += '</div>';
+    cellHtml += '</div>';
+    dayCells.push(cellHtml);
+  }
+
+  let html = `<div class="mb-6">`;
+  html += `<div class=" text-sm font-bold text-gray-700 mb-3 pb-2 border-b border-gray-100">${y}年 ${MN[m - 1]}</div>`;
+  html += `<div class="${isMobile ? 'cal-mobile-grid' : ''}" role="grid" aria-label="${y}年${m}月活动日历" style="display:grid;grid-template-columns:repeat(7,1fr);grid-auto-rows:auto;gap:2px;">`;
+  html += `<div role="row" style="display:contents;">`;
+  DN.forEach(d => { html += `<div role="columnheader" class=" text-[12px] text-gray-500 text-center pb-1.5 font-semibold">${d}</div>`; });
+  html += `</div>`;
+  for (let i = 0; i < dayCells.length; i += 7) {
+    html += `<div role="row" style="display:contents;">${dayCells.slice(i, i + 7).join('')}</div>`;
   }
   html += '</div></div>';
   grid.innerHTML = html;
+  _bindCalendarRoving(grid);
 
   if (isMobile) {
     _bindMobileCellClicks(grid, activeActivities, tasks, month, state);
@@ -394,8 +404,10 @@ function _renderWeekView(grid, activeActivities, tasks, month, state) {
   html += `<button id="cal-week-next" class="btn-outline h-8 px-3.5 rounded-r-lg text-xs font-medium">下一周</button>`;
   html += `</div></div>`;
 
-  html += `<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:6px;">`;
-  DN.forEach(d => { html += `<div class=" text-[12px] text-gray-500 text-center pb-1 font-semibold">${d}</div>`; });
+  html += `<div role="grid" aria-label="周视图活动日历" style="display:grid;grid-template-columns:repeat(7,1fr);gap:6px;">`;
+  html += `<div role="row" style="display:contents;">`;
+  DN.forEach(d => { html += `<div role="columnheader" class=" text-[12px] text-gray-500 text-center pb-1 font-semibold">${d}</div>`; });
+  html += `</div><div role="row" style="display:contents;">`;
 
   for (let i = 0; i < 7; i++) {
     const d = new Date(weekStart);
@@ -416,8 +428,9 @@ function _renderWeekView(grid, activeActivities, tasks, month, state) {
     html += _renderCellContent(k, dayActs, ct, hasActivity, viaTasks, state, 8);
     html += '</div>';
   }
-  html += '</div></div>';
+  html += `</div></div></div>`;
   grid.innerHTML = html;
+  _bindCalendarRoving(grid);
 
   _bindCellClicks(grid);
 
@@ -619,6 +632,47 @@ function _renderCellContent(dateKey, dayActs, ct, hasActivity, viaTasks, state, 
     if (focusedTasks.length > maxItems) html += `<div class=" text-xs text-gray-500 mt-0.5">+${focusedTasks.length - maxItems} 项任务</div>`;
   }
   return html;
+}
+
+/**
+ * 2026-10-27 Task 2（阶段一 · 日历键盘模型）：`role=grid` 的 roving tabindex。
+ *   · 整张网格只有 1 个 Tab 停点：当前日（今天不在本视图时退首格）tabindex=0，其余 -1；
+ *   · 方向键按「日期 ±1 / ±7」移动，Home/End 到本周周一/周日；Enter/Space 仍由
+ *     `_bindDateCellKeys` 走 click（打开活动/当日详情）——两套处理器互不覆盖；
+ *   · 格内活动条自身 tabindex=0，保留独立停点，不被本函数修改。
+ */
+function _applyCalendarRoving(grid) {
+  const cells = [...grid.querySelectorAll('[data-date][role="gridcell"]')];
+  if (!cells.length) return;
+  const initial = cells.find(c => c.classList.contains('is-today')) || cells[0];
+  cells.forEach(c => c.setAttribute('tabindex', c === initial ? '0' : '-1'));
+}
+
+function _bindCalendarRoving(grid) {
+  _applyCalendarRoving(grid);
+  // grid 容器本身不随 innerHTML 重建，键位监听只绑一次（格子在每次按键时现取）。
+  if (grid.dataset.calRovingBound === '1') return;
+  grid.dataset.calRovingBound = '1';
+  grid.addEventListener('keydown', (e) => {
+    if (!['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End'].includes(e.key)) return;
+    const cell = e.target;
+    if (!cell || cell.getAttribute?.('role') !== 'gridcell' || !cell.dataset?.date) return; // 活动条自行处理
+    e.preventDefault();
+    const [y, mo, day] = cell.dataset.date.split('-').map(Number);
+    let delta;
+    if (e.key === 'ArrowLeft') delta = -1;
+    else if (e.key === 'ArrowRight') delta = 1;
+    else if (e.key === 'ArrowUp') delta = -7;
+    else if (e.key === 'ArrowDown') delta = 7;
+    else {
+      const dow = (new Date(y, mo - 1, day).getDay() + 6) % 7; // 0=周一（与表头 DN 一致）
+      delta = e.key === 'Home' ? -dow : 6 - dow;
+    }
+    const target = grid.querySelector(`[data-date="${_fmtDate(new Date(y, mo - 1, day + delta))}"]`);
+    if (!target) return; // 越出当前视图范围：不移动
+    grid.querySelectorAll('[data-date][role="gridcell"]').forEach(c => c.setAttribute('tabindex', c === target ? '0' : '-1'));
+    target.focus();
+  });
 }
 
 /** R3-F03/B01：日期格键盘选中（Enter/Space 与点击完全等价；不拦截格内活动条目的键盘事件）。
@@ -1032,13 +1086,10 @@ function _renderMonthViewCompact(grid, activeActivities, month, state, mode) {
   const firstDow = (rawFirst + 6) % 7;
   const daysInMonth = new Date(y, m, 0).getDate();
 
-  let html = `<div class="mb-6">`;
-  html += `<div class=" text-sm font-bold text-gray-700 mb-3 pb-2 border-b border-gray-100">${y}年 ${MN[m - 1]}</div>`;
-  html += `<div style="display:grid;grid-template-columns:repeat(7,1fr);grid-auto-rows:auto;gap:2px;">`;
-  DN.forEach(d => { html += `<div class=" text-[12px] text-gray-500 text-center pb-1.5 font-semibold">${d}</div>`; });
-
+  // 2026-10-27 Task 2（阶段一 · 日历键盘模型）：首页紧凑月视图同样 grid/row + roving。
+  const dayCells = [];
   for (let i = 0; i < firstDow; i++) {
-    html += '<div class="cal-cell-large cal-cell-compact" style="background:transparent;border-color:transparent;"></div>';
+    dayCells.push('<div class="cal-cell-large cal-cell-compact" aria-hidden="true" style="background:transparent;border-color:transparent;"></div>');
   }
   for (let day = 1; day <= daysInMonth; day++) {
     const k = `${month}-${String(day).padStart(2, '0')}`;
@@ -1049,20 +1100,32 @@ function _renderMonthViewCompact(grid, activeActivities, month, state, mode) {
     if (hasActivity) cls += ' has-tasks';
     if (isT) cls += ' is-today';
 
-    html += `<div class="${cls} cal-cell-compact" data-date="${k}" tabindex="0" role="gridcell">`;
-    html += `<div class=" text-[12px] font-semibold mb-1 ${isT ? 'text-red-700' : 'text-gray-600'}">${day}</div>`;
+    let cellHtml = `<div class="${cls} cal-cell-compact" data-date="${k}" tabindex="0" role="gridcell">`;
+    cellHtml += `<div class=" text-[12px] font-semibold mb-1 ${isT ? 'text-red-700' : 'text-gray-600'}">${day}</div>`;
     dayActs.slice(0, 3).forEach(act => {
       const color = getActivityColor(act);
       const shortLabel = ACTIVITY_TYPE_SHORT[act.scenarioId] || ACTIVITY_TYPE_SHORT[act.type] || (act.type ? act.type.slice(0, 2) : '活动');
-      html += `<div class="cal-activity-tag cal-activity-item tint-fill tint-fill--outline cursor-pointer transition-colors" data-tone="${_activityTone(act)}" data-act-id="${act.id || ''}" data-date="${k}" tabindex="0" role="button" aria-label="查看活动：${act.title || ''}" title="${act.title || ''}">` +
+      cellHtml += `<div class="cal-activity-tag cal-activity-item tint-fill tint-fill--outline cursor-pointer transition-colors" data-tone="${_activityTone(act)}" data-act-id="${act.id || ''}" data-date="${k}" tabindex="0" role="button" aria-label="查看活动：${act.title || ''}" title="${act.title || ''}">` +
               `<span class="cal-activity-dot" style="${_accDot(color)}background:${color.text};"></span>` +
               `<span>${shortLabel}</span></div>`;
     });
-    if (dayActs.length > 3) html += `<div class=" text-xs text-gray-500 text-center mt-0.5">+${dayActs.length - 3} 项</div>`;
-    html += '</div>';
+    if (dayActs.length > 3) cellHtml += `<div class=" text-xs text-gray-500 text-center mt-0.5">+${dayActs.length - 3} 项</div>`;
+    cellHtml += '</div>';
+    dayCells.push(cellHtml);
+  }
+
+  let html = `<div class="mb-6">`;
+  html += `<div class=" text-sm font-bold text-gray-700 mb-3 pb-2 border-b border-gray-100">${y}年 ${MN[m - 1]}</div>`;
+  html += `<div role="grid" aria-label="${y}年${m}月活动日历" style="display:grid;grid-template-columns:repeat(7,1fr);grid-auto-rows:auto;gap:2px;">`;
+  html += `<div role="row" style="display:contents;">`;
+  DN.forEach(d => { html += `<div role="columnheader" class=" text-[12px] text-gray-500 text-center pb-1.5 font-semibold">${d}</div>`; });
+  html += `</div>`;
+  for (let i = 0; i < dayCells.length; i += 7) {
+    html += `<div role="row" style="display:contents;">${dayCells.slice(i, i + 7).join('')}</div>`;
   }
   html += '</div></div>';
   grid.innerHTML = html;
+  _bindCalendarRoving(grid);
 
   _bindCellClicks(grid, mode);
   _bindHoverPreview(grid, dayIndex);

@@ -10,20 +10,20 @@
 //   - party 页面已移除，organizer/deep 内容落在成员工作台（workspace/visitor.html）——
 //     首页并无"我的角色"区块（2026-09-17 批次 64 dogfood 实测）
 
-import { DEFAULT_BRANCH_ID, ROLE_LABELS, ROLE_PAGE_MAP, BRANCH_COMMISSION_ROLES } from '../../core/domain/constants.js?v=20261026a';
-import { PEOPLE } from '../../data/mock/index.js?v=20261026a';
+import { DEFAULT_BRANCH_ID, ROLE_LABELS, ROLE_PAGE_MAP, BRANCH_COMMISSION_ROLES } from '../../core/domain/constants.js?v=20261026b';
+import { PEOPLE } from '../../data/mock/index.js?v=20261026b';
 // 账号登录校验（认证域收口：UI 不直连 mock 账号仓；真实后端接入时此处替换校验实现）
 // 2026-09-14 批次 25：改为「可持久化账号层 ∪ 静态种子表」校验（成员流入自动建号 / 流出停用；
 //   见 services/core/accounts.js），支撑「账号与成员档案同源」口径。
-import { verifyLogin } from './accounts.js?v=20261026a';
-import { getPersonById, getPersonName } from '../member/person.js?v=20261026a';
-import { mockDB, WORKGROUP_WRITABLE_STATUSES } from '../../core/domain/domain.js?v=20261026a';
-import { NoticeStore } from '../governance/notice.js?v=20261026a';
-import { getAdapter, migrateLegacyPersonId } from '../../data/data-adapter.js?v=20261026a';
-import { enableApiMode } from './runtime.js?v=20261026a';
-import { generateId } from '../../core/base/id.js?v=20261026a';
-import { todayLocal } from '../../core/base/utils.js?v=20261026a';
-import { WORKGROUP_PERMISSION_TEMPLATES_BY_KIND } from '../../core/domain/workgroup-policy.js?v=20261026a';
+import { verifyLogin } from './accounts.js?v=20261026b';
+import { getPersonById, getPersonName } from '../member/person.js?v=20261026b';
+import { mockDB, WORKGROUP_WRITABLE_STATUSES } from '../../core/domain/domain.js?v=20261026b';
+import { NoticeStore } from '../governance/notice.js?v=20261026b';
+import { getAdapter, migrateLegacyPersonId } from '../../data/data-adapter.js?v=20261026b';
+import { enableApiMode } from './runtime.js?v=20261026b';
+import { generateId } from '../../core/base/id.js?v=20261026b';
+import { todayLocal } from '../../core/base/utils.js?v=20261026b';
+import { WORKGROUP_PERMISSION_TEMPLATES_BY_KIND } from '../../core/domain/workgroup-policy.js?v=20261026b';
 
 // 迁移期（2026-10-20）：旧 p* 仅作登录别名 / 历史 localStorage 兼容，会话一律存学号。
 // 映射表经 data-adapter 的迁移入口转出，业务层不直接引用 deprecated 映射文件。
@@ -909,7 +909,7 @@ function _syncAuthAuditToServer(records) {
   const fresh = rows.filter((r) => r && r.id && !_auditSyncedIds.has(r.id));
   if (!fresh.length) return;
   fresh.forEach((r) => _auditSyncedIds.add(r.id));
-  const sync = import('../../data/data-adapter.js?v=20261026a').then(async ({ getDataSource, getAdapter }) => {
+  const sync = import('../../data/data-adapter.js?v=20261026b').then(async ({ getDataSource, getAdapter }) => {
     if (getDataSource() !== 'api') return; // mock 形态：不发（本机键即权威）
     const a = getAdapter();
     if (!a.authAudit || typeof a.authAudit.create !== 'function') return;
@@ -926,7 +926,7 @@ function _syncAuthAuditToServer(records) {
 }
 
 // R3-P1（F-09）：授权审计语义端点登记 pending-writes（置尾 import，避免上文 README 取证行号漂移）
-import { trackWrite } from '../../core/session/pending-writes.js?v=20261026a';
+import { trackWrite } from '../../core/session/pending-writes.js?v=20261026b';
 
 // ════════════════════════════════════════════════════════════════
 //  服务端优先登录（2026-10-26 Task 2.1）
@@ -939,7 +939,7 @@ import { trackWrite } from '../../core/session/pending-writes.js?v=20261026a';
 // IAAA 路径不经本函数（`startIaaaSession` 保持原样）。
 // ⚠ 置尾覆盖：本文件上文的行号是 README-server.md 的取证靶点，`login()` 原位改写会整体漂移；
 //   故与 `deputy-leader` / 审计同步同法——**集中置尾**重绑 `AuthStore.login`，语义不变、上方行号不动。
-import { DEPLOY_MODE } from '../../config/deploy.js?v=20261026a';
+import { DEPLOY_MODE } from '../../config/deploy.js?v=20261026b';
 
 const LOGIN_ENDPOINT = '/api/v1/auth/login';
 

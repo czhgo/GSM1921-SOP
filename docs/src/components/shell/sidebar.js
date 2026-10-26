@@ -11,11 +11,10 @@
 // （R1-A 2026-09-09 支书裁决：不写全局键、person 无键=出厂默认不继承；冻结读取点
 // theme-init.js 首帧 / bootstrap.js 字号 / constants.js resolveAccentRole 保持全局键语义不改）。
 
-import { getBasePath } from '../../core/base/utils.js?v=20261026a';
-import { icon } from '../../core/base/icons.js?v=20261026a';
-import { syncAppearanceForActiveUser } from '../../core/boot/theme.js?v=20261026a';
-import { readLoginSnapshot } from '../../core/session/login-snapshot.js?v=20261026a';
-import { DEPLOY_MODE } from '../../config/deploy.js?v=20261026a';
+import { getBasePath } from '../../core/base/utils.js?v=20261026b';
+import { icon } from '../../core/base/icons.js?v=20261026b';
+import { syncAppearanceForActiveUser } from '../../core/boot/theme.js?v=20261026b';
+import { readLoginSnapshot } from '../../core/session/login-snapshot.js?v=20261026b';
 
 // 外观键空间适配：页面壳加载即执行（全站每页均渲染 sidebar，天然覆盖公共页/工作台）
 syncAppearanceForActiveUser();
@@ -29,7 +28,7 @@ syncAppearanceForActiveUser();
 let AuthStore = null;
 let _authModule = null;
 function loadAuth() {
-  if (!_authModule) _authModule = import('../../services/core/auth.js?v=20261026a');
+  if (!_authModule) _authModule = import('../../services/core/auth.js?v=20261026b');
   return _authModule;
 }
 
@@ -41,7 +40,7 @@ function loadAuth() {
 // 支部层各角色（支书/副支书/三委员/组长/成员）导航行为不变。
 const PARTY_STAFF_HIDDEN_NAV = new Set(['dashboard', 'search', 'feedback', 'archive', 'messages']);
 
-// 页脚动作（帮助/关于/设置/登录/退出）共用一档：Caption 12px、紧凑 28px（2026-10-18 支书实报
+// 页脚动作（帮助/设置/登录/退出）共用一档：Caption 12px、紧凑 28px（2026-10-18 支书实报
 // 「间距太大」后由 36px 收紧）。样式单一源＝styles.css `.sidebar-footer-action`，此处不再写内联样式。
 
 function getNavItems() {
@@ -63,11 +62,8 @@ function getFooterItems() {
   const items = [
     { module: 'help', label: '帮助', href: base + 'help.html' },
   ];
-  // 「关于」仅在静态托管（GitHub Pages）显示——有后端（内部工具）无公开门面
-  // 依据 content/04_web_design/deploy/AUTHENTICATION_MODEL.md §三
-  if (DEPLOY_MODE === 'static') {
-    items.push({ module: 'about', label: '关于', href: base + 'about.html' });
-  }
+  // 「关于」撤路由（2026-10-27 Task 12.4）：about.html 文件保留（旧外链仍可直达），
+  // 但不再有任何导航入口——侧边栏/帮助目录/README 指针一并撤除。
   // 「设置」入口（设置中心批1，2026-09-09）：全形态可见——访客进设置页仅外观，登录人按角色分组
   items.push({ module: 'settings', label: '设置', href: base + 'settings.html' });
   return items;
@@ -165,7 +161,7 @@ export async function renderSidebar(activeModule, opts = {}) {
 
   if (user) {
     _bindLogout(sidebar);
-    // 静态壳页（帮助 / 关于等）不加载通知数据链，与顶栏铃铛同策略：app 页才挂未读角标。
+    // 静态壳页（帮助等）不加载通知数据链，与顶栏铃铛同策略：app 页才挂未读角标。
     if (!staticShell) _bindMessageBadge();
   }
 }
@@ -178,7 +174,7 @@ async function _refreshMessageBadge() {
   const badge = document.getElementById('sidebar-message-badge');
   if (!badge) return;
   try {
-    const { NoticeStore } = await import('../../services/governance/notice.js?v=20261026a');
+    const { NoticeStore } = await import('../../services/governance/notice.js?v=20261026b');
     const unread = NoticeStore.countUnread(readLoginSnapshot()?.personId || null);
     if (unread > 0) {
       badge.textContent = unread > 9 ? '9+' : String(unread);
@@ -196,7 +192,7 @@ async function _bindMessageBadge() {
   if (_badgeBound) return;
   _badgeBound = true;
   try {
-    const { DATA_CHANGED_EVENT, DATA_LOADED_EVENT } = await import('../../data/data-adapter.js?v=20261026a');
+    const { DATA_CHANGED_EVENT, DATA_LOADED_EVENT } = await import('../../data/data-adapter.js?v=20261026b');
     document.addEventListener(DATA_CHANGED_EVENT, _refreshMessageBadge);
     document.addEventListener(DATA_LOADED_EVENT, _refreshMessageBadge);
   } catch (_) { /* 静默 */ }

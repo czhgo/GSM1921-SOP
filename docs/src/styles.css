@@ -1,5 +1,5 @@
 /* 组件样式（@import 必须位于文件顶部） */
-@import url('components/person-picker.css?v=20261026a');
+@import url('components/person-picker.css?v=20261026b');
 
 /* ═══════════════════════════════════════════════════════════════
    GSM1921-SOP DESIGN SYSTEM v11.0 — Matte Flat
@@ -48,18 +48,35 @@
   --status-warning: #F59E0B;
   --status-error:   #EF4444;
   --status-info:    #3B82F6;
+  /* 2026-10-27 Task 11.1：warning 的**文字档**（填充仍用 --status-warning）。
+     病灶：逾期数值 / 超期标签直接写 --status-warning，白底 2.15:1。
+     本档取 amber-800（白底 7.09:1），暗色段同步换 amber-300（深卡 13:1 量级）；
+     只服务文字，不承担圆点 / 左条 / 底色。 */
+  --status-warning-text: #92400E;
   /* 短期别名（批次 512 前兼容；新代码不得再写 --functional-*） */
   --functional-success: var(--status-success);
   --functional-warning: var(--status-warning);
   --functional-error:   var(--status-error);
   --functional-info:    var(--status-info);
 
-  /* 类别色（固定语义，不随主题切换；暗色值见 html.theme-dark 段） */
-  --color-category-three-meetings: #CE1126;
-  --color-category-three-meetings-dark: #FCA5A5;
-  --color-category-theme-day: #A16207;
-  --color-category-theme-day-dot: #FFD700;
-  --color-category-theme-day-dark: #FCD34D;
+  /* 功能色（固定语义，不随主题切换；2026-10-27 Task 11.4）：
+     三会一课用功能红、主题党日用功能金，**只进徽章 / 圆点 / 左条 / 图例**。
+     与 danger / warning 及主题 accent 逐值不同：功能红＝党建红（比 danger 更亮、
+     比主题红更饱和）；功能金＝深琥珀 / 亮金（比 warning 更深 / 更浅，与主题金不同值）。
+     文字 vs 徽章底 ≥4.5:1。 */
+  --color-functional-red: #CE1126;
+  --color-functional-red-dark: #FCA5A5;
+  --color-functional-gold: #A16207;
+  --color-functional-gold-dark: #FCD34D;
+
+  /* 类别色（固定语义，不随主题切换；暗色值见 html.theme-dark 段）
+     2026-10-27 Task 11.4：类别不再自己写 hex，改为引用上面的功能 token——
+     三会一课 = 功能红，主题党日 = 功能金；圆点仍取党徽金 --party-gold。 */
+  --color-category-three-meetings: var(--color-functional-red);
+  --color-category-three-meetings-dark: var(--color-functional-red-dark);
+  --color-category-theme-day: var(--color-functional-gold);
+  --color-category-theme-day-dot: var(--party-gold);
+  --color-category-theme-day-dark: var(--color-functional-gold-dark);
   --color-category-other: #6B7280;
   --color-category-other-dark: #CBD5E1;
 
@@ -170,6 +187,12 @@
      帮助链接 / 速查链接 / 角色色链接 / about·help 内联蓝链一律并入本 token。 */
   --color-link: var(--app-accent-soft-text);
 
+  /* 分组胶囊淡底（2026-10-27 Task 9 · 恢复 8–9 月原样）：主题色 10% 淡底。
+     rgb(from …) 只把当前主题色换算成 10% alpha，不写死任何主题色 hex、不用 color-mix()；
+     --app-accent 已按亮/暗选边 ⇒ 7 主题 × 亮/暗自动跟随，切主题无需重注入。
+     与选中页签的 solid soft 底（--app-accent-soft-bg）明显不同：组名更淡、无边框。 */
+  --app-accent-tint: rgb(from var(--app-accent) r g b / 10%);
+
   /* 2026-10-24 批次 508：兼容别名（--app-accent-bg/-border/-text/-deep/-strong/-ink）已退场，
      消费方全部改用 --app-accent-soft-* / --app-accent-strong-*。 */
 
@@ -241,6 +264,16 @@
   --text-xl:   1.25rem;
   --text-2xl:  1.375rem;
   --text-3xl:  1.5rem;
+
+  /* 2026-10-27 Task 9：正文三档（14–16 / 13 / 12）——正文 15px 不再由浏览器默认 16px 兜底；
+     12px 只承担元信息 / 标签，不再承担正文。 */
+  --text-body:      0.9375rem;  /* 15px · 正文 */
+  --text-secondary: 0.8125rem;  /* 13px · 次要说明 */
+  --text-meta:      0.75rem;    /* 12px · 元信息 / 标签 */
+
+  /* 标题 display 族（2026-10-27 Task 9）：全站唯一衬线族＋固定回退，
+     页头 / 页题 / 卡标题 / 侧栏组名共用，不再各写一套 STZhongsong/Noto Serif 混排。 */
+  --font-display: 'Noto Serif SC', 'STSong', 'SimSun', serif;
 
   /* ── Type — 行高 ── */
   --leading-tight:  1.25;
@@ -467,6 +500,7 @@ html {
 
 body {
   font-family: 'Noto Sans SC', -apple-system, 'PingFang SC', 'Microsoft YaHei', 'Helvetica Neue', sans-serif;
+  font-size: var(--text-body);
   background-color: var(--surface-page);
   min-height: 100vh;
   color: var(--neutral-800);
@@ -544,11 +578,11 @@ body {
    ═══════════════════════════════════════════════════════════════ */
 
 /* ── 字体家族 ── */
-.font-title-cn { font-family: 'STZhongsong', '华文中宋', 'STSong', 'SimSun', 'PingFang SC', serif; font-weight: 800; }
+.font-title-cn { font-family: var(--font-display); font-weight: 800; }
 
 /* ── 正文层级 ── */
 .text-body-sm {
-  font-size: 0.8125rem;
+  font-size: var(--text-secondary);
   line-height: 1.5;
   font-weight: 400;
 }
@@ -660,7 +694,7 @@ body {
 }
 .page-frame__title {
   margin-top: 0.25rem;
-  font-family: 'STZhongsong', '华文中宋', 'STSong', 'SimSun', 'PingFang SC', serif;
+  font-family: var(--font-display);
   font-size: 1.25rem;
   font-weight: 700;
   color: var(--neutral-900);
@@ -1447,7 +1481,8 @@ button:disabled { cursor: not-allowed; }
 
 /* ── 第二档：纯文字动作 `.btn-text`（2026-10-26 Task 5.1）──
    条件：改数据/跳转但不是「按钮」形态（如段头「全部 ›」、返回列表）。
-   最低静态线索＝**下划线**；调用方通常再带尾随箭头（`›` / `→`）。
+   2026-10-27 Task 9：全站文本下划线清零——静态线索改 `font-weight:600` + 主题色字，
+   调用方仍带尾随箭头（`›` / `→`）；hover 补 10% 主题淡底。不再用下划线。
    不是动作按钮：不参与「按钮尺寸归一」四档，也不得用 `btn-ghost` 顶替。 */
 .btn-text {
   display: inline-flex;
@@ -1458,10 +1493,14 @@ button:disabled { cursor: not-allowed; }
   border: 0;
   color: var(--color-link);
   font: inherit;
-  text-decoration: underline;
-  text-underline-offset: 2px;
+  font-weight: 600;
+  text-decoration: none;
   border-radius: 2px;
+  transition: background-color var(--transition-press), color var(--transition-press);
   cursor: pointer;
+}
+@media (hover: hover) {
+  .btn-text:hover { background: var(--app-accent-tint); }
 }
 .btn-text:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 2px; }
 
@@ -1553,22 +1592,21 @@ button:disabled { cursor: not-allowed; }
   color: var(--app-accent-soft-text) !important;
 }
 /* 2026-10-23 批次 507：全站「跳转链接」的单一源（页内导航 / 帮助链接 / 行尾更多）。
-   2026-10-26 Task 4：色取全站唯一链接 token `--color-link`（＝主题 soft-text，亮/暗由别名选边）；
-   静态下划线作非颜色线索（不得只靠颜色），hover 不再改色。
-   `.text-accent` 保留为等价别名（存量调用点不迁移）；`a.text-accent` 同样补静态下划线。 */
+   2026-10-26 Task 4：色取全站唯一链接 token `--color-link`（＝主题 soft-text，亮/暗由别名选边）。
+   2026-10-27 Task 9：全站文本下划线清零——静态线索改 `font-weight:600`（正文内链）＋主题色字，
+   hover 补 10% 主题淡底；不再用下划线。`.text-accent` 保留为等价别名（存量调用点不迁移）。 */
 .link {
   color: var(--color-link);
-  text-decoration: underline;
-  text-underline-offset: 2px;
+  font-weight: 600;
+  text-decoration: none;
   border-radius: 2px;
-  transition: color var(--transition-press), text-decoration-color var(--transition-press);
+  transition: color var(--transition-press), background-color var(--transition-press);
 }
 a.text-accent {
-  text-decoration: underline;
-  text-underline-offset: 2px;
+  text-decoration: none;
 }
 @media (hover: hover) {
-  .link:hover { text-decoration: underline; text-underline-offset: 2px; }
+  .link:hover { background: var(--app-accent-tint); }
 }
 .link:active { color: var(--color-link); }
 .link:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 2px; }
@@ -2071,6 +2109,18 @@ a.text-accent {
   transition: box-shadow var(--transition-normal);
 }
 
+/* 2026-10-27 Task 2（阶段一 · 操作成本）：顶栏焦点环只在本作用域改为党徽金。
+   病灶：全局深灰焦点环＋黑光晕落在深红顶栏上仅 1.28:1，键盘用户看不出焦点在哪；
+   `--party-gold` 对顶栏深红约 8.2:1，满足 WCAG 1.4.11 的 3:1。
+   不改全站 --focus-ring；通知下拉是浅底卡片、仍继承全局深灰环，故不纳入本选择器。 */
+#app-header .hamburger-btn:focus-visible,
+#app-header .header-action-btn:focus-visible,
+#app-header #notif-btn:focus-visible {
+  outline: 2px solid var(--party-gold);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 6px rgba(255, 215, 0, 0.3);
+}
+
 .header-content {
   margin: 0 auto;
   height: 100%;
@@ -2111,7 +2161,7 @@ a.text-accent {
 }
 
 .header-title h1 {
-  font-family: 'Noto Serif SC', 'STSong', 'SimSun', serif;
+  font-family: var(--font-display);
   font-weight: 800;
   font-size: 1.375rem;
   /* T231 修复：header 底恒为深红 #7A0010，标题固定白字（勿用 var(--neutral-0)，
@@ -2299,14 +2349,16 @@ a.text-accent {
 }
 
 .module-tab.active {
-  /* 2026-10-24 批次 508：唯一豁免——侧边栏需要纵深，选中保留浅灰；其余选中一律主题 soft。 */
+  /* 2026-10-24 批次 508：唯一豁免——侧边栏需要纵深，选中保留浅灰；
+     2026-10-27 Task 11.2：文字改主题 soft（亮/暗别名自动切），不再固定党建红、
+     也不再在暗色借 --status-error（#F87171 与未读红点 / 错误红混淆）。 */
   background-color: var(--surface-active);
-  color: var(--primary-700);
+  color: var(--app-accent-soft-text);
   border: none;
 }
 
 .module-tab.active svg {
-  color: var(--primary-700);
+  color: var(--app-accent-soft-text);
 }
 
 .sidebar-nav {
@@ -2631,24 +2683,28 @@ html.theme-dark .cal-cell-large.is-today, html.theme-dark .cal-cell-mobile.is-to
   outline-offset: 2px;
 }
 
-/* ── Tab 按钮 active 状态（2026-10-24 批次 508：改消费主题 soft 三件套，不再注入 --tab-accent*） ── */
+/* ── Tab 按钮 active 状态（2026-10-24 批次 508：改消费主题 soft 三件套，不再注入 --tab-accent*） ──
+   2026-10-27 Task 9：与组名淡底（10% tint）拉开层级——底色保持 solid soft，描边改用主题 accent
+   （比 soft-border 更强），字重 700；不使用任何文本下划线。 */
 .tab-btn-active {
   background: var(--app-accent-soft-bg);
   /* 2026-10-23 批次 507：选中页签的文字改取主题 softText（浅底深字手选值），
      删除 `color-mix(--tab-accent 45%, #000)` 的运行时派生——与全站链接/选中态同源。 */
   color: var(--app-accent-soft-text);
-  border: 1px solid var(--app-accent-soft-border);
+  border: 1px solid var(--app-accent);
+  font-weight: 700;
+  text-decoration: none;
 }
 
 /* ── 页签分组标识（2026-10-23 R11 P0-06 · 取代 2026-10-21 R5-C01 的「1px 竖线」）──
    所有宽度：每组前显示可见组名（含首组），组间以 .tab-group-sep 的 1px 线分隔；
    ≤1280px：只缩小内边距与字号，**不再隐藏组名**（2026-10-26 Task 3.5 删除 display:none 口径）；
    ≤1024px：分隔线保留，仅缩小左右外边距，页签条由 .ws-tab-scroll 保证单行不换行、可横向滚动。 */
-/* 组名＝可见小胶囊——恢复 8–9 月视觉语义（2026-10-26 Task 1）：
-   主题色 soft 底 + 主题 soft 深字、3px 直角、600 字重、0.5px 字距；
-   描边取 --neutral-400（形状与页面底约 2.4:1，≥1.5:1；亮/暗由 token 自动选边）、
+/* 组名＝可见小胶囊——恢复 8–9 月视觉语义（2026-10-26 Task 1；2026-10-27 Task 9 去边框）：
+   主题色 10% 淡底（--app-accent-tint）＋ 主题 soft 深字、**无边框**、3px 直角、600 字重、0.5px 字距、12px；
    左右 6px 内边距、高度 ≥24px；非按钮（role="presentation"）⇒ 无 hover、无 cursor:pointer、
-   不进入 tab 序列。不得用 color-mix() / rgba(主题色) 派生主题色。 */
+   不进入 tab 序列。不得用 color-mix() / rgba(主题色) 派生主题色；形状由 3px 直角与淡底承担，
+   与选中页签的 solid soft 底 + accent 描边明显区分。 */
 .tab-group-label {
   display: inline-flex;
   align-items: center;
@@ -2657,9 +2713,9 @@ html.theme-dark .cal-cell-large.is-today, html.theme-dark .cal-cell-mobile.is-to
   min-height: 24px;
   margin: 0 8px 0 0;
   padding: 1px 6px;
-  border: 1px solid var(--neutral-400);
+  border: none;
   border-radius: 3px;
-  background: var(--app-accent-soft-bg);
+  background: var(--app-accent-tint);
   font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.5px;
@@ -2683,8 +2739,9 @@ html.theme-dark .cal-cell-large.is-today, html.theme-dark .cal-cell-mobile.is-to
   background: var(--neutral-200);
 }
 @media (max-width: 1280px) {
-  /* 全宽可见（Task 3.5）：只缩外边距与内边距；min-height 24px 不变，形状对比由描边承担。
-     2026-10-26 Task 1：字号保持 12px（11px 属 Overline 标签档，正文/组名不得下探）。 */
+  /* 全宽可见（Task 3.5）：只缩外边距与内边距；min-height 24px 不变。
+     2026-10-26 Task 1：字号保持 12px（11px 属 Overline 标签档，正文/组名不得下探）。
+     2026-10-27 Task 9：去边框后高度由 min-height 24px 承担（内容行高 16 + 上下 1px）。 */
   .tab-group-label {
     margin-right: 6px;
     padding: 1px 5px;
@@ -2708,22 +2765,63 @@ html.theme-dark .cal-cell-large.is-today, html.theme-dark .cal-cell-mobile.is-to
 .ws-tab-scroll {
   position: relative;
   /* R5-C01：右侧箭头为绝对定位覆盖层 ⇒ 给滚动区预留 40px 内边距，
-     末枚页签不再被箭头压住（桌面 1440 下 secretary / visitor 末签可见）。 */
+     末枚页签不再被箭头压住（桌面 1440 下 secretary / visitor 末签可见）。
+     2026-10-27 Task 6.2：≥1281px 放开到容器可用宽度（箭头已挂页签行、按需显示），
+     窄屏仍留 40px 给覆盖式箭头。 */
   padding-right: 40px;
   scroll-behavior: smooth;
   scrollbar-width: none;            /* Firefox */
   -ms-overflow-style: none;         /* IE/旧 Edge */
   -webkit-overflow-scrolling: touch;/* iOS 惯性滚动 */
 }
+@media (min-width: 1281px) {
+  .ws-tab-scroll { padding-right: 0; }
+}
 .ws-tab-scroll::-webkit-scrollbar {
   display: none;                    /* Chrome/Safari */
 }
 
+/* ── 页签条分层（2026-10-27 Task 6.1 · 脏乱繁）──
+   `.ws-tab-shell` 为两行容器：第 1 行＝组名行（`当前组：…`，非按钮）+「还有 N 个」+右侧动作；
+   第 2 行＝`.ws-tab-row`（左右箭头 + 页签条），箭头与页签共轴、不再覆盖组名。
+   `flex-wrap` 由 CSS 补（内联只写 display/align-items/gap，见 tab-bar.js 的守卫口径）。 */
+.ws-tab-groups {
+  order: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+  margin-right: auto;
+}
+.ws-tab-row {
+  order: 2;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  position: relative;
+  flex: 1 0 100%;
+  min-width: 0;
+}
+/* 「还有 N 个」：与页签行同属溢出提示，只在可滚且未到末端时出现；组名行右端对齐。
+   形态走 `.btn-text`（第二档纯文字动作，单一源），此处只收敛字号与排序。 */
+.ws-tab-more {
+  order: 1;
+  flex-shrink: 0;
+  font-size: 12px;
+}
+.ws-tab-more[hidden] { display: none !important; }
+.ws-tab-extra {
+  order: 1;
+}
+
 /* ── 页签溢出提示（2026-10-19）：定位壳 + 左右箭头 + 右侧渐隐 ──
    箭头由 tab-bar.js 用 `.btn-outline.btn-icon`（32×32 命中区）渲染，仅在可滚时移除 `hidden`；
-   渐隐由 `data-scrollable` / `data-scroll-end` 驱动，滚到末端即消失，且不覆盖箭头（z-index 分层）。 */
+   渐隐由 `data-scrollable` / `data-scroll-end` 驱动，滚到末端即消失，且不覆盖箭头（z-index 分层）。
+   2026-10-27 Task 6.1：箭头挂 `.ws-tab-row`（position:relative），`top:50%` 即页签条轴线。 */
 .ws-tab-shell {
   position: relative;
+  /* 2026-10-27 Task 6.1：两行布局——组名行在上、页签行在下（`.ws-tab-row` 占满整行）。 */
+  flex-wrap: wrap;
 }
 .ws-tab-arrow {
   position: absolute;
@@ -2736,12 +2834,14 @@ html.theme-dark .cal-cell-large.is-today, html.theme-dark .cal-cell-mobile.is-to
 .ws-tab-arrow--left { left: 0; }
 .ws-tab-arrow--right { right: 0; }
 .ws-tab-arrow[hidden] { display: none !important; }
+/* 右侧渐隐只压在页签行（组名行在它上方，不参与渐隐）。 */
 .ws-tab-shell::after {
   content: '';
   position: absolute;
-  top: 0;
+  top: auto;
   right: 0;
   bottom: 0;
+  height: 52px;
   width: 40px;
   z-index: 1;
   pointer-events: none;
@@ -2802,6 +2902,15 @@ html.theme-dark .cal-cell-large.is-today, html.theme-dark .cal-cell-mobile.is-to
 }
 html.theme-dark .stat-icon-tint {
   background: color-mix(in srgb, var(--tint, #CE1126) 14%, var(--surface-card));
+}
+/* 2026-10-27 Task 6.4（脏乱繁）：首页统计卡等高 + 短标签 + 图标顶对齐。
+   `min-height` 取「图标 40 + 数值/标签/状态三行 + 上下 16×2」的最高一格（实测 99）⇒ 四张同高；
+   390 两列网格里不再出现 79 / 99 两种高度。 */
+.stat-card {
+  min-height: 100px;
+}
+.stat-card__note {
+  margin-top: var(--space-1);
 }
 @media (min-width: 769px) {
   .cal-mobile-detail {
@@ -2936,8 +3045,10 @@ html.theme-dark .stat-icon-tint {
 }
 @media (hover: hover) {
   .vote-btn:hover {
+    /* 2026-10-27 Task 11.4：hover 文字改中性深字——功能金只服务类别徽章 / 圆点 / 左条 / 图例，
+       不再借作控件文字色。 */
     border-color: var(--party-gold);
-    color: var(--color-category-theme-day);
+    color: var(--neutral-800);
   }
 }
 .vote-btn:active {
@@ -3488,11 +3599,11 @@ input.login-input:focus-visible {
    MISC — Pulse / Calendar-specific rules
    ═══════════════════════════════════════════════════════════════ */
 #view-calendar label {
-  font-family: 'STZhongsong', '华文中宋', 'Noto Serif SC', 'STSong', 'SimSun', serif;
+  font-family: var(--font-display);
 }
 
 .module-tab span {
-  font-family: 'STZhongsong', '华文中宋', 'Noto Serif SC', 'STSong', 'SimSun', serif;
+  font-family: var(--font-display);
 }
 
 /* 2026-10-23 Task 7：空态是纯展示，删除 hover 降透明度（opacity 不再承担 hover 态）。 */
@@ -3909,7 +4020,8 @@ input.login-input:focus-visible {
 
 .workflow-substates-hint {
   font-size: 0.75rem;
-  color: var(--status-warning);
+  /* 2026-10-27 Task 11.1：文字色改 warning 文字档（填充色只留圆点 / 左条）。 */
+  color: var(--status-warning-text);
   margin-top: 8px;
   padding: 6px 10px;
   background: rgba(217,119,6,0.06);
@@ -3972,14 +4084,11 @@ input.login-input:focus-visible {
     top: 50%;
     transform: translateY(-50%);
     z-index: 30;
-    opacity: 0.4;
+    /* 2026-10-27 Task 11.3：整块 opacity 退场——它同时压暗了激活圆点与 tooltip 标签，
+       激活态实测低于 4.5:1。透明度只作用未激活圆点（见 .help-toc-dot-mark），
+       标签始终不透明。transition 声明保留为 help 目录既有动效白名单条目。 */
     transition: opacity 240ms var(--help-ease);
     pointer-events: none;
-  }
-
-  /* 2026-10-23 Task 7：目录提亮改由键盘焦点触发（原来只有 JS mouseenter 一条路径）。 */
-  .help-toc-nav:focus-within {
-    opacity: 1;
   }
 
   .help-toc-nav-inner {
@@ -4006,6 +4115,8 @@ input.login-input:focus-visible {
     height: 6px;
     border-radius: 50%;
     background: #D1D5DB;
+    /* 未激活圆点弱化；激活 / 焦点回到 1（2026-10-27 Task 11.3）。 */
+    opacity: 0.45;
     transition: background-color 240ms var(--help-ease), transform 240ms var(--help-ease);
   }
 
@@ -4017,12 +4128,14 @@ input.login-input:focus-visible {
 
   .help-toc-dot-item:focus-visible .help-toc-dot-mark {
     background: #9CA3AF;
+    opacity: 1;
   }
 
   .help-toc-dot-item.is-active .help-toc-dot-mark {
     width: 8px;
     height: 8px;
     background: var(--help-party-red);
+    opacity: 1;
     box-shadow: 0 0 0 3px rgba(206, 17, 38, 0.12);
   }
 
@@ -4168,6 +4281,8 @@ input.login-input:focus-visible {
     --status-warning: #FBBF24;
     --status-error:   #F87171;
     --status-info:    #60A5FA;
+    /* 2026-10-27 Task 11.1：warning 文字档同步提亮（只服务文字）。 */
+    --status-warning-text: #FCD34D;
 
     --shadow-dropdown: 0 4px 16px rgba(0, 0, 0, 0.5);
     /* 2026-10-23 批次 507：暗底上 10% 的深色内阴影几乎不可见，加深到 45%（仍只 1px，不位移/缩放）。 */
@@ -4227,7 +4342,7 @@ input.login-input:focus-visible {
   }
   html.theme-dark .text-red-600    { color: var(--status-error) !important; }
   html.theme-dark .text-blue-600   { color: var(--status-info) !important; }
-  html.theme-dark .text-amber-600  { color: var(--status-warning) !important; }
+  html.theme-dark .text-amber-600  { color: var(--status-warning-text) !important; }
 
   /* ── ③ 硬编码浅色组件 ── */
   /* 状态徽章（T-217 行内状态轻交互胶囊：色点 + 文字 + 下拉） */
@@ -4330,7 +4445,7 @@ input.login-input:focus-visible {
   html.theme-dark .doc-fpair { color: var(--neutral-600) !important; background: var(--surface-card) !important; border-color: var(--neutral-300) !important; }
   html.theme-dark .doc-fpair strong { color: var(--neutral-800) !important; }
   html.theme-dark .doc-farrow { color: var(--neutral-300) !important; }
-  html.theme-dark .doc-quote { color: var(--status-warning) !important; }
+  html.theme-dark .doc-quote { color: var(--status-warning-text) !important; }
   html.theme-dark .doc-mini { background: var(--neutral-100) !important; border-color: var(--neutral-200) !important; }
   html.theme-dark .doc-mini h4 { color: var(--status-error) !important; }
   html.theme-dark .doc-mini p { color: var(--neutral-600) !important; }
@@ -4383,10 +4498,9 @@ input.login-input:focus-visible {
   /* R5-C05：二级分段选中态由 `.btn-tab.active` 的 soft 三件套承担；
      深色不再逐点补丁（别名已切 *-dark）。批次 506 删除本段覆盖。 */
 
-  /* 侧边栏激活导航（module-tab.active）：深色底 --surface-active 现已随中性灰（#334155）+ 原红字 #CE1126 对比不足，
-     提亮为功能红 #F87171（与 badge--danger 深色语义一致）；2026-10-23 批次 507 同步更新注释。 */
-  html.theme-dark .module-tab.active { color: var(--status-error) !important; }
-  html.theme-dark .module-tab.active svg { color: var(--status-error) !important; }
+  /* 2026-10-27 Task 11.2：侧边栏激活导航（module-tab.active）的深色补丁整段删除——
+     文字已改主题 soft（--app-accent-soft-text），暗色由别名切 *-dark，
+     不再借 --status-error（它同时是错误红 / 未读红，语义混淆）。 */
 
 /* ═══════════════════════════════════════════════════════════════
    T229 全站统一徽章组件（components/badge.js）
@@ -4413,8 +4527,8 @@ input.login-input:focus-visible {
 .badge--danger  { background: #FEF2F2; color: #B91C1C; border-color: #FECACA; }
 .badge--info    { background: #DBEAFE; color: #1D4ED8; border-color: #BFDBFE; }
 .badge--neutral { background: #F3F4F6; color: var(--color-category-other); border-color: #E5E7EB; }
-.badge--brand   { background: #FEE2E2; color: var(--party-red); border: 1px solid rgba(206, 17, 38, 0.25); }
-.badge--gold    { background: #FEF9C3; color: #A16207; border-color: #FDE68A; font-weight: 600; }
+.badge--brand   { background: #FEE2E2; color: var(--color-functional-red); border: 1px solid rgba(206, 17, 38, 0.25); }
+.badge--gold    { background: #FEF9C3; color: var(--color-functional-gold); border-color: #FDE68A; font-weight: 600; }
 
 /* ── 内联色块统一基础类（T231 第二轮）：内联样式只带 --tint，深浅两套由 CSS 计算 ──
    浅色：色值 10% 叠加透明 + 色字 + 28% 边框（与原 ROLE_COLORS rgba 底同构）；
@@ -4457,8 +4571,9 @@ input.login-input:focus-visible {
 [data-tone="danger"]  { --tone-bg: #FEF2F2; --tone-text: #B91C1C; --tone-border: #FECACA; }
 [data-tone="info"]    { --tone-bg: #DBEAFE; --tone-text: #1D4ED8; --tone-border: #BFDBFE; }
 /* 2026-10-24 批次 508：三会一课/活动类别专用红档（党建红 #CE1126），
-   与 danger（功能错误红 #B91C1C）分开——类别色不得借状态色。 */
-[data-tone="party-red"] { --tone-bg: #FEF2F2; --tone-text: #CE1126; --tone-border: rgba(206, 17, 38, 0.25); }
+   与 danger（功能错误红 #B91C1C）分开——类别色不得借状态色。
+   2026-10-27 Task 11.4：色值改引功能红 token，类别与功能色单一源。 */
+[data-tone="party-red"] { --tone-bg: #FEF2F2; --tone-text: var(--color-functional-red); --tone-border: rgba(206, 17, 38, 0.25); }
 
 html.theme-dark [data-tone="red"]     { --tone-bg: #2A171A; --tone-text: #F87171; --tone-border: #5A2A2F; }
 html.theme-dark [data-tone="amber"]   { --tone-bg: #2E2410; --tone-text: #FBBF24; --tone-border: #5C4718; }
@@ -4472,9 +4587,9 @@ html.theme-dark [data-tone="success"] { --tone-bg: #12291F; --tone-text: #34D399
 html.theme-dark [data-tone="warning"] { --tone-bg: #2E2410; --tone-text: #FBBF24; --tone-border: #5C4718; }
 html.theme-dark [data-tone="danger"]  { --tone-bg: #2A171A; --tone-text: #F87171; --tone-border: #5A2A2F; }
 html.theme-dark [data-tone="info"]    { --tone-bg: #16233A; --tone-text: #60A5FA; --tone-border: #29456E; }
-/* 2026-10-26 Task 4：暗色类别红与 danger 分开——文字取 --color-category-three-meetings-dark（#FCA5A5），
-   底与边也由党建红自身派生，不再与 [data-tone="danger"] 逐值相同。 */
-html.theme-dark [data-tone="party-red"] { --tone-bg: color-mix(in srgb, #CE1126 16%, #0F172A); --tone-text: var(--color-category-three-meetings-dark); --tone-border: color-mix(in srgb, #CE1126 35%, transparent); }
+/* 2026-10-26 Task 4：暗色类别红与 danger 分开——文字取功能红暗色 token（#FCA5A5），
+   底与边也由功能红自身派生，不再与 [data-tone="danger"] 逐值相同。 */
+html.theme-dark [data-tone="party-red"] { --tone-bg: color-mix(in srgb, var(--color-functional-red) 16%, #0F172A); --tone-text: var(--color-functional-red-dark); --tone-border: color-mix(in srgb, var(--color-functional-red) 35%, transparent); }
 
 .tint-pill[data-tone] {
   background: var(--tone-bg);
@@ -4552,7 +4667,7 @@ html.theme-dark [style*="--acc-dot-dark"] {
   html.theme-dark .btn-action-red,
   html.theme-dark .btn-md-red     { color: var(--status-error) !important; }
   html.theme-dark .btn-action-green { color: var(--status-success) !important; }
-  html.theme-dark .btn-action-amber { color: var(--status-warning) !important; }
+  html.theme-dark .btn-action-amber { color: var(--status-warning-text) !important; }
   html.theme-dark .btn-action-orange { color: #FB923C !important; }
 
   html.theme-dark .badge--success { background: #12291F; color: #34D399; border-color: #1E5C44; }
@@ -4560,7 +4675,7 @@ html.theme-dark [style*="--acc-dot-dark"] {
   html.theme-dark .badge--danger  { background: #2A171A; color: #F87171; border-color: #5A2A2F; }
   html.theme-dark .badge--info    { background: #16233A; color: #60A5FA; border-color: #29456E; }
   html.theme-dark .badge--neutral { background: #1E293B; color: var(--color-category-other-dark); border-color: #334155; }
-  html.theme-dark .badge--brand   { background: rgba(206, 17, 38, 0.18); color: var(--color-category-three-meetings-dark); border-color: rgba(206, 17, 38, 0.35); }
+  html.theme-dark .badge--brand   { background: rgba(206, 17, 38, 0.18); color: var(--color-functional-red-dark); border-color: rgba(206, 17, 38, 0.35); }
   html.theme-dark .badge--gold    { background: #2E2510; color: var(--color-category-theme-day-dark); border-color: #5C4718; }
   /* 裸 .badge（无变体类）：基础类硬编码浅灰底 #F3F4F6 + 深灰字 #6B7280 未反转（深色下残留浅块），
      与 badge--neutral 同构覆盖。
@@ -4994,13 +5109,13 @@ html.theme-dark .agg-count-badge {
 }
 .help-note__link {
   color: var(--color-link);
-  text-decoration: underline;
-  text-underline-offset: 2px;
+  font-weight: 600;
+  text-decoration: none;
   margin-left: var(--space-1);
   white-space: nowrap;
 }
 @media (hover: hover) {
-  .help-note__link:hover { text-decoration: underline; }
+  .help-note__link:hover { background: var(--app-accent-tint); }
 }
 /* 深色由 --color-link → --app-accent-soft-text 的选边自动跟随，不再单独补色。 */
 /* 2026-10-23 R11：继承所在容器文字色（用于标题旁 / 深色底上的帮助注释，不强制中性灰）。 */
@@ -5164,6 +5279,12 @@ html.theme-dark .agg-count-badge {
 }
 .wo-line-gap {
   max-width: 16rem;
+}
+/* 2026-10-27 Task 11.1：「超期」二字由 work-overview.js 以内联 --status-warning 写出
+   （该脚本不在本任务写权），此处把这段内联文字重定向到 warning 文字档；
+   --status-warning 自身仍只作圆点 / 左条 / 底色填充。 */
+.wo-line-gap [style*="color:var(--status-warning)"] {
+  color: var(--status-warning-text) !important;
 }
 /* 零值 / 行尾箭头：数据与可点线索不得用 neutral-400（2026-10-26 Task 3.3）。 */
 .wo-zero {
@@ -5436,7 +5557,7 @@ html.theme-dark .agg-count-badge {
 }
 .section-head__title {
   /* 标题才用宋体（DESIGN_METHODOLOGY §1.5「小字衬线曾全仓撤回」） */
-  font-family: 'STZhongsong', '华文中宋', 'STSong', 'SimSun', serif;
+  font-family: var(--font-display);
   font-size: var(--text-base);
   font-weight: 700;
   color: var(--neutral-800);
@@ -5595,9 +5716,10 @@ button.metric-band__item--filter.is-active {
   color: var(--neutral-500);
 }
 /* 逾期警示色（2026-10-23 R11 P1-01）：只在「逾期 > 0」时由 JS 挂 `--warning` 类；
-   CSS 判不了计数 0，故这里只保留类本身，不再默认着色。 */
+   CSS 判不了计数 0，故这里只保留类本身，不再默认着色。
+   2026-10-27 Task 11.1：数值文字改 warning 文字档（原填充色当文字仅 2.15:1）。 */
 .metric-band__value--warning {
-  color: var(--status-warning);
+  color: var(--status-warning-text);
 }
 /* 存量指标，不与逾期争重心：在办是过程量，降到脚注级 16px / neutral-500
    （2026-10-23 R11 P2-01：由 18px 降一档，与数值 24px / 标签 12px 拉开但不另立第四档）。 */
@@ -5637,7 +5759,8 @@ button.metric-band__item--filter.is-active {
 }
 .state-badge--warning {
   background: color-mix(in srgb, var(--status-warning) 12%, transparent);
-  color: color-mix(in srgb, var(--status-warning) 70%, var(--neutral-900));
+  /* 2026-10-27 Task 11.1：文字走 warning 文字档（亮/暗别名自动切）。 */
+  color: var(--status-warning-text);
   border-color: color-mix(in srgb, var(--status-warning) 28%, transparent);
 }
 .state-badge--info {
@@ -5659,7 +5782,6 @@ html.theme-dark .state-badge--success {
 }
 html.theme-dark .state-badge--warning {
   background: color-mix(in srgb, var(--status-warning) 18%, transparent);
-  color: color-mix(in srgb, var(--status-warning) 78%, var(--neutral-900));
   border-color: color-mix(in srgb, var(--status-warning) 38%, transparent);
 }
 html.theme-dark .state-badge--info {
@@ -6006,7 +6128,7 @@ html.theme-dark .state-badge--neutral {
 }
 .gallery-card__title {
   margin: 0;
-  font-family: 'STZhongsong', '华文中宋', 'STSong', 'SimSun', serif;
+  font-family: var(--font-display);
   font-size: var(--text-base);
   font-weight: 700;
   line-height: 1.45;
@@ -6018,9 +6140,7 @@ html.theme-dark .state-badge--neutral {
 }
 @media (hover: hover) {
   .gallery-card:hover .gallery-card__title {
-    text-decoration: underline;
-    text-decoration-thickness: 1px;
-    text-underline-offset: 3px;
+    color: var(--color-link);
   }
 }
 /* 2026-10-25 Task 3：整卡改为「标题 H3 ＋ 标题链」——交互元素是 <a>，不再用 div[role=button]，
@@ -6102,7 +6222,7 @@ html.theme-dark .state-badge--neutral {
 }
 .modal-title {
   min-width: 0;
-  font-family: 'STZhongsong', '华文中宋', 'STSong', 'SimSun', serif;
+  font-family: var(--font-display);
   font-size: var(--text-sm);
   font-weight: 600;
   color: var(--neutral-800);
@@ -6241,6 +6361,14 @@ input::placeholder,
 textarea::placeholder {
   color: var(--neutral-500);
   opacity: 1;              /* Firefox 默认给 placeholder 降透明度，会再次跌破 4.5:1 */
+}
+
+/* 2026-10-27 Task 11.5：登录页输入框（.login-input）不带 .input-flat 族类，
+   Tailwind preflight 的 `input::placeholder`（gray-400）会以同特异性但更晚的序压过上面这条，
+   亮色白底实测仅 2.54:1。用类选择器提特异性，亮 4.83 / 暗卡 6.57。 */
+.login-input::placeholder {
+  color: var(--neutral-500);
+  opacity: 1;
 }
 
 /* 页码 / 关闭 / 图标按钮：视觉尺寸不变，命中区扩到 44×44。

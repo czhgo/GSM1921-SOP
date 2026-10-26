@@ -3,14 +3,14 @@
 // 变化: 去掉 mode 标签与只读视角切换；2026-08-10 支书裁定（原则12 工作台集成制）：
 // 「切换工作台」下拉为冗余要素（每个人就是每个人，任务集成在工作台，跨台经待办/通知直达）→ 删除
 
-import { ROLE_LABELS } from '../../core/domain/constants.js?v=20261026a';
-import { getBasePath } from '../../core/base/utils.js?v=20261026a';
-import { icon } from '../../core/base/icons.js?v=20261026a';
-import { DATA_CHANGED_EVENT, DATA_LOADED_EVENT } from '../../data/data-adapter.js?v=20261026a';
-import { badgeHtml } from '../ui/badges.js?v=20261026a';
-import { readLoginSnapshot } from '../../core/session/login-snapshot.js?v=20261026a';
+import { ROLE_LABELS } from '../../core/domain/constants.js?v=20261026b';
+import { getBasePath } from '../../core/base/utils.js?v=20261026b';
+import { icon } from '../../core/base/icons.js?v=20261026b';
+import { DATA_CHANGED_EVENT, DATA_LOADED_EVENT } from '../../data/data-adapter.js?v=20261026b';
+import { badgeHtml } from '../ui/badges.js?v=20261026b';
+import { readLoginSnapshot } from '../../core/session/login-snapshot.js?v=20261026b';
 // P1 党委后台（2026-09-02）：header 品牌软编码——标题随支部配置档案更换（person→branchId→branches.config.headerTitle）
-import { getHeaderTitle } from '../../services/branch/branch.js?v=20261026a';
+import { getHeaderTitle } from '../../services/branch/branch.js?v=20261026b';
 
 // ── 数据层按需加载（静态页隔离，2026-08-12）──
 // about/help 等纯静态文档页以 staticShell 渲染 header：不加载 auth/notice 数据链
@@ -19,18 +19,18 @@ import { getHeaderTitle } from '../../services/branch/branch.js?v=20261026a';
 let _authModule = null;
 let _noticeModule = null;
 function loadAuth() {
-  if (!_authModule) _authModule = import('../../services/core/auth.js?v=20261026a');
+  if (!_authModule) _authModule = import('../../services/core/auth.js?v=20261026b');
   return _authModule;
 }
 function loadNotice() {
-  if (!_noticeModule) _noticeModule = import('../../services/governance/notice.js?v=20261026a');
+  if (!_noticeModule) _noticeModule = import('../../services/governance/notice.js?v=20261026b');
   return _noticeModule;
 }
 // 2026-09-30 批次 297-2：跨台通用动作「一键汇报」收进顶栏唯一固定位 ⇒ 顶栏按需加载其入口模块
 // （与 auth / notice 同一策略：静态壳页不加载，app 模式渲染后加载，模块缓存后即时）
 let _reportEntryModule = null;
 function loadReportEntry() {
-  if (!_reportEntryModule) _reportEntryModule = import('../record/report-entry.js?v=20261026a');
+  if (!_reportEntryModule) _reportEntryModule = import('../record/report-entry.js?v=20261026b');
   return _reportEntryModule;
 }
 
@@ -305,34 +305,72 @@ function _bindHamburger(header) {
   // 2026-09-24 无障碍：折叠态的侧栏只是 `transform: translateX(-100%)` 移出视口——元素仍在文档流里、
   // 8 条导航链接**全部留在 Tab 序列**（DOM 顺序 header → 侧栏 → main ⇒ 键盘用户前 8 个 Tab 停在看不见的控件上）。
   // 故折叠/展开时同步 `inert`（属性不是 CSS，必须在此切换）：折叠＝不可聚焦不可读，展开＝恢复。
+  //
+  // 2026-10-27 Task 2（阶段一 · 操作成本）：
+  //   · 打开抽屉后焦点进入首个导航项；Esc 关闭并回焦汉堡；收起时侧栏 inert（不再吞焦点）。
+  //   · DOM 顺序 header → sidebar 无法改（22 页模板不在本批写权内）⇒ 展开时把顶栏动作区
+  //     临时移出 Tab 序列（tabindex=-1，鼠标点击不受影响），使首次 Tab 从汉堡直接进侧栏；
+  //     收起时按原值还原（含「原本无 tabindex」状态）。
+  const headerActions = header.querySelector('.header-actions');
+  const setHeaderActionsTabbable = (tabbable) => {
+    if (!headerActions) return;
+    headerActions.querySelectorAll('a[href], button, [tabindex]').forEach((el) => {
+      if (!tabbable) {
+        if (!el.hasAttribute('data-prev-tabindex')) {
+          el.setAttribute('data-prev-tabindex', el.getAttribute('tabindex') ?? '');
+        }
+        el.setAttribute('tabindex', '-1');
+      } else if (el.hasAttribute('data-prev-tabindex')) {
+        const prev = el.getAttribute('data-prev-tabindex');
+        if (prev === '') el.removeAttribute('tabindex');
+        else el.setAttribute('tabindex', prev);
+        el.removeAttribute('data-prev-tabindex');
+      }
+    });
+  };
+
   const syncSidebarInert = () => {
     const expanded = !sidebar.classList.contains('sidebar-collapsed');
     sidebar.inert = !expanded;
+    setHeaderActionsTabbable(!expanded);
     // 2026-10-18：汉堡按钮同步展开态，读屏可感知「打开/关闭」而非固定文案。
     hamburger.setAttribute('aria-expanded', String(expanded));
     hamburger.setAttribute('aria-label', expanded ? '关闭导航菜单' : '打开导航菜单');
   };
+
+  const openSidebar = () => {
+    sidebar.classList.remove('sidebar-collapsed');
+    if (overlay) overlay.classList.add('visible');
+    syncSidebarInert();
+    // 焦点进入首个导航项（不是 body / 不是汉堡），读屏用户立即落在导航上。
+    sidebar.querySelector('.sidebar-nav a[href], .sidebar-nav button')?.focus();
+  };
+
+  const closeSidebar = ({ restoreFocus = false } = {}) => {
+    sidebar.classList.add('sidebar-collapsed');
+    if (overlay) overlay.classList.remove('visible');
+    syncSidebarInert();
+    if (restoreFocus) hamburger.focus();
+  };
+
   syncSidebarInert(); // 首屏：模板里侧栏自带 `sidebar-collapsed` ⇒ 页面一进来即为 inert
 
   hamburger.addEventListener('click', () => {
-    const collapsed = sidebar.classList.contains('sidebar-collapsed');
-    if (collapsed) {
-      sidebar.classList.remove('sidebar-collapsed');
-      if (overlay) overlay.classList.add('visible');
-    } else {
-      sidebar.classList.add('sidebar-collapsed');
-      if (overlay) overlay.classList.remove('visible');
-    }
-    syncSidebarInert();
+    if (sidebar.classList.contains('sidebar-collapsed')) openSidebar();
+    else closeSidebar();
   });
 
   if (overlay) {
-    overlay.addEventListener('click', () => {
-      overlay.classList.remove('visible');
-      sidebar.classList.add('sidebar-collapsed');
-      syncSidebarInert();
-    });
+    overlay.addEventListener('click', () => closeSidebar({ restoreFocus: true }));
   }
+
+  // Esc 关闭抽屉并回焦汉堡（只在展开时接管，不干扰通知下拉自己的 Esc）。
+  document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Escape') return;
+    if (sidebar.classList.contains('sidebar-collapsed')) return;
+    e.preventDefault();
+    closeSidebar({ restoreFocus: true });
+  });
 }
 
 function _bindNotificationBell(header) {

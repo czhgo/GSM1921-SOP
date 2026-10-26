@@ -2,7 +2,7 @@
 title: "数据种子契约（DATA_SEED_CONTRACT）"
 type: design
 role: "[工程师]+[AI]"
-last_updated: 2026-10-26
+last_updated: 2026-10-27
 status: active
 related_files: [DATA_MODEL.md, docs/src/data/seed-manifest.js, server/test/seed-contract-guard.test.mjs]
 ---

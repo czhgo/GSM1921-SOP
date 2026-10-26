@@ -1,15 +1,15 @@
 // 党委所选支部只读视图：页面身份不切换到支部工作台。
-import { renderSidebar } from '../../components/shell/sidebar.js?v=20261026a';
-import { renderHeader } from '../../components/shell/header.js?v=20261026a';
-import { AuthStore } from '../../services/core/auth.js?v=20261026a';
-import { BranchService } from '../../services/core/runtime.js?v=20261026a';
-import { PersonStore, getPersonName } from '../../services/member/person.js?v=20261026a';
-import { getBranchById } from '../../services/branch/branch.js?v=20261026a';
-import { ApiAdapter } from '../../data/api-adapter.js?v=20261026a';
-import { hydrateDataSource } from '../../data/data-adapter.js?v=20261026a';
-import { getBasePath, docAnchorHref, escHtml as esc } from '../../core/base/utils.js?v=20261026a';
-import { DEFAULT_BRANCH_ID, ROLE_LABELS } from '../../core/domain/constants.js?v=20261026a';
-import { renderPageHeader } from '../../components/shell/page-frame.js?v=20261026a';
+import { renderSidebar } from '../../components/shell/sidebar.js?v=20261026b';
+import { renderHeader } from '../../components/shell/header.js?v=20261026b';
+import { AuthStore } from '../../services/core/auth.js?v=20261026b';
+import { BranchService } from '../../services/core/runtime.js?v=20261026b';
+import { PersonStore, getPersonName } from '../../services/member/person.js?v=20261026b';
+import { getBranchById } from '../../services/branch/branch.js?v=20261026b';
+import { ApiAdapter } from '../../data/api-adapter.js?v=20261026b';
+import { hydrateDataSource } from '../../data/data-adapter.js?v=20261026b';
+import { getBasePath, docAnchorHref, escHtml as esc } from '../../core/base/utils.js?v=20261026b';
+import { DEFAULT_BRANCH_ID, ROLE_LABELS } from '../../core/domain/constants.js?v=20261026b';
+import { renderPageHeader } from '../../components/shell/page-frame.js?v=20261026b';
 
 renderSidebar('workspace');
 renderHeader('workspace');
@@ -133,7 +133,7 @@ async function render() {
     const tableRows = pageRows.map((person) => {
       const personStage = person.developStage || ROLE_LABELS[person.role] || '阶段未标注';
       const profileUrl = `${getBasePath()}person.html?id=${encodeURIComponent(person.id)}&branchId=${encodeURIComponent(branchId)}`;
-      return `<tr><td><a class="font-medium text-accent underline underline-offset-2" href="${profileUrl}">${esc(person.name || '未命名成员')}</a></td><td>${esc(person.partyGroup || '未分组')}</td><td>${esc(personStage)}</td><td><a class="whitespace-nowrap text-sm text-accent underline underline-offset-2" href="${profileUrl}">查看档案</a></td></tr>`;
+      return `<tr><td><a class="font-medium text-accent" href="${profileUrl}">${esc(person.name || '未命名成员')}</a></td><td>${esc(person.partyGroup || '未分组')}</td><td>${esc(personStage)}</td><td><a class="whitespace-nowrap text-sm text-accent" href="${profileUrl}">查看档案</a></td></tr>`;
     }).join('');
     host.querySelector('#branch-member-rows').innerHTML = tableRows || `<tr><td colspan="4" class="py-8 text-center text-sm text-gray-600">${rows.length ? '没有符合当前搜索和筛选条件的成员。' : '暂无在册成员。'}</td></tr>`;
     host.querySelector('#branch-member-pagination').textContent = filtered.length

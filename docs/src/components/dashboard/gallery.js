@@ -10,20 +10,21 @@
 //  收录权与排序不变（`galleryFeatured` / `galleryPinned` 单一源仍来自 activity.js）。
 // ════════════════════════════════════════════════════════════════
 
-import { getAppState } from '../../core/base/state.js?v=20261026a';
-import { _fmtDate, escHtml } from '../../core/base/utils.js?v=20261026a';
-import { getPersonName } from '../../services/member/person.js?v=20261026a';
-import { getActivityTypeColors, DASHBOARD_LIMITS } from '../../core/domain/constants.js?v=20261026a';
-import { icon } from '../../core/base/icons.js?v=20261026a';
-import { mockDB, isActivityClosed } from '../../core/domain/domain.js?v=20261026a';
-import { getAuthToken, getApiBaseUrl } from '../../data/data-adapter.js?v=20261026a';
-import { withSelectedBranchScope } from '../../data/api-adapter.js?v=20261026a';
+import { getAppState } from '../../core/base/state.js?v=20261026b';
+import { _fmtDate, escHtml, getBasePath } from '../../core/base/utils.js?v=20261026b';
+import { AuthStore } from '../../services/core/auth.js?v=20261026b';
+import { getPersonName } from '../../services/member/person.js?v=20261026b';
+import { getActivityTypeColors, DASHBOARD_LIMITS } from '../../core/domain/constants.js?v=20261026b';
+import { icon } from '../../core/base/icons.js?v=20261026b';
+import { mockDB, isActivityClosed } from '../../core/domain/domain.js?v=20261026b';
+import { getAuthToken, getApiBaseUrl } from '../../data/data-adapter.js?v=20261026b';
+import { withSelectedBranchScope } from '../../data/api-adapter.js?v=20261026b';
 // 2026-09-29 批次 294（支书裁：收录权归宣传委员）：本页收录改**人工**——判据单一源 = 活动主源 `galleryFeatured`。
-import { isGalleryFeatured, isGalleryPinned } from '../../services/activity/activity.js?v=20261026a';
-import { badgeHtml } from '../ui/badges.js?v=20261026a';
-import { deriveActivityLifecycleStatus, ACTIVITY_LIFECYCLE } from '../record/inspector.js?v=20261026a';
+import { isGalleryFeatured, isGalleryPinned } from '../../services/activity/activity.js?v=20261026b';
+import { badgeHtml } from '../ui/badges.js?v=20261026b';
+import { deriveActivityLifecycleStatus, ACTIVITY_LIFECYCLE } from '../record/inspector.js?v=20261026b';
 // Task 6：首页风采标题 → 活动完整详情页（direct）；缺 id 时渲染纯文本，不生成空链接。
-import { objectDetailHref } from '../../core/domain/object-route.js?v=20261026a';
+import { objectDetailHref } from '../../core/domain/object-route.js?v=20261026b';
 
 const ACTIVITY_TYPE_COLORS = getActivityTypeColors({ withLabel: true });
 
@@ -87,6 +88,15 @@ function _hydrateGalleryImages(container) {
   }
 }
 
+/** 上传照片入口（2026-10-27 Task 6.4）：照片写口在宣传台「档案归档」，只有宣传委员可上传；
+ *  其余角色不渲染入口（不把无权动作摆到首页）。落点＝既有页签 `?tab=archive`，不新造页面。 */
+function _photoUploadHref() {
+  let user = null;
+  try { user = AuthStore.getCurrentUser(); } catch (_) { user = null; }
+  if (!user || user.role !== 'prop-commissioner') return '';
+  return `${getBasePath()}workspace/prop.html?tab=archive`;
+}
+
 /** 渲染首页活动风采（品牌 + 已归档活动，前 6 条） */
 export function renderGallery(activities) {
   const container = document.getElementById('dashboard-gallery');
@@ -105,9 +115,9 @@ export function renderGallery(activities) {
     ...sortByDate(rest.filter(a => !isDone(a))), ...sortByDate(rest.filter(a => isDone(a))),
   ].slice(0, DASHBOARD_LIMITS.gallery);
 
+  // 过拟合修正（2026-09-13）：活动风采为支部自创展示位（品牌活动），首页不为其保留常驻空卡
+  //（原空态「暂无风采展示」恒占位）。无内容 → 整卡不出（含标题）。
   if (display.length === 0) {
-    // 过拟合修正（2026-09-13）：活动风采为支部自创展示位（品牌活动），首页不为其保留常驻空卡
-    //（原空态「暂无风采展示」恒占位）。无内容 → 整卡不出（含标题）。
     document.getElementById('dashboard-gallery-card')?.classList.add('hidden');
     container.innerHTML = '';
     return;
@@ -115,6 +125,22 @@ export function renderGallery(activities) {
   document.getElementById('dashboard-gallery-card')?.classList.remove('hidden');
 
   _imageByActivityId = _collectLatestPhotos();
+
+  // 2026-10-27 Task 6.4（脏乱繁 · 空态）：一张照片都没有时**不出 16:9 大图位**——
+  //   原实现给每个入选活动铺 335px 高的空图位（6 张）把首屏撑满。现只留一行「暂无活动照片」
+  //   ＋上传入口（仅宣传委员）；有照片才走图位卡片。
+  if (!display.some(a => _imageByActivityId.has(a.id))) {
+    const uploadHref = _photoUploadHref();
+    container.innerHTML = `
+      <div class="flex flex-wrap items-center justify-between gap-3" data-gallery-empty>
+        <p class="text-xs text-gray-500 flex items-center gap-2">
+          ${icon('calendarHero', { className: 'w-4 h-4' })}
+          <span>暂无活动照片</span>
+        </p>
+        ${uploadHref ? `<a class="text-xs text-accent" href="${uploadHref}">上传照片</a>` : ''}
+      </div>`;
+    return;
+  }
 
   container.innerHTML = '<div class="gallery-grid">' +
     display.map(a => {

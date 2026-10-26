@@ -991,7 +991,7 @@ test('V1 容器语义：metric-band 拆两档 / section.card 必有可访问名 
     'styles.css 缺导航行 / 主从行的可点样式');
 });
 
-test('V2 分组胶囊全宽可见：无 display:none 断点、高度 ≥24px、3px 直角、描边形状可辨', () => {
+test('V2 分组胶囊全宽可见：无 display:none 断点、高度 ≥24px、3px 直角、无边框 + 10% 淡底', () => {
   assert.doesNotMatch(CSS, /\.tab-group-label[^{}]*\{[^}]*display:\s*none/,
     '分组胶囊不得在任何断点用 display:none 隐藏');
   assert.doesNotMatch(CSS, /\.tab-group-label[^{}]*\{[^}]*visibility:\s*hidden/,
@@ -1002,25 +1002,18 @@ test('V2 分组胶囊全宽可见：无 display:none 断点、高度 ≥24px、3
     '分组胶囊应为 3px 直角（.tab-group-label 是 SD-3 胶囊 999px 的登记例外）');
   assert.match(CSS, /\.tab-group-label\s*\{[^}]*flex-shrink:\s*0/, '组名不得被压缩（flex-shrink: 0）');
 
-  // 2026-10-26 Task 1：描边不再按字面 neutral-400 判，而是判「边框对页面底 ≥1.5:1」（亮/暗各一次）。
-  //   仍接受 neutral-400（实测亮 2.4:1 / 暗 7.4:1）；若换更深的主题描边 token，同样须过线。
-  const borderDecl = /\.tab-group-label\s*\{[^}]*border:\s*1px solid var\(--([\w-]+)\)/.exec(CSS);
-  assert.ok(borderDecl, '分组胶囊须有 1px 的 token 描边（形状由描边承担）');
-  const root = cssVarBlock(CSS_BARE, ':root');
-  const dark = cssVarBlock(CSS_BARE, 'html.theme-dark');
-  assert.ok(root && dark, 'styles.css 缺少 :root / html.theme-dark 变量块');
-  for (const [label, block, base] of [['亮色', root, root], ['暗色', dark, root]]) {
-    const borderHex = hexOf(resolveVar(block, base, borderDecl[1]), block, base);
-    const pageHex = hexOf(resolveVar(block, base, 'surface-page'), block, base);
-    assert.ok(borderHex && pageHex,
-      `${label}：描边 --${borderDecl[1]} / --surface-page 无法解析为 hex（${borderHex} / ${pageHex}）`);
-    const ratio = contrast(borderHex, pageHex);
-    assert.ok(ratio >= 1.5,
-      `${label}：分组胶囊描边对页面底仅 ${ratio.toFixed(2)}:1（要求 ≥1.5:1；实测 token --${borderDecl[1]}）`);
-  }
+  // 2026-10-27 Task 9：用户裁定恢复 8–9 月原样——**无边框**；形状由 3px 直角与 10% 主题淡底承担。
+  //   （原 V2 的「描边对页面底 ≥1.5:1」随边框一并退场，改为核「无边框 + 淡底 token 正确」。）
+  assert.match(CSS, /\.tab-group-label\s*\{[^}]*border:\s*none/, '分组胶囊应无边框（8–9 月原样）');
+  assert.doesNotMatch(CSS, /\.tab-group-label\s*\{[^}]*border:\s*1px/, '分组胶囊不得再写 1px 描边');
+  assert.match(CSS, /--app-accent-tint:\s*rgb\(from var\(--app-accent\) r g b \/ 10%\)/,
+    'styles.css 应定义 --app-accent-tint（当前主题色 10% 淡底，随 7 主题亮/暗自动跟随）');
+  assert.match(CSS, /\.tab-group-label\s*\{[^}]*background:\s*var\(--app-accent-tint\)/,
+    '分组胶囊底色应为 --app-accent-tint（10% 淡底）');
 
   // ≤1280 只缩内边距，不隐藏、不降字号（页签条继续横向滚动）。
   //   2026-10-26 Task 1：字号由原来的 11px 改回 12px（11px 属 Overline 标签档）。
+  //   2026-10-27 Task 9：去边框后高度由 min-height 24px 承担，内边距口径不变。
   const narrow = /@media \(max-width: 1280px\) \{[\s\S]*?\.tab-group-label \{([\s\S]*?)\}[\s\S]*?\n\}/.exec(CSS);
   assert.ok(narrow, '缺少 ≤1280px 的分组名规则');
   assert.match(narrow[1], /padding:\s*1px 5px/, '≤1280px 组名应缩小内边距（1px 5px）');
@@ -1136,11 +1129,16 @@ test('V4 btn-ghost 不得用于动作按钮：只允许白名单内的非动作�
     `btn-ghost 不得再承担动作按钮（动作请改 .btn-outline / .btn-accent / .btn-danger）：\n  ${offenders.join('\n  ')}`);
 });
 
-test('V5 纯文字动作有静态线索：btn-text 下划线、尾随箭头非 neutral-400', () => {
-  // ① 第二档类本身必须有下划线（不能只靠 hover）。
+test('V5 纯文字动作有静态线索：btn-text 600 字重 + 尾随箭头非 neutral-400', () => {
+  // ① 第二档类本身必须有静态线索（2026-10-27 Task 9：下划线全站清零 ⇒ 改 600 字重 + 主题色；
+  //    hover 补 10% 主题淡底，尾随箭头仍是第二线索）。
   const btnText = /(^|\n)\.btn-text\s*\{([^}]*)\}/.exec(CSS_BARE);
   assert.ok(btnText, 'styles.css 缺少 .btn-text（纯文字动作档）');
-  assert.match(btnText[2], /text-decoration:\s*underline/, '.btn-text 必须有静态下划线');
+  assert.match(btnText[2], /font-weight:\s*600/, '.btn-text 必须有 600 字重（静态线索）');
+  assert.doesNotMatch(btnText[2], /text-decoration:\s*underline/, '.btn-text 不得再用文本下划线');
+  assert.match(CSS_BARE, /\.btn-text:hover\s*\{[^}]*background:\s*var\(--app-accent-tint\)/,
+    '.btn-text:hover 应有 10% 主题淡底');
+  assert.match(btnText[2], /color:\s*var\(--color-link\)/, '.btn-text 的文字色应为 --color-link');
 
   // ② 全站 btn-text 按钮必须带尾随箭头（第二个非颜色线索）；并核对样本量。
   let btnTextCount = 0;
@@ -1179,7 +1177,7 @@ test('V5 纯文字动作有静态线索：btn-text 下划线、尾随箭头非 n
   }
   assert.ok(labelActions >= 3, `只扫描到 ${labelActions} 个「全部/查看/更多」动作（下限 3）：V5 口径被写坏`);
   assert.deepEqual(bareTextActions, [],
-    `纯文字动作必须挂 .btn-text（下划线）或 .link，不得用裸类：\n  ${bareTextActions.join('\n  ')}`);
+    `纯文字动作必须挂 .btn-text（600 字重 + 主题色）或 .link，不得用裸类：\n  ${bareTextActions.join('\n  ')}`);
 
   // ④ 可点箭头不得用最浅中性色 neutral-400 / text-gray-400。
   const dullArrow = [];

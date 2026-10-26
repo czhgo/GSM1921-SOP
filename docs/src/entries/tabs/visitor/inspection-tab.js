@@ -2,22 +2,22 @@
 // 参与者工作台 Tab：我的考察（T-279 M3 拆分，照 M2 样板）
 // 个人考察记录查询视图（spec §五 数据访问规则：支部成员对自己的历次活动参与考察情况有查询视图）。
 
-import { AuthStore } from '../../../services/core/auth.js?v=20261026a';
+import { AuthStore } from '../../../services/core/auth.js?v=20261026b';
 // 待批活动的可见性单一源（2026-09-22 批次 151 · 支书裁定「只支委层可见」）：成员台非支委层 ⇒ 待批活动
 // 不在本页「考察申诉选活动」下拉里出现。
-import { filterActivitiesForViewer } from '../../../services/core/visibility.js?v=20261026a';
-import { loadActiveInspectionRecords } from '../../../services/activity/inspection.js?v=20261026a';
-import { inspectionToDisplay, createInspectionAppeal, loadInspectionAppeals } from '../../../services/activity/inspection.js?v=20261026a';
-import { loadActivities, getOrganizedActivities } from '../../../services/activity/activity.js?v=20261026a';
-import { badgeHtml } from '../../../components/ui/badges.js?v=20261026a';
-import { showToast, escHtml as esc } from '../../../core/base/utils.js?v=20261026a';
+import { filterActivitiesForViewer } from '../../../services/core/visibility.js?v=20261026b';
+import { loadActiveInspectionRecords } from '../../../services/activity/inspection.js?v=20261026b';
+import { inspectionToDisplay, createInspectionAppeal, loadInspectionAppeals } from '../../../services/activity/inspection.js?v=20261026b';
+import { loadActivities, getOrganizedActivities } from '../../../services/activity/activity.js?v=20261026b';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20261026b';
+import { showToast, escHtml as esc } from '../../../core/base/utils.js?v=20261026b';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是活动的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
-import { renderFilteredList, activityKeyword, activityFacets } from '../../../components/ui/list-filter.js?v=20261026a';
+import { renderFilteredList, activityKeyword, activityFacets } from '../../../components/ui/list-filter.js?v=20261026b';
 // 材料页深链 focusActivityId 的通用定位（只滚动 + 闪烁，不另造筛选器）
-import { focusActivityAnchor } from '../../../components/ui/detail-anchor.js?v=20261026a';
-import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261026a';
+import { focusActivityAnchor } from '../../../components/ui/detail-anchor.js?v=20261026b';
+import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261026b';
 // Task 6：跨对象表格里的活动名 → 完整详情页（direct）；缺 id 不渲染链接。
-import { objectDetailHref } from '../../../core/domain/object-route.js?v=20261026a';
+import { objectDetailHref } from '../../../core/domain/object-route.js?v=20261026b';
 
 export function renderContent(ctx, host) {
   const tc = host || document.getElementById('visitor-tab-content');
@@ -92,7 +92,7 @@ export function renderContent(ctx, host) {
   // 挂「由我组织的活动」上传位（实现单一源＝leader/inspection-tab，host 复用；scope=organizer 只投影本人活动）
   const _orgInspHost = document.getElementById('visitor-org-insp-host');
   if (_orgInspHost) {
-    import('../leader/inspection-tab.js?v=20261026a').then(m => { if (_orgInspHost.isConnected) m.renderContent(ctx, _orgInspHost, { scope: 'organizer' }); });
+    import('../leader/inspection-tab.js?v=20261026b').then(m => { if (_orgInspHost.isConnected) m.renderContent(ctx, _orgInspHost, { scope: 'organizer' }); });
   }
 
   // 提交申诉（同考勤申诉口径：先去纪检核实，不直接改考察记录）
@@ -160,7 +160,7 @@ export function renderContent(ctx, host) {
           <span class="px-1.5 py-0.5 text-xs font-medium rounded-full ${statusCls}">${statusText}</span>
         </div>
         ${r.activityId
-          ? `<a href="./${objectDetailHref('activity', r.activityId, { entry: 'workspace-aggregate' })}" class="block hover:underline" title="查看活动详情"><p class="text-sm font-medium text-gray-800">${sourceTitle} →</p></a>`
+          ? `<a href="./${objectDetailHref('activity', r.activityId, { entry: 'workspace-aggregate' })}" class="block hover:bg-[var(--surface-hover)] transition-colors" title="查看活动详情"><p class="text-sm font-medium text-gray-800">${sourceTitle} →</p></a>`
           : `<p class="text-sm font-medium text-gray-800">${sourceTitle}</p>`}
         ${r.role ? `<p class="text-xs text-gray-500 mt-1">工作内容：${r.role}</p>` : ''}
         <div class="flex items-center justify-between mt-2 pt-2 border-t border-gray-50">

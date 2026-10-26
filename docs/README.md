@@ -28,7 +28,7 @@ status: active
 | `src/` | 应用层代码：`core/`（base / domain / boot / session）、`data/`（adapter 与演示数据）、`services/`（core / member / activity / governance / branch）、`components/`（ui / shell / sections / feedback / record / governance / dashboard）、`capabilities/`、`entries/`（pages / workspace / tabs）、`workflow/`、`config/deploy.js`、`styles.css` | 子本 → [ARCHITECTURE.md §十一](../content/03_doc_system/ARCHITECTURE.md)、[DESIGN_SYSTEM.md](../content/04_web_design/design-system/DESIGN_SYSTEM.md)、[DATA_MODEL.md](../content/04_web_design/data/DATA_MODEL.md) |
 | `workspace/` | 七个角色工作台壳页面：支书 / 组织 / 宣传 / 纪检 / 党小组组长 / 成员 / 党委（另含 `branch-readonly.html` 支部只读视图壳） | 指针 → 各台薄壳 `src/entries/workspace/ws-*-entry.js`；页签清单见 `src/capabilities/*-workspace.js` |
 | 根页 `index.html` / `login.html` | 首页与登录页；登录后按身份直达对应工作台「今天」 | 指针 → `src/entries/pages/main-entry.js` / `login-entry.js` |
-| 根页 `help.html` / `about.html` / `settings.html` | 帮助手册 / 关于页 / 设置中心（外观、我的工作台、支部治理） | 指针 → `src/entries/pages/help-entry.js` / `about-entry.js` / `settings-entry.js` |
+| 根页 `help.html` / `settings.html` | 帮助手册 / 设置中心（外观、我的工作台、支部治理） | 指针 → `src/entries/pages/help-entry.js` / `settings-entry.js` |
 | 根页 `search.html` / `feedback.html` / `archive.html` / `messages.html` | 资料查询 / 意见反馈 / 归档库 / 消息 | 指针 → 同名 `src/entries/pages/*-entry.js` |
 | 根页 `activity.html` / `activity-materials.html` / `taskforce.html` / `notice.html` | 活动详情 / 活动材料 / 专班详情 / 通知 | 指针 → 同名 `src/entries/pages/*-entry.js` |
 | 根页 `person.html` / `thought-report.html` / `party-committee-meeting.html` | 成员档案 / 思想汇报长文阅读 / 支委会会议页 | 指针 → 同名 `src/entries/pages/*-entry.js` |

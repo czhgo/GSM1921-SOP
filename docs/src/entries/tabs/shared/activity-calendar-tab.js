@@ -30,12 +30,12 @@
 //   容器内容却没登记标记」时会把本页判成「已在位」而跳过骨架重建，留下空白（同 today-tab 2026-09-25
 //   真机实测的残留病）。
 
-import { getAppState } from '../../../core/base/state.js?v=20261026a';
-import { populateMonthSelector, renderCalendarByActivities } from '../../../components/record/calendar.js?v=20261026a';
-import { renderInspectorFromState } from '../../../components/record/inspector.js?v=20261026a';
-import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261026a';
+import { getAppState } from '../../../core/base/state.js?v=20261026b';
+import { populateMonthSelector, renderCalendarByActivities } from '../../../components/record/calendar.js?v=20261026b';
+import { renderInspectorFromState } from '../../../components/record/inspector.js?v=20261026b';
+import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261026b';
 // Task 6：共享日历属「非对象所属工作台」的只读承载面 ⇒ 条目/详情卡直达完整详情页（direct）。
-import { objectDetailHref } from '../../../core/domain/object-route.js?v=20261026a';
+import { objectDetailHref } from '../../../core/domain/object-route.js?v=20261026b';
 
 const PANEL_HTML = `
     <div id="calendar-view-section" class="grid grid-cols-1 lg:grid-cols-5 gap-4">
@@ -136,10 +136,14 @@ export function renderCalendarCard(host, state, opts = {}) {
   }
   const wrap = document.createElement('div');
   wrap.className = 'card rounded-xl p-5 disclosure-host';
+  // 2026-10-27 Task 6.3（脏乱繁 · 40px 折叠槽）：整句「展开月历与当日活动（只读）」此前被塞进
+  //   40×40 的 `.disclosure__summary`（绝对定位、flex 居中）⇒ 竖排折行把卡头压坏。
+  //   现与其它折叠卡同构：summary 只留 chevron（全局 `summary::before`），动作说明放 `aria-label`
+  //   （标题仍是兄弟 H3，可访问名称取自标题＋动作，读屏不再读一串竖排文字）。
   wrap.innerHTML = `
     <h3 class="disclosure__title" id="${id}-title">月历与当日活动</h3>
     <details class="disclosure" id="${id}"${opts.open ? ' open' : ''}>
-      <summary class="disclosure__summary" aria-labelledby="${id}-title">展开月历与当日活动（只读）</summary>
+      <summary class="disclosure__summary" aria-label="展开月历与当日活动（只读）"></summary>
       <div class="disclosure__body" data-cal-card-body>
         ${PANEL_HTML}
         ${opts.afterHtml || ''}
@@ -195,7 +199,7 @@ function _bindActivityDetailLinks(container) {
       const href = objectDetailHref('activity', id, { entry: 'shared-calendar' });
       if (!href) return;
       const link = document.createElement('a');
-      link.className = 'cal-activity-detail-link inline-flex items-center gap-1 mt-2 text-xs text-accent hover:underline transition-colors';
+      link.className = 'cal-activity-detail-link inline-flex items-center gap-1 mt-2 text-xs text-accent transition-colors hover:bg-[var(--app-accent-tint)]';
       link.href = `./${href}`;
       link.textContent = '查看活动详情 →';
       // 右栏卡片自身绑定了「打开摘要浮层」——链接点击不冒泡，直接走详情页。

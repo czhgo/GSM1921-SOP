@@ -19,23 +19,23 @@
 // 视觉沿用 card/rounded 既有体系（四档列表渲染在 components/record/todo-list.js renderUrgencyTodoList）。
 // 设计权威源：content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md §六 M6（共性抽象净减）
 
-import { TodoStore, urgeRolesOf, WORK_DOMAIN, WORK_DOMAIN_LABELS, realtimeGroupDomainOf, buildModuleCycleRemindGroup } from '../../services/governance/todo.js?v=20261026a';
+import { TodoStore, urgeRolesOf, WORK_DOMAIN, WORK_DOMAIN_LABELS, realtimeGroupDomainOf, buildModuleCycleRemindGroup } from '../../services/governance/todo.js?v=20261026b';
 // S3②（2026-09-12）：未读通知计数单一来源——与顶栏角标/首页同源（NoticeStore activeOnly+read 过滤），
 // 不再用「通知类待办」现算（口径不同致三处不一致）。
-import { NoticeStore, NOTICE_MODULE_ROLE_PAGES } from '../../services/governance/notice.js?v=20261026a';
-import { buildUrgencySections, renderUrgencyTodoList } from './todo-list.js?v=20261026a';
-import { badgeHtml } from '../ui/badges.js?v=20261026a';
-import { showToast, escHtml, todayLocal, flashHighlight } from '../../core/base/utils.js?v=20261026a';
-import { ROLE_LABELS, BRANCH_COMMISSION_ROLES } from '../../core/domain/constants.js?v=20261026a';
-import { openModal, closeModal } from '../ui/modal.js?v=20261026a';
-import { AuthStore } from '../../services/core/auth.js?v=20261026a';
-import { mockDB } from '../../core/domain/domain.js?v=20261026a';
-import { tokenOf } from '../../core/base/version-token.js?v=20261026a'; // P0 域写版本戳（spec §二.4）
-import { resolveDocumentUrl } from '../../core/base/page-url.js?v=20261026a';
-import { memoizeRender } from '../ui/memoize-render.js?v=20261026a'; // P2 渲染守卫（spec §四.1）
-import { renderTabHeader } from '../shell/page-frame.js?v=20261026a'; // 页题单一源（H2）
+import { NoticeStore, NOTICE_MODULE_ROLE_PAGES } from '../../services/governance/notice.js?v=20261026b';
+import { buildUrgencySections, renderUrgencyTodoList } from './todo-list.js?v=20261026b';
+import { badgeHtml } from '../ui/badges.js?v=20261026b';
+import { showToast, escHtml, todayLocal, flashHighlight } from '../../core/base/utils.js?v=20261026b';
+import { ROLE_LABELS, BRANCH_COMMISSION_ROLES } from '../../core/domain/constants.js?v=20261026b';
+import { openModal, closeModal } from '../ui/modal.js?v=20261026b';
+import { AuthStore } from '../../services/core/auth.js?v=20261026b';
+import { mockDB } from '../../core/domain/domain.js?v=20261026b';
+import { tokenOf } from '../../core/base/version-token.js?v=20261026b'; // P0 域写版本戳（spec §二.4）
+import { resolveDocumentUrl } from '../../core/base/page-url.js?v=20261026b';
+import { memoizeRender } from '../ui/memoize-render.js?v=20261026b'; // P2 渲染守卫（spec §四.1）
+import { renderTabHeader } from '../shell/page-frame.js?v=20261026b'; // 页题单一源（H2）
 // 模块周期提醒（`R-29⑤` · `D-804`）：分工快照取法与 `components/governance/workforce-duty-card.js` 同口径
-import { getBranchIdOfPerson, getBranchWorkforce } from '../../services/branch/branch.js?v=20261026a';
+import { getBranchIdOfPerson, getBranchWorkforce } from '../../services/branch/branch.js?v=20261026b';
 
 // ── 「我经办的反馈」区（2026-10-25 IA 62→45 · spec Task 5）──────────────
 // 五台原「我的处置」页签已删（与待办同属「我的待处理」，只是对象为反馈）⇒ 并入本页成一段。
@@ -110,6 +110,20 @@ function _moduleCycleGroupsFor(role) {
     snapshot,
   });
   return group ? [group] : [];
+}
+
+// ── 窄屏布局判据（spec 阶段一 Task 1：390 待办列表优先）──────────────
+// 与 Tailwind `lg` 断点同值（1024px）：<lg = 单列「列表在前、详情在后」；
+// ≥lg = 现有双栏（列表 2/3 + 详情 1/3）。只用于「是否自动选中 / 是否渲染详情列」，
+// 不改数据与查询链。
+const TODO_DESKTOP_QUERY = '(min-width: 1024px)';
+function _isTodoDesktopLayout() {
+  try {
+    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return true;
+    return window.matchMedia(TODO_DESKTOP_QUERY).matches;
+  } catch (_) {
+    return true;
+  }
 }
 
 /** 把域视图展平为待办组（业务域标签随组带出，供行内 12px 次级标签使用） */
@@ -207,7 +221,7 @@ function _urgencySummaryHtml(summary) {
  *        写口均须 bumpToken 对应域（memberChangeRequests/memberConfirmation 等）使
  *        _comboKeyOf 复合键变化 → 批量块内容随重建刷新。
  * @param {(todo:Object, ctx:Object)=>string} [opts.renderDetail] 自定义详情渲染
- *        （支书按 kind/groupKey 分发；缺省=壳内置概要「去处理」）
+ *        （支书按 kind/groupKey 分发；缺省=壳内置概要，主行动只留在行尾，详情不重复）
  * @param {async (ctx:Object)=>void} [opts.onBeforeRender] 渲染前钩子（seedTodos/异步预载；await）
  * @param {async (container:Element, ctx:Object, api:Object)=>void} [opts.onAfterRender] 渲染后钩子
  *        （异步面板挂载，如支书成员变更确认面板；api={renderContent,clearSelection,selectedTodo}）
@@ -239,7 +253,6 @@ function _dispatchSectionHtml(role) {
     data-todo-dispatch="1">
     <div class="flex items-center justify-between mb-2">
       <h3 class="font-title-cn text-base font-semibold text-gray-800">我经办的反馈</h3>
-      <span class="text-xs text-gray-500">原「我的处置」已并入本页</span>
     </div>
     <p class="text-xs text-gray-500 mb-3">支部派发的汇报与反馈在此处理；处理结果可回看。</p>
     <div id="ws-dispatch-host"></div>
@@ -256,7 +269,7 @@ function _mountDispatchSection(container, role, ctx) {
     host.innerHTML = '<p class="text-xs text-gray-500 text-center py-6">请先登录</p>';
     return;
   }
-  import('../feedback/issue-dispatch-view.js?v=20261026a').then((m) => {
+  import('../feedback/issue-dispatch-view.js?v=20261026b').then((m) => {
     if (!host.isConnected) return;
     host.innerHTML = m.renderMyDispatchTab(cfg.roleKey, uid, { ...cfg.opts, embedded: true });
     m.bindMyDispatchEvents(host, cfg.roleKey, uid, cfg.opts);
@@ -308,16 +321,17 @@ export function createTodoTab(opts) {
   let _stripOpen = true; // 页顶折叠条展开态（默认展开；重渲染后保留用户折叠）
   let _navHighlightDone = false; // 深链 highlight 一次性消费（重渲染不再重复定位/提示）
 
-  /** U3（2026-09-07）待办两栏等高骨架（await onBeforeRender/数据聚合期间占位；styles.css 禁改不碰） */
+  /** U3（2026-09-07）待办两栏等高骨架（await onBeforeRender/数据聚合期间占位；styles.css 禁改不碰）
+   *  阶段一 Task 1：源码顺序＝列表 → 详情，窄屏骨架同样先列表（不再 order-first 把详情提到首屏）。 */
   function _todoShellSkeletonHtml() {
     const row = '<div class="h-9 rounded-lg bg-gray-100 animate-pulse"></div>';
     return `
       <div data-ws-todo-skeleton class="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <div class="lg:col-span-2 order-last lg:order-none card rounded-xl p-5" style="min-height:340px;">
+        <div class="lg:col-span-2 card rounded-xl p-5" style="min-height:340px;">
           <div class="h-4 w-20 rounded bg-gray-100 animate-pulse mb-4"></div>
           <div class="space-y-2">${row}${row}${row}${row}${row}</div>
         </div>
-        <div class="lg:col-span-1 order-first lg:order-none card rounded-xl p-5" style="min-height:220px;">
+        <div class="lg:col-span-1 card rounded-xl p-5" style="min-height:220px;">
           <div class="h-4 w-12 rounded bg-gray-100 animate-pulse mb-4"></div>
           <div class="h-24 rounded-lg bg-gray-100 animate-pulse"></div>
         </div>
@@ -333,12 +347,11 @@ export function createTodoTab(opts) {
     // 角色自定义强调样式（如成员端金色）仍经 detailBtnStyle 内联生效，不再默认注入实底样式。
     const btnStyleAttr = detailBtnStyle ? ` style="${detailBtnStyle}"` : '';
     if (todo.groupKey) {
-      // 组详情动作按组真实下一步渲染（2026-10-18 繁专项 Task 14）：
+      // 组详情只渲染**区别于行尾主行动**的下一步（2026-10-18 繁专项 Task 14；2026-10-27 Task 5）：
       //   · group.detailAction → 渲染真实落点（如「去录入考察」跳人才库并展开考察位）；
-      //   · hideActionBtn 且无 detailAction → **不渲染按钮**（行尾都没有的动作，详情不得空转）；
-      //   · 其余 → 与行尾同源调用 onAction（既有行为）。
+      //   · 无 detailAction → **不渲染按钮**——行尾已有唯一主行动，详情再放「去处理」是同义并排。
       const action = todo.detailAction;
-      const actionLabel = action && action.label ? action.label : (todo.hideActionBtn ? '' : '去处理');
+      const actionLabel = action && action.label ? action.label : '';
       const actionBtn = actionLabel
         ? `<button type="button" class="btn-accent-soft btn-sm ${detailBtnClass}"${btnStyleAttr} aria-label="${escHtml(actionLabel)}：${escHtml(todo.title || '')}">${escHtml(actionLabel)}</button>`
         : '';
@@ -457,7 +470,7 @@ export function createTodoTab(opts) {
       </div>`;
   }
 
-  /** 窄屏选中待办后把详情卡滚入视野（详情列在 <lg 时 order-first，选中即见详情） */
+  /** 窄屏选中待办后把详情卡滚入视野（详情卡渲染在列表之后，选中才出现） */
   function _scrollDetailIntoView() {
     document.getElementById(containerId)
       ?.querySelector('[data-ws-todo-detail]')
@@ -525,9 +538,12 @@ export function createTodoTab(opts) {
     const urgencyGroups = _flattenDomainGroups(domains);
     const urgency = buildUrgencySections(urgencyGroups);
 
-    // 自动选中首条（支书 2026-08-10 裁定推广）：进入待办即见首屏第一条，减一次点击
+    // 自动选中首条（支书 2026-08-10 裁定推广）：桌面双栏下进入待办即见首屏第一条，减一次点击。
+    // 阶段一 Task 1（spec「移动端待办列表优先」）：<lg 不自动选中——390 首屏先列表，
+    //   用户点选后才在列表下方渲染详情。
+    const isDesktopLayout = _isTodoDesktopLayout();
     const firstVisible = urgency.sections.find(s => s.groups.length > 0)?.groups[0];
-    if (!_selectedTodoId && firstVisible) {
+    if (!_selectedTodoId && firstVisible && isDesktopLayout) {
       _selectedTodoId = firstVisible.groupKey;
     }
     const selectedTodo = _selectedTodoId
@@ -615,25 +631,46 @@ export function createTodoTab(opts) {
           </div>
         `;
 
+      // 首屏顺序（todo-urgency ⑧ / ui-first-screen-order F4）：页头与页顶折叠条先于「我的待办」。
+      const headerAndStripHtml = `${renderTabHeader({ title: pageTitle })}
+        ${stripHtml}`;
+
+      const listCardHtml = `
+        <div class="card rounded-xl p-5 card--static">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="font-title-cn text-base font-semibold text-gray-800">我的待办</h3>
+          </div>
+          ${_urgencySummaryHtml(urgency.summary)}
+          ${listHtml}
+        </div>`;
+
+      const detailCardHtml = `
+        <div class="card rounded-xl p-5 lg:sticky lg:top-20 card--static" data-ws-todo-detail aria-live="polite">
+          <h3 class="font-title-cn text-base font-semibold text-gray-800 mb-4">${detailTitle}</h3>
+          ${detailHtml}
+        </div>`;
+
+      // 详情列渲染条件（阶段一 Task 1 · 首屏单一重心）：
+      //   · 窄屏只在「已选中」时渲染——未选中不出现「选择一条待办查看详情」占位，列表独占首屏；
+      //   · 桌面双栏保留「列表存在但未选中」时的选择提示；列表为空则不出详情列（空态只留一处）。
+      const hasAnyGroup = urgency.sections.some(s => s.groups.length > 0);
+      const showDetail = !!selectedTodo || (hasAnyGroup && isDesktopLayout);
+
+      // 列顺序：源码恒为「列表 → 详情」，两种宽度都按源码顺序落位（窄屏单列 ⇒ 列表在前）。
+      // `order-last` / `order-first` 是既有结构守卫（structural-round3 S1）锁定的历史类名；
+      // 实际排序以 inline `order:0` 中和，避免窄屏被 order-first 拉到列表之前。
+      const listColHtml = showDetail
+        ? `<div class="lg:col-span-2 order-last lg:order-none" style="order:0">${listCardHtml}</div>`
+        : `<div class="lg:col-span-3">${listCardHtml}</div>`;
+      const detailColHtml = showDetail
+        ? `<div class="lg:col-span-1 order-first lg:order-none" style="order:0">${detailCardHtml}</div>`
+        : '';
+
       container.innerHTML = `
-        ${renderTabHeader({ title: pageTitle })}
-        ${stripHtml}
+        ${headerAndStripHtml}
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-4" data-ws-memo="todo-shell">
-          <div class="lg:col-span-2 order-last lg:order-none">
-            <div class="card rounded-xl p-5 card--static">
-              <div class="flex items-center justify-between mb-4">
-                <h3 class="font-title-cn text-base font-semibold text-gray-800">我的待办</h3>
-              </div>
-              ${_urgencySummaryHtml(urgency.summary)}
-              ${listHtml}
-            </div>
-          </div>
-          <div class="lg:col-span-1 order-first lg:order-none">
-            <div class="card rounded-xl p-5 sticky top-20 card--static" data-ws-todo-detail aria-live="polite">
-              <h3 class="font-title-cn text-base font-semibold text-gray-800 mb-4">${detailTitle}</h3>
-              ${detailHtml}
-            </div>
-          </div>
+          ${listColHtml}
+          ${detailColHtml}
         </div>
         ${_dispatchSectionHtml(role)}
       `;

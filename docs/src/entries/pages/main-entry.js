@@ -4,29 +4,29 @@
 // 各区块渲染已拆至 components/dashboard/：stats（统计卡+考勤弹窗）/ activity-panel（活动日历+列表）/ taskforce-list / gallery。
 // 本文件仅保留：bootstrap、工作台链接修正、renderUI 调度、renderDashboard 组装+导航委托、数据变更即时刷新。
 
-import { BranchService } from '../../services/core/runtime.js?v=20261026a';
-import { STATE, setState, registerRenderCallback, getAppState } from '../../core/base/state.js?v=20261026a';
-import { NoticeStore } from '../../services/governance/notice.js?v=20261026a';
+import { BranchService } from '../../services/core/runtime.js?v=20261026b';
+import { STATE, setState, registerRenderCallback, getAppState } from '../../core/base/state.js?v=20261026b';
+import { NoticeStore } from '../../services/governance/notice.js?v=20261026b';
 // 视图层独立：renderNoticeList 属「通知视图层」（G1 第③项服务层不产 UI，2026-09-28 迁出）
-import { renderNoticeList } from '../../components/governance/notice-view.js?v=20261026a';
-import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261026a';
-import { getBasePath } from '../../core/base/utils.js?v=20261026a';
-import { loadAttendanceRecords, loadActiveAttendanceRecords } from '../../services/activity/attendance.js?v=20261026a';
-import { loadActivities } from '../../services/activity/activity.js?v=20261026a';
-import { CrossPageState } from '../../core/session/cross-page-state.js?v=20261026a';
+import { renderNoticeList } from '../../components/governance/notice-view.js?v=20261026b';
+import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261026b';
+import { getBasePath } from '../../core/base/utils.js?v=20261026b';
+import { loadAttendanceRecords, loadActiveAttendanceRecords } from '../../services/activity/attendance.js?v=20261026b';
+import { loadActivities } from '../../services/activity/activity.js?v=20261026b';
+import { CrossPageState } from '../../core/session/cross-page-state.js?v=20261026b';
 // Task 6：首页活动/专班行 → 完整详情页（首页是跨对象聚合面，不属对象工作台 ⇒ direct）。
-import { objectDetailHref } from '../../core/domain/object-route.js?v=20261026a';
-import { bootstrapPage } from '../../core/boot/bootstrap.js?v=20261026a';
-import { AuthStore } from '../../services/core/auth.js?v=20261026a';
-import { getHeaderTitle } from '../../services/branch/branch.js?v=20261026a';
-import { loadWorkspaceData } from '../../data/data-loader.js?v=20261026a';
-import { DATA_CHANGED_EVENT, probeRemoteChanges } from '../../data/data-adapter.js?v=20261026a';
-import '../../capabilities/activity-calendar.js?v=20261026a'; // 副作用导入：注册首页活动日历能力
+import { objectDetailHref } from '../../core/domain/object-route.js?v=20261026b';
+import { bootstrapPage } from '../../core/boot/bootstrap.js?v=20261026b';
+import { AuthStore } from '../../services/core/auth.js?v=20261026b';
+import { getHeaderTitle } from '../../services/branch/branch.js?v=20261026b';
+import { loadWorkspaceData } from '../../data/data-loader.js?v=20261026b';
+import { DATA_CHANGED_EVENT, probeRemoteChanges } from '../../data/data-adapter.js?v=20261026b';
+import '../../capabilities/activity-calendar.js?v=20261026b'; // 副作用导入：注册首页活动日历能力
 // ── 方案 B 入口拆分：dashboard 区块渲染模块 ──
-import { renderDashboardStats } from '../../components/dashboard/stats.js?v=20261026a';
-import { renderActivityList, renderActivityCalendar, initActivityTabs, getInitialActivityView } from '../../components/dashboard/activity-panel.js?v=20261026a';
-import { renderWorkgroupProgress } from '../../components/dashboard/taskforce-list.js?v=20261026a';
-import { renderGallery } from '../../components/dashboard/gallery.js?v=20261026a';
+import { renderDashboardStats } from '../../components/dashboard/stats.js?v=20261026b';
+import { renderActivityList, renderActivityCalendar, initActivityTabs, getInitialActivityView } from '../../components/dashboard/activity-panel.js?v=20261026b';
+import { renderWorkgroupProgress } from '../../components/dashboard/taskforce-list.js?v=20261026b';
+import { renderGallery } from '../../components/dashboard/gallery.js?v=20261026b';
 
 // ── 时序修复（2026-09-10「归属显示不一致」；正确先例 settings-entry.js:1236-1244）──
 // header 品牌标题经 getHeaderTitle 读 mockDB.branches，必须先完成 BranchService.loadDB()

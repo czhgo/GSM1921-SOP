@@ -1,20 +1,20 @@
 // Party committee branch directory: create and select; maintenance is in branch-config.html.
 
-import { mockDB } from '../../../core/domain/domain.js?v=20261026a';
+import { mockDB } from '../../../core/domain/domain.js?v=20261026b';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/member/person.js 获取（原直连 mock PEOPLE）；
 // 每次渲染现读（members 覆盖层即时吃到），不缓存在模块顶层
-import { PersonStore } from '../../../services/member/person.js?v=20261026a';
-import { createBranch } from '../../../services/branch/branch.js?v=20261026a';
-import { getRosterStats } from '../../../services/member/roster.js?v=20261026a';
-import { showToast, escHtml as esc, getBasePath } from '../../../core/base/utils.js?v=20261026a';
-import { bindBranchReadOnlyButtons } from '../../../services/core/branch-readonly-nav.js?v=20261026a';
-import { renderSectionHeader, renderTabHeader } from '../../../components/shell/page-frame.js?v=20261026a';
-import { DEFAULT_BRANCH_ID } from '../../../core/domain/constants.js?v=20261026a';
-import { getAdapter, getDataSource } from '../../../data/data-adapter.js?v=20261026a';
+import { PersonStore } from '../../../services/member/person.js?v=20261026b';
+import { createBranch } from '../../../services/branch/branch.js?v=20261026b';
+import { getRosterStats } from '../../../services/member/roster.js?v=20261026b';
+import { showToast, escHtml as esc, getBasePath } from '../../../core/base/utils.js?v=20261026b';
+import { bindBranchReadOnlyButtons } from '../../../services/core/branch-readonly-nav.js?v=20261026b';
+import { renderSectionHeader, renderTabHeader } from '../../../components/shell/page-frame.js?v=20261026b';
+import { DEFAULT_BRANCH_ID } from '../../../core/domain/constants.js?v=20261026b';
+import { getAdapter, getDataSource } from '../../../data/data-adapter.js?v=20261026b';
 // A05（2026-10-20 IA 修复批次）：「支部动态」撤页后，其「待批复数量列 + 支部筛选」并入本页。
 //   数据与筛选件一律复用既有单一源（review-request 服务 + branch-filter 共用件），不另写一份。
-import { listReviewRequests } from '../../../services/governance/review-request.js?v=20261026a';
-import { renderBranchFilter, getBranchFilter } from '../../../components/governance/branch-filter.js?v=20261026a';
+import { listReviewRequests } from '../../../services/governance/review-request.js?v=20261026b';
+import { renderBranchFilter, getBranchFilter } from '../../../components/governance/branch-filter.js?v=20261026b';
 
 const BRANCH_FILTER_STATE = 'pc-branches';
 
@@ -62,7 +62,7 @@ function renderBranchRosterRows(branchId) {
     const profileUrl = `${getBasePath()}person.html?id=${encodeURIComponent(person.id)}`;
     // A01：阶段空值不再用角色名冒充（角色 ≠ 发展阶段）；给出明确补录责任人 / 入口。
     const stage = person.developStage || '未登记（组织委员可在名册补）';
-    return `<tr><td data-label="姓名"><a class="font-medium text-accent underline underline-offset-2" href="${profileUrl}">${esc(person.name || '未命名成员')}</a></td><td data-label="党小组">${esc(person.partyGroup || '未分组')}</td><td data-label="发展阶段">${esc(stage)}</td><td data-label="档案"><a class="whitespace-nowrap text-sm text-accent underline underline-offset-2" href="${profileUrl}">查看档案</a></td></tr>`;
+    return `<tr><td data-label="姓名"><a class="font-medium text-accent" href="${profileUrl}">${esc(person.name || '未命名成员')}</a></td><td data-label="党小组">${esc(person.partyGroup || '未分组')}</td><td data-label="发展阶段">${esc(stage)}</td><td data-label="档案"><a class="whitespace-nowrap text-sm text-accent" href="${profileUrl}">查看档案</a></td></tr>`;
   }).join('');
   return `<div class="max-h-80 overflow-y-auto rounded-lg border border-gray-200">
     <table class="data-table" data-responsive="cards">
@@ -155,7 +155,7 @@ export async function renderContent() {
           // A05：待批复数量列（与旧「支部动态」同口径：pending 按 branchId 计数，链接带支部筛选）。
           const pendingCount = pendingRequests.filter((request) => request.branchId === bid).length;
           const pendingCell = pendingCount
-            ? `<a class="font-semibold text-amber-800 underline-offset-2 hover:underline" href="${getBasePath()}workspace/party-committee.html?tab=review&amp;branchId=${encodeURIComponent(bid)}" title="查看该支部待批复上报">${pendingCount} 项</a>`
+            ? `<a class="font-semibold text-amber-800 hover:text-accent" href="${getBasePath()}workspace/party-committee.html?tab=review&amp;branchId=${encodeURIComponent(bid)}" title="查看该支部待批复上报">${pendingCount} 项</a>`
             : '<span class="text-gray-500">0 项</span>';
           // 2026-10-18 繁专项（Top 8）：组织提醒按目录行 `secretaryId` 判断（服务端目录投影已补该字段），
           //   不再被 `summaryOnly` 抑制；口径＝运行中且未任命支书（A06 治理总览撤页后，原「组织待补」只此一处）。

@@ -73,7 +73,9 @@ test('党委组织员登录直达党委工作台：台账见支部、可创建�
     await waitForBodyText(page, '支部上报'); // tab 栏存在
     await page.waitForFunction(() => {
       const c = document.getElementById('party-committee-tab-content');
-      return c && c.textContent.includes('支部上报处理') && c.textContent.includes('待批复');
+      // 2026-10-27 Task 5：页签 H2「支部上报」是本页唯一页面标题（卡头不再复述）。
+      const h2 = c ? c.querySelector('h2') : null;
+      return !!h2 && h2.textContent.trim() === '支部上报' && c.textContent.includes('待批复');
     }, { timeout: 10000 });
     const reviewText = await page.evaluate(() => document.getElementById('party-committee-tab-content')?.textContent || '');
     assert.ok(!reviewText.includes('储子禾'), '党委登录首页不得展示个人级档案明细');
@@ -254,9 +256,9 @@ test('P2 支书任命：任命宋佳宁(2400012349)为支书 → 2400012349 登�
       return h && h.textContent.includes('光华管理学院党委');
     }, { timeout: 10000 });
     const appoint = await page.evaluate(async () => {
-      const { appointSecretary } = await import('/src/services/branch/appointment.js?v=20261026a');
+      const { appointSecretary } = await import('/src/services/branch/appointment.js?v=20261026b');
       await appointSecretary({ branchId: 'br-b1', personId: '2400012349', note: 'E2E 换届测试' });
-      const { mockDB } = await import('/src/core/domain/domain.js?v=20261026a');
+      const { mockDB } = await import('/src/core/domain/domain.js?v=20261026b');
       const branch = (mockDB.branches || []).find(b => b.id === 'br-b1');
       const recs = (mockDB.appointmentRecords || []).filter(r => r.branchId === 'br-b1');
       return { secretaryId: branch?.secretaryId, recs: recs.length, currentTo: (recs.find(r => !r.to) || {}).secretaryId };
@@ -330,7 +332,7 @@ test('党委「查看该支部」进入独立只读视图：范围明确、无�
       '党委登录后应为 API 会话（存在 gsm1921-api-token）'
     );
     // P0-2 形态断言（2026-09-23 支书裁定「形态必须可断言」）：真机用例的数据源形态单一源 = data/data-adapter.js::getRuntimeMode()
-    await page.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20261026a')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
+    await page.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20261026b')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
     await page.waitForFunction(() => Boolean(document.getElementById('app-header')), { timeout: 15000 });
 
     // 2. 「支部管理」→ 点 br-b1 的「查看该支部」
@@ -374,7 +376,7 @@ test('党委「查看该支部」进入独立只读视图：范围明确、无�
 
     // 5. 只读下钻保持 party-staff 身份，不借用支书身份
     const perms = await page.evaluate(async () => {
-      const { AuthStore } = await import('/src/services/core/auth.js?v=20261026a');
+      const { AuthStore } = await import('/src/services/core/auth.js?v=20261026b');
       const me = AuthStore.getCurrentUser();
       return {
         role: me && me.role,

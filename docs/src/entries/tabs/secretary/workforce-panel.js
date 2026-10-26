@@ -7,15 +7,15 @@
 //      已通过=可采纳；未达出席门槛/有反对=采纳禁用（去表决再议）。
 // 表决 UI 复用既有 agenda-votes 资产；本面板不重复实现投票。
 
-import { escHtml as esc, showToast, getBasePath, todayLocal } from '../../../core/base/utils.js?v=20261026a';
-import { WORK_MAP_MODULES, WORK_MAP_TIER_LABELS, canDisableModule } from '../../../core/domain/work-map.js?v=20261026a';
-import { BRANCH_COMMISSION_ROLES, ROLE_LABELS } from '../../../core/domain/constants.js?v=20261026a';
-import { PersonStore } from '../../../services/member/person.js?v=20261026a';
+import { escHtml as esc, showToast, getBasePath, todayLocal } from '../../../core/base/utils.js?v=20261026b';
+import { WORK_MAP_MODULES, WORK_MAP_TIER_LABELS, canDisableModule } from '../../../core/domain/work-map.js?v=20261026b';
+import { BRANCH_COMMISSION_ROLES, ROLE_LABELS } from '../../../core/domain/constants.js?v=20261026b';
+import { PersonStore } from '../../../services/member/person.js?v=20261026b';
 import {
   createWorkforceProposalActivity, listWorkforceProposals, adoptWorkforceProposal,
   getWorkforceVoteOutcome, ownerDisplay,
-} from '../../../services/branch/workforce.js?v=20261026a';
-import { getBranchWorkforce } from '../../../services/branch/branch.js?v=20261026a';
+} from '../../../services/branch/workforce.js?v=20261026b';
+import { getBranchWorkforce } from '../../../services/branch/branch.js?v=20261026b';
 
 const DRAFT_KEY = 'gsm1921-workforce-draft'; // 本机草稿（**仅本机·不上服务端**：未提交的拟定分工，属该设备上未完成的工作；白名单见 content/05_ai_coding/DATA_CONSISTENCY_CHECKLIST.md）
 
@@ -130,7 +130,7 @@ function _proposalCards(proposals, outcomesByAct) {
       const m = WORK_MAP_MODULES.find((x) => x.id === c.moduleId);
       // 负责人到人 → 姓名可点进成员档案页（角色类负责人无可链接的人 id，保持纯文本）
       const ownerHtml = c.to && c.to.ownerType === 'person'
-        ? `<a href="${getBasePath()}person.html?id=${encodeURIComponent(c.to.ownerId)}" class="hover:underline hover:text-accent transition-colors" title="查看完整档案">${esc(ownerDisplay(c.to))}</a>`
+        ? `<a href="${getBasePath()}person.html?id=${encodeURIComponent(c.to.ownerId)}" class="hover:text-accent transition-colors" title="查看完整档案">${esc(ownerDisplay(c.to))}</a>`
         : esc(ownerDisplay(c.to));
       return `<span class="text-xs px-1.5 py-0.5 rounded bg-red-50 text-red-700 border border-red-100">${esc(m ? m.name : c.moduleId)} → ${ownerHtml}</span>`;
     });

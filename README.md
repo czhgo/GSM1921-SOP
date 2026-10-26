@@ -168,7 +168,7 @@ mindmap
 | | activity / taskforce / notice | 活动与会议详情 / 专班详情 / 通知 |
 | | [party-committee-meeting.html](docs/party-committee-meeting.html) | 支委会会议页（选线上召开 → 提取议程 → 委员线上表态 → 汇总截止 → 留存并查阅讨论结果；仅支委可进） |
 | | thought-report / person | 思想汇报长文阅读 / 成员档案 |
-| | wizard / help / about / settings | 支部配置分步向导 / 帮助手册 / 关于 / 设置中心 |
+| | wizard / help / settings | 支部配置分步向导 / 帮助手册 / 设置中心 |
 | 工作台 | [secretary.html](docs/workspace/secretary.html) | 支书工作台（支书 / 副支书**共台**） |
 | | org / prop / disc | 组织 / 宣传 / 纪检委员工作台 |
 | | leader / visitor | 党小组组长 / 成员工作台 |

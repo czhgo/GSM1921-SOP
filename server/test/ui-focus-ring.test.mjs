@@ -92,3 +92,20 @@ test('F5 非空转：对比度函数与规则抽取有正/负例', () => {
   assert.ok(_contrast('#FFFFFF', '#FFFFFF') === 1, '同色对比度应为 1');
   assert.equal(_ruleBody('a { color: red; }', '.not-exist:focus'), '', '不存在的选择器应返回空');
 });
+
+test('F6 顶栏深红底：焦点环作用域改党徽金且 ≥3:1，不改全站 token', () => {
+  // 2026-10-27 Task 2（阶段一 · 操作成本）：全局深灰 #1F2937 落在 #7A0010 上仅 1.28:1。
+  const HEADER_RED = '#7A0010';
+  const body = _ruleBody(STYLES, '#app-header .hamburger-btn:focus-visible');
+  assert.ok(body, '缺少顶栏作用域焦点环规则（#app-header .hamburger-btn:focus-visible）');
+  assert.match(body, /outline:\s*2px solid var\(--party-gold\)/, '顶栏焦点环应在 #app-header 作用域内改为党徽金');
+  assert.match(STYLES, /#app-header \.header-action-btn:focus-visible/, '顶栏动作按钮须纳入党徽金焦点环');
+  assert.match(STYLES, /#app-header #notif-btn:focus-visible/, '顶栏通知按钮须纳入党徽金焦点环');
+  assert.ok(_contrast(GOLD, HEADER_RED) >= 3,
+    `党徽金环 vs 顶栏红底不足 3:1（实测 ${_contrast(GOLD, HEADER_RED).toFixed(2)}）`);
+  // 反证：全局深灰在顶栏红底上本就不足 3:1，故必须作用域覆盖。
+  assert.ok(_contrast('#1F2937', HEADER_RED) < 3, '反证失败：深灰在顶栏红底上应不足 3:1');
+  // 全站 token 不得被这次顶栏修复改动。
+  assert.equal(STYLES.match(/--focus-ring:\s*([^;]+);/)?.[1]?.trim(), '#1F2937',
+    '全站亮色 --focus-ring 不得随顶栏作用域修复一起改');
+});

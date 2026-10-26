@@ -64,6 +64,7 @@ const GROUP = read('docs/src/entries/tabs/secretary/group-progress-tab.js');
 const OVERVIEW = read('docs/src/components/governance/work-overview.js');
 const COMMITTEE = read('docs/src/entries/tabs/secretary/committee-meeting-tab.js');
 const ENGINE = read('docs/src/components/ui/list-filter.js');
+const CAL_CARD = read('docs/src/entries/tabs/shared/activity-calendar-tab.js');
 
 /** 去掉括号补充说明与空白，用于「表头 ↔ data-label」覆盖比较（如「人数（含党员）」≡「人数」）。 */
 const norm = (s) => String(s).replace(/（[^）]*）/g, '').replace(/\s+/g, '').trim();
@@ -239,4 +240,16 @@ test('C5 矩阵卡式结构：同一张表 + data-label + rm-scroll，保留 —
   assert.match(MATRIX, /export const MATRIX_ROW_LIMIT = 10/, '人维分页不得改动');
   // 引擎表格模式仍输出同一属性（单一源）
   assert.match(ENGINE, /data-responsive="cards"/, '统一检索引擎仍须输出 data-responsive="cards"');
+});
+
+test('C7 日历折叠卡（2026-10-27 Task 6.3）：40×40 摘要槽只留 chevron + aria-label，不塞整句', () => {
+  const m = /<summary class="disclosure__summary"([^>]*)>([^<]*)<\/summary>/.exec(CAL_CARD);
+  assert.ok(m, '未找到共享日历折叠卡的 <summary class="disclosure__summary">');
+  assert.match(m[1], /aria-label="[^"]+"/, '折叠钮须有可访问名（aria-label）');
+  assert.equal(m[2].trim(), '', '40px 摘要槽内不得再放整句文字（会竖排折行压卡）');
+  // 四台（org / prop / disc / leader）的工作概况都复用同一实现。
+  for (const page of ['org', 'prop', 'disc', 'leader']) {
+    assert.match(read(`docs/src/entries/tabs/${page}/overview-tab.js`), /renderCalendarCard/,
+      `${page} 台工作概况须复用共享日历折叠卡（单一源）`);
+  }
 });

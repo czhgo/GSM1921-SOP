@@ -18,9 +18,9 @@ import Database from 'better-sqlite3';
 import { createApp } from '../app.js';
 import { seedDatabase } from '../seed.js';
 import { migratePersonIdsToStudentNumbers } from '../db.js';
-import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261026a';
-import { setDataSource } from '../../docs/src/data/data-adapter.js?v=20261026a';
-import { TodoStore } from '../../docs/src/services/governance/todo.js?v=20261026a';
+import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261026b';
+import { setDataSource } from '../../docs/src/data/data-adapter.js?v=20261026b';
+import { TodoStore } from '../../docs/src/services/governance/todo.js?v=20261026b';
 
 let server;
 let base;

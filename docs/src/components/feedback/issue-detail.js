@@ -1,16 +1,16 @@
 // role: [工程师]+[AI]
 // issue-detail.js — 反馈详情渲染
 
-import { IssueStore, issueDomainLabel, issueDomainSuggest, issueDomainReplyHint } from '../../services/governance/issues.js?v=20261026a';
-import { MilestoneStore } from '../../services/governance/milestones.js?v=20261026a';
-import { AuthStore } from '../../services/core/auth.js?v=20261026a';
-import { showToast } from '../../core/base/utils.js?v=20261026a';
-import { icon } from '../../core/base/icons.js?v=20261026a';
-import { getPersonName } from '../../services/member/person.js?v=20261026a';
-import { renderReactions, bindReactions } from './reactions.js?v=20261026a';
-import { ISSUE_STATUS_LABELS, ISSUE_CLOSED_REASON_LABELS } from '../../core/domain/constants.js?v=20261026a';
-import { badgeHtml } from '../ui/badges.js?v=20261026a';
-import { openFormModal } from '../ui/modal.js?v=20261026a';
+import { IssueStore, issueDomainLabel, issueDomainSuggest, issueDomainReplyHint } from '../../services/governance/issues.js?v=20261026b';
+import { MilestoneStore } from '../../services/governance/milestones.js?v=20261026b';
+import { AuthStore } from '../../services/core/auth.js?v=20261026b';
+import { showToast } from '../../core/base/utils.js?v=20261026b';
+import { icon } from '../../core/base/icons.js?v=20261026b';
+import { getPersonName } from '../../services/member/person.js?v=20261026b';
+import { renderReactions, bindReactions } from './reactions.js?v=20261026b';
+import { ISSUE_STATUS_LABELS, ISSUE_CLOSED_REASON_LABELS } from '../../core/domain/constants.js?v=20261026b';
+import { badgeHtml } from '../ui/badges.js?v=20261026b';
+import { openFormModal } from '../ui/modal.js?v=20261026b';
 
 const SCOPE_LABELS = {
   permanent: '底层架构',
@@ -57,7 +57,7 @@ export function renderIssueDetail(issueId) {
     container.innerHTML = `
       <div class="card rounded-xl p-5 text-center">
         <p class="text-sm text-gray-500 mb-3">反馈不存在或已被删除</p>
-        <a href="./feedback.html" class="text-xs text-accent hover:underline">← 返回列表</a>
+        <a href="./feedback.html" class="text-xs text-accent">← 返回列表</a>
       </div>
     `;
     return;
@@ -71,7 +71,7 @@ export function renderIssueDetail(issueId) {
 
   container.innerHTML = `
     <div class="mb-4">
-      <a href="./feedback.html" class="text-xs text-accent hover:underline flex items-center gap-1">
+      <a href="./feedback.html" class="text-xs text-accent flex items-center gap-1">
         ${icon('chevronLeft', { className: 'w-3 h-3' })} 返回列表
       </a>
     </div>

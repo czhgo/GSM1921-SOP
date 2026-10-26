@@ -1,0 +1,797 @@
+[
+ {
+  "page": "home",
+  "mode": "light",
+  "url": "http://127.0.0.1:3000/?month=2026-10",
+  "themeDark": false,
+  "bodyBg": "rgb(250, 250, 245)",
+  "bodyFg": "rgb(31, 41, 55)",
+  "tokens": {
+   "--surface-page": "#FAFAF5",
+   "--surface-card": "#FFFFFF",
+   "--surface-elevated": "#FFFFFF",
+   "--surface-header": "#7A0010",
+   "--color-text-primary": "#1F2937",
+   "--color-text-secondary": "#4B5563",
+   "--color-text-tertiary": "#6B7280",
+   "--color-link": "#6E4E08",
+   "--app-accent": "#A97A12",
+   "--app-accent-soft-bg": "#FBF3DC",
+   "--app-accent-soft-text": "#6E4E08",
+   "--app-accent-strong-bg": "#9A6B0F",
+   "--status-warning": "#F59E0B",
+   "--status-error": "#EF4444",
+   "--status-success": "#10B981",
+   "--status-info": "#3B82F6"
+  },
+  "failCount": 0,
+  "failures": []
+ },
+ {
+  "page": "home",
+  "mode": "dark",
+  "url": "http://127.0.0.1:3000/?month=2026-10",
+  "themeDark": true,
+  "bodyBg": "rgb(11, 18, 32)",
+  "bodyFg": "rgb(241, 245, 249)",
+  "tokens": {
+   "--surface-page": "#0B1220",
+   "--surface-card": "#141D2F",
+   "--surface-elevated": "#1A2438",
+   "--surface-header": "#7A0010",
+   "--color-text-primary": "#F1F5F9",
+   "--color-text-secondary": "#CBD5E1",
+   "--color-text-tertiary": "#94A3B8",
+   "--color-link": "#E8C97A",
+   "--app-accent": "#E0B24C",
+   "--app-accent-soft-bg": "#2F2717",
+   "--app-accent-soft-text": "#E8C97A",
+   "--app-accent-strong-bg": "#C89A34",
+   "--status-warning": "#FBBF24",
+   "--status-error": "#F87171",
+   "--status-success": "#34D399",
+   "--status-info": "#60A5FA"
+  },
+  "failCount": 1,
+  "failures": [
+   {
+    "text": "首页",
+    "path": "nav.sidebar-nav > div.flex.flex-col.gap-2 > a.module-tab.active > span.font-title-cn",
+    "fg": "rgba(248,113,113,1.00)",
+    "bg": "rgb(51,65,85)",
+    "ratio": 3.74,
+    "need": 4.5,
+    "size": 13,
+    "weight": 800,
+    "imageBg": [],
+    "rect": {
+     "x": -200,
+     "y": 90
+    }
+   }
+  ]
+ },
+ {
+  "page": "home",
+  "mode": "light",
+  "viewport": 390,
+  "url": "http://127.0.0.1:3000/?month=2026-10",
+  "themeDark": false,
+  "bodyBg": "rgb(250, 250, 245)",
+  "bodyFg": "rgb(31, 41, 55)",
+  "tokens": {
+   "--surface-page": "#FAFAF5",
+   "--surface-card": "#FFFFFF",
+   "--surface-elevated": "#FFFFFF",
+   "--surface-header": "#7A0010",
+   "--color-text-primary": "#1F2937",
+   "--color-text-secondary": "#4B5563",
+   "--color-text-tertiary": "#6B7280",
+   "--color-link": "#6E4E08",
+   "--app-accent": "#A97A12",
+   "--app-accent-soft-bg": "#FBF3DC",
+   "--app-accent-soft-text": "#6E4E08",
+   "--app-accent-strong-bg": "#9A6B0F",
+   "--status-warning": "#F59E0B",
+   "--status-error": "#EF4444",
+   "--status-success": "#10B981",
+   "--status-info": "#3B82F6"
+  },
+  "failCount": 0,
+  "failures": []
+ },
+ {
+  "page": "login",
+  "mode": "light",
+  "url": "http://127.0.0.1:3000/login.html",
+  "themeDark": false,
+  "bodyBg": "rgb(250, 250, 245)",
+  "bodyFg": "rgb(31, 41, 55)",
+  "tokens": {
+   "--surface-page": "#FAFAF5",
+   "--surface-card": "#FFFFFF",
+   "--surface-elevated": "#FFFFFF",
+   "--surface-header": "#7A0010",
+   "--color-text-primary": "#1F2937",
+   "--color-text-secondary": "#4B5563",
+   "--color-text-tertiary": "#6B7280",
+   "--color-link": "#6E4E08",
+   "--app-accent": "#A97A12",
+   "--app-accent-soft-bg": "#FBF3DC",
+   "--app-accent-soft-text": "#6E4E08",
+   "--app-accent-strong-bg": "#9A6B0F",
+   "--status-warning": "#F59E0B",
+   "--status-error": "#EF4444",
+   "--status-success": "#10B981",
+   "--status-info": "#3B82F6"
+  },
+  "failCount": 1,
+  "failures": [
+   {
+    "text": "光华管理学院本科生党支部",
+    "path": "body.min-h-screen.flex.items-center > div#main-content.w-full.max-w-md > div.login-hero.login-card-anim.rounded-t-2xl > h1.font-title.text-lg.font-bold",
+    "fg": "rgba(255,255,255,1.00)",
+    "bg": "rgb(250,250,245)",
+    "ratio": 1.05,
+    "need": 4.5,
+    "size": 18,
+    "weight": 700,
+    "imageBg": [
+     "div.login-hero.login-card-anim.rounded-t-2xl"
+    ],
+    "rect": {
+     "x": 520,
+     "y": 196
+    }
+   }
+  ]
+ },
+ {
+  "page": "login",
+  "mode": "dark",
+  "url": "http://127.0.0.1:3000/login.html",
+  "themeDark": true,
+  "bodyBg": "rgb(11, 18, 32)",
+  "bodyFg": "rgb(241, 245, 249)",
+  "tokens": {
+   "--surface-page": "#0B1220",
+   "--surface-card": "#141D2F",
+   "--surface-elevated": "#1A2438",
+   "--surface-header": "#7A0010",
+   "--color-text-primary": "#F1F5F9",
+   "--color-text-secondary": "#CBD5E1",
+   "--color-text-tertiary": "#94A3B8",
+   "--color-link": "#E8C97A",
+   "--app-accent": "#E0B24C",
+   "--app-accent-soft-bg": "#2F2717",
+   "--app-accent-soft-text": "#E8C97A",
+   "--app-accent-strong-bg": "#C89A34",
+   "--status-warning": "#FBBF24",
+   "--status-error": "#F87171",
+   "--status-success": "#34D399",
+   "--status-info": "#60A5FA"
+  },
+  "failCount": 0,
+  "failures": []
+ },
+ {
+  "page": "login",
+  "mode": "light",
+  "viewport": 390,
+  "url": "http://127.0.0.1:3000/login.html",
+  "themeDark": false,
+  "bodyBg": "rgb(250, 250, 245)",
+  "bodyFg": "rgb(31, 41, 55)",
+  "tokens": {
+   "--surface-page": "#FAFAF5",
+   "--surface-card": "#FFFFFF",
+   "--surface-elevated": "#FFFFFF",
+   "--surface-header": "#7A0010",
+   "--color-text-primary": "#1F2937",
+   "--color-text-secondary": "#4B5563",
+   "--color-text-tertiary": "#6B7280",
+   "--color-link": "#6E4E08",
+   "--app-accent": "#A97A12",
+   "--app-accent-soft-bg": "#FBF3DC",
+   "--app-accent-soft-text": "#6E4E08",
+   "--app-accent-strong-bg": "#9A6B0F",
+   "--status-warning": "#F59E0B",
+   "--status-error": "#EF4444",
+   "--status-success": "#10B981",
+   "--status-info": "#3B82F6"
+  },
+  "failCount": 1,
+  "failures": [
+   {
+    "text": "光华管理学院本科生党支部",
+    "path": "body.min-h-screen.flex.items-center > div#main-content.w-full.max-w-md > div.login-hero.login-card-anim.rounded-t-2xl > h1.font-title.text-lg.font-bold",
+    "fg": "rgba(255,255,255,1.00)",
+    "bg": "rgb(250,250,245)",
+    "ratio": 1.05,
+    "need": 4.5,
+    "size": 18,
+    "weight": 700,
+    "imageBg": [
+     "div.login-hero.login-card-anim.rounded-t-2xl"
+    ],
+    "rect": {
+     "x": 40,
+     "y": 164
+    }
+   }
+  ]
+ },
+ {
+  "page": "about",
+  "mode": "light",
+  "url": "http://127.0.0.1:3000/about.html",
+  "themeDark": false,
+  "bodyBg": "rgb(250, 250, 245)",
+  "bodyFg": "rgb(31, 41, 55)",
+  "tokens": {
+   "--surface-page": "#FAFAF5",
+   "--surface-card": "#FFFFFF",
+   "--surface-elevated": "#FFFFFF",
+   "--surface-header": "#7A0010",
+   "--color-text-primary": "#1F2937",
+   "--color-text-secondary": "#4B5563",
+   "--color-text-tertiary": "#6B7280",
+   "--color-link": "#6E4E08",
+   "--app-accent": "#A97A12",
+   "--app-accent-soft-bg": "#FBF3DC",
+   "--app-accent-soft-text": "#6E4E08",
+   "--app-accent-strong-bg": "#9A6B0F",
+   "--status-warning": "#F59E0B",
+   "--status-error": "#EF4444",
+   "--status-success": "#10B981",
+   "--status-info": "#3B82F6"
+  },
+  "failCount": 3,
+  "failures": [
+   {
+    "text": "开篇",
+    "path": "nav.ab-toc-nav > div.ab-toc-nav-inner > a.ab-toc-dot-item.is-active > span.ab-toc-dot-tooltip",
+    "fg": "rgba(206,17,38,0.50)",
+    "bg": "rgb(251,233,228)",
+    "ratio": 2.36,
+    "need": 4.5,
+    "size": 12,
+    "weight": 500,
+    "imageBg": [],
+    "rect": {
+     "x": 1334,
+     "y": 344
+    }
+   },
+   {
+    "text": "「组织性」的展开",
+    "path": "div.ab-chapter.ab-cognition-inner > div.ab-cognition-layout > div.ab-cognition-left > div.ab-chapter-eyebrow",
+    "fg": "rgba(206,17,38,0.50)",
+    "bg": "rgb(250,248,244)",
+    "ratio": 2.47,
+    "need": 4.5,
+    "size": 14,
+    "weight": 400,
+    "imageBg": [],
+    "rect": {
+     "x": 160,
+     "y": 1136
+    }
+   },
+   {
+    "text": "01",
+    "path": "main#main-content.flex-1.px-4.py-6 > div#about-content.max-w-5xl.mx-auto.ab-about > section#cognition.ab-page.ab-cognition-section > span.ab-page-no",
+    "fg": "rgba(108,98,84,0.50)",
+    "bg": "rgb(250,248,244)",
+    "ratio": 2.1,
+    "need": 3,
+    "size": 120,
+    "weight": 400,
+    "imageBg": [],
+    "rect": {
+     "x": 1231,
+     "y": 1024
+    }
+   }
+  ]
+ },
+ {
+  "page": "about",
+  "mode": "dark",
+  "url": "http://127.0.0.1:3000/about.html",
+  "themeDark": true,
+  "bodyBg": "rgb(11, 18, 32)",
+  "bodyFg": "rgb(241, 245, 249)",
+  "tokens": {
+   "--surface-page": "#0B1220",
+   "--surface-card": "#141D2F",
+   "--surface-elevated": "#1A2438",
+   "--surface-header": "#7A0010",
+   "--color-text-primary": "#F1F5F9",
+   "--color-text-secondary": "#CBD5E1",
+   "--color-text-tertiary": "#94A3B8",
+   "--color-link": "#E8C97A",
+   "--app-accent": "#E0B24C",
+   "--app-accent-soft-bg": "#2F2717",
+   "--app-accent-soft-text": "#E8C97A",
+   "--app-accent-strong-bg": "#C89A34",
+   "--status-warning": "#FBBF24",
+   "--status-error": "#F87171",
+   "--status-success": "#34D399",
+   "--status-info": "#60A5FA"
+  },
+  "failCount": 2,
+  "failures": [
+   {
+    "text": "01",
+    "path": "main#main-content.flex-1.px-4.py-6 > div#about-content.max-w-5xl.mx-auto.ab-about > section#cognition.ab-page.ab-cognition-section > span.ab-page-no",
+    "fg": "rgba(148,142,133,0.50)",
+    "bg": "rgb(20,22,26)",
+    "ratio": 2.33,
+    "need": 3,
+    "size": 120,
+    "weight": 400,
+    "imageBg": [],
+    "rect": {
+     "x": 1231,
+     "y": 1024
+    }
+   },
+   {
+    "text": "「组织性」",
+    "path": "div.ab-chapter.ab-cognition-inner > div.ab-cognition-layout > div.ab-cognition-left > h2.ab-chapter-title",
+    "fg": "rgba(206,17,38,0.88)",
+    "bg": "rgb(20,22,26)",
+    "ratio": 2.71,
+    "need": 3,
+    "size": 54,
+    "weight": 400,
+    "imageBg": [],
+    "rect": {
+     "x": 161,
+     "y": 1141
+    }
+   }
+  ]
+ },
+ {
+  "page": "about",
+  "mode": "light",
+  "viewport": 390,
+  "url": "http://127.0.0.1:3000/about.html",
+  "themeDark": false,
+  "bodyBg": "rgb(250, 250, 245)",
+  "bodyFg": "rgb(31, 41, 55)",
+  "tokens": {
+   "--surface-page": "#FAFAF5",
+   "--surface-card": "#FFFFFF",
+   "--surface-elevated": "#FFFFFF",
+   "--surface-header": "#7A0010",
+   "--color-text-primary": "#1F2937",
+   "--color-text-secondary": "#4B5563",
+   "--color-text-tertiary": "#6B7280",
+   "--color-link": "#6E4E08",
+   "--app-accent": "#A97A12",
+   "--app-accent-soft-bg": "#FBF3DC",
+   "--app-accent-soft-text": "#6E4E08",
+   "--app-accent-strong-bg": "#9A6B0F",
+   "--status-warning": "#F59E0B",
+   "--status-error": "#EF4444",
+   "--status-success": "#10B981",
+   "--status-info": "#3B82F6"
+  },
+  "failCount": 3,
+  "failures": [
+   {
+    "text": "以本支部为例",
+    "path": "div#about-content.max-w-5xl.mx-auto.ab-about > section#hero.ab-page.ab-page--cover.ab-hero-section > div.ab-hero-inner > p.ab-hero-subtitle",
+    "fg": "rgba(108,98,84,0.50)",
+    "bg": "rgb(250,248,244)",
+    "ratio": 2.1,
+    "need": 4.5,
+    "size": 14,
+    "weight": 400,
+    "imageBg": [],
+    "rect": {
+     "x": 101,
+     "y": 517
+    }
+   },
+   {
+    "text": "「组织性」的展开",
+    "path": "div.ab-chapter.ab-cognition-inner > div.ab-cognition-layout > div.ab-cognition-left > div.ab-chapter-eyebrow",
+    "fg": "rgba(206,17,38,0.50)",
+    "bg": "rgb(250,248,244)",
+    "ratio": 2.47,
+    "need": 4.5,
+    "size": 14,
+    "weight": 400,
+    "imageBg": [],
+    "rect": {
+     "x": 36,
+     "y": 1068
+    }
+   },
+   {
+    "text": "01",
+    "path": "main#main-content.flex-1.px-4.py-6 > div#about-content.max-w-5xl.mx-auto.ab-about > section#cognition.ab-page.ab-cognition-section > span.ab-page-no",
+    "fg": "rgba(108,98,84,0.40)",
+    "bg": "rgb(250,248,244)",
+    "ratio": 1.78,
+    "need": 3,
+    "size": 48,
+    "weight": 400,
+    "imageBg": [],
+    "rect": {
+     "x": 309,
+     "y": 966
+    }
+   }
+  ]
+ },
+ {
+  "page": "help",
+  "mode": "light",
+  "url": "http://127.0.0.1:3000/help.html",
+  "themeDark": false,
+  "bodyBg": "rgb(250, 250, 245)",
+  "bodyFg": "rgb(31, 41, 55)",
+  "tokens": {
+   "--surface-page": "#FAFAF5",
+   "--surface-card": "#FFFFFF",
+   "--surface-elevated": "#FFFFFF",
+   "--surface-header": "#7A0010",
+   "--color-text-primary": "#1F2937",
+   "--color-text-secondary": "#4B5563",
+   "--color-text-tertiary": "#6B7280",
+   "--color-link": "#6E4E08",
+   "--app-accent": "#A97A12",
+   "--app-accent-soft-bg": "#FBF3DC",
+   "--app-accent-soft-text": "#6E4E08",
+   "--app-accent-strong-bg": "#9A6B0F",
+   "--status-warning": "#F59E0B",
+   "--status-error": "#EF4444",
+   "--status-success": "#10B981",
+   "--status-info": "#3B82F6"
+  },
+  "failCount": 2,
+  "failures": [
+   {
+    "text": "致谢",
+    "path": "nav.help-toc-nav > div.help-toc-nav-inner > a.help-toc-dot-item.is-active > span.help-toc-dot-tooltip",
+    "fg": "rgba(206,17,38,0.40)",
+    "bg": "rgb(254,226,226)",
+    "ratio": 1.94,
+    "need": 4.5,
+    "size": 12,
+    "weight": 500,
+    "imageBg": [],
+    "rect": {
+     "x": 1336,
+     "y": 306
+    }
+   },
+   {
+    "text": "按角色或常见任务浏览",
+    "path": "div#help-search-slot > div.help-search > details.help-browse > summary",
+    "fg": "rgba(169,122,18,1.00)",
+    "bg": "rgb(250,250,245)",
+    "ratio": 3.66,
+    "need": 4.5,
+    "size": 13.12,
+    "weight": 650,
+    "imageBg": [],
+    "rect": {
+     "x": 324,
+     "y": 316
+    }
+   }
+  ]
+ },
+ {
+  "page": "help",
+  "mode": "dark",
+  "url": "http://127.0.0.1:3000/help.html",
+  "themeDark": true,
+  "bodyBg": "rgb(11, 18, 32)",
+  "bodyFg": "rgb(241, 245, 249)",
+  "tokens": {
+   "--surface-page": "#0B1220",
+   "--surface-card": "#141D2F",
+   "--surface-elevated": "#1A2438",
+   "--surface-header": "#7A0010",
+   "--color-text-primary": "#F1F5F9",
+   "--color-text-secondary": "#CBD5E1",
+   "--color-text-tertiary": "#94A3B8",
+   "--color-link": "#E8C97A",
+   "--app-accent": "#E0B24C",
+   "--app-accent-soft-bg": "#2F2717",
+   "--app-accent-soft-text": "#E8C97A",
+   "--app-accent-strong-bg": "#C89A34",
+   "--status-warning": "#FBBF24",
+   "--status-error": "#F87171",
+   "--status-success": "#34D399",
+   "--status-info": "#60A5FA"
+  },
+  "failCount": 2,
+  "failures": [
+   {
+    "text": "致谢",
+    "path": "nav.help-toc-nav > div.help-toc-nav-inner > a.help-toc-dot-item.is-active > span.help-toc-dot-tooltip",
+    "fg": "rgba(252,165,165,0.40)",
+    "bg": "rgb(46,18,33)",
+    "ratio": 2.54,
+    "need": 4.5,
+    "size": 12,
+    "weight": 500,
+    "imageBg": [],
+    "rect": {
+     "x": 1336,
+     "y": 306
+    }
+   },
+   {
+    "text": "0",
+    "path": "div.help-main > section#sec-entries.doc-card > h2.doc-h2 > span.doc-num",
+    "fg": "rgba(206,17,38,1.00)",
+    "bg": "rgb(20,29,47)",
+    "ratio": 2.99,
+    "need": 3,
+    "size": 24,
+    "weight": 800,
+    "imageBg": [],
+    "rect": {
+     "x": 365,
+     "y": 775
+    }
+   }
+  ]
+ },
+ {
+  "page": "help",
+  "mode": "light",
+  "viewport": 390,
+  "url": "http://127.0.0.1:3000/help.html",
+  "themeDark": false,
+  "bodyBg": "rgb(250, 250, 245)",
+  "bodyFg": "rgb(31, 41, 55)",
+  "tokens": {
+   "--surface-page": "#FAFAF5",
+   "--surface-card": "#FFFFFF",
+   "--surface-elevated": "#FFFFFF",
+   "--surface-header": "#7A0010",
+   "--color-text-primary": "#1F2937",
+   "--color-text-secondary": "#4B5563",
+   "--color-text-tertiary": "#6B7280",
+   "--color-link": "#6E4E08",
+   "--app-accent": "#A97A12",
+   "--app-accent-soft-bg": "#FBF3DC",
+   "--app-accent-soft-text": "#6E4E08",
+   "--app-accent-strong-bg": "#9A6B0F",
+   "--status-warning": "#F59E0B",
+   "--status-error": "#EF4444",
+   "--status-success": "#10B981",
+   "--status-info": "#3B82F6"
+  },
+  "failCount": 1,
+  "failures": [
+   {
+    "text": "按角色或常见任务浏览",
+    "path": "div#help-search-slot > div.help-search > details.help-browse > summary",
+    "fg": "rgba(169,122,18,1.00)",
+    "bg": "rgb(250,250,245)",
+    "ratio": 3.66,
+    "need": 4.5,
+    "size": 13.12,
+    "weight": 650,
+    "imageBg": [],
+    "rect": {
+     "x": 32,
+     "y": 462
+    }
+   }
+  ]
+ },
+ {
+  "page": "activity",
+  "mode": "light",
+  "url": "http://127.0.0.1:3000/activity.html?id=act-16",
+  "themeDark": false,
+  "bodyBg": "rgb(250, 250, 245)",
+  "bodyFg": "rgb(31, 41, 55)",
+  "tokens": {
+   "--surface-page": "#FAFAF5",
+   "--surface-card": "#FFFFFF",
+   "--surface-elevated": "#FFFFFF",
+   "--surface-header": "#7A0010",
+   "--color-text-primary": "#1F2937",
+   "--color-text-secondary": "#4B5563",
+   "--color-text-tertiary": "#6B7280",
+   "--color-link": "#6E4E08",
+   "--app-accent": "#A97A12",
+   "--app-accent-soft-bg": "#FBF3DC",
+   "--app-accent-soft-text": "#6E4E08",
+   "--app-accent-strong-bg": "#9A6B0F",
+   "--status-warning": "#F59E0B",
+   "--status-error": "#EF4444",
+   "--status-success": "#10B981",
+   "--status-info": "#3B82F6"
+  },
+  "failCount": 0,
+  "failures": []
+ },
+ {
+  "page": "activity",
+  "mode": "dark",
+  "url": "http://127.0.0.1:3000/activity.html?id=act-16",
+  "themeDark": true,
+  "bodyBg": "rgb(11, 18, 32)",
+  "bodyFg": "rgb(241, 245, 249)",
+  "tokens": {
+   "--surface-page": "#0B1220",
+   "--surface-card": "#141D2F",
+   "--surface-elevated": "#1A2438",
+   "--surface-header": "#7A0010",
+   "--color-text-primary": "#F1F5F9",
+   "--color-text-secondary": "#CBD5E1",
+   "--color-text-tertiary": "#94A3B8",
+   "--color-link": "#E8C97A",
+   "--app-accent": "#E0B24C",
+   "--app-accent-soft-bg": "#2F2717",
+   "--app-accent-soft-text": "#E8C97A",
+   "--app-accent-strong-bg": "#C89A34",
+   "--status-warning": "#FBBF24",
+   "--status-error": "#F87171",
+   "--status-success": "#34D399",
+   "--status-info": "#60A5FA"
+  },
+  "failCount": 1,
+  "failures": [
+   {
+    "text": "首页",
+    "path": "nav.sidebar-nav > div.flex.flex-col.gap-2 > a.module-tab.active > span.font-title-cn",
+    "fg": "rgba(248,113,113,1.00)",
+    "bg": "rgb(51,65,85)",
+    "ratio": 3.74,
+    "need": 4.5,
+    "size": 13,
+    "weight": 800,
+    "imageBg": [],
+    "rect": {
+     "x": -200,
+     "y": 90
+    }
+   }
+  ]
+ },
+ {
+  "page": "activity",
+  "mode": "light",
+  "viewport": 390,
+  "url": "http://127.0.0.1:3000/activity.html?id=act-16",
+  "themeDark": false,
+  "bodyBg": "rgb(250, 250, 245)",
+  "bodyFg": "rgb(31, 41, 55)",
+  "tokens": {
+   "--surface-page": "#FAFAF5",
+   "--surface-card": "#FFFFFF",
+   "--surface-elevated": "#FFFFFF",
+   "--surface-header": "#7A0010",
+   "--color-text-primary": "#1F2937",
+   "--color-text-secondary": "#4B5563",
+   "--color-text-tertiary": "#6B7280",
+   "--color-link": "#6E4E08",
+   "--app-accent": "#A97A12",
+   "--app-accent-soft-bg": "#FBF3DC",
+   "--app-accent-soft-text": "#6E4E08",
+   "--app-accent-strong-bg": "#9A6B0F",
+   "--status-warning": "#F59E0B",
+   "--status-error": "#EF4444",
+   "--status-success": "#10B981",
+   "--status-info": "#3B82F6"
+  },
+  "failCount": 0,
+  "failures": []
+ },
+ {
+  "page": "taskforce",
+  "mode": "light",
+  "url": "http://127.0.0.1:3000/taskforce.html?id=tf-001",
+  "themeDark": false,
+  "bodyBg": "rgb(250, 250, 245)",
+  "bodyFg": "rgb(31, 41, 55)",
+  "tokens": {
+   "--surface-page": "#FAFAF5",
+   "--surface-card": "#FFFFFF",
+   "--surface-elevated": "#FFFFFF",
+   "--surface-header": "#7A0010",
+   "--color-text-primary": "#1F2937",
+   "--color-text-secondary": "#4B5563",
+   "--color-text-tertiary": "#6B7280",
+   "--color-link": "#6E4E08",
+   "--app-accent": "#A97A12",
+   "--app-accent-soft-bg": "#FBF3DC",
+   "--app-accent-soft-text": "#6E4E08",
+   "--app-accent-strong-bg": "#9A6B0F",
+   "--status-warning": "#F59E0B",
+   "--status-error": "#EF4444",
+   "--status-success": "#10B981",
+   "--status-info": "#3B82F6"
+  },
+  "failCount": 0,
+  "failures": []
+ },
+ {
+  "page": "taskforce",
+  "mode": "dark",
+  "url": "http://127.0.0.1:3000/taskforce.html?id=tf-001",
+  "themeDark": true,
+  "bodyBg": "rgb(11, 18, 32)",
+  "bodyFg": "rgb(241, 245, 249)",
+  "tokens": {
+   "--surface-page": "#0B1220",
+   "--surface-card": "#141D2F",
+   "--surface-elevated": "#1A2438",
+   "--surface-header": "#7A0010",
+   "--color-text-primary": "#F1F5F9",
+   "--color-text-secondary": "#CBD5E1",
+   "--color-text-tertiary": "#94A3B8",
+   "--color-link": "#E8C97A",
+   "--app-accent": "#E0B24C",
+   "--app-accent-soft-bg": "#2F2717",
+   "--app-accent-soft-text": "#E8C97A",
+   "--app-accent-strong-bg": "#C89A34",
+   "--status-warning": "#FBBF24",
+   "--status-error": "#F87171",
+   "--status-success": "#34D399",
+   "--status-info": "#60A5FA"
+  },
+  "failCount": 1,
+  "failures": [
+   {
+    "text": "首页",
+    "path": "nav.sidebar-nav > div.flex.flex-col.gap-2 > a.module-tab.active > span.font-title-cn",
+    "fg": "rgba(248,113,113,1.00)",
+    "bg": "rgb(51,65,85)",
+    "ratio": 3.74,
+    "need": 4.5,
+    "size": 13,
+    "weight": 800,
+    "imageBg": [],
+    "rect": {
+     "x": -200,
+     "y": 90
+    }
+   }
+  ]
+ },
+ {
+  "page": "taskforce",
+  "mode": "light",
+  "viewport": 390,
+  "url": "http://127.0.0.1:3000/taskforce.html?id=tf-001",
+  "themeDark": false,
+  "bodyBg": "rgb(250, 250, 245)",
+  "bodyFg": "rgb(31, 41, 55)",
+  "tokens": {
+   "--surface-page": "#FAFAF5",
+   "--surface-card": "#FFFFFF",
+   "--surface-elevated": "#FFFFFF",
+   "--surface-header": "#7A0010",
+   "--color-text-primary": "#1F2937",
+   "--color-text-secondary": "#4B5563",
+   "--color-text-tertiary": "#6B7280",
+   "--color-link": "#6E4E08",
+   "--app-accent": "#A97A12",
+   "--app-accent-soft-bg": "#FBF3DC",
+   "--app-accent-soft-text": "#6E4E08",
+   "--app-accent-strong-bg": "#9A6B0F",
+   "--status-warning": "#F59E0B",
+   "--status-error": "#EF4444",
+   "--status-success": "#10B981",
+   "--status-info": "#3B82F6"
+  },
+  "failCount": 0,
+  "failures": []
+ }
+]

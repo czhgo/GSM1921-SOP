@@ -1,7 +1,7 @@
 // role: [工程师]+[AI]
 // 党委只读查看支部：始终保留党委身份和显式 branchId 范围。
-import { getBranchById } from '../branch/branch.js?v=20261026a';
-import { showToast } from '../../core/base/utils.js?v=20261026a';
+import { getBranchById } from '../branch/branch.js?v=20261026b';
+import { showToast } from '../../core/base/utils.js?v=20261026b';
 
 export function buildBranchReadOnlyUrl(branchId) {
   if (!branchId) return { ok: false, reason: '请先选择一个支部' };

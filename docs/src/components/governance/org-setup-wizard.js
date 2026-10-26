@@ -16,36 +16,36 @@
 // 草稿：localStorage `wizard-draft-<branchId>`（当前步 + 每步完成标记 + 完成态），中断可续走。
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../../core/domain/domain.js?v=20261026a';
-import { getCapabilities } from '../../core/boot/registry.js?v=20261026a';
-import { OUTPUT_BLOCK_DEFS, BRANCH_COMMISSION_ROLES, ROLE_LABELS, getAccentColors } from '../../core/domain/constants.js?v=20261026a';
-import { applyAccentThemeTokens } from '../../core/boot/theme.js?v=20261026a';
-import { CAPABILITY_PACKAGES } from '../../core/domain/capability-packages.js?v=20261026a';
-import { ORG_SUBJECT_LABELS, isBranchOrgSubject, ownerSubjectType } from '../../core/domain/work-map.js?v=20261026a';
+import { mockDB } from '../../core/domain/domain.js?v=20261026b';
+import { getCapabilities } from '../../core/boot/registry.js?v=20261026b';
+import { OUTPUT_BLOCK_DEFS, BRANCH_COMMISSION_ROLES, ROLE_LABELS, getAccentColors } from '../../core/domain/constants.js?v=20261026b';
+import { applyAccentThemeTokens } from '../../core/boot/theme.js?v=20261026b';
+import { CAPABILITY_PACKAGES } from '../../core/domain/capability-packages.js?v=20261026b';
+import { ORG_SUBJECT_LABELS, isBranchOrgSubject, ownerSubjectType } from '../../core/domain/work-map.js?v=20261026b';
 // 副作用：注册支委层工作台能力（配置目录=其 tab 清单，单一源）
-import '../../capabilities/secretary-workspace.js?v=20261026a';
-import { BLOCK_MANIFESTS } from '../../workflow/blocks/manifests.js?v=20261026a';
+import '../../capabilities/secretary-workspace.js?v=20261026b';
+import { BLOCK_MANIFESTS } from '../../workflow/blocks/manifests.js?v=20261026b';
 // L3 流程组合（2026-09-28 批次 246）：把编排内核接进**生产路径**——配置面用它做「组合体检」
-import { composePlan } from '../../workflow/blocks/orchestration.js?v=20261026a';
-import { escHtml as esc, showToast, downloadBlob } from '../../core/base/utils.js?v=20261026a';
-import { readLoginSnapshot } from '../../core/session/login-snapshot.js?v=20261026a';
-import { WORK_MAP_MODULES } from '../../core/domain/work-map.js?v=20261026a';
+import { composePlan } from '../../workflow/blocks/orchestration.js?v=20261026b';
+import { escHtml as esc, showToast, downloadBlob } from '../../core/base/utils.js?v=20261026b';
+import { readLoginSnapshot } from '../../core/session/login-snapshot.js?v=20261026b';
+import { WORK_MAP_MODULES } from '../../core/domain/work-map.js?v=20261026b';
 import {
   getBranchById, getBranchOrg, getBranchTabPolicy, getCoreTabIds,
   getBranchOutputBlocks, getBranchCapabilityPackageState, getOutputBlockPolicy, getWorkflowBlockPolicy, orderByIds,
   updateBranchModules, updateBranchCapabilityPackages, getBranchWorkforce, updateBranchWorkforce, updateBranchOrg,
   applyConfigCopy, createBranch, getBranchIdOfPerson, ensureBranchConfigLoaded,
-} from '../../services/branch/branch.js?v=20261026a';
-import { buildConfigPackage, applyConfigPackage } from '../../services/branch/org-config-package.js?v=20261026a';
+} from '../../services/branch/branch.js?v=20261026b';
+import { buildConfigPackage, applyConfigPackage } from '../../services/branch/org-config-package.js?v=20261026b';
 import {
   buildPreviewTemplate, sanitizePreview, applyPreview, clearPreview, getPreviewState,
   PREVIEW_KIND, PREVIEW_VERSION,
-} from '../../services/branch/org-base-data-preview.js?v=20261026a';
-import { getRosterStats, isDetained } from '../../services/member/roster.js?v=20261026a';
-import { buildOrgWizardReport } from '../../services/branch/org-wizard-report.js?v=20261026a';
-import { PersonStore, getPersonName } from '../../services/member/person.js?v=20261026a';
+} from '../../services/branch/org-base-data-preview.js?v=20261026b';
+import { getRosterStats, isDetained } from '../../services/member/roster.js?v=20261026b';
+import { buildOrgWizardReport } from '../../services/branch/org-wizard-report.js?v=20261026b';
+import { PersonStore, getPersonName } from '../../services/member/person.js?v=20261026b';
 // R5-1（2026-09-06）：建空支部「就地任命首任骨干」——任命编排在 appointment.js 收口（含数据边界登记）
-import { appointInauguralOfficers } from '../../services/branch/appointment.js?v=20261026a';
+import { appointInauguralOfficers } from '../../services/branch/appointment.js?v=20261026b';
 
 // ── 步骤元信息（支书已批口径）────────────────────────────────────
 export const WIZARD_STEPS = [
@@ -346,7 +346,7 @@ function _headHtml(S, branch, org, isStaff) {
         </div>
         <div class="flex items-center gap-2 shrink-0">
           ${isStaff && S.navigationMode === 'guided' ? `<button type="button" data-wz-act="toggle-create" class="btn-accent px-2.5 py-1.5">新建支部…</button>` : ''}
-          ${S.embed ? `<a href="./wizard.html?branch=${esc(S.branchId)}" class="text-[13px] text-accent hover:underline shrink-0" title="在独立页面打开引导式配置">${S.navigationMode === 'sections' ? '切换到引导模式 ↗' : '独立页直达 ↗'}</a>` : ''}
+          ${S.embed ? `<a href="./wizard.html?branch=${esc(S.branchId)}" class="text-[13px] text-accent shrink-0" title="在独立页面打开引导式配置">${S.navigationMode === 'sections' ? '切换到引导模式 ↗' : '独立页直达 ↗'}</a>` : ''}
         </div>
       </div>
       ${picker}

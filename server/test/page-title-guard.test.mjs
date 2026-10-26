@@ -7,9 +7,12 @@
 //   · 卡头 / 内嵌面板标题降为 H3，不得再用 H4 + 16px 冒充分区。
 //
 // 本守卫是**静态**结构断言（真机「每个 tab 恰好一个 H2」由 page-sweep 承担）：
-//   P1 能力注册里的每个 tab，其渲染模块自身或共享件必须提供 H2；
+//   P1 能力注册里的每个 tab，其渲染模块自身或共享件必须提供 H2（含 renderTabHeader）；
 //   P2 页题字号单一源 1.25rem，今天页 H2 用 text-xl；
-//   P3 全站源码不得再有 H4 + text-base（16px）的卡头。
+//   P3 全站源码不得再有 H4 + text-base（16px）的卡头；
+//   P4 七个工作台静态壳不得再输出页题（静态台名已移除，唯一 H2 由页签 renderTabHeader 提供）；
+//   P5 活动/专班详情 H3/H4 顺序合法（H4 不得先于 H3；汇报收件箱的 H4 前先出 H3）；
+//   P6 党委台卡头不复述页签名（「支部上报」只在页签 H2 出现一次）。
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, readdirSync, existsSync } from 'node:fs';
@@ -28,6 +31,9 @@ const CAPABILITY_FILES = [
   'docs/src/capabilities/visitor-workspace.js',
   'docs/src/capabilities/party-committee-workspace.js',
 ];
+
+/** 七个工作台静态壳：页题 H2 只由页签 renderTabHeader 提供，静态壳不得再占 H2。 */
+const WORKSPACE_SHELLS = ['secretary', 'org', 'prop', 'disc', 'leader', 'visitor', 'party-committee'];
 
 /** 由共享件承担 H2 的渲染模块（登记例外，不是豁免：共享件自身由 P0 校验）。 */
 const SHARED_H2_PROVIDERS = [
@@ -121,4 +127,39 @@ test('P3 卡头不得再用 H4 + 16px 冒充分区', () => {
   };
   walk(SRC);
   assert.deepEqual(offenders, [], `H4 越级（应改 H3 + 14px）：\n  ${offenders.join('\n  ')}`);
+});
+
+test('P4 工作台静态壳不再输出页题：唯一 H2 由页签 renderTabHeader 提供', () => {
+  const offenders = [];
+  for (const page of WORKSPACE_SHELLS) {
+    const rel = `docs/workspace/${page}.html`;
+    const src = read(join(ROOT, rel));
+    if (/<h2\b/.test(src)) offenders.push(`${rel}：静态壳仍有 <h2>（静态台名应移除）`);
+    if (/page-frame__title/.test(src)) offenders.push(`${rel}：静态壳仍有 .page-frame__title 页题元素`);
+    if (!new RegExp(`id="${page}-content"`).test(src)) offenders.push(`${rel}：缺少页签内容容器 #${page}-content`);
+  }
+  assert.deepEqual(offenders, [], `页题单层被破坏（静态台名与页签 H2 重复）：\n  ${offenders.join('\n  ')}`);
+});
+
+test('P5 活动/专班详情 H3/H4 顺序合法：H4 不得先于 H3，汇报收件箱前先出 H3', () => {
+  const src = read(join(SRC, 'entries/pages/activity-entry.js'));
+  const firstH3 = src.indexOf('<h3');
+  const firstH4 = src.indexOf('<h4');
+  assert.ok(firstH3 >= 0, 'activity-entry.js 未找到任何 H3：详情分区标题层级丢失');
+  if (firstH4 >= 0) {
+    assert.ok(firstH3 < firstH4, 'activity-entry.js 出现 H4 先于 H3（应先出分区 H3，再进卡头 H4）');
+  }
+  assert.match(src, /<h3[^>]*>汇报明细<\/h3>[\s\S]{0,400}renderReportInboxHtml\(/,
+    '汇报收件箱（卡头 H4）前须先出 H3「汇报明细」，不得 H4 先于 H3');
+  // 内部语：原始 act-* / tf-* 不再作为正文徽章；只允许出现在复制链接的 title 里。
+  assert.doesNotMatch(src, /<span class="text-xs text-gray-500">\$\{(?:act|tf)\.id\}<\/span>/,
+    '活动/专班详情不得再把原始 ID 当正文徽章');
+  assert.match(src, /title="对象编号 \$\{esc\((?:act|tf)\.id\)\}/, '原始 ID 只应移入复制链接的 title');
+});
+
+test('P6 党委台卡头不复述页签名：支部上报只在页签 H2 出现一次', () => {
+  const src = read(join(SRC, 'entries/tabs/party-committee/review-tab.js'));
+  assert.match(src, /renderTabHeader\(\{ title: '支部上报'/, '页签 H2 须由 renderTabHeader 提供');
+  assert.doesNotMatch(src, /<h3[^>]*>\s*支部上报(?:处理)?\s*<\/h3>/, '卡头 H3 不得逐字复述页签名「支部上报」');
+  assert.doesNotMatch(src, /renderSectionHeader\(\{[^}]*支部上报处理/, '「支部上报处理」卡头应降为普通文本或移除');
 });

@@ -2,7 +2,7 @@
 title: "设计域判例库"
 type: design
 role: "[工程师]+[AI]"
-last_updated: "2026-10-26"
+last_updated: "2026-10-27"
 status: active
 related_files: [DESIGN_SYSTEM.md, content/03_doc_system/CASES_INDEX.md, content/03_doc_system/OPERATIONS_GUIDE.md]
 ---
@@ -265,6 +265,30 @@ related_files: [DESIGN_SYSTEM.md, content/03_doc_system/CASES_INDEX.md, content/
 - **对应规范编号**：SD-47（视觉构成）；关联 SD-3（3px 例外）/ SD-36（非按钮语义）/ SD-42（全宽可见）。
 - **边界**：组名仍是**非按钮**胶囊（SD-36）——恢复主题色不等于可点击，不得进入 tab 序列或获得 hover；≤1280px 只缩内边距，字号保持 12px（SD-42）。
 - **证据指针**：`docs/src/styles.css` 的 `.tab-group-label`（`background: var(--app-accent-soft-bg)` / `color: var(--app-accent-soft-text)` / `border-radius:3px` / `font-weight:600` / `letter-spacing:0.5px`）；`server/test/ui-contrast-guard.test.mjs`（K3）；`server/test/ui-control-system-guard.test.mjs`（V2）；`.ctx/logs/2026-10-EXECUTION_LOG.md` 批次 513。
+
+## CASE-DESIGN-026 改到存在 ≠ 可感知：胶囊与链接「改完仍看不见」
+
+- **编号**：CASE-DESIGN-026
+- **样本（真实发生）**：批次 514 复核阶段三——`.tab-group-label` 已按 SD-47 有主题 soft 底与描边，但同屏的**选中页签也是 soft 底**，两者只差一个浅边框，支书仍说「分不出哪组、哪页」；链接侧全站仍有 **110 处 / 54 文件** 文本下划线（含 help / login），批次 512 的「静态下划线」口径还把它写成规范。改完后：组名＝10% 淡底（`--app-accent-tint`）＋ 无边框，选中页签＝solid soft ＋ `--app-accent` 描边 ＋ 700；下划线 **110 → 0**。
+- **AI 假设**：CSS 里写上主题色就等于「恢复层级」；下划线是链接的默认线索，留着更安全；改完能截图看到元素存在就算完成。
+- **人类意图**：改动的验收标准是**相邻两态一眼可分**——组名与选中页签必须在同一屏里不靠细看就能区分；链接的非颜色线索要用箭头 / 图标 / 底色 hover，而不是给整页文字加下划线。
+- **泛化规则**：视觉改动必须同时满足两条——① **相邻态差异可测**（底：10% tint vs solid soft；边：none vs 1px accent；字重：600 vs 700）；② **全站计数归零**（下划线 0 处，而非「新代码不加」）。只满足「元素存在 / 类名存在」不得称完成；同源判例见 CASE-DESIGN-020（可见 ≠ 恢复）与 CASE-DESIGN-025（可见 ≠ 视觉构成）。
+- **守卫**：`ui-contrast-guard::K3`（组名 10% 淡底 / 无边框 / soft-text ≥4.5:1）＋ `ui-control-system-guard::V2/V5`（胶囊无边框、选中态、纯文字动作静态线索）＋ `link-color-guard::L3/L6`（链接无下划线、600 字重、淡底 hover）＋ `no-underline-guard::N2/N4`（全站 0 处、只降不升）。
+- **对应规范编号**：SD-49（下划线清零）／ SD-50（胶囊与选中页签层级）；关联 SD-3（3px 例外）/ SD-36（非按钮语义）/ SD-42（全宽可见）/ SD-47（字重与直角）。
+- **边界**：表格分隔线、卡边、选中态边线是 `border-*`，不属「文本装饰」，不要求清零；链接仍必须有**非颜色线索**（箭头 / 图标 / 底色 hover），不是「只留颜色」。`about.html` 的存量样式同样适用，但 About 已撤导航（见 `PRODUCT_IA.md`）。
+- **证据指针**：`docs/src/styles.css` 的 `--app-accent-tint` / `.tab-group-label` / `.tab-btn-active` / `.link` / `.btn-text`；`server/test/no-underline-guard.test.mjs`（N1–N4）；`server/test/ui-contrast-guard.test.mjs`（K3 / K6）；`server/test/link-color-guard.test.mjs`（L3 / L6）；`.ctx/logs/2026-10-EXECUTION_LOG.md` 批次 514。
+
+## CASE-DESIGN-027 加载态「压暗 + 插加载行」硬替换
+
+- **编号**：CASE-DESIGN-027
+- **样本（真实发生）**：旧页签切换把内容区 `opacity` 压到 `0.45` 再在顶部插入一行「加载中…」，旧内容原地消失、新内容高度未定，切页签时整块闪一下；快速渲染也会闪，慢渲染没有骨架，超过 1s 仍是半透明块。批次 514 改为：>120ms 才铺 skeleton（「正在加载…」＋ 3 条卡形行 ＋ spinner ＋ `role=status` / `aria-live=polite`），旧内容淡出 120ms、新内容淡入 180ms（8px 位移），动效编排 ≤1000ms；实测 **825–900ms**；reduced-motion 只淡入 80ms、无位移，骨架与文案保留。
+- **AI 假设**：压暗是最省事的「正在加载」信号；插一行文字就能解释等待；硬替换只是快慢问题，不影响理解。
+- **人类意图**：加载态要**保住版式与上下文**——骨架近似目标布局、只在真的等超过 120ms 时出现、新内容交叉淡入；禁止用整块压暗或一行加载文案把页面「抹掉」。
+- **泛化规则**：加载体验＝「延迟阈值（120ms）＋ 版式骨架 ＋ 有界编排（≤1s）＋ 无压暗 / 无插行 / 无硬替换」四件齐备；页面跳转另加顶部 2px 主题色进度条与 120ms 离开淡出；`prefers-reduced-motion` 保留骨架与文案、只压到 80ms 且无位移。任一缺失不得称「加载体验已做」。
+- **守卫**：`loading-experience-guard::L1–L7`（含故障注入：删骨架 / 延迟归零 / 恢复压暗硬替换 / 删 reduced-motion 逐条判红）。
+- **对应规范编号**：SD-51（加载编排与禁令）；关联 SD-30 与 §12.13 动效令（过渡时长白名单）。
+- **边界**：数据层 8s 超时错误卡不受本条约束（那是失败态，不是加载态）；首屏空容器的骨架可立即铺（没有旧内容可闪），只有「已有内容切页签」才受 120ms 延迟约束。骨架只求布局近似，不要求逐像素复刻目标页。
+- **证据指针**：`docs/src/components/shell/tab-bar.js`（`tabContentSkeletonHtml` / `TAB_LOADING_SKELETON_DELAY_MS = 120` / `TAB_CONTENT_FADE_IN_MS = 180` / `TAB_LOADING_SKELETON_MAX_MS = 1000` / `installNavigationProgress`）；`docs/src/components/shell/tab-loading.css`（`.ws-route-progress` / reduced-motion 段）；`server/test/loading-experience-guard.test.mjs`；`.ctx/logs/2026-10-EXECUTION_LOG.md` 批次 514。
 
 ---
 

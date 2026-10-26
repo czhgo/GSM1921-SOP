@@ -24,7 +24,7 @@ import { join, dirname, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
   activityTypeTone, activityTypeBadgeVariant, activityTypeClassification,
-} from '../../docs/src/core/domain/constants.js?v=20261026a';
+} from '../../docs/src/core/domain/constants.js?v=20261026b';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(HERE, '..', '..');
@@ -281,20 +281,24 @@ test('A3 语义隔离：活动类别/状态路径不得出现 info，允许站�
   }
 });
 
-test('A4 党建红：.badge--brand 与 [data-tone="party-red"] 用 #CE1126，不得用 #B91C1C', () => {
+test('A4 党建红：.badge--brand 与 [data-tone="party-red"] 用功能红 #CE1126，不得用 #B91C1C', () => {
   const css = read('docs/src/styles.css');
 
   assert.match(css, /--party-red:\s*#CE1126\s*;/, '--party-red 必须固定为党建红 #CE1126');
+  // 2026-10-27 Task 11.4：功能红 token 与党建红同值（#CE1126），徽章/类别改读功能红。
+  assert.match(css, /--color-functional-red:\s*#CE1126\s*;/, '--color-functional-red 必须为 #CE1126');
 
   const brand = ruleBody(css, '.badge--brand');
   assert.ok(brand, 'styles.css 缺少 .badge--brand 规则');
-  assert.match(brand, /var\(--party-red\)|#CE1126/i, '.badge--brand 必须使用党建红 #CE1126（或 --party-red）');
+  assert.match(brand, /var\(--color-functional-red\)|var\(--party-red\)|#CE1126/i,
+    '.badge--brand 必须使用功能红 / 党建红 #CE1126');
   assert.doesNotMatch(brand, /#B91C1C|var\(--functional-error\)|var\(--status-error\)/i,
     '.badge--brand 不得用错误红 #B91C1C / --functional-error / --status-error');
 
   const tone = ruleBody(css, '[data-tone="party-red"]');
   assert.ok(tone, 'styles.css 缺少 [data-tone="party-red"] 规则');
-  assert.match(tone, /#CE1126/i, '[data-tone="party-red"] 必须使用党建红 #CE1126');
+  assert.match(tone, /var\(--color-functional-red\)|#CE1126/i,
+    '[data-tone="party-red"] 必须使用功能红 #CE1126');
   assert.doesNotMatch(tone, /#B91C1C/i, '[data-tone="party-red"] 不得用 #B91C1C（那是 danger 功能错误红）');
 
   // 语义隔离的另一半：danger 仍是 #B91C1C（证明两档确实分开，而不是换个名字）
@@ -312,21 +316,22 @@ test('A5 暗色分离：类别红/金与 danger/warning 逐值不同，badge--br
   assert.ok(darkDanger, 'styles.css 缺少暗色 [data-tone="danger"] 规则');
   assert.notEqual(darkPartyRed.replace(/\s+/g, ' '), darkDanger.replace(/\s+/g, ' '),
     '暗色类别红不得与 danger 逐值相同（类别不得借状态色）');
-  assert.match(darkPartyRed, /--color-category-three-meetings-dark|#FCA5A5/i,
-    '暗色类别红应读 --color-category-three-meetings-dark（#FCA5A5）');
+  // 2026-10-27 Task 11.4：读功能红暗色 token（与类别 token 同值）。
+  assert.match(darkPartyRed, /--color-functional-red-dark|--color-category-three-meetings-dark|#FCA5A5/i,
+    '暗色类别红应读 --color-functional-red-dark（#FCA5A5）');
   assert.doesNotMatch(darkPartyRed, /#F87171/i, '暗色类别红不得用 danger 的 #F87171');
 
   const darkGold = ruleBody(css, 'html.theme-dark [data-tone="gold"]');
   const darkWarning = ruleBody(css, 'html.theme-dark [data-tone="warning"]');
   assert.ok(darkGold && darkWarning, '缺少暗色 gold / warning 规则');
-  assert.match(darkGold, /--color-category-theme-day-dark|#FCD34D/i,
-    '暗色主题党日金应读 --color-category-theme-day-dark（#FCD34D）');
+  assert.match(darkGold, /--color-functional-gold-dark|--color-category-theme-day-dark|#FCD34D/i,
+    '暗色主题党日金应读 --color-functional-gold-dark（#FCD34D）');
   assert.doesNotMatch(darkGold, /#FBBF24/i, '暗色主题党日金不得用 warning 的 #FBBF24');
 
   const darkBrand = ruleBody(css, 'html.theme-dark .badge--brand');
   assert.ok(darkBrand, '缺少暗色 .badge--brand 规则');
   assert.doesNotMatch(darkBrand, /--functional-error|--status-error|#F87171/i,
     '暗色 .badge--brand 不得借状态错误色');
-  assert.match(darkBrand, /--color-category-three-meetings-dark/i,
-    '暗色 .badge--brand 应读类别红暗色 token');
+  assert.match(darkBrand, /--color-functional-red-dark|--color-category-three-meetings-dark/i,
+    '暗色 .badge--brand 应读功能红 / 类别红暗色 token');
 });

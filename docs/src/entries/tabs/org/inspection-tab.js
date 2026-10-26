@@ -3,23 +3,23 @@
 // 专班考察：专班负责人/组织委员上传 → 纪检委员确认 → 录入考察总表。
 // 业务口径：考察依托工作组——考察记录挂工作组，考察对象为该工作组成员；sourceType/activityId/taskforceId 是工作组类型的投影。
 
-import { loadInspectionRecords, saveInspectionRecords } from '../../../services/activity/inspection.js?v=20261026a';
-import { reconfirmReturnedInspectionRecord, isInspectionHomePosition } from '../../../services/activity/inspection.js?v=20261026a';
-import { TaskForceRecordStore } from '../../../services/activity/taskforce.js?v=20261026a';
-import { anchorDetailToTrigger } from '../../../components/ui/detail-anchor.js?v=20261026a';
-import { currentUserId } from '../../../services/core/auth.js?v=20261026a';
-import { PersonPicker } from '../../../components/governance/pickers.js?v=20261026a';
+import { loadInspectionRecords, saveInspectionRecords } from '../../../services/activity/inspection.js?v=20261026b';
+import { reconfirmReturnedInspectionRecord, isInspectionHomePosition } from '../../../services/activity/inspection.js?v=20261026b';
+import { TaskForceRecordStore } from '../../../services/activity/taskforce.js?v=20261026b';
+import { anchorDetailToTrigger } from '../../../components/ui/detail-anchor.js?v=20261026b';
+import { currentUserId } from '../../../services/core/auth.js?v=20261026b';
+import { PersonPicker } from '../../../components/governance/pickers.js?v=20261026b';
 // 「本位」nudge 确认弹窗（2026-09-23 支书裁定 · 单一源 = components/ui/modal.js::confirmNudge）
-import { confirmNudge } from '../../../components/ui/modal.js?v=20261026a';
-import { inspectionToLong } from '../../../services/activity/inspection.js?v=20261026a';
-import { getPersonById, getPersonName } from '../../../services/member/person.js?v=20261026a';
-import { SourceType, ParticipationLevel, isTaskforceActiveStatus } from '../../../core/domain/domain.js?v=20261026a';
-import { showToast, escHtml as esc, getBasePath } from '../../../core/base/utils.js?v=20261026a';
-import { solidAccentStyle } from '../../../core/domain/constants.js?v=20261026a';
-import { generateId } from '../../../core/base/id.js?v=20261026a';
-import { mockDB } from '../../../core/domain/domain.js?v=20261026a';
+import { confirmNudge } from '../../../components/ui/modal.js?v=20261026b';
+import { inspectionToLong } from '../../../services/activity/inspection.js?v=20261026b';
+import { getPersonById, getPersonName } from '../../../services/member/person.js?v=20261026b';
+import { SourceType, ParticipationLevel, isTaskforceActiveStatus } from '../../../core/domain/domain.js?v=20261026b';
+import { showToast, escHtml as esc, getBasePath } from '../../../core/base/utils.js?v=20261026b';
+import { solidAccentStyle } from '../../../core/domain/constants.js?v=20261026b';
+import { generateId } from '../../../core/base/id.js?v=20261026b';
+import { mockDB } from '../../../core/domain/domain.js?v=20261026b';
 // 统一检索引擎（2026-09-13 表格统一化批次 A）：考察明细表接入关键词 + 分面（≤8 行引擎自动不渲染检索条）
-import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261026a';
+import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261026b';
 
 // 私有状态（随模块自持，不污染入口）
 let _orgInspFormVisible = false;
@@ -156,7 +156,7 @@ export function renderContent(ctx, container) {
     },
     rowHtml: (i) => `
             <tr class="cursor-pointer" data-insp-detail="${esc(i.id)}" title="点击查看考察详情">
-              <td data-label="姓名" class="font-medium text-gray-800"><a href="${getBasePath()}person.html?id=${encodeURIComponent(i.personId)}" class="hover:underline hover:text-[var(--app-accent-soft-text)] transition-colors" title="查看完整档案">${esc(getPersonName(i.personId))}</a></td>
+              <td data-label="姓名" class="font-medium text-gray-800"><a href="${getBasePath()}person.html?id=${encodeURIComponent(i.personId)}" class="hover:text-[var(--app-accent-soft-text)] transition-colors" title="查看完整档案">${esc(getPersonName(i.personId))}</a></td>
               <td data-label="专班" class="text-gray-600">${esc(i.source)}</td>
               <td data-label="标签"><span class="px-1.5 py-0.5 rounded text-xs ${tagColor[i.sourceType] || 'bg-gray-50 text-gray-500'}">专班</span></td>
               <td data-label="考察内容" class="text-gray-600">${esc(i.content)}</td>
@@ -196,7 +196,7 @@ export function renderContent(ctx, container) {
           </div>
           <div class="text-xs">
             <div class="grid grid-cols-2 gap-x-6 py-1.5" style="border-bottom:1px solid var(--neutral-200);">
-              <p style="color:var(--neutral-700);">姓名 <a href="${getBasePath()}person.html?id=${encodeURIComponent(rec.personId)}" class="hover:underline hover:text-[var(--app-accent-soft-text)] transition-colors" style="color:var(--neutral-800);font-weight:500;" title="查看完整档案">${esc(long.name)}</a></p>
+              <p style="color:var(--neutral-700);">姓名 <a href="${getBasePath()}person.html?id=${encodeURIComponent(rec.personId)}" class="hover:text-[var(--app-accent-soft-text)] transition-colors" style="color:var(--neutral-800);font-weight:500;" title="查看完整档案">${esc(long.name)}</a></p>
               <p style="color:var(--neutral-700);">专班 <span style="color:var(--neutral-800);font-weight:500;">${long.source}</span></p>
             </div>
             <div class="grid grid-cols-2 gap-x-6 py-1.5" style="border-bottom:1px solid var(--neutral-200);">

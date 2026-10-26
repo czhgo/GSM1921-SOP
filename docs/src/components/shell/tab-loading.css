@@ -1,0 +1,125 @@
+/* ════════════════════════════════════════════════════════════════
+   tab-loading.css — 页签切换 / 页面跳转的加载与过渡（2026-10-27 Task 10）
+   由 `tab-bar.js` 动态注入 <link>（styles.css 不改；类名在 tab-bar.js 内均有字面引用）。
+
+   口径：
+   · 旧内容淡出 120ms（只动 opacity，不整块压暗到半透明）；
+   · 新内容淡入 180ms + 自下而上 8px；骨架 3 条卡形 + 「正在加载…」；
+   · 顶部 2px 品牌色进度条（跨文档跳转的离开态）；
+   · prefers-reduced-motion：只淡入 80ms、无位移，骨架 / 文案保留（骨架不脉冲）。
+   ════════════════════════════════════════════════════════════════ */
+
+/* ── 内容舞台：旧内容淡出 ─────────────────────────────────────── */
+.ws-tab-stage {
+  transition: opacity 120ms var(--ease-standard, cubic-bezier(0.2, 0.6, 0.36, 1));
+}
+.ws-tab-stage.is-leaving {
+  opacity: 0;
+}
+
+/* ── 内容舞台：新内容淡入 180ms + 8px 位移 ─────────────────────── */
+.ws-tab-stage.is-entering {
+  animation: wsTabEnter 180ms var(--ease-enter, cubic-bezier(0.22, 0.61, 0.36, 1)) both;
+}
+@keyframes wsTabEnter {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes wsTabEnterReduced {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* ── 骨架：3 条卡形 + 「正在加载…」──────────────────────────── */
+.ws-tab-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 20px;
+  border: 1px solid var(--neutral-200);
+  border-radius: 16px;
+}
+.ws-tab-skeleton-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--neutral-500);
+  font-size: 12px;
+}
+.ws-tab-skeleton-spinner {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 999px;
+  border: 2px solid var(--neutral-200);
+  border-top-color: var(--neutral-400);
+  animation: wsTabSkeletonSpin 0.8s linear infinite;
+}
+.ws-tab-skeleton-text {
+  line-height: 1.5;
+}
+.ws-tab-skeleton-row {
+  height: 44px;
+  border-radius: 12px;
+  background: var(--neutral-100);
+  animation: wsTabSkeletonPulse 1.2s ease-in-out infinite;
+}
+.ws-tab-skeleton-row--tall {
+  height: 72px;
+}
+@keyframes wsTabSkeletonPulse {
+  0%, 100% { opacity: 0.55; }
+  50% { opacity: 1; }
+}
+@keyframes wsTabSkeletonSpin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* 动效编排预算 ≤1s：到点后骨架收敛为静态，不再无限脉冲（数据仍在等待） */
+.ws-tab-skeleton[data-settled='1'] .ws-tab-skeleton-row {
+  animation: none;
+  opacity: 0.75;
+}
+
+/* ── 顶部 2px 进度条（跨文档跳转离开态）───────────────────────── */
+.ws-route-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--app-accent, var(--party-red));
+  transform: scaleX(0);
+  transform-origin: 0 50%;
+  opacity: 0;
+  z-index: 9999;
+  pointer-events: none;
+}
+.ws-route-progress[data-active='1'] {
+  opacity: 1;
+  animation: wsRouteProgress 600ms var(--ease-standard, cubic-bezier(0.2, 0.6, 0.36, 1)) forwards;
+}
+@keyframes wsRouteProgress {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(0.9); }
+}
+
+/* ── 减少动效：只淡入 80ms、无位移；骨架 / 文案保留 ────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .ws-tab-stage {
+    transition-duration: 80ms !important;
+  }
+  .ws-tab-stage.is-entering {
+    animation-name: wsTabEnterReduced;
+    animation-duration: 80ms !important;
+  }
+  .ws-tab-skeleton-row,
+  .ws-tab-skeleton-spinner {
+    animation: none;
+  }
+  .ws-route-progress[data-active='1'] {
+    animation: none;
+    transform: scaleX(1);
+  }
+}

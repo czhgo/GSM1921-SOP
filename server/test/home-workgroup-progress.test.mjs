@@ -16,9 +16,11 @@ import { fileURLToPath } from 'node:url';
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const INDEX = join(ROOT, 'docs', 'index.html');
 const SRC = join(ROOT, 'docs', 'src', 'components', 'dashboard', 'taskforce-list.js');
+const TODAY = join(ROOT, 'docs', 'src', 'entries', 'tabs', 'today', 'today-tab.js');
 
 const indexHtml = readFileSync(INDEX, 'utf8');
 const source = readFileSync(SRC, 'utf8');
+const todaySource = readFileSync(TODAY, 'utf8');
 
 test('H1 首页标题为「工作组进展」，旧标题「专班进展」不再出现', () => {
   assert.ok(indexHtml.includes('工作组进展'), 'index.html 缺「工作组进展」标题');
@@ -50,4 +52,16 @@ test('H5 卡内两类组名齐备', () => {
 test('H6 未装载任务时显示「加载中」，不把 0 / — 冒充空结果', () => {
   assert.match(source, /workgroupAuxLoaded/, 'taskforce-list.js 未读装载标记 workgroupAuxLoaded');
   assert.ok(source.includes('加载中'), 'taskforce-list.js 缺「加载中」态');
+});
+
+test('H7 今天页空态（2026-10-27 Task 6.4）：一张卡一行说明 + 单一主 CTA，卡内不再重复「写入活动」', () => {
+  const start = todaySource.indexOf('function _allEmptyHtml');
+  assert.ok(start > 0, '未找到今天页空态函数 _allEmptyHtml');
+  const body = todaySource.slice(start, todaySource.indexOf('\n}', start));
+  assert.ok(body.includes('今天暂无待办与安排'), '空态说明须合并为一行（原两卡各一句）');
+  assert.equal((body.match(/class="btn-outline/g) || []).length, 1, '空态主 CTA 只能有一枚（.btn-outline）');
+  assert.doesNotMatch(body, /写入活动/, '空态卡内不得再出现「写入活动」（顶栏 CTA 保留）');
+  assert.doesNotMatch(body, /grid-cols-3/, '空态不得再铺两张等权大卡');
+  // 全页：卡内不再渲染写入口（写入口只在支书台顶栏）。
+  assert.doesNotMatch(todaySource, /data-go="create-activity">写入活动/, '卡内「写入活动」须已删除');
 });

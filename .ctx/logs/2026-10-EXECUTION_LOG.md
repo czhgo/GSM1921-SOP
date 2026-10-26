@@ -2,7 +2,7 @@
 title: "2026年10月执行日志"
 type: execution_log
 role: "[工程师]+[AI]"
-last_updated: 2026-10-26
+last_updated: 2026-10-27
 status: active
 related_files: [CLAUDE.md, .ctx/logs/archive/2026-09-EXECUTION_LOG.md, .ctx/logs/EXECUTION_LOG_INDEX.md]
 ---
@@ -4021,4 +4021,73 @@ $body
 | 「删除测试用例」：运行库残留 `act-b31-*` / `att-b31-*` / `mk-b31-*` / `todo_seed_7` / 测试通知 / 测试议题 | 测试数据＝测试套件的一部分，删残留＝删测试 | 要清**运行库残留**，保留 268 个自动化测试文件 | `scope_widening` | 测试套件与测试数据分层：外部写用临时库或 `finally` 清理，残留由 `test:clean --test-residue` 清（SD-48 / I1–I4） |
 | 「四个月窗口」：7 月 25 场活动需进入 8–11 月窗口 | 按日期把窗口外的行 DELETE 掉最直接 | 要**重排事实 ＋ 重建运行库**，保留跨期实体与每种关键状态样本 | `tool_mismatch` | 先备份 → 重排种子 → `rebuild-demo` 重建 → 替换库；不逐表按日期 DELETE（SD-48 / W1–W5） |
 | 「缓存」：清缓存重登后标注消失；`persist()` 本地 resolve 曾报成功 | 本地缓存能显示就算可用；读缓存可当权威 | 要**服务端权威**：读缓存只是加速，写成功必须有服务端证据 | `priority_inversion` | 业务读缓存带 `_versions` ＋ `savedAt`；写三选一可证；失败进 outbox 显示「未同步」（SD-48 / L4–L10 ＋ A1–A4/B1–B5；CASE-DATA-001） |
+
+## 批次 514（2026-10-27）：UI 三项专项（最小三成本 / 脏乱繁 / 美学）（spec `refine-ui-three-lenses`）
+
+### 一、判据
+
+- **最小三成本（阶段一）**：刷新七台任一工作台，首次 Tab 必须落「跳到主要内容」，不得落到页签条或正文中部；页签激活只改滚动位置；顶栏焦点环在 `#7A0010` 上 ≥3:1；侧栏抽屉打开焦点进入首个导航项、Esc 关闭并回焦；首页日历只有 1 个 Tab 停点（`role=grid` ＋ roving tabindex）；390 待办先列表后详情、未选中不渲染详情；五台「看日历」必须有真实落点；普通成员首屏能读出「成员工作台」；“我的处置”幽灵提示与变更注记清零。
+- **脏乱繁（阶段二）**：每页唯一 H2（页签 `renderTabHeader`）；党委台「支部上报」只出现一次；每行 1 主行动 ＋ 1「更多」；活动 / 专班详情不显示 `act-*` / `tf-*` 原始 ID；页签条组名行与页签行分层（390 显示「还有 N 个」、1440 十签全见）；40px 折叠摘要不塞整句；首页无图不出 16:9；今天空态一行 ＋ 单一 CTA；390 统计卡等高；帮助页 390 `scrollWidth = 390`、章节可折叠、目录保留、正文 38 字/行。
+- **美学（阶段三）**：组名＝10% 主题淡底 ＋ 无边框 ＋ 3px，选中页签＝solid soft ＋ 主题描边 ＋ 700；全站文本下划线 **0** 处；字体 1 个 display serif ＋ 15/13/12 三档；加载 skeleton（120ms 延迟 / 180ms 淡入 / ≤1s / 无压暗硬替换）；逾期文字、暗色侧栏选中、help 目录激活、登录暗色 placeholder 对比达标；功能红 / 金与 danger / warning / 主题分离；About 零入口（文件保留）。
+- 验收纪律：每个子专项「上一阶段验证通过才进入下一阶段」；修改不只看类名 / 元素是否存在，还要看**相邻态一眼可分**与**全站计数归零**（CASE-DESIGN-026）。
+
+### 二、动作（指针）
+
+1. **阶段一 · 信息 / 布局（Task 1）**：`todo-tab-shell.js` / `todo-list.js` 改 390 主从顺序；首页 / 今天页首屏收敛为单一主行动；空态一行 ＋ 单一 CTA（结构与阶段二共用）。
+2. **阶段一 · 操作 / 键盘（Task 2）**：`tab-bar.js` 激活去掉 `scrollIntoView`、改 `scrollLeft`；`header.js` 作用域焦点环改白 / 党徽金；`sidebar.js` 抽屉焦点与 Esc 回焦；`calendar.js` 改 `role=grid` ＋ roving tabindex；`ui-focus-ring` / `ui-tab-overflow` 补断言。
+3. **阶段一 · 学习 / 入口（Task 3）**：五台 `onNav('calendar')` 落到工作概况日历卡 / 活动动态；活动「下一步」按组织者 / 深参与分流；普通成员页题「成员工作台」；删「我的处置」幽灵提示与「原…已并入本页」注记。
+4. **阶段二 · 页标题（Task 5）**：七台静态 H2 删除，`renderTabHeader` 成唯一 H2；党委台三连消除；活动 / 专班 H3/H4 顺序修正；每行 1 主行动 ＋ 1「更多」；原始 ID 移入 `title`；`page-title-guard::P4–P6`。
+5. **阶段二 · 页签条与空态（Task 6）**：`tab-bar.js` / `workspace-shell.js` 组名行与页签行分层（390「还有 N 个」、1440 放开宽度）；`activity-calendar-tab` 40px 折叠摘要改 chevron ＋ `aria-label`；首页无图不出 16:9；今天空态一行 ＋ 单一 CTA；390 统计卡 `min-height:100px`；`ui-tab-overflow::T5–T7` / `responsive-cards-guard::C7`。
+6. **阶段二 · 帮助页（Task 7）**：`.help-layout` / `.help-main` / `.doc-card` 收 `min-width:0`；390 无整页横溢（表格容器自滚）；9 章可折叠；目录保留；正文行长收到 38 字/行。
+7. **阶段三 · 胶囊 / 下划线 / 字体（Task 9）**：`styles.css` 新增 `--app-accent-tint`（主题色 10%）；`.tab-group-label` 去边框、改淡底；`.tab-btn-active` 用 solid soft ＋ `--app-accent` 描边 ＋ 700；全站 110 处 / 54 文件下划线清零，`.link` / `.help-note__link` / `.btn-text` 改「600 字重 ＋ 箭头 ＋ 淡底 hover」；字体收 1 个 display serif ＋ 15/13/12 三档；新增 `no-underline-guard`。
+8. **阶段三 · 加载（Task 10）**：`tab-bar.js` 新增 `tabContentSkeletonHtml`（「正在加载…」＋ 3 条卡形 ＋ spinner ＋ `role=status`）、`TAB_LOADING_SKELETON_DELAY_MS=120`、淡出 120ms / 淡入 180ms ＋ 8px、`TAB_LOADING_SKELETON_MAX_MS=1000`；`tab-loading.css` 顶部 2px 进度条与 reduced-motion 分支；新增 `loading-experience-guard`。
+9. **阶段三 · 色彩（Task 11）**：`--status-warning-text`（亮 `#92400E` / 暗 `#FCD34D`）；暗色侧栏选中改主题 soft；help 目录透明度只作用未激活圆点；新增 `--color-functional-red/gold`（亮 / 暗）；登录暗色输入补表面 token 与 placeholder；`ui-contrast::K6` / `theme-palette::T10`。
+10. **阶段三 · 细节 / About（Task 12）**：登录两按钮补 `:active`；390 统计卡等高等宽；六台「看日历」单按钮不全宽；侧边栏 / 帮助目录 / README 撤 About 入口（`about.html` 文件保留）；新增 `no-about-route-guard`。
+11. **文档（Task 13.4）**：`DESIGN_SYSTEM` 增 SD-49…SD-52 并改准 §12.3 / §12.10 / SD-3 / SD-36 / SD-42 / SD-43 / SD-47 的交叉口径；`CASES.md` 增 CASE-DESIGN-026 / 027；`CASES_INDEX` design 25 → 27；`PRODUCT_IA` 增 About 撤路由附录；`GUARD_INVENTORY` §十一（77 件 / 526 条）。
+
+### 三、读数
+
+- **定向（终态）**：`node --test test/docs-governance-guard.test.mjs test/doc-consistency.test.mjs test/no-underline-guard.test.mjs test/loading-experience-guard.test.mjs test/no-about-route-guard.test.mjs` ＝ **64 / 64 绿**，`duration_ms 5975.93`（≈5.98s；多次连跑 5.9–6.0s）。
+- **daily（终态）**：`npm run test:daily` ＝ **1634 / 1634 绿**（63.75s；0 cancelled / 0 skipped / 0 fail）。**与主代理交接口径 1636 差 2 条**，本日志以本次实跑为准（两次连跑同为 1634）。
+- **全量三通道（收尾实测）**：`SWEEP_SHARD=all` ＝ **[node] 1636 / 1636 绿**、**[e2e-A] 94 / 94 绿**、**[e2e-B] 147 过 ＋ 1 skip**；墙钟 **837.3s**（≤1200s）。
+- **胶囊 / 页签**：组名 `--app-accent-tint` 10% 淡底、无边框、3px、12px/600/0.5px、24px；选中页签 solid soft ＋ accent 1px 描边 ＋ 700；390 见「还有 N 个」，1440 十签全见。
+- **下划线 / 字体**：全站文本下划线 **110 → 0**（54 文件，含 help / login）；标题族 1 个 display serif ＋ 15/13/12 三档（`text-xs` 存量 1911 处未全量迁移，见 §五）。
+- **加载**：骨架 120ms 延迟 → 淡出 120ms → 淡入 180ms（8px）；实测 **825–900ms**（预算 1000ms）；reduced-motion 80ms 无位移。
+- **对比度**：逾期文字 `--status-warning-text` 亮 **7.09:1** / 暗 **11.68:1**；暗色侧栏选中 **6.44:1**；help 目录激活 **4.61:1**；登录暗色 placeholder **6.57:1**。
+- **结构**：七台静态 H2 删除、`renderTabHeader` 唯一 H2；待办每行 1 主行动 ＋ 1「更多」；390 统计卡 **100px** 等高；首页无图不出 16:9；今天空态一行 ＋ 单一 CTA。
+- **帮助页**：390 `documentElement.scrollWidth = 390`；9 章可折叠；目录保留；正文 **38 字/行**。
+- **守卫台账**：件数 **74 → 77**、断言 **501 → 526**（新增 `no-underline` 4 / `loading-experience` 6 / `no-about-route` 5；扩展 `ui-contrast` ＋1、`theme-palette` ＋1、`page-title` ＋3、`responsive-cards` ＋1；校准 `doc-consistency` 23、`test-tier` 8）。
+- **版本戳**：`20261026a` → **`20261026b`**（本批未 bump，沿用已完成值）。
+
+### 四、修复过程（如实）
+
+- **首次 Tab 起点**：`tab-bar.js` 的 activate 原先调用 `scrollIntoView`，会把焦点 / 视口带到页签条；改为只改 `scrollLeft` 后，键盘起点才回到「跳到主要内容」。守卫侧把「不用元素级滚动定位」写成 `ui-tab-overflow::T5`，防止回潮。
+- **页签条分层不是换行**：390 上组名与页签挤在一行时，溢出箭头会盖住组名；改成「组名行 ＋ 页签行」两层后，390 用「还有 N 个」收口、1440 放开容器宽度；`ui-tab-overflow::T6/T7` 同时判结构与样式，避免只改 DOM 不改观感。
+- **40px 折叠摘要**：整句摘要压进 40×40 槽会把 chevron 挤没；改为「只留 chevron ＋ `aria-label`」，`responsive-cards-guard::C7` 锁住。
+- **胶囊与选中页签“同色”**：批次 513 的组名与选中页签都用 soft 底，只差一个浅边框；本批把组名降到 10% 淡底并去边框，选中页签升到 accent 描边 ＋ 700，两者才一眼可分。`ui-contrast::K3` / `ui-control::V2` 同步改判据，不是让实现迁就旧判据。
+- **下划线清零的连锁**：先清 110 处（54 文件），再把 `DESIGN_SYSTEM` 里「静态下划线作非颜色线索」的旧条文改掉——否则规范与守卫互相打架，下一批必回潮。`no-underline-guard::N2/N4` 以「全站 0 处」为判据，不是「新增不加」。
+- **加载体验**：旧实现 `opacity=0.45` ＋ 顶部插「加载中…」行，切页签整块闪；新实现把骨架延迟到 120ms 之后，旧内容淡出、新内容淡入，并用 `data-settled` 在 1s 后停止脉冲。`loading-experience-guard` 用同一纯函数跑真实源码与故障注入，防止「正则写坏后恒绿」。
+- **文档侧的自洽修复**：`CASES.md` 初稿把「动效令」误写成 SD-13，改为 SD-30 ＋ §12.13；`PRODUCT_IA` 的 About 附录初稿误引 CASE-DESIGN-027，改为 CASE-DESIGN-026（027 是加载判例）。这类编号 / 指针错误不改就会成为下一批的「第二套真相」。
+- **读数差异**：daily 本次实跑 1634，与交接的 1636 差 2；不追平数字，按实况记录。
+
+### 五、边界（如实）
+
+- **本收尾任务不改代码 / 测试 / 数据**：只改 `content/**` 四份文档与 `.ctx/**` 三份记录；不 commit、不 bump（版本仍是 `20261026b`）。
+- **未全量迁移项（如实）**：① `text-xs` 仍剩 **1911 处**，本批只收标题族与三档字号，未逐页替换；② About 虽已撤导航，`function-catalog.js` 仍保留「关于」功能卡（不在本批写权面，未删）；③ `about.html` / `about-entry.js` 文件保留，存量样式仍受 SD-49 约束但不作路由；④ 帮助页 9 章折叠与 38 字/行为实测值，非所有长文页的统一约束。
+- **SD-49 与 SD-43 的边界**：`border-*`（表格分隔线 / 卡边 / 选中态边线）不属文本装饰，不要求清零；链接仍必须有非颜色线索，不是「只留颜色」。
+- **SD-50 与 SD-47 / SD-42 的分职**：SD-50 只改底色（10% tint）与描边（无边框）及选中页签层级；SD-47 的 3px / 600 / 0.5px / 12px / ≥24px、SD-42 的全宽可见、SD-36 的非按钮语义继续有效；`.tab-group-label` 仍是 SD-3「999px」的唯一登记例外。
+- **SD-51 与 SD-30 的边界**：加载编排的 120 / 180ms 在动效白名单内；8s 数据超时错误卡是失败态，不归 SD-51。
+- **SD-52 与 SD-46 / SD-31 的边界**：功能红 / 金只细化功能色层与类别 tone，不改主题色盘，也不承担状态（进行中 / 完成 / 打回仍走 `--status-*`）。
+- **全量三通道**：本次收尾未重跑三通道，读数沿用主代理实测（node 1636 / e2e-A 94 / e2e-B 147＋1skip / 837.3s）；本日志只实跑定向 64 与 daily 1634。
+- **About 判例**：About 撤路由没有独立判例，边界写在 `PRODUCT_IA` 附录与 CASE-DESIGN-026 的边界一列；`no-about-route-guard::A1–A4` 是机检件。
+
+### 六、sample-diff 五列（本批抽样 → 规则）
+
+| 样本（证据） | AI 假设 | 人类意图 | 偏差类型 | 泛化规则（守卫） |
+|---|---|---|---|---|
+| 胶囊与选中页签同为 soft 底，只差一个浅边框；支书仍说「分不出组 / 页」 | 写上主题色＝恢复层级；元素存在＝改完 | 相邻两态必须**一眼可分**：10% tint / 无边框 / 600 vs solid soft / accent 描边 / 700 | `definition_mismatch` | 视觉改动同时判「相邻态差异可测」与「全站计数归零」（SD-50 / K3 ＋ V2；CASE-DESIGN-026） |
+| 全站 110 处 / 54 文件文本下划线，help / login 也在内；规范还写着「静态下划线作线索」 | 下划线是链接默认线索，留着更安全；规范写过就照做 | 下划线全站清零，链接改**颜色 ＋ 箭头/图标/底色 hover**；表格线不属文本装饰 | `priority_inversion`（旧规范压过用户裁定） | `no-underline-guard::N2/N4` 以全站 0 处为判据；同步改 SD-22 / SD-43 / §12.10，避免规范与守卫两套真相（SD-49） |
+| 旧加载态 `opacity=0.45` ＋ 顶部插「加载中…」，切页签整块闪 | 压暗是最省事的加载信号；插一行文字就能解释等待 | 要**版式骨架 ＋ 120ms 延迟 ＋ 180ms 交叉淡入 ＋ ≤1s**；禁止压暗 / 插行 / 硬替换 | `tool_mismatch` | 加载体验四件齐备；故障注入逐条判红；reduced-motion 保留骨架与文案（SD-51 / L1–L7；CASE-DESIGN-027） |
+| 七台静态壳仍输出台名 H2，页签 `renderTabHeader` 又出一个 H2；党委台「支部上报」三连 | 静态标题是壳的一部分，留着不影响 | 每页恰 1 个 H2；静态台名降为面包屑 / 眉题或移除 | `scope_widening`（标题层级被当成装饰） | 静态壳不得有 `<h2>` / `.page-frame__title`；H3/H4 顺序合法（SD-35 / P4–P6） |
+| `DESIGN_SYSTEM` 仍写「胶囊 1px 描边」「链接静态下划线」，实现已改掉 | 文档滞后一批再补也行 | 规范与实现必须同批一致；否则守卫与文档互相打架 | `documentation_drift` | 改视觉判据同批改 SD 条文与判例指针；`doc-consistency` / `docs-governance` 复核（SD-49 / SD-50） |
 

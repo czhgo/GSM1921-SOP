@@ -1,5 +1,5 @@
-import { DEFAULT_BRANCH_ID } from '../../core/domain/constants.js?v=20261026a';
-import { PEOPLE } from './people.js?v=20261026a';
+import { DEFAULT_BRANCH_ID } from '../../core/domain/constants.js?v=20261026b';
+import { PEOPLE } from './people.js?v=20261026b';
 
 // R7-35：统筹人从角色派生（演示快照仍指向现任组织委员，换人后自动跟随）
 const ORG_COMMISSIONER_ID = PEOPLE.find((p) => p.role === 'org-commissioner')?.id || null;

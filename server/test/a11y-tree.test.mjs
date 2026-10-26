@@ -306,6 +306,132 @@ test('A5 项目分工空态出口：检索无命中后 AX 存在可聚焦的「�
   }
 });
 
+// A7：刷新工作台后的首个 Tab 必须落在「跳到主要内容」（2026-10-27 Task 2 · 阶段一）
+//   病灶：tab-bar.activate 曾用元素级滚动定位激活页签，把「顺序焦点导航起点」挪到页签上。
+test('A7 刷新支书台后首次 Tab 落在「跳到主要内容」', async () => {
+  const page = await browser.newPage();
+  try {
+    await openWorkspace(page, '2300010001', 'secretary');
+    await page.reload({ waitUntil: 'domcontentloaded' });
+    await page.waitForFunction(() => document.querySelectorAll('button[role="tab"]').length > 0, null, { timeout: 45000 });
+    await page.waitForTimeout(800);
+
+    const before = await page.evaluate(() => ({
+      tag: document.activeElement?.tagName || '',
+      id: document.activeElement?.id || '',
+    }));
+    assert.equal(before.tag, 'BODY', `刷新完成后不应有元素预先取得焦点（实际 ${before.tag}#${before.id}）`);
+
+    await page.keyboard.press('Tab');
+    const first = await page.evaluate(() => ({
+      text: (document.activeElement?.textContent || '').replace(/\s+/g, ' ').trim(),
+      cls: String(document.activeElement?.className || ''),
+      href: document.activeElement?.getAttribute?.('href') || '',
+      tag: document.activeElement?.tagName || '',
+    }));
+    console.log('[A11Y] 刷新后首次 Tab:', JSON.stringify(first));
+    assert.match(first.cls, /skip-link/, `首次 Tab 应落在「跳到主要内容」，实际=${JSON.stringify(first)}`);
+    assert.equal(first.text, '跳到主要内容');
+  } finally {
+    await page.close();
+  }
+});
+
+// A8：侧栏抽屉焦点模型（2026-10-27 Task 2 · 阶段一）
+//   打开 → 焦点进首个导航项；顶栏动作退出 Tab 序（DOM 顺序无法改时的等价修复）；
+//   Esc → 收起 + inert + 回焦汉堡。
+test('A8 侧栏抽屉：焦点入首个导航项、顶栏动作让位、Esc 关闭回焦汉堡', async () => {
+  const page = await browser.newPage();
+  try {
+    await openWorkspace(page, '2300010001', 'secretary');
+    const actionsSelector = '.header-actions a[href], .header-actions button, .header-actions [tabindex]';
+
+    await page.locator('#hamburger-btn').click();
+    await page.waitForTimeout(150);
+    const opened = await page.evaluate((sel) => {
+      const sidebar = document.getElementById('app-sidebar');
+      const first = sidebar.querySelector('.sidebar-nav a[href], .sidebar-nav button');
+      const actions = [...document.querySelectorAll(sel)];
+      return {
+        collapsed: sidebar.classList.contains('sidebar-collapsed'),
+        inert: !!sidebar.inert,
+        focusInSidebar: !!document.activeElement?.closest?.('#app-sidebar'),
+        focusIsFirst: document.activeElement === first,
+        headerActionCount: actions.length,
+        headerActionsAllNegative: actions.length > 0 && actions.every((el) => el.tabIndex === -1),
+      };
+    }, actionsSelector);
+    console.log('[A11Y] 抽屉打开:', JSON.stringify(opened));
+    assert.equal(opened.collapsed, false, '点击汉堡后侧栏应展开');
+    assert.equal(opened.inert, false, '展开时侧栏不得 inert');
+    assert.equal(opened.focusInSidebar, true, '打开抽屉后焦点应进入侧栏');
+    assert.equal(opened.focusIsFirst, true, '焦点应落在首个导航项');
+    assert.equal(opened.headerActionsAllNegative, true,
+      '展开时 4 个顶栏动作应暂时退出 Tab 序（tabindex=-1），不得排在侧栏之前');
+
+    await page.keyboard.press('Escape');
+    await page.waitForFunction(() => document.activeElement?.id === 'hamburger-btn', null, { timeout: 5000 });
+    const closed = await page.evaluate((sel) => {
+      const sidebar = document.getElementById('app-sidebar');
+      return {
+        collapsed: sidebar.classList.contains('sidebar-collapsed'),
+        inert: !!sidebar.inert,
+        restored: [...document.querySelectorAll(sel)].every((el) => el.tabIndex >= 0),
+      };
+    }, actionsSelector);
+    console.log('[A11Y] 抽屉 Esc 关闭:', JSON.stringify(closed));
+    assert.equal(closed.collapsed, true, 'Esc 应收起侧栏');
+    assert.equal(closed.inert, true, '收起时侧栏应 inert（不吞焦点）');
+    assert.equal(closed.restored, true, '收起后顶栏动作应恢复原 Tab 序');
+  } finally {
+    await page.close();
+  }
+});
+
+// A9：首页日历 roving tabindex（2026-10-27 Task 2 · 阶段一）
+//   role=grid/row；整张网格仅 1 个 Tab 停点（今天）；方向键移动且停点跟随。
+test('A9 首页日历：role=grid/row + 单一 Tab 停点 + 方向键移动', async () => {
+  const page = await browser.newPage();
+  try {
+    for (const pattern of MUTED) await page.route(pattern, (route) => route.abort());
+    await page.goto(`${base}/index.html`, { waitUntil: 'domcontentloaded' });
+    await page.waitForSelector('#cal-main-grid [role="grid"] [data-date][role="gridcell"]', { timeout: 30000 });
+
+    const shape = await page.evaluate(() => {
+      const grid = document.querySelector('#cal-main-grid [role="grid"]');
+      const stops = [...grid.querySelectorAll('[data-date][role="gridcell"][tabindex="0"]')];
+      return {
+        rows: grid.querySelectorAll('[role="row"]').length,
+        stops: stops.length,
+        todayStop: !!stops[0]?.classList.contains('is-today'),
+        cells: grid.querySelectorAll('[data-date][role="gridcell"]').length,
+      };
+    });
+    console.log('[A11Y] 首页日历形态:', JSON.stringify(shape));
+    assert.ok(shape.cells >= 28, '首页日历应渲染整月日期格');
+    assert.ok(shape.rows >= 2, '日历应包含表头行与日期行（role=row）');
+    assert.equal(shape.stops, 1, '整张日历只允许 1 个 Tab 停点');
+    assert.equal(shape.todayStop, true, '默认 Tab 停点应为今天（is-today）');
+
+    const before = await page.evaluate(() => {
+      const cells = [...document.querySelectorAll('#cal-main-grid [role="gridcell"]')];
+      const mid = cells.find((c) => c.dataset.date.endsWith('-15')) || cells[Math.floor(cells.length / 2)];
+      mid.focus();
+      return mid.dataset.date;
+    });
+    await page.keyboard.press('ArrowRight');
+    const after = await page.evaluate(() => ({
+      date: document.activeElement?.dataset?.date || '',
+      stops: [...document.querySelectorAll('#cal-main-grid [role="gridcell"][tabindex="0"]')].map((c) => c.dataset.date),
+    }));
+    console.log('[A11Y] 日历方向键:', JSON.stringify({ before, ...after }));
+    assert.notEqual(after.date, before, 'ArrowRight 应把焦点移动到下一日期格');
+    assert.deepEqual(after.stops, [after.date], '移动后 Tab 停点应唯一且跟随焦点');
+  } finally {
+    await page.close();
+  }
+});
+
 // A6：纪检台会议考勤录入的 combobox
 test('A6 纪检台会议考勤：AX role=combobox、name 含「会议 / 活动」', async (t) => {
   const page = await browser.newPage();

@@ -9,9 +9,9 @@
 // 本文件退化为纯考察种子数据仓。
 // Task 5（2026-10-26）：recordedAt 随关联活动/专班时间轴同步平移（演示窗口 2026-08-01~2026-11-30，
 //   活动新日期见 activities.js 头注）；活动类考察一律不早于活动日。
-import { ParticipationLevel, SourceType } from '../../core/domain/domain.js?v=20261026a';
+import { ParticipationLevel, SourceType } from '../../core/domain/domain.js?v=20261026b';
 // v12：种子考察一律带支部归属（单支部演示库缺省 br-b1）。
-import { DEFAULT_BRANCH_ID } from '../../core/domain/constants.js?v=20261026a';
+import { DEFAULT_BRANCH_ID } from '../../core/domain/constants.js?v=20261026b';
 
 // Task 2.6（2026-10-25）：补「确认动作」事实（不写 status），让纪检台历史队列不再全是 pending。
 // 规则确定性、与 indexing 绑定：recordedAt 序号 `index % 5 ∈ {1,2,3}` 的约 60% 记录有确认动作；

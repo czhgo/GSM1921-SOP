@@ -33,7 +33,7 @@ import {
   isTerminal,
   objectDetailHref,
   resolveObjectRoute,
-} from '../../docs/src/core/domain/object-route.js?v=20261026a';
+} from '../../docs/src/core/domain/object-route.js?v=20261026b';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(HERE, '..', '..');
@@ -201,7 +201,9 @@ test('R7 可点节点可键盘：卡片/行带 role + tabindex + keydown（或�
 
   const archiveTab = read('docs/src/entries/tabs/prop/archive-tab.js');
   assert.match(archiveTab, /function _activityLinkHtml/, '档案行缺统一链接出口');
-  assert.match(archiveTab, /hover:underline/, '档案行缺 hover/下划线');
+  // 2026-10-27 Task 9：下划线全站清零——档案行仍须有「颜色 hover + 主题色箭头」两条线索。
+  assert.match(archiveTab, /hover:text-accent/, '档案行缺颜色 hover 线索');
+  assert.doesNotMatch(archiveTab, /hover:underline/, '档案行不得再用下划线');
   assert.match(archiveTab, /text-accent" aria-hidden="true">→/, '档案行缺箭头线索');
   assert.doesNotMatch(archiveTab, /style="text-decoration:none;color:inherit;"/, '档案行仍有「无下划线无色」的伪可点');
 });
