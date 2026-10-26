@@ -11,11 +11,11 @@
 // （R1-A 2026-09-09 支书裁决：不写全局键、person 无键=出厂默认不继承；冻结读取点
 // theme-init.js 首帧 / bootstrap.js 字号 / constants.js resolveAccentRole 保持全局键语义不改）。
 
-import { getBasePath } from '../../core/base/utils.js?v=20261025b';
-import { icon } from '../../core/base/icons.js?v=20261025b';
-import { syncAppearanceForActiveUser } from '../../core/boot/theme.js?v=20261025b';
-import { readLoginSnapshot } from '../../core/session/login-snapshot.js?v=20261025b';
-import { DEPLOY_MODE } from '../../config/deploy.js?v=20261025b';
+import { getBasePath } from '../../core/base/utils.js?v=20261026a';
+import { icon } from '../../core/base/icons.js?v=20261026a';
+import { syncAppearanceForActiveUser } from '../../core/boot/theme.js?v=20261026a';
+import { readLoginSnapshot } from '../../core/session/login-snapshot.js?v=20261026a';
+import { DEPLOY_MODE } from '../../config/deploy.js?v=20261026a';
 
 // 外观键空间适配：页面壳加载即执行（全站每页均渲染 sidebar，天然覆盖公共页/工作台）
 syncAppearanceForActiveUser();
@@ -29,7 +29,7 @@ syncAppearanceForActiveUser();
 let AuthStore = null;
 let _authModule = null;
 function loadAuth() {
-  if (!_authModule) _authModule = import('../../services/core/auth.js?v=20261025b');
+  if (!_authModule) _authModule = import('../../services/core/auth.js?v=20261026a');
   return _authModule;
 }
 
@@ -178,7 +178,7 @@ async function _refreshMessageBadge() {
   const badge = document.getElementById('sidebar-message-badge');
   if (!badge) return;
   try {
-    const { NoticeStore } = await import('../../services/governance/notice.js?v=20261025b');
+    const { NoticeStore } = await import('../../services/governance/notice.js?v=20261026a');
     const unread = NoticeStore.countUnread(readLoginSnapshot()?.personId || null);
     if (unread > 0) {
       badge.textContent = unread > 9 ? '9+' : String(unread);
@@ -196,7 +196,7 @@ async function _bindMessageBadge() {
   if (_badgeBound) return;
   _badgeBound = true;
   try {
-    const { DATA_CHANGED_EVENT, DATA_LOADED_EVENT } = await import('../../data/data-adapter.js?v=20261025b');
+    const { DATA_CHANGED_EVENT, DATA_LOADED_EVENT } = await import('../../data/data-adapter.js?v=20261026a');
     document.addEventListener(DATA_CHANGED_EVENT, _refreshMessageBadge);
     document.addEventListener(DATA_LOADED_EVENT, _refreshMessageBadge);
   } catch (_) { /* 静默 */ }

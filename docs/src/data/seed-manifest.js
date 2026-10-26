@@ -91,6 +91,8 @@ export const SEED_MANIFEST = [
       'id', 'scenarioId', 'domain',
       // 装载默认 / 种子归一的组织落点默认值（首次装载写入；其余见 runtimeFields）
       'visibility', 'createdBy', 'createdAt',
+      // v12：种子活动必须有支部归属（单支部演示库缺省 br-b1）。
+      'branchId',
     ],
     runtimeFields: [
       // R10（2026-10-23）：活动内容与组织落点均有用户写口（编辑活动 / 补选承办党小组 / 转交组织者 /
@@ -159,7 +161,7 @@ export const SEED_MANIFEST = [
     idPattern: '^att\\d+$',
     lifecycleClass: 'business',
     initTier: 'clear',
-    seedOwnedFields: ['id', 'personId', 'activityId'],
+    seedOwnedFields: ['id', 'personId', 'activityId', 'branchId'],
     runtimeFields: [
       // Task 1（2026-10-25）：人员三字段是派生快照（derive.js::deriveAttendanceSnapshot 按 personId 现取）。
       'studentId', 'developStage', 'partyGroup',
@@ -179,7 +181,7 @@ export const SEED_MANIFEST = [
     initTier: 'clear',
     seedOwnedFields: [
       'id', 'sourceType', 'activityId', 'sourceName', 'personId', 'level', 'role',
-      'recordedBy', 'recordedAt', 'workgroupId', 'taskforceId',
+      'recordedBy', 'recordedAt', 'workgroupId', 'taskforceId', 'branchId',
     ],
     runtimeFields: [
       'status', 'confirmedBy', 'confirmedAt', 'returnedBy', 'returnedAt',
@@ -232,7 +234,7 @@ export const SEED_MANIFEST = [
     initTier: 'clear',
     seedOwnedFields: [
       'id', 'title', 'description', 'role', 'category', 'priority', 'deadline', 'createdAt',
-      'sourceType', 'sourceId', 'actionKey', 'actionType', 'actionData', 'flow',
+      'sourceType', 'sourceId', 'actionKey', 'actionType', 'actionData', 'flow', 'branchId',
     ],
     runtimeFields: ['status', 'completedAt', 'personId', 'ownerType', 'ownerId', 'voidedAt', 'voidedBy'],
   },
@@ -296,7 +298,7 @@ export const SEED_MANIFEST = [
     idPattern: '^pt\\d+$',
     lifecycleClass: 'business',
     initTier: 'clear',
-    seedOwnedFields: ['id', 'source', 'type', 'summary', 'createdAt'],
+    seedOwnedFields: ['id', 'source', 'type', 'summary', 'createdAt', 'branchId'],
     runtimeFields: ['status'],
   },
   {
@@ -322,7 +324,7 @@ export const SEED_MANIFEST = [
     //   activityName（取活动标题）/ status='archived' / archiveDate（上传动作写入）均归运行时。
     // Task 2（2026-10-25）：`materialOnly:true` 的非活动材料自带 `title/category/archiveDate` 事实，
     //   派生器只用 title 作显示名、不用活动标题覆盖；archiveDate 仍列运行时（活动材料行由上传动作写入）。
-    seedOwnedFields: ['id', 'activityId', 'category', 'materialOnly', 'title'],
+    seedOwnedFields: ['id', 'activityId', 'category', 'materialOnly', 'title', 'branchId'],
     runtimeFields: [
       'activityName', 'archiveDate', 'status', 'filePath', 'fileName', 'fileSize', 'note',
       'secretaryConfirmedAt', 'submittedAt', 'uploadedBy',
@@ -368,7 +370,7 @@ export const SEED_MANIFEST = [
     lifecycleClass: 'business',
     initTier: 'clear',
     seedOwnedFields: [
-      'id', 'refType', 'refLabel', 'senderId', 'senderName', 'receiverRole', 'note', 'sentAt',
+      'id', 'refType', 'refLabel', 'senderId', 'senderName', 'receiverRole', 'note', 'sentAt', 'branchId',
     ],
     runtimeFields: ['confirmedAt'],
   },
@@ -380,7 +382,7 @@ export const SEED_MANIFEST = [
     idPattern: '^ho-seed-\\d+$',
     lifecycleClass: 'business',
     initTier: 'clear',
-    seedOwnedFields: ['id', 'type', 'from', 'to', 'refType', 'refLabel', 'refId', 'note', 'createdAt'],
+    seedOwnedFields: ['id', 'type', 'from', 'to', 'refType', 'refLabel', 'refId', 'note', 'createdAt', 'branchId'],
     runtimeFields: ['status', 'confirmedAt', 'confirmedBy'],
   },
   {
@@ -394,7 +396,7 @@ export const SEED_MANIFEST = [
     idPattern: '^mc-seed-\\d+$',
     lifecycleClass: 'business',
     initTier: 'clear',
-    seedOwnedFields: ['id', 'kind', 'personId', 'action', 'from', 'to', 'note', 'by', 'createdAt'],
+    seedOwnedFields: ['id', 'kind', 'personId', 'action', 'from', 'to', 'note', 'by', 'createdAt', 'branchId'],
     runtimeFields: ['status', 'decidedBy', 'decidedAt', 'rejectNote'],
   },
   {
@@ -459,7 +461,7 @@ export const SEED_MANIFEST = [
     idPattern: '^auth-seed-\\d+$',
     lifecycleClass: 'archive',
     initTier: 'keep',
-    seedOwnedFields: ['id', 'targetPersonId', 'role', 'scopeRef', 'authorizedBy', 'authorizedAt', 'action'],
+    seedOwnedFields: ['id', 'targetPersonId', 'role', 'scopeRef', 'authorizedBy', 'authorizedAt', 'action', 'branchId'],
     runtimeFields: [],
   },
 
@@ -554,6 +556,22 @@ export const NON_SEED_TABLES = Object.freeze([
   'branch_docs', 'member_change_requests', 'committee_broadcasts', 'agenda_votes',
   'member_flows', 'issue_reveals',
   'sessions', 'attachments', 'collection_versions', 'seed_meta',
+]);
+
+/**
+ * v12：**无业务读取入口**的物理表明单（影子表 / 证据表 / 内部表）。
+ * 准绳：表存在只为「写入留痕 / 迁移对齐 / 诊断」，任何页面、资源路由或快照读口都不得把它当业务集合消费。
+ * 守卫 `seed-contract-guard` 逐条核；新增此类表必须在此登记理由。
+ */
+export const NO_READ_ALLOWLIST = Object.freeze([
+  { table: 'agenda_items', reason: 'v11 影子子表（非权威源）：只由 rebuildShadowTables 双写，读仍走 activities.agenda JSON' },
+  { table: 'taskforce_contributions', reason: 'v11 影子子表（非权威源）：只由 rebuildShadowTables 双写，读仍走 taskforces.members[].contributions' },
+  { table: 'snapshot_conflicts', reason: 'C2 证据表：快照版本冲突埋点，只供 schema-split-readiness 只读统计' },
+  { table: 'shadow_history', reason: 'C4 证据表：影子每日比对历史，只供切表闸门只读' },
+  { table: 'seed_meta', reason: '种子版本元数据（v9）：只由 seed-repair 读写，无业务读口' },
+  { table: 'collection_versions', reason: '快照乐观锁内部表：只服务端读写，无前端业务消费者' },
+  { table: 'sessions', reason: '认证会话内部表：仅服务端鉴权链路消费' },
+  { table: 'attachments', reason: '附件元数据内部表：仅上传/下载链路消费' },
 ]);
 
 /** 持久化信封里的内部键（不承载业务数据，不参与 init 清空/保留分区以外的事）。 */

@@ -5,26 +5,28 @@
 //    考察对象为该工作组成员；sourceType/activityId/taskforceId 只是工作组类型的投影，不是独立父对象。
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB, SourceType, SOURCE_TYPE_LABELS, PARTICIPATION_LEVEL_LABELS, ParticipationLevel } from '../../core/domain/domain.js?v=20261025b';
-import { POLICY_DEFAULTS } from '../../core/domain/policy-defaults.js?v=20261025b';
-import { persist, getDataSource, getAdapter } from '../../data/data-adapter.js?v=20261025b';
-import { generateId } from '../../core/base/id.js?v=20261025b';
-import { bumpToken } from '../../core/base/version-token.js?v=20261025b'; // P0 域缓存失效（spec §二.3）
-import { INSPECTION_RECORDS } from '../../data/mock/index.js?v=20261025b';
-import { isInitStateActive } from '../core/init-reset.js?v=20261025b'; // C2 修复（2026-09-08）：init 态空态不回退演示种子
-import { getPersonById, getPersonName } from '../member/person.js?v=20261025b';
-import { TodoStore, TodoSourceType } from '../governance/todo.js?v=20261025b';
-import { trackWrite } from '../../core/session/pending-writes.js?v=20261025b';
-import { loadActivities, isActivityOrganizer } from './activity.js?v=20261025b';
+import { mockDB, SourceType, SOURCE_TYPE_LABELS, PARTICIPATION_LEVEL_LABELS, ParticipationLevel } from '../../core/domain/domain.js?v=20261026a';
+import { POLICY_DEFAULTS } from '../../core/domain/policy-defaults.js?v=20261026a';
+import { persist, getDataSource, getAdapter } from '../../data/data-adapter.js?v=20261026a';
+import { generateId } from '../../core/base/id.js?v=20261026a';
+import { bumpToken } from '../../core/base/version-token.js?v=20261026a'; // P0 域缓存失效（spec §二.3）
+import { INSPECTION_RECORDS } from '../../data/mock/index.js?v=20261026a';
+import { isInitStateActive } from '../core/init-reset.js?v=20261026a'; // C2 修复（2026-09-08）：init 态空态不回退演示种子
+import { getPersonById, getPersonName } from '../member/person.js?v=20261026a';
+import { TodoStore, TodoSourceType } from '../governance/todo.js?v=20261026a';
+import { trackWrite } from '../../core/session/pending-writes.js?v=20261026a';
+import { loadActivities, isActivityOrganizer } from './activity.js?v=20261026a';
 // 专班「组织者」判据单一源（2026-09-23 · 专班考察上传位的本位判据要读它）
-import { isTaskforceOrganizer, TaskForceRecordStore } from './taskforce.js?v=20261025b';
+import { isTaskforceOrganizer, TaskForceRecordStore } from './taskforce.js?v=20261026a';
 // R4-D05：删除/确认的默认操作人 = 当前登录人（调用方未显式传 actorId 时）
-import { AuthStore } from '../core/auth.js?v=20261025b';
+import { AuthStore } from '../core/auth.js?v=20261026a';
 // D01/D08：考察写角色与确认角色单一源（server gates.js 同读，防两端一个放一个拦）
-import { INSPECTION_WRITE_ROLES, INSPECTION_CONFIRM_ROLES } from '../../core/domain/constants.js?v=20261025b';
+import { INSPECTION_WRITE_ROLES, INSPECTION_CONFIRM_ROLES } from '../../core/domain/constants.js?v=20261026a';
 
 export function loadInspectionRecords() {
   if (mockDB.inspections.length > 0) return [...mockDB.inspections];
+  // Task 3（2026-10-26）：api 形态禁止 mock 回退——空库显示空态，不返回演示种子。
+  if (getDataSource() === 'api') return [];
   // C2 修复（2026-09-08）：init 态下 mockDB 空 = 合法空支部态，不回退演示种子（同 loadActivities）。
   return isInitStateActive() ? [] : [...INSPECTION_RECORDS];
 }

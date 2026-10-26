@@ -4,16 +4,19 @@
 //  与 attendance.js / inspection.js 同构：mockDB 优先 + mock 常量 fallback
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB, ReviewStatus, isActivityClosed } from '../../core/domain/domain.js?v=20261025b';
-import { persist } from '../../data/data-adapter.js?v=20261025b';
-import { bumpToken } from '../../core/base/version-token.js?v=20261025b';
-import { BRANCH_COMMISSION_ROLES, ACTIVITY_CLASSIFICATION, SECRETARY_AND_DEPUTY_ROLES, PARTY_GROUP_LEADER_ROLES } from '../../core/domain/constants.js?v=20261025b';
-import { ACTIVITIES } from '../../data/mock/index.js?v=20261025b';
-import { isInitStateActive } from '../core/init-reset.js?v=20261025b'; // C2 修复（2026-09-08）：init 态空态不回退演示种子
+import { mockDB, ReviewStatus, isActivityClosed } from '../../core/domain/domain.js?v=20261026a';
+import { persist, getDataSource } from '../../data/data-adapter.js?v=20261026a';
+import { bumpToken } from '../../core/base/version-token.js?v=20261026a';
+import { BRANCH_COMMISSION_ROLES, ACTIVITY_CLASSIFICATION, SECRETARY_AND_DEPUTY_ROLES, PARTY_GROUP_LEADER_ROLES } from '../../core/domain/constants.js?v=20261026a';
+import { ACTIVITIES } from '../../data/mock/index.js?v=20261026a';
+import { isInitStateActive } from '../core/init-reset.js?v=20261026a'; // C2 修复（2026-09-08）：init 态空态不回退演示种子
 
 /** 读取全部活动（同步接口，供 UI 层使用） */
 export function loadActivities() {
   if (mockDB.activities.length > 0) return [...mockDB.activities];
+  // Task 3（2026-10-26）：api 形态禁止 mock 回退——空库就是空态（页面显式渲染空态），
+  // 不得把演示种子带回真实界面，更不得经 persist() 写进服务器。
+  if (getDataSource() === 'api') return [];
   // C2 修复（2026-09-08）：mockDB 空 且处于 init 态 = 合法的空支部态（loadDB 已完成、
   // 业务域被清空），不得回退演示种子——否则 UI 主读口会把 demo 活动带回，init≈demo 依旧存在。
   // 无 init 哨兵（demo/正常演示态）保持原回退（未加载/首屏早期给演示数据）。
@@ -756,8 +759,8 @@ export async function openCommitteeVoteForActivity({ activityId, by, role, mode 
   if (existing) return { ok: true, already: true, agendaItemId: existing.id };
   // 动态引入（不改本文件行号；表决配置与 id 生成的单一源仍在各自模块，不在此另写一套）
   const [{ defaultVoteConfig, resolveVoterIds }, { generateId }] = await Promise.all([
-    import('./vote-config.js?v=20261025b'),
-    import('../../core/base/id.js?v=20261025b'),
+    import('./vote-config.js?v=20261026a'),
+    import('../../core/base/id.js?v=20261026a'),
   ]);
   const agendaItemId = generateId('ag');
   const at = new Date().toISOString();

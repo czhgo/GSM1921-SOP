@@ -20,6 +20,29 @@
 /** 层级名（顺序即执行频次：daily → precommit → weekly） */
 export const TIERS = ['daily', 'precommit', 'weekly'];
 
+/** fixture 数据面四类（2026-10-26 Task 6）：
+ *  · memory        —— `:memory:` 库 / 纯函数 / 临时 mkdtemp 后即删；
+ *  · tmp           —— 临时库或临时目录（`mkdtemp` / `:memory:` + `listen(0)`），测试后不留运行库；
+ *  · external-read —— 连外部 `:3000` 服务**只读**审计（依赖已起服务；不起则红属环境类）；
+ *  · external-write—— 连外部 `:3000` **写入**（必须 `DB_PATH != server/data.db` 或有 `finally` 清理证据）。
+ */
+export const FIXTURE_CLASSES = ['memory', 'tmp', 'external-read', 'external-write'];
+
+/** 按层的缺省 fixtureClass（显式字段优先；见 `fixtureClassOf`） */
+export const DEFAULT_FIXTURE_CLASS = { daily: 'memory', precommit: 'tmp', weekly: 'tmp' };
+
+/** 查某测试文件的 fixtureClass；未登记返回 undefined。显式 `fixtureClass` → 层缺省。 */
+export const fixtureClassOf = (file) => {
+  const entry = TEST_TIERS.find((e) => e.file === file);
+  if (!entry) return undefined;
+  return entry.fixtureClass || DEFAULT_FIXTURE_CLASS[entry.tier];
+};
+
+/** 四类各自的文件清单（守卫与报告共用） */
+export const filesByFixtureClass = (fixtureClass) => TEST_TIERS
+  .filter((e) => fixtureClassOf(e.file) === fixtureClass)
+  .map((e) => e.file);
+
 /** daily 文件数预算（含本守卫自身；新增 daily 测试须同批上调并写明理由）
  *  2026-10-21 R5 P1：新增 page-title-guard / ui-contrast-guard，并补登记既有
  *  ui-custom-select / ui-focus-ring（纯 node 守卫）⇒ 209 → 213。
@@ -38,8 +61,12 @@ export const TIERS = ['daily', 'precommit', 'weekly'];
  *    button-system-guard 五件合并为 docs-governance-guard / theme-palette-guard / ui-control-system-guard
  *    （3+2+2 → 1+1+1）⇒ 232 − 5 ＋ 1 = 228。
  *  2026-10-25 spec restore-visual-hierarchy-and-runtime · Task 1：新增 runtime-tab-lifecycle-guard（纯 node）⇒ 228 → 229。
- *  2026-10-26 同 spec · Task 6（详情路由 direct/locate）：新增 object-route-guard（纯 node）⇒ 229 → 230。 */
-export const DAILY_FILE_BUDGET = 230;
+ *  2026-10-26 同 spec · Task 6（详情路由 direct/locate）：新增 object-route-guard（纯 node）⇒ 229 → 230。
+ *  2026-10-26 Task 6（测试残留隔离）：新增 test-isolation-guard（纯 node）⇒ 230 → 231。
+ *  2026-10-26 同 spec · Task 4（schema v12 与种子契约）：新增 seed-contract-guard（纯 node，10 条）⇒ 231 → 232。
+ *  2026-10-26 同 spec · Task 5（四个月演示窗口）：新增 demo-window-guard（纯 node，5 条）⇒ 232 → 233。
+ *  2026-10-26 同 spec · Task 3（写成功可证）：新增 write-truth-guard（纯 node，9 条）⇒ 233 → 234。 */
+export const DAILY_FILE_BUDGET = 234;
 
 /** daily 静态 `test(` / `it(` 调用点预算（含子测试；新增断言须同批上调并写明理由）
  *  2026-10-21 R5 P1：页题守卫 4 条 + 对比度守卫 5 条 + 补登记的既有两条守卫 ⇒ 1351 → 1377。
@@ -95,8 +122,28 @@ export const DAILY_FILE_BUDGET = 230;
  *    对比与左条），未新增守卫文件 ⇒ 1546 + 4 = 1550。
  *  2026-10-26 同 spec · Task 6（详情路由 direct/locate）：新增 object-route-guard 八条
  *    （入口矩阵 / direct·locate 落点 / 门 / 已归档只读 / 生成点收口 / 无空 id / 可点节点可键盘 /
- *     同页单一完整详情面；含故障注入说明）⇒ 1550 + 8 = 1558。 */
-export const DAILY_TEST_BUDGET = 1558;
+ *     同页单一完整详情面；含故障注入说明）⇒ 1550 + 8 = 1558。
+ *  2026-10-26 Task 6（测试残留隔离）：新增 test-isolation-guard 4 条（fixtureClass 四类 / external-write
+ *    证据与故障注入 / :3000 归类与运行库字面量 / 临时库登录不写运行库）＋ data-lifecycle-guard 增补 ⑮
+ *    （测试残留双条件清理，1 条）⇒ 1558 + 5 = 1563。
+ *  2026-10-26 同 spec · Task 4（schema v12 与种子契约）：新增 seed-contract-guard 10 条
+ *    （branchId / todos 生成列 / 四组唯一索引 / contributions 形状 / 考察成员 / 死表 /
+ *     DATA_MODEL 登记 / 契约四类 / manifest 字段；每条带故障注入或规模下限）⇒ 1563 + 10 = 1573。
+ *  2026-10-26 同 spec · Task 2（缓存边界与服务端优先登录）：`localstorage-key-guard` 新增 L4–L10 七条
+ *    （四类清单 / registry 无僵尸 / visual 白名单 / 读缓存必须带 `_versions` / auth 不承载业务数据 /
+ *    故障注入 / 读口拒收缺版本备份）＋ `auth.test.js` 新增三条（服务端真实账号可登录 / 401 不写登录态 /
+ *    登录页 catch 不跳转）⇒ 1573 + 10 = 1583。
+ *  2026-10-26 同 spec · Task 5（四个月演示窗口）：新增 demo-window-guard 5 条
+ *    （窗口单一源 / 全量日期窗口内＋白名单 / 月覆盖与 11 月计划态 / 关键状态 / 级联顺序）⇒ 1583 + 5 = 1588。
+ *  2026-10-26 同 spec · Task 3（写成功可证）：新增 write-truth-guard 9 条
+ *    （六处 api 闸门静态 / 单一源逐键 / flush 分流 / outbox 三路径 / 快照照发 /
+ *     语义端点 / 不支持形状显式失败 / 失败入 outbox 可重试放弃 / 本机域「未同步」）⇒ 1588 + 9 = 1597。
+ *  2026-10-26 同 spec · Task 7（正式数据轨道与切换）：既有 4 件守卫内新增 6 条
+ *    （seed-baseline B5 生产默认 SEED_FALLBACK=false / B6 生产含演示种子拒启与 ALLOW_DEMO_DATA 放行 /
+ *     B7 seed-repair baseline·生产不修演示 id；backup-restore B2 真跑 restore.mjs；branch-roster-import
+ *     api⑦ 名册事务回滚 + 导入后真实账号可登录；permission-gate READ_ONLY 写口 403），未新增守卫文件
+ *    ⇒ 1597 + 6 = 1603。 */
+export const DAILY_TEST_BUDGET = 1603;
 
 const group = (tier, reason, list) => list.map((file) => ({ file, tier, reason }));
 
@@ -163,6 +210,10 @@ export const TEST_TIERS = [
     // 2026-10-23 R11 Task 12.1：拆表切换闸门（C2 埋点 / C4 历史 / NOT_READY 不切读路径，纯 node）
     'schema-split-gate.test.mjs',
     'seed-baseline.test.mjs',
+    // 2026-10-26 Task 5：四个月演示窗口（2026-08-01~2026-11-30）日期/月覆盖/11 月计划态/关键状态（纯 node）
+    'demo-window-guard.test.mjs',
+    // 2026-10-26 Task 4：schema v12 种子契约（branchId / 唯一索引 / todos 生成列 / contributions / 考察成员 / 死表）
+    'seed-contract-guard.test.mjs',
     'seed-drift.test.mjs',
   ]),
   // daily · 文档真值 / 版本 / 构建完整性
@@ -326,6 +377,8 @@ export const TEST_TIERS = [
     'party-group.test.mjs',
     'party-overview-model.test.mjs',
     'pending-writes.test.mjs',
+    // 2026-10-26 Task 3：写成功可证（api 去 mock 回退 / 非快照域语义端点 / outbox 重试放弃；纯 node）
+    'write-truth-guard.test.mjs',
     'person-profile-presentation.test.mjs',
     'person-profile-service.test.mjs',
     'report-branch-webhook.test.mjs',
@@ -369,13 +422,15 @@ export const TEST_TIERS = [
   // daily · 测试分层 / 预算 / 防假绿编排守卫
   ...group('daily', '测试分层 / 预算 / 防假绿编排守卫', [
     'test-tier-guard.test.mjs',
+    // 2026-10-26 Task 6：fixtureClass 四类 / external-write 证据 / 运行库 sessions·uploads 不增长（纯 node）
+    'test-isolation-guard.test.mjs',
   ]),
   { file: 'a11y-tree.test.mjs', tier: 'precommit', reason: '真机浏览器 e2e（原分片池 → precommit 全量）：可访问性树真机核对' },
   { file: 'agenda-closure.test.mjs', tier: 'precommit', reason: '真机浏览器 e2e（原分片池 → precommit 全量）：议程闭环真机' },
   { file: 'agenda-flow.test.mjs', tier: 'precommit', reason: '真机浏览器 e2e（原分片池 → precommit 全量）：议程流转真机' },
   { file: 'async-vote.test.mjs', tier: 'precommit', reason: '真机浏览器 e2e（原分片池 → precommit 全量）：异步投票真机' },
   { file: 'attendance-queue-selection-e2e.test.mjs', tier: 'precommit', reason: '真机浏览器 e2e（daily 移出 → precommit 落点）：纪检考勤队列选择真机流程' },
-  { file: 'b3-1-makeup-writeback.test.mjs', tier: 'precommit', reason: '真机浏览器 e2e（原分片池 → precommit 全量）：补录回写真机' },
+  { file: 'b3-1-makeup-writeback.test.mjs', tier: 'precommit', fixtureClass: 'tmp', reason: '真机浏览器 e2e（原分片池 → precommit 全量）：补录回写真机（2026-10-26 Task 6 起自托管临时库 + listen(0)，不再写 server/data.db）' },
   { file: 'block-canvas-e2e.test.mjs', tier: 'precommit', reason: '真机浏览器 e2e（原分片池 → precommit 全量）：区块画布真机' },
   { file: 'block-config-ui-e2e.test.mjs', tier: 'precommit', reason: '真机浏览器 e2e（原分片池 → precommit 全量）：区块配置 UI 真机' },
   { file: 'block-entry-guard-e2e.test.mjs', tier: 'precommit', reason: '真机浏览器 e2e（原分片池 → precommit 全量）：区块入口守卫真机' },
@@ -389,7 +444,7 @@ export const TEST_TIERS = [
   { file: 'issue-anonymity.test.mjs', tier: 'precommit', reason: '真机浏览器 e2e（daily 移出 → precommit 落点）：议题匿名真机' },
   { file: 'link-integrity.test.mjs', tier: 'precommit', reason: '真机浏览器 e2e（原分片池 → precommit 全量）：链接完整性真机' },
   { file: 'list-filter-chip-e2e.test.mjs', tier: 'precommit', reason: '真机浏览器 e2e（daily 移出 → precommit 落点）：列表筛选 chip 真机' },
-  { file: 'mock-integrity.test.mjs', tier: 'precommit', reason: '真机浏览器 e2e（原分片池 → precommit 全量）：mock 完整性真机' },
+  { file: 'mock-integrity.test.mjs', tier: 'precommit', fixtureClass: 'external-read', reason: '真机浏览器 e2e（原分片池 → precommit 全量）：mock 完整性真机（连 :3000 只读审计）' },
   { file: 'module-config-e2e.test.mjs', tier: 'precommit', reason: '真机浏览器 e2e（原分片池 → precommit 全量）：模块配置真机' },
   { file: 'module-load.test.mjs', tier: 'precommit', reason: '真机浏览器 e2e（原分片池 → precommit 全量）：模块装载真机' },
   { file: 'multi-tab-sync.test.mjs', tier: 'precommit', reason: '真机浏览器 e2e（原分片池 → precommit 全量）：多标签同步真机' },
@@ -406,7 +461,7 @@ export const TEST_TIERS = [
   { file: 'today-action-groups-e2e.test.mjs', tier: 'precommit', reason: '真机浏览器 e2e（daily 移出 → precommit 落点）：今日行动分组真机' },
   { file: 'write-grant-prompt-e2e.test.mjs', tier: 'precommit', reason: '真机浏览器 e2e（daily 移出 → precommit 落点）：写权限提示真机' },
   { file: 'write-hover-e2e.test.mjs', tier: 'precommit', reason: '真机浏览器 e2e（原分片池 → precommit 全量）：写入悬停态真机' },
-  { file: 'click-cost.test.mjs', tier: 'weekly', reason: '点击成本审计（慢速视觉 / 审计；weekly 频率，precommit/full 仍覆盖）' },
+  { file: 'click-cost.test.mjs', tier: 'weekly', fixtureClass: 'external-read', reason: '点击成本审计（慢速视觉 / 审计；weekly 频率，precommit/full 仍覆盖；连 :3000 只读审计）' },
   { file: 'copy-screen-guard.test.mjs', tier: 'weekly', reason: '逐屏文案视觉普查（慢速视觉 / 审计；weekly 频率，precommit/full 仍覆盖）' },
 ];
 

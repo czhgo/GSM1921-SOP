@@ -161,6 +161,11 @@ export async function seedDatabase(db) {
   replaceCollection(db, 'attendances', attendanceMod.ATTENDANCE_RECORDS);
   // 考察（内容单一源 = `data/mock/inspection.js::INSPECTION_RECORDS`）
   replaceCollection(db, 'inspections', inspectionMod.INSPECTION_RECORDS);
+  // v12：考察对象必须是父工作组成员。用考察事实补工作组成员（不新增人员/活动），
+  //   与 `seed-rows.js` 的派生种子同源；补完只需重写成员表（授权表未变）。
+  if (workgroupSyncMod.ensureInspectionWorkgroupMembers(workgroupSeed, inspectionMod.INSPECTION_RECORDS)) {
+    replaceWorkgroupTable('workgroup_members', workgroupSeed.workgroupMembers);
+  }
   // 活动复盘 / 专班复盘（内容单一源 = `data/mock/review.js` 的两个具名导出）
   replaceCollection(db, 'activity_reviews', reviewMod.REVIEW_RECORDS);
   replaceCollection(db, 'taskforce_reviews', reviewMod.TASKFORCE_REVIEW_RECORDS);
@@ -211,8 +216,8 @@ export async function seedDatabase(db) {
   const { SEED_TODOS } = await import('../docs/src/services/governance/todo.js?v=20260924a');
   // v11（批次 504）：`todos.branch_id` 是普通列，`replaceCollection` 只写 id/data ⇒ 种子也须显式归属，
   //   否则 API 形态按支部读待办会空。缺省归属沿用部署默认支部（与消息/活动种子同口径）。
+  // v12：`todos.branch_id` 已是生成列（json_extract(data,'$.branchId')），只写 data 即可。
   replaceCollection(db, 'todos', SEED_TODOS.map((row) => ({ ...row, branchId: row.branchId || DEFAULT_BRANCH_ID })));
-  db.prepare("UPDATE todos SET branch_id = json_extract(data, '$.branchId')").run();
 
   // ════════════════════════════════════════════════════════════════
   //  Task 1（2026-10-25）：事实 → 派生（与 mock hydrate 同一个 applyDerivedFacts）

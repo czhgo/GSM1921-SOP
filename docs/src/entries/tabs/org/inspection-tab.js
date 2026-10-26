@@ -3,22 +3,23 @@
 // 专班考察：专班负责人/组织委员上传 → 纪检委员确认 → 录入考察总表。
 // 业务口径：考察依托工作组——考察记录挂工作组，考察对象为该工作组成员；sourceType/activityId/taskforceId 是工作组类型的投影。
 
-import { loadInspectionRecords, saveInspectionRecords } from '../../../services/activity/inspection.js?v=20261025b';
-import { reconfirmReturnedInspectionRecord, isInspectionHomePosition } from '../../../services/activity/inspection.js?v=20261025b';
-import { TaskForceRecordStore } from '../../../services/activity/taskforce.js?v=20261025b';
-import { anchorDetailToTrigger } from '../../../components/ui/detail-anchor.js?v=20261025b';
-import { currentUserId } from '../../../services/core/auth.js?v=20261025b';
-import { PersonPicker } from '../../../components/governance/pickers.js?v=20261025b';
+import { loadInspectionRecords, saveInspectionRecords } from '../../../services/activity/inspection.js?v=20261026a';
+import { reconfirmReturnedInspectionRecord, isInspectionHomePosition } from '../../../services/activity/inspection.js?v=20261026a';
+import { TaskForceRecordStore } from '../../../services/activity/taskforce.js?v=20261026a';
+import { anchorDetailToTrigger } from '../../../components/ui/detail-anchor.js?v=20261026a';
+import { currentUserId } from '../../../services/core/auth.js?v=20261026a';
+import { PersonPicker } from '../../../components/governance/pickers.js?v=20261026a';
 // 「本位」nudge 确认弹窗（2026-09-23 支书裁定 · 单一源 = components/ui/modal.js::confirmNudge）
-import { confirmNudge } from '../../../components/ui/modal.js?v=20261025b';
-import { inspectionToLong } from '../../../services/activity/inspection.js?v=20261025b';
-import { getPersonById, getPersonName } from '../../../services/member/person.js?v=20261025b';
-import { SourceType, ParticipationLevel, isTaskforceActiveStatus } from '../../../core/domain/domain.js?v=20261025b';
-import { showToast, escHtml as esc, getBasePath } from '../../../core/base/utils.js?v=20261025b';
-import { solidAccentStyle } from '../../../core/domain/constants.js?v=20261025b';
-import { generateId } from '../../../core/base/id.js?v=20261025b';
+import { confirmNudge } from '../../../components/ui/modal.js?v=20261026a';
+import { inspectionToLong } from '../../../services/activity/inspection.js?v=20261026a';
+import { getPersonById, getPersonName } from '../../../services/member/person.js?v=20261026a';
+import { SourceType, ParticipationLevel, isTaskforceActiveStatus } from '../../../core/domain/domain.js?v=20261026a';
+import { showToast, escHtml as esc, getBasePath } from '../../../core/base/utils.js?v=20261026a';
+import { solidAccentStyle } from '../../../core/domain/constants.js?v=20261026a';
+import { generateId } from '../../../core/base/id.js?v=20261026a';
+import { mockDB } from '../../../core/domain/domain.js?v=20261026a';
 // 统一检索引擎（2026-09-13 表格统一化批次 A）：考察明细表接入关键词 + 分面（≤8 行引擎自动不渲染检索条）
-import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261025b';
+import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261026a';
 
 // 私有状态（随模块自持，不污染入口）
 let _orgInspFormVisible = false;
@@ -232,6 +233,13 @@ export function renderContent(ctx, container) {
   }
 }
 
+function _orgInspectionWorkgroupMemberIds(workgroupId) {
+  if (!workgroupId) return new Set();
+  return new Set((mockDB.workgroupMembers || [])
+    .filter((row) => row.workgroupId === workgroupId && row.status !== 'removed' && row.personId)
+    .map((row) => row.personId));
+}
+
 function _initOrgInspForm(container, activeTaskforces, ctx) {
   const { accent } = ctx;
 
@@ -249,6 +257,18 @@ function _initOrgInspForm(container, activeTaskforces, ctx) {
   }
 
   _renderOrgInspContentRows([]);
+
+  // 2026-10-26 批次 513：专班考察对象必须是该专班工作组成员（服务端硬校验）。
+  //   选专班后收窄人员选择器并清空旧选择，避免“选得到、提交必被拒”。
+  const tfSelectForScope = container.querySelector('#org-insp-tf-select');
+  const syncOrgPickerScope = () => {
+    const tfId = tfSelectForScope?.value || '';
+    if (!tfId) { _orgInspPickerInstance?.setFilter(null); return; }
+    const wgId = tfSelectForScope?.selectedOptions?.[0]?.dataset.workgroupId || `wg-taskforce-${tfId}`;
+    const ids = _orgInspectionWorkgroupMemberIds(wgId);
+    _orgInspPickerInstance?.setFilter((p) => ids.has(p.id), { clear: true });
+  };
+  tfSelectForScope?.addEventListener('change', syncOrgPickerScope);
 
   container.querySelector('#org-insp-form-cancel')?.addEventListener('click', () => {
     // 保态折叠（同 toggle）：取消 = 收起，保留已选与逐人填写内容；仅提交成功后才重置会话

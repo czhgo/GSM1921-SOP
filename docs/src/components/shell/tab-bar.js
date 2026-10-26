@@ -8,12 +8,12 @@
 
 
 
-import { icon } from '../../core/base/icons.js?v=20261025b';
-import { showToast } from '../../core/base/utils.js?v=20261025b';
+import { icon } from '../../core/base/icons.js?v=20261026a';
+import { showToast } from '../../core/base/utils.js?v=20261026a';
 
 // R6 导航守卫（2026-09-03 P2a）：初始/目标 tab 决策收敛到纯函数 tab-nav.js（防「被支部隐藏后静默白屏」）
 
-import { resolveInitialTab, resolveTargetTab } from '../../core/boot/tab-nav.js?v=20261025b';
+import { resolveInitialTab, resolveTargetTab } from '../../core/boot/tab-nav.js?v=20261026a';
 
 
 

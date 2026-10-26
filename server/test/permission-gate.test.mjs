@@ -11,6 +11,9 @@ import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { createApp } from '../app.js';
 import { seedDatabase } from '../seed.js';
+import { ACTIVITIES } from '../../docs/src/data/mock/activities.js?v=20261026a';
+
+const ACT6_TITLE = ACTIVITIES.find((a) => a.id === 'act-6').title;
 
 let server, base;
 
@@ -355,8 +358,8 @@ test('转交组织者通知（批次 330 裁）：支委层可触发且项目名
   assert.equal(notice.title, '组织者已变更');
   assert.deepEqual(notice.audiencePersons, ['2400012345'], '受众＝到人定向（被退出的原组织者一人）');
   assert.equal(notice.audience, undefined, '不设角色广播（不该让全支部看到「某人被换下」）');
-  assert.ok(String(notice.content).includes('7月党课：新时代青年担当'),
-    '项目名按表复算（不采信 payload 的伪造 projectName）');
+  assert.ok(String(notice.content).includes(ACT6_TITLE),
+    '项目名按表复算（不采信 payload 的伪造 projectName；标题取种子 act-6）');
   assert.equal(notice.targetType, 'activity', '活动 → targetType=activity');
 
   // ② 普通成员 + 把「被退出者」写成别人 → 403（非支委且非本人）
@@ -935,4 +938,54 @@ test('站内信写门（api 面）：代他人伪造私信 → 403；本人发�
     body: JSON.stringify({ notices: [mine], _versions: { notices: baseVersions.versions.notices } }),
   });
   assert.equal(r2.status, 200, '普通成员本人发私信 → 放行');
+});
+
+// ── Task 7.4（2026-10-26）：只读演练模式 READ_ONLY=1 ──────────────────────────
+// 判据：读口正常、认证域放行；**所有写口**（snapshot / 通用 CRUD / 语义写 / 名册导入）统一 403 + 可读文案。
+// 故障注入：临时置 READ_ONLY=1（try/finally 复原）⇒ 同一进程内同一 app 的写口立刻转 403，证明判据在读时生效。
+test('READ_ONLY=1：读口与登录正常；snapshot / CRUD / 语义写 / 名册导入一律 403 + 只读文案', async () => {
+  const { token } = await login('2300010001'); // br-b1 支书（有读权）
+  const saved = process.env.READ_ONLY;
+  process.env.READ_ONLY = '1';
+  try {
+    // 认证域放行：只读模式下仍可登录
+    const relogin = await fetch(`${base}/api/v1/auth/login`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ personId: '2300010001' }),
+    });
+    assert.equal(relogin.status, 200, '只读模式必须放行 /auth/login（否则无法演练）');
+
+    // 六台读口正常
+    for (const name of ['activities', 'attendances', 'inspections', 'notices', 'signups', 'todos']) {
+      const got = await fetch(`${base}/api/v1/${name}`, { headers: authHeaders(token) });
+      assert.equal(got.status, 200, `只读模式读口 ${name} 应 200`);
+    }
+
+    const writes = [
+      ['snapshot', await fetch(`${base}/api/v1/snapshot`, {
+        method: 'POST', headers: authHeaders(token), body: JSON.stringify({ activities: [], _versions: { activities: 0 } }),
+      })],
+      ['generic POST', await fetch(`${base}/api/v1/notices`, {
+        method: 'POST', headers: authHeaders(token), body: JSON.stringify({ title: '只读', content: 'x' }),
+      })],
+      ['generic PATCH', await fetch(`${base}/api/v1/users/2400012347`, {
+        method: 'PATCH', headers: authHeaders(token), body: JSON.stringify({ role: 'participant' }),
+      })],
+      ['generic DELETE', await fetch(`${base}/api/v1/activities/act-1`, { method: 'DELETE', headers: authHeaders(token) })],
+      ['semantic POST', await fetch(`${base}/api/v1/members`, {
+        method: 'POST', headers: authHeaders(token), body: JSON.stringify({ id: 'readonly1', name: '只读' }),
+      })],
+      ['roster PUT', await fetch(`${base}/api/v1/branches/br-b1/roster`, {
+        method: 'PUT', headers: authHeaders(token), body: JSON.stringify({ members: [{ id: 'readonly1', name: '只读' }] }),
+      })],
+    ];
+    for (const [label, res] of writes) {
+      assert.equal(res.status, 403, `只读模式写口 ${label} 应 403`);
+      const body = await res.json();
+      assert.equal(body.readOnly, true, `${label} 响应应标记 readOnly`);
+      assert.match(String(body.error), /只读/, `${label} 应给出可读的只读文案`);
+    }
+  } finally {
+    if (saved === undefined) delete process.env.READ_ONLY; else process.env.READ_ONLY = saved;
+  }
 });

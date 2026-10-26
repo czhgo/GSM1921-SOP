@@ -12,6 +12,7 @@ import {
   normalizeSeedActivitySeedRows,
   ensureLegacySourceWorkgroups,
   ensureDemoWorkgroupGrants,
+  ensureInspectionWorkgroupMembers,
 } from '../docs/src/data/workgroup-seed-sync.js';
 import { MOCK_TASKFORCES } from '../docs/src/data/mock/taskforces.js';
 import { PEOPLE } from '../docs/src/data/mock/people.js';
@@ -90,6 +91,8 @@ async function derivedWorkgroupRows() {
   applyDerivedFacts(seed, { people: PEOPLE });
   ensureLegacySourceWorkgroups(seed);
   ensureDemoWorkgroupGrants(seed);
+  // v12：与 server/seed.js 同一归一——考察事实补父工作组成员。
+  ensureInspectionWorkgroupMembers(seed, INSPECTION_RECORDS);
   derivedCache = seed;
   return seed;
 }

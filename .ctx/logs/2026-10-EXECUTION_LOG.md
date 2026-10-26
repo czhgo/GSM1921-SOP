@@ -3960,3 +3960,65 @@ $body
 | 8 | tab「渲染不出来 / 点 A 亮 B」：冻结 `renderCtx`、marker 不清、持久绑定标记 | 首屏能渲染就代表生命周期正确；绑定一次永久有效 | 点哪个 tab，最终渲染的就是**该 tab 最新数据**；控件离开再回来仍生效 | 渲染上下文取最新 state；统一生命周期（seq / 去重 / 清 marker / await / 错误卡 / 8s 超时）；绑定标记挂重建元素或委托 | `runtime-tab-lifecycle-guard::R1–R7`（CASE-AI-006） |
 | 9 | 「卡」：首屏 600ms 硬等待、双 `loadDB`、hover 浮窗写后读、Observer 全文档扫 | 慢是网络 / 数据量问题；loading 只是视觉 | 首屏不被硬推迟，鼠标移动不被布局读取打断 | 延迟可配（默认 ≤120ms）；`loadDB` 幂等；首屏只派生一次；hover 先读后写；Observer 只扫新增；后台 render 不铺占位 | `runtime-tab-lifecycle-guard::P1–P5`（CASE-AI-006） |
 
+## 批次 513（2026-10-26）：胶囊主题色回退 ＋ 数据真相 ＋ schema v12 ＋ 四个月窗口 ＋ 测试隔离 ＋ 正式轨道（spec `restore-capsule-and-harden-data-truth`）
+
+### 一、判据
+
+- 支书复核批次 512 的胶囊：「还是没恢复」。取证：批次 512 只做到「全宽可见 ＋ ≥24px ＋ 描边」，但底色 `neutral-100` / 文字 `neutral-500` / `border-radius:999px` / 400 字重——**可见性达标，8–9 月的主题 soft 底 ＋ 3px 直角 ＋ 600 字重全部丢失**。
+- 数据线取证：`getDataSource()==='api'` 时，活动 / 考勤 / 考察仍回退静态种子；通知 / 报名 / 待办仍补种子并 `persist()`；`persist()` 对快照未覆盖的 `committeeBroadcasts / agendaVotes / memberChangeRequests` 直接 resolve（界面上「保存成功」，清缓存重登即消失）。登录仍先查本地账号层。
+- 结构取证：种子缺 `branchId`、缺唯一约束、字段未登记；`issue_reveals` 为死表、`committee_broadcasts` 为半死表；`todos.branch_id` 未下推。运行库混入 `act-b31-* / att-b31-* / mk-b31-* / todo_seed_7 / 测试通知 / 测试议题` 等测试残留。
+- 演示窗口：旧种子含 7 月及更早内容，11 月无计划活动。目标窗口统一为 **2026-08-01–2026-11-30**，保留每种关键状态样本，**不按日期 DELETE**。
+- 正式轨道缺口：生产形态默认可回退演示种子；无「空库基线 → 名册导入 dry-run → 恢复脚本 → 只读演练」的完整路径。
+
+### 二、动作（指针）
+
+1. **胶囊（Task 1）**：`styles.css::.tab-group-label` 改用 `--app-accent-soft-bg` / `--app-accent-soft-text`，`border-radius:3px`、`font-weight:600`、`letter-spacing:0.5px`，保留 `min-height:24px` / `flex-shrink:0` / 全宽可见；描边 `--neutral-400`（约 2.43:1）；≤1280px 只缩内边距，字号保持 12px。
+2. **缓存与登录（Task 2）**：`docs/src/data/cache-registry.js` 建四类键单一源（visual / auth / read-cache / temp）；`workflowos_branch_db_v1` 写入带 `_versions` ＋ `savedAt`（30 分钟有效期）；`login-entry.js` / `auth.js` 改服务端优先，后端失败停留登录页；outbox 键 `gsm1921-pending-writes-outbox` 承担失败重试 / 放弃。
+3. **去 mock 回退（Task 3）**：六个读口 / 种子口（活动、考勤、考察、通知、报名、待办）在 api 形态加显式闸门并置于种子常量之前；`persist()` flush 按「快照 / 语义端点 / 本机 / 显式失败」四类分流；`agendaVotes` 与 `memberChangeRequests` 新增 annotate 语义端点；`committeeBroadcasts` 标 temp 并显示「本机未同步」。
+4. **schema v12 与种子契约（Task 4）**：四组唯一索引（`attendances(activityId,personId)` / 活组 `party_groups(branchId,name)` / `attendance_rosters(activityId)` / `workgroup_members(workgroupId,personId)`）；`todos.branch_id` 生成列；`contributions` 统一 `{desc, by, at}` 对象；考察成员 ∈ 父工作组在服务端写口校验；`issue_reveals` DROP；`committee_broadcasts` 只读（写口 409）；新增 [DATA_SEED_CONTRACT.md](../../content/04_web_design/data/DATA_SEED_CONTRACT.md)（四类口径 ＋ 逐表契约 ＋ v12 强约束）。
+5. **四个月窗口（Task 5）**：`demo-window.js::DEMO_WINDOW` 单一源；活动按业务内容重排为 8 月 18 / 9 月 9 / 10 月 8 / 11 月 3；11 月只 `draft/published`、无考勤 / 复盘；考勤 / 考察 / 复盘 / 任务 / 分工 / 通知 / 归档 / 报名 / 外发 / 交接 / 议题级联重排；`tf-002` 跨期保留；运行库用 `rebuild-demo` 重建后替换（旧库备份 `server/backups/pre-513`）。
+6. **测试隔离（Task 6）**：`test-tier-registry` 增四类 `fixtureClass`；`b3-1` 改临时库 ＋ `t.after`；`cleanup.mjs` 修「无 data 列的表」并新增 `--test-residue`（dry-run 默认）；新增 `test:clean` / `test:full:safe`；测试套件保留（268 个文件）。
+7. **正式轨道（Task 7）**：生产默认 `SEED_FALLBACK=false`；演示库拒启（`ALLOW_DEMO_DATA=1` 放行）；`seed-repair` 不修演示 seed id；新增 `import-branch.mjs`（dry-run ＋ 事务）与 `restore.mjs`；`READ_ONLY=1` 只读演练；`PUT /branches/:id/roster` 单事务替换。
+8. **规范与判例（Task 8）**：`DESIGN_SYSTEM` 增 SD-47（胶囊视觉构成）与 SD-48（缓存 / 写确认 / 演示窗口 / 测试残留四层），并同步 §12.3 / SD-3 / SD-36 的例外与指针；`design-system/CASES.md` 增 CASE-DESIGN-025、CASE-DATA-001 与 sample-diff 五列；`CASES_INDEX` 增两行与 data 域计数；`DATA_MODEL` 顶部补种子契约指针与 v12 摘要；`PRODUCT_IA` 增「数据形态与缓存边界」附录；`GUARD_INVENTORY` 记 74 件 / 501 条。
+
+### 三、读数
+
+- **定向（终态）**：`node --test test/docs-governance-guard.test.mjs test/doc-consistency.test.mjs test/seed-contract-guard.test.mjs test/test-isolation-guard.test.mjs test/write-truth-guard.test.mjs test/demo-window-guard.test.mjs test/ui-contrast-guard.test.mjs test/ui-control-system-guard.test.mjs` ＝ **107 / 107 绿**，`duration_ms 9744.80`（≈9.74s）。逐件：docs-governance 28（静态 25 条；`N3–N6` 循环展开 4 条 ⇒ 运行 28）· doc-consistency 21 · seed-contract 10 · test-isolation 4 · write-truth 9 · demo-window 5 · ui-contrast 5 · ui-control 25。
+- **daily（终态）**：`npm run test:daily` ＝ **1608 / 1608 绿**（93.8s；0 cancelled / 0 skipped）。
+- **胶囊**：亮色 softText vs softBg **6.88:1**、暗色 **9.18:1**；描边对页面底约 **2.43:1**；五档宽度（390 / 768 / 1024 / 1280 / 1440）全宽可见，`min-height 24px`、`border-radius 3px`、`font-weight 600`、`letter-spacing 0.5px`。
+- **运行库（v12）**：`user_version = 12`、表 **52** 张（`issue_reveals` 已删）；活动 **38** 条——8 月 **18** / 9 月 **9** / 10 月 **8** / 11 月 **3**（`published / published / draft`）；11 月活动考勤 **0**、复盘 **0**。
+- **守卫台账**：件数 **70 → 74**、断言 **462 → 501**；新增 `seed-contract-guard`（10）、`test-isolation-guard`（4）、`write-truth-guard`（9）、`demo-window-guard`（5）；`localstorage-key-guard` 3→10、`seed-baseline` 3→6、`data-lifecycle-guard` 14→15。
+- **测试残留**：旧库 `cleanup --test-residue` dry-run 命中 **10 张表 / 52 行**；替换为重建库后复跑 **0 表 / 0 行**。
+- **全量三通道（最终）**：`SWEEP_SHARD=all` ＝ **[node] 1608 / 1608 绿**、**[e2e-A] 92 / 92 绿**、**[e2e-B] 144 过 + 1 skip（145）**；墙钟 **849.8s**（≤1200s）。
+- **版本戳**：`20261025b` → **`20261026a`**（JS 263 / HTML 26 / CSS 2 / server-test 151 个文件改写，陈旧戳 0 残留）。
+- **数据切换**：旧库备份 `server/backups/pre-513`（schema v11，51 users / 39 activities）→ `rebuild-demo` 生成新库（schema v12，38 activities）→ 替换 `server/data.db` 并清 wal/shm。
+
+### 四、修复过程（如实）
+
+- **schema v12 生成列导致播种失败**：`todos.branch_id` 改为 `GENERATED ALWAYS AS (json_extract(data,'$.branchId')) VIRTUAL` 后，播种 / 写口仍按旧列写 `INSERT … branch_id`，SQLite 直接报「cannot INSERT into generated column」，首启播种中断。修复：写口只写 `id + data`（`branchId` 留在 JSON 内），生成列自动派生；快照 / 语义写口同步；`seed-contract-guard::C3` 把「`INSERT(id,data)` 可用、JSON 一致、手写列报错」锁成判据。
+- **胶囊「可见 ≠ 恢复」**：批次 512 的 V2 / K3 只判可见性与描边，未判主题色与字重；本批先改 CSS，再把 K3 从 `neutral-500` 改为「主题 soft-bg / soft-text ＋ 亮暗 ≥4.5:1」，V2 从字面 `neutral-400` 改为「描边对页面底 ≥1.5:1」并补 3px 断言——**判据跟着准绳改，不是让实现迁就旧判据**。
+- **api 形态假成功的连锁**：先加六个读口闸门（否则空库仍显示演示活动），再改 flush 四类分流（否则非快照域静默 resolve），最后补 outbox 与「未同步」文案；三步缺一，界面上仍会出现「保存成功但重登消失」。
+- **窗口重排不是删除**：先按业务内容把 7 月活动重排到 8–10 月并补 11 月计划活动，再级联重排考勤 / 考察 / 复盘 / 任务 / 分工 / 通知 / 归档 / 报名 / 外发 / 交接 / 议题，最后 `rebuild-demo` 重建并替换运行库；旧库先备份到 `server/backups/pre-513`。直接按日期 DELETE 会打断跨期实体（`tf-002`）与状态样本。
+- **文档侧三次回退**（本 Task 8 实跑暴露）：① `DATA_MODEL` 顶部新增一行导致 `README-server.md` 的 `文件:行号` 锚点整体 +1（docs-governance R1/R2/R3 三红），改为并入既有「本文不回答」同一条（不增行）；② TIMESTAMPS 备注列 **31,430 > 31,400**（N2 红），按「等量置换」收短 DATA_MODEL / CASES / SNAPSHOT / 日志四格，未上调预算；③ `DATA_SEED_CONTRACT` 无 frontmatter 被 S13 判红，补 frontmatter（不改守卫白名单）；补齐后 F1 的「带日期 content 行 ≥20」下限恢复。
+- **收尾**：定向 107/107、daily 1606/1606；版本戳、全量三通道与提交留给主代理收尾。
+
+### 五、边界（如实）
+
+- **不做**：版本戳 bump、全量三通道、提交与 push——全部留主代理收尾；本批只跑定向与 daily。
+- **SD-47 与 SD-36 / SD-42 分职**：SD-47 只管**视觉构成**（主题 soft 三件套 / 3px / 600 / 0.5px 字距 / ≥24px）；非按钮语义仍归 SD-36，全宽可见仍归 SD-42；`.tab-group-label` 是 SD-3「999px」的**唯一登记例外**，例外只改圆角。
+- **SD-48 是边界条款，不是字段表**：缓存键清单以 `cache-registry.js` 为准、种子逐表口径以 `DATA_SEED_CONTRACT.md` 为准、窗口以 `DEMO_WINDOW` 为准、测试分层以 `test-tier-registry` ＋ `cleanup --test-residue` 为准；`DESIGN_SYSTEM` 不重复抄写。
+- **新增守卫 4 件**（spec 原写「新增 ≤2」）：`seed-contract-guard` / `test-isolation-guard` 为 spec 点名；`write-truth-guard` / `demo-window-guard` 是把 Task 3 / Task 5 的验收从一次性脚本升为常驻守卫，故实际 4 件；件数与断言已在 `GUARD_INVENTORY` 如实登记。
+- **判例不产生规范效力**：CASE-DESIGN-025 / CASE-DATA-001 只记「当时确认的落点」，布尔判据在 SD-47 / SD-48；`content/05_ai_coding` 不写规范条文。
+- **11 月无考勤 / 复盘**是数据事实（计划态活动尚未发生），不是查询失效；`act-38/39` 为 `published`、`act-40` 为 `draft`。
+- **`DATA_SEED_CONTRACT` 补 frontmatter** 是为满足 `doc-consistency::S13`（无 frontmatter 的 md 须登记白名单），不是新增规范字段；白名单未改。
+- **只读演练 / 名册导入**的真机验证留给收尾三通道；本批只核脚本与写口判据。
+
+### 六、sample-diff 五列（本批抽样 → 规则）
+
+| 样本（证据） | AI 假设 | 人类意图 | 偏差类型 | 泛化规则（守卫） |
+|---|---|---|---|---|
+| 分组胶囊「没恢复」：已全宽可见、≥24px、有描边，但仍中性灰 999px / 400 字重 | 改可见性＝恢复；颜色与圆角只是装饰 | 要回到 8–9 月的**主题色 soft 底 ＋ 3px 直角 ＋ 600 字重** | `definition_mismatch` | 可感知与视觉构成分开登记、同时把守；3px 是登记例外，不豁免主题色与字重（SD-47 / K3 ＋ V2；CASE-DESIGN-025） |
+| 「删除测试用例」：运行库残留 `act-b31-*` / `att-b31-*` / `mk-b31-*` / `todo_seed_7` / 测试通知 / 测试议题 | 测试数据＝测试套件的一部分，删残留＝删测试 | 要清**运行库残留**，保留 268 个自动化测试文件 | `scope_widening` | 测试套件与测试数据分层：外部写用临时库或 `finally` 清理，残留由 `test:clean --test-residue` 清（SD-48 / I1–I4） |
+| 「四个月窗口」：7 月 25 场活动需进入 8–11 月窗口 | 按日期把窗口外的行 DELETE 掉最直接 | 要**重排事实 ＋ 重建运行库**，保留跨期实体与每种关键状态样本 | `tool_mismatch` | 先备份 → 重排种子 → `rebuild-demo` 重建 → 替换库；不逐表按日期 DELETE（SD-48 / W1–W5） |
+| 「缓存」：清缓存重登后标注消失；`persist()` 本地 resolve 曾报成功 | 本地缓存能显示就算可用；读缓存可当权威 | 要**服务端权威**：读缓存只是加速，写成功必须有服务端证据 | `priority_inversion` | 业务读缓存带 `_versions` ＋ `savedAt`；写三选一可证；失败进 outbox 显示「未同步」（SD-48 / L4–L10 ＋ A1–A4/B1–B5；CASE-DATA-001） |
+

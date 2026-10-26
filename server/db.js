@@ -63,7 +63,7 @@ export function initDb(dbPath) {
   const db = new Database(dbPath);
   db.pragma('journal_mode = WAL');
   db.exec(SCHEMA);
-  for (const t of [...RESOURCE_TABLES, ...SEMANTIC_TABLES]) {
+  for (const t of [...RESOURCE_TABLES, ...SEMANTIC_TABLES].filter((name) => !RETIRED_RESOURCE_TABLES.has(name))) {
     db.exec(`CREATE TABLE IF NOT EXISTS ${t} (id TEXT PRIMARY KEY, data TEXT NOT NULL)`);
   }
   db.exec(`CREATE TABLE IF NOT EXISTS ${COLLECTION_VERSIONS_TABLE} (name TEXT PRIMARY KEY, version INTEGER NOT NULL DEFAULT 0)`);
@@ -617,7 +617,12 @@ export const MIGRATIONS = [
         const taskforceBranch = new Map(parseAll('taskforces').map((row) => [String(row.id), row.branchId || null]));
         const noticeBranch = new Map(parseAll('notices').map((row) => [String(row.id), row.branchId || null]));
         const userBranch = new Map(parseAll('users').map((row) => [String(row.id), row.branchId || null]));
-        const update = db.prepare('UPDATE todos SET data = ?, branch_id = ? WHERE id = ?');
+        // v12 起 branch_id 为生成列（只读）⇒ v11 重放（测试把 user_version 倒回 10）时只写 data。
+        const branchInfo = db.prepare('PRAGMA table_xinfo(todos)').all().find((c) => c.name === 'branch_id');
+        const branchGenerated = !!branchInfo && branchInfo.hidden !== 0;
+        const update = branchGenerated
+          ? db.prepare('UPDATE todos SET data = ? WHERE id = ?')
+          : db.prepare('UPDATE todos SET data = ?, branch_id = ? WHERE id = ?');
         let filled = 0;
         let unresolved = 0;
         for (const row of db.prepare('SELECT id, data FROM todos').all()) {
@@ -630,7 +635,8 @@ export const MIGRATIONS = [
           const branchId = parent || userBranch.get(String(todo.personId || '')) || null;
           if (!branchId) { unresolved += 1; continue; }
           todo.branchId = branchId;
-          update.run(JSON.stringify(todo), branchId, row.id);
+          if (branchGenerated) update.run(JSON.stringify(todo), row.id);
+          else update.run(JSON.stringify(todo), branchId, row.id);
           filled += 1;
         }
         console.log(`[db] v11 待办归属回填：已归属=${filled} 待归属=${unresolved}`);
@@ -668,6 +674,181 @@ export const MIGRATIONS = [
       db.exec('CREATE TABLE IF NOT EXISTS agenda_items (id TEXT PRIMARY KEY, data TEXT NOT NULL)');
       db.exec('CREATE TABLE IF NOT EXISTS taskforce_contributions (id TEXT PRIMARY KEY, data TEXT NOT NULL)');
       rebuildShadowTables(db, { record: false });
+    },
+  },
+  {
+    // v12（2026-10-26 · spec restore-capsule-and-harden-data-truth Task 4）：
+    //   ① 删死表 issue_reveals（D-824 起停写、0 读取入口）；
+    //   ② 种子/存量补 branchId（父行 → 所属人 → 部署默认支部，仅单支部历史缺省时兜底）；
+    //   ③ contributions 字符串 → {desc} 对象（影子表不再出现 `$."0"` 字符键）；
+    //   ④ 四组唯一索引（先幂等去重，再建索引）；
+    //   ⑤ todos.branch_id 由普通列改为 `GENERATED ... VIRTUAL`（读时取 data.branchId，INSERT(id,data) 不变）。
+    // 幂等：每步先探测表/列/索引；重复重放不重复删除、不改写已规范化的行。
+    version: 12,
+    name: 'seed-contract-and-unique-keys',
+    tables: ['todos', 'agenda_items', 'taskforce_contributions'],
+    drops: ['issue_reveals'],
+    up(db) {
+      const hasTable = (name) => !!db.prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name = ?").get(name);
+      const rowsOf = (table) => (hasTable(table)
+        ? db.prepare(`SELECT id, data FROM ${table}`).all().map((row) => ({ id: row.id, row: JSON.parse(row.data) }))
+        : []);
+      const writeRow = (table, id, row) => db.prepare(`UPDATE ${table} SET data = ? WHERE id = ?`).run(JSON.stringify(row), id);
+
+      // ① 死表：先 IF EXISTS（旧库可能从未建过）
+      db.exec('DROP TABLE IF EXISTS issue_reveals');
+
+      // ② contributions 统一为对象数组：字符串 → `{ desc }`；非对象值 → `{ desc: String(v) }`
+      let normalizedContributions = 0;
+      for (const { id, row } of rowsOf('taskforces')) {
+        let rowChanged = false;
+        for (const member of (Array.isArray(row.members) ? row.members : [])) {
+          if (!Array.isArray(member.contributions)) continue;
+          let memberChanged = false;
+          const next = member.contributions.map((contribution) => {
+            if (typeof contribution === 'string') { memberChanged = true; return { desc: contribution }; }
+            if (!contribution || typeof contribution !== 'object' || Array.isArray(contribution)) {
+              memberChanged = true;
+              return { desc: String(contribution ?? '') };
+            }
+            return contribution;
+          });
+          if (memberChanged) { member.contributions = next; rowChanged = true; }
+        }
+        if (rowChanged) { writeRow('taskforces', id, row); normalizedContributions += 1; }
+      }
+      if (normalizedContributions) console.log(`[db] v12 contributions 规范化：任务组=${normalizedContributions}`);
+
+      // ③ branchId 回填（只在缺失时补；不覆盖既有归属）
+      const userBranch = new Map(rowsOf('users').map(({ id, row }) => [String(id), row.branchId || null]));
+      const groupBranch = new Map(rowsOf('workgroups').map(({ id, row }) => [String(id), row.branchId || null]));
+      let activityBranch = new Map();
+      const fill = (table, resolve) => {
+        if (!hasTable(table)) return 0;
+        let filled = 0;
+        for (const { id, row } of rowsOf(table)) {
+          if (row && row.branchId) continue;
+          const branchId = resolve(row || {});
+          if (!branchId) continue;
+          row.branchId = branchId;
+          writeRow(table, id, row);
+          filled += 1;
+        }
+        return filled;
+      };
+      const activityFilled = fill('activities', (row) => userBranch.get(String(row.organizer || '')) || null);
+      activityBranch = new Map(rowsOf('activities').map(({ id, row }) => [String(id), row.branchId || null]));
+      const branchOfActivity = (activityId) => activityBranch.get(String(activityId || '')) || null;
+      const attendanceFilled = fill('attendances', (row) => branchOfActivity(row.activityId) || userBranch.get(String(row.personId || '')) || null);
+      const inspectionFilled = fill('inspections', (row) => (
+        branchOfActivity(row.activityId)
+        || groupBranch.get(String(row.workgroupId || ''))
+        || userBranch.get(String(row.recordedBy || ''))
+        || null
+      ));
+      const archiveFilled = fill('archive_records', (row) => (
+        branchOfActivity(row.activityId)
+        || userBranch.get(String(row.uploadedBy || ''))
+        || DEFAULT_BRANCH_ID // 非活动材料（materialOnly）与旧单支部归档：部署默认支部
+      ));
+      const propFilled = fill('prop_tasks', () => DEFAULT_BRANCH_ID);
+      const dispatchFilled = fill('external_dispatches', (row) => userBranch.get(String(row.senderId || '')) || DEFAULT_BRANCH_ID);
+      const handoffFilled = fill('handoffs', () => DEFAULT_BRANCH_ID);
+      const confirmationFilled = fill('member_confirmations', (row) => userBranch.get(String(row.personId || '')) || DEFAULT_BRANCH_ID);
+      const auditFilled = fill('auth_audit', (row) => (String(row.scopeRef || '').startsWith('br-') ? row.scopeRef : DEFAULT_BRANCH_ID));
+      // todos：先尝试把 v11 普通列已有值提升到 JSON（旧库 4/5 行 branch_id 有值、data.branchId 为空）
+      let todoFilled = 0;
+      if (hasTable('todos')) {
+        const hasBranchColumn = db.prepare('PRAGMA table_xinfo(todos)').all().some((c) => c.name === 'branch_id');
+        for (const { id, row } of rowsOf('todos')) {
+          if (row.branchId) continue;
+          const fromParent = row.sourceType === 'activity'
+            ? branchOfActivity(row.sourceId)
+            : row.sourceType === 'taskforce'
+              ? (rowsOf('taskforces').find(({ id: tid }) => String(tid) === String(row.sourceId || ''))?.row.branchId || null)
+              : null;
+          const legacy = hasBranchColumn
+            ? db.prepare('SELECT branch_id FROM todos WHERE id = ?').get(id)?.branch_id
+            : null;
+          const branchId = fromParent || legacy || userBranch.get(String(row.personId || '')) || null;
+          if (!branchId) continue;
+          row.branchId = branchId;
+          writeRow('todos', id, row);
+          todoFilled += 1;
+        }
+      }
+      console.log(`[db] v12 branchId 回填：活动=${activityFilled} 考勤=${attendanceFilled} 考察=${inspectionFilled} 归档=${archiveFilled} 宣传=${propFilled} 外发=${dispatchFilled} 交接=${handoffFilled} 确认=${confirmationFilled} 审计=${auditFilled} 待办=${todoFilled}`);
+
+      // ④ 唯一索引：先幂等去重（保留确定性的一条），再建索引
+      const dedupe = (table, keyOf, compare) => {
+        if (!hasTable(table)) return 0;
+        const groups = new Map();
+        for (const { id, row } of rowsOf(table)) {
+          const key = keyOf(row || {});
+          if (!key || key.includes('\u0000null')) continue;
+          if (!groups.has(key)) groups.set(key, []);
+          groups.get(key).push({ id, row });
+        }
+        let removed = 0;
+        for (const list of groups.values()) {
+          if (list.length < 2) continue;
+          const keep = [...list].sort(compare)[0];
+          for (const item of list) {
+            if (item.id === keep.id) continue;
+            db.prepare(`DELETE FROM ${table} WHERE id = ?`).run(item.id);
+            removed += 1;
+          }
+        }
+        return removed;
+      };
+      const removedAttendance = dedupe('attendances',
+        (row) => (row.activityId && row.personId ? `${row.activityId}\u0000${row.personId}` : null),
+        (a, b) => String(b.row.confirmedAt || b.row.recordedAt || '').localeCompare(String(a.row.confirmedAt || a.row.recordedAt || ''))
+          || String(a.id).localeCompare(String(b.id)));
+      const removedRosters = dedupe('attendance_rosters',
+        (row) => (row.activityId ? String(row.activityId) : null),
+        (a, b) => Number(b.row.version || 0) - Number(a.row.version || 0)
+          || String(b.row.frozenAt || '').localeCompare(String(a.row.frozenAt || ''))
+          || String(a.id).localeCompare(String(b.id)));
+      const removedMembers = dedupe('workgroup_members',
+        (row) => (row.workgroupId && row.personId ? `${row.workgroupId}\u0000${row.personId}` : null),
+        (a, b) => (a.row.status === 'removed' ? 1 : 0) - (b.row.status === 'removed' ? 1 : 0)
+          || String(b.row.createdAt || '').localeCompare(String(a.row.createdAt || ''))
+          || String(a.id).localeCompare(String(b.id)));
+      const removedGroups = dedupe('party_groups',
+        (row) => (row.branchId && row.name && row.status === 'active' ? `${row.branchId}\u0000${row.name}` : null),
+        (a, b) => String(a.row.createdAt || '').localeCompare(String(b.row.createdAt || ''))
+          || String(a.id).localeCompare(String(b.id)));
+      if (removedAttendance || removedRosters || removedMembers || removedGroups) {
+        console.log(`[db] v12 唯一键去重：考勤=${removedAttendance} 应到名单=${removedRosters} 工作组成员=${removedMembers} 党小组=${removedGroups}`);
+      }
+      if (hasTable('attendances')) {
+        db.exec("CREATE UNIQUE INDEX IF NOT EXISTS ux_attendances_activity_person ON attendances(json_extract(data,'$.activityId'), json_extract(data,'$.personId'))");
+      }
+      if (hasTable('party_groups')) {
+        // 只约束「活组」：解散组保留同名历史不影响新建同名活组（与 party-group.js::_nameTaken 同口径）。
+        db.exec("CREATE UNIQUE INDEX IF NOT EXISTS ux_party_groups_branch_name ON party_groups(json_extract(data,'$.branchId'), json_extract(data,'$.name')) WHERE json_extract(data,'$.status') = 'active'");
+      }
+      if (hasTable('attendance_rosters')) {
+        db.exec("CREATE UNIQUE INDEX IF NOT EXISTS ux_attendance_rosters_activity ON attendance_rosters(json_extract(data,'$.activityId'))");
+      }
+      if (hasTable('workgroup_members')) {
+        db.exec("CREATE UNIQUE INDEX IF NOT EXISTS ux_workgroup_members_group_person ON workgroup_members(json_extract(data,'$.workgroupId'), json_extract(data,'$.personId'))");
+      }
+
+      // ⑤ todos.branch_id → 生成列（先重建表；INSERT(id,data) 仍可用，写口不再维护该列）
+      if (hasTable('todos')) {
+        const branchInfo = db.prepare('PRAGMA table_xinfo(todos)').all().find((c) => c.name === 'branch_id');
+        const generated = !!branchInfo && branchInfo.hidden !== 0;
+        if (!generated) {
+          db.exec('DROP TABLE IF EXISTS todos_v12');
+          db.exec("CREATE TABLE todos_v12 (id TEXT PRIMARY KEY, data TEXT NOT NULL, branch_id TEXT GENERATED ALWAYS AS (json_extract(data,'$.branchId')) VIRTUAL)");
+          db.exec('INSERT INTO todos_v12 (id, data) SELECT id, data FROM todos');
+          db.exec('DROP TABLE todos');
+          db.exec('ALTER TABLE todos_v12 RENAME TO todos');
+        }
+        db.exec('CREATE INDEX IF NOT EXISTS idx_todos_branch ON todos(branch_id)');
+      }
     },
   },
 ];
@@ -728,9 +909,23 @@ export function applyMigrations(db, list = MIGRATIONS) {
 // 切表判据见 `server/scripts/schema-split-readiness.mjs` 与 `content/04_web_design/data/DATA_MODEL.md §2.3.2`：
 //   只有「规模/409/子项查询」任一 + 影子连续 7 天 mismatch=0 + 保留期已裁，才可把权威源切到子表。
 //   本函数只重建影子表，不改 JSON 主表、不改任何读路径。
+/**
+ * 贡献条目的唯一归一（v12）：字符串历史值 → `{ desc }`；非对象值 → `{ desc: String(v) }`。
+ * 影子表重建与比对**必须共用本函数**——否则两端各自展开字符串会得到同样的错误形状
+ * （`{ '0':'更', '1':'新' }`），比对恒为「同错同绿」。
+ */
+export function normalizeContribution(contribution) {
+  if (typeof contribution === 'string') return { desc: contribution };
+  if (!contribution || typeof contribution !== 'object' || Array.isArray(contribution)) {
+    return { desc: String(contribution ?? '') };
+  }
+  return contribution;
+}
+
 export function rebuildShadowTables(db, { record = true } = {}) {
   const has = (name) => !!db.prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name = ?").get(name);
   if (!has('agenda_items') || !has('taskforce_contributions')) return { agenda: 0, contributions: 0 };
+  let normalizedStrings = 0;
   const run = db.transaction(() => {
     db.exec('DELETE FROM agenda_items');
     db.exec('DELETE FROM taskforce_contributions');
@@ -752,8 +947,10 @@ export function rebuildShadowTables(db, { record = true } = {}) {
       for (const row of db.prepare('SELECT data FROM taskforces').all()) {
         const taskforce = JSON.parse(row.data);
         for (const member of (Array.isArray(taskforce.members) ? taskforce.members : [])) {
-          for (const [index, contribution] of (Array.isArray(member.contributions) ? member.contributions : []).entries()) {
-            const id = `${taskforce.id}:${member.personId}:${index}:${contribution?.id || ''}`;
+          for (const [index, raw] of (Array.isArray(member.contributions) ? member.contributions : []).entries()) {
+            if (typeof raw === 'string') normalizedStrings += 1;
+            const contribution = normalizeContribution(raw);
+            const id = `${taskforce.id}:${member.personId}:${index}:${contribution.id || ''}`;
             insContribution.run(id, JSON.stringify({
               id, taskforceId: taskforce.id, workgroupId: taskforce.workgroupId || null,
               personId: member.personId, role: member.role || null, ...contribution,
@@ -766,6 +963,9 @@ export function rebuildShadowTables(db, { record = true } = {}) {
     return { agenda, contributions };
   });
   const rebuilt = run();
+  if (normalizedStrings) {
+    console.warn(`[db] 影子表重建：${normalizedStrings} 条字符串 contributions 已按 {desc} 规范化（应改种子为对象）`);
+  }
   // C4 证据：重建后立即记一条当日比对结果（每日一条、幂等覆盖；写失败不影响本次重建）
   if (record) recordShadowSnapshot(db);
   return rebuilt;
@@ -790,8 +990,9 @@ export function compareShadowTables(db) {
     for (const row of db.prepare('SELECT data FROM taskforces').all()) {
       const taskforce = JSON.parse(row.data);
       for (const member of (Array.isArray(taskforce.members) ? taskforce.members : [])) {
-        for (const [index, contribution] of (Array.isArray(member.contributions) ? member.contributions : []).entries()) {
-          const id = `${taskforce.id}:${member.personId}:${index}:${contribution?.id || ''}`;
+        for (const [index, raw] of (Array.isArray(member.contributions) ? member.contributions : []).entries()) {
+          const contribution = normalizeContribution(raw);
+          const id = `${taskforce.id}:${member.personId}:${index}:${contribution.id || ''}`;
           expectedContributions.set(id, JSON.stringify({
             id, taskforceId: taskforce.id, workgroupId: taskforce.workgroupId || null,
             personId: member.personId, role: member.role || null, ...contribution,
@@ -1168,4 +1369,29 @@ export function getShadowHistory(db, days = 7) {
 //   列序按「归档态在前、状态在后」：归档读口的主判据是 archived（选择性最高），status 供可选状态过滤。
 export function ensureActivityArchiveIndexes(db) {
   db.exec("CREATE INDEX IF NOT EXISTS idx_activities_archived_status ON activities(IFNULL(json_extract(data,'$.archived'),0), status)");
+}
+
+// ════════════════════════════════════════════════════════════════
+//  v12 配套：退役表（initDb 不再自建）
+// ════════════════════════════════════════════════════════════════
+// `issue_reveals` 是 D-824 之前的揭名留痕死表：v12 迁移 `DROP TABLE IF EXISTS` 后，
+// 若 `RESOURCE_TABLES` 仍保留其名，`initDb` 的 `CREATE TABLE IF NOT EXISTS` 会在**下次启动**
+// 把它重新建出来（迁移已应用 ⇒ 不会再 DROP）。故建表循环过滤本集合；`RESOURCE_TABLES`
+// 本身保持原样（README-server 有 `db.js:37-40` 等行号取证，删行会造成行号漂移）。
+export const RETIRED_RESOURCE_TABLES = new Set(['issue_reveals']);
+
+/**
+ * v12 回滚（手工 / 测试用）：删四组唯一索引，`user_version` 回 11。
+ * `todos.branch_id` **保持生成列不动**：v11 已加生成列感知（只写 data.branchId），
+ * 故 v11 可继续在其上运行，不需要 ALTER 也不需要搬数据。
+ * **不恢复 `issue_reveals`**（该表无数据、无读取入口；重放 v12 会再次删除）。
+ * 需要完整回到 v11 表结构时，以迁移前备份恢复（见 README-server「备份与恢复」）。
+ * @param {import('better-sqlite3').Database} db
+ */
+export function rollbackV12(db) {
+  for (const index of [
+    'ux_attendances_activity_person', 'ux_party_groups_branch_name',
+    'ux_attendance_rosters_activity', 'ux_workgroup_members_group_person',
+  ]) db.exec(`DROP INDEX IF EXISTS ${index}`);
+  db.pragma('user_version = 11');
 }

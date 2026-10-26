@@ -18,9 +18,12 @@ before(async () => {
 
 after(() => server?.close());
 
+/** v12：`issue_reveals` 已 DROP；留痕表不存在即等价于「零留痕」。 */
+const hasRevealTable = () => !!app.locals.db.prepare("SELECT 1 FROM sqlite_master WHERE type='table' AND name='issue_reveals'").get();
+
 beforeEach(() => {
   app.locals.db.prepare("DELETE FROM issues WHERE id IN ('issue-a', 'issue-b')").run();
-  app.locals.db.prepare('DELETE FROM issue_reveals').run();
+  if (hasRevealTable()) app.locals.db.prepare('DELETE FROM issue_reveals').run();
 });
 
 async function login(personId) {
@@ -101,5 +104,5 @@ test('issue disposition is branch-scoped and Party Committee cannot read or reve
   const partyToken = await login('9000000001');
   const reveal = await fetch(`${base}/api/v1/issues/reveal`, { headers: auth(partyToken) });
   assert.equal(reveal.status, 403, '党委不能查看或揭名匿名反馈');
-  assert.deepEqual(app.locals.db.prepare('SELECT id FROM issue_reveals').all(), [], '被拒的党委访问不留揭名审计记录');
+  assert.equal(hasRevealTable(), false, 'v12：揭名留痕死表已删除（被拒访问更不会产生留痕）');
 });

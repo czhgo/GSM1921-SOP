@@ -15,7 +15,7 @@ related_files: [OPERATIONS_GUIDE.md, DOC_MAP.md, content/04_web_design/design-sy
 
 ## 登记规则
 
-- 判例编号格式 `CASE-<域>-<三位序号>`，域取 `DESIGN` / `INST` / `AI`，一经登记不改号。
+- 判例编号格式 `CASE-<域>-<三位序号>`，域取 `DESIGN` / `DATA` / `INST` / `AI`，一经登记不改号。
 - 新增判例：先在本表取下一个空号 → 写入所属域的 `CASES.md` → 回填本表 → 在对应规范条目写「判例：CASE-…」。
 - 判例与规范**双向指针缺一不可**；只写判例不链规范，或只删规范不链判例，均视为迁移未完成（`OPERATIONS_GUIDE.md §32.3`）。
 - 本表是索引：只记编号与去向，不复述判例正文，也不承载规范条文。
@@ -48,6 +48,8 @@ related_files: [OPERATIONS_GUIDE.md, DOC_MAP.md, content/04_web_design/design-sy
 | CASE-DESIGN-022 | 关键宽表定列宽模板，末列不吃余量 | design | [CASES.md](../04_web_design/design-system/CASES.md) | SD-44 | 批次 512 |
 | CASE-DESIGN-023 | 详情入口按 direct/locate/none 分流，归档只读 | design | [CASES.md](../04_web_design/design-system/CASES.md) | SD-45 | 批次 512 |
 | CASE-DESIGN-024 | 主题色层与功能色层并列，功能色只小面积 | design | [CASES.md](../04_web_design/design-system/CASES.md) | SD-46 | 批次 512 |
+| CASE-DESIGN-025 | 分组胶囊要主题 soft 底 ＋ 3px ＋ 600，可见不等于恢复 | design | [CASES.md](../04_web_design/design-system/CASES.md) | SD-47（关联 SD-3 / SD-36 / SD-42） | 批次 513 |
+| CASE-DATA-001 | api 形态不得回退 mock；本地 resolve 不算写成功 | data | [CASES.md](../04_web_design/design-system/CASES.md) | SD-48 | 批次 513 |
 | CASE-INST-001 | 匿名反馈改裁为支部内闭环、无系统揭名入口 | institution | [CASES.md](../02_institution/CASES.md) | `SYSTEM_ROLE_PERMISSION §9j`（SR 待编号） | 2026-10-16（D-824） |
 | CASE-INST-002 | 意见处置与品牌认定归支委会，支书主持 | institution | [CASES.md](../02_institution/CASES.md) | `SYSTEM_ROLE_PERMISSION §9j`（SR 待编号） | 2026-09-18 |
 | CASE-INST-003 | 过程时限统一属可配置制度参数 | institution | [CASES.md](../02_institution/CASES.md) | `SYSTEM_ROLE_PERMISSION §9l`（SR 待编号） | 2026-09-17 |
@@ -64,6 +66,7 @@ related_files: [OPERATIONS_GUIDE.md, DOC_MAP.md, content/04_web_design/design-sy
 
 | 域 | 判例文件 | 现有条数 |
 |---|---|---|
-| design（网站设计） | [04_web_design/design-system/CASES.md](../04_web_design/design-system/CASES.md) | 24 |
+| design（网站设计） | [04_web_design/design-system/CASES.md](../04_web_design/design-system/CASES.md) | 25 |
+| data（数据真相） | [04_web_design/design-system/CASES.md](../04_web_design/design-system/CASES.md) | 1 |
 | institution（制度） | [02_institution/CASES.md](../02_institution/CASES.md) | 5 |
 | ai-coding（AI 协作） | [05_ai_coding/CASES.md](../05_ai_coding/CASES.md) | 6 |

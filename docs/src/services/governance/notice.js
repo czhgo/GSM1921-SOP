@@ -5,24 +5,24 @@
 //  独立于 mockDB 内存结构，通过 mockDB.notices 统一持久化
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../../core/domain/domain.js?v=20261025b';
-import { generateId } from '../../core/base/id.js?v=20261025b';
-import { persist, getDataSource, getApiBaseUrl, getAuthToken, adoptCollectionFromServer } from '../../data/data-adapter.js?v=20261025b';
-import { buildSystemNotice } from '../../core/domain/system-notice-templates.js?v=20261025b';
-import { bumpToken } from '../../core/base/version-token.js?v=20261025b'; // P0 域缓存失效（spec §二.3）
-import { MOCK_NOTICES } from '../../data/mock/index.js?v=20261025b';
-import { isInitStateActive } from '../core/init-reset.js?v=20261025b'; // C2 修复（2026-09-08）：init 态跳过演示种子兜底
-import { todayLocal } from '../../core/base/utils.js?v=20261025b';
-import { AuthStore } from '../core/auth.js?v=20261025b';
-import {  getPersonById, getPersonName } from '../member/person.js?v=20261025b';
-import { NoticeTodoDeriver, TodoStore, TodoSourceType, TodoStatus } from './todo.js?v=20261025b';
+import { mockDB } from '../../core/domain/domain.js?v=20261026a';
+import { generateId } from '../../core/base/id.js?v=20261026a';
+import { persist, getDataSource, getApiBaseUrl, getAuthToken, adoptCollectionFromServer } from '../../data/data-adapter.js?v=20261026a';
+import { buildSystemNotice } from '../../core/domain/system-notice-templates.js?v=20261026a';
+import { bumpToken } from '../../core/base/version-token.js?v=20261026a'; // P0 域缓存失效（spec §二.3）
+import { MOCK_NOTICES } from '../../data/mock/index.js?v=20261026a';
+import { isInitStateActive } from '../core/init-reset.js?v=20261026a'; // C2 修复（2026-09-08）：init 态跳过演示种子兜底
+import { todayLocal } from '../../core/base/utils.js?v=20261026a';
+import { AuthStore } from '../core/auth.js?v=20261026a';
+import {  getPersonById, getPersonName } from '../member/person.js?v=20261026a';
+import { NoticeTodoDeriver, TodoStore, TodoSourceType, TodoStatus } from './todo.js?v=20261026a';
 // 组织者身份读取单一源（2026-09-19 批次 91 · SOP-B-17）——发布权随「被指定为该场组织者」动态获得
-import {  getOrganizedActivities } from '../activity/activity.js?v=20261025b';
+import {  getOrganizedActivities } from '../activity/activity.js?v=20261026a';
 import {
   NOTICE_PUBLISH_ROLES, NOTICE_MANAGE_ROLES, BRANCH_COMMISSION_ROLES,
   NOTICE_AUDIENCE_SENTINELS, ROLE_LABELS,
   DEFAULT_BRANCH_ID,
-} from '../../core/domain/constants.js?v=20261025b';
+} from '../../core/domain/constants.js?v=20261026a';
 
 // ════════════════════════════════════════════════════════════════
 //  消息对象模型（Task 3 · 2026-10-25）
@@ -361,9 +361,11 @@ export const NoticeStore = {
         // 否则下次换人登录会把旧全局 read=true 再回填给新用户。
         if (mockDB._loaded) _saveNotices(mockDB.notices);
       }
-    } else if (isInitStateActive()) {
+    } else if (getDataSource() === 'api' || isInitStateActive()) {
       // C2 修复（2026-09-08）：init 态下「无持久化通知 = 合法空支部态」——不兜底演示种子
       //（否则 MOCK_NOTICES 会经 _saveNotices 重新写回 mockDB/持久层，通知在 init 后回填 demo）。
+      // Task 3（2026-10-26）：api 形态同样禁止空表回退（生产空库必须显示空态，不出现种子 id），
+      // 且此分支**不落库**（没有 persist / _saveNotices）。
       this._notices = [];
     } else {
       this._notices = [...MOCK_NOTICES];

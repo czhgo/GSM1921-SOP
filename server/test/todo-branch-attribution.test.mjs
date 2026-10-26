@@ -58,8 +58,10 @@ test('T1 全新库 v11：todos.branch_id 与索引存在', () => {
   const db = initDb(path.join(dir, 'fresh.db'));
   try {
     assert.equal(Number(db.pragma('user_version', { simple: true })), SCHEMA_VERSION);
-    const columns = db.prepare('PRAGMA table_info(todos)').all().map((c) => c.name);
-    assert.ok(columns.includes('branch_id'), 'todos 缺 branch_id');
+    // v12：branch_id 是生成列，`table_info` 不列生成列 ⇒ 用 table_xinfo。
+    const column = db.prepare('PRAGMA table_xinfo(todos)').all().find((c) => c.name === 'branch_id');
+    assert.ok(column, 'todos 缺 branch_id');
+    assert.notEqual(column.hidden, 0, 'v12 起 branch_id 必须是生成列（只读）');
     const indexes = db.prepare("SELECT name FROM sqlite_master WHERE type='index' AND tbl_name='todos'").all().map((r) => r.name);
     assert.ok(indexes.includes('idx_todos_branch'), '缺 idx_todos_branch');
   } finally { db.close(); fs.rmSync(dir, { recursive: true, force: true }); }
@@ -67,9 +69,9 @@ test('T1 全新库 v11：todos.branch_id 与索引存在', () => {
 
 test('T2 存量回填：父行/所属人可解析则写回，解析不出保持 NULL', () => {
   {
-    // 回到 v10 再灌「升级前」行（列已由 v11 建好，模拟升级前无值）
+    // 回到 v10 再灌「升级前」行（v12 的生成列已是只读，不能 UPDATE branch_id；清空 data.branchId 即等价）
     appDb.pragma('user_version = 10');
-    appDb.prepare('UPDATE todos SET branch_id = NULL').run();
+    appDb.prepare('DELETE FROM todos').run();
     const insert = (table, row) => appDb.prepare(`INSERT OR REPLACE INTO ${table} (id, data) VALUES (?, ?)`)
       .run(row.id, JSON.stringify(row));
     insert('activities', { id: 'act-v11-bf', title: '回填活动', date: '2026-10-23', branchId: 'br-b1' });

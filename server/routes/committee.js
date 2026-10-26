@@ -5,7 +5,7 @@
 //   旧活动（无 voteConfig）回退 deliberative + 支委白名单（现状行为零变化）。
 import { Router } from 'express';
 import { randomUUID } from 'node:crypto';
-import { requireAuth, requireRole } from './auth.js';
+import { requireAuth, requireRole, requireCommissioner } from './auth.js';
 // P2c（2026-09-03）：角色/支委名单单一源 = docs/src/core/domain/constants.js（勿手写）
 // 计票方式（ballotMode）同源（2026-09-12 支书裁定「正式表决无记名 + 匿名模式可选」）：
 //   强制/默认规则 = ballotModeOfActivity/isAnonymousForced，勿在本文件另写副本。
@@ -177,6 +177,28 @@ export function createCommitteeRouter(db) {
     };
     writeRow(db, 'agenda_votes', row);
     res.status(201).json(row);
+  });
+
+  // 转移标注（Task 3 · 2026-10-26）：成员移出时给其已表态记录标注 `transferredOutAt`。
+  // 为什么单独开行级语义端点：`agenda_votes` 故意不进快照 payload（防陈旧缓存整表覆盖），
+  //   而全量快照又没有行级 patch 能力 ⇒ 若不补这个口，移出标注只会活在本机浏览器（假保存）。
+  // 白名单只有一个字段（`transferredOutAt`），不接受新增/删除/改票；写后清缓存重登仍可读。
+  router.post('/agenda-votes/:id/annotate', requireCommissioner(db), (req, res) => {
+    const existing = getRow(db, 'agenda_votes', req.params.id);
+    if (!existing) return res.status(404).json({ error: '表态记录不存在' });
+    if (actorBranchId(req.actor) && actorBranchId(req.actor) !== (existing.branchId || DEFAULT_BRANCH_ID)) {
+      return res.status(403).json({ error: '无权限：不能标注其他支部的表态记录' });
+    }
+    const body = (req.body && typeof req.body === 'object' && !Array.isArray(req.body)) ? req.body : {};
+    const outside = Object.keys(body).filter((k) => k !== 'transferredOutAt');
+    if (outside.length) return res.status(400).json({ error: `字段 ${outside[0]} 不在白名单（本端点仅可写 transferredOutAt）` });
+    const updated = {
+      ...existing,
+      transferredOutAt: body.transferredOutAt ? String(body.transferredOutAt) : null,
+      annotatedAt: new Date().toISOString(),
+    };
+    writeRow(db, 'agenda_votes', updated);
+    res.json(updated);
   });
 
   // 支书截止（不可逆）：置 votesLocked=true / voteDeadline；副书同权（2026-09-11 支书裁定），

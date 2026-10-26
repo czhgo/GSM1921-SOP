@@ -227,3 +227,11 @@ GSM1921-SOP/
 - **未决**：① SD-41（容器语义）暂无独立判例，由 V1 机检承担；② `content/05_ai_coding/CASES.md` 在 `TIMESTAMPS` 无登记行（沿用「只登记不补行」），F2 仍按 frontmatter 核；③ PRODUCT_IA 路由矩阵为派生附录，`OBJECT_ROUTE_ENTRIES` 改动须同批改表；④ 收尾已完成：daily 1561、全量三通道全绿（node 1563 / e2e-A 57+1skip / e2e-B 179）、版本戳 20261025b。
 - **已迁 content 的条目**：`DESIGN_SYSTEM` SD-41…SD-46 ＋ §2.12 / §2.13 指针；`design-system/CASES.md` CASE-DESIGN-020…024；`CASES_INDEX` design 19→24、ai-coding 5→6；`PRODUCT_IA` 详情路由矩阵（11 入口）；`05_ai_coding/CASES.md` CASE-AI-006；`GUARD_INVENTORY` §九（70 件 / 462 条）。
 - **下批入口**：① 读本段 ＋ `.ctx/logs/2026-10-EXECUTION_LOG.md` 批次 512；② 若要给 SD-41 补判例，优先从「同名 class 兼作可点摘要与只读摘要」的真实样本取证；③ 真机复核胶囊在 390 的观感与 hover 浮窗 p95。
+
+## 批次 513 小结（2026-10-26）
+
+- **做了什么**：分组胶囊恢复 8–9 月语义（主题 soft 底 / soft-text、3px 直角、600 字重、0.5px 字距、≥24px，亮 6.88:1 / 暗 9.18:1、描边 2.43:1）；缓存边界四类键 ＋ 业务读缓存 `_versions`/`savedAt` ＋ 登录服务端优先；api 形态六个读口去 mock 回退、flush 四类分流、失败进 outbox 显示「未同步」；schema v12（四组唯一索引 / `todos.branch_id` 生成列 / `contributions` 对象 / 考察成员校验 / `issue_reveals` 删除 / `committee_broadcasts` 只读）；四个月窗口 38 场（8/9/10/11 月 18/9/8/3）；测试隔离与正式轨道（`import-branch` / `restore` / `READ_ONLY` / 四开关）；新增 4 个守卫（`seed-contract` / `test-isolation` / `write-truth` / `demo-window`）。
+- **结论**：本批 4 类反馈可归为一条总病——**「声明存在 ≠ 实际生效」**：胶囊「可见 ≠ 恢复」、缓存「本地显示 ≠ 服务端权威」、写「`persist()` resolve ≠ 写成功」、窗口「按日期 DELETE ≠ 重排＋重建」；判据必须把「可感知 / 可证 / 可重建 / 分层」拆开，并各自配常驻守卫。
+- **未决**：① 收尾已完成：daily 1608、全量三通道全绿（node 1608 / e2e-A 92 / e2e-B 144+1skip）、版本戳 20261026a、提交待做；② SD-48 是边界条款，字段表 / 键清单 / 窗口 / 测试分层各自以权威源为准；③ `DATA_SEED_CONTRACT` 为本批新增的登记行，本表已补行（不同于「只登记不补行」的既有缺口）；④ 只读演练 / 名册导入已由定向与真机覆盖，仍需在真实部署环境复跑。
+- **已迁 content 的条目**：`DESIGN_SYSTEM` SD-47 / SD-48 ＋ §12.3 / SD-3 / SD-36 指针；`design-system/CASES.md` CASE-DESIGN-025、CASE-DATA-001 与 sample-diff 五列；`CASES_INDEX` design 25 / data 1；`DATA_MODEL` v12 摘要与种子契约指针；`PRODUCT_IA` 数据形态与缓存边界；`GUARD_INVENTORY` §十（74 件 / 501 条）。
+- **下批入口**：① 读本段 ＋ `.ctx/logs/2026-10-EXECUTION_LOG.md` 批次 513；② 真机复核胶囊在 390 的观感、hover 浮窗 p95、只读演练与名册导入；③ 若新增业务集合，先登记 `cache-registry` 四类与 `DATA_SEED_CONTRACT` 再改代码。

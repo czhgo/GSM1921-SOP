@@ -11,10 +11,10 @@
 //  依赖方向正确：组件 → 服务（不是服务 → 组件）。守卫：issue-branch.test.mjs（结构层）。
 // ════════════════════════════════════════════════════════════════
 
-import { renderFilteredList } from '../ui/list-filter.js?v=20261025b';
-import { renderTabHeader } from '../shell/page-frame.js?v=20261025b';
-import { escHtml, showToast } from '../../core/base/utils.js?v=20261025b';
-import { IssueStore, IssueNotify, deriveIssueDisplayState, REPORT_CATEGORIES, displayNameOf as _displayName } from '../../services/governance/issues.js?v=20261025b';
+import { renderFilteredList } from '../ui/list-filter.js?v=20261026a';
+import { renderTabHeader } from '../shell/page-frame.js?v=20261026a';
+import { escHtml, showToast } from '../../core/base/utils.js?v=20261026a';
+import { IssueStore, IssueNotify, deriveIssueDisplayState, REPORT_CATEGORIES, displayNameOf as _displayName } from '../../services/governance/issues.js?v=20261026a';
 
 // ════════════════════════════════════════════════════════════════
 //  「我的处置」Tab 渲染工具（各角色工作台复用）

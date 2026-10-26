@@ -238,7 +238,7 @@ related_files: [DATA_MODEL.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 | `gsm1921-milestone-cache` | 批次里程碑读缓存 | 表 `milestones`（内容单一源 `docs/data/milestones.json`） |
 | `workflowos_taskforces_v1` / `workflowos_notices_v1` | 专班 / 通知旧单域键（已被整库键取代） | 服务端资源表 `taskforces` / `notices` |
 
-**B 档：本机临时白名单（10 个键）——「允许只在本机」及理由**
+**B 档：本机临时白名单（11 个键）——「允许只在本机」及理由**
 
 | 键 | 语义 | 为什么**不上服务端** |
 |---|---|---|
@@ -252,6 +252,7 @@ related_files: [DATA_MODEL.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 | `gsm1921-dev-stage-overrides` | **遗留键（2026-09-28 已服务端化）**：原「进入当前阶段日期」本机覆盖档案 | 该事实已改挂成员档案字段 **`developStageSince`**（服务端权威、随 `users` 表落库、跨设备可读）；写口＝支书确认生效（`member-confirmation.js::_applyApproved` 与 `developStage` 同一笔），读口＝`loadStageEntryDates()`。本键只剩「init 档移除清单」引用（清旧机残留），**不得再出现业务读写**（`member-confirmation.js` / `init-reset.js`） |
 | `gsm1921-issue-submitter-token` | **设计如此·本机令牌**（随机、不可反查人的防刷令牌） | 按设计只在本设备；落服务端反成身份线索（`issues.js`） |
 | `gsm1921-init-state` | 本机·初始化态闸门（「正在初始化」的内存语义落盘位） | 非业务数据，纯本标签页运行态（`init-reset.js`） |
+| `gsm1921-pending-writes-outbox` | 本机临时·**失败待同步队列**（集合名 / 错误码 / 时间） | 只用于「未同步」可见提示与重试/放弃；业务真相始终在服务端，不把队列当数据源（`core/session/pending-writes.js`，Task 3 2026-10-26） |
 
 **C 档：UI 偏好与会话（19 个键）**
 

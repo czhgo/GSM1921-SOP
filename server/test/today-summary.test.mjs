@@ -17,11 +17,12 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261025b';
-import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261025b';
-import { setDataSource, registerMockAdapter } from '../../docs/src/data/data-adapter.js?v=20261025b';
+import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261026a';
+import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261026a';
+import { setDataSource, registerMockAdapter } from '../../docs/src/data/data-adapter.js?v=20261026a';
+import { ACTIVITIES } from '../../docs/src/data/mock/activities.js?v=20261026a';
 // namespace 导入：红阶段（新 API 未实现）以 per-test 失败呈现而非整文件链接失败
-import * as TS from '../../docs/src/services/governance/today-summary.js?v=20261025b';
+import * as TS from '../../docs/src/services/governance/today-summary.js?v=20261026a';
 
 // ── localStorage 内存桩（含 key/length）──
 const _store = new Map();
@@ -58,7 +59,12 @@ function beginMockCase() {
 // ── 固定"现在"（本地构造 → 无论运行环境时区，本地 dateKey 均稳定）──
 const D0910 = new Date(2026, 8, 10, 9, 30, 0);  // 2026-09-10（基准：act-31 支部党员大会当日）
 const D0911 = new Date(2026, 8, 11, 8, 0, 0);   // 2026-09-11（明天）
-const D0701 = new Date(2026, 6, 1, 9, 0, 0);    // 2026-07-01（act-1 党小组会当日）
+// act-1 日期从种子数据推导（不写死月份：换演示窗口时自动跟随）
+function demoDayOf(activityId, hour = 9, minute = 0) {
+  const [y, m, d] = ACTIVITIES.find((a) => a.id === activityId).date.split('-').map(Number);
+  return new Date(y, m - 1, d, hour, minute, 0);
+}
+const D_ACT1 = demoDayOf('act-1');               // act-1 党小组会当日
 const D0906 = new Date(2026, 8, 6, 9, 0, 0);    // 2026-09-06（种子无活动日 → 空态）
 
 /** 追加一条测试用活动（字段仅取 today-summary 消费面：id/date/type/title/assignments） */
@@ -101,8 +107,8 @@ test('① 会-应到：在册非滞留党员 hasMeeting 含当日支部党员大
   }], '2400012345（第一党小组·正式党员·非滞留）应到当日支部党员大会且仅此一场');
 
   // 党小组会口径：本人所在小组的在册党员应到（groupId = 本人 partyGroup，plan R6-3 Step3）
-  const g = TS.buildTodaySummary({ personId: '2400012345', role: 'leader', now: D0701 });
-  assert.ok(g.hasMeeting.some(x => x.activityId === 'act-1'), '2400012345（第一党小组在册党员）应到 07-01 党小组会 act-1');
+  const g = TS.buildTodaySummary({ personId: '2400012345', role: 'leader', now: D_ACT1 });
+  assert.ok(g.hasMeeting.some(x => x.activityId === 'act-1'), '2400012345（第一党小组在册党员）应到 act-1 党小组会当日');
 });
 
 test('② 报名参与型：非会类型活动经 signups(approved) 计入；pending 与未报名者不自动列入', () => {

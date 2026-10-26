@@ -196,3 +196,29 @@ related_files: [docs/src/core/domain/function-catalog.js, docs/src/capabilities/
 | 停用项动作 | `.btn-outline` | 36px · 13px | 与「展开分工调整工具」同档 |
 | 空态 | `emptyStateHtml` | 一句说明 ＋ 一个 `.btn-outline` | 不并列多个动作 |
 | 说明 | 主体与工具之后 | 12px · 400 | 只留「分工由本支部自行调整，改派走支委会议题」 |
+
+## 数据形态与缓存边界（检查用，不是规范）
+
+> **定位**：人工维护的检查附录，回答「同一界面在不同数据形态下应看到什么、写到哪里」。规范判据见 [DESIGN_SYSTEM.md §12.15](design-system/DESIGN_SYSTEM.md)（SD-48），判例见 [CASES.md](design-system/CASES.md)（CASE-DATA-001）；逐表种子口径见 [DATA_SEED_CONTRACT.md](data/DATA_SEED_CONTRACT.md)。
+> **单一源**：形态判定＝`docs/src/services/core/runtime.js::getDataSource`；缓存键四类＝`docs/src/data/cache-registry.js`；演示窗口＝`docs/src/data/mock/demo-window.js::DEMO_WINDOW`；部署开关＝`DEPLOYMENT_GUIDE.md`。
+
+### 形态 × 界面 × 写入
+
+| 形态 | 判定 | 界面应显示 | 读 | 写 |
+|---|---|---|---|---|
+| **mock**（静态托管 / 演示） | 无 server 或显式 mock | 演示种子（窗口 2026-08-01–2026-11-30），四个月均有活动 | 本地种子 ＋ 浏览器读缓存 | 写本机；不得写服务器 |
+| **api**（常态） | `getDataSource()==='api'` | **服务端有什么显示什么**；空库显示空态，不得用 mock 填空 | 服务端快照；本地读缓存只是镜像（须带 `_versions` ＋ `savedAt`） | 服务端行 / 快照请求 / 语义端点 2xx 三选一；失败进 outbox 显示「未同步」 |
+| **正式轨道** | `APP_ENV=production` | 真实支部数据；默认 `SEED_FALLBACK=false`；库内含演示种子时拒绝启动（`ALLOW_DEMO_DATA=1` 才放行） | 服务端 | `import-branch`（dry-run → 事务）导入名册；`restore` 停服恢复；`restore.mjs` 备份先行 |
+| **只读演练** | 生产库副本 ＋ `READ_ONLY=1` | 与正式一致，但所有写口关闭并给只读提示 | 服务端只读 | 一律 403；页面可完整浏览 |
+
+### 缓存四类（长期只留第一类）
+
+| 类别 | 允许内容 | 代表键 | 判据 |
+|---|---|---|---|
+| visual（纯展示偏好） | 主题 / 字号 / 强调色 / 页签顺序 / 提醒开关 | `workflowos_theme`、`gsm1921-pref-*`、`workflowos_tab_*` | 长期保留；不得承载业务数据 |
+| auth（会话鉴权） | 登录快照 / tabId / 会话快照 / API token | `gsm1921-login-user`、`gsm1921-api-token`、`gsm1921-session-snap` | token 只进 `sessionStorage`；与业务集合不相交 |
+| read-cache（业务读缓存） | 服务端数据的本机镜像 | `workflowos_branch_db_v1`、`gsm1921-issue-cache-v3` | 必须带 `_versions` ＋ `savedAt`，缺版本 / 过期 / 版本不一致不得当权威 |
+| temp（草稿 / 一次性） | 草稿 / 预览 / 迁移标记 / outbox | `gsm1921-pending-writes-outbox`、`gsm1921-*-draft` | 只在本机；不承担业务成功，恢复后可重试或放弃 |
+
+> **读法**：清空 localStorage 后重新登录，只有 visual 回默认；业务数据必须从服务端恢复。若某业务标注在清缓存后消失，先查它是否误落在 read-cache 或 temp。
+

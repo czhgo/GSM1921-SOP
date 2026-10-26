@@ -3,24 +3,26 @@
 //  attendance.js — 考勤记录 CRUD 服务
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB, AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../core/domain/domain.js?v=20261025b';
-import { POLICY_DEFAULTS, isAttendanceOverdue } from '../../core/domain/policy-defaults.js?v=20261025b';
-import { persist, getDataSource, getAdapter } from '../../data/data-adapter.js?v=20261025b';
-import { generateId } from '../../core/base/id.js?v=20261025b';
-import { bumpToken } from '../../core/base/version-token.js?v=20261025b'; // P0 域缓存失效（spec §二.3）
-import { ATTENDANCE_RECORDS } from '../../data/mock/index.js?v=20261025b';
-import { isInitStateActive } from '../core/init-reset.js?v=20261025b'; // C2 修复（2026-09-08）：init 态空态不回退演示种子
-import { PersonStore, getPersonById, getPersonName } from '../member/person.js?v=20261025b';
-import { getRosterStats } from '../member/roster.js?v=20261025b';
-import { getMeetingRosterIds } from '../member/roster.js?v=20261025b';
-import { loadActivities, isActivityOrganizer } from './activity.js?v=20261025b';
-import { SignupStore } from './signup.js?v=20261025b';
-import { deriveExpectedRosterIds } from './attendance-roster.js?v=20261025b';
-import { trackWrite } from '../../core/session/pending-writes.js?v=20261025b';
-import { isPartyGroupLeaderRole } from '../../core/domain/constants.js?v=20261025b';
+import { mockDB, AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../core/domain/domain.js?v=20261026a';
+import { POLICY_DEFAULTS, isAttendanceOverdue } from '../../core/domain/policy-defaults.js?v=20261026a';
+import { persist, getDataSource, getAdapter } from '../../data/data-adapter.js?v=20261026a';
+import { generateId } from '../../core/base/id.js?v=20261026a';
+import { bumpToken } from '../../core/base/version-token.js?v=20261026a'; // P0 域缓存失效（spec §二.3）
+import { ATTENDANCE_RECORDS } from '../../data/mock/index.js?v=20261026a';
+import { isInitStateActive } from '../core/init-reset.js?v=20261026a'; // C2 修复（2026-09-08）：init 态空态不回退演示种子
+import { PersonStore, getPersonById, getPersonName } from '../member/person.js?v=20261026a';
+import { getRosterStats } from '../member/roster.js?v=20261026a';
+import { getMeetingRosterIds } from '../member/roster.js?v=20261026a';
+import { loadActivities, isActivityOrganizer } from './activity.js?v=20261026a';
+import { SignupStore } from './signup.js?v=20261026a';
+import { deriveExpectedRosterIds } from './attendance-roster.js?v=20261026a';
+import { trackWrite } from '../../core/session/pending-writes.js?v=20261026a';
+import { isPartyGroupLeaderRole } from '../../core/domain/constants.js?v=20261026a';
 
 export function loadAttendanceRecords() {
   if (mockDB.attendances.length > 0) return [...mockDB.attendances];
+  // Task 3（2026-10-26）：api 形态禁止 mock 回退——空库显示空态，不返回演示种子。
+  if (getDataSource() === 'api') return [];
   // C2 修复（2026-09-08）：init 态下 mockDB 空 = 合法空支部态，不回退演示种子（同 loadActivities）。
   return isInitStateActive() ? [] : [...ATTENDANCE_RECORDS];
 }

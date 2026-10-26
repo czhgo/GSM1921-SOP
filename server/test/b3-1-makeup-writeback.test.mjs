@@ -21,20 +21,32 @@
 //    ④ 读回断言走 `GET /api/v1/attendances` / `GET /api/v1/makeupTasks`（**不看前端内存**）；
 //    ⑤ 收尾 `DELETE` 自清（不留测试数据）。
 //
-//  运行：先启动 server（缺省 :3000），再 `node --test server/test/b3-1-makeup-writeback.test.mjs`
+//  【2026-10-26 Task 6：测试残留隔离】原版连外部 `:3000` 真库（`server/data.db`）写 activities /
+//  attendances / makeupTasks，只在用例末尾自清 ⇒ 中途失败/中断即留残留（`act-b31-*` 等）。
+//  现改为**自托管临时库**：`mkdtemp` ＋ 把运行库用 SQLite 在线备份 API 复制成临时副本
+//  ＋ `createApp({dbPath: 临时库})` ＋ `listen(0)`；判据链（①–⑤）一字未改，只换数据面；
+//  服务关闭与临时目录删除放在 `t.after()`（失败也执行），运行库只作**只读**备份源。
+//
+//  运行：`node --test server/test/b3-1-makeup-writeback.test.mjs`（**不需要**外部 :3000）
 // ════════════════════════════════════════════════════════════════
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { existsSync, mkdtempSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import Database from 'better-sqlite3';
 import { chromium } from 'playwright';
 // R10-D15：考勤超期不再读存储快照，一律按 `policy-defaults::isAttendanceOverdue` 现算。
-import { isAttendanceOverdue } from '../../docs/src/core/domain/policy-defaults.js?v=20261025b';
+import { isAttendanceOverdue } from '../../docs/src/core/domain/policy-defaults.js?v=20261026a';
+import { createApp } from '../app.js';
 
-const BASE = process.env.BASE || 'http://localhost:3000';
+let BASE = '';
 const PW = process.env.LOGIN_PASSWORD || '123456';
 const DISC_PERSON = '2400012354';               // 纪检委员（`docs/src/data/mock/people.js`）
 const SEC_PERSON = '2300010001';                // 支书（支部级会议唯一合法创建人之一）
 const DISC_STUDENT = '2400012354';       // 上者的学号（登录页表单用学号）
 const MENTEE = '2400012349';                     // 被补课人
+const RUNTIME_DB = join(import.meta.dirname, '..', 'data.db');
 const RID = Math.random().toString(36).slice(2, 8);
 const ATT_ID = `att-b31-${RID}`;
 const MK_ID = `mk-b31-${RID}`;
@@ -54,11 +66,37 @@ const api = async (method, path, { token, body } = {}) => {
   return { status: r.status, json, text };
 };
 
+/** 轮询直到条件成立（返回 boolean；用于等服务端落库，不放宽断言） */
+const waitFor = async (fn, { timeout = 15000, interval = 250 } = {}) => {
+  const start = Date.now();
+  while (Date.now() - start < timeout) {
+    if (await fn()) return true;
+    await new Promise((resolve) => setTimeout(resolve, interval));
+  }
+  return false;
+};
+
 test('B3-1（API 级）补课完成 → 服务端考勤回写 made_up ＋ overdue 清除', async (t) => {
+  // ── ⓪ 数据面：临时库自托管（不碰 server/data.db；失败也清理）──
+  assert.ok(existsSync(RUNTIME_DB), `缺少运行库 ${RUNTIME_DB}：本用例需要已播种的演示库作**只读备份源**（不写它）`);
+  const tempDir = mkdtempSync(join(tmpdir(), 'gsm-b31-'));
+  const dbPath = join(tempDir, 'data.db');
+  // SQLite 在线备份 API：含 WAL 内容的一致性副本（等价 server/scripts/backup.mjs 的取数方式）
+  const source = new Database(RUNTIME_DB, { readonly: true });
+  try { await source.backup(dbPath); } finally { source.close(); }
+  const app = createApp({ dbPath });
+  const server = app.listen(0);
+  BASE = `http://127.0.0.1:${server.address().port}`;
+  t.after(async () => {
+    await new Promise((resolve) => server.close(resolve));
+    try { app.locals.db.close(); } catch { /* 已关闭 */ }
+    rmSync(tempDir, { recursive: true, force: true });
+  });
+
   // ── ① 前置：API 登录（失败 ⇒ 明确报「server 未起 / 口令不符」而不是含糊失败）──
   const login = await api('POST', '/api/v1/auth/login', { body: { personId: DISC_PERSON, password: PW } });
   assert.equal(login.status, 200, `纪检登录失败（HTTP ${login.status} ${login.text.slice(0, 120)}）`
-    + '——请确认 server 已在 ' + BASE + ' 运行，且口令与 LOGIN_PASSWORD 一致');
+    + '——请确认测试自托管服务已在 ' + BASE + ' 运行，且口令与 LOGIN_PASSWORD 一致');
   const token = login.json.token;
   assert.ok(token, '登录未返回 token');
 
@@ -112,17 +150,23 @@ test('B3-1（API 级）补课完成 → 服务端考勤回写 made_up ＋ overdu
     await p.waitForFunction(() => !!sessionStorage.getItem('gsm1921-api-token'), null, { timeout: 15000 });
 
     await p.goto(`${BASE}/workspace/disc.html`, { waitUntil: 'domcontentloaded' });
-    await p.waitForTimeout(2500);
-    await p.click('.disc-tab-btn[data-disc-tab="attendance"]').catch(() => {});
-    await p.waitForTimeout(1200);
-    await p.click('.att-seg-btn[data-seg="makeup"]').catch(() => {});
-    await p.waitForTimeout(1200);
+    // 等真实渲染完成再交互（固定 sleep 在自托管空库下会偶发「点了但还没渲染 / 还没落库」）
+    await p.waitForSelector('.disc-tab-btn[data-disc-tab="attendance"]', { timeout: 15000 });
+    await p.click('.disc-tab-btn[data-disc-tab="attendance"]');
+    await p.waitForSelector('.att-seg-btn[data-seg="makeup"]', { timeout: 15000 });
+    await p.click('.att-seg-btn[data-seg="makeup"]');
+    await p.waitForSelector(`.btn-disc-confirm-makeup[data-task-id="${MK_ID}"]`, { timeout: 15000 });
 
     const visible = await p.evaluate((id) => !!document.querySelector(`.btn-disc-confirm-makeup[data-task-id="${id}"]`), MK_ID);
     assert.ok(visible, '注入的补课任务应出现在待补课列表（服务端造的数据 ⇒ 列表读得到）');
 
     await p.click(`.btn-disc-confirm-makeup[data-task-id="${MK_ID}"]`);
-    await p.waitForTimeout(1500);
+    // 等写链真正落库（服务端读回为据；后续 ④ 仍逐项断言真值）
+    const written = await waitFor(async () => {
+      const row = (await api('GET', '/api/v1/makeupTasks', { token })).json.find((r) => r.id === MK_ID);
+      return row?.status === 'completed';
+    });
+    assert.ok(written, '确认完成后服务端补课任务应回写 completed（等待 15s）');
 
     assert.deepEqual(errs, [], `页面不应有 JS 错误：${errs.slice(0, 2).join(' | ')}`);
   } finally {

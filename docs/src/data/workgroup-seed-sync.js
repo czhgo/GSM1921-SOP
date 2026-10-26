@@ -1,11 +1,11 @@
 // Mock 数据兼容迁移：为已有活动/专班建立稳定工作组主记录。
 // 不搬移普通参与者，不猜测旧专班任务/产出；原始业务记录仍是来源。
-import { WorkgroupStatus, workgroupStatusForTaskforce } from '../core/domain/domain.js?v=20261025b';
-import { DEFAULT_BRANCH_ID, ACTIVITY_SCOPES, isBranchLevelActivity, normalizeOrganizingScope } from '../core/domain/constants.js?v=20261025b';
+import { WorkgroupStatus, workgroupStatusForTaskforce } from '../core/domain/domain.js?v=20261026a';
+import { DEFAULT_BRANCH_ID, ACTIVITY_SCOPES, isBranchLevelActivity, normalizeOrganizingScope } from '../core/domain/constants.js?v=20261026a';
 // R10（2026-10-23）：活动工作组状态规则单一源——归档或取消 ⇒ archived（不再只看 source.archived）。
-import { syncActivityWorkgroup, workgroupIdFor } from './activity-workgroup-sync.js?v=20261025b';
-import { PARTY_GROUPS } from './mock/party-groups.js?v=20261025b';
-import { PEOPLE } from './mock/people.js?v=20261025b';
+import { syncActivityWorkgroup, workgroupIdFor } from './activity-workgroup-sync.js?v=20261026a';
+import { PARTY_GROUPS } from './mock/party-groups.js?v=20261026a';
+import { PEOPLE } from './mock/people.js?v=20261026a';
 
 const MEMBER_ROLES = new Set(['organizer', 'deep']);
 
@@ -69,6 +69,8 @@ export function normalizeSeedActivityOrganizing(activities) {
 export function normalizeSeedActivitySeedRows(activities) {
   return normalizeSeedActivityOrganizing(activities).map((activity) => ({
     ...activity,
+    // v12：种子活动一律有支部归属（单支部演示库缺省 br-b1）；不逐行复制字段。
+    branchId: activity.branchId || DEFAULT_BRANCH_ID,
     visibility: activity.visibility || 'branch',
     createdBy: activity.createdBy || activity.organizer || null,
     createdAt: activity.createdAt || activity.date,
@@ -229,5 +231,47 @@ export function ensureDemoWorkgroupGrants(db) {
     }
   }
   db.workgroupGrants = grants;
+  return changed;
+}
+
+// ── v12：考察对象 ∈ 父工作组成员（单一源）────────────────────────────────
+// 模型口径（DATA_MODEL §2.5.1）：`personId` 必须是该考察所挂工作组的成员。
+// 旧种子只把活动 `assignments` 里的 organizer/deep 写进工作组，而考察记录常覆盖更多深参同志
+// （实测 32/42 不在组）⇒ 不是放宽校验，而是**用考察事实补工作组成员**：某人被记录为
+// 该场活动的组织者/深度参与者，本身就是「入组」的业务事实，不新增人员、不编造活动。
+const INSPECTION_MEMBER_ROLE = Object.freeze({ organize: 'organizer', deep: 'deep' });
+
+/**
+ * 幂等：为每条考察记录补父工作组成员（已存在则跳过；`legacy:true` 无父键不补）。
+ * @returns {boolean} 是否有新增成员行
+ */
+export function ensureInspectionWorkgroupMembers(db, inspections) {
+  const rows = Array.isArray(inspections) ? inspections : [];
+  const memberships = Array.isArray(db.workgroupMembers) ? [...db.workgroupMembers] : [];
+  const workgroups = Array.isArray(db.workgroups) ? db.workgroups : [];
+  const byId = new Map(workgroups.map((row) => [String(row.id), row]));
+  const byActivity = new Map(workgroups.filter((row) => row.kind === 'activity').map((row) => [String(row.sourceId), row]));
+  let changed = false;
+  for (const record of rows) {
+    if (!record || record.legacy === true) continue;
+    const personId = record.personId != null ? String(record.personId) : '';
+    if (!personId) continue;
+    const workgroup = record.sourceType === 'taskforce'
+      ? byId.get(String(record.workgroupId || ''))
+      : byActivity.get(String(record.activityId || ''));
+    if (!workgroup) continue;
+    if (memberships.some((row) => String(row.workgroupId) === String(workgroup.id)
+      && String(row.personId) === personId)) continue;
+    const role = INSPECTION_MEMBER_ROLE[record.level] || 'deep';
+    const id = memberIdFor(workgroup.id, personId);
+    if (memberships.some((row) => row.id === id)) continue;
+    memberships.push({
+      id, branchId: workgroup.branchId || DEFAULT_BRANCH_ID, workgroupId: workgroup.id, personId, role,
+      status: 'active', migratedFromLegacy: true, createdBy: 'inspection-seed-sync',
+      createdAt: record.recordedAt || workgroup.createdAt || new Date(0).toISOString(),
+    });
+    changed = true;
+  }
+  db.workgroupMembers = memberships;
   return changed;
 }

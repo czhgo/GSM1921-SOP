@@ -13,6 +13,7 @@ related_files: [DESIGN_SYSTEM.md, content/03_doc_system/CASES_INDEX.md, content/
 > **不回答什么**：规范条文本身（必须 / 不得、布尔判据）→ [DESIGN_SYSTEM.md](DESIGN_SYSTEM.md) 对应编号；目录与入口 → [CASES_INDEX.md](../../03_doc_system/CASES_INDEX.md)；逐批过程 → `.ctx/logs/2026-10-EXECUTION_LOG.md`。
 > **谁什么时候读**：`[工程师]+[AI]`，改动相关设计面之前读边界一列；评审核对「这条为什么存在」时读场景一列。
 > **纪律**：判例不产生规范效力（`OPERATIONS_GUIDE.md §32.3`）——判例里的结论若被写成「以后都应如此」，须迁到规范侧并取编号。「结论」列只复述本条判例当时确认的落点，规范效力一律以「对应规范编号」所指条目为准。
+> **域**：本文件承载 `CASE-DESIGN-*`（设计域）与 `CASE-DATA-*`（数据真相域，见文末分区）；编号与域规则见 [CASES_INDEX.md](../../03_doc_system/CASES_INDEX.md)。
 
 ---
 
@@ -252,3 +253,47 @@ related_files: [DESIGN_SYSTEM.md, content/03_doc_system/CASES_INDEX.md, content/
 - **对应规范编号**：SD-46
 - **边界**：党建红 `#CE1126` 与党徽金是**固定品牌层**，不随主题切换；类别色也不随主题切换。功能色恢复的是小面积语义位，不恢复渐变卡头与彩色按压。
 - **证据指针**：`DESIGN_SYSTEM.md §2.12` / `§2.13`（消费者清单与对比度实测）；`docs/src/styles.css` 的 `--status-*` / `--color-category-*` / `--color-identity-*` 段；`server/test/theme-palette-guard.test.mjs`（T8 / T9）；`server/test/link-color-guard.test.mjs`（L6–L8）；执行日志批次 512。
+
+## CASE-DESIGN-025 分组胶囊「没恢复」：只要可见，丢了主题色与直角
+
+- **编号**：CASE-DESIGN-025
+- **样本（真实发生）**：批次 512 把 `.tab-group-label` 从中性灰 999px 改为「全宽可见 ＋ 高度 ≥24px ＋ `neutral-400` 描边」，五档宽度都能看到；支书复核时仍说「胶囊没恢复」。取证：底色 `--neutral-100`、文字 `--neutral-500`、`border-radius:999px`、字重 400、字距 0——**可见性达标，但 8–9 月的主题 soft 底 / 主题 soft 深字 / 3px 直角 / 600 字重全部丢失**。
+- **AI 假设**：上一条判例（CASE-DESIGN-020）把「可见」立成判据，于是「可见＝恢复」；颜色与圆角只是装饰，不影响「看得到」。
+- **人类意图**：「恢复」指**回到 8–9 月的视觉语义**——主题色小胶囊、没那么圆角、字更实；可见性是前置条件，不是全部。
+- **泛化规则**：判据必须把「可感知（断点 × 可见 × 高度）」与「视觉构成（主题 soft 三件套 × 3px × 600 × 0.5px 字距）」**分开登记、同时把守**；只满足其中一组不得称「已恢复」。`.tab-group-label` 是 SD-3「胶囊 999px」的唯一登记例外，但例外只改圆角，不豁免主题色与字重。
+- **守卫**：`ui-contrast-guard::K3`（主题 soft-bg / soft-text、亮暗 ≥4.5:1、3px、≥24px）＋ `ui-control-system-guard::V2`（无隐藏断点、3px、描边对比 ≥1.5:1）。
+- **对应规范编号**：SD-47（视觉构成）；关联 SD-3（3px 例外）/ SD-36（非按钮语义）/ SD-42（全宽可见）。
+- **边界**：组名仍是**非按钮**胶囊（SD-36）——恢复主题色不等于可点击，不得进入 tab 序列或获得 hover；≤1280px 只缩内边距，字号保持 12px（SD-42）。
+- **证据指针**：`docs/src/styles.css` 的 `.tab-group-label`（`background: var(--app-accent-soft-bg)` / `color: var(--app-accent-soft-text)` / `border-radius:3px` / `font-weight:600` / `letter-spacing:0.5px`）；`server/test/ui-contrast-guard.test.mjs`（K3）；`server/test/ui-control-system-guard.test.mjs`（V2）；`.ctx/logs/2026-10-EXECUTION_LOG.md` 批次 513。
+
+---
+
+## 数据域判例（data）
+
+> 本区承载 `CASE-DATA-*`：判据是「数据真相」而非视觉，但因同源于设计系统评审、且需与 SD-48 双向指针，正文与 design 域同放本文件；总目录仍见 [CASES_INDEX.md](../../03_doc_system/CASES_INDEX.md)。
+
+## CASE-DATA-001 mock 绕过 server 出现在界面，并在本机「假保存」
+
+- **编号**：CASE-DATA-001
+- **样本（真实发生）**：spec `restore-capsule-and-harden-data-truth` 取证——`getDataSource()==='api'` 时，`loadActivities / loadAttendanceRecords / loadInspectionRecords` 仍回退静态种子；`NoticeStore.init / SignupStore.init / seedTodos` 仍补种子并 `persist()`；`persist()` 对「快照 payload 未覆盖的集合」（`committeeBroadcasts` / `agendaVotes` / `memberChangeRequests`）直接 resolve。结果：生产空库会显示演示活动；改标注在界面上「保存成功」，清缓存重登后消失。
+- **AI 假设**：本地有缓存就先显示、失败再回退种子，用户总能看到内容；`persist()` resolve 即代表这次写已完成；mock 只是「演示用的另一套数据」，不会进真实界面。
+- **人类意图**：服务端是**唯一权威**；`api` 形态空库应显示空态，不得用演示数据填空；写成功必须有服务端证据（服务端行 / 快照请求被观察 / 语义端点 2xx），本地 resolve 不算成功。演示数据只允许在 mock 或显式 `SEED_FALLBACK` 下出现，且**不得写进服务器**。
+- **泛化规则**：判据按四层分开——① 长期存储只允纯展示偏好；② 业务读缓存必带集合版本（`_versions` ＋ `savedAt`），缺版本 / 过期不得当权威；③ 业务写三选一可证，否则进 outbox 显示「未同步」；④ 真实数据轨道默认 `SEED_FALLBACK=false`，生产库含演示种子时拒绝启动（`ALLOW_DEMO_DATA=1` 才放行）。四层任一不满足即不得称「数据已走 server」。
+- **守卫**：`write-truth-guard::A1–A4/B1–B5`（六个读口闸门、快照单一源、flush 分流、outbox 与语义端点）＋ `seed-contract-guard::C1–C10`（种子契约与 v12 结构）＋ `localstorage-key-guard::L4–L10`（四类键与版本校验）＋ `test-isolation-guard::I1–I4`（测试不留运行库）。
+- **对应规范编号**：SD-48（缓存边界 / 写确认 / 演示窗口 / 测试残留分层）。
+- **边界**：纯展示偏好（主题 / 字号 / 强调色 / 页签顺序）长期留浏览器不算越界；mock 形态与显式 `SEED_FALLBACK=1` 的演示仍可回退种子，但**不得写入服务器**；`committee_broadcasts` 为 v12 恒只读表，标注改走系统通知，不得新增写口。
+- **证据指针**：`docs/src/data/cache-registry.js`（四类键）；`docs/src/services/activity/{activity,attendance,inspection,signup}.js` 与 `services/governance/{notice,todo}.js` 的 api 闸门；`docs/src/data/data-adapter.js` 的 flush 分流；`server/test/write-truth-guard.test.mjs` / `seed-contract-guard.test.mjs` / `localstorage-key-guard.test.mjs`；`content/04_web_design/data/DATA_SEED_CONTRACT.md`；`.ctx/logs/2026-10-EXECUTION_LOG.md` 批次 513。
+
+---
+
+## 附：批次 513 sample-diff 五列
+
+> 只登记本批抽样暴露的「AI 假设 ↔ 人类意图」偏差；泛化规则已落 SD-47 / SD-48 与上两条判例，此处不重复规范条文。
+
+| 样本（证据） | AI 假设 | 人类意图 | 偏差类型 | 泛化规则（守卫） |
+|---|---|---|---|---|
+| 分组胶囊「没恢复」：批次 512 已全宽可见、≥24px、有描边，但仍是中性灰 999px / 400 字重 | 改可见性＝恢复；颜色与圆角只是装饰 | 要回到 8–9 月的**主题色 soft 底 ＋ 3px 直角 ＋ 600 字重** | `definition_mismatch`（「恢复」定义被窄化为「可见」） | 可感知与视觉构成分开登记、同时把守；3px 是登记例外，不豁免主题色与字重（SD-47 / K3 ＋ V2） |
+| 「删除测试用例」：运行库残留 `act-b31-*` / `att-b31-*` / `mk-b31-*` / `todo_seed_7` / 测试通知 / 测试议题 | 把测试数据当成测试套件的一部分，删残留＝删测试 | 要清**运行库残留**，保留 268 个自动化测试文件 | `scope_widening`（「测试数据」被扩成「测试」） | 测试套件与测试数据分层：外部写用临时库或 `finally` 清理，残留由 `test:clean --test-residue` 清（SD-48 / I1–I4） |
+| 「四个月窗口」：7 月 25 场活动需进入 8–11 月窗口 | 按日期把窗口外的行 DELETE 掉最直接 | 要**重排事实 ＋ 重建运行库**，保留跨期实体与每种关键状态样本 | `tool_mismatch`（用删除代替重排＋重建） | 先备份 → 重排种子 → `rebuild-demo` 重建 → 替换库；不逐表按日期 DELETE（SD-48 / W1–W5） |
+| 「缓存」：清缓存重登后标注消失；`persist()` 本地 resolve 曾报成功 | 本地缓存能显示就算可用；读缓存可当权威 | 要**服务端权威**：读缓存只是加速，写成功必须有服务端证据 | `priority_inversion`（把读缓存置于服务端之上） | 业务读缓存带 `_versions` ＋ `savedAt`；写三选一可证；失败进 outbox 显示「未同步」（SD-48 / L4–L10 ＋ A1–A4/B1–B5） |
+

@@ -16,8 +16,8 @@
 //   · 旧偏好 sky / light-blue → blue、deep → purple（与 constants.js 回落表同口径），
 //     设置页给出轻提示（role="status"，不阻断操作；不写浏览器存储）。
 
-import { icon } from '../../core/base/icons.js?v=20261025b';
-import { ACCENT_PALETTE, getAccentColors } from '../../core/domain/constants.js?v=20261025b';
+import { icon } from '../../core/base/icons.js?v=20261026a';
+import { ACCENT_PALETTE, getAccentColors } from '../../core/domain/constants.js?v=20261026a';
 import {
   getFontSizePreference,
   setFontSizePreference,
@@ -26,7 +26,7 @@ import {
   getAccentRolePreference,
   setAccentRolePreference,
   resolveAppliedAccentRole,
-} from '../../core/boot/theme.js?v=20261025b';
+} from '../../core/boot/theme.js?v=20261026a';
 
 // ── 按钮态样式（与迁移前侧边栏一致；gray 系类随 html.theme-dark 自动翻转）──
 const _base = 'btn-tab px-2.5 py-1 text-xs ';

@@ -17,12 +17,12 @@
  * 周期归档演示基线（当前示例采用周策略）。
  * 形状 = `PeriodicArchiveSubmission`；周只是 `periodUnit` 的取值，不改变记录实体。
  */
-import { DEFAULT_BRANCH_ID } from '../../core/domain/constants.js?v=20261025b';
+import { DEFAULT_BRANCH_ID } from '../../core/domain/constants.js?v=20261026a';
 export const PERIODIC_ARCHIVES_SEED = [
-  { id: 'pa1', branchId: DEFAULT_BRANCH_ID, periodUnit: 'week', periodKey: '2026-W30', periodLabel: '第30周', periodRange: '2026-07-20 ~ 2026-07-24', content: '1. 七一主题党日活动新闻稿发布\n2. 发展对象公示推送排版完成\n3. 上半年活动照片归档整理进行中', status: 'submitted', submittedAt: '2026-07-24' },
-  { id: 'pa2', branchId: DEFAULT_BRANCH_ID, periodUnit: 'week', periodKey: '2026-W29', periodLabel: '第29周', periodRange: '2026-07-13 ~ 2026-07-17', content: '1. 入党积极分子培训资料归档完成\n2. 组织生活会预告推送发布\n3. 配合组织委员完成发展对象材料审核', status: 'submitted', submittedAt: '2026-07-17' },
-  { id: 'pa3', branchId: DEFAULT_BRANCH_ID, periodUnit: 'week', periodKey: '2026-W28', periodLabel: '第28周', periodRange: '2026-07-06 ~ 2026-07-10', content: '1. 预备党员转正大会新闻稿起草\n2. 七一活动素材整理\n3. 宣传专栏内容更新', status: 'submitted', submittedAt: '2026-07-10' },
-  { id: 'pa4', branchId: DEFAULT_BRANCH_ID, periodUnit: 'week', periodKey: '2026-W31', periodLabel: '第31周', periodRange: '2026-07-27 ~ 2026-07-31', content: '', status: 'draft', submittedAt: null },
+  { id: 'pa1', branchId: DEFAULT_BRANCH_ID, periodUnit: 'week', periodKey: '2026-W42', periodLabel: '第42周', periodRange: '2026-10-12 ~ 2026-10-16', content: '1. 红色徒步·香山行活动新闻稿发布\n2. 党建思想学习会材料归档\n3. 秋季发展对象公示推送排版完成', status: 'submitted', submittedAt: '2026-10-16' },
+  { id: 'pa2', branchId: DEFAULT_BRANCH_ID, periodUnit: 'week', periodKey: '2026-W41', periodLabel: '第41周', periodRange: '2026-10-05 ~ 2026-10-09', content: '1. 入党积极分子培训资料归档完成\n2. 主题党日预告推送发布\n3. 配合组织委员完成发展对象材料审核', status: 'submitted', submittedAt: '2026-10-09' },
+  { id: 'pa3', branchId: DEFAULT_BRANCH_ID, periodUnit: 'week', periodKey: '2026-W40', periodLabel: '第40周', periodRange: '2026-09-28 ~ 2026-10-02', content: '1. 九月主题党日新闻稿起草\n2. 活动素材整理\n3. 宣传专栏内容更新', status: 'submitted', submittedAt: '2026-10-02' },
+  { id: 'pa4', branchId: DEFAULT_BRANCH_ID, periodUnit: 'week', periodKey: '2026-W44', periodLabel: '第44周', periodRange: '2026-10-26 ~ 2026-10-30', content: '', status: 'draft', submittedAt: null },
 ];
 
 /**
@@ -32,12 +32,12 @@ export const PERIODIC_ARCHIVES_SEED = [
  * 角色改名或换人不影响归因（R7-34）。
  */
 export const PROP_TASKS_SEED = [
-  { id: 'pt1', source: '支部委员会', sourceOrg: 'branch-committee', type: '新闻稿', summary: '七一主题党日活动新闻稿', status: 'pending', createdAt: '2026-07-25' },
-  { id: 'pt2', source: '副支书', sourceRole: 'deputy-secretary', type: '推送排版', summary: '发展对象公示推送排版', status: 'in_progress', createdAt: '2026-07-24' },
-  { id: 'pt3', source: '支部委员会', sourceOrg: 'branch-committee', type: '素材归档', summary: '上半年活动照片归档整理', status: 'in_progress', createdAt: '2026-07-22' },
-  { id: 'pt4', source: '组织委员', sourceRole: 'org-commissioner', type: '周报报送', summary: '第30周党建工作周报', status: 'submitted', createdAt: '2026-07-21' },
-  { id: 'pt5', source: '支部委员会', sourceOrg: 'branch-committee', type: '新闻稿', summary: '预备党员转正大会新闻稿', status: 'pending', createdAt: '2026-07-20' },
-  { id: 'pt6', source: '副支书', sourceRole: 'deputy-secretary', type: '推送排版', summary: '组织生活会预告推送', status: 'pending', createdAt: '2026-07-19' },
-  { id: 'pt7', source: '支部委员会', sourceOrg: 'branch-committee', type: '素材归档', summary: '入党积极分子培训资料归档', status: 'submitted', createdAt: '2026-07-18' },
-  { id: 'pt8', source: '组织委员', sourceRole: 'org-commissioner', type: '周报报送', summary: '第29周党建工作周报', status: 'submitted', createdAt: '2026-07-14' },
-];
+  { id: 'pt1', source: '支部委员会', sourceOrg: 'branch-committee', type: '新闻稿', summary: '红色徒步·香山行活动新闻稿', status: 'pending', createdAt: '2026-10-23' },
+  { id: 'pt2', source: '副支书', sourceRole: 'deputy-secretary', type: '推送排版', summary: '发展对象公示推送排版', status: 'in_progress', createdAt: '2026-10-19' },
+  { id: 'pt3', source: '支部委员会', sourceOrg: 'branch-committee', type: '素材归档', summary: '秋季活动照片归档整理', status: 'in_progress', createdAt: '2026-10-09' },
+  { id: 'pt4', source: '组织委员', sourceRole: 'org-commissioner', type: '周报报送', summary: '第41周党建工作周报', status: 'submitted', createdAt: '2026-09-18' },
+  { id: 'pt5', source: '支部委员会', sourceOrg: 'branch-committee', type: '新闻稿', summary: '预备党员转正大会新闻稿', status: 'pending', createdAt: '2026-09-11' },
+  { id: 'pt6', source: '副支书', sourceRole: 'deputy-secretary', type: '推送排版', summary: '组织生活会预告推送', status: 'pending', createdAt: '2026-09-04' },
+  { id: 'pt7', source: '支部委员会', sourceOrg: 'branch-committee', type: '素材归档', summary: '入党积极分子培训资料归档', status: 'submitted', createdAt: '2026-08-21' },
+  { id: 'pt8', source: '组织委员', sourceRole: 'org-commissioner', type: '周报报送', summary: '第33周党建工作周报', status: 'submitted', createdAt: '2026-08-14' },
+].map((row) => ({ ...row, branchId: row.branchId || DEFAULT_BRANCH_ID }));

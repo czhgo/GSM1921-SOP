@@ -20,7 +20,7 @@ export function createApp({ dbPath = ':memory:' } = {}) {
   // 前端压缩后传输；路由内手动 gunzip + parse）。须在 express.json 之前挂载，否则 gzip
   // 二进制会被 json parser 误解析。
   app.use('/api/v1/snapshot', express.raw({ type: '*/*', limit: '4mb' }));
-  app.use(express.json({ limit: '2mb' }));
+  app.use(express.json({ limit: '2mb' })); app.use(createReadOnlyGuard()); // READ_ONLY=1 ⇒ 业务写口统一 403（认证域放行；见 read-only.js）
 
   app.get('/api/v1/health', (req, res) => res.json({ ok: true }));
 
@@ -50,10 +50,10 @@ export function createApp({ dbPath = ':memory:' } = {}) {
   // GET /api/v1/report/:domain（JSON 拉取）/ /report/export（CSV）/ POST /report/trigger（手动推送）
   app.use('/api/v1', createReportRouter(app.locals.db));
 
-  // 部署形态注入：server 模式下前端 deploy.js 应标记为 'server'（有后端，无「关于」门面）＋空域种子回退开关
-  // SEED_FALLBACK（依据 content/04_web_design/deploy/AUTHENTICATION_MODEL.md §六·构建时注入；SEED_FALLBACK=0 ⇒ false，缺省 true）
+  // 部署形态注入：server 模式下前端 deploy.js 应标记为 'server' ＋空域种子回退开关 SEED_FALLBACK（§六·构建时注入）；
+  // 生产形态未显式给值时注入 false（Task 7.1）；显式 `0` ⇒ false、非生产未给值 ⇒ true（既有行为不变）。
   app.get('/src/config/deploy.js', (req, res) => {
-    res.type('application/javascript').send(`export const DEPLOY_MODE = "server";\nexport const SEED_FALLBACK = ${process.env.SEED_FALLBACK === '0' ? 'false' : 'true'};\nexport const DEMO_READONLY = ${process.env.DEMO_READONLY === '0' ? 'false' : 'true'};\n`);
+    const seedFallback = process.env.SEED_FALLBACK === undefined ? !isProductionEnv() : process.env.SEED_FALLBACK !== '0'; res.type('application/javascript').send(`export const DEPLOY_MODE = "server";\nexport const SEED_FALLBACK = ${seedFallback ? 'true' : 'false'};\nexport const DEMO_READONLY = ${process.env.DEMO_READONLY === '0' ? 'false' : 'true'};\n`);
   });
 
   // 静态托管：无后缀请求自动补 .html（T-304 遗留修复——登录跳转在部分浏览器/内嵌视图
@@ -86,6 +86,8 @@ export function createApp({ dbPath = ':memory:' } = {}) {
   app.use('/api/v1/auth/iaaa', createIaaaRouter(app.locals.db));
   // 部署与对接自检（2026-09-29 批次 273：党委台「部署与对接」面板的数据源）。同上，挂在这里以保住上方行号。
   app.use('/api/v1/setup', createSetupRouter(app.locals.db));
+  // 名册整表导入（Task 7.5）：PUT /api/v1/branches/:id/roster —— 单事务替换；前端只调一次。
+  app.use('/api/v1', createBranchRosterRouter(app.locals.db));
 
   return app;
 }
@@ -93,3 +95,6 @@ export function createApp({ dbPath = ':memory:' } = {}) {
 // ⚠ import 声明被提升，**置尾不影响语义**（与 `server.js` 同一手法）：目的是保住上方行号不漂。
 import { createIaaaRouter } from './routes/iaaa.js';
 import { createSetupRouter } from './routes/setup.js';
+import { createReadOnlyGuard } from './read-only.js';
+import { isProductionEnv } from './env.js';
+import { createBranchRosterRouter } from './routes/branch-roster.js';

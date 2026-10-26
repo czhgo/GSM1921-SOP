@@ -5,8 +5,11 @@
 // 行为零变化：apply 内部仍调用 data-adapter.setDataSource（与 bootstrap 既有切换逻辑一致）。
 // 设计权威源：content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md §四.3（数据源注册为能力，按部署环境启用）
 
-import { registerCapability } from '../core/boot/registry.js?v=20261025b';
-import { setDataSource } from '../data/data-adapter.js?v=20261025b';
+// Task 2.1（2026-10-26）：与页面入口 / bootstrap 同一模块实例（同一 `?v=`）——
+//   此前这里停在旧戳，注册表与 data-adapter 各分裂出第二实例 ⇒ `apiCap.apply` 切的是另一份数据源，
+//   服务端优先登录拿到的 token 在 `bootstrapPage` 里看不到，页面仍停在 mock 形态。
+import { registerCapability } from '../core/boot/registry.js?v=20261026a';
+import { setDataSource } from '../data/data-adapter.js?v=20261026a';
 
 // mock 数据源：全环境可用（本地 dev 默认 / prod 服务器不可达回退）
 registerCapability({

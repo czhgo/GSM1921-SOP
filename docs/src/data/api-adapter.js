@@ -14,7 +14,7 @@
 //         content/04_web_design/data/DATA_ARCHITECTURE.md §8.4
 // ════════════════════════════════════════════════════════════════
 
-import { getApiBaseUrl, getAuthToken, advanceVersionBaselineAfterWrite } from './data-adapter.js?v=20261025b';
+import { getApiBaseUrl, getAuthToken, advanceVersionBaselineAfterWrite } from './data-adapter.js?v=20261026a';
 
 // ── HTTP 工具函数 ──────────────────────────────────────────────
 
@@ -138,6 +138,11 @@ function _post(path, data) {
 /** PATCH 请求 */
 function _patch(path, data) {
   return _writeRequest(path, 'PATCH', data);
+}
+
+/** PUT 请求（语义整表替换，如支部名册导入） */
+function _put(path, data) {
+  return _request(path, { method: 'PUT', ...(data !== undefined ? { body: JSON.stringify(data) } : {}) });
 }
 
 /** DELETE 请求 */
@@ -773,6 +778,12 @@ export const ApiAdapter = {
       return _post('/api/v1/branches', data);
     },
 
+    // Task 7.5（2026-10-26）：名册整表导入 —— 单事务替换（服务端 PUT /branches/:id/roster）。
+    // 只调一次；失败时服务端整体回滚，前端旧名册不变。
+    replaceRoster(id, members) {
+      return _put(`/api/v1/branches/${encodeURIComponent(id)}/roster`, { members });
+    },
+
     update(id, patch) {
       return _patch(`/api/v1/branches/${id}`, patch);
     },
@@ -908,6 +919,11 @@ export const ApiAdapter = {
     confirm(id) {
       return _post(`/api/v1/member-change-requests/${id}/confirm`);
     },
+
+    // Task 3（2026-10-26）：转移/取消标注（行级语义端点；白名单 status/cancelledAt/transferredOutAt）
+    annotate(id, patch) {
+      return _post(`/api/v1/member-change-requests/${id}/annotate`, patch || {});
+    },
   },
 
   committeeBroadcasts: {
@@ -926,6 +942,11 @@ export const ApiAdapter = {
 
     create(data) {
       return _post('/api/v1/agenda-votes', data);
+    },
+
+    // Task 3（2026-10-26）：转移标注（行级语义端点；白名单仅 transferredOutAt）
+    annotate(id, patch) {
+      return _post(`/api/v1/agenda-votes/${id}/annotate`, patch || {});
     },
   },
 

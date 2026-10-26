@@ -39,7 +39,7 @@ export function createSetupRouter(db) {
       LOGIN_PASSWORD_IS_DEFAULT: process.env.LOGIN_PASSWORD === '123456',
       DB_PATH: has('DB_PATH'),
       UPLOAD_DIR: has('UPLOAD_DIR'),
-      SEED_FALLBACK_OFF: process.env.SEED_FALLBACK === '0',
+      SEED_FALLBACK_OFF: process.env.SEED_FALLBACK === undefined ? isProd() : process.env.SEED_FALLBACK === '0',
       MAIL_ENABLED: process.env.MAIL_ENABLED === 'true',
       IAAA_APP_ID: has('IAAA_APP_ID'),
       IAAA_REDIRECT_URI: has('IAAA_REDIRECT_URI'),

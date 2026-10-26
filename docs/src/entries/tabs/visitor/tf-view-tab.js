@@ -64,7 +64,7 @@ export function enhanceTaskforceViewForMember(container) {
 export function renderContent(ctx) {
   const el = document.getElementById('visitor-tab-content');
   if (!el) return null;
-  return import('../../../components/record/insight-view.js?v=20261025b').then(m => m.renderInsightView(el, {
+  return import('../../../components/record/insight-view.js?v=20261026a').then(m => m.renderInsightView(el, {
     title: '专班动态',
     // 工作组 + 专班两段（活动一览在「活动动态」——见头注）；页签名锁定「专班动态」⇒ 默认仍落专班
     views: ['workgroup', 'taskforce'],

@@ -1,5 +1,5 @@
 /* 组件样式（@import 必须位于文件顶部） */
-@import url('components/person-picker.css?v=20261025b');
+@import url('components/person-picker.css?v=20261026a');
 
 /* ═══════════════════════════════════════════════════════════════
    GSM1921-SOP DESIGN SYSTEM v11.0 — Matte Flat
@@ -2644,9 +2644,11 @@ html.theme-dark .cal-cell-large.is-today, html.theme-dark .cal-cell-mobile.is-to
    所有宽度：每组前显示可见组名（含首组），组间以 .tab-group-sep 的 1px 线分隔；
    ≤1280px：只缩小内边距与字号，**不再隐藏组名**（2026-10-26 Task 3.5 删除 display:none 口径）；
    ≤1024px：分隔线保留，仅缩小左右外边距，页签条由 .ws-tab-scroll 保证单行不换行、可横向滚动。 */
-/* 组名＝可见小胶囊——12px、中性底 + 深一档描边（形状与页面底对比 ≥1.5:1）、
+/* 组名＝可见小胶囊——恢复 8–9 月视觉语义（2026-10-26 Task 1）：
+   主题色 soft 底 + 主题 soft 深字、3px 直角、600 字重、0.5px 字距；
+   描边取 --neutral-400（形状与页面底约 2.4:1，≥1.5:1；亮/暗由 token 自动选边）、
    左右 6px 内边距、高度 ≥24px；非按钮（role="presentation"）⇒ 无 hover、无 cursor:pointer、
-   不进入 tab 序列。 */
+   不进入 tab 序列。不得用 color-mix() / rgba(主题色) 派生主题色。 */
 .tab-group-label {
   display: inline-flex;
   align-items: center;
@@ -2656,12 +2658,13 @@ html.theme-dark .cal-cell-large.is-today, html.theme-dark .cal-cell-mobile.is-to
   margin: 0 8px 0 0;
   padding: 1px 6px;
   border: 1px solid var(--neutral-400);
-  border-radius: 999px;
-  background: var(--neutral-200);
+  border-radius: 3px;
+  background: var(--app-accent-soft-bg);
   font-size: 12px;
-  font-weight: 500;
+  font-weight: 600;
+  letter-spacing: 0.5px;
   line-height: 16px;
-  color: var(--neutral-500);
+  color: var(--app-accent-soft-text);
   white-space: nowrap;
   vertical-align: middle;
   cursor: default;
@@ -2680,11 +2683,11 @@ html.theme-dark .cal-cell-large.is-today, html.theme-dark .cal-cell-mobile.is-to
   background: var(--neutral-200);
 }
 @media (max-width: 1280px) {
-  /* 全宽可见（Task 3.5）：只缩内边距与字号；min-height 24px 不变，形状对比由描边承担。 */
+  /* 全宽可见（Task 3.5）：只缩外边距与内边距；min-height 24px 不变，形状对比由描边承担。
+     2026-10-26 Task 1：字号保持 12px（11px 属 Overline 标签档，正文/组名不得下探）。 */
   .tab-group-label {
     margin-right: 6px;
     padding: 1px 5px;
-    font-size: 11px;
   }
 }
 @media (max-width: 1024px) {

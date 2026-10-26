@@ -38,7 +38,7 @@ cd server; npm run test:full
 ## 常见坑
 - 在 routes 文件顶部插 / 删行会让 `README-server.md` 的 `文件:行号` 引用整体失效 → `doc-line-ref` 红；语义端点故意放在文件末。
 - WAL 模式下直接拷 `data.db` 会丢最近写入；备份用 `scripts/backup.ps1` / `scripts/backup.mjs`。
-- `click-cost` / `mock-integrity` / `b3-1-makeup-writeback` 要连 3000；没起服务必红，不是回归。
+- `click-cost` / `mock-integrity` 要连 3000；没起服务必红，不是回归。`b3-1-makeup-writeback` 自 2026-10-26 起自托管临时库副本，不再需要外部 3000。
 
 ## 防逃逸三件套（示例）
 | 件 | 内容 |

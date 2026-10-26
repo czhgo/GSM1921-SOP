@@ -2,9 +2,11 @@
 // login-entry.js — 登录页入口（重构版）
 // 支持: 账号密码 Mock 校验 + 开发模式直接选身份
 
-import { AuthStore } from '../../services/core/auth.js?v=20261025b';
-import { getAccentColors, solidAccentStyle, dotDarkVars, isBranchPendingUser } from '../../core/domain/constants.js?v=20261025b';
-import { escHtml } from '../../core/base/utils.js?v=20261025b';
+import { AuthStore } from '../../services/core/auth.js?v=20261026a';
+import { getAccentColors, solidAccentStyle, dotDarkVars, isBranchPendingUser } from '../../core/domain/constants.js?v=20261026a';
+import { escHtml } from '../../core/base/utils.js?v=20261026a';
+// Task 2.1（2026-10-26）：服务端优先登录——静态托管 / 显式开发模式才走本地账号层。
+import { DEPLOY_MODE } from '../../config/deploy.js?v=20261026a';
 
 // C09（2026-10-20）：登录链接可带 `next`（目标页 URL）——登录成功后按 next 回跳，
 // 「未登录点活动 / 专班」不再只进工作台、丢掉原对象。只接受**同源** URL（防开放重定向），
@@ -128,29 +130,52 @@ if (loginForm) {
     const password = passwordEl.value.trim();
 
     _clearInvalid();
-    const result = AuthStore.verifyCredentials(studentId, password);
-    if (!result.ok) {
-      // 2026-10-22 第九轮 9B-6.7：失败时给对应输入 aria-invalid，并聚焦首个错误字段
-      //   （空字段 → 该字段；二者皆非空 → 学号 / 密码都可能不符，两个都标，焦点回学号）。
+    // 空字段就地提示（服务端优先时也不必发一次注定 401 的请求）
+    if (!studentId || !password) {
       const bad = [];
       if (!studentId) bad.push(studentIdEl);
       if (!password) bad.push(passwordEl);
-      if (!bad.length) bad.push(studentIdEl, passwordEl);
       bad.forEach(el => el.setAttribute('aria-invalid', 'true'));
-      errorEl.textContent = '学号或密码错误，请重试';
+      errorEl.textContent = '请输入学号与密码';
       errorEl.classList.remove('hidden');
       bad[0]?.focus();
       return;
     }
 
+    // Task 2.1（2026-10-26）：有 server（非静态托管）且未勾「开发模式」⇒ **服务端优先**：
+    //   先 POST /api/v1/auth/login，成功后才写本地登录态；本地账号层只在静态托管 / 显式开发模式使用。
+    //   这样服务端存在的真实账号（不在 MOCK_ACCOUNTS / gsm1921-accounts）也能登录。
+    const serverFirst = DEPLOY_MODE === 'server' && !(devToggle && devToggle.checked);
+    let personId = studentId;
+    if (!serverFirst) {
+      const result = AuthStore.verifyCredentials(studentId, password);
+      if (!result.ok) {
+        // 2026-10-22 第九轮 9B-6.7：失败时两个字段都标 aria-invalid，焦点回学号。
+        [studentIdEl, passwordEl].forEach(el => el.setAttribute('aria-invalid', 'true'));
+        errorEl.textContent = '学号或密码错误，请重试';
+        errorEl.classList.remove('hidden');
+        studentIdEl?.focus();
+        return;
+      }
+      personId = result.personId;
+    }
+
     errorEl.classList.add('hidden');
-    // 等待登录完成（含后端 token 获取）后再跳转，确保 API 模式在导航前已生效
+    // 等待登录完成（服务端优先时＝后端已 200 且 token 已落 sessionStorage）后再跳转
     // 2026-09-03 P1b：向后端一并传递账号密码，供 /login 口令校验（演示账号 123456）
-    AuthStore.login(result.personId, password).then(() => {
+    AuthStore.login(personId, password, { serverFirst }).then(() => {
       _goToWorkspace(AuthStore.getCurrentUser()?.role);
-    }).catch(() => {
+    }).catch((err) => {
       // 6.7：请求失败不得无声停留——原位错误行（role="alert"）给出可恢复提示。
-      errorEl.textContent = '登录请求未完成，请稍后重试；也可改用统一身份认证登录。';
+      //   Task 2.1：后端 401 / 网络失败**停留登录页**，绝不跳工作台。
+      const status = err && err.status;
+      if (status === 401) {
+        [studentIdEl, passwordEl].forEach(el => el.setAttribute('aria-invalid', 'true'));
+        errorEl.textContent = (err && err.message) || '学号或密码错误，请重试';
+        studentIdEl?.focus();
+      } else {
+        errorEl.textContent = '登录未完成：' + ((err && err.message) || '请稍后重试') + '；也可改用统一身份认证登录。';
+      }
       errorEl.classList.remove('hidden');
     });
   });

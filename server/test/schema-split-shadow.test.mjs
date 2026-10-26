@@ -68,7 +68,7 @@ test('S4 回滚删影子表、保留 todos.branch_id 数据', () => {
   const { dir, db } = tmpDb();
   try {
     put(db, 'todos', { id: 'td-keep', title: '保留', branchId: 'br-b1' });
-    db.prepare('UPDATE todos SET branch_id = ? WHERE id = ?').run('br-b1', 'td-keep');
+    // v12：branch_id 为生成列（只读），归属由 data.branchId 提供。
     rollbackV11(db);
     const tables = db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name IN ('agenda_items','taskforce_contributions')").all();
     assert.equal(tables.length, 0);

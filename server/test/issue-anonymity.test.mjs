@@ -37,7 +37,7 @@ import { join } from 'node:path';
 import { createApp } from '../app.js';
 import { seedDatabase } from '../seed.js';
 // 前后端同源哈希（服务端与前端共用；测试据此证明 tokenHash 由随机 token 派生、不含 personId）
-import { hashSubmitterToken } from '../../docs/src/core/domain/constants.js?v=20261025b';
+import { hashSubmitterToken } from '../../docs/src/core/domain/constants.js?v=20261026a';
 import { chromium } from 'playwright';
 
 let app, server, base;
@@ -86,9 +86,10 @@ function storedIssue(id) {
   return { raw: row.data, rec: JSON.parse(row.data) };
 }
 
-/** 留痕表快照（`issue_reveals`；表不在资源 CRUD 映射内，前端不能自行造/改） */
+/** 留痕表快照（`issue_reveals`；v12 已 DROP ⇒ 不存在即零留痕） */
 function revealTraces() {
-  return app.locals.db.prepare('SELECT data FROM issue_reveals').all().map((r) => JSON.parse(r.data));
+  const exists = app.locals.db.prepare("SELECT 1 FROM sqlite_master WHERE type='table' AND name='issue_reveals'").get();
+  return exists ? app.locals.db.prepare('SELECT data FROM issue_reveals').all().map((r) => JSON.parse(r.data)) : [];
 }
 
 // 常规读出口**一律不得出现**的可反查提交人的候选字段（响应侧全量集合）
@@ -364,8 +365,8 @@ test('mock 形态：浏览器存储不保留真身（含旧缓存迁移）；党
     await page.route('**://cdn.tailwindcss.com/**', (r) => r.abort());
     await page.goto(`${base}/index.html`, { waitUntil: 'domcontentloaded', timeout: 15000 });
     const out = await page.evaluate(async () => {
-      const { IssueStore } = await import('/src/services/governance/issues.js?v=20261025b');
-      const { PersonStore } = await import('/src/services/member/person.js?v=20261025b');
+      const { IssueStore } = await import('/src/services/governance/issues.js?v=20261026a');
+      const { PersonStore } = await import('/src/services/member/person.js?v=20261026a');
       localStorage.clear();
       // 页面启动（bootstrap）可能已把 issues 读入模块内存；先清内存缓存，确保下面的「旧缓存迁移」
       // 场景从持久层真实回放（否则 loadAll 会走内存短路，旧记录被随后的写链覆盖）。
@@ -413,7 +414,7 @@ test('mock 形态：浏览器存储不保留真身（含旧缓存迁移）；党
       const tc = document.createElement('div');
       tc.id = 'secretary-tab-content';
       document.body.appendChild(tc);
-      const fb = await import('/src/entries/tabs/secretary/feedback-tab.js?v=20261025b');
+      const fb = await import('/src/entries/tabs/secretary/feedback-tab.js?v=20261026a');
       fb.renderContent();
       const listRow = document.querySelector(`[data-issue-id="${anon.id}"]`);
       const listRowHtml = listRow ? listRow.innerHTML : '';
@@ -425,7 +426,7 @@ test('mock 形态：浏览器存储不保留真身（含旧缓存迁移）；党
       const pc = document.createElement('div');
       pc.id = 'party-committee-tab-content';
       document.body.appendChild(pc);
-      const pcTab = await import('/src/entries/tabs/party-committee/issue-review-tab.js?v=20261025b');
+      const pcTab = await import('/src/entries/tabs/party-committee/issue-review-tab.js?v=20261026a');
       await pcTab.renderContent();
       const asSecretaryHtml = pc.innerHTML;
       // …党委同样只看到边界说明

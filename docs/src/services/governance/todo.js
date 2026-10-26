@@ -6,27 +6,27 @@
 //         content/04_web_design/design-system/DESIGN_SYSTEM.md §一 第6条
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB, isTaskforceActiveStatus } from '../../core/domain/domain.js?v=20261025b';
-import { persist, getDataSource } from '../../data/data-adapter.js?v=20261025b';
-import { generateId } from '../../core/base/id.js?v=20261025b';
-import { bumpToken, tokenOf } from '../../core/base/version-token.js?v=20261025b';
+import { mockDB, isTaskforceActiveStatus } from '../../core/domain/domain.js?v=20261026a';
+import { persist, getDataSource } from '../../data/data-adapter.js?v=20261026a';
+import { generateId } from '../../core/base/id.js?v=20261026a';
+import { bumpToken, tokenOf } from '../../core/base/version-token.js?v=20261026a';
 // 待批活动状态值单一源（2026-09-22 批次 151 · 支书裁定「只支委层可见」）：待批活动**不是**「待参与」的活动
 // ——它还没获批（与 `draft` 同待遇），不为它派生「参与活动」待办（也免得从待办标题把没批的活动漏出去）。
-import { PENDING_APPROVAL_STATUS } from '../activity/activity.js?v=20261025b';
-import { todayLocal, _fmtDate } from '../../core/base/utils.js?v=20261025b';
-import { DEFAULT_BRANCH_ID, isActivityEnded } from '../../core/domain/constants.js?v=20261025b';
-import { AuthStore } from '../core/auth.js?v=20261025b';
+import { PENDING_APPROVAL_STATUS } from '../activity/activity.js?v=20261026a';
+import { todayLocal, _fmtDate } from '../../core/base/utils.js?v=20261026a';
+import { DEFAULT_BRANCH_ID, isActivityEnded } from '../../core/domain/constants.js?v=20261026a';
+import { AuthStore } from '../core/auth.js?v=20261026a';
 // 周期键（月/季/半年/年）与「模块周期」单一源（2026-10-06 批次 423 · `R-29⑤` · `D-804`）——
 //   周期任务的**来源**＝`work-map.js::WORK_MAP_MODULES[].cycle`（不另立第二份映射，`D-803②`）。
-import { cyclePeriodOf, cyclePeriodLabel } from '../../core/base/period.js?v=20261025b';
-import { WORK_MAP_MODULES, expandWorkforce, ownerOfModule, moduleIdOfActivity } from '../../core/domain/work-map.js?v=20261025b';
+import { cyclePeriodOf, cyclePeriodLabel } from '../../core/base/period.js?v=20261026a';
+import { WORK_MAP_MODULES, expandWorkforce, ownerOfModule, moduleIdOfActivity } from '../../core/domain/work-map.js?v=20261026a';
 // R10-B03：种子待办截止 = 活动日 + 制度复盘/归档时限（单一源），不存死日期字面量。
-import { ACTIVITIES } from '../../data/mock/activities.js?v=20261025b';
-import { POLICY_DEFAULTS } from '../../core/domain/policy-defaults.js?v=20261025b';
+import { ACTIVITIES } from '../../data/mock/activities.js?v=20261026a';
+import { POLICY_DEFAULTS } from '../../core/domain/policy-defaults.js?v=20261026a';
 // 「待归档」是否可生成 = 活动关闭条件是否已齐（单一源 `services/activity/close-conditions.js`）。
 // 2026-10-25 批次 510：hydrate 原按「活动已结束」逐条生成，实测 34 条（多数产出未齐、归档面并不需要）；
 // 改为 canClose 才生成。该函数只在服务层此处消费，不复制分类型判据（避免第二套关闭标准）。
-import { checkActivityCloseConditions } from '../activity/close-conditions.js?v=20261025b';
+import { checkActivityCloseConditions } from '../activity/close-conditions.js?v=20261026a';
 
 // ── 待办分类枚举 ──────────────────────────────────────────────
 export const TodoCategory = {
@@ -1716,7 +1716,8 @@ export const SEED_TODOS = [
     // R2-34（2026-10-20）：原 deadline 12/31、sourceId:null ⇒ 与活动无派生关系，活动归档也不会自动销项。
     //   改为挂真实活动 act-37；截止 = 活动日 + 制度复盘/宣传归档时限（R10-B03：读 review.deadlineDays，现算不存死）。
     deadline: _addDays((ACTIVITIES.find(a => a.id === 'act-37') || {}).date, POLICY_DEFAULTS.review.deadlineDays),
-    createdAt: '2026-07-05T08:00:00',
+    // Task 5（2026-10-26）：createdAt 随演示窗口（2026-08-01~2026-11-30）落到 act-37 通知发布日。
+    createdAt: '2026-10-08T08:00:00',
     sourceType: TodoSourceType.ACTIVITY,
     sourceId: 'act-37',
     actionKey: 'activity-archive',
@@ -1776,14 +1777,21 @@ export function migrateStaleArchiveTodos() {
 
 /**
  * 初始化种子数据（幂等：按 id 补齐缺失种子；同时清理已废弃种子，避免残留叠加）
- * 批次 500（B-499-3）：
- *  · **mock 形态**保留演示能力——补齐全部种子；
- *  · **API 形态**只补「当前登录角色匹配」的种子；无会话 / 无匹配角色 ⇒ 不补。
- *    （客户端替其他角色播种会生成服务端行级写门看不见的本地行，每次刷新重加、快照 403。）
+ * 批次 500（B-499-3）：~~API 形态只补「当前登录角色匹配」的种子~~
+ * Task 3（2026-10-26，spec「api 形态禁止 mock 回退」）改准：
+ *  · **mock / 显式演示形态**保留演示能力——补齐全部种子；
+ *  · **API 形态一律不补种子、不落库**（空库由页面显示空态）；只保留对真实业务的派生
+ *    （`LifecycleTodoDeriver` 按活动结束派生待归档待办），不写任何 `todo_seed_*` 行。
  * Task 2.3（2026-10-25）：先作废「活动已归档」的历史归档待办（一次性迁移），
  *   再按「活动结束 → 待归档」派生当前应存在的归档待办（Task 2.4 幂等键保证不叠加）。
  */
 export function seedTodos() {
+  if (getDataSource() === 'api') {
+    // API 形态：禁止空表回退演示种子；也不 persist() 任何种子行。
+    // 仅派生「真实业务应存在」的归档待办（其写口走快照，属正常业务写）。
+    LifecycleTodoDeriver.derivePendingArchiveTodos();
+    return;
+  }
   let existing = _loadTodos();
   // 清理已废弃种子（用户 localStorage 可能残留旧版本种子）
   const purged = existing.filter(t => !OBSOLETE_SEED_IDS.has(t.id));
@@ -1792,11 +1800,7 @@ export function seedTodos() {
     existing = purged;
   }
   migrateStaleArchiveTodos();
-  let seeds = SEED_TODOS;
-  if (getDataSource() === 'api') {
-    const me = AuthStore.getCurrentUser();
-    seeds = me && me.role ? SEED_TODOS.filter(t => t.role === me.role) : [];
-  }
+  const seeds = SEED_TODOS;
   const existingIds = new Set(_loadTodos().map(t => t.id));
   const missing = seeds.filter(t => !existingIds.has(t.id));
   if (missing.length > 0) _saveTodos([..._loadTodos(), ...missing]);

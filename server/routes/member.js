@@ -197,6 +197,36 @@ export function createMemberRouter(db) {
     res.json(updated);
   });
 
+  // ── 转移/取消标注（Task 3 · 2026-10-26）─────────────────────────────────
+  // 成员移出时：非终态申请作废为 `cancelled`，所有申请标注 `transferredOutAt`。
+  // 为什么用行级语义端点：`member_change_requests` 不在快照 payload，通用 CRUD 也不覆盖；
+  //   若只改本机 `mockDB`，清缓存/换设备即丢失（假保存）。
+  // 白名单：`status`（仅 cancelled）/ `cancelledAt` / `transferredOutAt`；其余字段 400。
+  router.post('/member-change-requests/:id/annotate', requireCommissioner(db), (req, res) => {
+    const existing = getRow(db, 'member_change_requests', req.params.id);
+    if (!existing) return res.status(404).json({ error: '申请不存在' });
+    if (recordBranchWriteDeny(db, 'member_change_requests', existing, req.actor, { requireBranch: false })) {
+      return res.status(403).json({ error: '无权限：不能标注其他支部的申请' });
+    }
+    const body = (req.body && typeof req.body === 'object' && !Array.isArray(req.body)) ? req.body : {};
+    const allowed = ['status', 'cancelledAt', 'transferredOutAt'];
+    const outside = Object.keys(body).filter((k) => !allowed.includes(k));
+    if (outside.length) return res.status(400).json({ error: `字段 ${outside[0]} 不在白名单（本端点仅可写 status/cancelledAt/transferredOutAt）` });
+    if (body.status !== undefined && body.status !== 'cancelled') {
+      return res.status(400).json({ error: 'status 只允许 cancelled' });
+    }
+    const updated = { ...existing };
+    if (body.status === 'cancelled' && !['cancelled', 'rejected', 'completed'].includes(existing.status)) {
+      updated.status = 'cancelled';
+      updated.cancelledAt = body.cancelledAt ? String(body.cancelledAt) : new Date().toISOString();
+    }
+    if (Object.prototype.hasOwnProperty.call(body, 'transferredOutAt')) {
+      updated.transferredOutAt = body.transferredOutAt ? String(body.transferredOutAt) : null;
+    }
+    writeRow(db, 'member_change_requests', updated);
+    res.json(updated);
+  });
+
   // ── 名册成员变更确认链 · 支书阶段写入语义端点（C-2 方案 B，2026-09-11 支书批）──────────
   // 背景：成员变更确认链「支书确认生效」经 PersonStore.saveMember → ApiAdapter.users.update（PATCH /users/:id），
   // 而 resources.js 的 users 写权矩阵仅 party-staff（RESOURCE_WRITE_GATE.users）→ 支书 role='secretary'

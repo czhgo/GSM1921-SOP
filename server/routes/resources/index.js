@@ -33,7 +33,7 @@ import { canReadThoughtReport } from '../../../docs/src/services/governance/thou
 // T-218：新增 4 张 niche 表（键名与前端快照 payload 键名完全一致）
 // T-209 全栈同步：补齐前端 mockDB 全部持久化域，使 API 模式全链路可用
 import { RESOURCE_TABLES, ID_PREFIX, listTable, getRow, writeRow } from './store.js';
-import { RESOURCE_WRITE_GATE, COMMISSIONER_WRITE_RESOURCES, _assertResourceWrite, _writeDenyMsg, ACTIVITY_WRITE_DENY_MSG, _assertActivityWrite, _ballotModeReject, BRANCH_COMMITTEE_ROLES, PARTY_STAFF_ROLE, _assertActivityBlockEnabled, _assertWorkflowBlockEnabled, _assertCapabilityPackageEnabled, activityBlockDisabledMsg, workflowBlockDisabledMsg, _snapshotNoticeMessageGateDeny, _snapshotResourceWriteGateDeny, _retainUngatedSnapshotRows, _inspectionDecisionDeny, _inspectionSourceKeyDeny, _inspectionImmutableKeyDeny } from './gates.js';
+import { RESOURCE_WRITE_GATE, COMMISSIONER_WRITE_RESOURCES, _assertResourceWrite, _writeDenyMsg, ACTIVITY_WRITE_DENY_MSG, _assertActivityWrite, _ballotModeReject, BRANCH_COMMITTEE_ROLES, PARTY_STAFF_ROLE, _assertActivityBlockEnabled, _assertWorkflowBlockEnabled, _assertCapabilityPackageEnabled, activityBlockDisabledMsg, workflowBlockDisabledMsg, _snapshotNoticeMessageGateDeny, _snapshotResourceWriteGateDeny, _retainUngatedSnapshotRows, _inspectionDecisionDeny, _inspectionSourceKeyDeny, _inspectionImmutableKeyDeny, _inspectionPersonMembershipDeny } from './gates.js';
 import { _activityApprovalGateDeny, _snapshotActivityApprovalGateDeny, _activityCreateGatePatch } from './approval-gates.js';
 import { _snapshotBaseVersions, _snapshotWrites, _snapshotMissingVersions, _allCollectionVersions, _snapshotVersionConflicts, _normalizeSnapshotAliases, recordSnapshotConflicts } from './snapshot-versions.js';
 import { registerExtraSemanticRoutes } from './semantic-routes.js';
@@ -380,6 +380,10 @@ export function createResourcesRouter(db) {
     // （空模板/复制双形态创建，party-staff 门控，见 L2 配置路由之前）；本通用 POST 跳过 branches。
     if (name !== 'branches') {
       router.post(`/${name}`, writeAuth, (req, res) => {
+        // P1-26 / v12：committee_broadcasts 已停止写入（送达由系统通知承担），保留存量只读。
+        if (name === 'committeeBroadcasts') {
+          return res.status(409).json({ error: '支委广播已停止写入（存量只读保留；送达由系统通知承担）' });
+        }
         // R4-D04：先判稳定父键，再判角色门——缺键给出可懂 400，而不是笼统 403。
         if (name === 'inspections') {
           const keyDeny = _inspectionSourceKeyDeny(req.body);
@@ -417,6 +421,11 @@ export function createResourcesRouter(db) {
           const branchId = branchForNewResource(db, name, row, req.actor);
           const scopeDeny = recordBranchWriteDeny(db, name, { ...row, ...(branchId ? { branchId } : {}) }, req.actor);
           if (scopeDeny) return res.status(403).json({ error: scopeDeny });
+        }
+        // v12：考察对象必须是父工作组成员（在角色门与支部门之后 ⇒ 越权仍得 403，非成员得可懂 400）。
+        if (name === 'inspections') {
+          const memberDeny = _inspectionPersonMembershipDeny(db, req.body);
+          if (memberDeny) return res.status(400).json({ error: memberDeny });
         }
         if (name === 'periodicArchives' && row.branchId && row.branchId !== (req.actor.branchId || DEFAULT_BRANCH_ID)) {
           return res.status(403).json({ error: '无权限：周期归档只能归属当前支部' });
@@ -521,6 +530,10 @@ export function createResourcesRouter(db) {
 
     // 更新：局部合并 patch（与前端 update(id, patch) 语义一致）
     router.patch(`/${name}/:id`, writeAuth, (req, res) => {
+      // P1-26 / v12：committee_broadcasts 已停止写入，存量只读。
+      if (name === 'committeeBroadcasts') {
+        return res.status(409).json({ error: '支委广播已停止写入（存量只读保留）' });
+      }
       // R10-D16（批次 504）：支部配置只许走 /branches/:id/config（同一套净化＋逐键留痕），
       //   通用 PATCH 不得旁路写 config。
       if (name === 'branches' && req.body && typeof req.body === 'object'
@@ -669,6 +682,11 @@ export function createResourcesRouter(db) {
         if (ballotErr) return res.status(400).json({ error: ballotErr });
       }
       const merged = { ...previousRecord, ...(req.body || {}), id };
+      // v12：修改后的考察对象仍须是父工作组成员（personId / 父键被改时同样复算）。
+      if (name === 'inspections') {
+        const memberDeny = _inspectionPersonMembershipDeny(db, merged);
+        if (memberDeny) return res.status(400).json({ error: memberDeny });
+      }
       if (name === 'activities') {
         merged.organizingScope = normalizeOrganizingScope(merged.organizingScope, merged);
         if (merged.organizingScope === ACTIVITY_SCOPES.BRANCH) {
@@ -798,6 +816,10 @@ export function createResourcesRouter(db) {
 
     // 删除
     router.delete(`/${name}/:id`, writeAuth, (req, res) => {
+      // P1-26 / v12：committee_broadcasts 已停止写入，存量只读（不删历史）。
+      if (name === 'committeeBroadcasts') {
+        return res.status(409).json({ error: '支委广播已停止写入（存量只读保留）' });
+      }
       // R4-D04：历史考察（缺工作组键）只读——删除给出明确原因，不走「万金油」403。
       if (name === 'inspections') {
         const current = db.prepare(`SELECT data FROM ${table} WHERE id = ?`).get(String(req.params.id));

@@ -3,14 +3,14 @@
 // 变化: 去掉 mode 标签与只读视角切换；2026-08-10 支书裁定（原则12 工作台集成制）：
 // 「切换工作台」下拉为冗余要素（每个人就是每个人，任务集成在工作台，跨台经待办/通知直达）→ 删除
 
-import { ROLE_LABELS } from '../../core/domain/constants.js?v=20261025b';
-import { getBasePath } from '../../core/base/utils.js?v=20261025b';
-import { icon } from '../../core/base/icons.js?v=20261025b';
-import { DATA_CHANGED_EVENT, DATA_LOADED_EVENT } from '../../data/data-adapter.js?v=20261025b';
-import { badgeHtml } from '../ui/badges.js?v=20261025b';
-import { readLoginSnapshot } from '../../core/session/login-snapshot.js?v=20261025b';
+import { ROLE_LABELS } from '../../core/domain/constants.js?v=20261026a';
+import { getBasePath } from '../../core/base/utils.js?v=20261026a';
+import { icon } from '../../core/base/icons.js?v=20261026a';
+import { DATA_CHANGED_EVENT, DATA_LOADED_EVENT } from '../../data/data-adapter.js?v=20261026a';
+import { badgeHtml } from '../ui/badges.js?v=20261026a';
+import { readLoginSnapshot } from '../../core/session/login-snapshot.js?v=20261026a';
 // P1 党委后台（2026-09-02）：header 品牌软编码——标题随支部配置档案更换（person→branchId→branches.config.headerTitle）
-import { getHeaderTitle } from '../../services/branch/branch.js?v=20261025b';
+import { getHeaderTitle } from '../../services/branch/branch.js?v=20261026a';
 
 // ── 数据层按需加载（静态页隔离，2026-08-12）──
 // about/help 等纯静态文档页以 staticShell 渲染 header：不加载 auth/notice 数据链
@@ -19,18 +19,18 @@ import { getHeaderTitle } from '../../services/branch/branch.js?v=20261025b';
 let _authModule = null;
 let _noticeModule = null;
 function loadAuth() {
-  if (!_authModule) _authModule = import('../../services/core/auth.js?v=20261025b');
+  if (!_authModule) _authModule = import('../../services/core/auth.js?v=20261026a');
   return _authModule;
 }
 function loadNotice() {
-  if (!_noticeModule) _noticeModule = import('../../services/governance/notice.js?v=20261025b');
+  if (!_noticeModule) _noticeModule = import('../../services/governance/notice.js?v=20261026a');
   return _noticeModule;
 }
 // 2026-09-30 批次 297-2：跨台通用动作「一键汇报」收进顶栏唯一固定位 ⇒ 顶栏按需加载其入口模块
 // （与 auth / notice 同一策略：静态壳页不加载，app 模式渲染后加载，模块缓存后即时）
 let _reportEntryModule = null;
 function loadReportEntry() {
-  if (!_reportEntryModule) _reportEntryModule = import('../record/report-entry.js?v=20261025b');
+  if (!_reportEntryModule) _reportEntryModule = import('../record/report-entry.js?v=20261026a');
   return _reportEntryModule;
 }
 

@@ -3,7 +3,7 @@ title: "数据模型与数据流"
 type: design
 role: "[工程师]+[AI]"
 version: "1.1"
-last_updated: 2026-10-25
+last_updated: 2026-10-26
 status: active
 related_files: [content/02_institution/SYSTEM_ROLE_PERMISSION.md, content/02_institution/COMMISSIONER_DUTY_FRAMEWORK.md, content/02_institution/sop/纪检委员工作流程指南.md, content/03_doc_system/ARCHITECTURE.md]
 ---
@@ -13,7 +13,7 @@ related_files: [content/02_institution/SYSTEM_ROLE_PERMISSION.md, content/02_ins
 > **总述：** 本文是系统**数据**的唯一权威源，回答两件事——**「有哪些数据、每类数据的字段是什么」**（第一部分 · 数据模型，静态结构）与**「数据如何产生、流动、聚合」**（第二部分 · 数据流，动态过程）。两半是同一套数据的两个切面：模型侧定义结构，流侧定义过程；结构变更或流向变更都须两侧同步。第三部分列出本文不重复展开的权威源。
 > **受众：** [工程师]+[AI] —— 供开发决策参考，确保数据结构变更时全栈一致。
 > **权限矩阵**：本文档含权限简表，完整定义见 [SYSTEM_ROLE_PERMISSION.md](../../02_institution/SYSTEM_ROLE_PERMISSION.md)（系统角色权限矩阵，代码键级权威）。
-> **本文不回答**：① **沿革与「哪一批做了什么」** → `.ctx/logs/YYYY-MM-EXECUTION_LOG.md`；② **权限矩阵的完整定义** → [SYSTEM_ROLE_PERMISSION.md](../../02_institution/SYSTEM_ROLE_PERMISSION.md)（冲突时以权威源为准）；③ **架构分层与目录结构** → [ARCHITECTURE.md](../../03_doc_system/ARCHITECTURE.md)；④ **登录门控与部署** → [DEPLOYMENT_GUIDE.md §四 / §二](../deploy/DEPLOYMENT_GUIDE.md)。
+> **本文不回答**：① **沿革与「哪一批做了什么」** → `.ctx/logs/YYYY-MM-EXECUTION_LOG.md`；② **权限矩阵的完整定义** → [SYSTEM_ROLE_PERMISSION.md](../../02_institution/SYSTEM_ROLE_PERMISSION.md)（冲突时以权威源为准）；③ **架构分层与目录结构** → [ARCHITECTURE.md](../../03_doc_system/ARCHITECTURE.md)；④ **登录门控与部署** → [DEPLOYMENT_GUIDE.md §四 / §二](../deploy/DEPLOYMENT_GUIDE.md)。**schema v12 与种子契约（2026-10-26）**：v12 已落四组唯一索引（`attendances(activityId,personId)` / 活组 `party_groups(branchId,name)` / `attendance_rosters(activityId)` / `workgroup_members(workgroupId,personId)`）、`todos.branch_id` 生成列、`contributions` 统一对象数组、考察人员 ∈ 父工作组校验，并 DROP `issue_reveals`、`committee_broadcasts` 转恒只读；结构明细见本文附录 A。**哪一行必须由种子给出、哪些字段只能派生 / 展示**，以 [DATA_SEED_CONTRACT.md](./DATA_SEED_CONTRACT.md) 为唯一权威（守卫 `server/test/seed-contract-guard.test.mjs`）；本文只登记字段与结构，不重复种子口径。
 
 ---
 
@@ -1203,7 +1203,7 @@ pending ──用户开始处理──→ in_progress ──完成──→ comp
 
 ### 2.29 匿名反馈核查留痕（IssueReveal）
 
-> **仅服务端表**：无前端持久化域、不进快照写穿、**无通用 CRUD**（`server/db.js::RESOURCE_TABLES`）。
+> **仅服务端表**：无前端持久化域、不进快照写穿、**无通用 CRUD**。**v12 已 `DROP TABLE`（2026-10-26），本节为历史字段契约留档**。
 
 > **历史用途**＝记录旧版系统曾由党委调用揭名出口的事件。D-824 之后不再提供揭名入口，历史记录保留、不新增；此表不构成当前任何角色的读取授权。
 
@@ -1799,3 +1799,71 @@ KANBAN\_MOCKS（mock/kanban.js）作为独立硬编码的看板数据，与正�
 | SOP 场景与任务模板 | `docs/src/workflow/sopData.js`（场景与任务定义）+ `docs/src/workflow/definitions.js`（工作流定义） |
 | 数据一致性判据与断言方法 | [DATA_CONSISTENCY_CHECKLIST.md](../../05_ai_coding/DATA_CONSISTENCY_CHECKLIST.md) |
 | 沿革与「哪一批做了什么」 | `.ctx/logs/YYYY-MM-EXECUTION_LOG.md` |
+| **种子契约（必须种子 / 可派生 / 可交叉验证 / 展示专用）** | [DATA_SEED_CONTRACT.md](./DATA_SEED_CONTRACT.md)（v12 起；守卫 `server/test/seed-contract-guard.test.mjs`） |
+
+---
+
+## 附录 A　schema v12 与辅助表字段登记（2026-10-26）
+
+> 本附录只登记 v12 的结构变更与「此前未进字段表」的辅助/语义表；逐表种子口径见
+> [DATA_SEED_CONTRACT.md](./DATA_SEED_CONTRACT.md)。JSON 主表仍是唯一权威源。
+
+### A.1 schema v12（`server/db.js::MIGRATIONS` version 12）
+
+| 变更 | 内容 | 边界 |
+|---|---|---|
+| 唯一索引 | `ux_attendances_activity_person`：`attendances(json_extract(data,'$.activityId'), json_extract(data,'$.personId'))` | 迁移内先幂等去重（保留确认时间最新的一条，同时间按 id） |
+| 唯一索引 | `ux_party_groups_branch_name`：`party_groups(branchId,name)`，`WHERE status='active'` | **部分唯一**：解散组保留同名历史，新建同名活组仍被拒（与 `party-group.js::_nameTaken` 同口径） |
+| 唯一索引 | `ux_attendance_rosters_activity`：`attendance_rosters(json_extract(data,'$.activityId'))` | 一活动一份冻结名单；重复保留 version/frozenAt 最新 |
+| 唯一索引 | `ux_workgroup_members_group_person`：`workgroup_members(workgroupId,personId)` | 重复保留非 removed / 最新 createdAt；撤销＝同一行 status 变更 |
+| 列维护 | `todos.branch_id` 改为 `GENERATED ALWAYS AS (json_extract(data,'$.branchId')) VIRTUAL` | 重建表；`INSERT INTO todos(id,data)` 不变；`UPDATE ... branch_id` 报错（写口只写 `data.branchId`）。回滚用 `rollbackV12`（删索引 + `user_version=11`；生成列保留，v11 已兼容） |
+| 数据回填 | 活动/考勤/考察/归档/宣传/外发/交接/确认/审计/待办补 `branchId` | 父行 → 所属人 → 部署默认支部；不覆盖既有归属 |
+| 数据规范化 | `taskforces.members[].contributions` 字符串 → `{ desc }` | `rebuildShadowTables` / `compareShadowTables` 共用 `normalizeContribution` |
+| 删表 | `issue_reveals`（`DROP TABLE IF EXISTS`） | `initDb` 经 `RETIRED_RESOURCE_TABLES` 不再重建；历史契约见 §2.29 |
+
+### A.2 辅助 / 语义表字段（v12 登记）
+
+| 表（集合） | 字段 | 类别 / 说明 |
+|---|---|---|
+| `signups` | `id, sourceType, sourceId, personId, role, status, createdAt, reviewedBy, reviewedAt, cancelledAt, cancelledBy, note` | 业务；支部由 `sourceId` 父行派生，不单独存 `branchId` |
+| `prop_tasks` | `id, branchId, source, sourceRole?, sourceOrg?, type, summary, status, createdAt` | 业务；`source` 展示快照，`sourceRole/sourceOrg` 为稳定键 |
+| `external_dispatches` | `id, branchId, refType, refLabel, senderId, senderName, receiverRole, note, sentAt, confirmedAt` | 业务；`refLabel` 展示，确认时间运行时 |
+| `member_change_requests` | `id, branchId, personId, fromStage, toStage, meetingResult, activityId, agendaItemId, status, approvedAt, approvedBy, confirmedAt, confirmedBy` | 运行时/派生；来源＝议程结果 |
+| `committee_broadcasts` | `id, branchId, requestId, recipientId, status, broadcastAt, read` | **v12 恒只读**；通用 POST/PATCH/DELETE 返回 409 |
+| `agenda_votes` | 记名：`id, branchId, activityId, agendaItemId, personId, position, note, updatedAt`；无记名：`id=avt-..., branchId, activityId, agendaItemId, ballotMode:'anonymous', tally, updatedAt` | 运行时；逐人选项只在记名制落库 |
+| `attendance_rosters` | `id, branchId, activityId, personIds[], frozen, version, frozenBy, frozenAt` | 运行时；一活动一行 |
+| `handoffs` | `id, branchId, type, from, to, refType, refLabel, refId, note, status, createdAt, confirmedAt, confirmedBy` | 语义端点；`from/to` 由 `type` 派生 |
+| `member_confirmations` | `id, branchId, kind, personId, action, from, to, note, by, status, decidedBy, decidedAt, rejectNote, createdAt` | 语义端点 |
+| `milestones` | `id, title, description, dueDate, issueIds[], status` | 只读语义域 |
+| `attendance_appeals` | `id, branchId, personId, activityId, note, status, createdAt, decidedBy, decidedAt, decisionNote` | 语义端点 |
+| `inspection_appeals` | 同上（申诉对象为考察记录） | 语义端点 |
+| `issue_unread` | `id=assigneeId:issueId, assigneeId, issueId, unread, at` | 语义端点；支部由 issue 派生 |
+| `auth_audit` | `id, branchId, targetPersonId, role, scopeRef, authorizedBy, authorizedAt, action` | 只增留痕 |
+
+### A.3 UI 写入但此前未登记的字段（v12 起登记）
+
+| 集合 | 字段 | 写入点 | 语义 |
+|---|---|---|---|
+| `activityReviews` | `remindedAt` | 复盘提醒动作 | 最后一次提醒时间（运行时） |
+| `activityReviews` | `reminderType` | 复盘提醒动作 | 提醒渠道/类型（运行时） |
+| `activityReviews` | `depositedAt` | 复盘经验沉淀 | 沉淀入库时间（运行时） |
+| `activities` | `galleryFeaturedBy` | 活动风采收录 | 收录操作人（运行时） |
+| `activities` | `galleryFeaturedAt` | 活动风采收录 | 收录时间（运行时） |
+| `todos` | `actionKey` | 待办派生/销项 | 幂等动作键（与 `sourceType+sourceId` 联合判重） |
+| `todos` | `flow` | 待办派生 | 流程标识（如 `attention/execute`） |
+| `notices` | `noticeType` | 消息/站内信 | 通知子类型（`message` 等） |
+| `notices` | `targetModule` | 通知发布 | 目标模块键（深链落点） |
+| `issues` | `domain` | 反馈/汇报提交 | 事项领域（选填；表单侧必填） |
+| `inspections` | `returnedBy` | 考察打回 | 打回操作人 |
+| `inspections` | `returnedAt` | 考察打回 | 打回时间 |
+| `inspections` | `returnReason` | 考察打回 | 打回原因 |
+| `attendances` | `secretaryConfirmedAt` | 支书确认考勤 | 支书确认时间（与纪检确认分开留痕） |
+
+### A.4 死表 / 半死表（v12）
+
+| 表 | 状态 | 依据 |
+|---|---|---|
+| `issue_reveals` | **已 DROP**（v12） | D-824 起停止写入、0 读取入口；`DATA_MODEL` §2.29 保留历史契约 |
+| `committee_broadcasts` | **只读保留** | 通用写口 409；送达由系统通知承担 |
+| `agenda_items` / `taskforce_contributions` | 影子表（无读口） | 仅 `rebuildShadowTables` 双写；已登记 `NO_READ_ALLOWLIST` |
+| `snapshot_conflicts` / `shadow_history` | 证据表（无读口） | 仅切表闸门只读；已登记 `NO_READ_ALLOWLIST` |

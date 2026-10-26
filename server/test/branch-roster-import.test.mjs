@@ -15,18 +15,18 @@
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261025b';
-import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261025b';
+import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261026a';
+import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261026a';
 import {
   PersonStore, getBaseMemberRecords,
-} from '../../docs/src/services/member/person.js?v=20261025b';
-import { getRosterStats } from '../../docs/src/services/member/roster.js?v=20261025b';
+} from '../../docs/src/services/member/person.js?v=20261026a';
+import { getRosterStats } from '../../docs/src/services/member/roster.js?v=20261026a';
 import {
   BRANCH_ROSTER_KIND, BRANCH_ROSTER_VERSION,
   buildBranchRosterTemplate, sanitizeBranchRoster,
-} from '../../docs/src/services/member/branch-roster-import.js?v=20261025b';
-import { buildPreviewTemplate } from '../../docs/src/services/branch/org-base-data-preview.js?v=20261025b';
-import { setDataSource } from '../../docs/src/data/data-adapter.js?v=20261025b';
+} from '../../docs/src/services/member/branch-roster-import.js?v=20261026a';
+import { buildPreviewTemplate } from '../../docs/src/services/branch/org-base-data-preview.js?v=20261026a';
+import { setDataSource } from '../../docs/src/data/data-adapter.js?v=20261026a';
 import { createApp } from '../app.js';
 import { seedDatabase } from '../seed.js';
 
@@ -308,5 +308,67 @@ test('api ⑥：replaceBranchMembers（api 形态）整支部替换落 server us
   } finally {
     setDataSource('mock');
     delete globalThis.window;
+  }
+});
+
+// ── Task 7.5（2026-10-26）：名册导入原子化 PUT /branches/:id/roster ─────────────
+// 判据：① 单事务替换成功；② 失败整体回滚（旧名册逐值不变）；③ 导入后真实成员可账号密码登录
+// （服务端登录只查 users 表，不依赖本机账号层）。
+test('api ⑦：PUT /branches/:id/roster 单事务替换；失败回滚旧名册不变；导入后成员可账号密码登录', async () => {
+  if (!staffToken) staffToken = await login('9000000001');
+  const created = await fetch(`${base}/api/v1/branches`, {
+    method: 'POST', headers: auth(staffToken),
+    body: JSON.stringify({ mode: 'empty', name: '原子名册导入支部', type: '测试' }),
+  });
+  assert.equal(created.status, 201);
+  const { branch } = await created.json();
+
+  // ① 首次替换（2 名）→ 200
+  const first = await fetch(`${base}/api/v1/branches/${branch.id}/roster`, {
+    method: 'PUT', headers: auth(staffToken),
+    body: JSON.stringify({ members: [
+      { id: 'r-import-1', name: '原子导入甲', partyGroup: '第一党小组', developStage: '正式党员' },
+      { id: 'r-import-2', name: '原子导入乙', developStage: '预备党员' },
+    ] }),
+  });
+  assert.equal(first.status, 200, `首次导入应 200：${await first.clone().text()}`);
+  const firstBody = await first.json();
+  assert.equal(firstBody.count, 2);
+  assert.equal(firstBody.branchId, branch.id);
+  const afterFirst = await getUsers(staffToken, branch.id);
+  assert.deepEqual(afterFirst.map((u) => u.id).sort(), ['r-import-1', 'r-import-2']);
+
+  // ② 失败回滚：把 br-b1 的既有成员塞进名册 ⇒ 409；旧名册逐值不变
+  const conflict = await fetch(`${base}/api/v1/branches/${branch.id}/roster`, {
+    method: 'PUT', headers: auth(staffToken),
+    body: JSON.stringify({ members: [
+      { id: 'r-import-3', name: '不该落库的丙' },
+      { id: '2400012345', name: '跨支部成员' },
+    ] }),
+  });
+  assert.equal(conflict.status, 409, '引用其他支部既有成员 ⇒ 409');
+  assert.match((await conflict.json()).error, /其他支部/);
+  const afterFail = await getUsers(staffToken, branch.id);
+  assert.deepEqual(afterFail.map((u) => u.id).sort(), ['r-import-1', 'r-import-2'], '失败后旧名册不变（整体回滚）');
+  assert.equal((await getUsers(staffToken, branch.id)).find((u) => u.id === 'r-import-1').name, '原子导入甲', '旧行字段逐值不变');
+
+  // ③ 导入后真实成员可账号密码登录（服务端登录只查 users；不依赖本机 accounts 层）
+  const saved = { check: process.env.DISABLE_PASSWORD_CHECK, pw: process.env.LOGIN_PASSWORD };
+  process.env.DISABLE_PASSWORD_CHECK = '0';
+  process.env.LOGIN_PASSWORD = 'real-import-pass';
+  try {
+    const okLogin = await fetch(`${base}/api/v1/auth/login`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ personId: 'r-import-1', password: 'real-import-pass' }),
+    });
+    assert.equal(okLogin.status, 200, '导入成员应以真实账号 + 口令登录成功');
+    const badLogin = await fetch(`${base}/api/v1/auth/login`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ personId: 'r-import-1', password: 'wrong-pass' }),
+    });
+    assert.equal(badLogin.status, 401, '错误口令仍应 401（证明不是口令逃逸）');
+  } finally {
+    if (saved.check === undefined) delete process.env.DISABLE_PASSWORD_CHECK; else process.env.DISABLE_PASSWORD_CHECK = saved.check;
+    if (saved.pw === undefined) delete process.env.LOGIN_PASSWORD; else process.env.LOGIN_PASSWORD = saved.pw;
   }
 });

@@ -11,6 +11,7 @@
 import { SEED_MANIFEST } from '../docs/src/data/seed-manifest.js';
 import { detectSeedDrift, planSeedRepair } from '../docs/src/data/seed-drift.js';
 import { loadSeedRowsByTable } from './seed-rows.js';
+import { isProductionEnv } from './env.js';
 
 export const SEED_META_TABLE = 'seed_meta';
 export const SEED_VERSION_KEY = 'seed_version';
@@ -91,11 +92,28 @@ export function repairExistingSeedRows(db, { seedRowsByTable = {}, seedVersion =
 /**
  * 启动期入口：比较 `seed_meta.seed_version` 与当前 `SEED_DATA_VERSION`。
  * 一致 ⇒ 完全不动（二次启动零写）；不一致 ⇒ 事务内修复既有 seed id 并写回版本。
+ *
+ * Task 7.2（正式数据轨道）：以下两种形态**不修复演示 seed id**，且 `seed_meta` **只读**（不写版本）：
+ *   · `seed_meta.mode = 'baseline'` —— 组织基线库本就不含演示种子（`scripts/rebuild-demo.mjs --mode baseline`）；
+ *   · **生产形态**（`APP_ENV/NODE_ENV=production`）—— 生产库是真实账本，演示种子的「跟随版本修复」
+ *     可能把用户改过的真实行按演示种子回写，故一律跳过。
+ * 跳过时日志写明原因，便于值班人核对（不是静默忽略）。
  * @param {Object} db
  * @param {string} seedVersion 当前 `SEED_DATA_VERSION`
+ * @param {{mode?:string|null, production?:boolean}} [opts] 仅供测试注入；缺省从 `seed_meta` / 环境读取
  */
-export async function repairSeedRowsIfNeeded(db, seedVersion) {
+export async function repairSeedRowsIfNeeded(db, seedVersion, opts = {}) {
   if (!db || !seedVersion) return { skipped: true, reason: 'missing-args' };
+  const mode = opts.mode !== undefined ? opts.mode : readSeedMeta(db, 'mode');
+  const production = opts.production !== undefined ? opts.production : isProductionEnv();
+  if (mode === 'baseline') {
+    console.log('[seed] 跳过演示种子修复：seed_meta.mode=baseline（组织基线库不含演示种子）；仅读取 seed_meta，未写入。');
+    return { skipped: true, reason: 'baseline-mode', mode };
+  }
+  if (production) {
+    console.log('[seed] 跳过演示种子修复：生产形态不修复演示 seed id（避免覆盖真实账本）；仅读取 seed_meta，未写入。');
+    return { skipped: true, reason: 'production' };
+  }
   const current = readSeedMeta(db, SEED_VERSION_KEY);
   if (current === String(seedVersion)) {
     return { skipped: true, reason: 'version-match', seedVersion: current };

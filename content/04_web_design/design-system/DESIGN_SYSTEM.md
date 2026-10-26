@@ -2382,8 +2382,9 @@ li + li { margin-top: 0.25em; }
 
 ### 12.3 页签分组
 
-- 每个分组（**含首组**）渲染可见组名（12px / `--neutral-500`）；组间 `.tab-group-sep` 为 1px × 14px 竖线。
-- ≤1280px 只隐藏组名、保留分隔线；任何断点都不得让页签换行或遮挡末页签。
+- 每个分组（**含首组**）渲染可见组名：12px / 主题 soft-text / 3px 直角 / 600 字重 / 0.5px 字距，主题 soft-bg 底（`--app-accent-soft-bg` / `--app-accent-soft-text`，亮暗自动选边），1px `--neutral-400` 描边承担形状（对页面底约 2.43:1），`min-height:24px`；组间 `.tab-group-sep` 为 1px × 14px 竖线。
+- ≤1280px 只缩小内边距、不隐藏组名、不把字号下探到 11px；任何断点都不得让页签换行或遮挡末页签。
+- 规范编号：**SD-47**（视觉构成）/ SD-36（非按钮语义）/ SD-42（全宽可见）；`.tab-group-label` 同时是 SD-3「胶囊 999px」的**唯一登记例外**。判例：CASE-DESIGN-020 / 025。
 
 ### 12.4 今天页 / 待办
 
@@ -2402,7 +2403,7 @@ li + li { margin-top: 0.25em; }
 |---|---|
 | SD-1 | IF 文本/日期/下拉/多行控件 THEN class ∈ {input-flat, input-flat-sm} 且无 `text-sm`/`rounded`/独立 `border` |
 | SD-2 | IF 元素有可见边框 THEN `border-color` ∈ token 变量集合，不得为 `currentColor` |
-| SD-3 | IF 控件 THEN 8px；IF 卡片/指标带 THEN 12px；IF 胶囊 THEN 999px；不得出现 4/6px |
+| SD-3 | IF 控件 THEN 8px；IF 卡片/指标带 THEN 12px；IF 胶囊 THEN 999px（**唯一登记例外**：`.tab-group-label` 分组胶囊＝3px 直角，2026-10-26 Task 1 恢复 8–9 月准绳，细则见 SD-47）；不得出现 4/6px |
 | SD-4 | IF 元素是 `summary` THEN UA marker 已移除且恰有一个 chevron |
 | SD-5 | IF 页头/空态/弹窗主行动 THEN 实底主题色；IF 卡片内 THEN 浅主题底；IF 工具位 THEN 白底描边；IF 行内辅助 THEN 无框 |
 | SD-6 | IF 按钮用浅主题底 THEN 背景 ≠ `--neutral-0` 且描边为同色系 |
@@ -2477,11 +2478,11 @@ li + li { margin-top: 0.25em; }
 | SD-33 | IF 消息入口或消息列表 THEN 落点仅为 `messages.html`（唯一列表）或 `notice.html?id=`（唯一全貌）；非公告消息必须带 `targetType+targetId`；页面级兜底（`targetModule`→工作台、`direct` 直跳、`resolveNoticeUrl`）计数为 0 |
 | SD-34 | IF 消息状态 THEN 已读=`reads[]`、用户归档=`archivedBy[]`（可恢复）、系统归档=`archived`（不可恢复），回执独立落库；IF 活动/会议状态或种子字段 THEN 只由唯一派生函数现算，页面第二套状态机与种子派生字段计数为 0 |
 | SD-35 | IF tab 内卡片 THEN 恰 1 个 H2；卡头 H3 带范围且不复述页签名；说明在主体之后；同口径指标一屏 1 次；标题左、计数/动作右 |
-| SD-36 | IF 页签分组 THEN 组名以非按钮胶囊渲染（可见、非强调色、无 hover、`role="presentation"`）；≤1280px 只隐藏文字、保留分隔 |
+| SD-36 | IF 页签分组 THEN 组名以非按钮胶囊渲染（可见、允许主题 soft 三件套 soft-bg / soft-text / soft-border、禁止 strong 实底、无 hover、`role="presentation"`）；≤1280px 只缩内边距、保留文字与分隔 |
 
-> **SD-22…SD-36 判例指针**（2026-10-24 抽取 · 2026-10-25 批次 510 补 SD-33…36 · 批次 511 补 SD-37…40）：判例正文在 [CASES.md](CASES.md)（`CASE-DESIGN-001…019`），总目录见 [CASES_INDEX.md](../../03_doc_system/CASES_INDEX.md)；本表只留编号与布尔判据。
+> **SD-22…SD-36 判例指针**（2026-10-24 抽取 · 2026-10-25 批次 510 补 SD-33…36 · 批次 511 补 SD-37…40 · 批次 512 补 SD-41…46 · 批次 513 补 SD-47…48）：判例正文在 [CASES.md](CASES.md)（`CASE-DESIGN-001…025` ＋ `CASE-DATA-001`），总目录见 [CASES_INDEX.md](../../03_doc_system/CASES_INDEX.md)；本表只留编号与布尔判据。
 > SD-32 深链落点 · 守卫：`archive-deeplink-guard` / `link-target-guard` · 判例：CASE-DESIGN-011
-> SD-33…SD-40 的适用范围与守卫指针见 §12.15。
+> SD-33…SD-48 的适用范围与守卫指针见 §12.15。
 
 ### 12.10 链接与按压（批次 507）
 
@@ -2583,14 +2584,14 @@ li + li { margin-top: 0.25em; }
 - 允许 info 蓝的白名单：通知「重要」、活动「已发布」、汇报路由态、建议 / 选修、配置项标注（守卫逐条登记，新增即红）。
 - 守卫：`activity-tone-guard` · 判例：CASE-DESIGN-010（SD-31）
 
-### 12.15 消息承载、逐人状态、卡内构成、分组胶囊、IA 收敛与视觉层级（批次 510 · 2026-10-25 批次 511 补 SD-37…SD-40 · 2026-10-26 批次 512 补 SD-41…SD-46）
+### 12.15 消息承载、逐人状态、卡内构成、分组胶囊、IA 收敛与视觉层级（批次 510 · 2026-10-25 批次 511 补 SD-37…SD-40 · 2026-10-26 批次 512 补 SD-41…SD-46 · 2026-10-26 批次 513 补 SD-47…SD-48）
 
 | ID | 适用范围 | 判据（Boolean） | 守卫 / 检查点 | 判例 |
 |---|---|---|---|---|
 | SD-33 | 公告 / 系统通知 / 私信的列表、详情与所有入口 | 列表面唯一＝`messages.html`；全貌面唯一＝`notice.html?id=`；公告外的消息必带 `targetType+targetId`（公告可 `kind='announcement'`）；`targetModule` 页面级兜底、`direct` 直跳、`resolveNoticeUrl` 计数为 0 | `notice-deeplink-guard` / `notice-audience` / `notice-message` | CASE-DESIGN-012 |
 | SD-34 | 消息逐人状态；活动 / 会议状态；mock 种子字段 | 已读只写 `reads[]`；用户归档只写 `archivedBy[]`（可恢复）；系统归档写 `archived`（不可恢复）；回执独立；全局 `read` / `archived` 不得替代逐人状态；**进入详情即写入本人 `reads[]`（进入即已读）**；**回执区不因已读隐藏**；**导航前不预写已读**；活动 / 会议状态由唯一派生函数现算，第二套状态机与种子派生字段计数为 0 | `notice-audience`（N13–N16）/ `notice-message`（N5）/ `state-enum-guard` / `mock-api-parity-structure` | CASE-DESIGN-013 / 014 / 016 |
 | SD-35 | 工作台 tab 内卡片与卡头 | 一 tab 恰 1 个 H2；卡头 H3 带范围且不复述页签名；说明文字在主体之后；同口径指标一屏只出现 1 次；标题左、计数 / 动作右 | `workbench-audit-coverage` / `workbench-revision-contract` | CASE-DESIGN-015 |
-| SD-36 | 页签分组名（含首组） | 组名可见且为非按钮胶囊：非强调色、无 hover、`role="presentation"`、不进 tab 序列；≤1280px 只缩小内边距 / 字号，不得隐藏文字或分隔（可见性细则见 SD-42） | `doc-consistency::S3`（分组名）＋ `ui-control-system-guard::V2` ＋人工检查点（键盘序列不含组名） | —（本批无判例） |
+| SD-36 | 页签分组名（含首组） | 组名可见且为非按钮胶囊：允许主题 soft 三件套（soft-bg / soft-text / soft-border）、禁止 strong 实底、无 hover、`role="presentation"`、不进 tab 序列；≤1280px 只缩小内边距（字号保持 12px），不得隐藏文字或分隔（可见性细则见 SD-42，视觉构成细则见 SD-47） | `doc-consistency::S3`（分组名）＋ `ui-contrast-guard::K3` ＋ `ui-control-system-guard::V2` ＋人工检查点（键盘序列不含组名） | CASE-DESIGN-020 / 025 |
 | SD-37 | 「协作与知情 · 知情查看」及各台 `views` | 一级分段只放「活动工作组 / 专班工作组」两枚同级按钮；「其他党小组」独立成区（二级入口，不与工作组同排）；各台 `views` 必含 `workgroup`，组长台另含 `group`；`{workgroup,taskforce,group}` 同排判红 | `docs-governance-guard`（H-T1 / H-T2）＋ `workbench-audit-coverage` | CASE-DESIGN-017 |
 | SD-38 | 折叠、菜单、浮窗三类交互 | 阅读型折叠＝原生 `details/summary`；菜单＝`MenuButton`（`button` + `aria-expanded` + `aria-controls`）；浮窗＝`Modal`；折叠状态可由 `open` 属性静态回读、菜单状态可由 `aria-expanded` 静态回读；同一文件同类折叠只用一种原语 | `ui-control-system-guard`（交互元素 / 状态回读 / 单一原语）＋人工检查点（键盘可达） | CASE-DESIGN-018 |
 | SD-39 | 全部交互元素 | `button` / `summary` / `role="button"` 的直接内容内 `h1..h6` 与 `role="heading"` 计数为 0；标题为兄弟节点，交互元素用 `aria-labelledby` 关联标题 | `ui-control-system-guard`（T3-1：交互元素内无标题）＋人工检查点（键盘可达） | CASE-DESIGN-018 |
@@ -2601,6 +2602,10 @@ li + li { margin-top: 0.25em; }
 | SD-44 | 工作概况等工作表（`.wo-lines-table` / `.data-table--fixed`） | 关键宽表 `table-layout: fixed` ＋ 显式列宽模板：工作分工 5 列为 18% / 16% / 9% / 9% / 48%（`colgroup` 列类齐备）；末列 `text-align:end` ＋ 16px 尾部内边距；首列 `nowrap` 同时给 `max-width`；≤640 卡片化时动作列 `justify-content:flex-start` | `ui-control-system-guard::V3` ＋人工检查点（1440 / 1280 末列贴列尾） | CASE-DESIGN-022 |
 | SD-45 | 活动 / 专班的全部详情入口 | 每个入口在 `OBJECT_ROUTE_ENTRIES` 只声明一种 mode（`direct` / `locate`）并写理由，未知入口 → `none`；缺 id / 跨支部普通角色 → `none`（不渲染可点入口），党委 / 组织员放行；已归档活动与专班终态可点但 `readOnly`，详情页写口全关并显示「已归档，只读保留」；`locate` 入口同页预览 ＋「打开完整页」，同一页只有一个完整详情落点；详情 href 只经 `objectDetailHref` / `resolveObjectRoute`（裸 `activity.html?id=` / `taskforce.html?id=` 生成点计数为 0）；可点卡片 / 行具备 `role` ＋ `tabindex="0"` ＋ Enter/Space 或原生 `a`/`button` | `object-route-guard::R1–R8` ＋ `frontend-foundations-guard::F8` ＋人工检查点（深链失败提示） | CASE-DESIGN-023 |
 | SD-46 | 主题色层与功能色层的全部消费者 | 主题色层沿用 7 主题 × 亮/暗 × 9 token，色盘值不改，只承担主行动 / 选中 / 链接 / 身份标签四类；功能色层 `--status-*` / `--color-category-*` / `--color-identity-*` 各有亮暗值，只用于徽章 / 圆点 / 左条 / 图例 / 提示条；两层不互借：状态 / 类别 / 身份不写主题 token，主题色不进大面积背景与正文；`--functional-*` 只作别名；暗色类别红 / 金 ≠ danger / warning；12 个零消费者 token 计数为 0；CSS 身份色与 `ROLE_COLORS` 逐值相等 | `theme-palette-guard::T1/T2/T5/T8/T9` ＋ `link-color-guard::L3/L6–L8` ＋ `ui-contrast-guard` ＋人工检查点（关键配对对比度实测） | CASE-DESIGN-024 |
+| SD-47 | `.tab-group-label`（分组胶囊，含首组） | 视觉构成＝主题 soft 三件套（底色 `--app-accent-soft-bg` / 文字 `--app-accent-soft-text` / 1px `--neutral-400` 描边）＋ `border-radius:3px` ＋ `font-weight:600` ＋ `letter-spacing:0.5px` ＋ `font-size:12px` ＋ `min-height:24px` ＋ `flex-shrink:0`；`color-mix()` / `rgba(主题色)` / `neutral-500` 字计数为 0；亮 / 暗 softText vs softBg ≥4.5:1（实测 6.88 / 9.18），描边对页面底 ≥1.5:1（实测 2.43）；`.tab-group-label` 是 SD-3「胶囊 999px」的**唯一登记例外**，且不改变 SD-36 的非按钮语义与 SD-42 的全宽可见判据 | `ui-contrast-guard::K3` ＋ `ui-control-system-guard::V2` ＋人工检查点（390 / 768 / 1024 / 1280 / 1440 五档） | CASE-DESIGN-025 |
+| SD-48 | 浏览器缓存 / 业务写入 / 演示数据窗口 / 测试残留 | ① 长期存储只允纯展示偏好（`cache-registry` 的 visual 类）；业务读缓存必带 `_versions` ＋ `savedAt`，缺版本 / 过期 / 版本不一致不得当权威；② 业务写成功必须可证：服务端行存在 / 快照请求被观察到 / 语义端点 2xx 三选一；`api` 形态禁止 mock 回退，禁止本地 `persist()` 即成功，失败进 outbox 并显示「未同步」；③ 演示业务日期只在 `DEMO_WINDOW`（2026-08-01–2026-11-30）内，白名单例外逐条写理由；④ 测试数据面分 `memory / tmp / external-read / external-write` 四类，外部写必用临时库或 `finally` 清理；运行库残留由 `test:clean --test-residue` 清，**不删测试套件** | `localstorage-key-guard::L4–L10` ＋ `write-truth-guard::A1–A4/B1–B5` ＋ `seed-contract-guard::C1–C10` ＋ `demo-window-guard::W1–W5` ＋ `test-isolation-guard::I1–I4` | CASE-DATA-001 |
+
+> **批次 513 口径（SD-48）**：本条只判四层边界，不重复各权威源——缓存键四类清单＝`docs/src/data/cache-registry.js`；种子逐表口径＝[DATA_SEED_CONTRACT.md](../data/DATA_SEED_CONTRACT.md)；演示窗口单一源＝`docs/src/data/mock/demo-window.js::DEMO_WINDOW`；测试分层＝`server/test-tier-registry.mjs` ＋ `server/scripts/cleanup.mjs --test-residue`；部署四开关（`APP_ENV` / `DISABLE_SEED` / `SEED_FALLBACK` / `ALLOW_DEMO_DATA`）与只读演练见 [DEPLOYMENT_GUIDE.md](../deploy/DEPLOYMENT_GUIDE.md)。
 
 > 其余条目（SD-01…SD-21）的判例迁移登记为后续批次。
 

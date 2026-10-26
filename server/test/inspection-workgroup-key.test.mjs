@@ -11,9 +11,9 @@ import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { createApp } from '../app.js';
 import { seedDatabase } from '../seed.js';
-import { migrateInspectionWorkgroupKeys } from '../../docs/src/services/activity/inspection-migrate.js?v=20261025b';
-import { INSPECTION_RECORDS } from '../../docs/src/data/mock/inspection.js?v=20261025b';
-import { MOCK_TASKFORCES } from '../../docs/src/data/mock/taskforces.js?v=20261025b';
+import { migrateInspectionWorkgroupKeys } from '../../docs/src/services/activity/inspection-migrate.js?v=20261026a';
+import { INSPECTION_RECORDS } from '../../docs/src/data/mock/inspection.js?v=20261026a';
+import { MOCK_TASKFORCES } from '../../docs/src/data/mock/taskforces.js?v=20261026a';
 
 let app, db, server, base;
 
@@ -95,12 +95,18 @@ test('② 专班改名后按 workgroupId 仍可查；同名专班不串数据', 
   // 造一个与 tf-001 同名的专班（各自独立 workgroupId）——只有父键能区分，名称不能。
   put('taskforces', {
     id: 'tf-twin', name: '宣传专班（第二期）', status: 'active', branchId: 'br-b1',
-    manager: '2400012355', initiator: '2300010001', members: [{ personId: '2400012354', role: 'organizer' }], createdAt: '2026-07-09',
+    manager: '2400012355', initiator: '2300010001',
+    // v12：考察对象必须是父工作组成员 ⇒ 同名专班夹具补上被考察人（不改变「同名隔离」判据）。
+    members: [{ personId: '2400012354', role: 'organizer' }, { personId: '2400012353', role: 'deep' }],
+    createdAt: '2026-07-09',
   });
   put('workgroups', {
     id: 'wg-taskforce-tf-twin', branchId: 'br-b1', kind: 'taskforce', sourceType: 'taskforce',
     sourceId: 'tf-twin', name: '宣传专班（第二期）', status: 'active', createdAt: '2026-07-09',
   });
+  // v12：考察对象必须是父工作组在册成员（名称只是展示快照，不能当成员关系）。
+  put('workgroup_members', { id: 'wgm-twin-org', branchId: 'br-b1', workgroupId: 'wg-taskforce-tf-twin', personId: '2400012354', role: 'organizer', status: 'active', createdAt: '2026-07-09' });
+  put('workgroup_members', { id: 'wgm-twin-deep', branchId: 'br-b1', workgroupId: 'wg-taskforce-tf-twin', personId: '2400012353', role: 'deep', status: 'active', createdAt: '2026-07-09' });
 
   const { token } = await login('2400012354');
   const create = async (workgroupId, taskforceId, content) => {

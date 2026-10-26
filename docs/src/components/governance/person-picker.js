@@ -7,15 +7,15 @@
 //  样式：提取至 person-picker.css，主题色通过 CSS 变量 --pp-* 注入
 // ════════════════════════════════════════════════════════════════
 
-import { liveMembers, PersonStore } from '../../services/member/person.js?v=20261025b';
+import { liveMembers, PersonStore } from '../../services/member/person.js?v=20261026a';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/member/person.js 获取（原直连 mock PEOPLE）
 // 实时视图（非快照）：成员增删即时可见——见 services/member/person.js liveMembers 说明
 const PEOPLE = liveMembers();
-import { getPersonById } from '../../services/member/person.js?v=20261025b';
+import { getPersonById } from '../../services/member/person.js?v=20261026a';
 // 党小组清单单一源（活组按 seq 升序；2026-09-14 批次 29 收敛——见文件头「党小组清单」说明）
-import { groupOptions } from '../../services/member/party-group.js?v=20261025b';
-import { icon } from '../../core/base/icons.js?v=20261025b';
-import { ROLE_LABELS, ACCENT_COLORS } from '../../core/domain/constants.js?v=20261025b';
+import { groupOptions } from '../../services/member/party-group.js?v=20261026a';
+import { icon } from '../../core/base/icons.js?v=20261026a';
+import { ROLE_LABELS, ACCENT_COLORS } from '../../core/domain/constants.js?v=20261026a';
 
 // ── 辅助：从 hex 生成 rgba 字符串 ──────────────────────────────
 function hexToRgba(hex, alpha) {
@@ -141,6 +141,26 @@ export class PersonPicker {
 
   _applyFilter(people) {
     return this._filter ? people.filter(this._filter) : [...people];
+  }
+
+  /**
+   * 2026-10-26 批次 513：按当前来源（活动/专班工作组）收窄可选人员。
+   * 考察记录的对象必须是父工作组成员（服务端已硬校验）；前端不再让人选到必被拒的人。
+   * @param {Function|null} filter - (person) => boolean；null = 恢复全量
+   * @param {{clear?: boolean}} [opts] - clear=true 时清空已选并回调
+   */
+  setFilter(filter, { clear = false } = {}) {
+    this._filter = filter || null;
+    this._filteredPeople = this._applyFilter(PEOPLE);
+    if (clear) {
+      this._selected.clear();
+      this._onSelect?.([]);
+    } else {
+      const visible = new Set(this._filteredPeople.map((p) => p.id));
+      for (const id of [...this._selected]) if (!visible.has(id)) this._selected.delete(id);
+    }
+    this._renderTrigger();
+    this._renderList();
   }
 
   _getVisiblePeople() {

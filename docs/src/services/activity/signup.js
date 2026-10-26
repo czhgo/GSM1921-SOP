@@ -9,21 +9,21 @@
 //            organizer/deep = 报名 + 发起人审核（pending → 通过/拒绝）。
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../../core/domain/domain.js?v=20261025b';
-import { generateId } from '../../core/base/id.js?v=20261025b';
-import { persist } from '../../data/data-adapter.js?v=20261025b';
-import { bumpToken } from '../../core/base/version-token.js?v=20261025b'; // P0 域缓存失效（spec §二.3）
-import { SEED_SIGNUPS } from '../../data/mock/seed.js?v=20261025b';
-import { isInitStateActive } from '../core/init-reset.js?v=20261025b'; // C2 修复（2026-09-08）：init 态跳过演示种子兜底
-import { getPersonById } from '../member/person.js?v=20261025b';
-import { TodoStore, TodoSourceType, TodoActionType, TodoCategory, TodoStatus } from '../governance/todo.js?v=20261025b';
-import { AuthStore } from '../core/auth.js?v=20261025b';
-import { TaskForceRecordStore } from './taskforce.js?v=20261025b';
-import { isWorkgroupMemberRole, removeSignupWorkgroupRole, workgroupMembers } from './workgroup-members.js?v=20261025b';
+import { mockDB } from '../../core/domain/domain.js?v=20261026a';
+import { generateId } from '../../core/base/id.js?v=20261026a';
+import { persist, getDataSource } from '../../data/data-adapter.js?v=20261026a';
+import { bumpToken } from '../../core/base/version-token.js?v=20261026a'; // P0 域缓存失效（spec §二.3）
+import { SEED_SIGNUPS } from '../../data/mock/seed.js?v=20261026a';
+import { isInitStateActive } from '../core/init-reset.js?v=20261026a'; // C2 修复（2026-09-08）：init 态跳过演示种子兜底
+import { getPersonById } from '../member/person.js?v=20261026a';
+import { TodoStore, TodoSourceType, TodoActionType, TodoCategory, TodoStatus } from '../governance/todo.js?v=20261026a';
+import { AuthStore } from '../core/auth.js?v=20261026a';
+import { TaskForceRecordStore } from './taskforce.js?v=20261026a';
+import { isWorkgroupMemberRole, removeSignupWorkgroupRole, workgroupMembers } from './workgroup-members.js?v=20261026a';
 // 组织者身份判据单一源（2026-09-19 批次 91 · SOP-B-17）——「谁能关本场报名」读它，勿另写一份
-import { isActivityOrganizer } from './activity.js?v=20261025b';
-import { todayLocal } from '../../core/base/utils.js?v=20261025b';
-import { usesFormalMeetingRoster } from '../../core/domain/constants.js?v=20261025b';
+import { isActivityOrganizer } from './activity.js?v=20261026a';
+import { todayLocal } from '../../core/base/utils.js?v=20261026a';
+import { usesFormalMeetingRoster } from '../../core/domain/constants.js?v=20261026a';
 
 // ── 枚举 ────────────────────────────────────────────────────────
 const SignupRole = {
@@ -201,9 +201,10 @@ export const SignupStore = {
     const persisted = _loadSignups();
     if (persisted.length > 0) {
       this._signups = persisted;
-    } else if (isInitStateActive()) {
+    } else if (getDataSource() === 'api' || isInitStateActive()) {
       // C2 修复（2026-09-08）：init 态下「无持久化报名 = 合法空支部态」——不兜底演示种子
       //（否则 SEED_SIGNUPS 会经 _saveSignups 重新写回 mockDB/持久层）。
+      // Task 3（2026-10-26）：api 形态同样禁止空表回退，且不落库（没有 _saveSignups / persist）。
       this._signups = [];
     } else {
       this._signups = [...SEED_SIGNUPS];
@@ -402,7 +403,7 @@ export const SignupStore = {
         if (act && Array.isArray(act.assignments) && isWorkgroupMemberRole(s.role)) {
           const remaining = removeSignupWorkgroupRole(act.assignments, s);
           if (remaining.length !== act.assignments.length) {
-            import('../core/mock.js?v=20261025b').then(({ updateActivity }) => {
+            import('../core/mock.js?v=20261026a').then(({ updateActivity }) => {
               updateActivity(s.sourceId, { assignments: remaining });
               persist(); // updateActivity 不自动落盘，须显式 persist
             });
@@ -483,7 +484,7 @@ export async function closeActivitySignup(activityId, actorId) {
   if (!act) return { ok: false, reason: '活动不存在' };
   if (!canCloseActivitySignup(actorId, act)) return { ok: false, reason: '仅本场组织者或支书可关闭报名' };
   if (act.signupClosed === true) return { ok: false, reason: '本场报名已关闭' };
-  const { updateActivity } = await import('../core/mock.js?v=20261025b');
+  const { updateActivity } = await import('../core/mock.js?v=20261026a');
   await updateActivity(activityId, { signupClosed: true });
   return { ok: true };
 }

@@ -4,28 +4,28 @@
 // 第3轮 Task 9: dev 参数读取改用 CrossPageState.getParam（统一入口）
 // 2026-07-30: 改为 async，统一预加载所有 Service（IssueStore/MilestoneStore），消除跨页面数据不同步
 
-import { renderSidebar } from '../../components/shell/sidebar.js?v=20261025b';
-import { renderHeader } from '../../components/shell/header.js?v=20261025b';
-import { AuthStore } from '../../services/core/auth.js?v=20261025b';
-import { IssueStore } from '../../services/governance/issues.js?v=20261025b';
-import { MilestoneStore } from '../../services/governance/milestones.js?v=20261025b';
-import { CrossPageState } from '../session/cross-page-state.js?v=20261025b';
-import { getBasePath } from '../base/utils.js?v=20261025b';
-import { resolveDocumentUrl } from '../base/page-url.js?v=20261025b';
-import { enhanceSelects } from '../../components/ui/custom-select.js?v=20261025b';
-import { isBranchPendingUser } from '../domain/constants.js?v=20261025b';
+import { renderSidebar } from '../../components/shell/sidebar.js?v=20261026a';
+import { renderHeader } from '../../components/shell/header.js?v=20261026a';
+import { AuthStore } from '../../services/core/auth.js?v=20261026a';
+import { IssueStore } from '../../services/governance/issues.js?v=20261026a';
+import { MilestoneStore } from '../../services/governance/milestones.js?v=20261026a';
+import { CrossPageState } from '../session/cross-page-state.js?v=20261026a';
+import { getBasePath } from '../base/utils.js?v=20261026a';
+import { resolveDocumentUrl } from '../base/page-url.js?v=20261026a';
+import { enhanceSelects } from '../../components/ui/custom-select.js?v=20261026a';
+import { isBranchPendingUser } from '../domain/constants.js?v=20261026a';
 // 主题色解析（R1-A 点⑤，2026-09-09）：person-aware 渲染时取色——替代只读全局键的
 // constants resolveAccentRole（冻结读取点语义，仅服务访客与首帧兜底）；返回值（壳 ctx.accent →
 // tab-bar/各 tab）统一取「当前作用域生效主题」，与 styles.css 别名同源。
 // 批次 505：注入改为 8 token × 亮/暗共 16 个原始变量（applyAccentThemeTokens），不再写 --app-accent 旧四件套。
-import { getAppliedAccentColors, resolveAppliedAccentRole, applyAccentThemeTokens } from './theme.js?v=20261025b';
-import { registerApiAdapter, init, renderDataSourceError, hydrateDataSource } from '../../data/data-adapter.js?v=20261025b';
-import { ApiAdapter } from '../../data/api-adapter.js?v=20261025b';
-import { getCapabilities } from './registry.js?v=20261025b';
+import { getAppliedAccentColors, resolveAppliedAccentRole, applyAccentThemeTokens } from './theme.js?v=20261026a';
+import { registerApiAdapter, init, renderDataSourceError, hydrateDataSource } from '../../data/data-adapter.js?v=20261026a';
+import { ApiAdapter } from '../../data/api-adapter.js?v=20261026a';
+import { getCapabilities } from './registry.js?v=20261026a';
 // M4 数据源注册化：副作用导入触发 mock/api 数据源能力注册，bootstrap 经注册表选择数据源
-import '../../capabilities/data-source.js?v=20261025b';
+import '../../capabilities/data-source.js?v=20261026a';
 // M6（2026-08-30）：共享组件能力随全局引导注册（todo-list/calendar/custom-select），所有页面可发现组件清单
-import '../../capabilities/components.js?v=20261025b';
+import '../../capabilities/components.js?v=20261026a';
 
 // ════════════════════════════════════════════════════════════════
 // S2 自定义圆角下拉：全局自动增强（增量扫描）

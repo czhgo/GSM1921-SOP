@@ -1,12 +1,12 @@
 ---
-title: "守卫清点与合并台账（72 → 70 件）"
+title: "守卫清点与合并台账（72 → 74 件）"
 type: guide
 role: "[工程师]+[AI]"
 last_updated: "2026-10-26"
 status: active
 ---
 
-# 守卫清点与合并台账（2026-10-24 批次 509；2026-10-25 批次 510 / 511 补扩展记录；2026-10-26 批次 512 新增 2 件）
+# 守卫清点与合并台账（2026-10-24 批次 509；2026-10-25 批次 510 / 511 补扩展记录；2026-10-26 批次 512 新增 2 件、批次 513 新增 4 件）
 
 > **本文件回答什么**：仓库里有哪些「守卫 / 真值 / 完整性 / 契约 / 对账 / 基线 / 一致性」类测试，
 > 各查什么、多少断言、覆盖多大、近 3 批是否命中、与谁重叠；以及**本次合并了哪几组、后续批次还要并哪几组**。
@@ -16,14 +16,16 @@ status: active
 > `test-tier-registry.mjs::countTestCases` 同口径）；覆盖文件数＝文件内出现的源码 / 文档路径字面量去重数（**粗估**，
 > 不等于运行时真正读取的文件数）；近 3 批＝`2026-10-EXECUTION_LOG.md` 的批次 506/507/508 段内是否出现该守卫名。
 
-## 一、清点总表（合并后现行 70 件）
+## 一、清点总表（合并后现行 74 件）
 
 > **批次 510（2026-10-25）**：未新增 / 删除 guard 文件；本批只做**扩展**，明细见 §七。
 > **批次 511（2026-10-25）**：仍为 68 件（H-T1…H-T5 / T3-1…T4-1 落在既有文件），明细见 §八。
 > **批次 512（2026-10-26）**：新增 **2 件**——`runtime-tab-lifecycle-guard`（16 条）与 `object-route-guard`
 > （8 条）；件数 68 → **70**，明细见 §九。
+> **批次 513（2026-10-26）**：新增 **4 件**——`seed-contract-guard`（10 条）、`test-isolation-guard`（4 条）、
+> `write-truth-guard`（9 条）、`demo-window-guard`（5 条）；件数 70 → **74**，明细见 §十。
 
-> 合并前实点 **72 件**（批次 509 口径）。下表逐行按实读校准后，现行 **70 件 / 462 条**；另有已合并的
+> 合并前实点 **72 件**（批次 509 口径）。下表逐行按实读校准后，现行 **74 件 / 501 条**；另有已合并的
 > 5 件（`frontmatter-freshness` / `timestamps-note-guard` / `doc-line-ref` / `gold-accent-guard` /
 > `button-system-guard`，25 条）不在表内、不计入本表合计。
 
@@ -41,10 +43,11 @@ status: active
 | `copy-master-guard.test.mjs` | 页面文案 vs 制度母本 | 4 | 17 | — | `copy-length-guard`、`copy-screen-guard` |
 | `copy-screen-guard.test.mjs` | 页面文案（真机逐屏） | 5 | 3 | — | `copy-length-guard`、`copy-master-guard` |
 | `ctx-hygiene-guard.test.mjs` | 目录 / 文档（`.ctx` 准入与归档） | 4 | 26 | — | `docs-governance-guard`（README / AGENTS / 索引位） |
-| `data-lifecycle-guard.test.mjs` | 数据（生命周期 / 迁移） | 14 | 11 | — | `db-integrity-guard`、`db-migration`、`seed-baseline` |
+| `data-lifecycle-guard.test.mjs` | 数据（生命周期 / 迁移） | 15 | 11 | — | `db-integrity-guard`、`db-migration`、`seed-baseline` |
 | `date-canon-guard.test.mjs` | 代码 / 数据（日期口径） | 2 | 11 | — | `doc-consistency::S13`、`frontmatter` 日期线（已并入 docs-governance） |
 | `db-integrity-guard.test.mjs` | 数据（表结构 / 版本） | 5 | 3 | — | `db-migration`、`seed-baseline` |
 | `dead-selector-guard.test.mjs` | 组件 / CSS（零引用类） | 4 | 7 | 是 | `hex-hardcode-guard`、`ui-redundancy-guard` |
+| `demo-window-guard.test.mjs` | 数据（演示窗口 / 月份与状态覆盖） | 5 | 17 | — | `seed-contract-guard`、`mock-api-parity-structure`、`date-canon-guard` |
 | `density-spacing-guard.test.mjs` | 组件 / token（密度间距） | 7 | 1 | 是 | `spacing-scale-guard`、`ui-control-system-guard` |
 | `doc-consistency.test.mjs` | 文档（跨面口径 S1–S20） | 21 | 67 | 是 | `docs-governance-guard`、`ctx-hygiene-guard`、`test-tier-guard` |
 | `docs-governance-guard.test.mjs` | 文档（frontmatter / 备注列 / 行号引用 / README / AGENTS / SNAPSHOT / 判例 / 术语 Harness） | 25 | 38 | — | `doc-consistency`、`ctx-hygiene-guard`、`link-integrity` |
@@ -60,7 +63,7 @@ status: active
 | `link-color-guard.test.mjs` | token / 组件（链接色） | 8 | 1 | 是 | `theme-palette-guard`、`ui-color-semantics`、`ui-contrast-guard` |
 | `link-integrity.test.mjs` | 页面 / 文档链接（真机） | 5 | 4 | — | `link-target-guard`、`docs-governance-guard::R1–R6` |
 | `link-target-guard.test.mjs` | 页面（JS 渲染 href） | 2 | 15 | — | `link-integrity` |
-| `localstorage-key-guard.test.mjs` | 代码 / 存储键 | 3 | 4 | 是 | `doc-consistency::S6`、`preferences` |
+| `localstorage-key-guard.test.mjs` | 代码 / 存储键（四类归档 / 版本校验） | 10 | 5 | 是 | `doc-consistency::S6`、`preferences`、`write-truth-guard` |
 | `material-link-truth.test.mjs` | 数据（材料链接真值） | 6 | 1 | — | `mock-api-parity`、`data-lifecycle-guard` |
 | `mock-api-parity-structure.test.mjs` | 数据（mock / API 结构） | 5 | 7 | — | `mock-api-parity`、`mock-integrity` |
 | `mock-api-parity.test.mjs` | 数据（mock / API 读数） | 5 | 4 | — | `mock-api-parity-structure`、`mock-integrity` |
@@ -80,7 +83,8 @@ status: active
 | `round1-remediation-guard.test.mjs` | 跨面（首轮整改回归） | 5 | 15 | — | `round3-4-batch1`、`structural-round3` |
 | `row-markup-guard.test.mjs` | 组件（列表行标记） | 4 | 8 | — | `table-type-scale-guard`、`ui-redundancy-guard` |
 | `runtime-tab-lifecycle-guard.test.mjs` | 组件 / 运行时（tab 渲染生命周期 / 绑定幂等 / 首屏性能） | 16 | 12 | — | `perf-render-guard`、`frontend-foundations-guard`、`tab-nav` |
-| `seed-baseline.test.mjs` | 数据（空库基线） | 3 | 2 | — | `seed-drift`、`db-integrity-guard` |
+| `seed-baseline.test.mjs` | 数据（空库基线） | 6 | 2 | — | `seed-drift`、`db-integrity-guard`、`seed-contract-guard` |
+| `seed-contract-guard.test.mjs` | 数据（种子契约 / schema v12 结构） | 10 | 18 | — | `seed-baseline`、`db-integrity-guard`、`data-lifecycle-guard` |
 | `self-evident-copy-guard.test.mjs` | 页面文案（自明性） | 2 | 0 | — | `copy-length-guard`、`ux-guard` |
 | `small-text-guard.test.mjs` | token / 页面（小字） | 3 | 1 | — | `control-font-guard`、`text-tier-guard` |
 | `spacing-scale-guard.test.mjs` | token / 组件（间距档） | 4 | 6 | — | `density-spacing-guard`、`table-type-scale-guard` |
@@ -88,6 +92,7 @@ status: active
 | `tab-alias-guard.test.mjs` | 页面 / 路由（页签别名） | 3 | 8 | — | `page-title-guard`、`tab-nav` |
 | `table-type-scale-guard.test.mjs` | 组件（表格字号档） | 4 | 2 | — | `text-tier-guard`、`row-markup-guard` |
 | `test-tier-guard.test.mjs` | 测试机制（分层 / 预算） | 6 | 6 | — | `doc-consistency::S16`、`suite-shard` |
+| `test-isolation-guard.test.mjs` | 测试机制（测试数据面四类 / 运行库零残留） | 4 | 8 | — | `test-tier-guard`、`cleanup --test-residue`、`seed-baseline` |
 | `text-tier-guard.test.mjs` | token / 页面（段落档位） | 4 | 2 | — | `small-text-guard`、`control-font-guard` |
 | `theme-palette-guard.test.mjs` | token（7 主题色板 / 功能色层 / 僵尸 token） | 14 | 9 | 是 | `ui-contrast-guard`、`hex-hardcode-guard`、`ui-color-semantics` |
 | `ui-contrast-guard.test.mjs` | token（对比度） | 5 | 3 | 是 | `theme-palette-guard::T2`、`link-color-guard` |
@@ -98,7 +103,8 @@ status: active
 | `ui-select-appearance-guard.test.mjs` | 组件（select 外观） | 6 | 3 | 是 | `ui-control-system-guard`、`field-shell-guard` |
 | `ux-guard.test.mjs` | 页面（交互底线） | 7 | 7 | — | `ui-redundancy-guard`、`page-title-guard` |
 | `workbench-revision-contract.test.mjs` | 页面 / 契约（工作台改版） | 32 | 45 | 是 | `workbench-audit-coverage`、`ui-first-screen-order` |
-| `write-path-guard.test.mjs` | 数据 / 写链 | 4 | 3 | — | `pending-writes`、`feedback-integrity` |
+| `write-path-guard.test.mjs` | 数据 / 写链 | 4 | 3 | — | `pending-writes`、`feedback-integrity`、`write-truth-guard` |
+| `write-truth-guard.test.mjs` | 数据（写成功可证 / 去 mock 回退） | 9 | 13 | — | `localstorage-key-guard`、`pending-writes`、`mock-api-parity` |
 
 ## 二、本次合并掉的文件（5 → 3 个保留件）
 
@@ -116,8 +122,9 @@ status: active
 
 - 清点（合并前）：**72 件**守卫类测试。
 - 批次 509 合并：5 件 → 3 件保留件（文档 3→1 新增、颜色 2→1、交互 2→1），文件数 **72 − 5 ＋ 1 = 68**。
-- 批次 512 新增：`runtime-tab-lifecycle-guard` ＋ `object-route-guard` ⇒ 现行 **70 件 / 462 条**。
-- 后续目标：**56 ± 3 件**（按新增 2 件平移；再合并约 14 件）。推导见 3.2（其「现有 / 目标」为批次 509 时点）。
+- 批次 512 新增：`runtime-tab-lifecycle-guard` ＋ `object-route-guard` ⇒ 70 件 / 462 条。
+- 批次 513 新增：`seed-contract-guard`（10）＋ `test-isolation-guard`（4）＋ `write-truth-guard`（9）＋ `demo-window-guard`（5），并校准 3 件既有守卫的实读断言（`data-lifecycle-guard` 14→15、`seed-baseline` 3→6、`localstorage-key-guard` 3→10）⇒ 现行 **74 件 / 501 条**。
+- 后续目标：**60 ± 3 件**（按新增 6 件平移；再合并约 14 件）。推导见 3.2（其「现有 / 目标」为批次 509 时点）。
 
 ### 3.2 推导（按「同一检查对象 ＋ 同一失败根因」聚类，不按文件名拍脑袋）
 
@@ -231,3 +238,29 @@ status: active
 - **件数**：68 → **70**；断言数 410（旧表）→ **462**（逐行实读校准 ＋ 新增 24 条）。
 - **非空转（实读）**：V1 扫到 `section.card` ≥8、list-row 四类行型齐；V4 白名单 5 文件 6 处逐一命中；V5 `.btn-text` ≥3 且「全部 / 查看 / 更多」≥3；V6 `.btn-icon` ≥6；object-route R5 扫 ≥180 个 `docs/src/*.js`、`objectDetailHref` 调用 ≥30；runtime P1 默认延迟 ≤120ms。
 - **故障注入（人工，不入仓）**：删 `delete el.dataset.currentTab` ⇒ R2 红；`renderCtx` 改回一次性求值 ⇒ R1 红；任一入口写回 `activity.html?id=${id}` ⇒ object-route R5 红；去掉 `!readOnly` ⇒ R4 红；`.tab-group-label` 加 `display:none` ⇒ V2 红；`btn-ghost` 新增一处动作按钮 ⇒ V4 红；`--color-identity-*` 改值不等 `ROLE_COLORS` ⇒ T8 红。
+
+## 十、批次 513 扩展记录（2026-10-26 · 新增 4 件 guard 文件）
+
+> 件数 **70 → 74**；断言数 **462 → 501**（新增 28 条 ＋ 校准 3 件既有守卫的 11 条实读差）。
+> 计数口径同 §一（静态 `test(` / `it(` / `t.test(` 调用点）；覆盖文件数同 §一（路径字面量去重，粗估）。
+
+| 守卫 | 检查对象 | 断言数 | 覆盖文件数 | 非空转证据（实读） |
+|---|---|---:|---:|---|
+| `seed-contract-guard.test.mjs`（新） | 种子契约 / schema v12 结构 | 10 | 18 | C1 九类必须种子源 branchId 非空且＝默认支部（含故障注入）；C2 播种后十张业务表 branchId 非空、考勤 / 考察与父行同支部；C3 `INSERT INTO todos(id,data)` 后 `branch_id` 与 JSON 一致、手写列报错；C4 四组唯一索引存在且重复写入被 SQLite 拒绝；C5 `contributions` 全对象数组、影子表无字符键、篡改 mismatch>0；C6 考察对象 ∈ 父工作组（种子 0 违规）；C7 `issue_reveals` 已删 / `committee_broadcasts` 写口 409；C8–C10 文档登记、四类口径、`SEED_MANIFEST` |
+| `test-isolation-guard.test.mjs`（新） | 测试数据面四类 / 运行库零残留 | 4 | 8 | I1 实扫 **≥250** 个测试文件且 `fixtureClass` 合法；I2 `external-write` 必须有临时库或 `finally` 清理（含故障注入）；I3 连 `:3000` 必标 `external-*`、测试源码不得指向 `server/data.db`；I4 临时库登录后运行库 `sessions` / `uploads` 不增长 |
+| `write-truth-guard.test.mjs`（新） | 写成功可证 / 去 mock 回退 | 9 | 13 | A1 六个读口（活动 / 考勤 / 考察 / 通知 / 报名 / 待办）api 闸门在种子常量之前；A2 `SNAPSHOT_COVERED_COLLECTIONS`（24 集合）与 `_buildSnapshotPayload` 逐键一致、`committeeBroadcasts` 标 temp；A3 flush 四类分流；A4 outbox 重试 / 放弃；B1–B5 假适配器真跑快照 / 语义端点 / 失败入队 / 本机未同步 |
+| `demo-window-guard.test.mjs`（新） | 演示窗口 / 月份与状态覆盖 | 5 | 17 | W1 `DEMO_WINDOW` 精确 2026-08-01–2026-11-30、7 月末 / 12 月初判窗口外；W2 28 个种子集合的日期字段全在窗口内（7 条白名单逐条有理由）；W3 四个月均有活动（实读 **38**：8 月 18 / 9 月 9 / 10 月 8 / 11 月 3），11 月只 draft/published 且无考勤 / 复盘；W4 复盘五态 / 考勤四态 / 专班三态齐；W5 级联顺序不早于活动日 |
+
+| 既有守卫 | 本批扩展 / 改准 | `HEAD` test 数 | 现行 test 数 | 本批 +test |
+|---|---|---:|---:|---:|
+| `ui-contrast-guard` | **K3** 判据改准：从「中性 `neutral-500` 可读」改为「主题 soft-bg / soft-text 亮暗 ≥4.5:1（实测 6.88 / 9.18）＋ 3px ＋ ≥24px ＋ ≤1280 只缩不隐藏」 | 5 | 5 | 0（既有 test 内改判据） |
+| `ui-control-system-guard` | **V2** 判据改准：描边从字面 `neutral-400` 改为「边框对页面底 ≥1.5:1（亮 / 暗各一次）」，并新增 3px 直角断言；字面 token 不再单独判 | 25 | 25 | 0（既有 test 内改判据） |
+| `localstorage-key-guard` | **L4** 全仓键必须落四类（unknown 即红）· **L5** registry 无僵尸登记 · **L6** visual 白名单 · **L7** 读缓存必带 `_versions` ＋ `savedAt` · **L8** auth 键不承载业务 · **L9** 故障注入 · **L10** 读口拒收缺版本 / 过期备份 | 3 | 10 | **+7** |
+| `seed-baseline` | 空库基线扩到种子契约口径（与 `seed-contract-guard` 同源，避免「基线空库」与「种子形状」两套真相） | 3 | 6 | **+3** |
+| `data-lifecycle-guard` | 迁移 / 生命周期用例随 v12 增补（`todos.branch_id` 生成列、`issue_reveals` 删除后的读口） | 14 | 15 | **+1** |
+| `db-integrity-guard` | 本批未改（表结构 / 版本仍 5 条；v12 的唯一索引与生成列由 `seed-contract-guard::C3/C4` 从数据面核） | 5 | 5 | 0 |
+
+- **件数**：70 → **74**；断言数 462 → **501**。
+- **故障注入（人工，不入仓）**：删掉 api 闸门恢复 `return [...ACTIVITIES]` ⇒ `write-truth::A1` 红；让 flush 对 `agendaVotes` 直接 resolve ⇒ `B2` 红；给 `todos` 手写 `branch_id` ⇒ `seed-contract::C3` 红；重复插入同 `(activityId, personId)` 考勤 ⇒ `C4` 红；测试直连 `server/data.db` ⇒ `test-isolation::I3` 红；把某个 mock 活动日期改到 2026-07 ⇒ `demo-window::W2` 红；把组名改回 `neutral-500` ⇒ `ui-contrast::K3` 红。
+- **不并入**：`seed-contract-guard` 与 `db-integrity-guard` 虽同看表结构，但前者判「种子形状 / 契约」，后者判「表结构 / 版本对齐」，失败根因不同，登记为后续评估项而非本批强并。
+

@@ -14,7 +14,8 @@
 //        同串不得再出现 `text-sm`、`rounded`/`rounded-lg`、独立 `border`（白名单逐条写理由）。
 //   SD-2 边框必须有颜色：CSS 不得出现无颜色 `border: … solid;`；
 //        JS/HTML 里 `<button class="… border …">` 的独立 `border` 必须同串有 `border-*` 色类或内联 `border-color`。
-//   SD-3 控件圆角只能 8px（`--radius-sm`）；CSS 字面量不得出现 4px / 6px（允许 calc / 999px）。
+//   SD-3 控件圆角只能 8px（`--radius-sm`）；CSS 字面量不得出现 4px / 6px（允许 calc / 999px；
+//        `.tab-group-label` 的 3px 直角是 SD-3 登记例外，见 DESIGN_SYSTEM §12.6 / §12.15）。
 //   SD-4 `summary` 的 UA 三角由全局规则移除；`<summary>` 上 `list-none` 例外数必须为 0。
 //   SD-6 `.btn-accent-soft` 不得用 `--neutral-0` 当底色；`--app-accent-deep` 必须存在且被用作文字色。
 //   SD-9 页签组名必须是可见文本（不是空 span），组间存在 `.tab-group-sep`。
@@ -258,7 +259,8 @@ test('SD-3 控件圆角 8px：CSS 字面量不得出现 4px / 6px；.input-flat(
   const bad = radius.filter((r) => /\b[46]px\b/.test(r.value))
     .map((r) => `styles.css:${r.line} → border-radius: ${r.value};`);
   console.log(`[ui-control-system-guard] SD-3 border-radius 声明 ${radius.length} 条（4/6px 例外 ${bad.length} 条）`);
-  assert.deepEqual(bad, [], `圆角不得出现 4px / 6px 例外（控件 8px、卡片 12px、胶囊 999px）：\n  ${bad.join('\n  ')}`);
+  assert.deepEqual(bad, [], `圆角不得出现 4px / 6px 例外（控件 8px、卡片 12px、胶囊 999px；`
+    + `.tab-group-label 3px 为登记例外）：\n  ${bad.join('\n  ')}`);
 
   assert.match(CSS, /--radius-sm:\s*8px/, '--radius-sm 必须为 8px');
   const flat = /(^|\n)\.input-flat\s*\{([^}]*)\}/.exec(CSS_BARE);
@@ -989,20 +991,40 @@ test('V1 容器语义：metric-band 拆两档 / section.card 必有可访问名 
     'styles.css 缺导航行 / 主从行的可点样式');
 });
 
-test('V2 分组胶囊全宽可见：无 display:none 断点、高度 ≥24px、描边形状可辨', () => {
+test('V2 分组胶囊全宽可见：无 display:none 断点、高度 ≥24px、3px 直角、描边形状可辨', () => {
   assert.doesNotMatch(CSS, /\.tab-group-label[^{}]*\{[^}]*display:\s*none/,
     '分组胶囊不得在任何断点用 display:none 隐藏');
   assert.doesNotMatch(CSS, /\.tab-group-label[^{}]*\{[^}]*visibility:\s*hidden/,
     '分组胶囊不得用 visibility:hidden 隐藏');
   assert.match(CSS, /\.tab-group-label\s*\{[^}]*min-height:\s*24px/, '分组胶囊高度须 ≥24px');
-  assert.match(CSS, /\.tab-group-label\s*\{[^}]*border:\s*1px solid var\(--neutral-400\)/,
-    '分组胶囊须有描边（neutral-400，与白底约 2.5:1，满足 ≥1.5:1）');
+  // 2026-10-26 Task 1：恢复 8–9 月的 3px 直角（SD-3 的 999px 胶囊例外，见 DESIGN_SYSTEM 登记）。
+  assert.match(CSS, /\.tab-group-label\s*\{[^}]*border-radius:\s*3px/,
+    '分组胶囊应为 3px 直角（.tab-group-label 是 SD-3 胶囊 999px 的登记例外）');
   assert.match(CSS, /\.tab-group-label\s*\{[^}]*flex-shrink:\s*0/, '组名不得被压缩（flex-shrink: 0）');
-  // ≤1280 只缩内边距 / 字号，不隐藏（页签条继续横向滚动）。
+
+  // 2026-10-26 Task 1：描边不再按字面 neutral-400 判，而是判「边框对页面底 ≥1.5:1」（亮/暗各一次）。
+  //   仍接受 neutral-400（实测亮 2.4:1 / 暗 7.4:1）；若换更深的主题描边 token，同样须过线。
+  const borderDecl = /\.tab-group-label\s*\{[^}]*border:\s*1px solid var\(--([\w-]+)\)/.exec(CSS);
+  assert.ok(borderDecl, '分组胶囊须有 1px 的 token 描边（形状由描边承担）');
+  const root = cssVarBlock(CSS_BARE, ':root');
+  const dark = cssVarBlock(CSS_BARE, 'html.theme-dark');
+  assert.ok(root && dark, 'styles.css 缺少 :root / html.theme-dark 变量块');
+  for (const [label, block, base] of [['亮色', root, root], ['暗色', dark, root]]) {
+    const borderHex = hexOf(resolveVar(block, base, borderDecl[1]), block, base);
+    const pageHex = hexOf(resolveVar(block, base, 'surface-page'), block, base);
+    assert.ok(borderHex && pageHex,
+      `${label}：描边 --${borderDecl[1]} / --surface-page 无法解析为 hex（${borderHex} / ${pageHex}）`);
+    const ratio = contrast(borderHex, pageHex);
+    assert.ok(ratio >= 1.5,
+      `${label}：分组胶囊描边对页面底仅 ${ratio.toFixed(2)}:1（要求 ≥1.5:1；实测 token --${borderDecl[1]}）`);
+  }
+
+  // ≤1280 只缩内边距，不隐藏、不降字号（页签条继续横向滚动）。
+  //   2026-10-26 Task 1：字号由原来的 11px 改回 12px（11px 属 Overline 标签档）。
   const narrow = /@media \(max-width: 1280px\) \{[\s\S]*?\.tab-group-label \{([\s\S]*?)\}[\s\S]*?\n\}/.exec(CSS);
   assert.ok(narrow, '缺少 ≤1280px 的分组名规则');
   assert.match(narrow[1], /padding:\s*1px 5px/, '≤1280px 组名应缩小内边距（1px 5px）');
-  assert.match(narrow[1], /font-size:\s*11px/, '≤1280px 组名应缩小字号（11px）');
+  assert.doesNotMatch(narrow[1], /font-size:\s*(?:9|10|11)px/, '≤1280px 组名不得下探 11px 及以下（保持 12px 正文档）');
   assert.doesNotMatch(narrow[1], /display:\s*none/, '≤1280px 不得隐藏组名');
 });
 

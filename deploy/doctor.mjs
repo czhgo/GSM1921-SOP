@@ -118,6 +118,8 @@ for (const [k, want, what] of five) {
 }
 if (env.DISABLE_PASSWORD_CHECK === '1' && prod) { warn('DISABLE_PASSWORD_CHECK=1 **在生产形态会被忽略**（逃逸门只在非生产生效），但仍建议删掉它'); }
 if (env.LOGIN_PASSWORD === '123456') warn('LOGIN_PASSWORD 还是缺省演示口令 `123456` —— **必须改**');
+if (prod && env.ALLOW_DEMO_DATA === '1') warn('ALLOW_DEMO_DATA=1：生产形态已放行含演示种子行的库——**只应临时用于演练**；正式库请以空库/基线库起步（见 README-server.md §5.7）');
+if (env.READ_ONLY === '1') warn('READ_ONLY=1：当前只读演练模式（所有业务写口 403）；确认这是演练实例再继续');
 
 console.log('\n  ── IAAA 统一身份认证（没备案也能先用口令登录）──');
 if (env.IAAA_MOCK === '1') ok('IAAA_MOCK=1 ⇒ 本地联调模式（回调的 token 直接当学号；**生产不要设**）');

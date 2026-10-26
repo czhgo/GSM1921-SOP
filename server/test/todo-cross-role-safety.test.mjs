@@ -10,13 +10,13 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261025b';
-import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261025b';
-import { setDataSource } from '../../docs/src/data/data-adapter.js?v=20261025b';
+import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261026a';
+import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261026a';
+import { setDataSource } from '../../docs/src/data/data-adapter.js?v=20261026a';
 import {
   TodoStore, TodoStatus, TodoSourceType, VisitorTodoDeriver, seedTodos,
-} from '../../docs/src/services/governance/todo.js?v=20261025b';
-import { NoticeStore } from '../../docs/src/services/governance/notice.js?v=20261025b';
+} from '../../docs/src/services/governance/todo.js?v=20261026a';
+import { NoticeStore } from '../../docs/src/services/governance/notice.js?v=20261026a';
 
 // ── localStorage 内存桩（member-persist 同款）─────────────────────
 const _store = new Map();
@@ -200,9 +200,9 @@ test('⑤ refreshExpiredStatus：无会话不写任何行；有会话只写本�
   assert.equal(TodoStore.getById('td-role').status, TodoStatus.PENDING, '有会话也不得写其他角色行');
 });
 
-// ═══════════════ ⑥ seedTodos：API 形态只补当前角色种子 ═══════════════
+// ═══════════════ ⑥ seedTodos：API 形态一律不补种子（Task 3 改准） ═══════════════
 
-test('⑥ seedTodos：mock 形态保留演示种子；API 形态只补当前登录角色匹配的种子', () => {
+test('⑥ seedTodos：mock 形态保留演示种子；API 形态不补任何种子（含角色匹配者）', () => {
   beginMockCase();
   assert.equal(mockDB.todos.some((t) => t.id === 'todo_seed_6'), false, '前置：todos 为空');
 
@@ -211,18 +211,17 @@ test('⑥ seedTodos：mock 形态保留演示种子；API 形态只补当前登�
   seedTodos();
   assert.ok(mockDB.todos.some((t) => t.id === 'todo_seed_6'), 'mock 形态保留全部演示种子');
 
-  // API 形态：普通成员不得补宣传委员种子
+  // API 形态：任何角色都不得补种子（空库为空态；不 persist）
   mockDB.todos = [];
   setDataSource('api');
   loginAs(A, 'participant');
   seedTodos();
-  assert.equal(mockDB.todos.some((t) => t.id === 'todo_seed_6'), false, '★ 普通成员不得补其他角色种子');
+  assert.equal(mockDB.todos.some((t) => t.id === 'todo_seed_6'), false, '普通成员不得补演示种子');
 
-  // API 形态：宣传委员本人可补
   mockDB.todos = [];
   loginAs('2400012356', 'prop-commissioner');
   seedTodos();
-  assert.ok(mockDB.todos.some((t) => t.id === 'todo_seed_6'), '角色匹配时可补本人角色种子');
+  assert.equal(mockDB.todos.some((t) => t.id === 'todo_seed_6'), false, '★ API 形态角色匹配也不得补演示种子');
 
   setDataSource('mock');
 });

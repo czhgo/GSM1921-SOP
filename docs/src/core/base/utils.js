@@ -3,13 +3,13 @@
 //  utils.js — 格式化工具、动画辅助、Toast 组件
 // ════════════════════════════════════════════════════════════════
 
-import { hasPendingWrites, settleScope, settleWrites } from '../session/pending-writes.js?v=20261025b';
+import { hasPendingWrites, settleScope, settleWrites } from '../session/pending-writes.js?v=20261026a';
 
 // ── 日期格式化 ─────────────────────────────────────────────────
 // R-26③（2026-10-05 批次 388）：日期口径单一源下沉到**零依赖叶子** `core/base/date.js`
 //   （`core/domain/constants.js` 这类「被全站 import 且要求双端可载」的件只能引零依赖件；
 //   而 `utils.js` 牵 `core/session/pending-writes.js`）⇒ 此处**转出**，既有 `from '…/utils.js'` 调用点不变。
-export { _fmtDate, todayLocal } from './date.js?v=20261025b';
+export { _fmtDate, todayLocal } from './date.js?v=20261026a';
 
 export function _fmtChinese(d) {
   const DN = ['日','一','二','三','四','五','六'];
@@ -55,18 +55,24 @@ export function describeWriteError(err) {
   const reason = !_isTechnicalErrorText(bodyReason) ? bodyReason
     : (!_isTechnicalErrorText(message) ? message : '');
 
-  if (status === 401) return '登录已过期，请重新登录';
-  if (status === 403) return reason ? `当前账号无权办理：${reason}` : '当前账号无权办理';
-  if (status === 404) return '记录不存在或已删除';
-  if (status === 409) return '已被他人更新，请刷新后重试';
-  if (status === 428) return '页面版本过旧，请刷新';
-  if (status === 408 || status >= 500) return '服务暂时不可用，请稍后重试';
-  if (!status && (e.type === 'NetworkError' || e.name === 'TypeError'
-    || /Failed to fetch|NetworkError|Load failed|网络异常|网络连接/i.test(message))) {
-    return '网络异常，请检查连接';
-  }
-  if (reason) return reason;
-  return '保存未完成，请稍后重试';
+  const text = (() => {
+    if (status === 401) return '登录已过期，请重新登录';
+    if (status === 403) return reason ? `当前账号无权办理：${reason}` : '当前账号无权办理';
+    if (status === 404) return '记录不存在或已删除';
+    if (status === 409) return '已被他人更新，请刷新后重试';
+    if (status === 428) return '页面版本过旧，请刷新';
+    if (status === 408 || status >= 500) return '服务暂时不可用，请稍后重试';
+    if (!status && (e.type === 'NetworkError' || e.name === 'TypeError'
+      || /Failed to fetch|NetworkError|Load failed|网络异常|网络连接/i.test(message))) {
+      return '网络异常，请检查连接';
+    }
+    if (reason) return reason;
+    return '保存未完成，请稍后重试';
+  })();
+  // Task 3：写失败已进入本机 outbox ⇒ 用户必须看到「未同步」，不得误以为保存成功。
+  // 409 / 428 已有更具体的刷新指引，不重复加前缀。
+  if (e.syncState === 'unsynced' && status !== 409 && status !== 428) return `未同步：${text}`;
+  return text;
 }
 
 // ── Toast 组件 — 浮层通知（固定定位，不影响文档流）─────────────
@@ -143,7 +149,9 @@ const SUCCESS_TOAST_MAX_WAIT_MS = 15000;
  * @returns {{ ok: boolean, type: string, message: string }}
  */
 function _renderToast(type, message, options = {}) {
-  if (!_toastContainer) {
+  // 2026-10-26 批次 513：tab 重渲染可能移走旧容器；只判 `_toastContainer` 真值会把新 toast
+  // 追加到已脱离文档的节点上（用户看不到成功提示）。容器不在文档中就重建。
+  if (!_toastContainer || !_toastContainer.isConnected) {
     _toastContainer = document.createElement('div');
     _toastContainer.id = 'toast-container';
     _toastContainer.setAttribute('aria-label', '操作提示');
@@ -152,7 +160,10 @@ function _renderToast(type, message, options = {}) {
       'z-index:9999', 'display:flex', 'flex-direction:column',
       'gap:0.5rem', 'pointer-events:auto',
     ].join(';');
-    document.body.appendChild(_toastContainer);
+    // 2026-10-26 批次 513：优先挂 documentElement（tab 重渲染可能整体替换 body 子树）；
+    //   纯 node 测试环境只有 fake body 时回退 body。
+    const host = document.documentElement || document.body;
+    (host || document.body).appendChild(_toastContainer);
   }
 
   const key = options.key || null;

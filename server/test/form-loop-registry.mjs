@@ -218,10 +218,10 @@ export const VALIDATION_SITES = [
   { file: SRC + 'entries/tabs/disc/inspection-tab.js', line: 550, field: '考察内容（逐人）', flow: 'disc/考察代录', machine: true, msg: '的考察内容' },
 
   // ── 组长台 ──
-  { file: SRC + 'entries/tabs/leader/inspection-tab.js', line: 320, field: '来源类型', flow: 'leader/考察上传', machine: true, msg: '请选择来源类型' },
-  { file: SRC + 'entries/tabs/leader/inspection-tab.js', line: 324, field: '具体来源', flow: 'leader/考察上传', machine: true, msg: '请选择具体来源' },
-  { file: SRC + 'entries/tabs/leader/inspection-tab.js', line: 327, field: '人员', flow: 'leader/考察上传', machine: true, msg: '请选择人员' },
-  { file: SRC + 'entries/tabs/leader/inspection-tab.js', line: 343, field: '考察内容（逐人）', flow: 'leader/考察上传', machine: true, msg: '的考察内容' },
+  { file: SRC + 'entries/tabs/leader/inspection-tab.js', line: 349, field: '来源类型', flow: 'leader/考察上传', machine: true, msg: '请选择来源类型' },
+  { file: SRC + 'entries/tabs/leader/inspection-tab.js', line: 353, field: '具体来源', flow: 'leader/考察上传', machine: true, msg: '请选择具体来源' },
+  { file: SRC + 'entries/tabs/leader/inspection-tab.js', line: 356, field: '人员', flow: 'leader/考察上传', machine: true, msg: '请选择人员' },
+  { file: SRC + 'entries/tabs/leader/inspection-tab.js', line: 367, field: '考察内容（逐人）', flow: 'leader/考察上传', machine: true, msg: '的考察内容' },
   { file: SRC + 'entries/tabs/leader/attendance-tab.js', line: 446, field: '活动', flow: 'leader/考勤上传', machine: true, msg: '请选择活动' },
   { file: SRC + 'entries/tabs/leader/attendance-tab.js', line: 449, field: '参会人员', flow: 'leader/考勤上传', machine: true, msg: '请选择参会人员' },
   { file: SRC + 'entries/tabs/leader/attendance-tab.js', line: 600, field: '要应用的状态', flow: 'leader/考勤上传·批量改状态', machine: true, msg: '请先选择要应用的状态' },
@@ -241,9 +241,9 @@ export const VALIDATION_SITES = [
   // ── 组织委员台 ──
   // 2026-10-03 批次 366（`#10` 单一轴 甲档）：原独立「考察上传」页签降为「人才库」页内折叠动作位
   //   ⇒ `flow` 改「org/人才库·录入考察」；该文件顶部新增 JSDoc（+6 行）⇒ 下列 `line` 同批 +6（`S6` 精确命中）。
-  { file: SRC + 'entries/tabs/org/inspection-tab.js', line: 59, field: '专班', flow: 'org/人才库·录入考察', machine: true, msg: '请选择专班' },
-  { file: SRC + 'entries/tabs/org/inspection-tab.js', line: 271, field: '人员', flow: 'org/人才库·录入考察', machine: true, msg: '请选择人员' },
-  { file: SRC + 'entries/tabs/org/inspection-tab.js', line: 280, field: '考察内容（逐人）', flow: 'org/人才库·录入考察', machine: true, msg: '的考察内容' },
+  { file: SRC + 'entries/tabs/org/inspection-tab.js', line: 285, field: '专班', flow: 'org/人才库·录入考察', machine: true, msg: '请选择专班' },
+  { file: SRC + 'entries/tabs/org/inspection-tab.js', line: 291, field: '人员', flow: 'org/人才库·录入考察', machine: true, msg: '请选择人员' },
+  { file: SRC + 'entries/tabs/org/inspection-tab.js', line: 300, field: '考察内容（逐人）', flow: 'org/人才库·录入考察', machine: true, msg: '的考察内容' },
   // 2026-09-25（赋权按对象归位）：本台 `taskforce` tab 追加「情景③ 专班赋权」分区 ⇒ 该文件上文行号整体 +8
   //   （新增 import / 挂载宿主 / 挂载调用），下列行号按新实况改准（S6：行号须落在文案那一行）。
   // 2026-10-02 批次 343（D 档写口纪律）：该文件 `.taskforce` 私有字段手术改走 `SignupStore.deleteBySource()` ⇒
@@ -430,7 +430,7 @@ export const VALIDATION_SITES = [
   //   **不保证「全站校验点都已登记」**——台账从此静默不是全量（`H-7` 的同一句话）。
   //   本批落成常驻守卫后立刻揪出这 5 处；四处都需特定前置态 ⇒ 一律 `machine:false` 并逐条写明理由（不造数据）。
   { file: SRC + 'components/feedback/issue-form.js', line: 74, field: '事项领域', flow: 'component/议题提交·事项领域', machine: false, msg: '请选择事项领域', reason: '【批次 323 补登记】2026-09-21 批次 126（`SOP-B-32` 甲档）新立的**第二根轴**（「类型」＝对现状的性质、「事项领域」＝归口依据）当时未随批登记。真机流程 `page-feedback-issue-form` 现只放行 标题/正文/范围 三格 ⇒ 要达本分支须在该流程 `satisfy` 链上补 `#form-domain`，本批不造。' },
-  { file: SRC + 'entries/tabs/leader/inspection-tab.js', line: 245, field: '考察处理内容（驳回申诉）', flow: 'leader/考察申诉·驳回', machine: false, msg: '请填写考察内容', reason: '【批次 323 补登记】组长台「考察管理」对**成员申诉**作处置时的必填项（`kind === "appeal"` 分支）。要达本分支须先有一条**处于申诉态**的考察记录（成员提申诉 → 组长处置），演示库里该前置不保证存在 ⇒ 缺稳定前置，本批只登记不造。' },
+  { file: SRC + 'entries/tabs/leader/inspection-tab.js', line: 246, field: '考察处理内容（驳回申诉）', flow: 'leader/考察申诉·驳回', machine: false, msg: '请填写考察内容', reason: '【批次 323 补登记】组长台「考察管理」对**成员申诉**作处置时的必填项（`kind === "appeal"` 分支）。要达本分支须先有一条**处于申诉态**的考察记录（成员提申诉 → 组长处置），演示库里该前置不保证存在 ⇒ 缺稳定前置，本批只登记不造。' },
   { file: SRC + 'entries/tabs/visitor/attendance-tab.js', line: 225, field: '说明（考勤申诉）', flow: 'visitor/考勤概况·申诉', machine: false, msg: '请填写说明', reason: '【批次 323 补登记】成员台「考勤概况」的「我参加了但没记上」浮窗（`visitor-att-appeal`）；与本文件 `:152`「补课申请」是**两个不同浮窗、两条不同判据**（此前台账只登了补课那条）。要达本分支须有一条**未记考勤**的当月活动 ⇒ 随演示库当月数据变化，缺稳定前置。' },
   { file: SRC + 'entries/tabs/visitor/inspection-tab.js', line: 102, field: '申诉活动', flow: 'visitor/考察申诉', machine: false, msg: '请选择活动', reason: '【批次 323 补登记】成员台「考察」页的「申诉」表单（`#visitor-insp-appeal-act`）。**该文件此前不在台账内**（整条链路无登记）。要达本分支须先有可申诉的考察记录 ⇒ 缺稳定前置。' },
   { file: SRC + 'entries/tabs/visitor/inspection-tab.js', line: 103, field: '申诉说明', flow: 'visitor/考察申诉', machine: false, msg: '请填写说明', reason: '【批次 323 补登记】同上一条（同一表单：活动格通过后才走到说明这一格）。' },
@@ -723,7 +723,7 @@ export const MACHINE_FLOWS = [
     tab: '活动管理',
     open: [
       // 批次 47-W：入口由「日历**第一条**」改为**显式指定 act-31**——原写法依赖「当月恰好只有一条活动」
-      //   这个**偶然事实**（2026-09 只有 act-31）；本批为「决议落实」新增了 act-35（8 月）后，
+      //   这个**偶然事实**（当时 2026-09 只有 act-31）；本批为「决议落实」新增了 act-35（8 月）后，
       //   一旦将来 9 月再多一条，本流程就会静默切到别的活动上（**判据随数据变动**，同 R-76 ④）。
       // 批次 440（2026-10-11）：10 月新增 act-36/act-37 后，「活动管理」日历默认落**当月（10 月）**
       //   ⇒ act-31（9 月）不在默认网格里。故**先切月到 2026-09** 再点（做法同下方 act-35 流程的 `selectValue`）。
@@ -1103,7 +1103,7 @@ export const MACHINE_FLOWS = [
     // 台账原 reason 写「需 2400012349 的 pending 补课任务；该域按设计无静态种子，由纪检操作派生」——**后半句是错的**：
     //   ① 「无静态种子」不是设计必然，而是**当初没种**（`data-adapter.js` 那句「空属合理」已被本批更正）；
     //   ② 更关键的是**日期耦合**：该页只列**当月**活动（`visitor/attendance-tab.js:24-25`），
-    //      而 7 月那条现成的 2400012349 缺勤（att38/act-11）**根本不在当月** ⇒ 就算照原方案「等纪检派生」也看不到。
+    //      而 act-11（2026-09-04）那条现成的 2400012349 缺勤（att38）**根本不在当月** ⇒ 就算照原方案「等纪检派生」也看不到。
     // 处置（R-78 出口一：造**可达且自洽**的前置）：
     //   ① `docs/src/data/mock/attendance.js` 补 **9 月**缺勤一条（`att-sep-1`：2400012349 · act-31 · 缺勤 · **已确认**）；
     //   ② `docs/src/data/mock/seed.js::SEED_MAKEUP_TASKS` 补**该条的派生结果**（补课任务，`attendanceRecordId` 对得上、
@@ -1647,7 +1647,7 @@ export const MACHINE_FLOWS = [
   },
   // 批次 47-R（2026-09-16，支书裁定「过渡态种子都补」）：**过渡态种子簇**——三处，两改种子 + 一处补登记。
   // 三处的共同点：**都缺「过渡态数据」而不是缺功能**（按钮只在某个状态分支里渲染，而种子里永远没有那个状态）。
-  // 1) 成员台「我的复盘」：种子把 2400012349 排为 act-3 的 `deep`（复盘责任人）⇒ 行卡出现。
+  // 1) 成员台「我的复盘」：种子把 2400012349 排为 act-9 的 `deep`（复盘责任人）⇒ 行卡出现。
   // 2) 思想汇报「修改并重新提交」：种子补 tr-5（2400012349 · needs_revision）⇒ 本人可见修改态。
   //    ⚠ 这条**只改 `docs/src/data/mock/thought-reports.js` 就够了**（与 47-P 的 `review_requests` 不同）：
   //      `loadThoughtReports()` 在 `mockDB.thoughtReports` 为空时**回退模块常量** ⇒ api 形态同样看得到。
@@ -2208,7 +2208,7 @@ export const SUCCESS_FLOWS = [
     //   （定向只跑这一个文件时与全量跑整站时的前序状态不同）。**绝对值看似是「事实」，其实是「此刻的巧合」**；
     //   本流程要证的只有「这次提交真写进了明细表」，故改判增量 `countUp: 2`（基线在动作前读、重载前后共用）。
     // ⚠⚠ 而「+2」这个数**必须由活动类型保证**，不能靠运气——探针实测（`probe-47T`，跑完即删）：
-    //   下拉里**第一条「未上传」的活动是 `act-21`（7月主题党日）**，其候选人集合是「**支部在册成员**」
+    //   下拉里**第一条「未上传」的活动是 `act-21`（主题党日）**，其候选人集合是「**支部在册成员**」
     //   （非党小组会不按应到收紧）⇒ 随机取 2 人里**有 1 人不属于本组** ⇒ 本组可见明细只 **+1**。
     //   故本条**再加 `selectOption.text: '党小组会'`**：党小组会的候选＝**本组应到名单**（实测「第一党小组应到 8 人」），
     //   取 2 人必在本组内 ⇒ 本组可见明细**稳定 +2**。**「涨了几」由产品语义决定，选哪一项要按这个语义去选。**

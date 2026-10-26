@@ -462,6 +462,9 @@ export function _snapshotResourceWriteGateDeny(db, writes, actor) {
       if (name === 'inspections') {
         const decisionDeny = _inspectionDecisionDeny(actor, prev, row);
         if (decisionDeny) return decisionDeny;
+        // v12：快照写穿同样复算「考察对象 ∈ 父工作组成员」。
+        const memberDeny = _inspectionPersonMembershipDeny(db, row);
+        if (memberDeny) return memberDeny;
       }
       if (!_assertResourceWrite(actor, name, method, row, row.id, db)) return _writeDenyMsg(name);
     }
@@ -526,6 +529,39 @@ export function _inspectionSourceKeyDeny(record) {
   if (record.legacy === true) return INSPECTION_LEGACY_REASON;
   if (record.sourceType === 'taskforce' && !record.workgroupId) return INSPECTION_MISSING_KEY_REASON;
   if (record.sourceType === 'activity' && !record.activityId) return '活动考察缺少 activityId，不能写入';
+  return null;
+}
+
+/**
+ * v12：考察对象必须是父工作组的**在册成员**（DATA_MODEL §2.5.1）。
+ * 父工作组：专班取 `workgroupId`；活动取活动行上的 `workgroupId`（缺省按稳定派生规则
+ * `wg-activity-<activityId>`，与 `activity-workgroup-sync.js::workgroupIdFor` 同构）。
+ * `legacy:true` 无父键历史记录不在此判（由 sourceKeyDeny 统一只读）。
+ * @returns {string|null} 拒绝原因；放行 → null
+ */
+export function _inspectionPersonMembershipDeny(db, record) {
+  if (!record || typeof record !== 'object') return null;
+  if (record.legacy === true) return null;
+  const personId = record.personId != null ? String(record.personId) : '';
+  if (!personId) return '考察记录缺少 personId，不能写入';
+  let workgroupId = record.workgroupId ? String(record.workgroupId) : '';
+  if (!workgroupId && record.sourceType === 'activity' && record.activityId) {
+    const row = db.prepare('SELECT data FROM activities WHERE id = ?').get(String(record.activityId));
+    if (row) {
+      let activity = null;
+      try { activity = JSON.parse(row.data); } catch { activity = null; }
+      workgroupId = activity?.workgroupId || `wg-activity-${record.activityId}`;
+    }
+  }
+  if (!workgroupId) return null; // 父键缺失由 `_inspectionSourceKeyDeny` 给出可懂原因
+  const member = db.prepare('SELECT data FROM workgroup_members').all()
+    .map((row) => JSON.parse(row.data))
+    .find((row) => String(row.workgroupId) === workgroupId
+      && String(row.personId) === personId
+      && row.status !== 'removed');
+  if (!member) {
+    return `考察对象 ${personId} 不是该考察父工作组 ${workgroupId} 的成员，请先在活动/专班工作组登记该同志`;
+  }
   return null;
 }
 

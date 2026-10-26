@@ -10,20 +10,20 @@
 //   - party 页面已移除，organizer/deep 内容落在成员工作台（workspace/visitor.html）——
 //     首页并无"我的角色"区块（2026-09-17 批次 64 dogfood 实测）
 
-import { DEFAULT_BRANCH_ID, ROLE_LABELS, ROLE_PAGE_MAP, BRANCH_COMMISSION_ROLES } from '../../core/domain/constants.js?v=20261025b';
-import { PEOPLE } from '../../data/mock/index.js?v=20261025b';
+import { DEFAULT_BRANCH_ID, ROLE_LABELS, ROLE_PAGE_MAP, BRANCH_COMMISSION_ROLES } from '../../core/domain/constants.js?v=20261026a';
+import { PEOPLE } from '../../data/mock/index.js?v=20261026a';
 // 账号登录校验（认证域收口：UI 不直连 mock 账号仓；真实后端接入时此处替换校验实现）
 // 2026-09-14 批次 25：改为「可持久化账号层 ∪ 静态种子表」校验（成员流入自动建号 / 流出停用；
 //   见 services/core/accounts.js），支撑「账号与成员档案同源」口径。
-import { verifyLogin } from './accounts.js?v=20261025b';
-import { getPersonById, getPersonName } from '../member/person.js?v=20261025b';
-import { mockDB, WORKGROUP_WRITABLE_STATUSES } from '../../core/domain/domain.js?v=20261025b';
-import { NoticeStore } from '../governance/notice.js?v=20261025b';
-import { getAdapter, migrateLegacyPersonId } from '../../data/data-adapter.js?v=20261025b';
-import { enableApiMode } from './runtime.js?v=20261025b';
-import { generateId } from '../../core/base/id.js?v=20261025b';
-import { todayLocal } from '../../core/base/utils.js?v=20261025b';
-import { WORKGROUP_PERMISSION_TEMPLATES_BY_KIND } from '../../core/domain/workgroup-policy.js?v=20261025b';
+import { verifyLogin } from './accounts.js?v=20261026a';
+import { getPersonById, getPersonName } from '../member/person.js?v=20261026a';
+import { mockDB, WORKGROUP_WRITABLE_STATUSES } from '../../core/domain/domain.js?v=20261026a';
+import { NoticeStore } from '../governance/notice.js?v=20261026a';
+import { getAdapter, migrateLegacyPersonId } from '../../data/data-adapter.js?v=20261026a';
+import { enableApiMode } from './runtime.js?v=20261026a';
+import { generateId } from '../../core/base/id.js?v=20261026a';
+import { todayLocal } from '../../core/base/utils.js?v=20261026a';
+import { WORKGROUP_PERMISSION_TEMPLATES_BY_KIND } from '../../core/domain/workgroup-policy.js?v=20261026a';
 
 // 迁移期（2026-10-20）：旧 p* 仅作登录别名 / 历史 localStorage 兼容，会话一律存学号。
 // 映射表经 data-adapter 的迁移入口转出，业务层不直接引用 deprecated 映射文件。
@@ -909,7 +909,7 @@ function _syncAuthAuditToServer(records) {
   const fresh = rows.filter((r) => r && r.id && !_auditSyncedIds.has(r.id));
   if (!fresh.length) return;
   fresh.forEach((r) => _auditSyncedIds.add(r.id));
-  const sync = import('../../data/data-adapter.js?v=20261025b').then(async ({ getDataSource, getAdapter }) => {
+  const sync = import('../../data/data-adapter.js?v=20261026a').then(async ({ getDataSource, getAdapter }) => {
     if (getDataSource() !== 'api') return; // mock 形态：不发（本机键即权威）
     const a = getAdapter();
     if (!a.authAudit || typeof a.authAudit.create !== 'function') return;
@@ -926,4 +926,88 @@ function _syncAuthAuditToServer(records) {
 }
 
 // R3-P1（F-09）：授权审计语义端点登记 pending-writes（置尾 import，避免上文 README 取证行号漂移）
-import { trackWrite } from '../../core/session/pending-writes.js?v=20261025b';
+import { trackWrite } from '../../core/session/pending-writes.js?v=20261026a';
+
+// ════════════════════════════════════════════════════════════════
+//  服务端优先登录（2026-10-26 Task 2.1）
+// ════════════════════════════════════════════════════════════════
+// 口径（spec「登录服务端优先」）：有 server（非静态托管）时**先** `POST /api/v1/auth/login`，
+//   成功后才写 `gsm1921-login-user` / `gsm1921-api-token` / 本标签页会话快照；
+//   后端 401 或网络失败 ⇒ 抛错（登录页显示可见错误并停留，不跳工作台）。
+// 本地账号层（`verifyCredentials` + `gsm1921-accounts` / `MOCK_ACCOUNTS`）只用于：
+//   · 静态托管（`DEPLOY_MODE === 'static'`）；· 显式开发模式（登录页复选框 / 调用方传 `serverFirst:false`）。
+// IAAA 路径不经本函数（`startIaaaSession` 保持原样）。
+// ⚠ 置尾覆盖：本文件上文的行号是 README-server.md 的取证靶点，`login()` 原位改写会整体漂移；
+//   故与 `deputy-leader` / 审计同步同法——**集中置尾**重绑 `AuthStore.login`，语义不变、上方行号不动。
+import { DEPLOY_MODE } from '../../config/deploy.js?v=20261026a';
+
+const LOGIN_ENDPOINT = '/api/v1/auth/login';
+
+/** 构造带 HTTP 状态的登录错误（401=口令/账号错误；0=网络不可达；其余=服务端失败） */
+function _loginFailure(message, status) {
+  return Object.assign(new Error(message), { status });
+}
+
+/**
+ * 服务端登录取会话（成功才返回 `{token,user}`；失败一律抛错，不静默降级）。
+ * @param {string} personId
+ * @param {string} password
+ * @returns {Promise<{token:string,user:Object}>}
+ */
+async function _requestServerLogin(personId, password) {
+  let response;
+  try {
+    response = await fetch(LOGIN_ENDPOINT, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ personId, password }),
+    });
+  } catch (e) {
+    throw _loginFailure('无法连接服务器，请稍后重试', 0);
+  }
+  let body = null;
+  try { body = await response.json(); } catch (_) { body = null; }
+  if (!response.ok) {
+    const message = (body && body.error)
+      || (response.status === 401 ? '学号或口令错误，请重试' : `登录失败（HTTP ${response.status}）`);
+    throw _loginFailure(message, response.status);
+  }
+  if (!body || !body.token) throw _loginFailure('服务器未返回登录会话，请稍后重试', 502);
+  return body;
+}
+
+/** 是否走服务端优先：调用方可显式覆盖；缺省按部署形态（server=是 / static=否） */
+function _loginServerFirst(options) {
+  if (options && options.serverFirst !== undefined) return !!options.serverFirst;
+  return DEPLOY_MODE === 'server';
+}
+
+// 保留本地优先实现（静态托管 / 显式开发模式复用；避免复制第二套落盘逻辑）
+const _localFirstLogin = AuthStore.login;
+
+/**
+ * 登录（服务端优先）。**成功后才写本地登录态**；后端失败抛错由登录页显示。
+ * @param {string} personId
+ * @param {string} [password]
+ * @param {{ serverFirst?: boolean }} [options] `serverFirst:false` = 静态托管 / 显式开发模式
+ * @returns {Promise<void>}
+ */
+AuthStore.login = async function login(personId, password, options = {}) {
+  if (!_loginServerFirst(options)) {
+    return _localFirstLogin.call(AuthStore, personId, password);
+  }
+  const accountId = _toStudentId(personId);
+  if (accountId == null) throw _loginFailure('账号不存在', 401);
+  const data = await _requestServerLogin(accountId, password);
+  const user = data.user || {};
+  const patch = {
+    personId: user.id || accountId,
+    role: user.role || _getUserRoleFromMemory(accountId),
+  };
+  // 批次 277：服务端**明给** branchId 才带上（缺字段＝未知 ⇒ 不写 ⇒ 不走待归属阻断层）
+  if (Object.prototype.hasOwnProperty.call(user, 'branchId')) patch.branchId = user.branchId;
+  // 顺序：先落登录快照，再由 enableApiMode 写 token（两者都在服务端 200 之后）
+  _writeLogin(patch);
+  enableApiMode(data.token);
+  console.info('[AuthStore] 已切换至 API 数据源（服务端优先登录）');
+};
