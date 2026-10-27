@@ -211,7 +211,7 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/DOC
 
 > **背景**：`.ctx` 顶层文件过多、成了筐；审计知识必须「各找各的地方」——原则归原则、方法归方法、执行沿革进 `logs/archive/`。
 
-**`.ctx` 顶层白名单（只此 7 项）**：`logs/`、`evidence/`、`TIMESTAMPS.md`、`SNAPSHOT.md`、`REVIEW_QUEUE.md`、`ACTIVE_RULINGS.md`、`ENGINEERING_ASSESSMENT.md`。
+**`.ctx` 顶层白名单（只此 9 项）**：`logs/`、`evidence/`、`TIMESTAMPS.md`、`SNAPSHOT.md`、`REVIEW_QUEUE.md`、`ACTIVE_RULINGS.md`、`ENGINEERING_ASSESSMENT.md`、`README.md`、`AGENTS.md`（后两项为索引与协作说明，2026-10-27 批次 515 与 `ctx-hygiene-guard` 的实际断言对齐）。
 
 **审计产物三去向**（先判性质，再决定落点）：
 
@@ -825,7 +825,7 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/DOC
 
 | ID | 事项 | 引用流程 | 修改对象 | 状态 |
 | --- | --- | --- | --- | --- |
-| T-903 | 完成工作台标签结构盘点与重点页证据审校；收束已确认的信息结构、能力包治理字段和文案改进 | H20.2 + H25 + DESIGN_SYSTEM + 最小三成本 | `.ctx/logs/archive/2026-10/WORKBENCH_67_TAB_AUDIT_DRAFT.md`、`README-server.md`、相关工作台实现 | 进行中（批次 464 党委批次 0；465 验证；466 个人档案设计；467–471 5 个阻塞清零、繁专项 Top 10 部分、个人档案分层实现；472 API 语义写链与工作组概念全仓对齐；473 按钮/边框归一、表格四类规范、信息计算文档与党委铃铛收窄。台账结论 29 合格 / 38 需修 / 0 阻塞。form-loop 仍有多条真机写链红：组长考勤前置数据、向导任选、pc-review 前置；按钮族内尺寸工具类存量 491 处为只降不升基线） |
+| T-903 | 完成工作台标签结构盘点与重点页证据审校；收束已确认的信息结构、能力包治理字段和文案改进 | H20.2 + H25 + DESIGN_SYSTEM + 最小三成本 | `.ctx/logs/archive/2026-10/WORKBENCH_67_TAB_AUDIT_DRAFT.md`、`README-server.md`、相关工作台实现 | 进行中（仅余三项：form-loop 真机写链红——组长考勤前置数据 / 向导任选 / pc-review 前置；按钮族内尺寸工具类存量 491 处为只降不升基线） |
 
 ## 批次 500 收尾与后续批次（2026-10-21）
 
@@ -848,6 +848,20 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/DOC
 | B-502-5 | 账号重命名后的边界：旧 token 仍有效、旧 `person.html?id=旧学号` 与收藏外链会 404（已如实登记，不自动改写） | `server/routes/member.js` + `person-entry.js` | 后续（需支书定是否做旧链接跳转） |
 | B-502-6 | 补课文案与设置页仍各写「T+7」：`disc/makeup-tab.js` / `settings-entry.js` 未接统一 `makeupScopeHint()` 派生（R7-15 部分落地） | `services/activity/makeup.js` + `settings-entry.js` | 待启动 |
 | B-503-5 | 待支书裁定四项：登录页品牌渐变 vs §5.3、首页 hero 党徽 vs §4.25、同名页签是否加范围后缀、支书台是否改名「反馈与回复」 | `DESIGN_SYSTEM.md` §5.3/§4.25、`login.html`、`index.html` | 待裁 |
+
+## 批次 515 收尾与后续（2026-10-27）
+
+> 本批已落地：活跃上下文瘦身（`.ctx` 三本台账收口 ＋ spec 回勾归档 ＋ TIMESTAMPS 刷新）、content 分层事实层校正、mock↔API 最小守卫（接口面 S4 ＋ 值对照 10 张）。下表只留**未执行**项。
+
+| ID | 事项（人话） | 引用流程 | 状态 |
+| --- | --- | --- | --- |
+| B-515-1 | 前端交付形态四项：响应压缩 / 缓存分层（HTML no-store、带戳资源长缓存）/ `modulepreload` / Tailwind 锁定或本地化 | `content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md` §九 + `H25` | 待启动（方案已定，未改代码） |
+| B-515-2 | 守卫归并：按 `GUARD_INVENTORY.md`「附：守卫归并候选」四组逐组执行，断言数不减 | `GUARD_INVENTORY.md` + `test-tier-guard` | 待启动 |
+| B-515-3 | content 重复表达收口：一改具改 17 文件 67 处、单一源 18 文件 168 处——逐条留权威句、余改指针 | `DOC_MAP.md` §七 权威句位置 + `H30.1` | 待启动 |
+| B-515-4 | 数据缺口：14 个无种子集合 / 18 张表不在结构对照内 · 语义表 7 域无乐观锁 · 语义端点无值对照 | `DATA_CONSISTENCY_CHECKLIST.md` §0.2 + `DATA_MODEL.md` | 待启动 |
+| B-515-5 | 内容侧遗留：`text-xs` 存量 1971 处/130 文件 · About 功能卡与 `help.html` 页面清单 · `--app-accent-tint` 相对颜色回退 · 409 排除口径收紧 | `GUARD_INVENTORY.md` + `DESIGN_SYSTEM.md` SD-50 | 待启动 |
+| B-515-6 | `repair-workbench-blockers-and-findings` 5 项 ＋ `close-special-projects-batch-500` 4 项（两 spec 已归档，未完成项在此跟踪） | `.ctx/logs/archive/2026-10/specs/SPECS_INDEX.md` | 待启动 |
+| B-515-7 | 审计报告归档：`.ctx/logs/2026-10-AUDIT_R6…R11` 7 份 ＋ `R10_P3_CLOSURE` 仍在 `logs/` 顶层，须与执行日志（不可改写）和 content 引用同批迁移 | `CLAUDE.md H26.3` + `.ctx/AGENTS.md` | 待启动 |
 
 ***
 

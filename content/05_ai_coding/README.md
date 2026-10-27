@@ -2,7 +2,7 @@
 title: "AI coding 技术层索引——网站系统的 AI coding 技术方法"
 type: index
 role: "[工程师]+[AI]"
-last_updated: 2026-10-24
+last_updated: 2026-10-27
 status: active
 ---
 
@@ -12,7 +12,7 @@ status: active
 
 ## 作用
 
-本目录存放**知识类型 5：网站系统的 AI coding 技术方法**，回答「AI 协作时怎么做、常见错误边界在哪、审查该先问什么」。
+本目录存放**知识类型 5：网站系统的 AI coding 技术方法**（权威定义见 [OPERATIONS_GUIDE.md §二](../03_doc_system/OPERATIONS_GUIDE.md)），回答「AI 编码的经验教训与陷阱、审查该先问什么」。
 
 ## 不负责什么
 
@@ -35,6 +35,8 @@ status: active
 | [REVIEW_QUESTION_SET.md](REVIEW_QUESTION_SET.md) | 审查问题集：每轮开工逐条回答的布尔判据 | **是**——审查问题判据 | on-demand |
 | [QUESTION_HIT_MATRIX.md](QUESTION_HIT_MATRIX.md) | 审查问题集命中矩阵：历史 spec × 问题的命中记录 | 派生——由 `REVIEW_QUESTION_SET` 与历史审查生成 | on-demand |
 | [CASES.md](CASES.md) | AI 协作域判例：场景、结论、边界、对应规范编号与证据指针 | 否——判例不产生规范效力 | on-demand |
+| [GUARD_INVENTORY.md](GUARD_INVENTORY.md) | 守卫清单与断言台账：按域分组、新增 / 合并 / 归并候选的登记处 | 指针——判据在各守卫源码与对应规范 | on-demand |
+| [AGENTS.md](AGENTS.md) | 本目录协作说明：分层裁决（不写规范判据）、验证命令与常见坑 | 指针 → 本 README 与五个分篇 | on-demand |
 | `README.md` | 本层索引（分篇入口、边界与维护规则） | 指针 → 上述分篇 | active |
 
 ## 权威源与派生

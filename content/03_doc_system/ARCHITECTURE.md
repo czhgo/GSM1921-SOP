@@ -2,7 +2,7 @@
 title: "架构与单一事实源"
 type: architecture
 role: "[工程师]+[AI]"
-last_updated: "2026-10-25"
+last_updated: "2026-10-27"
 version: "7.4"
 status: active
 related_files: [CLAUDE.md, content/03_doc_system/DOC_MAP.md, content/02_institution/SYSTEM_ROLE_PERMISSION.md, content/04_web_design/]
@@ -182,7 +182,7 @@ Layer 7: 审计参考层（审计与参考）
 │   │   ├── deploy/                    [工程师]+[AI] 部署与集成设计（DEPLOYMENT_GUIDE）
 │   │   ├── evolution/                 [工程师]+[AI] 演进、契约与评估（ARCHITECTURE_EVOLUTION / WORKFLOW_BLOCK_CONTRACT / BRANCH_WORK_MAP / PARTY_COMMITTEE_DESIGN / ROLE_PERMISSION_DESIGN / DESIGN_METHODOLOGY；工程化评估见 .ctx/ENGINEERING_ASSESSMENT.md）
 │   │   └── README.md                 [工程师]+[AI] 网站设计层目录索引（逐文件一句话说明）
-│   ├── 05_ai_coding/                 [工程师]+[AI] AI 协作方法论层（唯一 AI 协作方法论层：README + 6 分篇 + DATA_CONSISTENCY_CHECKLIST）
+│   ├── 05_ai_coding/                 [工程师]+[AI] AI 协作方法论层（唯一 AI 协作方法论层：README + 5 分篇 + DATA_CONSISTENCY_CHECKLIST）
 │   │   ├── README.md                         [工程师]+[AI] AI 协作方法论层目录索引（层索引表 + 分流来源声明）
 │   │   ├── FILE_OPERATION_RULES.md           [工程师]+[AI] 文件操作纪律分篇
 │   │   ├── TEST_AND_VERIFICATION.md         [工程师]+[AI] 测试验证纪律分篇（含数据同源一致性校验节、承载形态守卫）

@@ -1,0 +1,24 @@
+# Checklist
+
+- [x] 静态托管（无登录态）打开首页，页眉标题显示「光华管理学院本科生党支部」，且页面上不存在「示例组织」字样（探针：`DEPLOY_MODE=static`、hero 标题实测为该名）
+- [x] 首页 / 登录页 / 帮助页 / 关于页 用户可见处均无「演示 / Mock / 示例组织」字样（注释除外）（守卫 `publicity-static-guard` G1 绿）
+- [x] 帮助页 0.3 登录说明不再出现真实姓名 + 学号 + 统一口令的演示账号串
+- [x] 「进入支部（演示）」等入口文案已去除「演示」字样且功能仍可用（改为「进入支部（党委视角）」；`party-committee.test.mjs` 断言同步并通过）
+- [x] 只读拦截提示语与党委下钻横幅均无「演示」字样，语义仍准确
+- [x] 支部显示名仍是数据驱动：改支部配置档案名后页眉/首页标题随之变化（引用 `DEFAULT_BRANCH_DISPLAY_NAME` / 支部 `config.headerTitle`，未新增第二份字面量）
+- [x] 首页活动区默认落在 2026-10，可见「党建思想学习会（10-15）」与「红色徒步·香山行（纪念长征胜利 90 周年）（10-22）」（探针：默认月 2026-10、日历活动条 2 条 = 党课 / 党日）
+- [x] 两活动状态自洽：10-15 为已举办、10-22 为计划中；`completed` 活动无未完成任务挂靠
+- [x] 首页「重要通知」包含十月通知（探针实测含「红色徒步·香山行」通知，不再只有 7 月内容）
+- [x] 无「已过期待办」：种子无过去截止（守卫 G3 绿）；待办页「已过期」计数实测 **0**。**（2026-10-11 支书裁定改准）** 按真实数据计算出的存量缺口/逾期（7 月复盘·考勤·考察积压）**保留**——「既然是真实数据，这些内容都应该计算出来才对」
+- [x] 种子数据中不存在「截止日早于当前日期且未完成」的待办（守卫 `publicity-static-guard` G3 绿，解析到 1 条日期型 deadline = 2026-12-31）
+- [x] 持有旧版本地演示数据的浏览器再次打开静态页时，旧数据被自动丢弃并回到新种子（`branch-doc.test.mjs` ⑩/⑩b 绿：含 act-36/act-37、不含旧 act-999、落盘 `_seedVersion`）
+- [x] `_seedVersion` 缺失/不匹配时行为为「丢弃 + 重播种子」，不再出现 `_schema` 不匹配导致空页（⑩b 覆盖 `_schema` 分支）
+- [x] 非 Node 托管下 `DEPLOY_MODE === 'static'`；Node 托管（`npm start`）下仍为 `server`（探针：浏览器 `static`；Node 侧实测 `server`）
+- [x] 静态页在曾登录过的浏览器上不再弹「会话已失效」，侧边栏出现「关于」入口（`data-adapter::isStaleServerSession` 在 `static` 下短路；侧边栏「关于」按 `static` 显示）
+- [x] 帮助页写清 `?reset=demo` / `?reset=preview` 的用途（清理旧本地数据）
+- [x] 全站版本戳已 bump（`node docs/scripts/bump-version.mjs` → 20261011a，CODE_VERSION 421；陈旧戳自检 0 处残留）
+- [x] 新增机检件（`server/test/publicity-static-guard.test.mjs`）在测试中通过（4/4；反向验证证明非恒真）
+- [x] `cd server && npm test` 全绿且分片档 ≤15 分钟（全量档实测 1050.4s ≈ 17.5min ≤20min；`[node]` 797/797 绿；e2e 失败项逐条复跑后全绿——`click-cost`/`b3-1`/`mock-integrity`/`page-sweep`/form-loop(secretary) 35/35、`doc-line-ref`+`doc-consistency` 24/24）
+- [x] 真机探针（静态形态）核验通过：标题正确、十月活动可见、待办「已过期」0、无演示字样、pageerror 0
+- [x] 执行日志 / 决策日志 / TIMESTAMPS 已登记
+- [x] 已 commit（不 push），`git status` 干净

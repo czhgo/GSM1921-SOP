@@ -2,9 +2,9 @@
 title: "多代理独立审查操作手册"
 type: methodology
 role: "[工程师]+[AI]"
-last_updated: "2026-10-25"
+last_updated: "2026-10-27"
 status: active
-related_files: [CLAUDE.md, .trae/specs/generalize-parallel-skill-audit/spec.md]
+related_files: [CLAUDE.md, .ctx/logs/archive/2026-10/specs/generalize-parallel-skill-audit/spec.md, .ctx/logs/archive/2026-10/specs/refine-ui-three-lenses/spec.md, .trae/specs/_TEMPLATE/tasks.md]
 ---
 
 # 多代理独立审查操作手册
@@ -84,7 +84,7 @@ related_files: [CLAUDE.md, .trae/specs/generalize-parallel-skill-audit/spec.md]
 - 默认三路，每路一个 skill；skill 必须与审查主题匹配。
 - 同一轮内**禁止重复 skill**；同一 skill 给两个代理会失去独立性。
 - 未确认可用的 skill 只留在 skill 矩阵的「待确认」列，不得写死进提示词。
-- skill 矩阵见 `.trae/specs/generalize-parallel-skill-audit/spec.md` 附录 A。
+- skill 矩阵见 `.ctx/logs/archive/2026-10/specs/generalize-parallel-skill-audit/spec.md` 附录 A。
 
 ### 2.3 并行独立审查
 
@@ -378,7 +378,7 @@ related_files: [CLAUDE.md, .trae/specs/generalize-parallel-skill-audit/spec.md]
 | C5 | 选人是假模态 | 焦点可落到遮罩后；body 未锁滚动 | 键盘与移动端操作混乱 |
 | C6 | 行内动作等权 | 「设/改」「改名」「解散」同权重并排 | 危险动作易误触 |
 
-> 共识判据：三项发现由两个及以上 lens 独立指向同一元素，且证据可复核；不是主代理的主观合并。详细证据与验收见 `.trae/specs/harden-mobile-and-primary-actions/`。
+> 共识判据：三项发现由两个及以上 lens 独立指向同一元素，且证据可复核；不是主代理的主观合并。详细证据与验收见 `.ctx/logs/archive/2026-10/specs/harden-mobile-and-primary-actions/`。
 
 ### 8.3 五项分歧
 
@@ -401,7 +401,7 @@ related_files: [CLAUDE.md, .trae/specs/generalize-parallel-skill-audit/spec.md]
 
 ### 8.5 落点与复盘
 
-- **落点**：`.trae/specs/harden-mobile-and-primary-actions/`（`spec.md` / `tasks.md` / `checklist.md`）。
+- **落点**：`.ctx/logs/archive/2026-10/specs/harden-mobile-and-primary-actions/`（`spec.md` / `tasks.md` / `checklist.md`）。
 - **未选方案**：已裁定项中的冻结列、全部收起、深灰混色、「更多」菜单均记为「已考虑但未采用」，不静默丢弃；D4 活动风采未裁定，留在 Phase 2 选题池。
 - **复盘要点**：
   - AI 容易把分歧折中成「兼顾两方」，人类要的是**明确取舍 + 代价**。
@@ -426,7 +426,7 @@ related_files: [CLAUDE.md, .trae/specs/generalize-parallel-skill-audit/spec.md]
 - **逐轮启动，不得四轮同时开。** 每轮单独定题、单独裁定、单独落 spec。
 - 上一轮的裁定未落 spec、未验证完成，不启动下一轮；避免上下文与范围互相污染。
 - 每轮开始前重新产出 skill 矩阵；未确认的 skill 不得写死。
-- skill 矩阵与候选能力边界见 `.trae/specs/generalize-parallel-skill-audit/spec.md` 附录 A。
+- skill 矩阵与候选能力边界见 `.ctx/logs/archive/2026-10/specs/generalize-parallel-skill-audit/spec.md` 附录 A。
 
 ### 9.3 轮次之间的交接
 
@@ -553,3 +553,86 @@ related_files: [CLAUDE.md, .trae/specs/generalize-parallel-skill-audit/spec.md]
 | 2026-10-21 | 批次 500 十项专项收口（汇报汇总 / 待办归属 / mock 真值 / 生命周期 / 测试分层 / 第五轮审查） | `SECRETARY_DIRECTIVES.md` P-019；`DATA_MODEL.md` §2.16；本文 §11.3 AP-IA-11…15；`.ctx/logs/archive/2026-10/AUDIT_R5_*.md` |
 
 > 报告只做判例证据，不复制原文；后续同类问题先回查上表，再决定是否新开专项。
+
+---
+
+## 13. 三阶段 UI 专项（2026-10-27 立 · 批次 514 沉淀）
+
+> **判例**：`.ctx/logs/archive/2026-10/specs/refine-ui-three-lenses/`（spec / tasks / checklist 三件套）；过程记录 `.ctx/logs/2026-10-EXECUTION_LOG.md` 批次 514。
+> **用途**：一轮要改很多页、且同时存在「能用 / 不乱 / 好看」三套合理判断时，把整改拆成**三阶段串行**，阶段内部再并行多代理独立审查；阶段之间用门禁隔断，避免三件事一起改、错了不知道错在哪。
+> **与 §11 / §12 的分工**：`PARALLEL_SKILL_AUDIT.md` §11 三问判「该不该存在」，§12 五问判「全站是否只有一个说法」；本节判「同一批页面在可用性、结构密度、视觉与等待三个层面分别怎么落地」，管的是**改动顺序与门禁**，不替代前两节的对象级审查。
+> **模板**：`.trae/specs/_TEMPLATE/tasks.md`（阶段 / Task / 验证三段式，复制后改占位）。
+
+### 13.1 适用与不适用
+
+| 判断 | 场景 |
+|---|---|
+| 适用 | 问题横跨多页、需要「先删/并、再统一」；同一范围有 3 套以上合理判断（可用性、密度、审美）且互相拉扯 |
+| 适用 | 支书已给出多条不可回退裁定（如胶囊原样、全站零下划线），整改要按裁定逐条落地并防回潮 |
+| 不适用 | 只有一个明确判据的单点修复（直接改、直接加守卫） |
+| 不适用 | 裁定已完成、只剩实施（跳到 §6 落 spec，不再开审查） |
+| 不适用 | 范围大到一阶段做不完（先按 `OPERATIONS_GUIDE.md` §10.5 分片，一次一个可完成范围） |
+
+### 13.2 三阶段与阶段内 lens 分配
+
+三阶段串行；阶段内代理数默认 3、最多 4，每个代理只持一个不同 skill，同阶段不重复。
+
+| 阶段 | 要回答的问题 | 实际 lens | 产出重心 |
+|---|---|---|---|
+| 一 · 最小三成本 | 信息 / 操作 / 学习成本是否过高 | `better-layout`、`better-accessibility`、`better-writing` | 顺序、焦点、入口连续性 |
+| 二 · 脏乱繁 | 层级、重复、密度是否失守 | `web-design-guidelines`、`uicraft`、`better-typography` | 页标题唯一、每行一个主行动、空态归并 |
+| 三 · 美学与等待 | 视觉主张、状态可分、等待体验 | `frontend-design`、`design-with-taste`、`better-colors`、`better-ui` | token、胶囊/选中态、加载、细节手感 |
+
+阶段三的文件写权收敛到一个代理：`frontend-design` 独占 `styles.css`，其余代理只交 token / 选择器清单由其合并；`better-ui` 只改非 `styles.css` 文件。
+
+### 13.3 九步（批次 514 实跑版本）
+
+| 步 | 动作 | 产物 | 通过判据 |
+|---|---|---|---|
+| 1 | 定题 | 阶段范围、页面清单、视口（1440 / 390）、角色、数据状态、排除项 | 范围能在一阶段内完成 |
+| 2 | 先探查、后写 spec | 代理原始发现表 | 每条带 `文件:行号` / 计算样式 / 截图 / 运行输出 |
+| 3 | 选 lens | skill 矩阵（每代理一个、不重复） | 同阶段无重复 skill；未确认的 skill 不入场 |
+| 4 | 并行独立审查 | N 份互不可见报告 | 子代理不读他人报告、不改文件 |
+| 5 | 证据校验 | 可用 / 待补证 / 剔除 | 行号与内容一致；计算样式可复现 |
+| 6 | 汇总 | 共识 / 分歧 / 待裁定 | 不平均意见、不选边 |
+| 7 | 支书裁定 | 决策记录（原话＋日期＋未选方案） | 每个分歧 2–4 个互斥选项、一次一问 |
+| 8 | 落 spec 实施 | `spec.md` / `tasks.md` / `checklist.md` | 「已考虑但未采用」写进 spec |
+| 9 | 阶段门禁 | 定向测试 ＋ daily ＋ 真机截图 | 上一阶段全绿才进下一阶段；文件写权同一时间只给一个代理 |
+
+前 8 步与 §2 的 7 步同源，差别只在第 9 步：整轮被切成三段，每段各跑一次门禁。
+
+### 13.4 三道门禁（本轮真正的质量来源）
+
+1. **阶段门禁**：阶段一没绿不进阶段二，阶段二没绿不进阶段三。作用是把「三阶段一起改、错了不知道错在哪」拆成三个可归因的失败点。
+2. **相邻态门禁**：不只查「类名存在」，还查**相邻两态一眼可分**——组名 vs 选中页签、逾期 vs 正常、暗色选中 vs 未读红点。查法：两个状态各截一张图并排比对，或读两边计算样式；只断言 DOM 结构不算过。
+3. **全站计数门禁**：对「应该归零」的东西（文本下划线、About 入口、16:9 空图位）要求**全站计数 = 0**，不接受抽样页通过。查法：全目录正则计数 + 扣除白名单，与守卫读数对账。
+
+### 13.5 三条可复用机制结论
+
+| 结论 | 含义 | 反例 |
+|---|---|---|
+| 唯一落点 | 每个问题落到「改哪个文件、由哪个守卫证明」 | 只写「统一一下视觉」，下一批必回潮 |
+| 可布尔化 | 结论能写成「什么算违反」 | 写不出来的，说明还没想清 |
+| 阶段小结 | 每批收尾在 `.ctx/SNAPSHOT.md` 追加固定 5 行（做了什么 / 结论 / 未决 / 已迁 content / 下批入口） | 只留聊天记录，下一轮接不上 |
+
+### 13.6 什么时候值得建 skill
+
+**本轮结论：先补手册（本节 + `_TEMPLATE`），不建全局 skill。** 判据已完整落在 `CLAUDE.md` H21 与本手册，另建入口就会形成第二套判据；只有在出现「一句话唤起」的真实需求时，才建项目级薄 skill。
+
+若后续确要建，最小契约如下（只做路由与检查表，判据指回 `CLAUDE.md` H21 与本文，不复制正文）：
+
+| 项 | 内容 |
+|---|---|
+| 触发词 | UI 专项 / 三阶段 / 最小三成本＋脏乱繁＋美学 /「先探查再写 spec」 |
+| 输入 | 范围（页面 / 文件）、视口（1440 / 390）、角色、数据状态、排除项 |
+| 输出 | N 份独立报告 → 共识 / 分歧 / 待裁定 → `spec.md` / `tasks.md` / `checklist.md` |
+| 停止线 | 停在 spec，等支书裁定后再实施；不替支书选边 |
+| 禁止项 | 同一 skill 给两个代理；代理互读报告；平均意见；无证据形容词 |
+
+### 13.7 判例登记
+
+| 日期 | 报告（判例原文） | 已沉淀去向 |
+|---|---|---|
+| 2026-10-27 | `.ctx/logs/archive/2026-10/specs/refine-ui-three-lenses/` 三件套 | 本文 §13；`DESIGN_SYSTEM.md` SD-49…SD-52；`CASES.md` CASE-DESIGN-026/027 |
+| 2026-10-27 | 批次 514 交接的硬裁定 R1–R10 与 8 项待办（交接文件已在批次 515 按纪律删除） | 硬裁定并入本文 §13.4 / §13.5；未执行项转入 `CLAUDE.md` 乙部 `B-515-5` |
+| 2026-10-27 | `.trae/specs/_TEMPLATE/tasks.md`（三阶段模板） | 本文 §13.2 / §13.3 |

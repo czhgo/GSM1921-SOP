@@ -1,8 +1,8 @@
 ---
 title: "部署与对外对接目录索引（04/deploy/）"
 type: index
-role: "[工程师]+[运维执行人]"
-last_updated: 2026-10-24
+role: "[工程师]"
+last_updated: 2026-10-27
 status: active
 ---
 

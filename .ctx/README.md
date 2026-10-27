@@ -2,7 +2,7 @@
 title: ".ctx 审计底座：分桶说明与检索索引"
 type: index
 role: "[工程师]+[AI]"
-last_updated: "2026-10-24"
+last_updated: "2026-10-27"
 status: active
 related_files: [CLAUDE.md, .ctx/SNAPSHOT.md, .ctx/logs/EXECUTION_LOG_INDEX.md, content/03_doc_system/DOC_MAP.md]
 ---
@@ -58,9 +58,9 @@ related_files: [CLAUDE.md, .ctx/SNAPSHOT.md, .ctx/logs/EXECUTION_LOG_INDEX.md, c
 |---|---|
 | **唯一落点** | `.ctx/SNAPSHOT.md` 末尾的 `## 批次 NNN 小结（YYYY-MM-DD）` 段；固定 5 行：**做了什么 / 结论 / 未决 / 已迁 content 的条目 / 下批入口**。不另起文件，不写进 `REVIEW_QUEUE` / `ENGINEERING_ASSESSMENT`。 |
 | **触发条件** | **每批收尾**：执行日志写完、测试读数落盘之后，向用户回报之前。 |
-| **检查方式** | `docs-governance-guard` 校验 `SNAPSHOT.md` 存在**最近一批**小结段且 5 行齐全；缺段 / 缺行即红。 |
+| **检查方式** | `docs-governance-guard` G6 断言 `SNAPSHOT.md` 存在「批次 509 小结」段（**只此一段，未断言最近一批、未逐行断 5 行**）；其余批次靠人工按本表核对。 |
 
-> **现状（如实）**：本仓现有 `server/test/ctx-hygiene-guard.test.mjs` 只守 `.ctx` 顶层白名单与归档指针，尚未断言小结段；`docs-governance-guard` 的该条断言待后续批次补入。本批授权面不含 `server/**`，故当前以 `CLAUDE.md H50.1 §3.2` + 本表人工核对。
+> **现状（如实）**：`ctx-hygiene-guard` 只守 `.ctx` 顶层白名单与归档指针；`docs-governance-guard` G6 已断言批次 509 段存在，但「最近一批 + 5 行齐全」尚未机检（2026-10-27 批次 515 已清点：509–515 共 7 段，每段 5 行）。机检缺口已登记为待办。
 >
 > **与基线的关系**：小结段是**每批索引**，只追加、不重写 §I–§VI；不改变 `OPERATIONS_GUIDE §15.3` 的基线重生成触发条件。
 
@@ -80,5 +80,5 @@ related_files: [CLAUDE.md, .ctx/SNAPSHOT.md, .ctx/logs/EXECUTION_LOG_INDEX.md, c
 
 1. **先判桶再落笔**：新增文件先按 §一判定归属；不属于任何桶的，先沉淀到正式文档再归档。
 2. **不物理移动既有文件**：本 README 只是索引；归档动作只允许「新增到 `logs/archive/YYYY-MM/`」或按既有归档规则移动，不改写历史内容。
-3. **白名单**：`.ctx` 顶层准入以 `CLAUDE.md H26.3` 为准（当前 7 项）。本 README 是索引文件，属新增第 8 项——白名单与 `ctx-hygiene-guard` 的断言需在后续批次同步；本批不改 `server/**`。
+3. **白名单**：`.ctx` 顶层准入以 `CLAUDE.md H26.3` 为准（当前 9 项，含本 README 与 `AGENTS.md`）；`ctx-hygiene-guard` 的白名单断言与之同口径（2026-10-27 批次 515 对齐）。
 4. **每批收尾**：按 §四 在 `SNAPSHOT.md` 追加 5 行；同时检查「已迁 content 的条目」是否有指针。

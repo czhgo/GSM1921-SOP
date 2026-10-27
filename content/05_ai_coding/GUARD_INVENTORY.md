@@ -27,7 +27,7 @@ status: active
 > **批次 514（2026-10-27）**：新增 **3 件**——`no-underline-guard`（4 条）、`loading-experience-guard`（6 条）、
 > `no-about-route-guard`（5 条）；件数 74 → **77**，明细见 §十一。
 
-> 合并前实点 **72 件**（批次 509 口径）。下表逐行按实读校准后，现行 **77 件 / 526 条**；另有已合并的
+> 合并前实点 **72 件**（批次 509 口径）。下表逐行按实读校准后，现行 **77 件 / 527 条**；另有已合并的
 > 5 件（`frontmatter-freshness` / `timestamps-note-guard` / `doc-line-ref` / `gold-accent-guard` /
 > `button-system-guard`，25 条）不在表内、不计入本表合计。
 
@@ -68,7 +68,7 @@ status: active
 | `loading-experience-guard.test.mjs` | 组件 / 加载（骨架 / 120ms 延迟 / 180ms 淡入 / ≤1s / 跳转进度条） | 6 | 3 | 是 | `ui-motion-guard`、`motion-guard`、`runtime-tab-lifecycle-guard` |
 | `localstorage-key-guard.test.mjs` | 代码 / 存储键（四类归档 / 版本校验） | 10 | 5 | 是 | `doc-consistency::S6`、`preferences`、`write-truth-guard` |
 | `material-link-truth.test.mjs` | 数据（材料链接真值） | 6 | 1 | — | `mock-api-parity`、`data-lifecycle-guard` |
-| `mock-api-parity-structure.test.mjs` | 数据（mock / API 结构） | 5 | 7 | — | `mock-api-parity`、`mock-integrity` |
+| `mock-api-parity-structure.test.mjs` | 数据（mock / API 结构 ＋ 适配器接口面） | 6 | 7 | — | `mock-api-parity`、`mock-integrity` |
 | `mock-api-parity.test.mjs` | 数据（mock / API 读数） | 5 | 4 | — | `mock-api-parity-structure`、`mock-integrity` |
 | `mock-integrity.test.mjs` | 数据（mock 完整性，真机） | 2 | 0 | — | `mock-api-parity`、`mock-api-parity-structure` |
 | `modal-contract.test.mjs` | 组件 / 交互（弹窗契约） | 5 | 4 | — | `modal-escape-guard`、`ui-modal-form-guard` |
@@ -129,7 +129,7 @@ status: active
 - 批次 509 合并：5 件 → 3 件保留件（文档 3→1 新增、颜色 2→1、交互 2→1），文件数 **72 − 5 ＋ 1 = 68**。
 - 批次 512 新增：`runtime-tab-lifecycle-guard` ＋ `object-route-guard` ⇒ 70 件 / 462 条。
 - 批次 513 新增：`seed-contract-guard`（10）＋ `test-isolation-guard`（4）＋ `write-truth-guard`（9）＋ `demo-window-guard`（5），并校准 3 件既有守卫的实读断言（`data-lifecycle-guard` 14→15、`seed-baseline` 3→6、`localstorage-key-guard` 3→10）⇒ 批次 513 末 **74 件 / 501 条**。
-- 批次 514 新增：`no-underline-guard`（4）＋ `loading-experience-guard`（6）＋ `no-about-route-guard`（5）；同批扩展 `ui-contrast-guard`（5→6，K3 改判据 ＋ K6）· `theme-palette-guard`（14→15，T10）· `page-title-guard`（4→7，P4–P6）· `responsive-cards-guard`（7→8，C7）；并校准 3 件历史静态差（`doc-consistency` 21→23、`test-tier-guard` 6→8、`ui-control-system-guard` 25 不变）⇒ 现行 **77 件 / 526 条**。
+- 批次 514 新增：`no-underline-guard`（4）＋ `loading-experience-guard`（6）＋ `no-about-route-guard`（5）；同批扩展 `ui-contrast-guard`（5→6，K3 改判据 ＋ K6）· `theme-palette-guard`（14→15，T10）· `page-title-guard`（4→7，P4–P6）· `responsive-cards-guard`（7→8，C7）；并校准 3 件历史静态差（`doc-consistency` 21→23、`test-tier-guard` 6→8、`ui-control-system-guard` 25 不变）⇒ 现行 **77 件 / 527 条**（批次 515 在 `mock-api-parity-structure` 增 S4，5→6）。
 - 后续目标：**60 ± 3 件**（按新增 6 件平移；再合并约 14 件）。推导见 3.2（其「现有 / 目标」为批次 509 时点）。
 
 ### 3.2 推导（按「同一检查对象 ＋ 同一失败根因」聚类，不按文件名拍脑袋）
@@ -299,4 +299,18 @@ status: active
 - **非空转（本批实读）**：`no-underline` 全站下划线 **0 处**；`no-about-route` 扫描 HTML **26** / JS **312** / MD **2**，三类残留均 **0**；`loading-experience` 读取 `tab-bar.js`（>5KB）与 `tab-loading.css`（>500B），骨架恰 3 条卡形行。
 - **故障注入（人工 / 机检，不入仓）**：`docs/help.html` 加回 `<a href="./about.html">关于</a>` ⇒ A1 红；`sidebar.js` 加回 `{ module: 'about' }` ⇒ A2 红；删 `docs/about.html` ⇒ A4 红；任一处恢复 `text-decoration: underline` ⇒ N2 / N4 红；把延迟改 0 / 恢复 `opacity='0.45'` ＋ 插加载行 / 删 reduced-motion 分支 ⇒ `loading-experience` 逐条红；组名加回 `border` 或改 `neutral-500` ⇒ `ui-contrast::K3` / `ui-control::V2` 红。
 - **不并入**：`no-underline-guard` 与 `link-color-guard` 同看链接，但前者判「文本装饰计数归零（全站）」，后者判「链接色单一源与语义」，失败根因不同；`loading-experience` 与 `ui-motion` 同看动效，但前者判加载编排与禁令、后者判卡片悬停 / 过渡属性，登记为后续评估项。
+
+---
+
+## 附：守卫归并候选（2026-10-27 批次 515 立 · **只登记，不执行**）
+
+> **立表判据**（支书 2026-10-27）：「能拦住问题、也能定位问题的最小守卫数」。归并只减**文件数**、不减**断言数**；每组须同时满足：同域 · 同断言对象 · 合并后可定位到原断言名。
+> **执行纪律**：下一批逐组执行；合并后 `test-tier-guard` 的 `DAILY_FILE_BUDGET` 同批下调，断言数不变。任一组合并前须先证明「失败信息仍能指认出是哪条判据」。
+
+| 组 | 候选件 | 合并后文件 | 去重 / 保留 | 可能丢失的定位能力 | 风险 |
+|---|---|---|---|---|---|
+| 1 性能 | `perf-render-guard` · `perf-todo-agg-cache` · `perf-version-token` · `perf-index-equivalence` | `perf-guard.test.mjs` | 断言全保留，按 P1–P4 重新编号并保留原断言名于 `assert` 消息 | 文件名不再区分「渲染 / 缓存 / 版本 / 索引」 | 四件均依赖不同前置（缓存 / 版本令牌 / 索引），合并后单文件跑时须共享同一 `:memory:` 装载 |
+| 2 文案 | `copy-anchor-guard-e2e` · `copy-fold-guard` · `copy-length-guard` · `copy-master-guard` · `copy-screen-guard` · `self-evident-copy-guard` | `copy-guard.test.mjs` | 静态五件可合；`copy-anchor-guard-e2e`（真机）建议单列，避免 node 静态档误跑浏览器 | 失败时须靠断言前缀分辨「长度 / 母本 / 同屏 / 折叠 / 自明」 | e2e 与静态混跑会破 daily 预算口径；建议 5 静态 + 1 真机 |
+| 3 字号 | `small-text-guard` · `text-tier-guard` · `table-type-scale-guard` · `control-font-guard` | `type-scale-guard.test.mjs` | 四条基线逐条保留（存量 ratchet 只降不升） | 四类基线合并后须分别上报命中清单 | 基线文件各自独立，合并须同批改 `style-baseline.mjs` 的读取口径 |
+| 4 弹层 | `modal-contract` · `modal-escape-guard` · `ui-modal-form-guard` | `modal-guard.test.mjs` | 契约 / Esc 闭环 / 表单体例三组断言全保留 | 「契约 vs 体例」失败归类需靠断言前缀 | 三件断言数 5/3/10，合并后须逐条保留原断言名 |
 

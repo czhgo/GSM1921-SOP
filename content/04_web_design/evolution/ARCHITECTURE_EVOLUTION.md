@@ -3,7 +3,7 @@ title: "架构演进——组件化落地评估与轻量插件化设计"
 type: design
 role: "[工程师]+[AI]"
 created: 2026-08-22
-last_updated: "2026-10-22"
+last_updated: "2026-10-27"
 status: active
 related_files: [DATA_MODEL.md, SOP_WEBSITE_GUIDE.md, DEPLOYMENT_GUIDE.md, ../../03_doc_system/ARCHITECTURE.md, ../../05_ai_coding/README.md]
 ---
@@ -105,6 +105,35 @@ related_files: [DATA_MODEL.md, SOP_WEBSITE_GUIDE.md, DEPLOYMENT_GUIDE.md, ../../
 **L4 画布 → 执行的映射（不做第二套引擎）**：拖拽产物 = `{ branchId, version, blocks: [blockId 序列 + 连线/条件] }`，经一次编译收敛为既有 workflow `definitions`（或 scenario 参数）→ WorkflowEngine 消费；权限仍在块粒度上受角色与支部 config 约束。
 
 **原型最小实验范围（YAGNI 边界）**：v0 画布只做「块的**排序/启停**预览」——把一个 scenario 的阶段序列可视化排布、勾选启停并保存回 config.enabledModules（文本勾选 ↔ 画布双向同步）；图形化条件分支、块导出/市场（L5）不在 v0。这样既能拿到"拖积木"的真实手感，又不触碰执行引擎。
+
+---
+
+## 九、性能与交付形态（2026-10-27 方案 · **未执行**）
+
+> **现状读数**（批次 515 实测）：26 个 HTML（18 根页 ＋ 8 工作台）· 312 个 JS / 94,036 行 · `styles.css` 6,454 行；26/26 页各 1 个 `type="module"`；首屏静态 import 链 ≥4 层（entry → 20 个模块 → `bootstrap` 16 个）；tab 模块走动态 `import()`。无 gzip / brotli；全部静态文件共用 `Cache-Control: no-cache, must-revalidate`；`modulepreload` 0 处；Tailwind 走无版本、无 SRI 的 Play CDN（25 页）。
+
+### 9.1 结论：不引入打包器（bundler）
+
+打包器的作用是构建期把 ESM 源文件合并 / 摇树 / 压缩成少量产物。本仓**不引入**，依据四条：
+
+1. **请求数已被控制**：tab 渲染模块是动态 `import()`，首屏只拉壳层与数据层，312 个模块不会一次性请求。
+2. **失效机制已自洽**：`?v=` 版本戳（`docs/scripts/bump-version.mjs`）＋ `version-stamp::S3`（全站唯一戳）＋ `cross-page-state.CODE_VERSION`，引入打包器要整体重写这套机制。
+3. **零构建是当前部署前提**：26 页静态直出、GitHub Pages 只读演示、`deploy/package.mjs` 白名单出包，都建立在「源码即产物」上。
+4. **瓶颈不在文件数**：真正的缺口是「无压缩 ＋ 无缓存分层」，见 9.2 第 1、2 项。
+
+> 若未来确要引入，触发条件应是「首屏关键路径需要跨模块摇树」或「需要 tree-shaking 级体积优化」，而不是「文件多」。
+
+### 9.2 四项必要项（本轮只出方案）
+
+| # | 项 | 方案要点 | 验收判据 |
+|---|---|---|---|
+| 1 | 响应压缩 | `server/app.js` 挂 `compression`（gzip / brotli，按 `Accept-Encoding`）；`deploy/nginx.sample.conf` 同步开启 | 同一 JS 的传输体积下降；`/api/v1/snapshot` 已自带 gzip 请求体，确认不双压缩 |
+| 2 | 缓存分层 | HTML 保持 no-store；URL 带 `?v=` 的 JS / CSS / 字体改 `public, max-age=31536000, immutable`；`/src/config/deploy.js` 保持动态 | 二次访问静态资源零回源；新增守卫断言「只有带戳资源可长缓存」 |
+| 3 | `modulepreload` | 为 entry 的静态 import 与 `bootstrap` 的依赖生成 `<link rel=modulepreload>`，由 `bump-version.mjs` 同批维护 | 首屏瀑布减少 1–2 个 RTT；戳与资源一致、不重复下载 |
+| 4 | Tailwind 锁定 / 本地化 | 二选一：① 保留 CDN 但锁固定版本 URL；② Tailwind CLI 生成静态 CSS 并纳入 `?v=` | 外部依赖不再「随时可变」；选 ② 会引入构建步骤，须单独裁定 |
+
+> **优先级**：1 → 2 → 4 → 3。第 1、2 项收益最大且不动前端代码；第 3 项需与版本戳同批改；第 4 项涉及「无构建」现状，须支书裁定。
+> **待办登记**：`CLAUDE.md` 乙部 `B-515-1`。
 
 ---
 

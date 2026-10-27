@@ -5,10 +5,10 @@ role: "[AI]"
 last_updated: "2026-10-27"
 status: "ACTIVE"
 date: "2026-10-23"
-version: "v61"
+version: "v62"
 ---
 
-# System Snapshot — v60
+# System Snapshot — v62
 
 > 当前活跃基线。历史快照见 `.ctx/logs/archive/2026-10/snapshots/`。
 
@@ -90,11 +90,11 @@ GSM1921-SOP/
     └── logs/                   ← 执行日志+决策日志（临时 spec 受管区 .trae/specs 用后即删，禁入 content）
 ```
 
-> **schema v11（2026-10-23 批次 504）**：当前 **53 张表**（v1 基线 51 ＋ 影子子表 `agenda_items` / `taskforce_contributions`）；五张热表新增 generated VIRTUAL 列（不是 STORED）与复合索引；`todos.branch_id` 已回填并建索引。**影子子表不是权威源**——读写仍走 JSON 主表，切表判据见 `content/04_web_design/data/DATA_MODEL.md §2.3.2` 与 `server/scripts/schema-split-readiness.mjs`。
+> **schema v12（2026-10-27 批次 515 实测，`initDb(':memory:')` 读数）**：当前 **52 张表**（v1 基线 ＋ 影子子表 `agenda_items` / `taskforce_contributions`；v12 已 DROP `issue_reveals`）；五张热表有 generated VIRTUAL 列（不是 STORED）与复合索引；`todos.branch_id` 为生成列。**影子子表不是权威源**——读写仍走 JSON 主表，切表判据见 `content/04_web_design/data/DATA_MODEL.md §2.3.2` 与 `server/scripts/schema-split-readiness.mjs`。
 >
 > **数据表现状（台账标注 · 2026-09-25 批次 190，系 `.ctx` 侧登记、**未改 `server/**`**）**：`server/data.db` 实有 **45 张表**、全库 **317 行**；其中 **30 张为空表**——**仅结构先行、数据尚未落地**（逐表清单见下句）。**⚠ 本注记的性质＝台账标注**：这些表**有结构、有读写口**（多为既有上传 / 留痕 / 申诉 / 服务端化链的承载位），**不代表功能不可用**——**这不是缺陷、也未被「修复」**（**只是把结构现状写清**）。同批另两条**本就建议不动**，一并说明：**单写者**（better-sqlite3 同步、单进程；WAL 只救读、不救写）· **附件走磁盘**（`uploads/` 落文件、库里只存路径，当前方向正确）。
 >
-> **28 张「结构先行、暂无数据」的表（逐表清单，照录上一批后端实测；2026-10-02 批次 342 删 `compliance_references` ⇒ 30 → 29；schema v4 将 `weekly_reports` 迁入有数据的通用周期归档表，空表 29 → 28）**：`act_sub_records` · `activity_reviews` · `agenda_votes` · `appointment_records` · `attachments` · `attendance_appeals` · `attendances` · `auth_audit` · `branch_docs` · `collection_versions` · `committee_broadcasts` · `experience_deposits` · `external_dispatches` · `file_space_records` · `handoffs` · `image_records` · `inspection_appeals` · `inspections` · `issue_reveals` · `issue_unread` · `member_change_requests` · `member_confirmations` · `member_flows` · `milestones` · `prop_tasks` · `taskforce_reviews` · `tf_sub_records` · `thought_reports`。
+> **27 张「结构先行、暂无数据」的表（逐表清单，照录上一批后端实测；2026-10-02 批次 342 删 `compliance_references` ⇒ 30 → 29；schema v4 将 `weekly_reports` 迁入有数据的通用周期归档表，空表 29 → 28；schema v12 DROP `issue_reveals` ⇒ 28 → 27）**：`act_sub_records` · `activity_reviews` · `agenda_votes` · `appointment_records` · `attachments` · `attendance_appeals` · `attendances` · `auth_audit` · `branch_docs` · `collection_versions` · `committee_broadcasts` · `experience_deposits` · `external_dispatches` · `file_space_records` · `handoffs` · `image_records` · `inspection_appeals` · `inspections` · `issue_unread` · `member_change_requests` · `member_confirmations` · `member_flows` · `milestones` · `prop_tasks` · `taskforce_reviews` · `tf_sub_records` · `thought_reports`。
 
 ## II. 分层架构（D-218 正交维度模型）
 
@@ -243,3 +243,11 @@ GSM1921-SOP/
 - **未决**：① `text-xs` 仍剩 1911 处，未逐页迁移；② About 已撤导航，但 `function-catalog.js` 仍保留「关于」功能卡；③ 收尾实跑 daily **1634 / 1634**（与交接 1636 差 2，按实况记录），定向 64 / 64；全量三通道沿用主代理实测（node 1636 / e2e-A 94 / e2e-B 147＋1skip / 837.3s）；④ 版本戳 `20261026b` 未再 bump。
 - **已迁 content 的条目**：`DESIGN_SYSTEM` SD-49…SD-52 ＋ §12.3 / §12.10 / §4.24 / SD-3 / SD-36 / SD-42 / SD-43 / SD-46 / SD-47 交叉口径；`design-system/CASES.md` CASE-DESIGN-026 / 027；`CASES_INDEX` design 25 → 27；`PRODUCT_IA` About 撤路由附录；`GUARD_INVENTORY` §十一（77 件 / 526 条）。
 - **下批入口**：① 读本段 ＋ `.ctx/logs/2026-10-EXECUTION_LOG.md` 批次 514；② 若要收 `text-xs` 存量，先按「12px 只承担标签 / 元信息」逐页核，不批量替换；③ About 若恢复入口，须同批补页面清单、导航、help 落点与 `no-about-route-guard` 白名单；④ 复核 daily 是否回到 1636 口径（查 2 条差异来源）。
+
+## 批次 515 小结（2026-10-27）
+
+- **做了什么**：活跃上下文瘦身——harness 白名单文档与代码对齐（7 → 9 项）· `REVIEW_QUEUE` 420 行重写为「机制 ＋ 未闭环」· `ACTIVE_RULINGS` 修 3 处过时指针 · `SNAPSHOT` 版本自述统一为 v62 / schema v12 / 52 张表 · `TIMESTAMPS` 补登与周期任务表据实重排 · 40 个已完成 spec 回勾后整批归档 `.ctx/logs/archive/2026-10/specs/`（`SPECS_INDEX.md` 索引）· 删 `.tmp/`、`dist/`、handoff；content 分层事实层校正 9 处（`DOC_MAP` 补登 10 项 ＋ 新增 §七 权威句位置）；数据侧新增适配器接口面守卫 S4、值对照 5 → 10 张表；架构方案（不引打包器 ＋ 四项必要项）落 `ARCHITECTURE_EVOLUTION.md §九`；乙部新增 `B-515-1…7`。
+- **结论**：本轮病根是「**机制立了但没人执行**」——白名单说 7 项而代码 9 项、SNAPSHOT 说 v60/v61 而实际 v62、队列 27 处已完成标记仍在册；判据是「文档读数必须能对着代码重算一次」，不能靠上一批自述。
+- **未决**：① `.ctx/logs/2026-10-AUDIT_R6…R11` 七份 ＋ `R10_P3_CLOSURE` 未迁 archive（被不可改写的执行日志与 content 引用，登记 `B-515-7`）；② 守卫归并只出候选表未执行（`B-515-2`）；③ content 重复表达只建权威句位置表、未收口（`B-515-3`）；④ 架构四项未改代码（`B-515-1`）。
+- **已迁 content 的条目**：`DOC_MAP` §二 补登 10 项 ＋ §七 重复主题权威句位置；`03/README` / `04/README` / `05/README` 登记补齐；`DATA_CONSISTENCY_CHECKLIST` §0.2 新增接口面 / 种子契约 / 种子漂移三行并改 10 张表；`GUARD_INVENTORY` 77 件 / 527 条 ＋ 「附：守卫归并候选」；`ARCHITECTURE_EVOLUTION` §九 性能与交付形态；`PARALLEL_SKILL_AUDIT` §13.7 判例路径改指归档。
+- **下批入口**：① 读本段与 `.ctx/logs/archive/2026-10/specs/SPECS_INDEX.md`；② 按 `B-515-1` 先做压缩与缓存分层（不动前端代码的两项），再评估 Tailwind 本地化；③ 守卫归并按 `GUARD_INVENTORY` 候选表逐组执行，断言数不减；④ 读数基线：daily **1635 / 1635**（66.7s）、定向 71 / 71、守卫 77 件 / **527** 条。

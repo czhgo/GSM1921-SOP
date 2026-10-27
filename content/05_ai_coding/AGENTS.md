@@ -36,7 +36,7 @@ cd server; npm run test:full
 ## 常见坑
 - 改 `PARALLEL_SKILL_AUDIT.md` 九章或 05 `README.md` 登记 → `claude-parallel-audit` C5 / C6 红。
 - 把业务 / 设计 / 文档治理的方法论写进 05 → 违反 2026-09-04 分层裁决（05 = 唯一 AI 协作方法论层）。
-- 跨篇互引只写 `§14` 不写篇名 → 读者找不到原节（`README.md` 已明令禁止）。
+- 跨篇互引只写 `§14` 不写篇名 → 读者找不到原节（`CLAUDE.md H30.1` 要求带篇名；本目录 `AGENTS.md` 判据 3 同向）。
 
 ## 防逃逸三件套（示例）
 | 件 | 内容 |

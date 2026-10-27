@@ -164,8 +164,11 @@ export const DAILY_FILE_BUDGET = 237;
  *    ⇒ 1623 + 6 = 1629。
  *  2026-10-27 同 Spec · 阶段三 Task 11（色彩角色）：ui-contrast-guard 新增 K6（warning 文字档
  *    亮/暗 ≥4.5:1 + 填充语义）+ theme-palette-guard 新增 T10（功能红/金与 danger/warning/主题
- *    accent 不撞值 + 文字对比）两条，未新增守卫文件 ⇒ 1629 + 2 = 1631。 */
-export const DAILY_TEST_BUDGET = 1631;
+ *    accent 不撞值 + 文字对比）两条，未新增守卫文件 ⇒ 1629 + 2 = 1631。
+  *  2026-10-27 批次 515（mock ↔ API 最小守卫）：mock-api-parity-structure 增补 S4
+  *    （两适配器资源组 / 方法集合双向比对 + 白名单理由，1 条；未新增守卫文件）
+  *    ⇒ 1631 + 1 = 1632。 */
+export const DAILY_TEST_BUDGET = 1632;
 
 const group = (tier, reason, list) => list.map((file) => ({ file, tier, reason }));
 

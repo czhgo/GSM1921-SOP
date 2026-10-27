@@ -2,7 +2,7 @@
 title: "全局文档导航映射"
 type: governance
 role: "[工程师]+[AI]"
-last_updated: "2026-10-25"
+last_updated: "2026-10-27"
 version: "2.6"
 status: active
 related_files: [OPERATIONS_GUIDE.md, CLAUDE.md, ARCHITECTURE.md, .ctx/REVIEW_QUEUE.md, .ctx/ENGINEERING_ASSESSMENT.md, content/insights/README.md]
@@ -106,6 +106,8 @@ related_files: [OPERATIONS_GUIDE.md, CLAUDE.md, ARCHITECTURE.md, .ctx/REVIEW_QUE
 | `content/03_doc_system/ARCHITECTURE.md` | [工程师]+[AI] | 架构与单一事实源（分层架构、仓库结构、数据模型、变更流水线 + 单一事实源注册表 + 统一服务目录） | README.md（架构图引用） |
 | `content/03_doc_system/工作模板/经验沉淀辅助提示词.md` | [用户]+[AI] | 经验沉淀辅助提示词模板 | content/04_web_design/module/SOP_WEBSITE_GUIDE.md |
 | `content/03_doc_system/README.md` | [工程师]+[AI] | 文档系统管理层目录索引 | — |
+| `content/03_doc_system/CASES_INDEX.md` | [工程师]+[AI] | 判例总索引（各域 `CASES.md` 的入口，不承担规范效力） | 各域 `CASES.md` |
+| `content/03_doc_system/INFORMATION_COMPUTATION.md` | [工程师]+[AI] | 信息计算口径（页面上的计数 / 派生值怎么算、以谁为准） | `DESIGN_SYSTEM.md`、各工作台服务 |
 
 ### 知识类型 4：网站系统的设计想法（content/04_web_design/）
 
@@ -130,6 +132,10 @@ related_files: [OPERATIONS_GUIDE.md, CLAUDE.md, ARCHITECTURE.md, .ctx/REVIEW_QUE
 | `content/04_web_design/evolution/PARTY_COMMITTEE_DESIGN.md` | [工程师]+[AI] | 院系党委后台设计定案（支部多实例两级治理：P1 支部实例+台账 / P2 支书任命 / P3 支部上报+下发；支书逐段批准） | docs/src/capabilities/party-committee-workspace.js |
 | `content/04_web_design/README.md` | [工程师]+[AI] | 网站设计层目录索引 | — |
 | `content/04_web_design/PRODUCT_IA.md` | [工程师]+[AI] | **派生索引**：逐台逐页签的组 / 渲染入口 / 一句话职责 / 主对象 / 主操作 / 新落点（当前 62）；不承担规范、禁止手改 | `docs/src/capabilities/*`、`docs/src/core/domain/function-catalog.js` |
+| `content/04_web_design/AGENTS.md` | [工程师]+[AI] | 04 目录协作说明：进入本目录前读什么、改什么、禁什么、怎么验 | — |
+| `content/04_web_design/data/DATA_SEED_CONTRACT.md` | [工程师]+[AI] | 种子契约（哪些字段归种子、哪些归运行时；drift 修复边界） | `server/seed.js`、`docs/src/data/seed-manifest.js` |
+| `content/04_web_design/design-system/CASES.md` | [工程师]+[AI] | 设计域判例（不产生规范效力，规范回 `DESIGN_SYSTEM.md`） | `DESIGN_SYSTEM.md` |
+| `content/04_web_design/deploy/SERVER_DEPLOY_MANUAL.md` | [工程师]+[AI] | 服务端部署手册（安装、更新、备份恢复的操作层步骤） | `deploy/*.sh`、`deploy/*.mjs` |
 
 ### 知识类型 5：网站系统的 AI coding 技术方法（content/05_ai_coding/）
 
@@ -143,8 +149,13 @@ related_files: [OPERATIONS_GUIDE.md, CLAUDE.md, ARCHITECTURE.md, .ctx/REVIEW_QUE
 | `content/05_ai_coding/DOCUMENT_GOVERNANCE.md` | [工程师]+[AI] | 文档治理与一改具改分篇（一改具改执行/分层体系冲突/遗漏场景 + 命名/SSOT/单一表达/历史不可变/文件归置/工具隔离/文件夹治理/阶段适应性/spec 全流程/治理审计/全仓验证/被否决残留；原 KNOWN §2/§7/§10 + insights §1.1/§1.2/§1.3/§3.6/§4.8/§4.18/§5.2-§5.4/§5.9/§6.4/§6.15/§6.27；read_strategy: on-demand） | OPERATIONS_GUIDE.md §1.4 |
 | `content/05_ai_coding/CONTEXT_MANAGEMENT.md` | [工程师]+[AI] | 上下文管理与防失忆分篇（上下文丢失/制度推断/对话总结虚假 + 减负/只留当前/决策三分/看板归档/交接协议/核心原则三分层/上下文工程/轮值推定/丙部触发 + 支书裁决落活层闭环规则；原 KNOWN §4/§8/§9 + insights §2.1/§2.2/§2.5/§2.6/§3.1/§3.2/§3.3/§6.1/§6.5/§6.11；**read_strategy: active**） | CLAUDE.md H90 + H26 |
 | `content/05_ai_coding/REVIEW_AND_EXPRESSION.md` | [工程师]+[AI] | 评议与表达纪律分篇（沉淀位置 + 内容归属/沉淀闭环/复盘理念/提级机制/Skill 检验/正反两面论/反论审核/尺度三分类/消歧写法/总分并列/打破重组/孤段落/叙述表达/零补丁/讲解三层/AI 概括层级/T3 行话；原 KNOWN §5 + insights §1.6/§3.4/§3.7/§4.5/§4.6/§4.7/§4.8/§4.12.6/§4.15/§5.10/§6.2/§6.18/§7.1-§7.5；read_strategy: on-demand） | insights/ |
-| `content/05_ai_coding/PARALLEL_SKILL_AUDIT.md` | [工程师]+[AI] | 多代理独立审查操作手册（H21 详版：提示词模板 / 输出 schema / 汇总模板 / 决策记录 / 反模式 / 四轮路线图；§11 批判性 IA 审查；**§12 全局性审查五问与触发清单 / 判例登记**；read_strategy: on-demand） | CLAUDE.md H21、`DESIGN_SYSTEM.md` §4.27/§4.28/§10.7 |
+| `content/05_ai_coding/PARALLEL_SKILL_AUDIT.md` | [工程师]+[AI] | 多代理独立审查操作手册（H21 详版：提示词模板 / 输出 schema / 汇总模板 / 决策记录 / 反模式 / 四轮路线图；§11 批判性 IA 审查；§12 全局性审查五问与触发清单 / 判例登记；**§13 三阶段 UI 专项与三道门禁**；read_strategy: on-demand） | CLAUDE.md H21、`DESIGN_SYSTEM.md` §4.27/§4.28/§10.7 |
 | `content/05_ai_coding/DATA_CONSISTENCY_CHECKLIST.md` | [工程师]+[AI] | 数据同源一致性校验手册（工程质检流程，按数据类别逐步检查；机器检查+人工检查分工；2026-09-04 自 04 evolution 迁入，AI 方法论归 05） | DATA_MODEL.md、ARCHITECTURE.md |
+| `content/05_ai_coding/GUARD_INVENTORY.md` | [工程师]+[AI] | 守卫清单与断言台账（按域分组；新增 / 合并 / 归并候选的唯一登记处） | `server/test/**`、`server/package.json` |
+| `content/05_ai_coding/REVIEW_QUESTION_SET.md` | [工程师]+[AI] | 审查问题集（Q-01…Q-21 布尔判据，每轮开工逐条回答） | `QUESTION_HIT_MATRIX.md` |
+| `content/05_ai_coding/QUESTION_HIT_MATRIX.md` | [工程师]+[AI] | 问题集命中矩阵（spec × 问题的命中记录，派生不承担规范） | `REVIEW_QUESTION_SET.md` |
+| `content/05_ai_coding/CASES.md` | [工程师]+[AI] | AI 协作域判例（不产生规范效力，规范回五个分篇） | 五个分篇 |
+| `content/05_ai_coding/AGENTS.md` | [工程师]+[AI] | 05 目录协作说明：分层裁决（不写规范判据）、验证命令与常见坑 | — |
 
 ### 跨多类：经验沉淀（content/insights/）
 
@@ -269,13 +280,13 @@ insights 单文件膨胀后（10+ 章 / 1000+ 行），按**知识类型**拆分
 | `content/02_institution/` | 支部组织、角色权限、SOP 与制度判例 | 有 | 无 | `SYSTEM_ROLE_PERMISSION.md` / `COMMISSIONER_DUTY_FRAMEWORK.md` / `sop/INDEX.md`；判例 `CASES.md` | 否 |
 | `content/02_institution/sop/` | 各委员与党小组组长的操作流程 | 有 | 无 | `sop/*.md` 本身（母本） | 否 |
 | `content/03_doc_system/` | 文档治理、运行规范、导航与判例总索引 | 有 | 无 | `OPERATIONS_GUIDE.md`（§32 分职与编号）/ `ARCHITECTURE.md` / 本文件 / `CASES_INDEX.md` | 否 |
-| `content/04_web_design/` | 网站设计、数据模型、部署与设计演进；含派生索引 `PRODUCT_IA.md`（页签功能地图，不承担规范） | 有 | 无 | `design-system/DESIGN_SYSTEM.md` / `data/DATA_MODEL.md` / `deploy/DEPLOYMENT_GUIDE.md` | 否 |
+| `content/04_web_design/` | 网站设计、数据模型、部署与设计演进；含派生索引 `PRODUCT_IA.md`（页签功能地图，不承担规范） | 有 | **有** | `design-system/DESIGN_SYSTEM.md` / `data/DATA_MODEL.md` / `deploy/DEPLOYMENT_GUIDE.md` | 否 |
 | `content/04_web_design/design-system/` | 设计系统正文与 design 域判例 | 有 | 无 | `DESIGN_SYSTEM.md`；判例 `CASES.md` | 否 |
 | `content/04_web_design/data/` | 数据模型与数据流 | 有 | 无 | `DATA_MODEL.md` | 否 |
 | `content/04_web_design/deploy/` | 部署路径、认证门控与对外对接 | 有 | 无 | `DEPLOYMENT_GUIDE.md` / `SERVER_DEPLOY_MANUAL.md` | 否 |
 | `content/04_web_design/module/` | 页面与模块设计、SOP-系统联动 | 有 | 无 | `SOP_WEBSITE_GUIDE.md`；其余为论证档案 | 否 |
 | `content/04_web_design/evolution/` | 架构演进、契约与设计方法论 | 有 | 无 | `WORKFLOW_BLOCK_CONTRACT.md` / `DESIGN_METHODOLOGY.md` | 否 |
-| `content/05_ai_coding/` | AI 协作方法论五个分篇与 ai-coding 判例 | 有 | 无 | `README.md`（索引）＋五个分篇；判例 `CASES.md` | 否 |
+| `content/05_ai_coding/` | AI 协作方法论五个分篇与 ai-coding 判例 | 有 | **有** | `README.md`（索引）＋五个分篇；判例 `CASES.md` | 否 |
 | `content/insights/` | 面向人的经验沉淀与学习入口 | 有 | 无 | 不承担规范；规范回 03 / 04 / 05 | 否 |
 | `docs/` | 前端实现（页面、组件、服务、样式、数据适配） | 有 | 无 | `content/04_web_design/**` ＋ `content/03_doc_system/ARCHITECTURE.md §十一` | 是（源码） |
 | `docs/src/` | 前端代码：core / services / components / entries / workflow | 无 | 无 | 设计规范在 04，代码为子本 | 是 |
@@ -285,11 +296,11 @@ insights 单文件膨胀后（10+ 章 / 1000+ 行），按**知识类型**拆分
 | `server/test/` | 测试与守卫（`.test.js` / `.test.mjs`） | 无（见 `server/README.md`） | 无 | `README-server.md`「测试」＋ `DATA_CONSISTENCY_CHECKLIST.md §0.2` | 是 |
 | `server/routes/` | 资源路由与权限门（含 `resources/`） | 无 | 无 | `SYSTEM_ROLE_PERMISSION.md` ＋ `README-server.md` | 是 |
 | `server/services/` | 邮件、汇报等服务实现 | 无 | 无 | `README-server.md` | 是 |
-| `.ctx/` | 审计底座：日志、证据、快照、评议、裁定 | 有 | 无 | `logs/*-DECISION_LOG.md`（裁定权威）/ `TIMESTAMPS.md` | 是（日志与证据原文） |
+| `.ctx/` | 审计底座：日志、证据、快照、评议、裁定 | 有 | **有** | `logs/*-DECISION_LOG.md`（裁定权威）/ `TIMESTAMPS.md` | 是（日志与证据原文） |
 | `.ctx/logs/` | 执行日志、决策日志与归档审计 | 无 | 无 | `EXECUTION_LOG_INDEX.md` / `DECISION_LOG.md` | 是 |
 | `.ctx/logs/archive/` | 已闭环的一次性审计与轮次报告 | 无 | 无 | 归档原文 | 是（只存不改） |
 | `.ctx/evidence/` | 真机截图与量测读数 | 无 | 无 | 对应执行日志条目 | 是 |
-| `.trae/specs/` | 临时 spec / 任务清单（用后即删） | 无 | 无 | 任务本身；结论回流 content / `.ctx` | 否（不长期保留） |
+| `.trae/specs/` | 临时 spec / 任务清单（**用后即删**）；已完成专项整批归档在 `.ctx/logs/archive/2026-10/specs/`（索引同目录 `SPECS_INDEX.md`） | 无 | 无 | 任务本身；结论回流 content / `.ctx` | 否（不长期保留） |
 
 ---
 
@@ -308,3 +319,19 @@ insights 单文件膨胀后（10+ 章 / 1000+ 行），按**知识类型**拆分
 | 索引入口 | 本文件 ＋ 各层 `README.md` | 目录作用、文件一句话、权威源指针 |
 | 派生索引入口 | [PRODUCT_IA.md](../04_web_design/PRODUCT_IA.md) | 页签功能地图（由 `capabilities/*` 与 `function-catalog.js` 派生，**不承担规范、禁止手改**） |
 | 过程记录入口 | [.ctx/logs/EXECUTION_LOG_INDEX.md](../../.ctx/logs/EXECUTION_LOG_INDEX.md) → 月度执行日志；[.ctx/logs/DECISION_LOG.md](../../.ctx/logs/DECISION_LOG.md) → 月度决策日志 | 当时做了什么、什么时候定了什么 |
+
+---
+
+## 七、重复主题的权威句位置（2026-10-27 立）
+
+> **本表回答什么**：同一条规则在多处被复述时，**哪一句是权威、其余该指向它**。本表**只给指针、不复制条文**（`OPERATIONS_GUIDE.md`「索引不得承载条文」）。
+> **用法**：写新文档引用这些主题时，引权威句所在篇名与节，不再复述一遍；清理重复表达到时以本表为锚。
+
+| 主题 | 权威句位置 | 常见复述面（引用即可，不必重写） |
+|---|---|---|
+| 一改具改（改一处须全仓同步并零残留） | `CLAUDE.md H30.1` ＋ `OPERATIONS_GUIDE.md` 变更流水线节 | `05_ai_coding/DOCUMENT_GOVERNANCE.md`、`ARCHITECTURE.md`、`DOC_MAP.md`、各层 `README.md` |
+| 单一源 / 唯一源（同一概念只在一处表达） | `05_ai_coding/DOCUMENT_GOVERNANCE.md` SSOT 四层与单一表达节 | `DESIGN_SYSTEM.md`（令牌）、`DATA_MODEL.md`（数据单一源清单）、`DATA_CONSISTENCY_CHECKLIST.md`、`REVIEW_QUESTION_SET.md` Q-01/Q-02 |
+| 判例不产生规范效力 | `OPERATIONS_GUIDE.md` 四类载体判据节 | 各域 `CASES.md` 抬头、`CASES_INDEX.md`、各层 `README.md` |
+| 索引 / README 只做索引、不承载条文 | `OPERATIONS_GUIDE.md` 索引与条文分职节 | 各层 `README.md`「不负责什么」、本文件 §六 |
+| 五类知识类型定义 | `OPERATIONS_GUIDE.md` 知识类型表 | 六份 `README.md` 首段、`ARCHITECTURE.md`、本文件 §二 |
+| 历史记录不可变 / 归档不改写 | `05_ai_coding/DOCUMENT_GOVERNANCE.md` 历史记录不可变节 | `DOC_MAP.md`、`OPERATIONS_GUIDE.md` 历史章 |

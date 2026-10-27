@@ -417,3 +417,108 @@ test('S3 mock 不得含派生结果字段：activities / review / inspection / t
   assert.deepEqual(taskforceHits.map((h) => `taskforces.js:${lineOf(sources['taskforces.js'], h.index)} ${h.field}:`), [],
     'mock/taskforces.js 写死了派生结果字段（status）——请改种子（只留 deadline / dissolvedAt / draft 等事实），不要改本断言');
 });
+
+// ── S4 适配器接口面（2026-10-27 批次 515 新增）──────────────────────
+// 判据：`ApiAdapter` 与 `MockAdapter` 的**资源组 / 方法集合**双向比对；差异必须命中下面的白名单，
+//   且每条白名单都写明「为什么允许」。白名单外多一个组 / 多一个方法 ⇒ 红。
+// 为什么并入本文件而不新开守卫：与「mock ↔ API 一致」同一判据族；`test-tier-guard` 的文件数不变。
+const ADAPTER_SURFACE = {
+  /** Mock 未实现的 API 资源组（每条都必须写理由） */
+  apiOnlyGroups: {
+    activityReviews: '活动复盘在 mock 形态由 review.js 语料 + 服务层直读，不经 MockAdapter 资源组',
+    taskforceReviews: '专班复盘同上（快照语料在 mock/review.js）',
+    actSubRecords: '活动子记录在 mock 端内嵌于活动行 `contributions`，无独立资源组',
+    tfSubRecords: '专班子记录同上',
+    issues: '意见反馈在 mock 端由语义端点 + IssueStore 承载',
+    thoughtReports: '思想汇报在 mock 端由语义服务直读 mockDB.thoughtReports',
+    handoffs: '交接在 mock 端由 handoff 服务直读 mockDB.handoffs',
+    memberConfirmations: '成员变更确认在 mock 端自管 localStorage（mock-adapter 内注释已登记）',
+    milestones: '里程碑为静态 JSON（docs/data/milestones.json），mock 端不经适配器',
+    attendanceAppeals: '考勤申诉在 mock 端自管 localStorage',
+    inspectionAppeals: '考察申诉在 mock 端自管 localStorage',
+    issueUnread: '问题未读在 mock 端自管 localStorage',
+    authAudit: '授权审计仅在 mockDB 备份快照中恢复，无资源组',
+  },
+  /** 同名但方法面不同（apiOnly / mockOnly 两个方向都要写全） */
+  methodDiff: {
+    members: { apiOnly: ['create', 'getProfile', 'intake', 'setDevelopStage', 'setResidenceStatus', 'transferOut', 'undoTransferOut', 'updateProfile'], mockOnly: [] },
+    branches: { apiOnly: ['replaceRoster', 'rollbackConfig'], mockOnly: [] },
+    memberChangeRequests: { apiOnly: ['annotate'], mockOnly: [] },
+    agendaVotes: { apiOnly: ['annotate'], mockOnly: [] },
+    periodicArchives: { apiOnly: [], mockOnly: ['delete'] },
+    memberFlows: { apiOnly: [], mockOnly: ['delete'] },
+  },
+};
+
+test('S4 适配器接口面：两个适配器的资源组 / 方法集合双向比对（差异须命中白名单）', async () => {
+  // 适配器模块在求值时读 localStorage（成员档案 / 自管域），先给最小桩
+  if (!globalThis.localStorage) {
+    const m = new Map();
+    globalThis.localStorage = {
+      getItem: (k) => (m.has(String(k)) ? m.get(String(k)) : null),
+      setItem: (k, v) => m.set(String(k), String(v)),
+      removeItem: (k) => m.delete(String(k)),
+      clear: () => m.clear(),
+      key: (i) => [...m.keys()][i] ?? null,
+      get length() { return m.size; },
+    };
+  }
+  if (!globalThis.sessionStorage) globalThis.sessionStorage = globalThis.localStorage;
+
+  const { ApiAdapter } = await import('../../docs/src/data/api-adapter.js?v=20261026b');
+  const { MockAdapter } = await import('../../docs/src/data/mock-adapter.js?v=20261026b');
+
+  const surface = (obj) => Object.fromEntries(
+    Object.entries(obj)
+      .filter(([, v]) => v && typeof v === 'object' && !Array.isArray(v))
+      .map(([k, v]) => [k, Object.keys(v).sort()]),
+  );
+  const api = surface(ApiAdapter);
+  const mock = surface(MockAdapter);
+
+  // 非空转：两侧资源组规模有下限（防解析 / 导出形状变化后恒真）
+  assert.ok(Object.keys(api).length >= 25, `ApiAdapter 资源组只解析到 ${Object.keys(api).length} 个（下限 25）`);
+  assert.ok(Object.keys(mock).length >= 15, `MockAdapter 资源组只解析到 ${Object.keys(mock).length} 个（下限 15）`);
+
+  const problems = [];
+
+  // ① 组级：API 有、Mock 无 ⇒ 必须在白名单里
+  const apiOnly = Object.keys(api).filter((g) => !mock[g]).sort();
+  const declaredApiOnly = Object.keys(ADAPTER_SURFACE.apiOnlyGroups).sort();
+  for (const g of apiOnly) {
+    if (!declaredApiOnly.includes(g)) problems.push(`ApiAdapter 独有资源组「${g}」未登记理由`);
+  }
+  for (const g of declaredApiOnly) {
+    if (!apiOnly.includes(g)) problems.push(`白名单登记「${g}」为 API 独有，但实况已不是（白名单过期，应删该条）`);
+  }
+
+  // ② 组级：Mock 有、API 无 ⇒ 一律红（Mock 不得先造 API 没有的组）
+  for (const g of Object.keys(mock)) {
+    if (!api[g]) problems.push(`MockAdapter 独有资源组「${g}」：API 侧没有对应组`);
+  }
+
+  // ③ 方法级：两边都有的组，方法差集必须与白名单逐字一致
+  const groups = Object.keys(api).filter((g) => mock[g]).sort();
+  for (const g of groups) {
+    const a = new Set(api[g]);
+    const m = new Set(mock[g]);
+    const apiOnlyMethods = [...a].filter((x) => !m.has(x)).sort();
+    const mockOnlyMethods = [...m].filter((x) => !a.has(x)).sort();
+    const expect = ADAPTER_SURFACE.methodDiff[g] ?? { apiOnly: [], mockOnly: [] };
+    if (JSON.stringify(apiOnlyMethods) !== JSON.stringify([...expect.apiOnly].sort())) {
+      problems.push(`${g}：API 独有方法 ${JSON.stringify(apiOnlyMethods)} ≠ 白名单 ${JSON.stringify([...expect.apiOnly].sort())}`);
+    }
+    if (JSON.stringify(mockOnlyMethods) !== JSON.stringify([...expect.mockOnly].sort())) {
+      problems.push(`${g}：Mock 独有方法 ${JSON.stringify(mockOnlyMethods)} ≠ 白名单 ${JSON.stringify([...expect.mockOnly].sort())}`);
+    }
+  }
+
+  // ④ 白名单不得装饰性：每条 methodDiff 的分组必须真实存在于两侧
+  for (const g of Object.keys(ADAPTER_SURFACE.methodDiff)) {
+    assert.ok(api[g] && mock[g], `白名单 methodDiff 里的「${g}」在两侧不同时存在（白名单应删该条）`);
+  }
+
+  assert.deepEqual(problems, [],
+    `适配器接口面与白名单不一致（新增资源组 / 方法时，请同时改两适配器或登记理由）：\n  ${problems.join('\n  ')}`);
+});
+

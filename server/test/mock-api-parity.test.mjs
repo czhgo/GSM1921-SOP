@@ -54,7 +54,10 @@ import { getRuntimeMode, init, setDataSource } from '../../docs/src/data/data-ad
 import { MOCK_NOTICES } from '../../docs/src/data/mock/notices.js?v=20261026b';
 import { ATTENDANCE_RECORDS } from '../../docs/src/data/mock/attendance.js?v=20261026b';
 import { INSPECTION_RECORDS } from '../../docs/src/data/mock/inspection.js?v=20261026b';
-import { SEED_MAKEUP_TASKS } from '../../docs/src/data/mock/seed.js?v=20261026b';
+import { SEED_MAKEUP_TASKS, SEED_SIGNUPS, SEED_ASSIGNMENTS } from '../../docs/src/data/mock/seed.js?v=20261026b';
+import { PARTY_GROUPS } from '../../docs/src/data/mock/party-groups.js?v=20261026b';
+import { MOCK_TASKFORCES } from '../../docs/src/data/mock/taskforces.js?v=20261026b';
+import { normalizeSeedActivitySeedRows, ensureLegacySourceWorkgroups, ensureDemoWorkgroupGrants } from '../../docs/src/data/workgroup-seed-sync.js?v=20261026b';
 import { ACTIVITIES } from '../../docs/src/data/mock/activities.js?v=20261026b';
 import { PEOPLE } from '../../docs/src/data/mock/people.js?v=20261026b';
 import { applyDerivedFacts } from '../../docs/src/data/mock/derive.js?v=20261026b';
@@ -118,14 +121,26 @@ function diffOf(a, b) {
  * （否则比较的是「种子静态行」与「服务端派生行」，必然把派生字段判成漂移。）
  */
 const DERIVED_SOURCES = {
+  // activities 参与派生（通知 expireDate 等依赖活动日期），但不作为本文件的对照表源
+  activities: ACTIVITIES.map((row) => ({ ...row })),
   notices: MOCK_NOTICES.map((row) => ({ ...row })),
   attendances: ATTENDANCE_RECORDS.map((row) => ({ ...row })),
   inspections: INSPECTION_RECORDS.map((row) => ({ ...row })),
 };
-applyDerivedFacts({
-  activities: ACTIVITIES.map((row) => ({ ...row })),
-  ...DERIVED_SOURCES,
-}, { people: PEOPLE });
+applyDerivedFacts(DERIVED_SOURCES, { people: PEOPLE });
+
+/**
+ * 活动 / 专班：服务端播种前会过 `workgroup-seed-sync` 归一（组织落点 + 工作组镜像 + 演示授权），
+ * 直接拿裸语料比会必然把「装配产物」判成漂移；此处照 `server/seed.js` 同一管线复现。
+ */
+const WORKGROUP_SEED = {
+  activities: normalizeSeedActivitySeedRows(ACTIVITIES),
+  taskforces: MOCK_TASKFORCES.map((row) => ({ ...row })),
+  workgroups: [], workgroupMembers: [], workgroupGrants: [],
+};
+applyDerivedFacts(WORKGROUP_SEED, { people: PEOPLE });
+ensureLegacySourceWorkgroups(WORKGROUP_SEED);
+ensureDemoWorkgroupGrants(WORKGROUP_SEED);
 
 /**
  * 表集合：`key`=mockDB 缓存键（init 灌入）· `resource`=API 资源名 · `source`=mock 形态语料
@@ -138,6 +153,12 @@ const TABLES = [
   { key: 'attendances', resource: 'attendances', source: DERIVED_SOURCES.attendances, label: '考勤（本批改 8 月 _ALL_PERSON_IDS）', min: 140 },
   { key: 'inspections', resource: 'inspections', source: DERIVED_SOURCES.inspections, label: '考察（id 跳过 insp-17）', min: 42 },
   { key: 'makeupTasks', resource: 'makeupTasks', source: SEED_MAKEUP_TASKS, label: '补课任务（本批改 attendanceRecordId）', min: 1 },
+  // 2026-10-27 批次 515：值对照 5 → 10（支书要求「能拦住问题、也能定位问题」的最小扩面）
+  { key: 'activities', resource: 'activities', source: WORKGROUP_SEED.activities, label: '活动（按 seed 同管线归一后）', min: 1 },
+  { key: 'taskforces', resource: 'taskforces', source: WORKGROUP_SEED.taskforces, label: '专班（派生后）', min: 1 },
+  { key: 'assignments', resource: 'assignments', source: SEED_ASSIGNMENTS, label: '分工', min: 1 },
+  { key: 'signups', resource: 'signups', source: SEED_SIGNUPS, label: '报名', min: 1 },
+  { key: 'partyGroups', resource: 'partyGroups', source: PARTY_GROUPS, label: '党小组', min: 1 },
 ];
 
 // ── S0 形态：本文件用例必须跑在 api 形态上 ──

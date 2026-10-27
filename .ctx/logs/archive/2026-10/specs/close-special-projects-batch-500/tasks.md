@@ -1,0 +1,72 @@
+# Tasks
+
+- [x] Task 1: 跨角色派生待办安全（B-499-3）
+  - [x] SubTask 1.1 `VisitorTodoDeriver` 三条派生链（通知 / 活动 / 专班）逐条补 `personId`；去重与 stale 清理按人收敛
+  - [x] SubTask 1.2 `seedTodos` 在 API 形态只补当前角色匹配的种子，或跳过客户端播种；不得补其他角色行
+  - [x] SubTask 1.3 `completeBySource` 增加 `{ personId, role }` 作用域；`NoticeStore.markRead` 只销本人/本角色
+  - [x] SubTask 1.4 `refreshExpiredStatus` 无会话时不得写跨角色行；同步既有纯函数测试
+  - [x] SubTask 1.5 回归：participant 上传 `prop-commissioner` 新行 → 403 且整批不写；上传带 `personId` 的 visitor 行 → 200；同批合法写入成功提示不被反转
+- [x] Task 2: 汇报受众与组织汇总（B-499-2）
+  - [x] SubTask 2.1 `canReadIssue` 扩展为支委层＋当事人＋工作组组织者＋汇报人党小组组长；判据纯函数、可注入组织者/组长解析
+  - [x] SubTask 2.2 前端读口与服务端 `GET /issues` 同步；补四类角色回归（支委层 / 组织者 / 组长 / 无关成员）
+  - [x] SubTask 2.3 汇总面：活动 / 专班按工作组汇总，组长台按党小组汇总；复用 `report-inbox`，不造第二套渲染
+  - [x] SubTask 2.4 空态与计数：无汇报 / 无工作组 / 无党小组给 `—` 与下一步
+- [x] Task 3: mock ↔ API 结构真值（B-499-4）
+  - [x] SubTask 3.1 新增结构对照测试 / 脚本：逐表逐字段比对字段集合与类型，输出多出 / 缺失 / 类型不符
+  - [x] SubTask 3.2 按报告修 mock / seed / adapter（以 API 为准）；客户端投影字段进白名单并写理由
+  - [x] SubTask 3.3 扩 `mock-api-parity` 到全部有种子源的表；漂移即红
+- [x] Task 4: seed 行漂移与数据生命周期（B-499-8，安全模式）
+  - [x] SubTask 4.1 新增 `seed-manifest.js`：集合 / 表、seed 源、id 规则、生命周期分类、init 档、seedOwnedFields / runtimeFields
+  - [x] SubTask 4.2 `detectSeedDrift` / `planSeedRepair`：只比较 seedOwnedFields；只更新既有 seed id，不增不删；保留运行时字段
+  - [x] SubTask 4.3 服务端 v9 `seed_meta` + 启动幂等修复；浏览器拆分 `repairExistingSeedRows` 与 `syncDemoSeedSet`
+  - [x] SubTask 4.4 `cleanup.mjs`：默认 dry-run，报告孤儿附件 / 悬空附件 / 旧备份；`--apply` 只删确认项；`--keep 14`
+  - [x] SubTask 4.5 `rebuild-demo.mjs`：demo / baseline 两模式，生产拒绝 demo，不触碰生产库与附件
+  - [x] SubTask 4.6 备份清单 `backup.json`（user_version / seed_version / 逐表行数 / 附件数 / sha256）；`archiveRecords` 单删联动物理文件
+  - [x] SubTask 4.7 守卫：分类完整性、reset 分区完整性、init 空态真实性、API token no-op、清理安全、重建边界
+- [x] Task 5: 任命事务化（B-499-9）
+  - [x] SubTask 5.1 新增 `POST /branches/:id/appointments`：单事务写 branch / 双方 users / 任期封口与新建；`expectedSecretaryId` 乐观锁
+  - [x] SubTask 5.2 新增 `POST /branches/:id/branch-commissioners`：`users.role` 与 `auth_audit` 同事务；服务端生成审计人 / 时间
+  - [x] SubTask 5.3 前端 `appointment.js` 改为一次调用；删除吞错；成功后用服务端返回值刷新本地
+  - [x] SubTask 5.4 mock 适配器提供同名方法，内部快照 + 失败恢复，保持 all-or-nothing
+  - [x] SubTask 5.5 回归：失败注入（trigger）整体回滚；并发 200/409；每支部至多一条未封口记录；权限与审计口径不变
+- [x] Task 6: IA 剩余项与链接真值（B-499-7）
+  - [x] SubTask 6.1 共享件：`issue-dispatch-view` 四段收两段、去整批已读、令牌说明移 help；`work-overview` 动作列并入待处理；6 处 `settingsLink` 统一短文案
+  - [x] SubTask 6.2 单页：R3-11 移动端日期格、R3-12 思想汇报冗余、R3-14 专班报名工具行、R3-15 空态、R3-17/18 名册文案、R3-21 思想汇报文案、R3-27 招募通知
+  - [x] SubTask 6.3 链接 / 状态真值：`activity.html` 接受 `id|activityId`；思想汇报「完整记录」落 `person.html`；组长 `review` 映射改真实页签或删除
+  - [x] SubTask 6.4 账实对齐：`audit-round3-modals-and-ia` 按实际勾选 / 改注；重跑 `ia-inventory`；`B-499-7` 指向本轮 spec
+  - [x] SubTask 6.5 守卫：扩 `ui-modal-form-guard` / `work-overview-layers` / `roster-filter-guard` / 文案守卫；tabMap 每值必须真实存在
+- [x] Task 7: 宽表窄屏承载（B-499-10）
+  - [x] SubTask 7.1 `relation-matrix` ≤640px 堆叠：byPerson 一人一卡、byItem 一项一卡；保留转置、分页、`—`、状态、下钻
+  - [x] SubTask 7.2 纪检考勤汇总：`data-responsive="cards"` + 完整 `data-label`；打印仍为表格
+  - [x] SubTask 7.3 成员流动台账：卡式行 + 8 个字段标签；已撤销留痕与操作保留
+  - [x] SubTask 7.4 设计系统改准：§4.10 / §4.20.7 增「矩阵窄屏堆叠＝同一关系行的响应式形态」；修正思想汇报矩阵、名册数据表、手写表位置漂移
+  - [x] SubTask 7.5 守卫：静态卡式断言 + 390px 真机无横向溢出 + 信息完整性
+- [x] Task 8: 跨组活动余项（B-499-1）
+  - [x] SubTask 8.1 补一条聚焦 probe：创建跨组活动 → 责任组 → 跨组深参 → 协调标记，覆盖 API 与 mock 同口径
+  - [x] SubTask 8.2 清理 B-499-1 的残留文档 / 守卫漂移，关闭该专项
+- [x] Task 9: daily test 分层（B-499-5）
+  - [x] SubTask 9.1 采集每个测试文件耗时与断言数，产出三层清单（daily / precommit / weekly）
+  - [x] SubTask 9.2 daily 收敛到约 4 分钟：保留权限、数据真值、迁移、写链、构建完整性、本批改动面与防假绿守卫
+  - [x] SubTask 9.3 page-sweep、form-loop 全量、纯视觉 / 审计守卫移入 precommit；每条移出登记覆盖来源
+  - [x] SubTask 9.4 新增分层登记守卫与预算守卫；新增测试必须登记层级
+- [x] Task 10: 第五轮脏乱繁审查（B-499-6）
+  - [x] SubTask 10.1 主代理定题与判据；三路 lens 各只加载一个 skill、不互读
+  - [x] SubTask 10.2 报告归档 `.ctx/logs/archive/2026-10/`；每条带 file:line / DOM / 截图证据
+  - [x] SubTask 10.3 汇总共识 / 分歧 / 待裁定；共识项本轮直接修，分歧列待裁定；规则落 `PARALLEL_SKILL_AUDIT` / `DESIGN_SYSTEM`
+- [x] Task 11: 文档、台账与交付
+  - [x] SubTask 11.1 `SECRETARY_DIRECTIVES.md` 收录本轮原话；`DATA_MODEL` / `DESIGN_SYSTEM` / `TEST_AND_VERIFICATION` / `README-server` 同步
+  - [x] SubTask 11.2 `.ctx/ENGINEERING_ASSESSMENT.md §四` 专项台账更新；`CLAUDE.md` 乙部只留在办项并同步 next_prompt 必报项
+  - [x] SubTask 11.3 frontmatter / TIMESTAMPS 同批刷新；全仓 Grep 旧口径零残留
+  - [x] SubTask 11.4 验证：daily / precommit / page-sweep / 真机关键闭环；bump 版本并复跑 version-stamp
+  - [x] SubTask 11.5 执行日志（Why / What / Verification / Boundaries / sample-diff）＋ 中文提交
+- [ ] Task 12（遗留，未完成）：precommit e2e 存量 9 条 —— e2e-B `A5 项目分工空态` · `S3 工作流块配置区` · `secretary-todo-reject-reason` · `org-roster-member-add-save`；e2e-A `核心闭环议程→归档` · `B3-1 补课回写` · `党委支部配置向导` · `判据A 跨标签` · `判据D 断服静默`（自污染）。根因与证据见批次 500 执行日志 §四；其中「支部配置引导向导落点」登记为 `CLAUDE.md` 乙部 `B-500-10`
+
+# Task Dependencies
+
+- Task 1 / 2 共享 governance 域，先做 Task 1（待办写链）再做 Task 2（汇报读链）
+- Task 3 / 4 / 5 可并行，但 Task 4 依赖 Task 3 的 manifest 口径
+- Task 6 / 7 可并行；Task 7 的守卫依赖 Task 6 的文案 / 链接收口
+- Task 8 依赖 Task 1–7 的最终口径，用于补最后的跨组 probe
+- Task 9 依赖 Task 1–8（以最终测试面分层）
+- Task 10 依赖 Task 1–9（功能与测试稳定后再审查）
+- Task 11 最后

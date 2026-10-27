@@ -2,7 +2,7 @@
 title: "网站设计层索引——网站系统的设计想法"
 type: index
 role: "[工程师]+[AI]"
-last_updated: 2026-10-25
+last_updated: 2026-10-27
 status: active
 ---
 
@@ -36,6 +36,7 @@ status: active
 | [module/README.md](module/README.md) | 页面/模块设计与 SOP-系统联动入口 | 指针 → `module/SOP_WEBSITE_GUIDE.md` / `module/ABOUT_PAGE_DESIGN.md` |
 | [evolution/README.md](evolution/README.md) | 设计论证档案、契约与架构演进入口 | 指针 → `evolution/WORKFLOW_BLOCK_CONTRACT.md` / `BRANCH_WORK_MAP.md`；其余为档案 |
 | [PRODUCT_IA.md](PRODUCT_IA.md) | 产品 IA 派生索引：逐台逐页签的组 / 渲染入口 / 主对象 / 主操作 / 新落点（当前 62） | **派生索引**——由 `docs/src/capabilities/*` 与 `function-catalog.js` 派生，**不承担规范、禁止手改** |
+| [AGENTS.md](AGENTS.md) | 本目录协作说明：进入前读什么、改什么、禁什么、怎么验 | 指针 → 本 README 与 `design-system/DESIGN_SYSTEM.md` |
 | `README.md` | 本层索引（回答什么问题、边界、权威源速查） | 指针 → 各子目录 README 与下节速查表 |
 
 ## 权威源与派生
@@ -50,9 +51,9 @@ status: active
 
 | 子目录 | 内容 | 文件 |
 |--------|------|------|
-| [`design-system/`](design-system/) | 设计系统（视觉/色彩/组件/点击落点） | [DESIGN_SYSTEM.md](design-system/DESIGN_SYSTEM.md)（《设计系统》一份承全部） |
-| [`data/`](data/) | 数据架构（模型/流） | [DATA_MODEL.md](data/DATA_MODEL.md)（数据模型与数据流） |
-| [`deploy/`](deploy/) | 部署与集成（路径/认证/外部对接） | [DEPLOYMENT_GUIDE.md](deploy/DEPLOYMENT_GUIDE.md)（《部署与对外对接》一份承全部：部署路径 + 对接 + 认证门控 + 微信协同 + 北大对接） |
+| [`design-system/`](design-system/) | 设计系统（视觉/色彩/组件/点击落点） | [DESIGN_SYSTEM.md](design-system/DESIGN_SYSTEM.md)（《设计系统》一份承全部） · [CASES.md](design-system/CASES.md)（设计域判例） |
+| [`data/`](data/) | 数据架构（模型/流） | [DATA_MODEL.md](data/DATA_MODEL.md)（数据模型与数据流） · [DATA_SEED_CONTRACT.md](data/DATA_SEED_CONTRACT.md)（种子契约） |
+| [`deploy/`](deploy/) | 部署与集成（路径/认证/外部对接） | [DEPLOYMENT_GUIDE.md](deploy/DEPLOYMENT_GUIDE.md)（《部署与对外对接》一份承全部：部署路径 + 对接 + 认证门控 + 微信协同 + 北大对接） · [SERVER_DEPLOY_MANUAL.md](deploy/SERVER_DEPLOY_MANUAL.md)（服务端操作手册） |
 | [`module/`](module/) | 页面/模块设计（UI 与 SOP 联动） | [SOP_WEBSITE_GUIDE.md](module/SOP_WEBSITE_GUIDE.md) · [MODULE_UI_DESIGN.md](module/MODULE_UI_DESIGN.md) · [ABOUT_PAGE_DESIGN.md](module/ABOUT_PAGE_DESIGN.md) · [AGENDA_AND_REFERENCE_DESIGN.md](module/AGENDA_AND_REFERENCE_DESIGN.md)（草案） |
 | [`evolution/`](evolution/) | 演进与校验（架构演进/契约与画布/党委两级治理/设计方法论承接；工程化评估已迁 `.ctx/ENGINEERING_ASSESSMENT.md`（2026-09-08 迁入、2026-09-09 更名「工程化评估与改造行动线」）） | [ARCHITECTURE_EVOLUTION.md](evolution/ARCHITECTURE_EVOLUTION.md) · [WORKFLOW_BLOCK_CONTRACT.md](evolution/WORKFLOW_BLOCK_CONTRACT.md) · [BRANCH_WORK_MAP.md](evolution/BRANCH_WORK_MAP.md) · [PARTY_COMMITTEE_DESIGN.md](evolution/PARTY_COMMITTEE_DESIGN.md) · [ROLE_PERMISSION_DESIGN.md](evolution/ROLE_PERMISSION_DESIGN.md) · [DESIGN_METHODOLOGY.md](evolution/DESIGN_METHODOLOGY.md) |
 
