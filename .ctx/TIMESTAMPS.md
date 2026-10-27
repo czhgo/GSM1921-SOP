@@ -154,7 +154,7 @@ dynamic_role:
 | content/04_web_design/data/DATA_SEED_CONTRACT.md | 2026-10-27 | — | [工程师]+[AI] | 数据种子契约（四类口径 / 逐表必填 / v12 强约束）；守卫 `server/test/seed-contract-guard.test.mjs`。 |
 | content/04_web_design/data/DATA_FLOW.md | 2026-09-23 | — | [工程师]+[AI] | 🗑️ 已删除（正文并入 `DATA_MODEL.md`《数据模型与数据流》）。沿革见 `.ctx/logs/`。 |
 | content/04_web_design/data/DATA_ARCHITECTURE.md | 2026-09-03 | — | [工程师]+[AI] | 🗑️ 已删除（正文已拆分至 DATA_MODEL / DATA_FLOW） |
-| content/04_web_design/PRODUCT_IA.md | 2026-10-27 | — | [工程师]+[AI] | 产品 IA 派生索引（45 页签 ＋ 62→45 重定向 ＋ 撤销 About 入口 ＋ 详情路由矩阵 ＋ 数据形态与缓存边界）；由 `capabilities/*` / `object-route.js` 派生，**不承担规范、禁止手改**。 |
+| content/04_web_design/PRODUCT_IA.md | 2026-10-28 | — | [工程师]+[AI] | 产品 IA 派生索引（45 页签 ＋ 62→45 重定向 ＋ 撤销 About 入口 ＋ 详情路由矩阵 ＋ 数据形态与缓存边界）；由 `capabilities/*` / `object-route.js` 派生，**不承担规范、禁止手改**。 |
 | content/04_web_design/module/MODULE_UI_DESIGN.md | 2026-10-25 | — | [工程师]+[AI] | 模块界面设计（§一 总览 / §二 党建 Tab / §三 日历 / §四 全站 Tab 总方案＝2026-09-27 规划稿）；四组页签名改准为「总览 / 我的职责 / 协作与知情 / 制度与答复」。**边界**：§四.2 已升为 `DESIGN_SYSTEM.md §4.10.1` 正式条文（单一源）；§四 的逐台 tab 清单是**当日快照**，活口径以 `docs/src/capabilities/*-workspace.js` 为单一源（门控对账在 `doc-consistency::S1`）。沿革已迁出（git 可溯）。 |
 | content/04_web_design/module/SOP_WEBSITE_GUIDE.md | 2026-09-26 | — | [工程师]+[AI] | SOP-系统联动方法（无人称文体）。**边界**：相关引用指向 `content/03_doc_system/OPERATIONS_GUIDE.md`。沿革见 `.ctx/logs/`。 |
 | content/04_web_design/module/AGENDA_AND_REFERENCE_DESIGN.md | 2026-09-29 | — | [工程师]+[AI] | **（2026-09-26 批次 205 补行**：本表原无其行，本批补行；日期＝frontmatter `last_updated` 实读值（与表行同值 ⇒ `S13` 绿）；`git log` 亦 2026-09-26**）** 会议议程与资料查询设计 |

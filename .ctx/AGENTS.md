@@ -36,6 +36,7 @@ cd server; npm run test:full
 - `.ctx/README.md`（第 8 项）与 `.ctx/AGENTS.md`（第 9 项）已在 `ctx-hygiene-guard` 白名单（9 项）之内 ⇒ 该守卫 ① 为绿；新增顶层文件仍须先过 `CLAUDE.md H26.3`。
 - `SNAPSHOT.md` 末尾已有批次 509–516 小结（每批 5 行）；机制已执行，缺口在「最近一批」尚未机检（`docs-governance` G6 只断言批次 509 段）。
 - 回填改写归档历史日志 → 违反「历史不可变」；只允许新增 `logs/archive/YYYY-MM/`。
+- **About 是独立冻结件**（2026-10-27 支书裁定）：与项目 IA 无关——`docs/about.html` / `about.css` / `about-entry.js` 原样保留，**其引用面（功能目录「关于」卡、help 正文页面清单）也不改**；不纳入 IA 统计、守卫扫描与待办。判据见 `content/04_web_design/PRODUCT_IA.md` 附节。
 - 一次性审计报告（`2026-10-AUDIT_R6…R11` ＋ `R10_P3_CLOSURE`）已于 2026-10-27 批次 516 迁入 `logs/archive/2026-10/`，活跃侧 25 处引用同批改准；执行日志与报告自身 frontmatter 里的旧路径按「历史不可变」保留不改。
 
 ## 防逃逸三件套（示例）
