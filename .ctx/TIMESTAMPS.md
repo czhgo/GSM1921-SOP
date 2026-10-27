@@ -149,7 +149,7 @@ dynamic_role:
 | content/04_web_design/evolution/ROLE_PERMISSION_DESIGN.md | 2026-09-29 | — | [工程师]+[AI] | **（2026-09-26 批次 205 补行**：本表原无其行，本批补行；日期＝frontmatter `last_updated` 实读值（与表行同值 ⇒ `S13` 绿）；`git log` 亦 2026-09-26**）** 权限功能合一收敛设计 |
 | content/04_web_design/evolution/WORKFLOW_BLOCK_CONTRACT.md | 2026-10-05 | — | [工程师]+[AI] | **（2026-09-26 批次 205 补行**：本表原无其行，本批补行；日期＝frontmatter `last_updated` 实读值（与表行同值 ⇒ `S13` 绿）；`git log` 亦 2026-09-26**）** 工作流块封装契约 |
 | content/04_web_design/deploy/WECHAT_INTEGRATION.md | 2026-09-05 | — | [工程师]+[AI] | 🗑️ **已删除**：正文**整体并入** `content/04_web_design/deploy/DEPLOYMENT_GUIDE.md` 的 **§五 微信协同与小程序设计**〔内部 §一–§八 → 5.1–5.8〕⇒ **四份 → 一份**。（原：微信协同与小程序设计方案；§八 新增北大对接数据展示；小程序独立问题归位本文档。）沿革见 `.ctx/logs/`。 |
-| content/05_ai_coding/DATA_CONSISTENCY_CHECKLIST.md | 2026-10-27 | — | [用户]+[AI] | **（现状）** 数据一致性检查清单（`§0` 真机 ↔ 文档逐项对账）。**边界**：本件只承载清单本体与判据，沿革入 `.ctx/logs/`。**为什么**：本列只写现状 / 边界 / 指针（`R-89`）。沿革已迁出（git 可溯）。 |
+| content/05_ai_coding/DATA_CONSISTENCY_CHECKLIST.md | 2026-10-28 | — | [用户]+[AI] | **（现状）** 数据一致性检查清单（`§0` 真机 ↔ 文档逐项对账）。**边界**：本件只承载清单本体与判据，沿革入 `.ctx/logs/`。**为什么**：本列只写现状 / 边界 / 指针（`R-89`）。沿革已迁出（git 可溯）。 |
 | content/04_web_design/data/DATA_MODEL.md | 2026-10-27 | — | [工程师]+[AI] | 数据模型与数据流（静态 §2.x / 动态 §1·§3·§4）；§2.9 消息对象（`kind` / `targetType+targetId` / `reads[]` / `archivedBy[]`）；附录 A 记 schema v12（2026-10-26：四组唯一索引 / `todos.branch_id` 生成列 / `contributions` 对象）；种子口径以 `DATA_SEED_CONTRACT.md` 为唯一权威。**边界**：字段级唯一权威；README-server 以行号引用本文件。 |
 | content/04_web_design/data/DATA_SEED_CONTRACT.md | 2026-10-27 | — | [工程师]+[AI] | 数据种子契约（四类口径 / 逐表必填 / v12 强约束）；守卫 `server/test/seed-contract-guard.test.mjs`。 |
 | content/04_web_design/data/DATA_FLOW.md | 2026-09-23 | — | [工程师]+[AI] | 🗑️ 已删除（正文并入 `DATA_MODEL.md`《数据模型与数据流》）。沿革见 `.ctx/logs/`。 |
@@ -243,9 +243,9 @@ dynamic_role:
 | server/test/theme-palette-guard.test.mjs | 2026-10-23 | — | [工程师]+[AI] | 主题色板 7×2×8 守卫。 |
 | server/test/density-spacing-guard.test.mjs | 2026-10-23 | — | [工程师]+[AI] | 密度间距守卫。 |
 | server/test/hover-state-guard.test.mjs | 2026-10-23 | — | [工程师]+[AI] | 交互三态守卫。 |
-| content/05_ai_coding/REVIEW_QUESTION_SET.md | 2026-10-27 | — | [工程师]+[AI] | 审查问题集。 |
+| content/05_ai_coding/REVIEW_QUESTION_SET.md | 2026-10-28 | — | [工程师]+[AI] | 审查问题集。 |
 | content/05_ai_coding/QUESTION_HIT_MATRIX.md | 2026-10-25 | — | [工程师]+[AI] | 历史命中矩阵。 |
-| content/05_ai_coding/GUARD_INVENTORY.md | 2026-10-27 | — | [工程师]+[AI] | 守卫台账；批次 516 归并 17→4 件，现行 64 件 / 527 条。 |
+| content/05_ai_coding/GUARD_INVENTORY.md | 2026-10-28 | — | [工程师]+[AI] | 守卫台账；批次 516 归并 17→4 件，现行 64 件 / 527 条。 |
 | content/03_doc_system/CASES_INDEX.md | 2026-10-27 | — | [工程师]+[AI] | 判例总索引（design 27 / data 1 / ai 6）。 |
 | server/test/docs-governance-guard.test.mjs | 2026-10-24 | — | [工程师]+[AI] | 文档治理守卫。 |
 | .ctx/README.md | 2026-10-27 | — | [工程师]+[AI] | 五桶说明。 |

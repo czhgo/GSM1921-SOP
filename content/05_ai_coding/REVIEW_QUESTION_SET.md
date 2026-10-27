@@ -2,7 +2,7 @@
 title: "审查问题集 v1——从 36 个 spec 与 42 个批次倒查出的可复用判据"
 type: guide
 role: "[工程师]+[AI]"
-last_updated: "2026-10-27"
+last_updated: "2026-10-28"
 status: active
 ---
 
