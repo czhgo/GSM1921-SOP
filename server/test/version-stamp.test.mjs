@@ -30,6 +30,8 @@ import { readFileSync, readdirSync, statSync, existsSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import http from 'node:http';
+import { createApp } from '../app.js';
 import {
   nextVersionFor, isForward, STAMP_RE, isCommentLine, codePartOf, stampTestFileContent, cacheKeyStamps,
   nextSemver, isSemverForward, parseChangelog, classifyChanges, CHANGELOG_PLACEHOLDER_RE,
@@ -358,5 +360,91 @@ test('D12 多行动态 import 的路径行随缓存版本更新且进入同一�
   assert.equal(stampTestFileContent(source, NEW_V), expected);
   assert.deepEqual(cacheKeyStamps(source), [OLD_V]);
   assert.deepEqual(cacheKeyStamps(expected), [NEW_V]);
+});
+
+// ════════════════════════════════════════════════════════════════
+// S8–S9 交付形态（2026-10-27 批次 516 · ARCHITECTURE_EVOLUTION §九）
+//   病根：无压缩 ＋ 所有静态文件（HTML 与带戳资源）共用同一 Cache-Control，
+//   等于「带戳资源的 URL 级失效」白做了；CDN 又用无版本地址，上游一变全站跟着变。
+//   判据分两层：S8 静态扫（每页都有 modulepreload 且同戳、CDN 带版本）；
+//   S9 运行时（起真服务，断言 带戳=immutable / HTML=no-cache / deploy.js=no-store ＋ gzip 生效）。
+// ════════════════════════════════════════════════════════════════
+test('S8 每页 modulepreload 与入口同戳、Tailwind CDN 带版本号', () => {
+  const htmls = walk(DOCS, ['.html']);
+  assert.ok(htmls.length >= 20, `只扫到 ${htmls.length} 个 HTML（下限 20）：扫描面被写坏`);
+
+  const problems = [];
+  let preloaded = 0;
+  for (const f of htmls) {
+    const src = read(f);
+    const entry = src.match(/<script type="module" src="([^"]+)"/);
+    if (!entry) continue;
+    const stamp = (entry[1].match(/\?v=(\d{8}[a-z])/) || [])[1];
+    if (!stamp) { problems.push(`${rel(f)}：入口模块缺 ?v= 戳`); continue; }
+
+    if (!/<!-- modulepreload:start -->/.test(src)) {
+      problems.push(`${rel(f)}：缺 modulepreload 块（跑 docs/scripts/bump-version.mjs 生成）`);
+      continue;
+    }
+    preloaded++;
+    const hrefs = [...src.matchAll(/<link rel="modulepreload" href="([^"]+)"/g)].map((m) => m[1]);
+    if (hrefs.length === 0) problems.push(`${rel(f)}：modulepreload 块为空`);
+    for (const h of hrefs) {
+      const hs = (h.match(/\?v=(\d{8}[a-z])/) || [])[1];
+      if (hs !== stamp) problems.push(`${rel(f)}：modulepreload 戳 ${hs || '(无)'} ≠ 入口戳 ${stamp}`);
+    }
+    // CDN：只允许「预连接用裸域名」，实际加载脚本必须带版本
+    const bare =
+      /<script src="https:\/\/cdn\.tailwindcss\.com\/?"><\/script>/.exec(src);
+    if (bare) problems.push(`${rel(f)}：Tailwind CDN 未锁版本（应为 cdn.tailwindcss.com/3.4.17）`);
+  }
+  assert.ok(preloaded >= 20, `只有 ${preloaded} 页生成了 modulepreload（下限 20）`);
+  assert.deepEqual(problems, [], `交付形态不合格：\n  ${problems.join('\n  ')}`);
+});
+
+/** 原始 HTTP 请求（不走 fetch：fetch 会自动解压，看不到 Content-Encoding） */
+function rawGet(port, pathname, headers = {}) {
+  return new Promise((resolvePromise, reject) => {
+    http.get({ host: '127.0.0.1', port, path: pathname, headers }, (res) => {
+      const chunks = [];
+      res.on('data', (c) => chunks.push(c));
+      res.on('end', () => resolvePromise({ status: res.statusCode, headers: res.headers, body: Buffer.concat(chunks) }));
+    }).on('error', reject);
+  });
+}
+
+test('S9 运行时缓存分流与压缩：带戳资源长缓存、HTML 回源、deploy.js no-store、gzip 生效', async () => {
+  const app = createApp({ dbPath: ':memory:' });
+  const server = app.listen(0);
+  const port = server.address().port;
+  try {
+    const index = await rawGet(port, '/index.html');
+    assert.equal(index.status, 200, '/index.html 应 200');
+    assert.match(String(index.headers['cache-control'] || ''), /no-cache/,
+      'HTML 必须回源（no-cache），否则发版后用户看不到新页面');
+
+    const html = index.body.toString('utf8');
+    const stamp = (html.match(/\?v=(\d{8}[a-z])/) || [])[1];
+    assert.ok(stamp, 'index.html 应含版本戳');
+
+    const css = await rawGet(port, `/src/styles.css?v=${stamp}`, { 'accept-encoding': 'gzip' });
+    assert.equal(css.status, 200, '带戳 CSS 应 200');
+    assert.match(String(css.headers['cache-control'] || ''), /immutable/,
+      '带 ?v= 的资源必须长缓存（immutable）——否则缓存分层等于没做');
+    assert.equal(css.headers['content-encoding'], 'gzip',
+      '>1KB 的静态资源必须 gzip（无压缩是当前最大传输缺口）');
+
+    const plain = await rawGet(port, '/src/styles.css');
+    assert.match(String(plain.headers['cache-control'] || ''), /no-cache/,
+      '不带戳的同一资源必须回源（两者取值不同，说明分流真的按 URL 判，而不是恒真）');
+
+    const dep = await rawGet(port, '/src/config/deploy.js');
+    assert.equal(dep.status, 200, '/src/config/deploy.js 应 200');
+    assert.match(String(dep.headers['cache-control'] || ''), /no-store/,
+      '部署形态注入文件必须 no-store（缓存会读到旧形态）');
+  } finally {
+    server.closeAllConnections?.();
+    await new Promise((r) => server.close(r));
+  }
 });
 

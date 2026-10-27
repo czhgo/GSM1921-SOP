@@ -14,7 +14,7 @@
   <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;800&family=Noto+Serif+SC:wght@400;500;600;700;800&display=swap" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;800&family=Noto+Serif+SC:wght@400;500;600;700;800&display=swap" rel="stylesheet"></noscript>
 
-  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
   <script src="./src/tailwind-config.js?v=20261026b"></script>
 
   <link rel="stylesheet" href="./src/styles.css?v=20261026b">
@@ -134,7 +134,29 @@
 
 
 
-<script type="module" src="./src/entries/pages/main-entry.js?v=20261026b"></script>
+<!-- modulepreload:start -->
+  <link rel="modulepreload" href="./src/services/core/runtime.js?v=20261026b" />
+  <link rel="modulepreload" href="./src/core/base/state.js?v=20261026b" />
+  <link rel="modulepreload" href="./src/services/governance/notice.js?v=20261026b" />
+  <link rel="modulepreload" href="./src/components/governance/notice-view.js?v=20261026b" />
+  <link rel="modulepreload" href="./src/services/activity/taskforce.js?v=20261026b" />
+  <link rel="modulepreload" href="./src/core/base/utils.js?v=20261026b" />
+  <link rel="modulepreload" href="./src/services/activity/attendance.js?v=20261026b" />
+  <link rel="modulepreload" href="./src/services/activity/activity.js?v=20261026b" />
+  <link rel="modulepreload" href="./src/core/session/cross-page-state.js?v=20261026b" />
+  <link rel="modulepreload" href="./src/core/domain/object-route.js?v=20261026b" />
+  <link rel="modulepreload" href="./src/core/boot/bootstrap.js?v=20261026b" />
+  <link rel="modulepreload" href="./src/services/core/auth.js?v=20261026b" />
+  <link rel="modulepreload" href="./src/services/branch/branch.js?v=20261026b" />
+  <link rel="modulepreload" href="./src/data/data-loader.js?v=20261026b" />
+  <link rel="modulepreload" href="./src/data/data-adapter.js?v=20261026b" />
+  <link rel="modulepreload" href="./src/capabilities/activity-calendar.js?v=20261026b" />
+  <link rel="modulepreload" href="./src/components/dashboard/stats.js?v=20261026b" />
+  <link rel="modulepreload" href="./src/components/dashboard/activity-panel.js?v=20261026b" />
+  <link rel="modulepreload" href="./src/components/dashboard/taskforce-list.js?v=20261026b" />
+  <link rel="modulepreload" href="./src/components/dashboard/gallery.js?v=20261026b" />
+  <!-- modulepreload:end -->
+  <script type="module" src="./src/entries/pages/main-entry.js?v=20261026b"></script>
 
 </body>
 </html>

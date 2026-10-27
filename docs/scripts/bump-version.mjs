@@ -16,7 +16,7 @@
 // ════════════════════════════════════════════════════════════════
 
 import { readFileSync, writeFileSync, readdirSync, statSync, existsSync } from 'node:fs';
-import { join, dirname } from 'node:path';
+import { join, dirname, resolve, relative, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { nextVersionFor, isForward, isCommentLine, codePartOf, stampTestFileContent, cacheKeyStamps } from './version-next.mjs';
 
@@ -132,6 +132,32 @@ for (const file of jsFiles) {
   }
 }
 
+// ── modulepreload（2026-10-27 批次 516）──
+// 判据（ARCHITECTURE_EVOLUTION §九 第 3 项）：每页首屏的静态 import 链在 HTML 里预加载一层，
+// 减少 1–2 个 RTT；href 必须与入口模块同戳，否则会重复下载两个实例。
+// 只取入口模块的**直接静态 import**（不递归）：再深一层交给浏览器解析，避免 HTML 体积失控。
+function modulePreloadHrefs(htmlFile, entrySrc) {
+  // workspace 页有 <base href="../">：实际解析基准是 base，不是 HTML 文件目录（否则会少一层）
+  const htmlSrc = readFileSync(htmlFile, 'utf8');
+  const baseHref = (htmlSrc.match(/<base\s+href="([^"]+)"/) || [])[1] || '';
+  const baseDir = resolve(dirname(htmlFile), baseHref || '.');
+  const abs = resolve(baseDir, entrySrc.split('?')[0]);
+  if (!existsSync(abs)) return [];
+  const src = readFileSync(abs, 'utf8');
+  const specs = [...src.matchAll(/import\s+(?:[^'"]*?\s+from\s+)?['"]([^'"]+)['"]/g)]
+    .map((mm) => mm[1])
+    .filter((s) => s.startsWith('.'));
+  const out = [];
+  for (const spec of new Set(specs)) {
+    const target = resolve(dirname(abs), spec.split('?')[0]);
+    if (!existsSync(target)) continue;
+    let rel = relative(baseDir, target).split(sep).join('/');
+    if (!rel.startsWith('.')) rel = `./${rel}`;
+    out.push(`${rel}?v=${VERSION}`);
+  }
+  return out;
+}
+
 // ── 处理各 html：entry script + styles.css 版本号 ──
 let htmlCount = 0;
 const htmlFiles = collectFiles(HTML_DIR, '.html');
@@ -157,8 +183,21 @@ for (const file of htmlFiles) {
       /(<script src="[^"?]*\/src\/[^"?]*\.js)(\?[^"]*)?(")/g,
       (m, pre, _q, end) => `${pre}?v=${VERSION}${end}`
     );
-  if (next !== before) {
-    writeFileSync(file, next, 'utf8');
+  // modulepreload 块：有 entry 模块才生成；块内 href 同戳，重复运行做替换而非追加
+  let withPreload = next;
+  const entryTag = next.match(/<script type="module" src="([^"]+)"/);
+  if (entryTag) {
+    const hrefs = modulePreloadHrefs(file, entryTag[1]);
+    if (hrefs.length) {
+      const block = `<!-- modulepreload:start -->\n${hrefs.map((h) => `  <link rel="modulepreload" href="${h}" />`).join('\n')}\n  <!-- modulepreload:end -->`;
+      const blockRe = /[ \t]*<!-- modulepreload:start -->[\s\S]*?<!-- modulepreload:end -->/;
+      withPreload = blockRe.test(next)
+        ? next.replace(blockRe, block)
+        : next.replace(entryTag[0], `${block}\n  ${entryTag[0]}`);
+    }
+  }
+  if (withPreload !== before) {
+    writeFileSync(file, withPreload, 'utf8');
     htmlCount++;
   }
 }

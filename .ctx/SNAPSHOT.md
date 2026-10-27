@@ -248,6 +248,14 @@ GSM1921-SOP/
 
 - **做了什么**：活跃上下文瘦身——harness 白名单文档与代码对齐（7 → 9 项）· `REVIEW_QUEUE` 420 行重写为「机制 ＋ 未闭环」· `ACTIVE_RULINGS` 修 3 处过时指针 · `SNAPSHOT` 版本自述统一为 v62 / schema v12 / 52 张表 · `TIMESTAMPS` 补登与周期任务表据实重排 · 40 个已完成 spec 回勾后整批归档 `.ctx/logs/archive/2026-10/specs/`（`SPECS_INDEX.md` 索引）· 删 `.tmp/`、`dist/`、handoff；content 分层事实层校正 9 处（`DOC_MAP` 补登 10 项 ＋ 新增 §七 权威句位置）；数据侧新增适配器接口面守卫 S4、值对照 5 → 10 张表；架构方案（不引打包器 ＋ 四项必要项）落 `ARCHITECTURE_EVOLUTION.md §九`；乙部新增 `B-515-1…7`。
 - **结论**：本轮病根是「**机制立了但没人执行**」——白名单说 7 项而代码 9 项、SNAPSHOT 说 v60/v61 而实际 v62、队列 27 处已完成标记仍在册；判据是「文档读数必须能对着代码重算一次」，不能靠上一批自述。
-- **未决**：① `.ctx/logs/2026-10-AUDIT_R6…R11` 七份 ＋ `R10_P3_CLOSURE` 未迁 archive（被不可改写的执行日志与 content 引用，登记 `B-515-7`）；② 守卫归并只出候选表未执行（`B-515-2`）；③ content 重复表达只建权威句位置表、未收口（`B-515-3`）；④ 架构四项未改代码（`B-515-1`）。
+- **未决**：① `.ctx/logs/archive/2026-10/2026-10-AUDIT_R6…R11` 七份 ＋ `R10_P3_CLOSURE` 未迁 archive（被不可改写的执行日志与 content 引用，登记 `B-515-7`）；② 守卫归并只出候选表未执行（`B-515-2`）；③ content 重复表达只建权威句位置表、未收口（`B-515-3`）；④ 架构四项未改代码（`B-515-1`）。
 - **已迁 content 的条目**：`DOC_MAP` §二 补登 10 项 ＋ §七 重复主题权威句位置；`03/README` / `04/README` / `05/README` 登记补齐；`DATA_CONSISTENCY_CHECKLIST` §0.2 新增接口面 / 种子契约 / 种子漂移三行并改 10 张表；`GUARD_INVENTORY` 77 件 / 527 条 ＋ 「附：守卫归并候选」；`ARCHITECTURE_EVOLUTION` §九 性能与交付形态；`PARALLEL_SKILL_AUDIT` §13.7 判例路径改指归档。
 - **下批入口**：① 读本段与 `.ctx/logs/archive/2026-10/specs/SPECS_INDEX.md`；② 按 `B-515-1` 先做压缩与缓存分层（不动前端代码的两项），再评估 Tailwind 本地化；③ 守卫归并按 `GUARD_INVENTORY` 候选表逐组执行，断言数不减；④ 读数基线：daily **1635 / 1635**（66.7s）、定向 71 / 71、守卫 77 件 / **527** 条。
+
+## 批次 516 小结（2026-10-27）
+
+- **做了什么**：乙部销账（15 条在办项核验后删 5 / 改 5 / 新增 `B-516-1`）· 交付形态四项（`compression` ＋ 缓存分流「HTML no-cache / 带戳资源 immutable / deploy.js no-store」＋ 26 页 `modulepreload` 块 ＋ Tailwind CDN 锁 `3.4.17`）· 守卫归并 17 件 → 4 件（`perf` / `copy` / `type-scale` / `modal`，断言 527 不变，`DAILY_FILE_BUDGET` 237 → 226）· About 功能卡与 help 页面清单清零（`no-about-route` 增 A6/A7）· `--app-accent-tint` 加 `@supports` 回退 · 数据缺口四条登记 · 8 份审计报告迁 archive 并改准 25 处活跃引用。
+- **结论**：乙部「待启动」里混着大量**已由后续批次或守卫消化**的条目——不清账就会让下一轮把已做的事再做一遍；判据是「每条在办项必须能指到一个当前仍缺的文件/行为」，指不出的即删或重写。
+- **未决**：① `text-xs` 1971 处只清了 About 相关两处，逐页迁移转入 `B-515-5`；② `form-loop-sweep` 的 409 排除收紧未做（需真机跑，已写明触发条件）；③ R6/R7 的 44 条 P3 只抽查 6 条（`B-516-1`）；④ `B-515-6` 两 spec 的 26 条未勾项仍待逐条判。
+- **已迁 content 的条目**：`GUARD_INVENTORY` 64 件 / 527 条 ＋ 归并执行结果；`DATA_CONSISTENCY_CHECKLIST` §0.2 增「已知缺口」行并修正语义端点表 5→7；`README-server` 静态缓存口径改为分层 ＋ 压缩。
+- **下批入口**：① 读本段；② 先跑 `npm run test:daily` 确认 1636 口径；③ `B-516-1` 44 条核销按「已消 / 未消 / 不适用」逐条落；④ `B-515-5` 的 `text-xs` 按 `entries/tabs/**` 逐页核，禁止批量替换。

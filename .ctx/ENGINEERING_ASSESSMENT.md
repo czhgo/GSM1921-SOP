@@ -269,9 +269,9 @@ Git 从 2026-03-14 至 2026-10-14 共 1,133 条提交记录；按提交日期分
 | form-loop 存量红 | 测试工程 | ✅ | 已收口（批次 501）：九条 e2e / form-loop 红全清 | `form-loop-registry.mjs` |
 | 党委代配置写门（`D-825`） | 权限/治理 | ✅ | 已收口（批次 501）：推翻批次 448 写门，党委可代支部写 `modules`/`blocks`/`capabilityPackages`，留痕 `byRole` | `server/routes/resources/index.js`、`SYSTEM_ROLE_PERMISSION §9h`、`DECISION_LOG D-825` |
 | 跨组不是第三落点（`D-826`） | 数据模型/权限 | ✅ | 已收口（批次 502）：落点两档 `party-group`/`branch`，跨组只表示招募范围；迁移 v10；服务端补组织者例外校验 | `constants.js::normalizeOrganizingScope`、`server/db.js` v10、`DECISION_LOG D-826` |
-| 第六轮前端脏乱繁复审 | 审查 | ✅ 报告；P1/P2 已修 | P3 余项登记 `CLAUDE.md B-502-3` | `.ctx/logs/2026-10-AUDIT_R6_FRONTEND.md` |
-| 第七轮数据生命周期 | 审查 | ✅ 报告；P1/P2 已修 | P3 余项登记 `CLAUDE.md B-502-4`；补课文案余项 `B-502-6` | `.ctx/logs/2026-10-AUDIT_R7_DATA.md` |
-| 多支部形态与 P13 余项（承 `B-503-2`） | 数据/权限 | 🟡 在办 | 来源＝第九轮 9A 诊断残项：**多支部形态待支书裁定**；裁定后与 P13 的服务端读过滤下推、写门同批排（schema 方案已出、本轮不实施） | `.ctx/logs/2026-10-AUDIT_R9_DATA_STRUCTURE.md`、本文件 §四 P13 行 |
+| 第六轮前端脏乱繁复审 | 审查 | ✅ 报告；P1/P2 已修 | P3 余项登记 `CLAUDE.md B-502-3` | `.ctx/logs/archive/2026-10/2026-10-AUDIT_R6_FRONTEND.md` |
+| 第七轮数据生命周期 | 审查 | ✅ 报告；P1/P2 已修 | P3 余项登记 `CLAUDE.md B-502-4`；补课文案余项 `B-502-6` | `.ctx/logs/archive/2026-10/2026-10-AUDIT_R7_DATA.md` |
+| 多支部形态与 P13 余项（承 `B-503-2`） | 数据/权限 | 🟡 在办 | 来源＝第九轮 9A 诊断残项：**多支部形态待支书裁定**；裁定后与 P13 的服务端读过滤下推、写门同批排（schema 方案已出、本轮不实施） | `.ctx/logs/archive/2026-10/2026-10-AUDIT_R9_DATA_STRUCTURE.md`、本文件 §四 P13 行 |
 
 ---
 

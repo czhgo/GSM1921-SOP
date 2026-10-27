@@ -11,7 +11,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;800&family=Noto+Serif+SC:wght@400;500;600;700;800&display=swap" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;800&family=Noto+Serif+SC:wght@400;500;600;700;800&display=swap" rel="stylesheet"></noscript>
-  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
   <script src="./src/tailwind-config.js?v=20261026b"></script>
   <link rel="stylesheet" href="./src/styles.css?v=20261026b">
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -36,6 +36,26 @@
   </div>
 </div>
 
-<script type="module" src="./src/entries/pages/activity-materials-entry.js?v=20261026b"></script>
+<!-- modulepreload:start -->
+  <link rel="modulepreload" href="./src/components/shell/sidebar.js?v=20261026b" />
+  <link rel="modulepreload" href="./src/components/shell/header.js?v=20261026b" />
+  <link rel="modulepreload" href="./src/services/core/runtime.js?v=20261026b" />
+  <link rel="modulepreload" href="./src/core/domain/domain.js?v=20261026b" />
+  <link rel="modulepreload" href="./src/services/activity/attendance.js?v=20261026b" />
+  <link rel="modulepreload" href="./src/services/governance/review.js?v=20261026b" />
+  <link rel="modulepreload" href="./src/services/core/auth.js?v=20261026b" />
+  <link rel="modulepreload" href="./src/core/domain/constants.js?v=20261026b" />
+  <link rel="modulepreload" href="./src/core/base/utils.js?v=20261026b" />
+  <link rel="modulepreload" href="./src/core/domain/material-links.js?v=20261026b" />
+  <link rel="modulepreload" href="./src/services/core/visibility.js?v=20261026b" />
+  <link rel="modulepreload" href="./src/components/ui/empty-state.js?v=20261026b" />
+  <link rel="modulepreload" href="./src/components/ui/modal.js?v=20261026b" />
+  <link rel="modulepreload" href="./src/core/base/version-token.js?v=20261026b" />
+  <link rel="modulepreload" href="./src/data/data-adapter.js?v=20261026b" />
+  <link rel="modulepreload" href="./src/data/api-adapter.js?v=20261026b" />
+  <link rel="modulepreload" href="./src/core/session/pending-writes.js?v=20261026b" />
+  <link rel="modulepreload" href="./src/core/domain/object-route.js?v=20261026b" />
+  <!-- modulepreload:end -->
+  <script type="module" src="./src/entries/pages/activity-materials-entry.js?v=20261026b"></script>
 </body>
 </html>

@@ -829,39 +829,29 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/DOC
 
 ## 批次 500 收尾与后续批次（2026-10-21）
 
-> 批次 499 的十项专项已在批次 500 一轮内收口（见 `.trae/specs/close-special-projects-batch-500/` 与执行日志）。下表只留尚未闭环的后续项。
+> 批次 499 的十项专项已在批次 500 一轮内收口（见 `.ctx/logs/archive/2026-10/specs/close-special-projects-batch-500/` 与执行日志）。下表只留尚未闭环的后续项（2026-10-27 批次 516 按实况销账：删 5 条已消、重写 5 条残余）。
 
 | ID | 事项（人话） | 引用流程 | 状态 |
 | --- | --- | --- | --- |
-| B-500-1 | 第五轮审查 P2/P3 按三路报告的修复顺序排批（空态、动画、反馈落点、字号双标、原生 confirm 等） | `.ctx/logs/archive/2026-10/AUDIT_R5_*.md` + `H21` | 待启动 |
-| B-500-2 | IA P2/P3 余项（R3 报告与三路审查重叠部分） | `.ctx/logs/archive/2026-10/UI_AUDIT_R3.md` + `AUDIT_R5_*.md` | 待启动 |
+| B-500-1 | 第五轮审查 P2/P3 修复（R5 三路合计 56 条：P2 39 / P3 17）——按报告顺序排批；已知未清：原生 `confirm`（`disc/inspection-tab.js:267`）、`--text-xs` 浅 / 深两值（`styles.css:259` / `:300`） | `.ctx/logs/archive/2026-10/AUDIT_R5_*.md` + `H21` | 待启动 |
+| B-500-2 | R3-25：「相关设置」深链与浮窗体例冲突（`components/ui/modal.js:253,302`），按 `DESIGN_SYSTEM §4.27` 收口 | `DESIGN_SYSTEM.md §4.27` + `.ctx/logs/archive/2026-10/UI_AUDIT_R3.md` | 待启动 |
 | B-500-4 | 数据保留期策略（归档 / 通知 / 待办）——须支书裁定后才允许 cleanup `--apply` 删业务记录 | `DATA_MODEL.md` + `.ctx/ENGINEERING_ASSESSMENT.md §四` | 待裁定 |
-| B-500-5 | 宽表 P2：动态列（活动参与汇总）、党委目录、个人档案子表 | `DESIGN_SYSTEM.md §4.20` + `responsive-cards-guard` | 待启动 |
-| B-500-6 | 任命通用 CRUD 收口：`PATCH /branches/:id` 直改 `secretaryId`、`POST /appointmentRecords` 绕语义端点 | `server/routes/resources/index.js` + `semantic-routes.js` | 待启动 |
-| B-500-7 | 待办派生的下一步：把通知 / 生命周期派生迁到服务端，客户端只读（Plan B） | `todo.js` + `H32` | 后续（当前 Plan A 已止血） |
-| B-500-8 | mock 真值持续：新表 / 新字段必须进 `seed-manifest` 并过 parity | `seed-manifest.js` + `mock-api-parity-structure` | 持续 |
-| B-500-9 | 测试分层预算维持：新增测试同批登记层级，预算只降不升 | `test-tier-registry.mjs` + `test-tier-guard` | 持续 |
-| B-502-1 | 第八轮专项：**最小三成本原则**复审（**信息成本 / 操作成本 / 适应学习成本**——权威源 `DESIGN_METHODOLOGY` / `REVIEW_QUEUE 附录⑤`；维护成本属工程维度，归 `ENGINEERING_ASSESSMENT §2.4`；含「同一任务只留一个权威处理位」与空值词表） | `REVIEW_QUEUE 附录⑤` + `content/04_web_design/evolution/DESIGN_METHODOLOGY.md` + `H25` | 待启动（支书 2026-10-22 圈定再走 3–4 轮） |
-| B-502-2 | 第九轮专项：**功能与美观提升**＋**全栈数据结构设计**复审（页面质感 / 组件复用 / 数据模型与派生口径） | `DESIGN_SYSTEM.md` + `DATA_MODEL.md` + `FULLSTACK_AUDIT_R3.md` | 待启动 |
-| B-502-3 | 第六轮前端审查 P3 余项（21 条；报告 `.ctx/logs/2026-10-AUDIT_R6_FRONTEND.md`），含 `constants.js` 28 行引语块与 `server/seed.js` 墓志铭注释两处禁区项 | `2026-10-AUDIT_R6_FRONTEND.md` + `copy-*` 守卫 | 待启动 |
-| B-502-4 | 第七轮数据生命周期 P3 余项（23 条；报告 `.ctx/logs/2026-10-AUDIT_R7_DATA.md`），含「缺省支部」之外的 id 形态与 mock 时间老化 | `2026-10-AUDIT_R7_DATA.md` + `seed-manifest.js` | 待启动 |
-| B-502-5 | 账号重命名后的边界：旧 token 仍有效、旧 `person.html?id=旧学号` 与收藏外链会 404（已如实登记，不自动改写） | `server/routes/member.js` + `person-entry.js` | 后续（需支书定是否做旧链接跳转） |
-| B-502-6 | 补课文案与设置页仍各写「T+7」：`disc/makeup-tab.js` / `settings-entry.js` 未接统一 `makeupScopeHint()` 派生（R7-15 部分落地） | `services/activity/makeup.js` + `settings-entry.js` | 待启动 |
-| B-503-5 | 待支书裁定四项：登录页品牌渐变 vs §5.3、首页 hero 党徽 vs §4.25、同名页签是否加范围后缀、支书台是否改名「反馈与回复」 | `DESIGN_SYSTEM.md` §5.3/§4.25、`login.html`、`index.html` | 待裁 |
+| B-500-5 | 个人档案子表卡式化：`governance/person-profile-sections.js:73-87` 仍裸 `<table>`，须接 `data-responsive="cards"` | `DESIGN_SYSTEM.md §4.20` + `responsive-cards-guard` | 待启动 |
+| B-500-6 | 任命通用 CRUD 收口：`PATCH /branches/:id` 仍可直改 `secretaryId`（`resources/index.js:532,684`，门只到 party-staff）、`POST /appointmentRecords` 仍开放（`store.js:34`、`api-adapter.js:833-838`） | `server/routes/resources/index.js` + `semantic-routes.js` | 待启动 |
+| B-500-7 | 待办派生的下一步：把通知 / 生命周期派生迁到服务端，客户端只读（Plan B；现状仍在 `services/governance/todo.js:1275,1373`） | `todo.js` + `H32` | 后续（当前 Plan A 已止血） |
+| B-502-5 | 账号重命名后的边界：旧 token 仍有效（`server/routes/member.js:353` 只改 `sessions.person_id`）、旧 `person.html?id=旧学号` 与收藏外链会 404（`legacy-person-ids.js` 只映射 `p*`） | `server/routes/member.js` + `person-entry.js` | 后续（需支书定是否做旧链接跳转） |
+| B-503-5 | 待支书裁定两项：① 首页 hero 48px 党徽 vs §4.25（`docs/index.html:42`）② 支书台「反馈管理」是否改名（`capabilities/secretary-workspace.js:86`） | `DESIGN_SYSTEM.md` §4.25、`index.html`、`secretary-workspace.js` | 待裁 |
+| B-516-1 | P3 余项核销：R6 前端 21 条 / R7 数据 23 条逐条复核，每条标注「已消（证据）/ 未消（判据）/ 不适用（理由）」；已知未消：R7-06（`mock/people.js:67` 党委组织员空字段）；批次 516 抽查 6 条（R6 3/3 已消；R7 1 存 / 1 半 / 1 消） | `.ctx/logs/archive/2026-10/2026-10-AUDIT_R6_FRONTEND.md`、`.ctx/logs/archive/2026-10/2026-10-AUDIT_R7_DATA.md` | 待启动（44 条待核） |
 
-## 批次 515 收尾与后续（2026-10-27）
+## 批次 515–516 收尾与后续（2026-10-27）
 
-> 本批已落地：活跃上下文瘦身（`.ctx` 三本台账收口 ＋ spec 回勾归档 ＋ TIMESTAMPS 刷新）、content 分层事实层校正、mock↔API 最小守卫（接口面 S4 ＋ 值对照 10 张）。下表只留**未执行**项。
+> 批次 515：活跃上下文瘦身、content 分层事实层校正、mock↔API 最小守卫。
+> 批次 516：乙部销账（删 5 / 改 5）、交付形态（压缩 ＋ 缓存分层 ＋ modulepreload ＋ Tailwind 锁版本）、守卫归并 17→4 件、About 功能卡与 help 清单清零、数据缺口登记、8 份审计报告归档。下表只留**未执行**项。
 
 | ID | 事项（人话） | 引用流程 | 状态 |
 | --- | --- | --- | --- |
-| B-515-1 | 前端交付形态四项：响应压缩 / 缓存分层（HTML no-store、带戳资源长缓存）/ `modulepreload` / Tailwind 锁定或本地化 | `content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md` §九 + `H25` | 待启动（方案已定，未改代码） |
-| B-515-2 | 守卫归并：按 `GUARD_INVENTORY.md`「附：守卫归并候选」四组逐组执行，断言数不减 | `GUARD_INVENTORY.md` + `test-tier-guard` | 待启动 |
-| B-515-3 | content 重复表达收口：一改具改 17 文件 67 处、单一源 18 文件 168 处——逐条留权威句、余改指针 | `DOC_MAP.md` §七 权威句位置 + `H30.1` | 待启动 |
-| B-515-4 | 数据缺口：14 个无种子集合 / 18 张表不在结构对照内 · 语义表 7 域无乐观锁 · 语义端点无值对照 | `DATA_CONSISTENCY_CHECKLIST.md` §0.2 + `DATA_MODEL.md` | 待启动 |
-| B-515-5 | 内容侧遗留：`text-xs` 存量 1971 处/130 文件 · About 功能卡与 `help.html` 页面清单 · `--app-accent-tint` 相对颜色回退 · 409 排除口径收紧 | `GUARD_INVENTORY.md` + `DESIGN_SYSTEM.md` SD-50 | 待启动 |
-| B-515-6 | `repair-workbench-blockers-and-findings` 5 项 ＋ `close-special-projects-batch-500` 4 项（两 spec 已归档，未完成项在此跟踪） | `.ctx/logs/archive/2026-10/specs/SPECS_INDEX.md` | 待启动 |
-| B-515-7 | 审计报告归档：`.ctx/logs/2026-10-AUDIT_R6…R11` 7 份 ＋ `R10_P3_CLOSURE` 仍在 `logs/` 顶层，须与执行日志（不可改写）和 content 引用同批迁移 | `CLAUDE.md H26.3` + `.ctx/AGENTS.md` | 待启动 |
+| B-515-5 | 内容侧遗留：`text-xs` 存量 1971 处 / 130 文件（只迁非标签用途、上限 50 处/批）· `form-loop-sweep` 409 排除口径收紧（须带「后续成功重试」证据，改后先单跑该文件） | `GUARD_INVENTORY.md` ＋ `DESIGN_SYSTEM.md` §3.2 | 待启动（本轮只清 About / tint） |
+| B-515-6 | `repair-workbench-blockers-and-findings` 未勾 4＋18 条 ＋ `close-special-projects-batch-500` 未勾 3＋1 条（两 spec 已归档；原 spec 指向的 `B-500-10` 不存在，实际由本条跟踪） | `.ctx/logs/archive/2026-10/specs/SPECS_INDEX.md` | 待启动 |
 
 ***
 

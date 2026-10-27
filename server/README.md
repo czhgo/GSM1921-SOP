@@ -129,14 +129,14 @@ node scripts/backup.mjs --out /srv/bak/20260923
 
   > **另有一批「美学 / 链接 / 文案 / 数据库」守卫与专项件（纯 node 或真机不一；纯 node 者属 S 类，**2026-09-26 批次 208 已全部补入 `test:daily` 的显式清单**，真机者仍随 `npm test` 自动发现；两类均**未**计入上面的「守卫子集 8 文件」）——**2026-09-26 批次 205 补全并改准**（原文只列 3 条、且误写「已含在 `npm run test:daily` 的 S 类全量里」）**、2026-09-26 批次 208 二次改准**（下述**纯 node 者 13 个**已补入 `test:daily`〔清单 71 → **84** ＝ 全部 S 类〕**并同时补入 `test:fast`**；**真机者** `copy-screen-guard` / `copy-anchor-guard-e2e` **仍未列入任何显式清单**、随 `npm test` / `test:precommit` 自动发现——**不是漏登**：`test:daily` 定义＝S 类〔不 `import 'playwright'`〕、`test:fast` 需保持快）**：
   > · `test/hex-hardcode-guard.test.mjs` —— **硬编码 hex 存量回归**（`H1–H5`：现状之外的 (文件, 值) 判红 · 逐文件处数 ratchet · 非空转 · 缩减进度 · 搬移例外台账；基线数据＝`test/style-baseline.mjs`，口径见 `DESIGN_SYSTEM.md §2.8`）。
-  > · `test/control-font-guard.test.mjs` —— **控件小字存量回归**（`T1–T4`：`<button>/<a>/<input>/<select>` 挂 `text-[11px]/[10px]/[9px]` 即红；`DESIGN_SYSTEM.md §4.3` 控件字号单档 13px）。
-  > · `test/small-text-guard.test.mjs` —— **非控件小字禁止档**（2026-09-26 末批；`P1–P3`：**任意落点**出现 `text-[9px]`/`text-[10px]` 即红——档位表外（`DESIGN_SYSTEM.md §3.2` 最低档＝Overline 11px）；`text-[11px]` 非控件处合规只计进度。口径写进 `DESIGN_SYSTEM.md §3.2.1`）。
-  > · `test/text-tier-guard.test.mjs`（纯 node）—— **「段落/导语不得用标签档」档位-角色一致性**（2026-09-27 文本档位统一批；`T1–T4`：**`<p>`（说明/导语段）** 上出现 `text-[9px]/[10px]`（禁止档）或基线之外的 `text-[11px]`（Overline **标签档**应为 Caption 12px＝`text-xs`）即红 · 逐文件处数 ratchet · 非空转（口径正负例 ＋ 台账规模 ＋ 僵尸）· 缩减进度；基线＝`test/style-baseline.mjs::P_TEXT_TIER_BASELINE`，口径写进 **`DESIGN_SYSTEM.md §3.2.2「文本档位-角色映射」**。判红面只取 `<p>`（`<span>`/`<div>` 上 11px 可能是合法标签形态 ⇒ 只计进度）；⚠ 本件**未**加入 `test:daily` / `test:fast` 的显式清单——`server/package.json` 不在本批授权改动面内，随 `npm test` 自动发现运行）。
+  > · `test/type-scale-guard.test.mjs` —— **控件小字存量回归**（`T1–T4`：`<button>/<a>/<input>/<select>` 挂 `text-[11px]/[10px]/[9px]` 即红；`DESIGN_SYSTEM.md §4.3` 控件字号单档 13px）。
+  > · `test/type-scale-guard.test.mjs` —— **非控件小字禁止档**（2026-09-26 末批；`P1–P3`：**任意落点**出现 `text-[9px]`/`text-[10px]` 即红——档位表外（`DESIGN_SYSTEM.md §3.2` 最低档＝Overline 11px）；`text-[11px]` 非控件处合规只计进度。口径写进 `DESIGN_SYSTEM.md §3.2.1`）。
+  > · `test/type-scale-guard.test.mjs`（纯 node）—— **「段落/导语不得用标签档」档位-角色一致性**（2026-09-27 文本档位统一批；`T1–T4`：**`<p>`（说明/导语段）** 上出现 `text-[9px]/[10px]`（禁止档）或基线之外的 `text-[11px]`（Overline **标签档**应为 Caption 12px＝`text-xs`）即红 · 逐文件处数 ratchet · 非空转（口径正负例 ＋ 台账规模 ＋ 僵尸）· 缩减进度；基线＝`test/style-baseline.mjs::P_TEXT_TIER_BASELINE`，口径写进 **`DESIGN_SYSTEM.md §3.2.2「文本档位-角色映射」**。判红面只取 `<p>`（`<span>`/`<div>` 上 11px 可能是合法标签形态 ⇒ 只计进度）；⚠ 本件**未**加入 `test:daily` / `test:fast` 的显式清单——`server/package.json` 不在本批授权改动面内，随 `npm test` 自动发现运行）。
   > · `test/link-target-guard.test.mjs` —— **JS 渲染型 href/src 的「裸文件名」**（`L6–L7`：工作台页 `<base href="../">` 下写裸 `x.html` 会解析到站点根 ⇒ 404，须按 `<base>` 规则断言目标真实存在）。
-  > · `test/copy-master-guard.test.mjs`（纯 node）—— **界面复述制度母本（C7）**（`N1–N4`：界面文案与制度母本「连续 ≥20 字重合」即红，须改写成一行 ＋ `help.html` 深链；基线 11 条 / 9 文件）。
-  > · `test/copy-length-guard.test.mjs`（纯 node）—— **界面文案长度存量（C1/C2/C5/C6）**（`L1–L6`：卡片导语 ≤60 字 · 单段 ≤80 字 · 单句括注 ≤2 个 · 空态 ≤30 字；源码静态近似）。
+  > · `test/copy-guard.test.mjs`（纯 node）—— **界面复述制度母本（C7）**（`N1–N4`：界面文案与制度母本「连续 ≥20 字重合」即红，须改写成一行 ＋ `help.html` 深链；基线 11 条 / 9 文件）。
+  > · `test/copy-guard.test.mjs`（纯 node）—— **界面文案长度存量（C1/C2/C5/C6）**（`L1–L6`：卡片导语 ≤60 字 · 单段 ≤80 字 · 单句括注 ≤2 个 · 空态 ≤30 字；源码静态近似）。
   > · `test/copy-screen-guard.test.mjs`（**真机**）—— **同屏复述（C3）＋ 每屏「文案 ÷ 控件」（C4）**（`M1–M4`：7 台 × 默认视图，自起自停）。
-  > · `test/copy-fold-guard.test.mjs`（纯 node）—— **折叠区口径是否有 help 同义段（C8）**（`F1`/`F2`：机器判不了「同义」⇒ **只报不判**）。
+  > · `test/copy-guard.test.mjs`（纯 node）—— **折叠区口径是否有 help 同义段（C8）**（`F1`/`F2`：机器判不了「同义」⇒ **只报不判**）。
   > · `test/copy-anchor-guard-e2e.test.mjs`（**真机**）—— **口径定点锚点真机可达 / 可检索**（`A1–A3`）。
   > · `test/mock-api-parity.test.mjs`（纯 node，需 `DISABLE_PASSWORD_CHECK=1`）—— **mock 与 api 两形态读数一致 ＋ 服务端真按同源播种**（`S0` / `P1–P3`；承重臂＝服务端 HTTP 原始行，防 `SEED_FALLBACK` 假绿）。
   > · `test/db-migration.test.mjs`（纯 node）—— **版本化迁移验收**（`M1–M6`：新建库 / 幂等 / 既有库兼容 / 失败回滚 / 失败不吞 / 非空转）。

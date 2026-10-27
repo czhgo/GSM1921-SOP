@@ -8,7 +8,7 @@
 //   失败根因都是「控件外观没有走单一源（族 / 尺寸 / 边框 / 颜色）」；拆开只会让同一次改动在两处各红一次。
 //
 // 来源：`.trae/specs/refine-ui-system-and-close-r10/spec.md` 的 SD-1/2/3/4/6/9/10
-//   与 `.ctx/logs/2026-10-AUDIT_UI_R11.md` 第五节「SD-1…SD-11 可断言化」。
+//   与 `.ctx/logs/archive/2026-10/2026-10-AUDIT_UI_R11.md` 第五节「SD-1…SD-11 可断言化」。
 // 判据（全部静态、纯 node，不起服务、不开浏览器）：
 //   SD-1 文本 / 日期 / 下拉 / 多行控件必须挂 `.input-flat` / `.input-flat-sm`；
 //        同串不得再出现 `text-sm`、`rounded`/`rounded-lg`、独立 `border`（白名单逐条写理由）。

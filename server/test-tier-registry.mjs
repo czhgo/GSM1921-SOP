@@ -69,7 +69,7 @@ export const filesByFixtureClass = (fixtureClass) => TEST_TIERS
  *  2026-10-27 spec refine-ui-three-lenses · Task 12.4：新增 no-about-route-guard（纯 node，5 条）⇒ 234 → 235。
  *  2026-10-27 同 spec · Task 9：新增 no-underline-guard（纯 node，4 条）⇒ 235 → 236。
  *  2026-10-27 同 spec · Task 10：新增 loading-experience-guard（纯 node，6 条）⇒ 236 → 237。 */
-export const DAILY_FILE_BUDGET = 237;
+export const DAILY_FILE_BUDGET = 226;
 
 /** daily 静态 `test(` / `it(` 调用点预算（含子测试；新增断言须同批上调并写明理由）
  *  2026-10-21 R5 P1：页题守卫 4 条 + 对比度守卫 5 条 + 补登记的既有两条守卫 ⇒ 1351 → 1377。
@@ -167,8 +167,10 @@ export const DAILY_FILE_BUDGET = 237;
  *    accent 不撞值 + 文字对比）两条，未新增守卫文件 ⇒ 1629 + 2 = 1631。
   *  2026-10-27 批次 515（mock ↔ API 最小守卫）：mock-api-parity-structure 增补 S4
   *    （两适配器资源组 / 方法集合双向比对 + 白名单理由，1 条；未新增守卫文件）
-  *    ⇒ 1631 + 1 = 1632。 */
-export const DAILY_TEST_BUDGET = 1632;
+  *  2026-10-27 批次 516：version-stamp 增 S8/S9（交付形态：modulepreload 同戳 / CDN 锁版本 / 缓存分流 / gzip，2 条）
+  *    ＋ no-about-route 增 A6/A7（功能目录 / help 页面清单无「关于」，2 条）
+  *    ⇒ 1632 + 4 = 1636；同批守卫归并（17 件 → 4 件）只动文件预算、不动断言预算。 */
+export const DAILY_TEST_BUDGET = 1636;
 
 const group = (tier, reason, list) => list.map((file) => ({ file, tier, reason }));
 
@@ -263,10 +265,8 @@ export const TEST_TIERS = [
     'branch-id-literal-guard.test.mjs',
     'committee-meeting-density.test.mjs',
     'committee-tab-density.test.mjs',
-    'control-font-guard.test.mjs',
-    'copy-fold-guard.test.mjs',
-    'copy-length-guard.test.mjs',
-    'copy-master-guard.test.mjs',
+    // 2026-10-27 批次 516（B-515-2 归并）：copy-fold / copy-length / copy-master / self-evident-copy 四件合一
+    'copy-guard.test.mjs',
     'date-canon-guard.test.mjs',
     'dead-selector-guard.test.mjs',
     // 2026-10-24 批次 508：字段外壳焦点态唯一源 / 禁用只读分态 / select 统一增强（纯 node）
@@ -287,8 +287,8 @@ export const TEST_TIERS = [
     'loading-experience-guard.test.mjs',
     'localstorage-key-guard.test.mjs',
     // 2026-10-23 R11 Task 12.1：弹窗交互闭环契约（提交中禁止关闭 / alert / onSubmit 契约，纯 node）
-    'modal-contract.test.mjs',
-    'modal-escape-guard.test.mjs',
+    // 2026-10-27 批次 516（B-515-2 归并）：modal-contract / modal-escape / ui-modal-form 三件合一
+    'modal-guard.test.mjs',
     // 2026-10-27 spec refine-ui-three-lenses · Task 12.4：About 撤路由（HTML/JS/MD 零入口 + 文件保留，纯 node）
     'no-about-route-guard.test.mjs',
     // 2026-10-27 spec refine-ui-three-lenses · Task 9：全站文本下划线清零（源码口径 + PENDING 台账，纯 node）
@@ -299,10 +299,8 @@ export const TEST_TIERS = [
     'party-branch-directory-context.test.mjs',
     'party-branch-directory-guard.test.mjs',
     'party-workbench-layout.test.mjs',
-    'perf-index-equivalence.test.mjs',
-    'perf-render-guard.test.mjs',
-    'perf-todo-agg-cache.test.mjs',
-    'perf-version-token.test.mjs',
+    // 2026-10-27 批次 516（B-515-2 归并）：perf-render / todo-agg-cache / version-token / index-equivalence 四件合一
+    'perf-guard.test.mjs',
     'person-picker-density.test.mjs',
     'publicity-static-guard.test.mjs',
     'responsive-cards-guard.test.mjs',
@@ -314,16 +312,14 @@ export const TEST_TIERS = [
     'runtime-tab-lifecycle-guard.test.mjs',
     // 2026-10-26 Task 6：详情路由 direct/locate/none 矩阵、门、已归档只读、生成点收口（纯 node）
     'object-route-guard.test.mjs',
-    'self-evident-copy-guard.test.mjs',
-    'small-text-guard.test.mjs',
     'spacing-scale-guard.test.mjs',
     'state-enum-guard.test.mjs',
     'structural-round3.test.mjs',
     'suite-shard.test.mjs',
     'tab-alias-guard.test.mjs',
     'tab-nav.test.mjs',
-    'table-type-scale-guard.test.mjs',
-    'text-tier-guard.test.mjs',
+    // 2026-10-27 批次 516（B-515-2 归并）：small-text / text-tier / table-type-scale / control-font 四件合一
+    'type-scale-guard.test.mjs',
     // 2026-10-23 批次 505（Task 9）：7 主题 × 亮/暗 × 8 token 色板、对比度/彩度、固定语义色分离（纯 node）
     'theme-palette-guard.test.mjs',
     'ui-button-four-types.test.mjs',
@@ -337,7 +333,6 @@ export const TEST_TIERS = [
     'ui-help-note.test.mjs',
     'ui-home-deeplink.test.mjs',
     'ui-home-hero.test.mjs',
-    'ui-modal-form-guard.test.mjs',
     // 2026-10-22 第九轮 Task 6：卡片悬停不得上浮/加阴影 ＋ transition-all 棘轮（纯 node）
     'ui-motion-guard.test.mjs',
     'ui-phase2-urgent.test.mjs',

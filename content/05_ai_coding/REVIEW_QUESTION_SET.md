@@ -2,7 +2,7 @@
 title: "审查问题集 v1——从 36 个 spec 与 42 个批次倒查出的可复用判据"
 type: guide
 role: "[工程师]+[AI]"
-last_updated: "2026-10-25"
+last_updated: "2026-10-27"
 status: active
 ---
 
@@ -30,7 +30,7 @@ status: active
 ### Q-01 同一语义只有一个名称与一个入口
 
 - **判据：** 同一动作 / 对象 / 状态，在页签、按钮、标题、提示、能力注册与代码常量中是否只有一个用户可见名称，并且只从一个入口触发？
-- **真实反例：** 批次 508 纪检同一「确认考勤」同时出现「打包确认」「一次确认所选」「去考勤管理」「去处理」四种叫法（`.ctx/logs/2026-10-AUDIT_R8_THREE_COSTS.md` §二 B）；批次 502 页面写「跨组承办」而制度口径是「跨组招募」（`.ctx/logs/2026-10-EXECUTION_LOG.md` 批次 502）；`polish-workbench-visual-language` 中分组名「知情查看」与组内页签「知情查看」逐字相同。
+- **真实反例：** 批次 508 纪检同一「确认考勤」同时出现「打包确认」「一次确认所选」「去考勤管理」「去处理」四种叫法（`.ctx/logs/archive/2026-10/2026-10-AUDIT_R8_THREE_COSTS.md` §二 B）；批次 502 页面写「跨组承办」而制度口径是「跨组招募」（`.ctx/logs/2026-10-EXECUTION_LOG.md` 批次 502）；`polish-workbench-visual-language` 中分组名「知情查看」与组内页签「知情查看」逐字相同。
 - **机检守卫：** `copy-master-guard.test.mjs`、`copy-screen-guard.test.mjs`（同义句/重复词基线）；人工检查点：用能力注册表逐台对照页签、页内标题、按钮文案。
 - **误报边界：** 六台同名「工作概况」「待办」是同一语义的不同权限面，不算多名称；同一动作面向不同角色给不同落点也不违反本条（落点问题归 Q-09）。
 - **来源轮次：** `audit-round2-minimum-three-costs`、`polish-workbench-visual-language`、`run-round6-7-audits-and-cross-group-hosting`、`run-round8-9-audits-and-polish`；批次 502、503、508。
@@ -38,7 +38,7 @@ status: active
 ### Q-02 同一事实只有一个权威源与一个写口
 
 - **判据：** 同一业务事实是否存在两个及以上可写落点，或读侧消费镜像而写侧改主源却不同事务同步？
-- **真实反例：** R9 审计发现活动归档后对应工作组仍为 `active`，成员/授权/任务仍可写（`.ctx/logs/2026-10-AUDIT_R9_DATA_STRUCTURE.md` §〇 P1-1）；R10 审计发现 `seed-manifest` 把用户编辑字段仍列为 `seedOwnedFields`，刷新即回滚（`.ctx/logs/2026-10-AUDIT_R10_DATA_LIFECYCLE.md` §二）；批次 500 用 33 表逐字段对照才发现 mock 与 API 结构漂移。
+- **真实反例：** R9 审计发现活动归档后对应工作组仍为 `active`，成员/授权/任务仍可写（`.ctx/logs/archive/2026-10/2026-10-AUDIT_R9_DATA_STRUCTURE.md` §〇 P1-1）；R10 审计发现 `seed-manifest` 把用户编辑字段仍列为 `seedOwnedFields`，刷新即回滚（`.ctx/logs/archive/2026-10/2026-10-AUDIT_R10_DATA_LIFECYCLE.md` §二）；批次 500 用 33 表逐字段对照才发现 mock 与 API 结构漂移。
 - **机检守卫：** `mock-api-parity-structure.test.mjs`、`seed-drift.test.mjs`、`db-integrity-guard.test.mjs`；人工检查点：维护一张「权威表与字段 / 写口 / 读口 / 派生或存储」矩阵（R9 §一 的格式）。
 - **误报边界：** 单向镜像允许存在（如 `workgroups` 为主源、`activities.assignments` 为兼容镜像），但必须只写主源、同事务同步；迁移期 legacy 字段有期限的兼容不算第二写口。
 - **来源轮次：** `advance-r10-data-lifecycle`、`implement-r9-schema-plan`、`assign-cross-group-activity-to-party-group`、`round5-dirty-audit-and-truth-baseline`、`run-round8-9-audits-and-polish`；批次 499、500、503、504。
@@ -54,7 +54,7 @@ status: active
 ### Q-04 名实一致
 
 - **判据：** 页签名、页内标题、对象名、数据口径是否指向同一对象与同一范围？
-- **真实反例：** `upgrade-workbench-page-quality` 中页签叫「支部监控台账」、页内叫「支部动态」；R5-C 审计发现今天页分区标题「活动管理」与页签「活动管理」同名不同义（C-17）；R8 真机发现页内 H2 与页签完全同名但不承担新的范围或权限信息（`.ctx/logs/2026-10-AUDIT_R8_THREE_COSTS.md` §三-4）。
+- **真实反例：** `upgrade-workbench-page-quality` 中页签叫「支部监控台账」、页内叫「支部动态」；R5-C 审计发现今天页分区标题「活动管理」与页签「活动管理」同名不同义（C-17）；R8 真机发现页内 H2 与页签完全同名但不承担新的范围或权限信息（`.ctx/logs/archive/2026-10/2026-10-AUDIT_R8_THREE_COSTS.md` §三-4）。
 - **机检守卫：** `page-title-guard.test.mjs`、`doc-consistency.test.mjs`、`workbench-revision-contract.test.mjs`；人工检查点：抽一台工作台，从页签栏读到页内标题，确认没有第二个同级页面标题。
 - **误报边界：** 页内 H2 与页签同名且承担范围/权限说明时允许；但不得逐字重复页签名而无新信息。
 - **来源轮次：** `upgrade-workbench-page-quality`、`audit-round3-modals-and-ia`、`run-round8-9-audits-and-polish`；批次 502、508。
@@ -66,7 +66,7 @@ status: active
 ### Q-05 状态判据唯一且现算
 
 - **判据：** 同一状态是否只有一处判定；可现算的状态是否被存成布尔快照，导致不同页面各算一次？
-- **真实反例：** R7 审计发现考勤/复盘的 `overdue` 是记录上的布尔快照，成员台读快照、纪检台又按日期现算，同一记录两结果（`.ctx/logs/2026-10-AUDIT_R7_DATA.md` R7-33）；R10 审计发现组长台用 `confirmer === '—'` 判待确认，与纪检台「自动确认」判据冲突（A08）；R10 B01–B03 中 SOP 仍按 T+7 生成任务，而制度参数是 10 天。
+- **真实反例：** R7 审计发现考勤/复盘的 `overdue` 是记录上的布尔快照，成员台读快照、纪检台又按日期现算，同一记录两结果（`.ctx/logs/archive/2026-10/2026-10-AUDIT_R7_DATA.md` R7-33）；R10 审计发现组长台用 `confirmer === '—'` 判待确认，与纪检台「自动确认」判据冲突（A08）；R10 B01–B03 中 SOP 仍按 T+7 生成任务，而制度参数是 10 天。
 - **机检守卫：** `state-enum-guard.test.mjs`、`data-lifecycle-guard.test.mjs`、`attendance-batch.test.mjs`；人工检查点：列出该状态的「页面筛选 / 授权 / 写口校验」三处实际取值，确认同源。
 - **误报边界：** 制度规定的冻结快照（应到名单、表决名单）允许存储；显示用快照（`sourceName`）允许只读保留，但不得参与判据。
 - **来源轮次：** `audit-information-architecture-critical`、`run-round8-9-audits-and-polish`、`advance-r10-data-lifecycle`；批次 488、503、504。
@@ -82,7 +82,7 @@ status: active
 ### Q-07 状态完备且失败不报成功
 
 - **判据：** 加载 / 空 / 失败 / 只读 / 禁用是否各有独立可见态；失败分支之后是否仍会出现成功提示？
-- **真实反例：** R8 真机纪检确认考勤 `POST /snapshot` 返回 403，界面当场乐观更新为 14 条，toast 只写「未保存成功，请稍后重试」，刷新回滚到 15 条（`.ctx/logs/2026-10-AUDIT_R8_THREE_COSTS.md` §二 B）；R11 审计发现 `activity-entry.js:657-660` catch 后仍报成功（`.ctx/logs/2026-10-AUDIT_UI_R11.md` P0-03）；`unify-field-shell-and-interaction-states` 中 `archive.html` 点击归档后是空页。
+- **真实反例：** R8 真机纪检确认考勤 `POST /snapshot` 返回 403，界面当场乐观更新为 14 条，toast 只写「未保存成功，请稍后重试」，刷新回滚到 15 条（`.ctx/logs/archive/2026-10/2026-10-AUDIT_R8_THREE_COSTS.md` §二 B）；R11 审计发现 `activity-entry.js:657-660` catch 后仍报成功（`.ctx/logs/archive/2026-10/2026-10-AUDIT_UI_R11.md` P0-03）；`unify-field-shell-and-interaction-states` 中 `archive.html` 点击归档后是空页。
 - **机检守卫：** `feedback-integrity.test.mjs`、`modal-contract.test.mjs`、`field-shell-guard.test.mjs`、`frontend-foundations-guard.test.mjs`（F9 写口失败不得提示成功）。
 - **误报边界：** 纯本地偏好保存不需要远端失败态；确认弹窗的「取消」不是失败；后端异步投递允许短延迟，但页面必须显示「处理中」。
 - **来源轮次：** `refine-ui-system-and-close-r10`、`unify-field-shell-and-interaction-states`、`run-round8-9-audits-and-polish`；批次 505、508。
@@ -154,7 +154,7 @@ status: active
 ### Q-15 判定值单一源或现算
 
 - **判据：** 角色集合、状态集合、人数、时限、页签计数、默认支部是否来自单一源或按数据现算，而非散落字面量？
-- **真实反例：** R7 审计统计缺省支部 `br-b1` 前端 46 处 / 21 文件、服务端 84 处 / 16 文件（`.ctx/logs/2026-10-AUDIT_R7_DATA.md` R7-17）；`function-catalog.js:55-60` 写死 12/10/8/8/10/11 tab（R7-27）；R10 B01–B03 中 SOP 时限写死 T+7，与制度参数 10 天冲突。
+- **真实反例：** R7 审计统计缺省支部 `br-b1` 前端 46 处 / 21 文件、服务端 84 处 / 16 文件（`.ctx/logs/archive/2026-10/2026-10-AUDIT_R7_DATA.md` R7-17）；`function-catalog.js:55-60` 写死 12/10/8/8/10/11 tab（R7-27）；R10 B01–B03 中 SOP 时限写死 T+7，与制度参数 10 天冲突。
 - **机检守卫：** `branch-id-literal-guard.test.mjs`、`state-enum-guard.test.mjs`、`test-tier-guard.test.mjs`、`doc-consistency.test.mjs`（页签计数）；人工检查点：新增角色/状态/时限时全仓搜同一字面量。
 - **误报边界：** 制度固定常量（党建红、法定会议类型）可保留字面量但必须登记来源；测试夹具允许固定日期；种子里的演示快照需标「演示快照」。
 - **来源轮次：** `run-round6-7-audits-and-cross-group-hosting`、`run-round8-9-audits-and-polish`、`advance-r10-data-lifecycle`；批次 502、503、504。
@@ -200,7 +200,7 @@ status: active
 ### Q-20 跨端丢写与种子回滚
 
 - **判据：** 语义写口是否在同一事务推进集合版本；种子修复是否只重建基底、不覆盖运行时字段？
-- **真实反例：** R10 审计发现系统通知、通用资源 POST/PATCH/DELETE、工作组成员/授权/产出单条写口只改行、不 bump `collection_versions`，另一台设备用旧 baseline 整表快照可把别人刚写的行删掉（`.ctx/logs/2026-10-AUDIT_R10_DATA_LIFECYCLE.md` §二）；批次 504 因此出现「自己刚写的一版把自己挡成 409」；R10 C01–C04 种子修复会把用户改过的标题/正文回滚。
+- **真实反例：** R10 审计发现系统通知、通用资源 POST/PATCH/DELETE、工作组成员/授权/产出单条写口只改行、不 bump `collection_versions`，另一台设备用旧 baseline 整表快照可把别人刚写的行删掉（`.ctx/logs/archive/2026-10/2026-10-AUDIT_R10_DATA_LIFECYCLE.md` §二）；批次 504 因此出现「自己刚写的一版把自己挡成 409」；R10 C01–C04 种子修复会把用户改过的标题/正文回滚。
 - **机检守卫：** `db-integrity-guard.test.mjs`、`seed-drift.test.mjs`、`mock-api-parity-structure.test.mjs`、`perf-index-equivalence.test.mjs`。
 - **误报边界：** 显式 `runtimeFields` 之外的种子字段允许修复；单机 mock 无并发时不触发 409，但版本推进仍须保留。
 - **来源轮次：** `advance-r10-data-lifecycle`、`implement-r9-schema-plan`、`run-round8-9-audits-and-polish`；批次 504。
@@ -227,6 +227,6 @@ status: active
 
 ### C. 审计报告（14 份）
 
-`.ctx/logs/archive/2026-10/AUDIT_IA_CRITICAL.md`、`AUDIT_R5_A_WEB_GUIDELINES.md`、`AUDIT_R5_B_DESIGN_TASTE.md`、`AUDIT_R5_C_FRONTEND_DESIGN.md`、`AUDIT_ROUND1_WORKBENCH_STRUCTURE.md`、`AUDIT_ROUND2_MINIMUM_THREE_COSTS.md`、`AUDIT_ROUND3_4_COMBINED.md`；`.ctx/logs/2026-10-AUDIT_R6_FRONTEND.md`、`2026-10-AUDIT_R7_DATA.md`、`2026-10-AUDIT_R8_THREE_COSTS.md`、`2026-10-AUDIT_R8_RECONCILE.md`、`2026-10-AUDIT_R9_DATA_STRUCTURE.md`、`2026-10-AUDIT_R10_DATA_LIFECYCLE.md`、`2026-10-AUDIT_UI_R11.md`。
+`.ctx/logs/archive/2026-10/AUDIT_IA_CRITICAL.md`、`AUDIT_R5_A_WEB_GUIDELINES.md`、`AUDIT_R5_B_DESIGN_TASTE.md`、`AUDIT_R5_C_FRONTEND_DESIGN.md`、`AUDIT_ROUND1_WORKBENCH_STRUCTURE.md`、`AUDIT_ROUND2_MINIMUM_THREE_COSTS.md`、`AUDIT_ROUND3_4_COMBINED.md`；`.ctx/logs/archive/2026-10/2026-10-AUDIT_R6_FRONTEND.md`、`archive/2026-10/2026-10-AUDIT_R7_DATA.md`、`archive/2026-10/2026-10-AUDIT_R8_THREE_COSTS.md`、`archive/2026-10/2026-10-AUDIT_R8_RECONCILE.md`、`archive/2026-10/2026-10-AUDIT_R9_DATA_STRUCTURE.md`、`archive/2026-10/2026-10-AUDIT_R10_DATA_LIFECYCLE.md`、`archive/2026-10/2026-10-AUDIT_UI_R11.md`。
 
 > 说明：`archive/2026-10` 下另有 `UI_REDUNDANCY_AUDIT(_R2).md`、`DATA_LIFECYCLE_AUDIT(_R2).md`、`IA_LINK_TRUTH.md` 等早期专项报告；本轮通过 R6/R7/R10 的对账表交叉引用其结论，未逐字重复计数。

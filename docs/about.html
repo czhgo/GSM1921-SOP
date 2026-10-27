@@ -40,6 +40,13 @@
   </main>
 </div>
 
-<script type="module" src="./src/entries/pages/about-entry.js?v=20261026b"></script>
+<!-- modulepreload:start -->
+  <link rel="modulepreload" href="./src/components/shell/sidebar.js?v=20261026b" />
+  <link rel="modulepreload" href="./src/components/shell/header.js?v=20261026b" />
+  <link rel="modulepreload" href="./src/core/base/utils.js?v=20261026b" />
+  <link rel="modulepreload" href="./src/core/base/icons.js?v=20261026b" />
+  <link rel="modulepreload" href="./src/core/domain/constants.js?v=20261026b" />
+  <!-- modulepreload:end -->
+  <script type="module" src="./src/entries/pages/about-entry.js?v=20261026b"></script>
 </body>
 </html>

@@ -34,9 +34,9 @@ cd server; npm run test:full
 
 ## 常见坑
 - `.ctx/README.md`（第 8 项）与 `.ctx/AGENTS.md`（第 9 项）已在 `ctx-hygiene-guard` 白名单（9 项）之内 ⇒ 该守卫 ① 为绿；新增顶层文件仍须先过 `CLAUDE.md H26.3`。
-- `SNAPSHOT.md` 末尾已有批次 509–515 小结（每批 5 行）；机制已执行，缺口在「最近一批」尚未机检（`docs-governance` G6 只断言批次 509 段）。
+- `SNAPSHOT.md` 末尾已有批次 509–516 小结（每批 5 行）；机制已执行，缺口在「最近一批」尚未机检（`docs-governance` G6 只断言批次 509 段）。
 - 回填改写归档历史日志 → 违反「历史不可变」；只允许新增 `logs/archive/YYYY-MM/`。
-- `.ctx/logs/2026-10-AUDIT_*.md`（R6–R11 七份 ＋ `R10_P3_CLOSURE`）仍留在 `logs/` 顶层：它们被当月执行日志（不可改写）与 `content/05_ai_coding/REVIEW_QUESTION_SET.md` 引用，迁移须与引用同批 → 已登记 `CLAUDE.md` 乙部 `B-515-7`，勿单方面移动。
+- 一次性审计报告（`2026-10-AUDIT_R6…R11` ＋ `R10_P3_CLOSURE`）已于 2026-10-27 批次 516 迁入 `logs/archive/2026-10/`，活跃侧 25 处引用同批改准；执行日志与报告自身 frontmatter 里的旧路径按「历史不可变」保留不改。
 
 ## 防逃逸三件套（示例）
 | 件 | 内容 |
