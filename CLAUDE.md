@@ -850,7 +850,7 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/DOC
 
 | ID | 事项（人话） | 引用流程 | 状态 |
 | --- | --- | --- | --- |
-| B-515-5 | 内容侧遗留：`text-xs` 存量 1971 处 / 130 文件（只迁非标签用途、上限 50 处/批）· `form-loop-sweep` 409 排除口径收紧（须带「后续成功重试」证据，改后先单跑该文件） | `GUARD_INVENTORY.md` ＋ `DESIGN_SYSTEM.md` §3.2 | 待启动（本轮只清 About / tint） |
+| B-515-5 | 内容侧遗留：`text-xs` 存量 1971 处 / 130 文件（只迁非标签用途、上限 50 处/批）· `form-loop-sweep` 409 排除口径收紧（须带「后续成功重试」证据，改后先单跑该文件） | `GUARD_INVENTORY.md` ＋ `DESIGN_SYSTEM.md` §3.2 | 待启动（本轮只加 tint 回退） |
 | B-515-6 | `repair-workbench-blockers-and-findings` 未勾 4＋18 条 ＋ `close-special-projects-batch-500` 未勾 3＋1 条（两 spec 已归档；原 spec 指向的 `B-500-10` 不存在，实际由本条跟踪） | `.ctx/logs/archive/2026-10/specs/SPECS_INDEX.md` | 待启动 |
 | B-515-3 | content 重复表达收口：索引 / 判例类文件把重复句改为篇名指针（规范正文内部重复不动，边界见 `DOC_MAP` §七）；实测口径 `一改具改` 68 处 / 17 文件、`单一源` 160 处 / 19 文件（仅 `content/`） | `DOC_MAP.md` §七 ＋ `H30.1` | 待启动（批次 516 只建了权威句位置表，未逐条改句） |
 

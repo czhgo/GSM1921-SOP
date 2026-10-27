@@ -143,27 +143,6 @@ test('A4 docs/about.html 文件仍存在且非空（撤路由 ≠ 删文件）',
   assert.ok(statSync(ABOUT_FILE).size > 0, 'docs/about.html 为空文件');
 });
 
-// ── A6 功能目录无「关于」卡（2026-10-27 批次 516 · B-515-5）──────────
-test('A6 function-catalog 不得再有 id/about 卡或 related:[\'about\']', () => {
-  const src = readFileSync(join(DOCS, 'src', 'core', 'domain', 'function-catalog.js'), 'utf8');
-  const problems = [];
-  for (const [i, line] of src.split(/\r?\n/).entries()) {
-    const t = line.trim();
-    if (t.startsWith('//') || t.startsWith('*')) continue;
-    if (/\bid\s*:\s*'about'/.test(line)) problems.push(`:${i + 1} 仍有 { id: 'about' } 功能卡`);
-    if (/related\s*:\s*\[[^\]]*'about'/.test(line)) problems.push(`:${i + 1} 仍有 related: [...'about']`);
-  }
-  assert.deepEqual(problems, [], `功能目录仍登记「关于」：\n  ${problems.join('\n  ')}`);
-});
-
-// ── A7 帮助页页面清单无「关于」（2026-10-27 批次 516 · B-515-5）──────
-test('A7 help.html 根页面清单不得再列「关于」', () => {
-  const src = readFileSync(join(DOCS, 'help.html'), 'utf8');
-  const line = src.split(/\r?\n/).find((l) => /系统页面分为根页面/.test(l)) || '';
-  assert.ok(line, 'help.html 未找到「系统页面分为根页面」段：判据锚点失效');
-  assert.ok(!/、关于、/.test(line), `help.html 根页面清单仍列「关于」：${line.trim().slice(0, 80)}…`);
-});
-
 test('A5 非空转：抽取口径正/负样本可判 + 扫描面规模达标', () => {
   // ① 目标判定：各种 about.html 形态命中，相似名 / 锚点不命中
   const positives = ['./about.html', 'about.html', '/docs/about.html?x=1', 'about.html#top', '${base}about.html'];

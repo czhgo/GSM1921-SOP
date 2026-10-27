@@ -115,9 +115,11 @@ related_files: [docs/src/core/domain/function-catalog.js, docs/src/capabilities/
 
 > **口径**：`about.html` **仅保留文件，不作路由**——不进入页面清单、侧边栏导航、帮助目录与 README 指针；旧外链 / 收藏仍可直达（不制造 404），但系统不再把它当维护中的页面入口。
 >
+> **独立冻结件（2026-10-27 支书裁定）**：About **与本项目无关，属独立件**——`docs/about.html`、`docs/src/about.css`、`docs/src/entries/pages/about-entry.js` **原样保留、不作修改**；**也不去修改它的引用面**（功能目录里的「关于」卡、help 正文的页面清单均**不动**）。它既不纳入本项目的 IA / 页面清单统计，也不纳入守卫扫描与待办清单。→ 由此，凡「About 功能卡 / help 页面清单仍有『关于』」**不再算待办**，出手修改即违规。
+>
 > - **页面清单 / 导航**：本文件的页签表（45 项）与旧页签重定向表均不含 About；侧边栏、help 目录、README 的入口已删除。
 > - **文件保留**：`docs/about.html` 与 `docs/src/entries/pages/about-entry.js` 仍在仓库中，供历史外链直达；**不再新增**指向它的 href / `module: 'about'` 侧栏项 / 文档登记指针。
-> - **判据与守卫**：`no-about-route-guard::A1–A4`（HTML 零链接 / JS 零路由与侧栏项 / Markdown 零指针 / 文件仍存在且非空）；判例边界见 [CASES.md](design-system/CASES.md) CASE-DESIGN-026。
+> - **判据与守卫**：`no-about-route-guard::A1–A4`（HTML 零链接 / JS 零路由与侧栏项 / Markdown 零指针 / 文件仍存在且非空）；判例边界见 [CASES.md](design-system/CASES.md) CASE-DESIGN-026。**守卫只覆盖上列四项，不扫功能目录与 help 正文**——那两处属独立件，刻意不判。
 > - **后续**：若要恢复「关于」入口，须同时补页面清单、导航、help 落点与守卫白名单，不得只加回一个链接。
 
 ## 详情路由矩阵（派生附录，检查用 · 2026-10-26）
