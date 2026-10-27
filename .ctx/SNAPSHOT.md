@@ -256,6 +256,6 @@ GSM1921-SOP/
 
 - **做了什么**：乙部销账（15 条在办项核验后删 5 / 改 5 / 新增 `B-516-1`）· 交付形态四项（`compression` ＋ 缓存分流「HTML no-cache / 带戳资源 immutable / deploy.js no-store」＋ 26 页 `modulepreload` 块 ＋ Tailwind CDN 锁 `3.4.17`）· 守卫归并 17 件 → 4 件（`perf` / `copy` / `type-scale` / `modal`，断言 527 不变，`DAILY_FILE_BUDGET` 237 → 226）· About 功能卡与 help 页面清单清零（`no-about-route` 增 A6/A7）· `--app-accent-tint` 加 `@supports` 回退 · 数据缺口四条登记 · 8 份审计报告迁 archive 并改准 25 处活跃引用。
 - **结论**：乙部「待启动」里混着大量**已由后续批次或守卫消化**的条目——不清账就会让下一轮把已做的事再做一遍；判据是「每条在办项必须能指到一个当前仍缺的文件/行为」，指不出的即删或重写。
-- **未决**：① `text-xs` 1971 处只清了 About 相关两处，逐页迁移转入 `B-515-5`；② `form-loop-sweep` 的 409 排除收紧未做（需真机跑，已写明触发条件）；③ R6/R7 的 44 条 P3 只抽查 6 条（`B-516-1`）；④ `B-515-6` 两 spec 的 26 条未勾项仍待逐条判。
+- **未决**：① `text-xs` 1971 处只清了 About 相关两处，逐页迁移转入 `B-515-5`；② `form-loop-sweep` 的 409 排除收紧未做（需真机跑，已写明触发条件）；③ R6/R7 的 44 条 P3 只抽查 6 条（`B-516-1`）；④ `B-515-6` 两 spec 的 26 条未勾项仍待逐条判；⑤ `B-515-3` 重复表达只建了权威句位置表，未逐条改句（68 / 160 处仍存）。
 - **已迁 content 的条目**：`GUARD_INVENTORY` 64 件 / 527 条 ＋ 归并执行结果；`DATA_CONSISTENCY_CHECKLIST` §0.2 增「已知缺口」行并修正语义端点表 5→7；`README-server` 静态缓存口径改为分层 ＋ 压缩。
 - **下批入口**：① 读本段；② 先跑 `npm run test:daily` 确认 1636 口径；③ `B-516-1` 44 条核销按「已消 / 未消 / 不适用」逐条落；④ `B-515-5` 的 `text-xs` 按 `entries/tabs/**` 逐页核，禁止批量替换。
