@@ -2,7 +2,7 @@
 title: "Org OS — 系统路线图与 Harness"
 type: roadmap
 role: "[工程师]+[AI]"
-last_updated: "2026-10-23"
+last_updated: "2026-10-28"
 status: active
 related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/DOC_MAP.md, content/01_strategy/SECRETARY_DIRECTIVES.md, content/01_strategy/, content/02_institution/, content/03_doc_system/, content/04_web_design/, content/05_ai_coding/, content/insights/, server/, .ctx/logs/]
 ---
@@ -819,13 +819,6 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/DOC
 | --- | --- | --- | --- |
 | V-10b | 「他擅长的工作（其他组织任职 / 奖励奖学金 / 考勤纪律）」来自**问卷数据** | **落地现实已明确（批次 421 · `D-803`④ · 口径见 `H32`）**：导入链与字段模型已具备（15 字段模型 ＋ 双端写口 ＋ 表单 ＋ 本人自助 ＋ 批量导入）⇒ **数据由支书在「名册台 · 导入自我描述（粘贴 / CSV）」折叠区**粘贴或上传即可（`self-profile-import` 解析 → `PersonStore.saveMember` → `api/v1/users` 落库）——**无需任何代码改动，唯一待办＝支书在页面上传**。 | 待支书在页面上传 |
 
-## 支书已裁定 · 工作组与工作台改进（执行中）
-
-> 按 H20.2、H25 与 OPERATIONS_GUIDE.md §10.5 分片；采用 `codex/agenda-link-voting` 已选工作树，先守住数据归属与服务端权限，再做兼容迁移、展示和知识归档。
-
-| ID | 事项 | 引用流程 | 修改对象 | 状态 |
-| --- | --- | --- | --- | --- |
-
 ## 批次 500 收尾与后续批次（2026-10-21）
 
 > 批次 499 的十项专项已在批次 500 一轮内收口（见 `.ctx/logs/archive/2026-10/specs/close-special-projects-batch-500/` 与执行日志）。下表只留尚未闭环的后续项（2026-10-27 批次 516 按实况销账：删 5 条已消、重写 5 条残余）。
@@ -833,13 +826,9 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/DOC
 | ID | 事项（人话） | 引用流程 | 状态 |
 | --- | --- | --- | --- |
 | B-500-1 | 第五轮审查 P2/P3 修复（R5 三路合计 56 条：P2 39 / P3 17）——按报告顺序排批；已知未清：原生 `confirm`（`disc/inspection-tab.js:267`）、`--text-xs` 浅 / 深两值（`styles.css:259` / `:300`） | `.ctx/logs/archive/2026-10/AUDIT_R5_*.md` + `H21` | 待启动 |
-| B-500-2 | R3-25：「相关设置」深链与浮窗体例冲突（`components/ui/modal.js:253,302`），按 `DESIGN_SYSTEM §4.27` 收口 | `DESIGN_SYSTEM.md §4.27` + `.ctx/logs/archive/2026-10/UI_AUDIT_R3.md` | 待启动 |
-| B-500-4 | 数据保留期策略（归档 / 通知 / 待办）——须支书裁定后才允许 cleanup `--apply` 删业务记录 | `DATA_MODEL.md` + `.ctx/ENGINEERING_ASSESSMENT.md §四` | 待裁定 |
-| B-500-5 | 个人档案子表卡式化：`governance/person-profile-sections.js:73-87` 仍裸 `<table>`，须接 `data-responsive="cards"` | `DESIGN_SYSTEM.md §4.20` + `responsive-cards-guard` | 待启动 |
 | B-500-6 | 任命通用 CRUD 收口：`PATCH /branches/:id` 仍可直改 `secretaryId`（`resources/index.js:532,684`，门只到 party-staff）、`POST /appointmentRecords` 仍开放（`store.js:34`、`api-adapter.js:833-838`） | `server/routes/resources/index.js` + `semantic-routes.js` | 待启动 |
 | B-500-7 | 待办派生的下一步：把通知 / 生命周期派生迁到服务端，客户端只读（Plan B；现状仍在 `services/governance/todo.js:1275,1373`） | `todo.js` + `H32` | 后续（当前 Plan A 已止血） |
 | B-502-5 | 账号重命名后的边界：旧 token 仍有效（`server/routes/member.js:353` 只改 `sessions.person_id`）、旧 `person.html?id=旧学号` 与收藏外链会 404（`legacy-person-ids.js` 只映射 `p*`） | `server/routes/member.js` + `person-entry.js` | 后续（需支书定是否做旧链接跳转） |
-| B-503-5 | 待支书裁定一项：支书台「反馈管理」是否改名（`capabilities/secretary-workspace.js:86`）。首页 hero 48px 党徽已于批次 517 按 `DESIGN_SYSTEM §4.25` 规则 4 写为「两态豁免」并落地（登录有待办时降为辅助信息），不再待裁 | `secretary-workspace.js` + `DESIGN_SYSTEM.md §4.25` | 待裁 |
 | B-516-1 | P3 余项核销（机扫 44 条）：**已消 31 / 仍能命中 12 / 无法机判 1**。未消待人工复核：`P3-08` · `R7-07` `R7-12` `R7-13` `R7-23` `R7-24` `R7-25` `R7-26` `R7-31` `R7-32` `R7-35` `R7-36`（含 `manager` / `当前登录人` 等泛词，可能是误判）；无法机判：`R7-08` | `.ctx/logs/archive/2026-10/2026-10-AUDIT_R6_FRONTEND.md`、`…-AUDIT_R7_DATA.md` | 部分核销（12 条待人工复核） |
 
 ## 批次 515–516 收尾与后续（2026-10-27）
@@ -852,6 +841,17 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/DOC
 | B-515-5 | 内容侧遗留：`text-xs` 存量 1971 处 / 130 文件（只迁非标签用途、上限 50 处/批）· `form-loop-sweep` 409 排除口径收紧（须带「后续成功重试」证据，改后先单跑该文件） | `GUARD_INVENTORY.md` ＋ `DESIGN_SYSTEM.md` §3.2 | 待启动（本轮只加 tint 回退） |
 | B-515-6 | 两 spec 归档前的未勾项已分流：**真缺陷 4 条**（组长活动创建 snapshot 403 / 组长考勤应到名单冻结 403 / 向导 `#wz-create-appoint` 选择器漂移与「首任支书」校验 / `pc-review-reject-note` 缺稳定待批复前置）＋ **复跑 1 项**（`leader-write-activity-save`、`leader-attendance-upload-submit`、`org-taskforce-recruit-publish`）＋ **precommit e2e 9 条**（e2e-B `A5` / `S3` / `secretary-todo-reject-reason` / `org-roster-member-add-save`；e2e-A 核心闭环、`B3-1`、党委配置向导、判据A、判据D）。**验证 / 提交类 Task（18、24、30）视为已随批次 500 收口，不再挂账**；原 spec 指向的 `B-500-10` 不存在，由本条跟踪；原 `T-903` 的三项真机写链红（组长考勤前置数据 / 向导任选 / pc-review 前置）已并入本条 | `.ctx/logs/archive/2026-10/specs/repair-workbench-blockers-and-findings/tasks.md`、`…/close-special-projects-batch-500/tasks.md` | 待启动 |
 | B-515-3 | content 重复表达收口：索引 / 判例类文件把重复句改为篇名指针（规范正文内部重复不动，边界见 `DOC_MAP` §七）；实测口径 `一改具改` 68 处 / 17 文件、`单一源` 160 处 / 19 文件（仅 `content/`） | `DOC_MAP.md` §七 ＋ `H30.1` | 待启动（批次 516 只建了权威句位置表，未逐条改句） |
+
+## 批次 518 收尾与后续（2026-10-28）
+
+> 批次 518：技能路由 §14、乙部清账（删空表 / `B-500-4` 与 `B-503-5` 结案 / `B-500-2` 与 `B-500-5` 落地）、三路独立审查（花叔 / web-design-guidelines / uicraft）、四个数统一为卡片、登录页 dev 收口、空态全站收口、弱化灰与 `<main>` 修复。下表只留本轮审查**未实施**项。
+
+| ID | 事项（人话） | 判据 / 出处 | 状态 |
+| --- | --- | --- | --- |
+| B-518-1 | 状态胶囊五套并存：`.badge` / `.state-badge` / `.status-badge` / `workforce-panel.js:110` 与 `roster-tab.js:190` 手写 / `thought-report-tab.js:32-35` 手写 | 三路共识；`DESIGN_SYSTEM §4.15` | 待启动（收口为「展示 badge ＋ 交互 status-badge」两族） |
+| B-518-2 | 加载态三种语言：页签骨架 / `text-xs` 文案 / `text-sm` 文案；`index.html`、`settings.html`、`person.html` 三处手写骨架 | uicraft C-03；`DESIGN_SYSTEM §12` SD-51 | 待启动（全站统一为骨架） |
+| B-518-3 | 减少动效只兜住 CSS：`scrollIntoView({behavior:'smooth'})` 40+ 处未判 `prefers-reduced-motion`（仅 `tab-bar.js` 一处做了分支） | web-design-guidelines #6 | 待启动（抽一个 helper 统一判偏好） |
+| B-518-4 | `help.html` 自带第二设计系统（`.help-card` / `.help-badge` / 手写输入与链接色），且全站页宽四档（3xl–6xl ＋ 72/80rem）无统一规则 | 花叔 #15 / uicraft C-11 | 待启动 |
 
 ***
 

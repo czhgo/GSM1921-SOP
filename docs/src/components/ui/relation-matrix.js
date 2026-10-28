@@ -12,10 +12,12 @@
 //   · **窄屏（≤640px）＝同一关系行的响应式形态**：仍是这一张表，只是每行按「行表头（人/项目）＋
 //     逐列 `data-label` 值」堆叠成卡；不新造第二套矩阵、不改 cell 口径。与引擎表共用 styles.css 的
 //     `[data-responsive="cards"]` 一套规则（thead 隐藏、sticky/min-width 清零）。
-import { escHtml as esc } from '../../core/base/utils.js?v=20261028a';
+import { escHtml as esc } from '../../core/base/utils.js?v=20261028b';
 // 翻页控件单一源（批次 38）：矩阵的人维分页与统一检索引擎共用同一套 .page-btn / .page-num 标记
 // （叶子件 pager.js——不经 list-filter 引入，避免 list-filter→inspector→vote-summary-panel 与本节成环）
-import { pagerHtml } from './pager.js?v=20261028a';
+import { pagerHtml } from './pager.js?v=20261028b';
+// 空态单一源：矩阵空行统一走 empty-state 的 table 形态（不再手写 `<tr class="is-empty">`）
+import { emptyStateHtml } from './empty-state.js?v=20261028b';
 
 /** 项目维缺省列上限（最近 N 项） */
 export const MATRIX_COL_LIMIT = 6;
@@ -114,7 +116,7 @@ export function renderRelationMatrix(host, cfg) {
       </tr>`).join('');
 
   const span = 1 + (byPerson ? cols.length : pagePersons.length);
-  const empty = `<tr class="is-empty"><td class="is-empty" colspan="${span}">${esc(cfg.emptyText || '无匹配数据（请调整筛选）')}</td></tr>`;
+  const empty = emptyStateHtml({ variant: 'table', text: cfg.emptyText || '无匹配数据（请调整筛选）', colspan: span });
 
   const hint = cfg.hintText || (overLimit
     ? `列＝最近 ${colLimit} 项（按时间倒序）；用筛选可查看更早的项目`

@@ -2,12 +2,13 @@
 // login-entry.js — 登录页入口（重构版）
 // 支持: 账号密码 Mock 校验 + 开发模式直接选身份
 
-import { AuthStore } from '../../services/core/auth.js?v=20261028a';
-import { getAccentColors, solidAccentStyle, dotDarkVars, isBranchPendingUser } from '../../core/domain/constants.js?v=20261028a';
-import { escHtml } from '../../core/base/utils.js?v=20261028a';
+import { AuthStore } from '../../services/core/auth.js?v=20261028b';
+import { getAccentColors, solidAccentStyle, dotDarkVars, isBranchPendingUser } from '../../core/domain/constants.js?v=20261028b';
+import { escHtml } from '../../core/base/utils.js?v=20261028b';
 // Task 2.1（2026-10-26）：服务端优先登录——静态托管 / 显式开发模式才走本地账号层。
-import { DEPLOY_MODE } from '../../config/deploy.js?v=20261028a';
+import { DEPLOY_MODE } from '../../config/deploy.js?v=20261028b';
 
+import { emptyStateHtml } from '../../components/ui/empty-state.js?v=20261028b';
 // C09（2026-10-20）：登录链接可带 `next`（目标页 URL）——登录成功后按 next 回跳，
 // 「未登录点活动 / 专班」不再只进工作台、丢掉原对象。只接受**同源** URL（防开放重定向），
 // 且 next 不得又指回登录页本身（防自循环）。
@@ -49,6 +50,41 @@ function _goToWorkspace(role) {
   }
 }
 
+// ── 开发模式入口（2026-10-28 支书裁定：生产不渲染）──────────
+// 仅 `?dev=1` 或本机（localhost / 127.0.0.1 / [::1]）挂载 `#login-dev` 与 `#dev-toggle`；
+// 生产环境**不渲染**该区块（不是 display:none 藏起来）。`?dev=0` 显式关闭，供生产模拟与真机取证。
+// ⇒ `AuthStore.devLogin` 的唯一调用点（`_renderDevCards` 的身份卡点击）随之只在同一条件下可达。
+const _DEV_PARAM = new URLSearchParams(window.location.search).get('dev');
+const _DEV_ALLOWED = _DEV_PARAM === '1'
+  || (_DEV_PARAM !== '0' && /^(localhost|127\.0\.0\.1|\[::1\])$/.test(window.location.hostname));
+
+function _mountDevMode() {
+  const defaultSection = document.getElementById('login-default');
+  if (!defaultSection) return;
+
+  const devSection = document.createElement('div');
+  devSection.id = 'login-dev';
+  devSection.className = 'dev-mode-section login-card-anim login-card-anim-delay-1 bg-white rounded-b-2xl shadow-sm border border-t-0 border-gray-200 p-6';
+  devSection.innerHTML = `
+    <h2 class="font-title text-base font-semibold text-gray-800 mb-1">开发模式 · 选择身份</h2>
+    <p class="text-xs text-gray-500 mb-5">仅本地开发使用</p>
+    <div class="grid grid-cols-2 gap-3" id="dev-cards"></div>`;
+  defaultSection.insertAdjacentElement('afterend', devSection);
+
+  const toggleWrap = document.createElement('div');
+  toggleWrap.className = 'login-card-anim login-card-anim-delay-2 text-center mt-4';
+  toggleWrap.innerHTML = `
+    <label class="inline-flex items-center gap-2 text-xs text-gray-500 cursor-pointer select-none">
+      <input type="checkbox" id="dev-toggle" class="rounded">
+      开发模式
+    </label>`;
+  const footer = document.getElementById('login-footer');
+  if (footer) footer.before(toggleWrap);
+  else document.getElementById('main-content')?.append(toggleWrap);
+}
+
+if (_DEV_ALLOWED) _mountDevMode();
+
 // ── 开发模式卡片数据 ──────────────────────────────
 const DEV_CARDS = [
   { role: 'party-staff',       label: '党委组织员',   desc: '党务老师 · 治理总览·监控全院支部' },
@@ -65,6 +101,7 @@ const DEV_CARDS = [
 
 // ── 渲染开发模式卡片 ──────────────────────────────
 function _renderDevCards() {
+  if (!_DEV_ALLOWED) return;
   const container = document.getElementById('dev-cards');
   if (!container) return;
 
@@ -80,7 +117,7 @@ function _renderDevCards() {
         <!-- 2026-09-24 无障碍：9 张身份卡的按钮可访问名原为清一色「登录」（身份名「组织委员」等
              只在兄弟 <span> 里、不进可访问名）⇒ 读屏分不出身份。此处把身份名并入按钮的可访问名；
              视觉与点击行为不变（点击仍由外层 .login-card 的委托处理）。 -->
-        <button class="btn-accent login-btn w-full text-sm px-4 py-1.5 font-medium" aria-label="以 ${card.label} 身份登录" >登录</button>
+        <button class="btn-accent w-full" aria-label="以 ${card.label} 身份登录" >登录</button>
       </div>
     `;
   }).join('');
@@ -257,8 +294,8 @@ async function _loadBranches() {
     if (!r.ok) throw new Error('HTTP ' + r.status);
     const body = await r.json();
     const rows = Array.isArray(body) ? body : (body && body.data) || [];
-    if (!rows.length) { list.innerHTML = '<p class="text-xs text-gray-500">暂无可用支部，请联系党委组织员。</p>'; return; }
-    list.innerHTML = rows.map((b) => `<button type="button" class="btn-outline login-btn w-full text-sm px-3 py-2 font-medium" data-branch="${escHtml(b.id)}">${escHtml(b.name || b.id)}</button>`).join('');
+    if (!rows.length) { list.innerHTML = emptyStateHtml({ text: "暂无可用支部，请联系党委组织员。", variant: 'inline' }); return; }
+    list.innerHTML = rows.map((b) => `<button type="button" class="btn-outline w-full" data-branch="${escHtml(b.id)}">${escHtml(b.name || b.id)}</button>`).join('');
     list.querySelectorAll('[data-branch]').forEach((btn) => {
       btn.addEventListener('click', () => _bindBranch(btn.dataset.branch, btn.textContent.trim()));
     });

@@ -18,10 +18,10 @@ import Database from 'better-sqlite3';
 import { initDb } from '../db.js';
 import {
   classifyPersistKey, classifyTable,
-} from '../../docs/src/data/seed-manifest.js?v=20261028a';
+} from '../../docs/src/data/seed-manifest.js?v=20261028b';
 import {
   INIT_BLOB_KEEP_KEYS, INIT_BLOB_CLEAR_DEFAULTS, trimInitBlob,
-} from '../../docs/src/services/core/init-reset.js?v=20261028a';
+} from '../../docs/src/services/core/init-reset.js?v=20261028b';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -411,5 +411,51 @@ test('⑮ 测试残留清理：ID 前缀 ＋ 标题/日期 双条件命中，真
       ['sess-new'], '只删早于指定日期的 sessions');
   } finally { final.close(); }
   rmSync(root, { recursive: true, force: true });
+});
+
+// ════════════════════════════════════════════════════════════════
+//  B-500-4 结案（2026-10-28 支书裁定）：业务数据永不自动删除
+//  ⑯ 清理删除目标白名单不含任何业务表（含反例，非空转）
+// ════════════════════════════════════════════════════════════════
+test('⑯ cleanup 删除目标白名单不含任何业务表（业务数据永不自动删；含反例）', () => {
+  // 业务表全集：db.js 的 RESOURCE_TABLES ＋ SEMANTIC_TABLES
+  //   （attachments / sessions / collection_versions 属内部表，不在这两份清单内）
+  const dbSource = readFileSync(join(ROOT, 'server', 'db.js'), 'utf8');
+  const namesFrom = (pattern) => [...(pattern.exec(dbSource)?.[1] || '').matchAll(/'([a-z0-9_]+)'/g)]
+    .map((m) => m[1]).filter((name) => name !== 'id' && name !== 'data');
+  const BUSINESS_TABLES = new Set([
+    ...namesFrom(/const RESOURCE_TABLES = \[([\s\S]*?)\n\];/),
+    ...namesFrom(/export const SEMANTIC_TABLES = \[([\s\S]*?)\n\];/),
+  ]);
+  assert.ok(BUSINESS_TABLES.has('activities') && BUSINESS_TABLES.has('notices') && BUSINESS_TABLES.has('todos'),
+    `业务表全集抽取失败（${BUSINESS_TABLES.size} 张）：判据会变成恒真`);
+
+  // 删除目标白名单（口径 2026-10-28）：常规清理只允许删 attachments 行；
+  //   孤儿附件 / 悬空引用分别落在物理文件与附件行，不涉及业务表。
+  //   `--test-residue` 是显式开关 ＋「ID 前缀 ＋ 标题/日期」双条件，不属于本条的自动保留期清理。
+  const CLEANUP_TABLE_WHITELIST = ['attachments'];
+
+  // 从 cleanup.mjs 源码取字面量 `DELETE FROM <表>`（`DELETE FROM ${table}` 属测试残留档，不被本正则取到）
+  const cleanupSource = readFileSync(join(ROOT, 'server', 'scripts', 'cleanup.mjs'), 'utf8');
+  const literalTargets = [...cleanupSource.matchAll(/DELETE\s+FROM\s+([a-z_][a-z0-9_]*)/gi)].map((m) => m[1]);
+  assert.ok(literalTargets.length >= 1, '未从 cleanup.mjs 抽到任何 DELETE FROM 目标：抽取面被写坏，本条会恒真');
+
+  // 同一判据函数：SQL 是否触及业务表（反例与实测共用）
+  const touchesBusinessTable = (sql) => {
+    const table = /DELETE\s+FROM\s+([a-z_][a-z0-9_]*)/i.exec(sql)?.[1]?.toLowerCase();
+    return Boolean(table && BUSINESS_TABLES.has(table));
+  };
+
+  assert.deepEqual(literalTargets.filter((t) => !CLEANUP_TABLE_WHITELIST.includes(t)), [],
+    `cleanup.mjs 出现白名单外的删除目标：${literalTargets.join(' / ')}——业务数据永不自动删`);
+  assert.deepEqual(literalTargets.filter(touchesBusinessTable), [],
+    `cleanup.mjs 的删除目标命中业务表：${literalTargets.join(' / ')}`);
+  assert.ok(!BUSINESS_TABLES.has('attachments'), 'attachments 不应被算作业务表（否则白名单判据失去意义）');
+
+  // 反例（非空转）：同一判据必须把业务表 SQL 判为违规
+  assert.equal(touchesBusinessTable('DELETE FROM activities'), true,
+    '反例失效：「DELETE FROM activities」必须被判为触及业务表');
+  assert.equal(touchesBusinessTable('DELETE FROM attachments'), false,
+    '正例失效：「DELETE FROM attachments」不应被判为业务表');
 });
 

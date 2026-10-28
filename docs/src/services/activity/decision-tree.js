@@ -2,17 +2,17 @@
 // services/activity/decision-tree.js — 统一决策树服务
 // 从 ws-leader-entry.js 和 ws-secretary-entry.js 中提取的共享逻辑
 // 包含：配置管理、状态管理、场景映射、工作流面板渲染、活动写入
-import { BranchService } from '../core/runtime.js?v=20261028a';
-import { showToast, _fmtDate } from '../../core/base/utils.js?v=20261028a';
-import { sopDatabase, instantiateSOP, renderWorkflow } from '../../workflow/index.js?v=20261028a';
-import { icon } from '../../core/base/icons.js?v=20261028a';
-import { NoticeStore } from '../governance/notice.js?v=20261028a';
+import { BranchService } from '../core/runtime.js?v=20261028b';
+import { showToast, _fmtDate } from '../../core/base/utils.js?v=20261028b';
+import { sopDatabase, instantiateSOP, renderWorkflow } from '../../workflow/index.js?v=20261028b';
+import { icon } from '../../core/base/icons.js?v=20261028b';
+import { NoticeStore } from '../governance/notice.js?v=20261028b';
 // P2b（2026-09-03）：写活动场景选择清单单一源 = core/domain/constants.js SCENARIO_WRITE_IDS/SCENARIO_LABELS
 //   （与 calendar-tab WRITE_TEMPLATES 同源，勿再手写四子会清单）
-import { SCENARIO_WRITE_IDS, SCENARIO_LABELS } from '../../core/domain/constants.js?v=20261028a';
+import { SCENARIO_WRITE_IDS, SCENARIO_LABELS } from '../../core/domain/constants.js?v=20261028b';
 // M4 场景注册化：经注册表读取 SOP 场景能力（sop-scenarios），行为零变化——能力缺省时回退直接读 sopDatabase
-import { getCapabilities } from '../../core/boot/registry.js?v=20261028a';
-import '../../capabilities/sop-scenarios.js?v=20261028a';
+import { getCapabilities } from '../../core/boot/registry.js?v=20261028b';
+import '../../capabilities/sop-scenarios.js?v=20261028b';
 
 /**
  * 经注册表读取场景（M4 场景注册化消费点）
@@ -246,7 +246,9 @@ export class DecisionTreeState {
     if (!scenario) return '<p class="text-gray-500">未找到对应SOP模板</p>';
 
     const tasks = scenario.tasks.filter(t => t.timeOffset !== null);
-    if (tasks.length === 0) return '<p class="text-gray-500">该场景暂无需按时间安排的事项</p>';
+    // 服务层不 import 组件（module-load::E3 分层方向）⇒ 用 empty-state 的**静态类标记**，
+    // 样式仍归 styles.css 单一源；页面侧同一空态一律走 emptyStateHtml。
+    if (tasks.length === 0) return '<p class="empty-state empty-state--inline"><span class="empty-state__text">该场景暂无需按时间安排的事项</span></p>';
 
     const phases = [
       { label: '会前准备', test: t => typeof t.timeOffset === 'number' && t.timeOffset < 0 },
@@ -369,8 +371,8 @@ export async function writeActivityWithSOP(activityData, scenarioId, targetDate)
   // 档位读 core/domain/policy-defaults.js::activityApprovalMode（call-time）。此处动态引入以不动本文件行号
   // （README-server.md 有指向本文件的 `文件:行号` 引用）。
   const [{ activityApprovalMode }, { pendingApprovalPatchOnWrite }] = await Promise.all([
-    import('../../core/domain/policy-defaults.js?v=20261028a'),
-    import('./activity.js?v=20261028a'),
+    import('../../core/domain/policy-defaults.js?v=20261028b'),
+    import('./activity.js?v=20261028b'),
   ]);
   const gatePatch = pendingApprovalPatchOnWrite(activityApprovalMode());
 

@@ -8,20 +8,20 @@
 //  · 读口单一源 = NoticeStore.listMessages；未读计数单一源 = NoticeStore.countUnread。
 //  · 可见性单一源 = canReadNotice（经 NoticeStore.list 受众门），本页不另写规则。
 // ════════════════════════════════════════════════════════════════
-import { renderSidebar } from '../../components/shell/sidebar.js?v=20261028a';
-import { renderHeader } from '../../components/shell/header.js?v=20261028a';
+import { renderSidebar } from '../../components/shell/sidebar.js?v=20261028b';
+import { renderHeader } from '../../components/shell/header.js?v=20261028b';
 import {
   NoticeStore, sendDirectMessage, canSendDirectMessage, kindOf,
-} from '../../services/governance/notice.js?v=20261028a';
-import { AuthStore } from '../../services/core/auth.js?v=20261028a';
-import { showToast, escHtml as esc, getBasePath } from '../../core/base/utils.js?v=20261028a';
-import { badgeHtml } from '../../components/ui/badges.js?v=20261028a';
-import { pagerHtml } from '../../components/ui/pager.js?v=20261028a';
-import { PersonPicker } from '../../components/governance/pickers.js?v=20261028a';
+} from '../../services/governance/notice.js?v=20261028b';
+import { AuthStore } from '../../services/core/auth.js?v=20261028b';
+import { showToast, escHtml as esc, getBasePath } from '../../core/base/utils.js?v=20261028b';
+import { badgeHtml } from '../../components/ui/badges.js?v=20261028b';
+import { pagerHtml } from '../../components/ui/pager.js?v=20261028b';
+import { PersonPicker } from '../../components/governance/pickers.js?v=20261028b';
 // S1（2026-09-12 通知详情页同款）：必须先完成数据 hydrate（loadDB / API init）再取数
-import { hydrateDataSource, notifyDataLoaded } from '../../data/data-adapter.js?v=20261028a';
-import { ApiAdapter } from '../../data/api-adapter.js?v=20261028a';
-import { BranchService } from '../../services/core/runtime.js?v=20261028a';
+import { hydrateDataSource, notifyDataLoaded } from '../../data/data-adapter.js?v=20261028b';
+import { ApiAdapter } from '../../data/api-adapter.js?v=20261028b';
+import { BranchService } from '../../services/core/runtime.js?v=20261028b';
 
 renderSidebar('messages');
 renderHeader('messages');
@@ -92,7 +92,7 @@ function _rowHtml(n) {
   const action = !archived
     ? `<button type="button" class="btn-outline flex-shrink-0" data-msg-archive="${esc(n.id)}">归档</button>`
     : (systemArchived
-      ? '<span class="text-xs text-gray-400 flex-shrink-0">系统归档</span>'
+      ? '<span class="text-xs text-gray-500 flex-shrink-0">系统归档</span>'
       : `<button type="button" class="btn-outline flex-shrink-0" data-msg-restore="${esc(n.id)}">恢复</button>`);
   return `
     <div class="flex items-start gap-3 py-3 px-4 rounded-xl bg-white hover:bg-[var(--surface-hover)] transition-colors" data-msg-row="${esc(n.id)}">
@@ -103,7 +103,7 @@ function _rowHtml(n) {
           ${unread ? '<span class="w-2 h-2 rounded-full flex-shrink-0" style="background:var(--party-red);" title="未读"></span>' : ''}
         </div>
         <p class="text-xs text-gray-500 truncate">${esc(n.content || '（无正文）')}</p>
-        <p class="text-xs text-gray-400 mt-1">${esc(_fmtTime(n))} ${who}</p>
+        <p class="text-xs text-gray-500 mt-1">${esc(_fmtTime(n))} ${who}</p>
       </a>
       ${action}
     </div>`;
@@ -142,8 +142,8 @@ function render() {
 
   const empty = !list.total
     ? (_box === 'all' && _source === 'all' && !_q
-      ? `<p class="text-sm text-gray-500 py-8 text-center">还没有消息${canSend ? '——收到或发出后会在这里成线' : ''}</p>`
-      : `<p class="text-sm text-gray-500 py-8 text-center">当前筛选下没有消息 <a href="${getBasePath()}messages.html" class="text-accent">查看全部</a></p>`)
+      ? emptyStateHtml({ variant: 'panel', text: `还没有消息${canSend ? '——收到或发出后会在这里成线' : ''}` })
+      : emptyStateHtml({ variant: 'panel', text: '当前筛选下没有消息', actionHtml: `<a href="${getBasePath()}messages.html" class="text-accent">查看全部</a>` }))
     : '';
 
   rootEl.innerHTML = `

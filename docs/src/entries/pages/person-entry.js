@@ -11,38 +11,39 @@
 //  2026-10-18 乱专项：按「L0 结论带 → 组织事实 → 在册与留痕 → 本人自述 → 系统说明」重排；
 //        27 个档案字段各有且仅有一个 data-field 落点；同一事实不跨层重复。
 // ════════════════════════════════════════════════════════════════
-import { renderSidebar } from '../../components/shell/sidebar.js?v=20261028a';
-import { renderHeader } from '../../components/shell/header.js?v=20261028a';
-import { BranchService } from '../../services/core/runtime.js?v=20261028a';
-import { AuthStore } from '../../services/core/auth.js?v=20261028a';
-import { PersonStore, getPersonName, renameMemberAccount, deriveDevelopStageSince } from '../../services/member/person.js?v=20261028a';
-import { getDataSource, migrateLegacyPersonId } from '../../data/data-adapter.js?v=20261028a';
-import { loadMemberProfile } from '../../services/member/profile.js?v=20261028a';
-import { getBranchById } from '../../services/branch/branch.js?v=20261028a';
-import { openPersonEditModal } from '../../components/governance/pickers.js?v=20261028a';
+import { renderSidebar } from '../../components/shell/sidebar.js?v=20261028b';
+import { renderHeader } from '../../components/shell/header.js?v=20261028b';
+import { BranchService } from '../../services/core/runtime.js?v=20261028b';
+import { AuthStore } from '../../services/core/auth.js?v=20261028b';
+import { PersonStore, getPersonName, renameMemberAccount, deriveDevelopStageSince } from '../../services/member/person.js?v=20261028b';
+import { getDataSource, migrateLegacyPersonId } from '../../data/data-adapter.js?v=20261028b';
+import { loadMemberProfile } from '../../services/member/profile.js?v=20261028b';
+import { getBranchById } from '../../services/branch/branch.js?v=20261028b';
+import { openPersonEditModal } from '../../components/governance/pickers.js?v=20261028b';
 import {
   renderSelfDescriptionSection, countSelfProfileFilled, SELF_PROFILE_TOTAL,
   renderThoughtReportsSection,
-} from '../../components/governance/person-profile-sections.js?v=20261028a';
+} from '../../components/governance/person-profile-sections.js?v=20261028b';
 // 思想汇报按人归集（既有服务读口；制度承诺「提交即入库、算法归集至个人档案」的落地）
 import {
   listThoughtReportsByPerson, canReadThoughtReport,
-} from '../../services/governance/thought-report.js?v=20261028a';
+} from '../../services/governance/thought-report.js?v=20261028b';
 // 待确认请求读口（单一源：服务层现有读口；api 形态由 init() 从服务端填充同一缓存）
 import {
   listPendingConfirmations, MC_ACTION_LABEL,
-} from '../../services/member/member-confirmation.js?v=20261028a';
+} from '../../services/member/member-confirmation.js?v=20261028b';
 // Q-21-3 收敛（2026-09-13）：在册状态枚举单一源 = core/domain/constants.js（原经 org-base-data-preview 转出）
-import { ROLE_LABELS, RESIDENCE, EMPTY_TEXT, EMPTY_NOT_APPLICABLE } from '../../core/domain/constants.js?v=20261028a';
-import { canMaintainMemberProfileFields } from '../../core/domain/profile-access.js?v=20261028a';
-import { getBasePath, escHtml as esc, fmtDt } from '../../core/base/utils.js?v=20261028a';
-import { badgeHtml } from '../../components/ui/badges.js?v=20261028a';
+import { ROLE_LABELS, RESIDENCE, EMPTY_TEXT, EMPTY_NOT_APPLICABLE } from '../../core/domain/constants.js?v=20261028b';
+import { canMaintainMemberProfileFields } from '../../core/domain/profile-access.js?v=20261028b';
+import { getBasePath, escHtml as esc, fmtDt } from '../../core/base/utils.js?v=20261028b';
+import { badgeHtml } from '../../components/ui/badges.js?v=20261028b';
 // 批次 87：本页必须先 hydrate API 数据源再渲染（成员档案读 + 编辑写）——与 activity.html 标准形同款。
 // 此前本页只调 BranchService.loadDB()（API 模式直接 return）⇒ api 形态下档案读的是本地备份，
 // 且「编辑档案」按 mock 数据源落本机、服务端 users 表不更新。
-import { hydrateDataSource, notifyDataLoaded } from '../../data/data-adapter.js?v=20261028a';
-import { ApiAdapter } from '../../data/api-adapter.js?v=20261028a';
+import { hydrateDataSource, notifyDataLoaded } from '../../data/data-adapter.js?v=20261028b';
+import { ApiAdapter } from '../../data/api-adapter.js?v=20261028b';
 
+import { emptyStateHtml } from '../../components/ui/empty-state.js?v=20261028b';
 renderSidebar('dashboard');
 renderHeader('dashboard');
 
@@ -127,7 +128,7 @@ function enrollYearHtml(value, role) {
 function developStageSinceHtml(value, derived = false) {
   const match = /^(\d{4}-\d{2}-\d{2})/.exec(String(value == null ? '' : value));
   if (!match) return '';
-  return `${match[1]} 起${derived ? '<span class="ml-1 text-xs text-gray-400">（据成员变更记录）</span>' : ''}`;
+  return `${match[1]} 起${derived ? '<span class="ml-1 text-xs text-gray-500">（据成员变更记录）</span>' : ''}`;
 }
 
 /** 人名现取（不得使用记录内姓名快照） */
@@ -142,7 +143,8 @@ async function render() {
   renderMessage('正在加载档案…');
   cardEl.setAttribute('aria-busy', 'true');
   if (!viewer) {
-    renderMessage(`请先登录后查看成员档案 · <a class="text-accent" href="${getBasePath()}login.html">去登录</a>`);
+    cardEl.setAttribute('aria-busy', 'false');
+    cardEl.innerHTML = emptyStateHtml({ variant: 'panel', text: '请先登录后使用', actionHtml: `<a class="btn-outline" href="${getBasePath()}login.html">去登录</a>` });
     return;
   }
   if (!personId) {
@@ -229,7 +231,7 @@ async function render() {
     : '暂无在册变更';
 
   const historyItems = history.length === 0
-    ? '<li class="text-sm text-gray-500">暂无在册变更</li>'
+    ? `<li>${emptyStateHtml({ text: '暂无在册变更', variant: 'inline' })}</li>`
     : history.map((record) => `<li class="text-sm">
         <p class="text-xs text-gray-500">时间：<time datetime="${esc(record.updatedAt || '')}">${esc(fmtDt(record.updatedAt) || '时间未记录')}</time></p>
         <p class="mt-0.5 text-gray-800"><span class="text-gray-500">变更前</span> ${esc(record.from || '—')} <span class="text-gray-600" aria-hidden="true">→</span> <span class="text-gray-500">变更后</span> ${esc(record.to || '—')}</p>
@@ -290,14 +292,14 @@ async function render() {
         <p id="person-org-facts-heading" class="text-xs font-medium tracking-wide text-gray-500">组织事实</p>
         ${canEdit
           ? '<button type="button" id="person-org-facts-btn" class="btn-accent-soft text-sm px-4 py-2 rounded-lg">编辑组织事实</button>'
-          : `<p class="text-xs text-gray-400">${esc(readOnlyReason)}</p>`}
+          : `<p class="text-xs text-gray-500">${esc(readOnlyReason)}</p>`}
       </div>
       <dl class="mt-2 grid grid-cols-2 gap-x-6 border-y border-gray-100">
         <div class="flex gap-3 border-b border-gray-100 py-2">
           <dt class="w-20 flex-shrink-0 text-xs text-gray-500">学号</dt>
           <dd class="min-w-0 flex-1">
             <span data-field="studentId" class="text-sm text-gray-800 break-words">${textOrEmpty(member.studentId)}</span>
-            <span class="ml-1 text-xs text-gray-400">（登录账号）</span>
+            <span class="ml-1 text-xs text-gray-500">（登录账号）</span>
           </dd>
         </div>
         <div class="flex gap-3 border-b border-gray-100 py-2">
@@ -345,7 +347,7 @@ async function render() {
         </details>
         ${canEdit
           ? '<button type="button" id="person-residence-btn" class="btn-accent-soft text-sm px-4 py-2 rounded-lg">变更在册状态</button>'
-          : `<p class="text-xs text-gray-400">${esc(readOnlyReason)}</p>`}
+          : `<p class="text-xs text-gray-500">${esc(readOnlyReason)}</p>`}
       </div>
     </section>
 
@@ -366,7 +368,7 @@ async function render() {
       <summary class="cursor-pointer text-xs font-medium text-gray-500">档案编号</summary>
       <div class="mt-2 space-y-1 text-xs text-gray-500">
         <p>
-          <span class="text-xs uppercase tracking-wide text-gray-400">档案编号</span>
+          <span class="text-xs uppercase tracking-wide text-gray-500">档案编号</span>
           <span data-field="id" class="ml-2 font-mono text-gray-700 break-all">${textOrEmpty(member.studentId, EMPTY_TEXT)}</span>
         </p>
       </div>

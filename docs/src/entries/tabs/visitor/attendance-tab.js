@@ -8,22 +8,23 @@
 
 // R2-47（2026-10-20）：出勤率统一走服务层的两个显式语义（按应到 / 按已录），页面不再自己相除；
 //   R2-14：配色档位同源 attendanceRateTone（良好线 90 + 制度提示线 lowRateHint）。
-import { loadActiveAttendanceRecords, absenceReasonLabel, createAttendanceAppeal, summarizePersonAttendanceByRoster, summarizeAttendanceByActivity, attendanceRateTone } from '../../../services/activity/attendance.js?v=20261028a';
-import { getOrganizedActivities } from '../../../services/activity/activity.js?v=20261028a';
-import { loadMakeupTasks, saveMakeupTasks } from '../../../services/activity/makeup.js?v=20261028a';
-import { AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../../core/domain/domain.js?v=20261028a';
-import { POLICY_DEFAULTS, isAttendanceOverdue } from '../../../core/domain/policy-defaults.js?v=20261028a';
-import { AuthStore } from '../../../services/core/auth.js?v=20261028a';
-import { openFormModal } from '../../../components/ui/modal.js?v=20261028a';
-import { showToast, todayLocal } from '../../../core/base/utils.js?v=20261028a';
+import { loadActiveAttendanceRecords, absenceReasonLabel, createAttendanceAppeal, summarizePersonAttendanceByRoster, summarizeAttendanceByActivity, attendanceRateTone } from '../../../services/activity/attendance.js?v=20261028b';
+import { getOrganizedActivities } from '../../../services/activity/activity.js?v=20261028b';
+import { loadMakeupTasks, saveMakeupTasks } from '../../../services/activity/makeup.js?v=20261028b';
+import { AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../../core/domain/domain.js?v=20261028b';
+import { POLICY_DEFAULTS, isAttendanceOverdue } from '../../../core/domain/policy-defaults.js?v=20261028b';
+import { AuthStore } from '../../../services/core/auth.js?v=20261028b';
+import { openFormModal } from '../../../components/ui/modal.js?v=20261028b';
+import { showToast, todayLocal } from '../../../core/base/utils.js?v=20261028b';
 // 活动「已归档」口径单一源（2026-09-13 收敛）：替代手写 !a.archived
-import { isActivityArchived } from '../../../core/domain/constants.js?v=20261028a';
+import { isActivityArchived } from '../../../core/domain/constants.js?v=20261028b';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是活动的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
-import { renderFilteredList, activityKeyword, activityFacets } from '../../../components/ui/list-filter.js?v=20261028a';
+import { renderFilteredList, activityKeyword, activityFacets } from '../../../components/ui/list-filter.js?v=20261028b';
 // 材料页深链 focusActivityId 的通用定位（只滚动 + 闪烁，不另造筛选器）
-import { focusActivityAnchor } from '../../../components/ui/detail-anchor.js?v=20261028a';
-import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261028a';
+import { focusActivityAnchor } from '../../../components/ui/detail-anchor.js?v=20261028b';
+import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261028b';
 
+import { emptyStateHtml } from '../../../components/ui/empty-state.js?v=20261028b';
 export function renderContent(ctx) {
   const tc = document.getElementById('visitor-tab-content');
   if (!tc) return;
@@ -65,7 +66,7 @@ export function renderContent(ctx) {
   // 挂「由我组织的活动」上传位（实现单一源＝leader/attendance-tab，host 复用；scope=organizer 只投影本人活动）
   const _orgAttHost = document.getElementById('visitor-org-att-host');
   if (_orgAttHost) {
-    import('../leader/attendance-tab.js?v=20261028a').then(m => { if (_orgAttHost.isConnected) m.renderContent(ctx, _orgAttHost, { scope: 'organizer' }); });
+    import('../leader/attendance-tab.js?v=20261028b').then(m => { if (_orgAttHost.isConnected) m.renderContent(ctx, _orgAttHost, { scope: 'organizer' }); });
   }
 
   // SOP-B-15 当事人可见侧（2026-09-20 批次 116 支书定案「支委会 ＋ 当事人本人」）：
@@ -80,7 +81,7 @@ export function renderContent(ctx) {
     const mineTone = attendanceRateTone(mine.rate);
     const mineRateCls = mineTone === 'good' ? 'text-green-700'
       : mineTone === 'watch' ? 'text-amber-700'
-      : mineTone === 'low' ? 'text-red-600' : 'text-gray-400';
+      : mineTone === 'low' ? 'text-red-600' : 'text-gray-500';
     const mineRateText = mine.rate === null ? '待录入' : `${mine.rate}%`;
     mineEl.innerHTML = meId && mine.total > 0
       ? `<div class="card rounded-xl p-5 mb-3">
@@ -92,7 +93,7 @@ export function renderContent(ctx) {
         </div>`
       : `<div class="card rounded-xl p-5 mb-3">
           <p class="text-sm font-medium text-gray-800">本月我的出勤率</p>
-          <p class="text-xs text-gray-400 mt-1">— 本月暂无你的考勤记录 · 下一步：活动组织者上传考勤后在此显示</p>
+          ${emptyStateHtml({ variant: 'panel', text: '本月暂无你的考勤记录 · 下一步：活动组织者上传考勤后在此显示' })}
         </div>`;
   }
 
@@ -112,12 +113,12 @@ export function renderContent(ctx) {
     const tone = attendanceRateTone(rate);
     const rateColor = tone === 'good' ? 'text-green-700'
       : tone === 'watch' ? 'text-amber-700'
-      : tone === 'low' ? 'text-red-600' : 'text-gray-400';
+      : tone === 'low' ? 'text-red-600' : 'text-gray-500';
     // C3（2026-09-12）：分母为 0 或尚未录入时不再显示「0/0 · 0%」（语义错误）——中性占位。
     const rateText = rate === null
       ? (total > 0 ? '出勤 —（待录入）' : '出勤 —（暂无应到名单）')
       : `出勤 ${present}/${total} · ${rate}%${summary.unrecorded > 0 ? `（未录 ${summary.unrecorded} 人）` : ''}`;
-    const rateCls = rate === null ? 'text-gray-400' : rateColor;
+    const rateCls = rate === null ? 'text-gray-500' : rateColor;
     const myRecord = meId ? records.find(r => r.personId === meId) : null;
     // R7-33：超期按「活动日 + 补课时限」现算（不再读记录上的 overdue 快照）
     const myOverdue = !!myRecord && isAttendanceOverdue({ ...myRecord, date: myRecord.date || act.date });
@@ -160,7 +161,7 @@ export function renderContent(ctx) {
       facets: activityFacets(),
       countUnit: '条',
       listClass: 'space-y-2',
-      emptyMessage: '— 无匹配考勤数据 · 下一步：清除筛选或等待活动考勤上传',
+      emptyMessage: '无匹配考勤数据 · 下一步：清除筛选或等待活动考勤上传',
       rowHtml,
     });
   }
@@ -188,9 +189,6 @@ export function renderContent(ctx) {
     openFormModal({
       id: 'visitor-makeup-proof',
       title: `补课说明 · ${task.activityName || '缺勤活动'}`,
-      // 2026-09-21 批次 139：每台浮窗页脚一条「相关设置」深链——成员台**没有**支部治理分区
-      // （`settings-entry.js::GOVERNANCE_BY_ROLE` 只为支书/副支书与纪检/组织/组长发放），故指向设置首页。
-      settingsLink: { href: './settings.html', text: '制度参数 →' },
       fields: [{ key: 'proof', label: '补课说明（补课方式与心得要点）', type: 'textarea', required: true, placeholder: '如：已观看党课录像并撰写学习心得……' }],
       initialValues: { proof: task.proofContent || '' },
       submitLabel: '提交',

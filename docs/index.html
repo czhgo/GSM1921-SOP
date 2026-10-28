@@ -3,7 +3,7 @@
 <html lang="zh-CN">
 <head>
   
-<script src="./src/theme-init.js?v=20261028a"></script>
+<script src="./src/theme-init.js?v=20261028b"></script>
 <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>首页 — GSM1921-SOP</title>
@@ -15,9 +15,9 @@
   <noscript><link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;800&family=Noto+Serif+SC:wght@400;500;600;700;800&display=swap" rel="stylesheet"></noscript>
 
   <script src="https://cdn.tailwindcss.com/3.4.17"></script>
-  <script src="./src/tailwind-config.js?v=20261028a"></script>
+  <script src="./src/tailwind-config.js?v=20261028b"></script>
 
-  <link rel="stylesheet" href="./src/styles.css?v=20261028a">
+  <link rel="stylesheet" href="./src/styles.css?v=20261028b">
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
@@ -83,7 +83,7 @@
               <div class="mb-3">
                 <select id="month-selector" class="input-flat text-xs" style="min-width:120px;"></select>
               </div>
-              <div id="cal-main-empty" class="hidden text-sm text-gray-500 text-center py-8">本月暂无活动</div>
+              <div id="cal-main-empty" class="hidden"><div class="empty-state"><p class="empty-state__text">本月暂无活动</p></div></div>
               <!-- U3（2026-09-07）：日历网格 JS 填充前预置等高骨架（min-height 由骨架占位）——数据到达整块填充不再从 0 高弹出 -->
               <div id="cal-main-grid">
                 <div data-cal-skeleton style="min-height:340px;display:flex;flex-direction:column;gap:8px;">
@@ -135,29 +135,29 @@
 
 
 <!-- modulepreload:start -->
-  <link rel="modulepreload" href="./src/services/core/runtime.js?v=20261028a" />
-  <link rel="modulepreload" href="./src/core/base/state.js?v=20261028a" />
-  <link rel="modulepreload" href="./src/services/governance/notice.js?v=20261028a" />
-  <link rel="modulepreload" href="./src/components/governance/notice-view.js?v=20261028a" />
-  <link rel="modulepreload" href="./src/services/activity/taskforce.js?v=20261028a" />
-  <link rel="modulepreload" href="./src/core/base/utils.js?v=20261028a" />
-  <link rel="modulepreload" href="./src/services/activity/attendance.js?v=20261028a" />
-  <link rel="modulepreload" href="./src/services/activity/activity.js?v=20261028a" />
-  <link rel="modulepreload" href="./src/core/session/cross-page-state.js?v=20261028a" />
-  <link rel="modulepreload" href="./src/core/domain/object-route.js?v=20261028a" />
-  <link rel="modulepreload" href="./src/core/boot/bootstrap.js?v=20261028a" />
-  <link rel="modulepreload" href="./src/services/core/auth.js?v=20261028a" />
-  <link rel="modulepreload" href="./src/services/governance/todo.js?v=20261028a" />
-  <link rel="modulepreload" href="./src/services/branch/branch.js?v=20261028a" />
-  <link rel="modulepreload" href="./src/data/data-loader.js?v=20261028a" />
-  <link rel="modulepreload" href="./src/data/data-adapter.js?v=20261028a" />
-  <link rel="modulepreload" href="./src/capabilities/activity-calendar.js?v=20261028a" />
-  <link rel="modulepreload" href="./src/components/dashboard/stats.js?v=20261028a" />
-  <link rel="modulepreload" href="./src/components/dashboard/activity-panel.js?v=20261028a" />
-  <link rel="modulepreload" href="./src/components/dashboard/taskforce-list.js?v=20261028a" />
-  <link rel="modulepreload" href="./src/components/dashboard/gallery.js?v=20261028a" />
+  <link rel="modulepreload" href="./src/services/core/runtime.js?v=20261028b" />
+  <link rel="modulepreload" href="./src/core/base/state.js?v=20261028b" />
+  <link rel="modulepreload" href="./src/services/governance/notice.js?v=20261028b" />
+  <link rel="modulepreload" href="./src/components/governance/notice-view.js?v=20261028b" />
+  <link rel="modulepreload" href="./src/services/activity/taskforce.js?v=20261028b" />
+  <link rel="modulepreload" href="./src/core/base/utils.js?v=20261028b" />
+  <link rel="modulepreload" href="./src/services/activity/attendance.js?v=20261028b" />
+  <link rel="modulepreload" href="./src/services/activity/activity.js?v=20261028b" />
+  <link rel="modulepreload" href="./src/core/session/cross-page-state.js?v=20261028b" />
+  <link rel="modulepreload" href="./src/core/domain/object-route.js?v=20261028b" />
+  <link rel="modulepreload" href="./src/core/boot/bootstrap.js?v=20261028b" />
+  <link rel="modulepreload" href="./src/services/core/auth.js?v=20261028b" />
+  <link rel="modulepreload" href="./src/services/governance/todo.js?v=20261028b" />
+  <link rel="modulepreload" href="./src/services/branch/branch.js?v=20261028b" />
+  <link rel="modulepreload" href="./src/data/data-loader.js?v=20261028b" />
+  <link rel="modulepreload" href="./src/data/data-adapter.js?v=20261028b" />
+  <link rel="modulepreload" href="./src/capabilities/activity-calendar.js?v=20261028b" />
+  <link rel="modulepreload" href="./src/components/dashboard/stats.js?v=20261028b" />
+  <link rel="modulepreload" href="./src/components/dashboard/activity-panel.js?v=20261028b" />
+  <link rel="modulepreload" href="./src/components/dashboard/taskforce-list.js?v=20261028b" />
+  <link rel="modulepreload" href="./src/components/dashboard/gallery.js?v=20261028b" />
   <!-- modulepreload:end -->
-  <script type="module" src="./src/entries/pages/main-entry.js?v=20261028a"></script>
+  <script type="module" src="./src/entries/pages/main-entry.js?v=20261028b"></script>
 
 </body>
 </html>

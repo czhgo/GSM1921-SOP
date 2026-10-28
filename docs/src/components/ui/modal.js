@@ -5,7 +5,7 @@
 //  设计原则：点击按钮→弹出浮窗→在浮窗中完成写入→关闭浮窗
 //  页面保持清爽，所有表单/编辑器都在浮窗中完成
 
-import { escHtml, describeWriteError } from '../../core/base/utils.js?v=20261028a';
+import { escHtml, describeWriteError } from '../../core/base/utils.js?v=20261028b';
 
 // 2026-09-13 修复（成员档案模态走查暴露）：Esc 监听原只在「按 Esc 关闭」这一条路径上注销，
 // 走遮罩点击/关闭按钮/程序化 closeModal 关闭时监听残留 → 反复打开同一 id 浮窗会累积 keydown
@@ -228,33 +228,13 @@ function _releaseInert(id) {
  * @param {boolean} [options.footerSticky=true] - 页脚是否 sticky（默认即符合体例，调用方不必重复写）
  * @param {Function} [options.onCancel] - 「取消」回调（取消按钮 / Esc / 遮罩 / × 四条路径统一触发；
  *   用于清临时状态。提交成功的 `closeModal` 不触发）
- * @param {{href:string,text:string}} [options.settingsLink] - 页脚「设置」入口（可选；不传则无此行）
  * @param {boolean} [options.dismissable=true] - 是否可「非按钮」关闭（点遮罩 / 按 Esc / 右上角 ×）。
  *   缺省 true＝既有行为；**false 只给「本位」nudge 用**（见 `confirmNudge`）——那种弹窗**必须点按钮才能关**。
  * @returns {HTMLElement} 浮窗面板元素
  */
-// 2026-09-21 批次 138（支书第 ⑤ 条「浮窗的特定位置 → 跳转 setting」）：把批次 99 在支书台「写入活动」
-// 浮窗里手写的那条页脚深链收进本组件做**单一源**——位置固定在浮窗**页脚**（`.modal-body` 之外，
-// 切步骤/切换内容不消失），各调用点只传 `settingsLink`（href + 文案），不再各写一套 DOM。
-// 未传者不渲染（确认 / 删除类浮窗不加，避免噪声）。
-// 2026-09-21 批次 139：把「浮窗页脚那条相关设置深链」的**标记**抽成本导出——单一源供两类浮窗共用：
-//   ① 本组件自身的 `openModal`（常规浮窗）；② **自建浮层**（不走本组件、自持 body 的那种，见
-//   `entries/tabs/prop/archive-tab.js` 的上传浮层）——它只需在自己的页脚插入本函数的结果，
-//   不必复制一份 HTML（避免"同一段标记两处各写一套"）。文案与样式与批次 99 手写那条逐字同款。
-/** 页脚设置深链的统一短文案（R3-25：完整口径在 help，不在浮窗里折行写长句） */
-export const SETTINGS_LINK_TEXT = '制度参数 →';
-
-/** 文案归一：缺省或过长一律回落到统一短文案（调用点不必各写一遍长度判断） */
-function _normalizeSettingsText(text) {
-  const raw = String(text == null ? '' : text).trim();
-  return raw && raw.length <= 12 ? raw : SETTINGS_LINK_TEXT;
-}
-
-export function settingsLinkHTML(settingsLink) {
-  if (!settingsLink) return '';
-  const text = _normalizeSettingsText(escHtml(settingsLink.text));
-  return `<div class="modal-settings-link" style="padding:10px 20px;border-top:1px solid var(--neutral-200);font-size:0.72rem;line-height:1.7;color:var(--neutral-500);"><a href="${escHtml(settingsLink.href)}" style="color:var(--app-accent-soft-text);font-weight:600;white-space:nowrap;">${text}</a></div>`;
-}
+// 2026-10-28 批次 518（B-500-2 · R3-25）：原「浮窗页脚设置深链」与浮窗体例冲突
+//   （DESIGN_SYSTEM §4.27：页脚只放取消 / 提交一类动作）⇒ 该能力已**整套移除**：
+//   浮窗不再渲染「制度参数 →」深链，调用方也不得再传对应选项。
 
 // ════════════════════════════════════════════════════════════════
 //  浮窗统一体例（2026-10-20 · R3-01/02/09/10）
@@ -266,7 +246,7 @@ export function settingsLinkHTML(settingsLink) {
 export function openModal({
   id, title, bodyHtml, onMount,
   width = '', size = 'md',
-  accentColor = 'var(--app-accent)', settingsLink = null,
+  accentColor = 'var(--app-accent)',
   dismissable = true,
   footerHtml = '', footerSticky = true,
   onCancel = null,
@@ -299,8 +279,6 @@ export function openModal({
   panel.style.setProperty('--modal-accent', accentColor);
   panel.style.animation = 'slideUp 0.2s ease';
 
-  const settingsHTML = settingsLinkHTML(settingsLink);
-
   // dismissable=false（「本位」nudge 专用，见 confirmNudge）：**不渲染右上角 ×**——
   // 那种弹窗只给两个动作按钮（主 / 次），不给第二条退出路径（2026-09-23 支书裁定）。
   // P1-11：基础布局走工具类，hover / focus-visible 反馈由 `.modal-close-btn` 的 CSS 承担
@@ -323,7 +301,6 @@ export function openModal({
       ${bodyHtml}
     </div>
     ${footerHTML}
-    ${settingsHTML}
   `;
   // 标题唯一入口 = textContent：调用方即使误传 HTML 也只会显示原文（R3-01 根因是 escHtml 后仍按 HTML 解释）
   const titleEl = panel.querySelector('.modal-title');
@@ -443,7 +420,6 @@ export function closeModal(id) {
  * @param {string} [options.size='md'] - 尺寸档 sm/md/lg
  * @param {boolean} [options.footerSticky=true] - 页脚动作是否吸底
  * @param {Function} [options.onCancel] - 取消（含 Esc / 遮罩 / ×）时清理临时状态
- * @param {{href:string,text:string}} [options.settingsLink] - 页脚「设置」入口（透传 openModal，可选）
  */
 /**
  * 开发期判定（未知字段类型要「开发期报错、生产期降级」）：
@@ -461,7 +437,7 @@ function _isDevEnv() {
 
 export function openFormModal({
   id, title, fields, onSubmit, submitLabel = '保存',
-  accentColor = 'var(--app-accent)', initialValues = {}, settingsLink = null,
+  accentColor = 'var(--app-accent)', initialValues = {},
   size = 'md', footerSticky = true, onCancel = null,
   groupTitle = '填写内容',
 }) {
@@ -470,10 +446,12 @@ export function openFormModal({
   const fieldId = (key) => `${id}-${key}`;
   const errorHtml = (fid, key) =>
     `<p class="text-xs text-red-600 mt-1" id="${escHtml(fid)}-err" data-field-error="${escHtml(key)}" role="alert" hidden></p>`;
-  // 未知 type：开发期直接报错（不静默变 text），生产期回退 text 但留告警
+  // 未知 type：开发期直接报错（不静默变 text），生产期回退 text 但留告警；
+  // 已知 type 原样透传（email / tel / url / number / date / time 要触发对应键盘与选择器）
   const inputType = (t) => {
     const known = ['text', 'number', 'date', 'time', 'email', 'tel', 'url', 'password'];
-    if (!t || known.includes(t)) return 'text';
+    if (!t) return 'text';
+    if (known.includes(t)) return t;
     if (_isDevEnv()) {
       console.error(`[modal] 未知字段类型：${t}（openFormModal: ${id}）`);
       throw new Error(`未知字段类型：${t}`);
@@ -528,7 +506,6 @@ export function openFormModal({
     footerSticky,
     onCancel,
     accentColor,
-    settingsLink,
     onMount: (panel) => {
       const fieldEl = (key) => Array.from(panel.querySelectorAll('[data-field]')).find((el) => el.dataset.field === key);
       const errorEl = (key) => Array.from(panel.querySelectorAll('[data-field-error]')).find((el) => el.dataset.fieldError === key);

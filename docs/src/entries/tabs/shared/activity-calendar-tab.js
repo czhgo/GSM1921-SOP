@@ -30,12 +30,12 @@
 //   容器内容却没登记标记」时会把本页判成「已在位」而跳过骨架重建，留下空白（同 today-tab 2026-09-25
 //   真机实测的残留病）。
 
-import { getAppState } from '../../../core/base/state.js?v=20261028a';
-import { populateMonthSelector, renderCalendarByActivities } from '../../../components/record/calendar.js?v=20261028a';
-import { renderInspectorFromState } from '../../../components/record/inspector.js?v=20261028a';
-import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261028a';
+import { getAppState } from '../../../core/base/state.js?v=20261028b';
+import { populateMonthSelector, renderCalendarByActivities } from '../../../components/record/calendar.js?v=20261028b';
+import { renderInspectorFromState } from '../../../components/record/inspector.js?v=20261028b';
+import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261028b';
 // Task 6：共享日历属「非对象所属工作台」的只读承载面 ⇒ 条目/详情卡直达完整详情页（direct）。
-import { objectDetailHref } from '../../../core/domain/object-route.js?v=20261028a';
+import { objectDetailHref } from '../../../core/domain/object-route.js?v=20261028b';
 
 const PANEL_HTML = `
     <div id="calendar-view-section" class="grid grid-cols-1 lg:grid-cols-5 gap-4">
@@ -44,7 +44,7 @@ const PANEL_HTML = `
           <select id="month-selector" class="input-flat text-xs" style="min-width:120px;"></select>
           <div id="cal-view-switcher"></div>
         </div>
-        <div id="cal-main-empty" class="hidden text-sm text-gray-500 text-center py-8">本月暂无活动</div>
+        <div id="cal-main-empty" class="hidden"><div class="empty-state"><p class="empty-state__text">本月暂无活动</p></div></div>
         <div id="cal-main-grid"></div>
         <div id="calendar-legend" class="mt-3"></div>
       </div>

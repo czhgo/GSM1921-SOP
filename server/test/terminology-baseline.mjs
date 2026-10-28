@@ -88,7 +88,7 @@ export const STRUCTURAL_LABEL_BASELINE = [
   { label: '通知发布', reason: '页面名：支书台页签' },
   { label: '上报党委', reason: '页面名：支书台页签（业务动作命名）' },
   { label: '支部分工', reason: '页面名：支书台页签' },
-  { label: '反馈管理', reason: '页面名：支书台页签' },
+  { label: '意见反馈', reason: '页面名：支书台页签' },
   { label: '活动动态', reason: '页面名：成员台页签（活动只读浏览）' },
   { label: '项目分工', reason: '页面名：成员台页签（承载「专班」区，上位概念）' },
 

@@ -173,8 +173,18 @@ export const DAILY_FILE_BUDGET = 226;
  *    SD-54，2 条）＋ modal-guard 增 D1/D2（原生 confirm 清零 / confirmDanger 三段式入口 · SD-53，2 条）
  *    ⇒ 1634 + 4 = 1638。
  *  2026-10-28 美学专项 Task 5.4（首页 hero 豁免降级）：ui-home-hero 增 E8（登录且有待办写
- *    data-hero="muted" · 党徽 24px / 标题 --text-xl 左对齐，含反例，1 条）⇒ 1638 + 1 = 1639。 */
-export const DAILY_TEST_BUDGET = 1639;
+ *    data-hero="muted" · 党徽 24px / 标题 --text-xl 左对齐，含反例，1 条）⇒ 1638 + 1 = 1639。
+ *  2026-10-28 B-500-4 结案（数据保留期）：data-lifecycle-guard 新增 ⑯（cleanup 删除目标白名单不含任何
+ *    业务表 · 以 RESOURCE_TABLES ＋ SEMANTIC_TABLES 为业务表全集，含「DELETE FROM activities」反例，1 条）
+ *    ⇒ 1639 + 1 = 1640。
+ *  2026-10-28 前端设计审查（根页地标）：docs-governance-guard 新增 G11（9 个根页的 #main-content 必须落在
+ *    唯一 <main> 上 · 含正负例自检，1 条；未新增守卫文件）。同批按实况校准：此前台账记 1640，实测已为 1641
+ *    （工作树里另有未计入的既有断言 modal-guard M2 / G8、copy-guard T1），本批 +1 ⇒ 实测 1642。
+ *  2026-10-28 前端设计审查（浮窗字段类型 / 作废确认 / 二次确认归并）：modal-guard 新增 T1（8 个已知
+ *    字段类型原样透传 / 未知类型生产期回退 text，含反例，1 条）⇒ 1642 + 1 = 1643。
+ *  2026-10-28 空态全站收口：copy-guard 新增 E1/E2（空态只从 empty-state.js 出 · 白名单 3 条逐条写理由 /
+ *    反例命中 + 负例不误伤 + 白名单无僵尸，2 条）⇒ 1643 + 2 = 1645。 */
+export const DAILY_TEST_BUDGET = 1645;
 
 const group = (tier, reason, list) => list.map((file) => ({ file, tier, reason }));
 

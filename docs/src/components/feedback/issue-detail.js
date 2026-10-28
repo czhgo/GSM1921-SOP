@@ -1,17 +1,18 @@
 // role: [工程师]+[AI]
 // issue-detail.js — 反馈详情渲染
 
-import { IssueStore, issueDomainLabel, issueDomainSuggest, issueDomainReplyHint } from '../../services/governance/issues.js?v=20261028a';
-import { MilestoneStore } from '../../services/governance/milestones.js?v=20261028a';
-import { AuthStore } from '../../services/core/auth.js?v=20261028a';
-import { showToast } from '../../core/base/utils.js?v=20261028a';
-import { icon } from '../../core/base/icons.js?v=20261028a';
-import { getPersonName } from '../../services/member/person.js?v=20261028a';
-import { renderReactions, bindReactions } from './reactions.js?v=20261028a';
-import { ISSUE_STATUS_LABELS, ISSUE_CLOSED_REASON_LABELS } from '../../core/domain/constants.js?v=20261028a';
-import { badgeHtml } from '../ui/badges.js?v=20261028a';
-import { openFormModal } from '../ui/modal.js?v=20261028a';
+import { IssueStore, issueDomainLabel, issueDomainSuggest, issueDomainReplyHint } from '../../services/governance/issues.js?v=20261028b';
+import { MilestoneStore } from '../../services/governance/milestones.js?v=20261028b';
+import { AuthStore } from '../../services/core/auth.js?v=20261028b';
+import { showToast } from '../../core/base/utils.js?v=20261028b';
+import { icon } from '../../core/base/icons.js?v=20261028b';
+import { getPersonName } from '../../services/member/person.js?v=20261028b';
+import { renderReactions, bindReactions } from './reactions.js?v=20261028b';
+import { ISSUE_STATUS_LABELS, ISSUE_CLOSED_REASON_LABELS } from '../../core/domain/constants.js?v=20261028b';
+import { badgeHtml } from '../ui/badges.js?v=20261028b';
+import { openFormModal } from '../ui/modal.js?v=20261028b';
 
+import { emptyStateHtml } from '../ui/empty-state.js?v=20261028b';
 const SCOPE_LABELS = {
   permanent: '底层架构',
   global: '全局通用',
@@ -111,7 +112,7 @@ export function renderIssueDetail(issueId) {
           <div class="mt-6 pt-4 border-t border-gray-100">
             <h3 class="font-title-cn text-sm font-semibold text-gray-700 mb-3">评论 (${issue.commentCount || 0})</h3>
             <div class="space-y-3">
-              ${(issue.comments || []).map(c => renderComment(c, canManage, issue.id)).join('') || '<p class="text-sm text-gray-500 font-sans">暂无评论</p>'}
+              ${(issue.comments || []).map(c => renderComment(c, canManage, issue.id)).join('') || emptyStateHtml({ text: '暂无评论', variant: 'inline', className: 'font-sans' })}
             </div>
 
             <!-- 评论输入框 -->

@@ -42,19 +42,19 @@
 //  数据变化后：同 stateKey 再调用一次，或 hold 返回值调 .update(newRows)。
 // ════════════════════════════════════════════════════════════════
 
-import { escHtml as esc } from '../../core/base/utils.js?v=20261028a';
+import { escHtml as esc } from '../../core/base/utils.js?v=20261028b';
 import {
   SEARCH_FILTER_MIN_ROWS, ROLE_LABELS, ACTIVITY_CLASSIFICATION,
   classifyActivityType, normalizeActivityType,
-} from '../../core/domain/constants.js?v=20261028a';
+} from '../../core/domain/constants.js?v=20261028b';
 // 活动生命周期**展示态**单一源 = components/record/inspector.js（草稿/已发布/进行中/待归档/已执行/已归档/已取消）
 // ——勿在本组件另写一套中文标签（constants.js 里曾短暂加过的副本已撤除）
-import { deriveActivityLifecycleStatus, ACTIVITY_LIFECYCLE } from '../record/inspector.js?v=20261028a';
+import { deriveActivityLifecycleStatus, ACTIVITY_LIFECYCLE } from '../record/inspector.js?v=20261028b';
 // 翻页控件单一源（批次 38 下沉为叶子件 pager.js）：本引擎与关系矩阵共用，勿另写翻页标记
-import { pagerHtml } from './pager.js?v=20261028a';
+import { pagerHtml } from './pager.js?v=20261028b';
 // 空态单一源（U-09）：非表格列表空态原先是一行灰字 `<p>`（无出口、与 empty-state 两套样式）；
 // 改为 empty-state 组件，并支持 `emptyActionHtml` 给一个出口（表格空态仍由本文件自带空行）。
-import { emptyStateHtml } from './empty-state.js?v=20261028a';
+import { emptyStateHtml } from './empty-state.js?v=20261028b';
 
 /** 每个 stateKey 的筛选状态（跨重渲染保持；键集合有界 = 全站表格数，不做回收） */
 const _states = new Map();
@@ -260,7 +260,8 @@ export function renderFilteredList(container, cfg) {
     const shown = pageSize > 0 ? filtered.slice((st.page - 1) * pageSize, st.page * pageSize) : filtered;
 
     if (config.table) {
-      const empty = `<tr class="is-empty"><td colspan="${config.table.colSpan || 1}" class="is-empty">${esc(config.emptyMessage)}</td></tr>`;
+      // 表格空行同样走空态单一源（variant: 'table'；colSpan 由调用方给）
+      const empty = emptyStateHtml({ variant: 'table', text: config.emptyMessage, colspan: config.table.colSpan || 1 });
       // 表格样式单一源：表头/行线/悬停/内边距全部由 styles.css::.data-table 提供（各表勿再重复声明）
       listEl.innerHTML = `<table class="data-table ${config.table.className || ''}"${config.table.responsive ? ' data-responsive="cards"' : ''}>
         ${config.table.headHtml ? `<thead>${config.table.headHtml}</thead>` : ''}

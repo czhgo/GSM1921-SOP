@@ -13,25 +13,26 @@
 //  （2026-09-21 批次 124：支书 2026-09-20 定案「只给提交人本人」——支委层读他人的汇报时看不到该标记，
 //   组织侧不经手篇幅）；**一律不影响提交与归档**。
 // ════════════════════════════════════════════════════════════════
-import { renderSidebar } from '../../components/shell/sidebar.js?v=20261028a';
-import { renderHeader } from '../../components/shell/header.js?v=20261028a';
-import { BranchService } from '../../services/core/runtime.js?v=20261028a';
-import { AuthStore } from '../../services/core/auth.js?v=20261028a';
+import { renderSidebar } from '../../components/shell/sidebar.js?v=20261028b';
+import { renderHeader } from '../../components/shell/header.js?v=20261028b';
+import { BranchService } from '../../services/core/runtime.js?v=20261028b';
+import { AuthStore } from '../../services/core/auth.js?v=20261028b';
 // D-484（批次 87）：本页必须先 hydrate API 数据源再取数——与 activity / notice 独立页同款标准形。
 // 此前本页只调 BranchService.loadDB()，而该函数在 API 模式直接 return（数据由 data-adapter.init()
 // 从服务器填充）⇒ 本页从未切数据源 / init ⇒ api 形态下退回本地 mock 读（种子打得开、新提交报「不存在」）。
-import { hydrateDataSource, notifyDataLoaded } from '../../data/data-adapter.js?v=20261028a';
-import { ApiAdapter } from '../../data/api-adapter.js?v=20261028a';
-import { getPersonName } from '../../services/member/person.js?v=20261028a';
-import { getBasePath, showToast, escHtml as esc, fmtDt } from '../../core/base/utils.js?v=20261028a';
-import { badgeHtml } from '../../components/ui/badges.js?v=20261028a';
+import { hydrateDataSource, notifyDataLoaded } from '../../data/data-adapter.js?v=20261028b';
+import { ApiAdapter } from '../../data/api-adapter.js?v=20261028b';
+import { getPersonName } from '../../services/member/person.js?v=20261028b';
+import { getBasePath, showToast, escHtml as esc, fmtDt } from '../../core/base/utils.js?v=20261028b';
+import { badgeHtml } from '../../components/ui/badges.js?v=20261028b';
 import {
   loadThoughtReports, listThoughtReportsByPerson, listThoughtReportsByPersonGrouped,
   canReadThoughtReport, canReviewThoughtReport,
   rejectThoughtReport, resubmitThoughtReport,
   wordCountHint, periodLabel, comparePeriodDesc, THOUGHT_REVIEW_STATUS,
-} from '../../services/governance/thought-report.js?v=20261028a';
+} from '../../services/governance/thought-report.js?v=20261028b';
 
+import { emptyStateHtml } from '../../components/ui/empty-state.js?v=20261028b';
 renderSidebar('dashboard');
 renderHeader('dashboard');
 
@@ -94,7 +95,7 @@ const pidParam = params.get('personId') || '';
 (async () => {
   await _hydrateData();
   if (!viewer) {
-    renderMessage(`请先登录后查看思想汇报 · <a class="text-accent" href="${getBasePath()}login.html">去登录</a>`);
+    if (cardEl) cardEl.innerHTML = emptyStateHtml({ variant: 'panel', text: '请先登录后使用', actionHtml: `<a class="btn-outline" href="${getBasePath()}login.html">去登录</a>` });
   } else if (idParam) {
     renderSingle(idParam);
   } else if (pidParam) {
@@ -222,7 +223,7 @@ function renderSingleView(rec) {
     <div class="flex items-center gap-2 flex-wrap mb-3">
       <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700">${esc(periodLabel(rec.period))}</span>
       ${statusBadge(status)}
-      <span class="text-xs text-gray-400 tabular-nums">${wc.count} 字</span>
+      <span class="text-xs text-gray-500 tabular-nums">${wc.count} 字</span>
       ${shortMarkHtml}
     </div>
 
@@ -308,7 +309,7 @@ function renderPerson(pid) {
   const groups = listThoughtReportsByPersonGrouped(pid);
   const total = groups.reduce((n, g) => n + g.items.length, 0);
   if (total === 0) {
-    renderMessage('该成员暂无思想汇报记录');
+    if (cardEl) cardEl.innerHTML = emptyStateHtml({ variant: 'panel', text: '该成员暂无思想汇报记录' });
     return;
   }
 
@@ -328,7 +329,7 @@ function renderPerson(pid) {
             <a href="thought-report.html?id=${r.id}" class="flex items-center gap-2.5 p-3 rounded-xl bg-white border border-gray-50 hover:bg-surface-hover transition-colors">
               <span class="text-sm font-medium text-gray-700 truncate flex-1">${esc(r.title || '思想汇报')}</span>
               <span class="text-xs text-gray-500 flex-shrink-0">${esc(fmtDt(r.submittedAt))}</span>
-              <span class="text-xs text-gray-400 tabular-nums flex-shrink-0">${wordCountHint(r.content).count} 字</span>
+              <span class="text-xs text-gray-500 tabular-nums flex-shrink-0">${wordCountHint(r.content).count} 字</span>
               ${statusBadge(statusOf(r))}
             </a>`).join('')}
         </div>

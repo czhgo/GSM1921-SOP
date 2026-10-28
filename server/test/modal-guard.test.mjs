@@ -132,7 +132,7 @@ await (async () => {
   }
 
   /** 用户数据插值（只认「整段就是一个用户数据引用」的 ${…}，不含表达式 / 函数调用） */
-  const USER_EXPR = /^(?:title|f\.label|f\.placeholder|f\.key|o\.label|o\.value|val|submitLabel|settingsLink\.(?:href|text))$/;
+  const USER_EXPR = /^(?:title|f\.label|f\.placeholder|f\.key|o\.label|o\.value|val|submitLabel)$/;
 
   /**
    * 扫描未转义的用户数据插值。
@@ -156,19 +156,13 @@ await (async () => {
       '负值样本（裸用户数据）应被逐项识别');
   });
 
-  test('M2 openModal：title / settingsLink 以纯文本写入，不解释 HTML', () => {
+  test('M2 openModal：title 以纯文本写入，不解释 HTML', () => {
     const src = exportSource('openModal');
     // 2026-10-20 R3-01：标题改走 textContent（调用方误传 HTML 也只显示原文），不再拼进 innerHTML
     assert.match(src, /titleEl\.textContent\s*=/, 'openModal 标题应以 textContent 写入');
     assert.doesNotMatch(src, /\$\{safeTitle\}/, '标题不得再以 HTML 插值方式渲染');
     assert.deepEqual(unescapedUserInterpolations(src), [],
       `openModal 存在未转义的用户数据插值：${unescapedUserInterpolations(src).join(', ')}`);
-
-    // 页脚「相关设置」深链由 settingsLinkHTML 渲染（openModal 只负责挂载），转义判据落在该函数
-    const settings = exportSource('settingsLinkHTML');
-    assert.match(settings, /escHtml\(settingsLink\.href\)/, 'settingsLink.href 应转义');
-    assert.match(settings, /escHtml\(settingsLink\.text\)/, 'settingsLink.text 应转义');
-    assert.doesNotMatch(settings, /href="\$\{settingsLink\.href\}"/, 'settingsLink.href 不得裸插值');
   });
 
   test('M3 openFormModal：label / placeholder / value / option / 错误文本全部过 escHtml', () => {
@@ -391,8 +385,9 @@ await (async () => {
       `以下文件自建了全屏浮层（绕开 role/aria-modal/inert/焦点回还），应改走 openModal：${violations.join(', ')}`);
   });
 
-  test('G8 R3-25：六处 settingsLink 统一短文案，modal 做长度归一 / 兜底', () => {
-    // 6 个调用点（与 R3-25 清单同源）：全部只传「制度参数 →」，完整口径在 help。
+  test('G8 R3-25 · B-500-2：浮窗不再渲染「制度参数 →」深链（能力与六处调用一并移除）', () => {
+    // 原 6 个调用点（R3-25 清单同源）：设置深链与浮窗体例（DESIGN_SYSTEM §4.27：页脚只放取消 / 提交）
+    // 冲突，2026-10-28 批次 518 整套移除 ⇒ 本条改为**移除守卫**：能力不得回潮，调用方不得再传。
     const callers = [
       'entries/tabs/leader/write-tab.js',
       'entries/tabs/disc/review-tab.js',
@@ -402,11 +397,11 @@ await (async () => {
       'entries/tabs/secretary/calendar-tab.js',
     ];
     for (const file of callers) {
-      assert.match(read(file), /settingsLink:\s*\{[^\n]*text:\s*'制度参数 →'/, `${file} 的 settingsLink 文案须归一为「制度参数 →」`);
+      assert.doesNotMatch(read(file), /settingsLink/, `${file} 不得再向浮窗传「设置」深链`);
     }
-    // 组件层兜底：缺省 / 过长一律回落短文案，且不得再写「相关设置：」长前缀。
-    assert.match(MODAL, /SETTINGS_LINK_TEXT = '制度参数 →'/, 'modal.js 须声明统一短文案');
-    assert.match(MODAL, /raw && raw\.length <= 12/, 'modal.js 须对调用方文案做长度归一');
+    // 组件层：选项、短文案归一与渲染函数都不得回潮。
+    assert.doesNotMatch(MODAL, /settingsLink/, 'modal.js 不得再保留「设置」深链选项');
+    assert.doesNotMatch(MODAL, /modal-settings-link/, 'modal.js 不得再渲染页脚深链标记');
     assert.doesNotMatch(MODAL, /相关设置：/, '页脚不得再带「相关设置：」前缀');
   });
 
@@ -561,6 +556,71 @@ await (async () => {
     assert.ok(text.includes('影响'), 'confirmDanger 的声明文本缺「影响范围」（三段式第 2 段）');
     assert.ok(text.includes('恢复'), 'confirmDanger 的声明文本缺「可否恢复」（三段式第 3 段）');
     assert.ok(dangerEntryOk(MODAL), 'confirmDanger 未满足三段式入口判据');
+  });
+
+})();
+
+// ═══ 源件 5：表单字段类型透传（2026-10-28 前端设计审查 P1）═══
+await (async () => {
+  const { test } = await import('node:test');
+  const assert = (await import('node:assert/strict')).default;
+  const { readFileSync } = await import('node:fs');
+  const { join, dirname } = await import('node:path');
+  const { fileURLToPath } = await import('node:url');
+
+  // role: [工程师]+[AI]
+  // 判据：openFormModal 的字段类型必须「已知类型原样透传、未知类型开发期报错 / 生产期回退 text」。
+  // 病灶（2026-10-28 审查 P1）：原判据 `if (!t || known.includes(t)) return 'text'` 把 email / tel /
+  //   url / number / date / time 一并渲染成文本框 ⇒ 移动端不弹对应键盘、日期也不出选择器。
+  // 为什么执行源码而非只做文本断言：判据是「生成的 type 值」，静态匹配只能证明写了 includes，
+  //   证明不了返回值；故抽出 `inputType` 在沙箱里按生产 / 开发两种环境各跑一遍，并带反例。
+
+  const HERE = dirname(fileURLToPath(import.meta.url));
+  const ROOT = join(HERE, '..', '..');
+  const MODAL = readFileSync(join(ROOT, 'docs/src/components/ui/modal.js'), 'utf8');
+
+  const KNOWN = ['text', 'number', 'date', 'time', 'email', 'tel', 'url', 'password'];
+
+  /** 抽出 `const inputType = (t) => { … };`，注入 `_isDevEnv` / `console` / `id` 三项外部依赖 */
+  function buildInputType(src, { dev }) {
+    const start = src.indexOf('const inputType = (t) => {');
+    assert.notEqual(start, -1, 'modal.js 中找不到 inputType 判据');
+    const end = src.indexOf('\n  };', start);
+    assert.notEqual(end, -1, 'inputType 判据的收尾（\\n  };）缺失');
+    const body = src.slice(start, end + 5);
+    const stub = { error() {}, warn() {} };
+    return new Function('_isDevEnv', 'console', 'id', `${body}; return inputType;`)(() => dev, stub, 'guard');
+  }
+
+  /** 「8 个已知类型全部原样透传」的唯一判据（正 / 反例共用，防判据本身写坏） */
+  const allKnownPassThrough = (fn) => KNOWN.every((t) => fn(t) === t);
+
+  test('T1 字段类型：8 个已知类型原样透传，未知类型生产期回退 text（含反例）', () => {
+    // 反例：旧实现（已知类型一律 return text）必须被判不合格
+    const OLD = [
+      'function wrapper() {',
+      '  const inputType = (t) => {',
+      "    const known = ['text', 'number', 'date', 'time', 'email', 'tel', 'url', 'password'];",
+      "    if (!t || known.includes(t)) return 'text';",
+      "    return 'text';",
+      '  };',
+      '}',
+    ].join('\n');
+    assert.equal(allKnownPassThrough(buildInputType(OLD, { dev: false })), false,
+      '反例未判红：已知类型一律返回 text 的旧实现必须被判不合格');
+
+    const prod = buildInputType(MODAL, { dev: false });
+    for (const t of KNOWN) assert.equal(prod(t), t, `生产期 type="${t}" 必须原样透传（不得回退 text）`);
+    assert.equal(prod(''), 'text', '未给类型时应回退 text');
+    assert.equal(prod(undefined), 'text', '未给类型时应回退 text');
+    assert.equal(prod('nonsense'), 'text', '未知类型生产期应回退 text（不得抛错）');
+
+    const dev = buildInputType(MODAL, { dev: true });
+    assert.throws(() => dev('nonsense'), /未知字段类型/, '未知类型开发期应直接报错（不静默降级）');
+
+    // 渲染侧：type 属性由 inputType(f.type) 生成（否则判据再好也到不了 DOM）
+    assert.match(MODAL, /type="\$\{escHtml\(inputType\(f\.type\)\)\}"/,
+      'openFormModal 的 <input> 应把 inputType(f.type) 写进 type 属性');
   });
 
 })();

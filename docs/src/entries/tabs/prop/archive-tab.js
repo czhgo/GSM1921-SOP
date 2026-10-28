@@ -2,42 +2,42 @@
 // 宣传委员工作台 Tab：档案归档（T-279 M3 拆分，照 M2 样板）
 // 归档记录纯读 + 材料标准/模板 + 归档推进浮窗（材料确认清单）+ 上传宣传材料（attachments 双模式）。
 
-import { icon } from '../../../core/base/icons.js?v=20261028a';
-import { solidAccentStyle, activityTypeBadgeVariant, isActivityArchived } from '../../../core/domain/constants.js?v=20261028a';
-import { POLICY_DEFAULTS } from '../../../core/domain/policy-defaults.js?v=20261028a';
+import { icon } from '../../../core/base/icons.js?v=20261028b';
+import { solidAccentStyle, activityTypeBadgeVariant, isActivityArchived } from '../../../core/domain/constants.js?v=20261028b';
+import { POLICY_DEFAULTS } from '../../../core/domain/policy-defaults.js?v=20261028b';
 // 活动类型胶囊（批次 301）：类别色走单一源（三会一课＝brand 红 / 主题党日＝gold 金），渲染唯一源 badge.js
-import { badgeHtml } from '../../../components/ui/badges.js?v=20261028a'; // 扎口出口（批次 304 收回，勿直连 badge.js）
-import { showToast, downloadCSV, downloadBlob, downloadUrl, _fmtDate, escHtml, todayLocal } from '../../../core/base/utils.js?v=20261028a';
-// 2026-09-21 批次 139：页脚「相关设置」深链由 modal.js 的 `settingsLinkHTML` 单点渲染；
-//   2026-10-21 批次 497：本 tab 四个浮层（上传材料 / 文件外发 / 上传照片 / 标注照片）全部改走 `openModal`，
+import { badgeHtml } from '../../../components/ui/badges.js?v=20261028b'; // 扎口出口（批次 304 收回，勿直连 badge.js）
+import { showToast, downloadCSV, downloadBlob, downloadUrl, _fmtDate, escHtml, todayLocal } from '../../../core/base/utils.js?v=20261028b';
+// 2026-10-21 批次 497：本 tab 四个浮层（上传材料 / 文件外发 / 上传照片 / 标注照片）全部改走 `openModal`，
 //   不再自建 overlay（统一 dialog 语义、sticky footer 与取消语义）。
-import { openModal, closeModal, confirmDanger } from '../../../components/ui/modal.js?v=20261028a';
-import { persist, getAuthToken, getApiBaseUrl, getAdapter } from '../../../data/data-adapter.js?v=20261028a';
-import { withSelectedBranchScope } from '../../../data/api-adapter.js?v=20261028a';
-import { mockDB } from '../../../core/domain/domain.js?v=20261028a';
-import { bumpToken } from '../../../core/base/version-token.js?v=20261028a'; // P0 域缓存失效（spec §二.3）
-import { loadActivities, listPublicityDrafts, setPublicityDraftStatus, PUBLICITY_DRAFT_STATUS, listGalleryCandidates, setGalleryFeatured, setGalleryPinned, isGalleryFeatured, isGalleryPinned } from '../../../services/activity/activity.js?v=20261028a';
-import { isApiMode } from '../../../services/core/runtime.js?v=20261028a';
-import { AuthStore, currentUserId } from '../../../services/core/auth.js?v=20261028a';
-import { getPersonName } from '../../../services/member/person.js?v=20261028a';
+import { openModal, closeModal, confirmDanger } from '../../../components/ui/modal.js?v=20261028b';
+import { persist, getAuthToken, getApiBaseUrl, getAdapter } from '../../../data/data-adapter.js?v=20261028b';
+import { withSelectedBranchScope } from '../../../data/api-adapter.js?v=20261028b';
+import { mockDB } from '../../../core/domain/domain.js?v=20261028b';
+import { bumpToken } from '../../../core/base/version-token.js?v=20261028b'; // P0 域缓存失效（spec §二.3）
+import { loadActivities, listPublicityDrafts, setPublicityDraftStatus, PUBLICITY_DRAFT_STATUS, listGalleryCandidates, setGalleryFeatured, setGalleryPinned, isGalleryFeatured, isGalleryPinned } from '../../../services/activity/activity.js?v=20261028b';
+import { isApiMode } from '../../../services/core/runtime.js?v=20261028b';
+import { AuthStore, currentUserId } from '../../../services/core/auth.js?v=20261028b';
+import { getPersonName } from '../../../services/member/person.js?v=20261028b';
 // 批次 352（`D-746` · `D-744`② 业务过程类余项）：照片记录「作废（软）」——统一写口 ＋ 支委层判据
-import * as SoftVoid from '../../../services/governance/soft-void.js?v=20261028a';
-import { openVoidModal } from '../../../components/ui/void-record.js?v=20261028a';
-import { addExternalDispatch, loadExternalDispatches, loadActiveDispatches } from '../../../services/activity/external-dispatch.js?v=20261028a';
+import * as SoftVoid from '../../../services/governance/soft-void.js?v=20261028b';
+import { openVoidModal } from '../../../components/ui/void-record.js?v=20261028b';
+import { addExternalDispatch, loadExternalDispatches, loadActiveDispatches } from '../../../services/activity/external-dispatch.js?v=20261028b';
 // R2-40：归档材料写口（mock/api 同源）——api 落 archive_records、mock 落 localStorage
-import { ArchiveStore } from '../../../services/activity/archive.js?v=20261028a';
+import { ArchiveStore } from '../../../services/activity/archive.js?v=20261028b';
 // A② 归档缺口判据单一源（支书台「宣传材料待归档」实时组同源）：已归档但无归档记录的活动
-import { getArchiveGapActivities, getEndedUnarchivedActivities } from '../../../services/governance/secretary-overview.js?v=20261028a';
+import { getArchiveGapActivities, getEndedUnarchivedActivities } from '../../../services/governance/secretary-overview.js?v=20261028b';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是活动的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
-import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261028a';
-import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261028a';
+import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261028b';
+import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261028b';
 // 材料页深链 focusActivityId 的通用定位（只滚动 + 闪烁，不另造筛选器）
-import { focusActivityAnchor } from '../../../components/ui/detail-anchor.js?v=20261028a';
-import { renderDisclosure, bindDisclosures } from '../../../components/ui/disclosure.js?v=20261028a';
+import { focusActivityAnchor } from '../../../components/ui/detail-anchor.js?v=20261028b';
+import { renderDisclosure, bindDisclosures } from '../../../components/ui/disclosure.js?v=20261028b';
 // Task 6：档案行位于跨对象聚合面（非活动所属工作台）⇒ direct 完整详情页；缺 id 退回纯文本行。
-import { objectDetailHref } from '../../../core/domain/object-route.js?v=20261028a';
+import { objectDetailHref } from '../../../core/domain/object-route.js?v=20261028b';
 
 /** 活动行链接单一出口（Task 6.6：原生 a 即键盘可达；hover 下划线 + 箭头作为可点线索）。 */
+import { emptyStateHtml } from '../../../components/ui/empty-state.js?v=20261028b';
 function _activityLinkHtml(activityId, className, innerHtml, title) {
   const href = objectDetailHref('activity', activityId, { entry: 'archive-row' });
   if (!href) return `<div class="${className}">${innerHtml}</div>`;
@@ -445,7 +445,7 @@ function _galleryRowHtml(a) {
 /** 懒挂周报内容到宿主容器（`weekly-tab.js` 的 `renderContent(ctx, host)` 已支持传入宿主） */
 function _mountWeekly(host, ctx) {
   host.dataset.weeklyMounted = '1';
-  import('./weekly-tab.js?v=20261028a').then(m => {
+  import('./weekly-tab.js?v=20261028b').then(m => {
     if (host.isConnected) m.renderContent(ctx, host);
   });
 }
@@ -471,10 +471,9 @@ function _renderWeeklySlot() {
  *  原实现在三块全空时主体一片空白（只剩标题），用户读不出「是没有待办，还是没加载出来」。
  *  这里只补一句事实 + 一句去向（已归档记录在下方折叠区），不放动作按钮——「上传材料」在页头恒在。 */
 function _renderEmptyStateCard() {
-  return `
-    <div class="card rounded-xl p-6 mb-6 text-center" data-archive-empty role="status">
-      <p class="text-sm text-gray-600">暂无可归档内容 · 已归档记录在下方折叠区</p>
-    </div>`;
+  return `<div class="card rounded-xl p-6 mb-6" data-archive-empty role="status">
+    ${emptyStateHtml({ text: '暂无可归档内容 · 已归档记录在下方折叠区', variant: 'panel' })}
+  </div>`;
 }
 
 /** 待归档活动区（B4 2026-09-12；2026-10-21 批次 498 改为只读）：
@@ -593,7 +592,7 @@ function _archiveRowHtml(r) {
   // B4（2026-09-12）：无材料文件时不再静默隐藏入口 → 给出可见依据提示（避免「入口完全不可见」）
   const dispatchHtml = r.fileName
     ? _renderDispatchCell(r)
-    : `<span class="text-xs text-gray-400 flex-shrink-0">上传材料后可标记外发</span>`;
+    : `<span class="text-xs text-gray-500 flex-shrink-0">上传材料后可标记外发</span>`;
   // 2026-09-22 批次 145（支书裁定二「归档页补一个」）：党建平台上报留痕——与既有那枚「标记已发送（微信/对外）」
   //   并列、两个动作分开记（母本 `宣传委员工作流程指南.md:49` 步 7；同文件 `:88` 周报步 4 已指周报页那枚）。
   const platformHtml = _renderPlatformCell(r);
@@ -895,7 +894,6 @@ function _showArchiveUploadModal(ctx) {
     footerHtml: `
       <button id="upload-cancel" type="button" data-modal-cancel="${MODAL_ID}" class="btn-outline text-xs px-3 py-1.5">取消</button>
       <button id="upload-confirm" type="button" class="btn-accent-soft text-xs px-3 py-1.5" style="cursor:pointer">上传</button>`,
-    settingsLink: { href: './settings.html', text: '制度参数 →' },
     onCancel: cleanup,
     onMount: (card) => {
       const renderPreview = () => {
@@ -1180,7 +1178,7 @@ function _renderPhotoWallSection(ctx) {
       <p class="text-xs text-gray-500 mb-2">${hint}</p>
       <section id="photo-wall-groups" class="space-y-3">${groups.length
         ? groups.map(g => _photoGroupHtml(g)).join('')
-        : '<p class="text-xs text-gray-400 py-3 text-center">暂无照片</p>'}</section>
+        : emptyStateHtml({ text: '暂无照片', variant: 'inline', className: 'py-3' })}</section>
     </div>`;
 }
 

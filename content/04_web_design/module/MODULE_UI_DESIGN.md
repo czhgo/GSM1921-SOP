@@ -3,7 +3,7 @@ title: "模块界面设计"
 type: design
 role: "[工程师]+[AI]"
 version: "2.0"
-last_updated: "2026-10-25"
+last_updated: "2026-10-28"
 status: landed
 merged_from: [content/design/PAFFAIRS_UI.md, content/design/CALENDAR.md]
 related_files: [content/04_web_design/design-system/DESIGN_SYSTEM.md, content/04_web_design/data/DATA_MODEL.md, content/02_institution/COMMISSIONER_DUTY_FRAMEWORK.md]
@@ -94,7 +94,7 @@ related_files: [content/04_web_design/design-system/DESIGN_SYSTEM.md, content/04
 │ [首页]     │  ┌── tab 分组（支书示例，各角色分组不同）──────────┐ │
 │ [工作台]◀  │  │  [工作台] 待办 / 全局概况                      │ │
 │ [资料查询] │  │  [党建]    活动管理 / 赋权管理 / 通知发布      │ │
-│ [意见反馈] │  │  [反馈]    反馈管理                            │ │
+│ [意见反馈] │  │  [反馈]    意见反馈                            │ │
 │ [归档库]   │  └────────────────────────────────────────────────┘ │
 │ ────────── │  ┌─────────────────────────────────────────────────┐│
 │ [帮助]     │  │ 待办（默认 Tab）                       [刷新]   ││

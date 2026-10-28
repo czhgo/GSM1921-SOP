@@ -50,7 +50,7 @@ async function loginAs(sid, ws, tab = '组员进展', deepLink = '') {
     await page.waitForFunction(() => document.querySelectorAll('button[role="tab"]').length > 0, { timeout: 20000 });
   }
   // P0-2 形态断言（2026-09-23 支书裁定「形态必须可断言」）：本文件真机用例必须在 API 形态下跑
-  await page.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20261028a')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
+  await page.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20261028b')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
   await page.evaluate((label) => {
     const b = [...document.querySelectorAll('button[role="tab"]')].find((x) => x.textContent.includes(label));
     b?.click();
@@ -97,7 +97,7 @@ test('组长台·组员进展/上传考察：点选后「关面板即已选」�
       const opts = [...document.querySelectorAll('#insp-source-select option')].map((o) => o.value).filter(Boolean);
       // 2026-10-26 批次 513：考察对象必须是父工作组成员（服务端硬校验）。
       //   选一个工作组至少 3 人的活动，保证「2 人 + 加选 1 人」的闭环有合法对象。
-      const { mockDB } = await import('/src/core/domain/domain.js?v=20261028a');
+      const { mockDB } = await import('/src/core/domain/domain.js?v=20261028b');
       const rows = mockDB.workgroupMembers || [];
       const acts = mockDB.activities || [];
       return opts.find((id) => {

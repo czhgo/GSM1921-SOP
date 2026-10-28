@@ -1,15 +1,16 @@
 // role: [工程师]+[AI]
 // issue-list.js — 反馈列表渲染
 
-import { IssueStore } from '../../services/governance/issues.js?v=20261028a';
-import { AuthStore } from '../../services/core/auth.js?v=20261028a';
-import { icon } from '../../core/base/icons.js?v=20261028a';
-import { getPersonName } from '../../services/member/person.js?v=20261028a';
-import { ISSUE_STATUS_LABELS, ISSUE_CLOSED_REASON_LABELS } from '../../core/domain/constants.js?v=20261028a';
-import { badgeHtml } from '../ui/badges.js?v=20261028a';
+import { IssueStore } from '../../services/governance/issues.js?v=20261028b';
+import { AuthStore } from '../../services/core/auth.js?v=20261028b';
+import { icon } from '../../core/base/icons.js?v=20261028b';
+import { getPersonName } from '../../services/member/person.js?v=20261028b';
+import { ISSUE_STATUS_LABELS, ISSUE_CLOSED_REASON_LABELS } from '../../core/domain/constants.js?v=20261028b';
+import { badgeHtml } from '../ui/badges.js?v=20261028b';
 // 翻页控件单一源（批次 38：全站手写翻页一律并轨 pagerHtml）
-import { pagerHtml } from '../ui/pager.js?v=20261028a';
+import { pagerHtml } from '../ui/pager.js?v=20261028b';
 
+import { emptyStateHtml } from '../ui/empty-state.js?v=20261028b';
 const SCOPE_LABELS = {
   permanent: '底层架构',
   global: '全局通用',
@@ -42,7 +43,7 @@ let _filterState = { status: 'all', scope: 'all', type: 'all', milestone: 'all',
 const PAGE_SIZE = 10;
 let _pageState = 1;
 
-const EMPTY_LIST_HTML = '<p class="text-sm text-gray-500 text-center py-8">暂无匹配的意见反馈</p>';
+const EMPTY_LIST_HTML = emptyStateHtml({ text: "暂无匹配的意见反馈", variant: 'panel' });
 
 /** 列表区 HTML（整页渲染与「仅列表刷新」共用，避免两处写法分叉） */
 function _issueListInner(filtered, pageItems) {

@@ -2,8 +2,10 @@
 // ════════════════════════════════════════════════════════════════
 //  components/governance/work-overview.js — 六个支部工作台「工作概况」唯一渲染源
 //  2026-10-18 支书拍定（工作台密度与组件重组 Task 7）：六台统一三层，不再有独立「汇报」卡。
-//    ① 结论带 data-wo-layer="summary"：一条横向带四个数（在办 / 逾期 / 待我处理 / 待答复或职责指标）；
+//    ① 结论带 data-wo-layer="summary"：四张数字卡（在办 / 逾期 / 待我处理 / 待答复或职责指标）；
 //       四项是可聚焦按钮，逾期/待我处理可筛选下方列表，在办/第四项滚到条线表
+// 2026-10-28 支书裁定「四个数统一为卡片数字」：结论带由横向裸数字改为与首页同构的四张卡
+//   （`.card` ＋ 数字 24px ＋ 标签 12px，无图标、无彩色数字；卡间距 `--space-4`，不加阴影）。
 //    ② 条线表 data-wo-layer="lines"：行=分工条线，列固定「工作分工 / 负责人 / 在办 / 逾期 / 待处理」；
 //       缺口与行内动作合并进「待处理」列（R3-29，6 列 → 5 列）
 //    ③ 待我处理 data-wo-layer="actions"：最多 3 条，每条标题 + 一句原因 + 一个动作；超出留一行「共 N 项 · 去待办」
@@ -16,31 +18,31 @@
 //  本页禁用 SVG 图标（支书 2026-08-10 裁定），类别用色点 + 文字区分。
 // ════════════════════════════════════════════════════════════════
 
-import { showToast, flashHighlight, todayLocal, docAnchorHref, escHtml as esc } from '../../core/base/utils.js?v=20261028a';
-import { listRowHtml, listGroupHtml } from '../ui/list-row.js?v=20261028a';
-import { tableHeadHtml } from '../ui/data-table.js?v=20261028a';
-import { emptyStateHtml } from '../ui/empty-state.js?v=20261028a';
-import { renderTabHeader, renderCardHeader } from '../shell/page-frame.js?v=20261028a';
+import { showToast, flashHighlight, todayLocal, docAnchorHref, escHtml as esc } from '../../core/base/utils.js?v=20261028b';
+import { listRowHtml, listGroupHtml } from '../ui/list-row.js?v=20261028b';
+import { tableHeadHtml } from '../ui/data-table.js?v=20261028b';
+import { emptyStateHtml } from '../ui/empty-state.js?v=20261028b';
+import { renderTabHeader, renderCardHeader } from '../shell/page-frame.js?v=20261028b';
 import {
   TodoStore, seedTodos, isTodoExpired, WORK_DOMAIN, WORK_DOMAIN_LABELS, TodoStatus,
-} from '../../services/governance/todo.js?v=20261028a';
-import { IssueStore } from '../../services/governance/issues.js?v=20261028a';
+} from '../../services/governance/todo.js?v=20261028b';
+import { IssueStore } from '../../services/governance/issues.js?v=20261028b';
 import {
   isActivityEnded, isActivityArchived, isActivityInProgress, ROLE_LABELS, PARTY_GROUP_LEADER_ROLES,
-} from '../../core/domain/constants.js?v=20261028a';
-import { loadActivities } from '../../services/activity/activity.js?v=20261028a';
-import { filterActivitiesForViewer, resolveVisibleTargets } from '../../services/core/visibility.js?v=20261028a';
-import { loadActiveAttendanceRecords } from '../../services/activity/attendance.js?v=20261028a';
-import { loadInspectionRecords, getOverdueRecords } from '../../services/activity/inspection.js?v=20261028a';
-import { loadMakeupTasks } from '../../services/activity/makeup.js?v=20261028a';
-import { loadActiveActivityReviews, loadTaskforceReviews } from '../../services/governance/review.js?v=20261028a';
-import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261028a';
-import { listPendingByReceiver, confirmExternalDispatch } from '../../services/activity/external-dispatch.js?v=20261028a';
-import { getPersonName } from '../../services/member/person.js?v=20261028a';
-import { loadMemberProgress, REPORT_KIND } from '../../services/member/member-progress.js?v=20261028a';
-import { AttendanceStatus, ReviewStatus, mockDB, isTaskforceActiveStatus } from '../../core/domain/domain.js?v=20261028a';
-import { PROP_TASKS_SEED } from '../../data/mock/prop.js?v=20261028a';
-import { getBranchIdOfPerson, getBranchWorkforce } from '../../services/branch/branch.js?v=20261028a';
+} from '../../core/domain/constants.js?v=20261028b';
+import { loadActivities } from '../../services/activity/activity.js?v=20261028b';
+import { filterActivitiesForViewer, resolveVisibleTargets } from '../../services/core/visibility.js?v=20261028b';
+import { loadActiveAttendanceRecords } from '../../services/activity/attendance.js?v=20261028b';
+import { loadInspectionRecords, getOverdueRecords } from '../../services/activity/inspection.js?v=20261028b';
+import { loadMakeupTasks } from '../../services/activity/makeup.js?v=20261028b';
+import { loadActiveActivityReviews, loadTaskforceReviews } from '../../services/governance/review.js?v=20261028b';
+import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261028b';
+import { listPendingByReceiver, confirmExternalDispatch } from '../../services/activity/external-dispatch.js?v=20261028b';
+import { getPersonName } from '../../services/member/person.js?v=20261028b';
+import { loadMemberProgress, REPORT_KIND } from '../../services/member/member-progress.js?v=20261028b';
+import { AttendanceStatus, ReviewStatus, mockDB, isTaskforceActiveStatus } from '../../core/domain/domain.js?v=20261028b';
+import { PROP_TASKS_SEED } from '../../data/mock/prop.js?v=20261028b';
+import { getBranchIdOfPerson, getBranchWorkforce } from '../../services/branch/branch.js?v=20261028b';
 
 // 在办下钻详情目标（支书 2026-08-10 裁定：概况「在办」可下钻到活动/专班只读详情）
 let _woDetail = null; // { kind: 'activity' | 'taskforce', id } | null
@@ -134,7 +136,7 @@ function _metrics(fourth) {
     { key: 'overdue', kind: 'filter', label: '逾期', value: (totals) => totals.overdue, warning: true, ariaLabel: '筛选逾期待办' },
     // 「待办」只跳分区，不做第二套筛选：实际可筛的只有「逾期」一类（R3-07）。
     { key: 'actions', kind: 'scroll', href: '#wo-actions', label: '待办', value: (totals) => totals.actions, ariaLabel: '查看待办事项' },
-    { key: 'active', label: '在办', kind: 'scroll', href: '#wo-lines', value: (totals) => totals.active, muted: true, ariaLabel: '查看工作分工表' },
+    { key: 'active', label: '在办', kind: 'scroll', href: '#wo-lines', value: (totals) => totals.active, ariaLabel: '查看工作分工表' },
     { ...fourth, key: 'fourth', kind: 'scroll', href: '#wo-lines', ariaLabel: `查看${fourth.label}分工` },
   ];
 }
@@ -452,16 +454,16 @@ async function _renderOverviewContent(container, { role, personId, accent = '#B9
     const value = metric.value(totals);
     const modifier = metric.warning && value > 0
       ? ' metric-band__value--warning'
-      : metric.muted ? ' metric-band__value--muted' : '';
+      : '';
     const active = _metricFilter === metric.key;
     const body = `<span class="metric-band__value${modifier}">${esc(String(value))}</span>
       <span class="metric-band__label">${esc(metric.label)}</span>`;
-    // R3-07：筛选类＝chip 按钮（可切换、aria-pressed）；滚动类＝页内链接（原生锚点，不再假装按钮）。
+    // R3-07：筛选类＝可切换卡（aria-pressed）；滚动类＝页内链接（原生锚点，不再假装按钮）。
     if (metric.kind === 'filter') {
-      return `<button type="button" class="metric-band__item metric-band__item--filter${active ? ' is-active' : ''}" data-metric="${esc(metric.key)}" data-metric-kind="filter" aria-pressed="${active ? 'true' : 'false'}" aria-label="${esc(metric.ariaLabel)}">${body}</button>`;
+      return `<button type="button" class="card card--interactive stat-card metric-band__item metric-band__item--filter${active ? ' is-active' : ''}" data-metric="${esc(metric.key)}" data-metric-kind="filter" aria-pressed="${active ? 'true' : 'false'}" aria-label="${esc(metric.ariaLabel)}">${body}</button>`;
     }
     // R5A-01：概况页页内锚点不得以裸 '#' 输出——`<base href="../">` 会把它解析到 docs 根。
-    return `<a class="metric-band__item metric-band__item--link" href="${esc(docAnchorHref(metric.href || '#wo-lines'))}" data-metric="${esc(metric.key)}" data-metric-kind="scroll" aria-label="${esc(metric.ariaLabel)}">${body}<span class="metric-band__jump" aria-hidden="true">›</span></a>`;
+    return `<a class="card card--interactive stat-card metric-band__item metric-band__item--link" href="${esc(docAnchorHref(metric.href || '#wo-lines'))}" data-metric="${esc(metric.key)}" data-metric-kind="scroll" aria-label="${esc(metric.ariaLabel)}">${body}<span class="metric-band__jump" aria-hidden="true">›</span></a>`;
   }).join('');
 
   const tableRows = lineRows.map((row) => {
@@ -515,7 +517,7 @@ async function _renderOverviewContent(container, { role, personId, accent = '#B9
 
       ${renderTabHeader({ title })}
 
-      <section class="metric-band metric-band--interactive" data-wo-layer="summary" aria-label="工作概况结论">
+      <section class="metric-band metric-band--interactive metric-band--cards" data-wo-layer="summary" aria-label="工作概况结论">
         ${summaryHtml}
       </section>
 
@@ -584,7 +586,7 @@ async function _buildContext(role, personId, today, config) {
 
   // 支书：概况维度 + 实时派生组（与待办页同源）
   if (role === 'secretary') {
-    const secretary = await import('../../services/governance/secretary-overview.js?v=20261028a');
+    const secretary = await import('../../services/governance/secretary-overview.js?v=20261028b');
     const realtime = secretary.SecretaryTodoDeriver.computeAggregates();
     const seen = new Set(ctx.todoGroups.map((group) => group.groupKey));
     ctx.todoGroups = [...ctx.todoGroups, ...realtime.filter((group) => !seen.has(group.groupKey))];
@@ -952,7 +954,7 @@ function _bindWorkOverviewEvents(container, role, personId, prefix, rerender) {
       const tab = btn.dataset.woGotoTab;
       if (btn.dataset.woSegment === 'makeup') {
         try {
-          const module = await import('../../entries/tabs/disc/attendance-tab.js?v=20261028a');
+          const module = await import('../../entries/tabs/disc/attendance-tab.js?v=20261028b');
           module.focusSegment?.('makeup');
         } catch (_) { /* 分段记忆失败时仍进考勤页 */ }
       }
@@ -1009,10 +1011,10 @@ async function _renderOverviewDetail(container, detail, accent, onBack) {
   const host = container.querySelector('#wo-detail-host');
   if (!host) return;
   if (detail.kind === 'activity') {
-    const { renderActivityView } = await import('../record/activity-view.js?v=20261028a');
+    const { renderActivityView } = await import('../record/activity-view.js?v=20261028b');
     renderActivityView(host, { highlightId: detail.id, accent });
   } else {
-    const { renderTaskforceView } = await import('../record/taskforce-view.js?v=20261028a');
+    const { renderTaskforceView } = await import('../record/taskforce-view.js?v=20261028b');
     renderTaskforceView(host, { highlightId: detail.id });
   }
 }

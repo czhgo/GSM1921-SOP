@@ -28,7 +28,7 @@ related_files: [docs/src/core/domain/function-catalog.js, docs/src/capabilities/
 | 支书 | 我的职责 | 通知发布 | `entries/tabs/secretary/notification-tab.js` | 发布与管理消息（公告 / 系统通知 / 私信） | 消息 | 发布 / 编辑 / 删除 | — |
 | 支书 | 我的职责 | 上报党委 | `entries/tabs/secretary/report-up-tab.js` | 支部关键事项上报党委并收回传结论 | 上报 | 提交 / 查看结论 | — |
 | 支书 | 协作与知情 | 支部分工 | `entries/tabs/secretary/work-map-tab.js` | 支部工作地图：模块定人定责定岗（默认责任关系主从） | 分工 | 查看 / 调整分工 | — |
-| 支书 | 制度与答复 | 反馈管理 | `entries/tabs/secretary/feedback-tab.js` | 收阅成员意见反馈并跟进处理 | 反馈 | 回复 / 关闭 | — |
+| 支书 | 制度与答复 | 意见反馈 | `entries/tabs/secretary/feedback-tab.js` | 收阅成员意见反馈并跟进处理 | 反馈 | 回复 / 关闭 | — |
 | 组织 | 总览 | 今天 | `entries/tabs/today/today-tab.js` | 登录落点：今日待办、会议与分工速览 | 个人日程 / 待办 | 跳转待办 / 详情 | — |
 | 组织 | 总览 | 待办 | `entries/tabs/org/todo-tab.js` | 未读消息条 + 工作域折组待办；页内「我经办的反馈」区 | 待办 / 反馈 | 处理 / 跳转 / 追加说明 | 承接原「我的处置」页签 |
 | 组织 | 总览 | 工作概况 | `entries/tabs/org/overview-tab.js` | 汇报 / 卡点 / 在办三区总览；页内「活动日历」折叠卡 | 工作概况 / 活动 | 查看 / 跳转 / 展开日历 | 承接原「活动日历」页签（含跨组招募与活动进展） |
@@ -181,7 +181,7 @@ related_files: [docs/src/core/domain/function-catalog.js, docs/src/capabilities/
 | 元素 | 允许的组件 / 类 | 档位 | 同屏约束 |
 |---|---|---|---|
 | 页面标题 | `renderTabHeader` | H2 · 20px · 600 | 一屏一个 |
-| 结论带 | `.metric-band` | 数值 28px / 标签 12px | 四个数固定，筛选与滚动分两种控件 |
+| 结论带 | `.metric-band--cards` ＋ `.card.stat-card` | 数字 24px / 标签 12px | 四个数固定；四列数字卡，筛选与滚动分两种控件 |
 | 分区头（卡头） | `renderCardHeader` | H3 · 16px · 600 · 宋体 | 工作分工 / 待我处理 / 周期归档待审核 / 我已处理 同一档 |
 | 计数 | `.card-head__meta` | 12px · 400 · neutral-500 | 同一卡最多一处；不写进 H3；不与 `state-badge` 混用 |
 | 折叠头 | 原生 `details` ＋ 兄弟 H3（`aria-labelledby`） | 与分区头同档 | 只「我已处理」一处 |

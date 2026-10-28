@@ -5,15 +5,15 @@
 //  职责单一：统计卡渲染 + 考勤明细弹窗（点击统计卡查看本月考勤）。
 // ════════════════════════════════════════════════════════════════
 
-import { NoticeStore } from '../../services/governance/notice.js?v=20261028a';
-import { _fmtDate } from '../../core/base/utils.js?v=20261028a';
-import { icon } from '../../core/base/icons.js?v=20261028a';
+import { NoticeStore } from '../../services/governance/notice.js?v=20261028b';
+import { _fmtDate } from '../../core/base/utils.js?v=20261028b';
 // 活动「已归档」口径单一源（2026-09-13 收敛）：替代手写 !a.archived
-import { isActivityArchived } from '../../core/domain/constants.js?v=20261028a';
-import { isTaskforceActiveStatus } from '../../core/domain/domain.js?v=20261028a';
+import { isActivityArchived } from '../../core/domain/constants.js?v=20261028b';
+import { isTaskforceActiveStatus } from '../../core/domain/domain.js?v=20261028b';
 // R2-47：出勤率语义单一源——首页「个人考勤」按应到人次（不是按已录记录），未录显示「待录入」
-import { summarizePersonAttendanceByRoster, attendanceRateTone } from '../../services/activity/attendance.js?v=20261028a';
+import { summarizePersonAttendanceByRoster } from '../../services/activity/attendance.js?v=20261028b';
 
+import { emptyStateHtml } from '../ui/empty-state.js?v=20261028b';
 const ATTENDANCE_STATUS_DOT = {
   present:  { text: '出勤', cls: 'text-green-700', dot: 'var(--status-success)' },
   absent:   { text: '缺勤', cls: 'text-red-600',  dot: 'var(--status-error)' },
@@ -32,23 +32,13 @@ export function renderDashboardStats({ activities, taskforces, notices, attendan
   const container = document.getElementById('dashboard-stats');
   if (!container) return;
 
-  // 加载中：显示骨架屏，避免 0→真实值 闪烁
+  // 加载中：显示骨架屏，避免 0→真实值 闪烁（2026-10-28：骨架与正式卡同构——数字 + 标签两行）
   if (isLoading) {
-    const skeletonItems = [
-      { label: '本月活动', icon: 'calendarHero' },
-      { label: '活跃专班', icon: 'usersGroup' },
-      { label: '未读通知', icon: 'bellHero' },
-      { label: '个人考勤', icon: 'clipboard' },
-    ];
-    container.innerHTML = skeletonItems.map(s => `
-      <div class="card rounded-xl p-4 flex items-start gap-3 stat-card">
-        <div class="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 bg-gray-100 animate-pulse">
-          ${icon(s.icon, { strokeWidth: 1.8, stroke: '#D1D5DB', className: 'w-5 h-5' })}
-        </div>
-        <div class="min-w-0">
-          <div class="h-7 w-12 rounded bg-gray-100 animate-pulse mb-1"></div>
-          <p class="text-xs" style="color:var(--neutral-400);">${s.label}</p>
-        </div>
+    const skeletonItems = ['本月活动', '活跃专班', '未读通知', '个人考勤'];
+    container.innerHTML = skeletonItems.map(label => `
+      <div class="card rounded-xl p-4 stat-card">
+        <div class="h-6 w-12 rounded bg-gray-100 animate-pulse mb-1"></div>
+        <p class="text-xs" style="color:var(--neutral-500);">${label}</p>
       </div>
     `).join('');
     return;
@@ -70,34 +60,29 @@ export function renderDashboardStats({ activities, taskforces, notices, attendan
   const myPresent = myRoster.present;
   const myTotal = myRoster.total;
   const myRate = myRoster.rate;
-  const myTone = attendanceRateTone(myRate);
-  const myColor = myTone === 'good' ? '#059669'
-    : myTone === 'watch' ? '#D97706'
-    : myTone === 'low' ? '#DC2626'
-    : 'var(--neutral-500)';
 
-  // A-01 修复：color 统一为 hex 常量，图标底色用 8 位 hex（${hex}15），var+hex 拼接无法解析
-  // 2026-08-10 支书两次裁定·首页统计卡最终配色：活动=蓝 #3B82F6 / 专班=亮金 #F59E0B / 未读通知=红 #DC2626 / 考勤=状态三色
-  // 2026-09-12 R-13 浅色对比收口：专班亮金 #F59E0B 在浅底 2.15 不达大字 3:1，升档为状态警告色 --status-warning（3.19）；
-  // 零值弱化色 #9CA3AF 不达 3:1，升档为 --neutral-500（浅 4.83 / 深 #94A3B8 6.57，深色不退化）
+  // 2026-10-28 支书裁定「四个数统一为卡片数字」：卡片只留「数字（24px）＋ 标签（12px）」，
+  //   删除彩色图标块与彩色数字（数字一律正文色）；「逾期」类着色仍由 .metric-band__value--warning 承担。
+  //
+  // A-01 修复（历史）：图标底色曾用 8 位 hex 拼接，var+hex 无法解析——图标块已随本次裁定删除。
   // 卡片过拟合修正（2026-09-13 支书裁定「专班只是工作的一部分；三会一课是规范表达，专班是本支部自己的表达」）：
   // 「活跃专班」是**本支部自创工作方法**（workflow/blocks/manifests.js: provenance='branch-custom'），
   // 非党内统一规范动作——原无论有无专班恒渲染（无专班的支部永远显示「0 个」）属**过拟合**。
   // 改为：仅在**确有活跃/招募中专班**时出现（规范类统计「本月活动」不受影响，始终保留）。
   // 2026-10-27 Task 6.4（脏乱繁）：390 两列网格里长标签（「个人考勤（本月无记录）」）会折行把卡片撑成
   //   两种高度 ⇒ 标签统一 4 字（短标签），状态说明降为第二行小字（`.stat-card__note`）；
-  //   卡片统一 `min-height`、图标顶对齐（`items-start`），四张等高。
+  //   卡片统一 `min-height`，四张等高。
   const stats = [
-    { label: '本月活动', value: monthActivities.length, unit: '场', color: '#3B82F6', icon: 'calendarHero', interactive: false },
+    { label: '本月活动', value: monthActivities.length, unit: '场', interactive: false },
     ...(activeTFs.length > 0
-      ? [{ label: '活跃专班', value: activeTFs.length, unit: '个', color: '#D97706', icon: 'usersGroup', interactive: false }]
+      ? [{ label: '活跃专班', value: activeTFs.length, unit: '个', interactive: false }]
       : []),
-    { label: '未读通知', value: unreadNotices, unit: '条', color: unreadNotices > 0 ? '#DC2626' : 'var(--neutral-500)', icon: 'bellHero', interactive: false },
+    { label: '未读通知', value: unreadNotices, unit: '条', interactive: false },
     // 空态（P2-5）：没有记录不是「数据坏了」，而是「本月无记录」这一事实。
     // R2-47：有应到场次但一条都没录 → 「待录入」，不再把未录当成 0%。
     { label: '个人考勤',
       value: myTotal > 0 && myRate !== null ? `${myPresent}/${myTotal}` : '—',
-      unit: '', color: myColor, icon: 'clipboard', interactive: true,
+      unit: '', interactive: true,
       note: myTotal === 0 ? '本月无记录' : (myRate === null ? '待录入' : ''),
       title: '分母＝本月应到场次（应到人次口径；未录场次单列「待录入」）' },
   ];
@@ -105,16 +90,11 @@ export function renderDashboardStats({ activities, taskforces, notices, attendan
   // T-304 Q2 点击热区：不可点卡（前三张）不再 hover 上浮（纯展示卡不加 hover 伪装，DESIGN_SYSTEM §4.3）；
   // 仅可点卡（个人考勤）保留 hover 反馈。统一 cursor：可点卡 pointer / 展示卡 default。
   container.innerHTML = stats.map(s => `
-    <div class="card rounded-xl p-4 flex items-start gap-3 stat-card ${s.interactive ? 'card--interactive transition-colors duration-200 cursor-pointer' : ''}"
+    <div class="card rounded-xl p-4 stat-card ${s.interactive ? 'card--interactive transition-colors duration-200 cursor-pointer' : ''}"
          ${s.interactive ? 'role="button" tabindex="0" data-attendance-popover="1"' : ''} ${s.title ? `title="${s.title}"` : ''}>
-      <div class="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 stat-icon-tint" style="--tint:${s.color};">
-        ${icon(s.icon, { strokeWidth: 1.8, stroke: s.color, className: 'w-5 h-5' })}
-      </div>
-      <div class="min-w-0">
-        <p class="text-2xl font-bold tabular-nums" style="color:${s.color};line-height:1.2;">${s.value}<span class="text-xs font-normal ml-0.5" style="color:var(--neutral-500);">${s.unit}</span></p>
-        <p class="text-xs" style="color:var(--neutral-500);">${s.label}</p>
-        ${s.note ? `<p class="text-xs stat-card__note" style="color:var(--neutral-500);">${s.note}</p>` : ''}
-      </div>
+      <p class="metric-band__value">${s.value}<span class="text-xs font-normal ml-0.5" style="color:var(--neutral-500);">${s.unit}</span></p>
+      <p class="metric-band__label">${s.label}</p>
+      ${s.note ? `<p class="text-xs stat-card__note" style="color:var(--neutral-500);">${s.note}</p>` : ''}
     </div>
   `).join('');
 
@@ -158,7 +138,7 @@ function _bindAttendancePopover(activities, attendanceRecords, thisMonth, user) 
       });
 
       const listHTML = myRecords.length === 0
-        ? '<p class="text-xs text-gray-500 text-center py-4">本月暂无考勤记录</p>'
+        ? emptyStateHtml({ text: "本月暂无考勤记录", variant: 'panel' })
         : myRecords.map(r => {
             const act = activities.find(a => a.id === r.activityId);
             const s = ATTENDANCE_STATUS_DOT[r.status] || { text: r.status, cls: 'text-gray-500', dot: 'var(--neutral-400)' };

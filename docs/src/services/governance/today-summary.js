@@ -18,17 +18,17 @@
 // 时间口径：dateKey 由 now 按【本地时区】取 YYYY-MM-DD（勿用 toISOString——UTC 偏移跨日错位）。
 // ════════════════════════════════════════════════════════════════
 
-import { DEFAULT_BRANCH_ID } from '../../core/domain/constants.js?v=20261028a';
-import { POLICY_DEFAULTS } from '../../core/domain/policy-defaults.js?v=20261028a';
-import { mockDB } from '../../core/domain/domain.js?v=20261028a';
-import { getMeetingRosterIds, getEffectiveMembers, RESIDENCE_KEY } from '../member/roster.js?v=20261028a';
-import { TodoStore, TodoActionType, inferDomain, WORK_DOMAIN_LABELS } from './todo.js?v=20261028a';
+import { DEFAULT_BRANCH_ID } from '../../core/domain/constants.js?v=20261028b';
+import { POLICY_DEFAULTS } from '../../core/domain/policy-defaults.js?v=20261028b';
+import { mockDB } from '../../core/domain/domain.js?v=20261028b';
+import { getMeetingRosterIds, getEffectiveMembers, RESIDENCE_KEY } from '../member/roster.js?v=20261028b';
+import { TodoStore, TodoActionType, inferDomain, WORK_DOMAIN_LABELS } from './todo.js?v=20261028b';
 // 待批活动的可见性单一源（2026-09-22 批次 151 · 支书裁定「只支委层可见」）：「今天」的今日会议/我的分工
 // 同样按查看者角色收窄——待批活动不进非支委层的今日摘要（与各台列表同一判据）。
-import { filterActivitiesForViewer } from '../core/visibility.js?v=20261028a';
-import { tokenOf } from '../../core/base/version-token.js?v=20261028a'; // P1 消费方会话缓存失效（spec §三.4）
+import { filterActivitiesForViewer } from '../core/visibility.js?v=20261028b';
+import { tokenOf } from '../../core/base/version-token.js?v=20261028b'; // P1 消费方会话缓存失效（spec §三.4）
 // 成员基础数据预览键（仅作 raw 源指纹；person.js 读链叠加预览，见 org-base-data-preview）
-import { PREVIEW_KEY } from '../branch/org-base-data-preview.js?v=20261028a';
+import { PREVIEW_KEY } from '../branch/org-base-data-preview.js?v=20261028b';
 
 /**
  * 「今天有会」按应到口径判定的会议类型（R7-14 单一源 · call-time）：

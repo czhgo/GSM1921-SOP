@@ -3,38 +3,38 @@
 // 党小组组长可创建党小组会、主题党日活动，写入后自动生成SOP任务节点。
 // 含决策树引导式写入（DecisionTreeState）+ 活动详情/子记录内联编辑 + 活动角色赋权。
 
-import { setState, getAppState } from '../../../core/base/state.js?v=20261028a';
-import { BranchService } from '../../../services/core/runtime.js?v=20261028a';
-import { DecisionTreeState, DECISION_TREE_CONFIGS, renderWorkflowPanel, writeActivityWithSOP, hostGroups as buildHostGroupOptions } from '../../../services/activity/decision-tree.js?v=20261028a';
+import { setState, getAppState } from '../../../core/base/state.js?v=20261028b';
+import { BranchService } from '../../../services/core/runtime.js?v=20261028b';
+import { DecisionTreeState, DECISION_TREE_CONFIGS, renderWorkflowPanel, writeActivityWithSOP, hostGroups as buildHostGroupOptions } from '../../../services/activity/decision-tree.js?v=20261028b';
 // 党小组常态清单唯一来源（活组、按 seq 升序）——承办党小组选项不再写死
-import { groupOptions, loadPartyGroups } from '../../../services/member/party-group.js?v=20261028a';
+import { groupOptions, loadPartyGroups } from '../../../services/member/party-group.js?v=20261028b';
 // 2026-10-21 批次 499：跨党小组深参/组织者需按成员所属组判定（组织者一般本组，跨组深参由组织委员协调）
-import { PersonStore } from '../../../services/member/person.js?v=20261028a';
-import { AuthStore, currentUserId } from '../../../services/core/auth.js?v=20261028a';
-import { TodoStore, TodoSourceType } from '../../../services/governance/todo.js?v=20261028a';
-import { mockDB, OutputType, deriveOutputRoute } from '../../../core/domain/domain.js?v=20261028a';
-import { persist } from '../../../data/data-adapter.js?v=20261028a';
-import { PersonPicker } from '../../../components/governance/pickers.js?v=20261028a';
-import { renderWorkgroupPermissionEditor, readWorkgroupPermissionEditor } from '../../../components/governance/workgroup-permissions.js?v=20261028a';
-import { recordFormShell } from '../../../components/ui/forms.js?v=20261028a';
-import { getBranchIdOfPerson, getBranchOutputBlocks, applyOutputBlockPolicy } from '../../../services/branch/branch.js?v=20261028a';
-import { badgeHtml } from '../../../components/ui/badges.js?v=20261028a';
+import { PersonStore } from '../../../services/member/person.js?v=20261028b';
+import { AuthStore, currentUserId } from '../../../services/core/auth.js?v=20261028b';
+import { TodoStore, TodoSourceType } from '../../../services/governance/todo.js?v=20261028b';
+import { mockDB, OutputType, deriveOutputRoute } from '../../../core/domain/domain.js?v=20261028b';
+import { persist } from '../../../data/data-adapter.js?v=20261028b';
+import { PersonPicker } from '../../../components/governance/pickers.js?v=20261028b';
+import { renderWorkgroupPermissionEditor, readWorkgroupPermissionEditor } from '../../../components/governance/workgroup-permissions.js?v=20261028b';
+import { recordFormShell } from '../../../components/ui/forms.js?v=20261028b';
+import { getBranchIdOfPerson, getBranchOutputBlocks, applyOutputBlockPolicy } from '../../../services/branch/branch.js?v=20261028b';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20261028b';
 // 活动生命周期展示态单一源（草稿/已发布/进行中/待归档/已执行/已归档/已取消）——勿在本文件另造中文标签
-import { activityLifecycleBadgeHtml } from '../../../components/record/inspector.js?v=20261028a';
-import { showToast, escHtml, todayLocal } from '../../../core/base/utils.js?v=20261028a';
+import { activityLifecycleBadgeHtml } from '../../../components/record/inspector.js?v=20261028b';
+import { showToast, escHtml, todayLocal } from '../../../core/base/utils.js?v=20261028b';
 // 组织者的发布口（2026-09-19 批次 91 · SOP-B-17）：本人被指定为该场组织者时，本台即可发布本组通知
-import { isActivityOrganizer, findActivityById, OUTDOOR_CHECKLIST, isOutdoorActivity, PUBLICITY_DRAFT_STATUS, PUBLICITY_DRAFT_LABELS, publicityDraftStatusOf, setPublicityDraftStatus, DEEP_WORK_MODE } from '../../../services/activity/activity.js?v=20261028a';
-import { openModal, closeModal } from '../../../components/ui/modal.js?v=20261028a';
-import { renderDisclosure } from '../../../components/ui/disclosure.js?v=20261028a';
-import { openGroupNoticeComposer } from '../../../components/governance/notice-view.js?v=20261028a';
-import { DEFAULT_BRANCH_ID, solidAccentStyle, accDarkParts, OUTPUT_BLOCK_DEFS, isActivityEnded, ACTIVITY_SUBTYPES, normalizeActivityType, ACTIVITY_SCOPES, RECRUITMENT_SCOPES } from '../../../core/domain/constants.js?v=20261028a';
-import { filterByRole, getCurrentLeaderId, currentLeaderGroup } from './_shared.js?v=20261028a';
-import { anchorDetailToTrigger } from '../../../components/ui/detail-anchor.js?v=20261028a';
+import { isActivityOrganizer, findActivityById, OUTDOOR_CHECKLIST, isOutdoorActivity, PUBLICITY_DRAFT_STATUS, PUBLICITY_DRAFT_LABELS, publicityDraftStatusOf, setPublicityDraftStatus, DEEP_WORK_MODE } from '../../../services/activity/activity.js?v=20261028b';
+import { openModal, closeModal } from '../../../components/ui/modal.js?v=20261028b';
+import { renderDisclosure } from '../../../components/ui/disclosure.js?v=20261028b';
+import { openGroupNoticeComposer } from '../../../components/governance/notice-view.js?v=20261028b';
+import { DEFAULT_BRANCH_ID, solidAccentStyle, accDarkParts, OUTPUT_BLOCK_DEFS, isActivityEnded, ACTIVITY_SUBTYPES, normalizeActivityType, ACTIVITY_SCOPES, RECRUITMENT_SCOPES } from '../../../core/domain/constants.js?v=20261028b';
+import { filterByRole, getCurrentLeaderId, currentLeaderGroup } from './_shared.js?v=20261028b';
+import { anchorDetailToTrigger } from '../../../components/ui/detail-anchor.js?v=20261028b';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是活动的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
-import { renderFilteredList, activityKeyword, activityFacets } from '../../../components/ui/list-filter.js?v=20261028a';
-import { renderTabHeader, renderCardHeader } from '../../../components/shell/page-frame.js?v=20261028a';
+import { renderFilteredList, activityKeyword, activityFacets } from '../../../components/ui/list-filter.js?v=20261028b';
+import { renderTabHeader, renderCardHeader } from '../../../components/shell/page-frame.js?v=20261028b';
 // U-35：「我的任务」承载面（按项目身份派给组长的 SOP 任务；数据与写口复用 services/activity/activity.js）
-import { myTasksSectionHtml, bindMyTasksSection } from './my-tasks-section.js?v=20261028a';
+import { myTasksSectionHtml, bindMyTasksSection } from './my-tasks-section.js?v=20261028b';
 
 /**
  * 活动角色可编辑性（dogfood 权限专项 2026-09-13）
@@ -878,8 +878,6 @@ function _openOutdoorChecklistModal(activityTitle) {
     title: '外出提醒清单',
     width: '460px',
     accentColor: '#CE1126',
-    // 2026-09-21 批次 139：每台浮窗页脚一条「相关设置」深链（组长台 → 组长职责参数）
-    settingsLink: { href: './settings.html#domain-leader', text: '制度参数 →' },
     bodyHtml: `
       <div class="text-xs text-gray-500 mb-3 leading-5">活动「${escHtml(activityTitle || '未命名')}」已写入。以下是<b>外出活动</b>的提醒清单（已收起在该活动行下方，随时可展开）：</div>
       <ul class="list-disc pl-5 text-sm text-gray-700 space-y-0.5">${items}</ul>
@@ -899,7 +897,7 @@ function _outdoorChecklistDetailsHtml(a) {
     <details class="leader-outdoor-check mt-1">
       <summary class="text-xs text-gray-500 cursor-pointer select-none">外出提醒清单（${OUTDOOR_CHECKLIST.length} 项）</summary>
       <ul class="mt-1 pl-4 list-disc text-xs text-gray-500 leading-5">${OUTDOOR_CHECKLIST.map(x => `<li>${escHtml(x)}</li>`).join('')}</ul>
-      <div class="mt-0.5 text-xs text-gray-400">提醒，非必填、不校验</div>
+      <div class="mt-0.5 text-xs text-gray-500">提醒，非必填、不校验</div>
     </details>`;
 }
 

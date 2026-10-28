@@ -10,16 +10,17 @@
 //  · 提交表单新增期次（period）手填下拉（缺省 = 当前期次）；
 //  · 「我的汇报」按期次分组，逐篇点击跳**独立阅读页** docs/thought-report.html——
 //    只读正文与「修改重交」均收敛到该页，本 tab 不再行内展开/就地编辑。
-import { AuthStore } from '../../../services/core/auth.js?v=20261028a';
+import { AuthStore } from '../../../services/core/auth.js?v=20261028b';
 import {
   addThoughtReport, listThoughtReportsByPersonGrouped,
   wordCountHint, wordHint, wordSoftMin, periodOf, periodOptions,
-} from '../../../services/governance/thought-report.js?v=20261028a';
-import { showToast, escHtml as esc } from '../../../core/base/utils.js?v=20261028a';
+} from '../../../services/governance/thought-report.js?v=20261028b';
+import { showToast, escHtml as esc, getBasePath } from '../../../core/base/utils.js?v=20261028b';
 // 统一检索引擎（支书 2026-09-14 裁定）：按期次分组子列表复用其分页（无 keyword/facets → 不渲染检索条）
-import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261028a';
-import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261028a';
+import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261028b';
+import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261028b';
 
+import { emptyStateHtml } from '../../../components/ui/empty-state.js?v=20261028b';
 // ── 状态徽标（与服务层 _effective 同语义：无状态 / 状态非法 / 旧 'pending' → 已入库）──
 const STATUS_META = {
   needs_revision: { label: '已打回·待补充', cls: 'bg-red-100 text-red-700' },
@@ -40,7 +41,7 @@ export function renderContent(ctx, host) {
 
   const user = AuthStore.getCurrentUser();
   if (!user) {
-    tc.innerHTML = `${host ? '' : renderTabHeader({ title: '思想汇报' })}<p class="text-sm text-gray-500 text-center py-6">— 请先登录</p>`;
+    tc.innerHTML = `${host ? '' : renderTabHeader({ title: '思想汇报' })}${emptyStateHtml({ variant: 'panel', text: '请先登录后使用', actionHtml: `<a class="btn-outline" href="${getBasePath()}login.html">去登录</a>` })}`;
     return;
   }
   const personId = user.personId;
@@ -85,7 +86,7 @@ export function renderContent(ctx, host) {
           </div>
         </div>
       </div>
-      <div id="tr-list">${total === 0 ? '<p class="text-xs text-gray-500 text-center py-6">— 暂无思想汇报记录</p>' : groupsHtml}</div>
+      <div id="tr-list">${total === 0 ? emptyStateHtml({ text: '暂无思想汇报记录', variant: 'inline' }) : groupsHtml}</div>
     `;
 
     // 逐期次接入统一检索引擎（行 HTML 原样；每组仅分页，页数 ≤1 不出翻页控件）
@@ -95,14 +96,14 @@ export function renderContent(ctx, host) {
         rows: g.items,
         listClass: 'space-y-1.5',
         countUnit: '篇',
-        emptyMessage: '— 暂无思想汇报记录',
+        emptyMessage: '暂无思想汇报记录',
         rowHtml: (r) => {
           const wc = wordCountHint(r.content);
           return `
                 <a href="thought-report.html?id=${r.id}" class="flex items-center gap-2 p-3 rounded-lg bg-white border border-gray-50 hover:bg-surface-hover transition-colors">
                   <span class="text-xs font-medium text-gray-700 truncate flex-1">${esc(r.title || '思想汇报')}</span>
                   <span class="text-xs text-gray-500 flex-shrink-0">${_dateTime(r.submittedAt)}</span>
-                  <span class="text-xs text-gray-400 tabular-nums flex-shrink-0">${wc.count} 字</span>
+                  <span class="text-xs text-gray-500 tabular-nums flex-shrink-0">${wc.count} 字</span>
                   ${wc.level === 'short'
                     ? '<span class="text-xs text-amber-700 flex-shrink-0">篇幅不足</span>'
                     : ''}

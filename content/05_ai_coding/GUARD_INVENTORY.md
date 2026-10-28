@@ -27,7 +27,7 @@ status: active
 > **批次 514（2026-10-27）**：新增 **3 件**——`no-underline-guard`（4 条）、`loading-experience-guard`（6 条）、
 > `no-about-route-guard`（5 条）；件数 74 → **77**，明细见 §十一。
 
-> 合并前实点 **72 件**（批次 509 口径）。下表逐行按实读校准后，现行 **64 件 / 527 条**（批次 516 把 17 件并为 4 件，断言数不变；2026-10-28 美学专项 Task 7 按实读校准 `copy-guard` 14→16、`modal-guard` 22→20，合计仍 527 条）；另有已合并的
+> 合并前实点 **72 件**（批次 509 口径）。下表逐行按实读校准后，现行 **64 件 / 531 条**（批次 516 把 17 件并为 4 件，断言数不变；2026-10-28 美学专项 Task 7 按实读校准 `copy-guard` 14→16、`modal-guard` 22→20，合计仍 527 条；2026-10-28 B-500-4 结案 `data-lifecycle-guard` 15→16 ⇒ 528 条；2026-10-28 前端设计审查 `modal-guard` 增 T1 ⇒ 529 条；2026-10-28 空态全站收口 `copy-guard` 增 E1/E2 ⇒ 531 条）；另有已合并的
 > 5 件（`frontmatter-freshness` / `timestamps-note-guard` / `doc-line-ref` / `gold-accent-guard` /
 > `button-system-guard`，25 条）不在表内、不计入本表合计。
 
@@ -39,10 +39,10 @@ status: active
 | `block-entry-guard-e2e.test.mjs` | 页面（真机） | 4 | 4 | — | `block-manifest`、`block-config-ui-e2e` |
 | `branch-id-literal-guard.test.mjs` | 代码 / 数据（支部字面量） | 2 | 2 | — | `db-integrity-guard`、`identity-student-id-guard` |
 | `copy-anchor-guard-e2e.test.mjs` | 页面文案（真机） | 3 | 2 | — | `copy-guard` |
-| `copy-guard.test.mjs` | 页面文案（折叠区 / 长度 / 制度母本 / 自明性 / 卡头副题 SD-54，2026-10-27 批次 516 四件合一 · 2026-10-28 增 S1/S2） | 16 | 37 | — | `copy-anchor-guard-e2e`、`copy-screen-guard` |
+| `copy-guard.test.mjs` | 页面文案（折叠区 / 长度 / 制度母本 / 自明性 / 卡头副题 SD-54 / 空态单一源，2026-10-27 批次 516 四件合一 · 2026-10-28 增 S1/S2、E1/E2） | 18 | 37 | — | `copy-anchor-guard-e2e`、`copy-screen-guard` |
 | `copy-screen-guard.test.mjs` | 页面文案（真机逐屏） | 5 | 3 | — | `copy-length-guard`、`copy-master-guard` |
 | `ctx-hygiene-guard.test.mjs` | 目录 / 文档（`.ctx` 准入与归档） | 4 | 26 | — | `docs-governance-guard`（README / AGENTS / 索引位） |
-| `data-lifecycle-guard.test.mjs` | 数据（生命周期 / 迁移） | 15 | 11 | — | `db-integrity-guard`、`db-migration`、`seed-baseline` |
+| `data-lifecycle-guard.test.mjs` | 数据（生命周期 / 迁移 / 业务数据永不自动删） | 16 | 11 | — | `db-integrity-guard`、`db-migration`、`seed-baseline` |
 | `date-canon-guard.test.mjs` | 代码 / 数据（日期口径） | 2 | 11 | — | `doc-consistency::S13`、`frontmatter` 日期线（已并入 docs-governance） |
 | `db-integrity-guard.test.mjs` | 数据（表结构 / 版本） | 5 | 3 | — | `db-migration`、`seed-baseline` |
 | `dead-selector-guard.test.mjs` | 组件 / CSS（零引用类） | 4 | 7 | 是 | `hex-hardcode-guard`、`ui-redundancy-guard` |
@@ -68,7 +68,7 @@ status: active
 | `mock-api-parity-structure.test.mjs` | 数据（mock / API 结构 ＋ 适配器接口面） | 6 | 7 | — | `mock-api-parity`、`mock-integrity` |
 | `mock-api-parity.test.mjs` | 数据（mock / API 读数） | 5 | 4 | — | `mock-api-parity-structure`、`mock-integrity` |
 | `mock-integrity.test.mjs` | 数据（mock 完整性，真机） | 2 | 0 | — | `mock-api-parity`、`mock-api-parity-structure` |
-| `modal-guard.test.mjs` | 组件 / 交互（弹窗契约 ＋ ESC 关闭 ＋ 表单体例 ＋ 危险确认面 SD-53，2026-10-27 批次 516 三件合一 · 2026-10-28 增 D1/D2） | 20 | 18 | — | `object-route-guard`、`ui-motion-guard` |
+| `modal-guard.test.mjs` | 组件 / 交互（弹窗契约 ＋ ESC 关闭 ＋ 表单体例 ＋ 危险确认面 SD-53 ＋ 字段类型透传，2026-10-27 批次 516 三件合一 · 2026-10-28 增 D1/D2/T1） | 21 | 18 | — | `object-route-guard`、`ui-motion-guard` |
 | `motion-guard.test.mjs` | 组件 / token（动效令） | 6 | 1 | — | `ui-motion-guard`、`frontend-foundations-guard` |
 | `no-about-route-guard.test.mjs` | 页面（About 撤路由：HTML / JS / MD 零入口 ＋ 文件保留） | 5 | 4 | 是 | `link-integrity`、`page-title-guard` |
 | `no-underline-guard.test.mjs` | 组件 / CSS（全站文本下划线清零 / PENDING 台账） | 4 | 1 | 是 | `link-color-guard`、`ui-control-system-guard::V5` |
@@ -125,6 +125,9 @@ status: active
 - 批次 515：`mock-api-parity-structure` 增 S4（5→6）⇒ 527 条。
 - 批次 516：**守卫归并 17 件 → 4 件**（`perf-guard` / `copy-guard` / `type-scale-guard` / `modal-guard`），断言数不变 ⇒ 现行 **64 件 / 527 条**。
 - 2026-10-28 美学专项 Task 7：`copy-guard` 增 S1/S2（卡头副题 SD-54，2 条）· `modal-guard` 增 D1/D2（原生 confirm 清零 / `confirmDanger` 三段式入口，2 条）；同批按实读校准两行（`copy-guard` 14→16、`modal-guard` 22→20——原登记多计 2 条）⇒ 64 件 / **527 条**（收支持平）。
+- 2026-10-28 B-500-4 结案（数据保留期）：`data-lifecycle-guard` 增 ⑯（cleanup 删除目标白名单不含任何业务表 · 含反例，1 条）⇒ 64 件 / **528 条**。
+- 2026-10-28 前端设计审查（浮窗字段类型）：`modal-guard` 增 T1（已知字段类型原样透传 / 未知类型生产期回退 text，含反例，1 条）⇒ 64 件 / **529 条**。
+- 2026-10-28 空态全站收口：`copy-guard` 增 E1/E2（空态只从 `empty-state.js` 出 · 白名单 3 条逐条写理由 / 反例命中 + 负例不误伤 + 白名单无僵尸，2 条）⇒ 64 件 / **531 条**。
 - 后续目标：**60 ± 3 件**（按新增 6 件平移；再合并约 14 件）。推导见 3.2（其「现有 / 目标」为批次 509 时点）。
 
 ### 3.2 推导（按「同一检查对象 ＋ 同一失败根因」聚类，不按文件名拍脑袋）

@@ -12,23 +12,23 @@
 //     应到 = `attendanceRosters` 冻结名单优先，无冻结时回落 `services/activity/vote-config.js::resolveVoterIds('committee')`
 //     并标注「实时」；两种口径不混算。
 //   · 表格 = components/ui/data-table.js（.data-table 单一源）；行内选人 = components/governance/pickers.js::PersonPicker。
-import { mockDB } from '../../../core/domain/domain.js?v=20261028a';
-import { AuthStore } from '../../../services/core/auth.js?v=20261028a';
-import { PersonStore, getPersonById } from '../../../services/member/person.js?v=20261028a';
+import { mockDB } from '../../../core/domain/domain.js?v=20261028b';
+import { AuthStore } from '../../../services/core/auth.js?v=20261028b';
+import { PersonStore, getPersonById } from '../../../services/member/person.js?v=20261028b';
 import {
   listBranchCommissioners,
   appointBranchCommissioner,
   revokeBranchCommissioner,
-} from '../../../services/branch/appointment.js?v=20261028a';
-import { confirmDanger } from '../../../components/ui/modal.js?v=20261028a';
-import { DEFAULT_BRANCH_ID, ROLE_LABELS, BRANCH_COMMISSIONER_ASSIGNABLE_ROLES } from '../../../core/domain/constants.js?v=20261028a';
-import { resolveVoterIds } from '../../../services/activity/vote-config.js?v=20261028a';
-import { deriveMeetingStatus } from '../../../data/mock/derive.js?v=20261028a';
-import { renderDataTable, tableHeadHtml } from '../../../components/ui/data-table.js?v=20261028a';
-import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261028a';
-import { PersonPicker } from '../../../components/governance/pickers.js?v=20261028a';
-import { getAppliedAccentColors } from '../../../core/boot/theme.js?v=20261028a';
-import { showToast, escHtml as esc } from '../../../core/base/utils.js?v=20261028a';
+} from '../../../services/branch/appointment.js?v=20261028b';
+import { confirmDanger } from '../../../components/ui/modal.js?v=20261028b';
+import { DEFAULT_BRANCH_ID, ROLE_LABELS, BRANCH_COMMISSIONER_ASSIGNABLE_ROLES } from '../../../core/domain/constants.js?v=20261028b';
+import { resolveVoterIds } from '../../../services/activity/vote-config.js?v=20261028b';
+import { deriveMeetingStatus } from '../../../data/mock/derive.js?v=20261028b';
+import { renderDataTable, tableHeadHtml } from '../../../components/ui/data-table.js?v=20261028b';
+import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261028b';
+import { PersonPicker } from '../../../components/governance/pickers.js?v=20261028b';
+import { getAppliedAccentColors } from '../../../core/boot/theme.js?v=20261028b';
+import { showToast, escHtml as esc } from '../../../core/base/utils.js?v=20261028b';
 
 /** 本支部 id（登录人归属；缺省 br-b1，与全仓同口径） */
 function branchId() {
@@ -78,9 +78,9 @@ function statusBadge(label, variant) {
  *  不再出现全局「选人 → 选身份 → 确认」表单 */
 function rosterRowHtml(r, showStatus) {
   const vacant = !r.name;
-  const personCell = vacant ? '<span class="text-gray-400">空缺</span>' : esc(r.name);
+  const personCell = vacant ? '<span class="text-gray-500">空缺</span>' : esc(r.name);
   const statusCell = vacant ? statusBadge('空缺', 'warning') : statusBadge('在任', 'neutral');
-  let action = '<span class="text-gray-400">党委配置</span>';
+  let action = '<span class="text-gray-500">党委配置</span>';
   if (r.editable && !vacant) {
     // 1 主（改派）＋ 1 个「更多」；撤销进菜单（2026-10-19 Task 7）
     action = `<button type="button" class="btn-accent-soft btn-sm" data-cm-replace="${esc(r.role)}">改派</button>
@@ -144,7 +144,7 @@ function meetingRowHtml(act) {
     <td data-label="日期" class="whitespace-nowrap">${esc(act.date || '—')}</td>
     <td data-label="议题">${esc(act.title || '未命名会议')}</td>
     <td data-label="状态">${statusBadge(status, MEETING_STATUS_VARIANT[status] || 'neutral')}</td>
-    <td class="is-numeric" data-label="应到">${attendee.count}${attendee.live ? '<span class="text-gray-400 text-xs"> 实时</span>' : ''}</td>
+    <td class="is-numeric" data-label="应到">${attendee.count}${attendee.live ? '<span class="text-gray-500 text-xs"> 实时</span>' : ''}</td>
     <td data-label="操作"><a href="./party-committee-meeting.html?id=${encodeURIComponent(act.id)}" class="btn-outline btn-sm" style="text-decoration:none;">进入 ›</a></td>
   </tr>`;
 }

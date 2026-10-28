@@ -3,7 +3,7 @@ title: "支部工作地图设计稿（平铺模块 + 按人双视图）"
 type: design
 role: "[工程师]+[AI]"
 created: 2026-09-03
-last_updated: 2026-10-16
+last_updated: 2026-10-28
 status: landed
 related_files: [WORKFLOW_BLOCK_CONTRACT.md, ARCHITECTURE_EVOLUTION.md, ../../../.ctx/ENGINEERING_ASSESSMENT.md]
 ---
@@ -41,7 +41,7 @@ related_files: [WORKFLOW_BLOCK_CONTRACT.md, ARCHITECTURE_EVOLUTION.md, ../../../
 | 民主评议党员 | norm | 年度评议（明细待建） |
 | 换届选举 | norm | appointment 任命机制 + 票决 |
 | 考勤考察 | norm | attendance/inspection 记录域（产出环节，附于活动/专班） |
-| 意见反馈处理 | norm | 场景 feedback-handling + 反馈管理 |
+| 意见反馈处理 | norm | 场景 feedback-handling + 意见反馈 |
 | 制度制定与迭代 | norm | 支部文件（`purpose:'institution'`）+ 会议议程；**不单开场景**（`new-system` 已清，`D-464`）；**起草与监督按「制度内容（领域）」归对应主体**（判据单一源 `docs/src/core/domain/work-map.js::INSTITUTION_DOMAINS`，2026-10-05 批次 378 · `SOP-B-25` ②） |
 | 信息平台支持 | **method** | 支部分工模块 + 宣传台周报；**不单开场景**（`info-platform` 已清，`D-510`） |
 
@@ -72,7 +72,7 @@ related_files: [WORKFLOW_BLOCK_CONTRACT.md, ARCHITECTURE_EVOLUTION.md, ../../../
 | 民主评议党员 | 仅活动**命名表达**（不设子类，沿用「组织生活会」裁定：内容是命名表达、不进子类 chips/写入表单） | 评议明细（评议表/格次/汇总）未建 |
 | 换届选举 | 党委台「任命支书」+ 线上支委会票决 | 换届完整流程（酝酿提名/请示上级/选举大会/报批备案）未建 |
 | 党费收缴 | **零承载**（全库无「党费」字样） | 是否纳入系统**待支书裁定** |
-| 意见反馈处理 | 登录后的支部内反馈入口 + 纪检台「反馈管理」+ 各台「我的处置」；党委不读取反馈（D-824） | — |
+| 意见反馈处理 | 登录后的支部内反馈入口 + 纪检台「意见反馈」+ 各台「我的处置」；党委不读取反馈（D-824） | — |
 | 考勤考察 | 组织者上传 + 考勤矩阵/总表 + 考察总表 | — |
 | 制度制定与迭代 | 制度文件走 `content/` 目录 | 系统内无「制度台账/版本」位 |
 

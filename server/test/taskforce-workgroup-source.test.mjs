@@ -25,11 +25,11 @@ function makeStorage() {
 globalThis.localStorage = makeStorage();
 globalThis.sessionStorage = makeStorage();
 
-import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261028a';
-import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261028a';
-import { registerMockAdapter, setDataSource } from '../../docs/src/data/data-adapter.js?v=20261028a';
-import { TaskForceRecordStore } from '../../docs/src/services/activity/taskforce.js?v=20261028a';
-import { SignupStore } from '../../docs/src/services/activity/signup.js?v=20261028a';
+import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261028b';
+import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261028b';
+import { registerMockAdapter, setDataSource } from '../../docs/src/data/data-adapter.js?v=20261028b';
+import { TaskForceRecordStore } from '../../docs/src/services/activity/taskforce.js?v=20261028b';
+import { SignupStore } from '../../docs/src/services/activity/signup.js?v=20261028b';
 
 const TF_ID = 'tf-001';
 const WORKGROUP_ID = `wg-taskforce-${TF_ID}`;

@@ -16,38 +16,39 @@
 // 草稿：localStorage `wizard-draft-<branchId>`（当前步 + 每步完成标记 + 完成态），中断可续走。
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../../core/domain/domain.js?v=20261028a';
-import { getCapabilities } from '../../core/boot/registry.js?v=20261028a';
-import { OUTPUT_BLOCK_DEFS, BRANCH_COMMISSION_ROLES, ROLE_LABELS, getAccentColors } from '../../core/domain/constants.js?v=20261028a';
-import { applyAccentThemeTokens } from '../../core/boot/theme.js?v=20261028a';
-import { CAPABILITY_PACKAGES } from '../../core/domain/capability-packages.js?v=20261028a';
-import { ORG_SUBJECT_LABELS, isBranchOrgSubject, ownerSubjectType } from '../../core/domain/work-map.js?v=20261028a';
+import { mockDB } from '../../core/domain/domain.js?v=20261028b';
+import { getCapabilities } from '../../core/boot/registry.js?v=20261028b';
+import { OUTPUT_BLOCK_DEFS, BRANCH_COMMISSION_ROLES, ROLE_LABELS, getAccentColors } from '../../core/domain/constants.js?v=20261028b';
+import { applyAccentThemeTokens } from '../../core/boot/theme.js?v=20261028b';
+import { CAPABILITY_PACKAGES } from '../../core/domain/capability-packages.js?v=20261028b';
+import { ORG_SUBJECT_LABELS, isBranchOrgSubject, ownerSubjectType } from '../../core/domain/work-map.js?v=20261028b';
 // 副作用：注册支委层工作台能力（配置目录=其 tab 清单，单一源）
-import '../../capabilities/secretary-workspace.js?v=20261028a';
-import { BLOCK_MANIFESTS } from '../../workflow/blocks/manifests.js?v=20261028a';
+import '../../capabilities/secretary-workspace.js?v=20261028b';
+import { BLOCK_MANIFESTS } from '../../workflow/blocks/manifests.js?v=20261028b';
 // L3 流程组合（2026-09-28 批次 246）：把编排内核接进**生产路径**——配置面用它做「组合体检」
-import { composePlan } from '../../workflow/blocks/orchestration.js?v=20261028a';
-import { escHtml as esc, showToast, downloadBlob } from '../../core/base/utils.js?v=20261028a';
-import { confirmDanger } from '../ui/modal.js?v=20261028a';
-import { readLoginSnapshot } from '../../core/session/login-snapshot.js?v=20261028a';
-import { WORK_MAP_MODULES } from '../../core/domain/work-map.js?v=20261028a';
+import { composePlan } from '../../workflow/blocks/orchestration.js?v=20261028b';
+import { escHtml as esc, showToast, downloadBlob } from '../../core/base/utils.js?v=20261028b';
+import { confirmDanger } from '../ui/modal.js?v=20261028b';
+import { readLoginSnapshot } from '../../core/session/login-snapshot.js?v=20261028b';
+import { WORK_MAP_MODULES } from '../../core/domain/work-map.js?v=20261028b';
 import {
   getBranchById, getBranchOrg, getBranchTabPolicy, getCoreTabIds,
   getBranchOutputBlocks, getBranchCapabilityPackageState, getOutputBlockPolicy, getWorkflowBlockPolicy, orderByIds,
   updateBranchModules, updateBranchCapabilityPackages, getBranchWorkforce, updateBranchWorkforce, updateBranchOrg,
   applyConfigCopy, createBranch, getBranchIdOfPerson, ensureBranchConfigLoaded,
-} from '../../services/branch/branch.js?v=20261028a';
-import { buildConfigPackage, applyConfigPackage } from '../../services/branch/org-config-package.js?v=20261028a';
+} from '../../services/branch/branch.js?v=20261028b';
+import { buildConfigPackage, applyConfigPackage } from '../../services/branch/org-config-package.js?v=20261028b';
 import {
   buildPreviewTemplate, sanitizePreview, applyPreview, clearPreview, getPreviewState,
   PREVIEW_KIND, PREVIEW_VERSION,
-} from '../../services/branch/org-base-data-preview.js?v=20261028a';
-import { getRosterStats, isDetained } from '../../services/member/roster.js?v=20261028a';
-import { buildOrgWizardReport } from '../../services/branch/org-wizard-report.js?v=20261028a';
-import { PersonStore, getPersonName } from '../../services/member/person.js?v=20261028a';
+} from '../../services/branch/org-base-data-preview.js?v=20261028b';
+import { getRosterStats, isDetained } from '../../services/member/roster.js?v=20261028b';
+import { buildOrgWizardReport } from '../../services/branch/org-wizard-report.js?v=20261028b';
+import { PersonStore, getPersonName } from '../../services/member/person.js?v=20261028b';
 // R5-1（2026-09-06）：建空支部「就地任命首任骨干」——任命编排在 appointment.js 收口（含数据边界登记）
-import { appointInauguralOfficers } from '../../services/branch/appointment.js?v=20261028a';
+import { appointInauguralOfficers } from '../../services/branch/appointment.js?v=20261028b';
 
+import { emptyStateHtml } from '../ui/empty-state.js?v=20261028b';
 // ── 步骤元信息（支书已批口径）────────────────────────────────────
 export const WIZARD_STEPS = [
   { id: 1, label: '组织信息' },
@@ -258,8 +259,7 @@ function _render(S) {
     return;
   }
   if (!branch) {
-    host.innerHTML = `<div class="rounded-xl border border-gray-200 bg-white p-6 text-center">
-      <p class="text-sm text-gray-500">暂无支部可配置——请先由党委在「支部管理」中创建支部。</p></div>`;
+    host.innerHTML = `<div class="rounded-xl border border-gray-200 bg-white p-6">${emptyStateHtml({ text: '暂无支部可配置——请先由党委在「支部管理」中创建支部', variant: 'panel' })}</div>`;
     return;
   }
   const org = getBranchOrg(branch.id);
@@ -534,7 +534,7 @@ function _copyPanelHtml(S, branches) {
         <input type="checkbox" data-wz-copy-target value="${esc(b.id)}" ${S.copySel.has(b.id) ? 'checked' : ''} class="shrink-0">
         <span class="text-xs text-gray-700 min-w-0 truncate">${esc(b.name)}<span class="text-xs text-gray-500">（${esc(b.id)}）</span></span>
       </label>`).join('')
-    : '<p class="text-xs text-gray-500 py-1">暂无其它支部可复制——请先由党委在「支部管理」中创建支部。</p>';
+    : emptyStateHtml({ text: "暂无其它支部可复制——请先由党委在「支部管理」中创建支部。", variant: 'inline' });
   return `
     <div class="rounded-lg border border-blue-100 bg-blue-50/40 p-3 mt-2.5 space-y-2">
       <p class="text-xs font-semibold text-gray-700">复制配置到支部…</p>

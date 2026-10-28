@@ -3,7 +3,7 @@
 <html lang="zh-CN">
 <head>
   
-<script src="./src/theme-init.js?v=20261028a"></script>
+<script src="./src/theme-init.js?v=20261028b"></script>
 <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>登录 — GSM1921-SOP</title>
@@ -13,8 +13,8 @@
   <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;800&family=Noto+Serif+SC:wght@400;500;600;700;800&display=swap" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;800&family=Noto+Serif+SC:wght@400;500;600;700;800&display=swap" rel="stylesheet"></noscript>
   <script src="https://cdn.tailwindcss.com/3.4.17"></script>
-  <script src="./src/tailwind-config.js?v=20261028a"></script>
-  <link rel="stylesheet" href="./src/styles.css?v=20261028a">
+  <script src="./src/tailwind-config.js?v=20261028b"></script>
+  <link rel="stylesheet" href="./src/styles.css?v=20261028b">
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
@@ -46,41 +46,9 @@
     }
     .login-card-anim-delay-1 { animation-delay: 0.05s; }
     .login-card-anim-delay-2 { animation-delay: 0.12s; }
-    /* 表单输入 */
-    .login-input {
-      transition: border-color 0.15s, box-shadow 0.15s;
-      /* 2026-10-27 Task 12.2：深色输入框补表面 token（亮色同值白，观感不变）；
-         placeholder 对比度由 styles.css 统一口径承担（--neutral-500：亮 4.83:1 / 暗 ≈6.5:1）。 */
-      background-color: var(--surface-card);
-      color: var(--neutral-800);
-    }
-    /* 聚焦态统一走 styles.css（input.login-input:focus）：边框变党徽金、无发光。
-       原此处 border-color / box-shadow 属第二套 focus，特异性更低（.login-input:focus = 0,2,0 ＜
-       input.login-input:focus = 0,2,1）恒被全局盖死 —— 2026-09-28 CSS 减负批删除
-       （真机浅/深两态计算值逐值相同：聚焦边框与发光均不变）。 */
-    /* 登录按钮 */
-    .login-btn {
-      /* 2026-10-24 批次 508：时长改走 motion 令牌（未注入时回退 180ms）。 */
-      transition: background-color var(--motion-base, 180ms), border-color var(--motion-base, 180ms);
-    }
-    /* 2026-10-24 批次 508：删除 .login-btn 的 hover / active 灰底规则——
-       实底与描边按钮的反馈改由主题/描边同色相承担，不再落灰；
-       transition 保留，供上述状态变化使用。 */
-    /* 2026-10-27 Task 12.1（细节与手感）：两枚提交按钮的按压反馈——
-       实底（统一身份认证）同色相加深 + 内阴影；描边（账号登录）描边压深 + 中性底色 + 内阴影；
-       两者同为 1px 下移。颜色不新造 hex（走主题/中性 token），减少动效时只保留颜色变化。 */
-    .login-btn:active {
-      transform: translateY(1px);
-    }
-    #iaaa-login:active {
-      filter: brightness(0.92);
-      box-shadow: var(--press-shadow);
-    }
-    #login-form button[type="submit"]:active {
-      background-color: var(--surface-active);
-      border-color: var(--neutral-400);
-      box-shadow: var(--press-shadow);
-    }
+    /* 表单输入与按钮统一走 styles.css 的 .input-flat / .btn-accent / .btn-outline
+       （2026-10-28 支书裁定「控件入族」）：此处不再写登录页专属输入框 / 按钮外观，
+       按压反馈由全站唯一源 --press-shadow 承担（不做位移、不用 filter）。 */
     /* 开发模式卡片：静态卡不加 hover 伪装（2026-10-23 Task 7）。 */
     .dev-mode-section { display: none; }
     .dev-mode-section.visible { display: block; }
@@ -94,8 +62,6 @@
       .login-card-anim, .login-card-anim-delay-1, .login-card-anim-delay-2 {
         animation: none !important;
       }
-      .login-btn, .login-card, .login-input { transition: none !important; }
-      .login-btn:active { transform: none; }
     }
   </style>
 </head>
@@ -114,7 +80,7 @@
       <h2 class="font-title text-base font-semibold text-gray-800 mb-1">登录</h2>
       <p class="text-xs text-gray-500 mb-4">请选择登录方式</p>
       <!-- 统一身份认证（北大 IAAA）· 批次 277：正式登录方式（备案未完成时按钮会给出可懂提示） -->
-      <button type="button" id="iaaa-login" class="login-btn w-full text-sm px-4 py-[7px] rounded-lg bg-party-700 text-white font-medium hover:bg-party-800">统一身份认证登录</button>
+      <button type="button" id="iaaa-login" class="btn-accent w-full">统一身份认证登录</button>
       <p class="text-xs text-gray-500 mt-2 leading-relaxed">首次登录自动建号，选择支部后由支部确认。</p>
       <p id="iaaa-note" class="text-xs text-red-600 mt-2 leading-relaxed hidden"></p>
       <div class="login-divider my-5"></div>
@@ -122,26 +88,20 @@
       <form id="login-form" class="space-y-4" novalidate>
         <div>
           <label for="student-id" class="block text-xs font-medium text-gray-600 mb-1.5">学号</label>
-          <input type="text" id="student-id" class="login-input w-full px-3 py-2 rounded-[var(--radius-sm)] border border-[var(--neutral-200)] text-[13px]" placeholder="请输入学号" autocomplete="username">
+          <input type="text" id="student-id" name="studentId" inputmode="numeric" class="input-flat w-full" placeholder="请输入学号…" autocomplete="username">
         </div>
         <div>
           <label for="password" class="block text-xs font-medium text-gray-600 mb-1.5">密码</label>
-          <input type="password" id="password" class="login-input w-full px-3 py-2 rounded-[var(--radius-sm)] border border-[var(--neutral-200)] text-[13px]" placeholder="请输入密码" autocomplete="current-password">
+          <input type="password" id="password" name="password" class="input-flat w-full" placeholder="请输入密码…" autocomplete="current-password">
         </div>
         <p id="login-error" class="text-xs text-red-600 hidden" role="alert">学号或密码错误，请重试</p>
-        <button type="submit" class="login-btn w-full text-sm px-4 py-[7px] rounded-lg border border-gray-300 text-gray-700 bg-white font-medium hover:bg-surface-hover">登录</button>
+        <button type="submit" class="btn-outline w-full">登录</button>
       </form>
       <div class="login-divider my-5"></div>
     </div>
 
-    <!-- 开发模式: 身份卡片网格 -->
-    <div id="login-dev" class="dev-mode-section login-card-anim login-card-anim-delay-1 bg-white rounded-b-2xl shadow-sm border border-t-0 border-gray-200 p-6">
-      <h2 class="font-title text-base font-semibold text-gray-800 mb-1">开发模式 · 选择身份</h2>
-      <p class="text-xs text-gray-500 mb-5">仅本地开发使用</p>
-      <div class="grid grid-cols-2 gap-3" id="dev-cards">
-        <!-- 7 张卡片由 JS 动态生成 -->
-      </div>
-    </div>
+    <!-- 开发模式（#login-dev ＋ #dev-toggle）由 login-entry.js 条件挂载：
+         仅 `?dev=1` 或本机（localhost / 127.0.0.1）渲染；生产不渲染该区块（不是 display:none）。 -->
 
     <!-- 选支部（IAAA 入站「待归属」）· 批次 277：由本面板承接，**不新开页面**
          （与 #login-dev 同为「登录页内的一种模式」，复用 .dev-mode-section 的显隐类） -->
@@ -150,28 +110,22 @@
       <p class="text-xs text-gray-500 mb-4">选择你所属的支部并提交；提交后需由支部确认，确认前看不到支部内容。</p>
       <div id="branch-list" class="space-y-2"></div>
       <p id="branch-note" class="text-xs mt-3 leading-relaxed"></p>
-      <button type="button" id="branch-refresh" class="login-btn w-full text-sm px-4 py-[7px] rounded-lg border border-gray-300 text-gray-700 bg-white font-medium mt-3 hover:bg-surface-hover">刷新确认状态</button>
+      <button type="button" id="branch-refresh" class="btn-outline w-full mt-3">刷新确认状态</button>
     </div>
 
-    <!-- 开发模式开关 -->
-    <div class="login-card-anim login-card-anim-delay-2 text-center mt-4">
-      <label class="inline-flex items-center gap-2 text-xs text-gray-500 cursor-pointer select-none">
-        <input type="checkbox" id="dev-toggle" class="rounded">
-        开发模式
-      </label>
-    </div>
     <!-- 返回主页（T-284：登录页跳转闭环，避免误入后无出口） -->
-    <div class="text-center mt-3">
+    <div id="login-footer" class="text-center mt-3">
       <a href="./index.html" class="text-xs text-gray-500 hover:text-gray-600 transition-colors">← 返回主页</a>
     </div>
   </div>
 
 <!-- modulepreload:start -->
-  <link rel="modulepreload" href="./src/services/core/auth.js?v=20261028a" />
-  <link rel="modulepreload" href="./src/core/domain/constants.js?v=20261028a" />
-  <link rel="modulepreload" href="./src/core/base/utils.js?v=20261028a" />
-  <link rel="modulepreload" href="./src/config/deploy.js?v=20261028a" />
+  <link rel="modulepreload" href="./src/services/core/auth.js?v=20261028b" />
+  <link rel="modulepreload" href="./src/core/domain/constants.js?v=20261028b" />
+  <link rel="modulepreload" href="./src/core/base/utils.js?v=20261028b" />
+  <link rel="modulepreload" href="./src/config/deploy.js?v=20261028b" />
+  <link rel="modulepreload" href="./src/components/ui/empty-state.js?v=20261028b" />
   <!-- modulepreload:end -->
-  <script type="module" src="./src/entries/pages/login-entry.js?v=20261028a"></script>
+  <script type="module" src="./src/entries/pages/login-entry.js?v=20261028b"></script>
 </body>
 </html>

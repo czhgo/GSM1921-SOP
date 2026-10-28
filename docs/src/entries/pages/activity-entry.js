@@ -2,97 +2,98 @@
 // activity-entry.js — 活动/专班统一详情页入口（T233 报名渠道）
 //  URL 前缀分流：act-* 渲染活动详情，tf-* 渲染专班详情。
 //  报名区仅在「可报名」时展示（活动 published/ongoing 且日期未过、专班 recruiting 且未截止）。
-import { renderSidebar } from '../../components/shell/sidebar.js?v=20261028a';
-import { renderHeader } from '../../components/shell/header.js?v=20261028a';
-import { BranchService } from '../../services/core/runtime.js?v=20261028a';
-import { mockDB, isTaskforceTerminalStatus, SourceType, PARTICIPATION_LEVEL_LABELS } from '../../core/domain/domain.js?v=20261028a';
+import { renderSidebar } from '../../components/shell/sidebar.js?v=20261028b';
+import { renderHeader } from '../../components/shell/header.js?v=20261028b';
+import { BranchService } from '../../services/core/runtime.js?v=20261028b';
+import { mockDB, isTaskforceTerminalStatus, SourceType, PARTICIPATION_LEVEL_LABELS } from '../../core/domain/domain.js?v=20261028b';
 // A02：正式会议应到名单读取口径——冻结快照优先，未冻结按 roster 现算（不再读 act.assignments）
-import { loadAttendanceRosterSnapshots } from '../../services/activity/attendance.js?v=20261028a';
-import { getMeetingRosterIds } from '../../services/member/roster.js?v=20261028a';
+import { loadAttendanceRosterSnapshots } from '../../services/activity/attendance.js?v=20261028b';
+import { getMeetingRosterIds } from '../../services/member/roster.js?v=20261028b';
 // A04：专班「工作考察」按稳定父键 workgroupId 读 inspection 记录（不再按名称匹配复盘）
-import { getRecordsBySource } from '../../services/activity/inspection.js?v=20261028a';
-import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261028a';
-import { legacyParticipantAssignmentRows, workgroupMembers } from '../../services/activity/workgroup-members.js?v=20261028a';
-import { NoticeStore } from '../../services/governance/notice.js?v=20261028a';
-import { SignupStore, canCloseActivitySignup, closeActivitySignup, SignupStatus } from '../../services/activity/signup.js?v=20261028a';
-import { AuthStore } from '../../services/core/auth.js?v=20261028a';
-import { getPersonById } from '../../services/member/person.js?v=20261028a';
+import { getRecordsBySource } from '../../services/activity/inspection.js?v=20261028b';
+import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261028b';
+import { legacyParticipantAssignmentRows, workgroupMembers } from '../../services/activity/workgroup-members.js?v=20261028b';
+import { NoticeStore } from '../../services/governance/notice.js?v=20261028b';
+import { SignupStore, canCloseActivitySignup, closeActivitySignup, SignupStatus } from '../../services/activity/signup.js?v=20261028b';
+import { AuthStore } from '../../services/core/auth.js?v=20261028b';
+import { getPersonById } from '../../services/member/person.js?v=20261028b';
 // 品牌认定（2026-09-21 批次 132 · 支书口径二「支委/党小组组长均可以提案，支委会通过后确定」）：
 // 判据与写口单一源 = services/activity/activity.js；本页**不再有「点一下即认定」**（提案 / 撤回 / 取消认定三种动作）。
-import { canProposeBrand, brandProposalOf, proposeBrandDesignation, withdrawBrandProposal, revokeBrandDesignation } from '../../services/activity/activity.js?v=20261028a';
+import { canProposeBrand, brandProposalOf, proposeBrandDesignation, withdrawBrandProposal, revokeBrandDesignation } from '../../services/activity/activity.js?v=20261028b';
 // 转交组织者（SOP-G-2-② · 2026-10-01 批次 327 · 支书裁「乙：直接转交 ＋ 留痕」）：
 //   母本《常见工作场景快速指南》`:125`「组织者退出需经支委会确定好接手的组织者并负责地完成工作交接
 //   后方可退出」；可发起＝支书 / 副支书 / 组织委员 / **该场现任组织者本人**。判据与写口单一源＝
 //   `components/governance/organizer-transfer.js`（本页只挂入口）。
-import { canTransferOrganizer, openOrganizerTransfer, organizerOf } from '../../components/governance/organizer-transfer.js?v=20261028a';
+import { canTransferOrganizer, openOrganizerTransfer, organizerOf } from '../../components/governance/organizer-transfer.js?v=20261028b';
 // 追加复盘要求（2026-09-21 批次 135 · 裁定二「按推荐档落」）：支委会可额外要求本场组织者完成复盘；
 // 判据与写口单一源 = services/activity/activity.js；另有「交回状态」须读该场复盘记录（services/governance/review.js）。
-import { reviewRequestOf, isReviewReturned, isReviewRequestEligibleActivity, requestOrganizerReview, withdrawReviewRequest } from '../../services/activity/activity.js?v=20261028a';
-import { loadActivityReviews } from '../../services/governance/review.js?v=20261028a';
-import { getBasePath, escHtml as esc, showToast, describeWriteError } from '../../core/base/utils.js?v=20261028a';
-import { getActivityTypeColors, usesFormalMeetingRoster, SECRETARY_AND_DEPUTY_ROLES, isPartyGroupLeaderRole, isActivityLive } from '../../core/domain/constants.js?v=20261028a';
-import { getAppState } from '../../core/base/state.js?v=20261028a';
-import { badgeHtml } from '../../components/ui/badges.js?v=20261028a';
+import { reviewRequestOf, isReviewReturned, isReviewRequestEligibleActivity, requestOrganizerReview, withdrawReviewRequest } from '../../services/activity/activity.js?v=20261028b';
+import { loadActivityReviews } from '../../services/governance/review.js?v=20261028b';
+import { getBasePath, escHtml as esc, showToast, describeWriteError } from '../../core/base/utils.js?v=20261028b';
+import { getActivityTypeColors, usesFormalMeetingRoster, SECRETARY_AND_DEPUTY_ROLES, isPartyGroupLeaderRole, isActivityLive } from '../../core/domain/constants.js?v=20261028b';
+import { getAppState } from '../../core/base/state.js?v=20261028b';
+import { badgeHtml } from '../../components/ui/badges.js?v=20261028b';
 // 待批活动的可见性单一源（2026-09-22 批次 151 · 支书裁定「只支委层可见」）：详情页**直按 id 打开**也要守同一判据
 // （列表里不出现、但链接/历史记录可直达 ⇒ 只靠列表过滤不够）。
-import { isActivityVisibleTo, canRevealActivityMemberNames } from '../../services/core/visibility.js?v=20261028a';
+import { isActivityVisibleTo, canRevealActivityMemberNames } from '../../services/core/visibility.js?v=20261028b';
 // 活动生命周期展示态单一源（2026-09-13 收敛）：徽章/文案不得本地另写一套中文状态映射
-import { activityLifecycleBadgeHtml } from '../../components/record/inspector.js?v=20261028a';
-import { enhanceSelects } from '../../components/ui/custom-select.js?v=20261028a';
-import { canSignup as _canSignup, renderSignupSection, renderSignupList, bindSignupEvents, roleLabel } from '../../components/governance/signup-panel.js?v=20261028a';
+import { activityLifecycleBadgeHtml } from '../../components/record/inspector.js?v=20261028b';
+import { enhanceSelects } from '../../components/ui/custom-select.js?v=20261028b';
+import { canSignup as _canSignup, renderSignupSection, renderSignupList, bindSignupEvents, roleLabel } from '../../components/governance/signup-panel.js?v=20261028b';
 // 工作分工（`assignments` 表 · 2026-10-03 批次 359 · `D-750` 续答「全 CRUD」）：落点＝**活动详情页新增一块**；
 //   ⚠ 与活动内联的「参与人员」（`act.assignments`＝**项目角色数组**）**不是同一份数据**；术语用「项目分工 / 事上见」，
 //   **不得**称「常备性分工」（支书明令禁用）。判据与写口单一源＝`services/activity/work-assignment.js`。
-import { canManageWorkAssignments, listWorkAssignments, createWorkAssignment, updateWorkAssignment, removeWorkAssignment, WORK_ASSIGNMENT_STATUS, WORK_ASSIGNMENT_STATUS_LABELS } from '../../services/activity/work-assignment.js?v=20261028a';
+import { canManageWorkAssignments, listWorkAssignments, createWorkAssignment, updateWorkAssignment, removeWorkAssignment, WORK_ASSIGNMENT_STATUS, WORK_ASSIGNMENT_STATUS_LABELS } from '../../services/activity/work-assignment.js?v=20261028b';
 // 选人载体单一源（`DESIGN_SYSTEM §4.13` · `filter-row::S9`）：**「选名单成员」一律 PersonPicker**，
 //   **不得**用自建 `<select>` 罗列人名（`S9` 只放行「任命 / 指派到人」四处例外、且明禁新代码长出第 5 处）——
 //   本块「负责人」属「选名单成员」⇒ 走 PersonPicker（唯一出口 `components/governance/pickers.js`）。
-import { PersonPicker } from '../../components/governance/pickers.js?v=20261028a';
-import { renderShareButtonHtml, bindShareButton } from '../../components/shell/share-button.js?v=20261028a';
-import { renderVoteWidget } from '../../components/governance/vote-widget.js?v=20261028a';
-import { fetchVotes } from '../../services/activity/committee-vote.js?v=20261028a';
+import { PersonPicker } from '../../components/governance/pickers.js?v=20261028b';
+import { renderShareButtonHtml, bindShareButton } from '../../components/shell/share-button.js?v=20261028b';
+import { renderVoteWidget } from '../../components/governance/vote-widget.js?v=20261028b';
+import { fetchVotes } from '../../services/activity/committee-vote.js?v=20261028b';
 // 表态权判据单一源（2026-09-30 批次 304）：本页此前**内联**判过一遍 `voterIds.includes(me)`，
 //   与 inspector.js 的 `isCommittee` 角色门形成两种口径；现统一消费 `isVoterOf`（角色无关）。
-import { isVoterOf } from '../../services/activity/vote-config.js?v=20261028a';
+import { isVoterOf } from '../../services/activity/vote-config.js?v=20261028b';
 // SOP-B-2（批次 83）：本页必须先 hydrate API 数据源再渲染——见 _hydrateData 注释
-import { hydrateDataSource, notifyDataLoaded } from '../../data/data-adapter.js?v=20261028a';
+import { hydrateDataSource, notifyDataLoaded } from '../../data/data-adapter.js?v=20261028b';
 // Task 6：详情页门（跨支部拒绝）+ 已归档只读。判定单一源 = core/domain/object-route.js。
-import { canViewObjectDetail } from '../../core/domain/object-route.js?v=20261028a';
-import { getBranchIdOfPerson } from '../../services/branch/branch.js?v=20261028a';
-import { ApiAdapter } from '../../data/api-adapter.js?v=20261028a';
+import { canViewObjectDetail } from '../../core/domain/object-route.js?v=20261028b';
+import { getBranchIdOfPerson } from '../../services/branch/branch.js?v=20261028b';
+import { ApiAdapter } from '../../data/api-adapter.js?v=20261028b';
 // 批次 123：「关闭报名」后按批次 49「存好了才报成功」同一口径——先结算在途落库再刷新；
 // R11 P0-03：关闭报名用**动作作用域**结算，只等本动作自己的写
-import { beginWriteScope, endWriteScope } from '../../core/session/pending-writes.js?v=20261028a';
-import { getAdapter } from '../../data/data-adapter.js?v=20261028a';
-import { renderWorkgroupMemberEditor, bindWorkgroupMemberEditor } from '../../components/governance/workgroup-member-editor.js?v=20261028a';
-import { openModal, closeModal } from '../../components/ui/modal.js?v=20261028a';
+import { beginWriteScope, endWriteScope } from '../../core/session/pending-writes.js?v=20261028b';
+import { getAdapter } from '../../data/data-adapter.js?v=20261028b';
+import { renderWorkgroupMemberEditor, bindWorkgroupMemberEditor } from '../../components/governance/workgroup-member-editor.js?v=20261028b';
+import { openModal, closeModal, confirmDanger } from '../../components/ui/modal.js?v=20261028b';
 // 汇报汇总（批次 500 · B-499-2）：活动 / 专班上下文按工作组汇总；渲染复用汇报收件箱，不另造第二套。
-import { IssueStore } from '../../services/governance/issues.js?v=20261028a';
-import { renderReportInboxHtml, bindReportInbox, filterReportsByScope } from '../../components/record/reporting.js?v=20261028a';
+import { IssueStore } from '../../services/governance/issues.js?v=20261028b';
+import { renderReportInboxHtml, bindReportInbox, filterReportsByScope } from '../../components/record/reporting.js?v=20261028b';
 
+import { emptyStateHtml } from '../../components/ui/empty-state.js?v=20261028b';
 renderSidebar('dashboard');
 renderHeader('dashboard');
 
 // ── 活动详情页的二次确认 / 单句输入（R3-D07）────────────────────
-// 原生 window.confirm / prompt 依赖浏览器样式、不可无障碍定制；本页 7 处动作统一改走 openModal。
+// 原生 window.confirm / prompt 依赖浏览器样式、不可无障碍定制。
+// ⚠ C-01（2026-10-28）：危险动作一律走 modal.js::confirmDanger（三段式、不可遮罩 / Esc 关闭）；
+//   本函数只留给**非危险**确认（可撤回 / 可重做），调用点须显式传 dismissable: true。
 let _activityDialogSeq = 0;
 
-/** 二次确认：标题 + 后果句 + 取消/确认（危险动作走危险色调） */
-function _openConfirm({ title, message, consequence = '', confirmLabel = '确认', danger = false, onConfirm }) {
+/** 非危险二次确认：标题 + 后果句 + 取消/确认（**非危险**专用；危险动作走 confirmDanger） */
+function _openConfirm({ title, message, consequence = '', confirmLabel = '确认', dismissable = true, onConfirm }) {
   const id = `activity-confirm-${++_activityDialogSeq}`;
-  const okButton = danger
-    ? `<button type="button" data-act-ok class="btn-danger-solid text-sm px-4 py-1.5 font-medium">${esc(confirmLabel)}</button>`
-    : `<button type="button" data-act-ok class="btn-accent text-sm px-4 py-1.5 font-medium">${esc(confirmLabel)}</button>`;
   openModal({
     id,
     title,
     width: '440px',
+    dismissable,
     bodyHtml: `
       <p style="margin:0;font-size:0.85rem;line-height:1.75;color:var(--neutral-800);">${esc(message)}</p>
-      ${consequence ? `<p style="margin:8px 0 0;font-size:0.78rem;line-height:1.7;color:${danger ? 'var(--status-error)' : 'var(--neutral-500)'};">${esc(consequence)}</p>` : ''}`,
+      ${consequence ? `<p style="margin:8px 0 0;font-size:0.78rem;line-height:1.7;color:var(--neutral-500);">${esc(consequence)}</p>` : ''}`,
     footerHtml: `
       <button type="button" data-act-cancel class="btn-outline text-sm px-4 py-1.5" style="cursor:pointer;">取消</button>
-      ${okButton}`,
+      <button type="button" data-act-ok class="btn-accent text-sm px-4 py-1.5 font-medium">${esc(confirmLabel)}</button>`,
     onMount: (panel) => {
       panel.querySelector('[data-act-cancel]')?.addEventListener('click', () => closeModal(id));
       panel.querySelector('[data-act-ok]')?.addEventListener('click', () => {
@@ -424,7 +425,7 @@ async function renderActivity(id) {
           title: '本工作组汇报',
           subtitle: `${workgroupReports.length} 条待答复`,
           role: reportInboxRole,
-          emptyMsg: '— 本工作组暂无汇报 · 下一步：工作组组织者可在「我经办的反馈」发起汇报，或请成员就本事项汇报',
+          emptyMsg: '本工作组暂无汇报 · 下一步：工作组组织者可在「我经办的反馈」发起汇报，或请成员就本事项汇报',
         })}
       </div>
     </details>` : '';
@@ -671,7 +672,7 @@ async function renderActivity(id) {
     <div class="mt-6">
       <h3 class="text-sm font-semibold text-gray-700 mb-3">应到名单（${assignments.length}）${frozenRoster ? '<span class="ml-2 text-[11px] font-normal text-gray-500">已冻结</span>' : '<span class="ml-2 text-[11px] font-normal text-gray-500">未冻结 · 按当前在册现算</span>'}</h3>
       ${assignments.length === 0
-        ? '<p class="text-sm text-gray-500">暂无应到名单：请先在名册登记成员的发展阶段（组织委员可在名册补）</p>'
+        ? emptyStateHtml({ variant: 'inline', text: '暂无应到名单 · 下一步：在名册登记发展阶段' })
         : !canRevealMemberNames
           ? `<p class="text-sm text-gray-600">应到名单 ${assignments.length} 人。登录并进入所属支部后可查看姓名。</p>`
           : `<div class="flex flex-wrap gap-2.5">${assignments.map(x => `
@@ -716,29 +717,27 @@ async function renderActivity(id) {
   }
   _bindWorkAssignments(cardEl, act, myId, myRole, canRevealMemberNames);
 
-  // 「关闭报名」（批次 123）：二次确认（关闭后无「重新开放」入口，属不可逆动作）→ 落库 → 结算 → 刷新。
-  // 放行判据在 closeActivitySignup 内复算一次（呈现/动作同源 canCloseActivitySignup），点了没反应＝放行被挡。
-  cardEl.querySelector('#signup-close-btn')?.addEventListener('click', () => {
-    _openConfirm({
+  // 「关闭报名」（批次 123 · C-01 归并）：危险动作（关闭后无「重新开放」入口）⇒ `confirmDanger` 三段式
+  //   （做什么 / 影响范围 / 可否恢复），不可点遮罩 / Esc 关闭；放行判据在 closeActivitySignup 内复算一次
+  //   （呈现/动作同源 canCloseActivitySignup），点了没反应＝放行被挡。
+  cardEl.querySelector('#signup-close-btn')?.addEventListener('click', async () => {
+    if (!await confirmDanger({
+      id: 'activity-close-signup',
       title: '关闭本场报名',
-      message: '确认关闭本场报名？',
-      consequence: '关闭后成员不能再新报；已报名者仍可自行取消。不可恢复：关闭后没有重新开放入口。',
+      bodyHtml: '<p class="text-sm text-gray-700">关闭本场报名。<br>影响：成员不能再新报，已报名者仍可自行取消。<br><b>不可恢复</b>：关闭后没有重新开放入口。</p>',
       confirmLabel: '关闭报名',
-      danger: true,
-      onConfirm: async () => {
-        const scope = beginWriteScope();
-        try {
-          const res = await closeActivitySignup(act.id, myId);
-          if (!res.ok) { endWriteScope(scope); showToast('error', res.reason || '关闭报名失败'); return; }
-          // 本动作自己的写：成功提示只等本次关闭报名的落库；失败则不刷新，提示留在页面上
-          const outcome = await showToast('success', '本场报名已关闭', { scope });
-          if (outcome.ok) window.location.reload();
-        } catch (e) {
-          endWriteScope(scope);
-          showToast('error', describeWriteError(e));
-        }
-      },
-    });
+    })) return;
+    const scope = beginWriteScope();
+    try {
+      const res = await closeActivitySignup(act.id, myId);
+      if (!res.ok) { endWriteScope(scope); showToast('error', res.reason || '关闭报名失败'); return; }
+      // 本动作自己的写：成功提示只等本次关闭报名的落库；失败则不刷新，提示留在页面上
+      const outcome = await showToast('success', '本场报名已关闭', { scope });
+      if (outcome.ok) window.location.reload();
+    } catch (e) {
+      endWriteScope(scope);
+      showToast('error', describeWriteError(e));
+    }
   });
 
   // 品牌认定三动作（2026-09-21 批次 132 · 支书口径二「提案 → 支委会通过后确定」）：**认定只能由支委会审议通过产生**。
@@ -750,11 +749,13 @@ async function renderActivity(id) {
     if (outcome.ok) window.location.reload();
   };
   cardEl.querySelector('#brand-propose-btn')?.addEventListener('click', () => {
+    // 非危险：提案只登记待议、可随时撤回 ⇒ 保留本地确认，显式允许遮罩 / Esc 关闭
     _openConfirm({
       title: '提交品牌认定提案',
       message: '提交「品牌认定」提案？',
       consequence: '提案只登记待议，须经支委会审议通过后才认定为品牌活动。可恢复：可随时撤回提案。',
       confirmLabel: '提交提案',
+      dismissable: true,
       onConfirm: async () => {
         const res = proposeBrandDesignation({ activityId: act.id, by: myId, role: myRole });
         if (!res.ok) { showToast('error', res.reason || '提案失败'); return; }
@@ -763,11 +764,13 @@ async function renderActivity(id) {
     });
   });
   cardEl.querySelector('#brand-withdraw-btn')?.addEventListener('click', () => {
+    // 非危险：撤回后可重新提交 ⇒ 保留本地确认，显式允许遮罩 / Esc 关闭
     _openConfirm({
       title: '撤回品牌认定提案',
       message: '撤回该活动的品牌认定提案？',
       consequence: '撤回后提案回到未提状态。可恢复：可重新提交提案。',
       confirmLabel: '撤回提案',
+      dismissable: true,
       onConfirm: async () => {
         const res = withdrawBrandProposal({ activityId: act.id, by: myId, role: myRole });
         if (!res.ok) { showToast('error', res.reason || '撤回失败'); return; }
@@ -775,19 +778,17 @@ async function renderActivity(id) {
       },
     });
   });
-  cardEl.querySelector('#brand-revoke-btn')?.addEventListener('click', () => {
-    _openConfirm({
+  // 危险：取消已有认定（留痕）⇒ 走 confirmDanger 三段式，不可点遮罩 / Esc 关闭
+  cardEl.querySelector('#brand-revoke-btn')?.addEventListener('click', async () => {
+    if (!await confirmDanger({
+      id: 'brand-revoke',
       title: '取消品牌认定',
-      message: '确认取消本场的品牌认定？',
-      consequence: '将留痕取消人与时间；重新认定为品牌仍须支委会审议通过。',
+      bodyHtml: '<p class="text-sm text-gray-700">取消本场的品牌认定。<br>影响：本场不再显示品牌标签，退出首页「活动风采」的品牌展示；取消人与时间记入留痕。<br>可恢复：重新认定仍须支委会审议通过。</p>',
       confirmLabel: '取消认定',
-      danger: true,
-      onConfirm: async () => {
-        const res = revokeBrandDesignation({ activityId: act.id, by: myId, role: myRole });
-        if (!res.ok) { showToast('error', res.reason || '取消失败'); return; }
-        await afterBrandWrite('已取消品牌认定');
-      },
-    });
+    })) return;
+    const res = revokeBrandDesignation({ activityId: act.id, by: myId, role: myRole });
+    if (!res.ok) { showToast('error', res.reason || '取消失败'); return; }
+    await afterBrandWrite('已取消品牌认定');
   });
 
   // 追加复盘要求两动作（2026-09-21 批次 135 · 裁定二「按推荐档落」）：① 要求组织者复盘（支委会全体）
@@ -806,11 +807,13 @@ async function renderActivity(id) {
     });
   });
   cardEl.querySelector('#review-request-withdraw-btn')?.addEventListener('click', () => {
+    // 非危险：撤回后可再次提出要求 ⇒ 保留本地确认，显式允许遮罩 / Esc 关闭
     _openConfirm({
       title: '撤回复盘要求',
       message: '撤回本场的追加复盘要求？',
       consequence: '撤回后本场不再要求组织者补交复盘。可恢复：可再次追加复盘要求。',
       confirmLabel: '撤回要求',
+      dismissable: true,
       onConfirm: async () => {
         const res = withdrawReviewRequest({ activityId: act.id, by: myId, role: myRole });
         if (!res.ok) { showToast('error', res.reason || '撤回失败'); return; }
@@ -912,7 +915,7 @@ async function renderTaskforce(tf) {
           title: '本工作组汇报',
           subtitle: `${workgroupReports.length} 条待答复`,
           role: reportInboxRole,
-          emptyMsg: '— 本工作组暂无汇报 · 下一步：工作组组织者可在「我经办的反馈」发起汇报，或请成员就本事项汇报',
+          emptyMsg: '本工作组暂无汇报 · 下一步：工作组组织者可在「我经办的反馈」发起汇报，或请成员就本事项汇报',
         })}
       </div>
     </details>` : '';
@@ -982,14 +985,14 @@ async function renderTaskforce(tf) {
       ${tasks.length ? `<ul class="mt-2 space-y-2">${tasks.map((task) => `<li class="rounded-lg bg-gray-50 px-3 py-2">
         <div class="flex flex-wrap items-center gap-2"><span class="text-sm font-medium text-gray-800">${esc(task.title || task.name || '未命名任务')}</span><span class="rounded-full bg-white px-2 py-0.5 text-xs text-gray-600">${esc(taskStatus[task.status] || task.status || '未设状态')}</span></div>
         ${task.activityId ? `<p class="mt-1 text-xs text-gray-500">关联活动：${esc(mockDB.activities.find((row) => row.id === task.activityId)?.title || task.activityId)}</p>` : ''}
-      </li>`).join('')}</ul>` : `<p class="mt-2 text-sm text-gray-500">暂无登记任务 · ${taskEmptyActionHtml}</p>`}
+      </li>`).join('')}</ul>` : emptyStateHtml({ variant: 'inline', text: '暂无登记任务', actionHtml: taskEmptyActionHtml, className: 'mt-2' })}
     </section>
     <section class="mt-5 border-t border-gray-100 pt-5" aria-labelledby="taskforce-output-title">
       <h3 id="taskforce-output-title" class="text-sm font-semibold text-gray-800">工作产出（${outputs.length}）</h3>
       ${outputs.length ? `<ul class="mt-2 space-y-2">${outputs.map((output) => `<li class="rounded-lg bg-gray-50 px-3 py-2">
         <div class="flex flex-wrap items-center gap-2"><span class="text-sm font-medium text-gray-800">${esc(output.title || '未命名产出')}</span><span class="rounded-full bg-white px-2 py-0.5 text-xs text-gray-600">${esc(outputStatus[output.status] || '已登记')}</span></div>
         ${output.activityId ? `<p class="mt-1 text-xs text-gray-500">关联活动：${esc(mockDB.activities.find((row) => row.id === output.activityId)?.title || output.activityId)}</p>` : ''}
-      </li>`).join('')}</ul>` : '<p class="mt-2 text-sm text-gray-500">暂无登记产出。</p>'}
+      </li>`).join('')}</ul>` : emptyStateHtml({ variant: 'inline', text: '暂无登记产出', className: 'mt-2' })}
     </section>
     <section class="mt-5 border-t border-gray-100 pt-5" aria-labelledby="taskforce-appraisal-title">
       <h3 id="taskforce-appraisal-title" class="text-sm font-semibold text-gray-800">工作考察（${inspectionRecords.length}）</h3>
@@ -1002,7 +1005,7 @@ async function renderTaskforce(tf) {
           </div>
           ${record.content || record.role ? `<p class="mt-1 whitespace-pre-wrap text-xs text-gray-600">${esc(record.content || record.role)}</p>` : ''}
           <p class="mt-1 text-xs text-gray-500">记录人：${esc(getPersonById(record.recordedBy)?.name || record.recordedBy || '—')}${record.recordedAt ? ` · ${esc(String(record.recordedAt).slice(0, 10))}` : ''}</p>
-        </li>`).join('')}</ul>` : '<p class="mt-2 text-sm text-gray-500">暂无工作考察记录（可由专班组织者 / 纪检委员在考察管理录入）。</p>'}
+        </li>`).join('')}</ul>` : emptyStateHtml({ variant: 'inline', text: '暂无工作考察记录', className: 'mt-2' })}
     </section>
   `;
 
@@ -1141,18 +1144,16 @@ function _bindWorkAssignments(cardEl, act, myId, role, canRevealNames = true) {
     if (delBtn) {
       const row = rowOf(delBtn.dataset.rowId);
       if (!row) return;
-      _openConfirm({
+      // 危险：删除不可恢复 ⇒ 走 confirmDanger 三段式，不可点遮罩 / Esc 关闭
+      if (!await confirmDanger({
+        id: 'work-assignment-delete',
         title: '删除工作分工',
-        message: `删除工作「${row.workName}」？`,
-        consequence: '删除后不可恢复；本场工作分工少一条。',
+        bodyHtml: `<p class="text-sm text-gray-700">删除工作「${esc(row.workName)}」。<br>影响：本场工作分工少一条；活动本身与参与人员不变。<br><b>不可恢复</b>。</p>`,
         confirmLabel: '删除',
-        danger: true,
-        onConfirm: async () => {
-          await removeWorkAssignment(row.id);
-          showToast('success', '已删除该条工作分工');
-          rerender();
-        },
-      });
+      })) return;
+      await removeWorkAssignment(row.id);
+      showToast('success', '已删除该条工作分工');
+      rerender();
       return;
     }
     const saveBtn = e.target.closest('.wa-save-btn');

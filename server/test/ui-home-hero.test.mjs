@@ -107,7 +107,7 @@ test('E5 非空转自检：正则正样本命中、负样本不命中', () => {
   assert.match('<p id="dashboard-hero-subtitle" class="text-sm">x</p>', HERO_SUBTITLE_RE,
     '副标题正则须能识别回潮元素（反向断言依赖它）');
 
-  const posImport = "import { getHeaderTitle } from '../../services/branch/branch.js?v=20261028a';";
+  const posImport = "import { getHeaderTitle } from '../../services/branch/branch.js?v=20261028b';";
   const negImport = "import { getHeaderTitle } from '../../services/branch/branch.js';";
   assert.match(posImport, IMPORT_RE);
   assert.doesNotMatch(negImport, IMPORT_RE);
@@ -138,8 +138,14 @@ test('E6 首页活动风采：一张照片都没有时不出 16:9 大图位，�
     '空态分支不得再铺 16:9 图位');
 });
 
-test('E7 首页统计卡：短标签 + 统一 min-height + 图标顶对齐（390 等高）', () => {
-  assert.match(statsSource, /flex items-start gap-3 stat-card/, '统计卡须图标顶对齐并挂 .stat-card');
+test('E7 首页统计卡：数字＋标签两行、统一 min-height（390 等高），不再有彩色图标块', () => {
+  // 2026-10-28 支书裁定「四个数统一为卡片数字」：卡片内只剩「数字 24px ＋ 标签 12px」，
+  //   原 E7 的「图标顶对齐」断言随图标块删除而失效 ⇒ 改为钉住新的卡片结构（判据不放宽：
+  //   短标签 / min-height / 空态说明全部保留，另加「不得回潮彩色图标块」的反向断言）。
+  assert.match(statsSource, /class="card rounded-xl p-4 stat-card/, '统计卡须复用 .card 并挂 .stat-card');
+  assert.match(statsSource, /metric-band__value/, '统计卡数字须沿用 .metric-band__value（与工作台同一套排版）');
+  assert.match(statsSource, /metric-band__label/, '统计卡标签须沿用 .metric-band__label');
+  assert.doesNotMatch(statsSource, /stat-icon-tint/, '不得回潮彩色图标块（图标底 tint 已随卡片数字裁定删除）');
   assert.match(statsSource, /label: '个人考勤'/, '考勤卡标签须为短标签（原「个人考勤（本月无记录）」会折行撑高）');
   assert.match(statsSource, /本月无记录/, '空态说明须保留（降为第二行小字）');
   assert.match(cssSource, /\.stat-card\s*\{[^}]*min-height:\s*\d+px/, 'styles.css 缺少统计卡统一 min-height');

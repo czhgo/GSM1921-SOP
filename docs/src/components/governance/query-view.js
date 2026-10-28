@@ -15,7 +15,8 @@
  */
 
 // 翻页控件单一源（批次 38：全站手写翻页一律并轨 pagerHtml）
-import { pagerHtml } from '../ui/pager.js?v=20261028a';
+import { pagerHtml } from '../ui/pager.js?v=20261028b';
+import { emptyStateHtml } from '../ui/empty-state.js?v=20261028b';
 
 /** 属性/文本转义（子类下拉选项由配置派生，仍统一转义） */
 function _esc(s) {
@@ -149,7 +150,7 @@ export function renderQueryView(container, config) {
     const paged = pageSize > 0 ? filtered.slice((page - 1) * pageSize, page * pageSize) : filtered;
 
     if (paged.length === 0) {
-      resultsEl.innerHTML = `<p class="text-xs text-gray-500 text-center py-4">${emptyMessage}</p>`;
+      resultsEl.innerHTML = emptyStateHtml({ text: emptyMessage, variant: 'panel' });
     } else {
       resultsEl.innerHTML = paged.map(renderRow).join('');
     }

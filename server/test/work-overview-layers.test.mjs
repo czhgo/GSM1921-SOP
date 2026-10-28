@@ -7,12 +7,12 @@
 //   W1 work-overview.js 三层标记齐备（结论带 / 工作分工表 / 待我处理）；
 //   W2 不再出现独立「汇报」卡标题；
 //   W3 六个 overview-tab 都调用共享 renderWorkOverview；
-//   W4 六个角色键配置与「在办 / 逾期 / 待我处理 / 待答复」四数齐备；在办为 muted 脚注级；
+//   W4 六个角色键配置与「在办 / 逾期 / 待我处理 / 待答复」四数齐备；四数同为数字卡（无 muted 脚注档）；
 //   W5 工作分工表列固定为「工作分工 / 负责人 / 在办 / 逾期 / 待处理 / 动作」；
 //      （2026-10-20 界面细化：原「条线 / 最近卡点」是内部管理词，支书裁定改业务词；表头与 aria-label 同批。）
 //   W6 复用模块与既有下钻仍在（list-row / data-table / empty-state / 文件确认 / 去我的处置）；
 //   W7 390px 条线表横滑与首列 sticky 由 styles.css 单一源提供；
-//   W8 结论带四项是可聚焦 button，逾期/待我处理筛选与 3 条上限可用；卡头无重复计数，卡式行 data-label 齐备。
+//   W8 结论带四项是可聚焦数字卡（button / a），筛选与滚动两种控件仍区分；逾期筛选与 3 条上限可用；卡头无重复计数，卡式行 data-label 齐备。
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
@@ -51,7 +51,7 @@ test('W3 六个 overview-tab 都走共享 renderWorkOverview', () => {
   }
 });
 
-test('W4 六个角色键与四数齐备', () => {
+test('W4 六个角色键与四数齐备（四数同为数字卡）', () => {
   for (const role of [
     'secretary', 'org-commissioner', 'prop-commissioner', 'disc-commissioner', 'leader', 'visitor',
   ]) {
@@ -63,11 +63,34 @@ test('W4 六个角色键与四数齐备', () => {
   }
   assert.match(OVERVIEW, /const _MAX_INLINE = 3/, '待我处理上限须为 3 且只有一份');
   assert.match(OVERVIEW, /lineOf\(item\)/, '每台配置须声明 lineOf(...)');
-  // 在办 = 存量指标，降为脚注级；逾期才占主数值档。
-  assert.match(OVERVIEW, /key: 'active', label: '在办'[^\n]*muted: true/, '在办须标记 muted');
-  assert.match(OVERVIEW, /metric-band__value--muted/, '在办须输出 muted 数值档');
-  assert.match(STYLES, /\.metric-band__value--muted\s*\{[^}]*font-size:\s*1rem/, '在办 muted 档须为 16px');
-  assert.match(STYLES, /\.metric-band__value--muted\s*\{[^}]*color:\s*var\(--neutral-500\)/, '在办 muted 档须为 neutral-500');
+  // 2026-10-28「四个数统一为卡片数字」：原「在办 = 存量指标，降为 muted 脚注级（muted: true / 16px /
+  //   neutral-500）」的判据随实现改到卡面结构——四数同级、同为数字卡。原三条 muted 断言按下列映射保留：
+  //   ① 在办仍是滚动类指标（原 kind 语义）→ 断言 key/kind 同行且 kind 为 scroll；
+  //   ② 原「须标记 muted」「须输出 --muted 数值档」→ 改为否定断言（防 muted 脚注档回潮）；
+  //   ③ 原 muted 档 16px / neutral-500 的 CSS 判据 → 改判逾期 warning 文字档（见本节末两条）。
+  assert.match(OVERVIEW, /key: 'active', label: '在办'[^\n]*kind: 'scroll'/, '在办须为滚动类指标（kind: scroll）');
+  assert.doesNotMatch(OVERVIEW, /muted: true/, '四数同级数字卡：在办不得回潮 muted 脚注级');
+  assert.doesNotMatch(OVERVIEW, /metric-band__value--muted/, '四数同级数字卡：不得回潮 muted 数值档');
+  assert.doesNotMatch(STYLES, /\.metric-band__value--muted\s*\{/, 'styles.css 不得保留 muted 数值档（四数同级）');
+  // 四数落点＝卡网格：父级 .metric-band--cards，两条渲染分支（筛选 / 滚动）都取同一套卡面类。
+  assert.match(OVERVIEW, /<section class="metric-band metric-band--interactive metric-band--cards"/,
+    '结论带须为四列卡网格 .metric-band--cards');
+  assert.match(OVERVIEW, /<button type="button" class="card card--interactive stat-card metric-band__item metric-band__item--filter/,
+    '筛选类指标须渲染为数字卡（.card + .stat-card + .metric-band__item）');
+  assert.match(OVERVIEW, /<a class="card card--interactive stat-card metric-band__item metric-band__item--link"/,
+    '滚动类指标须渲染为数字卡（.card + .stat-card + .metric-band__item）');
+  // 卡内只有「数字 + 标签」：body 模板恰为 .metric-band__value ＋ .metric-band__label 两个 span，不含 icon 块。
+  const cardBlock = /const summaryHtml = config\.metrics\.map\(\(metric\) => \{[\s\S]*?\}\)\.join\(''\);/.exec(OVERVIEW);
+  assert.ok(cardBlock, '未找到结论带卡片渲染块（config.metrics.map）');
+  const bodyHtml = /const body = `<span class="metric-band__value[^`]*<\/span>\s*<span class="metric-band__label">\$\{esc\(metric\.label\)\}<\/span>`/.exec(cardBlock[0]);
+  assert.ok(bodyHtml, '卡内 body 须仅由「数字 .metric-band__value ＋ 标签 .metric-band__label」两段组成');
+  assert.deepEqual(bodyHtml[0].match(/<[a-z]+/g), ['<span', '<span'], '卡内只允许数字与标签两个 span（不得夹带 icon / 图形块）');
+  assert.doesNotMatch(cardBlock[0], /<svg|<i\b|stat-card__icon|wo-icon/, '指标卡内不得出现 icon 块');
+  // 逾期：warning 文字档（非 error 色）——原 W4 的 muted 档 CSS 判据在此位置上由 warning 档承接。
+  assert.match(OVERVIEW, /warning: true/, '逾期指标须标记 warning');
+  assert.match(OVERVIEW, /metric-band__value--warning/, '逾期 > 0 须输出 warning 数值档');
+  assert.match(STYLES, /\.metric-band__value--warning\s*\{[^}]*color:\s*var\(--status-warning-text\)/, '逾期数值须为 warning 文字档');
+  assert.doesNotMatch(STYLES, /\.metric-band__value--warning\s*\{[^}]*--status-(?:error|danger)/, '逾期数值不得用 error 色');
 });
 
 test('W5 工作分工表列固定：工作分工 / 负责人 / 在办 / 逾期 / 待处理（R3-29 动作列并入待处理）', () => {
@@ -101,13 +124,18 @@ test('W7 390px：条线表横滑 + 首列 sticky', () => {
   assert.match(STYLES, /\.wo-lines-table td:first-child\s*\{[^}]*position:\s*sticky/, '首列须 sticky');
 });
 
-test('W8 结论带两种控件：筛选 chip（aria-pressed）/ 滚动链接（锚点）；两段与动作列收敛', () => {
-  // 2026-10-20 R3-07：筛选类＝chip 按钮，滚动类＝页内链接，不再让同款按钮干两种事。
-  assert.match(OVERVIEW, /<button type="button" class="metric-band__item metric-band__item--filter/, '筛选类指标须渲染为 chip 按钮');
+test('W8 结论带两种控件（数字卡形态）：筛选卡（aria-pressed）/ 滚动卡（锚点）；两段与动作列收敛', () => {
+  // 2026-10-20 R3-07：筛选类＝可切换控件，滚动类＝页内链接，不再让同款控件干两种事。
+  // 2026-10-28 卡片化：两者同取数字卡外观（.card + .stat-card + .metric-band__item），控件语义不变。
+  assert.match(OVERVIEW, /<button type="button" class="card card--interactive stat-card metric-band__item metric-band__item--filter/, '筛选类指标须渲染为可切换数字卡按钮');
   assert.match(OVERVIEW, /data-metric="\$\{esc\(metric\.key\)\}" data-metric-kind="filter"/, '筛选类须带 data-metric-kind="filter"');
-  assert.match(OVERVIEW, /aria-pressed="\$\{active \? 'true' : 'false'\}"/, '筛选 chip 须带 aria-pressed');
-  assert.match(OVERVIEW, /<a class="metric-band__item metric-band__item--link" href="\$\{esc\(docAnchorHref\(metric\.href \|\| '#wo-lines'\)\)\}"/, '滚动类指标须为页内链接（#wo-lines / #wo-actions，经 docAnchorHref 归一）');
+  assert.match(OVERVIEW, /aria-pressed="\$\{active \? 'true' : 'false'\}"/, '筛选卡须带 aria-pressed');
+  assert.match(OVERVIEW, /<a class="card card--interactive stat-card metric-band__item metric-band__item--link" href="\$\{esc\(docAnchorHref\(metric\.href \|\| '#wo-lines'\)\)\}"/, '滚动类指标须为页内链接（#wo-lines / #wo-actions，经 docAnchorHref 归一）');
   assert.match(OVERVIEW, /data-metric-kind="scroll"/, '滚动类须带 data-metric-kind="scroll"');
+  // 可点 / 不可点的边界：四数一律是 button / a（原生可聚焦 + .card--interactive），不得退化为纯 span 展示卡；
+  //   筛选（可切换，aria-pressed）与滚动（只定位，带 › 线索）的区分仍在。
+  assert.doesNotMatch(OVERVIEW, /<span class="[^"]*\bmetric-band__item\b/, '指标不得退化为不可点的纯 span 载体');
+  assert.match(OVERVIEW, /<span class="metric-band__jump" aria-hidden="true">›<\/span>/, '滚动卡须保留 › 定位线索');
   for (const key of ['overdue', 'actions', 'active', 'fourth']) {
     assert.ok(OVERVIEW.includes(`key: '${key}'`), `指标缺 data-metric 键「${key}」`);
   }

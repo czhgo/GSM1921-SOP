@@ -2,7 +2,7 @@
 title: "多代理独立审查操作手册"
 type: methodology
 role: "[工程师]+[AI]"
-last_updated: "2026-10-27"
+last_updated: "2026-10-28"
 status: active
 related_files: [CLAUDE.md, .ctx/logs/archive/2026-10/specs/generalize-parallel-skill-audit/spec.md, .ctx/logs/archive/2026-10/specs/refine-ui-three-lenses/spec.md, .trae/specs/_TEMPLATE/tasks.md]
 ---
@@ -636,3 +636,60 @@ related_files: [CLAUDE.md, .ctx/logs/archive/2026-10/specs/generalize-parallel-s
 | 2026-10-27 | `.ctx/logs/archive/2026-10/specs/refine-ui-three-lenses/` 三件套 | 本文 §13；`DESIGN_SYSTEM.md` SD-49…SD-52；`CASES.md` CASE-DESIGN-026/027 |
 | 2026-10-27 | 批次 514 交接的硬裁定 R1–R10 与 8 项待办（交接文件已在批次 515 按纪律删除） | 硬裁定并入本文 §13.4 / §13.5；未执行项转入 `CLAUDE.md` 乙部 `B-515-5` |
 | 2026-10-27 | `.trae/specs/_TEMPLATE/tasks.md`（三阶段模板） | 本文 §13.2 / §13.3 |
+
+---
+
+## 14. SKILL 路由（前端 / 后端 / 全栈）（2026-10-28 立）
+
+> **用途：** 一批任务里常同时混着「改界面」与「改服务端」。本节先判任务属于哪一类，再决定派哪个 skill，避免用视觉 lens 评接口、或用后端 lens 评版式。
+> **与本文 §13 的分工：** §13 管**阶段顺序与门禁**（先做什么、什么时候停）；本节管**谁用哪个 skill**（这一路加载什么、禁止做什么）。两节并列使用，互不替代。
+> **与 `CLAUDE.md H21` 的关系：** H21 定协议八条（独立、证据、汇总、裁定）；本节只补「按任务类型选 lens」这一层，不改协议本身。
+
+### 14.1 一条判据
+
+先判任务属于哪一类，再选 skill；跨类的按「全栈」走。
+
+- 只改界面（视觉 / 交互 / 文案 / 布局 / 可访问性）→ **前端**；
+- 只改服务端（路由 / 数据 / 权限 / 迁移 / 脚本）→ **后端**；
+- 同时改两侧，或改动会改变接口契约 → **全栈**。
+
+### 14.2 三张表
+
+列固定为：任务类型 | SKILL | 用途 | 禁止项。
+
+**前端**
+
+| 任务类型 | SKILL | 用途 | 禁止项 |
+|---|---|---|---|
+| 视觉质量与版式（重音、密度、节奏、形） | `uicraft`、`frontend-design`、`better-*`（`better-layout` / `better-typography` / `better-colors` / `better-ui` / `better-accessibility` / `better-writing`） | 出设计判断与实施 | 不得把它们当验收判据（验收仍以 `DESIGN_SYSTEM` 与守卫为准） |
+| 可访问性与硬规范 | `web-design-guidelines` | 焦点、对比度、命中区、键盘、reduced-motion、响应式审查 | 不负责「好不好看」的判断 |
+| Critical 审查（独立 lens） | `huashu-design` | 从「物料 / 观感」角度做批判性评审，产出可核对的发现 | 不用于实施；不照搬其三方向门 / 品牌资产 / 模板装饰等物料范式；不用于生产级 Web App 的范式迁移（其原文声明「生产级 Web App、需后端的系统不走本 skill」） |
+
+**后端**
+
+| 任务类型 | SKILL | 用途 | 禁止项 |
+|---|---|---|---|
+| 接口与数据建模 | `backend-architect` | 路由 / 表结构 / 权限 / 迁移 | 不得用它代替前端 lens 评界面 |
+| 安全基线 | `security-best-practices` | 鉴权、输入边界、注入、敏感信息 | 不做通用代码风格评审 |
+| 服务端实现与联调 | `fullstack-developer`（仅服务端部分） | 实现与测试 | 不得顺手改前端视觉 |
+
+**全栈**
+
+| 任务类型 | SKILL | 用途 | 禁止项 |
+|---|---|---|---|
+| 主控 | `fullstack-developer` | 契约先行、两侧同步；汇总只出共识 / 分歧 / 待裁定 | 同一 skill 不派两个代理；主代理不得平均意见 |
+| 并行两路 | 前端一路（`uicraft` / `web-design-guidelines` / `huashu-design`，三选一）＋ 后端一路（`backend-architect` / `security-best-practices`） | 两路各自独立出报告，不共享中间结论 | 两路互不读报告；同一 skill 不派两个代理 |
+
+### 14.3 并行审查纪律（5 条硬规则）
+
+1. 同一阶段内，一个 skill 只派给一个代理。
+2. 各路互不读报告，也不得先读 `.ctx/logs/**` 的历史审计（先独立、后对照）。
+3. 主代理只出「共识 / 分歧 / 待裁定」，不取平均、不选边。
+4. 每条发现必须能落到 `文件:行号`；写不出的一律删除。
+5. 冲突项交支书裁定；裁定前不实施。
+
+### 14.4 与既有文档的关系
+
+- **`CLAUDE.md H21`（审查三角色）**：H21 定协议八条与主代理 / 子代理 / 支书的职责；本节只在协议之内补「按任务类型选 skill」。
+- **`CLAUDE.md H25`（验证）**：skill 的判断不代替运行验证；实施后按 H25 跑相关测试。
+- **本文 §13（三阶段 UI 专项）**：§13 讲阶段顺序与门禁，本节讲谁用哪个 skill；两节不重复，同批任务可叠加使用。

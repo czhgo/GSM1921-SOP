@@ -16,8 +16,8 @@ import { join } from 'node:path';
 import {
   beginWriteScope, endWriteScope, trackWrite, settleWrites, settleScope,
   hasPendingWrites, peekLastError,
-} from '../../docs/src/core/session/pending-writes.js?v=20261028a';
-import { showToast, resolveToastOutcome } from '../../docs/src/core/base/utils.js?v=20261028a';
+} from '../../docs/src/core/session/pending-writes.js?v=20261028b';
+import { showToast, resolveToastOutcome } from '../../docs/src/core/base/utils.js?v=20261028b';
 
 const ROOT = join(import.meta.dirname, '..', '..');
 const read = (rel) => readFileSync(join(ROOT, rel), 'utf8');

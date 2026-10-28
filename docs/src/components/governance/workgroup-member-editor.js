@@ -1,9 +1,10 @@
-import { PersonPicker } from './pickers.js?v=20261028a';
-import { getAdapter } from '../../data/data-adapter.js?v=20261028a';
-import { getPersonById } from '../../services/member/person.js?v=20261028a';
-import { describeWriteError } from '../../core/base/utils.js?v=20261028a';
-import { WORKGROUP_PERMISSION_LABELS, WORKGROUP_ROLE_LABELS, workgroupPermissionTemplates } from '../../core/domain/workgroup-policy.js?v=20261028a';
+import { PersonPicker } from './pickers.js?v=20261028b';
+import { getAdapter } from '../../data/data-adapter.js?v=20261028b';
+import { getPersonById } from '../../services/member/person.js?v=20261028b';
+import { describeWriteError } from '../../core/base/utils.js?v=20261028b';
+import { WORKGROUP_PERMISSION_LABELS, WORKGROUP_ROLE_LABELS, workgroupPermissionTemplates } from '../../core/domain/workgroup-policy.js?v=20261028b';
 
+import { emptyStateHtml } from '../ui/empty-state.js?v=20261028b';
 const esc = (value) => String(value ?? '').replace(/[&<>"']/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
 const permissionName = (key) => WORKGROUP_PERMISSION_LABELS[key] || key;
 
@@ -75,7 +76,7 @@ function renderParticipantList(participants) {
     <h4 id="wg-general-participants-title" class="text-sm font-semibold text-gray-800">一般参与者（已通过报名）· ${participants.length}</h4>
     ${participants.length
       ? `<ul class="mt-2 flex flex-wrap gap-2">${participants.map((row) => `<li class="rounded-lg bg-gray-50 px-2.5 py-1 text-xs text-gray-700">${esc(row.name || getPersonById(row.personId)?.name || row.personId)}</li>`).join('')}</ul>`
-      : '<p class="mt-2 text-xs text-gray-500">暂无已通过报名</p>'}
+      : emptyStateHtml({ text: '暂无已通过报名', variant: 'inline', className: 'mt-2' })}
   </section>`;
 }
 
@@ -98,7 +99,7 @@ export function renderWorkgroupMemberEditor({
     <div class="mt-3 space-y-2" data-wg-member-list>
       ${activeMembers.length
         ? activeMembers.map((row) => renderMemberRow(row, activeGrants.get(String(row.personId)), activity ? 'activity' : 'taskforce', canEdit)).join('')
-        : '<p class="rounded-lg bg-gray-50 px-3 py-3 text-sm text-gray-500">暂无工作组成员</p>'}
+        : emptyStateHtml({ text: '暂无工作组成员', variant: 'inline' })}
       ${legacyRows.length ? `<details class="rounded-lg border border-amber-200 bg-amber-50/60 px-3 py-2">
         <summary class="cursor-pointer text-xs font-medium text-amber-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-700">历史普通参与记录待核（${legacyRows.length}）</summary>
         <p class="mt-1 text-xs text-amber-900">${activity ? '旧成员镜像保留查看，核实后再纳入活动名单。' : '专班不设一般参与者；旧记录保留待核，不计入工作组成员。'}</p>
@@ -187,7 +188,7 @@ export function bindWorkgroupMemberEditor(root, { onSaved } = {}) {
         list.innerHTML = [...memberMap.values()].map((row) => {
           const grant = { status: 'active', permissionKeys: row.permissionKeys, templateKey: row.templateKey, reason: row.reason };
           return renderMemberRow(row, grant, kind, true);
-        }).join('') || '<p class="rounded-lg bg-gray-50 px-3 py-3 text-sm text-gray-500">暂无工作组成员</p>';
+        }).join('') || emptyStateHtml({ text: '暂无工作组成员', variant: 'inline' });
         if (legacy) list.append(legacy);
       }
       picker.clearSelection();

@@ -207,7 +207,7 @@ export const WORK_MAP_MODULES = [
     // 与批次 135 派单表草案（`SOP-B-25`，**草案 · 待支书改**——本批只改这两个模块的缺省主责，
     // 未据此改全套派单逻辑）。『支委会』是**组织型主体**（`ORG_SUBJECTS`，类似法人、不是自然人），
     // 不是角色键 ⇒ 由 `ownerSubjectType()` 判为 `ownerType:'org'`。
-    desc: '意见建议反馈处理（处置归支委会，支书主持支委会；场景 feedback-handling + 反馈管理）',
+    desc: '意见建议反馈处理（处置归支委会，支书主持支委会；场景 feedback-handling + 意见反馈）',
   },
   {
     id: 'rule-making', name: '制度制定与迭代', tier: 'norm', defaultOwner: 'branch-committee',

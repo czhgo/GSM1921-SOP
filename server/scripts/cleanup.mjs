@@ -1,11 +1,17 @@
 // server/scripts/cleanup.mjs — 数据生命周期清理（B-499-8 Task 4；2026-10-26 Task 6 增测试残留档）
 // ════════════════════════════════════════════════════════════════
-// 默认 **dry-run**（只报告、不删）；`--apply` 才执行下面两类**确认项**：
+// 口径（2026-10-28 支书裁定 · B-500-4 结案）：**业务数据永不自动删除**。
+//   `--apply` 在业务数据面上只允许清三类：孤儿附件 / 悬空附件行 / 测试残留；
+//   任何业务表（活动 / 通知 / 待办 / 归档 / 贡献 / 会议等）都不得由脚本自动删除。
+//   若将来需要删除真实业务记录，须支书逐次手动触发并留审计。
+//   旧备份轮转（`--keep`）与会话清理（`--sessions-before`，默认关）属基础设施维护，不触业务表。
+//
+// 默认 **dry-run**（只报告、不删）；`--apply` 才执行下面这些**确认项**：
 //
 //  A. 常规清理（不带 `--test-residue`）：
 //     ① 孤儿附件：uploads/ 中存在、但没有任何 filePath / attachments.path 引用；
 //     ② 悬空附件行：attachments 表中的 path 对应的物理文件已不存在；
-//     ③ 旧备份：backups/ 下保留最近 N 份（`--keep`，默认 14），其余列为可删。
+//     ③ 旧备份：backups/ 下保留最近 N 份（`--keep`，默认 14），其余列为可删（基础设施维护，不触业务表）。
 //
 //  B. 测试残留清理（`--test-residue`）：
 //     清 `act-b31-*` / `att-b31-*` / `mk-b31-*` / `act-ce46b61e` / `todo_seed_7` /
@@ -14,7 +20,8 @@
 //     安全条件＝「ID 前缀 ＋ 标题/日期」双条件；真实业务行不动。
 //     可选 `--sessions-before <ISO日期>`：删除该日期之前的 sessions（默认不删）。
 //
-// ⚠ 绝不删除任何业务记录（activities / users / archive_records 等一律按双条件白名单命中才动）。
+// ⚠ 业务表及其中的真实业务行永不自动删除；测试残留档只删双条件命中的测试行，
+//   不按时间或数量批量删业务数据。
 // 用法：
 //   node scripts/cleanup.mjs [--db <data.db>] [--uploads <dir>] [--backups <dir>] [--keep 14] [--apply]
 //   node scripts/cleanup.mjs --test-residue [--apply] [--sessions-before 2026-10-01]

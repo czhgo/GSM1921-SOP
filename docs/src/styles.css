@@ -1,5 +1,5 @@
 /* 组件样式（@import 必须位于文件顶部） */
-@import url('components/person-picker.css?v=20261028a');
+@import url('components/person-picker.css?v=20261028b');
 
 /* ═══════════════════════════════════════════════════════════════
    GSM1921-SOP DESIGN SYSTEM v11.0 — Matte Flat
@@ -2906,19 +2906,17 @@ html.theme-dark .cal-cell-large.is-today, html.theme-dark .cal-cell-mobile.is-to
   box-shadow: 0 1px 3px rgba(16, 24, 40, 0.12), 0 0 0 0.5px rgba(16, 24, 40, 0.04);
 }
 
-/* ── T231 内联淡色统一：color-mix 变量驱动，深浅两套适配 ──
-   调用方设 --tint 变量 + 内联色字；浅色为透明叠加 8%，深色提为 14% 保证辨识 */
-.stat-icon-tint {
-  background: color-mix(in srgb, var(--tint, #CE1126) 8%, transparent);
-}
-html.theme-dark .stat-icon-tint {
-  background: color-mix(in srgb, var(--tint, #CE1126) 14%, var(--surface-card));
-}
 /* 2026-10-27 Task 6.4（脏乱繁）：首页统计卡等高 + 短标签 + 图标顶对齐。
    `min-height` 取「图标 40 + 数值/标签/状态三行 + 上下 16×2」的最高一格（实测 99）⇒ 四张同高；
-   390 两列网格里不再出现 79 / 99 两种高度。 */
+   390 两列网格里不再出现 79 / 99 两种高度。
+   2026-10-28 支书裁定「四个数统一为卡片数字」：去掉彩色图标块与彩色数字，
+   卡片内只剩「数字 24px ＋ 标签 12px」（数字／标签排版取 .metric-band__value / __label）；
+   工作台结论带用同一套类（见 .metric-band--cards），两处同构。 */
 .stat-card {
   min-height: 100px;
+}
+.stat-card .metric-band__label {
+  margin-top: var(--space-1);
 }
 .stat-card__note {
   margin-top: var(--space-1);
@@ -3588,19 +3586,14 @@ a:focus-visible {
 }
 
 /* 2026-10-24 批次 508：焦点统一走 3.2 的字段外壳；不再叠近黑外环。
-   （原此处给 .input-flat / login-input / .cs-trigger 统一加 2px --focus-ring 外环，已整段删除。） */
+   （原此处给 .input-flat / login-input / .cs-trigger 统一加 2px --focus-ring 外环，已整段删除。）
+   2026-10-28：登录页输入框并入 .input-flat（原 login-input 独立口径删除），焦点随字段外壳。 */
 /* 紧凑档字段同一口径（2026-10-23 R11 P0-01）：键盘聚焦必须有 ≥3:1 的实线环。 */
 .input-flat-sm:focus,
 .input-flat-sm:focus-visible {
   outline: 2px solid var(--focus-ring);
   outline-offset: 1px;
   box-shadow: none;
-}
-/* login 页自带 .login-input:focus 的红边：聚焦归党徽金（登录页独立口径）。
-   .cs-trigger 已在 3.2 字段外壳里改走主题色，此处不再重复下发金边。 */
-input.login-input:focus,
-input.login-input:focus-visible {
-  border-color: var(--party-gold);
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -5605,8 +5598,9 @@ html.theme-dark .agg-count-badge {
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   COMPONENT: Empty State（空态）——单一源，2026-10-18 立
-   ── 职责：一句话 + 至多一个动作；标记由 components/ui/empty-state.js 产出。
+   COMPONENT: Empty State（空态）——单一源，2026-10-18 立 · 2026-10-28 三形态
+   ── 职责：一句话 + 至多一个动作；标记由 components/ui/empty-state.js 产出
+      （variant: panel 居中块 / inline 行内一句 / table 表格空行）。
    ── 禁用：插图、长说明、多个并列动作。 */
 .empty-state {
   display: flex;
@@ -5624,6 +5618,19 @@ html.theme-dark .agg-count-badge {
   display: flex;
   align-items: center;
   gap: var(--space-2);
+}
+/* inline：行内一句（列表 / 单元格 / 提示条内），不撑高、不分栏 */
+.empty-state--inline {
+  display: block;
+  padding: 0;
+  text-align: left;
+}
+.empty-state--inline .empty-state__text {
+  font-size: var(--text-xs);
+}
+.empty-state--inline .empty-state__action {
+  display: inline-flex;
+  margin-left: var(--space-1);
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -5811,15 +5818,63 @@ button.metric-band__item--filter.is-active {
 .metric-band__value--warning {
   color: var(--status-warning-text);
 }
-/* 存量指标，不与逾期争重心：在办是过程量，降到脚注级 16px / neutral-500
-   （2026-10-23 R11 P2-01：由 18px 降一档，与数值 24px / 标签 12px 拉开但不另立第四档）。 */
-.metric-band__value--muted {
-  font-size: 1rem;
-  font-weight: 500;
-  color: var(--neutral-500);
-}
 .metric-band__value--accent {
   color: var(--app-accent-soft-text);
+}
+
+/* ── 数字卡档（2026-10-28 支书裁定：「四个数」统一为卡片数字）──
+   首页四数（dashboard/stats.js）与工作台结论带（governance/work-overview.js）同构：
+   卡片 = .card（白底 / 1px 描边 / 12px 圆角）＋ .metric-band__value（24px/600）＋ .metric-band__label（12px）。
+   `--cards` 只承担「横向带 → 四列卡网格」的布局切换，卡面复用 .card，不新增阴影；
+   卡间距沿用卡片既有 16px（--space-4）。 */
+.metric-band--cards {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  align-items: stretch;
+  gap: var(--space-4);
+  padding: 0;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+}
+.metric-band--cards .metric-band__item {
+  position: relative;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: var(--space-1);
+  padding: var(--space-4);
+  border-radius: var(--radius-md);
+}
+/* 带内首项不再吃掉左侧胶囊内边距（卡面四边等距）。 */
+.metric-band--cards .metric-band__item:first-child {
+  padding-left: var(--space-4);
+}
+/* 筛选卡仍是可切换控件：外形取卡，选中态沿用主题 soft 三件套（替换原胶囊描边）。 */
+.metric-band--cards .metric-band__item--filter {
+  padding: var(--space-4);
+  border-radius: var(--radius-md);
+}
+/* 卡面 hover 只由 .card--interactive 加深描边（与首页一致）；不铺灰底。 */
+@media (hover: hover) {
+  .metric-band--cards button.metric-band__item:hover,
+  .metric-band--cards a.metric-band__item:hover {
+    background: var(--neutral-0);
+  }
+  .metric-band--cards button.metric-band__item--filter.is-active:hover {
+    background: var(--app-accent-soft-bg);
+  }
+}
+/* 可点箭头是静态线索：卡面右上角，不占数字行。 */
+.metric-band--cards .metric-band__jump {
+  position: absolute;
+  top: var(--space-3);
+  right: var(--space-4);
+}
+@media (max-width: 640px) {
+  .metric-band--cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 /* ── 状态徽章：统一淡底深字（§2.10 明暗档「状态」行）──
@@ -6455,11 +6510,8 @@ textarea::placeholder {
 
 /* 2026-10-27 Task 11.5：登录页输入框（.login-input）不带 .input-flat 族类，
    Tailwind preflight 的 `input::placeholder`（gray-400）会以同特异性但更晚的序压过上面这条，
-   亮色白底实测仅 2.54:1。用类选择器提特异性，亮 4.83 / 暗卡 6.57。 */
-.login-input::placeholder {
-  color: var(--neutral-500);
-  opacity: 1;
-}
+   亮色白底实测仅 2.54:1。用类选择器提特异性，亮 4.83 / 暗卡 6.57。
+   2026-10-28：登录框并入 .input-flat，专属 ::placeholder 规则随之删除（由上面统一口径承担）。 */
 
 /* 页码 / 关闭 / 图标按钮：视觉尺寸不变，命中区扩到 44×44。
    （行内 28px 按钮的 44px 命中区已由 `.list-row__trailing` 段负责。） */

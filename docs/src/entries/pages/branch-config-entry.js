@@ -1,21 +1,22 @@
 // Party-only per-branch configuration. The selected branch remains explicit in the URL.
-import { mockDB } from '../../core/domain/domain.js?v=20261028a';
-import { AuthStore } from '../../services/core/auth.js?v=20261028a';
-import { BranchService } from '../../services/core/runtime.js?v=20261028a';
-import { getPersonName } from '../../services/member/person.js?v=20261028a';
-import { getBranchById, renameBranch, setBranchActive } from '../../services/branch/branch.js?v=20261028a';
-import { appointSecretary, listAppointments } from '../../services/branch/appointment.js?v=20261028a';
-import { ApiAdapter } from '../../data/api-adapter.js?v=20261028a';
-import { hydrateDataSource } from '../../data/data-adapter.js?v=20261028a';
-import { mountPartyConfig } from '../tabs/party-committee/party-config-tab.js?v=20261028a';
-import { renderSidebar } from '../../components/shell/sidebar.js?v=20261028a';
-import { renderHeader } from '../../components/shell/header.js?v=20261028a';
-import { mountBranchRosterImport } from '../../components/governance/branch-roster-import-panel.js?v=20261028a';
-import { PersonPicker } from '../../components/governance/pickers.js?v=20261028a';
-import { escHtml as esc, showToast, getBasePath } from '../../core/base/utils.js?v=20261028a';
-import { renderSectionHeader } from '../../components/shell/page-frame.js?v=20261028a';
-import { confirmDanger } from '../../components/ui/modal.js?v=20261028a';
+import { mockDB } from '../../core/domain/domain.js?v=20261028b';
+import { AuthStore } from '../../services/core/auth.js?v=20261028b';
+import { BranchService } from '../../services/core/runtime.js?v=20261028b';
+import { getPersonName } from '../../services/member/person.js?v=20261028b';
+import { getBranchById, renameBranch, setBranchActive } from '../../services/branch/branch.js?v=20261028b';
+import { appointSecretary, listAppointments } from '../../services/branch/appointment.js?v=20261028b';
+import { ApiAdapter } from '../../data/api-adapter.js?v=20261028b';
+import { hydrateDataSource } from '../../data/data-adapter.js?v=20261028b';
+import { mountPartyConfig } from '../tabs/party-committee/party-config-tab.js?v=20261028b';
+import { renderSidebar } from '../../components/shell/sidebar.js?v=20261028b';
+import { renderHeader } from '../../components/shell/header.js?v=20261028b';
+import { mountBranchRosterImport } from '../../components/governance/branch-roster-import-panel.js?v=20261028b';
+import { PersonPicker } from '../../components/governance/pickers.js?v=20261028b';
+import { escHtml as esc, showToast, getBasePath } from '../../core/base/utils.js?v=20261028b';
+import { renderSectionHeader } from '../../components/shell/page-frame.js?v=20261028b';
+import { confirmDanger } from '../../components/ui/modal.js?v=20261028b';
 
+import { emptyStateHtml } from '../../components/ui/empty-state.js?v=20261028b';
 renderSidebar('workspace');
 renderHeader('workspace');
 
@@ -99,7 +100,7 @@ function renderControls() {
         <h3 id="branch-terms-heading" class="font-title-cn text-sm font-bold text-gray-900">支书任期记录</h3>
         ${appointments.length ? `<ol class="mt-2 divide-y divide-gray-200 border-y border-gray-200">
           ${appointments.slice(0, 5).map((record) => `<li class="py-2 text-sm text-gray-700"><span class="font-medium">${esc(getPersonName(record.secretaryId) || record.secretaryId)}</span><span class="ml-2 text-xs text-gray-500">${esc(String(record.from || '').slice(0, 10))}${record.to ? ` 至 ${esc(String(record.to).slice(0, 10))}` : ' 至今'}</span>${record.note ? `<p class="mt-1 text-xs text-gray-500">${esc(record.note)}</p>` : ''}</li>`).join('')}
-        </ol>` : '<p class="mt-2 border-y border-gray-200 py-3 text-sm text-gray-500">暂无任期记录。</p>'}
+        </ol>` : emptyStateHtml({ variant: 'inline', text: '暂无任期记录' })}
       </section>
     </div>
     </div>`;
@@ -155,7 +156,10 @@ function renderControls() {
 }
 
 async function init() {
-  if (!actor) return showMessage('请先登录党委组织员账号。', true);
+  if (!actor) {
+    if (message) message.innerHTML = emptyStateHtml({ variant: 'panel', text: '请先登录后使用', actionHtml: `<a class="btn-outline" href="${getBasePath()}login.html">去登录</a>` });
+    return;
+  }
   if (actor.role !== 'party-staff') return showMessage('此页面仅供党委组织员管理支部配置。', true);
   if (!branchId) return showMessage('请从党委支部目录选择支部后进入配置。', true);
   showMessage('正在读取所选支部…');

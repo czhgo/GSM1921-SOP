@@ -213,7 +213,7 @@ const C3_BASELINE = {
   'secretary::全局概况': 5,
   // 2026-10-04 批次 373：支书台「党小组与活动」→「党小组」且活动相关迁出后，该屏实测**复述归零**
   //   ⇒ 按「收基线纪律」**同批删条目**（进度前进；非放宽）。
-  'secretary::反馈管理': 2,
+  'secretary::意见反馈': 2,
   // 2026-10-20 批次 489（工作台概况同屏复述）：
   //   · 产品侧已做**同对象去重**：`_buildActionItems` 先收集待办 `actionData.scope + sourceId`，
   //     同一 activity / taskforce id 不再既出待办行、又出「看详情」活动/专班行（`work-overview.js`）。

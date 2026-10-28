@@ -1,13 +1,14 @@
 // role: [工程师]+[AI]
 // 个人档案页的「本人自述」展示：折叠摘要 + 5 个子组。
 // 字段顺序与含义沿用自我描述字段单一源（core/domain/self-profile.js）。
-import { escHtml as esc } from '../../core/base/utils.js?v=20261028a';
+import { escHtml as esc } from '../../core/base/utils.js?v=20261028b';
 import {
   isSelfProfileEmpty, SELF_PROFILE_FIELDS,
-} from '../../core/domain/self-profile.js?v=20261028a';
-import { EMPTY_TEXT } from '../../core/domain/constants.js?v=20261028a';
-import { listRowHtml, listGroupHtml } from '../ui/list-row.js?v=20261028a';
+} from '../../core/domain/self-profile.js?v=20261028b';
+import { EMPTY_TEXT } from '../../core/domain/constants.js?v=20261028b';
+import { listRowHtml, listGroupHtml } from '../ui/list-row.js?v=20261028b';
 
+import { emptyStateHtml } from '../ui/empty-state.js?v=20261028b';
 /** 15 个自述字段的展示子组（顺序＝展开后的阅读顺序；键集≡SELF_PROFILE_FIELDS） */
 export const SELF_PROFILE_GROUPS = [
   { title: '基本信息', keys: ['phone', 'grade', 'major'] },
@@ -70,7 +71,7 @@ function emptyTextFor(key, selfProfile) {
   return EMPTY_TEXT;
 }
 
-/** 子表：表头 + 行（不为每行做白卡；子项不再加 data-field） */
+/** 子表：表头 + 行（不为每行做白卡；子项不再加 data-field）；≤640px 走既有卡式行（DESIGN_SYSTEM §4.20） */
 function listTableHtml(field, value, emptyText) {
   const rows = Array.isArray(value)
     ? value.filter((row) => row && typeof row === 'object'
@@ -80,9 +81,9 @@ function listTableHtml(field, value, emptyText) {
   // 空列整列不渲染（列声明 emptyText，全空即无信息）
   const cols = (field.itemFields || []).filter((col) => rows.some((row) => String(row[col.key] == null ? '' : row[col.key]).trim()));
   return `<div class="overflow-x-auto">
-    <table class="data-table">
+    <table class="data-table" data-responsive="cards">
       <thead><tr>${cols.map((col) => `<th scope="col">${esc(col.label)}</th>`).join('')}</tr></thead>
-      <tbody>${rows.map((row) => `<tr class="border-t border-gray-100 align-top">${cols.map((col) => `<td class="break-words whitespace-pre-wrap">${esc(row[col.key] || EMPTY_TEXT)}</td>`).join('')}</tr>`).join('')}</tbody>
+      <tbody>${rows.map((row) => `<tr class="border-t border-gray-100 align-top">${cols.map((col) => `<td data-label="${esc(col.label)}" class="break-words whitespace-pre-wrap">${esc(row[col.key] || EMPTY_TEXT)}</td>`).join('')}</tr>`).join('')}</tbody>
     </table>
   </div>`;
 }
@@ -140,7 +141,7 @@ export function renderSelfDescriptionSection(selfProfile, {
     ? `<button type="button" id="person-self-profile-btn" data-mode="self" class="btn-outline text-sm px-4 py-2 rounded-lg">${empty ? '填写' : '编辑'}我的自述</button>`
     : canDictate
       ? '<button type="button" id="person-self-profile-btn" data-mode="dictate" class="btn-outline text-sm px-4 py-2 rounded-lg">代录自述</button>'
-      : `<p class="text-xs text-gray-400">${esc(readOnlyReason || '仅本人或本支部组织委员可填写')}</p>`;
+      : `<p class="text-xs text-gray-500">${esc(readOnlyReason || '仅本人或本支部组织委员可填写')}</p>`;
 
   const body = empty
     ? `<p class="mt-2 text-sm text-gray-600">${isSelf
@@ -200,6 +201,6 @@ export function renderThoughtReportsSection({ reports = [], total = 0, viewAllHr
     </div>
     ${rows.length
       ? `<div class="mt-2 border-t border-gray-100 pt-1">${listGroupHtml(rows)}</div>`
-      : '<p class="mt-2 text-sm text-gray-600">暂无思想汇报。</p>'}
+      : emptyStateHtml({ text: '暂无思想汇报', variant: 'inline', className: 'mt-2' })}
   </section>`;
 }

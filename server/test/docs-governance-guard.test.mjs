@@ -1285,3 +1285,73 @@ test('H-T5 术语单一源：TERMINOLOGY ≥18 条 9 字段齐；§19 与 sop/IN
   assert.equal(definitionSentenceHits('专班的负责人先移交。', ['专班']).length, 0,
     '「专班的负责人」不是定义句（不得因「指」以外字面误报）');
 });
+
+// ═════════════════════════════════════════════════════════════════════════════
+// 七、根页地标：skip link 落点必须是 <main id="main-content">（2026-10-28 前端设计审查）
+// ═════════════════════════════════════════════════════════════════════════════
+//
+// 病灶：9 个根页（归档 / 活动 / 活动材料 / 消息 / 通知 / 支委会 / 个人档案 / 专班 / 思想汇报）
+//   skip 链接落点是 `<div class="sidebar-main-content" id="main-content">`——键盘用户「跳到主要内容」
+//   后落在普通 div 上，读屏软件得不到 main 地标，也无法用「main 地标跳转」直达正文；其余页面用的是 `<main>`。
+// 判据：凡带 `sidebar-main-content` 外壳的根页，`#main-content` 必须落在**唯一**的 `<main>` 上，
+//   class 保持 `sidebar-main-content`（不改变布局），skip 链接仍指向 `#main-content`。
+// 非空转：扫描面 ≥9 份 + 点名 9 页必须实际参与扫描 + 纯判据正负例自检（防判据写反 ⇒ 恒真）。
+
+const ROOT_PAGES_DIR = join(ROOT, 'docs');
+/** 2026-10-28 审查点名的 9 个根页（必须全部参与扫描；新增同类页须同批加入本清单） */
+const SIDEBAR_MAIN_PAGES = [
+  'archive.html', 'activity.html', 'activity-materials.html', 'messages.html', 'notice.html',
+  'party-committee-meeting.html', 'person.html', 'taskforce.html', 'thought-report.html',
+];
+
+/** 纯判据：给页面源码返回问题串（空＝合格）
+ *  `requireSidebarClass` 只对原本用 `.sidebar-main-content` 当正文容器的页生效（这 9 页 class 不得被换掉，
+ *  否则等于顺手改了布局容器）；其余页面的 `<main>` 自有布局 class，不在本判据内。 */
+export function mainLandmarkProblems(src, { requireSidebarClass = false } = {}) {
+  const out = [];
+  const withId = [...src.matchAll(/<([a-zA-Z]+)\b[^>]*\bid="main-content"[^>]*>/g)];
+  if (withId.length !== 1) out.push(`id="main-content" 出现 ${withId.length} 次（应恰为 1 次）`);
+  const mainTags = [...src.matchAll(/<main\b[^>]*>/g)];
+  if (mainTags.length !== 1) out.push(`<main> 地标 ${mainTags.length} 个（应恰为 1 个）`);
+  if (withId.length === 1 && withId[0][1].toLowerCase() !== 'main') {
+    out.push(`#main-content 落在 <${withId[0][1]}> 而非 <main>`);
+  }
+  if (requireSidebarClass && mainTags.length === 1 && !/\bclass="[^"]*sidebar-main-content/.test(mainTags[0][0])) {
+    out.push('<main> 未保留 class="sidebar-main-content"（布局容器口径变了）');
+  }
+  if (!/<a href="#main-content"[^>]*class="[^"]*skip-link/.test(src)) {
+    out.push('缺 skip link（href="#main-content" 且 class 含 skip-link）');
+  }
+  return out;
+}
+
+test('G11 根页地标：sidebar-main-content 外壳的 #main-content 必须是唯一 <main>（9 页逐一断言）', () => {
+  const pages = readdirSync(ROOT_PAGES_DIR)
+    .filter((n) => n.endsWith('.html'))
+    .filter((n) => read(join(ROOT_PAGES_DIR, n)).includes('sidebar-main-content'))
+    .sort();
+  assert.ok(pages.length >= 9,
+    `只扫到 ${pages.length} 个带 sidebar-main-content 的根页（基线 9）：扫描面被写坏，本条会变恒真`);
+  const missing = SIDEBAR_MAIN_PAGES.filter((n) => !pages.includes(n));
+  assert.deepEqual(missing, [], `点名页未参与扫描（文件被改名 / 容器被删）：${missing.join(' / ')}`);
+
+  const problems = [];
+  for (const name of pages) {
+    const opts = { requireSidebarClass: SIDEBAR_MAIN_PAGES.includes(name) };
+    for (const p of mainLandmarkProblems(read(join(ROOT_PAGES_DIR, name)), opts)) problems.push(`docs/${name}：${p}`);
+  }
+  assert.deepEqual(problems, [], `根页 <main> 地标不合规：\n  ${problems.join('\n  ')}`);
+
+  // 判据自检（正例 / 四种负例）
+  const ok = '<a href="#main-content" class="visually-hidden skip-link">跳到主要内容</a>'
+    + '<main class="sidebar-main-content pt-16" id="main-content"><p>正文</p></main>';
+  assert.deepEqual(mainLandmarkProblems(ok, { requireSidebarClass: true }), [], '正例被误判红');
+  assert.ok(mainLandmarkProblems(ok.replace('<main ', '<div ').replace('</main>', '</div>')).length > 0,
+    '负例①（div 承载 #main-content）未被判出');
+  assert.ok(mainLandmarkProblems(ok.replace('</main>', '</main><main id="main-content"></main>')).length > 0,
+    '负例②（第二个 <main> / 重复 id）未被判出');
+  assert.ok(mainLandmarkProblems(ok.replace(' class="sidebar-main-content pt-16"', ''), { requireSidebarClass: true }).length > 0,
+    '负例③（<main> 丢了布局 class）未被判出');
+  assert.ok(mainLandmarkProblems(ok.replace('href="#main-content"', 'href="#content"')).length > 0,
+    '负例④（skip link 目标漂移）未被判出');
+});

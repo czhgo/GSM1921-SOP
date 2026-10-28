@@ -90,16 +90,15 @@ const classOf = (tag) => (/class="([^"]*)"/.exec(tag) || [null, ''])[1];
  *     （描边 / 8px / 焦点环齐备）；它是「搜索」语义，不并入 `.input-flat`，避免覆盖选择器内部排版。
  *   · help-search-input —— 帮助页搜索，`docs/help.html:135` 内联完整定义（描边 / 8px / 焦点）。
  *   · cs-search-input —— 自定义下拉的内嵌搜索，`styles.css:1223` 完整定义（描边 / 8px / 焦点）。
- *   · login-input —— 登录独立页专用（未登录前不加载工作台样式），`docs/login.html` 内联定义，
- *     焦点态由 `styles.css:2903` 统一收口。
  *   · vote-note —— 表态附言多行框，`styles.css:2460` 完整定义（白底 / 1px / 8px / focus）。
  *   · help-role-filter —— 帮助页身份筛选下拉，`docs/help.html:149` 完整定义。
+ *   2026-10-28：`login-input` 条目删除——登录页输入框已并入 `.input-flat`（支书裁定「控件入族」），
+ *   白名单条目失去命中对象（僵尸白名单应删，不得为保绿留下）。
  */
 const INPUT_WHITELIST = [
   { token: 'person-picker-search', reason: '选人器搜索框，person-picker.css:168 完整定义' },
   { token: 'help-search-input', reason: '帮助页搜索，help.html:135 内联完整定义' },
   { token: 'cs-search-input', reason: '自定义下拉内嵌搜索，styles.css:1223 完整定义' },
-  { token: 'login-input', reason: '登录独立页控件，login.html 内联定义 + styles.css:2903 焦点收口' },
   { token: 'vote-note', reason: '表态附言多行框，styles.css:2460 完整定义' },
   { token: 'help-role-filter', reason: '帮助页身份筛选，help.html:149 内联完整定义' },
 ];
@@ -947,8 +946,16 @@ test('B8 btn-ghost 作为动作按钮的存量只许降不许升（新代码不�
 
 test('V1 容器语义：metric-band 拆两档 / section.card 必有可访问名 / list-row 四载体可区分', () => {
   // ① metric-band 两档：工作概况（含 button/a）＝interactive；待办摘要（纯 span）＝static。
-  assert.match(WORK_OVERVIEW, /<section class="metric-band metric-band--interactive"/,
-    '工作概况结论带须为 .metric-band--interactive（含可点 button/a）');
+  //    2026-10-28 支书裁定「四个数统一为卡片数字」：工作概况由横向带改为卡片数字档
+  //    （`.metric-band--cards`），卡面复用 `.card`＋`.metric-band__value/__label`；语义仍是可点交互摘要。
+  assert.match(WORK_OVERVIEW, /<section class="metric-band metric-band--interactive metric-band--cards"/,
+    '工作概况结论带须为 .metric-band--interactive.metric-band--cards（四张数字卡，含可点 button/a）');
+  assert.match(CSS, /\.metric-band--cards\s*\{[^}]*grid-template-columns:\s*repeat\(4,\s*minmax\(0,\s*1fr\)\)/,
+    'styles.css 缺 .metric-band--cards 的四列卡网格');
+  assert.match(WORK_OVERVIEW, /class="card card--interactive stat-card metric-band__item/,
+    '工作台数字卡须复用 .card（不得另造第二套卡面）');
+  assert.match(WORK_OVERVIEW, /metric-band__value/,
+    '工作台数字卡须沿用 .metric-band__value（与首页同一套数字排版）');
   assert.match(TODO_SHELL, /class="metric-band metric-band--static/,
     '待办摘要须为 .metric-band--static（纯 span 只读摘要）');
   assert.match(CSS, /\.metric-band--interactive\s+\.metric-band__item/,

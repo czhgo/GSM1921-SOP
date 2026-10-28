@@ -3,22 +3,23 @@
 // 2026-08-07 自 ws-secretary-entry.js 拆分。
 // GitHub Issue 风格反馈管理面板：草稿审核（通过/驳回）全部反馈列表 + 导出/清除 + 详情处置（指派/状态/评论/隐藏/合并）。
 
-import { IssueStore, deriveIssueDisplayState, IssueNotify, issueDomainLabel, issueDomainSuggest, issueDomainReplyHint } from '../../../services/governance/issues.js?v=20261028a';
-import { showToast, todayLocal } from '../../../core/base/utils.js?v=20261028a';
-import { scrollDetailIntoView } from '../../../components/ui/detail-anchor.js?v=20261028a';
-import { icon } from '../../../core/base/icons.js?v=20261028a';
-import { AuthStore } from '../../../services/core/auth.js?v=20261028a';
-import { ROLE_LABELS, DRAFT_TYPE_LABELS } from '../../../core/domain/constants.js?v=20261028a';
-import { getPersonName } from '../../../services/member/person.js?v=20261028a';
-import { PersonStore } from '../../../services/member/person.js?v=20261028a';
-import { badgeHtml, badgeVariantClass } from '../../../components/ui/badges.js?v=20261028a';
+import { IssueStore, deriveIssueDisplayState, IssueNotify, issueDomainLabel, issueDomainSuggest, issueDomainReplyHint } from '../../../services/governance/issues.js?v=20261028b';
+import { showToast, todayLocal } from '../../../core/base/utils.js?v=20261028b';
+import { scrollDetailIntoView } from '../../../components/ui/detail-anchor.js?v=20261028b';
+import { icon } from '../../../core/base/icons.js?v=20261028b';
+import { AuthStore } from '../../../services/core/auth.js?v=20261028b';
+import { ROLE_LABELS, DRAFT_TYPE_LABELS } from '../../../core/domain/constants.js?v=20261028b';
+import { getPersonName } from '../../../services/member/person.js?v=20261028b';
+import { PersonStore } from '../../../services/member/person.js?v=20261028b';
+import { badgeHtml, badgeVariantClass } from '../../../components/ui/badges.js?v=20261028b';
 // 翻页控件单一源（批次 38：全站手写翻页一律并轨 pagerHtml）
-import { pagerHtml } from '../../../components/ui/pager.js?v=20261028a';
-import { renderTabHeader, renderCardHeader } from '../../../components/shell/page-frame.js?v=20261028a';
-import { openFormModal, confirmDanger } from '../../../components/ui/modal.js?v=20261028a';
+import { pagerHtml } from '../../../components/ui/pager.js?v=20261028b';
+import { renderTabHeader, renderCardHeader } from '../../../components/shell/page-frame.js?v=20261028b';
+import { openFormModal, confirmDanger } from '../../../components/ui/modal.js?v=20261028b';
 
+import { emptyStateHtml } from '../../../components/ui/empty-state.js?v=20261028b';
 const FEEDBACK_TAB_HTML = `
-  ${renderTabHeader({ title: '反馈管理' })}
+  ${renderTabHeader({ title: '意见反馈' })}
   <!-- 列表面板 -->
   <div id="issue-list-panel" class="card rounded-xl p-5">
     ${renderCardHeader({
@@ -116,7 +117,7 @@ function renderIssueManagement() {
     const drafts = IssueStore.getDrafts().filter(d => d.status === 'pending');
     if (draftsCountEl) draftsCountEl.textContent = drafts.length;
     if (drafts.length === 0) {
-      draftsEl.innerHTML = '<p class="text-xs text-gray-500">暂无待审核草稿</p>';
+      draftsEl.innerHTML = emptyStateHtml({ text: "暂无待审核草稿", variant: 'inline' });
     } else {
       draftsEl.innerHTML = drafts.map(d => renderDraftRow(d)).join('');
       bindDraftEvents();
@@ -164,7 +165,7 @@ function renderIssueManagement() {
     if (pillEl) pillEl.textContent = `${issues.length} 条 · ${counts.open} 开放 · ${counts.assigned} 已指派 · ${counts['pending-review']} 待终审 · ${counts.closed} 已关闭`;
 
     if (filtered.length === 0) {
-      listEl.innerHTML = '<p class="text-xs text-gray-500 text-center py-4">无匹配反馈</p>';
+      listEl.innerHTML = emptyStateHtml({ text: "无匹配反馈", variant: 'panel' });
     } else {
       // 分页切片（T-234 F2：筛选变化后页码自动收敛）
       const fbPages = Math.max(1, Math.ceil(filtered.length / ISSUE_PAGE_SIZE));
@@ -458,7 +459,7 @@ function renderIssueDetail(issueId) {
   html += `<span class="text-xs font-medium text-gray-700 block mb-3">评论与事件</span>`;
   const comments = issue.comments || [];
   if (comments.length === 0) {
-    html += `<p class="text-xs text-gray-500">暂无评论</p>`;
+    html += emptyStateHtml({ text: "暂无评论", variant: 'inline' });
   } else {
     html += `<div class="space-y-3">`;
     comments.forEach(c => {

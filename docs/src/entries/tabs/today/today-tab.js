@@ -32,46 +32,47 @@
 // 注入防护：标题/内容/截止等用户可控数据一律经 escHtml 后入 innerHTML。
 // ════════════════════════════════════════════════════════════════
 
-import { escHtml as esc, _fmtDate } from '../../../core/base/utils.js?v=20261028a';
-import { icon } from '../../../core/base/icons.js?v=20261028a';
-import { buildTodaySummary, TODO_ACTION_ORDER, TODO_ACTION_LABELS } from '../../../services/governance/today-summary.js?v=20261028a';
+import { escHtml as esc, _fmtDate } from '../../../core/base/utils.js?v=20261028b';
+import { icon } from '../../../core/base/icons.js?v=20261028b';
+import { buildTodaySummary, TODO_ACTION_ORDER, TODO_ACTION_LABELS } from '../../../services/governance/today-summary.js?v=20261028b';
 // 批次 47-I（Q-23-41 ②，支书 2026-09-15 裁定）：本组组员进展**由服务端汇总**——
 // api 态打服务端汇总接口、mock 态调同一纯函数（单一入口 `loadMemberProgress`）。
-import { loadMemberProgress } from '../../../services/member/member-progress.js?v=20261028a';
-import { resolveVisibleTargets } from '../../../services/core/visibility.js?v=20261028a';
-import { mockDB } from '../../../core/domain/domain.js?v=20261028a';
-import { tokenOf } from '../../../core/base/version-token.js?v=20261028a'; // P0 域写版本戳（spec §二.4）
-import { RESIDENCE_KEY } from '../../../services/member/roster.js?v=20261028a'; // 滞留覆盖 raw 源（roster 禁改不内改）
-import { PREVIEW_KEY } from '../../../services/branch/org-base-data-preview.js?v=20261028a'; // 基础数据预览 raw 源
-import { memoizeRender } from '../../../components/ui/memoize-render.js?v=20261028a'; // P2 渲染守卫（spec §四.1）
+import { loadMemberProgress } from '../../../services/member/member-progress.js?v=20261028b';
+import { resolveVisibleTargets } from '../../../services/core/visibility.js?v=20261028b';
+import { mockDB } from '../../../core/domain/domain.js?v=20261028b';
+import { tokenOf } from '../../../core/base/version-token.js?v=20261028b'; // P0 域写版本戳（spec §二.4）
+import { RESIDENCE_KEY } from '../../../services/member/roster.js?v=20261028b'; // 滞留覆盖 raw 源（roster 禁改不内改）
+import { PREVIEW_KEY } from '../../../services/branch/org-base-data-preview.js?v=20261028b'; // 基础数据预览 raw 源
+import { memoizeRender } from '../../../components/ui/memoize-render.js?v=20261028b'; // P2 渲染守卫（spec §四.1）
 // 批4（2026-09-09 支书批「域参数」）：组长学期组员进展归集提醒开关（读侧注入后 = 当前支部有效默认）
-import { POLICY_DEFAULTS } from '../../../core/domain/policy-defaults.js?v=20261028a';
+import { POLICY_DEFAULTS } from '../../../core/domain/policy-defaults.js?v=20261028b';
 // 批次 299「待我处理」两源——**单一源复用**，不另立取数口径：
 //   · 未读通知 ＝ 顶栏铃铛同一取数（NoticeStore.list retention:'visible'）＋ 统一落消息详情（notice.html?id=）
 //   · 待处理汇报 ＝ 顶栏「一键汇报」角标同一集合（IssueNotify.getUnread(我)）
-import { NoticeStore } from '../../../services/governance/notice.js?v=20261028a';
-import { IssueStore, IssueNotify } from '../../../services/governance/issues.js?v=20261028a';
+import { NoticeStore } from '../../../services/governance/notice.js?v=20261028b';
+import { IssueStore, IssueNotify } from '../../../services/governance/issues.js?v=20261028b';
 // 批次 304「待我表态」三件——**判据与读口皆单一源**，不在本文件重写投票规则：
 //   · 我是否应到表决人 ＝ `vote-config.js::isVoterOf`（角色无关，只看固化名单）
 //   · 我是否已对某议程项表态 ＝ `committee-vote.js::hasVoted`
 //   · 当前登录人 ＝ `AuthStore.getCurrentUser()`
-import { AuthStore } from '../../../services/core/auth.js?v=20261028a';
-import { isVoterOf } from '../../../services/activity/vote-config.js?v=20261028a';
-import { hasVoted } from '../../../services/activity/committee-vote.js?v=20261028a';
+import { AuthStore } from '../../../services/core/auth.js?v=20261028b';
+import { isVoterOf } from '../../../services/activity/vote-config.js?v=20261028b';
+import { hasVoted } from '../../../services/activity/committee-vote.js?v=20261028b';
 // 活动类型胶囊（批次 301）：变体判据＝单一源 `activityTypeBadgeVariant`（三会一课＝brand 红 / 主题党日＝gold 金），
 //   渲染唯一源＝`components/ui/badge.js`；**本文件不手写类型色值**。
-import { activityTypeBadgeVariant, WORK_DOMAIN_COLORS } from '../../../core/domain/constants.js?v=20261028a';
-import { resolveDocumentUrl } from '../../../core/base/page-url.js?v=20261028a';
+import { activityTypeBadgeVariant, WORK_DOMAIN_COLORS } from '../../../core/domain/constants.js?v=20261028b';
+import { resolveDocumentUrl } from '../../../core/base/page-url.js?v=20261028b';
 // 徽章扎口出口（2026-09-30 批次 304 改准）：`components/ui/badges.js` 是**唯一调用口**
 //   （其文件头明写「调用方一律 import badges.js；内部实现文件 badge.js / status-badge.js 可各自演进」）；
 //   批次 301 我直连了实现文件 `badge.js` ⇒ 本批收回归口，**零行为变化**。
-import { badgeHtml } from '../../../components/ui/badges.js?v=20261028a';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20261028b';
 // 2026-10-18 繁专项 Task 7：汇报类行统一落到待办「待答复」收件箱（PendingTarget 一次性定位）。
 // 提交入口只在「我的处置」；今天页只读、不重复提供提交位。
-import { PendingTarget } from '../../../core/session/pending-target.js?v=20261028a';
+import { PendingTarget } from '../../../core/session/pending-target.js?v=20261028b';
 // Task 6：「今天」是跨对象日程摘要，不属活动工作台 ⇒ direct；缺 id 不跳转。
-import { objectDetailHref } from '../../../core/domain/object-route.js?v=20261028a';
+import { objectDetailHref } from '../../../core/domain/object-route.js?v=20261028b';
 
+import { emptyStateHtml } from '../../../components/ui/empty-state.js?v=20261028b';
 // 工作台主题色走 CSS 变量（各台 bootstrap 已按 accent 注入；缺省兜底党建红），同 overview/统计卡用法
 const ACCENT = 'var(--app-accent)';
 const ACCENT_BG = 'var(--app-accent-soft-bg)';
@@ -445,8 +446,7 @@ function _allEmptyHtml() {
         <button type="button" class="btn-text today-all flex-shrink-0 text-xs" data-today-all="todo">全部 ›</button>
       </div>
       <div class="flex flex-wrap items-center gap-3 py-4">
-        <span class="w-2 h-2 rounded-full bg-gray-300 flex-shrink-0" aria-hidden="true"></span>
-        <p class="text-sm text-gray-500 flex-1 min-w-0">今天暂无待办与安排</p>
+        ${emptyStateHtml({ text: '今天暂无待办与安排', variant: 'inline', className: 'flex-1 min-w-0' })}
         <button type="button" class="btn-outline today-go flex items-center justify-center gap-2" data-go="calendar">看日历</button>
       </div>
     </div>`;
@@ -631,7 +631,7 @@ export function renderTodayTab(container, { personId, role, onNav, onCreateActiv
           <button type="button" class="btn-text today-all flex-shrink-0 text-xs" data-today-all="todo">全部 ›</button>
         </div>
         <div data-today-groups class="space-y-5">${actionGroupsHtml}</div>
-        ${actionGroupsHtml ? '' : '<p data-today-empty class="text-xs text-gray-500 px-1 py-2">今日暂无待办</p>'}
+        ${actionGroupsHtml ? '' : `<div data-today-empty>${emptyStateHtml({ text: '今日暂无待办', variant: 'inline', className: 'px-1 py-2' })}</div>`}
       </div>`;
     // 右卡「日程」（B02）：今天与未来 7 天同属一条时间轴 ⇒ 合成一张卡（一个小标题在前、一个在后），
     //   同屏只保留一个卡头与一个空态；活动管理入口仍留在卡尾（写入口不并入时间轴）。
@@ -640,7 +640,7 @@ export function renderTodayTab(container, { personId, role, onNav, onCreateActiv
       <div class="lg:col-span-1 space-y-5 min-w-0">
         <div class="card rounded-xl p-5 space-y-5">
           <h3 class="font-title-cn text-base font-semibold text-gray-800">日程</h3>
-          ${scheduleBlocks || '<p class="text-xs text-gray-500 px-1 py-2">今天暂无安排</p>'}
+          ${scheduleBlocks || emptyStateHtml({ text: '今天暂无安排', variant: 'inline', className: 'px-1 py-2' })}
           ${activityEntry ? `<div>${activityEntry}</div>` : ''}
         </div>
       </div>`;

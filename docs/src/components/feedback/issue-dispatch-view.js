@@ -11,11 +11,12 @@
 //  依赖方向正确：组件 → 服务（不是服务 → 组件）。守卫：issue-branch.test.mjs（结构层）。
 // ════════════════════════════════════════════════════════════════
 
-import { renderFilteredList } from '../ui/list-filter.js?v=20261028a';
-import { renderTabHeader } from '../shell/page-frame.js?v=20261028a';
-import { escHtml, showToast } from '../../core/base/utils.js?v=20261028a';
-import { IssueStore, IssueNotify, deriveIssueDisplayState, REPORT_CATEGORIES, displayNameOf as _displayName } from '../../services/governance/issues.js?v=20261028a';
+import { renderFilteredList } from '../ui/list-filter.js?v=20261028b';
+import { renderTabHeader } from '../shell/page-frame.js?v=20261028b';
+import { escHtml, showToast } from '../../core/base/utils.js?v=20261028b';
+import { IssueStore, IssueNotify, deriveIssueDisplayState, REPORT_CATEGORIES, displayNameOf as _displayName } from '../../services/governance/issues.js?v=20261028b';
 
+import { emptyStateHtml } from '../ui/empty-state.js?v=20261028b';
 // ════════════════════════════════════════════════════════════════
 //  「我的处置」Tab 渲染工具（各角色工作台复用）
 //  2026-07-30 新增：被指派人视角的反馈列表+详情+评论/提交处置结果
@@ -125,7 +126,7 @@ export function bindMyDispatchEvents(container, role, userId, opts = {}) {
       sort: bySubmittedDesc,
       countUnit: '条',
       listClass: 'space-y-3',
-      emptyMessage: '— 暂无待我处理事项',
+      emptyMessage: '暂无待我处理事项',
       rowHtml: (item) => (item.__kind === 'request' ? _reportRequestRowHtml(item.row) : _assignedIssueRowHtml(item.row, userId)),
     });
     pendingHost.addEventListener('click', (e) => {
@@ -161,7 +162,7 @@ export function bindMyDispatchEvents(container, role, userId, opts = {}) {
       sort: bySubmittedDesc,
       countUnit: '条',
       listClass: 'divide-y divide-gray-100',
-      emptyMessage: '— 还没有处理记录',
+      emptyMessage: '还没有处理记录',
       rowHtml: (item) => (item.__kind === 'my-report' ? _myReportRowHtml(item.row) : _myIssueRowHtml(item.row)),
     });
     doneHost.addEventListener('click', (e) => {
@@ -256,7 +257,7 @@ function _renderMyReportDetail(issueId, role, userId, container, opts = {}) {
   html += `<div class="mb-4"><span class="text-xs font-medium text-gray-700 block mb-3">对话</span><div class="space-y-2">`;
   const comments = (issue.comments || []).filter(c => !c.hidden);
   if (!comments.length) {
-    html += `<p class="text-xs text-gray-500">暂无对话，等待支书答复</p>`;
+    html += emptyStateHtml({ text: "暂无对话，等待支书答复", variant: 'inline' });
   } else {
     comments.forEach(c => {
       const kindIcon = c.kind === 'dispatch' ? '→' : c.kind === 'result' ? '✓' : c.kind === 'reply' ? '答' : c.kind === 'verdict' ? '★' : '';
@@ -419,7 +420,7 @@ function _renderMyIssueDetail(issueId, role, userId, container) {
   html += `<div class="mb-4"><span class="text-xs font-medium text-gray-700 block mb-3">评论与答复</span><div class="space-y-2">`;
   const comments = (issue.comments || []).filter(c => !c.hidden);
   if (!comments.length) {
-    html += `<p class="text-xs text-gray-500">暂无评论，等待答复</p>`;
+    html += emptyStateHtml({ text: "暂无评论，等待答复", variant: 'inline' });
   } else {
     comments.forEach(c => {
       const kindIcon = c.kind === 'dispatch' ? '→' : c.kind === 'result' ? '✓' : c.kind === 'reply' ? '答' : c.kind === 'verdict' ? '★' : '';

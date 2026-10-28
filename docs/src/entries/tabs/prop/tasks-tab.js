@@ -2,20 +2,20 @@
 // 宣传委员工作台 Tab：宣传任务（T-279 M3 拆分，照 M2 样板）
 // 任务状态流转：待接收 → 进行中 → 已提交（seed 常量 + mockDB 持久化，刷新不再丢失）。
 
-import { mockDB } from '../../../core/domain/domain.js?v=20261028a';
-import { persist } from '../../../data/data-adapter.js?v=20261028a';
-import { showToast, downloadCSV, _fmtDate, todayLocal, escHtml } from '../../../core/base/utils.js?v=20261028a';
-import { renderTabHeader, renderCardHeader } from '../../../components/shell/page-frame.js?v=20261028a';
-import { generateId } from '../../../core/base/id.js?v=20261028a';
-import { isActivityLive, ROLE_LABELS } from '../../../core/domain/constants.js?v=20261028a';
-import { ORG_SUBJECT_LABELS } from '../../../core/domain/work-map.js?v=20261028a';
-import { openVoidModal } from '../../../components/ui/void-record.js?v=20261028a';
-import { filterActive } from '../../../services/governance/soft-void.js?v=20261028a';
+import { mockDB } from '../../../core/domain/domain.js?v=20261028b';
+import { persist } from '../../../data/data-adapter.js?v=20261028b';
+import { showToast, downloadCSV, _fmtDate, todayLocal, escHtml } from '../../../core/base/utils.js?v=20261028b';
+import { renderTabHeader, renderCardHeader } from '../../../components/shell/page-frame.js?v=20261028b';
+import { generateId } from '../../../core/base/id.js?v=20261028b';
+import { isActivityLive, ROLE_LABELS } from '../../../core/domain/constants.js?v=20261028b';
+import { ORG_SUBJECT_LABELS } from '../../../core/domain/work-map.js?v=20261028b';
+import { openVoidModal } from '../../../components/ui/void-record.js?v=20261028b';
+import { filterActive } from '../../../services/governance/soft-void.js?v=20261028b';
 
 // ── 宣传任务 mock 数据（2026-08-05：seed 常量 + mockDB 持久化，刷新不再丢失）──
 // 2026-09-28 批次 234：常量**搬到内容单一源** `docs/src/data/mock/prop.js`（服务端 `server/seed.js` 同源 import，
 //   原先此处私有常量被服务端逐字复刻一份 ⇒ 两份字面量，本批收成一份；取值与顺序一字未改）。
-import { PROP_TASKS_SEED } from '../../../data/mock/prop.js?v=20261028a';
+import { PROP_TASKS_SEED } from '../../../data/mock/prop.js?v=20261028b';
 
 // 从 mockDB 读取（seed 兜底注入一次）；写操作须更新 mockDB.propTasks 后调用 persist()
 function _loadPropTasks() {
@@ -83,14 +83,14 @@ export function renderBoard(container, ctx = {}, opts = {}) {
       <div class="card rounded-xl p-0 overflow-hidden">
         <div class="px-4 py-3 font-title-cn text-sm font-bold tint-section tint-section--head" data-tone="neutral">待接收 (${pending.length})</div>
         <div class="p-3 space-y-2 min-h-[120px]">
-          ${pending.length === 0 ? '<p class="text-xs text-gray-500 text-center py-6">暂无待接收任务</p>' :
+          ${pending.length === 0 ? emptyStateHtml({ text: '暂无待接收任务', variant: 'panel' }) :
             pending.map(t => _renderTaskCard(t, activityMap)).join('')}
         </div>
       </div>
       <div class="card rounded-xl p-0 overflow-hidden">
         <div class="px-4 py-3 font-title-cn text-sm font-bold tint-section tint-section--head" data-tone="neutral">进行中 (${inProgress.length})</div>
         <div class="p-3 space-y-2 min-h-[120px]">
-          ${inProgress.length === 0 ? '<p class="text-xs text-gray-500 text-center py-6">暂无进行中任务</p>' :
+          ${inProgress.length === 0 ? emptyStateHtml({ text: '暂无进行中任务', variant: 'panel' }) :
             inProgress.map(t => _renderTaskCard(t, activityMap)).join('')}
         </div>
       </div>
@@ -99,7 +99,7 @@ export function renderBoard(container, ctx = {}, opts = {}) {
     <details class="card rounded-xl p-0 overflow-hidden mb-4" id="prop-task-submitted-fold">
       <summary class="px-4 py-3 font-title-cn text-sm font-bold cursor-pointer select-none tint-section tint-section--head" data-tone="neutral">已提交 (${submitted.length})</summary>
       <div class="p-3 space-y-2">
-        ${submitted.length === 0 ? '<p class="text-xs text-gray-500 text-center py-6">暂无已提交任务</p>' :
+        ${submitted.length === 0 ? emptyStateHtml({ text: '暂无已提交任务', variant: 'panel' }) :
           submitted.map(t => _renderTaskCard(t, activityMap)).join('')}
       </div>
     </details>

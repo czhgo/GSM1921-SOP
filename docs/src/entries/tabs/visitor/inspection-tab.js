@@ -2,30 +2,31 @@
 // 参与者工作台 Tab：我的考察（T-279 M3 拆分，照 M2 样板）
 // 个人考察记录查询视图（spec §五 数据访问规则：支部成员对自己的历次活动参与考察情况有查询视图）。
 
-import { AuthStore } from '../../../services/core/auth.js?v=20261028a';
+import { AuthStore } from '../../../services/core/auth.js?v=20261028b';
 // 待批活动的可见性单一源（2026-09-22 批次 151 · 支书裁定「只支委层可见」）：成员台非支委层 ⇒ 待批活动
 // 不在本页「考察申诉选活动」下拉里出现。
-import { filterActivitiesForViewer } from '../../../services/core/visibility.js?v=20261028a';
-import { loadActiveInspectionRecords } from '../../../services/activity/inspection.js?v=20261028a';
-import { inspectionToDisplay, createInspectionAppeal, loadInspectionAppeals } from '../../../services/activity/inspection.js?v=20261028a';
-import { loadActivities, getOrganizedActivities } from '../../../services/activity/activity.js?v=20261028a';
-import { badgeHtml } from '../../../components/ui/badges.js?v=20261028a';
-import { showToast, escHtml as esc } from '../../../core/base/utils.js?v=20261028a';
+import { filterActivitiesForViewer } from '../../../services/core/visibility.js?v=20261028b';
+import { loadActiveInspectionRecords } from '../../../services/activity/inspection.js?v=20261028b';
+import { inspectionToDisplay, createInspectionAppeal, loadInspectionAppeals } from '../../../services/activity/inspection.js?v=20261028b';
+import { loadActivities, getOrganizedActivities } from '../../../services/activity/activity.js?v=20261028b';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20261028b';
+import { showToast, escHtml as esc, getBasePath } from '../../../core/base/utils.js?v=20261028b';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是活动的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
-import { renderFilteredList, activityKeyword, activityFacets } from '../../../components/ui/list-filter.js?v=20261028a';
+import { renderFilteredList, activityKeyword, activityFacets } from '../../../components/ui/list-filter.js?v=20261028b';
 // 材料页深链 focusActivityId 的通用定位（只滚动 + 闪烁，不另造筛选器）
-import { focusActivityAnchor } from '../../../components/ui/detail-anchor.js?v=20261028a';
-import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261028a';
+import { focusActivityAnchor } from '../../../components/ui/detail-anchor.js?v=20261028b';
+import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261028b';
 // Task 6：跨对象表格里的活动名 → 完整详情页（direct）；缺 id 不渲染链接。
-import { objectDetailHref } from '../../../core/domain/object-route.js?v=20261028a';
+import { objectDetailHref } from '../../../core/domain/object-route.js?v=20261028b';
 
 export function renderContent(ctx, host) {
   const tc = host || document.getElementById('visitor-tab-content');
+import { emptyStateHtml } from '../../../components/ui/empty-state.js?v=20261028b';
   if (!tc) return;
 
   const user = AuthStore.getCurrentUser();
   if (!user) {
-    tc.innerHTML = `${host ? '' : renderTabHeader({ title: '我的考察' })}<p class="text-sm text-gray-500 text-center py-6">— 请先登录</p>`;
+    tc.innerHTML = `${host ? '' : renderTabHeader({ title: '我的考察' })}${emptyStateHtml({ variant: 'panel', text: '请先登录后使用', actionHtml: `<a class="btn-outline" href="${getBasePath()}login.html">去登录</a>` })}`;
     return;
   }
 
@@ -92,7 +93,7 @@ export function renderContent(ctx, host) {
   // 挂「由我组织的活动」上传位（实现单一源＝leader/inspection-tab，host 复用；scope=organizer 只投影本人活动）
   const _orgInspHost = document.getElementById('visitor-org-insp-host');
   if (_orgInspHost) {
-    import('../leader/inspection-tab.js?v=20261028a').then(m => { if (_orgInspHost.isConnected) m.renderContent(ctx, _orgInspHost, { scope: 'organizer' }); });
+    import('../leader/inspection-tab.js?v=20261028b').then(m => { if (_orgInspHost.isConnected) m.renderContent(ctx, _orgInspHost, { scope: 'organizer' }); });
   }
 
   // 提交申诉（同考勤申诉口径：先去纪检核实，不直接改考察记录）
@@ -114,7 +115,7 @@ export function renderContent(ctx, host) {
   if (!listEl) return;
 
   if (sorted.length === 0) {
-    listEl.innerHTML = '<p class="text-xs text-gray-500 text-center py-6">— 暂无考察记录 · 下一步：参与活动并等待组织者上传考察</p>';
+    listEl.innerHTML = emptyStateHtml({ text: '暂无考察记录 · 下一步：参与活动并等待组织者上传考察', variant: 'panel' });
     return;
   }
 
@@ -178,7 +179,7 @@ export function renderContent(ctx, host) {
     facets: activityFacets(),
     countUnit: '条',
     listClass: 'space-y-2',
-    emptyMessage: '— 无匹配考察记录 · 下一步：清除筛选',
+    emptyMessage: '无匹配考察记录 · 下一步：清除筛选',
     rowHtml,
   });
 

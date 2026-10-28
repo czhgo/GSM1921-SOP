@@ -2,7 +2,7 @@
 title: "AI coding 技术层索引——网站系统的 AI coding 技术方法"
 type: index
 role: "[工程师]+[AI]"
-last_updated: 2026-10-27
+last_updated: 2026-10-28
 status: active
 ---
 
@@ -38,6 +38,8 @@ status: active
 | [GUARD_INVENTORY.md](GUARD_INVENTORY.md) | 守卫清单与断言台账：按域分组、新增 / 合并 / 归并候选的登记处 | 指针——判据在各守卫源码与对应规范 | on-demand |
 | [AGENTS.md](AGENTS.md) | 本目录协作说明：分层裁决（不写规范判据）、验证命令与常见坑 | 指针 → 本 README 与五个分篇 | on-demand |
 | `README.md` | 本层索引（分篇入口、边界与维护规则） | 指针 → 上述分篇 | active |
+
+> **分篇章节指针：** `PARALLEL_SKILL_AUDIT.md` §14 SKILL 路由（前端 / 后端 / 全栈）——按任务类型选 skill、各类禁止项与并行审查纪律。
 
 ## 权威源与派生
 

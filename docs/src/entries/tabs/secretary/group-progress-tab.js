@@ -44,48 +44,49 @@
 //   ⚠ **只动渲染顺序 / 分层与落点**，不改任何功能、权限判定与写口——DOM ID 全保留，真机流程不失配。
 // ════════════════════════════════════════════════════════════════
 
-import { AuthStore } from '../../../services/core/auth.js?v=20261028a';
-import { PersonStore, getPersonName } from '../../../services/member/person.js?v=20261028a';
-import { getBranchIdOfPerson } from '../../../services/branch/branch.js?v=20261028a';
-import { IssueStore } from '../../../services/governance/issues.js?v=20261028a';
-import { loadActivities } from '../../../services/activity/activity.js?v=20261028a';
-import { loadActivityReviews } from '../../../services/governance/review.js?v=20261028a';
-import { loadAttendanceRecords } from '../../../services/activity/attendance.js?v=20261028a';
-import { AttendanceStatus, ReviewStatus, REVIEW_STATUS_LABELS } from '../../../core/domain/domain.js?v=20261028a';
-import { getMeetingRosterIds } from '../../../services/member/roster.js?v=20261028a';
-import { showToast, escHtml as esc, getBasePath, todayLocal } from '../../../core/base/utils.js?v=20261028a';
+import { AuthStore } from '../../../services/core/auth.js?v=20261028b';
+import { PersonStore, getPersonName } from '../../../services/member/person.js?v=20261028b';
+import { getBranchIdOfPerson } from '../../../services/branch/branch.js?v=20261028b';
+import { IssueStore } from '../../../services/governance/issues.js?v=20261028b';
+import { loadActivities } from '../../../services/activity/activity.js?v=20261028b';
+import { loadActivityReviews } from '../../../services/governance/review.js?v=20261028b';
+import { loadAttendanceRecords } from '../../../services/activity/attendance.js?v=20261028b';
+import { AttendanceStatus, ReviewStatus, REVIEW_STATUS_LABELS } from '../../../core/domain/domain.js?v=20261028b';
+import { getMeetingRosterIds } from '../../../services/member/roster.js?v=20261028b';
+import { showToast, escHtml as esc, getBasePath, todayLocal } from '../../../core/base/utils.js?v=20261028b';
 // 统一检索引擎（2026-09-13 表格统一化批次 A）：组员进展摘要（按人）接入关键词 + 分面
-import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261028a';
+import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261028b';
 // 活动类型胶囊（批次 301）：变体判据＝单一源 `activityTypeBadgeVariant`（三会一课＝brand 红 / 主题党日＝gold 金），
 //   渲染唯一源＝`components/ui/badge.js`；**不在本文件手写色值**（支书 2026-09-30：颜色是最好的信息展示方式）。
-import { activityTypeBadgeVariant, DEFAULT_BRANCH_ID } from '../../../core/domain/constants.js?v=20261028a';
-import { badgeHtml } from '../../../components/ui/badges.js?v=20261028a'; // 扎口出口（批次 304 收回，勿直连 badge.js）
-import { openModal, closeModal } from '../../../components/ui/modal.js?v=20261028a';
-import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261028a';
+import { activityTypeBadgeVariant, DEFAULT_BRANCH_ID } from '../../../core/domain/constants.js?v=20261028b';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20261028b'; // 扎口出口（批次 304 收回，勿直连 badge.js）
+import { openModal, closeModal } from '../../../components/ui/modal.js?v=20261028b';
+import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261028b';
 // 党小组一等实体服务层（组清单 / 写口 / 权限门 / 留痕——组名唯一来源，禁本文件手写组名数组）
 import {
   loadPartyGroups, groupOptions, defaultGroupName, nextGroupSeq,
   addGroup, renameGroup, dissolveGroup, assignMemberToGroup, ungroupedMembers,
   canManagePartyGroups, listGroupHistory,
-} from '../../../services/member/party-group.js?v=20261028a';
+} from '../../../services/member/party-group.js?v=20261028b';
 import {
   listPartyGroups, memberScopeOfGroup, countOpenReportsByGroup,
   groupActivitiesOf, reviewBucketOf, GROUP_REVIEW_COLOR, groupLeadershipOf,
   groupReportRowsOf, reportRowStateOf,
-} from '../../../services/member/group-view.js?v=20261028a';
+} from '../../../services/member/group-view.js?v=20261028b';
 // 赋权分块（2026-09-25 支书裁「全按对象归位」）：情景①a（设党小组组长 / 副组长）由本 tab「党小组清单」卡内
 //   行内管理（2026-10-04 批次 373 去冗余：撤独立「组长指派」块，改由清单行内「设/改」开同一面板）；
 //   **情景①b 支委身份配置已按 2026-09-27 支书裁定迁「支委会」**；**情景②③ 项目赋权整卡按 2026-10-04
 //   批次 373 迁「活动管理」页**（`calendar-tab.js`）。
 //   实现单一源＝entries/tabs/secretary/assign-tab.js（该文件已不注册为 tab，仅余 mount* 分块）
 //   ⇒ **不新造第二套视觉/表单**，只把既有分块挂到本 tab 的落点。
-import { mountLeaderAssign, openLeaderAssignPanel } from './assign-tab.js?v=20261028a';
+import { mountLeaderAssign, openLeaderAssignPanel } from './assign-tab.js?v=20261028b';
 // Task 6：组员进展是跨对象聚合面 ⇒ 活动行直达完整详情页（direct）。
-import { objectDetailHref } from '../../../core/domain/object-route.js?v=20261028a';
+import { objectDetailHref } from '../../../core/domain/object-route.js?v=20261028b';
 
 // R2-17：缺省支部单一源 = core/domain/constants.js::DEFAULT_BRANCH_ID。
 
 // ── 模块级状态（随模块自持；tab 切走再回保持，页面刷新回退首组） ──
+import { emptyStateHtml } from '../../../components/ui/empty-state.js?v=20261028b';
 let _selectedGroup = null;      // 当前选中党小组名（进展区）
 let _expandedReviewId = null;   // 已展开复盘详情活动 id（只读展开态）
 let _issuesLoaded = false;      // issues 权威源是否已加载（避免未载时徽标误显 0）
@@ -194,11 +195,11 @@ function _ungroupedBarHtml(ungrouped, canManage) {
         <h4 class="font-title-cn text-sm font-bold text-gray-700">未分组 <span class="text-xs text-gray-500 font-normal">${ungrouped.length} 人</span></h4>
         <span class="text-xs text-gray-500">${canAssign ? '选定即归入' : '只读查看'}</span>
       </div>
-      <p class="text-xs text-gray-500 mb-2.5">${options.length === 0
-        ? '支部暂无在册党小组，请先在下方「党小组清单」新增党小组，再逐个归组。'
-        : (canAssign
+      ${options.length === 0
+        ? emptyStateHtml({ variant: 'inline', text: '支部暂无在册党小组 · 下一步：先新增党小组再归组' })
+        : `<p class="text-xs text-gray-500 mb-2.5">${canAssign
           ? '逐个选择所属党小组即完成归组；选择「移出党小组」保持未分组。'
-          : '归组由支书/副支书办理（当前为只读查看）。')}</p>
+          : '归组由支书/副支书办理（当前为只读查看）。'}</p>`}
       <div class="flex flex-wrap gap-x-5 gap-y-2">
         ${ungrouped.map(p => _ungroupedRowHtml(p, options, canAssign)).join('')}
       </div>
@@ -226,7 +227,7 @@ function _manageCardHtml(entities, statOf, leaderAssign, canManage) {
   const showStatus = entities.some(g => g.status !== 'active');
   const rows = entities.length
     ? entities.map(g => _manageRowHtml(g, statOf.get(g.name), leaderAssign.get(g.name), canManage, showStatus)).join('')
-    : `<tr><td colspan="5" class="py-2 px-3 text-gray-500">支部暂无党小组，点右上「新增党小组」建立第一组</td></tr>`;
+    : emptyStateHtml({ variant: 'table', text: '支部暂无党小组，点右上「新增党小组」建立第一组', colspan: 5 });
   return `
     <div class="card rounded-xl p-4 card--static">
       <div class="flex items-center justify-between mb-1">
@@ -407,9 +408,8 @@ function _progressSectionHtml(viewGroups, group, members, activities, reviews, a
 /** 进展区空态（支部尚无成员归组时） */
 function _noGroupHintHtml() {
   return `
-    <div class="card rounded-xl p-5 text-center">
-      <p class="text-sm text-gray-500">支部暂无党小组成员</p>
-      <p class="text-xs text-gray-500 mt-1">成员归入党小组后，此处显示跨组进展（组员汇报 / 复盘状态 / 活动与考勤）</p>
+    <div class="card rounded-xl p-5">
+      ${emptyStateHtml({ variant: 'panel', text: '支部暂无党小组成员 · 下一步：把成员归入党小组' })}
     </div>`;
 }
 
@@ -583,7 +583,7 @@ function _reviewStatusCardHtml(group, members, activities, reviews) {
   const statusColor = (st) => GROUP_REVIEW_COLOR[st] || 'bg-gray-100 text-gray-600';
 
   const pendingRows = pending.length === 0
-    ? '<p class="text-xs text-gray-500 py-1">暂无待复盘活动</p>'
+    ? emptyStateHtml({ text: "暂无待复盘活动", variant: 'inline' })
     : pending.map(({ act, rev }) => {
         const label = rev ? REVIEW_STATUS_LABELS[rev.reviewStatus] : '未提交';
         return `
@@ -603,7 +603,7 @@ function _reviewStatusCardHtml(group, members, activities, reviews) {
       }).join('');
 
   const completedRows = completed.length === 0
-    ? '<p class="text-xs text-gray-500 py-1">暂无已复盘活动</p>'
+    ? emptyStateHtml({ text: "暂无已复盘活动", variant: 'inline' })
     : completed.map(({ act, rev }) => {
         const isExpanded = _expandedReviewId === act.id;
         return `
@@ -668,7 +668,7 @@ function _activityAttendanceCardHtml(group, members, branchId, activities, attRe
   const today = todayLocal();
 
   const recentRows = recentActs.length === 0
-    ? '<p class="text-xs text-gray-500 py-1">暂无本组活动</p>'
+    ? emptyStateHtml({ text: "暂无本组活动", variant: 'inline' })
     : recentActs.map(a => `
         <div class="flex items-center gap-2.5 py-1.5">
           <span class="text-xs text-gray-500 w-20 shrink-0">${esc(a.date || '')}</span>
@@ -679,7 +679,7 @@ function _activityAttendanceCardHtml(group, members, branchId, activities, attRe
   // 已发生的本组党小组会 → 应到/实到概况（roster 组口径应到 + attendance 记录实到）
   const metRows = groupActs.filter(a => a.type === '党小组会' && a.date <= today);
   const attRowsHtml = metRows.length === 0
-    ? '<p class="text-xs text-gray-500 py-1">暂无已发生的党小组会（考勤生成后此处显示应到/实到）</p>'
+    ? emptyStateHtml({ text: "暂无已发生的党小组会（考勤生成后此处显示应到/实到）", variant: 'inline' })
     : metRows.map(a => {
         const expected = getMeetingRosterIds({ type: '党小组会', groupId: group.groupName, branchId }).length;
         const recs = attRecords.filter(r => r.activityId === a.id);
@@ -959,7 +959,7 @@ export function openActivityWriteEntry() {
   const topBtn = document.getElementById('ws-sec-write-btn');
   if (topBtn) { topBtn.click(); return; }
   // 顶栏未挂出（只读形态 / 顶栏尚未渲染）时不得静默无效：直接打开既有写入表单（单一写入口）。
-  import('./calendar-tab.js?v=20261028a')
+  import('./calendar-tab.js?v=20261028b')
     .then((m) => m.openActivityWriteForm())
     .catch((err) => console.warn('[group-progress] 打开写入活动表单失败：', err));
 }

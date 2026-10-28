@@ -8,18 +8,19 @@
 //   · 下半部是本台专属的「活动进展」分段（组件单一源 `components/governance/activity-progress.js`）。
 //   ⚠ 不新造页签、不改注册序；`?tab=calendar` / 旧 `?tab=tf-view` 别名均不受影响。
 
-import { getAppState, setState } from '../../../core/base/state.js?v=20261028a';
-import { renderContent as renderSharedCalendar } from '../shared/activity-calendar-tab.js?v=20261028a';
-import { renderActivityProgress } from '../../../components/governance/activity-progress.js?v=20261028a';
-import { mockDB } from '../../../core/domain/domain.js?v=20261028a';
-import { getAdapter } from '../../../data/data-adapter.js?v=20261028a';
-import { loadPartyGroups } from '../../../services/member/party-group.js?v=20261028a';
-import { getPersonName } from '../../../services/member/person.js?v=20261028a';
-import { AuthStore } from '../../../services/core/auth.js?v=20261028a';
-import { escHtml as esc, showToast } from '../../../core/base/utils.js?v=20261028a';
+import { getAppState, setState } from '../../../core/base/state.js?v=20261028b';
+import { renderContent as renderSharedCalendar } from '../shared/activity-calendar-tab.js?v=20261028b';
+import { renderActivityProgress } from '../../../components/governance/activity-progress.js?v=20261028b';
+import { mockDB } from '../../../core/domain/domain.js?v=20261028b';
+import { getAdapter } from '../../../data/data-adapter.js?v=20261028b';
+import { loadPartyGroups } from '../../../services/member/party-group.js?v=20261028b';
+import { getPersonName } from '../../../services/member/person.js?v=20261028b';
+import { AuthStore } from '../../../services/core/auth.js?v=20261028b';
+import { escHtml as esc, showToast } from '../../../core/base/utils.js?v=20261028b';
 // R10-B16：组织落点与招募范围单一源（禁止把 cross-group 当落点）
-import { ACTIVITY_SCOPES, RECRUITMENT_SCOPES } from '../../../core/domain/constants.js?v=20261028a';
+import { ACTIVITY_SCOPES, RECRUITMENT_SCOPES } from '../../../core/domain/constants.js?v=20261028b';
 
+import { emptyStateHtml } from '../../../components/ui/empty-state.js?v=20261028b';
 // ── 跨组招募协调 / 待补责任党小组（2026-10-21 批次 499 · 组织委员协调面）──────
 // 口径：跨组只是参与/招募范围，活动仍有唯一责任党小组；跨党小组深度参与者由组织委员协调。
 // 协调动作只留「已协调」状态，不授予活动写权（服务端 POST /workgroups/:id/coordinate 同口径）。
@@ -70,7 +71,7 @@ function _renderOrgRecruitmentPanel(host, activities) {
             : `<button type="button" class="btn-accent-soft text-xs px-3 py-1.5 org-coordinate-complete${crossMembers.length ? '' : ' opacity-50 cursor-not-allowed'}" data-wg-id="${esc(workgroup.id)}" ${crossMembers.length ? '' : 'disabled'}>标记协调完成</button>`}
         </div>
       </div>`;
-  }).join('') : '<p class="text-xs text-gray-500">— 暂无跨组招募待协调；标记为「跨组招募」的活动会出现在这里。</p>';
+  }).join('') : emptyStateHtml({ text: '暂无跨组招募待协调；标记为「跨组招募」的活动会出现在这里。', variant: 'inline' });
 
   const legacyHtml = legacyRows.length ? legacyRows.map((activity) => `
       <div class="flex flex-wrap items-center justify-between gap-2 p-3 rounded-xl bg-white border border-amber-200">
@@ -85,7 +86,7 @@ function _renderOrgRecruitmentPanel(host, activities) {
           </select>
           <button type="button" class="btn-accent-soft text-xs px-3 py-1.5 org-legacy-save" data-act-id="${esc(activity.id)}">补选</button>
         </div>
-      </div>`).join('') : '<p class="text-xs text-gray-500">— 所有活动都已落到责任党小组。</p>';
+      </div>`).join('') : emptyStateHtml({ text: '所有活动都已落到责任党小组', variant: 'inline' });
 
   host.innerHTML = `
     <details class="card rounded-xl p-5 mb-4" id="org-recruitment-card">

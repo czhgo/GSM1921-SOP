@@ -7,17 +7,18 @@
 //      已通过=可采纳；未达出席门槛/有反对=采纳禁用（去表决再议）。
 // 表决 UI 复用既有 agenda-votes 资产；本面板不重复实现投票。
 
-import { escHtml as esc, showToast, getBasePath, todayLocal } from '../../../core/base/utils.js?v=20261028a';
-import { WORK_MAP_MODULES, WORK_MAP_TIER_LABELS, canDisableModule } from '../../../core/domain/work-map.js?v=20261028a';
-import { BRANCH_COMMISSION_ROLES, ROLE_LABELS } from '../../../core/domain/constants.js?v=20261028a';
-import { PersonStore } from '../../../services/member/person.js?v=20261028a';
+import { escHtml as esc, showToast, getBasePath, todayLocal } from '../../../core/base/utils.js?v=20261028b';
+import { WORK_MAP_MODULES, WORK_MAP_TIER_LABELS, canDisableModule } from '../../../core/domain/work-map.js?v=20261028b';
+import { BRANCH_COMMISSION_ROLES, ROLE_LABELS } from '../../../core/domain/constants.js?v=20261028b';
+import { PersonStore } from '../../../services/member/person.js?v=20261028b';
 import {
   createWorkforceProposalActivity, listWorkforceProposals, adoptWorkforceProposal,
   getWorkforceVoteOutcome, ownerDisplay,
-} from '../../../services/branch/workforce.js?v=20261028a';
-import { getBranchWorkforce } from '../../../services/branch/branch.js?v=20261028a';
-import { confirmDanger } from '../../../components/ui/modal.js?v=20261028a';
+} from '../../../services/branch/workforce.js?v=20261028b';
+import { getBranchWorkforce } from '../../../services/branch/branch.js?v=20261028b';
+import { confirmDanger } from '../../../components/ui/modal.js?v=20261028b';
 
+import { emptyStateHtml } from '../../../components/ui/empty-state.js?v=20261028b';
 const DRAFT_KEY = 'gsm1921-workforce-draft'; // 本机草稿（**仅本机·不上服务端**：未提交的拟定分工，属该设备上未完成的工作；白名单见 content/05_ai_coding/DATA_CONSISTENCY_CHECKLIST.md）
 
 function _today() {
@@ -121,7 +122,7 @@ function _outcomeHtml(outcome) {
 /** 议题列表卡（adoptable=通过判定实时；已生效=只读） */
 function _proposalCards(proposals, outcomesByAct) {
   if (!proposals.length) {
-    return `<p class="text-xs text-gray-500">暂无分工调整议题——发起后将在此跟踪表决与采纳。</p>`;
+    return emptyStateHtml({ text: "暂无分工调整议题——发起后将在此跟踪表决与采纳。", variant: 'inline' });
   }
   return proposals.map((a) => {
     const adopted = !!a.extras.adoptedAt;

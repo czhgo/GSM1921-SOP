@@ -17,6 +17,8 @@
 //   enhanceSelects 依 data-cs-enhanced 保持幂等。
 // ════════════════════════════════════════════════════════════════
 
+import { emptyStateHtml } from './empty-state.js?v=20261028b';
+
 const ICON_CHEVRON =
   '<svg class="cs-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>';
 
@@ -174,7 +176,7 @@ function _syncCsVisibility(menu, options, shownCount, moreBtn) {
         empty.className = 'cs-empty';
         menu.appendChild(empty);
       }
-      empty.textContent = '没有匹配项';
+      empty.innerHTML = emptyStateHtml({ text: '没有匹配项', variant: 'inline' });
     } else if (empty) {
       empty.remove();
     }

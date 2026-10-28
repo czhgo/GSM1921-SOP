@@ -4,21 +4,22 @@
 // 专班列表（状态分组）+ 只读详情（成员/角色/贡献）。依据支书第五轮裁定「新建专班查看组件（列表+详情）」。
 // 支书设计原则：「无职责 不代表 没有知情权」。
 
-import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261028a';
-import { getPersonName } from '../../services/member/person.js?v=20261028a';
-import { mockDB } from '../../core/domain/domain.js?v=20261028a';
-import { AuthStore } from '../../services/core/auth.js?v=20261028a';
-import { canRevealActivityMemberNames } from '../../services/core/visibility.js?v=20261028a';
-import { badgeHtml } from '../ui/badges.js?v=20261028a';
-import { dotDarkVars } from '../../core/domain/constants.js?v=20261028a';
-import { flashHighlight, showToast, escHtml as esc } from '../../core/base/utils.js?v=20261028a';
-import { anchorDetailToTrigger } from '../ui/detail-anchor.js?v=20261028a';
+import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261028b';
+import { getPersonName } from '../../services/member/person.js?v=20261028b';
+import { mockDB } from '../../core/domain/domain.js?v=20261028b';
+import { AuthStore } from '../../services/core/auth.js?v=20261028b';
+import { canRevealActivityMemberNames } from '../../services/core/visibility.js?v=20261028b';
+import { badgeHtml } from '../ui/badges.js?v=20261028b';
+import { dotDarkVars } from '../../core/domain/constants.js?v=20261028b';
+import { flashHighlight, showToast, escHtml as esc } from '../../core/base/utils.js?v=20261028b';
+import { anchorDetailToTrigger } from '../ui/detail-anchor.js?v=20261028b';
 // 统一检索引擎（2026-09-14 裁定）：只读详情「成员贡献」（第一列是人 → 配姓名关键词）与
 // 「中间进度」（时间线 → 只给分页：keyword null + facets []）各接一个实例
-import { renderFilteredList } from '../ui/list-filter.js?v=20261028a';
+import { renderFilteredList } from '../ui/list-filter.js?v=20261028b';
 // Task 6：专班的完整详情页出口（同页预览 + 「打开完整页」）；入口已在工作台内 ⇒ locate。
-import { objectDetailHref } from '../../core/domain/object-route.js?v=20261028a';
+import { objectDetailHref } from '../../core/domain/object-route.js?v=20261028b';
 
+import { emptyStateHtml } from '../ui/empty-state.js?v=20261028b';
 // 附录⑩ B批：状态词对齐「支委会表决」语义（pending_review=待支委会表决；dissolved=表决通过解散）
 const STATUS_LABEL = { draft: '草稿', pending_review: '待支委会表决', recruiting: '招募中', active: '运行中', completed: '已完结', archived: '已归档', dissolved: '已解散' };
 // 专班状态 → 固定语义 tone（不随主题）
@@ -88,7 +89,7 @@ export function renderTaskforceView(container, opts = {}) {
   if (listEl) {
     const hasAny = groups.some(g => g.list.length > 0);
     listEl.innerHTML = !hasAny
-      ? '<p class="text-sm text-gray-500 text-center py-8">暂无专班</p>'
+      ? emptyStateHtml({ text: "暂无专班", variant: 'panel' })
       : groups.filter(g => g.list.length > 0).map(g => `
           <div class="mb-4">
             <div class="flex items-center gap-2 mb-2">
@@ -209,7 +210,7 @@ async function _renderTfDetail(container, tf, highlightId) {
   // 成员贡献行改由统一检索引擎渲染（第一列是人 → 配姓名关键词；≤8 人不渲染检索条，观感不变）；
   // 空态（无成员）留在引擎外，逐字保留原文案
   const memberRows = filled.length === 0
-    ? '<p class="text-xs text-gray-500">暂无成员</p>'
+    ? emptyStateHtml({ text: "暂无成员", variant: 'inline' })
     : canRevealNames
       ? '<div id="tfv-member-host"></div>'
       : `<p class="text-xs text-gray-600">工作组成员：组织者 ${filled.filter((member) => member.role === 'organizer').length} 人、深度参与者 ${filled.filter((member) => member.role === 'deep').length} 人。登录并进入所属支部后可查看姓名。</p>`;
@@ -241,7 +242,7 @@ async function _renderTfDetail(container, tf, highlightId) {
         </div>
       </div>
     </div>` : (isMember && tf.status === 'active'
-      ? '<p class="mt-3 text-xs text-gray-500">当前账号暂无「登记产出」权限。</p>'
+      ? emptyStateHtml({ text: "当前账号暂无「登记产出」权限。", variant: 'inline' })
       : '');
   const outputStatus = { submitted: '已登记', pending: '待处理' };
   const outputHtml = `
@@ -252,7 +253,7 @@ async function _renderTfDetail(container, tf, highlightId) {
           <div class="flex flex-wrap items-center gap-2"><span class="text-xs font-medium text-gray-800">${esc(output.title || '未命名产出')}</span><span class="rounded-full bg-white px-2 py-0.5 text-xs text-gray-600">${esc(outputStatus[output.status] || '已登记')}</span></div>
           ${output.taskId ? `<p class="mt-1 text-xs text-gray-500">任务：${esc(tasks.find((task) => task.id === output.taskId)?.title || output.taskId)}</p>` : ''}
           ${output.description ? `<p class="mt-1 whitespace-pre-wrap text-xs text-gray-600">${esc(output.description)}</p>` : ''}
-        </li>`).join('')}</ul>` : '<p class="text-xs text-gray-500">暂无工作产出。</p>'}
+        </li>`).join('')}</ul>` : emptyStateHtml({ text: '暂无工作产出', variant: 'inline' })}
     </div>`;
 
   const fullHref = objectDetailHref('taskforce', tf.id, { entry: 'owner-workspace' });
@@ -301,7 +302,7 @@ async function _renderTfDetail(container, tf, highlightId) {
                 : '';
               return `<li class="text-[12px] text-gray-500 pl-2">${esc(desc)}${meta}${_contribTagOf(c)}</li>`;
             }).join('')}</ul>`
-          : '<span class="text-[12px] text-gray-500 pl-2">暂无贡献记录</span>';
+          : emptyStateHtml({ text: '暂无贡献记录', variant: 'inline', className: 'pl-2' });
         return `
           <div class="py-2 border-b border-gray-50 last:border-b-0">
             <div class="flex items-center justify-between">

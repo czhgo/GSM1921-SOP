@@ -5,9 +5,9 @@
 // requiredRoles：支书/副支书共用支书工作台（ROLE_PAGE_MAP secretary → secretary.html）
 // 设计权威源：content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md §四/§六
 
-import { registerCapability } from '../core/boot/registry.js?v=20261028a';
-import { rolesForPage } from '../core/domain/constants.js?v=20261028a';
-import { AuthStore } from '../services/core/auth.js?v=20261028a';
+import { registerCapability } from '../core/boot/registry.js?v=20261028b';
+import { rolesForPage } from '../core/domain/constants.js?v=20261028b';
+import { AuthStore } from '../services/core/auth.js?v=20261028b';
 
 registerCapability({
   id: 'secretary-workspace',
@@ -23,7 +23,7 @@ registerCapability({
     // R6-3「今天」置首 + 登录落点（2026-09-07 方案 B）：共享渲染只读速览，数据同源派生；
     // 到期/逾期行 → onNav('todo')（todo tab 六台同 id）；会议/分工行在 today-tab 内直跳 activity.html；
     // 会议「全部」→ onNav('activities')，下方映射到本台活动承载 tab（支书台=活动管理 calendar；无承载台为空操作）
-    { id: 'today', label: '今天', groupLabel: '总览', coreTab: true, render: (ctx) => import('../entries/tabs/today/today-tab.js?v=20261028a').then(m => {
+    { id: 'today', label: '今天', groupLabel: '总览', coreTab: true, render: (ctx) => import('../entries/tabs/today/today-tab.js?v=20261028b').then(m => {
       const el = document.getElementById('secretary-tab-content');
       if (el) m.renderTodayTab(el, {
         personId: ctx?.personId || AuthStore.getCurrentUser()?.personId,
@@ -38,16 +38,16 @@ registerCapability({
         // 2026-09-25（支书裁「按『党小组与活动』这个名落地」）：党小组 tab 更名并收编党小组活动后，
         //   活动管理的写操作从 tab 名上不再一眼可寻 ⇒ 今日页补「建活动 / 看日历」紧凑入口。
         //   实现单一源 = group-progress-tab.js::openActivityWriteEntry（复用既有「写入活动」入口，不新造表单）。
-        onCreateActivity: () => import('../entries/tabs/secretary/group-progress-tab.js?v=20261028a').then(m => m.openActivityWriteEntry()),
+        onCreateActivity: () => import('../entries/tabs/secretary/group-progress-tab.js?v=20261028b').then(m => m.openActivityWriteEntry()),
       });
     }) },
-    { id: 'todo', label: '待办', groupLabel: '总览', coreTab: true, render: (ctx) => import('../entries/tabs/secretary/todo-tab.js?v=20261028a').then(m => m.renderContent(ctx)) },
-    { id: 'overview', label: '全局概况', groupLabel: '总览', coreTab: true, render: (ctx) => import('../entries/tabs/secretary/overview-tab.js?v=20261028a').then(m => m.renderContent(ctx)) },
+    { id: 'todo', label: '待办', groupLabel: '总览', coreTab: true, render: (ctx) => import('../entries/tabs/secretary/todo-tab.js?v=20261028b').then(m => m.renderContent(ctx)) },
+    { id: 'overview', label: '全局概况', groupLabel: '总览', coreTab: true, render: (ctx) => import('../entries/tabs/secretary/overview-tab.js?v=20261028b').then(m => m.renderContent(ctx)) },
     // ── 我的职责（写操作） ──
     // 活动管理（2026-10-04 批次 373 · 支书 `#10`「按对象归位」）：除既有「活动日历 + 活动查询 + 写入活动」外，
     //   再承接自「党小组与活动」迁入的**党小组活动**分区（判据＝direction==='bottom-up'）与**项目赋权整卡**
     //   （情景② 活动 ＋ 情景③ 专班，含 已赋权记录·活动/专班；支书圈乙「整卡搬去活动管理」）。
-    { id: 'calendar', label: '活动管理', groupLabel: '我的职责', render: (ctx) => import('../entries/tabs/secretary/calendar-tab.js?v=20261028a').then(m => m.renderContent(ctx?.appState)) },
+    { id: 'calendar', label: '活动管理', groupLabel: '我的职责', render: (ctx) => import('../entries/tabs/secretary/calendar-tab.js?v=20261028b').then(m => m.renderContent(ctx?.appState)) },
     // 2026-10-02 批次 351（支书 `D-741`「按这个方案推进 V-3 页签建议序」）：**组内按动作频次重排**——
     //   支委会（议事留痕）是支书**常态动作** ⇒ 前置；上报党委按需 ⇒ 后移。
     //   （原序：活动管理 · 通知发布 · 上报党委 · 党小组与活动 · 支委会 · 成员流动；**组序与条数一律不动**。）
@@ -55,21 +55,21 @@ registerCapability({
     //   构成表覆盖支书 / 副支书（党委配置，只读）与组织 / 宣传 / 纪检委员（支部授予，行内改派 / 撤销）；
     //   会议表覆盖最近 8 场与四态（待召开 / 线上表态中 / 已截止 / 已留存）。开会链路仍在
     //   docs/party-committee-meeting.html，复用既有实体（活动 + agendaVotes + votesLocked），不新增表。
-    { id: 'committee-meeting', label: '支委会', groupLabel: '我的职责', render: () => import('../entries/tabs/secretary/committee-meeting-tab.js?v=20261028a').then(m => m.renderContent()) },
+    { id: 'committee-meeting', label: '支委会', groupLabel: '我的职责', render: () => import('../entries/tabs/secretary/committee-meeting-tab.js?v=20261028b').then(m => m.renderContent()) },
     // 党小组（2026-09-14 批次 25 由「党小组进展」升级为「党小组」；2026-09-25 曾按支书裁「按『党小组与活动』
     //   这个名落地」并收编「党小组活动」分区；**2026-10-04 批次 373 按支书 `#10`「本页只留『组』，其余按对象归位」
     //   回退为「党小组」**——「党小组活动」＋「项目赋权」整卡**迁「活动管理」页**（支书圈乙），本页只留「组」。
     //   **id 始终保持 group-progress** 以保住 ?tab= 深链 / 个人 tab 顺序偏好 / 支部 config 的 hiddenTabIds·tabOrder
     //   三类既有键）：本 tab = 管理区（新增/改名/解散 + 未分组行内归组 + 组长/副组长赋权行内管理，写权支书/副支书）
     //   + 进展区（原跨组只读知情，功能全保留；2026-09-27 支委会迁移批折叠下沉）。
-    { id: 'group-progress', label: '党小组', groupLabel: '我的职责', render: (ctx) => import('../entries/tabs/secretary/group-progress-tab.js?v=20261028a').then(m => m.renderContent(ctx)) },
+    { id: 'group-progress', label: '党小组', groupLabel: '我的职责', render: (ctx) => import('../entries/tabs/secretary/group-progress-tab.js?v=20261028b').then(m => m.renderContent(ctx)) },
     // 2026-09-25 支书裁「赋权按对象归位」⇒ 原「赋权管理」`assign` tab **删除**（`?tab=assign` 同删，不做兼容映射）：
     //   情景① 设党小组组长 / 副组长 → 本台「党小组」（见下 group-progress，2026-10-04 批次 373 行内管理）；
     //   情景② 活动项目赋权 → 本台「活动管理」（2026-10-04 批次 373 整卡由「党小组与活动」迁入，支书圈乙）；
     //   情景③ 专班赋权 → 组织委员台「专班管理」（支书台同项入口随②整卡在「活动管理」页，母本「支书亦可」不破）。
-    { id: 'notification', label: '通知发布', groupLabel: '我的职责', render: (ctx) => import('../entries/tabs/secretary/notification-tab.js?v=20261028a').then(m => m.renderContent(ctx)) },
+    { id: 'notification', label: '通知发布', groupLabel: '我的职责', render: (ctx) => import('../entries/tabs/secretary/notification-tab.js?v=20261028b').then(m => m.renderContent(ctx)) },
     // P3 党委后台（2026-09-02）：支部关键事项上报党委（发展节点/活动报备；党委批驳结论回传本页）
-    { id: 'report-up', label: '上报党委', groupLabel: '我的职责', render: (ctx) => import('../entries/tabs/secretary/report-up-tab.js?v=20261028a').then(m => m.renderContent(ctx)) },
+    { id: 'report-up', label: '上报党委', groupLabel: '我的职责', render: (ctx) => import('../entries/tabs/secretary/report-up-tab.js?v=20261028b').then(m => m.renderContent(ctx)) },
     // 成员流动（2026-10-25 IA 62→45）：支书台页签**已删**（同源组件两个页签位 ⇒ 收口组织台本位）。
     //   支书/副支书的流入/流出登记权不变（单一源 `MEMBER_FLOW_ROLES`），入口改经页面级重定向
     //   `workspace:secretary → member-flow → org.html?tab=member-flow`（壳 `_legacyPageRedirects`，落地 toast）。
@@ -77,12 +77,12 @@ registerCapability({
     // ── 协作与知情（纯只读：无职责≠无知情权，支书 2026-08-08 裁定） ──
     // L4 支部工作地图（2026-09-03 支书裁决放行）：支部分工 · 平铺/按人双视图（支书/副支书共用支书台）
     // 2026-10-02 批次 351（`D-741` 建议序）：**支部分工更具「职责」属性、读频高于知情查看 ⇒ 组内对调**（仅换序；条数不动）。
-    { id: 'work-map', label: '支部分工', groupLabel: '协作与知情', render: (ctx) => import('../entries/tabs/secretary/work-map-tab.js?v=20261028a').then(m => m.renderContent(ctx)) },
+    { id: 'work-map', label: '支部分工', groupLabel: '协作与知情', render: (ctx) => import('../entries/tabs/secretary/work-map-tab.js?v=20261028b').then(m => m.renderContent(ctx)) },
     // 知情查看（2026-10-25 IA 62→45）：**支书台页签已删**（12 → 10 的第二项）——
     //   其「活动工作组 / 专班工作组」只读两段改为「全局概况」页内卡（`secretary/overview-tab.js`
     //   挂 `components/record/insight-view.js`，`embedded` 形态，不重复页头）；
     //   旧 `?tab=tf-view` 由壳 `_legacyTabAliases` 落 `overview&section=insight`（toast 说明）。不得再注册回来。
     // ── 制度与答复 ──
-    { id: 'feedback', label: '反馈管理', groupLabel: '制度与答复', render: (ctx) => import('../entries/tabs/secretary/feedback-tab.js?v=20261028a').then(m => m.renderContent(ctx)) },
+    { id: 'feedback', label: '意见反馈', groupLabel: '制度与答复', render: (ctx) => import('../entries/tabs/secretary/feedback-tab.js?v=20261028b').then(m => m.renderContent(ctx)) },
   ],
 });

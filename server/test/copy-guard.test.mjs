@@ -139,6 +139,169 @@ await (async () => {
 
 })();
 
+// ═══ 源件 6：空态单一源守卫（2026-10-28 全站空态收口 · E1/E2）═══
+await (async () => {
+  const { test } = await import('node:test');
+  const assert = (await import('node:assert/strict')).default;
+  const { readdirSync, readFileSync, existsSync } = await import('node:fs');
+  const { join, relative, dirname } = await import('node:path');
+  const { fileURLToPath } = await import('node:url');
+
+  // role: [工程师]+[AI]
+  // empty-state-guard（并入 copy-guard，2026-10-28 空态全站收口）
+  //
+  // 判据（DESIGN_SYSTEM §4.18 C6 / §4.20 表格空态 / §12.16 词表）：
+  //   空态只从 `components/ui/empty-state.js::emptyStateHtml` 出（variant: panel / inline / table），
+  //   不得在页面里手写「暂无 / 还没有 / 没有匹配 / 无匹配 / 请先登录」的空态标记。
+  //
+  // 判红面与抽取口径（为什么是「标签文本节点」）：
+  //   · 面 ＝ `docs/src/**/*.js`（跳过 mock / vendor），减去组件自身 `empty-state.js`；
+  //   · 剥注释（`//` · `/* */` · `<!-- -->`）→ 逐行找「`>` 与 `<` 之间的文本节点」里的关键字；
+  //     裸字符串（`emptyMessage:` / `toast` / 数据兜底 `|| '暂无'`）不是空态标记 ⇒ 不计；
+  //   · 排除：① 含 `emptyStateHtml(` 的行（组件出口）；② `<option>` 占位；
+  //     ③ `empty-state__text` 静态骨架（`docs/index.html` / `search.html` 同款标记）；
+  //     ④ `${…}` 插值内部（`>` 后紧跟 `$` 不进入匹配）——插值是运行时数据，不是手写文案。
+  //   · 已知边界：`empty*.textContent = '暂无…'` 的写法不在本正则面内（静态近似），
+  //     现有 0 处；若将来引入，应由 §4.18 C6 的 `emptyStringsOf` 面另判（本守卫不假装覆盖）。
+  //
+  // 判红 / 判据：
+  //   E1 白名单之外的手写空态命中数 ＝ 0（迁移后基线 0；白名单 3 条逐条写理由）
+  //   E2 非空转：① 反例（手写 `<p>暂无…</p>` / `请先登录` 必须命中）② 负例（组件调用 / option /
+  //      静态骨架 / 裸字符串不得命中）③ 扫描面与组件采用规模下限 ④ 白名单条目数与僵尸登记
+  // 运行：node --test server/test/copy-guard.test.mjs
+
+  const HERE = dirname(fileURLToPath(import.meta.url));
+  const ROOT = join(HERE, '..', '..');
+  const SRC = join(ROOT, 'docs', 'src');
+
+  const SKIP_DIRS = new Set(['mock', 'vendor', 'node_modules']);
+  const SELF_REL = 'docs/src/components/ui/empty-state.js';
+
+  /** 空态关键字（DESIGN_SYSTEM C6 / §12.16 词表口径） */
+  const KEY_RE = /暂无|还没有|没有匹配|无匹配|请先登录/;
+  /** 标签文本节点：`>` 与 `<` 之间、且不跨 `${` 插值 */
+  const TEXT_NODE_RE = /(?<![=-])>[^<>$]*?(?:暂无|还没有|没有匹配|无匹配|请先登录)[^<>]*?</g;
+
+  /** 剥注释（与同文件其它源件同口径） */
+  function stripComments(src) {
+    let s = String(src).replace(/\r\n?/g, '\n');
+    s = s.replace(/\/\*[\s\S]*?\*\//g, ' ');
+    s = s.replace(/<!--[\s\S]*?-->/g, ' ');
+    return s.split('\n').map((line) => line.replace(/\/\/.*$/, ''));
+  }
+
+  /** 扫一段源码里的手写空态命中（供测试与反例自检共用） */
+  function _scan(text) {
+    const hits = [];
+    for (const line of stripComments(text)) {
+      if (!KEY_RE.test(line)) continue;
+      if (/emptyStateHtml\s*\(/.test(line)) continue;
+      if (/<option\b/i.test(line)) continue;
+      if (/empty-state__text/.test(line)) continue;
+      TEXT_NODE_RE.lastIndex = 0;
+      let m;
+      while ((m = TEXT_NODE_RE.exec(line))) hits.push(m[0]);
+    }
+    return hits;
+  }
+
+  function walk(dir, out = []) {
+    for (const e of readdirSync(dir, { withFileTypes: true })) {
+      if (SKIP_DIRS.has(e.name)) continue;
+      const p = join(dir, e.name);
+      if (e.isDirectory()) walk(p, out);
+      else if (e.name.endsWith('.js')) out.push(p);
+    }
+    return out.sort();
+  }
+
+  /** 白名单：每条都必须写理由；命中片段逐字（含 `>` / `<` 边界） */
+  const WHITELIST = {
+    'docs/src/components/dashboard/gallery.js': [
+      { text: '>暂无活动照片<', why: '风采卡图位占位（图标 ＋ 一句），不是列表/页面空态区域；组件无图标槽' },
+    ],
+    'docs/src/components/ui/modal.js': [
+      { text: '>（也就是还没有完成赋权）。<', why: '权限说明句里的「还没有」，是叙述不是空态' },
+    ],
+    'docs/src/entries/tabs/secretary/group-progress-tab.js': [
+      { text: '>（本组暂无组长，「请组长关注」不可用）<', why: '行内状态括号注（说明按钮为何不可用），不是空态区域' },
+    ],
+  };
+
+  /** 白名单规模（非空转：台账被删空 / 悄悄扩表都要判红） */
+  const WHITELIST_FILES = 3;
+  const WHITELIST_TOTAL = 3;
+  /** 扫描面 / 组件采用规模下限（防「判红面被改小 ⇒ 恒真」） */
+  const SCAN_FILES_FLOOR = 280;
+  const COMPONENT_FILES_FLOOR = 60;
+  const COMPONENT_CALLS_FLOOR = 120;
+
+  const FILES = walk(SRC);
+  const SCAN = FILES.map((abs) => {
+    const file = relative(ROOT, abs).replace(/\\/g, '/');
+    const src = readFileSync(abs, 'utf8');
+    return { file, src, hits: file === SELF_REL ? [] : _scan(src) };
+  });
+  const COMPONENT_FILES = SCAN.filter((r) => /emptyStateHtml\s*\(/.test(r.src)).length;
+  const COMPONENT_CALLS = SCAN.reduce((a, r) => a + (r.src.match(/emptyStateHtml\s*\(/g) || []).length, 0);
+
+  test('E1 空态只从 empty-state.js 出：白名单外的手写空态命中数为 0', () => {
+    const offenders = [];
+    for (const { file, hits } of SCAN) {
+      const known = new Set((WHITELIST[file] || []).map((x) => x.text));
+      for (const h of hits) if (!known.has(h)) offenders.push(`${file} → 「${h}」`);
+    }
+    assert.deepEqual(offenders, [],
+      '手写空态（DESIGN_SYSTEM §4.18 C6 / §4.20 / §12.16：空态只从 empty-state.js 出）——'
+      + '改用 emptyStateHtml({ text, variant: \'inline\' | \'panel\' | \'table\' })；'
+      + '白名单只收「不是空态区域的图位 / 行内状态 / 叙述句」，新增一条须写理由：\n  '
+      + offenders.join('\n  '));
+  });
+
+  test('E2 非空转：反例命中 / 负例不误伤 + 扫描面与组件规模达标 + 白名单无僵尸', () => {
+    // ① 反例：手写空态必须命中（正则写坏即红）
+    assert.equal(_scan("el.innerHTML = '<p class=\"text-xs text-gray-500\">暂无记录</p>';").length, 1,
+      '反例未命中：手写「暂无」空态必须被判红（匹配器坏了）');
+    assert.equal(_scan("'<div class=\"card\"><p>请先登录</p></div>'").length, 1,
+      '反例未命中：手写「请先登录」边缘态必须被判红');
+    // ② 负例：组件出口 / option 占位 / 静态骨架 / 裸字符串都不得误伤
+    assert.equal(_scan("emptyStateHtml({ text: '暂无记录', variant: 'inline' })").length, 0,
+      '负例误伤：组件调用不是手写空态');
+    assert.equal(_scan("'<option value=\"\">（暂无支委会场次）</option>'").length, 0,
+      '负例误伤：下拉占位不是空态标记');
+    assert.equal(_scan("'<p class=\"empty-state__text\">本月暂无活动</p>'").length, 0,
+      '负例误伤：empty-state 静态骨架（docs/index.html 同款）不是手写空态');
+    assert.equal(_scan("const x = '暂无';").length, 0,
+      '负例误伤：数据兜底/计数字符串不是空态标记');
+    assert.equal(_scan("// <p>暂无记录</p>").length, 0,
+      '负例误伤：注释里的空态不是渲染标记');
+    // ③ 扫描面与组件采用规模下限（防判红面被改小 / 组件被绕过）
+    assert.ok(FILES.length >= SCAN_FILES_FLOOR,
+      `只扫到 ${FILES.length} 份 docs/src 源码（下限 ${SCAN_FILES_FLOOR}）：判红面被改小`);
+    assert.ok(COMPONENT_FILES >= COMPONENT_FILES_FLOOR,
+      `只有 ${COMPONENT_FILES} 份文件使用 emptyStateHtml（下限 ${COMPONENT_FILES_FLOOR}）：组件 adoption 面疑似被绕过`);
+    assert.ok(COMPONENT_CALLS >= COMPONENT_CALLS_FLOOR,
+      `emptyStateHtml 调用只剩 ${COMPONENT_CALLS} 处（下限 ${COMPONENT_CALLS_FLOOR}）：空态单一源被拆散`);
+    // ④ 白名单：条目数一致 + 文件存在 + 不是僵尸（该条命中仍存在）
+    const files = Object.keys(WHITELIST);
+    assert.equal(files.length, WHITELIST_FILES, '白名单文件数与声明值不一致（改台账须同步声明）');
+    assert.equal(files.reduce((a, f) => a + WHITELIST[f].length, 0), WHITELIST_TOTAL,
+      '白名单条数与声明值不一致（改台账须同步声明）');
+    const gone = files.filter((f) => !existsSync(join(ROOT, f)));
+    assert.deepEqual(gone, [], `白名单指向不存在的文件（应删该条）：\n  ${gone.join('\n  ')}`);
+    const zombie = [];
+    for (const f of files) {
+      const hits = new Set((SCAN.find((r) => r.file === f) || { hits: [] }).hits);
+      for (const x of WHITELIST[f]) if (!hits.has(x.text)) zombie.push(`${f} → 「${x.text}」（${x.why}）`);
+    }
+    assert.deepEqual(zombie, [],
+      `以下白名单条目已不再命中，应删条目（收白名单）：\n  ${zombie.join('\n  ')}`);
+    for (const f of files) for (const x of WHITELIST[f]) assert.ok(x.why && x.why.length >= 8,
+      `白名单 ${f} 的「${x.text}」缺理由（新增白名单必须写清为什么不是空态）`);
+  });
+
+})();
+
 // ═══ 源件 2：copy-length-guard.test.mjs ═══
 await (async () => {
   const { test } = await import('node:test');

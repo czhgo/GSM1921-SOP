@@ -3,26 +3,27 @@
 // 三视图：列表（分页）/ 日历 / 查询；列表与日历为纯展示，查询复用全局查询组件。
 // URL 落点高亮（?activityId=）经 ctx.highlightId 一次性消费（对齐单体版参数清除后的行为）。
 
-import { icon } from '../../../core/base/icons.js?v=20261028a';
-import { renderQueryView } from '../../../components/governance/query-view.js?v=20261028a';
-import { flashHighlight } from '../../../core/base/utils.js?v=20261028a';
-import { getActivityTypeColors } from '../../../core/domain/constants.js?v=20261028a';
+import { icon } from '../../../core/base/icons.js?v=20261028b';
+import { renderQueryView } from '../../../components/governance/query-view.js?v=20261028b';
+import { flashHighlight } from '../../../core/base/utils.js?v=20261028b';
+import { getActivityTypeColors } from '../../../core/domain/constants.js?v=20261028b';
 // 活动「仍在办」口径单一源（2026-09-13 收敛）：替代手写 !archived && status!=='cancelled'
-import { isActivityLive } from '../../../core/domain/constants.js?v=20261028a';
-import { canSignup } from '../../../components/governance/signup-panel.js?v=20261028a';
-import { AuthStore } from '../../../services/core/auth.js?v=20261028a';
+import { isActivityLive } from '../../../core/domain/constants.js?v=20261028b';
+import { canSignup } from '../../../components/governance/signup-panel.js?v=20261028b';
+import { AuthStore } from '../../../services/core/auth.js?v=20261028b';
 // 组织者按活动身份读（2026-09-19 批次 91 · SOP-B-17）：本人被指定为某场活动的组织者时，
 // 该场的发布口与上传位从该行可达——「组织者是这场事上被指定的人」，不是静态角色。
-import { isActivityOrganizer, findActivityById } from '../../../services/activity/activity.js?v=20261028a';
-import { openGroupNoticeComposer } from '../../../components/governance/notice-view.js?v=20261028a';
+import { isActivityOrganizer, findActivityById } from '../../../services/activity/activity.js?v=20261028b';
+import { openGroupNoticeComposer } from '../../../components/governance/notice-view.js?v=20261028b';
 // 翻页控件单一源（批次 38：全站手写翻页一律并轨 pagerHtml）
-import { pagerHtml } from '../../../components/ui/pager.js?v=20261028a';
-import { getAppState } from '../../../core/base/state.js?v=20261028a';
-import { renderContent as renderSharedActivityCalendar } from '../shared/activity-calendar-tab.js?v=20261028a';
-import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261028a';
+import { pagerHtml } from '../../../components/ui/pager.js?v=20261028b';
+import { getAppState } from '../../../core/base/state.js?v=20261028b';
+import { renderContent as renderSharedActivityCalendar } from '../shared/activity-calendar-tab.js?v=20261028b';
+import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261028b';
 // Task 6：活动动态属跨对象列表 ⇒ direct 完整详情页；缺 id 不渲染可点链接。
-import { objectDetailHref } from '../../../core/domain/object-route.js?v=20261028a';
+import { objectDetailHref } from '../../../core/domain/object-route.js?v=20261028b';
 
+import { emptyStateHtml } from '../../../components/ui/empty-state.js?v=20261028b';
 const ACTIVITY_TYPE_COLORS = getActivityTypeColors();
 
 // ③闭环样本1（2026-09-10）：活动列表/查询行补「去报名 / 去表态」明确入口——
@@ -247,7 +248,7 @@ function _renderActListView(sorted, highlightId) {
 
   vc.innerHTML = `
     <div class="space-y-2">
-      ${sorted.length === 0 ? '<p class="text-xs text-gray-500 text-center py-6">— 暂无活动 · 下一步：活动发布后会出现在这里</p>' :
+      ${sorted.length === 0 ? emptyStateHtml({ text: '暂无活动 · 下一步：活动发布后会出现在这里', variant: 'panel' }) :
         pageItems.map(a => _activityRowHtml(a)).join('')}
     </div>
     ${pagerHtml({ page, pages: totalPages, total: sorted.length, unit: '条' })}
@@ -276,7 +277,7 @@ function _renderActCalendarView(sorted, highlightId) {
   const vc = document.getElementById('visitor-act-view');
   if (!vc) return;
   if (sorted.length === 0) {
-    vc.innerHTML = '<p class="text-xs text-gray-500 text-center py-6">暂无活动</p>';
+    vc.innerHTML = emptyStateHtml({ text: "暂无活动", variant: 'panel' });
     return;
   }
   const state = getAppState() || {};
