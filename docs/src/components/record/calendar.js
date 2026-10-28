@@ -5,17 +5,17 @@
 //  视图模式：月/周/日/列表 四种切换
 // ════════════════════════════════════════════════════════════════
 
-import { getAppState, setState } from '../../core/base/state.js?v=20261028b';
-import { ROLE_COLORS, getActivityColor, ACTIVITY_CATEGORY_COLORS, ACTIVITY_TYPE_LABELS, ACTIVITY_TYPE_SHORT, activityTypeTone } from '../../core/domain/constants.js?v=20261028b';
-import { _fmtDate, _currentYearMonth, showToast } from '../../core/base/utils.js?v=20261028b';
+import { getAppState, setState } from '../../core/base/state.js?v=20261028d';
+import { ROLE_COLORS, getActivityColor, ACTIVITY_CATEGORY_COLORS, ACTIVITY_TYPE_LABELS, ACTIVITY_TYPE_SHORT, activityTypeTone } from '../../core/domain/constants.js?v=20261028d';
+import { _fmtDate, _currentYearMonth, showToast } from '../../core/base/utils.js?v=20261028d';
 // 2026-10-25 Task 1.3：节点缺失 / 页内失败统一走「错误卡 + 重试」单一源（tab-bar 同款）。
-import { mountTabFailure } from '../shell/tab-bar.js?v=20261028b';
-import { tokenOf } from '../../core/base/version-token.js?v=20261028b'; // P2 视图渲染守卫数据版本（spec §四.2）
-import { filterTasksByManagementRole, activityLifecycleBadgeHtml } from './inspector.js?v=20261028b';
+import { mountTabFailure } from '../shell/tab-bar.js?v=20261028d';
+import { tokenOf } from '../../core/base/version-token.js?v=20261028d'; // P2 视图渲染守卫数据版本（spec §四.2）
+import { filterTasksByManagementRole, activityLifecycleBadgeHtml } from './inspector.js?v=20261028d';
 // 活动「已完成 / 已取消」闭环判据单一源（R7-16）：替代手写 ['completed','cancelled']
-import { isActivityClosed } from '../../core/domain/domain.js?v=20261028b';
+import { isActivityClosed } from '../../core/domain/domain.js?v=20261028d';
 
-import { emptyStateHtml } from '../ui/empty-state.js?v=20261028b';
+import { emptyStateHtml } from '../ui/empty-state.js?v=20261028d';
 // ── 固定语义色 tone（不随主题）──
 // 2026-10-24 批次 508：活动类别色改由单一源 activityTypeTone 判定——
 //   主题党日（scenarioId=theme-party）→ gold；其余类别（三会一课等）→ party-red；无 type → neutral。
@@ -878,9 +878,11 @@ function _getWeekNumber(date) {
 // （`#month-selector` 是新元素），模块级布尔让「重建出来的那个选择器」永远绑不上 change。
 // （2026-09-30 批次 310 立共享日历页签时按代码路径复核发现；同批 `today-tab.js` 已有同款教训登记：
 //   容器标记失配会留下「切走再切回、控件失效」的残留病。）
-export function populateMonthSelector(activities, targetMonth) {
+// 默认月＝**当前自然月**（`_currentYearMonth(now)`；now 仅测试注入，生产调用点不传）。
+// 2026-10-28：原实现虽已由 `new Date()` 派生，但无注入口 ⇒ 无法在纯 node 里证明「默认月随 now 变」。
+export function populateMonthSelector(activities, targetMonth, now = new Date()) {
   const sel = document.getElementById('month-selector');
-  const currentMonth = _currentYearMonth();
+  const currentMonth = _currentYearMonth(now);
   const appState = getAppState();
   if (!sel) return appState.displayMonth || currentMonth;
 

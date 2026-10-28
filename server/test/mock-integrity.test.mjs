@@ -12,10 +12,10 @@ const BASE = 'http://localhost:3000';
 // 浏览器内收集全部 mock 数据（结构化克隆返回）
 async function collectAll(page) {
   return page.evaluate(async () => {
-    const mock = await import('/src/data/mock/index.js?v=20261028b');
-    const seed = await import('/src/data/mock/seed.js?v=20261028b');
-    const accounts = await import('/src/data/mock/accounts.js?v=20261028b');
-    const derive = await import('/src/data/mock/derive.js?v=20261028b');
+    const mock = await import('/src/data/mock/index.js?v=20261028d');
+    const seed = await import('/src/data/mock/seed.js?v=20261028d');
+    const accounts = await import('/src/data/mock/accounts.js?v=20261028d');
+    const derive = await import('/src/data/mock/derive.js?v=20261028d');
     // 2026-10-25 批次 510（SD-34）：种子只存事实，状态/进度/过期等结果由唯一派生器补齐。
     //   审计必须针对「运行时形状」而不是原始种子行，否则会把「没有手写结果」误报成缺字段。
     derive.applyDerivedFacts({

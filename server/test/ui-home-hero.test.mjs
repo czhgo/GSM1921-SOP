@@ -17,7 +17,7 @@
 //   E3 main-entry.js 引入 getHeaderTitle，并按 user 分支设置标题；
 //   E4 index.html 不出现硬编码示例支部名「光华管理学院本科生党支部」；
 //   E5 非空转自检：上述正则对正样本命中、对负样本不命中（防止空转假绿）；
-//   E7 首页统计卡：短标签 + 统一 min-height + 图标顶对齐（390 等高）；
+//   E7 首页统计卡：图标 ＋ 数字 ＋ 标签 + 统一 min-height（390 等高），不阴影不上浮；
 //   E8 hero 降级两态（2026-10-28 Task 5.4，DESIGN_SYSTEM §4.25 规则 4）：
 //      登录且有待办 ⇒ main-entry.js 写 data-hero="muted"（待办口径同源 TodoStore.getByRole）·
 //      styles.css 党徽 48px → 24px、标题 --text-xl 左对齐；未登录 / 待办 0 保持整幅 ⇒ 断言带反例。
@@ -107,7 +107,7 @@ test('E5 非空转自检：正则正样本命中、负样本不命中', () => {
   assert.match('<p id="dashboard-hero-subtitle" class="text-sm">x</p>', HERO_SUBTITLE_RE,
     '副标题正则须能识别回潮元素（反向断言依赖它）');
 
-  const posImport = "import { getHeaderTitle } from '../../services/branch/branch.js?v=20261028b';";
+  const posImport = "import { getHeaderTitle } from '../../services/branch/branch.js?v=20261028d';";
   const negImport = "import { getHeaderTitle } from '../../services/branch/branch.js';";
   assert.match(posImport, IMPORT_RE);
   assert.doesNotMatch(negImport, IMPORT_RE);
@@ -138,17 +138,26 @@ test('E6 首页活动风采：一张照片都没有时不出 16:9 大图位，�
     '空态分支不得再铺 16:9 图位');
 });
 
-test('E7 首页统计卡：数字＋标签两行、统一 min-height（390 等高），不再有彩色图标块', () => {
-  // 2026-10-28 支书裁定「四个数统一为卡片数字」：卡片内只剩「数字 24px ＋ 标签 12px」，
-  //   原 E7 的「图标顶对齐」断言随图标块删除而失效 ⇒ 改为钉住新的卡片结构（判据不放宽：
-  //   短标签 / min-height / 空态说明全部保留，另加「不得回潮彩色图标块」的反向断言）。
+test('E7 首页统计卡：图标＋数字＋标签、统一 min-height（390 等高），不阴影不上浮', () => {
+  // 2026-10-28 Task 3（CASE-DESIGN-030）：支书裁定恢复彩色图标点缀——四张卡由
+  //   「图标块 .stat-icon-tint ＋ 数字 24px 同色 ＋ 标签 12px」组成；上一轮「去图标」属过度解读原则 4。
+  //   判据不放宽：短标签 / min-height / 空态说明全部保留，并把旧的反向断言（不得回潮图标）
+  //   改准为正向断言（必须有图标块），另加「不得用 hover 阴影 / 上浮」。
   assert.match(statsSource, /class="card rounded-xl p-4 stat-card/, '统计卡须复用 .card 并挂 .stat-card');
+  assert.match(statsSource, /class="stat-icon-tint"[^>]*--tint:\$\{s\.color\}/,
+    '统计卡须有图标块，浅底由 --tint 取既有语义色派生');
+  assert.match(statsSource, /stat-icon-tint[\s\S]{0,240}metric-band__value[\s\S]{0,240}metric-band__label/,
+    '统计卡结构须为「图标 ＋ 数值 ＋ 标签」三段（与工作台四数同构）');
   assert.match(statsSource, /metric-band__value/, '统计卡数字须沿用 .metric-band__value（与工作台同一套排版）');
   assert.match(statsSource, /metric-band__label/, '统计卡标签须沿用 .metric-band__label');
-  assert.doesNotMatch(statsSource, /stat-icon-tint/, '不得回潮彩色图标块（图标底 tint 已随卡片数字裁定删除）');
+  assert.match(cssSource, /\.stat-icon-tint\s*\{[^}]*width:\s*40px[^}]*height:\s*40px/,
+    'styles.css：图标块须为 40×40');
+  assert.match(cssSource, /\.stat-icon-tint\s*\{[^}]*background:\s*color-mix\(in srgb,\s*var\(--tint[^;]*12%/,
+    'styles.css：图标浅底须由 --tint 12% 派生（不写 hex）');
   assert.match(statsSource, /label: '个人考勤'/, '考勤卡标签须为短标签（原「个人考勤（本月无记录）」会折行撑高）');
   assert.match(statsSource, /本月无记录/, '空态说明须保留（降为第二行小字）');
   assert.match(cssSource, /\.stat-card\s*\{[^}]*min-height:\s*\d+px/, 'styles.css 缺少统计卡统一 min-height');
+  assert.doesNotMatch(statsSource, /hover:shadow|hover:-translate-[xy]-/, '统计卡不得以 hover 阴影 / 上浮作反馈');
 });
 
 test('E8 hero 两态：登录且有待办降为辅助信息，未登录 / 待办 0 保持整幅', () => {

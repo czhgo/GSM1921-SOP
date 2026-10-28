@@ -314,6 +314,18 @@ related_files: [DESIGN_SYSTEM.md, content/03_doc_system/CASES_INDEX.md, content/
 - **边界**：空态 / 错误态里的「下一步」属 §4.18 C6（一句为什么空 ＋ 一个出口），不在本条；行载体自身的 `title` 悬浮提示不属副题。`entries/tabs/visitor/tf-view-tab.js` 仍有一处 `textContent` 覆写分支，其基串已随本批改为「全支部 · 只读」而不再命中，覆写文本不作为副题单一源（守卫只判声明处）。
 - **证据指针**：`docs/src/components/record/taskforce-view.js:59`（`全支部 · 只读`）；`docs/src/components/record/workgroup-view.js:140`（`renderCardHeader({ meta: '本支部 · 只读' })`）；`server/test/copy-guard.test.mjs`（S1 / S2）；`DESIGN_SYSTEM.md §12.15`（SD-54）。
 
+## CASE-DESIGN-030 把「卡片数字」执行成去图标：过度解读原则 4
+
+- **编号**：CASE-DESIGN-030
+- **场景（真实发生）**：支书反馈「四个数统一为卡片数字」，AI 把它执行成**纯文字卡**——首页四数与工作台结论带同时删掉彩色图标块、数字统一回正文色，并同步把守卫改成「不得回潮图标块」。支书复核：「喜欢彩色图标块，纯文字显得粗糙」。取证：上一版的 `stats.js` 只余 `.metric-band__value` ＋ `.metric-band__label`，`styles.css` 的 `.stat-icon-tint` 被整段删除，`ui-home-hero::E7` 还新增了 `doesNotMatch(/stat-icon-tint/)` 的反向断言。
+- **AI 假设**：`DESIGN_SYSTEM §一 原则 4`「主色 ≤ 2 种，功能色仅用于状态指示」意味着彩色越少越合规；把「卡片数字」理解成去掉一切非文字的装饰；既然删了图标，守卫就该禁止它回来。
+- **人类意图**：「统一为卡片数字」指的是**四个数在版式上同级、同构**（都给卡片、都用同一套数字排版）；图标浅底与同色笔触是支书认可的既有表达，应一并保留。原则 4 约束的是**主色数量**与**功能色的状态语义**，不把彩色一概判为违规。
+- **泛化规则**：① 原则 4 的判据是「主色 ≤ 2 种 ＋ 功能色只承担状态」；**点缀色**（图标浅底 / 笔触 / 关键数值）单列，不计入主色数量、不承担状态语义，每屏 1–2 处（一组四数卡按一处计）。② 「统一 / 收敛」类指令先确认收敛的是**版式与排版**还是**色彩与图形**；不得以「更克制」为由删掉支书明确喜欢的视觉元素。③ 删掉元素的同时**收紧守卫**（反向断言）会把误读固化成规范，改结构前先核对该判据的原始裁定语境。④ 图标不得成为唯一信息载体——数值与标签必须仍在。
+- **守卫**：`ui-control-system-guard::V1`（四数卡由图标、数值、标签三段组成；无 `hover:shadow` / `-translate-y`）＋ `ui-home-hero::E7`（首页统计卡同构）＋ `theme-palette-guard`（图标色只取既有语义 token）＋ `hex-hardcode-guard`（`--tint` 由 CSS 派生，不写 hex）。
+- **对应规范编号**：§一 原则 4（色彩克制 · 点缀色）；关联 SD-46（主题色层与功能色层并列）。
+- **边界**：点缀色不承担状态语义——逾期 / 未读等状态仍由 `--status-warning-text` 等语义 token 与文字标签共同表达；以素净为主的页面不必强行补彩色，本判例只否定「把彩色一律判违规」的推论。深浅色由 `--tint` 混入 `--surface-card` 自动适配，不为暗色另写一套色值。
+- **证据指针**：`docs/src/components/dashboard/stats.js`（`stat-icon-tint` ＋ `--tint` ＋ 同色数值）；`docs/src/components/governance/work-overview.js`（四数卡同构）；`docs/src/styles.css` 的 `.stat-icon-tint`；`server/test/ui-control-system-guard.test.mjs`（V1）；`server/test/ui-home-hero.test.mjs`（E7）；`.ctx/logs/2026-10-EXECUTION_LOG.md` 2026-10-28 Task 3。
+
 ---
 
 ## 数据域判例（data）

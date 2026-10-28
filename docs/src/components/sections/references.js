@@ -1,30 +1,30 @@
 // role: [工程师]+[AI]
 // 参考资料板块 — 网站群展示 + 官方文件（党内法规位阶排序）+ 支部文件（支委写入/全员下载）
 
-import { icon } from '../../core/base/icons.js?v=20261028b';
-import { getBasePath, showToast } from '../../core/base/utils.js?v=20261028b';
-import { getAdapter, getDataSource, getAuthToken, getApiBaseUrl } from '../../data/data-adapter.js?v=20261028b';
-import { withSelectedBranchScope } from '../../data/api-adapter.js?v=20261028b';
-import { AuthStore } from '../../services/core/auth.js?v=20261028b';
-import { loadActivities } from '../../services/activity/activity.js?v=20261028b';
-import { PEOPLE } from '../../data/mock/people.js?v=20261028b';
+import { icon } from '../../core/base/icons.js?v=20261028d';
+import { getBasePath, showToast } from '../../core/base/utils.js?v=20261028d';
+import { getAdapter, getDataSource, getAuthToken, getApiBaseUrl } from '../../data/data-adapter.js?v=20261028d';
+import { withSelectedBranchScope } from '../../data/api-adapter.js?v=20261028d';
+import { AuthStore } from '../../services/core/auth.js?v=20261028d';
+import { loadActivities } from '../../services/activity/activity.js?v=20261028d';
+import { PEOPLE } from '../../data/mock/people.js?v=20261028d';
 // 立项⑧（E 批）：支部文件增强——制度文本（版本化 + 现行/停用态 + 网页读正文）纯逻辑服务
 // 2026-09-21 批次 129：制度链（草案 → 支委会审议 → 现行版 / 退回修改）——草案态与修改口同源于该服务
 import {
   isInstitutionManager, saveDoc, publishNewVersion, setDocStatus,
   updateInstitutionDraft, INSTITUTION_DRAFT, INSTITUTION_PENDING_PARTY_MEETING,
   buildDocVersionsView, renderDocBody, listDocs,
-} from '../../services/branch/branch-doc.js?v=20261028b';
+} from '../../services/branch/branch-doc.js?v=20261028d';
 // 统一检索引擎（2026-09-14 批次 37）：本页三处列表（站点网格 / 官方文件 / 支部文件）各接一个实例
-import { renderFilteredList } from '../ui/list-filter.js?v=20261028b';
-import { openModal, closeModal, confirmDanger } from '../ui/modal.js?v=20261028b';
+import { renderFilteredList } from '../ui/list-filter.js?v=20261028d';
+import { openModal, closeModal, confirmDanger } from '../ui/modal.js?v=20261028d';
 // 制度内容（领域）→ 对应【主体】：判据单一源（2026-10-05 批次 378 · `SOP-B-25` 第 ② 项「按草案落地」）
 import {
   INSTITUTION_DOMAINS, INSTITUTION_DOMAIN_LABELS, institutionSubjectOfDomain, ORG_SUBJECT_LABELS,
-} from '../../core/domain/work-map.js?v=20261028b';
-import { ROLE_LABELS } from '../../core/domain/constants.js?v=20261028b';
+} from '../../core/domain/work-map.js?v=20261028d';
+import { ROLE_LABELS } from '../../core/domain/constants.js?v=20261028d';
 
-import { emptyStateHtml } from '../ui/empty-state.js?v=20261028b';
+import { emptyStateHtml } from '../ui/empty-state.js?v=20261028d';
 /** 主体引用 → 显示名（角色键 → 角色名；组织型主体 id → 组织名，如「支委会」） */
 function _subjectLabelOf(subjectId) {
   if (!subjectId) return '';
@@ -880,7 +880,7 @@ export class ReferencesModule {
           </div>
           <div>
             <label class="text-xs font-medium mb-1.5 block" style="color:var(--neutral-500);" for="ref-pub-note">版本说明（可选）</label>
-            <input id="ref-pub-note" class="input-flat w-full" placeholder="如：根据 2026-09 支委会意见修订第三条" />
+            <input id="ref-pub-note" class="input-flat w-full" placeholder="如：根据支委会意见修订第三条" />
           </div>
           <p class="text-xs" style="color:var(--neutral-500);">保存后：当前「现行版 v${doc.version || 1}」自动归档为历史版本（成员仍可展开查阅），正文更新为「现行版 v${(doc.version || 1) + 1}」。</p>
           <div id="ref-pub-status" class="hidden text-xs rounded-lg px-3 py-2"></div>

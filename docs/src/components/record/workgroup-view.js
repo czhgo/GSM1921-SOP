@@ -13,18 +13,18 @@
 //   · 只读：**不渲染任何写入口**（无增删成员 / 授权 / 编辑控件），办事一律回活动详情；
 //   · 行结构＝`components/ui/list-row.js::listRowHtml`（nav 行，整行可点）；检索 / 翻页＝`ui/list-filter.js`；
 //     空态＝`ui/empty-state.js`（一句话 + 一个下一步）；状态＝`.state-badge` 既有族。
-import { mockDB } from '../../core/domain/domain.js?v=20261028b';
-import { loadActivities } from '../../services/activity/activity.js?v=20261028b';
-import { getPersonName } from '../../services/member/person.js?v=20261028b';
-import { AuthStore } from '../../services/core/auth.js?v=20261028b';
-import { getBranchIdOfPerson } from '../../services/branch/branch.js?v=20261028b';
-import { listRowHtml } from '../ui/list-row.js?v=20261028b';
-import { renderFilteredList } from '../ui/list-filter.js?v=20261028b';
-import { emptyStateHtml } from '../ui/empty-state.js?v=20261028b';
-import { renderCardHeader } from '../shell/page-frame.js?v=20261028b';
-import { flashHighlight, escHtml as esc } from '../../core/base/utils.js?v=20261028b';
+import { mockDB } from '../../core/domain/domain.js?v=20261028d';
+import { loadActivities } from '../../services/activity/activity.js?v=20261028d';
+import { getPersonName } from '../../services/member/person.js?v=20261028d';
+import { AuthStore } from '../../services/core/auth.js?v=20261028d';
+import { getBranchIdOfPerson } from '../../services/branch/branch.js?v=20261028d';
+import { listRowHtml } from '../ui/list-row.js?v=20261028d';
+import { renderFilteredList } from '../ui/list-filter.js?v=20261028d';
+import { emptyStateHtml } from '../ui/empty-state.js?v=20261028d';
+import { renderCardHeader } from '../shell/page-frame.js?v=20261028d';
+import { flashHighlight, escHtml as esc } from '../../core/base/utils.js?v=20261028d';
 // Task 6：工作组行 → 所属活动完整详情页（direct）；缺 id 时不给 href。
-import { objectDetailHref } from '../../core/domain/object-route.js?v=20261028b';
+import { objectDetailHref } from '../../core/domain/object-route.js?v=20261028d';
 
 // 工作组状态 → 文案 / 色调（活动工作组只会出现 active / archived，其余键沿用统一状态词）
 const STATUS_META = {

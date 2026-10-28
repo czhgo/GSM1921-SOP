@@ -142,7 +142,7 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/DOC
 **命令**：
 - 全量：`cd server && npm test`（裸 `node --test`，自动发现 `test/` 下全部 `*.test.{js,mjs}`）
 - 单跑：`node --test server/test/<文件名>`
-- 版本戳同步：`node docs/scripts/bump-version.mjs`（bump 后必须跑一次全量，防模块实例分裂误报，content/05_ai_coding/TEST_AND_VERIFICATION.md §17）
+- 版本戳同步：`node docs/scripts/bump-version.mjs`（**只在发布时跑**；bump 后必须跑一次全量，防模块实例分裂误报，content/05_ai_coding/TEST_AND_VERIFICATION.md §17）
 
 **套件构成（动态口径，不写死数字）**：以 `server/test/` 目录实测为准——分两类：`.test.js` 单元/集成、`.test.mjs` 审计守护与真机普查；文件数与断言数随批次增长，**任何文档都不再维护固定计数**（与 `README.md`、`server/README.md` 同一口径）。当前重点守卫集见 `README.md` 的「口径/单一源守卫」一行与 `content/05_ai_coding/DATA_CONSISTENCY_CHECKLIST.md §0.2 规则 → 守卫 → 状态 总索引`。
 
@@ -151,6 +151,8 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/DOC
 **时长纪律（2026-10-06 支书令 · `D-807`⑤）**：**每次 `npm test`（分片档）≤15 分钟、`npm run test:full`（全量档）≤20 分钟**——超时即须精简 probe（优先砍固定等待、合并重复起服/起浏览器，不砍判据面）。**降频窗（承 `R-85` / `D-784` / `D-795`）**：每批收尾只跑「覆盖本批改动面的分片 ＋ 相关守卫子集」；**全量按 5–6 个 commit 累积一次**（含 bump 版本戳后）。
 
 **何时必跑**：跨文件开发结束（module-load）· 改链接后（link-integrity）· 改 mock 数据后（mock-integrity）· 改活动/工作流/登录后（agenda-flow + e2e-login）。
+
+**版本戳只在发布 bump（2026-10-28）**：日常提交不跑 `bump-version.mjs`，`?v=` 保持原样；发布前跑一次 `cd server; npm run release:stamp`（先全站补戳，再以 `--check` 核陈旧戳与 `CODE_VERSION`，不一致即退出 1）。给入口 HTML 单独加戳无效——入口内部 `import` 的 URL 不变，浏览器仍复用旧模块实例。
 
 ***
 
@@ -852,6 +854,16 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/DOC
 | B-518-2 | 加载态三种语言：页签骨架 / `text-xs` 文案 / `text-sm` 文案；`index.html`、`settings.html`、`person.html` 三处手写骨架 | uicraft C-03；`DESIGN_SYSTEM §12` SD-51 | 待启动（全站统一为骨架） |
 | B-518-3 | 减少动效只兜住 CSS：`scrollIntoView({behavior:'smooth'})` 40+ 处未判 `prefers-reduced-motion`（仅 `tab-bar.js` 一处做了分支） | web-design-guidelines #6 | 待启动（抽一个 helper 统一判偏好） |
 | B-518-4 | `help.html` 自带第二设计系统（`.help-card` / `.help-badge` / 手写输入与链接色），且全站页宽四档（3xl–6xl ＋ 72/80rem）无统一规则 | 花叔 #15 / uicraft C-11 | 待启动 |
+
+## 批次 519 收尾与后续（2026-10-28）
+
+> 批次 519：版本戳改为「只在发布 bump」（`release:stamp` 含 `--check`）、硬编码审计（月份由 `now` 派生 ＋ 首次不写 `?month=` ＋ 可见日期清零 ＋ 新守卫）、四数恢复彩色图标、轻交互回归、搜索框单环。
+
+| ID | 事项（人话） | 判据 / 出处 | 状态 |
+| --- | --- | --- | --- |
+| B-519-1 | 紧凑输入档 `.input-flat-sm` 与 `.vote-note` 仍是深灰 `--focus-ring` 单环，与主输入档的「主题色 2px ＋ offset 1px」不同源 | `ui-focus-ring` FOCUS-2 的边界说明 | 待启动（收口为同一焦点体例） |
+| B-519-2 | 登录页 h1 把支部名写死（`docs/login.html:75`），换部署实例会露别家支部名；顶栏已由 `config.headerTitle` 软编码 | 批次 519 硬编码审计登记 | 待启动（改为读配置，保留回退文案） |
+| B-519-3 | 成功色无「文字档」token：`--status-success` 作 24px 数值仅 2.54:1，本轮退回 `--neutral-800`；若要彩色数值需新增 `--status-success-text` 并过对比守卫 | 批次 519 对比实测 | 待裁（是否新增语义色文字档） |
 
 ***
 

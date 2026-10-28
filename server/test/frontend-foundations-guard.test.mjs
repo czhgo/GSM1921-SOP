@@ -16,8 +16,8 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { describeWriteError } from '../../docs/src/core/base/utils.js?v=20261028b';
-import { NUDGE_TEXTS } from '../../docs/src/components/ui/modal.js?v=20261028b';
+import { describeWriteError } from '../../docs/src/core/base/utils.js?v=20261028d';
+import { NUDGE_TEXTS } from '../../docs/src/components/ui/modal.js?v=20261028d';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(HERE, '..', '..');
@@ -254,5 +254,54 @@ test('F9 写口失败不得提示成功：先判返回值/捕获异常，成功 
   const reportOk = REPORT.indexOf("showToast('success'");
   assert.ok(reportCatch > 0 && reportOk > reportCatch,
     '成功 toast 必须排在 catch 之后（否则失败仍会先报成功）');
+});
+
+// ════════════════════════════════════════════════════════════════
+//  F10 日历默认月份＝当前自然月（2026-10-28 硬编码审计）
+//  判据：`getInitialMonth()` 只读 URL；默认月由 `_currentYearMonth(now)` 派生
+//        （`state.displayMonth` 缺省值 → `populateMonthSelector` 的「跟随当月」分支）。
+//  注入 now：只用**两个不同 now** 跑同一份活动数据，默认月必须随之变化；
+//        并断言初始月链路里没有写死的 `20YY-MM` 字面量。
+// ════════════════════════════════════════════════════════════════
+test('F10 日历默认月份由 now 派生：now=2026-10 / 2026-11 两个取值默认月随之变化', async () => {
+  const { populateMonthSelector } = await import('../../docs/src/components/record/calendar.js?v=20261028d');
+  const ACTS = [
+    { id: 'a1', date: '2026-10-05', title: '活动甲' },
+    { id: 'a2', date: '2026-11-05', title: '活动乙' },
+  ];
+  /** 最小 select 桩：只实现 populateMonthSelector 实际用到的接口 */
+  const makeSelect = () => {
+    const sel = {
+      options: [{ value: '' }],
+      dataset: {},
+      addEventListener() {},
+      appendChild(o) { sel.options.push(o); },
+      get value() { return sel._value || ''; },
+      set value(v) { sel._value = v; },
+    };
+    Object.defineProperty(sel, 'innerHTML', { set() { sel.options = [{ value: '' }]; sel._value = ''; } });
+    return sel;
+  };
+  const run = (now) => {
+    const sel = makeSelect();
+    globalThis.document = {
+      getElementById: (id) => (id === 'month-selector' ? sel : null),
+      createElement: () => ({ value: '', textContent: '' }),
+    };
+    try { return populateMonthSelector(ACTS, undefined, now); }
+    finally { delete globalThis.document; }
+  };
+  assert.equal(run(new Date(2026, 9, 15)), '2026-10', 'now=2026-10 时默认月应为 2026-10');
+  assert.equal(run(new Date(2026, 10, 15)), '2026-11', 'now=2026-11 时默认月应为 2026-11');
+
+  // 不得写死年月：初始月链路（URL 读取 ＋ 默认月推导）剥注释后不得出现 20YY-MM 字面量
+  // （CRLF 先归一——否则 `/\/\/.*$/` 会因行尾 `\r` 失配，注释里的日期会被误当代码）
+  const stripComments = (s) => String(s).replace(/\r\n?/g, '\n')
+    .replace(/\/\*[\s\S]*?\*\//g, ' ')
+    .split('\n').map((l) => l.replace(/\/\/.*$/, '')).join('\n');
+  for (const f of ['docs/src/components/dashboard/activity-panel.js', 'docs/src/components/record/calendar.js']) {
+    assert.ok(!/20\d{2}-\d{2}/.test(stripComments(read(f))),
+      `${f} 的初始月链路出现写死年月（应全部由 now / 数据派生）`);
+  }
 });
 

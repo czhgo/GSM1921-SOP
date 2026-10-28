@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
   
-<script src="./src/theme-init.js?v=20261028b"></script>
+<script src="./src/theme-init.js?v=20261028d"></script>
 <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>帮助 — GSM1921-SOP</title>
@@ -13,8 +13,8 @@
   <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;800&family=Noto+Serif+SC:wght@400;500;600;700;800&display=swap" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;800&family=Noto+Serif+SC:wght@400;500;600;700;800&display=swap" rel="stylesheet"></noscript>
   <script src="https://cdn.tailwindcss.com/3.4.17"></script>
-  <script src="./src/tailwind-config.js?v=20261028b"></script>
-  <link rel="stylesheet" href="./src/styles.css?v=20261028b">
+  <script src="./src/tailwind-config.js?v=20261028d"></script>
+  <link rel="stylesheet" href="./src/styles.css?v=20261028d">
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
@@ -153,10 +153,11 @@
     .help-search { position:relative; margin-bottom:24px; }
     .help-search-label,.help-role-label { display:block; margin-bottom:6px; color:var(--neutral-700); font-size:0.8125rem; font-weight:650; }
     /* 2026-10-23 R11：搜索框并入控件单一口径（38px / 13px / 8px 圆角 / 1px 中性描边）；
-       焦点与 .input-flat 同源：金边 + 2px --focus-ring 实线外环（无发光）。 */
+       2026-10-28（焦点单环）：焦点环与 .input-flat / <select> 同宽同色同偏移（2px 主题色 / offset 1px），
+       只保留这一条实线环，不再叠 box-shadow 环。 */
     .help-search-input { width:100%; border:1px solid var(--neutral-200); border-radius:var(--radius-sm); padding:10px 16px; font-size:13px; line-height:1rem; background:var(--surface-card); color:var(--neutral-900); outline:none; transition:border-color .15s, box-shadow .15s; }
     .help-search-input::placeholder { color:var(--neutral-500); }
-    .help-search-input:focus,.help-role-filter:focus-visible { border-color:var(--party-gold); outline:2px solid var(--focus-ring); outline-offset:1px; box-shadow:none; }
+    .help-search-input:focus,.help-role-filter:focus-visible { border-color:var(--app-accent); outline:2px solid var(--app-accent); outline-offset:1px; box-shadow:none; }
     .help-search-results { position:relative; margin-top:6px; background:var(--surface-elevated); border:1px solid var(--neutral-200); border-radius:var(--radius-md); box-shadow:0 8px 24px rgba(0,0,0,0.08); z-index:2; max-height:min(48vh,420px); overflow-y:auto; padding:5px; }
     .help-search-result { display:block; width:100%; text-align:left; padding:9px 11px; font-size:0.9375rem; color:var(--neutral-700); background:transparent; border:none; border-radius:var(--radius-sm); text-decoration:none; }
     @media (hover: hover) {
@@ -1856,10 +1857,10 @@
 </script>
 
 <!-- modulepreload:start -->
-  <link rel="modulepreload" href="./src/components/shell/sidebar.js?v=20261028b" />
-  <link rel="modulepreload" href="./src/components/shell/header.js?v=20261028b" />
-  <link rel="modulepreload" href="./src/components/sections/help-navigation.js?v=20261028b" />
+  <link rel="modulepreload" href="./src/components/shell/sidebar.js?v=20261028d" />
+  <link rel="modulepreload" href="./src/components/shell/header.js?v=20261028d" />
+  <link rel="modulepreload" href="./src/components/sections/help-navigation.js?v=20261028d" />
   <!-- modulepreload:end -->
-  <script type="module" src="./src/entries/pages/help-entry.js?v=20261028b"></script>
+  <script type="module" src="./src/entries/pages/help-entry.js?v=20261028d"></script>
 </body>
 </html>

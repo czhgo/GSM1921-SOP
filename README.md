@@ -321,7 +321,11 @@ content/ 文档是**支书批改的权威源**（制度先改文本、后同步�
 
 ### ?v= 版本串收口纪律
 
-浏览器缓存防分裂：改动前端文件后必须全链 bump 版本戳——`node docs/scripts/bump-version.mjs` 一键同步全站 `?v=`（含 `server/test/*.mjs` 内戳与 CODE_VERSION），**改文件即 bump 全链**；禁改文件仅随全站 stamp 动 `?v=` 查询串（零代码改动）。bump 后跑一次全量测试。
+浏览器缓存防分裂：全站 `?v=` 由 `docs/scripts/bump-version.mjs` 一次同步（含 `server/test/*.mjs` 内戳与 `CODE_VERSION`），任何会话都不手改查询串、也不逐个文件补戳。
+
+- **日常提交不跑 bump**：功能与修复按小步提交，`?v=` 原地不动；缓存换新统一交给发布那一次。
+- **发布前跑一次**：`cd server; npm run release:stamp`——先全站补戳，紧接着 `--check` 核对「陈旧戳」与「`CODE_VERSION` 与戳是否一致」，任一不齐即以退出码 1 结束并列出清单。
+- **只给入口加戳无效**：入口 HTML 的 `?v=` 换了、入口内部 `import` 的 URL 没换，浏览器仍按旧 URL 复用旧模块实例——新旧模块混用正是「数据一会显示一会不显示」的根因。
 
 ### 发版（语义化 release）
 

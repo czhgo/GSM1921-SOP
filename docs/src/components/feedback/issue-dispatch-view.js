@@ -11,12 +11,12 @@
 //  依赖方向正确：组件 → 服务（不是服务 → 组件）。守卫：issue-branch.test.mjs（结构层）。
 // ════════════════════════════════════════════════════════════════
 
-import { renderFilteredList } from '../ui/list-filter.js?v=20261028b';
-import { renderTabHeader } from '../shell/page-frame.js?v=20261028b';
-import { escHtml, showToast } from '../../core/base/utils.js?v=20261028b';
-import { IssueStore, IssueNotify, deriveIssueDisplayState, REPORT_CATEGORIES, displayNameOf as _displayName } from '../../services/governance/issues.js?v=20261028b';
+import { renderFilteredList } from '../ui/list-filter.js?v=20261028d';
+import { renderTabHeader } from '../shell/page-frame.js?v=20261028d';
+import { escHtml, showToast } from '../../core/base/utils.js?v=20261028d';
+import { IssueStore, IssueNotify, deriveIssueDisplayState, REPORT_CATEGORIES, displayNameOf as _displayName } from '../../services/governance/issues.js?v=20261028d';
 
-import { emptyStateHtml } from '../ui/empty-state.js?v=20261028b';
+import { emptyStateHtml } from '../ui/empty-state.js?v=20261028d';
 // ════════════════════════════════════════════════════════════════
 //  「我的处置」Tab 渲染工具（各角色工作台复用）
 //  2026-07-30 新增：被指派人视角的反馈列表+详情+评论/提交处置结果

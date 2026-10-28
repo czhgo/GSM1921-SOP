@@ -1,5 +1,5 @@
 /* 组件样式（@import 必须位于文件顶部） */
-@import url('components/person-picker.css?v=20261028b');
+@import url('components/person-picker.css?v=20261028d');
 
 /* ═══════════════════════════════════════════════════════════════
    GSM1921-SOP DESIGN SYSTEM v11.0 — Matte Flat
@@ -631,15 +631,27 @@ body {
 
 /* 默认卡片是展示卡：不声明 hover（DESIGN_SYSTEM §4.2「纯展示卡不加 hover 伪装」）。
    只有显式声明 `.card--interactive` 的卡才给可点反馈——避免整页卡片都像按钮。
-   2026-10-23 Task 7：静态卡原先的 `:hover` 空转规则整体删除。 */
+   2026-10-23 Task 7：静态卡原先的 `:hover` 空转规则整体删除。
+   2026-10-28 Task 4（扁平不是无交互）：可点卡 hover = 主题色边框 ＋ 10% 主题淡底，
+   卡内 `.metric-band__jump` 箭头右移 2px；不加阴影、不上浮（ui-motion-guard 判据不变）。 */
 .card--interactive {
   cursor: pointer;
+  --card-jump-shift: 0px;
+  transition: border-color var(--transition-fast), background-color var(--transition-fast), transform var(--transition-fast);
 }
 
 @media (hover: hover) {
   .card--interactive:hover {
-    border-color: var(--primary-300);
+    border-color: var(--app-accent);
+    background-color: var(--app-accent-tint);
+    --card-jump-shift: 2px;
   }
+}
+
+/* 卡内箭头：位移由 --card-jump-shift 驱动（hover 规则体内只改自定义属性 ⇒ 仍满足「hover 只改颜色」判据）。 */
+.card--interactive .metric-band__jump {
+  transition: transform var(--transition-fast);
+  transform: translateX(var(--card-jump-shift));
 }
 
 /* Responsive content shells: fluid inside a shared max-width. Percentages describe
@@ -1003,10 +1015,15 @@ body {
   transition: border-color var(--transition-fast), background-color var(--transition-fast);
 }
 
-/* 2026-10-24 批次 508：字段外壳（B 立场）—— hover 只加深边框；focus 用主题色边框 + soft 底环；
-   focus-visible 叠实线环保对比度；disabled / readonly 各有明确外壳。 */
+/* 2026-10-24 批次 508：字段外壳（B 立场）—— hover 只加深边框；
+   2026-10-28（焦点单环）：同一控件不得同时出「box-shadow 环」与「outline 环」——键盘聚焦时
+   `:focus` 与 `:focus-visible` 同时命中，两条环叠画即双环（实测 .lf-kw / #archive-search /
+   #ref-search-input 均为 outline 2px accent + box-shadow 0 0 0 3px soft-bg；soft-bg 环对白卡仅
+   1.11:1，暗色下又比卡片更暗 ⇒ 肉眼读成「黑环 + 金环」）。环只由 :focus-visible 的实线 outline 承担，
+   口径与 <select>（.cs-trigger）一致：2px / --app-accent / offset 1px（对白卡 3.83:1、对页面底 3.66:1）；
+   :focus 只改边框色，并把 box-shadow 钉成 none（否则 <button> 触发器会落到全局 6px --focus-halo 补环上）。 */
 @media (hover: hover) { .input-flat:hover:not(:disabled):not(:focus) { border-color: var(--neutral-400); } }
-.input-flat:focus, .cs-trigger:focus-within { border-color: var(--app-accent); box-shadow: 0 0 0 3px var(--app-accent-soft-bg); outline: none; }
+.input-flat:focus, .cs-trigger:focus-within { border-color: var(--app-accent); box-shadow: none; outline: none; }
 .input-flat:focus-visible, .cs-trigger:focus-visible { outline: 2px solid var(--app-accent); outline-offset: 1px; }
 .input-flat:disabled { background: var(--neutral-100); border-color: var(--neutral-200); color: var(--neutral-400); cursor: not-allowed; }
 .input-flat[readonly] { background: var(--neutral-50); border-color: transparent; color: var(--neutral-700); }
@@ -1604,6 +1621,15 @@ button:disabled { cursor: not-allowed; }
 }
 a.text-accent {
   text-decoration: none;
+  border-radius: 2px;
+  transition: background-color var(--transition-fast);
+}
+/* 2026-10-28 Task 4：链接类补 hover 反馈（与 .link 同规格 10% 主题淡底）。
+   此前 `a.text-accent` 只有颜色，可点却无 hover——首页「工作台 →」等入口属于这一类。 */
+@media (hover: hover) {
+  a.text-accent:hover {
+    background: var(--app-accent-tint);
+  }
 }
 @media (hover: hover) {
   .link:hover { background: var(--app-accent-tint); }
@@ -1724,10 +1750,12 @@ a.text-accent {
   color: var(--neutral-800);
   transition: border-color var(--transition-fast);
 }
+/* 2026-10-28（焦点单环）：并入字段外壳的环口径——与 <select>/.input-flat 同宽同色同偏移
+   （2px / --app-accent / offset 1px）；本条只声明 outline，不得再叠 box-shadow 环。 */
 .cs-search-input:focus,
 .cs-search-input:focus-visible {
-  border-color: var(--party-gold);
-  outline: 2px solid var(--focus-ring);
+  border-color: var(--app-accent);
+  outline: 2px solid var(--app-accent);
   outline-offset: 1px;
 }
 .cs-search-input::placeholder {
@@ -2211,6 +2239,26 @@ a.text-accent {
   }
 }
 .header-action-btn:active {
+  background-color: rgba(255,255,255,0.24);
+}
+
+/* 顶栏图标按钮（铃铛）：与 `.header-action-btn` 同口径（白透底 / 细边 / 三态）。
+   2026-10-28 Task 4：此前背景与描边写在元素内联样式里，`.btn-neutral:hover` 被内联压掉
+   ⇒ hover / active 全不可见。改为类承担后三态恢复，尺寸仍 40×40。 */
+.header-icon-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-sm);
+  background-color: rgba(255,255,255,0.1);
+  border: 1.5px solid rgba(255,255,255,0.25);
+}
+@media (hover: hover) {
+  .header-icon-btn:hover {
+    background-color: rgba(255,255,255,0.18);
+    border-color: rgba(255,255,255,0.35);
+  }
+}
+.header-icon-btn:active {
   background-color: rgba(255,255,255,0.24);
 }
 
@@ -2906,17 +2954,31 @@ html.theme-dark .cal-cell-large.is-today, html.theme-dark .cal-cell-mobile.is-to
   box-shadow: 0 1px 3px rgba(16, 24, 40, 0.12), 0 0 0 0.5px rgba(16, 24, 40, 0.04);
 }
 
-/* 2026-10-27 Task 6.4（脏乱繁）：首页统计卡等高 + 短标签 + 图标顶对齐。
-   `min-height` 取「图标 40 + 数值/标签/状态三行 + 上下 16×2」的最高一格（实测 99）⇒ 四张同高；
-   390 两列网格里不再出现 79 / 99 两种高度。
-   2026-10-28 支书裁定「四个数统一为卡片数字」：去掉彩色图标块与彩色数字，
-   卡片内只剩「数字 24px ＋ 标签 12px」（数字／标签排版取 .metric-band__value / __label）；
-   工作台结论带用同一套类（见 .metric-band--cards），两处同构。 */
+/* 2026-10-27 Task 6.4（脏乱繁）：首页统计卡等高 + 短标签。
+   `min-height` 取「图标 40 + 数值 24 + 标签 18 + 说明 18 + 三处间距 8 + 上下 16×2」的兜底（120）⇒ 四张同高；
+   390 两列网格里不出现两种高度。
+   2026-10-28 支书裁定「四个数恢复彩色图标点缀」（CASE-DESIGN-030）：卡片 = 图标块（浅底 ＋ 同色笔触）
+   ＋ 数字 24px（同色）＋ 标签 12px；数字／标签排版取 .metric-band__value / __label，
+   工作台结论带（.metric-band--cards）与首页同构。 */
 .stat-card {
-  min-height: 100px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-1);
+  min-height: 120px;
 }
-.stat-card .metric-band__label {
-  margin-top: var(--space-1);
+/* 图标块：浅底由 `--tint` 派生（既有语义色），笔触取同色；不写 hex、不新增色相。
+   块 40×40 / 图标 20×20 / 圆角 12px（--radius-md）；深浅色只换混入的卡片底，不另立覆盖规则。 */
+.stat-icon-tint {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--tint, var(--neutral-500)) 12%, var(--surface-card));
+  color: var(--tint, var(--neutral-500));
 }
 .stat-card__note {
   margin-top: var(--space-1);
@@ -5855,14 +5917,16 @@ button.metric-band__item--filter.is-active {
   padding: var(--space-4);
   border-radius: var(--radius-md);
 }
-/* 卡面 hover 只由 .card--interactive 加深描边（与首页一致）；不铺灰底。 */
+/* 卡面 hover 与 .card--interactive 同规格：主题色边框 ＋ 10% 主题淡底（不铺灰底、不上浮）。 */
 @media (hover: hover) {
   .metric-band--cards button.metric-band__item:hover,
   .metric-band--cards a.metric-band__item:hover {
-    background: var(--neutral-0);
+    background: var(--app-accent-tint);
+    border-color: var(--app-accent);
   }
   .metric-band--cards button.metric-band__item--filter.is-active:hover {
     background: var(--app-accent-soft-bg);
+    border-color: var(--app-accent);
   }
 }
 /* 可点箭头是静态线索：卡面右上角，不占数字行。 */

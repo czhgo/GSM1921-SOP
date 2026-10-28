@@ -5,22 +5,22 @@
 //  职责单一：日历/列表双视图切换 + ?view=?month= URL 同步 + 活动列表（前 10 条）。
 // ════════════════════════════════════════════════════════════════
 
-import { setState, getAppState } from '../../core/base/state.js?v=20261028b';
-import { _fmtDate, getBasePath } from '../../core/base/utils.js?v=20261028b';
-import { getPersonName } from '../../services/member/person.js?v=20261028b';
-import { CrossPageState } from '../../core/session/cross-page-state.js?v=20261028b';
-import { AuthStore } from '../../services/core/auth.js?v=20261028b';
-import { getActivityTypeColors, DASHBOARD_LIMITS } from '../../core/domain/constants.js?v=20261028b';
+import { setState, getAppState } from '../../core/base/state.js?v=20261028d';
+import { _fmtDate, getBasePath } from '../../core/base/utils.js?v=20261028d';
+import { getPersonName } from '../../services/member/person.js?v=20261028d';
+import { CrossPageState } from '../../core/session/cross-page-state.js?v=20261028d';
+import { AuthStore } from '../../services/core/auth.js?v=20261028d';
+import { getActivityTypeColors, DASHBOARD_LIMITS } from '../../core/domain/constants.js?v=20261028d';
 // 活动「已归档」口径单一源（2026-09-13 收敛）：替代手写 !a.archived
-import { isActivityArchived } from '../../core/domain/constants.js?v=20261028b';
-import { badgeHtml } from '../ui/badges.js?v=20261028b';
+import { isActivityArchived } from '../../core/domain/constants.js?v=20261028d';
+import { badgeHtml } from '../ui/badges.js?v=20261028d';
 // 活动「已完成 / 已取消」闭环判据单一源（R7-16）：替代手写 ['completed','cancelled']
-import { isActivityClosed } from '../../core/domain/domain.js?v=20261028b';
-import { deriveActivityLifecycleStatus, ACTIVITY_LIFECYCLE } from '../record/inspector.js?v=20261028b';
-import { populateMonthSelector } from '../record/calendar.js?v=20261028b';
-import { getCapabilities, mountCapability, getRuntimeEnv } from '../../core/boot/registry.js?v=20261028b';
+import { isActivityClosed } from '../../core/domain/domain.js?v=20261028d';
+import { deriveActivityLifecycleStatus, ACTIVITY_LIFECYCLE } from '../record/inspector.js?v=20261028d';
+import { populateMonthSelector } from '../record/calendar.js?v=20261028d';
+import { getCapabilities, mountCapability, getRuntimeEnv } from '../../core/boot/registry.js?v=20261028d';
 
-import { emptyStateHtml } from '../ui/empty-state.js?v=20261028b';
+import { emptyStateHtml } from '../ui/empty-state.js?v=20261028d';
 const DASHBOARD_DEFAULT_VIEW = 'calendar';
 const ACTIVITY_TYPE_COLORS = getActivityTypeColors({ withLabel: true });
 
@@ -49,8 +49,10 @@ export function syncURL(view, month) {
   history.replaceState(null, '', url);
 }
 
-/** 切换活动视图（日历/列表）+ 同步 URL（main-entry 初始化与渲染时调用） */
-export function switchActivityView(view) {
+/** 切换活动视图（日历/列表）。
+ *  `sync:false` 用于**首次渲染**——2026-10-28：首屏不写 URL（地址栏不再凭空出现 `?month=2026-10`）；
+ *  只有用户主动切视图 / 切月份才写。带 `?view=` / `?month=` 进入时仍按其渲染（深链可用）。 */
+export function switchActivityView(view, { sync = true } = {}) {
   const calView = document.getElementById('activity-calendar-view');
   const listView = document.getElementById('activity-list-view');
   if (!calView || !listView) return;
@@ -71,10 +73,23 @@ export function switchActivityView(view) {
     }`;
   });
 
+  if (!sync) return;
+
   // 同步 URL
   const appState = getAppState();
   const month = appState?.displayMonth || '';
   syncURL(view, view === 'calendar' ? month : '');
+}
+
+/** 月份选择器「用户主动改动」才写 `?month=`（首次加载不写；选择器挂在持久元素上，绑定幂等） */
+function bindMonthUrlSync() {
+  const sel = document.getElementById('month-selector');
+  if (!sel || sel.dataset.urlSyncBound) return;
+  sel.dataset.urlSyncBound = '1';
+  sel.addEventListener('change', () => {
+    if (getInitialActivityView() !== 'calendar') return;
+    syncURL('calendar', sel.value || '');
+  });
 }
 
 /** 活动 tab 初始化绑定（tab 按钮为静态 HTML，模块初始化即绑定，防异步期间丢点击） */
@@ -152,7 +167,8 @@ export function renderActivityList(activities, user) {
 /** 渲染活动日历区（经注册表挂载 activity-calendar 能力） */
 export function renderActivityCalendar(state) {
   const currentView = getInitialActivityView();
-  switchActivityView(currentView);
+  // 首次渲染只摆视图，不写 URL（用户主动切换后才写；见 switchActivityView 的 sync 说明）
+  switchActivityView(currentView, { sync: false });
 
   if (currentView === 'calendar') {
     // ── 月份单一源（2026-09-13 月份口径彻查）───────────────────────────────
@@ -161,11 +177,14 @@ export function renderActivityCalendar(state) {
     //   选择器按自己的优先级（当日所在月优先于 displayMonth）自选 → 而日历永远按 state.displayMonth 渲染。
     // 修法（与支书台 2026-08-08 同口径）：以 state.displayMonth 为权威传参给选择器 → 再用选择器
     //   返回值回写 state → 二者恒等；日历用同一 month 渲染。
-    const wantMonth = state.displayMonth || getInitialMonth() || '';
+    // 2026-10-28：URL 的 `?month=` 必须**优先于** state 缺省值（state 缺省＝当前自然月），
+    //   否则深链 `?month=2026-11` 会被「当前月」盖掉（原写法 state.displayMonth || getInitialMonth() 即此病）。
+    const wantMonth = getInitialMonth() || state.displayMonth || '';
     const month = populateMonthSelector(state.activities || [], wantMonth || undefined);
     if (month && month !== state.displayMonth) {
       setState({ displayMonth: month });
     }
+    bindMonthUrlSync();
     // M7（2026-08-30）：dashboard 能力发现显式传 env/role，启用「按环境/角色选择性启用」机制
     // （activity-calendar 声明 env:null/requiredRoles:null，行为不变；机制对未来的 env/role 差异化能力生效）
     const cap = getCapabilities({ scope: 'dashboard', env: getRuntimeEnv(), role: AuthStore.getCurrentUser()?.role }).find(c => c.id === 'activity-calendar');

@@ -1,0 +1,84 @@
+{
+  "tag": "after",
+  "at": "2026-10-28T16:07:19.118Z",
+  "areas": {
+    "listFilter": {
+      "reached": true,
+      "reading": {
+        "target": "#lf2-q",
+        "outline": "solid 2px rgb(169, 122, 18) (offset 1px)",
+        "boxShadow": "none",
+        "border": "1px solid rgb(169, 122, 18)",
+        "rings": [
+          "outline"
+        ],
+        "ringCount": 1
+      }
+    },
+    "selectTrigger": {
+      "reached": true,
+      "reading": {
+        "target": "#lf2-f-partyGroup-trigger",
+        "outline": "solid 2px rgb(169, 122, 18) (offset 1px)",
+        "boxShadow": "none",
+        "border": "1px solid rgb(169, 122, 18)",
+        "rings": [
+          "outline"
+        ],
+        "ringCount": 1
+      }
+    },
+    "customSelectSearch": {
+      "reached": true,
+      "reading": {
+        "target": "input.cs-search-input",
+        "outline": "solid 2px rgb(169, 122, 18) (offset 1px)",
+        "boxShadow": "none",
+        "border": "1px solid rgb(169, 122, 18)",
+        "rings": [
+          "outline"
+        ],
+        "ringCount": 1
+      }
+    },
+    "archiveSearch": {
+      "reached": true,
+      "reading": {
+        "target": "#archive-search",
+        "outline": "solid 2px rgb(169, 122, 18) (offset 1px)",
+        "boxShadow": "none",
+        "border": "1px solid rgb(169, 122, 18)",
+        "rings": [
+          "outline"
+        ],
+        "ringCount": 1
+      }
+    },
+    "siteSearch": {
+      "reached": true,
+      "reading": {
+        "target": "#ref-search-input",
+        "outline": "solid 2px rgb(169, 122, 18) (offset 1px)",
+        "boxShadow": "none",
+        "border": "1px solid rgb(169, 122, 18)",
+        "rings": [
+          "outline"
+        ],
+        "ringCount": 1
+      }
+    },
+    "helpSearch": {
+      "reached": true,
+      "reading": {
+        "target": "#help-search-input",
+        "outline": "solid 2px rgb(169, 122, 18) (offset 1px)",
+        "boxShadow": "none",
+        "border": "1px solid rgb(169, 122, 18)",
+        "rings": [
+          "outline"
+        ],
+        "ringCount": 1
+      }
+    }
+  }
+}

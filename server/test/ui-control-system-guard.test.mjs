@@ -40,6 +40,7 @@ const TAB_BAR = readFileSync(join(SRC, 'components', 'shell', 'tab-bar.js'), 'ut
 const TODAY = readFileSync(join(SRC, 'entries', 'tabs', 'today', 'today-tab.js'), 'utf8');
 const TODO_SHELL = readFileSync(join(SRC, 'components', 'record', 'todo-tab-shell.js'), 'utf8');
 const WORK_OVERVIEW = readFileSync(join(SRC, 'components', 'governance', 'work-overview.js'), 'utf8');
+const STATS = readFileSync(join(SRC, 'components', 'dashboard', 'stats.js'), 'utf8');
 const LIST_ROW = readFileSync(join(SRC, 'components', 'ui', 'list-row.js'), 'utf8');
 
 /** 递归收集 docs/src 的 .js ＋ docs/*.html（与 SD-1 的扫描面一致） */
@@ -947,15 +948,26 @@ test('B8 btn-ghost 作为动作按钮的存量只许降不许升（新代码不�
 test('V1 容器语义：metric-band 拆两档 / section.card 必有可访问名 / list-row 四载体可区分', () => {
   // ① metric-band 两档：工作概况（含 button/a）＝interactive；待办摘要（纯 span）＝static。
   //    2026-10-28 支书裁定「四个数统一为卡片数字」：工作概况由横向带改为卡片数字档
-  //    （`.metric-band--cards`），卡面复用 `.card`＋`.metric-band__value/__label`；语义仍是可点交互摘要。
+  //    （`.metric-band--cards`），卡面复用 `.card`；语义仍是可点交互摘要。
+  //    2026-10-28 Task 3（CASE-DESIGN-030）：四数卡由「图标 ＋ 数值 ＋ 标签」三段组成——
+  //      上一轮把它执行成去图标的纯文字卡属过度解读原则 4，故本断言改准为含图标块。
   assert.match(WORK_OVERVIEW, /<section class="metric-band metric-band--interactive metric-band--cards"/,
     '工作概况结论带须为 .metric-band--interactive.metric-band--cards（四张数字卡，含可点 button/a）');
   assert.match(CSS, /\.metric-band--cards\s*\{[^}]*grid-template-columns:\s*repeat\(4,\s*minmax\(0,\s*1fr\)\)/,
     'styles.css 缺 .metric-band--cards 的四列卡网格');
   assert.match(WORK_OVERVIEW, /class="card card--interactive stat-card metric-band__item/,
     '工作台数字卡须复用 .card（不得另造第二套卡面）');
-  assert.match(WORK_OVERVIEW, /metric-band__value/,
-    '工作台数字卡须沿用 .metric-band__value（与首页同一套数字排版）');
+  const cardBody = /const body = `<span class="stat-icon-tint"[\s\S]*?metric-band__value[\s\S]*?<span class="metric-band__label">\$\{esc\(metric\.label\)\}<\/span>`/.exec(WORK_OVERVIEW);
+  assert.ok(cardBody, '四数卡 body 须由「图标块 .stat-icon-tint ＋ 数值 .metric-band__value ＋ 标签 .metric-band__label」三段组成');
+  assert.match(cardBody[0], /--tint:\$\{color\}/, '图标浅底须由 --tint 派生（取既有语义色，不写 hex）');
+  assert.match(STATS, /stat-icon-tint[\s\S]{0,240}metric-band__value[\s\S]{0,240}metric-band__label/,
+    '首页统计卡须与工作台同构：图标块 ＋ 数值 ＋ 标签');
+  // 可点卡反馈不得用阴影 / 上浮（DESIGN_SYSTEM §4.2；判据与 ui-motion-guard 同向）。
+  for (const [label, source] of [['work-overview.js', WORK_OVERVIEW], ['stats.js', STATS]]) {
+    assert.doesNotMatch(source, /hover:shadow|hover:-translate-[xy]-/, `${label} 不得以 hover 阴影 / 上浮作反馈`);
+  }
+  assert.doesNotMatch(CSS_BARE, /\.card--interactive:hover\s*\{[^}]*box-shadow/, '.card--interactive:hover 不得加阴影');
+  assert.doesNotMatch(CSS_BARE, /\.card--interactive:hover\s*\{[^}]*translate/, '.card--interactive:hover 不得上浮 / 整卡位移');
   assert.match(TODO_SHELL, /class="metric-band metric-band--static/,
     '待办摘要须为 .metric-band--static（纯 span 只读摘要）');
   assert.match(CSS, /\.metric-band--interactive\s+\.metric-band__item/,
@@ -1323,4 +1335,183 @@ test('V7 可点行 hover：--surface-hover 对比 ≥1.2:1（白卡），并叠�
     '筛选 chip 必须有底色');
 
   console.log(`[ui-control-system-guard] V7 ${readings.join(' · ')}`);
+});
+
+// ═════════════════════════════════════════════════════════════════════════════
+// FOCUS-1…3：焦点单环（2026-10-28）
+//   病灶：输入框键盘聚焦时 `:focus` 与 `:focus-visible` 同时命中——
+//     `:focus` 画 `box-shadow: 0 0 0 3px var(--app-accent-soft-bg)`（对白卡 1.11:1，暗色比卡片更暗），
+//     `:focus-visible` 再画 `outline: 2px solid var(--app-accent)` ⇒ 两个环叠在一起（「黑环 + 金环」）。
+//   `<select>`（.cs-trigger）实测同样是两条声明，但 3px 环几乎不可见，肉眼只看到一条金环。
+//   口径：环只由 `:focus-visible` 的一条实线 outline 承担，与 <select> 同宽 / 同色 / 同偏移
+//     （2px / --app-accent / offset 1px；对白卡 3.83:1、对页面底 3.66:1）。
+//   覆盖：页内检索（.lf-kw）· 下载内嵌搜索（.cs-search-input）· 归档搜索（#archive-search）·
+//     全站搜索（#ref-search-input）· 帮助页搜索（.help-search-input）· 选人器搜索（.person-picker-search）。
+// ═════════════════════════════════════════════════════════════════════════════
+const HELP_HTML = readFileSync(join(ROOT, 'docs', 'help.html'), 'utf8');
+const PERSON_PICKER_CSS = readFileSync(join(SRC, 'components', 'person-picker.css'), 'utf8');
+const ARCHIVE_HTML = readFileSync(join(ROOT, 'docs', 'archive.html'), 'utf8');
+const SEARCH_HTML = readFileSync(join(ROOT, 'docs', 'search.html'), 'utf8');
+const LIST_FILTER_JS = readFileSync(join(SRC, 'components', 'ui', 'list-filter.js'), 'utf8');
+const CUSTOM_SELECT_JS = readFileSync(join(SRC, 'components', 'ui', 'custom-select.js'), 'utf8');
+
+/** 规则块（剥注释但保留换行 ⇒ 行号可核）：{ selector(空白归一), body, line } */
+function ruleBlocks(css) {
+  const bare = String(css).replace(/\/\*[\s\S]*?\*\//g, (m) => m.replace(/[^\n]/g, ' '));
+  const out = [];
+  for (const m of bare.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
+    out.push({ selector: m[1].trim().replace(/\s+/g, ' '), body: m[2], line: lineOf(bare, m.index) });
+  }
+  return out;
+}
+
+/** 取某条声明的**最后一条**值（CSS 同块内后者胜出）；无声明返回 null */
+function declOf(body, prop) {
+  const re = new RegExp(`(?:^|;)\\s*${prop}\\s*:\\s*([^;]+)`, 'gi');
+  let value = null;
+  for (const m of body.matchAll(re)) value = m[1].trim().replace(/\s*!important$/i, '');
+  return value;
+}
+
+/** 选择器列表里以某伪类结尾的基选择器（`:focus` 不会命中 `:focus-within`） */
+function basesOf(selector, pseudo) {
+  return selector.split(',').map((s) => s.trim())
+    .filter((s) => s.endsWith(pseudo))
+    .map((s) => s.slice(0, -pseudo.length).trim());
+}
+
+/** 是否画出了可见的环（none / 0 0 0 0 transparent 视为不画） */
+const paintsRing = (value) => !!value
+  && !/^none$/i.test(value)
+  && !/^0(?:px)? 0(?:px)? 0(?:px)? 0(?:px)?(?: (?:transparent|rgba\(0,\s*0,\s*0,\s*0\)))?$/i.test(value);
+
+/** 双环检测：同一基选择器上，`:focus` 画 box-shadow 环 且 `:focus-visible` 画 outline 环 */
+function doubleRingViolations(css) {
+  const shadow = new Map(); // base → line
+  const outline = new Map(); // base → line
+  for (const b of ruleBlocks(css)) {
+    if (paintsRing(declOf(b.body, 'box-shadow'))) {
+      for (const base of basesOf(b.selector, ':focus')) shadow.set(base, b.line);
+    }
+    if (paintsRing(declOf(b.body, 'outline'))) {
+      for (const base of basesOf(b.selector, ':focus-visible')) outline.set(base, b.line);
+    }
+  }
+  const out = [];
+  for (const [base, line] of shadow) {
+    if (outline.has(base)) {
+      out.push(`${base}：:focus 的 box-shadow 环（第 ${line} 行）与 :focus-visible 的 outline 环（第 ${outline.get(base)} 行）叠加`);
+    }
+  }
+  return out;
+}
+
+/** 选择器列表精确含 selector 的规则体（用于核对「同一个块」的声明） */
+function blockBodyOf(css, selector) {
+  const hit = ruleBlocks(css).find((b) => b.selector.split(',').map((s) => s.trim()).includes(selector));
+  return hit ? hit.body : '';
+}
+
+// 反例 / 正例（合成样本，必须先证明检测函数会判红、不会误红）
+const SYNTH_DOUBLE = '.probe:focus { border-color: red; box-shadow: 0 0 0 3px rgba(0,0,0,.2); }\n'
+  + '.probe:focus-visible { outline: 2px solid red; outline-offset: 1px; }';
+const SYNTH_DOUBLE_SAME_BLOCK = '.probe:focus, .probe:focus-visible { box-shadow: 0 0 0 3px red; outline: 2px solid red; }';
+const SYNTH_SINGLE = '.probe:focus { border-color: red; box-shadow: none; outline: none; }\n'
+  + '.probe:focus-visible { outline: 2px solid red; outline-offset: 1px; }';
+
+test('FOCUS-1 焦点单环：同一选择器（块）不得同时出 :focus 的 box-shadow 环与 :focus-visible 的 outline 环', () => {
+  // ① 反例：两条规则叠环 ⇒ 必须判红（否则判据是恒真的空转）
+  assert.equal(doubleRingViolations(SYNTH_DOUBLE).length, 1,
+    '反例未被判红：双环检测失效（判据会变成恒真）');
+  // ② 反例：同一个规则块内同时写两种环 ⇒ 同样判红
+  assert.equal(doubleRingViolations(SYNTH_DOUBLE_SAME_BLOCK).length, 1,
+    '同一规则块内的双环未被判红');
+  // ③ 正例：单环（:focus 只改边 / 清环）⇒ 不得误红
+  assert.equal(doubleRingViolations(SYNTH_SINGLE).length, 0,
+    '正例被判红：双环检测把合法的单环也算成了双环');
+
+  // ④ 实况：styles.css 全表零双环
+  const blocks = ruleBlocks(CSS);
+  assert.ok(blocks.length >= 400, `styles.css 只解析到 ${blocks.length} 个规则块（下限 400）：FOCUS-1 扫描面被写坏`);
+  const violations = doubleRingViolations(CSS);
+  console.log(`[ui-control-system-guard] FOCUS-1 规则块 ${blocks.length} 个 · 双环 ${violations.length} 处`);
+  assert.deepEqual(violations, [],
+    `同一控件同时画 box-shadow 环与 outline 环（键盘聚焦会出现两个环）：\n  ${violations.join('\n  ')}`);
+
+  // ⑤ 字段外壳的 `:focus` 必须显式清环（不是靠「没写」碰巧对）
+  assert.match(blockBodyOf(CSS, '.input-flat:focus'), /box-shadow:\s*none\s*;/,
+    '.input-flat:focus 必须显式 box-shadow: none（画环即与 :focus-visible 的 outline 叠成双环）');
+  assert.match(blockBodyOf(CSS, '.cs-trigger:focus-within'), /box-shadow:\s*none\s*;/,
+    '.cs-trigger:focus-within 必须显式 box-shadow: none（否则 <button> 触发器会落到全局 6px --focus-halo 补环上）');
+});
+
+test('FOCUS-2 搜索输入不被全局 outline 二次套环，且与 <select> 同环宽 / 同色 / 同偏移', () => {
+  // ① 不得存在裸元素级 :focus-visible 全局规则（那会给所有输入再套一圈）
+  const bareGlobal = ruleBlocks(CSS).filter((b) => b.selector.split(',').map((s) => s.trim())
+    .some((s) => /^(?::focus-visible|input:focus-visible|textarea:focus-visible|select:focus-visible)$/.test(s)));
+  assert.deepEqual(bareGlobal.map((b) => `styles.css:${b.line} → ${b.selector}`), [],
+    '存在裸元素级 :focus-visible 全局规则 ⇒ 搜索框会被二次套环');
+
+  // ② 六个搜索面：只声明一条 outline，且与 <select> 同口径
+  const cases = [
+    ['页内检索 / 归档搜索 / 全站搜索（.lf-kw · #archive-search · #ref-search-input）', CSS, '.input-flat:focus-visible'],
+    ['下拉内嵌搜索（.cs-search-input）', CSS, '.cs-search-input:focus-visible'],
+    ['帮助页搜索（.help-search-input）', HELP_HTML, '.help-search-input:focus'],
+    ['选人器搜索（.person-picker-search）', PERSON_PICKER_CSS, '.person-picker-search:focus'],
+  ];
+  for (const [label, src, selector] of cases) {
+    const body = blockBodyOf(src, selector);
+    assert.ok(body, `缺少 ${label} 的焦点规则块（${selector}）`);
+    const outlines = [...body.matchAll(/(?:^|;)\s*outline\s*:\s*([^;]+)/g)].map((m) => m[1].trim());
+    assert.equal(outlines.length, 1, `${label} 只能声明一条 outline（多一条就是多一圈），实际 ${outlines.length}`);
+    assert.match(body, /outline:\s*2px solid var\(--app-accent\)\s*;/,
+      `${label} 的环应为 2px 主题色（与 <select> 同色）——不得用 --focus-ring / --party-gold`);
+    assert.match(body, /outline-offset:\s*1px\s*;/, `${label} 的环偏移应为 1px（与 <select> 同）`);
+    assert.equal(paintsRing(declOf(body, 'box-shadow')), false,
+      `${label} 不得再叠 box-shadow 环（环只由这一条 outline 承担）`);
+  }
+
+  // ③ <select> 基准：它与 .input-flat 共用同一个规则块（同宽 / 同色 / 同偏移，不是两份相近声明）
+  const ringBlock = ruleBlocks(CSS).find((b) => b.selector.split(',').map((s) => s.trim()).includes('.input-flat:focus-visible'));
+  assert.ok(ringBlock, 'styles.css 缺少 .input-flat:focus-visible 规则块');
+  assert.ok(ringBlock.selector.split(',').map((s) => s.trim()).includes('.cs-trigger:focus-visible'),
+    '<select>（.cs-trigger）必须与搜索框共用同一条环规则（不得两套口径）');
+
+  // ④ 四个页面搜索面确实挂在这套类上（不是只改了 CSS、DOM 没接上）
+  assert.match(ARCHIVE_HTML, /id="archive-search"[^>]*class="[^"]*input-flat/,
+    'archive.html 的 #archive-search 未挂 .input-flat');
+  assert.match(SEARCH_HTML, /id="ref-search-input"[^>]*class="[^"]*input-flat/,
+    'search.html 的 #ref-search-input 未挂 .input-flat');
+  assert.match(LIST_FILTER_JS, /class="input-flat[^"]*lf-kw/, 'list-filter.js 的检索条未挂 .input-flat + .lf-kw');
+  assert.match(CUSTOM_SELECT_JS, /class="cs-search-input"/, 'custom-select.js 未渲染 .cs-search-input');
+
+  // ⑤ 环对背景 ≥3:1（WCAG 1.4.11 非文本对比；主题色亮档 vs 白卡 / 页面底）
+  const accent = /--app-accent-base-light:\s*(#[0-9A-Fa-f]{6})/.exec(CSS)?.[1];
+  assert.ok(accent, 'styles.css 缺少 --app-accent-base-light（无法核算环对比度）');
+  const vsCard = contrast(accent, '#FFFFFF');
+  const vsPage = contrast(accent, '#FAFAF5');
+  console.log(`[ui-control-system-guard] FOCUS-2 焦点环 ${accent} vs 白卡 ${vsCard.toFixed(2)}:1 · vs 页面底 ${vsPage.toFixed(2)}:1`);
+  assert.ok(vsCard >= 3, `焦点环对白卡仅 ${vsCard.toFixed(2)}:1（要求 ≥3）`);
+  assert.ok(vsPage >= 3, `焦点环对页面底仅 ${vsPage.toFixed(2)}:1（要求 ≥3）`);
+});
+
+test('FOCUS-3 「考勤良好」数值不再用 --status-success（24px 大字 ≥3:1），绿色只留图标', () => {
+  // --status-success 亮色 #10B981 对白卡 2.54:1（24px 大字要求 ≥3:1）；
+  // 仓内无更深的成功文字 token（--status-warning-text 是警示档、--color-functional-* 是红/金），
+  // 故数值退回正文色 --neutral-800，绿色只留在 .stat-icon-tint 的图标笔触上（装饰、aria-hidden）。
+  assert.match(STATS, /const ATTENDANCE_VALUE_COLOR = \{[\s\S]{0,80}good: 'var\(--neutral-800\)'/,
+    '「良好」档数值色应为 --neutral-800（--status-success 作 24px 数值仅 2.54:1）');
+  assert.match(STATS, /color: ATTENDANCE_TONE_COLOR\[myTone\], valueColor: ATTENDANCE_VALUE_COLOR\[myTone\]/,
+    '考勤卡须把「图标色」与「数值色」分开取（图标留绿、数值退回正文色）');
+  assert.match(STATS, /style="color:\$\{s\.valueColor \|\| s\.color\};"/,
+    '数值必须优先取 valueColor（缺省回落到图标色）');
+  assert.match(STATS, /class="stat-icon-tint" style="--tint:\$\{s\.color\};"/,
+    '图标块仍取绿色 --status-success 作点缀');
+  const success = /--status-success:\s*(#[0-9A-Fa-f]{6})/.exec(CSS)?.[1];
+  assert.ok(success, 'styles.css 缺少 --status-success');
+  const green = contrast(success, '#FFFFFF');
+  const body = contrast('#1F2937', '#FFFFFF');
+  console.log(`[ui-control-system-guard] FOCUS-3 --status-success/白卡 ${green.toFixed(2)}:1（大字不达标）· --neutral-800/白卡 ${body.toFixed(2)}:1`);
+  assert.ok(green < 3, `反证失败：--status-success 对白卡应为 ${green.toFixed(2)}:1（<3），否则本断言失去意义`);
+  assert.ok(body >= 4.5, `--neutral-800 对白卡 ${body.toFixed(2)}:1 应 ≥4.5`);
 });

@@ -47,13 +47,18 @@ test('U3 个人考勤空态：数值为「—」且标签写明「本月无记�
     '空态数值应保持「—」，不得改成 0 或空白');
 });
 
-test('U4 卡片 hover：默认无 hover 规则，只有 card--interactive 才给主题色边框', () => {
+test('U4 卡片 hover：默认无 hover 规则，只有 card--interactive 才给主题色边框与淡底', () => {
   const css = read('docs/src/styles.css');
   // 2026-10-23 批次 506（SD-17）：静态卡不得有 hover 背景/边框反馈 ⇒ `.card:hover` 整条退场。
   const bare = css.replace(/\/\*[\s\S]*?\*\//g, ' ');
   assert.equal(bare.indexOf('.card:hover'), -1, '默认卡片不得再有 hover 规则（静态卡无反馈）');
+  // 2026-10-28 Task 4：可点卡 hover 由「浅红描边」改为主题色描边 ＋ 10% 主题淡底（判据加强，
+  //   同时核底色与「不得阴影 / 上浮」；不再接受 primary-300 的单一颜色反馈）。
   const interactive = ruleBlock(css, '.card--interactive:hover');
-  assert.match(interactive, /primary-300/, '.card--interactive:hover 应保留可点反馈');
+  assert.match(interactive, /border-color:\s*var\(--app-accent\)/, '.card--interactive:hover 描边须取主题色');
+  assert.match(interactive, /background-color:\s*var\(--app-accent-tint\)/, '.card--interactive:hover 须给 10% 主题淡底');
+  assert.doesNotMatch(interactive, /box-shadow/, '.card--interactive:hover 不得加阴影');
+  assert.doesNotMatch(interactive, /transform:\s*translate/, '.card--interactive:hover 整卡不得位移');
   const stats = read('docs/src/components/dashboard/stats.js');
   assert.match(stats, /card--interactive/, '首页个人考勤卡应显式声明 card--interactive');
 });

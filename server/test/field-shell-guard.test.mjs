@@ -9,7 +9,8 @@
 //     禁止各渲染点自建第二套下拉外观。
 //   · 判据：
 //       F1 非空转：styles.css 能解析到 `.input-flat` 与 `:focus-visible` 规则
-//       F2 活动态唯一源：`.input-flat:focus` 含主题色边 + 3px soft-bg 外晕，不得再画第二种外环
+//       F2 活动态唯一源：`.input-flat:focus` 只把边框切到主题色，且 `box-shadow: none`
+//          （环由 `:focus-visible` 的 outline 承担；两条都画 ⇒ 键盘聚焦出双环，2026-10-28）
 //       F3 键盘保险：`.input-flat:focus-visible` 含 `outline: 2px solid var(--app-accent)`
 //       F4 禁双答：`.input-flat:focus` 不得与 `outline: 2px solid var(--focus-ring)` 组合；
 //          暗色段 `--focus-ring` 不得为 `var(--party-gold)`
@@ -20,6 +21,10 @@
 //       F2 允许 `outline: none`——那是清掉浏览器 UA 默认外框的 reset，不是第二套视觉；
 //       真正的键盘外环只在 `:focus-visible`（F3）。把「不得含 outline」判成「不得含非 none 的 outline」，
 //       否则会把合法的 UA reset 当成双答。
+//       2026-10-28 改准：批次 508 曾要求 `.input-flat:focus` 叠 3px soft-bg 外晕；实测该晕对白卡仅
+//       1.11:1（暗色比卡片更暗），键盘聚焦时与 `:focus-visible` 的 2px 环叠成「黑环 + 金环」双环。
+//       故 F2 由「必须有 3px 外晕」改准为「必须 box-shadow: none」——判据不降（改成反向硬约束），
+//       单环口径见 `ui-control-system-guard::FOCUS-1…3`。
 // 运行：node --test server/test/field-shell-guard.test.mjs
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -111,12 +116,14 @@ test('F1 非空转：styles.css 可解析到 .input-flat 与 :focus-visible 规�
   assert.ok(focusVisible, 'styles.css 缺少 .input-flat:focus-visible 规则（键盘焦点保险）');
 });
 
-test('F2 活动态唯一源：.input-flat:focus 用主题色边 + 3px soft-bg 外晕，不得画第二种外环', () => {
+test('F2 活动态唯一源：.input-flat:focus 只改边框色，box-shadow 钉成 none（不得与 :focus-visible 叠成双环）', () => {
   const body = ruleBody(STYLES, '.input-flat:focus');
   assert.ok(body, 'styles.css 缺少 .input-flat:focus 规则');
   assert.match(body, /border-color:\s*var\(--app-accent\)\s*;/, '.input-flat:focus 必须把边框切到 var(--app-accent)');
-  assert.match(body, /box-shadow:\s*0 0 0 3px var\(--app-accent-soft-bg\)\s*;/,
-    '.input-flat:focus 必须有 `box-shadow: 0 0 0 3px var(--app-accent-soft-bg)` 外晕');
+  // 2026-10-28（焦点单环）：:focus 与 :focus-visible 在键盘聚焦时同时命中——
+  //   若 :focus 再画 box-shadow 环，就与 :focus-visible 的 outline 叠成两个环。
+  assert.match(body, /box-shadow:\s*none\s*;/,
+    '.input-flat:focus 必须有 `box-shadow: none`（画环即与 :focus-visible 的 outline 叠成双环）');
 
   // outline: none 是 UA reset（允许）；任何非 none 的 outline 都是第二种视觉答案（禁止）
   const outlines = [...body.matchAll(/(?:^|;)\s*outline\s*:\s*([^;]+)/g)].map((m) => m[1].trim());

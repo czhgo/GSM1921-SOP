@@ -5,15 +5,32 @@
 //  职责单一：统计卡渲染 + 考勤明细弹窗（点击统计卡查看本月考勤）。
 // ════════════════════════════════════════════════════════════════
 
-import { NoticeStore } from '../../services/governance/notice.js?v=20261028b';
-import { _fmtDate } from '../../core/base/utils.js?v=20261028b';
+import { NoticeStore } from '../../services/governance/notice.js?v=20261028d';
+import { _fmtDate } from '../../core/base/utils.js?v=20261028d';
+import { icon } from '../../core/base/icons.js?v=20261028d';
 // 活动「已归档」口径单一源（2026-09-13 收敛）：替代手写 !a.archived
-import { isActivityArchived } from '../../core/domain/constants.js?v=20261028b';
-import { isTaskforceActiveStatus } from '../../core/domain/domain.js?v=20261028b';
+import { isActivityArchived } from '../../core/domain/constants.js?v=20261028d';
+import { isTaskforceActiveStatus } from '../../core/domain/domain.js?v=20261028d';
 // R2-47：出勤率语义单一源——首页「个人考勤」按应到人次（不是按已录记录），未录显示「待录入」
-import { summarizePersonAttendanceByRoster } from '../../services/activity/attendance.js?v=20261028b';
+import { summarizePersonAttendanceByRoster, attendanceRateTone } from '../../services/activity/attendance.js?v=20261028d';
 
-import { emptyStateHtml } from '../ui/empty-state.js?v=20261028b';
+// 出勤率档位 → 既有语义色 token（服务层只给档位，颜色映射留在展示层）
+const ATTENDANCE_TONE_COLOR = {
+  good: 'var(--status-success)',
+  watch: 'var(--status-warning-text)',
+  low: 'var(--status-error)',
+  pending: 'var(--neutral-500)',
+};
+// 2026-10-28：数值（24px 大字）与图标分两档色。--status-success 对白卡仅 2.54:1，
+//   大字要求 ≥3:1 ⇒「良好」档数值退回正文色 --neutral-800（对白卡 14.68:1），
+//   绿色只留在 `.stat-icon-tint` 的图标笔触上（装饰性、aria-hidden，不承担信息）。
+//   其余档位对白卡 ≥3:1（warning-text 7.09 / error 3.76 / neutral-500 4.83），数值与图标同色。
+const ATTENDANCE_VALUE_COLOR = {
+  ...ATTENDANCE_TONE_COLOR,
+  good: 'var(--neutral-800)',
+};
+
+import { emptyStateHtml } from '../ui/empty-state.js?v=20261028d';
 const ATTENDANCE_STATUS_DOT = {
   present:  { text: '出勤', cls: 'text-green-700', dot: 'var(--status-success)' },
   absent:   { text: '缺勤', cls: 'text-red-600',  dot: 'var(--status-error)' },
@@ -32,13 +49,16 @@ export function renderDashboardStats({ activities, taskforces, notices, attendan
   const container = document.getElementById('dashboard-stats');
   if (!container) return;
 
-  // 加载中：显示骨架屏，避免 0→真实值 闪烁（2026-10-28：骨架与正式卡同构——数字 + 标签两行）
+  // 加载中：显示骨架屏，避免 0→真实值 闪烁（2026-10-28：骨架与正式卡同构——图标 ＋ 数字 ＋ 标签）
   if (isLoading) {
     const skeletonItems = ['本月活动', '活跃专班', '未读通知', '个人考勤'];
     container.innerHTML = skeletonItems.map(label => `
       <div class="card rounded-xl p-4 stat-card">
-        <div class="h-6 w-12 rounded bg-gray-100 animate-pulse mb-1"></div>
-        <p class="text-xs" style="color:var(--neutral-500);">${label}</p>
+        <span class="stat-icon-tint" style="--tint:var(--neutral-300);" aria-hidden="true">
+          <span class="h-5 w-5 rounded bg-gray-100 animate-pulse"></span>
+        </span>
+        <p class="metric-band__value"><span class="h-6 w-12 inline-block rounded bg-gray-100 animate-pulse"></span></p>
+        <p class="metric-band__label">${label}</p>
       </div>
     `).join('');
     return;
@@ -60,11 +80,14 @@ export function renderDashboardStats({ activities, taskforces, notices, attendan
   const myPresent = myRoster.present;
   const myTotal = myRoster.total;
   const myRate = myRoster.rate;
+  const myTone = attendanceRateTone(myRate);
 
-  // 2026-10-28 支书裁定「四个数统一为卡片数字」：卡片只留「数字（24px）＋ 标签（12px）」，
-  //   删除彩色图标块与彩色数字（数字一律正文色）；「逾期」类着色仍由 .metric-band__value--warning 承担。
+  // 2026-10-28 支书裁定「四个数恢复彩色图标点缀」（CASE-DESIGN-030）：
+  //   每张卡＝图标块（浅底 ＋ 同色笔触）＋ 数值（24px，同色）＋ 标签（12px 中性）；
+  //   颜色一律取既有语义 token（--status-* / --neutral-*），不写 hex、不新增色相；
+  //   图标不是唯一信息载体——标签与空态说明仍在。
   //
-  // A-01 修复（历史）：图标底色曾用 8 位 hex 拼接，var+hex 无法解析——图标块已随本次裁定删除。
+  // A-01 修复（历史）：图标底色曾用 8 位 hex 拼接，var+hex 无法解析 ⇒ 底色改由 `--tint` 在 CSS 派生。
   // 卡片过拟合修正（2026-09-13 支书裁定「专班只是工作的一部分；三会一课是规范表达，专班是本支部自己的表达」）：
   // 「活跃专班」是**本支部自创工作方法**（workflow/blocks/manifests.js: provenance='branch-custom'），
   // 非党内统一规范动作——原无论有无专班恒渲染（无专班的支部永远显示「0 个」）属**过拟合**。
@@ -72,27 +95,31 @@ export function renderDashboardStats({ activities, taskforces, notices, attendan
   // 2026-10-27 Task 6.4（脏乱繁）：390 两列网格里长标签（「个人考勤（本月无记录）」）会折行把卡片撑成
   //   两种高度 ⇒ 标签统一 4 字（短标签），状态说明降为第二行小字（`.stat-card__note`）；
   //   卡片统一 `min-height`，四张等高。
+  // 颜色 = 既有语义 token：活动信息蓝 / 专班琥珀文字档 / 未读错误红（0 条回落中性）/ 考勤按档位。
   const stats = [
-    { label: '本月活动', value: monthActivities.length, unit: '场', interactive: false },
+    { label: '本月活动', value: monthActivities.length, unit: '场', color: 'var(--status-info)', icon: 'calendarHero', interactive: false },
     ...(activeTFs.length > 0
-      ? [{ label: '活跃专班', value: activeTFs.length, unit: '个', interactive: false }]
+      ? [{ label: '活跃专班', value: activeTFs.length, unit: '个', color: 'var(--status-warning-text)', icon: 'usersGroup', interactive: false }]
       : []),
-    { label: '未读通知', value: unreadNotices, unit: '条', interactive: false },
+    { label: '未读通知', value: unreadNotices, unit: '条',
+      color: unreadNotices > 0 ? 'var(--status-error)' : 'var(--neutral-500)', icon: 'bellHero', interactive: false },
     // 空态（P2-5）：没有记录不是「数据坏了」，而是「本月无记录」这一事实。
     // R2-47：有应到场次但一条都没录 → 「待录入」，不再把未录当成 0%。
     { label: '个人考勤',
       value: myTotal > 0 && myRate !== null ? `${myPresent}/${myTotal}` : '—',
-      unit: '', interactive: true,
+      unit: '', color: ATTENDANCE_TONE_COLOR[myTone], valueColor: ATTENDANCE_VALUE_COLOR[myTone],
+      icon: 'clipboard', interactive: true,
       note: myTotal === 0 ? '本月无记录' : (myRate === null ? '待录入' : ''),
       title: '分母＝本月应到场次（应到人次口径；未录场次单列「待录入」）' },
   ];
 
-  // T-304 Q2 点击热区：不可点卡（前三张）不再 hover 上浮（纯展示卡不加 hover 伪装，DESIGN_SYSTEM §4.3）；
-  // 仅可点卡（个人考勤）保留 hover 反馈。统一 cursor：可点卡 pointer / 展示卡 default。
+  // T-304 Q2 点击热区：不可点卡（前三张）不给 hover / 手型（纯展示卡不加 hover 伪装，DESIGN_SYSTEM §4.3）；
+  // 仅可点卡（个人考勤）挂 .card--interactive，hover = 主题色边框 ＋ 10% 淡底，不阴影、不上浮。
   container.innerHTML = stats.map(s => `
-    <div class="card rounded-xl p-4 stat-card ${s.interactive ? 'card--interactive transition-colors duration-200 cursor-pointer' : ''}"
+    <div class="card rounded-xl p-4 stat-card ${s.interactive ? 'card--interactive cursor-pointer' : ''}"
          ${s.interactive ? 'role="button" tabindex="0" data-attendance-popover="1"' : ''} ${s.title ? `title="${s.title}"` : ''}>
-      <p class="metric-band__value">${s.value}<span class="text-xs font-normal ml-0.5" style="color:var(--neutral-500);">${s.unit}</span></p>
+      <span class="stat-icon-tint" style="--tint:${s.color};" aria-hidden="true">${icon(s.icon, { strokeWidth: 1.8, className: 'w-5 h-5' })}</span>
+      <p class="metric-band__value" style="color:${s.valueColor || s.color};">${s.value}<span class="text-xs font-normal ml-0.5" style="color:var(--neutral-500);">${s.unit}</span></p>
       <p class="metric-band__label">${s.label}</p>
       ${s.note ? `<p class="text-xs stat-card__note" style="color:var(--neutral-500);">${s.note}</p>` : ''}
     </div>

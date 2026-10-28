@@ -2,34 +2,34 @@
 // 宣传委员工作台 Tab：周报报送（T-279 M3 拆分，照 M2 样板）
 // 周报 seed 常量 + mockDB 持久化，刷新不再丢失；T-209 改进项②：新建周次内联表单。
 
-import { DEFAULT_BRANCH_ID } from '../../../core/domain/constants.js?v=20261028b';
-import { icon } from '../../../core/base/icons.js?v=20261028b';
-import { showToast, todayLocal } from '../../../core/base/utils.js?v=20261028b';
-import { persist, getRuntimeMode } from '../../../data/data-adapter.js?v=20261028b';
-import { mockDB } from '../../../core/domain/domain.js?v=20261028b';
-import { AuthStore } from '../../../services/core/auth.js?v=20261028b';
-import { POLICY_DEFAULTS } from '../../../core/domain/policy-defaults.js?v=20261028b';
+import { DEFAULT_BRANCH_ID } from '../../../core/domain/constants.js?v=20261028d';
+import { icon } from '../../../core/base/icons.js?v=20261028d';
+import { showToast, todayLocal } from '../../../core/base/utils.js?v=20261028d';
+import { persist, getRuntimeMode } from '../../../data/data-adapter.js?v=20261028d';
+import { mockDB } from '../../../core/domain/domain.js?v=20261028d';
+import { AuthStore } from '../../../services/core/auth.js?v=20261028d';
+import { POLICY_DEFAULTS } from '../../../core/domain/policy-defaults.js?v=20261028d';
 // R10-D06：报送/提示一律取「当前支部合并后的有效策略」，不直读 POLICY_DEFAULTS（含支部覆盖）。
-import { getEffectivePolicy } from '../../../services/branch/branch.js?v=20261028b';
-import { attachArchivePolicySnapshot, deriveArchivePeriod, compareArchivePeriodDesc } from '../../../services/governance/periodic-archive.js?v=20261028b';
-import { generateId } from '../../../core/base/id.js?v=20261028b';
-import { loadActivities } from '../../../services/activity/activity.js?v=20261028b';
-import { NoticeStore } from '../../../services/governance/notice.js?v=20261028b';
-import { getPersonName } from '../../../services/member/person.js?v=20261028b';
-import { PERIODIC_ARCHIVE_REVIEW_STATUS, PERIODIC_ARCHIVE_REVIEW_LABELS, periodicArchiveReviewStatusOf } from '../../../services/governance/secretary-overview.js?v=20261028b';
+import { getEffectivePolicy } from '../../../services/branch/branch.js?v=20261028d';
+import { attachArchivePolicySnapshot, deriveArchivePeriod, compareArchivePeriodDesc } from '../../../services/governance/periodic-archive.js?v=20261028d';
+import { generateId } from '../../../core/base/id.js?v=20261028d';
+import { loadActivities } from '../../../services/activity/activity.js?v=20261028d';
+import { NoticeStore } from '../../../services/governance/notice.js?v=20261028d';
+import { getPersonName } from '../../../services/member/person.js?v=20261028d';
+import { PERIODIC_ARCHIVE_REVIEW_STATUS, PERIODIC_ARCHIVE_REVIEW_LABELS, periodicArchiveReviewStatusOf } from '../../../services/governance/secretary-overview.js?v=20261028d';
 // 批次 352（`D-746` · `D-744`② 业务过程类余项）：周报「作废（软）」——统一写口 ＋ 支委层判据
-import * as SoftVoid from '../../../services/governance/soft-void.js?v=20261028b';
-import { openVoidModal } from '../../../components/ui/void-record.js?v=20261028b';
-import { confirmDanger } from '../../../components/ui/modal.js?v=20261028b';
+import * as SoftVoid from '../../../services/governance/soft-void.js?v=20261028d';
+import { openVoidModal } from '../../../components/ui/void-record.js?v=20261028d';
+import { confirmDanger } from '../../../components/ui/modal.js?v=20261028d';
 
 // ── 周报报送 seed 数据（2026-08-05：seed 常量 + mockDB 持久化，刷新不再丢失）──
 // 2026-09-12 修正：起止按 ISO 周「周一~周五」口径校准，与 _weekDefaults 派生同口径；
 // 2026-10-26 Task 5：种子期次随演示窗口（2026-08-01~2026-11-30）重排到 W40~W44。
 // 2026-09-28 批次 234：常量**搬到内容单一源** `docs/src/data/mock/prop.js`（服务端 `server/seed.js` 同源 import，
 //   原先此处私有常量被服务端逐字复刻一份 ⇒ 两份字面量，本批收成一份；取值与顺序一字未改）。
-import { PERIODIC_ARCHIVES_SEED } from '../../../data/mock/prop.js?v=20261028b';
+import { PERIODIC_ARCHIVES_SEED } from '../../../data/mock/prop.js?v=20261028d';
 
-import { emptyStateHtml } from '../../../components/ui/empty-state.js?v=20261028b';
+import { emptyStateHtml } from '../../../components/ui/empty-state.js?v=20261028d';
 // 从 mockDB 读取（seed 兜底注入一次）；写操作更新 mockDB.periodicArchives 后调用 persist()
 function _loadPeriodicArchives() {
   // R10-D03（批次 504）：演示种子只允许在 mock 形态回退；API 形态空表就是空表，
@@ -107,8 +107,8 @@ export function renderContent(ctx, host = null) {
         <div id="weekly-add-form" class="hidden mb-3 p-3 rounded-lg tint-section tint-section--outlined" data-tone="info">
           <div class="text-[12px] font-bold text-gray-600 mb-2">新建归档期次</div>
           <div class="flex flex-col gap-2 mb-2">
-            <input id="weekly-add-week" type="text" value="${weekDefaults.week}" placeholder="期次名称，如：${archiveUnit === 'month' ? '2026年10月' : '第32周'}" class="input-flat w-full" />
-            <input id="weekly-add-range" type="text" value="${weekDefaults.range}" placeholder="日期范围，如：2026-10-01 ~ 2026-10-31" class="input-flat w-full" />
+            <input id="weekly-add-week" type="text" value="${weekDefaults.week}" placeholder="期次名称" class="input-flat w-full" />
+            <input id="weekly-add-range" type="text" value="${weekDefaults.range}" placeholder="日期范围" class="input-flat w-full" />
           </div>
           <div class="flex gap-2 justify-end">
             <button id="weekly-add-cancel" type="button" class="btn-outline text-xs px-3 py-1.5">取消</button>

@@ -7,10 +7,10 @@
 // 顶部直达条属重复动作 ⇒ 外壳不再挂条，只保留骨架占位。
 // U3（2026-09-07）：先 beginOverviewShell 骨架/槽位占位 → 原地渲染概况（不推挤正文）。
 
-import { renderWorkOverview } from '../../../components/governance/work-overview.js?v=20261028b';
-import { currentUserId } from '../../../services/core/auth.js?v=20261028b';
-import { beginOverviewShell } from '../../../components/governance/overview-dispatch-bar.js?v=20261028b';
-import { renderCalendarCard } from '../shared/activity-calendar-tab.js?v=20261028b';
+import { renderWorkOverview } from '../../../components/governance/work-overview.js?v=20261028d';
+import { currentUserId } from '../../../services/core/auth.js?v=20261028d';
+import { beginOverviewShell } from '../../../components/governance/overview-dispatch-bar.js?v=20261028d';
+import { renderCalendarCard } from '../shared/activity-calendar-tab.js?v=20261028d';
 
 export async function renderContent(ctx) {
   const el = document.getElementById('leader-tab-content');

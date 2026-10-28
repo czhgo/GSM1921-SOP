@@ -13,7 +13,8 @@
     "test:precommit": "set DISABLE_PASSWORD_CHECK=1&& set DEMO_READONLY=0&& set SWEEP_SHARD=all&& node run-suite.mjs",
     "test:full:safe": "node scripts/test-full-safe.mjs",
     "test:clean": "node scripts/cleanup.mjs --test-residue --apply",
-    "clean:tmp": "cmd /c \"rmdir /s /q .tmp\""
+    "clean:tmp": "cmd /c \"rmdir /s /q .tmp\"",
+    "release:stamp": "node ../docs/scripts/bump-version.mjs && node ../docs/scripts/bump-version.mjs --check"
   },
   "dependencies": {
     "better-sqlite3": "^12.0.0",

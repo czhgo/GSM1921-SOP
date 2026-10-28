@@ -10,18 +10,18 @@
 //  依赖方向正确：组件 → 服务（不是服务 → 组件）。守卫见 notice-audience / doc-consistency。
 // ════════════════════════════════════════════════════════════════
 
-import { badgeHtml } from '../ui/badges.js?v=20261028b';
-import { openFormModal } from '../ui/modal.js?v=20261028b';
-import { showToast, getBasePath, todayLocal } from '../../core/base/utils.js?v=20261028b';
-import { ROLE_LABELS } from '../../core/domain/constants.js?v=20261028b';
-import { AuthStore } from '../../services/core/auth.js?v=20261028b';
-import { getPersonById, liveMembers } from '../../services/member/person.js?v=20261028b';
-import { isActivityOrganizer } from '../../services/activity/activity.js?v=20261028b';
-import { NoticeStore, NoticePermission } from '../../services/governance/notice.js?v=20261028b';
+import { badgeHtml } from '../ui/badges.js?v=20261028d';
+import { openFormModal } from '../ui/modal.js?v=20261028d';
+import { showToast, getBasePath, todayLocal } from '../../core/base/utils.js?v=20261028d';
+import { ROLE_LABELS } from '../../core/domain/constants.js?v=20261028d';
+import { AuthStore } from '../../services/core/auth.js?v=20261028d';
+import { getPersonById, liveMembers } from '../../services/member/person.js?v=20261028d';
+import { isActivityOrganizer } from '../../services/activity/activity.js?v=20261028d';
+import { NoticeStore, NoticePermission } from '../../services/governance/notice.js?v=20261028d';
 // Task 6：通知 targetUrl 属 direct 深链（通知不在活动工作台内）；缺 id 不写空 URL。
-import { objectDetailHref } from '../../core/domain/object-route.js?v=20261028b';
+import { objectDetailHref } from '../../core/domain/object-route.js?v=20261028d';
 
-import { emptyStateHtml } from '../ui/empty-state.js?v=20261028b';
+import { emptyStateHtml } from '../ui/empty-state.js?v=20261028d';
 function committeeSourceChip() {
   return '<span style="display:inline-flex;align-items:center;padding:0 6px;border-radius:9999px;background:var(--party-red);color:#fff;font-size:10px;line-height:16px;flex-shrink:0;">党委下发</span>';
 }

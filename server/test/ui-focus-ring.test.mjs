@@ -4,7 +4,8 @@
 // 判据：
 //   F1 亮色 / 暗色各有一套 --focus-ring（亮色深灰 / 暗色党徽金），暗色不得沿用深灰；
 //   F2 全局 button/a:focus-visible 只声明一次 outline，且用 --focus-ring（深灰不得覆盖金环）；
-//   F3 输入族（.input-flat / 登录框 / .cs-trigger）聚焦不只改 border：必须有实线 outline；
+//   F3 输入族（.input-flat / .cs-trigger）只出一条实线环：`:focus` 只改边框，
+//     环由 `:focus-visible` 的 2px 主题色 outline 承担（2026-10-28 焦点单环：不得再叠 3px 浅晕）；
 //   F4 对比度：焦点环 vs 所在底色 ≥ 3:1（WCAG 1.4.11 非文本对比）；
 //   F5 非空转：对比度函数有正/负例，规则抽取不把不存在规则当命中。
 //
@@ -64,14 +65,16 @@ test('F2 全局 button/a 焦点环只有一条 outline，且不被 --app-accent-
   assert.doesNotMatch(body, /var\(--app-accent-text\)/, '焦点环不得再用 --app-accent-text');
 });
 
-test('F3 输入族：活动态＝主题色边＋浅晕；键盘 :focus-visible 才出 outline', () => {
-  // 2026-10-24 批次 508（字段外壳）：鼠标点击/聚焦只改边框＋3px 浅晕，不再叠近黑外环；
-  //   键盘保险由 :focus-visible 的 2px 主题色环承担（a11y 底线不降）。
+test('F3 输入族：活动态只改边框，键盘 :focus-visible 出**一条**实线环（不叠 box-shadow 环）', () => {
+  // 2026-10-28（焦点单环）：:focus 与 :focus-visible 在键盘聚焦时同时命中——
+  //   批次 508 的「:focus 3px 浅晕 + :focus-visible 2px 环」实测叠成双环（真机读数：
+  //   outline 2px accent + box-shadow 0 0 0 3px soft-bg）。现环只由 :focus-visible 承担，
+  //   口径与 <select>（.cs-trigger）一致：2px / --app-accent / offset 1px。
   const focus = _ruleBody(STYLES, '.input-flat:focus,\n.cs-trigger:focus-within')
     || _ruleBody(STYLES, '.input-flat:focus');
   assert.ok(focus, '缺少 .input-flat:focus 字段外壳规则');
   assert.match(focus, /border-color:\s*var\(--app-accent\)/, '活动态边框应为主题色');
-  assert.match(focus, /box-shadow:\s*0 0 0 3px var\(--app-accent-soft-bg\)/, '活动态应有 3px 主题浅晕');
+  assert.match(focus, /box-shadow:\s*none/, '活动态不得再画 box-shadow 环（与 :focus-visible 的 outline 叠成双环）');
   assert.doesNotMatch(focus.replace(/outline:\s*none;?/g, ''), /outline:\s*(?!none)/,
     '鼠标活动态不得再出 outline（近黑外环的来源）');
   const kb = _ruleBody(STYLES, '.input-flat:focus-visible');

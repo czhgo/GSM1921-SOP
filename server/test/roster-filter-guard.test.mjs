@@ -77,5 +77,6 @@ test('R7 R3-18：新增成员不写「推荐填写」，占位符只给例子', 
   assert.doesNotMatch(ROSTER, /仅「滞留」时填写/, '占位符不得写填写规则');
   assert.match(ROSTER, /placeholder: '如 2400012345'/, '学号占位符须只给例子');
   assert.match(ROSTER, /placeholder: '如 2026'/, '届别占位符须只给例子');
-  assert.match(ROSTER, /placeholder: '如：2026-09 起赴外校交换一学期'/, '滞留备注占位符须只给例子');
+  // 2026-10-28 硬编码审计：示例日期改由「本学期」表达（写死 2026-09 会随时间过期），判据面不变
+  assert.match(ROSTER, /placeholder: '如：本学期起赴外校交换一学期'/, '滞留备注占位符须只给例子');
 });

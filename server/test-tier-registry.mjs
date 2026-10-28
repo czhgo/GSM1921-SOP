@@ -183,8 +183,13 @@ export const DAILY_FILE_BUDGET = 226;
  *  2026-10-28 前端设计审查（浮窗字段类型 / 作废确认 / 二次确认归并）：modal-guard 新增 T1（8 个已知
  *    字段类型原样透传 / 未知类型生产期回退 text，含反例，1 条）⇒ 1642 + 1 = 1643。
  *  2026-10-28 空态全站收口：copy-guard 新增 E1/E2（空态只从 empty-state.js 出 · 白名单 3 条逐条写理由 /
- *    反例命中 + 负例不误伤 + 白名单无僵尸，2 条）⇒ 1643 + 2 = 1645。 */
-export const DAILY_TEST_BUDGET = 1645;
+ *    反例命中 + 负例不误伤 + 白名单无僵尸，2 条）⇒ 1643 + 2 = 1645。
+ *  2026-10-28 硬编码审计（默认月 / URL / 日期口径）：copy-guard 新增 D1/D2（用户可见渲染串
+ *    不写死完整年月日 · 基线 0 ＋ 反例/负例自检，2 条）＋ frontend-foundations-guard 新增 F10
+ *    （日历默认月由 now 派生 · 注入两个 now，1 条）⇒ 按实况 1644 + 3 = 1647。
+ *  2026-10-28 焦点单环 / 大字号对比：ui-control-system-guard 新增 FOCUS-1…3（双环检测含正反例 ·
+ *    搜索框与 <select> 同环 · 「考勤良好」数值 ≥3:1，3 条；未新增守卫文件）⇒ 1647 + 3 = 1650。 */
+export const DAILY_TEST_BUDGET = 1650;
 
 const group = (tier, reason, list) => list.map((file) => ({ file, tier, reason }));
 

@@ -13,6 +13,9 @@
 //   M1 `docs/**` 的 .js / .html 中 `hover:shadow-*` / `hover:-translate-*` 计数 ≤ 0；
 //   M2 `docs/**` 中 `transition-all` 计数 ≤ 0；
 //   M3 非空转：扫描面确实覆盖到页面源码，且显式过渡类仍大量存在（防正则写坏后恒绿）。
+//
+// 边界（2026-10-28 Task 4）：卡内箭头 2px 位移属合法反馈——它作用在 `.metric-band__jump` 子元素、
+//   由 `.card--interactive` 的 `--card-jump-shift` 驱动，整卡不位移、不加阴影；M1/M2 判据不变。
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, readdirSync } from 'node:fs';

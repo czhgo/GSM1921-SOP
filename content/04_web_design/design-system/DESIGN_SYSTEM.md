@@ -60,7 +60,7 @@ related_files: [docs/src/styles.css, ../evolution/DESIGN_METHODOLOGY.md, ../data
 2. **最小三成本（Min Cost First）**：任务流默认直接展示在工作台，不要求用户额外操作才能看到"我需要做什么"。包含三个维度：①**信息成本**——用户获取"我需要做什么"所需的信息搜寻成本，任务流默认直接展示；②**操作成本**——从"进入工作台"到"看到可执行事项"的点击/操作次数，进入即见，系统主动推送；③**适应学习成本**——新用户理解工作分工、工作任务、信息流运作方式的学习成本，通过系统设计本身自解释。适用于全系统所有角色工作台。
    - **知情权优先（裁定 2026-08-08）**：无职责不代表没有知情权。支委/角色即便业务上不负责活动/专班的操作（如纪检无专班职责、组织无活动 tab），仍有权查看其详情。凡首页跳转携带 `activityId`/`taskforceId`/`view=activities` 参数，各角色工作台均须有对应「查看」承载（激活相关 tab 或复用活动/专班查看组件），不得因"无职责"而丢弃参数、让用户信息成本升高。
 3. **哑光质感（Matte Aesthetic）**：背景采用低饱和中性色，拒绝高光/镜面反射/玻璃拟态
-4. **色彩克制（Color Restraint）**：每个页面主色 ≤ 2 种，功能色仅用于状态指示
+4. **色彩克制（Color Restraint）**：每个页面主色 ≤ 2 种，功能色仅用于状态指示。**点缀色**（图标浅底 / 笔触 / 关键数值，每屏 1–2 处）不计入主色数量，也不承担状态语义；页面以素净为主，不等于禁止彩色点缀（判例：CASE-DESIGN-030）
 5. **动效适度（Motion Modesty）**：过渡动画 150-250ms，仅使用 opacity/transform（GPU 加速）
 6. **渐进增强（Progressive Enhancement）**：基础体验不依赖 backdrop-filter（低端设备友好）
 7. **同一套数据（One Source, Multi Entry）**：能够顺路产生的数据，尽可能不要单独填写，但可以保留多个入口——只要做到读取、写入、写出的数据是同一套数据。例如活动数据必然携带诸多副产物字段，赋权这类副产物应整合进活动数据流，而非另起一套与活动数据割裂的记录。可验证条件：`has_parent(entity, byproduct)` 且 `parent_record[byproduct] == 所有入口读取值` 视为通过；存在独立表/独立数组承载同类副产物数据 → 违反。（2026-08-02 确立）
@@ -1023,7 +1023,8 @@ li + li { margin-top: 0.25em; }
 > **内边距两档适用**：**标准档 20px** 用于页面级主卡片；**紧凑档 16px** 用于页内从属容器。局部例外见 §4.3「工作台内嵌面板」与 §4.9「日历图例容器」。
 > **结构性例外（不加卡片内边距；2026-09-24 按实现口径登记，三类之外不得再出现第四种取值）**：① **卡内自带分区**（看板列卡 / 折叠卡：卡内区头 `px-4 py-3` + 内容块各管内边距）用 `p-0` + `overflow-hidden`；② **纯容器卡**（弹窗卡 / 折叠容器：子块各管内边距）不挂内边距类；③ **单行条卡**（骨架条 / 待办折叠条 / 交接条）用 `px-4 py-2.5`，使条高与同行 38px 控件档对齐。
 > **越档值收敛方向**：`p-6`(24px) / `p-8`(32px) → 标准档 `p-5`(20px)；`p-3`(12px) / `p-3.5`(14px) → 紧凑档 `p-4`(16px)（即「越档值归到最近档」，禁止为凑数把已属两档的 `p-4`/`p-5` 再压小）。
-> **数字卡（2026-10-28 支书裁定）**：首页四数（`docs/src/components/dashboard/stats.js`）与六台工作概况结论带（`docs/src/components/governance/work-overview.js`）统一为**卡片数字**——卡面复用 `.card`（12px 圆角、1px 描边、无阴影、紧凑档 16px 内边距），卡内只有「数字 `.metric-band__value`（24px/600，正文色）＋ 标签 `.metric-band__label`（12px / `--neutral-500`）」，**不放彩色图标块、不用彩色数字**；工作台沿用 `.metric-band--cards` 把「横向带」改为四列卡网格（卡间距 `--space-4`，≤640px 两列），逾期仍按 `.metric-band__value--warning`（`--status-warning-text`）着色。两处共用同一套类，禁止另造第二套卡片。
+> **数字卡（2026-10-28 支书裁定）**：首页四数（`docs/src/components/dashboard/stats.js`）与六台工作概况结论带（`docs/src/components/governance/work-overview.js`）统一为**卡片数字**——卡面复用 `.card`（12px 圆角、1px 描边、无阴影、紧凑档 16px 内边距），卡内为「图标块 `.stat-icon-tint`（浅底 ＋ 同色笔触，点缀色）＋ 数字 `.metric-band__value`（24px/600）＋ 标签 `.metric-band__label`（12px / `--neutral-500`）」；工作台沿用 `.metric-band--cards` 把「横向带」改为四列卡网格（卡间距 `--space-4`，≤640px 两列），逾期仍按 `.metric-band__value--warning`（`--status-warning-text`）着色。两处共用同一套类，禁止另造第二套卡片。
+> **点缀色作数值（2026-10-28）**：点缀色作数值时**必须满足大字 3:1**（`.metric-band__value` 为 24px/600 ⇒ WCAG 大字档 3:1），**否则退回正文色 `--neutral-800`，只留图标着彩色**。实测：`--status-success` 对白卡 2.54:1 ⇒「个人考勤」的「良好」档数值用 `--neutral-800`（14.68:1）、绿色只留在 `.stat-icon-tint`（`aria-hidden` 装饰件）；其余档位 warning-text 7.09 / error 3.76 / neutral-500 4.83 均 ≥3:1，数值与图标同色。
 
 #### 列表项白底原则
 
@@ -2419,7 +2420,7 @@ li + li { margin-top: 0.25em; }
 | 字号/行高 | 13px / 16px | 13px / 16px |
 | 描边 | 1px `--neutral-200` | 1px `--neutral-200` |
 | 圆角 | 8px（`--radius-sm`） | 8px |
-| focus | 金边 + 2px `--focus-ring` | 同左 |
+| focus | 金边 + 2px `--app-accent` 实线环（offset 1px，单环） | 同左 |
 | 日期控件 | 所有 `.input-flat[type=date…]` 钉 38px | 所有 `.input-flat-sm[…]` 钉 32px |
 
 - 控件上**禁止**叠加 `text-sm` / `rounded` / `rounded-lg` / 无颜色 `border`。
@@ -2530,7 +2531,7 @@ li + li { margin-top: 0.25em; }
 | SD-24 | IF 按压反馈 THEN 唯一源 `--press-shadow`（1px 内阴影）＋ `--transition-press` 180ms；`transform/scale/translate` 计数为 0 |
 | SD-25 | IF 选中态 THEN 主题 soft 三件套（底/字/左条）；侧边栏是唯一浅灰豁免；`--surface-hover/active` 不得表达 selected |
 | SD-26 | IF 实底按钮 hover THEN `--app-accent-strong-hover`（同色相加深）；底色落中性灰计数为 0 |
-| SD-27 | IF 输入类控件 THEN 走字段外壳：活动态＝主题色边 1px + 3px 浅晕；`:focus` 不出 outline；`:focus-visible` 才出 2px 主题色环 |
+| SD-27 | IF 输入类控件 THEN 走字段外壳：静态 1px 中性边；`:focus` 只把边框切主题色且 `box-shadow: none`；**焦点环只由 `:focus-visible` 的一条 `outline: 2px solid var(--app-accent)`（offset 1px）承担**（与 `<select>` 同环；同一控件不得同时出 `:focus` 的 `box-shadow` 环） |
 | SD-28 | IF 控件禁用/只读 THEN 两态可辨（禁用灰底灰字、只读透明边浅底）；`opacity` 混作两态计数为 0 |
 | SD-29 | IF 原生 `<select>` THEN 必须经 `enhanceSelects`（值载体仍是原生）；大选项集提供搜索 / 近期优先 / 分批渲染 |
 | SD-30 | IF 过渡 THEN 时长 ∈{120,180,200,240}ms 且属性 ∈{opacity,transform,color,background-color,border-color,box-shadow}；布局属性与 `all` 计数为 0 |
@@ -2603,15 +2604,15 @@ li + li { margin-top: 0.25em; }
 |---|---|---|---|
 | 静置 | 1px `--neutral-300` | 白底、`--neutral-800` | — |
 | 悬停 | 1px `--neutral-400` | 不变 | 仅 `@media (hover:hover)` |
-| 活动（鼠标或键盘） | 1px `--app-accent` ＋ `box-shadow: 0 0 0 3px var(--app-accent-soft-bg)` | 不变 | **不出近黑外环** |
-| 键盘保险 | 另出 `outline: 2px solid var(--app-accent)` | — | 仅 `:focus-visible`，与浅晕同色系 |
+| 活动（鼠标或键盘） | 1px `--app-accent`，`box-shadow: none` | 不变 | **不出近黑外环，也不叠 3px 浅晕** |
+| 键盘焦点环 | 一条 `outline: 2px solid var(--app-accent)`（offset 1px） | — | 仅 `:focus-visible`；与 `<select>` 同宽 / 同色 / 同偏移，对白卡 3.83:1 |
 | 禁用 | 1px `--neutral-200` | 浅灰底、灰字 | 真不可用 |
 | 只读 | 透明边 | 浅底、正文色 | 可读可复制 |
 
-- 禁止「金边 + 黑环」双答。
+- 禁止「金边 + 黑环」双答；**禁止同一控件同时出 `:focus` 的 `box-shadow` 环与 `:focus-visible` 的 `outline` 环**——键盘聚焦时两者同时命中，会画成两个环（2026-10-28 实测：outline 2px 主题色 ＋ box-shadow 3px soft-bg）。
 - **选择器统一**：原生 `<select>` 一律经 `enhanceSelects` 增强，面板与页面同一套 token；原生控件只作值载体。
 - **大选项集一般化框架**：搜索（`data-cs-search`）、近期优先（`data-cs-priority="recent"`）、分批渲染（`data-cs-limit`）、空态「没有匹配项」；选人继续走 `person-picker`。
-- 守卫：`field-shell-guard` / `ui-focus-ring` · 判例：CASE-DESIGN-006（SD-27）/ CASE-DESIGN-007（SD-28）/ CASE-DESIGN-008（SD-29）
+- 守卫：`field-shell-guard` / `ui-focus-ring` / `ui-control-system-guard`（FOCUS-1…3：双环检测 + 搜索框同环 + 环对比度）· 判例：CASE-DESIGN-006（SD-27）/ CASE-DESIGN-007（SD-28）/ CASE-DESIGN-008（SD-29）
 
 ### 12.13 动效令（批次 508）
 

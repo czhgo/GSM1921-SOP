@@ -27,7 +27,7 @@ status: active
 > **批次 514（2026-10-27）**：新增 **3 件**——`no-underline-guard`（4 条）、`loading-experience-guard`（6 条）、
 > `no-about-route-guard`（5 条）；件数 74 → **77**，明细见 §十一。
 
-> 合并前实点 **72 件**（批次 509 口径）。下表逐行按实读校准后，现行 **64 件 / 531 条**（批次 516 把 17 件并为 4 件，断言数不变；2026-10-28 美学专项 Task 7 按实读校准 `copy-guard` 14→16、`modal-guard` 22→20，合计仍 527 条；2026-10-28 B-500-4 结案 `data-lifecycle-guard` 15→16 ⇒ 528 条；2026-10-28 前端设计审查 `modal-guard` 增 T1 ⇒ 529 条；2026-10-28 空态全站收口 `copy-guard` 增 E1/E2 ⇒ 531 条）；另有已合并的
+> 合并前实点 **72 件**（批次 509 口径）。下表逐行按实读校准后，现行 **64 件 / 534 条**（批次 516 把 17 件并为 4 件，断言数不变；2026-10-28 美学专项 Task 7 按实读校准 `copy-guard` 14→16、`modal-guard` 22→20，合计仍 527 条；2026-10-28 B-500-4 结案 `data-lifecycle-guard` 15→16 ⇒ 528 条；2026-10-28 前端设计审查 `modal-guard` 增 T1 ⇒ 529 条；2026-10-28 空态全站收口 `copy-guard` 增 E1/E2 ⇒ 531 条；2026-10-28 硬编码审计 `copy-guard` 增 D1/D2、`frontend-foundations-guard` 增 F10 ⇒ 534 条）；另有已合并的
 > 5 件（`frontmatter-freshness` / `timestamps-note-guard` / `doc-line-ref` / `gold-accent-guard` /
 > `button-system-guard`，25 条）不在表内、不计入本表合计。
 
@@ -39,7 +39,7 @@ status: active
 | `block-entry-guard-e2e.test.mjs` | 页面（真机） | 4 | 4 | — | `block-manifest`、`block-config-ui-e2e` |
 | `branch-id-literal-guard.test.mjs` | 代码 / 数据（支部字面量） | 2 | 2 | — | `db-integrity-guard`、`identity-student-id-guard` |
 | `copy-anchor-guard-e2e.test.mjs` | 页面文案（真机） | 3 | 2 | — | `copy-guard` |
-| `copy-guard.test.mjs` | 页面文案（折叠区 / 长度 / 制度母本 / 自明性 / 卡头副题 SD-54 / 空态单一源，2026-10-27 批次 516 四件合一 · 2026-10-28 增 S1/S2、E1/E2） | 18 | 37 | — | `copy-anchor-guard-e2e`、`copy-screen-guard` |
+| `copy-guard.test.mjs` | 页面文案（折叠区 / 长度 / 制度母本 / 自明性 / 卡头副题 SD-54 / 空态单一源 / 日期硬编码，2026-10-27 批次 516 四件合一 · 2026-10-28 增 S1/S2、E1/E2、D1/D2） | 20 | 37 | — | `copy-anchor-guard-e2e`、`copy-screen-guard` |
 | `copy-screen-guard.test.mjs` | 页面文案（真机逐屏） | 5 | 3 | — | `copy-length-guard`、`copy-master-guard` |
 | `ctx-hygiene-guard.test.mjs` | 目录 / 文档（`.ctx` 准入与归档） | 4 | 26 | — | `docs-governance-guard`（README / AGENTS / 索引位） |
 | `data-lifecycle-guard.test.mjs` | 数据（生命周期 / 迁移 / 业务数据永不自动删） | 16 | 11 | — | `db-integrity-guard`、`db-migration`、`seed-baseline` |
@@ -52,7 +52,7 @@ status: active
 | `docs-governance-guard.test.mjs` | 文档（frontmatter / 备注列 / 行号引用 / README / AGENTS / SNAPSHOT / 判例 / 术语 Harness） | 25 | 38 | — | `doc-consistency`、`ctx-hygiene-guard`、`link-integrity` |
 | `feedback-integrity.test.mjs` | 页面 / 数据（写反馈可信） | 12 | 8 | — | `pending-writes`、`write-path-guard` |
 | `field-shell-guard.test.mjs` | 组件（字段外壳） | 6 | 5 | — | `ui-control-system-guard`、`hover-state-guard` |
-| `frontend-foundations-guard.test.mjs` | 组件 / 页面（前端底线） | 9 | 13 | — | `ui-motion-guard`、`hover-state-guard`、`hex-hardcode-guard` |
+| `frontend-foundations-guard.test.mjs` | 组件 / 页面（前端底线 ＋ 日历默认月由 now 派生） | 10 | 13 | — | `ui-motion-guard`、`hover-state-guard`、`hex-hardcode-guard` |
 | `handoff-state-guard.test.mjs` | 数据 / 状态机（交接态） | 10 | 3 | — | `state-enum-guard`、`todo-*` 状态守卫 |
 | `hex-hardcode-guard.test.mjs` | token / 代码（硬编码 hex） | 6 | 14 | 是 | `theme-palette-guard`、`dead-selector-guard` |
 | `hover-state-guard.test.mjs` | 组件（hover / active / selected） | 7 | 6 | 是 | `ui-motion-guard`、`field-shell-guard`、`ui-control-system-guard` |
@@ -128,6 +128,7 @@ status: active
 - 2026-10-28 B-500-4 结案（数据保留期）：`data-lifecycle-guard` 增 ⑯（cleanup 删除目标白名单不含任何业务表 · 含反例，1 条）⇒ 64 件 / **528 条**。
 - 2026-10-28 前端设计审查（浮窗字段类型）：`modal-guard` 增 T1（已知字段类型原样透传 / 未知类型生产期回退 text，含反例，1 条）⇒ 64 件 / **529 条**。
 - 2026-10-28 空态全站收口：`copy-guard` 增 E1/E2（空态只从 `empty-state.js` 出 · 白名单 3 条逐条写理由 / 反例命中 + 负例不误伤 + 白名单无僵尸，2 条）⇒ 64 件 / **531 条**。
+- 2026-10-28 硬编码审计（默认月 / URL / 日期口径）：`copy-guard` 增 D1/D2（用户可见渲染串不写死完整年月日 · 基线 0 ＋ 反例/负例自检，2 条）· `frontend-foundations-guard` 增 F10（日历默认月由 `now` 派生 · 注入两个 `now`，1 条）⇒ 64 件 / **534 条**。
 - 后续目标：**60 ± 3 件**（按新增 6 件平移；再合并约 14 件）。推导见 3.2（其「现有 / 目标」为批次 509 时点）。
 
 ### 3.2 推导（按「同一检查对象 ＋ 同一失败根因」聚类，不按文件名拍脑袋）

@@ -3,21 +3,21 @@
 //  attendance.js — 考勤记录 CRUD 服务
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB, AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../core/domain/domain.js?v=20261028b';
-import { POLICY_DEFAULTS, isAttendanceOverdue } from '../../core/domain/policy-defaults.js?v=20261028b';
-import { persist, getDataSource, getAdapter } from '../../data/data-adapter.js?v=20261028b';
-import { generateId } from '../../core/base/id.js?v=20261028b';
-import { bumpToken } from '../../core/base/version-token.js?v=20261028b'; // P0 域缓存失效（spec §二.3）
-import { ATTENDANCE_RECORDS } from '../../data/mock/index.js?v=20261028b';
-import { isInitStateActive } from '../core/init-reset.js?v=20261028b'; // C2 修复（2026-09-08）：init 态空态不回退演示种子
-import { PersonStore, getPersonById, getPersonName } from '../member/person.js?v=20261028b';
-import { getRosterStats } from '../member/roster.js?v=20261028b';
-import { getMeetingRosterIds } from '../member/roster.js?v=20261028b';
-import { loadActivities, isActivityOrganizer } from './activity.js?v=20261028b';
-import { SignupStore } from './signup.js?v=20261028b';
-import { deriveExpectedRosterIds } from './attendance-roster.js?v=20261028b';
-import { trackWrite } from '../../core/session/pending-writes.js?v=20261028b';
-import { isPartyGroupLeaderRole } from '../../core/domain/constants.js?v=20261028b';
+import { mockDB, AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../core/domain/domain.js?v=20261028d';
+import { POLICY_DEFAULTS, isAttendanceOverdue } from '../../core/domain/policy-defaults.js?v=20261028d';
+import { persist, getDataSource, getAdapter } from '../../data/data-adapter.js?v=20261028d';
+import { generateId } from '../../core/base/id.js?v=20261028d';
+import { bumpToken } from '../../core/base/version-token.js?v=20261028d'; // P0 域缓存失效（spec §二.3）
+import { ATTENDANCE_RECORDS } from '../../data/mock/index.js?v=20261028d';
+import { isInitStateActive } from '../core/init-reset.js?v=20261028d'; // C2 修复（2026-09-08）：init 态空态不回退演示种子
+import { PersonStore, getPersonById, getPersonName } from '../member/person.js?v=20261028d';
+import { getRosterStats } from '../member/roster.js?v=20261028d';
+import { getMeetingRosterIds } from '../member/roster.js?v=20261028d';
+import { loadActivities, isActivityOrganizer } from './activity.js?v=20261028d';
+import { SignupStore } from './signup.js?v=20261028d';
+import { deriveExpectedRosterIds } from './attendance-roster.js?v=20261028d';
+import { trackWrite } from '../../core/session/pending-writes.js?v=20261028d';
+import { isPartyGroupLeaderRole } from '../../core/domain/constants.js?v=20261028d';
 
 export function loadAttendanceRecords() {
   if (mockDB.attendances.length > 0) return [...mockDB.attendances];

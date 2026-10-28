@@ -4091,3 +4091,17 @@ $body
 | 七台静态壳仍输出台名 H2，页签 `renderTabHeader` 又出一个 H2；党委台「支部上报」三连 | 静态标题是壳的一部分，留着不影响 | 每页恰 1 个 H2；静态台名降为面包屑 / 眉题或移除 | `scope_widening`（标题层级被当成装饰） | 静态壳不得有 `<h2>` / `.page-frame__title`；H3/H4 顺序合法（SD-35 / P4–P6） |
 | `DESIGN_SYSTEM` 仍写「胶囊 1px 描边」「链接静态下划线」，实现已改掉 | 文档滞后一批再补也行 | 规范与实现必须同批一致；否则守卫与文档互相打架 | `documentation_drift` | 改视觉判据同批改 SD 条文与判例指针；`doc-consistency` / `docs-governance` 复核（SD-49 / SD-50） |
 
+## 2026-10-28 焦点单环 ＋ 大字数值对比（戳 `20261028d`，未 bump）
+
+**为什么改**：键盘聚焦 `.input-flat` 搜索框时 `:focus` 与 `:focus-visible` 同时命中，`box-shadow: 0 0 0 3px var(--app-accent-soft-bg)` 与 `outline: 2px solid var(--app-accent)` 叠成两环。真机读数（`.ctx/evidence/2026-10-28/focus-readings-before.json`）：`.lf-kw` / `#archive-search` / `#ref-search-input` 均为 outline 2px `rgb(169,122,18)` offset 1px ＋ box-shadow `rgb(251,243,220)` 0 0 0 3px；soft-bg 环对白卡 1.11:1、暗色下比卡片更暗（`--app-accent-soft-bg-dark`）⇒ 肉眼读成「黑环 + 金环」。`<select>`（`.cs-trigger`）实测也是两条声明，但 3px 环几乎不可见，故用户看到单环。
+
+**口径（单一源＝`styles.css:1021–1022`）**：环只由 `:focus-visible` 的一条 `outline: 2px solid var(--app-accent)`（offset 1px）承担；`:focus` 只改边框色并把 `box-shadow` 钉成 `none`（顺带挡掉 `<button>` 触发器继承的全局 6px `--focus-halo`）。四处＋两处搜索面并到同一口径：`.lf-kw`（list-filter）· `.cs-search-input`（下拉内嵌）· `#archive-search` · `#ref-search-input` · `.help-search-input`（help.html 内联）· `.person-picker-search`。
+
+**对比度**：环 `#A97A12` vs 白卡 3.83:1、vs 页面底 3.66:1（≥3）。`--status-success` 作 24px 数值对白卡仅 2.54:1 ⇒「个人考勤」良好档数值退回 `--neutral-800`（14.68:1），绿色只留 `.stat-icon-tint`（`aria-hidden` 装饰件）；仓内无更深成功文字 token（先 Grep `--status-success-text` / `--color-functional-*`），故不新增 hex。
+
+**守卫同批改**：`field-shell-guard::F2`（由「必须有 3px 浅晕」改准为「必须 `box-shadow: none`」，判据不降）· `ui-focus-ring::F3`（同口径）· `ui-control-system-guard` 新增 `FOCUS-1…3`（双环检测含正/反例 · 搜索框与 `<select>` 同环 · 良好档数值 ≥3:1）；`test-tier-registry` 预算 1647 → 1650 并写理由。
+
+**读数**：定向 61/61 绿（`ui-control-system`＋`ui-contrast`＋`hex-hardcode`＋`theme-palette`＋`ui-focus-ring`）；`test:daily` 1653/1653 绿（95s）。反例实测：临时把旧 `:focus` 3px 阴影 ＋ `:focus-visible` outline 写回 `styles.css`，`FOCUS-1` 报红并指出两条规则的行号（1027 / 1028），随后已回退。
+
+**边界**：本批不 bump 版本戳（戳仍为 `20261028d`）；`.input-flat-sm`（紧凑档）与 `.vote-note` 本就是单环（深灰 `--focus-ring`），不在本次四处之内，未改；`button/a` 的「金环 + 深色补环」是 §A11y 段的既定双线索，与「同一控件的第二条环」不是同一问题。
+

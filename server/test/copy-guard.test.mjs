@@ -1375,3 +1375,118 @@ await (async () => {
   });
 
 })();
+
+// ═══ 源件 7：用户可见渲染串不得写死完整年月日（2026-10-28 硬编码审计）═══
+await (async () => {
+  const { test } = await import('node:test');
+  const assert = (await import('node:assert/strict')).default;
+  const { readdirSync, readFileSync } = await import('node:fs');
+  const { join, relative, dirname } = await import('node:path');
+  const { fileURLToPath } = await import('node:url');
+
+  // role: [工程师]+[AI]
+  // 日期硬编码守卫（2026-10-28 硬编码审计；并入 copy-guard）
+  //
+  // 判据：「用户可见渲染串里出现**完整年月日**即红，基线 0」——
+  //   完整年月日取两种写法：`20\d{2}-\d{2}-\d{2}` 与 `20\d{2}年\d{1,2}月`（含年月，如「2026年10月」）。
+  //   为什么会过期：写死的年月日不会随数据 / 时钟变化，用户看到的永远是那一批日期。
+  //
+  // 判红面：`docs/src/**/*.js`（跳过 `mock` / `vendor` / `node_modules`）。
+  //   豁免（逐条写理由，纳入 D2 自检）：
+  //     ① 注释行 / 注释块（剥掉，不渲染）；
+  //     ② 演示种子与 mock 数据（路径含 `/mock/`；另 `server/seed.js`、`content/**` 不在本面内）；
+  //     ③ 文档页数据源 `core/domain/function-catalog.js`——渲染在 about.html / help.html 两张**文档页**上，
+  //        说明性日期不属界面文案（与 copy-length-guard 的 SKIP_FILES 同一口径）；
+  //     ④ 数据字段 / 版本常量（`src:` / `why:` / `grantedAt:` / `createdAt:` / `date:` / `…VERSION =`）：
+  //        存的是数据或版本，不是渲染文案。
+  //
+  // 判红 / 判据：
+  //   D1 判红面命中 ＝ 0（基线 0，无白名单）
+  //   D2 非空转：① 反例 `const label = '2026-10-01'` 必须命中（裸字面量也算可见串）
+  //              ② 负例 注释 `// 2026-10-01 批次说明` 不得命中
+  //              ③ 负例 数据字段 `grantedAt:` / 版本常量 `…VERSION =` 不得命中
+  //              ④ 扫描面文件数 ≥ 下限；⑤ mock 目录不在扫描面内
+  // 运行：node --test server/test/copy-guard.test.mjs
+
+  const HERE = dirname(fileURLToPath(import.meta.url));
+  const ROOT = join(HERE, '..', '..');
+  const SRC = join(ROOT, 'docs', 'src');
+
+  const SKIP_DIRS = new Set(['mock', 'vendor', 'node_modules']);
+  /** 文档页数据源（理由见文件头③） */
+  const DOC_PAGE_SOURCES = new Set(['docs/src/core/domain/function-catalog.js']);
+  /** 完整年月日两种写法 */
+  const DATE_RE = /20\d{2}-\d{2}-\d{2}|20\d{2}年\d{1,2}月/;
+  /** 数据字段 / 版本常量（理由见文件头④） */
+  const DATA_FIELD_RE = /\b(src|why|grantedAt|createdAt|updatedAt|date|startDate|endDate|deadline|dueDate|at)\s*[:=]/;
+  const VERSION_RE = /VERSION\s*[:=]/i;
+  /** 扫描面文件数下限（防判红面被改小 ⇒ 恒真） */
+  const SCAN_FILES_FLOOR = 250;
+
+  /** 剥注释（与同文件其它源件同口径） */
+  function stripComments(src) {
+    let s = String(src).replace(/\r\n?/g, '\n');
+    s = s.replace(/\/\*[\s\S]*?\*\//g, ' ');
+    s = s.replace(/<!--[\s\S]*?-->/g, ' ');
+    return s.split('\n').map((line) => line.replace(/\/\/.*$/, ''));
+  }
+
+  /** 扫一段源码里的完整年月日命中（测试与反例自检共用） */
+  function _scan(text) {
+    const hits = [];
+    for (const line of stripComments(text)) {
+      if (!DATE_RE.test(line)) continue;
+      if (DATA_FIELD_RE.test(line) || VERSION_RE.test(line)) continue;
+      hits.push(line.trim());
+    }
+    return hits;
+  }
+
+  function walk(dir, out = []) {
+    for (const e of readdirSync(dir, { withFileTypes: true })) {
+      if (SKIP_DIRS.has(e.name)) continue;
+      const p = join(dir, e.name);
+      if (e.isDirectory()) walk(p, out);
+      else if (e.name.endsWith('.js')) out.push(p);
+    }
+    return out.sort();
+  }
+
+  const FILES = walk(SRC);
+  const SCAN = FILES
+    .map((abs) => relative(ROOT, abs).replace(/\\/g, '/'))
+    .filter((f) => !DOC_PAGE_SOURCES.has(f))
+    .map((file) => ({ file, hits: _scan(readFileSync(join(ROOT, file), 'utf8')) }));
+
+  test('D1 用户可见渲染串不写死完整年月日：命中数为 0', () => {
+    const offenders = SCAN.flatMap((r) => r.hits.map((h) => `${r.file} → 「${h}」`));
+    assert.deepEqual(offenders, [],
+      '用户可见渲染串出现完整年月日（应改由数据或当前时间派生；注释 / mock / 文档页说明性文字不计）：\n  '
+      + offenders.join('\n  '));
+  });
+
+  test('D2 非空转：反例命中 / 注释与数据字段不误伤 + 扫描面达标 + mock 不在面内', () => {
+    // ① 反例：裸字面量也属可见串（模板 / innerHTML 同源）
+    assert.equal(_scan("const label = '2026-10-01';").length, 1,
+      '反例未命中：写死的完整日期必须被判红（匹配器坏了）');
+    assert.equal(_scan("el.innerHTML = '<p>2026年10月批次</p>';").length, 1,
+      '反例未命中：写死的「YYYY年M月」必须被判红');
+    // ② 负例：注释不渲染
+    assert.equal(_scan('// 2026-10-01 批次说明').length, 0,
+      '负例误伤：注释行里的日期不是渲染文案');
+    assert.equal(_scan('/* 2026-10-01 批次说明 */').length, 0,
+      '负例误伤：块注释里的日期不是渲染文案');
+    // ③ 负例：数据字段 / 版本常量不是文案
+    assert.equal(_scan("const grantedAt = '2026-10-01T00:00:00.000Z';").length, 0,
+      '负例误伤：数据字段（授予/创建时间）不是渲染文案');
+    assert.equal(_scan("export const SEED_DATA_VERSION = '2026-10-21a';").length, 0,
+      '负例误伤：版本常量不是渲染文案');
+    // ④ 扫描面规模下限（防判红面被改小后恒真）
+    assert.ok(FILES.length >= SCAN_FILES_FLOOR,
+      `只扫到 ${FILES.length} 份 docs/src 源码（下限 ${SCAN_FILES_FLOOR}）：判红面被改小`);
+    // ⑤ mock / 演示种子不在扫描面内
+    const mockFiles = SCAN.filter((r) => r.file.includes('/mock/')).map((r) => r.file);
+    assert.deepEqual(mockFiles, [], `mock 目录混进判红面（演示数据不计）：\n  ${mockFiles.join('\n  ')}`);
+  });
+
+})();

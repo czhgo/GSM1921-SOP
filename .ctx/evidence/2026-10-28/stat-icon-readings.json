@@ -1,0 +1,78 @@
+{
+  "home1440": {
+    "cards": 4,
+    "iconBox": "40×40",
+    "iconRadius": "12px",
+    "iconBg": "color(srgb 0.907765 0.941176 0.995765)",
+    "iconColor": "rgb(59, 130, 246)",
+    "svg": "20×20",
+    "valueColor": "rgb(59, 130, 246)",
+    "valueFont": "24px / 600",
+    "labelSize": "12px",
+    "labelColor": "rgb(107, 114, 128)",
+    "cardBorder": "rgb(229, 231, 235)",
+    "cardBg": "rgb(255, 255, 255)"
+  },
+  "home390": {
+    "cards": 4,
+    "iconBox": "40×40",
+    "iconRadius": "12px",
+    "iconBg": "color(srgb 0.907765 0.941176 0.995765)",
+    "iconColor": "rgb(59, 130, 246)",
+    "svg": "20×20",
+    "valueColor": "rgb(59, 130, 246)",
+    "valueFont": "24px / 600",
+    "labelSize": "12px",
+    "labelColor": "rgb(107, 114, 128)",
+    "cardBorder": "rgb(229, 231, 235)",
+    "cardBg": "rgb(255, 255, 255)"
+  },
+  "homeHover": {
+    "borderColor": "rgb(169, 122, 18)",
+    "backgroundColor": "color(srgb 0.662745 0.478431 0.0705882 / 0.1)",
+    "cursor": "pointer"
+  },
+  "homeHover390": {
+    "borderColor": "rgb(169, 122, 18)",
+    "backgroundColor": "color(srgb 0.662745 0.478431 0.0705882 / 0.1)"
+  },
+  "work1440": {
+    "cards": 4,
+    "iconBox": "40×40",
+    "iconRadius": "12px",
+    "iconBg": "color(srgb 0.948706 0.910118 0.886588)",
+    "iconColor": "rgb(146, 64, 14)",
+    "svg": "20×20",
+    "valueColor": "rgb(146, 64, 14)",
+    "valueFont": "24px / 600",
+    "labelSize": "12px",
+    "labelColor": "rgb(107, 114, 128)",
+    "cardBorder": "rgb(229, 231, 235)",
+    "cardBg": "rgb(255, 255, 255)"
+  },
+  "work390": {
+    "cards": 4,
+    "iconBox": "40×40",
+    "iconRadius": "12px",
+    "iconBg": "color(srgb 0.948706 0.910118 0.886588)",
+    "iconColor": "rgb(146, 64, 14)",
+    "svg": "20×20",
+    "valueColor": "rgb(146, 64, 14)",
+    "valueFont": "24px / 600",
+    "labelSize": "12px",
+    "labelColor": "rgb(107, 114, 128)",
+    "cardBorder": "rgb(229, 231, 235)",
+    "cardBg": "rgb(255, 255, 255)"
+  },
+  "workHover": {
+    "borderColor": "rgb(169, 122, 18)",
+    "backgroundColor": "color(srgb 0.662745 0.478431 0.0705882 / 0.1)",
+    "transition": "background-color",
+    "jumpTransform": "matrix(1, 0, 0, 1, 2, 0)",
+    "jumpShift": "2px"
+  },
+  "workHover390": {
+    "borderColor": "rgb(169, 122, 18)",
+    "backgroundColor": "color(srgb 0.662745 0.478431 0.0705882 / 0.1)"
+  }
+}

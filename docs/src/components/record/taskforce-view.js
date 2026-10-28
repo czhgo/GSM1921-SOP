@@ -4,22 +4,22 @@
 // 专班列表（状态分组）+ 只读详情（成员/角色/贡献）。依据支书第五轮裁定「新建专班查看组件（列表+详情）」。
 // 支书设计原则：「无职责 不代表 没有知情权」。
 
-import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261028b';
-import { getPersonName } from '../../services/member/person.js?v=20261028b';
-import { mockDB } from '../../core/domain/domain.js?v=20261028b';
-import { AuthStore } from '../../services/core/auth.js?v=20261028b';
-import { canRevealActivityMemberNames } from '../../services/core/visibility.js?v=20261028b';
-import { badgeHtml } from '../ui/badges.js?v=20261028b';
-import { dotDarkVars } from '../../core/domain/constants.js?v=20261028b';
-import { flashHighlight, showToast, escHtml as esc } from '../../core/base/utils.js?v=20261028b';
-import { anchorDetailToTrigger } from '../ui/detail-anchor.js?v=20261028b';
+import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261028d';
+import { getPersonName } from '../../services/member/person.js?v=20261028d';
+import { mockDB } from '../../core/domain/domain.js?v=20261028d';
+import { AuthStore } from '../../services/core/auth.js?v=20261028d';
+import { canRevealActivityMemberNames } from '../../services/core/visibility.js?v=20261028d';
+import { badgeHtml } from '../ui/badges.js?v=20261028d';
+import { dotDarkVars } from '../../core/domain/constants.js?v=20261028d';
+import { flashHighlight, showToast, escHtml as esc } from '../../core/base/utils.js?v=20261028d';
+import { anchorDetailToTrigger } from '../ui/detail-anchor.js?v=20261028d';
 // 统一检索引擎（2026-09-14 裁定）：只读详情「成员贡献」（第一列是人 → 配姓名关键词）与
 // 「中间进度」（时间线 → 只给分页：keyword null + facets []）各接一个实例
-import { renderFilteredList } from '../ui/list-filter.js?v=20261028b';
+import { renderFilteredList } from '../ui/list-filter.js?v=20261028d';
 // Task 6：专班的完整详情页出口（同页预览 + 「打开完整页」）；入口已在工作台内 ⇒ locate。
-import { objectDetailHref } from '../../core/domain/object-route.js?v=20261028b';
+import { objectDetailHref } from '../../core/domain/object-route.js?v=20261028d';
 
-import { emptyStateHtml } from '../ui/empty-state.js?v=20261028b';
+import { emptyStateHtml } from '../ui/empty-state.js?v=20261028d';
 // 附录⑩ B批：状态词对齐「支委会表决」语义（pending_review=待支委会表决；dissolved=表决通过解散）
 const STATUS_LABEL = { draft: '草稿', pending_review: '待支委会表决', recruiting: '招募中', active: '运行中', completed: '已完结', archived: '已归档', dissolved: '已解散' };
 // 专班状态 → 固定语义 tone（不随主题）

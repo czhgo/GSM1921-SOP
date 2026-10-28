@@ -15,7 +15,7 @@ import path from 'node:path';
 import { initDb, migratePersonIdsToStudentNumbers } from '../db.js';
 import { createApp } from '../app.js';
 import { seedDatabase } from '../seed.js';
-import { PEOPLE } from '../../docs/src/data/mock/people.js?v=20261028b';
+import { PEOPLE } from '../../docs/src/data/mock/people.js?v=20261028d';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const PERSON_ID_LITERAL = /['"]p(?:_pc|\d+)['"]/g;

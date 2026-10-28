@@ -8,15 +8,15 @@
 //  本组件禁用 SVG 图标（支书 2026-08-10 裁定），类别用色点+文字标签区分
 // ════════════════════════════════════════════════════════════════
 
-import { IssueStore, deriveIssueDisplayState, REPORT_CATEGORIES } from '../../services/governance/issues.js?v=20261028b';
-import { AuthStore } from '../../services/core/auth.js?v=20261028b';
-import { showToast, escHtml } from '../../core/base/utils.js?v=20261028b';
-import { PersonStore, getPersonName } from '../../services/member/person.js?v=20261028b';
-import { solidAccentStyle } from '../../core/domain/constants.js?v=20261028b';
+import { IssueStore, deriveIssueDisplayState, REPORT_CATEGORIES } from '../../services/governance/issues.js?v=20261028d';
+import { AuthStore } from '../../services/core/auth.js?v=20261028d';
+import { showToast, escHtml } from '../../core/base/utils.js?v=20261028d';
+import { PersonStore, getPersonName } from '../../services/member/person.js?v=20261028d';
+import { solidAccentStyle } from '../../core/domain/constants.js?v=20261028d';
 // 统一检索引擎（2026-09-14 批次 37）：待答复汇报列表接入（关键词 事项/汇报人 + 引擎内置分页）
-import { renderFilteredList } from '../ui/list-filter.js?v=20261028b';
+import { renderFilteredList } from '../ui/list-filter.js?v=20261028d';
 
-import { emptyStateHtml } from '../ui/empty-state.js?v=20261028b';
+import { emptyStateHtml } from '../ui/empty-state.js?v=20261028d';
 // ── E-3（2026-09-09 · H60.7 面板保态复查③）：列表瞬态草稿互扰兜底 ──────
 // 某行正式答复成功 → onAnswered → 调用方整块重渲染（支书待办/组长组员汇报），
 // 原实现清掉其它已展开行的草稿与展开态。修法取「渲染前收集、渲染后回填」：

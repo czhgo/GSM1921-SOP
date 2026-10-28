@@ -3,21 +3,22 @@
 //  utils.js — 格式化工具、动画辅助、Toast 组件
 // ════════════════════════════════════════════════════════════════
 
-import { hasPendingWrites, settleScope, settleWrites } from '../session/pending-writes.js?v=20261028b';
+import { hasPendingWrites, settleScope, settleWrites } from '../session/pending-writes.js?v=20261028d';
 
 // ── 日期格式化 ─────────────────────────────────────────────────
 // R-26③（2026-10-05 批次 388）：日期口径单一源下沉到**零依赖叶子** `core/base/date.js`
 //   （`core/domain/constants.js` 这类「被全站 import 且要求双端可载」的件只能引零依赖件；
 //   而 `utils.js` 牵 `core/session/pending-writes.js`）⇒ 此处**转出**，既有 `from '…/utils.js'` 调用点不变。
-export { _fmtDate, todayLocal } from './date.js?v=20261028b';
+export { _fmtDate, todayLocal } from './date.js?v=20261028d';
 
 export function _fmtChinese(d) {
   const DN = ['日','一','二','三','四','五','六'];
   return d.getFullYear() + '年' + (d.getMonth() + 1) + '月' + d.getDate() + '日（周' + DN[d.getDay()] + '）';
 }
 
-export function _currentYearMonth() {
-  const n = new Date();
+// `now` 仅供测试注入（默认 = 现在）；生产调用点一律不传，口径仍是「当前自然月」。
+export function _currentYearMonth(now = new Date()) {
+  const n = now;
   return n.getFullYear() + '-' + String(n.getMonth() + 1).padStart(2, '0');
 }
 

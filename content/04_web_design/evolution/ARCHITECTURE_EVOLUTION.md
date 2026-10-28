@@ -3,7 +3,7 @@ title: "架构演进——组件化落地评估与轻量插件化设计"
 type: design
 role: "[工程师]+[AI]"
 created: 2026-08-22
-last_updated: "2026-10-27"
+last_updated: "2026-10-28"
 status: active
 related_files: [DATA_MODEL.md, SOP_WEBSITE_GUIDE.md, DEPLOYMENT_GUIDE.md, ../../03_doc_system/ARCHITECTURE.md, ../../05_ai_coding/README.md]
 ---
@@ -134,6 +134,16 @@ related_files: [DATA_MODEL.md, SOP_WEBSITE_GUIDE.md, DEPLOYMENT_GUIDE.md, ../../
 
 > **优先级**：1 → 2 → 4 → 3。第 1、2 项收益最大且不动前端代码；第 3 项需与版本戳同批改；第 4 项涉及「无构建」现状，须支书裁定。
 > **待办登记**：`CLAUDE.md` 乙部 `B-515-1`。
+
+### 9.3 版本戳的成本收益（2026-10-28）
+
+`?v=` 全站同戳不是免费的：本仓实测 **442 个文件**含版本戳，一次 bump 会把 JS 内部 import、HTML 入口与样式表 href、CSS `url()`、`server/test` 内戳、`modulepreload` 块与 `CODE_VERSION` 一并改写，**约 450 个文件进同一个 diff**。成本落在两处：一是评审与回滚——一次缓存换新会淹没真正的功能改动；二是 git 历史——每个提交都带几百行查询串变动，`git blame` 失去可读性。
+
+收益同样明确：**① 无陈旧模块**——入口与其内部 import 同 URL 同戳，部署后不会出现「新入口拉起旧模块」的模块实例分裂（`DATA_CONSISTENCY_CHECKLIST` 的 `?v=` 口径即为此而立）；**② immutable 缓存**——URL 带戳即可给静态资源 `public, max-age=31536000, immutable`，HTML 保持回源，二次访问静态资源零回源（§9.2 第 2 项）。
+
+取舍是把 bump 的**时机**从「每次改动」挪到「发布」：日常提交不动 `?v=`（降低 diff 噪音），发布前跑一次 `cd server; npm run release:stamp`（先全站补戳，再以 `--check` 核对陈旧戳与 `CODE_VERSION`）。这条取舍的前提是**部署必经 `release:stamp`**——若直接部署未 bump 的代码，`?v=` 未变的模块 URL 会命中旧缓存，新旧混用随即回来。
+
+> **若将来要退出戳，必须先把内部模块改 no-cache 协商**——否则浏览器按 URL 缓存 ES Module 的语义不变，去掉 `?v=` 只会把「陈旧模块」从可见变成不可见。
 
 ---
 

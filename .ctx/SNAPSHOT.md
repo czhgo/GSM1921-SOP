@@ -275,3 +275,11 @@ GSM1921-SOP/
 - **未决**：① 状态胶囊五套（`B-518-1`）；② 加载态三语言（`B-518-2`）；③ `scrollIntoView` 40+ 处未判 reduced-motion（`B-518-3`）；④ `help.html` 第二设计系统与页宽四档（`B-518-4`）。
 - **已迁 content 的条目**：`PARALLEL_SKILL_AUDIT §14`；`DESIGN_SYSTEM` 的 `--neutral-400` 使用边界、空态只从组件出、数字卡口径；`DATA_MODEL §1.2.2` 保留期；`GUARD_INVENTORY` **64 件 / 531 条**；`PRODUCT_IA` 结论带口径。
 - **下批入口**：① 读本段与 `.trae/specs/rerun-frontend-design-audit/checklist.md`；② 从 `B-518-1` 起做「多套实现收口」，每次只收一族并补棘轮；③ 读数基线：daily **1647 / 1647**、版本戳 `20261028b`。
+
+## 批次 519 小结（2026-10-28）
+
+- **做了什么**：① 版本戳改为「只在发布 bump」——`npm run release:stamp`（bump ＋ `--check` 非零退出），日常提交不再重写 442 个文件；② 硬编码审计——证明默认月由 `now` 派生并补 `F10` 测试，首次加载不再写 `?month=`（深链反而修好了），8 处可见年月日清零并新增 `copy-guard D1/D2`；③ 四数恢复**彩色图标块 ＋ 同色数值 ＋ 标签**，原则 4 补「点缀色不计入主色数量」并新增 `CASE-DESIGN-030`；④ 轻交互回归——可点卡 `border/tint/箭头 2px`，补 `a.text-accent` 与顶栏铃铛三态，`ui-motion-guard` 判据不变；⑤ 搜索框双描边的根因是 `:focus` 的 3px box-shadow 与 `:focus-visible` 的 2px outline 叠加，统一为一条主题色 outline（六处），并新增 `FOCUS-1/2`。
+- **结论**：这轮三件事同源——**「机制在，但没人读得懂它的表达」**：版本戳的成本没人量化、原则 4 的「克制」没有边界、焦点环有两条规则却没人在浏览器里看一眼。判据写成可机检（`--check`、`F10`、`D1`、`FOCUS-1`）之后，下一轮不用再靠人记。
+- **未决**：① 紧凑输入档与投票注记仍是深灰环（`B-519-1`）；② 登录页 h1 支部名写死（`B-519-2`）；③ 成功色缺文字档 token（`B-519-3`，待裁）；④ `B-518-1…4` 仍在。
+- **已迁 content 的条目**：`DESIGN_SYSTEM` 原则 4（点缀色边界）、「点缀色作数值须大字 3:1」、焦点单环（§12.1 / SD-27）、`CASE-DESIGN-030`；`ARCHITECTURE_EVOLUTION §9.3`（版本戳成本收益）；`GUARD_INVENTORY` **64 件 / 534 条**；README / CLAUDE 的发布流程口径。
+- **下批入口**：① 读本段；② 发布前只跑 `cd server; npm run release:stamp`，不要在日常提交里 bump；③ 从 `B-518-1`（状态胶囊五套）继续收口；④ 读数基线：daily **1653 / 1653**、戳 `20261028d`。

@@ -6,27 +6,27 @@
 //         content/04_web_design/design-system/DESIGN_SYSTEM.md §一 第6条
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB, isTaskforceActiveStatus } from '../../core/domain/domain.js?v=20261028b';
-import { persist, getDataSource } from '../../data/data-adapter.js?v=20261028b';
-import { generateId } from '../../core/base/id.js?v=20261028b';
-import { bumpToken, tokenOf } from '../../core/base/version-token.js?v=20261028b';
+import { mockDB, isTaskforceActiveStatus } from '../../core/domain/domain.js?v=20261028d';
+import { persist, getDataSource } from '../../data/data-adapter.js?v=20261028d';
+import { generateId } from '../../core/base/id.js?v=20261028d';
+import { bumpToken, tokenOf } from '../../core/base/version-token.js?v=20261028d';
 // 待批活动状态值单一源（2026-09-22 批次 151 · 支书裁定「只支委层可见」）：待批活动**不是**「待参与」的活动
 // ——它还没获批（与 `draft` 同待遇），不为它派生「参与活动」待办（也免得从待办标题把没批的活动漏出去）。
-import { PENDING_APPROVAL_STATUS } from '../activity/activity.js?v=20261028b';
-import { todayLocal, _fmtDate } from '../../core/base/utils.js?v=20261028b';
-import { DEFAULT_BRANCH_ID, isActivityEnded } from '../../core/domain/constants.js?v=20261028b';
-import { AuthStore } from '../core/auth.js?v=20261028b';
+import { PENDING_APPROVAL_STATUS } from '../activity/activity.js?v=20261028d';
+import { todayLocal, _fmtDate } from '../../core/base/utils.js?v=20261028d';
+import { DEFAULT_BRANCH_ID, isActivityEnded } from '../../core/domain/constants.js?v=20261028d';
+import { AuthStore } from '../core/auth.js?v=20261028d';
 // 周期键（月/季/半年/年）与「模块周期」单一源（2026-10-06 批次 423 · `R-29⑤` · `D-804`）——
 //   周期任务的**来源**＝`work-map.js::WORK_MAP_MODULES[].cycle`（不另立第二份映射，`D-803②`）。
-import { cyclePeriodOf, cyclePeriodLabel } from '../../core/base/period.js?v=20261028b';
-import { WORK_MAP_MODULES, expandWorkforce, ownerOfModule, moduleIdOfActivity } from '../../core/domain/work-map.js?v=20261028b';
+import { cyclePeriodOf, cyclePeriodLabel } from '../../core/base/period.js?v=20261028d';
+import { WORK_MAP_MODULES, expandWorkforce, ownerOfModule, moduleIdOfActivity } from '../../core/domain/work-map.js?v=20261028d';
 // R10-B03：种子待办截止 = 活动日 + 制度复盘/归档时限（单一源），不存死日期字面量。
-import { ACTIVITIES } from '../../data/mock/activities.js?v=20261028b';
-import { POLICY_DEFAULTS } from '../../core/domain/policy-defaults.js?v=20261028b';
+import { ACTIVITIES } from '../../data/mock/activities.js?v=20261028d';
+import { POLICY_DEFAULTS } from '../../core/domain/policy-defaults.js?v=20261028d';
 // 「待归档」是否可生成 = 活动关闭条件是否已齐（单一源 `services/activity/close-conditions.js`）。
 // 2026-10-25 批次 510：hydrate 原按「活动已结束」逐条生成，实测 34 条（多数产出未齐、归档面并不需要）；
 // 改为 canClose 才生成。该函数只在服务层此处消费，不复制分类型判据（避免第二套关闭标准）。
-import { checkActivityCloseConditions } from '../activity/close-conditions.js?v=20261028b';
+import { checkActivityCloseConditions } from '../activity/close-conditions.js?v=20261028d';
 
 // ── 待办分类枚举 ──────────────────────────────────────────────
 export const TodoCategory = {
