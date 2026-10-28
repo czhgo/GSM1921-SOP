@@ -2,20 +2,21 @@
 // 宣传委员工作台 Tab：项目看板（T-279 M3 拆分，照 M2 样板）
 // 活动/专班合并看板（活动+专班分桶）+ 专班工作量区块；从 TaskForceRecordStore 动态派生（H-1 数据断裂修复）。
 
-import { badgeHtml } from '../../../components/ui/badges.js?v=20261026b';
-import { BranchService } from '../../../services/core/runtime.js?v=20261026b';
-import { TodoStore, TodoSourceType } from '../../../services/governance/todo.js?v=20261026b';
-import { persist } from '../../../data/data-adapter.js?v=20261026b';
-import { showToast, escHtml as esc } from '../../../core/base/utils.js?v=20261026b';
-import { setState } from '../../../core/base/state.js?v=20261026b';
-import { resolveDocumentUrl } from '../../../core/base/page-url.js?v=20261026b';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20261028a';
+import { BranchService } from '../../../services/core/runtime.js?v=20261028a';
+import { TodoStore, TodoSourceType } from '../../../services/governance/todo.js?v=20261028a';
+import { persist } from '../../../data/data-adapter.js?v=20261028a';
+import { showToast, escHtml as esc } from '../../../core/base/utils.js?v=20261028a';
+import { setState } from '../../../core/base/state.js?v=20261028a';
+import { resolveDocumentUrl } from '../../../core/base/page-url.js?v=20261028a';
 // 「已归档」判据单一源（只看 archived === true；不得再把 status === 'completed' 当归档）
-import { isActivityArchived, activityTypeBadgeVariant } from '../../../core/domain/constants.js?v=20261026b';
+import { isActivityArchived, activityTypeBadgeVariant } from '../../../core/domain/constants.js?v=20261028a';
 // 统一检索引擎（2026-09-14 批次 37）：三桶各接一个实例（keyword null + facets [] → 仅分页，保持三桶观感）
-import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261026b';
-import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261026b';
+import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261028a';
+import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261028a';
 // Task 6：项目看板是跨对象聚合面 ⇒ 活动/专班卡直达完整详情页（direct）。
-import { objectDetailHref } from '../../../core/domain/object-route.js?v=20261026b';
+import { objectDetailHref } from '../../../core/domain/object-route.js?v=20261028a';
+import { confirmDanger } from '../../../components/ui/modal.js?v=20261028a';
 
 export function renderContent(ctx) {
   const container = document.getElementById('prop-tab-content');
@@ -91,13 +92,13 @@ export function renderContent(ctx) {
     });
     // 卡内「确认完成」按钮自带 inline onclick stopPropagation（行 HTML 逐字保留，不改），
     // 故用捕获阶段委托挂宿主：在按钮目标阶段 stopPropagation 前先拦到点击；再判整卡跳转。
-    host.addEventListener('click', (e) => {
+    host.addEventListener('click', async (e) => {
       const actBtn = e.target.closest('.activity-complete-btn');
       if (actBtn) {
         const actId = actBtn.dataset.actId;
         const activity = activities.find(a => a.id === actId);
         if (!activity) return;
-        const confirmed = window.confirm(`确认结束活动「${activity.title || '未命名'}」？标记结束后请到「档案归档」页签完成正式归档。`);
+        const confirmed = await confirmDanger({ id: 'activity-finish', title: '结束活动', bodyHtml: `<p class="text-sm text-gray-700">把活动「${esc(activity.title || '未命名')}」标记为结束。<br>影响：状态转为「已完成」，宣传侧「活动归档」与支书「待复盘」待办随之销项。<br>可恢复：正式归档仍须在「档案归档」按材料 / 考勤闸门办理。</p>`, confirmLabel: '标记结束' });
         if (!confirmed) return;
         activity.status = 'completed';
         BranchService.updateActivity(actId, { status: 'completed' });
@@ -133,7 +134,7 @@ export function renderContent(ctx) {
   // 宣传任务泳道（2026-10-25 IA 62→45）：复用 `tasks-tab.js::renderBoard`（列表 / 登记 / 推进 / 作废单一源）。
   const tasksHost = container.querySelector('#prop-tasks-host');
   if (tasksHost) {
-    import('./tasks-tab.js?v=20261026b').then((m) => {
+    import('./tasks-tab.js?v=20261028a').then((m) => {
       if (tasksHost.isConnected) m.renderBoard(tasksHost, ctx, { header: false });
     });
     // 旧深链 `?tab=kanban&lane=tasks`：滚到本条泳道并给可见落点。

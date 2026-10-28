@@ -2,7 +2,7 @@
 title: "设计系统"
 type: design
 role: "[工程师]+[AI]"
-last_updated: 2026-10-27
+last_updated: 2026-10-28
 status: active
 related_files: [docs/src/styles.css, ../evolution/DESIGN_METHODOLOGY.md, ../data/DATA_MODEL.md]
 ---
@@ -1921,7 +1921,7 @@ li + li { margin-top: 0.25em; }
 1. **一个 tab 只有一个 H2**：标题文案与页签名一致；不得用两个 H2 分别做「页名 + 主对象名」。
 2. **不重复同一文案**：同一层级出现两次同名标题即判「繁」；首页不得再出现与 H1 同名的组织名 H2。
 3. **主对象先于说明**：首个标题之后先放主对象；说明行、帮助注释一律后置（§10.5）。
-4. **首页特有**：品牌只在顶栏出现一次（不再重复 48px 党徽）；区块标题用 H2；区块内的卡片标题用 H3。
+4. **首页 hero 豁免（2026-10-28 支书裁定：保留 hero，改规范）**：首页 hero 允许 48px 党徽 ＋ 居中标题，但**仅限**两种状态——① 未登录 / 访客态；② 首屏无待办（个人待办为 0）。登录且有待办时，hero 降为辅助信息：组织名由顶栏 H1 承担，hero 不再作为第一重音。层级次序固定为：顶栏 H1（组织名）→ 区块 H2（如「近期活动」）→ 卡头 H3；区块标题用 H2，区块内的卡片标题用 H3。本豁免不与 §4.25 其它规则冲突；除此两种状态外仍按原规则判。
 5. **其余页签触达即迁**：新页面 / 改到的页面必须按本表；不得为了「统一」一次性重写 60+ 文件。
 
 ### 4.26 零值与空行（2026-10-19 立）
@@ -1957,6 +1957,65 @@ li + li { margin-top: 0.25em; }
 **实现锚点**：`modal.js` 统一提供 header / body / footer 三段，新浮窗只声明内容与分隔，不自造按钮条；选人器等有状态组件在四条关闭路径上统一销毁，不得只在「取消」路径处理。
 
 > **边界**：本节只约束形态与状态，不锁文案措辞（文案规则见 §4.18）。
+
+#### 4.27.1 危险动作盘点（2026-10-28 立 · 美学专项 Task 6）
+
+> **一句话**：**危险动作必须离开正文流、进入确认面；确认面须含「做什么 / 影响范围 / 可否恢复」三段**（规范编号 **SD-53**）。
+> **适用**：归档、删除、作废、解散、移除成员、撤销、驳回、清空、覆盖、恢复默认等**破坏性或不可逆**动作；「保存 / 提交」一类非危险动作不在其列。
+
+**三段判据**（三条全为真才算合格）
+
+1. **做什么**：标题是一行动词（删除 / 归档 / 解散 / 撤销 / 拒绝），不写「确定吗？」。
+2. **影响范围**：写清哪些行 / 人 / 记录会变；跨对象联动（待办、通知、材料、权限）要点名。
+3. **可否恢复**：可恢复给出撤销路径（在何处回查 / 如何回退）；不可恢复（删除、解散、覆盖）明写「不可恢复」。
+
+**统一入口**：`docs/src/components/ui/modal.js::confirmDanger`——复用既有 `_mustPressConfirm` 的「必须点按钮才能关」机制，主按钮 `.btn-danger-solid`（危险确认专用），**不新增第二套弹窗组件**；`docs/src` 内原生 `confirm(` 与 `data-confirm` 已清零（`data-adapter` 的业务方法 `.confirm(id)` 不属于对话框，不在其列）。
+
+**盘点**（位置取本批改动后的行号）
+
+| 位置（文件:行号） | 现有形态 | 是否最优（三段式是否齐） | 缺口 | 处理 |
+|---|---|---|---|---|
+| `components/record/inspector.js:1230`（归档） | 原生 confirm | 改后齐 | 原缺影响范围与恢复路径 | 改 |
+| `components/record/inspector.js:1250`（彻底删除） | 原生 confirm | 改后齐 | 原缺影响范围，未写「不可恢复」 | 改 |
+| `components/record/inspector.js:1203`（恢复至主视图） | 原生 confirm | 改后齐 | 原缺影响与再次归档路径 | 改 |
+| `components/record/inspector.js:1126,1136,1146`（品牌提案 / 撤回 / 取消认定） | 原生 confirm | 改后齐 | 原缺影响与恢复路径 | 改 |
+| `components/record/inspector.js:1160,1174`（提请表决 / 批准发布） | 原生 confirm | 改后齐 | 原缺影响，未写不可撤回 | 改 |
+| `components/record/inspector.js:1184`（不批准 · 退回意见） | 原生 prompt（录入 ＋ 确认） | 文案补后三段可读 | 录入面形态未变（见「不补」） | 补文案 |
+| `entries/tabs/disc/inspection-tab.js:267`（删除考察记录） | 原生 confirm | 改后齐 | 原缺影响与「不可恢复」 | 改 |
+| `entries/tabs/org/taskforce-tab.js:327,374`（启动 / 重新报送） | 原生 confirm | 改后齐 | 原缺影响与可否恢复 | 改 |
+| `entries/tabs/org/taskforce-tab.js:347`（撤销并删除专班） | 两次原生 confirm 串联 | 改后齐（合并为一次确认面） | 原两次确认均未写影响范围 | 改 |
+| `entries/tabs/prop/archive-tab.js:338`（删除材料） | 原生 confirm | 改后齐 | 原缺影响（物理文件）与不可恢复措辞 | 改 |
+| `entries/tabs/prop/kanban-tab.js:101`（结束活动） | 原生 confirm | 改后齐 | 原缺后续归档路径 | 改 |
+| `entries/tabs/prop/weekly-tab.js:193`（覆盖已填内容） | 原生 confirm | 改后齐 | 原缺影响与内容丢失说明 | 改 |
+| `entries/tabs/secretary/committee-meeting-tab.js:195`（撤销支委身份） | 原生 confirm | 改后齐 | 原缺影响（权限 / 台位）与恢复 | 改 |
+| `entries/tabs/secretary/workforce-panel.js:292`（采纳分工调整） | 原生 confirm | 改后齐 | 原缺影响与留痕 | 改 |
+| `entries/tabs/secretary/feedback-tab.js:257`（清除本地缓存） | 原生 confirm | 改后齐 | 原缺恢复说明 | 改 |
+| `entries/pages/settings-entry.js:713`（回滚配置） | 原生 confirm | 改后齐 | 原缺影响范围 | 改 |
+| `entries/pages/branch-config-entry.js:132,146`（停用支部 / 任命支书） | 原生 confirm | 改后齐 | 原缺影响（成员 / 待办）与恢复 | 改 |
+| `components/sections/references.js:927,928,987`（停用 / 启用制度、删除支部文件） | 原生 confirm | 改后齐 | 删除项原缺影响范围 | 改 |
+| `components/governance/org-setup-wizard.js:1250,1287,1567`（恢复默认 ×2 / 清除预览） | 原生 confirm | 改后齐 | 原缺影响与回滚路径 | 改 |
+| `components/governance/activity-progress.js:110`（标记完成） | 原生 confirm | 改后齐 | 原缺影响与「归档仍需闸门」 | 改 |
+| `components/governance/signup-panel.js:335`（拒绝报名） | 原生 confirm | 改后齐 | 原缺影响与重新提交路径 | 改 |
+| `components/record/todo-tab-shell.js:586`（删除待办） | 原生 confirm | 改后齐 | 原缺影响范围 | 改 |
+| `entries/pages/activity-entry.js:725,756,769,812,1147`（关闭报名 / 品牌三动作 / 撤回复盘 / 删除分工） | 居中弹窗（页面内 `_openConfirm` 包装 `openModal`） | 补后齐；结构与统一组件同源 | 原缺「可否恢复」句 | 补 |
+| `components/ui/void-record.js:51`（作废 · 原因必填） | 居中弹窗 | 补后齐 | 原缺「作废后是否可恢复」 | 补 |
+| `components/governance/organizer-transfer.js:139`（转交组织者） | 居中弹窗 | 补后齐 | 原缺换回路径 | 补 |
+| `entries/tabs/org/member-flow-tab.js:419,487`（登记流出 / 撤销台账） | 居中弹窗 | 补后齐 | 原缺撤销 / 重新登记的恢复路径 | 补 |
+| `entries/tabs/secretary/group-progress-tab.js:924`（解散党小组） | 居中弹窗 | 补后齐 | 原缺「不可恢复」 | 补 |
+| `entries/tabs/secretary/todo-tab.js:924,957`（驳回报废申请 ×2） | 居中弹窗 | 补后齐 | 原缺重新申请路径 | 补 |
+| `entries/tabs/secretary/overview-tab.js:184`（退回周期归档） | 居中弹窗 | 补后齐 | 原缺影响与重新报送路径 | 补 |
+| `entries/tabs/org/roster-tab.js:519`（移出成员名册） | 居中弹窗 | 齐（做什么 / 影响 / 可在「成员流动」撤销纠正） | — | 保留 |
+| `entries/tabs/secretary/notification-tab.js:400`（删除通知） | 居中弹窗 | 齐（含联动删除待办 / 不可恢复） | — | 保留 |
+| `entries/tabs/secretary/todo-tab.js:844`（退回成员变更） | 居中弹窗 | 齐（退回不生效 / 可重新发起） | — | 保留 |
+
+**仍标「不补」的项**
+
+| 位置 | 判定 | 理由 |
+|---|---|---|
+| `components/shell/sidebar.js:210`（退出登录） | 无确认面 | 非破坏性动作：只结束本机会话，不改任何业务数据，重新登录即回 |
+| 打回 / 退回原因的原生 `prompt`（`entries/tabs/disc/inspection-tab.js:281,299`、`entries/tabs/org/taskforce-tab.js:889`、`entries/tabs/prop/archive-tab.js:263` 等） | 原生 prompt | 属**录入面**（必填原因），不在确认面判据内，且文案已说明后续走向；本轮范围只收 `confirm(`，`prompt` 收口另批 |
+| `data/api-adapter.js:919,1017`、`data/mock-adapter.js:2385` 的 `.confirm(id)` | 非对话框 | 业务方法名（交接 / 变更确认），与浏览器原生对话框无关，不适用 SD-53 |
+
 
 ### 4.28 筛选形态选择（2026-10-20 立 · 阈值来自名册判例）
 
@@ -2587,7 +2646,7 @@ li + li { margin-top: 0.25em; }
 - 允许 info 蓝的白名单：通知「重要」、活动「已发布」、汇报路由态、建议 / 选修、配置项标注（守卫逐条登记，新增即红）。
 - 守卫：`activity-tone-guard` · 判例：CASE-DESIGN-010（SD-31）
 
-### 12.15 消息承载、逐人状态、卡内构成、分组胶囊、IA 收敛与视觉层级（批次 510 · 2026-10-25 批次 511 补 SD-37…SD-40 · 2026-10-26 批次 512 补 SD-41…SD-46 · 2026-10-26 批次 513 补 SD-47…SD-48 · 2026-10-27 批次 514 补 SD-49…SD-52）
+### 12.15 消息承载、逐人状态、卡内构成、分组胶囊、IA 收敛与视觉层级（批次 510 · 2026-10-25 批次 511 补 SD-37…SD-40 · 2026-10-26 批次 512 补 SD-41…SD-46 · 2026-10-26 批次 513 补 SD-47…SD-48 · 2026-10-27 批次 514 补 SD-49…SD-52 · 2026-10-28 美学专项 Task 7 补 SD-54）
 
 | ID | 适用范围 | 判据（Boolean） | 守卫 / 检查点 | 判例 |
 |---|---|---|---|---|
@@ -2611,6 +2670,7 @@ li + li { margin-top: 0.25em; }
 | SD-50 | `.tab-group-label` 与选中页签 `.tab-btn-active` | 组名＝`--app-accent-tint`（主题色 10% 淡底，`rgb(from var(--app-accent) r g b / 10%)` 派生）＋ 无边框 ＋ 3px ＋ 12px/600/0.5px ＋ ≥24px；选中页签＝`--app-accent-soft-bg` solid ＋ `--app-accent` 1px 描边 ＋ 700；两者同屏一眼可分（淡底 vs solid、无边框 vs 主题描边）；`color-mix()` / `rgba(主题色)` / 硬编码 hex 派生计数为 0。**取代** SD-47 的底色 / 描边两条与 SD-42 的描边对比判据；SD-3 的 3px 例外、SD-36 的非按钮语义、SD-42 的全宽可见仍有效 | `ui-contrast-guard::K3` ＋ `ui-control-system-guard::V2/V5` ＋ `link-color-guard::L3` ＋人工检查点（五档宽度 + 暗色） | CASE-DESIGN-026（源起 020 / 025） |
 | SD-51 | 页签切换 / 页面跳转的加载态 | 已有内容切页签：>120ms 才铺 skeleton（「正在加载…」＋ 3 条卡形行 ＋ spinner ＋ `role=status` / `aria-live=polite`）；旧内容淡出 120ms、新内容淡入 180ms（150–200 区间，8px 位移）；动效编排预算 ≤1000ms；**禁止**整块 `opacity` 压暗、插入加载文本行、同步硬替换；页面跳转＝顶部 2px 主题色进度条 ＋ 120ms 离开淡出 ＋ 落地复用同一骨架；`prefers-reduced-motion` 只淡入 80ms、无位移，骨架 / 文案保留 | `loading-experience-guard::L1–L7`（含故障注入） | CASE-DESIGN-027 |
 | SD-52 | 功能红 / 金与主题 / 状态色的消费者 | `--color-functional-red` / `--color-functional-gold`（亮 / 暗各一）与 `--status-error` / `--status-warning` / 主题 accent **逐值不同**；三会一课＝功能红、主题党日＝功能金（经 `--color-category-*` 引用）；只用于徽章 / 圆点 / 左条 / 图例 / 提示条等小面积，不作大面积背景或正文；文字对底 ≥4.5:1；功能色不承担状态（进行中 / 完成 / 打回仍走 `--status-*`）。**只细化** SD-46 的功能色层与 SD-31 的类别 tone，不改主题色盘 | `theme-palette-guard::T10` ＋ `activity-tone-guard` ＋ `ui-contrast-guard::K6` | CASE-DESIGN-024（类别层） |
+| SD-54 | 卡头副题（`renderCardHeader` 的 `meta` 与手写卡头副题 span） | 副题只写「范围 + 约束」（如「本支部 · 只读」「在册 N · 待办 N」）；操作指令计数为 0——`点击…查看` / `点上方` / `点右上角` / `下一步：` 不得出现在副题；第二行是信息位，不承担「怎么点」的说明 | `copy-guard::S1/S2`（本轮范围：`docs/src/components/record/{activity-view,workgroup-view,taskforce-view,inspector}.js` ＋ `docs/src/entries/tabs/**`；实测 25 条副题）＋人工检查点（1440 / 390 副题可读） | CASE-DESIGN-029 |
 
 > **批次 513 口径（SD-48）**：本条只判四层边界，不重复各权威源——缓存键四类清单＝`docs/src/data/cache-registry.js`；种子逐表口径＝[DATA_SEED_CONTRACT.md](../data/DATA_SEED_CONTRACT.md)；演示窗口单一源＝`docs/src/data/mock/demo-window.js::DEMO_WINDOW`；测试分层＝`server/test-tier-registry.mjs` ＋ `server/scripts/cleanup.mjs --test-residue`；部署四开关（`APP_ENV` / `DISABLE_SEED` / `SEED_FALLBACK` / `ALLOW_DEMO_DATA`）与只读演练见 [DEPLOYMENT_GUIDE.md](../deploy/DEPLOYMENT_GUIDE.md)。
 
@@ -2620,6 +2680,18 @@ li + li { margin-top: 0.25em; }
 > ③ **SD-51** 与 §12.13 动效令同源（SD-30 的 120 / 180ms 均在允许档内），只管加载态的**编排与禁令**；不改变 8s 数据超时错误卡。
 > ④ **SD-52** 只细化 SD-46 的功能色层与 SD-31 的类别 tone：功能红 `#CE1126` / 暗 `#FCA5A5`、功能金 `#A16207` / 暗 `#FCD34D`，与 danger `#B91C1C` / `#F87171`、warning `#D97706` / `#FBBF24` 及主题 accent 逐值不同。
 > 读数（2026-10-27 实测）：逾期文字 `--status-warning-text` 亮 **7.09:1** / 暗 **11.68:1**；暗色侧栏选中 **6.44:1**；help 目录激活 **4.61:1**；登录暗色 placeholder **6.57:1**；加载实测 **825–900ms**（预算 1000ms）。
+
+> **美学专项 Task 7 口径（SD-54）**：只判卡头副题的**承载分工**，不改副题的措辞风格；判红面本轮收到四份 record 组件 ＋ `entries/tabs/**`，实测 25 条副题，操作指令 0 处。空态 / 错误态文案不在本条（见 §4.18 C6）。
+
+### 12.16 词表（2026-10-27 · 意见反馈 / 归档 / 活动）
+
+| 类别 | 对象名 | 空态 | 主行动 |
+|---|---|---|---|
+| 意见反馈 | 意见反馈 | 暂无匹配的意见反馈 | 提交意见反馈 |
+| 归档 | 归档库 | 归档库暂无活动 | 搜索归档内容 |
+| 活动 | 活动 | 当日暂无活动 | 新建活动 |
+
+> 同义不换词；空态一句 ＋ 最多一个出口。
 
 > 其余条目（SD-01…SD-21）的判例迁移登记为后续批次。
 

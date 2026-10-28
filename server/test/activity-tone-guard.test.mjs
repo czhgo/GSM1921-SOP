@@ -24,7 +24,7 @@ import { join, dirname, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
   activityTypeTone, activityTypeBadgeVariant, activityTypeClassification,
-} from '../../docs/src/core/domain/constants.js?v=20261026b';
+} from '../../docs/src/core/domain/constants.js?v=20261028a';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(HERE, '..', '..');

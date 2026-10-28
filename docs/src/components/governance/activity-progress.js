@@ -12,15 +12,16 @@
 //   也绕过了支书台归档前的材料 / 考勤闸门。本次不新增第二套归档写口（归档仍走活动详情的材料闸门），
 //   文案与提示只说「标记完成」，不再声称「完成即归档」。
 
-import { BranchService } from '../../services/core/runtime.js?v=20261026b';
-import { persist } from '../../data/data-adapter.js?v=20261026b';
-import { showToast, escHtml as esc } from '../../core/base/utils.js?v=20261026b';
-import { isActivityEnded } from '../../core/domain/constants.js?v=20261026b';
+import { BranchService } from '../../services/core/runtime.js?v=20261028a';
+import { persist } from '../../data/data-adapter.js?v=20261028a';
+import { showToast, escHtml as esc } from '../../core/base/utils.js?v=20261028a';
+import { isActivityEnded } from '../../core/domain/constants.js?v=20261028a';
 // A03：组织者判据与活动详情同源——工作组主源优先，项目角色行次之，`organizer` 仅兜底。
-import { mockDB } from '../../core/domain/domain.js?v=20261026b';
-import { getPersonName } from '../../services/member/person.js?v=20261026b';
-import { badgeHtml } from '../ui/badges.js?v=20261026b';
-import { renderQueryView } from './query-view.js?v=20261026b';
+import { mockDB } from '../../core/domain/domain.js?v=20261028a';
+import { confirmDanger } from '../ui/modal.js?v=20261028a';
+import { getPersonName } from '../../services/member/person.js?v=20261028a';
+import { badgeHtml } from '../ui/badges.js?v=20261028a';
+import { renderQueryView } from './query-view.js?v=20261028a';
 
 /**
  * 渲染活动进展分段（全部活动查询 + 材料出口 + 标记完成）。
@@ -100,13 +101,13 @@ export function renderActivityProgress(host, { activities = [], accent, onChange
     pageParam: 'opage',
   });
 
-  queryContainer.addEventListener('click', (e) => {
+  queryContainer.addEventListener('click', async (e) => {
     const btn = e.target.closest('.track-complete-btn');
     if (!btn) return;
     const actId = btn.dataset.actId;
     const activity = activities.find((a) => a.id === actId);
     if (!activity) return;
-    const ok = window.confirm(`确认将「${activity.title || '未命名'}」标记为完成？归档仍需在活动详情按材料 / 考勤闸门办理。`);
+    const ok = await confirmDanger({ id: 'activity-mark-complete', title: '标记活动完成', bodyHtml: `<p class="text-sm text-gray-700">把活动「${esc(activity.title || '未命名')}」标记为完成。<br>影响：状态转为「已完成」，但不生成归档记录，本场材料与考勤仍须核对。<br>可恢复：正式归档仍在活动详情按材料 / 考勤闸门办理。</p>`, confirmLabel: '标记完成' });
     if (!ok) return;
     BranchService.updateActivity(actId, { status: 'completed' });
     persist();

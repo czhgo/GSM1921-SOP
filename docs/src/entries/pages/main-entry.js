@@ -4,29 +4,30 @@
 // 各区块渲染已拆至 components/dashboard/：stats（统计卡+考勤弹窗）/ activity-panel（活动日历+列表）/ taskforce-list / gallery。
 // 本文件仅保留：bootstrap、工作台链接修正、renderUI 调度、renderDashboard 组装+导航委托、数据变更即时刷新。
 
-import { BranchService } from '../../services/core/runtime.js?v=20261026b';
-import { STATE, setState, registerRenderCallback, getAppState } from '../../core/base/state.js?v=20261026b';
-import { NoticeStore } from '../../services/governance/notice.js?v=20261026b';
+import { BranchService } from '../../services/core/runtime.js?v=20261028a';
+import { STATE, setState, registerRenderCallback, getAppState } from '../../core/base/state.js?v=20261028a';
+import { NoticeStore } from '../../services/governance/notice.js?v=20261028a';
 // 视图层独立：renderNoticeList 属「通知视图层」（G1 第③项服务层不产 UI，2026-09-28 迁出）
-import { renderNoticeList } from '../../components/governance/notice-view.js?v=20261026b';
-import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261026b';
-import { getBasePath } from '../../core/base/utils.js?v=20261026b';
-import { loadAttendanceRecords, loadActiveAttendanceRecords } from '../../services/activity/attendance.js?v=20261026b';
-import { loadActivities } from '../../services/activity/activity.js?v=20261026b';
-import { CrossPageState } from '../../core/session/cross-page-state.js?v=20261026b';
+import { renderNoticeList } from '../../components/governance/notice-view.js?v=20261028a';
+import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261028a';
+import { getBasePath } from '../../core/base/utils.js?v=20261028a';
+import { loadAttendanceRecords, loadActiveAttendanceRecords } from '../../services/activity/attendance.js?v=20261028a';
+import { loadActivities } from '../../services/activity/activity.js?v=20261028a';
+import { CrossPageState } from '../../core/session/cross-page-state.js?v=20261028a';
 // Task 6：首页活动/专班行 → 完整详情页（首页是跨对象聚合面，不属对象工作台 ⇒ direct）。
-import { objectDetailHref } from '../../core/domain/object-route.js?v=20261026b';
-import { bootstrapPage } from '../../core/boot/bootstrap.js?v=20261026b';
-import { AuthStore } from '../../services/core/auth.js?v=20261026b';
-import { getHeaderTitle } from '../../services/branch/branch.js?v=20261026b';
-import { loadWorkspaceData } from '../../data/data-loader.js?v=20261026b';
-import { DATA_CHANGED_EVENT, probeRemoteChanges } from '../../data/data-adapter.js?v=20261026b';
-import '../../capabilities/activity-calendar.js?v=20261026b'; // 副作用导入：注册首页活动日历能力
+import { objectDetailHref } from '../../core/domain/object-route.js?v=20261028a';
+import { bootstrapPage } from '../../core/boot/bootstrap.js?v=20261028a';
+import { AuthStore } from '../../services/core/auth.js?v=20261028a';
+import { TodoStore } from '../../services/governance/todo.js?v=20261028a';
+import { getHeaderTitle } from '../../services/branch/branch.js?v=20261028a';
+import { loadWorkspaceData } from '../../data/data-loader.js?v=20261028a';
+import { DATA_CHANGED_EVENT, probeRemoteChanges } from '../../data/data-adapter.js?v=20261028a';
+import '../../capabilities/activity-calendar.js?v=20261028a'; // 副作用导入：注册首页活动日历能力
 // ── 方案 B 入口拆分：dashboard 区块渲染模块 ──
-import { renderDashboardStats } from '../../components/dashboard/stats.js?v=20261026b';
-import { renderActivityList, renderActivityCalendar, initActivityTabs, getInitialActivityView } from '../../components/dashboard/activity-panel.js?v=20261026b';
-import { renderWorkgroupProgress } from '../../components/dashboard/taskforce-list.js?v=20261026b';
-import { renderGallery } from '../../components/dashboard/gallery.js?v=20261026b';
+import { renderDashboardStats } from '../../components/dashboard/stats.js?v=20261028a';
+import { renderActivityList, renderActivityCalendar, initActivityTabs, getInitialActivityView } from '../../components/dashboard/activity-panel.js?v=20261028a';
+import { renderWorkgroupProgress } from '../../components/dashboard/taskforce-list.js?v=20261028a';
+import { renderGallery } from '../../components/dashboard/gallery.js?v=20261028a';
 
 // ── 时序修复（2026-09-10「归属显示不一致」；正确先例 settings-entry.js:1236-1244）──
 // header 品牌标题经 getHeaderTitle 读 mockDB.branches，必须先完成 BranchService.loadDB()
@@ -47,6 +48,18 @@ const heroTitleEl = document.getElementById('dashboard-hero-title');
 if (heroTitleEl) {
   heroTitleEl.textContent = user ? getHeaderTitle(user.personId) : getHeaderTitle();
 }
+
+// DESIGN_SYSTEM §4.25 规则 4（2026-10-28 支书裁定）：48px 党徽 ＋ 居中标题**仅限**
+// ① 未登录 / 访客态；② 个人待办为 0。登录且有待办时 hero 降为辅助信息（组织名由顶栏 H1 承担）。
+// 待办口径与「今天 / 待办」页同源：`TodoStore.getByRole(role)`（不含已完成 / 已作废，含无截止项）。
+// 只加 `data-hero` 状态标记，DOM 不删；数据未就绪时保持默认整幅（同未登录态）。
+const heroEl = document.getElementById('dashboard-hero');
+function syncDashboardHeroState() {
+  if (!heroEl) return;
+  const todoCount = user ? TodoStore.getByRole(user.role).length : 0;
+  heroEl.dataset.hero = user && todoCount > 0 ? 'muted' : 'full';
+}
+syncDashboardHeroState();
 
 // 根据用户角色更新 dashboard 中的 workspace 链接
 // T-284：未登录统一直达登录页，消除「公开页→工作台→门控踢→login」的绕路跳转
@@ -99,6 +112,7 @@ function renderUI(state) {
 registerRenderCallback(renderUI);
 
 function renderDashboard(state) {
+  syncDashboardHeroState();
   const activities = state.activities || [];
   const taskforces = TaskForceRecordStore.getAll();
   const notices = NoticeStore.getAll();
@@ -196,6 +210,7 @@ loadWorkspaceData({
 // 任何业务写（通知已读、待办完成、考勤确认等）经 persist() 派发 DATA_CHANGED_EVENT，
 // 首页订阅后即时重算统计卡/通知列表/我的考勤，无需手动刷新页面。
 function _refreshDashboardSnapshot() {
+  syncDashboardHeroState();
   const state = getAppState();
   const activities = state.activities || [];
   const taskforces = TaskForceRecordStore.getAll();

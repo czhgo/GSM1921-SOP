@@ -5,54 +5,52 @@
 //        renderInspectorList, renderInspectorDetail
 // ════════════════════════════════════════════════════════════════
 
-import { setState, STATE, getAppState } from '../../core/base/state.js?v=20261026b';
-import { ROLE_COLORS, ROLE_LABELS, ROLE_THEME_CLASS, COMMISSIONER_ROLES, SECRETARY_ROLES, ACTIVITY_CLASSIFICATION } from '../../core/domain/constants.js?v=20261026b';
-import { _fmtChinese, showToast, escHtml as esc } from '../../core/base/utils.js?v=20261026b';
-import { icon } from '../../core/base/icons.js?v=20261026b';
-import { openModal, closeModal } from '../ui/modal.js?v=20261026b';
+import { setState, STATE, getAppState } from '../../core/base/state.js?v=20261028a';
+import { ROLE_COLORS, ROLE_LABELS, ROLE_THEME_CLASS, COMMISSIONER_ROLES, SECRETARY_ROLES, ACTIVITY_CLASSIFICATION } from '../../core/domain/constants.js?v=20261028a';
+import { _fmtChinese, showToast, escHtml as esc } from '../../core/base/utils.js?v=20261028a';
+import { icon } from '../../core/base/icons.js?v=20261028a';
+import { openModal, closeModal, confirmDanger } from '../ui/modal.js?v=20261028a';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/member/person.js 获取（原直连 mock PEOPLE）
 // 实时视图（非快照）：成员增删即时可见——见 services/member/person.js liveMembers 说明
 const PEOPLE = liveMembers();
-import { getPersonById } from '../../services/member/person.js?v=20261026b';
-import { BranchService } from '../../services/core/runtime.js?v=20261026b';
-import { AuthStore } from '../../services/core/auth.js?v=20261026b';
-import { liveMembers, PersonStore, getPersonName } from '../../services/member/person.js?v=20261026b';
-import { statusBadgeHtml, bindStatusBadge, badgeHtml } from '../ui/badges.js?v=20261026b';
-// 表态权判据单一源（2026-09-30 批次 304 立 · 批次 312 补齐）：`isVoterOf` —— **角色无关**，只看本场固化应到名单。
+import { getPersonById } from '../../services/member/person.js?v=20261028a';
+import { BranchService } from '../../services/core/runtime.js?v=20261028a';
+import { AuthStore } from '../../services/core/auth.js?v=20261028a';
+import { liveMembers, PersonStore, getPersonName } from '../../services/member/person.js?v=20261028a';
+import { statusBadgeHtml, bindStatusBadge, badgeHtml } from '../ui/badges.js?v=20261028a';
+// 表态权判据单一源：`isVoterOf` —— **角色无关**，只看本场固化应到名单。
 // 依据：支书 2026-09-30 原话「**即使是支部书记 / 其他支委 投票，在投票的时候也就是普通党员**」。
-// ⚠ 批次 304 只改了「表态位是否挂」（下方 slot 那行）；**表态面板的动作门与填充循环仍是 `isCommittee`**
-//   ⇒ 应到名单内的普通党员在支书台**挂得出空槽**（面板无按钮 / 循环根本不填）。批次 312 把这两处一并收口。
-import { isVoterOf } from '../../services/activity/vote-config.js?v=20261026b';
-// 批次 352b（`D-746` · 支书取「活动详情页行内作废」）：任务「作废（软）」——单一源弹窗
-import { openVoidModal } from '../ui/void-record.js?v=20261026b';
-import { persist, getAuthToken, getApiBaseUrl, getAdapter } from '../../data/data-adapter.js?v=20261026b';
-import { withSelectedBranchScope } from '../../data/api-adapter.js?v=20261026b';
-import { recordAgendaResultForActivity } from '../../services/activity/agenda-follow-up.js?v=20261026b';
+import { isVoterOf } from '../../services/activity/vote-config.js?v=20261028a';
+// 作废确认弹窗（单一源）
+import { openVoidModal } from '../ui/void-record.js?v=20261028a';
+import { persist, getAuthToken, getApiBaseUrl, getAdapter } from '../../data/data-adapter.js?v=20261028a';
+import { withSelectedBranchScope } from '../../data/api-adapter.js?v=20261028a';
+import { recordAgendaResultForActivity } from '../../services/activity/agenda-follow-up.js?v=20261028a';
 // 制度链（2026-09-21 批次 129）：制度草案议程项在「记录结果」旁给一个「报送党员大会表决」勾选位——
 // 判据单一源在 branch-doc.js（勿在界面另写一份 purpose/status 判断）。
-import { isInstitutionDraftAgendaItem } from '../../services/branch/branch-doc.js?v=20261026b';
+import { isInstitutionDraftAgendaItem } from '../../services/branch/branch-doc.js?v=20261028a';
 // 品牌认定（2026-09-21 批次 132 · 支书口径二「支委/党小组组长均可以提案，支委会通过后确定」）：判据与写口单一源 = services/activity/activity.js；
 // 本处只渲染「提案 / 撤回 / 取消认定」三种动作，**不再有「点一下即认定」**；同源另取三项（2026-09-21 批次 135）：追加复盘要求进关闭判据。
-import { canProposeBrand, brandProposalOf, proposeBrandDesignation, withdrawBrandProposal, revokeBrandDesignation, PENDING_APPROVAL_STATUS, canApproveActivity, approveActivity, rejectActivity, activityApprovalVoteOf, openCommitteeVoteForActivity } from '../../services/activity/activity.js?v=20261026b';
+import { canProposeBrand, brandProposalOf, proposeBrandDesignation, withdrawBrandProposal, revokeBrandDesignation, PENDING_APPROVAL_STATUS, canApproveActivity, approveActivity, rejectActivity, activityApprovalVoteOf, openCommitteeVoteForActivity } from '../../services/activity/activity.js?v=20261028a';
 // 活动批准门当前档位（2026-09-22 批次 150）：参数本体单一源 = core/domain/policy-defaults.js::activityApproval.mode
-import { activityApprovalMode, ACTIVITY_APPROVAL_MODE_LABELS } from '../../core/domain/policy-defaults.js?v=20261026b';
+import { activityApprovalMode, ACTIVITY_APPROVAL_MODE_LABELS } from '../../core/domain/policy-defaults.js?v=20261028a';
 // 议程行内编辑纯函数（2026-09-06 复用激活）：createEditableAgenda 整对象投影随行保留扩展字段；
 // normalizeEditedAgenda 保存时 {...原对象, item/host} 重建并剔空行——修复编辑丢 id/配置/结果的数据安全事故
-import { createEditableAgenda, normalizeEditedAgenda } from '../../services/activity/agenda-editing.js?v=20261026b';
-import { agendaDecisionSource, validateAgendaStructure } from '../../services/activity/agenda-relations.js?v=20261026b';
+import { createEditableAgenda, normalizeEditedAgenda } from '../../services/activity/agenda-editing.js?v=20261028a';
+import { agendaDecisionSource, validateAgendaStructure } from '../../services/activity/agenda-relations.js?v=20261028a';
 // 议程更新后通知全员（活动锚定，targetType/targetId 供归档联动）
-import { NoticeStore } from '../../services/governance/notice.js?v=20261026b';
-import { fetchVotes, submitVote } from '../../services/activity/committee-vote.js?v=20261026b';
-import { optionSetOf, resolveVoterIds, OPTION_SETS, isAnonymousActivity } from '../../services/activity/vote-config.js?v=20261026b';
-import { renderVoteSummary } from '../governance/vote-summary-panel.js?v=20261026b';
-import { loadAttendanceRecords, canUploadAttendance, isAttendanceConfirmed } from '../../services/activity/attendance.js?v=20261026b';
-import { loadInspectionRecords } from '../../services/activity/inspection.js?v=20261026b';
-import { loadActivityReviews } from '../../services/governance/review.js?v=20261026b';
-import { mockDB, OutputType, deriveOutputRoute, ReviewStatus } from '../../core/domain/domain.js?v=20261026b';
+import { NoticeStore } from '../../services/governance/notice.js?v=20261028a';
+import { fetchVotes, submitVote } from '../../services/activity/committee-vote.js?v=20261028a';
+import { optionSetOf, resolveVoterIds, OPTION_SETS, isAnonymousActivity } from '../../services/activity/vote-config.js?v=20261028a';
+import { renderVoteSummary } from '../governance/vote-summary-panel.js?v=20261028a';
+import { loadAttendanceRecords, canUploadAttendance, isAttendanceConfirmed } from '../../services/activity/attendance.js?v=20261028a';
+import { loadInspectionRecords } from '../../services/activity/inspection.js?v=20261028a';
+import { loadActivityReviews } from '../../services/governance/review.js?v=20261028a';
+import { mockDB, OutputType, deriveOutputRoute, ReviewStatus } from '../../core/domain/domain.js?v=20261028a';
 // 2026-10-25 批次 510：关闭条件判据迁到服务层（待办派生也要用同一判据）；本文件只转出，调用点不变。
-import { checkActivityCloseConditions } from '../../services/activity/close-conditions.js?v=20261026b';
+import { checkActivityCloseConditions } from '../../services/activity/close-conditions.js?v=20261028a';
 // Task 6：右栏卡是「所属工作台内」入口 ⇒ locate；完整页出口统一走对象路由（缺 id 不渲染）。
-import { objectDetailHref } from '../../core/domain/object-route.js?v=20261026b';
+import { objectDetailHref } from '../../core/domain/object-route.js?v=20261028a';
 
 // T-217 §2.4：任务状态定义（status-badge 用，色点 + 文字）
 const TASK_STATUSES = {
@@ -253,12 +251,12 @@ export function renderInspectorList(activities, dateKey, viewType, viewArchived 
   if (dateActivities.length === 0) {
     defEl.classList.remove('hidden');
     if (viewArchived) {
-      defEl.innerHTML = '<p class=" text-sm text-gray-500 text-center py-8">归档库暂无内容</p>';
+      defEl.innerHTML = '<p class=" text-sm text-gray-500 text-center py-8">归档库暂无活动</p>';
     } else if (dateKey && !isParticipant) {
       // 管理侧空日不是死路：带日期开「写入活动」，把右栏从回声变成动作位。
       defEl.innerHTML = `<div class="text-center text-gray-500 py-8 text-sm">
-        <p>当日无活动</p>
-        <button type="button" class="btn-accent-soft text-xs px-3 py-1.5 mt-3" data-inspector-new-activity="${esc(dateKey)}">新建活动（${esc(dateKey)}）</button>
+        <p>当日暂无活动</p>
+        <button type="button" class="btn-accent-soft text-xs px-3 py-1.5 mt-3" data-inspector-new-activity="${esc(dateKey)}">新建活动</button>
       </div>`;
       defEl.querySelector('[data-inspector-new-activity]')?.addEventListener('click', () => {
         document.dispatchEvent(new CustomEvent('inspector:new-activity', { detail: { date: dateKey } }));
@@ -266,7 +264,7 @@ export function renderInspectorList(activities, dateKey, viewType, viewArchived 
     } else if (dateKey) {
       defEl.innerHTML = '<div class="text-center text-gray-500 py-8  text-sm">当日暂无活动</div>';
     } else {
-      defEl.innerHTML = '<div class="text-center text-gray-500 py-8  text-sm">点击日期查看当日活动</div>';
+      defEl.innerHTML = '<div class="text-center text-gray-500 py-8  text-sm">未选择日期</div>';
     }
     contentEl.classList.add('hidden');
     return;
@@ -297,7 +295,7 @@ export function renderInspectorList(activities, dateKey, viewType, viewArchived 
       html += `<p class=" font-bold text-sm text-gray-800 leading-snug flex-1">${esc(act.title)}</p>`;
       html += activityLifecycleBadgeHtml(act, allTasks);
       html += '</div>';
-      html += `<div class="flex items-center gap-1.5">${brandTag}<p class=" text-xs text-gray-500">活动信息 · 点击查看 →</p></div>`;
+      html += `<div class="flex items-center gap-1.5">${brandTag}<p class=" text-xs text-gray-500">活动信息</p></div>`;
       // 本轮组织者在本台有上传位时，右栏也给一个就地出口（只跳本位，不在只读日历里复制表单）。
       const attendance = _attendanceActionHtml(act);
       if (attendance) html += `<div class="mt-2" data-inspector-actions>${attendance}</div>`;
@@ -355,7 +353,7 @@ export function renderInspectorList(activities, dateKey, viewType, viewArchived 
 // ════════════════════════════════════════════════════════════════
 //  产出物区（T-224 §8 附件查看窗口）
 //  同源读取：考勤/考察正式库 + actSubRecords 子记录 + 档案归档记录，
-//  投递去向由产出类型派生（OUTPUT_ROUTES 路由表，非人工录入）。
+//  投递去向按产出类型确定（OUTPUT_ROUTES 路由表）。
 // ════════════════════════════════════════════════════════════════
 function _buildOutputsSectionHTML(activity) {
   const actId = activity.id;
@@ -423,7 +421,6 @@ function _buildOutputsSectionHTML(activity) {
     <div class="mb-3 card rounded-xl p-4">
       <div class="flex items-center justify-between mb-1.5">
         <p class="text-xs text-gray-500">产出物</p>
-        <span class="text-xs text-gray-500">投递去向由类型自动确定</span>
       </div>
       ${row('考勤', attRoute, attStatus)}
       ${row('考察', inspRoute, inspStatus)}
@@ -840,10 +837,9 @@ function renderInspectorDetail(activity, tasks, managementRole) {
         disabled: isArchived,
         attrs: `data-task-id="${t.id}"`,
       });
-      // 批次 352b（`D-746` · 支书取「活动详情页行内作废」）：任务「作废（软）」——
-      //   支委可直接作废 / 其余人报支委会确认；作废后该步从任务清单与活动进度推导里出列（留痕可回查）。
+      // 任务「作废」：支委层直接生效，其余人报支委会确认；作废后不再计入进度，可在归档中回查。
       if (!isArchived) {
-        html += `<button class="btn-action btn-action-gray task-void-btn" data-task-id="${t.id}" title="软作废：该步从任务清单出列（活动进度推导随之外列）、留痕可回查；支委可直接作废，其余人报支委会确认">作废</button>`;
+        html += `<button class="btn-action btn-action-gray task-void-btn" data-task-id="${t.id}" title="作废后不再计入进度，可在归档中回查">作废</button>`;
       }
       html += '</div>';
       html += '</div>';
@@ -903,19 +899,22 @@ function renderInspectorDetail(activity, tasks, managementRole) {
 
   html += '<div class="flex gap-2 mt-4 pt-3 border-t border-gray-100">';
   if (isSecretary && !isArchived) {
-    // B 档 CRUD 补全：活动信息编辑（支书持有 create_activity，含编辑权）
+    // B 档 CRUD 补全：活动信息编辑（支书持有 create_activity，含编辑权）——本屏唯一主行动。
     html += '<button id="inspector-edit-btn"'
       + ' class="tint-action text-xs px-3 py-1.5" data-tone="info">编辑信息</button>';
   }
+  // 2026-10-28 阶段三（A2 主行动唯一）：归档 / 删除保持三枚按钮同排（支书裁定「有空间摊开可以」），
+  //   但降为次行动视觉权重（`tint-action--secondary`：透明底 + 中性描边）；语义色只在 hover 回到 tone，
+  //   危险色不与「编辑信息」同权重。危险动作的确认面由 confirmDanger 承担，按钮本身不删。
   if (isArchived) {
     html += '<button id="inspector-restore-btn"'
       + ' class="tint-action text-xs px-3 py-1.5" data-tone="success">恢复活动</button>';
   } else {
     html += '<button id="inspector-archive-btn"'
-      + ' class="tint-action text-xs px-3 py-1.5" data-tone="warning">归档活动</button>';
+      + ' class="tint-action tint-action--secondary text-xs px-3 py-1.5" data-tone="warning">归档活动</button>';
   }
   html += '<button id="inspector-delete-btn"'
-    + ' class="tint-action text-xs px-3 py-1.5" data-tone="danger">删除活动</button>';
+    + ' class="tint-action tint-action--secondary text-xs px-3 py-1.5" data-tone="danger">删除活动</button>';
   html += '</div>';
 
   if (!cardsEl) return;
@@ -1090,9 +1089,8 @@ function renderInspectorDetail(activity, tasks, managementRole) {
     });
   }
 
-  // 批次 352b（`D-746` · 支书取「活动详情页行内作废」）：任务「作废（软）」——支委直接作废 / 其余人报支委会
-  //   （弹窗＝单一源 `components/ui/void-record.js`）；作废后 `listTasks()` 出列 ⇒ 任务清单与**活动进度推导**
-  //   同步更新（此处显式重算活动执行态并落库，与状态徽标那条同款）。
+  // 任务「作废」：支委层直接生效，其余人报支委会确认（统一走 components/ui/void-record.js）；
+  //   作废后任务不再计入进度，活动执行态随之重算。
   if (!isArchived) {
     cardsEl.querySelectorAll('.task-void-btn').forEach(btn => {
       btn.addEventListener('click', (e) => {
@@ -1128,7 +1126,7 @@ function renderInspectorDetail(activity, tasks, managementRole) {
   const brandProposeBtn = document.getElementById('inspector-brand-propose-btn');
   if (brandProposeBtn) {
     brandProposeBtn.addEventListener('click', async () => {
-      if (!window.confirm('提交「品牌认定」提案？提案只登记待议，须经支委会审议通过后才认定为品牌活动。')) return;
+      if (!await confirmDanger({ id: 'brand-propose', title: '提交品牌认定提案', bodyHtml: '<p class="text-sm text-gray-700">把本场活动列为品牌认定候选。<br>影响：进入支委会「拟上会」清单，不改活动状态与展示。<br>可恢复：可随时撤回提案。</p>', confirmLabel: '提交提案' })) return;
       const res = proposeBrandDesignation({ activityId: activity.id, by: currentUserId, role: _user?.role });
       if (!res.ok) { showToast('error', res.reason || '提案失败'); return; }
       showToast('success', '已提交品牌认定提案（进支委会「拟上会」清单）');
@@ -1138,7 +1136,7 @@ function renderInspectorDetail(activity, tasks, managementRole) {
   const brandWithdrawBtn = document.getElementById('inspector-brand-withdraw-btn');
   if (brandWithdrawBtn) {
     brandWithdrawBtn.addEventListener('click', async () => {
-      if (!window.confirm('撤回该活动的品牌认定提案？')) return;
+      if (!await confirmDanger({ id: 'brand-withdraw', title: '撤回品牌认定提案', bodyHtml: '<p class="text-sm text-gray-700">撤回本场已提交的品牌认定提案。<br>影响：本场退出支委会「拟上会」清单，活动本身不变。<br>可恢复：可重新提交提案。</p>', confirmLabel: '撤回' })) return;
       const res = withdrawBrandProposal({ activityId: activity.id, by: currentUserId, role: _user?.role });
       if (!res.ok) { showToast('error', res.reason || '撤回失败'); return; }
       showToast('success', '已撤回品牌认定提案');
@@ -1148,7 +1146,7 @@ function renderInspectorDetail(activity, tasks, managementRole) {
   const brandRevokeBtn = document.getElementById('inspector-brand-revoke-btn');
   if (brandRevokeBtn) {
     brandRevokeBtn.addEventListener('click', async () => {
-      if (!window.confirm('确认取消本场的品牌认定？（留痕：取消人 / 时间；重新认定为品牌仍须支委会审议通过）')) return;
+      if (!await confirmDanger({ id: 'brand-revoke', title: '取消品牌认定', bodyHtml: '<p class="text-sm text-gray-700">取消本场活动的品牌认定。<br>影响：本场不再显示品牌标签，退出首页「活动风采」的品牌展示；取消人与时间记入留痕。<br>可恢复：重新认定仍须支委会审议通过。</p>', confirmLabel: '取消认定' })) return;
       const res = revokeBrandDesignation({ activityId: activity.id, by: currentUserId, role: _user?.role });
       if (!res.ok) { showToast('error', res.reason || '取消失败'); return; }
       showToast('success', '已取消品牌认定');
@@ -1162,7 +1160,7 @@ function renderInspectorDetail(activity, tasks, managementRole) {
   const committeeVoteBtn = document.getElementById('inspector-committee-vote-btn');
   if (committeeVoteBtn) {
     committeeVoteBtn.addEventListener('click', async () => {
-      if (!window.confirm('提请支委会表决该活动？提请后由支委层在本场表态，记录「通过」才发布、未通过则终止。')) return;
+      if (!await confirmDanger({ id: 'committee-vote', title: '提请支委会表决', bodyHtml: '<p class="text-sm text-gray-700">把本场活动提交支委会表决。<br>影响：本场挂一条表决议程项，由支委层在本场表态；记录「通过」才发布，未通过则终止。<br><b>不可恢复</b>：提请后不能撤回，须待支委会记录结果。</p>', confirmLabel: '提请表决' })) return;
       committeeVoteBtn.disabled = true;
       const res = await openCommitteeVoteForActivity({ activityId: activity.id, by: currentUserId, role: _user?.role, mode: activityApprovalMode() });
       if (!res.ok) { showToast('error', res.reason || '提请表决失败'); committeeVoteBtn.disabled = false; return; }
@@ -1176,7 +1174,7 @@ function renderInspectorDetail(activity, tasks, managementRole) {
   const approveBtn = document.getElementById('inspector-approve-btn');
   if (approveBtn) {
     approveBtn.addEventListener('click', async () => {
-      if (!window.confirm('批准该活动？批准后即发布（全支部可见）。')) return;
+      if (!await confirmDanger({ id: 'activity-approve', title: '批准并发布活动', bodyHtml: '<p class="text-sm text-gray-700">批准本场活动并立即发布。<br>影响：全支部可见，相关任务与通知按既有流程推进。<br><b>不可恢复</b>：发布后不能撤回。</p>', confirmLabel: '批准发布' })) return;
       const res = approveActivity({ activityId: activity.id, by: currentUserId, role: _user?.role, mode: activityApprovalMode() });
       if (!res.ok) { showToast('error', res.reason || '批准失败'); return; }
       showToast('success', '已批准发布');
@@ -1186,7 +1184,7 @@ function renderInspectorDetail(activity, tasks, managementRole) {
   const rejectBtn = document.getElementById('inspector-reject-btn');
   if (rejectBtn) {
     rejectBtn.addEventListener('click', async () => {
-      const note = window.prompt('不批准该活动（将终止）。可填写退回意见：', '');
+      const note = window.prompt('不批准该活动：本场将终止（不再发布，关联任务停止推进），终止后不能恢复。可填写退回意见：', '');
       if (note === null) return;
       const res = rejectActivity({ activityId: activity.id, by: currentUserId, role: _user?.role, mode: activityApprovalMode(), note });
       if (!res.ok) { showToast('error', res.reason || '驳回失败'); return; }
@@ -1205,7 +1203,7 @@ function renderInspectorDetail(activity, tasks, managementRole) {
   const restoreBtn = document.getElementById('inspector-restore-btn');
   if (restoreBtn) {
     restoreBtn.addEventListener('click', async () => {
-      if (!window.confirm('确认将该活动恢复至主视图？')) return;
+      if (!await confirmDanger({ id: 'activity-restore', title: '恢复至主视图', bodyHtml: '<p class="text-sm text-gray-700">把本场活动从「已归档」恢复到主视图。<br>影响：本场重新出现在活动列表与工作区；归档记录与材料保留。<br>可恢复：可再次归档。</p>', confirmLabel: '恢复' })) return;
       try {
         setState({ status: STATE.SUBMITTING });
         await BranchService.updateActivity(activity.id, { archived: false });
@@ -1232,7 +1230,7 @@ function renderInspectorDetail(activity, tasks, managementRole) {
         _showCloseBlockModal(activity, missing);
         return;
       }
-      if (!window.confirm('确认归档该活动？它将从主视图消失。')) return;
+      if (!await confirmDanger({ id: 'activity-archive', title: '归档活动', bodyHtml: '<p class="text-sm text-gray-700">把本场活动归档。<br>影响：从主视图消失，本场任务与材料转为只读，关联「待归档」待办销项。<br>可恢复：可在「已归档」中回查并恢复至主视图。</p>', confirmLabel: '归档' })) return;
       try {
         setState({ status: STATE.SUBMITTING });
         await BranchService.archiveActivity(activity.id);
@@ -1252,7 +1250,7 @@ function renderInspectorDetail(activity, tasks, managementRole) {
   const deleteBtn = document.getElementById('inspector-delete-btn');
   if (deleteBtn) {
     deleteBtn.addEventListener('click', async () => {
-      if (!window.confirm('警告：彻底删除该活动及关联数据？')) return;
+      if (!await confirmDanger({ id: 'activity-delete', title: '彻底删除活动', bodyHtml: '<p class="text-sm text-gray-700">删除本场活动。<br>影响：活动及其关联数据（任务 / 材料 / 考勤 / 考察 / 报名）一并删除，不再出现在任何列表。<br><b>不可恢复</b>。</p>', confirmLabel: '彻底删除' })) return;
       try {
         setState({ status: STATE.SUBMITTING });
         await BranchService.deleteActivity(activity.id);

@@ -2,31 +2,32 @@
 // 宣传委员工作台 Tab：周报报送（T-279 M3 拆分，照 M2 样板）
 // 周报 seed 常量 + mockDB 持久化，刷新不再丢失；T-209 改进项②：新建周次内联表单。
 
-import { DEFAULT_BRANCH_ID } from '../../../core/domain/constants.js?v=20261026b';
-import { icon } from '../../../core/base/icons.js?v=20261026b';
-import { showToast, todayLocal } from '../../../core/base/utils.js?v=20261026b';
-import { persist, getRuntimeMode } from '../../../data/data-adapter.js?v=20261026b';
-import { mockDB } from '../../../core/domain/domain.js?v=20261026b';
-import { AuthStore } from '../../../services/core/auth.js?v=20261026b';
-import { POLICY_DEFAULTS } from '../../../core/domain/policy-defaults.js?v=20261026b';
+import { DEFAULT_BRANCH_ID } from '../../../core/domain/constants.js?v=20261028a';
+import { icon } from '../../../core/base/icons.js?v=20261028a';
+import { showToast, todayLocal } from '../../../core/base/utils.js?v=20261028a';
+import { persist, getRuntimeMode } from '../../../data/data-adapter.js?v=20261028a';
+import { mockDB } from '../../../core/domain/domain.js?v=20261028a';
+import { AuthStore } from '../../../services/core/auth.js?v=20261028a';
+import { POLICY_DEFAULTS } from '../../../core/domain/policy-defaults.js?v=20261028a';
 // R10-D06：报送/提示一律取「当前支部合并后的有效策略」，不直读 POLICY_DEFAULTS（含支部覆盖）。
-import { getEffectivePolicy } from '../../../services/branch/branch.js?v=20261026b';
-import { attachArchivePolicySnapshot, deriveArchivePeriod, compareArchivePeriodDesc } from '../../../services/governance/periodic-archive.js?v=20261026b';
-import { generateId } from '../../../core/base/id.js?v=20261026b';
-import { loadActivities } from '../../../services/activity/activity.js?v=20261026b';
-import { NoticeStore } from '../../../services/governance/notice.js?v=20261026b';
-import { getPersonName } from '../../../services/member/person.js?v=20261026b';
-import { PERIODIC_ARCHIVE_REVIEW_STATUS, PERIODIC_ARCHIVE_REVIEW_LABELS, periodicArchiveReviewStatusOf } from '../../../services/governance/secretary-overview.js?v=20261026b';
+import { getEffectivePolicy } from '../../../services/branch/branch.js?v=20261028a';
+import { attachArchivePolicySnapshot, deriveArchivePeriod, compareArchivePeriodDesc } from '../../../services/governance/periodic-archive.js?v=20261028a';
+import { generateId } from '../../../core/base/id.js?v=20261028a';
+import { loadActivities } from '../../../services/activity/activity.js?v=20261028a';
+import { NoticeStore } from '../../../services/governance/notice.js?v=20261028a';
+import { getPersonName } from '../../../services/member/person.js?v=20261028a';
+import { PERIODIC_ARCHIVE_REVIEW_STATUS, PERIODIC_ARCHIVE_REVIEW_LABELS, periodicArchiveReviewStatusOf } from '../../../services/governance/secretary-overview.js?v=20261028a';
 // 批次 352（`D-746` · `D-744`② 业务过程类余项）：周报「作废（软）」——统一写口 ＋ 支委层判据
-import * as SoftVoid from '../../../services/governance/soft-void.js?v=20261026b';
-import { openVoidModal } from '../../../components/ui/void-record.js?v=20261026b';
+import * as SoftVoid from '../../../services/governance/soft-void.js?v=20261028a';
+import { openVoidModal } from '../../../components/ui/void-record.js?v=20261028a';
+import { confirmDanger } from '../../../components/ui/modal.js?v=20261028a';
 
 // ── 周报报送 seed 数据（2026-08-05：seed 常量 + mockDB 持久化，刷新不再丢失）──
 // 2026-09-12 修正：起止按 ISO 周「周一~周五」口径校准，与 _weekDefaults 派生同口径；
 // 2026-10-26 Task 5：种子期次随演示窗口（2026-08-01~2026-11-30）重排到 W40~W44。
 // 2026-09-28 批次 234：常量**搬到内容单一源** `docs/src/data/mock/prop.js`（服务端 `server/seed.js` 同源 import，
 //   原先此处私有常量被服务端逐字复刻一份 ⇒ 两份字面量，本批收成一份；取值与顺序一字未改）。
-import { PERIODIC_ARCHIVES_SEED } from '../../../data/mock/prop.js?v=20261026b';
+import { PERIODIC_ARCHIVES_SEED } from '../../../data/mock/prop.js?v=20261028a';
 
 // 从 mockDB 读取（seed 兜底注入一次）；写操作更新 mockDB.periodicArchives 后调用 persist()
 function _loadPeriodicArchives() {
@@ -182,14 +183,14 @@ export function renderContent(ctx, host = null) {
   });
 
   // 自动生成（SOP-B-40 ②）：按当前所选周次的起止区间，从活动数据拼出草稿内容
-  container.querySelector('#weekly-gen-btn')?.addEventListener('click', () => {
+  container.querySelector('#weekly-gen-btn')?.addEventListener('click', async () => {
     const selectEl = container.querySelector('#weekly-week');
     const textareaEl = container.querySelector('#weekly-content');
     const report = _loadPeriodicArchives().find(r => r.id === selectEl.value);
     if (!report) return;
     const generated = _autoWeeklyContent(report.periodRange || report.weekRange);
     if (!generated) { showToast('info', `${report.periodLabel || report.week}（${report.periodRange || report.weekRange}）没有可用的活动数据，请手填`); return; }
-    if (textareaEl.value.trim() && !window.confirm('已有内容，用自动生成的结果覆盖？')) return;
+    if (textareaEl.value.trim() && !await confirmDanger({ id: 'weekly-overwrite', title: '覆盖已填写的内容', bodyHtml: '<p class="text-sm text-gray-700">用自动生成的结果替换「本期归档内容」里已有的文字。<br>影响：仅覆盖本页当前输入框内容，不动已保存的期次。<br><b>不可恢复</b>：覆盖前的文字不会保留，请先复制需要保留的部分。</p>', confirmLabel: '覆盖' })) return;
     textareaEl.value = generated;
     showToast('success', '已按本期活动生成草稿内容（可继续手改）');
   });

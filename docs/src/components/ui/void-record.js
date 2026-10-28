@@ -13,11 +13,11 @@
 //    沿用其既有 id（`makeup-void-modal` / `#makeup-void-reason` / `[data-makeup-void-ok]`），
 //    以免动到已在册的真机流 `disc-makeup-void-reason` 的选择器。
 // ════════════════════════════════════════════════════════════════
-import * as SoftVoid from '../../services/governance/soft-void.js?v=20261026b';
-import { BRANCH_COMMISSION_ROLES } from '../../core/domain/constants.js?v=20261026b';
-import { AuthStore } from '../../services/core/auth.js?v=20261026b';
-import { openModal, closeModal, setModalBusy } from './modal.js?v=20261026b';
-import { showToast, escHtml, describeWriteError } from '../../core/base/utils.js?v=20261026b';
+import * as SoftVoid from '../../services/governance/soft-void.js?v=20261028a';
+import { BRANCH_COMMISSION_ROLES } from '../../core/domain/constants.js?v=20261028a';
+import { AuthStore } from '../../services/core/auth.js?v=20261028a';
+import { openModal, closeModal, setModalBusy } from './modal.js?v=20261028a';
+import { showToast, escHtml, describeWriteError } from '../../core/base/utils.js?v=20261028a';
 
 /**
  * 打开「作废（软）」弹窗（原因必填 → 支委直接作废 / 其余人报支委会）。
@@ -48,7 +48,7 @@ export function openVoidModal({
     title: `作废${label}`,
     accentColor: 'var(--status-error)',
     bodyHtml: `
-      <p class="text-sm text-gray-700 mb-1">作废「${escHtml(subject || id)}」这条${escHtml(label)}？作废＝<b>软作废</b>（留痕、默认列表出列），<b>不硬删</b>；支委可直接作废，其余人需报支委会确认。</p>
+      <p class="text-sm text-gray-700 mb-1">作废「${escHtml(subject || id)}」这条${escHtml(label)}？作废＝<b>软作废</b>（留痕、默认列表出列），<b>不硬删</b>；支委可直接作废，其余人需报支委会确认。<br>作废后记录不会自行恢复；如需继续办理，请重新登记一条。</p>
       <textarea id="${reasonId}" data-field="reason" class="input-flat text-xs w-full mt-2" rows="3" maxlength="200" placeholder="作废原因（必填）"></textarea>`,
     footerHtml: `
       <button type="button" ${cancelAttr} data-modal-cancel="${modalId}" class="btn-outline text-sm px-4 py-1.5" style="cursor:pointer;">取消</button>

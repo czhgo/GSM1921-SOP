@@ -1,14 +1,14 @@
 // role: [工程师]+[AI]
 // issue-list.js — 反馈列表渲染
 
-import { IssueStore } from '../../services/governance/issues.js?v=20261026b';
-import { AuthStore } from '../../services/core/auth.js?v=20261026b';
-import { icon } from '../../core/base/icons.js?v=20261026b';
-import { getPersonName } from '../../services/member/person.js?v=20261026b';
-import { ISSUE_STATUS_LABELS, ISSUE_CLOSED_REASON_LABELS } from '../../core/domain/constants.js?v=20261026b';
-import { badgeHtml } from '../ui/badges.js?v=20261026b';
+import { IssueStore } from '../../services/governance/issues.js?v=20261028a';
+import { AuthStore } from '../../services/core/auth.js?v=20261028a';
+import { icon } from '../../core/base/icons.js?v=20261028a';
+import { getPersonName } from '../../services/member/person.js?v=20261028a';
+import { ISSUE_STATUS_LABELS, ISSUE_CLOSED_REASON_LABELS } from '../../core/domain/constants.js?v=20261028a';
+import { badgeHtml } from '../ui/badges.js?v=20261028a';
 // 翻页控件单一源（批次 38：全站手写翻页一律并轨 pagerHtml）
-import { pagerHtml } from '../ui/pager.js?v=20261026b';
+import { pagerHtml } from '../ui/pager.js?v=20261028a';
 
 const SCOPE_LABELS = {
   permanent: '底层架构',
@@ -42,6 +42,13 @@ let _filterState = { status: 'all', scope: 'all', type: 'all', milestone: 'all',
 const PAGE_SIZE = 10;
 let _pageState = 1;
 
+const EMPTY_LIST_HTML = '<p class="text-sm text-gray-500 text-center py-8">暂无匹配的意见反馈</p>';
+
+/** 列表区 HTML（整页渲染与「仅列表刷新」共用，避免两处写法分叉） */
+function _issueListInner(filtered, pageItems) {
+  return filtered.length === 0 ? EMPTY_LIST_HTML : pageItems.map(renderIssueRow).join('');
+}
+
 /** 分页控件（单一源 pagerHtml：共 N 条 · 第 x/y 页 + 页码窗口；页数 ≤1 返回空串） */
 function _renderIssuePager(total) {
   const pages = Math.max(1, Math.ceil(total / PAGE_SIZE));
@@ -68,8 +75,8 @@ export function renderIssueList() {
   container.innerHTML = `
     <div class="card rounded-xl p-5 mb-4">
       <div class="flex items-center justify-between mb-3">
-        <h3 class="font-title-cn text-base font-semibold text-gray-800">全部意见 <span class="text-xs font-normal text-gray-500">开放中 ${counts.open} · 已关闭 ${counts.closed}</span></h3>
-        ${canCreate ? `<button id="btn-new-issue" class="btn-accent text-sm px-4 py-1.5 font-medium">+ 新反馈</button>` : ''}
+        <h3 class="font-title-cn text-base font-semibold text-gray-800">全部意见反馈 <span class="text-xs font-normal text-gray-500">开放中 ${counts.open} · 已关闭 ${counts.closed}</span></h3>
+        ${canCreate ? `<button id="btn-new-issue" class="btn-accent text-sm px-4 py-1.5 font-medium">提交意见反馈</button>` : ''}
       </div>
 
       <!-- 筛选行（2026-09-14 批次 27 统一：载体 styles.css::.lf-bar/.lf-kw/.lf-select/.lf-btn；
@@ -93,15 +100,30 @@ export function renderIssueList() {
       </div>
 
       <div id="issue-list" class="space-y-2">
-        ${filtered.length === 0
-          ? '<p class="text-sm text-gray-500 text-center py-8">暂无匹配反馈。欢迎提交第一条！</p>'
-          : pageItems.map(renderIssueRow).join('')}
+        ${_issueListInner(filtered, pageItems)}
       </div>
-      ${_renderIssuePager(filtered.length)}
+      <div id="issue-pager">${_renderIssuePager(filtered.length)}</div>
     </div>
   `;
 
   bindEvents();
+}
+
+/**
+ * 只重渲染列表区（筛选条保持原节点）：连续输入不丢焦点 / 光标位置。
+ * 关键词输入逐字触发，若整卡重建会把 #filter-keyword 一起换掉 ⇒ 输入框失焦。
+ */
+function _renderListRegion() {
+  const filtered = IssueStore.filter({ ..._filterState, kind: 'feedback' });
+  const pages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  _pageState = Math.min(_pageState, pages);
+  const pageItems = filtered.slice((_pageState - 1) * PAGE_SIZE, _pageState * PAGE_SIZE);
+
+  const list = document.getElementById('issue-list');
+  if (list) list.innerHTML = _issueListInner(filtered, pageItems);
+  const pager = document.getElementById('issue-pager');
+  if (pager) pager.innerHTML = _renderIssuePager(filtered.length);
+  bindListRegion();
 }
 
 function renderIssueRow(issue) {
@@ -155,30 +177,7 @@ function bindEvents() {
     window.location.href = url.toString();
   });
 
-  // 列表行点击（C4 可访问性，2026-09-12：行语义化为可聚焦按钮，键盘 Enter/Space 等效点击）
-  document.querySelectorAll('.issue-row').forEach(row => {
-    const open = () => {
-      const id = row.dataset.issueId;
-      const url = new URL(window.location.href);
-      url.searchParams.set('id', id);
-      url.searchParams.delete('new');
-      window.location.href = url.toString();
-    };
-    row.addEventListener('click', open);
-    row.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar') { e.preventDefault(); open(); }
-    });
-  });
-
-  // 分页按钮（T-234 F2：翻页重渲染；标记由统一检索引擎 pagerHtml 单一源产出，读 data-lf-page）
-  const listContainer = document.getElementById('issue-list-container');
-  listContainer?.querySelectorAll('[data-lf-page]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      if (btn.disabled) return;
-      _pageState = parseInt(btn.dataset.lfPage, 10) || 1;
-      renderIssueList();
-    });
-  });
+  bindListRegion();
 
   // 筛选器（T-234 F2 铁律：搜索/筛选变化页码归 1）——状态分面统一下拉（禁 chip，2026-09-14 批次 27）
   document.getElementById('filter-status')?.addEventListener('change', (e) => {
@@ -209,6 +208,34 @@ function bindEvents() {
   document.getElementById('filter-keyword')?.addEventListener('input', (e) => {
     _filterState.keyword = e.target.value;
     _pageState = 1;
-    renderIssueList();
+    _renderListRegion(); // 只换列表区：输入框节点与光标留在原位
+  });
+}
+
+/** 列表行 + 分页钮绑定（整卡重渲染与「仅列表刷新」都会换节点，必须重新绑定） */
+function bindListRegion() {
+  // 列表行点击（C4 可访问性，2026-09-12：行语义化为可聚焦按钮，键盘 Enter/Space 等效点击）
+  document.querySelectorAll('.issue-row').forEach(row => {
+    const open = () => {
+      const id = row.dataset.issueId;
+      const url = new URL(window.location.href);
+      url.searchParams.set('id', id);
+      url.searchParams.delete('new');
+      window.location.href = url.toString();
+    };
+    row.addEventListener('click', open);
+    row.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar') { e.preventDefault(); open(); }
+    });
+  });
+
+  // 分页按钮（T-234 F2：翻页重渲染；标记由统一检索引擎 pagerHtml 单一源产出，读 data-lf-page）
+  const listContainer = document.getElementById('issue-list-container');
+  listContainer?.querySelectorAll('[data-lf-page]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (btn.disabled) return;
+      _pageState = parseInt(btn.dataset.lfPage, 10) || 1;
+      renderIssueList();
+    });
   });
 }

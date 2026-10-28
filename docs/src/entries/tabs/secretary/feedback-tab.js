@@ -3,19 +3,19 @@
 // 2026-08-07 自 ws-secretary-entry.js 拆分。
 // GitHub Issue 风格反馈管理面板：草稿审核（通过/驳回）全部反馈列表 + 导出/清除 + 详情处置（指派/状态/评论/隐藏/合并）。
 
-import { IssueStore, deriveIssueDisplayState, IssueNotify, issueDomainLabel, issueDomainSuggest, issueDomainReplyHint } from '../../../services/governance/issues.js?v=20261026b';
-import { showToast, todayLocal } from '../../../core/base/utils.js?v=20261026b';
-import { scrollDetailIntoView } from '../../../components/ui/detail-anchor.js?v=20261026b';
-import { icon } from '../../../core/base/icons.js?v=20261026b';
-import { AuthStore } from '../../../services/core/auth.js?v=20261026b';
-import { ROLE_LABELS, DRAFT_TYPE_LABELS } from '../../../core/domain/constants.js?v=20261026b';
-import { getPersonName } from '../../../services/member/person.js?v=20261026b';
-import { PersonStore } from '../../../services/member/person.js?v=20261026b';
-import { badgeHtml, badgeVariantClass } from '../../../components/ui/badges.js?v=20261026b';
+import { IssueStore, deriveIssueDisplayState, IssueNotify, issueDomainLabel, issueDomainSuggest, issueDomainReplyHint } from '../../../services/governance/issues.js?v=20261028a';
+import { showToast, todayLocal } from '../../../core/base/utils.js?v=20261028a';
+import { scrollDetailIntoView } from '../../../components/ui/detail-anchor.js?v=20261028a';
+import { icon } from '../../../core/base/icons.js?v=20261028a';
+import { AuthStore } from '../../../services/core/auth.js?v=20261028a';
+import { ROLE_LABELS, DRAFT_TYPE_LABELS } from '../../../core/domain/constants.js?v=20261028a';
+import { getPersonName } from '../../../services/member/person.js?v=20261028a';
+import { PersonStore } from '../../../services/member/person.js?v=20261028a';
+import { badgeHtml, badgeVariantClass } from '../../../components/ui/badges.js?v=20261028a';
 // 翻页控件单一源（批次 38：全站手写翻页一律并轨 pagerHtml）
-import { pagerHtml } from '../../../components/ui/pager.js?v=20261026b';
-import { renderTabHeader, renderCardHeader } from '../../../components/shell/page-frame.js?v=20261026b';
-import { openFormModal } from '../../../components/ui/modal.js?v=20261026b';
+import { pagerHtml } from '../../../components/ui/pager.js?v=20261028a';
+import { renderTabHeader, renderCardHeader } from '../../../components/shell/page-frame.js?v=20261028a';
+import { openFormModal, confirmDanger } from '../../../components/ui/modal.js?v=20261028a';
 
 const FEEDBACK_TAB_HTML = `
   ${renderTabHeader({ title: '反馈管理' })}
@@ -253,8 +253,8 @@ function renderIssueManagement() {
     URL.revokeObjectURL(url);
   });
 
-  document.getElementById('btn-clear-issue-cache')?.addEventListener('click', () => {
-    if (confirm('确定清除本地缓存？此操作不影响反馈数据权威源，仅清除浏览器缓存与草稿')) {
+  document.getElementById('btn-clear-issue-cache')?.addEventListener('click', async () => {
+    if (await confirmDanger({ id: 'issue-cache-clear', title: '清除本地缓存', bodyHtml: '<p class="text-sm text-gray-700">清除本机反馈面板的浏览器缓存与草稿。<br>影响：仅清本机缓存，反馈数据权威源与已提交内容不变。<br>可恢复：刷新页面会从服务端重新读取。</p>', confirmLabel: '清除' })) {
       IssueStore.clearCache();
       renderIssueManagement();
     }

@@ -7,7 +7,7 @@ import { createApp } from '../app.js';
 import { seedDatabase } from '../seed.js';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
-const AUTH_V = '?v=20261026b';
+const AUTH_V = '?v=20261028a';
 
 let server, base, app;
 

@@ -9,21 +9,21 @@
 //（listPeriodicArchivesPendingReview / reviewPeriodicArchive / PERIODIC_ARCHIVE_REVIEW_STATUS），
 // 本页只做呈现与交互，不另写状态名、不改后端 API/数据模型/权限链。
 
-import { currentUserId } from '../../../services/core/auth.js?v=20261026b';
-import { renderWorkOverview } from '../../../components/governance/work-overview.js?v=20261026b';
+import { currentUserId } from '../../../services/core/auth.js?v=20261028a';
+import { renderWorkOverview } from '../../../components/governance/work-overview.js?v=20261028a';
 import {
   listPeriodicArchivesPendingReview, reviewPeriodicArchive,
-} from '../../../services/governance/secretary-overview.js?v=20261026b';
-import { getPersonName } from '../../../services/member/person.js?v=20261026b';
-import { listRowHtml, listGroupHtml } from '../../../components/ui/list-row.js?v=20261026b';
-import { emptyStateHtml } from '../../../components/ui/empty-state.js?v=20261026b';
-import { openModal, closeModal } from '../../../components/ui/modal.js?v=20261026b';
+} from '../../../services/governance/secretary-overview.js?v=20261028a';
+import { getPersonName } from '../../../services/member/person.js?v=20261028a';
+import { listRowHtml, listGroupHtml } from '../../../components/ui/list-row.js?v=20261028a';
+import { emptyStateHtml } from '../../../components/ui/empty-state.js?v=20261028a';
+import { openModal, closeModal } from '../../../components/ui/modal.js?v=20261028a';
 import {
   showToast, flashHighlight, getBasePath, escHtml as esc,
-} from '../../../core/base/utils.js?v=20261026b';
-import { renderCardHeader } from '../../../components/shell/page-frame.js?v=20261026b';
+} from '../../../core/base/utils.js?v=20261028a';
+import { renderCardHeader } from '../../../components/shell/page-frame.js?v=20261028a';
 // 2026-10-25 Task 1.3：页内失败态（错误卡 + 重试）单一源，替代动态 import 无 catch 的静默失败。
-import { mountTabFailure } from '../../../components/shell/tab-bar.js?v=20261026b';
+import { mountTabFailure } from '../../../components/shell/tab-bar.js?v=20261028a';
 
 const OVERVIEW_TAB_HTML = `
   <div id="secretary-overview-content"></div>
@@ -100,7 +100,7 @@ function _mountInsightCard(host, ctx = {}) {
     return;
   }
   // 2026-10-25 Task 1.3：动态 import 必须接住失败——原位错误卡 + 重试，不再只有 unhandledrejection。
-  import('../../../components/record/insight-view.js?v=20261026b').then((m) => m.renderInsightView(body, {
+  import('../../../components/record/insight-view.js?v=20261028a').then((m) => m.renderInsightView(body, {
     embedded: true,
     views: ['workgroup', 'taskforce'],
     defaultView: 'workgroup',
@@ -181,7 +181,7 @@ function _openReturnModal(id, personId, ctx) {
     title: '退回周期归档',
     width: '460px',
     bodyHtml: `
-      <p class="text-xs text-gray-500" style="margin:0 0 10px;">退回后由宣传委员按说明修改并重新提交。</p>
+      <p class="text-xs text-gray-500" style="margin:0 0 10px;">退回后本期待审记录退出待审清单，审核结果记为「已退回」。可恢复：宣传委员按说明修改后可重新报送。</p>
       <label class="text-xs text-gray-500 mb-1.5 block font-medium" for="periodic-return-note">退回说明</label>
       <textarea id="periodic-return-note" rows="3" class="input-flat w-full resize-none" placeholder="请填写一句退回说明"></textarea>`,
     footerHtml: `

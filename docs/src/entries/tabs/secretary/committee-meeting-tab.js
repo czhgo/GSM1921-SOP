@@ -12,22 +12,23 @@
 //     应到 = `attendanceRosters` 冻结名单优先，无冻结时回落 `services/activity/vote-config.js::resolveVoterIds('committee')`
 //     并标注「实时」；两种口径不混算。
 //   · 表格 = components/ui/data-table.js（.data-table 单一源）；行内选人 = components/governance/pickers.js::PersonPicker。
-import { mockDB } from '../../../core/domain/domain.js?v=20261026b';
-import { AuthStore } from '../../../services/core/auth.js?v=20261026b';
-import { PersonStore, getPersonById } from '../../../services/member/person.js?v=20261026b';
+import { mockDB } from '../../../core/domain/domain.js?v=20261028a';
+import { AuthStore } from '../../../services/core/auth.js?v=20261028a';
+import { PersonStore, getPersonById } from '../../../services/member/person.js?v=20261028a';
 import {
   listBranchCommissioners,
   appointBranchCommissioner,
   revokeBranchCommissioner,
-} from '../../../services/branch/appointment.js?v=20261026b';
-import { DEFAULT_BRANCH_ID, ROLE_LABELS, BRANCH_COMMISSIONER_ASSIGNABLE_ROLES } from '../../../core/domain/constants.js?v=20261026b';
-import { resolveVoterIds } from '../../../services/activity/vote-config.js?v=20261026b';
-import { deriveMeetingStatus } from '../../../data/mock/derive.js?v=20261026b';
-import { renderDataTable, tableHeadHtml } from '../../../components/ui/data-table.js?v=20261026b';
-import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261026b';
-import { PersonPicker } from '../../../components/governance/pickers.js?v=20261026b';
-import { getAppliedAccentColors } from '../../../core/boot/theme.js?v=20261026b';
-import { showToast, escHtml as esc } from '../../../core/base/utils.js?v=20261026b';
+} from '../../../services/branch/appointment.js?v=20261028a';
+import { confirmDanger } from '../../../components/ui/modal.js?v=20261028a';
+import { DEFAULT_BRANCH_ID, ROLE_LABELS, BRANCH_COMMISSIONER_ASSIGNABLE_ROLES } from '../../../core/domain/constants.js?v=20261028a';
+import { resolveVoterIds } from '../../../services/activity/vote-config.js?v=20261028a';
+import { deriveMeetingStatus } from '../../../data/mock/derive.js?v=20261028a';
+import { renderDataTable, tableHeadHtml } from '../../../components/ui/data-table.js?v=20261028a';
+import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261028a';
+import { PersonPicker } from '../../../components/governance/pickers.js?v=20261028a';
+import { getAppliedAccentColors } from '../../../core/boot/theme.js?v=20261028a';
+import { showToast, escHtml as esc } from '../../../core/base/utils.js?v=20261028a';
 
 /** 本支部 id（登录人归属；缺省 br-b1，与全仓同口径） */
 function branchId() {
@@ -191,7 +192,7 @@ function openRowPicker(role) {
 /** 撤销支委身份（回落普通参与者；服务层判据不变） */
 async function revokeSeat(role, personId) {
   const label = ROLE_LABELS[role] || role;
-  if (!window.confirm(`撤销「${label}」身份？该同志将回落为普通参与者。`)) return;
+  if (!await confirmDanger({ id: 'committee-seat-revoke', title: `撤销「${label}」身份`, bodyHtml: `<p class="text-sm text-gray-700">撤销该同志的「${esc(label)}」支委身份。<br>影响：该同志回落为普通参与者，对应工作台与待办入口对其关闭。<br>可恢复：可重新任命（每次变更记入任期留痕）。</p>`, confirmLabel: '撤销身份' })) return;
   const res = await revokeBranchCommissioner({ branchId: branchId(), personId, role });
   if (!res || !res.ok) {
     showToast('error', (res && res.reason) || '撤销失败');

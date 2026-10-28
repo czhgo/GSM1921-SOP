@@ -7,7 +7,7 @@
 // 本文件退化为纯复盘种子数据仓。
 // 2026-10-26 Task 5：时间字段随关联活动重排（演示窗口 2026-08-01~2026-11-30）同步平移，
 //   复盘提交/批注/确认一律不早于活动日（新日期见 activities.js 头注）。
-import { ReviewStatus } from '../../core/domain/domain.js?v=20261026b';
+import { ReviewStatus } from '../../core/domain/domain.js?v=20261028a';
 
 /**
  * 活动复盘记录

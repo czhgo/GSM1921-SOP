@@ -8,13 +8,13 @@
 //  本组件禁用 SVG 图标（支书 2026-08-10 裁定），类别用色点+文字标签区分
 // ════════════════════════════════════════════════════════════════
 
-import { IssueStore, deriveIssueDisplayState, REPORT_CATEGORIES } from '../../services/governance/issues.js?v=20261026b';
-import { AuthStore } from '../../services/core/auth.js?v=20261026b';
-import { showToast, escHtml } from '../../core/base/utils.js?v=20261026b';
-import { PersonStore, getPersonName } from '../../services/member/person.js?v=20261026b';
-import { solidAccentStyle } from '../../core/domain/constants.js?v=20261026b';
+import { IssueStore, deriveIssueDisplayState, REPORT_CATEGORIES } from '../../services/governance/issues.js?v=20261028a';
+import { AuthStore } from '../../services/core/auth.js?v=20261028a';
+import { showToast, escHtml } from '../../core/base/utils.js?v=20261028a';
+import { PersonStore, getPersonName } from '../../services/member/person.js?v=20261028a';
+import { solidAccentStyle } from '../../core/domain/constants.js?v=20261028a';
 // 统一检索引擎（2026-09-14 批次 37）：待答复汇报列表接入（关键词 事项/汇报人 + 引擎内置分页）
-import { renderFilteredList } from '../ui/list-filter.js?v=20261026b';
+import { renderFilteredList } from '../ui/list-filter.js?v=20261028a';
 
 // ── E-3（2026-09-09 · H60.7 面板保态复查③）：列表瞬态草稿互扰兜底 ──────
 // 某行正式答复成功 → onAnswered → 调用方整块重渲染（支书待办/组长组员汇报），
@@ -83,7 +83,7 @@ function _payloadKey(role, scope) {
  * @param {Array}  opts.reports  — 待答复汇报（kind='report' 且 open）
  * @param {{ workgroupId?: string|null, partyGroup?: string|null }} [opts.scope] — 汇总范围（工作组 / 党小组）
  * @param {string} [opts.title]  — 区标题（默认「待答复」）
- * @param {string} [opts.subtitle] — 区副标题（如「X 条待答复 · 行内答复」）
+ * @param {string} [opts.subtitle] — 区副标题（如「X 条待答复」）
  * @param {string} [opts.role]   — 答复人角色键（'secretary' | 'leader'）
  * @param {string} [opts.accent] — 强调色
  * @param {string} [opts.emptyMsg] — 空态文案
@@ -166,7 +166,7 @@ export function renderReportInboxHtml({
     <div class="card rounded-xl p-4 mb-4">
       <div class="flex items-center justify-between mb-3">
         <h4 class="font-title-cn text-sm font-bold text-gray-800">${title}</h4>
-        <span class="text-xs text-gray-500">${subtitle || `${sorted.length} 条待答复 · 行内答复`}</span>
+        <span class="text-xs text-gray-500">${subtitle || `${sorted.length} 条待答复`}</span>
       </div>
       <div id="rep-inbox-list-host"></div>
     </div>`;
@@ -271,7 +271,7 @@ export function bindReportInbox(container, { role = 'secretary', scope = null, o
             </p>
           </div>
           <div class="notice-row__actions">
-            <button type="button" class="btn-accent-soft btn-sm rep-inbox-toggle" data-report-id="${r.id}" aria-expanded="${rowOpen}" aria-controls="rep-inbox-detail-${r.id}">去处理</button>
+            <button type="button" class="btn-accent-soft btn-sm rep-inbox-toggle" data-report-id="${r.id}" aria-expanded="${rowOpen}" aria-controls="rep-inbox-detail-${r.id}">查看并答复</button>
           </div>
         </div>
         <div id="rep-inbox-detail-${r.id}" class="px-3 pb-3 border-t border-gray-100"${rowOpen ? '' : ' hidden'}>

@@ -7,15 +7,16 @@
 //      已通过=可采纳；未达出席门槛/有反对=采纳禁用（去表决再议）。
 // 表决 UI 复用既有 agenda-votes 资产；本面板不重复实现投票。
 
-import { escHtml as esc, showToast, getBasePath, todayLocal } from '../../../core/base/utils.js?v=20261026b';
-import { WORK_MAP_MODULES, WORK_MAP_TIER_LABELS, canDisableModule } from '../../../core/domain/work-map.js?v=20261026b';
-import { BRANCH_COMMISSION_ROLES, ROLE_LABELS } from '../../../core/domain/constants.js?v=20261026b';
-import { PersonStore } from '../../../services/member/person.js?v=20261026b';
+import { escHtml as esc, showToast, getBasePath, todayLocal } from '../../../core/base/utils.js?v=20261028a';
+import { WORK_MAP_MODULES, WORK_MAP_TIER_LABELS, canDisableModule } from '../../../core/domain/work-map.js?v=20261028a';
+import { BRANCH_COMMISSION_ROLES, ROLE_LABELS } from '../../../core/domain/constants.js?v=20261028a';
+import { PersonStore } from '../../../services/member/person.js?v=20261028a';
 import {
   createWorkforceProposalActivity, listWorkforceProposals, adoptWorkforceProposal,
   getWorkforceVoteOutcome, ownerDisplay,
-} from '../../../services/branch/workforce.js?v=20261026b';
-import { getBranchWorkforce } from '../../../services/branch/branch.js?v=20261026b';
+} from '../../../services/branch/workforce.js?v=20261028a';
+import { getBranchWorkforce } from '../../../services/branch/branch.js?v=20261028a';
+import { confirmDanger } from '../../../components/ui/modal.js?v=20261028a';
 
 const DRAFT_KEY = 'gsm1921-workforce-draft'; // 本机草稿（**仅本机·不上服务端**：未提交的拟定分工，属该设备上未完成的工作；白名单见 content/05_ai_coding/DATA_CONSISTENCY_CHECKLIST.md）
 
@@ -288,7 +289,7 @@ export async function mountWorkforcePanel(branchId, hostEl) {
     // 采纳（仅通过态按钮带 wf-adopt 类）——列表重建不影响已展开的表单区（formZone 独立）
     body.querySelectorAll('.wf-adopt').forEach((btn) => {
       btn.addEventListener('click', async () => {
-        if (!window.confirm('确认按支委会表决结果采纳该分工调整？')) return;
+        if (!await confirmDanger({ id: 'workforce-adopt', title: '采纳分工调整', bodyHtml: '<p class="text-sm text-gray-700">按支委会表决结果采纳本议题的分工调整。<br>影响：各模块负责人即刻改为新配置，相关台位的可见范围随之变化。<br>可恢复：可在「支部分工」再次发起调整；每次变更记入留痕。</p>', confirmLabel: '采纳' })) return;
         try {
           await adoptWorkforceProposal(branchId, btn.dataset.id);
           showToast('success', '分工已生效');

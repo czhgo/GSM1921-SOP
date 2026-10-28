@@ -4,45 +4,45 @@
 // 私有状态（PersonPicker 实例）随模块自持；共享数据（taskforce 分类）经 ctx 传入。
 // 2026-10-20 第三轮 IA 判例④：活动视图已迁至「活动日历」页，本页不再消费 ctx.activities。
 
-import { setState } from '../../../core/base/state.js?v=20261026b';
-import { TaskForceRecordStore, isTaskforceOrganizer } from '../../../services/activity/taskforce.js?v=20261026b';
-import { legacyParticipantAssignmentRows, workgroupMembers } from '../../../services/activity/workgroup-members.js?v=20261026b';
-import { SignupStore, resolveSignupReviewer, SignupStatus, SIGNUP_ROLE_LABELS, SIGNUP_STATUS_LABELS } from '../../../services/activity/signup.js?v=20261026b';
-import { AuthStore } from '../../../services/core/auth.js?v=20261026b';
-import { loadTaskforceReviews, addTaskforceReview } from '../../../services/governance/review.js?v=20261026b';
-import { TodoStore, TodoSourceType, TodoCategory, TodoActionType } from '../../../services/governance/todo.js?v=20261026b';
-import { NoticeStore } from '../../../services/governance/notice.js?v=20261026b';
-import { mockDB, ReviewStatus, isTaskforceTerminalStatus, isTaskforceActiveStatus, TASKFORCE_TERMINAL_STATUSES, TASK_TERMINAL_STATUSES, OUTPUT_TERMINAL_STATUSES } from '../../../core/domain/domain.js?v=20261026b'; // IA-C3 收敛单写入口 2026-09-06：ParticipationLevel 随考察写入口移除
-import { persist } from '../../../data/data-adapter.js?v=20261026b';
-import { settleWrites } from '../../../core/session/pending-writes.js?v=20261026b';
-import { showToast, escHtml as esc, getBasePath, todayLocal, flashHighlight } from '../../../core/base/utils.js?v=20261026b';
-import { generateId } from '../../../core/base/id.js?v=20261026b';
-import { solidAccentStyle } from '../../../core/domain/constants.js?v=20261026b';
-import { PersonPicker } from '../../../components/governance/pickers.js?v=20261026b';
-import { renderWorkgroupPermissionEditor, readWorkgroupPermissionEditor } from '../../../components/governance/workgroup-permissions.js?v=20261026b';
-import { renderWorkgroupMemberEditor, bindWorkgroupMemberEditor } from '../../../components/governance/workgroup-member-editor.js?v=20261026b';
-import { getAdapter } from '../../../data/data-adapter.js?v=20261026b';
-import { recordFormShell } from '../../../components/ui/forms.js?v=20261026b';
+import { setState } from '../../../core/base/state.js?v=20261028a';
+import { TaskForceRecordStore, isTaskforceOrganizer } from '../../../services/activity/taskforce.js?v=20261028a';
+import { legacyParticipantAssignmentRows, workgroupMembers } from '../../../services/activity/workgroup-members.js?v=20261028a';
+import { SignupStore, resolveSignupReviewer, SignupStatus, SIGNUP_ROLE_LABELS, SIGNUP_STATUS_LABELS } from '../../../services/activity/signup.js?v=20261028a';
+import { AuthStore } from '../../../services/core/auth.js?v=20261028a';
+import { loadTaskforceReviews, addTaskforceReview } from '../../../services/governance/review.js?v=20261028a';
+import { TodoStore, TodoSourceType, TodoCategory, TodoActionType } from '../../../services/governance/todo.js?v=20261028a';
+import { NoticeStore } from '../../../services/governance/notice.js?v=20261028a';
+import { mockDB, ReviewStatus, isTaskforceTerminalStatus, isTaskforceActiveStatus, TASKFORCE_TERMINAL_STATUSES, TASK_TERMINAL_STATUSES, OUTPUT_TERMINAL_STATUSES } from '../../../core/domain/domain.js?v=20261028a'; // IA-C3 收敛单写入口 2026-09-06：ParticipationLevel 随考察写入口移除
+import { persist } from '../../../data/data-adapter.js?v=20261028a';
+import { settleWrites } from '../../../core/session/pending-writes.js?v=20261028a';
+import { showToast, escHtml as esc, getBasePath, todayLocal, flashHighlight } from '../../../core/base/utils.js?v=20261028a';
+import { generateId } from '../../../core/base/id.js?v=20261028a';
+import { solidAccentStyle } from '../../../core/domain/constants.js?v=20261028a';
+import { PersonPicker } from '../../../components/governance/pickers.js?v=20261028a';
+import { renderWorkgroupPermissionEditor, readWorkgroupPermissionEditor } from '../../../components/governance/workgroup-permissions.js?v=20261028a';
+import { renderWorkgroupMemberEditor, bindWorkgroupMemberEditor } from '../../../components/governance/workgroup-member-editor.js?v=20261028a';
+import { getAdapter } from '../../../data/data-adapter.js?v=20261028a';
+import { recordFormShell } from '../../../components/ui/forms.js?v=20261028a';
 // 「本位」nudge 确认弹窗（2026-09-23 支书裁定 · 单一源 = components/ui/modal.js::confirmNudge）
 // U-05：招募浮窗原为手写 overlay/panel（无 dialog 语义 / 无焦点接管）→ 改走同一组件的 openModal。
-import { confirmNudge, confirmWriteWithoutGrant, openModal, closeModal, setModalBusy } from '../../../components/ui/modal.js?v=20261026b';
+import { confirmNudge, confirmWriteWithoutGrant, openModal, closeModal, setModalBusy, confirmDanger } from '../../../components/ui/modal.js?v=20261028a';
 // 转交组织者（SOP-G-2-② · 2026-10-01 批次 327 · 支书裁「乙：直接转交 ＋ 留痕」）：判据 / 写口 /
 //   弹窗单一源＝`components/governance/organizer-transfer.js`（本台只挂入口，不复制一份实现）。
-import { canTransferOrganizer, openOrganizerTransfer, organizerOf } from '../../../components/governance/organizer-transfer.js?v=20261026b';
-import { badgeHtml } from '../../../components/ui/badges.js?v=20261026b';
+import { canTransferOrganizer, openOrganizerTransfer, organizerOf } from '../../../components/governance/organizer-transfer.js?v=20261028a';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20261028a';
 // 人×项目矩阵单一源（支书 2026-09-14 裁定：把宽表推广到其它二元关系域 → 本批「专班报名」域）
-import { renderRelationMatrix } from '../../../components/ui/relation-matrix.js?v=20261026b';
-import { getPersonName, PersonStore } from '../../../services/member/person.js?v=20261026b';
+import { renderRelationMatrix } from '../../../components/ui/relation-matrix.js?v=20261028a';
+import { getPersonName, PersonStore } from '../../../services/member/person.js?v=20261028a';
 // 统一检索引擎（2026-09-13 表格统一化批次 A）：报名名单等按人段落接入关键词 + 分面
-import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261026b';
-import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261026b';
+import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261028a';
+import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261028a';
 // 详情锚定单一源（2026-10-18 繁专项 Task 14）：与 taskforce-view.js 同款「触点即落点」
-import { anchorDetailToTrigger, scrollDetailIntoView } from '../../../components/ui/detail-anchor.js?v=20261026b';
+import { anchorDetailToTrigger, scrollDetailIntoView } from '../../../components/ui/detail-anchor.js?v=20261028a';
 // 专班赋权（2026-10-25 IA 62→45）：自支书台「活动管理」整卡迁回本位——实现单一源仍是
 //   `secretary/assign-tab.js::mountTaskforceProjectAuth`（本页只给落点宿主，不复制表单）。
-import { mountTaskforceProjectAuth } from '../secretary/assign-tab.js?v=20261026b';
+import { mountTaskforceProjectAuth } from '../secretary/assign-tab.js?v=20261028a';
 // Task 6：本台「专班管理」是对象所属工作台 ⇒ locate（同页面板 + 「打开完整页」）。
-import { objectDetailHref } from '../../../core/domain/object-route.js?v=20261026b';
+import { objectDetailHref } from '../../../core/domain/object-route.js?v=20261028a';
 // 私有状态（随模块自持，不污染入口）
 let _recruitOrganizerPicker = null;
 let _recruitDeepPicker = null;
@@ -317,14 +317,14 @@ export function renderContent(ctx) {
 
   // ── 招募状态流转按钮事件委托（仅 recruiting → active；运行中工作组统一走语义收尾） ──
   function bindStatusButtons(host) {
-    host.addEventListener('click', (e) => {
+    host.addEventListener('click', async (e) => {
       // 启动专班：recruiting → active
       const startBtn = e.target.closest('.tf-start-btn');
       if (startBtn) {
         const tfId = startBtn.dataset.tfId;
         const tf = TaskForceRecordStore.getAll().find(r => r.id === tfId);
         if (!tf || tf.status !== 'recruiting') return;
-        const confirmed = window.confirm(`确认启动专班「${tf.name}」？启动后状态转为运行中。`);
+        const confirmed = await confirmDanger({ id: 'taskforce-start', title: '启动专班', bodyHtml: `<p class="text-sm text-gray-700">启动专班「${escHtml(tf.name)}」。<br>影响：状态由「招募中」转为「运行中」，报名入口关闭，成员进入执行。` + '<br><b>不可恢复</b>：启动后不能退回「招募中」。' + '</p>', confirmLabel: '启动' });
         if (!confirmed) return;
         const updated = TaskForceRecordStore.updateStatus(tf.id, 'active');
         if (updated) {
@@ -343,14 +343,14 @@ export function renderContent(ctx) {
         const tf = TaskForceRecordStore.getAll().find(r => r.id === tfId);
         if (!tf) return;
         if (tf.status !== 'recruiting' && tf.status !== 'pending_review' && tf.status !== 'draft') return;
-        const confirmMsg = tf.status === 'recruiting'
-          ? `确认撤销并删除招募中的专班「${tf.name}」？删除后该专班及其关联报名/待办将从工作区移除（保留删除留痕，不可恢复）。`
-          : tf.status === 'pending_review'
-            ? `确认撤销并删除「${tf.name}」？该专班仍在待支委会表决状态，删除后将从工作区移除并清理关联待办（保留删除留痕，不可恢复）。`
-            : `确认删除「${tf.name}」？该专班为表决未通过草稿，删除后将从工作区移除并清理关联待办（保留删除留痕，不可恢复）。`;
-        if (!window.confirm(confirmMsg)) return;
-        // 二次确认：不可恢复动作再确认一次（防误点）
-        if (!window.confirm(`再次确认：删除「${tf.name}」后不可恢复，是否继续？`)) return;
+        // 撤销/删除不可恢复：影响与「不可恢复」写进同一确认面（不再连弹两次原生确认）
+        const confirmed = await confirmDanger({
+          id: 'taskforce-remove',
+          title: `撤销并删除专班「${tf.name}」`,
+          bodyHtml: `<p class="text-sm text-gray-700">影响：该专班及其关联报名 / 待办从工作区移除（保留删除留痕${tf.status === 'pending_review' ? '；仍在待支委会表决的申请一并撤回' : ''}）。<br><b>不可恢复</b>。</p>`,
+          confirmLabel: '撤销并删除',
+        });
+        if (!confirmed) return;
         TaskForceRecordStore.softRemove(tfId, { by: AuthStore.getCurrentUser()?.personId || '' });
         // 清理关联报名（统一走 SignupStore 写口——2026-10-02 批次 343 `D-744` D 档：
         //   原先在此直接改 `SignupStore._signups` 私有字段 ＋ 手写 `mockDB.signups` ＋ `persist()`，
@@ -371,7 +371,7 @@ export function renderContent(ctx) {
         if (!tf || tf.status !== 'draft') return;
         if (tf.committeeRequest && tf.committeeRequest.status === 'pending') { showToast('info', '该专班已报送支委会表决，等待审议'); return; }
         const currentUserId = AuthStore.getCurrentUser()?.personId || '';
-        const confirmed = window.confirm(`确认重新报送「${tf.name}」发起？将再次提交支委会表决。`);
+        const confirmed = await confirmDanger({ id: 'taskforce-resubmit', title: '重新报送支委会表决', bodyHtml: `<p class="text-sm text-gray-700">重新报送专班「${escHtml(tf.name)}」。<br>影响：本专班再次进入支委会表决（kind=发起），表决通过前不启动。` + '<br><b>不可恢复</b>：报送之后不能撤回，结果由支委会记录。' + '</p>', confirmLabel: '重新报送' });
         if (!confirmed) return;
         const updated = TaskForceRecordStore.submitForCommittee(tf.id, { kind: 'initiate', by: currentUserId, note: '表决未通过退回草稿后，修改重新报送' });
         if (!updated) { showToast('error', '重新报送失败，专班记录不存在或状态不允许'); return; }

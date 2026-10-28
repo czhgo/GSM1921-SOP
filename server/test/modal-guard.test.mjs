@@ -438,3 +438,129 @@ await (async () => {
 
 
 })();
+
+// ═══ 源件 4：危险动作确认面（SD-53 · 2026-10-28 美学专项 Task 7）═══
+await (async () => {
+  const { test } = await import('node:test');
+  const assert = (await import('node:assert/strict')).default;
+  const { readFileSync, readdirSync, statSync } = await import('node:fs');
+  const { join, relative, dirname } = await import('node:path');
+  const { fileURLToPath } = await import('node:url');
+
+  // role: [工程师]+[AI]
+  // 危险动作确认面守卫（2026-10-28 美学专项 Task 7 · SD-53）
+  //
+  // 判据原文（DESIGN_SYSTEM §4.27.1）：危险动作必须离开正文流、进入确认面；确认面须含
+  //   「做什么 / 影响范围 / 可否恢复」三段；统一入口 `modal.js::confirmDanger`。
+  //
+  // 判红 / 判据：
+  //   D1 原生对话框清零：`docs/src/**` 里 `window.confirm(` 与裸 `confirm(` 计数为 0
+  //      （`.confirm(id)` 业务方法名与方法定义 `confirm(id) {` 不属对话框，不在其列）。
+  //   D2 三段式入口存在：`modal.js` 导出 `confirmDanger`，且其声明文本（JSDoc ＋ 函数体）
+  //      同时含「影响」「恢复」两个词。
+  // 非空转：D1 带反例（`confirm('x')` 必须被判命中）与负例（`.confirm(id)` / `confirm(id) {` 不命中）；
+  //   D2 带反例（删掉「恢复」的构造文本必须判不合格）；D1 另设扫描文件数下限，防扫描面被改坏后恒真。
+  // 运行：node --test server/test/modal-guard.test.mjs
+
+  const HERE = dirname(fileURLToPath(import.meta.url));
+  const ROOT = join(HERE, '..', '..');
+  const SRC = join(ROOT, 'docs', 'src');
+  const MODAL = readFileSync(join(SRC, 'components/ui/modal.js'), 'utf8');
+
+  /** 扫描文件数下限（实测 docs/src 下 .js 远多于 100；低于此值说明扫描面被改坏） */
+  const FILE_FLOOR = 100;
+
+  /** 剥注释（行注释 / 块注释）——注释里写 `confirm(` 不算调用 */
+  function stripComments(src) {
+    let s = String(src).replace(/\r\n?/g, '\n');
+    s = s.replace(/\/\*[\s\S]*?\*\//g, ' ');
+    return s.split('\n').map((line) => line.replace(/\/\/.*$/, '')).join('\n');
+  }
+
+  /** 方法定义 `confirm(id) {`（业务方法名，不是浏览器对话框） */
+  const METHOD_DEF_RE = /^\s*(?:async\s+)?confirm\s*\([^)]*\)\s*\{/;
+
+  /** 源码里的原生 confirm 调用（返回 `行号: 该行`；`.confirm(` 方法名 / 方法定义不判） */
+  function nativeConfirms(raw) {
+    const src = stripComments(raw);
+    const out = [];
+    for (const m of src.matchAll(/confirm\s*\(/g)) {
+      const before = src.slice(Math.max(0, m.index - 8), m.index);
+      const lineStart = src.lastIndexOf('\n', m.index) + 1;
+      const lineEnd = src.indexOf('\n', m.index);
+      const line = src.slice(lineStart, lineEnd === -1 ? src.length : lineEnd).trim();
+      if (/window\.$/.test(before)) { out.push(line); continue; }   // window.confirm(
+      if (/\.$/.test(before)) continue;                              // x.confirm(...) / 方法名
+      if (METHOD_DEF_RE.test(line)) continue;                        // confirm(id) { ... }
+      out.push(line);
+    }
+    return out;
+  }
+
+  /** `confirmDanger` 的声明文本（JSDoc ＋ 函数体） */
+  function dangerEntryText(src) {
+    const idx = src.indexOf('export function confirmDanger');
+    if (idx === -1) return '';
+    const docStart = src.lastIndexOf('/**', idx);
+    const next = src.indexOf('\nexport ', idx + 1);
+    return src.slice(docStart === -1 ? idx : docStart, next === -1 ? src.length : next);
+  }
+
+  /** 三段式入口判据：导出 ＋ 影响 ＋ 恢复 */
+  const dangerEntryOk = (src) => {
+    const text = dangerEntryText(src);
+    return !!text && text.includes('影响') && text.includes('恢复');
+  };
+
+  function walkJs(dir, out = []) {
+    for (const name of readdirSync(dir)) {
+      const p = join(dir, name);
+      if (statSync(p).isDirectory()) walkJs(p, out);
+      else if (name.endsWith('.js')) out.push(p);
+    }
+    return out;
+  }
+
+  test('D1 原生 confirm 清零：docs/src 不得再出现 window.confirm( / 裸 confirm(', () => {
+    // 反例：原生调用必须被判命中
+    assert.deepEqual(nativeConfirms("if (!ok) { const r = confirm('x'); }"), ["if (!ok) { const r = confirm('x'); }"],
+      '反例未命中：`confirm(\'x\')` 必须被判为原生对话框（匹配器坏了）');
+    assert.deepEqual(nativeConfirms("const r = window.confirm('删除？');"), ["const r = window.confirm('删除？');"],
+      '反例未命中：`window.confirm(` 必须被判为原生对话框');
+    // 负例：业务方法名与方法定义不判
+    assert.deepEqual(nativeConfirms('await getAdapter().memberChangeRequests.confirm(id);'), [],
+      '负例误伤：`.confirm(id)` 是业务方法名，不是浏览器对话框');
+    assert.deepEqual(nativeConfirms('confirm(id) {\n  return true;\n}'), [],
+      '负例误伤：`confirm(id) {` 是业务方法定义，不是浏览器对话框');
+    // 负例：注释里的写法不判
+    assert.deepEqual(nativeConfirms('// 已不再使用 confirm( 原生对话框'), [],
+      '负例误伤：注释里的写法不判');
+
+    const files = walkJs(SRC);
+    assert.ok(files.length >= FILE_FLOOR, `只扫到 ${files.length} 个 .js（下限 ${FILE_FLOOR}）：扫描面被改坏`);
+    const offenders = files.flatMap((f) => nativeConfirms(readFileSync(f, 'utf8'))
+      .map((line) => `${relative(ROOT, f).replace(/\\/g, '/')} → ${line}`));
+    assert.deepEqual(offenders, [],
+      `docs/src 仍有原生 confirm（SD-53：危险动作必须进确认面，改走 modal.js::confirmDanger）：\n  ${offenders.join('\n  ')}`);
+  });
+
+  test('D2 三段式入口：modal.js 导出 confirmDanger，声明文本含「影响」「恢复」', () => {
+    // 反例：删掉「恢复」的构造文本必须判不合格
+    const planted = [
+      '/** 危险动作确认面：① 做什么 ② 影响范围（哪些行 / 人 / 记录会变） */',
+      'export function confirmDanger({ id, title, bodyHtml }) {',
+      '  return _mustPressConfirm({ id: `danger-${id}`, title, bodyHtml, danger: true });',
+      '}',
+    ].join('\n');
+    assert.equal(dangerEntryOk(planted), false, '反例未判红：缺「恢复」的确认面不得算三段式入口');
+    assert.equal(dangerEntryOk('/** 影响 恢复 */ export function confirmDanger() {}'), true,
+      '正例未通过：含「影响」「恢复」的声明应判合格（判据本身写坏了）');
+
+    assert.match(MODAL, /export function confirmDanger\(/, 'modal.js 必须导出 confirmDanger（危险动作唯一入口）');
+    const text = dangerEntryText(MODAL);
+    assert.ok(text.includes('影响'), 'confirmDanger 的声明文本缺「影响范围」（三段式第 2 段）');
+    assert.ok(text.includes('恢复'), 'confirmDanger 的声明文本缺「可否恢复」（三段式第 3 段）');
+    assert.ok(dangerEntryOk(MODAL), 'confirmDanger 未满足三段式入口判据');
+  });
+
+})();

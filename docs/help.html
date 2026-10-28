@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
   
-<script src="./src/theme-init.js?v=20261026b"></script>
+<script src="./src/theme-init.js?v=20261028a"></script>
 <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>帮助 — GSM1921-SOP</title>
@@ -13,8 +13,8 @@
   <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;800&family=Noto+Serif+SC:wght@400;500;600;700;800&display=swap" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;800&family=Noto+Serif+SC:wght@400;500;600;700;800&display=swap" rel="stylesheet"></noscript>
   <script src="https://cdn.tailwindcss.com/3.4.17"></script>
-  <script src="./src/tailwind-config.js?v=20261026b"></script>
-  <link rel="stylesheet" href="./src/styles.css?v=20261026b">
+  <script src="./src/tailwind-config.js?v=20261028a"></script>
+  <link rel="stylesheet" href="./src/styles.css?v=20261028a">
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
@@ -55,7 +55,7 @@
     .help-chapter > summary .doc-h2 { flex:1; margin:0; }
     .help-chapter > summary::after { content:'展开'; flex:none; color:#6B7280; font-size:0.75rem; font-weight:600; letter-spacing:0.04em; }
     .help-chapter[open] > summary::after { content:'收起'; }
-    .help-chapter > summary:focus-visible { outline:2px solid var(--party-gold); outline-offset:4px; border-radius:var(--radius-sm); }
+    .help-chapter > summary:focus-visible { outline:2px solid var(--status-warning-text); outline-offset:4px; border-radius:var(--radius-sm); } /* 深金替代党徽金：金环落白卡仅 1.40:1，深金 ≥7:1 */
 
     /* ── 快速上手：全局导航结构 ── */
     .nav-tree { background:#F8F9FA; border:1px solid #EEEFF2; border-radius:14px; padding:16px 20px; font-family:ui-monospace,'SF Mono',Consolas,monospace; font-size:0.8125rem; color:#4B5563; line-height:1.75; margin:12px 0 6px; }
@@ -163,7 +163,7 @@
        .help-search-result:hover { background:var(--surface-hover); color:var(--app-accent); }
      }
      .help-search-result:focus-visible { background:var(--surface-hover); color:var(--app-accent); }
-    .help-search-result:focus-visible,.help-quick-tasks a:focus-visible,.help-browse summary:focus-visible { outline:2px solid var(--party-gold); outline-offset:2px; }
+    .help-search-result:focus-visible,.help-quick-tasks a:focus-visible,.help-browse summary:focus-visible { outline:2px solid var(--status-warning-text); outline-offset:2px; }
     .help-search-result-heading { display:flex; align-items:baseline; justify-content:space-between; gap:12px; }
     .help-search-result-heading small { flex:none; color:var(--neutral-500); font-size:0.75rem; font-weight:500; }
     .help-search-snippet { display:block; margin-top:3px; color:var(--neutral-600); font-size:0.8125rem; line-height:1.55; }
@@ -1856,10 +1856,10 @@
 </script>
 
 <!-- modulepreload:start -->
-  <link rel="modulepreload" href="./src/components/shell/sidebar.js?v=20261026b" />
-  <link rel="modulepreload" href="./src/components/shell/header.js?v=20261026b" />
-  <link rel="modulepreload" href="./src/components/sections/help-navigation.js?v=20261026b" />
+  <link rel="modulepreload" href="./src/components/shell/sidebar.js?v=20261028a" />
+  <link rel="modulepreload" href="./src/components/shell/header.js?v=20261028a" />
+  <link rel="modulepreload" href="./src/components/sections/help-navigation.js?v=20261028a" />
   <!-- modulepreload:end -->
-  <script type="module" src="./src/entries/pages/help-entry.js?v=20261026b"></script>
+  <script type="module" src="./src/entries/pages/help-entry.js?v=20261028a"></script>
 </body>
 </html>

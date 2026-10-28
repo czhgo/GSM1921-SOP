@@ -1,19 +1,20 @@
 // Party-only per-branch configuration. The selected branch remains explicit in the URL.
-import { mockDB } from '../../core/domain/domain.js?v=20261026b';
-import { AuthStore } from '../../services/core/auth.js?v=20261026b';
-import { BranchService } from '../../services/core/runtime.js?v=20261026b';
-import { getPersonName } from '../../services/member/person.js?v=20261026b';
-import { getBranchById, renameBranch, setBranchActive } from '../../services/branch/branch.js?v=20261026b';
-import { appointSecretary, listAppointments } from '../../services/branch/appointment.js?v=20261026b';
-import { ApiAdapter } from '../../data/api-adapter.js?v=20261026b';
-import { hydrateDataSource } from '../../data/data-adapter.js?v=20261026b';
-import { mountPartyConfig } from '../tabs/party-committee/party-config-tab.js?v=20261026b';
-import { renderSidebar } from '../../components/shell/sidebar.js?v=20261026b';
-import { renderHeader } from '../../components/shell/header.js?v=20261026b';
-import { mountBranchRosterImport } from '../../components/governance/branch-roster-import-panel.js?v=20261026b';
-import { PersonPicker } from '../../components/governance/pickers.js?v=20261026b';
-import { escHtml as esc, showToast, getBasePath } from '../../core/base/utils.js?v=20261026b';
-import { renderSectionHeader } from '../../components/shell/page-frame.js?v=20261026b';
+import { mockDB } from '../../core/domain/domain.js?v=20261028a';
+import { AuthStore } from '../../services/core/auth.js?v=20261028a';
+import { BranchService } from '../../services/core/runtime.js?v=20261028a';
+import { getPersonName } from '../../services/member/person.js?v=20261028a';
+import { getBranchById, renameBranch, setBranchActive } from '../../services/branch/branch.js?v=20261028a';
+import { appointSecretary, listAppointments } from '../../services/branch/appointment.js?v=20261028a';
+import { ApiAdapter } from '../../data/api-adapter.js?v=20261028a';
+import { hydrateDataSource } from '../../data/data-adapter.js?v=20261028a';
+import { mountPartyConfig } from '../tabs/party-committee/party-config-tab.js?v=20261028a';
+import { renderSidebar } from '../../components/shell/sidebar.js?v=20261028a';
+import { renderHeader } from '../../components/shell/header.js?v=20261028a';
+import { mountBranchRosterImport } from '../../components/governance/branch-roster-import-panel.js?v=20261028a';
+import { PersonPicker } from '../../components/governance/pickers.js?v=20261028a';
+import { escHtml as esc, showToast, getBasePath } from '../../core/base/utils.js?v=20261028a';
+import { renderSectionHeader } from '../../components/shell/page-frame.js?v=20261028a';
+import { confirmDanger } from '../../components/ui/modal.js?v=20261028a';
 
 renderSidebar('workspace');
 renderHeader('workspace');
@@ -128,7 +129,7 @@ function renderControls() {
 
   controls.querySelector('#branch-status-action')?.addEventListener('click', async () => {
     const active = branch.status === 'inactive';
-    if (!active && !window.confirm(`确认软停用「${branch.config?.headerTitle || branch.name}」？历史与名册保留，可恢复。`)) return;
+    if (!active && !await confirmDanger({ id: 'branch-deactivate', title: `软停用「${branch.config?.headerTitle || branch.name}」`, bodyHtml: '<p class="text-sm text-gray-700">停用本支部。<br>影响：支部退出启用列表，成员与工作台不再以本支部为当前组织；历史与名册保留。<br>可恢复：可随时重新启用。</p>', confirmLabel: '停用' })) return;
     try {
       await setBranchActive(branchId, active);
       showToast('success', active ? '支部已恢复' : '支部已停用');
@@ -142,7 +143,7 @@ function renderControls() {
     if (!personId) { showToast('error', '请选择新任支书'); return; }
     if (personId === branch.secretaryId) { showToast('info', '所选成员已经是现任支书'); return; }
     const name = getPersonName(personId) || personId;
-    if (!window.confirm(`确认任命 ${name} 为「${branch.config?.headerTitle || branch.name}」支书？现任支书将降回成员。`)) return;
+    if (!await confirmDanger({ id: 'branch-appoint-secretary', title: `任命 ${name} 为支书`, bodyHtml: `<p class="text-sm text-gray-700">把本支部书记换成 ${esc(name)}。<br>影响：${esc(name)} 即获支书权限；现任支书降回成员，相关待办与权限随之转移。<br>可恢复：可再次任命换回（每次任命都记入任期留痕）。</p>`, confirmLabel: '任命' })) return;
     try {
       await appointSecretary({ branchId, personId, note: controls.querySelector('#branch-appointment-note')?.value.trim() || '' });
       showToast('success', `已任命 ${name}，任期记录已更新`);

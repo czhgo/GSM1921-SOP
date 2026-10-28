@@ -136,8 +136,8 @@ dynamic_role:
 
 | 文件路径 | last_updated | 移入归档日 | 角色 | 备注 |
 |---------|-------------|--------|------|------|
-| content/04_web_design/design-system/DESIGN_SYSTEM.md | 2026-10-27 | — | [工程师]+[AI] | **（批次 236：沿革已整段迁出**——本行的逐批沿革（4192 字）见 `.ctx/logs/archive/2026-09-EXECUTION_LOG.md`「附：TIMESTAMPS 备注列迁出的逐批沿革（批次 236）」；本列只写**现状 / 边界 / 为什么**）** 现状：SD-1…SD-52。 |
-| content/04_web_design/design-system/CASES.md | 2026-10-27 | — | [工程师]+[AI] | 设计＋数据域判例库：CASE-DESIGN-026 / 027、CASE-DESIGN-020…025、CASE-DATA-001。 |
+| content/04_web_design/design-system/DESIGN_SYSTEM.md | 2026-10-28 | — | [工程师]+[AI] | **（批次 236：沿革已整段迁出**——本行的逐批沿革（4192 字）见 `.ctx/logs/archive/2026-09-EXECUTION_LOG.md`「附：TIMESTAMPS 备注列迁出的逐批沿革（批次 236）」；本列只写**现状 / 边界 / 为什么**）** 现状：SD-1…SD-54。 |
+| content/04_web_design/design-system/CASES.md | 2026-10-28 | — | [工程师]+[AI] | 设计＋数据域判例库：CASE-DESIGN-020…029、CASE-DATA-001。 |
 | content/04_web_design/design-system/COLOR_SYSTEM.md | 2026-09-24 | — | [工程师]+[AI] | 🗑️ **已删除**：正文**整体并入** `content/04_web_design/design-system/DESIGN_SYSTEM.md` 的 **§二 色彩系统**〔编号 2.1–2.8 一字未改〕⇒ **四份 → 一份**。（原：自 DESIGN_SYSTEM 拆分的 §二：色盘 / 主色 / 辅助色 / 中性色 / 功能色 / 表面色 / 配色规则。）沿革见 `.ctx/logs/`。 |
 | content/04_web_design/design-system/COMPONENT_SPEC.md | 2026-09-24 | — | [工程师]+[AI] | 🗑️ **已删除**（**2026-09-24 批次 172**：正文**整体并入** `content/04_web_design/design-system/DESIGN_SYSTEM.md` 的 **§四 组件规范**〔编号 **4.1–4.17 一字未改**〕；`D-638`）（原：组件规范——自 DESIGN_SYSTEM 拆分 §四：按钮 / 卡片 / 输入 / 侧边栏 / 导航 / 日历图例 / 数据展示 / 图标 / 选人 / 状态徽章；2026-09-20 批次 110 改准「待初阅队列」现状句） |
 | content/04_web_design/module/ABOUT_PAGE_DESIGN.md | 2026-10-05 | — | [工程师]+[AI] | About 页面设计系统（超参数设定原则 / 防风格疲劳 / 无竖线红线；无人称文体）。**边界**：入口路径以 `docs/src/entries/pages/about-entry.js` 为准。沿革见 `.ctx/logs/`。 |
@@ -245,8 +245,8 @@ dynamic_role:
 | server/test/hover-state-guard.test.mjs | 2026-10-23 | — | [工程师]+[AI] | 交互三态守卫。 |
 | content/05_ai_coding/REVIEW_QUESTION_SET.md | 2026-10-28 | — | [工程师]+[AI] | 审查问题集。 |
 | content/05_ai_coding/QUESTION_HIT_MATRIX.md | 2026-10-25 | — | [工程师]+[AI] | 历史命中矩阵。 |
-| content/05_ai_coding/GUARD_INVENTORY.md | 2026-10-28 | — | [工程师]+[AI] | 守卫台账；批次 516 归并 17→4 件，现行 64 件 / 527 条。 |
-| content/03_doc_system/CASES_INDEX.md | 2026-10-27 | — | [工程师]+[AI] | 判例总索引（design 27 / data 1 / ai 6）。 |
+| content/05_ai_coding/GUARD_INVENTORY.md | 2026-10-28 | — | [工程师]+[AI] | 守卫台账；批次 516 归并 17→4 件，现行 64 件 / 527 条（＋4）。 |
+| content/03_doc_system/CASES_INDEX.md | 2026-10-28 | — | [工程师]+[AI] | 判例总索引（design 29 / data 1 / ai 6）。 |
 | server/test/docs-governance-guard.test.mjs | 2026-10-24 | — | [工程师]+[AI] | 文档治理守卫。 |
 | .ctx/README.md | 2026-10-27 | — | [工程师]+[AI] | 五桶说明。 |
 | server/test/link-color-guard.test.mjs | 2026-10-23 | — | [工程师]+[AI] | 链接色守卫。 |
@@ -261,9 +261,9 @@ dynamic_role:
 | server/test/probe*.mjs | — | — | — | 🗑️ 已删除（T-280 B1 临时探针，定位完成清理） |
 | server/README.md | 2026-10-16 | — | [工程师]+[AI] | 后端安装 / 启动 / 测试 / 部署对接说明，含测试耗时台账与 DOM 基线两张实测表；对外接口以 `README-server.md` 为准。 |
 | server/test/perf-guard.test.mjs | 2026-10-27 | — | [工程师]+[AI] | 性能守卫归并件（渲染预算 / 待办聚合缓存 / 版本令牌 / 索引等价，22 条）。 |
-| server/test/copy-guard.test.mjs | 2026-10-27 | — | [工程师]+[AI] | 文案守卫归并件（折叠 / 长度 / 母本 / 自明性，14 条）。 |
+| server/test/copy-guard.test.mjs | 2026-10-28 | — | [工程师]+[AI] | 文案守卫归并件（折叠 / 长度 / 母本 / 自明性 / 卡头副题，16 条）。 |
 | server/test/type-scale-guard.test.mjs | 2026-10-27 | — | [工程师]+[AI] | 字号守卫归并件（小字 / 段落档 / 表格字号 / 控件字号，15 条）。 |
-| server/test/modal-guard.test.mjs | 2026-10-27 | — | [工程师]+[AI] | 弹层守卫归并件（契约 / ESC / 表单体例，22 条）。 |
+| server/test/modal-guard.test.mjs | 2026-10-28 | — | [工程师]+[AI] | 弹层守卫归并件（契约 / ESC / 表单体例 / 危险确认面，20 条）。 |
 | server/package.json | 2026-10-18 | — | [工程师]+[AI] | 依赖 better-sqlite3 ^12.0.0 · express ^4.19.0 · multer ^1.4.5-lts.1 · nodemailer ^9.0.6 · playwright 1.60.0。**测试档位**：`test`＝分片·`test:full`／`test:precommit`＝全量·`test:daily`＝S 类日常档（含工作台标杆结构、档案、工作组、考勤/报名、周期归档、议题、授权审计、上报隔离与姓名隐私回归）·`test:fast`／`test:core`＝快速子集。**边界**：脚本为 Windows 专有语法（`set X=1&&`）。 |
 | server/package-lock.json | 2026-08-30 | — | [工具] | 依赖锁文件 |
 | server/.gitignore | 2026-09-01 | — | [工具] | 忽略 data.db/uploads 等运行时产物 |

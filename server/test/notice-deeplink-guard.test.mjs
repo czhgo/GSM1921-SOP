@@ -24,7 +24,7 @@ import assert from 'node:assert/strict';
 import { readFileSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
 
-import { buildSystemNotice, SYSTEM_NOTICE_KIND_NAMES } from '../../docs/src/core/domain/system-notice-templates.js?v=20261026b';
+import { buildSystemNotice, SYSTEM_NOTICE_KIND_NAMES } from '../../docs/src/core/domain/system-notice-templates.js?v=20261028a';
 
 const ROOT = join(import.meta.dirname, '..', '..');
 const read = (...parts) => readFileSync(join(ROOT, ...parts), 'utf8');

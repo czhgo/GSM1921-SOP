@@ -825,7 +825,6 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/DOC
 
 | ID | 事项 | 引用流程 | 修改对象 | 状态 |
 | --- | --- | --- | --- | --- |
-| T-903 | 完成工作台标签结构盘点与重点页证据审校；收束已确认的信息结构、能力包治理字段和文案改进 | H20.2 + H25 + DESIGN_SYSTEM + 最小三成本 | `.ctx/logs/archive/2026-10/WORKBENCH_67_TAB_AUDIT_DRAFT.md`、`README-server.md`、相关工作台实现 | 进行中（仅余三项：form-loop 真机写链红——组长考勤前置数据 / 向导任选 / pc-review 前置；按钮族内尺寸工具类存量 491 处为只降不升基线） |
 
 ## 批次 500 收尾与后续批次（2026-10-21）
 
@@ -840,7 +839,7 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/DOC
 | B-500-6 | 任命通用 CRUD 收口：`PATCH /branches/:id` 仍可直改 `secretaryId`（`resources/index.js:532,684`，门只到 party-staff）、`POST /appointmentRecords` 仍开放（`store.js:34`、`api-adapter.js:833-838`） | `server/routes/resources/index.js` + `semantic-routes.js` | 待启动 |
 | B-500-7 | 待办派生的下一步：把通知 / 生命周期派生迁到服务端，客户端只读（Plan B；现状仍在 `services/governance/todo.js:1275,1373`） | `todo.js` + `H32` | 后续（当前 Plan A 已止血） |
 | B-502-5 | 账号重命名后的边界：旧 token 仍有效（`server/routes/member.js:353` 只改 `sessions.person_id`）、旧 `person.html?id=旧学号` 与收藏外链会 404（`legacy-person-ids.js` 只映射 `p*`） | `server/routes/member.js` + `person-entry.js` | 后续（需支书定是否做旧链接跳转） |
-| B-503-5 | 待支书裁定两项：① 首页 hero 48px 党徽 vs §4.25（`docs/index.html:42`）② 支书台「反馈管理」是否改名（`capabilities/secretary-workspace.js:86`） | `DESIGN_SYSTEM.md` §4.25、`index.html`、`secretary-workspace.js` | 待裁 |
+| B-503-5 | 待支书裁定一项：支书台「反馈管理」是否改名（`capabilities/secretary-workspace.js:86`）。首页 hero 48px 党徽已于批次 517 按 `DESIGN_SYSTEM §4.25` 规则 4 写为「两态豁免」并落地（登录有待办时降为辅助信息），不再待裁 | `secretary-workspace.js` + `DESIGN_SYSTEM.md §4.25` | 待裁 |
 | B-516-1 | P3 余项核销（机扫 44 条）：**已消 31 / 仍能命中 12 / 无法机判 1**。未消待人工复核：`P3-08` · `R7-07` `R7-12` `R7-13` `R7-23` `R7-24` `R7-25` `R7-26` `R7-31` `R7-32` `R7-35` `R7-36`（含 `manager` / `当前登录人` 等泛词，可能是误判）；无法机判：`R7-08` | `.ctx/logs/archive/2026-10/2026-10-AUDIT_R6_FRONTEND.md`、`…-AUDIT_R7_DATA.md` | 部分核销（12 条待人工复核） |
 
 ## 批次 515–516 收尾与后续（2026-10-27）
@@ -851,7 +850,7 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/DOC
 | ID | 事项（人话） | 引用流程 | 状态 |
 | --- | --- | --- | --- |
 | B-515-5 | 内容侧遗留：`text-xs` 存量 1971 处 / 130 文件（只迁非标签用途、上限 50 处/批）· `form-loop-sweep` 409 排除口径收紧（须带「后续成功重试」证据，改后先单跑该文件） | `GUARD_INVENTORY.md` ＋ `DESIGN_SYSTEM.md` §3.2 | 待启动（本轮只加 tint 回退） |
-| B-515-6 | 两 spec 归档前的未勾项已分流：**真缺陷 4 条**（组长活动创建 snapshot 403 / 组长考勤应到名单冻结 403 / 向导 `#wz-create-appoint` 选择器漂移与「首任支书」校验 / `pc-review-reject-note` 缺稳定待批复前置）＋ **复跑 1 项**（`leader-write-activity-save`、`leader-attendance-upload-submit`、`org-taskforce-recruit-publish`）＋ **precommit e2e 9 条**（e2e-B `A5` / `S3` / `secretary-todo-reject-reason` / `org-roster-member-add-save`；e2e-A 核心闭环、`B3-1`、党委配置向导、判据A、判据D）。**验证 / 提交类 Task（18、24、30）视为已随批次 500 收口，不再挂账**；原 spec 指向的 `B-500-10` 不存在，由本条跟踪。 | `.ctx/logs/archive/2026-10/specs/repair-workbench-blockers-and-findings/tasks.md`、`…/close-special-projects-batch-500/tasks.md` | 待启动 |
+| B-515-6 | 两 spec 归档前的未勾项已分流：**真缺陷 4 条**（组长活动创建 snapshot 403 / 组长考勤应到名单冻结 403 / 向导 `#wz-create-appoint` 选择器漂移与「首任支书」校验 / `pc-review-reject-note` 缺稳定待批复前置）＋ **复跑 1 项**（`leader-write-activity-save`、`leader-attendance-upload-submit`、`org-taskforce-recruit-publish`）＋ **precommit e2e 9 条**（e2e-B `A5` / `S3` / `secretary-todo-reject-reason` / `org-roster-member-add-save`；e2e-A 核心闭环、`B3-1`、党委配置向导、判据A、判据D）。**验证 / 提交类 Task（18、24、30）视为已随批次 500 收口，不再挂账**；原 spec 指向的 `B-500-10` 不存在，由本条跟踪；原 `T-903` 的三项真机写链红（组长考勤前置数据 / 向导任选 / pc-review 前置）已并入本条 | `.ctx/logs/archive/2026-10/specs/repair-workbench-blockers-and-findings/tasks.md`、`…/close-special-projects-batch-500/tasks.md` | 待启动 |
 | B-515-3 | content 重复表达收口：索引 / 判例类文件把重复句改为篇名指针（规范正文内部重复不动，边界见 `DOC_MAP` §七）；实测口径 `一改具改` 68 处 / 17 文件、`单一源` 160 处 / 19 文件（仅 `content/`） | `DOC_MAP.md` §七 ＋ `H30.1` | 待启动（批次 516 只建了权威句位置表，未逐条改句） |
 
 ***

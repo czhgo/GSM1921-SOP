@@ -5,7 +5,7 @@
 //  设计原则：点击按钮→弹出浮窗→在浮窗中完成写入→关闭浮窗
 //  页面保持清爽，所有表单/编辑器都在浮窗中完成
 
-import { escHtml, describeWriteError } from '../../core/base/utils.js?v=20261026b';
+import { escHtml, describeWriteError } from '../../core/base/utils.js?v=20261028a';
 
 // 2026-09-13 修复（成员档案模态走查暴露）：Esc 监听原只在「按 Esc 关闭」这一条路径上注销，
 // 走遮罩点击/关闭按钮/程序化 closeModal 关闭时监听残留 → 反复打开同一 id 浮窗会累积 keydown
@@ -719,10 +719,11 @@ function _nudgeEsc(s) {
  * @param {string} o.bodyHtml 正文 HTML（按钮行由本函数追加）
  * @param {string} [o.confirmLabel] 主按钮文案（缺省「仍由我继续」）
  * @param {string} [o.cancelLabel] 次按钮文案（缺省「取消」）
+ * @param {boolean} [o.danger=false] 危险动作：主按钮走 `.btn-danger-solid`（只给确认弹窗）
  * @param {(panel:HTMLElement)=>void} [o.onPanel] 拿到面板后的锚定回调（如写 `dataset.nudgeKey`）
  * @returns {Promise<boolean>}
  */
-function _mustPressConfirm({ id, title, bodyHtml, confirmLabel = '仍由我继续', cancelLabel = '取消', onPanel }) {
+function _mustPressConfirm({ id, title, bodyHtml, confirmLabel = '仍由我继续', cancelLabel = '取消', danger = false, onPanel }) {
   return new Promise((resolve) => {
     let settled = false;
     const finish = (ok) => {
@@ -731,6 +732,11 @@ function _mustPressConfirm({ id, title, bodyHtml, confirmLabel = '仍由我继�
       closeModal(id);
       resolve(ok);
     };
+    const cancelBtnHtml = `<button type="button" data-nudge-cancel class="btn-outline text-xs px-3 py-1.5" style="cursor:pointer;">${_nudgeEsc(cancelLabel)}</button>`;
+    // 两族各自写全（不在 class 里做三元）：按钮族守卫按字面 class 归族，动态拼接会被判「未入语义族」
+    const confirmBtnHtml = danger
+      ? `<button type="button" data-nudge-confirm class="btn-danger-solid font-medium">${_nudgeEsc(confirmLabel)}</button>`
+      : `<button type="button" data-nudge-confirm class="btn-accent font-medium">${_nudgeEsc(confirmLabel)}</button>`;
     const panel = openModal({
       id,
       title,
@@ -738,15 +744,40 @@ function _mustPressConfirm({ id, title, bodyHtml, confirmLabel = '仍由我继�
       dismissable: false,
       bodyHtml,
       // 动作行同样走 sticky footer（统一体例；nudge 只是不允许「非按钮」关闭）
-      footerHtml: `
-          <button type="button" data-nudge-cancel class="btn-outline text-xs px-3 py-1.5" style="cursor:pointer;">${_nudgeEsc(cancelLabel)}</button>
-          <button type="button" data-nudge-confirm class="btn-accent text-sm px-4 py-1.5 font-medium">${_nudgeEsc(confirmLabel)}</button>`,
+      footerHtml: `${cancelBtnHtml}${confirmBtnHtml}`,
       onMount: (p) => {
         p.querySelector('[data-nudge-confirm]')?.addEventListener('click', () => finish(true));
         p.querySelector('[data-nudge-cancel]')?.addEventListener('click', () => finish(false));
       },
     });
     onPanel?.(panel);
+  });
+}
+
+/**
+ * 危险动作确认面（2026-10-28 美学专项 Task 6 · SD-53）：替代原生 `confirm(` 的**唯一**入口。
+ * 危险动作必须离开正文流、进入确认面；`bodyHtml` 须能回答三段——
+ *   ① 做什么（标题已给一行动词，正文可复述对象）
+ *   ② 影响范围（哪些行 / 人 / 记录会变）
+ *   ③ 可否恢复（可恢复写撤销路径；删除 / 解散一律明写「不可恢复」）
+ * 机制复用 `_mustPressConfirm`（不新增第二套弹窗组件）：必须点按钮才能关，
+ * 焦点先落在「取消」、主按钮走 `.btn-danger-solid`（危险确认专用）。
+ * @param {Object} o
+ * @param {string} o.id 语义 id（渲染为 `#modal-overlay-danger-<id>`，测试可定位）
+ * @param {string} o.title 标题＝做什么（一行动词）
+ * @param {string} o.bodyHtml 影响范围 + 可否恢复（HTML）
+ * @param {string} [o.confirmLabel='确认'] 主按钮文案（动词化，如「删除」「撤销并删除」）
+ * @param {string} [o.cancelLabel='取消'] 次按钮文案
+ * @returns {Promise<boolean>} true＝用户确认；false＝取消
+ */
+export function confirmDanger({ id, title, bodyHtml, confirmLabel = '确认', cancelLabel = '取消' }) {
+  return _mustPressConfirm({
+    id: `danger-${id}`,
+    title,
+    bodyHtml,
+    confirmLabel,
+    cancelLabel,
+    danger: true,
   });
 }
 

@@ -168,8 +168,13 @@ export const DAILY_FILE_BUDGET = 226;
   *  2026-10-27 批次 515（mock ↔ API 最小守卫）：mock-api-parity-structure 增补 S4
   *    （两适配器资源组 / 方法集合双向比对 + 白名单理由，1 条；未新增守卫文件）
   *  2026-10-27 批次 516：version-stamp 增 S8/S9（交付形态：modulepreload 同戳 / CDN 锁版本 / 缓存分流 / gzip，2 条）
-  *    ⇒ 1632 + 2 = 1634；同批守卫归并（17 件 → 4 件）只动文件预算、不动断言预算。 */
-export const DAILY_TEST_BUDGET = 1634;
+ *    ⇒ 1632 + 2 = 1634；同批守卫归并（17 件 → 4 件）只动文件预算、不动断言预算。
+ *  2026-10-28 美学专项 Task 7（规范与守卫收口）：copy-guard 增 S1/S2（卡头副题只写范围 + 约束 ·
+ *    SD-54，2 条）＋ modal-guard 增 D1/D2（原生 confirm 清零 / confirmDanger 三段式入口 · SD-53，2 条）
+ *    ⇒ 1634 + 4 = 1638。
+ *  2026-10-28 美学专项 Task 5.4（首页 hero 豁免降级）：ui-home-hero 增 E8（登录且有待办写
+ *    data-hero="muted" · 党徽 24px / 标题 --text-xl 左对齐，含反例，1 条）⇒ 1638 + 1 = 1639。 */
+export const DAILY_TEST_BUDGET = 1639;
 
 const group = (tier, reason, list) => list.map((file) => ({ file, tier, reason }));
 

@@ -15,27 +15,27 @@
 //   登记者角色门 = canRegisterFlow（组织委员 + 支书/副支书）。
 // ════════════════════════════════════════════════════════════════
 
-import { DEFAULT_BRANCH_ID, DEVELOP_STAGES } from '../../../core/domain/constants.js?v=20261026b';
-import { AuthStore, currentUserId } from '../../../services/core/auth.js?v=20261026b';
-import { getBranchIdOfPerson } from '../../../services/branch/branch.js?v=20261026b';
-import { getPersonName } from '../../../services/member/person.js?v=20261026b';
+import { DEFAULT_BRANCH_ID, DEVELOP_STAGES } from '../../../core/domain/constants.js?v=20261028a';
+import { AuthStore, currentUserId } from '../../../services/core/auth.js?v=20261028a';
+import { getBranchIdOfPerson } from '../../../services/branch/branch.js?v=20261028a';
+import { getPersonName } from '../../../services/member/person.js?v=20261028a';
 // 党小组常态清单唯一来源（活组、按 seq 升序；新增/改名/解散后随渲染即时可见）——登记流入的「党小组」选项
-import { groupOptions } from '../../../services/member/party-group.js?v=20261026b';
-import { showToast, escHtml as esc, getBasePath, todayLocal } from '../../../core/base/utils.js?v=20261026b';
-import { getAuthToken, getApiBaseUrl } from '../../../data/data-adapter.js?v=20261026b';
-import { openModal, closeModal } from '../../../components/ui/modal.js?v=20261026b';
+import { groupOptions } from '../../../services/member/party-group.js?v=20261028a';
+import { showToast, escHtml as esc, getBasePath, todayLocal } from '../../../core/base/utils.js?v=20261028a';
+import { getAuthToken, getApiBaseUrl } from '../../../data/data-adapter.js?v=20261028a';
+import { openModal, closeModal } from '../../../components/ui/modal.js?v=20261028a';
 // 统一检索引擎（表格统一化批次 A）：台账表接入关键词 + 分面（≤8 行引擎自动不渲染检索条）
-import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261026b';
-import { renderTabHeader, renderCardHeader } from '../../../components/shell/page-frame.js?v=20261026b';
+import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261028a';
+import { renderTabHeader, renderCardHeader } from '../../../components/shell/page-frame.js?v=20261028a';
 // 成员流入/流出登记服务层（2026-09-14 批次 25 支书裁定）：登记即生效 + 台账 + 对账 + 撤销
 import {
   loadMemberFlows, reconcile, registerIntake, registerIntakeBatch,
   registerOutflow, revokeFlow, canRegisterFlow,
-} from '../../../services/member/member-flow.js?v=20261026b';
+} from '../../../services/member/member-flow.js?v=20261028a';
 // 选人规范：凡选择具体人一律 PersonPicker（禁 select 罗列人名）——登记流出选人
-import { PersonPicker } from '../../../components/governance/pickers.js?v=20261026b';
+import { PersonPicker } from '../../../components/governance/pickers.js?v=20261028a';
 // 自定义圆角下拉增强（select.input-flat.text-xs → cs-trigger；与全局 observer 幂等）
-import { enhanceSelects } from '../../../components/ui/custom-select.js?v=20261026b';
+import { enhanceSelects } from '../../../components/ui/custom-select.js?v=20261028a';
 
 // 模块级 ctx 缓存：登记/撤销后整页刷新复用首次渲染的 accent
 let _ctx = null;
@@ -416,7 +416,7 @@ function _openOutflowModal() {
     title: '登记流出',
     accentColor: accent,
     bodyHtml: `
-      <p class="text-xs text-gray-500 mb-2">选择流出人员（可多选）。移出后账号停用，原考勤与考察历史保留。</p>
+      <p class="text-xs text-gray-500 mb-2">选择流出人员（可多选）。移出后账号停用，原考勤与考察历史保留；登记即生效，可在「成员流动」撤销纠正。</p>
       <div id="flow-outflow-picker" class="mb-3"></div>
       <div style="margin-bottom:14px;">
         <label class="text-body-sm" style="${labelStyle}">流出日期</label>
@@ -486,7 +486,7 @@ function _askRevoke(flowId) {
       <p class="text-sm text-gray-700 mb-2">确认撤销「${esc(who)}」的这条${inDir ? '流入' : '流出'}记录？</p>
       <p class="text-xs text-gray-500 mb-4">撤销保留台账留痕（该行标注「已撤销」），并回滚成员在册状态与账号：${inDir
         ? '撤销流入 → 该成员移出名册、账号停用'
-        : '撤销流出 → 该成员恢复在册、账号恢复'}。</p>`,
+        : '撤销流出 → 该成员恢复在册、账号恢复'}。可恢复：撤销后如需回到原状，只能重新登记一次流入 / 流出（每次登记都会留痕）。</p>`,
     // 动作固定在 sticky footer（R3-10）
     footerHtml: `
       <button type="button" data-flow-revoke-cancel class="btn-outline text-sm px-4 py-1.5" style="cursor:pointer;">取消</button>

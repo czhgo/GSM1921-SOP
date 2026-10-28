@@ -1,6 +1,7 @@
 // role: [工程师]+[AI]
 // copy-guard.test.mjs — 守卫归并件（2026-10-27 批次 516 · B-515-2）
 // 归并来源：copy-fold-guard.test.mjs · copy-length-guard.test.mjs · copy-master-guard.test.mjs · self-evident-copy-guard.test.mjs
+// 2026-10-28 美学专项 Task 7：新增源件 5「卡头副题不承载操作指令」（SD-54 · S1/S2）。
 // 纪律：只减文件数、不减断言数。每个源件包在独立 async 块作用域里（imports 转动态导入），
 //   同名 helper / 常量互不冲突；失败信息仍保留各源件的横幅与断言名，便于定位。
 // 运行：node --test server/test/copy-guard.test.mjs
@@ -1074,6 +1075,140 @@ await (async () => {
     const planted = `const x = '这里你只会看到与本区相关的内容，无需调试器即可自查';`;
     const hits = _scan(planted);
     assert.ok(hits.length >= 2, `匹配器坏了（植入样本只命中 ${hits.length} 条）`);
+  });
+
+})();
+
+// ═══ 源件 5：卡头副题不承载操作指令（SD-54 · 2026-10-28 美学专项 Task 7）═══
+await (async () => {
+  const { test } = await import('node:test');
+  const assert = (await import('node:assert/strict')).default;
+  const { readFileSync, readdirSync } = await import('node:fs');
+  const { join, relative, dirname } = await import('node:path');
+  const { fileURLToPath } = await import('node:url');
+
+  // role: [工程师]+[AI]
+  // 卡头副题守卫（2026-10-28 美学专项 Task 7 · SD-54；并入 copy-guard）
+  //
+  // 判据原文（DESIGN_SYSTEM §12.15 SD-54）：
+  //   「卡头副题只写『范围 + 约束』；不得出现操作指令（点击…查看 / 点上方 / 点右上角 / 下一步：）」
+  //
+  // 判红面为什么收成「副题本体」而不是「整份文件」：SD-54 管的是**第二行的承载分工**——
+  //   卡头第二行是信息位，不得改成「怎么点」的说明。空态 / 错误态文案（`下一步：…`）属 §4.18 C6，
+  //   不在本条；故口径取两类**副题声明**：
+  //     ① `renderCardHeader({ … meta: … })` 的 `meta`（卡头副题单一源，`components/shell/page-frame.js`）；
+  //     ② `<h3>…</h3>` 紧跟的 `text-xs` 副题 span（手写卡头，如 `taskforce-view` 的「全支部 · 只读」）。
+  //   运行时用 `textContent` 覆写某个 span 的分支不定义副题单一源，不入口径（判据只管声明处）。
+  //
+  // 判红 / 判据：
+  //   S1 副题命中操作指令 ⇒ 红（`点击[^，。]{0,8}查看` / `点上方` / `点右上角` / `下一步：`）
+  //   S2 非空转：① 两类副题都能抽出（含 `renderCardHeader` 多行调用）② 反例「点击卡片查看详情」必须命中
+  //              ③ 负例「全支部 · 只读」不得命中 ④ 副题数 ≥ 下限（抽取口径失效即红）
+  // 运行：node --test server/test/copy-guard.test.mjs
+
+  const HERE = dirname(fileURLToPath(import.meta.url));
+  const ROOT = join(HERE, '..', '..');
+  const SRC = join(ROOT, 'docs', 'src');
+
+  /** 本轮判红面（DESIGN_SYSTEM §12.15 SD-54）：四份 record 组件 ＋ entries/tabs/** */
+  const RECORD_FILES = ['activity-view', 'workgroup-view', 'taskforce-view', 'inspector']
+    .map((n) => join(SRC, 'components', 'record', `${n}.js`));
+
+  /** 副题里不得出现的操作指令（SD-54 原文四式） */
+  const BANNED_RE = /点击[^，。]{0,8}查看|点上方|点右上角|下一步：/;
+
+  /** 副题数下限（实测 25 条；低于此值说明抽取口径失效 ⇒ S1 会恒真） */
+  const SUBTITLE_FLOOR = 15;
+
+  function walkJs(dir, out = []) {
+    for (const e of readdirSync(dir, { withFileTypes: true })) {
+      const p = join(dir, e.name);
+      if (e.isDirectory()) walkJs(p, out);
+      else if (e.name.endsWith('.js')) out.push(p);
+    }
+    return out;
+  }
+
+  /** 截取 `renderCardHeader(` 起的整个调用（括号配平；跳过字符串 / 模板串） */
+  function callText(src, start) {
+    let depth = 0;
+    let quote = null;
+    const open = src.indexOf('(', start);
+    for (let k = open; k < src.length; k += 1) {
+      const c = src[k];
+      if (quote) {
+        if (c === '\\') { k += 1; continue; }
+        if (c === quote) quote = null;
+        continue;
+      }
+      if (c === '`' || c === "'" || c === '"') { quote = c; continue; }
+      if (c === '(') depth += 1;
+      else if (c === ')') { depth -= 1; if (!depth) return src.slice(start, k + 1); }
+    }
+    return src.slice(start);
+  }
+
+  /** 取调用里的 `meta:` 字面量（引号 / 模板串；表达式形式的 meta 不判） */
+  function metaOf(call) {
+    const m = /meta\s*:\s*/.exec(call);
+    if (!m) return null;
+    const vs = m.index + m[0].length;
+    const q = call[vs];
+    if (!['`', "'", '"'].includes(q)) return null;
+    let k = vs + 1;
+    while (k < call.length && call[k] !== q) {
+      if (call[k] === '\\') { k += 2; continue; }
+      k += 1;
+    }
+    return call.slice(vs + 1, k);
+  }
+
+  /** 手写卡头：`<h3>…</h3>` 紧跟的 `text-xs` 副题 span */
+  const HAND_SPAN_RE = /<h3\b[^>]*>[\s\S]*?<\/h3>\s*<span\b[^>]*class="[^"]*text-xs[^"]*"[^>]*>([\s\S]*?)<\/span>/g;
+
+  /** 去插值 / 去标签 / 去空白 ⇒ 副题的可见文本 */
+  const flat = (s) => String(s).replace(/\$\{[^{}]*\}/g, ' ').replace(/<[^>]*>/g, ' ')
+    .replace(/[\s\u3000]+/g, '');
+
+  /** 一份源码里的全部副题声明 */
+  function subtitlesOf(src) {
+    const out = [];
+    for (let i = src.indexOf('renderCardHeader('); i !== -1; i = src.indexOf('renderCardHeader(', i + 1)) {
+      const m = metaOf(callText(src, i));
+      if (m !== null) out.push({ kind: 'meta', text: flat(m) });
+    }
+    for (const m of src.matchAll(HAND_SPAN_RE)) out.push({ kind: 'span', text: flat(m[1]) });
+    return out;
+  }
+
+  const FILES = [...RECORD_FILES, ...walkJs(join(SRC, 'entries', 'tabs'))].sort();
+  const SUBS = FILES.flatMap((abs) => subtitlesOf(readFileSync(abs, 'utf8'))
+    .map((s) => ({ file: relative(ROOT, abs).replace(/\\/g, '/'), ...s })));
+
+  test(`S1 卡头副题只写「范围 + 约束」：操作指令命中数为 0（实测 ${SUBS.length} 条副题）`, () => {
+    const offenders = SUBS.filter((s) => BANNED_RE.test(s.text))
+      .map((s) => `${s.file} → 「${s.text}」（${s.kind === 'meta' ? 'renderCardHeader meta' : '手写卡头 span'}）`);
+    assert.deepEqual(offenders, [],
+      `卡头副题出现操作指令（DESIGN_SYSTEM §12.15 SD-54）——第二行只写范围 + 约束，`
+      + `「怎么点」交给行载体自身（hover / 焦点 / 箭头）：\n  ${offenders.join('\n  ')}`);
+  });
+
+  test(`S2 非空转：副题抽取口径可用（反例命中 / 负例不命中）+ 副题数 ≥ ${SUBTITLE_FLOOR}`, () => {
+    // ① 两类副题都能抽出（含多行调用）
+    assert.deepEqual(subtitlesOf("renderCardHeader({ title: '活动工作组', meta: '本支部 · 只读' })")
+      .map((s) => s.text), ['本支部·只读'], '抽取口径失效：renderCardHeader 的 meta 没被抽出（守卫会恒真）');
+    assert.deepEqual(subtitlesOf("<h3>专班查看</h3>\n          <span class=\"text-xs text-gray-500\">全支部 · 只读</span>")
+      .map((s) => s.text), ['全支部·只读'], '抽取口径失效：手写卡头副题 span 没被抽出');
+    // ② 反例：操作指令必须被判命中
+    const planted = "renderCardHeader({ title: '活动清单', meta: '点击卡片查看详情' })";
+    const hit = subtitlesOf(planted).filter((s) => BANNED_RE.test(s.text));
+    assert.equal(hit.length, 1, '反例未命中：含「点击卡片查看详情」的副题必须被判红（匹配器坏了）');
+    // ③ 负例：范围 + 约束不得误伤
+    assert.equal(BANNED_RE.test('全支部·只读'), false, '负例误伤：「全支部 · 只读」属合规副题，不得命中');
+    assert.equal(BANNED_RE.test('在册12·党员9·待办2'), false, '负例误伤：计数型副题不得命中');
+    // ④ 规模下限（防抽取口径失效后 S1 恒真）
+    assert.ok(SUBS.length >= SUBTITLE_FLOOR,
+      `只抽到 ${SUBS.length} 条卡头副题（下限 ${SUBTITLE_FLOOR}）：抽取口径失效 / 判红面被改小`);
   });
 
 })();

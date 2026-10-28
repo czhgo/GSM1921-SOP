@@ -17,7 +17,7 @@
  *   anchorDetailToTrigger(detailEl, triggerEl, { block: 'center', smooth: true });
  */
 
-import { flashHighlight } from '../../core/base/utils.js?v=20261026b';
+import { flashHighlight } from '../../core/base/utils.js?v=20261028a';
 
 /**
  * 先沿父链展开所有折叠的 `<details>`（2026-10-24 批次 508）：

@@ -1,28 +1,28 @@
 // role: [工程师]+[AI]
 // 参考资料板块 — 网站群展示 + 官方文件（党内法规位阶排序）+ 支部文件（支委写入/全员下载）
 
-import { icon } from '../../core/base/icons.js?v=20261026b';
-import { getBasePath, showToast } from '../../core/base/utils.js?v=20261026b';
-import { getAdapter, getDataSource, getAuthToken, getApiBaseUrl } from '../../data/data-adapter.js?v=20261026b';
-import { withSelectedBranchScope } from '../../data/api-adapter.js?v=20261026b';
-import { AuthStore } from '../../services/core/auth.js?v=20261026b';
-import { loadActivities } from '../../services/activity/activity.js?v=20261026b';
-import { PEOPLE } from '../../data/mock/people.js?v=20261026b';
+import { icon } from '../../core/base/icons.js?v=20261028a';
+import { getBasePath, showToast } from '../../core/base/utils.js?v=20261028a';
+import { getAdapter, getDataSource, getAuthToken, getApiBaseUrl } from '../../data/data-adapter.js?v=20261028a';
+import { withSelectedBranchScope } from '../../data/api-adapter.js?v=20261028a';
+import { AuthStore } from '../../services/core/auth.js?v=20261028a';
+import { loadActivities } from '../../services/activity/activity.js?v=20261028a';
+import { PEOPLE } from '../../data/mock/people.js?v=20261028a';
 // 立项⑧（E 批）：支部文件增强——制度文本（版本化 + 现行/停用态 + 网页读正文）纯逻辑服务
 // 2026-09-21 批次 129：制度链（草案 → 支委会审议 → 现行版 / 退回修改）——草案态与修改口同源于该服务
 import {
   isInstitutionManager, saveDoc, publishNewVersion, setDocStatus,
   updateInstitutionDraft, INSTITUTION_DRAFT, INSTITUTION_PENDING_PARTY_MEETING,
   buildDocVersionsView, renderDocBody, listDocs,
-} from '../../services/branch/branch-doc.js?v=20261026b';
+} from '../../services/branch/branch-doc.js?v=20261028a';
 // 统一检索引擎（2026-09-14 批次 37）：本页三处列表（站点网格 / 官方文件 / 支部文件）各接一个实例
-import { renderFilteredList } from '../ui/list-filter.js?v=20261026b';
-import { openModal, closeModal } from '../ui/modal.js?v=20261026b';
+import { renderFilteredList } from '../ui/list-filter.js?v=20261028a';
+import { openModal, closeModal, confirmDanger } from '../ui/modal.js?v=20261028a';
 // 制度内容（领域）→ 对应【主体】：判据单一源（2026-10-05 批次 378 · `SOP-B-25` 第 ② 项「按草案落地」）
 import {
   INSTITUTION_DOMAINS, INSTITUTION_DOMAIN_LABELS, institutionSubjectOfDomain, ORG_SUBJECT_LABELS,
-} from '../../core/domain/work-map.js?v=20261026b';
-import { ROLE_LABELS } from '../../core/domain/constants.js?v=20261026b';
+} from '../../core/domain/work-map.js?v=20261028a';
+import { ROLE_LABELS } from '../../core/domain/constants.js?v=20261028a';
 
 /** 主体引用 → 显示名（角色键 → 角色名；组织型主体 id → 组织名，如「支委会」） */
 function _subjectLabelOf(subjectId) {
@@ -924,8 +924,8 @@ export class ReferencesModule {
     if (!doc || !_isInstitutionDoc(doc)) return;
     const name = doc.title || '未命名制度';
     const confirmed = status === 'disabled'
-      ? window.confirm(`停用制度《${name}》？\n\n停用后列表不再标注「现行」，历史版本仍可查阅；可随时重新启用。`)
-      : window.confirm(`重新启用制度《${name}》？\n\n启用后该制度恢复为「现行」，全体成员可读。`);
+      ? await confirmDanger({ id: 'institution-disable', title: `停用制度《${name}》`, bodyHtml: `<p class="text-sm text-gray-700">结束该制度的现行效力。<br>影响：列表不再标注「现行」，成员侧不再以现行制度展示；历史版本仍可查阅。<br>可恢复：可随时重新启用。</p>`, confirmLabel: '停用' })
+      : await confirmDanger({ id: 'institution-enable', title: `重新启用制度《${name}》`, bodyHtml: `<p class="text-sm text-gray-700">把该制度恢复为现行。<br>影响：列表重新标注「现行」，全体成员可读。<br>可恢复：可再次停用。</p>`, confirmLabel: '启用' });
     if (!confirmed) return;
 
     const by = ReferencesModule._currentUser ? ReferencesModule._currentUser.personId : null;
@@ -984,7 +984,7 @@ export class ReferencesModule {
       window.alert('制度文本不支持删除：请使用「停用」结束其效力，历史版本仍可查阅。');
       return;
     }
-    if (!window.confirm(`确定删除支部文件「${doc.title || doc.fileName}」吗？删除后不可恢复。`)) return;
+    if (!await confirmDanger({ id: 'branch-doc-delete', title: `删除支部文件「${doc.title || doc.fileName}」`, bodyHtml: '<p class="text-sm text-gray-700">删除这份支部文件。<br>影响：文件从「支部文件」列表移除，成员不再可查。<br><b>不可恢复</b>。</p>', confirmLabel: '删除' })) return;
     try {
       await getAdapter().branchDocs.delete(id);
       ReferencesModule._branchDocs = ReferencesModule._branchDocs.filter(d => d.id !== id);

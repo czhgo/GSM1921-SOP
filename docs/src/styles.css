@@ -1,5 +1,5 @@
 /* 组件样式（@import 必须位于文件顶部） */
-@import url('components/person-picker.css?v=20261026b');
+@import url('components/person-picker.css?v=20261028a');
 
 /* ═══════════════════════════════════════════════════════════════
    GSM1921-SOP DESIGN SYSTEM v11.0 — Matte Flat
@@ -2404,6 +2404,17 @@ a.text-accent {
   transform: scaleX(-1);
 }
 
+/* 「我的档案」侧栏页脚入口（2026-10-28）：顶栏 #header-my-profile 在 ≤640 收起，
+   390 下由本项承担；桌面隐藏，避免与顶栏重复出现两个同名入口。 */
+.sidebar-footer-action--mobile-only {
+  display: none;
+}
+@media (max-width: 640px) {
+  .sidebar-footer-action--mobile-only {
+    display: flex;
+  }
+}
+
 /* 2026-10-23 Task 7：`.accent-swatch` / `.accent-palette` / `.accent-swatch-opt` 整段删除——
    主题选择器已改由 appearance-controls.js 渲染（7 主题 × 两档小样），这些类在全仓无消费方；
    同时移除其中以 `transform: scale()` + `box-shadow` 充当 hover 的旧写法。 */
@@ -2912,6 +2923,31 @@ html.theme-dark .stat-icon-tint {
 .stat-card__note {
   margin-top: var(--space-1);
 }
+
+/* 2026-10-28 美学专项 Task 5.4 · DESIGN_SYSTEM §4.25 规则 4「首页 hero 豁免」：
+   48px 党徽 ＋ 居中标题**只留给**「未登录 / 访客态」与「个人待办为 0」；
+   登录且有待办时由 main-entry.js 写 data-hero="muted"，hero 降为辅助信息——
+   党徽 24px、标题 --text-xl 左对齐、上下留白压一档，组织名仍由顶栏 H1 承担。 */
+.dashboard-hero__emblem {
+  width: 48px;
+  height: 48px;
+}
+#dashboard-hero[data-hero="muted"] {
+  text-align: start;
+  margin-bottom: var(--space-3);
+  padding-block: var(--space-1);
+}
+#dashboard-hero[data-hero="muted"] .dashboard-hero__emblem {
+  width: 24px;
+  height: 24px;
+  margin-inline: 0;
+  margin-bottom: var(--space-2);
+}
+#dashboard-hero[data-hero="muted"] #dashboard-hero-title {
+  font-size: var(--text-xl);
+  text-align: start;
+  margin-bottom: 0;
+}
 @media (min-width: 769px) {
   .cal-mobile-detail {
     display: none !important;
@@ -2947,13 +2983,14 @@ html.theme-dark .stat-icon-tint {
 /* ═══════════════════════════════════════════════════════════════
    COMPONENT: Inspector Card
    ═══════════════════════════════════════════════════════════════ */
+/* 2026-10-28 阶段三（A5 形：平地卡同源）：底 / 1px 描边 / 12px 圆角与 `.card` 取值一致，
+   平地态不再带阴影——阴影只归浮层（--shadow-dropdown 等）。 */
 .inspector-card {
   background-color: var(--surface-card);
   border: 1px solid var(--neutral-200);
   border-radius: var(--radius-md);
   padding: 16px;
   margin-bottom: 12px;
-  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04);
 }
 /* 2026-10-23 Task 7：详情卡是展示卡（无点击行为），删除 hover 变边框的伪可点反馈。 */
 /* Task 6（2026-10-26）：只有真正可点的卡片才给 cursor/hover/焦点环；不可点的卡维持展示语义。 */
@@ -3707,8 +3744,8 @@ input.login-input:focus-visible {
   .header-content {
     gap: 8px;
   }
-  /* 390px 顶栏：动作区宽度不够时先收起「我的档案」（无图标形态，收进更多需另建菜单，
-     本批取最小改动），保证品牌名仍可读。 */
+  /* 390px 顶栏：动作区宽度不够时先收起「我的档案」（改由侧栏页脚同名入口承担，
+     见 .sidebar-footer-action--mobile-only），保证品牌名仍可读。 */
   #header-my-profile {
     display: none !important;
   }
@@ -3748,7 +3785,45 @@ input.login-input:focus-visible {
 
   .inspector-card {
     padding: 10px;
+  }
+
+  /* 2026-10-28 阶段三：3px 左条**只给语义卡**（品牌卡的 --party-gold 左条走内联，见 inspector.js；
+     身份色卡走 .role-theme-*）。普通展示卡保持与 .card 同源的 1px 中性描边，不靠加粗假装层级。 */
+  .inspector-card.role-theme-secretary {
     border-left-width: 3px;
+    border-left-color: var(--color-identity-secretary);
+  }
+  .inspector-card.role-theme-leader {
+    border-left-width: 3px;
+    border-left-color: var(--color-identity-leader);
+  }
+  .inspector-card.role-theme-commissioner {
+    border-left-width: 3px;
+    border-left-color: var(--color-identity-commissioner);
+  }
+  .inspector-card.role-theme-org {
+    border-left-width: 3px;
+    border-left-color: var(--color-identity-org-commissioner);
+  }
+  .inspector-card.role-theme-prop {
+    border-left-width: 3px;
+    border-left-color: var(--color-identity-prop-commissioner);
+  }
+  .inspector-card.role-theme-disc {
+    border-left-width: 3px;
+    border-left-color: var(--color-identity-disc-commissioner);
+  }
+  .inspector-card.role-theme-organizer {
+    border-left-width: 3px;
+    border-left-color: var(--color-identity-organizer);
+  }
+  .inspector-card.role-theme-deep {
+    border-left-width: 3px;
+    border-left-color: var(--color-identity-deep);
+  }
+  .inspector-card.role-theme-participant {
+    border-left-width: 3px;
+    border-left-color: var(--color-identity-participant);
   }
 
   .workflow-panel-card {
@@ -4617,6 +4692,21 @@ html.theme-dark [data-tone="party-red"] { --tone-bg: color-mix(in srgb, var(--co
   color: var(--tone-text, #4B5563);
   border: 1px solid var(--tone-border, #E5E7EB);
   border-radius: var(--radius-sm);
+}
+/* 次行动变体（2026-10-28 阶段三 · A2 主行动唯一）：同一动作条里降权——透明底 + 中性描边 + 中性字，
+   尺寸与形状仍由 `.tint-action` 与调用方决定（不新增按钮族）。语义色（warning / danger）只在
+   hover 时回到 tone 值，保证「危险动作不与主行动同权重」；真正落地前仍由确认面兜底。 */
+.tint-action--secondary {
+  background: transparent;
+  border-color: var(--neutral-200);
+  color: var(--neutral-600);
+}
+@media (hover: hover) {
+  .tint-action--secondary:hover {
+    background: var(--tone-bg, var(--surface-hover));
+    border-color: var(--tone-border, var(--neutral-300));
+    color: var(--tone-text, var(--neutral-700));
+  }
 }
 .tint-text { color: var(--tone-text, #4B5563); }
 /* 参与者待办详情主行动＝党徽金系固定语义（不随主题） */

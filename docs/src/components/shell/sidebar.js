@@ -11,10 +11,10 @@
 // （R1-A 2026-09-09 支书裁决：不写全局键、person 无键=出厂默认不继承；冻结读取点
 // theme-init.js 首帧 / bootstrap.js 字号 / constants.js resolveAccentRole 保持全局键语义不改）。
 
-import { getBasePath } from '../../core/base/utils.js?v=20261026b';
-import { icon } from '../../core/base/icons.js?v=20261026b';
-import { syncAppearanceForActiveUser } from '../../core/boot/theme.js?v=20261026b';
-import { readLoginSnapshot } from '../../core/session/login-snapshot.js?v=20261026b';
+import { getBasePath } from '../../core/base/utils.js?v=20261028a';
+import { icon } from '../../core/base/icons.js?v=20261028a';
+import { syncAppearanceForActiveUser } from '../../core/boot/theme.js?v=20261028a';
+import { readLoginSnapshot } from '../../core/session/login-snapshot.js?v=20261028a';
 
 // 外观键空间适配：页面壳加载即执行（全站每页均渲染 sidebar，天然覆盖公共页/工作台）
 syncAppearanceForActiveUser();
@@ -28,7 +28,7 @@ syncAppearanceForActiveUser();
 let AuthStore = null;
 let _authModule = null;
 function loadAuth() {
-  if (!_authModule) _authModule = import('../../services/core/auth.js?v=20261026b');
+  if (!_authModule) _authModule = import('../../services/core/auth.js?v=20261028a');
   return _authModule;
 }
 
@@ -69,9 +69,9 @@ function getFooterItems() {
   return items;
 }
 
-// footer 图标按模块取（stroke 随 footer 弱化色；设置=齿轮）
+// footer 图标按模块取（stroke 随 footer 弱化色；设置=齿轮，档案=文档）
 function _footerIcon(module) {
-  const name = module === 'help' ? 'book' : module === 'settings' ? 'gear' : 'info';
+  const name = module === 'help' ? 'book' : module === 'settings' ? 'gear' : module === 'profile' ? 'fileText' : 'info';
   return icon(name, { stroke: 'var(--neutral-500)', extra: ' aria-hidden="true"' });
 }
 
@@ -130,8 +130,13 @@ export async function renderSidebar(activeModule, opts = {}) {
   }).join('');
 
   const footerItems = getFooterItems();
+  // 「我的档案」（2026-10-28）：顶栏同名入口在 ≤640 收起（styles.css 的 #header-my-profile），
+  // 390 下改由侧栏页脚承担；该类在桌面 display:none（避免与顶栏重复），≤640 才显示。
+  if (role && role !== 'party-staff') {
+    footerItems.unshift({ module: 'profile', label: '我的档案', href: getBasePath() + 'person.html', mobileOnly: true });
+  }
   const footerHTML = footerItems.map(item => `
-    <a href="${item.href}" data-module="${item.module}" class="sidebar-footer-action">
+    <a href="${item.href}" data-module="${item.module}" class="sidebar-footer-action${item.mobileOnly ? ' sidebar-footer-action--mobile-only' : ''}">
       ${_footerIcon(item.module)}
       <span>${item.label}</span>
     </a>
@@ -174,7 +179,7 @@ async function _refreshMessageBadge() {
   const badge = document.getElementById('sidebar-message-badge');
   if (!badge) return;
   try {
-    const { NoticeStore } = await import('../../services/governance/notice.js?v=20261026b');
+    const { NoticeStore } = await import('../../services/governance/notice.js?v=20261028a');
     const unread = NoticeStore.countUnread(readLoginSnapshot()?.personId || null);
     if (unread > 0) {
       badge.textContent = unread > 9 ? '9+' : String(unread);
@@ -192,7 +197,7 @@ async function _bindMessageBadge() {
   if (_badgeBound) return;
   _badgeBound = true;
   try {
-    const { DATA_CHANGED_EVENT, DATA_LOADED_EVENT } = await import('../../data/data-adapter.js?v=20261026b');
+    const { DATA_CHANGED_EVENT, DATA_LOADED_EVENT } = await import('../../data/data-adapter.js?v=20261028a');
     document.addEventListener(DATA_CHANGED_EVENT, _refreshMessageBadge);
     document.addEventListener(DATA_LOADED_EVENT, _refreshMessageBadge);
   } catch (_) { /* 静默 */ }

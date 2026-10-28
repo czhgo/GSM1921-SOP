@@ -26,20 +26,20 @@ import {
   normalizeSeedActivitySeedRows,
   ensureLegacySourceWorkgroups,
   ensureInspectionWorkgroupMembers,
-} from '../../docs/src/data/workgroup-seed-sync.js?v=20261026b';
-import { ACTIVITIES } from '../../docs/src/data/mock/activities.js?v=20261026b';
-import { ATTENDANCE_RECORDS } from '../../docs/src/data/mock/attendance.js?v=20261026b';
-import { INSPECTION_RECORDS } from '../../docs/src/data/mock/inspection.js?v=20261026b';
-import { MOCK_TASKFORCES } from '../../docs/src/data/mock/taskforces.js?v=20261026b';
+} from '../../docs/src/data/workgroup-seed-sync.js?v=20261028a';
+import { ACTIVITIES } from '../../docs/src/data/mock/activities.js?v=20261028a';
+import { ATTENDANCE_RECORDS } from '../../docs/src/data/mock/attendance.js?v=20261028a';
+import { INSPECTION_RECORDS } from '../../docs/src/data/mock/inspection.js?v=20261028a';
+import { MOCK_TASKFORCES } from '../../docs/src/data/mock/taskforces.js?v=20261028a';
 import {
   SEED_ARCHIVE_RECORDS, SEED_SIGNUPS,
-} from '../../docs/src/data/mock/seed.js?v=20261026b';
-import { PROP_TASKS_SEED } from '../../docs/src/data/mock/prop.js?v=20261026b';
+} from '../../docs/src/data/mock/seed.js?v=20261028a';
+import { PROP_TASKS_SEED } from '../../docs/src/data/mock/prop.js?v=20261028a';
 import {
   SEED_EXTERNAL_DISPATCHES, SEED_HANDOFFS, SEED_MEMBER_CONFIRMATIONS, SEED_AUTH_AUDIT,
-} from '../../docs/src/data/mock/auxiliary.js?v=20261026b';
-import { SEED_MANIFEST, NO_READ_ALLOWLIST } from '../../docs/src/data/seed-manifest.js?v=20261026b';
-import { DEFAULT_BRANCH_ID } from '../../docs/src/core/domain/constants.js?v=20261026b';
+} from '../../docs/src/data/mock/auxiliary.js?v=20261028a';
+import { SEED_MANIFEST, NO_READ_ALLOWLIST } from '../../docs/src/data/seed-manifest.js?v=20261028a';
+import { DEFAULT_BRANCH_ID } from '../../docs/src/core/domain/constants.js?v=20261028a';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 const readDoc = (rel) => fs.readFileSync(path.join(ROOT, rel), 'utf8');

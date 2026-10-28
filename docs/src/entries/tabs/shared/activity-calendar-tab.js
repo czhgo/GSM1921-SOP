@@ -30,12 +30,12 @@
 //   容器内容却没登记标记」时会把本页判成「已在位」而跳过骨架重建，留下空白（同 today-tab 2026-09-25
 //   真机实测的残留病）。
 
-import { getAppState } from '../../../core/base/state.js?v=20261026b';
-import { populateMonthSelector, renderCalendarByActivities } from '../../../components/record/calendar.js?v=20261026b';
-import { renderInspectorFromState } from '../../../components/record/inspector.js?v=20261026b';
-import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261026b';
+import { getAppState } from '../../../core/base/state.js?v=20261028a';
+import { populateMonthSelector, renderCalendarByActivities } from '../../../components/record/calendar.js?v=20261028a';
+import { renderInspectorFromState } from '../../../components/record/inspector.js?v=20261028a';
+import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261028a';
 // Task 6：共享日历属「非对象所属工作台」的只读承载面 ⇒ 条目/详情卡直达完整详情页（direct）。
-import { objectDetailHref } from '../../../core/domain/object-route.js?v=20261026b';
+import { objectDetailHref } from '../../../core/domain/object-route.js?v=20261028a';
 
 const PANEL_HTML = `
     <div id="calendar-view-section" class="grid grid-cols-1 lg:grid-cols-5 gap-4">
@@ -49,7 +49,7 @@ const PANEL_HTML = `
         <div id="calendar-legend" class="mt-3"></div>
       </div>
       <div id="inspector-container" class="lg:col-span-2 rounded-xl bg-gray-50/50 border border-gray-100 p-3">
-        <div id="inspector-default" class="text-sm text-gray-500 text-center py-8">点击日期查看当日活动，或点击活动条目直接进入详情</div>
+        <div id="inspector-default" class="text-sm text-gray-500 text-center py-8">未选择日期</div>
         <div id="inspector-content" class="hidden">
           <h4 id="inspector-date-title" class="font-title-cn text-sm font-bold text-gray-800 mb-3"></h4>
           <div id="inspector-cards"></div>
@@ -59,7 +59,7 @@ const PANEL_HTML = `
 `;
 
 const TAB_HTML = `
-  ${renderTabHeader({ title: '活动日历', description: '月 / 周 / 日 / 列表四视图；点击日期查看当日活动。' })}
+  ${renderTabHeader({ title: '活动日历', description: '月 / 周 / 日 / 列表四视图。' })}
   <div class="card rounded-xl p-5">${PANEL_HTML}</div>
 `;
 

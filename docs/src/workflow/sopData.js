@@ -7,7 +7,7 @@
 //  content/02_institution/ 对应文档，不在此复制长文
 // ════════════════════════════════════════════════════════════════
 
-import { POLICY_DEFAULTS } from '../core/domain/policy-defaults.js?v=20261026b';
+import { POLICY_DEFAULTS } from '../core/domain/policy-defaults.js?v=20261028a';
 
 // ── 制度派生值（R10-B02/B03/B08：期限/角色一律从 policy 单一源取，勿在任务里写死）──
 /** 通知提前量（天）：三会正式通知 5 / 活动通知 2 / 复盘提醒 1（B08 三处共用） */

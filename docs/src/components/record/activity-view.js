@@ -4,19 +4,19 @@
 // 日历视图（复用 calendar.js 渲染引擎）+ 只读活动详情（点击日历条目）。
 // 形态依据支书第四轮裁定：「支书的日历视图只要删去写入活动等功能，就可以提供很好的活动详情」。
 
-import { getAppState, setState } from '../../core/base/state.js?v=20261026b';
-import { renderCalendarByActivities } from './calendar.js?v=20261026b';
-import { _fmtDate, _currentYearMonth, flashHighlight, downloadCSV, showToast, escHtml as esc } from '../../core/base/utils.js?v=20261026b';
-import { badgeHtml } from '../ui/badges.js?v=20261026b';
-import { ROLE_COLORS, dotDarkVars, isActivityArchived, activityTypeBadgeVariant } from '../../core/domain/constants.js?v=20261026b';
-import { activityLifecycleBadgeHtml } from './inspector.js?v=20261026b';
-import { getPersonById } from '../../services/member/person.js?v=20261026b';
-import { AuthStore } from '../../services/core/auth.js?v=20261026b';
-import { fetchVotes } from '../../services/activity/committee-vote.js?v=20261026b';
+import { getAppState, setState } from '../../core/base/state.js?v=20261028a';
+import { renderCalendarByActivities } from './calendar.js?v=20261028a';
+import { _fmtDate, _currentYearMonth, flashHighlight, downloadCSV, showToast, escHtml as esc } from '../../core/base/utils.js?v=20261028a';
+import { badgeHtml } from '../ui/badges.js?v=20261028a';
+import { ROLE_COLORS, dotDarkVars, isActivityArchived, activityTypeBadgeVariant } from '../../core/domain/constants.js?v=20261028a';
+import { activityLifecycleBadgeHtml } from './inspector.js?v=20261028a';
+import { getPersonById } from '../../services/member/person.js?v=20261028a';
+import { AuthStore } from '../../services/core/auth.js?v=20261028a';
+import { fetchVotes } from '../../services/activity/committee-vote.js?v=20261028a';
 // 表决组件（AV4.5 公共端：复用 activity.html 同款 renderVoteWidget，授权按 voterIds 判定）
-import { renderVoteWidget } from '../governance/vote-widget.js?v=20261026b';
+import { renderVoteWidget } from '../governance/vote-widget.js?v=20261028a';
 // Task 6：本组件常驻「工作概况」页内预览 ⇒ locate：保留预览 + 「打开完整页」。
-import { objectDetailHref } from '../../core/domain/object-route.js?v=20261026b';
+import { objectDetailHref } from '../../core/domain/object-route.js?v=20261028a';
 
 // 任务状态元数据（状态点 + 文案，轻量自包含，避免依赖 status-badge 全家桶）
 const _TASK_STATUS_META = {
@@ -51,7 +51,7 @@ export function renderActivityView(container, opts = {}) {
         <div class="flex items-center justify-between mb-4">
           <h3 class="font-title-cn text-base font-semibold text-gray-800">活动查看</h3>
           <div class="flex items-center gap-3">
-            <span class="text-xs text-gray-500">全支部活动一览 · 点击条目查看详情（只读）</span>
+            <span class="text-xs text-gray-500">全支部 · 只读</span>
             <button class="btn-outline av-export-btn h-8 px-3.5 inline-flex items-center gap-1.5 text-xs font-medium">导出 CSV</button>
           </div>
         </div>
@@ -129,7 +129,7 @@ function _renderDetail(state, activities, tasks, highlightId, readonly = false) 
   if (!panel) return;
   const actId = state.selectedActivityId || highlightId;
   if (!actId) {
-    panel.innerHTML = '<div class="text-sm text-gray-500 text-center py-8">点击日历中的活动条目查看详情</div>';
+    panel.innerHTML = '<div class="text-sm text-gray-500 text-center py-8">未选择活动</div>';
     return;
   }
   const act = activities.find(a => a.id === actId);

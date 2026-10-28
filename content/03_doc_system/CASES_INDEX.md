@@ -2,7 +2,7 @@
 title: "判例库总索引"
 type: index
 role: "[工程师]+[AI]"
-last_updated: "2026-10-27"
+last_updated: "2026-10-28"
 status: active
 related_files: [OPERATIONS_GUIDE.md, DOC_MAP.md, content/04_web_design/design-system/CASES.md, content/02_institution/CASES.md, content/05_ai_coding/CASES.md]
 ---
@@ -51,6 +51,8 @@ related_files: [OPERATIONS_GUIDE.md, DOC_MAP.md, content/04_web_design/design-sy
 | CASE-DESIGN-025 | 分组胶囊要主题 soft 底 ＋ 3px ＋ 600，可见不等于恢复 | design | [CASES.md](../04_web_design/design-system/CASES.md) | SD-47（关联 SD-3 / SD-36 / SD-42） | 批次 513 |
 | CASE-DESIGN-026 | 改到存在 ≠ 可感知：胶囊 10% 淡底无边框、链接下划线 110→0 | design | [CASES.md](../04_web_design/design-system/CASES.md) | SD-49 / SD-50（关联 SD-3 / SD-36 / SD-42 / SD-47） | 批次 514 |
 | CASE-DESIGN-027 | 加载态禁止压暗 ＋ 插加载行硬替换；骨架 / 120ms / 180ms / ≤1s | design | [CASES.md](../04_web_design/design-system/CASES.md) | SD-51（关联 SD-30） | 批次 514 |
+| CASE-DESIGN-028 | 焦点环对白卡仅 1.40:1，键盘用户看不到焦点 | design | [CASES.md](../04_web_design/design-system/CASES.md) | SD-27（关联 SD-46） | 2026-10-28（美学专项 Task 7） |
+| CASE-DESIGN-029 | 卡头副题只写范围 ＋ 约束，不得承载操作指令 | design | [CASES.md](../04_web_design/design-system/CASES.md) | SD-54 | 2026-10-28（美学专项 Task 7） |
 | CASE-DATA-001 | api 形态不得回退 mock；本地 resolve 不算写成功 | data | [CASES.md](../04_web_design/design-system/CASES.md) | SD-48 | 批次 513 |
 | CASE-INST-001 | 匿名反馈改裁为支部内闭环、无系统揭名入口 | institution | [CASES.md](../02_institution/CASES.md) | `SYSTEM_ROLE_PERMISSION §9j`（SR 待编号） | 2026-10-16（D-824） |
 | CASE-INST-002 | 意见处置与品牌认定归支委会，支书主持 | institution | [CASES.md](../02_institution/CASES.md) | `SYSTEM_ROLE_PERMISSION §9j`（SR 待编号） | 2026-09-18 |
@@ -68,7 +70,7 @@ related_files: [OPERATIONS_GUIDE.md, DOC_MAP.md, content/04_web_design/design-sy
 
 | 域 | 判例文件 | 现有条数 |
 |---|---|---|
-| design（网站设计） | [04_web_design/design-system/CASES.md](../04_web_design/design-system/CASES.md) | 27 |
+| design（网站设计） | [04_web_design/design-system/CASES.md](../04_web_design/design-system/CASES.md) | 29 |
 | data（数据真相） | [04_web_design/design-system/CASES.md](../04_web_design/design-system/CASES.md) | 1 |
 | institution（制度） | [02_institution/CASES.md](../02_institution/CASES.md) | 5 |
 | ai-coding（AI 协作） | [05_ai_coding/CASES.md](../05_ai_coding/CASES.md) | 6 |

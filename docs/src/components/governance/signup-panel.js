@@ -4,21 +4,22 @@
 //  活动详情页（activity-entry.js）与专班详情页（taskforce-entry.js）共用，
 //  避免「活动/专班统一报名逻辑」在两处重复散落（C-2 一改具改巡检，支书 2026-08-11 裁定专班独立页面）。
 // ════════════════════════════════════════════════════════════════
-import { SignupStore, resolveSignupReviewer, SignupStatus, SIGNUP_ROLE_LABELS } from '../../services/activity/signup.js?v=20261026b';
-import { getPersonById, getPersonName } from '../../services/member/person.js?v=20261026b';
-import { getBasePath, showToast, todayLocal } from '../../core/base/utils.js?v=20261026b';
-import { badgeHtml } from '../ui/badges.js?v=20261026b';
+import { SignupStore, resolveSignupReviewer, SignupStatus, SIGNUP_ROLE_LABELS } from '../../services/activity/signup.js?v=20261028a';
+import { getPersonById, getPersonName } from '../../services/member/person.js?v=20261028a';
+import { getBasePath, showToast, todayLocal } from '../../core/base/utils.js?v=20261028a';
+import { badgeHtml } from '../ui/badges.js?v=20261028a';
 // 活动「已归档」口径单一源（2026-09-13 收敛）：替代手写 source.archived
-import { isActivityArchived, BRANCH_COMMISSION_ROLES } from '../../core/domain/constants.js?v=20261026b';
+import { isActivityArchived, BRANCH_COMMISSION_ROLES } from '../../core/domain/constants.js?v=20261028a';
 // 统一检索引擎（2026-09-14 批次 37）：报名名单（已通过）接入关键词 + 分页
-import { renderFilteredList } from '../ui/list-filter.js?v=20261026b';
+import { renderFilteredList } from '../ui/list-filter.js?v=20261028a';
 // 批次 49 口径（「存好了才报成功」）：刷新前先等在途落库结算，见 _reloadAfterSettle
-import { settleWrites } from '../../core/session/pending-writes.js?v=20261026b';
+import { settleWrites } from '../../core/session/pending-writes.js?v=20261028a';
 // 2026-10-03 批次 358（`D-751`）：报名记录「作废（软）」——弹窗**单一源** ＋ 支委层判据单一源
-import { openVoidModal } from '../ui/void-record.js?v=20261026b';
-import { AuthStore } from '../../services/core/auth.js?v=20261026b';
-import { usesFormalMeetingRoster } from '../../core/domain/constants.js?v=20261026b';
-import { isTaskforceActiveStatus } from '../../core/domain/domain.js?v=20261026b';
+import { openVoidModal } from '../ui/void-record.js?v=20261028a';
+import { AuthStore } from '../../services/core/auth.js?v=20261028a';
+import { usesFormalMeetingRoster } from '../../core/domain/constants.js?v=20261028a';
+import { isTaskforceActiveStatus } from '../../core/domain/domain.js?v=20261028a';
+import { confirmDanger } from '../ui/modal.js?v=20261028a';
 
 /**
  * 落库结算后再整页刷新（2026-09-18 批次 83 · SOP-B-2）
@@ -331,7 +332,7 @@ export function bindSignupEvents({ sourceType, sourceId, source, title, myId, ca
       const signupId = btn.dataset.signupId;
       const approve = btn.dataset.approve === '1';
       // C2 危险操作二次确认：拒绝不可撤销，先确认（2026-09-12）
-      if (!approve && !window.confirm('确认拒绝该报名申请？拒绝后申请人需重新提交。')) return;
+      if (!approve && !await confirmDanger({ id: 'signup-reject', title: '拒绝报名申请', bodyHtml: '<p class="text-sm text-gray-700">拒绝这条报名申请。<br>影响：该同志的报名状态转为「已拒绝」，不再进入本场名单；申请人会看到结果。<br>可恢复：申请人可重新提交报名。</p>', confirmLabel: '拒绝' })) return;
       const res = await SignupStore.review(signupId, { approve, reviewer: myId });
       if (!res.ok) {
         showToast('error', res.reason || '操作失败');

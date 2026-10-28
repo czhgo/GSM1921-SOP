@@ -11,37 +11,37 @@
 //  2026-10-18 乱专项：按「L0 结论带 → 组织事实 → 在册与留痕 → 本人自述 → 系统说明」重排；
 //        27 个档案字段各有且仅有一个 data-field 落点；同一事实不跨层重复。
 // ════════════════════════════════════════════════════════════════
-import { renderSidebar } from '../../components/shell/sidebar.js?v=20261026b';
-import { renderHeader } from '../../components/shell/header.js?v=20261026b';
-import { BranchService } from '../../services/core/runtime.js?v=20261026b';
-import { AuthStore } from '../../services/core/auth.js?v=20261026b';
-import { PersonStore, getPersonName, renameMemberAccount, deriveDevelopStageSince } from '../../services/member/person.js?v=20261026b';
-import { getDataSource, migrateLegacyPersonId } from '../../data/data-adapter.js?v=20261026b';
-import { loadMemberProfile } from '../../services/member/profile.js?v=20261026b';
-import { getBranchById } from '../../services/branch/branch.js?v=20261026b';
-import { openPersonEditModal } from '../../components/governance/pickers.js?v=20261026b';
+import { renderSidebar } from '../../components/shell/sidebar.js?v=20261028a';
+import { renderHeader } from '../../components/shell/header.js?v=20261028a';
+import { BranchService } from '../../services/core/runtime.js?v=20261028a';
+import { AuthStore } from '../../services/core/auth.js?v=20261028a';
+import { PersonStore, getPersonName, renameMemberAccount, deriveDevelopStageSince } from '../../services/member/person.js?v=20261028a';
+import { getDataSource, migrateLegacyPersonId } from '../../data/data-adapter.js?v=20261028a';
+import { loadMemberProfile } from '../../services/member/profile.js?v=20261028a';
+import { getBranchById } from '../../services/branch/branch.js?v=20261028a';
+import { openPersonEditModal } from '../../components/governance/pickers.js?v=20261028a';
 import {
   renderSelfDescriptionSection, countSelfProfileFilled, SELF_PROFILE_TOTAL,
   renderThoughtReportsSection,
-} from '../../components/governance/person-profile-sections.js?v=20261026b';
+} from '../../components/governance/person-profile-sections.js?v=20261028a';
 // 思想汇报按人归集（既有服务读口；制度承诺「提交即入库、算法归集至个人档案」的落地）
 import {
   listThoughtReportsByPerson, canReadThoughtReport,
-} from '../../services/governance/thought-report.js?v=20261026b';
+} from '../../services/governance/thought-report.js?v=20261028a';
 // 待确认请求读口（单一源：服务层现有读口；api 形态由 init() 从服务端填充同一缓存）
 import {
   listPendingConfirmations, MC_ACTION_LABEL,
-} from '../../services/member/member-confirmation.js?v=20261026b';
+} from '../../services/member/member-confirmation.js?v=20261028a';
 // Q-21-3 收敛（2026-09-13）：在册状态枚举单一源 = core/domain/constants.js（原经 org-base-data-preview 转出）
-import { ROLE_LABELS, RESIDENCE, EMPTY_TEXT, EMPTY_NOT_APPLICABLE } from '../../core/domain/constants.js?v=20261026b';
-import { canMaintainMemberProfileFields } from '../../core/domain/profile-access.js?v=20261026b';
-import { getBasePath, escHtml as esc, fmtDt } from '../../core/base/utils.js?v=20261026b';
-import { badgeHtml } from '../../components/ui/badges.js?v=20261026b';
+import { ROLE_LABELS, RESIDENCE, EMPTY_TEXT, EMPTY_NOT_APPLICABLE } from '../../core/domain/constants.js?v=20261028a';
+import { canMaintainMemberProfileFields } from '../../core/domain/profile-access.js?v=20261028a';
+import { getBasePath, escHtml as esc, fmtDt } from '../../core/base/utils.js?v=20261028a';
+import { badgeHtml } from '../../components/ui/badges.js?v=20261028a';
 // 批次 87：本页必须先 hydrate API 数据源再渲染（成员档案读 + 编辑写）——与 activity.html 标准形同款。
 // 此前本页只调 BranchService.loadDB()（API 模式直接 return）⇒ api 形态下档案读的是本地备份，
 // 且「编辑档案」按 mock 数据源落本机、服务端 users 表不更新。
-import { hydrateDataSource, notifyDataLoaded } from '../../data/data-adapter.js?v=20261026b';
-import { ApiAdapter } from '../../data/api-adapter.js?v=20261026b';
+import { hydrateDataSource, notifyDataLoaded } from '../../data/data-adapter.js?v=20261028a';
+import { ApiAdapter } from '../../data/api-adapter.js?v=20261028a';
 
 renderSidebar('dashboard');
 renderHeader('dashboard');

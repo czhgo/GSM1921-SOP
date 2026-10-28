@@ -2,7 +2,7 @@
 title: "设计域判例库"
 type: design
 role: "[工程师]+[AI]"
-last_updated: "2026-10-27"
+last_updated: "2026-10-28"
 status: active
 related_files: [DESIGN_SYSTEM.md, content/03_doc_system/CASES_INDEX.md, content/03_doc_system/OPERATIONS_GUIDE.md]
 ---
@@ -289,6 +289,30 @@ related_files: [DESIGN_SYSTEM.md, content/03_doc_system/CASES_INDEX.md, content/
 - **对应规范编号**：SD-51（加载编排与禁令）；关联 SD-30 与 §12.13 动效令（过渡时长白名单）。
 - **边界**：数据层 8s 超时错误卡不受本条约束（那是失败态，不是加载态）；首屏空容器的骨架可立即铺（没有旧内容可闪），只有「已有内容切页签」才受 120ms 延迟约束。骨架只求布局近似，不要求逐像素复刻目标页。
 - **证据指针**：`docs/src/components/shell/tab-bar.js`（`tabContentSkeletonHtml` / `TAB_LOADING_SKELETON_DELAY_MS = 120` / `TAB_CONTENT_FADE_IN_MS = 180` / `TAB_LOADING_SKELETON_MAX_MS = 1000` / `installNavigationProgress`）；`docs/src/components/shell/tab-loading.css`（`.ws-route-progress` / reduced-motion 段）；`server/test/loading-experience-guard.test.mjs`；`.ctx/logs/2026-10-EXECUTION_LOG.md` 批次 514。
+
+## CASE-DESIGN-028 帮助页折叠摘要的焦点环落在白卡上只剩 1.40:1
+
+- **编号**：CASE-DESIGN-028
+- **场景（真实发生）**：`docs/help.html` 的 `.help-chapter > summary:focus-visible` 曾用党徽金 `#FFD700` 画 2px 焦点环，而折叠条落在白卡 `#FFFFFF` 上——实测 **1.40:1**。鼠标用户看不出问题，键盘用户 Tab 到章标题时**看不到焦点在哪**：环是在的，只是与底色同亮。本批改走 `--status-warning-text`（`#92400E`），实测 **7.09:1**。
+- **结论**：焦点环的验收标准是**环对底的对比度**，不是「有没有 `outline`」。金色 `#FFD700` 只在深底（顶栏党建红 `#CE1126`）上成立（≥3:1）；浅底白卡一律改用深金文字档 `--status-warning-text`。
+- **泛化规则**：焦点可见＝① 有环（`:focus-visible`）＋ ② 环对**实际所在底色** ≥3:1（图形判据）＋ ③ 不在 `:focus` 上重复出第二道答案（SD-27）。判据必须按**环落的那块底**逐处实测，不得只在 token 层看色值。
+- **守卫**：`ui-contrast-guard::K6`（`--status-warning-text` 亮 / 暗逐底 ≥4.5:1，填充色 `--status-warning` 只作圆点 / 左条）＋ `ui-focus-ring`（亮 / 暗两套 `--focus-ring`、顶栏金环 ≥3:1）。
+- **对应规范编号**：SD-27（`:focus-visible` 必须有可见环）；对比度判据同族见 SD-46（状态色文字档）与 `ui-contrast-guard::K6`。
+- **边界**：党徽金焦点环在**深底**（顶栏）仍是合规用法（≥3:1，见 `ui-focus-ring::F6`）；本条只判**浅底**上的金环。装饰性金点描边不属焦点环判据（见 §2.3.1）。
+- **证据指针**：`docs/help.html:58`（`outline:2px solid var(--status-warning-text)`）；`docs/src/styles.css` 的 `--status-warning-text` 亮 `#92400E` / 暗 `#FCD34D`；`server/test/ui-contrast-guard.test.mjs`（K6）；`server/test/ui-focus-ring.test.mjs`（F1 / F6）；`.ctx/logs/2026-10-EXECUTION_LOG.md` 美学专项 Task 7。
+
+## CASE-DESIGN-029 说明层压过对象层：卡头副题在教人怎么点
+
+- **编号**：CASE-DESIGN-029
+- **场景（真实发生）**：`taskforce-view` 的卡头第二行曾写「全支部专班一览 · 点击卡片查看详情（只读）」，同页空态与若干页签副题也写「点上方…」「下一步：…」。结果是：**第二行是唯一承载「范围」的位置，却被操作指令占满**——读者先读到「怎么点」，反而读不到「这批数据是什么范围、我有什么权限」。本批把副题收成「全支部 · 只读」「本支部 · 只读」一类：范围 ＋ 约束；点法交给卡片自身的 hover / 焦点 / 箭头。
+- **结论**：卡头副题＝**范围 ＋ 约束**（哪个支部 / 哪一批 / 只读还是可写）；操作指令（`点击…查看` / `点上方` / `点右上角` / `下一步：`）一律不进副题。第二行是**信息位**，不是操作说明位。
+- **AI 假设**：副题空着可惜，顺手把「点卡片能进详情」写上去＝更友好；空态里补一句「点上方按钮」＝更贴心。
+- **人类意图**：卡头已有标题与计数，副题只要回答「看到的是哪一批、能不能改」；「怎么点」由行载体自身的可点性与 hover / 焦点线索承担（SD-43 / SD-45），写进副题只会**用说明盖住对象**。
+- **泛化规则**：卡头三件——标题（对象）／副题（范围 ＋ 约束）／动作（按钮或行载体）；**三者各答一个问题，不互相代答**。判据按「副题声明处」机检（`renderCardHeader` 的 `meta` 与手写卡头副题 span），空态文案另归 §4.18 C6。
+- **守卫**：`copy-guard::S1/S2`（本轮四份 record 组件 ＋ `entries/tabs/**`：实测 25 条副题，操作指令 0 处；含反例「点击卡片查看详情」与负例「全支部 · 只读」）。
+- **对应规范编号**：SD-54
+- **边界**：空态 / 错误态里的「下一步」属 §4.18 C6（一句为什么空 ＋ 一个出口），不在本条；行载体自身的 `title` 悬浮提示不属副题。`entries/tabs/visitor/tf-view-tab.js` 仍有一处 `textContent` 覆写分支，其基串已随本批改为「全支部 · 只读」而不再命中，覆写文本不作为副题单一源（守卫只判声明处）。
+- **证据指针**：`docs/src/components/record/taskforce-view.js:59`（`全支部 · 只读`）；`docs/src/components/record/workgroup-view.js:140`（`renderCardHeader({ meta: '本支部 · 只读' })`）；`server/test/copy-guard.test.mjs`（S1 / S2）；`DESIGN_SYSTEM.md §12.15`（SD-54）。
 
 ---
 

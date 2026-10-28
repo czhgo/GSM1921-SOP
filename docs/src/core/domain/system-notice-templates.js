@@ -21,9 +21,9 @@
 // ════════════════════════════════════════════════════════════════
 
 // 期次标签单一源（core/base/period.js）——勿在本文件另写季度格式化
-import { periodLabel } from '../base/period.js?v=20261026b';
+import { periodLabel } from '../base/period.js?v=20261028a';
 // 角色 → 工作台页单一源（F05/F12：按接收人角色生成落点，勿在本文件另写一张角色页表）
-import { ROLE_PAGE_MAP, SECRETARY_AND_DEPUTY_ROLES } from './constants.js?v=20261026b';
+import { ROLE_PAGE_MAP, SECRETARY_AND_DEPUTY_ROLES } from './constants.js?v=20261028a';
 
 /** 组装返回对象（跳过 undefined，保持通知结构精简；与原前端 add() 落库形态一致） */
 function pick(obj) {

@@ -5,15 +5,15 @@
 //  视图模式：月/周/日/列表 四种切换
 // ════════════════════════════════════════════════════════════════
 
-import { getAppState, setState } from '../../core/base/state.js?v=20261026b';
-import { ROLE_COLORS, getActivityColor, ACTIVITY_CATEGORY_COLORS, ACTIVITY_TYPE_LABELS, ACTIVITY_TYPE_SHORT, activityTypeTone } from '../../core/domain/constants.js?v=20261026b';
-import { _fmtDate, _currentYearMonth, showToast } from '../../core/base/utils.js?v=20261026b';
+import { getAppState, setState } from '../../core/base/state.js?v=20261028a';
+import { ROLE_COLORS, getActivityColor, ACTIVITY_CATEGORY_COLORS, ACTIVITY_TYPE_LABELS, ACTIVITY_TYPE_SHORT, activityTypeTone } from '../../core/domain/constants.js?v=20261028a';
+import { _fmtDate, _currentYearMonth, showToast } from '../../core/base/utils.js?v=20261028a';
 // 2026-10-25 Task 1.3：节点缺失 / 页内失败统一走「错误卡 + 重试」单一源（tab-bar 同款）。
-import { mountTabFailure } from '../shell/tab-bar.js?v=20261026b';
-import { tokenOf } from '../../core/base/version-token.js?v=20261026b'; // P2 视图渲染守卫数据版本（spec §四.2）
-import { filterTasksByManagementRole, activityLifecycleBadgeHtml } from './inspector.js?v=20261026b';
+import { mountTabFailure } from '../shell/tab-bar.js?v=20261028a';
+import { tokenOf } from '../../core/base/version-token.js?v=20261028a'; // P2 视图渲染守卫数据版本（spec §四.2）
+import { filterTasksByManagementRole, activityLifecycleBadgeHtml } from './inspector.js?v=20261028a';
 // 活动「已完成 / 已取消」闭环判据单一源（R7-16）：替代手写 ['completed','cancelled']
-import { isActivityClosed } from '../../core/domain/domain.js?v=20261026b';
+import { isActivityClosed } from '../../core/domain/domain.js?v=20261028a';
 
 // ── 固定语义色 tone（不随主题）──
 // 2026-10-24 批次 508：活动类别色改由单一源 activityTypeTone 判定——
@@ -476,7 +476,7 @@ function _renderDayView(grid, activeActivities, tasks, month, state) {
   html += `</div></div>`;
 
   if (dayActivities.length === 0 && allTasks.length === 0) {
-    html += `<p class="text-xs text-gray-500 text-center py-8">当日无活动或任务</p>`;
+    html += `<p class="text-xs text-gray-500 text-center py-8">当日暂无活动或任务</p>`;
   } else {
     // 活动卡片
     if (dayActivities.length > 0) {
@@ -826,7 +826,7 @@ function _showMobileDayDetail(dateKey, activeActivities, tasks, state) {
   html += `</div>`;
 
   if (dayActivities.length === 0 && filteredTasks.length === 0) {
-    html += `<p class="text-xs text-gray-500 text-center py-4">当日无活动或任务</p>`;
+    html += `<p class="text-xs text-gray-500 text-center py-4">当日暂无活动或任务</p>`;
   } else {
     if (dayActivities.length > 0) {
       html += `<div class="cal-mobile-detail-section"><div class="text-xs font-bold text-gray-500 mb-2">活动 (${dayActivities.length})</div>`;
