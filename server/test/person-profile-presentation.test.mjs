@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { existsSync, readFileSync } from 'node:fs';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { dirname, resolve } from 'node:path';
-import { SELF_PROFILE_FIELDS } from '../../docs/src/core/domain/self-profile.js?v=20261028d';
+import { SELF_PROFILE_FIELDS } from '../../docs/src/core/domain/self-profile.js?v=20261028e';
 
 const testDir = dirname(fileURLToPath(import.meta.url));
 const presentationPath = resolve(testDir, '../../docs/src/components/governance/person-profile-sections.js');
@@ -45,7 +45,7 @@ const FULL_SELF_PROFILE = {
 
 async function loadPresentation() {
   assert.equal(existsSync(presentationPath), true, '个人档案应有可独立验证的自我描述展示组件');
-  return import(`${pathToFileURL(presentationPath).href}?v=20261028d`);
+  return import(`${pathToFileURL(presentationPath).href}?v=20261028e`);
 }
 
 function dataFields(html) {
@@ -199,6 +199,6 @@ test('档案入口沿用授权读口与页面状态提示，不自造折叠脚�
   const presentation = readFileSync(presentationPath, 'utf8');
   assert.doesNotMatch(presentation, /focus-visible:ring/, '档案按钮沿用设计系统全局焦点样式');
   const styles = readFileSync(stylesPath, 'utf8');
-  // R5A-05：焦点环统一走 --focus-ring（亮色深灰 / 暗色党徽金），不再用暗色下不可见的深灰裸值。
-  assert.match(styles, /button:focus-visible,[\s\S]{0,160}outline: 2px solid var\(--focus-ring\)/);
+  // R5A-05（2026-10-28 改准）：焦点环统一走主题色 --app-accent（2px / offset 1px / 无 box-shadow）。
+  assert.match(styles, /button:focus-visible,[\s\S]{0,200}outline: 2px solid var\(--app-accent\)/);
 });

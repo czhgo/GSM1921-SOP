@@ -3,26 +3,26 @@
 // 2026-08-07 自 ws-secretary-entry.js 拆分。
 // 数据源：NoticeStore（与首页/全局概况/visitor 同源，消除双数据源脱节）。
 
-import { NoticeStore, sendDirectMessage } from '../../../services/governance/notice.js?v=20261028d';
-import { AuthStore } from '../../../services/core/auth.js?v=20261028d';
-import { showToast, getBasePath, _fmtDate, todayLocal, escHtml } from '../../../core/base/utils.js?v=20261028d';
-import { badgeHtml } from '../../../components/ui/badges.js?v=20261028d';
-import { openModal, closeModal } from '../../../components/ui/modal.js?v=20261028d';
+import { NoticeStore, sendDirectMessage } from '../../../services/governance/notice.js?v=20261028e';
+import { AuthStore } from '../../../services/core/auth.js?v=20261028e';
+import { showToast, getBasePath, _fmtDate, todayLocal, escHtml } from '../../../core/base/utils.js?v=20261028e';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20261028e';
+import { openModal, closeModal } from '../../../components/ui/modal.js?v=20261028e';
 // 统一检索引擎（2026-09-14 批次 37）：已发布通知列表接入关键词（标题/正文）+ 分页
-import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261028d';
+import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261028e';
 // Q-22-1（2026-09-13）：受众选项改引 core/domain/constants.js 单一源（NOTICE_AUDIENCE_SENTINELS）——
 // 发布侧写入值必须与消费端可见性判定同源，勿再本地手写 sentinel 列表（否则 ['all'] 永不命中）。
-import { NOTICE_AUDIENCE_OPTIONS, ACTIVITY_CLASSIFICATION } from '../../../core/domain/constants.js?v=20261028d';
+import { NOTICE_AUDIENCE_OPTIONS, ACTIVITY_CLASSIFICATION } from '../../../core/domain/constants.js?v=20261028e';
 // SOP-B-5（D-293）：发布三会一课通知时选定本次活动 —— 被通知人在「确认收到」时填「能否线上参会」
-import { loadActivities } from '../../../services/activity/activity.js?v=20261028d';
-import { TaskForceRecordStore } from '../../../services/activity/taskforce.js?v=20261028d';
-import { TaskforceStatus } from '../../../core/domain/domain.js?v=20261028d';
+import { loadActivities } from '../../../services/activity/activity.js?v=20261028e';
+import { TaskForceRecordStore } from '../../../services/activity/taskforce.js?v=20261028e';
+import { TaskforceStatus } from '../../../core/domain/domain.js?v=20261028e';
 // B1（2026-09-12）：党委下钻支部的演示只读视图判定（单一源 = services/core/branch-demo-nav.js）
-import { isReadonlyBranchDrilldown } from '../../../services/core/branch-demo-nav.js?v=20261028d';
+import { isReadonlyBranchDrilldown } from '../../../services/core/branch-demo-nav.js?v=20261028e';
 // 站内信（批次 348 · 支书 `#4`「站内信是一个很重要的形式」）：受众「指定人（私发）」——选人用 PersonPicker
 //（选人规范 §2.2：姓名/学号搜索，不手写名单）
-import { PersonPicker } from '../../../components/governance/pickers.js?v=20261028d';
-import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261028d';
+import { PersonPicker } from '../../../components/governance/pickers.js?v=20261028e';
+import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261028e';
 
 const NOTIFICATION_TAB_HTML = `
   ${renderTabHeader({ title: '通知发布' })}
@@ -455,7 +455,7 @@ function renderNotificationList() {
           <!-- B 档 CRUD 补全：通知编辑（复用 NoticeStore.update，同源写穿） -->
           <button data-notif-action="edit" data-notif-id="${n.id}" class="btn-outline text-xs flex-shrink-0 px-3 py-1.5" title="编辑该通知">编辑</button>`;
       return `
-      <div class="py-3 px-4 rounded-xl bg-white transition-colors group cursor-pointer hover:bg-[var(--surface-hover)]" data-notif-id="${n.id}" data-notif-row="1" title="查看通知详情">
+      <div class="py-3 px-4 rounded-xl bg-white transition-colors group cursor-pointer hover:bg-[var(--surface-hover)] active:bg-[var(--surface-active)]" role="button" tabindex="0" data-notif-id="${n.id}" data-notif-row="1" title="查看通知详情">
         <div class="flex items-center justify-between mb-1">
           <div class="flex items-center gap-2">
             <span class="text-sm font-medium text-gray-800">${n.title}</span>

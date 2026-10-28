@@ -1,18 +1,18 @@
 // role: [工程师]+[AI]
 // issue-detail.js — 反馈详情渲染
 
-import { IssueStore, issueDomainLabel, issueDomainSuggest, issueDomainReplyHint } from '../../services/governance/issues.js?v=20261028d';
-import { MilestoneStore } from '../../services/governance/milestones.js?v=20261028d';
-import { AuthStore } from '../../services/core/auth.js?v=20261028d';
-import { showToast } from '../../core/base/utils.js?v=20261028d';
-import { icon } from '../../core/base/icons.js?v=20261028d';
-import { getPersonName } from '../../services/member/person.js?v=20261028d';
-import { renderReactions, bindReactions } from './reactions.js?v=20261028d';
-import { ISSUE_STATUS_LABELS, ISSUE_CLOSED_REASON_LABELS } from '../../core/domain/constants.js?v=20261028d';
-import { badgeHtml } from '../ui/badges.js?v=20261028d';
-import { openFormModal } from '../ui/modal.js?v=20261028d';
+import { IssueStore, issueDomainLabel, issueDomainSuggest, issueDomainReplyHint } from '../../services/governance/issues.js?v=20261028e';
+import { MilestoneStore } from '../../services/governance/milestones.js?v=20261028e';
+import { AuthStore } from '../../services/core/auth.js?v=20261028e';
+import { showToast } from '../../core/base/utils.js?v=20261028e';
+import { icon } from '../../core/base/icons.js?v=20261028e';
+import { getPersonName } from '../../services/member/person.js?v=20261028e';
+import { renderReactions, bindReactions } from './reactions.js?v=20261028e';
+import { ISSUE_STATUS_LABELS, ISSUE_CLOSED_REASON_LABELS } from '../../core/domain/constants.js?v=20261028e';
+import { badgeHtml } from '../ui/badges.js?v=20261028e';
+import { openFormModal } from '../ui/modal.js?v=20261028e';
 
-import { emptyStateHtml } from '../ui/empty-state.js?v=20261028d';
+import { emptyStateHtml } from '../ui/empty-state.js?v=20261028e';
 const SCOPE_LABELS = {
   permanent: '底层架构',
   global: '全局通用',

@@ -4,11 +4,11 @@
 // id/label 与组织/宣传/纪检/组长四台同名（同一功能不设两个名字）；
 // 成员能否查看/答复由 services/governance/issues.js（另一工作流 C）定权限，本薄壳只登记渲染入口。
 
-import { renderMyDispatchTab, bindMyDispatchEvents } from '../../../components/feedback/issue-dispatch-view.js?v=20261028d';
-import { AuthStore } from '../../../services/core/auth.js?v=20261028d';
-import { getBasePath } from '../../../core/base/utils.js?v=20261028d';
+import { renderMyDispatchTab, bindMyDispatchEvents } from '../../../components/feedback/issue-dispatch-view.js?v=20261028e';
+import { AuthStore } from '../../../services/core/auth.js?v=20261028e';
+import { getBasePath } from '../../../core/base/utils.js?v=20261028e';
 
-import { emptyStateHtml } from '../../../components/ui/empty-state.js?v=20261028d';
+import { emptyStateHtml } from '../../../components/ui/empty-state.js?v=20261028e';
 export function renderContent() {
   const el = document.getElementById('visitor-tab-content');
   if (!el) return;

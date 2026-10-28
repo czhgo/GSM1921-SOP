@@ -28,7 +28,7 @@ async function newIsolatedPage() {
 /** 从应用状态读取某活动所在月份（YYYY-MM）：不写死演示月份，种子重排后自动跟随。 */
 async function monthOfActivity(page, activityId) {
   const month = await page.evaluate(async (id) => {
-    const m = await import('/src/core/base/state.js?v=20261028d');
+    const m = await import('/src/core/base/state.js?v=20261028e');
     const act = (m.getAppState().activities || []).find((a) => a.id === id);
     return act ? String(act.date).slice(0, 7) : null;
   }, activityId);
@@ -111,7 +111,7 @@ test('C1 支书创建三会一课活动（支部党员大会）：点击次数�
       };
     }, uniqueTitle);
     const st = await page.evaluate(async (u) => {
-      const m = await import('/src/core/base/state.js?v=20261028d');
+      const m = await import('/src/core/base/state.js?v=20261028e');
       const acts = m.getAppState().activities || [];
       return {
         appStateCount: acts.length,
@@ -230,7 +230,7 @@ test('C4 组长建活动（默认预选）：决策点选 0 次、首屏无 L1�
       (document.getElementById('dt-panel-wrap').innerText.split('\n').find(l => l.includes('当前设置')) || '').trim());
     console.log(`[C4] 首屏默认摘要：${summary}`);
     const myGroup = await page.evaluate(async () => {
-      const m = await import('/src/entries/tabs/leader/_shared.js?v=20261028d');
+      const m = await import('/src/entries/tabs/leader/_shared.js?v=20261028e');
       return m.currentLeaderGroup().group;
     });
     assert.ok(summary.includes('活动类型'), '首屏应显示白话「活动类型」摘要');
@@ -283,7 +283,7 @@ test('C5 组长建活动（高级层展开）：仍可改 活动类型/形式/�
     await page.locator('.dt-l4-btn[data-value="top-down"]').click();
     // L1 变更会重置承办党小组 → 回选组长本组
     const myGroup = await page.evaluate(async () => {
-      const m = await import('/src/entries/tabs/leader/_shared.js?v=20261028d');
+      const m = await import('/src/entries/tabs/leader/_shared.js?v=20261028e');
       return m.currentLeaderGroup().group;
     });
     await page.waitForSelector(`.dt-host-btn[data-value="${myGroup}"]`, { timeout: 5000 });

@@ -36,28 +36,28 @@ import {
 } from '../seed.js';
 import {
   SEED_MANIFEST, SEED_MANIFEST_BY_TABLE, SEED_LIFECYCLE_CLASSES, SEED_INIT_TIERS,
-} from '../../docs/src/data/seed-manifest.js?v=20261028d';
+} from '../../docs/src/data/seed-manifest.js?v=20261028e';
 import {
   normalizeSeedActivitySeedRows, ensureLegacySourceWorkgroups, ensureDemoWorkgroupGrants,
   ensureInspectionWorkgroupMembers,
-} from '../../docs/src/data/workgroup-seed-sync.js?v=20261028d';
-import { PEOPLE } from '../../docs/src/data/mock/people.js?v=20261028d';
-import { BRANCHES } from '../../docs/src/data/mock/branches.js?v=20261028d';
-import { ACTIVITIES } from '../../docs/src/data/mock/activities.js?v=20261028d';
-import { MOCK_NOTICES } from '../../docs/src/data/mock/notices.js?v=20261028d';
-import { MOCK_TASKFORCES } from '../../docs/src/data/mock/taskforces.js?v=20261028d';
+} from '../../docs/src/data/workgroup-seed-sync.js?v=20261028e';
+import { PEOPLE } from '../../docs/src/data/mock/people.js?v=20261028e';
+import { BRANCHES } from '../../docs/src/data/mock/branches.js?v=20261028e';
+import { ACTIVITIES } from '../../docs/src/data/mock/activities.js?v=20261028e';
+import { MOCK_NOTICES } from '../../docs/src/data/mock/notices.js?v=20261028e';
+import { MOCK_TASKFORCES } from '../../docs/src/data/mock/taskforces.js?v=20261028e';
 import {
   SEED_TASKS, SEED_ASSIGNMENTS, SEED_ARCHIVE_RECORDS, SEED_SIGNUPS,
   SEED_REVIEW_REQUESTS, SEED_MAKEUP_TASKS,
-} from '../../docs/src/data/mock/seed.js?v=20261028d';
-import { PARTY_GROUPS } from '../../docs/src/data/mock/party-groups.js?v=20261028d';
-import { ATTENDANCE_RECORDS } from '../../docs/src/data/mock/attendance.js?v=20261028d';
-import { INSPECTION_RECORDS } from '../../docs/src/data/mock/inspection.js?v=20261028d';
-import { REVIEW_RECORDS, TASKFORCE_REVIEW_RECORDS } from '../../docs/src/data/mock/review.js?v=20261028d';
-import { THOUGHT_REPORTS } from '../../docs/src/data/mock/thought-reports.js?v=20261028d';
-import { PERIODIC_ARCHIVES_SEED, PROP_TASKS_SEED } from '../../docs/src/data/mock/prop.js?v=20261028d';
-import { SEED_TODOS } from '../../docs/src/services/governance/todo.js?v=20261028d';
-import { applyDerivedFacts } from '../../docs/src/data/mock/derive.js?v=20261028d';
+} from '../../docs/src/data/mock/seed.js?v=20261028e';
+import { PARTY_GROUPS } from '../../docs/src/data/mock/party-groups.js?v=20261028e';
+import { ATTENDANCE_RECORDS } from '../../docs/src/data/mock/attendance.js?v=20261028e';
+import { INSPECTION_RECORDS } from '../../docs/src/data/mock/inspection.js?v=20261028e';
+import { REVIEW_RECORDS, TASKFORCE_REVIEW_RECORDS } from '../../docs/src/data/mock/review.js?v=20261028e';
+import { THOUGHT_REPORTS } from '../../docs/src/data/mock/thought-reports.js?v=20261028e';
+import { PERIODIC_ARCHIVES_SEED, PROP_TASKS_SEED } from '../../docs/src/data/mock/prop.js?v=20261028e';
+import { SEED_TODOS } from '../../docs/src/services/governance/todo.js?v=20261028e';
+import { applyDerivedFacts } from '../../docs/src/data/mock/derive.js?v=20261028e';
 
 const readJson = (rel) => JSON.parse(readFileSync(new URL(rel, import.meta.url), 'utf8'));
 
@@ -465,8 +465,8 @@ test('S4 适配器接口面：两个适配器的资源组 / 方法集合双向�
   }
   if (!globalThis.sessionStorage) globalThis.sessionStorage = globalThis.localStorage;
 
-  const { ApiAdapter } = await import('../../docs/src/data/api-adapter.js?v=20261028d');
-  const { MockAdapter } = await import('../../docs/src/data/mock-adapter.js?v=20261028d');
+  const { ApiAdapter } = await import('../../docs/src/data/api-adapter.js?v=20261028e');
+  const { MockAdapter } = await import('../../docs/src/data/mock-adapter.js?v=20261028e');
 
   const surface = (obj) => Object.fromEntries(
     Object.entries(obj)

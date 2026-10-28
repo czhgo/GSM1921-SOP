@@ -9,8 +9,8 @@
 await (async () => {
   const { test } = await import('node:test');
   const assert = (await import('node:assert/strict')).default;
-  const { memoizeRender } = await import('../../docs/src/components/ui/memoize-render.js?v=20261028d');
-  const { calendarMemoKey, calendarGridNeedsRebuild } = await import('../../docs/src/components/record/calendar.js?v=20261028d');
+  const { memoizeRender } = await import('../../docs/src/components/ui/memoize-render.js?v=20261028e');
+  const { calendarMemoKey, calendarGridNeedsRebuild } = await import('../../docs/src/components/record/calendar.js?v=20261028e');
 
   // role: [工程师]+[AI]
   // server/test/perf-render-guard.test.mjs — P2 提速批护栏：渲染守卫与视图缓存（2026-09-07）
@@ -206,10 +206,10 @@ await (async () => {
 await (async () => {
   const { test } = await import('node:test');
   const assert = (await import('node:assert/strict')).default;
-  const { mockDB } = await import('../../docs/src/core/domain/domain.js?v=20261028d');
-  const { MockAdapter } = await import('../../docs/src/data/mock-adapter.js?v=20261028d');
-  const { setDataSource } = await import('../../docs/src/data/data-adapter.js?v=20261028d');
-  const { TodoStore, TodoCategory, TodoStatus, WORK_DOMAIN } = await import('../../docs/src/services/governance/todo.js?v=20261028d');
+  const { mockDB } = await import('../../docs/src/core/domain/domain.js?v=20261028e');
+  const { MockAdapter } = await import('../../docs/src/data/mock-adapter.js?v=20261028e');
+  const { setDataSource } = await import('../../docs/src/data/data-adapter.js?v=20261028e');
+  const { TodoStore, TodoCategory, TodoStatus, WORK_DOMAIN } = await import('../../docs/src/services/governance/todo.js?v=20261028e');
 
   // role: [工程师]+[AI]
   // server/test/perf-todo-agg-cache.test.mjs — P0 提速批护栏：TodoStore 聚合级 memo 失效正确性（2026-09-07）
@@ -392,17 +392,17 @@ await (async () => {
 await (async () => {
   const { test } = await import('node:test');
   const assert = (await import('node:assert/strict')).default;
-  const { mockDB } = await import('../../docs/src/core/domain/domain.js?v=20261028d');
-  const { MockAdapter } = await import('../../docs/src/data/mock-adapter.js?v=20261028d');
-  const { setDataSource } = await import('../../docs/src/data/data-adapter.js?v=20261028d');
-  const { bumpToken, tokenOf, resetAllTokens } = await import('../../docs/src/core/base/version-token.js?v=20261028d');
-  const { saveAttendanceRecords, loadAttendanceRecords } = await import('../../docs/src/services/activity/attendance.js?v=20261028d');
-  const { saveInspectionRecords, loadInspectionRecords } = await import('../../docs/src/services/activity/inspection.js?v=20261028d');
-  const { addActivityReview } = await import('../../docs/src/services/governance/review.js?v=20261028d');
-  const { TaskForceRecordStore } = await import('../../docs/src/services/activity/taskforce.js?v=20261028d');
-  const { SignupStore } = await import('../../docs/src/services/activity/signup.js?v=20261028d');
-  const { saveFollowups } = await import('../../docs/src/services/governance/resolution-followup.js?v=20261028d');
-  const { SecretaryOverviewStore, SecretaryTodoDeriver } = await import('../../docs/src/services/governance/secretary-overview.js?v=20261028d');
+  const { mockDB } = await import('../../docs/src/core/domain/domain.js?v=20261028e');
+  const { MockAdapter } = await import('../../docs/src/data/mock-adapter.js?v=20261028e');
+  const { setDataSource } = await import('../../docs/src/data/data-adapter.js?v=20261028e');
+  const { bumpToken, tokenOf, resetAllTokens } = await import('../../docs/src/core/base/version-token.js?v=20261028e');
+  const { saveAttendanceRecords, loadAttendanceRecords } = await import('../../docs/src/services/activity/attendance.js?v=20261028e');
+  const { saveInspectionRecords, loadInspectionRecords } = await import('../../docs/src/services/activity/inspection.js?v=20261028e');
+  const { addActivityReview } = await import('../../docs/src/services/governance/review.js?v=20261028e');
+  const { TaskForceRecordStore } = await import('../../docs/src/services/activity/taskforce.js?v=20261028e');
+  const { SignupStore } = await import('../../docs/src/services/activity/signup.js?v=20261028e');
+  const { saveFollowups } = await import('../../docs/src/services/governance/resolution-followup.js?v=20261028e');
+  const { SecretaryOverviewStore, SecretaryTodoDeriver } = await import('../../docs/src/services/governance/secretary-overview.js?v=20261028e');
 
   // role: [工程师]+[AI]
   // server/test/perf-version-token.test.mjs — P0 提速批护栏：域写版本戳 bump 正确性（2026-09-07）
@@ -577,13 +577,13 @@ await (async () => {
 await (async () => {
   const { test } = await import('node:test');
   const assert = (await import('node:assert/strict')).default;
-  const { mockDB } = await import('../../docs/src/core/domain/domain.js?v=20261028d');
-  const { MockAdapter } = await import('../../docs/src/data/mock-adapter.js?v=20261028d');
-  const { setDataSource } = await import('../../docs/src/data/data-adapter.js?v=20261028d');
-  const { buildCalendarDayIndex } = await import('../../docs/src/components/record/calendar.js?v=20261028d');
-  const { SecretaryTodoDeriver } = await import('../../docs/src/services/governance/secretary-overview.js?v=20261028d');
-  const { buildApprovedSignupIndex, approvedSignupHit } = await import('../../docs/src/services/governance/today-summary.js?v=20261028d');
-  const { TodoStatus, isTodoExpired } = await import('../../docs/src/services/governance/todo.js?v=20261028d');
+  const { mockDB } = await import('../../docs/src/core/domain/domain.js?v=20261028e');
+  const { MockAdapter } = await import('../../docs/src/data/mock-adapter.js?v=20261028e');
+  const { setDataSource } = await import('../../docs/src/data/data-adapter.js?v=20261028e');
+  const { buildCalendarDayIndex } = await import('../../docs/src/components/record/calendar.js?v=20261028e');
+  const { SecretaryTodoDeriver } = await import('../../docs/src/services/governance/secretary-overview.js?v=20261028e');
+  const { buildApprovedSignupIndex, approvedSignupHit } = await import('../../docs/src/services/governance/today-summary.js?v=20261028e');
+  const { TodoStatus, isTodoExpired } = await import('../../docs/src/services/governance/todo.js?v=20261028e');
   const { today: todayLocal } = await import('../services/reporting.js');
 
   // role: [工程师]+[AI]

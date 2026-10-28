@@ -1,4 +1,4 @@
-import { DEFAULT_BRANCH_ID } from '../../core/domain/constants.js?v=20261028d';
+import { DEFAULT_BRANCH_ID } from '../../core/domain/constants.js?v=20261028e';
 export const MOCK_NOTICES = [
   // ── 历史通知（多数已过期；有效期由 expireDate 决定，不以注释断言「当前有效」）──────
   // R10（2026-10-23）：种子不再写旧的全局 `read` 布尔——读侧只用逐人 `reads[]`；

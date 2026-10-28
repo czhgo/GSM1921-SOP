@@ -12,7 +12,7 @@
 //
 //  纯函数（无 DOM / 不读 Store）：viewer 与 obj 由调用方传入；调用方自行用 AuthStore 取值。
 // ════════════════════════════════════════════════════════════════
-import { isTaskforceTerminalStatus } from './domain.js?v=20261028d';
+import { isTaskforceTerminalStatus } from './domain.js?v=20261028e';
 
 /** 对象类型 → 完整详情页（唯一两种承载面；不得在别处再拼第二套详情页） */
 export const OBJECT_DETAIL_PAGES = Object.freeze({

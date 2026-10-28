@@ -2,11 +2,11 @@
 // 宣传委员工作台 Tab：我的处置（T-279 M3 拆分，照 M2 样板）
 // 过程性汇报/问题处置：宣传委员答复提交人，支书仍全局可见。
 
-import { renderMyDispatchTab, bindMyDispatchEvents } from '../../../components/feedback/issue-dispatch-view.js?v=20261028d';
-import { AuthStore } from '../../../services/core/auth.js?v=20261028d';
-import { getBasePath } from '../../../core/base/utils.js?v=20261028d';
+import { renderMyDispatchTab, bindMyDispatchEvents } from '../../../components/feedback/issue-dispatch-view.js?v=20261028e';
+import { AuthStore } from '../../../services/core/auth.js?v=20261028e';
+import { getBasePath } from '../../../core/base/utils.js?v=20261028e';
 
-import { emptyStateHtml } from '../../../components/ui/empty-state.js?v=20261028d';
+import { emptyStateHtml } from '../../../components/ui/empty-state.js?v=20261028e';
 export function renderContent() {
   const el = document.getElementById('prop-tab-content');
   if (!el) return;

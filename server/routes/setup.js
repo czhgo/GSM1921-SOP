@@ -18,7 +18,11 @@
 // ════════════════════════════════════════════════════════════════
 import express from 'express';
 import { requireAuth } from './auth.js';
-import { PARTY_STAFF_ROLE } from '../../docs/src/core/domain/constants.js';
+import { PARTY_STAFF_ROLE, DEFAULT_BRANCH_ID } from '../../docs/src/core/domain/constants.js';
+// 支部显示名单一源（与服务端系统通知共用）＝ docs/src/core/domain/review-request-labels.js::branchDisplayName
+// （`config.headerTitle` → `name`；支部行缺失时回中性「本支部」）；支部行读取复用资源层既有 getRow。
+import { getRow } from './resources/store.js';
+import { branchDisplayName } from '../../docs/src/core/domain/review-request-labels.js';
 
 const has = (k) => !!(process.env[k] && String(process.env[k]).trim());
 const isProd = () => process.env.APP_ENV === 'production' || process.env.NODE_ENV === 'production';
@@ -62,6 +66,11 @@ export function createSetupRouter(db) {
       schemaVersion: db.pragma('user_version', { simple: true }),
     };
 
+    // 支部名运行期读取（换部署实例后不再写死学院/支部名；读不到回中性「本支部」）
+    let baselineBranch = null;
+    try { baselineBranch = getRow(db, 'branches', DEFAULT_BRANCH_ID); } catch (_) { /* 表缺失 ⇒ 中性兜底 */ }
+    const baselineBranchName = branchDisplayName('', baselineBranch);
+
     // ── 「还需要改什么」清单（**口径单一源**：面板不再自己判断）──
     const checklist = [
       { id: 'app-env', ok: env.APP_ENV, label: '生产形态开关 APP_ENV=production',
@@ -78,7 +87,7 @@ export function createSetupRouter(db) {
         howto: '不关的话，考勤/考察/待办空表会注入演示数据' },
       { id: 'baseline', ok: dbStat.partyStaff >= 1 && dbStat.branches >= 1,
         label: '组织基线已建立（党委账号 ≥1 ＋ 支部 ≥1）',
-        howto: '空库首启会自动建立（党委 1 ＋ 支部「光华管理学院本科生党支部」）；若为 0，检查启动日志' },
+        howto: `空库首启会自动建立（党委 1 ＋ 支部「${baselineBranchName}」）；若为 0，检查启动日志` },
       { id: 'no-demo', ok: dbStat.demoAccounts === 0,
         label: '库内没有演示名册残留（演示种子账号 = 0）',
         howto: '看启动日志「自检 · 演示种子账号=…」，应为 0；>0 说明库是从演示库来的 ⇒ 用空库重新起步（先备份再迁真人数据）' },

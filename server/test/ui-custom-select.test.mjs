@@ -7,7 +7,7 @@
 //   K2 原生 select 只是值载体：tabIndex=-1 且 aria-hidden=true，读屏不再遇到第二个 combobox；
 //   K3 listbox 选项可聚焦（tabindex=-1），ArrowUp/Down/Home/End/Enter/Space/Escape 都有分支；
 //   K4 打开时焦点进 listbox（无搜索框时落选中/首项），关闭（Esc）时归还触发器；
-//   K5 选项键盘焦点有可见样式（--focus-ring）。
+//   K5 选项键盘焦点有可见样式（主题色 2px / offset 1px / 无 box-shadow）。
 //
 // 运行：node --test server/test/ui-custom-select.test.mjs
 import { test } from 'node:test';
@@ -57,8 +57,10 @@ test('K4 打开焦点进 listbox；Esc 关闭后归还触发器', () => {
   assert.match(SELECT, /function _selectOption/, '选择应走单一入口（写回 + change + 关闭 + 回焦）');
 });
 
-test('K5 选项键盘焦点可见（--focus-ring）', () => {
+test('K5 选项键盘焦点可见（主题色 2px / offset 1px / 无光晕）', () => {
   const rule = STYLES.match(/\.cs-option:focus-visible\s*\{([^}]*)\}/)?.[1] || '';
   assert.ok(rule, 'styles.css 缺 .cs-option:focus-visible');
-  assert.match(rule, /outline:\s*2px solid var\(--focus-ring\)/, '选项焦点应使用 --focus-ring');
+  assert.match(rule, /outline:\s*2px solid var\(--app-accent\)/, '选项焦点应使用主题色 --app-accent');
+  assert.match(rule, /outline-offset:\s*1px\s*;/, '选项焦点偏移应为 1px');
+  assert.match(rule, /box-shadow:\s*none\s*;/, '选项焦点不得再叠 box-shadow 光晕');
 });

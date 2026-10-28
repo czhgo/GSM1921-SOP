@@ -26,7 +26,7 @@ export function createApp({ dbPath = ':memory:' } = {}) {
 
   app.locals.db = initDb(dbPath);
 
-  app.use('/api/v1/auth', createAuthRouter(app.locals.db));
+  app.use('/api/v1/auth', createAuthRouter(app.locals.db)); app.use('/api/v1/public', createPublicInfoRouter(app.locals.db)); // 未登录最小公开读口（见 routes/public-info.js）；**须在下方 resources 路由的统一鉴权中间件之前**挂载，否则会被 401 拦掉（本行原为单条 auth 挂载，保持行数不漂移以免 README-server 取证行号失效）
 
   app.use('/api/v1', createResourcesRouter(app.locals.db));
 
@@ -98,4 +98,5 @@ import { createSetupRouter } from './routes/setup.js';
 import { createReadOnlyGuard } from './read-only.js';
 import { isProductionEnv } from './env.js';
 import { createBranchRosterRouter } from './routes/branch-roster.js';
+import { createPublicInfoRouter } from './routes/public-info.js';
 import compression from 'compression';

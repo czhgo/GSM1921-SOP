@@ -4,9 +4,9 @@
 // 读取本能力，tab 声明（含懒加载 render）不再硬编码在入口。
 // 设计权威源：content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md §四/§六
 
-import { registerCapability } from '../core/boot/registry.js?v=20261028d';
-import { rolesForPage } from '../core/domain/constants.js?v=20261028d';
-import { AuthStore } from '../services/core/auth.js?v=20261028d';
+import { registerCapability } from '../core/boot/registry.js?v=20261028e';
+import { rolesForPage } from '../core/domain/constants.js?v=20261028e';
+import { AuthStore } from '../services/core/auth.js?v=20261028e';
 
 // 6 个 tab 清单：render 为懒加载动态 import（相对本模块解析到 entries/tabs/disc/）
 // ⚠ 2026-10-25 IA 62→45（8 → 6）：`calendar`（→ 工作概况页内折叠卡）、`my-dispatch`（→ 待办「我经办的反馈」）
@@ -28,7 +28,7 @@ export const DISC_WORKSPACE_TAB_DECLS = [
     // 到期/逾期行 → onNav('todo')（todo tab 六台同 id）；会议/分工行在 today-tab 内直跳 activity.html；
     // 会议「全部」→ onNav('activities')，下方映射到本台活动承载 tab（纪检台=活动日历 calendar；
     //   2026-10-18 繁专项 Top 10：原落考勤管理 attendance，改为落活动日历）
-    { id: 'today', label: '今天', groupLabel: '总览', coreTab: true, render: (ctx) => import('../entries/tabs/today/today-tab.js?v=20261028d').then(m => {
+    { id: 'today', label: '今天', groupLabel: '总览', coreTab: true, render: (ctx) => import('../entries/tabs/today/today-tab.js?v=20261028e').then(m => {
       const el = document.getElementById('disc-tab-content');
       if (el) m.renderTodayTab(el, {
         personId: ctx?.personId || AuthStore.getCurrentUser()?.personId,
@@ -53,19 +53,19 @@ export const DISC_WORKSPACE_TAB_DECLS = [
         },
       });
     }) },
-    { id: 'todo', label: '待办', groupLabel: '总览', coreTab: true, render: (ctx) => import('../entries/tabs/disc/todo-tab.js?v=20261028d').then(m => m.renderContent(ctx)) },
+    { id: 'todo', label: '待办', groupLabel: '总览', coreTab: true, render: (ctx) => import('../entries/tabs/disc/todo-tab.js?v=20261028e').then(m => m.renderContent(ctx)) },
     // 工作概况（支书 2026-08-10 裁定：全部角色新增——汇报/卡点/在办三区总览 + 条线数据注入）
-    { id: 'overview', label: '工作概况', groupLabel: '总览', coreTab: true, render: (ctx) => import('../entries/tabs/disc/overview-tab.js?v=20261028d').then(m => m.renderContent(ctx)) },
+    { id: 'overview', label: '工作概况', groupLabel: '总览', coreTab: true, render: (ctx) => import('../entries/tabs/disc/overview-tab.js?v=20261028e').then(m => m.renderContent(ctx)) },
     // 活动日历（2026-10-25 IA 62→45）：页签已删——共享只读日历降为「工作概况」页内折叠卡
     //   （`disc/overview-tab.js` 挂 shared 卡形态）；旧 `?tab=calendar` → `overview&section=calendar`。
     // 我的处置（2026-10-25 IA 62→45）：页签已删——并入「待办」页「我经办的反馈」；旧 `?tab=my-dispatch` → `todo&filter=dispatch`。
     // 分组「我的职责」= 2026-09-14 裁定按行为性质四组之一；本轮（2026-09-15）五台统一：原「党建」组改名「我的职责」
-    { id: 'attendance', label: '考勤管理', groupLabel: '我的职责', render: (ctx) => import('../entries/tabs/disc/attendance-tab.js?v=20261028d').then(m => m.renderContent(ctx)) },
+    { id: 'attendance', label: '考勤管理', groupLabel: '我的职责', render: (ctx) => import('../entries/tabs/disc/attendance-tab.js?v=20261028e').then(m => m.renderContent(ctx)) },
     // 2026-10-04 批次 368（`#10` 单一轴 · 支书圈**甲**）：原名「**活动监督复盘**」＝**动作（监督）＋ 对象（复盘）混轴**
     //   ⇒ **改名「复盘」**（对象轴；与同组「考勤管理 / 考察管理」同构）。页内四块（流程监督 / 复盘监督 /
     //   经验沉淀督促清单 / 已沉淀清单）一字未动；实现文件仍是 `entries/tabs/disc/review-tab.js`。
-    { id: 'review', label: '复盘', groupLabel: '我的职责', render: (ctx) => import('../entries/tabs/disc/review-tab.js?v=20261028d').then(m => m.renderContent(ctx)) },
-    { id: 'inspection', label: '考察管理', groupLabel: '我的职责', render: (ctx) => import('../entries/tabs/disc/inspection-tab.js?v=20261028d').then(m => m.renderContent(ctx)) },
+    { id: 'review', label: '复盘', groupLabel: '我的职责', render: (ctx) => import('../entries/tabs/disc/review-tab.js?v=20261028e').then(m => m.renderContent(ctx)) },
+    { id: 'inspection', label: '考察管理', groupLabel: '我的职责', render: (ctx) => import('../entries/tabs/disc/inspection-tab.js?v=20261028e').then(m => m.renderContent(ctx)) },
     // 2026-10-20 批次 489（IA-A01 裁定）：**删除「知情查看」页签**——纪检名下的知情查看长期是
     //   稳定空壳（`downstreamViewSegments` 派生为空集）；专班知情改由 `taskforce.html?id=` 承载，
     //   活动知情由「活动日历」承载 ⇒ 本台不再保留第九个页签（9 → 8）。旧深链别名由壳统一处理。

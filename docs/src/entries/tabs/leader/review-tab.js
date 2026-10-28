@@ -6,22 +6,22 @@
 //   本区块并入「组员进展」页（leader/members-tab.js 挂载）——模块改为可嵌入区块导出：
 //   reviewStatusSectionHtml(ctx) → 整卡 HTML 字符串；bindReviewStatusSection(container, rerender) → 绑定展开。
 
-import { loadActivities } from '../../../services/activity/activity.js?v=20261028d';
+import { loadActivities } from '../../../services/activity/activity.js?v=20261028e';
 // 待批活动的可见性单一源（2026-09-22 批次 151）：组长台为非支委层 ⇒ 待批活动不进本页复盘桶
-import { filterActivitiesForViewer } from '../../../services/core/visibility.js?v=20261028d';
-import { loadActivityReviews } from '../../../services/governance/review.js?v=20261028d';
-import { ReviewStatus, REVIEW_STATUS_LABELS } from '../../../core/domain/domain.js?v=20261028d';
-import { liveMembers, PersonStore } from '../../../services/member/person.js?v=20261028d';
+import { filterActivitiesForViewer } from '../../../services/core/visibility.js?v=20261028e';
+import { loadActivityReviews } from '../../../services/governance/review.js?v=20261028e';
+import { ReviewStatus, REVIEW_STATUS_LABELS } from '../../../core/domain/domain.js?v=20261028e';
+import { liveMembers, PersonStore } from '../../../services/member/person.js?v=20261028e';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/member/person.js 获取（原直连 mock PEOPLE）
 // 实时视图（非快照）：成员增删即时可见——见 services/member/person.js liveMembers 说明
 const PEOPLE = liveMembers();
-import { currentLeaderGroup } from './_shared.js?v=20261028d';
+import { currentLeaderGroup } from './_shared.js?v=20261028e';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是活动的表格一律接入（关键词 + 分面）
-import { renderFilteredList, activityKeyword, activityFacets } from '../../../components/ui/list-filter.js?v=20261028d';
+import { renderFilteredList, activityKeyword, activityFacets } from '../../../components/ui/list-filter.js?v=20261028e';
 // 活动「仍在办」口径单一源（2026-09-13 收敛）：替代手写 status!=='cancelled' && !archived
-import { isActivityLive } from '../../../core/domain/constants.js?v=20261028d';
+import { isActivityLive } from '../../../core/domain/constants.js?v=20261028e';
 // Task 6：复盘收件是跨对象列表 ⇒ 活动行直达完整详情页（direct）。
-import { objectDetailHref } from '../../../core/domain/object-route.js?v=20261028d';
+import { objectDetailHref } from '../../../core/domain/object-route.js?v=20261028e';
 
 // 私有状态（随模块自持，不污染入口）
 let _reviewExpandedId = null;

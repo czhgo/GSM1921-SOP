@@ -31,7 +31,7 @@ import { fileURLToPath } from 'node:url';
 import {
   ACCENT_COLORS, ACCENT_PALETTE, ACCENT_KEY_ALIASES, normalizeAccentKey, getAccentColors,
   accentButtonColors, ROLE_COLORS,
-} from '../../docs/src/core/domain/constants.js?v=20261028d';
+} from '../../docs/src/core/domain/constants.js?v=20261028e';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(HERE, '..', '..');
@@ -611,7 +611,7 @@ test('G4 内存样本：gold 实底白字 / red 实底白字 / 非法入参回�
   }, '非法入参应回落 gold 主题的显式 token');
 });
 
-test('G5 浅底深字 / 焦点环：不得直接用裸 var(--app-accent)', () => {
+test('G5 浅底深字：不得直接用裸 var(--app-accent)；焦点环只用 --app-accent', () => {
   const textRules = [
     '.text-accent',
     '.chip-option:hover',
@@ -637,24 +637,32 @@ test('G5 浅底深字 / 焦点环：不得直接用裸 var(--app-accent)', () =>
   }
 
   const focusRules = [
-    'button:focus-visible,\\s*a:focus-visible',
+    'button:focus-visible',
     '.ws-tab-scroll button:focus-visible',
     '.notif-dropdown-item:focus-visible',
     '.status-badge:focus-visible',
     'button.metric-band__item:focus-visible',
     '.list-row:focus-visible',
     '.todo-more__item:focus-visible',
-    '.list-row\\[data-interactive="true"\\]:focus-visible',
-    '.gallery-card:focus-visible',
+    '.list-row[data-interactive="true"]:focus-visible',
+    // 2026-10-28（支书裁定「消除假反馈」）：画廊卡的唯一交互元素是标题链，焦点环由它承担；
+    //   原先挂在整卡上的 `.gallery-card:focus-visible` 已删除（卡片不进 tab 序列 ⇒ 不可达的死规则）。
+    '.gallery-card__open:focus-visible',
   ];
   for (const selector of focusRules) {
-    const re = new RegExp(`${selector}\\s*\\{([^}]*)\\}`);
-    const m = re.exec(STYLES);
-    assert.ok(m, `styles.css 缺少 ${selector} 规则`);
-    // 焦点环统一走 --focus-ring（亮色深灰 / 暗色党徽金），不得再用浅底深字 token。
-    assert.match(m[1], /outline:\s*2px solid var\(--focus-ring\)/,
-      `${selector} 的焦点环应使用 --focus-ring（按主题取色）`);
-    assert.doesNotMatch(m[1], /outline:\s*2px solid var\(--app-accent/,
-      `${selector} 不得用主题色 token 作焦点环`);
+    const body = ruleBody(STYLES, selector);
+    assert.ok(body, `styles.css 缺少 ${selector} 规则`);
+    // 2026-10-28 支书裁定：焦点环只用主题色 --app-accent（2px / offset 1px / 无 box-shadow）。
+    assert.match(body, /outline:\s*2px solid var\(--app-accent\)/,
+      `${selector} 的焦点环应使用主题色 --app-accent`);
+    assert.match(body, /outline-offset:\s*1px\s*;/, `${selector} 的焦点环偏移应为 1px`);
+    assert.match(body, /box-shadow:\s*none\s*;/, `${selector} 的焦点环不得再叠 box-shadow 光晕`);
+    assert.doesNotMatch(body, /--focus-ring/, `${selector} 不得再引用旧 --focus-ring`);
   }
+
+  // 反向判据（不降强度）：整卡既不可聚焦也不可点 ⇒ 不得残留环／手型光标。
+  assert.equal(ruleBody(STYLES, '.gallery-card:focus-visible'), '',
+    '整卡不可聚焦 ⇒ 不得再有 .gallery-card:focus-visible（焦点环由 .gallery-card__open 承担）');
+  assert.doesNotMatch(ruleBody(STYLES, '.gallery-card'), /cursor:\s*pointer/,
+    '.gallery-card 整卡不可点 ⇒ 不得有 cursor: pointer（看着能点其实点不动的假反馈）');
 });

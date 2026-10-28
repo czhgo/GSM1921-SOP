@@ -5,29 +5,29 @@
 // P-011 知情边界：看 ≠ 做——组长只知情与温和「了解进展」，答复由支书完成，不跳转他人工作台。
 // 本视图禁用 SVG 图标，类别用色点+文字区分。
 
-import { currentUserId } from '../../../services/core/auth.js?v=20261028d';
-import { IssueStore } from '../../../services/governance/issues.js?v=20261028d';
-import { renderReportInboxHtml, bindReportInbox, filterReportsByScope } from '../../../components/record/reporting.js?v=20261028d';
+import { currentUserId } from '../../../services/core/auth.js?v=20261028e';
+import { IssueStore } from '../../../services/governance/issues.js?v=20261028e';
+import { renderReportInboxHtml, bindReportInbox, filterReportsByScope } from '../../../components/record/reporting.js?v=20261028e';
 // 批次 47-I（Q-23-41 ②，支书 2026-09-15 裁定「改为服务端汇总」）：四项聚合口径下沉单一源
 // `services/member/member-progress.js`——api 态由**服务端**汇总接口计算、mock 态调**同一个**纯函数。
 // 故原先此处的四源直读与内联判定（TodoStore / TodoStatus / isTodoExpired / AttendanceStatus /
 // loadAttendanceRecords / loadActiveInspectionRecords）**全部移除**：判定逻辑不再在本文件出现。
-import { loadMemberProgress, blockersOf, REPORT_KIND } from '../../../services/member/member-progress.js?v=20261028d';
-import { resolveVisibleTargets } from '../../../services/core/visibility.js?v=20261028d';
-import { getPersonById, getPersonName } from '../../../services/member/person.js?v=20261028d';
-import { showToast, getBasePath, escHtml as esc, todayLocal } from '../../../core/base/utils.js?v=20261028d';
+import { loadMemberProgress, blockersOf, REPORT_KIND } from '../../../services/member/member-progress.js?v=20261028e';
+import { resolveVisibleTargets } from '../../../services/core/visibility.js?v=20261028e';
+import { getPersonById, getPersonName } from '../../../services/member/person.js?v=20261028e';
+import { showToast, getBasePath, escHtml as esc, todayLocal } from '../../../core/base/utils.js?v=20261028e';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是人的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
-import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261028d';
-import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261028d';
+import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261028e';
+import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261028e';
 // D8 裁决批二（2026-09-08）：本组活动复盘状态只读区块并入「组员进展」页（原独立「复盘状态」tab 已删）
-import { reviewStatusSectionHtml, bindReviewStatusSection } from './review-tab.js?v=20261028d';
+import { reviewStatusSectionHtml, bindReviewStatusSection } from './review-tab.js?v=20261028e';
 // 材料页深链 focusActivityId 的通用定位（只滚动 + 闪烁，不另造筛选器）
-import { focusActivityAnchor } from '../../../components/ui/detail-anchor.js?v=20261028d';
+import { focusActivityAnchor } from '../../../components/ui/detail-anchor.js?v=20261028e';
 
 // 模块级 ctx 缓存：重渲染（了解进展/行内答复后刷新）复用首次渲染的 accent
 let _ctx = null;
 
-import { emptyStateHtml } from '../../../components/ui/empty-state.js?v=20261028d';
+import { emptyStateHtml } from '../../../components/ui/empty-state.js?v=20261028e';
 export async function renderContent(ctx) {
   _ctx = ctx || _ctx;
   const container = document.getElementById('leader-tab-content');
@@ -232,7 +232,7 @@ export async function renderContent(ctx) {
   // 「其他党小组」独立区（组件单一源：components/record/other-groups-view.js）
   const groupsHost = container.querySelector('#leader-groups-host');
   if (groupsHost) {
-    import('../../../components/record/other-groups-view.js?v=20261028d')
+    import('../../../components/record/other-groups-view.js?v=20261028e')
       .then((m) => { if (groupsHost.isConnected) m.renderOtherGroupsView(groupsHost); });
   }
   // 「上传考察」折叠区（渲染函数单一源：leader/inspection-tab.js；展开时才挂载）
@@ -251,7 +251,7 @@ function _mountInspectionFold(container, ctx) {
   const mount = () => {
     if (host.dataset.inspMounted === '1' || !host.isConnected) return;
     host.dataset.inspMounted = '1';
-    import('./inspection-tab.js?v=20261028d').then((m) => {
+    import('./inspection-tab.js?v=20261028e').then((m) => {
       if (host.isConnected) m.renderContent(ctx, host);
     });
   };

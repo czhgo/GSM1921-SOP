@@ -11,12 +11,12 @@
 //  依赖方向正确：组件 → 服务（不是服务 → 组件）。守卫：issue-branch.test.mjs（结构层）。
 // ════════════════════════════════════════════════════════════════
 
-import { renderFilteredList } from '../ui/list-filter.js?v=20261028d';
-import { renderTabHeader } from '../shell/page-frame.js?v=20261028d';
-import { escHtml, showToast } from '../../core/base/utils.js?v=20261028d';
-import { IssueStore, IssueNotify, deriveIssueDisplayState, REPORT_CATEGORIES, displayNameOf as _displayName } from '../../services/governance/issues.js?v=20261028d';
+import { renderFilteredList } from '../ui/list-filter.js?v=20261028e';
+import { renderTabHeader } from '../shell/page-frame.js?v=20261028e';
+import { escHtml, showToast } from '../../core/base/utils.js?v=20261028e';
+import { IssueStore, IssueNotify, deriveIssueDisplayState, REPORT_CATEGORIES, displayNameOf as _displayName } from '../../services/governance/issues.js?v=20261028e';
 
-import { emptyStateHtml } from '../ui/empty-state.js?v=20261028d';
+import { emptyStateHtml } from '../ui/empty-state.js?v=20261028e';
 // ════════════════════════════════════════════════════════════════
 //  「我的处置」Tab 渲染工具（各角色工作台复用）
 //  2026-07-30 新增：被指派人视角的反馈列表+详情+评论/提交处置结果
@@ -193,7 +193,7 @@ function _assignedIssueRowHtml(issue, userId) {
   const ds = deriveIssueDisplayState(issue);
   const dispatchNote = (issue.dispatchHistory || []).find(d => d.to === userId);
   return `
-        <div class="p-3 rounded-xl bg-white border border-gray-100 hover:border-gray-200 cursor-pointer transition-colors" role="button" tabindex="0" data-mydispatch-action="open" data-issue-id="${issue.id}">
+        <div class="p-3 rounded-xl bg-white border border-gray-100 hover:border-gray-200 active:bg-[var(--surface-active)] active:border-[var(--app-accent)] cursor-pointer transition-colors" role="button" tabindex="0" data-mydispatch-action="open" data-issue-id="${issue.id}">
           <div class="flex items-center justify-between mb-1">
             <span class="text-xs text-gray-500 font-mono">#${issue.number}</span>
             <span class="text-xs px-1.5 py-0.5 rounded-full ${ds.badgeClass}">${ds.label}</span>
@@ -208,7 +208,7 @@ function _assignedIssueRowHtml(issue, userId) {
 function _myReportRowHtml(r) {
   const ds = deriveIssueDisplayState(r);
   return `
-        <div role="button" tabindex="0" data-mydispatch-action="open-report" data-issue-id="${r.id}" class="flex items-center gap-2 py-1.5 px-1 rounded-lg border border-gray-100 cursor-pointer hover:bg-surface-hover transition-colors">
+        <div role="button" tabindex="0" data-mydispatch-action="open-report" data-issue-id="${r.id}" class="flex items-center gap-2 py-1.5 px-1 rounded-lg border border-gray-100 cursor-pointer hover:bg-surface-hover active:bg-[var(--surface-active)] transition-colors">
           <span class="text-xs px-1.5 py-0.5 rounded-full ${ds.badgeClass}">${ds.label}</span>
           <span class="text-xs text-gray-500">${REPORT_CATEGORIES[r.reportCategory] || '进度'}</span>
           <span class="text-sm text-gray-800 flex-1 min-w-0 truncate">${r.title}</span>
@@ -220,7 +220,7 @@ function _myReportRowHtml(r) {
 function _myIssueRowHtml(issue) {
   const ds = deriveIssueDisplayState(issue);
   return `
-        <div class="flex items-center gap-2 py-1.5 px-1 rounded-lg border border-gray-100 cursor-pointer hover:bg-surface-hover transition-colors" role="button" tabindex="0" data-mydispatch-action="open-my-issue" data-issue-id="${issue.id}">
+        <div class="flex items-center gap-2 py-1.5 px-1 rounded-lg border border-gray-100 cursor-pointer hover:bg-surface-hover active:bg-[var(--surface-active)] transition-colors" role="button" tabindex="0" data-mydispatch-action="open-my-issue" data-issue-id="${issue.id}">
           <span class="text-xs text-gray-500 font-mono flex-shrink-0">#${issue.number}</span>
           <span class="text-xs px-1.5 py-0.5 rounded-full ${ds.badgeClass} flex-shrink-0">${ds.label}</span>
           <span class="text-sm text-gray-800 flex-1 min-w-0 truncate">${issue.title}</span>

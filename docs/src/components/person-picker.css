@@ -220,6 +220,20 @@
   color: var(--neutral-500);
 }
 
+/* 2026-10-28：此前只有选中态，缺 hover / active（与 .btn-tab 同档：底 + 描边加深）。
+   选中态不叠灰底，保持主题淡底。 */
+@media (hover: hover) {
+  .person-picker-tabs .person-picker-tab:not(.active):hover {
+    background: var(--surface-hover);
+    border-color: var(--neutral-300);
+    color: var(--neutral-700);
+  }
+}
+.person-picker-tabs .person-picker-tab:not(.active):active {
+  background: var(--surface-active);
+  border-color: var(--neutral-300);
+}
+
 .person-picker-tab.active {
   background: var(--pp-accent-10);
   color: var(--pp-accent-darker);
@@ -272,6 +286,7 @@
 .person-picker-item:focus-visible {
   outline: 2px solid var(--pp-accent);
   outline-offset: -2px;
+  box-shadow: none;
 }
 
 @media (hover: hover) {
@@ -291,8 +306,9 @@
   opacity: 0.55;
 }
 .person-picker-item.disabled:focus-visible {
-  outline: 2px solid var(--neutral-300);
-  outline-offset: -2px;
+  /* 禁用态不出焦点边（2026-10-28 全站单一口径）。 */
+  outline: none;
+  box-shadow: none;
 }
 @media (hover: hover) {
   .person-picker-list .person-picker-item.disabled:hover {

@@ -5,17 +5,17 @@
 //  视图模式：月/周/日/列表 四种切换
 // ════════════════════════════════════════════════════════════════
 
-import { getAppState, setState } from '../../core/base/state.js?v=20261028d';
-import { ROLE_COLORS, getActivityColor, ACTIVITY_CATEGORY_COLORS, ACTIVITY_TYPE_LABELS, ACTIVITY_TYPE_SHORT, activityTypeTone } from '../../core/domain/constants.js?v=20261028d';
-import { _fmtDate, _currentYearMonth, showToast } from '../../core/base/utils.js?v=20261028d';
+import { getAppState, setState } from '../../core/base/state.js?v=20261028e';
+import { ROLE_COLORS, getActivityColor, ACTIVITY_CATEGORY_COLORS, ACTIVITY_TYPE_LABELS, ACTIVITY_TYPE_SHORT, activityTypeTone } from '../../core/domain/constants.js?v=20261028e';
+import { _fmtDate, _currentYearMonth, showToast } from '../../core/base/utils.js?v=20261028e';
 // 2026-10-25 Task 1.3：节点缺失 / 页内失败统一走「错误卡 + 重试」单一源（tab-bar 同款）。
-import { mountTabFailure } from '../shell/tab-bar.js?v=20261028d';
-import { tokenOf } from '../../core/base/version-token.js?v=20261028d'; // P2 视图渲染守卫数据版本（spec §四.2）
-import { filterTasksByManagementRole, activityLifecycleBadgeHtml } from './inspector.js?v=20261028d';
+import { mountTabFailure } from '../shell/tab-bar.js?v=20261028e';
+import { tokenOf } from '../../core/base/version-token.js?v=20261028e'; // P2 视图渲染守卫数据版本（spec §四.2）
+import { filterTasksByManagementRole, activityLifecycleBadgeHtml } from './inspector.js?v=20261028e';
 // 活动「已完成 / 已取消」闭环判据单一源（R7-16）：替代手写 ['completed','cancelled']
-import { isActivityClosed } from '../../core/domain/domain.js?v=20261028d';
+import { isActivityClosed } from '../../core/domain/domain.js?v=20261028e';
 
-import { emptyStateHtml } from '../ui/empty-state.js?v=20261028d';
+import { emptyStateHtml } from '../ui/empty-state.js?v=20261028e';
 // ── 固定语义色 tone（不随主题）──
 // 2026-10-24 批次 508：活动类别色改由单一源 activityTypeTone 判定——
 //   主题党日（scenarioId=theme-party）→ gold；其余类别（三会一课等）→ party-red；无 type → neutral。
@@ -555,7 +555,7 @@ function _renderListView(grid, activeActivities, tasks, month, state) {
         html += `<div class=" text-xs font-bold text-gray-500 mt-3 mb-1.5 pb-1 border-b border-gray-100">${d.getMonth()+1}月${d.getDate()}日 周${WEEKDAY[d.getDay()]}</div>`;
       }
       const color = getActivityColor(act);
-      html += `<div class="flex items-center gap-2 p-2.5 rounded-lg hover:bg-[var(--surface-hover)] cursor-pointer cal-list-item" data-act-id="${act.id}" data-date="${act.date}">`;
+      html += `<div class="flex items-center gap-2 p-2.5 rounded-lg hover:bg-[var(--surface-hover)] active:bg-[var(--surface-active)] cursor-pointer cal-list-item" role="button" tabindex="0" data-act-id="${act.id}" data-date="${act.date}">`;
       html += `<span class="cal-activity-dot" style="${_accDot(color)}background:${color.text};"></span>`;
       html += `<div class="flex-1 min-w-0">`;
       html += `<div class="text-sm font-medium text-gray-800 truncate">${act.title || '未命名'}</div>`;
@@ -677,7 +677,8 @@ function _bindCalendarRoving(grid) {
 }
 
 /** R3-F03/B01：日期格键盘选中（Enter/Space 与点击完全等价；不拦截格内活动条目的键盘事件）。
- *  R3-11：统一走 `cell.click()` —— 桌面与移动端同一绑定（移动端还要打开当日详情面板）。 */
+ *  R3-11：统一走 `cell.click()` —— 桌面与移动端同一绑定（移动端还要打开当日详情面板）。
+ *  2026-10-28 回归：空白日期格同样绑定——鼠标与键盘都必须能进「列表视图 + 带日期新建」。 */
 function _bindDateCellKeys(grid) {
   grid.querySelectorAll('[data-date][role="gridcell"]').forEach(cell => {
     if (cell.dataset.calDateKeyBound) return;
@@ -692,9 +693,11 @@ function _bindDateCellKeys(grid) {
 }
 
 function _bindCellClicks(grid, mode) {
-  // 单元格空白处点击（保留原"选中日期"行为，显示该日列表）
+  // 单元格空白处点击（选中日期，显示该日列表）
   // R3-11（2026-10-20）：原先只绑 `has-tasks` ⇒ 空日期有 tabindex、键盘 Enter 能选，
   //   鼠标却点不动（同一格子两套行为）。日期格一律绑定，空日在右栏给「新建活动（带日期）」出口。
+  // 2026-10-28 回归：批次 519 曾按「无内容即不可点」收成 `.has-tasks`，连带移除了这个入口；
+  //   现恢复全量绑定，并由 CSS 让空白格显式可点（cursor + hover/active）。
   grid.querySelectorAll('.cal-cell-large[data-date]').forEach(cell => {
     cell.addEventListener('click', (e) => {
       // 如果点击的是活动条目，不触发单元格选中（由活动条目独立处理）

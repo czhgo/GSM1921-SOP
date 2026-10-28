@@ -29,6 +29,7 @@ import assert from 'node:assert/strict';
 import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { join, relative, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { ACCENT_COLORS } from '../../docs/src/core/domain/constants.js?v=20261028e';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(HERE, '..', '..');
@@ -1514,4 +1515,136 @@ test('FOCUS-3 「考勤良好」数值不再用 --status-success（24px 大字 �
   console.log(`[ui-control-system-guard] FOCUS-3 --status-success/白卡 ${green.toFixed(2)}:1（大字不达标）· --neutral-800/白卡 ${body.toFixed(2)}:1`);
   assert.ok(green < 3, `反证失败：--status-success 对白卡应为 ${green.toFixed(2)}:1（<3），否则本断言失去意义`);
   assert.ok(body >= 4.5, `--neutral-800 对白卡 ${body.toFixed(2)}:1 应 ≥4.5`);
+});
+
+// ═════════════════════════════════════════════════════════════════════════════
+// FOCUS-4…5：全站焦点单一来源 ＋ 七主题焦点环对比度（2026-10-28 批次 520）
+//   口径：全站焦点环只允许一个来源（主题色）、不得出现 box-shadow 环、
+//     不得复活 --focus-ring / --focus-halo；把 `0 0 0 6px` 写回任意规则都必须判红。
+//   允许的两个登记例外：
+//     ① 实底主题色控件把环取反为 --app-accent-strong-ink（压在内侧，offset -2px）；
+//     ② 顶栏深红底用既有白色令牌 --app-accent-strong-ink-light。
+//   另：person-picker 的 --pp-accent 是主题色注入别名，与 --app-accent 同源。
+// ═════════════════════════════════════════════════════════════════════════════
+const FOCUS_SELECTOR_RE = /:focus(?:-visible|-within)?/;
+const ACCENT_RING_TOKENS = ['var(--app-accent)', 'var(--pp-accent)'];
+const SOLID_RING_TOKENS = ['var(--app-accent-strong-ink)', 'var(--app-accent-strong-ink-light)'];
+const SOLID_RING_SELECTORS = [
+  '.btn-accent:focus-visible',
+  '.btn-danger-solid:focus-visible',
+  '.status-badge[aria-pressed="true"]:focus-visible',
+  '#app-header .hamburger-btn:focus-visible',
+  '#app-header .header-action-btn:focus-visible',
+  '#app-header #notif-btn:focus-visible',
+];
+
+/** 任意规则里的 6px 外发光（不限于焦点规则）；返回违规串 */
+function haloProblems(css) {
+  const out = [];
+  for (const b of ruleBlocks(css)) {
+    const shadow = declOf(b.body, 'box-shadow');
+    if (shadow && /0(?:px)?\s+0(?:px)?\s+0(?:px)?\s+6px/.test(shadow)) {
+      out.push(`${b.selector}：${shadow}`);
+    }
+  }
+  return out;
+}
+
+/** 焦点规则的两个来源问题：box-shadow 环 / 非主题色 outline；返回 { problems, scanned } */
+function focusSourceProblems(css) {
+  const problems = [];
+  let scanned = 0;
+  for (const b of ruleBlocks(css)) {
+    const sels = b.selector.split(',').map((s) => s.trim());
+    if (!sels.some((s) => FOCUS_SELECTOR_RE.test(s))) continue;
+    scanned += 1;
+
+    const shadow = declOf(b.body, 'box-shadow');
+    if (paintsRing(shadow)) {
+      problems.push(`${b.selector}：焦点规则不得画 box-shadow 环（${shadow}）`);
+    }
+
+    const outlineDecls = [...b.body.matchAll(/(?:^|;)\s*outline\s*:\s*([^;]+)/g)].map((m) => m[1].trim());
+    if (outlineDecls.length > 1) {
+      problems.push(`${b.selector}：同一焦点规则声明了 ${outlineDecls.length} 条 outline`);
+    }
+    const outline = declOf(b.body, 'outline');
+    if (!paintsRing(outline)) continue;
+    const accentRing = ACCENT_RING_TOKENS.some((t) => outline.includes(t));
+    const solidRing = sels.every((s) => SOLID_RING_SELECTORS.includes(s))
+      && SOLID_RING_TOKENS.some((t) => outline.includes(t));
+    if (!accentRing && !solidRing) {
+      problems.push(`${b.selector}：焦点环色「${outline}」不是主题色 --app-accent（或登记别名）`);
+    }
+  }
+  return { problems, scanned };
+}
+
+/** HTML 页内的 <style> 段；CSS 文件原样返回 */
+function cssOf(label, src) {
+  return label.endsWith('.html')
+    ? [...src.matchAll(/<style[^>]*>([\s\S]*?)<\/style>/gi)].map((m) => m[1]).join('\n')
+    : src;
+}
+
+test('FOCUS-4 全站焦点单一来源：只有主题色一条环，无 box-shadow 环 / 无 6px 光晕 / 旧令牌零残留', () => {
+  // ① 反例：6px 外发光写回任意一条规则（含非焦点规则）⇒ 必须判红
+  assert.equal(haloProblems('.probe { box-shadow: 0 0 0 6px rgba(0,0,0,.1); }').length, 1,
+    '反例未被判红：任意规则里的 0 0 0 6px 光晕必须命中（判据会变成恒真）');
+  // ② 反例：焦点规则用 box-shadow 画环（即使颜色是主题色）⇒ 必须判红
+  const focusHalo = '.probe:focus { box-shadow: 0 0 0 6px var(--app-accent); }';
+  assert.equal(haloProblems(focusHalo).length, 1, '焦点规则里的 6px 光晕未被判红');
+  assert.ok(focusSourceProblems(focusHalo).problems.length >= 1,
+    '焦点规则用 box-shadow 画环未被判红（不得以阴影充当焦点环）');
+  // ③ 反例：固定党徽金 / 旧令牌当焦点环 ⇒ 必须判红
+  const gold = '.probe:focus-visible { outline: 2px solid var(--party-gold); outline-offset: 1px; box-shadow: none; }';
+  assert.equal(focusSourceProblems(gold).problems.length, 1, '非主题色焦点环未被判红');
+  // ④ 正例：单一主题色环 + box-shadow none ⇒ 不得误红
+  const ok = '.probe:focus-visible { outline: 2px solid var(--app-accent); outline-offset: 1px; box-shadow: none; }';
+  assert.deepEqual(focusSourceProblems(ok).problems, [], '正例被判红：合法的主题色单环被误判');
+
+  // ⑤ 实况：五个焦点面逐一核（styles / person-picker / about / help / login）
+  const sources = [
+    ['docs/src/styles.css', CSS],
+    ['docs/src/components/person-picker.css', PERSON_PICKER_CSS],
+    ['docs/src/about.css', readFileSync(join(SRC, 'about.css'), 'utf8')],
+    ['docs/help.html', HELP_HTML],
+    ['docs/login.html', readFileSync(join(ROOT, 'docs', 'login.html'), 'utf8')],
+  ];
+  let scanned = 0;
+  const problems = [];
+  for (const [label, src] of sources) {
+    const css = cssOf(label, src);
+    assert.doesNotMatch(css, /--focus-(?:ring|halo)/,
+      `${label} 仍引用已退场的焦点令牌（--focus-ring / --focus-halo）`);
+    const r = focusSourceProblems(css);
+    scanned += r.scanned;
+    problems.push(...r.problems.map((p) => `${label} → ${p}`));
+    problems.push(...haloProblems(css).map((p) => `${label} → ${p}`));
+  }
+  assert.ok(scanned >= 20, `只扫描到 ${scanned} 条焦点规则（下限 20）：扫描面被写坏，本断言会恒真`);
+  console.log(`[ui-control-system-guard] FOCUS-4 焦点规则 ${scanned} 条 · 单一来源 / 无光晕 · 违规 ${problems.length} 处`);
+  assert.deepEqual(problems, [],
+    `焦点环必须只有主题色一个来源、且不得用 box-shadow 画环：\n  ${problems.join('\n  ')}`);
+});
+
+test('FOCUS-5 七主题 base 焦点环：对白卡 #FFFFFF 与深卡 #141D2F 均 ≥3:1（逐色日志）', () => {
+  const CARD_LIGHT = '#FFFFFF';
+  const CARD_DARK = '#141D2F';
+  const keys = ['gold', 'red', 'orange', 'green', 'cyan', 'blue', 'purple'];
+  assert.deepEqual(Object.keys(ACCENT_COLORS).sort(), [...keys].sort(),
+    'ACCENT_COLORS 必须恰为七主题（gold/red/orange/green/cyan/blue/purple）');
+  const readings = [];
+  for (const key of keys) {
+    const light = ACCENT_COLORS[key].light.base;
+    const dark = ACCENT_COLORS[key].dark.base;
+    assert.match(light, /^#[0-9A-Fa-f]{6}$/, `${key} 亮档 base 不是合法 hex：${light}`);
+    assert.match(dark, /^#[0-9A-Fa-f]{6}$/, `${key} 暗档 base 不是合法 hex：${dark}`);
+    const vsLight = contrast(light, CARD_LIGHT);
+    const vsDark = contrast(dark, CARD_DARK);
+    readings.push(`${key} 亮 ${light} vs 白卡 ${vsLight.toFixed(2)}:1 · 暗 ${dark} vs 深卡 ${vsDark.toFixed(2)}:1`);
+    assert.ok(vsLight >= 3, `${key} 亮档焦点环对白卡仅 ${vsLight.toFixed(2)}:1（要求 ≥3）`);
+    assert.ok(vsDark >= 3, `${key} 暗档焦点环对深卡仅 ${vsDark.toFixed(2)}:1（要求 ≥3）`);
+  }
+  console.log(`[ui-control-system-guard] FOCUS-5 ${readings.join(' · ')}`);
 });

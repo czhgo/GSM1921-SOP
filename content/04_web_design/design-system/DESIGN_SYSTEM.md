@@ -2,7 +2,7 @@
 title: "设计系统"
 type: design
 role: "[工程师]+[AI]"
-last_updated: 2026-10-28
+last_updated: 2026-10-29
 status: active
 related_files: [docs/src/styles.css, ../evolution/DESIGN_METHODOLOGY.md, ../data/DATA_MODEL.md]
 ---
@@ -171,7 +171,7 @@ related_files: [docs/src/styles.css, ../evolution/DESIGN_METHODOLOGY.md, ../data
 
 #### 2.3.1 品牌统一层（党徽金）— 横跨全站、不受主题色制约
 
-> **定义（2026-08-08 三审修正）**：金色是党建合规色（`--party-gold` 定义于 `:root`，不经角色派生链路），用于**全站统一视觉**场景。**但金不强制充当"主题色"**——主题色语义（tab 激活态、选中项、chips）回归角色识别层（§2.3.2/§2.8 ②），因金是品牌合规色、含义多、受对比度牵制反复变色（半透明偏淡→实色偏艳，均不被接受）。金色仅保留于：强调卡边框、主题党日类别、待办行动按钮、通知徽章、聚焦反馈。
+> **定义（2026-08-08 三审修正）**：金色是党建合规色（`--party-gold` 定义于 `:root`，不经角色派生链路），用于**全站统一视觉**场景。**但金不强制充当"主题色"**——主题色语义（tab 激活态、选中项、chips）回归角色识别层（§2.3.2/§2.8 ②），因金是品牌合规色、含义多、受对比度牵制反复变色（半透明偏淡→实色偏艳，均不被接受）。金色仅保留于：强调卡边框、主题党日类别、待办行动按钮、通知徽章。
 
 | Token | 色值 | 色块 | 用途 |
 |-------|------|------|------|
@@ -182,6 +182,8 @@ related_files: [docs/src/styles.css, ../evolution/DESIGN_METHODOLOGY.md, ../data
 | 金浅底 | `rgba(255,215,0,0.12~0.14)` | ██ | 浅金色背景（类型徽章、图标底、待办次要按钮） |
 | 金边框 | `rgba(255,215,0,0.35~0.45)` | ██ | 金色边框（强调卡、待办行动按钮、类型徽章） |
 
+> **焦点不再用党徽金（2026-10-28）**：焦点色统一取主题色 `--app-accent`，固定党徽金退场；顶栏深红底的白色焦点环属唯一例外，见 §5.7。
+
 > **G3 裁定（2026-08-08 实测）**：金色按钮一律用**金浅底** `rgba(255,215,0,0.12)`，**禁用纯亮金实底** `#FFD700`——实测「去处理」纯亮金实底「过于艳丽，饱和度太高」，而 tab 的金浅底「因为有透明度，黄色非常舒服」。金浅底与 tab 激活态同源。
 > **G3 裁定（边框）**：金色作为主题色时，普通按钮/标签**不加边框**，与其他主题色结构完全一致（「别的有他也有，别的没有他也必须没有」）；仅 visitor 品牌金待办行动按钮保留金边框（与详情按钮同页一致）。
 
@@ -190,7 +192,6 @@ related_files: [docs/src/styles.css, ../evolution/DESIGN_METHODOLOGY.md, ../data
 2. **主题党日系**：类别色（`ACTIVITY_CAT_COLOR['theme-party']`）
 3. **待办行动按钮**：visitor「去处理/处理」金底
 4. **通知/紧急徽章**：header 未读数、badge--gold
-5. **聚焦反馈**：`.cs-select.is-open` 触发器边框、部分 input focus 金色 outline
 
 **约束**：金色仅用于上述品牌统一场景；不得用于角色识别（色条/标签）、状态指示（完成/告警）、正文文字、以及任何"个人可选的强调/选中语义"（tab 激活态、选中项、chips 等一律用主题色）。
 
@@ -607,6 +608,8 @@ origin 的「主题色字」在绿 / 天蓝 / 雾紫 / 亮蓝上只有 2.09 / 2.
 `strongBg/卡片` 4.20（橙·暗）– 8.64（蓝·亮）；`softBg` 与底色 1.11–1.15；`strongBg` 饱和度 23%–82%（全部 ≤85%）。
 补充：`softText` 直接落在卡片上 7.39–10.61（≥4.5），`softText/hoverBg` 6.35–8.67（hover 后仍可读）。
 
+**焦点色验收（2026-10-28）**：焦点色取主题色 `base` 档，七色对白卡 `#FFFFFF` 与深卡 `#141D2F` 均需 ≥3:1（WCAG 1.4.11 非文本对比）；逐色实测最低为金 `#A97A12` 对白卡 3.83:1。
+
 **角色 → 主题映射（7 项收敛）**：默认 / 普通成员 → `gold`；支书 / 副支书 / 党委组织员 → `red`；
 纪检委员（含遗留 `commissioner`）→ `orange`；组长 / 副组长 → `green`；组织委员 / 组织者 → `cyan`；
 宣传委员 / 发起人 → `blue`；深度参与者 → `purple`。色板旧键：`participant`（金）→ `gold`、`all`（旧色板「青」档）→ `cyan`。
@@ -644,7 +647,7 @@ origin 的「主题色字」在绿 / 天蓝 / 雾紫 / 亮蓝上只有 2.09 / 2.
 | 链接 | 深字（全站唯一） | `--color-link` → `--app-accent-soft-text` |
 | 身份标签（页头角色徽章） | 实底 + 字 | `--app-accent-strong-bg` + `--app-accent-strong-ink` |
 
-其余组合：hover = `--app-accent-hover-bg`，按压 = `--app-accent-active-bg`，焦点环 = `--focus-ring`（暗色 = `--app-accent`）。
+其余组合：hover = `--app-accent-hover-bg`，按压 = `--app-accent-active-bg`，焦点环 = `--app-accent`。
 
 **禁止借用（硬约束）**
 
@@ -1085,7 +1088,7 @@ li + li { margin-top: 0.25em; }
 | 高度 | **单档 38px**（`.input-flat` / `.input-flat.text-xs` / 下拉触发器 同高：`padding: 10px` + 行高 16px + 边框 2px）；表格行内编辑位可用 `.input-flat-sm`（`6px 12px`，字号同档） |
 | 内边距 | `10px 16px`（输入框）/ `10px 12px`（下拉触发器）；表格行内编辑位 `6px 12px` |
 | 字号 | **单档 `0.8125rem`（13px）**；禁用 `text-[11px]`/`text-[10px]` 控件字号 |
-| 聚焦边框 | `var(--party-gold)`（`input-flat:focus`；无外发光） |
+| 聚焦边框 | 边框变主题色 ＋ 2px 主题色实线、间隙 1px、无外发光 |
 | 占位符 | `color: var(--neutral-400)` |
 | 禁用态 | 背景 `var(--neutral-100)`，文字 `var(--neutral-400)` |
 
@@ -1104,7 +1107,7 @@ li + li { margin-top: 0.25em; }
 > CSS 实现见 `docs/src/styles.css` 的 `.input` 和 `select.input-flat` 选择器。
 
 **交互增强**：`select.input-flat` 由 `custom-select.js`（S2）自动增强为自定义圆角下拉（`.cs-select` + `.cs-trigger` + `.cs-menu`），原生 select 作为值载体保留（`data-cs-enhanced` 防重；bootstrap 全局 MutationObserver 覆盖动态渲染）。增强后：
-- 触发器外观与 `input-flat` 完全一致（圆角 `--radius-sm`、边框 `--neutral-200`、聚焦金框）
+- 触发器外观与 `input-flat` 完全一致（圆角 `--radius-sm`、边框 `--neutral-200`、聚焦时边框变主题色 ＋ 2px 主题色实线环）
 - 菜单选中项用主题色（背景 `var(--app-accent-bg)`、文字 `var(--app-accent)`，跟随当前用户主题色，与 tab 激活态同档同源）
 - 智能定位（向上/向下翻转、视口 clamp）；选项超 10 条自动内嵌搜索
 
@@ -2058,8 +2061,9 @@ li + li { margin-top: 0.25em; }
 | 交互类型 | 视觉反馈 | 代码实现 |
 |---------|---------|---------|
 | 按钮悬停 | 背景色偏移至下一色阶 | `:hover { background-color: next-shade }` |
+| 按钮 / 链接聚焦 | 2px 主题色实线、间隙 1px、不改底色（实底主题色控件取反为白 / 深墨并压在内侧） | `:focus-visible { outline: 2px solid var(--app-accent); outline-offset: 1px; box-shadow: none }` |
+| 输入框聚焦 | 边框变主题色 ＋ 外圈 2px 主题色实线、间隙 1px、无外发光 | `:focus { border-color: var(--app-accent); outline: 2px solid var(--app-accent); outline-offset: 1px; box-shadow: none }` |
 | 卡片悬停 | 仅交互卡边框色变为主色浅调（`.card--interactive`；展示卡不变） | `:hover { border-color: --primary-300 }` |
-| 输入框聚焦 | 边框变为主色，无外发光 | `:focus { border-color: --primary-500 }` |
 | 列表项悬停 | 背景变为浅灰 | `:hover { background-color: --surface-hover }` |
 | 选中态 | 浅红背景 + 红边框 | `.active { bg: --surface-active; border: --primary-300 }` |
 | 加载态 | 骨架屏（灰色占位块） | 脉冲透明度动画 |
@@ -2109,6 +2113,22 @@ li + li { margin-top: 0.25em; }
 **探索工作动画区分对待原则**：探索工作 SVG 网络图包含三类边——task（派活交付，有方向）/ info（报备告知，有方向）/ collab（横向配合，无方向）。动画形式应服务于边的语义区分：task 边用 `stroke-dashoffset` 绘制动画（从起点画到终点，强化"派活交付"的方向感），info/collab 边用 `opacity` 渐显（保留 CSS 的虚线/点线样式，不设置 JS `strokeDasharray`）。统一绘制会覆盖 CSS 中 info 虚线和 collab 点线的样式，导致三类边视觉同质化——全部变成实线，无法区分类型。动画形式服务于语义区分，而非语义服从于动画统一。生效条件：在包含多类型边（有方向/无方向混合）且需视觉区分的 SVG 网络图中成立。
 
 **规避 JS 动画库——静态叙事页的最优解**：静态滚动叙事页的动画应优先 CSS `animation-timeline: view()`（滚动驱动、引擎级优化、初始可见无闪变）+ 原生 scroll 监听；JS 动画库（GSAP）带来的 ScrollTrigger.refresh 全量重算（640ms 级长任务）与"先隐藏后显示"闪变是复杂度与卡顿根源。"能事先算好的动画不如事先准备好"——CSS 声明式动画由浏览器引擎处理，静态页面应零 JS 动画依赖。动画节奏应统一（约 1s 沉稳），局部特例（出场类 0.9s）不破坏整体。生效条件：静态/半静态叙事页、动画可声明式表达的场景成立；复杂交互动效（拖拽/物理模拟）仍需 JS。
+
+### 5.7 按钮与链接族焦点规范（2026-10-28）
+
+**适用范围**：按钮（`<button>` / `.btn-*`）、链接（`<a>` / `.link`）、`summary`、`role="button"` / `role="option"` / `role="tab"` 与可点表格行（`tr[data-interactive="true"]`）。输入族（input / select / textarea / 搜索框 / 下拉触发器）的焦点口径见 §4.3 与 §12.12。
+
+**几何与颜色**：键盘聚焦时只出一条 `outline: 2px solid var(--app-accent)`，`outline-offset: 1px`，并显式 `box-shadow: none`。环色只有主题色一个来源，亮暗由 `--app-accent` 的别名自动切换；不得再用固定党徽金、党建红、深棕状态色，也不得恢复第二套焦点令牌。
+
+**不改底色**：按钮与链接聚焦只加环，不换底色、不加填充、不改文字色；悬停与聚焦是两件事，可以叠加，但不得互相冒充。
+
+**实底取反**：底色即主题色实底的控件（`.btn-accent`、`.btn-danger-solid`、实底状态徽章）把环色取反为主题色实底上的字色 `--app-accent-strong-ink`，并把 `outline-offset` 改为 `-2px`，让环压在控件内侧。白环对金底 4.68:1、深墨环对暗金底 6.98:1；正偏移会把环推到控件外的卡片上，只有 1.05–1.14:1，等于看不见。
+
+**禁用态**：`disabled` / `aria-disabled="true"` 的控件不进入焦点序列，也不画焦点环；只读但仍可聚焦的控件保留环。
+
+**顶栏例外（唯一一处不用主题色）**：顶栏深红 `#7A0010` 上七种主题色只有 1.51–2.99:1。`.hamburger-btn` / `.header-action-btn` / `#notif-btn` 因此改用既有白色令牌 `--app-accent-strong-ink-light`（白环对深红 11.44:1），几何不变。理由是顶栏底色本身就是品牌深红，不是主题色表面；这条例外不得外溢到正文区或卡片。
+
+**禁止**：用 `box-shadow` 画焦点环（含 `0 0 0 6px` 一类外发光）；同一控件同时声明 `outline` 与 `box-shadow` 两道环；用 `:focus` 与 `:focus-visible` 各写一套几何。守卫：`ui-focus-ring` / `ui-control-system-guard::FOCUS-1…5`。
 
 ---
 
@@ -2420,11 +2440,11 @@ li + li { margin-top: 0.25em; }
 | 字号/行高 | 13px / 16px | 13px / 16px |
 | 描边 | 1px `--neutral-200` | 1px `--neutral-200` |
 | 圆角 | 8px（`--radius-sm`） | 8px |
-| focus | 金边 + 2px `--app-accent` 实线环（offset 1px，单环） | 同左 |
+| focus | 边框变主题色 ＋ 2px `--app-accent` 实线环（offset 1px，单环，`box-shadow: none`） | 同左 |
 | 日期控件 | 所有 `.input-flat[type=date…]` 钉 38px | 所有 `.input-flat-sm[…]` 钉 32px |
 
 - 控件上**禁止**叠加 `text-sm` / `rounded` / `rounded-lg` / 无颜色 `border`。
-- 搜索类输入（`person-picker-search` / `help-search-input` / `cs-search-input`）必须与上表同描边、同 8px 圆角、同焦点环；它们是**登记在案的白名单**，新增白名单须给理由。
+- 搜索类输入（`person-picker-search` / `help-search-input` / `cs-search-input`）必须与上表同描边、同 8px 圆角、同输入族焦点口径；它们是**登记在案的白名单**，新增白名单须给理由。白名单控件不得用页面内联样式另立一套焦点外观。
 
 ### 12.2 按钮（外围—内围）
 
@@ -2531,7 +2551,7 @@ li + li { margin-top: 0.25em; }
 | SD-24 | IF 按压反馈 THEN 唯一源 `--press-shadow`（1px 内阴影）＋ `--transition-press` 180ms；`transform/scale/translate` 计数为 0 |
 | SD-25 | IF 选中态 THEN 主题 soft 三件套（底/字/左条）；侧边栏是唯一浅灰豁免；`--surface-hover/active` 不得表达 selected |
 | SD-26 | IF 实底按钮 hover THEN `--app-accent-strong-hover`（同色相加深）；底色落中性灰计数为 0 |
-| SD-27 | IF 输入类控件 THEN 走字段外壳：静态 1px 中性边；`:focus` 只把边框切主题色且 `box-shadow: none`；**焦点环只由 `:focus-visible` 的一条 `outline: 2px solid var(--app-accent)`（offset 1px）承担**（与 `<select>` 同环；同一控件不得同时出 `:focus` 的 `box-shadow` 环） |
+| SD-27 | IF 输入类控件 THEN 走字段外壳：静态 1px 中性边；`:focus` 把边框切主题色并出**一条** `outline: 2px solid var(--app-accent)`（offset 1px），同时 `box-shadow: none`（与 `<select>` 同环；鼠标点击与键盘聚焦表现一致）；按钮 / 链接族另按 §5.7，用 `:focus-visible` 同一条环 |
 | SD-28 | IF 控件禁用/只读 THEN 两态可辨（禁用灰底灰字、只读透明边浅底）；`opacity` 混作两态计数为 0 |
 | SD-29 | IF 原生 `<select>` THEN 必须经 `enhanceSelects`（值载体仍是原生）；大选项集提供搜索 / 近期优先 / 分批渲染 |
 | SD-30 | IF 过渡 THEN 时长 ∈{120,180,200,240}ms 且属性 ∈{opacity,transform,color,background-color,border-color,box-shadow}；布局属性与 `all` 计数为 0 |
@@ -2605,7 +2625,7 @@ li + li { margin-top: 0.25em; }
 | 静置 | 1px `--neutral-300` | 白底、`--neutral-800` | — |
 | 悬停 | 1px `--neutral-400` | 不变 | 仅 `@media (hover:hover)` |
 | 活动（鼠标或键盘） | 1px `--app-accent`，`box-shadow: none` | 不变 | **不出近黑外环，也不叠 3px 浅晕** |
-| 键盘焦点环 | 一条 `outline: 2px solid var(--app-accent)`（offset 1px） | — | 仅 `:focus-visible`；与 `<select>` 同宽 / 同色 / 同偏移，对白卡 3.83:1 |
+| 焦点环 | 一条 `outline: 2px solid var(--app-accent)`（offset 1px） | — | 输入族由 `:focus` 承担（鼠标与键盘一致），`:focus-visible` 只作同几何保险；与 `<select>` 同宽 / 同色 / 同偏移，对白卡 3.83:1 |
 | 禁用 | 1px `--neutral-200` | 浅灰底、灰字 | 真不可用 |
 | 只读 | 透明边 | 浅底、正文色 | 可读可复制 |
 

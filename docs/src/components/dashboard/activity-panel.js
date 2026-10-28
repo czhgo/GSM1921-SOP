@@ -5,22 +5,22 @@
 //  职责单一：日历/列表双视图切换 + ?view=?month= URL 同步 + 活动列表（前 10 条）。
 // ════════════════════════════════════════════════════════════════
 
-import { setState, getAppState } from '../../core/base/state.js?v=20261028d';
-import { _fmtDate, getBasePath } from '../../core/base/utils.js?v=20261028d';
-import { getPersonName } from '../../services/member/person.js?v=20261028d';
-import { CrossPageState } from '../../core/session/cross-page-state.js?v=20261028d';
-import { AuthStore } from '../../services/core/auth.js?v=20261028d';
-import { getActivityTypeColors, DASHBOARD_LIMITS } from '../../core/domain/constants.js?v=20261028d';
+import { setState, getAppState } from '../../core/base/state.js?v=20261028e';
+import { _fmtDate, getBasePath } from '../../core/base/utils.js?v=20261028e';
+import { getPersonName } from '../../services/member/person.js?v=20261028e';
+import { CrossPageState } from '../../core/session/cross-page-state.js?v=20261028e';
+import { AuthStore } from '../../services/core/auth.js?v=20261028e';
+import { getActivityTypeColors, DASHBOARD_LIMITS } from '../../core/domain/constants.js?v=20261028e';
 // 活动「已归档」口径单一源（2026-09-13 收敛）：替代手写 !a.archived
-import { isActivityArchived } from '../../core/domain/constants.js?v=20261028d';
-import { badgeHtml } from '../ui/badges.js?v=20261028d';
+import { isActivityArchived } from '../../core/domain/constants.js?v=20261028e';
+import { badgeHtml } from '../ui/badges.js?v=20261028e';
 // 活动「已完成 / 已取消」闭环判据单一源（R7-16）：替代手写 ['completed','cancelled']
-import { isActivityClosed } from '../../core/domain/domain.js?v=20261028d';
-import { deriveActivityLifecycleStatus, ACTIVITY_LIFECYCLE } from '../record/inspector.js?v=20261028d';
-import { populateMonthSelector } from '../record/calendar.js?v=20261028d';
-import { getCapabilities, mountCapability, getRuntimeEnv } from '../../core/boot/registry.js?v=20261028d';
+import { isActivityClosed } from '../../core/domain/domain.js?v=20261028e';
+import { deriveActivityLifecycleStatus, ACTIVITY_LIFECYCLE } from '../record/inspector.js?v=20261028e';
+import { populateMonthSelector } from '../record/calendar.js?v=20261028e';
+import { getCapabilities, mountCapability, getRuntimeEnv } from '../../core/boot/registry.js?v=20261028e';
 
-import { emptyStateHtml } from '../ui/empty-state.js?v=20261028d';
+import { emptyStateHtml } from '../ui/empty-state.js?v=20261028e';
 const DASHBOARD_DEFAULT_VIEW = 'calendar';
 const ACTIVITY_TYPE_COLORS = getActivityTypeColors({ withLabel: true });
 
@@ -136,7 +136,7 @@ export function renderActivityList(activities, user) {
     const organizerName = getPersonName(a.organizer);
 
     return `
-      <div class="flex items-center gap-3 p-2.5 rounded-lg hover:border-gray-200 transition-colors duration-200 cursor-pointer group"
+      <div class="flex items-center gap-3 p-2.5 rounded-lg hover:bg-[var(--surface-hover)] active:bg-[var(--surface-active)] transition-colors duration-200 cursor-pointer group"
            role="button" tabindex="0"
            data-activity-id="${a.id || ''}"
            title="${a.title || '未命名活动'} | ${dateLabel} | ${color.label}${a.location ? ' | ' + a.location : ''}">

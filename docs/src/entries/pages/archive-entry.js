@@ -2,33 +2,33 @@
 // archive-entry.js — 归档库独立入口
 // 2026-07-30: Tab 分类（活动/专班），替代原单一列表
 // Task 3（2026-10-25）：`?tab=notice` 退役——消息有了唯一列表与「已归档」筛选，归档页只留活动、专班两栏。
-import { renderSidebar } from '../../components/shell/sidebar.js?v=20261028d';
-import { renderHeader } from '../../components/shell/header.js?v=20261028d';
-import { BranchService } from '../../services/core/runtime.js?v=20261028d';
-import { mockDB, TaskforceStatus, TASKFORCE_TERMINAL_STATUSES } from '../../core/domain/domain.js?v=20261028d';
-import { getPersonById, getPersonName } from '../../services/member/person.js?v=20261028d';
-import { loadActivities } from '../../services/activity/activity.js?v=20261028d';
-import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261028d';
-import { getActivityTypeColors } from '../../core/domain/constants.js?v=20261028d';
+import { renderSidebar } from '../../components/shell/sidebar.js?v=20261028e';
+import { renderHeader } from '../../components/shell/header.js?v=20261028e';
+import { BranchService } from '../../services/core/runtime.js?v=20261028e';
+import { mockDB, TaskforceStatus, TASKFORCE_TERMINAL_STATUSES } from '../../core/domain/domain.js?v=20261028e';
+import { getPersonById, getPersonName } from '../../services/member/person.js?v=20261028e';
+import { loadActivities } from '../../services/activity/activity.js?v=20261028e';
+import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261028e';
+import { getActivityTypeColors } from '../../core/domain/constants.js?v=20261028e';
 // 活动「已结束」口径单一源（2026-09-13 收敛）：替代手写 status==='completed' || archived
 // 2026-10-24 批次 508：归档库的「已归档活动」改用 `isActivityArchived`（仅看 archived 软标记），
 //   与宣传台「档案归档」同口径——原 `isActivityEnded`（archived ∨ status==='completed'）会把
 //   **已结束但尚未归档**的活动也算进归档库，与同页其它两栏（专班/通知只收归档件）不一致。
-import { isActivityArchived } from '../../core/domain/constants.js?v=20261028d';
-import { getBasePath, escHtml, showToast } from '../../core/base/utils.js?v=20261028d';
+import { isActivityArchived } from '../../core/domain/constants.js?v=20261028e';
+import { getBasePath, escHtml, showToast } from '../../core/base/utils.js?v=20261028e';
 // Task 6：归档弹窗是列表内预览（locate）⇒ 保留预览 + 「打开完整页」；深链校验归档终态。
-import { objectDetailHref } from '../../core/domain/object-route.js?v=20261028d';
-import { badgeHtml } from '../../components/ui/badges.js?v=20261028d';
+import { objectDetailHref } from '../../core/domain/object-route.js?v=20261028e';
+import { badgeHtml } from '../../components/ui/badges.js?v=20261028e';
 // 翻页控件单一源（批次 38：全站手写翻页一律并轨 pagerHtml）
-import { pagerHtml } from '../../components/ui/pager.js?v=20261028d';
-import { openModal } from '../../components/ui/modal.js?v=20261028d';
+import { pagerHtml } from '../../components/ui/pager.js?v=20261028e';
+import { openModal } from '../../components/ui/modal.js?v=20261028e';
 // 批次 87：本页必须先 hydrate API 数据源再渲染——与 activity.html（批次 83 修好后的标准形）同款。
 // 此前本页只调 BranchService.loadDB()（API 模式直接 return）⇒ api 形态下归档库读的是本地备份，
 // 服务端已归档的活动 / 专班 / 通知看不到。
-import { hydrateDataSource, notifyDataLoaded } from '../../data/data-adapter.js?v=20261028d';
-import { ApiAdapter } from '../../data/api-adapter.js?v=20261028d';
+import { hydrateDataSource, notifyDataLoaded } from '../../data/data-adapter.js?v=20261028e';
+import { ApiAdapter } from '../../data/api-adapter.js?v=20261028e';
 
-import { emptyStateHtml } from '../../components/ui/empty-state.js?v=20261028d';
+import { emptyStateHtml } from '../../components/ui/empty-state.js?v=20261028e';
 renderSidebar('archive');
 renderHeader('archive');
 
@@ -133,7 +133,7 @@ function renderActivityArchive() {
         const organizer = getPersonById(a.organizer);
         const isBrand = !!a.isBrand;
         return `
-          <div class="p-4 rounded-lg border border-gray-100 bg-gray-50/50 hover:border-gray-200 transition-colors cursor-pointer" role="button" tabindex="0" data-archive-item data-archive-type="activity" data-archive-id="${a.id}">
+          <div class="p-4 rounded-lg border border-gray-100 bg-gray-50/50 hover:border-gray-200 active:bg-[var(--surface-active)] active:border-[var(--app-accent)] transition-colors cursor-pointer" role="button" tabindex="0" data-archive-item data-archive-type="activity" data-archive-id="${a.id}">
             <div class="flex items-center justify-between mb-2">
               <div class="flex items-center gap-2">
                 <span class="text-sm font-medium text-gray-800">${a.title || '未命名活动'}</span>
@@ -174,7 +174,7 @@ function renderTaskforceArchive() {
       ${items.map(tf => {
         const initiator = getPersonById(tf.initiator);
         return `
-          <div class="p-4 rounded-lg border border-gray-100 bg-gray-50/50 hover:border-gray-200 transition-colors cursor-pointer" role="button" tabindex="0" data-archive-item data-archive-type="taskforce" data-archive-id="${tf.id}">
+          <div class="p-4 rounded-lg border border-gray-100 bg-gray-50/50 hover:border-gray-200 active:bg-[var(--surface-active)] active:border-[var(--app-accent)] transition-colors cursor-pointer" role="button" tabindex="0" data-archive-item data-archive-type="taskforce" data-archive-id="${tf.id}">
             <div class="flex items-center justify-between mb-2">
               <span class="text-sm font-medium text-gray-800">${tf.name || '未命名专班'}</span>
               ${badgeHtml('已归档', 'neutral')}

@@ -21,7 +21,7 @@
 //   `opts.embedded` 供「工作概况」页内卡复用（不重复页头 H2）。
 
 // 分段当前值（'workgroup' | 'taskforce'）；模块级记忆，同台内切换后保留（参照既有 tab 的 _view 模式）
-import { renderTabHeader, renderCardHeader } from '../shell/page-frame.js?v=20261028d';
+import { renderTabHeader, renderCardHeader } from '../shell/page-frame.js?v=20261028e';
 
 let _view = null;
 // 已消费的深链定位目标：同一目标只强制分段一次，之后不覆盖用户手动的分段选择
@@ -118,13 +118,13 @@ export function renderInsightView(container, opts = {}) {
 
   let done;
   if (view === 'taskforce') {
-    done = import('./taskforce-view.js?v=20261028d').then(m => m.renderTaskforceView(body, {
+    done = import('./taskforce-view.js?v=20261028e').then(m => m.renderTaskforceView(body, {
       highlightId: opts.highlightTfId || null,
       taskforces: opts.taskforces,
       onLocated: opts.onLocated,
     }));
   } else {
-    done = import('./workgroup-view.js?v=20261028d').then(m => m.renderWorkgroupView(body, {
+    done = import('./workgroup-view.js?v=20261028e').then(m => m.renderWorkgroupView(body, {
       highlightWorkgroupId: opts.highlightWorkgroupId || null,
       highlightActId: opts.highlightActId || null,
       onLocated: opts.onLocated,
@@ -137,7 +137,7 @@ export function renderInsightView(container, opts = {}) {
     const groupBody = document.createElement('div');
     groupBody.id = 'insight-group-body';
     container.querySelector('#insight-group-body')?.replaceWith(groupBody);
-    groupDone = import('./other-groups-view.js?v=20261028d')
+    groupDone = import('./other-groups-view.js?v=20261028e')
       .then(m => m.renderOtherGroupsView(groupBody));
   }
   return Promise.all([done, groupDone]);

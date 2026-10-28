@@ -3,21 +3,21 @@
 // 2026-08-07 自 ws-secretary-entry.js 拆分。
 // GitHub Issue 风格反馈管理面板：草稿审核（通过/驳回）全部反馈列表 + 导出/清除 + 详情处置（指派/状态/评论/隐藏/合并）。
 
-import { IssueStore, deriveIssueDisplayState, IssueNotify, issueDomainLabel, issueDomainSuggest, issueDomainReplyHint } from '../../../services/governance/issues.js?v=20261028d';
-import { showToast, todayLocal } from '../../../core/base/utils.js?v=20261028d';
-import { scrollDetailIntoView } from '../../../components/ui/detail-anchor.js?v=20261028d';
-import { icon } from '../../../core/base/icons.js?v=20261028d';
-import { AuthStore } from '../../../services/core/auth.js?v=20261028d';
-import { ROLE_LABELS, DRAFT_TYPE_LABELS } from '../../../core/domain/constants.js?v=20261028d';
-import { getPersonName } from '../../../services/member/person.js?v=20261028d';
-import { PersonStore } from '../../../services/member/person.js?v=20261028d';
-import { badgeHtml, badgeVariantClass } from '../../../components/ui/badges.js?v=20261028d';
+import { IssueStore, deriveIssueDisplayState, IssueNotify, issueDomainLabel, issueDomainSuggest, issueDomainReplyHint } from '../../../services/governance/issues.js?v=20261028e';
+import { showToast, todayLocal } from '../../../core/base/utils.js?v=20261028e';
+import { scrollDetailIntoView } from '../../../components/ui/detail-anchor.js?v=20261028e';
+import { icon } from '../../../core/base/icons.js?v=20261028e';
+import { AuthStore } from '../../../services/core/auth.js?v=20261028e';
+import { ROLE_LABELS, DRAFT_TYPE_LABELS } from '../../../core/domain/constants.js?v=20261028e';
+import { getPersonName } from '../../../services/member/person.js?v=20261028e';
+import { PersonStore } from '../../../services/member/person.js?v=20261028e';
+import { badgeHtml, badgeVariantClass } from '../../../components/ui/badges.js?v=20261028e';
 // 翻页控件单一源（批次 38：全站手写翻页一律并轨 pagerHtml）
-import { pagerHtml } from '../../../components/ui/pager.js?v=20261028d';
-import { renderTabHeader, renderCardHeader } from '../../../components/shell/page-frame.js?v=20261028d';
-import { openFormModal, confirmDanger } from '../../../components/ui/modal.js?v=20261028d';
+import { pagerHtml } from '../../../components/ui/pager.js?v=20261028e';
+import { renderTabHeader, renderCardHeader } from '../../../components/shell/page-frame.js?v=20261028e';
+import { openFormModal, confirmDanger } from '../../../components/ui/modal.js?v=20261028e';
 
-import { emptyStateHtml } from '../../../components/ui/empty-state.js?v=20261028d';
+import { emptyStateHtml } from '../../../components/ui/empty-state.js?v=20261028e';
 const FEEDBACK_TAB_HTML = `
   ${renderTabHeader({ title: '意见反馈' })}
   <!-- 列表面板 -->
@@ -178,7 +178,7 @@ function renderIssueManagement() {
         const isReviewUnread = IssueNotify.getSecretaryReviewUnread().includes(i.id);
         const submitterTip = _submitterTip(i.submittedBy);
         return `
-          <div class="p-3 rounded-xl bg-white border border-gray-100 hover:border-gray-200 cursor-pointer transition-colors" data-issue-action="open-detail" data-issue-id="${i.id}">
+          <div class="p-3 rounded-xl bg-white border border-gray-100 hover:border-gray-200 active:bg-[var(--surface-active)] cursor-pointer transition-colors" role="button" tabindex="0" data-issue-action="open-detail" data-issue-id="${i.id}">
             <div class="flex items-center justify-between mb-1">
               <span class="text-xs text-gray-500 font-mono">#${i.number}</span>
               <div class="flex items-center gap-1.5">

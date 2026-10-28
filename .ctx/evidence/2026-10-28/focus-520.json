@@ -1,0 +1,118 @@
+{
+  "at": "2026-10-28T19:15:48.559Z",
+  "areas": {
+    "listFilter": {
+      "reached": true,
+      "reading": {
+        "target": "#lf2-q",
+        "outline": "solid 2px rgb(169, 122, 18) (offset 1px)",
+        "boxShadow": "none",
+        "borderColor": "rgb(169, 122, 18)",
+        "background": "rgb(255, 255, 255)",
+        "ringCount": 1
+      }
+    },
+    "selectTrigger": {
+      "reached": true,
+      "reading": {
+        "target": "#lf2-f-partyGroup-trigger",
+        "outline": "solid 2px rgb(169, 122, 18) (offset 1px)",
+        "boxShadow": "none",
+        "borderColor": "rgb(169, 122, 18)",
+        "background": "rgb(255, 255, 255)",
+        "ringCount": 1
+      }
+    },
+    "archiveSearch": {
+      "reached": true,
+      "reading": {
+        "target": "#archive-search",
+        "outline": "solid 2px rgb(169, 122, 18) (offset 1px)",
+        "boxShadow": "none",
+        "borderColor": "rgb(169, 122, 18)",
+        "background": "rgb(255, 255, 255)",
+        "ringCount": 1
+      }
+    },
+    "siteSearch": {
+      "reached": true,
+      "reading": {
+        "target": "#ref-search-input",
+        "outline": "solid 2px rgb(169, 122, 18) (offset 1px)",
+        "boxShadow": "none",
+        "borderColor": "rgb(169, 122, 18)",
+        "background": "rgb(255, 255, 255)",
+        "ringCount": 1
+      }
+    },
+    "helpSearch": {
+      "reached": true,
+      "reading": {
+        "target": "#help-search-input",
+        "outline": "solid 2px rgb(169, 122, 18) (offset 1px)",
+        "boxShadow": "none",
+        "borderColor": "rgb(169, 122, 18)",
+        "background": "rgb(255, 255, 255)",
+        "ringCount": 1
+      }
+    },
+    "headerButton": {
+      "reached": true,
+      "reading": {
+        "target": "#notif-btn",
+        "outline": "solid 2px rgb(255, 255, 255) (offset 1px)",
+        "boxShadow": "none",
+        "borderColor": "rgba(255, 255, 255, 0.25)",
+        "background": "rgba(255, 255, 255, 0.1)",
+        "ringCount": 1
+      }
+    },
+    "interactiveCard": {
+      "before": {
+        "target": "div.card",
+        "outline": "none 3px rgb(31, 41, 55) (offset 0px)",
+        "boxShadow": "none",
+        "borderColor": "rgb(229, 231, 235)",
+        "background": "rgb(255, 255, 255)",
+        "ringCount": 0
+      },
+      "hover": {
+        "target": "div.card",
+        "outline": "none 3px rgb(31, 41, 55) (offset 0px)",
+        "boxShadow": "none",
+        "borderColor": "rgb(169, 122, 18)",
+        "background": "color(srgb 0.662745 0.478431 0.0705882 / 0.1)",
+        "ringCount": 0
+      }
+    },
+    "accentButton": {
+      "reached": true,
+      "reading": {
+        "target": "#confirm-tf-auth-btn",
+        "outline": "solid 2px rgb(255, 255, 255) (offset -2px)",
+        "boxShadow": "none",
+        "borderColor": "rgb(154, 107, 15)",
+        "background": "rgb(154, 107, 15)",
+        "ringCount": 1
+      }
+    },
+    "darkSiteSearch": {
+      "reached": true,
+      "reading": {
+        "target": "#ref-search-input",
+        "outline": "solid 2px rgb(224, 178, 76) (offset 1px)",
+        "boxShadow": "none",
+        "borderColor": "rgb(224, 178, 76)",
+        "background": "rgb(15, 23, 42)",
+        "ringCount": 1
+      }
+    },
+    "mobileOverflow": {
+      "home": 0,
+      "help": 0,
+      "login": 0,
+      "workspace": 0
+    }
+  },
+  "loginTitle": "光华管理学院本科生党支部"
+}

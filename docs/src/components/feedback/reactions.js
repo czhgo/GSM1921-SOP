@@ -1,10 +1,10 @@
 // role: [工程师]+[AI]
 // reactions.js — Issue 表态聚合组件
 
-import { IssueStore } from '../../services/governance/issues.js?v=20261028d';
-import { AuthStore } from '../../services/core/auth.js?v=20261028d';
-import { showToast } from '../../core/base/utils.js?v=20261028d';
-import { icon } from '../../core/base/icons.js?v=20261028d';
+import { IssueStore } from '../../services/governance/issues.js?v=20261028e';
+import { AuthStore } from '../../services/core/auth.js?v=20261028e';
+import { showToast } from '../../core/base/utils.js?v=20261028e';
+import { icon } from '../../core/base/icons.js?v=20261028e';
 
 // 固定语义色（不随主题）：赞同=成功 / 反对=危险 / 关注=信息 / 庆祝=提醒
 const REACTIONS = [

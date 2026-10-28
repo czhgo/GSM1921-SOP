@@ -1490,3 +1490,129 @@ await (async () => {
   });
 
 })();
+
+// ═══ 源件 8：docs 口径残留（支部名 / 旧色名 · 2026-10-28 批次 520）═══
+await (async () => {
+  const { test } = await import('node:test');
+  const assert = (await import('node:assert/strict')).default;
+  const { readdirSync, readFileSync } = await import('node:fs');
+  const { join, relative, dirname } = await import('node:path');
+  const { fileURLToPath } = await import('node:url');
+
+  // role: [工程师]+[AI]
+  // docs 口径残留守卫（2026-10-28 批次 520；并入 copy-guard）
+  //
+  // 判据：
+  //   B1 支部名字面量：`docs/**`（排除 `docs/src/data/mock/**`）里不得出现「光华管理学院本科生党支部」。
+  //      支部名一律从支部配置读取，页面与脚本只留「本支部」兜底。
+  //   B2 旧色名：「天蓝 / 海蓝 / 雾紫 / 亮蓝」与「十色」不得出现在 `docs/**` 的可见文案里。
+  //      源码注释不算文案（剥注释后再判），换组织向导预设表与旧偏好兼容映射按文件登记为棘轮，
+  //      只许随 B-520-5 收口而减少，不许新增。
+  //
+  // 两条都带反例：匹配器必须能命中植入样本；注释里的同一句不得误伤。
+  // 运行：node --test server/test/copy-guard.test.mjs
+
+  const HERE = dirname(fileURLToPath(import.meta.url));
+  const ROOT = join(HERE, '..', '..');
+  const DOCS = join(ROOT, 'docs');
+
+  const EXTS = new Set(['.html', '.js', '.mjs', '.css', '.json', '.md', '.txt']);
+  const SKIP_DIRS = new Set(['node_modules', 'vendor', '.git']);
+  const MOCK_RE = /^docs\/src\/data\/mock\//;
+  const BRANCH_LITERAL = '光华管理学院本科生党支部';
+  const OLD_NAME_RE = /天蓝|海蓝|雾紫|亮蓝|十色/;
+  const SCAN_FILES_FLOOR = 250;
+
+  /** 剥注释（与同文件其它源件同口径） */
+  function stripComments(src) {
+    let s = String(src).replace(/\r\n?/g, '\n');
+    s = s.replace(/\/\*[\s\S]*?\*\//g, ' ');
+    s = s.replace(/<!--[\s\S]*?-->/g, ' ');
+    return s.split('\n').map((line) => line.replace(/\/\/.*$/, '')).join('\n');
+  }
+
+  function walk(dir, out = []) {
+    for (const e of readdirSync(dir, { withFileTypes: true })) {
+      if (SKIP_DIRS.has(e.name)) continue;
+      const p = join(dir, e.name);
+      if (e.isDirectory()) { walk(p, out); continue; }
+      if (EXTS.has(e.name.slice(e.name.lastIndexOf('.')))) out.push(p);
+    }
+    return out.sort();
+  }
+
+  const FILES = walk(DOCS).map((abs) => relative(ROOT, abs).replace(/\\/g, '/'));
+  const READ = new Map(FILES.map((rel) => [rel, readFileSync(join(ROOT, rel), 'utf8')]));
+
+  /** 扫一段文本里的支部名字面量（剥注释后） */
+  const scanBranch = (text) => stripComments(text).split('\n')
+    .map((line, i) => ({ line, no: i + 1 }))
+    .filter((x) => x.line.includes(BRANCH_LITERAL));
+
+  /** 扫一段文本里的旧色名（剥注释后） */
+  const scanOldNames = (text) => stripComments(text).split('\n')
+    .map((line, i) => ({ line: line.trim(), no: i + 1 }))
+    .filter((x) => OLD_NAME_RE.test(x.line));
+
+  /** B2 棘轮（逐文件处数；只许随收口减少） */
+  const OLD_COLOR_NAME_EXEMPT = {
+    'docs/src/components/governance/org-setup-wizard.js': {
+      max: 2,
+      why: '换组织向导预设表仍用旧色名（B-520-5 待改为七色名）',
+    },
+    'docs/src/components/shell/appearance-controls.js': {
+      max: 1,
+      why: '旧偏好兼容映射的展示标签（B-520-5 待删或改为七色名）',
+    },
+  };
+
+  test('B1 支部名字面量：docs/**（排除 mock）命中数为 0', () => {
+    // ① 反例：页面 / 脚本里写死支部名 ⇒ 必须命中
+    assert.equal(scanBranch("'<h1>光华管理学院本科生党支部</h1>'").length, 1,
+      '反例未命中：写死的支部名必须被判红（匹配器坏了）');
+    // ② 负例：兜底文案 / 注释里的支部名都不得误伤
+    assert.equal(scanBranch("'<h1>本支部</h1>'").length, 0, '负例误伤：「本支部」兜底文案不是字面量');
+    assert.equal(scanBranch('// 光华管理学院本科生党支部 SOP 引擎').length, 0,
+      '负例误伤：注释里的支部名不是可见文案');
+
+    // ③ 实况
+    const scoped = FILES.filter((f) => !MOCK_RE.test(f));
+    assert.ok(scoped.length >= SCAN_FILES_FLOOR,
+      `只扫到 ${scoped.length} 份 docs 文本文件（下限 ${SCAN_FILES_FLOOR}）：判红面被改小`);
+    const offenders = scoped.flatMap((rel) => scanBranch(READ.get(rel)).map((h) => `${rel}:${h.no} ${h.line.trim().slice(0, 100)}`));
+    console.log(`[docs 口径残留] B1 支部名扫描 ${scoped.length} 文件 · 命中 ${offenders.length} 处（mock 已排除）`);
+    assert.deepEqual(offenders, [],
+      `docs/**（排除 mock）出现写死的支部名，应改读支部配置、兜底「本支部」：\n  ${offenders.join('\n  ')}`);
+  });
+
+  test('B2 旧色名：docs/** 可见文案零残留（换组织向导 / 旧偏好映射登记为棘轮）', () => {
+    // ① 反例：可见文案里出现旧色名 ⇒ 必须命中
+    assert.equal(scanOldNames("const name = '天蓝';").length, 1,
+      '反例未命中：旧色名「天蓝」必须被判红（匹配器坏了）');
+    assert.equal(scanOldNames("const label = '十色可选';").length, 1,
+      '反例未命中：旧口径「十色」必须被判红');
+    // ② 负例：注释 / 新色名不得误伤
+    assert.equal(scanOldNames('// 天蓝、雾紫已退场').length, 0,
+      '负例误伤：注释里的退场说明不是可见文案');
+    assert.equal(scanOldNames("const name = '青';").length, 0, '负例误伤：七色名「青」不是旧色名');
+
+    // ③ 实况：逐文件计数，登记例外按棘轮只许减
+    const hitsByFile = new Map();
+    for (const rel of FILES) {
+      const hits = scanOldNames(READ.get(rel));
+      if (hits.length) hitsByFile.set(rel, hits);
+    }
+    for (const [rel, ex] of Object.entries(OLD_COLOR_NAME_EXEMPT)) {
+      const n = (hitsByFile.get(rel) || []).length;
+      assert.ok(ex.why && ex.why.length >= 8, `B2 例外 ${rel} 缺理由`);
+      assert.equal(n, ex.max, `${rel} 的旧色名处数应为 ${ex.max}（实测 ${n}）：收口一处须同步下调，新增即红`);
+    }
+    const offenders = [...hitsByFile.entries()]
+      .filter(([rel]) => !OLD_COLOR_NAME_EXEMPT[rel])
+      .flatMap(([rel, hits]) => hits.map((h) => `${rel}:${h.no} ${h.line.slice(0, 100)}`));
+    console.log(`[docs 口径残留] B2 旧色名文件 ${hitsByFile.size} 个（登记例外 ${Object.keys(OLD_COLOR_NAME_EXEMPT).length} 个）· 未登记命中 ${offenders.length} 处`);
+    assert.deepEqual(offenders, [],
+      `docs/** 可见文案仍出现旧色名 / 「十色」——七色为唯一口径，旧色名只许在登记例外内等待收口：\n  ${offenders.join('\n  ')}`);
+  });
+
+})();

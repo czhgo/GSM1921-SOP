@@ -188,8 +188,12 @@ export const DAILY_FILE_BUDGET = 226;
  *    不写死完整年月日 · 基线 0 ＋ 反例/负例自检，2 条）＋ frontend-foundations-guard 新增 F10
  *    （日历默认月由 now 派生 · 注入两个 now，1 条）⇒ 按实况 1644 + 3 = 1647。
  *  2026-10-28 焦点单环 / 大字号对比：ui-control-system-guard 新增 FOCUS-1…3（双环检测含正反例 ·
- *    搜索框与 <select> 同环 · 「考勤良好」数值 ≥3:1，3 条；未新增守卫文件）⇒ 1647 + 3 = 1650。 */
-export const DAILY_TEST_BUDGET = 1650;
+ *    搜索框与 <select> 同环 · 「考勤良好」数值 ≥3:1，3 条；未新增守卫文件）⇒ 1647 + 3 = 1650。
+ *  2026-10-28 焦点单一体例与交互补齐：ui-control-system-guard 新增 FOCUS-4/5（焦点只允许主题色单环 ·
+ *    七色 base 对比度，2 条）＋ hover-state-guard 新增 H8/H9（可点类必须有 hover 或 active ·
+ *    role=button 必须可聚焦，2 条）＋ copy-guard 新增 B1/B2（可见支部名字面量 · 旧色名与「十色」，2 条）
+ *    ⇒ 1650 + 6 = 1656；另有 3 条既有用例改写后拆分为多条计入 ⇒ 按实况 1659。 */
+export const DAILY_TEST_BUDGET = 1659;
 
 const group = (tier, reason, list) => list.map((file) => ({ file, tier, reason }));
 

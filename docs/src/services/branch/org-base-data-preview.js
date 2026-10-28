@@ -20,17 +20,17 @@
 // 纯 ESM、无 DOM；localStorage 仅在函数内以 typeof 守卫惰性访问 → 浏览器 / Node 双端可载（单测直导）。
 // ════════════════════════════════════════════════════════════════
 
-import { PEOPLE } from '../../data/mock/people.js?v=20261028d';
+import { PEOPLE } from '../../data/mock/people.js?v=20261028e';
 // 2026-09-14 批次 25：党小组枚举改由 data/mock/party-groups.js 种子派生（该文件为无 import 的叶子数据模块，
 //   不会引入 person→preview→party-group 成环；运行时活组清单以 services/member/party-group.js::groupOptions() 为准）。
-import { PARTY_GROUPS } from '../../data/mock/party-groups.js?v=20261028d';
+import { PARTY_GROUPS } from '../../data/mock/party-groups.js?v=20261028e';
 // Q-21-3 收敛（2026-09-13）：在册状态枚举单一源 = core/domain/constants.js（本模块原先自写一份与 roster 同值的
 //   副本；constants.js 无 import → 可安全被本模块与 roster.js 双向共用，person→preview→roster 成环问题消解）。
-import { RESIDENCE } from '../../core/domain/constants.js?v=20261028d';
+import { RESIDENCE } from '../../core/domain/constants.js?v=20261028e';
 // R10-B12/B22：应到统计公式与活组清单一律取单一源（仅函数体内调用，模块顶层不触发 PersonStore，
 //   故 preview ↔ roster/party-group 的环在 ESM 下安全；原「保持叶子」的约束由「公式不外溢」替代）。
-import { computeRosterStats } from '../member/roster.js?v=20261028d';
-import { groupOptions } from '../member/party-group.js?v=20261028d';
+import { computeRosterStats } from '../member/roster.js?v=20261028e';
+import { groupOptions } from '../member/party-group.js?v=20261028e';
 
 /** 预览包类型标识（导入门槛，防误导入异类 JSON） */
 export const PREVIEW_KIND = 'gsm1921-base-data';

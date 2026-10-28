@@ -48,7 +48,7 @@ const MOCK = process.env.IAAA_MOCK === '1';
 const AUTH_URL = process.env.IAAA_AUTH_URL || 'https://iaaa.pku.edu.cn/iaaa/oauth.jsp';   // 授权页（公开实证）
 const VERIFY_URL = process.env.IAAA_VERIFY_URL || 'https://iaaa.pku.edu.cn/iaaa/oauthlogin.do'; // 换学号/姓名（⚠ 待技术文档确认）
 const APP_ID = process.env.IAAA_APP_ID || '';             // ← 计算中心在《技术文档》里给你的 appID
-const APP_NAME = process.env.IAAA_APP_NAME || '光华管理学院党支部管理系统';
+const APP_NAME = process.env.IAAA_APP_NAME || '党支部管理系统';   // 中性缺省；部署实例用 IAAA_APP_NAME 覆盖
 const REDIRECT_URI = process.env.IAAA_REDIRECT_URI || ''; // ← 你在备案申请里填的回调地址（必须一致）
 // ════════════════════════════════════════════════════════════════
 //  【怎么拿到上面那两个值（公开流程，可自助办）】

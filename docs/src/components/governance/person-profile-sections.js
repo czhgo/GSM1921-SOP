@@ -1,14 +1,14 @@
 // role: [工程师]+[AI]
 // 个人档案页的「本人自述」展示：折叠摘要 + 5 个子组。
 // 字段顺序与含义沿用自我描述字段单一源（core/domain/self-profile.js）。
-import { escHtml as esc } from '../../core/base/utils.js?v=20261028d';
+import { escHtml as esc } from '../../core/base/utils.js?v=20261028e';
 import {
   isSelfProfileEmpty, SELF_PROFILE_FIELDS,
-} from '../../core/domain/self-profile.js?v=20261028d';
-import { EMPTY_TEXT } from '../../core/domain/constants.js?v=20261028d';
-import { listRowHtml, listGroupHtml } from '../ui/list-row.js?v=20261028d';
+} from '../../core/domain/self-profile.js?v=20261028e';
+import { EMPTY_TEXT } from '../../core/domain/constants.js?v=20261028e';
+import { listRowHtml, listGroupHtml } from '../ui/list-row.js?v=20261028e';
 
-import { emptyStateHtml } from '../ui/empty-state.js?v=20261028d';
+import { emptyStateHtml } from '../ui/empty-state.js?v=20261028e';
 /** 15 个自述字段的展示子组（顺序＝展开后的阅读顺序；键集≡SELF_PROFILE_FIELDS） */
 export const SELF_PROFILE_GROUPS = [
   { title: '基本信息', keys: ['phone', 'grade', 'major'] },

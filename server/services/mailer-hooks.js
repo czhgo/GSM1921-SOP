@@ -7,9 +7,22 @@
 //  触发点：notices（通知发布） / todos（待办提醒） / periodicArchives（周期归档）
 //  会议提醒（场景④）由 reporting.js checkMeetingReminders 定时扫描负责
 import { sendMail, emailOf } from './mailer.js';
+// 支部显示名单一源 = docs/src/core/domain/review-request-labels.js::branchDisplayName
+// （`config.headerTitle` → `name`；支部行缺失时回中性「本支部」，绝不回落具体学院名）。
+// 支部行读取复用资源层既有 getRow（不新写 SQL）。
+import { getRow } from '../routes/resources/store.js';
+import { branchDisplayName } from '../../docs/src/core/domain/review-request-labels.js';
+import { DEFAULT_BRANCH_ID } from '../../docs/src/core/domain/constants.js';
 
 const base = () => process.env.REPORT_BASE_URL || '';
 const entryLink = () => (base() ? `\n系统入口：${base()}/workspace/index.html` : '');
+/** 邮件落款 = 记录所属支部的显示名（记录无 branchId 时按既有缺省支部口径） */
+function branchSign(db, row) {
+  const branchId = (row && row.branchId) || DEFAULT_BRANCH_ID;
+  let branch = null;
+  try { branch = getRow(db, 'branches', branchId); } catch (_) { /* 表缺失 ⇒ 走中性兜底 */ }
+  return branchDisplayName('', branch);
+}
 
 function personEmail(db, id) {
   const email = emailOf(db, id);
@@ -42,7 +55,7 @@ async function sendNoticeEmail(db, notice) {
   return sendMail({
     to,
     subject: `[支部通知] ${notice.title}`,
-    text: `${notice.content || ''}\n\n——光华管理学院本科生党支部${entryLink()}`,
+    text: `${notice.content || ''}\n\n——${branchSign(db, notice)}${entryLink()}`,
     html: `<div style="font-size:14px;line-height:1.7">${(notice.content || '').replace(/\n/g, '<br>')}</div>`,
   });
 }

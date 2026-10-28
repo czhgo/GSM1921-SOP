@@ -3,7 +3,7 @@
 <html lang="zh-CN">
 <head>
   
-<script src="./src/theme-init.js?v=20261028d"></script>
+<script src="./src/theme-init.js?v=20261028e"></script>
 <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>登录 — GSM1921-SOP</title>
@@ -13,8 +13,8 @@
   <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;800&family=Noto+Serif+SC:wght@400;500;600;700;800&display=swap" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;800&family=Noto+Serif+SC:wght@400;500;600;700;800&display=swap" rel="stylesheet"></noscript>
   <script src="https://cdn.tailwindcss.com/3.4.17"></script>
-  <script src="./src/tailwind-config.js?v=20261028d"></script>
-  <link rel="stylesheet" href="./src/styles.css?v=20261028d">
+  <script src="./src/tailwind-config.js?v=20261028e"></script>
+  <link rel="stylesheet" href="./src/styles.css?v=20261028e">
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
@@ -72,7 +72,8 @@
     <!-- 顶部签名区：红色色带 + 党徽 + 标题 -->
     <div class="login-hero login-card-anim rounded-t-2xl px-6 py-8 text-center">
       <img src="./assets/images/party_emblem.png" alt="党徽" class="login-hero-emblem mx-auto mb-3" style="width:56px;height:56px;" draggable="false">
-      <h1 class="font-title text-lg font-bold text-white mb-1 tracking-wide">光华管理学院本科生党支部</h1>
+      <!-- 支部名不写死：静态默认中性文案，配置就绪后由 login-entry.js 按支部档案（config.headerTitle）覆盖 -->
+      <h1 id="login-title" class="font-title text-lg font-bold text-white mb-1 tracking-wide">党支部管理系统</h1>
     </div>
 
     <!-- 默认模式: 统一身份认证（IAAA）＋ 账号密码 -->
@@ -120,12 +121,14 @@
   </div>
 
 <!-- modulepreload:start -->
-  <link rel="modulepreload" href="./src/services/core/auth.js?v=20261028d" />
-  <link rel="modulepreload" href="./src/core/domain/constants.js?v=20261028d" />
-  <link rel="modulepreload" href="./src/core/base/utils.js?v=20261028d" />
-  <link rel="modulepreload" href="./src/config/deploy.js?v=20261028d" />
-  <link rel="modulepreload" href="./src/components/ui/empty-state.js?v=20261028d" />
+  <link rel="modulepreload" href="./src/services/core/auth.js?v=20261028e" />
+  <link rel="modulepreload" href="./src/services/core/runtime.js?v=20261028e" />
+  <link rel="modulepreload" href="./src/services/branch/branch.js?v=20261028e" />
+  <link rel="modulepreload" href="./src/core/domain/constants.js?v=20261028e" />
+  <link rel="modulepreload" href="./src/core/base/utils.js?v=20261028e" />
+  <link rel="modulepreload" href="./src/config/deploy.js?v=20261028e" />
+  <link rel="modulepreload" href="./src/components/ui/empty-state.js?v=20261028e" />
   <!-- modulepreload:end -->
-  <script type="module" src="./src/entries/pages/login-entry.js?v=20261028d"></script>
+  <script type="module" src="./src/entries/pages/login-entry.js?v=20261028e"></script>
 </body>
 </html>

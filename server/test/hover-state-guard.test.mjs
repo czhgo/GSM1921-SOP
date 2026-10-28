@@ -16,7 +16,7 @@
 // 运行：node --test server/test/hover-state-guard.test.mjs
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -216,4 +216,148 @@ test('H7 按压反馈唯一源：180ms + 1px 内阴影，且无位移 / 缩放',
   for (const s of ['.btn-accent', '.btn-tab', '.btn-outline', '.cs-option', 'summary']) {
     assert.ok(selectors.includes(s), `按压聚合选择器缺 ${s}`);
   }
+});
+
+// ── H8 / H9：可点光标必须有三态 ＋ role=button 必须键盘可达（2026-10-28 批次 520）──
+// 病灶：本轮补 23 处可交互表面时发现，`cursor: pointer` 单独出现会让元素「看起来能点」，
+//   但既无 hover 也无 active；`role="button"` 若不带 tabindex，读屏能读出按钮、键盘却进不去。
+// 判据：
+//   H8 所有声明 `cursor: pointer` 的类，必须能在某条 `:hover` 或 `:active` 规则里找到同名类。
+//   H9 所有产出 `role="button"` 的标签，本身必须是 `<button>` / `<a>`，否则同标签必须带 `tabindex`。
+// 两条都带反例（写坏正则 / 判据写反 ⇒ 立即判红）。
+
+/** 全部规则（CSS 文件 ＋ HTML 页内 <style>），用于 H8 */
+function allRules() {
+  const out = [];
+  for (const rel of CSS_FILES) out.push({ file: rel, rules: parseRules(read(rel)) });
+  for (const rel of HTML_FILES) out.push({ file: rel, rules: parseRules(styleBlocks(read(rel))) });
+  return out;
+}
+
+/** 取选择器列表里每个选择器的「主语复合选择器」中的类名（祖先 / 后代类不算） */
+function subjectClasses(selector) {
+  const out = new Set();
+  for (const part of selector.split(',')) {
+    const subject = part.trim().split(/\s*[>+~]\s*|\s+/).pop() || '';
+    for (const m of subject.matchAll(/\.([a-zA-Z_][\w-]*)/g)) out.add(m[1]);
+  }
+  return out;
+}
+
+/** 纯判据（H8）：返回未被 :hover / :active 覆盖的 cursor:pointer 类 */
+function cursorStateProblems(files) {
+  const covered = new Set();
+  for (const { rules } of files) {
+    for (const r of rules) {
+      if (!/:hover|:active/.test(r.pre)) continue;
+      // 覆盖判定允许祖先位：如 `.help-toc-dot-item:hover .dot-mark` 已给整项提供了 hover 反馈
+      for (const m of r.pre.matchAll(/\.([a-zA-Z_][\w-]*)/g)) covered.add(m[1]);
+    }
+  }
+  const problems = [];
+  let rows = 0;
+  for (const { file, rules } of files) {
+    for (const r of rules) {
+      if (!/(?:^|[;\s])cursor\s*:\s*pointer/.test(r.body)) continue;
+      rows += 1;
+      for (const cls of subjectClasses(r.pre)) {
+        if (!covered.has(cls)) problems.push({ file, cls });
+      }
+    }
+  }
+  return { problems, rows };
+}
+
+/** 纯判据（H9）：返回缺 tabindex 的 role=button 非原生控件 */
+function roleButtonProblems(src) {
+  const problems = [];
+  let total = 0;
+  const re = /<([a-zA-Z][\w-]*)\b([^>]*\brole="button"[^>]*)>/g;
+  let m;
+  while ((m = re.exec(src)) !== null) {
+    total += 1;
+    const tag = m[1].toLowerCase();
+    if (tag === 'button' || tag === 'a') continue;
+    if (!/\btabindex\s*=/.test(m[2])) problems.push(m[0].replace(/\s+/g, ' ').slice(0, 100));
+  }
+  return { problems, total };
+}
+
+/** 递归收集 docs 下 .js / .html（跳过依赖目录） */
+function walkCode(dir, out = []) {
+  for (const name of readdirSync(dir)) {
+    if (name === 'node_modules' || name === 'vendor' || name === '.git') continue;
+    const p = join(dir, name);
+    const st = statSync(p);
+    if (st.isDirectory()) walkCode(p, out);
+    else if (name.endsWith('.js') || name.endsWith('.html')) out.push(p);
+  }
+  return out;
+}
+
+/**
+ * H8 登记例外（逐条写理由；只收「状态由同元素其它类 / 元素级规则提供」与本轮冻结件）：
+ *   · `.todo-more__btn` 与 `.btn-outline` 同元素（`todo-list.js:144`），状态由按钮族提供；
+ *   · `.modal-fieldset__summary` 是 `<summary>` 元素，状态由全局 `summary:hover/active` 提供；
+ *   · `.ab-tl-center` 属 About 冻结件，整行 `.ab-tl-row` 承担展开态，待支书点头后单独补。
+ */
+const CURSOR_STATE_EXEMPT = [
+  { file: 'docs/src/styles.css', cls: 'todo-more__btn', why: '与 .btn-outline 同元素，状态由按钮族提供' },
+  { file: 'docs/src/styles.css', cls: 'modal-fieldset__summary', why: '<summary> 元素，状态由全局 summary:hover/active 提供' },
+  { file: 'docs/src/about.css', cls: 'ab-tl-center', why: 'About 冻结件，整行承担展开态，待支书点头后单独补' },
+];
+
+test('H8 声明 cursor:pointer 的类必须有 :hover 或 :active（反例：只有光标没有状态）', () => {
+  // ① 反例：只有 cursor:pointer、无任何 hover / active ⇒ 必须判红
+  const planted = [{ file: 'probe.css', rules: parseRules('.probe { cursor: pointer; }\n.probe:hover { color: red; }') }];
+  assert.equal(cursorStateProblems([{ file: 'probe.css', rules: parseRules('.probe { cursor: pointer; }') }]).problems.length, 1,
+    '反例未被判红：无 hover / active 的 cursor:pointer 必须命中');
+  // ② 正例：hover 或 active 任一存在 ⇒ 不得误红
+  assert.deepEqual(cursorStateProblems(planted).problems, [], '正例被判红：有 :hover 的可点类不得误判');
+  assert.deepEqual(cursorStateProblems([{ file: 'probe.css', rules: parseRules('.probe { cursor: pointer; }\n.probe:active { color: red; }') }]).problems, [],
+    '正例被判红：有 :active 的可点类不得误判');
+
+  // ③ 实况
+  const files = allRules();
+  const { problems, rows } = cursorStateProblems(files);
+  const exempt = new Map(CURSOR_STATE_EXEMPT.map((e) => [`${e.file}|${e.cls}`, e]));
+  for (const e of CURSOR_STATE_EXEMPT) {
+    assert.ok(e.why && e.why.length >= 8, `H8 例外 .${e.cls} 缺理由（新增例外须写清谁提供了状态）`);
+    assert.ok(problems.some((p) => p.file === e.file && p.cls === e.cls),
+      `H8 例外 .${e.cls} 已不再命中（僵尸例外，请删除）`);
+  }
+  assert.ok(CURSOR_STATE_EXEMPT.length <= 3, `H8 例外涨到 ${CURSOR_STATE_EXEMPT.length} 条（上限 3）：只许逐条给理由、不许扩表`);
+  const offenders = problems.filter((p) => !exempt.has(`${p.file}|${p.cls}`))
+    .map((p) => `${p.file} → .${p.cls}（cursor:pointer 但无 :hover / :active）`);
+  assert.ok(rows >= 30, `只扫描到 ${rows} 条 cursor:pointer 规则（下限 30）：判据面被写坏`);
+  console.log(`[hover] H8 cursor:pointer 规则 ${rows} 条 · 无状态且未登记 ${offenders.length} 处（登记例外 ${CURSOR_STATE_EXEMPT.length}）`);
+  assert.deepEqual(offenders, [],
+    `以下类只声明了 cursor:pointer，却没有 :hover / :active（看起来能点、实际没有反馈）：\n  ${offenders.join('\n  ')}`);
+});
+
+test('H9 产出 role="button" 的组件必须同时产出 tabindex（或本身是原生 button / a）', () => {
+  // ① 反例：div 宣告按钮却无 tabindex ⇒ 必须判红
+  assert.equal(roleButtonProblems('<div role="button" class="x">开办</div>').problems.length, 1,
+    '反例未被判红：无 tabindex 的 role=button 必须命中');
+  // ② 正例：带 tabindex / 原生 button / 原生 a ⇒ 不得误红
+  assert.deepEqual(roleButtonProblems('<div role="button" tabindex="0">开办</div>').problems, [],
+    '正例被判红：带 tabindex 的 role=button 不得误判');
+  assert.deepEqual(roleButtonProblems('<button role="button">开办</button>').problems, [],
+    '正例被判红：原生 button 不需要额外 tabindex');
+  assert.deepEqual(roleButtonProblems('<a role="button" href="#">开办</a>').problems, [],
+    '正例被判红：原生 a 不需要额外 tabindex');
+
+  // ③ 实况：docs 全量 .js ＋ .html
+  const files = walkCode(join(ROOT, 'docs')).map((abs) => ({ abs, src: readFileSync(abs, 'utf8') }));
+  let total = 0;
+  const problems = [];
+  for (const { abs, src } of files) {
+    const r = roleButtonProblems(src);
+    total += r.total;
+    problems.push(...r.problems.map((p) => `${abs.slice(ROOT.length + 1).replace(/\\/g, '/')} → ${p}`));
+  }
+  assert.ok(total >= 20, `只扫描到 ${total} 个 role="button" 标签（下限 20）：判据面被写坏`);
+  console.log(`[hover] H9 role=button 标签 ${total} 个 · 缺 tabindex ${problems.length} 处`);
+  assert.deepEqual(problems, [],
+    `role="button" 不带 tabindex，键盘无法进入（能改原生 button / a 的优先改原生）：\n  ${problems.join('\n  ')}`);
 });

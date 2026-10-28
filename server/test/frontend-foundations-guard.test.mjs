@@ -16,8 +16,8 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { describeWriteError } from '../../docs/src/core/base/utils.js?v=20261028d';
-import { NUDGE_TEXTS } from '../../docs/src/components/ui/modal.js?v=20261028d';
+import { describeWriteError } from '../../docs/src/core/base/utils.js?v=20261028e';
+import { NUDGE_TEXTS } from '../../docs/src/components/ui/modal.js?v=20261028e';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(HERE, '..', '..');
@@ -264,7 +264,7 @@ test('F9 写口失败不得提示成功：先判返回值/捕获异常，成功 
 //        并断言初始月链路里没有写死的 `20YY-MM` 字面量。
 // ════════════════════════════════════════════════════════════════
 test('F10 日历默认月份由 now 派生：now=2026-10 / 2026-11 两个取值默认月随之变化', async () => {
-  const { populateMonthSelector } = await import('../../docs/src/components/record/calendar.js?v=20261028d');
+  const { populateMonthSelector } = await import('../../docs/src/components/record/calendar.js?v=20261028e');
   const ACTS = [
     { id: 'a1', date: '2026-10-05', title: '活动甲' },
     { id: 'a2', date: '2026-11-05', title: '活动乙' },

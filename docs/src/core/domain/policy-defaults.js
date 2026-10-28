@@ -17,9 +17,9 @@
 //   组长学期提醒消费——一律改由本文件派生）。
 // ════════════════════════════════════════════════════════════════
 
-import { todayLocal } from '../base/date.js?v=20261028d';
+import { todayLocal } from '../base/date.js?v=20261028e';
 // 状态中文枚举单一源（R10-B19；domain.js 零依赖，不引入循环）。
-import { ReviewStatus } from './domain.js?v=20261028d';
+import { ReviewStatus } from './domain.js?v=20261028e';
 
 /** 深拷贝工具（policy 结构纯 JSON 数据；factory 基准深拷贝/复位用） */
 function _clone(v) {

@@ -2,7 +2,7 @@
 title: "设计域判例库"
 type: design
 role: "[工程师]+[AI]"
-last_updated: "2026-10-28"
+last_updated: "2026-10-29"
 status: active
 related_files: [DESIGN_SYSTEM.md, content/03_doc_system/CASES_INDEX.md, content/03_doc_system/OPERATIONS_GUIDE.md]
 ---
@@ -65,11 +65,11 @@ related_files: [DESIGN_SYSTEM.md, content/03_doc_system/CASES_INDEX.md, content/
 ## CASE-DESIGN-006 输入焦点不得「双答」
 
 - **编号**：CASE-DESIGN-006
-- **场景（真实发生）**：`.input-flat:focus` 曾同时画 2px `--focus-ring` 外环与主题色边框，同一个焦点给了两个答案；暗色下 `--focus-ring` 又曾设为党徽金，与金边叠成「双金边」，框体反而更糊。
-- **结论**：活动态＝主题色边 1px ＋ 3px 浅晕；`:focus` 不出 `outline`；`:focus-visible` 才出 2px 主题色环；禁止「金边 + 黑环」双答。
-- **边界**：纯键盘操作仍须有可见焦点环（走 `:focus-visible`，不受「`:focus` 不出 outline」限制）；搜索类白名单控件与普通输入同一套外壳。
+- **场景（真实发生）**：`.input-flat:focus` 曾同时画 2px 深灰外环与主题色边框，同一个焦点给了两个答案；暗色下外环又曾设为党徽金，与金边叠成「双金边」，框体反而更糊。
+- **结论**：活动态用主题色边 1px ＋ 一条 2px 主题色实线环（offset 1px，`box-shadow: none`），鼠标点击与键盘聚焦表现一致；同一控件只答一次，禁止「金边 + 黑环」双答。
+- **边界**：纯键盘操作仍须有可见焦点环；输入族由 `:focus` 承担，按钮与链接族由 `:focus-visible` 承担（几何同源）；搜索类白名单控件与普通输入同一套外壳。
 - **对应规范编号**：SD-27
-- **证据指针**：`DESIGN_SYSTEM.md §12.12` 字段外壳表；`server/test/field-shell-guard.test.mjs:1-23`；`server/test/ui-focus-ring.test.mjs:48,68`；执行日志批次 508。
+- **证据指针**：`DESIGN_SYSTEM.md §12.12` 字段外壳表与 §5.7；`server/test/field-shell-guard.test.mjs:1-23`；`server/test/ui-focus-ring.test.mjs:63,109`；执行日志批次 508。
 
 ## CASE-DESIGN-007 禁用与只读不得都用 opacity 压低
 
@@ -293,13 +293,13 @@ related_files: [DESIGN_SYSTEM.md, content/03_doc_system/CASES_INDEX.md, content/
 ## CASE-DESIGN-028 帮助页折叠摘要的焦点环落在白卡上只剩 1.40:1
 
 - **编号**：CASE-DESIGN-028
-- **场景（真实发生）**：`docs/help.html` 的 `.help-chapter > summary:focus-visible` 曾用党徽金 `#FFD700` 画 2px 焦点环，而折叠条落在白卡 `#FFFFFF` 上——实测 **1.40:1**。鼠标用户看不出问题，键盘用户 Tab 到章标题时**看不到焦点在哪**：环是在的，只是与底色同亮。本批改走 `--status-warning-text`（`#92400E`），实测 **7.09:1**。
-- **结论**：焦点环的验收标准是**环对底的对比度**，不是「有没有 `outline`」。金色 `#FFD700` 只在深底（顶栏党建红 `#CE1126`）上成立（≥3:1）；浅底白卡一律改用深金文字档 `--status-warning-text`。
-- **泛化规则**：焦点可见＝① 有环（`:focus-visible`）＋ ② 环对**实际所在底色** ≥3:1（图形判据）＋ ③ 不在 `:focus` 上重复出第二道答案（SD-27）。判据必须按**环落的那块底**逐处实测，不得只在 token 层看色值。
-- **守卫**：`ui-contrast-guard::K6`（`--status-warning-text` 亮 / 暗逐底 ≥4.5:1，填充色 `--status-warning` 只作圆点 / 左条）＋ `ui-focus-ring`（亮 / 暗两套 `--focus-ring`、顶栏金环 ≥3:1）。
-- **对应规范编号**：SD-27（`:focus-visible` 必须有可见环）；对比度判据同族见 SD-46（状态色文字档）与 `ui-contrast-guard::K6`。
-- **边界**：党徽金焦点环在**深底**（顶栏）仍是合规用法（≥3:1，见 `ui-focus-ring::F6`）；本条只判**浅底**上的金环。装饰性金点描边不属焦点环判据（见 §2.3.1）。
-- **证据指针**：`docs/help.html:58`（`outline:2px solid var(--status-warning-text)`）；`docs/src/styles.css` 的 `--status-warning-text` 亮 `#92400E` / 暗 `#FCD34D`；`server/test/ui-contrast-guard.test.mjs`（K6）；`server/test/ui-focus-ring.test.mjs`（F1 / F6）；`.ctx/logs/2026-10-EXECUTION_LOG.md` 美学专项 Task 7。
+- **场景（真实发生）**：`docs/help.html` 的 `.help-chapter > summary:focus-visible` 曾用党徽金 `#FFD700` 画 2px 焦点环，而折叠条落在白卡 `#FFFFFF` 上——实测 **1.40:1**。鼠标用户看不出问题，键盘用户 Tab 到章标题时**看不到焦点在哪**：环是在的，只是与底色同亮。当时先改走深金文字档 `--status-warning-text`（`#92400E`，7.09:1）；2026-10-28 全站焦点统一后改用主题色 `--app-accent`（金主题对白卡 3.83:1）。
+- **结论**：焦点环的验收标准是**环对底的对比度**，不是「有没有 `outline`」。固定党徽金 `#FFD700` 对白卡只有 1.40:1，已退出焦点用途；焦点色统一取主题色 `base` 档（对白卡最低为金 3.83:1）。
+- **泛化规则**：焦点可见由三件构成：① 有环（输入族 `:focus`、按钮 / 链接族 `:focus-visible`）＋ ② 环对**实际所在底色** ≥3:1（图形判据）＋ ③ 不在同一控件上重复出第二道答案（SD-27 / §5.7）。判据必须按**环落的那块底**逐处实测，不得只在 token 层看色值。
+- **守卫**：`ui-contrast-guard::K6`（`--status-warning-text` 亮 / 暗逐底 ≥4.5:1，填充色 `--status-warning` 只作圆点 / 左条）＋ `ui-focus-ring`（七主题亮 / 暗的 `--app-accent` 焦点环逐底 ≥3:1；顶栏白环 ≥3:1）。
+- **对应规范编号**：SD-27（焦点环必须有可见环且只答一次）；对比度判据同族见 SD-46（状态色文字档）与 `ui-contrast-guard::K6`。
+- **边界**：顶栏深红底是唯一不用主题色的例外，现改用白色令牌 `--app-accent-strong-ink-light`（11.44:1，见 §5.7）；本条只判浅底上的焦点环。装饰性金点描边不属焦点环判据（见 §2.3.1）。
+- **证据指针**：`docs/help.html:58`（`outline:2px solid var(--app-accent)`）；`docs/src/styles.css` 的 `--app-accent-base-light` 七色表；`server/test/ui-contrast-guard.test.mjs`（K6）；`server/test/ui-focus-ring.test.mjs`（F1 / F4 / F6）；`.ctx/logs/2026-10-EXECUTION_LOG.md` 美学专项 Task 7。
 
 ## CASE-DESIGN-029 说明层压过对象层：卡头副题在教人怎么点
 
@@ -325,6 +325,18 @@ related_files: [DESIGN_SYSTEM.md, content/03_doc_system/CASES_INDEX.md, content/
 - **对应规范编号**：§一 原则 4（色彩克制 · 点缀色）；关联 SD-46（主题色层与功能色层并列）。
 - **边界**：点缀色不承担状态语义——逾期 / 未读等状态仍由 `--status-warning-text` 等语义 token 与文字标签共同表达；以素净为主的页面不必强行补彩色，本判例只否定「把彩色一律判违规」的推论。深浅色由 `--tint` 混入 `--surface-card` 自动适配，不为暗色另写一套色值。
 - **证据指针**：`docs/src/components/dashboard/stats.js`（`stat-icon-tint` ＋ `--tint` ＋ 同色数值）；`docs/src/components/governance/work-overview.js`（四数卡同构）；`docs/src/styles.css` 的 `.stat-icon-tint`；`server/test/ui-control-system-guard.test.mjs`（V1）；`server/test/ui-home-hero.test.mjs`（E7）；`.ctx/logs/2026-10-EXECUTION_LOG.md` 2026-10-28 Task 3。
+
+## CASE-DESIGN-031 焦点修了两轮才查出「四套颜色 ＋ 全局 6px 光晕」
+
+- **编号**：CASE-DESIGN-031
+- **场景（真实发生）**：用户实报「聚焦时一黑一金」。第一轮只按现象改了输入框：清掉 3px 浅晕、把环切到主题色。第二轮全站扫描才查出根因不在输入框——全站同时存在四套焦点颜色（固定党徽金 `#FFD700`、党建红 `--primary-500`、深棕状态色、旧焦点令牌），另有一条全局规则在控件外侧补 `0 0 0 6px` 半透明光晕；用户看到的黑就是这圈光晕。本轮删掉两个旧令牌与 6px 光晕，全站收敛为一条 `outline: 2px solid var(--app-accent)`（offset 1px，`box-shadow: none`）。
+- **AI 假设**：先修报错的那一个控件最快；颜色不一致只是个别地方漏了；把环写亮一点就能看见。
+- **人类意图**：焦点外观在全站只有一种，颜色只有主题色一个来源；先穷尽所有来源（令牌定义、全局规则、局部 `:focus-visible`、内联样式），再动手，避免「修一处、冒一处」。
+- **泛化规则**：① 焦点问题先做全站来源盘点，四类来源逐一列清后再改；② 局部 `:focus-visible` 只写 `outline` 而不钉 `box-shadow: none`，会与全局环叠成第二环——每条局部焦点规则必须同时清 `box-shadow`；③ 色板从十色合并为七色后，文档与帮助页未同步，出现「照着文档数颜色会数错」——口头的第二事实源也会出错，颜色数量以 `ACCENT_PALETTE` 单一源为准，文档与帮助页只引用、不另记。
+- **对应规范编号**：SD-27（焦点单环）＋ SD-21（主题选择器恰 7 项）；几何与例外见 `DESIGN_SYSTEM §5.7`。
+- **守卫**：`ui-focus-ring::F1–F6`（旧令牌零残留 / 单条 outline / 七主题对比度 / 顶栏白环）＋ `ui-control-system-guard::FOCUS-1…5`（双环检测 ＋ 6px 光晕反例 ＋ 七主题 base 对白卡与深卡 ≥3:1）＋ `theme-palette-guard::T1/T3`（七主题、旧键退场）。
+- **边界**：顶栏深红底是唯一不用主题色的例外（白环 11.44:1，见 §5.7）；About 页是独立冻结件，其焦点口径待支书点头后单独处理。
+- **证据指针**：`docs/src/styles.css`（全局 `button/a/…:focus-visible` 与 `.input-flat:focus`）；`docs/help.html:58,160`；`server/test/ui-focus-ring.test.mjs`；`server/test/ui-control-system-guard.test.mjs`（FOCUS 组）；`.ctx/evidence/2026-10-28/focus-*.png`。
 
 ---
 

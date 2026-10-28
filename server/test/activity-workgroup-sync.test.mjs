@@ -28,10 +28,10 @@ globalThis.sessionStorage = makeStorage();
 
 import { createApp } from '../app.js';
 import { seedDatabase } from '../seed.js';
-import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261028d';
-import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261028d';
-import { registerMockAdapter, setDataSource } from '../../docs/src/data/data-adapter.js?v=20261028d';
-import { BranchService } from '../../docs/src/services/core/runtime.js?v=20261028d';
+import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261028e';
+import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261028e';
+import { registerMockAdapter, setDataSource } from '../../docs/src/data/data-adapter.js?v=20261028e';
+import { BranchService } from '../../docs/src/services/core/runtime.js?v=20261028e';
 
 let server, base, db;
 const tokens = {};

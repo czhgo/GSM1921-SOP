@@ -17,7 +17,7 @@
 //   enhanceSelects 依 data-cs-enhanced 保持幂等。
 // ════════════════════════════════════════════════════════════════
 
-import { emptyStateHtml } from './empty-state.js?v=20261028d';
+import { emptyStateHtml } from './empty-state.js?v=20261028e';
 
 const ICON_CHEVRON =
   '<svg class="cs-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>';

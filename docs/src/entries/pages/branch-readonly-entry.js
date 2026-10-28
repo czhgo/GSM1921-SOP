@@ -1,17 +1,17 @@
 // 党委所选支部只读视图：页面身份不切换到支部工作台。
-import { renderSidebar } from '../../components/shell/sidebar.js?v=20261028d';
-import { renderHeader } from '../../components/shell/header.js?v=20261028d';
-import { AuthStore } from '../../services/core/auth.js?v=20261028d';
-import { BranchService } from '../../services/core/runtime.js?v=20261028d';
-import { PersonStore, getPersonName } from '../../services/member/person.js?v=20261028d';
-import { getBranchById } from '../../services/branch/branch.js?v=20261028d';
-import { ApiAdapter } from '../../data/api-adapter.js?v=20261028d';
-import { hydrateDataSource } from '../../data/data-adapter.js?v=20261028d';
-import { getBasePath, docAnchorHref, escHtml as esc } from '../../core/base/utils.js?v=20261028d';
-import { DEFAULT_BRANCH_ID, ROLE_LABELS } from '../../core/domain/constants.js?v=20261028d';
-import { renderPageHeader } from '../../components/shell/page-frame.js?v=20261028d';
+import { renderSidebar } from '../../components/shell/sidebar.js?v=20261028e';
+import { renderHeader } from '../../components/shell/header.js?v=20261028e';
+import { AuthStore } from '../../services/core/auth.js?v=20261028e';
+import { BranchService } from '../../services/core/runtime.js?v=20261028e';
+import { PersonStore, getPersonName } from '../../services/member/person.js?v=20261028e';
+import { getBranchById } from '../../services/branch/branch.js?v=20261028e';
+import { ApiAdapter } from '../../data/api-adapter.js?v=20261028e';
+import { hydrateDataSource } from '../../data/data-adapter.js?v=20261028e';
+import { getBasePath, docAnchorHref, escHtml as esc } from '../../core/base/utils.js?v=20261028e';
+import { DEFAULT_BRANCH_ID, ROLE_LABELS } from '../../core/domain/constants.js?v=20261028e';
+import { renderPageHeader } from '../../components/shell/page-frame.js?v=20261028e';
 
-import { emptyStateHtml } from '../../components/ui/empty-state.js?v=20261028d';
+import { emptyStateHtml } from '../../components/ui/empty-state.js?v=20261028e';
 renderSidebar('workspace');
 renderHeader('workspace');
 

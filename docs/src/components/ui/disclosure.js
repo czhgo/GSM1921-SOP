@@ -15,7 +15,7 @@
 //    · `<details>`：`${id}`
 //    · `<summary>`：`${id}-toggle`   ← 与 `#archive-weekly-toggle` / `#roster-sp-toggle` 等旧 id 同名
 //    · 受控区：`${id}-body`
-import { escHtml } from '../../core/base/utils.js?v=20261028d';
+import { escHtml } from '../../core/base/utils.js?v=20261028e';
 
 /** `toggle` 钩子只对每个根节点挂一次（容器跨重渲染复用，避免监听累积） */
 const _bound = new WeakSet();

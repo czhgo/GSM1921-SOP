@@ -2,19 +2,19 @@
 // ws-org-commissioner-entry.js — 组织委员工作台入口（T-279 M3 拆分；T-304 代码减负 2026-08-30：骨架并入 workspace-shell）
 // 入口职责：壳配置（注册表 tab 清单 + 导航落点 + 数据加载），角色特有逻辑仅保留。
 
-import { getAppState, setState } from '../../core/base/state.js?v=20261028d';
-import { createWorkspaceShell } from '../../components/shell/workspace-shell.js?v=20261028d';
-import { flashHighlight, showToast } from '../../core/base/utils.js?v=20261028d';
-import { loadActivities } from '../../services/activity/activity.js?v=20261028d';
-import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261028d';
-import { SignupStore } from '../../services/activity/signup.js?v=20261028d';
-import { seedTodos } from '../../services/governance/todo.js?v=20261028d';
-import { solidAccentStyle } from '../../core/domain/constants.js?v=20261028d';
-import { AuthStore } from '../../services/core/auth.js?v=20261028d';
-import { getBranchIdOfPerson, getBranchCapabilityPackageState } from '../../services/branch/branch.js?v=20261028d';
-import { openRecruitForm } from '../tabs/org/taskforce-tab.js?v=20261028d';
+import { getAppState, setState } from '../../core/base/state.js?v=20261028e';
+import { createWorkspaceShell } from '../../components/shell/workspace-shell.js?v=20261028e';
+import { flashHighlight, showToast } from '../../core/base/utils.js?v=20261028e';
+import { loadActivities } from '../../services/activity/activity.js?v=20261028e';
+import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261028e';
+import { SignupStore } from '../../services/activity/signup.js?v=20261028e';
+import { seedTodos } from '../../services/governance/todo.js?v=20261028e';
+import { solidAccentStyle } from '../../core/domain/constants.js?v=20261028e';
+import { AuthStore } from '../../services/core/auth.js?v=20261028e';
+import { getBranchIdOfPerson, getBranchCapabilityPackageState } from '../../services/branch/branch.js?v=20261028e';
+import { openRecruitForm } from '../tabs/org/taskforce-tab.js?v=20261028e';
 // 副作用导入触发组织委员工作台能力注册（tab 清单；含 立项⑥B波 成员名册 tab）
-import '../../capabilities/org-workspace.js?v=20261028d';
+import '../../capabilities/org-workspace.js?v=20261028e';
 
 await createWorkspaceShell({
   accentRole: 'org-commissioner',

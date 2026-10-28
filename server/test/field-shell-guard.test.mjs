@@ -2,29 +2,25 @@
 // field-shell-guard.test.mjs — 字段外壳 / 下拉统一守卫（2026-10-24 · 批次 508）
 //
 // 为什么要有本守卫：
-//   · 批次 508 把输入框焦点态收敛为「边框变主题色 + 3px 主题色淡底外晕」，
-//     键盘焦点才额外出 `outline`；此前 `.input-flat:focus` 同时画 2px `--focus-ring`
-//     外环，与边框色形成「双答」，暗色下 focus-ring 又曾用党徽金，盖住金边。
+//   · 2026-10-28 支书裁定「全站焦点单一来源」：颜色只用主题色 `--app-accent`，
+//     几何 2px / offset 1px / 无 box-shadow，与 `<select>`（.cs-trigger）完全同源。
+//   · 输入族改用 `:focus` 生效（鼠标点击与键盘聚焦同表现），`:focus-visible` 只作键盘保险；
+//     同一控件不得同时画 box-shadow 环，否则键盘聚焦时叠成两个环。
 //   · 同一批把 select 统一交给 `enhanceSelects`（或全局 MutationObserver）增强，
 //     禁止各渲染点自建第二套下拉外观。
 //   · 判据：
 //       F1 非空转：styles.css 能解析到 `.input-flat` 与 `:focus-visible` 规则
-//       F2 活动态唯一源：`.input-flat:focus` 只把边框切到主题色，且 `box-shadow: none`
-//          （环由 `:focus-visible` 的 outline 承担；两条都画 ⇒ 键盘聚焦出双环，2026-10-28）
+//       F2 活动态：`.input-flat:focus` 边框切主题色 + 一条 2px 主题色环 / offset 1px，
+//          且 `box-shadow: none`（不叠第二条环）
 //       F3 键盘保险：`.input-flat:focus-visible` 含 `outline: 2px solid var(--app-accent)`
-//       F4 禁双答：`.input-flat:focus` 不得与 `outline: 2px solid var(--focus-ring)` 组合；
-//          暗色段 `--focus-ring` 不得为 `var(--party-gold)`
+//       F4 旧双环变量退场：`.input-flat:focus` 与暗色段均不引用 `--focus-ring` / `--focus-halo`
 //       F5 禁用 / 只读分态：两者都存在且声明不同（禁用灰底 / 只读透明边）
 //       F6 select 统一：渲染 `<select>` 的文件必须本地 enhanceSelects / data-cs-enhanced，
 //          或落在 `.input-flat` 上由全局 MutationObserver 增强；例外逐条登记理由
 //   · 口径调整（据实况，不删断言）：
-//       F2 允许 `outline: none`——那是清掉浏览器 UA 默认外框的 reset，不是第二套视觉；
-//       真正的键盘外环只在 `:focus-visible`（F3）。把「不得含 outline」判成「不得含非 none 的 outline」，
-//       否则会把合法的 UA reset 当成双答。
-//       2026-10-28 改准：批次 508 曾要求 `.input-flat:focus` 叠 3px soft-bg 外晕；实测该晕对白卡仅
-//       1.11:1（暗色比卡片更暗），键盘聚焦时与 `:focus-visible` 的 2px 环叠成「黑环 + 金环」双环。
-//       故 F2 由「必须有 3px 外晕」改准为「必须 box-shadow: none」——判据不降（改成反向硬约束），
-//       单环口径见 `ui-control-system-guard::FOCUS-1…3`。
+//       2026-10-28：原 F2 要求 `:focus` 只改边框、环只由 `:focus-visible` 承担；支书裁定
+//       「鼠标点击与键盘聚焦表现一致」后，环改由 `:focus` 承担（几何与 `:focus-visible` 相同），
+//       故 F2 改判「必须出同一条 2px 主题色环 + box-shadow: none」，判据不降。
 // 运行：node --test server/test/field-shell-guard.test.mjs
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -116,21 +112,17 @@ test('F1 非空转：styles.css 可解析到 .input-flat 与 :focus-visible 规�
   assert.ok(focusVisible, 'styles.css 缺少 .input-flat:focus-visible 规则（键盘焦点保险）');
 });
 
-test('F2 活动态唯一源：.input-flat:focus 只改边框色，box-shadow 钉成 none（不得与 :focus-visible 叠成双环）', () => {
+test('F2 活动态：.input-flat:focus 边框切主题色 + 一条 2px 主题色环，box-shadow 钉成 none', () => {
   const body = ruleBody(STYLES, '.input-flat:focus');
   assert.ok(body, 'styles.css 缺少 .input-flat:focus 规则');
   assert.match(body, /border-color:\s*var\(--app-accent\)\s*;/, '.input-flat:focus 必须把边框切到 var(--app-accent)');
-  // 2026-10-28（焦点单环）：:focus 与 :focus-visible 在键盘聚焦时同时命中——
-  //   若 :focus 再画 box-shadow 环，就与 :focus-visible 的 outline 叠成两个环。
+  // 2026-10-28（支书裁定）：鼠标点击与键盘聚焦同表现 ⇒ 环由 :focus 承担；
+  //   但同一控件只能有一条环，box-shadow 必须钉成 none。
+  assert.match(body, /outline:\s*2px solid var\(--app-accent\)\s*;/, '.input-flat:focus 必须出 2px 主题色实线环');
+  assert.match(body, /outline-offset:\s*1px\s*;/, '.input-flat:focus 的环偏移应为 1px（与 <select> 同）');
   assert.match(body, /box-shadow:\s*none\s*;/,
-    '.input-flat:focus 必须有 `box-shadow: none`（画环即与 :focus-visible 的 outline 叠成双环）');
-
-  // outline: none 是 UA reset（允许）；任何非 none 的 outline 都是第二种视觉答案（禁止）
-  const outlines = [...body.matchAll(/(?:^|;)\s*outline\s*:\s*([^;]+)/g)].map((m) => m[1].trim());
-  assert.equal(outlines.length <= 1, true, `.input-flat:focus 出现多条 outline 声明：${outlines.join(' | ')}`);
-  assert.deepEqual(outlines.filter((v) => v !== 'none'), [],
-    `.input-flat:focus 不得再画 outline（只允许 outline: none 清 UA 默认框）；实际：${outlines.join(' | ')}`);
-  assert.doesNotMatch(body, /--focus-ring/, '.input-flat:focus 不得引用 --focus-ring（活动态唯一源是主题色边 + soft-bg 外晕）');
+    '.input-flat:focus 必须有 `box-shadow: none`（画环即与 outline 叠成双环）');
+  assert.doesNotMatch(body, /--focus-ring/, '.input-flat:focus 不得引用旧 --focus-ring（唯一来源是 --app-accent）');
 });
 
 test('F3 键盘保险：.input-flat:focus-visible 含 outline: 2px solid var(--app-accent)', () => {
@@ -140,20 +132,16 @@ test('F3 键盘保险：.input-flat:focus-visible 含 outline: 2px solid var(--a
     '.input-flat:focus-visible 必须有 `outline: 2px solid var(--app-accent)`（键盘用户可见焦点）');
 });
 
-test('F4 禁双答：.input-flat:focus 不得配 2px --focus-ring，暗色 --focus-ring 不得为党徽金', () => {
-  // 选择器级检查：排除 -visible / -sm，只看真正的 .input-flat:focus
-  const combo = /\.input-flat:focus(?!-visible)(?![\w-])[^{]*\{[^}]*outline:\s*2px solid var\(--focus-ring\)/.test(
-    STYLES.replace(/\/\*[\s\S]*?\*\//g, ''),
-  );
-  assert.equal(combo, false, '仍有 `.input-flat:focus { outline: 2px solid var(--focus-ring) }` 的双答组合');
+test('F4 旧双环变量退场：.input-flat:focus 与暗色段均不引用 --focus-ring / --focus-halo', () => {
+  // 2026-10-28：焦点只用 --app-accent，旧的深灰环 / 黑晕变量整站删除；
+  //   本判据防止有人把旧变量加回来形成第二套口径。
+  const noComment = STYLES.replace(/\/\*[\s\S]*?\*\//g, '');
+  assert.doesNotMatch(noComment, /var\(--focus-ring\)/, 'styles.css 仍引用 var(--focus-ring)');
+  assert.doesNotMatch(noComment, /var\(--focus-halo\)/, 'styles.css 仍引用 var(--focus-halo)');
 
   const dark = blockAfter(STYLES, 'html.theme-dark {');
   assert.ok(dark, 'styles.css 缺少 html.theme-dark 块');
-  const focusRing = /--focus-ring\s*:\s*([^;]+);/.exec(dark);
-  assert.ok(focusRing, '暗色段缺少 --focus-ring 声明');
-  const value = focusRing[1].trim();
-  assert.notEqual(value, 'var(--party-gold)', '暗色段 --focus-ring 不得再用党徽金 var(--party-gold)');
-  assert.equal(value, 'var(--app-accent)', '暗色段 --focus-ring 应跟随主题色 var(--app-accent)');
+  assert.doesNotMatch(dark, /--focus-(?:ring|halo)\s*:/, '暗色段不应再覆盖旧焦点环变量');
 });
 
 test('F5 禁用 / 只读分态：两者都存在且声明不同（禁用灰底 / 只读透明边）', () => {

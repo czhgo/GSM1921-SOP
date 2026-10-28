@@ -2,13 +2,15 @@
 // login-entry.js — 登录页入口（重构版）
 // 支持: 账号密码 Mock 校验 + 开发模式直接选身份
 
-import { AuthStore } from '../../services/core/auth.js?v=20261028d';
-import { getAccentColors, solidAccentStyle, dotDarkVars, isBranchPendingUser } from '../../core/domain/constants.js?v=20261028d';
-import { escHtml } from '../../core/base/utils.js?v=20261028d';
+import { AuthStore } from '../../services/core/auth.js?v=20261028e';
+import { BranchService } from '../../services/core/runtime.js?v=20261028e';
+import { getBranchOrg } from '../../services/branch/branch.js?v=20261028e';
+import { getAccentColors, solidAccentStyle, dotDarkVars, isBranchPendingUser, DEFAULT_BRANCH_ID } from '../../core/domain/constants.js?v=20261028e';
+import { escHtml } from '../../core/base/utils.js?v=20261028e';
 // Task 2.1（2026-10-26）：服务端优先登录——静态托管 / 显式开发模式才走本地账号层。
-import { DEPLOY_MODE } from '../../config/deploy.js?v=20261028d';
+import { DEPLOY_MODE } from '../../config/deploy.js?v=20261028e';
 
-import { emptyStateHtml } from '../../components/ui/empty-state.js?v=20261028d';
+import { emptyStateHtml } from '../../components/ui/empty-state.js?v=20261028e';
 // C09（2026-10-20）：登录链接可带 `next`（目标页 URL）——登录成功后按 next 回跳，
 // 「未登录点活动 / 专班」不再只进工作台、丢掉原对象。只接受**同源** URL（防开放重定向），
 // 且 next 不得又指回登录页本身（防自循环）。
@@ -31,6 +33,43 @@ const _IAAA_HASH = /[#&]iaaa=/.test(window.location.hash || '');
 const _user = AuthStore.getCurrentUser();
 if (!_IAAA_HASH && !isBranchPendingUser(_user)) {
   if (_user) _goToWorkspace(_user.role);
+}
+
+// ── 登录页抬头：读支部配置档案（2026-10-28「支部名不写死」）───────────────
+// HTML 只留中性兜底「党支部管理系统」；支部显示名按托管形态运行期写入：
+//   · 本地演示形态（DEPLOY_MODE='static'）：支部配置就绪后读本地演示库
+//     （config.headerTitle → name；读取口与顶栏同族 = getBranchOrg）。
+//   · 服务端形态（api）：登录前无 token、`/api/v1/branches` 不可读 ⇒ 请求**免登录最小读口**
+//     `GET /api/v1/public/branch-name`（只回 `{ name }`）。失败 / 被拦截 / 空值一律保持中性兜底；
+//     请求在后台进行，不阻塞登录表单，也不向控制台报错。
+function _setLoginTitle(title) {
+  const el = document.getElementById('login-title');
+  if (!el) return;
+  const next = String(title || '').trim();
+  if (next) el.textContent = next;
+}
+
+function _applyLoginBrandTitle() {
+  const org = getBranchOrg(DEFAULT_BRANCH_ID);
+  _setLoginTitle(org && (org.headerTitle || org.name));
+}
+
+function _applyServerBrandTitle() {
+  fetch('./api/v1/public/branch-name', { cache: 'no-store', headers: { Accept: 'application/json' } })
+    .then((r) => (r.ok ? r.json() : null))
+    .then((body) => { if (body) _setLoginTitle(body.name); })
+    .catch(() => { /* 保持中性兜底：不阻塞登录、不污染控制台 */ });
+}
+
+if (DEPLOY_MODE === 'static') {
+  try {
+    BranchService.loadDB();     // 配置就绪（幂等；与 main-entry.js 同一加载时序）
+    _applyLoginBrandTitle();
+  } catch (e) {
+    console.warn('[login] 支部配置未就绪，抬头保持中性兜底', e);
+  }
+} else {
+  _applyServerBrandTitle();
 }
 
 // 登录成功后按角色直达对应工作台（最小三成本：登录→工作台 ≤2 跳）

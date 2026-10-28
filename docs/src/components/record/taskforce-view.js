@@ -4,22 +4,22 @@
 // 专班列表（状态分组）+ 只读详情（成员/角色/贡献）。依据支书第五轮裁定「新建专班查看组件（列表+详情）」。
 // 支书设计原则：「无职责 不代表 没有知情权」。
 
-import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261028d';
-import { getPersonName } from '../../services/member/person.js?v=20261028d';
-import { mockDB } from '../../core/domain/domain.js?v=20261028d';
-import { AuthStore } from '../../services/core/auth.js?v=20261028d';
-import { canRevealActivityMemberNames } from '../../services/core/visibility.js?v=20261028d';
-import { badgeHtml } from '../ui/badges.js?v=20261028d';
-import { dotDarkVars } from '../../core/domain/constants.js?v=20261028d';
-import { flashHighlight, showToast, escHtml as esc } from '../../core/base/utils.js?v=20261028d';
-import { anchorDetailToTrigger } from '../ui/detail-anchor.js?v=20261028d';
+import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261028e';
+import { getPersonName } from '../../services/member/person.js?v=20261028e';
+import { mockDB } from '../../core/domain/domain.js?v=20261028e';
+import { AuthStore } from '../../services/core/auth.js?v=20261028e';
+import { canRevealActivityMemberNames } from '../../services/core/visibility.js?v=20261028e';
+import { badgeHtml } from '../ui/badges.js?v=20261028e';
+import { dotDarkVars } from '../../core/domain/constants.js?v=20261028e';
+import { flashHighlight, showToast, escHtml as esc } from '../../core/base/utils.js?v=20261028e';
+import { anchorDetailToTrigger } from '../ui/detail-anchor.js?v=20261028e';
 // 统一检索引擎（2026-09-14 裁定）：只读详情「成员贡献」（第一列是人 → 配姓名关键词）与
 // 「中间进度」（时间线 → 只给分页：keyword null + facets []）各接一个实例
-import { renderFilteredList } from '../ui/list-filter.js?v=20261028d';
+import { renderFilteredList } from '../ui/list-filter.js?v=20261028e';
 // Task 6：专班的完整详情页出口（同页预览 + 「打开完整页」）；入口已在工作台内 ⇒ locate。
-import { objectDetailHref } from '../../core/domain/object-route.js?v=20261028d';
+import { objectDetailHref } from '../../core/domain/object-route.js?v=20261028e';
 
-import { emptyStateHtml } from '../ui/empty-state.js?v=20261028d';
+import { emptyStateHtml } from '../ui/empty-state.js?v=20261028e';
 // 附录⑩ B批：状态词对齐「支委会表决」语义（pending_review=待支委会表决；dissolved=表决通过解散）
 const STATUS_LABEL = { draft: '草稿', pending_review: '待支委会表决', recruiting: '招募中', active: '运行中', completed: '已完结', archived: '已归档', dissolved: '已解散' };
 // 专班状态 → 固定语义 tone（不随主题）
@@ -154,7 +154,7 @@ export function renderTaskforceView(container, opts = {}) {
 function _renderTfCard(t) {
   const filled = (t.members || []).filter(m => m.personId).length;
   return `
-    <div class="tfv-card p-4 rounded-xl bg-white border border-gray-100 cursor-pointer hover:border-[var(--color-border-strong)] hover:bg-[var(--surface-hover)] transition-colors" role="button" tabindex="0" aria-label="查看专班：${esc(t.name)}" data-tf-id="${esc(t.id)}">
+    <div class="tfv-card p-4 rounded-xl bg-white border border-gray-100 cursor-pointer hover:border-[var(--color-border-strong)] hover:bg-[var(--surface-hover)] active:bg-[var(--surface-active)] active:border-[var(--app-accent)] transition-colors" role="button" tabindex="0" aria-label="查看专班：${esc(t.name)}" data-tf-id="${esc(t.id)}">
       <div class="flex items-start justify-between gap-2 mb-2">
         <span class="text-sm font-semibold text-gray-800 leading-snug">${esc(t.name)}</span>
         <span class="tint-pill" data-tone="${statusTone(t.status)}">${statusText(t.status)}</span>

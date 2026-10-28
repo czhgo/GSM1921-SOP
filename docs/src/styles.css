@@ -1,5 +1,5 @@
 /* 组件样式（@import 必须位于文件顶部） */
-@import url('components/person-picker.css?v=20261028d');
+@import url('components/person-picker.css?v=20261028e');
 
 /* ═══════════════════════════════════════════════════════════════
    GSM1921-SOP DESIGN SYSTEM v11.0 — Matte Flat
@@ -196,11 +196,9 @@
   /* 2026-10-24 批次 508：兼容别名（--app-accent-bg/-border/-text/-deep/-strong/-ink）已退场，
      消费方全部改用 --app-accent-soft-* / --app-accent-strong-*。 */
 
-  /* 焦点指示环（2026-10-21 R5A-04/05）：亮色用深灰（vs 白/页面底 ≥14:1），
-     暗色在 html.theme-dark 覆盖为党徽金（vs #0B1220 ≈ 13:1）。
-     不得再用浅底深字 token 同时承担「亮色焦点环」——它在暗色下仍是深灰。 */
-  --focus-ring: #1F2937;
-  --focus-halo: rgba(0, 0, 0, 0.55);
+  /* 焦点指示环（2026-10-28 全站单一口径）：只用主题色 --app-accent，
+     几何 2px / offset 1px / 无 box-shadow——与 <select>（.cs-trigger）同源。
+     原「深灰环 + 黑晕」两个独立变量已删除（含暗色覆盖）。 */
 
   /* ── Shape — 圆角 ── */
   --radius-sm: 8px;
@@ -396,11 +394,7 @@ details[open] > summary::before {
 summary:active {
   background-color: var(--surface-active);
 }
-summary:focus-visible {
-  outline: 2px solid var(--focus-ring);
-  outline-offset: 2px;
-  box-shadow: 0 0 0 6px var(--focus-halo);
-}
+/* summary 的焦点环并入文件后段「ACCESSIBILITY — Focus Visible」的全局唯一规则。 */
 
 /* ── Disclosure 封装（components/ui/disclosure.js · 2026-10-25 Task 3）
     契约：分区标题是 details 的**兄弟节点**（标题不得进入交互元素），summary 只用
@@ -543,7 +537,9 @@ body {
   font-size: 0.8rem;
   line-height: 1.4;
   text-decoration: none;
-  box-shadow: 0 0 0 6px rgba(0, 0, 0, 0.55), 0 2px 10px rgba(0, 0, 0, 0.3);
+  outline: 2px solid var(--app-accent);
+  outline-offset: 1px;
+  box-shadow: none;
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -648,10 +644,34 @@ body {
   }
 }
 
+/* 按下态（2026-10-28）：底色再深一档（hover 10% 淡底 → activeBg），箭头保持右移；
+   不加阴影、不上浮（ui-motion-guard 判据不变）。触屏无 hover，按下即唯一触感反馈。 */
+.card--interactive:active {
+  border-color: var(--app-accent);
+  background-color: var(--app-accent-active-bg);
+  --card-jump-shift: 2px;
+}
+
 /* 卡内箭头：位移由 --card-jump-shift 驱动（hover 规则体内只改自定义属性 ⇒ 仍满足「hover 只改颜色」判据）。 */
 .card--interactive .metric-band__jump {
   transition: transform var(--transition-fast);
   transform: translateX(var(--card-jump-shift));
+}
+
+/* 登录页开发身份卡（仅 ?dev=1 可见，login-entry.js 渲染）：可点但此前无任何状态反馈。
+   键盘可达性由卡内原生 <button> 承担（Enter 触发 click 冒泡到整卡），故卡片本身不再入 tab 序列。 */
+.login-card {
+  transition: border-color var(--transition-fast), background-color var(--transition-fast);
+}
+@media (hover: hover) {
+  .login-card:hover {
+    border-color: var(--app-accent);
+    background-color: var(--app-accent-tint);
+  }
+}
+.login-card:active {
+  border-color: var(--app-accent);
+  background-color: var(--app-accent-active-bg);
 }
 
 /* Responsive content shells: fluid inside a shared max-width. Percentages describe
@@ -781,8 +801,9 @@ body {
   border-right: 1px solid var(--neutral-100);
 }
 .wm-module-list:focus-visible {
-  outline: 2px solid var(--focus-ring);
-  outline-offset: 2px;
+  outline: 2px solid var(--app-accent);
+  outline-offset: 1px;
+  box-shadow: none;
 }
 .wm-module-item {
   display: flex;
@@ -900,6 +921,19 @@ body {
   color: var(--neutral-600);
   font-size: 0.875rem;
   cursor: pointer;
+  transition: background-color var(--transition-fast), color var(--transition-fast);
+}
+/* 2026-10-28：一级页签（.tab-btn）同族补齐 hover / active——此前只有选中态与焦点。
+   未选中才有悬停 / 按下底（选中态由主题色下划线表达，不再叠灰底）。 */
+@media (hover: hover) {
+  .subtab:hover:not([aria-selected="true"]) {
+    background: var(--surface-hover);
+    color: var(--neutral-700);
+  }
+}
+.subtab:active:not([aria-selected="true"]) {
+  background: var(--surface-active);
+  color: var(--neutral-700);
 }
 .subtab[aria-selected="true"] {
   /* 2026-10-24 批次 508：二级页签选中改走主题色（原中性深灰与一级页签同屏两套语义）。 */
@@ -908,8 +942,9 @@ body {
   font-weight: 600;
 }
 .subtab:focus-visible {
-  outline: 3px solid var(--primary-500);
-  outline-offset: 2px;
+  outline: 2px solid var(--app-accent);
+  outline-offset: 1px;
+  box-shadow: none;
 }
 .pc-table-scroll { max-width: 100%; overflow-x: auto; }
 .pc-table-scroll--branches > .data-table { min-width: 58rem; }
@@ -972,12 +1007,25 @@ body {
   padding: 0.4rem 0.75rem;
   color: var(--neutral-700);
   font-size: 0.8125rem;
+  transition: background-color var(--transition-fast), border-color var(--transition-fast);
+}
+/* 2026-10-28：此前只有焦点态；补 hover / active（与 .btn-tab 同档：底 + 描边加深）。 */
+@media (hover: hover) {
+  .branch-readonly-nav a:hover {
+    background: var(--surface-hover);
+    border-color: var(--neutral-300);
+  }
+}
+.branch-readonly-nav a:active {
+  background: var(--surface-active);
+  border-color: var(--neutral-300);
 }
 .branch-readonly-nav a:focus-visible,
 .branch-config-nav button:focus-visible,
 .pc-table-scroll a:focus-visible {
-  outline: 3px solid var(--primary-500);
-  outline-offset: 2px;
+  outline: 2px solid var(--app-accent);
+  outline-offset: 1px;
+  box-shadow: none;
 }
 
 @media (max-width: 768px) {
@@ -1016,15 +1064,21 @@ body {
 }
 
 /* 2026-10-24 批次 508：字段外壳（B 立场）—— hover 只加深边框；
-   2026-10-28（焦点单环）：同一控件不得同时出「box-shadow 环」与「outline 环」——键盘聚焦时
-   `:focus` 与 `:focus-visible` 同时命中，两条环叠画即双环（实测 .lf-kw / #archive-search /
-   #ref-search-input 均为 outline 2px accent + box-shadow 0 0 0 3px soft-bg；soft-bg 环对白卡仅
-   1.11:1，暗色下又比卡片更暗 ⇒ 肉眼读成「黑环 + 金环」）。环只由 :focus-visible 的实线 outline 承担，
-   口径与 <select>（.cs-trigger）一致：2px / --app-accent / offset 1px（对白卡 3.83:1、对页面底 3.66:1）；
-   :focus 只改边框色，并把 box-shadow 钉成 none（否则 <button> 触发器会落到全局 6px --focus-halo 补环上）。 */
+   2026-10-28（全站焦点单一口径）：输入族用 `:focus` 生效（鼠标点击与键盘聚焦同表现），
+   边框变主题色 + 一条 2px 主题色实线环 / offset 1px，`box-shadow: none` 钉死不画光晕。
+   口径与 <select>（.cs-trigger）完全一致，`:focus` 与 `:focus-visible` 不再各写一套。 */
 @media (hover: hover) { .input-flat:hover:not(:disabled):not(:focus) { border-color: var(--neutral-400); } }
-.input-flat:focus, .cs-trigger:focus-within { border-color: var(--app-accent); box-shadow: none; outline: none; }
-.input-flat:focus-visible, .cs-trigger:focus-visible { outline: 2px solid var(--app-accent); outline-offset: 1px; }
+.input-flat:focus, .cs-trigger:focus-within {
+  border-color: var(--app-accent);
+  outline: 2px solid var(--app-accent);
+  outline-offset: 1px;
+  box-shadow: none;
+}
+.input-flat:focus-visible, .cs-trigger:focus-visible {
+  outline: 2px solid var(--app-accent);
+  outline-offset: 1px;
+  box-shadow: none;
+}
 .input-flat:disabled { background: var(--neutral-100); border-color: var(--neutral-200); color: var(--neutral-400); cursor: not-allowed; }
 .input-flat[readonly] { background: var(--neutral-50); border-color: transparent; color: var(--neutral-700); }
 
@@ -1150,7 +1204,10 @@ select.input-flat.text-xs {
 
 .input-flat-sm:focus {
   background-color: var(--neutral-0);
-  border-color: var(--party-gold);
+  border-color: var(--app-accent);
+  outline: 2px solid var(--app-accent);
+  outline-offset: 1px;
+  box-shadow: none;
 }
 
 .input-flat-sm::placeholder {
@@ -1235,9 +1292,8 @@ textarea.input-flat {
     border-color: var(--neutral-300);
   }
 }
-/* .cs-trigger 是 <button>（见 components/custom-select.js）⇒ 焦点环走全局 button:focus-visible 的
-   统一口径（金环 2px / offset 2px + 深色补环）；原此处的 `outline: 2px solid var(--party-gold); offset 1px`
-   是同一金色但 offset 不同、且无深色补环（1.34:1 不达标）——2026-09-24 无障碍修复时删除，避免两种口径并存。 */
+/* .cs-trigger 是 <button>（见 components/custom-select.js）⇒ 焦点环与输入族共用同一口径
+   （2px / --app-accent / offset 1px / 无 box-shadow），见上方字段外壳规则。 */
 .cs-select.is-open .cs-trigger {
   border-color: var(--party-gold);
 }
@@ -1328,8 +1384,9 @@ input.input-flat-sm[type="datetime-local"] {
 .cs-option:focus-visible {
   /* 2026-10-24 批次 508：键盘焦点背景改走主题 hover 底，不再回落到中性灰。 */
   background: var(--app-accent-hover-bg);
-  outline: 2px solid var(--focus-ring);
-  outline-offset: -2px;
+  outline: 2px solid var(--app-accent);
+  outline-offset: 1px;
+  box-shadow: none;
 }
 .cs-option.is-selected {
   background: var(--app-accent-soft-bg);
@@ -1519,7 +1576,7 @@ button:disabled { cursor: not-allowed; }
 @media (hover: hover) {
   .btn-text:hover { background: var(--app-accent-tint); }
 }
-.btn-text:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 2px; }
+.btn-text:focus-visible { outline: 2px solid var(--app-accent); outline-offset: 1px; box-shadow: none; }
 
 .btn-danger {
   background: color-mix(in srgb, var(--status-error) 10%, var(--neutral-0));
@@ -1635,7 +1692,7 @@ a.text-accent {
   .link:hover { background: var(--app-accent-tint); }
 }
 .link:active { color: var(--color-link); }
-.link:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 2px; }
+.link:focus-visible { outline: 2px solid var(--app-accent); outline-offset: 1px; box-shadow: none; }
 /* 列表行选中态（无边框，用于模板/子项选中） */
 .sel-accent-on {
   background: var(--app-accent-soft-bg) !important;
@@ -1687,6 +1744,20 @@ a.text-accent {
   flex-shrink: 0;
   vertical-align: middle;
 }
+/* 2026-10-28：复选框此前没有任何交互态。悬停 = 1px 主题色描边（只改颜色，不改尺寸）；
+   键盘聚焦 = 与全站同一条环（2px 主题色 / offset 1px / 无阴影）——原生 input 不在全局
+   role 名单内，故此处按同一几何声明一次。 */
+@media (hover: hover) {
+  .checkbox-accent:hover {
+    outline: 1px solid var(--app-accent);
+    outline-offset: 1px;
+  }
+}
+.checkbox-accent:focus-visible {
+  outline: 2px solid var(--app-accent);
+  outline-offset: 1px;
+  box-shadow: none;
+}
 /* 轻量 hover 卡片（data-tip 文本，CSS 实现零 JS） */
 .tip-trigger {
   position: relative;
@@ -1716,6 +1787,12 @@ a.text-accent {
 /* 2026-10-23 Task 7：tooltip 显隐改 visibility（不再用 opacity 充当 hover 态）。 */
 @media (hover: hover) {
   .tip-trigger:hover::after { visibility: visible; }
+}
+/* 2026-10-28：tip 触发器并入全站焦点单一口径（此前只显隐提示卡、自身无焦点边）。 */
+.tip-trigger:focus-visible {
+  outline: 2px solid var(--app-accent);
+  outline-offset: 1px;
+  box-shadow: none;
 }
 .tip-trigger:focus-visible::after { visibility: visible; }
 /* 内嵌搜索（选项数超阈值自动出现，支书指令 2026-08-06） */
@@ -1757,6 +1834,7 @@ a.text-accent {
   border-color: var(--app-accent);
   outline: 2px solid var(--app-accent);
   outline-offset: 1px;
+  box-shadow: none;
 }
 .cs-search-input::placeholder {
   color: var(--neutral-500);
@@ -2115,8 +2193,18 @@ a.text-accent {
   white-space: nowrap;
 }
 
+/* 2026-10-28：本族此前只有 `.btn-md-red` 有 hover / active；5 个调用点（组长写入 / 考察 /
+   考勤，组织考察，纪检会议考勤）都用内联底色与描边，故反馈走**描边色 + 按下底色深一档**，
+   内联声明优先，需 `!important` 才能生效；不使用 filter / 位移 / 缩放。 */
 @media (hover: hover) {
+  .btn-md:hover {
+    border-color: var(--app-accent) !important;
+  }
   .btn-md-red:hover { background: #FEE2E2; }
+}
+.btn-md:active {
+  border-color: var(--app-accent) !important;
+  background-color: var(--app-accent-active-bg) !important;
 }
 .btn-md-red:active { background: #FECACA; }
 
@@ -2137,16 +2225,17 @@ a.text-accent {
   transition: box-shadow var(--transition-normal);
 }
 
-/* 2026-10-27 Task 2（阶段一 · 操作成本）：顶栏焦点环只在本作用域改为党徽金。
-   病灶：全局深灰焦点环＋黑光晕落在深红顶栏上仅 1.28:1，键盘用户看不出焦点在哪；
-   `--party-gold` 对顶栏深红约 8.2:1，满足 WCAG 1.4.11 的 3:1。
-   不改全站 --focus-ring；通知下拉是浅底卡片、仍继承全局深灰环，故不纳入本选择器。 */
+/* 2026-10-28（顶栏深色底专用环）：几何仍守全站口径（2px / offset 1px / 无 box-shadow），只换颜色。
+   顶栏底恒为深红 #7A0010，七种主题色在它上面实测仅 1.51–2.99:1（全低于 3:1）⇒ 不能沿用主题色。
+   改用仓库既有的白色令牌 --app-accent-strong-ink-light（七主题亮档 strongInk 均为 #FFFFFF，
+   暗色段只切 -strong-ink 别名、不重定义 -light ⇒ 亮/暗两态计算值都是纯白），
+   白环对 #7A0010 实测约 11:1。 */
 #app-header .hamburger-btn:focus-visible,
 #app-header .header-action-btn:focus-visible,
 #app-header #notif-btn:focus-visible {
-  outline: 2px solid var(--party-gold);
-  outline-offset: 2px;
-  box-shadow: 0 0 0 6px rgba(255, 215, 0, 0.3);
+  outline: 2px solid var(--app-accent-strong-ink-light);
+  outline-offset: 1px;
+  box-shadow: none;
 }
 
 .header-content {
@@ -2567,8 +2656,9 @@ a.text-accent {
   outline-offset: 0;
 }
 .cal-activity-item:focus-visible {
-  outline: 2px solid var(--focus-ring);
-  outline-offset: 2px;
+  outline: 2px solid var(--app-accent);
+  outline-offset: 1px;
+  box-shadow: none;
 }
 
 /* compact 日历格子中的标签：更紧凑 */
@@ -2608,8 +2698,43 @@ a.text-accent {
   cursor: pointer;
 }
 
+@media (hover: hover) {
+  .cal-cell-mobile.has-tasks:hover {
+    border-color: var(--primary-300);
+  }
+}
+
 .cal-cell-mobile.has-tasks:active {
   background-color: var(--primary-50);
+}
+
+/* 空白日期格同样可点（点它 = 选中该日：右栏列表 + 带日期新建），因此必须看得出来：
+   常显 cursor: pointer；悬停 / 按下用同一套中性底令牌，不引入第二套几何。
+   2026-10-28 回归：批次 519 曾只给 `.has-tasks` 绑点击、空白格保持 cursor: default，入口被藏起来。 */
+.cal-cell-large[data-date],
+.cal-cell-mobile[data-date] {
+  cursor: pointer;
+}
+
+@media (hover: hover) {
+  .cal-cell-large[data-date]:not(.has-tasks):hover,
+  .cal-cell-mobile[data-date]:not(.has-tasks):hover {
+    background-color: var(--surface-hover);
+  }
+  .cal-cell-large[data-date]:not(.has-tasks):active,
+  .cal-cell-mobile[data-date]:not(.has-tasks):active {
+    background-color: var(--surface-active);
+  }
+}
+
+/* 日期格焦点（2026-10-28）：日期格是 `role="gridcell"`（不是 [role="button"]），
+   不在全站焦点名单内；此处复述**同一条**全站焦点几何（2px 主题色 / offset 1px / 无阴影），
+   保证方向键移动后的落点可见，不引入第二套视觉。空白日期格同属 roving 网格，一并覆盖。 */
+.cal-cell-large[data-date]:focus-visible,
+.cal-cell-mobile[data-date]:focus-visible {
+  outline: 2px solid var(--app-accent);
+  outline-offset: 1px;
+  box-shadow: none;
 }
 
 .cal-cell-mobile.is-today {
@@ -2738,8 +2863,9 @@ html.theme-dark .cal-cell-large.is-today, html.theme-dark .cal-cell-mobile.is-to
   border-color: var(--neutral-300);
 }
 .tab-btn:focus-visible {
-  outline: 2px solid var(--focus-ring);
-  outline-offset: 2px;
+  outline: 2px solid var(--app-accent);
+  outline-offset: 1px;
+  box-shadow: none;
 }
 
 /* ── Tab 按钮 active 状态（2026-10-24 批次 508：改消费主题 soft 三件套，不再注入 --tab-accent*） ──
@@ -2912,11 +3038,11 @@ html.theme-dark .cal-cell-large.is-today, html.theme-dark .cal-cell-mobile.is-to
   opacity: 1;
 }
 
-/* 2026-10-18：横向滚动容器会裁剪纵向溢出，页签焦点环改用内描边，避免键盘焦点不可见。 */
+/* 2026-10-28：页签焦点环并入全站单一口径（2px 主题色 / offset 1px / 无内嵌补环）。 */
 .ws-tab-scroll button:focus-visible {
-  outline: 2px solid var(--focus-ring);
-  outline-offset: -2px;
-  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.55);
+  outline: 2px solid var(--app-accent);
+  outline-offset: 1px;
+  box-shadow: none;
 }
 
 /* 2026-10-18：通知下拉条目是 div[role=button]，不命中全局 button/a 焦点环，显式补同口径。
@@ -2933,9 +3059,9 @@ html.theme-dark .cal-cell-large.is-today, html.theme-dark .cal-cell-mobile.is-to
   background: var(--surface-active);
 }
 .notif-dropdown-item:focus-visible {
-  outline: 2px solid var(--focus-ring);
-  outline-offset: -2px;
-  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.55);
+  outline: 2px solid var(--app-accent);
+  outline-offset: 1px;
+  box-shadow: none;
   background: var(--surface-hover);
 }
 
@@ -3065,8 +3191,9 @@ html.theme-dark .cal-cell-large.is-today, html.theme-dark .cal-cell-mobile.is-to
   }
 }
 .inspector-card--action:focus-visible {
-  outline: 2px solid var(--focus-ring);
-  outline-offset: 2px;
+  outline: 2px solid var(--app-accent);
+  outline-offset: 1px;
+  box-shadow: none;
 }
 
 .inspector-role-banner {
@@ -3169,13 +3296,13 @@ html.theme-dark .cal-cell-large.is-today, html.theme-dark .cal-cell-mobile.is-to
   resize: vertical;
   transition: border-color var(--transition-fast);
 }
+/* 2026-10-28：vote-note 是漏网的裸输入（不属于 .input-flat 族），并入输入族同一口径：
+   边框变主题色 + 2px 主题色实线环 / offset 1px，鼠标与键盘（:focus）一致。 */
 .vote-note:focus {
-  border-color: var(--party-gold);
-}
-/* 2026-10-23 Task 8：vote-note 是漏网的裸输入（不属于 .input-flat 族），补统一焦点环。 */
-.vote-note:focus-visible {
-  outline: 2px solid var(--focus-ring);
+  border-color: var(--app-accent);
+  outline: 2px solid var(--app-accent);
   outline-offset: 1px;
+  box-shadow: none;
 }
 .vote-submit {
   align-self: flex-end;
@@ -3325,16 +3452,21 @@ html.theme-dark .cal-cell-large.is-today, html.theme-dark .cal-cell-mobile.is-to
   background-color: color-mix(in srgb, var(--sb-color) 20%, #fff);
 }
 .status-badge:focus-visible {
-  /* 2026-09-24 无障碍修复：.status-badge 是 <span role="button" tabindex="0">（见 components/status-badge.js），
-     不匹配全局 `button/a/input:focus-visible` ⇒ 焦点环须在此显式声明；口径与全局同名同值
-     （金环 2px / offset 2px + 深色补环；原仅金环 1.34:1 不达标）。 */
-  outline: 2px solid var(--focus-ring);
-  outline-offset: 2px;
-  box-shadow: 0 0 0 6px rgba(0, 0, 0, 0.55);
+  /* 2026-09-24：.status-badge 是 <span role="button" tabindex="0">（见 components/status-badge.js），
+     不匹配全局 `button/a/input:focus-visible` ⇒ 焦点环须在此显式声明。
+     2026-10-28：并入全站单一口径（2px 主题色 / offset 1px / 无黑晕补环）。 */
+  outline: 2px solid var(--app-accent);
+  outline-offset: 1px;
+  box-shadow: none;
 }
 .status-badge[data-disabled] {
   cursor: not-allowed;
   opacity: 0.55;
+}
+/* 禁用态不出焦点边（2026-10-28）。 */
+.status-badge[data-disabled]:focus-visible {
+  outline: none;
+  box-shadow: none;
 }
 .status-badge-dot {
   width: 6px;
@@ -3615,48 +3747,59 @@ html.theme-dark .cal-cell-large.is-today, html.theme-dark .cal-cell-mobile.is-to
    COMPONENT: Commissioner Kanban — 条条支委看板（两列+详情展开）
    ═══════════════════════════════════════════════════════════════ */
 .kanban-card {
+  /* 2026-10-28：族类此前只有「边框变中性」的 hover，但卡片本身无边框（两处调用都只挂 bg-white），
+     该规则是死样式、悬停无反馈。补 1px 中性底边让 hover 真正可见（与 .tfv-card / .visitor-*-card
+     同质地），并补按下态。 */
+  border: 1px solid var(--neutral-100);
   /* 2026-10-24 批次 508：硬编码时长改走 motion 令牌。 */
   transition: border-color var(--motion-fast) var(--ease-standard), background-color var(--transition-fast);
 }
 @media (hover: hover) {
   .kanban-card:hover {
     border-color: var(--neutral-300);
+    background-color: var(--surface-hover);
   }
+}
+.kanban-card:active {
+  border-color: var(--app-accent);
+  background-color: var(--surface-active);
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   ACCESSIBILITY — Focus Visible
-   （支书 2026-08-07 指令：删去红边，改淡金替代——可点击组件聚焦圈统一为党徽金，
-   避免与党建红主色混淆、视觉刺眼）
-   2026-09-24 无障碍修复（焦点环对比度）：金色单环在浅色底上**不达标**——实测
-   #FFD700 vs 页面底 #FAFAF5 = 1.34:1、vs 白卡 1.40:1、vs 选中底 #FEE2E2 = 1.15:1（要求 ≥3:1）。
-   故为**无边框控件（按钮 / 链接）**保留党徽金主环，并在其外补一圈半透明深色
-   （外圈 vs #FAFAF5 ≈ 4.7:1）⇒ 焦点指示整体 ≥3:1。
-   2026-09-28 修正（支书实机实报「输入框聚焦时很诡异的黄框」）：该批把**输入族**也并入了
-   「金环（2px / offset 2px）+ 深色发光」同一口径，与设计系统 §4.3「聚焦**边框** ＝ var(--party-gold)；
-   无外发光」、§5.2「输入框聚焦：边框变主色、无外发光」、§5.3「禁止 box-shadow 发光扩散」相悖——
-   有边框的输入族只应以**边框变金**作焦点反馈。故输入族（.input-flat 系 / 登录框 / 下拉触发器）
-   的 outline 与 box-shadow 一律收回，只留边框变金；金环 + 深色补环仅保留给无边框的按钮 / 链接。
+   ACCESSIBILITY — Focus Visible（全站唯一来源，2026-10-28 支书裁定）
+   ── 颜色只用主题色 --app-accent（七色 × 亮/暗由 token 自动切）；
+   ── 几何 2px solid / outline-offset 1px / box-shadow none（与 <select> 同源）；
+   ── 任何局部规则不得再叠第二条环（outline 之外不再画 box-shadow 光晕）。
+   输入族（input / select / textarea / 搜索框 / 下拉触发器）用 `:focus` 生效，
+   鼠标点击与键盘聚焦同表现；按钮 / 链接 / 行 / 页签用 `:focus-visible`。
    ═══════════════════════════════════════════════════════════════ */
 button:focus-visible,
-a:focus-visible {
-  /* R5A-05：只保留一条 outline——原「金环 + --app-accent-text 深灰」重复声明，
-     后者在暗色下≈1.15:1，把可见的金环完全覆盖。--focus-ring 按主题取深灰 / 党徽金。 */
-  outline: 2px solid var(--focus-ring);
-  outline-offset: 2px;
-  box-shadow: 0 0 0 6px var(--focus-halo);
-}
-
-/* 2026-10-24 批次 508：焦点统一走 3.2 的字段外壳；不再叠近黑外环。
-   （原此处给 .input-flat / login-input / .cs-trigger 统一加 2px --focus-ring 外环，已整段删除。）
-   2026-10-28：登录页输入框并入 .input-flat（原 login-input 独立口径删除），焦点随字段外壳。 */
-/* 紧凑档字段同一口径（2026-10-23 R11 P0-01）：键盘聚焦必须有 ≥3:1 的实线环。 */
-.input-flat-sm:focus,
-.input-flat-sm:focus-visible {
-  outline: 2px solid var(--focus-ring);
+a:focus-visible,
+summary:focus-visible,
+[role="button"]:focus-visible,
+[role="option"]:focus-visible,
+[role="tab"]:focus-visible,
+tr[data-interactive="true"]:focus-visible {
+  outline: 2px solid var(--app-accent);
   outline-offset: 1px;
   box-shadow: none;
 }
+
+/* 控件底色本身即主题色实底时（.btn-accent / .btn-danger-solid / 实底 status-badge），
+   焦点边取反为 --app-accent-strong-ink（亮色白 / 暗色深墨），否则与底色同色不可见。
+   2026-10-28：环必须压在实底**内侧**（offset -2px）——正偏移会把环推到控件外的卡片上，
+   白色对白卡约 1.05:1、深墨对暗卡约 1.07:1，等于看不见；负偏移后环与实底直接相接：
+   亮色白环 vs 实底 4.68:1、暗色深墨环 vs 实底 6.98:1。 */
+.btn-accent:focus-visible,
+.btn-danger-solid:focus-visible,
+.status-badge[aria-pressed="true"]:focus-visible {
+  outline: 2px solid var(--app-accent-strong-ink);
+  outline-offset: -2px;
+  box-shadow: none;
+}
+
+/* 登录页输入框已并入 .input-flat（原 login-input 独立口径删除），焦点随字段外壳；
+   紧凑档 .input-flat-sm 的焦点规则在输入段（约 1150 行）统一维护。 */
 
 /* ═══════════════════════════════════════════════════════════════
    SCROLLBAR — WebKit + Firefox
@@ -4418,9 +4561,7 @@ a:focus-visible {
     /* 2026-10-23 批次 507：暗底上 10% 的深色内阴影几乎不可见，加深到 45%（仍只 1px，不位移/缩放）。 */
     --press-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.45);
 
-    /* 焦点环（2026-10-24 批次 508）：暗底上改用主题色，不再用党徽金当通用焦点环。 */
-    --focus-ring: var(--app-accent);
-    --focus-halo: rgba(15, 23, 42, 0.9);
+    /* 焦点环随 --app-accent 自动切暗色档，无需单独覆盖（2026-10-28 单一口径）。 */
 
     /* help 页文字变量反向 */
     --help-text: #E2E8F0;
@@ -5491,8 +5632,9 @@ html.theme-dark .agg-count-badge {
   background: var(--surface-active);
 }
 .list-row:focus-visible {
-  outline: 2px solid var(--focus-ring);
-  outline-offset: -2px;
+  outline: 2px solid var(--app-accent);
+  outline-offset: 1px;
+  box-shadow: none;
 }
 /* 可交互行用 <button> 时挂 btn-ghost 语义族；此处按行载体覆盖该族的紧凑尺寸。
    覆盖率高于 .btn-ghost 的 !important 档，只作用于本行。 */
@@ -5648,8 +5790,9 @@ html.theme-dark .agg-count-badge {
   background: var(--surface-active);
 }
 .todo-more__item:focus-visible {
-  outline: 2px solid var(--focus-ring);
-  outline-offset: -2px;
+  outline: 2px solid var(--app-accent);
+  outline-offset: 1px;
+  box-shadow: none;
 }
 .todo-more__item:disabled {
   color: var(--neutral-400);
@@ -5811,8 +5954,9 @@ button.metric-band__item {
 }
 button.metric-band__item:active { background: var(--surface-active); }
 button.metric-band__item:focus-visible {
-  outline: 2px solid var(--focus-ring);
-  outline-offset: 2px;
+  outline: 2px solid var(--app-accent);
+  outline-offset: 1px;
+  box-shadow: none;
 }
 button.metric-band__item.is-active {
   background: transparent;
@@ -5832,8 +5976,9 @@ a.metric-band__item {
 }
 a.metric-band__item:active { background: var(--surface-active); }
 a.metric-band__item:focus-visible {
-  outline: 2px solid var(--focus-ring);
-  outline-offset: 2px;
+  outline: 2px solid var(--app-accent);
+  outline-offset: 1px;
+  box-shadow: none;
 }
 .metric-band__item--filter {
   padding: 2px var(--space-3);
@@ -6053,8 +6198,9 @@ html.theme-dark .state-badge--neutral {
   }
 }
 .list-row[data-interactive="true"]:focus-visible {
-  outline: 2px solid var(--focus-ring);
-  outline-offset: -2px;
+  outline: 2px solid var(--app-accent);
+  outline-offset: 1px;
+  box-shadow: none;
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -6280,13 +6426,10 @@ html.theme-dark .state-badge--neutral {
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  cursor: pointer;
+  /* 2026-10-28：整卡不可点（唯一交互元素是标题链 .gallery-card__open），
+     去掉 pointer 光标与不可达的 :focus-visible——看着能点其实点不动的假反馈。 */
   text-decoration: none;
   color: inherit;
-}
-.gallery-card:focus-visible {
-  outline: 2px solid var(--focus-ring);
-  outline-offset: 2px;
 }
 .gallery-card__cover {
   position: relative;
@@ -6359,8 +6502,9 @@ html.theme-dark .state-badge--neutral {
   text-decoration: none;
 }
 .gallery-card__open:focus-visible {
-  outline: 2px solid var(--focus-ring);
-  outline-offset: 2px;
+  outline: 2px solid var(--app-accent);
+  outline-offset: 1px;
+  box-shadow: none;
 }
 .gallery-card__meta {
   margin: 0;
@@ -6382,8 +6526,9 @@ html.theme-dark .state-badge--neutral {
   background: var(--surface-active);
 }
 .modal-close-btn:focus-visible {
-  outline: 2px solid var(--focus-ring);
-  outline-offset: 2px;
+  outline: 2px solid var(--app-accent);
+  outline-offset: 1px;
+  box-shadow: none;
 }
 
 /* ═══════════════════════════════════════════════════════════════

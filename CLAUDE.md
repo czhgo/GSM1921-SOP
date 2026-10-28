@@ -861,9 +861,19 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/DOC
 
 | ID | 事项（人话） | 判据 / 出处 | 状态 |
 | --- | --- | --- | --- |
-| B-519-1 | 紧凑输入档 `.input-flat-sm` 与 `.vote-note` 仍是深灰 `--focus-ring` 单环，与主输入档的「主题色 2px ＋ offset 1px」不同源 | `ui-focus-ring` FOCUS-2 的边界说明 | 待启动（收口为同一焦点体例） |
-| B-519-2 | 登录页 h1 把支部名写死（`docs/login.html:75`），换部署实例会露别家支部名；顶栏已由 `config.headerTitle` 软编码 | 批次 519 硬编码审计登记 | 待启动（改为读配置，保留回退文案） |
 | B-519-3 | 成功色无「文字档」token：`--status-success` 作 24px 数值仅 2.54:1，本轮退回 `--neutral-800`；若要彩色数值需新增 `--status-success-text` 并过对比守卫 | 批次 519 对比实测 | 待裁（是否新增语义色文字档） |
+
+## 批次 520 收尾与后续（2026-10-28）
+
+> 批次 520：全站焦点收敛为一条主题色环（旧焦点令牌与 6px 光晕退场）、交互三态补齐、帮助页口径改准（支部名读配置 / 每页 20 条 / T-5 / 七色）、守卫扩展。下表只留本轮**未做**项。
+
+| ID | 事项（人话） | 引用流程 | 状态 |
+| --- | --- | --- | --- |
+| B-520-1 | About 页两张卡：`.ab-review-card` 宣告为按钮却无点击落点，`.ab-dialogue-card` 可点无状态 | About 是独立冻结件；`DESIGN_SYSTEM §5.7` 焦点口径 | 待支书点头后单独处理 |
+| B-520-2 | `.btn-md` 五个调用点用内联底色，族类状态需 `!important` 才能生效 | `DESIGN_SYSTEM §12.2` ＋ `ui-control-system-guard::B6` | 待启动（改为类名驱动） |
+| B-520-3 | 非日期硬编码的常量层收口：`GROUP_LIMIT`、`QUEUE_VISIBLE`、`_MAX_INLINE`、日历 3/2 条上限、学期提醒窗口 `[3,9]/7`、设置页参数范围数字（`POLICY_OVERRIDABLE` 重复） | 批次 520 硬编码审计（本轮只做支部名，数字常量未动） | 待启动 |
+| B-520-4 | 帮助页「每页 10 人 / 最近 6 项」等其余数字未逐一与常量对齐（已核对无误者不登记） | 批次 520 帮助页核对 | 待启动 |
+| B-520-5 | 换组织向导预设表（`org-setup-wizard.js` 的「天蓝 / 海蓝」）与旧偏好兼容映射（`appearance-controls.js` 的旧色名标签）仍带旧色名；本批不改 `docs/src/**` | `copy-guard` 旧色名登记例外 ＋ `DESIGN_SYSTEM §2.11`（七色单一源） | 待启动（改为七色名或删旧标签） |
 
 ***
 
