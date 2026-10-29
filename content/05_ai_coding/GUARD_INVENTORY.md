@@ -2,7 +2,7 @@
 title: "守卫清点与合并台账（72 → 77 → 65 件）"
 type: guide
 role: "[工程师]+[AI]"
-last_updated: "2026-10-29"
+last_updated: "2026-10-30"
 status: active
 ---
 

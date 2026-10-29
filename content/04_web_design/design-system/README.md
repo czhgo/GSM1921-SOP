@@ -2,7 +2,7 @@
 title: "设计系统目录索引（04/design-system/）"
 type: index
 role: "[工程师]+[AI]"
-last_updated: 2026-10-29
+last_updated: 2026-10-30
 status: active
 ---
 

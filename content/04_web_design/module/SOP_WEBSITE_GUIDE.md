@@ -2,7 +2,7 @@
 title: "SOP 系统优化与同步指南"
 type: guide
 role: "[工程师]+[AI]"
-last_updated: "2026-10-29"
+last_updated: "2026-10-30"
 version: "4.1"
 ---
 

@@ -2,7 +2,7 @@
 title: "产品 IA 派生索引（页签功能地图）"
 type: index
 role: "[工程师]+[AI]"
-last_updated: "2026-10-29"
+last_updated: "2026-10-30"
 version: "0.2"
 status: active
 related_files: [docs/src/core/domain/function-catalog.js, docs/src/capabilities/, content/03_doc_system/DOC_MAP.md]

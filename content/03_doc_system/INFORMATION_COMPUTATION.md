@@ -2,7 +2,7 @@
 title: "信息计算与呈现口径"
 type: spec
 role: "[工程师]+[AI]"
-last_updated: 2026-10-29
+last_updated: 2026-10-30
 status: active
 related_files: [docs/src/services/governance/notice.js, docs/src/components/shell/header.js, docs/src/services/governance/todo.js, docs/src/services/governance/today-summary.js, docs/src/components/governance/work-overview.js, docs/src/services/activity/taskforce.js, docs/src/services/activity/attendance.js]
 ---

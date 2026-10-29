@@ -2,7 +2,7 @@
 title: "设计系统 · 第一编 色彩与主题"
 type: design
 role: "[工程师]+[AI]"
-last_updated: 2026-10-29
+last_updated: 2026-10-30
 status: active
 related_files: [DESIGN_SYSTEM.md, DS_03_COMPONENTS.md, DS_04_INTERACTION_AND_RESPONSIVE.md, ../../../docs/src/styles.css, CASES.md]
 ---

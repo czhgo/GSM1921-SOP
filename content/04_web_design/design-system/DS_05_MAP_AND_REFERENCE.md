@@ -2,7 +2,7 @@
 title: "设计系统 · 第五编 地图与速查"
 type: design
 role: "[工程师]+[AI]"
-last_updated: 2026-10-29
+last_updated: 2026-10-30
 status: active
 related_files: [DESIGN_SYSTEM.md, DS_01_COLOR_AND_THEME.md, DS_02_TYPE_AND_SIZE.md, DS_03_COMPONENTS.md, DS_04_INTERACTION_AND_RESPONSIVE.md, CASES.md]
 ---

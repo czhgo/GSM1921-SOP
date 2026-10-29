@@ -2,7 +2,7 @@
 title: "设计系统 · 第二编 排版与尺寸"
 type: design
 role: "[工程师]+[AI]"
-last_updated: 2026-10-29
+last_updated: 2026-10-30
 status: active
 related_files: [DESIGN_SYSTEM.md, DS_03_COMPONENTS.md, ../../../docs/src/styles.css]
 ---

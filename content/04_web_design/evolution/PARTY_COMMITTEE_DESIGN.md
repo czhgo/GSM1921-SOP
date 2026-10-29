@@ -3,7 +3,7 @@ title: "院系党委后台——支部多实例两级治理设计定案"
 type: design
 role: "[工程师]+[AI]"
 created: 2026-09-02
-last_updated: 2026-10-29
+last_updated: 2026-10-30
 status: approved-by-secretary
 related_files: [docs/src/core/domain/domain.js, docs/src/data/mock/people.js, docs/src/data/mock/accounts.js, server/seed.js, server/db.js, docs/src/data/data-adapter.js, docs/src/core/domain/constants.js, docs/src/services/core/auth.js, docs/src/capabilities/]
 ---
