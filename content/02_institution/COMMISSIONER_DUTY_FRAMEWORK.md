@@ -2,7 +2,7 @@
 title: "支部组织与委员体系"
 type: design
 role: "[用户]+[AI]"
-last_updated: 2026-10-22
+last_updated: 2026-10-29
 status: active
 merged_from:
   - content/guides/COMMISSIONER_ORGANIZATION_ROLE.md (已删除)
@@ -204,7 +204,7 @@ E1（ORGANIZATION_BUILDING_MODULE）定义了工作台 Tab 分组功能（组名
 
 ### C.3 权限色系编码（已迁移至设计系统色板）
 
-> **身份不再保留既有固定颜色设定**——引入自定义主题色色板，角色识别色统一由 [DESIGN_SYSTEM.md §2.3 角色识别色系](../04_web_design/design-system/DESIGN_SYSTEM.md) 管理；工作台内强调色（tab 激活/主按钮/标签/chips）由各角色**主题色（可自选）** 决定，见 [DESIGN_SYSTEM.md §2.7 主体色配色规则](../04_web_design/design-system/DESIGN_SYSTEM.md#27-主体色配色规则给定主体主题色-x-打样样板)。本表不再维护固定角色色值。
+> **身份不再保留既有固定颜色设定**——引入自定义主题色色板，角色识别色统一由 [DS_01_COLOR_AND_THEME.md §2.3 角色识别色系](../04_web_design/design-system/DS_01_COLOR_AND_THEME.md) 管理；工作台内强调色（tab 激活/主按钮/标签/chips）由各角色**主题色（可自选）** 决定，见 [DS_01_COLOR_AND_THEME.md §2.7 主体色配色规则](../04_web_design/design-system/DS_01_COLOR_AND_THEME.md#27-主体色配色规则给定主体主题色-x-打样样板)。本表不再维护固定角色色值。
 
 ---
 

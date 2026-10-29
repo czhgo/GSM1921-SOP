@@ -29,7 +29,7 @@ import assert from 'node:assert/strict';
 import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { join, relative, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { ACCENT_COLORS } from '../../docs/src/core/domain/constants.js?v=20261028e';
+import { ACCENT_COLORS } from '../../docs/src/core/domain/constants.js?v=20261029b';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(HERE, '..', '..');
@@ -946,40 +946,58 @@ test('B8 btn-ghost 作为动作按钮的存量只许降不许升（新代码不�
 //   关键宽表 table-layout:fixed ＋ 列宽模板。
 // ═════════════════════════════════════════════════════════════════════════════
 
-test('V1 容器语义：metric-band 拆两档 / section.card 必有可访问名 / list-row 四载体可区分', () => {
-  // ① metric-band 两档：工作概况（含 button/a）＝interactive；待办摘要（纯 span）＝static。
-  //    2026-10-28 支书裁定「四个数统一为卡片数字」：工作概况由横向带改为卡片数字档
-  //    （`.metric-band--cards`），卡面复用 `.card`；语义仍是可点交互摘要。
-  //    2026-10-28 Task 3（CASE-DESIGN-030）：四数卡由「图标 ＋ 数值 ＋ 标签」三段组成——
-  //      上一轮把它执行成去图标的纯文字卡属过度解读原则 4，故本断言改准为含图标块。
+test('V1 容器语义：数字组单一语法 / section.card 必有可访问名 / list-row 四载体可区分', () => {
+  // ① 数字组单一语法（2026-10-29 P2「同类只有一个语法」）：
+  //    全站数字组＝图标块在左（.stat-icon-tint 40×40、浅底由 --tint 派生）＋ .stat-card__body
+  //    （.stat-card__value / .stat-card__label 两行在右）。卡片不自带尺寸：不得再有
+  //    `flex-direction: column` 与写死的 `min-height`；列数与等高交给栅格 `align-items: stretch`。
   assert.match(WORK_OVERVIEW, /<section class="metric-band metric-band--interactive metric-band--cards"/,
     '工作概况结论带须为 .metric-band--interactive.metric-band--cards（四张数字卡，含可点 button/a）');
   assert.match(CSS, /\.metric-band--cards\s*\{[^}]*grid-template-columns:\s*repeat\(4,\s*minmax\(0,\s*1fr\)\)/,
     'styles.css 缺 .metric-band--cards 的四列卡网格');
   assert.match(WORK_OVERVIEW, /class="card card--interactive stat-card metric-band__item/,
     '工作台数字卡须复用 .card（不得另造第二套卡面）');
-  const cardBody = /const body = `<span class="stat-icon-tint"[\s\S]*?metric-band__value[\s\S]*?<span class="metric-band__label">\$\{esc\(metric\.label\)\}<\/span>`/.exec(WORK_OVERVIEW);
-  assert.ok(cardBody, '四数卡 body 须由「图标块 .stat-icon-tint ＋ 数值 .metric-band__value ＋ 标签 .metric-band__label」三段组成');
+  const cardBody = /const body = `<span class="stat-icon-tint"[\s\S]*?<div class="stat-card__body">[\s\S]*?stat-card__value[\s\S]*?stat-card__label">\$\{esc\(metric\.label\)\}<\/p>[\s\S]*?<\/div>`/.exec(WORK_OVERVIEW);
+  assert.ok(cardBody, '四数卡 body 须为「图标块 .stat-icon-tint ＋ .stat-card__body（数值/标签）」');
   assert.match(cardBody[0], /--tint:\$\{color\}/, '图标浅底须由 --tint 派生（取既有语义色，不写 hex）');
-  assert.match(STATS, /stat-icon-tint[\s\S]{0,240}metric-band__value[\s\S]{0,240}metric-band__label/,
-    '首页统计卡须与工作台同构：图标块 ＋ 数值 ＋ 标签');
+  assert.match(STATS, /stat-icon-tint[\s\S]{0,400}stat-card__body[\s\S]{0,400}stat-card__value[\s\S]{0,400}stat-card__label/,
+    '首页统计卡须与工作台同构：图标块 ＋ .stat-card__body（数值/标签）');
   // 可点卡反馈不得用阴影 / 上浮（DESIGN_SYSTEM §4.2；判据与 ui-motion-guard 同向）。
   for (const [label, source] of [['work-overview.js', WORK_OVERVIEW], ['stats.js', STATS]]) {
     assert.doesNotMatch(source, /hover:shadow|hover:-translate-[xy]-/, `${label} 不得以 hover 阴影 / 上浮作反馈`);
   }
   assert.doesNotMatch(CSS_BARE, /\.card--interactive:hover\s*\{[^}]*box-shadow/, '.card--interactive:hover 不得加阴影');
   assert.doesNotMatch(CSS_BARE, /\.card--interactive:hover\s*\{[^}]*translate/, '.card--interactive:hover 不得上浮 / 整卡位移');
-  assert.match(TODO_SHELL, /class="metric-band metric-band--static/,
-    '待办摘要须为 .metric-band--static（纯 span 只读摘要）');
-  assert.match(CSS, /\.metric-band--interactive\s+\.metric-band__item/,
-    'styles.css 缺 .metric-band--interactive 档');
-  assert.match(CSS, /\.metric-band--static\s+\.metric-band__item/,
-    'styles.css 缺 .metric-band--static 档');
+
+  // 卡面几何（判据只能更严）：横排、间距 --space-3、不写尺寸；图标块 40×40 / --radius-md / --tint 12% 派生。
+  const statCardCss = /\.stat-card\s*\{([^}]*)\}/.exec(CSS_BARE)?.[1] || '';
+  assert.match(statCardCss, /align-items:\s*center/, '.stat-card 须横排居中（图标在左、文字在右）');
+  assert.match(statCardCss, /gap:\s*var\(--space-3\)/, '.stat-card 图标与文字区之间须为 --space-3');
+  assert.doesNotMatch(statCardCss, /flex-direction:\s*column/, '.stat-card 不得再竖排（图标一行 / 数值一行 / 标签一行）');
+  assert.doesNotMatch(statCardCss, /(?:min-)?height:\s*\d+px/, '.stat-card 不得写死高度（等高交给栅格 stretch）');
+  assert.match(CSS_BARE, /\.stat-card__body\s*\{[^}]*flex-direction:\s*column/,
+    '.stat-card__body 须为右侧纵向两行（数值 / 标签）');
+  assert.match(CSS_BARE, /\.stat-icon-tint\s*\{[^}]*width:\s*40px[^}]*height:\s*40px/,
+    '图标块须为 40×40');
+  assert.match(CSS_BARE, /\.stat-icon-tint\s*\{[^}]*border-radius:\s*var\(--radius-md\)/,
+    '图标块圆角须取 --radius-md');
+  // 栅格：桌面四列、≤1024 两列（手机同两列），四张等高只由 stretch 保证。
+  assert.match(CSS_BARE, /\.stat-grid,\s*\.metric-band--cards\s*\{[^}]*grid-template-columns:\s*repeat\(4,\s*minmax\(0,\s*1fr\)\)[\s\S]{0,240}align-items:\s*stretch/,
+    'styles.css 缺 .stat-grid / .metric-band--cards 的四列等比栅格（align-items: stretch）');
+  assert.match(CSS_BARE, /\.stat-grid,\s*\.metric-band--cards\s*\{[^}]*grid-auto-rows:\s*1fr/,
+    '数字组须 grid-auto-rows: 1fr（两列时上下两行等高，不靠写死 min-height）');
+  assert.match(CSS_BARE, /@media \(max-width: 1024px\)\s*\{[\s\S]{0,200}\.stat-grid,\s*\.metric-band--cards\s*\{[\s\S]{0,120}repeat\(2,/,
+    '≤1024 时数字组须降为两列');
+
+  // 待办摘要（原 .metric-band--static 只读带）已并入同一语法；只读档不得回潮。
+  assert.match(TODO_SHELL, /class="stat-grid mb-4" role="group" aria-label="待办摘要"/,
+    '待办摘要须使用 .stat-grid（数字组单一语法）');
+  assert.match(TODO_SHELL, /stat-card__body[\s\S]{0,160}stat-card__value[\s\S]{0,160}stat-card__label/,
+    '待办摘要卡须为「图标块 ＋ 数值/标签」');
+  assert.doesNotMatch(CSS_BARE, /\.metric-band--static/, 'styles.css 不得保留 .metric-band--static 第二套只读档');
   // ② 结论带不再用 0 间距 + 左线分隔。
-  assert.doesNotMatch(CSS, /\.metric-band\s*\{[^}]*gap:\s*0\s*;/,
-    '.metric-band 不得再用 gap: 0（项间应为 8–12px）');
-  assert.doesNotMatch(CSS, /\.metric-band__item\s*\{[^}]*border-left/,
-    '.metric-band__item 不得再用左线分隔（由间距承担）');
+  assert.doesNotMatch(CSS_BARE, /\.metric-band\s*\{[^}]*gap:\s*0\s*;/, '.metric-band 不得再用 gap: 0（项间应为 8–12px）');
+  assert.doesNotMatch(CSS_BARE, /\.metric-band__item\s*\{[^}]*border-left/, '.metric-band__item 不得再用左线分隔（由间距承担）');
 
   // ③ section 只用于有可访问名的分区；.card 容器其余统一 div。
   const offenders = [];
@@ -1010,6 +1028,71 @@ test('V1 容器语义：metric-band 拆两档 / section.card 必有可访问名 
   assert.match(CSS, /\.list-row\[data-row-type="nav"\][\s\S]{0,120}\.list-row\[data-row-type="master"\]/,
     'styles.css 缺导航行 / 主从行的可点样式');
 });
+
+// ═════════════════════════════════════════════════════════════════════════════
+// V8 数字组全量语法（2026-10-29 P2「同类只有一个语法」）
+//   扫描面：docs/src/**/*.js ＋ docs/*.html（与 SD-1 同一批 FILES）。
+//   ① 竖排回潮：出现 `.stat-card` ＋ `.stat-card__value` 的模板必须有 `.stat-card__body`
+//      （图标在左、数值/标签在右两行）；缺 body（value/label 仍是卡片直系子元素）或
+//      卡片内联 `flex-direction: column` ⇒ 判红。
+//   ② 组内 hex：卡片开标签或 body…label 窗口出现 #rgb/#rrggbb ⇒ 判红（颜色只取语义 token）。
+//   带反例（非空转）：坏样本命中、好样本不命中，另有 `--tint:#…` 与裸 `color:#…` 两个样本。
+// ═════════════════════════════════════════════════════════════════════════════
+test('V8 数字组全量：不得回潮竖排三段 / 组内不得内联 hex', () => {
+  const CARD_TAG_RE = /<(?:div|button|a)\b[^>]*class="[^"]*\bstat-card\b[^"]*"[^>]*>/g;
+  const HEX_RE = /#[0-9a-f]{3,8}\b/i;
+
+  /** 竖排回潮判定（纯函数，便于反例对照） */
+  const verticalRegression = (code) => {
+    if (!/\bstat-card\b/.test(code)) return false;
+    if (!/stat-card__value/.test(code)) return false; // 只有图标块 / 骨架，不算数字组
+    if (!/stat-card__body/.test(code)) return true;   // 缺 body ⇒ 数值与标签仍是卡片直系子元素
+    return /stat-card[\s\S]{0,240}flex-direction:\s*column/.test(code);
+  };
+  /** 数字组内联 hex（卡片开标签 ＋ body…label 窗口；纯函数） */
+  const inlineHex = (code) => {
+    const hits = [];
+    for (const m of code.matchAll(CARD_TAG_RE)) if (HEX_RE.test(m[0])) hits.push(m[0]);
+    for (const m of code.matchAll(/stat-card__body[\s\S]{0,400}?stat-card__label/g)) if (HEX_RE.test(m[0])) hits.push(m[0]);
+    return hits;
+  };
+
+  const vertical = [];
+  const hex = [];
+  let cards = 0;
+  for (const f of FILES) {
+    if (verticalRegression(f.code)) vertical.push(f.rel);
+    const hits = inlineHex(f.code);
+    if (hits.length) hex.push(`${f.rel} → ${hits[0].replace(/\s+/g, ' ').slice(0, 120)}`);
+    cards += [...f.code.matchAll(CARD_TAG_RE)].length;
+  }
+  assert.ok(cards >= 7, `只扫描到 ${cards} 个数字卡（下限 7）：V8 的扫描面被写坏`);
+  assert.deepEqual(vertical, [],
+    `数字组不得回潮竖排结构（须 .stat-card + .stat-icon-tint + .stat-card__body）：\n  ${vertical.join('\n  ')}`);
+  assert.deepEqual(hex, [],
+    `数字组内不得内联硬编码 hex（--tint / color 取语义 token）：\n  ${hex.join('\n  ')}`);
+
+  // ── 反例（合成样本）：判据写坏会在这里先红 ──
+  const badVertical = '<div class="card stat-card"><span class="stat-icon-tint"></span>'
+    + '<p class="stat-card__value">3</p><p class="stat-card__label">逾期</p></div>';
+  const goodVertical = '<div class="card stat-card"><span class="stat-icon-tint"></span>'
+    + '<div class="stat-card__body"><p class="stat-card__value">3</p><p class="stat-card__label">逾期</p></div></div>';
+  const badColumn = '<div class="card stat-card" style="flex-direction: column">'
+    + '<div class="stat-card__body"><p class="stat-card__value">1</p><p class="stat-card__label">逾期</p></div></div>';
+  assert.equal(verticalRegression(badVertical), true, 'V8 反例失效：竖排三段样本未被判红');
+  assert.equal(verticalRegression(goodVertical), false, 'V8 反例失效：合规样本被误判');
+  assert.equal(verticalRegression(badColumn), true, 'V8 反例失效：卡片内联竖排未被判红');
+
+  const badHexTint = '<div class="card stat-card" style="--tint:#3B82F6">'
+    + '<div class="stat-card__body"><p class="stat-card__value">3</p><p class="stat-card__label">逾期</p></div></div>';
+  const badHexValue = '<div class="card stat-card">'
+    + '<div class="stat-card__body"><p class="stat-card__value" style="color:#3B82F6">3</p>'
+    + '<p class="stat-card__label">逾期</p></div></div>';
+  assert.equal(inlineHex(badHexTint).length, 1, 'V8 反例失效：--tint 内联 hex 未被判红');
+  assert.equal(inlineHex(badHexValue).length, 1, 'V8 反例失效：数值内联 hex 未被判红');
+  assert.equal(inlineHex(goodVertical).length, 0, 'V8 反例失效：合规样本被误判为内联 hex');
+});
+
 
 test('V2 分组胶囊全宽可见：无 display:none 断点、高度 ≥24px、3px 直角、无边框 + 10% 淡底', () => {
   assert.doesNotMatch(CSS, /\.tab-group-label[^{}]*\{[^}]*display:\s*none/,
@@ -1114,6 +1197,14 @@ const GHOST_ROW_WHITELIST = [
   },
 ];
 
+/** V4 单行判据（纯函数，反例复用同一判据，避免「反例另写一套」）。 */
+function ghostLineProblem(line, entry) {
+  if (!/(^|[\s"'`])btn-ghost(?![\w-])/.test(line)) return null;
+  if (!entry) return 'not-whitelisted';
+  if (!line.includes(entry.marker)) return 'marker-missing';
+  return null;
+}
+
 test('V4 btn-ghost 不得用于动作按钮：只允许白名单内的非动作行载体', () => {
   const allowed = new Map(GHOST_ROW_WHITELIST.map((w) => [w.rel, w]));
   const hits = new Map();
@@ -1124,16 +1215,24 @@ test('V4 btn-ghost 不得用于动作按钮：只允许白名单内的非动作�
     f.code.split('\n').forEach((line, i) => {
       if (!/(^|[\s"'`])btn-ghost(?![\w-])/.test(line)) return;
       hits.set(f.rel, (hits.get(f.rel) || 0) + 1);
-      if (!w) {
+      const problem = ghostLineProblem(line, w);
+      if (!problem) return;
+      if (problem === 'not-whitelisted') {
         offenders.push(`${f.rel}:${i + 1} ${line.trim().slice(0, 120)}`);
         return;
       }
-      if (!line.includes(w.marker)) {
-        offenders.push(`${f.rel}:${i + 1} 白名单标记「${w.marker}」不在该按钮上`
-          + '（行载体证据消失 ⇒ 它不是非动作行载体）');
-      }
+      offenders.push(`${f.rel}:${i + 1} 白名单标记「${w.marker}」不在该按钮上`
+        + '（行载体证据消失 ⇒ 它不是非动作行载体）');
     });
   }
+  // 反例：同一判据对「白名单外」「标记缺失」必须判红，对合法行载体必须判绿。
+  assert.equal(ghostLineProblem('<button class="btn-ghost">删除</button>', undefined),
+    'not-whitelisted', 'V4 反例：白名单外的 btn-ghost 未被判红');
+  assert.equal(ghostLineProblem('<button class="btn-ghost">删除</button>', GHOST_ROW_WHITELIST[0]),
+    'marker-missing', 'V4 反例：白名单文件里缺行载体标记未被判红');
+  assert.equal(ghostLineProblem(
+    `<button class="btn-ghost ${GHOST_ROW_WHITELIST[0].marker}">行</button>`, GHOST_ROW_WHITELIST[0]),
+  null, 'V4 反例：合法行载体被误判红');
   // 非空转：白名单每条必须命中，且处数不多不少
   for (const w of GHOST_ROW_WHITELIST) {
     assert.ok(w.reason && w.reason.length >= 20,
@@ -1446,37 +1545,40 @@ test('FOCUS-1 焦点单环：同一选择器（块）不得同时出 :focus 的 
     '.cs-trigger:focus-within 必须显式 box-shadow: none（否则 <button> 触发器会落到全局 6px --focus-halo 补环上）');
 });
 
-test('FOCUS-2 搜索输入不被全局 outline 二次套环，且与 <select> 同环宽 / 同色 / 同偏移', () => {
+test('FOCUS-2 输入族只变边框色（零 outline / 零 box-shadow），且与 <select> 共用同一规则块', () => {
   // ① 不得存在裸元素级 :focus-visible 全局规则（那会给所有输入再套一圈）
   const bareGlobal = ruleBlocks(CSS).filter((b) => b.selector.split(',').map((s) => s.trim())
     .some((s) => /^(?::focus-visible|input:focus-visible|textarea:focus-visible|select:focus-visible)$/.test(s)));
   assert.deepEqual(bareGlobal.map((b) => `styles.css:${b.line} → ${b.selector}`), [],
     '存在裸元素级 :focus-visible 全局规则 ⇒ 搜索框会被二次套环');
 
-  // ② 六个搜索面：只声明一条 outline，且与 <select> 同口径
+  // ② 搜索 / 输入面：聚焦只允许 border-color，不得出现 outline / box-shadow
   const cases = [
-    ['页内检索 / 归档搜索 / 全站搜索（.lf-kw · #archive-search · #ref-search-input）', CSS, '.input-flat:focus-visible'],
-    ['下拉内嵌搜索（.cs-search-input）', CSS, '.cs-search-input:focus-visible'],
+    ['页内检索 / 归档搜索 / 全站搜索（.lf-kw · #archive-search · #ref-search-input）', CSS, '.input-flat:focus'],
+    ['下拉内嵌搜索（.cs-search-input）', CSS, '.cs-search-input:focus'],
     ['帮助页搜索（.help-search-input）', HELP_HTML, '.help-search-input:focus'],
+    ['帮助页角色筛选（.help-role-filter）', HELP_HTML, '.help-role-filter:focus'],
     ['选人器搜索（.person-picker-search）', PERSON_PICKER_CSS, '.person-picker-search:focus'],
   ];
   for (const [label, src, selector] of cases) {
     const body = blockBodyOf(src, selector);
     assert.ok(body, `缺少 ${label} 的焦点规则块（${selector}）`);
-    const outlines = [...body.matchAll(/(?:^|;)\s*outline\s*:\s*([^;]+)/g)].map((m) => m[1].trim());
-    assert.equal(outlines.length, 1, `${label} 只能声明一条 outline（多一条就是多一圈），实际 ${outlines.length}`);
-    assert.match(body, /outline:\s*2px solid var\(--app-accent\)\s*;/,
-      `${label} 的环应为 2px 主题色（与 <select> 同色）——不得用 --focus-ring / --party-gold`);
-    assert.match(body, /outline-offset:\s*1px\s*;/, `${label} 的环偏移应为 1px（与 <select> 同）`);
+    assert.match(body, /border-color:\s*var\(--app-accent\)\s*;/,
+      `${label} 聚焦应只把边框切到主题色（--app-accent）`);
+    assert.equal(paintsRing(declOf(body, 'outline')), false,
+      `${label} 是输入族，不得用 outline 画焦点（只允许 border-color）`);
     assert.equal(paintsRing(declOf(body, 'box-shadow')), false,
-      `${label} 不得再叠 box-shadow 环（环只由这一条 outline 承担）`);
+      `${label} 不得用 box-shadow 画焦点`);
   }
 
-  // ③ <select> 基准：它与 .input-flat 共用同一个规则块（同宽 / 同色 / 同偏移，不是两份相近声明）
-  const ringBlock = ruleBlocks(CSS).find((b) => b.selector.split(',').map((s) => s.trim()).includes('.input-flat:focus-visible'));
-  assert.ok(ringBlock, 'styles.css 缺少 .input-flat:focus-visible 规则块');
-  assert.ok(ringBlock.selector.split(',').map((s) => s.trim()).includes('.cs-trigger:focus-visible'),
-    '<select>（.cs-trigger）必须与搜索框共用同一条环规则（不得两套口径）');
+  // ③ <select> 基准：它与 .input-flat 共用同一个规则块（同一口径，不是两份相近声明）
+  const focusBlock = ruleBlocks(CSS).find((b) => b.selector.split(',').map((s) => s.trim()).includes('.input-flat:focus'));
+  assert.ok(focusBlock, 'styles.css 缺少 .input-flat:focus 规则块');
+  for (const sel of ['.input-flat:focus-visible', '.cs-trigger:focus-within', '.cs-trigger:focus-visible']) {
+    assert.ok(focusBlock.selector.split(',').map((s) => s.trim()).includes(sel),
+      `<select>（.cs-trigger）与输入框必须共用同一条焦点规则（缺 ${sel}）`);
+  }
+  assert.match(focusBlock.body, /outline:\s*none\s*;/, '输入族规则块必须显式清掉 outline（.cs-trigger 是 <button>）');
 
   // ④ 四个页面搜索面确实挂在这套类上（不是只改了 CSS、DOM 没接上）
   assert.match(ARCHIVE_HTML, /id="archive-search"[^>]*class="[^"]*input-flat/,
@@ -1486,14 +1588,14 @@ test('FOCUS-2 搜索输入不被全局 outline 二次套环，且与 <select> �
   assert.match(LIST_FILTER_JS, /class="input-flat[^"]*lf-kw/, 'list-filter.js 的检索条未挂 .input-flat + .lf-kw');
   assert.match(CUSTOM_SELECT_JS, /class="cs-search-input"/, 'custom-select.js 未渲染 .cs-search-input');
 
-  // ⑤ 环对背景 ≥3:1（WCAG 1.4.11 非文本对比；主题色亮档 vs 白卡 / 页面底）
+  // ⑤ 边框色（焦点信号）对背景 ≥3:1（WCAG 1.4.11 非文本对比；主题色亮档 vs 白卡 / 页面底）
   const accent = /--app-accent-base-light:\s*(#[0-9A-Fa-f]{6})/.exec(CSS)?.[1];
-  assert.ok(accent, 'styles.css 缺少 --app-accent-base-light（无法核算环对比度）');
+  assert.ok(accent, 'styles.css 缺少 --app-accent-base-light（无法核算边框对比度）');
   const vsCard = contrast(accent, '#FFFFFF');
   const vsPage = contrast(accent, '#FAFAF5');
-  console.log(`[ui-control-system-guard] FOCUS-2 焦点环 ${accent} vs 白卡 ${vsCard.toFixed(2)}:1 · vs 页面底 ${vsPage.toFixed(2)}:1`);
-  assert.ok(vsCard >= 3, `焦点环对白卡仅 ${vsCard.toFixed(2)}:1（要求 ≥3）`);
-  assert.ok(vsPage >= 3, `焦点环对页面底仅 ${vsPage.toFixed(2)}:1（要求 ≥3）`);
+  console.log(`[ui-control-system-guard] FOCUS-2 焦点边框 ${accent} vs 白卡 ${vsCard.toFixed(2)}:1 · vs 页面底 ${vsPage.toFixed(2)}:1`);
+  assert.ok(vsCard >= 3, `焦点边框对白卡仅 ${vsCard.toFixed(2)}:1（要求 ≥3）`);
+  assert.ok(vsPage >= 3, `焦点边框对页面底仅 ${vsPage.toFixed(2)}:1（要求 ≥3）`);
 });
 
 test('FOCUS-3 「考勤良好」数值不再用 --status-success（24px 大字 ≥3:1），绿色只留图标', () => {
@@ -1518,66 +1620,111 @@ test('FOCUS-3 「考勤良好」数值不再用 --status-success（24px 大字 �
 });
 
 // ═════════════════════════════════════════════════════════════════════════════
-// FOCUS-4…5：全站焦点单一来源 ＋ 七主题焦点环对比度（2026-10-28 批次 520）
-//   口径：全站焦点环只允许一个来源（主题色）、不得出现 box-shadow 环、
-//     不得复活 --focus-ring / --focus-halo；把 `0 0 0 6px` 写回任意规则都必须判红。
-//   允许的两个登记例外：
-//     ① 实底主题色控件把环取反为 --app-accent-strong-ink（压在内侧，offset -2px）；
-//     ② 顶栏深红底用既有白色令牌 --app-accent-strong-ink-light。
-//   另：person-picker 的 --pp-accent 是主题色注入别名，与 --app-accent 同源。
+// FOCUS-4…5：全站焦点单一来源 ＋ 七主题焦点环对比度（2026-10-29 P1 全量扫描）
+//   P1：任一控件在任一时刻最多一个焦点信号。
+//     · 有边框控件（输入 / 多行文本 / 下拉触发器 / 搜索框）＝只用 border-color；
+//     · 无边框控件（按钮 / 链接 / 页签 / 行 / 徽章）＝只加一圈 2px 主题色实线，且只由 :focus-visible 触发；
+//     · 任一规则块不得同时声明非 none 的 outline 与非 none 的 box-shadow；
+//     · 焦点色只来自 var(--app-accent)；固定党徽金 #FFD700 / 党建红 #CE1126 / 深棕一律禁止；
+//     · 登记例外：实底控件取反色 --app-accent-strong-ink（内侧 offset -2px）；
+//       顶栏深红底用白色令牌 --app-accent-strong-ink-light；person-picker 的 --pp-accent 是主题色注入别名。
+//   扫描面：docs/src/**/*.css ＋ docs/src/**/*.js 模板串 ＋ docs/*.html 内联样式与类名。
 // ═════════════════════════════════════════════════════════════════════════════
 const FOCUS_SELECTOR_RE = /:focus(?:-visible|-within)?/;
-const ACCENT_RING_TOKENS = ['var(--app-accent)', 'var(--pp-accent)'];
-const SOLID_RING_TOKENS = ['var(--app-accent-strong-ink)', 'var(--app-accent-strong-ink-light)'];
-const SOLID_RING_SELECTORS = [
-  '.btn-accent:focus-visible',
-  '.btn-danger-solid:focus-visible',
-  '.status-badge[aria-pressed="true"]:focus-visible',
-  '#app-header .hamburger-btn:focus-visible',
-  '#app-header .header-action-btn:focus-visible',
-  '#app-header #notif-btn:focus-visible',
+const FOCUS_ALLOWED_COLOR_TOKENS = [
+  'var(--app-accent)',
+  'var(--app-accent-strong-ink)',
+  'var(--app-accent-strong-ink-light)',
+  'var(--pp-accent)',
+];
+const FOCUS_FORBIDDEN_COLORS = [/#FFD700/i, /#CE1126/i, /--party-gold/, /--party-red/, /--help-party-red/];
+/** 有边框控件：只允许 border-color 变主题色（出现 outline / box-shadow 即红） */
+const INPUT_FAMILY_BASES = [
+  '.input-flat', '.input-flat-sm', '.cs-trigger', '.cs-search-input',
+  '.vote-note', '.person-picker-search', '.help-search-input', '.help-role-filter',
+];
+/** 无边框控件：必须有一圈 2px 主题色实线（无环即红） */
+const BUTTON_FAMILY_BASES = [
+  'button', 'a', 'summary', '[role="button"]', '[role="option"]', '[role="tab"]',
+  '[data-interactive="true"]', '.focus-ring', '.skip-link',
+  '.btn-accent', '.btn-accent-soft', '.btn-outline', '.btn-ghost', '.btn-text',
+  '.btn-danger', '.btn-danger-solid', '.btn-tab', '.tab-btn', '.subtab',
+  '.status-badge', '.cs-option', '.notif-dropdown-item', '.help-toc-item',
+  '.help-search-result', '.help-quick-tasks a', '.help-browse summary',
 ];
 
-/** 任意规则里的 6px 外发光（不限于焦点规则）；返回违规串 */
-function haloProblems(css) {
-  const out = [];
-  for (const b of ruleBlocks(css)) {
-    const shadow = declOf(b.body, 'box-shadow');
-    if (shadow && /0(?:px)?\s+0(?:px)?\s+0(?:px)?\s+6px/.test(shadow)) {
-      out.push(`${b.selector}：${shadow}`);
-    }
-  }
-  return out;
-}
-
-/** 焦点规则的两个来源问题：box-shadow 环 / 非主题色 outline；返回 { problems, scanned } */
-function focusSourceProblems(css) {
+/** 单份 CSS 的全量焦点扫描：返回 { problems, focusBlocks } */
+function focusScan(css, label) {
   const problems = [];
-  let scanned = 0;
+  const inputSeen = new Map();
+  const buttonSeen = new Map();
+  let focusBlocks = 0;
   for (const b of ruleBlocks(css)) {
     const sels = b.selector.split(',').map((s) => s.trim());
-    if (!sels.some((s) => FOCUS_SELECTOR_RE.test(s))) continue;
-    scanned += 1;
-
-    const shadow = declOf(b.body, 'box-shadow');
-    if (paintsRing(shadow)) {
-      problems.push(`${b.selector}：焦点规则不得画 box-shadow 环（${shadow}）`);
-    }
-
-    const outlineDecls = [...b.body.matchAll(/(?:^|;)\s*outline\s*:\s*([^;]+)/g)].map((m) => m[1].trim());
-    if (outlineDecls.length > 1) {
-      problems.push(`${b.selector}：同一焦点规则声明了 ${outlineDecls.length} 条 outline`);
-    }
+    const focusSels = sels.filter((s) => FOCUS_SELECTOR_RE.test(s));
     const outline = declOf(b.body, 'outline');
-    if (!paintsRing(outline)) continue;
-    const accentRing = ACCENT_RING_TOKENS.some((t) => outline.includes(t));
-    const solidRing = sels.every((s) => SOLID_RING_SELECTORS.includes(s))
-      && SOLID_RING_TOKENS.some((t) => outline.includes(t));
-    if (!accentRing && !solidRing) {
-      problems.push(`${b.selector}：焦点环色「${outline}」不是主题色 --app-accent（或登记别名）`);
+    const shadow = declOf(b.body, 'box-shadow');
+    // 任一规则块：焦点信号层数 ≤1（outline 与非 none 的 box-shadow 并存即红）
+    if (paintsRing(outline) && paintsRing(shadow)) {
+      problems.push(`${label}:${b.line} ${b.selector}：同一规则块同时声明 outline 与 box-shadow 两条环`);
+    }
+    if (!focusSels.length) continue;
+    focusBlocks += 1;
+    if (paintsRing(shadow)) {
+      problems.push(`${label}:${b.line} ${b.selector}：焦点不得用 box-shadow 画环（${shadow}）`);
+    }
+    if (paintsRing(outline)) {
+      for (const re of FOCUS_FORBIDDEN_COLORS) {
+        if (re.test(outline)) {
+          problems.push(`${label}:${b.line} ${b.selector}：焦点色「${outline}」是固定党徽金 / 党建红 / 深棕（禁止）`);
+        }
+      }
+      if (!FOCUS_ALLOWED_COLOR_TOKENS.some((t) => outline.includes(t))) {
+        problems.push(`${label}:${b.line} ${b.selector}：焦点环色「${outline}」不是 var(--app-accent)（或登记取反别名）`);
+      }
+    }
+    for (const sel of focusSels) {
+      const base = sel.replace(/:focus(?:-visible|-within)?$/, '');
+      if (INPUT_FAMILY_BASES.some((x) => base === x || base.startsWith(`${x}[`))) {
+        if (paintsRing(outline)) {
+          problems.push(`${label}:${b.line} ${sel}：输入族不得用 outline 画焦点（只允许 border-color）`);
+        }
+        const rec = inputSeen.get(base) || { color: false };
+        if (/border-color:\s*var\(--app-accent\)\s*;/.test(b.body)) rec.color = true;
+        inputSeen.set(base, rec);
+      }
+      if (BUTTON_FAMILY_BASES.includes(base) && !/:disabled|\[data-disabled/.test(sel)) {
+        const rec = buttonSeen.get(base) || { ring: false };
+        if (paintsRing(outline)) rec.ring = true;
+        buttonSeen.set(base, rec);
+      }
     }
   }
-  return { problems, scanned };
+  for (const [base, rec] of inputSeen) {
+    if (!rec.color) problems.push(`${label}：输入族 ${base} 有焦点规则但没有 border-color: var(--app-accent)`);
+  }
+  for (const [base, rec] of buttonSeen) {
+    if (!rec.ring) problems.push(`${label}：按钮族 ${base} 的焦点规则没有环（outline 为空或 none）`);
+  }
+  return { problems, focusBlocks };
+}
+
+/** JS / HTML 行内焦点工具类（绕过 styles.css 的第二套写法） */
+function inlineFocusProblems(src) {
+  const problems = [];
+  src.split('\n').forEach((line, i) => {
+    const ln = i + 1;
+    if (/focus(?:-visible)?:(?:outline|ring)/.test(line)) {
+      problems.push(`第 ${ln} 行：行内焦点工具类绕过 styles.css（${line.trim().slice(0, 100)}）`);
+    }
+    if (/outline-\[#[0-9A-Fa-f]{3,8}\]/.test(line)) {
+      problems.push(`第 ${ln} 行：硬编码 hex 焦点环（${line.trim().slice(0, 100)}）`);
+    }
+    if (/(#FFD700|#CE1126|outline-blue|ring-blue)/i.test(line) && /focus/i.test(line)) {
+      problems.push(`第 ${ln} 行：焦点色写死党徽金 / 党建红 / 蓝色工具类（${line.trim().slice(0, 100)}）`);
+    }
+  });
+  return problems;
 }
 
 /** HTML 页内的 <style> 段；CSS 文件原样返回 */
@@ -1587,45 +1734,79 @@ function cssOf(label, src) {
     : src;
 }
 
-test('FOCUS-4 全站焦点单一来源：只有主题色一条环，无 box-shadow 环 / 无 6px 光晕 / 旧令牌零残留', () => {
-  // ① 反例：6px 外发光写回任意一条规则（含非焦点规则）⇒ 必须判红
-  assert.equal(haloProblems('.probe { box-shadow: 0 0 0 6px rgba(0,0,0,.1); }').length, 1,
-    '反例未被判红：任意规则里的 0 0 0 6px 光晕必须命中（判据会变成恒真）');
-  // ② 反例：焦点规则用 box-shadow 画环（即使颜色是主题色）⇒ 必须判红
-  const focusHalo = '.probe:focus { box-shadow: 0 0 0 6px var(--app-accent); }';
-  assert.equal(haloProblems(focusHalo).length, 1, '焦点规则里的 6px 光晕未被判红');
-  assert.ok(focusSourceProblems(focusHalo).problems.length >= 1,
-    '焦点规则用 box-shadow 画环未被判红（不得以阴影充当焦点环）');
-  // ③ 反例：固定党徽金 / 旧令牌当焦点环 ⇒ 必须判红
-  const gold = '.probe:focus-visible { outline: 2px solid var(--party-gold); outline-offset: 1px; box-shadow: none; }';
-  assert.equal(focusSourceProblems(gold).problems.length, 1, '非主题色焦点环未被判红');
-  // ④ 正例：单一主题色环 + box-shadow none ⇒ 不得误红
-  const ok = '.probe:focus-visible { outline: 2px solid var(--app-accent); outline-offset: 1px; box-shadow: none; }';
-  assert.deepEqual(focusSourceProblems(ok).problems, [], '正例被判红：合法的主题色单环被误判');
-
-  // ⑤ 实况：五个焦点面逐一核（styles / person-picker / about / help / login）
-  const sources = [
-    ['docs/src/styles.css', CSS],
-    ['docs/src/components/person-picker.css', PERSON_PICKER_CSS],
-    ['docs/src/about.css', readFileSync(join(SRC, 'about.css'), 'utf8')],
-    ['docs/help.html', HELP_HTML],
-    ['docs/login.html', readFileSync(join(ROOT, 'docs', 'login.html'), 'utf8')],
-  ];
-  let scanned = 0;
-  const problems = [];
-  for (const [label, src] of sources) {
-    const css = cssOf(label, src);
-    assert.doesNotMatch(css, /--focus-(?:ring|halo)/,
-      `${label} 仍引用已退场的焦点令牌（--focus-ring / --focus-halo）`);
-    const r = focusSourceProblems(css);
-    scanned += r.scanned;
-    problems.push(...r.problems.map((p) => `${label} → ${p}`));
-    problems.push(...haloProblems(css).map((p) => `${label} → ${p}`));
+/** 递归收集 docs/src 下 .css（与 .js 扫描面同源） */
+function walkCss(dir, out = []) {
+  for (const name of readdirSync(dir)) {
+    const p = join(dir, name);
+    const st = statSync(p);
+    if (st.isDirectory()) walkCss(p, out);
+    else if (name.endsWith('.css')) out.push(p);
   }
-  assert.ok(scanned >= 20, `只扫描到 ${scanned} 条焦点规则（下限 20）：扫描面被写坏，本断言会恒真`);
-  console.log(`[ui-control-system-guard] FOCUS-4 焦点规则 ${scanned} 条 · 单一来源 / 无光晕 · 违规 ${problems.length} 处`);
+  return out;
+}
+
+test('FOCUS-4 全量扫描：每控件最多一个焦点信号；输入族零 outline；按钮族必有环；焦点色无党徽金/党建红', () => {
+  // ① 反例：同一规则块「边框 + outline 环 + box-shadow 环」三层 ⇒ 必须判红
+  const SYNTH_LAYERS = '.probe:focus { border-color: red; outline: 2px solid red; box-shadow: 0 0 0 3px red; }';
+  assert.ok(focusScan(SYNTH_LAYERS, 'probe').problems.some((p) => /两条环/.test(p)),
+    '反例未被判红：同一规则块的 outline + box-shadow 双层检测失效');
+  // ② 反例：输入族出现 outline ⇒ 必须判红
+  const SYNTH_INPUT = '.input-flat:focus { border-color: var(--app-accent); outline: 2px solid var(--app-accent); }';
+  assert.ok(focusScan(SYNTH_INPUT, 'probe').problems.some((p) => /输入族不得用 outline/.test(p)),
+    '反例未被判红：输入族写 outline 必须命中');
+  // ③ 反例：按钮族无环 ⇒ 必须判红
+  const SYNTH_BTN = 'button:focus-visible { outline: none; box-shadow: none; }';
+  assert.ok(focusScan(SYNTH_BTN, 'probe').problems.some((p) => /按钮族 button/.test(p)),
+    '反例未被判红：按钮族没有焦点环必须命中');
+  // ④ 反例：焦点色改用固定党徽金 / 党建红 ⇒ 必须判红
+  const SYNTH_GOLD = '.probe:focus-visible { outline: 2px solid #FFD700; box-shadow: none; }';
+  const SYNTH_RED = '.probe:focus-visible { outline: 2px solid #CE1126; box-shadow: none; }';
+  assert.ok(focusScan(SYNTH_GOLD, 'probe').problems.length >= 1, '反例未被判红：#FFD700 作焦点色');
+  assert.ok(focusScan(SYNTH_RED, 'probe').problems.length >= 1, '反例未被判红：#CE1126 作焦点色');
+  // ⑤ 正例：输入族只变色 + 按钮族单环 ⇒ 不得误红
+  const SYNTH_OK = '.input-flat:focus { border-color: var(--app-accent); outline: none; box-shadow: none; }\n'
+    + 'button:focus-visible { outline: 2px solid var(--app-accent); outline-offset: 1px; box-shadow: none; }';
+  assert.deepEqual(focusScan(SYNTH_OK, 'probe').problems, [], '正例被判红：合法的单信号焦点被误判');
+  // ⑥ 反例 / 正例：行内焦点工具类
+  assert.ok(inlineFocusProblems('<div class="focus-visible:outline focus-visible:outline-[#CE1126]">').length >= 1,
+    '反例未被判红：行内 focus-visible:outline-[#CE1126] 必须命中');
+  assert.equal(inlineFocusProblems('<div class="focus-ring">').length, 0,
+    '正例被判红：统一语义类 focus-ring 不得命中');
+  console.log(`[ui-control-system-guard] FOCUS-4 反例判定：双层 ${focusScan(SYNTH_LAYERS, 'probe').problems.length} 处 · 输入 outline ${focusScan(SYNTH_INPUT, 'probe').problems.length} 处 · 按钮无环 ${focusScan(SYNTH_BTN, 'probe').problems.length} 处 · #FFD700 ${focusScan(SYNTH_GOLD, 'probe').problems.length} 处 · #CE1126 ${focusScan(SYNTH_RED, 'probe').problems.length} 处 · 行内工具类 ${inlineFocusProblems('<div class="focus-visible:outline focus-visible:outline-[#CE1126]">').length} 处`);
+
+  // ⑦ 实况全量：CSS 文件 ＋ HTML 内联 <style> / 类名 ＋ JS 模板串
+  const cssFiles = walkCss(SRC);
+  const htmlFiles = readdirSync(join(ROOT, 'docs'))
+    .filter((n) => n.endsWith('.html')).map((n) => join(ROOT, 'docs', n));
+  const jsFiles = walkJs(SRC);
+  assert.ok(cssFiles.length >= 4, `只扫描到 ${cssFiles.length} 个 CSS 文件（下限 4）`);
+  assert.ok(jsFiles.length >= 250, `只扫描到 ${jsFiles.length} 个 JS 文件（下限 250）`);
+  assert.ok(htmlFiles.length >= 15, `只扫描到 ${htmlFiles.length} 个 HTML 文件（下限 15）`);
+
+  let focusBlocks = 0;
+  const problems = [];
+  for (const p of cssFiles) {
+    const label = relative(ROOT, p).replace(/\\/g, '/');
+    const r = focusScan(readFileSync(p, 'utf8'), label);
+    focusBlocks += r.focusBlocks;
+    problems.push(...r.problems);
+  }
+  for (const p of htmlFiles) {
+    const label = relative(ROOT, p).replace(/\\/g, '/');
+    const src = readFileSync(p, 'utf8');
+    const r = focusScan(cssOf(label, src), label);
+    focusBlocks += r.focusBlocks;
+    problems.push(...r.problems);
+    problems.push(...inlineFocusProblems(src).map((x) => `${label} ${x}`));
+  }
+  for (const p of jsFiles) {
+    const label = relative(ROOT, p).replace(/\\/g, '/');
+    problems.push(...inlineFocusProblems(readFileSync(p, 'utf8')).map((x) => `${label} ${x}`));
+  }
+  assert.ok(focusBlocks >= 40, `只扫描到 ${focusBlocks} 条焦点规则（下限 40）：扫描面被写坏，本断言会恒真`);
+  console.log(`[ui-control-system-guard] FOCUS-4 焦点规则 ${focusBlocks} 条 · CSS ${cssFiles.length} / JS ${jsFiles.length} / HTML ${htmlFiles.length} · 违规 ${problems.length} 处`);
   assert.deepEqual(problems, [],
-    `焦点环必须只有主题色一个来源、且不得用 box-shadow 画环：\n  ${problems.join('\n  ')}`);
+    `焦点必须只有一个信号（输入族只变色 / 按钮族只有一圈 / 不得用 box-shadow / 不得用党徽金或党建红）：\n  ${problems.join('\n  ')}`);
 });
 
 test('FOCUS-5 七主题 base 焦点环：对白卡 #FFFFFF 与深卡 #141D2F 均 ≥3:1（逐色日志）', () => {

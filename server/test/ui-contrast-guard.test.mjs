@@ -18,7 +18,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { ACCENT_COLORS } from '../../docs/src/core/domain/constants.js?v=20261028e';
+import { ACCENT_COLORS } from '../../docs/src/core/domain/constants.js?v=20261029b';
 
 const ROOT = join(import.meta.dirname, '..', '..');
 const read = (rel) => readFileSync(join(ROOT, rel), 'utf8');
@@ -184,7 +184,7 @@ test('K6 逾期文字档：--status-warning-text 亮/暗 ≥4.5:1，warning 只�
     + ` · 暗/卡 ${darkCard.toFixed(2)} · 暗/页 ${darkPage.toFixed(2)}`);
 
   for (const [selector, why] of [
-    ['.metric-band__value--warning', '逾期数值'],
+    ['.stat-card__value--warning', '逾期数值'],
     ['.state-badge--warning', '逾期状态徽章文字'],
     ['.workflow-substates-hint', '超期提示文字'],
   ]) {

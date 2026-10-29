@@ -5,10 +5,10 @@
 // 功能地图 mindmap 与业务链路 flowchart 以 <pre class="mermaid"> 文本注入（源文本来自共享模块
 // src/core/mermaid-sources.js，与 gen 脚本同实现），由 help-entry.js 懒加载 mermaid CDN 渲染
 // （离线失败保留 .mermaid-fallback 降级文本）
-import { FUNCTION_GROUPS, FUNCTION_CATALOG } from '../../core/domain/function-catalog.js?v=20261028e';
-import { generateMindmapText, FLOW_LINKS } from '../../core/domain/mermaid-sources.js?v=20261028e';
-import { escHtml as esc } from '../../core/base/utils.js?v=20261028e';
-import { HELP_BROWSE_ROLES, HELP_QUICK_TASKS, HELP_TOC_CHAPTERS } from './help-navigation.js?v=20261028e';
+import { FUNCTION_GROUPS, FUNCTION_CATALOG } from '../../core/domain/function-catalog.js?v=20261029b';
+import { generateMindmapText, FLOW_LINKS } from '../../core/domain/mermaid-sources.js?v=20261029b';
+import { escHtml as esc } from '../../core/base/utils.js?v=20261029b';
+import { HELP_BROWSE_ROLES, HELP_QUICK_TASKS, HELP_TOC_CHAPTERS } from './help-navigation.js?v=20261029b';
 
 // HTML 转义统一走 core/base/utils.js escHtml（2026-09-03 去重收口）
 
@@ -31,19 +31,28 @@ export function renderHelpCatalog(root) {
   const searchSlot = document.getElementById('help-search-slot');
   const searchBox = document.createElement('div');
   searchBox.className = 'help-search';
+  // P3 四段：检索（search）＋ 角色筛选（facet）同一 bar 两段；其余段为空段（不输出空行）。
   searchBox.innerHTML = `
-    <label class="help-search-label" for="help-search-input">搜索系统使用说明</label>
-    <input id="help-search-input" class="help-search-input" type="search" placeholder="试试：副支书、请假、议题表决、怎么归档" aria-label="搜索帮助说明、操作步骤和设置" aria-controls="help-search-results" autocomplete="off">
-    <div id="help-search-results" class="help-search-results" role="region" aria-label="帮助搜索结果" aria-live="polite" hidden></div>
-    <details class="help-browse">
-      <summary>按角色或常见任务浏览</summary>
-      <div class="help-browse-panel">
+    <div class="lf-bar">
+      <div class="lf-bar__row" data-seg="search">
+        <div class="help-search-field">
+          <label class="help-search-label" for="help-search-input">搜索系统使用说明</label>
+          <input id="help-search-input" class="help-search-input" type="search" placeholder="试试：副支书、请假、议题表决、怎么归档" aria-label="搜索帮助说明、操作步骤和设置" aria-controls="help-search-results" autocomplete="off">
+          <div id="help-search-results" class="help-search-results" role="region" aria-label="帮助搜索结果" aria-live="polite" hidden></div>
+        </div>
+      </div>
+      <div class="lf-bar__row" data-seg="facet">
         <label class="help-role-label" for="help-role-filter">我以什么身份使用？
           <select id="help-role-filter" class="help-role-filter">
             <option value="">选择角色查看相关说明</option>
             ${HELP_BROWSE_ROLES.map((role) => `<option value="${esc(role.id)}">${esc(role.label)}</option>`).join('')}
           </select>
         </label>
+      </div>
+    </div>
+    <details class="help-browse">
+      <summary>按常见任务浏览</summary>
+      <div class="help-browse-panel help-browse-panel--single">
         <nav class="help-quick-tasks" aria-label="常见任务">
           <span class="help-quick-tasks-label">常见任务</span>
           ${HELP_QUICK_TASKS.map((task) => `<a href="${esc(task.href)}">${esc(task.label)}</a>`).join('')}

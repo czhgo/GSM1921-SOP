@@ -27,7 +27,7 @@ import { fileURLToPath } from 'node:url';
 import {
   HEX_BASELINE, HEX_TOTAL_BASELINE, HEX_FILE_BASELINE, HEX_VALUE_BASELINE, HEX_MOVE_LEDGER,
 } from './style-baseline.mjs';
-import { ACCENT_COLORS } from '../../docs/src/core/domain/constants.js?v=20261028e';
+import { ACCENT_COLORS } from '../../docs/src/core/domain/constants.js?v=20261029b';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(HERE, '..', '..');
@@ -209,7 +209,12 @@ test('H3 非空转：抽取口径可用 + 基线规模达标 + 无僵尸登记',
   //   文件数 74 → 51（23 个文件的内联派生清零）、distinct 168 → 287、处数 → 1419。
   //   下限随实况同步下沉，**不是放宽**——真正判红的是 H1（新增值）/ H2（处数上涨）/ 僵尸登记；
   //   色板本身的合法性由 H6 单独核（除 #FFFFFF 外只允许出现在两个色板定义文件）。
-  assert.ok(HEX_FILE_BASELINE >= 51 && files.length >= 51, `hex 基线文件数过少（实测 ${files.length} / 声明 ${HEX_FILE_BASELINE}，下限 51）`);
+  // ⚠ 2026-10-29 P1（焦点单信号）：`feedback/issue-list.js` / `prop/kanban-tab.js` 的内联焦点色
+  //   `#ce1126` 改为 `.focus-ring` 语义类后清零 ⇒ 按收基线纪律删两条目、声明 51 → 49，
+  //   本「防呆下限」随实况同步下沉到 49（**不是放宽**：H1 新增值 / H2 处数上涨 / 僵尸登记仍是判红项）。
+  // ⚠ 2026-10-29 P2（数字组单一语法）：`secretary/report-up-tab.js` 三处内联 hex 改语义 token 后清零
+  //   ⇒ 再删一条目、声明 49 → 48，本下限随实况同步下沉到 48（同上，不是放宽）。
+  assert.ok(HEX_FILE_BASELINE >= 48 && files.length >= 48, `hex 基线文件数过少（实测 ${files.length} / 声明 ${HEX_FILE_BASELINE}，下限 48）`);
   assert.ok(HEX_TOTAL_BASELINE >= 1400, `hex 基线处数过少（声明 ${HEX_TOTAL_BASELINE}，下限 1400）`);
   assert.ok(HEX_VALUE_BASELINE >= 280, `hex 基线值数过少（声明 ${HEX_VALUE_BASELINE}，下限 280）`);
   assert.equal(files.length, HEX_FILE_BASELINE, '基线条目数与声明的文件数不一致（台账被改动须同步声明值）');

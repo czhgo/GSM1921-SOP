@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
   
-<script src="./src/theme-init.js?v=20261028e"></script>
+<script src="./src/theme-init.js?v=20261029b"></script>
 <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>帮助 — GSM1921-SOP</title>
@@ -13,8 +13,8 @@
   <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;800&family=Noto+Serif+SC:wght@400;500;600;700;800&display=swap" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;800&family=Noto+Serif+SC:wght@400;500;600;700;800&display=swap" rel="stylesheet"></noscript>
   <script src="https://cdn.tailwindcss.com/3.4.17"></script>
-  <script src="./src/tailwind-config.js?v=20261028e"></script>
-  <link rel="stylesheet" href="./src/styles.css?v=20261028e">
+  <script src="./src/tailwind-config.js?v=20261029b"></script>
+  <link rel="stylesheet" href="./src/styles.css?v=20261029b">
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
@@ -28,7 +28,9 @@
        仍是**单值**调整（只动容器宽度这一处既有机制），未新增字号 / 间距 / 分栏数字。
        分页与单档尺规（page-sweep DECK：控件 38px / 数据格 13px）量的是控件与数据格，
        与本容器宽度无关 ⇒ 无需改准。 */
-    .doc-wrap { max-width: 1320px; margin: 0 auto; padding: 24px 16px 72px; }
+    /* 2026-10-29 P4：容器宽度并入五档表（表格密集页 80rem = 1280px），
+       与全站 rem 体系同源；原 1320px 定值撤销。 */
+    .doc-wrap { max-width: 80rem; margin: 0 auto; padding: 24px 16px 72px; }
     .doc-card { background:#FFFFFF; border:1px solid #EEEFF2; border-radius:20px; padding:36px 40px; margin-bottom:22px; box-shadow:0 1px 3px rgba(0,0,0,0.03); scroll-margin-top:76px; min-width:0; width:100%; }
     .doc-h2 { font-family:'Noto Serif SC','STZhongsong',serif; font-size:1.375rem; font-weight:700; color:#1F2937; letter-spacing:0.02em; line-height:1.3; display:flex; align-items:baseline; gap:12px; }
     .doc-h2 .doc-num { color:#CE1126; font-weight:800; font-size:1.5rem; }
@@ -151,19 +153,22 @@
 
     /* ── 顶部搜索框 ── */
     .help-search { position:relative; margin-bottom:24px; }
+    /* P3：搜索段容器（输入 + 结果浮层同属一段，整段参与折行） */
+    .help-search-field { position:relative; display:block; width:100%; min-width:0; }
     .help-search-label,.help-role-label { display:block; margin-bottom:6px; color:var(--neutral-700); font-size:0.8125rem; font-weight:650; }
     /* 2026-10-23 R11：搜索框并入控件单一口径（38px / 13px / 8px 圆角 / 1px 中性描边）；
        2026-10-28（焦点单环）：焦点环与 .input-flat / <select> 同宽同色同偏移（2px 主题色 / offset 1px），
        只保留这一条实线环，不再叠 box-shadow 环。 */
-    .help-search-input { width:100%; border:1px solid var(--neutral-200); border-radius:var(--radius-sm); padding:10px 16px; font-size:13px; line-height:1rem; background:var(--surface-card); color:var(--neutral-900); outline:none; transition:border-color .15s, box-shadow .15s; }
+    .help-search-input { width:100%; border:1px solid var(--neutral-200); border-radius:var(--radius-sm); padding:10px 16px; font-size:13px; line-height:1rem; background:var(--surface-card); color:var(--neutral-900); outline:none; outline-width:0; transition:border-color .15s, box-shadow .15s; }
     .help-search-input::placeholder { color:var(--neutral-500); }
-    .help-search-input:focus,.help-role-filter:focus { border-color:var(--app-accent); outline:2px solid var(--app-accent); outline-offset:1px; box-shadow:none; }
+    /* 2026-10-29 P1：输入族（搜索框 / 角色筛选）聚焦只变边框色，不出环。 */
+    .help-search-input:focus,.help-search-input:focus-visible,.help-role-filter:focus,.help-role-filter:focus-visible { border-color:var(--app-accent); outline:none; outline-width:0; box-shadow:none; }
     .help-search-results { position:relative; margin-top:6px; background:var(--surface-elevated); border:1px solid var(--neutral-200); border-radius:var(--radius-md); box-shadow:0 8px 24px rgba(0,0,0,0.08); z-index:2; max-height:min(48vh,420px); overflow-y:auto; padding:5px; }
     .help-search-result { display:block; width:100%; text-align:left; padding:9px 11px; font-size:0.9375rem; color:var(--neutral-700); background:transparent; border:none; border-radius:var(--radius-sm); text-decoration:none; }
     @media (hover: hover) {
        .help-search-result:hover { background:var(--surface-hover); color:var(--app-accent); }
      }
-     .help-search-result:focus-visible { background:var(--surface-hover); color:var(--app-accent); }
+     /* 2026-10-29 P1：结果行焦点只保留一圈主题色实线（去掉聚焦背景 / 文字变色这两个第二信号）。 */
     .help-search-result:focus-visible,.help-quick-tasks a:focus-visible,.help-browse summary:focus-visible { outline:2px solid var(--app-accent); outline-offset:1px; box-shadow:none; }
     .help-search-result-heading { display:flex; align-items:baseline; justify-content:space-between; gap:12px; }
     .help-search-result-heading small { flex:none; color:var(--neutral-500); font-size:0.75rem; font-weight:500; }
@@ -172,6 +177,8 @@
     .help-browse { margin-top:8px; color:var(--neutral-700); font-size:0.8125rem; }
     .help-browse summary { width:max-content; max-width:100%; cursor:pointer; color:var(--app-accent); font-weight:650; }
     .help-browse-panel { display:grid; grid-template-columns:minmax(180px, 0.8fr) minmax(220px, 1.2fr); gap:12px 20px; margin-top:12px; padding:14px; border:1px solid var(--neutral-200); border-radius:var(--radius-md); background:var(--surface-card); }
+    /* 角色筛选已移入筛选条（P3），此处只剩常见任务一列 */
+    .help-browse-panel--single { grid-template-columns:1fr; }
     .help-role-filter { display:block; width:100%; min-height:38px; margin-top:6px; padding:10px 12px; border:1px solid var(--neutral-200); border-radius:var(--radius-sm); background:var(--surface-elevated); color:var(--neutral-900); font-size:13px; line-height:1rem; }
     .help-quick-tasks { display:flex; align-content:flex-start; align-items:center; flex-wrap:wrap; gap:7px; }
     .help-quick-tasks-label { width:100%; color:var(--neutral-600); font-size:0.75rem; }
@@ -1857,14 +1864,14 @@
 </script>
 
 <!-- modulepreload:start -->
-  <link rel="modulepreload" href="./src/components/shell/sidebar.js?v=20261028e" />
-  <link rel="modulepreload" href="./src/components/shell/header.js?v=20261028e" />
-  <link rel="modulepreload" href="./src/components/sections/help-navigation.js?v=20261028e" />
-  <link rel="modulepreload" href="./src/services/core/runtime.js?v=20261028e" />
-  <link rel="modulepreload" href="./src/services/branch/branch.js?v=20261028e" />
-  <link rel="modulepreload" href="./src/core/domain/constants.js?v=20261028e" />
-  <link rel="modulepreload" href="./src/config/deploy.js?v=20261028e" />
+  <link rel="modulepreload" href="./src/components/shell/sidebar.js?v=20261029b" />
+  <link rel="modulepreload" href="./src/components/shell/header.js?v=20261029b" />
+  <link rel="modulepreload" href="./src/components/sections/help-navigation.js?v=20261029b" />
+  <link rel="modulepreload" href="./src/services/core/runtime.js?v=20261029b" />
+  <link rel="modulepreload" href="./src/services/branch/branch.js?v=20261029b" />
+  <link rel="modulepreload" href="./src/core/domain/constants.js?v=20261029b" />
+  <link rel="modulepreload" href="./src/config/deploy.js?v=20261029b" />
   <!-- modulepreload:end -->
-  <script type="module" src="./src/entries/pages/help-entry.js?v=20261028e"></script>
+  <script type="module" src="./src/entries/pages/help-entry.js?v=20261029b"></script>
 </body>
 </html>

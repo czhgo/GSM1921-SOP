@@ -7,11 +7,11 @@
 // ════════════════════════════════════════════════════════════════
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { ArchiveStore } from '../../docs/src/services/activity/archive.js?v=20261028e';
-import { setDataSource, registerMockAdapter, registerApiAdapter } from '../../docs/src/data/data-adapter.js?v=20261028e';
-import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261028e';
-import { ApiAdapter } from '../../docs/src/data/api-adapter.js?v=20261028e';
-import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261028e';
+import { ArchiveStore } from '../../docs/src/services/activity/archive.js?v=20261029b';
+import { setDataSource, registerMockAdapter, registerApiAdapter } from '../../docs/src/data/data-adapter.js?v=20261029b';
+import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261029b';
+import { ApiAdapter } from '../../docs/src/data/api-adapter.js?v=20261029b';
+import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261029b';
 
 // 服务层按 runtime.js 的正常路径取适配器；单测里手动注入同一对实例。
 registerMockAdapter(MockAdapter);

@@ -1,12 +1,13 @@
 // server/test/ui-focus-ring.test.mjs — 焦点可见性守卫（2026-10-21 · R5A-04/05）
 //
 // 来源：`.ctx/logs/archive/2026-10/AUDIT_R5_A_WEB_GUIDELINES.md` R5A-04/05。
-// 2026-10-28 支书裁定「全站焦点单一来源」后本文件的判据：
+// 2026-10-29 P1（焦点只有一个信号）后本文件的判据：
 //   F1 唯一来源：--focus-ring / --focus-halo 两个旧变量已删除，焦点颜色只用 --app-accent；
-//   F2 全局按钮 / 链接 / summary / role 控件只声明一条 outline（2px 主题色 / offset 1px / 无 box-shadow）；
-//   F3 输入族用 `:focus` 生效（鼠标与键盘同表现）：边框变主题色 + 同一条 2px 实线环，
-//      `:focus-visible` 只作键盘保险，box-shadow 钉成 none；
-//   F4 对比度：七主题 × 亮/暗的主题色 vs 页面底 / 白卡 ≥ 3:1（WCAG 1.4.11 非文本对比）；
+//   F2 全局按钮 / 链接 / summary / role 控件 / 行 / .focus-ring 只声明一条 outline
+//      （2px 主题色 / offset 1px / 无 box-shadow）；
+//   F3 输入族（有边框控件）：`:focus` 与 `:focus-visible` 同表现——只变 border-color，
+//      不出 outline、不出 box-shadow（鼠标与键盘一致）；
+//   F4 对比度：七主题 × 亮/暗的主题色（边框色 / 环色同源）vs 页面底 / 白卡 ≥ 3:1；
 //   F5 非空转：对比度函数有正/负例，规则抽取不把不存在规则当命中；
 //   F6 顶栏三按钮并入同一口径（不再用党徽金 + 金晕），且不得出现两条环。
 //
@@ -80,7 +81,7 @@ test('F2 全局控制器只声明一条 outline（2px 主题色 / offset 1px / �
   assert.match(body, /outline:\s*2px solid var\(--app-accent\)/, '全局焦点环应使用主题色 --app-accent');
   assert.match(body, /outline-offset:\s*1px\s*;/, '全局焦点环偏移应为 1px');
   assert.match(body, /box-shadow:\s*none\s*;/, '全局焦点环不得再叠 box-shadow 光晕');
-  for (const sel of ['summary:focus-visible', '[role="button"]:focus-visible', '[role="option"]:focus-visible', '[role="tab"]:focus-visible', 'tr[data-interactive="true"]:focus-visible']) {
+  for (const sel of ['summary:focus-visible', '[role="button"]:focus-visible', '[role="option"]:focus-visible', '[role="tab"]:focus-visible', '[data-interactive="true"]:focus-visible', '.focus-ring:focus-visible']) {
     assert.ok(body.includes(sel) || STYLES.includes(sel), `全局焦点规则应覆盖 ${sel}`);
   }
 
@@ -106,20 +107,30 @@ test('F2 全局控制器只声明一条 outline（2px 主题色 / offset 1px / �
   }
 });
 
-test('F3 输入族：:focus 生效（鼠标与键盘同表现），边框变主题色 + 一条实线环、无 box-shadow', () => {
-  // 2026-10-28 支书裁定：鼠标点进输入框也要有环 ⇒ 环由 :focus 承担，
-  //   :focus-visible 只作键盘保险（同一几何，不叠第二条）。
+test('F3 输入族：:focus 与 :focus-visible 同表现——只变边框色，不出环、不出阴影', () => {
+  // 2026-10-29 P1：输入框是「有边框控件」⇒ 焦点只有一个信号（border-color）。
   const focus = _ruleBody(STYLES, '.input-flat:focus, .cs-trigger:focus-within')
     || _ruleBody(STYLES, '.input-flat:focus');
   assert.ok(focus, '缺少 .input-flat:focus 字段外壳规则');
   assert.match(focus, /border-color:\s*var\(--app-accent\)/, '活动态边框应为主题色');
-  assert.match(focus, /outline:\s*2px solid var\(--app-accent\)/, '活动态应出 2px 主题色实线环');
-  assert.match(focus, /outline-offset:\s*1px\s*;/, '活动态环偏移应为 1px');
-  assert.match(focus, /box-shadow:\s*none/, '活动态不得再画 box-shadow 环（与 outline 叠成双环）');
+  assert.match(focus, /outline:\s*none\s*;/, '活动态不得出 outline（输入族只允许 border-color）');
+  assert.match(focus, /box-shadow:\s*none\s*;/, '活动态不得出 box-shadow');
+  // 键盘态与鼠标态共用同一个规则块（不是各写一套）。
   const kb = _ruleBody(STYLES, '.input-flat:focus-visible');
-  assert.ok(kb, '缺少 .input-flat:focus-visible 键盘保险');
-  assert.match(kb, /outline:\s*2px solid var\(--app-accent\)/, '键盘焦点需 2px 主题色实线环');
-  assert.match(kb, /box-shadow:\s*none/, '键盘焦点也不得叠 box-shadow 环');
+  assert.equal(kb, focus, '`:focus` 与 `:focus-visible` 必须是同一个规则块（鼠标 / 键盘同表现）');
+  for (const [label, sel] of [
+    ['紧凑档', '.input-flat-sm:focus'],
+    ['下拉内嵌搜索', '.cs-search-input:focus'],
+    ['投票备注', '.vote-note:focus'],
+  ]) {
+    const body = _ruleBody(STYLES, sel);
+    assert.ok(body, `缺少 ${label}（${sel}）焦点规则`);
+    assert.match(body, /border-color:\s*var\(--app-accent\)/, `${label} 聚焦应把边框切到主题色`);
+    const outline = /(?:^|;)\s*outline\s*:\s*([^;]+)/.exec(body)?.[1]?.trim();
+    assert.ok(!outline || /^none$/i.test(outline), `${label} 不得出 outline（输入族只允许 border-color）`);
+    const shadow = /(?:^|;)\s*box-shadow\s*:\s*([^;]+)/.exec(body)?.[1]?.trim();
+    assert.ok(!shadow || /^none$/i.test(shadow), `${label} 不得出 box-shadow`);
+  }
 });
 
 test('F4 对比度：七主题 × 亮/暗的主题色 vs 页面底 / 白卡 ≥ 3:1', () => {

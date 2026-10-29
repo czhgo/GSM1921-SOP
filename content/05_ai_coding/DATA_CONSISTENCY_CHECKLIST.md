@@ -2,7 +2,7 @@
 title: "数据同源一致性校验手册"
 type: governance
 role: "[工程师]+[AI]"
-last_updated: "2026-10-28"
+last_updated: "2026-10-29"
 status: active
 related_files: [DATA_MODEL.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 ---
@@ -76,7 +76,7 @@ related_files: [DATA_MODEL.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 | 13 | 2026-09-15 批次 44 | 「同一病灶只修一处 ＝ 没修完」类 | R-67 |
 | 14 | 2026-09-15 批次 44 | 「工具脚本会把数据当代码改写」类 | — |
 | 15 | 2026-09-15 批次 47-B | 「问句在位但没人守」类——每条问句都要指到一个守卫 | R-68 |
-| 16 | 2026-09-15 批次 47-G | 「辅助小字」的合规判据（**样本学习中、尚未定稿**） | `DESIGN_SYSTEM §4.18` |
+| 16 | 2026-09-15 批次 47-G | 「辅助小字」的合规判据（**样本学习中、尚未定稿**） | `DS_03_COMPONENTS.md §4.18` |
 | 17 | 2026-09-16 批次 47-M | 「病灶不产出文本时，判据自己也看不见它」类 | R-71 |
 | 18 | 2026-09-16 批次 47-P | 「守卫只守了接口的一维」类 | R-72 |
 | 19 | 2026-09-16 批次 47-Q | 「单一源承载两种可见性」类 | — |
@@ -152,10 +152,10 @@ related_files: [DATA_MODEL.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 | R13 版本号推导单一源（同日只允许前进）+ server-test 补戳「缓存键语境」单一源 + **发版一致性**（CHANGELOG ↔ `server/package.json` ↔ tag 取齐；发版走单一入口 `docs/scripts/release.mjs`，默认预演） | `docs/scripts/version-next.mjs`（`nextVersionFor`/`isForward`/`isCommentLine`/`isCacheKeyLine`/`stampTestFileContent`/`cacheKeyStamps` ＋ 批次 236 新增 `nextSemver`/`isSemverForward`/`parseChangelog`/`classifyChanges`）· `docs/scripts/release.mjs` · `CHANGELOG.md` | `version-stamp.test.mjs::S1–S7 + D1–D11`（`S7` 真 spawn 预演并独立复算版本号逐字比对） | 已闭环 | `.ctx/ENGINEERING_ASSESSMENT.md §3.4 R13` |
 | R14/R21/R22 分页与翻页标记单一源（调用点不得私自关；手写 `<table>` 收敛台账） | `components/ui/list-filter.js`（引擎内置分页）· `components/ui/pager.js::pagerHtml` | `filter-row.test.mjs::S10–S12` | 已闭环 | `§3.4 R14 / R21 / R22` |
 | R17 表格类族与控件档位算式显式（单档 38px × 13px；**正文须直接声明到 th/td**、**数据格禁挂小字类**） | `docs/src/styles.css`（`.data-table` / `.data-table th,td` / `.lf-*` / `.page-btn`） | `filter-row.test.mjs::S1–S13 + D1–D3` | 已闭环 | `§3.4 R17` · `REVIEW_QUEUE Q-23-12 / Q-23-15 / Q-23-38` |
-| 「硬编码 hex」存量回归：`DESIGN_SYSTEM.md §2.8` 四层分类取色，**新增即红** · 逐文件处数 ratchet · 搬移例外台账（人工声明 + 逐值对照） | `docs/src/styles.css :root` 取色令牌 · `DESIGN_SYSTEM.md §2.8` | `hex-hardcode-guard.test.mjs::H1–H5` | 已闭环（存量 1957 处 / 168 值 / 92 文件；存量起点 2025 ⇒ ↓68） | `DESIGN_SYSTEM.md §2.8` · `server/test/style-baseline.mjs` |
-| 「控件小字」存量回归：`DESIGN_SYSTEM.md §4.3` 控件字号**单档 13px**，禁控件挂 `text-[11px]/[10px]/[9px]`（新增即红 · 逐文件站点数 ratchet） | `DESIGN_SYSTEM.md §4.3` | `type-scale-guard.test.mjs::T1–T4` | 已闭环（控件 9 处 / 3 文件；全站 `text-[9/10/11px]` 367 处为进度口径） | `DESIGN_SYSTEM.md §4.3` · `server/test/style-baseline.mjs` |
-| R18 选人载体语义两分（选名单成员走 PersonPicker；任命/指派到人允许下拉） | `content/04_web_design/design-system/DESIGN_SYSTEM.md §4.13` | `filter-row.test.mjs::S9` | 已闭环（例外登记 4 处） | `§3.4 R18` · `REVIEW_QUEUE Q-23-13` |
-| R15/R23/R24/R25 人×项目矩阵单一源（互为转置 / 项目维封顶 6 / 人维分页 / 只给挂载点不吞语义） | `components/ui/relation-matrix.js` | `relation-matrix.test.mjs::S1–S6 + 真机①②` | 已闭环 | `§3.4 R15 / R23 / R24 / R25` · `DESIGN_SYSTEM.md §4.10` |
+| 「硬编码 hex」存量回归：`DS_01_COLOR_AND_THEME.md §2.8` 四层分类取色，**新增即红** · 逐文件处数 ratchet · 搬移例外台账（人工声明 + 逐值对照） | `docs/src/styles.css :root` 取色令牌 · `DS_01_COLOR_AND_THEME.md §2.8` | `hex-hardcode-guard.test.mjs::H1–H5` | 已闭环（存量 1957 处 / 168 值 / 92 文件；存量起点 2025 ⇒ ↓68） | `DS_01_COLOR_AND_THEME.md §2.8` · `server/test/style-baseline.mjs` |
+| 「控件小字」存量回归：`DS_03_COMPONENTS.md §4.3` 控件字号**单档 13px**，禁控件挂 `text-[11px]/[10px]/[9px]`（新增即红 · 逐文件站点数 ratchet） | `DS_03_COMPONENTS.md §4.3` | `type-scale-guard.test.mjs::T1–T4` | 已闭环（控件 9 处 / 3 文件；全站 `text-[9/10/11px]` 367 处为进度口径） | `DS_03_COMPONENTS.md §4.3` · `server/test/style-baseline.mjs` |
+| R18 选人载体语义两分（选名单成员走 PersonPicker；任命/指派到人允许下拉） | `content/04_web_design/design-system/DS_03_COMPONENTS.md §4.13` | `filter-row.test.mjs::S9` | 已闭环（例外登记 4 处） | `§3.4 R18` · `REVIEW_QUEUE Q-23-13` |
+| R15/R23/R24/R25 人×项目矩阵单一源（互为转置 / 项目维封顶 6 / 人维分页 / 只给挂载点不吞语义） | `components/ui/relation-matrix.js` | `relation-matrix.test.mjs::S1–S6 + 真机①②` | 已闭环 | `§3.4 R15 / R23 / R24 / R25` · `DS_03_COMPONENTS.md §4.10` |
 | R16 党小组活组清单单一源（禁字面量 / 模块加载期派生快照 / 种子枚举代跑） | `services/member/party-group.js::groupOptions()` | `party-group.test.mjs::S1–S4` | 已闭环 | `§3.4 R16` |
 | R19 同一动作多入口（不同角色门）须同一实现体挂多门 | `server/routes/member.js::createMemberRow` | `member-flow.test.mjs::S4` · `permission-gate.test.mjs::⑤d / ⑥ / ⑦` · `member-persist.test.mjs::api ⑫` | 已闭环 | `§3.4 R19` · `REVIEW_QUEUE Q-23-10` |
 | R20 状态与载体须同一次变化驱动 + 销毁前先摘回调 | `components/governance/person-picker.js` | `inspection-loop-e2e.test.mjs`（组长台 / 组织台两条真机）· `ux-guard.test.mjs::⑦` | 已闭环 | `§3.4 R20` · `REVIEW_QUEUE Q-23-14` |
@@ -190,11 +190,11 @@ related_files: [DATA_MODEL.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 | 前端持久化域 ↔ server 表对账口径（分五口径，严禁互相代入） | `docs/src/core/domain/domain.js::mockDB` · `server/db.js::RESOURCE_TABLES` | `doc-consistency.test.mjs::S5` | 已闭环 | 本文件 §跨类别同源校验 · `§3.4 R26` |
 | `README-server.md` 的「`文件:行号`」取证引用逐条指向真实位置（含短式 `:192` / 逗号续列 / md 区间不越节 / 「零命中」类关键词取证仍成立 / 行为词型引用须带可校验锚点） | `README-server.md` 的**383 处**引用 · `docs/src/**` 行为词 | `docs-governance-guard.test.mjs::R1–R6` | 已闭环（**换说法机检不了** ⇒ 该半落 `CLAUDE.md R-87` 纪律） | `CLAUDE.md R-87` · 本文件 §链接完整性校验 |
 | `R-83`「改过文件必须刷 `frontmatter.last_updated`」的机检件（表行日期 ↔ frontmatter ↔ 该文件最后一次提交日） | `.ctx/TIMESTAMPS.md` · 各 `content/**` frontmatter | `docs-governance-guard.test.mjs::F1–F3`（`F1` git-free · `F2` git〔浅克隆判红、无 git 只报不判〕） | 已闭环（⚠ **`F2` 现存 9 处红**——9 份 `content/**` 的 `last_updated` 早于其最后提交日，属 `content/**` 授权面外、待另路面收） | `CLAUDE.md R-83` · `.ctx/TIMESTAMPS.md` |
-| 界面文案与制度母本「**连续 ≥20 字重合即红**」（制度原文不进界面，改写成一行 ＋ `docs/help.html` 深链） | `DESIGN_SYSTEM.md §4.18 C7` · `docs/src/**` 界面文本 | `copy-guard.test.mjs::N1–N4` | 已闭环（基线 **11 条 / 9 文件**） | `DESIGN_SYSTEM.md §4.18` |
-| 界面文案长度存量回归（卡片导语 ≤60 字 · 单段 ≤80 字 · 单句括注 ≤2 个 · 空态 ≤30 字） | `DESIGN_SYSTEM.md §4.18 C1/C2/C5/C6` | `copy-guard.test.mjs::L1–L6` | 已闭环（**源码静态近似**、逐类基线 ratchet；`L6` 只报不判） | `DESIGN_SYSTEM.md §4.18` |
-| 同屏复述（归一化后 ≥15 字块出现 ≥2 次）与每屏「文案 ÷ 控件」比值（≤12；12–20 须登记；>20 记待改造） | `DESIGN_SYSTEM.md §4.18 C3/C4` | `copy-screen-guard.test.mjs::M1–M4` | 已闭环（**真机** 7 台 × 默认视图，自起自停） | `DESIGN_SYSTEM.md §4.18` |
-| 折叠区口径与 `help.html` 是否**同义**（C8）——**机器判不了「同义」⇒ 只登记不判红** | `DESIGN_SYSTEM.md §4.18 C8` · `docs/src/**` 折叠区 · `docs/help.html` | `copy-guard.test.mjs::F1/F2`（**只报不判**） | 半闭环（如实登记：C8 落「纪律 ＋ 人检清单」，守卫不越界假装覆盖） | `DESIGN_SYSTEM.md §4.18` |
-| 口径定点锚点**真机可达 / 可检索**（深链直达且目标可见；搜索 → 点结果 → 卡片高亮） | `docs/help.html` 的 `card-copy-*` 定点卡片 · `help-catalog.js` 运行时索引 | `copy-anchor-guard-e2e.test.mjs::A1–A3` | 已闭环（CDN 一律 `route.abort`、不依赖外网） | `DESIGN_SYSTEM.md §4.18` |
+| 界面文案与制度母本「**连续 ≥20 字重合即红**」（制度原文不进界面，改写成一行 ＋ `docs/help.html` 深链） | `DS_03_COMPONENTS.md §4.18 C7` · `docs/src/**` 界面文本 | `copy-guard.test.mjs::N1–N4` | 已闭环（基线 **11 条 / 9 文件**） | `DS_03_COMPONENTS.md §4.18` |
+| 界面文案长度存量回归（卡片导语 ≤60 字 · 单段 ≤80 字 · 单句括注 ≤2 个 · 空态 ≤30 字） | `DS_03_COMPONENTS.md §4.18 C1/C2/C5/C6` | `copy-guard.test.mjs::L1–L6` | 已闭环（**源码静态近似**、逐类基线 ratchet；`L6` 只报不判） | `DS_03_COMPONENTS.md §4.18` |
+| 同屏复述（归一化后 ≥15 字块出现 ≥2 次）与每屏「文案 ÷ 控件」比值（≤12；12–20 须登记；>20 记待改造） | `DS_03_COMPONENTS.md §4.18 C3/C4` | `copy-screen-guard.test.mjs::M1–M4` | 已闭环（**真机** 7 台 × 默认视图，自起自停） | `DS_03_COMPONENTS.md §4.18` |
+| 折叠区口径与 `help.html` 是否**同义**（C8）——**机器判不了「同义」⇒ 只登记不判红** | `DS_03_COMPONENTS.md §4.18 C8` · `docs/src/**` 折叠区 · `docs/help.html` | `copy-guard.test.mjs::F1/F2`（**只报不判**） | 半闭环（如实登记：C8 落「纪律 ＋ 人检清单」，守卫不越界假装覆盖） | `DS_03_COMPONENTS.md §4.18` |
+| 口径定点锚点**真机可达 / 可检索**（深链直达且目标可见；搜索 → 点结果 → 卡片高亮） | `docs/help.html` 的 `card-copy-*` 定点卡片 · `help-catalog.js` 运行时索引 | `copy-anchor-guard-e2e.test.mjs::A1–A3` | 已闭环（CDN 一律 `route.abort`、不依赖外网） | `DS_03_COMPONENTS.md §4.18` |
 | mock 形态与 api 形态**读数一致** ＋ **服务端是否真按同源播种**（承重臂＝服务端 HTTP 原始行；只看前端缓存会被 `SEED_FALLBACK` 顶替 ⇒ 假绿） | `docs/src/data/mock/**` 语料 · `server/seed.js` · `server/routes/resources/*` | `mock-api-parity.test.mjs::S0 / P1–P4` | 已闭环（表集合 **10 张**：`todos` / `notices` / `attendances` / `inspections` / `makeupTasks` / `activities` / `taskforces` / `assignments` / `signups` / `partyGroups`） | `.ctx/logs/archive/2026-09-DECISION_LOG.md`（`D-658`）· 批次 515 扩面 |
 | **两适配器的接口面**（资源组 / 方法集合双向比对；差异须逐条登记理由，Mock 不得先造 API 没有的组） | `docs/src/data/api-adapter.js` · `docs/src/data/mock-adapter.js` | `mock-api-parity-structure.test.mjs::S1 / S2 / S2b / S3 / S4 / C3`（6 条） | 已闭环（21 条差异白名单，每条带理由） | 批次 515 · 本文件 §0.2 |
 | **种子契约**（branchId 非空且同支部 / `todos.branch_id` 生成列 / 四组唯一索引 / contributions 对象化 / 考察成员资格 / 死表与只读表 / 文档登记） | `server/seed.js` · `server/db.js` · `docs/src/data/seed-manifest.js` | `seed-contract-guard.test.mjs::C1–C10` | 已闭环 | `content/04_web_design/data/DATA_SEED_CONTRACT.md` |

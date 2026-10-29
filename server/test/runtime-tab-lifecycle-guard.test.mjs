@@ -22,7 +22,7 @@ import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
   renderTabBar, mountTabFailure, TAB_LOADING_TIMEOUT_MS,
-} from '../../docs/src/components/shell/tab-bar.js?v=20261028e';
+} from '../../docs/src/components/shell/tab-bar.js?v=20261029b';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(HERE, '..', '..');
@@ -253,7 +253,7 @@ test('P1 600ms 不再写死：默认 ≤120ms，可由 window.__MOCK_DELAY_MS / 
     '所有 mock 写口/读口的延迟必须走可配置源');
 
   // 行为：覆盖优先级 + 默认值（不依赖浏览器）
-  const { mockDelayMs } = await import('../../docs/src/data/mock-adapter.js?v=20261028e');
+  const { mockDelayMs } = await import('../../docs/src/data/mock-adapter.js?v=20261029b');
   const envKey = 'MOCK_DELAY_MS';
   const oldEnv = process.env[envKey];
   try {

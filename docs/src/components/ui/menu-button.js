@@ -7,7 +7,7 @@
 //   · 菜单容器 `role="menu"`，菜单项 `role="menuitem"`；
 //   · Esc 关闭并把焦点归还给触发按钮；点击外部关闭；
 //   · 折叠状态由 `aria-expanded` **静态回读**（菜单不是阅读型折叠，故不进 `<details>`）。
-import { escHtml } from '../../core/base/utils.js?v=20261028e';
+import { escHtml } from '../../core/base/utils.js?v=20261029b';
 
 /** 每个根节点只挂一次文档级关闭监听（容器跨重渲染复用） */
 const _bound = new WeakSet();

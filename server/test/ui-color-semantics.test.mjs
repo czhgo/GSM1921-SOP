@@ -22,7 +22,7 @@ import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
-const DESIGN = join(ROOT, 'content', '04_web_design', 'design-system', 'DESIGN_SYSTEM.md');
+const DESIGN = join(ROOT, 'content', '04_web_design', 'design-system', 'DS_01_COLOR_AND_THEME.md');
 const CSS = join(ROOT, 'docs', 'src', 'styles.css');
 
 /** 关键页面（后续页面任务负责修；本守卫只做结构断言，不判视觉） */

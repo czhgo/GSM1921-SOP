@@ -2,7 +2,7 @@
 title: "架构与单一事实源"
 type: architecture
 role: "[工程师]+[AI]"
-last_updated: "2026-10-27"
+last_updated: "2026-10-29"
 version: "7.4"
 status: active
 related_files: [CLAUDE.md, content/03_doc_system/DOC_MAP.md, content/02_institution/SYSTEM_ROLE_PERMISSION.md, content/04_web_design/]
@@ -374,8 +374,8 @@ content/02_institution/sop/ → docs/src/workflow/ → core/constants/utils → 
 | `content/02_institution/sop/*.md` | `docs/src/workflow/`、`docs/src/` | 制度→代码（H30.2 规则1）。SOP 制度文本是系统代码的母本。凡涉及流程步骤、术语、权限规则，必须先检查 content/02_institution/sop/ |
 | `content/04_web_design/data/DATA_MODEL.md §3（参与者数据流设计）` | `docs/src/`（角色权限引擎） | 设计→代码。数据流架构定义角色数据流与登录态说明（§3.4，已实现登录态），代码实现设计 |
 | `content/02_institution/COMMISSIONER_DUTY_FRAMEWORK.md` | `docs/src/`（专班管理 + 审批流程） | 设计→代码。支委系统设计定义专班管理逻辑和§审批流程规范，代码实现 |
-| `content/04_web_design/design-system/DESIGN_SYSTEM.md` | `docs/src/styles.css`、`docs/src/components/*` | 设计→样式/代码。设计系统是全局样式与各组件实现的母本（查色值见 §二，写组件见 §四，点击落点见 §十） |
-| `content/04_web_design/design-system/DESIGN_SYSTEM.md §4.27–§4.28 / §10.7` | `docs/src/components/ui/modal.js`、`docs/src/components/ui/list-filter.js`、各对象入口页 | 设计→代码。浮窗体例 / 筛选形态 / 承载面唯一性是组件与入口的母本；新增浮窗、筛选或对象入口先对照三节 |
+| `content/04_web_design/design-system/DESIGN_SYSTEM.md`（父索引） | `docs/src/styles.css`、`docs/src/components/*` | 设计→样式/代码。设计系统是全局样式与各组件实现的母本（查色值见 DS_01 §二，写组件见 DS_03 §四，点击落点见 DS_05 §十） |
+| `content/04_web_design/design-system/DS_03_COMPONENTS.md §4.27–§4.28` 与 `content/04_web_design/design-system/DS_05_MAP_AND_REFERENCE.md §10.7` | `docs/src/components/ui/modal.js`、`docs/src/components/ui/list-filter.js`、各对象入口页 | 设计→代码。浮窗体例 / 筛选形态 / 承载面唯一性是组件与入口的母本；新增浮窗、筛选或对象入口先对照三节 |
 | `content/04_web_design/module/MODULE_UI_DESIGN.md` | `docs/src/components/record/calendar.js` | 设计→代码。日历功能规划是日历渲染引擎的母本 |
 | `content/04_web_design/data/DATA_MODEL.md` | `docs/src/core/domain/domain.js` | 数据→代码。数据字段定义权威源（含§写入数据验证设计），代码中的数据结构必须与 DATA_MODEL.md 一致 |
 | `content/04_web_design/data/DATA_MODEL.md §3.4（登录态说明）` | `docs/src/core/base/state.js` | 设计→代码。DATA_MODEL §3.4 登录态说明是状态中心登录逻辑的母本 |

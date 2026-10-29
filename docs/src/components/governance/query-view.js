@@ -15,8 +15,8 @@
  */
 
 // 翻页控件单一源（批次 38：全站手写翻页一律并轨 pagerHtml）
-import { pagerHtml } from '../ui/pager.js?v=20261028e';
-import { emptyStateHtml } from '../ui/empty-state.js?v=20261028e';
+import { pagerHtml } from '../ui/pager.js?v=20261029b';
+import { emptyStateHtml } from '../ui/empty-state.js?v=20261029b';
 
 /** 属性/文本转义（子类下拉选项由配置派生，仍统一转义） */
 function _esc(s) {
@@ -41,6 +41,7 @@ export function renderQueryView(container, config) {
   const {
     searchPlaceholder = '搜索...',
     searchKey = 'name',
+    scope = [],        // P3「范围」段（时间区间 / 可见范围等），与 filters 分开成段
     filters = [],
     data = [],
     renderRow,
@@ -56,8 +57,15 @@ export function renderQueryView(container, config) {
 
   const uid = 'qv-' + Math.random().toString(36).slice(2, 8);
 
-  // 搜索栏 + 筛选器 HTML（筛选行载体单一源：styles.css::.lf-bar / .lf-kw / .lf-select / .lf-btn；
-  // 分面一律下拉，禁 chip —— 2026-09-14 批次 27 支书裁定）
+  // 搜索栏 + 筛选器 HTML（筛选行载体单一源：styles.css::.lf-bar / .lf-bar__row / .lf-kw / .lf-select / .lf-btn；
+  // P3 四段：范围 → 检索 → 分面 → 重置；分面一律下拉，禁 chip —— 2026-09-14 批次 27 支书裁定）
+  // 范围段：从原 filters[] 中拆出（时间区间 / 进行中·已结束等「缩小可见范围」的维度）
+  const scopeHtml = scope.map(f => `
+    <select id="${uid}-scope-${f.key}" class="input-flat text-xs lf-select" aria-label="${_esc(f.label)}筛选">
+      <option value="">${_esc(f.label)}：全部</option>
+      ${f.options.map(o => `<option value="${_esc(o.value)}">${_esc(o.label)}</option>`).join('')}
+    </select>
+  `).join('');
   const filtersHtml = filters.map(f => `
     <select id="${uid}-filter-${f.key}" class="input-flat text-xs lf-select" aria-label="${_esc(f.label)}筛选">
       <option value="">${_esc(f.label)}：全部</option>
@@ -83,12 +91,19 @@ export function renderQueryView(container, config) {
   container.innerHTML = `
     <div class="query-view">
       <div class="lf-bar mb-3">
-        <input type="text" id="${uid}-search" class="input-flat text-xs lf-kw"
-               placeholder="${searchPlaceholder}" />
-        ${filtersHtml}
-        ${categoryHtml}
-        ${brandHtml}
-        <button id="${uid}-clear" class="btn-tab lf-btn">清除</button>
+        ${scope.length ? `<div class="lf-bar__row" data-seg="scope">${scopeHtml}</div>` : ''}
+        <div class="lf-bar__row" data-seg="search">
+          <input type="text" id="${uid}-search" class="input-flat text-xs lf-kw"
+                 placeholder="${searchPlaceholder}" />
+        </div>
+        <div class="lf-bar__row" data-seg="facet">
+          ${filtersHtml}
+          ${categoryHtml}
+          ${brandHtml}
+        </div>
+        <div class="lf-bar__row" data-seg="reset">
+          <button id="${uid}-clear" class="btn-tab lf-btn">清除</button>
+        </div>
       </div>
       <div id="${uid}-results" class="space-y-1"></div>
       <div id="${uid}-count" class="text-xs text-gray-500 mt-2"></div>
@@ -109,6 +124,11 @@ export function renderQueryView(container, config) {
       const el = document.getElementById(`${uid}-filter-${f.key}`);
       if (el) filterValues[f.key] = el.value;
     });
+    const scopeValues = {};
+    scope.forEach(f => {
+      const el = document.getElementById(`${uid}-scope-${f.key}`);
+      if (el) scopeValues[f.key] = el.value;
+    });
 
     const filtered = data.filter(item => {
       // 搜索匹配
@@ -117,6 +137,10 @@ export function renderQueryView(container, config) {
         // 也搜索其他文本字段
         const allText = Object.values(item).filter(v => typeof v === 'string').join(' ').toLowerCase();
         if (!val.includes(query) && !allText.includes(query)) return false;
+      }
+      // 范围匹配（P3「范围」段：时间区间 / 进行中·已结束等）
+      for (const [key, value] of Object.entries(scopeValues)) {
+        if (value && String(item[key] ?? '') !== value) return false;
       }
       // 筛选匹配
       for (const [key, value] of Object.entries(filterValues)) {
@@ -185,6 +209,10 @@ export function renderQueryView(container, config) {
   }
 
   searchEl?.addEventListener('input', resetPageAndApply);
+  scope.forEach(f => {
+    const el = document.getElementById(`${uid}-scope-${f.key}`);
+    el?.addEventListener('change', resetPageAndApply);
+  });
   filters.forEach(f => {
     const el = document.getElementById(`${uid}-filter-${f.key}`);
     el?.addEventListener('change', resetPageAndApply);
@@ -227,6 +255,10 @@ export function renderQueryView(container, config) {
 
   clearEl?.addEventListener('click', () => {
     searchEl.value = '';
+    scope.forEach(f => {
+      const el = document.getElementById(`${uid}-scope-${f.key}`);
+      if (el) el.value = '';
+    });
     filters.forEach(f => {
       const el = document.getElementById(`${uid}-filter-${f.key}`);
       if (el) el.value = '';

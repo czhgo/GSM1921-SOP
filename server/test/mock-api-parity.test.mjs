@@ -48,21 +48,21 @@ globalThis.localStorage = makeStorage();
 
 import { createApp } from '../app.js';
 import { seedDatabase } from '../seed.js';
-import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261028e';
-import { getRuntimeMode, init, setDataSource } from '../../docs/src/data/data-adapter.js?v=20261028e';
+import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261029b';
+import { getRuntimeMode, init, setDataSource } from '../../docs/src/data/data-adapter.js?v=20261029b';
 // ── mock 形态语料（单一源；服务端 seed.js 亦从这些具名导出播种 ⇒ 两侧本应逐值相同）──
-import { MOCK_NOTICES } from '../../docs/src/data/mock/notices.js?v=20261028e';
-import { ATTENDANCE_RECORDS } from '../../docs/src/data/mock/attendance.js?v=20261028e';
-import { INSPECTION_RECORDS } from '../../docs/src/data/mock/inspection.js?v=20261028e';
-import { SEED_MAKEUP_TASKS, SEED_SIGNUPS, SEED_ASSIGNMENTS } from '../../docs/src/data/mock/seed.js?v=20261028e';
-import { PARTY_GROUPS } from '../../docs/src/data/mock/party-groups.js?v=20261028e';
-import { MOCK_TASKFORCES } from '../../docs/src/data/mock/taskforces.js?v=20261028e';
-import { normalizeSeedActivitySeedRows, ensureLegacySourceWorkgroups, ensureDemoWorkgroupGrants } from '../../docs/src/data/workgroup-seed-sync.js?v=20261028e';
-import { ACTIVITIES } from '../../docs/src/data/mock/activities.js?v=20261028e';
-import { PEOPLE } from '../../docs/src/data/mock/people.js?v=20261028e';
-import { applyDerivedFacts } from '../../docs/src/data/mock/derive.js?v=20261028e';
+import { MOCK_NOTICES } from '../../docs/src/data/mock/notices.js?v=20261029b';
+import { ATTENDANCE_RECORDS } from '../../docs/src/data/mock/attendance.js?v=20261029b';
+import { INSPECTION_RECORDS } from '../../docs/src/data/mock/inspection.js?v=20261029b';
+import { SEED_MAKEUP_TASKS, SEED_SIGNUPS, SEED_ASSIGNMENTS } from '../../docs/src/data/mock/seed.js?v=20261029b';
+import { PARTY_GROUPS } from '../../docs/src/data/mock/party-groups.js?v=20261029b';
+import { MOCK_TASKFORCES } from '../../docs/src/data/mock/taskforces.js?v=20261029b';
+import { normalizeSeedActivitySeedRows, ensureLegacySourceWorkgroups, ensureDemoWorkgroupGrants } from '../../docs/src/data/workgroup-seed-sync.js?v=20261029b';
+import { ACTIVITIES } from '../../docs/src/data/mock/activities.js?v=20261029b';
+import { PEOPLE } from '../../docs/src/data/mock/people.js?v=20261029b';
+import { applyDerivedFacts } from '../../docs/src/data/mock/derive.js?v=20261029b';
 // `SEED_TODOS` 不在 `mock/**`（它是服务层常量，前端 seedTodos() 读的正是它）——服务端 seed.js 同源 import
-import { SEED_TODOS } from '../../docs/src/services/governance/todo.js?v=20261028e';
+import { SEED_TODOS } from '../../docs/src/services/governance/todo.js?v=20261029b';
 
 // ════════════════════════════════════════════════════════════════
 //  B 类现场（api 形态）：内存服务 + 真登录取 token + init() 把服务端全量灌进 mockDB 缓存

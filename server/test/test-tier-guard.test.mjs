@@ -125,3 +125,45 @@ test('T6 非空转：规模下限、reason 完备、比较器能判出人为差�
   const dupDiff = diffTiers(disk, [...TEST_TIERS, { file: victim, tier: 'weekly', reason: '自检重复' }]);
   assert.ok(dupDiff.duplicates.includes(victim), '比较器未判出「同一文件登记两层」');
 });
+
+// ── T7 守卫台账：标题数字与正文「现行 N 件」必须一致（2026-10-29 · P6 例外补守卫）──
+// 原例外：`content/05_ai_coding/GUARD_INVENTORY.md` 的标题写一个数、正文写另一个数，
+//   没有任何机检；读者无法判断哪个是现行值。本项只钉「三处现行数一致」：
+//   ① frontmatter title 的最后一个「N 件」；② §一 标题的「现行 N 件」；③ 正文「现行 **N 件 / T 条**」。
+// 反例：把标题数字改大 1，解析器必须报不一致（证明不是恒真）。
+function parseGuardLedger(src) {
+  const title = /^title:\s*"[^"]*?(\d+)\s*件[^"]*"/m.exec(src)?.[1];
+  const heading = /^##\s*一、[^\n]*?现行\s*(\d+)\s*件/m.exec(src)?.[1];
+  const body = /现行\s*\*\*(\d+)\s*件\s*\/\s*(\d+)\s*条\*\*/.exec(src);
+  const problems = [];
+  if (!title) problems.push('标题缺「N 件」');
+  if (!heading) problems.push('§一 标题缺「现行 N 件」');
+  if (!body) problems.push('正文缺「现行 N 件 / T 条」');
+  if (title && heading && title !== heading) {
+    problems.push(`标题写 ${title} 件，§一 标题写 ${heading} 件`);
+  }
+  if (title && body && title !== body[1]) {
+    problems.push(`标题写 ${title} 件，正文写 ${body[1]} 件`);
+  }
+  return { title, heading, bodyCount: body?.[1], problems };
+}
+
+test('T7 守卫台账标题数字与正文「现行 N 件」一致（含反例）', () => {
+  const file = join(ROOT, 'content', '05_ai_coding', 'GUARD_INVENTORY.md');
+  const src = readFileSync(file, 'utf8');
+  const parsed = parseGuardLedger(src);
+  assert.deepEqual(parsed.problems, [], `守卫台账标题与正文不一致：\n  ${parsed.problems.join('\n  ')}`);
+  assert.ok(Number(parsed.title) >= 50, `台账现行件数只解析到 ${parsed.title}（下限 50）：解析口径被写坏`);
+
+  // 非空转：§一 表内登记行不得少于标题声明的件数（防标题虚高）
+  const section = src.split(/^##\s*二、/m)[0];
+  const rows = section.split(/\r?\n/).filter((l) => /^\|\s*`[a-z0-9-]+\.test\.mjs`/.test(l));
+  assert.ok(rows.length >= Number(parsed.title),
+    `§一 表内只有 ${rows.length} 行，少于标题声明的 ${parsed.title} 件`);
+
+  // 反例：标题数字 +1 必须判红
+  const tampered = src.replace(/^title:.*$/m, (line) => line.replace(/\d+(?=\s*件)/, String(Number(parsed.title) + 1)));
+  const bad = parseGuardLedger(tampered);
+  assert.ok(bad.problems.some((p) => p.startsWith('标题写')),
+    `反例：标题数字改动后未判红（解析器恒真）——${JSON.stringify(bad)}`);
+});

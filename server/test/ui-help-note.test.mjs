@@ -20,7 +20,7 @@ import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
-const DESIGN = join(ROOT, 'content', '04_web_design', 'design-system', 'DESIGN_SYSTEM.md');
+const DESIGN = join(ROOT, 'content', '04_web_design', 'design-system', 'DS_03_COMPONENTS.md');
 const STYLES = join(ROOT, 'docs', 'src', 'styles.css');
 
 /** 迁移后必须使用统一帮助注释的页面（Task 2 / SubTask 2.3 / 2.4） */
@@ -38,7 +38,7 @@ function sliceBetween(src, startMarker, endMarker) {
 
 test('H1 DESIGN_SYSTEM §4.24 帮助注释存在且口径齐备', () => {
   const src = readFileSync(DESIGN, 'utf8');
-  const section = sliceBetween(src, '### 4.24 帮助注释', '## 五、交互反馈规范');
+  const section = sliceBetween(src, '### 4.24 帮助注释', '### 4.25 标题层级与文档大纲');
   assert.ok(section.length > 100, 'DESIGN_SYSTEM 缺 §4.24「帮助注释」或正文过短');
   for (const key of ['.help-note__link', '.help-note', '一句正文 + 一个链接', 'help.html', '--color-link']) {
     assert.ok(section.includes(key), `§4.24 缺「${key}」`);

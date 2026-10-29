@@ -1,9 +1,9 @@
 // 数据域接线批次二（2026-09-03）：展示格式化 attendanceToLong 已提升至 services/activity/attendance.js；
 // 本文件退化为纯考勤种子数据仓（PEOPLE 供全员出席名单生成）。
-import { PEOPLE } from './people.js?v=20261028e';
-import { AttendanceStatus } from '../../core/domain/domain.js?v=20261028e';
+import { PEOPLE } from './people.js?v=20261029b';
+import { AttendanceStatus } from '../../core/domain/domain.js?v=20261029b';
 // v12：种子考勤一律带支部归属（单支部演示库缺省 br-b1；由下方统一循环补，不逐行复制）。
-import { DEFAULT_BRANCH_ID } from '../../core/domain/constants.js?v=20261028e';
+import { DEFAULT_BRANCH_ID } from '../../core/domain/constants.js?v=20261029b';
 
 // Task 5（2026-10-26，演示窗口 2026-08-01~2026-11-30）：
 //   显式段 att1~att43 的 recordedAt 随关联活动重排同步平移（recordedAt = 活动日当天），

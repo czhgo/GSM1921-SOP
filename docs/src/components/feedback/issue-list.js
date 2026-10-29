@@ -1,16 +1,16 @@
 // role: [工程师]+[AI]
 // issue-list.js — 反馈列表渲染
 
-import { IssueStore } from '../../services/governance/issues.js?v=20261028e';
-import { AuthStore } from '../../services/core/auth.js?v=20261028e';
-import { icon } from '../../core/base/icons.js?v=20261028e';
-import { getPersonName } from '../../services/member/person.js?v=20261028e';
-import { ISSUE_STATUS_LABELS, ISSUE_CLOSED_REASON_LABELS } from '../../core/domain/constants.js?v=20261028e';
-import { badgeHtml } from '../ui/badges.js?v=20261028e';
+import { IssueStore } from '../../services/governance/issues.js?v=20261029b';
+import { AuthStore } from '../../services/core/auth.js?v=20261029b';
+import { icon } from '../../core/base/icons.js?v=20261029b';
+import { getPersonName } from '../../services/member/person.js?v=20261029b';
+import { ISSUE_STATUS_LABELS, ISSUE_CLOSED_REASON_LABELS } from '../../core/domain/constants.js?v=20261029b';
+import { badgeHtml } from '../ui/badges.js?v=20261029b';
 // 翻页控件单一源（批次 38：全站手写翻页一律并轨 pagerHtml）
-import { pagerHtml } from '../ui/pager.js?v=20261028e';
+import { pagerHtml } from '../ui/pager.js?v=20261029b';
 
-import { emptyStateHtml } from '../ui/empty-state.js?v=20261028e';
+import { emptyStateHtml } from '../ui/empty-state.js?v=20261029b';
 const SCOPE_LABELS = {
   permanent: '底层架构',
   global: '全局通用',
@@ -80,24 +80,32 @@ export function renderIssueList() {
         ${canCreate ? `<button id="btn-new-issue" class="btn-accent text-sm px-4 py-1.5 font-medium">提交意见反馈</button>` : ''}
       </div>
 
-      <!-- 筛选行（2026-09-14 批次 27 统一：载体 styles.css::.lf-bar/.lf-kw/.lf-select/.lf-btn；
-           分面一律下拉，禁 chip；控件统一 34px 高 / 12px 字） -->
+      <!-- 筛选行（P3 四段：范围 → 检索 → 分面 → 重置；载体 styles.css::.lf-bar/.lf-bar__row；
+           分面一律下拉，禁 chip；控件统一单档 40px / 13px 字） -->
       <div class="lf-bar mb-3">
-        <input type="text" id="filter-keyword" placeholder="搜索标题/正文..." value="${_filterState.keyword}" class="input-flat text-xs lf-kw">
-        <select id="filter-status" class="input-flat text-xs lf-select" aria-label="状态筛选">
-          <option value="all" ${_filterState.status === 'all' ? 'selected' : ''}>状态：全部 (${counts.total})</option>
-          <option value="open" ${_filterState.status === 'open' ? 'selected' : ''}>开放中 (${counts.open})</option>
-          <option value="closed" ${_filterState.status === 'closed' ? 'selected' : ''}>已关闭 (${counts.closed})</option>
-        </select>
-        <select id="filter-scope" class="input-flat text-xs lf-select" aria-label="范围筛选">
-          <option value="all" ${_filterState.scope === 'all' ? 'selected' : ''}>范围：全部</option>
-          ${Object.entries(SCOPE_LABELS).map(([v, l]) => `<option value="${v}" ${_filterState.scope === v ? 'selected' : ''}>${l}</option>`).join('')}
-        </select>
-        <select id="filter-type" class="input-flat text-xs lf-select" aria-label="类型筛选">
-          <option value="all" ${_filterState.type === 'all' ? 'selected' : ''}>类型：全部</option>
-          ${Object.entries(TYPE_LABELS).map(([v, l]) => `<option value="${v}" ${_filterState.type === v ? 'selected' : ''}>${l}</option>`).join('')}
-        </select>
-        <button id="filter-clear" type="button" class="btn-tab lf-btn">清除</button>
+        <div class="lf-bar__row" data-seg="scope">
+          <select id="filter-scope" class="input-flat text-xs lf-select" aria-label="范围筛选">
+            <option value="all" ${_filterState.scope === 'all' ? 'selected' : ''}>范围：全部</option>
+            ${Object.entries(SCOPE_LABELS).map(([v, l]) => `<option value="${v}" ${_filterState.scope === v ? 'selected' : ''}>${l}</option>`).join('')}
+          </select>
+        </div>
+        <div class="lf-bar__row" data-seg="search">
+          <input type="text" id="filter-keyword" placeholder="搜索标题/正文..." value="${_filterState.keyword}" class="input-flat text-xs lf-kw">
+        </div>
+        <div class="lf-bar__row" data-seg="facet">
+          <select id="filter-status" class="input-flat text-xs lf-select" aria-label="状态筛选">
+            <option value="all" ${_filterState.status === 'all' ? 'selected' : ''}>状态：全部 (${counts.total})</option>
+            <option value="open" ${_filterState.status === 'open' ? 'selected' : ''}>开放中 (${counts.open})</option>
+            <option value="closed" ${_filterState.status === 'closed' ? 'selected' : ''}>已关闭 (${counts.closed})</option>
+          </select>
+          <select id="filter-type" class="input-flat text-xs lf-select" aria-label="类型筛选">
+            <option value="all" ${_filterState.type === 'all' ? 'selected' : ''}>类型：全部</option>
+            ${Object.entries(TYPE_LABELS).map(([v, l]) => `<option value="${v}" ${_filterState.type === v ? 'selected' : ''}>${l}</option>`).join('')}
+          </select>
+        </div>
+        <div class="lf-bar__row" data-seg="reset">
+          <button id="filter-clear" type="button" class="btn-tab lf-btn">清除</button>
+        </div>
       </div>
 
       <div id="issue-list" class="space-y-2">
@@ -143,7 +151,7 @@ function renderIssueRow(issue) {
   }).join(' ');
 
   return `
-    <div class="issue-row p-3 rounded-xl border border-gray-100 hover:border-gray-200 hover:bg-[var(--surface-hover)] cursor-pointer transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#CE1126]" data-issue-id="${issue.id}" role="button" tabindex="0" aria-label="查看反馈 #${issue.number ?? '—'} ${issue.title || '(无标题)'}">
+    <div class="issue-row p-3 rounded-xl border border-gray-100 hover:border-gray-200 hover:bg-[var(--surface-hover)] cursor-pointer transition-colors focus-ring" data-issue-id="${issue.id}" role="button" tabindex="0" aria-label="查看反馈 #${issue.number ?? '—'} ${issue.title || '(无标题)'}">
       <div class="flex items-start justify-between gap-3">
         <div class="flex-1 min-w-0">
           <div class="flex items-center gap-2 mb-1">

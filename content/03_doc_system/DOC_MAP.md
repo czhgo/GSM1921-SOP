@@ -2,7 +2,7 @@
 title: "全局文档导航映射"
 type: governance
 role: "[工程师]+[AI]"
-last_updated: "2026-10-27"
+last_updated: "2026-10-29"
 version: "2.6"
 status: active
 related_files: [OPERATIONS_GUIDE.md, CLAUDE.md, ARCHITECTURE.md, .ctx/REVIEW_QUEUE.md, .ctx/ENGINEERING_ASSESSMENT.md, content/insights/README.md]
@@ -116,7 +116,12 @@ related_files: [OPERATIONS_GUIDE.md, CLAUDE.md, ARCHITECTURE.md, .ctx/REVIEW_QUE
 | 文件 | 受众 | 内容 | 被引用方 |
 |------|------|------|---------|
 | `content/04_web_design/data/DATA_MODEL.md` | [工程师]+[AI] | 数据模型与数据流（数据权威：§2.x 静态模型 20 类字段定义 + §写入数据验证 + 待办/通知派生 + 归档扩展字段；§1.x·§3.x·§4.x 数据流：数据架构总览 + 参与者数据流 + 前端数据流：状态管理/持久化/数据源边界/DataAdapter/写穿透） | SECRETARY_DIRECTIVES.md、ARCHITECTURE.md、CLAUDE.md |
-| `content/04_web_design/design-system/DESIGN_SYSTEM.md` | [工程师]+[AI] | 设计系统（§一 设计哲学/§二 色彩系统/§三 排版/§四 组件规范〔含 §4.27 浮窗体例、§4.28 筛选形态选择〕/§五 交互反馈/§六 响应式/§七 深色模式/§八 设计资产/§十 点击落点映射〔含 §10.7 承载面唯一性〕/§十二 组件层执行口径） | docs/src/styles.css、docs/src/components/*、docs/src/core/session/cross-page-state.js（buildURL 统一出口） |
+| `content/04_web_design/design-system/DESIGN_SYSTEM.md` | [工程师]+[AI] | 设计系统父索引（§零 阅读指南 / §一 设计哲学 / 编目索引：五编分工 ＋ 我要找什么 → 去哪一编） | 五编 `DS_01`…`DS_05`、`docs/src/styles.css`、`docs/src/components/*` |
+| `content/04_web_design/design-system/DS_01_COLOR_AND_THEME.md` | [工程师]+[AI] | 第一编 色彩与主题（§二 色彩系统：四层色板 / 色盘 / 主题色板 / 颜色四问；§七 深色模式） | `docs/src/styles.css`、`docs/src/core/domain/constants.js` |
+| `content/04_web_design/design-system/DS_02_TYPE_AND_SIZE.md` | [工程师]+[AI] | 第二编 排版与尺寸（§三 排版系统：字体 / 字号 / 字重 / 行高 / 文本档位；§3.4 栅格与容器档 P4） | `docs/src/styles.css` |
+| `content/04_web_design/design-system/DS_03_COMPONENTS.md` | [工程师]+[AI] | 第三编 组件（§四 组件规范：按钮 / 卡片 / 输入 / 导航 / 数据展示 / 间距 / 浮窗 / 筛选；§4.29–§4.30；§十二 组件层执行口径 SD-1…SD-54） | `docs/src/styles.css`、`docs/src/components/*` |
+| `content/04_web_design/design-system/DS_04_INTERACTION_AND_RESPONSIVE.md` | [工程师]+[AI] | 第四编 交互与响应式（§五 交互反馈：动效 / 反馈模式 / 焦点总则 §5.8；§六 响应式：断点 / 布局适配 / 窄屏） | `docs/src/styles.css`、`docs/src/components/*` |
+| `content/04_web_design/design-system/DS_05_MAP_AND_REFERENCE.md` | [工程师]+[AI] | 第五编 地图与速查（§八 设计资产 / §九 快速参考 / §十 点击落点映射含 §10.7 承载面唯一性 / §十一 边界与引用） | `docs/src/core/session/cross-page-state.js`（buildURL 统一出口） |
 | `content/04_web_design/module/ABOUT_PAGE_DESIGN.md` | [工程师]+[AI] | About 页面设计系统（超参数设定原则/防风格疲劳/无竖线红线） | docs/src/about.css、docs/src/entries/pages/about-entry.js |
 | `content/04_web_design/module/AGENDA_AND_REFERENCE_DESIGN.md` | [工程师]+[AI] | 会议议程与资料查询联动设计（会前草案关联/会后少重复录入/单一数据源） | —（草案·待实施 2026-08-31） |
 | `content/04_web_design/module/MODULE_UI_DESIGN.md`（已落地 2026-09-03） | [工程师]+[AI] | 模块界面设计（合并原 PAFFAIRS_UI/CALENDAR：「党建」Tab 分组+日历功能，已落地、设计论证档案） | docs/src/components/record/calendar.js |
@@ -134,7 +139,7 @@ related_files: [OPERATIONS_GUIDE.md, CLAUDE.md, ARCHITECTURE.md, .ctx/REVIEW_QUE
 | `content/04_web_design/PRODUCT_IA.md` | [工程师]+[AI] | **派生索引**：逐台逐页签的组 / 渲染入口 / 一句话职责 / 主对象 / 主操作 / 新落点（当前 62）；不承担规范、禁止手改 | `docs/src/capabilities/*`、`docs/src/core/domain/function-catalog.js` |
 | `content/04_web_design/AGENTS.md` | [工程师]+[AI] | 04 目录协作说明：进入本目录前读什么、改什么、禁什么、怎么验 | — |
 | `content/04_web_design/data/DATA_SEED_CONTRACT.md` | [工程师]+[AI] | 种子契约（哪些字段归种子、哪些归运行时；drift 修复边界） | `server/seed.js`、`docs/src/data/seed-manifest.js` |
-| `content/04_web_design/design-system/CASES.md` | [工程师]+[AI] | 设计域判例（不产生规范效力，规范回 `DESIGN_SYSTEM.md`） | `DESIGN_SYSTEM.md` |
+| `content/04_web_design/design-system/CASES.md` | [工程师]+[AI] | 设计域判例（不产生规范效力，规范回五编；文末含三份迁移登记） | `DESIGN_SYSTEM.md` 编目索引 |
 | `content/04_web_design/deploy/SERVER_DEPLOY_MANUAL.md` | [工程师]+[AI] | 服务端部署手册（安装、更新、备份恢复的操作层步骤） | `deploy/*.sh`、`deploy/*.mjs` |
 
 ### 知识类型 5：网站系统的 AI coding 技术方法（content/05_ai_coding/）

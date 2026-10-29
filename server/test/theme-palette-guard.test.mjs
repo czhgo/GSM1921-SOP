@@ -31,7 +31,7 @@ import { fileURLToPath } from 'node:url';
 import {
   ACCENT_COLORS, ACCENT_PALETTE, ACCENT_KEY_ALIASES, normalizeAccentKey, getAccentColors,
   accentButtonColors, ROLE_COLORS,
-} from '../../docs/src/core/domain/constants.js?v=20261028e';
+} from '../../docs/src/core/domain/constants.js?v=20261029b';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(HERE, '..', '..');
@@ -617,14 +617,13 @@ test('G5 浅底深字：不得直接用裸 var(--app-accent)；焦点环只用 -
     '.chip-option:hover',
     '.chip-accent-on',
     '.sel-accent-on',
-    'button.metric-band__item.is-active .metric-band__label',
+    'button.metric-band__item.is-active .stat-card__label',
     '.page-num.is-current',
     '.wp-dim-chip.wp-dim-on',
     '.wp-brand-chip.wp-brand-on',
     '.wp-agenda-kind.wp-agenda-kind-on',
     '.cs-option.is-selected',
     '.accent-avatar',
-    '.metric-band__value--accent',
     '.state-badge--accent',
   ];
   for (const selector of textRules) {
@@ -642,9 +641,11 @@ test('G5 浅底深字：不得直接用裸 var(--app-accent)；焦点环只用 -
     '.notif-dropdown-item:focus-visible',
     '.status-badge:focus-visible',
     'button.metric-band__item:focus-visible',
-    '.list-row:focus-visible',
+    // 2026-10-29 P1：行焦点三种写法合并为 `[data-interactive="true"]` 单一来源；
+    //   行内焦点工具类统一走语义类 `.focus-ring`（同一几何）。
+    '[data-interactive="true"]:focus-visible',
+    '.focus-ring:focus-visible',
     '.todo-more__item:focus-visible',
-    '.list-row[data-interactive="true"]:focus-visible',
     // 2026-10-28（支书裁定「消除假反馈」）：画廊卡的唯一交互元素是标题链，焦点环由它承担；
     //   原先挂在整卡上的 `.gallery-card:focus-visible` 已删除（卡片不进 tab 序列 ⇒ 不可达的死规则）。
     '.gallery-card__open:focus-visible',

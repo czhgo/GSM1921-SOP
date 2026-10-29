@@ -107,7 +107,7 @@ test('E5 非空转自检：正则正样本命中、负样本不命中', () => {
   assert.match('<p id="dashboard-hero-subtitle" class="text-sm">x</p>', HERO_SUBTITLE_RE,
     '副标题正则须能识别回潮元素（反向断言依赖它）');
 
-  const posImport = "import { getHeaderTitle } from '../../services/branch/branch.js?v=20261028e';";
+  const posImport = "import { getHeaderTitle } from '../../services/branch/branch.js?v=20261029b';";
   const negImport = "import { getHeaderTitle } from '../../services/branch/branch.js';";
   assert.match(posImport, IMPORT_RE);
   assert.doesNotMatch(negImport, IMPORT_RE);
@@ -138,25 +138,34 @@ test('E6 首页活动风采：一张照片都没有时不出 16:9 大图位，�
     '空态分支不得再铺 16:9 图位');
 });
 
-test('E7 首页统计卡：图标＋数字＋标签、统一 min-height（390 等高），不阴影不上浮', () => {
-  // 2026-10-28 Task 3（CASE-DESIGN-030）：支书裁定恢复彩色图标点缀——四张卡由
-  //   「图标块 .stat-icon-tint ＋ 数字 24px 同色 ＋ 标签 12px」组成；上一轮「去图标」属过度解读原则 4。
-  //   判据不放宽：短标签 / min-height / 空态说明全部保留，并把旧的反向断言（不得回潮图标）
-  //   改准为正向断言（必须有图标块），另加「不得用 hover 阴影 / 上浮」。
+test('E7 首页统计卡：图标在左＋数值/标签在右、栅格等高（无 min-height），不阴影不上浮', () => {
+  // 2026-10-29 P2：数字组统一为「图标块在左 ＋ .stat-card__body（数值/标签在右两行）」；
+  //   卡片不自带尺寸，四张等高交给 #dashboard-stats 的 .stat-grid（align-items: stretch）。
   assert.match(statsSource, /class="card rounded-xl p-4 stat-card/, '统计卡须复用 .card 并挂 .stat-card');
   assert.match(statsSource, /class="stat-icon-tint"[^>]*--tint:\$\{s\.color\}/,
     '统计卡须有图标块，浅底由 --tint 取既有语义色派生');
-  assert.match(statsSource, /stat-icon-tint[\s\S]{0,240}metric-band__value[\s\S]{0,240}metric-band__label/,
-    '统计卡结构须为「图标 ＋ 数值 ＋ 标签」三段（与工作台四数同构）');
-  assert.match(statsSource, /metric-band__value/, '统计卡数字须沿用 .metric-band__value（与工作台同一套排版）');
-  assert.match(statsSource, /metric-band__label/, '统计卡标签须沿用 .metric-band__label');
+  assert.match(statsSource, /stat-icon-tint[\s\S]{0,400}stat-card__body[\s\S]{0,400}stat-card__value[\s\S]{0,400}stat-card__label/,
+    '统计卡结构须为「图标在左 ＋ .stat-card__body（数值/标签）」');
+  assert.match(statsSource, /<p class="stat-card__value"/, '统计卡数值须用 .stat-card__value');
+  assert.match(statsSource, /<p class="stat-card__label">/, '统计卡标签须用 .stat-card__label');
+  assert.match(statsSource, /class="stat-card__unit"/, '单位须与数值同行（.stat-card__unit）');
   assert.match(cssSource, /\.stat-icon-tint\s*\{[^}]*width:\s*40px[^}]*height:\s*40px/,
     'styles.css：图标块须为 40×40');
   assert.match(cssSource, /\.stat-icon-tint\s*\{[^}]*background:\s*color-mix\(in srgb,\s*var\(--tint[^;]*12%/,
     'styles.css：图标浅底须由 --tint 12% 派生（不写 hex）');
   assert.match(statsSource, /label: '个人考勤'/, '考勤卡标签须为短标签（原「个人考勤（本月无记录）」会折行撑高）');
   assert.match(statsSource, /本月无记录/, '空态说明须保留（降为第二行小字）');
-  assert.match(cssSource, /\.stat-card\s*\{[^}]*min-height:\s*\d+px/, 'styles.css 缺少统计卡统一 min-height');
+  // 组件不自带尺寸：竖排与 min-height 一并退场；等高由栅格 stretch 保证。
+  assert.match(cssSource, /\.stat-card\s*\{[^}]*align-items:\s*center/, '统计卡须横排（图标在左）');
+  assert.doesNotMatch(cssSource, /\.stat-card\s*\{[^}]*flex-direction:\s*column/, '统计卡不得再竖排三段');
+  assert.doesNotMatch(cssSource, /\.stat-card\s*\{[^}]*min-height/, '统计卡不得写死 min-height');
+  assert.match(cssSource, /\.stat-grid,\s*\.metric-band--cards\s*\{[^}]*align-items:\s*stretch/,
+    'styles.css 须提供 .stat-grid（align-items: stretch）');
+  assert.match(cssSource, /\.stat-grid,\s*\.metric-band--cards\s*\{[^}]*grid-auto-rows:\s*1fr/,
+    'styles.css：两列时上下两行须等高（grid-auto-rows: 1fr）');
+  assert.match(cssSource, /@media \(max-width: 1024px\)\s*\{[\s\S]{0,200}\.stat-grid,[\s\S]{0,120}repeat\(2,/,
+    '≤1024 时统计卡须降为两列');
+  assert.match(indexHtml, /id="dashboard-stats" class="stat-grid/, '首页统计容器须为 .stat-grid（列数交给栅格）');
   assert.doesNotMatch(statsSource, /hover:shadow|hover:-translate-[xy]-/, '统计卡不得以 hover 阴影 / 上浮作反馈');
 });
 

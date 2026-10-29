@@ -33,7 +33,7 @@ import { join } from 'node:path';
 import {
   CACHE_KEYS, CACHE_KEY_PREFIXES, CACHE_CATEGORIES, classifyCacheKey,
   validateBackupPayload, BACKUP_META, NICHE_COLLECTION_NAMES,
-} from '../../docs/src/data/cache-registry.js?v=20261028e';
+} from '../../docs/src/data/cache-registry.js?v=20261029b';
 
 const ROOT = join(import.meta.dirname, '..', '..');
 
@@ -391,7 +391,7 @@ test('L10 读口拒收缺版本 / 过期备份（restoreNicheCollections 返回 
     get length() { return store.size; },
   };
   try {
-    const { restoreNicheCollections } = await import('../../docs/src/data/mock-adapter.js?v=20261028e');
+    const { restoreNicheCollections } = await import('../../docs/src/data/mock-adapter.js?v=20261029b');
     store.set('workflowos_branch_db_v1', JSON.stringify({ activities: [{ id: 'stale' }] }));
     assert.equal(restoreNicheCollections({ expectedVersions: { activities: 1 } }), false,
       '缺 `_versions` 的本地备份不得被采用（否则旧备份会被当成服务端权威）');

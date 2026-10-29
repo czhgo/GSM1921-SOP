@@ -16,39 +16,40 @@
 // 草稿：localStorage `wizard-draft-<branchId>`（当前步 + 每步完成标记 + 完成态），中断可续走。
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../../core/domain/domain.js?v=20261028e';
-import { getCapabilities } from '../../core/boot/registry.js?v=20261028e';
-import { OUTPUT_BLOCK_DEFS, BRANCH_COMMISSION_ROLES, ROLE_LABELS, getAccentColors } from '../../core/domain/constants.js?v=20261028e';
-import { applyAccentThemeTokens } from '../../core/boot/theme.js?v=20261028e';
-import { CAPABILITY_PACKAGES } from '../../core/domain/capability-packages.js?v=20261028e';
-import { ORG_SUBJECT_LABELS, isBranchOrgSubject, ownerSubjectType } from '../../core/domain/work-map.js?v=20261028e';
+import { mockDB } from '../../core/domain/domain.js?v=20261029b';
+import { getCapabilities } from '../../core/boot/registry.js?v=20261029b';
+import { OUTPUT_BLOCK_DEFS, BRANCH_COMMISSION_ROLES, ROLE_LABELS, getAccentColors } from '../../core/domain/constants.js?v=20261029b';
+import { applyAccentThemeTokens } from '../../core/boot/theme.js?v=20261029b';
+import { CAPABILITY_PACKAGES } from '../../core/domain/capability-packages.js?v=20261029b';
+import { ORG_SUBJECT_LABELS, isBranchOrgSubject, ownerSubjectType } from '../../core/domain/work-map.js?v=20261029b';
 // 副作用：注册支委层工作台能力（配置目录=其 tab 清单，单一源）
-import '../../capabilities/secretary-workspace.js?v=20261028e';
-import { BLOCK_MANIFESTS } from '../../workflow/blocks/manifests.js?v=20261028e';
+import '../../capabilities/secretary-workspace.js?v=20261029b';
+import { BLOCK_MANIFESTS } from '../../workflow/blocks/manifests.js?v=20261029b';
 // L3 流程组合（2026-09-28 批次 246）：把编排内核接进**生产路径**——配置面用它做「组合体检」
-import { composePlan } from '../../workflow/blocks/orchestration.js?v=20261028e';
-import { escHtml as esc, showToast, downloadBlob } from '../../core/base/utils.js?v=20261028e';
-import { confirmDanger } from '../ui/modal.js?v=20261028e';
-import { readLoginSnapshot } from '../../core/session/login-snapshot.js?v=20261028e';
-import { WORK_MAP_MODULES } from '../../core/domain/work-map.js?v=20261028e';
+import { composePlan } from '../../workflow/blocks/orchestration.js?v=20261029b';
+import { escHtml as esc, showToast, downloadBlob } from '../../core/base/utils.js?v=20261029b';
+import { icon } from '../../core/base/icons.js?v=20261029b';
+import { confirmDanger } from '../ui/modal.js?v=20261029b';
+import { readLoginSnapshot } from '../../core/session/login-snapshot.js?v=20261029b';
+import { WORK_MAP_MODULES } from '../../core/domain/work-map.js?v=20261029b';
 import {
   getBranchById, getBranchOrg, getBranchTabPolicy, getCoreTabIds,
   getBranchOutputBlocks, getBranchCapabilityPackageState, getOutputBlockPolicy, getWorkflowBlockPolicy, orderByIds,
   updateBranchModules, updateBranchCapabilityPackages, getBranchWorkforce, updateBranchWorkforce, updateBranchOrg,
   applyConfigCopy, createBranch, getBranchIdOfPerson, ensureBranchConfigLoaded,
-} from '../../services/branch/branch.js?v=20261028e';
-import { buildConfigPackage, applyConfigPackage } from '../../services/branch/org-config-package.js?v=20261028e';
+} from '../../services/branch/branch.js?v=20261029b';
+import { buildConfigPackage, applyConfigPackage } from '../../services/branch/org-config-package.js?v=20261029b';
 import {
   buildPreviewTemplate, sanitizePreview, applyPreview, clearPreview, getPreviewState,
   PREVIEW_KIND, PREVIEW_VERSION,
-} from '../../services/branch/org-base-data-preview.js?v=20261028e';
-import { getRosterStats, isDetained } from '../../services/member/roster.js?v=20261028e';
-import { buildOrgWizardReport } from '../../services/branch/org-wizard-report.js?v=20261028e';
-import { PersonStore, getPersonName } from '../../services/member/person.js?v=20261028e';
+} from '../../services/branch/org-base-data-preview.js?v=20261029b';
+import { getRosterStats, isDetained } from '../../services/member/roster.js?v=20261029b';
+import { buildOrgWizardReport } from '../../services/branch/org-wizard-report.js?v=20261029b';
+import { PersonStore, getPersonName } from '../../services/member/person.js?v=20261029b';
 // R5-1（2026-09-06）：建空支部「就地任命首任骨干」——任命编排在 appointment.js 收口（含数据边界登记）
-import { appointInauguralOfficers } from '../../services/branch/appointment.js?v=20261028e';
+import { appointInauguralOfficers } from '../../services/branch/appointment.js?v=20261029b';
 
-import { emptyStateHtml } from '../ui/empty-state.js?v=20261028e';
+import { emptyStateHtml } from '../ui/empty-state.js?v=20261029b';
 // ── 步骤元信息（支书已批口径）────────────────────────────────────
 export const WIZARD_STEPS = [
   { id: 1, label: '组织信息' },
@@ -488,12 +489,17 @@ function _basePanelHtml(S) {
     </div>`;
 }
 
-/** 预览统计单格（label + 主读数 + 副注） */
-function _baseStatBox(label, main, sub) {
-  return `<div class="rounded-lg border border-blue-100 bg-white p-2.5">
-    <p class="text-xs text-gray-500">${esc(label)}</p>
-    <p class="text-base font-bold text-gray-800 leading-tight">${main}</p>
-    ${sub ? `<p class="text-xs text-gray-500 mt-0.5">${esc(sub)}</p>` : ''}
+/** 预览统计单格：数字组单一语法（2026-10-29 P2）——图标块在左、数值/标签在右；
+ *  卡片不自带尺寸，列数交给 .stat-grid。sub 走纯文本转义，subHtml 走已拼好的转义片段。 */
+function _baseStatBox({ icon: iconName, tint, value, valueColor, unit, label, sub, subHtml }) {
+  const note = subHtml || (sub ? esc(sub) : '');
+  return `<div class="card rounded-xl p-3 stat-card">
+    <span class="stat-icon-tint" style="--tint:${tint};" aria-hidden="true">${icon(iconName, { strokeWidth: 1.8, className: 'w-5 h-5' })}</span>
+    <div class="stat-card__body">
+      <p class="stat-card__value"${valueColor ? ` style="color:${valueColor};"` : ''}>${value}${unit ? `<span class="stat-card__unit">${unit}</span>` : ''}</p>
+      <p class="stat-card__label">${esc(label)}</p>
+      ${note ? `<p class="text-xs stat-card__note" style="color:var(--neutral-500);">${note}</p>` : ''}
+    </div>
   </div>`;
 }
 
@@ -502,17 +508,18 @@ function _baseDraftHtml(S, draft) {
   const s = draft.stats;
   const groupParts = Object.entries(s.perGroup).map(([g, v]) =>
     `<span class="whitespace-nowrap">${esc(g)} <b class="text-gray-800">${v.expected}</b><span class="text-xs text-gray-500"> / 在册 ${v.partyTotal}</span></span>`).join(' · ');
+  const groupCount = Object.keys(s.perGroup).length;
   return `
     <div class="rounded-lg border border-green-200 bg-white p-3 space-y-2">
       <div class="flex flex-wrap items-center justify-between gap-2">
         <p class="text-xs font-semibold text-gray-700">导入预览 · 应用前读数</p>
         <span class="text-xs text-gray-500">有效 ${draft.people.length} 条${draft.dropped ? ` · 已忽略非法/白名单外 ${draft.dropped} 条` : ''}</span>
       </div>
-      <div class="grid grid-cols-2 lg:grid-cols-4 gap-2">
-        ${_baseStatBox('在册党员（应到基数）', `${s.partyTotal}<span class="text-xs font-normal text-gray-500"> 人</span>`, `正式 ${s.official} + 预备 ${s.probationary}`)}
-        ${_baseStatBox('滞留党员（剔除）', `${s.detained}<span class="text-xs font-normal text-gray-500"> 人</span>`, '组织关系保留、通知照发')}
-        ${_baseStatBox('支部党员大会应到', `<span class="text-red-600">${s.expected}</span><span class="text-xs font-normal text-gray-500"> 人</span>`, `= 党员 ${s.partyTotal} − 滞留 ${s.detained}`)}
-        ${_baseStatBox('各党小组会应到', groupParts || '—', '组内党员 − 组内滞留')}
+      <div class="stat-grid">
+        ${_baseStatBox({ icon: 'usersGroup', tint: 'var(--status-info)', value: s.partyTotal, unit: '人', label: '在册党员', sub: `应到基数 · 正式 ${s.official} + 预备 ${s.probationary}` })}
+        ${_baseStatBox({ icon: 'clock', tint: 'var(--status-warning-text)', value: s.detained, unit: '人', label: '滞留党员', sub: '组织关系保留、通知照发' })}
+        ${_baseStatBox({ icon: 'usersGroup', tint: 'var(--app-accent-soft-text)', value: s.expected, valueColor: 'var(--status-error)', unit: '人', label: '支部党员大会应到', sub: `党员 ${s.partyTotal} − 滞留 ${s.detained}` })}
+        ${_baseStatBox({ icon: 'list', tint: 'var(--neutral-500)', value: groupCount, unit: '组', label: '各党小组会应到', subHtml: groupParts || '—' })}
       </div>
       <div class="flex flex-wrap items-center justify-between gap-2">
         <p class="text-xs text-gray-500">确认应用后：成员名册 / 应到名单 / 发展阶段分布按上表变化（本地预览，可「清除预览」回种子）；「放弃」不写入。</p>

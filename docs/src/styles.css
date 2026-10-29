@@ -1,5 +1,5 @@
 /* 组件样式（@import 必须位于文件顶部） */
-@import url('components/person-picker.css?v=20261028e');
+@import url('components/person-picker.css?v=20261029b');
 
 /* ═══════════════════════════════════════════════════════════════
    GSM1921-SOP DESIGN SYSTEM v11.0 — Matte Flat
@@ -196,8 +196,9 @@
   /* 2026-10-24 批次 508：兼容别名（--app-accent-bg/-border/-text/-deep/-strong/-ink）已退场，
      消费方全部改用 --app-accent-soft-* / --app-accent-strong-*。 */
 
-  /* 焦点指示环（2026-10-28 全站单一口径）：只用主题色 --app-accent，
-     几何 2px / offset 1px / 无 box-shadow——与 <select>（.cs-trigger）同源。
+  /* 焦点指示（2026-10-29 P1 全站单一口径）：只用主题色 --app-accent。
+     有边框控件（输入 / 下拉触发器 / 搜索框）只变 `border-color`；
+     无边框控件（按钮 / 链接 / 页签 / 行 / 徽章）只加 2px / offset 1px / 无 box-shadow 的 outline。
      原「深灰环 + 黑晕」两个独立变量已删除（含暗色覆盖）。 */
 
   /* ── Shape — 圆角 ── */
@@ -674,8 +675,18 @@ body {
   background-color: var(--app-accent-active-bg);
 }
 
-/* Responsive content shells: fluid inside a shared max-width. Percentages describe
-   grid share; semantic caps keep forms, governance pages and data tables readable. */
+/* ═══════════════════════════════════════════════════════════════
+   P4 一套栅格（2026-10-29）——容器五档，页面不自定宽度
+   容器宽度与卡片列数由下表决定；新增页面只能选一档，不得写第三套取值。
+   | 档位  | 语义                 | 落点（当前）                                                        |
+   | 28rem | 仅登录卡             | login.html                                                          |
+   | 48rem | 标准阅读 / 表单页    | activity / activity-materials / messages / feedback / person /      |
+   |       |                      | taskforce / thought-report / notice                                 |
+   | 64rem | 详情 / 设置类        | settings / archive / party-committee-meeting                        |
+   | 72rem | 列表与工作台（默认） | index / search / wizard / workspace 六台 / branch-config            |
+   | 80rem | 表格密集页           | 党委台 party-committee（宽表）、支部只读 branch-readonly、帮助 help |
+   卡片栅格单一源：`.card-grid` = repeat(auto-fill, minmax(18rem, 1fr)) / gap --space-4。
+   ═══════════════════════════════════════════════════════════════ */
 .layout-shell {
   width: 100%;
   min-width: 0;
@@ -683,6 +694,15 @@ body {
 }
 .layout-shell--content { max-width: 72rem; }
 .layout-shell--wide { max-width: 80rem; }
+
+/* 卡片栅格单一源：列数只由 minmax 下限决定（18rem ≈ 一张最小可读卡），
+   页面不得再写 grid-cols-N 一类第二套列数。 */
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(18rem, 1fr));
+  gap: var(--space-4);
+  min-width: 0;
+}
 
 /* 工作台页面骨架（2026-10-18）：一个页面一个标题，分区从任务标题开始 */
 .page-frame {
@@ -693,7 +713,8 @@ body {
   width: 100%;
   min-width: 0;
   margin-inline: auto;
-  max-width: 80rem;
+  /* P4：默认落「列表与工作台 72rem」；表格密集页用 --wide 显式抬到 80rem。 */
+  max-width: 72rem;
 }
 .page-frame--content { max-width: 72rem; }
 .page-frame--wide { max-width: 80rem; }
@@ -1049,8 +1070,8 @@ body {
    ═══════════════════════════════════════════════════════════════ */
 .input-flat {
   background-color: var(--neutral-0);
-  /* 2026-10-24 批次 508：字段外壳统一——静默 1px neutral-300，hover 加深，focus 主题色 + soft 环。 */
-  border: 1px solid var(--neutral-300);
+  /* 2026-10-29 P1：静默边框由 neutral-300 调浅到 neutral-200（减轻「厚」观感；高度算式不动）。 */
+  border: 1px solid var(--neutral-200);
   border-radius: var(--radius-sm);
   /* 单档口径（2026-10-23 Task 6）：全站控件 40px、正文 13px。
      控件高 = 内边距 8 + 8 + 显式行高 22 + 边框 2 = 40px；行高必须显式声明，不得靠 UA
@@ -1060,23 +1081,22 @@ body {
   line-height: 22px;
   color: var(--neutral-800);
   outline: none;
+  /* 2026-10-29 P1：`outline: none` 会把宽度重置为 medium(3px)；显式 0 让真机读数与「无环」一致。 */
+  outline-width: 0;
   transition: border-color var(--transition-fast), background-color var(--transition-fast);
 }
-
 /* 2026-10-24 批次 508：字段外壳（B 立场）—— hover 只加深边框；
-   2026-10-28（全站焦点单一口径）：输入族用 `:focus` 生效（鼠标点击与键盘聚焦同表现），
-   边框变主题色 + 一条 2px 主题色实线环 / offset 1px，`box-shadow: none` 钉死不画光晕。
-   口径与 <select>（.cs-trigger）完全一致，`:focus` 与 `:focus-visible` 不再各写一套。 */
+   2026-10-29 P1（焦点只有一个信号）：输入族是**有边框控件**，聚焦只允许 `border-color` 变主题色——
+   不画 outline、不画 box-shadow，`:focus` 与 `:focus-visible` 同表现（鼠标 / 键盘一致）。
+   `.cs-trigger` 是 `<button>`，会被全局 `button:focus-visible` 套环，故此处显式 `outline: none`。 */
 @media (hover: hover) { .input-flat:hover:not(:disabled):not(:focus) { border-color: var(--neutral-400); } }
-.input-flat:focus, .cs-trigger:focus-within {
+.input-flat:focus,
+.input-flat:focus-visible,
+.cs-trigger:focus-within,
+.cs-trigger:focus-visible {
   border-color: var(--app-accent);
-  outline: 2px solid var(--app-accent);
-  outline-offset: 1px;
-  box-shadow: none;
-}
-.input-flat:focus-visible, .cs-trigger:focus-visible {
-  outline: 2px solid var(--app-accent);
-  outline-offset: 1px;
+  outline: none;
+  outline-width: 0;
   box-shadow: none;
 }
 .input-flat:disabled { background: var(--neutral-100); border-color: var(--neutral-200); color: var(--neutral-400); cursor: not-allowed; }
@@ -1185,7 +1205,7 @@ select.input-flat.text-xs {
 }
 
 /* 2026-10-24 批次 508：select 的焦点态并入 `.input-flat:focus` 字段外壳（3.2），
-   删除此处独立的党徽金边；appearance / 内联箭头保留。 */
+   删除此处独立的党徽金边；2026-10-29 P1：聚焦只变边框色（无 outline / 无 box-shadow）。 */
 
 /* Input — 紧凑档（表格行内编辑位 / 弹窗多行文本）
    2026-10-23 Task 6：与 .input-flat 同源（白底 / 1px 中性 200 / 8px 圆角 / 13px / placeholder 400 / 金边 focus）。
@@ -1199,14 +1219,17 @@ select.input-flat.text-xs {
   line-height: 16px;
   color: var(--neutral-800);
   outline: none;
+  outline-width: 0;
   transition: border-color var(--transition-fast), background-color var(--transition-fast);
 }
 
-.input-flat-sm:focus {
+/* 2026-10-29 P1：紧凑档同属输入族——聚焦只变色，不出环。 */
+.input-flat-sm:focus,
+.input-flat-sm:focus-visible {
   background-color: var(--neutral-0);
   border-color: var(--app-accent);
-  outline: 2px solid var(--app-accent);
-  outline-offset: 1px;
+  outline: none;
+  outline-width: 0;
   box-shadow: none;
 }
 
@@ -1282,20 +1305,25 @@ textarea.input-flat {
   border-radius: var(--radius-sm);
   color: var(--neutral-800);
   cursor: pointer;
+  outline: none;
+  outline-width: 0;
   text-align: left;
   width: 100%;
   margin: 0;
   transition: border-color var(--transition-fast), background-color var(--transition-fast), box-shadow var(--transition-fast);
 }
 @media (hover: hover) {
-  .cs-trigger:hover {
+  .cs-trigger:hover:not(:focus):not(:focus-within) {
     border-color: var(--neutral-300);
   }
 }
-/* .cs-trigger 是 <button>（见 components/custom-select.js）⇒ 焦点环与输入族共用同一口径
-   （2px / --app-accent / offset 1px / 无 box-shadow），见上方字段外壳规则。 */
-.cs-select.is-open .cs-trigger {
-  border-color: var(--party-gold);
+/* .cs-trigger 是 <button>（见 components/custom-select.js）⇒ 按有边框控件处理：
+   聚焦只把边框切主题色，并显式压掉全局 button:focus-visible 的 outline 环。 */
+/* 2026-10-29 P1：展开态的边框也走主题色（固定党徽金 --party-gold 不得充当焦点/活动色）；
+   `.input-flat` 的 hover（0,4,0）会压过 (0,3,0)，故同时声明带 .input-flat 的等价选择器。 */
+.cs-select.is-open .cs-trigger,
+.cs-select.is-open .cs-trigger.input-flat {
+  border-color: var(--app-accent);
 }
 .cs-trigger .cs-value {
   flex: 1;
@@ -1380,10 +1408,9 @@ input.input-flat-sm[type="datetime-local"] {
 .cs-option:active {
   background: var(--surface-active);
 }
-/* R5A-03：键盘焦点落在选项上时必须可见（此前选项不可聚焦，只能靠 hover 判断当前位置）。 */
+/* R5A-03：键盘焦点落在选项上时必须可见（此前选项不可聚焦，只能靠 hover 判断当前位置）。
+   2026-10-29 P1：焦点只保留一圈 2px 主题色实线；去掉聚焦背景（背景是第二信号）。 */
 .cs-option:focus-visible {
-  /* 2026-10-24 批次 508：键盘焦点背景改走主题 hover 底，不再回落到中性灰。 */
-  background: var(--app-accent-hover-bg);
   outline: 2px solid var(--app-accent);
   outline-offset: 1px;
   box-shadow: none;
@@ -1822,18 +1849,18 @@ a.text-accent {
   border: 1px solid var(--neutral-200);
   border-radius: var(--radius-sm);
   outline: none;
+  outline-width: 0;
   background: var(--neutral-0);
   font-size: 0.75rem;
   color: var(--neutral-800);
   transition: border-color var(--transition-fast);
 }
-/* 2026-10-28（焦点单环）：并入字段外壳的环口径——与 <select>/.input-flat 同宽同色同偏移
-   （2px / --app-accent / offset 1px）；本条只声明 outline，不得再叠 box-shadow 环。 */
+/* 2026-10-29 P1：内嵌搜索是输入族（有边框）——聚焦只变边框色，不出环。 */
 .cs-search-input:focus,
 .cs-search-input:focus-visible {
   border-color: var(--app-accent);
-  outline: 2px solid var(--app-accent);
-  outline-offset: 1px;
+  outline: none;
+  outline-width: 0;
   box-shadow: none;
 }
 .cs-search-input::placeholder {
@@ -1860,12 +1887,30 @@ a.text-accent {
    ── 高度算式（显式声明，勿靠 UA / CDN 工具类给行高）──
       单档 = 8（上内边距） + 8（下内边距） + 22（显式 line-height） + 2（边框） = 40px
    ═══════════════════════════════════════════════════════════════ */
+/* ── P3 筛选四段（2026-10-29 · 结构单一源）──
+   `.lf-bar` 之下**只允许** `.lf-bar__row`；每行以 `data-seg` 标段位，固定顺序：
+     scope（范围）→ search（检索）→ facet（分面）→ reset（重置）。
+   空段不输出（不产生空行）；段间分行，同段控件左边缘对齐。
+   `.lf-bar` 自身不承载控件——直接子元素只能是行。 */
 .lf-bar {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--space-2);
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+.lf-bar__row {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-2);
+  min-width: 0;
 }
+/* 同段对齐：段内从行首左边缘起排，不因段位不同而缩进 */
+.lf-bar__row > :first-child { margin-left: 0; }
+.lf-bar__row > * { min-width: 0; }
 /* 关键词输入：占满剩余宽度，窄屏最小 160px */
 .lf-kw {
   flex: 1 1 160px;
@@ -1877,16 +1922,33 @@ a.text-accent {
   width: auto;
   min-width: 104px;
 }
-/* 名册 390px 单列（2026-10-20 判例⑤）：搜索与三个下拉各占一行，避免 2 列挤压触发误点；
-   选择器收窄到 #roster-list-host，不改变其它页的检索条排布。 */
+/* 范围段的时间区间（起日 至 止日）：作为一个整体控件参与折行 */
+.lf-range {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+}
+.lf-range > input { flex: 1 1 9rem; min-width: 0; }
+/* ≤640：同一行内控件整行折行、铺满宽度——通用规则，不再设页面级特例。
+   直接子元素里的表单元件 / 控件组一律占满一行，避免 2 列挤压与横向溢出。 */
 @media (max-width: 640px) {
-  #roster-list-host .lf-bar > .lf-kw,
-  #roster-list-host .lf-bar > .cs-select {
+  .lf-bar__row > input,
+  .lf-bar__row > select,
+  .lf-bar__row > button,
+  .lf-bar__row > label,
+  .lf-bar__row > .lf-kw,
+  .lf-bar__row > .lf-select,
+  .lf-bar__row > .cs-select,
+  .lf-bar__row > .lf-facet-chips,
+  .lf-bar__row > .lf-range,
+  .lf-bar__row > #cal-view-switcher {
     flex: 1 1 100%;
     width: 100%;
     min-width: 0;
   }
-  #roster-list-host .lf-bar > .cs-select .cs-trigger { width: 100%; }
+  .lf-bar__row > .cs-select .cs-trigger { width: 100%; }
 }
 /* 分面胶囊组（2026-10-01 批次 319 · 支书裁定「推翻筛选行禁 chip」后新增的 chip 形态）：
    与 `.lf-select` 二选一（`facetStyle`），由 `list-filter.js` 按形态渲染；胶囊本体样式复用
@@ -3059,10 +3121,10 @@ html.theme-dark .cal-cell-large.is-today, html.theme-dark .cal-cell-mobile.is-to
   background: var(--surface-active);
 }
 .notif-dropdown-item:focus-visible {
+  /* 2026-10-29 P1：焦点只保留一圈 2px 主题色实线；去掉聚焦背景（背景是第二信号）。 */
   outline: 2px solid var(--app-accent);
   outline-offset: 1px;
   box-shadow: none;
-  background: var(--surface-hover);
 }
 
 /* ── 子视图切换（按维度/按人）active 状态（overview-tab.js）
@@ -3080,18 +3142,41 @@ html.theme-dark .cal-cell-large.is-today, html.theme-dark .cal-cell-mobile.is-to
   box-shadow: 0 1px 3px rgba(16, 24, 40, 0.12), 0 0 0 0.5px rgba(16, 24, 40, 0.04);
 }
 
-/* 2026-10-27 Task 6.4（脏乱繁）：首页统计卡等高 + 短标签。
-   `min-height` 取「图标 40 + 数值 24 + 标签 18 + 说明 18 + 三处间距 8 + 上下 16×2」的兜底（120）⇒ 四张同高；
-   390 两列网格里不出现两种高度。
-   2026-10-28 支书裁定「四个数恢复彩色图标点缀」（CASE-DESIGN-030）：卡片 = 图标块（浅底 ＋ 同色笔触）
-   ＋ 数字 24px（同色）＋ 标签 12px；数字／标签排版取 .metric-band__value / __label，
-   工作台结论带（.metric-band--cards）与首页同构。 */
+/* 2026-10-29 P2「同类只有一个语法」：全站数字组统一为
+   图标块在左（40×40、浅底由 --tint 派生）＋ 右侧数值/标签两行。
+   卡片不再自带尺寸（原 `flex-direction: column` 与 `min-height: 120px` 一并删除）——
+   列数与等高只由栅格（.stat-grid / .metric-band--cards 的 grid-auto-rows: 1fr ＋
+   align-items: stretch）决定。
+   视觉样板：支书点名认可的「图标在左、数值与标签在右」。 */
 .stat-card {
   display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-width: 0;
+}
+.stat-card__body {
+  display: flex;
   flex-direction: column;
-  align-items: flex-start;
   gap: var(--space-1);
-  min-height: 120px;
+  min-width: 0;
+}
+.stat-card__value {
+  font-size: 1.5rem;
+  font-weight: 600;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  color: var(--neutral-800);
+}
+/* 单位跟数值同行、退一档：12px / 常规字重 / 中性色（不另立字号档）。 */
+.stat-card__unit {
+  margin-inline-start: 2px;
+  font-size: var(--text-xs);
+  font-weight: 400;
+  color: var(--neutral-500);
+}
+.stat-card__label {
+  font-size: var(--text-sm);
+  color: var(--neutral-500);
 }
 /* 图标块：浅底由 `--tint` 派生（既有语义色），笔触取同色；不写 hex、不新增色相。
    块 40×40 / 图标 20×20 / 圆角 12px（--radius-md）；深浅色只换混入的卡片底，不另立覆盖规则。 */
@@ -3106,6 +3191,7 @@ html.theme-dark .cal-cell-large.is-today, html.theme-dark .cal-cell-mobile.is-to
   background: color-mix(in srgb, var(--tint, var(--neutral-500)) 12%, var(--surface-card));
   color: var(--tint, var(--neutral-500));
 }
+/* 可选第三行（空态说明）：只降低一档字色，不改数值/标签的层级。 */
 .stat-card__note {
   margin-top: var(--space-1);
 }
@@ -3293,15 +3379,16 @@ html.theme-dark .cal-cell-large.is-today, html.theme-dark .cal-cell-mobile.is-to
   border: 1px solid var(--neutral-200);
   border-radius: var(--radius-sm);
   outline: none;
+  outline-width: 0;
   resize: vertical;
   transition: border-color var(--transition-fast);
 }
-/* 2026-10-28：vote-note 是漏网的裸输入（不属于 .input-flat 族），并入输入族同一口径：
-   边框变主题色 + 2px 主题色实线环 / offset 1px，鼠标与键盘（:focus）一致。 */
-.vote-note:focus {
+/* 2026-10-29 P1：vote-note 是输入族（有边框）——聚焦只变边框色，不出环。 */
+.vote-note:focus,
+.vote-note:focus-visible {
   border-color: var(--app-accent);
-  outline: 2px solid var(--app-accent);
-  outline-offset: 1px;
+  outline: none;
+  outline-width: 0;
   box-shadow: none;
 }
 .vote-submit {
@@ -3766,12 +3853,15 @@ html.theme-dark .cal-cell-large.is-today, html.theme-dark .cal-cell-mobile.is-to
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   ACCESSIBILITY — Focus Visible（全站唯一来源，2026-10-28 支书裁定）
-   ── 颜色只用主题色 --app-accent（七色 × 亮/暗由 token 自动切）；
-   ── 几何 2px solid / outline-offset 1px / box-shadow none（与 <select> 同源）；
-   ── 任何局部规则不得再叠第二条环（outline 之外不再画 box-shadow 光晕）。
-   输入族（input / select / textarea / 搜索框 / 下拉触发器）用 `:focus` 生效，
-   鼠标点击与键盘聚焦同表现；按钮 / 链接 / 行 / 页签用 `:focus-visible`。
+   ACCESSIBILITY — Focus Visible（全站唯一来源，2026-10-29 P1）
+   ── 焦点只有一个信号：
+      · 有边框控件（输入 / 多行文本 / 下拉触发器 / 搜索框）＝只变 border-color，无 outline、无 box-shadow；
+      · 无边框控件（按钮 / 链接 / 页签 / 行 / 徽章）＝只加一圈 2px 主题色实线，且只由 `:focus-visible` 触发；
+   ── 颜色只用主题色 --app-accent（七色 × 亮/暗由 token 自动切）；实底控件才用取反色；
+   ── 几何 2px solid / outline-offset 1px / box-shadow none；
+   ── 任何局部规则不得再叠第二条环（outline 之外不再画 box-shadow）。
+   行的三种写法已合并为一条 `[data-interactive="true"]`：同时覆盖 .list-row（a/button/div）
+   与表格行（tr），不再保留 `.list-row:focus-visible` / `tr[data-interactive]` 的分叉。
    ═══════════════════════════════════════════════════════════════ */
 button:focus-visible,
 a:focus-visible,
@@ -3779,7 +3869,8 @@ summary:focus-visible,
 [role="button"]:focus-visible,
 [role="option"]:focus-visible,
 [role="tab"]:focus-visible,
-tr[data-interactive="true"]:focus-visible {
+[data-interactive="true"]:focus-visible,
+.focus-ring:focus-visible {
   outline: 2px solid var(--app-accent);
   outline-offset: 1px;
   box-shadow: none;
@@ -5631,11 +5722,8 @@ html.theme-dark .agg-count-badge {
 .list-row[data-interactive="true"]:active {
   background: var(--surface-active);
 }
-.list-row:focus-visible {
-  outline: 2px solid var(--app-accent);
-  outline-offset: 1px;
-  box-shadow: none;
-}
+/* 行焦点环：2026-10-29 合并到全站唯一来源（`[data-interactive="true"]:focus-visible`），
+   此处不再重复声明。 */
 /* 可交互行用 <button> 时挂 btn-ghost 语义族；此处按行载体覆盖该族的紧凑尺寸。
    覆盖率高于 .btn-ghost 的 !important 档，只作用于本行。 */
 .list-row.btn-ghost {
@@ -5917,19 +6005,10 @@ html.theme-dark .agg-count-badge {
   border: 1px solid var(--neutral-200);
   border-radius: var(--radius-md);
 }
-/* 两档语义（2026-10-26 Task 3.1：同一 class 不再同时承载可交互与只读）：
-   --interactive：含 button / a，保留 hover / focus / 选中下划线；
-   --static：只有 span，纯摘要，无 hover、无指针、无边线。 */
+/* 数字组已是单一语法（.stat-card）：此带只剩「工作概况结论」一处可交互载体，
+   `--static` 只读档随待办摘要改为数字卡而退场（2026-10-29 P2）。 */
 .metric-band--interactive .metric-band__item {
   border-radius: var(--radius-sm);
-}
-.metric-band--static .metric-band__item {
-  cursor: default;
-}
-@media (hover: hover) {
-  .metric-band--static .metric-band__item:hover {
-    background: transparent;
-  }
 }
 .metric-band__item {
   display: flex;
@@ -5962,7 +6041,7 @@ button.metric-band__item.is-active {
   background: transparent;
   box-shadow: inset 0 -2px 0 var(--app-accent);
 }
-button.metric-band__item.is-active .metric-band__label { color: var(--app-accent-soft-text); }
+button.metric-band__item.is-active .stat-card__label { color: var(--app-accent-soft-text); }
 /* 2026-10-20 R3-07：滚动类指标改为页内链接（原生锚点），与筛选类 chip 在形态上分开：
    筛选＝可切换的胶囊（有 aria-pressed），滚动＝带「›」的文字链接。 */
 a.metric-band__item {
@@ -6008,37 +6087,44 @@ button.metric-band__item--filter.is-active {
 }
 /* chip 档的首项保留胶囊内边距（与上一行同特异性，故必须写在它之后）。 */
 .metric-band__item--filter:first-child { padding-left: var(--space-3); }
-.metric-band__value {
-  font-size: 1.5rem;
-  font-weight: 600;
-  line-height: 1;
-  font-variant-numeric: tabular-nums;
-  color: var(--neutral-800);
-}
-.metric-band__label {
-  font-size: var(--text-sm);
-  color: var(--neutral-500);
-}
 /* 逾期警示色（2026-10-23 R11 P1-01）：只在「逾期 > 0」时由 JS 挂 `--warning` 类；
    CSS 判不了计数 0，故这里只保留类本身，不再默认着色。
-   2026-10-27 Task 11.1：数值文字改 warning 文字档（原填充色当文字仅 2.15:1）。 */
-.metric-band__value--warning {
+   2026-10-27 Task 11.1：数值文字改 warning 文字档（原填充色当文字仅 2.15:1）。
+   2026-10-29 P2：随数字组单一语法改名为 `.stat-card__value--warning`。 */
+.stat-card__value--warning {
   color: var(--status-warning-text);
 }
-.metric-band__value--accent {
-  color: var(--app-accent-soft-text);
-}
 
-/* ── 数字卡档（2026-10-28 支书裁定：「四个数」统一为卡片数字）──
-   首页四数（dashboard/stats.js）与工作台结论带（governance/work-overview.js）同构：
-   卡片 = .card（白底 / 1px 描边 / 12px 圆角）＋ .metric-band__value（24px/600）＋ .metric-band__label（12px）。
-   `--cards` 只承担「横向带 → 四列卡网格」的布局切换，卡面复用 .card，不新增阴影；
-   卡间距沿用卡片既有 16px（--space-4）。 */
+/* ── 数字卡档（2026-10-28 支书裁定；2026-10-29 P2 统一为 .stat-card 单一语法）──
+   首页四数、工作台结论带、待办摘要、导入预览同构：
+   卡片 = .card（白底 / 1px 描边 / 12px 圆角）＋ 图标块在左 ＋ `.stat-card__body`（数值 / 标签两行）。
+   `.stat-grid` 与 `.metric-band--cards` 共用同一套栅格：桌面四列、≤1024 两列（手机同两列）；
+   四张等高只由栅格保证：`grid-auto-rows: 1fr`（两行时行高相等）＋ `align-items: stretch`（行内拉伸），
+   不写死 min-height。 */
+.stat-grid,
 .metric-band--cards {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-auto-rows: 1fr;
   align-items: stretch;
   gap: var(--space-4);
+}
+@media (max-width: 1024px) {
+  .stat-grid,
+  .metric-band--cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+/* 三项数字组（如「上报党委」）：桌面三列，≤1024 两列——列数只是布局，卡面语法仍同一套。 */
+.stat-grid--3 {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+@media (max-width: 1024px) {
+  .stat-grid--3 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+.metric-band--cards {
   padding: 0;
   background: transparent;
   border: 0;
@@ -6046,10 +6132,8 @@ button.metric-band__item--filter.is-active {
 }
 .metric-band--cards .metric-band__item {
   position: relative;
-  flex-direction: column;
-  align-items: flex-start;
-  justify-content: flex-start;
-  gap: var(--space-1);
+  align-items: center;
+  gap: var(--space-3);
   padding: var(--space-4);
   border-radius: var(--radius-md);
 }
@@ -6079,11 +6163,6 @@ button.metric-band__item--filter.is-active {
   position: absolute;
   top: var(--space-3);
   right: var(--space-4);
-}
-@media (max-width: 640px) {
-  .metric-band--cards {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
 }
 
 /* ── 状态徽章：统一淡底深字（§2.10 明暗档「状态」行）──
@@ -6197,11 +6276,8 @@ html.theme-dark .state-badge--neutral {
     background: transparent;
   }
 }
-.list-row[data-interactive="true"]:focus-visible {
-  outline: 2px solid var(--app-accent);
-  outline-offset: 1px;
-  box-shadow: none;
-}
+/* 行焦点环：2026-10-29 合并到全站唯一来源（`[data-interactive="true"]:focus-visible`），
+   此处不再重复声明。 */
 
 /* ═══════════════════════════════════════════════════════════════
    首页工作组进展（2026-10-18 · Spec Task 7）

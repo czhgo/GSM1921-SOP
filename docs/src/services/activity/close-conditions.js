@@ -6,12 +6,12 @@
 //  消费点：① 活动检查器「关闭」入口（components/record/inspector.js 原样转出）；
 //          ② 「待归档」待办 hydrate 派生（services/governance/todo.js::derivePendingArchiveTodos）。
 // ════════════════════════════════════════════════════════════════
-import { mockDB, AttendanceStatus, ReviewStatus } from '../../core/domain/domain.js?v=20261028e';
-import { ACTIVITY_CLASSIFICATION } from '../../core/domain/constants.js?v=20261028e';
-import { loadAttendanceRecords, isAttendanceConfirmed } from './attendance.js?v=20261028e';
-import { loadInspectionRecords } from './inspection.js?v=20261028e';
-import { loadActivityReviews } from '../governance/review.js?v=20261028e';
-import { reviewRequestOf, isReviewRequestEligibleActivity, isReviewReturned } from './activity.js?v=20261028e';
+import { mockDB, AttendanceStatus, ReviewStatus } from '../../core/domain/domain.js?v=20261029b';
+import { ACTIVITY_CLASSIFICATION } from '../../core/domain/constants.js?v=20261029b';
+import { loadAttendanceRecords, isAttendanceConfirmed } from './attendance.js?v=20261029b';
+import { loadInspectionRecords } from './inspection.js?v=20261029b';
+import { loadActivityReviews } from '../governance/review.js?v=20261029b';
+import { reviewRequestOf, isReviewRequestEligibleActivity, isReviewReturned } from './activity.js?v=20261029b';
 
 // 三会四子类单一源 = ACTIVITY_CLASSIFICATION['three-meetings'].subtypes（2026-09-03 去重收口，勿再手写清单）
 const MEETING_TYPES = ACTIVITY_CLASSIFICATION['three-meetings'].subtypes;

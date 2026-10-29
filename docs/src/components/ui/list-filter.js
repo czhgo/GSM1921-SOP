@@ -42,19 +42,19 @@
 //  数据变化后：同 stateKey 再调用一次，或 hold 返回值调 .update(newRows)。
 // ════════════════════════════════════════════════════════════════
 
-import { escHtml as esc } from '../../core/base/utils.js?v=20261028e';
+import { escHtml as esc } from '../../core/base/utils.js?v=20261029b';
 import {
   SEARCH_FILTER_MIN_ROWS, ROLE_LABELS, ACTIVITY_CLASSIFICATION,
   classifyActivityType, normalizeActivityType,
-} from '../../core/domain/constants.js?v=20261028e';
+} from '../../core/domain/constants.js?v=20261029b';
 // 活动生命周期**展示态**单一源 = components/record/inspector.js（草稿/已发布/进行中/待归档/已执行/已归档/已取消）
 // ——勿在本组件另写一套中文标签（constants.js 里曾短暂加过的副本已撤除）
-import { deriveActivityLifecycleStatus, ACTIVITY_LIFECYCLE } from '../record/inspector.js?v=20261028e';
+import { deriveActivityLifecycleStatus, ACTIVITY_LIFECYCLE } from '../record/inspector.js?v=20261029b';
 // 翻页控件单一源（批次 38 下沉为叶子件 pager.js）：本引擎与关系矩阵共用，勿另写翻页标记
-import { pagerHtml } from './pager.js?v=20261028e';
+import { pagerHtml } from './pager.js?v=20261029b';
 // 空态单一源（U-09）：非表格列表空态原先是一行灰字 `<p>`（无出口、与 empty-state 两套样式）；
 // 改为 empty-state 组件，并支持 `emptyActionHtml` 给一个出口（表格空态仍由本文件自带空行）。
-import { emptyStateHtml } from './empty-state.js?v=20261028e';
+import { emptyStateHtml } from './empty-state.js?v=20261029b';
 
 /** 每个 stateKey 的筛选状态（跨重渲染保持；键集合有界 = 全站表格数，不做回收） */
 const _states = new Map();
@@ -101,6 +101,8 @@ function _keywordHit(item, q, keyword) {
  * @param {Array} cfg.rows 数据集
  * @param {Function} cfg.rowHtml (item, index) => htmlString
  * @param {Object} [cfg.keyword] { keys:[字段], placeholder, get?(item,key) }
+ * @param {string} [cfg.scopeHtml] 「范围」段控件 HTML（如支部 / 时间区间 / 可见范围下拉）。
+ *   P3 四段结构：scope → search → facet → reset；空段自动省略（不输出空行）。
  * @param {Array} [cfg.facets] [{ key, label, options?:[{value,label}]|'auto', get?, format?(v) }]
  * @param {number} [cfg.minRows] 检索条出现门槛（缺省 = SEARCH_FILTER_MIN_ROWS 单一源）
  * @param {number} [cfg.pageSize] 每页条数（缺省 10；传 0 = 不分页）。页数 ≤1 时不渲染翻页控件。
@@ -124,6 +126,7 @@ export function renderFilteredList(container, cfg) {
     rows: [],
     rowHtml: () => '',
     keyword: null,
+    scopeHtml: '',
     facets: [],
     minRows: SEARCH_FILTER_MIN_ROWS,
     pageSize: 10,
@@ -177,9 +180,11 @@ export function renderFilteredList(container, cfg) {
   }
 
   function renderBar() {
-    // 无检索能力（既无关键词也无分面）= 调用方只要分页（如看板分桶 / 分组子列表）→ 不渲染检索条
-    // （批次 37：分页多为「桶 / 分组」所共用，避免每组各顶一条空检索条）
-    if (!config.keyword && facetDefs.length === 0) { barEl.hidden = true; barEl.innerHTML = ''; return; }
+    // 无检索能力（既无关键词、无分面、也无范围）= 调用方只要分页（如看板分桶 / 分组子列表）
+    // → 不渲染检索条（批次 37：分页多为「桶 / 分组」所共用，避免每组各顶一条空检索条）
+    if (!config.keyword && facetDefs.length === 0 && !config.scopeHtml) {
+      barEl.hidden = true; barEl.innerHTML = ''; return;
+    }
     barEl.hidden = !visible;
     if (!visible) { barEl.innerHTML = ''; return; }
     const qHtml = config.keyword
@@ -210,8 +215,14 @@ export function renderFilteredList(container, cfg) {
         ${f.options.map(o => `<option value="${esc(o.value)}"${sel === o.value ? ' selected' : ''}>${esc(o.label)}</option>`).join('')}
       </select>`;
     }).join('');
-    barEl.innerHTML = `${qHtml}${facetsHtml}
-      <button type="button" class="btn-tab lf-clear lf-btn">清除</button>`;
+    // P3 四段：范围 → 检索 → 分面 → 重置；空段不输出（无空行）。
+    // `.lf-bar` 的直接子元素只允许 `.lf-bar__row`（结构单一源，见 styles.css P3 段）。
+    const rows = [];
+    if (config.scopeHtml) rows.push(`<div class="lf-bar__row" data-seg="scope">${config.scopeHtml}</div>`);
+    if (qHtml) rows.push(`<div class="lf-bar__row" data-seg="search">${qHtml}</div>`);
+    if (facetsHtml) rows.push(`<div class="lf-bar__row" data-seg="facet">${facetsHtml}</div>`);
+    rows.push(`<div class="lf-bar__row" data-seg="reset"><button type="button" class="btn-tab lf-clear lf-btn">清除</button></div>`);
+    barEl.innerHTML = rows.join('');
 
     barEl.querySelector(`#${uid}-q`)?.addEventListener('input', (e) => {
       st.q = String(e.target.value || '').trim().toLowerCase();

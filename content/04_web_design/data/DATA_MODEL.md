@@ -3,7 +3,7 @@ title: "数据模型与数据流"
 type: design
 role: "[工程师]+[AI]"
 version: "1.1"
-last_updated: 2026-10-28
+last_updated: 2026-10-29
 status: active
 related_files: [content/02_institution/SYSTEM_ROLE_PERMISSION.md, content/02_institution/COMMISSIONER_DUTY_FRAMEWORK.md, content/02_institution/sop/纪检委员工作流程指南.md, content/03_doc_system/ARCHITECTURE.md]
 ---
@@ -1173,7 +1173,7 @@ pending ──用户开始处理──→ in_progress ──完成──→ comp
 4. **未分组口径**：见 §2.26 行为口径 4；支书台「党小组」tab 顶部显示「未分组 N 人」并提供**行内下拉逐个归组**（名册中未分组成员显示「未分组」标注）。
 5. **组长绑定不落在本实体**：组长由成员档案 `role='leader'` + 党小组归属派生（`services/member/group-view.js::listPartyGroups`）；指派入口＝「党小组」tab 行内（组长 / 副组长），本实体只展示组长。
 6. **硬编码收敛**：支书台「党小组」tab 的组清单、组长建活动的承办党小组选项、演示用户域一律读取**活组清单**单一源（口径：`status='active'` 按 seq 排序）。
-7. **与工作地图的关系**：党小组管理**不新增**工作地图模块，按「职责有入口」原则（DESIGN_SYSTEM.md §4.6）落地为支书台一个 tab。
+7. **与工作地图的关系**：党小组管理**不新增**工作地图模块，按「职责有入口」原则（DS_03_COMPONENTS.md §4.6）落地为支书台一个 tab。
 
 ### 2.28 成员流动台账（MemberFlow）
 

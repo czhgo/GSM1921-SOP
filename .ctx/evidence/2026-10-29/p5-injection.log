@@ -1,0 +1,137 @@
+﻿=== esm-parse-guard ===
+[ESM1] 解析失败文件：
+  - docs/src/__m3_inject__/broken-tab.js :: SyntaxError: Unexpected token '{'
+✖ ESM1 docs 前端模块全部通过真正的 ESM 解析（node --check 不算） (675.2634ms)
+✔ ESM2 反例：函数体内的 import 必须判红，合法 ESM 不得误报 (170.2828ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 1
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1138.6213
+
+✖ failing tests:
+
+test at test\esm-parse-guard.test.mjs:52:1
+✖ ESM1 docs 前端模块全部通过真正的 ESM 解析（node --check 不算） (675.2634ms)
+  AssertionError [ERR_ASSERTION]: 有 1 个模块无法被 ESM 解析（浏览器里会整模块失败、页签恒定报错）：
+    docs/src/__m3_inject__/broken-tab.js :: SyntaxError: Unexpected token '{'
+  
+  1 !== 0
+  
+      at TestContext.<anonymous> (file:///D:/GitHub/GSM1921-SOP/server/test/esm-parse-guard.test.mjs:66:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1306:25)
+      at Test.start (node:internal/test_runner/test:1177:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:385:17) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+ESM_EXIT=1
+=== module-load ===
+[DataAdapter] 数据源切换为: mock
+[db] v7 人员主键迁移： {"total":0,"mapped":0,"unmapped":[],"rate":1}
+[db] v8 活动组织落点：支部级重分类=0 补承办范围=0 待补责任组=0
+[db] v10 活动组织落点两档：落点归一=0 待补承办组=0 补跨组招募=0 工作组镜像=0
+[db] v11 待办归属回填：已归属=0 待归属=0
+[db] v12 branchId 回填：活动=0 考勤=0 考察=0 归档=0 宣传=0 外发=0 交接=0 确认=0 审计=0 待办=0
+[db] schema v12（本次应用 12 项）
+[E1] 模块加载: 222/223 通过
+[E1] 无法加载的模块：
+  1. __m3_inject__/broken-tab.js :: SyntaxError: Unexpected token '{'
+[E2] 独立页装配：受检 15 页 / 白名单 3 页 → activity-materials.html(经 hydrateDataSource) activity.html(经 hydrateDataSource) archive.html(经 hydrateDataSource) branch-config.html(经 hydrateDataSource) feedback.html(经 hydrateDataSource) index.html(经 bootstrap) messages.html(经 hydrateDataSource) notice.html(经 hydrateDataSource) party-committee-meeting.html(经 hydrateDataSource) person.html(经 hydrateDataSource) search.html(经 hydrateDataSource) settings.html(经 hydrateDataSource) taskforce.html(经 hydrateDataSource) thought-report.html(经 hydrateDataSource) wizard.html(经 hydrateDataSource)
+✖ E1 编辑完整性：docs/src 全部模块可加载（无语法/重复声明/未定义引用/误删调用） (2504.5978ms)
+✔ E2 独立页数据源装配断言：每个 docs/*.html 的入口必须装配数据源（白名单 about/help/login） (39.7389ms)
+✔ E3 分层方向：服务层不得 import 组件（服务层不产 UI；组件 → 服务 才对） (39.0868ms)
+[E5] 页签模块：40 个模块 / 42 条注册调用，通过路径·ESM 解析·导出名校验
+✔ E4 真机装配：登录后 3 类角色的工作台页在真实浏览器里真的装配成 api (8482.3911ms)
+✔ E5 工作台能力表页签模块：路径真实 / ESM 可解析 / 调用的导出名确实存在 (279.1072ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 4
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 13250.5011
+
+✖ failing tests:
+
+test at test\module-load.test.mjs:54:1
+✖ E1 编辑完整性：docs/src 全部模块可加载（无语法/重复声明/未定义引用/误删调用） (2504.5978ms)
+  AssertionError [ERR_ASSERTION]: 编辑完整性失败 1 项:
+  __m3_inject__/broken-tab.js :: SyntaxError: Unexpected token '{'
+  
+  1 !== 0
+  
+      at TestContext.<anonymous> (file:///D:/GitHub/GSM1921-SOP/server/test/module-load.test.mjs:85:12)
+      at async Test.run (node:internal/test_runner/test:1313:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+MODULE_EXIT=1
+=== restore check ===
+✔ ESM1 docs 前端模块全部通过真正的 ESM 解析（node --check 不算） (1100.5402ms)
+✔ ESM2 反例：函数体内的 import 必须判红，合法 ESM 不得误报 (321.1463ms)
+[DataAdapter] 数据源切换为: mock
+[db] v7 人员主键迁移： {"total":0,"mapped":0,"unmapped":[],"rate":1}
+[db] v8 活动组织落点：支部级重分类=0 补承办范围=0 待补责任组=0
+[db] v10 活动组织落点两档：落点归一=0 待补承办组=0 补跨组招募=0 工作组镜像=0
+[db] v11 待办归属回填：已归属=0 待归属=0
+[db] v12 branchId 回填：活动=0 考勤=0 考察=0 归档=0 宣传=0 外发=0 交接=0 确认=0 审计=0 待办=0
+[db] schema v12（本次应用 12 项）
+[E1] 模块加载: 222/222 通过
+[E2] 独立页装配：受检 15 页 / 白名单 3 页 → activity-materials.html(经 hydrateDataSource) activity.html(经 hydrateDataSource) archive.html(经 hydrateDataSource) branch-config.html(经 hydrateDataSource) feedback.html(经 hydrateDataSource) index.html(经 bootstrap) messages.html(经 hydrateDataSource) notice.html(经 hydrateDataSource) party-committee-meeting.html(经 hydrateDataSource) person.html(经 hydrateDataSource) search.html(经 hydrateDataSource) settings.html(经 hydrateDataSource) taskforce.html(经 hydrateDataSource) thought-report.html(经 hydrateDataSource) wizard.html(经 hydrateDataSource)
+✔ E1 编辑完整性：docs/src 全部模块可加载（无语法/重复声明/未定义引用/误删调用） (3969.2648ms)
+✔ E2 独立页数据源装配断言：每个 docs/*.html 的入口必须装配数据源（白名单 about/help/login） (80.3437ms)
+✔ E3 分层方向：服务层不得 import 组件（服务层不产 UI；组件 → 服务 才对） (133.5222ms)
+[E5] 页签模块：40 个模块 / 42 条注册调用，通过路径·ESM 解析·导出名校验
+✔ E4 真机装配：登录后 3 类角色的工作台页在真实浏览器里真的装配成 api (10016.021ms)
+✔ E5 工作台能力表页签模块：路径真实 / ESM 可解析 / 调用的导出名确实存在 (795.4089ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 7
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 22247.1877
+RESTORE_EXIT=0
+=== restore check ===
+✔ ESM1 docs 前端模块全部通过真正的 ESM 解析（node --check 不算） (639.7111ms)
+✔ ESM2 反例：函数体内的 import 必须判红，合法 ESM 不得误报 (174.9932ms)
+[DataAdapter] 数据源切换为: mock
+[db] v7 人员主键迁移： {"total":0,"mapped":0,"unmapped":[],"rate":1}
+[db] v8 活动组织落点：支部级重分类=0 补承办范围=0 待补责任组=0
+[db] v10 活动组织落点两档：落点归一=0 待补承办组=0 补跨组招募=0 工作组镜像=0
+[db] v11 待办归属回填：已归属=0 待归属=0
+[db] v12 branchId 回填：活动=0 考勤=0 考察=0 归档=0 宣传=0 外发=0 交接=0 确认=0 审计=0 待办=0
+[db] schema v12（本次应用 12 项）
+[E1] 模块加载: 222/222 通过
+[E2] 独立页装配：受检 15 页 / 白名单 3 页 → activity-materials.html(经 hydrateDataSource) activity.html(经 hydrateDataSource) archive.html(经 hydrateDataSource) branch-config.html(经 hydrateDataSource) feedback.html(经 hydrateDataSource) index.html(经 bootstrap) messages.html(经 hydrateDataSource) notice.html(经 hydrateDataSource) party-committee-meeting.html(经 hydrateDataSource) person.html(经 hydrateDataSource) search.html(经 hydrateDataSource) settings.html(经 hydrateDataSource) taskforce.html(经 hydrateDataSource) thought-report.html(经 hydrateDataSource) wizard.html(经 hydrateDataSource)
+✔ E1 编辑完整性：docs/src 全部模块可加载（无语法/重复声明/未定义引用/误删调用） (2687.1817ms)
+✔ E2 独立页数据源装配断言：每个 docs/*.html 的入口必须装配数据源（白名单 about/help/login） (40.9169ms)
+✔ E3 分层方向：服务层不得 import 组件（服务层不产 UI；组件 → 服务 才对） (54.9015ms)
+[E5] 页签模块：40 个模块 / 42 条注册调用，通过路径·ESM 解析·导出名校验
+✔ E4 真机装配：登录后 3 类角色的工作台页在真实浏览器里真的装配成 api (9311.3835ms)
+✔ E5 工作台能力表页签模块：路径真实 / ESM 可解析 / 调用的导出名确实存在 (315.9446ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 7
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 14557.5713
+RESTORE_EXIT=0

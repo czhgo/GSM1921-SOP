@@ -11,22 +11,22 @@
 //   分区——**写侧默认折叠**（`_toolOpen`，同 group-progress `_progressOpen` 体例），首屏只留读侧；展开后功能一字不减。
 // 2026-09-03 裁定沿用：本页禁 SVG 图标，类别/视图用文字与色点区分。
 
-import { escHtml as esc } from '../../../core/base/utils.js?v=20261028e';
-import { WORK_MAP_MODULES, ORG_SUBJECT_LABELS, isBranchOrgSubject } from '../../../core/domain/work-map.js?v=20261028e';
-import { ROLE_LABELS } from '../../../core/domain/constants.js?v=20261028e';
-import { AuthStore } from '../../../services/core/auth.js?v=20261028e';
-import { getBranchIdOfPerson, getBranchWorkforce } from '../../../services/branch/branch.js?v=20261028e';
-import { getPersonName } from '../../../services/member/person.js?v=20261028e';
+import { escHtml as esc } from '../../../core/base/utils.js?v=20261029b';
+import { WORK_MAP_MODULES, ORG_SUBJECT_LABELS, isBranchOrgSubject } from '../../../core/domain/work-map.js?v=20261029b';
+import { ROLE_LABELS } from '../../../core/domain/constants.js?v=20261029b';
+import { AuthStore } from '../../../services/core/auth.js?v=20261029b';
+import { getBranchIdOfPerson, getBranchWorkforce } from '../../../services/branch/branch.js?v=20261029b';
+import { getPersonName } from '../../../services/member/person.js?v=20261029b';
 // 人×工作项矩阵单一源（2026-09-14 批次 35）：按人 / 按项目 互为转置，勿自造表格与翻页
-import { renderRelationMatrix } from '../../../components/ui/relation-matrix.js?v=20261028e';
+import { renderRelationMatrix } from '../../../components/ui/relation-matrix.js?v=20261029b';
 // 责任关系（2026-10-24 Task 4.4 改主从两栏）：左列 14 个模块（模块名 + 责任人）单屏可览、
 // 右列选中模块的「责任角色 / 责任说明 / 停用·启用」。走原生 listbox 语义（非按钮族），
 // 不再把 14 项塞进 5 列表格，也不再分页；空「操作」列与表前读法说明一并未删功能地退场。
-import { renderTabHeader, renderCardHeader } from '../../../components/shell/page-frame.js?v=20261028e';
+import { renderTabHeader, renderCardHeader } from '../../../components/shell/page-frame.js?v=20261029b';
 // 空态单一源（一句说明 + 一个下一步），与全局概况 / 周期归档卡同形
-import { emptyStateHtml } from '../../../components/ui/empty-state.js?v=20261028e';
+import { emptyStateHtml } from '../../../components/ui/empty-state.js?v=20261029b';
 // L4 M2（2026-09-03）：分工调整工具（发起支委会议题 / 跟踪 / 采纳生效），仅支书/副支书可见
-import { mountWorkforcePanel } from './workforce-panel.js?v=20261028e';
+import { mountWorkforcePanel } from './workforce-panel.js?v=20261029b';
 
 // 2026-10-18 脏专项 Task 17：默认落「责任关系表」——14 项模块是 1:1 分派，
 // 逐行读出「谁负责什么」比 14×N 的稀疏矩阵直接；矩阵（按人 / 按项目）保留为可选视图。

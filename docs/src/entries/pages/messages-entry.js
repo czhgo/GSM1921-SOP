@@ -8,20 +8,21 @@
 //  · 读口单一源 = NoticeStore.listMessages；未读计数单一源 = NoticeStore.countUnread。
 //  · 可见性单一源 = canReadNotice（经 NoticeStore.list 受众门），本页不另写规则。
 // ════════════════════════════════════════════════════════════════
-import { renderSidebar } from '../../components/shell/sidebar.js?v=20261028e';
-import { renderHeader } from '../../components/shell/header.js?v=20261028e';
+import { renderSidebar } from '../../components/shell/sidebar.js?v=20261029b';
+import { renderHeader } from '../../components/shell/header.js?v=20261029b';
 import {
   NoticeStore, sendDirectMessage, canSendDirectMessage, kindOf,
-} from '../../services/governance/notice.js?v=20261028e';
-import { AuthStore } from '../../services/core/auth.js?v=20261028e';
-import { showToast, escHtml as esc, getBasePath } from '../../core/base/utils.js?v=20261028e';
-import { badgeHtml } from '../../components/ui/badges.js?v=20261028e';
-import { pagerHtml } from '../../components/ui/pager.js?v=20261028e';
-import { PersonPicker } from '../../components/governance/pickers.js?v=20261028e';
+} from '../../services/governance/notice.js?v=20261029b';
+import { AuthStore } from '../../services/core/auth.js?v=20261029b';
+import { showToast, escHtml as esc, getBasePath } from '../../core/base/utils.js?v=20261029b';
+import { badgeHtml } from '../../components/ui/badges.js?v=20261029b';
+import { pagerHtml } from '../../components/ui/pager.js?v=20261029b';
+import { PersonPicker } from '../../components/governance/pickers.js?v=20261029b';
+import { messageSearchBarHtml } from '../../components/notice/message-search-bar.js?v=20261029b';
 // S1（2026-09-12 通知详情页同款）：必须先完成数据 hydrate（loadDB / API init）再取数
-import { hydrateDataSource, notifyDataLoaded } from '../../data/data-adapter.js?v=20261028e';
-import { ApiAdapter } from '../../data/api-adapter.js?v=20261028e';
-import { BranchService } from '../../services/core/runtime.js?v=20261028e';
+import { hydrateDataSource, notifyDataLoaded } from '../../data/data-adapter.js?v=20261029b';
+import { ApiAdapter } from '../../data/api-adapter.js?v=20261029b';
+import { BranchService } from '../../services/core/runtime.js?v=20261029b';
 
 renderSidebar('messages');
 renderHeader('messages');
@@ -172,10 +173,12 @@ function render() {
     </div>` : ''}
 
     <div class="flex flex-wrap items-center gap-2 mb-2" id="msg-filters">${boxFiltersHtml}</div>
-    <div class="flex flex-wrap items-center gap-2 mb-3">
+    <div class="flex flex-wrap items-center gap-2 mb-2">
       ${sourceFiltersHtml}
-      <input id="msg-search" type="search" class="input-flat text-xs lf-kw ml-auto" style="max-width:220px;" placeholder="搜索标题 / 正文 / 对方姓名" value="${esc(_q)}" />
     </div>
+    <!-- P3 四段：检索条由 components/notice/message-search-bar.js 单一源产出
+         （本页筛选胶囊沿用表单 chip 形态，不并入 bar，避免自写筛选胶囊） -->
+    ${messageSearchBarHtml(_q)}
 
     <div class="space-y-2" id="msg-list">
       ${empty}

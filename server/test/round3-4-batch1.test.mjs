@@ -45,9 +45,12 @@ test('R3-U03 页签模块加载/渲染失败落统一错误卡，可重试', () 
   assert.match(TAB_BAR, /这个页签暂时没加载出来/);
   assert.match(TAB_BAR, /data-ws-tab-error/);
   assert.match(TAB_BAR, /data-ws-tab-retry>重试<\/button>/);
+  // 2026-10-29：模块加载/解析失败不可自愈 ⇒ 依据 `__moduleSpec` 改出「刷新页面」卡（不删原重试分支）。
+  assert.match(TAB_BAR, /__moduleSpec/, '模块加载失败须与渲染期异常可区分');
+  assert.match(TAB_BAR, /data-ws-tab-reload>刷新页面<\/button>/, '不可重试分支须给「刷新页面」而不是无效重试');
   // 2026-10-25 Task 1.2（统一渲染生命周期）：错误卡函数不再接收过时刻的 ctx——
   //   重试时由 `_resolveCtx()` 取最新 state，故签名收窄为 `(tab)`；判据仍是「统一错误卡函数」。
-  assert.match(TAB_BAR, /function _renderTabError\(tab\)/, '错误卡应封装为统一渲染函数');
+  assert.match(TAB_BAR, /function _renderTabError\(tab(?:, err)?\)/, '错误卡应封装为统一渲染函数');
   assert.match(TAB_BAR, /_renderInFlight\.delete\(tab\.id\)/, '重试前应清掉失败缓存');
   // 同上：重试重新走 `_safeRender(tab)`（ctx 由渲染入口统一解析，避免重试沿用旧快照）。
   assert.match(TAB_BAR, /_safeRender\(tab\);/, '重试应重新走 _safeRender');

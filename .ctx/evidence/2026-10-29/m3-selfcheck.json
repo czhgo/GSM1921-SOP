@@ -1,0 +1,1152 @@
+{
+  "generatedAt": "2026-10-29T17:30:36.616Z",
+  "base": "memory-db",
+  "widths": [
+    1440,
+    1024,
+    768,
+    390
+  ],
+  "p1": {
+    "helpSearch": {
+      "selector": ".help-search-input",
+      "mouse": {
+        "tag": "input",
+        "outlineWidth": "0px",
+        "outlineStyle": "none",
+        "boxShadow": "none",
+        "borderTopColor": "rgb(169, 122, 18)",
+        "borderTopWidth": "1px",
+        "accent": "rgb(169, 122, 18)",
+        "focused": true
+      },
+      "keyboard": {
+        "tag": "input",
+        "outlineWidth": "0px",
+        "outlineStyle": "none",
+        "boxShadow": "none",
+        "borderTopColor": "rgb(169, 122, 18)",
+        "borderTopWidth": "1px",
+        "accent": "rgb(169, 122, 18)",
+        "focused": true
+      },
+      "kbReached": true
+    },
+    "loginStudentId": {
+      "selector": "#student-id",
+      "mouse": {
+        "tag": "input",
+        "outlineWidth": "0px",
+        "outlineStyle": "none",
+        "boxShadow": "none",
+        "borderTopColor": "rgb(169, 122, 18)",
+        "borderTopWidth": "1px",
+        "accent": "rgb(169, 122, 18)",
+        "focused": true
+      },
+      "keyboard": {
+        "tag": "input",
+        "outlineWidth": "0px",
+        "outlineStyle": "none",
+        "boxShadow": "none",
+        "borderTopColor": "rgb(169, 122, 18)",
+        "borderTopWidth": "1px",
+        "accent": "rgb(169, 122, 18)",
+        "focused": true
+      },
+      "kbReached": true
+    }
+  },
+  "p2": {
+    "home": {
+      "390": {
+        "count": 4,
+        "cols": 2,
+        "heights": [
+          104,
+          104,
+          104,
+          104
+        ],
+        "heightDiff": 0,
+        "iconFirst": true,
+        "hasValueLabel": true,
+        "iconLeftOfBody": true,
+        "centerDeltaMax": 0,
+        "gridOverflow": false,
+        "docOverflow": false
+      },
+      "768": {
+        "count": 4,
+        "cols": 2,
+        "heights": [
+          104,
+          104,
+          104,
+          104
+        ],
+        "heightDiff": 0,
+        "iconFirst": true,
+        "hasValueLabel": true,
+        "iconLeftOfBody": true,
+        "centerDeltaMax": 0,
+        "gridOverflow": false,
+        "docOverflow": false
+      },
+      "1440": {
+        "count": 4,
+        "cols": 4,
+        "heights": [
+          104,
+          104,
+          104,
+          104
+        ],
+        "heightDiff": 0,
+        "iconFirst": true,
+        "hasValueLabel": true,
+        "iconLeftOfBody": true,
+        "centerDeltaMax": 0,
+        "gridOverflow": false,
+        "docOverflow": false
+      }
+    },
+    "secretaryOverview": {
+      "390": {
+        "count": 4,
+        "cols": 2,
+        "heights": [
+          80,
+          80,
+          80,
+          80
+        ],
+        "heightDiff": 0,
+        "iconFirst": true,
+        "hasValueLabel": true,
+        "iconLeftOfBody": true,
+        "centerDeltaMax": 0,
+        "gridOverflow": false,
+        "docOverflow": false
+      },
+      "768": {
+        "count": 4,
+        "cols": 2,
+        "heights": [
+          80,
+          80,
+          80,
+          80
+        ],
+        "heightDiff": 0,
+        "iconFirst": true,
+        "hasValueLabel": true,
+        "iconLeftOfBody": true,
+        "centerDeltaMax": 0,
+        "gridOverflow": false,
+        "docOverflow": false
+      },
+      "1440": {
+        "count": 4,
+        "cols": 4,
+        "heights": [
+          80,
+          80,
+          80,
+          80
+        ],
+        "heightDiff": 0,
+        "iconFirst": true,
+        "hasValueLabel": true,
+        "iconLeftOfBody": true,
+        "centerDeltaMax": 0,
+        "gridOverflow": false,
+        "docOverflow": false
+      }
+    }
+  },
+  "p3": {
+    "roster": {
+      "account": "9000000001",
+      "path": "/workspace/org.html?tab=roster",
+      "byWidth": {
+        "390": {
+          "bars": [
+            {
+              "segs": [
+                "scope"
+              ],
+              "childTags": [
+                "div.lf-bar__row"
+              ],
+              "onlyRows": true,
+              "rowCount": 1,
+              "alignDelta": 0,
+              "rowLeftDelta": 0,
+              "barOverflow": false
+            }
+          ],
+          "docOverflow": false
+        },
+        "1440": {
+          "bars": [
+            {
+              "segs": [
+                "scope"
+              ],
+              "childTags": [
+                "div.lf-bar__row"
+              ],
+              "onlyRows": true,
+              "rowCount": 1,
+              "alignDelta": 0,
+              "rowLeftDelta": 0,
+              "barOverflow": false
+            }
+          ],
+          "docOverflow": false
+        }
+      }
+    },
+    "archive": {
+      "account": "2400012349",
+      "path": "/archive.html",
+      "byWidth": {
+        "390": {
+          "bars": [
+            {
+              "segs": [
+                "search"
+              ],
+              "childTags": [
+                "div.lf-bar__row"
+              ],
+              "onlyRows": true,
+              "rowCount": 1,
+              "alignDelta": 0,
+              "rowLeftDelta": 0,
+              "barOverflow": false
+            }
+          ],
+          "docOverflow": false
+        },
+        "1440": {
+          "bars": [
+            {
+              "segs": [
+                "search"
+              ],
+              "childTags": [
+                "div.lf-bar__row"
+              ],
+              "onlyRows": true,
+              "rowCount": 1,
+              "alignDelta": 0,
+              "rowLeftDelta": 0,
+              "barOverflow": false
+            }
+          ],
+          "docOverflow": false
+        }
+      }
+    }
+  },
+  "p4": {
+    "settings": {
+      "path": "/settings.html",
+      "tier": "64rem",
+      "byWidth": {
+        "390": {
+          "selector": "#main-content > div",
+          "maxWidth": "1024px",
+          "boxSizing": "border-box",
+          "paddingLeft": "0px",
+          "paddingRight": "0px",
+          "left": 16,
+          "right": 374,
+          "width": 358,
+          "parentInner": 358,
+          "centeredInParent": true,
+          "docOverflow": false
+        },
+        "768": {
+          "selector": "#main-content > div",
+          "maxWidth": "1024px",
+          "boxSizing": "border-box",
+          "paddingLeft": "0px",
+          "paddingRight": "0px",
+          "left": 32,
+          "right": 736,
+          "width": 704,
+          "parentInner": 704,
+          "centeredInParent": true,
+          "docOverflow": false
+        },
+        "1024": {
+          "selector": "#main-content > div",
+          "maxWidth": "1024px",
+          "boxSizing": "border-box",
+          "paddingLeft": "0px",
+          "paddingRight": "0px",
+          "left": 32,
+          "right": 992,
+          "width": 960,
+          "parentInner": 960,
+          "centeredInParent": true,
+          "docOverflow": false
+        },
+        "1440": {
+          "selector": "#main-content > div",
+          "maxWidth": "1024px",
+          "boxSizing": "border-box",
+          "paddingLeft": "0px",
+          "paddingRight": "0px",
+          "left": 208,
+          "right": 1232,
+          "width": 1024,
+          "parentInner": 1376,
+          "centeredInParent": true,
+          "docOverflow": false
+        }
+      }
+    },
+    "help": {
+      "path": "/help.html",
+      "tier": "80rem",
+      "byWidth": {
+        "390": {
+          "selector": ".doc-wrap",
+          "maxWidth": "1280px",
+          "boxSizing": "border-box",
+          "paddingLeft": "12px",
+          "paddingRight": "12px",
+          "left": 16,
+          "right": 374,
+          "width": 358,
+          "parentInner": 358,
+          "centeredInParent": true,
+          "docOverflow": false
+        },
+        "768": {
+          "selector": ".doc-wrap",
+          "maxWidth": "1280px",
+          "boxSizing": "border-box",
+          "paddingLeft": "16px",
+          "paddingRight": "16px",
+          "left": 32,
+          "right": 736,
+          "width": 704,
+          "parentInner": 704,
+          "centeredInParent": true,
+          "docOverflow": false
+        },
+        "1024": {
+          "selector": ".doc-wrap",
+          "maxWidth": "1280px",
+          "boxSizing": "border-box",
+          "paddingLeft": "16px",
+          "paddingRight": "16px",
+          "left": 32,
+          "right": 992,
+          "width": 960,
+          "parentInner": 960,
+          "centeredInParent": true,
+          "docOverflow": false
+        },
+        "1440": {
+          "selector": ".doc-wrap",
+          "maxWidth": "1280px",
+          "boxSizing": "border-box",
+          "paddingLeft": "16px",
+          "paddingRight": "16px",
+          "left": 80,
+          "right": 1360,
+          "width": 1280,
+          "parentInner": 1376,
+          "centeredInParent": true,
+          "docOverflow": false
+        }
+      }
+    }
+  },
+  "checks": [
+    {
+      "id": "P1-helpSearch-mouse",
+      "scenario": "helpSearch（mouse）聚焦：outlineWidth=0 / boxShadow=none / 边框色=主题色",
+      "expected": {
+        "outlineWidth": "0px",
+        "boxShadow": "none",
+        "borderTopColor": "rgb(169, 122, 18)"
+      },
+      "actual": {
+        "outlineWidth": "0px",
+        "boxShadow": "none",
+        "borderTopColor": "rgb(169, 122, 18)"
+      },
+      "pass": true,
+      "note": "tag=input"
+    },
+    {
+      "id": "P1-helpSearch-keyboard",
+      "scenario": "helpSearch（keyboard）聚焦：outlineWidth=0 / boxShadow=none / 边框色=主题色",
+      "expected": {
+        "outlineWidth": "0px",
+        "boxShadow": "none",
+        "borderTopColor": "rgb(169, 122, 18)"
+      },
+      "actual": {
+        "outlineWidth": "0px",
+        "boxShadow": "none",
+        "borderTopColor": "rgb(169, 122, 18)"
+      },
+      "pass": true,
+      "note": "tag=input"
+    },
+    {
+      "id": "P1-helpSearch-same",
+      "scenario": "helpSearch：鼠标与键盘读数一致",
+      "expected": "三项读数逐字相等",
+      "actual": "相等",
+      "pass": true,
+      "note": ""
+    },
+    {
+      "id": "P1-loginStudentId-mouse",
+      "scenario": "loginStudentId（mouse）聚焦：outlineWidth=0 / boxShadow=none / 边框色=主题色",
+      "expected": {
+        "outlineWidth": "0px",
+        "boxShadow": "none",
+        "borderTopColor": "rgb(169, 122, 18)"
+      },
+      "actual": {
+        "outlineWidth": "0px",
+        "boxShadow": "none",
+        "borderTopColor": "rgb(169, 122, 18)"
+      },
+      "pass": true,
+      "note": "tag=input"
+    },
+    {
+      "id": "P1-loginStudentId-keyboard",
+      "scenario": "loginStudentId（keyboard）聚焦：outlineWidth=0 / boxShadow=none / 边框色=主题色",
+      "expected": {
+        "outlineWidth": "0px",
+        "boxShadow": "none",
+        "borderTopColor": "rgb(169, 122, 18)"
+      },
+      "actual": {
+        "outlineWidth": "0px",
+        "boxShadow": "none",
+        "borderTopColor": "rgb(169, 122, 18)"
+      },
+      "pass": true,
+      "note": "tag=input"
+    },
+    {
+      "id": "P1-loginStudentId-same",
+      "scenario": "loginStudentId：鼠标与键盘读数一致",
+      "expected": "三项读数逐字相等",
+      "actual": "相等",
+      "pass": true,
+      "note": ""
+    },
+    {
+      "id": "P2-home-390-cols",
+      "scenario": "home @390：列数",
+      "expected": 2,
+      "actual": 2,
+      "pass": true,
+      "note": ""
+    },
+    {
+      "id": "P2-home-390-struct",
+      "scenario": "home @390：图标块在左 + 数值/标签在右",
+      "expected": "iconFirst && hasValueLabel && iconLeftOfBody && centerDeltaMax<=2",
+      "actual": {
+        "iconFirst": true,
+        "hasValueLabel": true,
+        "iconLeftOfBody": true,
+        "centerDeltaMax": 0
+      },
+      "pass": true,
+      "note": ""
+    },
+    {
+      "id": "P2-home-390-height",
+      "scenario": "home @390：四张等高",
+      "expected": "heightDiff<=1",
+      "actual": 0,
+      "pass": true,
+      "note": "heights=[104,104,104,104]"
+    },
+    {
+      "id": "P2-home-390-overflow",
+      "scenario": "home @390：无横向溢出",
+      "expected": "gridOverflow=false && docOverflow=false",
+      "actual": {
+        "gridOverflow": false,
+        "docOverflow": false
+      },
+      "pass": true,
+      "note": ""
+    },
+    {
+      "id": "P2-home-768-cols",
+      "scenario": "home @768：列数",
+      "expected": 2,
+      "actual": 2,
+      "pass": true,
+      "note": ""
+    },
+    {
+      "id": "P2-home-768-struct",
+      "scenario": "home @768：图标块在左 + 数值/标签在右",
+      "expected": "iconFirst && hasValueLabel && iconLeftOfBody && centerDeltaMax<=2",
+      "actual": {
+        "iconFirst": true,
+        "hasValueLabel": true,
+        "iconLeftOfBody": true,
+        "centerDeltaMax": 0
+      },
+      "pass": true,
+      "note": ""
+    },
+    {
+      "id": "P2-home-768-height",
+      "scenario": "home @768：四张等高",
+      "expected": "heightDiff<=1",
+      "actual": 0,
+      "pass": true,
+      "note": "heights=[104,104,104,104]"
+    },
+    {
+      "id": "P2-home-768-overflow",
+      "scenario": "home @768：无横向溢出",
+      "expected": "gridOverflow=false && docOverflow=false",
+      "actual": {
+        "gridOverflow": false,
+        "docOverflow": false
+      },
+      "pass": true,
+      "note": ""
+    },
+    {
+      "id": "P2-home-1440-cols",
+      "scenario": "home @1440：列数",
+      "expected": 4,
+      "actual": 4,
+      "pass": true,
+      "note": ""
+    },
+    {
+      "id": "P2-home-1440-struct",
+      "scenario": "home @1440：图标块在左 + 数值/标签在右",
+      "expected": "iconFirst && hasValueLabel && iconLeftOfBody && centerDeltaMax<=2",
+      "actual": {
+        "iconFirst": true,
+        "hasValueLabel": true,
+        "iconLeftOfBody": true,
+        "centerDeltaMax": 0
+      },
+      "pass": true,
+      "note": ""
+    },
+    {
+      "id": "P2-home-1440-height",
+      "scenario": "home @1440：四张等高",
+      "expected": "heightDiff<=1",
+      "actual": 0,
+      "pass": true,
+      "note": "heights=[104,104,104,104]"
+    },
+    {
+      "id": "P2-home-1440-overflow",
+      "scenario": "home @1440：无横向溢出",
+      "expected": "gridOverflow=false && docOverflow=false",
+      "actual": {
+        "gridOverflow": false,
+        "docOverflow": false
+      },
+      "pass": true,
+      "note": ""
+    },
+    {
+      "id": "P2-secretaryOverview-390-cols",
+      "scenario": "secretaryOverview @390：列数",
+      "expected": 2,
+      "actual": 2,
+      "pass": true,
+      "note": ""
+    },
+    {
+      "id": "P2-secretaryOverview-390-struct",
+      "scenario": "secretaryOverview @390：图标块在左 + 数值/标签在右",
+      "expected": "iconFirst && hasValueLabel && iconLeftOfBody && centerDeltaMax<=2",
+      "actual": {
+        "iconFirst": true,
+        "hasValueLabel": true,
+        "iconLeftOfBody": true,
+        "centerDeltaMax": 0
+      },
+      "pass": true,
+      "note": ""
+    },
+    {
+      "id": "P2-secretaryOverview-390-height",
+      "scenario": "secretaryOverview @390：四张等高",
+      "expected": "heightDiff<=1",
+      "actual": 0,
+      "pass": true,
+      "note": "heights=[80,80,80,80]"
+    },
+    {
+      "id": "P2-secretaryOverview-390-overflow",
+      "scenario": "secretaryOverview @390：无横向溢出",
+      "expected": "gridOverflow=false && docOverflow=false",
+      "actual": {
+        "gridOverflow": false,
+        "docOverflow": false
+      },
+      "pass": true,
+      "note": ""
+    },
+    {
+      "id": "P2-secretaryOverview-768-cols",
+      "scenario": "secretaryOverview @768：列数",
+      "expected": 2,
+      "actual": 2,
+      "pass": true,
+      "note": ""
+    },
+    {
+      "id": "P2-secretaryOverview-768-struct",
+      "scenario": "secretaryOverview @768：图标块在左 + 数值/标签在右",
+      "expected": "iconFirst && hasValueLabel && iconLeftOfBody && centerDeltaMax<=2",
+      "actual": {
+        "iconFirst": true,
+        "hasValueLabel": true,
+        "iconLeftOfBody": true,
+        "centerDeltaMax": 0
+      },
+      "pass": true,
+      "note": ""
+    },
+    {
+      "id": "P2-secretaryOverview-768-height",
+      "scenario": "secretaryOverview @768：四张等高",
+      "expected": "heightDiff<=1",
+      "actual": 0,
+      "pass": true,
+      "note": "heights=[80,80,80,80]"
+    },
+    {
+      "id": "P2-secretaryOverview-768-overflow",
+      "scenario": "secretaryOverview @768：无横向溢出",
+      "expected": "gridOverflow=false && docOverflow=false",
+      "actual": {
+        "gridOverflow": false,
+        "docOverflow": false
+      },
+      "pass": true,
+      "note": ""
+    },
+    {
+      "id": "P2-secretaryOverview-1440-cols",
+      "scenario": "secretaryOverview @1440：列数",
+      "expected": 4,
+      "actual": 4,
+      "pass": true,
+      "note": ""
+    },
+    {
+      "id": "P2-secretaryOverview-1440-struct",
+      "scenario": "secretaryOverview @1440：图标块在左 + 数值/标签在右",
+      "expected": "iconFirst && hasValueLabel && iconLeftOfBody && centerDeltaMax<=2",
+      "actual": {
+        "iconFirst": true,
+        "hasValueLabel": true,
+        "iconLeftOfBody": true,
+        "centerDeltaMax": 0
+      },
+      "pass": true,
+      "note": ""
+    },
+    {
+      "id": "P2-secretaryOverview-1440-height",
+      "scenario": "secretaryOverview @1440：四张等高",
+      "expected": "heightDiff<=1",
+      "actual": 0,
+      "pass": true,
+      "note": "heights=[80,80,80,80]"
+    },
+    {
+      "id": "P2-secretaryOverview-1440-overflow",
+      "scenario": "secretaryOverview @1440：无横向溢出",
+      "expected": "gridOverflow=false && docOverflow=false",
+      "actual": {
+        "gridOverflow": false,
+        "docOverflow": false
+      },
+      "pass": true,
+      "note": ""
+    },
+    {
+      "id": "P3-roster-390-exists",
+      "scenario": "roster @390：筛选行存在",
+      "expected": "bars>=1",
+      "actual": 1,
+      "pass": true,
+      "note": ""
+    },
+    {
+      "id": "P3-roster-390-rows",
+      "scenario": "roster @390：直接子元素只有 .lf-bar__row",
+      "expected": "每条 bar 的 onlyRows 均为 true",
+      "actual": [
+        {
+          "onlyRows": true,
+          "children": [
+            "div.lf-bar__row"
+          ]
+        }
+      ],
+      "pass": true,
+      "note": ""
+    },
+    {
+      "id": "P3-roster-390-align",
+      "scenario": "roster @390：同段控件左边缘对齐",
+      "expected": "alignDelta=0 且 rowLeftDelta=0",
+      "actual": [
+        {
+          "alignDelta": 0,
+          "rowLeftDelta": 0
+        }
+      ],
+      "pass": true,
+      "note": ""
+    },
+    {
+      "id": "P3-roster-390-overflow",
+      "scenario": "roster @390：无横向溢出",
+      "expected": "每条 bar 无溢出且文档无溢出",
+      "actual": {
+        "barOverflow": [
+          false
+        ],
+        "docOverflow": false
+      },
+      "pass": true,
+      "note": ""
+    },
+    {
+      "id": "P3-roster-1440-exists",
+      "scenario": "roster @1440：筛选行存在",
+      "expected": "bars>=1",
+      "actual": 1,
+      "pass": true,
+      "note": ""
+    },
+    {
+      "id": "P3-roster-1440-rows",
+      "scenario": "roster @1440：直接子元素只有 .lf-bar__row",
+      "expected": "每条 bar 的 onlyRows 均为 true",
+      "actual": [
+        {
+          "onlyRows": true,
+          "children": [
+            "div.lf-bar__row"
+          ]
+        }
+      ],
+      "pass": true,
+      "note": ""
+    },
+    {
+      "id": "P3-roster-1440-align",
+      "scenario": "roster @1440：同段控件左边缘对齐",
+      "expected": "alignDelta=0 且 rowLeftDelta=0",
+      "actual": [
+        {
+          "alignDelta": 0,
+          "rowLeftDelta": 0
+        }
+      ],
+      "pass": true,
+      "note": ""
+    },
+    {
+      "id": "P3-roster-1440-overflow",
+      "scenario": "roster @1440：无横向溢出",
+      "expected": "每条 bar 无溢出且文档无溢出",
+      "actual": {
+        "barOverflow": [
+          false
+        ],
+        "docOverflow": false
+      },
+      "pass": true,
+      "note": ""
+    },
+    {
+      "id": "P3-archive-390-exists",
+      "scenario": "archive @390：筛选行存在",
+      "expected": "bars>=1",
+      "actual": 1,
+      "pass": true,
+      "note": ""
+    },
+    {
+      "id": "P3-archive-390-rows",
+      "scenario": "archive @390：直接子元素只有 .lf-bar__row",
+      "expected": "每条 bar 的 onlyRows 均为 true",
+      "actual": [
+        {
+          "onlyRows": true,
+          "children": [
+            "div.lf-bar__row"
+          ]
+        }
+      ],
+      "pass": true,
+      "note": ""
+    },
+    {
+      "id": "P3-archive-390-align",
+      "scenario": "archive @390：同段控件左边缘对齐",
+      "expected": "alignDelta=0 且 rowLeftDelta=0",
+      "actual": [
+        {
+          "alignDelta": 0,
+          "rowLeftDelta": 0
+        }
+      ],
+      "pass": true,
+      "note": ""
+    },
+    {
+      "id": "P3-archive-390-overflow",
+      "scenario": "archive @390：无横向溢出",
+      "expected": "每条 bar 无溢出且文档无溢出",
+      "actual": {
+        "barOverflow": [
+          false
+        ],
+        "docOverflow": false
+      },
+      "pass": true,
+      "note": ""
+    },
+    {
+      "id": "P3-archive-1440-exists",
+      "scenario": "archive @1440：筛选行存在",
+      "expected": "bars>=1",
+      "actual": 1,
+      "pass": true,
+      "note": ""
+    },
+    {
+      "id": "P3-archive-1440-rows",
+      "scenario": "archive @1440：直接子元素只有 .lf-bar__row",
+      "expected": "每条 bar 的 onlyRows 均为 true",
+      "actual": [
+        {
+          "onlyRows": true,
+          "children": [
+            "div.lf-bar__row"
+          ]
+        }
+      ],
+      "pass": true,
+      "note": ""
+    },
+    {
+      "id": "P3-archive-1440-align",
+      "scenario": "archive @1440：同段控件左边缘对齐",
+      "expected": "alignDelta=0 且 rowLeftDelta=0",
+      "actual": [
+        {
+          "alignDelta": 0,
+          "rowLeftDelta": 0
+        }
+      ],
+      "pass": true,
+      "note": ""
+    },
+    {
+      "id": "P3-archive-1440-overflow",
+      "scenario": "archive @1440：无横向溢出",
+      "expected": "每条 bar 无溢出且文档无溢出",
+      "actual": {
+        "barOverflow": [
+          false
+        ],
+        "docOverflow": false
+      },
+      "pass": true,
+      "note": ""
+    },
+    {
+      "id": "P4-settings-390-maxwidth",
+      "scenario": "settings @390：max-width = 64rem",
+      "expected": "1024px",
+      "actual": "1024px",
+      "pass": true,
+      "note": ""
+    },
+    {
+      "id": "P4-settings-390-width",
+      "scenario": "settings @390：主体宽度 = min(容器档, 可用区)",
+      "expected": 358,
+      "actual": 358,
+      "pass": true,
+      "note": ""
+    },
+    {
+      "id": "P4-settings-390-center",
+      "scenario": "settings @390：主体在父级内居中",
+      "expected": "centeredInParent=true",
+      "actual": true,
+      "pass": true,
+      "note": "left=16 right=374"
+    },
+    {
+      "id": "P4-settings-390-overflow",
+      "scenario": "settings @390：无横向溢出",
+      "expected": "docOverflow=false",
+      "actual": false,
+      "pass": true,
+      "note": ""
+    },
+    {
+      "id": "P4-settings-768-maxwidth",
+      "scenario": "settings @768：max-width = 64rem",
+      "expected": "1024px",
+      "actual": "1024px",
+      "pass": true,
+      "note": ""
+    },
+    {
+      "id": "P4-settings-768-width",
+      "scenario": "settings @768：主体宽度 = min(容器档, 可用区)",
+      "expected": 704,
+      "actual": 704,
+      "pass": true,
+      "note": ""
+    },
+    {
+      "id": "P4-settings-768-center",
+      "scenario": "settings @768：主体在父级内居中",
+      "expected": "centeredInParent=true",
+      "actual": true,
+      "pass": true,
+      "note": "left=32 right=736"
+    },
+    {
+      "id": "P4-settings-768-overflow",
+      "scenario": "settings @768：无横向溢出",
+      "expected": "docOverflow=false",
+      "actual": false,
+      "pass": true,
+      "note": ""
+    },
+    {
+      "id": "P4-settings-1024-maxwidth",
+      "scenario": "settings @1024：max-width = 64rem",
+      "expected": "1024px",
+      "actual": "1024px",
+      "pass": true,
+      "note": ""
+    },
+    {
+      "id": "P4-settings-1024-width",
+      "scenario": "settings @1024：主体宽度 = min(容器档, 可用区)",
+      "expected": 960,
+      "actual": 960,
+      "pass": true,
+      "note": ""
+    },
+    {
+      "id": "P4-settings-1024-center",
+      "scenario": "settings @1024：主体在父级内居中",
+      "expected": "centeredInParent=true",
+      "actual": true,
+      "pass": true,
+      "note": "left=32 right=992"
+    },
+    {
+      "id": "P4-settings-1024-overflow",
+      "scenario": "settings @1024：无横向溢出",
+      "expected": "docOverflow=false",
+      "actual": false,
+      "pass": true,
+      "note": ""
+    },
+    {
+      "id": "P4-settings-1440-maxwidth",
+      "scenario": "settings @1440：max-width = 64rem",
+      "expected": "1024px",
+      "actual": "1024px",
+      "pass": true,
+      "note": ""
+    },
+    {
+      "id": "P4-settings-1440-width",
+      "scenario": "settings @1440：主体宽度 = min(容器档, 可用区)",
+      "expected": 1024,
+      "actual": 1024,
+      "pass": true,
+      "note": ""
+    },
+    {
+      "id": "P4-settings-1440-center",
+      "scenario": "settings @1440：主体在父级内居中",
+      "expected": "centeredInParent=true",
+      "actual": true,
+      "pass": true,
+      "note": "left=208 right=1232"
+    },
+    {
+      "id": "P4-settings-1440-overflow",
+      "scenario": "settings @1440：无横向溢出",
+      "expected": "docOverflow=false",
+      "actual": false,
+      "pass": true,
+      "note": ""
+    },
+    {
+      "id": "P4-help-390-maxwidth",
+      "scenario": "help @390：max-width = 80rem",
+      "expected": "1280px",
+      "actual": "1280px",
+      "pass": true,
+      "note": ""
+    },
+    {
+      "id": "P4-help-390-width",
+      "scenario": "help @390：主体宽度 = min(容器档, 可用区)",
+      "expected": 358,
+      "actual": 358,
+      "pass": true,
+      "note": ""
+    },
+    {
+      "id": "P4-help-390-center",
+      "scenario": "help @390：主体在父级内居中",
+      "expected": "centeredInParent=true",
+      "actual": true,
+      "pass": true,
+      "note": "left=16 right=374"
+    },
+    {
+      "id": "P4-help-390-overflow",
+      "scenario": "help @390：无横向溢出",
+      "expected": "docOverflow=false",
+      "actual": false,
+      "pass": true,
+      "note": ""
+    },
+    {
+      "id": "P4-help-768-maxwidth",
+      "scenario": "help @768：max-width = 80rem",
+      "expected": "1280px",
+      "actual": "1280px",
+      "pass": true,
+      "note": ""
+    },
+    {
+      "id": "P4-help-768-width",
+      "scenario": "help @768：主体宽度 = min(容器档, 可用区)",
+      "expected": 704,
+      "actual": 704,
+      "pass": true,
+      "note": ""
+    },
+    {
+      "id": "P4-help-768-center",
+      "scenario": "help @768：主体在父级内居中",
+      "expected": "centeredInParent=true",
+      "actual": true,
+      "pass": true,
+      "note": "left=32 right=736"
+    },
+    {
+      "id": "P4-help-768-overflow",
+      "scenario": "help @768：无横向溢出",
+      "expected": "docOverflow=false",
+      "actual": false,
+      "pass": true,
+      "note": ""
+    },
+    {
+      "id": "P4-help-1024-maxwidth",
+      "scenario": "help @1024：max-width = 80rem",
+      "expected": "1280px",
+      "actual": "1280px",
+      "pass": true,
+      "note": ""
+    },
+    {
+      "id": "P4-help-1024-width",
+      "scenario": "help @1024：主体宽度 = min(容器档, 可用区)",
+      "expected": 960,
+      "actual": 960,
+      "pass": true,
+      "note": ""
+    },
+    {
+      "id": "P4-help-1024-center",
+      "scenario": "help @1024：主体在父级内居中",
+      "expected": "centeredInParent=true",
+      "actual": true,
+      "pass": true,
+      "note": "left=32 right=992"
+    },
+    {
+      "id": "P4-help-1024-overflow",
+      "scenario": "help @1024：无横向溢出",
+      "expected": "docOverflow=false",
+      "actual": false,
+      "pass": true,
+      "note": ""
+    },
+    {
+      "id": "P4-help-1440-maxwidth",
+      "scenario": "help @1440：max-width = 80rem",
+      "expected": "1280px",
+      "actual": "1280px",
+      "pass": true,
+      "note": ""
+    },
+    {
+      "id": "P4-help-1440-width",
+      "scenario": "help @1440：主体宽度 = min(容器档, 可用区)",
+      "expected": 1280,
+      "actual": 1280,
+      "pass": true,
+      "note": ""
+    },
+    {
+      "id": "P4-help-1440-center",
+      "scenario": "help @1440：主体在父级内居中",
+      "expected": "centeredInParent=true",
+      "actual": true,
+      "pass": true,
+      "note": "left=80 right=1360"
+    },
+    {
+      "id": "P4-help-1440-overflow",
+      "scenario": "help @1440：无横向溢出",
+      "expected": "docOverflow=false",
+      "actual": false,
+      "pass": true,
+      "note": ""
+    }
+  ],
+  "summary": {
+    "total": 78,
+    "passed": 78,
+    "failed": 0,
+    "failedIds": []
+  }
+}

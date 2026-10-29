@@ -1,10 +1,10 @@
-import { PersonPicker } from './pickers.js?v=20261028e';
-import { getAdapter } from '../../data/data-adapter.js?v=20261028e';
-import { getPersonById } from '../../services/member/person.js?v=20261028e';
-import { describeWriteError } from '../../core/base/utils.js?v=20261028e';
-import { WORKGROUP_PERMISSION_LABELS, WORKGROUP_ROLE_LABELS, workgroupPermissionTemplates } from '../../core/domain/workgroup-policy.js?v=20261028e';
+import { PersonPicker } from './pickers.js?v=20261029b';
+import { getAdapter } from '../../data/data-adapter.js?v=20261029b';
+import { getPersonById } from '../../services/member/person.js?v=20261029b';
+import { describeWriteError } from '../../core/base/utils.js?v=20261029b';
+import { WORKGROUP_PERMISSION_LABELS, WORKGROUP_ROLE_LABELS, workgroupPermissionTemplates } from '../../core/domain/workgroup-policy.js?v=20261029b';
 
-import { emptyStateHtml } from '../ui/empty-state.js?v=20261028e';
+import { emptyStateHtml } from '../ui/empty-state.js?v=20261029b';
 const esc = (value) => String(value ?? '').replace(/[&<>"']/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
 const permissionName = (key) => WORKGROUP_PERMISSION_LABELS[key] || key;
 
@@ -51,7 +51,7 @@ function renderMemberRow(member, grant, kind, canEdit) {
   }
 
   return `<details class="rounded-lg border border-gray-200 bg-white px-3 py-2" data-wg-member="${esc(personId)}" data-template-key="${esc(grant?.templateKey || '')}">
-    <summary class="flex cursor-pointer flex-wrap items-center gap-x-2 gap-y-1 text-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700">
+    <summary class="flex cursor-pointer flex-wrap items-center gap-x-2 gap-y-1 text-sm focus-ring">
       <span class="font-medium text-gray-800">${esc(name)}</span>
       <span class="rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-600">${WORKGROUP_ROLE_LABELS[role]}</span>
       ${groupLabel}
@@ -101,7 +101,7 @@ export function renderWorkgroupMemberEditor({
         ? activeMembers.map((row) => renderMemberRow(row, activeGrants.get(String(row.personId)), activity ? 'activity' : 'taskforce', canEdit)).join('')
         : emptyStateHtml({ text: '暂无工作组成员', variant: 'inline' })}
       ${legacyRows.length ? `<details class="rounded-lg border border-amber-200 bg-amber-50/60 px-3 py-2">
-        <summary class="cursor-pointer text-xs font-medium text-amber-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-700">历史普通参与记录待核（${legacyRows.length}）</summary>
+        <summary class="cursor-pointer text-xs font-medium text-amber-900 focus-ring">历史普通参与记录待核（${legacyRows.length}）</summary>
         <p class="mt-1 text-xs text-amber-900">${activity ? '旧成员镜像保留查看，核实后再纳入活动名单。' : '专班不设一般参与者；旧记录保留待核，不计入工作组成员。'}</p>
         <ul class="mt-1 text-xs text-gray-700">${legacyRows.map((row) => `<li>${esc(row.name || getPersonById(row.personId)?.name || row.personId)}</li>`).join('')}</ul>
       </details>` : ''}

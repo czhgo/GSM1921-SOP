@@ -68,8 +68,12 @@ export const filesByFixtureClass = (fixtureClass) => TEST_TIERS
  *  2026-10-26 同 spec · Task 3（写成功可证）：新增 write-truth-guard（纯 node，9 条）⇒ 233 → 234。
  *  2026-10-27 spec refine-ui-three-lenses · Task 12.4：新增 no-about-route-guard（纯 node，5 条）⇒ 234 → 235。
  *  2026-10-27 同 spec · Task 9：新增 no-underline-guard（纯 node，4 条）⇒ 235 → 236。
- *  2026-10-27 同 spec · Task 10：新增 loading-experience-guard（纯 node，6 条）⇒ 236 → 237。 */
-export const DAILY_FILE_BUDGET = 226;
+ *  2026-10-27 同 spec · Task 10：新增 loading-experience-guard（纯 node，6 条）⇒ 236 → 237。
+ *  2026-10-29 About 冻结件：新增 about-freeze-guard（纯 node，5 条：5 处内容基线 ＋ 反例）⇒ 226 → 227。
+ *  2026-10-29 ESM 解析门禁：新增 esm-parse-guard（纯 node，2 条：全量真 ESM 解析 + 函数体 import 反例）
+ *    ——浏览器按 ESM 解析，`node --check`（CommonJS）放过的函数体内 import 会整模块语法失败 ⇒ 227 → 228。
+ *  2026-10-29 P3/P4：新增 lf-bar-structure-guard / container-width-guard（均纯 node）⇒ 228 → 230。 */
+export const DAILY_FILE_BUDGET = 230;
 
 /** daily 静态 `test(` / `it(` 调用点预算（含子测试；新增断言须同批上调并写明理由）
  *  2026-10-21 R5 P1：页题守卫 4 条 + 对比度守卫 5 条 + 补登记的既有两条守卫 ⇒ 1351 → 1377。
@@ -192,8 +196,36 @@ export const DAILY_FILE_BUDGET = 226;
  *  2026-10-28 焦点单一体例与交互补齐：ui-control-system-guard 新增 FOCUS-4/5（焦点只允许主题色单环 ·
  *    七色 base 对比度，2 条）＋ hover-state-guard 新增 H8/H9（可点类必须有 hover 或 active ·
  *    role=button 必须可聚焦，2 条）＋ copy-guard 新增 B1/B2（可见支部名字面量 · 旧色名与「十色」，2 条）
- *    ⇒ 1650 + 6 = 1656；另有 3 条既有用例改写后拆分为多条计入 ⇒ 按实况 1659。 */
-export const DAILY_TEST_BUDGET = 1659;
+ *    ⇒ 1650 + 6 = 1656；另有 3 条既有用例改写后拆分为多条计入 ⇒ 按实况 1659。
+ *  2026-10-29 About 冻结件守卫：新增 about-freeze-guard 5 条
+ *    （B1 条目数恰好 5 / B2 三件套整文件哈希 / B3 两处引用面定位片段 / B4 定位串恰好命中 1 行 /
+ *      B5 临时副本反例：5 处逐个改动判红 ＋ 副本原样判绿）⇒ 1659 + 5 = 1664。
+ *  2026-10-29 ESM 解析门禁：新增 esm-parse-guard 2 条（全量模块真 ESM 解析 · 函数体内 import 反例）
+ *    ⇒ 1664 + 2 = 1666。
+ *  2026-10-29 P1（焦点只有一个信号）：ui-control-system-guard FOCUS-2/FOCUS-4 改写为全量扫描
+ *    （输入族零 outline · 按钮族必有环 · 任一规则块 ≤1 层 · 焦点色禁党徽金/党建红，含 5 类反例）
+ *    ＋ ui-focus-ring F2/F3、field-shell-guard F2/F3 按新口径判准。断言均在既有 test() 内扩充，
+ *    **未新增测试文件 / 未新增静态 test() 调用点** ⇒ 实测 1663 ≤ 1666，预算维持
+ *    DAILY_FILE_BUDGET = 228、DAILY_TEST_BUDGET = 1666（不上调；按实况登记，避免预算失去约束力）。
+ *  2026-10-29 P2（数字组单一语法）：ui-control-system-guard V1 按新结构改写（判据更严：横排 +
+ *    .stat-card__body + 无 min-height + 栅格 4/2/2）＋ 新增 V8 全量扫描（docs/src 下全部 .js 与
+ *    docs 根页 .html 的数字组竖排回潮 / 组内内联 hex，含 5 个反例样本）1 条；另按新口径改准
+ *    ui-home-hero E7、work-overview W4、ui-phase2-urgent U4、ui-contrast K6、theme-palette G5。
+ *    仅新增 1 个静态 test() 调用点、未新增文件 ⇒ 实测 1664 ≤ 1666，预算维持
+ *    DAILY_FILE_BUDGET = 228、DAILY_TEST_BUDGET = 1666（差额 2 不作上调，保留约束力）。
+ *  2026-10-29 P3/P4（筛选四段 / 容器五档）：新增 lf-bar-structure-guard 5 条
+ *    （L1 直接子元素只能是行 / L2 段位与纯范围例外 / L3 两类反例 / L4 产出点下限 / L5 登记）
+ *    ＋ container-width-guard 6 条（C0 五档表与 .card-grid / C1+C2 页面只许五档 /
+ *    C3 42rem 与 1320px 反例 / C4 页面数下限 / C5 登记）⇒ 新增 11 条、实测 1674；
+ *    roster-filter-guard R4 改为通用窄屏规则（断言数不变）。
+ *    新增 2 个文件 ⇒ DAILY_FILE_BUDGET 228 → 230；断言预算按实测 1674 上调至 1676
+ *    （留 2 条余量，不作「9999 式」放宽）。
+ *  2026-10-29 P6 例外补守卫：frontend-foundations-guard 新增 F11（mock 延迟单一源：默认 80ms /
+ *    两条覆盖入口 / 上限 5000ms，含 2 类反例，1 条）＋ test-tier-guard 新增 T7（守卫台账标题
+ *    数字与正文「现行 N 件」一致，含反例，1 条）＋ ui-control-system-guard V4 内补 3 条
+ *    btn-ghost 反例断言（不新增 test() 调用点）；均未新增文件。实测 1674 → 1676，
+ *    预算按实况上调至 1678（留 2 条余量）。 */
+export const DAILY_TEST_BUDGET = 1678;
 
 const group = (tier, reason, list) => list.map((file) => ({ file, tier, reason }));
 
@@ -275,6 +307,8 @@ export const TEST_TIERS = [
     //   docs-governance-guard（F1–F3 / N1–N7 / R1–R6 断言全数搬入，另加 README / AGENTS / SNAPSHOT / 判例索引）
     'docs-governance-guard.test.mjs',
     'import-path-guard.test.mjs',
+    // 2026-10-29：真 ESM 解析门禁（浏览器口径；node --check 为 CommonJS 语义，不能替代）＋ 函数体内 import 反例
+    'esm-parse-guard.test.mjs',
     'version-stamp.test.mjs',
   ]),
   // daily · 静态结构 / UI / 文案 / 防假绿守卫
@@ -306,6 +340,10 @@ export const TEST_TIERS = [
     'ia-critical-guard.test.mjs',
     // 2026-10-23 批次 507：跳转链接颜色单一源（`<a>` 不得用 Tailwind 蓝；`.link` 消费 softText，纯 node）
     'link-color-guard.test.mjs',
+    // 2026-10-29 P3：筛选四段结构（`.lf-bar` 直接子元素只许 `.lf-bar__row` / 段位与纯范围例外 / 反例，纯 node）
+    'lf-bar-structure-guard.test.mjs',
+    // 2026-10-29 P4：页面容器五档（HTML 宽度类与 max-width rem/px 定值 / About 豁免 / 反例，纯 node）
+    'container-width-guard.test.mjs',
     // 2026-10-27 spec refine-ui-three-lenses · Task 10：加载体验（骨架/120ms/180ms 淡入/≤1s/跳转进度条，纯 node）
     'loading-experience-guard.test.mjs',
     'localstorage-key-guard.test.mjs',
@@ -314,6 +352,8 @@ export const TEST_TIERS = [
     'modal-guard.test.mjs',
     // 2026-10-27 spec refine-ui-three-lenses · Task 12.4：About 撤路由（HTML/JS/MD 零入口 + 文件保留，纯 node）
     'no-about-route-guard.test.mjs',
+    // 2026-10-29 About 独立冻结件：5 处内容基线（3 件套整文件哈希 + 功能目录「关于」卡 / help 页面清单定位片段，纯 node）
+    'about-freeze-guard.test.mjs',
     // 2026-10-27 spec refine-ui-three-lenses · Task 9：全站文本下划线清零（源码口径 + PENDING 台账，纯 node）
     'no-underline-guard.test.mjs',
     // 2026-10-24 批次 508：动效令牌 / 时长与属性白名单 / reduced-motion / .motion-* 四件套（纯 node）

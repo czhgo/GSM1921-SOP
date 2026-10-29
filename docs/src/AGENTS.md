@@ -38,7 +38,7 @@ cd server; npm run test:full
 ## 常见坑
 - 改 `docs/src/**` 后忘 bump `?v=`：`version-stamp` 必红；同页两个模块实例还会静默空白。
 - 把 `docs/src/…js` 路径当数据字符串写进测试，`docs/scripts/bump-version.mjs` 会误改（批次 44 事故）；写成 `SRC + '相对路径'`。
-- `data/mock-adapter.js` 每次调用固定 600ms 延迟，测试变慢不是回归；不要为此改断言。
+- `data/mock-adapter.js` 的 mock 延迟是单一源且可配置（默认 80ms；`window.__MOCK_DELAY_MS` / `process.env.MOCK_DELAY_MS` 可覆盖，上限 5000ms）；测试变慢不是回归，不要为此改断言。判定：`server/test/frontend-foundations-guard.test.mjs::F11`。
 
 ## 防逃逸三件套（示例）
 | 件 | 内容 |

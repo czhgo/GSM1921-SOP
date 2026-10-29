@@ -12,48 +12,48 @@
 //   - 活动无上限 → 必须提供活动筛选（含时间区间）便于考察
 //   - 条目不得使用浅色底板（支书反感）→ 白底 + 左侧状态色条
 
-import { AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../../core/domain/domain.js?v=20261028e';
-import { generateId } from '../../../core/base/id.js?v=20261028e';
-import { attendanceToLong, loadAttendanceRecords, loadActiveAttendanceRecords, loadAttendanceRosterSnapshots, saveAttendanceRecords, canUploadAttendance, upsertMeetingAttendance, MEETING_ATTENDANCE_TYPES as MEETING_TYPES, ABSENCE_REASONS, absenceReasonLabel, absenceReasonNote, recorderRolesOf, listGroupMeetingAttendance, loadAttendanceAppeals, returnAttendanceAppeal, closeAttendanceAppeal, returnAttendanceRecord, summarizeAttendanceByActivity, isAttendanceHomePosition, freezeExpectedRosterForActivity, isAttendancePendingConfirm, isAttendanceConfirmed, isAutoConfirmedAttendance, attendanceConfirmerId, confirmAttendanceRecords } from '../../../services/activity/attendance.js?v=20261028e';
-import { buildAttendanceMatrixModel } from '../../../services/activity/attendance-matrix.js?v=20261028e';
-import { getPersonName } from '../../../services/member/person.js?v=20261028e';
+import { AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../../core/domain/domain.js?v=20261029b';
+import { generateId } from '../../../core/base/id.js?v=20261029b';
+import { attendanceToLong, loadAttendanceRecords, loadActiveAttendanceRecords, loadAttendanceRosterSnapshots, saveAttendanceRecords, canUploadAttendance, upsertMeetingAttendance, MEETING_ATTENDANCE_TYPES as MEETING_TYPES, ABSENCE_REASONS, absenceReasonLabel, absenceReasonNote, recorderRolesOf, listGroupMeetingAttendance, loadAttendanceAppeals, returnAttendanceAppeal, closeAttendanceAppeal, returnAttendanceRecord, summarizeAttendanceByActivity, isAttendanceHomePosition, freezeExpectedRosterForActivity, isAttendancePendingConfirm, isAttendanceConfirmed, isAutoConfirmedAttendance, attendanceConfirmerId, confirmAttendanceRecords } from '../../../services/activity/attendance.js?v=20261029b';
+import { buildAttendanceMatrixModel } from '../../../services/activity/attendance-matrix.js?v=20261029b';
+import { getPersonName } from '../../../services/member/person.js?v=20261029b';
 // S1–S4 滞留党员设计（2026-09-06 支书已批）：会议考勤「应到清点/全选范围」= 应到名单口径
 // （党员 正式+预备 且非滞留；滞留者「可见但禁用」、党课列席不计应到），不再全支部 50 人候选
 // 附录⑩ A批·S1（2026-09-06 支书裁定）：滞留线下到场可「到场补录」计入到席（实际应到=预应到 K + 补录 L）
-import { getMeetingRoster, getRosterStats, getMeetingRosterCandidates } from '../../../services/member/roster.js?v=20261028e';
-import { solidAccentStyle, ROLE_LABELS, isActivityArchived, isActivityLive } from '../../../core/domain/constants.js?v=20261028e';
-import { loadActivities } from '../../../services/activity/activity.js?v=20261028e';
+import { getMeetingRoster, getRosterStats, getMeetingRosterCandidates } from '../../../services/member/roster.js?v=20261029b';
+import { solidAccentStyle, ROLE_LABELS, isActivityArchived, isActivityLive } from '../../../core/domain/constants.js?v=20261029b';
+import { loadActivities } from '../../../services/activity/activity.js?v=20261029b';
 // R7-33：考勤「超期」按「活动日 + 补课时限（policy）」现算，不再直读记录上的 overdue 快照
-import { isAttendanceOverdue } from '../../../core/domain/policy-defaults.js?v=20261028e';
+import { isAttendanceOverdue } from '../../../core/domain/policy-defaults.js?v=20261029b';
 // SOP-B-2（D-288）：考勤候选默认选中「已通过报名者」——报名名单的来源单一源 = SignupStore
-import { getApprovedSignupPersonIds } from '../../../services/activity/signup.js?v=20261028e';
-import { autoGenerateMakeupTask } from '../../../services/activity/makeup.js?v=20261028e';
-import { TodoStore, TodoSourceType } from '../../../services/governance/todo.js?v=20261028e';
-import { NoticeStore } from '../../../services/governance/notice.js?v=20261028e';
-import { enhanceSelects } from '../../../components/ui/custom-select.js?v=20261028e';
-import { badgeHtml } from '../../../components/ui/badges.js?v=20261028e';
+import { getApprovedSignupPersonIds } from '../../../services/activity/signup.js?v=20261029b';
+import { autoGenerateMakeupTask } from '../../../services/activity/makeup.js?v=20261029b';
+import { TodoStore, TodoSourceType } from '../../../services/governance/todo.js?v=20261029b';
+import { NoticeStore } from '../../../services/governance/notice.js?v=20261029b';
+import { enhanceSelects } from '../../../components/ui/custom-select.js?v=20261029b';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20261029b';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是人的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
 // pagerHtml = 翻页控件单一源（批次 38：全站手写翻页一律并轨；叶子件，避免与矩阵相互成环）
-import { pagerHtml } from '../../../components/ui/pager.js?v=20261028e';
+import { pagerHtml } from '../../../components/ui/pager.js?v=20261029b';
 // 人×项目矩阵单一源（支书 2026-09-14 批次 35 裁定：宽表默认 + 矩阵推广）
-import { renderRelationMatrix } from '../../../components/ui/relation-matrix.js?v=20261028e';
-import { showToast, downloadCSV, triggerPrint, _fmtDate, escHtml as esc, getBasePath, flashHighlight } from '../../../core/base/utils.js?v=20261028e';
-import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261028e';
-import { requireDiscCommissionerId } from './_shared.js?v=20261028e';
-import { HandoffStore } from '../../../services/governance/handoff.js?v=20261028e';
-import { currentUserId } from '../../../services/core/auth.js?v=20261028e';
-import { PersonPicker } from '../../../components/governance/pickers.js?v=20261028e';
+import { renderRelationMatrix } from '../../../components/ui/relation-matrix.js?v=20261029b';
+import { showToast, downloadCSV, triggerPrint, _fmtDate, escHtml as esc, getBasePath, flashHighlight } from '../../../core/base/utils.js?v=20261029b';
+import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261029b';
+import { requireDiscCommissionerId } from './_shared.js?v=20261029b';
+import { HandoffStore } from '../../../services/governance/handoff.js?v=20261029b';
+import { currentUserId } from '../../../services/core/auth.js?v=20261029b';
+import { PersonPicker } from '../../../components/governance/pickers.js?v=20261029b';
 // 通用浮窗 + 「本位」nudge 确认弹窗（2026-09-23 支书裁定 · 单一源 = components/ui/modal.js）
 // U-04：申诉打回原用 `window.prompt`（无对话框语义、无焦点接管、移动端样式原生）→ 换本组件 openModal。
-import { confirmNudge, openModal, closeModal } from '../../../components/ui/modal.js?v=20261028e';
+import { confirmNudge, openModal, closeModal } from '../../../components/ui/modal.js?v=20261029b';
 // 「补课」分段整段复用原独立 tab 的渲染（2026-09-15 支书裁定：补课并入考勤管理，内部逻辑不改写）
-import { renderContent as renderMakeupContent } from './makeup-tab.js?v=20261028e';
+import { renderContent as renderMakeupContent } from './makeup-tab.js?v=20261029b';
 // Task 6：考勤表的活动列是跨对象行 ⇒ 直达完整详情页（direct）。
-import { objectDetailHref } from '../../../core/domain/object-route.js?v=20261028e';
+import { objectDetailHref } from '../../../core/domain/object-route.js?v=20261029b';
 // 材料页深链 focusActivityId 的通用定位（只滚动 + 闪烁，不另造筛选器）
-import { focusActivityAnchor } from '../../../components/ui/detail-anchor.js?v=20261028e';
+import { focusActivityAnchor } from '../../../components/ui/detail-anchor.js?v=20261029b';
 
-import { emptyStateHtml } from '../../../components/ui/empty-state.js?v=20261028e';
+import { emptyStateHtml } from '../../../components/ui/empty-state.js?v=20261029b';
 const PAGE_SIZE = 20; // 分页铁律：全量总表每页 20 条
 let _page = 1;        // 模块级分页状态（随模块自持）
 
@@ -457,12 +457,30 @@ export function renderContent(ctx) {
     ctx.attendanceFilterActId = v || null;
     renderContent(ctx);
   });
+  // P3 重置段（矩阵）：范围（活动 / 时间区间）与检索一并复位
+  container.querySelector('#att-mtx-clear')?.addEventListener('click', () => {
+    ctx.attendanceFilterActId = null;
+    ['att-mtx-search', 'att-mtx-from', 'att-mtx-to'].forEach((id) => {
+      const el = document.getElementById(id);
+      if (el) el.value = '';
+    });
+    renderContent(ctx);
+  });
 
   // ── 全量总表：搜索/状态筛选/分页 ──
   const renderTable = () => _renderTable(longData, allRecords, actById, accent, accentBorder, ctx, groupMeetingMetaByActivity);
   container.querySelector('#att-table-search')?.addEventListener('input', () => { _page = 1; renderTable(); });
   container.querySelector('#att-table-status')?.addEventListener('change', () => { _page = 1; renderTable(); });
   container.querySelector('#att-table-type')?.addEventListener('change', () => { _page = 1; renderTable(); });
+  // P3 重置段（总表）：关键词 + 状态 + 活动类型一并复位
+  container.querySelector('#att-table-clear')?.addEventListener('click', () => {
+    ['att-table-search', 'att-table-status', 'att-table-type'].forEach((id) => {
+      const el = document.getElementById(id);
+      if (el) el.value = '';
+    });
+    _page = 1;
+    renderTable();
+  });
   // 翻页（委托一次：`#att-table-pager` 由卡片模板持有、内容重绘不影响绑定；读 data-lf-page）
   container.querySelector('#att-table-pager')?.addEventListener('click', (e) => {
     const btn = e.target.closest('[data-lf-page]');
@@ -1140,15 +1158,25 @@ function _buildMatrixCardHTML(ctx, matrixModel, filterActivityId, accent, accent
         </div>
       </div>
       <div class="text-xs text-gray-500 mb-3">留痕台账 · 不提供删除（更正 / 打回走状态）</div>
+      <!-- P3 四段：范围（活动 + 时间区间）→ 检索（活动名）→ 重置；分面为空段（不输出空行） -->
       <div class="lf-bar mb-3">
-        <select id="att-activity-select" class="input-flat text-xs lf-select">
-          <option value="">活动：全部</option>
-          ${actOptions}
-        </select>
-        <input type="text" id="att-mtx-search" class="input-flat text-xs lf-kw" placeholder="活动名筛选…">
-        <input type="date" id="att-mtx-from" class="input-flat text-xs" title="时间区间：起始日期">
-        <span class="text-xs text-gray-500 self-center">至</span>
-        <input type="date" id="att-mtx-to" class="input-flat text-xs" title="时间区间：截止日期">
+        <div class="lf-bar__row" data-seg="scope">
+          <select id="att-activity-select" class="input-flat text-xs lf-select">
+            <option value="">活动：全部</option>
+            ${actOptions}
+          </select>
+          <span class="lf-range">
+            <input type="date" id="att-mtx-from" class="input-flat text-xs" title="时间区间：起始日期">
+            <span class="text-xs text-gray-500">至</span>
+            <input type="date" id="att-mtx-to" class="input-flat text-xs" title="时间区间：截止日期">
+          </span>
+        </div>
+        <div class="lf-bar__row" data-seg="search">
+          <input type="text" id="att-mtx-search" class="input-flat text-xs lf-kw" placeholder="活动名筛选…">
+        </div>
+        <div class="lf-bar__row" data-seg="reset">
+          <button type="button" id="att-mtx-clear" class="btn-tab lf-btn">清除</button>
+        </div>
       </div>
       <div class="text-xs text-gray-500 mb-2">${Object.entries(CELL_META).map(([k, m]) => `<span class="inline-flex items-center gap-1 mr-2"><span class="w-2 h-2 rounded-full" style="background:${m.dot}"></span>${ATTENDANCE_STATUS_LABELS[k]}</span>`).join('')}<span class="mr-2">未录＝冻结应到但无记录</span><span class="mr-2">非应＝不在冻结名单</span><span>待冻＝尚无冻结名单</span></div>
       <div id="att-matrix-container"></div>
@@ -1249,7 +1277,7 @@ function _buildTableCardHTML(ctx, allRecords, longData, actById, filterActivityI
           </div>
         </div>
         <!-- U5b（2026-09-07）：低频操作钮统一 32px 圆角（与分页钮/下拉同高同 border 家族，hover 统一 bg-gray-50） -->
-        <div class="flex items-center gap-2">
+        <div class="flex flex-wrap items-center gap-2">
           <button class="btn-outline att-export-btn h-8 px-3 text-xs font-medium">导出 CSV</button>
           <button class="btn-outline att-rate-export-btn h-8 px-3 text-xs font-medium" title="本月各场出勤率汇总，供支委会内部使用（不公示、不对外；SOP-B-35）">导出出勤率汇总（支委会内部）</button>
           <button class="btn-outline att-print-btn h-8 px-3 text-xs font-medium">打印</button>
@@ -1258,16 +1286,24 @@ function _buildTableCardHTML(ctx, allRecords, longData, actById, filterActivityI
       </div>
       <!-- U5b（2026-09-07）：搜索输入 + 状态下拉（enhanceSelects 后为 cs-trigger）统一 text-xs 紧凑档；
            2026-09-14 批次 27：载体收敛为 lf-bar/lf-kw/lf-select，控件统一 34px 高 / 12px 字 -->
+      <!-- P3 四段：检索 → 分面（状态 / 活动类型）→ 重置；范围为空段（不输出空行） -->
       <div class="lf-bar mb-3">
-        <input type="text" id="att-table-search" class="input-flat text-xs lf-kw" placeholder="搜索姓名或活动…">
-        <select id="att-table-status" class="input-flat text-xs lf-select" aria-label="状态筛选">
-          <option value="">状态：全部</option>
-          ${Object.values(AttendanceStatus).map(s => `<option value="${s}">${ATTENDANCE_STATUS_LABELS[s]}</option>`).join('')}
-        </select>
-        <select id="att-table-type" class="input-flat text-xs lf-select" aria-label="活动类型筛选">
-          <option value="">活动类型：全部</option>
-          <option value="党小组会">党小组会（只读）</option>
-        </select>
+        <div class="lf-bar__row" data-seg="search">
+          <input type="text" id="att-table-search" class="input-flat text-xs lf-kw" placeholder="搜索姓名或活动…">
+        </div>
+        <div class="lf-bar__row" data-seg="facet">
+          <select id="att-table-status" class="input-flat text-xs lf-select" aria-label="状态筛选">
+            <option value="">状态：全部</option>
+            ${Object.values(AttendanceStatus).map(s => `<option value="${s}">${ATTENDANCE_STATUS_LABELS[s]}</option>`).join('')}
+          </select>
+          <select id="att-table-type" class="input-flat text-xs lf-select" aria-label="活动类型筛选">
+            <option value="">活动类型：全部</option>
+            <option value="党小组会">党小组会（只读）</option>
+          </select>
+        </div>
+        <div class="lf-bar__row" data-seg="reset">
+          <button type="button" id="att-table-clear" class="btn-tab lf-btn">清除</button>
+        </div>
       </div>
       <div id="att-table-container">${_attSectionSkeletonHtml()}</div>
       <div id="att-table-pager"></div>

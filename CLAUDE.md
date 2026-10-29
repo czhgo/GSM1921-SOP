@@ -2,7 +2,7 @@
 title: "Org OS — 系统路线图与 Harness"
 type: roadmap
 role: "[工程师]+[AI]"
-last_updated: "2026-10-28"
+last_updated: "2026-10-29"
 status: active
 related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/DOC_MAP.md, content/01_strategy/SECRETARY_DIRECTIVES.md, content/01_strategy/, content/02_institution/, content/03_doc_system/, content/04_web_design/, content/05_ai_coding/, content/insights/, server/, .ctx/logs/]
 ---
@@ -400,7 +400,7 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/DOC
 □ 9. 表达合规：若本次修改涉及支书原话展开，必须调用 OPERATIONS_GUIDE.md §20（《运行与协作规范》AI 展开原则，含 20.3 五条可复用检查规则）自查（"而非"警惕/"所以"因果链/反面假设/私加强调/元叙事标签）
 □ 10. 反论合规：若本次修改涉及反论（"为什么不是..."），必须按 OPERATIONS_GUIDE.md §11.6 自检清单逐项验证，含§11.7历史范畴检查（被否定项是否仍在使用）和§11.8 AI治理技术特殊性（涉及AI工具使用时需联网补充）
 □ 11. 概念命名合规：若本次修改涉及概念命名或标签创建，必须按 H40.1 概念命名守则自检
-□ 12. 设计原则自检（EP-06 修复，2026-08-30 AI逃逸捕捉第三轮）：若本次修改涉及 UI/工作台/数据流/组件/颜色，必须对照 DESIGN_SYSTEM.md 相关原则的「可验证条件」与 DESIGN_SYSTEM.md §十（点击落点映射）分层落点自检；改颜色必须过 DESIGN_SYSTEM §7.3 深色自查 9 条
+□ 12. 设计原则自检（EP-06 修复，2026-08-30 AI逃逸捕捉第三轮）：若本次修改涉及 UI/工作台/数据流/组件/颜色，必须对照设计系统（`content/04_web_design/design-system/DESIGN_SYSTEM.md` 为父索引，条文在 `DS_01`…`DS_05`）相关原则的「可验证条件」与 `DS_05_MAP_AND_REFERENCE.md` §十（点击落点映射）分层落点自检；改颜色必须过 `DS_01_COLOR_AND_THEME.md` §7.3 深色自查 9 条
 □ 13. 文档目的达成度自查（2026-09-05 专项⑨）：若本次新建/大改 content 文档，按 OPERATIONS_GUIDE.md §18.8（《运行与协作规范》）五类判据自查——宣称目的真的实现了吗（不是形式主义小点）；新文档验收用「读完能做什么」判据
 ```
 
@@ -836,7 +836,7 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/DOC
 ## 批次 515–516 收尾与后续（2026-10-27）
 
 > 批次 515：活跃上下文瘦身、content 分层事实层校正、mock↔API 最小守卫。
-> 批次 516：乙部销账（删 5 / 改 5）、交付形态（压缩 ＋ 缓存分层 ＋ modulepreload ＋ Tailwind 锁版本）、守卫归并 17→4 件、About 功能卡与 help 清单清零、数据缺口登记、8 份审计报告归档。下表只留**未执行**项。
+> 批次 516：乙部销账（删 5 / 改 5）、交付形态（压缩 ＋ 缓存分层 ＋ modulepreload ＋ Tailwind 锁版本）、守卫归并 17→4 件、数据缺口登记、8 份审计报告归档。下表只留**未执行**项。
 
 | ID | 事项（人话） | 引用流程 | 状态 |
 | --- | --- | --- | --- |
@@ -850,10 +850,10 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/DOC
 
 | ID | 事项（人话） | 判据 / 出处 | 状态 |
 | --- | --- | --- | --- |
-| B-518-1 | 状态胶囊五套并存：`.badge` / `.state-badge` / `.status-badge` / `workforce-panel.js:110` 与 `roster-tab.js:190` 手写 / `thought-report-tab.js:32-35` 手写 | 三路共识；`DESIGN_SYSTEM §4.15` | 待启动（收口为「展示 badge ＋ 交互 status-badge」两族） |
-| B-518-2 | 加载态三种语言：页签骨架 / `text-xs` 文案 / `text-sm` 文案；`index.html`、`settings.html`、`person.html` 三处手写骨架 | uicraft C-03；`DESIGN_SYSTEM §12` SD-51 | 待启动（全站统一为骨架） |
+| B-518-1 | 状态胶囊五套并存：`.badge` / `.state-badge` / `.status-badge` / `workforce-panel.js:110` 与 `roster-tab.js:190` 手写 / `thought-report-tab.js:32-35` 手写 | 三路共识；`DS_03 §4.15` | 待启动（收口为「展示 badge ＋ 交互 status-badge」两族） |
+| B-518-2 | 加载态三种语言：页签骨架 / `text-xs` 文案 / `text-sm` 文案；`index.html`、`settings.html`、`person.html` 三处手写骨架 | uicraft C-03；`DS_03 §12` SD-51 | 待启动（全站统一为骨架） |
 | B-518-3 | 减少动效只兜住 CSS：`scrollIntoView({behavior:'smooth'})` 40+ 处未判 `prefers-reduced-motion`（仅 `tab-bar.js` 一处做了分支） | web-design-guidelines #6 | 待启动（抽一个 helper 统一判偏好） |
-| B-518-4 | `help.html` 自带第二设计系统（`.help-card` / `.help-badge` / 手写输入与链接色），且全站页宽四档（3xl–6xl ＋ 72/80rem）无统一规则 | 花叔 #15 / uicraft C-11 | 待启动 |
+| B-518-4 | `help.html` 自带第二设计系统（`.help-card` / `.help-badge` / 手写链接色） | 花叔 #15 / uicraft C-11 | 待启动（批次 521 已收口其中的「页宽四档」：容器归到 28/48/64/72/80rem 五档，`container-width-guard` 守） |
 
 ## 批次 519 收尾与后续（2026-10-28）
 
@@ -876,6 +876,18 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/DOC
 | B-520-5 | 换组织向导预设表（`org-setup-wizard.js` 的「天蓝 / 海蓝」）与旧偏好兼容映射（`appearance-controls.js` 的旧色名标签）仍带旧色名；本批不改 `docs/src/**` | `copy-guard` 旧色名登记例外 ＋ `DESIGN_SYSTEM §2.11`（七色单一源） | 待启动（改为七色名或删旧标签） |
 
 ***
+
+***
+
+## 批次 521 收尾与后续（2026-10-29）
+
+> 批次 521：修好两个页签（`import` 落进函数体）＋ 全量 ESM 解析与注册页签加载两条门禁；立 P1–P4、P6、P7 六条原则并落全量守卫与反例；设计系统分编为父索引 ＋ 五编；About 上锁。下表只留**未闭环**项。
+
+| ID | 事项（人话） | 判据 / 出处 | 状态 |
+| --- | --- | --- | --- |
+| B-521-1 | 设计系统 §12.6 的 SD 判据表随判例外迁进了 `CASES`「迁移登记 C」，它是布尔判据而非判例，是否回迁规范侧（`DS_03 §12`） | `CASE-DESIGN-032` ＋ 分编说明 | 待裁 |
+| B-521-2 | `TIMESTAMPS` 备注总量预算余量只剩 29 字，后续再新增文件行须先迁走等量存量沿革 | `docs-governance-guard::N2` | 待启动（增行前必须先迁） |
+| B-521-3 | About 仍用 64rem / 1120px / 1320px，是五档容器白名单里唯一的冻结例外；若将来 About 解冻需一并归到五档 | `container-width-guard` 白名单 | 冻结件，待支书点头 |
 
 ***
 

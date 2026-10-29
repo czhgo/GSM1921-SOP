@@ -5,14 +5,14 @@
 //  职责单一：统计卡渲染 + 考勤明细弹窗（点击统计卡查看本月考勤）。
 // ════════════════════════════════════════════════════════════════
 
-import { NoticeStore } from '../../services/governance/notice.js?v=20261028e';
-import { _fmtDate } from '../../core/base/utils.js?v=20261028e';
-import { icon } from '../../core/base/icons.js?v=20261028e';
+import { NoticeStore } from '../../services/governance/notice.js?v=20261029b';
+import { _fmtDate } from '../../core/base/utils.js?v=20261029b';
+import { icon } from '../../core/base/icons.js?v=20261029b';
 // 活动「已归档」口径单一源（2026-09-13 收敛）：替代手写 !a.archived
-import { isActivityArchived } from '../../core/domain/constants.js?v=20261028e';
-import { isTaskforceActiveStatus } from '../../core/domain/domain.js?v=20261028e';
+import { isActivityArchived } from '../../core/domain/constants.js?v=20261029b';
+import { isTaskforceActiveStatus } from '../../core/domain/domain.js?v=20261029b';
 // R2-47：出勤率语义单一源——首页「个人考勤」按应到人次（不是按已录记录），未录显示「待录入」
-import { summarizePersonAttendanceByRoster, attendanceRateTone } from '../../services/activity/attendance.js?v=20261028e';
+import { summarizePersonAttendanceByRoster, attendanceRateTone } from '../../services/activity/attendance.js?v=20261029b';
 
 // 出勤率档位 → 既有语义色 token（服务层只给档位，颜色映射留在展示层）
 const ATTENDANCE_TONE_COLOR = {
@@ -30,7 +30,7 @@ const ATTENDANCE_VALUE_COLOR = {
   good: 'var(--neutral-800)',
 };
 
-import { emptyStateHtml } from '../ui/empty-state.js?v=20261028e';
+import { emptyStateHtml } from '../ui/empty-state.js?v=20261029b';
 const ATTENDANCE_STATUS_DOT = {
   present:  { text: '出勤', cls: 'text-green-700', dot: 'var(--status-success)' },
   absent:   { text: '缺勤', cls: 'text-red-600',  dot: 'var(--status-error)' },
@@ -49,7 +49,7 @@ export function renderDashboardStats({ activities, taskforces, notices, attendan
   const container = document.getElementById('dashboard-stats');
   if (!container) return;
 
-  // 加载中：显示骨架屏，避免 0→真实值 闪烁（2026-10-28：骨架与正式卡同构——图标 ＋ 数字 ＋ 标签）
+  // 加载中：显示骨架屏，避免 0→真实值 闪烁（2026-10-29 P2：骨架与正式卡同构——图标在左、数值/标签在右）
   if (isLoading) {
     const skeletonItems = ['本月活动', '活跃专班', '未读通知', '个人考勤'];
     container.innerHTML = skeletonItems.map(label => `
@@ -57,8 +57,10 @@ export function renderDashboardStats({ activities, taskforces, notices, attendan
         <span class="stat-icon-tint" style="--tint:var(--neutral-300);" aria-hidden="true">
           <span class="h-5 w-5 rounded bg-gray-100 animate-pulse"></span>
         </span>
-        <p class="metric-band__value"><span class="h-6 w-12 inline-block rounded bg-gray-100 animate-pulse"></span></p>
-        <p class="metric-band__label">${label}</p>
+        <div class="stat-card__body">
+          <p class="stat-card__value"><span class="h-6 w-12 inline-block rounded bg-gray-100 animate-pulse"></span></p>
+          <p class="stat-card__label">${label}</p>
+        </div>
       </div>
     `).join('');
     return;
@@ -92,9 +94,9 @@ export function renderDashboardStats({ activities, taskforces, notices, attendan
   // 「活跃专班」是**本支部自创工作方法**（workflow/blocks/manifests.js: provenance='branch-custom'），
   // 非党内统一规范动作——原无论有无专班恒渲染（无专班的支部永远显示「0 个」）属**过拟合**。
   // 改为：仅在**确有活跃/招募中专班**时出现（规范类统计「本月活动」不受影响，始终保留）。
-  // 2026-10-27 Task 6.4（脏乱繁）：390 两列网格里长标签（「个人考勤（本月无记录）」）会折行把卡片撑成
-  //   两种高度 ⇒ 标签统一 4 字（短标签），状态说明降为第二行小字（`.stat-card__note`）；
-  //   卡片统一 `min-height`，四张等高。
+  // 2026-10-29 P2（支书：「一个 p 一行…摊大饼」）：数字组统一为「图标在左、数值/标签在右两行」；
+  //   卡片不再写 `min-height`——四张等高由 #dashboard-stats 的栅格 `align-items: stretch` 保证。
+  //   标签仍取短标签（4 字），状态说明降为 `.stat-card__note`。
   // 颜色 = 既有语义 token：活动信息蓝 / 专班琥珀文字档 / 未读错误红（0 条回落中性）/ 考勤按档位。
   const stats = [
     { label: '本月活动', value: monthActivities.length, unit: '场', color: 'var(--status-info)', icon: 'calendarHero', interactive: false },
@@ -119,9 +121,11 @@ export function renderDashboardStats({ activities, taskforces, notices, attendan
     <div class="card rounded-xl p-4 stat-card ${s.interactive ? 'card--interactive cursor-pointer' : ''}"
          ${s.interactive ? 'role="button" tabindex="0" data-attendance-popover="1"' : ''} ${s.title ? `title="${s.title}"` : ''}>
       <span class="stat-icon-tint" style="--tint:${s.color};" aria-hidden="true">${icon(s.icon, { strokeWidth: 1.8, className: 'w-5 h-5' })}</span>
-      <p class="metric-band__value" style="color:${s.valueColor || s.color};">${s.value}<span class="text-xs font-normal ml-0.5" style="color:var(--neutral-500);">${s.unit}</span></p>
-      <p class="metric-band__label">${s.label}</p>
-      ${s.note ? `<p class="text-xs stat-card__note" style="color:var(--neutral-500);">${s.note}</p>` : ''}
+      <div class="stat-card__body">
+        <p class="stat-card__value" style="color:${s.valueColor || s.color};">${s.value}${s.unit ? `<span class="stat-card__unit">${s.unit}</span>` : ''}</p>
+        <p class="stat-card__label">${s.label}</p>
+        ${s.note ? `<p class="text-xs stat-card__note" style="color:var(--neutral-500);">${s.note}</p>` : ''}
+      </div>
     </div>
   `).join('');
 

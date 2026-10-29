@@ -1,0 +1,182 @@
+{
+  "at": "2026-10-29T12:27:43.167Z",
+  "importProbe": {
+    "ok": false,
+    "name": "SyntaxError",
+    "message": "Unexpected token '{'",
+    "stack": "SyntaxError: Unexpected token '{'"
+  },
+  "depProbe": [
+    {
+      "spec": "http://127.0.0.1:52627/src/core/base/utils.js?v=20261028e",
+      "ok": true
+    },
+    {
+      "spec": "http://127.0.0.1:52627/src/core/session/pending-target.js?v=20261028e",
+      "ok": true
+    },
+    {
+      "spec": "http://127.0.0.1:52627/src/components/record/todo-tab-shell.js?v=20261028e",
+      "ok": true
+    },
+    {
+      "spec": "http://127.0.0.1:52627/src/components/ui/modal.js?v=20261028e",
+      "ok": true
+    },
+    {
+      "spec": "http://127.0.0.1:52627/src/services/governance/todo.js?v=20261028e",
+      "ok": true
+    },
+    {
+      "spec": "http://127.0.0.1:52627/src/services/governance/notice.js?v=20261028e",
+      "ok": true
+    },
+    {
+      "spec": "http://127.0.0.1:52627/src/services/governance/secretary-overview.js?v=20261028e",
+      "ok": true
+    },
+    {
+      "spec": "http://127.0.0.1:52627/src/components/ui/badges.js?v=20261028e",
+      "ok": true
+    },
+    {
+      "spec": "http://127.0.0.1:52627/src/services/activity/attendance.js?v=20261028e",
+      "ok": true
+    },
+    {
+      "spec": "http://127.0.0.1:52627/src/services/activity/inspection.js?v=20261028e",
+      "ok": true
+    },
+    {
+      "spec": "http://127.0.0.1:52627/src/services/governance/review.js?v=20261028e",
+      "ok": true
+    },
+    {
+      "spec": "http://127.0.0.1:52627/src/services/activity/activity.js?v=20261028e",
+      "ok": true
+    },
+    {
+      "spec": "http://127.0.0.1:52627/src/services/governance/soft-void.js?v=20261028e",
+      "ok": true
+    },
+    {
+      "spec": "http://127.0.0.1:52627/src/core/domain/domain.js?v=20261028e",
+      "ok": true
+    },
+    {
+      "spec": "http://127.0.0.1:52627/src/data/data-adapter.js?v=20261028e",
+      "ok": true
+    },
+    {
+      "spec": "http://127.0.0.1:52627/src/core/base/version-token.js?v=20261028e",
+      "ok": true
+    },
+    {
+      "spec": "http://127.0.0.1:52627/src/services/member/person.js?v=20261028e",
+      "ok": true
+    },
+    {
+      "spec": "http://127.0.0.1:52627/src/core/domain/constants.js?v=20261028e",
+      "ok": true
+    },
+    {
+      "spec": "http://127.0.0.1:52627/src/services/core/runtime.js?v=20261028e",
+      "ok": true
+    },
+    {
+      "spec": "http://127.0.0.1:52627/src/core/boot/theme.js?v=20261028e",
+      "ok": true
+    },
+    {
+      "spec": "http://127.0.0.1:52627/src/services/governance/issues.js?v=20261028e",
+      "ok": true
+    },
+    {
+      "spec": "http://127.0.0.1:52627/src/services/activity/taskforce.js?v=20261028e",
+      "ok": true
+    },
+    {
+      "spec": "http://127.0.0.1:52627/src/services/activity/committee-vote.js?v=20261028e",
+      "ok": true
+    },
+    {
+      "spec": "http://127.0.0.1:52627/src/services/activity/vote-config.js?v=20261028e",
+      "ok": true
+    },
+    {
+      "spec": "http://127.0.0.1:52627/src/components/record/reporting.js?v=20261028e",
+      "ok": true
+    },
+    {
+      "spec": "http://127.0.0.1:52627/src/core/domain/object-route.js?v=20261028e",
+      "ok": true
+    },
+    {
+      "spec": "http://127.0.0.1:52627/src/components/governance/member-change-panel.js?v=20261028e",
+      "ok": true
+    },
+    {
+      "spec": "http://127.0.0.1:52627/src/components/record/todo-jump.js?v=20261028e",
+      "ok": true
+    },
+    {
+      "spec": "http://127.0.0.1:52627/src/core/base/page-url.js?v=20261028e",
+      "ok": true
+    },
+    {
+      "spec": "http://127.0.0.1:52627/src/services/governance/resolution-followup.js?v=20261028e",
+      "ok": true
+    },
+    {
+      "spec": "http://127.0.0.1:52627/src/services/member/member-confirmation.js?v=20261028e",
+      "ok": true
+    },
+    {
+      "spec": "http://127.0.0.1:52627/src/services/member/roster.js?v=20261028e",
+      "ok": true
+    },
+    {
+      "spec": "http://127.0.0.1:52627/src/services/core/auth.js?v=20261028e",
+      "ok": true
+    },
+    {
+      "spec": "http://127.0.0.1:52627/src/core/base/state.js?v=20261028e",
+      "ok": true
+    },
+    {
+      "spec": "http://127.0.0.1:52627/src/components/ui/modal.js?v=20261028e",
+      "ok": true
+    },
+    {
+      "spec": "http://127.0.0.1:52627/src/components/ui/empty-state.js?v=20261028e",
+      "ok": true
+    }
+  ],
+  "state": {
+    "currentTab": null,
+    "hasErrorCard": true,
+    "errorText": "这个页签暂时没加载出来\n        重试",
+    "lsKeys": [
+      "workflowos_tab_secretary",
+      "gsm1921-login-user",
+      "sop_org_os_data_version"
+    ],
+    "parseErrors": []
+  },
+  "errors": [
+    {
+      "kind": "console.error",
+      "text": "[tab-bar] tab「todo」渲染失败 SyntaxError: Unexpected token '{'",
+      "loc": {
+        "url": "http://127.0.0.1:52627/src/components/shell/tab-bar.js?v=20261028e",
+        "line": 752,
+        "column": 14,
+        "lineNumber": 752,
+        "columnNumber": 14
+      },
+      "stacks": [
+        "SyntaxError: Unexpected token '{'"
+      ]
+    }
+  ]
+}

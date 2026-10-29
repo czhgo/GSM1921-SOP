@@ -4,22 +4,22 @@
 // 专班列表（状态分组）+ 只读详情（成员/角色/贡献）。依据支书第五轮裁定「新建专班查看组件（列表+详情）」。
 // 支书设计原则：「无职责 不代表 没有知情权」。
 
-import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261028e';
-import { getPersonName } from '../../services/member/person.js?v=20261028e';
-import { mockDB } from '../../core/domain/domain.js?v=20261028e';
-import { AuthStore } from '../../services/core/auth.js?v=20261028e';
-import { canRevealActivityMemberNames } from '../../services/core/visibility.js?v=20261028e';
-import { badgeHtml } from '../ui/badges.js?v=20261028e';
-import { dotDarkVars } from '../../core/domain/constants.js?v=20261028e';
-import { flashHighlight, showToast, escHtml as esc } from '../../core/base/utils.js?v=20261028e';
-import { anchorDetailToTrigger } from '../ui/detail-anchor.js?v=20261028e';
+import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261029b';
+import { getPersonName } from '../../services/member/person.js?v=20261029b';
+import { mockDB } from '../../core/domain/domain.js?v=20261029b';
+import { AuthStore } from '../../services/core/auth.js?v=20261029b';
+import { canRevealActivityMemberNames } from '../../services/core/visibility.js?v=20261029b';
+import { badgeHtml } from '../ui/badges.js?v=20261029b';
+import { dotDarkVars } from '../../core/domain/constants.js?v=20261029b';
+import { flashHighlight, showToast, escHtml as esc } from '../../core/base/utils.js?v=20261029b';
+import { anchorDetailToTrigger } from '../ui/detail-anchor.js?v=20261029b';
 // 统一检索引擎（2026-09-14 裁定）：只读详情「成员贡献」（第一列是人 → 配姓名关键词）与
 // 「中间进度」（时间线 → 只给分页：keyword null + facets []）各接一个实例
-import { renderFilteredList } from '../ui/list-filter.js?v=20261028e';
+import { renderFilteredList } from '../ui/list-filter.js?v=20261029b';
 // Task 6：专班的完整详情页出口（同页预览 + 「打开完整页」）；入口已在工作台内 ⇒ locate。
-import { objectDetailHref } from '../../core/domain/object-route.js?v=20261028e';
+import { objectDetailHref } from '../../core/domain/object-route.js?v=20261029b';
 
-import { emptyStateHtml } from '../ui/empty-state.js?v=20261028e';
+import { emptyStateHtml } from '../ui/empty-state.js?v=20261029b';
 // 附录⑩ B批：状态词对齐「支委会表决」语义（pending_review=待支委会表决；dissolved=表决通过解散）
 const STATUS_LABEL = { draft: '草稿', pending_review: '待支委会表决', recruiting: '招募中', active: '运行中', completed: '已完结', archived: '已归档', dissolved: '已解散' };
 // 专班状态 → 固定语义 tone（不随主题）
@@ -59,8 +59,14 @@ export function renderTaskforceView(container, opts = {}) {
           <h3 class="font-title-cn text-base font-semibold text-gray-800">专班查看</h3>
           <span class="text-xs text-gray-500">全支部 · 只读</span>
         </div>
+        <!-- P3 四段：本面只有检索；重置随检索提供（清除关键词后恢复全量） -->
         <div class="lf-bar mb-3">
-          <input type="text" id="tfv-search" class="input-flat text-xs lf-kw" placeholder="搜索专班名称或任务...">
+          <div class="lf-bar__row" data-seg="search">
+            <input type="text" id="tfv-search" class="input-flat text-xs lf-kw" placeholder="搜索专班名称或任务...">
+          </div>
+          <div class="lf-bar__row" data-seg="reset">
+            <button type="button" id="tfv-search-clear" class="btn-tab lf-btn">清除</button>
+          </div>
         </div>
         <div id="tfv-list"></div>
         <div id="tfv-detail" class="hidden card rounded-xl p-5 mt-4"></div>
@@ -97,7 +103,7 @@ export function renderTaskforceView(container, opts = {}) {
               <span class="font-title-cn text-sm font-bold text-gray-700">${g.label}</span>
               <span class="text-xs text-gray-500">${g.list.length}</span>
             </div>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div class="card-grid">
               ${g.list.map(t => _renderTfCard(t)).join('')}
             </div>
           </div>
@@ -135,6 +141,12 @@ export function renderTaskforceView(container, opts = {}) {
 
   // 搜索输入即时过滤
   if (searchEl) searchEl.oninput = () => renderTaskforceView(container, opts);
+  // 重置（P3 第四段）：清空关键词后按全量重绘
+  const clearEl = container.querySelector('#tfv-search-clear');
+  if (clearEl) clearEl.onclick = () => {
+    if (searchEl) searchEl.value = '';
+    renderTaskforceView(container, opts);
+  };
 
   // 定位高亮（定时自动褪去，支书 2026-08-08 裁定）
   if (highlightId) {

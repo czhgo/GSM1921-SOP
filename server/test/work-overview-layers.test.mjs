@@ -79,20 +79,24 @@ test('W4 六个角色键与四数齐备（四数同为数字卡）', () => {
     '筛选类指标须渲染为数字卡（.card + .stat-card + .metric-band__item）');
   assert.match(OVERVIEW, /<a class="card card--interactive stat-card metric-band__item metric-band__item--link"/,
     '滚动类指标须渲染为数字卡（.card + .stat-card + .metric-band__item）');
-  // 卡内由「图标 + 数字 + 标签」三段组成（2026-10-28 Task 3 · CASE-DESIGN-030）：
-  //   上一轮误把「卡片数字」执行成去图标的纯文字卡，本判据改准为含图标块（不放宽其余判据）。
+  // 卡内由「图标块在左 ＋ .stat-card__body（数值/标签在右两行）」组成（2026-10-29 P2）：
+  //   上一轮误把「卡片数字」执行成去图标的纯文字卡，后一版又执行成竖排三段；本判据改准为
+  //   横排 ＋ body 包裹（判据只增不减：图标 / 数值 / 标签 / 顺序 / 无 hex 全部保留）。
   const cardBlock = /const summaryHtml = config\.metrics\.map\(\(metric\) => \{[\s\S]*?\}\)\.join\(''\);/.exec(OVERVIEW);
   assert.ok(cardBlock, '未找到结论带卡片渲染块（config.metrics.map）');
-  const bodyHtml = /const body = `<span class="stat-icon-tint"[^`]*<\/span>\s*<span class="metric-band__value[^`]*<\/span>\s*<span class="metric-band__label">\$\{esc\(metric\.label\)\}<\/span>`/.exec(cardBlock[0]);
-  assert.ok(bodyHtml, '卡内 body 须由「图标 .stat-icon-tint ＋ 数字 .metric-band__value ＋ 标签 .metric-band__label」三段组成');
-  assert.deepEqual(bodyHtml[0].match(/<span/g), ['<span', '<span', '<span'], '卡内只允许图标 / 数字 / 标签三个 span');
+  const bodyHtml = /const body = `<span class="stat-icon-tint"[\s\S]*?<div class="stat-card__body">[\s\S]*?<p class="stat-card__value[\s\S]*?<\/p>[\s\S]*?<p class="stat-card__label">\$\{esc\(metric\.label\)\}<\/p>[\s\S]*?<\/div>`/.exec(cardBlock[0]);
+  assert.ok(bodyHtml, '卡内 body 须由「图标 .stat-icon-tint ＋ .stat-card__body（.stat-card__value / .stat-card__label）」组成');
+  assert.equal(bodyHtml[0].match(/<span/g).length, 1, '卡内图标只允许一个 span（数值/标签是 <p>，不得回潮三段 span）');
+  assert.equal(bodyHtml[0].match(/<p/g).length, 2, '卡内数值与标签各一个 <p>（两行在右）');
+  assert.ok(bodyHtml[0].indexOf('stat-card__value') < bodyHtml[0].indexOf('stat-card__label'),
+    '数值须在标签之上（右侧纵向两行：数值 → 标签）');
   assert.match(cardBlock[0], /--tint:\$\{color\}/, '图标浅底须由 --tint 派生（既有语义色）');
   assert.doesNotMatch(cardBlock[0], /#(?:[0-9a-f]{3,8})\b/i, '指标卡不得写硬编码 hex（颜色只取语义 token）');
-  // 逾期：warning 文字档（非 error 色）——原 W4 的 muted 档 CSS 判据在此位置上由 warning 档承接。
+  // 逾期：warning 文字档（非 error 色）——随数字组改名到 .stat-card__value--warning。
   assert.match(OVERVIEW, /warning: true/, '逾期指标须标记 warning');
-  assert.match(OVERVIEW, /metric-band__value--warning/, '逾期 > 0 须输出 warning 数值档');
-  assert.match(STYLES, /\.metric-band__value--warning\s*\{[^}]*color:\s*var\(--status-warning-text\)/, '逾期数值须为 warning 文字档');
-  assert.doesNotMatch(STYLES, /\.metric-band__value--warning\s*\{[^}]*--status-(?:error|danger)/, '逾期数值不得用 error 色');
+  assert.match(OVERVIEW, /stat-card__value--warning/, '逾期 > 0 须输出 warning 数值档');
+  assert.match(STYLES, /\.stat-card__value--warning\s*\{[^}]*color:\s*var\(--status-warning-text\)/, '逾期数值须为 warning 文字档');
+  assert.doesNotMatch(STYLES, /\.stat-card__value--warning\s*\{[^}]*--status-(?:error|danger)/, '逾期数值不得用 error 色');
 });
 
 test('W5 工作分工表列固定：工作分工 / 负责人 / 在办 / 逾期 / 待处理（R3-29 动作列并入待处理）', () => {

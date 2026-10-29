@@ -2,7 +2,7 @@
 title: "信息计算与呈现口径"
 type: spec
 role: "[工程师]+[AI]"
-last_updated: 2026-10-18
+last_updated: 2026-10-29
 status: active
 related_files: [docs/src/services/governance/notice.js, docs/src/components/shell/header.js, docs/src/services/governance/todo.js, docs/src/services/governance/today-summary.js, docs/src/components/governance/work-overview.js, docs/src/services/activity/taskforce.js, docs/src/services/activity/attendance.js]
 ---
@@ -312,7 +312,7 @@ related_files: [docs/src/services/governance/notice.js, docs/src/components/shel
 
 | 本文不重复展开的 | 权威源 |
 |---|---|
-| 表格 / 矩阵 / 台账 / 卡片的选型与交互 | [DESIGN_SYSTEM.md §4.20](../04_web_design/design-system/DESIGN_SYSTEM.md) |
+| 表格 / 矩阵 / 台账 / 卡片的选型与交互 | [DS_03_COMPONENTS.md §4.20](../04_web_design/design-system/DS_03_COMPONENTS.md) |
 | 数据结构、字段表、枚举 | [DATA_MODEL.md](../04_web_design/data/DATA_MODEL.md) |
 | 角色键级权限矩阵 | [SYSTEM_ROLE_PERMISSION.md](../02_institution/SYSTEM_ROLE_PERMISSION.md) |
 | 制度口径与支书裁定原文 | [SECRETARY_DIRECTIVES.md](../01_strategy/SECRETARY_DIRECTIVES.md) |

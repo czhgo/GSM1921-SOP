@@ -12,7 +12,7 @@
 //   `DEFAULT_BRANCH_ID` 是常量叶子，可安全共用。
 // ⚠ 引用一律取自既有实体（users / branches / activities），保持零孤立引用。
 
-import { DEFAULT_BRANCH_ID } from '../../core/domain/constants.js?v=20261028e';
+import { DEFAULT_BRANCH_ID } from '../../core/domain/constants.js?v=20261029b';
 
 /** v12：种子行统一补支部归属（单支部演示库缺省 br-b1；不逐行复制字段）。 */
 const withBranch = (rows) => rows.map((row) => ({ ...row, branchId: row.branchId || DEFAULT_BRANCH_ID }));

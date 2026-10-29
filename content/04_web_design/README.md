@@ -2,7 +2,7 @@
 title: "网站设计层索引——网站系统的设计想法"
 type: index
 role: "[工程师]+[AI]"
-last_updated: 2026-10-27
+last_updated: 2026-10-29
 status: active
 ---
 
@@ -51,7 +51,7 @@ status: active
 
 | 子目录 | 内容 | 文件 |
 |--------|------|------|
-| [`design-system/`](design-system/) | 设计系统（视觉/色彩/组件/点击落点） | [DESIGN_SYSTEM.md](design-system/DESIGN_SYSTEM.md)（《设计系统》一份承全部） · [CASES.md](design-system/CASES.md)（设计域判例） |
+| [`design-system/`](design-system/) | 设计系统（视觉/色彩/组件/点击落点） | [DESIGN_SYSTEM.md](design-system/DESIGN_SYSTEM.md)（父索引：哲学 ＋ 编目）· DS_01…DS_05 五编（色彩与主题 / 排版与尺寸 / 组件 / 交互与响应式 / 地图与速查）· [CASES.md](design-system/CASES.md)（设计域判例） |
 | [`data/`](data/) | 数据架构（模型/流） | [DATA_MODEL.md](data/DATA_MODEL.md)（数据模型与数据流） · [DATA_SEED_CONTRACT.md](data/DATA_SEED_CONTRACT.md)（种子契约） |
 | [`deploy/`](deploy/) | 部署与集成（路径/认证/外部对接） | [DEPLOYMENT_GUIDE.md](deploy/DEPLOYMENT_GUIDE.md)（《部署与对外对接》一份承全部：部署路径 + 对接 + 认证门控 + 微信协同 + 北大对接） · [SERVER_DEPLOY_MANUAL.md](deploy/SERVER_DEPLOY_MANUAL.md)（服务端操作手册） |
 | [`module/`](module/) | 页面/模块设计（UI 与 SOP 联动） | [SOP_WEBSITE_GUIDE.md](module/SOP_WEBSITE_GUIDE.md) · [MODULE_UI_DESIGN.md](module/MODULE_UI_DESIGN.md) · [ABOUT_PAGE_DESIGN.md](module/ABOUT_PAGE_DESIGN.md) · [AGENDA_AND_REFERENCE_DESIGN.md](module/AGENDA_AND_REFERENCE_DESIGN.md)（草案） |
@@ -67,7 +67,7 @@ status: active
 
 - **active**——现行有效：当前承担该主题权威（速查表常标 **唯一权威**），以此为准；
 - **draft**——草案未定稿（速查表标「草案·待实施」）：尚未放行实施，如 [AGENDA_AND_REFERENCE_DESIGN.md](module/AGENDA_AND_REFERENCE_DESIGN.md)；
-- **landed / 已落地 YYYY-MM-DD**——设计结论已实现：文档转为**设计论证档案**，不再承担现行权威；现行权威见该行标注（如 MODULE_UI_DESIGN → [DESIGN_SYSTEM.md](design-system/DESIGN_SYSTEM.md) §四 组件规范 + SOP_WEBSITE_GUIDE、AGENDA_AND_REFERENCE_DESIGN → references.js + calendar-tab.js + member-change-panel.js、ROLE_PERMISSION_DESIGN → SYSTEM_ROLE_PERMISSION §9a0/§9b/§9c + 代码 `ROLE_KEYS`）或实现代码（如 BRANCH_WORK_MAP → `work-map-tab.js` + `workforce-panel.js`）；
+- **landed / 已落地 YYYY-MM-DD**——设计结论已实现：文档转为**设计论证档案**，不再承担现行权威；现行权威见该行标注（如 MODULE_UI_DESIGN → [DS_03_COMPONENTS.md](design-system/DS_03_COMPONENTS.md) §四 组件规范 + SOP_WEBSITE_GUIDE、AGENDA_AND_REFERENCE_DESIGN → references.js + calendar-tab.js + member-change-panel.js、ROLE_PERMISSION_DESIGN → SYSTEM_ROLE_PERMISSION §9a0/§9b/§9c + 代码 `ROLE_KEYS`）或实现代码（如 BRANCH_WORK_MAP → `work-map-tab.js` + `workforce-panel.js`）；
 - **论证档案**——只承载论证（为什么）、反论（为什么不是）、判例与生效条件，规范正文以对应权威源文件为准。
 
 ### 数据架构（data/）
@@ -82,7 +82,12 @@ status: active
 
 | 文件 | 一句话说明 | 权威源 |
 |------|-----------|--------|
-| [DESIGN_SYSTEM.md](design-system/DESIGN_SYSTEM.md) | 设计系统（§一 设计哲学 / §二 色彩系统 / §三 排版 / §四 组件规范 / §五 交互反馈 / §六 响应式 / §七 深色模式 / §八 设计资产 / §十 点击落点映射 / **§12.11 状态语言 / §12.12 字段外壳 / §12.13 动效令 / §12.14 活动类别与信息态色**） | **唯一权威**——前端视觉、组件与点击落点的统一规范（查色值见 §二，写组件见 §四，点击落点见 §十，组件层执行口径见 §12；守卫指针：`theme-palette-guard` / `field-shell-guard` / `motion-guard` / `activity-tone-guard`） |
+| [DESIGN_SYSTEM.md](design-system/DESIGN_SYSTEM.md) | 设计系统父索引（§零 阅读指南 / §一 设计哲学 / 编目索引：我要找什么 → 去哪一编） | **入口**——先在此定位编目，条文在五编 |
+| [DS_01_COLOR_AND_THEME.md](design-system/DS_01_COLOR_AND_THEME.md) | 第一编 色彩与主题（§二 色彩系统 / §七 深色模式） | **唯一权威**——颜色怎么选、主题与暗色怎么定 |
+| [DS_02_TYPE_AND_SIZE.md](design-system/DS_02_TYPE_AND_SIZE.md) | 第二编 排版与尺寸（§三 排版系统 / §3.4 栅格与容器档） | **唯一权威**——字号、行高、页面多宽、列数多少 |
+| [DS_03_COMPONENTS.md](design-system/DS_03_COMPONENTS.md) | 第三编 组件（§四 组件规范 / §4.29–§4.30 / §十二 组件层执行口径 SD-1…SD-54） | **唯一权威**——组件结构与强制形态（守卫指针：`field-shell-guard` / `motion-guard` / `activity-tone-guard` / `lf-bar-structure-guard`） |
+| [DS_04_INTERACTION_AND_RESPONSIVE.md](design-system/DS_04_INTERACTION_AND_RESPONSIVE.md) | 第四编 交互与响应式（§五 交互反馈 / §5.8 焦点总则 / §六 响应式） | **唯一权威**——悬停、按下、聚焦怎么表现；窄屏怎么变（守卫指针：`ui-focus-ring` / `ui-control-system-guard`） |
+| [DS_05_MAP_AND_REFERENCE.md](design-system/DS_05_MAP_AND_REFERENCE.md) | 第五编 地图与速查（§八 资产 / §九 速查 / §十 点击落点 / §十一 边界） | **唯一权威**——点哪里去哪、速查、边界（守卫指针：`theme-palette-guard`） |
 
 ### 部署与集成（deploy/）
 

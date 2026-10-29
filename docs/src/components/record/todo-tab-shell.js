@@ -19,30 +19,31 @@
 // 视觉沿用 card/rounded 既有体系（四档列表渲染在 components/record/todo-list.js renderUrgencyTodoList）。
 // 设计权威源：content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md §六 M6（共性抽象净减）
 
-import { TodoStore, urgeRolesOf, WORK_DOMAIN, WORK_DOMAIN_LABELS, realtimeGroupDomainOf, buildModuleCycleRemindGroup } from '../../services/governance/todo.js?v=20261028e';
+import { TodoStore, urgeRolesOf, WORK_DOMAIN, WORK_DOMAIN_LABELS, realtimeGroupDomainOf, buildModuleCycleRemindGroup } from '../../services/governance/todo.js?v=20261029b';
 // S3②（2026-09-12）：未读通知计数单一来源——与顶栏角标/首页同源（NoticeStore activeOnly+read 过滤），
 // 不再用「通知类待办」现算（口径不同致三处不一致）。
-import { NoticeStore, NOTICE_MODULE_ROLE_PAGES } from '../../services/governance/notice.js?v=20261028e';
-import { buildUrgencySections, renderUrgencyTodoList } from './todo-list.js?v=20261028e';
-import { badgeHtml } from '../ui/badges.js?v=20261028e';
-import { showToast, escHtml, todayLocal, flashHighlight, getBasePath } from '../../core/base/utils.js?v=20261028e';
-import { ROLE_LABELS, BRANCH_COMMISSION_ROLES } from '../../core/domain/constants.js?v=20261028e';
-import { openModal, closeModal, confirmDanger } from '../ui/modal.js?v=20261028e';
-import { AuthStore } from '../../services/core/auth.js?v=20261028e';
-import { mockDB } from '../../core/domain/domain.js?v=20261028e';
-import { tokenOf } from '../../core/base/version-token.js?v=20261028e'; // P0 域写版本戳（spec §二.4）
-import { resolveDocumentUrl } from '../../core/base/page-url.js?v=20261028e';
-import { memoizeRender } from '../ui/memoize-render.js?v=20261028e'; // P2 渲染守卫（spec §四.1）
-import { renderTabHeader } from '../shell/page-frame.js?v=20261028e'; // 页题单一源（H2）
+import { NoticeStore, NOTICE_MODULE_ROLE_PAGES } from '../../services/governance/notice.js?v=20261029b';
+import { buildUrgencySections, renderUrgencyTodoList } from './todo-list.js?v=20261029b';
+import { badgeHtml } from '../ui/badges.js?v=20261029b';
+import { icon } from '../../core/base/icons.js?v=20261029b';
+import { showToast, escHtml, todayLocal, flashHighlight, getBasePath } from '../../core/base/utils.js?v=20261029b';
+import { ROLE_LABELS, BRANCH_COMMISSION_ROLES } from '../../core/domain/constants.js?v=20261029b';
+import { openModal, closeModal, confirmDanger } from '../ui/modal.js?v=20261029b';
+import { AuthStore } from '../../services/core/auth.js?v=20261029b';
+import { mockDB } from '../../core/domain/domain.js?v=20261029b';
+import { tokenOf } from '../../core/base/version-token.js?v=20261029b'; // P0 域写版本戳（spec §二.4）
+import { resolveDocumentUrl } from '../../core/base/page-url.js?v=20261029b';
+import { memoizeRender } from '../ui/memoize-render.js?v=20261029b'; // P2 渲染守卫（spec §四.1）
+import { renderTabHeader } from '../shell/page-frame.js?v=20261029b'; // 页题单一源（H2）
 // 模块周期提醒（`R-29⑤` · `D-804`）：分工快照取法与 `components/governance/workforce-duty-card.js` 同口径
-import { getBranchIdOfPerson, getBranchWorkforce } from '../../services/branch/branch.js?v=20261028e';
+import { getBranchIdOfPerson, getBranchWorkforce } from '../../services/branch/branch.js?v=20261029b';
 
 // ── 「我经办的反馈」区（2026-10-25 IA 62→45 · spec Task 5）──────────────
 // 五台原「我的处置」页签已删（与待办同属「我的待处理」，只是对象为反馈）⇒ 并入本页成一段。
 // 实现单一源＝`components/feedback/issue-dispatch-view.js`（embedded 形态：不渲染第二张页头 H2，
 // 列表 / 详情 / 评论 / 提交处置结果一字未改，不复制第二套）。
 // 旧深链 `?tab=my-dispatch` 由工作台壳落 `todo&filter=dispatch`（本区据此滚到视野）。
-import { emptyStateHtml } from '../ui/empty-state.js?v=20261028e';
+import { emptyStateHtml } from '../ui/empty-state.js?v=20261029b';
 const DISPATCH_SECTION_BY_ROLE = {
   'org-commissioner': { roleKey: 'org-commissioner', opts: {} },
   'prop-commissioner': { roleKey: 'prop-commissioner', opts: {} },
@@ -185,25 +186,29 @@ function _applyNavHighlight(container, id, matchedGroup) {
 }
 
 /**
- * 顶部四数摘要带（逾期 / 今日 / 本周 / 待处理）——一条横向带，不拆四张 KPI 卡。
+ * 顶部四数摘要（逾期 / 今日 / 本周 / 待处理）——数字组单一语法（2026-10-29 P2）：
+ * 图标块在左 ＋ 数值/标签在右两行，四列栅格（≤1024 两列）。
  * 数值由 buildUrgencySections 与列表共用同一批分组数据算出，不另立口径。
- * 视觉：.metric-band--static（只有 span，纯只读摘要 ⇒ 无 hover / 无边框交互态）；
- *   **仅逾期件数 > 0 时**加 `metric-band__value--warning`，0 件时保持中性
- *   （颜色只表状态，不得恒加警示类）。
+ * 只读卡：不挂 role=button / tabindex / card--interactive；
+ * **仅逾期件数 > 0 时**加 `stat-card__value--warning`，0 件时保持中性
+ * （颜色只表状态，不得恒加警示类）。
  */
 function _urgencySummaryHtml(summary) {
-  const item = (label, value, tone) => `
-    <span class="metric-band__item">
-      <span class="metric-band__value${tone ? ` metric-band__value--${tone}` : ''}">${value || 0}</span>
-      <span class="metric-band__label">${label}</span>
-    </span>`;
+  const item = (iconName, tint, label, value, tone) => `
+    <div class="card rounded-xl p-4 stat-card">
+      <span class="stat-icon-tint" style="--tint:${tint};" aria-hidden="true">${icon(iconName, { strokeWidth: 1.8, className: 'w-5 h-5' })}</span>
+      <div class="stat-card__body">
+        <p class="stat-card__value${tone ? ` stat-card__value--${tone}` : ''}">${value || 0}</p>
+        <p class="stat-card__label">${label}</p>
+      </div>
+    </div>`;
   const overdueTone = (Number(summary.overdue) || 0) > 0 ? 'warning' : '';
   return `
-    <div class="metric-band metric-band--static mb-4" role="group" aria-label="待办摘要">
-      ${item('逾期', summary.overdue, overdueTone)}
-      ${item('今日', summary.today, '')}
-      ${item('本周', summary.week, '')}
-      ${item('待处理', summary.pending, '')}
+    <div class="stat-grid mb-4" role="group" aria-label="待办摘要">
+      ${item('warning', 'var(--status-warning-text)', '逾期', summary.overdue, overdueTone)}
+      ${item('clock', 'var(--status-info)', '今日', summary.today, '')}
+      ${item('calendar', 'var(--app-accent-soft-text)', '本周', summary.week, '')}
+      ${item('list', 'var(--neutral-500)', '待处理', summary.pending, '')}
     </div>`;
 }
 
@@ -270,7 +275,7 @@ function _mountDispatchSection(container, role, ctx) {
     host.innerHTML = emptyStateHtml({ variant: 'panel', text: '请先登录后使用', actionHtml: `<a class="btn-outline" href="${getBasePath()}login.html">去登录</a>` });
     return;
   }
-  import('../feedback/issue-dispatch-view.js?v=20261028e').then((m) => {
+  import('../feedback/issue-dispatch-view.js?v=20261029b').then((m) => {
     if (!host.isConnected) return;
     host.innerHTML = m.renderMyDispatchTab(cfg.roleKey, uid, { ...cfg.opts, embedded: true });
     m.bindMyDispatchEvents(host, cfg.roleKey, uid, cfg.opts);

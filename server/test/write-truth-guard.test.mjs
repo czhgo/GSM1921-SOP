@@ -103,7 +103,7 @@ test('A1 六个读口/种子口：api 形态有显式闸门，且闸门在种子
 });
 
 test('A2 集合级单一源：SNAPSHOT_COVERED 与 _buildSnapshotPayload 逐键一致，local-only 标 temp', async () => {
-  const reg = await import('../../docs/src/data/cache-registry.js?v=20261028e');
+  const reg = await import('../../docs/src/data/cache-registry.js?v=20261029b');
   const adapterSrc = read('docs/src/data/data-adapter.js');
   const payload = fnBody(adapterSrc, 'function _buildSnapshotPayload(mockDB)');
   const payloadKeys = [...payload.matchAll(/^ {4}(\w+):/gm)].map((m) => m[1]);
@@ -165,10 +165,10 @@ function makeStorage(init = {}) {
 globalThis.localStorage = makeStorage();
 globalThis.sessionStorage = makeStorage();
 
-const { mockDB } = await import('../../docs/src/core/domain/domain.js?v=20261028e');
-const dataAdapter = await import('../../docs/src/data/data-adapter.js?v=20261028e');
-const pending = await import('../../docs/src/core/session/pending-writes.js?v=20261028e');
-const { describeWriteError } = await import('../../docs/src/core/base/utils.js?v=20261028e');
+const { mockDB } = await import('../../docs/src/core/domain/domain.js?v=20261029b');
+const dataAdapter = await import('../../docs/src/data/data-adapter.js?v=20261029b');
+const pending = await import('../../docs/src/core/session/pending-writes.js?v=20261029b');
+const { describeWriteError } = await import('../../docs/src/core/base/utils.js?v=20261029b');
 
 const INITIAL_VOTES = [{ id: 'av-guard-1', branchId: 'br-b1', activityId: 'act-guard', agendaItemId: 'ag-1', personId: 'p-guard', position: 'agree' }];
 const INITIAL_MCR = [{ id: 'mcr-guard-1', branchId: 'br-b1', personId: 'p-guard', status: 'pending-org-approval', activityId: 'act-guard', agendaItemId: 'ag-1' }];

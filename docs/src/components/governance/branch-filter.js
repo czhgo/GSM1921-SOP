@@ -7,9 +7,9 @@
 // **组件复用律**（`D-765` ⑤）：当前支部筛选由党委台「支部审核」「下发通知」「支部监控」三页共用——不各写一份。
 // 体例：筛选一律用**下拉**（禁 chip，规范 §筛选）；选择随模块自持（同 `list-filter` 的 `stateKey` 体例）
 //   ⇒ 页内重绘不丢选择。支部管理页自身就是支部目录，因此不重复挂筛选。
-import { DEFAULT_BRANCH_ID } from '../../core/domain/constants.js?v=20261028e';
-import { mockDB } from '../../core/domain/domain.js?v=20261028e';
-import { escHtml } from '../../core/base/utils.js?v=20261028e';
+import { DEFAULT_BRANCH_ID } from '../../core/domain/constants.js?v=20261029b';
+import { mockDB } from '../../core/domain/domain.js?v=20261029b';
+import { escHtml } from '../../core/base/utils.js?v=20261029b';
 
 /** `stateKey` → 当前选中支部 id。API 模式的范围放在 URL，便于整页共用。 */
 const _selected = new Map();
@@ -44,13 +44,17 @@ export function renderBranchFilter(host, { stateKey, onChange, tabId } = {}) {
   const branches = mockDB.branches || [];
   const cur = getBranchFilter(stateKey);
   const apiMode = document.documentElement.dataset.dataSource === 'api';
+  // P3 四段：本面全站只按支部过滤（单一维度），只输出 scope 段；
+  //   `data-lf-scope-only` 是结构守卫登记的唯一纯范围例外（补检索/分面会增加操作成本，见 P3 台账）。
   host.innerHTML = `
-    <div class="lf-bar flex items-center gap-2">
-      <label class="text-xs text-gray-500 shrink-0" for="${escHtml(stateKey)}-branch-select">支部筛选</label>
-      <select id="${escHtml(stateKey)}-branch-select" class="input-flat text-xs">
-        <option value=""${cur ? '' : ' selected'}>${apiMode ? '选择支部查看明细' : `全部支部（${branches.length}）`}</option>
-        ${branches.map(b => `<option value="${escHtml(b.id)}"${b.id === cur ? ' selected' : ''}>${escHtml(_label(b))}</option>`).join('')}
-      </select>
+    <div class="lf-bar" data-lf-scope-only="1">
+      <div class="lf-bar__row" data-seg="scope">
+        <label class="text-xs text-gray-500 shrink-0" for="${escHtml(stateKey)}-branch-select">支部筛选</label>
+        <select id="${escHtml(stateKey)}-branch-select" class="input-flat text-xs lf-select">
+          <option value=""${cur ? '' : ' selected'}>${apiMode ? '选择支部查看明细' : `全部支部（${branches.length}）`}</option>
+          ${branches.map(b => `<option value="${escHtml(b.id)}"${b.id === cur ? ' selected' : ''}>${escHtml(_label(b))}</option>`).join('')}
+        </select>
+      </div>
     </div>`;
   host.querySelector('select')?.addEventListener('change', (e) => {
     const selected = e.target.value || '';

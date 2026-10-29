@@ -143,9 +143,6 @@ export const HEX_BASELINE = {
       '#059669', '#3b82f6', '#94a3b8', '#9ca3af', '#d1d5db', '#d97706', '#dc2626',
       '#f59e0b', '#f97316',
   ] },
-  'docs/src/components/feedback/issue-list.js': { c: 1, v: [
-      '#ce1126',
-  ] },
   'docs/src/components/governance/member-change-panel.js': { c: 1, v: [
       '#b91c1c',
   ] },
@@ -262,9 +259,6 @@ export const HEX_BASELINE = {
   'docs/src/entries/tabs/prop/archive-tab.js': { c: 1, v: [
       '#999',
   ] },
-  'docs/src/entries/tabs/prop/kanban-tab.js': { c: 1, v: [
-      '#ce1126',
-  ] },
   'docs/src/entries/tabs/secretary/calendar-tab.js': { c: 2, v: [
       '#ce1126', '#ffd700',
   ] },
@@ -273,9 +267,6 @@ export const HEX_BASELINE = {
   ] },
   'docs/src/entries/tabs/secretary/notification-tab.js': { c: 1, v: [
       '#ce1126',
-  ] },
-  'docs/src/entries/tabs/secretary/report-up-tab.js': { c: 3, v: [
-      '#16a34a', '#6b7280', '#d97706',
   ] },
   'docs/src/entries/tabs/secretary/todo-tab.js': { c: 1, v: [
       '#6b7280',
@@ -406,7 +397,13 @@ export const HEX_TOTAL_BASELINE = 1433;
 //   文件数 74 → **51**（23 个文件的内联派生清零、条目按纪律删除）、distinct 167/168 → **287**、
 //   处数 → **1419**（见 HEX_BASELINE 头注）。上面历史注释里的 2025 / 74 / 168 均为各批当时的实况，
 //   仅作审计线索，**不得**据此回调本批数值。
-export const HEX_FILE_BASELINE = 51;
+// ⚠ 2026-10-29 P1（焦点单信号）：`issue-list.js` / `kanban-tab.js` 的内联焦点色 `#ce1126`
+//   已删除（改挂 `.focus-ring` 语义类，色只来自 --app-accent）⇒ 两条目清零删除，
+//   文件数 51 → **49**（与实况同值）。
+// ⚠ 2026-10-29 P2（数字组单一语法）：`secretary/report-up-tab.js` 页首统计三项的三处内联 hex
+//   （#d97706 / #16a34a / #6b7280）改为语义 token（--status-warning-text / --status-success /
+//   --status-error）⇒ 该文件 hex 清零，按收基线纪律删条目，文件数 49 → **48**（与实况同值）。
+export const HEX_FILE_BASELINE = 48;
 export const HEX_VALUE_BASELINE = 300;
 
 /** 搬移例外台账（**人工填写**；守卫**不自动放宽**）——2026-09-25 支书裁定「开搬移例外」。

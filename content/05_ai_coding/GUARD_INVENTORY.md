@@ -1,12 +1,12 @@
 ---
-title: "守卫清点与合并台账（72 → 77 → 64 件）"
+title: "守卫清点与合并台账（72 → 77 → 65 件）"
 type: guide
 role: "[工程师]+[AI]"
 last_updated: "2026-10-29"
 status: active
 ---
 
-# 守卫清点与合并台账（2026-10-24 批次 509；2026-10-25 批次 510 / 511 补扩展记录；2026-10-26 批次 512 新增 2 件、批次 513 新增 4 件；2026-10-27 批次 514 新增 3 件）
+# 守卫清点与合并台账（2026-10-24 批次 509；2026-10-25 批次 510 / 511 补扩展记录；2026-10-26 批次 512 新增 2 件、批次 513 新增 4 件；2026-10-27 批次 514 新增 3 件；2026-10-29 新增 `about-freeze-guard`）
 
 > **本文件回答什么**：仓库里有哪些「守卫 / 真值 / 完整性 / 契约 / 对账 / 基线 / 一致性」类测试，
 > 各查什么、多少断言、覆盖多大、近 3 批是否命中、与谁重叠；以及**本次合并了哪几组、后续批次还要并哪几组**。
@@ -16,7 +16,7 @@ status: active
 > `test-tier-registry.mjs::countTestCases` 同口径）；覆盖文件数＝文件内出现的源码 / 文档路径字面量去重数（**粗估**，
 > 不等于运行时真正读取的文件数）；近 3 批＝`2026-10-EXECUTION_LOG.md` 的批次 506/507/508 段内是否出现该守卫名。
 
-## 一、清点总表（合并后现行 64 件）
+## 一、清点总表（合并后现行 65 件）
 
 > **批次 510（2026-10-25）**：未新增 / 删除 guard 文件；本批只做**扩展**，明细见 §七。
 > **批次 511（2026-10-25）**：仍为 68 件（H-T1…H-T5 / T3-1…T4-1 落在既有文件），明细见 §八。
@@ -27,12 +27,13 @@ status: active
 > **批次 514（2026-10-27）**：新增 **3 件**——`no-underline-guard`（4 条）、`loading-experience-guard`（6 条）、
 > `no-about-route-guard`（5 条）；件数 74 → **77**，明细见 §十一。
 
-> 合并前实点 **72 件**（批次 509 口径）。下表逐行按实读校准后，现行 **64 件 / 540 条**（批次 516 把 17 件并为 4 件，断言数不变；2026-10-28 美学专项 Task 7 按实读校准 `copy-guard` 14→16、`modal-guard` 22→20，合计仍 527 条；2026-10-28 B-500-4 结案 `data-lifecycle-guard` 15→16 ⇒ 528 条；2026-10-28 前端设计审查 `modal-guard` 增 T1 ⇒ 529 条；2026-10-28 空态全站收口 `copy-guard` 增 E1/E2 ⇒ 531 条；2026-10-28 硬编码审计 `copy-guard` 增 D1/D2、`frontend-foundations-guard` 增 F10 ⇒ 534 条；2026-10-28 批次 520 焦点与可点性收口 `ui-control-system-guard` 增 FOCUS-4/5、`hover-state-guard` 增 H8/H9、`copy-guard` 增 B1/B2 ⇒ 540 条）；另有已合并的
+> 合并前实点 **72 件**（批次 509 口径）。下表逐行按实读校准后，现行 **65 件 / 545 条**（批次 516 把 17 件并为 4 件，断言数不变；2026-10-28 美学专项 Task 7 按实读校准 `copy-guard` 14→16、`modal-guard` 22→20，合计仍 527 条；2026-10-28 B-500-4 结案 `data-lifecycle-guard` 15→16 ⇒ 528 条；2026-10-28 前端设计审查 `modal-guard` 增 T1 ⇒ 529 条；2026-10-28 空态全站收口 `copy-guard` 增 E1/E2 ⇒ 531 条；2026-10-28 硬编码审计 `copy-guard` 增 D1/D2、`frontend-foundations-guard` 增 F10 ⇒ 534 条；2026-10-28 批次 520 焦点与可点性收口 `ui-control-system-guard` 增 FOCUS-4/5、`hover-state-guard` 增 H8/H9、`copy-guard` 增 B1/B2 ⇒ 540 条；2026-10-29 About 冻结件新增 `about-freeze-guard` 5 条 ⇒ 545 条）；另有已合并的
 > 5 件（`frontmatter-freshness` / `timestamps-note-guard` / `doc-line-ref` / `gold-accent-guard` /
 > `button-system-guard`，25 条）不在表内、不计入本表合计。
 
 | 文件 | 检查对象 | 断言数 | 覆盖文件数（粗估） | 近 3 批是否命中 | 与谁重叠 |
 |---|---|---:|---:|---|---|
+| `about-freeze-guard.test.mjs` | 页面 / 文档（About 独立冻结件：三件套整文件哈希 ＋ 功能目录「关于」卡 / help 正文页面清单的定位片段） | 5 | 5 | 是 | `no-about-route-guard`、`hex-hardcode-guard` |
 | `activity-tone-guard.test.mjs` | 数据 / 活动类别 tone | 5 | 20 | 是 | `ui-color-semantics`、`theme-palette-guard`（颜色语义） |
 | `archive-action-guard.test.mjs` | 数据 / 归档写链 | 2 | 3 | — | `archive-record-write`、`write-path-guard` |
 | `archive-deeplink-guard.test.mjs` | 页面 / 归档深链 | 5 | 4 | — | `notice-deeplink-guard`、`ui-home-deeplink` |
@@ -130,6 +131,7 @@ status: active
 - 2026-10-28 空态全站收口：`copy-guard` 增 E1/E2（空态只从 `empty-state.js` 出 · 白名单 3 条逐条写理由 / 反例命中 + 负例不误伤 + 白名单无僵尸，2 条）⇒ 64 件 / **531 条**。
 - 2026-10-28 硬编码审计（默认月 / URL / 日期口径）：`copy-guard` 增 D1/D2（用户可见渲染串不写死完整年月日 · 基线 0 ＋ 反例/负例自检，2 条）· `frontend-foundations-guard` 增 F10（日历默认月由 `now` 派生 · 注入两个 `now`，1 条）⇒ 64 件 / **534 条**。
 - 2026-10-28 批次 520（焦点与可点性收口）：`ui-control-system-guard` 增 FOCUS-4/FOCUS-5（全站焦点单一来源 ＋ 6px 光晕反例 / 七主题 base 对白卡与深卡 ≥3:1，2 条）· `hover-state-guard` 增 H8/H9（cursor:pointer 必有三态 / role=button 必有 tabindex，2 条）· `copy-guard` 增 B1/B2（docs 支部名字面量 · 旧色名与「十色」，2 条）⇒ 64 件 / **540 条**。
+- 2026-10-29 About 独立冻结件：新增 `about-freeze-guard`（5 条：B1 条目数恰好 5 / B2 三件套整文件哈希 / B3 两处引用面定位片段 / B4 定位串恰好命中 1 行 / B5 临时副本反例）⇒ 65 件 / **545 条**。
 - 后续目标：**60 ± 3 件**（按新增 6 件平移；再合并约 14 件）。推导见 3.2（其「现有 / 目标」为批次 509 时点）。
 
 ### 3.2 推导（按「同一检查对象 ＋ 同一失败根因」聚类，不按文件名拍脑袋）
@@ -313,4 +315,28 @@ status: active
 | 2 文案 | `copy-fold` · `copy-length` · `copy-master` · `self-evident-copy` | `copy-guard.test.mjs` | 4 件全并（14 条）；`copy-anchor-guard-e2e` / `copy-screen-guard` **仍单列**（真机档，混跑会破 daily 预算） | 同上 |
 | 3 字号 | `small-text` · `text-tier` · `table-type-scale` · `control-font` | `type-scale-guard.test.mjs` | 4 件全并（15 条），四条基线逐条保留 | 同上；基线仍读 `style-baseline.mjs` |
 | 4 弹层 | `modal-contract` · `modal-escape-guard` · `ui-modal-form-guard` | `modal-guard.test.mjs` | 3 件全并（22 条） | 同上 |
+
+## 十二、P6「只有文档」五项处置（2026-10-29）
+
+> 来源：`.ctx/evidence/2026-10-29/principle-inventory.json::principles.P6`。该处列出 5 条「已登记的例外，但只有文档、没有守卫」。
+> 本批逐条处置：能低成本上锁的补守卫（带反例），代价高于收益的明确降级为**普通约定**并写明理由；不留「既不补也不降级」的条目。
+> 说明：§一 是 2026-10-29 About 冻结件时点的快照（现行 65 件）；P1–P7 同批新增的 3 件守卫（`esm-parse-guard` / `lf-bar-structure-guard` / `container-width-guard`，共 13 条）已登记进 `server/test-tier-registry.mjs` 与 `test:daily`，本表末尾单列，不回填 §一 的历史数字。
+
+| # | 原条目 | 处置 | 守卫 / 约定落点 | 理由 |
+|---|---|---|---|---|
+| 1 | `ACTIVE_RULINGS.md:225` 禁改清单特批（styles.css 仅批 `.badge--brand` 两条） | **降级为普通约定** | 本表本条；长期约束由 `hex-hardcode-guard` H1–H3 ＋ `theme-palette-guard` T1/T3 承担 | 这是一次**批次范围**的授权（批次 337 / `D-740`），不是长期不变量。把它上锁会把 `.badge--brand` 永久冻结，后续合法的主题微调每次都要改守卫；而真正要防的「徽章色写死 hex / 绕过令牌」已由颜色族守卫覆盖。 |
+| 2 | `ACTIVE_RULINGS.md:216` `.btn-ghost` 存量迁移「守卫待迁移到一定比例后再立」 | **补守卫（复用既有 ＋ 补反例 ＋ 补指针）** | `ui-control-system-guard::V4`（行载体白名单，逐文件 `max` 处数，多一处即红；本批补 3 条反例断言：白名单外 / 标记缺失 / 合法行载体）＋ `B8`（`btn-ghost` 作动作按钮的存量棘轮 4） | 迁移已完成，`btn-ghost` 只剩 4 处非动作行载体；V4 的白名单处数与 B8 的棘轮已经能判红。缺的不是新判据，而是裁定正文仍写「守卫待立」——已把该句改为指向 V4 / B8 的指针，并标注「本条例外关闭」。 |
+| 3 | `docs/src/AGENTS.md:41` `data/mock-adapter.js` 固定 600ms「不要为此改断言」 | **补守卫** | `frontend-foundations-guard::F11`（默认 80ms ＋ `window.__MOCK_DELAY_MS` / `process.env.MOCK_DELAY_MS` 两入口 ＋ 5000ms 上限 ＋ 业务代码禁写死 600；含 2 类反例） | 文档本身已过期：2026-10-26 Task 2.1 起默认 80ms，600ms 只能显式配置。把「现状」写成静态断言后，既可防止默认值被改回 600，也不会再让读者按旧文档改断言。 |
+| 4 | `OPERATIONS_GUIDE.md:241` 禁改面 4 份文档（授权面之外） | **降级为普通约定** | 本表本条；行号引用由 `docs-governance-guard::R1/R2/R6` 守 | 这 4 份是**活文档**（角色权限 / 数据模型 / 部署指南 / 内容目录），正常编辑频繁。整文件哈希或冻结守卫会在每次合法更新时判红，最后只会逼人绕过守卫；真正需要守的是 `README-server.md` 的「文件:行号」取证引用，已由 R1/R2/R6 覆盖。 |
+| 5 | `GUARD_INVENTORY.md:2` 台账标题「72 → 77 → 64 件」与正文 65 件矛盾 | **补守卫** | `test-tier-guard::T7`（标题 / §一 标题 / 正文「现行 N 件」三处数字一致；表内行数不得少于声明件数；含标题改大 1 的反例） | 标题与正文各写一个数时，读者无法判断现行值。T7 只钉三处现行数一致，不重写历史批次记录；任何一处漂移即红并指出是哪两处不一致。 |
+
+**P1–P7 同批新增守卫（已在 §一 之外登记）**
+
+| 守卫 | 断言数 | 检查对象 | 登记位置 |
+|---|---:|---|---|
+| `esm-parse-guard.test.mjs` | 2 | `docs/src` / `docs/scripts` 全量真 ESM 解析；函数体内 `import` 反例 | `test-tier-registry.mjs` daily ＋ `test:daily` |
+| `lf-bar-structure-guard.test.mjs` | 5 | `.lf-bar` 直接子元素只许 `.lf-bar__row`；四段顺序；纯范围例外恰 1 处；反例 | `test-tier-registry.mjs` daily ＋ `test:daily` |
+| `container-width-guard.test.mjs` | 6 | 页面容器只许五档；`max-w-2xl` / `1320px` 反例；About 单页豁免 | `test-tier-registry.mjs` daily ＋ `test:daily` |
+
+**本批预算**：`DAILY_FILE_BUDGET` 维持 **230**（未新增文件）；`DAILY_TEST_BUDGET` 1676 → **1678**（F11 ＋ T7 两条，实测 1676，留 2 条余量）。
 

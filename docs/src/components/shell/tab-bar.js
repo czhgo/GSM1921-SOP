@@ -8,12 +8,12 @@
 
 
 
-import { icon } from '../../core/base/icons.js?v=20261028e';
-import { showToast } from '../../core/base/utils.js?v=20261028e';
+import { icon } from '../../core/base/icons.js?v=20261029b';
+import { showToast } from '../../core/base/utils.js?v=20261029b';
 
 // R6 导航守卫（2026-09-03 P2a）：初始/目标 tab 决策收敛到纯函数 tab-nav.js（防「被支部隐藏后静默白屏」）
 
-import { resolveInitialTab, resolveTargetTab } from '../../core/boot/tab-nav.js?v=20261028e';
+import { resolveInitialTab, resolveTargetTab } from '../../core/boot/tab-nav.js?v=20261029b';
 
 
 
@@ -103,11 +103,11 @@ export function tabContentSkeletonHtml(text = '正在加载…') {
 
 /** R3-U03：页签加载 / 刷新失败统一错误卡（**单一源**：tab-bar 切页签失败 与 workspace-shell
  *  数据刷新失败 渲染同一张卡；重试按钮标记 `data-ws-tab-retry`，绑定由各自调用方负责）。 */
-export function tabErrorCardHtml(message = '这个页签暂时没加载出来') {
+export function tabErrorCardHtml(message = '这个页签暂时没加载出来', { action = 'retry' } = {}) {
   return `
       <div class="card rounded-xl p-6 text-center" data-ws-tab-error role="alert">
         <p class="text-sm text-gray-600">${message}</p>
-        <button type="button" class="btn-outline text-xs px-3 py-1.5 mt-3" data-ws-tab-retry>重试</button>
+        ${action === 'reload' ? '<button type="button" class="btn-outline text-xs px-3 py-1.5 mt-3" data-ws-tab-reload>刷新页面</button>' : '<button type="button" class="btn-outline text-xs px-3 py-1.5 mt-3" data-ws-tab-retry>重试</button>'}
       </div>`;
 }
 
@@ -115,12 +115,18 @@ export function tabErrorCardHtml(message = '这个页签暂时没加载出来') 
  * 页内失败态（2026-10-25 Task 1.3）：容器 / 节点缺失、页内动态 import 失败统一走这一处——
  * 错误卡 + 重试，替代「静默 return」。宿主不可用时返回 false（调用方再退 toast）。
  * @param {Element|null} host 承载错误卡的容器
- * @param {{ onRetry?: Function, message?: string }} [opts]
+ * @param {{ onRetry?: Function, message?: string, action?: 'retry'|'reload' }} [opts]
  * @returns {boolean} 是否已渲染
  */
-export function mountTabFailure(host, { onRetry, message = '加载失败，重试' } = {}) {
+export function mountTabFailure(host, { onRetry, message = '加载失败，重试', action = 'retry' } = {}) {
   if (!host) return false;
-  host.innerHTML = tabErrorCardHtml(message);
+  host.innerHTML = tabErrorCardHtml(message, { action });
+  if (action === 'reload') {
+    host.querySelector('[data-ws-tab-reload]')?.addEventListener('click', () => {
+      try { window.location.reload(); } catch (e) { console.error('[tab-bar] 刷新失败', e); }
+    });
+    return true;
+  }
   host.querySelector('[data-ws-tab-retry]')?.addEventListener('click', () => {
     try { onRetry?.(); } catch (e) { console.error('[tab-bar] 重试失败', e); }
   });
@@ -153,7 +159,7 @@ const FALLBACK_ACCENT = {
 /** 离开当前文档前的淡出时长（与 TAB_CONTENT_FADE_OUT_MS 同档） */
 export const ROUTE_LEAVE_MS = 120;
 
-const TAB_LOADING_CSS_URL = new URL('./tab-loading.css?v=20261028e', import.meta.url).href;
+const TAB_LOADING_CSS_URL = new URL('./tab-loading.css?v=20261029b', import.meta.url).href;
 
 const ROUTE_PROGRESS_ID = 'ws-route-progress';
 
@@ -663,10 +669,21 @@ export function renderTabBar({ prefix, tabs, accentColor, defaultTab, extraRight
   }
 
   /** R3-U03：页签模块 import / 渲染失败 → 容器内统一错误卡（保留页签栏，不整页遮罩）。 */
-  function _renderTabError(tab) {
+  function _renderTabError(tab, err) {
     const el = _tabContentEl();
     if (!el) return;
     _endTabLoading();
+    // 模块加载/解析失败：同一模块图不会自愈（重试必然再失败）⇒ 只给「刷新页面」。
+    // 判据来自能力表 loadTabModule 挂上的 __moduleSpec，不由渲染期异常冒充。
+    const spec = err && typeof err === 'object' ? err.__moduleSpec : null;
+    if (spec) {
+      const moduleName = String(spec).split('?')[0].split('/').pop() || '未知模块';
+      mountTabFailure(el, {
+        message: `这个页签的模块没能加载（${moduleName}），请刷新页面后再试`,
+        action: 'reload',
+      });
+      return;
+    }
     mountTabFailure(el, {
       message: '这个页签暂时没加载出来',
       onRetry: () => {
@@ -729,7 +746,7 @@ export function renderTabBar({ prefix, tabs, accentColor, defaultTab, extraRight
       console.error(`[tab-bar] tab「${tab.id}」渲染异常`, e);
       if (seq === _renderSeq) {
         _endTabLoading();
-        _renderTabError(tab);
+        _renderTabError(tab, e);
       } else {
         _restoreLastGood();
         _rerenderCurrent();
@@ -753,7 +770,7 @@ export function renderTabBar({ prefix, tabs, accentColor, defaultTab, extraRight
       console.error(`[tab-bar] tab「${tab.id}」渲染失败`, e);
       if (seq === _renderSeq) {
         _endTabLoading();
-        _renderTabError(tab);
+        _renderTabError(tab, e);
       } else {
         _restoreLastGood();
         _rerenderCurrent();

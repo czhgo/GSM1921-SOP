@@ -142,6 +142,15 @@ function stampLine(line, version) {
     /(new URL\(\s*['"])([^'"?]+\.(?:css|woff2?|ttf|otf|eot|png|jpe?g|svg|webp))(\?[^'"]*)?(['"])/g,
     (m, pre, path, _q, end) => `${pre}${path}?v=${version}${end}`
   );
+  // 通用兜底（2026-10-29 补）：**已经带 `?v=` 的相对 .js 说明符**，无论出现在哪种加载形式里，
+  //   一律换成当前戳。由来：能力表改用 `loadTabModule('./x.js?v=…')` 包一层后，上面三条规则都不认，
+  //   发布补戳漏了 7 个 `capabilities/*-workspace.js`，被 `--check` 判为陈旧戳残留。
+  //   边界：只改「本来就带戳」的串，因此不会把数据串误当模块补戳（与上方规则的历史教训一致）。
+  //   新增加载器不必再改本脚本。
+  line = line.replace(
+    /(['"`])(\.{1,2}\/[^'"`?]*\.js)\?v=[^'"`]*\1/g,
+    (m, q, path) => `${q}${path}?v=${version}${q}`
+  );
   return line;
 }
 

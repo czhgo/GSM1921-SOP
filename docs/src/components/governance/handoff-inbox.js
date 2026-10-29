@@ -6,13 +6,13 @@
 //  挂载点：宣传/组织工作台待办列表顶部、纪检补课 tab 顶部。
 // ════════════════════════════════════════════════════════════════
 
-import { HandoffStore, HANDOFF_TYPES, HANDOFF_ROLE_LABELS } from '../../services/governance/handoff.js?v=20261028e';
-import { badgeHtml } from '../ui/badges.js?v=20261028e';
-import { solidAccentStyle } from '../../core/domain/constants.js?v=20261028e';
+import { HandoffStore, HANDOFF_TYPES, HANDOFF_ROLE_LABELS } from '../../services/governance/handoff.js?v=20261029b';
+import { badgeHtml } from '../ui/badges.js?v=20261029b';
+import { solidAccentStyle } from '../../core/domain/constants.js?v=20261029b';
 // 统一检索引擎（2026-09-14 批次 37）：待确认交接待办列表接入（关键词 事项/类型 + 引擎内置分页）
-import { renderFilteredList } from '../ui/list-filter.js?v=20261028e';
+import { renderFilteredList } from '../ui/list-filter.js?v=20261029b';
 
-import { emptyStateHtml } from '../ui/empty-state.js?v=20261028e';
+import { emptyStateHtml } from '../ui/empty-state.js?v=20261029b';
 // 引擎行样式交接（2026-09-14 批次 37）：行由统一检索引擎渲染，而引擎须 DOM 就位后才可挂载
 //（render 出 HTML 串 → 调用方 innerHTML → bind 才拿到容器）；bind 侧调用方只传 to，拿不到强调色，
 // 故 render 按接收方角色暂存本轮强调色（行内确认钮样式依赖它），bind 取回后即挂载。

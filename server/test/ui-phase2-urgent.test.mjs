@@ -61,6 +61,11 @@ test('U4 卡片 hover：默认无 hover 规则，只有 card--interactive 才给
   assert.doesNotMatch(interactive, /transform:\s*translate/, '.card--interactive:hover 整卡不得位移');
   const stats = read('docs/src/components/dashboard/stats.js');
   assert.match(stats, /card--interactive/, '首页个人考勤卡应显式声明 card--interactive');
+  // 2026-10-29 P2：hover 只给可点卡；可点卡仍是数字组单一语法（图标在左 ＋ .stat-card__body）。
+  assert.match(stats, /s\.interactive \? 'card--interactive cursor-pointer' : ''/,
+    '只有可点卡才挂 card--interactive（展示卡不得有 hover 伪装）');
+  assert.match(stats, /card--interactive cursor-pointer' : ''[\s\S]{0,400}stat-card__body/,
+    '可点卡仍须保持「图标在左 ＋ .stat-card__body（数值/标签）」结构');
 });
 
 test('U5 选人面板：向上展开有顶栏安全线；弹窗内不再叠第二层黑遮罩', () => {
@@ -181,7 +186,7 @@ test('U10 数字对齐与状态列去重：scope / is-numeric / is-redundant 齐
 });
 
 test('U11 DESIGN_SYSTEM 写入标题层级与零值口径', () => {
-  const ds = read('content/04_web_design/design-system/DESIGN_SYSTEM.md');
+  const ds = read('content/04_web_design/design-system/DS_03_COMPONENTS.md');
   assert.match(ds, /### 4\.25 标题层级与文档大纲/, '应新增 §4.25 标题层级');
   assert.match(ds, /### 4\.26 零值与空行/, '应新增 §4.26 零值口径');
   assert.match(ds, /H1 只在顶栏出现一次/, '标题规则应写明 H1 唯一');
@@ -203,7 +208,7 @@ test('U12 卡片边界：跨组进展拆成并列四卡，不套外包卡', () =
   assert.deepEqual([...positions].sort((a, b) => a - b), positions,
     '阅读顺序应为：选择党小组 → 组员汇报 → 活动复盘 → 活动与考勤');
 
-  const ds = read('content/04_web_design/design-system/DESIGN_SYSTEM.md');
+  const ds = read('content/04_web_design/design-system/DS_03_COMPONENTS.md');
   assert.match(ds, /#### 卡片边界判据/, 'DESIGN_SYSTEM 应写入卡片边界判据');
   assert.match(ds, /卡中卡/, '应明文禁止卡中卡');
 });

@@ -1,0 +1,34 @@
+{
+  "whole": {
+    "ok": false,
+    "name": "SyntaxError",
+    "message": "Unexpected token '{'"
+  },
+  "found": {
+    "line": 65,
+    "ok": false,
+    "name": "SyntaxError",
+    "message": "Unexpected token '{'"
+  },
+  "totalLines": 1285,
+  "slice": [
+    "54: import { getDetainedMembers, getResidenceOf } from 'http://127.0.0.1:49876/src/services/member/roster.js?v=20261028e';\r",
+    "55: import { AuthStore, currentUserId } from 'http://127.0.0.1:49876/src/services/core/auth.js?v=20261028e';\r",
+    "56: // 逐条催办（2026-09-10 支书裁定；2026-09-18 批次 88 抽到共享壳 createUrgeController，\r",
+    "57: // 与组织委员台共用同一实现；判据仍在 services/governance/todo.js::urgeRolesOf，未改）\r",
+    "58: import { setState } from 'http://127.0.0.1:49876/src/core/base/state.js?v=20261028e';\r",
+    "59: import { openModal, closeModal } from 'http://127.0.0.1:49876/src/components/ui/modal.js?v=20261028e';\r",
+    "60: \r",
+    "61: // 生效强调色三件套（R1-A 点⑤：登录人强调色=person 键覆盖，禁止模块加载期快照写死——\r",
+    "62: // 一律渲染时经 getAppliedAccentColors 动态解析，改色后随重渲染/刷新生效，与 --app-accent 同源）\r",
+    "63: function _accentColors() {\r",
+    "64:   return getAppliedAccentColors('secretary');\r",
+    "65: import { emptyStateHtml } from 'http://127.0.0.1:49876/src/components/ui/empty-state.js?v=20261028e';",
+    "66: }\r",
+    "67: \r",
+    "68: // ── 模块级渲染缓存（onBeforeRender 预载 / 顶部自定义区共用） ─────\r",
+    "69: let _pendingReports = [];\r",
+    "70: \r",
+    "71: // ════════════════════════════════════════════════════════════════\r"
+  ]
+}

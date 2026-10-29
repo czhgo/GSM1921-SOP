@@ -30,7 +30,7 @@ import {
   renderTabBar, tabContentSkeletonHtml,
   TAB_LOADING_SKELETON_DELAY_MS, TAB_CONTENT_FADE_OUT_MS, TAB_CONTENT_FADE_IN_MS,
   TAB_CONTENT_FADE_IN_REDUCED_MS, TAB_LOADING_SKELETON_MAX_MS,
-} from '../../docs/src/components/shell/tab-bar.js?v=20261028e';
+} from '../../docs/src/components/shell/tab-bar.js?v=20261029b';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(HERE, '..', '..');
@@ -244,7 +244,7 @@ test('故障注入：删骨架 / 延迟归零 / 恢复压暗硬替换 / 删 redu
 });
 
 test('L7 页面跳转：进度条安装幂等，且在 node 环境静默跳过', async () => {
-  const { installNavigationProgress } = await import('../../docs/src/components/shell/tab-bar.js?v=20261028e');
+  const { installNavigationProgress } = await import('../../docs/src/components/shell/tab-bar.js?v=20261029b');
   assert.equal(typeof installNavigationProgress, 'function', '必须导出 installNavigationProgress');
   assert.doesNotThrow(() => installNavigationProgress(), 'node 环境（无 document/window）不得抛错');
   assert.match(LOADING_CSS, /\.ws-route-progress\[data-active='1'\]/, '进度条应有激活态');

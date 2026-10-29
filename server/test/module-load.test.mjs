@@ -10,12 +10,13 @@
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { chromium } from 'playwright';
-import { readdirSync, readFileSync } from 'node:fs';
-import { join, relative } from 'node:path';
+import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
+import { dirname, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createApp } from '../app.js';
 import { seedDatabase } from '../seed.js';
-import { MOCK_ACCOUNTS } from '../../docs/src/data/mock/accounts.js?v=20261028e';
+import { MOCK_ACCOUNTS } from '../../docs/src/data/mock/accounts.js?v=20261029b';
+import { parseFiles } from './lib/esm-parse.mjs';
 
 let server;
 let BASE;
@@ -67,7 +68,7 @@ test('E1 编辑完整性：docs/src 全部模块可加载（无语法/重复声�
       let done = 0;
       for (const rel of mods) {
         try {
-          await import(`/src/${rel}?v=20261028e`);
+          await import(`/src/${rel}?v=20261029b`);
         } catch (e) {
           failures.push(`${rel} :: ${String(e).slice(0, 140)}`);
         }
@@ -243,4 +244,106 @@ test('E4 真机装配：登录后 3 类角色的工作台页在真实浏览器�
   } finally {
     await browser.close();
   }
+});
+
+// ════════════════════════════════════════════════════════════════
+//  E5 工作台能力表页签模块完整性（2026-10-29）
+// ════════════════════════════════════════════════════════════════
+//  病灶：`secretary/todo-tab.js` 与 `visitor/inspection-tab.js` 的 import 落进函数体，
+//    浏览器 ESM 解析直接 SyntaxError ⇒ 页签恒显错误卡。而既有判据恰好都绕开：
+//    E1 收集模块时**显式排除 `entries/**`**；`import-path-guard` 只查「路径是否存在」。
+//  判据（逐条）：
+//    ① 能力表里 `import('../entries/tabs/…')` / `loadTabModule('…')` 的路径必须解析到真实文件；
+//    ② 该文件必须通过真正的 ESM 解析（复用 `lib/esm-parse.mjs`，一次子进程遍历全部文件）；
+//    ③ 注册表实际调用的导出名（如 `.then(m => m.renderContent(ctx))` 的 `renderContent`）必须真被导出。
+//  精度边界（③）：用**导出声明扫描**，认 `export function/const/let/var/class`（含
+//    `export const { renderContent } = …` 这类解构导出）与 `export { … }`；
+//    不解析 `export * from` / 默认导出 / 字符串或注释里的伪声明，也不展开「定义后改名再导出」的复杂别名。
+//    当前页签模块均为直接导出或解构导出，够用；若将来出现 re-export 形态的页签模块，须扩本判据（否则会误红）。
+//  非空转：页签模块数 ≥ 40（防能力表解析失败导致所有断言恒真）。
+function exportedNamesOf(src) {
+  const names = new Set();
+  for (const m of src.matchAll(/\bexport\s+(?:async\s+)?function\s+([A-Za-z_$][\w$]*)/g)) names.add(m[1]);
+  for (const m of src.matchAll(/\bexport\s+(?:const|let|var)\s+([A-Za-z_$][\w$]*)/g)) names.add(m[1]);
+  for (const m of src.matchAll(/\bexport\s+class\s+([A-Za-z_$][\w$]*)/g)) names.add(m[1]);
+  // `export const { renderContent, other } = …`（todo-tab 的共享壳写法）
+  for (const m of src.matchAll(/\bexport\s+(?:const|let|var)\s*\{([^}]*)\}/g)) {
+    for (const part of m[1].split(',')) {
+      const seg = part.trim();
+      if (!seg) continue;
+      const renamed = /^[A-Za-z_$][\w$]*\s*:\s*([A-Za-z_$][\w$]*)$/.exec(seg);
+      names.add(renamed ? renamed[1] : seg.split(/\s+/)[0]);
+    }
+  }
+  for (const m of src.matchAll(/\bexport\s*\{([^}]*)\}/g)) {
+    for (const part of m[1].split(',')) {
+      const seg = part.trim();
+      if (!seg) continue;
+      const as = /\bas\s+([A-Za-z_$][\w$]*)$/.exec(seg);
+      names.add(as ? as[1] : seg.split(/\s+/)[0]);
+    }
+  }
+  return names;
+}
+
+test('E5 工作台能力表页签模块：路径真实 / ESM 可解析 / 调用的导出名确实存在', () => {
+  const docsDir = fileURLToPath(new URL('../../docs/', import.meta.url));
+  const capDir = join(docsDir, 'src', 'capabilities');
+  const capFiles = readdirSync(capDir).filter((n) => n.endsWith('-workspace.js')).sort();
+  assert.ok(capFiles.length >= 7, `工作台能力表应不少于 7 个，实测 ${capFiles.length}`);
+
+  // 兼容两种写法：改造前的直接 `import('…')` 与改造后的 `loadTabModule('…')`
+  const MODULE_RE = /(?:import|loadTabModule)\(\s*'([^']*\/entries\/tabs\/[^']+)'\s*\)/g;
+  const entries = [];
+  const seen = new Set();
+  for (const cap of capFiles) {
+    const capPath = join(capDir, cap);
+    const src = readFileSync(capPath, 'utf8');
+    for (const m of src.matchAll(MODULE_RE)) {
+      const spec = m[1];
+      const target = resolve(dirname(capPath), spec.split('?')[0]);
+      // 注册表实际调用名：`loadTabModule(spec).then(m => m.<name>(…))` 里的首个 `m.<name>`。
+      const rest = src.slice(m.index + m[0].length);
+      const thenAt = rest.indexOf('.then(');
+      const tail = thenAt >= 0 ? rest.slice(thenAt, thenAt + 800) : '';
+      const hit = /\bm\.([A-Za-z_$][\w$]*)/.exec(tail);
+      const exportName = hit ? hit[1] : null;
+      const key = `${target}::${exportName}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      entries.push({ cap, spec, target, exportName });
+    }
+  }
+
+  const uniqueTargets = [...new Set(entries.map((e) => e.target))];
+  assert.ok(uniqueTargets.length >= 40,
+    `只解析到 ${uniqueTargets.length} 个页签模块（下限 40）——能力表结构变了或正则失效，本项会变成恒真`);
+
+  // ① 路径存在（必须是文件，不能是目录）
+  const missing = entries.filter((e) => !existsSync(e.target) || statSync(e.target).isDirectory());
+  assert.deepEqual(missing.map((e) => `${e.cap} → ${e.spec}`), [],
+    `能力表指向的页签模块不存在：\n  ${missing.map((e) => `${e.cap} → ${e.spec}`).join('\n  ')}`);
+
+  // ② 真正的 ESM 解析（一次子进程遍历全部）
+  const { failures } = parseFiles(uniqueTargets);
+  assert.deepEqual(
+    failures.map((f) => `${relative(docsDir, f.file).replace(/\\/g, '/')} :: ${f.name}: ${f.message}`),
+    [],
+    '能力表里的页签模块无法被 ESM 解析（浏览器里整模块失败 ⇒ 该页签恒定报错）',
+  );
+
+  // ③ 注册表调用的导出名确实被该文件导出
+  const noExport = [];
+  for (const e of entries) {
+    if (!e.exportName) {
+      noExport.push(`${e.cap} → ${e.spec}：未能解析出注册表调用的导出名`);
+      continue;
+    }
+    const names = exportedNamesOf(readFileSync(e.target, 'utf8'));
+    if (!names.has(e.exportName)) {
+      noExport.push(`${e.cap} → ${e.spec}：调用 m.${e.exportName}()，但该模块未导出 ${e.exportName}`);
+    }
+  }
+  console.log(`[E5] 页签模块：${uniqueTargets.length} 个模块 / ${entries.length} 条注册调用，通过路径·ESM 解析·导出名校验`);
+  assert.deepEqual(noExport, [], `注册表调用名与模块导出不一致：\n  ${noExport.join('\n  ')}`);
 });

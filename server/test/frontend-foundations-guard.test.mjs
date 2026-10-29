@@ -16,8 +16,8 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { describeWriteError } from '../../docs/src/core/base/utils.js?v=20261028e';
-import { NUDGE_TEXTS } from '../../docs/src/components/ui/modal.js?v=20261028e';
+import { describeWriteError } from '../../docs/src/core/base/utils.js?v=20261029b';
+import { NUDGE_TEXTS } from '../../docs/src/components/ui/modal.js?v=20261029b';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(HERE, '..', '..');
@@ -264,7 +264,7 @@ test('F9 写口失败不得提示成功：先判返回值/捕获异常，成功 
 //        并断言初始月链路里没有写死的 `20YY-MM` 字面量。
 // ════════════════════════════════════════════════════════════════
 test('F10 日历默认月份由 now 派生：now=2026-10 / 2026-11 两个取值默认月随之变化', async () => {
-  const { populateMonthSelector } = await import('../../docs/src/components/record/calendar.js?v=20261028e');
+  const { populateMonthSelector } = await import('../../docs/src/components/record/calendar.js?v=20261029b');
   const ACTS = [
     { id: 'a1', date: '2026-10-05', title: '活动甲' },
     { id: 'a2', date: '2026-11-05', title: '活动乙' },
@@ -303,5 +303,59 @@ test('F10 日历默认月份由 now 派生：now=2026-10 / 2026-11 两个取值�
     assert.ok(!/20\d{2}-\d{2}/.test(stripComments(read(f))),
       `${f} 的初始月链路出现写死年月（应全部由 now / 数据派生）`);
   }
+});
+
+// ════════════════════════════════════════════════════════════════
+//  F11 mock 延迟单一源且可配置（2026-10-29 · P6 例外补守卫）
+//  原例外：`docs/src/AGENTS.md` 写「`data/mock-adapter.js` 每次调用固定 600ms 延迟，
+//        测试变慢不是回归；不要为此改断言」——只有文档、没有守卫，且文档本身已过期
+//        （2026-10-26 Task 2.1 起默认 80ms，600ms 只能显式配置）。
+//  判据：① 默认值恰为 80ms；② `window.__MOCK_DELAY_MS` 与 `process.env.MOCK_DELAY_MS`
+//        两条覆盖入口都在；③ 上限 5000ms；④ 业务代码（剥注释后）不得再写死 600ms；
+//        ⑤ services/core/mock.js 的 `_withDelay` 只取 `mockDelayMs()`。
+//  反例：把默认值改回 600、删掉 window 入口，检查器必须判红（证明不是恒真）。
+// ════════════════════════════════════════════════════════════════
+const stripJsComments = (s) => String(s).replace(/\r\n?/g, '\n')
+  .replace(/\/\*[\s\S]*?\*\//g, ' ')
+  .split('\n').map((l) => l.replace(/\/\/.*$/, '')).join('\n');
+
+function mockDelayProblems(source) {
+  const code = stripJsComments(source);
+  const problems = [];
+  if (!/const\s+DEFAULT_MOCK_DELAY_MS\s*=\s*80\s*;/.test(code)) {
+    problems.push('默认延迟不是 80ms（mock 只是异步一拍，不模拟网络）');
+  }
+  if (!/__MOCK_DELAY_MS['"]?\s+in\s+window/.test(code)) {
+    problems.push('缺少 window.__MOCK_DELAY_MS 覆盖入口');
+  }
+  if (!/process\.env\.MOCK_DELAY_MS/.test(code)) {
+    problems.push('缺少 process.env.MOCK_DELAY_MS 覆盖入口');
+  }
+  if (!/Math\.min\(\s*n\s*,\s*5000\s*\)/.test(code)) {
+    problems.push('缺少 5000ms 上限（防止误配把测试拖死）');
+  }
+  if (/(?<![\w.])600(?![\w])/.test(code)) {
+    problems.push('业务代码仍写死 600ms（应显式配置，不得写死在实现里）');
+  }
+  return problems;
+}
+
+test('F11 mock 延迟单一源：默认 80ms ＋ 两条覆盖入口 ＋ 上限 5000ms，业务代码不得写死 600ms', () => {
+  const adapter = read('docs/src/data/mock-adapter.js');
+  assert.deepEqual(mockDelayProblems(adapter), [],
+    `docs/src/data/mock-adapter.js 的 mock 延迟口径被改坏：\n  ${mockDelayProblems(adapter).join('\n  ')}`);
+  assert.match(adapter, /function _withDelay\([^)]*delayMs\s*=\s*mockDelayMs\(\)/,
+    'mock-adapter 的 _withDelay 默认延迟必须取 mockDelayMs()');
+  assert.match(read('docs/src/services/core/mock.js'), /\},\s*mockDelayMs\(\)\);/,
+    'services/core/mock.js 的 _withDelay 必须取 mockDelayMs()（不得另写常量）');
+  assert.ok(!/(?<![\w.])600(?![\w])/.test(stripJsComments(read('docs/src/services/core/mock.js'))),
+    'services/core/mock.js 不得再写死 600ms');
+
+  // 反例：两类改坏都必须被判红（证明检查器有牙齿）
+  const backTo600 = adapter.replace('const DEFAULT_MOCK_DELAY_MS = 80;', 'const DEFAULT_MOCK_DELAY_MS = 600;');
+  assert.ok(mockDelayProblems(backTo600).length > 0, '反例：默认值改回 600ms 未被判红');
+  const noWindow = adapter.replace(/window\s*&&\s*'__MOCK_DELAY_MS'\s+in\s+window/, 'false');
+  assert.ok(mockDelayProblems(noWindow).some((p) => p.includes('window.__MOCK_DELAY_MS')),
+    '反例：删掉 window 覆盖入口未被判红');
 });
 

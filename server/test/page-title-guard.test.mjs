@@ -45,13 +45,13 @@ const SHARED_H2_PROVIDERS = [
   { marker: 'shared/activity-calendar-tab', where: 'entries/tabs/shared/activity-calendar-tab.js' },
 ];
 
-/** 从能力注册行取 tab 的 render import 目标（每个 tab 声明都在首行带 import('…')）。 */
+/** 从能力注册行取 tab 的 render import 目标（每个 tab 声明都在首行带 import('…') / loadTabModule('…')）。 */
 function tabModules(capFile) {
   const abs = join(ROOT, capFile);
   const out = [];
   for (const line of read(abs).split('\n')) {
     if (!/\{ id: '[^']+', label: '[^']+'/.test(line)) continue;
-    const m = /import\('([^']+)'\)/.exec(line);
+    const m = /(?:import|loadTabModule)\('([^']+)'\)/.exec(line);
     if (!m) continue;
     const target = resolve(join(abs, '..'), m[1].split('?')[0]);
     out.push({

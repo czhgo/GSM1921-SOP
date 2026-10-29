@@ -31,12 +31,13 @@
 //
 // 静雅公文基础类（styles.css 单一源，供后续页面按 §2.10 / §4.23 采用）：
 //   .section-head / .section-head__title / .section-head__meta / .section-head__count
-//   · .metric-band / .metric-band__item / .metric-band__value / .metric-band__label
-//   · .metric-band__value--warning / .metric-band__value--accent
+//   · .metric-band / .metric-band__item / .metric-band__jump（可交互指标卡容器）
+//   · .stat-card / .stat-card__body / .stat-card__value / .stat-card__label（数字组单一语法）
+//   · .stat-card__value--warning / .stat-grid（列数交给栅格）
 //   · .state-badge / .state-badge--neutral / .state-badge--success / .state-badge--warning
 //   · .state-badge--info / .state-badge--accent · .section-accent-left
 //   · 行型样式：.list-row[data-row-type="nav|action|select|display|master"]（本件输出 data-row-type）。
-import { escHtml as esc } from '../../core/base/utils.js?v=20261028e';
+import { escHtml as esc } from '../../core/base/utils.js?v=20261029b';
 
 /** dataAttrs 对象 → HTML 属性串（键名只允许字母开头的属性名；值统一转义） */
 function dataAttrsHtml(dataAttrs) {

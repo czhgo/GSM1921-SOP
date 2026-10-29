@@ -18,7 +18,8 @@ import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
-const DESIGN = join(ROOT, 'content', '04_web_design', 'design-system', 'DESIGN_SYSTEM.md');
+const DESIGN = join(ROOT, 'content', '04_web_design', 'design-system', 'DS_05_MAP_AND_REFERENCE.md');
+const DESIGN_CASES = join(ROOT, 'content', '04_web_design', 'design-system', 'CASES.md');
 
 /** 四页重点（Task 3–6 的迁移对象；页面断言留给后续 Task 9） */
 const KEY_PAGES = [
@@ -49,8 +50,9 @@ test('F1 DESIGN_SYSTEM §10.5 首屏浏览顺序：四条规则 + 三条布尔�
 });
 
 test('F2 DESIGN_SYSTEM §10.6 10 个抽样页乱象登记齐备（4 已修 + 6 已审）', () => {
-  const src = readFileSync(DESIGN, 'utf8');
-  const section = sliceBetween(src, '### 10.6', '## 十一、边界与引用');
+  const src = readFileSync(DESIGN_CASES, 'utf8');
+  const related = readFileSync(DESIGN, 'utf8');
+  const section = sliceBetween(src, '### 10.6', '## 迁移登记 C');
   assert.ok(section.length > 100, 'DESIGN_SYSTEM 缺 §10.6「10 个抽样页乱象登记」或正文过短');
   const rows = section.split('\n').filter((l) => /^\|\s*(支书|组织|宣传|纪检|组长|成员)\s*·/.test(l));
   assert.equal(rows.length, 10, `§10.6 抽样页应为 10 行，实测 ${rows.length} 行`);
@@ -59,7 +61,7 @@ test('F2 DESIGN_SYSTEM §10.6 10 个抽样页乱象登记齐备（4 已修 + 6 �
   assert.equal(fixed, 4, `§10.6「已修（本 spec）」应为 4 页，实测 ${fixed} 页`);
   assert.equal(audited, 6, `§10.6「已审（后续）」应为 6 页，实测 ${audited} 页`);
   for (const key of ['说明后置', '指标单点', '动作收敛']) {
-    assert.ok(section.includes(key) || src.includes(key), `§10.6 缺乱象模式「${key}」`);
+    assert.ok(section.includes(key) || related.includes(key), `§10.6 缺乱象模式「${key}」`);
   }
 });
 

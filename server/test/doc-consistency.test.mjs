@@ -657,9 +657,9 @@ function enumCount(line) {
 
 test('S14 可数事实对账：文档里的「枚举 / 计数」必须等于代码 / 数据的实然值', async () => {
   const problems = [];
-  const { WORK_MAP_MODULES } = await import('../../docs/src/core/domain/work-map.js?v=20261028e');
-  const { sopDatabase } = await import('../../docs/src/workflow/sopData.js?v=20261028e');
-  const { ROLE_KEYS, ROLE_LEGACY_KEYS } = await import('../../docs/src/core/domain/constants.js?v=20261028e');
+  const { WORK_MAP_MODULES } = await import('../../docs/src/core/domain/work-map.js?v=20261029b');
+  const { sopDatabase } = await import('../../docs/src/workflow/sopData.js?v=20261029b');
+  const { ROLE_KEYS, ROLE_LEGACY_KEYS } = await import('../../docs/src/core/domain/constants.js?v=20261029b');
   const { SYSTEM_NOTICE_KIND_NAMES } = await import('../system-notice-kinds.js');
 
   /** 对账一条：`got` 为文档里抽出的数（null＝抽不出，判红并提示是判据失效而非「文档错」） */
@@ -1087,7 +1087,7 @@ test('S19 工作组概念口径：四个核心术语齐备、§G 开篇先讲载
 //   且覆盖「通知可见性 / 铃铛 / 待办派生 / 概况 / 考勤」五个主题词。
 // ─────────────────────────────────────────────────────────────────────────────
 test('S20 设计权威文档：表格四类术语齐备；信息计算口径文件存在且五关键词齐全', () => {
-  const design = read(join(ROOT, 'content', '04_web_design', 'design-system', 'DESIGN_SYSTEM.md'));
+  const design = read(join(ROOT, 'content', '04_web_design', 'design-system', 'DS_03_COMPONENTS.md'));
   for (const term of ['数据表', '关系矩阵', '台账', '卡片列表']) {
     assert.ok(design.includes(term), `DESIGN_SYSTEM.md 缺表格/列表四类载体术语「${term}」`);
   }

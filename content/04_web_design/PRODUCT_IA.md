@@ -2,7 +2,7 @@
 title: "产品 IA 派生索引（页签功能地图）"
 type: index
 role: "[工程师]+[AI]"
-last_updated: "2026-10-28"
+last_updated: "2026-10-29"
 version: "0.2"
 status: active
 related_files: [docs/src/core/domain/function-catalog.js, docs/src/capabilities/, content/03_doc_system/DOC_MAP.md]
@@ -11,7 +11,7 @@ related_files: [docs/src/core/domain/function-catalog.js, docs/src/capabilities/
 # 产品 IA 派生索引（页签功能地图）
 
 > **定位：派生索引，不承担规范，禁止手改。** 本文件由 `docs/src/capabilities/*-workspace.js`（页签注册单一源）与 `docs/src/core/domain/function-catalog.js`（功能目录单一源）派生而来，只回答「哪台有哪些页签、各自归哪组、主对象与主操作是什么」。
-> **不负责什么**：页签的规范定义（分组轴见 [DESIGN_SYSTEM.md §4.6](design-system/DESIGN_SYSTEM.md)；组件与承载面见同文 §10.7 / §12.15）、页签注册本身（改 `capabilities/*`）、术语定义（见 [TERMINOLOGY.md](../03_doc_system/TERMINOLOGY.md)）。
+> **不负责什么**：页签的规范定义（分组轴见 [DS_03_COMPONENTS.md §4.6](design-system/DS_03_COMPONENTS.md)；组件与承载面见同文 §10.7 / §12.15，§10.7 在 [DS_05_MAP_AND_REFERENCE.md](design-system/DS_05_MAP_AND_REFERENCE.md)）、页签注册本身（改 `capabilities/*`）、术语定义（见 [TERMINOLOGY.md](../03_doc_system/TERMINOLOGY.md)）。
 > **维护方式**：页签增删改 → 先改 `capabilities/*`，再同批按实况重写本表；`catalog-sync` 校验本表页签集合与注册表一致。**不得只改本表**。
 > **当前总数：45**（支书 10 / 组织 8 / 宣传 5 / 纪检 6 / 组长 6 / 成员 7 / 党委 3）。2026-10-25 Task 5 完成 62 → 45；被删/降的 17 项见文末「旧页签 → 新落点」重定向表。
 
@@ -119,12 +119,12 @@ related_files: [docs/src/core/domain/function-catalog.js, docs/src/capabilities/
 >
 > - **页面清单 / 导航**：本文件的页签表（45 项）与旧页签重定向表均不含 About；侧边栏、help 目录、README 的入口已删除。
 > - **文件保留**：`docs/about.html` 与 `docs/src/entries/pages/about-entry.js` 仍在仓库中，供历史外链直达；**不再新增**指向它的 href / `module: 'about'` 侧栏项 / 文档登记指针。
-> - **判据与守卫**：`no-about-route-guard::A1–A4`（HTML 零链接 / JS 零路由与侧栏项 / Markdown 零指针 / 文件仍存在且非空）；判例边界见 [CASES.md](design-system/CASES.md) CASE-DESIGN-026。**守卫只覆盖上列四项，不扫功能目录与 help 正文**——那两处属独立件，刻意不判。
+> - **判据与守卫**：`no-about-route-guard::A1–A4`（HTML 零链接 / JS 零路由与侧栏项 / Markdown 零指针 / 文件仍存在且非空）；判例边界见 [CASES.md](design-system/CASES.md) CASE-DESIGN-026。**守卫只覆盖上列四项，不扫功能目录与 help 正文**——那两处属独立件，刻意不判。**冻结件内容基线**另由 `server/test/about-freeze-guard.test.mjs` 承担（5 处：三件套整文件哈希 ＋ 功能目录「关于」卡 / help 正文页面清单的定位片段，改动即红）。
 > - **后续**：若要恢复「关于」入口，须同时补页面清单、导航、help 落点与守卫白名单，不得只加回一个链接。
 
 ## 详情路由矩阵（派生附录，检查用 · 2026-10-26）
 
-> **单一源**：`docs/src/core/domain/object-route.js::OBJECT_ROUTE_ENTRIES`。本表由该枚举派生、与代码同批维护，**不是**规范条文；规范判据见 [DESIGN_SYSTEM.md §12.15](design-system/DESIGN_SYSTEM.md)（SD-45），判例见 [CASES.md](design-system/CASES.md) CASE-DESIGN-023。
+> **单一源**：`docs/src/core/domain/object-route.js::OBJECT_ROUTE_ENTRIES`。本表由该枚举派生、与代码同批维护，**不是**规范条文；规范判据见 [DS_03_COMPONENTS.md §12.15](design-system/DS_03_COMPONENTS.md)（SD-45），判例见 [CASES.md](design-system/CASES.md) CASE-DESIGN-023。
 > **读法**：`direct`＝直达完整详情页；`locate`＝先留在当前工作台 / 预览面，再给「打开完整页」；`none`＝不渲染可点入口。
 
 | 入口（`entry` 键） | 典型入口（页面 / 页签） | 对象 | mode | 落点 | 理由 |
@@ -210,7 +210,7 @@ related_files: [docs/src/core/domain/function-catalog.js, docs/src/capabilities/
 
 ## 数据形态与缓存边界（检查用，不是规范）
 
-> **定位**：人工维护的检查附录，回答「同一界面在不同数据形态下应看到什么、写到哪里」。规范判据见 [DESIGN_SYSTEM.md §12.15](design-system/DESIGN_SYSTEM.md)（SD-48），判例见 [CASES.md](design-system/CASES.md)（CASE-DATA-001）；逐表种子口径见 [DATA_SEED_CONTRACT.md](data/DATA_SEED_CONTRACT.md)。
+> **定位**：人工维护的检查附录，回答「同一界面在不同数据形态下应看到什么、写到哪里」。规范判据见 [DS_03_COMPONENTS.md §12.15](design-system/DS_03_COMPONENTS.md)（SD-48），判例见 [CASES.md](design-system/CASES.md)（CASE-DATA-001）；逐表种子口径见 [DATA_SEED_CONTRACT.md](data/DATA_SEED_CONTRACT.md)。
 > **单一源**：形态判定＝`docs/src/services/core/runtime.js::getDataSource`；缓存键四类＝`docs/src/data/cache-registry.js`；演示窗口＝`docs/src/data/mock/demo-window.js::DEMO_WINDOW`；部署开关＝`DEPLOYMENT_GUIDE.md`。
 
 ### 形态 × 界面 × 写入

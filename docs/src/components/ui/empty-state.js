@@ -11,7 +11,7 @@
 //   · 样式 = docs/src/styles.css 的 .empty-state / .empty-state--inline / .empty-state__text / .empty-state__action 段；
 //   · 文案转义 = core/base/utils.js 的 escHtml；
 //   · 数据表空态：list-filter 的 table 模式与 relation-matrix 一律调 `variant: 'table'`，不再手写空行。
-import { escHtml as esc } from '../../core/base/utils.js?v=20261028e';
+import { escHtml as esc } from '../../core/base/utils.js?v=20261029b';
 
 /**
  * 生成空态 HTML。

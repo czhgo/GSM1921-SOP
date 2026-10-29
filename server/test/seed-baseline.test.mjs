@@ -18,7 +18,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { initDb } from '../db.js';
 import { seedBaseline } from '../seed-baseline.js';
-import { PEOPLE } from '../../docs/src/data/mock/people.js?v=20261028e';
+import { PEOPLE } from '../../docs/src/data/mock/people.js?v=20261029b';
 import { createApp } from '../app.js';
 import { detectDemoSeedRows, demoGateDecision, enforceProductionDemoGate } from '../demo-data-guard.js';
 import { repairSeedRowsIfNeeded, readSeedMeta, writeSeedMeta } from '../seed-repair.js';

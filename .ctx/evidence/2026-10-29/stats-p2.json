@@ -1,0 +1,126 @@
+{
+  "generatedAt": "2026-10-29T15:18:07.260Z",
+  "home": [
+    {
+      "width": 1440,
+      "count": 4,
+      "cols": 4,
+      "heights": [
+        104,
+        104,
+        104,
+        104
+      ],
+      "heightDiff": 0,
+      "iconLeftOk": true,
+      "iconWidths": [
+        40
+      ],
+      "gridOverflow": false,
+      "docOverflow": false
+    },
+    {
+      "width": 768,
+      "count": 4,
+      "cols": 2,
+      "heights": [
+        104,
+        104,
+        104,
+        104
+      ],
+      "heightDiff": 0,
+      "iconLeftOk": true,
+      "iconWidths": [
+        40
+      ],
+      "gridOverflow": false,
+      "docOverflow": false
+    },
+    {
+      "width": 390,
+      "count": 4,
+      "cols": 2,
+      "heights": [
+        104,
+        104,
+        104,
+        104
+      ],
+      "heightDiff": 0,
+      "iconLeftOk": true,
+      "iconWidths": [
+        40
+      ],
+      "gridOverflow": false,
+      "docOverflow": false
+    }
+  ],
+  "secretaryOverview": [
+    {
+      "width": 1440,
+      "count": 4,
+      "cols": 4,
+      "heights": [
+        80,
+        80,
+        80,
+        80
+      ],
+      "heightDiff": 0,
+      "iconLeftOk": true,
+      "iconWidths": [
+        40
+      ],
+      "gridOverflow": false,
+      "docOverflow": false
+    },
+    {
+      "width": 768,
+      "count": 4,
+      "cols": 2,
+      "heights": [
+        80,
+        80,
+        80,
+        80
+      ],
+      "heightDiff": 0,
+      "iconLeftOk": true,
+      "iconWidths": [
+        40
+      ],
+      "gridOverflow": false,
+      "docOverflow": false
+    },
+    {
+      "width": 390,
+      "count": 4,
+      "cols": 2,
+      "heights": [
+        80,
+        80,
+        80,
+        80
+      ],
+      "heightDiff": 0,
+      "iconLeftOk": true,
+      "iconWidths": [
+        40
+      ],
+      "gridOverflow": false,
+      "docOverflow": false
+    }
+  ],
+  "assertions": {
+    "homeDesktop4": true,
+    "homeTablet2": true,
+    "homeMobile2": true,
+    "secDesktop4": true,
+    "secTablet2": true,
+    "secMobile2": true,
+    "allHeightDiffLe1": true,
+    "allIconLeft": true,
+    "allGridNoOverflow": true
+  }
+}

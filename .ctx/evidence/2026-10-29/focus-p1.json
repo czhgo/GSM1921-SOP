@@ -1,0 +1,125 @@
+{
+  "generatedAt": "2026-10-29T14:35:08.787Z",
+  "base": "http://127.0.0.1:49966",
+  "viewport": {
+    "width": 1440,
+    "height": 900
+  },
+  "sources": {
+    ".lf-bar .lf-kw": {
+      "page": "workspace/visitor.html?tab=projects (全局分工)",
+      "mouse": {
+        "tag": "input",
+        "outlineWidth": "0px",
+        "outlineStyle": "none",
+        "outlineColor": "rgb(31, 41, 55)",
+        "boxShadow": "none",
+        "borderTopColor": "rgb(169, 122, 18)",
+        "borderTopWidth": "1px"
+      },
+      "keyboard": {
+        "tag": "input",
+        "outlineWidth": "0px",
+        "outlineStyle": "none",
+        "outlineColor": "rgb(31, 41, 55)",
+        "boxShadow": "none",
+        "borderTopColor": "rgb(169, 122, 18)",
+        "borderTopWidth": "1px"
+      }
+    },
+    ".lf-bar .cs-trigger": {
+      "page": "workspace/visitor.html?tab=projects (全局分工)",
+      "mouse": {
+        "tag": "button",
+        "outlineWidth": "0px",
+        "outlineStyle": "none",
+        "outlineColor": "rgb(31, 41, 55)",
+        "boxShadow": "none",
+        "borderTopColor": "rgb(169, 122, 18)",
+        "borderTopWidth": "1px"
+      },
+      "keyboard": {
+        "tag": "button",
+        "outlineWidth": "0px",
+        "outlineStyle": "none",
+        "outlineColor": "rgb(31, 41, 55)",
+        "boxShadow": "none",
+        "borderTopColor": "rgb(169, 122, 18)",
+        "borderTopWidth": "1px"
+      }
+    },
+    "#archive-search": {
+      "page": "archive.html",
+      "mouse": {
+        "tag": "input",
+        "outlineWidth": "0px",
+        "outlineStyle": "none",
+        "outlineColor": "rgb(31, 41, 55)",
+        "boxShadow": "none",
+        "borderTopColor": "rgb(169, 122, 18)",
+        "borderTopWidth": "1px"
+      },
+      "keyboard": {
+        "tag": "input",
+        "outlineWidth": "0px",
+        "outlineStyle": "none",
+        "outlineColor": "rgb(31, 41, 55)",
+        "boxShadow": "none",
+        "borderTopColor": "rgb(169, 122, 18)",
+        "borderTopWidth": "1px"
+      }
+    },
+    "#ref-search-input": {
+      "page": "search.html",
+      "mouse": {
+        "tag": "input",
+        "outlineWidth": "0px",
+        "outlineStyle": "none",
+        "outlineColor": "rgb(31, 41, 55)",
+        "boxShadow": "none",
+        "borderTopColor": "rgb(169, 122, 18)",
+        "borderTopWidth": "1px"
+      },
+      "keyboard": {
+        "tag": "input",
+        "outlineWidth": "0px",
+        "outlineStyle": "none",
+        "outlineColor": "rgb(31, 41, 55)",
+        "boxShadow": "none",
+        "borderTopColor": "rgb(169, 122, 18)",
+        "borderTopWidth": "1px"
+      }
+    },
+    ".help-search-input": {
+      "page": "help.html",
+      "mouse": {
+        "tag": "input",
+        "outlineWidth": "0px",
+        "outlineStyle": "none",
+        "outlineColor": "rgb(17, 24, 39)",
+        "boxShadow": "none",
+        "borderTopColor": "rgb(169, 122, 18)",
+        "borderTopWidth": "1px"
+      },
+      "keyboard": {
+        "tag": "input",
+        "outlineWidth": "0px",
+        "outlineStyle": "none",
+        "outlineColor": "rgb(17, 24, 39)",
+        "boxShadow": "none",
+        "borderTopColor": "rgb(169, 122, 18)",
+        "borderTopWidth": "1px"
+      }
+    }
+  },
+  "buttonKeyboard": {
+    "selector": "#hamburger-btn",
+    "text": "",
+    "ariaLabel": "打开导航菜单",
+    "outlineWidth": "2px",
+    "outlineStyle": "solid",
+    "outlineColor": "rgb(255, 255, 255)",
+    "boxShadow": "none"
+  },
+  "problems": []
+}

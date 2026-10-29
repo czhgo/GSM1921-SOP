@@ -21,7 +21,7 @@ import { fileURLToPath } from 'node:url';
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const SRC = join(ROOT, 'docs', 'src');
 const CSS = join(SRC, 'styles.css');
-const DESIGN = join(ROOT, 'content', '04_web_design', 'design-system', 'DESIGN_SYSTEM.md');
+const DESIGN = join(ROOT, 'content', '04_web_design', 'design-system', 'DS_03_COMPONENTS.md');
 
 /** 五档令牌（单一源＝styles.css :root） */
 const SPACE_TOKENS = [

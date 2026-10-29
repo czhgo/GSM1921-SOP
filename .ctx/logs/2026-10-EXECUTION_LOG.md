@@ -4117,3 +4117,19 @@ $body
 
 **边界**：About 两张卡不动（独立冻结件，登记 `B-520-1`）；`.btn-md` 五个调用点靠 `!important` 才吃族类状态（`B-520-2`）；非日期常量层未收口（`B-520-3`）；换组织向导预设表仍带旧色名（`B-520-5`）；焦点与悬停叠加的三个深红按下档 <3:1（键盘不触发 hover，未处理）；本批不推送。
 
+## 2026-10-29 原则落地 ＋ About 上锁（戳 `20261029a`）
+
+**为什么改**：支书连提四点（页签打不开、输入框又脏又厚、四数卡摊大饼、筛选行乱），并指出「这些背后是一套原则，不只是判例」。复核后确认根因是同一件事：规范只写成条文与判例，没有收敛成「换一处也成立」的原则，也没有落到全量守卫上。
+
+**页签事故（P5 的由来）**：`docs/src/entries/tabs/secretary/todo-tab.js:65` 与 `visitor/inspection-tab.js:24` 的 `import` 被插进了函数体（批次 518「空态全站收口」机械插入时落错），浏览器整模块解析失败。三道防线全漏：`node --check` 对 `.js` 按 CommonJS 解析、放过了该写法（实测该文件 `--check` 退出码 0）；`module-load` 的 root 扫描 `continue` 跳过整个 `entries`，E5 只覆盖 40 个页签；三批无人打开过支书台「待办」。
+
+**立的七条原则（P1–P7）**：焦点只有一个信号 · 同类只有一个语法 · 筛选四段 · 一套栅格 · 静态可解析且入口可达 · 例外必须上锁 · 一文件一问。每条都配「判据 ＋ 反例 ＋ 全量守卫」，写不成交断言的退回判例。
+
+**防过拟合三条机制**：M1 同类穷举（清单 `.ctx/evidence/2026-10-29/principle-inventory.json`，七条原则共 239 个实例）；M2 守卫扫全量（新增 4 件守卫，扫描面均为目录级）；M3 换场景自检（用支书没点名的场景验 78 项，全过）。
+
+**读数**：`test:daily` **1679 / 1679**（221s）；新增守卫 `esm-parse-guard` / `lf-bar-structure-guard` / `container-width-guard` / `about-freeze-guard`，均带反例并在修复/改造前先验红；真机证据见 `.ctx/evidence/2026-10-29/`（`principle-inventory.json`、`focus-p1.json`、`stats-p2.json`、`layout-p3p4.json`、`m3-selfcheck.json`、`p5-injection.log`、`p6-injection.log`、`tab-smoke.json`）；戳 `20261029a`。
+
+**边界**：About 两张卡的可点语义仍不动（`B-520-1`）；§12.6 的 SD 判据表迁入 `CASES` 是否回迁规范侧待裁（`B-521-1`）；`TIMESTAMPS` 备注预算余 29 字（`B-521-2`）；About 的 64rem/1120px/1320px 是五档白名单唯一例外（`B-521-3`）；`.btn-md` 的 `!important`（`B-520-2`）与非日期常量层（`B-520-3`）未收；本批不推送。
+
+**教训（已入 CASE-DESIGN-032）**：判例修不完，原则才收敛；`node --check` 不能当 ESM 门禁；机械批量改动必须配一条对应门禁，否则等于不可验收。
+

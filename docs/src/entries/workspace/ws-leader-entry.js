@@ -2,17 +2,17 @@
 // ws-leader-entry.js — 组长工作台入口（T-279 M2 拆分；T-304 代码减负 2026-08-30：骨架并入 workspace-shell）
 // 入口职责：壳配置（注册表 tab 清单 + 导航落点 + 数据加载），角色特有逻辑仅保留。
 
-import { createWorkspaceShell } from '../../components/shell/workspace-shell.js?v=20261028e';
-import { flashHighlight, getBasePath } from '../../core/base/utils.js?v=20261028e';
-import { loadActivities } from '../../services/activity/activity.js?v=20261028e';
-import { SignupStore } from '../../services/activity/signup.js?v=20261028e';
-import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261028e';
-import { seedTodos } from '../../services/governance/todo.js?v=20261028e';
-import { filterByRole } from '../tabs/leader/_shared.js?v=20261028e';
+import { createWorkspaceShell } from '../../components/shell/workspace-shell.js?v=20261029b';
+import { flashHighlight, getBasePath } from '../../core/base/utils.js?v=20261029b';
+import { loadActivities } from '../../services/activity/activity.js?v=20261029b';
+import { SignupStore } from '../../services/activity/signup.js?v=20261029b';
+import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261029b';
+import { seedTodos } from '../../services/governance/todo.js?v=20261029b';
+import { filterByRole } from '../tabs/leader/_shared.js?v=20261029b';
 // Task 6：本台无专班承载面 ⇒ 跨页直达完整详情页（direct，objectDetailHref 统一出口）。
-import { objectDetailHref } from '../../core/domain/object-route.js?v=20261028e';
+import { objectDetailHref } from '../../core/domain/object-route.js?v=20261029b';
 // 副作用导入触发组长工作台能力注册（tab 清单，M2e）
-import '../../capabilities/leader-workspace.js?v=20261028e';
+import '../../capabilities/leader-workspace.js?v=20261029b';
 
 await createWorkspaceShell({
   accentRole: 'leader',

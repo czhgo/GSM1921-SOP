@@ -9,25 +9,25 @@
 //   · 读侧数据不动写（除页面跳转外无任何保存/报送控件）。
 // 保留「人才库=只读画像、名册=档案维护」页内注释与引导文案。
 
-import { loadInspectionRecords } from '../../../services/activity/inspection.js?v=20261028e';
+import { loadInspectionRecords } from '../../../services/activity/inspection.js?v=20261029b';
 // ⚠ 2026-10-01 批次 321（支书 V-10 取「乙：整页并入人才库」）：原「发展数据」tab 的**活动参与汇总**卡
 //   并入本页——「参与工作情况」正是**考察**的主体，支书原话「**考察就是维护人才库的过程！！**」。
-import { listActivityParticipationByPerson } from '../../../services/activity/attendance.js?v=20261028e';
+import { listActivityParticipationByPerson } from '../../../services/activity/attendance.js?v=20261029b';
 // R2-15（2026-10-20）：预备期月数改由制度参数派生（原 12/9 写死在本页）
-import { POLICY_DEFAULTS } from '../../../core/domain/policy-defaults.js?v=20261028e';
-import { loadThoughtReports } from '../../../services/governance/thought-report.js?v=20261028e';
-import { PersonStore, getPersonName } from '../../../services/member/person.js?v=20261028e';
+import { POLICY_DEFAULTS } from '../../../core/domain/policy-defaults.js?v=20261029b';
+import { loadThoughtReports } from '../../../services/governance/thought-report.js?v=20261029b';
+import { PersonStore, getPersonName } from '../../../services/member/person.js?v=20261029b';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/member/person.js 获取（原直连 mock PEOPLE）
-import { getResidenceOf } from '../../../services/member/roster.js?v=20261028e';
+import { getResidenceOf } from '../../../services/member/roster.js?v=20261029b';
 // Q-21-3 收敛（2026-09-13）：在册状态枚举单一源 = core/domain/constants.js（原经 roster.js 转出）
-import { RESIDENCE } from '../../../core/domain/constants.js?v=20261028e';
+import { RESIDENCE } from '../../../core/domain/constants.js?v=20261029b';
 // B5（2026-09-12）：搜索 + 阶段/党小组筛选已统一接入 components/ui/list-filter.js（分面枚举由引擎 auto 派生）
-import { listPendingConfirmations, lastApprovedStageChange } from '../../../services/member/member-confirmation.js?v=20261028e';
-import { escHtml as esc, getBasePath } from '../../../core/base/utils.js?v=20261028e';
+import { listPendingConfirmations, lastApprovedStageChange } from '../../../services/member/member-confirmation.js?v=20261029b';
+import { escHtml as esc, getBasePath } from '../../../core/base/utils.js?v=20261029b';
 // 统一检索引擎（2026-09-13 表格统一化批次 A）：成员卡列表接入关键词 + 分面（替代原手写三控件显隐过滤）
-import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261028e';
-import { renderTabHeader, renderCardHeader } from '../../../components/shell/page-frame.js?v=20261028e';
-import { bindDisclosures } from '../../../components/ui/disclosure.js?v=20261028e';
+import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261029b';
+import { renderTabHeader, renderCardHeader } from '../../../components/shell/page-frame.js?v=20261029b';
+import { bindDisclosures } from '../../../components/ui/disclosure.js?v=20261029b';
 
 // 发展阶段顺序（发展流程正向：入党申请人 → 积极分子 → 发展对象 → 预备党员 → 正式党员）
 const STAGE_ORDER = ['积极分子', '发展对象', '预备党员', '正式党员'];
@@ -321,7 +321,7 @@ function _renderInspectionSlot(container, ctx) {
   const mount = () => {
     if (!body || body.dataset.inspectionMounted === '1') return;
     body.dataset.inspectionMounted = '1';
-    import('./inspection-tab.js?v=20261028e').then((m) => {
+    import('./inspection-tab.js?v=20261029b').then((m) => {
       if (!body.isConnected) return;
       m.renderContent(ctx, body);
       _normalizeInspectionCopy(body);

@@ -187,7 +187,7 @@ export const VALIDATION_SITES = [
   // 2026-09-27（本位 nudge 两处增设批）：`secretary/todo-tab.js` 接入催办 nudge（import 1 行 ＋ 外层包装 15 行）
   //   令本文件既有登记下移 ⇒ `672` → `691`（S6：行号须落在文案那一行；file/field/msg 不变）。
   // 2026-10-02（批次 340 · `#1`/`D-742` 作废落地）：同文件新增作废裁决区（约 +65 行）⇒ 本条再下移 `691` → `756`。
-  { file: SRC + 'entries/tabs/secretary/todo-tab.js', line: 858, field: '退回原因', flow: 'secretary/待办·退回', machine: true, msg: '请填写退回原因' }, // 2026-10-21 批次 497（浮层体例）⇒ 851 → 855
+  { file: SRC + 'entries/tabs/secretary/todo-tab.js', line: 860, field: '退回原因', flow: 'secretary/待办·退回', machine: true, msg: '请填写退回原因' }, // 2026-10-21 批次 497（浮层体例）⇒ 851 → 855；2026-10-29 ESM 修复后校准 ⇒ 860
   { file: SRC + 'entries/tabs/secretary/overview-tab.js', line: 194, field: '退回说明', flow: 'secretary/周期归档待审·退回', machine: false, reason: '演示种子（PERIODIC_ARCHIVES_SEED）只有 submitted / draft，没有待审（pending_review）记录 ⇒ 支书台「退回周期归档」入口结构性不出现；本校验点由服务层 reviewPeriodicArchive 单测覆盖。', msg: '请填写退回说明' }, // 2026-10-19 批次 485（U-01 周期归档完整闭环）
   // 2026-10-02 批次 340（`#1`/`D-742` 待办「作废」落地）：新增两处「原因必填」校验点，均 `machine:false`
   //   ——**演示种子下无「待支委会确认的作废申请」过渡态**（须先由非支委 `requestVoid` 生成 `voidPending`，
@@ -432,8 +432,8 @@ export const VALIDATION_SITES = [
   { file: SRC + 'components/feedback/issue-form.js', line: 74, field: '事项领域', flow: 'component/议题提交·事项领域', machine: false, msg: '请选择事项领域', reason: '【批次 323 补登记】2026-09-21 批次 126（`SOP-B-32` 甲档）新立的**第二根轴**（「类型」＝对现状的性质、「事项领域」＝归口依据）当时未随批登记。真机流程 `page-feedback-issue-form` 现只放行 标题/正文/范围 三格 ⇒ 要达本分支须在该流程 `satisfy` 链上补 `#form-domain`，本批不造。' },
   { file: SRC + 'entries/tabs/leader/inspection-tab.js', line: 246, field: '考察处理内容（驳回申诉）', flow: 'leader/考察申诉·驳回', machine: false, msg: '请填写考察内容', reason: '【批次 323 补登记】组长台「考察管理」对**成员申诉**作处置时的必填项（`kind === "appeal"` 分支）。要达本分支须先有一条**处于申诉态**的考察记录（成员提申诉 → 组长处置），演示库里该前置不保证存在 ⇒ 缺稳定前置，本批只登记不造。' },
   { file: SRC + 'entries/tabs/visitor/attendance-tab.js', line: 222, field: '说明（考勤申诉）', flow: 'visitor/考勤概况·申诉', machine: false, msg: '请填写说明', reason: '【批次 323 补登记】成员台「考勤概况」的「我参加了但没记上」浮窗（`visitor-att-appeal`）；与本文件 `:152`「补课申请」是**两个不同浮窗、两条不同判据**（此前台账只登了补课那条）。要达本分支须有一条**未记考勤**的当月活动 ⇒ 随演示库当月数据变化，缺稳定前置。' },
-  { file: SRC + 'entries/tabs/visitor/inspection-tab.js', line: 102, field: '申诉活动', flow: 'visitor/考察申诉', machine: false, msg: '请选择活动', reason: '【批次 323 补登记】成员台「考察」页的「申诉」表单（`#visitor-insp-appeal-act`）。**该文件此前不在台账内**（整条链路无登记）。要达本分支须先有可申诉的考察记录 ⇒ 缺稳定前置。' },
-  { file: SRC + 'entries/tabs/visitor/inspection-tab.js', line: 103, field: '申诉说明', flow: 'visitor/考察申诉', machine: false, msg: '请填写说明', reason: '【批次 323 补登记】同上一条（同一表单：活动格通过后才走到说明这一格）。' },
+  { file: SRC + 'entries/tabs/visitor/inspection-tab.js', line: 105, field: '申诉活动', flow: 'visitor/考察申诉', machine: false, msg: '请选择活动', reason: '【批次 323 补登记】成员台「考察」页的「申诉」表单（`#visitor-insp-appeal-act`）。**该文件此前不在台账内**（整条链路无登记）。要达本分支须先有可申诉的考察记录 ⇒ 缺稳定前置。' },
+  { file: SRC + 'entries/tabs/visitor/inspection-tab.js', line: 106, field: '申诉说明', flow: 'visitor/考察申诉', machine: false, msg: '请填写说明', reason: '【批次 323 补登记】同上一条（同一表单：活动格通过后才走到说明这一格）。' },
   // ── 独立页：「我的私信」（批次 353 · 支书 `D-748`）────────────────────────
   //   三处均为「写私信」表单的字段级必填校验，**可机测**（真机流 `messages-compose-validate` 逐支验到）；
   //   校验次序刻意排为 **标题 → 正文 → 收件人** ⇒ 前两支**不依赖选人器**（真机流不需 openPicker）。

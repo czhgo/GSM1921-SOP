@@ -56,9 +56,13 @@ test('R3 引擎两形态契约仍在（避免「删了 chip」时把 dropdown �
   assert.match(ENGINE, /\.filter\(f => f\.options\.length > 1\)/, '取值 ≤1 种的维度须自动隐藏（空维度不占位）');
 });
 
-test('R4 390px 单列：名册检索条在窄屏逐行排布', () => {
-  assert.match(STYLES, /@media \(max-width: 640px\) \{[\s\S]{0,400}#roster-list-host \.lf-bar > \.lf-kw/, 'styles.css 须有名册窄屏单列规则');
-  assert.match(STYLES, /#roster-list-host \.lf-bar > \.cs-select \.cs-trigger \{ width: 100%; \}/, '增强下拉触发器须占满单列宽度');
+test('R4 390px 单列：由通用筛选行规则覆盖（不再保留名册专用第二套）', () => {
+  // 2026-10-29 P3：原 `#roster-list-host .lf-bar` 特例已删除——窄屏「控件整行折行、铺满宽度」
+  //   改由 `.lf-bar__row` 通用规则承担，名册与其它筛选面共用一套。
+  assert.match(STYLES, /\.lf-bar__row\s*\{[^}]*flex-wrap:\s*wrap/, '筛选行须声明可折行');
+  assert.match(STYLES, /@media \(max-width: 640px\) \{[\s\S]{0,1000}\.lf-bar__row > \.lf-kw[\s\S]{0,500}flex: 1 1 100%/, '窄屏控件须整行折行、铺满宽度');
+  assert.match(STYLES, /\.lf-bar__row > \.cs-select \.cs-trigger \{ width: 100%; \}/, '增强下拉触发器须占满单列宽度');
+  assert.ok(!/#roster-list-host \.lf-bar/.test(STYLES), '不得保留名册专用特例（避免第二套窄屏规则）');
 });
 
 test('R5 守卫登记在 test:daily', () => {

@@ -181,16 +181,19 @@
   border: 1px solid var(--neutral-200);
   font-size: 0.8125rem;
   outline: none;
+  outline-width: 0;
   transition: border-color 0.15s;
   background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="%239CA3AF" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>') no-repeat var(--space-3) center;
   background-color: var(--surface-card);
   box-sizing: border-box;
 }
 
-.person-picker-search:focus {
+/* 2026-10-29 P1：搜索框是输入族（有边框）——聚焦只变边框色，不出环。 */
+.person-picker-search:focus,
+.person-picker-search:focus-visible {
   border-color: var(--app-accent);
-  outline: 2px solid var(--app-accent);
-  outline-offset: 1px;
+  outline: none;
+  outline-width: 0;
   box-shadow: none;
 }
 

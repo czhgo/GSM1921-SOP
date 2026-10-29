@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { existsSync, readFileSync } from 'node:fs';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { dirname, resolve } from 'node:path';
-import { SELF_PROFILE_FIELDS } from '../../docs/src/core/domain/self-profile.js?v=20261028e';
+import { SELF_PROFILE_FIELDS } from '../../docs/src/core/domain/self-profile.js?v=20261029b';
 
 const testDir = dirname(fileURLToPath(import.meta.url));
 const presentationPath = resolve(testDir, '../../docs/src/components/governance/person-profile-sections.js');
@@ -45,7 +45,7 @@ const FULL_SELF_PROFILE = {
 
 async function loadPresentation() {
   assert.equal(existsSync(presentationPath), true, '个人档案应有可独立验证的自我描述展示组件');
-  return import(`${pathToFileURL(presentationPath).href}?v=20261028e`);
+  return import(`${pathToFileURL(presentationPath).href}?v=20261029b`);
 }
 
 function dataFields(html) {
@@ -200,5 +200,6 @@ test('档案入口沿用授权读口与页面状态提示，不自造折叠脚�
   assert.doesNotMatch(presentation, /focus-visible:ring/, '档案按钮沿用设计系统全局焦点样式');
   const styles = readFileSync(stylesPath, 'utf8');
   // R5A-05（2026-10-28 改准）：焦点环统一走主题色 --app-accent（2px / offset 1px / 无 box-shadow）。
-  assert.match(styles, /button:focus-visible,[\s\S]{0,200}outline: 2px solid var\(--app-accent\)/);
+  // 2026-10-29 P1：全局名单新增 `[data-interactive="true"]` / `.focus-ring` 两个基，选择器串变长 ⇒ 邻近上限 200 → 400。
+  assert.match(styles, /button:focus-visible,[\s\S]{0,400}outline: 2px solid var\(--app-accent\)/);
 });

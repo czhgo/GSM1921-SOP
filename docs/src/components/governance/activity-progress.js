@@ -12,16 +12,16 @@
 //   也绕过了支书台归档前的材料 / 考勤闸门。本次不新增第二套归档写口（归档仍走活动详情的材料闸门），
 //   文案与提示只说「标记完成」，不再声称「完成即归档」。
 
-import { BranchService } from '../../services/core/runtime.js?v=20261028e';
-import { persist } from '../../data/data-adapter.js?v=20261028e';
-import { showToast, escHtml as esc } from '../../core/base/utils.js?v=20261028e';
-import { isActivityEnded } from '../../core/domain/constants.js?v=20261028e';
+import { BranchService } from '../../services/core/runtime.js?v=20261029b';
+import { persist } from '../../data/data-adapter.js?v=20261029b';
+import { showToast, escHtml as esc } from '../../core/base/utils.js?v=20261029b';
+import { isActivityEnded } from '../../core/domain/constants.js?v=20261029b';
 // A03：组织者判据与活动详情同源——工作组主源优先，项目角色行次之，`organizer` 仅兜底。
-import { mockDB } from '../../core/domain/domain.js?v=20261028e';
-import { confirmDanger } from '../ui/modal.js?v=20261028e';
-import { getPersonName } from '../../services/member/person.js?v=20261028e';
-import { badgeHtml } from '../ui/badges.js?v=20261028e';
-import { renderQueryView } from './query-view.js?v=20261028e';
+import { mockDB } from '../../core/domain/domain.js?v=20261029b';
+import { confirmDanger } from '../ui/modal.js?v=20261029b';
+import { getPersonName } from '../../services/member/person.js?v=20261029b';
+import { badgeHtml } from '../ui/badges.js?v=20261029b';
+import { renderQueryView } from './query-view.js?v=20261029b';
 
 /**
  * 渲染活动进展分段（全部活动查询 + 材料出口 + 标记完成）。
@@ -51,12 +51,15 @@ export function renderActivityProgress(host, { activities = [], accent, onChange
   renderQueryView(queryContainer, {
     searchPlaceholder: '搜索活动名称…',
     searchKey: 'title',
-    filters: [
-      { key: 'type', label: '活动类型', options: typeOptions },
+    // P3 四段：进行中 / 已结束属「范围」（时间区间），从 filters 拆到 scope 段
+    scope: [
       { key: 'ended', label: '状态', options: [
         { value: 'false', label: '进行中' },
         { value: 'true', label: '已结束' },
       ] },
+    ],
+    filters: [
+      { key: 'type', label: '活动类型', options: typeOptions },
     ],
     data: queryData,
     renderRow: (a) => {

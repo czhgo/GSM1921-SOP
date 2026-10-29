@@ -151,7 +151,8 @@ function sliceBracket(src, openIdx) {
 export function extractCapabilityTabs(root = ROOT) {
   const capDir = join(root, 'docs', 'src', 'capabilities');
   const tabs = [];
-  const re = /\{\s*id:\s*'([^']+)'\s*,\s*label:\s*'([^']+)'([\s\S]{0,600}?)\brender:\s*\([^)]*\)\s*=>\s*import\('([^']+)'\)/g;
+  // 2026-10-29：能力表改用 `loadTabModule('…')`（失败可区分「不可重试」）⇒ 抽取同时认两种形态。
+  const re = /\{\s*id:\s*'([^']+)'\s*,\s*label:\s*'([^']+)'([\s\S]{0,600}?)\brender:\s*\([^)]*\)\s*=>\s*(?:import|loadTabModule)\('([^']+)'\)/g;
   for (const abs of listSourceFiles(capDir)) {
     const src = stripComments(read(abs));
     const rel = normPath(relative(root, abs));
@@ -206,7 +207,7 @@ export function extractInsightCallers(root = ROOT) {
     // 可达性：是否有**别的文件**以相对路径 import 它（解析成绝对路径后比对，避免同名文件互相冒充）
     const reachable = [...stripped.entries()].some(([otherAbs, s]) => {
       if (otherAbs === normalize(abs)) return false;
-      for (const m of s.matchAll(/(?:import\s*\(|from\s+|import\s+)['"]([^'"]+)['"]/g)) {
+      for (const m of s.matchAll(/(?:import\s*\(|loadTabModule\s*\(|from\s+|import\s+)['"]([^'"]+)['"]/g)) {
         const spec = m[1];
         if (!spec.startsWith('.')) continue;
         if (normalize(resolve(dirname(otherAbs), spec.split('?')[0])) === normalize(abs)) return true;

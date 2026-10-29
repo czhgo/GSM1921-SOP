@@ -3,7 +3,7 @@ title: "模块界面设计"
 type: design
 role: "[工程师]+[AI]"
 version: "2.0"
-last_updated: "2026-10-28"
+last_updated: "2026-10-29"
 status: landed
 merged_from: [content/design/PAFFAIRS_UI.md, content/design/CALENDAR.md]
 related_files: [content/04_web_design/design-system/DESIGN_SYSTEM.md, content/04_web_design/data/DATA_MODEL.md, content/02_institution/COMMISSIONER_DUTY_FRAMEWORK.md]
@@ -14,10 +14,10 @@ related_files: [content/04_web_design/design-system/DESIGN_SYSTEM.md, content/04
 > **本文负责**：工作台**模块层面的界面布局、交互逻辑与视图切换**的设计论证——「党建」Tab 分组（该组名的历史沿革见下方现状注记）的子功能边界、日历四视图（月 / 周 / 日 / 列表）的布局与筛选、文本溢出与折叠、快速聚焦视图。
 > **本文不负责**：① **视觉规范**（色彩 / 字体 / 间距 / 卡片样式）→ [DESIGN_SYSTEM.md](../design-system/DESIGN_SYSTEM.md)；② **数据模型与字段** → [DATA_MODEL.md](../data/DATA_MODEL.md)；③ **角色权限的键级定义** → [SYSTEM_ROLE_PERMISSION.md](../../02_institution/SYSTEM_ROLE_PERMISSION.md)；④ **会议议程与资料查询的数据与权限** → [AGENDA_AND_REFERENCE_DESIGN.md](AGENDA_AND_REFERENCE_DESIGN.md)；⑤ **about 公开页** → [ABOUT_PAGE_DESIGN.md](ABOUT_PAGE_DESIGN.md)。
 
-> **已落地 2026-09-03**：本设计结论已实现（权威源：content/04_web_design/design-system/DESIGN_SYSTEM.md §四 组件规范 + content/04_web_design/module/SOP_WEBSITE_GUIDE.md + 代码 docs/src/components/record/calendar.js 等）；本文档继续承担设计论证档案，不再承担现行权威。
+> **已落地 2026-09-03**：本设计结论已实现（权威源：content/04_web_design/design-system/DS_03_COMPONENTS.md §四 组件规范 + content/04_web_design/module/SOP_WEBSITE_GUIDE.md + 代码 docs/src/components/record/calendar.js 等）；本文档继续承担设计论证档案，不再承担现行权威。
 
 > **定位：** 本文档是系统功能模块界面设计的单一权威源，涵盖「党建」Tab 分组和日历功能模块的界面布局、交互逻辑、视图切换设计。
-> **现状注记（2026-10-24 改准 · 原 2026-09-15 注记）**：工作台 Tab 分组按行为性质为「总览 / 我的职责 / 协作与知情 / 制度与答复」四组（党委台为院级一组「党委治理」）——本文中「党建」Tab 分组是该组的历史组名（一度改称「我的职责」）；下文属设计论证原文，保留当时表述。组名现行口径见 [DESIGN_SYSTEM.md §4.6](../design-system/DESIGN_SYSTEM.md)。
+> **现状注记（2026-10-24 改准 · 原 2026-09-15 注记）**：工作台 Tab 分组按行为性质为「总览 / 我的职责 / 协作与知情 / 制度与答复」四组（党委台为院级一组「党委治理」）——本文中「党建」Tab 分组是该组的历史组名（一度改称「我的职责」）；下文属设计论证原文，保留当时表述。组名现行口径见 [DS_03_COMPONENTS.md §4.6](../design-system/DS_03_COMPONENTS.md)。
 > **受众：** [工程师]+[AI] —— 供前端开发决策参考。
 > **视觉规范**：色彩、字体、间距等视觉规范见 [DESIGN_SYSTEM.md](../design-system/DESIGN_SYSTEM.md)，本文档不重复。
 
@@ -341,7 +341,7 @@ calendarView: 'month',  // 'month' | 'week' | 'day' | 'list'
 ## 四、全站 Tab 总方案 · **已收口**（2026-09-27 规划稿已执行 · 2026-10-05 批次 377 按 `H50.1 §3` 清出）
 
 > **状态**：2026-09-27 的「全站 8 角色 tab」体检与规划稿（原 §四.1–§四.5）**已全部执行并收口**，已执行内容按 `H50.1 §3` 清出——**空章不驻留**。
-> **现行口径（判据不随清出而失）**：分组主轴见 [DESIGN_SYSTEM.md §4.6](../design-system/DESIGN_SYSTEM.md)；「数据格式 → 视图模式」对照表**已升为 [DESIGN_SYSTEM.md §4.10.1](../design-system/DESIGN_SYSTEM.md) 正式条文（单一源）**；命名口径见该文「tab 命名一致性」。
+> **现行口径（判据不随清出而失）**：分组主轴见 [DS_03_COMPONENTS.md §4.6](../design-system/DS_03_COMPONENTS.md)；「数据格式 → 视图模式」对照表**已升为 [DS_03_COMPONENTS.md §4.10.1](../design-system/DS_03_COMPONENTS.md) 正式条文（单一源）**；命名口径见该文「tab 命名一致性」。
 > **去向**：2026-09-27 四条裁定原话见 `.ctx/logs/archive/2026-09-DECISION_LOG.md`（2026-09-27 条）；`#10` 全站页签单一轴的分期口径与裁定见 `.ctx/logs/2026-10-DECISION_LOG.md` `D-754`…`D-767`；逐批落地见 `.ctx/logs/2026-10-EXECUTION_LOG.md` 批次 365–375。
 
 ---

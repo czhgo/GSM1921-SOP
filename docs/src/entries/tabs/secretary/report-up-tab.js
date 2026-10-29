@@ -5,15 +5,16 @@
 // 数据源：reviewRequests（services/governance/review-request.js，mock 与 API 双引擎同源）
 // 设计权威源：content/04_web_design/evolution/PARTY_COMMITTEE_DESIGN.md §5 P3
 
-import { mockDB } from '../../../core/domain/domain.js?v=20261028e';
-import { AuthStore } from '../../../services/core/auth.js?v=20261028e';
-import { getPersonName } from '../../../services/member/person.js?v=20261028e';
-import { getBranchIdOfPerson } from '../../../services/branch/branch.js?v=20261028e';
-import { submitReviewRequest, listReviewRequests } from '../../../services/governance/review-request.js?v=20261028e';
-import { showToast, escHtml as esc, fmtDt, describeWriteError } from '../../../core/base/utils.js?v=20261028e';
+import { mockDB } from '../../../core/domain/domain.js?v=20261029b';
+import { AuthStore } from '../../../services/core/auth.js?v=20261029b';
+import { getPersonName } from '../../../services/member/person.js?v=20261029b';
+import { getBranchIdOfPerson } from '../../../services/branch/branch.js?v=20261029b';
+import { submitReviewRequest, listReviewRequests } from '../../../services/governance/review-request.js?v=20261029b';
+import { showToast, escHtml as esc, fmtDt, describeWriteError } from '../../../core/base/utils.js?v=20261029b';
 // 统一检索引擎（2026-09-14 批次 37）：上报记录列表接入关键词 + 状态分面 + 分页
-import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261028e';
-import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261028e';
+import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261029b';
+import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261029b';
+import { icon } from '../../../core/base/icons.js?v=20261029b';
 
 const TYPE_META = {
   'develop-node': { label: '发展节点', desc: '发展党员关键节点（确定积极分子/发展对象、接收预备党员、按期转正等）' },
@@ -38,8 +39,8 @@ export function renderContent() {
     tc.innerHTML = `
       ${renderTabHeader({ title: '上报党委', description: '一次性地向院党委发起上报，并在此跟批复回执。' })}
       <div class="space-y-4">
-        <!-- 统计条（页首内联一行：待批复/已批准/已驳回；沿用活动管理内联统计条样式） -->
-        <div id="rq-stats" class="flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-gray-500 py-2 border-b border-gray-100"></div>
+        <!-- 统计（数字组单一语法 2026-10-29 P2：图标在左、数值/标签在右；三项三列） -->
+        <div id="rq-stats" class="stat-grid stat-grid--3"></div>
         <div class="rounded-lg border border-gray-200 bg-white p-4 disclosure-host">
           <div class="flex items-center justify-between gap-3">
             <div class="min-w-0 flex items-center gap-2">
@@ -66,22 +67,25 @@ export function renderContent() {
   renderList(tc, branchId);
 }
 
-/** 统计条（页首内联一行）：待党委批复/已批准/已驳回 */
+/** 统计（数字组单一语法 2026-10-29 P2）：图标块在左、数值/标签在右；
+ *  三项三列（≤1024 两列）。颜色只取既有语义 token，不再内联 hex。 */
 function refreshStats(tc, branchId) {
   const rows = listReviewRequests({ branchId });
   const n = s => rows.filter(r => r.status === s).length;
   const stats = tc.querySelector('#rq-stats');
   if (!stats) return;
   stats.innerHTML = [
-    { v: n('pending'), l: '待党委批复', c: '#D97706' },
-    { v: n('approved'), l: '已批准', c: '#16A34A' },
-    { v: n('rejected'), l: '已驳回', c: '#6B7280' },
+    { v: n('pending'), l: '待党委批复', icon: 'clock', tint: 'var(--status-warning-text)' },
+    { v: n('approved'), l: '已批准', icon: 'check', tint: 'var(--status-success)' },
+    { v: n('rejected'), l: '已驳回', icon: 'close', tint: 'var(--status-error)' },
   ].map(x => `
-    <span class="inline-flex items-center gap-1.5">
-      <span class="inline-block w-1.5 h-1.5 rounded-full" style="background:${x.c};"></span>
-      <span class="font-semibold text-gray-700 tabular-nums">${x.v}</span>
-      <span>${x.l}</span>
-    </span>`).join('');
+    <div class="card rounded-xl p-3 stat-card">
+      <span class="stat-icon-tint" style="--tint:${x.tint};" aria-hidden="true">${icon(x.icon, { strokeWidth: 1.8, className: 'w-5 h-5' })}</span>
+      <div class="stat-card__body">
+        <p class="stat-card__value">${x.v}</p>
+        <p class="stat-card__label">${x.l}</p>
+      </div>
+    </div>`).join('');
 }
 
 /** 发起上报表单（toggle 展开时构建，重绘不覆盖正在填写的表单） */
