@@ -12,7 +12,7 @@ import {
   BRANCH_COMMISSION_ROLES, SECRETARY_ROLES, SECRETARY_AND_DEPUTY_ROLES, PARTY_STAFF_ROLE,
   getCommitteeIds, resolveCommitteeIds,
   COMMISSIONER_ROLES,
-} from '../../docs/src/core/domain/constants.js?v=20261029b';
+} from '../../docs/src/core/domain/constants.js?v=20261031a';
 
 const root = fileURLToPath(new URL('../..', import.meta.url)); // 仓库根
 

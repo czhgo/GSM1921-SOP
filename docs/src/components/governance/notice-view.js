@@ -10,18 +10,18 @@
 //  依赖方向正确：组件 → 服务（不是服务 → 组件）。守卫见 notice-audience / doc-consistency。
 // ════════════════════════════════════════════════════════════════
 
-import { badgeHtml } from '../ui/badges.js?v=20261029b';
-import { openFormModal } from '../ui/modal.js?v=20261029b';
-import { showToast, getBasePath, todayLocal } from '../../core/base/utils.js?v=20261029b';
-import { ROLE_LABELS } from '../../core/domain/constants.js?v=20261029b';
-import { AuthStore } from '../../services/core/auth.js?v=20261029b';
-import { getPersonById, liveMembers } from '../../services/member/person.js?v=20261029b';
-import { isActivityOrganizer } from '../../services/activity/activity.js?v=20261029b';
-import { NoticeStore, NoticePermission } from '../../services/governance/notice.js?v=20261029b';
+import { badgeHtml } from '../ui/badges.js?v=20261031a';
+import { openFormModal } from '../ui/modal.js?v=20261031a';
+import { showToast, getBasePath, todayLocal, escHtml } from '../../core/base/utils.js?v=20261031a';
+import { ROLE_LABELS } from '../../core/domain/constants.js?v=20261031a';
+import { AuthStore } from '../../services/core/auth.js?v=20261031a';
+import { getPersonById, liveMembers } from '../../services/member/person.js?v=20261031a';
+import { isActivityOrganizer } from '../../services/activity/activity.js?v=20261031a';
+import { NoticeStore, NoticePermission } from '../../services/governance/notice.js?v=20261031a';
 // Task 6：通知 targetUrl 属 direct 深链（通知不在活动工作台内）；缺 id 不写空 URL。
-import { objectDetailHref } from '../../core/domain/object-route.js?v=20261029b';
+import { objectDetailHref } from '../../core/domain/object-route.js?v=20261031a';
 
-import { emptyStateHtml } from '../ui/empty-state.js?v=20261029b';
+import { emptyStateHtml } from '../ui/empty-state.js?v=20261031a';
 function committeeSourceChip() {
   return '<span style="display:inline-flex;align-items:center;padding:0 6px;border-radius:9999px;background:var(--party-red);color:#fff;font-size:10px;line-height:16px;flex-shrink:0;">党委下发</span>';
 }
@@ -74,8 +74,17 @@ export function renderNoticeList(containerId, limit = 5, opts = {}) {
     shown = singles.slice(0, limit);
   }
 
+  // 卡尾单一动作行（2026-10-31 支书补充）：未读数与「查看更多」**同一行**——
+  //   左对齐未读数、右对齐入口；不再让「2 条未读」在卡头、「查看更多」在卡尾各占一行。
+  //   `footerCountId` 仅首页传入（#dashboard-notice-count 由 main-entry.js 在同一渲染后回填）。
+  const footerHtml = `
+    <div class="mt-2 flex items-center justify-between gap-2" data-notice-footer>
+      <span${opts.footerCountId ? ` id="${escHtml(opts.footerCountId)}"` : ''} class="text-xs text-gray-500 tabular-nums"></span>
+      <a href="${getBasePath()}messages.html" class="text-xs text-accent">查看更多 →</a>
+    </div>`;
+
   if (shown.length === 0 && byClassList.length === 0) {
-    container.innerHTML = emptyStateHtml({ text: "暂无通知", variant: 'inline' });
+    container.innerHTML = emptyStateHtml({ text: "暂无通知", variant: 'inline' }) + footerHtml;
     return;
   }
 
@@ -134,8 +143,7 @@ export function renderNoticeList(containerId, limit = 5, opts = {}) {
 
   const listHtml = shown.length ? `<div class="row-divider divide-y divide-gray-100">${shown.map(rowHtml).join('')}</div>`
     : emptyStateHtml({ text: "暂无新通知", variant: 'inline' });
-  container.innerHTML = summaryHtml + listHtml
-    + `<div class="pt-2 text-right"><a href="${getBasePath()}messages.html" class="text-xs text-accent">查看更多 →</a></div>`;
+  container.innerHTML = summaryHtml + listHtml + footerHtml;
 
   // 整行为导航动作：统一先落消息详情（Task 3：删除导航前预写已读与 direct 直跳）
   container.querySelectorAll('.notice-item').forEach(item => {

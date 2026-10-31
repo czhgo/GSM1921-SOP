@@ -4,19 +4,19 @@
 // 日历视图（复用 calendar.js 渲染引擎）+ 只读活动详情（点击日历条目）。
 // 形态依据支书第四轮裁定：「支书的日历视图只要删去写入活动等功能，就可以提供很好的活动详情」。
 
-import { getAppState, setState } from '../../core/base/state.js?v=20261029b';
-import { renderCalendarByActivities } from './calendar.js?v=20261029b';
-import { _fmtDate, _currentYearMonth, flashHighlight, downloadCSV, showToast, escHtml as esc } from '../../core/base/utils.js?v=20261029b';
-import { badgeHtml } from '../ui/badges.js?v=20261029b';
-import { ROLE_COLORS, dotDarkVars, isActivityArchived, activityTypeBadgeVariant } from '../../core/domain/constants.js?v=20261029b';
-import { activityLifecycleBadgeHtml } from './inspector.js?v=20261029b';
-import { getPersonById } from '../../services/member/person.js?v=20261029b';
-import { AuthStore } from '../../services/core/auth.js?v=20261029b';
-import { fetchVotes } from '../../services/activity/committee-vote.js?v=20261029b';
+import { getAppState, setState } from '../../core/base/state.js?v=20261031a';
+import { renderCalendarByActivities } from './calendar.js?v=20261031a';
+import { _fmtDate, _currentYearMonth, flashHighlight, downloadCSV, showToast, escHtml as esc, smoothScroll } from '../../core/base/utils.js?v=20261031a';
+import { badgeHtml } from '../ui/badges.js?v=20261031a';
+import { ROLE_COLORS, dotDarkVars, isActivityArchived, activityTypeBadgeVariant } from '../../core/domain/constants.js?v=20261031a';
+import { activityLifecycleBadgeHtml } from './inspector.js?v=20261031a';
+import { getPersonById } from '../../services/member/person.js?v=20261031a';
+import { AuthStore } from '../../services/core/auth.js?v=20261031a';
+import { fetchVotes } from '../../services/activity/committee-vote.js?v=20261031a';
 // 表决组件（AV4.5 公共端：复用 activity.html 同款 renderVoteWidget，授权按 voterIds 判定）
-import { renderVoteWidget } from '../governance/vote-widget.js?v=20261029b';
+import { renderVoteWidget } from '../governance/vote-widget.js?v=20261031a';
 // Task 6：本组件常驻「工作概况」页内预览 ⇒ locate：保留预览 + 「打开完整页」。
-import { objectDetailHref } from '../../core/domain/object-route.js?v=20261029b';
+import { objectDetailHref } from '../../core/domain/object-route.js?v=20261031a';
 
 // 任务状态元数据（状态点 + 文案，轻量自包含，避免依赖 status-badge 全家桶）
 const _TASK_STATUS_META = {
@@ -114,7 +114,7 @@ export function renderActivityView(container, opts = {}) {
     setTimeout(() => {
       const item = container.querySelector(`.cal-activity-item[data-act-id="${highlightId}"]`);
       if (item) {
-        item.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        smoothScroll(item, { block: 'center' });
         flashHighlight(item);
         // 通知调用方：定位完成，可清除导航目标（防重渲染反复定位）
         if (typeof opts.onLocated === 'function') opts.onLocated();

@@ -8,12 +8,12 @@
 
 
 
-import { icon } from '../../core/base/icons.js?v=20261029b';
-import { showToast } from '../../core/base/utils.js?v=20261029b';
+import { icon } from '../../core/base/icons.js?v=20261031a';
+import { showToast, smoothScroll } from '../../core/base/utils.js?v=20261031a';
 
 // R6 导航守卫（2026-09-03 P2a）：初始/目标 tab 决策收敛到纯函数 tab-nav.js（防「被支部隐藏后静默白屏」）
 
-import { resolveInitialTab, resolveTargetTab } from '../../core/boot/tab-nav.js?v=20261029b';
+import { resolveInitialTab, resolveTargetTab } from '../../core/boot/tab-nav.js?v=20261031a';
 
 
 
@@ -81,7 +81,7 @@ export function tabContentSkeletonHtml(text = '正在加载…') {
 
   return `
 
-    <div data-ws-tab-loading-bar class="ws-tab-skeleton" role="status" aria-live="polite" aria-busy="true" style="min-height:320px">
+    <div data-ws-tab-loading-bar class="ws-tab-skeleton" role="status" aria-live="polite" aria-busy="true" style="min-height:clamp(320px, 52vh, 560px)">
 
       <div class="ws-tab-skeleton-head">
 
@@ -159,7 +159,7 @@ const FALLBACK_ACCENT = {
 /** 离开当前文档前的淡出时长（与 TAB_CONTENT_FADE_OUT_MS 同档） */
 export const ROUTE_LEAVE_MS = 120;
 
-const TAB_LOADING_CSS_URL = new URL('./tab-loading.css?v=20261029b', import.meta.url).href;
+const TAB_LOADING_CSS_URL = new URL('./tab-loading.css?v=20261031a', import.meta.url).href;
 
 const ROUTE_PROGRESS_ID = 'ws-route-progress';
 
@@ -523,11 +523,14 @@ export function renderTabBar({ prefix, tabs, accentColor, defaultTab, extraRight
     if (_skeletonSettleTimer != null) { clearTimeout(_skeletonSettleTimer); _skeletonSettleTimer = null; }
   }
 
-  /** 铺骨架（只在「确实需要等待」时调用；固定 min-height 防 0 高弹跳） */
+  /** 铺骨架（只在「确实需要等待」时调用；固定 min-height 防 0 高弹跳）
+   *  P10：不再把内容区整块 `pointer-events:none`——骨架自身在 tab-loading.css 内局部禁用，
+   *  内容容器保持可命中（骨架期读数 `pointerEvents=auto`），局部禁用 + 「正在加载…」为明确指示。 */
   function _paintSkeleton(el) {
     el.innerHTML = tabContentSkeletonHtml();
-    el.style.pointerEvents = 'none';
     el.dataset.wsTabSkeleton = '1';
+    // 骨架期直接回到不透明（不承接旧内容淡出的 opacity 过渡），见 tab-loading.css::.is-skeleton
+    if (el.classList && typeof el.classList.add === 'function') el.classList.add('is-skeleton');
   }
 
   /** 新内容淡入：180ms + 8px 位移；reduced-motion 只淡入 80ms、无位移 */
@@ -631,6 +634,8 @@ export function renderTabBar({ prefix, tabs, accentColor, defaultTab, extraRight
     // 摘掉旧内容淡出类；新内容由 `_playContentEnter` 统一 180ms 淡入（reduced-motion 80ms）。
     // `motion-enter` 属上一版占位实现的残留类：一并摘掉，避免旧节点继续叠 200ms 过渡。
     el.classList.remove('is-leaving');
+
+    el.classList.remove('is-skeleton');
 
     el.classList.remove('motion-enter');
 
@@ -865,9 +870,9 @@ export function renderTabBar({ prefix, tabs, accentColor, defaultTab, extraRight
       sync();
     };
 
-    left.addEventListener('click', () => scroller.scrollBy({ left: -STEP, behavior: 'smooth' }));
-    right.addEventListener('click', () => scroller.scrollBy({ left: STEP, behavior: 'smooth' }));
-    more?.addEventListener('click', () => scroller.scrollBy({ left: STEP, behavior: 'smooth' }));
+    left.addEventListener('click', () => smoothScroll(scroller, { left: -STEP, relative: true }));
+    right.addEventListener('click', () => smoothScroll(scroller, { left: STEP, relative: true }));
+    more?.addEventListener('click', () => smoothScroll(scroller, { left: STEP, relative: true }));
     scroller.addEventListener('scroll', sync, { passive: true });
     window.addEventListener('resize', onResize);
     sync();
@@ -1002,7 +1007,7 @@ export function renderTabBar({ prefix, tabs, accentColor, defaultTab, extraRight
             if (left !== scroller.scrollLeft) {
               // 尊重减少动效偏好：CSS 已声明 scroll-behavior:smooth，偏好减少时用 auto 落位。
               if (matchMedia('(prefers-reduced-motion: reduce)').matches) {
-                scroller.scrollTo({ left, behavior: 'auto' });
+                smoothScroll(scroller, { left, smooth: false });
               } else {
                 scroller.scrollLeft = left;
               }

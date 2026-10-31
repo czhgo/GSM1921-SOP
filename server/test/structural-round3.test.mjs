@@ -28,7 +28,7 @@ test('S0 守卫自检：被测源文件非空且关键锚点可命中（防空�
     assert.ok(src.length > 1000, `${rel} 内容过短（${src.length}），守卫可能空转`);
   }
   const todo = read(TODO_SHELL);
-  assert.ok((todo.match(/scrollIntoView/g) || []).length >= 1, '待办壳未出现 scrollIntoView，断言将空转');
+  assert.ok((todo.match(/smoothScroll/g) || []).length >= 1, '待办壳未出现 smoothScroll，断言将空转');
   const tf = read(TASKFORCE_TAB);
   assert.ok((tf.match(/tf-store-card/g) || []).length >= 1, '专班卡选择器未出现，断言将空转');
   const overview = read(WORK_OVERVIEW);
@@ -55,7 +55,7 @@ test('S1 待办窄屏：390 列表先于详情、未选中不渲染详情列，�
   assert.match(src, /lg:col-span-1/, '桌面详情列应占 1/3');
   // 选中待办后滚动到详情卡顶部（block: 'start'）。
   assert.match(src, /data-ws-todo-detail/, '详情卡缺 data-ws-todo-detail 定位标记');
-  assert.match(src, /\?\.scrollIntoView\(\{ behavior: 'smooth', block: 'start' \}\)/, '选中后未对详情卡 scrollIntoView');
+  assert.match(src, /smoothScroll\([\s\S]{0,100}?data-ws-todo-detail[\s\S]{0,100}?block: 'start'/, '选中后未对详情卡 smoothScroll');
   assert.match(src, /_selectedTodoId = todo\.groupKey \|\| todo\.id;[\s\S]{0,120}?renderContent\(ctx\)\.then\(_scrollDetailIntoView\)/,
     '选中后应在重建完成时滚动到详情');
   // 读屏可感知详情变化。

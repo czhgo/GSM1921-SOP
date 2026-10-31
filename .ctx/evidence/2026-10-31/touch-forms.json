@@ -1,0 +1,4891 @@
+{
+  "date": "2026-10-31",
+  "spec": "P9 touch-target / forms / modal",
+  "viewport": {
+    "width": 390,
+    "height": 844
+  },
+  "base": "http://localhost:3000",
+  "controls": {
+    "workbenchTab": {
+      "maxOverlap": {
+        "pairs": 0,
+        "w": 0,
+        "h": 0
+      },
+      "selector": "button[role=\"tab\"]",
+      "sampleText": "今天",
+      "visualBefore": {
+        "w": 58,
+        "h": 36
+      },
+      "visualAfter": {
+        "w": 58,
+        "h": 36
+      },
+      "hit": {
+        "w": 58,
+        "h": 44
+      },
+      "minHitW": 44,
+      "minHitH": 44,
+      "adjacentGap": 8,
+      "constraint": null,
+      "note": "行内 gap 8px；宽度最小 58，已 ≥44，只扩高。滚动容器 padding-block 4px 抵消 overflow 裁剪。",
+      "count": 10
+    },
+    "calendarDay": {
+      "maxOverlap": {
+        "pairs": 0,
+        "w": 0,
+        "h": 0
+      },
+      "selector": ".cal-cell-mobile[data-date]",
+      "sampleText": "1",
+      "visualBefore": {
+        "w": 43.42,
+        "h": 43.44
+      },
+      "visualAfter": {
+        "w": 43.42,
+        "h": 43.44
+      },
+      "hit": {
+        "w": 44,
+        "h": 42
+      },
+      "minHitW": 44,
+      "minHitH": 42,
+      "adjacentGap": 2,
+      "constraint": "空行格视觉 40 高 + 行距 2 ⇒ 相邻可点元素节距 42；高度按 min(max(100%,44),100%+2) 收窄，避免上下行热区重叠 2px。有内容的 43.4 高行命中 44。",
+      "note": "横向命中 44（格宽 43.4 + 间距 2，净间隔约 1.4px）。overflow 改 visible 以露出扩展部分。",
+      "count": 31
+    },
+    "calendarView": {
+      "maxOverlap": {
+        "pairs": 0,
+        "w": 0,
+        "h": 0
+      },
+      "selector": ".cal-view-btn",
+      "sampleText": "月",
+      "visualBefore": {
+        "w": 31,
+        "h": 32
+      },
+      "visualAfter": {
+        "w": 31,
+        "h": 32
+      },
+      "hit": {
+        "w": 37,
+        "h": 44
+      },
+      "minHitW": 37,
+      "minHitH": 44,
+      "adjacentGap": 6,
+      "constraint": "相邻按钮间距 6px，宽度上限 31+6=37；再扩会与相邻热区重叠。高度已 44。",
+      "note": "",
+      "count": 4
+    },
+    "todoMore": {
+      "maxOverlap": {
+        "pairs": 0,
+        "w": 0,
+        "h": 0
+      },
+      "selector": ".todo-more__btn",
+      "sampleText": "更多",
+      "visualBefore": {
+        "w": 42,
+        "h": 28
+      },
+      "visualAfter": {
+        "w": 42,
+        "h": 28
+      },
+      "hit": {
+        "w": 44,
+        "h": 44
+      },
+      "minHitW": 44,
+      "minHitH": 44,
+      "adjacentGap": 4,
+      "constraint": null,
+      "note": "命中区由既有 .list-row__trailing .btn-sm::after 提供 44×44；行尾 gap 4px（.todo-row），扩 1px/侧后仍留 2px。本次只核验不改规则。",
+      "count": 4
+    },
+    "settingsAction": {
+      "maxOverlap": {
+        "pairs": 0,
+        "w": 0,
+        "h": 0
+      },
+      "selector": ".myws-row .btn-action",
+      "sampleText": "",
+      "visualBefore": {
+        "w": 34,
+        "h": 26
+      },
+      "visualAfter": {
+        "w": 34,
+        "h": 26
+      },
+      "hit": {
+        "w": 36,
+        "h": 42
+      },
+      "minHitW": 36,
+      "minHitH": 42,
+      "adjacentGap": 2,
+      "constraint": "同一对上下移按钮间距 2px ⇒ 宽上限 36；相邻行节距 43px ⇒ 高上限 42（留 1px 不重叠）。",
+      "note": "",
+      "count": 14
+    },
+    "settingsListItem": {
+      "maxOverlap": {
+        "pairs": 0,
+        "w": 0,
+        "h": 0
+      },
+      "selector": ".settings-group-item",
+      "sampleText": "外观",
+      "visualBefore": {
+        "w": 358,
+        "h": 30
+      },
+      "visualAfter": {
+        "w": 358,
+        "h": 30
+      },
+      "hit": {
+        "w": 358,
+        "h": 30
+      },
+      "minHitW": 44,
+      "minHitH": 44,
+      "adjacentGap": null,
+      "constraint": null,
+      "note": "设置左栏条目（非本次六类重点；作为同页对照组）。",
+      "count": 6
+    },
+    "helpToc": {
+      "maxOverlap": {
+        "pairs": 0,
+        "w": 0,
+        "h": 0
+      },
+      "selector": ".help-toc-item",
+      "sampleText": "致谢",
+      "visualBefore": {
+        "w": 46,
+        "h": 29.5
+      },
+      "visualAfter": {
+        "w": 46,
+        "h": 29.5
+      },
+      "hit": {
+        "w": 46,
+        "h": 44
+      },
+      "minHitW": 44,
+      "minHitH": 44,
+      "adjacentGap": 2,
+      "constraint": null,
+      "note": "横排项间距 2px；宽度最小 46 已 ≥44，只扩高（上下无相邻可点元素）。",
+      "count": 11
+    }
+  },
+  "offenders": [
+    {
+      "page": "workspace-today",
+      "selector": "visually-hidden skip-link",
+      "text": "跳到主要内容",
+      "w": 1,
+      "h": 1,
+      "hitW": 1,
+      "hitH": 1,
+      "x": -1,
+      "y": -1,
+      "box": {
+        "left": -1,
+        "top": -1,
+        "right": 0,
+        "bottom": 0
+      }
+    },
+    {
+      "page": "workspace-today",
+      "selector": "btn-outline header-action-btn",
+      "text": "写入活动",
+      "w": 66,
+      "h": 36,
+      "hitW": 66,
+      "hitH": 36,
+      "x": 190,
+      "y": 10,
+      "box": {
+        "left": 190,
+        "top": 10,
+        "right": 256,
+        "bottom": 46
+      }
+    },
+    {
+      "page": "workspace-today",
+      "selector": "btn-outline header-action-btn report-entry-btn",
+      "text": "一键汇报",
+      "w": 66,
+      "h": 36,
+      "hitW": 66,
+      "hitH": 36,
+      "x": 264,
+      "y": 10,
+      "box": {
+        "left": 264,
+        "top": 10,
+        "right": 330,
+        "bottom": 46
+      }
+    },
+    {
+      "page": "workspace-today",
+      "selector": "sidebar-footer-action sidebar-footer-action--mobile-only",
+      "text": "我的档案",
+      "w": 358,
+      "h": 22.39,
+      "hitW": 358,
+      "hitH": 22.39,
+      "x": 16,
+      "y": -122.6,
+      "box": {
+        "left": 16,
+        "top": -122.56,
+        "right": 374,
+        "bottom": -100.17
+      }
+    },
+    {
+      "page": "workspace-today",
+      "selector": "sidebar-footer-action",
+      "text": "帮助",
+      "w": 358,
+      "h": 22.39,
+      "hitW": 358,
+      "hitH": 22.39,
+      "x": 16,
+      "y": -98.2,
+      "box": {
+        "left": 16,
+        "top": -98.17,
+        "right": 374,
+        "bottom": -75.78
+      }
+    },
+    {
+      "page": "workspace-today",
+      "selector": "sidebar-footer-action",
+      "text": "设置",
+      "w": 358,
+      "h": 22.39,
+      "hitW": 358,
+      "hitH": 22.39,
+      "x": 16,
+      "y": -73.8,
+      "box": {
+        "left": 16,
+        "top": -73.78,
+        "right": 374,
+        "bottom": -51.39
+      }
+    },
+    {
+      "page": "workspace-today",
+      "selector": "sidebar-footer-action",
+      "text": "退出登录",
+      "w": 82,
+      "h": 22.39,
+      "hitW": 82,
+      "hitH": 22.39,
+      "x": 16,
+      "y": -43.4,
+      "box": {
+        "left": 16,
+        "top": -43.39,
+        "right": 98,
+        "bottom": -21
+      }
+    },
+    {
+      "page": "workspace-today",
+      "selector": "btn-text ws-tab-more",
+      "text": "还有 7 个 ›",
+      "w": 57.72,
+      "h": 18,
+      "hitW": 57.72,
+      "hitH": 18,
+      "x": 316.3,
+      "y": 91,
+      "box": {
+        "left": 316.28,
+        "top": 91,
+        "right": 374,
+        "bottom": 109
+      }
+    },
+    {
+      "page": "workspace-today",
+      "selector": "btn-text today-all flex-shrink-0 text-xs",
+      "text": "全部 ›",
+      "w": 30.63,
+      "h": 16,
+      "hitW": 30.63,
+      "hitH": 16,
+      "x": 322.4,
+      "y": 247,
+      "box": {
+        "left": 322.38,
+        "top": 247,
+        "right": 353,
+        "bottom": 263
+      }
+    },
+    {
+      "page": "workspace-today",
+      "selector": "btn-outline today-go flex items-center justify-center gap-2",
+      "text": "看日历",
+      "w": 61,
+      "h": 36,
+      "hitW": 61,
+      "hitH": 36,
+      "x": 292,
+      "y": 283,
+      "box": {
+        "left": 292,
+        "top": 283,
+        "right": 353,
+        "bottom": 319
+      }
+    },
+    {
+      "page": "workspace-calendar",
+      "selector": "visually-hidden skip-link",
+      "text": "跳到主要内容",
+      "w": 1,
+      "h": 1,
+      "hitW": 1,
+      "hitH": 1,
+      "x": -1,
+      "y": -1,
+      "box": {
+        "left": -1,
+        "top": -1,
+        "right": 0,
+        "bottom": 0
+      }
+    },
+    {
+      "page": "workspace-calendar",
+      "selector": "btn-outline header-action-btn",
+      "text": "写入活动",
+      "w": 66,
+      "h": 36,
+      "hitW": 66,
+      "hitH": 36,
+      "x": 190,
+      "y": 10,
+      "box": {
+        "left": 190,
+        "top": 10,
+        "right": 256,
+        "bottom": 46
+      }
+    },
+    {
+      "page": "workspace-calendar",
+      "selector": "btn-outline header-action-btn report-entry-btn",
+      "text": "一键汇报",
+      "w": 66,
+      "h": 36,
+      "hitW": 66,
+      "hitH": 36,
+      "x": 264,
+      "y": 10,
+      "box": {
+        "left": 264,
+        "top": 10,
+        "right": 330,
+        "bottom": 46
+      }
+    },
+    {
+      "page": "workspace-calendar",
+      "selector": "sidebar-footer-action sidebar-footer-action--mobile-only",
+      "text": "我的档案",
+      "w": 358,
+      "h": 22.39,
+      "hitW": 358,
+      "hitH": 22.39,
+      "x": 16,
+      "y": -122.6,
+      "box": {
+        "left": 16,
+        "top": -122.56,
+        "right": 374,
+        "bottom": -100.17
+      }
+    },
+    {
+      "page": "workspace-calendar",
+      "selector": "sidebar-footer-action",
+      "text": "帮助",
+      "w": 358,
+      "h": 22.39,
+      "hitW": 358,
+      "hitH": 22.39,
+      "x": 16,
+      "y": -98.2,
+      "box": {
+        "left": 16,
+        "top": -98.17,
+        "right": 374,
+        "bottom": -75.78
+      }
+    },
+    {
+      "page": "workspace-calendar",
+      "selector": "sidebar-footer-action",
+      "text": "设置",
+      "w": 358,
+      "h": 22.39,
+      "hitW": 358,
+      "hitH": 22.39,
+      "x": 16,
+      "y": -73.8,
+      "box": {
+        "left": 16,
+        "top": -73.78,
+        "right": 374,
+        "bottom": -51.39
+      }
+    },
+    {
+      "page": "workspace-calendar",
+      "selector": "sidebar-footer-action",
+      "text": "退出登录",
+      "w": 82,
+      "h": 22.39,
+      "hitW": 82,
+      "hitH": 22.39,
+      "x": 16,
+      "y": -43.4,
+      "box": {
+        "left": 16,
+        "top": -43.39,
+        "right": 98,
+        "bottom": -21
+      }
+    },
+    {
+      "page": "workspace-calendar",
+      "selector": "btn-text ws-tab-more",
+      "text": "还有 7 个 ›",
+      "w": 57.72,
+      "h": 18,
+      "hitW": 57.72,
+      "hitH": 18,
+      "x": 316.3,
+      "y": 91,
+      "box": {
+        "left": 316.28,
+        "top": 91,
+        "right": 374,
+        "bottom": 109
+      }
+    },
+    {
+      "page": "workspace-calendar",
+      "selector": "btn-accent-soft",
+      "text": "+ 新建党小组活动",
+      "w": 123.14,
+      "h": 36,
+      "hitW": 123.14,
+      "hitH": 36,
+      "x": 229.9,
+      "y": 314,
+      "box": {
+        "left": 229.86,
+        "top": 314,
+        "right": 353,
+        "bottom": 350
+      }
+    },
+    {
+      "page": "workspace-calendar",
+      "selector": "input-flat text-xs lf-select cs-native",
+      "text": "全部月份2026-112026-102026-0",
+      "w": 120,
+      "h": 1,
+      "hitW": 120,
+      "hitH": 1,
+      "x": 37,
+      "y": 362,
+      "box": {
+        "left": 37,
+        "top": 362,
+        "right": 157,
+        "bottom": 363
+      }
+    },
+    {
+      "page": "workspace-calendar",
+      "selector": "cs-trigger input-flat text-xs",
+      "text": "2026-10",
+      "w": 316,
+      "h": 40,
+      "hitW": 316,
+      "hitH": 40,
+      "x": 37,
+      "y": 362,
+      "box": {
+        "left": 37,
+        "top": 362,
+        "right": 353,
+        "bottom": 402
+      }
+    },
+    {
+      "page": "workspace-calendar",
+      "selector": "btn-tab cal-view-btn active",
+      "text": "月",
+      "w": 31,
+      "h": 32,
+      "hitW": 37,
+      "hitH": 44,
+      "x": 37,
+      "y": 410,
+      "box": {
+        "left": 34,
+        "top": 404,
+        "right": 71,
+        "bottom": 448
+      }
+    },
+    {
+      "page": "workspace-calendar",
+      "selector": "btn-tab cal-view-btn",
+      "text": "周",
+      "w": 31,
+      "h": 32,
+      "hitW": 37,
+      "hitH": 44,
+      "x": 74,
+      "y": 410,
+      "box": {
+        "left": 71,
+        "top": 404,
+        "right": 108,
+        "bottom": 448
+      }
+    },
+    {
+      "page": "workspace-calendar",
+      "selector": "btn-tab cal-view-btn",
+      "text": "日",
+      "w": 31,
+      "h": 32,
+      "hitW": 37,
+      "hitH": 44,
+      "x": 111,
+      "y": 410,
+      "box": {
+        "left": 108,
+        "top": 404,
+        "right": 145,
+        "bottom": 448
+      }
+    },
+    {
+      "page": "workspace-calendar",
+      "selector": "input-flat text-xs lf-kw",
+      "text": "",
+      "w": 316,
+      "h": 40,
+      "hitW": 316,
+      "hitH": 40,
+      "x": 37,
+      "y": 450,
+      "box": {
+        "left": 37,
+        "top": 450,
+        "right": 353,
+        "bottom": 490
+      }
+    },
+    {
+      "page": "workspace-calendar",
+      "selector": "input-flat text-xs lf-select cs-native",
+      "text": "活动类别：全部支部党员大会支委会党小组会党课理论",
+      "w": 104,
+      "h": 1,
+      "hitW": 104,
+      "hitH": 1,
+      "x": 37,
+      "y": 498,
+      "box": {
+        "left": 37,
+        "top": 498,
+        "right": 141,
+        "bottom": 499
+      }
+    },
+    {
+      "page": "workspace-calendar",
+      "selector": "cs-trigger input-flat text-xs",
+      "text": "活动类别：全部",
+      "w": 316,
+      "h": 40,
+      "hitW": 316,
+      "hitH": 40,
+      "x": 37,
+      "y": 498,
+      "box": {
+        "left": 37,
+        "top": 498,
+        "right": 353,
+        "bottom": 538
+      }
+    },
+    {
+      "page": "workspace-calendar",
+      "selector": "input-flat text-xs lf-select cs-native",
+      "text": "品牌：全部 只看品牌",
+      "w": 104,
+      "h": 1,
+      "hitW": 104,
+      "hitH": 1,
+      "x": 37,
+      "y": 546,
+      "box": {
+        "left": 37,
+        "top": 546,
+        "right": 141,
+        "bottom": 547
+      }
+    },
+    {
+      "page": "workspace-calendar",
+      "selector": "cs-trigger input-flat text-xs",
+      "text": "品牌：全部",
+      "w": 316,
+      "h": 40,
+      "hitW": 316,
+      "hitH": 40,
+      "x": 37,
+      "y": 546,
+      "box": {
+        "left": 37,
+        "top": 546,
+        "right": 353,
+        "bottom": 586
+      }
+    },
+    {
+      "page": "workspace-calendar",
+      "selector": "input-flat text-xs lf-select cs-native",
+      "text": "范围：全部活动 党小组活动",
+      "w": 104,
+      "h": 1,
+      "hitW": 104,
+      "hitH": 1,
+      "x": 37,
+      "y": 594,
+      "box": {
+        "left": 37,
+        "top": 594,
+        "right": 141,
+        "bottom": 595
+      }
+    },
+    {
+      "page": "workspace-calendar",
+      "selector": "cs-trigger input-flat text-xs",
+      "text": "范围：全部活动",
+      "w": 316,
+      "h": 40,
+      "hitW": 316,
+      "hitH": 40,
+      "x": 37,
+      "y": 594,
+      "box": {
+        "left": 37,
+        "top": 594,
+        "right": 353,
+        "bottom": 634
+      }
+    },
+    {
+      "page": "workspace-calendar",
+      "selector": "btn-tab lf-btn",
+      "text": "清除",
+      "w": 316,
+      "h": 36,
+      "hitW": 316,
+      "hitH": 36,
+      "x": 37,
+      "y": 642,
+      "box": {
+        "left": 37,
+        "top": 642,
+        "right": 353,
+        "bottom": 678
+      }
+    },
+    {
+      "page": "workspace-calendar",
+      "selector": "cal-cell-mobile has-tasks",
+      "text": "5",
+      "w": 43.42,
+      "h": 40,
+      "hitW": 44,
+      "hitH": 42,
+      "x": 37,
+      "y": 802.4,
+      "box": {
+        "left": 36.71,
+        "top": 801.44,
+        "right": 80.71,
+        "bottom": 843.44
+      }
+    },
+    {
+      "page": "workspace-calendar",
+      "selector": "cal-cell-mobile has-tasks",
+      "text": "6",
+      "w": 43.42,
+      "h": 40,
+      "hitW": 44,
+      "hitH": 42,
+      "x": 82.4,
+      "y": 802.4,
+      "box": {
+        "left": 82.13,
+        "top": 801.44,
+        "right": 126.13,
+        "bottom": 843.44
+      }
+    },
+    {
+      "page": "workspace-calendar",
+      "selector": "cal-cell-mobile has-tasks",
+      "text": "7",
+      "w": 43.44,
+      "h": 40,
+      "hitW": 44,
+      "hitH": 42,
+      "x": 127.8,
+      "y": 802.4,
+      "box": {
+        "left": 127.56,
+        "top": 801.44,
+        "right": 171.56,
+        "bottom": 843.44
+      }
+    },
+    {
+      "page": "workspace-calendar",
+      "selector": "cal-cell-mobile",
+      "text": "8",
+      "w": 43.42,
+      "h": 40,
+      "hitW": 44,
+      "hitH": 42,
+      "x": 173.3,
+      "y": 802.4,
+      "box": {
+        "left": 172.99,
+        "top": 801.44,
+        "right": 216.99,
+        "bottom": 843.44
+      }
+    },
+    {
+      "page": "workspace-calendar",
+      "selector": "cal-cell-mobile",
+      "text": "9",
+      "w": 43.44,
+      "h": 40,
+      "hitW": 44,
+      "hitH": 42,
+      "x": 218.7,
+      "y": 802.4,
+      "box": {
+        "left": 218.42,
+        "top": 801.44,
+        "right": 262.42,
+        "bottom": 843.44
+      }
+    },
+    {
+      "page": "workspace-calendar",
+      "selector": "cal-cell-mobile",
+      "text": "10",
+      "w": 43.42,
+      "h": 40,
+      "hitW": 44,
+      "hitH": 42,
+      "x": 264.1,
+      "y": 802.4,
+      "box": {
+        "left": 263.85,
+        "top": 801.44,
+        "right": 307.85,
+        "bottom": 843.44
+      }
+    },
+    {
+      "page": "workspace-calendar",
+      "selector": "cal-cell-mobile",
+      "text": "11",
+      "w": 43.42,
+      "h": 40,
+      "hitW": 44,
+      "hitH": 42,
+      "x": 309.6,
+      "y": 802.4,
+      "box": {
+        "left": 309.27,
+        "top": 801.44,
+        "right": 353.27,
+        "bottom": 843.44
+      }
+    },
+    {
+      "page": "workspace-calendar",
+      "selector": "cal-cell-mobile",
+      "text": "12",
+      "w": 43.42,
+      "h": 40,
+      "hitW": 44,
+      "hitH": 42,
+      "x": 37,
+      "y": 844.4,
+      "box": {
+        "left": 36.71,
+        "top": 843.44,
+        "right": 80.71,
+        "bottom": 885.44
+      }
+    },
+    {
+      "page": "workspace-calendar",
+      "selector": "cal-cell-mobile",
+      "text": "13",
+      "w": 43.42,
+      "h": 40,
+      "hitW": 44,
+      "hitH": 42,
+      "x": 82.4,
+      "y": 844.4,
+      "box": {
+        "left": 82.13,
+        "top": 843.44,
+        "right": 126.13,
+        "bottom": 885.44
+      }
+    },
+    {
+      "page": "workspace-calendar",
+      "selector": "cal-cell-mobile",
+      "text": "14",
+      "w": 43.44,
+      "h": 40,
+      "hitW": 44,
+      "hitH": 42,
+      "x": 127.8,
+      "y": 844.4,
+      "box": {
+        "left": 127.56,
+        "top": 843.44,
+        "right": 171.56,
+        "bottom": 885.44
+      }
+    },
+    {
+      "page": "workspace-calendar",
+      "selector": "cal-cell-mobile has-tasks",
+      "text": "15",
+      "w": 43.42,
+      "h": 40,
+      "hitW": 44,
+      "hitH": 42,
+      "x": 173.3,
+      "y": 844.4,
+      "box": {
+        "left": 172.99,
+        "top": 843.44,
+        "right": 216.99,
+        "bottom": 885.44
+      }
+    },
+    {
+      "page": "workspace-calendar",
+      "selector": "cal-cell-mobile",
+      "text": "16",
+      "w": 43.44,
+      "h": 40,
+      "hitW": 44,
+      "hitH": 42,
+      "x": 218.7,
+      "y": 844.4,
+      "box": {
+        "left": 218.42,
+        "top": 843.44,
+        "right": 262.42,
+        "bottom": 885.44
+      }
+    },
+    {
+      "page": "workspace-calendar",
+      "selector": "cal-cell-mobile",
+      "text": "17",
+      "w": 43.42,
+      "h": 40,
+      "hitW": 44,
+      "hitH": 42,
+      "x": 264.1,
+      "y": 844.4,
+      "box": {
+        "left": 263.85,
+        "top": 843.44,
+        "right": 307.85,
+        "bottom": 885.44
+      }
+    },
+    {
+      "page": "workspace-calendar",
+      "selector": "cal-cell-mobile",
+      "text": "18",
+      "w": 43.42,
+      "h": 40,
+      "hitW": 44,
+      "hitH": 42,
+      "x": 309.6,
+      "y": 844.4,
+      "box": {
+        "left": 309.27,
+        "top": 843.44,
+        "right": 353.27,
+        "bottom": 885.44
+      }
+    },
+    {
+      "page": "workspace-calendar",
+      "selector": "cal-cell-mobile",
+      "text": "19",
+      "w": 43.42,
+      "h": 40,
+      "hitW": 44,
+      "hitH": 42,
+      "x": 37,
+      "y": 886.4,
+      "box": {
+        "left": 36.71,
+        "top": 885.44,
+        "right": 80.71,
+        "bottom": 927.44
+      }
+    },
+    {
+      "page": "workspace-calendar",
+      "selector": "cal-cell-mobile",
+      "text": "20",
+      "w": 43.42,
+      "h": 40,
+      "hitW": 44,
+      "hitH": 42,
+      "x": 82.4,
+      "y": 886.4,
+      "box": {
+        "left": 82.13,
+        "top": 885.44,
+        "right": 126.13,
+        "bottom": 927.44
+      }
+    },
+    {
+      "page": "workspace-calendar",
+      "selector": "cal-cell-mobile",
+      "text": "21",
+      "w": 43.44,
+      "h": 40,
+      "hitW": 44,
+      "hitH": 42,
+      "x": 127.8,
+      "y": 886.4,
+      "box": {
+        "left": 127.56,
+        "top": 885.44,
+        "right": 171.56,
+        "bottom": 927.44
+      }
+    },
+    {
+      "page": "workspace-calendar",
+      "selector": "cal-cell-mobile has-tasks",
+      "text": "22",
+      "w": 43.42,
+      "h": 40,
+      "hitW": 44,
+      "hitH": 42,
+      "x": 173.3,
+      "y": 886.4,
+      "box": {
+        "left": 172.99,
+        "top": 885.44,
+        "right": 216.99,
+        "bottom": 927.44
+      }
+    },
+    {
+      "page": "workspace-calendar",
+      "selector": "cal-cell-mobile",
+      "text": "23",
+      "w": 43.44,
+      "h": 40,
+      "hitW": 44,
+      "hitH": 42,
+      "x": 218.7,
+      "y": 886.4,
+      "box": {
+        "left": 218.42,
+        "top": 885.44,
+        "right": 262.42,
+        "bottom": 927.44
+      }
+    },
+    {
+      "page": "workspace-calendar",
+      "selector": "cal-cell-mobile",
+      "text": "24",
+      "w": 43.42,
+      "h": 40,
+      "hitW": 44,
+      "hitH": 42,
+      "x": 264.1,
+      "y": 886.4,
+      "box": {
+        "left": 263.85,
+        "top": 885.44,
+        "right": 307.85,
+        "bottom": 927.44
+      }
+    },
+    {
+      "page": "workspace-calendar",
+      "selector": "cal-cell-mobile",
+      "text": "25",
+      "w": 43.42,
+      "h": 40,
+      "hitW": 44,
+      "hitH": 42,
+      "x": 309.6,
+      "y": 886.4,
+      "box": {
+        "left": 309.27,
+        "top": 885.44,
+        "right": 353.27,
+        "bottom": 927.44
+      }
+    },
+    {
+      "page": "workspace-calendar",
+      "selector": "cal-cell-mobile",
+      "text": "26",
+      "w": 43.42,
+      "h": 40,
+      "hitW": 44,
+      "hitH": 42,
+      "x": 37,
+      "y": 928.4,
+      "box": {
+        "left": 36.71,
+        "top": 927.44,
+        "right": 80.71,
+        "bottom": 969.44
+      }
+    },
+    {
+      "page": "workspace-calendar",
+      "selector": "cal-cell-mobile",
+      "text": "27",
+      "w": 43.42,
+      "h": 40,
+      "hitW": 44,
+      "hitH": 42,
+      "x": 82.4,
+      "y": 928.4,
+      "box": {
+        "left": 82.13,
+        "top": 927.44,
+        "right": 126.13,
+        "bottom": 969.44
+      }
+    },
+    {
+      "page": "workspace-calendar",
+      "selector": "cal-cell-mobile",
+      "text": "28",
+      "w": 43.44,
+      "h": 40,
+      "hitW": 44,
+      "hitH": 42,
+      "x": 127.8,
+      "y": 928.4,
+      "box": {
+        "left": 127.56,
+        "top": 927.44,
+        "right": 171.56,
+        "bottom": 969.44
+      }
+    },
+    {
+      "page": "workspace-calendar",
+      "selector": "cal-cell-mobile",
+      "text": "29",
+      "w": 43.42,
+      "h": 40,
+      "hitW": 44,
+      "hitH": 42,
+      "x": 173.3,
+      "y": 928.4,
+      "box": {
+        "left": 172.99,
+        "top": 927.44,
+        "right": 216.99,
+        "bottom": 969.44
+      }
+    },
+    {
+      "page": "workspace-calendar",
+      "selector": "cal-cell-mobile",
+      "text": "30",
+      "w": 43.44,
+      "h": 40,
+      "hitW": 44,
+      "hitH": 42,
+      "x": 218.7,
+      "y": 928.4,
+      "box": {
+        "left": 218.42,
+        "top": 927.44,
+        "right": 262.42,
+        "bottom": 969.44
+      }
+    },
+    {
+      "page": "workspace-calendar",
+      "selector": "cal-cell-mobile is-today",
+      "text": "31",
+      "w": 43.42,
+      "h": 40,
+      "hitW": 44,
+      "hitH": 42,
+      "x": 264.1,
+      "y": 928.4,
+      "box": {
+        "left": 263.85,
+        "top": 927.44,
+        "right": 307.85,
+        "bottom": 969.44
+      }
+    },
+    {
+      "page": "workspace-todo",
+      "selector": "visually-hidden skip-link",
+      "text": "跳到主要内容",
+      "w": 1,
+      "h": 1,
+      "hitW": 1,
+      "hitH": 1,
+      "x": -1,
+      "y": -1,
+      "box": {
+        "left": -1,
+        "top": -1,
+        "right": 0,
+        "bottom": 0
+      }
+    },
+    {
+      "page": "workspace-todo",
+      "selector": "btn-outline header-action-btn",
+      "text": "写入活动",
+      "w": 66,
+      "h": 36,
+      "hitW": 66,
+      "hitH": 36,
+      "x": 190,
+      "y": 10,
+      "box": {
+        "left": 190,
+        "top": 10,
+        "right": 256,
+        "bottom": 46
+      }
+    },
+    {
+      "page": "workspace-todo",
+      "selector": "btn-outline header-action-btn report-entry-btn",
+      "text": "一键汇报",
+      "w": 66,
+      "h": 36,
+      "hitW": 66,
+      "hitH": 36,
+      "x": 264,
+      "y": 10,
+      "box": {
+        "left": 264,
+        "top": 10,
+        "right": 330,
+        "bottom": 46
+      }
+    },
+    {
+      "page": "workspace-todo",
+      "selector": "sidebar-footer-action sidebar-footer-action--mobile-only",
+      "text": "我的档案",
+      "w": 358,
+      "h": 22.39,
+      "hitW": 358,
+      "hitH": 22.39,
+      "x": 16,
+      "y": -122.6,
+      "box": {
+        "left": 16,
+        "top": -122.56,
+        "right": 374,
+        "bottom": -100.17
+      }
+    },
+    {
+      "page": "workspace-todo",
+      "selector": "sidebar-footer-action",
+      "text": "帮助",
+      "w": 358,
+      "h": 22.39,
+      "hitW": 358,
+      "hitH": 22.39,
+      "x": 16,
+      "y": -98.2,
+      "box": {
+        "left": 16,
+        "top": -98.17,
+        "right": 374,
+        "bottom": -75.78
+      }
+    },
+    {
+      "page": "workspace-todo",
+      "selector": "sidebar-footer-action",
+      "text": "设置",
+      "w": 358,
+      "h": 22.39,
+      "hitW": 358,
+      "hitH": 22.39,
+      "x": 16,
+      "y": -73.8,
+      "box": {
+        "left": 16,
+        "top": -73.78,
+        "right": 374,
+        "bottom": -51.39
+      }
+    },
+    {
+      "page": "workspace-todo",
+      "selector": "sidebar-footer-action",
+      "text": "退出登录",
+      "w": 82,
+      "h": 22.39,
+      "hitW": 82,
+      "hitH": 22.39,
+      "x": 16,
+      "y": -43.4,
+      "box": {
+        "left": 16,
+        "top": -43.39,
+        "right": 98,
+        "bottom": -21
+      }
+    },
+    {
+      "page": "workspace-todo",
+      "selector": "btn-text ws-tab-more",
+      "text": "还有 7 个 ›",
+      "w": 57.72,
+      "h": 18,
+      "hitW": 57.72,
+      "hitH": 18,
+      "x": 316.3,
+      "y": 91,
+      "box": {
+        "left": 316.28,
+        "top": 91,
+        "right": 374,
+        "bottom": 109
+      }
+    },
+    {
+      "page": "workspace-todo",
+      "selector": "cursor-pointer select-none py-2",
+      "text": "未读通知 1",
+      "w": 324,
+      "h": 40,
+      "hitW": 324,
+      "hitH": 40,
+      "x": 33,
+      "y": 435,
+      "box": {
+        "left": 33,
+        "top": 435,
+        "right": 357,
+        "bottom": 475
+      }
+    },
+    {
+      "page": "workspace-todo",
+      "selector": "mcb-all shrink-0",
+      "text": "",
+      "w": 13,
+      "h": 13,
+      "hitW": 13,
+      "hitH": 13,
+      "x": 47,
+      "y": 1233.5,
+      "box": {
+        "left": 47,
+        "top": 1233.5,
+        "right": 60,
+        "bottom": 1246.5
+      }
+    },
+    {
+      "page": "workspace-todo",
+      "selector": "mcb-check shrink-0",
+      "text": "",
+      "w": 13,
+      "h": 13,
+      "hitW": 13,
+      "hitH": 13,
+      "x": 51,
+      "y": 1275.5,
+      "box": {
+        "left": 51,
+        "top": 1275.5,
+        "right": 64,
+        "bottom": 1288.5
+      }
+    },
+    {
+      "page": "workspace-todo",
+      "selector": "text-sm font-medium text-gray-800 truncate hover:text-accent transition-colors",
+      "text": "2400012350",
+      "w": 79.81,
+      "h": 20,
+      "hitW": 79.81,
+      "hitH": 20,
+      "x": 114,
+      "y": 1263,
+      "box": {
+        "left": 114,
+        "top": 1263,
+        "right": 193.81,
+        "bottom": 1283
+      }
+    },
+    {
+      "page": "workspace-todo",
+      "selector": "btn-accent mcb-apply text-xs px-3 py-1.5",
+      "text": "确认 0 项",
+      "w": 74.05,
+      "h": 36,
+      "hitW": 74.05,
+      "hitH": 36,
+      "x": 47,
+      "y": 1317,
+      "box": {
+        "left": 47,
+        "top": 1317,
+        "right": 121.05,
+        "bottom": 1353
+      }
+    },
+    {
+      "page": "settings-my-workspace",
+      "selector": "visually-hidden skip-link",
+      "text": "跳到主要内容",
+      "w": 1,
+      "h": 1,
+      "hitW": 1,
+      "hitH": 1,
+      "x": -1,
+      "y": -1,
+      "box": {
+        "left": -1,
+        "top": -1,
+        "right": 0,
+        "bottom": 0
+      }
+    },
+    {
+      "page": "settings-my-workspace",
+      "selector": "sidebar-footer-action sidebar-footer-action--mobile-only",
+      "text": "我的档案",
+      "w": 358,
+      "h": 22.39,
+      "hitW": 358,
+      "hitH": 22.39,
+      "x": 16,
+      "y": -122.6,
+      "box": {
+        "left": 16,
+        "top": -122.56,
+        "right": 374,
+        "bottom": -100.17
+      }
+    },
+    {
+      "page": "settings-my-workspace",
+      "selector": "sidebar-footer-action",
+      "text": "帮助",
+      "w": 358,
+      "h": 22.39,
+      "hitW": 358,
+      "hitH": 22.39,
+      "x": 16,
+      "y": -98.2,
+      "box": {
+        "left": 16,
+        "top": -98.17,
+        "right": 374,
+        "bottom": -75.78
+      }
+    },
+    {
+      "page": "settings-my-workspace",
+      "selector": "sidebar-footer-action",
+      "text": "设置",
+      "w": 358,
+      "h": 22.39,
+      "hitW": 358,
+      "hitH": 22.39,
+      "x": 16,
+      "y": -73.8,
+      "box": {
+        "left": 16,
+        "top": -73.78,
+        "right": 374,
+        "bottom": -51.39
+      }
+    },
+    {
+      "page": "settings-my-workspace",
+      "selector": "sidebar-footer-action",
+      "text": "退出登录",
+      "w": 82,
+      "h": 22.39,
+      "hitW": 82,
+      "hitH": 22.39,
+      "x": 16,
+      "y": -43.4,
+      "box": {
+        "left": 16,
+        "top": -43.39,
+        "right": 98,
+        "bottom": -21
+      }
+    },
+    {
+      "page": "settings-my-workspace",
+      "selector": "btn-tab settings-group-item ",
+      "text": "外观",
+      "w": 358,
+      "h": 30,
+      "hitW": 358,
+      "hitH": 30,
+      "x": 16,
+      "y": 195,
+      "box": {
+        "left": 16,
+        "top": 195,
+        "right": 374,
+        "bottom": 225
+      }
+    },
+    {
+      "page": "settings-my-workspace",
+      "selector": "btn-tab settings-group-item active",
+      "text": "我的工作台",
+      "w": 358,
+      "h": 30,
+      "hitW": 358,
+      "hitH": 30,
+      "x": 16,
+      "y": 227,
+      "box": {
+        "left": 16,
+        "top": 227,
+        "right": 374,
+        "bottom": 257
+      }
+    },
+    {
+      "page": "settings-my-workspace",
+      "selector": "btn-tab settings-group-item ",
+      "text": "支部信息与向导",
+      "w": 358,
+      "h": 30,
+      "hitW": 358,
+      "hitH": 30,
+      "x": 16,
+      "y": 299,
+      "box": {
+        "left": 16,
+        "top": 299,
+        "right": 374,
+        "bottom": 329
+      }
+    },
+    {
+      "page": "settings-my-workspace",
+      "selector": "btn-tab settings-group-item ",
+      "text": "工作台默认顺序",
+      "w": 358,
+      "h": 30,
+      "hitW": 358,
+      "hitH": 30,
+      "x": 16,
+      "y": 331,
+      "box": {
+        "left": 16,
+        "top": 331,
+        "right": 374,
+        "bottom": 361
+      }
+    },
+    {
+      "page": "settings-my-workspace",
+      "selector": "btn-tab settings-group-item ",
+      "text": "支部制度参数",
+      "w": 358,
+      "h": 30,
+      "hitW": 358,
+      "hitH": 30,
+      "x": 16,
+      "y": 363,
+      "box": {
+        "left": 16,
+        "top": 363,
+        "right": 374,
+        "bottom": 393
+      }
+    },
+    {
+      "page": "settings-my-workspace",
+      "selector": "btn-tab settings-group-item ",
+      "text": "配置变更记录",
+      "w": 358,
+      "h": 30,
+      "hitW": 358,
+      "hitH": 30,
+      "x": 16,
+      "y": 395,
+      "box": {
+        "left": 16,
+        "top": 395,
+        "right": 374,
+        "bottom": 425
+      }
+    },
+    {
+      "page": "settings-my-workspace",
+      "selector": "mx-1 text-xs font-semibold text-[var(--app-accent-soft-text)]",
+      "text": "← 返回上一页",
+      "w": 350,
+      "h": 16,
+      "hitW": 350,
+      "hitH": 16,
+      "x": 20,
+      "y": 445,
+      "box": {
+        "left": 20,
+        "top": 445,
+        "right": 370,
+        "bottom": 461
+      }
+    },
+    {
+      "page": "settings-my-workspace",
+      "selector": "btn-accent-soft text-xs px-3 py-1.5 disabled:opacity-45",
+      "text": "恢复全部默认",
+      "w": 117,
+      "h": 36,
+      "hitW": 117,
+      "hitH": 36,
+      "x": 236,
+      "y": 506,
+      "box": {
+        "left": 236,
+        "top": 506,
+        "right": 353,
+        "bottom": 542
+      }
+    },
+    {
+      "page": "settings-my-workspace",
+      "selector": "btn-action btn-action px-1.5 text-gray-500 hover:bg-[var(--surface-hover)] hover",
+      "text": "",
+      "w": 34,
+      "h": 26,
+      "hitW": 36,
+      "hitH": 42,
+      "x": 268,
+      "y": 732.4,
+      "box": {
+        "left": 267,
+        "top": 724.42,
+        "right": 303,
+        "bottom": 766.42
+      }
+    },
+    {
+      "page": "settings-my-workspace",
+      "selector": "btn-action btn-action px-1.5 text-gray-500 hover:bg-[var(--surface-hover)] hover",
+      "text": "",
+      "w": 34,
+      "h": 26,
+      "hitW": 36,
+      "hitH": 42,
+      "x": 304,
+      "y": 732.4,
+      "box": {
+        "left": 303,
+        "top": 724.42,
+        "right": 339,
+        "bottom": 766.42
+      }
+    },
+    {
+      "page": "settings-my-workspace",
+      "selector": "btn-action btn-action px-1.5 text-gray-500 hover:bg-[var(--surface-hover)] hover",
+      "text": "",
+      "w": 34,
+      "h": 26,
+      "hitW": 36,
+      "hitH": 42,
+      "x": 268,
+      "y": 775.4,
+      "box": {
+        "left": 267,
+        "top": 767.42,
+        "right": 303,
+        "bottom": 809.42
+      }
+    },
+    {
+      "page": "settings-my-workspace",
+      "selector": "btn-action btn-action px-1.5 text-gray-500 hover:bg-[var(--surface-hover)] hover",
+      "text": "",
+      "w": 34,
+      "h": 26,
+      "hitW": 36,
+      "hitH": 42,
+      "x": 304,
+      "y": 775.4,
+      "box": {
+        "left": 303,
+        "top": 767.42,
+        "right": 339,
+        "bottom": 809.42
+      }
+    },
+    {
+      "page": "settings-my-workspace",
+      "selector": "btn-action btn-action px-1.5 text-gray-500 hover:bg-[var(--surface-hover)] hover",
+      "text": "",
+      "w": 34,
+      "h": 26,
+      "hitW": 36,
+      "hitH": 42,
+      "x": 268,
+      "y": 818.4,
+      "box": {
+        "left": 267,
+        "top": 810.42,
+        "right": 303,
+        "bottom": 852.42
+      }
+    },
+    {
+      "page": "settings-my-workspace",
+      "selector": "btn-action btn-action px-1.5 text-gray-500 hover:bg-[var(--surface-hover)] hover",
+      "text": "",
+      "w": 34,
+      "h": 26,
+      "hitW": 36,
+      "hitH": 42,
+      "x": 304,
+      "y": 818.4,
+      "box": {
+        "left": 303,
+        "top": 810.42,
+        "right": 339,
+        "bottom": 852.42
+      }
+    },
+    {
+      "page": "settings-my-workspace",
+      "selector": "btn-action btn-action px-1.5 text-gray-500 hover:bg-[var(--surface-hover)] hover",
+      "text": "",
+      "w": 34,
+      "h": 26,
+      "hitW": 36,
+      "hitH": 42,
+      "x": 268,
+      "y": 861.4,
+      "box": {
+        "left": 267,
+        "top": 853.42,
+        "right": 303,
+        "bottom": 895.42
+      }
+    },
+    {
+      "page": "settings-my-workspace",
+      "selector": "btn-action btn-action px-1.5 text-gray-500 hover:bg-[var(--surface-hover)] hover",
+      "text": "",
+      "w": 34,
+      "h": 26,
+      "hitW": 36,
+      "hitH": 42,
+      "x": 304,
+      "y": 861.4,
+      "box": {
+        "left": 303,
+        "top": 853.42,
+        "right": 339,
+        "bottom": 895.42
+      }
+    },
+    {
+      "page": "settings-my-workspace",
+      "selector": "btn-action btn-action px-1.5 text-gray-500 hover:bg-[var(--surface-hover)] hover",
+      "text": "",
+      "w": 34,
+      "h": 26,
+      "hitW": 36,
+      "hitH": 42,
+      "x": 268,
+      "y": 904.4,
+      "box": {
+        "left": 267,
+        "top": 896.42,
+        "right": 303,
+        "bottom": 938.42
+      }
+    },
+    {
+      "page": "settings-my-workspace",
+      "selector": "btn-action btn-action px-1.5 text-gray-500 hover:bg-[var(--surface-hover)] hover",
+      "text": "",
+      "w": 34,
+      "h": 26,
+      "hitW": 36,
+      "hitH": 42,
+      "x": 304,
+      "y": 904.4,
+      "box": {
+        "left": 303,
+        "top": 896.42,
+        "right": 339,
+        "bottom": 938.42
+      }
+    },
+    {
+      "page": "settings-my-workspace",
+      "selector": "btn-action btn-action px-1.5 text-gray-500 hover:bg-[var(--surface-hover)] hover",
+      "text": "",
+      "w": 34,
+      "h": 26,
+      "hitW": 36,
+      "hitH": 42,
+      "x": 268,
+      "y": 947.4,
+      "box": {
+        "left": 267,
+        "top": 939.42,
+        "right": 303,
+        "bottom": 981.42
+      }
+    },
+    {
+      "page": "settings-my-workspace",
+      "selector": "btn-action btn-action px-1.5 text-gray-500 hover:bg-[var(--surface-hover)] hover",
+      "text": "",
+      "w": 34,
+      "h": 26,
+      "hitW": 36,
+      "hitH": 42,
+      "x": 304,
+      "y": 947.4,
+      "box": {
+        "left": 303,
+        "top": 939.42,
+        "right": 339,
+        "bottom": 981.42
+      }
+    },
+    {
+      "page": "settings-my-workspace",
+      "selector": "btn-action btn-action px-1.5 text-gray-500 hover:bg-[var(--surface-hover)] hover",
+      "text": "",
+      "w": 34,
+      "h": 26,
+      "hitW": 36,
+      "hitH": 42,
+      "x": 268,
+      "y": 990.4,
+      "box": {
+        "left": 267,
+        "top": 982.42,
+        "right": 303,
+        "bottom": 1024.42
+      }
+    },
+    {
+      "page": "settings-my-workspace",
+      "selector": "btn-action btn-action px-1.5 text-gray-500 hover:bg-[var(--surface-hover)] hover",
+      "text": "",
+      "w": 34,
+      "h": 26,
+      "hitW": 36,
+      "hitH": 42,
+      "x": 304,
+      "y": 990.4,
+      "box": {
+        "left": 303,
+        "top": 982.42,
+        "right": 339,
+        "bottom": 1024.42
+      }
+    },
+    {
+      "page": "settings-appearance",
+      "selector": "visually-hidden skip-link",
+      "text": "跳到主要内容",
+      "w": 1,
+      "h": 1,
+      "hitW": 1,
+      "hitH": 1,
+      "x": -1,
+      "y": -1,
+      "box": {
+        "left": -1,
+        "top": -1,
+        "right": 0,
+        "bottom": 0
+      }
+    },
+    {
+      "page": "settings-appearance",
+      "selector": "sidebar-footer-action sidebar-footer-action--mobile-only",
+      "text": "我的档案",
+      "w": 358,
+      "h": 22.39,
+      "hitW": 358,
+      "hitH": 22.39,
+      "x": 16,
+      "y": -122.6,
+      "box": {
+        "left": 16,
+        "top": -122.56,
+        "right": 374,
+        "bottom": -100.17
+      }
+    },
+    {
+      "page": "settings-appearance",
+      "selector": "sidebar-footer-action",
+      "text": "帮助",
+      "w": 358,
+      "h": 22.39,
+      "hitW": 358,
+      "hitH": 22.39,
+      "x": 16,
+      "y": -98.2,
+      "box": {
+        "left": 16,
+        "top": -98.17,
+        "right": 374,
+        "bottom": -75.78
+      }
+    },
+    {
+      "page": "settings-appearance",
+      "selector": "sidebar-footer-action",
+      "text": "设置",
+      "w": 358,
+      "h": 22.39,
+      "hitW": 358,
+      "hitH": 22.39,
+      "x": 16,
+      "y": -73.8,
+      "box": {
+        "left": 16,
+        "top": -73.78,
+        "right": 374,
+        "bottom": -51.39
+      }
+    },
+    {
+      "page": "settings-appearance",
+      "selector": "sidebar-footer-action",
+      "text": "退出登录",
+      "w": 82,
+      "h": 22.39,
+      "hitW": 82,
+      "hitH": 22.39,
+      "x": 16,
+      "y": -43.4,
+      "box": {
+        "left": 16,
+        "top": -43.39,
+        "right": 98,
+        "bottom": -21
+      }
+    },
+    {
+      "page": "settings-appearance",
+      "selector": "btn-tab settings-group-item ",
+      "text": "外观",
+      "w": 358,
+      "h": 30,
+      "hitW": 358,
+      "hitH": 30,
+      "x": 16,
+      "y": 195,
+      "box": {
+        "left": 16,
+        "top": 195,
+        "right": 374,
+        "bottom": 225
+      }
+    },
+    {
+      "page": "settings-appearance",
+      "selector": "btn-tab settings-group-item active",
+      "text": "我的工作台",
+      "w": 358,
+      "h": 30,
+      "hitW": 358,
+      "hitH": 30,
+      "x": 16,
+      "y": 227,
+      "box": {
+        "left": 16,
+        "top": 227,
+        "right": 374,
+        "bottom": 257
+      }
+    },
+    {
+      "page": "settings-appearance",
+      "selector": "btn-tab settings-group-item ",
+      "text": "支部信息与向导",
+      "w": 358,
+      "h": 30,
+      "hitW": 358,
+      "hitH": 30,
+      "x": 16,
+      "y": 299,
+      "box": {
+        "left": 16,
+        "top": 299,
+        "right": 374,
+        "bottom": 329
+      }
+    },
+    {
+      "page": "settings-appearance",
+      "selector": "btn-tab settings-group-item ",
+      "text": "工作台默认顺序",
+      "w": 358,
+      "h": 30,
+      "hitW": 358,
+      "hitH": 30,
+      "x": 16,
+      "y": 331,
+      "box": {
+        "left": 16,
+        "top": 331,
+        "right": 374,
+        "bottom": 361
+      }
+    },
+    {
+      "page": "settings-appearance",
+      "selector": "btn-tab settings-group-item ",
+      "text": "支部制度参数",
+      "w": 358,
+      "h": 30,
+      "hitW": 358,
+      "hitH": 30,
+      "x": 16,
+      "y": 363,
+      "box": {
+        "left": 16,
+        "top": 363,
+        "right": 374,
+        "bottom": 393
+      }
+    },
+    {
+      "page": "settings-appearance",
+      "selector": "btn-tab settings-group-item ",
+      "text": "配置变更记录",
+      "w": 358,
+      "h": 30,
+      "hitW": 358,
+      "hitH": 30,
+      "x": 16,
+      "y": 395,
+      "box": {
+        "left": 16,
+        "top": 395,
+        "right": 374,
+        "bottom": 425
+      }
+    },
+    {
+      "page": "settings-appearance",
+      "selector": "mx-1 text-xs font-semibold text-[var(--app-accent-soft-text)]",
+      "text": "← 返回上一页",
+      "w": 350,
+      "h": 16,
+      "hitW": 350,
+      "hitH": 16,
+      "x": 20,
+      "y": 445,
+      "box": {
+        "left": 20,
+        "top": 445,
+        "right": 370,
+        "bottom": 461
+      }
+    },
+    {
+      "page": "settings-appearance",
+      "selector": "btn-accent-soft text-xs px-3 py-1.5 disabled:opacity-45",
+      "text": "恢复全部默认",
+      "w": 117,
+      "h": 36,
+      "hitW": 117,
+      "hitH": 36,
+      "x": 236,
+      "y": 506,
+      "box": {
+        "left": 236,
+        "top": 506,
+        "right": 353,
+        "bottom": 542
+      }
+    },
+    {
+      "page": "settings-appearance",
+      "selector": "btn-action btn-action px-1.5 text-gray-500 hover:bg-[var(--surface-hover)] hover",
+      "text": "",
+      "w": 34,
+      "h": 26,
+      "hitW": 36,
+      "hitH": 42,
+      "x": 268,
+      "y": 732.4,
+      "box": {
+        "left": 267,
+        "top": 724.42,
+        "right": 303,
+        "bottom": 766.42
+      }
+    },
+    {
+      "page": "settings-appearance",
+      "selector": "btn-action btn-action px-1.5 text-gray-500 hover:bg-[var(--surface-hover)] hover",
+      "text": "",
+      "w": 34,
+      "h": 26,
+      "hitW": 36,
+      "hitH": 42,
+      "x": 304,
+      "y": 732.4,
+      "box": {
+        "left": 303,
+        "top": 724.42,
+        "right": 339,
+        "bottom": 766.42
+      }
+    },
+    {
+      "page": "settings-appearance",
+      "selector": "btn-action btn-action px-1.5 text-gray-500 hover:bg-[var(--surface-hover)] hover",
+      "text": "",
+      "w": 34,
+      "h": 26,
+      "hitW": 36,
+      "hitH": 42,
+      "x": 268,
+      "y": 775.4,
+      "box": {
+        "left": 267,
+        "top": 767.42,
+        "right": 303,
+        "bottom": 809.42
+      }
+    },
+    {
+      "page": "settings-appearance",
+      "selector": "btn-action btn-action px-1.5 text-gray-500 hover:bg-[var(--surface-hover)] hover",
+      "text": "",
+      "w": 34,
+      "h": 26,
+      "hitW": 36,
+      "hitH": 42,
+      "x": 304,
+      "y": 775.4,
+      "box": {
+        "left": 303,
+        "top": 767.42,
+        "right": 339,
+        "bottom": 809.42
+      }
+    },
+    {
+      "page": "settings-appearance",
+      "selector": "btn-action btn-action px-1.5 text-gray-500 hover:bg-[var(--surface-hover)] hover",
+      "text": "",
+      "w": 34,
+      "h": 26,
+      "hitW": 36,
+      "hitH": 42,
+      "x": 268,
+      "y": 818.4,
+      "box": {
+        "left": 267,
+        "top": 810.42,
+        "right": 303,
+        "bottom": 852.42
+      }
+    },
+    {
+      "page": "settings-appearance",
+      "selector": "btn-action btn-action px-1.5 text-gray-500 hover:bg-[var(--surface-hover)] hover",
+      "text": "",
+      "w": 34,
+      "h": 26,
+      "hitW": 36,
+      "hitH": 42,
+      "x": 304,
+      "y": 818.4,
+      "box": {
+        "left": 303,
+        "top": 810.42,
+        "right": 339,
+        "bottom": 852.42
+      }
+    },
+    {
+      "page": "settings-appearance",
+      "selector": "btn-action btn-action px-1.5 text-gray-500 hover:bg-[var(--surface-hover)] hover",
+      "text": "",
+      "w": 34,
+      "h": 26,
+      "hitW": 36,
+      "hitH": 42,
+      "x": 268,
+      "y": 861.4,
+      "box": {
+        "left": 267,
+        "top": 853.42,
+        "right": 303,
+        "bottom": 895.42
+      }
+    },
+    {
+      "page": "settings-appearance",
+      "selector": "btn-action btn-action px-1.5 text-gray-500 hover:bg-[var(--surface-hover)] hover",
+      "text": "",
+      "w": 34,
+      "h": 26,
+      "hitW": 36,
+      "hitH": 42,
+      "x": 304,
+      "y": 861.4,
+      "box": {
+        "left": 303,
+        "top": 853.42,
+        "right": 339,
+        "bottom": 895.42
+      }
+    },
+    {
+      "page": "settings-appearance",
+      "selector": "btn-action btn-action px-1.5 text-gray-500 hover:bg-[var(--surface-hover)] hover",
+      "text": "",
+      "w": 34,
+      "h": 26,
+      "hitW": 36,
+      "hitH": 42,
+      "x": 268,
+      "y": 904.4,
+      "box": {
+        "left": 267,
+        "top": 896.42,
+        "right": 303,
+        "bottom": 938.42
+      }
+    },
+    {
+      "page": "settings-appearance",
+      "selector": "btn-action btn-action px-1.5 text-gray-500 hover:bg-[var(--surface-hover)] hover",
+      "text": "",
+      "w": 34,
+      "h": 26,
+      "hitW": 36,
+      "hitH": 42,
+      "x": 304,
+      "y": 904.4,
+      "box": {
+        "left": 303,
+        "top": 896.42,
+        "right": 339,
+        "bottom": 938.42
+      }
+    },
+    {
+      "page": "settings-appearance",
+      "selector": "btn-action btn-action px-1.5 text-gray-500 hover:bg-[var(--surface-hover)] hover",
+      "text": "",
+      "w": 34,
+      "h": 26,
+      "hitW": 36,
+      "hitH": 42,
+      "x": 268,
+      "y": 947.4,
+      "box": {
+        "left": 267,
+        "top": 939.42,
+        "right": 303,
+        "bottom": 981.42
+      }
+    },
+    {
+      "page": "settings-appearance",
+      "selector": "btn-action btn-action px-1.5 text-gray-500 hover:bg-[var(--surface-hover)] hover",
+      "text": "",
+      "w": 34,
+      "h": 26,
+      "hitW": 36,
+      "hitH": 42,
+      "x": 304,
+      "y": 947.4,
+      "box": {
+        "left": 303,
+        "top": 939.42,
+        "right": 339,
+        "bottom": 981.42
+      }
+    },
+    {
+      "page": "settings-appearance",
+      "selector": "btn-action btn-action px-1.5 text-gray-500 hover:bg-[var(--surface-hover)] hover",
+      "text": "",
+      "w": 34,
+      "h": 26,
+      "hitW": 36,
+      "hitH": 42,
+      "x": 268,
+      "y": 990.4,
+      "box": {
+        "left": 267,
+        "top": 982.42,
+        "right": 303,
+        "bottom": 1024.42
+      }
+    },
+    {
+      "page": "settings-appearance",
+      "selector": "btn-action btn-action px-1.5 text-gray-500 hover:bg-[var(--surface-hover)] hover",
+      "text": "",
+      "w": 34,
+      "h": 26,
+      "hitW": 36,
+      "hitH": 42,
+      "x": 304,
+      "y": 990.4,
+      "box": {
+        "left": 303,
+        "top": 982.42,
+        "right": 339,
+        "bottom": 1024.42
+      }
+    },
+    {
+      "page": "help",
+      "selector": "visually-hidden skip-link",
+      "text": "跳到主要内容",
+      "w": 1,
+      "h": 1,
+      "hitW": 1,
+      "hitH": 1,
+      "x": -1,
+      "y": -1,
+      "box": {
+        "left": -1,
+        "top": -1,
+        "right": 0,
+        "bottom": 0
+      }
+    },
+    {
+      "page": "help",
+      "selector": "sidebar-footer-action sidebar-footer-action--mobile-only",
+      "text": "我的档案",
+      "w": 358,
+      "h": 22.39,
+      "hitW": 358,
+      "hitH": 22.39,
+      "x": 16,
+      "y": -122.6,
+      "box": {
+        "left": 16,
+        "top": -122.56,
+        "right": 374,
+        "bottom": -100.17
+      }
+    },
+    {
+      "page": "help",
+      "selector": "sidebar-footer-action",
+      "text": "帮助",
+      "w": 358,
+      "h": 22.39,
+      "hitW": 358,
+      "hitH": 22.39,
+      "x": 16,
+      "y": -98.2,
+      "box": {
+        "left": 16,
+        "top": -98.17,
+        "right": 374,
+        "bottom": -75.78
+      }
+    },
+    {
+      "page": "help",
+      "selector": "sidebar-footer-action",
+      "text": "设置",
+      "w": 358,
+      "h": 22.39,
+      "hitW": 358,
+      "hitH": 22.39,
+      "x": 16,
+      "y": -73.8,
+      "box": {
+        "left": 16,
+        "top": -73.78,
+        "right": 374,
+        "bottom": -51.39
+      }
+    },
+    {
+      "page": "help",
+      "selector": "sidebar-footer-action",
+      "text": "退出登录",
+      "w": 82,
+      "h": 22.39,
+      "hitW": 82,
+      "hitH": 22.39,
+      "x": 16,
+      "y": -43.4,
+      "box": {
+        "left": 16,
+        "top": -43.39,
+        "right": 98,
+        "bottom": -21
+      }
+    },
+    {
+      "page": "help",
+      "selector": "SUMMARY",
+      "text": "按常见任务浏览",
+      "w": 101,
+      "h": 40,
+      "hitW": 101,
+      "hitH": 40,
+      "x": 28,
+      "y": 452.5,
+      "box": {
+        "left": 28,
+        "top": 452.5,
+        "right": 129,
+        "bottom": 492.5
+      }
+    },
+    {
+      "page": "help",
+      "selector": "A",
+      "text": "创建会议",
+      "w": 74,
+      "h": 33.5,
+      "hitW": 74,
+      "hitH": 33.5,
+      "x": 43,
+      "y": 544.5,
+      "box": {
+        "left": 43,
+        "top": 544.5,
+        "right": 117,
+        "bottom": 578
+      }
+    },
+    {
+      "page": "help",
+      "selector": "A",
+      "text": "编排议程与记录决议",
+      "w": 139,
+      "h": 33.5,
+      "hitW": 139,
+      "hitH": 33.5,
+      "x": 124,
+      "y": 544.5,
+      "box": {
+        "left": 124,
+        "top": 544.5,
+        "right": 263,
+        "bottom": 578
+      }
+    },
+    {
+      "page": "help",
+      "selector": "A",
+      "text": "查看线上表决",
+      "w": 100,
+      "h": 33.5,
+      "hitW": 100,
+      "hitH": 33.5,
+      "x": 43,
+      "y": 585,
+      "box": {
+        "left": 43,
+        "top": 585,
+        "right": 143,
+        "bottom": 618.5
+      }
+    },
+    {
+      "page": "help",
+      "selector": "A",
+      "text": "上传会议考勤",
+      "w": 100,
+      "h": 33.5,
+      "hitW": 100,
+      "hitH": 33.5,
+      "x": 150,
+      "y": 585,
+      "box": {
+        "left": 150,
+        "top": 585,
+        "right": 250,
+        "bottom": 618.5
+      }
+    },
+    {
+      "page": "help",
+      "selector": "A",
+      "text": "查设置说明",
+      "w": 87,
+      "h": 33.5,
+      "hitW": 87,
+      "hitH": 33.5,
+      "x": 257,
+      "y": 585,
+      "box": {
+        "left": 257,
+        "top": 585,
+        "right": 344,
+        "bottom": 618.5
+      }
+    },
+    {
+      "page": "help",
+      "selector": "A",
+      "text": "按角色看工作台",
+      "w": 113,
+      "h": 33.5,
+      "hitW": 113,
+      "hitH": 33.5,
+      "x": 43,
+      "y": 625.5,
+      "box": {
+        "left": 43,
+        "top": 625.5,
+        "right": 156,
+        "bottom": 659
+      }
+    },
+    {
+      "page": "help",
+      "selector": "help-chapter-summary",
+      "text": "0入口速查",
+      "w": 296,
+      "h": 40,
+      "hitW": 296,
+      "hitH": 40,
+      "x": 47,
+      "y": 1102.5,
+      "box": {
+        "left": 47,
+        "top": 1102.5,
+        "right": 343,
+        "bottom": 1142.5
+      }
+    },
+    {
+      "page": "help",
+      "selector": "A",
+      "text": "首页",
+      "w": 30,
+      "h": 21,
+      "hitW": 30,
+      "hitH": 21,
+      "x": 61,
+      "y": 1897.3,
+      "box": {
+        "left": 61,
+        "top": 1897.25,
+        "right": 91,
+        "bottom": 1918.25
+      }
+    },
+    {
+      "page": "help",
+      "selector": "A",
+      "text": "登录",
+      "w": 30,
+      "h": 21,
+      "hitW": 30,
+      "hitH": 21,
+      "x": 61,
+      "y": 2390,
+      "box": {
+        "left": 61,
+        "top": 2390,
+        "right": 91,
+        "bottom": 2411
+      }
+    },
+    {
+      "page": "help",
+      "selector": "A",
+      "text": "资料查询",
+      "w": 30,
+      "h": 46.5,
+      "hitW": 30,
+      "hitH": 46.5,
+      "x": 61,
+      "y": 2678.8,
+      "box": {
+        "left": 61,
+        "top": 2678.75,
+        "right": 91,
+        "bottom": 2725.25
+      }
+    },
+    {
+      "page": "help",
+      "selector": "A",
+      "text": "归档库",
+      "w": 30,
+      "h": 46.5,
+      "hitW": 30,
+      "hitH": 46.5,
+      "x": 61,
+      "y": 2878.3,
+      "box": {
+        "left": 61,
+        "top": 2878.25,
+        "right": 91,
+        "bottom": 2924.75
+      }
+    },
+    {
+      "page": "help",
+      "selector": "A",
+      "text": "活动详情",
+      "w": 30,
+      "h": 46.5,
+      "hitW": 30,
+      "hitH": 46.5,
+      "x": 61,
+      "y": 3141.5,
+      "box": {
+        "left": 61,
+        "top": 3141.5,
+        "right": 91,
+        "bottom": 3188
+      }
+    },
+    {
+      "page": "help",
+      "selector": "A",
+      "text": "消息详情",
+      "w": 30,
+      "h": 46.5,
+      "hitW": 30,
+      "hitH": 46.5,
+      "x": 61,
+      "y": 3647,
+      "box": {
+        "left": 61,
+        "top": 3647,
+        "right": 91,
+        "bottom": 3693.5
+      }
+    },
+    {
+      "page": "help",
+      "selector": "A",
+      "text": "消息",
+      "w": 30,
+      "h": 21,
+      "hitW": 30,
+      "hitH": 21,
+      "x": 61,
+      "y": 4254.5,
+      "box": {
+        "left": 61,
+        "top": 4254.5,
+        "right": 91,
+        "bottom": 4275.5
+      }
+    },
+    {
+      "page": "help",
+      "selector": "A",
+      "text": "专班详情",
+      "w": 30,
+      "h": 46.5,
+      "hitW": 30,
+      "hitH": 46.5,
+      "x": 61,
+      "y": 4798.3,
+      "box": {
+        "left": 61,
+        "top": 4798.25,
+        "right": 91,
+        "bottom": 4844.75
+      }
+    },
+    {
+      "page": "help",
+      "selector": "A",
+      "text": "支委会会议页",
+      "w": 30,
+      "h": 72,
+      "hitW": 30,
+      "hitH": 72,
+      "x": 61,
+      "y": 5571.5,
+      "box": {
+        "left": 61,
+        "top": 5571.5,
+        "right": 91,
+        "bottom": 5643.5
+      }
+    },
+    {
+      "page": "help",
+      "selector": "A",
+      "text": "思想汇报阅读",
+      "w": 30,
+      "h": 72,
+      "hitW": 30,
+      "hitH": 72,
+      "x": 61,
+      "y": 6590,
+      "box": {
+        "left": 61,
+        "top": 6590,
+        "right": 91,
+        "bottom": 6662
+      }
+    },
+    {
+      "page": "help",
+      "selector": "A",
+      "text": "成员档案",
+      "w": 30,
+      "h": 46.5,
+      "hitW": 30,
+      "hitH": 46.5,
+      "x": 61,
+      "y": 7544.8,
+      "box": {
+        "left": 61,
+        "top": 7544.75,
+        "right": 91,
+        "bottom": 7591.25
+      }
+    },
+    {
+      "page": "help",
+      "selector": "A",
+      "text": "意见反馈",
+      "w": 30,
+      "h": 46.5,
+      "hitW": 30,
+      "hitH": 46.5,
+      "x": 61,
+      "y": 8063,
+      "box": {
+        "left": 61,
+        "top": 8063,
+        "right": 91,
+        "bottom": 8109.5
+      }
+    },
+    {
+      "page": "help",
+      "selector": "A",
+      "text": "帮助（本页）",
+      "w": 30,
+      "h": 72,
+      "hitW": 30,
+      "hitH": 72,
+      "x": 61,
+      "y": 8237,
+      "box": {
+        "left": 61,
+        "top": 8237,
+        "right": 91,
+        "bottom": 8309
+      }
+    },
+    {
+      "page": "help",
+      "selector": "A",
+      "text": "设置",
+      "w": 30,
+      "h": 21,
+      "hitW": 30,
+      "hitH": 21,
+      "x": 61,
+      "y": 8589.5,
+      "box": {
+        "left": 61,
+        "top": 8589.5,
+        "right": 91,
+        "bottom": 8610.5
+      }
+    },
+    {
+      "page": "help",
+      "selector": "A",
+      "text": "换组织向导",
+      "w": 30,
+      "h": 72,
+      "hitW": 30,
+      "hitH": 72,
+      "x": 61,
+      "y": 9133.3,
+      "box": {
+        "left": 61,
+        "top": 9133.25,
+        "right": 91,
+        "bottom": 9205.25
+      }
+    },
+    {
+      "page": "help",
+      "selector": "A",
+      "text": "支书工作台",
+      "w": 30,
+      "h": 72,
+      "hitW": 30,
+      "hitH": 72,
+      "x": 61,
+      "y": 9626,
+      "box": {
+        "left": 61,
+        "top": 9626,
+        "right": 91,
+        "bottom": 9698
+      }
+    },
+    {
+      "page": "help",
+      "selector": "A",
+      "text": "组织委员工作台",
+      "w": 30,
+      "h": 97.5,
+      "hitW": 30,
+      "hitH": 97.5,
+      "x": 61,
+      "y": 9876.5,
+      "box": {
+        "left": 61,
+        "top": 9876.5,
+        "right": 91,
+        "bottom": 9974
+      }
+    },
+    {
+      "page": "help",
+      "selector": "A",
+      "text": "宣传委员工作台",
+      "w": 30,
+      "h": 97.5,
+      "hitW": 30,
+      "hitH": 97.5,
+      "x": 61,
+      "y": 10101.5,
+      "box": {
+        "left": 61,
+        "top": 10101.5,
+        "right": 91,
+        "bottom": 10199
+      }
+    },
+    {
+      "page": "help",
+      "selector": "A",
+      "text": "纪检委员工作台",
+      "w": 30,
+      "h": 97.5,
+      "hitW": 30,
+      "hitH": 97.5,
+      "x": 61,
+      "y": 10326.5,
+      "box": {
+        "left": 61,
+        "top": 10326.5,
+        "right": 91,
+        "bottom": 10424
+      }
+    },
+    {
+      "page": "help",
+      "selector": "A",
+      "text": "党小组组长工作台",
+      "w": 30,
+      "h": 97.5,
+      "hitW": 30,
+      "hitH": 97.5,
+      "x": 61,
+      "y": 10551.5,
+      "box": {
+        "left": 61,
+        "top": 10551.5,
+        "right": 91,
+        "bottom": 10649
+      }
+    },
+    {
+      "page": "help",
+      "selector": "A",
+      "text": "成员工作台",
+      "w": 30,
+      "h": 72,
+      "hitW": 30,
+      "hitH": 72,
+      "x": 61,
+      "y": 10802,
+      "box": {
+        "left": 61,
+        "top": 10802,
+        "right": 91,
+        "bottom": 10874
+      }
+    },
+    {
+      "page": "help",
+      "selector": "A",
+      "text": "党委工作台",
+      "w": 30,
+      "h": 72,
+      "hitW": 30,
+      "hitH": 72,
+      "x": 61,
+      "y": 11065.3,
+      "box": {
+        "left": 61,
+        "top": 11065.25,
+        "right": 91,
+        "bottom": 11137.25
+      }
+    },
+    {
+      "page": "help",
+      "selector": "A",
+      "text": "settings.html",
+      "w": 91.89,
+      "h": 21,
+      "hitW": 91.89,
+      "hitH": 21,
+      "x": 157.4,
+      "y": 14237,
+      "box": {
+        "left": 157.38,
+        "top": 14237,
+        "right": 249.27,
+        "bottom": 14258
+      }
+    },
+    {
+      "page": "help",
+      "selector": "help-chapter-summary",
+      "text": "1快速上手",
+      "w": 296,
+      "h": 40,
+      "hitW": 296,
+      "hitH": 40,
+      "x": 47,
+      "y": 1210.5,
+      "box": {
+        "left": 47,
+        "top": 1210.5,
+        "right": 343,
+        "bottom": 1250.5
+      }
+    },
+    {
+      "page": "help",
+      "selector": "help-chapter-summary",
+      "text": "2角色工作台导览",
+      "w": 296,
+      "h": 40,
+      "hitW": 296,
+      "hitH": 40,
+      "x": 47,
+      "y": 1318.5,
+      "box": {
+        "left": 47,
+        "top": 1318.5,
+        "right": 343,
+        "bottom": 1358.5
+      }
+    },
+    {
+      "page": "help",
+      "selector": "A",
+      "text": "secretary.html",
+      "w": 100.89,
+      "h": 21,
+      "hitW": 100.89,
+      "hitH": 21,
+      "x": 47,
+      "y": 1566.3,
+      "box": {
+        "left": 47,
+        "top": 1566.25,
+        "right": 147.89,
+        "bottom": 1587.25
+      }
+    },
+    {
+      "page": "help",
+      "selector": "A",
+      "text": "org.html",
+      "w": 60.25,
+      "h": 21,
+      "hitW": 60.25,
+      "hitH": 21,
+      "x": 47,
+      "y": 10617.3,
+      "box": {
+        "left": 47,
+        "top": 10617.25,
+        "right": 107.25,
+        "bottom": 10638.25
+      }
+    },
+    {
+      "page": "help",
+      "selector": "A",
+      "text": "prop.html",
+      "w": 70.17,
+      "h": 21,
+      "hitW": 70.17,
+      "hitH": 21,
+      "x": 47,
+      "y": 14381.3,
+      "box": {
+        "left": 47,
+        "top": 14381.25,
+        "right": 117.17,
+        "bottom": 14402.25
+      }
+    },
+    {
+      "page": "help",
+      "selector": "A",
+      "text": "disc.html",
+      "w": 65.19,
+      "h": 21,
+      "hitW": 65.19,
+      "hitH": 21,
+      "x": 47,
+      "y": 16271.8,
+      "box": {
+        "left": 47,
+        "top": 16271.75,
+        "right": 112.19,
+        "bottom": 16292.75
+      }
+    },
+    {
+      "page": "help",
+      "selector": "A",
+      "text": "leader.html",
+      "w": 80.28,
+      "h": 21,
+      "hitW": 80.28,
+      "hitH": 21,
+      "x": 47,
+      "y": 18642.3,
+      "box": {
+        "left": 47,
+        "top": 18642.25,
+        "right": 127.28,
+        "bottom": 18663.25
+      }
+    },
+    {
+      "page": "help",
+      "selector": "A",
+      "text": "visitor.html",
+      "w": 79.5,
+      "h": 21,
+      "hitW": 79.5,
+      "hitH": 21,
+      "x": 47,
+      "y": 21106,
+      "box": {
+        "left": 47,
+        "top": 21106,
+        "right": 126.5,
+        "bottom": 21127
+      }
+    },
+    {
+      "page": "help",
+      "selector": "A",
+      "text": "party-committee.html",
+      "w": 154.56,
+      "h": 21,
+      "hitW": 154.56,
+      "hitH": 21,
+      "x": 47,
+      "y": 24569.3,
+      "box": {
+        "left": 47,
+        "top": 24569.25,
+        "right": 201.56,
+        "bottom": 24590.25
+      }
+    },
+    {
+      "page": "help",
+      "selector": "help-card-rel",
+      "text": "agenda",
+      "w": 44.94,
+      "h": 19,
+      "hitW": 44.94,
+      "hitH": 19,
+      "x": 84,
+      "y": 9920.5,
+      "box": {
+        "left": 84,
+        "top": 9920.5,
+        "right": 128.94,
+        "bottom": 9939.5
+      }
+    },
+    {
+      "page": "help",
+      "selector": "help-card-rel",
+      "text": "activity-signup",
+      "w": 89.66,
+      "h": 19,
+      "hitW": 89.66,
+      "hitH": 19,
+      "x": 136.9,
+      "y": 9920.5,
+      "box": {
+        "left": 136.94,
+        "top": 9920.5,
+        "right": 226.59,
+        "bottom": 9939.5
+      }
+    },
+    {
+      "page": "help",
+      "selector": "help-card-rel",
+      "text": "flow-branch-committee",
+      "w": 143.11,
+      "h": 19,
+      "hitW": 143.11,
+      "hitH": 19,
+      "x": 84,
+      "y": 10124,
+      "box": {
+        "left": 84,
+        "top": 10123.97,
+        "right": 227.11,
+        "bottom": 10142.97
+      }
+    },
+    {
+      "page": "help",
+      "selector": "help-card-rel",
+      "text": "flow-general-meeting",
+      "w": 270.39,
+      "h": 38.5,
+      "hitW": 270.39,
+      "hitH": 38.5,
+      "x": 45,
+      "y": 10124,
+      "box": {
+        "left": 45,
+        "top": 10123.97,
+        "right": 315.39,
+        "bottom": 10162.47
+      }
+    },
+    {
+      "page": "help",
+      "selector": "help-card-rel",
+      "text": "branch-doc",
+      "w": 69.56,
+      "h": 19,
+      "hitW": 69.56,
+      "hitH": 19,
+      "x": 103,
+      "y": 10143.5,
+      "box": {
+        "left": 103,
+        "top": 10143.47,
+        "right": 172.56,
+        "bottom": 10162.47
+      }
+    },
+    {
+      "page": "help",
+      "selector": "help-card-rel",
+      "text": "activity-create",
+      "w": 86.17,
+      "h": 19,
+      "hitW": 86.17,
+      "hitH": 19,
+      "x": 84,
+      "y": 10323.5,
+      "box": {
+        "left": 84,
+        "top": 10323.55,
+        "right": 170.17,
+        "bottom": 10342.55
+      }
+    },
+    {
+      "page": "help",
+      "selector": "help-card-rel",
+      "text": "theme-party",
+      "w": 75.7,
+      "h": 19,
+      "hitW": 75.7,
+      "hitH": 19,
+      "x": 178.2,
+      "y": 10323.5,
+      "box": {
+        "left": 178.17,
+        "top": 10323.55,
+        "right": 253.88,
+        "bottom": 10342.55
+      }
+    },
+    {
+      "page": "help",
+      "selector": "help-card-rel",
+      "text": "three-meetings",
+      "w": 92.77,
+      "h": 19,
+      "hitW": 92.77,
+      "hitH": 19,
+      "x": 84,
+      "y": 10503.6,
+      "box": {
+        "left": 84,
+        "top": 10503.63,
+        "right": 176.77,
+        "bottom": 10522.63
+      }
+    },
+    {
+      "page": "help",
+      "selector": "help-card-rel",
+      "text": "activity-create",
+      "w": 86.17,
+      "h": 19,
+      "hitW": 86.17,
+      "hitH": 19,
+      "x": 184.8,
+      "y": 10503.6,
+      "box": {
+        "left": 184.77,
+        "top": 10503.63,
+        "right": 270.94,
+        "bottom": 10522.63
+      }
+    },
+    {
+      "page": "help",
+      "selector": "help-card-rel",
+      "text": "activity-create",
+      "w": 86.17,
+      "h": 19,
+      "hitW": 86.17,
+      "hitH": 19,
+      "x": 84,
+      "y": 10656.7,
+      "box": {
+        "left": 84,
+        "top": 10656.7,
+        "right": 170.17,
+        "bottom": 10675.7
+      }
+    },
+    {
+      "page": "help",
+      "selector": "help-card-rel",
+      "text": "attendance-personal",
+      "w": 126,
+      "h": 19,
+      "hitW": 126,
+      "hitH": 19,
+      "x": 178.2,
+      "y": 10656.7,
+      "box": {
+        "left": 178.17,
+        "top": 10656.7,
+        "right": 304.17,
+        "bottom": 10675.7
+      }
+    },
+    {
+      "page": "help",
+      "selector": "help-card-rel",
+      "text": "activity-create",
+      "w": 86.17,
+      "h": 19,
+      "hitW": 86.17,
+      "hitH": 19,
+      "x": 84,
+      "y": 11018.6,
+      "box": {
+        "left": 84,
+        "top": 11018.56,
+        "right": 170.17,
+        "bottom": 11037.56
+      }
+    },
+    {
+      "page": "help",
+      "selector": "help-card-rel",
+      "text": "notification",
+      "w": 69.63,
+      "h": 19,
+      "hitW": 69.63,
+      "hitH": 19,
+      "x": 178.2,
+      "y": 11018.6,
+      "box": {
+        "left": 178.17,
+        "top": 11018.56,
+        "right": 247.8,
+        "bottom": 11037.56
+      }
+    },
+    {
+      "page": "help",
+      "selector": "help-card-rel",
+      "text": "todo",
+      "w": 28.48,
+      "h": 19,
+      "hitW": 28.48,
+      "hitH": 19,
+      "x": 84,
+      "y": 11198.6,
+      "box": {
+        "left": 84,
+        "top": 11198.64,
+        "right": 112.48,
+        "bottom": 11217.64
+      }
+    },
+    {
+      "page": "help",
+      "selector": "help-card-rel",
+      "text": "flow-development",
+      "w": 111.55,
+      "h": 19,
+      "hitW": 111.55,
+      "hitH": 19,
+      "x": 120.5,
+      "y": 11198.6,
+      "box": {
+        "left": 120.48,
+        "top": 11198.64,
+        "right": 232.03,
+        "bottom": 11217.64
+      }
+    },
+    {
+      "page": "help",
+      "selector": "help-card-rel",
+      "text": "three-meetings",
+      "w": 92.77,
+      "h": 19,
+      "hitW": 92.77,
+      "hitH": 19,
+      "x": 84,
+      "y": 11452.5,
+      "box": {
+        "left": 84,
+        "top": 11452.5,
+        "right": 176.77,
+        "bottom": 11471.5
+      }
+    },
+    {
+      "page": "help",
+      "selector": "help-card-rel",
+      "text": "agenda",
+      "w": 44.94,
+      "h": 19,
+      "hitW": 44.94,
+      "hitH": 19,
+      "x": 184.8,
+      "y": 11452.5,
+      "box": {
+        "left": 184.77,
+        "top": 11452.5,
+        "right": 229.7,
+        "bottom": 11471.5
+      }
+    },
+    {
+      "page": "help",
+      "selector": "help-card-rel",
+      "text": "activity-create",
+      "w": 241.48,
+      "h": 38.5,
+      "hitW": 241.48,
+      "hitH": 38.5,
+      "x": 45,
+      "y": 11452.5,
+      "box": {
+        "left": 45,
+        "top": 11452.5,
+        "right": 286.48,
+        "bottom": 11491
+      }
+    },
+    {
+      "page": "help",
+      "selector": "help-card-rel",
+      "text": "flow-online-committee",
+      "w": 138.95,
+      "h": 19,
+      "hitW": 138.95,
+      "hitH": 19,
+      "x": 90.4,
+      "y": 11472,
+      "box": {
+        "left": 90.41,
+        "top": 11472,
+        "right": 229.36,
+        "bottom": 11491
+      }
+    },
+    {
+      "page": "help",
+      "selector": "help-card-rel",
+      "text": "flow-general-meeting",
+      "w": 272.64,
+      "h": 38.5,
+      "hitW": 272.64,
+      "hitH": 38.5,
+      "x": 45,
+      "y": 11472,
+      "box": {
+        "left": 45,
+        "top": 11472,
+        "right": 317.64,
+        "bottom": 11510.5
+      }
+    },
+    {
+      "page": "help",
+      "selector": "help-card-rel",
+      "text": "talent",
+      "w": 35.61,
+      "h": 19,
+      "hitW": 35.61,
+      "hitH": 19,
+      "x": 84,
+      "y": 11644.6,
+      "box": {
+        "left": 84,
+        "top": 11644.58,
+        "right": 119.61,
+        "bottom": 11663.58
+      }
+    },
+    {
+      "page": "help",
+      "selector": "help-card-rel",
+      "text": "inspection",
+      "w": 63.59,
+      "h": 19,
+      "hitW": 63.59,
+      "hitH": 19,
+      "x": 127.6,
+      "y": 11644.6,
+      "box": {
+        "left": 127.61,
+        "top": 11644.58,
+        "right": 191.2,
+        "bottom": 11663.58
+      }
+    },
+    {
+      "page": "help",
+      "selector": "help-card-rel",
+      "text": "development",
+      "w": 80.89,
+      "h": 19,
+      "hitW": 80.89,
+      "hitH": 19,
+      "x": 84,
+      "y": 11851.7,
+      "box": {
+        "left": 84,
+        "top": 11851.66,
+        "right": 164.89,
+        "bottom": 11870.66
+      }
+    },
+    {
+      "page": "help",
+      "selector": "help-card-rel",
+      "text": "inspection",
+      "w": 63.59,
+      "h": 19,
+      "hitW": 63.59,
+      "hitH": 19,
+      "x": 172.9,
+      "y": 11851.7,
+      "box": {
+        "left": 172.89,
+        "top": 11851.66,
+        "right": 236.48,
+        "bottom": 11870.66
+      }
+    },
+    {
+      "page": "help",
+      "selector": "help-card-rel",
+      "text": "talent",
+      "w": 35.61,
+      "h": 19,
+      "hitW": 35.61,
+      "hitH": 19,
+      "x": 84,
+      "y": 12132.5,
+      "box": {
+        "left": 84,
+        "top": 12132.52,
+        "right": 119.61,
+        "bottom": 12151.52
+      }
+    },
+    {
+      "page": "help",
+      "selector": "help-card-rel",
+      "text": "development",
+      "w": 80.89,
+      "h": 19,
+      "hitW": 80.89,
+      "hitH": 19,
+      "x": 127.6,
+      "y": 12132.5,
+      "box": {
+        "left": 127.61,
+        "top": 12132.52,
+        "right": 208.5,
+        "bottom": 12151.52
+      }
+    },
+    {
+      "page": "help",
+      "selector": "help-card-rel",
+      "text": "attendance-personal",
+      "w": 126,
+      "h": 19,
+      "hitW": 126,
+      "hitH": 19,
+      "x": 84,
+      "y": 12312.6,
+      "box": {
+        "left": 84,
+        "top": 12312.59,
+        "right": 210,
+        "bottom": 12331.59
+      }
+    },
+    {
+      "page": "help",
+      "selector": "help-card-rel",
+      "text": "makeup",
+      "w": 49.41,
+      "h": 19,
+      "hitW": 49.41,
+      "hitH": 19,
+      "x": 218,
+      "y": 12312.6,
+      "box": {
+        "left": 218,
+        "top": 12312.59,
+        "right": 267.41,
+        "bottom": 12331.59
+      }
+    },
+    {
+      "page": "help",
+      "selector": "help-card-rel",
+      "text": "attendance-mgmt",
+      "w": 109.19,
+      "h": 19,
+      "hitW": 109.19,
+      "hitH": 19,
+      "x": 84,
+      "y": 12489.1,
+      "box": {
+        "left": 84,
+        "top": 12489.06,
+        "right": 193.19,
+        "bottom": 12508.06
+      }
+    },
+    {
+      "page": "help",
+      "selector": "help-card-rel",
+      "text": "flow-makeup",
+      "w": 80.05,
+      "h": 19,
+      "hitW": 80.05,
+      "hitH": 19,
+      "x": 201.2,
+      "y": 12489.1,
+      "box": {
+        "left": 201.19,
+        "top": 12489.06,
+        "right": 281.23,
+        "bottom": 12508.06
+      }
+    },
+    {
+      "page": "help",
+      "selector": "help-card-rel",
+      "text": "attendance-mgmt",
+      "w": 109.19,
+      "h": 19,
+      "hitW": 109.19,
+      "hitH": 19,
+      "x": 84,
+      "y": 12723.1,
+      "box": {
+        "left": 84,
+        "top": 12723.14,
+        "right": 193.19,
+        "bottom": 12742.14
+      }
+    },
+    {
+      "page": "help",
+      "selector": "help-card-rel",
+      "text": "flow-theme-party",
+      "w": 105.94,
+      "h": 19,
+      "hitW": 105.94,
+      "hitH": 19,
+      "x": 201.2,
+      "y": 12723.1,
+      "box": {
+        "left": 201.19,
+        "top": 12723.14,
+        "right": 307.13,
+        "bottom": 12742.14
+      }
+    },
+    {
+      "page": "help",
+      "selector": "help-card-rel",
+      "text": "flow-thought-report",
+      "w": 120.97,
+      "h": 19,
+      "hitW": 120.97,
+      "hitH": 19,
+      "x": 84,
+      "y": 13081.4,
+      "box": {
+        "left": 84,
+        "top": 13081.39,
+        "right": 204.97,
+        "bottom": 13100.39
+      }
+    },
+    {
+      "page": "help",
+      "selector": "help-card-rel",
+      "text": "talent",
+      "w": 35.61,
+      "h": 19,
+      "hitW": 35.61,
+      "hitH": 19,
+      "x": 213,
+      "y": 13081.4,
+      "box": {
+        "left": 212.97,
+        "top": 13081.39,
+        "right": 248.58,
+        "bottom": 13100.39
+      }
+    },
+    {
+      "page": "help",
+      "selector": "help-card-rel",
+      "text": "agenda",
+      "w": 44.94,
+      "h": 19,
+      "hitW": 44.94,
+      "hitH": 19,
+      "x": 84,
+      "y": 13284.9,
+      "box": {
+        "left": 84,
+        "top": 13284.86,
+        "right": 128.94,
+        "bottom": 13303.86
+      }
+    },
+    {
+      "page": "help",
+      "selector": "help-card-rel",
+      "text": "flow-development",
+      "w": 111.55,
+      "h": 19,
+      "hitW": 111.55,
+      "hitH": 19,
+      "x": 136.9,
+      "y": 13284.9,
+      "box": {
+        "left": 136.94,
+        "top": 13284.86,
+        "right": 248.48,
+        "bottom": 13303.86
+      }
+    },
+    {
+      "page": "help",
+      "selector": "help-card-rel",
+      "text": "kanban",
+      "w": 45.28,
+      "h": 19,
+      "hitW": 45.28,
+      "hitH": 19,
+      "x": 84,
+      "y": 13553.5,
+      "box": {
+        "left": 84,
+        "top": 13553.53,
+        "right": 129.28,
+        "bottom": 13572.53
+      }
+    },
+    {
+      "page": "help",
+      "selector": "help-card-rel",
+      "text": "weekly",
+      "w": 42.39,
+      "h": 19,
+      "hitW": 42.39,
+      "hitH": 19,
+      "x": 137.3,
+      "y": 13553.5,
+      "box": {
+        "left": 137.28,
+        "top": 13553.53,
+        "right": 179.67,
+        "bottom": 13572.53
+      }
+    },
+    {
+      "page": "help",
+      "selector": "help-card-rel",
+      "text": "tasks",
+      "w": 31.22,
+      "h": 19,
+      "hitW": 31.22,
+      "hitH": 19,
+      "x": 84,
+      "y": 13706.6,
+      "box": {
+        "left": 84,
+        "top": 13706.61,
+        "right": 115.22,
+        "bottom": 13725.61
+      }
+    },
+    {
+      "page": "help",
+      "selector": "help-card-rel",
+      "text": "tasks",
+      "w": 31.22,
+      "h": 19,
+      "hitW": 31.22,
+      "hitH": 19,
+      "x": 84,
+      "y": 13886.7,
+      "box": {
+        "left": 84,
+        "top": 13886.69,
+        "right": 115.22,
+        "bottom": 13905.69
+      }
+    },
+    {
+      "page": "help",
+      "selector": "help-card-rel",
+      "text": "archive",
+      "w": 44.17,
+      "h": 19,
+      "hitW": 44.17,
+      "hitH": 19,
+      "x": 123.2,
+      "y": 13886.7,
+      "box": {
+        "left": 123.22,
+        "top": 13886.69,
+        "right": 167.39,
+        "bottom": 13905.69
+      }
+    },
+    {
+      "page": "help",
+      "selector": "help-card-rel",
+      "text": "agenda",
+      "w": 44.94,
+      "h": 19,
+      "hitW": 44.94,
+      "hitH": 19,
+      "x": 84,
+      "y": 14090.2,
+      "box": {
+        "left": 84,
+        "top": 14090.16,
+        "right": 128.94,
+        "bottom": 14109.16
+      }
+    },
+    {
+      "page": "help",
+      "selector": "help-card-rel",
+      "text": "archive",
+      "w": 44.17,
+      "h": 19,
+      "hitW": 44.17,
+      "hitH": 19,
+      "x": 136.9,
+      "y": 14090.2,
+      "box": {
+        "left": 136.94,
+        "top": 14090.16,
+        "right": 181.11,
+        "bottom": 14109.16
+      }
+    },
+    {
+      "page": "help",
+      "selector": "help-card-rel",
+      "text": "search",
+      "w": 39.75,
+      "h": 19,
+      "hitW": 39.75,
+      "hitH": 19,
+      "x": 189.1,
+      "y": 14090.2,
+      "box": {
+        "left": 189.11,
+        "top": 14090.16,
+        "right": 228.86,
+        "bottom": 14109.16
+      }
+    },
+    {
+      "page": "help",
+      "selector": "help-card-rel",
+      "text": "branch-doc",
+      "w": 69.56,
+      "h": 19,
+      "hitW": 69.56,
+      "hitH": 19,
+      "x": 84,
+      "y": 14243.2,
+      "box": {
+        "left": 84,
+        "top": 14243.23,
+        "right": 153.56,
+        "bottom": 14262.23
+      }
+    },
+    {
+      "page": "help",
+      "selector": "help-card-rel",
+      "text": "search",
+      "w": 39.75,
+      "h": 19,
+      "hitW": 39.75,
+      "hitH": 19,
+      "x": 161.6,
+      "y": 14243.2,
+      "box": {
+        "left": 161.56,
+        "top": 14243.23,
+        "right": 201.31,
+        "bottom": 14262.23
+      }
+    },
+    {
+      "page": "help",
+      "selector": "help-card-rel",
+      "text": "taskforce-recruit",
+      "w": 100.13,
+      "h": 19,
+      "hitW": 100.13,
+      "hitH": 19,
+      "x": 84,
+      "y": 14457.9,
+      "box": {
+        "left": 84,
+        "top": 14457.91,
+        "right": 184.13,
+        "bottom": 14476.91
+      }
+    },
+    {
+      "page": "help",
+      "selector": "help-card-rel",
+      "text": "flow-taskforce",
+      "w": 85.64,
+      "h": 19,
+      "hitW": 85.64,
+      "hitH": 19,
+      "x": 192.1,
+      "y": 14457.9,
+      "box": {
+        "left": 192.13,
+        "top": 14457.91,
+        "right": 277.77,
+        "bottom": 14476.91
+      }
+    },
+    {
+      "page": "help",
+      "selector": "help-card-rel",
+      "text": "taskforce-create",
+      "w": 97.42,
+      "h": 19,
+      "hitW": 97.42,
+      "hitH": 19,
+      "x": 84,
+      "y": 14611,
+      "box": {
+        "left": 84,
+        "top": 14610.98,
+        "right": 181.42,
+        "bottom": 14629.98
+      }
+    },
+    {
+      "page": "help",
+      "selector": "help-card-rel",
+      "text": "taskforce-assign",
+      "w": 98.34,
+      "h": 19,
+      "hitW": 98.34,
+      "hitH": 19,
+      "x": 189.4,
+      "y": 14611,
+      "box": {
+        "left": 189.42,
+        "top": 14610.98,
+        "right": 287.77,
+        "bottom": 14629.98
+      }
+    },
+    {
+      "page": "help",
+      "selector": "help-card-rel",
+      "text": "taskforce-recruit",
+      "w": 100.13,
+      "h": 19,
+      "hitW": 100.13,
+      "hitH": 19,
+      "x": 84,
+      "y": 14764.1,
+      "box": {
+        "left": 84,
+        "top": 14764.06,
+        "right": 184.13,
+        "bottom": 14783.06
+      }
+    },
+    {
+      "page": "help",
+      "selector": "help-card-rel",
+      "text": "external-dispatch",
+      "w": 105.34,
+      "h": 19,
+      "hitW": 105.34,
+      "hitH": 19,
+      "x": 192.1,
+      "y": 14764.1,
+      "box": {
+        "left": 192.13,
+        "top": 14764.06,
+        "right": 297.47,
+        "bottom": 14783.06
+      }
+    },
+    {
+      "page": "help",
+      "selector": "help-card-rel",
+      "text": "taskforce-assign",
+      "w": 98.34,
+      "h": 19,
+      "hitW": 98.34,
+      "hitH": 19,
+      "x": 84,
+      "y": 14971.1,
+      "box": {
+        "left": 84,
+        "top": 14971.14,
+        "right": 182.34,
+        "bottom": 14990.14
+      }
+    },
+    {
+      "page": "help",
+      "selector": "help-card-rel",
+      "text": "activity-create",
+      "w": 86.17,
+      "h": 19,
+      "hitW": 86.17,
+      "hitH": 19,
+      "x": 84,
+      "y": 15185.8,
+      "box": {
+        "left": 84,
+        "top": 15185.81,
+        "right": 170.17,
+        "bottom": 15204.81
+      }
+    },
+    {
+      "page": "help",
+      "selector": "help-card-rel",
+      "text": "notification",
+      "w": 69.63,
+      "h": 19,
+      "hitW": 69.63,
+      "hitH": 19,
+      "x": 178.2,
+      "y": 15185.8,
+      "box": {
+        "left": 178.17,
+        "top": 15185.81,
+        "right": 247.8,
+        "bottom": 15204.81
+      }
+    },
+    {
+      "page": "help",
+      "selector": "help-card-rel",
+      "text": "search",
+      "w": 39.75,
+      "h": 19,
+      "hitW": 39.75,
+      "hitH": 19,
+      "x": 255.8,
+      "y": 15185.8,
+      "box": {
+        "left": 255.8,
+        "top": 15185.81,
+        "right": 295.55,
+        "bottom": 15204.81
+      }
+    },
+    {
+      "page": "help",
+      "selector": "help-card-rel",
+      "text": "branch-doc",
+      "w": 69.56,
+      "h": 19,
+      "hitW": 69.56,
+      "hitH": 19,
+      "x": 84,
+      "y": 15365.9,
+      "box": {
+        "left": 84,
+        "top": 15365.89,
+        "right": 153.56,
+        "bottom": 15384.89
+      }
+    },
+    {
+      "page": "help",
+      "selector": "help-card-rel",
+      "text": "archive",
+      "w": 44.17,
+      "h": 19,
+      "hitW": 44.17,
+      "hitH": 19,
+      "x": 161.6,
+      "y": 15365.9,
+      "box": {
+        "left": 161.56,
+        "top": 15365.89,
+        "right": 205.73,
+        "bottom": 15384.89
+      }
+    },
+    {
+      "page": "help",
+      "selector": "help-card-rel",
+      "text": "notification",
+      "w": 69.63,
+      "h": 19,
+      "hitW": 69.63,
+      "hitH": 19,
+      "x": 84,
+      "y": 15519,
+      "box": {
+        "left": 84,
+        "top": 15518.97,
+        "right": 153.63,
+        "bottom": 15537.97
+      }
+    },
+    {
+      "page": "help",
+      "selector": "help-card-rel",
+      "text": "notification",
+      "w": 69.63,
+      "h": 19,
+      "hitW": 69.63,
+      "hitH": 19,
+      "x": 84,
+      "y": 15672,
+      "box": {
+        "left": 84,
+        "top": 15672.05,
+        "right": 153.63,
+        "bottom": 15691.05
+      }
+    },
+    {
+      "page": "help",
+      "selector": "help-card-rel",
+      "text": "activity-create",
+      "w": 86.17,
+      "h": 19,
+      "hitW": 86.17,
+      "hitH": 19,
+      "x": 161.6,
+      "y": 15672,
+      "box": {
+        "left": 161.63,
+        "top": 15672.05,
+        "right": 247.8,
+        "bottom": 15691.05
+      }
+    },
+    {
+      "page": "help",
+      "selector": "help-card-rel",
+      "text": "attendance-mgmt",
+      "w": 109.19,
+      "h": 19,
+      "hitW": 109.19,
+      "hitH": 19,
+      "x": 84,
+      "y": 15825.1,
+      "box": {
+        "left": 84,
+        "top": 15825.13,
+        "right": 193.19,
+        "bottom": 15844.13
+      }
+    },
+    {
+      "page": "help",
+      "selector": "help-card-rel",
+      "text": "makeup",
+      "w": 49.41,
+      "h": 19,
+      "hitW": 49.41,
+      "hitH": 19,
+      "x": 201.2,
+      "y": 15825.1,
+      "box": {
+        "left": 201.19,
+        "top": 15825.13,
+        "right": 250.59,
+        "bottom": 15844.13
+      }
+    },
+    {
+      "page": "help",
+      "selector": "help-card-rel",
+      "text": "about",
+      "w": 36.03,
+      "h": 19,
+      "hitW": 36.03,
+      "hitH": 19,
+      "x": 84,
+      "y": 16059.2,
+      "box": {
+        "left": 84,
+        "top": 16059.2,
+        "right": 120.03,
+        "bottom": 16078.2
+      }
+    },
+    {
+      "page": "help",
+      "selector": "help-card-rel",
+      "text": "help",
+      "w": 26.86,
+      "h": 19,
+      "hitW": 26.86,
+      "hitH": 19,
+      "x": 84,
+      "y": 16212.3,
+      "box": {
+        "left": 84,
+        "top": 16212.28,
+        "right": 110.86,
+        "bottom": 16231.28
+      }
+    },
+    {
+      "page": "help",
+      "selector": "help-card-rel",
+      "text": "activity-create",
+      "w": 86.17,
+      "h": 19,
+      "hitW": 86.17,
+      "hitH": 19,
+      "x": 84,
+      "y": 16751,
+      "box": {
+        "left": 84,
+        "top": 16750.95,
+        "right": 170.17,
+        "bottom": 16769.95
+      }
+    },
+    {
+      "page": "help",
+      "selector": "help-card-rel",
+      "text": "assign",
+      "w": 38.33,
+      "h": 19,
+      "hitW": 38.33,
+      "hitH": 19,
+      "x": 178.2,
+      "y": 16751,
+      "box": {
+        "left": 178.17,
+        "top": 16750.95,
+        "right": 216.5,
+        "bottom": 16769.95
+      }
+    },
+    {
+      "page": "help",
+      "selector": "help-card-rel",
+      "text": "notification",
+      "w": 69.63,
+      "h": 19,
+      "hitW": 69.63,
+      "hitH": 19,
+      "x": 224.5,
+      "y": 16751,
+      "box": {
+        "left": 224.5,
+        "top": 16750.95,
+        "right": 294.13,
+        "bottom": 16769.95
+      }
+    },
+    {
+      "page": "help",
+      "selector": "help-card-rel",
+      "text": "todo",
+      "w": 28.48,
+      "h": 19,
+      "hitW": 28.48,
+      "hitH": 19,
+      "x": 302.1,
+      "y": 16751,
+      "box": {
+        "left": 302.13,
+        "top": 16750.95,
+        "right": 330.61,
+        "bottom": 16769.95
+      }
+    },
+    {
+      "page": "help",
+      "selector": "help-card-rel",
+      "text": "taskforce-recruit",
+      "w": 100.13,
+      "h": 19,
+      "hitW": 100.13,
+      "hitH": 19,
+      "x": 84,
+      "y": 17120,
+      "box": {
+        "left": 84,
+        "top": 17120.03,
+        "right": 184.13,
+        "bottom": 17139.03
+      }
+    },
+    {
+      "page": "help",
+      "selector": "help-card-rel",
+      "text": "talent",
+      "w": 35.61,
+      "h": 19,
+      "hitW": 35.61,
+      "hitH": 19,
+      "x": 192.1,
+      "y": 17120,
+      "box": {
+        "left": 192.13,
+        "top": 17120.03,
+        "right": 227.73,
+        "bottom": 17139.03
+      }
+    },
+    {
+      "page": "help",
+      "selector": "help-card-rel",
+      "text": "thought-report",
+      "w": 243.53,
+      "h": 38.5,
+      "hitW": 243.53,
+      "hitH": 38.5,
+      "x": 45,
+      "y": 17120,
+      "box": {
+        "left": 45,
+        "top": 17120.03,
+        "right": 288.53,
+        "bottom": 17158.53
+      }
+    },
+    {
+      "page": "help",
+      "selector": "help-card-rel",
+      "text": "todo",
+      "w": 28.48,
+      "h": 19,
+      "hitW": 28.48,
+      "hitH": 19,
+      "x": 91,
+      "y": 17139.5,
+      "box": {
+        "left": 90.95,
+        "top": 17139.53,
+        "right": 119.44,
+        "bottom": 17158.53
+      }
+    },
+    {
+      "page": "help",
+      "selector": "help-card-rel",
+      "text": "tasks",
+      "w": 31.22,
+      "h": 19,
+      "hitW": 31.22,
+      "hitH": 19,
+      "x": 84,
+      "y": 17454.6,
+      "box": {
+        "left": 84,
+        "top": 17454.61,
+        "right": 115.22,
+        "bottom": 17473.61
+      }
+    },
+    {
+      "page": "help",
+      "selector": "help-card-rel",
+      "text": "branch-doc",
+      "w": 69.56,
+      "h": 19,
+      "hitW": 69.56,
+      "hitH": 19,
+      "x": 123.2,
+      "y": 17454.6,
+      "box": {
+        "left": 123.22,
+        "top": 17454.61,
+        "right": 192.78,
+        "bottom": 17473.61
+      }
+    },
+    {
+      "page": "help",
+      "selector": "help-card-rel",
+      "text": "weekly",
+      "w": 42.39,
+      "h": 19,
+      "hitW": 42.39,
+      "hitH": 19,
+      "x": 200.8,
+      "y": 17454.6,
+      "box": {
+        "left": 200.78,
+        "top": 17454.61,
+        "right": 243.17,
+        "bottom": 17473.61
+      }
+    },
+    {
+      "page": "help",
+      "selector": "help-card-rel",
+      "text": "archive",
+      "w": 44.17,
+      "h": 19,
+      "hitW": 44.17,
+      "hitH": 19,
+      "x": 251.2,
+      "y": 17454.6,
+      "box": {
+        "left": 251.17,
+        "top": 17454.61,
+        "right": 295.34,
+        "bottom": 17473.61
+      }
+    },
+    {
+      "page": "help",
+      "selector": "help-card-rel",
+      "text": "todo",
+      "w": 28.48,
+      "h": 19,
+      "hitW": 28.48,
+      "hitH": 19,
+      "x": 303.3,
+      "y": 17454.6,
+      "box": {
+        "left": 303.34,
+        "top": 17454.61,
+        "right": 331.83,
+        "bottom": 17473.61
+      }
+    },
+    {
+      "page": "help",
+      "selector": "help-card-rel",
+      "text": "attendance-mgmt",
+      "w": 109.19,
+      "h": 19,
+      "hitW": 109.19,
+      "hitH": 19,
+      "x": 84,
+      "y": 17769.7,
+      "box": {
+        "left": 84,
+        "top": 17769.69,
+        "right": 193.19,
+        "bottom": 17788.69
+      }
+    },
+    {
+      "page": "help",
+      "selector": "help-card-rel",
+      "text": "makeup",
+      "w": 49.41,
+      "h": 19,
+      "hitW": 49.41,
+      "hitH": 19,
+      "x": 201.2,
+      "y": 17769.7,
+      "box": {
+        "left": 201.19,
+        "top": 17769.69,
+        "right": 250.59,
+        "bottom": 17788.69
+      }
+    },
+    {
+      "page": "help",
+      "selector": "help-card-rel",
+      "text": "review",
+      "w": 40.13,
+      "h": 19,
+      "hitW": 40.13,
+      "hitH": 19,
+      "x": 258.6,
+      "y": 17769.7,
+      "box": {
+        "left": 258.59,
+        "top": 17769.69,
+        "right": 298.72,
+        "bottom": 17788.69
+      }
+    },
+    {
+      "page": "help",
+      "selector": "help-card-rel",
+      "text": "todo",
+      "w": 28.48,
+      "h": 19,
+      "hitW": 28.48,
+      "hitH": 19,
+      "x": 306.7,
+      "y": 17769.7,
+      "box": {
+        "left": 306.72,
+        "top": 17769.69,
+        "right": 335.2,
+        "bottom": 17788.69
+      }
+    },
+    {
+      "page": "help",
+      "selector": "help-card-rel",
+      "text": "activity-create",
+      "w": 86.17,
+      "h": 19,
+      "hitW": 86.17,
+      "hitH": 19,
+      "x": 84,
+      "y": 18138.8,
+      "box": {
+        "left": 84,
+        "top": 18138.77,
+        "right": 170.17,
+        "bottom": 18157.77
+      }
+    },
+    {
+      "page": "help",
+      "selector": "help-card-rel",
+      "text": "attendance-personal",
+      "w": 206.05,
+      "h": 38.5,
+      "hitW": 206.05,
+      "hitH": 38.5,
+      "x": 45,
+      "y": 18138.8,
+      "box": {
+        "left": 45,
+        "top": 18138.77,
+        "right": 251.05,
+        "bottom": 18177.27
+      }
+    },
+    {
+      "page": "help",
+      "selector": "help-card-rel",
+      "text": "review",
+      "w": 40.13,
+      "h": 19,
+      "hitW": 40.13,
+      "hitH": 19,
+      "x": 106.1,
+      "y": 18158.3,
+      "box": {
+        "left": 106.13,
+        "top": 18158.27,
+        "right": 146.25,
+        "bottom": 18177.27
+      }
+    },
+    {
+      "page": "help",
+      "selector": "help-card-rel",
+      "text": "todo",
+      "w": 28.48,
+      "h": 19,
+      "hitW": 28.48,
+      "hitH": 19,
+      "x": 154.3,
+      "y": 18158.3,
+      "box": {
+        "left": 154.25,
+        "top": 18158.27,
+        "right": 182.73,
+        "bottom": 18177.27
+      }
+    },
+    {
+      "page": "help",
+      "selector": "help-card-rel",
+      "text": "homepage",
+      "w": 64.45,
+      "h": 19,
+      "hitW": 64.45,
+      "hitH": 19,
+      "x": 84,
+      "y": 18527.3,
+      "box": {
+        "left": 84,
+        "top": 18527.34,
+        "right": 148.45,
+        "bottom": 18546.34
+      }
+    },
+    {
+      "page": "help",
+      "selector": "help-card-rel",
+      "text": "thought-report",
+      "w": 90.73,
+      "h": 19,
+      "hitW": 90.73,
+      "hitH": 19,
+      "x": 156.5,
+      "y": 18527.3,
+      "box": {
+        "left": 156.45,
+        "top": 18527.34,
+        "right": 247.19,
+        "bottom": 18546.34
+      }
+    },
+    {
+      "page": "help",
+      "selector": "help-card-rel",
+      "text": "review",
+      "w": 40.13,
+      "h": 19,
+      "hitW": 40.13,
+      "hitH": 19,
+      "x": 255.2,
+      "y": 18527.3,
+      "box": {
+        "left": 255.19,
+        "top": 18527.34,
+        "right": 295.31,
+        "bottom": 18546.34
+      }
+    },
+    {
+      "page": "help",
+      "selector": "help-card-rel",
+      "text": "todo",
+      "w": 28.48,
+      "h": 19,
+      "hitW": 28.48,
+      "hitH": 19,
+      "x": 303.3,
+      "y": 18527.3,
+      "box": {
+        "left": 303.31,
+        "top": 18527.34,
+        "right": 331.8,
+        "bottom": 18546.34
+      }
+    },
+    {
+      "page": "help",
+      "selector": "help-chapter-summary",
+      "text": "3域手册",
+      "w": 296,
+      "h": 40,
+      "hitW": 296,
+      "hitH": 40,
+      "x": 47,
+      "y": 18584.8,
+      "box": {
+        "left": 47,
+        "top": 18584.84,
+        "right": 343,
+        "bottom": 18624.84
+      }
+    },
+    {
+      "page": "help",
+      "selector": "A",
+      "text": "支委会会议页",
+      "w": 90,
+      "h": 21,
+      "hitW": 90,
+      "hitH": 21,
+      "x": 175.7,
+      "y": 23093.1,
+      "box": {
+        "left": 175.73,
+        "top": 23093.09,
+        "right": 265.73,
+        "bottom": 23114.09
+      }
+    },
+    {
+      "page": "help",
+      "selector": "help-chapter-summary",
+      "text": "4设置逐项",
+      "w": 296,
+      "h": 40,
+      "hitW": 296,
+      "hitH": 40,
+      "x": 47,
+      "y": 18692.8,
+      "box": {
+        "left": 47,
+        "top": 18692.84,
+        "right": 343,
+        "bottom": 18732.84
+      }
+    },
+    {
+      "page": "help",
+      "selector": "A",
+      "text": "settings.html",
+      "w": 91.89,
+      "h": 21,
+      "hitW": 91.89,
+      "hitH": 21,
+      "x": 47,
+      "y": 18955.6,
+      "box": {
+        "left": 47,
+        "top": 18955.59,
+        "right": 138.89,
+        "bottom": 18976.59
+      }
+    },
+    {
+      "page": "help",
+      "selector": "help-chapter-summary",
+      "text": "5业务链路",
+      "w": 296,
+      "h": 40,
+      "hitW": 296,
+      "hitH": 40,
+      "x": 47,
+      "y": 18800.8,
+      "box": {
+        "left": 47,
+        "top": 18800.84,
+        "right": 343,
+        "bottom": 18840.84
+      }
+    },
+    {
+      "page": "help",
+      "selector": "help-chapter-summary",
+      "text": "6党委与配置",
+      "w": 296,
+      "h": 40,
+      "hitW": 296,
+      "hitH": 40,
+      "x": 47,
+      "y": 18908.8,
+      "box": {
+        "left": 47,
+        "top": 18908.84,
+        "right": 343,
+        "bottom": 18948.84
+      }
+    },
+    {
+      "page": "help",
+      "selector": "help-chapter-summary",
+      "text": "7这个系统在干什么",
+      "w": 296,
+      "h": 40,
+      "hitW": 296,
+      "hitH": 40,
+      "x": 47,
+      "y": 19016.8,
+      "box": {
+        "left": 47,
+        "top": 19016.84,
+        "right": 343,
+        "bottom": 19056.84
+      }
+    },
+    {
+      "page": "help",
+      "selector": "help-chapter-summary",
+      "text": "8技术架构",
+      "w": 296,
+      "h": 40,
+      "hitW": 296,
+      "hitH": 40,
+      "x": 47,
+      "y": 19124.8,
+      "box": {
+        "left": 47,
+        "top": 19124.84,
+        "right": 343,
+        "bottom": 19164.84
+      }
+    }
+  ],
+  "offenderCount": 269,
+  "forms": {
+    "loginEmpty": {
+      "message": "请输入学号与密码",
+      "visible": true,
+      "errorTop": 586.8,
+      "errorNearFields": true,
+      "studentId": {
+        "invalid": "true",
+        "describedby": "login-error",
+        "value": ""
+      },
+      "password": {
+        "invalid": "true",
+        "describedby": "login-error",
+        "value": ""
+      },
+      "focused": "student-id"
+    },
+    "loginWrong": {
+      "message": "口令错误",
+      "visible": true,
+      "errorTop": 586.8,
+      "errorNearFields": true,
+      "studentId": {
+        "invalid": "true",
+        "describedby": "login-error",
+        "value": "2300010001"
+      },
+      "password": {
+        "invalid": "true",
+        "describedby": "login-error",
+        "value": "wrong-pass"
+      },
+      "focused": "student-id"
+    },
+    "loginNetwork": {
+      "message": "登录未完成：无法连接服务器，请稍后重试；也可改用统一身份认证登录。",
+      "visible": true,
+      "errorTop": 578.8,
+      "errorNearFields": true,
+      "studentId": {
+        "invalid": "true",
+        "describedby": "login-error",
+        "value": "2300010001"
+      },
+      "password": {
+        "invalid": "true",
+        "describedby": "login-error",
+        "value": "123456"
+      },
+      "focused": "student-id"
+    },
+    "settingsHeaderEmpty": {
+      "message": "页眉显示名不能为空",
+      "visible": true,
+      "invalid": "true",
+      "describedby": "wz-org-header-err",
+      "errorNearField": true,
+      "errorTop": 163,
+      "valuePreserved": ""
+    },
+    "settingsHeaderWhitespace": {
+      "message": "页眉显示名不能为空",
+      "visible": true,
+      "invalid": "true",
+      "describedby": "wz-org-header-err",
+      "valuePreserved": "   "
+    },
+    "settingsHeaderCleared": {
+      "invalid": null,
+      "describedby": null,
+      "value": "光华党支部"
+    },
+    "settingsAppointMissing": {
+      "message": "已勾选「就地任命首任骨干」，请选择首任支书（或取消勾选，仅创建空支部）",
+      "visible": true,
+      "invalid": "true",
+      "describedby": "wz-create-appoint-secretary-err"
+    },
+    "settingsAppointConflict": {
+      "visible": true,
+      "secInvalid": "true",
+      "secDescribedby": "wz-create-appoint-conflict",
+      "orgInvalid": "true",
+      "orgDescribedby": "wz-create-appoint-conflict"
+    }
+  },
+  "modal": {
+    "overlay": true,
+    "focusInPanel": true,
+    "hasCloseBtn": false,
+    "tabTrapped": true,
+    "closedByEsc": true,
+    "focusReturned": true,
+    "resolveValue": false
+  },
+  "screenshots": [
+    "D:\\GitHub\\GSM1921-SOP\\.ctx\\evidence\\2026-10-31\\390-workbench-tabs-after.png",
+    "D:\\GitHub\\GSM1921-SOP\\.ctx\\evidence\\2026-10-31\\390-workbench-tabs-before.png",
+    "D:\\GitHub\\GSM1921-SOP\\.ctx\\evidence\\2026-10-31\\390-calendar-cells-after.png",
+    "D:\\GitHub\\GSM1921-SOP\\.ctx\\evidence\\2026-10-31\\390-calendar-cells-before.png",
+    "D:\\GitHub\\GSM1921-SOP\\.ctx\\evidence\\2026-10-31\\390-calendar-view-switch-after.png",
+    "D:\\GitHub\\GSM1921-SOP\\.ctx\\evidence\\2026-10-31\\390-calendar-view-switch-before.png",
+    "D:\\GitHub\\GSM1921-SOP\\.ctx\\evidence\\2026-10-31\\390-todo-more-after.png",
+    "D:\\GitHub\\GSM1921-SOP\\.ctx\\evidence\\2026-10-31\\390-todo-more-before.png",
+    "D:\\GitHub\\GSM1921-SOP\\.ctx\\evidence\\2026-10-31\\390-settings-myws-after.png",
+    "D:\\GitHub\\GSM1921-SOP\\.ctx\\evidence\\2026-10-31\\390-settings-myws-before.png",
+    "D:\\GitHub\\GSM1921-SOP\\.ctx\\evidence\\2026-10-31\\390-settings-appearance-after.png",
+    "D:\\GitHub\\GSM1921-SOP\\.ctx\\evidence\\2026-10-31\\390-settings-appearance-before.png",
+    "D:\\GitHub\\GSM1921-SOP\\.ctx\\evidence\\2026-10-31\\390-help-toc-after.png",
+    "D:\\GitHub\\GSM1921-SOP\\.ctx\\evidence\\2026-10-31\\390-help-toc-before.png"
+  ],
+  "auditNotes": [
+    "可点元素命中区 <44×44 共 269 个（390×844；含输入框 / 普通按钮等未列入本轮六类的控件）。"
+  ]
+}

@@ -29,7 +29,7 @@ import assert from 'node:assert/strict';
 import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { join, relative, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { ACCENT_COLORS } from '../../docs/src/core/domain/constants.js?v=20261029b';
+import { ACCENT_COLORS } from '../../docs/src/core/domain/constants.js?v=20261031a';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(HERE, '..', '..');

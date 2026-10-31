@@ -1,0 +1,2281 @@
+{
+  "meta": {
+    "auditor": "空间与密度调研员",
+    "date": "2026-10-30",
+    "method": "Playwright(chromium) 真机读数 @ http://localhost:3000，亮色；登录 2300010001（支书），单页会话；字体 CDN 阻断后回退系统字体（不影响几何）。",
+    "definitions": {
+      "containerWidth": "容器内容盒宽（扣掉 padding）：.page-frame / .doc-wrap / main 内 max-w 列",
+      "contentWidth": "容器内所有文字 text-node 精确矩形 + 图形/控件的横向包络宽",
+      "fillRatio": "contentWidth ÷ containerWidth",
+      "containerToViewport": "containerWidth ÷ 视口宽",
+      "contentToViewport": "contentWidth ÷ 视口宽",
+      "blankRatio": "把容器内容区切成 20 列×10 行，完全无墨迹的格子占比（整页内容高）",
+      "blankRatioFirstScreen": "同上，但纵向只取容器顶到视口底（首屏）",
+      "density": "字符数 ÷ (面积/10000)，单位：字符/万 px²；perCm2 = 字符/平方厘米（96 CSS px = 1 inch）",
+      "topOffsetToFirstContent": "从文档顶到首个 .card/.stat-card/.doc-card/表格行的 y（px）"
+    },
+    "pages": 32,
+    "viewports": [
+      1440,
+      1024,
+      768,
+      390
+    ]
+  },
+  "pages": [
+    {
+      "page": "index",
+      "label": "首页",
+      "viewport": 1440,
+      "containerWidth": 1152,
+      "contentWidth": 1110,
+      "fillRatio": 0.964,
+      "containerToViewport": 0.8,
+      "contentToViewport": 0.771,
+      "blankRatio": 0.415,
+      "blankRatioFirstScreen": 0.325,
+      "edgeBlankShare": 0,
+      "topOffsetToFirstContent": 204,
+      "firstContentBelowContainerTop": 116,
+      "leftGutter": 144,
+      "rightGutter": 144,
+      "inkLeftGutter": 165,
+      "inkRightGutter": 165,
+      "gapDistinct": 6,
+      "gapTop": [
+        {
+          "v": 16,
+          "n": 6
+        },
+        {
+          "v": 0,
+          "n": 5
+        },
+        {
+          "v": 4,
+          "n": 4
+        },
+        {
+          "v": 24,
+          "n": 4
+        },
+        {
+          "v": 12,
+          "n": 2
+        },
+        {
+          "v": 8,
+          "n": 1
+        }
+      ],
+      "maxConsecutiveGap24": 2,
+      "headerInfo": {
+        "titleTop": 148,
+        "titleBottom": 180,
+        "descGap": null,
+        "nextBlockGap": 24
+      },
+      "uniform": [
+        {
+          "size": "276x104",
+          "count": 4,
+          "charsMin": 6,
+          "charsMax": 8
+        },
+        {
+          "size": "522x56",
+          "count": 4,
+          "charsMin": 25,
+          "charsMax": 46
+        }
+      ],
+      "tinyTiles": 4,
+      "contentBottom": 1249,
+      "pageTextChars": 554,
+      "notes": "container=div.max-w-6xl mx-auto maxW=1152px；fillRatio=内容墨迹宽/容器宽，containerToViewport=容器/视口，contentToViewport=内容/视口"
+    },
+    {
+      "page": "secretary-today",
+      "label": "支书·今天",
+      "viewport": 1440,
+      "containerWidth": 1152,
+      "contentWidth": 1131,
+      "fillRatio": 0.982,
+      "containerToViewport": 0.8,
+      "contentToViewport": 0.785,
+      "blankRatio": 0.715,
+      "blankRatioFirstScreen": 0.715,
+      "edgeBlankShare": 0,
+      "topOffsetToFirstContent": 222,
+      "firstContentBelowContainerTop": 134,
+      "leftGutter": 144,
+      "rightGutter": 144,
+      "inkLeftGutter": 144,
+      "inkRightGutter": 165,
+      "gapDistinct": 4,
+      "gapTop": [
+        {
+          "v": 0,
+          "n": 1
+        },
+        {
+          "v": 4,
+          "n": 1
+        },
+        {
+          "v": 8,
+          "n": 1
+        },
+        {
+          "v": 16,
+          "n": 1
+        }
+      ],
+      "maxConsecutiveGap24": 0,
+      "headerInfo": {
+        "titleTop": 176,
+        "titleBottom": 206,
+        "descGap": null,
+        "nextBlockGap": 16
+      },
+      "uniform": [],
+      "tinyTiles": 0,
+      "contentBottom": 310,
+      "pageTextChars": 130,
+      "notes": "container=div.page-frame maxW=1152px；fillRatio=内容墨迹宽/容器宽，containerToViewport=容器/视口，contentToViewport=内容/视口"
+    },
+    {
+      "page": "secretary-overview",
+      "label": "支书·全局概况",
+      "viewport": 1440,
+      "containerWidth": 1152,
+      "contentWidth": 1135,
+      "fillRatio": 0.985,
+      "containerToViewport": 0.8,
+      "contentToViewport": 0.788,
+      "blankRatio": 0.345,
+      "blankRatioFirstScreen": 0.49,
+      "edgeBlankShare": 0,
+      "topOffsetToFirstContent": 230,
+      "firstContentBelowContainerTop": 142,
+      "leftGutter": 144,
+      "rightGutter": 144,
+      "inkLeftGutter": 144,
+      "inkRightGutter": 161,
+      "gapDistinct": 3,
+      "gapTop": [
+        {
+          "v": 24,
+          "n": 6
+        },
+        {
+          "v": 0,
+          "n": 1
+        },
+        {
+          "v": 8,
+          "n": 1
+        }
+      ],
+      "maxConsecutiveGap24": 6,
+      "headerInfo": {
+        "titleTop": 176,
+        "titleBottom": 206,
+        "descGap": null,
+        "nextBlockGap": 24
+      },
+      "uniform": [
+        {
+          "size": "1076x56",
+          "count": 10,
+          "charsMin": 41,
+          "charsMax": 57
+        },
+        {
+          "size": "276x80",
+          "count": 4,
+          "charsMin": 4,
+          "charsMax": 6
+        },
+        {
+          "size": "1118x56",
+          "count": 3,
+          "charsMin": 30,
+          "charsMax": 32
+        },
+        {
+          "size": "1118x80",
+          "count": 3,
+          "charsMin": 46,
+          "charsMax": 46
+        }
+      ],
+      "tinyTiles": 5,
+      "contentBottom": 2429,
+      "pageTextChars": 1039,
+      "notes": "container=div.page-frame maxW=1152px；fillRatio=内容墨迹宽/容器宽，containerToViewport=容器/视口，contentToViewport=内容/视口"
+    },
+    {
+      "page": "secretary-calendar",
+      "label": "支书·活动管理(日历)",
+      "viewport": 1440,
+      "containerWidth": 1152,
+      "contentWidth": 1131,
+      "fillRatio": 0.982,
+      "containerToViewport": 0.8,
+      "contentToViewport": 0.785,
+      "blankRatio": 0.5,
+      "blankRatioFirstScreen": 0.485,
+      "edgeBlankShare": 0,
+      "topOffsetToFirstContent": 293,
+      "firstContentBelowContainerTop": 205,
+      "leftGutter": 144,
+      "rightGutter": 144,
+      "inkLeftGutter": 144,
+      "inkRightGutter": 165,
+      "gapDistinct": 4,
+      "gapTop": [
+        {
+          "v": 12,
+          "n": 3
+        },
+        {
+          "v": 8,
+          "n": 2
+        },
+        {
+          "v": 0,
+          "n": 1
+        },
+        {
+          "v": 16,
+          "n": 1
+        }
+      ],
+      "maxConsecutiveGap24": 0,
+      "headerInfo": {
+        "titleTop": 176,
+        "titleBottom": 206,
+        "descGap": 8,
+        "nextBlockGap": 87
+      },
+      "uniform": [],
+      "tinyTiles": 0,
+      "contentBottom": 1174,
+      "pageTextChars": 415,
+      "notes": "container=div.page-frame maxW=1152px；fillRatio=内容墨迹宽/容器宽，containerToViewport=容器/视口，contentToViewport=内容/视口"
+    },
+    {
+      "page": "archive",
+      "label": "归档库",
+      "viewport": 1440,
+      "containerWidth": 992,
+      "contentWidth": 971,
+      "fillRatio": 0.979,
+      "containerToViewport": 0.689,
+      "contentToViewport": 0.674,
+      "blankRatio": 0.63,
+      "blankRatioFirstScreen": 0.63,
+      "edgeBlankShare": 0,
+      "topOffsetToFirstContent": 132,
+      "firstContentBelowContainerTop": 44,
+      "leftGutter": 208,
+      "rightGutter": 208,
+      "inkLeftGutter": 224,
+      "inkRightGutter": 245,
+      "gapDistinct": 2,
+      "gapTop": [
+        {
+          "v": 24,
+          "n": 2
+        },
+        {
+          "v": 16,
+          "n": 1
+        }
+      ],
+      "maxConsecutiveGap24": 2,
+      "headerInfo": {
+        "titleTop": 88,
+        "titleBottom": 116,
+        "descGap": null,
+        "nextBlockGap": 16
+      },
+      "uniform": [],
+      "tinyTiles": 0,
+      "contentBottom": 314,
+      "pageTextChars": 72,
+      "notes": "container=div.max-w-5xl mx-auto px-4 py-6 maxW=1024px；fillRatio=内容墨迹宽/容器宽，containerToViewport=容器/视口，contentToViewport=内容/视口"
+    },
+    {
+      "page": "settings",
+      "label": "设置",
+      "viewport": 1440,
+      "containerWidth": 1024,
+      "contentWidth": 897,
+      "fillRatio": 0.876,
+      "containerToViewport": 0.711,
+      "contentToViewport": 0.623,
+      "blankRatio": 0.56,
+      "blankRatioFirstScreen": 0.56,
+      "edgeBlankShare": 0.179,
+      "topOffsetToFirstContent": 173,
+      "firstContentBelowContainerTop": 85,
+      "leftGutter": 208,
+      "rightGutter": 208,
+      "inkLeftGutter": 208,
+      "inkRightGutter": 335,
+      "gapDistinct": 8,
+      "gapTop": [
+        {
+          "v": 2,
+          "n": 4
+        },
+        {
+          "v": 0,
+          "n": 2
+        },
+        {
+          "v": 6,
+          "n": 2
+        },
+        {
+          "v": 8,
+          "n": 2
+        },
+        {
+          "v": 16,
+          "n": 2
+        },
+        {
+          "v": 4,
+          "n": 1
+        },
+        {
+          "v": 20,
+          "n": 1
+        },
+        {
+          "v": 37,
+          "n": 1
+        }
+      ],
+      "maxConsecutiveGap24": 1,
+      "headerInfo": {
+        "titleTop": 88,
+        "titleBottom": 116,
+        "descGap": null,
+        "nextBlockGap": 57
+      },
+      "uniform": [],
+      "tinyTiles": 0,
+      "contentBottom": 870,
+      "pageTextChars": 349,
+      "notes": "container=div.max-w-5xl mx-auto maxW=1024px；fillRatio=内容墨迹宽/容器宽，containerToViewport=容器/视口，contentToViewport=内容/视口"
+    },
+    {
+      "page": "help",
+      "label": "帮助",
+      "viewport": 1440,
+      "containerWidth": 1248,
+      "contentWidth": 1225,
+      "fillRatio": 0.982,
+      "containerToViewport": 0.867,
+      "contentToViewport": 0.851,
+      "blankRatio": 0.25,
+      "blankRatioFirstScreen": 0.45,
+      "edgeBlankShare": 0,
+      "topOffsetToFirstContent": 462,
+      "firstContentBelowContainerTop": 350,
+      "leftGutter": 80,
+      "rightGutter": 80,
+      "inkLeftGutter": 119,
+      "inkRightGutter": 69,
+      "gapDistinct": 21,
+      "gapTop": [
+        {
+          "v": 0,
+          "n": 120
+        },
+        {
+          "v": 12,
+          "n": 118
+        },
+        {
+          "v": 6,
+          "n": 80
+        },
+        {
+          "v": 8,
+          "n": 74
+        },
+        {
+          "v": 10,
+          "n": 47
+        },
+        {
+          "v": 4,
+          "n": 40
+        },
+        {
+          "v": 34,
+          "n": 31
+        },
+        {
+          "v": 5,
+          "n": 15
+        }
+      ],
+      "maxConsecutiveGap24": 6,
+      "headerInfo": {
+        "titleTop": 172,
+        "titleBottom": 204,
+        "descGap": null,
+        "nextBlockGap": 258
+      },
+      "uniform": [
+        {
+          "size": "1000x114",
+          "count": 9,
+          "charsMin": 4,
+          "charsMax": 9
+        }
+      ],
+      "tinyTiles": 8,
+      "contentBottom": 14614,
+      "pageTextChars": 9505,
+      "notes": "container=div.doc-wrap maxW=1280px；fillRatio=内容墨迹宽/容器宽，containerToViewport=容器/视口，contentToViewport=内容/视口"
+    },
+    {
+      "page": "messages",
+      "label": "消息",
+      "viewport": 1440,
+      "containerWidth": 736,
+      "contentWidth": 715,
+      "fillRatio": 0.971,
+      "containerToViewport": 0.511,
+      "contentToViewport": 0.497,
+      "blankRatio": 0.31,
+      "blankRatioFirstScreen": 0.31,
+      "edgeBlankShare": 0.21,
+      "topOffsetToFirstContent": 88,
+      "firstContentBelowContainerTop": 0,
+      "leftGutter": 336,
+      "rightGutter": 336,
+      "inkLeftGutter": 373,
+      "inkRightGutter": 280,
+      "gapDistinct": 4,
+      "gapTop": [
+        {
+          "v": 8,
+          "n": 3
+        },
+        {
+          "v": 12,
+          "n": 2
+        },
+        {
+          "v": 2,
+          "n": 1
+        },
+        {
+          "v": 4,
+          "n": 1
+        }
+      ],
+      "maxConsecutiveGap24": 0,
+      "headerInfo": {
+        "titleTop": 113,
+        "titleBottom": 141,
+        "descGap": null,
+        "nextBlockGap": -53
+      },
+      "uniform": [],
+      "tinyTiles": 0,
+      "contentBottom": 384,
+      "pageTextChars": 236,
+      "notes": "container=div.max-w-3xl mx-auto px-4 py-6 maxW=768px；fillRatio=内容墨迹宽/容器宽，containerToViewport=容器/视口，contentToViewport=内容/视口"
+    },
+    {
+      "page": "index",
+      "label": "首页",
+      "viewport": 1024,
+      "containerWidth": 960,
+      "contentWidth": 918,
+      "fillRatio": 0.956,
+      "containerToViewport": 0.938,
+      "contentToViewport": 0.896,
+      "blankRatio": 0.405,
+      "blankRatioFirstScreen": 0.605,
+      "edgeBlankShare": 0,
+      "topOffsetToFirstContent": 204,
+      "firstContentBelowContainerTop": 116,
+      "leftGutter": 32,
+      "rightGutter": 32,
+      "inkLeftGutter": 53,
+      "inkRightGutter": 53,
+      "gapDistinct": 6,
+      "gapTop": [
+        {
+          "v": 16,
+          "n": 7
+        },
+        {
+          "v": 0,
+          "n": 5
+        },
+        {
+          "v": 4,
+          "n": 4
+        },
+        {
+          "v": 24,
+          "n": 4
+        },
+        {
+          "v": 12,
+          "n": 2
+        },
+        {
+          "v": 8,
+          "n": 1
+        }
+      ],
+      "maxConsecutiveGap24": 2,
+      "headerInfo": {
+        "titleTop": 148,
+        "titleBottom": 180,
+        "descGap": null,
+        "nextBlockGap": 24
+      },
+      "uniform": [
+        {
+          "size": "472x104",
+          "count": 4,
+          "charsMin": 6,
+          "charsMax": 8
+        },
+        {
+          "size": "426x56",
+          "count": 3,
+          "charsMin": 25,
+          "charsMax": 40
+        }
+      ],
+      "tinyTiles": 4,
+      "contentBottom": 1301,
+      "pageTextChars": 554,
+      "notes": "container=div.max-w-6xl mx-auto maxW=1152px；fillRatio=内容墨迹宽/容器宽，containerToViewport=容器/视口，contentToViewport=内容/视口"
+    },
+    {
+      "page": "secretary-today",
+      "label": "支书·今天",
+      "viewport": 1024,
+      "containerWidth": 960,
+      "contentWidth": 939,
+      "fillRatio": 0.978,
+      "containerToViewport": 0.938,
+      "contentToViewport": 0.917,
+      "blankRatio": 0.66,
+      "blankRatioFirstScreen": 0.66,
+      "edgeBlankShare": 0,
+      "topOffsetToFirstContent": 222,
+      "firstContentBelowContainerTop": 134,
+      "leftGutter": 32,
+      "rightGutter": 32,
+      "inkLeftGutter": 32,
+      "inkRightGutter": 53,
+      "gapDistinct": 4,
+      "gapTop": [
+        {
+          "v": 0,
+          "n": 1
+        },
+        {
+          "v": 4,
+          "n": 1
+        },
+        {
+          "v": 8,
+          "n": 1
+        },
+        {
+          "v": 16,
+          "n": 1
+        }
+      ],
+      "maxConsecutiveGap24": 0,
+      "headerInfo": {
+        "titleTop": 176,
+        "titleBottom": 206,
+        "descGap": null,
+        "nextBlockGap": 16
+      },
+      "uniform": [],
+      "tinyTiles": 0,
+      "contentBottom": 310,
+      "pageTextChars": 130,
+      "notes": "container=div.page-frame maxW=1152px；fillRatio=内容墨迹宽/容器宽，containerToViewport=容器/视口，contentToViewport=内容/视口"
+    },
+    {
+      "page": "secretary-overview",
+      "label": "支书·全局概况",
+      "viewport": 1024,
+      "containerWidth": 960,
+      "contentWidth": 943,
+      "fillRatio": 0.982,
+      "containerToViewport": 0.938,
+      "contentToViewport": 0.921,
+      "blankRatio": 0.31,
+      "blankRatioFirstScreen": 0.475,
+      "edgeBlankShare": 0,
+      "topOffsetToFirstContent": 230,
+      "firstContentBelowContainerTop": 142,
+      "leftGutter": 32,
+      "rightGutter": 32,
+      "inkLeftGutter": 32,
+      "inkRightGutter": 49,
+      "gapDistinct": 3,
+      "gapTop": [
+        {
+          "v": 24,
+          "n": 6
+        },
+        {
+          "v": 0,
+          "n": 1
+        },
+        {
+          "v": 8,
+          "n": 1
+        }
+      ],
+      "maxConsecutiveGap24": 6,
+      "headerInfo": {
+        "titleTop": 176,
+        "titleBottom": 206,
+        "descGap": null,
+        "nextBlockGap": 24
+      },
+      "uniform": [
+        {
+          "size": "884x56",
+          "count": 10,
+          "charsMin": 41,
+          "charsMax": 57
+        },
+        {
+          "size": "472x80",
+          "count": 4,
+          "charsMin": 4,
+          "charsMax": 6
+        },
+        {
+          "size": "926x56",
+          "count": 3,
+          "charsMin": 30,
+          "charsMax": 32
+        },
+        {
+          "size": "926x80",
+          "count": 3,
+          "charsMin": 46,
+          "charsMax": 46
+        }
+      ],
+      "tinyTiles": 5,
+      "contentBottom": 2525,
+      "pageTextChars": 1039,
+      "notes": "container=div.page-frame maxW=1152px；fillRatio=内容墨迹宽/容器宽，containerToViewport=容器/视口，contentToViewport=内容/视口"
+    },
+    {
+      "page": "secretary-calendar",
+      "label": "支书·活动管理(日历)",
+      "viewport": 1024,
+      "containerWidth": 960,
+      "contentWidth": 939,
+      "fillRatio": 0.978,
+      "containerToViewport": 0.938,
+      "contentToViewport": 0.917,
+      "blankRatio": 0.5,
+      "blankRatioFirstScreen": 0.515,
+      "edgeBlankShare": 0,
+      "topOffsetToFirstContent": 293,
+      "firstContentBelowContainerTop": 205,
+      "leftGutter": 32,
+      "rightGutter": 32,
+      "inkLeftGutter": 32,
+      "inkRightGutter": 53,
+      "gapDistinct": 4,
+      "gapTop": [
+        {
+          "v": 12,
+          "n": 3
+        },
+        {
+          "v": 8,
+          "n": 2
+        },
+        {
+          "v": 0,
+          "n": 1
+        },
+        {
+          "v": 16,
+          "n": 1
+        }
+      ],
+      "maxConsecutiveGap24": 0,
+      "headerInfo": {
+        "titleTop": 176,
+        "titleBottom": 206,
+        "descGap": 8,
+        "nextBlockGap": 87
+      },
+      "uniform": [],
+      "tinyTiles": 0,
+      "contentBottom": 1091,
+      "pageTextChars": 389,
+      "notes": "container=div.page-frame maxW=1152px；fillRatio=内容墨迹宽/容器宽，containerToViewport=容器/视口，contentToViewport=内容/视口"
+    },
+    {
+      "page": "archive",
+      "label": "归档库",
+      "viewport": 1024,
+      "containerWidth": 992,
+      "contentWidth": 971,
+      "fillRatio": 0.979,
+      "containerToViewport": 0.969,
+      "contentToViewport": 0.948,
+      "blankRatio": 0.63,
+      "blankRatioFirstScreen": 0.63,
+      "edgeBlankShare": 0,
+      "topOffsetToFirstContent": 132,
+      "firstContentBelowContainerTop": 44,
+      "leftGutter": 0,
+      "rightGutter": 0,
+      "inkLeftGutter": 16,
+      "inkRightGutter": 37,
+      "gapDistinct": 2,
+      "gapTop": [
+        {
+          "v": 24,
+          "n": 2
+        },
+        {
+          "v": 16,
+          "n": 1
+        }
+      ],
+      "maxConsecutiveGap24": 2,
+      "headerInfo": {
+        "titleTop": 88,
+        "titleBottom": 116,
+        "descGap": null,
+        "nextBlockGap": 16
+      },
+      "uniform": [],
+      "tinyTiles": 0,
+      "contentBottom": 314,
+      "pageTextChars": 72,
+      "notes": "container=div.max-w-5xl mx-auto px-4 py-6 maxW=1024px；fillRatio=内容墨迹宽/容器宽，containerToViewport=容器/视口，contentToViewport=内容/视口"
+    },
+    {
+      "page": "settings",
+      "label": "设置",
+      "viewport": 1024,
+      "containerWidth": 960,
+      "contentWidth": 897,
+      "fillRatio": 0.934,
+      "containerToViewport": 0.938,
+      "contentToViewport": 0.876,
+      "blankRatio": 0.53,
+      "blankRatioFirstScreen": 0.51,
+      "edgeBlankShare": 0.094,
+      "topOffsetToFirstContent": 173,
+      "firstContentBelowContainerTop": 85,
+      "leftGutter": 32,
+      "rightGutter": 32,
+      "inkLeftGutter": 32,
+      "inkRightGutter": 95,
+      "gapDistinct": 8,
+      "gapTop": [
+        {
+          "v": 2,
+          "n": 4
+        },
+        {
+          "v": 0,
+          "n": 2
+        },
+        {
+          "v": 6,
+          "n": 2
+        },
+        {
+          "v": 8,
+          "n": 2
+        },
+        {
+          "v": 16,
+          "n": 2
+        },
+        {
+          "v": 4,
+          "n": 1
+        },
+        {
+          "v": 20,
+          "n": 1
+        },
+        {
+          "v": 37,
+          "n": 1
+        }
+      ],
+      "maxConsecutiveGap24": 1,
+      "headerInfo": {
+        "titleTop": 88,
+        "titleBottom": 116,
+        "descGap": null,
+        "nextBlockGap": 57
+      },
+      "uniform": [],
+      "tinyTiles": 0,
+      "contentBottom": 870,
+      "pageTextChars": 349,
+      "notes": "container=div.max-w-5xl mx-auto maxW=1024px；fillRatio=内容墨迹宽/容器宽，containerToViewport=容器/视口，contentToViewport=内容/视口"
+    },
+    {
+      "page": "help",
+      "label": "帮助",
+      "viewport": 1024,
+      "containerWidth": 928,
+      "contentWidth": 905,
+      "fillRatio": 0.975,
+      "containerToViewport": 0.906,
+      "contentToViewport": 0.884,
+      "blankRatio": 0.29,
+      "blankRatioFirstScreen": 0.375,
+      "edgeBlankShare": 0,
+      "topOffsetToFirstContent": 462,
+      "firstContentBelowContainerTop": 350,
+      "leftGutter": 32,
+      "rightGutter": 32,
+      "inkLeftGutter": 71,
+      "inkRightGutter": 48,
+      "gapDistinct": 21,
+      "gapTop": [
+        {
+          "v": 0,
+          "n": 120
+        },
+        {
+          "v": 12,
+          "n": 118
+        },
+        {
+          "v": 6,
+          "n": 80
+        },
+        {
+          "v": 8,
+          "n": 74
+        },
+        {
+          "v": 10,
+          "n": 47
+        },
+        {
+          "v": 4,
+          "n": 40
+        },
+        {
+          "v": 34,
+          "n": 31
+        },
+        {
+          "v": 5,
+          "n": 15
+        }
+      ],
+      "maxConsecutiveGap24": 6,
+      "headerInfo": {
+        "titleTop": 172,
+        "titleBottom": 204,
+        "descGap": null,
+        "nextBlockGap": 258
+      },
+      "uniform": [
+        {
+          "size": "680x114",
+          "count": 9,
+          "charsMin": 4,
+          "charsMax": 9
+        }
+      ],
+      "tinyTiles": 8,
+      "contentBottom": 14695,
+      "pageTextChars": 9505,
+      "notes": "container=div.doc-wrap maxW=1280px；fillRatio=内容墨迹宽/容器宽，containerToViewport=容器/视口，contentToViewport=内容/视口"
+    },
+    {
+      "page": "messages",
+      "label": "消息",
+      "viewport": 1024,
+      "containerWidth": 736,
+      "contentWidth": 715,
+      "fillRatio": 0.971,
+      "containerToViewport": 0.719,
+      "contentToViewport": 0.698,
+      "blankRatio": 0.31,
+      "blankRatioFirstScreen": 0.31,
+      "edgeBlankShare": 0.21,
+      "topOffsetToFirstContent": 88,
+      "firstContentBelowContainerTop": 0,
+      "leftGutter": 128,
+      "rightGutter": 128,
+      "inkLeftGutter": 165,
+      "inkRightGutter": 72,
+      "gapDistinct": 4,
+      "gapTop": [
+        {
+          "v": 8,
+          "n": 3
+        },
+        {
+          "v": 12,
+          "n": 2
+        },
+        {
+          "v": 2,
+          "n": 1
+        },
+        {
+          "v": 4,
+          "n": 1
+        }
+      ],
+      "maxConsecutiveGap24": 0,
+      "headerInfo": {
+        "titleTop": 113,
+        "titleBottom": 141,
+        "descGap": null,
+        "nextBlockGap": -53
+      },
+      "uniform": [],
+      "tinyTiles": 0,
+      "contentBottom": 384,
+      "pageTextChars": 236,
+      "notes": "container=div.max-w-3xl mx-auto px-4 py-6 maxW=768px；fillRatio=内容墨迹宽/容器宽，containerToViewport=容器/视口，contentToViewport=内容/视口"
+    },
+    {
+      "page": "index",
+      "label": "首页",
+      "viewport": 768,
+      "containerWidth": 704,
+      "contentWidth": 662,
+      "fillRatio": 0.94,
+      "containerToViewport": 0.917,
+      "contentToViewport": 0.862,
+      "blankRatio": 0.265,
+      "blankRatioFirstScreen": 0.3,
+      "edgeBlankShare": 0.226,
+      "topOffsetToFirstContent": 204,
+      "firstContentBelowContainerTop": 116,
+      "leftGutter": 32,
+      "rightGutter": 32,
+      "inkLeftGutter": 53,
+      "inkRightGutter": 53,
+      "gapDistinct": 6,
+      "gapTop": [
+        {
+          "v": 16,
+          "n": 7
+        },
+        {
+          "v": 0,
+          "n": 5
+        },
+        {
+          "v": 4,
+          "n": 4
+        },
+        {
+          "v": 24,
+          "n": 4
+        },
+        {
+          "v": 12,
+          "n": 2
+        },
+        {
+          "v": 8,
+          "n": 1
+        }
+      ],
+      "maxConsecutiveGap24": 2,
+      "headerInfo": {
+        "titleTop": 148,
+        "titleBottom": 180,
+        "descGap": null,
+        "nextBlockGap": 24
+      },
+      "uniform": [
+        {
+          "size": "344x104",
+          "count": 4,
+          "charsMin": 6,
+          "charsMax": 8
+        },
+        {
+          "size": "298x72",
+          "count": 3,
+          "charsMin": 38,
+          "charsMax": 46
+        }
+      ],
+      "tinyTiles": 4,
+      "contentBottom": 1227,
+      "pageTextChars": 554,
+      "notes": "container=div.max-w-6xl mx-auto maxW=1152px；fillRatio=内容墨迹宽/容器宽，containerToViewport=容器/视口，contentToViewport=内容/视口"
+    },
+    {
+      "page": "secretary-today",
+      "label": "支书·今天",
+      "viewport": 768,
+      "containerWidth": 704,
+      "contentWidth": 704,
+      "fillRatio": 1,
+      "containerToViewport": 0.917,
+      "contentToViewport": 0.917,
+      "blankRatio": 0.595,
+      "blankRatioFirstScreen": 0.595,
+      "edgeBlankShare": 0,
+      "topOffsetToFirstContent": 222,
+      "firstContentBelowContainerTop": 134,
+      "leftGutter": 32,
+      "rightGutter": 32,
+      "inkLeftGutter": 32,
+      "inkRightGutter": 0,
+      "gapDistinct": 4,
+      "gapTop": [
+        {
+          "v": 0,
+          "n": 1
+        },
+        {
+          "v": 4,
+          "n": 1
+        },
+        {
+          "v": 11,
+          "n": 1
+        },
+        {
+          "v": 16,
+          "n": 1
+        }
+      ],
+      "maxConsecutiveGap24": 0,
+      "headerInfo": {
+        "titleTop": 176,
+        "titleBottom": 206,
+        "descGap": null,
+        "nextBlockGap": 16
+      },
+      "uniform": [],
+      "tinyTiles": 0,
+      "contentBottom": 310,
+      "pageTextChars": 135,
+      "notes": "container=div.page-frame maxW=1152px；fillRatio=内容墨迹宽/容器宽，containerToViewport=容器/视口，contentToViewport=内容/视口"
+    },
+    {
+      "page": "secretary-overview",
+      "label": "支书·全局概况",
+      "viewport": 768,
+      "containerWidth": 704,
+      "contentWidth": 704,
+      "fillRatio": 1,
+      "containerToViewport": 0.917,
+      "contentToViewport": 0.917,
+      "blankRatio": 0.195,
+      "blankRatioFirstScreen": 0.365,
+      "edgeBlankShare": 0,
+      "topOffsetToFirstContent": 230,
+      "firstContentBelowContainerTop": 142,
+      "leftGutter": 32,
+      "rightGutter": 32,
+      "inkLeftGutter": 32,
+      "inkRightGutter": 0,
+      "gapDistinct": 3,
+      "gapTop": [
+        {
+          "v": 24,
+          "n": 6
+        },
+        {
+          "v": 0,
+          "n": 1
+        },
+        {
+          "v": 11,
+          "n": 1
+        }
+      ],
+      "maxConsecutiveGap24": 6,
+      "headerInfo": {
+        "titleTop": 176,
+        "titleBottom": 206,
+        "descGap": null,
+        "nextBlockGap": 24
+      },
+      "uniform": [
+        {
+          "size": "628x56",
+          "count": 10,
+          "charsMin": 41,
+          "charsMax": 57
+        },
+        {
+          "size": "344x80",
+          "count": 4,
+          "charsMin": 4,
+          "charsMax": 6
+        },
+        {
+          "size": "670x56",
+          "count": 3,
+          "charsMin": 30,
+          "charsMax": 32
+        },
+        {
+          "size": "670x80",
+          "count": 3,
+          "charsMin": 46,
+          "charsMax": 46
+        }
+      ],
+      "tinyTiles": 5,
+      "contentBottom": 2525,
+      "pageTextChars": 1044,
+      "notes": "container=div.page-frame maxW=1152px；fillRatio=内容墨迹宽/容器宽，containerToViewport=容器/视口，contentToViewport=内容/视口"
+    },
+    {
+      "page": "secretary-calendar",
+      "label": "支书·活动管理(日历)",
+      "viewport": 768,
+      "containerWidth": 704,
+      "contentWidth": 704,
+      "fillRatio": 1,
+      "containerToViewport": 0.917,
+      "contentToViewport": 0.917,
+      "blankRatio": 0.365,
+      "blankRatioFirstScreen": 0.355,
+      "edgeBlankShare": 0,
+      "topOffsetToFirstContent": 293,
+      "firstContentBelowContainerTop": 205,
+      "leftGutter": 32,
+      "rightGutter": 32,
+      "inkLeftGutter": 32,
+      "inkRightGutter": 0,
+      "gapDistinct": 5,
+      "gapTop": [
+        {
+          "v": 12,
+          "n": 3
+        },
+        {
+          "v": 16,
+          "n": 2
+        },
+        {
+          "v": 0,
+          "n": 1
+        },
+        {
+          "v": 8,
+          "n": 1
+        },
+        {
+          "v": 11,
+          "n": 1
+        }
+      ],
+      "maxConsecutiveGap24": 0,
+      "headerInfo": {
+        "titleTop": 176,
+        "titleBottom": 206,
+        "descGap": 8,
+        "nextBlockGap": 87
+      },
+      "uniform": [],
+      "tinyTiles": 0,
+      "contentBottom": 1391,
+      "pageTextChars": 394,
+      "notes": "container=div.page-frame maxW=1152px；fillRatio=内容墨迹宽/容器宽，containerToViewport=容器/视口，contentToViewport=内容/视口"
+    },
+    {
+      "page": "archive",
+      "label": "归档库",
+      "viewport": 768,
+      "containerWidth": 736,
+      "contentWidth": 715,
+      "fillRatio": 0.971,
+      "containerToViewport": 0.958,
+      "contentToViewport": 0.931,
+      "blankRatio": 0.6,
+      "blankRatioFirstScreen": 0.6,
+      "edgeBlankShare": 0.058,
+      "topOffsetToFirstContent": 132,
+      "firstContentBelowContainerTop": 44,
+      "leftGutter": 0,
+      "rightGutter": 0,
+      "inkLeftGutter": 16,
+      "inkRightGutter": 37,
+      "gapDistinct": 2,
+      "gapTop": [
+        {
+          "v": 24,
+          "n": 2
+        },
+        {
+          "v": 16,
+          "n": 1
+        }
+      ],
+      "maxConsecutiveGap24": 2,
+      "headerInfo": {
+        "titleTop": 88,
+        "titleBottom": 116,
+        "descGap": null,
+        "nextBlockGap": 16
+      },
+      "uniform": [],
+      "tinyTiles": 0,
+      "contentBottom": 314,
+      "pageTextChars": 72,
+      "notes": "container=div.max-w-5xl mx-auto px-4 py-6 maxW=1024px；fillRatio=内容墨迹宽/容器宽，containerToViewport=容器/视口，contentToViewport=内容/视口"
+    },
+    {
+      "page": "settings",
+      "label": "设置",
+      "viewport": 768,
+      "containerWidth": 704,
+      "contentWidth": 669,
+      "fillRatio": 0.95,
+      "containerToViewport": 0.917,
+      "contentToViewport": 0.871,
+      "blankRatio": 0.42,
+      "blankRatioFirstScreen": 0.42,
+      "edgeBlankShare": 0.119,
+      "topOffsetToFirstContent": 173,
+      "firstContentBelowContainerTop": 85,
+      "leftGutter": 32,
+      "rightGutter": 32,
+      "inkLeftGutter": 32,
+      "inkRightGutter": 67,
+      "gapDistinct": 8,
+      "gapTop": [
+        {
+          "v": 2,
+          "n": 4
+        },
+        {
+          "v": 0,
+          "n": 2
+        },
+        {
+          "v": 6,
+          "n": 2
+        },
+        {
+          "v": 8,
+          "n": 2
+        },
+        {
+          "v": 16,
+          "n": 2
+        },
+        {
+          "v": 4,
+          "n": 1
+        },
+        {
+          "v": 20,
+          "n": 1
+        },
+        {
+          "v": 37,
+          "n": 1
+        }
+      ],
+      "maxConsecutiveGap24": 1,
+      "headerInfo": {
+        "titleTop": 88,
+        "titleBottom": 116,
+        "descGap": null,
+        "nextBlockGap": 57
+      },
+      "uniform": [],
+      "tinyTiles": 0,
+      "contentBottom": 1032,
+      "pageTextChars": 349,
+      "notes": "container=div.max-w-5xl mx-auto maxW=1024px；fillRatio=内容墨迹宽/容器宽，containerToViewport=容器/视口，contentToViewport=内容/视口"
+    },
+    {
+      "page": "help",
+      "label": "帮助",
+      "viewport": 768,
+      "containerWidth": 672,
+      "contentWidth": 672,
+      "fillRatio": 1,
+      "containerToViewport": 0.875,
+      "contentToViewport": 0.875,
+      "blankRatio": 0.06,
+      "blankRatioFirstScreen": 0.335,
+      "edgeBlankShare": 0,
+      "topOffsetToFirstContent": 539,
+      "firstContentBelowContainerTop": 427,
+      "leftGutter": 32,
+      "rightGutter": 32,
+      "inkLeftGutter": 48,
+      "inkRightGutter": 48,
+      "gapDistinct": 22,
+      "gapTop": [
+        {
+          "v": 0,
+          "n": 120
+        },
+        {
+          "v": 12,
+          "n": 118
+        },
+        {
+          "v": 6,
+          "n": 80
+        },
+        {
+          "v": 8,
+          "n": 74
+        },
+        {
+          "v": 10,
+          "n": 47
+        },
+        {
+          "v": 4,
+          "n": 40
+        },
+        {
+          "v": 34,
+          "n": 31
+        },
+        {
+          "v": 5,
+          "n": 15
+        }
+      ],
+      "maxConsecutiveGap24": 6,
+      "headerInfo": {
+        "titleTop": 172,
+        "titleBottom": 204,
+        "descGap": null,
+        "nextBlockGap": 335
+      },
+      "uniform": [
+        {
+          "size": "672x114",
+          "count": 9,
+          "charsMin": 4,
+          "charsMax": 9
+        }
+      ],
+      "tinyTiles": 8,
+      "contentBottom": 14772,
+      "pageTextChars": 9503,
+      "notes": "container=div.doc-wrap maxW=1280px；fillRatio=内容墨迹宽/容器宽，containerToViewport=容器/视口，contentToViewport=内容/视口"
+    },
+    {
+      "page": "messages",
+      "label": "消息",
+      "viewport": 768,
+      "containerWidth": 736,
+      "contentWidth": 715,
+      "fillRatio": 0.971,
+      "containerToViewport": 0.958,
+      "contentToViewport": 0.931,
+      "blankRatio": 0.31,
+      "blankRatioFirstScreen": 0.31,
+      "edgeBlankShare": 0.21,
+      "topOffsetToFirstContent": 88,
+      "firstContentBelowContainerTop": 0,
+      "leftGutter": 0,
+      "rightGutter": 0,
+      "inkLeftGutter": 37,
+      "inkRightGutter": 0,
+      "gapDistinct": 4,
+      "gapTop": [
+        {
+          "v": 8,
+          "n": 3
+        },
+        {
+          "v": 12,
+          "n": 2
+        },
+        {
+          "v": 2,
+          "n": 1
+        },
+        {
+          "v": 4,
+          "n": 1
+        }
+      ],
+      "maxConsecutiveGap24": 0,
+      "headerInfo": {
+        "titleTop": 113,
+        "titleBottom": 141,
+        "descGap": null,
+        "nextBlockGap": -53
+      },
+      "uniform": [],
+      "tinyTiles": 0,
+      "contentBottom": 384,
+      "pageTextChars": 236,
+      "notes": "container=div.max-w-3xl mx-auto px-4 py-6 maxW=768px；fillRatio=内容墨迹宽/容器宽，containerToViewport=容器/视口，contentToViewport=内容/视口"
+    },
+    {
+      "page": "index",
+      "label": "首页",
+      "viewport": 390,
+      "containerWidth": 358,
+      "contentWidth": 337,
+      "fillRatio": 0.941,
+      "containerToViewport": 0.918,
+      "contentToViewport": 0.864,
+      "blankRatio": 0.16,
+      "blankRatioFirstScreen": 0.285,
+      "edgeBlankShare": 0.313,
+      "topOffsetToFirstContent": 204,
+      "firstContentBelowContainerTop": 116,
+      "leftGutter": 16,
+      "rightGutter": 16,
+      "inkLeftGutter": 37,
+      "inkRightGutter": 0,
+      "gapDistinct": 6,
+      "gapTop": [
+        {
+          "v": 16,
+          "n": 7
+        },
+        {
+          "v": 0,
+          "n": 5
+        },
+        {
+          "v": 24,
+          "n": 5
+        },
+        {
+          "v": 4,
+          "n": 4
+        },
+        {
+          "v": 12,
+          "n": 2
+        },
+        {
+          "v": 8,
+          "n": 1
+        }
+      ],
+      "maxConsecutiveGap24": 2,
+      "headerInfo": {
+        "titleTop": 148,
+        "titleBottom": 180,
+        "descGap": null,
+        "nextBlockGap": 24
+      },
+      "uniform": [
+        {
+          "size": "171x104",
+          "count": 4,
+          "charsMin": 6,
+          "charsMax": 8
+        },
+        {
+          "size": "316x72",
+          "count": 3,
+          "charsMin": 38,
+          "charsMax": 46
+        }
+      ],
+      "tinyTiles": 0,
+      "contentBottom": 1693,
+      "pageTextChars": 545,
+      "notes": "container=div.max-w-6xl mx-auto maxW=1152px；fillRatio=内容墨迹宽/容器宽，containerToViewport=容器/视口，contentToViewport=内容/视口"
+    },
+    {
+      "page": "secretary-today",
+      "label": "支书·今天",
+      "viewport": 390,
+      "containerWidth": 358,
+      "contentWidth": 358,
+      "fillRatio": 1,
+      "containerToViewport": 0.918,
+      "contentToViewport": 0.918,
+      "blankRatio": 0.485,
+      "blankRatioFirstScreen": 0.485,
+      "edgeBlankShare": 0,
+      "topOffsetToFirstContent": 222,
+      "firstContentBelowContainerTop": 134,
+      "leftGutter": 16,
+      "rightGutter": 16,
+      "inkLeftGutter": 16,
+      "inkRightGutter": 0,
+      "gapDistinct": 4,
+      "gapTop": [
+        {
+          "v": 0,
+          "n": 1
+        },
+        {
+          "v": 4,
+          "n": 1
+        },
+        {
+          "v": 11,
+          "n": 1
+        },
+        {
+          "v": 16,
+          "n": 1
+        }
+      ],
+      "maxConsecutiveGap24": 0,
+      "headerInfo": {
+        "titleTop": 176,
+        "titleBottom": 206,
+        "descGap": null,
+        "nextBlockGap": 16
+      },
+      "uniform": [],
+      "tinyTiles": 0,
+      "contentBottom": 310,
+      "pageTextChars": 126,
+      "notes": "container=div.page-frame maxW=1152px；fillRatio=内容墨迹宽/容器宽，containerToViewport=容器/视口，contentToViewport=内容/视口"
+    },
+    {
+      "page": "secretary-overview",
+      "label": "支书·全局概况",
+      "viewport": 390,
+      "containerWidth": 358,
+      "contentWidth": 358,
+      "fillRatio": 1,
+      "containerToViewport": 0.918,
+      "contentToViewport": 0.918,
+      "blankRatio": 0.115,
+      "blankRatioFirstScreen": 0.455,
+      "edgeBlankShare": 0,
+      "topOffsetToFirstContent": 230,
+      "firstContentBelowContainerTop": 142,
+      "leftGutter": 16,
+      "rightGutter": 16,
+      "inkLeftGutter": 16,
+      "inkRightGutter": 0,
+      "gapDistinct": 3,
+      "gapTop": [
+        {
+          "v": 24,
+          "n": 6
+        },
+        {
+          "v": 0,
+          "n": 1
+        },
+        {
+          "v": 11,
+          "n": 1
+        }
+      ],
+      "maxConsecutiveGap24": 6,
+      "headerInfo": {
+        "titleTop": 176,
+        "titleBottom": 206,
+        "descGap": null,
+        "nextBlockGap": 24
+      },
+      "uniform": [
+        {
+          "size": "282x104",
+          "count": 6,
+          "charsMin": 44,
+          "charsMax": 51
+        },
+        {
+          "size": "171x80",
+          "count": 4,
+          "charsMin": 4,
+          "charsMax": 6
+        },
+        {
+          "size": "324x80",
+          "count": 3,
+          "charsMin": 46,
+          "charsMax": 46
+        }
+      ],
+      "tinyTiles": 1,
+      "contentBottom": 3025,
+      "pageTextChars": 1021,
+      "notes": "container=div.page-frame maxW=1152px；fillRatio=内容墨迹宽/容器宽，containerToViewport=容器/视口，contentToViewport=内容/视口"
+    },
+    {
+      "page": "secretary-calendar",
+      "label": "支书·活动管理(日历)",
+      "viewport": 390,
+      "containerWidth": 358,
+      "contentWidth": 358,
+      "fillRatio": 1,
+      "containerToViewport": 0.918,
+      "contentToViewport": 0.918,
+      "blankRatio": 0.285,
+      "blankRatioFirstScreen": 0.2,
+      "edgeBlankShare": 0,
+      "topOffsetToFirstContent": 293,
+      "firstContentBelowContainerTop": 205,
+      "leftGutter": 16,
+      "rightGutter": 16,
+      "inkLeftGutter": 16,
+      "inkRightGutter": 0,
+      "gapDistinct": 5,
+      "gapTop": [
+        {
+          "v": 12,
+          "n": 3
+        },
+        {
+          "v": 16,
+          "n": 2
+        },
+        {
+          "v": 0,
+          "n": 1
+        },
+        {
+          "v": 8,
+          "n": 1
+        },
+        {
+          "v": 11,
+          "n": 1
+        }
+      ],
+      "maxConsecutiveGap24": 0,
+      "headerInfo": {
+        "titleTop": 176,
+        "titleBottom": 206,
+        "descGap": 8,
+        "nextBlockGap": 87
+      },
+      "uniform": [],
+      "tinyTiles": 0,
+      "contentBottom": 1266,
+      "pageTextChars": 369,
+      "notes": "container=div.page-frame maxW=1152px；fillRatio=内容墨迹宽/容器宽，containerToViewport=容器/视口，contentToViewport=内容/视口"
+    },
+    {
+      "page": "archive",
+      "label": "归档库",
+      "viewport": 390,
+      "containerWidth": 358,
+      "contentWidth": 337,
+      "fillRatio": 0.941,
+      "containerToViewport": 0.918,
+      "contentToViewport": 0.864,
+      "blankRatio": 0.56,
+      "blankRatioFirstScreen": 0.56,
+      "edgeBlankShare": 0.089,
+      "topOffsetToFirstContent": 132,
+      "firstContentBelowContainerTop": 44,
+      "leftGutter": 0,
+      "rightGutter": 0,
+      "inkLeftGutter": 16,
+      "inkRightGutter": 37,
+      "gapDistinct": 2,
+      "gapTop": [
+        {
+          "v": 24,
+          "n": 2
+        },
+        {
+          "v": 16,
+          "n": 1
+        }
+      ],
+      "maxConsecutiveGap24": 2,
+      "headerInfo": {
+        "titleTop": 88,
+        "titleBottom": 116,
+        "descGap": null,
+        "nextBlockGap": 16
+      },
+      "uniform": [],
+      "tinyTiles": 0,
+      "contentBottom": 314,
+      "pageTextChars": 63,
+      "notes": "container=div.max-w-5xl mx-auto px-4 py-6 maxW=1024px；fillRatio=内容墨迹宽/容器宽，containerToViewport=容器/视口，contentToViewport=内容/视口"
+    },
+    {
+      "page": "settings",
+      "label": "设置",
+      "viewport": 390,
+      "containerWidth": 358,
+      "contentWidth": 358,
+      "fillRatio": 1,
+      "containerToViewport": 0.918,
+      "contentToViewport": 0.918,
+      "blankRatio": 0.16,
+      "blankRatioFirstScreen": 0.24,
+      "edgeBlankShare": 0,
+      "topOffsetToFirstContent": 449,
+      "firstContentBelowContainerTop": 361,
+      "leftGutter": 16,
+      "rightGutter": 16,
+      "inkLeftGutter": 16,
+      "inkRightGutter": 16,
+      "gapDistinct": 9,
+      "gapTop": [
+        {
+          "v": 2,
+          "n": 4
+        },
+        {
+          "v": 0,
+          "n": 2
+        },
+        {
+          "v": 6,
+          "n": 2
+        },
+        {
+          "v": 8,
+          "n": 2
+        },
+        {
+          "v": 16,
+          "n": 2
+        },
+        {
+          "v": 4,
+          "n": 1
+        },
+        {
+          "v": 20,
+          "n": 1
+        },
+        {
+          "v": 24,
+          "n": 1
+        }
+      ],
+      "maxConsecutiveGap24": 1,
+      "headerInfo": {
+        "titleTop": 88,
+        "titleBottom": 116,
+        "descGap": null,
+        "nextBlockGap": 333
+      },
+      "uniform": [],
+      "tinyTiles": 0,
+      "contentBottom": 1403,
+      "pageTextChars": 340,
+      "notes": "container=div.max-w-5xl mx-auto maxW=1024px；fillRatio=内容墨迹宽/容器宽，containerToViewport=容器/视口，contentToViewport=内容/视口"
+    },
+    {
+      "page": "help",
+      "label": "帮助",
+      "viewport": 390,
+      "containerWidth": 334,
+      "contentWidth": 334,
+      "fillRatio": 1,
+      "containerToViewport": 0.856,
+      "contentToViewport": 0.856,
+      "blankRatio": 0.045,
+      "blankRatioFirstScreen": 0.13,
+      "edgeBlankShare": 0,
+      "topOffsetToFirstContent": 517,
+      "firstContentBelowContainerTop": 413,
+      "leftGutter": 16,
+      "rightGutter": 16,
+      "inkLeftGutter": 28,
+      "inkRightGutter": 0,
+      "gapDistinct": 24,
+      "gapTop": [
+        {
+          "v": 0,
+          "n": 120
+        },
+        {
+          "v": 12,
+          "n": 120
+        },
+        {
+          "v": 6,
+          "n": 80
+        },
+        {
+          "v": 8,
+          "n": 74
+        },
+        {
+          "v": 10,
+          "n": 45
+        },
+        {
+          "v": 4,
+          "n": 40
+        },
+        {
+          "v": 34,
+          "n": 31
+        },
+        {
+          "v": 30,
+          "n": 15
+        }
+      ],
+      "maxConsecutiveGap24": 6,
+      "headerInfo": {
+        "titleTop": 164,
+        "titleBottom": 196,
+        "descGap": null,
+        "nextBlockGap": 321
+      },
+      "uniform": [
+        {
+          "size": "334x86",
+          "count": 9,
+          "charsMin": 4,
+          "charsMax": 9
+        }
+      ],
+      "tinyTiles": 8,
+      "contentBottom": 19742,
+      "pageTextChars": 9494,
+      "notes": "container=div.doc-wrap maxW=1280px；fillRatio=内容墨迹宽/容器宽，containerToViewport=容器/视口，contentToViewport=内容/视口"
+    },
+    {
+      "page": "messages",
+      "label": "消息",
+      "viewport": 390,
+      "containerWidth": 358,
+      "contentWidth": 337,
+      "fillRatio": 0.941,
+      "containerToViewport": 0.918,
+      "contentToViewport": 0.864,
+      "blankRatio": 0.145,
+      "blankRatioFirstScreen": 0.145,
+      "edgeBlankShare": 0.379,
+      "topOffsetToFirstContent": 88,
+      "firstContentBelowContainerTop": 0,
+      "leftGutter": 0,
+      "rightGutter": 0,
+      "inkLeftGutter": 37,
+      "inkRightGutter": 0,
+      "gapDistinct": 4,
+      "gapTop": [
+        {
+          "v": 8,
+          "n": 3
+        },
+        {
+          "v": 12,
+          "n": 2
+        },
+        {
+          "v": 2,
+          "n": 1
+        },
+        {
+          "v": 4,
+          "n": 1
+        }
+      ],
+      "maxConsecutiveGap24": 0,
+      "headerInfo": {
+        "titleTop": 113,
+        "titleBottom": 141,
+        "descGap": null,
+        "nextBlockGap": -53
+      },
+      "uniform": [],
+      "tinyTiles": 0,
+      "contentBottom": 400,
+      "pageTextChars": 227,
+      "notes": "container=div.max-w-3xl mx-auto px-4 py-6 maxW=768px；fillRatio=内容墨迹宽/容器宽，containerToViewport=容器/视口，contentToViewport=内容/视口"
+    }
+  ],
+  "sparseCards": [
+    {
+      "selector": "div.lg\\:col-span-2 (日历右栏)",
+      "page": "secretary-calendar",
+      "chars": 5,
+      "w": 434,
+      "h": 784,
+      "areaPx2": 340256,
+      "density": 0.15,
+      "text": "未选择日期"
+    },
+    {
+      "selector": "#sec-domains",
+      "page": "help",
+      "chars": 4,
+      "w": 1000,
+      "h": 114,
+      "areaPx2": 114000,
+      "density": 0.35,
+      "text": "3域手册"
+    },
+    {
+      "selector": "#sec-entries",
+      "page": "help",
+      "chars": 5,
+      "w": 1000,
+      "h": 114,
+      "areaPx2": 114000,
+      "density": 0.44,
+      "text": "0入口速查"
+    },
+    {
+      "selector": "#sec-quickstart",
+      "page": "help",
+      "chars": 5,
+      "w": 1000,
+      "h": 114,
+      "areaPx2": 114000,
+      "density": 0.44,
+      "text": "1快速上手"
+    },
+    {
+      "selector": "#sec-settings",
+      "page": "help",
+      "chars": 5,
+      "w": 1000,
+      "h": 114,
+      "areaPx2": 114000,
+      "density": 0.44,
+      "text": "4设置逐项"
+    },
+    {
+      "selector": "#sec-flows",
+      "page": "help",
+      "chars": 5,
+      "w": 1000,
+      "h": 114,
+      "areaPx2": 114000,
+      "density": 0.44,
+      "text": "5业务链路"
+    },
+    {
+      "selector": "#sec-tech",
+      "page": "help",
+      "chars": 5,
+      "w": 1000,
+      "h": 114,
+      "areaPx2": 114000,
+      "density": 0.44,
+      "text": "8技术架构"
+    },
+    {
+      "selector": "#sec-admin",
+      "page": "help",
+      "chars": 6,
+      "w": 1000,
+      "h": 114,
+      "areaPx2": 114000,
+      "density": 0.53,
+      "text": "6党委与配置"
+    },
+    {
+      "selector": "div.card.rounded-xl",
+      "page": "archive",
+      "chars": 13,
+      "w": 992,
+      "h": 228,
+      "areaPx2": 226176,
+      "density": 0.57,
+      "text": "党建活动专班暂无已归档活动"
+    },
+    {
+      "selector": "#sec-roles",
+      "page": "help",
+      "chars": 8,
+      "w": 1000,
+      "h": 114,
+      "areaPx2": 114000,
+      "density": 0.7,
+      "text": "2角色工作台导览"
+    },
+    {
+      "selector": "div.card.rounded-xl",
+      "page": "secretary-overview",
+      "chars": 7,
+      "w": 1152,
+      "h": 86,
+      "areaPx2": 99072,
+      "density": 0.71,
+      "text": "我已处理共0条"
+    },
+    {
+      "selector": "#sec-what",
+      "page": "help",
+      "chars": 9,
+      "w": 1000,
+      "h": 114,
+      "areaPx2": 114000,
+      "density": 0.79,
+      "text": "7这个系统在干什么"
+    },
+    {
+      "selector": "#dashboard-gallery-card",
+      "page": "index",
+      "chars": 14,
+      "w": 1152,
+      "h": 103,
+      "areaPx2": 118656,
+      "density": 1.18,
+      "text": "活动风采归档库→暂无活动照片"
+    },
+    {
+      "selector": ".metric-band__item (×4)",
+      "page": "secretary-overview",
+      "chars": 4,
+      "w": 276,
+      "h": 80,
+      "areaPx2": 22080,
+      "density": 1.81,
+      "text": "39逾期"
+    },
+    {
+      "selector": ".stat-card (×4)",
+      "page": "index",
+      "chars": 6,
+      "w": 276,
+      "h": 104,
+      "areaPx2": 28704,
+      "density": 2.09,
+      "text": "8场本月活动"
+    },
+    {
+      "selector": "div.cal-cell-large (×31)",
+      "page": "secretary-calendar",
+      "chars": 3,
+      "w": 93,
+      "h": 93,
+      "areaPx2": 8649,
+      "density": 3.47,
+      "text": "1党日"
+    }
+  ],
+  "contrast": {
+    "question": "同一信息的两种呈现：设置页一行参数 vs 帮助页一段说明",
+    "settings": {
+      "selector": ".appearance-row",
+      "size": "730×63",
+      "chars": 19,
+      "per10kPx2": 4.13,
+      "perCm2": 24.56
+    },
+    "settingsKv": {
+      "selector": ".kv-row",
+      "size": "730×39",
+      "chars": 15,
+      "per10kPx2": 5.26,
+      "perCm2": 31.25
+    },
+    "help": {
+      "selector": ".doc-p",
+      "size": "570×216",
+      "chars": 296,
+      "per10kPx2": 24.04,
+      "perCm2": 142.95
+    },
+    "ratio": {
+      "per10k": 5.82,
+      "perCm2": 5.82
+    },
+    "note": "设置行把 730px 宽只用出 624px 字/控件（最右墨迹 x=1105，行右 1211），帮助段落是主动限宽 38em；两者密度差 5.8 倍，前者是排布浪费，后者是阅读意图。"
+  },
+  "distribution": [
+    {
+      "page": "index",
+      "blankRatio": 0.415,
+      "blankRatioFirstScreen": 0.325,
+      "edgeBlankShare": 0,
+      "gutterShare": 0.2,
+      "type": "呼吸型（空白散布在内容之间）"
+    },
+    {
+      "page": "secretary-today",
+      "blankRatio": 0.715,
+      "blankRatioFirstScreen": 0.715,
+      "edgeBlankShare": 0,
+      "gutterShare": 0.2,
+      "type": "底部型（内容集中在上半屏、下半屏空）"
+    },
+    {
+      "page": "secretary-overview",
+      "blankRatio": 0.345,
+      "blankRatioFirstScreen": 0.49,
+      "edgeBlankShare": 0,
+      "gutterShare": 0.2,
+      "type": "呼吸型（空白散布在内容之间）"
+    },
+    {
+      "page": "secretary-calendar",
+      "blankRatio": 0.5,
+      "blankRatioFirstScreen": 0.485,
+      "edgeBlankShare": 0,
+      "gutterShare": 0.2,
+      "type": "呼吸型（空白散布在内容之间）"
+    },
+    {
+      "page": "archive",
+      "blankRatio": 0.63,
+      "blankRatioFirstScreen": 0.63,
+      "edgeBlankShare": 0,
+      "gutterShare": 0.289,
+      "type": "底部型（内容集中在上半屏、下半屏空）"
+    },
+    {
+      "page": "settings",
+      "blankRatio": 0.56,
+      "blankRatioFirstScreen": 0.56,
+      "edgeBlankShare": 0.179,
+      "gutterShare": 0.289,
+      "type": "页框型（空白集中在左右边缘）"
+    },
+    {
+      "page": "help",
+      "blankRatio": 0.25,
+      "blankRatioFirstScreen": 0.45,
+      "edgeBlankShare": 0,
+      "gutterShare": 0.111,
+      "type": "呼吸型（空白散布在内容之间）"
+    },
+    {
+      "page": "messages",
+      "blankRatio": 0.31,
+      "blankRatioFirstScreen": 0.31,
+      "edgeBlankShare": 0.21,
+      "gutterShare": 0.467,
+      "type": "页框型（空白集中在左右边缘）"
+    }
+  ],
+  "findings": [
+    {
+      "id": "D1",
+      "title": "容器内几乎铺满（fill 0.876–0.985），横向浪费不在「内容没用满容器」，而在容器本身只占视口 51%（消息）到 87%（帮助）",
+      "evidence": "1440×900 实测（内容墨迹宽/容器内容宽/视口）：首页 1152/1110/1440=fill 0.964、容器占视口 80.0%、内容占 77.1%；支书今天 1152/1131=0.982、80.0%/78.6%；全局概况 0.985、78.8%；活动管理 0.982、78.6%；归档 992/971=0.979、68.9%/67.4%；设置 1024/897=0.876、71.1%/62.3%；帮助 1248/1225=0.982、86.7%/85.1%；消息 736/715=0.971、51.1%/49.7%。「容器 72rem、内容只用 60%」只在设置成立；消息的容器宽只有视口一半，即使内容铺满容器，整页仍有 46.7% 横向空白。",
+      "verdict": "真问题",
+      "generalFix": "不必全局收窄容器；消息 ≥1280 用 64rem 或列表+详情两列；设置把行内 106px 空转用掉（控件右对齐）；其余页容器宽度可保持。"
+    },
+    {
+      "id": "D2",
+      "title": "日历「未选择日期」右栏 434×784px、只写 5 个字，是密度最低的大面积留白",
+      "evidence": "1440×900：卡片 1152×902，内部 grid 为 lg:grid-cols-5（1110px），右侧 div.lg:col-span-2 实测 434×784px，占卡内宽 39.1%，innerText 仅「未选择日期」5 字，密度 5/(340256/10000)=0.15 字符/万 px²；同一张卡正文密度 249/(1152×902/10000)=2.39。1024 时该栏 358×701、仍 5 字；768 起才落到日历下方（662×200）。",
+      "verdict": "真问题",
+      "generalFix": "未选日期时不保留占位右栏：日历临时占 5/5；或默认选中今天/本月首个有活动日并渲染详情，让右栏有真实内容。"
+    },
+    {
+      "id": "D3",
+      "title": "归档库首屏 63% 无内容：一张 992×228 的卡只放 13 字，卡片下方 540px 空白",
+      "evidence": "1440×900：容器 992px、内容墨迹宽 971（fill 0.979），但内容底边仅 y=314（卡片框底 y=360），视口 900px 中 63.0% 的 20×10 网格单元无墨迹（blankRatio=blankRatioFirstScreen=0.63），卡片下方 540px 无内容。唯一卡片 992×228、innerText「党建活动专班 暂无已归档活动」13 字，密度 0.57 字符/万 px²；390 下首屏仍 56% 空白。",
+      "verdict": "真问题",
+      "generalFix": "空态补「归档规则」「最近可归档活动」「去归档」三个可点项，或把空态卡压到 120px 高并在下方直接列出可归档候选。"
+    },
+    {
+      "id": "D4",
+      "title": "「今天」是全站最空一屏：71.5% 空白，唯一内容卡 1152×134 仅 19 字",
+      "evidence": "1440×900：容器 1152、内容宽 1131（fill 0.982），blankRatio=blankRatioFirstScreen=0.715（8 页最高）；页面内容底边 y=310，视口 900px。唯一卡 1152×134、文本「今天要办 全部› 今天暂无待办与安排 看日历」19 字，密度 19/(154368/10000)=1.23 字符/万 px²。1024 首屏 0.66、390 首屏 0.485。",
+      "verdict": "真问题",
+      "generalFix": "空日不画整块空卡：改为「今日无安排」一行 + 最近 3 条待办/本周日程预览，把纵向空间交给下一件可做的事。"
+    },
+    {
+      "id": "D5",
+      "title": "「机械排布」最典型：首页 4 张 276×104、概况 4 张 276×80 指标卡等宽等距平铺，每张只有 4–8 字",
+      "evidence": "首页 4 张 .stat-card 全部 276×104（28,704px²），字符 6/6/6/8，密度 2.09–2.79 字符/万 px²，间距 gap-4=16px；概况 4 个 .metric-band__item 全部 276×80（22,080px²），字符 4/5/5/6，密度 1.81–2.26，同尺寸组 uniform 明确命中 4 张。两页合计 8 张等尺寸低密度卡。",
+      "verdict": "真问题",
+      "generalFix": "数字型指标改为一条 metric band（4 列、无独立卡框、行高 64–72），或每卡补一句「较上月/负责人」使字数与面积匹配。"
+    },
+    {
+      "id": "D6",
+      "title": "日历 7×5 日格 34 个 93×93，31 格只有「日期+2 字标签」，但等宽网格是日历的硬约束",
+      "evidence": "1440×900：.cal-cell-large 实测 93×93px（8,649px²），共 34 格，31 格有字；典型内容「1党日」「5党会」3 字，密度 3.47 字符/万 px²；7 列 gap 2px，属最严格的等距平铺。1024 时 76×76、768 时 93×93。",
+      "verdict": "设计意图",
+      "generalFix": "网格尺寸不动（日历必须等宽等距）；只把有活动的格子从「·党日」升级为一行活动短标题，信息量上去而格宽不变。"
+    },
+    {
+      "id": "D7",
+      "title": "帮助页 9 个折叠章节 1000×114、每行 4–9 字，密度全站最低，但这是折叠目录",
+      "evidence": "1440×900：details.help-chapter 9 个，全部 1000×114px（114,000px²），字符 4/5/5/5/5/5/6/8/9，密度 0.35–0.79 字符/万 px²（16 张抽样卡中，除日历右栏 0.15 与归档空态 0.57 外，密度最低的 8 张都是这组折叠行）；open 均为 false。展开后正文密度回到 24.04（.doc-p）。",
+      "verdict": "设计意图",
+      "generalFix": "保留折叠与 44px 以上点击区；可把单行行高从 114px 收到 72–80px，并补一行 12 字摘要，减少「一个标题占 114px」的观感。"
+    },
+    {
+      "id": "D8",
+      "title": "帮助页正文段落固定 38em（实测 570px），只占 1000px 内容列的 57%，右侧 430px 连续空白",
+      "evidence": "1440×900：.help-main 宽 1000px；.doc-p 实测 570×216、296 字，密度 24.04 字符/万 px²（142.95 字/cm²）；.doc-lead 570×54、75 字。段落右缘 914px，距 .help-main 右缘 1344 尚余 430px；表格则铺到 918px 宽。",
+      "verdict": "设计意图",
+      "generalFix": "不改行宽（38em≈38 汉字/行，属可读性上限）；若要减少观感留白，可在右侧放目录/术语/相关链接，而不是把段落拉宽。"
+    },
+    {
+      "id": "D9",
+      "title": "同一信息两种呈现：设置页一行参数 4.13 字符/万 px²，帮助页一段说明 24.04，相差 5.8 倍",
+      "evidence": "1440×900：设置 .appearance-row 730×63、19 字=4.13 字符/万 px²（24.56 字/cm²）；.kv-row 730×39、15 字=5.26（31.25 字/cm²）。帮助 .doc-p 570×216、296 字=24.04 字符/万 px²（142.95 字/cm²）。比值 24.04/4.13=5.82×，24.56 字/cm² vs 142.95 字/cm² 同为 5.8×。设置行 730px 宽、内容最右到 x=1105，距行右缘 1211 空 106px。",
+      "verdict": "真问题",
+      "generalFix": "设置行改「标签左、控件/值右对齐」（justify-between），把 106px 空转用起来；或改成两列参数网格，把一屏 3 行扩到 6 行。"
+    },
+    {
+      "id": "D10",
+      "title": "间距不是「只有 2 种」，而是 6–21 种并存；且层级倒挂：标题到内容 57px，不相关两卡之间只有 16px",
+      "evidence": "1440×900 同层相邻块间距种类：设置 8 种（2×4、0×2、6×2、8×2、16×2、4×1、20×1、37×1）；首页 6 种（16×6、0×5、4×4、24×4、12×2、8×1）；活动管理 4 种（12×3、8×2、0×1、16×1）；帮助 21 种（0×120、12×118、6×80、8×74、10×47、4×40、34×31）。倒挂实例：设置标题底 116→首卡 173=57px，而「外观」卡底 650→「当前归属」卡 666=16px；首页标题底 180→首卡 204=24px，而「重要通知」底 490→「近期活动」顶 514=24px，层级没有拉开。",
+      "verdict": "真问题",
+      "generalFix": "收敛为 3 档：组内 8、卡内 16、区块间 24–32，标题→首内容固定 32；清掉 2px/37px 这类裸值，避免同页 8 种间距。"
+    },
+    {
+      "id": "D11",
+      "title": "首屏业务内容起点：日历 293px、帮助 462px、概况 230px；概况与帮助各有 6 个连续 ≥24px 的空段",
+      "evidence": "1440×900 从文档顶算：日历首张卡 y=293（容器顶 88，其后 205px 是页签+标题+指标带）；帮助首个 .doc-card y=462（容器顶 112，其后 350px 是 hero+搜索+角色选择）；概况 y=230（142px）；归档 y=132（44px）。同层间距连续 ≥24px 的最长连击：概况 6、帮助 6、首页 2、归档 2；设置 1、今天/日历/消息 0。",
+      "verdict": "需支书判断",
+      "generalFix": "若认为页签/页头必要，则日历 293px 可接受；若要抢首屏，可把日历指标带并入标题行、帮助 hero 压到 160px 内。"
+    },
+    {
+      "id": "D12",
+      "title": "1440 下左右边距随档位跳变 80/144/208/336px，内容宽 715–1225px 相差 510px；卡内空右栏只出现在日历（434px）",
+      "evidence": "1440×900：帮助容器 1280、两侧各 80px（11.1% 视口）；72rem 四页（首页/今天/概况/日历）各 144px（20.0%）；64rem 两页（设置/归档）各 208px（28.9%）；消息 48rem 两侧各 336px（46.7%）。最右墨迹到视口：日历 165、首页 165、设置 335、消息 280、帮助 69。≥120px 的右侧连续带存在于首页/今天/概况/日历/设置/归档/消息 7 页，但均为对称页边；日历另有 434px 卡内空右栏（见 D2）。",
+      "verdict": "真问题",
+      "generalFix": "页边作为档位设计可保留，但同站 1440 下不应出现 80/144/208/336 四种左轨；至少把消息提到 64rem、帮助与 72rem 页的页头左轨对齐。"
+    }
+  ],
+  "screenshots": [
+    "density-index-1440.png",
+    "density-secretary-today-1440.png",
+    "density-secretary-overview-1440.png",
+    "density-secretary-calendar-1440.png",
+    "density-archive-1440.png",
+    "density-settings-1440.png",
+    "density-help-1440.png",
+    "density-messages-1440.png",
+    "density-index-390.png",
+    "density-secretary-overview-390.png",
+    "density-secretary-calendar-390.png",
+    "density-archive-390.png",
+    "density-settings-390.png",
+    "density-help-390.png",
+    "density-messages-390.png"
+  ]
+}

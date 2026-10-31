@@ -18,32 +18,32 @@
 //  本页除「四数卡的图标块」外不再使用 SVG 图标（支书 2026-08-10 裁定），类别仍用色点 + 文字区分。
 // ════════════════════════════════════════════════════════════════
 
-import { showToast, flashHighlight, todayLocal, docAnchorHref, escHtml as esc } from '../../core/base/utils.js?v=20261029b';
-import { icon } from '../../core/base/icons.js?v=20261029b';
-import { listRowHtml, listGroupHtml } from '../ui/list-row.js?v=20261029b';
-import { tableHeadHtml } from '../ui/data-table.js?v=20261029b';
-import { emptyStateHtml } from '../ui/empty-state.js?v=20261029b';
-import { renderTabHeader, renderCardHeader } from '../shell/page-frame.js?v=20261029b';
+import { showToast, flashHighlight, todayLocal, docAnchorHref, escHtml as esc, smoothScroll } from '../../core/base/utils.js?v=20261031a';
+import { icon } from '../../core/base/icons.js?v=20261031a';
+import { listRowHtml, listGroupHtml } from '../ui/list-row.js?v=20261031a';
+import { tableHeadHtml } from '../ui/data-table.js?v=20261031a';
+import { emptyStateHtml } from '../ui/empty-state.js?v=20261031a';
+import { renderTabHeader, renderCardHeader } from '../shell/page-frame.js?v=20261031a';
 import {
   TodoStore, seedTodos, isTodoExpired, WORK_DOMAIN, WORK_DOMAIN_LABELS, TodoStatus,
-} from '../../services/governance/todo.js?v=20261029b';
-import { IssueStore } from '../../services/governance/issues.js?v=20261029b';
+} from '../../services/governance/todo.js?v=20261031a';
+import { IssueStore } from '../../services/governance/issues.js?v=20261031a';
 import {
   isActivityEnded, isActivityArchived, isActivityInProgress, ROLE_LABELS, PARTY_GROUP_LEADER_ROLES,
-} from '../../core/domain/constants.js?v=20261029b';
-import { loadActivities } from '../../services/activity/activity.js?v=20261029b';
-import { filterActivitiesForViewer, resolveVisibleTargets } from '../../services/core/visibility.js?v=20261029b';
-import { loadActiveAttendanceRecords } from '../../services/activity/attendance.js?v=20261029b';
-import { loadInspectionRecords, getOverdueRecords } from '../../services/activity/inspection.js?v=20261029b';
-import { loadMakeupTasks } from '../../services/activity/makeup.js?v=20261029b';
-import { loadActiveActivityReviews, loadTaskforceReviews } from '../../services/governance/review.js?v=20261029b';
-import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261029b';
-import { listPendingByReceiver, confirmExternalDispatch } from '../../services/activity/external-dispatch.js?v=20261029b';
-import { getPersonName } from '../../services/member/person.js?v=20261029b';
-import { loadMemberProgress, REPORT_KIND } from '../../services/member/member-progress.js?v=20261029b';
-import { AttendanceStatus, ReviewStatus, mockDB, isTaskforceActiveStatus } from '../../core/domain/domain.js?v=20261029b';
-import { PROP_TASKS_SEED } from '../../data/mock/prop.js?v=20261029b';
-import { getBranchIdOfPerson, getBranchWorkforce } from '../../services/branch/branch.js?v=20261029b';
+} from '../../core/domain/constants.js?v=20261031a';
+import { loadActivities } from '../../services/activity/activity.js?v=20261031a';
+import { filterActivitiesForViewer, resolveVisibleTargets } from '../../services/core/visibility.js?v=20261031a';
+import { loadActiveAttendanceRecords } from '../../services/activity/attendance.js?v=20261031a';
+import { loadInspectionRecords, getOverdueRecords } from '../../services/activity/inspection.js?v=20261031a';
+import { loadMakeupTasks } from '../../services/activity/makeup.js?v=20261031a';
+import { loadActiveActivityReviews, loadTaskforceReviews } from '../../services/governance/review.js?v=20261031a';
+import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261031a';
+import { listPendingByReceiver, confirmExternalDispatch } from '../../services/activity/external-dispatch.js?v=20261031a';
+import { getPersonName } from '../../services/member/person.js?v=20261031a';
+import { loadMemberProgress, REPORT_KIND } from '../../services/member/member-progress.js?v=20261031a';
+import { AttendanceStatus, ReviewStatus, mockDB, isTaskforceActiveStatus } from '../../core/domain/domain.js?v=20261031a';
+import { PROP_TASKS_SEED } from '../../data/mock/prop.js?v=20261031a';
+import { getBranchIdOfPerson, getBranchWorkforce } from '../../services/branch/branch.js?v=20261031a';
 
 // 在办下钻详情目标（支书 2026-08-10 裁定：概况「在办」可下钻到活动/专班只读详情）
 let _woDetail = null; // { kind: 'activity' | 'taskforce', id } | null
@@ -594,7 +594,7 @@ async function _buildContext(role, personId, today, config) {
 
   // 支书：概况维度 + 实时派生组（与待办页同源）
   if (role === 'secretary') {
-    const secretary = await import('../../services/governance/secretary-overview.js?v=20261029b');
+    const secretary = await import('../../services/governance/secretary-overview.js?v=20261031a');
     const realtime = secretary.SecretaryTodoDeriver.computeAggregates();
     const seen = new Set(ctx.todoGroups.map((group) => group.groupKey));
     ctx.todoGroups = [...ctx.todoGroups, ...realtime.filter((group) => !seen.has(group.groupKey))];
@@ -720,7 +720,7 @@ function _pendingCellHtml(row) {
  *  避免「看得见数字、找不到处理处」；未声明者仍为纯文本（其余条线零变化）。 */
 function _gapCellHtml(gap, gapTab) {
   if (!gap) return '—';
-  const text = esc(gap).replace(/超期/g, '<span style="color:var(--status-warning)">超期</span>');
+  const text = esc(gap).replace(/超期/g, '<span style="color:var(--status-warning-text)">超期</span>');
   if (!gapTab) return text;
   return `<button type="button" class="btn-outline btn-sm text-accent font-medium" data-wo-goto-tab="${esc(gapTab)}" style="cursor:pointer;">${text}<span aria-hidden="true"> ›</span></button>`;
 }
@@ -898,7 +898,7 @@ function _priorityOf(item) {
 /** 结论带交互后定位：平滑滚到指定层；焦点还给对应指标按钮 */
 function _scrollToLayer(container, layer) {
   const target = container.querySelector(`[data-wo-layer="${layer}"]`);
-  if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  if (target) smoothScroll(target, { block: 'start' });
 }
 
 function _focusMetric(container, key) {
@@ -949,7 +949,7 @@ function _bindWorkOverviewEvents(container, role, personId, prefix, rerender) {
         const row = [...container.querySelectorAll('[data-periodic-archive-id]')]
           .find((el) => el.dataset.periodicArchiveId === btn.dataset.paId);
         if (row) {
-          row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          smoothScroll(row, { block: 'center' });
           flashHighlight(row);
         }
       }
@@ -962,7 +962,7 @@ function _bindWorkOverviewEvents(container, role, personId, prefix, rerender) {
       const tab = btn.dataset.woGotoTab;
       if (btn.dataset.woSegment === 'makeup') {
         try {
-          const module = await import('../../entries/tabs/disc/attendance-tab.js?v=20261029b');
+          const module = await import('../../entries/tabs/disc/attendance-tab.js?v=20261031a');
           module.focusSegment?.('makeup');
         } catch (_) { /* 分段记忆失败时仍进考勤页 */ }
       }
@@ -984,7 +984,7 @@ function _jumpToDispatchTab(prefix) {
   if (!tabBtn) { showToast('info', '当前角色无「待办」tab，汇报请到待办跟进'); return; }
   tabBtn.click();
   setTimeout(() => {
-    document.getElementById('ws-dispatch-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    smoothScroll(document.getElementById('ws-dispatch-section'), { block: 'start' });
   }, 300);
 }
 
@@ -996,7 +996,7 @@ function _jumpToTodoTab(prefix, groupKey) {
   setTimeout(() => {
     const target = document.querySelector(`[data-group-key="${groupKey}"]`);
     if (target) {
-      target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      smoothScroll(target, { block: 'center' });
       flashHighlight(target);
     }
   }, 150);
@@ -1019,10 +1019,10 @@ async function _renderOverviewDetail(container, detail, accent, onBack) {
   const host = container.querySelector('#wo-detail-host');
   if (!host) return;
   if (detail.kind === 'activity') {
-    const { renderActivityView } = await import('../record/activity-view.js?v=20261029b');
+    const { renderActivityView } = await import('../record/activity-view.js?v=20261031a');
     renderActivityView(host, { highlightId: detail.id, accent });
   } else {
-    const { renderTaskforceView } = await import('../record/taskforce-view.js?v=20261029b');
+    const { renderTaskforceView } = await import('../record/taskforce-view.js?v=20261031a');
     renderTaskforceView(host, { highlightId: detail.id });
   }
 }

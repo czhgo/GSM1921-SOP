@@ -2,7 +2,7 @@
 title: "设计系统 · 第五编 地图与速查"
 type: design
 role: "[工程师]+[AI]"
-last_updated: 2026-10-30
+last_updated: 2026-10-31
 status: active
 related_files: [DESIGN_SYSTEM.md, DS_01_COLOR_AND_THEME.md, DS_02_TYPE_AND_SIZE.md, DS_03_COMPONENTS.md, DS_04_INTERACTION_AND_RESPONSIVE.md, CASES.md]
 ---
@@ -137,6 +137,20 @@ related_files: [DESIGN_SYSTEM.md, DS_01_COLOR_AND_THEME.md, DS_02_TYPE_AND_SIZE.
 | B-1 | 说明后置 | 同屏存在说明 / 帮助注释节点，其 DOM 顺序**早于**主对象节点，且不在折叠容器内 |
 | B-2 | 指标单点 | 同一 `data-metric` / 同一口径的指标，在首屏出现次数 **> 1**（总数与分项各算一次，不算重复） |
 | B-3 | 动作收敛 | 任一行动作 **> 1 主 + 1 次**，或一屏实底主按钮 **> 1 个** |
+
+### 10.5.1 首页 hero 特例（2026-10-31 支书裁定 · 白名单）
+
+> **特例对象（唯一）**：`docs/index.html` 的 `#dashboard-hero` —— 党徽 ＋ 首页标题。
+> 支书明确认可「党徽 ＋ 支部名居中」的整幅抬头，本处登记为版式白名单，不受「登录且有待办即降级」约束。
+
+| # | 规则 | 判据 |
+|---|---|---|
+| H-1 | **恒为居中整幅** | `#dashboard-hero` 使用居中（`text-align: center`），标题与党徽水平中心差 ≤1px；不随登录态 / 待办数切换版式 |
+| H-2 | **党徽 48px** | `.dashboard-hero__emblem` 为 48×48；不得出现 24px 降级 |
+| H-3 | **禁止左对齐降级** | 全站不得再写 `#dashboard-hero[data-hero="muted"]` 的 `text-align: start` / 24px / `--text-xl` 规则；`main-entry.js` 不得写 `data-hero="muted"` |
+| H-4 | **白名单边界** | 仅首页这一处可复制「居中 hero」；其它页面 / 卡片不得以本特例为由新增居中大标题 |
+
+守卫：`server/test/card-summary-hero-guard.test.mjs` 的 hero-center-whitelist 组（反例：改回左对齐即判红）。
 
 ### 10.6 10 个抽样页乱象登记（已迁出）
 

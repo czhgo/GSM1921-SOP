@@ -3,13 +3,13 @@
 //  utils.js — 格式化工具、动画辅助、Toast 组件
 // ════════════════════════════════════════════════════════════════
 
-import { hasPendingWrites, settleScope, settleWrites } from '../session/pending-writes.js?v=20261029b';
+import { hasPendingWrites, settleScope, settleWrites } from '../session/pending-writes.js?v=20261031a';
 
 // ── 日期格式化 ─────────────────────────────────────────────────
 // R-26③（2026-10-05 批次 388）：日期口径单一源下沉到**零依赖叶子** `core/base/date.js`
 //   （`core/domain/constants.js` 这类「被全站 import 且要求双端可载」的件只能引零依赖件；
 //   而 `utils.js` 牵 `core/session/pending-writes.js`）⇒ 此处**转出**，既有 `from '…/utils.js'` 调用点不变。
-export { _fmtDate, todayLocal } from './date.js?v=20261029b';
+export { _fmtDate, todayLocal } from './date.js?v=20261031a';
 
 export function _fmtChinese(d) {
   const DN = ['日','一','二','三','四','五','六'];
@@ -159,7 +159,8 @@ function _renderToast(type, message, options = {}) {
     _toastContainer.style.cssText = [
       'position:fixed', 'bottom:1.5rem', 'right:1.5rem',
       'z-index:9999', 'display:flex', 'flex-direction:column',
-      'gap:0.5rem', 'pointer-events:auto',
+      // P10：容器本身不吃点击（只让单条 toast 可点）；关闭后同一位置立即落回页面。
+      'gap:0.5rem', 'pointer-events:none',
     ].join(';');
     // 2026-10-26 批次 513：优先挂 documentElement（tab 重渲染可能整体替换 body 子树）；
     //   纯 node 测试环境只有 fake body 时回退 body。
@@ -204,7 +205,7 @@ function _renderToast(type, message, options = {}) {
     'gap:0.625rem', 'font-size:0.875rem', 'color:#1F2937',
     'box-shadow:0 4px 24px rgba(0,0,0,0.12)',
     'opacity:0', 'transform:translateY(0.5rem)',
-    'transition:opacity 0.25s ease,transform 0.25s ease',
+    'transition:opacity var(--motion-exit) var(--ease-standard),transform var(--motion-exit) var(--ease-standard)',
     'pointer-events:auto', 'max-width:22rem', 'word-break:break-word',
   ].join(';');
 
@@ -290,10 +291,23 @@ function _removeToast(rec) {
   clearTimeout(rec.timer);
   const i = _toastRecords.indexOf(rec);
   if (i >= 0) _toastRecords.splice(i, 1);
+  // P10：关闭即失去命中——不等 300ms 淡出结束，避免关闭后同一位置仍拦截点击。
+  rec.el.style.pointerEvents = 'none';
+  // prefers-reduced-motion：立即从 DOM 移除，不做淡出。
+  if (_prefersReducedMotion()) { rec.el.remove(); return; }
   rec.el.style.opacity = '0';
   rec.el.style.transform = 'translateY(0.5rem)';
   setTimeout(() => rec.el.remove(), 300);
 }
+
+/** 是否声明「减少动效」偏好（无 window 的 node 环境一律 false） */
+export function prefersReducedMotion() {
+  try {
+    return typeof window !== 'undefined' && typeof window.matchMedia === 'function'
+      && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  } catch (_) { return false; }
+}
+const _prefersReducedMotion = prefersReducedMotion;
 
 /** 取走过渡态（最终结果出现时替换掉它，不叠加） */
 function _dismissToast(key) {
@@ -336,11 +350,42 @@ export function flashHighlight(el, { duration = 2800, className = 'nav-flash-hig
   if (!el || !el.classList || typeof el.classList.add !== 'function') return;
   el.classList.add(className);
   const off = () => {
-    el.style.transition = 'box-shadow .6s ease, border-color .6s ease, background .6s ease';
+    el.style.transition = 'box-shadow var(--motion-emphasis) var(--ease-standard), '
+      + 'border-color var(--motion-emphasis) var(--ease-standard), '
+      + 'background-color var(--motion-emphasis) var(--ease-standard)';
     el.classList.remove(className);
   };
   el.addEventListener('click', off, { once: true });
   setTimeout(off, duration);
+}
+
+/**
+ * 统一滚动入口（2026-10-31 P10）：全站唯一平滑滚动出口，尊重 `prefers-reduced-motion`。
+ * · `smoothScroll(el, { block, inline })` → `el.scrollIntoView`
+ * · `smoothScroll(window|scroller, { top, left })` → `scrollTo`
+ * · `smoothScroll(window|scroller, { top, left, relative: true })` → `scrollBy`
+ * 用户声明减少动效时一律瞬时直达（`behavior:'auto'`），不逐帧滚动。
+ * @param {Element|Window|Document|null} target
+ * @param {{ block?: string, inline?: string, top?: number, left?: number, relative?: boolean, smooth?: boolean }} [opts]
+ */
+export function smoothScroll(target, opts = {}) {
+  if (!target) return;
+  const { block = 'start', inline = 'nearest', top, left, relative = false, smooth = true } = opts;
+  const behavior = (smooth && !prefersReducedMotion()) ? 'smooth' : 'auto';
+  const hasOffset = top != null || left != null;
+  if (hasOffset) {
+    const scroller = (typeof target.scrollTo === 'function') ? target : (typeof window !== 'undefined' ? window : null);
+    if (!scroller) return;
+    const spec = { behavior };
+    if (top != null) spec.top = top;
+    if (left != null) spec.left = left;
+    if (relative) scroller.scrollBy(spec);
+    else scroller.scrollTo(spec);
+    return;
+  }
+  if (typeof target.scrollIntoView === 'function') {
+    target.scrollIntoView({ block, inline, behavior });
+  }
 }
 
 /** 2026-08-28 T-304 A 档下载闭环：通用 CSV 导出（UTF-8 BOM，Excel 中文不乱码） */

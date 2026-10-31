@@ -3,26 +3,26 @@
 // 2026-08-07 自 ws-secretary-entry.js 拆分。
 // 数据源：NoticeStore（与首页/全局概况/visitor 同源，消除双数据源脱节）。
 
-import { NoticeStore, sendDirectMessage } from '../../../services/governance/notice.js?v=20261029b';
-import { AuthStore } from '../../../services/core/auth.js?v=20261029b';
-import { showToast, getBasePath, _fmtDate, todayLocal, escHtml } from '../../../core/base/utils.js?v=20261029b';
-import { badgeHtml } from '../../../components/ui/badges.js?v=20261029b';
-import { openModal, closeModal } from '../../../components/ui/modal.js?v=20261029b';
+import { NoticeStore, sendDirectMessage } from '../../../services/governance/notice.js?v=20261031a';
+import { AuthStore } from '../../../services/core/auth.js?v=20261031a';
+import { showToast, getBasePath, _fmtDate, todayLocal, escHtml } from '../../../core/base/utils.js?v=20261031a';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20261031a';
+import { openModal, closeModal } from '../../../components/ui/modal.js?v=20261031a';
 // 统一检索引擎（2026-09-14 批次 37）：已发布通知列表接入关键词（标题/正文）+ 分页
-import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261029b';
+import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261031a';
 // Q-22-1（2026-09-13）：受众选项改引 core/domain/constants.js 单一源（NOTICE_AUDIENCE_SENTINELS）——
 // 发布侧写入值必须与消费端可见性判定同源，勿再本地手写 sentinel 列表（否则 ['all'] 永不命中）。
-import { NOTICE_AUDIENCE_OPTIONS, ACTIVITY_CLASSIFICATION } from '../../../core/domain/constants.js?v=20261029b';
+import { NOTICE_AUDIENCE_OPTIONS, ACTIVITY_CLASSIFICATION } from '../../../core/domain/constants.js?v=20261031a';
 // SOP-B-5（D-293）：发布三会一课通知时选定本次活动 —— 被通知人在「确认收到」时填「能否线上参会」
-import { loadActivities } from '../../../services/activity/activity.js?v=20261029b';
-import { TaskForceRecordStore } from '../../../services/activity/taskforce.js?v=20261029b';
-import { TaskforceStatus } from '../../../core/domain/domain.js?v=20261029b';
+import { loadActivities } from '../../../services/activity/activity.js?v=20261031a';
+import { TaskForceRecordStore } from '../../../services/activity/taskforce.js?v=20261031a';
+import { TaskforceStatus } from '../../../core/domain/domain.js?v=20261031a';
 // B1（2026-09-12）：党委下钻支部的演示只读视图判定（单一源 = services/core/branch-demo-nav.js）
-import { isReadonlyBranchDrilldown } from '../../../services/core/branch-demo-nav.js?v=20261029b';
+import { isReadonlyBranchDrilldown } from '../../../services/core/branch-demo-nav.js?v=20261031a';
 // 站内信（批次 348 · 支书 `#4`「站内信是一个很重要的形式」）：受众「指定人（私发）」——选人用 PersonPicker
 //（选人规范 §2.2：姓名/学号搜索，不手写名单）
-import { PersonPicker } from '../../../components/governance/pickers.js?v=20261029b';
-import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261029b';
+import { PersonPicker } from '../../../components/governance/pickers.js?v=20261031a';
+import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261031a';
 
 const NOTIFICATION_TAB_HTML = `
   ${renderTabHeader({ title: '通知发布' })}
@@ -455,7 +455,7 @@ function renderNotificationList() {
           <!-- B 档 CRUD 补全：通知编辑（复用 NoticeStore.update，同源写穿） -->
           <button data-notif-action="edit" data-notif-id="${n.id}" class="btn-outline text-xs flex-shrink-0 px-3 py-1.5" title="编辑该通知">编辑</button>`;
       return `
-      <div class="py-3 px-4 rounded-xl bg-white transition-colors group cursor-pointer hover:bg-[var(--surface-hover)] active:bg-[var(--surface-active)]" role="button" tabindex="0" data-notif-id="${n.id}" data-notif-row="1" title="查看通知详情">
+      <div class="py-3 px-4 rounded-xl bg-white transition-colors group cursor-pointer hover:bg-[var(--surface-hover)] active:bg-[var(--surface-active)]" role="button" tabindex="0" data-notif-id="${n.id}" data-notif-row="1" data-nested-actions="true" title="查看通知详情">
         <div class="flex items-center justify-between mb-1">
           <div class="flex items-center gap-2">
             <span class="text-sm font-medium text-gray-800">${n.title}</span>
@@ -472,22 +472,29 @@ function renderNotificationList() {
 
   // 行内「删除 / 编辑」与整卡「查看详情」改事件委托（引擎翻页/筛选会重绘列表，行内直接绑定会失效）：
   // 挂在持久容器 #notification-list-area 上；先判按钮后判整卡，等效原 stopPropagation（按钮不触发跳转）。
+  // 2026-10-31 P0（嵌套交互）：行是 role=button，内层「删除 / 编辑」是独立 button ⇒ 两层都阻断冒泡；
+  //   键盘焦点落在内层按钮时由原生控件自理，落在整行时由 bootstrap 的 role=button 键盘激活兜底。
   if (!listArea.dataset.notifDelegated) {
     listArea.dataset.notifDelegated = '1';
     listArea.addEventListener('click', (e) => {
       const delBtn = e.target.closest('[data-notif-action="delete"]');
       if (delBtn) {
+        e.stopPropagation();
         _confirmDeleteNotice(delBtn.dataset.notifId);
         return;
       }
       const editBtn = e.target.closest('[data-notif-action="edit"]');
       if (editBtn) {
+        e.stopPropagation();
         const notice = NoticeStore.getAll().find(n => n.id === editBtn.dataset.notifId);
         if (notice) _openNoticeEditModal(notice);
         return;
       }
       const row = e.target.closest('[data-notif-row="1"]');
-      if (row) window.location.href = `${getBasePath()}notice.html?id=${row.dataset.notifId}`;
+      if (row) {
+        e.stopPropagation();
+        window.location.href = `${getBasePath()}notice.html?id=${row.dataset.notifId}`;
+      }
     });
   }
 }

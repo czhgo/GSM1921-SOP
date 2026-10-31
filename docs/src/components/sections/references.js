@@ -1,30 +1,30 @@
 // role: [工程师]+[AI]
 // 参考资料板块 — 网站群展示 + 官方文件（党内法规位阶排序）+ 支部文件（支委写入/全员下载）
 
-import { icon } from '../../core/base/icons.js?v=20261029b';
-import { getBasePath, showToast } from '../../core/base/utils.js?v=20261029b';
-import { getAdapter, getDataSource, getAuthToken, getApiBaseUrl } from '../../data/data-adapter.js?v=20261029b';
-import { withSelectedBranchScope } from '../../data/api-adapter.js?v=20261029b';
-import { AuthStore } from '../../services/core/auth.js?v=20261029b';
-import { loadActivities } from '../../services/activity/activity.js?v=20261029b';
-import { PEOPLE } from '../../data/mock/people.js?v=20261029b';
+import { icon } from '../../core/base/icons.js?v=20261031a';
+import { getBasePath, showToast } from '../../core/base/utils.js?v=20261031a';
+import { getAdapter, getDataSource, getAuthToken, getApiBaseUrl } from '../../data/data-adapter.js?v=20261031a';
+import { withSelectedBranchScope } from '../../data/api-adapter.js?v=20261031a';
+import { AuthStore } from '../../services/core/auth.js?v=20261031a';
+import { loadActivities } from '../../services/activity/activity.js?v=20261031a';
+import { PEOPLE } from '../../data/mock/people.js?v=20261031a';
 // 立项⑧（E 批）：支部文件增强——制度文本（版本化 + 现行/停用态 + 网页读正文）纯逻辑服务
 // 2026-09-21 批次 129：制度链（草案 → 支委会审议 → 现行版 / 退回修改）——草案态与修改口同源于该服务
 import {
   isInstitutionManager, saveDoc, publishNewVersion, setDocStatus,
   updateInstitutionDraft, INSTITUTION_DRAFT, INSTITUTION_PENDING_PARTY_MEETING,
   buildDocVersionsView, renderDocBody, listDocs,
-} from '../../services/branch/branch-doc.js?v=20261029b';
+} from '../../services/branch/branch-doc.js?v=20261031a';
 // 统一检索引擎（2026-09-14 批次 37）：本页三处列表（站点网格 / 官方文件 / 支部文件）各接一个实例
-import { renderFilteredList } from '../ui/list-filter.js?v=20261029b';
-import { openModal, closeModal, confirmDanger } from '../ui/modal.js?v=20261029b';
+import { renderFilteredList } from '../ui/list-filter.js?v=20261031a';
+import { openModal, closeModal, confirmDanger } from '../ui/modal.js?v=20261031a';
 // 制度内容（领域）→ 对应【主体】：判据单一源（2026-10-05 批次 378 · `SOP-B-25` 第 ② 项「按草案落地」）
 import {
   INSTITUTION_DOMAINS, INSTITUTION_DOMAIN_LABELS, institutionSubjectOfDomain, ORG_SUBJECT_LABELS,
-} from '../../core/domain/work-map.js?v=20261029b';
-import { ROLE_LABELS } from '../../core/domain/constants.js?v=20261029b';
+} from '../../core/domain/work-map.js?v=20261031a';
+import { ROLE_LABELS } from '../../core/domain/constants.js?v=20261031a';
 
-import { emptyStateHtml } from '../ui/empty-state.js?v=20261029b';
+import { emptyStateHtml } from '../ui/empty-state.js?v=20261031a';
 /** 主体引用 → 显示名（角色键 → 角色名；组织型主体 id → 组织名，如「支委会」） */
 function _subjectLabelOf(subjectId) {
   if (!subjectId) return '';
@@ -702,7 +702,7 @@ export class ReferencesModule {
     const instBoxHtml = (editing && !editingDraft) ? '' : `
       <div id="ref-modal-inst-box" class="${editingDraft ? 'space-y-3.5' : 'hidden space-y-3.5'}">
         <div>
-          <label class="text-xs font-medium mb-1.5 block" style="color:var(--neutral-500);" for="ref-modal-domain">制度内容（领域） <span style="color:var(--status-error);">*</span></label>
+          <label class="text-xs font-medium mb-1.5 block" style="color:var(--neutral-500);" for="ref-modal-domain">制度内容（领域） <span style="color:var(--status-error-text);">*</span></label>
           <select id="ref-modal-domain" class="input-flat w-full">
             <option value="">请选择制度内容（领域）</option>
             ${INSTITUTION_DOMAINS.map((dm) => `<option value="${dm.id}"${(editingDraft && editing.domain === dm.id) ? ' selected' : ''}>${dm.label} —— 起草与监督：${_subjectLabelOf(dm.subject)}</option>`).join('')}
@@ -735,7 +735,7 @@ export class ReferencesModule {
         <div class="space-y-3.5">
           ${purposeSelectHtml}
           <div>
-            <label class="text-xs font-medium mb-1.5 block" style="color:var(--neutral-500);">标题 <span style="color:var(--status-error);">*</span></label>
+            <label class="text-xs font-medium mb-1.5 block" style="color:var(--neutral-500);">标题 <span style="color:var(--status-error-text);">*</span></label>
             <input id="ref-modal-title" class="input-flat w-full" placeholder="如：积极分子考察表模板 / 支部例会制度" value="${editing ? _esc(editing.title || '') : ''}" />
           </div>
           <div>
@@ -744,7 +744,7 @@ export class ReferencesModule {
           </div>
           ${instBoxHtml}
           <div>
-            <label class="text-xs font-medium mb-1.5 block" style="color:var(--neutral-500);" id="ref-modal-file-label">${editing ? '替换文件（可选，不选则保留原文件）' : '选择文件 <span style="color:var(--status-error);">*</span>'}</label>
+            <label class="text-xs font-medium mb-1.5 block" style="color:var(--neutral-500);" id="ref-modal-file-label">${editing ? '替换文件（可选，不选则保留原文件）' : '选择文件 <span style="color:var(--status-error-text);">*</span>'}</label>
             <input id="ref-modal-file" type="file" accept=".jpg,.jpeg,.png,.pdf,.doc,.docx,.xlsx,.mp4"
               class="block w-full text-xs file:mr-3 file:px-3 file:py-1.5 file:rounded-lg file:border-0 file:bg-blue-50 file:text-blue-600 file:text-xs hover:file:bg-blue-100 transition-colors cursor-pointer" style="color:var(--neutral-600);" />
           </div>
@@ -772,7 +772,7 @@ export class ReferencesModule {
         instBox.classList.toggle('hidden', !inst);
         fileLabel.innerHTML = inst
           ? '附件（可选；正文与附件可并存，正文优先网页阅读）'
-          : '选择文件 <span style="color:var(--status-error);">*</span>';
+          : '选择文件 <span style="color:var(--status-error-text);">*</span>';
       };
       purposeSel.addEventListener('change', syncPurpose);
     }
@@ -871,7 +871,7 @@ export class ReferencesModule {
       bodyHtml: `
         <div class="space-y-3.5">
           <div>
-            <label class="text-xs font-medium mb-1.5 block" style="color:var(--neutral-500);">标题 <span style="color:var(--status-error);">*</span></label>
+            <label class="text-xs font-medium mb-1.5 block" style="color:var(--neutral-500);">标题 <span style="color:var(--status-error-text);">*</span></label>
             <input id="ref-pub-title" class="input-flat w-full" value="${_esc(doc.title || '')}" />
           </div>
           <div>

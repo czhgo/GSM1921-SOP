@@ -1,0 +1,213 @@
+{
+  "index": {
+    "390": {
+      "heroTextAlign": "center",
+      "heroData": null,
+      "emblemCx": 195,
+      "titleCx": 195,
+      "emblemSize": {
+        "w": 48,
+        "h": 48
+      },
+      "noticeCountTop": 553,
+      "moreTop": 553,
+      "sameRow": true,
+      "footerDisplay": "flex",
+      "statHeights": [
+        96,
+        96,
+        96,
+        96
+      ],
+      "statPadding": {
+        "top": "12px",
+        "bottom": "12px"
+      },
+      "statClipped": false,
+      "viewport": {
+        "w": 390,
+        "h": 844
+      }
+    },
+    "768": {
+      "heroTextAlign": "center",
+      "heroData": null,
+      "emblemCx": 384,
+      "titleCx": 384,
+      "emblemSize": {
+        "w": 48,
+        "h": 48
+      },
+      "noticeCountTop": 553,
+      "moreTop": 553,
+      "sameRow": true,
+      "footerDisplay": "flex",
+      "statHeights": [
+        96,
+        96,
+        96,
+        96
+      ],
+      "statPadding": {
+        "top": "12px",
+        "bottom": "12px"
+      },
+      "statClipped": false,
+      "viewport": {
+        "w": 768,
+        "h": 1024
+      }
+    },
+    "1440": {
+      "heroTextAlign": "center",
+      "heroData": null,
+      "emblemCx": 720,
+      "titleCx": 720,
+      "emblemSize": {
+        "w": 48,
+        "h": 48
+      },
+      "noticeCountTop": 441,
+      "moreTop": 441,
+      "sameRow": true,
+      "footerDisplay": "flex",
+      "statHeights": [
+        96,
+        96,
+        96,
+        96
+      ],
+      "statPadding": {
+        "top": "12px",
+        "bottom": "12px"
+      },
+      "statClipped": false,
+      "viewport": {
+        "w": 1440,
+        "h": 900
+      }
+    }
+  },
+  "roster768": {
+    "viewport": {
+      "w": 768,
+      "h": 1024
+    },
+    "card": {
+      "x": 32,
+      "y": 250,
+      "width": 704,
+      "height": 2108.5,
+      "top": 250,
+      "right": 736,
+      "bottom": 2358.5,
+      "left": 32
+    },
+    "row": {
+      "x": 49,
+      "y": 517,
+      "width": 670,
+      "height": 182,
+      "top": 517,
+      "right": 719,
+      "bottom": 699,
+      "left": 49
+    },
+    "rowScrollWidth": 670,
+    "buttons": [
+      {
+        "text": "编辑",
+        "rect": {
+          "x": 565,
+          "y": 655,
+          "width": 48,
+          "height": 36,
+          "top": 655,
+          "right": 613,
+          "bottom": 691,
+          "left": 565
+        },
+        "inViewport": true
+      },
+      {
+        "text": "档案",
+        "rect": {
+          "x": 619,
+          "y": 660,
+          "width": 46,
+          "height": 26,
+          "top": 660,
+          "right": 665,
+          "bottom": 686,
+          "left": 619
+        },
+        "inViewport": true
+      },
+      {
+        "text": "移出",
+        "rect": {
+          "x": 671,
+          "y": 655,
+          "width": 48,
+          "height": 36,
+          "top": 655,
+          "right": 719,
+          "bottom": 691,
+          "left": 671
+        },
+        "inViewport": true
+      }
+    ],
+    "allButtonsInViewport": true
+  },
+  "nested390": {
+    "beforeUrl": "http://localhost:3000/workspace/secretary.html",
+    "afterUrl": "http://localhost:3000/workspace/secretary.html",
+    "urlUnchanged": true,
+    "deleteClicked": true,
+    "dialogOpen": true
+  },
+  "workmap": {
+    "titleTop": 176,
+    "tabTop": 173,
+    "topDiff": 3,
+    "sameRow": true,
+    "tabCount": 4
+  },
+  "todoStrip": {
+    "wholeRowToggle": {
+      "wasOpen": true,
+      "nowOpen": false,
+      "toggled": true
+    },
+    "titleRect": {
+      "x": 145,
+      "y": 219,
+      "width": 1150,
+      "height": 44,
+      "top": 219,
+      "right": 1295,
+      "bottom": 263,
+      "left": 145
+    },
+    "titleFont": "14px",
+    "countText": "3",
+    "countFont": "14px",
+    "countTop": 241,
+    "titleBaselineCenter": 241,
+    "summary": {
+      "x": 145,
+      "y": 219,
+      "width": 1150,
+      "height": 44,
+      "top": 219,
+      "right": 1295,
+      "bottom": 263,
+      "left": 145
+    },
+    "hostWidth": 1152,
+    "summaryCoverage": 0.9982638888888888,
+    "heightOk": true,
+    "widthOk": true
+  }
+}

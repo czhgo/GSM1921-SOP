@@ -1,25 +1,35 @@
-/* ════════════════════════════════════════════════════════════════
+﻿/* ════════════════════════════════════════════════════════════════
    tab-loading.css — 页签切换 / 页面跳转的加载与过渡（2026-10-27 Task 10）
    由 `tab-bar.js` 动态注入 <link>（styles.css 不改；类名在 tab-bar.js 内均有字面引用）。
 
    口径：
-   · 旧内容淡出 120ms（只动 opacity，不整块压暗到半透明）；
-   · 新内容淡入 180ms + 自下而上 8px；骨架 3 条卡形 + 「正在加载…」；
+   · 旧内容淡出 var(--motion-exit)（只动 opacity，不整块压暗到半透明；淡出期不接收点击）；
+   · 新内容淡入 var(--motion-enter) + 自下而上 8px；骨架 3 条卡形 + 「正在加载…」；
    · 顶部 2px 品牌色进度条（跨文档跳转的离开态）；
-   · prefers-reduced-motion：只淡入 80ms、无位移，骨架 / 文案保留（骨架不脉冲）。
+   · prefers-reduced-motion：只淡入 var(--motion-feedback)、无位移，骨架 / 文案保留（骨架不脉冲）。
    ════════════════════════════════════════════════════════════════ */
 
 /* ── 内容舞台：旧内容淡出 ─────────────────────────────────────── */
 .ws-tab-stage {
-  transition: opacity 120ms var(--ease-standard, cubic-bezier(0.2, 0.6, 0.36, 1));
+  transition: opacity var(--motion-exit) var(--ease-standard);
 }
+/* P10：淡出期间不接收点击——「不透明度 <1 且可点」会点到旧 DOM（实测 0.09 时仍 auto）。 */
 .ws-tab-stage.is-leaving {
   opacity: 0;
+  pointer-events: none;
 }
 
-/* ── 内容舞台：新内容淡入 180ms + 8px 位移 ─────────────────────── */
+/* ── 内容舞台：新内容淡入 200ms + 8px 位移 ─────────────────────── */
+/* P10：入场动画结束前不接收点击（不透明度 <1 时不暴露可点面），动画收敛后自动恢复。 */
 .ws-tab-stage.is-entering {
-  animation: wsTabEnter 180ms var(--ease-enter, cubic-bezier(0.22, 0.61, 0.36, 1)) both;
+  animation: wsTabEnter var(--motion-enter) var(--ease-enter) both;
+  pointer-events: none;
+}
+/* P10：骨架期不承接旧内容淡出的 opacity 过渡——直接回到 1，否则会出现
+   「骨架已可点但其容器仍在 0→1 半透明」的不可见可点帧。 */
+.ws-tab-stage.is-skeleton {
+  opacity: 1;
+  transition: none;
 }
 @keyframes wsTabEnter {
   from { opacity: 0; transform: translateY(8px); }
@@ -31,7 +41,9 @@
 }
 
 /* ── 骨架：3 条卡形 + 「正在加载…」──────────────────────────── */
+/* P10：局部禁用——骨架自身不接收点击，内容容器保持 auto（不再整块 pointer-events:none）。 */
 .ws-tab-skeleton {
+  pointer-events: none;
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -53,7 +65,7 @@
   border-radius: 999px;
   border: 2px solid var(--neutral-200);
   border-top-color: var(--neutral-400);
-  animation: wsTabSkeletonSpin 0.8s linear infinite;
+  animation: wsTabSkeletonSpin calc(var(--motion-emphasis) * 3) linear infinite;
 }
 .ws-tab-skeleton-text {
   line-height: 1.5;
@@ -62,7 +74,7 @@
   height: 44px;
   border-radius: 12px;
   background: var(--neutral-100);
-  animation: wsTabSkeletonPulse 1.2s ease-in-out infinite;
+  animation: wsTabSkeletonPulse calc(var(--motion-emphasis) * 4) ease-in-out infinite;
 }
 .ws-tab-skeleton-row--tall {
   height: 72px;
@@ -98,21 +110,21 @@
 }
 .ws-route-progress[data-active='1'] {
   opacity: 1;
-  animation: wsRouteProgress 600ms var(--ease-standard, cubic-bezier(0.2, 0.6, 0.36, 1)) forwards;
+  animation: wsRouteProgress var(--motion-emphasis) var(--ease-standard) forwards;
 }
 @keyframes wsRouteProgress {
   from { transform: scaleX(0); }
   to { transform: scaleX(0.9); }
 }
 
-/* ── 减少动效：只淡入 80ms、无位移；骨架 / 文案保留 ────────────── */
+/* ── 减少动效：只淡入反馈档、无位移；骨架 / 文案保留 ────────────── */
 @media (prefers-reduced-motion: reduce) {
   .ws-tab-stage {
-    transition-duration: 80ms !important;
+    transition-duration: var(--motion-feedback) !important;
   }
   .ws-tab-stage.is-entering {
     animation-name: wsTabEnterReduced;
-    animation-duration: 80ms !important;
+    animation-duration: var(--motion-feedback) !important;
   }
   .ws-tab-skeleton-row,
   .ws-tab-skeleton-spinner {

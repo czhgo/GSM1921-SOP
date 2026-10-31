@@ -25,7 +25,13 @@ window.tailwind.config = {
         surface: { page:'#F8F9FA', card:'#FFFFFF', elevated:'#FFFFFF', header:'#7A0010', sidebar:'#FFFFFF', hover:'var(--surface-hover)', active:'var(--surface-active)' },
       },
       fontFamily: { sans:['Noto Sans SC','-apple-system','PingFang SC','Microsoft YaHei','sans-serif'], serif:['Noto Serif SC','STKaiti','KaiTi','serif'], title:['STZhongsong','华文中宋','Noto Serif SC','STSong','SimSun','serif'], 'title-en':['Times New Roman','Georgia','serif'] },
-      animation: { 'fade-in':'fadeIn 0.4s ease-out forwards', 'slide-up':'slideUp 0.4s ease-out forwards', 'slide-right':'slideRight 0.2s ease-out forwards', 'pulse-soft':'pulseSoft 2s ease-in-out infinite' },
+      // 2026-10-31 P10：时长统一走 styles.css 三档令牌（不再写裸 0.4s / 0.2s / 2s）。
+      animation: {
+        'fade-in': 'fadeIn var(--motion-emphasis) var(--ease-standard) forwards',
+        'slide-up': 'slideUp var(--motion-emphasis) var(--ease-standard) forwards',
+        'slide-right': 'slideRight var(--motion-enter) var(--ease-standard) forwards',
+        'pulse-soft': 'pulseSoft calc(var(--motion-emphasis) * 7) ease-in-out infinite',
+      },
       keyframes: { fadeIn:{'0%':{opacity:'0'},'100%':{opacity:'1'}}, slideUp:{'0%':{opacity:'0',transform:'translateY(16px)'},'100%':{opacity:'1',transform:'translateY(0)'}}, slideRight:{'0%':{transform:'translateX(-100%)'},'100%':{transform:'translateX(0)'}}, pulseSoft:{'0%, 100%':{opacity:'1'},'50%':{opacity:'0.6'}} },
     },
   }

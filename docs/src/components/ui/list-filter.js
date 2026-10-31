@@ -42,19 +42,19 @@
 //  数据变化后：同 stateKey 再调用一次，或 hold 返回值调 .update(newRows)。
 // ════════════════════════════════════════════════════════════════
 
-import { escHtml as esc } from '../../core/base/utils.js?v=20261029b';
+import { escHtml as esc } from '../../core/base/utils.js?v=20261031a';
 import {
   SEARCH_FILTER_MIN_ROWS, ROLE_LABELS, ACTIVITY_CLASSIFICATION,
   classifyActivityType, normalizeActivityType,
-} from '../../core/domain/constants.js?v=20261029b';
+} from '../../core/domain/constants.js?v=20261031a';
 // 活动生命周期**展示态**单一源 = components/record/inspector.js（草稿/已发布/进行中/待归档/已执行/已归档/已取消）
 // ——勿在本组件另写一套中文标签（constants.js 里曾短暂加过的副本已撤除）
-import { deriveActivityLifecycleStatus, ACTIVITY_LIFECYCLE } from '../record/inspector.js?v=20261029b';
+import { deriveActivityLifecycleStatus, ACTIVITY_LIFECYCLE } from '../record/inspector.js?v=20261031a';
 // 翻页控件单一源（批次 38 下沉为叶子件 pager.js）：本引擎与关系矩阵共用，勿另写翻页标记
-import { pagerHtml } from './pager.js?v=20261029b';
+import { pagerHtml } from './pager.js?v=20261031a';
 // 空态单一源（U-09）：非表格列表空态原先是一行灰字 `<p>`（无出口、与 empty-state 两套样式）；
 // 改为 empty-state 组件，并支持 `emptyActionHtml` 给一个出口（表格空态仍由本文件自带空行）。
-import { emptyStateHtml } from './empty-state.js?v=20261029b';
+import { emptyStateHtml } from './empty-state.js?v=20261031a';
 
 /** 每个 stateKey 的筛选状态（跨重渲染保持；键集合有界 = 全站表格数，不做回收） */
 const _states = new Map();

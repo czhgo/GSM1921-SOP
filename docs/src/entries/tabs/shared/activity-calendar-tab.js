@@ -30,12 +30,13 @@
 //   容器内容却没登记标记」时会把本页判成「已在位」而跳过骨架重建，留下空白（同 today-tab 2026-09-25
 //   真机实测的残留病）。
 
-import { getAppState } from '../../../core/base/state.js?v=20261029b';
-import { populateMonthSelector, renderCalendarByActivities } from '../../../components/record/calendar.js?v=20261029b';
-import { renderInspectorFromState } from '../../../components/record/inspector.js?v=20261029b';
-import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261029b';
+import { getAppState } from '../../../core/base/state.js?v=20261031a';
+import { populateMonthSelector, renderCalendarByActivities } from '../../../components/record/calendar.js?v=20261031a';
+import { renderInspectorFromState } from '../../../components/record/inspector.js?v=20261031a';
+import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261031a';
+import { smoothScroll } from '../../../core/base/utils.js?v=20261031a';
 // Task 6：共享日历属「非对象所属工作台」的只读承载面 ⇒ 条目/详情卡直达完整详情页（direct）。
-import { objectDetailHref } from '../../../core/domain/object-route.js?v=20261029b';
+import { objectDetailHref } from '../../../core/domain/object-route.js?v=20261031a';
 
 const PANEL_HTML = `
     <div id="calendar-view-section" class="grid grid-cols-1 lg:grid-cols-5 gap-4">
@@ -179,7 +180,7 @@ function _bindCardOpenEvent() {
     const card = document.querySelector('details[id$="calendar-card"]');
     if (!card) return;
     card.open = true;
-    card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    smoothScroll(card, { block: 'center' });
   });
 }
 

@@ -137,11 +137,11 @@ dynamic_role:
 | 文件路径 | last_updated | 移入归档日 | 角色 | 备注 |
 |---------|-------------|--------|------|------|
 | content/04_web_design/design-system/DESIGN_SYSTEM.md | 2026-10-30 | — | [工程师]+[AI] | **（批次 236：沿革已整段迁出**——本行的逐批沿革（4192 字）见 `.ctx/logs/archive/2026-09-EXECUTION_LOG.md`「附：TIMESTAMPS 备注列迁出的逐批沿革（批次 236）」；本列只写**现状 / 边界 / 为什么**）** 现状：父索引。 |
-| content/04_web_design/design-system/DS_01_COLOR_AND_THEME.md | 2026-10-30 | — | [工程师]+[AI] | 第一编 色彩与主题。 |
-| content/04_web_design/design-system/DS_02_TYPE_AND_SIZE.md | 2026-10-30 | — | [工程师]+[AI] | 第二编 排版与尺寸。 |
-| content/04_web_design/design-system/DS_03_COMPONENTS.md | 2026-10-30 | — | [工程师]+[AI] | 第三编 组件。 |
-| content/04_web_design/design-system/DS_04_INTERACTION_AND_RESPONSIVE.md | 2026-10-30 | — | [工程师]+[AI] | 第四编 交互与响应式。 |
-| content/04_web_design/design-system/DS_05_MAP_AND_REFERENCE.md | 2026-10-30 | — | [工程师]+[AI] | 第五编 地图与速查。 |
+| content/04_web_design/design-system/DS_01_COLOR_AND_THEME.md | 2026-10-31 | — | [工程师]+[AI] | 第一编 色彩与主题。 |
+| content/04_web_design/design-system/DS_02_TYPE_AND_SIZE.md | 2026-10-31 | — | [工程师]+[AI] | 第二编 排版与尺寸。 |
+| content/04_web_design/design-system/DS_03_COMPONENTS.md | 2026-10-31 | — | [工程师]+[AI] | 第三编 组件。 |
+| content/04_web_design/design-system/DS_04_INTERACTION_AND_RESPONSIVE.md | 2026-10-31 | — | [工程师]+[AI] | 第四编 交互与响应式（P10 三档动效令牌）。 |
+| content/04_web_design/design-system/DS_05_MAP_AND_REFERENCE.md | 2026-10-31 | — | [工程师]+[AI] | 第五编 地图与速查。 |
 | content/04_web_design/design-system/CASES.md | 2026-10-30 | — | [工程师]+[AI] | 设计＋数据域判例库：CASE-DESIGN-020…031、CASE-DATA-001。 |
 | content/04_web_design/design-system/COLOR_SYSTEM.md | 2026-09-24 | — | [工程师]+[AI] | 🗑️ **已删除**：正文**整体并入** `content/04_web_design/design-system/DESIGN_SYSTEM.md` 的 **§二 色彩系统**〔编号 2.1–2.8 一字未改〕⇒ **四份 → 一份**。（原：自 DESIGN_SYSTEM 拆分的 §二：色盘 / 主色 / 辅助色 / 中性色 / 功能色 / 表面色 / 配色规则。）沿革见 `.ctx/logs/`。 |
 | content/04_web_design/design-system/COMPONENT_SPEC.md | 2026-09-24 | — | [工程师]+[AI] | 🗑️ **已删除**（**2026-09-24 批次 172**：正文**整体并入** `content/04_web_design/design-system/DESIGN_SYSTEM.md` 的 **§四 组件规范**〔编号 **4.1–4.17 一字未改**〕；`D-638`）（原：组件规范——自 DESIGN_SYSTEM 拆分 §四：按钮 / 卡片 / 输入 / 侧边栏 / 导航 / 日历图例 / 数据展示 / 图标 / 选人 / 状态徽章；2026-09-20 批次 110 改准「待初阅队列」现状句） |

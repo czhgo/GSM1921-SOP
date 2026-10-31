@@ -10,7 +10,7 @@
 export function renderContent(ctx) {
   const el = document.getElementById('leader-tab-content');
   if (!el) return null;
-  return import('../../../components/record/insight-view.js?v=20261029b').then((iv) => iv.renderInsightView(el, {
+  return import('../../../components/record/insight-view.js?v=20261031a').then((iv) => iv.renderInsightView(el, {
     views: ['workgroup', 'taskforce', 'group'],
     defaultView: 'group',
     // 知情查看 = 只读形态

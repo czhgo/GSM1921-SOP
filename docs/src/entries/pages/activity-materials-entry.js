@@ -12,26 +12,26 @@
 //   · 材料读取：`mockDB.imageRecords` / `loadAttendanceRecords` / `mockDB.inspections` / `loadActivityReviews`；
 //   · 归档写口：`services/core/mock.js::archiveActivity`（经 BranchService 暴露，与宣传台 / 支书台同源）；
 //   · 空态：`components/ui/empty-state.js`；浮窗：`components/ui/modal.js`；版本戳：`core/base/version-token.js`。
-import { renderSidebar } from '../../components/shell/sidebar.js?v=20261029b';
-import { renderHeader } from '../../components/shell/header.js?v=20261029b';
-import { BranchService } from '../../services/core/runtime.js?v=20261029b';
-import { mockDB, ReviewStatus } from '../../core/domain/domain.js?v=20261029b';
-import { loadAttendanceRecords } from '../../services/activity/attendance.js?v=20261029b';
-import { loadActivityReviews } from '../../services/governance/review.js?v=20261029b';
-import { AuthStore } from '../../services/core/auth.js?v=20261029b';
-import { isActivityArchived } from '../../core/domain/constants.js?v=20261029b';
-import { getBasePath, escHtml as esc, showToast, describeWriteError } from '../../core/base/utils.js?v=20261029b';
-import { resolveMaterialHref, resolveMaterialHandoff, resolveMaterialRoleNote } from '../../core/domain/material-links.js?v=20261029b';
+import { renderSidebar } from '../../components/shell/sidebar.js?v=20261031a';
+import { renderHeader } from '../../components/shell/header.js?v=20261031a';
+import { BranchService } from '../../services/core/runtime.js?v=20261031a';
+import { mockDB, ReviewStatus } from '../../core/domain/domain.js?v=20261031a';
+import { loadAttendanceRecords } from '../../services/activity/attendance.js?v=20261031a';
+import { loadActivityReviews } from '../../services/governance/review.js?v=20261031a';
+import { AuthStore } from '../../services/core/auth.js?v=20261031a';
+import { isActivityArchived } from '../../core/domain/constants.js?v=20261031a';
+import { getBasePath, escHtml as esc, showToast, describeWriteError, smoothScroll } from '../../core/base/utils.js?v=20261031a';
+import { resolveMaterialHref, resolveMaterialHandoff, resolveMaterialRoleNote } from '../../core/domain/material-links.js?v=20261031a';
 // 材料页可见性单一源（C11）：与活动列表 / 详情页同判据，待批活动不能凭 id 被非支委层读到
-import { isActivityVisibleTo } from '../../services/core/visibility.js?v=20261029b';
-import { emptyStateHtml } from '../../components/ui/empty-state.js?v=20261029b';
-import { openModal, closeModal } from '../../components/ui/modal.js?v=20261029b';
-import { bumpToken } from '../../core/base/version-token.js?v=20261029b';
-import { hydrateDataSource, notifyDataLoaded } from '../../data/data-adapter.js?v=20261029b';
-import { ApiAdapter } from '../../data/api-adapter.js?v=20261029b';
-import { beginWriteScope, endWriteScope } from '../../core/session/pending-writes.js?v=20261029b';
+import { isActivityVisibleTo } from '../../services/core/visibility.js?v=20261031a';
+import { emptyStateHtml } from '../../components/ui/empty-state.js?v=20261031a';
+import { openModal, closeModal } from '../../components/ui/modal.js?v=20261031a';
+import { bumpToken } from '../../core/base/version-token.js?v=20261031a';
+import { hydrateDataSource, notifyDataLoaded } from '../../data/data-adapter.js?v=20261031a';
+import { ApiAdapter } from '../../data/api-adapter.js?v=20261031a';
+import { beginWriteScope, endWriteScope } from '../../core/session/pending-writes.js?v=20261031a';
 // Task 6：材料页回活动详情 → direct（跨页深链，无对象所属工作台上下文）。
-import { objectDetailHref } from '../../core/domain/object-route.js?v=20261029b';
+import { objectDetailHref } from '../../core/domain/object-route.js?v=20261031a';
 
 renderSidebar('dashboard');
 renderHeader('dashboard');
@@ -195,7 +195,7 @@ function render() {
 
   document.getElementById('materials-archive-btn')?.addEventListener('click', () => _confirmArchive(act, { photos, attendance, inspections }));
   document.getElementById('materials-check-done-btn')?.addEventListener('click', () => {
-    document.getElementById('materials-archive-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    smoothScroll(document.getElementById('materials-archive-section'), { block: 'start' });
     document.getElementById('materials-archive-btn')?.focus();
   });
 }

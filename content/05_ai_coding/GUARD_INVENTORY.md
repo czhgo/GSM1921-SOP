@@ -1,5 +1,5 @@
 ---
-title: "守卫清点与合并台账（72 → 77 → 65 件）"
+title: "守卫清点与合并台账（72 → 77 → 66 件）"
 type: guide
 role: "[工程师]+[AI]"
 last_updated: "2026-10-30"
@@ -16,7 +16,7 @@ status: active
 > `test-tier-registry.mjs::countTestCases` 同口径）；覆盖文件数＝文件内出现的源码 / 文档路径字面量去重数（**粗估**，
 > 不等于运行时真正读取的文件数）；近 3 批＝`2026-10-EXECUTION_LOG.md` 的批次 506/507/508 段内是否出现该守卫名。
 
-## 一、清点总表（合并后现行 65 件）
+## 一、清点总表（合并后现行 66 件）
 
 > **批次 510（2026-10-25）**：未新增 / 删除 guard 文件；本批只做**扩展**，明细见 §七。
 > **批次 511（2026-10-25）**：仍为 68 件（H-T1…H-T5 / T3-1…T4-1 落在既有文件），明细见 §八。
@@ -27,7 +27,7 @@ status: active
 > **批次 514（2026-10-27）**：新增 **3 件**——`no-underline-guard`（4 条）、`loading-experience-guard`（6 条）、
 > `no-about-route-guard`（5 条）；件数 74 → **77**，明细见 §十一。
 
-> 合并前实点 **72 件**（批次 509 口径）。下表逐行按实读校准后，现行 **65 件 / 545 条**（批次 516 把 17 件并为 4 件，断言数不变；2026-10-28 美学专项 Task 7 按实读校准 `copy-guard` 14→16、`modal-guard` 22→20，合计仍 527 条；2026-10-28 B-500-4 结案 `data-lifecycle-guard` 15→16 ⇒ 528 条；2026-10-28 前端设计审查 `modal-guard` 增 T1 ⇒ 529 条；2026-10-28 空态全站收口 `copy-guard` 增 E1/E2 ⇒ 531 条；2026-10-28 硬编码审计 `copy-guard` 增 D1/D2、`frontend-foundations-guard` 增 F10 ⇒ 534 条；2026-10-28 批次 520 焦点与可点性收口 `ui-control-system-guard` 增 FOCUS-4/5、`hover-state-guard` 增 H8/H9、`copy-guard` 增 B1/B2 ⇒ 540 条；2026-10-29 About 冻结件新增 `about-freeze-guard` 5 条 ⇒ 545 条）；另有已合并的
+> 合并前实点 **72 件**（批次 509 口径）。下表逐行按实读校准后，现行 **66 件 / 552 条**（批次 516 把 17 件并为 4 件，断言数不变；2026-10-28 美学专项 Task 7 按实读校准 `copy-guard` 14→16、`modal-guard` 22→20，合计仍 527 条；2026-10-28 B-500-4 结案 `data-lifecycle-guard` 15→16 ⇒ 528 条；2026-10-28 前端设计审查 `modal-guard` 增 T1 ⇒ 529 条；2026-10-28 空态全站收口 `copy-guard` 增 E1/E2 ⇒ 531 条；2026-10-28 硬编码审计 `copy-guard` 增 D1/D2、`frontend-foundations-guard` 增 F10 ⇒ 534 条；2026-10-28 批次 520 焦点与可点性收口 `ui-control-system-guard` 增 FOCUS-4/5、`hover-state-guard` 增 H8/H9、`copy-guard` 增 B1/B2 ⇒ 540 条；2026-10-29 About 冻结件新增 `about-freeze-guard` 5 条 ⇒ 545 条）；另有已合并的
 > 5 件（`frontmatter-freshness` / `timestamps-note-guard` / `doc-line-ref` / `gold-accent-guard` /
 > `button-system-guard`，25 条）不在表内、不计入本表合计。
 
@@ -93,6 +93,7 @@ status: active
 | `tab-alias-guard.test.mjs` | 页面 / 路由（页签别名） | 3 | 8 | — | `page-title-guard`、`tab-nav` |
 | `test-tier-guard.test.mjs` | 测试机制（分层 / 预算） | 8 | 6 | 是 | `doc-consistency::S16`、`suite-shard` |
 | `test-isolation-guard.test.mjs` | 测试机制（测试数据面四类 / 运行库零残留） | 4 | 8 | — | `test-tier-guard`、`cleanup --test-residue`、`seed-baseline` |
+| `touch-target-guard.test.mjs` | 组件 / 交互（390 触控命中区六类 / 相邻不重叠 / 表单错误 aria 成对 / 确认弹窗 Esc；真机读数由 `scripts/touch-target-audit.mjs` 产出） | 7 | 6 | 是 | `modal-guard`、`ui-control-system-guard`、`density-spacing-guard` |
 | `theme-palette-guard.test.mjs` | token（7 主题色板 / 功能色层 / 僵尸 token） | 15 | 9 | 是 | `ui-contrast-guard`、`hex-hardcode-guard`、`ui-color-semantics` |
 | `ui-contrast-guard.test.mjs` | token（对比度） | 6 | 3 | 是 | `theme-palette-guard::T2`、`link-color-guard` |
 | `ui-control-system-guard.test.mjs` | 组件（控件单一源 / 视觉基础 / 按钮三档 / 焦点单一来源与七主题对比度） | 27 | 22 | 是 | `ui-select-appearance-guard`、`field-shell-guard`、`density-spacing-guard` |

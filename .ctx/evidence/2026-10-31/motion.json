@@ -1,0 +1,93 @@
+{
+  "sampledAt": "2026-10-31T09:08:50.475Z",
+  "base": "http://localhost:3000",
+  "acceptance": {
+    "invisibleClickableFrames": 0,
+    "skeletonContentPointerEvents": "auto",
+    "settingsCls": 0.0115,
+    "settingsClsTarget": 0.1,
+    "toastPointerEventsOnClose": "none",
+    "reducedMotionScrollFrames": 0,
+    "reducedMotionScrollMode": "one-frame direct"
+  },
+  "tabSwitch": {
+    "targetTab": "calendar",
+    "frames": 63,
+    "invisibleClickableFrames": 0,
+    "invisibleClickableDetail": [],
+    "skeletonFrames": 0,
+    "skeletonContentPointerEvents": []
+  },
+  "tabSwitchSkeleton": {
+    "targetTab": "calendar",
+    "frames": 67,
+    "invisibleClickableFrames": 0,
+    "invisibleClickableDetail": [],
+    "skeletonFrames": 32,
+    "skeletonContentPointerEvents": [
+      "auto"
+    ]
+  },
+  "settingsCls": {
+    "cls": 0.011531194272976681,
+    "entries": [
+      0.011368724279835391,
+      0.00016246999314128944
+    ],
+    "heights": [
+      {
+        "h": 640,
+        "skeleton": true,
+        "t": 2027
+      },
+      {
+        "h": 649,
+        "skeleton": false,
+        "t": 2557
+      }
+    ]
+  },
+  "toast": {
+    "peBefore": "auto",
+    "peImmediately": "none",
+    "containerPointerEvents": "none",
+    "hitBeforeIsToast": true,
+    "hitImmediatelyIsToast": false,
+    "hitAfter50IsToast": false,
+    "hitAfter50Element": "div",
+    "stillInDomAfter50": true
+  },
+  "scroll": {
+    "normal": {
+      "frameCount": 24,
+      "firstMoveFrame": 0,
+      "reachedFrame": 20,
+      "frameDeltaFromFirstMove": 20,
+      "finalY": 800,
+      "distinctYs": [
+        2,
+        10,
+        27,
+        57,
+        109,
+        199,
+        318,
+        420,
+        496,
+        552,
+        597,
+        632
+      ]
+    },
+    "reduced": {
+      "frameCount": 30,
+      "firstMoveFrame": 0,
+      "reachedFrame": 0,
+      "frameDeltaFromFirstMove": 0,
+      "finalY": 800,
+      "distinctYs": [
+        800
+      ]
+    }
+  }
+}

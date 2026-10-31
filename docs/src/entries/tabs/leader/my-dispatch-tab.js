@@ -2,11 +2,11 @@
 // 组长工作台 Tab：我的处置（T-279 M2 拆分）
 // 过程性汇报/问题处置：组长可答复本组组员，支书仍全局可见。
 
-import { renderMyDispatchTab, bindMyDispatchEvents } from '../../../components/feedback/issue-dispatch-view.js?v=20261029b';
-import { AuthStore } from '../../../services/core/auth.js?v=20261029b';
-import { getBasePath } from '../../../core/base/utils.js?v=20261029b';
+import { renderMyDispatchTab, bindMyDispatchEvents } from '../../../components/feedback/issue-dispatch-view.js?v=20261031a';
+import { AuthStore } from '../../../services/core/auth.js?v=20261031a';
+import { getBasePath } from '../../../core/base/utils.js?v=20261031a';
 
-import { emptyStateHtml } from '../../../components/ui/empty-state.js?v=20261029b';
+import { emptyStateHtml } from '../../../components/ui/empty-state.js?v=20261031a';
 export function renderContent() {
   const el = document.getElementById('leader-tab-content');
   if (!el) return;

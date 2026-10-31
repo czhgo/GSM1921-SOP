@@ -14,11 +14,11 @@
 //    催办状态、作废审批门、删除权限门（均由壳体注入回调，本件只渲染与转交）。
 // ════════════════════════════════════════════════════════════════
 
-import { listRowHtml } from '../ui/list-row.js?v=20261029b';
-import { emptyStateHtml } from '../ui/empty-state.js?v=20261029b';
-import { renderMenuButton, bindMenuButtons } from '../ui/menu-button.js?v=20261029b';
-import { isTodoExpired } from '../../services/governance/todo.js?v=20261029b';
-import { escHtml, todayLocal } from '../../core/base/utils.js?v=20261029b';
+import { listRowHtml } from '../ui/list-row.js?v=20261031a';
+import { emptyStateHtml } from '../ui/empty-state.js?v=20261031a';
+import { renderMenuButton, bindMenuButtons } from '../ui/menu-button.js?v=20261031a';
+import { isTodoExpired } from '../../services/governance/todo.js?v=20261031a';
+import { escHtml, todayLocal } from '../../core/base/utils.js?v=20261031a';
 
 /** 四档展示顺序与组名（纯中文；空组由渲染层跳过） */
 const URGENCY_LEVELS = [
@@ -269,15 +269,20 @@ export function renderUrgencyTodoList(opts) {
     _bindMenuDismiss(container);
 
     // 行选择（点行进入右栏详情；行动按钮 / 更多菜单不触发选中）
+    // 2026-10-31 P0（嵌套交互）：行与内层按钮都阻断冒泡；内层原生控件自行处理 Enter / Space，
+    //   行本身只在自己的 keydown 上响应（e.target === row），互不串联。
+    const INNER_CONTROL = 'a, button, input, select, textarea, summary, .todo-more';
     container.querySelectorAll(`.${prefix}-todo-item[data-group-key]`).forEach(row => {
       row.addEventListener('click', (e) => {
-        if (e.target.closest('button, .todo-more')) return;
+        if (e.target.closest(INNER_CONTROL)) return;
+        e.stopPropagation();
         const g = _findGroup(sections, row.dataset.groupKey);
         if (g) onSelectTodo(g);
       });
       row.addEventListener('keydown', (e) => {
         if (e.target !== row || (e.key !== 'Enter' && e.key !== ' ')) return;
         e.preventDefault();
+        e.stopPropagation();
         const g = _findGroup(sections, row.dataset.groupKey);
         if (g) onSelectTodo(g);
       });

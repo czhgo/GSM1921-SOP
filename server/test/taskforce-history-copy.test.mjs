@@ -29,7 +29,7 @@ test('专班详情四对象各一顶层区，打开后锚定被点卡片并标 a
   assert.match(source, /sectionHead = \(id, label\) => `<h3[^>]*text-base/, '分区标题须为 16px h3');
   // 触点即落点：被点卡片 aria-current + 滚入视野；详情紧贴卡片
   assert.match(source, /setAttribute\('aria-current', 'true'\)/);
-  assert.match(source, /triggerEl\.scrollIntoView\(\{ behavior: 'smooth', block: 'center' \}\)/);
+  assert.match(source, /smoothScroll\(triggerEl, \{ block: 'center' \}\)/);
   assert.match(source, /anchorDetailToTrigger\(panel, triggerEl/);
   // 历史分工与逐条核验各有独立容器（不再叠在同一块）
   assert.match(source, /id="tf-sec-work"/);

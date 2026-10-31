@@ -5,7 +5,7 @@
 //  设计原则：点击按钮→弹出浮窗→在浮窗中完成写入→关闭浮窗
 //  页面保持清爽，所有表单/编辑器都在浮窗中完成
 
-import { escHtml, describeWriteError } from '../../core/base/utils.js?v=20261029b';
+import { escHtml, describeWriteError } from '../../core/base/utils.js?v=20261031a';
 
 // 2026-09-13 修复（成员档案模态走查暴露）：Esc 监听原只在「按 Esc 关闭」这一条路径上注销，
 // 走遮罩点击/关闭按钮/程序化 closeModal 关闭时监听残留 → 反复打开同一 id 浮窗会累积 keydown
@@ -229,7 +229,11 @@ function _releaseInert(id) {
  * @param {Function} [options.onCancel] - 「取消」回调（取消按钮 / Esc / 遮罩 / × 四条路径统一触发；
  *   用于清临时状态。提交成功的 `closeModal` 不触发）
  * @param {boolean} [options.dismissable=true] - 是否可「非按钮」关闭（点遮罩 / 按 Esc / 右上角 ×）。
- *   缺省 true＝既有行为；**false 只给「本位」nudge 用**（见 `confirmNudge`）——那种弹窗**必须点按钮才能关**。
+ *   缺省 true＝既有行为；**false 只给确认类浮窗用**（见 `confirmNudge` / `confirmDanger`）——
+ *   那种弹窗不点遮罩 / 不出 ×，但 Esc 仍可取消（见 `escCancel`）。
+ * @param {boolean} [options.escCancel=dismissable] - Esc 是否可取消。确认类弹窗（`dismissable:false`）
+ *   传 true 时：只保留 Esc 一条退出路径（不点遮罩 / 不出 ×），Esc 等价于点「取消」——不可逆操作
+ *   取消后只 resolve(false)，不执行任何写入（2026-10-31 P9）。
  * @returns {HTMLElement} 浮窗面板元素
  */
 // 2026-10-28 批次 518（B-500-2 · R3-25）：原「浮窗页脚设置深链」与浮窗体例冲突
@@ -248,6 +252,7 @@ export function openModal({
   width = '', size = 'md',
   accentColor = 'var(--app-accent)',
   dismissable = true,
+  escCancel = dismissable,
   footerHtml = '', footerSticky = true,
   onCancel = null,
 }) {
@@ -266,7 +271,7 @@ export function openModal({
 
   const overlay = document.createElement('div');
   overlay.id = `modal-overlay-${id}`;
-  overlay.style.cssText = 'position:fixed;inset:0;z-index:500;background:rgba(0,0,0,0.35);display:flex;align-items:center;justify-content:center;animation:fadeIn 0.15s ease;';
+  overlay.style.cssText = 'position:fixed;inset:0;z-index:500;background:rgba(0,0,0,0.35);display:flex;align-items:center;justify-content:center;animation:fadeIn var(--motion-feedback) var(--ease-standard);';
 
   const panel = document.createElement('div');
   // role="dialog" + aria-modal + aria-labelledby：让读屏把浮窗识别为模态对话框并以标题为名
@@ -277,7 +282,7 @@ export function openModal({
   panel.className = `modal-panel modal-panel--${size}`;
   panel.style.setProperty('--modal-width', width || sizeWidth);
   panel.style.setProperty('--modal-accent', accentColor);
-  panel.style.animation = 'slideUp 0.2s ease';
+  panel.style.animation = 'slideUp var(--motion-enter) var(--ease-standard)';
 
   // dismissable=false（「本位」nudge 专用，见 confirmNudge）：**不渲染右上角 ×**——
   // 那种弹窗只给两个动作按钮（主 / 次），不给第二条退出路径（2026-09-23 支书裁定）。
@@ -326,8 +331,10 @@ export function openModal({
     if (e.target.closest(`[data-modal-cancel="${id}"]`)) _requestCancel(id);
   });
 
-  // 三条「非按钮」关闭路径（遮罩点击 / × / Esc）**只在 dismissable 时挂**——
-  // nudge 弹窗要求「必须点击按钮才可以关闭」：不点遮罩关、不按 Esc 关、不自动超时。
+  // 「非按钮」关闭路径（遮罩点击 / × / Esc）：
+  //   · 遮罩与 × 只在 dismissable 时挂（nudge / 危险确认不提供这两条）；
+  //   · Esc 单独受 `escCancel` 控制：确认类弹窗必须支持 Esc 取消（取消后不执行），
+  //     但仍不点遮罩 / 不出 ×。
   if (dismissable) {
     // 点击遮罩关闭
     overlay.addEventListener('click', (e) => {
@@ -336,18 +343,18 @@ export function openModal({
 
     // 关闭按钮
     panel.querySelector(`[data-modal-close="${id}"]`).addEventListener('click', () => _requestCancel(id));
-
+  }
+  if (!dismissable) _blockingModalIds.add(id);
+  if (dismissable || escCancel) {
     // ESC 关闭（监听按 id 登记，closeModal 全路径统一注销）
     const escHandler = (e) => {
       if (e.key !== 'Escape') return;
-      // 有 blocking 浮窗（nudge）在顶 ⇒ 让位：不得把底下的表单浮窗关掉（见 _blockingModalIds 注释）
-      if (_blockingModalIds.size > 0) return;
+      // 有 blocking 浮窗在顶 ⇒ 底下浮窗让位；**blocking 浮窗自身**（确认类）仍可被 Esc 取消。
+      if (_blockingModalIds.size > 0 && !_blockingModalIds.has(id)) return;
       _requestCancel(id);
     };
     _escHandlers.set(id, escHandler);
     document.addEventListener('keydown', escHandler);
-  } else {
-    _blockingModalIds.add(id);
   }
 
   // 回调
@@ -395,7 +402,7 @@ export function closeModal(id) {
     if (reduced) {
       overlay.remove();
     } else {
-      overlay.style.transition = 'opacity 0.15s ease';
+      overlay.style.transition = 'opacity var(--motion-exit) var(--ease-standard)';
       overlay.style.opacity = '0';
       setTimeout(() => overlay.remove(), 150);
     }
@@ -463,7 +470,7 @@ export function openFormModal({
   const fieldHtml = (f) => {
     const val = initialValues[f.key] != null ? initialValues[f.key] : '';
     const fid = fieldId(f.key);
-    const reqMark = f.required ? '<span style="color:var(--status-error);">*</span>' : '';
+    const reqMark = f.required ? '<span style="color:var(--status-error-text);">*</span>' : '';
     const requiredAttr = f.required ? ' required aria-required="true"' : '';
     const label = `<label for="${escHtml(fid)}" style="${labelStyle}" class="text-body-sm">${escHtml(f.label)}${reqMark}</label>`;
     if (f.type === 'select') {
@@ -689,7 +696,8 @@ function _nudgeEsc(s) {
  * 「必须点按钮才能关」的确认浮窗（内部共用机制 · 2026-10-01 批次 326 抽出）：
  * `confirmNudge`（本位 nudge）与 `confirmWriteWithoutGrant`（未赋权软提示）走同一套动作语义——
  * 点主按钮 ⇒ resolve(true)（继续执行原动作）；点次按钮 ⇒ resolve(false)（放弃本次动作）。
- * 弹窗**必须点按钮才能关**（不点遮罩 / 不按 Esc / 不自动超时）；关闭一律走 `closeModal`（不留监听）。
+ * 弹窗**不点遮罩 / 不出 × / 不自动超时**；但**必须支持 Esc 取消**（2026-10-31 P9）——
+ * Esc 等价于次按钮：resolve(false)，不执行原动作。关闭一律走 `closeModal`（不留监听）。
  * @param {Object} o
  * @param {string} o.id 浮窗 id
  * @param {string} o.title 标题
@@ -719,9 +727,11 @@ function _mustPressConfirm({ id, title, bodyHtml, confirmLabel = '仍由我继�
       title,
       width: '460px',
       dismissable: false,
+      escCancel: true,
       bodyHtml,
-      // 动作行同样走 sticky footer（统一体例；nudge 只是不允许「非按钮」关闭）
+      // 动作行同样走 sticky footer；Esc = 取消（resolve(false)），不执行任何写入。
       footerHtml: `${cancelBtnHtml}${confirmBtnHtml}`,
+      onCancel: () => finish(false),
       onMount: (p) => {
         p.querySelector('[data-nudge-confirm]')?.addEventListener('click', () => finish(true));
         p.querySelector('[data-nudge-cancel]')?.addEventListener('click', () => finish(false));
@@ -737,8 +747,8 @@ function _mustPressConfirm({ id, title, bodyHtml, confirmLabel = '仍由我继�
  *   ① 做什么（标题已给一行动词，正文可复述对象）
  *   ② 影响范围（哪些行 / 人 / 记录会变）
  *   ③ 可否恢复（可恢复写撤销路径；删除 / 解散一律明写「不可恢复」）
- * 机制复用 `_mustPressConfirm`（不新增第二套弹窗组件）：必须点按钮才能关，
- * 焦点先落在「取消」、主按钮走 `.btn-danger-solid`（危险确认专用）。
+ * 机制复用 `_mustPressConfirm`（不新增第二套弹窗组件）：不点遮罩 / 不出 ×，
+ * 但**Esc 可取消**（取消＝resolve(false)，不可逆操作也不会执行）；主按钮走 `.btn-danger-solid`。
  * @param {Object} o
  * @param {string} o.id 语义 id（渲染为 `#modal-overlay-danger-<id>`，测试可定位）
  * @param {string} o.title 标题＝做什么（一行动词）
@@ -775,7 +785,8 @@ function _noGrantNoteHtml(subject, context = '') {
 /**
  * 「本位」nudge 确认弹窗（2026-09-23 支书裁定）：**只在操作人不是本位时**由调用点调用。
  * 三个动作语义：点主按钮 ⇒ resolve(true)（继续执行原动作）；点次按钮 ⇒ resolve(false)（放弃本次动作）。
- * 弹窗**必须点按钮才能关**（不点遮罩 / 不按 Esc / 不自动超时）；关闭一律走 `closeModal`（不留监听）。
+ * 弹窗**不点遮罩 / 不出 × / 不自动超时**；但**必须支持 Esc 取消**（2026-10-31 P9）——
+ * Esc 等价于次按钮：resolve(false)，不执行原动作。关闭一律走 `closeModal`（不留监听）。
  * @param {Object} options
  * @param {'activity-write'|'inspection-upload'|'attendance-upload'|'taskforce-upload'} options.nudgeKey
  *   nudge 场景键（**单一源**：文案取自 `NUDGE_TEXTS`；同时落到弹窗 DOM 供统计 / 测试锚定）

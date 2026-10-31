@@ -28,8 +28,12 @@ test('T1 左右箭头与定位壳：tab-bar 输出 .ws-tab-shell / .ws-tab-arrow
 
 test('T2 滚动行为：240px 平滑滚动 + scroll/resize 重算', () => {
   assert.match(TAB_BAR, /const STEP = 240;/, '滚动步长应为 240px');
-  assert.match(TAB_BAR, /scrollBy\(\{ left: -STEP, behavior: 'smooth' \}\)/, '左箭头应平滑左滚');
-  assert.match(TAB_BAR, /scrollBy\(\{ left: STEP, behavior: 'smooth' \}\)/, '右箭头应平滑右滚');
+  // 2026-10-31 P10：平滑滚动收口到 `utils.js::smoothScroll`（单一出口，尊重 reduced-motion）；
+  // 旧写法 `scrollBy({ behavior:'smooth' })` 仍可接受。两种实现都必须保留左右 240px 相对滚动语义。
+  assert.match(TAB_BAR, /smoothScroll\(scroller, \{ left: -STEP, relative: true \}\)|scrollBy\(\{ left: -STEP, behavior: 'smooth' \}\)/,
+    '左箭头应平滑左滚');
+  assert.match(TAB_BAR, /smoothScroll\(scroller, \{ left: STEP, relative: true \}\)|scrollBy\(\{ left: STEP, behavior: 'smooth' \}\)/,
+    '右箭头应平滑右滚');
   assert.match(TAB_BAR, /addEventListener\('scroll', sync/, '缺少滚动位置监听');
   assert.match(TAB_BAR, /addEventListener\('resize', onResize\)/, '缺少窗口 resize 重算');
   assert.match(TAB_BAR, /scrollWidth - scroller\.clientWidth/, '缺少可滚判定（scrollWidth - clientWidth）');

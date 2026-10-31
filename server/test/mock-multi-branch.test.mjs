@@ -30,19 +30,19 @@ globalThis.localStorage = storage;
 
 import { createApp } from '../app.js';
 import { seedDatabase } from '../seed.js';
-import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261029b';
-import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261029b';
-import { PEOPLE } from '../../docs/src/data/mock/people.js?v=20261029b';
-import { ACTIVITIES } from '../../docs/src/data/mock/activities.js?v=20261029b';
-import { MOCK_NOTICES } from '../../docs/src/data/mock/notices.js?v=20261029b';
-import { ATTENDANCE_RECORDS } from '../../docs/src/data/mock/attendance.js?v=20261029b';
-import { SEED_ASSIGNMENTS } from '../../docs/src/data/mock/seed.js?v=20261029b';
-import { SEED_TODOS } from '../../docs/src/services/governance/todo.js?v=20261029b';
-import { ensureLegacySourceWorkgroups, normalizeSeedActivitySeedRows } from '../../docs/src/data/workgroup-seed-sync.js?v=20261029b';
+import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261031a';
+import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261031a';
+import { PEOPLE } from '../../docs/src/data/mock/people.js?v=20261031a';
+import { ACTIVITIES } from '../../docs/src/data/mock/activities.js?v=20261031a';
+import { MOCK_NOTICES } from '../../docs/src/data/mock/notices.js?v=20261031a';
+import { ATTENDANCE_RECORDS } from '../../docs/src/data/mock/attendance.js?v=20261031a';
+import { SEED_ASSIGNMENTS } from '../../docs/src/data/mock/seed.js?v=20261031a';
+import { SEED_TODOS } from '../../docs/src/services/governance/todo.js?v=20261031a';
+import { ensureLegacySourceWorkgroups, normalizeSeedActivitySeedRows } from '../../docs/src/data/workgroup-seed-sync.js?v=20261031a';
 // Task 1（2026-10-25）：种子只存事实；mock 侧用同一派生器补回运行时形状后再与 API 比对。
-import { applyDerivedFacts } from '../../docs/src/data/mock/derive.js?v=20261029b';
+import { applyDerivedFacts } from '../../docs/src/data/mock/derive.js?v=20261031a';
 // R3-P1（F-06）：通知读口按受众投影（私信/定向）——本守卫的 api 侧同样经该判据，mock 侧须同源对齐。
-import { canReadNotice } from '../../docs/src/services/governance/notice.js?v=20261029b';
+import { canReadNotice } from '../../docs/src/services/governance/notice.js?v=20261031a';
 
 const BRANCH_B1 = 'br-b1';
 const BRANCH_B2 = 'br-b2';

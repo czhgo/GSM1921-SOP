@@ -6,25 +6,25 @@
 //   · 私信 message：会话线程（同一 replyTo 链，时间升序）+ 回复框
 // 已读与回执分离：进入详情即 markRead（只标记当前人）；「确认收到 / 线上参加」属业务回执，
 //   独立渲染、不因已读隐藏。
-import { renderSidebar } from '../../components/shell/sidebar.js?v=20261029b';
-import { renderHeader } from '../../components/shell/header.js?v=20261029b';
-import { NoticeStore, canReadNotice, kindOf, isArchivedFor, replyToMessage } from '../../services/governance/notice.js?v=20261029b';
-import { getBasePath, showToast, escHtml } from '../../core/base/utils.js?v=20261029b';
-import { AuthStore } from '../../services/core/auth.js?v=20261029b';
-import { getPersonName } from '../../services/member/person.js?v=20261029b';
-import { badgeHtml } from '../../components/ui/badges.js?v=20261029b';
-import { NOTICE_AUDIENCE_SENTINELS } from '../../core/domain/constants.js?v=20261029b';
+import { renderSidebar } from '../../components/shell/sidebar.js?v=20261031a';
+import { renderHeader } from '../../components/shell/header.js?v=20261031a';
+import { NoticeStore, canReadNotice, kindOf, isArchivedFor, replyToMessage } from '../../services/governance/notice.js?v=20261031a';
+import { getBasePath, showToast, escHtml } from '../../core/base/utils.js?v=20261031a';
+import { AuthStore } from '../../services/core/auth.js?v=20261031a';
+import { getPersonName } from '../../services/member/person.js?v=20261031a';
+import { badgeHtml } from '../../components/ui/badges.js?v=20261031a';
+import { NOTICE_AUDIENCE_SENTINELS } from '../../core/domain/constants.js?v=20261031a';
 // S1（2026-09-12）：通知详情页必须先完成数据 hydrate（loadDB/API init）再按 id 取数，
 // 否则 NoticeStore 只剩 MOCK_NOTICES 内存兜底 → 用户/服务端通知一律「不存在或已过期」。
-import { hydrateDataSource, notifyDataLoaded } from '../../data/data-adapter.js?v=20261029b';
-import { ApiAdapter } from '../../data/api-adapter.js?v=20261029b';
-import { BranchService } from '../../services/core/runtime.js?v=20261029b';
+import { hydrateDataSource, notifyDataLoaded } from '../../data/data-adapter.js?v=20261031a';
+import { ApiAdapter } from '../../data/api-adapter.js?v=20261031a';
+import { BranchService } from '../../services/core/runtime.js?v=20261031a';
 // SOP-B-5（D-293）：通知确认时填「能否线上参会」——线上参会落该场考勤为「请假 + 线上」、只免补课
-import { declareOnlineAttend, loadAttendanceRecords } from '../../services/activity/attendance.js?v=20261029b';
-import { loadActivities } from '../../services/activity/activity.js?v=20261029b';
-import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261029b';
+import { declareOnlineAttend, loadAttendanceRecords } from '../../services/activity/attendance.js?v=20261031a';
+import { loadActivities } from '../../services/activity/activity.js?v=20261031a';
+import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261031a';
 // Task 6：对象卡直达详情页（通知不在对象所属工作台内 ⇒ direct）。
-import { objectDetailHref } from '../../core/domain/object-route.js?v=20261029b';
+import { objectDetailHref } from '../../core/domain/object-route.js?v=20261031a';
 
 renderSidebar('messages');
 renderHeader('messages');

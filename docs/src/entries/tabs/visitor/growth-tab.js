@@ -8,7 +8,8 @@
 // 深链：`?tab=growth&section=thought|inspection|review` 直接展开对应子区（旧 `?tab=thought-report|inspection|review`
 //   由工作台壳的 `_legacyTabAliases` 重定向到这里）。
 
-import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261029b';
+import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261031a';
+import { smoothScroll } from '../../../core/base/utils.js?v=20261031a';
 
 const SECTIONS = [
   {
@@ -16,21 +17,21 @@ const SECTIONS = [
     aliases: ['thought-report', 'thought'],
     title: '思想汇报',
     meta: '按期次提交与回看；提交即入库归档。',
-    load: () => import('./thought-report-tab.js?v=20261029b'),
+    load: () => import('./thought-report-tab.js?v=20261031a'),
   },
   {
     key: 'inspection',
     aliases: ['inspection'],
     title: '我的考察',
     meta: '本人历次活动参与考察记录与申诉入口。',
-    load: () => import('./inspection-tab.js?v=20261029b'),
+    load: () => import('./inspection-tab.js?v=20261031a'),
   },
   {
     key: 'review',
     aliases: ['review'],
     title: '我的复盘',
     meta: '组织者 / 深度参与者提交复盘 → 纪检批注确认。',
-    load: () => import('./review-tab.js?v=20261029b'),
+    load: () => import('./review-tab.js?v=20261031a'),
   },
 ];
 
@@ -39,9 +40,9 @@ function _sectionHtml(section, open) {
   const id = `growth-${section.key}`;
   return `
     <div class="card rounded-xl p-5 disclosure-host">
-      <h3 class="disclosure__title" id="${id}-title">${section.title}</h3>
+      <h3 class="disclosure__title" id="${id}-title">${section.title}<span class="disclosure__meta">${section.meta}</span></h3>
       <details class="disclosure" id="${id}"${open ? ' open' : ''} data-growth-section="${section.key}">
-        <summary class="disclosure__summary" aria-labelledby="${id}-title">${section.meta}</summary>
+        <summary class="disclosure__summary" aria-labelledby="${id}-title"></summary>
         <div class="disclosure__body" id="${id}-body"></div>
       </details>
     </div>`;
@@ -81,7 +82,7 @@ export function renderContent(ctx = {}) {
 
   // 深链：展开后把目标子区滚到视野（可见说明 = 子区已展开，不额外弹 toast）。
   if (hit) {
-    container.querySelector(`#growth-${hit.key}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    smoothScroll(container.querySelector(`#growth-${hit.key}`), { block: 'start' });
   }
   return null;
 }

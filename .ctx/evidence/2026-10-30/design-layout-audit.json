@@ -1,0 +1,193 @@
+{
+  "meta": {
+    "auditor": "独立前端设计审查（版式与视觉层级）",
+    "date": "2026-10-30",
+    "method": "Playwright(chromium) 真机量测，实测 DOM 计算样式 + 截图目检；亮色为主，暗色抽查 archive/settings",
+    "viewports": ["1440x900", "1024x768", "768x1024", "390x844"],
+    "pages": [
+      "/index.html",
+      "/workspace/secretary.html",
+      "/workspace/secretary.html?tab=calendar（活动管理·日历）",
+      "/workspace/org.html?tab=roster（名册；党委台 /workspace/party-committee.html 对支书账号 302 回 secretary.html，无 party-staff 账号不可达）",
+      "/archive.html",
+      "/settings.html",
+      "/help.html",
+      "/feedback.html（跨页骨架对照用）",
+      "/login.html"
+    ],
+    "notes": "所有读数取自 2026-10-30 本地 http://localhost:3000 实测；党建主题字体 Google Fonts 被阻断时回退系统字体，字号/内边距/几何不受影响。"
+  },
+  "findings": [
+    {
+      "id": "L1",
+      "title": "两套同名不同值的字号刻度，且正文档 15px 不在规范档位表",
+      "evidence": "docs/src/styles.css:258-264 定义 --text-xs:0.75rem / --text-sm:0.75rem / --text-base:0.875rem / --text-2xl:1.375rem，与 Tailwind 的 text-sm=14px / text-base=16px / text-2xl=24px 同名不同值；docs/src/styles.css:269 定义 --text-body:0.9375rem(15px) 并由 body{font-size:var(--text-body)} 全站生效。实测 8 页 body 计算字号一律 15px（index/secretary/calendar/roster/archive/settings/help/login 均 15px）；DS_02 §3.2 档位表只有 11/12/13/14/16/18/20/24，无 15px。首屏可见字号 7 档：11/12/13/14/16/22/24。",
+      "scale": "全站 8 页 + 全部组件；1 个根令牌影响所有正文",
+      "verdict": "规范未覆盖",
+      "generalFix": "二选一收敛：要么把 15px 正式写进 DS_02 §3.2（并给出适用面），要么回到 16px/14px；同时把 --text-* 改名（如 --fs-*）或与 Tailwind 刻度对齐，避免同名字号出现两个值。",
+      "machineCheckable": "能。①运行期：`expect(['11px','12px','13px','14px','16px','18px','20px','24px']).toContain(getComputedStyle(document.body).fontSize)`；②静态：解析 styles.css，断言 `--text-sm` 的值 == Tailwind 的 text-sm(0.875rem) 且 `--text-base` == 1rem。"
+    },
+    {
+      "id": "L2",
+      "title": "间距令牌只覆盖 30%，其余 70% 是裸值；页面另有 569 处行内 style 写间距",
+      "evidence": "docs/src/styles.css 共 366 条 margin/padding/gap 声明，仅 109 条引用 var(--space-*)（--space-1:25、-2:44、-3:25、-4:13、-6:2，即 29.8%），237 条为裸值：8px×30、12px×17、4px×17、10px×13、6px×12、14px×6、2px×7。docs/**/*.js|html 中档位外类：gap-1.5×76、gap-2.5×33、gap-3.5×1、p-3.5×7、px-3.5×5、space-y-1.5×34；行内 style 含 padding/margin/gap 共 569 处（例：docs/src/components/record/calendar.js:326 `gap:2px`；docs/help.html:141 `gap:28px`、:147 `padding:5px 10px`）。首页首屏实测非档位间距 73 处（6px×17、20px×16、10px×4、2px×6、1px×28、32px×2）。",
+      "scale": "styles.css 366 条声明 + 340 个源文件 + 8 页首屏",
+      "verdict": "违反规范",
+      "generalFix": "先止新增后迁存量：① lint 禁 `style=\"…(padding|margin|gap)…\"`；② 禁 gap-1.5/2.5/3.5、p-3.5；③ 把 styles.css 的裸 8/12/4px 批量替换成 var(--space-2/3/1)（值不变，零视觉风险）。",
+      "machineCheckable": "能。①`rg -c 'style=\"[^\"]*(padding|margin|gap)' docs` == 0；②`rg -c 'gap-(1\\.5|2\\.5|3\\.5)|p-3\\.5|px-3\\.5'` == 0；③ AST/正则统计 styles.css 中 margin|padding|gap 的值集合 ⊆ {0,4,8,12,16,24,32}px 或 var(--space-*)；④运行期对可见元素取 computed gap，断言 ∈ {4,8,12,16,24}。"
+    },
+    {
+      "id": "L3",
+      "title": "名册在 768–880px 断点把操作列裁掉（编辑/档案/移出不可达）",
+      "evidence": "docs/src/entries/tabs/org/roster-tab.js:246 从 md(768px) 起使用 6 列固定宽 `minmax(120px,1.6fr) 132px 132px 96px 140px 168px`（最小合计 788px）。768×1024 实测：.roster-row 内容宽 828px，所在卡片宽 670px，第 6 列（168px 操作钮）被卡片右缘裁切约 158px；documentElement.scrollWidth 无溢出 ⇒ 不是横滑而是直接切掉。截图 roster-768 中只能看到按钮左侧残边。1024 宽（容器 960）时 828px 才放得下。",
+      "scale": "名册一屏；影响 768–约 880px 区间的全部平板竖屏",
+      "verdict": "违反规范",
+      "generalFix": "把 6 列断点从 md(768) 提到 lg(1024)，或在 768–1023 把操作列换到第二行（列头同步改为两行）。同时容器加 overflow-x:auto，杜绝“静默裁切”。",
+      "machineCheckable": "能。`const row=document.querySelector('.roster-row'); expect(row.scrollWidth).toBeLessThanOrEqual(row.parentElement.clientWidth)`；并断言最后一个操作钮 `getBoundingClientRect().right <= card.getBoundingClientRect().right`（768×1024）。"
+    },
+    {
+      "id": "L4",
+      "title": "首页首屏有 5 个同重量（24px）元素，没有一个主行动",
+      "evidence": "index@1440：h2「光华管理学院本科生党支部」24px/700 #1F2937；4 张 .stat-card__value 全部 24px/600，仅靠颜色区分（#3B82F6 / #92400E / #EF4444 / #6B7280，docs/src/components/dashboard/stats.js:125 用行内 color 写入）。首屏彩色文字 22 处、彩色底块 16 处；内容区 0 枚 .btn-accent（真正的实底按钮只在顶栏）。字号/字重上主行动与普通按钮无差（见 L5），因此首屏视觉重心是 1 个标题 + 4 个数字并列。",
+      "scale": "1 屏（首页），同一模式复用于 6 台工作台概况带 .metric-band--cards",
+      "verdict": "规范未覆盖",
+      "generalFix": "把数字降一档（20px/600）或标题升到 28px，使首屏只有一个 ≥24px 的层；并给首页定一个主行动（写入活动/去处理），其余降为链接。",
+      "machineCheckable": "能（需先定义“首屏”=视口内）。`const big=[...document.querySelectorAll('main *')].filter(el=>{const r=el.getBoundingClientRect();return r.top<innerHeight&&r.bottom>0&&parseFloat(getComputedStyle(el).fontSize)>=24&&el.childElementCount===0&&el.textContent.trim()}); expect(big.length).toBeLessThanOrEqual(1)`。"
+    },
+    {
+      "id": "L5",
+      "title": "主行动与次行动只靠颜色区分，尺寸字重完全相同",
+      "evidence": "登录页两枚主按钮：`统一身份认证登录` 13px/400、h36、w398、金底 rgb(154,107,15)；`登录`（表单主提交）13px/400、h36、w398、白底描边 —— 字号/字重/高度/宽度全同，仅底色不同（docs/login.html:84 vs :99，后者用 .btn-outline 承担主提交，违反 DS_03 §4.1.1“主操作用 .btn-accent、次操作用 .btn-outline”）。工作台：页头「写入活动」「一键汇报」13px/400 h36，页签 12px/500 h36，差 1px 字号且主行动字重更低。全站按钮字号集中在 12/13px，没有一档 14px 的主 CTA。",
+      "scale": "全站按钮族（含登录、顶栏、六台页头、设置、归档 tab）",
+      "verdict": "违反规范",
+      "generalFix": "主行动固定 14px/600（DS_03 §4.1 档4 本就是 34px/主 CTA），次行动 13px/400；登录页把表单提交改 .btn-accent，IAAA 改 .btn-outline。",
+      "machineCheckable": "能。`const p=[...document.querySelectorAll('.btn-accent')].map(b=>getComputedStyle(b).fontWeight); expect(p.every(w=>+w>=600)).toBe(true)`；并对每屏断言 `.btn-accent` 数量 <= 1（DS_03 §4.1.1 原文“每屏最多 1 个”）。"
+    },
+    {
+      "id": "L6",
+      "title": "跨页左基线有 5 个值，页头不共享同一条左轨",
+      "evidence": "1440×900 实测页头 h2 左边距：help 96px（.doc-wrap 80rem，docs/help.html:33）、名册 144px（docs/workspace/org.html:34 max-w-6xl）、settings 208px（docs/settings.html:30 max-w-5xl）、archive 224px（docs/archive.html:29 max-w-5xl + px-4）、feedback 336px（docs/feedback.html:30 max-w-3xl）。容器类共 4 种写法：max-w-6xl / max-w-5xl / max-w-3xl / .doc-wrap(80rem)，另 branch-config 用 layout-shell--content、party-committee 用 layout-shell--wide。DS_02 §3.4 G-2 只允许 layout-shell--* / page-frame--* 四种骨架类，实际 7 个页面直接用 Tailwind max-w-*。",
+      "scale": "8 页全站；页间跳转时标题横向跳动最大 240px",
+      "verdict": "规范未覆盖",
+      "generalFix": "所有页面统一用 .page-frame（骨架类决定宽度），并规定“页头标题与首张卡片同左轨”；如确需分档，档位只由骨架类提供，页面不再写 max-w-*。",
+      "machineCheckable": "能。逐页断言 `Math.round(h2.getBoundingClientRect().left) === Math.round(document.querySelector('.card').getBoundingClientRect().left)`；静态断言 `rg 'max-w-(3xl|5xl|6xl|7xl)' docs/*.html docs/workspace/*.html` 只命中白名单 0 处。"
+    },
+    {
+      "id": "L7",
+      "title": "名册把筛选+名单塞进一张 115 行的卡；390 下单卡 2205px，行内 6 个值失去字段名",
+      "evidence": "roster@1440：1 张 .card 1152×881，innerText 115 行（标题/计数/展开说明/搜索/3 个下拉/清除/50 行名单同一容器）；@390：同一张卡 358×2205（约 2.6 屏）。docs/src/entries/tabs/org/roster-tab.js:223 注释与 :228 列头表明“窄屏 <768 列头隐藏”，:246 行内退化为 grid-cols-1，各格无 data-label。截图 roster-390 中「党小组组长 / 第一党小组 / 正式党员 / 在校 / —」五行裸值并列，读者无法判断哪个是党小组、哪个是发展阶段。",
+      "scale": "1 页 × 2 断点（390 与 768）；50 行名单全部受影响",
+      "verdict": "违反规范",
+      "generalFix": "① 拆卡：筛选独立成「筛选卡」，名单独立成「名单卡」；② 窄屏每格补 data-label（DS_04 §6.2 卡式行口径）或改用 list-row 组件；③ 列头在窄屏不隐藏，改为每行前缀。",
+      "machineCheckable": "能。`document.querySelectorAll('.roster-row')[0].children` 每个元素须有 `data-label` 或 `aria-label`；并断言 390 下单个 .card 高度 <= 1.5 * innerHeight。"
+    },
+    {
+      "id": "L8",
+      "title": "活动管理 390 首屏被 5 个筛选控件占满，日历主体落在首屏之外",
+      "evidence": "calendar@1440：1 张 .card 1152×902、80 行；@390：358×994。首屏依次是：月份下拉、月/周/日/列表 4 个切页、搜索框、活动类别、品牌、范围、清除 = 8 个控件（各 40px 高 + 12px 间距），首个 .cal-cell 出现在 y≈700 以下；日历为 7 列 @316px ⇒ 每格 45px（docs/src/components/record/calendar.js:326 行内 `grid-template-columns:repeat(7,1fr);gap:2px`）。",
+      "scale": "1 页（支书/组织/宣传/纪检共用 activity-calendar-tab）× 390 断点",
+      "verdict": "规范未覆盖",
+      "generalFix": "390 下把筛选收成一行 chips + 「筛选」抽屉，默认只留月切换；或默认列表视图。日历格保持 ≥44px 触控尺寸（当前 45px 宽但高 40px）。",
+      "machineCheckable": "能。390×844 下断言首个 `.cal-cell` 的 `getBoundingClientRect().top < 640`；并断言 `document.querySelectorAll('#calendar-view-section input, #calendar-view-section select, #calendar-view-section .cs-trigger').length <= 3`（首屏可见数）。"
+    },
+    {
+      "id": "L9",
+      "title": "help 的 20 张表在 390 下被压到每格 2–3 个字，未切卡式行",
+      "evidence": "help@390：表格单元实测宽 66px / 88px，字号 15px ⇒ 每行 2–3 个汉字（如「顶栏 / 侧栏「登录」按钮；访问需登录页」被折成 13 行）；页面无横向溢出（documentElement.scrollWidth - innerWidth = 0）⇒ 是压扁而非横滑。DS_04 §6.2 允许“切卡式行（data-responsive=cards）”或“在自身容器内横滑”，二选一，当前两者都没做。",
+      "scale": "help 页 20 张表 × 390 断点",
+      "verdict": "违反规范",
+      "generalFix": "窄屏表格包一层 `overflow-x:auto` 并给 table 设 min-width（如 40rem），或按 §6.2 切 data-responsive=cards、每格带 data-label。",
+      "machineCheckable": "能。390 下遍历 `td`，断言 `td.clientWidth >= 4 * parseFloat(getComputedStyle(td).fontSize)`，否则判红。"
+    },
+    {
+      "id": "L10",
+      "title": "按钮高度实测 36px 落在四档之外，规范内还有三套互相冲突的尺寸说法",
+      "evidence": "实测：页头「写入活动/一键汇报」h36、工作台页签 h36、登录两枚按钮 h36；归档 tab h32；设置 tab h30。DS_03 §4.1「尺寸四档」为 25/30/34/34/32（docs 内 122 行机检判据：不在档即“第六种高度”），§4.1 开头另写「默认两档 32/28」，§4.1 尺寸表又写 40/36（且明注该表类名 styles.css 未实现）。同一份规范给出 4 组不同高度集合，实测 36px 无一组收录。",
+      "scale": "全站所有 <button>；page 头 + 六台页签 + 登录 + 归档为主",
+      "verdict": "规范未覆盖",
+      "generalFix": "先把 DS_03 §4.1 内部四套说法收敛成一张表（建议 25/30/34/38），再让 button-system-guard B2 以该表为唯一源；36px 要么收进表内，要么全站改 34。",
+      "machineCheckable": "能。`const hs=[...document.querySelectorAll('button')].map(b=>Math.round(b.getBoundingClientRect().height)); expect([...new Set(hs)].every(h=>ALLOWED.has(h)))`，ALLOWED 取自收敛后的单一表。"
+    },
+    {
+      "id": "L11",
+      "title": "卡片内边距 16 与 20 并存，而规范两节各写一个值",
+      "evidence": "index@1440：4 张数字卡 padding 16px（p-4），4 张内容卡 padding 20px（p-5）；settings/archive/roster/calendar 的卡全部 20px。DS_03 §4.2（docs 157 行）写“标准档 20px / 紧凑档 16px”，DS_03 §4.21.2（docs 965 行）写“标准卡 16 / 紧凑卡 12”。两节同时有效但不兼容，实现只能二选一，首页因此同屏出现两种厚度。",
+      "scale": "全站卡片；首页同屏 2 种，其余页 1 种",
+      "verdict": "规范未覆盖",
+      "generalFix": "删掉 §4.2 的 20px 或 §4.21.2 的 16px 其中一个，统一为 16（并说明页面级主卡是否例外），再清一次 p-5。",
+      "machineCheckable": "能。`const ps=[...document.querySelectorAll('.card')].map(c=>getComputedStyle(c).paddingTop); expect(new Set(ps).size).toBe(1)`（先定 16 或 20）。"
+    },
+    {
+      "id": "L12",
+      "title": "名册/归档/反馈三个列表页是三种骨架（页头、筛选、载体、空态各不同）",
+      "evidence": "归档：页级 h2「归档库」x=224 + 卡内 .lf-bar 仅搜索 + tab 两个 + emptyStateHtml(variant:'panel')（docs/src/entries/pages/archive-entry.js:119），列表区为空。反馈：页级 h2「意见反馈」x=336 + .lf-bar mb-3 + tab 计数「开放中 3 · 已关闭 1」+ 单卡 67 行（docs/feedback.html:30/34/40）。名册：无页级 h2（改用 tab 头 renderTabHeader，docs/src/entries/tabs/org/roster-tab.js:171）+ 卡内 4 个筛选 + 清除 + 无列头行（:228 列头窄屏隐藏）+ 无空态组件。三个页面页头左边缘 224/336/144，筛选行形态 1/2/5 个控件。",
+      "scale": "3 个列表页 × 4 断点；后续任何新列表页都会再长出一套",
+      "verdict": "规范未覆盖",
+      "generalFix": "立一份 list-page 骨架（页头 h1+一句说明 / 筛选行统一 .lf-bar / 载体统一 list-row 或 data-table / 空态统一 empty-state），并让三个页面按 data-skeleton 标记到位。",
+      "machineCheckable": "能。断言三个页面都存在 `[data-skeleton=header|filter|list|empty]` 四段，且 filter 段的控件数 ∈ {0,1}（其余进抽屉）；`document.querySelectorAll('h2').length === 1`。"
+    },
+    {
+      "id": "L13",
+      "title": "页头 h1 22px 比内容区 h2 24px 还小，且 22px 不在档位表",
+      "evidence": "docs/src/styles.css:2345 `.header-title h1{font-size:1.375rem}` ⇒ 实测 22px/800；index 内容 h2 24px/700（docs/index.html:43 text-2xl），help 内容标题 24px、小节 22px。DS_02 §3.2 只有 20（H2）与 24（H1），22px 不入表；DS_02 §3.3.1 规定页头标题用 h2 + text-xl(20px)。",
+      "scale": "全站 8 页页头（顶栏品牌名）",
+      "verdict": "违反规范",
+      "generalFix": "页头标题取 20px 或 24px（与内容区最大标题同级或更大），并把样式写回 styles.css 的单一源。",
+      "machineCheckable": "能。`const h1=document.querySelector('#app-header h1'), h2s=[...document.querySelectorAll('main h2')]; expect(parseFloat(getComputedStyle(h1).fontSize)).toBeGreaterThanOrEqual(Math.max(...h2s.map(h=>parseFloat(getComputedStyle(h).fontSize))))`。"
+    },
+    {
+      "id": "L14",
+      "title": "首页 4 张同形数字卡只有 1 张可点，外观无可点提示",
+      "evidence": "docs/src/components/dashboard/stats.js:119-121：仅「个人考勤」挂 .card--interactive cursor-pointer，其余 3 张为静态卡；4 张实测同为 276×104、同字号 24/600、同内边距 16px，静态截图无法区分哪张可点（hover 才变色）。DS_03 §4.2 边线语义只覆盖“可交互主卡必有 hover”，未要求静态卡与可点卡在静置态可区分；§4.1 操作可见性原文要求“有操作能力者必须给出可见标识”，此处 cursor 不构成可见标识。",
+      "scale": "首页 1 排 4 张；同一组件复用于各台概况带",
+      "verdict": "规范未覆盖",
+      "generalFix": "要么 4 张全部可点（各自跳到对应列表），要么给可点卡加一个可见箭头/整卡描边，静态卡保持无。",
+      "machineCheckable": "半能。断言同一 .stat-grid 内 `.card--interactive` 数量 ∈ {0, N}（不允许 1 < n < N），或每个可点卡内含 `.card__arrow` 之类可见标记。"
+    },
+    {
+      "id": "L15",
+      "title": "help 用 1.75/1.8 行高，全站其它页面 15px 正文是 1.5；阅读档未登记",
+      "evidence": "docs/help.html:40 `.doc-p{font-size:0.9375rem;line-height:1.75;max-width:38em}`、:45 `.doc-ack{…line-height:1.8}`；其余 7 页 15px 正文实测行高 1.5（DS_02 §3.2.2 已订正“基准行高实测 1.5”）。同字号下 help 行距 26.25px vs 他页 22.5px，差 17%。行长本身合规：help 570px 宽 15px 字 = 29–32 字/行（38em 上限），其它页短段落 12–20 字/行。",
+      "scale": "help 1 页（全站唯一长文档页）；与其余 7 页节奏不一致",
+      "verdict": "规范未覆盖",
+      "generalFix": "在 DS_02 增设“长文阅读档 15/1.75 / max-width 38em”，并注明仅 help/about 类文档页可用；其余页面不允许换行高。",
+      "machineCheckable": "能。按 font-size 分组统计所有 <p> 的 line-height，断言每个字号只对应一个行高（文档页白名单除外）。"
+    },
+    {
+      "id": "L16",
+      "title": "主内容 padding-top 64px 对 56px 的固定页头，多出 8px 且是裸值",
+      "evidence": "8 页实测 `#app-header` 高 56px，`main.sidebar-main-content` 计算 padding-top 64px（Tailwind pt-16，如 docs/archive.html:28、docs/feedback.html:28），间距全部来自裸值而非 --space-* 或页头高度令牌；首页首个 section 起点 y=88（56+32），页头下就是 32px 空白，与卡片内 16px 形成 2:1 的无语义节奏。",
+      "scale": "全站 8 页",
+      "verdict": "违反规范",
+      "generalFix": "引入 --header-h 令牌，main 用 `padding-top: calc(var(--header-h) + var(--space-4))`；或直接把 pt 改成 var(--space-6)。",
+      "machineCheckable": "能。`expect(getComputedStyle(main).paddingTop).toBe(getComputedStyle(document.querySelector('#app-header')).height)` 或断言差值 ∈ 令牌集合。"
+    }
+  ],
+  "subjective": [
+    {
+      "id": "S1",
+      "title": "首页 hero：居中党徽 + 居中 24px 标题，像海报不像工作台",
+      "note": "首屏 200px 高几乎全给了品牌，信息密度低。属品牌表达取舍，不建议立规矩。"
+    },
+    {
+      "id": "S2",
+      "title": "文书页（help）左侧目录 220px + 正文 38em，1440 下右侧留白 600px+",
+      "note": "阅读体验其实不错（行长 29–32 字），留白偏大是审美判断。"
+    },
+    {
+      "id": "S3",
+      "title": "名册行高约 57px，表头隐藏后靠列对齐识读",
+      "note": "桌面端对齐可用；是否加细线分隔属风格选择，不建议成规。"
+    },
+    {
+      "id": "S4",
+      "title": "日历在 390 用彩色圆点表示当天活动",
+      "note": "45px 格内圆点只能表达“有/无”，信息量可再加，但属产品取舍。"
+    },
+    {
+      "id": "S5",
+      "title": "设置页左栏 tab 宽 220px、右栏卡片 772px",
+      "note": "视觉上略偏重左栏，但无功能影响，不建议量化。"
+    }
+  ]
+}

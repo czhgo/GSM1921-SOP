@@ -18,9 +18,9 @@
 //   E4 index.html 不出现硬编码示例支部名「光华管理学院本科生党支部」；
 //   E5 非空转自检：上述正则对正样本命中、对负样本不命中（防止空转假绿）；
 //   E7 首页统计卡：图标 ＋ 数字 ＋ 标签 + 统一 min-height（390 等高），不阴影不上浮；
-//   E8 hero 降级两态（2026-10-28 Task 5.4，DESIGN_SYSTEM §4.25 规则 4）：
-//      登录且有待办 ⇒ main-entry.js 写 data-hero="muted"（待办口径同源 TodoStore.getByRole）·
-//      styles.css 党徽 48px → 24px、标题 --text-xl 左对齐；未登录 / 待办 0 保持整幅 ⇒ 断言带反例。
+//   E8 hero 特例（2026-10-31 支书补充，DS_05 §10.5.1 白名单）：
+//      首页 #dashboard-hero **恒为居中整幅**（48px 党徽 ＋ 居中标题），
+//      原「登录且有待办 ⇒ data-hero=muted / 24px 左对齐」降级已移除 ⇒ 断言带反例。
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
@@ -33,12 +33,14 @@ const MAIN_ENTRY = join(ROOT, 'docs', 'src', 'entries', 'pages', 'main-entry.js'
 const GALLERY = join(ROOT, 'docs', 'src', 'components', 'dashboard', 'gallery.js');
 const STATS = join(ROOT, 'docs', 'src', 'components', 'dashboard', 'stats.js');
 const CSS = join(ROOT, 'docs', 'src', 'styles.css');
+const DS5 = join(ROOT, 'content', '04_web_design', 'design-system', 'DS_05_MAP_AND_REFERENCE.md');
 
 const indexHtml = readFileSync(INDEX, 'utf8');
 const mainSource = readFileSync(MAIN_ENTRY, 'utf8');
 const gallerySource = readFileSync(GALLERY, 'utf8');
 const statsSource = readFileSync(STATS, 'utf8');
 const cssSource = readFileSync(CSS, 'utf8');
+const ds5Source = readFileSync(DS5, 'utf8');
 
 // ── 正则：页面结构 ──
 const HERO_BLOCK_RE = /<div\b[^>]*\bid="dashboard-hero"[^>]*>([\s\S]*?)<\/div>/;
@@ -51,14 +53,11 @@ const IMPORT_RE = /import\s*\{[^}]*\bgetHeaderTitle\b[^}]*\}\s*from\s*['"]\.\.\/
 const TITLE_CALL_RE = /heroTitleEl\.textContent\s*=\s*user\s*\?\s*getHeaderTitle\(user\.personId\)\s*:\s*getHeaderTitle\(\)/;
 const OLD_SELECTOR_RE = /querySelector\(\s*['"]#view-dashboard h2\.font-title-cn['"]\s*\)/;
 
-// ── 正则：hero 两态（E8）──
-const TODO_IMPORT_RE = /import\s*\{[^}]*\bTodoStore\b[^}]*\}\s*from\s*['"]\.\.\/\.\.\/services\/governance\/todo\.js\?v=\d{8}[a-z]['"]/;
-const TODO_SAME_SOURCE_RE = /TodoStore\.getByRole\(user\.role\)/;
-const HERO_STATE_RE = /heroEl\.dataset\.hero\s*=\s*user\s*&&\s*todoCount\s*>\s*0\s*\?\s*['"]muted['"]\s*:\s*['"]full['"]/;
+// ── 正则：hero 特例（E8）──
 const BASE_EMBLEM_RE = /\.dashboard-hero__emblem\s*\{[^}]*width:\s*48px[^}]*height:\s*48px[^}]*\}/;
+const HERO_CENTERED_RE = /<div\b[^>]*class="[^"]*\btext-center\b[^"]*"[^>]*\bid="dashboard-hero"/;
 const MUTED_BLOCK_RE = /#dashboard-hero\[data-hero="muted"\]\s*\{[^}]*text-align:\s*start[^}]*\}/;
-const MUTED_EMBLEM_RE = /#dashboard-hero\[data-hero="muted"\]\s+\.dashboard-hero__emblem\s*\{[^}]*width:\s*24px[^}]*height:\s*24px[^}]*\}/;
-const MUTED_TITLE_RE = /#dashboard-hero\[data-hero="muted"\]\s+#dashboard-hero-title\s*\{[^}]*font-size:\s*var\(--text-xl\)[^}]*text-align:\s*start[^}]*\}/;
+const HERO_MUTED_STATE_RE = /(?:data-hero|dataset\.hero)\s*=\s*[^;\n]*['"]muted['"]/;
 
 test('E1 首页抬头块：党徽 + 标题，位于统计卡之前；副标题已裁删', () => {
   const hero = indexHtml.match(HERO_BLOCK_RE);
@@ -107,7 +106,7 @@ test('E5 非空转自检：正则正样本命中、负样本不命中', () => {
   assert.match('<p id="dashboard-hero-subtitle" class="text-sm">x</p>', HERO_SUBTITLE_RE,
     '副标题正则须能识别回潮元素（反向断言依赖它）');
 
-  const posImport = "import { getHeaderTitle } from '../../services/branch/branch.js?v=20261029b';";
+  const posImport = "import { getHeaderTitle } from '../../services/branch/branch.js?v=20261031a';";
   const negImport = "import { getHeaderTitle } from '../../services/branch/branch.js';";
   assert.match(posImport, IMPORT_RE);
   assert.doesNotMatch(negImport, IMPORT_RE);
@@ -141,7 +140,8 @@ test('E6 首页活动风采：一张照片都没有时不出 16:9 大图位，�
 test('E7 首页统计卡：图标在左＋数值/标签在右、栅格等高（无 min-height），不阴影不上浮', () => {
   // 2026-10-29 P2：数字组统一为「图标块在左 ＋ .stat-card__body（数值/标签在右两行）」；
   //   卡片不自带尺寸，四张等高交给 #dashboard-stats 的 .stat-grid（align-items: stretch）。
-  assert.match(statsSource, /class="card rounded-xl p-4 stat-card/, '统计卡须复用 .card 并挂 .stat-card');
+  // 2026-10-31：上下内边距收一档（p-4 → px-4 py-3）；结构判据不变。
+  assert.match(statsSource, /class="card rounded-xl (?:p-4|px-4 py-3) stat-card/, '统计卡须复用 .card 并挂 .stat-card');
   assert.match(statsSource, /class="stat-icon-tint"[^>]*--tint:\$\{s\.color\}/,
     '统计卡须有图标块，浅底由 --tint 取既有语义色派生');
   assert.match(statsSource, /stat-icon-tint[\s\S]{0,400}stat-card__body[\s\S]{0,400}stat-card__value[\s\S]{0,400}stat-card__label/,
@@ -169,28 +169,26 @@ test('E7 首页统计卡：图标在左＋数值/标签在右、栅格等高（�
   assert.doesNotMatch(statsSource, /hover:shadow|hover:-translate-[xy]-/, '统计卡不得以 hover 阴影 / 上浮作反馈');
 });
 
-test('E8 hero 两态：登录且有待办降为辅助信息，未登录 / 待办 0 保持整幅', () => {
-  // 待办口径与页面既有统计同源（今天 / 待办 tab）：TodoStore.getByRole(role)。
-  assert.match(mainSource, TODO_IMPORT_RE,
-    'main-entry.js 未从 services/governance/todo.js 引入 TodoStore（待办口径须同源）');
-  assert.match(mainSource, TODO_SAME_SOURCE_RE,
-    'hero 判定未复用 TodoStore.getByRole(user.role)（不得新造第二个待办口径）');
-  assert.match(mainSource, HERO_STATE_RE,
-    '缺少「登录且有待办 ⇒ data-hero=muted，否则 full」的状态标记');
-  assert.doesNotMatch(mainSource, /heroEl\.dataset\.hero\s*=\s*['"]muted['"]/,
-    '状态标记不得写死 muted（未登录 / 待办 0 必须保持整幅）');
-  // 静态壳不得再用行内 width/height 压过降级规则。
-  assert.doesNotMatch(indexHtml, /<img\b[^>]*party_emblem[^>]*style="[^"]*width:\s*48px/,
-    '党徽尺寸须由 styles.css 承担（行内样式会压过 data-hero=muted 的 24px）');
+test('E8 hero 特例：首页恒为居中整幅（DS_05 §10.5.1 白名单），不得回退左对齐降级', () => {
+  // 白名单落点：DS_05 §10.5.1「首页 hero 特例」——支书认可的「党徽 ＋ 支部名居中」整幅抬头。
+  assert.match(ds5Source, /### 10\.5\.1 首页 hero 特例/, 'DS_05 缺 §10.5.1 首页 hero 特例白名单');
+  assert.match(ds5Source, /恒为居中整幅/, 'DS_05 白名单须写明 hero 恒为居中整幅');
+  assert.match(ds5Source, /不得出现 24px 降级|不得出现 24px/, 'DS_05 白名单须写明不得 24px 降级');
 
-  assert.match(cssSource, BASE_EMBLEM_RE, 'styles.css 缺少党徽默认 48px（未登录 / 待办 0 态）');
-  assert.match(cssSource, MUTED_BLOCK_RE, '缺少 #dashboard-hero[data-hero="muted"] 的左对齐降级块');
-  assert.match(cssSource, MUTED_EMBLEM_RE, '降级态党徽须为 24px');
-  assert.match(cssSource, MUTED_TITLE_RE, '降级态标题须为 var(--text-xl) 且左对齐');
+  // 静态壳：居中 + 48px 党徽。
+  assert.match(indexHtml, HERO_CENTERED_RE, '#dashboard-hero 必须保留 text-center（居中版式）');
+  assert.match(cssSource, BASE_EMBLEM_RE, 'styles.css 缺少党徽 48px');
+  assert.doesNotMatch(indexHtml, /<img\b[^>]*party_emblem[^>]*style="[^"]*width:\s*24px/,
+    '党徽尺寸不得用行内 24px 压过居中整幅');
 
-  // 非空转反例：写死 muted / 漏版本戳 / 降级后仍是 48px / 字号改回大号，都必须判不中。
-  assert.doesNotMatch("anotherEl.dataset.hero = user && todoCount > 0 ? 'muted' : 'full';", HERO_STATE_RE);
-  assert.doesNotMatch("import { TodoStore } from '../../services/governance/todo.js';", TODO_IMPORT_RE);
-  assert.doesNotMatch('#dashboard-hero[data-hero="muted"] .dashboard-hero__emblem { width: 48px; height: 48px; }', MUTED_EMBLEM_RE);
-  assert.doesNotMatch('#dashboard-hero[data-hero="muted"] #dashboard-hero-title { font-size: var(--text-2xl); text-align: start; }', MUTED_TITLE_RE);
+  // 降级已移除：CSS / main-entry 均不得再出现 muted 左对齐。
+  assert.doesNotMatch(cssSource, /#dashboard-hero\[data-hero="muted"\]/, 'styles.css 不得再保留 muted 降级规则');
+  assert.doesNotMatch(mainSource, HERO_MUTED_STATE_RE, 'main-entry.js 不得再写 data-hero="muted"');
+  assert.doesNotMatch(mainSource, /TodoStore\.getByRole\(user\.role\)/, 'hero 版式不得再按待办数切换');
+
+  // 非空转反例：左对齐块 / 写死 muted 必须被同一口径识别。
+  assert.match('#dashboard-hero[data-hero="muted"] { text-align: start; margin-bottom: 4px; }', MUTED_BLOCK_RE);
+  assert.match('heroEl.dataset.hero = user && todoCount > 0 ? \'muted\' : \'full\';', HERO_MUTED_STATE_RE);
+  assert.doesNotMatch('<div class="text-center mb-6" id="dashboard-stats">', HERO_CENTERED_RE);
+  assert.doesNotMatch('.dashboard-hero__emblem { width: 24px; height: 24px; }', BASE_EMBLEM_RE);
 });

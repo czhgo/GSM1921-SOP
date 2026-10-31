@@ -1,6 +1,7 @@
 // role: [工程师]+[AI]
 // type-scale-guard.test.mjs — 守卫归并件（2026-10-27 批次 516 · B-515-2）
 // 归并来源：small-text-guard.test.mjs · text-tier-guard.test.mjs · table-type-scale-guard.test.mjs · control-font-guard.test.mjs
+// 2026-10-31 追加源件 5：type-tier-ratchet（档位表外新增即红 / 逐文件逐值棘轮 / 文档齐备 / 反例）。
 // 纪律：只减文件数、不减断言数。每个源件包在独立 async 块作用域里（imports 转动态导入），
 //   同名 helper / 常量互不冲突；失败信息仍保留各源件的横幅与断言名，便于定位。
 // 运行：node --test server/test/type-scale-guard.test.mjs
@@ -603,6 +604,203 @@ await (async () => {
       + ` · 文件 ${allFiles}（基线 ${SMALL_TEXT_FILE_BASELINE}，${d(allFiles, SMALL_TEXT_FILE_BASELINE)}）`
       + ` · 基线按值 ${JSON.stringify(SMALL_TEXT_BY_VALUE_BASELINE)}`);
     console.log('[收基线提示] 清掉存量控件小字后同批删 style-baseline.mjs 对应条目 / 减小 c，进度即前进；不得为变绿补条目。');
+  });
+
+})();
+
+// ═══ 源件 5：type-tier-ratchet.test.mjs（2026-10-31 字号档位收口） ═══
+// role: [工程师]+[AI]
+// 口径（单一源＝`DS_02_TYPE_AND_SIZE.md §3.2.3` 档位表；登记值见 style-baseline.mjs）：
+//   Q1 档位表外的新 (文件, 字号) ⇒ 红（新增字号必须落在档位表内）；
+//   Q2 逐文件逐值 ratchet ⇒ 红（存量只减不增）；
+//   Q3 非空转：抽取器正/负例、台账规模自洽、僵尸文件、文档档位齐备、扫描面下限；
+//   Q4 进度（只报不判）：档位表内 / 表外当前计数。
+// 覆盖边界：只判**可解析为 px 的静态字号**（px / rem / var(--text-*)）；`clamp()` / `calc()` /
+//   `em` / `%` 等流体值不参与静态判定（about.css 冻结件即落在此类）。
+await (async () => {
+  const { test } = await import('node:test');
+  const assert = (await import('node:assert/strict')).default;
+  const { readdirSync, readFileSync, existsSync } = await import('node:fs');
+  const { join, relative, dirname } = await import('node:path');
+  const { fileURLToPath } = await import('node:url');
+  const {
+    TYPE_TIER_ALLOWED, TYPE_TIER_BASELINE, TYPE_TIER_TOTAL_BASELINE, TYPE_TIER_FILE_BASELINE,
+  } = await import('./style-baseline.mjs');
+
+  const HERE = dirname(fileURLToPath(import.meta.url));
+  const ROOT = join(HERE, '..', '..');
+  const DOCS = join(ROOT, 'docs');
+  const SRC = join(DOCS, 'src');
+  const DS02 = join(ROOT, 'content', '04_web_design', 'design-system', 'DS_02_TYPE_AND_SIZE.md');
+
+  /** Tailwind 工具类 → px（本仓实际在用的档位；新增档位须先改文档） */
+  const TW = {
+    'text-xs': 12, 'text-sm': 14, 'text-base': 16, 'text-lg': 18,
+    'text-xl': 20, 'text-2xl': 24, 'text-3xl': 30,
+  };
+  /** 令牌 → px（单一源＝styles.css `:root`；`html.font-size-large` 覆盖值由基线承接） */
+  const TOKENS = {
+    '--text-xs': 12, '--text-sm': 12, '--text-base': 14, '--text-md': 16,
+    '--text-lg': 18, '--text-xl': 20, '--text-2xl': 22, '--text-3xl': 24,
+    '--text-body': 15, '--text-secondary': 13, '--text-meta': 12,
+  };
+  const ALLOWED = new Set(TYPE_TIER_ALLOWED);
+
+  function walk(dir, out = []) {
+    for (const e of readdirSync(dir, { withFileTypes: true })) {
+      if (e.name === '.git' || e.name === 'vendor') continue;
+      const p = join(dir, e.name);
+      if (e.isDirectory()) walk(p, out);
+      else out.push(p);
+    }
+    return out;
+  }
+
+  /** 扫描面：docs/src 下全部 .css ＋ docs 下全部 .js/.mjs */
+  function targetFiles() {
+    const css = walk(SRC).filter((f) => f.endsWith('.css'));
+    const js = walk(DOCS).filter((f) => /\.(js|mjs)$/.test(f));
+    return [...new Set([...css, ...js])].sort();
+  }
+
+  const stripCssComments = (s) => s.replace(/\/\*[\s\S]*?\*\//g, '');
+  /** 只剥整行 `//` 注释（避免误伤 `https://`）与块注释 */
+  const stripJsComments = (s) => s
+    .replace(/\/\*[\s\S]*?\*\//g, '')
+    .replace(/^\s*\/\/.*$/gm, '');
+
+  /** 字号值归一：px / rem / var(--text-*) → px；其它（clamp/calc/em/%/关键字）→ null */
+  function normalize(raw) {
+    const v = String(raw).trim().replace(/\s*!important$/i, '');
+    if (/^-?\d*\.?\d+px$/.test(v)) return parseFloat(v);
+    if (/^-?\d*\.?\d+rem$/.test(v)) return Number((parseFloat(v) * 16).toFixed(2));
+    const t = /var\((--text-[a-z0-9-]+)\)/.exec(v);
+    if (t && TOKENS[t[1]] != null) return TOKENS[t[1]];
+    return null;
+  }
+
+  /** 抽某文件的全部可解析字号值（数组；保留重复次数） */
+  function fontValuesOf(file, src) {
+    const isCss = file.endsWith('.css');
+    const body = isCss ? stripCssComments(src) : stripJsComments(src);
+    const out = [];
+    if (!isCss) {
+      for (const m of body.matchAll(/(?<![\w-])text-(xs|sm|base|lg|xl|2xl|3xl)\b(?!-)/g)) {
+        out.push(TW[`text-${m[1]}`]);
+      }
+      for (const m of body.matchAll(/text-\[(\d+(?:\.\d+)?)px\]/g)) out.push(Number(m[1]));
+    }
+    for (const m of body.matchAll(/font-size\s*:\s*([^;}"'\n`]+)/g)) {
+      const v = normalize(m[1]);
+      if (v != null) out.push(v);
+    }
+    return out;
+  }
+
+  function scan() {
+    return targetFiles().map((abs) => {
+      const file = relative(ROOT, abs).replace(/\\/g, '/');
+      const values = fontValuesOf(abs, readFileSync(abs, 'utf8'));
+      /** @type {Record<number, number>} */
+      const outOfTier = {};
+      let allowed = 0;
+      for (const v of values) {
+        if (ALLOWED.has(v)) allowed += 1;
+        else outOfTier[v] = (outOfTier[v] || 0) + 1;
+      }
+      return { file, values, allowed, outOfTier };
+    });
+  }
+
+  /** 纯函数：按台账判「新增 / 上涨」；便于反例自检（不读磁盘） */
+  function tierOffenses(rows, baseline = TYPE_TIER_BASELINE) {
+    const bad = [];
+    for (const { file, outOfTier } of rows) {
+      for (const [k, n] of Object.entries(outOfTier)) {
+        const v = Number(k);
+        const base = baseline[file]?.[v] || 0;
+        if (base === 0) bad.push(`${file} → 新增档位表外字号 ${v}px ×${n}`);
+        else if (n > base) bad.push(`${file} → ${v}px 由基线 ${base} 处增至 ${n} 处`);
+      }
+    }
+    return bad;
+  }
+
+  // ── Q1 新增档位表外字号 ──────────────────────────────────────────────
+  test('Q1 字号档位：档位表外的新 (文件, 值) 判红（新增字号必须落在档位表内）', () => {
+    const bad = tierOffenses(scan());
+    assert.deepEqual(bad, [],
+      `出现 DS_02 §3.2.3 档位表之外的字号（新代码只许用 ${TYPE_TIER_ALLOWED.join(' / ')}px；`
+      + '存量按 style-baseline.mjs::TYPE_TIER_BASELINE 登记，只减不增）：\n  ' + bad.join('\n  '));
+  });
+
+  // ── Q2 逐文件逐值 ratchet ────────────────────────────────────────────
+  test('Q2 处数 ratchet：逐文件逐值的档位表外字号不得高于基线', () => {
+    const grow = [];
+    for (const { file, outOfTier } of scan()) {
+      for (const [k, n] of Object.entries(outOfTier)) {
+        const base = TYPE_TIER_BASELINE[file]?.[Number(k)];
+        if (base != null && n > base) grow.push(`${file} → ${k}px ${n} 处 > 基线 ${base} 处`);
+      }
+    }
+    assert.deepEqual(grow, [], `以下文件档位表外字号处数高于基线：\n  ${grow.join('\n  ')}`);
+  });
+
+  // ── Q3 非空转 / 反例 / 文档齐备 ──────────────────────────────────────
+  test('Q3 非空转：抽取器正负例 ＋ 台账自洽 ＋ 文档档位齐备 ＋ 扫描面下限', () => {
+    // ① 正例：px / rem / 令牌 / Tailwind 工具类 / 任意值类
+    assert.equal(normalize('14px'), 14, '抽取器失效：14px 未归一');
+    assert.equal(normalize('0.8125rem'), 13, '抽取器失效：0.8125rem 未归一为 13px');
+    assert.equal(normalize('var(--text-body)'), 15, '抽取器失效：var(--text-body) 未归一为 15px');
+    assert.deepEqual(fontValuesOf('x.css', '.a{font-size:16px}'), [16], '抽取器失效：CSS font-size 未命中');
+    assert.deepEqual(fontValuesOf('x.js', '<b class="text-sm text-[15px]">x</b>'), [14, 15],
+      '抽取器失效：text-sm / text-[15px] 未命中');
+    // ② 负例：流体值不得被当成静态 px
+    assert.deepEqual(fontValuesOf('x.css', '.a{font-size:clamp(14px,2vw,18px)}'), [],
+      '抽取器过宽：clamp() 被当成静态档位');
+    // ③ 反例实测：合成「新文件 28px」必须判红；档位表内字号必须判绿
+    const fakeRed = tierOffenses([{ file: 'docs/src/new-file.js', outOfTier: { 28: 1 } }]);
+    assert.equal(fakeRed.length, 1, '反例失效：新文件 28px 未被判红');
+    assert.deepEqual(tierOffenses([{ file: 'docs/src/new-file.js', outOfTier: {} }]), [],
+      '反例失效：档位表内字号被误判');
+    // ④ 台账自洽：条目数 / 总处数 / 值不在档位表内 / 文件真实存在
+    const files = Object.keys(TYPE_TIER_BASELINE);
+    assert.equal(files.length, TYPE_TIER_FILE_BASELINE, '基线条目数与声明文件数不一致');
+    const sum = Object.values(TYPE_TIER_BASELINE)
+      .reduce((a, o) => a + Object.values(o).reduce((x, y) => x + y, 0), 0);
+    assert.equal(sum, TYPE_TIER_TOTAL_BASELINE, '基线处数之和与声明总处数不一致');
+    for (const [f, vals] of Object.entries(TYPE_TIER_BASELINE)) {
+      assert.ok(existsSync(join(ROOT, f)), `基线条目指向不存在的文件：${f}`);
+      for (const [k, n] of Object.entries(vals)) {
+        assert.ok(!ALLOWED.has(Number(k)), `${f}：${k}px 已在档位表内，不应进基线`);
+        assert.ok(Number.isFinite(Number(k)) && n > 0, `${f}：基线值/处数非法（${k}: ${n}）`);
+      }
+    }
+    // ⑤ 文档齐备：档位表必须逐值写进 DS_02 §3.2.3（防止代码与文档两套刻度）
+    const doc = readFileSync(DS02, 'utf8');
+    for (const tier of TYPE_TIER_ALLOWED) {
+      assert.ok(doc.includes(`${tier}px`), `DS_02 §3.2.3 缺档位 ${tier}px`);
+    }
+    assert.match(doc, /3\.2\.3\s+全站实测字号档位/, 'DS_02 缺 §3.2.3 全站实测字号档位');
+    // ⑥ 扫描面非空（防「扫描范围被削成空目录 ⇒ Q1 恒绿」）
+    const rows = scan();
+    const decls = rows.reduce((a, r) => a + r.values.length, 0);
+    assert.ok(rows.length >= 50, `扫描面过窄（${rows.length} 文件，下限 50）`);
+    assert.ok(decls >= 300, `可解析字号声明过少（${decls} 处，下限 300）`);
+  });
+
+  // ── Q4 进度（只报不判）──────────────────────────────────────────────
+  test('Q4 缩减进度：档位表内 / 表外当前计数', () => {
+    const rows = scan();
+    const allowed = rows.reduce((a, r) => a + r.allowed, 0);
+    const out = rows.reduce((a, r) => a + Object.values(r.outOfTier).reduce((x, y) => x + y, 0), 0);
+    const byValue = {};
+    for (const r of rows) for (const [k, n] of Object.entries(r.outOfTier)) byValue[k] = (byValue[k] || 0) + n;
+    const d = (cur, base) => (cur === base ? '持平' : cur < base ? `↓${base - cur}` : `↑${cur - base}`);
+    console.log(`[字号档位] 档位表内 ${allowed} 处 · 表外 ${out} 处（基线 ${TYPE_TIER_TOTAL_BASELINE}，${d(out, TYPE_TIER_TOTAL_BASELINE)}）`
+      + ` · 文件 ${rows.filter((r) => Object.keys(r.outOfTier).length).length}（基线 ${TYPE_TIER_FILE_BASELINE}）`);
+    console.log(`[字号档位 · 表外按值] ${JSON.stringify(byValue)}`);
+    console.log('[口径单一源] DS_02 §3.2.3 档位表；新增档位先改文档与 TYPE_TIER_ALLOWED，再清存量（只减不增）。');
   });
 
 })();

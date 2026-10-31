@@ -1,0 +1,130 @@
+{
+  "findings": [
+    {
+      "id": "M1",
+      "title": "reduced-motion 只覆盖 CSS，61 处 JS 平滑滚动全部照旧动画",
+      "evidence": "styles.css:5154-5166 以 `scroll-behavior:auto!important` 兜底，但 CSSOM-View 规定 scrollIntoView/scrollTo 的 `behavior:'smooth'` 选项优先于 CSS。实测（secretary 台，reducedMotion=reduce）：el.scrollIntoView({behavior:'smooth'}) 后 scrollY 0→3→16→95→114→133→139→144→146，8 个采样帧跨 t=59–231ms。调用点：56 处 `scrollIntoView({behavior:'smooth'})`（33 个 JS 文件）+ tab-bar.js:868-870 三处 `scrollBy({behavior:'smooth'})` + help-entry.js:103 / about-entry.js:985 两处 `scrollTo({behavior:'smooth'})`；仅 about-entry.js:966 判了偏好。",
+      "scale": "61 处调用点 / 33 个文件；实测 231ms 动画",
+      "verdict": "违反规范",
+      "generalFix": "封装 scrollToEl(el, opts) 单一入口：内部读 matchMedia('(prefers-reduced-motion: reduce)') 决定 smooth/auto；或改成读 CSS 变量（有偏好时置 auto）后统一传 behavior。禁止业务文件直写 behavior:'smooth'。",
+      "machineCheckable": "正则 `behavior:\\s*'smooth'` 在 docs/src/**/*.js 的命中须为 0（白名单＝该封装函数内部 1 处）；配 `ui-motion-guard::RM-JS`。"
+    },
+    {
+      "id": "M2",
+      "title": "切页签出现两段「不可见但可点」窗口，点击落在旧页签的幽灵控件上",
+      "evidence": "实测（__MOCK_DELAY_MS=800，secretary 台 today→todo，30ms 采样）：t=276ms opacity 0.351、t=302ms opacity 0.094，两帧 pointer-events 仍为 auto（tab-loading.css:13-18 的 .is-leaving 只写 opacity）；数据到达后 t=1363ms opacity=0 且 pointer-events=auto，t=1507ms 才回到 1（tab-bar.js:534-547 _playContentEnter）。窗口内命中的是上一页签尚未替换的 DOM。",
+      "scale": "每次切页签 2 段（120ms 淡出 + 180ms 淡入）",
+      "verdict": "规范未覆盖",
+      "generalFix": "淡出/淡入期间同时给 `pointer-events:none`（或 `inert`），内容彻底替换后才恢复；退出与进入用同一状态机加锁，禁止透明态可点。",
+      "machineCheckable": "e2e：切页签后 0–300ms 内断言 `getComputedStyle(#<prefix>-tab-content).pointerEvents === 'none' || opacity === '1'` 恒为真。"
+    },
+    {
+      "id": "M3",
+      "title": "骨架期整块内容区 pointer-events:none，最长 8s 完全不可点",
+      "evidence": "tab-bar.js:526-531 `_paintSkeleton` 写 `el.style.pointerEvents='none'`，tab-bar.js:629 才恢复；实测 331ms→1315ms 的采样全部 `pointer-events:none`。数据永不落定时由 TAB_LOADING_TIMEOUT_MS=8000（tab-bar.js:138）解锁。SD-51（DS_03:1475）只规定骨架形态（120ms 延迟、3 行卡形、≤1s 收敛），未规定加载期可交互性。",
+      "scale": "≥120ms，上限 8000ms",
+      "verdict": "规范未覆盖",
+      "generalFix": "把禁用范围收窄到骨架自身（骨架 `pointer-events:none`），容器保留可交互；或在容器上只设 `aria-busy`，不禁用命中。",
+      "machineCheckable": "e2e：注入 3s 延迟，断言骨架期点击容器内元素仍能触发事件（或断言容器 inline pointer-events 未被改写）。"
+    },
+    {
+      "id": "M4",
+      "title": "令牌纪律只对 styles.css 生效，组件 CSS 与 JS 内联共 42 处裸毫秒/非令牌缓动",
+      "evidence": "motion-guard.test.mjs:31-32 仅 `read('docs/src/styles.css')`。扫描面外：person-picker.css:29/94/164/185/220/424/453（0.15s、0.2s，无缓动）；tab-loading.css:14/22/56/65/101（120/180/600ms、0.8s、1.2s）；about.css 22 处（285/553/686/792/807/812/1150/1177/1255/1378/1389/1392/1394/1402/1407/1424/1432/1443/1454/1463/1475，320/500ms、0.6s、0.9s、1s）；JS 内联 modal.js:269/280/398（0.15s ease、0.2s ease）、utils.js:207（0.25s ease）、utils.js:339（0.6s ease）、header.js:418（0.15s）、overview-dispatch-bar.js:58/108（.15s）。`transition: all` 全仓 0 处（合规）。",
+      "scale": "42 处 / 7 个文件",
+      "verdict": "违反规范",
+      "generalFix": "motion-guard 扫描面扩到 docs/src/**/*.{css,js}（JS 只扫 style.cssText / style.transition 字面量），白名单逐条登记；新增裸值即红。",
+      "machineCheckable": "`/transition\\s*:\\s*[^;]*\\b\\d*\\.?\\d+(ms|s)\\b/` 与 `/animation\\s*:\\s*[^;]*(ms|s)\\b/` 在 styles.css 之外的文件计数只降不增。"
+    },
+    {
+      "id": "M5",
+      "title": "§12.13 禁布局属性过渡，仍有 max-height / min-height 在动",
+      "evidence": "about.css:1475 `transition: max-height 0.4s var(--ab-ease), opacity 0.3s`（.ab-tl-detail 由 max-height:0 → 2000px，逐帧 layout）；overview-dispatch-bar.js:58 `transition:min-height .15s ease`（overview 待答复槽）。CASE-DESIGN-009（CASES.md:96）称「布局属性与 all 计数为 0」，但 motion-guard 只解析 styles.css，这两处都在扫描面外。",
+      "scale": "2 处（其中 1 处真实逐帧布局）",
+      "verdict": "违反规范",
+      "generalFix": "时间轴展开改用 `grid-template-rows: 0fr→1fr`（DS_03:1432 已给方案）或 `details` 原生；overview 槽删除 min-height 过渡。",
+      "machineCheckable": "同 M4 的扫描扩展 + 属性白名单（height/width/max-height/min-height/padding/top/left/margin）。"
+    },
+    {
+      "id": "M6",
+      "title": "动效四件套 0 消费，其中 .motion-scale-in 用 scale() 直接违反 §5.3",
+      "evidence": "styles.css:289-295 定义 .motion-enter/.motion-collapse/.motion-press/.motion-scale-in；全仓消费点 0（tab-bar.js:635 只是 `classList.remove('motion-enter')`，styles.css:3137 用的是 var(--motion-enter) 时长而非类）。styles.css:295 `@keyframes motionScaleIn { … transform: scale(.98) … }` 与 DS_04 §5.3（49-58 行「禁止 transform: scale()」）直接冲突；而 motion-guard 头部 13-15 行把「4 个 .motion-* 都必须存在」写成硬判据，等于守卫在保护一段死代码兼违禁示例。",
+      "scale": "4 定义 / 0 使用",
+      "verdict": "违反规范",
+      "generalFix": "删掉 .motion-scale-in（或改成 opacity-only）；M6 判据从「四个类存在」改为「每个类至少有 1 个消费者或登记为待接入」。",
+      "machineCheckable": "静态：4 个类名在 .css/.js/.html 中的消费计数（定义处除外）≥1；`scale(` 在动效声明中计数为 0。"
+    },
+    {
+      "id": "M7",
+      "title": "模态开启动画用非令牌 ease，且实测开窗丢帧",
+      "evidence": "modal.js:269 `animation:fadeIn 0.15s ease`、modal.js:280 `slideUp 0.2s ease`（ease 不在 --ease-standard/--ease-enter 之列）；实测开「写入活动」：45 帧中 5 帧 >32ms、最长 133.4ms、p95 33.4ms、long task 102ms×2（合计 204ms）。关闭 150ms（modal.js:398-400），实测 167ms 移除，opacity 1→0.65/36ms→0.26/66ms→0.075/101ms。",
+      "scale": "2×102ms long task / p95 33.4ms / 133.4ms 单帧",
+      "verdict": "违反规范",
+      "generalFix": "时长/曲线走 var(--motion-enter)/var(--ease-enter)（或 120/180/240 档）；开窗前把面板 off-DOM 构建完再插入，避免挂载时同步布局。",
+      "machineCheckable": "`animation:\\s*[^;]*\\bease\\b` 在 docs/src/**/*.js 的内联样式计数为 0；e2e 断言开窗最大单帧 <32ms（本机基线）。"
+    },
+    {
+      "id": "M8",
+      "title": "Toast 退场后仍在 DOM 300ms 且可拦截点击",
+      "evidence": "utils.js:293-295 先置 opacity 0，再 `setTimeout(() => rec.el.remove(), 300)`；实测（reduced-motion）t=29ms opacity=0 且 pointer-events=auto，t=330ms 才从 DOM 消失。容器定位 bottom:1.5rem/right:1.5rem（utils.js:159-163），正好压在右下角动作区上。",
+      "scale": "300ms / 每次关闭",
+      "verdict": "规范未覆盖",
+      "generalFix": "退场开始即 `pointer-events:none`，reduced-motion 下直接 remove（不等 300ms）；或用 transitionend 收尾。",
+      "machineCheckable": "e2e：点 toast 关闭后 50ms 断言该节点 `pointerEvents === 'none'` 或已脱离 DOM。"
+    },
+    {
+      "id": "M9",
+      "title": "flashHighlight 把 600ms 内联 transition 永久写在元素上，污染后续 hover",
+      "evidence": "utils.js:339 `el.style.transition = 'box-shadow .6s ease, border-color .6s ease, background .6s ease'`，函数内无 `el.style.transition = ''` 回收（全文件计数 0）。凡经首页深链 / 待办跳转落地的 .card 与 .list-row，其边框与底色 hover 由 --transition-fast 120ms 变为 600ms，直到刷新页面。",
+      "scale": "1 函数，作用于所有深链落地点",
+      "verdict": "规范未覆盖",
+      "generalFix": "改用一次性 class（.is-flash-out）承载 600ms 过渡，`transitionend` 后移除；或在 off() 末尾清空内联 transition。",
+      "machineCheckable": "静态：`flashHighlight` 内 `style.transition` 赋值后必须有 `style.transition = ''`；e2e：闪高亮后断言元素 `getComputedStyle(el).transitionDuration === '0.12s'`。"
+    },
+    {
+      "id": "M10",
+      "title": "选人浮窗零进入/退出动画，与通用浮窗两套编排",
+      "evidence": "person-picker.js:291-299 `_overlayEl.remove(); _panelEl.remove()` 直接硬切；打开在 person-picker.js:454-455 appendChild，无 class / animation；person-picker.css 全文无 @keyframes，.person-picker-panel（person-picker.css:119 起）无 transition。对照 modal.js:269/280 的 fadeIn 0.15s + slideUp 0.2s。",
+      "scale": "同一类浮层 0ms vs 150/200ms",
+      "verdict": "规范未覆盖",
+      "generalFix": "复用浮层的入场/退场编排（同一组令牌与时长），退场走 150ms 后再 remove；reduced-motion 直接摘除。",
+      "machineCheckable": "e2e：打开 picker 后读 .person-picker-panel 的 animationName 非 none（或统一走同一 Modal 基类）。"
+    },
+    {
+      "id": "M11",
+      "title": "§5.1 的动效表与 §12.13 令牌表互相矛盾，实现只按后者",
+      "evidence": "DS_04 §5.1（18-25 行）颜色 150ms / 透明度 200ms / 位移 200ms / 视图切换 250ms，缓动 ease-out；DS_03 §12.13（1421-1428 行）120/180/200/240ms，cubic-bezier(.2,.6,.36,1)。styles.css:238-243 只定义后者；全仓无 150ms（person-picker 的 0.15s 在扫描面外），250ms 只剩 .view-section 这一条存量（motion-guard 白名单第 1 条）。",
+      "scale": "2 套规范 / 1 套实现",
+      "verdict": "规范未覆盖",
+      "generalFix": "DS_04 §5.1 表改为引用 §12.13 的令牌与档位（或删除该表），避免工程师按 150/250 新写。",
+      "machineCheckable": "doc-consistency 断言：DS_04 §5.1 内不得出现与 --motion-* 不符的毫秒值。"
+    },
+    {
+      "id": "M12",
+      "title": ".view-section 用裸 250ms 并以 display:block!important 反向覆盖 .hidden",
+      "evidence": "styles.css:601-612：`.view-section.hidden{opacity:0;transform:translateY(12px);display:block!important;pointer-events:none}`，transition 为裸 `0.25s ease-out`。唯一消费者是 index.html:37 的 #view-dashboard，全仓 JS 无切换点。若任何代码给它加 .hidden，Tailwind 的 display:none 被 !important 顶掉，留下不可见但仍占位、且带 250ms 过渡的块。",
+      "scale": "1 条规则 / 0 活跃消费者",
+      "verdict": "规范未覆盖",
+      "generalFix": "删除该段（含 .hidden 分支），视图切换统一走 tab 的 .ws-tab-stage 编排；确需保留则去掉 display!important。",
+      "machineCheckable": "静态：`.view-section.hidden` 规则存在即红（无 JS 消费者）；或断言该规则块内无 `!important`。"
+    },
+    {
+      "id": "M13",
+      "title": "关于页 will-change 永久挂载不回收",
+      "evidence": "about.css:554/859/1108 三处 `will-change: transform, opacity`，无对应 `will-change:auto` 回收点；由 about-entry.js:1315/1513-1524 的滚动驱动持续写 transform。三个大图层在整个页面生命周期常驻合成层。",
+      "scale": "3 处 / 常驻",
+      "verdict": "规范未覆盖",
+      "generalFix": "只在滚动驱动区间内加 will-change（IntersectionObserver 进出时增删），静止后置 auto。",
+      "machineCheckable": "静态：每处 `will-change` 附近须有对应的 auto 回收语句；或运行时采样 `getComputedStyle(el).willChange`。"
+    },
+    {
+      "id": "M14",
+      "title": "关于页与产品页两套速度感（主观）",
+      "evidence": "about.css:399/1378/1389/1392 为 1s，:1402/1407/1454/1463 为 0.9s，:812 为 500ms，:285 为 320ms；产品页是 120–240ms（styles.css:238-241）。同一站点内相差 4–8 倍。§5.6 的「约 1s 沉稳」只对叙事页成立，未说明两套并存时的观感。",
+      "scale": "0.9–1s vs 0.12–0.24s",
+      "verdict": "主观偏好",
+      "generalFix": "若要保持叙事页的翻页感，在 DS 里把「叙事页 0.9–1s / 产品页 0.12–0.24s」写成两条并列档位并说明边界（跨页跳转时如何过渡）。",
+      "machineCheckable": "不可机检（档位说明文档化即可）。"
+    }
+  ]
+}

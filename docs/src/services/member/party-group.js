@@ -15,17 +15,17 @@
 //   （preview 的组枚举由 data/mock/party-groups.js 种子派生，保持其为叶子，防 person→preview→party-group 成环）。
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../../core/domain/domain.js?v=20261029b';
-import { persist } from '../../data/data-adapter.js?v=20261029b';
-import { generateId } from '../../core/base/id.js?v=20261029b';
+import { mockDB } from '../../core/domain/domain.js?v=20261031a';
+import { persist } from '../../data/data-adapter.js?v=20261031a';
+import { generateId } from '../../core/base/id.js?v=20261031a';
 // 支委层角色集合单一源（勿手写角色名单——roles-sync 守卫会拦）
-import { SECRETARY_AND_DEPUTY_ROLES, DEFAULT_BRANCH_ID } from '../../core/domain/constants.js?v=20261029b';
-import { bumpToken } from '../../core/base/version-token.js?v=20261029b';
+import { SECRETARY_AND_DEPUTY_ROLES, DEFAULT_BRANCH_ID } from '../../core/domain/constants.js?v=20261031a';
+import { bumpToken } from '../../core/base/version-token.js?v=20261031a';
 // 党小组种子直接取叶子数据模块（不经 data/mock/index.js 的汇总再导出）：后者会连带加载
 // thought-reports 等有顶层副作用的种子，在 person→preview→party-group 的模块环里会触发
 // PersonStore TDZ（R10-B12）。本文件只用于持久为空时的种子兜底。
-import { PARTY_GROUPS } from '../../data/mock/party-groups.js?v=20261029b';
-import { PersonStore } from './person.js?v=20261029b';
+import { PARTY_GROUPS } from '../../data/mock/party-groups.js?v=20261031a';
+import { PersonStore } from './person.js?v=20261031a';
 
 // R2-17：缺省支部单一源 = core/domain/constants.js::DEFAULT_BRANCH_ID（老数据无 branchId 视为 br-b1）。
 /** 无权限文案（UI 与服务层同源） */

@@ -76,7 +76,7 @@ async function setMonth(page, month) {
 /** 从应用状态读取某活动所在月份（YYYY-MM）：不写死演示月份，种子重排后自动跟随。 */
 async function monthOfActivity(page, activityId) {
   const month = await page.evaluate(async (id) => {
-    const m = await import('/src/core/base/state.js?v=20261029b');
+    const m = await import('/src/core/base/state.js?v=20261031a');
     const act = (m.getAppState().activities || []).find((a) => a.id === id);
     return act ? String(act.date).slice(0, 7) : null;
   }, activityId);

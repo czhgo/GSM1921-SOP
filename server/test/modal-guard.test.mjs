@@ -624,3 +624,112 @@ await (async () => {
   });
 
 })();
+
+// ═══ 源件 6：确认类浮窗 Esc 取消 ＋ 焦点回归 ＋ 表单错误成对产出（2026-10-31 · P9）═══
+await (async () => {
+  const { test } = await import('node:test');
+  const assert = (await import('node:assert/strict')).default;
+  const { readFileSync } = await import('node:fs');
+  const { join, dirname } = await import('node:path');
+  const { fileURLToPath } = await import('node:url');
+
+  // 判据（P9）：
+  //   E1 确认类浮窗（confirmDanger / confirmNudge 共用的 _mustPressConfirm）必须 Esc 可取消：
+  //      `escCancel: true` ＋ `onCancel: () => finish(false)`（Esc = 取消，不执行原动作）。
+  //   E2 关闭后焦点回到触发元素：openModal 记录 opener，closeModal 走 _releaseInert 还焦点；
+  //      同时焦点陷阱（Tab 困在面板内）必须仍在（已实现即核验）。
+  //   E3 表单错误渲染必须**同时**产出 aria-invalid 与 aria-describedby（登录页 / 设置向导 / 表单浮窗）。
+  // 非空转：E1 / E3 各带反例（缺字段的构造文本必须判不合格）。
+
+  const HERE = dirname(fileURLToPath(import.meta.url));
+  const ROOT = join(HERE, '..', '..');
+  const SRC = join(ROOT, 'docs', 'src');
+  const MODAL = readFileSync(join(SRC, 'components/ui/modal.js'), 'utf8');
+  const LOGIN = readFileSync(join(SRC, 'entries/pages/login-entry.js'), 'utf8');
+  const WIZARD = readFileSync(join(SRC, 'components/governance/org-setup-wizard.js'), 'utf8');
+
+  /** 截取函数源码（到下一个顶层 export 为止） */
+  function fnSource(src, name) {
+    const start = src.search(new RegExp(`(?:export\\s+)?(?:async\\s+)?function\\s+${name}\\s*\\(`));
+    assert.notEqual(start, -1, `找不到函数 ${name}`);
+    const next = src.indexOf('\nexport ', start + 1);
+    return src.slice(start, next === -1 ? src.length : next);
+  }
+
+  /** 确认类浮窗是否具备 Esc 取消（正 / 反例共用；缺任一即判不合格） */
+  const confirmEscReady = (src) => /escCancel:\s*true/.test(src)
+    && /onCancel:\s*\(\)\s*=>\s*finish\(false\)/.test(src);
+
+  /** 错误渲染是否同时产出两个属性（正 / 反例共用） */
+  const hasAriaErrorPair = (src) => /aria-invalid/.test(src) && /aria-describedby/.test(src);
+
+  test('E1 确认类浮窗 Esc 可取消：escCancel 开启且 Esc = finish(false)（含反例）', () => {
+    // 反例：只有 dismissable:false 的旧实现必须判不合格
+    const old = [
+      'const panel = openModal({ id, dismissable: false, bodyHtml,',
+      "  footerHtml: `${cancelBtnHtml}${confirmBtnHtml}`,",
+      '  onMount: (p) => {} });',
+    ].join('\n');
+    assert.equal(confirmEscReady(old), false, '反例未判红：缺 escCancel / 取消回落的旧实现必须不合格');
+    assert.equal(confirmEscReady('openModal({ escCancel: true, onCancel: () => finish(false) })'), true,
+      '正例未通过：escCancel + finish(false) 应判合格（判据本身写坏了）');
+
+    const confirm = fnSource(MODAL, '_mustPressConfirm');
+    assert.match(confirm, /dismissable:\s*false/, '确认类浮窗不得点遮罩关闭');
+    assert.ok(confirmEscReady(confirm), '_mustPressConfirm 必须开启 escCancel 并把 Esc 落成 finish(false)');
+
+    // openModal 侧：escCancel 选项、Esc 挂载条件、blocking 自身可取消
+    assert.match(MODAL, /escCancel\s*=\s*dismissable/, 'openModal 应提供 escCancel（缺省跟随 dismissable）');
+    assert.match(MODAL, /if\s*\(dismissable\s*\|\|\s*escCancel\)\s*\{/, 'Esc 监听应在 dismissable 或 escCancel 时挂载');
+    assert.match(MODAL, /_blockingModalIds\.size\s*>\s*0\s*&&\s*!_blockingModalIds\.has\(id\)/,
+      'blocking 浮窗自身必须仍可被 Esc 取消，只有底下浮窗让位');
+  });
+
+  test('E2 关闭后焦点回到触发元素；Tab 焦点仍困在浮窗内', () => {
+    // 打开时记录 opener
+    assert.match(MODAL, /const opener\s*=\s*document\.activeElement/, 'openModal 应记录打开前的 activeElement');
+    assert.match(MODAL, /_openers\.set\(id,\s*opener\)/, 'opener 应按浮窗 id 登记');
+    // 关闭时还焦点
+    const release = fnSource(MODAL, '_releaseInert');
+    assert.match(release, /opener\.focus\(\)/, '关闭时应把焦点还给打开它的元素');
+    assert.match(MODAL, /_releaseInert\(id\);/, 'closeModal 必须调用 _releaseInert（全关闭路径统一）');
+    // 焦点陷阱仍在
+    const trap = fnSource(MODAL, '_applyFocusTrap');
+    assert.match(trap, /e\.key\s*!==\s*'Tab'/, '应处理 Tab');
+    assert.match(trap, /first\.focus\(\)/, 'Tab 到末尾应回到首个可聚焦元素');
+    assert.match(trap, /last\.focus\(\)/, 'Shift+Tab 到首个应回到末个可聚焦元素');
+  });
+
+  test('E3 表单错误必须同时产出 aria-invalid 与 aria-describedby（含反例）', () => {
+    // 反例：只有 aria-invalid 的旧实现必须判不合格
+    assert.equal(hasAriaErrorPair('el.setAttribute("aria-invalid", "true");'), false,
+      '反例未判红：只有 aria-invalid、没有 aria-describedby 的渲染必须不合格');
+    assert.equal(hasAriaErrorPair('el.setAttribute("aria-invalid", "true"); el.setAttribute("aria-describedby", id);'), true,
+      '正例未通过：两个属性齐备应判合格（判据本身写坏了）');
+
+    // 表单浮窗：showErrors 同时写两个属性
+    const showErrors = fnSource(MODAL, 'openFormModal');
+    assert.match(showErrors, /control\.setAttribute\('aria-invalid',\s*'true'\)/, 'openFormModal 字段错误应标 aria-invalid');
+    assert.match(showErrors, /control\.setAttribute\('aria-describedby',\s*errEl\.id\)/, 'openFormModal 字段错误应指向错误文本');
+
+    // 登录页：_showError 同时写两个属性
+    assert.match(LOGIN, /const _showError\s*=/, '登录页应有统一的错误呈现入口 _showError');
+    const loginShow = LOGIN.slice(LOGIN.indexOf('const _showError'));
+    assert.ok(loginShow.includes("setAttribute('aria-invalid', 'true')"), '登录页错误应标 aria-invalid');
+    assert.ok(loginShow.includes("setAttribute('aria-describedby', _errId)"), '登录页错误应指向 #login-error');
+    // 三条错误路径（空字段 / 本地口令错误 / 服务端失败）都走 _showError
+    assert.ok((LOGIN.match(/_showError\(/g) || []).length >= 3, '登录页空字段 / 口令错误 / 服务端失败三条路径都应走 _showError');
+
+    // 设置向导：_showWizError 同时写两个属性，且页眉 / 源支部 / 首任支书三处调用
+    assert.match(WIZARD, /function _showWizError\(/, '设置向导应有字段级错误入口 _showWizError');
+    const wizShow = WIZARD.slice(WIZARD.indexOf('function _showWizError'), WIZARD.indexOf('function _clearWizError'));
+    assert.ok(wizShow.includes("setAttribute('aria-invalid', 'true')"), '设置向导字段错误应标 aria-invalid');
+    assert.ok(wizShow.includes("setAttribute('aria-describedby', errEl.id)"), '设置向导字段错误应指向就地错误文本');
+    assert.ok((WIZARD.match(/_showWizError\(/g) || []).length >= 3, '页眉显示名 / 源支部 / 首任支书三处错误都应就地渲染');
+    // 就地错误节点必须带 id（aria-describedby 才有落点）
+    for (const id of ['wz-org-header-err', 'wz-create-source-err', 'wz-create-appoint-secretary-err']) {
+      assert.match(WIZARD, new RegExp(`id="${id}"`), `缺少就地错误节点 #${id}`);
+    }
+  });
+
+})();

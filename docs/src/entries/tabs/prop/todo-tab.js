@@ -4,10 +4,10 @@
 // 2026-09-08 REVIEW_QUEUE 裁决批一（D3 宣传侧交接去顶卡）：顶部「数据交接」卡移除，
 // 确认位唯一化 = 交接到本台的待办行内「确认接收」（现行交接类型均不指向宣传台，本分支为兜底）。
 
-import { showToast, flashHighlight } from '../../../core/base/utils.js?v=20261029b';
-import { createTodoTab } from '../../../components/record/todo-tab-shell.js?v=20261029b';
-import { tryDirectJump } from '../../../components/record/todo-jump.js?v=20261029b';
-import { HandoffStore } from '../../../services/governance/handoff.js?v=20261029b';
+import { showToast, flashHighlight, smoothScroll } from '../../../core/base/utils.js?v=20261031a';
+import { createTodoTab } from '../../../components/record/todo-tab-shell.js?v=20261031a';
+import { tryDirectJump } from '../../../components/record/todo-jump.js?v=20261031a';
+import { HandoffStore } from '../../../services/governance/handoff.js?v=20261031a';
 
 function _handleTodoAction(todo, ctx) {
   // 直达跳转（通知阅读 T-234 F1）已收敛于 components/record/todo-jump.js（2026-09-04）
@@ -39,7 +39,7 @@ function _handleTodoAction(todo, ctx) {
       let attempts = 0;
       const tryLocate = () => {
         const el = document.querySelector(`[data-archive-id="${sourceId}"]`);
-        if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'center' }); flashHighlight(el); }
+        if (el) { smoothScroll(el, { block: 'center' }); flashHighlight(el); }
         else if (attempts < 20) { attempts++; setTimeout(tryLocate, 200); }
       };
       setTimeout(tryLocate, 150);

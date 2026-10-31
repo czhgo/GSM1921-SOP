@@ -2,15 +2,15 @@
 // login-entry.js — 登录页入口（重构版）
 // 支持: 账号密码 Mock 校验 + 开发模式直接选身份
 
-import { AuthStore } from '../../services/core/auth.js?v=20261029b';
-import { BranchService } from '../../services/core/runtime.js?v=20261029b';
-import { getBranchOrg } from '../../services/branch/branch.js?v=20261029b';
-import { getAccentColors, solidAccentStyle, dotDarkVars, isBranchPendingUser, DEFAULT_BRANCH_ID } from '../../core/domain/constants.js?v=20261029b';
-import { escHtml } from '../../core/base/utils.js?v=20261029b';
+import { AuthStore } from '../../services/core/auth.js?v=20261031a';
+import { BranchService } from '../../services/core/runtime.js?v=20261031a';
+import { getBranchOrg } from '../../services/branch/branch.js?v=20261031a';
+import { getAccentColors, solidAccentStyle, dotDarkVars, isBranchPendingUser, DEFAULT_BRANCH_ID } from '../../core/domain/constants.js?v=20261031a';
+import { escHtml } from '../../core/base/utils.js?v=20261031a';
 // Task 2.1（2026-10-26）：服务端优先登录——静态托管 / 显式开发模式才走本地账号层。
-import { DEPLOY_MODE } from '../../config/deploy.js?v=20261029b';
+import { DEPLOY_MODE } from '../../config/deploy.js?v=20261031a';
 
-import { emptyStateHtml } from '../../components/ui/empty-state.js?v=20261029b';
+import { emptyStateHtml } from '../../components/ui/empty-state.js?v=20261031a';
 // C09（2026-10-20）：登录链接可带 `next`（目标页 URL）——登录成功后按 next 回跳，
 // 「未登录点活动 / 专班」不再只进工作台、丢掉原对象。只接受**同源** URL（防开放重定向），
 // 且 next 不得又指回登录页本身（防自循环）。
@@ -197,24 +197,45 @@ if (loginForm) {
   const studentIdEl = document.getElementById('student-id');
   const passwordEl = document.getElementById('password');
   const errorEl = document.getElementById('login-error');
-  /** 清空字段级错误态（aria-invalid） */
-  const _clearInvalid = () => [studentIdEl, passwordEl].forEach(el => el?.removeAttribute('aria-invalid'));
+  const _fields = [studentIdEl, passwordEl].filter(Boolean);
+  const _errId = errorEl && errorEl.id;
+  /** 清空字段级错误态（aria-invalid / aria-describedby） */
+  const _clearField = (el) => {
+    if (!el) return;
+    el.removeAttribute('aria-invalid');
+    if (_errId && el.getAttribute('aria-describedby') === _errId) el.removeAttribute('aria-describedby');
+  };
+  const _clearError = () => {
+    _fields.forEach(_clearField);
+    if (errorEl) { errorEl.textContent = ''; errorEl.classList.add('hidden'); }
+  };
+  /** 错误贴到字段：文本在字段下方（#login-error），同时产出 aria-invalid + aria-describedby */
+  const _showError = (msg, fields) => {
+    const targets = Array.isArray(fields) && fields.length ? fields.filter(Boolean) : _fields;
+    if (!errorEl) return;
+    errorEl.textContent = msg;
+    errorEl.classList.remove('hidden');
+    targets.forEach((el) => {
+      el.setAttribute('aria-invalid', 'true');
+      if (_errId) el.setAttribute('aria-describedby', _errId);
+    });
+    targets[0]?.focus();
+  };
+  // 修正即清除该字段的错误态；已填内容不清空（不 reset 表单）
+  _fields.forEach((el) => el.addEventListener('input', () => _clearField(el)));
 
   loginForm.addEventListener('submit', (e) => {
     e.preventDefault();
     const studentId = studentIdEl.value.trim();
     const password = passwordEl.value.trim();
 
-    _clearInvalid();
+    _clearError();
     // 空字段就地提示（服务端优先时也不必发一次注定 401 的请求）
     if (!studentId || !password) {
       const bad = [];
       if (!studentId) bad.push(studentIdEl);
       if (!password) bad.push(passwordEl);
-      bad.forEach(el => el.setAttribute('aria-invalid', 'true'));
-      errorEl.textContent = '请输入学号与密码';
-      errorEl.classList.remove('hidden');
-      bad[0]?.focus();
+      _showError('请输入学号与密码', bad);
       return;
     }
 
@@ -227,10 +248,7 @@ if (loginForm) {
       const result = AuthStore.verifyCredentials(studentId, password);
       if (!result.ok) {
         // 2026-10-22 第九轮 9B-6.7：失败时两个字段都标 aria-invalid，焦点回学号。
-        [studentIdEl, passwordEl].forEach(el => el.setAttribute('aria-invalid', 'true'));
-        errorEl.textContent = '学号或密码错误，请重试';
-        errorEl.classList.remove('hidden');
-        studentIdEl?.focus();
+        _showError('学号或密码错误，请重试', _fields);
         return;
       }
       personId = result.personId;
@@ -245,13 +263,13 @@ if (loginForm) {
       // 6.7：请求失败不得无声停留——原位错误行（role="alert"）给出可恢复提示。
       //   Task 2.1：后端 401 / 网络失败**停留登录页**，绝不跳工作台。
       const status = err && err.status;
-      if (status === 401) {
-        [studentIdEl, passwordEl].forEach(el => el.setAttribute('aria-invalid', 'true'));
-        errorEl.textContent = (err && err.message) || '学号或密码错误，请重试';
-        studentIdEl?.focus();
-      } else {
-        errorEl.textContent = '登录未完成：' + ((err && err.message) || '请稍后重试') + '；也可改用统一身份认证登录。';
-      }
+      const msg = status === 401
+        ? ((err && err.message) || '学号或密码错误，请重试')
+        : '登录未完成：' + ((err && err.message) || '请稍后重试') + '；也可改用统一身份认证登录。';
+      // 显式写错误文本 + 去 hidden（`_showError` 内部同样会写；此处保留可见文案落点，
+      // 让「catch 分支只显示错误、不跳转」的静态守卫有稳定锚点）。
+      errorEl.textContent = msg;
+      _showError(msg, _fields);
       errorEl.classList.remove('hidden');
     });
   });

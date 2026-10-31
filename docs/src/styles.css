@@ -1,5 +1,5 @@
 /* 组件样式（@import 必须位于文件顶部） */
-@import url('components/person-picker.css?v=20261029b');
+@import url('components/person-picker.css?v=20261031a');
 
 /* ═══════════════════════════════════════════════════════════════
    GSM1921-SOP DESIGN SYSTEM v11.0 — Matte Flat
@@ -53,6 +53,15 @@
      本档取 amber-800（白底 7.09:1），暗色段同步换 amber-300（深卡 13:1 量级）；
      只服务文字，不承担圆点 / 左条 / 底色。 */
   --status-warning-text: #92400E;
+  /* 2026-10-31 P8：success / error / info 同样拆「填充档 / 文字档」。
+     病灶（实测）：--status-success #10B981 作正文对白卡仅 2.54:1；--status-error #EF4444
+     作正文（必填星号等 19 处）3.76:1；--status-info #3B82F6 作正文 3.68:1。
+     文字档亮色各取同色相深一档（green-700 / red-800 / blue-700），
+     对白卡与暖纸页面底均 ≥4.5:1；暗色段沿用现有深色填充值（深卡 ≥6:1 量级）。
+     填充档只进徽章 / 圆点 / 左条 / 图例；文字一律走 `-text` 档。 */
+  --status-success-text: #047857;
+  --status-error-text:   #991B1B;
+  --status-info-text:    #1D4ED8;
   /* 短期别名（批次 512 前兼容；新代码不得再写 --functional-*） */
   --functional-success: var(--status-success);
   --functional-warning: var(--status-warning);
@@ -234,20 +243,27 @@
   --row-table: 40px;
   --row-summary: 40px;
 
-  /* ── Motion — 过渡（2026-10-24 批次 508：时长 / 曲线收敛为唯一源） ── */
-  --motion-fast: 120ms;
-  --motion-base: 180ms;
-  --motion-slow: 240ms;
+  /* ── Motion — 三档令牌（2026-10-31 P10 动效分级） ──
+     反馈 80–120ms（hover / press / 颜色）；进入/退出 160–240ms（淡入淡出 / 位移）；
+     强调 240–320ms（仅一次性提示，不得用于循环或常驻交互）。
+     口径：观感克制、执行流畅——不做炫技，也不掉帧。 */
+  --motion-feedback: 120ms;
   --motion-enter: 200ms;
+  --motion-exit: 180ms;
+  --motion-emphasis: 280ms;
   --ease-standard: cubic-bezier(0.2, 0.6, 0.36, 1);
   --ease-enter: cubic-bezier(0.22, 0.61, 0.36, 1);
-  /* 2026-10-24 批次 508：旧名保留为别名（全站约 35 处消费方，改了会断链）。 */
+  /* 2026-10-24 批次 508：旧名保留为别名（全站约 35 处消费方，改了会断链）。
+     2026-10-31 P10：三个旧名分别映射到「反馈 / 进入退出 / 退出」三档，值仍落在档内。 */
+  --motion-fast: var(--motion-feedback);
+  --motion-base: var(--motion-enter);
+  --motion-slow: var(--motion-exit);
   --transition-fast:   var(--motion-fast) var(--ease-standard);
   --transition-normal: var(--motion-base) var(--ease-standard);
   --transition-slow:   var(--motion-slow) var(--ease-standard);
-  /* 2026-10-23 批次 507：按压态 180ms（比 hover 略慢，手指按下不闪）；
+  /* 2026-10-23 批次 507：按压态 120ms（反馈档；手指按下不闪）；
      反馈只用 1px 内阴影「按进去」，不做位移 / 缩放（不推挤相邻内容）。 */
-  --transition-press:  var(--motion-base) var(--ease-standard);
+  --transition-press:  var(--motion-feedback) var(--ease-standard);
   --press-shadow:      inset 0 1px 2px rgba(15, 23, 42, 0.10);
 
   --shadow-dropdown: 0 4px 16px rgba(0,0,0,0.12);
@@ -284,15 +300,14 @@
   --tracking-wide: 0.02em;
 }
 
-/* 2026-10-24 批次 508：可复用动效四件套（入场 / 折叠 / 按压 / 缩放），
-   时长与曲线全部取自上方 motion 令牌，组件不得再自写毫秒数。 */
+/* 2026-10-24 批次 508：可复用动效三件套（入场 / 折叠 / 按压），
+   时长与曲线全部取自上方 motion 令牌，组件不得再自写毫秒数。
+   2026-10-31 P10：删除 `.motion-scale-in`（`scale()` 类缩放属「太 fancy」，且零消费方）。 */
 .motion-enter { transition: opacity var(--motion-enter) var(--ease-enter), transform var(--motion-enter) var(--ease-enter); }
 .motion-collapse { display: grid; grid-template-rows: 0fr; transition: grid-template-rows var(--motion-base) var(--ease-standard); }
 .motion-collapse > * { overflow: hidden; }
 .motion-collapse.is-open { grid-template-rows: 1fr; }
 .motion-press:active { box-shadow: var(--press-shadow); }
-.motion-scale-in { animation: motionScaleIn var(--motion-enter) var(--ease-enter) both; }
-@keyframes motionScaleIn { from { opacity: 0; transform: scale(.98); } to { opacity: 1; transform: none; } }
 
 /* ── 字体二档调节：大档覆盖（等差递增·小字多加 +3px） ── */
 html.font-size-large {
@@ -406,8 +421,11 @@ summary:active {
 }
 .disclosure__title {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   gap: var(--space-2);
+  /* 2026-10-31 支书补充：折叠头整行可点——标题行高 ≥44，与下方 summary 的覆盖区对齐；
+     标题与计数（同字级）按同一基线居中。 */
+  min-height: 44px;
   margin: 0 0 var(--space-1);
   padding-right: calc(var(--row-summary) + var(--space-2));
   font-size: var(--text-sm);
@@ -429,6 +447,19 @@ summary:active {
   width: var(--row-summary);
   height: var(--row-summary);
   color: var(--neutral-500);
+  border-radius: var(--radius-sm);
+}
+/* 2026-10-31 支书补充（折叠头）：summary 内容为空（只有右侧 chevron）时**覆盖整行**——
+   宽度 100%、高度 44（≥ 指压最小 44），点击区不再只限右上 40×40 小块；
+   chevron 仍靠右，展开 / 收起由全局 `details[open] > summary::before` 旋转指示。
+   带可见文字的 summary 仍按原 40×40 布局（本批已把两处可见文字迁回标题的 .disclosure__meta）。 */
+.disclosure-host > .disclosure__title + details > .disclosure__summary:empty {
+  left: 0;
+  right: 0;
+  width: 100%;
+  height: 44px;
+  justify-content: flex-end;
+  padding-inline-end: var(--space-3);
   border-radius: var(--radius-sm);
 }
 .disclosure__summary::before {
@@ -1607,7 +1638,8 @@ button:disabled { cursor: not-allowed; }
 
 .btn-danger {
   background: color-mix(in srgb, var(--status-error) 10%, var(--neutral-0));
-  color: var(--status-error);
+  /* 2026-10-31 P8：危险按钮文字走 error 文字档（亮 #991B1B 7.87:1 / 暗 #F87171 6.09:1）。 */
+  color: var(--status-error-text);
   border: 1px solid color-mix(in srgb, var(--status-error) 35%, var(--neutral-0));
   border-radius: var(--radius-sm);
   transition: background-color var(--transition-fast);
@@ -3153,6 +3185,9 @@ html.theme-dark .cal-cell-large.is-today, html.theme-dark .cal-cell-mobile.is-to
   align-items: center;
   gap: var(--space-3);
   min-width: 0;
+  /* 2026-10-31 支书补充：数字卡上下内边距收一档（16 → 12），高度由内容决定；
+     四张等高仍交给栅格 stretch，卡片自身不设固定高度。 */
+  padding-block: var(--space-3);
 }
 .stat-card__body {
   display: flex;
@@ -3196,29 +3231,12 @@ html.theme-dark .cal-cell-large.is-today, html.theme-dark .cal-cell-mobile.is-to
   margin-top: var(--space-1);
 }
 
-/* 2026-10-28 美学专项 Task 5.4 · DESIGN_SYSTEM §4.25 规则 4「首页 hero 豁免」：
-   48px 党徽 ＋ 居中标题**只留给**「未登录 / 访客态」与「个人待办为 0」；
-   登录且有待办时由 main-entry.js 写 data-hero="muted"，hero 降为辅助信息——
-   党徽 24px、标题 --text-xl 左对齐、上下留白压一档，组织名仍由顶栏 H1 承担。 */
+/* 2026-10-31 支书补充裁定（hero 特例，白名单见 DS_05 §10.5.1）：
+   首页 `#dashboard-hero` **恒为居中整幅**——48px 党徽 ＋ 居中标题；
+   原「登录且有待办 ⇒ data-hero=muted / 24px 左对齐」降级已移除，任何人改回左对齐由守卫判红。 */
 .dashboard-hero__emblem {
   width: 48px;
   height: 48px;
-}
-#dashboard-hero[data-hero="muted"] {
-  text-align: start;
-  margin-bottom: var(--space-3);
-  padding-block: var(--space-1);
-}
-#dashboard-hero[data-hero="muted"] .dashboard-hero__emblem {
-  width: 24px;
-  height: 24px;
-  margin-inline: 0;
-  margin-bottom: var(--space-2);
-}
-#dashboard-hero[data-hero="muted"] #dashboard-hero-title {
-  font-size: var(--text-xl);
-  text-align: start;
-  margin-bottom: 0;
 }
 @media (min-width: 769px) {
   .cal-mobile-detail {
@@ -4225,6 +4243,14 @@ summary:focus-visible,
   color: var(--primary-700);
   font-weight: 500;
 }
+/* 2026-10-31 P8：暗色下 --primary-50 转为深红底（#4A000A），原 --primary-700 文字仅 2.9:1；
+   文字改用 --primary-300（#FCA5A5，对暗底 8.5:1）。同一病灶的四个消费点一次收口。 */
+html.theme-dark .workflow-state-phase,
+html.theme-dark .branch-config-nav [aria-current="page"],
+html.theme-dark .ref-download-btn,
+html.theme-dark .ref-doc-action-danger {
+  color: var(--primary-300);
+}
 
 .workflow-state-blocked-tag {
   font-size: 0.6875rem;
@@ -4409,7 +4435,8 @@ summary:focus-visible,
 }
 
 .workflow-banner-icon {
-  color: var(--status-error);
+  /* 2026-10-31 P8：图标笔触同样走文字档（填充档只留圆点 / 左条 / 徽章底）。 */
+  color: var(--status-error-text);
   flex-shrink: 0;
   margin-top: 1px;
 }
@@ -4647,6 +4674,36 @@ summary:focus-visible,
     --status-info:    #60A5FA;
     /* 2026-10-27 Task 11.1：warning 文字档同步提亮（只服务文字）。 */
     --status-warning-text: #FCD34D;
+    /* 2026-10-31 P8：success / error / info 文字档暗色沿用深色填充值（深卡 / 暗页 ≥4.5:1）。
+       与填充档同值时仍分名维护——文字档可独立调整，填充档继续只承担圆点 / 左条 / 徽章底。 */
+    --status-success-text: #34D399;
+    --status-error-text:   #F87171;
+    --status-info-text:    #60A5FA;
+
+    /* 2026-10-31 P8：primary 低阶色阶补暗色值（此前暗色段缺这三档，
+       日历今天格 / 工作流阶段药丸 / 支部文件下载按钮在深色下仍渲成 #FEF2F2 亮白块）。
+       全部引用已有色阶令牌——不新造 hex：50→950、100→900、200→600（600 作描边，
+       对深卡 / 暗页 ≥3:1）。文字侧成对改成 --primary-300（对 50 暗底 8.5:1）。 */
+    --primary-50:  var(--primary-950);
+    --primary-100: var(--primary-900);
+    --primary-200: var(--primary-600);
+
+    /* 2026-10-31 P8：身份色阶补暗色档——组件读 `--color-identity-*`（不写 -dark 后缀）
+       时也随主题切换；-dark 原值仍是单一源（与 constants.js::ROLE_COLORS.textDark 同值）。
+       文字 vs 深卡最低 6.09:1（secretary），左条 / 圆点等非文本对比 ≥3:1。 */
+    --color-identity-secretary:          var(--color-identity-secretary-dark);
+    --color-identity-deputy-secretary:   var(--color-identity-deputy-secretary-dark);
+    --color-identity-leader:             var(--color-identity-leader-dark);
+    --color-identity-deputy-leader:      var(--color-identity-deputy-leader-dark);
+    --color-identity-org-commissioner:   var(--color-identity-org-commissioner-dark);
+    --color-identity-prop-commissioner:  var(--color-identity-prop-commissioner-dark);
+    --color-identity-disc-commissioner:  var(--color-identity-disc-commissioner-dark);
+    --color-identity-commissioner:       var(--color-identity-commissioner-dark);
+    --color-identity-organizer:          var(--color-identity-organizer-dark);
+    --color-identity-deep:               var(--color-identity-deep-dark);
+    --color-identity-participant:        var(--color-identity-participant-dark);
+    --color-identity-initiator:          var(--color-identity-initiator-dark);
+    --color-identity-all:                var(--color-identity-all-dark);
 
     --shadow-dropdown: 0 4px 16px rgba(0, 0, 0, 0.5);
     /* 2026-10-23 批次 507：暗底上 10% 的深色内阴影几乎不可见，加深到 45%（仍只 1px，不位移/缩放）。 */
@@ -4702,8 +4759,9 @@ summary:focus-visible,
     html.theme-dark .hover\:bg-red-100:hover    { background-color: rgba(239, 68, 68, 0.16) !important; }
     html.theme-dark .hover\:bg-sky-100:hover    { background-color: rgba(56, 189, 248, 0.16) !important; }
   }
-  html.theme-dark .text-red-600    { color: var(--status-error) !important; }
-  html.theme-dark .text-blue-600   { color: var(--status-info) !important; }
+  /* 2026-10-31 P8：文字类一律映射到文字档（填充档只承担底色 / 圆点 / 左条）。 */
+  html.theme-dark .text-red-600    { color: var(--status-error-text) !important; }
+  html.theme-dark .text-blue-600   { color: var(--status-info-text) !important; }
   html.theme-dark .text-amber-600  { color: var(--status-warning-text) !important; }
 
   /* ── ③ 硬编码浅色组件 ── */
@@ -4798,7 +4856,7 @@ summary:focus-visible,
   html.theme-dark .doc-list li::before { background: var(--party-red) !important; }
   html.theme-dark .doc-note { background: rgba(206, 17, 38, 0.12) !important; color: #FCA5A5 !important; }
   html.theme-dark .doc-key { background: rgba(206, 17, 38, 0.12) !important; color: #FCA5A5 !important; }
-  html.theme-dark .doc-key strong { color: var(--status-error) !important; }
+  html.theme-dark .doc-key strong { color: var(--status-error-text) !important; }
   html.theme-dark .doc-duo-item { background: var(--neutral-100) !important; border-color: var(--neutral-200) !important; }
   html.theme-dark .doc-duo-item h4 { color: var(--neutral-700) !important; }
   html.theme-dark .doc-duo-item p { color: var(--neutral-600) !important; }
@@ -4809,7 +4867,7 @@ summary:focus-visible,
   html.theme-dark .doc-farrow { color: var(--neutral-300) !important; }
   html.theme-dark .doc-quote { color: var(--status-warning-text) !important; }
   html.theme-dark .doc-mini { background: var(--neutral-100) !important; border-color: var(--neutral-200) !important; }
-  html.theme-dark .doc-mini h4 { color: var(--status-error) !important; }
+  html.theme-dark .doc-mini h4 { color: var(--status-error-text) !important; }
   html.theme-dark .doc-mini p { color: var(--neutral-600) !important; }
   /* 免责声明卡（内联深金配色）深色微调 */
   html.theme-dark section#sec-disclaimer { background: #1B1E24 !important; border-color: #8A6D1F !important; }
@@ -5042,8 +5100,8 @@ html.theme-dark [style*="--acc-dot-dark"] {
     border-color: var(--neutral-200) !important;
   }
   html.theme-dark .btn-action-red,
-  html.theme-dark .btn-md-red     { color: var(--status-error) !important; }
-  html.theme-dark .btn-action-green { color: var(--status-success) !important; }
+  html.theme-dark .btn-md-red     { color: var(--status-error-text) !important; }
+  html.theme-dark .btn-action-green { color: var(--status-success-text) !important; }
   html.theme-dark .btn-action-amber { color: var(--status-warning-text) !important; }
   html.theme-dark .btn-action-orange { color: #FB923C !important; }
 
@@ -5074,7 +5132,7 @@ html.theme-dark [style*="--acc-dot-dark"] {
   html.theme-dark .bg-emerald-50   { background-color: rgba(52, 211, 153, 0.10) !important; }
   html.theme-dark .bg-red-50\/40   { background-color: rgba(239, 68, 68, 0.06) !important; }
   html.theme-dark .text-orange-500 { color: #FB923C !important; }
-  html.theme-dark .text-blue-500   { color: var(--status-info) !important; }
+  html.theme-dark .text-blue-500   { color: var(--status-info-text) !important; }
   html.theme-dark .text-red-700    { color: #FCA5A5 !important; }
   html.theme-dark .text-orange-700 { color: #FDBA74 !important; }
   html.theme-dark .text-green-700  { color: #86EFAC !important; }
@@ -5179,6 +5237,12 @@ html.theme-dark .agg-count-badge {
    ⚠ 本节新增规则一律取 `var(--*)`／颜色关键字，**不新增硬编码 hex**（hex-hardcode-guard H2 基线已满）。
    ═══════════════════════════════════════════════════════════════ */
 
+/* 2026-10-31 P10：首屏骨架按真实内容预留高度（设置页 CLS 验收点）。
+   骨架被真实面板替换时不再从 ~76px 弹到 ~649px；分组列同理，避免两栏错位。
+   规则只命中骨架节点（首帧渲染后被 innerHTML 整体替换，随即失效）。 */
+#settings-panel > [data-settings-skeleton] { min-height: 640px; }
+#settings-groups > [data-settings-skeleton] { min-height: 320px; }
+
 /* ── 键值对列表（只读「键 → 值」展示；体例同原 settings-kv-row） ── */
 /* ── 首页通知「同类归并条」（2026-09-29 批次 294 · 支书评议：「宽度有一定规则，收拢时两个 summary 要舒服」）──
    收拢＝并排小胶囊（等距 `gap` ＋ 等内边距，不随内容挤）；展开＝**整行铺开**
@@ -5219,9 +5283,9 @@ html.theme-dark .agg-count-badge {
   min-height: 1.4em;
   margin: 8px 2px 0;
   font-size: 0.75rem;
-  color: var(--status-success);
+  color: var(--status-success-text);
 }
-.status-line.is-err { color: var(--status-error); }
+.status-line.is-err { color: var(--status-error-text); }
 
 /* ── 虚线提示块（浅底 + 虚边；可带前导点/徽标） ── */
 .hint-box {
@@ -5657,12 +5721,9 @@ html.theme-dark .agg-count-badge {
 .wo-line-gap {
   max-width: 16rem;
 }
-/* 2026-10-27 Task 11.1：「超期」二字由 work-overview.js 以内联 --status-warning 写出
-   （该脚本不在本任务写权），此处把这段内联文字重定向到 warning 文字档；
+/* 2026-10-31 P8：「超期」二字已由 work-overview.js 直接写 --status-warning-text，
+   原先的重定向选择器（按内联填充色字符串匹配）随之退场，避免留下第二套改色路径；
    --status-warning 自身仍只作圆点 / 左条 / 底色填充。 */
-.wo-line-gap [style*="color:var(--status-warning)"] {
-  color: var(--status-warning-text) !important;
-}
 /* 零值 / 行尾箭头：数据与可点线索不得用 neutral-400（2026-10-26 Task 3.3）。 */
 .wo-zero {
   color: var(--neutral-600);
@@ -5887,7 +5948,7 @@ html.theme-dark .agg-count-badge {
   cursor: not-allowed;
 }
 .todo-more__item--danger {
-  color: var(--status-error);
+  color: var(--status-error-text);
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -6134,7 +6195,8 @@ button.metric-band__item--filter.is-active {
   position: relative;
   align-items: center;
   gap: var(--space-3);
-  padding: var(--space-4);
+  /* 2026-10-31 支书补充：上下与 .stat-card 同步收一档（16 → 12），左右保持 16。 */
+  padding: var(--space-3) var(--space-4);
   border-radius: var(--radius-md);
 }
 /* 带内首项不再吃掉左侧胶囊内边距（卡面四边等距）。 */
@@ -6143,7 +6205,7 @@ button.metric-band__item--filter.is-active {
 }
 /* 筛选卡仍是可切换控件：外形取卡，选中态沿用主题 soft 三件套（替换原胶囊描边）。 */
 .metric-band--cards .metric-band__item--filter {
-  padding: var(--space-4);
+  padding: var(--space-3) var(--space-4);
   border-radius: var(--radius-md);
 }
 /* 卡面 hover 与 .card--interactive 同规格：主题色边框 ＋ 10% 主题淡底（不铺灰底、不上浮）。 */
@@ -6186,8 +6248,8 @@ button.metric-band__item--filter.is-active {
 }
 .state-badge--success {
   background: color-mix(in srgb, var(--status-success) 12%, transparent);
-  /* 深字 = 功能色 70% + 中性最深档；深色模式下 --neutral-900 反转为近白 ⇒ 自动提亮 */
-  color: color-mix(in srgb, var(--status-success) 70%, var(--neutral-900));
+  /* 2026-10-31 P8：徽章文字也走文字档（填充色只承担 12% 底色与描边）。 */
+  color: var(--status-success-text);
   border-color: color-mix(in srgb, var(--status-success) 28%, transparent);
 }
 .state-badge--warning {
@@ -6198,7 +6260,7 @@ button.metric-band__item--filter.is-active {
 }
 .state-badge--info {
   background: color-mix(in srgb, var(--status-info) 12%, transparent);
-  color: color-mix(in srgb, var(--status-info) 70%, var(--neutral-900));
+  color: var(--status-info-text);
   border-color: color-mix(in srgb, var(--status-info) 28%, transparent);
 }
 .state-badge--accent {
@@ -6210,7 +6272,7 @@ button.metric-band__item--filter.is-active {
    提亮基色取 --neutral-900：深色模式下它反转为近白（--neutral-0 反而变深）。 */
 html.theme-dark .state-badge--success {
   background: color-mix(in srgb, var(--status-success) 18%, transparent);
-  color: color-mix(in srgb, var(--status-success) 78%, var(--neutral-900));
+  color: var(--status-success-text);
   border-color: color-mix(in srgb, var(--status-success) 38%, transparent);
 }
 html.theme-dark .state-badge--warning {
@@ -6219,7 +6281,7 @@ html.theme-dark .state-badge--warning {
 }
 html.theme-dark .state-badge--info {
   background: color-mix(in srgb, var(--status-info) 18%, transparent);
-  color: color-mix(in srgb, var(--status-info) 78%, var(--neutral-900));
+  color: var(--status-info-text);
   border-color: color-mix(in srgb, var(--status-info) 38%, transparent);
 }
 html.theme-dark .state-badge--neutral {
@@ -6689,7 +6751,7 @@ html.theme-dark .state-badge--neutral {
 .modal-form-error {
   flex-basis: 100%;
   margin: 0 0 2px;
-  color: var(--status-error);
+  color: var(--status-error-text);
   font-size: var(--text-xs);
   line-height: 1.6;
 }
@@ -6885,4 +6947,111 @@ textarea::placeholder {
 @supports not (color: rgb(from white r g b)) {
   :root { --app-accent-tint: var(--app-accent-soft-bg); }
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   触控命中区 ≥44（P9 · 2026-10-31）
+   ── 只扩命中区，视觉尺寸不变：伪元素绝对定位 + 居中 + max(100%, N)。
+   ── 相邻不重叠：每条按实测间距收窄扩展量（间距与结论写在注释里）。
+   ── 视觉尺寸仍由既有档位块 / 页面工具类决定，本段不写 background / border / padding。
+   ═══════════════════════════════════════════════════════════════ */
+
+/* 日历日期格（390）：横向 7 列、格间距 2px ⇒ 命中宽 44（净间隔约 1.4px）。
+   纵向：有内容的格 43.4 高（命中 44），空行格 40 高（行距 2 ⇒ 相邻可点元素节距 42）。
+   按「相邻不得重叠」收窄：高度取 min(max(100%, 44px), 100% + 4px) ——
+     · 43.4 高 → 44（上下各 0.3，留 1.4 间隔）；
+     · 40 高 → 42（贴住行距，达 44 会与上下行热区重叠 2px）。
+   原 overflow:hidden 会裁掉伪元素；移动格内容只有日号 + 圆点，不依赖裁剪，故改 visible。 */
+.cal-cell-mobile[data-date] {
+  position: relative;
+  overflow: visible;
+}
+.cal-cell-mobile[data-date]::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: max(100%, 44px);
+  /* +4px 补偿边框 1×2 与上下内边距 4×2 中「100% 取 padding box」的差值：
+     40 高格 → 42，43.4 高格 → 44（上限 44）。 */
+  height: min(max(100%, 44px), calc(100% + 4px));
+  transform: translate(-50%, -50%);
+}
+
+/* 工作台页签：视觉最小 58×36，行内 gap 8px ⇒ 宽度已 ≥44，只把高度扩到 44。
+   页签行滚动容器原高 36 + overflow:auto 会裁掉伪元素：上下各让 4px（padding-block），
+   再用负 margin 抵消布局占位（保持与改动前同一垂直排版）。 */
+.ws-tab-scroll {
+  padding-block: 4px;
+  margin-block: -4px 12px !important;
+}
+.tab-btn {
+  position: relative;
+}
+.tab-btn::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: max(100%, 44px);
+  height: max(100%, 44px);
+  transform: translate(-50%, -50%);
+}
+
+/* 日历视图切换：视觉 31×32，按钮间距 6px ⇒ 宽度只能扩到 37（31+6，贴边不重叠；
+   相邻按钮间距不足 13px，无法在不动视觉的前提下达 44 宽），高度扩到 44。 */
+.cal-view-btn {
+  position: relative;
+}
+.cal-view-btn::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: max(100%, 37px);
+  height: max(100%, 44px);
+  transform: translate(-50%, -50%);
+}
+
+/* 设置页行内动作（.myws-row 上移 / 下移）：视觉 34×26；
+   同一对按钮间距 2px ⇒ 宽度只能扩到 36（贴边不重叠）；
+   相邻行按钮纵向节距 43px ⇒ 高度只能扩到 42（上下各留 0.5px，不重叠）。 */
+.myws-row .btn-action {
+  position: relative;
+}
+.myws-row .btn-action::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: max(100%, 36px);
+  height: max(100%, 42px);
+  transform: translate(-50%, -50%);
+}
+
+/* 帮助目录：视觉最小 46×29.5，横排项间距 2px ⇒ 宽度已 ≥44，只把高度扩到 44（上下无相邻可点元素）。
+   只在 ≤640 的横排形态扩：桌面是纵向列表、项间距 2px，44 高会与相邻项重叠。
+   390 下 .help-toc 是横向滚动容器（overflow-x:auto）：原 padding-bottom 4 使滚动口仅 33.5 高，
+   会裁掉 44 命中区。上下各让 8px，再用负 margin 抵消布局占位（保持改动前同一垂直排版）。 */
+.help-toc-item {
+  position: relative;
+}
+@media (max-width: 640px) {
+  .help-toc {
+    /* !important：help.html 页面内联 `padding-bottom:4px` 在本文件之后，须压住才能上下各 8px */
+    padding-block: 8px !important;
+    margin-block: -8px -4px;
+  }
+  .help-toc-item::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: max(100%, 44px);
+    height: max(100%, 44px);
+    transform: translate(-50%, -50%);
+  }
+}
+
+/* 待办行「更多」：命中区已由 `.list-row__trailing .btn-sm::after` 提供（44×44），
+   此处只登记结论，避免重复第二套规则。 */
 

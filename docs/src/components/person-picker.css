@@ -26,7 +26,7 @@
   border: 1px solid var(--neutral-200);
   background: var(--surface-card);
   cursor: pointer;
-  transition: border-color 0.15s, box-shadow 0.15s, background-color 0.15s, color 0.15s;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast), background-color var(--transition-fast), color var(--transition-fast);
   font-size: 0.75rem;
   color: var(--neutral-700);
   min-width: 120px;
@@ -91,7 +91,7 @@
 .person-picker-arrow {
   flex-shrink: 0;
   color: var(--neutral-400);
-  transition: transform 0.2s;
+  transition: transform var(--transition-normal);
 }
 
 .person-picker-arrow.open {
@@ -161,7 +161,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background 0.15s;
+  transition: background-color var(--transition-fast);
 }
 
 @media (hover: hover) {
@@ -182,7 +182,7 @@
   font-size: 0.8125rem;
   outline: none;
   outline-width: 0;
-  transition: border-color 0.15s;
+  transition: border-color var(--transition-fast);
   background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="%239CA3AF" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>') no-repeat var(--space-3) center;
   background-color: var(--surface-card);
   box-sizing: border-box;
@@ -217,7 +217,7 @@
   line-height: 1 !important;
   border: 1px solid var(--neutral-200);
   cursor: pointer;
-  transition: background-color 0.15s, border-color 0.15s, color 0.15s;
+  transition: background-color var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast);
   white-space: nowrap;
   background: var(--neutral-50);
   color: var(--neutral-500);
@@ -421,7 +421,7 @@
   background: var(--neutral-0);
   color: var(--neutral-500);
   cursor: pointer;
-  transition: background-color 0.15s, border-color 0.15s, color 0.15s;
+  transition: background-color var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast);
 }
 @media (hover: hover) {
   .person-picker-batch-chip:hover {
@@ -450,7 +450,7 @@
   font-size: 0.8125rem;
   font-weight: 600;
   cursor: pointer;
-  transition: background 0.15s;
+  transition: background-color var(--transition-fast);
 }
 
 @media (hover: hover) {

@@ -5,10 +5,10 @@
 // 功能地图 mindmap 与业务链路 flowchart 以 <pre class="mermaid"> 文本注入（源文本来自共享模块
 // src/core/mermaid-sources.js，与 gen 脚本同实现），由 help-entry.js 懒加载 mermaid CDN 渲染
 // （离线失败保留 .mermaid-fallback 降级文本）
-import { FUNCTION_GROUPS, FUNCTION_CATALOG } from '../../core/domain/function-catalog.js?v=20261029b';
-import { generateMindmapText, FLOW_LINKS } from '../../core/domain/mermaid-sources.js?v=20261029b';
-import { escHtml as esc } from '../../core/base/utils.js?v=20261029b';
-import { HELP_BROWSE_ROLES, HELP_QUICK_TASKS, HELP_TOC_CHAPTERS } from './help-navigation.js?v=20261029b';
+import { FUNCTION_GROUPS, FUNCTION_CATALOG } from '../../core/domain/function-catalog.js?v=20261031a';
+import { generateMindmapText, FLOW_LINKS } from '../../core/domain/mermaid-sources.js?v=20261031a';
+import { escHtml as esc, smoothScroll } from '../../core/base/utils.js?v=20261031a';
+import { HELP_BROWSE_ROLES, HELP_QUICK_TASKS, HELP_TOC_CHAPTERS } from './help-navigation.js?v=20261031a';
 
 // HTML 转义统一走 core/base/utils.js escHtml（2026-09-03 去重收口）
 
@@ -206,7 +206,7 @@ ${steps.join('\n')}</pre></div>` : ''}
     window.history.pushState(null, '', `#${target.id}`);
     if (!target.hasAttribute('tabindex')) target.setAttribute('tabindex', '-1');
     target.focus({ preventScroll: true });
-    target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    smoothScroll(target, { block: 'center' });
     target.classList.add('is-highlighted');
     setTimeout(() => target.classList.remove('is-highlighted'), 2600);
     input.value = '';
@@ -238,7 +238,7 @@ ${steps.join('\n')}</pre></div>` : ''}
     const el = document.getElementById(item.dataset.target);
     if (el) {
       window.history.pushState(null, '', `#${el.id}`);
-      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      smoothScroll(el, { block: 'start' });
     }
   });
 }

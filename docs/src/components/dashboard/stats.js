@@ -5,14 +5,14 @@
 //  职责单一：统计卡渲染 + 考勤明细弹窗（点击统计卡查看本月考勤）。
 // ════════════════════════════════════════════════════════════════
 
-import { NoticeStore } from '../../services/governance/notice.js?v=20261029b';
-import { _fmtDate } from '../../core/base/utils.js?v=20261029b';
-import { icon } from '../../core/base/icons.js?v=20261029b';
+import { NoticeStore } from '../../services/governance/notice.js?v=20261031a';
+import { _fmtDate } from '../../core/base/utils.js?v=20261031a';
+import { icon } from '../../core/base/icons.js?v=20261031a';
 // 活动「已归档」口径单一源（2026-09-13 收敛）：替代手写 !a.archived
-import { isActivityArchived } from '../../core/domain/constants.js?v=20261029b';
-import { isTaskforceActiveStatus } from '../../core/domain/domain.js?v=20261029b';
+import { isActivityArchived } from '../../core/domain/constants.js?v=20261031a';
+import { isTaskforceActiveStatus } from '../../core/domain/domain.js?v=20261031a';
 // R2-47：出勤率语义单一源——首页「个人考勤」按应到人次（不是按已录记录），未录显示「待录入」
-import { summarizePersonAttendanceByRoster, attendanceRateTone } from '../../services/activity/attendance.js?v=20261029b';
+import { summarizePersonAttendanceByRoster, attendanceRateTone } from '../../services/activity/attendance.js?v=20261031a';
 
 // 出勤率档位 → 既有语义色 token（服务层只给档位，颜色映射留在展示层）
 const ATTENDANCE_TONE_COLOR = {
@@ -30,7 +30,7 @@ const ATTENDANCE_VALUE_COLOR = {
   good: 'var(--neutral-800)',
 };
 
-import { emptyStateHtml } from '../ui/empty-state.js?v=20261029b';
+import { emptyStateHtml } from '../ui/empty-state.js?v=20261031a';
 const ATTENDANCE_STATUS_DOT = {
   present:  { text: '出勤', cls: 'text-green-700', dot: 'var(--status-success)' },
   absent:   { text: '缺勤', cls: 'text-red-600',  dot: 'var(--status-error)' },
@@ -53,7 +53,7 @@ export function renderDashboardStats({ activities, taskforces, notices, attendan
   if (isLoading) {
     const skeletonItems = ['本月活动', '活跃专班', '未读通知', '个人考勤'];
     container.innerHTML = skeletonItems.map(label => `
-      <div class="card rounded-xl p-4 stat-card">
+      <div class="card rounded-xl px-4 py-3 stat-card">
         <span class="stat-icon-tint" style="--tint:var(--neutral-300);" aria-hidden="true">
           <span class="h-5 w-5 rounded bg-gray-100 animate-pulse"></span>
         </span>
@@ -118,7 +118,7 @@ export function renderDashboardStats({ activities, taskforces, notices, attendan
   // T-304 Q2 点击热区：不可点卡（前三张）不给 hover / 手型（纯展示卡不加 hover 伪装，DESIGN_SYSTEM §4.3）；
   // 仅可点卡（个人考勤）挂 .card--interactive，hover = 主题色边框 ＋ 10% 淡底，不阴影、不上浮。
   container.innerHTML = stats.map(s => `
-    <div class="card rounded-xl p-4 stat-card ${s.interactive ? 'card--interactive cursor-pointer' : ''}"
+    <div class="card rounded-xl px-4 py-3 stat-card ${s.interactive ? 'card--interactive cursor-pointer' : ''}"
          ${s.interactive ? 'role="button" tabindex="0" data-attendance-popover="1"' : ''} ${s.title ? `title="${s.title}"` : ''}>
       <span class="stat-icon-tint" style="--tint:${s.color};" aria-hidden="true">${icon(s.icon, { strokeWidth: 1.8, className: 'w-5 h-5' })}</span>
       <div class="stat-card__body">

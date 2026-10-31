@@ -196,10 +196,11 @@ test('H6 按压配色三源：中性灰 / 主题 activeBg / 党建红 active', (
   assert.match(css, /--party-red-active:/, '党建红实底按压仍用 --party-red-active（不得被中性灰顶掉）');
 });
 
-test('H7 按压反馈唯一源：180ms + 1px 内阴影，且无位移 / 缩放', () => {
+test('H7 按压反馈唯一源：反馈档 + 1px 内阴影，且无位移 / 缩放', () => {
   const css = read('docs/src/styles.css');
-  // 2026-10-24 批次 508：按压时长改由 --motion-base（180ms）承担，--transition-press 保留为别名。
-  assert.match(css, /--transition-press:\s*(?:180ms|var\(--motion-base\))/, '缺少 --transition-press（180ms 或 --motion-base 别名）');
+  // 2026-10-31 P10：按压属反馈档（80–120ms），--transition-press 走 --motion-feedback；
+  // 旧 --motion-base 继续作为兼容别名（映射到进入档）但不作按压的唯一源。
+  assert.match(css, /--transition-press:\s*(?:var\(--motion-feedback\)|var\(--motion-base\)|120ms|180ms)/, '缺少 --transition-press（反馈档别名）');
   const shadows = (css.match(/--press-shadow:\s*[^;]+;/g) || []);
   assert.equal(shadows.length, 2, `--press-shadow 应在 :root 与深色段各一处（实测 ${shadows.length}）`);
   // 唯一源：聚合 :active 规则 ＋ `.motion-press` 工具类各一处（后者供动态生成按钮）

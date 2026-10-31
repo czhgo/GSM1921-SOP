@@ -17,7 +17,7 @@
  *   anchorDetailToTrigger(detailEl, triggerEl, { block: 'center', smooth: true });
  */
 
-import { flashHighlight } from '../../core/base/utils.js?v=20261029b';
+import { flashHighlight, smoothScroll } from '../../core/base/utils.js?v=20261031a';
 
 /**
  * 先沿父链展开所有折叠的 `<details>`（2026-10-24 批次 508）：
@@ -90,10 +90,10 @@ export function scrollDetailIntoView(el, opts = {}) {
   const doScroll = () => {
     if (!_hasLayout(el)) return;
     try {
-      el.scrollIntoView({ block, inline: 'nearest', behavior: smooth ? 'smooth' : 'auto' });
-      if (offset) window.scrollBy({ top: offset, behavior: smooth ? 'smooth' : 'auto' });
+      smoothScroll(el, { block, inline: 'nearest', smooth });
+      if (offset) smoothScroll(window, { top: offset, relative: true, smooth });
     } catch (_) {
-      el.scrollIntoView();
+      smoothScroll(el, { smooth: false });
     }
   };
   if (typeof requestAnimationFrame === 'function') requestAnimationFrame(doScroll);
@@ -124,10 +124,10 @@ export function anchorDetailToTrigger(detailEl, triggerEl, opts = {}) {
   const doScroll = () => {
     if (!_hasLayout(detailEl)) return;
     try {
-      detailEl.scrollIntoView({ block, inline: 'nearest', behavior: smooth ? 'smooth' : 'auto' });
-      if (offset) window.scrollBy({ top: offset, behavior: smooth ? 'smooth' : 'auto' });
+      smoothScroll(detailEl, { block, inline: 'nearest', smooth });
+      if (offset) smoothScroll(window, { top: offset, relative: true, smooth });
     } catch (_) {
-      detailEl.scrollIntoView(); // 老浏览器兜底
+      smoothScroll(detailEl, { smooth: false }); // 老浏览器兜底
     }
   };
   if (typeof requestAnimationFrame === 'function') requestAnimationFrame(doScroll);

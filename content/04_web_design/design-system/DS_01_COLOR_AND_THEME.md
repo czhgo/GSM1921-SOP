@@ -2,7 +2,7 @@
 title: "设计系统 · 第一编 色彩与主题"
 type: design
 role: "[工程师]+[AI]"
-last_updated: 2026-10-30
+last_updated: 2026-10-31
 status: active
 related_files: [DESIGN_SYSTEM.md, DS_03_COMPONENTS.md, DS_04_INTERACTION_AND_RESPONSIVE.md, ../../../docs/src/styles.css, CASES.md]
 ---
@@ -117,22 +117,27 @@ related_files: [DESIGN_SYSTEM.md, DS_03_COMPONENTS.md, DS_04_INTERACTION_AND_RES
 >
 > ⚠️ **本表是身份标识场景的默认识别色，不是"主题色硬编码"**（2026-08-10 补充）：主题色已演进为一套**可选择的色盘**——侧边栏「主题选择」中所有角色均可从色盘自选主题色（2026-08-06 起），`resolveAccentRole` 优先读 localStorage 个性化覆盖（`docs/src/core/domain/constants.js`）。本表仅约束**身份标识场景**（关系网络节点/角色卡片/日历图例的辨识色）；**主题色场景**（tab 激活态/按钮/标签/选中项/chips 等强调色）由个人自选色盘决定（见 §2.7 规则 + §2.8 ② 角色识别层）。2026-08-14 裁决强化：身份不再保留既有固定颜色设定——本表色值为默认识别色，任何角色均可经侧边栏「主题选择」自选覆盖，工作台强调一律走主题色。
 
-| Token | 色值 | 色块 | 角色 | 色相 | 说明 |
-|-------|------|------|------|------|------|
-| `--accent-secretary` | `#B91C1C` | ██ | 党支书 | 红色系（深红） | 领导核心，Tailwind red-800 级深红（副支书同色） |
-| `--accent-leader` | `#22C55E` | ██ | 党小组组长 | 翠绿系 | 执行层，与支委分工配合 |
-| `--accent-org-commissioner` | `#0EA5E9` | ██ | 组织委员 | 天蓝系 | 组织协调，专班工作组默认扎口协调 |
-| `--accent-prop-commissioner` | `#2563EB` | ██ | 宣传委员 | 海蓝系 | 宣传传播 |
-| `--accent-disc-commissioner` | `#C2410C` | ██ | 纪检委员 | 深橙系 | 监督警示 |
-| `--accent-organizer` | `#7DD3FC` | ██ | 组织者 | 亮天蓝系 | 执行核心，分工记录 |
-| `--accent-deep` | `#A78BFA` | ██ | 深度参与者 | 雾紫系 | 承担分工（主题侧见 §2.11 `purple`；`styles.css :root` 的 `--accent-deep`/`--accent-deep-light` 为角色识别色） |
-| 普通成员（主题金） | 见 §2.11 `gold` | ██ | 普通参与者 / 默认 | 琥珀金 | 主题色走 `gold` 主题表（不再共用主题党日胶囊）；`--accent-participant` 的旧红值已于批次 505 退场（同名两值消除） |
+| Token（唯一可消费名） | 亮色值 | 暗色值 | 色块 | 角色 | 色相 | 说明 |
+|-------|------|------|------|------|------|------|
+| `--color-identity-secretary` | `#B91C1C` | `#F87171` | ██ | 党支书 | 红色系（深红） | 领导核心，Tailwind red-800 级深红 |
+| `--color-identity-deputy-secretary` | `#B91C1C` | `#F87171` | ██ | 副党支书 | 红色系（深红） | 与党支书同色 |
+| `--color-identity-leader` | `#22C55E` | `#4ADE80` | ██ | 党小组组长 | 翠绿系 | 执行层，与支委分工配合 |
+| `--color-identity-deputy-leader` | `#22C55E` | `#4ADE80` | ██ | 副组长 | 翠绿系 | 与组长同色 |
+| `--color-identity-org-commissioner` | `#0EA5E9` | `#38BDF8` | ██ | 组织委员 | 天蓝系 | 组织协调，专班工作组默认扎口协调 |
+| `--color-identity-prop-commissioner` | `#2563EB` | `#60A5FA` | ██ | 宣传委员 | 海蓝系 | 宣传传播 |
+| `--color-identity-disc-commissioner` | `#C2410C` | `#FB923C` | ██ | 纪检委员 | 深橙系 | 监督警示 |
+| `--color-identity-commissioner` | `#C2410C` | `#FB923C` | ██ | 支委（通用） | 深橙系 | 与纪检委员同色 |
+| `--color-identity-organizer` | `#0369A1` | `#38BDF8` | ██ | 组织者 | 深天蓝系 | 执行核心，分工记录 |
+| `--color-identity-deep` | `#7C3AED` | `#A78BFA` | ██ | 深度参与者 | 紫罗兰系 | 承担分工（主题侧见 §2.11 `purple`） |
+| `--color-identity-participant` | `#6B7280` | `#94A3B8` | ██ | 普通参与者 / 默认 | 中性灰 | 默认身份色；主题色走 §2.11 `gold` 主题表 |
+| `--color-identity-initiator` | `#4F46E5` | `#A5B4FC` | ██ | 发起人 | 靛蓝系 | 发起 / 提案标记 |
+| `--color-identity-all` | `#0E7490` | `#22D3EE` | ██ | 全体 | 青色系 | 面向全体成员的范围标记 |
 
 **使用约束**：
-- 角色色条（左侧 4px）使用对应 accent 色
-- `--accent-gold` 用于党徽相关元素（SVG 着色、装饰线）
-- 角色识别色在 SVG 关系网络节点、角色卡片、日历图例中必须严格按本表对应，不得混用
-- 角色识别色统一走 `--color-identity-<role>`（与 `constants.js::ROLE_COLORS` 同值，见 §2.13）；旧 `--accent-amber / --accent-blue / --accent-emerald` 已于 2026-10-26 删除，不得回潮
+- 角色色条（左侧 3px）使用对应 `--color-identity-<role>`；暗色下该名自动解析到 `-dark` 档（`html.theme-dark` 段别名），消费方不必写 `-dark`。
+- `--accent-gold` 仅用于党徽相关元素（SVG 着色、装饰线），不承担角色识别。
+- 角色识别色在 SVG 关系网络节点、角色卡片、日历图例中必须严格按本表对应，不得混用。
+- 角色识别色统一走 `--color-identity-<role>`（单一源＝`constants.js::ROLE_COLORS.text / .textDark`，见 §2.13）；身份色值以该表为准，本表逐值同源、由 `theme-palette-guard` 核对。旧 `--accent-*` 角色令牌（含 `--accent-amber / --accent-blue / --accent-emerald`）已于 2026-10-26 删除，不得回潮。
 
 **对象命名口径**：组织者 / 深度参与者是**活动工作组或专班工作组**的并列成员角色，不是独立的「项目组」；系统权限统一表述为「授权」（历史「赋权」同义）。
 
@@ -159,16 +164,26 @@ related_files: [DESIGN_SYSTEM.md, DS_03_COMPONENTS.md, DS_04_INTERACTION_AND_RES
 
 | Token（唯一可消费名） | 兼容别名 | 亮色值 | 暗色值 | 用途 |
 |-------|------|------|------|------|
-| `--status-success` | `--functional-success` | `#10B981` | `#34D399` | 成功 / 已完成 |
-| `--status-warning` | `--functional-warning` | `#F59E0B` | `#FBBF24` | 待处理 / 提醒 / 逾期 |
-| `--status-error` | `--functional-error` | `#EF4444` | `#F87171` | 阻断 / 失败 / 删除 / 驳回 |
-| `--status-info` | `--functional-info` | `#3B82F6` | `#60A5FA` | 信息 / 提示（白名单见 §12.14） |
+| `--status-success` | `--functional-success` | `#10B981` | `#34D399` | 成功 / 已完成（**填充档**：徽章底 / 圆点 / 左条 / 图例） |
+| `--status-warning` | `--functional-warning` | `#F59E0B` | `#FBBF24` | 待处理 / 提醒 / 逾期（**填充档**） |
+| `--status-error` | `--functional-error` | `#EF4444` | `#F87171` | 阻断 / 失败 / 删除 / 驳回（**填充档**） |
+| `--status-info` | `--functional-info` | `#3B82F6` | `#60A5FA` | 信息 / 提示（**填充档**，白名单见 §12.14） |
+| `--status-success-text` | — | `#047857` | `#34D399` | 成功文字（状态行 / 徽章字 / 数值） |
+| `--status-warning-text` | — | `#92400E` | `#FCD34D` | 提醒 / 逾期文字（超期标签 / 徽章字） |
+| `--status-error-text` | — | `#991B1B` | `#F87171` | 危险文字（必填星号 / 危险按钮 / 错误提示） |
+| `--status-info-text` | — | `#1D4ED8` | `#60A5FA` | 信息文字（「已读」/ 链接型动作 / 徽章字） |
+
+> **两层分工（2026-10-31 P8）**：`--status-*` 是**填充档**，只进徽章底 / 圆点 / 左条 / 图例；
+> 任何 `color:` 一律写 `--status-*-text`。实测病灶：填充档直接当正文时 success 对白卡 2.54:1、
+> error 3.76:1、info 3.68:1；文字档亮色对白卡 / 暖纸页底均 ≥4.5:1（success 5.40/5.19、
+> error 7.87/7.56、info 6.70/6.44），暗色对深卡 / 暗页 ≥6:1。
+> 守卫：`status-color-guard`（填充档出现在 `color:` 即红）。
 
 **使用约束**：
-- 仅用于 Badge、状态指示器、表单验证提示、圆点 / 提示条 / 左条
+- **填充档**仅用于 Badge 底色、状态指示圆点、左条、图例色块；**文字档**用于一切 `color:`（徽章字、状态行、必填星号、危险按钮文字）。
 - 不可用作大面积背景色或装饰色
 - **状态层与品牌层/角色层互不混用**：状态蓝（进行中/信息）与角色蓝（组织委员/宣传委员）相区分；状态红（告警/超期）与品牌红（党建红主 CTA）相区分；状态琥珀（待处理）与品牌金（党徽金）相区分。同色相不同层按"语境"区分（见 §2.8 判例）。
-- 组件（`docs/src/**/*.js` 与 `styles.css` 组件段）只写 `--status-*`；`--functional-*` 只出现在 `:root` 别名定义处。
+- 组件（`docs/src/**/*.js` 与 `styles.css` 组件段）只写 `--status-*` / `--status-*-text`；`--functional-*` 只出现在 `:root` 别名定义处。
 
 **2026-10-18 改准（逾期 / 超期归 warning）**：上表 `--functional-error` 的用途中「已逾期」**改归** `--functional-warning`（琥珀）；`--functional-error` 只保留给**阻断 / 失败 / 删除 / 驳回**。上表原文保留为历史表述，现行口径以 §2.10「颜色四问与明暗档」为准。
 
@@ -181,8 +196,16 @@ related_files: [DESIGN_SYSTEM.md, DS_03_COMPONENTS.md, DS_04_INTERACTION_AND_RES
 | `--surface-elevated` | `#FFFFFF` | ██ | 浮层背景 |
 | `--surface-header` | `#7A0010` | ██ | 顶部导航背景 |
 | `--surface-sidebar` | `#FFFFFF` | ██ | 侧边栏背景 |
-| `--surface-hover` | `#F3F4F6` | ██ | 悬停态表面 |
-| `--surface-active` | `#FEE2E2` | ██ | 激活态表面 |
+| `--surface-hover` | `var(--neutral-200)`（`#E5E7EB`） | ██ | 悬停态表面 |
+| `--surface-active` | `var(--neutral-200)`（`#E5E7EB`） | ██ | 激活态表面 |
+
+> **2026-10-31 P8 纠错（旧值已废）**：本表此前写 `--surface-hover #F3F4F6` / `--surface-active #FEE2E2`，
+> 与实现不符。旧值被废的两条实测理由：
+> ① `#F3F4F6` 与白卡仅 **1.11:1**、与暖纸页面底 **1.06:1**——「可点行 hover」根本读不出来；
+>    实现已改取 `--neutral-200`（对白卡 1.24:1、对页底 1.18:1），并与可点行的 3px 主题左条叠加。
+> ② `#FEE2E2` 是党建红浅底，中性按钮按下会闪红、被误读成危险态；实现改为中性灰
+>    （与 hover 同源 `--neutral-200`，暗色段靠 `--neutral-200` 的暗色重定义自动跟随）。
+> 守卫：`status-color-guard` 核对本表三档／全部表面行与 `styles.css` 实现值逐字一致。
 
 ### 2.7 主体色配色规则（给定主体主题色 X）— 打样样板
 

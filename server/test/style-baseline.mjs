@@ -289,7 +289,11 @@ export const HEX_BASELINE = {
   'docs/src/services/branch/org-wizard-report.js': { c: 4, v: [
       '#ce1126', '#ffd700',
   ] },
-  'docs/src/styles.css': { c: 383, v: [
+  // 2026-10-31 P8：状态色拆「填充 / 文字」两层，亮色文字档新增 #047857（success）/ #991B1B（error）/
+  //   #1D4ED8（info），暗色档沿用既有 #34D399 / #F87171 / #60A5FA ⇒ 处数 383 → 389（+6），值集 +1。
+  //   只新增文字档 token 定义（4 段共 6 行），组件仍零裸 hex；收基线与实现同批。
+  'docs/src/styles.css': { c: 389, v: [
+      '#047857',
       '#000', '#91650d', '#bd9231', '#0284c7', '#0369a1', '#059669', '#0b1220', '#0e7490', '#0ea5e9', '#0f172a',
       '#102a32', '#10b981', '#111827', '#12291f', '#141d2f', '#15803d', '#16233a',
       '#1a2438', '#1b1e24', '#1d4ed8', '#1d5a69', '#1e1503', '#1e293b', '#1e5c44',
@@ -579,11 +583,6 @@ export const DYNAMIC_SELECTOR_WHITELIST = [
       + '本类保留给动态生成的按钮（如 custom-select 的「显示更多」）使用。',
   },
   {
-    name: 'motion-scale-in',
-    reason: '动效工具类库（批次 508）：入场缩放工具类，供弹层 / 详情面板后续接入；'
-      + '定义与 keyframes 同批落地，当前无调用点。',
-  },
-  {
     name: 'ab-edge--task',
     reason: '关于页工作流 SVG 连线：`docs/src/entries/pages/about-entry.js:637` 以 `` class: `ab-edge ab-edge--${e.type}` `` '
       + '按 `e.type ∈ {task, info, file}` 拼接（`.ab-edge--task` 走此路生成，非游离死类）。',
@@ -624,3 +623,53 @@ export const DYNAMIC_SELECTOR_WHITELIST = [
 export const DEAD_SELECTOR_CSS_FILE_BASELINE = 5;   // styles.css + about.css + person-picker.css + help.html/login.html 页内 style
 export const DEAD_SELECTOR_CLASS_BASELINE = 400;    // 全站 distinct 类选择器（实测 635）
 export const DEAD_SELECTOR_CORPUS_FILE_BASELINE = 120; // docs/**/*.{js,html} 引用比对面文件数（实测远超）
+
+/* ════════════════════════════════════════════════════════════════
+   字号档位 / 间距棘轮基线（2026-10-31 · 低风险收口批）
+   ────────────────────────────────────────────────────────────────
+   口径单一源：
+     · 字号 = `server/test/type-scale-guard.test.mjs`（源件 5）
+       扫 `docs/src` 下全部 .css 的 `font-size`（`var(--text-*)` 按 :root 解析为 px）
+       ＋ `docs` 下全部 .js/.mjs 的 `text-*`、`text-[Npx]`、行内 `font-size`。
+       档位表内值（TYPE_TIER_ALLOWED）不登记；档位表外值按 (文件, 值) 登记，**只减不增**。
+     · 间距 = `server/test/spacing-scale-guard.test.mjs`（S5/S6/S7）
+       S5：styles.css 中「非 `var(--space-*)` 且非 0/auto」的 margin/padding/gap 声明；
+       S6/S7：docs 下全部 .js/.mjs/.html 的 `style="…"` 内间距声明 / 含间距的属性处数。
+   收基线纪律：删条目 / 减计数（进度自动前进）；**不得**为变绿补条目或调大计数。
+   ════════════════════════════════════════════════════════════════ */
+
+/** 档位表内值（与 `DS_02_TYPE_AND_SIZE.md §3.2.3` 同批；新增档位须先改文档再改此表） */
+export const TYPE_TIER_ALLOWED = [11, 12, 13, 14, 15, 16, 18, 20, 22, 24];
+
+/** 档位表外存量：`文件 → { <px>: 处数 }`
+ *  说明（逐类）：
+ *   · 17 / 19 / 21 / 23 / 27：`html.font-size-large` 的 +3px 派生档（只许在覆盖段出现，不作为新代码档位）；
+ *   · 32：`about.css` 冻结件的展示字号（about-freeze-guard 锁定，不参与收敛）；
+ *   · 8 / 9.6 / 10 / 10.4 / 11.2 / 11.52 / 12.48 / 12.8 / 13.6：rem 派生的小字/微间距旧值，逐批收敛。 */
+export const TYPE_TIER_BASELINE = {
+  'docs/src/about.css': { 32: 2 },
+  'docs/src/components/governance/notice-view.js': { 10: 1 },
+  'docs/src/components/governance/organizer-transfer.js': { 11.52: 1, 12.8: 1 },
+  'docs/src/components/person-picker.css': { 10: 2 },
+  'docs/src/components/sections/references.js': { 11.2: 5, 11.52: 1 },
+  'docs/src/components/shell/header.js': { 10: 1 },
+  'docs/src/components/ui/modal.js': { 11.52: 2, 12.8: 4 },
+  'docs/src/data/data-adapter.js': { 17: 1 },
+  'docs/src/entries/pages/activity-entry.js': { 12.48: 1, 13.6: 1 },
+  'docs/src/entries/tabs/disc/review-tab.js': { 12.8: 1 },
+  'docs/src/styles.css': {
+    8: 1, 9.6: 1, 10: 2, 10.4: 1, 11.2: 12, 11.52: 3, 12.8: 1,
+    17: 2, 19: 1, 21: 1, 23: 1, 27: 1,
+  },
+};
+export const TYPE_TIER_TOTAL_BASELINE = 51;
+export const TYPE_TIER_FILE_BASELINE = 11;
+
+/** styles.css 非令牌间距声明数（S5；2026-10-31 实测 239） */
+export const SPACING_NON_TOKEN_BASELINE = 239;
+
+/** 行内间距（S6/S7；2026-10-31 实测：声明 706 / 属性 560）
+ *  扫描面＝docs 下全部 .js/.mjs/.html 的 `style="…"`（含模板串里的 style="…"）；
+ *  声明＝属性体内 margin/padding/gap 家族且值不是 0/auto；属性＝含至少一条此类声明的 style 属性。 */
+export const SPACING_INLINE_DECL_BASELINE = 706;
+export const SPACING_INLINE_ATTR_BASELINE = 560;

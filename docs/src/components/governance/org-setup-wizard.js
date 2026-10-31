@@ -16,40 +16,40 @@
 // 草稿：localStorage `wizard-draft-<branchId>`（当前步 + 每步完成标记 + 完成态），中断可续走。
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../../core/domain/domain.js?v=20261029b';
-import { getCapabilities } from '../../core/boot/registry.js?v=20261029b';
-import { OUTPUT_BLOCK_DEFS, BRANCH_COMMISSION_ROLES, ROLE_LABELS, getAccentColors } from '../../core/domain/constants.js?v=20261029b';
-import { applyAccentThemeTokens } from '../../core/boot/theme.js?v=20261029b';
-import { CAPABILITY_PACKAGES } from '../../core/domain/capability-packages.js?v=20261029b';
-import { ORG_SUBJECT_LABELS, isBranchOrgSubject, ownerSubjectType } from '../../core/domain/work-map.js?v=20261029b';
+import { mockDB } from '../../core/domain/domain.js?v=20261031a';
+import { getCapabilities } from '../../core/boot/registry.js?v=20261031a';
+import { OUTPUT_BLOCK_DEFS, BRANCH_COMMISSION_ROLES, ROLE_LABELS, getAccentColors } from '../../core/domain/constants.js?v=20261031a';
+import { applyAccentThemeTokens } from '../../core/boot/theme.js?v=20261031a';
+import { CAPABILITY_PACKAGES } from '../../core/domain/capability-packages.js?v=20261031a';
+import { ORG_SUBJECT_LABELS, isBranchOrgSubject, ownerSubjectType } from '../../core/domain/work-map.js?v=20261031a';
 // 副作用：注册支委层工作台能力（配置目录=其 tab 清单，单一源）
-import '../../capabilities/secretary-workspace.js?v=20261029b';
-import { BLOCK_MANIFESTS } from '../../workflow/blocks/manifests.js?v=20261029b';
+import '../../capabilities/secretary-workspace.js?v=20261031a';
+import { BLOCK_MANIFESTS } from '../../workflow/blocks/manifests.js?v=20261031a';
 // L3 流程组合（2026-09-28 批次 246）：把编排内核接进**生产路径**——配置面用它做「组合体检」
-import { composePlan } from '../../workflow/blocks/orchestration.js?v=20261029b';
-import { escHtml as esc, showToast, downloadBlob } from '../../core/base/utils.js?v=20261029b';
-import { icon } from '../../core/base/icons.js?v=20261029b';
-import { confirmDanger } from '../ui/modal.js?v=20261029b';
-import { readLoginSnapshot } from '../../core/session/login-snapshot.js?v=20261029b';
-import { WORK_MAP_MODULES } from '../../core/domain/work-map.js?v=20261029b';
+import { composePlan } from '../../workflow/blocks/orchestration.js?v=20261031a';
+import { escHtml as esc, showToast, downloadBlob } from '../../core/base/utils.js?v=20261031a';
+import { icon } from '../../core/base/icons.js?v=20261031a';
+import { confirmDanger } from '../ui/modal.js?v=20261031a';
+import { readLoginSnapshot } from '../../core/session/login-snapshot.js?v=20261031a';
+import { WORK_MAP_MODULES } from '../../core/domain/work-map.js?v=20261031a';
 import {
   getBranchById, getBranchOrg, getBranchTabPolicy, getCoreTabIds,
   getBranchOutputBlocks, getBranchCapabilityPackageState, getOutputBlockPolicy, getWorkflowBlockPolicy, orderByIds,
   updateBranchModules, updateBranchCapabilityPackages, getBranchWorkforce, updateBranchWorkforce, updateBranchOrg,
   applyConfigCopy, createBranch, getBranchIdOfPerson, ensureBranchConfigLoaded,
-} from '../../services/branch/branch.js?v=20261029b';
-import { buildConfigPackage, applyConfigPackage } from '../../services/branch/org-config-package.js?v=20261029b';
+} from '../../services/branch/branch.js?v=20261031a';
+import { buildConfigPackage, applyConfigPackage } from '../../services/branch/org-config-package.js?v=20261031a';
 import {
   buildPreviewTemplate, sanitizePreview, applyPreview, clearPreview, getPreviewState,
   PREVIEW_KIND, PREVIEW_VERSION,
-} from '../../services/branch/org-base-data-preview.js?v=20261029b';
-import { getRosterStats, isDetained } from '../../services/member/roster.js?v=20261029b';
-import { buildOrgWizardReport } from '../../services/branch/org-wizard-report.js?v=20261029b';
-import { PersonStore, getPersonName } from '../../services/member/person.js?v=20261029b';
+} from '../../services/branch/org-base-data-preview.js?v=20261031a';
+import { getRosterStats, isDetained } from '../../services/member/roster.js?v=20261031a';
+import { buildOrgWizardReport } from '../../services/branch/org-wizard-report.js?v=20261031a';
+import { PersonStore, getPersonName } from '../../services/member/person.js?v=20261031a';
 // R5-1（2026-09-06）：建空支部「就地任命首任骨干」——任命编排在 appointment.js 收口（含数据边界登记）
-import { appointInauguralOfficers } from '../../services/branch/appointment.js?v=20261029b';
+import { appointInauguralOfficers } from '../../services/branch/appointment.js?v=20261031a';
 
-import { emptyStateHtml } from '../ui/empty-state.js?v=20261029b';
+import { emptyStateHtml } from '../ui/empty-state.js?v=20261031a';
 // ── 步骤元信息（支书已批口径）────────────────────────────────────
 export const WIZARD_STEPS = [
   { id: 1, label: '组织信息' },
@@ -74,6 +74,36 @@ const FIXED_THEME_TOKENS = [
   { name: '党建红 party-red', hex: '#CE1126' },
   { name: '党徽金 party-gold', hex: '#FFD700' },
 ];
+
+/**
+ * 字段级错误（就地渲染）：错误文本贴在字段旁，且**同时**产出 `aria-invalid="true"` 与
+ * `aria-describedby` 指向错误文本（2026-10-31 P9；此前只有右下角 toast，读屏拿不到原因）。
+ * @param {HTMLElement|null} input 目标控件
+ * @param {HTMLElement|null} errEl 就地错误文本节点（须有 id）
+ * @param {string} msg 用户可读原因
+ */
+function _showWizError(input, errEl, msg) {
+  if (!input) return;
+  if (errEl) { errEl.textContent = msg; errEl.hidden = false; }
+  input.setAttribute('aria-invalid', 'true');
+  if (errEl && errEl.id) input.setAttribute('aria-describedby', errEl.id);
+  if (typeof input.focus === 'function') input.focus();
+}
+
+/** 用户修正即清除该字段的错误态（不动其它已填内容） */
+function _clearWizError(input) {
+  if (!input || typeof input.removeAttribute !== 'function') return;
+  input.removeAttribute('aria-invalid');
+  const errId = input.getAttribute('aria-describedby');
+  if (!errId) return;
+  const errEl = input.ownerDocument && input.ownerDocument.getElementById
+    ? input.ownerDocument.getElementById(errId) : null;
+  if (errEl && errEl.dataset && errEl.dataset.wzFieldError === '1') {
+    errEl.textContent = '';
+    errEl.hidden = true;
+    input.removeAttribute('aria-describedby');
+  }
+}
 
 /** 取预设定义（id 缺省回退首个=红调） */
 function _presetOf(id) {
@@ -215,6 +245,9 @@ export async function mountOrgSetupWizard(host, opts) {
   // 容器级事件委托（挂载一次；DOM 由 _render 全量重建，委托不受影响）
   host.addEventListener('click', (e) => _onClick(S, e));
   host.addEventListener('change', (e) => _onChange(S, e));
+  // 修正即清除字段错误态（aria-invalid / aria-describedby 成对撤销；不动已填内容）
+  host.addEventListener('input', (e) => _clearWizError(e.target));
+  host.addEventListener('change', (e) => _clearWizError(e.target));
 }
 
 /** 进入某支部：读草稿恢复进度 + 应用其主题预设 */
@@ -396,6 +429,7 @@ function _createPanelHtml(S, isStaff) {
             <select id="wz-create-appoint-secretary" class="input-flat w-full" ${appointOn ? '' : 'disabled'}>
               <option value="">请选择首任支书…</option>${secretaryOptions}
             </select>
+            <p id="wz-create-appoint-secretary-err" data-wz-field-error="1" role="alert" hidden class="text-xs text-red-600 mt-1"></p>
           </div>
           <div>
             <label class="text-xs text-gray-500 block mb-1" for="wz-create-appoint-org">组织委员（可选）</label>
@@ -404,7 +438,7 @@ function _createPanelHtml(S, isStaff) {
             </select>
           </div>
         </div>
-        <p id="wz-create-appoint-conflict" class="hidden text-xs text-red-600">首任支书与组织委员不能为同一人——请更换人选，或取消勾选就地任命。</p>
+        <p id="wz-create-appoint-conflict" data-wz-field-error="1" role="alert" class="hidden text-xs text-red-600">首任支书与组织委员不能为同一人——请更换人选，或取消勾选就地任命。</p>
       </div>`
     : `
       <div class="rounded-lg border border-amber-200 bg-amber-50/60 p-2.5">
@@ -431,6 +465,7 @@ function _createPanelHtml(S, isStaff) {
         <div id="wz-create-source-wrap" class="${isCopy ? '' : 'hidden'}">
           <label class="text-xs text-gray-500 block mb-1" for="wz-create-source">源支部（配置/组织档案/workforce 复制源）</label>
           <select id="wz-create-source" class="input-flat w-full" ${isCopy ? '' : 'disabled'}>${sourceOptions}</select>
+          <p id="wz-create-source-err" data-wz-field-error="1" role="alert" hidden class="text-xs text-red-600 mt-1"></p>
         </div>
       </div>
       ${appointSection}
@@ -518,7 +553,7 @@ function _baseDraftHtml(S, draft) {
       <div class="stat-grid">
         ${_baseStatBox({ icon: 'usersGroup', tint: 'var(--status-info)', value: s.partyTotal, unit: '人', label: '在册党员', sub: `应到基数 · 正式 ${s.official} + 预备 ${s.probationary}` })}
         ${_baseStatBox({ icon: 'clock', tint: 'var(--status-warning-text)', value: s.detained, unit: '人', label: '滞留党员', sub: '组织关系保留、通知照发' })}
-        ${_baseStatBox({ icon: 'usersGroup', tint: 'var(--app-accent-soft-text)', value: s.expected, valueColor: 'var(--status-error)', unit: '人', label: '支部党员大会应到', sub: `党员 ${s.partyTotal} − 滞留 ${s.detained}` })}
+        ${_baseStatBox({ icon: 'usersGroup', tint: 'var(--app-accent-soft-text)', value: s.expected, valueColor: 'var(--status-error-text)', unit: '人', label: '支部党员大会应到', sub: `党员 ${s.partyTotal} − 滞留 ${s.detained}` })}
         ${_baseStatBox({ icon: 'list', tint: 'var(--neutral-500)', value: groupCount, unit: '组', label: '各党小组会应到', subHtml: groupParts || '—' })}
       </div>
       <div class="flex flex-wrap items-center justify-between gap-2">
@@ -625,6 +660,7 @@ function _step1Html(S, branch, org, isStaff) {
         <label class="flex flex-col gap-1 text-xs text-gray-500">
           页眉显示名（header 品牌软编码，两者可改）
           <input id="wz-org-header" type="text" value="${esc(org.headerTitle)}" placeholder="工作台/页眉显示名" class="input-flat w-full">
+          <p id="wz-org-header-err" data-wz-field-error="1" role="alert" hidden class="text-xs text-red-600 leading-relaxed"></p>
         </label>
       </div>
       <label class="flex flex-col gap-1 text-xs text-gray-500">
@@ -1215,9 +1251,11 @@ async function _saveOrg(S) {
   const org = getBranchOrg(S.branchId);
   const nameVal = S.host.querySelector('#wz-org-name');
   const headerVal = S.host.querySelector('#wz-org-header');
+  const headerErr = S.host.querySelector('#wz-org-header-err');
   const descVal = S.host.querySelector('#wz-org-desc');
   const presetVal = S.host.querySelector('input[name="wz-theme"]:checked');
   if (!headerVal || !descVal || !presetVal) return false;
+  _clearWizError(headerVal);
   const patch = {};
   // 顶层 name 治理字段：仅 party-staff 可改（通用 branches PATCH 门）；现任支书只读
   if (isStaff && nameVal) {
@@ -1225,7 +1263,8 @@ async function _saveOrg(S) {
     if (name && name !== org.name) patch.name = name;
   }
   const header = headerVal.value.trim();
-  if (!header) { showToast('info', '页眉显示名不能为空'); return false; }
+  // 就地错误：贴在字段下方，同时产出 aria-invalid + aria-describedby（不再只靠右下角 toast）
+  if (!header) { _showWizError(headerVal, headerErr, '页眉显示名不能为空'); return false; }
   if (header !== org.headerTitle && !(patch.name && header === patch.name)) patch.headerTitle = header;
   const desc = descVal.value.trim();
   if (desc !== org.desc) patch.desc = desc;
@@ -1445,9 +1484,11 @@ async function _doCreate(S) {
   const name = nameInput ? nameInput.value.trim() : '';
   const mode = S.createMode === 'copy' ? 'copy' : 'empty';
   const sourceSel = S.host.querySelector('#wz-create-source');
+  const sourceErr = S.host.querySelector('#wz-create-source-err');
   const sourceId = mode === 'copy' ? (sourceSel ? sourceSel.value : '') : undefined;
+  if (sourceSel) _clearWizError(sourceSel);
   if (mode === 'copy' && !sourceId) {
-    showToast('error', '请选择源支部');
+    _showWizError(sourceSel, sourceErr, '请选择源支部');
     return;
   }
   // R5-1：就地任命表单读取 + 前置校验（勾选后首任支书必选；支书=组织委员同人拦截——均不建支部）
@@ -1455,14 +1496,28 @@ async function _doCreate(S) {
   const appointOn = !!(appointBox && appointBox.checked);
   const appointSecSel = S.host.querySelector('#wz-create-appoint-secretary');
   const appointOrgSel = S.host.querySelector('#wz-create-appoint-org');
+  const appointSecErr = S.host.querySelector('#wz-create-appoint-secretary-err');
+  const appointConflict = S.host.querySelector('#wz-create-appoint-conflict');
+  if (appointSecSel) _clearWizError(appointSecSel);
+  if (appointOrgSel) _clearWizError(appointOrgSel);
   const appointSecretaryId = appointOn && appointSecSel ? String(appointSecSel.value || '') : '';
   const appointOrgId = appointOn && appointOrgSel ? String(appointOrgSel.value || '') : '';
   if (appointOn && !appointSecretaryId) {
-    showToast('error', '已勾选「就地任命首任骨干」，请选择首任支书（或取消勾选，仅创建空支部）');
+    _showWizError(appointSecSel, appointSecErr, '已勾选「就地任命首任骨干」，请选择首任支书（或取消勾选，仅创建空支部）');
     return;
   }
   if (appointOn && appointOrgId && appointOrgId === appointSecretaryId) {
-    showToast('error', '首任支书与组织委员不能为同一人——请更换组织委员人选');
+    // 同人冲突是「两个字段的组合错误」：两个控件都标 aria-invalid，并共同指向同一段错误文本
+    if (appointConflict) {
+      appointConflict.hidden = false;
+      appointConflict.classList.remove('hidden');
+    }
+    [appointSecSel, appointOrgSel].forEach((el) => {
+      if (!el) return;
+      el.setAttribute('aria-invalid', 'true');
+      if (appointConflict && appointConflict.id) el.setAttribute('aria-describedby', appointConflict.id);
+    });
+    appointOrgSel?.focus();
     return;
   }
   try {

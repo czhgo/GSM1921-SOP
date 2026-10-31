@@ -2,7 +2,7 @@
 title: "设计系统 · 第四编 交互与响应式"
 type: design
 role: "[工程师]+[AI]"
-last_updated: 2026-10-30
+last_updated: 2026-10-31
 status: active
 related_files: [DESIGN_SYSTEM.md, DS_03_COMPONENTS.md, ../../../docs/src/styles.css, CASES.md]
 ---
@@ -15,14 +15,23 @@ related_files: [DESIGN_SYSTEM.md, DS_03_COMPONENTS.md, ../../../docs/src/styles.
 
 ## 五、交互反馈规范
 
-### 5.1 过渡动效标准
+### 5.1 过渡动效标准（三档令牌 · 2026-10-31 P10）
 
-| 场景 | CSS 属性 | 时长 | 缓动函数 |
-|------|---------|------|---------|
-| 颜色变化 | `background-color`, `color`, `border-color` | `150ms` | `ease-out` |
-| 透明度变化 | `opacity` | `200ms` | `ease-out` |
-| 位移 | `transform` | `200ms` | `ease-out` |
-| 视图切换 | `opacity` + `transform` | `250ms` | `ease-out` |
+支书口径（逐字）：「动态效果一方面不能太 fancy，尽可能突出微软扁平风；另一方面不能太简单，像是掉帧了绝对不行。」
+即 **观感克制、执行流畅**。全站只允许三档，令牌定义在 `docs/src/styles.css` 的 `:root`，消费方不得再写裸毫秒。
+
+| 档位 | 令牌 | 值 | 适用 | 明确不适用 |
+|------|------|----|------|-----------|
+| 反馈 | `--motion-feedback` | `120ms`（80–120） | hover / press / 颜色 / 边框 / 焦点环颜色 | 整块内容进出、长位移 |
+| 进入 / 退出 | `--motion-enter` / `--motion-exit` | `200ms` / `180ms`（160–240） | 淡入淡出、页签切换、浮层进出、8px 内位移 | 常驻循环、装饰性缩放 |
+| 强调 | `--motion-emphasis` | `280ms`（240–320） | **仅一次性提示**（高亮褪去、进度条、toast 淡出） | 列表 hover、循环动画、页面常驻过渡 |
+
+- 缓动同样收成令牌：常规 `--ease-standard`（`cubic-bezier(.2,.6,.36,1)`）、入场 `--ease-enter`（`cubic-bezier(.22,.61,.36,1)`）。不得新增第三条曲线。
+- 旧名 `--motion-fast / --motion-base / --motion-slow` 与 `--transition-*` 保留为别名，分别映射到反馈 / 进入 / 退出档，禁止直接写数值。
+- 可复用类只保留三件：`.motion-enter`（opacity + transform）、`.motion-collapse`（`grid-template-rows` 0fr→1fr）、`.motion-press`（内阴影）。`.motion-scale-in` 已删除。
+- 循环动画（骨架 spinner / pulse）用 `calc(var(--motion-emphasis) * N)` 表达周期，不写裸 `0.8s / 1.2s`。
+- **关于页例外**：`about.css` 的 0.9–1s 级叙事长时长、`rotateX` / `clip-path` / `scale()` 属叙事页例外，**只登记不改**，不得扩散到产品页；守卫 `motion-guard` 的 M2 / M7 整文件登记 `docs/src/about.css`。
+- 守卫：`motion-guard` M1–M10（全 CSS + JS 内联 + 滚动出口）· 判例：CASE-DESIGN-009（SD-30）
 
 ### 5.2 反馈模式速查
 
@@ -53,9 +62,14 @@ related_files: [DESIGN_SYSTEM.md, DS_03_COMPONENTS.md, ../../../docs/src/styles.
 | `backdrop-filter: blur()` | 玻璃态效果，低端设备性能差 |
 | `cubic-bezier()` overshoot | 弹性过渡，与哑光风格冲突 |
 | `box-shadow` 发光扩散 | 扁平化不需要 |
-| `transform: scale()` | 缩放反馈过于花哨 |
+| `transform: scale()`（等比） | 缩放反馈过于花哨；进度条 `scaleX()` 不在此列 |
+| `transform: rotateX()` / `clip-path` 过渡 | 3D 翻转 / 裁切揭示属「太 fancy」；关于页叙事例外只登记 |
 | `transform: translateY(-Npx)` | 上浮效果违反扁平原则 |
 | `linear-gradient()`（按钮/卡片） | 纯色优于渐变 |
+| `transition: all` | 隐式过渡布局属性，改一处档位全站不可控 |
+| 过渡 `height / width / max-height / min-height / margin / padding / top / left` | 每帧触发布局回流，低端机掉帧 |
+| 裸毫秒（`0.15s` / `250ms` / 仅 `0s` 除外） | 绕过三档令牌；改档要全站搜 |
+| JS 裸 `behavior:'smooth'` | 绕过 `smoothScroll()`，`prefers-reduced-motion` 失效 |
 
 ### 5.4 Exploration 区块设计方向——滚动驱动的场景切换
 
@@ -122,6 +136,21 @@ related_files: [DESIGN_SYSTEM.md, DS_03_COMPONENTS.md, ../../../docs/src/styles.
 **守卫**：`ui-control-system-guard`（FOCUS-1…5）、`ui-focus-ring`（F1–F6）、`field-shell-guard`。
 
 > **与 §5.7 的分工**：§5.7 定按钮与链接族的环几何与顶栏例外；本节是全站总则，并把输入族收敛为「只变边框」。字段外壳的静置 / 悬停 / 禁用 / 只读见 DS_03 §12.12。
+
+### 5.9 加载、转场与滚动的可感知边界（2026-10-31 P10）
+
+**转场可点性**：内容未就绪时，不得出现「`opacity < 1` 且 `pointer-events: auto`」的帧。
+- 旧内容淡出（`.ws-tab-stage.is-leaving`）→ `pointer-events: none`，不点到旧 DOM；
+- 新内容淡入（`.ws-tab-stage.is-entering`）→ 动画收敛前 `pointer-events: none`，结束后自动恢复；
+- 骨架期 → 内容容器保持 `pointer-events: auto`，只对骨架子树局部禁用（`.ws-tab-skeleton { pointer-events: none }`），配「正在加载…」明确指示；禁止整块禁用最长 8s。
+
+**骨架高度**：首屏骨架必须按真实内容预留高度（近似即可），目标 CLS < 0.1；设置页为验收点（`#settings-panel > [data-settings-skeleton]` 预留 640px）。页签骨架用 `clamp(320px, 52vh, 560px)`。
+
+**Toast**：关闭即 `pointer-events: none` 并进入淡出；`prefers-reduced-motion` 下立即从 DOM 移除。关闭后同一位置不得再拦截点击。
+
+**滚动**：唯一出口 `core/base/utils.js::smoothScroll()`（`scrollIntoView` / `scrollTo` / `scrollBy` 三种形态）；`prefers-reduced-motion` 时一律瞬时直达（1–2 帧），禁止裸 `behavior:'smooth'`（about-entry.js 冻结登记）。
+
+**守卫**：`motion-guard` M8–M10、`loading-experience-guard` L1–L7。
 
 ---
 

@@ -2,9 +2,9 @@
 title: "设计系统 · 第二编 排版与尺寸"
 type: design
 role: "[工程师]+[AI]"
-last_updated: 2026-10-30
+last_updated: 2026-10-31
 status: active
-related_files: [DESIGN_SYSTEM.md, DS_03_COMPONENTS.md, ../../../docs/src/styles.css]
+related_files: [DESIGN_SYSTEM.md, DS_03_COMPONENTS.md, ../../../docs/src/styles.css, ../../../server/test/type-scale-guard.test.mjs, ../../../server/test/spacing-scale-guard.test.mjs]
 ---
 
 # 第二编 排版与尺寸
@@ -117,6 +117,95 @@ related_files: [DESIGN_SYSTEM.md, DS_03_COMPONENTS.md, ../../../docs/src/styles.
 （同标签 class 同时具备 600 字重、或 `tracking-*` / `uppercase` 之一）；
 **`<p>` 段落（说明 / 导语）不得用 11px**（应取 Caption 12px）。守卫：`server/test/text-tier-guard.test.mjs`
 （判红面＝`<p>` 上的 9/10/11px；`<span>`/`<div>` 上 11px 形态可能合法、只计进度）。
+
+#### 3.2.3 全站实测字号档位（2026-10-31 登记 · 只登记不改值）
+
+> **统计口径**：扫 `docs/src` 下全部 `.css` 的 `font-size`（`var(--text-*)` 按 `styles.css :root` 解析为 px）
+> ＋ `docs` 下全部 `.js/.mjs` 的 `text-*` 工具类、`text-[Npx]` 与行内 `font-size`。
+> 扫描 / 断言单一源＝`server/test/type-scale-guard.test.mjs`（源件 5）；存量台账＝`server/test/style-baseline.mjs::TYPE_TIER_BASELINE`。
+> **本表只登记现状，不调整任何字号数值**（渲染结果与登记前逐像素一致）。
+
+| 值 | docs/src 全部 .css | docs/**/*.js | 合计 | 判读 |
+|---:|---:|---:|---:|---|
+| 8px | 1 | 0 | 1 | 表外存量（基线登记） |
+| 9.6px | 1 | 0 | 1 | 表外存量（基线登记） |
+| 10px | 4 | 2 | 6 | 表外存量（基线登记；§3.2.1 禁止 `text-[10px]`，此处是 CSS `font-size` 旧值） |
+| 10.4px | 1 | 0 | 1 | 表外存量（基线登记） |
+| **11px** | 20 | 44 | 64 | **档位表内**（Overline 标签档） |
+| 11.2px | 12 | 5 | 17 | 表外存量（`0.7rem` 派生，基线登记） |
+| 11.52px | 3 | 4 | 7 | 表外存量（`0.72rem` 派生，基线登记） |
+| **12px** | 70 | 1816 | 1886 | **档位表内**（Caption；`text-xs` / `--text-xs` / `--text-sm` / `--text-meta`） |
+| 12.48px | 0 | 1 | 1 | 表外存量（基线登记） |
+| 12.8px | 1 | 6 | 7 | 表外存量（`0.8rem` 派生，基线登记） |
+| **13px** | 34 | 43 | 77 | **档位表内**（Body-S；`.text-body-sm` / `.input-flat` / `.data-table` / `--text-secondary`） |
+| 13.6px | 0 | 1 | 1 | 表外存量（基线登记） |
+| **14px** | 33 | 506 | 539 | **档位表内**（Body；`text-sm` 工具类 / `--text-base`） |
+| **15px** | 6 | 0 | 6 | **档位表内**（正文；`--text-body`；`html.font-size-large` 也把 12px 档抬到这里） |
+| **16px** | 15 | 85 | 100 | **档位表内**（Body-L；`text-base` / `--text-md`） |
+| 17px | 2 | 1 | 3 | 表外存量（大字号模式 +3 派生，基线登记） |
+| **18px** | 1 | 3 | 4 | **档位表内**（H3；`text-lg` / `--text-lg`） |
+| 19px | 1 | 0 | 1 | 表外存量（大字号模式 +3 派生，基线登记） |
+| **20px** | 3 | 11 | 14 | **档位表内**（H2；`text-xl` / `--text-xl`） |
+| 21px | 1 | 0 | 1 | 表外存量（大字号模式 +3 派生，基线登记） |
+| **22px** | 5 | 0 | 5 | **档位表内**（`--text-2xl` 令牌值；注意 Tailwind `text-2xl` 是 24px） |
+| 23px | 1 | 0 | 1 | 表外存量（大字号模式 +3 派生，基线登记） |
+| **24px** | 3 | 0 | 3 | **档位表内**（H1；`text-2xl` 工具类 / `--text-3xl`） |
+| 27px | 1 | 0 | 1 | 表外存量（大字号模式 +3 派生，基线登记） |
+| 32px | 2 | 0 | 2 | 仅 `about.css` 冻结件（基线登记，不参与收敛） |
+| 28px | 0 | 0 | 0 | **实测 0 处 ⇒ 不入档**（不新造无消费档位） |
+
+**档位表（新代码只许用这些值）**：`11 / 12 / 13 / 14 / 15 / 16 / 18 / 20 / 22 / 24`（px）。
+表外值一律按 `(文件, 值)` 进基线、**只减不增**；新增表外值由 `type-scale-guard::Q1` 判红。
+
+**两套 `sm` 的处置（本节要回答的核心歧义）**：
+
+| 名称 | 属于 | 值 | 新代码怎么用 |
+|---|---|---:|---|
+| `--text-sm` | **CSS 令牌**（`styles.css :root`） | **12px** | **不再用于表示 14px**；12px 请直接用 `text-xs`（工具类）或 `var(--text-meta)` |
+| `text-sm` | **Tailwind 工具类** | **14px** | 需要 14px（Body / 内嵌面板标题 / 列表项标题）时**用这个** |
+
+> **同名的还有 `2xl`**：令牌 `--text-2xl`＝**22px**，工具类 `text-2xl`＝**24px**。需要 24px（H1）
+> 用 `text-2xl`；需要 22px 才用 `var(--text-2xl)`。
+
+**全量对照（令牌 vs 工具类）**：
+
+| 令牌 | 值 | 工具类 | 值 |
+|---|---:|---|---:|
+| `--text-xs` | 12px | `text-xs` | 12px |
+| `--text-sm` | 12px | `text-sm` | 14px |
+| `--text-base` | 14px | `text-base` | 16px |
+| `--text-md` | 16px | — | — |
+| `--text-lg` | 18px | `text-lg` | 18px |
+| `--text-xl` | 20px | `text-xl` | 20px |
+| `--text-2xl` | 22px | `text-2xl` | 24px |
+| `--text-3xl` | 24px | `text-3xl` | 30px |
+| `--text-body` | 15px | — | — |
+| `--text-secondary` | 13px | — | — |
+| `--text-meta` | 12px | — | — |
+
+**一句话结论**：**14px 用 `text-sm`（工具类），12px 用 `text-xs`（工具类）或 `var(--text-meta)`；
+新代码不要再用 `var(--text-sm)`。** 正文 15px 走 `var(--text-body)`，13px 辅助走 `var(--text-secondary)` / `.text-body-sm`。
+
+#### 3.2.4 间距与字号的使用顺序：先令牌、再工具类、最后裸值
+
+> **立这条的原因**：审查发现间距令牌只覆盖一部分声明，另有大量行内 `style="margin/padding:…"`；
+> 字号也存在令牌值与 Tailwind 工具类值同名的现象（见 §3.2.3）。若没有固定取用顺序，
+> 同一个视觉值会继续以三种写法扩散，守卫也只能事后追认。
+
+**取用顺序（新代码必须按此顺序，前一项能满足就不写后一项）**：
+
+1. **先令牌**：间距用 `--space-1`(4px) / `--space-2`(8px) / `--space-3`(12px) / `--space-4`(16px) / `--space-6`(24px)；
+   字号正文用 `--text-body`(15px)、辅助用 `--text-secondary`(13px)、元信息用 `--text-meta`(12px)。
+2. **再工具类**：字体用 `text-xs` / `text-sm` / `text-base` / `text-lg` / `text-xl` / `text-2xl`
+   （值见 §3.2.3 对照表）；间距用与五档等值的 Tailwind 类（`p-1` / `p-2` / `p-3` / `p-4` / `p-6` 等）。
+3. **最后才写裸值**：只有令牌与工具类都表达不了时才写 `font-size: …` / `margin: …` / `padding: …` / `gap: …`，
+   并且**必须登记**：
+   - 字号裸值 → `server/test/style-baseline.mjs::TYPE_TIER_BASELINE`（按文件 + 值登记，只减不增）；
+   - 间距裸值 → `SPACING_NON_TOKEN_BASELINE` / `SPACING_INLINE_DECL_BASELINE` / `SPACING_INLINE_ATTR_BASELINE`
+     （只减不增；本期**不做批量替换**，避免改变渲染）。
+
+**守卫**：`server/test/type-scale-guard.test.mjs`（Q1 新增表外字号即红 / Q2 处数棘轮）
+＋ `server/test/spacing-scale-guard.test.mjs`（S5 非令牌声明 / S6 行内声明 / S7 行内属性）。
 
 ### 3.3 排版规则
 

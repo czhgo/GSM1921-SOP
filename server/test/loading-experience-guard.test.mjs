@@ -30,7 +30,7 @@ import {
   renderTabBar, tabContentSkeletonHtml,
   TAB_LOADING_SKELETON_DELAY_MS, TAB_CONTENT_FADE_OUT_MS, TAB_CONTENT_FADE_IN_MS,
   TAB_CONTENT_FADE_IN_REDUCED_MS, TAB_LOADING_SKELETON_MAX_MS,
-} from '../../docs/src/components/shell/tab-bar.js?v=20261029b';
+} from '../../docs/src/components/shell/tab-bar.js?v=20261031a';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(HERE, '..', '..');
@@ -89,8 +89,8 @@ export function loadingExperienceProblems({ tabBar = '', css = '', shell = '' } 
   // L3 淡出 120ms / 淡入 180ms + 8px
   need(TAB_CONTENT_FADE_OUT_MS === 120, '旧内容淡出必须 120ms');
   need(TAB_CONTENT_FADE_IN_MS === 180, '新内容淡入必须 180ms（150–200ms 区间）');
-  need(/transition:\s*opacity 120ms/.test(css), 'CSS：旧内容淡出必须 120ms');
-  need(/animation:\s*wsTabEnter 180ms/.test(css), 'CSS：新内容淡入必须 180ms');
+  need(/transition:\s*opacity var\(--motion-exit/.test(css), 'CSS：旧内容淡出必须走退出档令牌');
+  need(/animation:\s*wsTabEnter var\(--motion-enter/.test(css), 'CSS：新内容淡入必须走进入档令牌');
   need(/translateY\(8px\)/.test(css), 'CSS：新内容淡入必须带 8px 位移');
   need(/_playContentEnter\(el\)/.test(tabBar), '渲染收尾必须播放入场（新内容淡入）');
   need(/if \(wasLoading\) _playContentEnter\(el\)/.test(tabBar),
@@ -112,8 +112,8 @@ export function loadingExperienceProblems({ tabBar = '', css = '', shell = '' } 
   // L6 reduced-motion：只淡入 80ms、无位移；骨架 / 文案保留
   const reduce = blockAfter(css, '@media (prefers-reduced-motion: reduce)');
   need(!!reduce, 'CSS 缺 prefers-reduced-motion 分支');
-  need(/transition-duration:\s*80ms\s*!important/.test(reduce), 'reduced-motion：淡出/过渡必须压到 80ms');
-  need(/animation-duration:\s*80ms\s*!important/.test(reduce), 'reduced-motion：淡入必须压到 80ms');
+  need(/transition-duration:\s*var\(--motion-feedback[^)]*\)\s*!important/.test(reduce), 'reduced-motion：淡出/过渡必须压到反馈档');
+  need(/animation-duration:\s*var\(--motion-feedback[^)]*\)\s*!important/.test(reduce), 'reduced-motion：淡入必须压到反馈档');
   need(/wsTabEnterReduced/.test(reduce), 'reduced-motion：淡入必须改用无位移的关键帧');
   const reducedKf = blockAfter(css, '@keyframes wsTabEnterReduced');
   need(!!reducedKf && !/translateY/.test(reducedKf), 'reduced-motion 的关键帧不得有位移');
@@ -148,7 +148,7 @@ test('骨架 HTML：3 条卡形 + 「正在加载…」+ 既有 data 标记', ()
   assert.match(html, /正在加载…/, '骨架应含「正在加载…」');
   assert.match(html, /data-ws-tab-loading-bar/, '骨架应保留 data-ws-tab-loading-bar');
   assert.equal((html.match(/ws-tab-skeleton-row(?![-\w])/g) || []).length, 3, '骨架应恰为 3 条卡形行');
-  assert.match(html, /min-height:320px/, '骨架应有固定 min-height（防 0 高弹跳）');
+  assert.match(html, /min-height:clamp\(320px/, '骨架应有接近真实内容的预留高度（防 CLS 弹跳）');
   const custom = tabContentSkeletonHtml('正在载入');
   assert.match(custom, /正在载入/, '骨架文案应可替换');
 });
@@ -240,11 +240,11 @@ test('故障注入：删骨架 / 延迟归零 / 恢复压暗硬替换 / 删 redu
   const noReduce = { ...base, css: LOADING_CSS.replace(/@media \(prefers-reduced-motion: reduce\)/, '@media print') };
   const reduceProblems = loadingExperienceProblems(noReduce);
   assert.ok(reduceProblems.some((p) => p.includes('prefers-reduced-motion')), '删掉 reduced-motion 分支必须判红');
-  assert.ok(reduceProblems.some((p) => p.includes('80ms')), '缺 80ms 淡入必须判红');
+  assert.ok(reduceProblems.some((p) => p.includes('反馈档')), '缺 reduced-motion 时长压档必须判红');
 });
 
 test('L7 页面跳转：进度条安装幂等，且在 node 环境静默跳过', async () => {
-  const { installNavigationProgress } = await import('../../docs/src/components/shell/tab-bar.js?v=20261029b');
+  const { installNavigationProgress } = await import('../../docs/src/components/shell/tab-bar.js?v=20261031a');
   assert.equal(typeof installNavigationProgress, 'function', '必须导出 installNavigationProgress');
   assert.doesNotThrow(() => installNavigationProgress(), 'node 环境（无 document/window）不得抛错');
   assert.match(LOADING_CSS, /\.ws-route-progress\[data-active='1'\]/, '进度条应有激活态');

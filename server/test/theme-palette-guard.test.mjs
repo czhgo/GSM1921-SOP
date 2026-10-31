@@ -31,7 +31,7 @@ import { fileURLToPath } from 'node:url';
 import {
   ACCENT_COLORS, ACCENT_PALETTE, ACCENT_KEY_ALIASES, normalizeAccentKey, getAccentColors,
   accentButtonColors, ROLE_COLORS,
-} from '../../docs/src/core/domain/constants.js?v=20261029b';
+} from '../../docs/src/core/domain/constants.js?v=20261031a';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(HERE, '..', '..');
@@ -490,6 +490,102 @@ test('T10 功能色分离：亮/暗齐备、与 danger/warning/主题 accent 不
   ]) {
     assert.ok(ratio >= 4.5, `${label} ${ratio.toFixed(2)}:1 < 4.5`);
   }
+});
+
+// ═════════════════════════════════════════════════════════════════════════════
+// T11：暗色色阶补齐（2026-10-31 P8）
+//   病灶：`--primary-50/100/200` 在 `html.theme-dark` 段完全没有反向，
+//   `.workflow-state-phase` 等亮暗两模式渲成同一块 `#FEF2F2`；`--color-identity-*`
+//   也只有 `-dark` 后缀档、基础名在暗色下仍取亮色值。
+//   判据：① 暗色段必须定义 primary-50/100/200 与全部 identity 基础名（缺一即红）；
+//         ② 抽 6 个真实元素（规则体 background 取 token），断言亮/暗解析值不同；
+//         ③ 暗色 primary-200（描边）≥3:1、primary-50 上的文字 ≥4.5:1、identity 暗色文字 ≥4.5:1。
+// ═════════════════════════════════════════════════════════════════════════════
+test('T11 暗色色阶：primary-50/100/200 与 identity 基础名全部有暗色值；6 个元素亮暗背景不同', () => {
+  const dark = darkBlock(STYLES);
+  assert.ok(dark, 'styles.css 缺少 html.theme-dark 块');
+
+  /** 在指定块内解 var() 链；块内没有则回落全文件 :root */
+  const resolveIn = (block, value) => {
+    let v = String(value || '').trim();
+    for (let i = 0; i < 8; i += 1) {
+      const m = /^var\((--[a-z0-9-]+)\)$/i.exec(v);
+      if (!m) break;
+      const next = rootVar(block, m[1]) || rootVar(STYLES, m[1]);
+      if (!next) break;
+      v = next;
+    }
+    return v;
+  };
+
+  // ① primary 低阶三档
+  for (const name of ['--primary-50', '--primary-100', '--primary-200']) {
+    const darkRaw = rootVar(dark, name);
+    assert.ok(darkRaw, `暗色段缺 ${name}（深色下会退回亮白块）`);
+    const light = resolveIn('', rootVar(STYLES, name));
+    const darkVal = resolveIn(dark, darkRaw);
+    assert.match(darkVal, HEX_VALUE_RE, `${name} 暗色值解析不到 hex（${darkRaw}）`);
+    assert.notEqual(darkVal.toLowerCase(), light.toLowerCase(), `${name} 亮/暗同值（${light}）：暗色段没有真正反向`);
+  }
+
+  // ② identity 基础名：全部 role（含 CSS 独有的 deputy-leader）
+  const identityNames = [
+    ...IDENTITY_ROLES.map((r) => `--color-identity-${r}`),
+    '--color-identity-deputy-leader',
+  ];
+  assert.ok(identityNames.length >= 5, `identity 核对面过小（${identityNames.length}）`);
+  for (const name of identityNames) {
+    const darkRaw = rootVar(dark, name);
+    assert.ok(darkRaw, `暗色段缺 ${name}（消费方写基础名时仍取亮色值）`);
+    const light = resolveIn('', rootVar(STYLES, name));
+    const darkVal = resolveIn(dark, darkRaw);
+    assert.match(darkVal, HEX_VALUE_RE, `${name} 暗色值解析不到 hex（${darkRaw}）`);
+    assert.notEqual(darkVal.toLowerCase(), light.toLowerCase(), `${name} 亮/暗同值（${light}）`);
+    assert.equal(darkVal.toLowerCase(), resolveIn(dark, rootVar(STYLES, `${name}-dark`)).toLowerCase(),
+      `${name} 暗色值应等于 -dark 档（单一源＝ROLE_COLORS.textDark）`);
+  }
+
+  // ③ 6 个真实元素：规则体的 backgroundColor token 在亮/暗下必须解析成不同值
+  const elements = [
+    ['.workflow-state-phase', '--primary-50'],
+    ['.cal-cell-mobile.has-tasks:active', '--primary-50'],
+    ['.branch-config-nav [aria-current="page"]', '--primary-50'],
+    ['.ref-download-btn', '--primary-50'],
+    ['.ref-download-btn:hover', '--primary-100'],
+    ['.ref-doc-action-danger', '--primary-50'],
+  ];
+  const readings = [];
+  for (const [selector, expected] of elements) {
+    const body = ruleBody(STYLES, selector);
+    assert.ok(body, `styles.css 缺少 ${selector} 规则`);
+    const m = /background(?:-color)?:\s*var\((--[a-z0-9-]+)\)/i.exec(body);
+    assert.ok(m, `${selector} 的 background 应为 var(--token)（实际：${body.trim().slice(0, 80)}）`);
+    assert.equal(m[1], expected, `${selector} 的 background token 应为 ${expected}，实际 ${m[1]}`);
+    const light = resolveIn('', rootVar(STYLES, m[1]));
+    const darkVal = resolveIn(dark, rootVar(dark, m[1]));
+    assert.notEqual(darkVal.toLowerCase(), light.toLowerCase(),
+      `${selector} 亮/暗 backgroundColor 相同（${light}）：元素在深色下仍是亮块`);
+    readings.push(`${selector} ${light} → ${darkVal}`);
+  }
+  assert.equal(readings.length, 6, `应核对 6 个元素，实际 ${readings.length}`);
+  console.log(`[theme-palette] T11 亮/暗背景：${readings.join(' · ')}`);
+
+  // ④ 对比度：描边 / 文字
+  const p200 = resolveIn(dark, rootVar(dark, '--primary-200'));
+  const p50 = resolveIn(dark, rootVar(dark, '--primary-50'));
+  const p300 = resolveIn('', rootVar(STYLES, '--primary-300'));
+  const border = contrast(p200, CARD_DARK);
+  const text = contrast(p300, p50);
+  assert.ok(border >= 3, `primary-200 暗色描边对深卡 ${border.toFixed(2)}:1 < 3`);
+  assert.ok(text >= 4.5, `primary-300 文字对 primary-50 暗底 ${text.toFixed(2)}:1 < 4.5`);
+  const identityRows = identityNames.map((name) => {
+    const v = resolveIn(dark, rootVar(dark, name));
+    return [name, contrast(v, CARD_DARK), contrast(v, '#0B1220')];
+  });
+  const bad = identityRows.filter(([, c]) => c < 4.5);
+  assert.deepEqual(bad.map(([n]) => n), [], `identity 暗色对深卡 <4.5:1：${bad.map(([n, c]) => `${n}=${c.toFixed(2)}`).join(' ')}`);
+  console.log(`[theme-palette] T11 对比度：primary-200/深卡 ${border.toFixed(2)} · primary-300/primary-50 暗底 ${text.toFixed(2)}`
+    + ` · identity 暗色/深卡 最低 ${Math.min(...identityRows.map(([, c]) => c)).toFixed(2)}`);
 });
 
 // ═════════════════════════════════════════════════════════════════════════════

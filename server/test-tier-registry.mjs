@@ -72,8 +72,9 @@ export const filesByFixtureClass = (fixtureClass) => TEST_TIERS
  *  2026-10-29 About 冻结件：新增 about-freeze-guard（纯 node，5 条：5 处内容基线 ＋ 反例）⇒ 226 → 227。
  *  2026-10-29 ESM 解析门禁：新增 esm-parse-guard（纯 node，2 条：全量真 ESM 解析 + 函数体 import 反例）
  *    ——浏览器按 ESM 解析，`node --check`（CommonJS）放过的函数体内 import 会整模块语法失败 ⇒ 227 → 228。
- *  2026-10-29 P3/P4：新增 lf-bar-structure-guard / container-width-guard（均纯 node）⇒ 228 → 230。 */
-export const DAILY_FILE_BUDGET = 230;
+ *  2026-10-29 P3/P4：新增 lf-bar-structure-guard / container-width-guard（均纯 node）⇒ 228 → 230。
+ *  2026-10-31 P0/P13–P15：新增 nested-interaction-guard / card-summary-hero-guard（均纯 node）⇒ 231 → 233。 */
+export const DAILY_FILE_BUDGET = 234;
 
 /** daily 静态 `test(` / `it(` 调用点预算（含子测试；新增断言须同批上调并写明理由）
  *  2026-10-21 R5 P1：页题守卫 4 条 + 对比度守卫 5 条 + 补登记的既有两条守卫 ⇒ 1351 → 1377。
@@ -224,8 +225,27 @@ export const DAILY_FILE_BUDGET = 230;
  *    两条覆盖入口 / 上限 5000ms，含 2 类反例，1 条）＋ test-tier-guard 新增 T7（守卫台账标题
  *    数字与正文「现行 N 件」一致，含反例，1 条）＋ ui-control-system-guard V4 内补 3 条
  *    btn-ghost 反例断言（不新增 test() 调用点）；均未新增文件。实测 1674 → 1676，
- *    预算按实况上调至 1678（留 2 条余量）。 */
-export const DAILY_TEST_BUDGET = 1678;
+ *    预算按实况上调至 1678（留 2 条余量）。
+ *  2026-10-31 P8（状态色两层 / 暗色色阶补齐）：新增 status-color-guard（S1 填充档不得作 color /
+ *    S2 文字档逐色对比度 / S3 文档值=实现值，3 条，含 3 类反例）＋ theme-palette-guard 新增 T11
+ *    （暗色段补齐 primary 三档与 identity 基础名、6 个元素亮暗背景不同、暗色对比度，1 条）
+ *    ⇒ 本轮 1678 + 4 = 1682；新增 1 个文件 ⇒ 文件预算 230 → 231（随后 P0/P13–P15 并入同批，
+ *    最终 233 / 1688，见下条）。预算按实况登记（不留「9999 式」余量）。
+ *  2026-10-31 P0/P13–P15（嵌套交互 / 卡片末行 / 折叠头 / hero 特例）：
+ *    新增 nested-interaction-guard 3 条（N1 扫描 + 白名单 / N2 双向一致 + 14 处缺陷行 / N3 反例）
+ *    ＋ card-summary-hero-guard 3 条（G1 卡片末行只有右对齐动作 / G2 summary 宽 100% 高 ≥44 /
+ *    G3 hero 居中白名单；各带反例）⇒ 实测 1682 + 6 = 1688；
+ *    ui-home-hero E8 按新裁定改写（断言数不变）。预算 1682 → 1688。
+ *  2026-10-31 P9（触控热区 / 表单错误 / 确认弹窗 Esc）：
+ *    新增 touch-target-guard 7 条（判定器反例 / 六类命中区规则 / 视觉不变与命中下限 /
+ *    相邻不重叠 / 表单三态 aria 成对 / 弹窗 Esc + 焦点回归 / offender 棘轮）
+ *    ＋ modal-guard 新增 E1–E3（Esc 可取消 / 焦点回归与 Tab 陷阱 / 表单错误成对，各带反例）
+ *    ⇒ 按实况登记 1700（此前台账 1688 与实测 1690 差 2，本批一并校准）。新增 1 个文件 ⇒ 文件预算 233 → 234。 */
+/** 2026-10-31 字号/间距低风险收口（只加登记与守卫，不改渲染）：
+ *  · `type-scale-guard` 新增 Q1–Q4 四条（档位表外新增判红 / 逐文件逐值棘轮 / 非空转与文档齐备 / 进度）；
+ *  · `spacing-scale-guard` 新增 S5–S7 三条（styles.css 非令牌声明 / 行内声明 / 行内属性棘轮）。
+ *  均沿用既有守卫文件，未新增文件 ⇒ 实测 1700 + 7 = 1707；文件预算维持 234。 */
+export const DAILY_TEST_BUDGET = 1707;
 
 const group = (tier, reason, list) => list.map((file) => ({ file, tier, reason }));
 
@@ -320,6 +340,11 @@ export const TEST_TIERS = [
     'archive-deeplink-guard.test.mjs',
     'block-orchestration.test.mjs',
     'branch-id-literal-guard.test.mjs',
+    // 2026-10-31 P13–P15：卡片末行 / 折叠头 summary / hero 居中白名单（各带反例，纯 node）
+    'card-summary-hero-guard.test.mjs',
+    // 2026-10-31 P9：390 触控命中区（六类）/ 相邻不重叠 / 表单错误 aria 成对 / 确认弹窗 Esc；
+    //   真机遍历读数由 scripts/touch-target-audit.mjs 产出，本守卫做棘轮（纯 node）
+    'touch-target-guard.test.mjs',
     'committee-meeting-density.test.mjs',
     'committee-tab-density.test.mjs',
     // 2026-10-27 批次 516（B-515-2 归并）：copy-fold / copy-length / copy-master / self-evident-copy 四件合一
@@ -358,6 +383,8 @@ export const TEST_TIERS = [
     'no-underline-guard.test.mjs',
     // 2026-10-24 批次 508：动效令牌 / 时长与属性白名单 / reduced-motion / .motion-* 四件套（纯 node）
     'motion-guard.test.mjs',
+    // 2026-10-31 P0：可点容器内嵌 button/a —— 未标记 / 未登记即判红（含 14 处缺陷行白名单，纯 node）
+    'nested-interaction-guard.test.mjs',
     'page-title-guard.test.mjs',
     'party-branch-directory-context.test.mjs',
     'party-branch-directory-guard.test.mjs',
@@ -385,6 +412,8 @@ export const TEST_TIERS = [
     'type-scale-guard.test.mjs',
     // 2026-10-23 批次 505（Task 9）：7 主题 × 亮/暗 × 8 token 色板、对比度/彩度、固定语义色分离（纯 node）
     'theme-palette-guard.test.mjs',
+    // 2026-10-31 P8：状态色填充档不得作 color（含反例）/ 三个文字档逐色对比度 / 文档值=实现值（纯 node）
+    'status-color-guard.test.mjs',
     'ui-button-four-types.test.mjs',
     'ui-color-semantics.test.mjs',
     'ui-contrast-guard.test.mjs',

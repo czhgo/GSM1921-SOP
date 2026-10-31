@@ -6,7 +6,7 @@
 //   而 `filter-row::S6` 禁止「含 `.lf-bar` 的文件自写胶囊」——结构上只能让检索条
 //   （纯 search 段，无 chip）单独成件，页面侧只调用本函数。
 // 结构：`.lf-bar` → 唯一 `.lf-bar__row[data-seg="search"]`（空段不输出）。
-import { escHtml as esc } from '../../core/base/utils.js?v=20261029b';
+import { escHtml as esc } from '../../core/base/utils.js?v=20261031a';
 
 /** 消息搜索条（关键词原值回填，重渲染后保持输入） */
 export function messageSearchBarHtml(q) {

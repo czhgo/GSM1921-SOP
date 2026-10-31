@@ -19,7 +19,7 @@
 //  本组件仅处理展示与跳转；计数语义由调用方（外壳）按角色注入。
 // ════════════════════════════════════════════════════════════════
 
-import { IssueStore } from '../../services/governance/issues.js?v=20261029b'; // 计数依赖（U3 前置计数须显式引用；勿裸依赖全局）
+import { IssueStore } from '../../services/governance/issues.js?v=20261031a'; // 计数依赖（U3 前置计数须显式引用；勿裸依赖全局）
 
 /** 等高骨架卡（内容容器为空/仍为壳骨架时的兜底占位；min-height 防 0 高弹跳） */
 export function overviewSkeletonHtml(text = '工作概况加载中…') {
@@ -55,7 +55,9 @@ export function beginOverviewShell(el) {
   if (!(slot && slot.classList.contains('overview-dispatch-slot'))) {
     slot = document.createElement('div');
     slot.className = 'overview-dispatch-slot';
-    slot.style.cssText = 'min-height:0;overflow:hidden;transition:min-height .15s ease;';
+    // P10：原 `transition:min-height` 触发布局回流（每帧重排），改为不加过渡——
+    // 槽位出现 / 收起是瞬时结构变化，不做高度动画；条形自身的 hover 反馈走颜色过渡。
+    slot.style.cssText = 'min-height:0;overflow:hidden;';
     el.insertAdjacentElement('beforebegin', slot);
   }
   // 首次进入且容器仍为壳骨架/空 → 等高骨架卡占位（await 计数/渲染期间防 0 高弹跳）
@@ -105,7 +107,7 @@ export function mountOverviewDispatchBar(el, { count, prefix, jumpTab, accent = 
   slot.style.minHeight = '';
   slot.innerHTML = `
     <button type="button" class="btn-outline overview-dispatch-bar w-full flex items-center justify-between gap-3 px-4 py-2.5 mb-3"
-      style="background:${accent}1A;border:1px solid ${accent}40;color:${accent};cursor:pointer;transition:background-color .15s;"
+      style="background:${accent}1A;border:1px solid ${accent}40;color:${accent};cursor:pointer;transition:background-color var(--motion-feedback) var(--ease-standard);"
       aria-label="待答复 ${count} 条，去处理">
       <span class="text-xs font-medium">待答复 <b class="tabular-nums">${count}</b></span><span class="text-xs font-semibold">去处理 →</span>
     </button>`;

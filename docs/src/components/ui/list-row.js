@@ -37,7 +37,7 @@
 //   · .state-badge / .state-badge--neutral / .state-badge--success / .state-badge--warning
 //   · .state-badge--info / .state-badge--accent · .section-accent-left
 //   · 行型样式：.list-row[data-row-type="nav|action|select|display|master"]（本件输出 data-row-type）。
-import { escHtml as esc } from '../../core/base/utils.js?v=20261029b';
+import { escHtml as esc } from '../../core/base/utils.js?v=20261031a';
 
 /** dataAttrs 对象 → HTML 属性串（键名只允许字母开头的属性名；值统一转义） */
 function dataAttrsHtml(dataAttrs) {
@@ -102,8 +102,12 @@ export function listRowHtml({
 
   // 主从行：整行选中，但行尾还要放「去处理 / 更多」——原生 <button> 内嵌按钮非法，
   // 故用带 role="button" 的 div；键盘 Enter / Space 由调用方绑定（见 todo-list.js）。
+  // 2026-10-31 P0（嵌套交互）：行尾含独立 button/a 时显式登记 `data-nested-actions="true"`，
+  //   作为 nested-interaction-guard 的白名单标记；调用方须同时阻断行与内层按钮的冒泡。
   if (type === 'master') {
-    return `<div class="${baseClass}" data-row-type="master" data-interactive="true" role="button" tabindex="0"${dataAttrsHtml(dataAttrs)}>${inner}</div>`;
+    const nested = trailing && /<(?:button|a)\b/i.test(trailing);
+    const nestedAttr = nested ? ' data-nested-actions="true"' : '';
+    return `<div class="${baseClass}" data-row-type="master" data-interactive="true" role="button" tabindex="0"${nestedAttr}${dataAttrsHtml(dataAttrs)}>${inner}</div>`;
   }
 
   // 选择行：原生 <button>，键盘可达；data-interactive 表示整行可点。
