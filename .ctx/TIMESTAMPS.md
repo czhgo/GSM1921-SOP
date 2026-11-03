@@ -55,7 +55,7 @@ dynamic_role:
 | .ctx/TIMESTAMPS.md | 2026-11-02 | — | [工程师]+[AI] | 文件时间戳注册表；备注列只写**现状 / 边界 / 指针**（`R-89`），逐批沿革见 `.ctx/logs/**`。 |
 | .ctx/SNAPSHOT.md | 2026-11-02 | — | [AI] | 全仓目录树、版本和 SQLite 表结构快照；schema v12（四组唯一索引 / `todos.branch_id` 生成列 / `contributions` 对象 / `issue_reveals` 已删 / `committee_broadcasts` 只读）。v62：表 52 张。 |
 | .ctx/ACTIVE_RULINGS.md | 2026-10-27 | — | [工程师]+[AI] | 现行有效裁定速查（**只答「现在该怎么判」**；**只收现行有效口径、不记逐批增量句 / 沿革**——`H26.2`）。**边界**：**权威源＝当月决策日志**（口径冲突以它为准）；本表只作投影、每行带 `D-xxx`。**为什么**：决策日志留全文、本表留速查。 |
-| .ctx/ENGINEERING_ASSESSMENT.md | 2026-11-02 | — | [工程师]+[AI] | 工程评估与改造行动线：六维评分、七个月复盘、阻断风险、当前行动与专项台账；不设综合均分。 |
+| .ctx/ENGINEERING_ASSESSMENT.md | 2026-11-03 | — | [工程师]+[AI] | 工程评估与改造行动线：六维评分、七个月复盘、阻断风险、当前行动与专项台账；§四 另设「上线残项」单一台账；不设综合均分。 |
 | .ctx/REVIEW_QUEUE.md | 2026-10-27 | — | [工程师]+[AI] | 支书评议队列（**只答「要评议什么 ＋ 评议怎么做」**）：(a) 各专项机制与支书复用检查项；(b) **未闭环**命题（`H26.2`）。**边界**：过程 / 进度 / 落地细节 / **已闭环**一律不留（**连同指针一并删**）。 |
 | .ctx/logs/archive/2026-10/AUDIT_ROUND1_WORKBENCH_STRUCTURE.md | 2026-10-19 | — | [工程师]+[AI] | Round 1 工作台结构审计报告（53 条 triage + 三路审查 + 共识/分歧/裁定 + 证据门）；修复 spec 落盘后可归档或删除。 |
 | .ctx/logs/archive/2026-10/AUDIT_ROUND2_MINIMUM_THREE_COSTS.md | 2026-10-19 | — | [工程师]+[AI] | Round 2 最小三成本审查报告（better-layout / better-accessibility / better-writing 三路独立审查 + 共识/分歧/归属）。本批修项见 `.trae/specs/audit-round2-minimum-three-costs`。 |
@@ -81,7 +81,7 @@ dynamic_role:
 | .ctx/logs/archive/2026-09-EXECUTION_LOG.md | 2026-10-06 | 2026-10-06 | [工程师]+[AI] | 9 月执行日志（**已归档**）。**边界**：过程流水归 `git`；本文件**另承载「台账迁出附节」**——`R-` 表（`R-23`…`R-93` 全量纪律正文，**乙部表闭环即迁入此处**）＋ `TIMESTAMPS` 备注列历轮迁出的逐批沿革。**为什么**：`R-84`/`R-86`/`R-89` 的「各有其位」需要一个**稳定、不随月滚动**的落点。 |
 | .ctx/logs/2026-10-EXECUTION_LOG.md | 2026-10-27 | — | [工程师]+[AI] | 10 月执行日志（当月活跃；批次 336 换月建）。**边界**：只留「为什么 / 拿不准 / 边界 / 读数」（`H26.1`）；过程流水归 `git`，本文件不复述。 |
 | .ctx/logs/2026-10-DECISION_LOG.md | 2026-10-22 | — | [工程师]+[AI] | 10 月决策日志（**当月活跃 · 决议权威源**；2026-10-02 批次 336 换月建，自 9 月文件逐字迁入 `D-729`~`D-739`）。**边界**：每条裁定全文（追加、不改写）；过程归执行日志（`R-84`）。 |
-| .ctx/logs/2026-11-DECISION_LOG.md | 2026-11-02 | — | [工程师]+[AI] | 11 月决策日志（当月活跃 · 决议权威源）；自 `D-827` 起，批次 526–527 记 `D-837`…`D-846`。 |
+| .ctx/logs/2026-11-DECISION_LOG.md | 2026-11-03 | — | [工程师]+[AI] | 11 月决策日志（当月活跃 · 决议权威源）；自 `D-827` 起，批次 524–527 与 2026-11-03 上线专项记 `D-827`…`D-851`。 |
 | .ctx/logs/archive/2026-10/2026-10-AUDIT_R10_DATA_LIFECYCLE.md | 2026-10-23 | — | [工程师]+[AI] | 第十轮数据生命周期审查（75 条；R10 四批的依据）。 |
 | .ctx/logs/archive/2026-10/2026-10-AUDIT_UI_R11.md | 2026-10-23 | — | [工程师]+[AI] | 第十一轮前端脏乱繁审查（P0/P1/P2 与 SD-1…SD-11）。 |
 | .ctx/logs/archive/2026-10/2026-10-R10_P3_CLOSURE.md | 2026-10-23 | — | [工程师]+[AI] | R10 P3 收口对账（R6 21 / R7 18 / 帮助注释 9）。 |
@@ -126,7 +126,7 @@ dynamic_role:
 | content/03_doc_system/USAGE_POLICY.md | 2026-09-15 | — | [工程师]+[AI] | 🗑️ 已删除（正文并入 `OPERATIONS_GUIDE.md`《运行与协作规范》**§19–§23**）。沿革见 `.ctx/logs/`。 |
 | content/03_doc_system/INFORMATION_COMPUTATION.md | 2026-10-30 | — | [工程师]+[AI] | 信息计算与呈现口径：通知可见性 / 铃铛 / 待办派生 / 概况 / 考勤五项；未统一项与待裁定分列。 |
 | content/03_doc_system/ARCHITECTURE.md | 2026-10-30 | — | [工程师]+[AI] | 核心架构说明；2026-09-25 批次 179 三份合一（`SSOT_INDEX` / `SERVICE_CATALOG` 并入，§一–§九 编号未改、§十 SSOT 注册表、§十一 服务目录、§十二 边界与引用）。沿革见 `.ctx/logs/`。 |
-| content/03_doc_system/DOC_MAP.md | 2026-11-02 | — | [工程师]+[AI] | 全局文档导航：知识类型文件职责与受众、目录作用表、四类载体索引；§七 重复主题的权威句位置；设计系统按六编登记；05 段含页签审计手册。 |
+| content/03_doc_system/DOC_MAP.md | 2026-11-03 | — | [工程师]+[AI] | 全局文档导航：知识类型文件职责与受众、目录作用表、四类载体索引；§七 重复主题的权威句位置；设计系统按六编登记；05 段含页签审计手册。 |
 | content/03_doc_system/TERMINOLOGY.md | 2026-10-25 | — | [工程师]+[AI] | 术语表（全仓唯一术语定义源）：20 条 × 9 字段；`OPERATIONS_GUIDE §19` 与 `sop/INDEX.md` 只留指针。 |
 | content/03_doc_system/SSOT_INDEX.md | 2026-09-15 | — | [工程师]+[AI] | 🗑️ **已删除**（**2026-09-25 批次 179（`P.16` 第三批）**：正文**整体并入** `content/03_doc_system/ARCHITECTURE.md` 的 **§十 单一事实源注册表与权威源治理**〔编号 **`10.1–10.6` 一字未改**〕⇒ **三份 → 一份**；顺带清旧债＝**本文件里 10 处 `DATA_FLOW.md`** 分两类处置〔**现行 SSOT 关系行 6 处**（`:46`/`:48`/`:57`/`:62`/`:63`/`:64`）**改准**为 `DATA_MODEL.md` 的 `§第二部分（数据流）` / `§3（参与者数据流设计）` / `§3.4（登录态说明）` · **带日期的迁移台账行 4 处**（`:166`/`:174`/`:175`/`:176`）**随整节「已迁移文件索引」按沿革删**〕＋ **同一文件内自相矛盾**（原 `:108` 一句并列两种 tab 组名）**收敛为现行四组**；`D-644`）（原：母本子本注册表；「已迁移文件索引」表 **30 行** ＋ Agent/Skill 配置（已迁出）节 **3 行** ＋ 审查顺序迁出注 **1 行** 随本次合并删去） |
 | content/03_doc_system/SERVICE_CATALOG.md | 2026-09-20 | — | [工程师]+[AI] | 🗑️ 已删除（正文并入 `ARCHITECTURE.md` **§十一 统一服务目录与角色-服务权限矩阵**）。沿革见 `.ctx/logs/`。 |
@@ -137,57 +137,57 @@ dynamic_role:
 
 | 文件路径 | last_updated | 移入归档日 | 角色 | 备注 |
 |---------|-------------|--------|------|------|
-| content/04_web_design/design-system/DESIGN_SYSTEM.md | 2026-11-01 | — | [工程师]+[AI] | 父索引：§一 设计哲学 ＋ 编目（六编 `DS_01`…`DS_06`）；条文在各编，判例在 `CASES.md`。 |
-| content/04_web_design/design-system/DS_01_COLOR_AND_THEME.md | 2026-11-01 | — | [工程师]+[AI] | 第一编 色彩与主题。 |
-| content/04_web_design/design-system/DS_02_TYPE_AND_SIZE.md | 2026-11-01 | — | [工程师]+[AI] | 第二编 排版与尺寸。 |
-| content/04_web_design/design-system/DS_03_COMPONENTS.md | 2026-11-01 | — | [工程师]+[AI] | 第三编 组件；SD-1…SD-59（SD-57…59 正文见 DS_06）。 |
-| content/04_web_design/design-system/DS_04_INTERACTION_AND_RESPONSIVE.md | 2026-11-01 | — | [工程师]+[AI] | 第四编 交互与响应式（P10 三档动效令牌）。 |
-| content/04_web_design/design-system/DS_05_MAP_AND_REFERENCE.md | 2026-11-01 | — | [工程师]+[AI] | 第五编 地图与速查。 |
-| content/04_web_design/design-system/DS_06_LAYOUT_AND_DENSITY.md | 2026-11-02 | — | [工程师]+[AI] | 第六编 布局与密度：十条原则 ＋ SD-57 页签密度 / SD-58 筛选条两行 / SD-59 建议输入无系统图标；§五 审计映射表（检查项 → SD 编号 → 守卫）。 |
-| content/04_web_design/design-system/README.md | 2026-11-01 | — | [工程师]+[AI] | 设计系统目录索引；文件清单含 DS_06，权威源指向 DESIGN_SYSTEM.md。 |
+| content/04_web_design/design-system/DESIGN_SYSTEM.md | 2026-11-03 | — | [工程师]+[AI] | 父索引：§一 设计哲学 ＋ 编目（六编 `DS_01`…`DS_06`）；条文在各编，判例在 `CASES.md`。 |
+| content/04_web_design/design-system/DS_01_COLOR_AND_THEME.md | 2026-11-03 | — | [工程师]+[AI] | 第一编 色彩与主题。 |
+| content/04_web_design/design-system/DS_02_TYPE_AND_SIZE.md | 2026-11-03 | — | [工程师]+[AI] | 第二编 排版与尺寸。 |
+| content/04_web_design/design-system/DS_03_COMPONENTS.md | 2026-11-03 | — | [工程师]+[AI] | 第三编 组件；SD-1…SD-59（SD-57…59 正文见 DS_06）。 |
+| content/04_web_design/design-system/DS_04_INTERACTION_AND_RESPONSIVE.md | 2026-11-03 | — | [工程师]+[AI] | 第四编 交互与响应式（P10 三档动效令牌）。 |
+| content/04_web_design/design-system/DS_05_MAP_AND_REFERENCE.md | 2026-11-03 | — | [工程师]+[AI] | 第五编 地图与速查。 |
+| content/04_web_design/design-system/DS_06_LAYOUT_AND_DENSITY.md | 2026-11-03 | — | [工程师]+[AI] | 第六编 布局与密度：十条原则 ＋ SD-57 页签密度 / SD-58 筛选条两行 / SD-59 建议输入无系统图标；§五 审计映射表（检查项 → SD 编号 → 守卫）。 |
+| content/04_web_design/design-system/README.md | 2026-11-03 | — | [工程师]+[AI] | 设计系统目录索引；文件清单含 DS_06，权威源指向 DESIGN_SYSTEM.md。 |
 | content/04_web_design/design-system/CASES.md | 2026-10-30 | — | [工程师]+[AI] | 设计＋数据域判例库：CASE-DESIGN-020…031、CASE-DATA-001。 |
 | content/04_web_design/design-system/COLOR_SYSTEM.md | 2026-09-24 | — | [工程师]+[AI] | 🗑️ **已删除**：正文**整体并入** `content/04_web_design/design-system/DESIGN_SYSTEM.md` 的 **§二 色彩系统**〔编号 2.1–2.8 一字未改〕⇒ **四份 → 一份**。（原：自 DESIGN_SYSTEM 拆分的 §二：色盘 / 主色 / 辅助色 / 中性色 / 功能色 / 表面色 / 配色规则。）沿革见 `.ctx/logs/`。 |
 | content/04_web_design/design-system/COMPONENT_SPEC.md | 2026-09-24 | — | [工程师]+[AI] | 🗑️ **已删除**（**2026-09-24 批次 172**：正文**整体并入** `content/04_web_design/design-system/DESIGN_SYSTEM.md` 的 **§四 组件规范**〔编号 **4.1–4.17 一字未改**〕；`D-638`）（原：组件规范——自 DESIGN_SYSTEM 拆分 §四：按钮 / 卡片 / 输入 / 侧边栏 / 导航 / 日历图例 / 数据展示 / 图标 / 选人 / 状态徽章；2026-09-20 批次 110 改准「待初阅队列」现状句） |
 | content/04_web_design/module/ABOUT_PAGE_DESIGN.md | 2026-10-05 | — | [工程师]+[AI] | About 页面设计系统（超参数设定原则 / 防风格疲劳 / 无竖线红线；无人称文体）。**边界**：入口路径以 `docs/src/entries/pages/about-entry.js` 为准。沿革见 `.ctx/logs/`。 |
 | content/04_web_design/deploy/PKU_PARTY_INTEGRATION.md | 2026-09-20 | — | [工程师]+[AI] | 🗑️ **已删除**：正文**整体并入** `content/04_web_design/deploy/DEPLOYMENT_GUIDE.md` 的 **§六 北大党校对接**〔内部 §一–§十一 → 6.1–6.11〕⇒ **四份 → 一份**。（原：北大党校与智慧党建对接设计：党校单向爬取 ＋ 智慧党建双向同步 ＋ 数据映射 ＋ 小程序归位 ＋ 待确认清单；对接授权＝党委组织部支持。）沿革见 `.ctx/logs/`。 |
-| content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md | 2026-10-29 | — | [工程师]+[AI] | 架构演进（组件化评估、轻量插件化设计、迭代机制、§八 画布愿景、§九 性能与交付形态方案 ＋ §9.3 版本戳成本收益）。**边界**：「操作位收口」以 `PARTY_COMMITTEE_DESIGN.md` 为准。 |
+| content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md | 2026-11-03 | — | [工程师]+[AI] | 架构演进（组件化评估、轻量插件化设计、迭代机制、§八 画布愿景、§九 性能与交付形态方案 ＋ §9.3 版本戳成本收益、§十 多支部同实例设计稿）。**边界**：「操作位收口」以 `PARTY_COMMITTEE_DESIGN.md` 为准。 |
 | content/04_web_design/evolution/BRANCH_WORK_MAP.md | 2026-10-28 | — | [工程师]+[AI] | **（2026-09-26 批次 205 补行**：本表原无其行——历批按「覆盖缺口如实登记、**不补行**」处置，本批改为**补行**；日期＝该文件 frontmatter `last_updated` 实读值，与表行同值 ⇒ `S13` 绿；`git log -1 --format=%ad --date=short` 亦为 2026-09-26**）** 支部工作地图设计稿（平铺模块 ＋ 按人双视图）；2026-10-28 刷 frontmatter（页签命名改准「意见反馈」）。 |
 | content/04_web_design/evolution/DESIGN_METHODOLOGY.md | 2026-10-30 | — | [工程师]+[AI] | **（2026-09-26 批次 205 补行**：本表原无其行，本批补行；日期＝frontmatter `last_updated` 实读值（与表行同值 ⇒ `S13` 绿）；`git log` 亦 2026-09-26**）** 设计理念与方法论承接（设计论证与方法档案） |
 | content/04_web_design/evolution/PARTY_COMMITTEE_DESIGN.md | 2026-10-30 | — | [工程师]+[AI] | 院系党委后台——支部多实例两级治理设计定案（§2.5 远期形态只留指针指 `ARCHITECTURE_EVOLUTION.md §八`；§2.6 ⑤ 域参数白名单已扩表并留放行登记）。沿革见 `.ctx/logs/`。 |
 | content/04_web_design/evolution/ROLE_PERMISSION_DESIGN.md | 2026-09-29 | — | [工程师]+[AI] | **（2026-09-26 批次 205 补行**：本表原无其行，本批补行；日期＝frontmatter `last_updated` 实读值（与表行同值 ⇒ `S13` 绿）；`git log` 亦 2026-09-26**）** 权限功能合一收敛设计 |
 | content/04_web_design/evolution/WORKFLOW_BLOCK_CONTRACT.md | 2026-10-05 | — | [工程师]+[AI] | **（2026-09-26 批次 205 补行**：本表原无其行，本批补行；日期＝frontmatter `last_updated` 实读值（与表行同值 ⇒ `S13` 绿）；`git log` 亦 2026-09-26**）** 工作流块封装契约 |
 | content/04_web_design/deploy/WECHAT_INTEGRATION.md | 2026-09-05 | — | [工程师]+[AI] | 🗑️ **已删除**：正文**整体并入** `content/04_web_design/deploy/DEPLOYMENT_GUIDE.md` 的 **§五 微信协同与小程序设计**〔内部 §一–§八 → 5.1–5.8〕⇒ **四份 → 一份**。（原：微信协同与小程序设计方案；§八 新增北大对接数据展示；小程序独立问题归位本文档。）沿革见 `.ctx/logs/`。 |
-| content/05_ai_coding/DATA_CONSISTENCY_CHECKLIST.md | 2026-11-01 | — | [用户]+[AI] | **（现状）** 数据一致性检查清单（`§0` 真机 ↔ 文档逐项对账）。**边界**：本件只承载清单本体与判据，沿革入 `.ctx/logs/`。**为什么**：本列只写现状 / 边界 / 指针（`R-89`）。沿革已迁出（git 可溯）。 |
-| content/04_web_design/data/DATA_MODEL.md | 2026-11-02 | — | [工程师]+[AI] | 数据模型与数据流（静态 §2.x / 动态 §1·§3·§4）；§2.9 消息对象（`kind` / `targetType+targetId` / `reads[]` / `archivedBy[]`）；附录 A 记 schema v12（2026-10-26：四组唯一索引 / `todos.branch_id` 生成列 / `contributions` 对象）；§1.2.2 数据保留期口径（业务数据永不自动删除）；字段 / 必填 / 枚举机读单一源以 `DATA_CONTRACT.md` 为准，种子口径以 `DATA_SEED_CONTRACT.md` 为唯一权威。**边界**：字段级唯一权威；README-server 以行号引用本文件。 |
-| content/04_web_design/data/DATA_CONTRACT.md | 2026-11-02 | — | [工程师]+[AI] | 领域数据契约（47 表：34 资源 + 7 语义 + 6 工作组）的人读版；机读单一源 `server/data/domain-contract.mjs`；字段 / 必填 / 枚举 / 种子计数 / 读时别名。守卫 `server/test/data-contract.test.mjs`。 |
+| content/05_ai_coding/DATA_CONSISTENCY_CHECKLIST.md | 2026-11-03 | — | [用户]+[AI] | **（现状）** 数据一致性检查清单（`§0` 真机 ↔ 文档逐项对账）。**边界**：本件只承载清单本体与判据，沿革入 `.ctx/logs/`。**为什么**：本列只写现状 / 边界 / 指针（`R-89`）。沿革已迁出（git 可溯）。 |
+| content/04_web_design/data/DATA_MODEL.md | 2026-11-03 | — | [工程师]+[AI] | 数据模型与数据流（静态 §2.x / 动态 §1·§3·§4）；§2.9 消息对象（`kind` / `targetType+targetId` / `reads[]` / `archivedBy[]`）；附录 A 记 schema v12（2026-10-26：四组唯一索引 / `todos.branch_id` 生成列 / `contributions` 对象）；§1.2.2 数据保留期口径（业务数据永不自动删除）；字段 / 必填 / 枚举机读单一源以 `DATA_CONTRACT.md` 为准，种子口径以 `DATA_SEED_CONTRACT.md` 为唯一权威。**边界**：字段级唯一权威；README-server 以行号引用本文件。 |
+| content/04_web_design/data/DATA_CONTRACT.md | 2026-11-03 | — | [工程师]+[AI] | 领域数据契约（47 表：34 资源 + 7 语义 + 6 工作组）的人读版；机读单一源 `server/data/domain-contract.mjs`；字段 / 必填 / 枚举 / 种子计数 / 读时别名。守卫 `server/test/data-contract.test.mjs`。 |
 | content/04_web_design/data/DATA_SEED_CONTRACT.md | 2026-10-27 | — | [工程师]+[AI] | 数据种子契约（四类口径 / 逐表必填 / v12 强约束）；守卫 `server/test/seed-contract-guard.test.mjs`。 |
 | content/04_web_design/data/DATA_FLOW.md | 2026-09-23 | — | [工程师]+[AI] | 🗑️ 已删除（正文并入 `DATA_MODEL.md`《数据模型与数据流》）。沿革见 `.ctx/logs/`。 |
 | content/04_web_design/data/DATA_ARCHITECTURE.md | 2026-09-03 | — | [工程师]+[AI] | 🗑️ 已删除（正文已拆分至 DATA_MODEL / DATA_FLOW） |
-| content/04_web_design/PRODUCT_IA.md | 2026-11-01 | — | [工程师]+[AI] | 产品 IA 派生索引（45 页签 ＋ 62→45 重定向 ＋ 详情路由矩阵）；块数口径指向 DS_06 SD-57；由 `capabilities/*` / `object-route.js` 派生，**不承担规范、禁止手改**。 |
+| content/04_web_design/PRODUCT_IA.md | 2026-11-03 | — | [工程师]+[AI] | 产品 IA 派生索引（45 页签 ＋ 62→45 重定向 ＋ 详情路由矩阵）；块数口径指向 DS_06 SD-57；由 `capabilities/*` / `object-route.js` 派生，**不承担规范、禁止手改**。 |
 | content/04_web_design/module/MODULE_UI_DESIGN.md | 2026-10-30 | — | [工程师]+[AI] | 模块界面设计（§一 总览 / §二 党建 Tab / §三 日历 / §四 全站 Tab 总方案＝2026-09-27 规划稿）；四组页签名改准为「总览 / 我的职责 / 协作与知情 / 制度与答复」。**边界**：§四.2 已升为 `DESIGN_SYSTEM.md §4.10.1` 正式条文（单一源）；§四 的逐台 tab 清单是**当日快照**，活口径以 `docs/src/capabilities/*-workspace.js` 为单一源（门控对账在 `doc-consistency::S1`）。沿革已迁出（git 可溯）。 |
 | content/04_web_design/module/SOP_WEBSITE_GUIDE.md | 2026-10-30 | — | [工程师]+[AI] | SOP-系统联动方法（无人称文体）。**边界**：相关引用指向 `content/03_doc_system/OPERATIONS_GUIDE.md`。沿革见 `.ctx/logs/`。 |
 | content/04_web_design/module/AGENDA_AND_REFERENCE_DESIGN.md | 2026-09-29 | — | [工程师]+[AI] | **（2026-09-26 批次 205 补行**：本表原无其行，本批补行；日期＝frontmatter `last_updated` 实读值（与表行同值 ⇒ `S13` 绿）；`git log` 亦 2026-09-26**）** 会议议程与资料查询设计 |
-| content/04_web_design/deploy/DEPLOYMENT_GUIDE.md | 2026-10-17 | — | [工程师]+[AI] | **部署**手册（环境 / 起服务 / 发版 / 回滚）；报告推送按支部独立配置接收端。**边界**：只讲部署，**不含**权限模型（那在 `AUTHENTICATION_MODEL.md`）与运行协作（`OPERATIONS_GUIDE.md`）；**为什么**：三件分工不重叠，避免同一件事两处写法漂移。沿革见执行日志「附：TIMESTAMPS 备注列迁出的逐批沿革（批次 322）」。 |
+| content/04_web_design/deploy/DEPLOYMENT_GUIDE.md | 2026-11-03 | — | [工程师]+[AI] | **部署**手册（环境 / 起服务 / 发版 / 回滚）；报告推送按支部独立配置接收端。**边界**：只讲部署，**不含**权限模型（那在 `AUTHENTICATION_MODEL.md`）与运行协作（`OPERATIONS_GUIDE.md`）；**为什么**：三件分工不重叠，避免同一件事两处写法漂移。沿革见执行日志「附：TIMESTAMPS 备注列迁出的逐批沿革（批次 322）」。 |
 | content/04_web_design/deploy/SERVER_DEPLOY_MANUAL.md | 2026-10-07 | — | [支书]+[运维执行人] | **服务器逐键部署手册**（支书版，2026-10-07 批次 439 新建）：名词卡片（堡垒机/sudo/防火墙/systemd/SFTP/冒烟）＋六步操作（探机 → 防火墙申请填单模板 → SFTP 上传 → 有/无 sudo 双路线安装 → 设口令启动体检 → 空库换壳起步）＋日常三招与出错对照表＋安全两件事。**边界**：只管「做」；「为什么/总览/回滚深度」在 `DEPLOYMENT_GUIDE.md`（姊妹篇互指）。
 | content/04_web_design/deploy/AUTHENTICATION_MODEL.md | 2026-09-05 | — | [工程师]+[AI] | 🗑️ **已删除**：正文**整体并入** `content/04_web_design/deploy/DEPLOYMENT_GUIDE.md` 的 **§四 认证与登录门控**〔内部 §一–§八 → 4.1–4.8〕⇒ **四份 → 一份**。（原：部署与认证场景模型：5 场景两轴正交 ＋ 侧边栏统一 ＋ 登录门控四层。）沿革见 `.ctx/logs/`。 |
 | content/04_web_design/SCHOOL_IT_DEPLOYMENT.md | 2026-08-27 | — | [工程师]+[AI] | 🗑️ 已删除（计算中心对接全案已并入 DEPLOYMENT_GUIDE §三） |
-| content/04_web_design/README.md | 2026-11-01 | — | [工程师]+[AI] | 04_web_design 目录索引；六编 `DS_01`…`DS_06` 与 `PRODUCT_IA.md`（派生索引，不承担规范）。 |
+| content/04_web_design/README.md | 2026-11-03 | — | [工程师]+[AI] | 04_web_design 目录索引；六编 `DS_01`…`DS_06` 与 `PRODUCT_IA.md`（派生索引，不承担规范）。 |
 
 ## content/05_ai_coding/ (AI 编码层)
 
 | 文件路径 | last_updated | 移入归档日 | 角色 | 备注 |
 |---------|-------------|--------|------|------|
 | content/05_ai_coding/KNOWN_PITFALLS.md | 2026-09-04 | — | [工程师]+[AI] | 🗑️ 已删除（拆为 05_ai_coding 六篇纪律件） |
-| content/05_ai_coding/README.md | 2026-11-02 | — | [工程师]+[AI] | 05_ai_coding 目录索引（含 `TAB_AUDIT_PLAYBOOK.md` 行）。 |
+| content/05_ai_coding/README.md | 2026-11-03 | — | [工程师]+[AI] | 05_ai_coding 目录索引（含 `TAB_AUDIT_PLAYBOOK.md` 行）。 |
 | content/05_ai_coding/AGENTS.md | 2026-11-01 | — | [工程师]+[AI] | 05 目录协作说明：Q 范围 Q-01…Q-22、分层裁决与验证命令。 |
-| content/05_ai_coding/PARALLEL_SKILL_AUDIT.md | 2026-11-01 | — | [工程师]+[AI] | 多代理独立审查操作手册（H21 详版）：问题集 Q-01…Q-22 → 分 lens → 汇总 → 裁定；§11 IA 审查、§14 SKILL 路由。 |
+| content/05_ai_coding/PARALLEL_SKILL_AUDIT.md | 2026-11-03 | — | [工程师]+[AI] | 多代理独立审查操作手册（H21 详版）：问题集 Q-01…Q-22 → 分 lens → 汇总 → 裁定；§11 IA 审查、§14 SKILL 路由。 |
 | content/05_ai_coding/CONTEXT_MANAGEMENT.md | 2026-09-26 | — | [工程师]+[AI] | （**批次 205 补行**：本表原无其行，本批补行；日期＝其 frontmatter `last_updated` 实读值，与表行同值 ⇒ `S13` 绿。**2026-09-26 已清偿 `R-83` 债**：frontmatter 与表行同刷为该文件最后一次提交日 `2026-09-26`） 上下文管理与防失忆 |
 | content/05_ai_coding/DOCUMENT_GOVERNANCE.md | 2026-09-29 | — | [工程师]+[AI] | **（2026-09-26 批次 205 补行**：本表原无其行，本批补行；日期＝frontmatter `last_updated` 实读值（与表行同值 ⇒ `S13` 绿）；`git log` 亦 2026-09-26**）** 文档治理与一改具改 |
 | content/05_ai_coding/FILE_OPERATION_RULES.md | 2026-09-29 | — | [工程师]+[AI] | （**批次 205 补行**：本表原无其行，本批补行；日期＝其 frontmatter `last_updated` 实读值，与表行同值 ⇒ `S13` 绿。**2026-09-26 已清偿 `R-83` 债**：frontmatter 与表行同刷为该文件最后一次提交日 `2026-09-26`） 文件操作纪律 |
 | content/05_ai_coding/REVIEW_AND_EXPRESSION.md | 2026-10-24 | — | [工程师]+[AI] | （**批次 205 补行**：本表原无其行，本批补行；日期＝其 frontmatter `last_updated` 实读值，与表行同值 ⇒ `S13` 绿。**2026-09-26 已清偿 `R-83` 债**：frontmatter 与表行同刷为该文件最后一次提交日 `2026-09-26`） 评议与表达纪律 |
-| content/05_ai_coding/TEST_AND_VERIFICATION.md | 2026-10-22 | — | [工程师]+[AI] | 测试三层（daily/precommit/weekly）；2026-09-26 批次 205 补行（日期＝frontmatter，S13 绿）。测试验证纪律 |
-| content/05_ai_coding/TAB_AUDIT_PLAYBOOK.md | 2026-11-02 | — | [工程师]+[AI] | 页签审计手册（2026-11-02 建）：五维检查表、P0–P2、例外口径、怎么跑、怎么加检查与页签、报告字段；判据回链 DS_06 §五与 `audit/severity.mjs`。 |
-| content/05_ai_coding/AUDIT_CANON.md | 2026-11-02 | — | [工程师]+[AI] | 审计口径唯一表（2026-11-02 建）：四口径裁定（F2 控件行数 / F4 H2 恰 1 / F7 `hasPager()` / C1 `requireAuth` 例外）与 daily / precommit / audit 三档分工；判据回链 `audit/checks-*.mjs` 与 `TAB_AUDIT_PLAYBOOK.md`。 |
+| content/05_ai_coding/TEST_AND_VERIFICATION.md | 2026-11-03 | — | [工程师]+[AI] | 测试三层（daily/precommit/weekly）；2026-11-03 增两条判例（权限矩阵单一源 / 「保留+改进」反馈必须给出改动或证据）。 |
+| content/05_ai_coding/TAB_AUDIT_PLAYBOOK.md | 2026-11-03 | — | [工程师]+[AI] | 页签审计手册（2026-11-02 建）：五维检查表、P0–P2、例外口径、怎么跑、怎么加检查与页签、报告字段；判据回链 DS_06 §五与 `audit/severity.mjs`。 |
+| content/05_ai_coding/AUDIT_CANON.md | 2026-11-03 | — | [工程师]+[AI] | 审计口径唯一表（2026-11-02 建）：四口径裁定（F2 控件行数 / F4 H2 恰 1 / F7 `hasPager()` / C1 `requireAuth` 例外）与 daily / precommit / audit 三档分工；判据回链 `audit/checks-*.mjs` 与 `TAB_AUDIT_PLAYBOOK.md`。 |
 
 ## content/insights/ (经验沉淀)
 
@@ -255,9 +255,9 @@ dynamic_role:
 | server/test/theme-palette-guard.test.mjs | 2026-10-23 | — | [工程师]+[AI] | 主题色板 7×2×8 守卫。 |
 | server/test/density-spacing-guard.test.mjs | 2026-10-23 | — | [工程师]+[AI] | 密度间距守卫。 |
 | server/test/hover-state-guard.test.mjs | 2026-10-23 | — | [工程师]+[AI] | 交互三态守卫。 |
-| content/05_ai_coding/REVIEW_QUESTION_SET.md | 2026-11-02 | — | [工程师]+[AI] | 审查问题集：Q-01…Q-22（Q-22 为页签密度与信息经济的审查方法，执行工具指向 `TAB_AUDIT_PLAYBOOK.md`）。 |
-| content/05_ai_coding/QUESTION_HIT_MATRIX.md | 2026-11-01 | — | [工程师]+[AI] | 历史命中矩阵；Q-22 列新立，36 行历史记 `—`。 |
-| content/05_ai_coding/GUARD_INVENTORY.md | 2026-11-02 | — | [工程师]+[AI] | 守卫台账；现行 66 件；§十五 记 `workbench-audit-coverage` 新 45 页签口径（W1–W5）与页签审计资产。 |
+| content/05_ai_coding/REVIEW_QUESTION_SET.md | 2026-11-03 | — | [工程师]+[AI] | 审查问题集：Q-01…Q-22（Q-22 为页签密度与信息经济的审查方法，执行工具指向 `TAB_AUDIT_PLAYBOOK.md`）。 |
+| content/05_ai_coding/QUESTION_HIT_MATRIX.md | 2026-11-03 | — | [工程师]+[AI] | 历史命中矩阵；Q-22 列新立，36 行历史记 `—`。 |
+| content/05_ai_coding/GUARD_INVENTORY.md | 2026-11-03 | — | [工程师]+[AI] | 守卫台账；现行 66 件；§十五 记 `workbench-audit-coverage` 新 45 页签口径（W1–W5）与页签审计资产。 |
 | content/03_doc_system/CASES_INDEX.md | 2026-10-30 | — | [工程师]+[AI] | 判例总索引（design 30 / data 1 / ai 6）。 |
 | server/test/docs-governance-guard.test.mjs | 2026-10-24 | — | [工程师]+[AI] | 文档治理守卫。 |
 | .ctx/README.md | 2026-10-27 | — | [工程师]+[AI] | 五桶说明。 |

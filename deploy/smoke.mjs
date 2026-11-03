@@ -22,6 +22,9 @@
 //       改用 `process.exitCode`，等事件循环自然收敛。
 // ════════════════════════════════════════════════════════════════
 const BASE = (process.env.BASE || 'http://127.0.0.1:' + (process.env.PORT || 3000)).replace(/\/$/, '');
+// 运行档提示（2026-11-03）：smoke 只以**真实 HTTP 响应**为准；档位按调用方注入的环境变量推断，
+// 便于执行人确认「自己预期的是哪一档」。服务端真实档位以启动日志的「运行档」一行为准。
+const PROD = process.env.APP_ENV === 'production' || process.env.NODE_ENV === 'production';
 const argv = process.argv.slice(2);
 const li = argv.indexOf('--login');
 const PERSON = li === -1 ? null : (argv[li + 1] || process.env.SMOKE_PERSON || null);
@@ -32,7 +35,7 @@ const ok = (m) => console.log(`  ✔ ${m}`);
 const bad = (m) => { failed++; console.error(`  ✖ ${m}`); };
 
 async function main() {
-  console.log(`[smoke] 目标 ${BASE}`);
+  console.log(`[smoke] 目标 ${BASE} · 预期运行档：${PROD ? 'production（单支部；演示种子=off）' : 'review（视觉检验）'}`);
   try {
     const r = await fetch(`${BASE}/api/v1/health`);
     const j = await r.json().catch(() => null);

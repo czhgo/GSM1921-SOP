@@ -2,7 +2,7 @@
 title: "部署与运维脚本索引（deploy/）"
 type: index
 role: "[工程师]+[运维执行人]"
-last_updated: 2026-10-24
+last_updated: 2026-11-03
 status: active
 ---
 
@@ -20,6 +20,19 @@ status: active
 - 不写逐键操作教学——去 [SERVER_DEPLOY_MANUAL.md](../content/04_web_design/deploy/SERVER_DEPLOY_MANUAL.md)。
 - 不写视觉、数据模型与业务制度——归 `content/04_web_design/`、`content/02_institution/`。
 - 不存运行数据——`data.db`、`uploads/`、`backups/` 由部署实例自己保管，且被打包白名单排除。
+
+## 运行档：review / production（2026-11-03 固化）
+
+判定单一源＝`server/env.js::isProductionEnv`（`APP_ENV=production` 或 `NODE_ENV=production`）。两档互斥，启动日志首行标明档位。
+
+| 档位 | 用途 | 启动 | 数据与拦截 |
+|---|---|---|---|
+| **review**（缺省） | 视觉检验 | `cd server && npm start`（建议 `DB_PATH=data.review.db`） | 允许演示种子；多支部只打印分支数、不拦截。**必须用独立库，不得指向生产库** |
+| **production** | 正式上线（一实例一支部） | `APP_ENV=production` ＋ `LOGIN_PASSWORD=…` 后 `cd server && npm start` | 默认不播种；迁移后若 `branches` >1 且未设 `ALLOW_MULTI_BRANCH=1`，**启动即退出（exit 1）** |
+
+- 生产多支部口径：**一实例一支部；多支部需先完成服务端读过滤或显式设置 `ALLOW_MULTI_BRANCH=1`**。
+- `doctor.mjs` 已按档位核 `APP_ENV` / `LOGIN_PASSWORD` 并直读 SQLite 打印支部数；`smoke.mjs` 打印预期档位并照旧检查 health 与登录。
+- 逐项部署口径以 [DEPLOYMENT_GUIDE.md](../content/04_web_design/deploy/DEPLOYMENT_GUIDE.md) 为准。
 
 ## 文件清单
 

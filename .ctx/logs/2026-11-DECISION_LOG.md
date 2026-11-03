@@ -2,7 +2,7 @@
 title: "2026年11月决策日志"
 type: decision_log
 role: "[工程师]+[AI]"
-last_updated: 2026-11-02
+last_updated: 2026-11-03
 status: active
 related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-DECISION_LOG.md, content/04_web_design/design-system/DS_01_COLOR_AND_THEME.md, content/04_web_design/design-system/DS_03_COMPONENTS.md, content/04_web_design/design-system/DS_04_INTERACTION_AND_RESPONSIVE.md]
 ---
@@ -12,7 +12,7 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 > 本文件记录 2026 年 11 月所有非显而易见的决策。每条决策包含背景/选项/决定/理由/影响范围/一改具改检查。
 > **来源（2026-11-01 批次 524 换月）**：自 2026-10 文件续编，`D-827` 起记于本文件；每条只写「评议 → 裁定 → 落点文件」一句，过程见 `.ctx/logs/2026-10-EXECUTION_LOG.md` 与 `git`。
 
-> **条目编号起止**：本文件当前 **`D-827` … `D-846`，共 20 条**；下一条自 **`D-847`**。
+> **条目编号起止**：本文件当前 **`D-827` … `D-851`，共 25 条**；下一条自 **`D-852`**。
 
 ## 本月目录（2026-11）
 
@@ -40,6 +40,11 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 | 数据契约：47 表单一源 + fixtures；parity 值对照 26 表、结构 41 表 | `D-844` | 2026-11-02 | 已落（批次 527） |
 | 换轨：export/import/preflight + 迁移前备份 + 拒绝降级；副本演练 48 表 542 行一致 | `D-845` | 2026-11-02 | 已落（批次 527） |
 | 六维重评：运行部署 62→68（换轨闭环证据），其余维持 | `D-846` | 2026-11-02 | 已落（批次 527） |
+| 写权限单一源：权限矩阵 141 行，C1 改矩阵判定 + 高风险抽样 | `D-847` | 2026-11-03 | 已落（上线专项） |
+| 会话 3 小时过期；review / production 两档固化，review 独立库 | `D-848` | 2026-11-03 | 已落（上线专项） |
+| 多支部同实例设计：Phase 1–2 完成前不得打开 ALLOW_MULTI_BRANCH | `D-849` | 2026-11-03 | 设计已出（未实现） |
+| 上线残项单一台账 L-01…L-21；launch-blocker 6 条已关 / 1 条降级 | `D-850` | 2026-11-03 | 已落（上线专项） |
+| 六维重评：安全 52→66 · 测试 80→83 · 架构 74→76 · 部署 68→73 · 数据 78→79；三成本维持 68 | `D-851` | 2026-11-03 | 已落（上线专项） |
 
 ## D-827 2026-11-01 — 数据表表头去灰
 
@@ -135,4 +140,32 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 > - 阻断风险逐条复核：5 条全部保留，无闭环、无新增（离轨相关的新增边界记入 §一 残项，不升级为阻断项）。
 > - 落点：`.ctx/ENGINEERING_ASSESSMENT.md` §一 / §二 / §5.2。
 
-> **本文件续编说明**：本文件按批追加、不改写既有条目；当前止于 `D-846`**（共 **20** 条）。
+## D-847 2026-11-03 — 写权限单一源：权限矩阵
+
+> **评议 → 裁定 → 落点**：审计按「中间件是不是 `requireAuth`」判越权，误伤 `signups` 这类 handler 级 guard → 建 `server/security/write-policy-matrix.mjs`（141 行：135 enforced / 4 self-service / 2 public / 0 known-risk），守卫断言 Express 运行期写路由 ≡ 矩阵；C1 改为矩阵判定 + 高风险抽样，`--probe-writes` 才逐口重探 → `server/security/write-policy-matrix.mjs`、`server/test/write-policy-matrix.test.mjs`、`server/scripts/audit/checks-crud.mjs`、`AUDIT_CANON.md`。
+
+## D-848 2026-11-03 — 会话 3 小时过期与两档运行形态
+
+> **评议 → 裁定 → 落点**：支书 2026-11-03 裁定「改成 3 个小时过期」→ `SESSION_TTL_HOURS` 缺省 3（旧 `SESSION_TTL_DAYS` 兼容换算），过期 token 在 `/auth/me` 与受保护写口 401 并删除会话行；production 档缺口令 / 多支部拒绝启动；新增 `npm run start:review` 缺省使用 `server/data.review.db`，视觉检验不写生产库 → `server/routes/auth.js`、`server/run-mode.js`、`server/scripts/start-review.mjs`、`deploy/env.production.example`。
+
+## D-849 2026-11-03 — 多支部同实例设计稿
+
+> **评议 → 裁定 → 落点**：支书要求「服务端要考虑多支部情况，需要有所设计」→ 设计四阶段（读口统一过滤 / 快照按支部 / 党委跨支部显式范围 / 索引），上线仍坚持一实例一支部，Phase 1–2 完成前不得打开 `ALLOW_MULTI_BRANCH` → `content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md §十`；`server/run-mode.js` 拒绝文案回链该节。
+
+## D-850 2026-11-03 — 上线残项单一台账
+
+> **评议 → 裁定 → 落点**：审计 / 换轨 / 部署 / 前端残项分散在多处 → 归总为 `L-01`…`L-21`（launch-blocker / post-launch / backlog 三档）；本批关闭 L-01/L-03/L-04/L-05/L-06/L-07，L-02 降级为 post-launch（Linux 真机未验）→ `.ctx/ENGINEERING_ASSESSMENT.md §四「上线残项」`。
+
+## D-851 2026-11-03 — 六维重评（上线专项）
+
+> **评议 → 裁定 → 落点**：按本批证据逐维重打，不因「写了工具」自动加分。
+> - **业务与数据 78 → 79（+1）**：契约漂移修正 + 48 表 / 577 行往返一致。
+> - **安全与权限 52 → 66（+14）**：矩阵 141 行 / 0 known-risk + 6 条缺口修复 + 3 小时会话 + 快照 P0；多支部读过滤仍未实现，故不到 70。
+> - **最小三成本 68 → 68**：P2 3→2、exception 47→44，但无实质 UI 重构与用户实测。
+> - **测试与发布 80 → 83（+3）**：矩阵 / 红队 / 缺口 / 会话 / 运行档五组测试进 daily。
+> - **架构与可维护 74 → 76（+2）**：权限判据单源化，但新增同批维护点。
+> - **运行部署 68 → 73（+5）**：严格 preflight exit 0 + 两档运行 + review 隔离；install/update 未真机验证。
+> - 阻断风险：第 2 条部分闭环、第 4 条会话过期闭环、其余保留。
+> - 落点：`.ctx/ENGINEERING_ASSESSMENT.md §一 / §二 / §5.2`。
+
+> **本文件续编说明**：本文件按批追加、不改写既有条目；当前止于 `D-851`**（共 **25** 条）。

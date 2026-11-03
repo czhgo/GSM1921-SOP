@@ -22,6 +22,13 @@ if (!SEED_DISABLED && db.prepare('SELECT COUNT(*) AS c FROM users').get().c === 
   await seedDatabase(db);
   console.log('[server] 已导入种子数据');
 }
+// ── 运行档标识 ＋ 生产单支部硬断言（2026-11-03 任务 2）───────────────────────────
+// 为什么插在这里：`initDb`（上方 `:14`）已完成迁移，且本段仍在 `db.close()` / `listen()` 之前
+// ⇒ 生产档的「一实例多支部」缺口会被挡在端口对外之前；review 档只打印分支数，不改变任何行为。
+// 位置刻意放在 `:21` / `:22-23` 之后：那两处是 README-server.md 的取证靶点，插入必须不影响它们。
+// 判定与文案单一源＝`server/run-mode.js`（复用 `env.js::isProductionEnv`，入口不另写判定）。
+console.log(formatRunModeLine({ production: isProductionEnv(), demoSeedEnabled: !SEED_DISABLED, dbPath: DB_PATH }));
+enforceSingleBranch(db);
 db.close();
 const app = createApp({ dbPath: DB_PATH });
 const httpServer = app.listen(PORT, () => console.log(`[server] 光华党支部管理引擎后端已启动: http://localhost:${PORT}`));
@@ -80,6 +87,8 @@ import { isProductionEnv } from './env.js';
 // Task 7.1（生产启动闸门）：生产形态检测到演示种子行时默认拒启（ALLOW_DEMO_DATA=1 才放行）。
 //   判据与说明见 `server/demo-data-guard.js`；调用点在上方 `:14`（与 initDb 同行，保 README 行号不漂）。
 import { enforceProductionDemoGate } from './demo-data-guard.js';
+// 运行档标识与生产单支部硬断言的实现（调用点在上方 `:24` 之后；import 声明被提升，置尾不影响语义）。
+import { formatRunModeLine, enforceSingleBranch } from './run-mode.js';
 
 // ════════════════════════════════════════════════════════════════
 //  部署前件（2026-09-29 批次 268「部署前筹备检查」）：**优雅关闭** SIGTERM / SIGINT

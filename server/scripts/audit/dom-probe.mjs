@@ -213,8 +213,10 @@ export function collectDom(cfg) {
     if (text && re.test(text)) {
       const parent = node.parentElement;
       const tag = parent ? parent.tagName.toLowerCase() : '';
+      // 表格空态由 empty-state.js 的 table 变体产出：`<tr class="is-empty">` 内是
+      // `.empty-state__text`，没有外层 `.empty-state`——这是同一组件的合法形态，不能算「裸文本」。
       if (parent && !['script', 'style', 'template', 'noscript'].includes(tag)
-        && !parent.closest('.empty-state') && isVisible(parent)) {
+        && !parent.closest('.empty-state, .is-empty, .empty-state__text') && isVisible(parent)) {
         const sig = text.slice(0, 60) + ' @ ' + tag;
         if (!seen.has(sig)) {
           seen.add(sig);

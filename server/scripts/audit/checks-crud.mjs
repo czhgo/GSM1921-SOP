@@ -2,7 +2,9 @@
 // ════════════════════════════════════════════════════════════════
 //  server/scripts/audit/checks-crud.mjs —— C CRUD 维度（C1–C4）
 //
-//  C1 读口按角色 200；visitor 对每个写口只发一次最小请求，期望 401/403（2xx ⇒ 权限漏洞 P0）
+//  C1 读口按角色 200；写口查 server/security/write-policy-matrix.mjs（未登记 ⇒ P0；
+//     known-risk ⇒ exception + riskRef；enforced/self-service/public ⇒ pass）。
+//     默认不逐口重探；显式 `--probe-writes` 才对 visitor 发一次最小请求（2xx 且矩阵非 known-risk/自助 ⇒ P0）。
 //  C2 非 destructive 写口在 :memory: 库做 create → GET 回读 → PATCH → GET 校验 → DELETE
 //     请求体来自 CRUD_RECIPES（人工核对的最小合法形状）；无配方 ⇒ skip + 原因（不得假绿）
 //     destructive 写口只创建「本次探针」并清理探针，不触碰存量，记 exception + reason
@@ -21,6 +23,8 @@ import { fileURLToPath } from 'node:url';
 import { ENDPOINT_MAP, KNOWN_READ_ONLY_ACTIONS } from './endpoint-map.mjs';
 import { ensureSession, httpRequest } from './checks-data.mjs';
 import { RESOURCE_TABLES } from '../../routes/resources/store.js';
+// C1 新口径（批次 528）：写口判据查**唯一机读矩阵**，不再按中间件字符串猜门。
+import { matrixFor } from '../../security/write-policy-matrix.mjs';
 
 const REPO_ROOT = fileURLToPath(new URL('../../../', import.meta.url));
 const GATES_FILE = 'server/routes/resources/gates.js';
@@ -235,17 +239,121 @@ async function resolveWritePath(ctx, entry, write, session, createdIds = null) {
   return concretePath(write.path, { id });
 }
 
-/** C1：读口按角色 200 + visitor 越权探针 */
+/** 矩阵行 → 证据（报告里直接回链唯一源，避免审计与矩阵各说一套） */
+function matrixEvidence(row) {
+  return {
+    matrix: {
+      method: row.method,
+      path: row.path,
+      middleware: row.middleware,
+      roleGate: row.roleGate,
+      ownership: row.ownership,
+      status: row.status,
+      evidence: row.evidence,
+      ...(row.status === 'known-risk'
+        ? { reason: row.reason, impact: row.impact, riskRef: row.riskRef }
+        : {}),
+    },
+  };
+}
+
+/** 按矩阵判级：未登记 ⇒ P0；known-risk ⇒ exception；其余 ⇒ pass（不在默认档逐口重探） */
+function c1MatrixFinding(ctx, write, row) {
+  if (!row) {
+    return finding(
+      ctx, 'C1', 'P0', 'fail',
+      `写口未在权限矩阵登记：${write.method} ${write.path}（先补 server/security/write-policy-matrix.mjs）`,
+      { write: write.flow, endpoint: `${write.method} ${write.path}`, reason: 'matrix-missing' },
+    );
+  }
+  if (row.status === 'known-risk') {
+    return finding(
+      ctx, 'C1', null, 'exception',
+      `已知风险（矩阵）：${write.method} ${write.path} — ${row.reason}${row.impact ? `；影响：${row.impact}` : ''}（见 ${row.riskRef}）`,
+      { write: write.flow, endpoint: `${write.method} ${write.path}`, riskRef: row.riskRef, ...matrixEvidence(row) },
+    );
+  }
+  return finding(
+    ctx, 'C1', null, 'pass',
+    `写口已登记：${write.method} ${write.path}（${row.status} / ${row.middleware} / ${row.roleGate}）`,
+    { write: write.flow, endpoint: `${write.method} ${write.path}`, ...matrixEvidence(row) },
+  );
+}
+
+/** 显式 `--probe-writes` 才跑的运行期越权探针（visitor 只发一次最小请求） */
+async function c1ProbeFinding(ctx, entry, write, session, visitor, row) {
+  const path = await resolveWritePath(ctx, entry, write, session);
+  const res = await httpRequest(ctx.base, path, {
+    method: write.method,
+    token: visitor.token,
+    body: write.method === 'GET' ? undefined : {},
+    timeout: ctx.timeout,
+  });
+  const base = { write: write.flow, status: res.status, path, probe: true, ...matrixEvidence(row) };
+  if (res.ok) {
+    if (row.status === 'known-risk') {
+      return finding(
+        ctx, 'C1', null, 'exception',
+        `已知风险（矩阵 + 探针 2xx）：${write.method} ${write.path} — ${row.reason}（见 ${row.riskRef}）`,
+        { ...base, riskRef: row.riskRef },
+      );
+    }
+    if (row.status === 'self-service' || row.status === 'public') {
+      return finding(
+        ctx, 'C1', null, 'pass',
+        `写口 ${write.method} ${write.path} 对 visitor 为设计内${row.status}（2xx）`,
+        { ...base, note: '矩阵已登记该状态；若不应允许成员自助，须先改矩阵与实现' },
+      );
+    }
+    return finding(
+      ctx, 'C1', 'P0', 'fail',
+      `越权：矩阵登记为 ${row.status}，但 visitor 可写 ${write.method} ${write.path}`,
+      { ...base, body: res.text?.slice(0, 300) },
+    );
+  }
+  if ([401, 403].includes(res.status)) {
+    return finding(ctx, 'C1', null, 'pass', `写口按权限拒绝 visitor：${write.method} ${write.path}`, base);
+  }
+  if (res.status === 404) {
+    // 404 可能是「路由不存在」也可能是「靶行不存在」；端点存在性交给 C4 静态核对，不误报 P0/P1。
+    return finding(
+      ctx, 'C1', null, 'skip',
+      `写口探针 404（靶行或路径未命中，待 C4 静态核对）：${write.method} ${write.path}`,
+      { ...base, body: res.text?.slice(0, 200) },
+    );
+  }
+  if (res.status === 405) {
+    return finding(ctx, 'C1', 'P1', 'fail', `写口方法不被允许：${write.method} ${write.path}`, base);
+  }
+  if (res.status >= 500) {
+    return finding(ctx, 'C1', 'P1', 'fail', `写口探针 5xx：${write.method} ${write.path}`, base);
+  }
+  // 400 / 422：空体被参数校验拦下，不能作为「权限门通过」的证据 ⇒ 记 skip。
+  return finding(
+    ctx, 'C1', null, 'skip',
+    `写口先被参数校验拦下（空体 ${res.status}），未证明权限门：${write.method} ${write.path}`,
+    { ...base, body: res.text?.slice(0, 200) },
+  );
+}
+
+/** C1：读口按角色 200 + 写口查权限矩阵（`--probe-writes` 时才加运行期越权探针） */
 async function runC1(ctx, entry) {
   const findings = [];
   let session;
-  let visitor;
   try {
     session = await ensureSession(ctx, ctx.role);
-    visitor = await ensureSession(ctx, 'visitor');
   } catch (error) {
     findings.push(finding(ctx, 'C1', 'P0', 'fail', '无法取得登录会话', { error: String(error.message || error) }));
     return findings;
+  }
+  // 默认不逐口重探（「验证更多、频率更低」）；只有显式 --probe-writes 才登录 visitor。
+  let visitor = null;
+  if (ctx.probeWrites) {
+    try {
+      visitor = await ensureSession(ctx, 'visitor');
+    } catch (error) {
+      findings.push(finding(ctx, 'C1', 'P0', 'fail', '无法取得 visitor 会话（--probe-writes）', { error: String(error.message || error) }));
+    }
   }
 
   // 读口
@@ -258,70 +366,13 @@ async function runC1(ctx, entry) {
     }
   }
 
-  // 写口越权：visitor 只发一次最小请求（空体；只判「门是否在身份层挡住」）
+  // 写口：先查矩阵（唯一判据）；未登记 P0、known-risk exception、其余 pass。
   for (const write of entry.write || []) {
-    const path = await resolveWritePath(ctx, entry, write, session);
-    const res = await httpRequest(ctx.base, path, {
-      method: write.method,
-      token: visitor.token,
-      body: write.method === 'GET' ? undefined : {},
-      timeout: ctx.timeout,
-    });
-    if (res.ok) {
-      if (write.selfService) {
-        findings.push(finding(
-          ctx,
-          'C1',
-          null,
-          'pass',
-          `写口 ${write.method} ${write.path} 对 visitor 为设计内自助写（2xx）`,
-          { write: write.flow, status: res.status, path, selfService: true, note: '若该口不应允许成员自助，请移除 selfService 并升 P0' },
-        ));
-      } else if (write.gate === 'requireAuth') {
-        // 口径冲突裁决（批次 526）：本轮明确「不改后端权限门」；通用写口仅登录是
-        // ENGINEERING_ASSESSMENT「安全与权限」已登记的**系统性阻断风险**，不在逐页签审计里
-        // 当作新 P0 —— 记 exception 并回链，避免 45 页签重复报同一系统性问题。
-        findings.push(finding(
-          ctx,
-          'C1',
-          null,
-          'exception',
-          `已知系统性风险：${write.method} ${write.path} 仅 requireAuth，visitor 可写（见 ENGINEERING_ASSESSMENT 阻断风险 2）`,
-          { write: write.flow, status: res.status, path, knownGap: 'requireAuth-only', body: res.text?.slice(0, 200) },
-        ));
-      } else {
-        findings.push(finding(
-          ctx,
-          'C1',
-          'P0',
-          'fail',
-          `越权：visitor 可写 ${write.method} ${write.path}`,
-          { write: write.flow, status: res.status, path, body: res.text?.slice(0, 300) },
-        ));
-      }
-    } else if ([401, 403].includes(res.status)) {
-      findings.push(finding(ctx, 'C1', null, 'pass', `写口按权限拒绝 visitor：${write.method} ${write.path}`, { write: write.flow, status: res.status, path }));
-    } else if (res.status === 404) {
-      // 404 可能是「路由不存在」也可能是「靶行不存在」；端点存在性交给 C4 静态核对，不误报 P0/P1。
-      findings.push(finding(
-        ctx, 'C1', null, 'skip',
-        `写口探针 404（靶行或路径未命中，待 C4 静态核对）：${write.method} ${write.path}`,
-        { write: write.flow, status: res.status, path, body: res.text?.slice(0, 200) },
-      ));
-    } else if (res.status === 405) {
-      findings.push(finding(ctx, 'C1', 'P1', 'fail', `写口方法不被允许：${write.method} ${write.path}`, { write: write.flow, status: res.status, path }));
-    } else if (res.status >= 500) {
-      findings.push(finding(ctx, 'C1', 'P1', 'fail', `写口探针 5xx：${write.method} ${write.path}`, { write: write.flow, status: res.status, path }));
+    const row = matrixFor(write.method, write.path);
+    if (row && ctx.probeWrites && visitor) {
+      findings.push(await c1ProbeFinding(ctx, entry, write, session, visitor, row));
     } else {
-      // 400 / 422：空体被参数校验拦下，不能作为「权限门通过」的证据 ⇒ 记 skip。
-      findings.push(finding(
-        ctx,
-        'C1',
-        null,
-        'skip',
-        `写口先被参数校验拦下（空体 ${res.status}），未证明权限门：${write.method} ${write.path}`,
-        { write: write.flow, status: res.status, path, body: res.text?.slice(0, 200) },
-      ));
+      findings.push(c1MatrixFinding(ctx, write, row));
     }
   }
   return findings;

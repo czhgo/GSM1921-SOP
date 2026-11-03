@@ -2,7 +2,7 @@
 title: "设计系统（父索引）"
 type: design
 role: "[工程师]+[AI]"
-last_updated: 2026-11-01
+last_updated: "2026-11-03"
 status: active
 related_files: [DS_01_COLOR_AND_THEME.md, DS_02_TYPE_AND_SIZE.md, DS_03_COMPONENTS.md, DS_04_INTERACTION_AND_RESPONSIVE.md, DS_05_MAP_AND_REFERENCE.md, DS_06_LAYOUT_AND_DENSITY.md, CASES.md, ../../../docs/src/styles.css, ../evolution/DESIGN_METHODOLOGY.md, ../data/DATA_MODEL.md]
 ---

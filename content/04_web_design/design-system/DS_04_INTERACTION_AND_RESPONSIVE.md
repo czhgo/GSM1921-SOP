@@ -2,7 +2,7 @@
 title: "设计系统 · 第四编 交互与响应式"
 type: design
 role: "[工程师]+[AI]"
-last_updated: 2026-11-01
+last_updated: "2026-11-03"
 status: active
 related_files: [DESIGN_SYSTEM.md, DS_03_COMPONENTS.md, ../../../docs/src/styles.css, CASES.md]
 ---

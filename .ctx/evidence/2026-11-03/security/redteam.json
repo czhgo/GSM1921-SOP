@@ -1,0 +1,677 @@
+{
+  "generatedAt": "2026-11-03T05:52:48.651Z",
+  "note": "写入探针只在 :memory: 库执行；不连接 server/data.db / :3000",
+  "roster": {
+    "participant": {
+      "personId": "2500010001",
+      "studentId": "2500010001",
+      "role": "participant",
+      "branchId": "br-b1"
+    },
+    "organizer": {
+      "personId": "2400012347",
+      "studentId": "2400012347",
+      "role": "participant",
+      "branchId": "br-b1"
+    },
+    "leader": {
+      "personId": "2400012345",
+      "studentId": "2400012345",
+      "role": "leader",
+      "branchId": "br-b1"
+    },
+    "org-commissioner": {
+      "personId": "2400012355",
+      "studentId": "2400012355",
+      "role": "org-commissioner",
+      "branchId": "br-b1"
+    },
+    "prop-commissioner": {
+      "personId": "2400012356",
+      "studentId": "2400012356",
+      "role": "prop-commissioner",
+      "branchId": "br-b1"
+    },
+    "disc-commissioner": {
+      "personId": "2400012354",
+      "studentId": "2400012354",
+      "role": "disc-commissioner",
+      "branchId": "br-b1"
+    },
+    "secretary": {
+      "personId": "2300010001",
+      "studentId": "2300010001",
+      "role": "secretary",
+      "branchId": "br-b1"
+    },
+    "party-staff": {
+      "personId": "9000000001",
+      "studentId": "9000000001",
+      "role": "party-staff",
+      "branchId": null
+    }
+  },
+  "summary": {
+    "total": 40,
+    "PASS": 39,
+    "已知例外": 1
+  },
+  "results": [
+    {
+      "actorRole": "participant",
+      "personId": "2500010001",
+      "method": "POST",
+      "path": "/api/v1/snapshot",
+      "status": 403,
+      "is2xx": false,
+      "expected": [
+        200,
+        403
+      ],
+      "verdict": "PASS",
+      "note": "清空 attendances | 清空后 144 → 144 条 | {\"error\":\"无权限：不能删除该考勤记录（无权限：当前账号不能为该支部或活动登记此人员考勤）\"}",
+      "before": 144,
+      "after": 144
+    },
+    {
+      "actorRole": "participant",
+      "personId": "2500010001",
+      "method": "POST",
+      "path": "/api/v1/snapshot",
+      "status": 403,
+      "is2xx": false,
+      "expected": [
+        200,
+        403
+      ],
+      "verdict": "PASS",
+      "note": "清空 actSubRecords | act-3 子记录 仍在 | {\"error\":\"无权限：活动子记录仅限支委层或本场活动的组织者/深度参与者写入\"}",
+      "before": [
+        "act-3"
+      ],
+      "after": [
+        "act-3"
+      ]
+    },
+    {
+      "actorRole": "participant",
+      "personId": "2500010001",
+      "method": "POST",
+      "path": "/api/v1/snapshot",
+      "status": 403,
+      "is2xx": false,
+      "expected": [
+        200,
+        403
+      ],
+      "verdict": "PASS",
+      "note": "清空 tfSubRecords | tf-003 子记录 仍在 | {\"error\":\"无权限：专班子记录仅限支委层或本专班的组织者/深度参与者写入\"}",
+      "before": [
+        "tf-003"
+      ],
+      "after": [
+        "tf-003"
+      ]
+    },
+    {
+      "actorRole": "participant",
+      "personId": "2500010001",
+      "method": "POST",
+      "path": "/api/v1/snapshot",
+      "status": 200,
+      "is2xx": true,
+      "expected": [
+        200,
+        403
+      ],
+      "verdict": "PASS",
+      "note": "清空 notices | 通知 14 → 14 条；notice-101 仍在 | {\"versions\":{\"notices\":1}}",
+      "before": 14,
+      "after": 14
+    },
+    {
+      "actorRole": "participant",
+      "personId": "2500010001",
+      "method": "POST",
+      "path": "/api/v1/snapshot",
+      "status": 403,
+      "is2xx": false,
+      "expected": [
+        403
+      ],
+      "verdict": "PASS",
+      "note": "伪造通知发布；落库=false | {\"error\":\"无权限：通知发布仅限支书/副支书/组织委员/宣传委员，编辑与删除另含纪检委员\"}",
+      "before": false,
+      "after": false
+    },
+    {
+      "actorRole": "participant",
+      "personId": "2500010001",
+      "method": "POST",
+      "path": "/api/v1/snapshot",
+      "status": 403,
+      "is2xx": false,
+      "expected": [
+        403
+      ],
+      "verdict": "PASS",
+      "note": "篡改他人考勤 att19：status present→present，recordedBy null→null | {\"error\":\"无权限：考勤记录人留痕不可通过快照修改\"}",
+      "before": {
+        "status": "present",
+        "recordedBy": null
+      },
+      "after": {
+        "status": "present",
+        "recordedBy": null
+      }
+    },
+    {
+      "actorRole": "participant",
+      "personId": "2500010001",
+      "method": "DELETE",
+      "path": "/api/v1/attendances/att-probe-other",
+      "status": 403,
+      "is2xx": false,
+      "expected": [
+        403
+      ],
+      "verdict": "PASS",
+      "note": "越权删除后行应仍在 | {\"error\":\"无权限：该写操作仅限党委组织员/党务老师或本支部支委层\"}",
+      "before": null,
+      "after": null
+    },
+    {
+      "actorRole": "secretary",
+      "personId": "2300010001",
+      "method": "DELETE",
+      "path": "/api/v1/attendances/att-probe-del-ok",
+      "status": 204,
+      "is2xx": true,
+      "expected": [
+        204
+      ],
+      "verdict": "PASS",
+      "note": "",
+      "before": null,
+      "after": null
+    },
+    {
+      "actorRole": "participant",
+      "personId": "2500010001",
+      "method": "POST",
+      "path": "/api/v1/actSubRecords",
+      "status": 403,
+      "is2xx": false,
+      "expected": [
+        403
+      ],
+      "verdict": "PASS",
+      "note": "{\"error\":\"无权限：活动子记录仅限支委层或本场活动的组织者/深度参与者写入\"}",
+      "before": null,
+      "after": null
+    },
+    {
+      "actorRole": "organizer",
+      "personId": "2400012347",
+      "method": "POST",
+      "path": "/api/v1/actSubRecords",
+      "status": 201,
+      "is2xx": true,
+      "expected": [
+        201
+      ],
+      "verdict": "PASS",
+      "note": "{\"id\":\"__root__\",\"body\":{\"act-3\":{\"publicity\":[{\"title\":\"组织者初稿\"}]}}}",
+      "before": null,
+      "after": null
+    },
+    {
+      "actorRole": "participant",
+      "personId": "2500010001",
+      "method": "PATCH",
+      "path": "/api/v1/actSubRecords/__root__",
+      "status": 403,
+      "is2xx": false,
+      "expected": [
+        403
+      ],
+      "verdict": "PASS",
+      "note": "{\"error\":\"无权限：活动子记录仅限支委层或本场活动的组织者/深度参与者写入\"}",
+      "before": null,
+      "after": null
+    },
+    {
+      "actorRole": "organizer",
+      "personId": "2400012347",
+      "method": "PATCH",
+      "path": "/api/v1/actSubRecords/__root__",
+      "status": 200,
+      "is2xx": true,
+      "expected": [
+        200
+      ],
+      "verdict": "PASS",
+      "note": "{\"id\":\"__root__\",\"body\":{\"act-3\":{\"publicity\":[{\"title\":\"组织者改写\"}]}}}",
+      "before": null,
+      "after": null
+    },
+    {
+      "actorRole": "participant",
+      "personId": "2500010001",
+      "method": "POST",
+      "path": "/api/v1/tfSubRecords",
+      "status": 403,
+      "is2xx": false,
+      "expected": [
+        403
+      ],
+      "verdict": "PASS",
+      "note": "{\"error\":\"无权限：专班子记录仅限支委层或本专班的组织者/深度参与者写入\"}",
+      "before": null,
+      "after": null
+    },
+    {
+      "actorRole": "organizer",
+      "personId": "2400012347",
+      "method": "POST",
+      "path": "/api/v1/tfSubRecords",
+      "status": 201,
+      "is2xx": true,
+      "expected": [
+        201
+      ],
+      "verdict": "PASS",
+      "note": "{\"id\":\"__root__\",\"body\":{\"tf-003\":{\"outputs\":[{\"title\":\"组织者产出\"}]}}}",
+      "before": null,
+      "after": null
+    },
+    {
+      "actorRole": "participant",
+      "personId": "2500010001",
+      "method": "PATCH",
+      "path": "/api/v1/tfSubRecords/__root__",
+      "status": 403,
+      "is2xx": false,
+      "expected": [
+        403
+      ],
+      "verdict": "PASS",
+      "note": "{\"error\":\"无权限：专班子记录仅限支委层或本专班的组织者/深度参与者写入\"}",
+      "before": null,
+      "after": null
+    },
+    {
+      "actorRole": "organizer",
+      "personId": "2400012347",
+      "method": "PATCH",
+      "path": "/api/v1/tfSubRecords/__root__",
+      "status": 200,
+      "is2xx": true,
+      "expected": [
+        200
+      ],
+      "verdict": "PASS",
+      "note": "{\"id\":\"__root__\",\"body\":{\"tf-003\":{\"outputs\":[{\"title\":\"组织者改写\"}]}}}",
+      "before": null,
+      "after": null
+    },
+    {
+      "actorRole": "participant",
+      "personId": "2500010001",
+      "method": "POST",
+      "path": "/api/v1/issue-unread",
+      "status": 403,
+      "is2xx": false,
+      "expected": [
+        403
+      ],
+      "verdict": "PASS",
+      "note": "{\"error\":\"无权限：只能标记本人或本人有权派发事项的未读\"}",
+      "before": null,
+      "after": null
+    },
+    {
+      "actorRole": "secretary",
+      "personId": "2300010001",
+      "method": "POST",
+      "path": "/api/v1/issue-unread",
+      "status": 200,
+      "is2xx": true,
+      "expected": [
+        200
+      ],
+      "verdict": "PASS",
+      "note": "{\"id\":\"2400012345:issue-probe\",\"assigneeId\":\"2400012345\",\"issueId\":\"issue-probe\",\"branchId\":\"br-b1\",\"unread\":true,\"at\":\"2026-11-03T05:52:48.461Z\"}",
+      "before": null,
+      "after": null
+    },
+    {
+      "actorRole": "participant",
+      "personId": "2500010001",
+      "method": "POST",
+      "path": "/api/v1/uploads",
+      "status": 403,
+      "is2xx": false,
+      "expected": [
+        403
+      ],
+      "verdict": "PASS",
+      "note": "{\"error\":\"无权限\"}",
+      "before": null,
+      "after": null
+    },
+    {
+      "actorRole": "secretary",
+      "personId": "2300010001",
+      "method": "UPLOAD",
+      "path": "/api/v1/uploads",
+      "status": 201,
+      "is2xx": true,
+      "expected": [
+        201
+      ],
+      "verdict": "PASS",
+      "note": "{\"id\":\"27984797-4b75-4524-9f17-ce53c8f147fa\",\"filename\":\"probe.png\",\"path\":\"/api/v1/uploads/07a2ce51-ea59-4f7f-b066-92c4578674c0.png\",\"size\":8,\"uploadedBy\":\"2300010001\",\"uploadedAt\":\"2026-11-03T05:52:",
+      "before": null,
+      "after": null
+    },
+    {
+      "actorRole": "leader",
+      "personId": "2400012345",
+      "method": "DELETE",
+      "path": "/api/v1/attendances/att-probe-leader-ok",
+      "status": 204,
+      "is2xx": true,
+      "expected": [
+        204
+      ],
+      "verdict": "PASS",
+      "note": "",
+      "before": null,
+      "after": null
+    },
+    {
+      "actorRole": "leader",
+      "personId": "2400012345",
+      "method": "DELETE",
+      "path": "/api/v1/attendances/att-probe-leader-deny",
+      "status": 403,
+      "is2xx": false,
+      "expected": [
+        403
+      ],
+      "verdict": "PASS",
+      "note": "{\"error\":\"无权限：该写操作仅限党委组织员/党务老师或本支部支委层\"}",
+      "before": null,
+      "after": null
+    },
+    {
+      "actorRole": "prop-commissioner",
+      "personId": "2400012356",
+      "method": "POST",
+      "path": "/api/v1/notices",
+      "status": 201,
+      "is2xx": true,
+      "expected": [
+        201
+      ],
+      "verdict": "PASS",
+      "note": "{\"id\":\"notice-probe-prop\",\"title\":\"探针通知\",\"content\":\"宣传委员发布\",\"branchId\":\"br-b1\",\"publisherId\":\"2400012356\",\"publishedAt\":\"2026-11-03T00:00:00.000Z\"}",
+      "before": null,
+      "after": null
+    },
+    {
+      "actorRole": "disc-commissioner",
+      "personId": "2400012354",
+      "method": "POST",
+      "path": "/api/v1/issue-unread",
+      "status": 200,
+      "is2xx": true,
+      "expected": [
+        200
+      ],
+      "verdict": "PASS",
+      "note": "{\"id\":\"2400012345:issue-probe\",\"assigneeId\":\"2400012345\",\"issueId\":\"issue-probe\",\"branchId\":\"br-b1\",\"unread\":true,\"at\":\"2026-11-03T05:52:48.527Z\"}",
+      "before": null,
+      "after": null
+    },
+    {
+      "actorRole": "participant",
+      "personId": "2500010001",
+      "method": "POST",
+      "path": "/api/v1/issues",
+      "status": 201,
+      "is2xx": true,
+      "expected": [
+        201
+      ],
+      "verdict": "PASS",
+      "note": "{\"id\":\"issue-cc98e9ee\",\"number\":7,\"branchId\":\"br-b1\",\"title\":\"探针反馈\",\"body\":\"内容\",\"scope\":\"支部\",\"types\":[\"建议\"],\"domain\":\"\",\"status\":\"open\",\"closedReason\":null,\"closedAt\":null,\"submittedBy\":\"匿名\",\"anonymou",
+      "before": null,
+      "after": null
+    },
+    {
+      "actorRole": "party-staff",
+      "personId": "9000000001",
+      "method": "POST",
+      "path": "/api/v1/issues",
+      "status": 403,
+      "is2xx": false,
+      "expected": [
+        403
+      ],
+      "verdict": "PASS",
+      "note": "{\"error\":\"党委账号不能提交支部内部反馈或汇报\"}",
+      "before": null,
+      "after": null
+    },
+    {
+      "actorRole": "participant",
+      "personId": "2500010001",
+      "method": "PATCH",
+      "path": "/api/v1/issues/issue-probe",
+      "status": 403,
+      "is2xx": false,
+      "expected": [
+        403
+      ],
+      "verdict": "PASS",
+      "note": "{\"error\":\"无权限\"}",
+      "before": null,
+      "after": null
+    },
+    {
+      "actorRole": "secretary",
+      "personId": "2300010001",
+      "method": "PATCH",
+      "path": "/api/v1/issues/issue-probe",
+      "status": 200,
+      "is2xx": true,
+      "expected": [
+        200
+      ],
+      "verdict": "PASS",
+      "note": "{\"id\":\"issue-probe\",\"branchId\":\"br-b1\",\"title\":\"探针事项\",\"body\":\"x\",\"status\":\"processing\",\"submittedBy\":\"2400012345\",\"assignee\":\"2400012345\",\"assigneeRole\":\"participant\",\"dispatchHistory\":[{\"to\":\"2400012",
+      "before": null,
+      "after": null
+    },
+    {
+      "actorRole": "participant",
+      "personId": "2500010001",
+      "method": "PATCH",
+      "path": "/api/v1/branches/br-b1/config",
+      "status": 403,
+      "is2xx": false,
+      "expected": [
+        403
+      ],
+      "verdict": "PASS",
+      "note": "{\"error\":\"无权限：仅本支部现任支书/副支书或党委组织员可配置（域负责人仅可改本域参数）\"}",
+      "before": null,
+      "after": null
+    },
+    {
+      "actorRole": "secretary",
+      "personId": "2300010001",
+      "method": "PATCH",
+      "path": "/api/v1/branches/br-b1/config",
+      "status": 200,
+      "is2xx": true,
+      "expected": [
+        200
+      ],
+      "verdict": "PASS",
+      "note": "{\"id\":\"br-b1\",\"name\":\"光华管理学院本科生党支部\",\"type\":\"本科生\",\"config\":{\"headerTitle\":\"安全探针\",\"accent\":null,\"modules\":null,\"fileSpaceIsolated\":true,\"configChangeHistory\":[{\"by\":\"2300010001\",\"byRole\":\"secretary\",\"at",
+      "before": null,
+      "after": null
+    },
+    {
+      "actorRole": "participant",
+      "personId": "2500010001",
+      "method": "PATCH",
+      "path": "/api/v1/branches/br-b1/config/rollback",
+      "status": 403,
+      "is2xx": false,
+      "expected": [
+        403
+      ],
+      "verdict": "PASS",
+      "note": "{\"error\":\"无权限：仅本支部现任支书/副支书或党委组织员可回滚配置\"}",
+      "before": null,
+      "after": null
+    },
+    {
+      "actorRole": "secretary",
+      "personId": "2300010001",
+      "method": "PATCH",
+      "path": "/api/v1/branches/br-b1/config/rollback",
+      "status": 200,
+      "is2xx": true,
+      "expected": [
+        200
+      ],
+      "verdict": "PASS",
+      "note": "{\"id\":\"br-b1\",\"name\":\"光华管理学院本科生党支部\",\"type\":\"本科生\",\"config\":{\"headerTitle\":\"光华管理学院本科生党支部\",\"accent\":null,\"modules\":null,\"fileSpaceIsolated\":true,\"configChangeHistory\":[{\"by\":\"2300010001\",\"byRole\":\"secret",
+      "before": null,
+      "after": null
+    },
+    {
+      "actorRole": "participant",
+      "personId": "2500010001",
+      "method": "POST",
+      "path": "/api/v1/activities/act-3/archive",
+      "status": 403,
+      "is2xx": false,
+      "expected": [
+        403
+      ],
+      "verdict": "PASS",
+      "note": "{\"error\":\"无权限：不能归档其他范围的活动\"}",
+      "before": null,
+      "after": null
+    },
+    {
+      "actorRole": "organizer",
+      "personId": "2400012347",
+      "method": "POST",
+      "path": "/api/v1/activities/act-3/archive",
+      "status": 403,
+      "is2xx": false,
+      "expected": [
+        403
+      ],
+      "verdict": "已知例外",
+      "note": "活动组织者未持工作组 activity.edit 授权 ⇒ 归档 403（判据更严，非权限提升） | {\"error\":\"无权限：不能归档其他范围的活动\"}",
+      "before": null,
+      "after": null
+    },
+    {
+      "actorRole": "participant",
+      "personId": "2500010001",
+      "method": "POST",
+      "path": "/api/v1/branches",
+      "status": 403,
+      "is2xx": false,
+      "expected": [
+        403
+      ],
+      "verdict": "PASS",
+      "note": "{\"ok\":false,\"reason\":\"无权限：仅党委组织员/党务老师可创建支部\"}",
+      "before": null,
+      "after": null
+    },
+    {
+      "actorRole": "party-staff",
+      "personId": "9000000001",
+      "method": "POST",
+      "path": "/api/v1/branches",
+      "status": 201,
+      "is2xx": true,
+      "expected": [
+        201
+      ],
+      "verdict": "PASS",
+      "note": "{\"branch\":{\"id\":\"br-d82b817e\",\"name\":\"探针支部\",\"type\":\"\",\"config\":{\"headerTitle\":\"\",\"accent\":null,\"modules\":null,\"blocks\":null,\"workforce\":null,\"desc\":\"\",\"themePreset\":null,\"fileSpaceIsolated\":true,\"conf",
+      "before": null,
+      "after": null
+    },
+    {
+      "actorRole": "participant",
+      "personId": "2500010001",
+      "method": "PATCH",
+      "path": "/api/v1/users/probe-sec-target",
+      "status": 403,
+      "is2xx": false,
+      "expected": [
+        403
+      ],
+      "verdict": "PASS",
+      "note": "{\"error\":\"无权限：该写操作仅限党委组织员/党务老师或本支部支委层\"}",
+      "before": null,
+      "after": null
+    },
+    {
+      "actorRole": "secretary",
+      "personId": "2300010001",
+      "method": "PATCH",
+      "path": "/api/v1/users/probe-sec-target",
+      "status": 200,
+      "is2xx": true,
+      "expected": [
+        200
+      ],
+      "verdict": "PASS",
+      "note": "{\"id\":\"probe-sec-target\",\"studentId\":\"probe-sec-target\",\"name\":\"探针目标\",\"role\":\"prop-commissioner\",\"branchId\":\"br-b1\",\"partyGroup\":\"第一党小组\"}",
+      "before": null,
+      "after": null
+    },
+    {
+      "actorRole": "party-staff",
+      "personId": "9000000001",
+      "method": "PATCH",
+      "path": "/api/v1/users/probe-sec-target",
+      "status": 200,
+      "is2xx": true,
+      "expected": [
+        200
+      ],
+      "verdict": "PASS",
+      "note": "{\"id\":\"probe-sec-target\",\"studentId\":\"probe-sec-target\",\"name\":\"探针目标\",\"role\":\"participant\",\"branchId\":\"br-b1\",\"partyGroup\":\"第一党小组\"}",
+      "before": null,
+      "after": null
+    },
+    {
+      "actorRole": "participant",
+      "personId": "2500010001",
+      "method": "GET",
+      "path": "/auth/me（过期 token）",
+      "status": 401,
+      "is2xx": false,
+      "expected": [
+        401
+      ],
+      "verdict": "PASS",
+      "note": "受保护写口=401；会话行=已删除"
+    }
+  ]
+}

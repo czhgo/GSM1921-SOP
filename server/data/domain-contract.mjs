@@ -146,8 +146,8 @@ const RESOURCE_CONTRACT = [
   },
   {
     entity: 'notices', table: 'notices', mockCollection: 'notices',
-    required: ['id', 'title', 'content', 'priority', 'publishDate', 'branchId', 'kind', 'reads'],
-    optional: ['audience', 'audiencePersons', 'actionRoles', 'targetType', 'targetId', 'expireDate',
+    required: ['id', 'title', 'content', 'priority', 'publishDate', 'branchId', 'kind'],
+    optional: ['reads', 'audience', 'audiencePersons', 'actionRoles', 'targetType', 'targetId', 'expireDate',
       'archived', 'archivedAt', 'archivedBy', 'source', 'createdBy', 'replyTo', 'fromPersonId'],
     derived: ['expireDate'],
     enums: { priority: PRIORITIES, kind: ['announcement', 'system', 'action', 'message'] },

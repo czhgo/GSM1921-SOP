@@ -2,7 +2,7 @@
 title: "AI coding 技术层索引——网站系统的 AI coding 技术方法"
 type: index
 role: "[工程师]+[AI]"
-last_updated: 2026-11-02
+last_updated: "2026-11-03"
 status: active
 ---
 

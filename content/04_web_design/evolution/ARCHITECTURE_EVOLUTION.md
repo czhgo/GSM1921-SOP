@@ -3,7 +3,7 @@ title: "架构演进——组件化落地评估与轻量插件化设计"
 type: design
 role: "[工程师]+[AI]"
 created: 2026-08-22
-last_updated: "2026-10-29"
+last_updated: "2026-11-03"
 status: active
 related_files: [DATA_MODEL.md, SOP_WEBSITE_GUIDE.md, DEPLOYMENT_GUIDE.md, ../../03_doc_system/ARCHITECTURE.md, ../../05_ai_coding/README.md]
 ---
@@ -144,6 +144,43 @@ related_files: [DATA_MODEL.md, SOP_WEBSITE_GUIDE.md, DEPLOYMENT_GUIDE.md, ../../
 取舍是把 bump 的**时机**从「每次改动」挪到「发布」：日常提交不动 `?v=`（降低 diff 噪音），发布前跑一次 `cd server; npm run release:stamp`（先全站补戳，再以 `--check` 核对陈旧戳与 `CODE_VERSION`）。这条取舍的前提是**部署必经 `release:stamp`**——若直接部署未 bump 的代码，`?v=` 未变的模块 URL 会命中旧缓存，新旧混用随即回来。
 
 > **若将来要退出戳，必须先把内部模块改 no-cache 协商**——否则浏览器按 URL 缓存 ES Module 的语义不变，去掉 `?v=` 只会把「陈旧模块」从可见变成不可见。
+
+---
+
+## 十、多支部同实例设计（2026-11-03 · 设计稿，未实现）
+
+> **支书口径**：「服务端要考虑多支部情况，需要有所设计」。本节只定**模型与实施顺序**，不改变当前上线形态——上线仍坚持「一实例一支部」，production 档在多支部且未显式放行时拒绝启动。完成本节 Phase 1–2 后，才允许 `ALLOW_MULTI_BRANCH=1`。
+
+### 10.1 现状与风险
+
+- 数据行已有 `branchId`（资源、语义、工作组表均带；历史缺字段回落 `br-b1`），写门已有支部校验（`branch-scope.js` / `RESOURCE_WRITE_GATE`）。
+- **读面没有统一收口**：`listTable` 与部分语义端点整表读取，支部过滤靠前端投影；因此同实例多支部会串读。
+- 快照写穿已做「写入行归属校验」，但读取面未过滤，导致「写得住、看得穿」。
+
+### 10.2 目标模型（请求级支部上下文）
+
+1. **单一来源**：每个请求由 `requireAuth` 注入 `req.actor.branchId`；无支部归属仅限 `party-staff` / 待归属账号。
+2. **读口统一过滤**：所有 `list` / `bootstrap` / 语义读口在取得行后经过 `resourceRowsForActor(db, name, rows, actor, reader)`；禁止在 handler 里自行 `JSON.parse` 后直接返回全表。
+3. **治理面显式跨支部**：`party-staff` 读取跨支部时必须带 `?branchId=` 或走党委专用端点，并在 `auth_audit` 留痕；不带范围时默认拒绝，而不是默认全量。
+4. **写入面不变**：继续用 `RESOURCE_WRITE_GATE` + 行级归属；快照写入的 `snapshotScopeDeny` 与 `_retainUngatedSnapshotRows` 保持现值。
+5. **索引**：`MIGRATIONS v2` 增加 `branchId` 表达式索引（`json_extract(data,'$.branchId')`），只在实际出现跨支部查询后加，不提前空转。
+
+### 10.3 实施顺序（每阶段可独立回归）
+
+| 阶段 | 内容 | 验收判据 | 风险 |
+|---|---|---|---|
+| Phase 1 | 读口统一过滤：`/bootstrap`、资源 `GET`、语义读口全部接入 `resourceRowsForActor` | 双支部夹具下，A 支部账号读不到 B 支部任何行；单支部现有测试全绿 | 可能误伤党委跨支部治理视图，需显式范围参数 |
+| Phase 2 | 快照读面按支部返回；前端 `data-adapter` 不再假设全量 | 双支部下快照同步后本支部数据完整、他支部数据不出现 | 前端缓存键需带 branchId |
+| Phase 3 | 党委跨支部入口与审计留痕；`ALLOW_MULTI_BRANCH=1` 才允许启动 | 党委带范围可读、普通账号跨支部 403；审计可查 | 权限面扩大，须支书裁定 |
+| Phase 4 | 索引与压力测试（万行级） | p95 不退化；无全表扫描 | 需要真实规模数据 |
+
+### 10.4 不做什么
+
+- 不把支部做成独立数据库 / 独立 schema（迁移与备份成本高，且当前规模不需要）。
+- 不在前端做「隐藏他支部数据」来替代服务端读过滤——前端隐藏不是隔离。
+- 不在 Phase 1–2 完成前打开 `ALLOW_MULTI_BRANCH`。
+
+> **决策待办**：Phase 3 的「党委跨支部读取」是否需要独立页面/入口，还是仅 API 参数；这个决定会影响 `party-committee` 工作台的 IA，留给支书裁定。
 
 ---
 

@@ -16,7 +16,7 @@ npm run clean:tmp      # 清理测试残留目录 .tmp（脚本非正常中止�
 ```
 
 - 启动入口 `server/server.js`：数据库为空时自动从 `docs/src/data/mock/*.js` 导入种子数据（users/branches/activities/notices/taskforces/tasks/assignments/archive_records/signups；**2026-09-25 批次 189 起另补** attendances/inspections/activity_reviews/taskforce_reviews/thought_reports/periodic_archive_submissions/prop_tasks/external_dispatches/appointment_records 与语义端点域 handoffs/member_confirmations/attendance_appeals/inspection_appeals/issue_unread/auth_audit —— 使「只有结构、没有数据」的表**首启即有真行**（判据：引用一律取自既有 users/branches/activities，零孤立引用）；`DISABLE_SEED=1` 时空库也不导入演示种子（真实支部全新建库直接录真实数据用）。**2026-09-23 P0-4**：**生产形态（`APP_ENV=production` 或 `NODE_ENV=production`）默认不播种**（不必依赖「记得设 `DISABLE_SEED=1`」）；启动日志会打印 `users` 计数与「演示种子账号」计数，供核对「库内是否只有真人」。**前端侧另有构建期常量 `docs/src/config/deploy.js::SEED_FALLBACK`**（**2026-09-23 批次 163 起已接线、改它生效**）：置 `false` 时 `docs/src/data/data-adapter.js::init()` 不再为「考勤 / 考察 / 待办」三域注入演示种子（默认 `true`＝演示形态）。⚠ **Node 托管（本 server）形态下已接线**：`server/app.js` 对 `/src/config/deploy.js` 的动态注入串**已带上该常量**，其值由环境变量 `SEED_FALLBACK` 决定（置 `0` ⇒ 注入 `false`；缺省 / 其它值 ⇒ `true`）⇒ 本形态下发 `SEED_FALLBACK=0` 即可关断（见 `server/.env.example`）。它只覆盖那三处，**不替代**上面的 `DISABLE_SEED`／生产形态。
-- 环境变量模板见 `server/.env.example`（均有缺省，未配置即可本地演示运行）：`DB_PATH` 指定数据库文件路径（默认 `server/data.db`）、`PORT` 指定监听端口、`LOGIN_PASSWORD` 为统一登录口令（缺省 '123456'，与前端演示账号一致）、`DISABLE_PASSWORD_CHECK=1` 跳过口令校验（内网演示/测试套件用；`npm test`/`test:core`/`test:fast`/`test:full` 脚本均默认注入）、`APP_ENV` 运行形态（**`production` ＝ 生产**，见下条）。**2026-09-23 P0-3（上线安全）**：生产形态下 ① 未设 `LOGIN_PASSWORD` ⇒ **启动即拒**（进程退出并打印可读原因）；② `DISABLE_PASSWORD_CHECK` **一律不认**（逃逸门只在本地/测试形态生效）；③ 口令比对不含 `'123456'` 兜底。**非生产形态（本地/测试）行为一字不变**。
+- 环境变量模板见 `server/.env.example`（均有缺省，未配置即可本地演示运行）：`DB_PATH` 指定数据库文件路径（默认 `server/data.db`）、`PORT` 指定监听端口、`LOGIN_PASSWORD` 为统一登录口令（缺省 '123456'，与前端演示账号一致）、`SESSION_TTL_HOURS` 会话有效期小时数（缺省 3；旧 `SESSION_TTL_DAYS` 仍兼容按天换算）、`DISABLE_PASSWORD_CHECK=1` 跳过口令校验（内网演示/测试套件用；`npm test`/`test:core`/`test:fast`/`test:full` 脚本均默认注入）、`APP_ENV` 运行形态（**`production` ＝ 生产**，见下条）。**2026-09-23 P0-3（上线安全）**：生产形态下 ① 未设 `LOGIN_PASSWORD` ⇒ **启动即拒**（进程退出并打印可读原因）；② `DISABLE_PASSWORD_CHECK` **一律不认**（逃逸门只在本地/测试形态生效）；③ 口令比对不含 `'123456'` 兜底。**非生产形态（本地/测试）行为一字不变**。
 - **重置 / 初始化口径**：前端 `?reset=demo/preview/init` 仅本地演示形态（无 API token）生效，API 模式不执行、数据以服务器为权威；服务端重置 = 删除 `server/data.db` 后重启自动重种，或 `DISABLE_SEED=1`（或生产形态）空库起步。
 
 ## 数据与文件
@@ -244,9 +244,9 @@ node --input-type=module -e "import Database from 'better-sqlite3'; import { PEO
 
 | # | 限制 | 对部署的含义 |
 |---|---|---|
-| 1 | **各业务动作的角色写权限尚未完全统一** | 资源级角色门见 `RESOURCE_WRITE_GATE`；活动、专班工作组、考勤等另有专门业务写门。部分通用资源仍只要求登录，按 `README-server.md §7.1 #3` 逐项核对，不应把“跨支部写入已拦截”理解成“所有角色写权已统一” |
+| 1 | **各业务动作的角色写权限按矩阵逐口登记** | 资源级角色门见 `RESOURCE_WRITE_GATE`，活动、专班工作组、考勤等另有专门业务写门；`server/security/write-policy-matrix.mjs` 是唯一机读矩阵（141 行，`known-risk` 0），新增写口未登记即由 `write-policy-matrix` 判红。仍不应把“矩阵已覆盖”理解成“所有角色写权已按业务最终统一” |
 | 2 | **无业务字段索引** | 全库是 `(id TEXT PRIMARY KEY, data TEXT)` 宽表：`id` 有主键索引，**`data` 内字段无索引**、读路径一律取全表在 JS 里 `JSON.parse`。⇒ 数据量上到**万行级**前应先评估再优化（属**性能债**，非功能缺陷；本批**只登记未改**） |
-| 3 | **token 无过期 / 无刷新** · **口令是全支部统一口令** | 会话仅显式 logout 或账号流出时失效；系统**没有个人密码**概念（`README-server.md §7.1 #5 / #6`） |
+| 3 | **token 3 小时过期 / 无刷新** · **口令是全支部统一口令** | 会话超过 `SESSION_TTL_HOURS`（缺省 3，可调）即失效并要求重新登录；系统**没有个人密码**概念（`README-server.md §7.1 #5 / #6`） |
 
 ### 优雅关闭（2026-09-29 批次 268 新增）
 

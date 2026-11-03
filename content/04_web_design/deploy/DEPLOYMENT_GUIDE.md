@@ -3,7 +3,7 @@ title: "部署与对外对接"
 type: design
 role: "[工程师]+[AI]"
 created: 2026-08-19
-last_updated: 2026-10-17
+last_updated: "2026-11-03"
 status: active
 related_files: [docs/src/data/data-adapter.js, docs/src/data/api-adapter.js, docs/src/services/core/runtime.js, docs/src/config/deploy.js, docs/src/core/boot/bootstrap.js, docs/src/components/shell/sidebar.js, docs/src/components/shell/header.js, docs/login.html, docs/src/services/core/auth.js, server/server.js, server/app.js, server/db.js, server/routes/auth.js, server/routes/resources.js, server/routes/uploads.js]
 ---
@@ -63,6 +63,19 @@ related_files: [docs/src/data/data-adapter.js, docs/src/data/api-adapter.js, doc
 **判定口诀**：要演示走 A，要持久化走 B，要学校托管走 C，要微信协同走 D——D 必须站在 B/C 之上。
 
 > 代码就绪度逐项盘点（已就绪 / 待做）与真实部署 checklist 见附录 A.1 / A.2（对内）。
+
+### 2.3 运行档：review / production（2026-11-03 固化）
+
+**判定单一源**：`server/env.js::isProductionEnv`——`APP_ENV=production` **或** `NODE_ENV=production` 即生产档；两者都不设即 review 档。启动日志首行直接标明档位，部署后先看这一行再判断后续行为。
+
+| 档位 | 用途 | 启动方式 | 数据与拦截 |
+|---|---|---|---|
+| **review**（缺省） | 视觉检验 / 本地演示 | `cd server && npm start`；建议 `DB_PATH=data.review.db node server.js` | 允许演示种子；多支部**只打印分支数、不拦截**。**必须使用独立库，不得指向生产库** |
+| **production** | 正式上线（一实例一支部） | `APP_ENV=production`、`LOGIN_PASSWORD=…`（另按 A.2 设 `DB_PATH` / `UPLOAD_DIR` / `SEED_FALLBACK=0`）后 `cd server && npm start` | 默认不播种；迁移完成后若 `branches` 表 >1 且未设 `ALLOW_MULTI_BRANCH=1`，**打印提示并以 exit 1 停止**（发生在监听端口之前） |
+
+**生产多支部口径**：一实例一支部；多支部需先完成服务端读过滤或显式设置 `ALLOW_MULTI_BRANCH=1`。默认不设该开关。
+
+`deploy/doctor.mjs` 会按档位核 `APP_ENV` / `LOGIN_PASSWORD`，并只读 SQLite 打印支部数；`deploy/smoke.mjs` 打印预期档位并照旧检查 `health` 与登录。环境模板见 `deploy/env.production.example`。
 
 ---
 

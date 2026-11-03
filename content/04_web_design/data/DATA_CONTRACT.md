@@ -3,7 +3,7 @@ title: "领域数据契约（单一源）"
 type: design
 role: "[工程师]+[AI]"
 version: "1.0"
-last_updated: 2026-11-02
+last_updated: "2026-11-03"
 status: active
 related_files: [content/04_web_design/data/DATA_MODEL.md, content/04_web_design/data/DATA_SEED_CONTRACT.md, server/data/domain-contract.mjs]
 ---

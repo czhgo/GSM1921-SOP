@@ -49,6 +49,7 @@ function usage() {
     '  --timeout <ms>     单页签等待上限（默认 30000）',
     '  --only <dims>      只跑指定维度，逗号分隔（F,D,C,E,M）',
     '  --base <url>       复用已起服务（不启 :memory:；写维度自行降级）',
+    '  --probe-writes     额外跑运行期越权探针（C1 默认只查权限矩阵，不逐口重探）',
     '  --help             显示本帮助',
     '',
     '默认：createApp({dbPath:":memory:"}) + seedDatabase + 随机端口 + Playwright Chromium。',
@@ -58,7 +59,7 @@ function usage() {
 
 /** 解析 CLI（未知参数直接抛错，不静默忽略） */
 function parseArgs(argv) {
-  const args = { tabs: [], all: false, headed: false, timeout: 30000, only: '', base: '', json: '', md: '', help: false };
+  const args = { tabs: [], all: false, headed: false, timeout: 30000, only: '', base: '', json: '', md: '', help: false, probeWrites: false };
   for (let i = 0; i < argv.length; i += 1) {
     const arg = argv[i];
     const next = () => {
@@ -76,6 +77,7 @@ function parseArgs(argv) {
       case '--timeout': args.timeout = Number(next()); break;
       case '--only': args.only = next(); break;
       case '--base': args.base = next().replace(/\/+$/, ''); break;
+      case '--probe-writes': args.probeWrites = true; break;
       case '--help': case '-h': args.help = true; break;
       default: throw new Error(`未知参数：${arg}`);
     }
@@ -286,6 +288,7 @@ async function main() {
           key, role, tab, label, source, blocks,
           page, base, dbMode, tokens, users,
           timeout: args.timeout,
+          probeWrites: args.probeWrites,
           shots: { wide: wideShot, narrow: narrowShot },
           stability,
         };

@@ -33,7 +33,7 @@ import { canReadThoughtReport } from '../../../docs/src/services/governance/thou
 // T-218：新增 4 张 niche 表（键名与前端快照 payload 键名完全一致）
 // T-209 全栈同步：补齐前端 mockDB 全部持久化域，使 API 模式全链路可用
 import { RESOURCE_TABLES, ID_PREFIX, listTable, getRow, writeRow } from './store.js';
-import { RESOURCE_WRITE_GATE, COMMISSIONER_WRITE_RESOURCES, _assertResourceWrite, _writeDenyMsg, ACTIVITY_WRITE_DENY_MSG, _assertActivityWrite, _ballotModeReject, BRANCH_COMMITTEE_ROLES, PARTY_STAFF_ROLE, _assertActivityBlockEnabled, _assertWorkflowBlockEnabled, _assertCapabilityPackageEnabled, activityBlockDisabledMsg, workflowBlockDisabledMsg, _snapshotNoticeMessageGateDeny, _snapshotResourceWriteGateDeny, _retainUngatedSnapshotRows, _inspectionDecisionDeny, _inspectionSourceKeyDeny, _inspectionImmutableKeyDeny, _inspectionPersonMembershipDeny } from './gates.js';
+import { RESOURCE_WRITE_GATE, COMMISSIONER_WRITE_RESOURCES, _assertResourceWrite, _writeDenyMsg, ACTIVITY_WRITE_DENY_MSG, _assertActivityWrite, _ballotModeReject, BRANCH_COMMITTEE_ROLES, PARTY_STAFF_ROLE, _assertActivityBlockEnabled, _assertWorkflowBlockEnabled, _assertCapabilityPackageEnabled, activityBlockDisabledMsg, workflowBlockDisabledMsg, _snapshotNoticeMessageGateDeny, _snapshotResourceWriteGateDeny, _retainUngatedSnapshotRows, _inspectionDecisionDeny, _inspectionSourceKeyDeny, _inspectionImmutableKeyDeny, _inspectionPersonMembershipDeny, aggregateSubRecordWriteDeny } from './gates.js';
 import { _activityApprovalGateDeny, _snapshotActivityApprovalGateDeny, _activityCreateGatePatch } from './approval-gates.js';
 import { _snapshotBaseVersions, _snapshotWrites, _snapshotMissingVersions, _allCollectionVersions, _snapshotVersionConflicts, _normalizeSnapshotAliases, recordSnapshotConflicts } from './snapshot-versions.js';
 import { registerExtraSemanticRoutes } from './semantic-routes.js';
@@ -416,7 +416,7 @@ export function createResourcesRouter(db) {
           row = normalizeSignupCreate(db, req.actor, row);
         }
         if (['actSubRecords', 'tfSubRecords'].includes(name)) {
-          const deny = aggregateWriteDeny(db, name, row.body || {}, req.actor);
+          const deny = aggregateWriteDeny(db, name, row.body || {}, req.actor) || aggregateSubRecordWriteDeny(db, name, row.body || {}, null, req.actor);
           if (deny) return res.status(403).json({ error: deny });
         }
         // v11（批次 504）：待办必须能归属支部——解析不出就 400，不再靠 br-b1 兜底。
@@ -600,7 +600,7 @@ export function createResourcesRouter(db) {
         req.body = transition.row;
       }
       if (['actSubRecords', 'tfSubRecords'].includes(name) && req.body && Object.prototype.hasOwnProperty.call(req.body, 'body')) {
-        const deny = aggregateWriteDeny(db, name, req.body.body, req.actor);
+        const deny = aggregateWriteDeny(db, name, req.body.body, req.actor) || aggregateSubRecordWriteDeny(db, name, req.body.body, JSON.parse(existing.data).body || {}, req.actor);
         if (deny) return res.status(403).json({ error: deny });
         req.body = {
           ...req.body,

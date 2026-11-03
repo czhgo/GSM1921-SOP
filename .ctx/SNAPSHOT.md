@@ -258,7 +258,7 @@ GSM1921-SOP/
 - **结论**：乙部「待启动」里混着大量**已由后续批次或守卫消化**的条目——不清账就会让下一轮把已做的事再做一遍；判据是「每条在办项必须能指到一个当前仍缺的文件/行为」，指不出的即删或重写。
 - **未决**：① `text-xs` 1971 处 / 130 文件**未迁移**（转入 `B-515-5`，只迁非标签用途）；② `form-loop-sweep` 的 409 排除收紧未做（需真机跑，已写明触发条件）；③ `B-516-1` 机扫 44 条：已消 31 / 仍能命中 12 / 无法机判 1，12 条待人工复核；④ `B-515-6` 已分流为「真缺陷 4 ＋ 复跑 1 ＋ precommit 9」，验证 / 提交类不再挂账；⑤ `B-515-3` 重复表达只建了权威句位置表，未逐条改句（68 / 160 处仍存）。
 - **已迁 content 的条目**：`GUARD_INVENTORY` 64 件 / 527 条 ＋ 归并执行结果；`DATA_CONSISTENCY_CHECKLIST` §0.2 增「已知缺口」行并修正语义端点表 5→7；`README-server` 静态缓存口径改为分层 ＋ 压缩。
-- **下批入口**：① 读本段；② 先跑 `npm run test:daily` 确认 1642 口径；③ `B-516-1` 的 12 条待人工复核按「已消 / 未消 / 不适用」逐条落；④ `B-515-5` 的 `text-xs` 按 `entries/tabs/**` 逐页核，禁止批量替换。
+- **下批入口**：① 读本段；② 先跑 `nnpm run test:daily` 确认 1642 口径；③ `B-516-1` 的 12 条待人工复核按「已消 / 未消 / 不适用」逐条落；④ `B-515-5` 的 `text-xs` 按 `entries/tabs/**` 逐页核，禁止批量替换。
 
 ## 批次 517 小结（2026-10-28）
 
@@ -338,7 +338,7 @@ GSM1921-SOP/
 - **结论**：全量审计 **45 页签，P0 0 / P1 0 / P2 4，exception 29**（F1 14 / C2 12 / C1 3）；F1 以 `TAB_BLOCK_BASELINE` 登记为准，DOM measured 仅复核；破坏性 CRUD 不在共享库真删；`requireAuth` 系统性风险按例外登记。
 - **未决**：① F6 三处空态待人工确认（`org.thought-review` / `org.member-flow` / `visitor.attendance`）；② `disc.review` 的 E1 p95 95ms 待下批优化；③ 41 个页签仅登记未重构；④ 读数：daily **1733 / 1733**（367s），戳 `20261102a`。
 - **已迁 content 的条目**：`content/05_ai_coding/TAB_AUDIT_PLAYBOOK.md`（何时用 / 五维检查表 / 严重度 / 怎么跑 / 加检查与加页签 / 判读 / 反模式）、`DS_06 §五` 审计映射表、`DS_03 §12.15` SD-57…59 指针、`GUARD_INVENTORY §十五`。
-- **下批入口**：① 读本段与 `.ctx/evidence/2026-11-02/tab-audit/summary-final.md`；② 先人工确认 F6 三处空态，再排 `disc.review` E1；③ 新增 / 改名页签同批补 `catalog.mjs` / `endpoint-map.mjs`；④ 发布前跑 `node scripts/audit-tabs.mjs --all`，P0 / P1 = 0；⑤ 本批未提交，发布时统一提交并推送。
+- **下批入口**：① 读本段与 `.ctx/evidence/2026-11-02/tab-audit/summary-final.md`；② 先人工确认 F6 三处空态，再排 `disc.review` E1；③ 新增 / 改名页签同批补 `catalog.mjs` / `endpoint-map.mjs`；④ 发布前跑 `nnode scripts/audit-tabs.mjs --all`，P0 / P1 = 0；⑤ 本批未提交，发布时统一提交并推送。
 
 ## 批次 527 小结（2026-11-02）
 
@@ -346,4 +346,12 @@ GSM1921-SOP/
 - **结论**：最终全量审计 **45 页签，P0 0 / P1 0 / P2 3，exception 47**；副本库换轨演练 **48 表 / 542 行**导出导入逐表行数与 sha256 一致、`preflight-cutover` exit 0、`user_version=99` 拒绝启动；审计器与 `page-sweep` / `module-load` / `a11y-tree` 的重叠改为「audit 只做报告层、daily 守门」。
 - **未决**：① `attachments` / `sessions` 不随库导出，须按 runbook 另搬；② `committeeBroadcasts` 仍须人工导 localStorage；③ 生产空库 `--strict` 未实跑；④ 单实例多支部、共享口令、无会话过期仍是硬边界；⑤ 读数：daily **1740 / 1740**（339s），戳 `20261102b`。
 - **已迁 content 的条目**：新增 `content/05_ai_coding/AUDIT_CANON.md`（四口径唯一表 ＋ daily / precommit / audit 三档分工）、`content/04_web_design/data/DATA_CONTRACT.md`（47 表人读版）、`deploy/CUTOVER_RUNBOOK.md`；`TAB_AUDIT_PLAYBOOK` / `DS_06 §五` / `GUARD_INVENTORY §十五` 补 M1–M3 与例外口径；`.ctx/logs/2026-11-DECISION_LOG.md` 记 `D-842`…`D-846`。
-- **下批入口**：① 读本段与 `.ctx/logs/2026-11-DECISION_LOG.md`（`D-842`…`D-846`）；② 换轨前按 `CUTOVER_RUNBOOK` 先在本机副本跑一遍 dry-run，再对生产空库跑 `--strict`；③ 新增表 / 字段同批改 `domain-contract.mjs` 与 `DATA_CONTRACT.md`；④ 发布前跑 `node scripts/audit-tabs.mjs --all`，P0 / P1 = 0；⑤ 本批未提交，发布时统一提交并推送。
+- **下批入口**：① 读本段与 `.ctx/logs/2026-11-DECISION_LOG.md`（`D-842`…`D-846`）；② 换轨前按 `CUTOVER_RUNBOOK` 先在本机副本跑一遍 dry-run，再对生产空库跑 `--strict`；③ 新增表 / 字段同批改 `domain-contract.mjs` 与 `DATA_CONTRACT.md`；④ 发布前跑 `nnode scripts/audit-tabs.mjs --all`，P0 / P1 = 0；⑤ 本批未提交，发布时统一提交并推送。
+## 批次 528 小结（2026-11-03）
+
+- **做了什么**：① 交付：批次 523–527 收成 release 分支与 PR（三提交：前端/设计 → 服务端/审计/换轨 → 证据/台账）；② 写权限单一源 server/security/write-policy-matrix.mjs（141 行：135 enforced / 4 self-service / 2 public / 0 known-risk），守卫断言运行期写路由 ≡ 矩阵，审计 C1 改矩阵判定 + 高风险抽样；③ 修 6 条真实缺口（考勤删除、活动/专班子记录、issue-unread、快照聚合清空、快照考勤清空）；④ 会话 3 小时过期；⑤ 固化 review / production 两档（production 多支部拒绝启动；
+npm run start:review 用 data.review.db）；⑥ 上线残项单一台账 L-01…L-21；多支部同实例设计稿落 ARCHITECTURE_EVOLUTION §十。
+- **结论**：全量审计 **45 页签，P0 0 / P1 0 / P2 2，exception 44**；生产空库首启补 6 角色账号后 preflight-cutover --strict **exit 0 / 警告 0**；副本库 **48 表 / 577 行**往返一致；写权限矩阵 **0 known-risk**；npm run test:daily **1762 / 1762**（478s）。
+- **未决**：① install.sh / install.ps1 / update.sh 未在 Linux 真机验证（L-02 → post-launch）；② 多支部服务端读过滤仅出设计，Phase 1–2 完成前不得打开 ALLOW_MULTI_BRANCH；③ 共享口令、issue-unread 派发位强校验、41 页签重构仍在台账；④ 附件 / 会话按 CUTOVER_RUNBOOK 另搬。
+- **已迁 content 的条目**：ARCHITECTURE_EVOLUTION §十（多支部设计）、TEST_AND_VERIFICATION 两条判例（权限矩阵单一源 / 「保留+改进」反馈必须给证据）、README-server 与 server/README 的 3 小时会话与矩阵口径；.ctx/logs/2026-11-DECISION_LOG.md 记 D-847…D-851。
+- **下批入口**：① 读本段与 .ctx/ENGINEERING_ASSESSMENT.md §四「上线残项」；② 首次部署前在 Linux 测试机跑 install/update 与 preflight --strict；③ 多支部按 ARCHITECTURE_EVOLUTION §十 Phase 1 起排；④ 发布前跑 npm run test:daily + node scripts/audit-tabs.mjs --all，P0/P1 = 0。

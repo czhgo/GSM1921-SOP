@@ -1,0 +1,594 @@
+# 页签审计报告
+
+- 生成时间：2026-11-03T07:51:09.571Z
+- 耗时：187258 ms
+- 服务：http://127.0.0.1:56737
+- 数据库形态：memory（:memory: 临时库）
+- 页签数：45
+- 汇总：P0 0 / P1 0 / P2 2 · exception 44
+
+判据：P0/P1 本轮必改；P2 只进报告。已登记例外（exception）不计违规，但须复核理由是否仍成立。
+
+## 评分卡
+
+| 页签 | blocks | F1 | F2 | F3 | F4 | F5 | F6 | F7 | F8 |
+|---|---|---|---|---|---|---|---|---|---|
+| 今天 `secretary.today` | 3 | pass | pass | pass | pass | pass | pass | pass | pass |
+| 待办 `secretary.todo` | 4 | pass | pass | pass | pass | pass | pass | pass | pass |
+| 全局概况 `secretary.overview` | 7 | exception | pass | pass | pass | pass | pass | pass | pass |
+| 活动管理 `secretary.calendar` | 3 | pass | pass | pass | pass | pass | pass | pass | pass |
+| 支委会 `secretary.committee-meeting` | 3 | pass | pass | pass | pass | pass | pass | pass | pass |
+| 党小组 `secretary.group-progress` | 2 | pass | pass | pass | pass | pass | pass | pass | pass |
+| 通知发布 `secretary.notification` | 3 | pass | pass | pass | pass | pass | pass | pass | pass |
+| 上报党委 `secretary.report-up` | 4 | pass | pass | pass | pass | pass | pass | pass | pass |
+| 支部分工 `secretary.work-map` | 3 | pass | pass | pass | pass | pass | pass | pass | pass |
+| 意见反馈 `secretary.feedback` | 3 | pass | pass | pass | pass | pass | pass | pass | pass |
+| 今天 `org.today` | 3 | pass | pass | pass | pass | pass | pass | pass | pass |
+| 待办 `org.todo` | 5 | exception | pass | pass | pass | pass | pass | pass | pass |
+| 工作概况 `org.overview` | 6 | exception | pass | pass | pass | pass | pass | pass | pass |
+| 成员名册 `org.roster` | 3 | pass | pass | pass | pass | pass | pass | pass | pass |
+| 人才库 `org.talent` | 4 | pass | pass | pass | pass | pass | pass | pass | pass |
+| 思想汇报 `org.thought-review` | 2 | pass | pass | pass | pass | pass | fail(P2) | pass | pass |
+| 专班管理 `org.taskforce` | 4 | pass | pass | pass | pass | pass | pass | pass | pass |
+| 成员流动 `org.member-flow` | 3 | pass | pass | pass | pass | pass | pass | pass | pass |
+| 今天 `prop.today` | 3 | pass | pass | pass | pass | pass | pass | pass | pass |
+| 待办 `prop.todo` | 5 | exception | pass | pass | pass | pass | pass | pass | pass |
+| 工作概况 `prop.overview` | 6 | exception | pass | pass | pass | pass | pass | pass | pass |
+| 项目看板 `prop.kanban` | 5 | exception | pass | pass | pass | pass | pass | pass | pass |
+| 档案归档 `prop.archive` | 4 | pass | pass | pass | pass | pass | pass | pass | pass |
+| 今天 `disc.today` | 3 | pass | pass | pass | pass | pass | pass | pass | pass |
+| 待办 `disc.todo` | 5 | exception | pass | pass | pass | pass | pass | pass | pass |
+| 工作概况 `disc.overview` | 6 | exception | pass | pass | pass | pass | pass | pass | pass |
+| 考勤管理 `disc.attendance` | 6 | exception | pass | pass | pass | pass | pass | pass | pass |
+| 复盘 `disc.review` | 4 | pass | pass | pass | pass | pass | pass | pass | pass |
+| 考察管理 `disc.inspection` | 5 | exception | pass | pass | pass | pass | pass | pass | pass |
+| 今天 `leader.today` | 3 | pass | pass | pass | pass | pass | pass | pass | pass |
+| 待办 `leader.todo` | 5 | exception | pass | pass | pass | pass | pass | pass | pass |
+| 工作概况 `leader.overview` | 6 | exception | pass | pass | pass | pass | pass | pass | pass |
+| 本组活动 `leader.write` | 3 | pass | pass | pass | pass | pass | pass | pass | pass |
+| 考勤管理 `leader.attendance` | 2 | pass | pass | pass | pass | pass | pass | pass | pass |
+| 组员进展 `leader.members` | 4 | pass | pass | pass | pass | pass | pass | pass | pass |
+| 今天 `visitor.today` | 3 | pass | pass | pass | pass | pass | pass | pass | pass |
+| 待办 `visitor.todo` | 5 | exception | pass | pass | pass | pass | pass | pass | pass |
+| 工作概况 `visitor.overview` | 5 | exception | pass | pass | pass | pass | pass | pass | pass |
+| 活动动态 `visitor.activities` | 3 | pass | pass | pass | pass | pass | pass | pass | pass |
+| 项目分工 `visitor.projects` | 3 | pass | pass | pass | pass | pass | pass | pass | pass |
+| 考勤概况 `visitor.attendance` | 4 | pass | pass | pass | pass | pass | fail(P2) | pass | pass |
+| 我的成长 `visitor.growth` | 4 | pass | pass | pass | pass | pass | pass | pass | pass |
+| 下发通知 `party-committee.dispatch` | 3 | pass | pass | pass | pass | pass | pass | pass | pass |
+| 支部上报 `party-committee.review` | 2 | pass | pass | pass | pass | pass | pass | pass | pass |
+| 支部管理 `party-committee.branches` | 2 | pass | pass | pass | pass | pass | pass | pass | pass |
+
+> `exception` = 已登记例外（不计违规）；`skip` = 无法可靠测量（不假绿）。
+
+## 其他维度
+
+| 页签 | D1 | D2 | D3 | C1 | C2 | C3 | C4 | E1 | E2 | M1 | M2 | M3 |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| `secretary.today` | pass | — | pass | pass | skip | pass | pass | pass | pass | pass | pass | pass |
+| `secretary.todo` | pass | — | pass | pass | skip | pass | pass | pass | pass | pass | pass | pass |
+| `secretary.overview` | pass | — | pass | pass | skip | pass | pass | pass | pass | exception | pass | pass |
+| `secretary.calendar` | pass | — | pass | pass | exception | pass | pass | pass | pass | pass | pass | pass |
+| `secretary.committee-meeting` | pass | — | pass | pass | skip | pass | pass | pass | pass | pass | pass | pass |
+| `secretary.group-progress` | pass | pass | pass | pass | exception | pass | pass | pass | pass | pass | pass | pass |
+| `secretary.notification` | pass | — | pass | pass | exception | pass | pass | pass | pass | pass | pass | pass |
+| `secretary.report-up` | pass | — | pass | pass | skip | pass | pass | pass | pass | pass | pass | pass |
+| `secretary.work-map` | pass | — | pass | pass | exception | pass | pass | pass | pass | pass | pass | pass |
+| `secretary.feedback` | pass | — | pass | pass | skip | pass | pass | pass | pass | pass | pass | pass |
+| `org.today` | pass | — | pass | pass | skip | pass | pass | pass | pass | pass | pass | pass |
+| `org.todo` | pass | — | pass | pass | skip | pass | pass | pass | pass | exception | pass | pass |
+| `org.overview` | pass | — | pass | pass | skip | pass | pass | pass | pass | exception | pass | pass |
+| `org.roster` | pass | pass | pass | pass | exception | pass | pass | pass | pass | pass | pass | pass |
+| `org.talent` | pass | — | pass | pass | skip | pass | pass | pass | pass | pass | pass | exception |
+| `org.thought-review` | pass | — | pass | — | skip | pass | pass | pass | pass | pass | pass | pass |
+| `org.taskforce` | pass | — | pass | pass | exception | pass | pass | pass | pass | pass | pass | pass |
+| `org.member-flow` | pass | — | pass | pass | exception | pass | pass | pass | pass | pass | pass | pass |
+| `prop.today` | pass | — | pass | pass | skip | pass | pass | pass | pass | pass | pass | pass |
+| `prop.todo` | pass | — | pass | pass | skip | pass | pass | pass | pass | exception | pass | pass |
+| `prop.overview` | pass | — | pass | pass | skip | pass | pass | pass | pass | exception | pass | pass |
+| `prop.kanban` | pass | — | pass | pass | exception | pass | pass | pass | pass | exception | pass | pass |
+| `prop.archive` | pass | — | pass | pass | exception | pass | pass | pass | pass | pass | pass | pass |
+| `disc.today` | pass | — | pass | pass | skip | pass | pass | pass | pass | pass | pass | pass |
+| `disc.todo` | pass | — | pass | pass | skip | pass | pass | pass | pass | exception | pass | pass |
+| `disc.overview` | pass | — | pass | pass | skip | pass | pass | pass | pass | exception | pass | pass |
+| `disc.attendance` | pass | — | pass | pass | skip | pass | pass | pass | pass | exception | pass | pass |
+| `disc.review` | pass | — | pass | pass | skip | pass | pass | pass | pass | pass | pass | exception |
+| `disc.inspection` | pass | — | pass | pass | exception | pass | pass | pass | pass | exception | pass | exception |
+| `leader.today` | pass | — | pass | pass | skip | pass | pass | pass | pass | pass | pass | pass |
+| `leader.todo` | pass | — | pass | pass | skip | pass | pass | pass | pass | exception | pass | pass |
+| `leader.overview` | pass | — | pass | pass | skip | pass | pass | pass | pass | exception | pass | pass |
+| `leader.write` | pass | — | pass | pass | exception | pass | pass | pass | pass | pass | pass | pass |
+| `leader.attendance` | pass | — | pass | pass | skip | pass | pass | pass | pass | pass | pass | pass |
+| `leader.members` | pass | — | pass | pass | skip | pass | pass | pass | pass | pass | pass | exception |
+| `visitor.today` | pass | — | pass | pass | skip | pass | pass | pass | pass | pass | pass | pass |
+| `visitor.todo` | pass | — | pass | pass | skip | pass | pass | pass | pass | exception | pass | pass |
+| `visitor.overview` | pass | — | pass | pass | skip | pass | pass | pass | pass | exception | pass | pass |
+| `visitor.activities` | pass | — | pass | pass | skip | pass | pass | pass | pass | pass | pass | pass |
+| `visitor.projects` | pass | — | pass | pass | skip | pass | pass | pass | pass | pass | pass | pass |
+| `visitor.attendance` | pass | — | pass | pass | skip | pass | pass | pass | pass | pass | pass | pass |
+| `visitor.growth` | pass | — | pass | pass | skip | pass | pass | pass | pass | pass | pass | pass |
+| `party-committee.dispatch` | pass | — | pass | pass | skip | pass | pass | pass | pass | pass | pass | pass |
+| `party-committee.review` | pass | — | pass | pass | skip | pass | pass | pass | pass | pass | pass | pass |
+| `party-committee.branches` | pass | pass | pass | pass | exception | pass | pass | pass | pass | pass | pass | pass |
+
+## 信息经济
+
+| 页签 | M1 超限理由 | M2 重复卡头 | M3 多条筛选条 |
+|---|---|---|---|
+| `secretary.today` | pass | pass | pass |
+| `secretary.todo` | pass | pass | pass |
+| `secretary.overview` | exception | pass | pass |
+| `secretary.calendar` | pass | pass | pass |
+| `secretary.committee-meeting` | pass | pass | pass |
+| `secretary.group-progress` | pass | pass | pass |
+| `secretary.notification` | pass | pass | pass |
+| `secretary.report-up` | pass | pass | pass |
+| `secretary.work-map` | pass | pass | pass |
+| `secretary.feedback` | pass | pass | pass |
+| `org.today` | pass | pass | pass |
+| `org.todo` | exception | pass | pass |
+| `org.overview` | exception | pass | pass |
+| `org.roster` | pass | pass | pass |
+| `org.talent` | pass | pass | exception |
+| `org.thought-review` | pass | pass | pass |
+| `org.taskforce` | pass | pass | pass |
+| `org.member-flow` | pass | pass | pass |
+| `prop.today` | pass | pass | pass |
+| `prop.todo` | exception | pass | pass |
+| `prop.overview` | exception | pass | pass |
+| `prop.kanban` | exception | pass | pass |
+| `prop.archive` | pass | pass | pass |
+| `disc.today` | pass | pass | pass |
+| `disc.todo` | exception | pass | pass |
+| `disc.overview` | exception | pass | pass |
+| `disc.attendance` | exception | pass | pass |
+| `disc.review` | pass | pass | exception |
+| `disc.inspection` | exception | pass | exception |
+| `leader.today` | pass | pass | pass |
+| `leader.todo` | exception | pass | pass |
+| `leader.overview` | exception | pass | pass |
+| `leader.write` | pass | pass | pass |
+| `leader.attendance` | pass | pass | pass |
+| `leader.members` | pass | pass | exception |
+| `visitor.today` | pass | pass | pass |
+| `visitor.todo` | exception | pass | pass |
+| `visitor.overview` | exception | pass | pass |
+| `visitor.activities` | pass | pass | pass |
+| `visitor.projects` | pass | pass | pass |
+| `visitor.attendance` | pass | pass | pass |
+| `visitor.growth` | pass | pass | pass |
+| `party-committee.dispatch` | pass | pass | pass |
+| `party-committee.review` | pass | pass | pass |
+| `party-committee.branches` | pass | pass | pass |
+
+明细：
+
+- `secretary.today` · M1：pass —— 顶层块 3 ≤ 4（无超限例外）
+- `secretary.today` · M2：pass —— 可见 H3 2 个，无重复卡头
+- `secretary.today` · M3：pass —— .lf-bar 0 条（≤1）
+- `secretary.todo` · M1：pass —— 顶层块 4 ≤ 4（无超限例外）
+- `secretary.todo` · M2：pass —— 可见 H3 3 个，无重复卡头
+- `secretary.todo` · M3：pass —— .lf-bar 0 条（≤1）
+- `secretary.overview` · M1：exception —— 顶层块 7 > 4，已登记例外：共享骨架 5 块（页头 / 结论带 / 条线表 / 待我处理 / 我已处理）+ 支书专属「周期归档待审核」「知情查看」两卡
+- `secretary.overview` · M2：pass —— 可见 H3 5 个，无重复卡头
+- `secretary.overview` · M3：pass —— .lf-bar 1 条（≤1）
+- `secretary.calendar` · M1：pass —— 顶层块 3 ≤ 4（无超限例外）
+- `secretary.calendar` · M2：pass —— 可见 H3 1 个，无重复卡头
+- `secretary.calendar` · M3：pass —— .lf-bar 1 条（≤1）
+- `secretary.committee-meeting` · M1：pass —— 顶层块 3 ≤ 4（无超限例外）
+- `secretary.committee-meeting` · M2：pass —— 可见 H3 2 个，无重复卡头
+- `secretary.committee-meeting` · M3：pass —— .lf-bar 0 条（≤1）
+- `secretary.group-progress` · M1：pass —— 顶层块 2 ≤ 4（无超限例外）
+- `secretary.group-progress` · M2：pass —— 可见 H3 2 个，无重复卡头
+- `secretary.group-progress` · M3：pass —— .lf-bar 0 条（≤1）
+- `secretary.notification` · M1：pass —— 顶层块 3 ≤ 4（无超限例外）
+- `secretary.notification` · M2：pass —— 可见 H3 2 个，无重复卡头
+- `secretary.notification` · M3：pass —— .lf-bar 1 条（≤1）
+- `secretary.report-up` · M1：pass —— 顶层块 4 ≤ 4（无超限例外）
+- `secretary.report-up` · M2：pass —— 可见 H3 0 个，无重复卡头
+- `secretary.report-up` · M3：pass —— .lf-bar 0 条（≤1）
+- `secretary.work-map` · M1：pass —— 顶层块 3 ≤ 4（无超限例外）
+- `secretary.work-map` · M2：pass —— 可见 H3 2 个，无重复卡头
+- `secretary.work-map` · M3：pass —— .lf-bar 0 条（≤1）
+- `secretary.feedback` · M1：pass —— 顶层块 3 ≤ 4（无超限例外）
+- `secretary.feedback` · M2：pass —— 可见 H3 1 个，无重复卡头
+- `secretary.feedback` · M3：pass —— .lf-bar 1 条（≤1）
+- `org.today` · M1：pass —— 顶层块 3 ≤ 4（无超限例外）
+- `org.today` · M2：pass —— 可见 H3 2 个，无重复卡头
+- `org.today` · M3：pass —— .lf-bar 0 条（≤1）
+- `org.todo` · M1：exception —— 顶层块 5 > 4，已登记例外：页顶折叠条 + 我的待办 + 详情 + 页内「我经办的反馈」区（五台同构）
+- `org.todo` · M2：pass —— 可见 H3 5 个，无重复卡头
+- `org.todo` · M3：pass —— .lf-bar 0 条（≤1）
+- `org.overview` · M1：exception —— 顶层块 6 > 4，已登记例外：共享三层骨架 5 块 + 页内「活动日历」折叠卡（承接原活动日历页签）
+- `org.overview` · M2：pass —— 可见 H3 4 个，无重复卡头
+- `org.overview` · M3：pass —— .lf-bar 1 条（≤1）
+- `org.roster` · M1：pass —— 顶层块 3 ≤ 4（无超限例外）
+- `org.roster` · M2：pass —— 可见 H3 2 个，无重复卡头
+- `org.roster` · M3：pass —— .lf-bar 1 条（≤1）
+- `org.talent` · M1：pass —— 顶层块 4 ≤ 4（无超限例外）
+- `org.talent` · M2：pass —— 可见 H3 3 个，无重复卡头
+- `org.talent` · M3：exception —— 同页 .lf-bar 2 条，已登记例外：发展对象与参与活动是两个独立对象池，各自按阶段/活动筛选；合并会串味
+- `org.thought-review` · M1：pass —— 顶层块 2 ≤ 4（无超限例外）
+- `org.thought-review` · M2：pass —— 可见 H3 1 个，无重复卡头
+- `org.thought-review` · M3：pass —— .lf-bar 0 条（≤1）
+- `org.taskforce` · M1：pass —— 顶层块 4 ≤ 4（无超限例外）
+- `org.taskforce` · M2：pass —— 可见 H3 1 个，无重复卡头
+- `org.taskforce` · M3：pass —— .lf-bar 1 条（≤1）
+- `org.member-flow` · M1：pass —— 顶层块 3 ≤ 4（无超限例外）
+- `org.member-flow` · M2：pass —— 可见 H3 2 个，无重复卡头
+- `org.member-flow` · M3：pass —— .lf-bar 0 条（≤1）
+- `prop.today` · M1：pass —— 顶层块 3 ≤ 4（无超限例外）
+- `prop.today` · M2：pass —— 可见 H3 2 个，无重复卡头
+- `prop.today` · M3：pass —— .lf-bar 0 条（≤1）
+- `prop.todo` · M1：exception —— 顶层块 5 > 4，已登记例外：页顶折叠条 + 我的待办 + 详情 + 页内「我经办的反馈」区（五台同构）
+- `prop.todo` · M2：pass —— 可见 H3 5 个，无重复卡头
+- `prop.todo` · M3：pass —— .lf-bar 0 条（≤1）
+- `prop.overview` · M1：exception —— 顶层块 6 > 4，已登记例外：共享三层骨架 5 块 + 页内「活动日历」折叠卡
+- `prop.overview` · M2：pass —— 可见 H3 4 个，无重复卡头
+- `prop.overview` · M3：pass —— .lf-bar 0 条（≤1）
+- `prop.kanban` · M1：exception —— 顶层块 5 > 4，已登记例外：待启动 / 进行中 / 宣传任务三块主体之外，另有独立的「去档案归档」去向条与页头并列
+- `prop.kanban` · M2：pass —— 可见 H3 1 个，无重复卡头
+- `prop.kanban` · M3：pass —— .lf-bar 0 条（≤1）
+- `prop.archive` · M1：pass —— 顶层块 4 ≤ 4（无超限例外）
+- `prop.archive` · M2：pass —— 可见 H3 3 个，无重复卡头
+- `prop.archive` · M3：pass —— .lf-bar 0 条（≤1）
+- `disc.today` · M1：pass —— 顶层块 3 ≤ 4（无超限例外）
+- `disc.today` · M2：pass —— 可见 H3 1 个，无重复卡头
+- `disc.today` · M3：pass —— .lf-bar 0 条（≤1）
+- `disc.todo` · M1：exception —— 顶层块 5 > 4，已登记例外：页顶折叠条 + 我的待办 + 详情 + 页内「我经办的反馈」区（五台同构）
+- `disc.todo` · M2：pass —— 可见 H3 5 个，无重复卡头
+- `disc.todo` · M3：pass —— .lf-bar 0 条（≤1）
+- `disc.overview` · M1：exception —— 顶层块 6 > 4，已登记例外：共享三层骨架 5 块 + 页内「活动日历」折叠卡
+- `disc.overview` · M2：pass —— 可见 H3 4 个，无重复卡头
+- `disc.overview` · M3：pass —— .lf-bar 0 条（≤1）
+- `disc.attendance` · M1：exception —— 顶层块 6 > 4，已登记例外：确认视图：分段条 + 工作视图切换 + 待确认考勤 + 出勤申诉 + 会议考勤录入，加页头共 6 块
+- `disc.attendance` · M2：pass —— 可见 H3 3 个，无重复卡头
+- `disc.attendance` · M3：pass —— .lf-bar 0 条（≤1）
+- `disc.review` · M1：pass —— 顶层块 4 ≤ 4（无超限例外）
+- `disc.review` · M2：pass —— 可见 H3 2 个，无重复卡头
+- `disc.review` · M3：exception —— 同页 .lf-bar 2 条，已登记例外：监督卡与上报/复盘列表口径不同（监督对象 vs 上报记录），筛选维度不可共用
+- `disc.inspection` · M1：exception —— 顶层块 5 > 4，已登记例外：督办清单 / 考察申诉 / 考察代录 / 考察总表四张功能卡并列（含页头 5 块）
+- `disc.inspection` · M2：pass —— 可见 H3 4 个，无重复卡头
+- `disc.inspection` · M3：exception —— 同页 .lf-bar 2 条，已登记例外：待考察与历史考察是两个队列，状态与时间口径不同
+- `leader.today` · M1：pass —— 顶层块 3 ≤ 4（无超限例外）
+- `leader.today` · M2：pass —— 可见 H3 1 个，无重复卡头
+- `leader.today` · M3：pass —— .lf-bar 0 条（≤1）
+- `leader.todo` · M1：exception —— 顶层块 5 > 4，已登记例外：页顶折叠条 + 我的待办 + 详情 + 页内「我经办的反馈」区（五台同构）
+- `leader.todo` · M2：pass —— 可见 H3 4 个，无重复卡头
+- `leader.todo` · M3：pass —— .lf-bar 0 条（≤1）
+- `leader.overview` · M1：exception —— 顶层块 6 > 4，已登记例外：共享三层骨架 5 块 + 页内「活动日历」折叠卡
+- `leader.overview` · M2：pass —— 可见 H3 4 个，无重复卡头
+- `leader.overview` · M3：pass —— .lf-bar 0 条（≤1）
+- `leader.write` · M1：pass —— 顶层块 3 ≤ 4（无超限例外）
+- `leader.write` · M2：pass —— 可见 H3 4 个，无重复卡头
+- `leader.write` · M3：pass —— .lf-bar 1 条（≤1）
+- `leader.attendance` · M1：pass —— 顶层块 2 ≤ 4（无超限例外）
+- `leader.attendance` · M2：pass —— 可见 H3 1 个，无重复卡头
+- `leader.attendance` · M3：pass —— .lf-bar 1 条（≤1）
+- `leader.members` · M1：pass —— 顶层块 4 ≤ 4（无超限例外）
+- `leader.members` · M2：pass —— 可见 H3 2 个，无重复卡头
+- `leader.members` · M3：exception —— 同页 .lf-bar 2 条，已登记例外：组员进展与组员汇报是两个独立列表（进度 vs 答复），筛选对象不同
+- `visitor.today` · M1：pass —— 顶层块 3 ≤ 4（无超限例外）
+- `visitor.today` · M2：pass —— 可见 H3 2 个，无重复卡头
+- `visitor.today` · M3：pass —— .lf-bar 0 条（≤1）
+- `visitor.todo` · M1：exception —— 顶层块 5 > 4，已登记例外：页顶折叠条 + 我的待办 + 详情 + 页内「我经办的反馈」区（五台同构）
+- `visitor.todo` · M2：pass —— 可见 H3 5 个，无重复卡头
+- `visitor.todo` · M3：pass —— .lf-bar 0 条（≤1）
+- `visitor.overview` · M1：exception —— 顶层块 5 > 4，已登记例外：无页内折叠卡，但共享骨架本身 5 块（含「我已处理」折叠）
+- `visitor.overview` · M2：pass —— 可见 H3 3 个，无重复卡头
+- `visitor.overview` · M3：pass —— .lf-bar 0 条（≤1）
+- `visitor.activities` · M1：pass —— 顶层块 3 ≤ 4（无超限例外）
+- `visitor.activities` · M2：pass —— 可见 H3 0 个，无重复卡头
+- `visitor.activities` · M3：pass —— .lf-bar 0 条（≤1）
+- `visitor.projects` · M1：pass —— 顶层块 3 ≤ 4（无超限例外）
+- `visitor.projects` · M2：pass —— 可见 H3 0 个，无重复卡头
+- `visitor.projects` · M3：pass —— .lf-bar 0 条（≤1）
+- `visitor.attendance` · M1：pass —— 顶层块 4 ≤ 4（无超限例外）
+- `visitor.attendance` · M2：pass —— 可见 H3 0 个，无重复卡头
+- `visitor.attendance` · M3：pass —— .lf-bar 0 条（≤1）
+- `visitor.growth` · M1：pass —— 顶层块 4 ≤ 4（无超限例外）
+- `visitor.growth` · M2：pass —— 可见 H3 3 个，无重复卡头
+- `visitor.growth` · M3：pass —— .lf-bar 0 条（≤1）
+- `party-committee.dispatch` · M1：pass —— 顶层块 3 ≤ 4（无超限例外）
+- `party-committee.dispatch` · M2：pass —— 可见 H3 1 个，无重复卡头
+- `party-committee.dispatch` · M3：pass —— .lf-bar 0 条（≤1）
+- `party-committee.review` · M1：pass —— 顶层块 2 ≤ 4（无超限例外）
+- `party-committee.review` · M2：pass —— 可见 H3 0 个，无重复卡头
+- `party-committee.review` · M3：pass —— .lf-bar 1 条（≤1）
+- `party-committee.branches` · M1：pass —— 顶层块 2 ≤ 4（无超限例外）
+- `party-committee.branches` · M2：pass —— 可见 H3 1 个，无重复卡头
+- `party-committee.branches` · M3：pass —— .lf-bar 1 条（≤1）
+
+## P0（0）
+
+（无）
+
+## P1（0）
+
+（无）
+
+## P2（2）
+
+### org.thought-review · F6
+
+- key：`org.thought-review`
+- rule：`F6`
+- message：1 处空态文本不在 .empty-state 内（P2 待人工确认）
+- evidence：`{"hits":[{"text":"本期没有记录","tag":"span","cls":"text-xs text-gray-500"}]}`
+
+### visitor.attendance · F6
+
+- key：`visitor.attendance`
+- rule：`F6`
+- message：1 处空态文本不在 .empty-state 内（P2 待人工确认）
+- evidence：`{"hits":[{"text":"出勤 —（暂无应到名单）","tag":"div","cls":"text-xs font-medium text-gray-500"}]}`
+
+## 例外登记（不计违规）（44）
+
+| key | rule | message |
+|---|---|---|
+| `disc.attendance` | F1 | 顶层块 6 > 4，已登记例外：确认视图：分段条 + 工作视图切换 + 待确认考勤 + 出勤申诉 + 会议考勤录入，加页头共 6 块 |
+| `disc.attendance` | M1 | 顶层块 6 > 4，已登记例外：确认视图：分段条 + 工作视图切换 + 待确认考勤 + 出勤申诉 + 会议考勤录入，加页头共 6 块 |
+| `disc.inspection` | F1 | 顶层块 5 > 4，已登记例外：督办清单 / 考察申诉 / 考察代录 / 考察总表四张功能卡并列（含页头 5 块） |
+| `disc.inspection` | C2 | destructive 流程未真删（无 CRUD 配方）：inspection-delete |
+| `disc.inspection` | M1 | 顶层块 5 > 4，已登记例外：督办清单 / 考察申诉 / 考察代录 / 考察总表四张功能卡并列（含页头 5 块） |
+| `disc.inspection` | M3 | 同页 .lf-bar 2 条，已登记例外：待考察与历史考察是两个队列，状态与时间口径不同 |
+| `disc.overview` | F1 | 顶层块 6 > 4，已登记例外：共享三层骨架 5 块 + 页内「活动日历」折叠卡 |
+| `disc.overview` | M1 | 顶层块 6 > 4，已登记例外：共享三层骨架 5 块 + 页内「活动日历」折叠卡 |
+| `disc.review` | M3 | 同页 .lf-bar 2 条，已登记例外：监督卡与上报/复盘列表口径不同（监督对象 vs 上报记录），筛选维度不可共用 |
+| `disc.todo` | F1 | 顶层块 5 > 4，已登记例外：页顶折叠条 + 我的待办 + 详情 + 页内「我经办的反馈」区（五台同构） |
+| `disc.todo` | M1 | 顶层块 5 > 4，已登记例外：页顶折叠条 + 我的待办 + 详情 + 页内「我经办的反馈」区（五台同构） |
+| `leader.members` | M3 | 同页 .lf-bar 2 条，已登记例外：组员进展与组员汇报是两个独立列表（进度 vs 答复），筛选对象不同 |
+| `leader.overview` | F1 | 顶层块 6 > 4，已登记例外：共享三层骨架 5 块 + 页内「活动日历」折叠卡 |
+| `leader.overview` | M1 | 顶层块 6 > 4，已登记例外：共享三层骨架 5 块 + 页内「活动日历」折叠卡 |
+| `leader.todo` | F1 | 顶层块 5 > 4，已登记例外：页顶折叠条 + 我的待办 + 详情 + 页内「我经办的反馈」区（五台同构） |
+| `leader.todo` | M1 | 顶层块 5 > 4，已登记例外：页顶折叠条 + 我的待办 + 详情 + 页内「我经办的反馈」区（五台同构） |
+| `leader.write` | C2 | destructive 流程未真删（无 CRUD 配方）：activity-delete |
+| `org.member-flow` | C2 | destructive 流程未真删（无 CRUD 配方）：member-transfer-out |
+| `org.overview` | F1 | 顶层块 6 > 4，已登记例外：共享三层骨架 5 块 + 页内「活动日历」折叠卡（承接原活动日历页签） |
+| `org.overview` | M1 | 顶层块 6 > 4，已登记例外：共享三层骨架 5 块 + 页内「活动日历」折叠卡（承接原活动日历页签） |
+| `org.roster` | C2 | destructive 流程未真删（无 CRUD 配方）：member-transfer-out |
+| `org.talent` | M3 | 同页 .lf-bar 2 条，已登记例外：发展对象与参与活动是两个独立对象池，各自按阶段/活动筛选；合并会串味 |
+| `org.taskforce` | C2 | destructive 流程未真删（无 CRUD 配方）：taskforce-dissolution |
+| `org.todo` | F1 | 顶层块 5 > 4，已登记例外：页顶折叠条 + 我的待办 + 详情 + 页内「我经办的反馈」区（五台同构） |
+| `org.todo` | M1 | 顶层块 5 > 4，已登记例外：页顶折叠条 + 我的待办 + 详情 + 页内「我经办的反馈」区（五台同构） |
+| `party-committee.branches` | C2 | destructive 流程未真删（无 CRUD 配方）：branch-delete |
+| `prop.archive` | C2 | destructive 流程未真删（无 CRUD 配方）：archive-record-delete |
+| `prop.kanban` | F1 | 顶层块 5 > 4，已登记例外：待启动 / 进行中 / 宣传任务三块主体之外，另有独立的「去档案归档」去向条与页头并列 |
+| `prop.kanban` | C2 | destructive 流程未真删（无 CRUD 配方）：prop-task-delete |
+| `prop.kanban` | M1 | 顶层块 5 > 4，已登记例外：待启动 / 进行中 / 宣传任务三块主体之外，另有独立的「去档案归档」去向条与页头并列 |
+| `prop.overview` | F1 | 顶层块 6 > 4，已登记例外：共享三层骨架 5 块 + 页内「活动日历」折叠卡 |
+| `prop.overview` | M1 | 顶层块 6 > 4，已登记例外：共享三层骨架 5 块 + 页内「活动日历」折叠卡 |
+| `prop.todo` | F1 | 顶层块 5 > 4，已登记例外：页顶折叠条 + 我的待办 + 详情 + 页内「我经办的反馈」区（五台同构） |
+| `prop.todo` | M1 | 顶层块 5 > 4，已登记例外：页顶折叠条 + 我的待办 + 详情 + 页内「我经办的反馈」区（五台同构） |
+| `secretary.calendar` | C2 | destructive 流程未真删（无 CRUD 配方）：activity-delete |
+| `secretary.group-progress` | C2 | destructive 流程未对存量执行：group-dissolve（仅清理本次探针行） |
+| `secretary.notification` | C2 | destructive 流程未对存量执行：notice-delete（仅清理本次探针行） |
+| `secretary.overview` | F1 | 顶层块 7 > 4，已登记例外：共享骨架 5 块（页头 / 结论带 / 条线表 / 待我处理 / 我已处理）+ 支书专属「周期归档待审核」「知情查看」两卡 |
+| `secretary.overview` | M1 | 顶层块 7 > 4，已登记例外：共享骨架 5 块（页头 / 结论带 / 条线表 / 待我处理 / 我已处理）+ 支书专属「周期归档待审核」「知情查看」两卡 |
+| `secretary.work-map` | C2 | destructive 流程未真删（无 CRUD 配方）：assignment-delete |
+| `visitor.overview` | F1 | 顶层块 5 > 4，已登记例外：无页内折叠卡，但共享骨架本身 5 块（含「我已处理」折叠） |
+| `visitor.overview` | M1 | 顶层块 5 > 4，已登记例外：无页内折叠卡，但共享骨架本身 5 块（含「我已处理」折叠） |
+| `visitor.todo` | F1 | 顶层块 5 > 4，已登记例外：页顶折叠条 + 我的待办 + 详情 + 页内「我经办的反馈」区（五台同构） |
+| `visitor.todo` | M1 | 顶层块 5 > 4，已登记例外：页顶折叠条 + 我的待办 + 详情 + 页内「我经办的反馈」区（五台同构） |
+
+## 跳过项（不假绿）（197）
+
+| key | rule | message |
+|---|---|---|
+| `disc.attendance` | C2 | 无最小合法请求体配方，待人工补充：POST /api/v1/attendances |
+| `disc.attendance` | C2 | 无最小合法请求体配方，待人工补充：PATCH /api/v1/attendances/:id |
+| `disc.attendance` | C2 | 无最小合法请求体配方，待人工补充：POST /api/v1/makeupTasks |
+| `disc.attendance` | C2 | 无最小合法请求体配方，待人工补充：PATCH /api/v1/signups/:id |
+| `disc.attendance` | C2 | 无最小合法请求体配方，待人工补充：PATCH /api/v1/activities/:id |
+| `disc.attendance` | C2 | 无最小合法请求体配方，待人工补充：POST /api/v1/system-notices |
+| `disc.attendance` | C2 | 无最小合法请求体配方，待人工补充：PATCH /api/v1/attendance-appeals/:id |
+| `disc.attendance` | C2 | 无最小合法请求体配方，待人工补充：POST /api/v1/issue-unread |
+| `disc.attendance` | C2 | 无最小合法请求体配方，待人工补充：POST /api/v1/handoffs |
+| `disc.inspection` | C2 | 无最小合法请求体配方，待人工补充：POST /api/v1/inspections |
+| `disc.inspection` | C2 | 无最小合法请求体配方，待人工补充：PATCH /api/v1/inspections/:id |
+| `disc.inspection` | C2 | 无最小合法请求体配方，待人工补充：PATCH /api/v1/inspection-appeals/:id |
+| `disc.inspection` | C2 | 无最小合法请求体配方，待人工补充：POST /api/v1/handoffs |
+| `disc.inspection` | C2 | 无最小合法请求体配方，待人工补充：POST /api/v1/issue-unread |
+| `disc.overview` | C2 | 无最小合法请求体配方，待人工补充：PATCH /api/v1/attendances/:id |
+| `disc.overview` | C2 | 无最小合法请求体配方，待人工补充：PATCH /api/v1/inspections/:id |
+| `disc.overview` | C2 | 无最小合法请求体配方，待人工补充：POST /api/v1/issues |
+| `disc.review` | C2 | 无最小合法请求体配方，待人工补充：POST /api/v1/activityReviews |
+| `disc.review` | C2 | 无最小合法请求体配方，待人工补充：PATCH /api/v1/activityReviews/:id |
+| `disc.review` | C2 | 无最小合法请求体配方，待人工补充：POST /api/v1/taskforceReviews |
+| `disc.review` | C2 | 无最小合法请求体配方，待人工补充：PATCH /api/v1/taskforceReviews/:id |
+| `disc.review` | C2 | 无最小合法请求体配方，待人工补充：PATCH /api/v1/activities/:id |
+| `disc.review` | C2 | 无最小合法请求体配方，待人工补充：POST /api/v1/system-notices |
+| `disc.today` | C2 | 无最小合法请求体配方，待人工补充：PATCH /api/v1/attendances/:id |
+| `disc.today` | C2 | 无最小合法请求体配方，待人工补充：PATCH /api/v1/inspections/:id |
+| `disc.today` | C2 | 无最小合法请求体配方，待人工补充：POST /api/v1/issue-unread |
+| `disc.today` | C2 | 无最小合法请求体配方，待人工补充：POST /api/v1/attendance-appeals |
+| `disc.today` | C2 | 无最小合法请求体配方，待人工补充：POST /api/v1/inspection-appeals |
+| `disc.todo` | C2 | 无最小合法请求体配方，待人工补充：POST /api/v1/handoffs |
+| `disc.todo` | C2 | 无最小合法请求体配方，待人工补充：POST /api/v1/handoffs/:id/confirm |
+| `disc.todo` | C2 | 无最小合法请求体配方，待人工补充：PATCH /api/v1/attendances/:id |
+| `disc.todo` | C2 | 无最小合法请求体配方，待人工补充：PATCH /api/v1/inspections/:id |
+| `disc.todo` | C2 | 无最小合法请求体配方，待人工补充：POST /api/v1/member-confirmations/:id/decide |
+| `leader.attendance` | C2 | 无最小合法请求体配方，待人工补充：POST /api/v1/attendances |
+| `leader.attendance` | C2 | 无最小合法请求体配方，待人工补充：PATCH /api/v1/attendances/:id |
+| `leader.attendance` | C2 | 无最小合法请求体配方，待人工补充：PATCH /api/v1/signups/:id |
+| `leader.attendance` | C2 | 无最小合法请求体配方，待人工补充：PATCH /api/v1/attendance-appeals/:id |
+| `leader.attendance` | C2 | 无最小合法请求体配方，待人工补充：POST /api/v1/makeupTasks |
+| `leader.attendance` | C2 | 无最小合法请求体配方，待人工补充：POST /api/v1/tasks |
+| `leader.attendance` | C2 | 无最小合法请求体配方，待人工补充：POST /api/v1/issue-unread |
+| `leader.members` | C2 | 无最小合法请求体配方，待人工补充：POST /api/v1/issues |
+| `leader.members` | C2 | 无最小合法请求体配方，待人工补充：PATCH /api/v1/issues/:id |
+| `leader.members` | C2 | 同一资源已在首条写口中完成完整往返：/api/v1/todos/:id |
+| `leader.members` | C2 | 无最小合法请求体配方，待人工补充：POST /api/v1/issue-unread |
+| `leader.members` | C2 | 无最小合法请求体配方，待人工补充：POST /api/v1/inspections |
+| `leader.overview` | C2 | 无最小合法请求体配方，待人工补充：PATCH /api/v1/attendances/:id |
+| `leader.today` | C2 | 无最小合法请求体配方，待人工补充：POST /api/v1/issue-unread |
+| `leader.today` | C2 | 无最小合法请求体配方，待人工补充：POST /api/v1/attendance-appeals |
+| `leader.today` | C2 | 无最小合法请求体配方，待人工补充：POST /api/v1/inspection-appeals |
+| `leader.todo` | C2 | 无最小合法请求体配方，待人工补充：POST /api/v1/handoffs/:id/confirm |
+| `leader.todo` | C2 | 无最小合法请求体配方，待人工补充：PATCH /api/v1/attendances/:id |
+| `leader.write` | C2 | 无最小合法请求体配方，待人工补充：POST /api/v1/activities |
+| `leader.write` | C2 | 无最小合法请求体配方，待人工补充：PATCH /api/v1/activities/:id |
+| `leader.write` | C2 | 无最小合法请求体配方，待人工补充：POST /api/v1/activities/:id/brand |
+| `leader.write` | C2 | 无法创建 CRUD 探针（leader 对 POST /api/v1/notices 返回 403），未做真实往返 |
+| `org.member-flow` | C2 | 无最小合法请求体配方，待人工补充：POST /api/v1/members/intake |
+| `org.member-flow` | C2 | 无最小合法请求体配方，待人工补充：POST /api/v1/members/:id/undo-transfer-out |
+| `org.member-flow` | C2 | 无最小合法请求体配方，待人工补充：POST /api/v1/memberFlows |
+| `org.member-flow` | C2 | 无最小合法请求体配方，待人工补充：PATCH /api/v1/memberFlows/:id |
+| `org.member-flow` | C2 | 无最小合法请求体配方，待人工补充：POST /api/v1/member-confirmations |
+| `org.member-flow` | C2 | 无最小合法请求体配方，待人工补充：PATCH /api/v1/users/:id |
+| `org.overview` | C2 | 同一资源已在首条写口中完成完整往返：/api/v1/todos/:id |
+| `org.overview` | C2 | 无最小合法请求体配方，待人工补充：POST /api/v1/reviewRequests |
+| `org.overview` | C2 | 无最小合法请求体配方，待人工补充：PATCH /api/v1/periodicArchives/:id |
+| `org.overview` | C2 | 无最小合法请求体配方，待人工补充：POST /api/v1/issues |
+| `org.roster` | C2 | 无最小合法请求体配方，待人工补充：POST /api/v1/members |
+| `org.roster` | C2 | 无最小合法请求体配方，待人工补充：POST /api/v1/members/intake |
+| `org.roster` | C2 | 无最小合法请求体配方，待人工补充：PATCH /api/v1/members/:id/profile |
+| `org.roster` | C2 | 无最小合法请求体配方，待人工补充：POST /api/v1/members/:id/undo-transfer-out |
+| `org.roster` | C2 | 无最小合法请求体配方，待人工补充：POST /api/v1/member-confirmations |
+| `org.roster` | C2 | 无最小合法请求体配方，待人工补充：POST /api/v1/memberFlows |
+| `org.roster` | C2 | 无最小合法请求体配方，待人工补充：PATCH /api/v1/memberFlows/:id |
+| `org.roster` | C2 | 无最小合法请求体配方，待人工补充：PATCH /api/v1/users/:id |
+| `org.talent` | C2 | 无最小合法请求体配方，待人工补充：POST /api/v1/inspections |
+| `org.talent` | C2 | 无最小合法请求体配方，待人工补充：PATCH /api/v1/inspections/:id |
+| `org.talent` | C2 | 无最小合法请求体配方，待人工补充：POST /api/v1/inspection-appeals |
+| `org.taskforce` | C2 | 无最小合法请求体配方，待人工补充：POST /api/v1/taskforces |
+| `org.taskforce` | C2 | 无最小合法请求体配方，待人工补充：PATCH /api/v1/taskforces/:id |
+| `org.taskforce` | C2 | 无最小合法请求体配方，待人工补充：POST /api/v1/signups |
+| `org.taskforce` | C2 | 无最小合法请求体配方，待人工补充：PATCH /api/v1/signups/:id |
+| `org.taskforce` | C2 | 无最小合法请求体配方，待人工补充：POST /api/v1/activityReviews |
+| `org.taskforce` | C2 | 无最小合法请求体配方，待人工补充：PATCH /api/v1/activityReviews/:id |
+| `org.taskforce` | C2 | 无最小合法请求体配方，待人工补充：POST /api/v1/taskforceReviews |
+| `org.taskforce` | C2 | 无最小合法请求体配方，待人工补充：PATCH /api/v1/taskforceReviews/:id |
+| `org.taskforce` | C2 | 无最小合法请求体配方，待人工补充：POST /api/v1/workgroups/:id/members |
+| `org.taskforce` | C2 | 无最小合法请求体配方，待人工补充：PUT /api/v1/workgroups/:id/members |
+| `org.taskforce` | C2 | 无最小合法请求体配方，待人工补充：DELETE /api/v1/workgroups/:id/members/:personId |
+| `org.taskforce` | C2 | 无最小合法请求体配方，待人工补充：POST /api/v1/workgroups/:id/tasks |
+| `org.taskforce` | C2 | 无最小合法请求体配方，待人工补充：PATCH /api/v1/workgroups/:id/tasks/:taskId |
+| `org.taskforce` | C2 | 无最小合法请求体配方，待人工补充：POST /api/v1/workgroups/:id/outputs |
+| `org.taskforce` | C2 | 无最小合法请求体配方，待人工补充：POST /api/v1/workgroups/:id/coordinate |
+| `org.thought-review` | C2 | 思想汇报总表为只读汇总；本人提交入口在成员台「成长」页，本页不承载写动作 |
+| `org.today` | C2 | 无最小合法请求体配方，待人工补充：POST /api/v1/issue-unread |
+| `org.today` | C2 | 无最小合法请求体配方，待人工补充：POST /api/v1/attendance-appeals |
+| `org.today` | C2 | 无最小合法请求体配方，待人工补充：POST /api/v1/inspection-appeals |
+| `org.todo` | C2 | 同一资源已在首条写口中完成完整往返：/api/v1/todos/:id |
+| `org.todo` | C2 | 无最小合法请求体配方，待人工补充：POST /api/v1/handoffs |
+| `org.todo` | C2 | 无最小合法请求体配方，待人工补充：POST /api/v1/handoffs/:id/confirm |
+| `org.todo` | C2 | 无最小合法请求体配方，待人工补充：POST /api/v1/member-confirmations/:id/decide |
+| `party-committee.branches` | C2 | 无最小合法请求体配方，待人工补充：POST /api/v1/branches |
+| `party-committee.branches` | C2 | 无最小合法请求体配方，待人工补充：PATCH /api/v1/branches/:id/config |
+| `party-committee.branches` | C2 | 无最小合法请求体配方，待人工补充：PATCH /api/v1/branches/:id/config/rollback |
+| `party-committee.branches` | C2 | 无最小合法请求体配方，待人工补充：POST /api/v1/branches/:id/appointments |
+| `party-committee.branches` | C2 | 无最小合法请求体配方，待人工补充：PUT /api/v1/branches/:id/roster |
+| `party-committee.branches` | C2 | 无最小合法请求体配方，待人工补充：POST /api/v1/auth-audit |
+| `party-committee.dispatch` | C2 | 无最小合法请求体配方，待人工补充：PATCH /api/v1/reviewRequests/:id |
+| `party-committee.dispatch` | C2 | 无最小合法请求体配方，待人工补充：POST /api/v1/branches |
+| `party-committee.dispatch` | C2 | 无最小合法请求体配方，待人工补充：PATCH /api/v1/branches/:id/config |
+| `party-committee.dispatch` | C2 | 无最小合法请求体配方，待人工补充：PATCH /api/v1/branches/:id/config/rollback |
+| `party-committee.dispatch` | C2 | 无最小合法请求体配方，待人工补充：POST /api/v1/branches/:id/appointments |
+| `party-committee.dispatch` | C2 | 无最小合法请求体配方，待人工补充：POST /api/v1/system-notices |
+| `party-committee.dispatch` | C2 | 无最小合法请求体配方，待人工补充：POST /api/v1/report/trigger |
+| `party-committee.dispatch` | C2 | 无最小合法请求体配方，待人工补充：POST /api/v1/auth-audit |
+| `party-committee.review` | C2 | 无最小合法请求体配方，待人工补充：PATCH /api/v1/reviewRequests/:id |
+| `party-committee.review` | C2 | 无最小合法请求体配方，待人工补充：POST /api/v1/reviewRequests |
+| `party-committee.review` | C2 | 无最小合法请求体配方，待人工补充：POST /api/v1/auth-audit |
+| `prop.archive` | C2 | 无最小合法请求体配方，待人工补充：POST /api/v1/activities/:id/archive |
+| `prop.archive` | C2 | 无最小合法请求体配方，待人工补充：PATCH /api/v1/activities/:id |
+| `prop.archive` | C2 | 无最小合法请求体配方，待人工补充：POST /api/v1/activities/:id/brand |
+| `prop.archive` | C2 | 无最小合法请求体配方，待人工补充：POST /api/v1/archiveRecords |
+| `prop.archive` | C2 | 无最小合法请求体配方，待人工补充：PATCH /api/v1/archiveRecords/:id |
+| `prop.archive` | C2 | 无最小合法请求体配方，待人工补充：POST /api/v1/externalDispatches |
+| `prop.archive` | C2 | 无最小合法请求体配方，待人工补充：PATCH /api/v1/externalDispatches/:id |
+| `prop.archive` | C2 | 无最小合法请求体配方，待人工补充：POST /api/v1/fileSpaceRecords |
+| `prop.archive` | C2 | 无最小合法请求体配方，待人工补充：POST /api/v1/imageRecords |
+| `prop.archive` | C2 | 无最小合法请求体配方，待人工补充：POST /api/v1/branchDocs |
+| `prop.archive` | C2 | 无最小合法请求体配方，待人工补充：PATCH /api/v1/periodicArchives/:id |
+| `prop.archive` | C2 | 无最小合法请求体配方，待人工补充：POST /api/v1/uploads |
+| `prop.kanban` | C2 | 无最小合法请求体配方，待人工补充：POST /api/v1/propTasks |
+| `prop.kanban` | C2 | 无最小合法请求体配方，待人工补充：PATCH /api/v1/propTasks/:id |
+| `prop.kanban` | C2 | 无最小合法请求体配方，待人工补充：PATCH /api/v1/activities/:id |
+| `prop.overview` | C2 | 无最小合法请求体配方，待人工补充：POST /api/v1/tasks |
+| `prop.overview` | C2 | 无最小合法请求体配方，待人工补充：PATCH /api/v1/tasks/:id |
+| `prop.overview` | C2 | 无最小合法请求体配方，待人工补充：POST /api/v1/periodicArchives |
+| `prop.today` | C2 | 无最小合法请求体配方，待人工补充：POST /api/v1/issue-unread |
+| `prop.today` | C2 | 无最小合法请求体配方，待人工补充：POST /api/v1/attendance-appeals |
+| `prop.todo` | C2 | 无最小合法请求体配方，待人工补充：POST /api/v1/handoffs |
+| `prop.todo` | C2 | 无最小合法请求体配方，待人工补充：POST /api/v1/handoffs/:id/confirm |
+| `secretary.calendar` | C2 | 无最小合法请求体配方，待人工补充：POST /api/v1/activities |
+| `secretary.calendar` | C2 | 无最小合法请求体配方，待人工补充：PATCH /api/v1/activities/:id |
+| `secretary.calendar` | C2 | 无最小合法请求体配方，待人工补充：POST /api/v1/activities/:id/archive |
+| `secretary.calendar` | C2 | 无最小合法请求体配方，待人工补充：POST /api/v1/activities/:id/brand |
+| `secretary.calendar` | C2 | 无最小合法请求体配方，待人工补充：POST /api/v1/branchDocs |
+| `secretary.calendar` | C2 | 无最小合法请求体配方，待人工补充：POST /api/v1/uploads |
+| `secretary.committee-meeting` | C2 | 无最小合法请求体配方，待人工补充：POST /api/v1/activities |
+| `secretary.committee-meeting` | C2 | 无最小合法请求体配方，待人工补充：PATCH /api/v1/activities/:id |
+| `secretary.committee-meeting` | C2 | 无最小合法请求体配方，待人工补充：POST /api/v1/agenda-votes |
+| `secretary.committee-meeting` | C2 | 无最小合法请求体配方，待人工补充：POST /api/v1/agenda-votes/:id/annotate |
+| `secretary.committee-meeting` | C2 | 无最小合法请求体配方，待人工补充：POST /api/v1/agenda-votes/lock |
+| `secretary.committee-meeting` | C2 | 无最小合法请求体配方，待人工补充：POST /api/v1/branches/:id/branch-commissioners |
+| `secretary.feedback` | C2 | 无最小合法请求体配方，待人工补充：POST /api/v1/issues |
+| `secretary.feedback` | C2 | 无最小合法请求体配方，待人工补充：PATCH /api/v1/issues/:id |
+| `secretary.feedback` | C2 | 无最小合法请求体配方，待人工补充：POST /api/v1/issue-unread |
+| `secretary.feedback` | C2 | 同一资源已在首条写口中完成完整往返：/api/v1/todos/:id |
+| `secretary.group-progress` | C2 | 同一资源已在首条写口中完成完整往返：/api/v1/partyGroups/:id |
+| `secretary.group-progress` | C2 | 无最小合法请求体配方，待人工补充：POST /api/v1/issues |
+| `secretary.group-progress` | C2 | 无最小合法请求体配方，待人工补充：POST /api/v1/issue-unread |
+| `secretary.notification` | C2 | 同一资源已在首条写口中完成完整往返：/api/v1/notices/:id |
+| `secretary.notification` | C2 | 无最小合法请求体配方，待人工补充：POST /api/v1/system-notices |
+| `secretary.notification` | C2 | 无最小合法请求体配方，待人工补充：POST /api/v1/issue-unread |
+| `secretary.overview` | C2 | 同一资源已在首条写口中完成完整往返：/api/v1/todos/:id |
+| `secretary.overview` | C2 | 无最小合法请求体配方，待人工补充：PATCH /api/v1/periodicArchives/:id |
+| `secretary.overview` | C2 | 无最小合法请求体配方，待人工补充：POST /api/v1/issues |
+| `secretary.report-up` | C2 | 无最小合法请求体配方，待人工补充：POST /api/v1/tasks |
+| `secretary.report-up` | C2 | 无最小合法请求体配方，待人工补充：PATCH /api/v1/tasks/:id |
+| `secretary.report-up` | C2 | 无最小合法请求体配方，待人工补充：POST /api/v1/assignments |
+| `secretary.report-up` | C2 | 无最小合法请求体配方，待人工补充：PATCH /api/v1/assignments/:id |
+| `secretary.today` | C2 | 无最小合法请求体配方，待人工补充：POST /api/v1/issue-unread |
+| `secretary.today` | C2 | 无最小合法请求体配方，待人工补充：POST /api/v1/attendance-appeals |
+| `secretary.today` | C2 | 无最小合法请求体配方，待人工补充：POST /api/v1/inspection-appeals |
+| `secretary.todo` | C2 | 同一资源已在首条写口中完成完整往返：/api/v1/todos/:id |
+| `secretary.todo` | C2 | 无最小合法请求体配方，待人工补充：POST /api/v1/handoffs |
+| `secretary.todo` | C2 | 无最小合法请求体配方，待人工补充：POST /api/v1/handoffs/:id/confirm |
+| `secretary.todo` | C2 | 无最小合法请求体配方，待人工补充：POST /api/v1/member-confirmations/:id/decide |
+| `secretary.work-map` | C2 | 无最小合法请求体配方，待人工补充：POST /api/v1/tasks |
+| `secretary.work-map` | C2 | 无最小合法请求体配方，待人工补充：PATCH /api/v1/tasks/:id |
+| `secretary.work-map` | C2 | 无最小合法请求体配方，待人工补充：DELETE /api/v1/tasks/:id |
+| `secretary.work-map` | C2 | 无最小合法请求体配方，待人工补充：POST /api/v1/assignments |
+| `secretary.work-map` | C2 | 无最小合法请求体配方，待人工补充：PATCH /api/v1/assignments/:id |
+| `visitor.activities` | C2 | 无最小合法请求体配方，待人工补充：POST /api/v1/signups |
+| `visitor.activities` | C2 | 无最小合法请求体配方，待人工补充：PATCH /api/v1/signups/:id |
+| `visitor.activities` | C2 | 无最小合法请求体配方，待人工补充：POST /api/v1/issue-unread |
+| `visitor.attendance` | C2 | 无最小合法请求体配方，待人工补充：POST /api/v1/attendance-appeals |
+| `visitor.attendance` | C2 | 无最小合法请求体配方，待人工补充：POST /api/v1/handoffs |
+| `visitor.attendance` | C2 | 无最小合法请求体配方，待人工补充：POST /api/v1/issue-unread |
+| `visitor.growth` | C2 | 无最小合法请求体配方，待人工补充：POST /api/v1/thoughtReports |
+| `visitor.growth` | C2 | 无最小合法请求体配方，待人工补充：PATCH /api/v1/thoughtReports/:id |
+| `visitor.growth` | C2 | 无最小合法请求体配方，待人工补充：POST /api/v1/inspection-appeals |
+| `visitor.overview` | C2 | 无最小合法请求体配方，待人工补充：POST /api/v1/issue-unread |
+| `visitor.projects` | C2 | 无最小合法请求体配方，待人工补充：PATCH /api/v1/tasks/:id |
+| `visitor.projects` | C2 | 无最小合法请求体配方，待人工补充：POST /api/v1/signups |
+| `visitor.projects` | C2 | 无最小合法请求体配方，待人工补充：PATCH /api/v1/signups/:id |
+| `visitor.today` | C2 | 无最小合法请求体配方，待人工补充：POST /api/v1/issue-unread |
+| `visitor.today` | C2 | 无最小合法请求体配方，待人工补充：POST /api/v1/attendance-appeals |
+| `visitor.today` | C2 | 无最小合法请求体配方，待人工补充：POST /api/v1/inspection-appeals |
+| `visitor.todo` | C2 | 无最小合法请求体配方，待人工补充：POST /api/v1/handoffs/:id/confirm |
+| `visitor.todo` | C2 | 无最小合法请求体配方，待人工补充：POST /api/v1/attendance-appeals |
+
+## 例外清单（>4 块）
+
+| 页签 | 基线块数 | 登记理由 | 本次实测 |
+|---|---|---|---|
+| `secretary.overview` | 7 | 共享骨架 5 块（页头 / 结论带 / 条线表 / 待我处理 / 我已处理）+ 支书专属「周期归档待审核」「知情查看」两卡 | 6 |
+| `org.todo` | 5 | 页顶折叠条 + 我的待办 + 详情 + 页内「我经办的反馈」区（五台同构） | 3 |
+| `org.overview` | 6 | 共享三层骨架 5 块 + 页内「活动日历」折叠卡（承接原活动日历页签） | 5 |
+| `prop.todo` | 5 | 页顶折叠条 + 我的待办 + 详情 + 页内「我经办的反馈」区（五台同构） | 3 |
+| `prop.overview` | 6 | 共享三层骨架 5 块 + 页内「活动日历」折叠卡 | 5 |
+| `prop.kanban` | 5 | 待启动 / 进行中 / 宣传任务三块主体之外，另有独立的「去档案归档」去向条与页头并列 | 5 |
+| `disc.todo` | 5 | 页顶折叠条 + 我的待办 + 详情 + 页内「我经办的反馈」区（五台同构） | 3 |
+| `disc.overview` | 6 | 共享三层骨架 5 块 + 页内「活动日历」折叠卡 | 5 |
+| `disc.attendance` | 6 | 确认视图：分段条 + 工作视图切换 + 待确认考勤 + 出勤申诉 + 会议考勤录入，加页头共 6 块 | 7 |
+| `disc.inspection` | 5 | 督办清单 / 考察申诉 / 考察代录 / 考察总表四张功能卡并列（含页头 5 块） | 4 |
+| `leader.todo` | 5 | 页顶折叠条 + 我的待办 + 详情 + 页内「我经办的反馈」区（五台同构） | 2 |
+| `leader.overview` | 6 | 共享三层骨架 5 块 + 页内「活动日历」折叠卡 | 5 |
+| `visitor.todo` | 5 | 页顶折叠条 + 我的待办 + 详情 + 页内「我经办的反馈」区（五台同构） | 3 |
+| `visitor.overview` | 5 | 无页内折叠卡，但共享骨架本身 5 块（含「我已处理」折叠） | 4 |

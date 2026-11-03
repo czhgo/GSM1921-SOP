@@ -73,8 +73,11 @@ export const filesByFixtureClass = (fixtureClass) => TEST_TIERS
  *  2026-10-29 ESM 解析门禁：新增 esm-parse-guard（纯 node，2 条：全量真 ESM 解析 + 函数体 import 反例）
  *    ——浏览器按 ESM 解析，`node --check`（CommonJS）放过的函数体内 import 会整模块语法失败 ⇒ 227 → 228。
  *  2026-10-29 P3/P4：新增 lf-bar-structure-guard / container-width-guard（均纯 node）⇒ 228 → 230。
- *  2026-10-31 P0/P13–P15：新增 nested-interaction-guard / card-summary-hero-guard（均纯 node）⇒ 231 → 233。 */
-export const DAILY_FILE_BUDGET = 235;
+ *  2026-10-31 P0/P13–P15：新增 nested-interaction-guard / card-summary-hero-guard（均纯 node）⇒ 231 → 233。
+ *  2026-11-03 任务 4（写入口权限矩阵缺口 + 会话 TTL）：新增 write-policy-matrix（4）/ write-policy-gaps（4）/
+ *    session-ttl（2）三件，纯 node + `:memory:` ⇒ 文件预算 236 → 239，断言预算 1744 → 1754。
+ *  2026-11-03 任务 7（安全红队）：新增 security-redteam（5，纯 node + `:memory:`）⇒ 文件预算 239 → 240。 */
+export const DAILY_FILE_BUDGET = 240;
 
 /** daily 静态 `test(` / `it(` 调用点预算（含子测试；新增断言须同批上调并写明理由）
  *  2026-10-21 R5 P1：页题守卫 4 条 + 对比度守卫 5 条 + 补登记的既有两条守卫 ⇒ 1351 → 1377。
@@ -311,8 +314,18 @@ export const DAILY_FILE_BUDGET = 235;
  *    CLAUDE.md 批次 521 历史句与 `.ctx/logs/**` 豁免）1 条 ⇒ 1736 → 1737。
  *  2026-11-02 批次 527 · Wave 2（领域契约单一源）：新增 `data-contract.test.mjs` 6 条
  *    （47 表覆盖 / required 命中 / 枚举只来自契约 / 三类反例 / 成员变更读时别名 / deprecated 保留），
- *    纯 node + `:memory:` ⇒ daily；文件预算 234 → 235，断言预算 1737 → 1743。 */
-export const DAILY_TEST_BUDGET = 1743;
+ *    纯 node + `:memory:` ⇒ daily；文件预算 234 → 235，断言预算 1737 → 1743。
+ *  2026-11-03 任务 2（运行档固化）：新增 `run-mode.test.mjs` 7 条
+ *    （R1–R2 两档文案 / R3 生产多支部拒 / R4 ALLOW_MULTI_BRANCH=1 放行 / R5 review 不拦 /
+ *      R6 执行器 exit(1) / R7 缺省复用 env.js），纯 node + `:memory:`
+ *    ⇒ 文件预算 235 → 236，断言预算按实测 1743 → 1744。
+ *  2026-11-03 任务 4（写入口权限矩阵缺口 + 会话 TTL）：新增 `write-policy-matrix` 4、
+ *    `write-policy-gaps` 4、`session-ttl` 2 条（均纯 node + `:memory:` 真跑 HTTP）
+ *    ⇒ 文件预算 236 → 239，断言预算 1744 → 1754。
+ *  2026-11-03 任务 7（安全红队）：新增 `security-redteam` 5 条（快照清空/改写聚合子记录、
+ *    组织者不误伤、考勤与通知门防回归，纯 node + `:memory:`）⇒ 文件预算 239 → 240，
+ *    断言预算 1754 → 1759。 */
+export const DAILY_TEST_BUDGET = 1759;
 
 const group = (tier, reason, list) => list.map((file) => ({ file, tier, reason }));
 
@@ -354,6 +367,14 @@ export const TEST_TIERS = [
     'workforce-gate.test.mjs',
     'workgroup-branch-scope.test.mjs',
     'workgroup-member-grant-revoke.test.mjs',
+    // 2026-11-03 任务 4：写入口权限矩阵守卫（运行期路由表 ≡ 矩阵，纯 node）
+    'write-policy-matrix.test.mjs',
+    // 2026-11-03 任务 4：矩阵 6 条真实缺口回归（考勤删除 / 聚合子记录 / 未读标记，纯 node + :memory:）
+    'write-policy-gaps.test.mjs',
+    // 2026-11-03 任务 4：会话 TTL（默认 7 天，非法值回落；过期即删，/auth/me 与写口 401，纯 node + :memory:）
+    'session-ttl.test.mjs',
+    // 2026-11-03 任务 7：安全红队 P0 回归（快照整表写穿不得清空聚合子记录；组织者不误伤，纯 node + :memory:）
+    'security-redteam.test.mjs',
   ]),
   // daily · 数据真值 / 迁移 / 种子 / 备份
   ...group('daily', '数据真值 / 迁移 / 种子 / 备份', [
@@ -381,6 +402,8 @@ export const TEST_TIERS = [
     // 2026-10-23 R11 Task 12.1：拆表切换闸门（C2 埋点 / C4 历史 / NOT_READY 不切读路径，纯 node）
     'schema-split-gate.test.mjs',
     'seed-baseline.test.mjs',
+    // 2026-11-03 任务 2：运行档（review / production）与生产单支部硬断言（纯 node，:memory:）
+    'run-mode.test.mjs',
     // 2026-10-26 Task 5：四个月演示窗口（2026-08-01~2026-11-30）日期/月覆盖/11 月计划态/关键状态（纯 node）
     'demo-window-guard.test.mjs',
     // 2026-10-26 Task 4：schema v12 种子契约（branchId / 唯一索引 / todos 生成列 / contributions / 考察成员 / 死表）

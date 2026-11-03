@@ -2,7 +2,7 @@
 title: "审计口径唯一表——四口径裁定与档位分工"
 type: guide
 role: "[工程师]+[AI]"
-last_updated: 2026-11-02
+last_updated: "2026-11-03"
 status: active
 related_files: [TAB_AUDIT_PLAYBOOK.md, ../04_web_design/design-system/DS_06_LAYOUT_AND_DENSITY.md, ../04_web_design/design-system/DS_03_COMPONENTS.md, ../../server/scripts/audit/checks-front.mjs, ../../server/scripts/audit/checks-data.mjs, ../../server/scripts/audit/checks-economy.mjs, ../../server/scripts/audit/dom-probe.mjs, ../../.ctx/ENGINEERING_ASSESSMENT.md]
 ---
@@ -22,17 +22,18 @@ related_files: [TAB_AUDIT_PLAYBOOK.md, ../04_web_design/design-system/DS_06_LAYO
 | **F2 筛选条** | 只认「控件行数 ≤2」＋ 非 `column` ＋ reset 不整行 | `server/scripts/audit/dom-probe.mjs::collectDom`（行簇计数）＋ `filter-row::S14` | 88 / 96px 高度只作 evidence，不作阈值；容器上下 padding 不计入行数 |
 | **F4 页题** | 可见 H2 **恰 1**；H1 = 0；H3 / H4 不跳级 | `checks-front.mjs::F4`；`page-sweep.test.mjs` 的 H2 探针改走 `dom-probe.mjs::h2Summary` | 工作台页题单一源，不允许多个 H2 并列或只写 H3 |
 | **F7 / D2 分页** | `hasPager(root)` = `.lf-pager [data-lf-page]` **或** `.page-btn` | `server/scripts/audit/dom-probe.mjs::hasPager` | checks-front F7、checks-data D2、page-sweep P1/P3/P11 共用同一函数，不再各写选择器 |
-| **C1 越权** | `requireAuth` 通用写口返回 2xx ⇒ `exception`，回链 `.ctx/ENGINEERING_ASSESSMENT.md` 阻断风险 2 | `checks-crud.mjs::C1`（`knownGap: 'requireAuth-only'`） | 审计只报页签视角；权限件判「门是否变宽」——见下表分工 |
+| **C1 越权** | 每个页签写口先查 `server/security/write-policy-matrix.mjs`：未登记 ⇒ P0；`status=known-risk` ⇒ `exception` 并回链 `riskRef`；`enforced` / `self-service` / `public` ⇒ pass | `checks-crud.mjs::C1`（`matrixFor`）；矩阵唯一源 `server/security/write-policy-matrix.mjs`，完全相等守卫 `server/test/write-policy-matrix.test.mjs` | 默认**不逐口重探**；只有显式 `--probe-writes` 才跑运行期 visitor 越权探针。矩阵登记判据（中间件 → 资源门 → 归属/字段锁 → 证据），不再按中间件字符串猜门 |
 | **F1 顶层块** | `TAB_BLOCK_BASELINE` 登记为准；>4 且 `reason` 非空 ⇒ `exception`，空 ⇒ P1 | `checks-front.mjs::F1`；基线 `server/test/style-baseline.mjs::TAB_BLOCK_BASELINE`（上限 `TAB_BLOCK_LIMIT`） | DOM measured 仅 evidence 与人工复核线索，不因 measured ≠ baseline 判红（同构列表卡会变数） |
 
 ### 1.1 C1 与权限件的分工
 
 | 件 | 判断什么 | 不判断什么 |
 |---|---|---|
-| `server/scripts/audit/checks-crud.mjs::C1` | 当前页签视角：本角色读口是否 2xx；visitor 对写口是否被身份层挡住 | 不追溯 `requireRole` 是否被降级、不判断写门是否变宽 |
+| `server/scripts/audit/checks-crud.mjs::C1` | 当前页签视角：本角色读口是否 2xx；写口是否在权限矩阵登记、`status` 是否为 `known-risk` | 不追溯 `requireRole` 是否被降级、不判断写门是否变宽；默认不逐口发越权探针（需 `--probe-writes` 显式开启） |
+| `server/security/write-policy-matrix.mjs` + `server/test/write-policy-matrix.test.mjs` | 写口 method+path 是否与 Express 运行期路由**完全相等**；每行是否有 middleware / roleGate / ownership / fieldLocks / evidence；known-risk 是否有 reason / impact / riskRef | 不实际发请求、不替代 `permission-gate` 的角色集合比对 |
 | `permission-gate` / `r3-data-permission-regression` / `roles-sync` | 写门是否变宽、角色授权集合是否一致、`requireRole` 是否被降成 `requireAuth` | 不逐页签复跑 45 个页签的 UI 视角 |
 
-**结论**：`requireAuth` 2xx 不在 audit 里重复判 P0；它作为系统性阻断风险登记在 `ENGINEERING_ASSESSMENT`，audit 只保留 `exception` 实证条目。
+**结论**：C1 的判据是**矩阵登记**而不是「中间件是否等于 `requireAuth`」；`signups` 等中间件为 `requireAuth`、真实判据在专用 guard 的写口按 `enforced` 记 pass。真实无角色/归属判据的写口在矩阵里登记为 `known-risk`，C1 只保留 `exception` 并回链 `.ctx/ENGINEERING_ASSESSMENT.md` 阻断风险编号。
 
 ## 二、档位职责
 
@@ -53,3 +54,4 @@ related_files: [TAB_AUDIT_PLAYBOOK.md, ../04_web_design/design-system/DS_06_LAYO
 | 块数上限 `TAB_BLOCK_LIMIT` / 基线 `TAB_BLOCK_BASELINE` | `server/test/style-baseline.mjs` |
 | 检索条出现门槛 `SEARCH_FILTER_MIN_ROWS` | `docs/src/core/domain/constants.js` |
 | 严重度 `M1`–`M3` 登记 | `server/scripts/audit/severity.mjs` |
+| 写入口权限矩阵（唯一机读源） | `server/security/write-policy-matrix.mjs` |

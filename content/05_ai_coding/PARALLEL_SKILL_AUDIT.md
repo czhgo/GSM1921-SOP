@@ -2,7 +2,7 @@
 title: "多代理独立审查操作手册"
 type: methodology
 role: "[工程师]+[AI]"
-last_updated: "2026-11-01"
+last_updated: "2026-11-03"
 status: active
 related_files: [CLAUDE.md, .ctx/logs/archive/2026-10/specs/generalize-parallel-skill-audit/spec.md, .ctx/logs/archive/2026-10/specs/refine-ui-three-lenses/spec.md, .trae/specs/_TEMPLATE/tasks.md]
 ---

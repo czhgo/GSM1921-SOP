@@ -2,7 +2,7 @@
 title: "测试验证纪律"
 type: governance
 role: "[工程师]+[AI]"
-last_updated: "2026-10-22"
+last_updated: "2026-11-03"
 status: active
 related_files: [CLAUDE.md, DATA_CONSISTENCY_CHECKLIST.md, content/03_doc_system/OPERATIONS_GUIDE.md, docs/scripts/bump-version.mjs]
 ---
@@ -328,3 +328,30 @@ UI-2 通知点击响应修复时，首次基于"函数名直观判断"将 click 
 **Boolean 条件**：测试文件移出 daily → 必须同时出现在 precommit/weekly 且 registry 有 reason；否则守卫红。
 
 **生效条件**：任何新增 / 删除 / 移动测试文件或修改 server/package.json 测试脚本的批次。
+
+---
+
+## 判例：权限判据必须落在真实行为上（2026-11-03 批次 527 后）
+
+**问题**：审计按「中间件是不是 `requireAuth`」判越权，把 `signups` 这类「中间件只登录、handler 有专用 guard」的写口误记为风险；同时换轨演练暴露 `notices.reads` 被错误列为必填，导致导入被契约挡住。
+
+**规则**：
+
+1. 写权限的唯一机读源是 `server/security/write-policy-matrix.mjs`；矩阵行必须写 `roleGate / ownership / fieldLocks / evidence / status`。
+2. 审计 C1 只查矩阵：未登记 → P0；`known-risk` → exception 并回链阻断风险；`enforced` → 通过。运行期探针只抽样高风险行。
+3. 数据契约的 `required` 必须能在「演示库 + 真实库」两处都成立；只在实际写入方保证的字段才进 `required`，否则进 `optional`。
+
+**Boolean 条件**：新增 `POST/PATCH/DELETE` 路由 → 矩阵必须同步新增一行且 `write-policy-matrix` 绿；否则判红。
+
+**生效条件**：任何新增写口、改权限门、改审计 C1 口径或改 `domain-contract.required` 的批次。
+
+## 判例：用户说「保留」不等于「不用改」（2026-11-03 sample-diff-learning）
+
+**问题**：抽查时用户回「保留归保留，有改进空间就改进！有问题就改正」——若把这句读成 `Keep` 就会漏掉潜在缺陷。
+
+**规则**：收到「保留 + 改进」类反馈时，必须给出**具体改进点**（改了什么 / 为什么）或**明确说明为何当前无改进空间**（附检查项），不得以「已保留」结束。
+
+**Boolean 条件**：用户反馈含「改进 / 改正 / 有问题」→ 回复必须包含 `改动清单` 或 `无改进空间的三条检查证据`；否则视为未响应反馈。
+
+**生效条件**：每次 `sample-diff-learning` 抽样或用户对已交付改动作出保留类评价时。
+

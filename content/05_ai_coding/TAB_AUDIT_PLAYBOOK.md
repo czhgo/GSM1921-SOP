@@ -2,7 +2,7 @@
 title: "页签审计手册——45 页签五维检查怎么跑、怎么判、怎么加"
 type: guide
 role: "[工程师]+[AI]"
-last_updated: 2026-11-02
+last_updated: "2026-11-03"
 status: active
 related_files: [../04_web_design/design-system/DS_06_LAYOUT_AND_DENSITY.md, REVIEW_QUESTION_SET.md, ../../server/scripts/audit/catalog.mjs, ../../server/scripts/audit/endpoint-map.mjs, ../../.ctx/evidence/2026-11-02/tab-audit/summary-final.md]
 ---
@@ -59,7 +59,7 @@ related_files: [../04_web_design/design-system/DS_06_LAYOUT_AND_DENSITY.md, REVI
 | D 数据 | D2 计数对账 | 目录声明 `count` 的页签，UI 计数与接口数组长度一致（容差 0） | 非 SD：数据 | `audit-tabs::D2` | P0 |
 | D 数据 | D3 首屏 4xx | 首屏 `init()` 的 `/api/v1/` 4xx 为 0 | 非 SD：数据 | `module-load::E4` ＋ `audit-tabs::D3` | P1 |
 | D 数据 | D4 绝对上限 | 单接口 p95 >100ms 或响应 >500KB ⇒ P2 | 非 SD：性能 | `audit/perf-baseline.mjs` ＋ `audit-tabs::D4` | P2 |
-| C CRUD | C1 读写权限 | 本角色读口 2xx；普通成员对写口返回 401 / 403（2xx ⇒ P0） | 非 SD：权限 / CRUD | `permission-gate` ＋ `r3-data-permission-regression` ＋ `audit-tabs::C1` | P1 |
+| C CRUD | C1 读写权限 | 本角色读口 2xx；每个写口必须在 `server/security/write-policy-matrix.mjs` 登记（未登记 ⇒ P0）；`known-risk` ⇒ exception 并回链 `riskRef`；`enforced` / `self-service` / `public` ⇒ pass。默认不逐口重探，`--probe-writes` 才跑 visitor 越权探针 | 非 SD：权限 / CRUD | `write-policy-matrix` 守卫 ＋ `permission-gate` ＋ `r3-data-permission-regression` ＋ `audit-tabs::C1` | P0（未登记）/ P1 |
 | C CRUD | C2 写往返 | 非破坏性写口在 `:memory:` 库执行 create → 回读 → PATCH → 校验 → DELETE；无配方 ⇒ `skip` 并写原因 | 非 SD：CRUD | `audit-tabs::C2`（临时内存库） | P0 |
 | C CRUD | C3 死入口 | 页面写动作能映射到 `write.flow`；映射不到 ⇒ P0 | 非 SD：CRUD | `dead-selector-guard` ＋ `audit-tabs::C3` | P0 |
 | C CRUD | C4 写门 | 每个写口有 `gate`，且能在 `gates.js` / `semantic-routes.js` / 路由源码中定位 | 非 SD：CRUD / 权限 | `permission-gate` ＋ `audit-tabs::C4` | P1 |
@@ -81,8 +81,8 @@ related_files: [../04_web_design/design-system/DS_06_LAYOUT_AND_DENSITY.md, REVI
 
 - **F1 以基线登记为准。** `TAB_BLOCK_BASELINE` 里有非空 `reason` 的 >4 块页签记 `exception`；DOM measured 只作复核线索，不因 measured ≠ baseline 判红（同构列表卡会因条件块显隐而变数）。
 - **C2 破坏性流程不真删。** 解散 / 归档 / 删除活动等只在本次探针行上做软回滚，或仅做静态写门证明；报告记 `exception` ＋ `reason`。
-- **C1 已知系统性风险记 `exception`。** `requireAuth` 通用写口对 visitor 可写属于跨页签的系统性问题，回链 `.ctx/ENGINEERING_ASSESSMENT.md` 阻断风险 2，不逐页签判 P0。
-- 全量报告口径为 **P0 0 / P1 0 / P2 4 / exception 29**；29 条例外＝F1 14（>4 块已登记理由）、C2 12（破坏性流程不真删）、C1 3（通用写口仅登录）。
+- **C1 已知风险以矩阵为准。** 写口判据查 `server/security/write-policy-matrix.mjs`：只有矩阵行 `status=known-risk` 才记 `exception` 并回链其 `reason` / `impact` / `riskRef`（现行编号 `.ctx/ENGINEERING_ASSESSMENT.md` 阻断风险 2）；`enforced` / `self-service` / `public` 记 pass。矩阵未登记写口一律 P0，不再按中间件字符串猜门。
+- 全量报告口径为 **P0 0 / P1 0 / P2 4 / exception 29**；29 条例外＝F1 14（>4 块已登记理由）、C2 12（破坏性流程不真删）、C1（矩阵登记为 known-risk 的页签写口）。C1 的具体条数随矩阵行变化，报告以矩阵 `status` 为准。
 
 ## 三、怎么跑
 
@@ -99,7 +99,7 @@ node scripts/audit-tabs.mjs --tab secretary.group-progress
 node scripts/audit-tabs.mjs --base http://localhost:3000 --tab org.taskforce --only F
 ```
 
-- 参数：`--tab <role.tab>` 可重复，与 `--all` 互斥；`--only F,D,C,E,M` 过滤维度；`--headed` 显示浏览器；`--timeout <ms>` 覆盖单页超时。
+- 参数：`--tab <role.tab>` 可重复，与 `--all` 互斥；`--only F,D,C,E,M` 过滤维度；`--headed` 显示浏览器；`--timeout <ms>` 覆盖单页超时；`--probe-writes` 额外跑 C1 运行期越权探针（默认只查权限矩阵，不逐口重探）。
 - 产物：`findings.json`（逐页签逐检查）、`summary.md`（评分卡 ＋ P0/P1/P2 分组 ＋ 例外清单）、`shots/<key>.1440.png` 与 `shots/<key>.390.png`。
 - **单页签回归**：修完一项跑 `--tab <key>`，该页签对应规则应为 `pass` 或 `exception`；若仍为 `fail`，看 `evidence` 里的选择器、计数或接口读数。
 - `skip` 表示「无法可靠测量」，不是通过；报告单列跳过项，避免假绿。
@@ -119,7 +119,7 @@ node scripts/audit-tabs.mjs --base http://localhost:3000 --tab org.taskforce --o
 ## 五、规则冲突裁决
 
 1. **已登记例外不算违规。** F1 只复核 `reason` 是否仍成立，不因块数 >4 直接判 P1；理由过期才升级。
-2. **通用写口仅 `requireAuth` 记 `exception`。** 这是已知系统性风险（`.ctx/ENGINEERING_ASSESSMENT.md` 阻断风险 2），按页签重复计 P0 只会放大噪声；审计只在报告里保留实证条目。
+2. **写口判据以权限矩阵为准。** C1 先查 `server/security/write-policy-matrix.mjs`：未登记 ⇒ P0；`known-risk` ⇒ `exception` 并回链 `riskRef`；`enforced` / `self-service` / `public` ⇒ pass。默认不逐口重探，只有 `--probe-writes` 才补运行期实证；不再以「中间件 === requireAuth」推断写门。
 3. **破坏性流程不真删。** 不做真实删除，记 `exception` ＋ `reason`；需要真实往返时补 `CRUD_RECIPES` 的最小合法请求体，而不是放宽判据。
 4. **F1 以 `TAB_BLOCK_BASELINE` 为准。** DOM measured 只用于复核，不参与红绿判定。
 5. **F8 分级。** pageerror / `/api/v1/` 4xx 判 P0；仅 `console.error` 判 P1。

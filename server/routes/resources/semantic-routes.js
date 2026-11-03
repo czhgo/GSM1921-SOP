@@ -107,11 +107,48 @@ export function registerExtraSemanticRoutes(router, db) {
   router.patch('/inspection-appeals/:id', requireRole(db, APPEAL_DISPOSITION_ROLE_SET), (req, res) => disposeAppeal(req, res, 'inspection_appeals'));
   // ── 意见反馈「逐人未读标记」（前端 services/governance/issues.js::IssueNotify）──
   // 行＝{ id: `${assigneeId}:${issueId}`, assigneeId, issueId, unread:true, at }；销项＝unread:false（保留行便于审计）
-  // ⚠ 写门＝requireAuth（**与 mock 形态同口径**）：标记是「指派 / 答复」写链的副产品——**由派发方**替被指派人
-  //   落未读（见 docs/src/services/governance/issues.js:609,786 的 markUnread 调用点）。服务端只落不判定
-  //   「该 actor 是否真派发过」；如需收严另裁（如实登记，未自创第二套口径）。
+  // ⚠ 写门＝requireAuth + `issueUnreadWriteDeny`（2026-11-03 Task 4 收口）：标记是「指派 / 答复」写链的副产品——
+  //   **由派发位**替被指派人落未读（见 docs/src/services/governance/issues.js::assignIssue / requestReport）；
+  //   本人可清自己的已读；事项当事人可写 `secretary-review`。普通成员不再能替他人写/清未读。
   const issueUnreadId = (assigneeId, issueId) => `${assigneeId}:${issueId}`;
   const UNREAD_WRITE_KEYS = ['assigneeId', 'issueId', 'unread'];
+  /**
+   * 未读标记写门（2026-11-03 Task 4）：先查清前端真实语义——**不是**纯 self-service：
+   *   · `IssueNotify.markRead(本人 personId)`：本人清自己的已读；
+   *   · `assignIssue` / `requestReport`：**派发位**（支委层、党小组组长）替被指派人落未读；
+   *   · `markSecretaryReviewPending`：事项当事人（汇报人/被指派人）写角色保留键 `secretary-review`。
+   * 因此按「本人 ∪ 派发位角色 ∪ 事项当事人」收口；普通成员不再能替他人写/清未读。
+   * 注：`requestReport` 的 issue 只在本地新建（未同步服务端），故不能强依赖 issues 行存在；
+   *     仅当服务端能读到该事项时，额外校验 `assignee` 与标记对象一致（防伪造指派）。
+   * @returns {string|null} 403 文案；放行 → null
+   */
+  const issueUnreadWriteDeny = (actor, assigneeId, issueId) => {
+    if (!actor || !actor.id) return '未登录';
+    const self = String(actor.id);
+    if (String(assigneeId) === self) return null; // 本人标记本人（已读/未读）
+    const issue = getRow(db, 'issues', issueId);
+    if (issue) {
+      const issueBranch = issue.branchId || DEFAULT_BRANCH_ID;
+      const actorBranch = actorBranchId(actor);
+      if (actorBranch && issueBranch !== actorBranch) return '无权限：不能标记其他支部事项';
+    }
+    // 角色保留键：只有事项提交人 / 被指派人可把「待终审」推给支书
+    if (assigneeId === 'secretary-review') {
+      if (!issue) return null; // 历史实现允许（汇报链的 issue 可能尚未同步），保持兼容
+      return (String(issue.submittedBy || '') === self || String(issue.assignee || '') === self)
+        ? null
+        : '无权限：仅事项提交人或被指派人可标记待终审';
+    }
+    // 派发位：支委层 / 党小组组长 / 党委
+    // ⚠ 这里不再强校验「标记对象 === issue.assignee」：前端 assignIssue 先 fire-and-forget PATCH 事项、
+    //   紧接着 POST 未读，两条请求无顺序保证；若强校验，正常指派会偶发 403（提示角标丢失）。
+    //   支部归属由下方 recordBranchWriteDeny 复核，越权面已从「任一登录成员」收窄到「派发位角色」。
+    const dispatchRole = BRANCH_COMMISSION_ROLES.includes(actor.role)
+      || PARTY_GROUP_LEADER_ROLES.includes(actor.role)
+      || actor.role === 'party-staff';
+    if (!dispatchRole) return '无权限：只能标记本人或本人有权派发事项的未读';
+    return null;
+  };
   router.get('/issue-unread', requireAuth(db), (req, res) => {
     const deny = branchSelectionError(req.actor, req.query.branchId);
     if (deny) return res.status(403).json({ error: deny });
@@ -137,6 +174,9 @@ export function registerExtraSemanticRoutes(router, db) {
     if (!assignee && !isRoleKey) return res.status(400).json({ error: '未读标记对象不存在' });
     const rowBranchId = assignee ? (assignee.branchId || DEFAULT_BRANCH_ID) : (req.actor.branchId || null);
     if (!rowBranchId) return res.status(403).json({ error: '无权限：请先选择支部后再操作' });
+    // Task 4：先判「谁能写这条未读」，再落库（支部归属另由 recordBranchWriteDeny 复核）
+    const unreadDeny = issueUnreadWriteDeny(req.actor, assigneeId, issueId);
+    if (unreadDeny) return res.status(403).json({ error: unreadDeny });
     const prev = getRow(db, 'issue_unread', id) || {};
     const row = { ...prev, id, assigneeId, issueId, branchId: rowBranchId, unread: body.unread !== false, at: new Date().toISOString() };
     const scopeDeny = recordBranchWriteDeny(db, 'issue_unread', row, req.actor);

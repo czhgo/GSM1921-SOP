@@ -2,7 +2,7 @@
 title: "设计系统 · 第六编 布局与密度"
 type: design
 role: "[工程师]+[AI]"
-last_updated: 2026-11-02
+last_updated: "2026-11-03"
 status: active
 related_files: [DS_01_COLOR_AND_THEME.md, DS_02_TYPE_AND_SIZE.md, DS_03_COMPONENTS.md, DS_04_INTERACTION_AND_RESPONSIVE.md, DS_05_MAP_AND_REFERENCE.md, DESIGN_SYSTEM.md, ../PRODUCT_IA.md, ../../../docs/src/styles.css, ../../05_ai_coding/TAB_AUDIT_PLAYBOOK.md]
 ---

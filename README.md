@@ -335,6 +335,9 @@ content/ 文档是**支书批改的权威源**（制度先改文本、后同步�
 
 - **纯静态**：任意静态服务把 `docs/` 当根目录（演示卡/账号登录走本地 mock，数据存浏览器本地）
 - **账号登录/持久化**：`cd server && npm start`（页面与 API 同源，前端数据层一个常量切换形态，UI 零改动）
+- **运行档（2026-11-03 固化，两档互斥）**：判定单一源＝`server/env.js::isProductionEnv`（`APP_ENV=production` 或 `NODE_ENV=production`）。
+  - **review 档（视觉检验，缺省）**：不设上述变量即此档；`cd server && npm run start:review` 启动（自动使用独立库 `server/data.review.db`），或 `DB_PATH=data.review.db npm start`；日志打印 `[server] 运行档：review（视觉检验；演示种子=on/off；库=…）`，多支部只提示分支数、**不拦截**。**不得指向生产库**（显式 `DB_PATH` 时由操作者自行确认）。
+  - **production 档（正式上线）**：`APP_ENV=production` 且必须设 `LOGIN_PASSWORD`；默认不播种演示种子；迁移完成后若 `branches` 表行数 >1 且未设 `ALLOW_MULTI_BRANCH=1`，**启动即退出（exit 1）**。口径：一实例一支部；多支部需先完成服务端读过滤或显式设置 `ALLOW_MULTI_BRANCH=1`。启动方式见 [deploy/env.production.example](deploy/env.production.example) 与 [README-server.md §5.2](README-server.md#52-启动与构建方式)。
 
 ### 部署定位
 
