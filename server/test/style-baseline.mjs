@@ -152,9 +152,6 @@ export const HEX_BASELINE = {
   'docs/src/components/governance/org-setup-wizard.js': { c: 7, v: [
       '#16a34a', '#ce1126', '#ef4444', '#ffd700',
   ] },
-  'docs/src/components/governance/overview-dispatch-bar.js': { c: 1, v: [
-      '#b91c1c',
-  ] },
   'docs/src/components/governance/person-picker.js': { c: 3, v: [
       '#6b7280', '#ce1126',
   ] },
@@ -407,7 +404,10 @@ export const HEX_TOTAL_BASELINE = 1433;
 // ⚠ 2026-10-29 P2（数字组单一语法）：`secretary/report-up-tab.js` 页首统计三项的三处内联 hex
 //   （#d97706 / #16a34a / #6b7280）改为语义 token（--status-warning-text / --status-success /
 //   --status-error）⇒ 该文件 hex 清零，按收基线纪律删条目，文件数 49 → **48**（与实况同值）。
-export const HEX_FILE_BASELINE = 48;
+// ⚠ 2026-11-01 批次 524（E 功能色分工）：`overview-dispatch-bar.js` 待答复条由角色主题色 hex
+//   （`accent = '#B91C1C'` + `1A/40` 透明后缀）改为 `--status-info-text` 功能色（状态指标不跟主题走）
+//   ⇒ 该文件 hex 清零，按收基线纪律删条目，文件数 48 → **47**（与实况同值；H3 防呆下限同步下沉）。
+export const HEX_FILE_BASELINE = 47;
 export const HEX_VALUE_BASELINE = 300;
 
 /** 搬移例外台账（**人工填写**；守卫**不自动放宽**）——2026-09-25 支书裁定「开搬移例外」。
@@ -673,3 +673,210 @@ export const SPACING_NON_TOKEN_BASELINE = 239;
  *  声明＝属性体内 margin/padding/gap 家族且值不是 0/auto；属性＝含至少一条此类声明的 style 属性。 */
 export const SPACING_INLINE_DECL_BASELINE = 706;
 export const SPACING_INLINE_ATTR_BASELINE = 560;
+
+/* ════════════════════════════════════════════════════════════════
+   裸输入棘轮（2026-11-01 · 批次 524 · F · 输入单一源）
+   ────────────────────────────────────────────────────────────────
+   口径（守卫单一源＝`server/test/field-shell-guard.test.mjs::rawInputCount`）：
+     `docs/src` 下全部 .js 里 `<input|select|textarea` 标签的 class 属性含 `input-flat` 即一处「裸输入」
+     ——即绕开 `components/ui/forms.js`（textInput / selectInput / textField / selectField / dateField）
+     直接手写控件。只收处数 >0 的文件。
+   纪律：**只减不增**。新文件出现裸输入即红；某文件清零后须按收基线纪律删条目
+   （R1 的僵尸检查会判红），并同步下调 `RAW_INPUT_TOTAL_BASELINE` / `RAW_INPUT_FILE_BASELINE`。
+   2026-11-01 首批迁移（同口径实测 251 → 192，文件 58 → 57）：
+     `org/taskforce-tab.js` 25→9 · `secretary/calendar-tab.js` 25→2 · `prop/archive-tab.js` 12→0
+     （清零 ⇒ 不登记）· `disc/attendance-tab.js` 11→2 · `governance/person-edit-modal.js` 10→2；
+     未迁部分＝textarea（无布局中立 helper）与选项由变量拼好的 select。
+   ════════════════════════════════════════════════════════════════ */
+export const RAW_INPUT_BASELINE = {
+  'docs/src/components/feedback/issue-detail.js': 3,
+  'docs/src/components/feedback/issue-dispatch-view.js': 4,
+  'docs/src/components/feedback/issue-form.js': 4,
+  'docs/src/components/feedback/issue-list.js': 4,
+  'docs/src/components/governance/branch-filter.js': 1,
+  'docs/src/components/governance/org-setup-wizard.js': 10,
+  'docs/src/components/governance/person-edit-modal.js': 2,
+  'docs/src/components/governance/query-view.js': 6,
+  'docs/src/components/governance/resolution-followup-manager.js': 3,
+  'docs/src/components/governance/signup-panel.js': 2,
+  'docs/src/components/governance/workgroup-member-editor.js': 2,
+  'docs/src/components/notice/message-search-bar.js': 1,
+  'docs/src/components/record/activity-view.js': 1,
+  'docs/src/components/record/inspector.js': 9,
+  'docs/src/components/record/report-entry.js': 2,
+  'docs/src/components/record/report-inbox.js': 1,
+  'docs/src/components/record/taskforce-view.js': 5,
+  'docs/src/components/record/todo-tab-shell.js': 1,
+  'docs/src/components/sections/references.js': 9,
+  'docs/src/components/ui/list-filter.js': 2,
+  'docs/src/components/ui/modal.js': 3,
+  'docs/src/components/ui/void-record.js': 1,
+  'docs/src/entries/pages/activity-entry.js': 5,
+  'docs/src/entries/pages/branch-config-entry.js': 2,
+  'docs/src/entries/pages/branch-readonly-entry.js': 3,
+  'docs/src/entries/pages/messages-entry.js': 2,
+  'docs/src/entries/pages/notice-entry.js': 2,
+  'docs/src/entries/pages/party-committee-meeting-entry.js': 2,
+  'docs/src/entries/pages/settings-entry.js': 6,
+  'docs/src/entries/pages/thought-report-entry.js': 2,
+  'docs/src/entries/tabs/disc/attendance-tab.js': 2,
+  'docs/src/entries/tabs/disc/inspection-tab.js': 3,
+  'docs/src/entries/tabs/leader/attendance-tab.js': 4,
+  'docs/src/entries/tabs/leader/inspection-tab.js': 5,
+  'docs/src/entries/tabs/leader/write-tab.js': 6,
+  'docs/src/entries/tabs/org/activity-calendar-tab.js': 1,
+  'docs/src/entries/tabs/org/inspection-tab.js': 2,
+  'docs/src/entries/tabs/org/member-flow-tab.js': 9,
+  'docs/src/entries/tabs/org/roster-tab.js': 1,
+  'docs/src/entries/tabs/org/taskforce-tab.js': 9,
+  'docs/src/entries/tabs/party-committee/branches-tab.js': 2,
+  'docs/src/entries/tabs/party-committee/review-tab.js': 1,
+  'docs/src/entries/tabs/prop/tasks-tab.js': 4,
+  'docs/src/entries/tabs/prop/weekly-tab.js': 4,
+  'docs/src/entries/tabs/secretary/assign-tab.js': 1,
+  'docs/src/entries/tabs/secretary/calendar-tab.js': 2,
+  'docs/src/entries/tabs/secretary/feedback-tab.js': 7,
+  'docs/src/entries/tabs/secretary/group-progress-tab.js': 4,
+  'docs/src/entries/tabs/secretary/notification-tab.js': 8,
+  'docs/src/entries/tabs/secretary/overview-tab.js': 1,
+  'docs/src/entries/tabs/secretary/report-up-tab.js': 2,
+  'docs/src/entries/tabs/secretary/todo-tab.js': 3,
+  'docs/src/entries/tabs/secretary/workforce-panel.js': 4,
+  'docs/src/entries/tabs/shared/activity-calendar-tab.js': 1,
+  'docs/src/entries/tabs/visitor/inspection-tab.js': 2,
+  'docs/src/entries/tabs/visitor/thought-report-tab.js': 2,
+  'docs/src/services/governance/review.js': 2,
+};
+export const RAW_INPUT_TOTAL_BASELINE = 192;
+export const RAW_INPUT_FILE_BASELINE = 57;
+
+/* ════════════════════════════════════════════════════════════════
+   页签顶层区块数基线（2026-11-01 · spec consolidate-tab-density-and-filter-bars Task 1）
+   ────────────────────────────────────────────────────────────────
+   口径：`role.tab → { blocks, reason }`，与 `docs/src/capabilities/*-workspace.js`
+   注册的 45 个页签一一对应（键集合双向相等，由 `ui-first-screen-order.test.mjs`
+   的 F6 机检；新增 / 删除页签未登记即红）。
+   · blocks = 该页「用户可见的独立顶层区块」数（含页头；条件块按结构计，标注见 reason）；
+   · 密度上限 = `TAB_BLOCK_LIMIT`（4）；blocks > 4 的条目必须有非空 reason（F7 机检）。
+   数据源：`.ctx/evidence/2026-11-01/tab-inventory.json`（同批生成；改清单须同批改本表）。
+   收基线纪律：只随页签收敛下调；**不得**为变绿放宽上限或删条目。
+   ════════════════════════════════════════════════════════════════ */
+
+/** 单页顶层区块密度上限（SD-57 页签密度；见 DS_06 §2） */
+export const TAB_BLOCK_LIMIT = 4;
+
+/** 基线规模（非空转下限：注册表 7 台共 45 个页签） */
+export const TAB_BLOCK_TOTAL_BASELINE = 45;
+
+/** 逐页签块数基线：`role.tab → { blocks, reason }`（reason 仅 >4 块时必填） */
+export const TAB_BLOCK_BASELINE = {
+  // 支书台（10）
+  'secretary.today': { blocks: 3, reason: '' },
+  'secretary.todo': { blocks: 4, reason: '' },
+  'secretary.overview': {
+    blocks: 7,
+    reason: '共享骨架 5 块（页头 / 结论带 / 条线表 / 待我处理 / 我已处理）+ 支书专属「周期归档待审核」「知情查看」两卡',
+  },
+  'secretary.calendar': { blocks: 3, reason: '' },
+  'secretary.committee-meeting': { blocks: 3, reason: '' },
+  // 2026-11-01 Task 4：整页改主从双栏（左栏组列表 / 右栏组详情），活动台账合并原「复盘状态 + 活动与考勤」，
+  //   变更记录降为右栏底部链接 ⇒ 5 → 2
+  'secretary.group-progress': {
+    blocks: 2,
+    reason: '主从双栏（左栏组列表 + 右栏组详情）＋ 活动台账合并',
+  },
+  'secretary.notification': { blocks: 3, reason: '' },
+  'secretary.report-up': { blocks: 4, reason: '' },
+  'secretary.work-map': { blocks: 3, reason: '' },
+  'secretary.feedback': { blocks: 3, reason: '' },
+  // 组织台（8）
+  'org.today': { blocks: 3, reason: '' },
+  'org.todo': {
+    blocks: 5,
+    reason: '页顶折叠条 + 我的待办 + 详情 + 页内「我经办的反馈」区（五台同构）',
+  },
+  'org.overview': {
+    blocks: 6,
+    reason: '共享三层骨架 5 块 + 页内「活动日历」折叠卡（承接原活动日历页签）',
+  },
+  'org.roster': { blocks: 3, reason: '' },
+  'org.talent': { blocks: 4, reason: '' },
+  'org.thought-review': { blocks: 2, reason: '' },
+  // 2026-11-01 Task 6：看板＋报名总表合为一卡两视图（筛选挂卡头），详情改右侧抽屉（五块折叠区，默认展开前两段），
+  //   历史分工与核验代录合并为「贡献核验」，赋权记录折叠置后 ⇒ 6 → 4
+  'org.taskforce': { blocks: 4, reason: '看板/总表同卡 + 详情抽屉 + 贡献合并' },
+  'org.member-flow': { blocks: 3, reason: '' },
+  // 宣传台（5）
+  'prop.today': { blocks: 3, reason: '' },
+  'prop.todo': {
+    blocks: 5,
+    reason: '页顶折叠条 + 我的待办 + 详情 + 页内「我经办的反馈」区（五台同构）',
+  },
+  'prop.overview': {
+    blocks: 6,
+    reason: '共享三层骨架 5 块 + 页内「活动日历」折叠卡',
+  },
+  'prop.kanban': {
+    blocks: 5,
+    reason: '待启动 / 进行中 / 宣传任务三块主体之外，另有独立的「去档案归档」去向条与页头并列',
+  },
+  // 2026-11-01 Task 5：待办合卡（待归档 / 初稿 / 缺口三段切换，上传材料并入卡头）+ 回看合并 + 低频查阅合并 ⇒ 8 → 4
+  'prop.archive': {
+    blocks: 4,
+    reason: '待办合卡 + 回看合并 + 低频查阅合并',
+  },
+  // 纪检台（6）
+  'disc.today': { blocks: 3, reason: '' },
+  'disc.todo': {
+    blocks: 5,
+    reason: '页顶折叠条 + 我的待办 + 详情 + 页内「我经办的反馈」区（五台同构）',
+  },
+  'disc.overview': {
+    blocks: 6,
+    reason: '共享三层骨架 5 块 + 页内「活动日历」折叠卡',
+  },
+  'disc.attendance': {
+    blocks: 6,
+    reason: '确认视图：分段条 + 工作视图切换 + 待确认考勤 + 出勤申诉 + 会议考勤录入，加页头共 6 块',
+  },
+  'disc.review': { blocks: 4, reason: '' },
+  'disc.inspection': {
+    blocks: 5,
+    reason: '督办清单 / 考察申诉 / 考察代录 / 考察总表四张功能卡并列（含页头 5 块）',
+  },
+  // 组长台（6）
+  'leader.today': { blocks: 3, reason: '' },
+  'leader.todo': {
+    blocks: 5,
+    reason: '页顶折叠条 + 我的待办 + 详情 + 页内「我经办的反馈」区（五台同构）',
+  },
+  'leader.overview': {
+    blocks: 6,
+    reason: '共享三层骨架 5 块 + 页内「活动日历」折叠卡',
+  },
+  'leader.write': { blocks: 3, reason: '' },
+  'leader.attendance': { blocks: 2, reason: '' },
+  // 2026-11-01 Task 7：卡点＋进度合为一卡（段内切换），复盘与其他党小组并入一张低频折叠卡，上传考察入卡头 ⇒ 7 → 4
+  'leader.members': {
+    blocks: 4,
+    reason: '卡点/进度分段 + 汇报 + 复盘/其他组折叠 + 上传考察入卡头',
+  },
+  // 成员台（7）
+  'visitor.today': { blocks: 3, reason: '' },
+  'visitor.todo': {
+    blocks: 5,
+    reason: '页顶折叠条 + 我的待办 + 详情 + 页内「我经办的反馈」区（五台同构）',
+  },
+  'visitor.overview': {
+    blocks: 5,
+    reason: '无页内折叠卡，但共享骨架本身 5 块（含「我已处理」折叠）',
+  },
+  'visitor.activities': { blocks: 3, reason: '' },
+  'visitor.projects': { blocks: 3, reason: '' },
+  'visitor.attendance': { blocks: 4, reason: '' },
+  'visitor.growth': { blocks: 4, reason: '' },
+  // 党委台（3）
+  'party-committee.dispatch': { blocks: 3, reason: '' },
+  'party-committee.review': { blocks: 2, reason: '' },
+  'party-committee.branches': { blocks: 2, reason: '' },
+};

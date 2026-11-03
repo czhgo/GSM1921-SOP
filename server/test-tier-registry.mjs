@@ -74,7 +74,7 @@ export const filesByFixtureClass = (fixtureClass) => TEST_TIERS
  *    ——浏览器按 ESM 解析，`node --check`（CommonJS）放过的函数体内 import 会整模块语法失败 ⇒ 227 → 228。
  *  2026-10-29 P3/P4：新增 lf-bar-structure-guard / container-width-guard（均纯 node）⇒ 228 → 230。
  *  2026-10-31 P0/P13–P15：新增 nested-interaction-guard / card-summary-hero-guard（均纯 node）⇒ 231 → 233。 */
-export const DAILY_FILE_BUDGET = 234;
+export const DAILY_FILE_BUDGET = 235;
 
 /** daily 静态 `test(` / `it(` 调用点预算（含子测试；新增断言须同批上调并写明理由）
  *  2026-10-21 R5 P1：页题守卫 4 条 + 对比度守卫 5 条 + 补登记的既有两条守卫 ⇒ 1351 → 1377。
@@ -245,7 +245,74 @@ export const DAILY_FILE_BUDGET = 234;
  *  · `type-scale-guard` 新增 Q1–Q4 四条（档位表外新增判红 / 逐文件逐值棘轮 / 非空转与文档齐备 / 进度）；
  *  · `spacing-scale-guard` 新增 S5–S7 三条（styles.css 非令牌声明 / 行内声明 / 行内属性棘轮）。
  *  均沿用既有守卫文件，未新增文件 ⇒ 实测 1700 + 7 = 1707；文件预算维持 234。 */
-export const DAILY_TEST_BUDGET = 1707;
+/** 2026-10-31 批次 523（首屏 4xx 归零）：`module-load.test.mjs::E4`（真机装配，precommit 层）新增
+ *  「每个抽样工作台页首屏 `/api/v1/` 4xx === 0」断言 1 条（逐条带 状态码 + 路径；复核结论：上一轮
+ *  审查所称 `memberChangeRequests` / `agendaVotes` 恒 404 系驼峰路径误读，真实端点小写连字符，
+ *  带 token 实测 200）。该断言写在既有 `test()` 调用点内、所在文件属 precommit 不进 daily 静态计数，
+ *  实况仍 1707 ⇒ 按「新增断言须同批上调预算」上调 1 条留余量：1707 → 1708。 */
+/** 2026-11-01 页签模块加载失败自愈：`copy-guard.test.mjs` 新增源件 9 的 F1/F2 两条
+ *  （失败态错误串不得暴露模块文件名 / 不含「请刷新」；模块失败分支必须带 reload 动作且按钮为「重新载入」，
+ *  各带反例），沿用既有守卫文件、未新增文件 ⇒ 按实况 1708 + 2 = 1710。
+ *  2026-11-01 折叠头单一语法 / hover 只变箭头 / 数字卡回线上口径：
+ *  · `hover-state-guard` 新增 H10（`.disclosure__summary` 含 hover/active 不得声明非透明背景，
+ *    带 2 类反例与 3 类正例）1 条；H3 三态选择器口径放宽以承接
+ *    `summary:not(.disclosure__summary):hover`（断言数不变，另加「底色反馈须排除空壳热区」）。
+ *  · `type-scale-guard` 新增 Q5（`.disclosure__title` 16/600/24 ＋ 调用点不得再用
+ *    `font-title-cn`/`text-sm`，带 14px/800 反例）1 条。
+ *  · `ui-home-hero` E7 / `card-summary-hero-guard` G1 按新口径改准（断言数不变）。
+ *  均沿用既有守卫文件、未新增文件 ⇒ 实测 1710 + 2 = 1712。 */
+/** 2026-11-01 批次 524 C/D（嵌套卡去重 / 语义标签 / 只读按权限计算）：
+ *  · `card-summary-hero-guard` 新增 G4（`workgroup-view` / `taskforce-view` 的 `opts.embedded`
+ *    分叉 + 嵌入模板无 `class="card` + `insight-view` 两处传 `embedded: true`，含 3 类反例）1 条；
+ *  · `frontend-foundations-guard` 新增 F12（`canWriteResource` / `readonlyMeta` 角色矩阵、
+ *    registry 角色键 ∈ `ROLE_KEYS`、4 处硬编码文案清零，含反例）1 条；
+ *  · `a11y-tree.test.mjs` 新增 A10（5 页真机 `section` 名称 / 嵌套审计 + 合成 DOM 反例）
+ *    写在 precommit 层，不进 daily 静态计数。
+ *  沿用既有守卫文件、未新增文件 ⇒ 1718 + 2 = 1720。 */
+/** 2026-11-01 批次 524 E（功能色分工）：`ui-color-semantics.test.mjs` 新增 C6（工作台结论带
+ *  「待…」/ 逾期 / 组员汇报指标只取 --status-*-text / --neutral-*，出现 --app-accent 即红）、
+ *  C7（待答复直达条取 --status-info-text，不得再用角色主题色）、C8（旧 / 新写法正反例非空转）三条。
+ *  沿用既有守卫文件、未新增文件 ⇒ 实测 1715 + 3 = 1718（与同批其它改动并行时按实况登记）。 */
+/** 2026-11-01 批次 524 A/B（表头去灰 / 行选中柔和化，支书 #2 #6）新增 2 个静态 test() 调用点：
+ *  · `ui-control-system-guard` V9 —— `.data-table th` / `.data-table thead th` 规则体内不得出现
+ *    background（带 2 条合成反例 ＋ 2 条正例）；同文件 V7 按新裁定改写（可点行 hover 改
+ *    `--app-accent-tint` ＋ `::before` 左条，灰底只留静态分隔；断言数不变，仍逐条核 token / 过渡）。
+ *  · `hover-state-guard` H11 —— `.list-row` 8px 圆角 / hover 主题 10% 淡底 / `::before` 3px 左条带
+ *    opacity 过渡（带 3 条反例 ＋ 1 条「无过渡」反例）；同文件 H2 按新裁定只放行「装饰伪元素
+ *    （::before / ::after）的 opacity」，元素级 opacity 与 filter / transform / box-shadow 仍判红
+ *    （断言数不变，另加 5 条正反例自检）。
+ *  · `frontend-foundations-guard` F8 的行载体 hover token 随新裁定改准（断言数不变）。
+ *  两条已落在上一条并行登记的余量内（实测 1716 ≤ 1718），故本批不再另行上调常量；
+ *  若后续批次回收余量，须按「实测 + 2」重算。
+ *  2026-11-01 批次 524（#7 待办动作表 + 深链）：`tab-nav.test.mjs` 新增 G1–G4 四条
+ *    （旧页签直点/写死 URL 零残留 + TODO_ACTIONS 覆盖各台 actionKey/actionType 字面量
+ *    + resolveTodoAction 优先级/覆盖 + data-ws-tab-btn 与目标页 PendingTarget 消费，各带反例）
+ *    ⇒ 1720 → 1724。
+ *  2026-11-01 批次 524（F 输入单一源 + 搜索框收窄 + 自动补全）：`field-shell-guard` 新增
+ *    R1（裸输入逐文件只减不增 ＋ 未登记文件即红 ＋ 僵尸条目判红）、R2（总数/文件数与
+ *    `RAW_INPUT_TOTAL_BASELINE` / `RAW_INPUT_FILE_BASELINE` 一致、forms.js 仍导出 textInput/selectInput）、
+ *    R3（合成裸 input 必须判红、textInput/selectInput 产物必须不命中）三条静态 test() ⇒ 1724 → 1727。
+ *  2026-11-01 spec consolidate-tab-density-and-filter-bars · Task 1（页签密度基线）：
+ *    `ui-first-screen-order` 新增 F6–F9 四条（注册页签集合 ↔ `TAB_BLOCK_BASELINE` 双向相等 /
+ *    >4 块必须有非空 reason / 两条反例 / 非空转规模与字段），沿用既有守卫文件、未新增文件
+ *    ⇒ 1727 → 1731。
+ *  2026-11-01 同 spec · Task 2（筛选条两行）＋ Task 3（去原生 datalist）：
+ *    · `filter-row` 新增 S14（`.lf-bar` 不得 flex-direction: column、行须 display: contents、
+ *      reset 不得 flex-basis:100%，3 类反例）＋ S15（四页真机 1440 读数 ≤2 行 / ≤96px，
+ *      读 `.ctx/evidence/2026-11-01/batch525-filter.json`，含 4 行 184px 反例）两条；
+ *    · `field-shell-guard` 新增 R4（`docs/src` 原生 list 属性 / datalist 标签清零 ＋ 反例、
+ *      data-*-list 负例）＋ R5（`suggestInput` 产物 combobox ARIA 齐全、无 list 属性 ＋ 无 ARIA 反例）两条
+ *    ⇒ 1731 + 4 = 1735。
+ *  2026-11-01 同 spec · Task 6（专班管理块收敛 ≤4）：`taskforce-history-copy` 第三测试改写为
+ *    「四段对象区 + 贡献核验块 + 9 个分块刷新容器」并新增 1 条「顶层区块收敛到 4（一卡两视图 /
+ *    卡头筛选 / 详情默认隐藏 / 赋权折叠）」⇒ 1735 → 1736。
+ *  2026-11-01 同 spec · Task 8（规范与指针落盘）：`docs-governance-guard` 新增 G12
+ *    （当前状态类 8 份文档不得再出现「五编」/「Q-01…Q-21」；`第五编` 不误伤、合成反例判红、
+ *    CLAUDE.md 批次 521 历史句与 `.ctx/logs/**` 豁免）1 条 ⇒ 1736 → 1737。
+ *  2026-11-02 批次 527 · Wave 2（领域契约单一源）：新增 `data-contract.test.mjs` 6 条
+ *    （47 表覆盖 / required 命中 / 枚举只来自契约 / 三类反例 / 成员变更读时别名 / deprecated 保留），
+ *    纯 node + `:memory:` ⇒ daily；文件预算 234 → 235，断言预算 1737 → 1743。 */
+export const DAILY_TEST_BUDGET = 1743;
 
 const group = (tier, reason, list) => list.map((file) => ({ file, tier, reason }));
 
@@ -295,6 +362,8 @@ export const TEST_TIERS = [
     'archive-record-write.test.mjs',
     'backup-restore.test.mjs',
     'catalog-sync.test.mjs',
+    // 2026-11-02 批次 527 · Wave 2：领域契约单一源（47 表覆盖 / required / enums / 反例，纯 node）
+    'data-contract.test.mjs',
     'data-lifecycle-guard.test.mjs',
     'db-integrity-guard.test.mjs',
     'db-migration.test.mjs',

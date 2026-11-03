@@ -1010,7 +1010,8 @@ WebView 套壳（短期）→ Taro 跨端（中期），与网页共用后端；
 
 **回滚后 DB 要不要一起回？——判据**
 
-- **默认：不回**。迁移机制**只向前应用、不回退 `user_version`**（`server/db.js::applyMigrations`：只跑 `version > user_version` 的项）。旧代码启动时没有更新的迁移可跑 ⇒ **一行 DDL 不跑、数据一行不动**；本仓 `MIGRATIONS` 目前只有 `v1` 基线（幂等重放既有建表、不改写数据）⇒ **代码回滚与 DB 无关**。
+- **默认：不回**。迁移机制**只向前应用、不回退 `user_version`**（`server/db.js::applyMigrations`：只跑 `version > user_version` 的项）。旧代码启动时没有更新的迁移可跑 ⇒ **一行 DDL 不跑、数据一行不动**；本仓 `MIGRATIONS` 现为 **v1–v12**（当前 `SCHEMA_VERSION = 12`；v1 为冻结基线），v2 起含结构变更与数据回填 ⇒ **代码回滚与 DB 无关**（只能回代码，不能降库）。
+- **迁移安全（2026-11-02 批次 527）**：① **迁移前自动备份**——目标库已有业务数据且有待应用迁移时，`initDb` 会先同步调用 `scripts/backup.mjs` 备份到 `server/backups/pre-migration-<时间戳>/`，失败即中止迁移（`:memory:` / 临时库跳过）；② **版本拒绝降级**——库内 `user_version > SCHEMA_VERSION` 时启动直接抛错「库比代码新，禁止降级」，不提供降级脚本；③ **失败回滚**——单事务整体回滚并打印 runbook 指针；④ **附件校验**——恢复/换轨后跑 `node scripts/preflight-cutover.mjs --db <库> --uploads <附件目录> --strict`，核对 `attachments` 记录与 `UPLOAD_DIR` 物理文件（缺文件即阻断，孤儿文件告警）。换轨/迁移完整步骤见 [deploy/CUTOVER_RUNBOOK.md](../../../deploy/CUTOVER_RUNBOOK.md)。
 - **必须回 DB 的唯一情形**：本次升级做了**破坏性结构变更或数据改写**，旧代码读不了新库（本仓当前无此情形）。此时按 **A.2 第 7 条恢复**：停服 → 用**升级前**的备份 `data.db` 覆盖库文件、并删除同目录 `data.db-wal` / `data.db-shm` → 用备份的 `uploads/` 覆盖附件目录 → 启动。
 - ⚠ **回 DB 会丢掉**「升级 → 回滚」之间产生的真实写入 ⇒ **只在确认「新版本写坏了数据」时做**，且**先把现状库另存一份**再覆盖；遇 SQLite **WAL** 陷阱一律用脚本备份（只拷 `data.db` 会丢最近写入，见 A.2 第 6 条）。
 

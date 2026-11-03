@@ -10,7 +10,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import {
   MATERIAL_ROWS, resolveMaterialHref, resolveMaterialHandoff,
-} from '../../docs/src/core/domain/material-links.js?v=20261031a';
+} from '../../docs/src/core/domain/material-links.js?v=20261102b';
 
 const ID = 'act-1';
 

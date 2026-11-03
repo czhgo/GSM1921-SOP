@@ -1355,3 +1355,66 @@ test('G11 根页地标：sidebar-main-content 外壳的 #main-content 必须是�
   assert.ok(mainLandmarkProblems(ok.replace('href="#main-content"', 'href="#content"')).length > 0,
     '负例④（skip link 目标漂移）未被判出');
 });
+
+// ═════════════════════════════════════════════════════════════════════════════
+// 十二、G12 指针回潮：当前状态类文档不得再写「五编」/「Q-01…Q-21」
+// ═════════════════════════════════════════════════════════════════════════════
+//
+// 来源（2026-11-01 批次 525 Task 8）：设计系统由五编扩为六编（新增 DS_06），审查问题集由
+//   21 条扩为 22 条（新增 Q-22）。**当前状态类文档**若继续写「五编」「Q-01…Q-21」，读者会
+//   按旧范围查找，属于死指针。判据只扫**现行状态文件**，不扫历史日志与历史沿革句：
+//   · `第五编` 是 DS_05 的正式编名，**不得误伤**（故用 `(?<!第)五编`）；
+//   · `CLAUDE.md` 批次 521 的「分编为父索引 ＋ 五编」是历史事实，**允许保留**（本守卫不扫 CLAUDE.md）；
+//   · `.ctx/logs/**` 历史不可变，不在扫描面。
+// 非空转：扫描面恰为 8 份且均存在、正文 >100 字符；纯判据带正反例（防正则写反 ⇒ 恒真）。
+
+const CURRENT_STATE_DOCS = [
+  'content/04_web_design/design-system/DESIGN_SYSTEM.md',
+  'content/04_web_design/design-system/README.md',
+  'content/04_web_design/README.md',
+  'content/03_doc_system/DOC_MAP.md',
+  'content/05_ai_coding/REVIEW_QUESTION_SET.md',
+  'content/05_ai_coding/QUESTION_HIT_MATRIX.md',
+  'content/05_ai_coding/PARALLEL_SKILL_AUDIT.md',
+  'content/05_ai_coding/AGENTS.md',
+];
+
+/** 纯判据：返回过期指针命中串（空＝合格） */
+export function stalePointerProblems(text) {
+  const out = [];
+  const oldCount = text.match(/(?<!第)五编/g) || [];
+  if (oldCount.length > 0) out.push(`出现「五编」${oldCount.length} 处（应为「六编」；DS_05 编名「第五编」不算）`);
+  const oldQ = text.match(/Q-01\s*(?:…|\.{2,3}|–|—|-)\s*Q-21/g) || [];
+  if (oldQ.length > 0) out.push(`出现「${oldQ[0]}」${oldQ.length} 处（应为 Q-01…Q-22）`);
+  return out;
+}
+
+test('G12 当前状态类文档不得再出现「五编」/「Q-01…Q-21」（历史日志与 CLAUDE.md 历史句豁免）', () => {
+  const missing = CURRENT_STATE_DOCS.filter((rel) => !existsSync(join(ROOT, rel)));
+  assert.deepEqual(missing, [], `扫描面文件缺失（改名须同批改本清单）：${missing.join(' / ')}`);
+  assert.equal(CURRENT_STATE_DOCS.length, 8, '扫描面应为 8 份现行状态文档');
+
+  const problems = [];
+  for (const rel of CURRENT_STATE_DOCS) {
+    const src = read(join(ROOT, rel));
+    assert.ok(src.length > 100, `${rel} 正文过短（${src.length} 字符），扫描面疑似被写坏`);
+    for (const p of stalePointerProblems(src)) problems.push(`${rel}：${p}`);
+  }
+  assert.deepEqual(problems, [],
+    `当前状态类文档仍留旧指针（改「六编」/「Q-01…Q-22」，或把沿革句迁 \`.ctx/logs/**\`）：\n  ${problems.join('\n  ')}`);
+
+  // 纯判据正反例（防恒真 / 防误伤）
+  assert.ok(stalePointerProblems('设计系统分编为父索引 ＋ 五编').length > 0, '合成「五编」未判红');
+  assert.ok(stalePointerProblems('审查前置：Q-01…Q-21 逐条回答').length > 0, '合成「Q-01…Q-21」未判红');
+  assert.ok(stalePointerProblems('Q-01...Q-21').length > 0, '「Q-01...Q-21」变体未判红');
+  assert.deepEqual(stalePointerProblems('第五编 地图与速查'), [], 'DS_05 正式编名「第五编」被误伤');
+  assert.deepEqual(stalePointerProblems('六编 DS_01…DS_06；Q-01…Q-22'), [], '新口径被误判红');
+
+  // 豁免面真实存在：CLAUDE.md 保留批次 521 历史句，且它不在扫描面
+  const claude = read(join(ROOT, 'CLAUDE.md'));
+  assert.match(claude, /批次 521[\s\S]{0,200}五编/,
+    'CLAUDE.md 缺批次 521「五编」历史句（豁免锚点消失，须核对是否被误改）');
+  assert.ok(!CURRENT_STATE_DOCS.includes('CLAUDE.md'), 'CLAUDE.md 不应进入当前状态扫描面（历史句豁免）');
+  assert.ok(!CURRENT_STATE_DOCS.some((rel) => rel.startsWith('.ctx/logs/')), '历史日志不应进入扫描面');
+});
+

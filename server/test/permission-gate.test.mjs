@@ -11,7 +11,7 @@ import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { createApp } from '../app.js';
 import { seedDatabase } from '../seed.js';
-import { ACTIVITIES } from '../../docs/src/data/mock/activities.js?v=20261031a';
+import { ACTIVITIES } from '../../docs/src/data/mock/activities.js?v=20261102b';
 
 const ACT6_TITLE = ACTIVITIES.find((a) => a.id === 'act-6').title;
 

@@ -22,7 +22,7 @@
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync, readdirSync, statSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -396,4 +396,93 @@ test('S13 数据格不得挂小字类（text-xs / text-[1Npx] 只许出现在单
   }
   assert.deepEqual(hits, [],
     `数据格自身不得挂辅助小字类（把「数据」降到辅助档；支书实报的「表格字体小」即此）：\n${hits.join('\n')}`);
+});
+
+// S14（2026-11-01 批次 525 · #2）：筛选条最多两行。
+// 病灶：`.lf-bar` 原为 `flex-direction: column`，每个 `data-seg` 独占一行、`reset` 无条件另起一行
+//   ⇒ 活动日历实测 4 行 ≈184px、意见反馈 4 行、纪检考勤 3 行。
+// 判据：`.lf-bar` 可折行（flex-wrap: wrap）且不得回到 column；`.lf-bar__row` 不生成盒子
+//   （display: contents ⇒ 段与段同排、段内控件也同排）；reset 不得被 `flex-basis:100%` 钉成整行。
+/** 取选择器列表中精确包含 selector 的第一条规则体（剥注释，避免说明文字里的花括号干扰） */
+function cssRuleBody(css, selector) {
+  const src = String(css).replace(/\/\*[\s\S]*?\*\//g, '');
+  const re = /([^{}]+)\{([^{}]*)\}/g;
+  let m;
+  while ((m = re.exec(src))) {
+    const sels = m[1].split(',').map((s) => s.trim());
+    if (sels.includes(selector)) return m[2];
+  }
+  return '';
+}
+
+/** 分析筛选条布局规则，返回违规列表（空 = 合法；供正例与反例共用） */
+function analyzeLfBarLayout(css) {
+  const bad = [];
+  const bar = cssRuleBody(css, '.lf-bar');
+  const row = cssRuleBody(css, '.lf-bar__row');
+  if (!bar) bad.push('.lf-bar 规则缺失');
+  if (!/flex-wrap:\s*wrap\b/.test(bar)) bad.push('.lf-bar 缺少 flex-wrap: wrap（筛选条须可折行）');
+  if (/flex-direction:\s*column\b/.test(bar)) bad.push('.lf-bar 不得 flex-direction: column（会把每段挤成独立一行）');
+  if (!/display:\s*contents\b/.test(row)) bad.push('.lf-bar__row 须 display: contents（段内控件直接参与外层折行）');
+  const noComment = String(css).replace(/\/\*[\s\S]*?\*\//g, '');
+  const re = /([^{}]+)\{([^{}]*)\}/g;
+  let m;
+  while ((m = re.exec(noComment))) {
+    const sels = m[1];
+    if (!/(?:data-seg="reset"|\.lf-clear|\.lf-btn)/.test(sels)) continue;
+    if (/(?:flex|flex-basis)\s*:\s*[^;]*\b100%/.test(m[2])) {
+      bad.push('reset / 清除按钮不得 flex-basis:100%（会独占整行）');
+      break;
+    }
+  }
+  return bad;
+}
+
+test('S14 筛选条两行布局：可折行、段内控件同排、reset 不独占整行', () => {
+  const css = read(CSS);
+  assert.deepEqual(analyzeLfBarLayout(css), [],
+    `筛选条布局不合规（批次 525 · #2 要求最多两行）：\n${analyzeLfBarLayout(css).join('\n')}`);
+  // 反例①：退回逐段独占一行
+  const columnCss = '.lf-bar { display: flex; flex-direction: column; flex-wrap: wrap; }\n.lf-bar__row { display: contents; }';
+  assert.ok(analyzeLfBarLayout(columnCss).some((s) => s.includes('column')),
+    '反例（.lf-bar 仍为 column）未被判红');
+  // 反例②：reset 被钉成整行
+  const resetCss = '.lf-bar { display: flex; flex-wrap: wrap; }\n.lf-bar__row { display: contents; }\n.lf-bar__row[data-seg="reset"] { flex-basis: 100%; }';
+  assert.ok(analyzeLfBarLayout(resetCss).some((s) => s.includes('reset')),
+    '反例（reset flex-basis:100%）未被判红');
+  // 反例③：行仍生成盒子（段与段不会同排）
+  const blockCss = '.lf-bar { display: flex; flex-wrap: wrap; }\n.lf-bar__row { display: flex; }';
+  assert.ok(analyzeLfBarLayout(blockCss).some((s) => s.includes('display: contents')),
+    '反例（.lf-bar__row 仍为 flex 盒）未被判红');
+});
+
+// S15（2026-11-01 批次 525 · #2）：四页真机 1440 读数 ≤2 行 / ≤96px。
+// 真机读数由 `server/.tmp/verify-525-filter.mjs`（Playwright）产出，证据落在
+//   `.ctx/evidence/2026-11-01/batch525-filter.json`；本守卫只读证据做棘轮（daily 不引 playwright）。
+const FILTER_EVIDENCE = join(ROOT, '.ctx', 'evidence', '2026-11-01', 'batch525-filter.json');
+const FILTER_PAGES = ['calendar', 'issue-list', 'feedback', 'attendance'];
+
+function validateFilterReport(report) {
+  const bad = [];
+  const pages = Array.isArray(report?.pages) ? report.pages : [];
+  for (const want of FILTER_PAGES) {
+    if (!pages.some((p) => p.page === want)) bad.push(`缺少 ${want} 的真机读数`);
+  }
+  for (const p of pages) {
+    const rows = Number(p.rows);
+    const height = Number(p.height1440 ?? p.height);
+    if (!Number.isFinite(rows) || rows > 2) bad.push(`${p.page}：${rows} 行（上限 2）`);
+    if (!Number.isFinite(height) || height > 96) bad.push(`${p.page}：${height}px（上限 96）`);
+  }
+  return bad;
+}
+
+test('S15 四页真机 1440 筛选条高度 ≤96px（≤2 行）', () => {
+  assert.ok(existsSync(FILTER_EVIDENCE), `缺少真机证据 ${FILTER_EVIDENCE}（先跑 verify-525-filter.mjs）`);
+  const report = JSON.parse(readFileSync(FILTER_EVIDENCE, 'utf8'));
+  assert.deepEqual(validateFilterReport(report), [],
+    `四页筛选条超过两行 / 96px：\n${validateFilterReport(report).join('\n')}`);
+  // 反例：4 行 184px 的合成读数必须判红
+  const bad = { pages: FILTER_PAGES.map((page) => ({ page, rows: 4, height1440: 184 })) };
+  assert.ok(validateFilterReport(bad).length === FILTER_PAGES.length * 2, '反例（4 行 184px）未被判红');
 });

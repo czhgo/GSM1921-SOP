@@ -1616,3 +1616,113 @@ await (async () => {
   });
 
 })();
+
+// ═══ 源件 9：页签模块失败态文案（2026-11-01 · 页签加载失败自愈）═══
+await (async () => {
+  const { test } = await import('node:test');
+  const assert = (await import('node:assert/strict')).default;
+  const { readFileSync } = await import('node:fs');
+  const { join, dirname } = await import('node:path');
+  const { fileURLToPath } = await import('node:url');
+
+  // role: [工程师]+[AI]
+  // 页签模块失败态文案守卫（2026-11-01；并入 copy-guard）
+  //
+  // 判据：
+  //   F1 失败态错误串不得暴露模块文件名（`/[a-z0-9-]+\.(m?js)/i` 命中即红），也不得含「请刷新」。
+  //      理由：模块文件名是内部实现细节，「旧文件还在浏览器缓存里」这种技术原因不该甩给用户。
+  //   F2 模块失败分支必须同时给出动作按钮（`action: 'reload'` 或等价）且按钮文案为「重新载入」——
+  //      文案与动作对齐，不许「说重载、按钮写刷新」。
+  //
+  // 抽取口径：`message:` / `message =` 的值（字面量 / 模板串 / 同文件 const 名）+ reload 按钮文案。
+  //   `tabErrorCardHtml('加载超时')` 这类位置参数不属于失败态错误串（不是「页签没打开」的说明），不抽。
+  // 非空转：① 反例——旧文案（含 `notification-tab.js` 与「请刷新」）必须判红；
+  //        ② 负例——新文案必须判绿；③ 实况抽取串数 ≥ 2（防抽取器写坏后恒绿）。
+
+  const HERE = dirname(fileURLToPath(import.meta.url));
+  const ROOT = join(HERE, '..', '..');
+  const TAB_BAR = readFileSync(join(ROOT, 'docs', 'src', 'components', 'shell', 'tab-bar.js'), 'utf8');
+
+  /** 剥注释（与同文件其它源件同口径） */
+  function stripComments(src) {
+    let s = String(src).replace(/\r\n?/g, '\n');
+    s = s.replace(/\/\*[\s\S]*?\*\//g, ' ');
+    s = s.replace(/<!--[\s\S]*?-->/g, ' ');
+    return s.split('\n').map((line) => line.replace(/\/\/.*$/, '')).join('\n');
+  }
+
+  /** 抽出失败态的用户可见串（见文件头「抽取口径」） */
+  function failureStringsOf(src) {
+    const s = stripComments(src);
+    /** 同文件字符串常量（`export const X = '…'`），供 `message: X` / `${X}` 解析 */
+    const consts = new Map();
+    for (const m of s.matchAll(/(?:export\s+)?const\s+([A-Za-z_$][\w$]*)\s*=\s*'([^']*)'/g)) consts.set(m[1], m[2]);
+    const resolve = (expr) => {
+      const t = String(expr).trim();
+      const lit = /^'([^']*)'$/.exec(t) || /^"([^"]*)"$/.exec(t);
+      if (lit) return lit[1];
+      if (/^`[^`]*`$/.test(t)) return t.slice(1, -1).replace(/\$\{[^}]*\}/g, '');
+      if (consts.has(t)) return consts.get(t);
+      return null;
+    };
+    const out = [];
+    // ① message 的值（对象键 / 默认参数两种写法）
+    for (const m of s.matchAll(/\bmessage\s*[:=]\s*('(?:[^'\\]|\\.)*'|"(?:[^"\\]|\\.)*"|`(?:[^`\\]|\\.)*`|[A-Za-z_$][\w$]*)/g)) {
+      const v = resolve(m[1]);
+      if (v != null) out.push(v);
+    }
+    // ② reload 按钮文案（字面量或 `${CONST}`）
+    for (const m of s.matchAll(/data-ws-tab-reload>\s*(\$\{[^}]*\}|[^<]*?)\s*<\/button>/g)) {
+      const inner = /^\$\{([^}]*)\}$/.exec(m[1]);
+      const v = inner ? resolve(inner[1]) : m[1].trim();
+      if (v != null) out.push(v);
+    }
+    return out;
+  }
+
+  const MODULE_FILE_RE = /[a-z0-9-]+\.(?:m?js)/i;
+  const offendersOf = (strings) => strings.filter((t) => MODULE_FILE_RE.test(t) || t.includes('请刷新'));
+
+  test('F1 页签失败态错误串：不暴露模块文件名 / 不含「请刷新」', () => {
+    // ① 反例：旧文案必须判红（抽取器 + 判据都得活着）
+    const OLD = "mountTabFailure(el, { message: `这个页签的模块没能加载（notification-tab.js），请刷新页面后再试`, action: 'reload' });\n"
+      + "const CARD = '<button type=\"button\" data-ws-tab-reload>刷新页面</button>';";
+    const oldStrings = failureStringsOf(OLD);
+    assert.ok(oldStrings.length >= 1, '反例未抽到任何失败态串：抽取器坏了');
+    assert.ok(offendersOf(oldStrings).length >= 1, '反例未命中：旧文案（模块名 + 请刷新）必须被判红');
+
+    // ② 负例：新文案必须判绿
+    const NEW = "const TAB_MODULE_FAILURE_COPY = '这个页签没打开，页面可能刚更新过。数据没有丢失，重新载入一下就好';\n"
+      + "const TAB_RELOAD_LABEL = '重新载入';\n"
+      + "mountTabFailure(el, { message: TAB_MODULE_FAILURE_COPY, action: 'reload' });\n"
+      + "const CARD = '<button type=\"button\" data-ws-tab-reload>${TAB_RELOAD_LABEL}</button>';";
+    assert.deepEqual(offendersOf(failureStringsOf(NEW)), [], '负例误伤：新文案不该被判红');
+
+    // ③ 实况
+    const strings = failureStringsOf(TAB_BAR);
+    assert.ok(strings.length >= 2, `只抽到 ${strings.length} 条失败态串：抽取面被改小，断言会恒真`);
+    assert.deepEqual(offendersOf(strings), [],
+      `页签失败态文案暴露了模块文件名或要求用户「请刷新」（应说明「页面可能刚更新过 + 重新载入就好」）：\n  ${offendersOf(strings).join('\n  ')}`);
+  });
+
+  test('F2 模块失败分支带动作按钮，且按钮文案为「重新载入」', () => {
+    const s = stripComments(TAB_BAR);
+    // ① 模块失败判据与动作按钮同处一个分支（从 `__moduleSpec` 起 1200 字符内）
+    const at = s.indexOf('__moduleSpec');
+    assert.ok(at >= 0, '缺少 __moduleSpec：模块加载失败无法与渲染期异常区分');
+    const branch = s.slice(at, at + 1200);
+    assert.match(branch, /action:\s*'reload'/, '模块失败分支必须给可用的动作按钮（action: reload）');
+
+    // ② 按钮文案
+    const labels = [...s.matchAll(/data-ws-tab-reload>\s*(\$\{[^}]*\}|[^<]*?)\s*<\/button>/g)]
+      .map((m) => (/^\$\{([^}]*)\}$/.exec(m[1]) || [null, m[1]])[1])
+      .map((expr) => (/^[A-Za-z_$][\w$]*$/.test(expr)
+        ? (new RegExp(`(?:export\\s+)?const\\s+${expr}\\s*=\\s*'([^']*)'`).exec(s) || [])[1]
+        : expr))
+      .filter(Boolean);
+    assert.ok(labels.includes('重新载入'),
+      `reload 按钮文案应为「重新载入」，实测：${labels.join(' / ') || '(未抽到)'}`);
+    assert.ok(!labels.includes('刷新页面'), 'reload 按钮不得再用「刷新页面」（内部原因不甩给用户）');
+  });
+
+})();

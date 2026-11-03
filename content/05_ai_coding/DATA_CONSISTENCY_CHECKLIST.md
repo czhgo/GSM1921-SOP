@@ -2,7 +2,7 @@
 title: "数据同源一致性校验手册"
 type: governance
 role: "[工程师]+[AI]"
-last_updated: "2026-10-30"
+last_updated: "2026-11-01"
 status: active
 related_files: [DATA_MODEL.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 ---
@@ -242,7 +242,7 @@ related_files: [DATA_MODEL.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 | `gsm1921-milestone-cache` | 批次里程碑读缓存 | 表 `milestones`（内容单一源 `docs/data/milestones.json`） |
 | `workflowos_taskforces_v1` / `workflowos_notices_v1` | 专班 / 通知旧单域键（已被整库键取代） | 服务端资源表 `taskforces` / `notices` |
 
-**B 档：本机临时白名单（11 个键）——「允许只在本机」及理由**
+**B 档：本机临时白名单（12 个键）——「允许只在本机」及理由**
 
 | 键 | 语义 | 为什么**不上服务端** |
 |---|---|---|
@@ -257,6 +257,7 @@ related_files: [DATA_MODEL.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 | `gsm1921-issue-submitter-token` | **设计如此·本机令牌**（随机、不可反查人的防刷令牌） | 按设计只在本设备；落服务端反成身份线索（`issues.js`） |
 | `gsm1921-init-state` | 本机·初始化态闸门（「正在初始化」的内存语义落盘位） | 非业务数据，纯本标签页运行态（`init-reset.js`） |
 | `gsm1921-pending-writes-outbox` | 本机临时·**失败待同步队列**（集合名 / 错误码 / 时间） | 只用于「未同步」可见提示与重试/放弃；业务真相始终在服务端，不把队列当数据源（`core/session/pending-writes.js`，Task 3 2026-10-26） |
+| `gsm1921-tab-selfheal-`（前缀） | 本机临时·**页签失败自愈一次性标记**（键含 tab.id；本会话一次，渲染成功后清除） | 只表达「本会话已试过一次重载」，不是任何业务事实；落服务端反而会跨设备误判（`components/shell/tab-bar.js`，2026-11-01 批次 523） |
 
 **C 档：UI 偏好与会话（19 个键）**
 

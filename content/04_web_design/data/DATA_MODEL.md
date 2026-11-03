@@ -3,7 +3,7 @@ title: "数据模型与数据流"
 type: design
 role: "[工程师]+[AI]"
 version: "1.1"
-last_updated: 2026-10-30
+last_updated: 2026-11-02
 status: active
 related_files: [content/02_institution/SYSTEM_ROLE_PERMISSION.md, content/02_institution/COMMISSIONER_DUTY_FRAMEWORK.md, content/02_institution/sop/纪检委员工作流程指南.md, content/03_doc_system/ARCHITECTURE.md]
 ---
@@ -13,7 +13,7 @@ related_files: [content/02_institution/SYSTEM_ROLE_PERMISSION.md, content/02_ins
 > **总述：** 本文是系统**数据**的唯一权威源，回答两件事——**「有哪些数据、每类数据的字段是什么」**（第一部分 · 数据模型，静态结构）与**「数据如何产生、流动、聚合」**（第二部分 · 数据流，动态过程）。两半是同一套数据的两个切面：模型侧定义结构，流侧定义过程；结构变更或流向变更都须两侧同步。第三部分列出本文不重复展开的权威源。
 > **受众：** [工程师]+[AI] —— 供开发决策参考，确保数据结构变更时全栈一致。
 > **权限矩阵**：本文档含权限简表，完整定义见 [SYSTEM_ROLE_PERMISSION.md](../../02_institution/SYSTEM_ROLE_PERMISSION.md)（系统角色权限矩阵，代码键级权威）。
-> **本文不回答**：① **沿革与「哪一批做了什么」** → `.ctx/logs/YYYY-MM-EXECUTION_LOG.md`；② **权限矩阵的完整定义** → [SYSTEM_ROLE_PERMISSION.md](../../02_institution/SYSTEM_ROLE_PERMISSION.md)（冲突时以权威源为准）；③ **架构分层与目录结构** → [ARCHITECTURE.md](../../03_doc_system/ARCHITECTURE.md)；④ **登录门控与部署** → [DEPLOYMENT_GUIDE.md §四 / §二](../deploy/DEPLOYMENT_GUIDE.md)。**schema v12 与种子契约（2026-10-26）**：v12 已落四组唯一索引（`attendances(activityId,personId)` / 活组 `party_groups(branchId,name)` / `attendance_rosters(activityId)` / `workgroup_members(workgroupId,personId)`）、`todos.branch_id` 生成列、`contributions` 统一对象数组、考察人员 ∈ 父工作组校验，并 DROP `issue_reveals`、`committee_broadcasts` 转恒只读；结构明细见本文附录 A。**哪一行必须由种子给出、哪些字段只能派生 / 展示**，以 [DATA_SEED_CONTRACT.md](./DATA_SEED_CONTRACT.md) 为唯一权威（守卫 `server/test/seed-contract-guard.test.mjs`）；本文只登记字段与结构，不重复种子口径。
+> **本文不回答**：① **沿革与「哪一批做了什么」** → `.ctx/logs/YYYY-MM-EXECUTION_LOG.md`；② **权限矩阵的完整定义** → [SYSTEM_ROLE_PERMISSION.md](../../02_institution/SYSTEM_ROLE_PERMISSION.md)（冲突时以权威源为准）；③ **架构分层与目录结构** → [ARCHITECTURE.md](../../03_doc_system/ARCHITECTURE.md)；④ **登录门控与部署** → [DEPLOYMENT_GUIDE.md §四 / §二](../deploy/DEPLOYMENT_GUIDE.md)。**字段 / 必填 / 枚举 / 种子计数的机读单一源** → [DATA_CONTRACT.md](./DATA_CONTRACT.md)（`server/data/domain-contract.mjs`）；本文只保留叙事与字段说明，两者冲突时以数据契约为准（守卫 `server/test/data-contract.test.mjs`）。**schema v12 与种子契约（2026-10-26）**：v12 已落四组唯一索引（`attendances(activityId,personId)` / 活组 `party_groups(branchId,name)` / `attendance_rosters(activityId)` / `workgroup_members(workgroupId,personId)`）、`todos.branch_id` 生成列、`contributions` 统一对象数组、考察人员 ∈ 父工作组校验，并 DROP `issue_reveals`、`committee_broadcasts` 转恒只读；结构明细见本文附录 A。**哪一行必须由种子给出、哪些字段只能派生 / 展示**，以 [DATA_SEED_CONTRACT.md](./DATA_SEED_CONTRACT.md) 为唯一权威（守卫 `server/test/seed-contract-guard.test.mjs`）；本文只登记字段与结构，不重复种子口径。
 
 ---
 
@@ -36,9 +36,9 @@ related_files: [content/02_institution/SYSTEM_ROLE_PERMISSION.md, content/02_ins
 | visibility | `'branch'\|'group'` | 是 | `'group'` | 可见范围：全支部 or 党小组 |
 | date | string (YYYY-MM-DD) | 是 | -- | 活动日期 ISO 字符串 |
 | location | string\|null | 否 | null | 活动地点（线下活动场地/线上会议链接），用于活动详情与日历展示；可选字段，无则不显示地点 |
-| executor | string | 是 | -- | 执行角色标识 |
-| supervisor | string\|null | 是 | `null` | 督办角色（可为 null） |
-| createdBy | string | 是 | `'u_exec'` | 创建者用户 ID |
+| executor | string | 否 | -- | 执行角色标识（2026-11-02 批次 527：功能实际不产生 ⇒ 契约标 optional；历史行保留原值） |
+| supervisor | string\|null | 否 | `null` | 督办角色（2026-11-02：功能实际不产生 ⇒ optional；可为 null） |
+| createdBy | string | 否 | `null` | 创建者用户 ID（2026-11-02：功能实际不产生，装载默认可为 null ⇒ optional） |
 | createdAt | string (ISO) | 是 | `new Date().toISOString()` | 创建时间 |
 | priority | `'low'\|'normal'\|'urgent'` | 否 | -- | 工作流引擎优先级 |
 | dueDate | string (ISO) | 否 | -- | 截止日期（自动化提醒锚点） |
@@ -348,14 +348,14 @@ taskforce.members:    Array<{ personId, role: 'organizer' | 'deep' | 'participan
 | activityId | string | 是 | -- | 所属活动 ID |
 | personId | string | 是 | -- | 参会成员人员 ID（统一命名 personId） |
 | status | `'present'\|'absent'\|'leave'\|'made_up'` | 是 | -- | 出勤状态（出席/缺席/请假/已补） |
-| recordedBy | string | 是 | -- | 记录人用户 ID（纪检委员） |
+| recordedBy | string \| null | 否 | `null` | 记录人用户 ID（纪检委员）。2026-11-02 批次 527：种子大量为 null、上传/确认由运行时动作写入 ⇒ optional |
 | recordedAt | string (ISO) | 是 | -- | 记录时间 |
 | confirmed | boolean | 否 | false | 是否已确认（纪检 / 支书 / 副支书确认；**独立于上传位**） |
 | confirmedBy | string | 否 | -- | 确认人 user ID；确认**不改** `recordedBy`（上传人留痕） |
 | confirmedAt | string (ISO) | 否 | -- | 确认时间 |
-| studentId | string | 否 | -- | 学号 |
-| developStage | `'积极分子'\|'发展对象'\|'预备党员'\|'正式党员'` | 否 | -- | 发展阶段（统一中文枚举） |
-| partyGroup | string | 否 | -- | 所属党小组 |
+| studentId | string | 否 | -- | 学号（**派生**：按 personId 从人员档案现取，种子不落死值） |
+| developStage | `'积极分子'\|'发展对象'\|'预备党员'\|'正式党员'` | 否 | -- | 发展阶段（**派生**：人员档案同名字段；统一中文枚举） |
+| partyGroup | string | 否 | -- | 所属党小组（**派生**：人员档案同名字段） |
 
 **人 × 活动关系**：考勤不是两份互不相关的“人员清单”和“活动清单”，也不是把人员表原样转置；每条考勤事实是一个 `(activityId, personId)` 关系，表达某人在某场活动中的状态。因此矩阵的格子承载关系状态，行列是两个维度的索引。展示人员集取冻结应到人员与已有考勤人员并集，活动集取有冻结名单或考勤事实的活动；应到但未记录显示“未录”，不在冻结名单显示“非应”，没有冻结名单时显示“待冻”。
 
@@ -1067,13 +1067,13 @@ pending ──用户开始处理──→ in_progress ──完成──→ comp
 | 字段名 | 类型 | 必填 | 说明 |
 |---|---|---|---|
 | source | `'committee'` | 是 | 来源标记：`'committee'` = 党委下发；缺省 = 支部自发通知（信息性/行动性） |
-| audience | `'committee'` | 是 | 党委下发通知专用取值：常量 `'committee'`（字符串）表示「本支部支委层」；支部自发通知缺省不设本字段。注意区分 §2.19.1 的 `actionRoles`（行动性通知待办执行角色**数组**）——`audience` 是下发专用可见性过滤常量，二者语义不同 |
+| audience | string[] | 是 | 受众**数组**（统一形状）；党委下发通知写 `['committee']`（sentinel＝本支部支委层），支部自发通知写 `['all']` / 角色键 / `leaders` / `activists` 等。注意区分 §2.19.1 的 `actionRoles`（行动性通知待办执行角色**数组**）——两者都是数组，但 `audience` 管可见性、`actionRoles` 管待办执行角色 |
 | branchId | string | 是 | 目标支部（支部动态创建后自动可选） |
 | branchName | string | 否 | 目标支部名快照（支部后续改名不使历史下发未同步） |
 | publisher | string | 否 | 展示覆盖 `'院党委（组织员）'`（详情「通知者」按 `publisherId` / `publishedBy` 解析，不按页面模块推断） |
 | recipients | string | 否 | 展示覆盖 `'支部委员会（支委层）'` |
 
-**受众过滤规则**（`NoticeStore.list()`）：`audience === 'committee'` 的通知仅对「目标 branchId 支部且角色为支委层（支书/副支书/组织/宣传/纪检）」的当前登录用户可见；普通党员、党委组织员（非支委）一律不可见。支部端「已发布通知」管理区不展示上级下发（只读治理信息，不可删改）。
+**受众过滤规则**（`NoticeStore.list()`）：`audience` 数组含 `'committee'` sentinel 的通知，仅对「目标 branchId 支部且角色为支委层（支书/副支书/组织/宣传/纪检）」的当前登录用户可见；普通党员、党委组织员（非支委）一律不可见。`audience` 统一为数组（裸字符串旧值读时归一为单元素数组）。支部端「已发布通知」管理区不展示上级下发（只读治理信息，不可删改）。
 
 ### 2.25 思想汇报数据 (ThoughtReport)
 

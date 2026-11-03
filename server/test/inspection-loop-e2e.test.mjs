@@ -50,7 +50,7 @@ async function loginAs(sid, ws, tab = '组员进展', deepLink = '') {
     await page.waitForFunction(() => document.querySelectorAll('button[role="tab"]').length > 0, { timeout: 20000 });
   }
   // P0-2 形态断言（2026-09-23 支书裁定「形态必须可断言」）：本文件真机用例必须在 API 形态下跑
-  await page.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20261031a')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
+  await page.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20261102b')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
   await page.evaluate((label) => {
     const b = [...document.querySelectorAll('button[role="tab"]')].find((x) => x.textContent.includes(label));
     b?.click();
@@ -80,12 +80,13 @@ test('组长台·组员进展/上传考察：点选后「关面板即已选」�
   //   （`?tab=members&section=inspection` 深链直接展开并挂载；实现单一源仍是 leader/inspection-tab.js）。
   const page = await loginAs('2400012345', 'leader', '组员进展', '?tab=members&section=inspection');
   try {
-    // 折叠体未自动展开时点其 summary（深链理应已展开，此处只作兜底，不改变断言链）。
+    // 2026-11-01 Task 7：「上传考察」由页内折叠区降为卡头按钮（深链理应已展开，此处只作兜底，不改变断言链）。
     await page.waitForFunction(() => {
-      const d = document.getElementById('leader-insp-fold');
-      if (!d) return false;
-      if (!d.open) d.querySelector('summary')?.click();
-      return d.open && !!document.getElementById('btn-leader-upload-insp');
+      const area = document.getElementById('leader-insp-area');
+      const toggle = document.getElementById('leader-insp-toggle');
+      if (!area || !toggle) return false;
+      if (area.classList.contains('hidden')) toggle.click();
+      return !area.classList.contains('hidden') && !!document.getElementById('btn-leader-upload-insp');
     }, null, { timeout: 20000 });
     await page.evaluate(() => document.getElementById('btn-leader-upload-insp')?.click());
     await page.waitForFunction(() => !!document.getElementById('insp-form-panel'), { timeout: 8000 });
@@ -97,7 +98,7 @@ test('组长台·组员进展/上传考察：点选后「关面板即已选」�
       const opts = [...document.querySelectorAll('#insp-source-select option')].map((o) => o.value).filter(Boolean);
       // 2026-10-26 批次 513：考察对象必须是父工作组成员（服务端硬校验）。
       //   选一个工作组至少 3 人的活动，保证「2 人 + 加选 1 人」的闭环有合法对象。
-      const { mockDB } = await import('/src/core/domain/domain.js?v=20261031a');
+      const { mockDB } = await import('/src/core/domain/domain.js?v=20261102b');
       const rows = mockDB.workgroupMembers || [];
       const acts = mockDB.activities || [];
       return opts.find((id) => {

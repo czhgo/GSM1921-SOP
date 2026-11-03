@@ -57,10 +57,13 @@ test('R3 引擎两形态契约仍在（避免「删了 chip」时把 dropdown �
 });
 
 test('R4 390px 单列：由通用筛选行规则覆盖（不再保留名册专用第二套）', () => {
-  // 2026-10-29 P3：原 `#roster-list-host .lf-bar` 特例已删除——窄屏「控件整行折行、铺满宽度」
-  //   改由 `.lf-bar__row` 通用规则承担，名册与其它筛选面共用一套。
-  assert.match(STYLES, /\.lf-bar__row\s*\{[^}]*flex-wrap:\s*wrap/, '筛选行须声明可折行');
-  assert.match(STYLES, /@media \(max-width: 640px\) \{[\s\S]{0,1000}\.lf-bar__row > \.lf-kw[\s\S]{0,500}flex: 1 1 100%/, '窄屏控件须整行折行、铺满宽度');
+  // 2026-10-29 P3：原 `#roster-list-host .lf-bar` 特例已删除。
+  // 2026-11-01 批次 525：筛选条改「可折行行内布局」——折行由 `.lf-bar` 承担、
+  //   段容器 `.lf-bar__row` 用 display:contents 让段内控件参与同一次折行。
+  assert.match(STYLES, /\.lf-bar\s*\{[^}]*flex-wrap:\s*wrap/, '筛选条须声明可折行');
+  assert.doesNotMatch(STYLES, /\.lf-bar\s*\{[^}]*flex-direction:\s*column/, '筛选条不得再按段竖排（一组一排）');
+  assert.match(STYLES, /\.lf-bar__row\s*\{[^}]*display:\s*contents/, '段容器须让控件参与同一次折行');
+  assert.match(STYLES, /@media \(max-width: 640px\) \{[\s\S]{0,1200}\.lf-kw,[\s\S]{0,120}\.suggest \{ flex: 1 1 160px; max-width: 100%; min-width: 0; \}/, '窄屏关键词框须占剩余宽且不被固定 320 限制');
   assert.match(STYLES, /\.lf-bar__row > \.cs-select \.cs-trigger \{ width: 100%; \}/, '增强下拉触发器须占满单列宽度');
   assert.ok(!/#roster-list-host \.lf-bar/.test(STYLES), '不得保留名册专用特例（避免第二套窄屏规则）');
 });

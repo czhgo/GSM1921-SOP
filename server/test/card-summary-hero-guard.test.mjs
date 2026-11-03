@@ -8,7 +8,9 @@
 //   G2 折叠头 summary：空内容 summary 必须宽度 100%、高度 ≥44；标题行 ≥44；可见文字不得塞进 summary。
 //   G3 hero 特例白名单：DS_05 §10.5.1 登记「居中整幅」；index 保持 text-center、48px 党徽；
 //      CSS / main-entry 不得再写 muted 左对齐降级。
-//   三组各带反例（合成样本命中 / 不误伤）。
+//   G4 嵌入形态不得再套卡（批次 524 · C/#3 #8）：`workgroup-view` / `taskforce-view` 必须接受
+//      `opts.embedded`，嵌入模板里不得出现 `class="card`；`insight-view` 必须给两者传 `embedded: true`。
+//   四组各带反例（合成样本命中 / 不误伤）。
 //
 // 运行：node --test server/test/card-summary-hero-guard.test.mjs
 import { test } from 'node:test';
@@ -62,6 +64,24 @@ export function summaryCoversRow(css) {
 export function hasHeroLeftAlignDowngrade(css) {
   return /#dashboard-hero\[data-hero="muted"\]\s*\{[^}]*text-align:\s*start/.test(css)
     || /#dashboard-hero\[data-hero="muted"\]\s+\.dashboard-hero__emblem\s*\{[^}]*width:\s*24px/.test(css);
+}
+
+/** 取出 `const embeddedHtml = \`…\`;` 的模板正文（嵌入形态唯一落点）。 */
+export function embeddedTemplateOf(src) {
+  const m = /const embeddedHtml = `([\s\S]*?)`;/.exec(src);
+  return m ? m[1] : null;
+}
+
+/** 嵌入形态口径：接受 opts.embedded ＋ 嵌入模板不套 `.card`。 */
+export function embeddedShapeProblems(src) {
+  const problems = [];
+  if (!/opts\.embedded === true\s*\?\s*embeddedHtml/.test(src)) {
+    problems.push('未按 `opts.embedded === true ? embeddedHtml : …` 分叉（嵌入形态没有独立模板）');
+  }
+  const tpl = embeddedTemplateOf(src);
+  if (tpl === null) problems.push('缺 `const embeddedHtml = \\`…\\`;` 模板常量');
+  else if (/class="card\b/.test(tpl)) problems.push('嵌入模板仍出现 `class="card`（卡套卡）');
+  return problems;
 }
 
 test('G1 卡片末行：不得只有右对齐操作（带左侧信息的同行合法）', () => {
@@ -126,4 +146,34 @@ test('G3 hero 特例白名单：DS_05 登记居中；CSS/入口不得回退左�
   assert.equal(hasHeroLeftAlignDowngrade('#dashboard-hero[data-hero="muted"] { text-align: start; }'), true);
   assert.equal(hasHeroLeftAlignDowngrade('#dashboard-hero[data-hero="muted"] .dashboard-hero__emblem { width: 24px; height: 24px; }'), true);
   assert.equal(hasHeroLeftAlignDowngrade('#dashboard-hero { text-align: center; }'), false);
+});
+
+// G4：嵌入形态不得再套卡（批次 524 · C/#3 #8）
+//   病灶：`insight-view` 已用 embedded 跳过页头，但 `workgroup-view` / `taskforce-view`
+//   仍在内部渲染 `div.card` + 第二套卡头 ⇒ 「卡套卡」+ 双卡头。
+test('G4 嵌入形态不得再套卡：embedded 模板无 .card，insight-view 给两者传 embedded:true', () => {
+  const WG = readFileSync(join(SRC, 'components', 'record', 'workgroup-view.js'), 'utf8');
+  const TF = readFileSync(join(SRC, 'components', 'record', 'taskforce-view.js'), 'utf8');
+  const INSIGHT = readFileSync(join(SRC, 'components', 'record', 'insight-view.js'), 'utf8');
+
+  for (const [name, src] of [['workgroup-view.js', WG], ['taskforce-view.js', TF]]) {
+    assert.deepEqual(embeddedShapeProblems(src), [],
+      `${name} 的嵌入形态口径被改坏：\n  ${embeddedShapeProblems(src).join('\n  ')}`);
+  }
+
+  // insight-view 必须把两个子组件都切到嵌入形态
+  assert.match(INSIGHT, /renderWorkgroupView\(body,\s*\{[\s\S]{0,240}?embedded:\s*true/,
+    'insight-view 调 renderWorkgroupView 未传 embedded: true（会再套一层卡）');
+  assert.match(INSIGHT, /renderTaskforceView\(body,\s*\{[\s\S]{0,240}?embedded:\s*true/,
+    'insight-view 调 renderTaskforceView 未传 embedded: true（会再套一层卡）');
+
+  // 反例：嵌入模板塞回 .card 必须判红；不接 embedded 也必须判红；独立形态的卡不受影响。
+  const withCard = WG.replace('const embeddedHtml = `', 'const embeddedHtml = `<div class="card">');
+  assert.ok(embeddedShapeProblems(withCard).some((p) => p.includes('class="card')),
+    '反例：嵌入模板出现 class="card 未被判红');
+  const noBranch = TF.replace(/opts\.embedded === true \? embeddedHtml :/, '');
+  assert.ok(embeddedShapeProblems(noBranch).length > 0, '反例：去掉 embedded 分叉未被判红');
+  const standaloneOnly = 'const x = `\n    <div class="card rounded-xl p-5"></div>`;';
+  assert.equal(/class="card\b/.test(embeddedTemplateOf(standaloneOnly) || ''), false,
+    '负例：不含 embeddedHtml 的源码不应被判出嵌入模板');
 });

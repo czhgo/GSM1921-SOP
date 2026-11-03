@@ -14,6 +14,8 @@ import { ORG_COMMISSIONER_ROLE_SET, PARTY_STAFF_ROLE, SECRETARY_AND_DEPUTY_ROLE_
 import { today as todayLocal } from '../../services/reporting.js';
 import { canManageWorkgroup, hasWorkgroupPermission, registerWorkgroupRoutes } from './workgroup-routes.js';
 import { actorBranchId, branchSelectionError, selectedBranchRequiredError, branchForNewResource, recordBranchWriteDeny, resourceRowsForActor } from './branch-scope.js';
+// 2026-11-02 批次 527（数据契约 Wave 2）：成员变更统一形状的**读时别名**（不双写）
+import { aliasMemberChangeRow } from '../../data/domain-contract.mjs';
 
 // ════════════════════════════════════════════════════════════════
 //  语义端点：申诉队列 / 反馈未读标记 / 授权审计留痕（2026-09-24 批次 169）
@@ -489,7 +491,7 @@ export function registerExtraSemanticRoutes(router, db) {
   router.get('/member-confirmations', requireAuth(db), (req, res) => {
     const deny = branchSelectionError(req.actor, req.query.branchId);
     if (deny) return res.status(403).json({ error: deny });
-    let rows = readScoped(req, 'member_confirmations', 'member_confirmations');
+    let rows = readScoped(req, 'member_confirmations', 'member_confirmations').map(aliasMemberChangeRow); // 读时别名：from/to→fromStage/toStage；只写本表
     if (req.query.status) rows = rows.filter((r) => r.status === req.query.status);
     res.json(rows);
   });

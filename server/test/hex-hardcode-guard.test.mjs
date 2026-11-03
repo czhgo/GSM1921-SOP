@@ -27,7 +27,7 @@ import { fileURLToPath } from 'node:url';
 import {
   HEX_BASELINE, HEX_TOTAL_BASELINE, HEX_FILE_BASELINE, HEX_VALUE_BASELINE, HEX_MOVE_LEDGER,
 } from './style-baseline.mjs';
-import { ACCENT_COLORS } from '../../docs/src/core/domain/constants.js?v=20261031a';
+import { ACCENT_COLORS } from '../../docs/src/core/domain/constants.js?v=20261102b';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(HERE, '..', '..');
@@ -214,7 +214,9 @@ test('H3 非空转：抽取口径可用 + 基线规模达标 + 无僵尸登记',
   //   本「防呆下限」随实况同步下沉到 49（**不是放宽**：H1 新增值 / H2 处数上涨 / 僵尸登记仍是判红项）。
   // ⚠ 2026-10-29 P2（数字组单一语法）：`secretary/report-up-tab.js` 三处内联 hex 改语义 token 后清零
   //   ⇒ 再删一条目、声明 49 → 48，本下限随实况同步下沉到 48（同上，不是放宽）。
-  assert.ok(HEX_FILE_BASELINE >= 48 && files.length >= 48, `hex 基线文件数过少（实测 ${files.length} / 声明 ${HEX_FILE_BASELINE}，下限 48）`);
+  // ⚠ 2026-11-01 批次 524：`overview-dispatch-bar.js` 待答复条改功能色后 hex 清零 ⇒ 删条目、
+  //   声明 48 → 47，本下限随实况同步下沉到 47（同上，不是放宽）。
+  assert.ok(HEX_FILE_BASELINE >= 47 && files.length >= 47, `hex 基线文件数过少（实测 ${files.length} / 声明 ${HEX_FILE_BASELINE}，下限 47）`);
   assert.ok(HEX_TOTAL_BASELINE >= 1400, `hex 基线处数过少（声明 ${HEX_TOTAL_BASELINE}，下限 1400）`);
   assert.ok(HEX_VALUE_BASELINE >= 280, `hex 基线值数过少（声明 ${HEX_VALUE_BASELINE}，下限 280）`);
   assert.equal(files.length, HEX_FILE_BASELINE, '基线条目数与声明的文件数不一致（台账被改动须同步声明值）');

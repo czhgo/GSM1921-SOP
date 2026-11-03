@@ -803,4 +803,47 @@ await (async () => {
     console.log('[口径单一源] DS_02 §3.2.3 档位表；新增档位先改文档与 TYPE_TIER_ALLOWED，再清存量（只减不增）。');
   });
 
+  // ── Q5 折叠头单一语法（2026-11-01）────────────────────────────────────
+  // 病灶：折叠头标题在 todo-tab-shell.js 用 `font-title-cn`（800）＋ `text-sm`（14px）覆盖组件类，
+  //   与同列「我的待办」16px/600 不一致。裁定：标题字号/字重/字族只在 `.disclosure__title` 定义，
+  //   调用点不得再用 Tailwind 字号 / 标题字重类覆盖。
+  /** 纯判据：标题规则体缺哪几项（空数组＝合规） */
+  function titleTierProblems(body) {
+    const bad = [];
+    if (!/font-size:\s*var\(--text-md\)/.test(body)) bad.push('font-size 须为 var(--text-md)');
+    if (!/font-weight:\s*600/.test(body)) bad.push('font-weight 须为 600');
+    if (!/line-height:\s*24px/.test(body)) bad.push('line-height 须为 24px');
+    return bad;
+  }
+  /** 纯判据：折叠头标题标签上的禁用类（空数组＝合规） */
+  function titleClassProblems(tag) {
+    const bad = [];
+    if (/\bfont-title-cn\b/.test(tag)) bad.push('font-title-cn');
+    if (/\btext-sm\b/.test(tag)) bad.push('text-sm');
+    return bad;
+  }
+
+  test('Q5 折叠头单一语法：.disclosure__title 16/600/24，调用点不得再覆盖字号/标题字重', () => {
+    const css = readFileSync(join(SRC, 'styles.css'), 'utf8');
+    const body = /\.disclosure__title\s*\{([^}]*)\}/.exec(css)?.[1];
+    assert.ok(body, 'styles.css 缺 .disclosure__title 规则');
+    assert.deepEqual(titleTierProblems(body), [],
+      `.disclosure__title 须为 16/600/24（--text-md）：${titleTierProblems(body).join(' / ')}`);
+
+    const shell = readFileSync(join(SRC, 'components', 'record', 'todo-tab-shell.js'), 'utf8');
+    const tag = /<h3\b[^>]*\bid="todo-strip-title"[^>]*>/.exec(shell)?.[0];
+    assert.ok(tag, 'todo-tab-shell.js 缺折叠头标题 #todo-strip-title');
+    assert.match(tag, /\bdisclosure__title\b/, '折叠头标题须挂 .disclosure__title');
+    assert.deepEqual(titleClassProblems(tag), [],
+      `折叠头标题类不得含 ${titleClassProblems(tag).join(' / ')}（字号/字重由 .disclosure__title 统一给出）`);
+
+    // 反例：14px/800 的合成规则与旧调用点类必须被同一口径判红。
+    assert.ok(titleTierProblems('.disclosure__title { font-size: 14px; font-weight: 800; line-height: 20px; }').length >= 2,
+      '反例失效：14px/800 未命中（判据会恒绿）');
+    assert.deepEqual(titleClassProblems('<h3 class="disclosure__title font-title-cn text-sm px-4">'), ['font-title-cn', 'text-sm'],
+      '反例失效：旧调用点类未被识别');
+    assert.deepEqual(titleClassProblems('<h3 class="disclosure__title text-base px-4">'), [],
+      '正例失效：现行调用点类被误判');
+  });
+
 })();

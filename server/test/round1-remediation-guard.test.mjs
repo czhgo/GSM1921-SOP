@@ -24,7 +24,10 @@ test('R1 U-04 纪检考勤：无 window.prompt · 会议 label 关联 · 视图 
   assert.match(src, /_openReturnNoteModal\(/, '缺少打回说明浮窗单一源 _openReturnNoteModal');
   assert.match(src, /\bopenModal\(\{/, '打回说明须走 components/ui/modal.js::openModal');
   assert.match(src, /for="disc-meet-activity"/, '会议活动 label 须与 select 通过 for/id 关联');
-  assert.match(src, /id="disc-meet-activity"/, '会议活动 select 缺少 id（label 无法关联）');
+  // 2026-11-01 批次 524：select 可由 forms.js 的 `selectInput({ id: ... })` 生成——判据同时接受
+  //   静态 `id="…"` 与 helper 参数，仍要求 id 真实存在（不许只写 label）。
+  assert.match(src, /(?:id="disc-meet-activity"|id:\s*'disc-meet-activity')/,
+    '会议活动 select 缺少 id（label 无法关联）');
   assert.match(src, /data-att-view="process" aria-pressed=/, '「确认与录入」视图钮须带 aria-pressed');
   assert.match(src, /data-att-view="data" aria-pressed=/, '「数据查看」视图钮须带 aria-pressed');
 });

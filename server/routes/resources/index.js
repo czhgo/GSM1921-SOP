@@ -38,7 +38,7 @@ import { _activityApprovalGateDeny, _snapshotActivityApprovalGateDeny, _activity
 import { _snapshotBaseVersions, _snapshotWrites, _snapshotMissingVersions, _allCollectionVersions, _snapshotVersionConflicts, _normalizeSnapshotAliases, recordSnapshotConflicts } from './snapshot-versions.js';
 import { registerExtraSemanticRoutes } from './semantic-routes.js';
 import { activityCreationDeny, activityOrganizerExceptionDeny, activityOperationAllowed, activityWorkgroupSyncUpdates, activityWorkgroupUpdate, approvedTaskforceDissolutionWorkgroups, attendanceWriteDeny, attendanceConfirmDeny, isAttendanceConfirmOnlyChange, createActivityWorkgroup, createTaskforceWorkgroup, snapshotScopeDeny, syncActivityWorkgroup, taskforceStatusWorkgroups } from './workgroup-routes.js';
-import { actorBranchId, aggregateWriteDeny, branchForNewResource, branchSelectionError, mergeAggregateBody, mergeScopedSnapshotWrites, recordBranchWriteDeny, requireAssignedBranch, resourceRowsForActor, resourceBranchId, scopedSnapshotWriteDeny } from './branch-scope.js';
+import { actorBranchId, aggregateWriteDeny, branchForNewResource, branchSelectionError, createTableReader, mergeAggregateBody, mergeScopedSnapshotWrites, recordBranchWriteDeny, requireAssignedBranch, resourceRowsForActor, resourceBranchId, scopedSnapshotWriteDeny } from './branch-scope.js';
 import { normalizeSignupCreate, normalizeSignupPatch, signupCreateDeny, signupSnapshotDeny } from './signup-write-guard.js';
 
 function _archiveSnapshotForActor(db, actor, submittedAt, report = {}) {
@@ -90,8 +90,9 @@ function _hasFullRead(actor) {
   return !actor || PARTY_STAFF_ROLE.has(actor.role) || BRANCH_COMMITTEE_ROLES.has(actor.role);
 }
 
-function _activityRow(db, id) {
+function _activityRow(db, id, read) {
   if (!id) return null;
+  if (read) return read.get('activities', id);
   const row = db.prepare('SELECT data FROM activities WHERE id = ?').get(String(id));
   return row ? JSON.parse(row.data) : null;
 }
@@ -105,11 +106,13 @@ function _isActivityOrganizer(activity, actorId) {
 
 /** 活动承办党小组（与前端 attendance.js/inspection.js::_activityPartyGroup 同口径；R10-D07）：
  *  优先按 hostGroupId 现查 `party_groups` 组名（改名后权限/归属不断链），名称快照 hostGroup 仅作兜底。 */
-function _activityPartyGroup(db, activity) {
+function _activityPartyGroup(db, activity, read) {
   if (!activity) return null;
   if (activity.hostGroupId) {
-    const groupRow = db.prepare('SELECT data FROM party_groups WHERE id = ?').get(String(activity.hostGroupId));
-    const groupName = groupRow ? (JSON.parse(groupRow.data).name || null) : null;
+    const group = read
+      ? read.get('party_groups', activity.hostGroupId)
+      : (() => { const row = db.prepare('SELECT data FROM party_groups WHERE id = ?').get(String(activity.hostGroupId)); return row ? JSON.parse(row.data) : null; })();
+    const groupName = group ? (group.name || null) : null;
     if (groupName) return groupName;
   }
   if (activity.hostGroup) return activity.hostGroup;
@@ -118,6 +121,7 @@ function _activityPartyGroup(db, activity) {
       ? (activity.assignments.find((item) => item.role === 'organizer') || {}).personId
       : null);
   if (!organizerId) return null;
+  if (read) return read.get('users', organizerId)?.partyGroup || null;
   const row = db.prepare('SELECT data FROM users WHERE id = ?').get(String(organizerId));
   return row ? (JSON.parse(row.data).partyGroup || null) : null;
 }
@@ -133,27 +137,27 @@ function _isTaskforceOrganizerByWorkgroupId(db, workgroupId, actorId) {
     && row.members.some((member) => member?.personId === actorId && member.role === 'organizer'));
 }
 
-function _canReadAttendanceRow(db, row, actor) {
+function _canReadAttendanceRow(db, row, actor, read) {
   if (!row || !actor) return false;
   if (row.personId === actor.id) return true;
-  const activity = _activityRow(db, row.activityId);
+  const activity = _activityRow(db, row.activityId, read);
   if (!activity) return false;
   if (_isActivityOrganizer(activity, actor.id)) return true;
   return isPartyGroupLeaderRole(actor.role)
     && !!actor.partyGroup
-    && _activityPartyGroup(db, activity) === actor.partyGroup;
+    && _activityPartyGroup(db, activity, read) === actor.partyGroup;
 }
 
-function _canReadInspectionRow(db, row, actor) {
+function _canReadInspectionRow(db, row, actor, read) {
   if (!row || !actor) return false;
   if (row.personId === actor.id || row.recordedBy === actor.id) return true;
   if (row.sourceType === 'taskforce') return _isTaskforceOrganizerByWorkgroupId(db, row.workgroupId, actor.id);
-  const activity = _activityRow(db, row.activityId);
+  const activity = _activityRow(db, row.activityId, read);
   if (!activity) return false;
   if (_isActivityOrganizer(activity, actor.id)) return true;
   return isPartyGroupLeaderRole(actor.role)
     && !!actor.partyGroup
-    && _activityPartyGroup(db, activity) === actor.partyGroup;
+    && _activityPartyGroup(db, activity, read) === actor.partyGroup;
 }
 
 function _canReadTodoRow(row, actor) {
@@ -237,13 +241,14 @@ function _paginateRows(rows, query = {}) {
 }
 
 /** R10-D09（批次 504）：快照写穿的考察留痕必须由服务端复算，不能采信客户端。 */
-function _forceInspectionRecorders(db, writes, actor) {
+function _forceInspectionRecorders(db, writes, actor, read) {
   return (writes || []).map((write) => {
     if (write.name !== 'inspections') return write;
     const rows = (write.rows || []).map((row) => {
       if (!row || typeof row !== 'object') return row;
-      const prevRow = row.id ? db.prepare('SELECT data FROM inspections WHERE id = ?').get(String(row.id)) : null;
-      const prev = prevRow ? JSON.parse(prevRow.data) : null;
+      const prev = row.id
+        ? (read ? read.get('inspections', row.id) : (() => { const found = db.prepare('SELECT data FROM inspections WHERE id = ?').get(String(row.id)); return found ? JSON.parse(found.data) : null; })())
+        : null;
       const next = { ...row };
       // 新建行：记录人＝会话；已有行：保留原记录人（不允许经快照改署）。
       next.recordedBy = prev ? (prev.recordedBy || actor.id) : actor.id;
@@ -260,15 +265,17 @@ function _forceInspectionRecorders(db, writes, actor) {
 }
 
 function _resourceRowsForActor(db, name, table, actor, requestedBranchId, opts = {}) {
-  let rows = resourceRowsForActor(db, name, _listRowsWithPushdown(db, name, table, opts.query || {}, opts), actor, requestedBranchId);
+  // 请求级表读取器：仅本次调用内复用（请求结束即丢弃），**不做**模块级跨请求缓存。
+  const read = createTableReader(db);
+  let rows = resourceRowsForActor(db, name, _listRowsWithPushdown(db, name, table, opts.query || {}, opts), actor, requestedBranchId, read);
   // R4-B04：思想汇报读口与前端 canReadThoughtReport 同一判据（本人或支委层）。
   if (name === 'thoughtReports') {
     rows = rows.filter((row) => canReadThoughtReport(row, { personId: actor?.id, role: actor?.role }));
   }
   // R4-F04：非支委层的行级投影（本人 / 本场组织者 / 本组组长）。
   if (!_hasFullRead(actor)) {
-    if (name === 'attendances') rows = rows.filter((row) => _canReadAttendanceRow(db, row, actor));
-    if (name === 'inspections') rows = rows.filter((row) => _canReadInspectionRow(db, row, actor));
+    if (name === 'attendances') rows = rows.filter((row) => _canReadAttendanceRow(db, row, actor, read));
+    if (name === 'inspections') rows = rows.filter((row) => _canReadInspectionRow(db, row, actor, read));
     if (name === 'todos') rows = rows.filter((row) => _canReadTodoRow(row, actor));
   }
   if (name !== 'users') return _projectResourceRowsExt(db, name, rows, actor);
@@ -1106,32 +1113,35 @@ export function createResourcesRouter(db) {
       if (signupResult.error) return res.status(403).json({ error: signupResult.error });
       payload = { ...payload, signups: signupResult.rows };
     }
-    const branchWriteDeny = scopedSnapshotWriteDeny(db, payload, req.actor);
+    // 请求级表读取器：本批写门的跨集合关联（activities / workgroups / users …）只读一次，逐行复用 Map。
+    const read = createTableReader(db);
+    const branchWriteDeny = scopedSnapshotWriteDeny(db, payload, req.actor, read);
     if (branchWriteDeny) return res.status(403).json({ error: branchWriteDeny });
     const snapshotWrites = _retainRowScopedSnapshotRows(db, _retainUngatedSnapshotRows(
       db,
-      mergeScopedSnapshotWrites(db, _snapshotWrites(payload), req.actor),
+      mergeScopedSnapshotWrites(db, _snapshotWrites(payload), req.actor, read),
       req.actor,
-    ), req.actor);
+      read,
+    ), req.actor, read);
     const validationPayload = { ...payload };
     for (const write of snapshotWrites) validationPayload[write.name] = write.rows;
-    const scopeDeny = snapshotScopeDeny(db, validationPayload, req.actor);
+    const scopeDeny = snapshotScopeDeny(db, validationPayload, req.actor, read);
     if (scopeDeny) return res.status(403).json({ error: scopeDeny });
     // R4-B01/F02：逐集合复算资源写门（notices / partyGroups / memberFlows / 文件元数据 + 无门集合的支部归属）
-    const writeGateDeny = _snapshotResourceWriteGateDeny(db, snapshotWrites, req.actor);
+    const writeGateDeny = _snapshotResourceWriteGateDeny(db, snapshotWrites, req.actor, read);
     if (writeGateDeny) return res.status(403).json({ error: writeGateDeny });
-    const snapshotDeny = _snapshotActivityApprovalGateDeny(db, validationPayload, req.actor) || _snapshotNoticeMessageGateDeny(db, validationPayload, req.actor);
+    const snapshotDeny = _snapshotActivityApprovalGateDeny(db, validationPayload, req.actor, read) || _snapshotNoticeMessageGateDeny(db, validationPayload, req.actor, read);
     if (snapshotDeny) return res.status(403).json({ error: snapshotDeny });
     const baseVersions = _snapshotBaseVersions(payload);
     const missing = _snapshotMissingVersions(payload, baseVersions); if (missing.length) return res.status(428).json({ error: '快照被拒：payload 里的集合未随 `_versions` 给出基线版本（见本文件末「快照写穿的集合版本号协议」）', missingVersions: missing });
     if (baseVersions) { const conflicts = _snapshotVersionConflicts(db, payload, baseVersions); if (conflicts.length) { recordSnapshotConflicts(db, conflicts); return res.status(409).json({ error: '数据已被他人更新，本次写入未生效（版本冲突，请刷新后重试）', conflicts }); } }
-    const writes = _forceInspectionRecorders(db, snapshotWrites, req.actor);
+    const writes = _forceInspectionRecorders(db, snapshotWrites, req.actor, read);
     _freezeArchiveSnapshots(db, writes, req.actor);
     const workgroupUpdates = [
-      ...taskforceStatusWorkgroups(db, validationPayload, req.actor),
-      ...approvedTaskforceDissolutionWorkgroups(db, validationPayload, req.actor),
+      ...taskforceStatusWorkgroups(db, validationPayload, req.actor, read),
+      ...approvedTaskforceDissolutionWorkgroups(db, validationPayload, req.actor, read),
       // R9 Task 4.3：活动改名 / 组织落点变化 / 归档随快照写穿同步到活动工作组（前端编辑走 persist 快照）
-      ...activityWorkgroupSyncUpdates(db, validationPayload, req.actor),
+      ...activityWorkgroupSyncUpdates(db, validationPayload, req.actor, read),
     ];
     const nextVersions = replaceCollectionsAtomic(db, writes, { workgroups: workgroupUpdates });
     return baseVersions ? res.json({ versions: nextVersions }) : res.status(204).end();
@@ -1721,26 +1731,27 @@ function _projectResourceRowsExt(db, name, rows, actor) {
 /** 行级读投影集合：非支委层快照写穿时，保留「本次未出现且本人不可见」的存量行 */
 const ROW_PROJECTED_SNAPSHOT_COLLECTIONS = new Set(['todos', 'thoughtReports', 'attendances', 'inspections']);
 
-function _canReadProjectedRow(db, name, row, actor) {
+function _canReadProjectedRow(db, name, row, actor, read) {
   if (name === 'todos') return _canReadTodoRow(row, actor);
   if (name === 'thoughtReports') return canReadThoughtReport(row, { personId: actor?.id, role: actor?.role });
-  if (name === 'attendances') return _canReadAttendanceRow(db, row, actor);
-  if (name === 'inspections') return _canReadInspectionRow(db, row, actor);
+  if (name === 'attendances') return _canReadAttendanceRow(db, row, actor, read);
+  if (name === 'inspections') return _canReadInspectionRow(db, row, actor, read);
   return true;
 }
 
-export function _retainRowScopedSnapshotRows(db, writes, actor) {
+export function _retainRowScopedSnapshotRows(db, writes, actor, reader) {
   if (!actor || _hasFullRead(actor)) return writes;
   const own = actorBranchId(actor);
   if (!own) return writes;
+  const read = reader || createTableReader(db);
   return writes.map((write) => {
     const { name, table, rows } = write;
     if (!ROW_PROJECTED_SNAPSHOT_COLLECTIONS.has(name)) return write;
     const incoming = new Set(rows.map((row) => String(row && row.id)));
-    const retained = listTable(db, table).filter((row) => row && row.id
+    const retained = read.rows(table).filter((row) => row && row.id
       && !incoming.has(String(row.id))
-      && resourceBranchId(db, name, row) === own
-      && !_canReadProjectedRow(db, name, row, actor));
+      && resourceBranchId(db, name, row, read) === own
+      && !_canReadProjectedRow(db, name, row, actor, read));
     return retained.length ? { ...write, rows: [...rows, ...retained] } : write;
   });
 }

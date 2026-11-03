@@ -29,7 +29,7 @@ import assert from 'node:assert/strict';
 import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { join, relative, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { ACCENT_COLORS } from '../../docs/src/core/domain/constants.js?v=20261031a';
+import { ACCENT_COLORS } from '../../docs/src/core/domain/constants.js?v=20261102b';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(HERE, '..', '..');
@@ -617,7 +617,7 @@ const FOLD_HEAD_EXEMPTIONS = [
   },
   {
     rel: 'docs/src/entries/tabs/prop/archive-tab.js',
-    reason: '「已归档展示 / 归档模板」两处历史 `<details>`（行内展示折叠，非分区折叠头；'
+    reason: '「归档记录」一处历史 `<details id="archive-display-fold">`（行内展示折叠，非分区折叠头；'
       + 'archive-display-fold 另被深链守卫按 id 依赖，迁移需单批）',
   },
   {
@@ -1390,7 +1390,7 @@ function contrast(a, b) {
   return (Math.max(la, lb) + 0.05) / (Math.min(la, lb) + 0.05);
 }
 
-test('V7 可点行 hover：--surface-hover 对比 ≥1.2:1（白卡），并叠加 3px 主题左条', () => {
+test('V7 可点行 hover：主题 10% 淡底 + 3px 左条（2026-11-01 新裁定，灰底只留静态分隔）', () => {
   const root = cssVarBlock(CSS_BARE, ':root');
   const dark = cssVarBlock(CSS_BARE, 'html.theme-dark');
   assert.ok(root && dark, 'styles.css 缺少 :root / html.theme-dark 变量块');
@@ -1415,18 +1415,31 @@ test('V7 可点行 hover：--surface-hover 对比 ≥1.2:1（白卡），并叠�
     const cCard = contrast(h, card);
     const cPage = contrast(h, page);
     readings.push(`${label} hover ${h} vs 卡片 ${card}=${cCard.toFixed(2)}:1 · vs 页面 ${page}=${cPage.toFixed(2)}:1`);
+    // 2026-11-01 新裁定：灰底退居「静态分隔」（表格行 / 分组线等），不再充当可点行 hover；
+    //   但 token 本身仍须与卡片 / 页面可辨，否则静态分隔层会糊在卡上。
     assert.ok(cCard >= 1.2, `${label}：--surface-hover 对卡片仅 ${cCard.toFixed(2)}:1（要求 ≥1.2）`);
-    // 页面底（暖纸）上的可点行另有 3px 主题左条；数值下限取 1.15 防回退，实测见读数。
-    assert.ok(cPage >= 1.15, `${label}：--surface-hover 对页面底仅 ${cPage.toFixed(2)}:1（要求 ≥1.15，配左条）`);
+    assert.ok(cPage >= 1.15, `${label}：--surface-hover 对页面底仅 ${cPage.toFixed(2)}:1（要求 ≥1.15）`);
   }
 
-  // 可点行 hover 必须同时出底与左条（非颜色线索），且不得覆盖选中态。
+  // 可点行 hover（2026-11-01 新裁定）：底取主题 10% 淡底，不再用灰底 --surface-hover；
+  //   左条改由 ::before 承担 opacity 过渡（渐变无法过渡 ⇒ 左条瞬现）。
+  assert.match(CSS, /--app-accent-tint:\s*rgb\(from var\(--app-accent\) r g b \/ 10%\)/,
+    'styles.css 应定义 --app-accent-tint（当前主题色 10% 淡底）');
   const rowHover = /\.list-row\[data-interactive="true"\]:hover\s*\{([^}]*)\}/.exec(CSS_BARE);
   assert.ok(rowHover, 'styles.css 缺 .list-row[data-interactive="true"]:hover');
-  assert.match(rowHover[1], /background-color:\s*var\(--surface-hover\)/, '可点行 hover 必须改底');
-  assert.match(rowHover[1], /linear-gradient\(to right,\s*var\(--app-accent\) 0 3px/, '可点行 hover 须同时出 3px 主题左条');
+  assert.match(rowHover[1], /background-color:\s*var\(--app-accent-tint\)/,
+    '可点行 hover 底必须是主题 10% 淡底（--app-accent-tint）');
+  assert.doesNotMatch(rowHover[1], /--surface-hover/,
+    '可点行 hover 不得再回灰底 --surface-hover（2026-11-01 新裁定：灰底只留静态分隔）');
+  assert.doesNotMatch(rowHover[1], /background-image/,
+    '可点行 hover 不得再用 background-image 画左条（渐变无法过渡）');
+  const rowBar = /\.list-row\[data-interactive="true"\]::before\s*\{([^}]*)\}/.exec(CSS_BARE);
+  assert.ok(rowBar, 'styles.css 缺 .list-row[data-interactive="true"]::before 左条');
+  assert.match(rowBar[1], /width:\s*3px/, '可点行左条宽应为 3px');
+  assert.match(rowBar[1], /transition:\s*opacity var\(--transition-fast\)/,
+    '可点行左条须有 opacity 过渡（--transition-fast），不得瞬现');
   assert.match(CSS_BARE, /\.list-row\[data-interactive="true"\]\[data-selected="true"\]:hover\s*\{[^}]*background-color:\s*var\(--app-accent-soft-bg\)/,
-    '选中行 hover 必须保持主题 soft-bg（不得被 hover 底覆盖）');
+    '选中行 hover 必须保持主题 soft-bg（不得被 hover 淡底覆盖）');
 
   // 结论带的筛选 chip 必须有静态描边/底色（可切换控件，不是纯文字）。
   assert.match(CSS_BARE, /button\.metric-band__item--filter\s*\{[^}]*border:\s*1px solid var\(--neutral-200\)/,
@@ -1828,4 +1841,60 @@ test('FOCUS-5 七主题 base 焦点环：对白卡 #FFFFFF 与深卡 #141D2F 均
     assert.ok(vsDark >= 3, `${key} 暗档焦点环对深卡仅 ${vsDark.toFixed(2)}:1（要求 ≥3）`);
   }
   console.log(`[ui-control-system-guard] FOCUS-5 ${readings.join(' · ')}`);
+});
+
+// ═════════════════════════════════════════════════════════════════════════════
+// V9 数据表表头去灰（2026-11-01 支书 #2）
+//   病灶：`.data-table th` 声明 `background-color: var(--neutral-0)`，
+//     `.data-table thead th` 又声明 `background: var(--neutral-50)` ⇒ 同一页里 `<thead>` 表头显灰、
+//     tbody 的 `<th scope="row">`（relation-matrix）显白，两套表头「莫名其妙的灰显脏」。
+//   裁定：表头统一无底色（白底透出）＋ 1px 下边框；**两条规则体内都不得出现 background**。
+//   抽取口径＝本文件既有的 `ruleBlocks`（剥注释保留换行、按逗号拆选择器、空白归一）。
+// ═════════════════════════════════════════════════════════════════════════════
+const HEADER_SELECTORS = ['.data-table th', '.data-table thead th'];
+
+/** 纯判据：返回给数据表表头声明了 background / background-color 的规则（正反例复用同一口径） */
+function tableHeaderBackgroundProblems(css) {
+  const out = [];
+  for (const r of ruleBlocks(css)) {
+    const sels = r.selector.split(',').map((s) => s.trim());
+    if (!sels.some((s) => HEADER_SELECTORS.includes(s))) continue;
+    const m = /(?:^|[;\s])background(?:-color)?\s*:\s*([^;]+)/.exec(r.body);
+    if (m) out.push(`${r.selector} → background: ${m[1].trim()}`);
+  }
+  return out;
+}
+
+test('V9 表头去灰：`.data-table th` / `.data-table thead th` 不得声明 background（含反例）', () => {
+  // ① 反例：任一条重新写底色 ⇒ 必须判红（合成样本，防判据恒真）
+  assert.equal(tableHeaderBackgroundProblems('.data-table thead th { background: var(--neutral-50); }').length, 1,
+    '反例未被判红：`.data-table thead th` 的 neutral-50 底色必须命中');
+  assert.equal(tableHeaderBackgroundProblems('.data-table th { background-color: var(--neutral-0); }').length, 1,
+    '反例未被判红：`.data-table th` 的 neutral-0 底色必须命中');
+  // ② 正例：只留边框 / 字号 / 字重 / 字色 ⇒ 不得误红
+  assert.deepEqual(tableHeaderBackgroundProblems(
+    '.data-table thead th { font-size: 0.8125rem; border-bottom: 1px solid var(--neutral-200); }'), [],
+  '正例被判红：无底色的表头规则不得误判');
+  assert.deepEqual(tableHeaderBackgroundProblems('.data-table tbody td { background: var(--neutral-0); }'), [],
+    '正例被判红：数据格（不是表头）的底色不属于本判据');
+
+  // ③ 实况：两条规则都不得带 background；且规则本体仍在位（不得用「删规则」换绿）
+  const problems = tableHeaderBackgroundProblems(CSS);
+  assert.deepEqual(problems, [],
+    `表头被重新铺了底色（同页 thead 与 th[scope=row] 会再次不同色）：\n  ${problems.join('\n  ')}`);
+
+  const blocks = ruleBlocks(CSS);
+  const pick = (sel, extra) => blocks.filter((r) => {
+    const sels = r.selector.split(',').map((s) => s.trim());
+    return sels.includes(sel) && (!extra || extra.test(r.body));
+  });
+  const thead = pick('.data-table thead th');
+  assert.equal(thead.length, 1, `styles.css 中 \`.data-table thead th\` 规则应恰好 1 条（实得 ${thead.length}）`);
+  assert.match(thead[0].body, /border-bottom:\s*1px solid var\(--neutral-200\)/,
+    '表头去灰后，分隔必须由 1px 下边框承担');
+  assert.match(thead[0].body, /font-size:\s*0\.8125rem/, '表头字号仍应为 0.8125rem 单档');
+  const th = pick('.data-table th', /padding/);
+  assert.equal(th.length, 1, `styles.css 中带 padding 的 \`.data-table th\` 规则应恰好 1 条（实得 ${th.length}）`);
+  assert.match(th[0].body, /color:\s*var\(--neutral-500\)/, '表头字色仍应为 --neutral-500');
+  console.log(`[ui-control-system-guard] V9 表头规则 ${blocks.length} 条 · 带底色的表头 ${problems.length} 条`);
 });

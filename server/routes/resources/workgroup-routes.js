@@ -29,7 +29,8 @@ const WORKGROUP_PERMISSION_KEYS = new Set(Object.values(WORKGROUP_PERMISSION_TEM
   .flatMap((templates) => Object.values(templates).flat()));
 
 const jsonRows = (db, table) => db.prepare(`SELECT id, data FROM ${table}`).all().map((r) => ({ id: r.id, ...JSON.parse(r.data) }));
-const rowOf = (db, table, id) => {
+const rowOf = (db, table, id, read) => {
+  if (read) return read.get(table, id);
   const found = db.prepare(`SELECT data FROM ${table} WHERE id = ?`).get(String(id));
   return found ? JSON.parse(found.data) : null;
 };
@@ -67,10 +68,10 @@ const memberIdFor = (workgroupId, personId) => `wgm-${encodeURIComponent(workgro
  * @param {string|null} actorId
  * @returns {Object|null} 待写入的 workgroups 行
  */
-export function activityWorkgroupUpdate(db, activity, actorId = null) {
+export function activityWorkgroupUpdate(db, activity, actorId = null, read) {
   const patch = syncActivityWorkgroup(activity);
   if (!patch) return null;
-  const current = rowOf(db, 'workgroups', patch.id);
+  const current = rowOf(db, 'workgroups', patch.id, read);
   const at = new Date().toISOString();
   if (!current) {
     return {
@@ -96,17 +97,17 @@ export function activityWorkgroupUpdate(db, activity, actorId = null) {
  * 快照写穿路径：payload.activities 里的活动 → 工作组同步更新清单。
  * 前端编辑活动走 persist() 快照（而非 PATCH），故此处必须与 PATCH 同源。
  */
-export function activityWorkgroupSyncUpdates(db, payload, actor) {
+export function activityWorkgroupSyncUpdates(db, payload, actor, read) {
   if (!Array.isArray(payload?.activities)) return [];
   const updates = [];
   for (const row of payload.activities) {
     if (!row?.id) continue;
-    const current = rowOf(db, 'activities', row.id);
+    const current = rowOf(db, 'activities', row.id, read);
     if (!current) continue;
     const merged = { ...current, ...row };
-    const next = activityWorkgroupUpdate(db, merged, actor?.id || null);
+    const next = activityWorkgroupUpdate(db, merged, actor?.id || null, read);
     if (!next) continue;
-    const before = rowOf(db, 'workgroups', next.id);
+    const before = rowOf(db, 'workgroups', next.id, read);
     const fields = ['name', 'organizingScope', 'hostGroupId', 'hostGroup', 'recruitmentScope', 'crossGroupCoordinatorId', 'status'];
     const unchanged = before && fields.every((field) => JSON.stringify(before[field]) === JSON.stringify(next[field]));
     if (unchanged) continue;
@@ -199,15 +200,15 @@ function isApprovedDissolution(previous, next) {
  * 终态变化只能经「已批准解散」进入，由 approvedTaskforceDissolutionWorkgroups 处理；
  * 这里覆盖 draft/pending_review/recruiting/active 之间的流转（如支委会发起表决通过）。
  */
-export function taskforceStatusWorkgroups(db, payload, actor) {
+export function taskforceStatusWorkgroups(db, payload, actor, read) {
   if (!Array.isArray(payload?.taskforces)) return [];
-  const current = new Map(jsonRows(db, 'taskforces').map((row) => [String(row.id), row]));
+  const current = new Map((read ? read.rows('taskforces') : jsonRows(db, 'taskforces')).map((row) => [String(row.id), row]));
   const updates = [];
   for (const next of payload.taskforces) {
     if (!next?.id || !isTaskforceStatus(next.status) || isTaskforceTerminalStatus(next.status)) continue;
     const previous = current.get(String(next.id));
     if (!previous || previous.status === next.status) continue;
-    const workgroup = rowOf(db, 'workgroups', next.workgroupId || workgroupIdFor('taskforce', next.id));
+    const workgroup = rowOf(db, 'workgroups', next.workgroupId || workgroupIdFor('taskforce', next.id), read);
     if (!workgroup || (workgroup.branchId || DEFAULT_BRANCH_ID) !== (next.branchId || DEFAULT_BRANCH_ID)) continue;
     updates.push({
       ...workgroup,
@@ -220,14 +221,14 @@ export function taskforceStatusWorkgroups(db, payload, actor) {
   return updates;
 }
 
-export function approvedTaskforceDissolutionWorkgroups(db, payload, actor) {
+export function approvedTaskforceDissolutionWorkgroups(db, payload, actor, read) {
   if (!Array.isArray(payload?.taskforces)) return [];
-  const current = new Map(jsonRows(db, 'taskforces').map((row) => [String(row.id), row]));
+  const current = new Map((read ? read.rows('taskforces') : jsonRows(db, 'taskforces')).map((row) => [String(row.id), row]));
   const updates = [];
   for (const next of payload.taskforces) {
     const previous = next?.id ? current.get(String(next.id)) : null;
     if (!isApprovedDissolution(previous, next)) continue;
-    const workgroup = rowOf(db, 'workgroups', previous.workgroupId || workgroupIdFor('taskforce', previous.id));
+    const workgroup = rowOf(db, 'workgroups', previous.workgroupId || workgroupIdFor('taskforce', previous.id), read);
     if (!workgroup) continue; // snapshotScopeDeny rejects the missing-parent case before this helper is called.
     const decision = next.committeeDecision.at(-1);
     updates.push({
@@ -390,7 +391,7 @@ export function attendanceConfirmDeny(db, actor, previous, next) {
   return null;
 }
 
-export function snapshotScopeDeny(db, payload, actor) {
+export function snapshotScopeDeny(db, payload, actor, read) {
   if (!ownBranch(actor)) return NO_BRANCH_MESSAGE;
   if (['users', 'branches'].some((key) => Object.prototype.hasOwnProperty.call(payload, key))) {
     return '无权限：成员与支部治理记录须走专用语义接口，不能通过整库快照写入';
@@ -401,7 +402,7 @@ export function snapshotScopeDeny(db, payload, actor) {
   }
   if (Array.isArray(payload.periodicArchives)) {
     const branchId = ownBranch(actor);
-    const current = new Map(jsonRows(db, 'periodic_archive_submissions').map((row) => [String(row.id), row]));
+    const current = new Map((read ? read.rows('periodic_archive_submissions') : jsonRows(db, 'periodic_archive_submissions')).map((row) => [String(row.id), row]));
     const incomingIds = new Set();
     for (const row of payload.periodicArchives) {
       if (!row?.id || !row.branchId) return '周期归档写入必须包含记录 ID 与支部归属';
@@ -419,7 +420,7 @@ export function snapshotScopeDeny(db, payload, actor) {
     }
   }
   if (Array.isArray(payload.taskforces)) {
-    const current = new Map(jsonRows(db, 'taskforces').map((row) => [String(row.id), row]));
+    const current = new Map((read ? read.rows('taskforces') : jsonRows(db, 'taskforces')).map((row) => [String(row.id), row]));
     const incomingIds = new Set(payload.taskforces.filter((row) => row?.id).map((row) => String(row.id)));
     for (const next of payload.taskforces) {
       if (!next?.id) continue;
@@ -449,7 +450,7 @@ export function snapshotScopeDeny(db, payload, actor) {
   }
   if (Array.isArray(payload.activities)) {
     const incoming = new Map(payload.activities.filter((row) => row?.id).map((row) => [String(row.id), row]));
-    const current = new Map(jsonRows(db, 'activities').map((row) => [String(row.id), row]));
+    const current = new Map((read ? read.rows('activities') : jsonRows(db, 'activities')).map((row) => [String(row.id), row]));
     for (const [id, row] of incoming) {
       const old = current.get(id);
       if (!old) return '无权限：新增活动须走活动语义写入口，以同时建立活动工作组';
@@ -477,13 +478,13 @@ export function snapshotScopeDeny(db, payload, actor) {
       if (!row?.activityId || !row?.personId || pairKeys.has(key)) return '考勤快照中活动与人员必须唯一对应';
       pairKeys.add(key);
     }
-    const current = new Map(db.prepare('SELECT id, data FROM attendances').all().map((r) => [r.id, JSON.parse(r.data)]));
+    const current = read ? read.ids('attendances') : new Map(db.prepare('SELECT id, data FROM attendances').all().map((r) => [r.id, JSON.parse(r.data)]));
     const next = new Map(incoming.filter((row) => row?.id).map((row) => [String(row.id), row]));
     for (const [id, row] of next) {
       const old = current.get(id);
       const changed = !old || JSON.stringify(old) !== JSON.stringify(row);
       if (!changed) continue;
-      if (isDisabledActivityHistory(db, activityOf(db, row.activityId))) return '无权限：本支部已停用活动组织能力，已结束活动的考勤只读保留';
+      if (isDisabledActivityHistory(db, activityOf(db, row.activityId, read))) return '无权限：本支部已停用活动组织能力，已结束活动的考勤只读保留';
       if (old && old.recordedBy !== row.recordedBy) return '无权限：考勤记录人留痕不可通过快照修改';
       // 2026-10-22（第八轮 2.8）：确认与「上传位 / 记录人留痕」分离——
       //   确认只改 confirmed/confirmedBy/confirmedAt，按确认权（纪检 / 支书 / 副支书）放行；
@@ -507,7 +508,7 @@ export function snapshotScopeDeny(db, payload, actor) {
     }
     for (const [id, row] of current) {
       if (next.has(id)) continue;
-      if (isDisabledActivityHistory(db, activityOf(db, row.activityId))) return '无权限：本支部已停用活动组织能力，已结束活动的考勤只读保留';
+      if (isDisabledActivityHistory(db, activityOf(db, row.activityId, read))) return '无权限：本支部已停用活动组织能力，已结束活动的考勤只读保留';
       const deny = attendanceWriteDeny(db, actor, row);
       if (deny) return `无权限：不能删除该考勤记录（${deny.error}）`;
     }

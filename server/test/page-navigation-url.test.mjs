@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
-import { resolveDocumentUrl } from '../../docs/src/core/base/page-url.js?v=20261031a';
+import { resolveDocumentUrl } from '../../docs/src/core/base/page-url.js?v=20261102b';
 
 const adapterSource = readFileSync(new URL('../../docs/src/data/data-adapter.js', import.meta.url), 'utf8');
 const todaySource = readFileSync(new URL('../../docs/src/entries/tabs/today/today-tab.js', import.meta.url), 'utf8');
@@ -74,12 +74,16 @@ test('思想汇报「完整记录」落个人档案，不得落名册聚合页',
   assert.doesNotMatch(thoughtReviewSource, /workspace\/org\.html\?tab=roster/, '不得把「完整记录」指向名册聚合页');
 });
 
-test('组长 todo tabMap 的每个值都存在于 leader-workspace 的 tab 集合', () => {
-  const mapBody = leaderTodoSource.match(/const tabMap = \{([\s\S]*?)\};/)?.[1] || '';
-  const values = [...mapBody.matchAll(/:\s*'([^']+)'/g)].map((m) => m[1]);
-  assert.ok(values.length >= 2, 'tabMap 解析失败（至少 authorize / review 两项）');
-  for (const id of values) {
-    assert.match(leaderWorkspaceSource, new RegExp(`\\{ id: '${id}'`), `leader-workspace 不存在 tabMap 目标页签「${id}」`);
+test('组长待办动作落点：每个目标都存在于 leader-workspace 的 tab 集合', async () => {
+  // 2026-11-01 批次 524：tabMap 已收进声明式动作表 `core/domain/todo-actions.js`，
+  //   本判据改为「按 leader 解析出的目标页签仍必须真实存在」——不因换实现而放宽覆盖。
+  const { resolveTodoAction } = await import('../../docs/src/core/domain/todo-actions.js?v=20261102b');
+  assert.match(leaderTodoSource, /resolveTodoAction|goToWorkspaceTab/,
+    '组长待办须走统一动作表 / 统一导航（不得回退到本页 tabMap）');
+  const ids = ['authorize', 'review'].map((key) => resolveTodoAction({ actionType: key }, 'leader')?.tab).filter(Boolean);
+  assert.ok(ids.length >= 2, '动作表解析失败（至少 authorize / review 两项）');
+  for (const id of ids) {
+    assert.match(leaderWorkspaceSource, new RegExp(`\\{ id: '${id}'`), `leader-workspace 不存在动作目标页签「${id}」`);
   }
 });
 

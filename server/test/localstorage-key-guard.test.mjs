@@ -33,7 +33,7 @@ import { join } from 'node:path';
 import {
   CACHE_KEYS, CACHE_KEY_PREFIXES, CACHE_CATEGORIES, classifyCacheKey,
   validateBackupPayload, BACKUP_META, NICHE_COLLECTION_NAMES,
-} from '../../docs/src/data/cache-registry.js?v=20261031a';
+} from '../../docs/src/data/cache-registry.js?v=20261102b';
 
 const ROOT = join(import.meta.dirname, '..', '..');
 
@@ -118,6 +118,9 @@ const SERVER_AUTHORITATIVE_PREFIXES = {
 };
 const LOCAL_ONLY_PREFIXES = {
   'wizard-draft-': '本机临时·草稿：换组织向导未走完的草稿，按支部一份（components/governance/org-setup-wizard.js）',
+  // 2026-11-01 批次 523：页签模块失败「同会话自愈一次」标记（键含 tab.id；成功渲染即删）。
+  //   只表达「本会话试过一次重载」，不属于任何业务事实 ⇒ 不上服务端。
+  'gsm1921-tab-selfheal-': '本机临时·页签失败自愈一次性标记（sessionStorage；成功后清除；components/shell/tab-bar.js）',
 };
 const UI_PREF_SESSION_PREFIXES = {
   'gsm1921-pref-': 'UI 偏好·个人偏好键空间（theme.js / preferences.js）',
@@ -391,7 +394,7 @@ test('L10 读口拒收缺版本 / 过期备份（restoreNicheCollections 返回 
     get length() { return store.size; },
   };
   try {
-    const { restoreNicheCollections } = await import('../../docs/src/data/mock-adapter.js?v=20261031a');
+    const { restoreNicheCollections } = await import('../../docs/src/data/mock-adapter.js?v=20261102b');
     store.set('workflowos_branch_db_v1', JSON.stringify({ activities: [{ id: 'stale' }] }));
     assert.equal(restoreNicheCollections({ expectedVersions: { activities: 1 } }), false,
       '缺 `_versions` 的本地备份不得被采用（否则旧备份会被当成服务端权威）');

@@ -174,7 +174,8 @@ export const VALIDATION_SITES = [
   //   ⇒ 该文件既有登记下移 ⇒ `746` → `768`（S6：行号须落在文案那一行；file/field/msg 不变）。
   // 2026-10-04 批次 373：删「党小组活动」分区 + 撤独立「组长指派」块（该文件尾段缩短、上部加组长/副组长行内管理）
   //   ⇒ 「组名不能为空」再按实况改准 `775` → `833` → `835`（file/field/msg 不变）。
-  { file: SRC + 'entries/tabs/secretary/group-progress-tab.js', line: 897, field: '组名', flow: 'secretary/党小组·改名', machine: true, msg: '组名不能为空' },
+  // 2026-11-01 批次 525 Task 4（主从双栏重做，整页重排）⇒ 按实况再改准 `897` → `848`（file/field/msg 不变）。
+  { file: SRC + 'entries/tabs/secretary/group-progress-tab.js', line: 848, field: '组名', flow: 'secretary/党小组·改名', machine: true, msg: '组名不能为空' },
   // 批次 47-Z（2026-09-17）：**由 `machine:false` 转 `machine:true`**。原 reason 两句话各有问题，逐句更正：
   //   · 对的一半：「退回浮态（`#mc-reject-note`）只在**有 pending 成员变更确认**时挂载」——实测计数 0 属实。
   //   · 错的一半：「纳入条件：**组织委员**在某台发起一次成员变更」——**跨人不成立**。该队列是
@@ -271,13 +272,13 @@ export const VALIDATION_SITES = [
   //     点一下浮窗即在位，`#upload-activity` 出厂首项即空值「请选择关联活动」⇒ **空提交就报**，无需先选定。
   //   ⚠ 注意与 47-K 的差别：**这条也是 47-K 那条教训的第二次犯**（同一类理由、同一类证伪）——
   //     「理由即解法」若只在个案上纠正、不升格成普查项，就会一条条复发。
-  { file: SRC + 'entries/tabs/prop/archive-tab.js', line: 947, field: '关联活动', flow: 'prop/档案归档', machine: true, msg: '请先选择关联活动' }, // 2026-10-21 R5A-08（归档推进迁 openModal）⇒ 984 → 915
-  { file: SRC + 'entries/tabs/prop/archive-tab.js', line: 951, field: '文件', flow: 'prop/档案归档', machine: true, msg: '请先选择文件' }, // 2026-10-21 R5A-08 ⇒ 988 → 919
+  { file: SRC + 'entries/tabs/prop/archive-tab.js', line: 985, field: '关联活动', flow: 'prop/档案归档', machine: true, msg: '请先选择关联活动' }, // 2026-11-01 Task 5（归档页收敛 ≤4）⇒ 947 → 985
+  { file: SRC + 'entries/tabs/prop/archive-tab.js', line: 989, field: '文件', flow: 'prop/档案归档', machine: true, msg: '请先选择文件' }, // 2026-11-01 Task 5 ⇒ 951 → 989
   // 批次 120（2026-09-21）：**照片墙 · 上传照片浮窗**（支书定案「建，并入档案归档」）。
   //   取齐决定＝文件走既有上传接口（不在记录内放 base64）⇒ 该浮窗只有**一处**必填校验点：
   //   图片为空即报（日期出厂即今天、标题/主体可空，故无第二处）。行号随本批在 `renderContent`
   //   插入照片墙区块而整体下移，**同批同步**（批次 49 立的 S6 判据：行号必须精确命中）。
-  { file: SRC + 'entries/tabs/prop/archive-tab.js', line: 1335, field: '图片', flow: 'prop/照片墙', machine: true, msg: '请先选择图片' }, // 2026-10-21 R5A-08 ⇒ 1372 → 1303
+  { file: SRC + 'entries/tabs/prop/archive-tab.js', line: 1373, field: '图片', flow: 'prop/照片墙', machine: true, msg: '请先选择图片' }, // 2026-11-01 Task 5（归档页收敛 ≤4）⇒ 1335 → 1373
 
   // ── 党委台 ──
   { file: SRC + 'entries/tabs/party-committee/branches-tab.js', line: 203, field: '支部名称', flow: 'party-committee/支部管理·新建', machine: true, msg: '请填写支部名称' },
@@ -993,9 +994,10 @@ export const MACHINE_FLOWS = [
     // 2026-10-25 IA 62→45：考察管理页签降为「组员进展」页内折叠区「上传考察」。
     // 2026-10-04 批次 369：页签名由「考察上传」改「考察管理」（对象轴，与纪检台同名同轴）
     tab: '组员进展',
+    // 2026-11-01 Task 7：「上传考察」由页内折叠区降为卡头按钮。
     open: [
-      { waitFor: '#leader-insp-fold summary' },
-      { click: '#leader-insp-fold summary' },
+      { waitFor: '#leader-insp-toggle' },
+      { click: '#leader-insp-toggle' },
       // 折叠体内容由 `inspection-tab.js` 异步挂载 ⇒ 点按钮前必须等它真的渲染出来（否则点击静默落空）。
       { waitFor: '#btn-leader-upload-insp' },
       { click: '#btn-leader-upload-insp' },

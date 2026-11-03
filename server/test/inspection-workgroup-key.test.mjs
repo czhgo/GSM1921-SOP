@@ -11,9 +11,9 @@ import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { createApp } from '../app.js';
 import { seedDatabase } from '../seed.js';
-import { migrateInspectionWorkgroupKeys } from '../../docs/src/services/activity/inspection-migrate.js?v=20261031a';
-import { INSPECTION_RECORDS } from '../../docs/src/data/mock/inspection.js?v=20261031a';
-import { MOCK_TASKFORCES } from '../../docs/src/data/mock/taskforces.js?v=20261031a';
+import { migrateInspectionWorkgroupKeys } from '../../docs/src/services/activity/inspection-migrate.js?v=20261102b';
+import { INSPECTION_RECORDS } from '../../docs/src/data/mock/inspection.js?v=20261102b';
+import { MOCK_TASKFORCES } from '../../docs/src/data/mock/taskforces.js?v=20261102b';
 
 let app, db, server, base;
 

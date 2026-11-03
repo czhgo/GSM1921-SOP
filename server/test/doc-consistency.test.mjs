@@ -491,6 +491,7 @@ const TIMESTAMPS_NO_FM_MD_OK = [
   '.ctx/ACTIVE_RULINGS.md',                           // 审计台账（`.ctx` 底座）：按 `.ctx` 体例不带 YAML 头
   '.ctx/logs/DECISION_LOG.md',                        // 决策日志月度索引：日志件、非文档
   '.ctx/logs/archive/2026-05-DECISION_LOG.md',        // 归档决策日志：同上
+  'content/05_ai_coding/AGENTS.md',                   // 05 目录协作说明：按 AGENTS 体例不带 YAML 头（2026-11-01 批次 525 补登）
 ];
 /** 无 frontmatter 时可按**扩展名**机械跳过的非文档类文件（代码 / 样式 / 数据 / 资源；无扩展名串为空） */
 const TIMESTAMPS_NO_FM_EXT_OK = new Set([
@@ -657,9 +658,9 @@ function enumCount(line) {
 
 test('S14 可数事实对账：文档里的「枚举 / 计数」必须等于代码 / 数据的实然值', async () => {
   const problems = [];
-  const { WORK_MAP_MODULES } = await import('../../docs/src/core/domain/work-map.js?v=20261031a');
-  const { sopDatabase } = await import('../../docs/src/workflow/sopData.js?v=20261031a');
-  const { ROLE_KEYS, ROLE_LEGACY_KEYS } = await import('../../docs/src/core/domain/constants.js?v=20261031a');
+  const { WORK_MAP_MODULES } = await import('../../docs/src/core/domain/work-map.js?v=20261102b');
+  const { sopDatabase } = await import('../../docs/src/workflow/sopData.js?v=20261102b');
+  const { ROLE_KEYS, ROLE_LEGACY_KEYS } = await import('../../docs/src/core/domain/constants.js?v=20261102b');
   const { SYSTEM_NOTICE_KIND_NAMES } = await import('../system-notice-kinds.js');
 
   /** 对账一条：`got` 为文档里抽出的数（null＝抽不出，判红并提示是判据失效而非「文档错」） */

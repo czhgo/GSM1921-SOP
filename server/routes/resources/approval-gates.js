@@ -82,10 +82,12 @@ export function _activityApprovalGateDeny(prevRow, body, actor) {
  * @param {{role?:string}} actor 写者（requireAuth 注入）
  * @returns {string|null}
  */
-export function _snapshotActivityApprovalGateDeny(db, payload, actor) {
+export function _snapshotActivityApprovalGateDeny(db, payload, actor, reader) {
   const rows = (payload && Array.isArray(payload.activities)) ? payload.activities : null;
   if (!rows) return null;
-  const prevById = new Map(listTable(db, 'activities').map(r => [r.id, r]));
+  const prevById = reader
+    ? new Map(reader.rows('activities').map((r) => [r.id, r]))
+    : new Map(listTable(db, 'activities').map(r => [r.id, r]));
   for (const row of rows) {
     if (!row || typeof row !== 'object') continue;
     const prevRow = prevById.get(row.id);

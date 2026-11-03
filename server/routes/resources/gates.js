@@ -7,7 +7,7 @@
 import { requireAuth, requireCommissioner } from '../auth.js';
 import { BRANCH_COMMISSION_ROLES, PARTY_STAFF_ROLE as PARTY_STAFF_KEYS, SECRETARY_AND_DEPUTY_ROLES, NOTICE_PUBLISH_ROLES, NOTICE_MANAGE_ROLES, MEMBER_FLOW_ROLES, ORG_COMMISSIONER_ROLES, INSPECTION_WRITE_ROLES, INSPECTION_CONFIRM_ROLES, branchCommissionerWriteDeny, isAnonymousForced, PARTY_GROUP_LEADER_ROLES, isPartyGroupLeaderRole, DEFAULT_BRANCH_ID, LEADER_CREATABLE_ACTIVITY_TYPES } from '../../../docs/src/core/domain/constants.js';
 import { RESOURCE_TABLES, listTable } from './store.js';
-import { actorBranchId, resourceBranchId } from './branch-scope.js';
+import { actorBranchId, createTableReader, resourceBranchId } from './branch-scope.js';
 import { CAPABILITY_PACKAGES } from '../../../docs/src/core/domain/capability-packages.js';
 
 // ── P3 上线前收紧（2026-09-03，design §7 登记项落地）：资源级写角色门 ──────────
@@ -306,10 +306,10 @@ export const NOTICE_MESSAGE_DENY_MSG = '无权限：站内信（私信）发件�
  * @param {{role?:string,id?:string}} actor 写者（requireAuth 注入）
  * @returns {string|null}
  */
-export function _snapshotNoticeMessageGateDeny(db, payload, actor) {
+export function _snapshotNoticeMessageGateDeny(db, payload, actor, reader) {
   const rows = (payload && Array.isArray(payload.notices)) ? payload.notices : null;
   if (!rows) return null;
-  const prevById = new Map(listTable(db, 'notices').map((r) => [r.id, r]));
+  const prevById = reader ? reader.ids('notices') : new Map(listTable(db, 'notices').map((r) => [r.id, r]));
   for (const row of rows) {
     if (!row || typeof row !== 'object' || row.noticeType !== 'message') continue;
     const prev = prevById.get(row.id);
@@ -345,8 +345,8 @@ export function _snapshotNoticeMessageGateDeny(db, payload, actor) {
 // ════════════════════════════════════════════════════════════════
 
 /** 通知快照写门：新增需发布权（含本场组织者），修改需管理权；任何成员可只改自己的 read 状态。 */
-function _snapshotNoticeWriteDeny(db, rows, actor) {
-  const previous = new Map(listTable(db, 'notices').map((r) => [String(r.id), r]));
+function _snapshotNoticeWriteDeny(db, rows, actor, reader) {
+  const previous = reader ? reader.ids('notices') : new Map(listTable(db, 'notices').map((r) => [String(r.id), r]));
   for (const row of rows) {
     if (!row || typeof row !== 'object' || !row.id) continue;
     const prev = previous.get(String(row.id));
@@ -383,9 +383,10 @@ function _snapshotNoticeWriteDeny(db, rows, actor) {
  * @param {{id?:string, role?:string, branchId?:string|null}} actor
  * @returns {Array<{name:string, table:string, rows:Array<Object>}>}
  */
-export function _retainUngatedSnapshotRows(db, writes, actor) {
+export function _retainUngatedSnapshotRows(db, writes, actor, reader) {
   const own = actorBranchId(actor);
   if (!own) return writes;
+  const read = reader || createTableReader(db);
   return writes.map((write) => {
     const { name, table, rows } = write;
     if (['users', 'branches', 'actSubRecords', 'tfSubRecords'].includes(name)) return write;
@@ -396,8 +397,8 @@ export function _retainUngatedSnapshotRows(db, writes, actor) {
       : _assertResourceWrite(actor, name, 'delete', null, null, db);
     if (canDelete) return write;
     const incomingIds = new Set(rows.map((row) => String(row?.id)));
-    const missing = listTable(db, table)
-      .filter((row) => resourceBranchId(db, name, row) === own && !incomingIds.has(String(row.id)));
+    const missing = read.rows(table)
+      .filter((row) => resourceBranchId(db, name, row, read) === own && !incomingIds.has(String(row.id)));
     return missing.length ? { ...write, rows: [...rows, ...missing] } : write;
   });
 }
@@ -409,8 +410,9 @@ export function _retainUngatedSnapshotRows(db, writes, actor) {
  * @param {{id?:string, role?:string, branchId?:string|null}} actor
  * @returns {string|null} 拒绝原因（403 文案）；放行 → null
  */
-export function _snapshotResourceWriteGateDeny(db, writes, actor) {
+export function _snapshotResourceWriteGateDeny(db, writes, actor, reader) {
   const ownBranch = actorBranchId(actor);
+  const read = reader || createTableReader(db);
   for (const write of writes) {
     const { name, table, rows } = write;
     // 治理表由 snapshotScopeDeny 整体拒绝；聚合域由 aggregate 分支夹带校验。
@@ -419,12 +421,12 @@ export function _snapshotResourceWriteGateDeny(db, writes, actor) {
     // deny-by-default：没有门的集合也至少确认每行归属当前支部。
     // 跳过「合并后保留的其他支部存量行」（未变行不构成本次写入）。
     if (ownBranch) {
-      const existing = new Map(listTable(db, table).map((r) => [String(r.id), r]));
+      const existing = read.ids(table);
       for (const row of rows) {
         if (!row || typeof row !== 'object') continue;
         const prev = existing.get(String(row.id));
         if (prev && JSON.stringify(prev) === JSON.stringify(row)) continue;
-        const resolved = resourceBranchId(db, name, row);
+        const resolved = resourceBranchId(db, name, row, read);
         if (resolved && resolved !== ownBranch) {
           return '无权限：快照只能写入当前支部记录';
         }
@@ -432,7 +434,7 @@ export function _snapshotResourceWriteGateDeny(db, writes, actor) {
     }
 
     if (name === 'notices') {
-      const deny = _snapshotNoticeWriteDeny(db, rows, actor);
+      const deny = _snapshotNoticeWriteDeny(db, rows, actor, read);
       if (deny) return deny;
       continue;
     }
@@ -441,7 +443,7 @@ export function _snapshotResourceWriteGateDeny(db, writes, actor) {
     const commissionerOnly = COMMISSIONER_WRITE_RESOURCES.has(name);
     if (!gate && !commissionerOnly) continue;
 
-    const previous = new Map(listTable(db, table).map((r) => [String(r.id), r]));
+    const previous = read.ids(table);
     for (const row of rows) {
       if (!row || typeof row !== 'object' || !row.id) continue;
       const prev = previous.get(String(row.id));

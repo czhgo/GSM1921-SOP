@@ -125,12 +125,13 @@ test('C3 手写卡式表：每个数据 td 都有 data-label（考勤汇总 / �
   const attMissingCols = attHeads.filter((h) => h && !attNorm.has(h));
   assert.deepEqual(attMissingCols, [], `考勤汇总 data-label 未覆盖表头列：${attMissingCols.join(' / ')}`);
 
-  const groupChunk = slice(GROUP, 'function _manageRowHtml', '/** 组长 / 副组长行内展示');
-  assert.match(GROUP, /<table class="data-table" data-responsive="cards">/, '党小组清单须声明卡式行');
-  assert.deepEqual(missingLabels(groupChunk), [], '党小组清单存在未带 data-label 的数据 td');
+  // 2026-11-01 Task 4：党小组页改主从双栏，原「党小组清单」表撤；卡式行落在「活动台账」表
+  assert.match(GROUP, /<table class="data-table" data-responsive="cards">/, '活动台账须声明卡式行');
+  const groupChunk = slice(GROUP, 'function _ledgerRowHtml', 'function _reviewStatusCellHtml');
+  assert.deepEqual(missingLabels(groupChunk), [], '活动台账存在未带 data-label 的数据 td');
   const groupLabels = labelsOf(groupChunk);
-  for (const label of ['党小组', '负责人', '人数', '状态', '操作']) {
-    assert.ok(groupLabels.includes(label), `党小组清单 td 缺 data-label="${label}"`);
+  for (const label of ['日期', '活动', '复盘状态', '应到·实到']) {
+    assert.ok(groupLabels.includes(label), `活动台账 td 缺 data-label="${label}"`);
   }
 
   const woChunk = slice(OVERVIEW, 'const tableRows = lineRows.map', 'const shownActions');

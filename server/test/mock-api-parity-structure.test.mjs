@@ -36,28 +36,36 @@ import {
 } from '../seed.js';
 import {
   SEED_MANIFEST, SEED_MANIFEST_BY_TABLE, SEED_LIFECYCLE_CLASSES, SEED_INIT_TIERS,
-} from '../../docs/src/data/seed-manifest.js?v=20261031a';
+} from '../../docs/src/data/seed-manifest.js?v=20261102b';
 import {
   normalizeSeedActivitySeedRows, ensureLegacySourceWorkgroups, ensureDemoWorkgroupGrants,
   ensureInspectionWorkgroupMembers,
-} from '../../docs/src/data/workgroup-seed-sync.js?v=20261031a';
-import { PEOPLE } from '../../docs/src/data/mock/people.js?v=20261031a';
-import { BRANCHES } from '../../docs/src/data/mock/branches.js?v=20261031a';
-import { ACTIVITIES } from '../../docs/src/data/mock/activities.js?v=20261031a';
-import { MOCK_NOTICES } from '../../docs/src/data/mock/notices.js?v=20261031a';
-import { MOCK_TASKFORCES } from '../../docs/src/data/mock/taskforces.js?v=20261031a';
+} from '../../docs/src/data/workgroup-seed-sync.js?v=20261102b';
+import { PEOPLE } from '../../docs/src/data/mock/people.js?v=20261102b';
+import { BRANCHES } from '../../docs/src/data/mock/branches.js?v=20261102b';
+import { ACTIVITIES } from '../../docs/src/data/mock/activities.js?v=20261102b';
+import { MOCK_NOTICES } from '../../docs/src/data/mock/notices.js?v=20261102b';
+import { MOCK_TASKFORCES } from '../../docs/src/data/mock/taskforces.js?v=20261102b';
 import {
   SEED_TASKS, SEED_ASSIGNMENTS, SEED_ARCHIVE_RECORDS, SEED_SIGNUPS,
   SEED_REVIEW_REQUESTS, SEED_MAKEUP_TASKS,
-} from '../../docs/src/data/mock/seed.js?v=20261031a';
-import { PARTY_GROUPS } from '../../docs/src/data/mock/party-groups.js?v=20261031a';
-import { ATTENDANCE_RECORDS } from '../../docs/src/data/mock/attendance.js?v=20261031a';
-import { INSPECTION_RECORDS } from '../../docs/src/data/mock/inspection.js?v=20261031a';
-import { REVIEW_RECORDS, TASKFORCE_REVIEW_RECORDS } from '../../docs/src/data/mock/review.js?v=20261031a';
-import { THOUGHT_REPORTS } from '../../docs/src/data/mock/thought-reports.js?v=20261031a';
-import { PERIODIC_ARCHIVES_SEED, PROP_TASKS_SEED } from '../../docs/src/data/mock/prop.js?v=20261031a';
-import { SEED_TODOS } from '../../docs/src/services/governance/todo.js?v=20261031a';
-import { applyDerivedFacts } from '../../docs/src/data/mock/derive.js?v=20261031a';
+} from '../../docs/src/data/mock/seed.js?v=20261102b';
+import { PARTY_GROUPS } from '../../docs/src/data/mock/party-groups.js?v=20261102b';
+import { ATTENDANCE_RECORDS } from '../../docs/src/data/mock/attendance.js?v=20261102b';
+import { INSPECTION_RECORDS } from '../../docs/src/data/mock/inspection.js?v=20261102b';
+import { REVIEW_RECORDS, TASKFORCE_REVIEW_RECORDS } from '../../docs/src/data/mock/review.js?v=20261102b';
+import { THOUGHT_REPORTS } from '../../docs/src/data/mock/thought-reports.js?v=20261102b';
+import { PERIODIC_ARCHIVES_SEED, PROP_TASKS_SEED } from '../../docs/src/data/mock/prop.js?v=20261102b';
+import { SEED_TODOS } from '../../docs/src/services/governance/todo.js?v=20261102b';
+import {
+  SEED_IMAGE_RECORDS, SEED_MEMBER_CHANGE_REQUESTS,
+  SEED_WORKGROUP_TASKS, SEED_WORKGROUP_OUTPUTS,
+} from '../../docs/src/data/mock/auxiliary.js?v=20261102b';
+import { applyDerivedFacts } from '../../docs/src/data/mock/derive.js?v=20261102b';
+import {
+  DOMAIN_CONTRACT, RESOURCE_TABLES, SEMANTIC_TABLES, WORKGROUP_TABLES,
+  validateEntityRows,
+} from '../data/domain-contract.mjs';
 
 const readJson = (rel) => JSON.parse(readFileSync(new URL(rel, import.meta.url), 'utf8'));
 
@@ -133,7 +141,32 @@ const EXPECTED = {
   workgroups: workgroupSeed.workgroups,
   workgroup_members: workgroupSeed.workgroupMembers,
   workgroup_grants: workgroupSeed.workgroupGrants,
+  // 2026-11-02 批次 527：契约有、种子无的 4 张表纳入结构对照。
+  image_records: SEED_IMAGE_RECORDS,
+  member_change_requests: SEED_MEMBER_CHANGE_REQUESTS,
+  workgroup_tasks: SEED_WORKGROUP_TASKS,
+  workgroup_outputs: SEED_WORKGROUP_OUTPUTS,
 };
+
+/**
+ * 结构对照覆盖全集（2026-11-02 批次 527）：
+ *   34 资源表 + 7 语义表 + 6 工作组表 = 47 表；每张表必须**要么**在同源行里比对，
+ *   **要么**在 `STRUCTURE_EXEMPT` 里登记理由（不得静默跳过）。
+ */
+const EXTRA_STRUCTURE_TABLES = ['image_records', 'member_change_requests', 'workgroup_tasks', 'workgroup_outputs'];
+const STRUCTURE_EXEMPT = {
+  experience_deposits: '运行时域（经验沉淀），演示种子为空；无 mock 同源行可逐值比对',
+  file_space_records: '运行时域（文件空间），演示种子为空；无 mock 同源行',
+  act_sub_records: '对象聚合域（__root__ 单行，mockDB 为对象非数组），无独立种子行',
+  tf_sub_records: '对象聚合域（__root__ 单行，mockDB 为对象非数组），无独立种子行',
+  branch_docs: '运行时域（支部文件上传），演示种子为空',
+  committee_broadcasts: '2026-10-20 P1-26 起停写（只写不读），演示种子为空',
+  agenda_votes: '运行时域（线上表态），演示种子为空',
+  member_flows: '运行时域（流入/流出复式记账），演示种子为空',
+  issue_reveals: '2026-09-17 D-824 停写、v12 已 DROP；保留只读兼容，不参与结构比对',
+  attendance_rosters: '运行时域（按活动冻结的应到名单快照），演示种子为空',
+};
+const ALL_STRUCTURE_TABLES = [...RESOURCE_TABLES, ...SEMANTIC_TABLES, ...WORKGROUP_TABLES];
 
 /**
  * 客户端 / 装载投影白名单（只豁免字段存在性，不豁免类型）。
@@ -229,8 +262,9 @@ await seedDatabase(app.locals.db);
 const db = app.locals.db;
 const serverRows = (table) => db.prepare(`SELECT data FROM ${table}`).all().map((row) => JSON.parse(row.data));
 
-// ── S1 主判据：manifest 全表结构对照（白名单外漂移即红）──────────
-test('S1 结构真值：manifest 全表逐行比对字段集合 / 类型，输出多出 / 缺失 / 类型不符', () => {
+// ── S1 主判据：全表结构对照（白名单外漂移即红）──────────
+const STRUCTURE_TABLES = [...new Set([...SEED_MANIFEST.map((entry) => entry.table), ...EXTRA_STRUCTURE_TABLES])];
+test('S1 结构真值：47 表逐行比对字段集合 / 类型，输出多出 / 缺失 / 类型不符', () => {
   const allProblems = [];
   const allowedHits = [];
   const lines = [];
@@ -241,13 +275,13 @@ test('S1 结构真值：manifest 全表逐行比对字段集合 / 类型，输�
   let missing = 0;
   let type = 0;
 
-  for (const entry of SEED_MANIFEST) {
-    const expected = EXPECTED[entry.table];
-    assert.ok(Array.isArray(expected), `${entry.table}：缺少同源行构造（manifest 有、EXPECTED 无）`);
-    const actual = serverRows(entry.table);
-    assert.ok(actual.length > 0, `${entry.table}：服务端表为空（播种缺口；空 == 空 会恒绿）`);
+  for (const table of STRUCTURE_TABLES) {
+    const expected = EXPECTED[table];
+    assert.ok(Array.isArray(expected), `${table}：缺少同源行构造（manifest 有、EXPECTED 无）`);
+    const actual = serverRows(table);
+    assert.ok(actual.length > 0, `${table}：服务端表为空（播种缺口；空 == 空 会恒绿）`);
 
-    const { problems, allowed, stats } = compareStructure(entry.table, expected, actual);
+    const { problems, allowed, stats } = compareStructure(table, expected, actual);
     allProblems.push(...problems);
     allowedHits.push(...allowed);
     extra += stats.extra;
@@ -257,7 +291,7 @@ test('S1 结构真值：manifest 全表逐行比对字段集合 / 类型，输�
     totalExpectedRows += stats.expected;
     totalFields += stats.fields;
     lines.push(
-      `[${entry.table}] server=${stats.rows} seed=${stats.expected} 多出=${stats.extra} 缺失=${stats.missing} 类型不符=${stats.type} 白名单豁免=${stats.allowed}`,
+      `[${table}] server=${stats.rows} seed=${stats.expected} 多出=${stats.extra} 缺失=${stats.missing} 类型不符=${stats.type} 白名单豁免=${stats.allowed}`,
     );
   }
 
@@ -282,6 +316,62 @@ test('S1 结构真值：manifest 全表逐行比对字段集合 / 类型，输�
   assert.ok(SEED_MANIFEST.length >= 30, `manifest 只覆盖 ${SEED_MANIFEST.length} 张表（下限 30）`);
   assert.ok(totalRows >= 300, `服务端比对行数合计 ${totalRows} < 300`);
   assert.ok(totalFields >= 1000, `字段比较次数 ${totalFields} < 1000`);
+});
+
+// ── S5（2026-11-02 批次 527）：覆盖全集 + 契约必填 / 枚举 ─────────
+test('S5 覆盖 47 表无静默跳过；契约 required / enums 与落库行一致（mock 独有形状也校验）', () => {
+  const covered = new Set(STRUCTURE_TABLES);
+  const exempt = new Set(Object.keys(STRUCTURE_EXEMPT));
+  const all = new Set(ALL_STRUCTURE_TABLES);
+
+  // ① 覆盖全集：每张表要么比对、要么豁免；两者不相交；无未登记项。
+  assert.equal(all.size, 47, `db.js 三张清单并集应为 47 表（实测 ${all.size}）`);
+  for (const table of all) {
+    assert.ok(covered.has(table) || exempt.has(table), `${table} 既未结构比对、也未登记 exempt（静默跳过）`);
+    assert.ok(!(covered.has(table) && exempt.has(table)), `${table} 同时出现在比对面与 exempt 面`);
+  }
+  for (const table of [...covered, ...exempt]) {
+    assert.ok(all.has(table), `${table} 不在 db.js 三张清单内（exempt/比对面出现幽灵表）`);
+  }
+  for (const [table, reason] of Object.entries(STRUCTURE_EXEMPT)) {
+    assert.ok(String(reason || '').trim().length >= 8, `${table} 的 exempt 理由过短`);
+  }
+  // 非空转：比对面必须 > 30（否则「全豁免」也能绿）。
+  assert.ok(covered.size >= 30, `结构比对面只剩 ${covered.size} 表（下限 30）`);
+
+  // ② 契约 required / enums：逐表逐行核（不再只核 mock 侧）。
+  const problems = [];
+  let requiredChecks = 0;
+  let enumChecks = 0;
+  for (const entry of DOMAIN_CONTRACT) {
+    if (!covered.has(entry.table)) continue;
+    const rows = serverRows(entry.table);
+    requiredChecks += rows.length * (entry.required || []).length;
+    for (const row of rows) {
+      for (const field of Object.keys(entry.enums || {})) if (Object.hasOwn(row, field)) enumChecks += 1;
+    }
+    problems.push(...validateEntityRows(entry, rows));
+  }
+  assert.ok(requiredChecks >= 500, `契约必填检查次数 ${requiredChecks} < 500（抽取面过小）`);
+  assert.ok(enumChecks >= 50, `契约枚举检查次数 ${enumChecks} < 50（抽取面过小）`);
+  assert.deepEqual(problems.slice(0, 40), [],
+    `契约 required / enums 与落库行不一致（首因：功能改了、契约未改）：\n  ${
+      problems.slice(0, 40).map((p) => `${p.entity}.${p.id}.${p.field}${p.value !== undefined ? `=${p.value}` : ''}`).join('\n  ')
+    }`);
+
+  // ③ mock 独有形状：同源行里出现、契约 fields 未登记的字段 ⇒ 红（仅对已声明 fields 的实体）。
+  const shapeProblems = [];
+  for (const entry of DOMAIN_CONTRACT) {
+    if (!Array.isArray(entry.fields) || entry.fields.length === 0) continue;
+    const allowed = new Set(entry.fields);
+    for (const row of EXPECTED[entry.table] || []) {
+      for (const field of Object.keys(row || {})) {
+        if (!allowed.has(field)) shapeProblems.push(`${entry.table}.${row.id}.${field}`);
+      }
+    }
+  }
+  assert.deepEqual(shapeProblems.slice(0, 20), [],
+    `mock/种子独有字段未进契约 fields（mock 不得手写第二份形状）：\n  ${shapeProblems.slice(0, 20).join('\n  ')}`);
 });
 
 // ── S2 manifest 自身完整性 + 覆盖服务端实际播种表 ────────────────
@@ -465,8 +555,8 @@ test('S4 适配器接口面：两个适配器的资源组 / 方法集合双向�
   }
   if (!globalThis.sessionStorage) globalThis.sessionStorage = globalThis.localStorage;
 
-  const { ApiAdapter } = await import('../../docs/src/data/api-adapter.js?v=20261031a');
-  const { MockAdapter } = await import('../../docs/src/data/mock-adapter.js?v=20261031a');
+  const { ApiAdapter } = await import('../../docs/src/data/api-adapter.js?v=20261102b');
+  const { MockAdapter } = await import('../../docs/src/data/mock-adapter.js?v=20261102b');
 
   const surface = (obj) => Object.fromEntries(
     Object.entries(obj)

@@ -466,3 +466,114 @@ test('A6 纪检台会议考勤：AX role=combobox、name 含「会议 / 活动�
     await page.close();
   }
 });
+
+// ════════════════════════════════════════════════════════════════
+//  A10 `section` 语义判据（批次 524 · D/#4 · SD-55）
+//  规则：`section` 是页面级独立区块，开标签必须有可访问名称（`aria-label`，或
+//        `aria-labelledby` 指向**存在且有文本**的 id）；`section` 内不得再嵌套 `section`。
+//  判据：① 现有页面清单（首页 / 支书台·概况 / 组织台·专班 / 成员台·分工 / 纪检台·考勤）
+//          真机遍历，无名 section 与嵌套 section 计数均为 0；
+//        ② 同一口径在合成 DOM 上跑一遍（无名 / 悬空 labelledby / 嵌套三类反例必须命中，
+//           正常 section 不得误伤）——证明检查器不是恒真。
+//  样本下限：5 页合计 section 数 ≥ 3（低于此值说明扫描面被写坏）。
+// ════════════════════════════════════════════════════════════════
+
+/** 浏览器内执行：page 内全部 section 的「名称 / 嵌套」审计（A10 与合成反例共用同一口径） */
+function collectSections() {
+  const hasName = (el) => {
+    const label = String(el.getAttribute('aria-label') || '').trim();
+    if (label) return true;
+    const ref = String(el.getAttribute('aria-labelledby') || '').trim();
+    if (!ref) return false;
+    return ref.split(/\s+/).every((id) => {
+      const target = document.getElementById(id);
+      return !!target && String(target.textContent || '').trim().length > 0;
+    });
+  };
+  return [...document.querySelectorAll('section')].map((el) => ({
+    id: el.id || '',
+    named: hasName(el),
+    nested: !!(el.parentElement && el.parentElement.closest('section')),
+  }));
+}
+
+test('A10 section 语义：现有页面全部有可访问名称且不嵌套（合成 DOM 反例自检）', async () => {
+  // ② 先跑合成 DOM：口径自检 + 反例
+  const probe = await browser.newPage();
+  try {
+    await probe.setContent(`<main>
+      <section id="ok" aria-label="有名称"><div>内容</div></section>
+      <section id="by-label" aria-labelledby="heading"><h2 id="heading">标题</h2></section>
+      <section id="no-name"><div>无名</div></section>
+      <section id="dangling" aria-labelledby="ghost"></section>
+      <section id="outer" aria-label="外层"><section id="inner" aria-label="内层"></section></section>
+    </main>`);
+    const synthetic = await probe.evaluate(collectSections);
+    const byId = Object.fromEntries(synthetic.map((s) => [s.id, s]));
+    assert.equal(byId.ok?.named, true, '合成 DOM：aria-label 应判为有名称');
+    assert.equal(byId['by-label']?.named, true, '合成 DOM：aria-labelledby 指向存在的标题应判为有名称');
+    assert.equal(byId['no-name']?.named, false, '合成 DOM：无名 section 必须被判红（口径失效）');
+    assert.equal(byId.dangling?.named, false, '合成 DOM：悬空 aria-labelledby（id 不存在）必须被判红');
+    assert.equal(byId.outer?.nested, false, '合成 DOM：外层 section 不应被误判为嵌套');
+    assert.equal(byId.inner?.nested, true, '合成 DOM：内层 section 必须被判为嵌套（口径失效）');
+  } finally {
+    await probe.close();
+  }
+
+  // ① 真机遍历现有页面清单
+  const pages = [
+    { label: '首页', open: async (page) => {
+      for (const pattern of MUTED) await page.route(pattern, (route) => route.abort());
+      await page.goto(`${base}/index.html`, { waitUntil: 'domcontentloaded' });
+      await page.waitForSelector('#view-dashboard', { timeout: 30000 });
+    } },
+    { label: '支书台·全局概况', open: async (page) => {
+      await openWorkspace(page, '2300010001', 'secretary');
+      await page.locator('.secretary-tab-btn[data-secretary-tab="overview"]').click();
+      await page.waitForSelector('#secretary-insight-card', { timeout: 30000 });
+    } },
+    { label: '组织台·专班管理', open: async (page) => {
+      await openWorkspace(page, '2400012355', 'org');
+      await page.locator('.org-tab-btn[data-org-tab="taskforce"]').click();
+      await page.waitForSelector('#org-tf-view-btns', { timeout: 20000 });
+    } },
+    { label: '成员台·项目分工', open: async (page) => {
+      await openWorkspace(page, '2400012349', 'visitor');
+      await page.locator('.visitor-tab-btn[data-visitor-tab="projects"]').click();
+      await page.waitForSelector('.visitor-proj-sub', { timeout: 20000 });
+    } },
+    { label: '纪检台·考勤管理', open: async (page) => {
+      await openWorkspace(page, '2400012354', 'disc');
+      await page.locator('.disc-tab-btn[data-disc-tab="attendance"]').click();
+      await page.waitForTimeout(800);
+    } },
+  ];
+
+  const readings = [];
+  for (const item of pages) {
+    const page = await browser.newPage();
+    try {
+      await item.open(page);
+      await page.waitForTimeout(400);
+      const sections = await page.evaluate(collectSections);
+      readings.push({
+        page: item.label,
+        total: sections.length,
+        unnamed: sections.filter((s) => !s.named).map((s) => s.id || '(无 id)'),
+        nested: sections.filter((s) => s.nested).map((s) => s.id || '(无 id)'),
+      });
+    } finally {
+      await page.close();
+    }
+  }
+  console.log('[A11Y] section 审计:', JSON.stringify(readings));
+
+  const total = readings.reduce((n, r) => n + r.total, 0);
+  assert.ok(total >= 3, `5 页合计只解析到 ${total} 个 section（下限 3）：扫描面被写坏`);
+  const unnamed = readings.filter((r) => r.unnamed.length).map((r) => `${r.page}: ${r.unnamed.join(', ')}`);
+  assert.deepEqual(unnamed, [],
+    `section 缺可访问名称（SD-55）：开标签必须带 aria-label 或指向存在 id 的 aria-labelledby\n  ${unnamed.join('\n  ')}`);
+  const nested = readings.filter((r) => r.nested.length).map((r) => `${r.page}: ${r.nested.join(', ')}`);
+  assert.deepEqual(nested, [],
+    `section 不得嵌套 section（SD-55）：同页只保留页面级分区\n  ${nested.join('\n  ')}`);
+});

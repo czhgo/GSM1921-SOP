@@ -3,8 +3,8 @@ import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { createApp } from '../app.js';
 import { seedDatabase } from '../seed.js';
-import { ACTIVITIES } from '../../docs/src/data/mock/activities.js?v=20261031a';
-import { monthKeyOf } from '../../docs/src/data/mock/demo-window.js?v=20261031a';
+import { ACTIVITIES } from '../../docs/src/data/mock/activities.js?v=20261102b';
+import { monthKeyOf } from '../../docs/src/data/mock/demo-window.js?v=20261102b';
 
 // 演示种子日期（单一源）：排序后取首尾，测试锚点随种子窗口自动跟随，不再写死月份。
 const ACTIVITY_DATES = ACTIVITIES.map((a) => a.date).sort();

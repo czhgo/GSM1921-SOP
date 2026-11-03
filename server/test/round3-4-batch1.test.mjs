@@ -45,9 +45,11 @@ test('R3-U03 页签模块加载/渲染失败落统一错误卡，可重试', () 
   assert.match(TAB_BAR, /这个页签暂时没加载出来/);
   assert.match(TAB_BAR, /data-ws-tab-error/);
   assert.match(TAB_BAR, /data-ws-tab-retry>重试<\/button>/);
-  // 2026-10-29：模块加载/解析失败不可自愈 ⇒ 依据 `__moduleSpec` 改出「刷新页面」卡（不删原重试分支）。
+  // 2026-10-29：模块加载/解析失败不可自愈 ⇒ 依据 `__moduleSpec` 改出「重新载入」卡（不删原重试分支）。
+  // 2026-11-01：文案改为不暴露模块名 / 不用「请刷新」；按钮同步为「重新载入」（首次失败先自动重载一次）。
   assert.match(TAB_BAR, /__moduleSpec/, '模块加载失败须与渲染期异常可区分');
-  assert.match(TAB_BAR, /data-ws-tab-reload>刷新页面<\/button>/, '不可重试分支须给「刷新页面」而不是无效重试');
+  assert.match(TAB_BAR, /export const TAB_RELOAD_LABEL = '重新载入'/, 'reload 分支按钮文案应为「重新载入」');
+  assert.match(TAB_BAR, /data-ws-tab-reload>\$\{TAB_RELOAD_LABEL\}<\/button>/, '不可重试分支须给「重新载入」而不是无效重试');
   // 2026-10-25 Task 1.2（统一渲染生命周期）：错误卡函数不再接收过时刻的 ctx——
   //   重试时由 `_resolveCtx()` 取最新 state，故签名收窄为 `(tab)`；判据仍是「统一错误卡函数」。
   assert.match(TAB_BAR, /function _renderTabError\(tab(?:, err)?\)/, '错误卡应封装为统一渲染函数');
@@ -96,11 +98,16 @@ test('R3-U08「今天」聚合失败显示错误态而非空态', () => {
 });
 
 test('R3-F09 组长台卡点卡前置，无卡点一行绿提示', () => {
-  const htmlStart = MEMBERS.indexOf('container.innerHTML = `');
-  const htmlEnd = MEMBERS.indexOf('// 统一检索引擎（逐人进度表');
-  const block = MEMBERS.slice(htmlStart, htmlEnd);
-  assert.ok(block.indexOf('>卡点<') >= 0 && block.indexOf('>卡点<') < block.indexOf('>进度<'),
-    '卡点卡应排在进度表之前');
+  // 2026-11-01 批次 525：卡点与进度合并为一卡两段（同一容器顺序仍是卡点在前）。
+  //   判据改为：默认段＝卡点、卡点宿主在进度宿主之前、无卡点绿提示仍在。
+  const blockStart = MEMBERS.indexOf('container.innerHTML = `');
+  const blockEnd = MEMBERS.indexOf('// 统一检索引擎（逐人进度表');
+  const block = MEMBERS.slice(blockStart, blockEnd);
+  assert.ok(block.indexOf('card-head__title') >= 0 || block.indexOf('renderCardHeader') >= 0, '应保留卡头');
+  assert.match(block, /segBtn\('blockers'/, '默认段须为卡点');
+  assert.ok(block.indexOf('id="leader-blockers-list"') >= 0
+    && block.indexOf('id="leader-blockers-list"') < block.indexOf('id="leader-progress-list"'),
+  '卡点宿主须排在进度宿主之前');
   assert.match(MEMBERS, /本组无卡点/);
 });
 

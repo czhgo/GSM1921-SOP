@@ -16,8 +16,13 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { describeWriteError } from '../../docs/src/core/base/utils.js?v=20261031a';
-import { NUDGE_TEXTS } from '../../docs/src/components/ui/modal.js?v=20261031a';
+import { describeWriteError } from '../../docs/src/core/base/utils.js?v=20261102b';
+import { NUDGE_TEXTS } from '../../docs/src/components/ui/modal.js?v=20261102b';
+// 批次 524（D）：只读按权限现算的纯函数（node 可直导）
+import {
+  canWriteResource, readonlyMeta, RESOURCE_WRITE_ROLES,
+} from '../../docs/src/core/domain/view-capability.js?v=20261102b';
+import { ROLE_KEYS } from '../../docs/src/core/domain/constants.js?v=20261102b';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(HERE, '..', '..');
@@ -43,7 +48,11 @@ test('F1 label for/id：四个重点表单的 label 与控件 id 成对', () => 
   for (const [rel, src, ids] of forms) {
     for (const id of ids) {
       assert.match(src, new RegExp(`for="${id}"`), `${rel} 缺少 label[for="${id}"]`);
-      assert.match(src, new RegExp(`id="${id}"`), `${rel} 缺少控件[id="${id}"]`);
+      // 2026-11-01 批次 524：控件可由 forms.js 的布局中立 helper 生成（`textInput({ id: 'x' })`），
+      //   判据同时接受静态 `id="x"` 与 helper 参数里的 `id: 'x' / id: "x"`——仍要求 id 真实出现，
+      //   不放过「label 写了、控件没 id」的错配。
+      assert.match(src, new RegExp(`(?:id="${id}"|id:\\s*'${id}'|id:\\s*"${id}")`),
+        `${rel} 缺少控件[id="${id}"]`);
     }
   }
 
@@ -220,9 +229,11 @@ test('F8 可点容器键盘可达：非原生容器必须 role=button + tabindex
     /addEventListener\('keydown'[\s\S]{0,160}(e\.key !== 'Enter'[\s\S]{0,80}e\.key !== ' '|e\.key === 'Enter'[\s\S]{0,120}e\.key === ' ')/,
     '主从行的 Enter/Space 键盘处理缺失（div 整行可点但键盘不可达）');
   // 行载体的可见 hover 必须同时存在（不靠 cursor:pointer 假装可点）。
+  // 2026-11-01 新裁定（支书 #6）：可点行 hover 底由中性灰 --surface-hover 改为主题 10% 淡底
+  //   --app-accent-tint（灰底只留静态分隔）；判据只换 token，仍要求「必须有可见 hover 底」。
   assert.match(read('docs/src/styles.css'),
-    /\.list-row\[data-interactive="true"\]:hover\s*\{[^}]*background-color:\s*var\(--surface-hover\)/,
-    '可点行缺可见 hover（底）');
+    /\.list-row\[data-interactive="true"\]:hover\s*\{[^}]*background-color:\s*var\(--app-accent-tint\)/,
+    '可点行缺可见 hover（底：--app-accent-tint 主题 10% 淡底）');
 });
 
 // ════════════════════════════════════════════════════════════════
@@ -264,7 +275,7 @@ test('F9 写口失败不得提示成功：先判返回值/捕获异常，成功 
 //        并断言初始月链路里没有写死的 `20YY-MM` 字面量。
 // ════════════════════════════════════════════════════════════════
 test('F10 日历默认月份由 now 派生：now=2026-10 / 2026-11 两个取值默认月随之变化', async () => {
-  const { populateMonthSelector } = await import('../../docs/src/components/record/calendar.js?v=20261031a');
+  const { populateMonthSelector } = await import('../../docs/src/components/record/calendar.js?v=20261102b');
   const ACTS = [
     { id: 'a1', date: '2026-10-05', title: '活动甲' },
     { id: 'a2', date: '2026-11-05', title: '活动乙' },
@@ -357,5 +368,57 @@ test('F11 mock 延迟单一源：默认 80ms ＋ 两条覆盖入口 ＋ 上限 5
   const noWindow = adapter.replace(/window\s*&&\s*'__MOCK_DELAY_MS'\s+in\s+window/, 'false');
   assert.ok(mockDelayProblems(noWindow).some((p) => p.includes('window.__MOCK_DELAY_MS')),
     '反例：删掉 window 覆盖入口未被判红');
+});
+
+// ════════════════════════════════════════════════════════════════
+//  F12 只读由权限派生（批次 524 · D/#5）
+//  规则：资源级写角色表是唯一落点；能写 ⇒ 卡头不显示「只读」；不能写 ⇒ 显示「只读」。
+//  判据：① canWriteResource / readonlyMeta 的角色矩阵（含未知 kind / 无用户 / 无 role）；
+//        ② registry 的角色键必须全部来自 constants.js::ROLE_KEYS（不得自造别名）；
+//        ③ 4 处原硬编码文案已改为 readonlyMeta 派生。
+//  反例：把 leader 塞进 workgroup 写角色、把 insight 登记成可写，检查器必须判红。
+// ════════════════════════════════════════════════════════════════
+test('F12 只读由权限派生：canWriteResource / readonlyMeta 角色矩阵＋4 处硬编码清零', () => {
+  // ① 角色矩阵
+  assert.equal(canWriteResource('workgroup', { role: 'secretary' }), true, 'secretary 应可写工作组');
+  assert.equal(canWriteResource('workgroup', { role: 'deputy-secretary' }), true, '副支书应可写工作组');
+  assert.equal(canWriteResource('workgroup', { role: 'org-commissioner' }), true, '组织委员应可写工作组');
+  assert.equal(canWriteResource('workgroup', { role: 'leader' }), false, '组长不写别组工作组');
+  assert.equal(canWriteResource('taskforce', { role: 'leader' }), false, '组长不写专班');
+  assert.equal(canWriteResource('taskforce', { role: 'secretary' }), true, '支书可写专班');
+  assert.equal(canWriteResource('taskforce', { role: 'visitor' }), false, '未知角色不得可写');
+  assert.equal(canWriteResource('no-such-kind', { role: 'secretary' }), false, '未知 kind 一律不可写');
+  assert.equal(canWriteResource('workgroup', null), false, '无用户按只读');
+  assert.equal(canWriteResource('workgroup', {}), false, '无 role 按只读');
+
+  assert.equal(readonlyMeta('workgroup', { role: 'secretary' }), '', '可写时卡头不显示「只读」');
+  assert.equal(readonlyMeta('workgroup', { role: 'leader' }), '只读', '不可写时显示「只读」');
+  assert.equal(readonlyMeta('taskforce', { role: 'visitor' }), '只读', '未知角色显示「只读」');
+  assert.equal(readonlyMeta('insight', { role: 'secretary' }), '只读', '知情查看不在写角色表 ⇒ 恒只读');
+
+  // ② registry 的键必须来自 ROLE_KEYS（deputy-leader 在 constants 末尾 push，已含）
+  const unknown = Object.values(RESOURCE_WRITE_ROLES).flat().filter((r) => !ROLE_KEYS.includes(r));
+  assert.deepEqual([...new Set(unknown)], [], `写角色表出现 constants.js::ROLE_KEYS 之外的角色键：${unknown.join(' / ')}`);
+  assert.ok(Object.keys(RESOURCE_WRITE_ROLES).length >= 4, '写角色表缺资源键（下限 4）');
+
+  // ③ 4 处硬编码已清零、调用点已改为派生
+  const derived = [
+    ['docs/src/components/record/workgroup-view.js', /readonlyMeta\('workgroup'/],
+    ['docs/src/components/record/taskforce-view.js', /readonlyMeta\('taskforce'/],
+    ['docs/src/components/record/activity-view.js', /readonlyMeta\('activity'/],
+    ['docs/src/components/record/insight-view.js', /readonlyMeta\('insight'/],
+  ];
+  for (const [rel, re] of derived) {
+    const src = read(rel);
+    assert.match(src, re, `${rel} 的只读约束未走 readonlyMeta（仍写死字符串？）`);
+    assert.doesNotMatch(src, /[本全]支部 · 只读/, `${rel} 仍写死「…支部 · 只读」字面量`);
+  }
+
+  // 反例：把组长塞进工作组写角色 / 把 insight 登记为可写，必须与断言口径冲突（证明矩阵不是恒真）
+  const tampered = { ...RESOURCE_WRITE_ROLES, workgroup: [...RESOURCE_WRITE_ROLES.workgroup, 'leader'] };
+  assert.ok(tampered.workgroup.includes('leader') && canWriteResource('workgroup', { role: 'leader' }) === false,
+    '反例：写角色表被人为扩权时，canWriteResource 仍按原表判定 ⇒ 矩阵断言有效');
+  assert.equal((RESOURCE_WRITE_ROLES.insight || []).includes('secretary'), false,
+    '反例：insight 不得出现在写角色表（知情权是看，不是做）');
 });
 

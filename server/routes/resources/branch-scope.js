@@ -94,23 +94,52 @@ export function selectedBranchRequiredError(actor, requestedBranchId) {
     : null;
 }
 
-function get(db, table, id) {
+/**
+ * 请求级表读取器：每张表只执行一次 `SELECT id, data FROM <table>`，建 `id → row` Map 复用。
+ * **仅供一次请求内的批量判定**（快照写门 / 列表支部过滤）；严禁跨请求复用（会串支部/串身份）。
+ * @param {import('better-sqlite3').Database} db
+ */
+export function createTableReader(db) {
+  const maps = new Map();
+  const load = (table) => {
+    let map = maps.get(table);
+    if (!map) {
+      map = new Map();
+      for (const row of db.prepare(`SELECT id, data FROM ${table}`).all()) {
+        map.set(String(row.id), JSON.parse(row.data));
+      }
+      maps.set(table, map);
+    }
+    return map;
+  };
+  return {
+    get(table, id) {
+      if (!id) return null;
+      return load(table).get(String(id)) || null;
+    },
+    ids(table) { return load(table); },
+    rows(table) { return [...load(table).values()]; },
+  };
+}
+
+function get(db, table, id, reader) {
   if (!id) return null;
+  if (reader) return reader.get(table, id);
   const row = db.prepare(`SELECT data FROM ${table} WHERE id = ?`).get(String(id));
   return row ? JSON.parse(row.data) : null;
 }
 
-function linkedBranch(db, name, row) {
+function linkedBranch(db, name, row, reader) {
   const parent = AGGREGATE_PARENT[name];
   if (parent) return null;
   if (['activity', 'taskforce'].includes(row.sourceType) && row.sourceId) {
     const sourceTable = row.sourceType === 'activity' ? 'activities' : 'taskforces';
-    const source = get(db, sourceTable, row.sourceId);
-    if (source) return resourceBranchId(db, sourceTable, source);
+    const source = get(db, sourceTable, row.sourceId, reader);
+    if (source) return resourceBranchId(db, sourceTable, source, reader);
   }
   const activityId = row.activityId || (name === 'activities' ? null : null);
   if (activityId) {
-    const activity = get(db, 'activities', activityId);
+    const activity = get(db, 'activities', activityId, reader);
     // 2026-10-24 批次 508：归档记录只认「记录自身 branchId」或「activityId → 活动归属」；
     //   活动的归属按**活动读口的同一口径**解析（历史活动无 branchId 时仍为 br-b1，与支部视图一致，
     //   否则老活动下的归档材料会忽然对支部不可见、上传写门也会误拒）。
@@ -118,34 +147,34 @@ function linkedBranch(db, name, row) {
     //   其余资源保持原口径（R10-D14 另批）。
     if (activity) {
       return name === 'archiveRecords'
-        ? (activity.branchId || resourceBranchId(db, 'activities', activity))
+        ? (activity.branchId || resourceBranchId(db, 'activities', activity, reader))
         : (activity.branchId || DEFAULT_BRANCH);
     }
   }
-  const workgroup = row.workgroupId ? get(db, 'workgroups', row.workgroupId) : null;
+  const workgroup = row.workgroupId ? get(db, 'workgroups', row.workgroupId, reader) : null;
   if (workgroup) return workgroup.branchId || DEFAULT_BRANCH;
-  const taskforce = row.taskforceId ? get(db, 'taskforces', row.taskforceId) : null;
+  const taskforce = row.taskforceId ? get(db, 'taskforces', row.taskforceId, reader) : null;
   if (taskforce) return taskforce.branchId || DEFAULT_BRANCH;
   const groupId = row.partyGroupId || row.groupId || row.hostGroupId;
   if (groupId) {
-    const group = get(db, 'party_groups', groupId);
+    const group = get(db, 'party_groups', groupId, reader);
     if (group) return group.branchId || DEFAULT_BRANCH;
   }
   if (name === 'issue_unread' || name === 'issueUnread') {
-    const assignee = get(db, 'users', row.assigneeId);
+    const assignee = get(db, 'users', row.assigneeId, reader);
     if (assignee?.branchId) return assignee.branchId;
   }
   if (name === 'member_confirmations' || name === 'memberConfirmations') {
-    const person = get(db, 'users', row.personId);
+    const person = get(db, 'users', row.personId, reader);
     if (person?.branchId) return person.branchId;
   }
   if (name === 'committee_broadcasts' || name === 'committeeBroadcasts') {
-    const request = get(db, 'member_change_requests', row.requestId);
-    if (request) return resourceBranchId(db, 'memberChangeRequests', request);
+    const request = get(db, 'member_change_requests', row.requestId, reader);
+    if (request) return resourceBranchId(db, 'memberChangeRequests', request, reader);
   }
   if (name === 'auth_audit' || name === 'authAudit') {
-    if (row.scopeRef && get(db, 'branches', row.scopeRef)) return row.scopeRef;
-    const target = get(db, 'users', row.targetPersonId);
+    if (row.scopeRef && get(db, 'branches', row.scopeRef, reader)) return row.scopeRef;
+    const target = get(db, 'users', row.targetPersonId, reader);
     if (target?.branchId) return target.branchId;
   }
   if (row.refId) {
@@ -156,27 +185,27 @@ function linkedBranch(db, name, row) {
         ? [['taskforces', row.refId], ['workgroups', row.refId]]
         : [['activities', row.refId], ['taskforces', row.refId], ['workgroups', row.refId]];
     for (const [table, id] of candidates) {
-      const linked = get(db, table, id);
+      const linked = get(db, table, id, reader);
       if (linked) return linked.branchId || DEFAULT_BRANCH;
     }
   }
   return null;
 }
 
-export function resourceBranchId(db, name, row) {
+export function resourceBranchId(db, name, row, reader) {
   if (!row || typeof row !== 'object') return null;
   if (name === 'branches') return row.id || null;
   if (name === 'users') return row.branchId || null;
   if (name === 'signups' && ['activity', 'taskforce'].includes(row.sourceType) && row.sourceId) {
     const table = row.sourceType === 'activity' ? 'activities' : 'taskforces';
-    const source = get(db, table, row.sourceId);
+    const source = get(db, table, row.sourceId, reader);
     if (!source) return null;
-    const sourceBranch = resourceBranchId(db, table, source);
+    const sourceBranch = resourceBranchId(db, table, source, reader);
     return row.branchId && row.branchId !== sourceBranch ? null : sourceBranch;
   }
 
   const direct = row.branchId || null;
-  const linked = linkedBranch(db, name, row);
+  const linked = linkedBranch(db, name, row, reader);
   if (direct && linked && direct !== linked) return null;
   if (direct) return direct;
   // v11（批次 504）：待办不得回落缺省支部——解析不出就是 NULL（待归属），
@@ -197,20 +226,24 @@ function selectedBranch(actor, requestedBranchId) {
   return own || requestedBranchId || null;
 }
 
-function aggregateRows(db, name, rows, targetBranchId) {
+function aggregateRows(db, name, rows, targetBranchId, reader) {
   const [parentTable] = AGGREGATE_PARENT[name];
   const parentName = name === 'actSubRecords' ? 'activities' : 'taskforces';
   const root = rows.find((row) => row.id === '__root__');
   if (!root || !root.body || typeof root.body !== 'object' || Array.isArray(root.body)) return rows;
   if (!targetBranchId) return [{ ...root, body: {} }];
   const body = Object.fromEntries(Object.entries(root.body).filter(([id]) => {
-    const parentRow = get(db, parentTable, id);
-    return parentRow && resourceBranchId(db, parentName, parentRow) === targetBranchId;
+    const parentRow = get(db, parentTable, id, reader);
+    return parentRow && resourceBranchId(db, parentName, parentRow, reader) === targetBranchId;
   }));
   return [{ ...root, body }];
 }
 
-export function resourceRowsForActor(db, name, rows, actor, requestedBranchId) {
+/**
+ * @param {Object} [reader] 请求级表读取器（`createTableReader`）：列表请求内复用 `id → row` Map；
+ *   缺省时按行点查（旧口径）。**不得**跨请求共享。
+ */
+export function resourceRowsForActor(db, name, rows, actor, requestedBranchId, reader) {
   const targetBranchId = selectedBranch(actor, requestedBranchId);
   if (actor?.role === PARTY_STAFF && !targetBranchId) {
     if (name === 'branches') {
@@ -225,36 +258,36 @@ export function resourceRowsForActor(db, name, rows, actor, requestedBranchId) {
     // 全部待批复上报，否则「支部上报」页恒空（P3 党委后台闭环，party-committee-review P3）。
     if (name === 'reviewRequests') return rows;
     // 2026-10-24 批次 508：未归属支部的归档记录「只对党委可见」——党委未选支部时给出这批待归属行。
-    if (name === 'archiveRecords') return rows.filter((row) => resourceBranchId(db, name, row) === null);
-    if (AGGREGATE_PARENT[name]) return aggregateRows(db, name, rows, null);
+    if (name === 'archiveRecords') return rows.filter((row) => resourceBranchId(db, name, row, reader) === null);
+    if (AGGREGATE_PARENT[name]) return aggregateRows(db, name, rows, null, reader);
     return [];
   }
   if (actor?.role === PARTY_STAFF && name === 'branches') {
     return rows.map((row) => projectBranchDirectoryRow(db, row, targetBranchId));
   }
-  if (AGGREGATE_PARENT[name]) return aggregateRows(db, name, rows, targetBranchId);
+  if (AGGREGATE_PARENT[name]) return aggregateRows(db, name, rows, targetBranchId, reader);
   if (!targetBranchId) return rows;
   if (name === 'todos') {
     // v11 兼容期：branchId=NULL 的旧待办只给本人或同角色看一个周期，并标 branchLegacy。
     return rows
       .filter((row) => {
-        const branchId = resourceBranchId(db, name, row);
+        const branchId = resourceBranchId(db, name, row, reader);
         if (branchId === targetBranchId) return true;
         if (branchId !== null) return false;
         if (row.personId) return String(row.personId) === String(actor?.id);
         return !!row.role && row.role === actor?.role;
       })
-      .map((row) => (resourceBranchId(db, name, row) === null ? { ...row, branchLegacy: true } : row));
+      .map((row) => (resourceBranchId(db, name, row, reader) === null ? { ...row, branchLegacy: true } : row));
   }
   // 2026-10-24 批次 508：归档记录读口——选中支部时给出「本支部 + 未归属（仅党委）」；
   //   支部账号的 targetBranchId 恒非空且不会命中 null，故未归属行对支部账号不可见。
   if (name === 'archiveRecords') {
     return rows.filter((row) => {
-      const branchId = resourceBranchId(db, name, row);
+      const branchId = resourceBranchId(db, name, row, reader);
       return branchId === targetBranchId || (actor?.role === PARTY_STAFF && branchId === null);
     });
   }
-  return rows.filter((row) => resourceBranchId(db, name, row) === targetBranchId);
+  return rows.filter((row) => resourceBranchId(db, name, row, reader) === targetBranchId);
 }
 
 export function recordBranchWriteDeny(db, name, row, actor, { requireBranch = true } = {}) {
@@ -269,9 +302,10 @@ export function recordBranchWriteDeny(db, name, row, actor, { requireBranch = tr
   return null;
 }
 
-export function scopedSnapshotWriteDeny(db, payload, actor) {
+export function scopedSnapshotWriteDeny(db, payload, actor, reader) {
   const own = actorBranchId(actor);
   if (!own) return null;
+  const read = reader || createTableReader(db);
   const semanticOnly = new Set(['workgroups', 'workgroupMembers', 'workgroupGrants', 'workgroupTasks', 'workgroupOutputs', 'attendanceRosters']);
   for (const [name, rows] of Object.entries(payload || {})) {
     if (!Array.isArray(rows) || ['users', 'branches'].includes(name) || semanticOnly.has(name)) continue;
@@ -279,8 +313,8 @@ export function scopedSnapshotWriteDeny(db, payload, actor) {
       const root = rows.find((row) => row?.id === '__root__');
       const [parentTable] = AGGREGATE_PARENT[name];
       for (const id of Object.keys(root?.body || {})) {
-        const parent = get(db, parentTable, id);
-        if (!parent || resourceBranchId(db, name === 'actSubRecords' ? 'activities' : 'taskforces', parent) !== own) {
+        const parent = get(db, parentTable, id, read);
+        if (!parent || resourceBranchId(db, name === 'actSubRecords' ? 'activities' : 'taskforces', parent, read) !== own) {
           return '无权限：聚合子记录只能写入本支部所属业务记录';
         }
       }
@@ -288,10 +322,10 @@ export function scopedSnapshotWriteDeny(db, payload, actor) {
     }
     for (const row of rows) {
       if (!row || typeof row !== 'object') continue;
-      const previous = row.id ? get(db, nameToTable(name), row.id) : null;
-      if (previous && resourceBranchId(db, name, previous) !== own) return '无权限：不能通过快照触碰其他支部记录';
+      const previous = row.id ? get(db, nameToTable(name), row.id, read) : null;
+      if (previous && resourceBranchId(db, name, previous, read) !== own) return '无权限：不能通过快照触碰其他支部记录';
       if (previous && row.branchId && previous.branchId && row.branchId !== previous.branchId) return '支部归属创建后不可修改';
-      const linked = linkedBranch(db, name, row);
+      const linked = linkedBranch(db, name, row, read);
       if (row.branchId && row.branchId !== own) return '无权限：快照只能写入当前支部记录';
       if (linked && linked !== own) return '无权限：快照关联记录属于其他支部';
     }
@@ -327,24 +361,25 @@ export function mergeAggregateBody(db, name, currentBody, incomingBody, actor) {
   return { ...retained, ...(incomingBody || {}) };
 }
 
-export function mergeScopedSnapshotWrites(db, writes, actor) {
+export function mergeScopedSnapshotWrites(db, writes, actor, reader) {
   const own = actorBranchId(actor);
   if (!own) return writes;
+  const read = reader || createTableReader(db);
   return writes.map((write) => {
     const { name, table, rows } = write;
     if (['users', 'branches'].includes(name)) return write;
-    const current = db.prepare(`SELECT id, data FROM ${table}`).all().map((raw) => JSON.parse(raw.data));
+    const current = read.rows(table);
     if (AGGREGATE_PARENT[name]) {
       const [parentTable] = AGGREGATE_PARENT[name];
       const root = current.find((row) => row.id === '__root__') || { id: '__root__', body: {} };
       const nextRoot = rows.find((row) => row.id === '__root__') || { id: '__root__', body: {} };
       const retained = Object.fromEntries(Object.entries(root.body || {}).filter(([id]) => {
-        const parent = get(db, parentTable, id);
-        return !parent || resourceBranchId(db, name === 'actSubRecords' ? 'activities' : 'taskforces', parent) !== own;
+        const parent = get(db, parentTable, id, read);
+        return !parent || resourceBranchId(db, name === 'actSubRecords' ? 'activities' : 'taskforces', parent, read) !== own;
       }));
       return { ...write, rows: [{ ...root, ...nextRoot, body: { ...retained, ...(nextRoot.body || {}) } }] };
     }
-    const retained = current.filter((row) => resourceBranchId(db, name, row) !== own);
+    const retained = current.filter((row) => resourceBranchId(db, name, row, read) !== own);
     // 存量行保持原样（不额外补 branchId）：否则首次正常保存会把整集合标成「已修改」，
     // 令逐行写门把历史行（如「支委会不考勤」的旧考勤）重新校验并误拒。新建行才归当前支部。
     const existingIds = new Set(current.map((row) => String(row.id)));

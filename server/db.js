@@ -10,7 +10,7 @@ import { DEFAULT_BRANCH_ID, ACTIVITY_SCOPES, isBranchLevelActivity, normalizeOrg
 // T-209 全栈同步：补齐前端 mockDB 全部持久化域（报名/复盘/宣传/档案/外发确认 + 子记录聚合域），
 // 使 API 模式下全部持久化域均有后端表支撑。act_sub_records/tf_sub_records
 // 为对象聚合域，以「__root__ 单行」模式存储（见 data-adapter.js 封装）。
-const RESOURCE_TABLES = [
+export const RESOURCE_TABLES = [
   'users', 'activities', 'tasks', 'attendances', 'inspections',
   'taskforces', 'notices', 'todos', 'assignments', 'makeup_tasks',
   'experience_deposits', 'file_space_records', 'image_records',
@@ -67,7 +67,7 @@ export function initDb(dbPath) {
     db.exec(`CREATE TABLE IF NOT EXISTS ${t} (id TEXT PRIMARY KEY, data TEXT NOT NULL)`);
   }
   db.exec(`CREATE TABLE IF NOT EXISTS ${COLLECTION_VERSIONS_TABLE} (name TEXT PRIMARY KEY, version INTEGER NOT NULL DEFAULT 0)`);
-  applyMigrations(db); ensureActivityArchiveIndexes(db); return db; // 迁移机制接入点（2026-09-25）：与 return 同行 ⇒ 上文行号零漂移（db.js 是 README-server.md 取证靶点）；2026-10-24 批次 508 追加归档读口索引（幂等、不抬 schema 版本）
+  applyMigrations(db, MIGRATIONS, { dbPath }); ensureActivityArchiveIndexes(db); return db; // 迁移机制接入点（2026-09-25）：与 return 同行 ⇒ 上文行号零漂移（db.js 是 README-server.md 取证靶点）；2026-10-24 批次 508 追加归档读口索引（幂等、不抬 schema 版本）；2026-11-02 Wave 3 传入 dbPath ⇒ 迁移前自动备份
 }
 
 // 辅助：整表替换写入（写穿透快照用）。table 限定白名单，杜绝 SQL 注入。
@@ -179,7 +179,7 @@ export const SEMANTIC_TABLES = [
   // 工作组子域和应到名单快照不属于既有语义表；由 schema v3 迁移建立。
 ];
 
-const WORKGROUP_TABLES = Object.freeze([
+export const WORKGROUP_TABLES = Object.freeze([
   'workgroups', 'workgroup_members', 'workgroup_grants', 'workgroup_tasks', 'workgroup_outputs', 'attendance_rosters',
 ]);
 
@@ -881,26 +881,44 @@ export function validateMigrations(list) {
 /**
  * 应用未应用的迁移：自检列表 → 取 `user_version` → 过滤 `version > current` 并**按序**在一个事务内执行，
  * 每项跑完写回 `user_version` → 打印已应用版本。**失败向上抛（不吞）**，事务整体回滚。
+ * 迁移安全（2026-11-02 批次 527 · Wave 3）：
+ *   ① `user_version > 目标版本` ⇒ **拒绝启动**（库比代码新，禁止降级）；不提供降级脚本，只走备份回滚；
+ *   ② 有待应用迁移且目标库已有业务数据 ⇒ 先同步调用 `scripts/backup.mjs`（失败即中止，不进入迁移）；
+ *      `:memory:` / 临时库（`os.tmpdir()` 或路径含 `.tmp`）跳过自动备份；
+ *   ③ 迁移失败 ⇒ 单事务整体回滚，并打印 `deploy/CUTOVER_RUNBOOK.md` 指针后向上抛（不静默）。
  * @param {Object} db better-sqlite3 实例
  * @param {Array} [list=MIGRATIONS] 迁移列表（仅测试注入用；生产恒为 `MIGRATIONS`）
- * @returns {{from:number, to:number, applied:number[]}}
+ * @param {{dbPath?:string|null}} [opts] `dbPath` 仅供「迁移前自动备份」定位库文件
+ * @returns {{from:number, to:number, applied:number[], backup?:string|null}}
  */
-export function applyMigrations(db, list = MIGRATIONS) {
+export function applyMigrations(db, list = MIGRATIONS, { dbPath = null } = {}) {
   const problems = validateMigrations(list);
   if (problems.length) throw new Error(`[db] 迁移列表自检未通过，拒绝启动：\n  ${problems.join('\n  ')}`);
+  const target = list.reduce((mx, m) => Math.max(mx, m.version), 0);
   const current = Number(db.pragma('user_version', { simple: true })) || 0;
+  if (current > target) {
+    throw new Error(`[db] 库比代码新，禁止降级：库内 user_version=${current} > 代码 SCHEMA_VERSION=${target}。`
+      + '请勿用旧代码启动新库；处置见 deploy/CUTOVER_RUNBOOK.md（以升级前备份恢复，或换回匹配版本代码）。');
+  }
   const pending = list.filter((m) => m.version > current).sort((a, b) => a.version - b.version);
   if (!pending.length) return { from: current, to: current, applied: [] };
+  const backup = autoBackupBeforeMigrations(db, dbPath);
   const run = db.transaction(() => {
     for (const m of pending) {
       m.up(db);
       db.pragma(`user_version = ${m.version}`);
     }
   });
-  run();
+  try {
+    run();
+  } catch (e) {
+    console.error('[db] ✖ 迁移失败：单事务已整体回滚（user_version 与 DDL 均未保留）。'
+      + '处置见 deploy/CUTOVER_RUNBOOK.md（先备份，再按失败项修复或恢复）。');
+    throw e;
+  }
   const to = pending[pending.length - 1].version;
   console.log(`[db] schema v${to}（本次应用 ${pending.length} 项）`);
-  return { from: current, to, applied: pending.map((m) => m.version) };
+  return { from: current, to, applied: pending.map((m) => m.version), backup };
 }
 
 // ════════════════════════════════════════════════════════════════
@@ -1395,3 +1413,67 @@ export function rollbackV12(db) {
   ]) db.exec(`DROP INDEX IF EXISTS ${index}`);
   db.pragma('user_version = 11');
 }
+
+// ════════════════════════════════════════════════════════════════
+//  迁移安全配套（2026-11-02 批次 527 · Wave 3）
+// ════════════════════════════════════════════════════════════════
+// 放在文件末尾：上方 `initDb` / `applyMigrations` 的行号是 README-server.md 的取证靶点；
+// ESM import 声明会被提升，函数声明也提升 ⇒ 置尾不影响上文调用。
+
+/** 临时库判定：`:memory:` / `os.tmpdir()` 下 / 路径含 `.tmp` 段 ⇒ 跳过自动备份（演练与测试不落备份盘） */
+function isEphemeralDbPath(dbPath) {
+  if (!dbPath || dbPath === ':memory:') return true;
+  const abs = path.resolve(String(dbPath));
+  const tmp = path.resolve(os.tmpdir());
+  const rel = path.relative(tmp, abs);
+  if (rel === '' || (!rel.startsWith('..') && !path.isAbsolute(rel))) return true;
+  return abs.split(path.sep).includes('.tmp');
+}
+
+/** 业务库是否已有数据（任一张资源/语义/工作组表有行即算；只读、`LIMIT 1`） */
+function dbHasBusinessData(db) {
+  const hasTable = (name) => Boolean(
+    db.prepare("SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = ?").get(name),
+  );
+  for (const table of [...RESOURCE_TABLES, ...SEMANTIC_TABLES, ...WORKGROUP_TABLES]) {
+    if (RETIRED_RESOURCE_TABLES.has(table) || !hasTable(table)) continue;
+    if (db.prepare(`SELECT 1 FROM ${table} LIMIT 1`).get()) return true;
+  }
+  return false;
+}
+
+/**
+ * 迁移前自动备份（同步阻塞；失败即抛 ⇒ **不进入迁移**）。
+ * 跳过：无 `dbPath`（测试注入）/ `:memory:` / 临时库 / 目标库无业务数据（空库首建）。
+ * @returns {string|null} 备份目录（跳过时为 null）
+ */
+function autoBackupBeforeMigrations(db, dbPath) {
+  if (!dbPath || isEphemeralDbPath(dbPath)) return null;
+  if (!dbHasBusinessData(db)) return null;
+  if (process.env.DB_AUTO_BACKUP === '0') {
+    console.warn('[db] ⚠ DB_AUTO_BACKUP=0：已按显式开关跳过迁移前自动备份（仅演练可接受）。');
+    return null;
+  }
+  const absDb = path.resolve(String(dbPath));
+  const stamp = new Date().toISOString().replace(/[:.]/g, '-').replace('T', '_').slice(0, 19);
+  const outDir = path.resolve(SERVER_DIR, 'backups', `pre-migration-${stamp}`);
+  const script = path.resolve(SERVER_DIR, 'scripts', 'backup.mjs');
+  console.log(`[db] 迁移前自动备份 → ${outDir}`);
+  const result = spawnSync(process.execPath, [script, '--db', absDb, '--out', outDir], { encoding: 'utf8' });
+  if (result.error) {
+    throw new Error(`[db] 迁移前备份无法执行（${result.error.message}）⇒ 已中止迁移。处置见 deploy/CUTOVER_RUNBOOK.md。`);
+  }
+  if (result.status !== 0) {
+    const detail = `${result.stdout || ''}${result.stderr || ''}`.trim();
+    throw new Error(`[db] 迁移前备份失败（退出码 ${result.status}）⇒ 已中止迁移。${detail ? `\n${detail}` : ''}\n处置见 deploy/CUTOVER_RUNBOOK.md。`);
+  }
+  console.log(`[db] ✔ 迁移前备份完成：${outDir}`);
+  return outDir;
+}
+
+// 迁移安全配套的依赖（置尾：import 提升，避免上文 README-server.md 取证行号漂移）
+import os from 'node:os';
+import path from 'node:path';
+import { spawnSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
+const SERVER_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)));

@@ -196,6 +196,18 @@ export async function seedDatabase(db) {
   replaceCollection(db, 'appointment_records', auxSeed.SEED_APPOINTMENT_RECORDS);
 
   // ════════════════════════════════════════════════════════════════
+  //  2026-11-02 批次 527（数据契约 Wave 2）：补「契约有、种子无」的 4 张表
+  // ════════════════════════════════════════════════════════════════
+  //  · image_records：2 条绑定既有已收录活动 ⇒ 首页「活动风采」不再恒空；
+  //  · member_change_requests：roster / transfer 各 1 条 ⇒ 成员确认页不再恒空；
+  //  · workgroup_tasks / workgroup_outputs：tf-002 工作组 2 任务 1 产出 ⇒ 首页/专班页有真实读数。
+  // 全部与 mock 形态同源（`docs/src/data/mock/auxiliary.js`），不另造第二份清单。
+  replaceCollection(db, 'image_records', auxSeed.SEED_IMAGE_RECORDS);
+  replaceCollection(db, 'member_change_requests', auxSeed.SEED_MEMBER_CHANGE_REQUESTS);
+  replaceWorkgroupTable('workgroup_tasks', auxSeed.SEED_WORKGROUP_TASKS);
+  replaceWorkgroupTable('workgroup_outputs', auxSeed.SEED_WORKGROUP_OUTPUTS);
+
+  // ════════════════════════════════════════════════════════════════
   //  批次 195+（2026-09-26）：待办（todos）基线种子（**补已知缺口**）
   // ════════════════════════════════════════════════════════════════
   // 口径判定（先实读三处再动手：`services/governance/todo.js` 的 `SEED_TODOS` · `routes/resources.js` 的 todos 写口 ·

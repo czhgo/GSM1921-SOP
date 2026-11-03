@@ -106,7 +106,7 @@ test('E5 非空转自检：正则正样本命中、负样本不命中', () => {
   assert.match('<p id="dashboard-hero-subtitle" class="text-sm">x</p>', HERO_SUBTITLE_RE,
     '副标题正则须能识别回潮元素（反向断言依赖它）');
 
-  const posImport = "import { getHeaderTitle } from '../../services/branch/branch.js?v=20261031a';";
+  const posImport = "import { getHeaderTitle } from '../../services/branch/branch.js?v=20261102b';";
   const negImport = "import { getHeaderTitle } from '../../services/branch/branch.js';";
   assert.match(posImport, IMPORT_RE);
   assert.doesNotMatch(negImport, IMPORT_RE);
@@ -140,8 +140,19 @@ test('E6 首页活动风采：一张照片都没有时不出 16:9 大图位，�
 test('E7 首页统计卡：图标在左＋数值/标签在右、栅格等高（无 min-height），不阴影不上浮', () => {
   // 2026-10-29 P2：数字组统一为「图标块在左 ＋ .stat-card__body（数值/标签在右两行）」；
   //   卡片不自带尺寸，四张等高交给 #dashboard-stats 的 .stat-grid（align-items: stretch）。
-  // 2026-10-31：上下内边距收一档（p-4 → px-4 py-3）；结构判据不变。
-  assert.match(statsSource, /class="card rounded-xl (?:p-4|px-4 py-3) stat-card/, '统计卡须复用 .card 并挂 .stat-card');
+  // 2026-11-01（回线上口径，卡高目标 ≤80px）：骨架 / 正式两处模板**必须** `p-4`（16px 全边），
+  //   不得再退回 `px-4 py-3`；卡内只留「数值 / 标签」两行，第三行 `.stat-card__note` 判红。
+  const CARD_P4_RE = /class="card rounded-xl p-4 stat-card/g;
+  assert.equal((statsSource.match(CARD_P4_RE) || []).length, 2,
+    '统计卡（骨架 / 正式两处）都必须用 `card rounded-xl p-4 stat-card`');
+  assert.doesNotMatch(statsSource, /px-4 py-3/, '统计卡不得回退 `px-4 py-3`（上下 12px 会把卡撑高）');
+  assert.doesNotMatch(statsSource, /stat-card__note/,
+    'stats.js 不得出现 stat-card__note（第三行会把四张卡一起撑高；空态用数值位「—」表达）');
+  // 反例：回退写法 / 第三行说明必须被同一口径识别。
+  const badPadding = '<div class="card rounded-xl px-4 py-3 stat-card">';
+  assert.equal((badPadding.match(CARD_P4_RE) || []).length, 0, '反例失效：px-4 py-3 未被 p-4 判据排除');
+  const badNote = '<p class="text-xs stat-card__note" style="color:var(--neutral-500);">本月无记录</p>';
+  assert.match(badNote, /stat-card__note/, '反例失效：note 未被识别（判据会恒绿）');
   assert.match(statsSource, /class="stat-icon-tint"[^>]*--tint:\$\{s\.color\}/,
     '统计卡须有图标块，浅底由 --tint 取既有语义色派生');
   assert.match(statsSource, /stat-icon-tint[\s\S]{0,400}stat-card__body[\s\S]{0,400}stat-card__value[\s\S]{0,400}stat-card__label/,
@@ -154,11 +165,14 @@ test('E7 首页统计卡：图标在左＋数值/标签在右、栅格等高（�
   assert.match(cssSource, /\.stat-icon-tint\s*\{[^}]*background:\s*color-mix\(in srgb,\s*var\(--tint[^;]*12%/,
     'styles.css：图标浅底须由 --tint 12% 派生（不写 hex）');
   assert.match(statsSource, /label: '个人考勤'/, '考勤卡标签须为短标签（原「个人考勤（本月无记录）」会折行撑高）');
-  assert.match(statsSource, /本月无记录/, '空态说明须保留（降为第二行小字）');
+  assert.match(statsSource, /value: [\s\S]{0,80}?:\s*'—'/, '无记录须由数值位的「—」表达（不另加文字）');
+  assert.doesNotMatch(statsSource, /本月无记录/, '不得再渲染「本月无记录」第三行');
   // 组件不自带尺寸：竖排与 min-height 一并退场；等高由栅格 stretch 保证。
   assert.match(cssSource, /\.stat-card\s*\{[^}]*align-items:\s*center/, '统计卡须横排（图标在左）');
   assert.doesNotMatch(cssSource, /\.stat-card\s*\{[^}]*flex-direction:\s*column/, '统计卡不得再竖排三段');
   assert.doesNotMatch(cssSource, /\.stat-card\s*\{[^}]*min-height/, '统计卡不得写死 min-height');
+  assert.doesNotMatch(cssSource, /\.stat-card\s*\{[^}]*padding-block/,
+    '.stat-card 不得再写 padding-block（与调用点 p-4 叠加会把卡撑高）');
   assert.match(cssSource, /\.stat-grid,\s*\.metric-band--cards\s*\{[^}]*align-items:\s*stretch/,
     'styles.css 须提供 .stat-grid（align-items: stretch）');
   assert.match(cssSource, /\.stat-grid,\s*\.metric-band--cards\s*\{[^}]*grid-auto-rows:\s*1fr/,

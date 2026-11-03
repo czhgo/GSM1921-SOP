@@ -1,298 +1,66 @@
 // role: [工程师]+[AI]
-// 工作台审阅覆盖率守卫（2026-10-18 脏专项）
-// 目的：结构索引不能替代审阅；67 个角色页签必须都有审阅记录、结论与证据。
+// workbench-audit-coverage.test.mjs — 工作台页签覆盖（批次 526 改用新口径）
+//
+// 历史沿革：2026-10-18 脏专项用 67 页签台账做覆盖率断言；2026-11-02 支书裁定
+//   「直接改用新口径」——旧 67 台账归档为历史文件，不再断言其内容；
+//   现行覆盖以 `server/scripts/audit/catalog.mjs`（45 页签）＋ `endpoint-map.mjs` 为唯一口径。
+//
+// 判据：
+//   W1 catalog 45 项，键集合 ≡ `TAB_BLOCK_BASELINE`（catalog 自带完整性断言）
+//   W2 每个页签有真实源码入口（文件存在）
+//   W3 每个页签至少 1 个读口；写口必须有 gate；destructive 必须写 reason
+//   W4 反例：缺页签 / 空 source / 无 gate 的写口必须被同一口径判红
+//   W5 旧 67 台账仅作档案存在（不再校验内容）
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { TAB_CATALOG, CATALOG_SIZE, assertCatalogIntegrity } from '../scripts/audit/catalog.mjs';
+import { ENDPOINT_MAP } from '../scripts/audit/endpoint-map.mjs';
+import { TAB_BLOCK_BASELINE } from './style-baseline.mjs';
 
 const ROOT = join(import.meta.dirname, '..', '..');
-const LEDGER = join(ROOT, '.ctx', 'logs', 'archive', '2026-10', 'WORKBENCH_67_TAB_AUDIT_DRAFT.md');
-const text = readFileSync(LEDGER, 'utf8');
-const NOTIFICATION_TAB = readFileSync(join(ROOT, 'docs', 'src', 'entries', 'tabs', 'secretary', 'notification-tab.js'), 'utf8');
-// 2026-10-18 Task 17 回修面：支书台党小组 / 活动管理 / 今天（共享 today 只读核对）
-const GROUP_PROGRESS_TAB = readFileSync(join(ROOT, 'docs', 'src', 'entries', 'tabs', 'secretary', 'group-progress-tab.js'), 'utf8');
-const CALENDAR_TAB = readFileSync(join(ROOT, 'docs', 'src', 'entries', 'tabs', 'secretary', 'calendar-tab.js'), 'utf8');
-const TODAY_TAB = readFileSync(join(ROOT, 'docs', 'src', 'entries', 'tabs', 'today', 'today-tab.js'), 'utf8');
-const HELP = readFileSync(join(ROOT, 'docs', 'help.html'), 'utf8');
-const README = readFileSync(join(ROOT, 'README-server.md'), 'utf8');
 
-function count(pattern) {
-  return (text.match(pattern) || []).length;
+/** 缺陷扫描（纯函数，供正例与反例共用） */
+function findDefects(catalog, endpoints) {
+  const issues = [];
+  for (const item of catalog) {
+    if (!item.source || !existsSync(join(ROOT, item.source))) issues.push(`${item.key} 源码入口不存在`);
+    const ep = endpoints[item.key];
+    if (!ep) { issues.push(`${item.key} 缺 ENDPOINT_MAP`); continue; }
+    if (!Array.isArray(ep.read) || ep.read.length === 0) issues.push(`${item.key} 无读口`);
+    for (const w of ep.write || []) {
+      if (!w.gate) issues.push(`${item.key} 写口 ${w.method} ${w.path} 缺 gate`);
+      if (w.destructive && !w.reason) issues.push(`${item.key} destructive ${w.path} 缺 reason`);
+    }
+  }
+  return issues;
 }
 
-function recordCount(role) {
-  const escaped = role.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  const bold = new RegExp(`角色与页签\\*\\*：${escaped} · `, 'g');
-  const plain = new RegExp(`角色与页签：${escaped} · `, 'g');
-  return count(bold) + count(plain);
-}
-
-test('脏专项覆盖率：七个工作台角色页签数量与 67 口径一致', () => {
-  assert.equal(recordCount('支书/副支书'), 12, '支书/副支书应有 12 条审阅记录');
-  assert.equal(recordCount('组织委员'), 11, '组织委员应有 11 条审阅记录');
-  assert.equal(recordCount('宣传委员'), 9, '宣传委员应有 9 条审阅记录');
-  assert.equal(recordCount('纪检委员'), 9, '纪检委员应有 9 条审阅记录');
-  assert.equal(recordCount('党小组组长'), 10, '党小组组长应有 10 条审阅记录');
-  assert.equal(recordCount('普通成员'), 11, '普通成员应有 11 条审阅记录');
-  assert.equal(count(/角色与页签\*\*：党委组织员 \/ /g), 5, '党委组织员应有 5 条审阅记录');
+test('W1 catalog 45 项，键集合与 TAB_BLOCK_BASELINE 一致', () => {
+  assertCatalogIntegrity();
+  assert.equal(TAB_CATALOG.length, CATALOG_SIZE);
+  const keys = TAB_CATALOG.map((item) => item.key).sort();
+  const baseline = Object.keys(TAB_BLOCK_BASELINE).sort();
+  assert.deepEqual(keys, baseline);
 });
 
-test('脏专项覆盖率：每条记录都有结论与证据', () => {
-  assert.ok(count(/\*\*结论\*\*/g) + count(/结论：/g) >= 67, '结论条目不少于 67');
-  assert.ok(count(/\*\*证据\*\*/g) + count(/证据：/g) >= 67, '证据条目不少于 67');
-  assert.match(text, /合格/, '结论口径包含合格');
-  assert.match(text, /需修/, '结论口径包含需修');
-  assert.match(text, /阻塞/, '结论口径包含阻塞');
+test('W2/W3 每页签有源码入口、至少 1 读口，写口有 gate、破坏性有 reason', () => {
+  assert.deepEqual(findDefects(TAB_CATALOG, ENDPOINT_MAP), []);
 });
 
-test('脏专项覆盖率：覆盖状态表列出七个工作台与 67 总数', () => {
-  for (const role of ['支书', '组织委员', '宣传委员', '纪检委员', '党小组组长', '普通成员', '党委组织员']) {
-    assert.ok(text.includes(`| ${role} |`), `覆盖状态表应包含 ${role}`);
-  }
-  assert.match(text, /12 \| 已深审/, '支书 12 已深审');
-  assert.match(text, /11 \| 已深审/, '组织/成员 11 已深审');
-  assert.match(text, /9 \| 已深审/, '宣传/纪检 9 已深审');
-  assert.match(text, /10 \| 已深审/, '组长 10 已深审');
-  assert.match(text, /5 \| 已深审/, '党委 5 已深审');
+test('W4 反例：缺页签 / 空 source / 写口无 gate 会被同一口径判红', () => {
+  const badCatalog = [{ key: 'x.y', source: 'docs/src/does-not-exist.js' }];
+  const badEndpoints = { 'x.y': { read: [], write: [{ method: 'POST', path: '/api/v1/x' }] } };
+  const defects = findDefects(badCatalog, badEndpoints);
+  assert.ok(defects.some((msg) => msg.includes('源码入口不存在')));
+  assert.ok(defects.some((msg) => msg.includes('无读口')));
+  assert.ok(defects.some((msg) => msg.includes('缺 gate')));
 });
 
-test('支书通知页：使命收窄为发布 + 台账，不把催读写成页面职责', () => {
-  // 页面导语：明确发布动作 + 已发布台账，并说明阅读状态不在本页
-  assert.match(NOTIFICATION_TAB, /发布动作 \+ 已发布台账/);
-  assert.match(NOTIFICATION_TAB, /阅读状态在通知铃铛与通知详情中体现/);
-  // 只允许「不做 / 不提供按人催读」这类否定表述
-  const tabResidual = NOTIFICATION_TAB.replace(/不做按人催读/g, '').replace(/不提供按人催读/g, '');
-  assert.ok(!tabResidual.includes('催读'), 'notification-tab.js 不得把催读写成页面职责（仅允许否定表述）');
-  assert.ok(/不做按人催读|不提供按人催读/.test(NOTIFICATION_TAB), 'notification-tab.js 应明确不做按人催读');
-
-  // help.html 支书台「通知发布」行
-  const helpRow = [...HELP.matchAll(/<tr><td>通知发布<\/td>[\s\S]*?<\/tr>/g)]
-    .map(m => m[0])
-    .find(row => row.includes('「我的职责」段'));
-  assert.ok(helpRow, 'help.html 应有支书台「通知发布」行');
-  for (const word of ['发布通知与站内信', '查看', '编辑', '删除']) {
-    assert.ok(helpRow.includes(word), `help.html 通知发布行应含「${word}」`);
-  }
-  assert.ok(!helpRow.includes('催读'), 'help.html 通知发布行不得把催读写成职责');
-
-  // README-server.md §3.2.1 notification 行
-  const readmeRow = README.split(/\r?\n/).find(line => /^\| 7 \| `notification` \/ 通知发布 \|/.test(line));
-  assert.ok(readmeRow, 'README-server.md §3.2.1 应有 notification 行');
-  for (const word of ['发布通知与站内信', '查看 / 编辑 / 删除已发布通知']) {
-    assert.ok(readmeRow.includes(word), `README notification 行应含「${word}」`);
-  }
-  assert.ok(!readmeRow.includes('催读'), 'README notification 行不得把催读写成职责');
-});
-
-test('台账：支书 notification 结论为合格，结项读数同步', () => {
-  const start = text.indexOf('## 7. notification / 通知发布');
-  const end = text.indexOf('## 8. report-up / 上报党委');
-  assert.ok(start > -1 && end > start, '台账应保留 notification 单页记录');
-  const section = text.slice(start, end);
-  assert.match(section, /- \*\*结论\*\*：\*\*合格\*\*/);
-  assert.match(section, /发布动作 \+ 已发布台账/);
-  assert.match(section, /催读不在本页/);
-  assert.match(section, /另立专项/);
-
-  assert.match(text, /\| 支书 \| 12 \| 已深审（合格 6 \/ 需修 6 \/ 阻塞 0）/);
-  assert.match(text, /\| 合格 \| 6 \| todo、overview、committee-meeting、notification、report-up、tf-view \|/);
-  assert.match(text, /\| 阻塞 \| 0 \| — \|/);
-
-  assert.match(text, /\| 宣传委员 \| 9 \| 已深审（合格 6 \/ 需修 3 \/ 阻塞 0）/);
-  assert.match(text, /\| 普通成员 \| 11 \| 已深审（合格 6 \/ 需修 5 \/ 阻塞 0）/);
-
-  const closing = text.slice(text.indexOf('## 2026-10-18 脏专项结项读数'));
-  assert.match(closing, /结论分布为合格 29、需修 38、阻塞 0/, '结项读数应与逐台小计一致（29 + 38 + 0 = 67）');
-  const blockingLine = closing.split(/\r?\n/).find(line => line.includes('阻塞清单'));
-  assert.ok(blockingLine, '结项读数应有阻塞清单');
-  assert.match(blockingLine, /已清零/, '阻塞清单应写明已清零');
-  for (const item of ['宣传 tasks', '宣传 kanban', '成员 attendance', '成员 inspection']) {
-    assert.ok(blockingLine.includes(item), `阻塞清单应保留已修项「${item}」`);
-  }
-});
-
-test('支书台 Task 17 回修：党小组标题去重 + 活动卡完整页出口 + 待处理汇报落点', () => {
-  // ① group-progress：展开区内层不再重复「跨组进展」；汇报卡名实相符
-  assert.match(GROUP_PROGRESS_TAB, />选择党小组</, '组切换卡标题须为「选择党小组」');
-  assert.match(GROUP_PROGRESS_TAB, />组员汇报（待答复）</, '汇报卡须按内容命名为「组员汇报（待答复）」');
-  assert.ok(!GROUP_PROGRESS_TAB.includes('>组员进展摘要<'), '不得再出现名不副实的「组员进展摘要」');
-  // 2026-10-20 第二轮界面细化：折叠壳标题改为「跨组进展」（去「只读知情」括注）⇒ 改用「只出现一次」
-  //   断言（原来用 `!includes` 管「内层不重复」，标题变短后会误伤折叠壳自身）。
-  const progressTitleHits = GROUP_PROGRESS_TAB.match(/>跨组进展<\/h4>/g) || [];
-  assert.equal(progressTitleHits.length, 1, '「跨组进展」标题只应出现在折叠壳一处（内层仍是「选择党小组」）');
-
-  // ② calendar：右栏活动卡补完整页出口（复用 activity.html?id=，与左栏同落点）
-  assert.match(CALENDAR_TAB, /_decorateInspectorActivityLinks\(\)/, '右栏渲染后须补详情链接');
-  assert.match(CALENDAR_TAB, /data-sec-activity-open/, '详情链接须有稳定标记');
-  assert.match(CALENDAR_TAB, /activity\.html\?id=/, '详情链接须落活动完整页');
-
-  // ③ today：待处理汇报行统一落 todo「待答复」（共享 today 已改；本台只核残留）
-  assert.match(TODAY_TAB, /data-go="todo" data-report-id=/, '汇报行须落 todo');
-  assert.match(TODAY_TAB, /PendingTarget\.set\(/, '汇报行须经 PendingTarget 一次性定位「待答复」');
-  assert.ok(!TODAY_TAB.includes('data-go="my-dispatch"'), '托支书的汇报行不得再指 my-dispatch / feedback');
-});
-
-test('宣传/纪检台 Task 15：条线缺口有动作、归档单一源、实时组与状态动作一致', () => {
-  const read = (rel) => readFileSync(join(ROOT, rel), 'utf8');
-
-  // ① 宣传 / 纪检概况：条线缺口行升级为去对应职责页签的按钮（不再只有数字）
-  const propOverview = read('docs/src/entries/tabs/prop/overview-tab.js');
-  assert.match(propOverview, /_bindLineGapActions/, '宣传概况须绑定缺口动作');
-  assert.match(propOverview, /data-prop-tab="\$\{target\.tab\}"/, '待归档缺口须落档案归档页签');
-  const discOverview = read('docs/src/entries/tabs/disc/overview-tab.js');
-  assert.match(discOverview, /_bindLineGapActions/, '纪检概况须绑定缺口动作');
-  assert.match(discOverview, /补课待完成[\s\S]{0,160}makeup/, '补课缺口须落考勤管理·补课分段');
-  assert.match(discOverview, /考察超期[\s\S]{0,160}inspection/, '考察超期须落考察管理页签');
-
-  // ② 宣传归档：活动归档判据只认 isActivityArchived，不再看 status==='completed'
-  const propArchive = read('docs/src/entries/tabs/prop/archive-tab.js');
-  assert.match(propArchive, /getArchiveGapActivities\(\)\.filter\(isActivityArchived\)/);
-  assert.match(propArchive, /getEndedUnarchivedActivities\(\)\.filter\(a => !isActivityArchived\(a\)\)/);
-  assert.doesNotMatch(propArchive, /status\s*===\s*'completed'/, '宣传归档页不得用活动状态判断已归档');
-
-  // ③ 纪检待办：实时组排除已打回记录，分组计数与过滤后集合同源
-  const discTodo = read('docs/src/entries/tabs/disc/todo-tab.js');
-  assert.match(discTodo, /filter\(isAttendancePendingConfirm\)/, '考勤实时组须复用单一待确认判据（含已打回排除）');
-  assert.match(discTodo, /r\.status !== 'confirmed' && !r\.returnedBy/, '考察实时组须排除已打回');
-  assert.match(discTodo, /count: pendingAtt\.length/, '考勤实时组计数须同步');
-  assert.match(discTodo, /count: pendingInsp\.length/, '考察实时组计数须同步');
-  // 2.2：考勤 / 考察待确认跳转须带目标 id（focusActivityId / focusRecordId），不得只切 tab。
-  assert.match(discTodo, /qs\.set\('focusActivityId'/, '待确认跳转须带 focusActivityId');
-  assert.match(discTodo, /qs\.set\('focusRecordId'/, '待确认跳转须带 focusRecordId');
-  // L2 只校验 `location.href` 的模板插值片段 ⇒ 落地页改为常量拼接（仍须落在纪检台同一页）。
-  assert.match(discTodo, /'workspace\/disc\.html'/, '跳转 URL 须落到纪检台对应页签');
-
-  // ④ 纪检复盘：待批注只出「批注」；已批注（批注中）才出「打回/确认」
-  const discReview = read('docs/src/entries/tabs/disc/review-tab.js');
-  const uploadedBlock = discReview.slice(
-    discReview.indexOf('ReviewStatus.UPLOADED ?'), discReview.indexOf('ReviewStatus.ANNOTATING ?'));
-  assert.match(uploadedBlock, /btn-disc-annotate/, '待批注须有批注按钮');
-  assert.doesNotMatch(uploadedBlock, /btn-disc-confirm|btn-disc-reject/, '待批注不得显示打回/确认');
-  const annotatingBlock = discReview.slice(
-    discReview.indexOf('ReviewStatus.ANNOTATING ?'), discReview.indexOf('ReviewStatus.NOT_SUBMITTED ?'));
-  assert.match(annotatingBlock, /btn-disc-reject/, '已批注须有打回');
-  assert.match(annotatingBlock, /btn-disc-confirm/, '已批注须有确认');
-
-  // ⑤ 纪检考察：已确认行只出「打回」不出「确认」；督办行动作落到同一份明细列表。
-  //   D01（2026-10-20）起两个分支都按 decisionDeny（本人提交 / 无权限）二选一，
-  //   打回与确认不再相邻 ⇒ 改为按「已确认 / 非已确认」两分支切片断言；判据本身不变。
-  const discInspection = read('docs/src/entries/tabs/disc/inspection-tab.js');
-  const confirmedAt = discInspection.indexOf("i.status === 'confirmed'");
-  const pendingAt = discInspection.indexOf(': decisionDeny', confirmedAt);
-  assert.ok(confirmedAt > -1 && pendingAt > confirmedAt, '考察行须有「已确认 / 非已确认」两分支');
-  const confirmedBranch = discInspection.slice(confirmedAt, pendingAt);
-  assert.match(confirmedBranch, /已确认/, '已确认行须标已确认');
-  assert.match(confirmedBranch, /btn-disc-return-insp/, '已确认行须有打回');
-  assert.doesNotMatch(confirmedBranch, /btn-disc-confirm-insp/, '已确认行不得再出确认');
-  assert.match(discInspection.slice(pendingAt), /btn-disc-confirm-insp/, '非已确认行须有确认');
-  // D01：本人提交 / 非确认角色不得渲染可用确认/打回（前端读同一判据 + 禁用态 + 可懂 title）
-  assert.match(discInspection, /const decisionDeny = inspectionConfirmDenyReason\(actorId, i\);/, 'D01：前端须读服务层同一确认判据');
-  assert.match(discInspection, /decisionDeny[\s\S]{0,220}disabled title="\$\{esc\(decisionDeny\)\}/, 'D01：有拒绝原因时按钮须禁用并写明原因');
-  assert.match(discInspection, /isSelfRecorded \? '（本人提交）'/, 'D01：本人提交须有可见标记');
-  assert.match(discInspection, /insp-sup-goto/, '督办清单须有去确认入口');
-  assert.match(discInspection, /data-insp-person-id=/, '明细行须可被督办入口定位');
-  assert.match(discInspection, /function _bindSupervisionGoto/, '督办入口须绑定到明细列表');
-});
-
-test('组长/成员台 Task 16：写入口径、考察范围、组员进度与专班详情分层', () => {
-  const read = (rel) => readFileSync(join(ROOT, rel), 'utf8');
-
-  // ① 组长 write：页签标题与 h3 一致；列表分可写 / 只读；roleEditable=false 关闭子记录写口
-  const write = read('docs/src/entries/tabs/leader/write-tab.js');
-  assert.ok(!write.includes('>活动写入</h3>'), 'h3 不得再写「活动写入」');
-  // 2026-10-24 Task 4.2：卡头改用 renderCardHeader，H3 不得逐字复述页签名「本组活动」
-  //   ⇒ 卡内标题改「活动清单」；页签名仍由 renderTabHeader 的 H2 承担（断言随结构改准，覆盖面不变）。
-  assert.match(write, /renderCardHeader\(\{[\s\S]{0,140}title: '活动清单'/, '卡头 H3 须为「活动清单」（不重复页签名）');
-  assert.match(write, /id="leader-activity-readonly-list"/, '须单列「可见活动（只读）」');
-  assert.match(write, /可见活动（只读）/, '只读分组须明示');
-  assert.match(write, /const effectiveReadOnly = readOnly \|\| !roleEditable;/, '未授权活动须进入只读分支');
-  assert.match(write, /effectiveReadOnly\s*\?\s*''\s*:\s*`<td[^>]*class="text-center whitespace-nowrap">/, '只读活动不得渲染子记录删除/添加动作');
-  assert.match(write, /#leader-activity-lists/, '可写与只读两组须共用事件委托宿主');
-
-  // ② 组长 inspection：说明改准；明细按本组活动收窄；organizer 投影分支保留
-  const insp = read('docs/src/entries/tabs/leader/inspection-tab.js');
-  // 2026-10-20 第二轮界面细化：108 字页头说明压成「仅本组活动」＋ help 深链；
-  //   断言随保留句改（语义不变：说明仍须把范围收窄到本组活动）。
-  assert.match(insp, /仅本组活动/, '页头说明须收窄为「仅本组活动」');
-  assert.match(insp, /groupActivityIds\.has\(r\.activityId\)/, '明细须按本组活动 id 收窄');
-  assert.match(insp, /本组活动考察明细/, '明细区须有本组范围标题');
-  assert.match(insp, /if \(!isOrganizerScope\) \{\s*renderFilteredList\(container\.querySelector\('#insp-list-host'\)/, 'organizer 投影分支不得渲染全量明细');
-
-  // ③ 组长 members：卡点前置（R3-F09 新裁定），逐人指标为带表头的紧凑表
-  const members = read('docs/src/entries/tabs/leader/members-tab.js');
-  assert.ok(members.indexOf('id="leader-blockers-list"') < members.indexOf('id="leader-progress-list"'), '卡点须排在进度之前（R3-F09）');
-  assert.ok(members.indexOf('id="leader-progress-list"') < members.indexOf('${reportInboxHtml}'), '进度须排在组员汇报之前');
-  assert.match(members, /table:\s*\{[\s\S]{0,400}<th>姓名<\/th>[\s\S]{0,200}<th>考勤<\/th>[\s\S]{0,200}<th>考察<\/th>[\s\S]{0,200}<th>汇报<\/th>[\s\S]{0,200}<th>阶段<\/th>/, '逐人指标须为有表头的紧凑表');
-
-  // ④ 成员 activities：唯一主切换；日历内层移除「列表」并降级
-  const acts = read('docs/src/entries/tabs/visitor/activities-tab.js');
-  assert.match(acts, /_demoteCalendarToolbar/, '日历内层工具条须降级');
-  assert.match(acts, /querySelector\('\[data-view="list"\]'\)\?\.remove\(\)/, '日历视图内不得出现第二个「列表」');
-  assert.match(acts, /visitor-cal-granularity-label/, '日历粒度工具条须有次级标识');
-
-  // ⑤ 成员 tf-view：页头不再写「只读」；产出登记移到详情下部独立区
-  const tf = read('docs/src/entries/tabs/visitor/tf-view-tab.js');
-  assert.ok(!tf.includes('（只读）'), '页头文案不得再写「（只读）」');
-  assert.match(tf, /我的产出登记/, '写表单须有独立「我的产出登记」区');
-  assert.match(tf, /panel\.appendChild\(section\)/, '产出登记须移到详情下部');
-  assert.match(tf, /id = 'tfv-output-section'/, '写表单须有独立分区标识');
-
-  // ⑥ 组长/成员 my-dispatch：R3-08 两段结构（待我处理 / 我已处理），打开行才标已读
-  const leaderDispatch = read('docs/src/entries/tabs/leader/my-dispatch-tab.js');
-  const visitorDispatch = read('docs/src/entries/tabs/visitor/my-dispatch-tab.js');
-  assert.match(leaderDispatch, /renderMyDispatchTab\('leader', uid, opts\)/, '组长台须把选项传入渲染入口');
-  assert.match(visitorDispatch, /renderMyDispatchTab\('participant', uid, opts\)/, '成员台须把选项传入渲染入口');
-  const view = read('docs/src/components/feedback/issue-dispatch-view.js');
-  assert.match(view, /id="mydispatch-pending-host"/, '须有「待我处理」段宿主');
-  assert.match(view, /id="mydispatch-done-host"/, '须有「我已处理」段宿主');
-  assert.doesNotMatch(view, /unread\.forEach\(id => IssueNotify\.markRead\(userId, id\)\);/, '不得整批标已读');
-});
-
-// ── 2026-10-24 spec Task 5：知情查看补齐活动工作组 ────────────────────────────
-// 根因守卫：分段曾是「调用方写死」（支书台 `views:['taskforce']`），组件从未提供「工作组」段。
-//   ① 各台注册的 tf-view 渲染入口都至少含 `workgroup` 段（组长额外含 `group`）；
-//   ② 工作组件只读：不出现成员增删 / 授权 / 编辑控件（写口一律回活动详情）；
-//   ③ 深链参数被消费：`highlightWorkgroupId` / 旧 `highlightActId` 都进入工作组段；
-//   ④ 活动一览不再由本组件重复（`activity-view.js` 引用已移除）。
-test('知情查看 Task 5：各台 tf-view 均含工作组段，工作组件只读且消费深链', () => {
-  const read = (rel) => readFileSync(join(ROOT, rel), 'utf8');
-
-  // ① 分段集合（2026-10-25 IA 62→45）：支书 / 组长 / 成员三处 tf-view 页签均已删——
-  //   支书→全局概况页内卡（embedded）、组长→组员进展「其他党小组」独立区、成员→项目分工「专班」区。
-  //   一级分段只允许「活动工作组 / 专班工作组」两组同层对象；「其他党小组」不进分段集合。
-  const secretaryOverview = read('docs/src/entries/tabs/secretary/overview-tab.js');
-  assert.match(secretaryOverview, /views:\s*\['workgroup',\s*'taskforce'\]/, '支书知情卡须含 workgroup + taskforce');
-  assert.match(secretaryOverview, /embedded:\s*true/, '支书知情卡为页内卡形态');
-  const leaderMembers = read('docs/src/entries/tabs/leader/members-tab.js');
-  assert.match(leaderMembers, /renderOtherGroupsView/, '组长台「其他党小组」独立区须复用 other-groups-view');
-  const visitorProjects = read('docs/src/entries/tabs/visitor/projects-tab.js');
-  assert.match(visitorProjects, /renderTaskforceView/, '成员台「专班」区须复用 taskforce-view');
-  for (const rel of [
-    'docs/src/capabilities/secretary-workspace.js',
-    'docs/src/capabilities/leader-workspace.js',
-    'docs/src/capabilities/visitor-workspace.js',
-  ]) {
-    assert.doesNotMatch(read(rel), /id:\s*'tf-view'/, `${rel} 不得再注册 tf-view（已降为页内区）`);
-  }
-
-  // ② 工作组件只读：无成员编辑 / 授权 / 表单控件
-  const wgv = read('docs/src/components/record/workgroup-view.js');
-  assert.doesNotMatch(wgv, /<input\b|<select\b|<textarea\b/, '工作组段不得出现表单控件');
-  for (const marker of ['data-wg-remove', 'data-wg-permission', 'data-wg-apply-template', 'workgroup-member-editor', 'addMember(']) {
-    assert.ok(!wgv.includes(marker), `工作组段不得出现写入口标记「${marker}」`);
-  }
-  // Task 6（2026-10-26）：详情 URL 收口到 objectDetailHref（缺 id 不给 href），
-  //   故不再断言字面量 `activity.html?id=`，改断言「条目经统一对象路由生成活动详情链接」。
-  assert.match(wgv, /objectDetailHref\('activity',\s*row\.sourceId/, '工作组条目须经统一详情路由链接到活动详情');
-  assert.match(wgv, /listRowHtml/, '行结构须复用 list-row 单一源');
-
-  // ③ 深链参数被消费（段切换 + 目标映射）
-  const insight = read('docs/src/components/record/insight-view.js');
-  assert.match(insight, /opts\.highlightWorkgroupId/, 'insight-view 须消费 highlightWorkgroupId');
-  assert.match(insight, /highlightActId\)\s*\?\s*'workgroup'|highlightWorkgroupId \|\| opts\.highlightActId/, '旧 activityId 须映射到工作组段');
-  assert.match(insight, /renderWorkgroupView\(body,\s*\{[\s\S]{0,200}highlightWorkgroupId[\s\S]{0,200}highlightActId/, '工作组段须同时接收新旧深链参数');
-
-  // ④ 活动一览不再在本组件重复（activity-view.js 仅由 work-overview 使用）
-  assert.ok(!insight.includes("import('./activity-view.js"), 'insight-view 不得再引用活动一览组件');
+test('W5 旧 67 台账仅作档案存在，不再作为现行口径', () => {
+  const archived = join(ROOT, '.ctx', 'logs', 'archive', '2026-10', 'WORKBENCH_67_TAB_AUDIT_DRAFT.md');
+  assert.ok(existsSync(archived), '历史台账应保留在归档目录');
+  const text = readFileSync(archived, 'utf8');
+  assert.match(text, /角色与页签/, '历史台账内容保持原样（只读档案）');
 });

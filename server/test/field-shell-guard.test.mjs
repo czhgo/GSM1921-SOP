@@ -15,6 +15,10 @@
 //       F5 禁用 / 只读分态：两者都存在且声明不同（禁用灰底 / 只读透明边）
 //       F6 select 统一：渲染 `<select>` 的文件必须本地 enhanceSelects / data-cs-enhanced，
 //          或落在 `.input-flat` 上由全局 MutationObserver 增强；例外逐条登记理由
+//   · 批次 524（F · 输入单一源）新增 R1–R3：裸输入棘轮——
+//       判据：`<input|select|textarea` 标签内 class 属性含 `input-flat` 即「裸写法」（绕开 forms.js，
+//       直接手写控件）。存量逐文件登记 `style-baseline.mjs::RAW_INPUT_BASELINE`，**只减不增**；
+//       未登记文件出现裸输入即红 ⇒ 新代码只能走 `forms.js` 的 textInput / selectInput / textField 等。
 //   · 口径调整（据实况，不删断言）：
 //       2026-10-28：原 F2 要求 `:focus` 只改边框、环只由 `:focus-visible` 承担；支书裁定
 //       「鼠标点击与键盘聚焦表现一致」后，环改由 `:focus` 承担（几何与 `:focus-visible` 相同）。
@@ -26,7 +30,11 @@ import assert from 'node:assert/strict';
 import { readFileSync, readdirSync } from 'node:fs';
 import { join, dirname, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { ACCENT_COLORS } from '../../docs/src/core/domain/constants.js?v=20261031a';
+import { ACCENT_COLORS } from '../../docs/src/core/domain/constants.js?v=20261102b';
+import { textInput, selectInput, suggestInput } from '../../docs/src/components/ui/form-field.js?v=20261102b';
+import {
+  RAW_INPUT_BASELINE, RAW_INPUT_TOTAL_BASELINE, RAW_INPUT_FILE_BASELINE,
+} from './style-baseline.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(HERE, '..', '..');
@@ -226,4 +234,178 @@ test('F6 select 统一：本地增强 / data-cs-enhanced / .input-flat 全局增
     return r.lines.every((line) => line.includes('input-flat'));
   }).map((e) => `${e.file}（${e.reason}）`);
   assert.deepEqual(zombies, [], `F6 白名单存在僵尸条目（已迁移或文件不存在，请删除）：\n  ${zombies.join('\n  ')}`);
+});
+
+/* ════════════════════════════════════════════════════════════════
+   R1–R3 裸输入棘轮（批次 524 · F · 输入单一源）
+   ────────────────────────────────────────────────────────────────
+   「裸输入」＝ `<input|select|textarea` 标签的 class 里出现 `input-flat`：
+   即绕开 `components/ui/forms.js`（textInput / selectInput / textField / selectField / dateField）
+   直接手写控件。**只减不增**：存量逐文件登记 `style-baseline.mjs::RAW_INPUT_BASELINE`；
+   未登记文件出现裸输入即红（新代码必须走 forms.js）。
+   ════════════════════════════════════════════════════════════════ */
+
+/** 标签结束位置：跳过引号与模板 `${…}`（属性值里的 `>` 不得截断标签） */
+function _tagEnd(src, from) {
+  let quote = '';
+  let depth = 0;
+  for (let i = from; i < src.length; i += 1) {
+    const ch = src[i];
+    if (depth > 0) {
+      if (ch === '{') depth += 1;
+      else if (ch === '}') depth -= 1;
+      continue;
+    }
+    if (quote) {
+      if (ch === quote) quote = '';
+      continue;
+    }
+    if (ch === '"' || ch === "'") { quote = ch; continue; }
+    if (ch === '$' && src[i + 1] === '{') { depth = 1; i += 1; continue; }
+    if (ch === '>') return i;
+  }
+  return -1;
+}
+
+/** 单文件裸输入处数（class 含 input-flat 的 input / select / textarea 标签数） */
+export function rawInputCount(src) {
+  const re = /<(input|select|textarea)\b/gi;
+  let count = 0;
+  let m;
+  while ((m = re.exec(src))) {
+    const end = _tagEnd(src, re.lastIndex);
+    if (end < 0) break;
+    const tag = src.slice(m.index, end + 1);
+    if (/\bclass="[^"]*\binput-flat\b/.test(tag)) count += 1;
+    re.lastIndex = end + 1;
+  }
+  return count;
+}
+
+/** 全量实测：`repo 相对路径 → 处数`（只收 >0 的文件） */
+function rawInputScan() {
+  const out = {};
+  for (const abs of walkJs(DOCS_SRC)) {
+    const n = rawInputCount(readFileSync(abs, 'utf8'));
+    if (n > 0) out[relOf(abs)] = n;
+  }
+  return out;
+}
+
+test('R1 裸输入只减不增：逐文件不超过基线，未登记文件出现裸输入即红', () => {
+  const actual = rawInputScan();
+  const rises = [];
+  const fresh = [];
+  for (const [file, n] of Object.entries(actual)) {
+    const base = RAW_INPUT_BASELINE[file];
+    if (base === undefined) fresh.push(`${file}（${n} 处，未登记）`);
+    else if (n > base) rises.push(`${file}（${base} → ${n}）`);
+  }
+  assert.deepEqual(fresh, [],
+    `以下文件新出现裸输入（应改走 forms.js 的 textInput / selectInput / textField…）：\n  ${fresh.join('\n  ')}`);
+  assert.deepEqual(rises, [],
+    `以下文件裸输入处数上涨（棘轮只减不增）：\n  ${rises.join('\n  ')}`);
+
+  // 收基线：基线里已清零 / 文件已删的条目必须删掉（防僵尸条目掩盖真实回流）
+  const zombies = Object.keys(RAW_INPUT_BASELINE).filter((file) => !actual[file]);
+  assert.deepEqual(zombies, [], `基线存在僵尸条目（实测已为 0 或文件不存在，请按收基线纪律删除）：\n  ${zombies.join('\n  ')}`);
+});
+
+test('R2 规模与单一源：总数 / 文件数不超基线，forms.js 仍导出布局中立控件', () => {
+  const actual = rawInputScan();
+  const total = Object.values(actual).reduce((a, b) => a + b, 0);
+  const files = Object.keys(actual).length;
+  assert.ok(total <= RAW_INPUT_TOTAL_BASELINE, `裸输入总数 ${total} 超过基线 ${RAW_INPUT_TOTAL_BASELINE}（只减不增）`);
+  assert.ok(files <= RAW_INPUT_FILE_BASELINE, `含裸输入的文件数 ${files} 超过基线 ${RAW_INPUT_FILE_BASELINE}（只减不增）`);
+  // 非空转：基线总量必须等于逐条之和（防止只手改常量掩盖回流）
+  const baseTotal = Object.values(RAW_INPUT_BASELINE).reduce((a, b) => a + b, 0);
+  assert.equal(baseTotal, RAW_INPUT_TOTAL_BASELINE, 'RAW_INPUT_TOTAL_BASELINE 与逐文件基线之和不一致');
+  assert.equal(Object.keys(RAW_INPUT_BASELINE).length, RAW_INPUT_FILE_BASELINE,
+    'RAW_INPUT_FILE_BASELINE 与基线条目数不一致');
+
+  const forms = read('docs/src/components/ui/forms.js');
+  assert.match(forms, /textInput/, 'forms.js 未导出 textInput（输入单一源）');
+  assert.match(forms, /selectInput/, 'forms.js 未导出 selectInput（输入单一源）');
+});
+
+test('R3 反例自检：合成裸 input 必须判红，控件积木产物必须不命中', () => {
+  assert.equal(rawInputCount('<input type="text" class="input-flat text-xs w-full">'), 1,
+    '合成裸 input 未被识别（口径失效）');
+  assert.equal(rawInputCount('<textarea rows="2" class="input-flat w-full"></textarea>'), 1,
+    '合成裸 textarea 未被识别');
+  assert.equal(rawInputCount('<input type="text" class="input-flat text-xs"\n  placeholder="跨行">'), 1,
+    '跨行裸 input 未被识别');
+  // 控件积木的**调用点源码**不含字面 `<input` / `<select` ⇒ 必须不命中（守卫扫的是源码，不是产物 HTML）
+  assert.equal(rawInputCount("html += textInput({ id: 'x', className: 'w-full', placeholder: '占位' });"), 0,
+    'textInput 调用点被误判为裸输入');
+  assert.equal(rawInputCount("html += selectInput({ id: 'y', options: [{ value: 'a', label: 'A' }] });"), 0,
+    'selectInput 调用点被误判为裸输入');
+  // 单一源契约：产物仍带 `input-flat text-xs` ＋ 调用方布局类
+  assert.match(textInput({ id: 'x', className: 'w-full' }), /class="input-flat text-xs w-full"/,
+    'textInput 未产出 input-flat text-xs ＋ 布局类');
+  assert.match(selectInput({ id: 'y', options: [{ value: 'a', label: 'A' }] }), /class="input-flat text-xs"/,
+    'selectInput 未产出 input-flat text-xs');
+  // 非 .input-flat 的裸控件不在本口径内（如 checkbox / file 选择器）
+  assert.equal(rawInputCount('<input type="checkbox" class="checkbox-accent">'), 0,
+    '非 input-flat 控件被误判');
+});
+
+/* ════════════════════════════════════════════════════════════════
+   R4–R5 建议输入去原生 datalist（2026-11-01 批次 525 · #4）
+   ────────────────────────────────────────────────────────────────
+   病灶：`<input list="…">` ＋ `<datalist>` 会让 Chrome 在输入框内画 UA picker 三角
+   （实测暗像素 24 → 去掉 list 后 0）。改为 `suggestInput` 自建列表：
+   ① `docs/src` 全量不得再出现 `list="` / `<datalist`（注释里也算，防止示例回潮）；
+   ② 产物必须带 combobox ARIA（role / aria-expanded / aria-controls / aria-activedescendant）
+      ＋ listbox，且不得含 `list` 属性。
+   ════════════════════════════════════════════════════════════════ */
+
+/** 原生 datalist 用法计数（`list="` 属性边界避免误伤 data-*-list；`<datalist` 计标签）。 */
+function nativeDatalistCount(src) {
+  const text = String(src ?? '');
+  const listAttr = (text.match(/(?:^|\s)list="/g) || []).length;
+  const datalist = (text.match(/<datalist/g) || []).length;
+  return listAttr + datalist;
+}
+
+/** 自建建议输入 ARIA 契约（input combobox ＋ listbox；不带 option 因初始列表为空）。 */
+function hasComboboxAria(html) {
+  const text = String(html ?? '');
+  return /role="combobox"/.test(text)
+    && /aria-expanded="/.test(text)
+    && /aria-controls="/.test(text)
+    && /aria-activedescendant="/.test(text)
+    && /role="listbox"/.test(text);
+}
+
+test('R4 docs/src 原生 datalist 清零（list 属性 / datalist 标签）', () => {
+  const files = walkJs(DOCS_SRC);
+  assert.ok(files.length > 100, `只扫描到 ${files.length} 个文件（扫描面写坏）`);
+  const offenders = [];
+  for (const abs of files) {
+    const n = nativeDatalistCount(readFileSync(abs, 'utf8'));
+    if (n > 0) offenders.push(`${relOf(abs)}（${n} 处）`);
+  }
+  assert.deepEqual(offenders, [],
+    `以下文件仍使用原生 list / datalist（应改走 forms.js::suggestInput）：\n  ${offenders.join('\n  ')}`);
+  // 反例：合成 datalist 必须判红
+  assert.equal(nativeDatalistCount('<input type="text" list="kw"><datalist id="kw"></datalist>'), 2,
+    '反例（合成 list / datalist）未被识别');
+  // 负例：data-*-list 不是原生 list 属性，不得误伤
+  assert.equal(nativeDatalistCount('<ul data-myws-list="1"></ul>'), 0, 'data-*-list 被误判为原生 list');
+});
+
+test('R5 suggestInput 产物：combobox ARIA 齐全、无 list 属性', () => {
+  const html = suggestInput({ id: 'probe', suggestions: ['第一组', '第二组组'], max: 8, className: 'lf-kw' });
+  assert.match(html, /role="combobox"/, '产物缺少 role="combobox"');
+  assert.match(html, /aria-expanded="false"/, '产物缺少 aria-expanded 初始态');
+  assert.match(html, /aria-controls="probe-suggest-list"/, '产物缺少 aria-controls 指向列表');
+  assert.match(html, /aria-activedescendant=""/, '产物缺少 aria-activedescendant');
+  assert.match(html, /role="listbox"/, '产物缺少 role="listbox"');
+  assert.match(html, /data-suggest-items="[^"]+"/, '产物缺少建议项数据');
+  assert.equal(nativeDatalistCount(html), 0, '产物不得含 list 属性 / datalist');
+  // 反例：无 ARIA 的合成建议输入必须判红
+  assert.equal(hasComboboxAria('<input type="text" class="input-flat"><div class="suggest__list"></div>'), false,
+    '反例（无 combobox ARIA）未被判红');
+  assert.equal(hasComboboxAria(html), true, 'suggestInput 产物未通过 ARIA 判据');
 });

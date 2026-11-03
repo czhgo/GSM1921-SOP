@@ -99,16 +99,48 @@ test('H1 全仓 :hover 规则必须由 @media (hover: hover) 门控', () => {
     `以下 :hover 规则不在 @media (hover: hover) 内（触屏会粘住 hover 态）：\n  ${ungated.join('\n  ')}`);
 });
 
-test('H2 hover 反馈只改颜色：filter / opacity / transform / translate / box-shadow 计数为 0', () => {
-  const byFile = hoverRulesByFile();
+/**
+ * 纯判据（H2）：返回 hover 规则体里的「非颜色反馈」属性。
+ * 2026-11-01 新裁定（支书 #6 行选中柔和化）：可点行左条改由 `::before` 伪元素承担 `opacity` 过渡——
+ *   这是**装饰层淡入**，不是给行本身加透明 / 位移；因此只对「整个选择器列表都指向 ::before/::after」
+ *   的规则放行 `opacity` 一个属性。filter / transform / translate / box-shadow 仍一律判红，
+ *   元素级 `opacity`（`.x:hover { opacity: .8 }`）也仍判红。
+ */
+function hoverFeedbackProblems(css) {
   const propRe = /(?:^|[;\s{])(filter|opacity|transform|translate|box-shadow)\s*:/g;
-  const offenders = [];
+  const out = [];
+  for (const r of parseRules(css, true)) {
+    const decorative = r.pre.split(',').every((s) => /::(?:before|after)\s*$/.test(s.trim()));
+    for (const m of r.body.matchAll(propRe)) {
+      if (decorative && m[1] === 'opacity') continue;
+      out.push({ pre: r.pre, prop: m[1] });
+    }
+  }
+  return out;
+}
+
+test('H2 hover 反馈只改颜色：filter / opacity / transform / translate / box-shadow 计数为 0', () => {
+  // ① 反例：元素级 opacity 必须判红；装饰伪元素只放行 opacity（其余属性仍红）
+  assert.equal(hoverFeedbackProblems('.x:hover { opacity: 0.8; }').length, 1,
+    '反例未被判红：元素级 hover opacity 必须命中');
+  assert.deepEqual(hoverFeedbackProblems('.x:hover::before { opacity: 1; }'), [],
+    '正例被判红：装饰伪元素 ::before 的 opacity 淡入属于新裁定放行项');
+  assert.equal(hoverFeedbackProblems('.x:hover::before { transform: scale(1.1); }').length, 1,
+    '反例未被判红：装饰伪元素的 transform 仍须命中');
+  assert.equal(hoverFeedbackProblems('.x:hover::after { box-shadow: 0 0 0 3px var(--app-accent); }').length, 1,
+    '反例未被判红：装饰伪元素的 box-shadow 仍须命中');
+  assert.equal(hoverFeedbackProblems('.x:hover::before, .y:hover { opacity: 1; }').length, 1,
+    '反例未被判红：选择器列表混入非伪元素主体时不得按装饰层放行');
+
+  // ② 实况：CSS 文件直读、HTML 取页内 <style>，与 H1 的解析面一致
+  const sourceOf = (file) => (HTML_FILES.includes(file) ? styleBlocks(read(file)) : read(file));
+  const byFile = hoverRulesByFile();
   let checked = 0;
-  for (const [file, rules] of byFile) {
-    for (const r of rules) {
-      checked += 1;
-      const hits = [...r.body.matchAll(propRe)].map((m) => m[1]);
-      if (hits.length) offenders.push(`${file} → ${r.pre.replace(/\s+/g, ' ').slice(0, 100)}：${[...new Set(hits)].join('/')}`);
+  for (const rules of byFile.values()) checked += rules.length;
+  const offenders = [];
+  for (const file of byFile.keys()) {
+    for (const p of hoverFeedbackProblems(sourceOf(file))) {
+      offenders.push(`${file} → ${p.pre.replace(/\s+/g, ' ').slice(0, 100)}：${p.prop}`);
     }
   }
   assert.ok(checked > 0, '未检查到任何 hover 规则（非空转）');
@@ -121,15 +153,23 @@ test('H3 页签与 summary 有三态；静态行/卡不假装可点', () => {
   const rules = parseRules(read('docs/src/styles.css'));
   const has = (re) => rules.some((r) => re.test(r.pre));
 
+  // 2026-11-01：空壳热区（.disclosure__summary）不铺底色，改用 `summary:not(.disclosure__summary)`
+  //   限定有可见文字的披露条 ⇒ 三态判据允许 `:not(...)` 夹在元素与伪类之间。
+  const summaryStateRe = (pseudo) => new RegExp(`(^|[\\s,])summary(?::not\\([^)]*\\))*${pseudo}`);
   for (const pseudo of [':hover', ':active', ':focus-visible']) {
     assert.ok(has(new RegExp(`\\.tab-btn${pseudo}`)), `.tab-btn 缺少 ${pseudo} 状态`);
-    assert.ok(has(new RegExp(`(^|[\\s,])summary${pseudo}`)), `summary 缺少 ${pseudo} 状态`);
+    assert.ok(has(summaryStateRe(pseudo)), `summary 缺少 ${pseudo} 状态`);
   }
   // 页签/摘要的 hover 必须在门控内（H1 已全量核，此处再锁这两个关键控件）
   const tabHover = rules.find((r) => /\.tab-btn:hover/.test(r.pre));
   assert.ok(tabHover && tabHover.inHover, '.tab-btn:hover 必须由 @media (hover: hover) 门控');
-  const summaryHover = rules.find((r) => /(^|[\s,])summary:hover/.test(r.pre));
+  const summaryHover = rules.find((r) => summaryStateRe(':hover').test(r.pre));
   assert.ok(summaryHover && summaryHover.inHover, 'summary:hover 必须由 @media (hover: hover) 门控');
+  // 底色反馈必须排除整行空壳热区（否则悬停时整块不透明灰盖住标题）。
+  const summaryBgHover = rules.find((r) => summaryStateRe(':hover').test(r.pre) && /background(?:-color)?\s*:/.test(r.body));
+  assert.ok(summaryBgHover, 'summary:hover 缺底色反馈（有可见文字的披露条应保留灰底）');
+  assert.match(summaryBgHover.pre, /:not\(\.disclosure__summary\)/,
+    'summary:hover 的底色反馈必须排除 .disclosure__summary（空壳热区不得铺背景）');
 
   // 静态行/卡不得有 hover 背景（不可点就不要装可点）
   // `.gallery-card` 单独核：它是 `role="button" tabindex="0"` 的**可交互卡**（不是静态卡），
@@ -361,4 +401,144 @@ test('H9 产出 role="button" 的组件必须同时产出 tabindex（或本身�
   console.log(`[hover] H9 role=button 标签 ${total} 个 · 缺 tabindex ${problems.length} 处`);
   assert.deepEqual(problems, [],
     `role="button" 不带 tabindex，键盘无法进入（能改原生 button / a 的优先改原生）：\n  ${problems.join('\n  ')}`);
+});
+
+// ── H10 空壳折叠热区不铺底色（2026-11-01）────────────────────────────────
+// 病灶：`.disclosure__summary` 是绝对定位、空内容、覆盖整行 1150×44 的热区；全局
+//   `summary:hover{background-color:var(--surface-hover)}` 会把它铺成不透明灰，盖住同列标题文字。
+// 判据：凡选择器主体含 `.disclosure__summary` 的规则（含 :hover / :active），
+//   `background` / `background-color` 只允许 `transparent` / `none`（缺省即透明）。
+/** 纯判据：返回给 .disclosure__summary 铺了非透明背景的规则（便于正反例自检） */
+function disclosureBackgroundProblems(css) {
+  const out = [];
+  for (const r of parseRules(css)) {
+    // 先剥掉 `:not(...)`：`summary:not(.disclosure__summary)` 的主体是 summary，不算命中。
+    const subject = r.pre.replace(/:not\([^)]*\)/g, '');
+    if (!/\.disclosure__summary\b/.test(subject)) continue;
+    const m = /(?:^|[;\s])background(?:-color)?\s*:\s*([^;]+)/.exec(r.body);
+    if (!m) continue;
+    const value = m[1].trim();
+    if (/^(?:transparent|none)$/i.test(value)) continue;
+    out.push(`${r.pre.replace(/\s+/g, ' ').slice(0, 100)} → background: ${value}`);
+  }
+  return out;
+}
+
+test('H10 空壳折叠热区不铺底色：.disclosure__summary（含 hover / active）背景必须透明', () => {
+  // ① 反例：给空壳热区铺非透明背景 ⇒ 必须判红（hover 与常驻态都算）
+  assert.equal(disclosureBackgroundProblems(
+    '.disclosure__summary:hover { background-color: var(--surface-hover); }').length, 1,
+    '反例未被判红：disclosure__summary:hover 的灰底必须命中');
+  assert.equal(disclosureBackgroundProblems(
+    '.disclosure__summary { background: var(--surface-active); }').length, 1,
+    '反例未被判红：disclosure__summary 常驻底色必须命中');
+  // ② 正例：非 disclosure 的 summary 铺底色合法；disclosure 只改颜色 / 显式 transparent 合法
+  assert.deepEqual(disclosureBackgroundProblems(
+    'summary:hover { background-color: var(--surface-hover); }'), [],
+    '正例被判红：普通 summary 的灰底反馈不得误伤');
+  assert.deepEqual(disclosureBackgroundProblems(
+    '.disclosure__summary:hover { color: var(--neutral-800); }'), [],
+    '正例被判红：只改 chevron 颜色（currentColor）不得误判');
+  assert.deepEqual(disclosureBackgroundProblems(
+    '.disclosure__summary { background-color: transparent; }'), [],
+    '正例被判红：显式 transparent 不得误判');
+  // ③ 实况
+  const offenders = disclosureBackgroundProblems(read('docs/src/styles.css'));
+  assert.deepEqual(offenders, [],
+    `空壳折叠热区被铺了背景（悬停时整块不透明灰盖住同列标题）：\n  ${offenders.join('\n  ')}`);
+});
+
+// ── H11 可点行状态柔和化（2026-11-01 支书 #6）──────────────────────────────
+// 病灶：`.list-row` 方角（`border-radius: 0`）＋ hover 用中性灰 `--surface-hover`（灰显脏）；
+//   左条是 `background-image` 渐变（渐变无法过渡 ⇒ 左条瞬现）；选中态无圆角（方底套 8px 圆角卡）。
+// 裁定：行 8px 圆角（--radius-sm）；可点行 hover 用主题 10% 淡底（--app-accent-tint），
+//   灰底只留静态分隔；左条改 `::before` 3px ＋ `opacity` 过渡（--transition-fast）；
+//   焦点环 `outline-offset: -2px` 压进行内、随圆角走（环仍只有全站唯一那一条）。
+/** 纯判据：返回可点行状态口径的违规项（正反例复用同一口径，避免「反例另写一套」） */
+function listRowStateProblems(css) {
+  const rules = parseRules(css);
+  const subjects = (pre) => pre.split(',').map((s) => s.trim());
+  const find = (sel) => rules.filter((r) => subjects(r.pre).includes(sel));
+  const problems = [];
+
+  const base = find('.list-row');
+  if (!base.length) problems.push('缺 .list-row 规则');
+  else if (!base.some((r) => /border-radius:\s*var\(--radius-sm\)/.test(r.body))) {
+    problems.push('.list-row 的 border-radius 必须是 var(--radius-sm)（8px 圆角）');
+  }
+
+  const hover = find('.list-row[data-interactive="true"]:hover');
+  if (!hover.length) problems.push('缺 .list-row[data-interactive="true"]:hover');
+  else {
+    const body = hover.map((r) => r.body).join('\n');
+    if (/(?:^|[;\s])background(?:-color)?\s*:\s*var\(--surface-hover\)/.test(body)) {
+      problems.push('可点行 hover 不得再用 --surface-hover（灰底只留静态分隔）');
+    }
+    if (!/(?:^|[;\s])background(?:-color)?\s*:\s*var\(--app-accent-tint\)/.test(body)) {
+      problems.push('可点行 hover 底必须是 --app-accent-tint（主题 10% 淡底）');
+    }
+  }
+
+  const bar = find('.list-row[data-interactive="true"]::before');
+  if (!bar.length) problems.push('缺 .list-row[data-interactive="true"]::before 左条');
+  else {
+    const body = bar[0].body;
+    if (!/width:\s*3px/.test(body)) problems.push('左条宽度应为 3px');
+    if (!/opacity:\s*0(?:[;\s]|$)/.test(body)) problems.push('左条静态应为 opacity: 0');
+    if (!/transition:\s*opacity var\(--transition-fast\)/.test(body)) {
+      problems.push('左条须有 opacity 过渡（--transition-fast），不得瞬现');
+    }
+  }
+  const shown = rules.some((r) => /::before/.test(r.pre) && /opacity:\s*1/.test(r.body));
+  if (!shown) problems.push('缺 ::before 的 opacity: 1 显示态（hover / 选中）');
+
+  return problems;
+}
+
+const H11_OK = `
+.list-row { border-radius: var(--radius-sm); }
+.list-row[data-interactive="true"]:hover { background-color: var(--app-accent-tint); }
+.list-row[data-interactive="true"]::before {
+  content: ''; width: 3px; opacity: 0; transition: opacity var(--transition-fast);
+}
+@media (hover: hover) {
+  .list-row[data-interactive="true"]:hover::before { opacity: 1; }
+}
+.list-row[data-selected="true"] { border-radius: var(--radius-sm); background: var(--app-accent-soft-bg); }
+.list-row[data-selected="true"]::before { opacity: 1; }
+`;
+
+test('H11 可点行：8px 圆角 + 主题 10% 淡底 + ::before 左条带 opacity 过渡（含 3 条反例）', () => {
+  // ① 正例：合规样本不得误红（含媒体查询内的 hover 规则）
+  assert.deepEqual(listRowStateProblems(H11_OK), [], '正例被判红：合规的可点行状态口径不得误判');
+
+  // ② 反例 1：圆角退回 0 ⇒ 必须判红
+  const badRadius = H11_OK.replace('.list-row { border-radius: var(--radius-sm); }',
+    '.list-row { border-radius: 0; }');
+  assert.ok(listRowStateProblems(badRadius).some((p) => p.includes('border-radius')),
+    '反例未被判红：行圆角退回 0 必须命中');
+
+  // ③ 反例 2：hover 回灰底 --surface-hover ⇒ 必须判红
+  const badHover = H11_OK.replace('background-color: var(--app-accent-tint)',
+    'background-color: var(--surface-hover)');
+  assert.ok(listRowStateProblems(badHover).some((p) => p.includes('--surface-hover')),
+    '反例未被判红：可点行 hover 用灰底必须命中');
+
+  // ④ 反例 3：删掉 ::before 左条 ⇒ 必须判红
+  const badBar = H11_OK.replace(/\.list-row\[data-interactive="true"\]::before \{[^}]*\}/, '');
+  assert.ok(listRowStateProblems(badBar).some((p) => p.includes('::before')),
+    '反例未被判红：缺 ::before 左条必须命中');
+  // 反向：只留着 ::before 但去掉 opacity 过渡（瞬现）也须判红
+  const badTransition = H11_OK.replace('transition: opacity var(--transition-fast);', '');
+  assert.ok(listRowStateProblems(badTransition).some((p) => p.includes('opacity 过渡')),
+    '反例未被判红：左条无 opacity 过渡（瞬现）必须命中');
+
+  // ⑤ 实况
+  const problems = listRowStateProblems(read('docs/src/styles.css'));
+  assert.deepEqual(problems, [], `可点行状态口径不合新裁定：\n  ${problems.join('\n  ')}`);
+  // 非空转：判据必须真解析到 .list-row 家族（而不是空串恒绿）
+  const rules = parseRules(read('docs/src/styles.css'));
+  const rows = rules.filter((r) => /\.list-row/.test(r.pre)).length;
+  assert.ok(rows >= 10, `只解析到 ${rows} 条 .list-row 规则（下限 10）：判据面被写坏`);
+  console.log(`[hover] H11 可点行规则 ${rows} 条 · 违规 ${problems.length} 处`);
 });

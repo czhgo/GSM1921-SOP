@@ -26,7 +26,7 @@ import { sanitizeSelfProfile } from '../../docs/src/core/domain/self-profile.js'
 import { canReadMemberProfile, projectMemberProfile } from '../../docs/src/core/domain/profile-access.js';
 // R-26③（2026-10-05 批次 388）：日期口径统一到**本地**（服务端单一源 `services/reporting.js`）
 import { today as todayLocal } from '../services/reporting.js';
-import { actorBranchId, branchSelectionError, selectedBranchRequiredError, recordBranchWriteDeny, requireAssignedBranch, resourceRowsForActor } from './resources/branch-scope.js';
+import { actorBranchId, branchSelectionError, selectedBranchRequiredError, recordBranchWriteDeny, requireAssignedBranch, resourceRowsForActor } from './resources/branch-scope.js'; import { aliasMemberChangeRow } from '../data/domain-contract.mjs'; // 2026-11-02 批次 527：成员变更形状单一源（读时别名；不双写）
 
 // 全体支委广播常量已移除（2026-10-20 数据生命周期 P1-26）：
 // `committee_broadcasts` 无任何消费端，审批通过的送达由系统通知 `member-change-approved` 完成，
@@ -95,7 +95,7 @@ export function createMemberRouter(db) {
   router.get('/member-change-requests', requireAuth(db), (req, res) => {
     const scopeDeny = branchSelectionError(req.actor, req.query.branchId);
     if (scopeDeny) return res.status(403).json({ error: scopeDeny });
-    let rows = resourceRowsForActor(db, 'member_change_requests', listTable(db, 'member_change_requests'), req.actor, req.query.branchId);
+    let rows = resourceRowsForActor(db, 'member_change_requests', listTable(db, 'member_change_requests'), req.actor, req.query.branchId).map(aliasMemberChangeRow); // 2026-11-02 批次 527：读时别名（统一 fromStage/toStage/action，不双写）
     if (req.query.activityId) rows = rows.filter((r) => r.activityId === req.query.activityId);
     if (req.query.status) rows = rows.filter((r) => r.status === req.query.status);
     res.json(rows);
