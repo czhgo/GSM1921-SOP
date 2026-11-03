@@ -61,9 +61,9 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/DOC
 
 > 🔴 **以下 3 步为每次工作的强制前置，不得跳过。**
 
-1. 读取 `.ctx/TIMESTAMPS.md` 检查周期性任务到期情况
-2. 读取 `.ctx/SNAPSHOT.md` 确定当前基线
-3. 阅读本文件（CLAUDE.md）确认当前待办（乙部）
+1. 读取 `.ctx/ACTIVE_CONTEXT.md`（当前状态 / 当前判断 / 下一步；active 投影）
+2. 阅读本文件（CLAUDE.md）确认当前待办（乙部）与约束（甲部）
+3. 需要系统形态 / 文件时间时再读 `.ctx/SNAPSHOT.md` / `.ctx/TIMESTAMPS.md`（reference，按需）
 
 ### H20.2 执行（单次迭代的标准流程）
 
@@ -162,8 +162,9 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/DOC
 ① 描述**当前状态/规则**（非历史过程）；② 内容**可执行引用**（读即用）；③ 变更立即影响后续任务。
 
 - **对照**：知识资产（`content/insights/`，人类阅读、非 AI 活跃上下文）；过程产物（spec/plan/一次性脚本，任务闭环即归档或删除）
-- **当前上下文文件清单**：本文件（甲/乙/丙部）· `.ctx/SNAPSHOT.md`（当前基线）· `.ctx/TIMESTAMPS.md`（文件注册表）· `.ctx/REVIEW_QUEUE.md`（评议队列）· `content/03_doc_system/`（ARCHITECTURE/OPERATIONS_GUIDE〔**《运行与协作规范》**，**2026-09-26 批次 202**：`PROCESS_GUIDE`＋`USAGE_POLICY`＋迁入的 `ROLE_CLASSIFICATION` 已并入本文件；原列名 `USAGE_POLICY` 现为 §19–§23〕/DOC_MAP〔**2026-09-25 批次 179 改准**：原列的 `SSOT_INDEX` 与 `SERVICE_CATALOG` 已由本批**三份合一**并入 `ARCHITECTURE.md` 的 §十 / §十一〕）· `content/04_web_design/`（设计知识防逃逸、按需活跃：DESIGN_SYSTEM/DATA_MODEL/COMMISSIONER 相关在动对应代码/数据时读〔**2026-09-24 批次 170–174 改准**：原列的 `DATA_FLOW` 已于批次 164 并入 `DATA_MODEL`、`COMPONENT_SPEC` 已于批次 172 并入 `DESIGN_SYSTEM`〕；evolution/DESIGN_METHODOLOGY.md 设计决策前读）· `content/05_ai_coding/`（AI 协作方法论层：README + 5 分篇——FILE_OPERATION_RULES/TEST_AND_VERIFICATION/DOCUMENT_GOVERNANCE/CONTEXT_MANAGEMENT【active】/REVIEW_AND_EXPRESSION——+ DATA_CONSISTENCY_CHECKLIST.md 手册；read_strategy 按 README 标注读）· `server/README.md`（测试/部署）· 项目记忆（跨会话）
-- **现行有效裁定速查**：`.ctx/ACTIVE_RULINGS.md`（**现行有效裁定**的只读投影——按主题分组、每条一句话结论 ＋ `D-xxx` 指针；**权威源＝`.ctx/logs/2026-MM-DECISION_LOG.md`**，口径冲突以权威源为准）
+- **active context 分层（2026-11-03 批次 529）**：每次会话只读 **本文件 + `.ctx/ACTIVE_CONTEXT.md`**；`SNAPSHOT` / `TIMESTAMPS` / `REVIEW_QUEUE` / `ENGINEERING_ASSESSMENT` / `ACTIVE_RULINGS` 降为 **reference 按需读**；规则 / 判例 / 方法正文在 `content/01–05`。`ACTIVE_CONTEXT` 预算 **≤300 行 / ≤30KB**。
+- **reference 文件清单（按需读，不默认全读）**：本文件（甲/乙/丙部）· `.ctx/SNAPSHOT.md`（当前基线）· `.ctx/TIMESTAMPS.md`（文件注册表）· `.ctx/REVIEW_QUEUE.md`（评议队列）· `content/03_doc_system/`（ARCHITECTURE/OPERATIONS_GUIDE〔**《运行与协作规范》**，**2026-09-26 批次 202**：`PROCESS_GUIDE`＋`USAGE_POLICY`＋迁入的 `ROLE_CLASSIFICATION` 已并入本文件；原列名 `USAGE_POLICY` 现为 §19–§23〕/DOC_MAP〔**2026-09-25 批次 179 改准**：原列的 `SSOT_INDEX` 与 `SERVICE_CATALOG` 已由本批**三份合一**并入 `ARCHITECTURE.md` 的 §十 / §十一〕）· `content/04_web_design/`（设计知识防逃逸、按需活跃：DESIGN_SYSTEM/DATA_MODEL/COMMISSIONER 相关在动对应代码/数据时读〔**2026-09-24 批次 170–174 改准**：原列的 `DATA_FLOW` 已于批次 164 并入 `DATA_MODEL`、`COMPONENT_SPEC` 已于批次 172 并入 `DESIGN_SYSTEM`〕；evolution/DESIGN_METHODOLOGY.md 设计决策前读）· `content/05_ai_coding/`（AI 协作方法论层：README + 5 分篇——FILE_OPERATION_RULES/TEST_AND_VERIFICATION/DOCUMENT_GOVERNANCE/CONTEXT_MANAGEMENT【active】/REVIEW_AND_EXPRESSION——+ DATA_CONSISTENCY_CHECKLIST.md 手册；read_strategy 按 README 标注读）· `server/README.md`（测试/部署）· 项目记忆（跨会话）
+- **现行有效裁定索引**：`.ctx/ACTIVE_RULINGS.md`（**索引，不是规则正文**——每行给领域 + `D-xxx` + `content` 落点；**权威源＝`.ctx/logs/2026-MM-DECISION_LOG.md`**，口径冲突以权威源为准）
 - **待落地实施批次计划**：待落地的归组、批次顺序与依赖证据见 `.ctx/REVIEW_QUEUE.md` 的「实施批次计划（2026-09-18 批次 79 立）」节（条数以该节「逐条归组」实测为准——不写死数字；全文与未做清单在 `.ctx/logs/archive/2026-09-EXECUTION_LOG.md` 批次 79）
 - **失忆闭环指针**：支书裁决落活层闭环规则见 `content/05_ai_coding/CONTEXT_MANAGEMENT.md`
 - **清理纪律**：过程产物不留仓库——可复用部分（决策/约束/落地记录）整合进上下文文件后删除原文件；空目录同步删除；整合处标注来源与日期（判例：2026-08-30 html-slimming spec 整合入 ARCHITECTURE_EVOLUTION 后删除）
@@ -196,7 +197,8 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/DOC
 | `CLAUDE.md` 甲部 | **规矩是什么**（Harness·稳定） | `H` 编号纪律 | 执行记录 | 长期稳定 |
 | `CLAUDE.md` 乙部 | **还剩什么没做**（在办执行事项） | 未闭环条目（一句话 ＋ 引用流程） | 已完成、沿革 | **完即整行删**（`H50.1 §3`） |
 | `CLAUDE.md` 丙部 | **还等支书定什么**（待决策池） | 待裁命题 | 已裁、过程 | **裁即删** |
-| `.ctx/ACTIVE_RULINGS.md` | **现在该怎么判**（现行有效裁定速查） | 每行一条**现行**口径 ＋ `D-xxx` | **逐批增量句 / 已废止 / 沿革**（git 已记） | 只跟现状；改裁即改该行 |
+| `.ctx/ACTIVE_CONTEXT.md` | **现在该知道什么 / 下一步做什么**（active 投影） | 当前状态、现行裁定摘要、风险与下一步、文件地图 | 全量规则、历史论证、证据 | 每批 / 每条新 `D-xxx` 刷新；≤300 行 / 30KB |
+| `.ctx/ACTIVE_RULINGS.md` | **到哪找某条现行口径**（规则索引） | 每行一个领域 ＋ `D-xxx` ＋ content 落点 | 规则正文、逐批增量句、已废止 / 沿革 | 只跟索引；规则正文在 content |
 | `.ctx/REVIEW_QUEUE.md` | **要评议什么 ＋ 评议怎么做** | (a) 各专项机制与支书复用检查项；(b) **未闭环**命题本身 | 过程 / 进度 / 落地细节 / **已闭环** | **闭环即删**（**连同指针一并删**） |
 | `.ctx/logs/*-DECISION_LOG.md` | **什么时候定了什么**（决议权威源） | 每条裁定全文（追加、不改写） | 过程 | 追加 |
 | `.ctx/logs/*-EXECUTION_LOG.md` | **做过什么 ＋ 边界与坑** | 只留「为什么 / 拿不准 / 边界 / 读数」（`H26.1`） | 过程流水（git 已记） | 追加 |
@@ -213,7 +215,7 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/DOC
 
 > **背景**：`.ctx` 顶层文件过多、成了筐；审计知识必须「各找各的地方」——原则归原则、方法归方法、执行沿革进 `logs/archive/`。
 
-**`.ctx` 顶层白名单（只此 9 项）**：`logs/`、`evidence/`、`TIMESTAMPS.md`、`SNAPSHOT.md`、`REVIEW_QUEUE.md`、`ACTIVE_RULINGS.md`、`ENGINEERING_ASSESSMENT.md`、`README.md`、`AGENTS.md`（后两项为索引与协作说明，2026-10-27 批次 515 与 `ctx-hygiene-guard` 的实际断言对齐）。
+**`.ctx` 顶层白名单（只此 10 项）**：`logs/`、`evidence/`、`TIMESTAMPS.md`、`SNAPSHOT.md`、`REVIEW_QUEUE.md`、`ACTIVE_RULINGS.md`、`ENGINEERING_ASSESSMENT.md`、`ACTIVE_CONTEXT.md`、`README.md`、`AGENTS.md`（后两项为索引与协作说明；`ACTIVE_CONTEXT` 为 2026-11-03 批次 529 新增 active 投影）。
 
 **审计产物三去向**（先判性质，再决定落点）：
 
@@ -226,6 +228,23 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/DOC
 **禁止**：一次性审计报告 / 脚本生成产物常驻 `.ctx` 顶层。结论已沉淀到原则或方法文档的，原文在 `archive` 只留一份；守卫读 `archive` 路径或直接重跑生成脚本，不得为守卫方便把原文留在顶层。顶层新增文件必须命中白名单，否则先沉淀、再归档。
 
 **边界**：本律只管落点，不改审计结论；原则以原则文档为准，沿革以 `archive` 原文为准。
+
+***
+
+## H26.4 Active Context 投影与预算（2026-11-03 批次 529 · 立）
+
+> **背景**：`.ctx` 顶层 7 份文件约 500KB，新会话无法全读；把「仓库」当「活跃上下文」会同时造成类型混杂、事实多源与长度失控。
+
+**唯一口径**
+
+1. **`.ctx` 是上下文仓库，不是 active context。** active context ＝ `CLAUDE.md` ＋ `.ctx/ACTIVE_CONTEXT.md`；其余 `.ctx` 文件都是 reference / provenance，按需读。
+2. **active context 预算**：`ACTIVE_CONTEXT.md` **≤300 行 / ≤30KB**。超预算时先把细节降级到 reference（并留指针），再压缩措辞；不得用缩小字号 / 合并长句逃避预算。
+3. **更新触发**：每批收尾；每条新 `D-xxx`；六维评分变化；运行档 / 上线形态变化。
+4. **保鲜判据**：`latest_decision` 必须 ≥ 当月决策日志最后一条 `D-xxx`；`last_verified` 必须 ≥ 最新裁定日期；由 `ctx-hygiene-guard` / `docs-governance-guard` 机检。
+5. **冲突顺序**：当月 `DECISION_LOG` ＞ `ACTIVE_CONTEXT` ＞ `content` 权威 ＞ `SNAPSHOT` ＞ `ENGINEERING_ASSESSMENT` ＞ `logs` / `evidence`。无 `D-xxx` 的冲突不得自行择边，登记 `REVIEW_QUEUE` 或丙部待裁。
+6. **规则不进 .ctx 顶层**：规则 / 判例 / 方法正文进 `content/01–05`；`.ctx` 只留索引与当前投影。
+7. **僵尸行清理**：连续 3 批未触发、且不再影响动作的 active 行，删除或降级。
+8. **新会话模拟**：只读 `CLAUDE.md` ＋ `ACTIVE_CONTEXT.md`，必须能回答「系统现状 / 六维分数与最高风险 / 下一批 3 件事 / 最新裁定与落点 / 冲突以谁为准」；答不出即 active context 不合格。
 
 ***
 

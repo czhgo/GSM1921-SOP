@@ -325,7 +325,8 @@ export const DAILY_FILE_BUDGET = 240;
  *  2026-11-03 任务 7（安全红队）：新增 `security-redteam` 5 条（快照清空/改写聚合子记录、
  *    组织者不误伤、考勤与通知门防回归，纯 node + `:memory:`）⇒ 文件预算 239 → 240，
  *    断言预算 1754 → 1759。 */
-export const DAILY_TEST_BUDGET = 1759;
+/** 2026-11-03 批次 529：`ctx-hygiene-guard` 新增 ⑤–⑦ 三条（active 预算 / ACTIVE_RULINGS 索引 / SNAPSHOT 去批次小结）⇒ 实测 1762，按 1764 登记（留 2 条余量，不作「9999 式」放宽）。 */
+export const DAILY_TEST_BUDGET = 1764;
 
 const group = (tier, reason, list) => list.map((file) => ({ file, tier, reason }));
 

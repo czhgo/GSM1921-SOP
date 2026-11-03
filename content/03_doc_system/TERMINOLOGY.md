@@ -2,7 +2,7 @@
 title: "术语表（全仓唯一术语定义源）"
 type: governance
 role: "[工程师]+[AI]"
-last_updated: 2026-10-25
+last_updated: 2026-11-03
 version: "0.1"
 status: active
 related_files: [content/03_doc_system/OPERATIONS_GUIDE.md, content/02_institution/SYSTEM_ROLE_PERMISSION.md, content/03_doc_system/ARCHITECTURE.md, content/04_web_design/data/DATA_MODEL.md]
@@ -63,3 +63,12 @@ related_files: [content/03_doc_system/OPERATIONS_GUIDE.md, content/02_institutio
 6. **报名与入组分离**：活动写「报名」；专班写「入组申请」，不写「专班报名」（见第 17 条）。
 
 > **第二批待登记（本批不定义，勿在别处补写定义）**：支部党员、支部成员、条条、块块、党小组承办、支部级、跨组。登记后同批把引用方改为本表指针。
+
+---
+
+## 附：系统现行口径承接（2026-11-03）
+
+> 来源：`.ctx/ACTIVE_RULINGS.md` 分类承接；每条末尾 `（D-xxx）` 是决议指针，正文以本文件为准。
+
+- **「北京大学智慧党建平台（党旗飘飘）」**：全称；首次出现用全称，其后可用「智慧党建平台」。（D-302）
+- **「支部党员大会」**：全称；首次出现用全称，其后可简写；索引与术语以全称为准，不新增「支部大会」为简称。（D-303）

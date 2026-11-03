@@ -43,6 +43,20 @@ status: active
 
 > **分篇章节指针：** `PARALLEL_SKILL_AUDIT.md` §14 SKILL 路由（前端 / 后端 / 全栈）——按任务类型选 skill、各类禁止项与并行审查纪律。
 
+## 可复用资产索引（2026-11-03 批次 529）
+
+> 从 `.ctx` 提炼的**工作模式 / 方法**；正文在各篇，本表只做入口，不复制。
+
+| 资产 | 一句话 | 落点 |
+|---|---|---|
+| 上下文三层与预算 | active / reference / provenance；≤300 行 / 30KB | [CONTEXT_MANAGEMENT.md](CONTEXT_MANAGEMENT.md) |
+| 文档准入 / 晋升 / 删除 | 规则进 content、证据进 evidence、流水进 logs | [DOCUMENT_GOVERNANCE.md](DOCUMENT_GOVERNANCE.md) |
+| 批次收尾协议 | 执行日志 + 测试读数 + 决策日志 + active 刷新 | `CLAUDE.md H40` ＋ [TEST_AND_VERIFICATION.md](TEST_AND_VERIFICATION.md) |
+| 决策 → 裁定投影 | 决策日志追加 → content 改准 → `.ctx` 索引同步 | [DOCUMENT_GOVERNANCE.md](DOCUMENT_GOVERNANCE.md) |
+| 证据索引 | 截图 / 读数 / 真机日志按日期归档 | `.ctx/logs/EXECUTION_LOG_INDEX.md` |
+| 六维评分方法 | 只按证据加减分，不因工具自动加分 | `.ctx/ENGINEERING_ASSESSMENT.md` §一 / §二 |
+| 页签审计 | 45 页签五维检查、P0–P2、例外口径 | [TAB_AUDIT_PLAYBOOK.md](TAB_AUDIT_PLAYBOOK.md) ＋ [AUDIT_CANON.md](AUDIT_CANON.md) |
+
 ## 权威源与派生
 
 - **权威源**：五个分篇 `FILE_OPERATION_RULES` / `TEST_AND_VERIFICATION` / `DOCUMENT_GOVERNANCE` / `CONTEXT_MANAGEMENT` / `REVIEW_AND_EXPRESSION` 是 AI 协作方法的规范正文。

@@ -724,7 +724,7 @@ test('S14 可数事实对账：文档里的「枚举 / 计数」必须等于代�
     for (const g of l.matchAll(/'([A-Za-z]+)'/g)) agendaGroups.add(g[1]);
   }
   const agendaReal = agendaGroups.size;
-  eq('「拟上会」清单类数', 'ACTIVE_RULINGS.md 的 `D-411` 行「共 N 类」', cn(m(lineWith(read(RULINGS), /^- .*一键导入议程/), /共\s*([\d一二两三四五六七八九十]+)\s*类/)), agendaReal,
+  eq('「拟上会」清单类数', 'ACTIVE_RULINGS.md §A「拟上会清单共 N 类」', cn(m(lineWith(read(RULINGS), /^- .*「拟上会」清单共/), /共\s*([\d一二两三四五六七八九十]+)\s*类/)), agendaReal,
     `系统 group 取值＝${[...agendaGroups].sort().join(' / ')}`);
   eq('「拟上会」清单类数', 'docs/help.html §3.1 括注列举', enumCount(lineWith(help, /「拟上会」清单<\/strong>里勾/)), agendaReal);
   eq('「拟上会」清单类数', 'REVIEW_QUEUE.md `SOP-B-33`「现为 N 类」', cn(m(lineWith(read(QUEUE), /^> \*\*已闭环\*\*：裁定 `D-552`/), /现为\s*([\d一二两三四五六七八九十]+)\s*类/)), agendaReal);
@@ -878,16 +878,16 @@ test('S14 可数事实对账：文档里的「枚举 / 计数」必须等于代�
 //   （给上限）。⚠ 弱清单**不是空壳**：每条都断言「它还认得那个写法」或「编号自洽」。
 // ─────────────────────────────────────────────────────────────────────────────
 test('S15 弱清单：有正当沿革 / 取值定义不清的枚举数字只登记（带基线，防僵尸与变松）', () => {
-  // ① ACTIVE_RULINGS：**只收「现行有效」口径**。**逐批增量句 ＝ 历史包袱，按 `H26.1`/`H26.2`（2026-10-06 批次 413）
-  //    已一律删**（实读 480 → 224 行；口径行 153）。
-  //    本判据两条：① 文首须写明收录口径（防读者把沿革当现况）；② **不得再出现「逐批增量句」**（防回潮）；
-  //    非空转：口径行规模须达下限（防解析失效 / 口径行被误删）。
+  // ① ACTIVE_RULINGS：**只收「现行有效」的索引**。规则正文已迁 `content/01–05`；本文件只留跨域摘要 + 分域索引。
+  //    判据三条：① 文首写明「只收现行有效」；② 不得出现「逐批增量句」；③ **必须有分域索引且 ≥16 行**（防解析失效）。
   const ar = read(RULINGS);
   assert.match(ar, /只收「现行有效」/, 'ACTIVE_RULINGS 文首未写明收录口径（只收现行有效）——读者会把沿革当现况');
   const histSent = (ar.match(/增量（实测|增量（补登|实做 \d+ 行新立/g) || []).length;
   assert.equal(histSent, 0, `ACTIVE_RULINGS 出现「逐批增量句」（历史包袱，H26.2 已禁）：${histSent} 处`);
   const arRules = (ar.match(/^- /gm) || []).length;
-  assert.ok(arRules >= 100, `ACTIVE_RULINGS 只解析到 ${arRules} 条口径行（下限 100）：解析失效或口径行被误删`);
+  assert.ok(arRules >= 8, `ACTIVE_RULINGS 只解析到 ${arRules} 条跨域摘要（下限 8）：摘要被误删或解析失效`);
+  const arIndexRows = ar.split(/\r?\n/).filter((l) => /^\| [一二三四五六七八九十]+、/.test(l)).length;
+  assert.ok(arIndexRows >= 16, `ACTIVE_RULINGS 分域索引只解析到 ${arIndexRows} 行（下限 16）：分域表被写坏或漏项`);
 
   // ② CLAUDE.md 的「评议待办 · 执行型」表（`R-NN`）：**只留在办项**——`H50.1 §3`＝完成即**整行删除**（禁仅标 ✅）。
   //   2026-10-01 批次 314 按此把 **60 行已闭环 / 已立**删去（**69 → 9 行**）；**全文不丢** ⇒ 迁出附节

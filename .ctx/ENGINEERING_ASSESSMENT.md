@@ -5,10 +5,13 @@ role: "[工程师]+[AI]"
 created: 2026-09-03
 last_updated: "2026-11-03"
 status: active
+layer: reference
 related_files: [content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md, content/04_web_design/evolution/WORKFLOW_BLOCK_CONTRACT.md, content/04_web_design/evolution/PARTY_COMMITTEE_DESIGN.md, content/04_web_design/module/SOP_WEBSITE_GUIDE.md, content/04_web_design/deploy/DEPLOYMENT_GUIDE.md, .ctx/REVIEW_QUEUE.md, CLAUDE.md, content/03_doc_system/DOC_MAP.md, content/insights/README.md, content/insights/工程与AI协作的全栈实践.md, server/README.md, docs/help.html]
 ---
 
 # 工程化评估与改造行动线
+
+> **层（2026-11-03 批次 529）**：本文件是 **reference**，不是 active context。当前值 / 下一步的 active 投影在 `.ctx/ACTIVE_CONTEXT.md`；本文件只作评分证据与历史论证。每次会话不必全读，定「下一批做什么」时读 §一 / §四 / §5.2。
 
 > **定位**：本文档为项目当前工程评估与复盘的唯一口径：六个工程维度、七个月复盘、业务/数据/权限阻断风险、工程做法纪律与改进顺序。打分用于暴露短板，不把不同风险平均成一个总数。
 > **维护纪律（本文件自述即判据）**：**覆盖式维护、不逐轮留历史行**——本文件只写「**当前值 / 当前残项 / 当前纪律**」，**逐批「做了什么、为什么 +1」一律进 `.ctx/logs/**`**（沿革单一源）。⚠ 2026-09-29 批次 266 据此做了一次**瘦身**：此前 §一 速览行内 / 综合行 / §二 各维标题 / §四 各行动行内累积的**逐批论证链**已删除（同批已核：其内容在月度日志逐批段与「附：工程化评估逐批沿革」节内均已有），**只留当前值与指针**；再犯即属违规。

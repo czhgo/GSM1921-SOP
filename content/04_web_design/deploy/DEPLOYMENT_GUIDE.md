@@ -972,7 +972,7 @@ WebView 套壳（短期）→ Taro 跨端（中期），与网页共用后端；
 | 层 | 事实 |
 |----|------|
 | 前端模块化 | `docs/src/` ESM 分层（entries/components/core/services/workflow/modules/mock），根页面 + 工作台（页面清单以 docs/ 实测为准，含 wizard/settings） |
-| 数据抽象 | `data-adapter.js` mock/api 双模式，`setDataSource('mock'/'api', { apiBaseUrl, authToken })` 动态切换；`runtime.js` 默认 mock，`bootstrap.js` 检测到 token 自动切 api、服务器不可达静默回退 mock |
+| 数据抽象 | `data-adapter.js` mock/api 双模式，`setDataSource('mock'/'api', { apiBaseUrl, authToken })` 动态切换；`runtime.js` 默认 mock，`bootstrap.js` 检测到 token 自动切 api；**有 token 时不得回退到可写 mock**——拉不到服务端数据须显式报错并提供重试（`renderDataSourceError`），会话失效另走 `renderSessionExpiredError`；无 token 的本地演示形态保持原样（D-633） |
 | API 适配器 | `api-adapter.js` P1 已实现：35 个资源分组 `list()`（供 init 拉全量）+ `snapshot()` 全量写穿 + 8s 超时兜底；路由表见文件头（35 资源分组 + auth/login/logout + snapshot + uploads + health/bootstrap） |
 | 后端服务 | `server/` Express + better-sqlite3：**35 资源表**（id + data JSON 通用结构，含 branch_docs）+ sessions/attachments；routes：auth（login/logout/me）、resources（CRUD + bootstrap + snapshot 写穿）、uploads（jpg/png/pdf/doc/docx/xlsx/mp4 ≤10MB）、report（§3.9）；`npm test` 测试全绿（server/test/ 覆盖单元/E2E/审计/链接完整性） |
 | 邮件双通道（§3.8） | `server/services/mailer.js`（nodemailer 通用 SMTP，env 注入不落库，失败重试 3 次 + 静默降级）+ `services/mailer-hooks.js` 接入通知发布/待办提醒/反馈汇报触发点；成员档案 email 字段预留，补充后通道自动生效 |

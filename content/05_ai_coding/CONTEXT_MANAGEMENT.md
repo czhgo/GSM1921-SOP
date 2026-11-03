@@ -2,7 +2,7 @@
 title: "上下文管理与防失忆"
 type: governance
 role: "[工程师]+[AI]"
-last_updated: "2026-09-26"
+last_updated: "2026-11-03"
 status: active
 related_files: [CLAUDE.md, content/03_doc_system/OPERATIONS_GUIDE.md, content/01_strategy/SECRETARY_DIRECTIVES.md]
 ---
@@ -204,3 +204,27 @@ related_files: [CLAUDE.md, content/03_doc_system/OPERATIONS_GUIDE.md, content/01
 **适用范围**：一切影响系统设计（04）或 AI 协作方法（05）的支书表述与 AI 判例；机械细节落各篇判例节，方向裁决落 04/05 正文或 README 权威标注。
 
 **首轮演练**：2026-09-04 content 分层重构支书裁决 D1-D10（archive 废除、AI 方法论归 05、每篇自包含+指针、状态标注 landed 等）已全部落 04/05/03 正文与 README，即本规则的首次实例。
+
+## 三层上下文模型与 Active Context 预算（2026-11-03 批次 529）
+
+**问题**：`.ctx` 顶层 7 份文件约 500KB，新会话无法全读；把「仓库」当「活跃上下文」会同时造成类型混杂、事实多源与长度失控。
+
+**三层模型**：
+
+| 层 | 内容 | 更新频率 | 读取策略 | 典型文件 |
+|---|---|---|---|---|
+| active（热） | 当前状态、当前判断、下一步、读取地图 | 每批 / 每条新裁定 | 每次会话必读 | `CLAUDE.md`、`.ctx/ACTIVE_CONTEXT.md` |
+| reference（温） | 系统形态、规则索引、评分证据、待评议、机器元数据 | 按批 / 按裁定 / 按文件 | 按需读 | `SNAPSHOT` / `ACTIVE_RULINGS` / `ENGINEERING_ASSESSMENT` / `REVIEW_QUEUE` / `TIMESTAMPS` |
+| provenance（冷） | 执行 / 决策 / 审计原文、截图与读数 | 追加 | 只追溯时读 | `.ctx/logs/`、`.ctx/evidence/` |
+
+**预算与判据**：
+
+1. `ACTIVE_CONTEXT.md` **≤300 行 / ≤30KB**；超预算先把细节降级到 reference，再压缩措辞。
+2. `latest_decision` 必须 ≥ 当月决策日志最后一条 `D-xxx`；`last_verified` 必须 ≥ 最新裁定日期。
+3. 冲突顺序：当月 `DECISION_LOG` ＞ `ACTIVE_CONTEXT` ＞ `content` 权威 ＞ `SNAPSHOT` ＞ `ENGINEERING_ASSESSMENT` ＞ `logs` / `evidence`。
+4. 连续 3 批未触发、且不再影响动作的 active 行，删除或降级。
+5. 规则 / 判例 / 方法正文进 `content/01–05`；`.ctx` 只留索引与当前投影。
+
+**Boolean 条件**：`.ctx/ACTIVE_CONTEXT.md` 超过 300 行或 30KB，或 `latest_decision` 落后于当月决策日志最后一条 `D-xxx` → `ctx-hygiene-guard` 判红。
+
+**生效条件**：每次会话开局、每批收尾、每条新裁定落账后。

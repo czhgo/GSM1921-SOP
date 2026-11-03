@@ -4,9 +4,9 @@
 // 病灶：`.ctx` 顶层长期混放审计原文（`AUDIT_*`）、脚本产物（`IA_*`）、历史草稿（`*_DRAFT.md`）
 //   与真正的台账/日志 ⇒ 新会话分不清「现行台账」与「一次性审计原文」，目录变成筐。
 // 判据（四条，均可机械核验）：
-//   ① 顶层只允许白名单 9 项（logs / evidence / TIMESTAMPS / SNAPSHOT / REVIEW_QUEUE / ACTIVE_RULINGS /
-//      ENGINEERING_ASSESSMENT / README / AGENTS）；2026-10-24 批次 509 补登后两项（索引与智能体说明是
-//      顶层准入的正常入口，不是一次性审计产物）；
+//   ① 顶层只允许白名单 10 项（logs / evidence / TIMESTAMPS / SNAPSHOT / REVIEW_QUEUE / ACTIVE_RULINGS /
+//      ENGINEERING_ASSESSMENT / ACTIVE_CONTEXT / README / AGENTS）；2026-11-03 批次 529 增 `ACTIVE_CONTEXT`
+//      （active 投影；≤300 行 / 30KB）。
 //   ② 顶层不得出现 `AUDIT_*` / `IA_*` / `*_DRAFT.md` / `snapshots/`；
 //   ③ 归档文件必须在正式文档或 2026-10 执行日志中有指针（防「移了等于丢了」）；
 //   ④ 脚本生成的产物必须有对应脚本（`IA_INVENTORY` ↔ `ia-inventory.mjs`）。
@@ -27,6 +27,7 @@ const ALLOWED = new Set([
   'REVIEW_QUEUE.md',
   'ACTIVE_RULINGS.md',
   'ENGINEERING_ASSESSMENT.md',
+  'ACTIVE_CONTEXT.md',
   'README.md',
   'AGENTS.md',
 ]);
@@ -58,7 +59,7 @@ const POINTER_FILES = [
   '.ctx/logs/2026-10-EXECUTION_LOG.md',
 ];
 
-test('① `.ctx` 顶层只允许白名单项（9 项）', () => {
+test('① `.ctx` 顶层只允许白名单项（10 项）', () => {
   const entries = readdirSync(CTX);
   const extra = entries.filter((name) => !ALLOWED.has(name));
   assert.deepEqual(extra, [], `.ctx 顶层出现白名单外条目：${extra.join(' / ')}——先沉淀到正式文档，再归档到 logs/archive/YYYY-MM/`);
@@ -91,4 +92,49 @@ test('④ 生成类产物必须有对应脚本', () => {
   const script = readFileSync(join(ROOT, 'server', 'scripts', 'ia-inventory.mjs'), 'utf8');
   assert.match(script, /\.ctx\/logs\/archive\/2026-10\/IA_INVENTORY\.md/, 'ia-inventory.mjs 输出路径须指向归档目录');
   assert.ok(statSync(join(ARCHIVE, 'IA_INVENTORY.md')).isFile(), 'IA_INVENTORY 归档产物不存在');
+});
+
+test('⑤ ACTIVE_CONTEXT：≤300 行 / ≤30KB，frontmatter 齐全且保鲜', () => {
+  const p = join(CTX, 'ACTIVE_CONTEXT.md');
+  assert.ok(existsSync(p), '缺 `.ctx/ACTIVE_CONTEXT.md`（active 投影）');
+  const src = readFileSync(p, 'utf8');
+  const lines = src.split(/\r?\n/).length;
+  const bytes = Buffer.byteLength(src, 'utf8');
+  assert.ok(lines <= 300, `ACTIVE_CONTEXT 行数 ${lines} > 300：先把细节降级到 reference`);
+  assert.ok(bytes <= 30 * 1024, `ACTIVE_CONTEXT 字节 ${bytes} > 30KB：先把细节降级到 reference`);
+  assert.match(src, /^layer:\s*active/m, 'ACTIVE_CONTEXT frontmatter 缺 `layer: active`');
+  assert.match(src, /^last_verified:\s*"?\d{4}-\d{2}-\d{2}"?/m, 'ACTIVE_CONTEXT frontmatter 缺 `last_verified`');
+  assert.match(src, /^budget:\s*".*?"/m, 'ACTIVE_CONTEXT frontmatter 缺 `budget`');
+  const latest = src.match(/^latest_decision:\s*"?D-(\d+)"?/m);
+  assert.ok(latest, 'ACTIVE_CONTEXT frontmatter 缺 `latest_decision: D-xxx`');
+
+  const logDir = join(CTX, 'logs');
+  const monthLogs = readdirSync(logDir)
+    .filter((f) => /^\d{4}-\d{2}-DECISION_LOG\.md$/.test(f))
+    .sort();
+  assert.ok(monthLogs.length > 0, '找不到任何 `YYYY-MM-DECISION_LOG.md`');
+  const activeLog = readFileSync(join(logDir, monthLogs[monthLogs.length - 1]), 'utf8');
+  const dNums = [...activeLog.matchAll(/^## D-(\d+)/gm)].map((x) => Number(x[1]));
+  assert.ok(dNums.length > 0, `${monthLogs[monthLogs.length - 1]} 解析不到 D-xxx 条目`);
+  const maxD = Math.max(...dNums);
+  assert.ok(Number(latest[1]) >= maxD,
+    `ACTIVE_CONTEXT latest_decision=D-${latest[1]} 落后于 ${monthLogs[monthLogs.length - 1]} 最后一条 D-${maxD}：先刷新 active 投影`);
+});
+
+test('⑥ ACTIVE_RULINGS：≤150 行且含 §B 分域索引（规则正文不在 .ctx）', () => {
+  const p = join(CTX, 'ACTIVE_RULINGS.md');
+  const src = readFileSync(p, 'utf8');
+  const lines = src.split(/\r?\n/).length;
+  assert.ok(lines <= 150, `ACTIVE_RULINGS 行数 ${lines} > 150：规则正文应迁 content，只留索引`);
+  assert.match(src, /^## §B 分域索引/m, 'ACTIVE_RULINGS 缺「§B 分域索引」——规则正文应迁 content，本文件只留索引');
+  const indexRows = src.split(/\r?\n/).filter((l) => /^\| [一二三四五六七八九十]+、/.test(l)).length;
+  assert.ok(indexRows >= 16, `ACTIVE_RULINGS 分域索引只解析到 ${indexRows} 行（下限 16）：分域表被写坏或漏项`);
+});
+
+test('⑦ SNAPSHOT：≤250 行且不再承载批次小结', () => {
+  const src = readFileSync(join(CTX, 'SNAPSHOT.md'), 'utf8');
+  const lines = src.split(/\r?\n/).length;
+  assert.ok(lines <= 250, `SNAPSHOT 行数 ${lines} > 250：批次小结应迁 EXECUTION_LOG_INDEX，SNAPSHOT 只留现状`);
+  const batchSections = (src.match(/^## 批次 \d+ 小结/mg) || []).length;
+  assert.equal(batchSections, 0, `SNAPSHOT 仍有 ${batchSections} 段批次小结：已改由 EXECUTION_LOG_INDEX 承接`);
 });

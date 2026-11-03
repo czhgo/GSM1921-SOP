@@ -26,7 +26,9 @@ related_files: [OPERATIONS_GUIDE.md, CLAUDE.md, ARCHITECTURE.md, .ctx/REVIEW_QUE
 | 常读文件 | 回答什么问题（唯一职责） | 读的时机 | 读取策略 |
 |---|---|---|---|
 | `CLAUDE.md` | AI 每次开工**必须遵守什么**（甲部 Harness / 乙部执行 / 丙部待裁） | 每次会话 | **active** |
+| `.ctx/ACTIVE_CONTEXT.md` | **现在该知道什么 / 下一步做什么**（active 投影；≤300 行 / 30KB） | 每次会话 | **active** |
 | `content/05_ai_coding/CONTEXT_MANAGEMENT.md` | 上下文怎么管、防失忆怎么做 | 每次会话 | **active** |
+| `.ctx/ACTIVE_RULINGS.md` | **某条现行口径到哪找**（规则索引，正文在 content） | 需要分域裁定 | on-demand |
 | `.ctx/REVIEW_QUEUE.md` | **哪些评议与裁定还没闭环** | 每批开工前必扫 | on-demand |
 | `.ctx/ENGINEERING_ASSESSMENT.md` | 现在工程化到几成、**下一步该改哪里** | 定「下一批做什么」前 | on-demand |
 | `.ctx/SNAPSHOT.md` | **这个系统现在长什么样** | 新会话开局 / 换人接手 | on-demand |

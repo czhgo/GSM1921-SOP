@@ -2,7 +2,7 @@
 title: "系统角色权限矩阵（代码键级权威）"
 type: governance
 role: "[工程师]+[AI]"
-last_updated: 2026-10-22
+last_updated: 2026-11-03
 status: active
 related_files: [content/03_doc_system/OPERATIONS_GUIDE.md, docs/src/core/domain/constants.js]
 ---
@@ -287,3 +287,22 @@ related_files: [content/03_doc_system/OPERATIONS_GUIDE.md, docs/src/core/domain/
 - **2026-09-05**：自 ROLE_CLASSIFICATION.md §九 迁出为独立文件（名实分离修复——该文件回归纯文件角色分类，本文件承担系统运行角色权限矩阵的键级权威）。迁出时同步修复：9a0 补 `party-staff`（党委组织员，组织级）行，真实对齐 constants.js `ROLE_KEYS`/`ROLE_LABELS`/`ROLE_PAGE_MAP`；9a0 登记表述改指 constants.js `ROLE_PAGE_MAP`（2026-09 已自 auth.js 迁入常量层）；9a 引用纠错（USAGE_POLICY §1.2.5 → §1.3）；9f 增补双轨约定（CF §C 逐操作位视图 ↔ 本文件键级视图）。〔**2026-09-26 批次 202 补注**：`ROLE_CLASSIFICATION.md` 与 `USAGE_POLICY.md` 已分别并入 [OPERATIONS_GUIDE.md](../03_doc_system/OPERATIONS_GUIDE.md) 的 §24–§31 与 §19；本条为历史留痕、原句保留〕
 - **2026-09-05（A1 批1 落代码）**：`dispatch_line`（条线下发）键入集——授予组织/宣传/纪检三委员（auth.js `ROLE_PERMISSIONS`，canDo 可判定），9f 增映射行、9b 附注说明；交互流消费侧待建、不入 16 操作列（不硬凑列原则）。
 - 前身沿革：本节原为 ROLE_CLASSIFICATION.md §九（PERMISSION_MATRIX.md → MANAGEMENT_MODE.md → ROLE_CLASSIFICATION §九，2026-07-08 迁入；2026-07-12 §九 重写 9a~9g；2026-08-29 增 9a0），历史记录见 [OPERATIONS_GUIDE.md §31](../03_doc_system/OPERATIONS_GUIDE.md)（《运行与协作规范》文件角色分类体系·变更历史；该节原为 `ROLE_CLASSIFICATION.md` §八，2026-09-26 批次 202 随该文件并入并升格为 §31）。
+
+---
+
+## 附：系统现行口径承接（2026-11-03）
+
+> 来源：`.ctx/ACTIVE_RULINGS.md` 分类承接；每条末尾 `（D-xxx）` 是决议指针，正文以本文件为准。
+
+- **组织型主体**：支委会 / 党委 / 支委扩大会可作「承担方」（`ownerType:'org'`），但不是角色键、不在 `ROLE_PAGE_MAP`、不能登录；其权限门仍由自然人角色键判定。（D-573/D-612）
+- **活动批准门三态**：`off`（默认）/ `secretary` / `branch-committee`，属支部可调制度参数；开启后写入即「待批」，批准前不推进、不批准即终止。（D-587）
+- **待批可见性**：待批活动只对支委层与该场组织者可见，其余角色与访客不可见；门关闭时该收窄不生效。（D-590/D-594）
+- **不得绕门**：`POST /activities`、`POST /snapshot` 与 `PATCH` 用同一批准判据，直调接口不得把待批活动改成已发布 / 终止。（D-591/D-593）
+- **支委会档复用线上表决**：不另造第二套表决机制，结果经既有议程结果回写为发布 / 终止。（D-592）
+- **会议考勤上传位**：支委会不考勤；党员大会 / 党课归纪检（支书 / 副支书可代）；党小组会归本场组织者；其他归组织者。（D-558/D-613）
+- **出勤率**：只提示、不设阈值、不触发纪律动作；提示只给支委会与本人，不公示。（D-304/D-537）
+- **意见反馈**：与纪检委员解绑，处置归支委层、支书可指派他人；匿名反馈支部内闭环，无系统揭名入口（同 §9j）。（D-301/D-824）
+- **事项领域**：只按领域给出归口建议，不自动派单。（D-551）
+- **记录人必呈现**：考勤明细与导出均呈现记录人；记录时间可留存、不强调。（D-457）
+- **项目角色不落 `users.role`**：`organizer` / `deep` 写门拒收，只在具体活动 / 专班内生效；一人多岗权限取并集。（D-687）
+- **待人工**：D-442「专班发布招募即入待支委会表决」与组织委员指南「专班不必先经统一表决」口径不一致，未择边，待人工裁定。

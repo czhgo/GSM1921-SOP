@@ -42,7 +42,7 @@ status: active
 | `copy-anchor-guard-e2e.test.mjs` | 页面文案（真机） | 3 | 2 | — | `copy-guard` |
 | `copy-guard.test.mjs` | 页面文案（折叠区 / 长度 / 制度母本 / 自明性 / 卡头副题 SD-54 / 空态单一源 / 日期硬编码 / docs 支部名与旧色名，2026-10-27 批次 516 四件合一 · 2026-10-28 增 S1/S2、E1/E2、D1/D2、B1/B2） | 22 | 37 | — | `copy-anchor-guard-e2e`、`copy-screen-guard` |
 | `copy-screen-guard.test.mjs` | 页面文案（真机逐屏） | 5 | 3 | — | `copy-length-guard`、`copy-master-guard` |
-| `ctx-hygiene-guard.test.mjs` | 目录 / 文档（`.ctx` 准入与归档） | 4 | 26 | — | `docs-governance-guard`（README / AGENTS / 索引位） |
+| `ctx-hygiene-guard.test.mjs` | 目录 / 文档（`.ctx` 准入、active 预算与索引） | 7 | 29 | — | `docs-governance-guard`（README / AGENTS / 索引位） |
 | `data-lifecycle-guard.test.mjs` | 数据（生命周期 / 迁移 / 业务数据永不自动删） | 16 | 11 | — | `db-integrity-guard`、`db-migration`、`seed-baseline` |
 | `date-canon-guard.test.mjs` | 代码 / 数据（日期口径） | 2 | 11 | — | `doc-consistency::S13`、`frontmatter` 日期线（已并入 docs-governance） |
 | `db-integrity-guard.test.mjs` | 数据（表结构 / 版本） | 5 | 3 | — | `db-migration`、`seed-baseline` |
@@ -50,7 +50,7 @@ status: active
 | `demo-window-guard.test.mjs` | 数据（演示窗口 / 月份与状态覆盖） | 5 | 17 | — | `seed-contract-guard`、`mock-api-parity-structure`、`date-canon-guard` |
 | `density-spacing-guard.test.mjs` | 组件 / token（密度间距） | 7 | 1 | 是 | `spacing-scale-guard`、`ui-control-system-guard` |
 | `doc-consistency.test.mjs` | 文档（跨面口径 S1–S20） | 23 | 67 | 是 | `docs-governance-guard`、`ctx-hygiene-guard`、`test-tier-guard` |
-| `docs-governance-guard.test.mjs` | 文档（frontmatter / 备注列 / 行号引用 / README / AGENTS / SNAPSHOT / 判例 / 术语 Harness / 指针回潮） | 26 | 38 | — | `doc-consistency`、`ctx-hygiene-guard`、`link-integrity` |
+| `docs-governance-guard.test.mjs` | 文档（frontmatter / 备注列 / 行号引用 / README / AGENTS / 批次索引 / 判例 / 术语 Harness / 指针回潮） | 26 | 38 | — | `doc-consistency`、`ctx-hygiene-guard`、`link-integrity` |
 | `feedback-integrity.test.mjs` | 页面 / 数据（写反馈可信） | 12 | 8 | — | `pending-writes`、`write-path-guard` |
 | `field-shell-guard.test.mjs` | 组件（字段外壳 ＋ 裸输入棘轮 R1–R3 ＋ 建议输入去原生 datalist R4–R5） | 11 | 5 | 是 | `ui-control-system-guard`、`hover-state-guard` |
 | `frontend-foundations-guard.test.mjs` | 组件 / 页面（前端底线 ＋ 日历默认月由 now 派生 ＋ 只读由权限派生 F12） | 12 | 13 | 是 | `ui-motion-guard`、`hover-state-guard`、`hex-hardcode-guard` |

@@ -108,3 +108,13 @@ related_files: [DS_01_COLOR_AND_THEME.md, DS_02_TYPE_AND_SIZE.md, DS_03_COMPONEN
 > **运行手册见 `content/05_ai_coding/TAB_AUDIT_PLAYBOOK.md`**（怎么跑、怎么判、怎么加检查与加页签）。
 >
 > **审计口径以 `content/05_ai_coding/AUDIT_CANON.md` 为准**（F2 / F4 / F7-D2 / C1 / F1 的唯一判据与 daily / precommit / audit 分工）。
+
+---
+
+## 附：系统现行口径承接（2026-11-03）
+
+> 来源：`.ctx/ACTIVE_RULINGS.md` 分类承接；每条末尾 `（D-xxx）` 是决议指针，正文以本文件为准。
+
+- **区块顺序服从组织层级**：同页区块纵向顺序＝支部层 → 党小组层 → 活动层；成员配置不得寄居在下级实体的 tab 里。（D-668/D-669）
+- **读侧首屏保留、写侧默认折叠**：读的内容留在一屏，写入口收进折叠，不因写区扩张挤走首屏。（D-675）
+- **分域以母本为准**：不为视觉对齐而拆域 / 拆块；分域依据业务母本，不依据列宽或对称。（D-675）

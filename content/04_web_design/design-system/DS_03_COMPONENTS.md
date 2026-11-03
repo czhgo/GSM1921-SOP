@@ -1520,3 +1520,13 @@ related_files: [DESIGN_SYSTEM.md, DS_02_TYPE_AND_SIZE.md, DS_04_INTERACTION_AND_
 > 同义不换词；空态一句 ＋ 最多一个出口。**空态只从 `docs/src/components/ui/empty-state.js` 出，不再手写**（`panel` 居中块 / `inline` 行内一句 / `table` 表格空行）；未登录、无权限一律收敛为 `panel` ＋「请先登录后使用」＋ 一个「去登录」出口，「—」前缀只用于缺数据，不再用于空态。
 
 > 其余条目（SD-01…SD-21）的判例迁移登记为后续批次。
+
+---
+
+## 附：系统现行口径承接（2026-11-03）
+
+> 来源：`.ctx/ACTIVE_RULINGS.md` 分类承接；每条末尾 `（D-xxx）` 是决议指针，正文以本文件为准。
+
+- **活动风采置顶**：主源字段 `galleryPinned`（＋`galleryPinnedBy`/`galleryPinnedAt`）；排序权重「置顶 ＞ 未完成 ＞ 已完成」，组内按活动日期倒序；未收录者不许置顶，撤收录同时清置顶。（D-710）
+- **操作可见性**：凡具操作能力者必须给出边框或颜色至少其一，不得以裸文字呈现；例外四类（行式载体 / `sr-only` / 纯导航链接 / 与主操作并排的取消关闭）；`.btn-ghost` 不得用于并列实体操作；守卫 `ui-control-system-guard::V4/B8`。（D-713）
+- **按钮族谱定位**：8 族已收口为「四类 ＋ 两档」，8 族只作沿革记录，现行判据以本编 §12.15 与 `DESIGN_SYSTEM §4.1` 为准。（D-708）

@@ -46,6 +46,7 @@ const TIMESTAMPS = join(ROOT, '.ctx', 'TIMESTAMPS.md');
 const DOC_MAP = join(ROOT, 'content', '03_doc_system', 'DOC_MAP.md');
 const CASES_INDEX = join(ROOT, 'content', '03_doc_system', 'CASES_INDEX.md');
 const SNAPSHOT = join(ROOT, '.ctx', 'SNAPSHOT.md');
+const EXEC_LOG_INDEX = join(ROOT, '.ctx', 'logs', 'EXECUTION_LOG_INDEX.md');
 const read = (f) => readFileSync(f, 'utf8');
 const DATE_RE = /20\d{2}-\d{2}-\d{2}/g;
 
@@ -787,10 +788,15 @@ test('G5 AGENTS.md：6 份均存在，含 6 段固定标题与可执行测试命
   assert.deepEqual(problems, [], `AGENTS.md 结构不符：\n  ${problems.join('\n  ')}`);
 });
 
-test('G6 SNAPSHOT 含「批次 509 小结」段', () => {
-  const src = read(SNAPSHOT);
-  assert.match(src, /^##\s*批次\s*509\s*小结/m,
-    '`.ctx/SNAPSHOT.md` 缺「## 批次 509 小结」段——每批收尾必须在 SNAPSHOT 末尾追加 5 行小结（.ctx/README.md §四）');
+test('G6 批次索引含最新批次行（替代 SNAPSHOT 5 行小结）', () => {
+  const src = read(EXEC_LOG_INDEX);
+  assert.match(src, /^## 批次索引/m,
+    '`.ctx/logs/EXECUTION_LOG_INDEX.md` 缺「批次索引」表——每批收尾须在此加一行（批次 / 日期 / 一句话）');
+  assert.match(src, /^\| 529 \| 2026-11-03 \|/m,
+    '批次索引缺最新批次 529 行：收尾时必须同步，否则 active context 失去批次索引');
+  const snap = read(SNAPSHOT);
+  assert.doesNotMatch(snap, /^## 批次 \d+ 小结/m,
+    '`.ctx/SNAPSHOT.md` 不应再承载批次小结（已改由 EXECUTION_LOG_INDEX 承接）');
 });
 
 test('G7 判例索引：每条 CASE 行都有「所属域」与「对应规范编号」', () => {

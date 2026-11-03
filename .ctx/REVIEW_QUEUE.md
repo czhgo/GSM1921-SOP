@@ -2,8 +2,9 @@
 title: "支书评议队列"
 type: audit_report
 role: "[工程师]+[AI]"
-last_updated: 2026-10-27
+last_updated: 2026-11-03
 status: active
+layer: reference
 related_files: [CLAUDE.md, .ctx/ENGINEERING_ASSESSMENT.md, .ctx/logs/]
 ---
 

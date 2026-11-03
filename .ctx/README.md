@@ -1,84 +1,91 @@
 ---
-title: ".ctx 审计底座：分桶说明与检索索引"
+title: ".ctx 上下文仓库：三层分职与准入规则"
 type: index
 role: "[工程师]+[AI]"
-last_updated: "2026-10-27"
+last_updated: "2026-11-03"
 status: active
-related_files: [CLAUDE.md, .ctx/SNAPSHOT.md, .ctx/logs/EXECUTION_LOG_INDEX.md, content/03_doc_system/DOC_MAP.md]
 ---
 
-# .ctx 审计底座：分桶说明与检索索引
+# .ctx 上下文仓库：三层分职与准入规则
 
-> **定位**：本文件只回答「`.ctx` 里的东西该放哪、去哪找」，不复制任何台账正文。
-> **只做逻辑分桶**：不物理移动任何既有文件（避免断链、断历史）；桶是阅读与检索口径，不是新目录。
-> **覆盖范围**：新建本文件前，`.ctx` 现存 **124 个文件**（`evidence/` 66 · `logs/` 53 · `state` 5）。其中「index」桶的 1 个文件物理位于 `logs/`，不移动。
+> **定位（2026-11-03 批次 529 改准）**：`.ctx` **不是 active context，而是上下文仓库**。active context 是它的一个有界投影。
+> **本文件只回答三件事**：① 什么内容进哪一层；② 每层读什么、什么时候读；③ 冲突与保鲜怎么处理。不复制任何台账正文。
 
-## 一、五桶
+## 一、三层
 
-| 桶 | 目录 / 文件（物理位置） | 该放什么 | 不该放什么 | 谁读 |
+| 层 | 文件 / 目录 | 内容类型 | 更新频率 | 读取策略 |
 |---|---|---|---|---|
-| **evidence** | `.ctx/evidence/YYYY-MM-DD/` | 截图、`metrics.json`、真机日志、交互采样等**原始证据**；文件名要能回答「哪天、哪个页面、什么状态」 | 结论、规则、待办、可复用方法 | `[AI]` 取证与复核时按日期查；`[工程师]` 复核证据链 |
-| **logs** | `.ctx/logs/*.md`（当月执行 / 决策日志、审计原文） | 执行日志、决策日志、审计报告；带批次号 / `D-` 号 / 证据指针 | 规则（规则进 `CLAUDE.md` / `content`）、已闭环待办、可复用规范 | `[AI]` 每批开工与收尾；`[工程师]` 审计追溯 |
-| **logs/archive** | `.ctx/logs/archive/YYYY-MM/` | 历史月份日志、已完成轮次的审计原文；**原样保留** | 新内容、回填改写（历史不可变） | `[AI]` 按需；**只读** |
-| **state** | `.ctx/` 顶层 5 份台账（见 §二） | 当前基线、现行裁定投影、评议队列、工程评分、文件时间戳 | 逐批过程、一次性证据、未沉淀的结论 | `[AI]` 新会话开局同步现状；`[工程师]` 决策前查阅 |
-| **index** | `.ctx/logs/EXECUTION_LOG_INDEX.md`（逻辑桶，**文件不移动**） | 跨批检索入口：月份文件目录、T 编号速查、归档指针、每条是否已被 `content` 吸收 | 执行正文、规则正文 | `[AI]` 找「哪批做过什么」；`[工程师]` 追溯来源 |
+| **active（热）** | `CLAUDE.md` ／ `.ctx/ACTIVE_CONTEXT.md` | 当前状态、当前判断、下一步动作、读取地图 | 每批 / 每条新裁定 | **每次会话必读** |
+| **reference（温）** | `SNAPSHOT.md` ／ `ACTIVE_RULINGS.md` ／ `ENGINEERING_ASSESSMENT.md` ／ `REVIEW_QUEUE.md` ／ `TIMESTAMPS.md` | 系统形态、规则索引、评分证据、待评议、机器元数据 | 按批 / 按裁定 / 按文件 | 按需读，不默认全读 |
+| **provenance（冷）** | `logs/` ／ `evidence/` | 执行 / 决策 / 审计原文；截图与读数 | 追加 | 只追溯时读；不改写历史 |
 
-## 二、state 桶：五份台账各是什么
+> **判据**：只有「**当前状态 / 当前判断**」有资格进 active；「**规则 / 判例 / 方法**」进 `content/01–05`；「**原始证据**」进 `evidence/`；「**过程流水**」进 `logs/`；「**何时动过**」进 `TIMESTAMPS.md`。
 
-| 文件 | 回答什么问题 | 不回答什么（去哪） |
-|---|---|---|
-| `.ctx/SNAPSHOT.md` | **系统现在长什么样**：目录结构、页面与数据表清单、角色与基线口径；末尾另存**每批 5 行小结**（见 §四） | 沿革与逐批细节 → `logs/YYYY-MM-EXECUTION_LOG.md`；工程打分 → `ENGINEERING_ASSESSMENT.md` |
-| `.ctx/ACTIVE_RULINGS.md` | **现在该怎么判**：现行有效裁定速查，每行指到 `D-` 号 | 决议正文、已废止裁定、沿革 → `logs/YYYY-MM-DECISION_LOG.md` |
-| `.ctx/REVIEW_QUEUE.md` | **要评议什么、评议怎么做**：需多轮启动的专项、待裁 / 待落地命题、支书检查要点 | 过程、进度、逐批沿革、落地细节 → `logs/` |
-| `.ctx/ENGINEERING_ASSESSMENT.md` | **工程短板在哪、先改哪条边界**：六维评分、残项、改造行动线 | 逐批论证与沿革 → `logs/`；规则判据 → `CLAUDE.md` / `content/05_ai_coding/` |
-| `.ctx/TIMESTAMPS.md` | **哪些文件何时被谁动过、周期任务何时到期** | 改了什么、为什么改 → `logs/`；系统现状 → `SNAPSHOT.md` |
+## 二、准入判据（新内容先过三问）
 
-## 三、与 `content` 的同步判据（三问）
+1. **知识类型**：是当前事实、规则、判例、方法、证据，还是元数据？
+2. **更新频率**：每会话 / 每批 / 每裁定 / 每次改文件 / 只增不改？
+3. **权威性**：它是权威源、投影、索引，还是一次性记录？
 
-任何 `.ctx` 产出要进 `content` 前，先逐条回答三问：
-
-1. **可复用？**——能脱离本批场景 / 本支部，被下一位 AI 或另一个支部直接复用。
-2. **有结论？**——写的是结论，不是过程、不是待定项、不是纯数据。
-3. **能布尔化？**——能落成可判定的判据、清单或守卫断言（至少能写出「什么算违反」）。
-
-| 三问结果 | 去哪 | 写法 |
-|---|---|---|
-| 三问全「是」 | **`content/`** | 按分职落位：规范 → `03_doc_system/` / `04_web_design/`；判例 → `05_ai_coding/`；索引 → 对应 `README` / `DOC_MAP` |
-| 只有一次性取证价值 | **`evidence/`** 原件 + `logs/` 一行指针 | 不写结论，只写「哪天的什么证据、支持哪条判断」 |
-| 两者都要 | **双向指针** | `content` 写结论并带 `evidence` / `logs` 的 `file:line`；`evidence` 原件与日志段保留回链；**不复制正文** |
-| 任一「否」 | 留 `logs/` | 不得以「先写进 content 再说」污染母本；待结论成形后再迁 |
-
-> **判据速记**：可复用 → 规范；有结论 + 可布尔化 → 判例 / 守卫；只有现场价值 → 证据。删除任何 `.ctx` 条目前先过这张表（`CLAUDE.md H50.1 §3.1`）。
-
-## 四、阶段小结：唯一落点 / 触发条件 / 检查方式
-
-> 防逃逸三件套必须同时具备；缺一即会重演「建立后无人执行」（判例与因果链见 `content/05_ai_coding/REVIEW_AND_EXPRESSION.md`「审查漏项的结构性原因」）。
-
-| 件 | 内容 |
+| 三问结果 | 去哪 |
 |---|---|
-| **唯一落点** | `.ctx/SNAPSHOT.md` 末尾的 `## 批次 NNN 小结（YYYY-MM-DD）` 段；固定 5 行：**做了什么 / 结论 / 未决 / 已迁 content 的条目 / 下批入口**。不另起文件，不写进 `REVIEW_QUEUE` / `ENGINEERING_ASSESSMENT`。 |
-| **触发条件** | **每批收尾**：执行日志写完、测试读数落盘之后，向用户回报之前。 |
-| **检查方式** | `docs-governance-guard` G6 断言 `SNAPSHOT.md` 存在「批次 509 小结」段（**只此一段，未断言最近一批、未逐行断 5 行**）；其余批次靠人工按本表核对。 |
+| 当前事实 / 当前判断，且每批会变 | `.ctx/ACTIVE_CONTEXT.md`（active） |
+| 长期规则，跨组织可复用 | `content/01–05` 对应层；`.ctx` 只留索引 |
+| 判例 / 方法 / 审查步骤 | `content/05_ai_coding/`（或 04 的判例集） |
+| 系统形态 / 页面 / 表清单 | `.ctx/SNAPSHOT.md`（reference） |
+| 评分 / 阻断风险 / 行动线 | `.ctx/ENGINEERING_ASSESSMENT.md`（reference） |
+| 待评议 / 待裁 | `.ctx/REVIEW_QUEUE.md`（reference） |
+| 原始截图 / 读数 / 真机日志 | `.ctx/evidence/YYYY-MM-DD/`（provenance） |
+| 执行 / 决策 / 审计原文 | `.ctx/logs/`（provenance） |
 
-> **现状（如实）**：`ctx-hygiene-guard` 只守 `.ctx` 顶层白名单与归档指针；`docs-governance-guard` G6 已断言批次 509 段存在，但「最近一批 + 5 行齐全」尚未机检（2026-10-27 批次 515 已清点：509–515 共 7 段，每段 5 行）。机检缺口已登记为待办。
->
-> **与基线的关系**：小结段是**每批索引**，只追加、不重写 §I–§VI；不改变 `OPERATIONS_GUIDE §15.3` 的基线重生成触发条件。
+**禁止**：把规则正文写进 `.ctx` 顶层；把一次性证据写进 `ACTIVE_CONTEXT`；把已闭环待办留在 `REVIEW_QUEUE`；把历史论证塞进 `SNAPSHOT`。
 
-## 五、检索入口
+## 三、读取顺序
 
-| 想找什么 | 去哪 | 关键词 / 入口 |
+1. 每次会话：`CLAUDE.md` → `.ctx/ACTIVE_CONTEXT.md`。
+2. 需要系统形态 / 目录 / 表清单：`.ctx/SNAPSHOT.md`。
+3. 需要分域裁定：`.ctx/ACTIVE_RULINGS.md` → 再按索引去 `content`。
+4. 需要评分 / 下一批依据：`.ctx/ENGINEERING_ASSESSMENT.md` §一 / §四 / §5.2。
+5. 需要待评议：`.ctx/REVIEW_QUEUE.md`。
+6. 只有追溯成因 / 证据时：`.ctx/logs/`、`.ctx/evidence/`。
+
+## 四、预算与保鲜
+
+- `ACTIVE_CONTEXT.md`：**≤300 行 / ≤30KB**；超预算先把细节降级到 reference，再压缩措辞。
+- `ACTIVE_RULINGS.md`：**≤150 行**；只留索引，不复制规则。
+- `SNAPSHOT.md`：**≤250 行**；不再放批次小结。
+- 每次收尾：`wc -l -c .ctx/ACTIVE_CONTEXT.md`；`latest_decision` 必须 ≥ 当月决策日志最后一条 `D-xxx`。
+- 连续 3 批未触发、且不再影响动作的 active 行：删除或降级。
+
+## 五、冲突处理
+
+**权威顺序**：当月 `DECISION_LOG` ＞ `.ctx/ACTIVE_CONTEXT.md` ＞ `content` 权威 ＞ `SNAPSHOT.md` ＞ `ENGINEERING_ASSESSMENT.md` ＞ `logs` / `evidence`。
+
+- 发现两处口径冲突：先找最新 `D-xxx`；找到即按它改投影与 content。
+- 找不到：不得自行择边；登记到 `.ctx/REVIEW_QUEUE.md` 或 `CLAUDE.md` 丙部待裁。
+- 改裁时三处一起动：决策日志追加新 `D-xxx` → `content` 对应节改准 → `ACTIVE_CONTEXT` / `ACTIVE_RULINGS` 投影同步。
+
+## 六、文件索引
+
+| 文件 | 层 | 只答一个问题 |
 |---|---|---|
-| **某条规则**（现行怎么判） | `CLAUDE.md` 甲部 / 乙部 → `content/05_ai_coding/` / `content/03_doc_system/`；现行裁定速查 → `.ctx/ACTIVE_RULINGS.md` | `H` 编号、`R-` 编号、`D-` 编号 |
-| **某次为什么这么改** | `.ctx/logs/YYYY-MM-DECISION_LOG.md`（决议）→ 同月 `EXECUTION_LOG.md`（过程）；跨批先查 **index 桶** | `D-` 号、批次号、文件名 |
-| **某张截图 / 某组读数** | `.ctx/evidence/YYYY-MM-DD/`；引用点看执行日志里的 `evidence` 路径 | 日期 + 页面名 + `metrics` |
-| **系统现在长什么样** | `.ctx/SNAPSHOT.md` | 目录、页面、表数、角色 |
-| **工程短板 / 下一批做什么** | `.ctx/ENGINEERING_ASSESSMENT.md` | 六维、残项、行动线 |
-| **待评议命题 / 检查要点** | `.ctx/REVIEW_QUEUE.md` | 专项编号、`SOP-` 编号 |
-| **历史月份 / 旧审计原文** | `.ctx/logs/archive/YYYY-MM/`（只读） | 月份 + 文件名 |
+| `ACTIVE_CONTEXT.md` | active | 现在该知道什么、下一步做什么 |
+| `SNAPSHOT.md` | reference | 系统现在长什么样 |
+| `ACTIVE_RULINGS.md` | reference | 某条现行口径到哪找（索引） |
+| `ENGINEERING_ASSESSMENT.md` | reference | 工程化到几成、先改哪条边界 |
+| `REVIEW_QUEUE.md` | reference | 还要评议什么、怎么评 |
+| `TIMESTAMPS.md` | reference | 哪个文件何时动过 |
+| `logs/` | provenance | 当时为什么这么定、做了什么 |
+| `evidence/` | provenance | 哪天的什么证据支持哪条判断 |
 
-## 六、维护规则
+## 七、可复用资产（指针，不复制正文）
 
-1. **先判桶再落笔**：新增文件先按 §一判定归属；不属于任何桶的，先沉淀到正式文档再归档。
-2. **不物理移动既有文件**：本 README 只是索引；归档动作只允许「新增到 `logs/archive/YYYY-MM/`」或按既有归档规则移动，不改写历史内容。
-3. **白名单**：`.ctx` 顶层准入以 `CLAUDE.md H26.3` 为准（当前 9 项，含本 README 与 `AGENTS.md`）；`ctx-hygiene-guard` 的白名单断言与之同口径（2026-10-27 批次 515 对齐）。
-4. **每批收尾**：按 §四 在 `SNAPSHOT.md` 追加 5 行；同时检查「已迁 content 的条目」是否有指针。
+| 资产 | 落点 |
+|---|---|
+| 上下文三层 / 预算 / 冲突 | `content/05_ai_coding/CONTEXT_MANAGEMENT.md` |
+| 文档准入 / 晋升 / 删除 | `content/05_ai_coding/DOCUMENT_GOVERNANCE.md` |
+| 批次收尾协议 | `CLAUDE.md H40` + `content/05_ai_coding/TEST_AND_VERIFICATION.md` |
+| 决策 → 裁定投影 | 本文件 §二 / §五 + `ACTIVE_RULINGS.md` |
+| 证据索引 | `.ctx/logs/EXECUTION_LOG_INDEX.md` |
+| 六维评分方法 | `.ctx/ENGINEERING_ASSESSMENT.md` §一 / §二 |
+| 页签审计 | `content/05_ai_coding/TAB_AUDIT_PLAYBOOK.md` + `AUDIT_CANON.md` |

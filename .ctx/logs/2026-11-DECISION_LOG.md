@@ -12,7 +12,7 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 > 本文件记录 2026 年 11 月所有非显而易见的决策。每条决策包含背景/选项/决定/理由/影响范围/一改具改检查。
 > **来源（2026-11-01 批次 524 换月）**：自 2026-10 文件续编，`D-827` 起记于本文件；每条只写「评议 → 裁定 → 落点文件」一句，过程见 `.ctx/logs/2026-10-EXECUTION_LOG.md` 与 `git`。
 
-> **条目编号起止**：本文件当前 **`D-827` … `D-851`，共 25 条**；下一条自 **`D-852`**。
+> **条目编号起止**：本文件当前 **`D-827` … `D-852`，共 26 条**；下一条自 **`D-853`**。
 
 ## 本月目录（2026-11）
 
@@ -45,6 +45,7 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 | 多支部同实例设计：Phase 1–2 完成前不得打开 ALLOW_MULTI_BRANCH | `D-849` | 2026-11-03 | 设计已出（未实现） |
 | 上线残项单一台账 L-01…L-21；launch-blocker 6 条已关 / 1 条降级 | `D-850` | 2026-11-03 | 已落（上线专项） |
 | 六维重评：安全 52→66 · 测试 80→83 · 架构 74→76 · 部署 68→73 · 数据 78→79；三成本维持 68 | `D-851` | 2026-11-03 | 已落（上线专项） |
+| `.ctx` 三层：active 投影 + reference + provenance；规则进 content，ACTIVE_RULINGS 只留索引 | `D-852` | 2026-11-03 | 已落（批次 529） |
 
 ## D-827 2026-11-01 — 数据表表头去灰
 
@@ -168,4 +169,8 @@ related_files: [CLAUDE.md, .ctx/logs/2026-11-DECISION_LOG.md, .ctx/logs/2026-10-
 > - 阻断风险：第 2 条部分闭环、第 4 条会话过期闭环、其余保留。
 > - 落点：`.ctx/ENGINEERING_ASSESSMENT.md §一 / §二 / §5.2`。
 
-> **本文件续编说明**：本文件按批追加、不改写既有条目；当前止于 `D-851`**（共 **25** 条）。
+## D-852 2026-11-03 — `.ctx` 三层与 Active Context 预算
+
+> **评议 → 裁定 → 落点**：支书批「`.ctx` 内容多、权责边界不清、更新频率不一致，容易污染上下文；但也有很多可复用资产」→ 裁定 **`.ctx` 是仓库、不是 active context**：新增 `.ctx/ACTIVE_CONTEXT.md` 作为唯一热投影（≤300 行 / 30KB）；规则 / 判例 / 方法正文先进 `content/01–05`，`.ctx/ACTIVE_RULINGS.md` 只留跨域摘要 + 16 领域索引；`SNAPSHOT` 删除批次小结、改由 `EXECUTION_LOG_INDEX` 承接；`ENGINEERING_ASSESSMENT` / `REVIEW_QUEUE` 标 `reference`；`ACTIVE_RULINGS` / `SNAPSHOT` 路径不移动（分别约 44 / 93 处引用）→ `.ctx/ACTIVE_CONTEXT.md`、`.ctx/README.md`、`.ctx/AGENTS.md`、`CLAUDE.md H26.4`、`content/05_ai_coding/{CONTEXT_MANAGEMENT,DOCUMENT_GOVERNANCE}.md`；守卫 `ctx-hygiene-guard::⑤–⑦`、`docs-governance-guard::G6`、`doc-consistency::S14/S15`。
+
+> **本文件续编说明**：本文件按批追加、不改写既有条目；当前止于 `D-852`**（共 **26** 条）。

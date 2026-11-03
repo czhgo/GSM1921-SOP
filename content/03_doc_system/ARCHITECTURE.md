@@ -2,7 +2,7 @@
 title: "架构与单一事实源"
 type: architecture
 role: "[工程师]+[AI]"
-last_updated: "2026-10-30"
+last_updated: "2026-11-03"
 version: "7.4"
 status: active
 related_files: [CLAUDE.md, content/03_doc_system/DOC_MAP.md, content/02_institution/SYSTEM_ROLE_PERMISSION.md, content/04_web_design/]
@@ -592,3 +592,14 @@ content/02_institution/sop/ → docs/src/workflow/ → core/constants/utils → 
 | 前端设计规范 | [DESIGN_SYSTEM.md](../04_web_design/design-system/DESIGN_SYSTEM.md) |
 | 支书裁定原文（P-xxx 系列） | [SECRETARY_DIRECTIVES.md](../01_strategy/SECRETARY_DIRECTIVES.md) |
 | 沿革与「哪一批做了什么」 | `.ctx/logs/YYYY-MM-EXECUTION_LOG.md` |
+
+---
+
+## 附：系统现行口径承接（2026-11-03）
+
+> 来源：`.ctx/ACTIVE_RULINGS.md` 分类承接；每条末尾 `（D-xxx）` 是决议指针，正文以本文件为准。
+
+- **独立页必须 hydrate**：`docs/*.html` 独立页入口须 `registerApiAdapter` ＋ `init()` / `bootstrapPage`；只 import `runtime.js` 默认仍是 mock，api 形态下只能读到种子。（D-485/D-489）
+- **渲染型路径写 `./`**：JS 渲染的链接 / 资源路径一律 `./`，不得 `../`；裸文件名按 `<base>` 解析后必须真实存在。（D-610/D-646/D-656）
+- **批准门服务端补门**：`POST /activities` 与 `POST /snapshot` 与 `PATCH` 过同一判据，不新增专用端点。（D-591/D-593）
+- **`WORKFLOW_BLOCK_CONTRACT` 的定位**：属 `evolution/` 论证档，不是现行权威；现行契约以 `DS_03` 与本文为准。（D-686）
