@@ -1,0 +1,285 @@
+{
+  "endpoint": "GET /api/v1/leader/member-progress",
+  "impl": "server/routes/leader-progress.js",
+  "measuredAt": "2026-10-31T17:47:09.449Z",
+  "machine": {
+    "os": "Windows",
+    "note": "测量期间仓库内有并行任务在跑，故以同窗口交错 A/B 为主判据"
+  },
+  "account": "2400012345",
+  "request": {
+    "personIdsCount": 20,
+    "today": "2026-11-01",
+    "warmupEach": 5,
+    "timedRuns": 20
+  },
+  "reportedBaseline": {
+    "p50": 18.38,
+    "p95": 24.6,
+    "bytes": 1390,
+    "note": "任务下达口径（n=20）；本机复测见 sequential / interleaved"
+  },
+  "sequential": {
+    "note": "顺序跑（改前先跑 / 改后后跑），测量期间仓库内有并行任务，绝对值受负载漂移影响；判据以 interleavedAB 为准",
+    "before": {
+      "label": "before-3000",
+      "base": "http://localhost:3000",
+      "personIdsCount": 20,
+      "today": "2026-11-01",
+      "n": 20,
+      "p50": 16.26,
+      "p95": 18.69,
+      "min": 12.81,
+      "max": 19.19,
+      "mean": 16.4,
+      "bytes": 2765,
+      "bodySha256": "c7356d0ba132d7759b9e889def5d75f4df24af2d1359e96b4dea272d3fe79b7f",
+      "samples": [
+        18.69,
+        15.99,
+        14.78,
+        19.19,
+        12.81,
+        14.1,
+        15.71,
+        16.26,
+        17.25,
+        18.15,
+        17.96,
+        17.01,
+        14.72,
+        16.49,
+        15.84,
+        17.76,
+        14.71,
+        16.89,
+        15.95,
+        17.66
+      ]
+    },
+    "after": {
+      "label": "after-3200",
+      "base": "http://localhost:3200",
+      "personIdsCount": 20,
+      "today": "2026-11-01",
+      "n": 20,
+      "p50": 9.61,
+      "p95": 12.3,
+      "min": 6.62,
+      "max": 15.81,
+      "mean": 10.21,
+      "bytes": 2765,
+      "bodySha256": "c7356d0ba132d7759b9e889def5d75f4df24af2d1359e96b4dea272d3fe79b7f",
+      "samples": [
+        11.94,
+        15.81,
+        11.83,
+        10.83,
+        11.61,
+        9.61,
+        8.21,
+        9.6,
+        12.3,
+        10.81,
+        9.42,
+        9.54,
+        11.11,
+        8.3,
+        8.93,
+        9.76,
+        11.58,
+        8.31,
+        6.62,
+        8.06
+      ]
+    }
+  },
+  "interleavedAB": {
+    "note": "同窗口交替打 3000（改前旧进程）与 3200（改后），每轮换序；各 40 次",
+    "before": {
+      "n": 40,
+      "p50": 11.96,
+      "p95": 16.82,
+      "min": 10.16,
+      "max": 18.79,
+      "mean": 12.46,
+      "samples": [
+        12.2,
+        14.87,
+        13.26,
+        11.74,
+        12.2,
+        12.72,
+        11.64,
+        13.94,
+        12.9,
+        15.74,
+        12.63,
+        18.79,
+        13.16,
+        11.4,
+        10.16,
+        12.42,
+        10.61,
+        11.5,
+        10.84,
+        13.95,
+        11.07,
+        11.96,
+        11.37,
+        11.98,
+        10.51,
+        12.29,
+        10.52,
+        11.35,
+        10.6,
+        18.39,
+        16.82,
+        12.65,
+        11.41,
+        10.43,
+        13.43,
+        10.74,
+        11.09,
+        11.15,
+        12.8,
+        11.17
+      ]
+    },
+    "after": {
+      "n": 40,
+      "p50": 6.53,
+      "p95": 9.12,
+      "min": 5.68,
+      "max": 9.43,
+      "mean": 7.01,
+      "samples": [
+        8.64,
+        7.8,
+        7.31,
+        8.18,
+        7.9,
+        7.09,
+        8.82,
+        6.3,
+        6.17,
+        8.91,
+        8.82,
+        6.14,
+        7.07,
+        5.97,
+        6.53,
+        5.88,
+        6.17,
+        6.11,
+        5.82,
+        5.86,
+        6.19,
+        6.65,
+        6.39,
+        9.12,
+        9.42,
+        6.19,
+        6.28,
+        5.8,
+        6.21,
+        9.43,
+        7.93,
+        7.08,
+        6.84,
+        5.91,
+        7.07,
+        5.68,
+        7.65,
+        5.7,
+        7.69,
+        5.78
+      ]
+    },
+    "bytes": {
+      "before": 2765,
+      "after": 2765
+    },
+    "consistency": {
+      "byteIdentical": true,
+      "sha256Before": "c7356d0ba132d7759b9e889def5d75f4df24af2d1359e96b4dea272d3fe79b7f",
+      "sha256After": "c7356d0ba132d7759b9e889def5d75f4df24af2d1359e96b4dea272d3fe79b7f"
+    }
+  },
+  "consistency": {
+    "sameRequestByteIdentical": true,
+    "cases": {
+      "allByteIdentical": true,
+      "cases": [
+        {
+          "name": "20人/无branchId",
+          "same": true,
+          "statusBefore": 200,
+          "statusAfter": 200,
+          "bytes": 2805,
+          "sha256_16": "e1e47987f20567d9"
+        },
+        {
+          "name": "50人/branchId=br-b1",
+          "same": true,
+          "statusBefore": 200,
+          "statusAfter": 200,
+          "bytes": 6795,
+          "sha256_16": "fe1c50d73b0fdc48"
+        },
+        {
+          "name": "1人",
+          "same": true,
+          "statusBefore": 200,
+          "statusAfter": 200,
+          "bytes": 164,
+          "sha256_16": "c71336bb69a07470"
+        },
+        {
+          "name": "空 personIds",
+          "same": true,
+          "statusBefore": 400,
+          "statusAfter": 400,
+          "bytes": 58,
+          "sha256_16": "c6534348bc169cf3"
+        },
+        {
+          "name": "无权限（外支部人员）",
+          "same": true,
+          "statusBefore": 200,
+          "statusAfter": 200,
+          "bytes": 164,
+          "sha256_16": "258d3234392f5600"
+        },
+        {
+          "name": "党委 staff=9000000001 选支部",
+          "same": true,
+          "statusBefore": 200,
+          "statusAfter": 200,
+          "bytes": 2805,
+          "sha256_16": "e1e47987f20567d9"
+        },
+        {
+          "name": "党委未选支部 → 400",
+          "same": true,
+          "statusBefore": 400,
+          "statusAfter": 400,
+          "bytes": 57,
+          "sha256_16": "703796c53c1310a1"
+        }
+      ]
+    }
+  },
+  "verdict": {
+    "targetP50Ms": 9,
+    "p50Before_interleaved": 11.96,
+    "p50After_interleaved": 6.53,
+    "p50TargetMet": true,
+    "p95After_interleaved": 9.12,
+    "bytesUnchanged": true
+  },
+  "changes": [
+    "server/routes/leader-progress.js：users/todos/attendances/inspections/issues 全部改为 personId 集 SQL 预筛（IN，500 参数/批，ORDER BY rowid 保序）+ 请求级 createTableReader 复用关联行",
+    "server/routes/resources/branch-scope.js：复用并行批次已落地的可选 reader（本接口仅传参，未改其导出签名/口径）"
+  ]
+}

@@ -1,0 +1,29 @@
+{
+  "url": "http://localhost:3000/workspace/secretary.html?dev=secretary&tab=overview",
+  "workgroup": {
+    "heads": 1,
+    "headTitles": [
+      "活动工作组与专班工作组"
+    ],
+    "metas": [
+      "只读"
+    ],
+    "cards": 0,
+    "segBodyHeads": 0,
+    "rows": 10,
+    "tfCards": 0
+  },
+  "taskforce": {
+    "heads": 1,
+    "headTitles": [
+      "活动工作组与专班工作组"
+    ],
+    "metas": [
+      "只读"
+    ],
+    "cards": 0,
+    "segBodyHeads": 0,
+    "rows": 0,
+    "tfCards": 8
+  }
+}

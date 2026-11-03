@@ -1,0 +1,122 @@
+{
+  "measuredAt": "2026-10-31T17:19:23.778Z",
+  "desktop": {
+    "gridColumns": "276px 276px 276px 276px",
+    "gridRows": [
+      80
+    ],
+    "gridRowTotal": 80,
+    "cards": [
+      {
+        "height": 80,
+        "width": 276,
+        "padding": "16px",
+        "cls": "card rounded-xl p-4 stat-card ",
+        "text": "3场 本月活动",
+        "noteCount": 0
+      },
+      {
+        "height": 80,
+        "width": 276,
+        "padding": "16px",
+        "cls": "card rounded-xl p-4 stat-card ",
+        "text": "1个 活跃专班",
+        "noteCount": 0
+      },
+      {
+        "height": 80,
+        "width": 276,
+        "padding": "16px",
+        "cls": "card rounded-xl p-4 stat-card ",
+        "text": "1条 未读通知",
+        "noteCount": 0
+      },
+      {
+        "height": 80,
+        "width": 276,
+        "padding": "16px",
+        "cls": "card rounded-xl p-4 stat-card card--interactive cursor-pointer",
+        "text": "— 个人考勤",
+        "noteCount": 0
+      }
+    ],
+    "fourthText": "— 个人考勤"
+  },
+  "mobile": {
+    "gridColumns": "171px 171px",
+    "gridRows": [
+      80,
+      80
+    ],
+    "gridRowTotal": 160,
+    "cards": [
+      {
+        "height": 80,
+        "width": 171,
+        "padding": "16px",
+        "cls": "card rounded-xl p-4 stat-card ",
+        "text": "3场 本月活动",
+        "noteCount": 0
+      },
+      {
+        "height": 80,
+        "width": 171,
+        "padding": "16px",
+        "cls": "card rounded-xl p-4 stat-card ",
+        "text": "1个 活跃专班",
+        "noteCount": 0
+      },
+      {
+        "height": 80,
+        "width": 171,
+        "padding": "16px",
+        "cls": "card rounded-xl p-4 stat-card ",
+        "text": "1条 未读通知",
+        "noteCount": 0
+      },
+      {
+        "height": 80,
+        "width": 171,
+        "padding": "16px",
+        "cls": "card rounded-xl p-4 stat-card card--interactive cursor-pointer",
+        "text": "— 个人考勤",
+        "noteCount": 0
+      }
+    ],
+    "fourthText": "— 个人考勤"
+  },
+  "verdict": {
+    "desktop": {
+      "cardCount": 4,
+      "cardHeights": [
+        80,
+        80,
+        80,
+        80
+      ],
+      "inRange76to80": true,
+      "equalHeights": true,
+      "rowTotal": 80,
+      "mobileTwoRowsUnder176": true,
+      "fourthText": "— 个人考勤",
+      "fourthTextOk": true,
+      "noNoteNode": true
+    },
+    "mobile": {
+      "cardCount": 4,
+      "cardHeights": [
+        80,
+        80,
+        80,
+        80
+      ],
+      "inRange76to80": true,
+      "equalHeights": true,
+      "rowTotal": 160,
+      "mobileTwoRowsUnder176": true,
+      "fourthText": "— 个人考勤",
+      "fourthTextOk": true,
+      "noNoteNode": true
+    }
+  }
+}

@@ -1,0 +1,225 @@
+{
+  "hero_desktop": {
+    "viewport": {
+      "w": 1440,
+      "h": 900
+    },
+    "mainPaddingTop": "24px",
+    "hero": {
+      "top": 88,
+      "bottom": 180,
+      "width": 1152,
+      "height": 92,
+      "marginTop": 0,
+      "marginBottom": 24,
+      "paddingTop": 0,
+      "paddingBottom": 0,
+      "fontSize": "15px",
+      "lineHeight": "22.5px",
+      "fontWeight": "400"
+    },
+    "heroTextAlign": "center",
+    "emblem": {
+      "top": 88,
+      "bottom": 136,
+      "width": 48,
+      "height": 48,
+      "marginTop": 0,
+      "marginBottom": 12,
+      "paddingTop": 0,
+      "paddingBottom": 0,
+      "fontSize": "15px",
+      "lineHeight": "22.5px",
+      "fontWeight": "400"
+    },
+    "title": {
+      "top": 148,
+      "bottom": 180,
+      "width": 1152,
+      "height": 32,
+      "marginTop": 0,
+      "marginBottom": 4,
+      "paddingTop": 0,
+      "paddingBottom": 0,
+      "fontSize": "24px",
+      "lineHeight": "32px",
+      "fontWeight": "700"
+    },
+    "titleText": "光华管理学院本科生党支部",
+    "statsTop": 204,
+    "heroBlockThickness": 116,
+    "gapHeroToStats": 24,
+    "statsOffsetFromMainTop": 140
+  },
+  "hero_mobile": {
+    "viewport": {
+      "w": 390,
+      "h": 844
+    },
+    "mainPaddingTop": "24px",
+    "hero": {
+      "top": 88,
+      "bottom": 180,
+      "width": 358,
+      "height": 92,
+      "marginTop": 0,
+      "marginBottom": 24,
+      "paddingTop": 0,
+      "paddingBottom": 0,
+      "fontSize": "15px",
+      "lineHeight": "22.5px",
+      "fontWeight": "400"
+    },
+    "heroTextAlign": "center",
+    "emblem": {
+      "top": 88,
+      "bottom": 136,
+      "width": 48,
+      "height": 48,
+      "marginTop": 0,
+      "marginBottom": 12,
+      "paddingTop": 0,
+      "paddingBottom": 0,
+      "fontSize": "15px",
+      "lineHeight": "22.5px",
+      "fontWeight": "400"
+    },
+    "title": {
+      "top": 148,
+      "bottom": 180,
+      "width": 358,
+      "height": 32,
+      "marginTop": 0,
+      "marginBottom": 4,
+      "paddingTop": 0,
+      "paddingBottom": 0,
+      "fontSize": "24px",
+      "lineHeight": "32px",
+      "fontWeight": "700"
+    },
+    "titleText": "光华管理学院本科生党支部",
+    "statsTop": 204,
+    "heroBlockThickness": 116,
+    "gapHeroToStats": 24,
+    "statsOffsetFromMainTop": 140
+  },
+  "workspaceUrl": "http://localhost:3000/workspace/secretary.html?dev=secretary",
+  "todoStrip": {
+    "hostRect": {
+      "height": 270,
+      "top": 218
+    },
+    "summary": {
+      "top": 219,
+      "left": 145,
+      "width": 1150,
+      "height": 44,
+      "position": "absolute",
+      "background": "rgba(0, 0, 0, 0)",
+      "borderRadius": "8px",
+      "transition": "background-color, box-shadow / 0.12s, 0.12s / cubic-bezier(0.2, 0.6, 0.36, 1), cubic-bezier(0.2, 0.6, 0.36, 1)",
+      "zIndex": "auto",
+      "cursor": "pointer",
+      "chevronTransition": "transform 0.12s cubic-bezier(0.2, 0.6, 0.36, 1)"
+    },
+    "title": {
+      "text": "待答复与未读通知 3",
+      "fontSize": "14px",
+      "fontWeight": "800",
+      "lineHeight": "20px",
+      "fontFamily": "\"Noto Serif SC\"",
+      "color": "rgb(31, 41, 55)",
+      "height": 44,
+      "paddingInline": "16px/16px",
+      "marginBottom": "4px"
+    },
+    "elementAtTitleCenter": "SUMMARY.disclosure__summary",
+    "detailsOpen": true
+  },
+  "todoStripHover": {
+    "summaryBackground": "rgb(229, 231, 235)",
+    "elementAtTitleText": "SUMMARY.disclosure__summary",
+    "titleColor": "rgb(31, 41, 55)"
+  },
+  "typeInventory": [
+    {
+      "tag": "h1",
+      "cls": "font-title-cn",
+      "text": "光华管理学院本科生党支部光华党支部",
+      "fontSize": "22px",
+      "fontWeight": "800",
+      "lineHeight": "33px",
+      "fontFamily": "\"Noto Serif SC\"",
+      "color": "rgb(255, 255, 255)"
+    },
+    {
+      "tag": "h2",
+      "cls": "page-frame__title",
+      "text": "待办",
+      "fontSize": "20px",
+      "fontWeight": "700",
+      "lineHeight": "30px",
+      "fontFamily": "\"Noto Serif SC\"",
+      "color": "rgb(17, 24, 39)"
+    },
+    {
+      "tag": "h3",
+      "cls": "disclosure__title font-title-cn text-sm px-4",
+      "text": "待答复与未读通知 3",
+      "fontSize": "14px",
+      "fontWeight": "800",
+      "lineHeight": "20px",
+      "fontFamily": "\"Noto Serif SC\"",
+      "color": "rgb(31, 41, 55)"
+    },
+    {
+      "tag": "summary",
+      "cls": "disclosure__summary",
+      "text": "",
+      "fontSize": "15px",
+      "fontWeight": "400",
+      "lineHeight": "22.5px",
+      "fontFamily": "\"Noto Sans SC\"",
+      "color": "rgb(107, 114, 128)"
+    },
+    {
+      "tag": "h3",
+      "cls": "font-title-cn text-base font-semibold text-gray-800",
+      "text": "我的待办",
+      "fontSize": "16px",
+      "fontWeight": "600",
+      "lineHeight": "24px",
+      "fontFamily": "\"Noto Serif SC\"",
+      "color": "rgb(31, 41, 55)"
+    }
+  ],
+  "notificationOk": {
+    "hasFailure": false,
+    "snippet": "通知发布"
+  },
+  "notificationAborted": {
+    "failureLines": [
+      "支部分工",
+      "意见反馈",
+      "这个页签的模块没能加载（notification-tab.js），请刷新页面后再试",
+      "刷新页面"
+    ],
+    "buttons": [
+      "跳到主要内容",
+      "我的档案",
+      "写入活动",
+      "一键汇报",
+      "首页",
+      "工作台",
+      "消息\n        1",
+      "资料查询",
+      "意见反馈",
+      "归档库",
+      "我的档案",
+      "帮助",
+      "设置",
+      "退出登录"
+    ],
+    "html": null
+  }
+}

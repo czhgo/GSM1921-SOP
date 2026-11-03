@@ -1,0 +1,11 @@
+{
+  "moduleRequests": 2,
+  "navigations": 2,
+  "hasCard": true,
+  "cardText": "这个页签没打开，页面可能刚更新过。数据没有丢失，重新载入一下就好 重新载入",
+  "hasReloadButton": true,
+  "reloadLabel": "重新载入",
+  "tabRendered": false,
+  "selfHealFlag": "1",
+  "sessionOverlay": null
+}

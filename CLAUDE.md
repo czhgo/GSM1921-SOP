@@ -2,7 +2,7 @@
 title: "Org OS — 系统路线图与 Harness"
 type: roadmap
 role: "[工程师]+[AI]"
-last_updated: "2026-10-29"
+last_updated: "2026-11-02"
 status: active
 related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/DOC_MAP.md, content/01_strategy/SECRETARY_DIRECTIVES.md, content/01_strategy/, content/02_institution/, content/03_doc_system/, content/04_web_design/, content/05_ai_coding/, content/insights/, server/, .ctx/logs/]
 ---
@@ -400,8 +400,11 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/DOC
 □ 9. 表达合规：若本次修改涉及支书原话展开，必须调用 OPERATIONS_GUIDE.md §20（《运行与协作规范》AI 展开原则，含 20.3 五条可复用检查规则）自查（"而非"警惕/"所以"因果链/反面假设/私加强调/元叙事标签）
 □ 10. 反论合规：若本次修改涉及反论（"为什么不是..."），必须按 OPERATIONS_GUIDE.md §11.6 自检清单逐项验证，含§11.7历史范畴检查（被否定项是否仍在使用）和§11.8 AI治理技术特殊性（涉及AI工具使用时需联网补充）
 □ 11. 概念命名合规：若本次修改涉及概念命名或标签创建，必须按 H40.1 概念命名守则自检
-□ 12. 设计原则自检（EP-06 修复，2026-08-30 AI逃逸捕捉第三轮）：若本次修改涉及 UI/工作台/数据流/组件/颜色，必须对照设计系统（`content/04_web_design/design-system/DESIGN_SYSTEM.md` 为父索引，条文在 `DS_01`…`DS_05`）相关原则的「可验证条件」与 `DS_05_MAP_AND_REFERENCE.md` §十（点击落点映射）分层落点自检；改颜色必须过 `DS_01_COLOR_AND_THEME.md` §7.3 深色自查 9 条
+□ 12. 设计原则自检（EP-06 修复，2026-08-30 AI逃逸捕捉第三轮）：若本次修改涉及 UI/工作台/数据流/组件/颜色，必须对照设计系统（`content/04_web_design/design-system/DESIGN_SYSTEM.md` 为父索引，条文在 `DS_01`…`DS_06`）相关原则的「可验证条件」与 `DS_05_MAP_AND_REFERENCE.md` §十（点击落点映射）分层落点自检；改颜色必须过 `DS_01_COLOR_AND_THEME.md` §7.3 深色自查 9 条
 □ 13. 文档目的达成度自查（2026-09-05 专项⑨）：若本次新建/大改 content 文档，按 OPERATIONS_GUIDE.md §18.8（《运行与协作规范》）五类判据自查——宣称目的真的实现了吗（不是形式主义小点）；新文档验收用「读完能做什么」判据
+□ 14. 失败文案口径（2026-11-01 批次 523）：面向用户的失败文案**不出现模块文件名 / `.js` / 「请刷新」**；能自愈的先自愈一次（同会话一次性标记），再解释原因与下一步。规范落点＝`content/04_web_design/design-system/DS_04_INTERACTION_AND_RESPONSIVE.md` §5.9「失败态」；机检＝`server/test/copy-guard.test.mjs` F1/F2
+□ 15. 页签密度 / 筛选条 / 建议输入（2026-11-01 批次 525）：新增页签或加区块前先核顶层块数（上限、同类合并与例外登记见 `DS_06_LAYOUT_AND_DENSITY.md` §二 SD-57，机检 `ui-first-screen-order::F6–F9`）；筛选条按 SD-58（≤2 行，机检 `filter-row::S14–S15`）；搜索 / 自动补全按 SD-59（无原生三角与 `<datalist>`，机检 `field-shell-guard::R4–R5`）
+□ 16. 页签审计资产（2026-11-02 批次 526）：发布前跑 `cd server; node scripts/audit-tabs.mjs --all`，**P0 / P1 = 0 才可发布**；五维判据、例外口径与加检查 / 加页签步骤见 `content/05_ai_coding/TAB_AUDIT_PLAYBOOK.md`；新增或改名页签须同批补 `server/scripts/audit/catalog.mjs` 与 `endpoint-map.mjs` 的读口 / 写口 / gate，守卫 `workbench-audit-coverage::W1–W5`
 ```
 
 ### H40.2 UI 变更前置卡（2026-10-18 立 · 改界面前必答）
@@ -900,6 +903,18 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/DOC
 | B-522-1 | 「今天」首屏空白 71.5%、「归档」63%，低密度卡只有 4–6 字；补内容与卡收拢涉及信息架构，本轮只做了卡片高度与栅格自适应 | `.ctx/evidence/2026-10-30/density-audit.json` | 待启动（需内容与 IA 决策） |
 | B-522-2 | `help.html` 自带 532 处硬编码颜色，是第二套色系；本轮只登记未收编 | `.ctx/evidence/2026-10-30/color-audit.json` | 待启动（收编成本高，需分步棘轮） |
 | B-522-3 | About 的 `about.css` 有 22 处裸毫秒与旋转／裁剪／缩放手法，冻结件只登记不改 | `motion-guard` M2/M7 登记 | 冻结件，待支书点头 |
+
+## 批次 524 执行约束（2026-11-01 · 常驻口径）
+
+> 以下六条与具体在办项分开记：它们是**改动时即适用**的硬规则，判据落 `content/04` 与守卫；不随批次收尾删除。
+
+1. **语义标签**：`section` 开标签必须有可访问名称（`aria-label` 或指向存在 id 的 `aria-labelledby`），同页 `section` 内不得再嵌套 `section`；布局 / 分组用 `div`，不要为了内边距或背景写 `<section>`。判据 `DS_03 §12.15 SD-55`，守卫 `a11y-tree::A10`。
+2. **功能色分工**：指标与状态（`待…` / `逾期` / `组员汇报`）用 `--status-*-text` 或 `--neutral-800`；动作、导航、选中态才用主题色，不得用 `--app-accent*` 渲染状态指标。判据 `DS_01 §2.10`，守卫 `ui-color-semantics::C6–C8`。
+3. **只读由权限派生**：卡头「只读」必须由 `core/domain/view-capability.js::readonlyMeta(kind, user)` 现算，不得写死「· 只读」；未登记的 kind（如知情查看）恒只读。守卫 `frontend-foundations-guard::F12`。
+4. **输入控件单一源**：输入 / 下拉只经 `components/ui/forms.js`（布局中立 `textInput` / `selectInput`，带壳 `textField` / `selectField` / `dateField`）；禁止新增裸 `input-flat` / `select.input-flat` / `textarea.input-flat`，存量按 `style-baseline.mjs::RAW_INPUT_BASELINE` 只减不增。判据 `DS_03 §12.15 SD-56`，守卫 `field-shell-guard::R1–R3`。
+5. **待办跳转单一源**：待办行的落点只经 `core/domain/todo-actions.js::resolveTodoAction` ＋ `core/session/workspace-nav.js::goToWorkspaceTab`；禁止点 DOM 页签按钮（`data-*-tab-btn`）或写死 `workspace/*.html?tab=`。守卫 `tab-nav::G1–G4`。
+6. **布局与密度**：页签顶层块数、筛选条行数、建议输入承载见 `content/04_web_design/design-system/DS_06_LAYOUT_AND_DENSITY.md` §二（SD-57 / SD-58 / SD-59）；改页签或加块先跑 `ui-first-screen-order::F6–F9`，改筛选条跑 `filter-row::S14–S15`，改搜索 / 补全跑 `field-shell-guard::R4–R5`。
+7. **页签审计（批次 526 追加）**：发布前跑 `cd server; node scripts/audit-tabs.mjs --all`，P0 / P1 必须为 0；怎么跑、怎么判、怎么加检查见 `content/05_ai_coding/TAB_AUDIT_PLAYBOOK.md`；catalog 完整性守卫 `workbench-audit-coverage::W1–W5`。
 
 ***
 

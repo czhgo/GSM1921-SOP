@@ -1,0 +1,116 @@
+{
+  "generatedAt": "2026-11-01T16:32:32.623Z",
+  "viewport": "1440x900",
+  "blockCountClosed": 3,
+  "visibleBlocksClosed": [
+    {
+      "tag": "header",
+      "id": "",
+      "label": "专班管理"
+    },
+    {
+      "tag": "section",
+      "id": "org-tf-list-card",
+      "label": "专班清单"
+    },
+    {
+      "tag": "details",
+      "id": "tf-auth-block",
+      "label": ""
+    }
+  ],
+  "matrixView": {
+    "kanbanHidden": true,
+    "matrixShown": true,
+    "matrixRows": 10,
+    "sameCard": true
+  },
+  "transpose": {
+    "pressed": "true",
+    "text": "按人"
+  },
+  "blockCountDrawerOpen": 4,
+  "visibleBlocksDrawerOpen": [
+    {
+      "tag": "header",
+      "id": "",
+      "label": "专班管理"
+    },
+    {
+      "tag": "section",
+      "id": "org-tf-list-card",
+      "label": "专班清单"
+    },
+    {
+      "tag": "aside",
+      "id": "tf-detail-panel",
+      "label": "SOP 系统维护专班"
+    },
+    {
+      "tag": "details",
+      "id": "tf-auth-block",
+      "label": ""
+    }
+  ],
+  "fixedBlockIds": {
+    "expected": 9,
+    "missing": []
+  },
+  "folds": [
+    {
+      "label": "成员与授权",
+      "open": true
+    },
+    {
+      "label": "任务与产出",
+      "open": true
+    },
+    {
+      "label": "贡献核验",
+      "open": false
+    },
+    {
+      "label": "报名与记录",
+      "open": false
+    },
+    {
+      "label": "收尾与复盘",
+      "open": false
+    }
+  ],
+  "drawerGeometry": {
+    "right": 1440,
+    "viewport": 1440,
+    "width": 560,
+    "visible": true
+  },
+  "drawerRole": {
+    "role": "dialog",
+    "labelledby": "tf-detail-title",
+    "titleExists": true
+  },
+  "closeButton": true,
+  "transfer": {
+    "opened": true,
+    "transferred": true,
+    "toast": ""
+  },
+  "dissolvePre": {
+    "btnExists": true,
+    "btnDisabled": true,
+    "btnTitle": "请先闭合全部登记任务与产出",
+    "tasksText": "任务清单与产出记录 结束前须闭合所有登记任务与产出；历史记录保留。纪检考察仅在事项明确要求时办理。 任务 1/2 · 产出 0/0 Task6 验证用主任务工作组主任务 已完成 · 2026-11-01完成 SOP 文档体系维护、系统同步更新、经验蒸馏记录工作组主任务 待开始 开始办理 标记完成 新增任务名称 添加任务"
+  },
+  "dissolve": {
+    "modalClosed": true,
+    "drawerHidden": true,
+    "cardMovedToCompleted": true
+  },
+  "deeplinkCompleted": {
+    "drawerOpen": true,
+    "ariaCurrent": true,
+    "completedFoldOpen": true,
+    "drawerTitle": "宣传专班（第二期）"
+  },
+  "pageErrors": []
+}

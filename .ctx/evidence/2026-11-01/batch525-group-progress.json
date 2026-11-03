@@ -1,0 +1,68 @@
+{
+  "desktop": {
+    "gridChildren": 2,
+    "gridCards": 2,
+    "totalCards": 2,
+    "selectGroupCardText": 0,
+    "bareDisclosureH4": 0,
+    "sectionCount": 0,
+    "groupRows": 3,
+    "ledgerRows": 6,
+    "ledgerActivityLinks": 6,
+    "ledgerUniqueActivityIds": 6,
+    "ledgerHeaders": [
+      "日期",
+      "活动",
+      "复盘状态",
+      "应到 · 实到"
+    ],
+    "reportHost": true,
+    "historyToggle": true,
+    "leaderAssignHost": true,
+    "ungroupedRows": 0,
+    "pageOverflowX": 0
+  },
+  "mobile": {
+    "listDirection": "row",
+    "listOverflowX": 392,
+    "railBelowDetail": true,
+    "tableOverflowX": 0,
+    "pageOverflowX": 0,
+    "ledgerDisplay": "block",
+    "groupRows": 3,
+    "railWidth": 358,
+    "detailWidth": 358
+  },
+  "writeFlows": {
+    "base": "isolated in-memory (createApp + seedDatabase)",
+    "ungroupedSeed": "何晓峰",
+    "assignNote": "归组写口在位（.gp-assign-select → assignMemberToGroup）；API 形态下服务端 /members/:id/profile 仅 org-commissioner 可写，支书账号被 403 拒绝——既有权限门，非本批布局改动（mock 形态同时受 DEMO_READONLY 只读约束）。",
+    "steps": {
+      "ungroupedVisible": 1,
+      "assignHandle": {
+        "selectCount": 1,
+        "options": [
+          "移出党小组",
+          "第一党小组",
+          "第二党小组",
+          "第三党小组"
+        ]
+      },
+      "assignToast": "!无权限：名册档案维护仅组织委员；本人仅可填自己的「自我描述」×",
+      "assignOk": false,
+      "create": "!无权限：名册档案维护仅组织委员；本人仅可填自己的「自我描述」×i保存中…×✓已新增「批次525验证组」×",
+      "createOk": true,
+      "groupRowsAfterCreate": 4,
+      "rename": "!无权限：名册档案维护仅组织委员；本人仅可填自己的「自我描述」×✓已新增「批次525验证组」×i保存中…×✓已改名为「批次525验证组改」×",
+      "renameOk": true,
+      "historyLink": "变更记录（2）",
+      "assignLeaderToast": "✓已将 苏明哲 设为「第一党小组」党小组组长×",
+      "assignLeaderOk": true,
+      "leaderRendered": true,
+      "revokeBtn": 1,
+      "dissolve": "i保存中…×✓已解散「批次525验证组改」，0 名成员转为未分组×",
+      "dissolveOk": true,
+      "groupRowsAfterDissolve": 3
+    }
+  }
+}

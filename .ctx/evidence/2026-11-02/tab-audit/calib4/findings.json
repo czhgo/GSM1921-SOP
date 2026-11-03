@@ -1,0 +1,2244 @@
+{
+  "generatedAt": "2026-11-02T12:15:36.497Z",
+  "base": "http://127.0.0.1:54059",
+  "dbMode": "memory",
+  "tabs": [
+    {
+      "key": "secretary.todo",
+      "label": "待办",
+      "blocks": 4,
+      "findings": [
+        {
+          "key": "secretary.todo",
+          "rule": "F1",
+          "severity": "P1",
+          "status": "fail",
+          "message": "DOM 实测顶层块 3（原始直接子块 2）≠ 基线 4（块数口径需同批校准）",
+          "evidence": {
+            "measured": 3,
+            "raw": 2,
+            "baseline": 4,
+            "blocks": [
+              "div.disclosure-host card rounded-xl",
+              "div.card rounded-xl p-5",
+              "div.card rounded-xl p-5"
+            ]
+          }
+        },
+        {
+          "key": "secretary.todo",
+          "rule": "F2",
+          "severity": "P1",
+          "status": "pass",
+          "message": "无筛选条（.lf-bar）",
+          "evidence": {
+            "bars": 0
+          }
+        },
+        {
+          "key": "secretary.todo",
+          "rule": "F3",
+          "severity": "P1",
+          "status": "pass",
+          "message": "无 input[list]/datalist；suggest 输入 ARIA 合规",
+          "evidence": {
+            "inputList": 0,
+            "datalist": 0,
+            "suggest": 0
+          }
+        },
+        {
+          "key": "secretary.todo",
+          "rule": "F4",
+          "severity": "P1",
+          "status": "pass",
+          "message": "H1 0 / H2 1；标题序列 h2→h3→h3→h3",
+          "evidence": {
+            "headings": [
+              {
+                "level": 2,
+                "text": "待办"
+              },
+              {
+                "level": 3,
+                "text": "待答复与未读通知 2"
+              },
+              {
+                "level": 3,
+                "text": "我的待办"
+              },
+              {
+                "level": 3,
+                "text": "待办详情"
+              }
+            ],
+            "jumps": []
+          }
+        },
+        {
+          "key": "secretary.todo",
+          "rule": "F5",
+          "severity": "P1",
+          "status": "pass",
+          "message": "2 个 section 均有名称，无嵌套",
+          "evidence": {
+            "sections": 2
+          }
+        },
+        {
+          "key": "secretary.todo",
+          "rule": "F6",
+          "severity": "P2",
+          "status": "pass",
+          "message": "未发现 .empty-state 之外的空态文本",
+          "evidence": {
+            "hits": 0
+          }
+        },
+        {
+          "key": "secretary.todo",
+          "rule": "F7",
+          "severity": "P1",
+          "status": "pass",
+          "message": "390 无横向溢出（390 ≤ 390 + 1）；长列表分页门槛通过",
+          "evidence": {
+            "scrollWidth": 390,
+            "innerWidth": 390
+          }
+        },
+        {
+          "key": "secretary.todo",
+          "rule": "F8",
+          "severity": "P0",
+          "status": "pass",
+          "message": "pageerror 0 / console.error 0 / 4xx 0",
+          "evidence": {
+            "pageErrors": 0,
+            "consoleErrors": 0,
+            "http4xx": 0
+          }
+        },
+        {
+          "key": "secretary.todo",
+          "rule": "D1",
+          "severity": null,
+          "status": "pass",
+          "message": "读口全部 2xx 且 JSON 可解析（9 个，每口 5 次）",
+          "evidence": {
+            "count": 9,
+            "perEndpoint": [
+              {
+                "endpoint": "GET /api/v1/todos",
+                "status": 200,
+                "runs": 5,
+                "p50": 7,
+                "p95": 9,
+                "bytes": 554
+              },
+              {
+                "endpoint": "GET /api/v1/handoffs",
+                "status": 200,
+                "runs": 5,
+                "p50": 3,
+                "p95": 6,
+                "bytes": 721
+              },
+              {
+                "endpoint": "GET /api/v1/activities",
+                "status": 200,
+                "runs": 5,
+                "p50": 9,
+                "p95": 14,
+                "bytes": 24011
+              },
+              {
+                "endpoint": "GET /api/v1/inspections",
+                "status": 200,
+                "runs": 5,
+                "p50": 8,
+                "p95": 9,
+                "bytes": 12124
+              },
+              {
+                "endpoint": "GET /api/v1/attendances",
+                "status": 200,
+                "runs": 5,
+                "p50": 9,
+                "p95": 10,
+                "bytes": 36170
+              },
+              {
+                "endpoint": "GET /api/v1/users",
+                "status": 200,
+                "runs": 5,
+                "p50": 5,
+                "p95": 7,
+                "bytes": 9892
+              },
+              {
+                "endpoint": "GET /api/v1/issues",
+                "status": 200,
+                "runs": 5,
+                "p50": 7,
+                "p95": 7,
+                "bytes": 7640
+              },
+              {
+                "endpoint": "GET /api/v1/member-confirmations",
+                "status": 200,
+                "runs": 5,
+                "p50": 3,
+                "p95": 4,
+                "bytes": 368
+              },
+              {
+                "endpoint": "GET /api/v1/partyGroups",
+                "status": 200,
+                "runs": 5,
+                "p50": 3,
+                "p95": 3,
+                "bytes": 472
+              }
+            ],
+            "measurements": [
+              {
+                "endpoint": "GET /api/v1/todos",
+                "runs": 5,
+                "p50": 7,
+                "p95": 9,
+                "min": 4,
+                "max": 9,
+                "bytes": 554
+              },
+              {
+                "endpoint": "GET /api/v1/handoffs",
+                "runs": 5,
+                "p50": 3,
+                "p95": 6,
+                "min": 3,
+                "max": 6,
+                "bytes": 721
+              },
+              {
+                "endpoint": "GET /api/v1/activities",
+                "runs": 5,
+                "p50": 9,
+                "p95": 14,
+                "min": 7,
+                "max": 14,
+                "bytes": 24011
+              },
+              {
+                "endpoint": "GET /api/v1/inspections",
+                "runs": 5,
+                "p50": 8,
+                "p95": 9,
+                "min": 7,
+                "max": 9,
+                "bytes": 12124
+              },
+              {
+                "endpoint": "GET /api/v1/attendances",
+                "runs": 5,
+                "p50": 9,
+                "p95": 10,
+                "min": 8,
+                "max": 10,
+                "bytes": 36170
+              },
+              {
+                "endpoint": "GET /api/v1/users",
+                "runs": 5,
+                "p50": 5,
+                "p95": 7,
+                "min": 5,
+                "max": 7,
+                "bytes": 9892
+              },
+              {
+                "endpoint": "GET /api/v1/issues",
+                "runs": 5,
+                "p50": 7,
+                "p95": 7,
+                "min": 6,
+                "max": 7,
+                "bytes": 7640
+              },
+              {
+                "endpoint": "GET /api/v1/member-confirmations",
+                "runs": 5,
+                "p50": 3,
+                "p95": 4,
+                "min": 2,
+                "max": 4,
+                "bytes": 368
+              },
+              {
+                "endpoint": "GET /api/v1/partyGroups",
+                "runs": 5,
+                "p50": 3,
+                "p95": 3,
+                "min": 3,
+                "max": 3,
+                "bytes": 472
+              }
+            ]
+          }
+        },
+        {
+          "key": "secretary.todo",
+          "rule": "D3",
+          "severity": null,
+          "status": "pass",
+          "message": "首屏 /api/v1/ 4xx 归零（复用 F8 evidence）",
+          "evidence": {
+            "source": "F8",
+            "http4xx": 0,
+            "f8Status": "pass"
+          }
+        },
+        {
+          "key": "secretary.todo",
+          "rule": "C1",
+          "severity": null,
+          "status": "pass",
+          "message": "写口按权限拒绝 visitor：POST /api/v1/todos",
+          "evidence": {
+            "write": "todo-create",
+            "status": 403,
+            "path": "/api/v1/todos"
+          }
+        },
+        {
+          "key": "secretary.todo",
+          "rule": "C1",
+          "severity": null,
+          "status": "pass",
+          "message": "写口按权限拒绝 visitor：PATCH /api/v1/todos/:id",
+          "evidence": {
+            "write": "todo-complete",
+            "status": 403,
+            "path": "/api/v1/todos/todo_seed_6"
+          }
+        },
+        {
+          "key": "secretary.todo",
+          "rule": "C1",
+          "severity": null,
+          "status": "pass",
+          "message": "写口按权限拒绝 visitor：POST /api/v1/handoffs/:id/confirm",
+          "evidence": {
+            "write": "handoff-confirm",
+            "status": 403,
+            "path": "/api/v1/handoffs/ho-seed-1/confirm"
+          }
+        },
+        {
+          "key": "secretary.todo",
+          "rule": "C1",
+          "severity": null,
+          "status": "pass",
+          "message": "写口按权限拒绝 visitor：POST /api/v1/member-confirmations/:id/decide",
+          "evidence": {
+            "write": "member-confirm-decide",
+            "status": 403,
+            "path": "/api/v1/member-confirmations/mc-seed-1/decide"
+          }
+        },
+        {
+          "key": "secretary.todo",
+          "rule": "C1",
+          "severity": null,
+          "status": "skip",
+          "message": "写口先被参数校验拦下（空体 400），未证明权限门：POST /api/v1/handoffs",
+          "evidence": {
+            "write": "handoff-create",
+            "status": 400,
+            "path": "/api/v1/handoffs",
+            "body": "{\"error\":\"未知交接类型\"}"
+          }
+        },
+        {
+          "key": "secretary.todo",
+          "rule": "C2",
+          "severity": null,
+          "status": "pass",
+          "message": "CRUD 往返通过（todos）：create→read→patch→read→delete",
+          "evidence": {
+            "recipe": "todos",
+            "endpoint": "/api/v1/todos",
+            "destructiveProbeOnly": false,
+            "steps": [
+              {
+                "step": "create",
+                "status": 201,
+                "endpoint": "POST /api/v1/todos"
+              },
+              {
+                "step": "read-after-create",
+                "status": 200,
+                "found": true
+              },
+              {
+                "step": "patch",
+                "status": 200,
+                "endpoint": "PATCH /api/v1/todos/:id"
+              },
+              {
+                "step": "read-after-patch",
+                "status": 200,
+                "verified": true
+              },
+              {
+                "step": "delete",
+                "status": 204,
+                "endpoint": "DELETE /api/v1/todos/:id"
+              },
+              {
+                "step": "read-after-delete",
+                "status": 200,
+                "absent": true
+              }
+            ]
+          }
+        },
+        {
+          "key": "secretary.todo",
+          "rule": "C2",
+          "severity": null,
+          "status": "skip",
+          "message": "同一资源已在首条写口中完成完整往返：/api/v1/todos/:id",
+          "evidence": {
+            "write": "todo-complete",
+            "recipe": "todos",
+            "reason": "covered-by-recipe"
+          }
+        },
+        {
+          "key": "secretary.todo",
+          "rule": "C2",
+          "severity": null,
+          "status": "skip",
+          "message": "无最小合法请求体配方，待人工补充：POST /api/v1/handoffs",
+          "evidence": {
+            "write": "handoff-create",
+            "reason": "no-recipe"
+          }
+        },
+        {
+          "key": "secretary.todo",
+          "rule": "C2",
+          "severity": null,
+          "status": "skip",
+          "message": "无最小合法请求体配方，待人工补充：POST /api/v1/handoffs/:id/confirm",
+          "evidence": {
+            "write": "handoff-confirm",
+            "reason": "no-recipe"
+          }
+        },
+        {
+          "key": "secretary.todo",
+          "rule": "C2",
+          "severity": null,
+          "status": "skip",
+          "message": "无最小合法请求体配方，待人工补充：POST /api/v1/member-confirmations/:id/decide",
+          "evidence": {
+            "write": "member-confirm-decide",
+            "reason": "no-recipe"
+          }
+        },
+        {
+          "key": "secretary.todo",
+          "rule": "C3",
+          "severity": null,
+          "status": "pass",
+          "message": "页签无 data-action / data-todo-action / data-mfw 写动作选择器",
+          "evidence": {
+            "source": "docs/src/entries/tabs/secretary/todo-tab.js",
+            "dataAttributes": [
+              "data-act-id",
+              "data-activity-id",
+              "data-decision",
+              "data-kind",
+              "data-mc-card",
+              "data-mc-id",
+              "data-modal-cancel",
+              "data-tf-id",
+              "data-void-card",
+              "data-void-id",
+              "data-void-label"
+            ],
+            "note": "其余 data-* 仅作靶标（data-id / data-group 等），不当作动作语义"
+          }
+        },
+        {
+          "key": "secretary.todo",
+          "rule": "C4",
+          "severity": null,
+          "status": "pass",
+          "message": "写口 gate 与路径全部可定位（3 个门）",
+          "evidence": {
+            "gates": [
+              "todo-row",
+              "requireAuth",
+              "SECRETARY_AND_DEPUTY_ROLE_SET"
+            ],
+            "endpoints": [
+              "POST /api/v1/todos",
+              "PATCH /api/v1/todos/:id",
+              "POST /api/v1/handoffs",
+              "POST /api/v1/handoffs/:id/confirm",
+              "POST /api/v1/member-confirmations/:id/decide"
+            ]
+          }
+        },
+        {
+          "key": "secretary.todo",
+          "rule": "E1",
+          "severity": null,
+          "status": "pass",
+          "message": "读口在预算内：GET /api/v1/todos（p95 9ms / 预算 50ms）",
+          "evidence": {
+            "endpoint": "GET /api/v1/todos",
+            "stats": {
+              "endpoint": "GET /api/v1/todos",
+              "runs": 5,
+              "p50": 7,
+              "p95": 9,
+              "min": 4,
+              "max": 9,
+              "bytes": 554
+            },
+            "budget": {
+              "p95": 50,
+              "bytes": 665
+            },
+            "budgetSource": "perf-baseline-tab"
+          }
+        },
+        {
+          "key": "secretary.todo",
+          "rule": "E1",
+          "severity": null,
+          "status": "pass",
+          "message": "读口在预算内：GET /api/v1/handoffs（p95 6ms / 预算 50ms）",
+          "evidence": {
+            "endpoint": "GET /api/v1/handoffs",
+            "stats": {
+              "endpoint": "GET /api/v1/handoffs",
+              "runs": 5,
+              "p50": 3,
+              "p95": 6,
+              "min": 3,
+              "max": 6,
+              "bytes": 721
+            },
+            "budget": {
+              "p95": 50,
+              "bytes": 866
+            },
+            "budgetSource": "perf-baseline-tab"
+          }
+        },
+        {
+          "key": "secretary.todo",
+          "rule": "E1",
+          "severity": null,
+          "status": "pass",
+          "message": "读口在预算内：GET /api/v1/activities（p95 14ms / 预算 50ms）",
+          "evidence": {
+            "endpoint": "GET /api/v1/activities",
+            "stats": {
+              "endpoint": "GET /api/v1/activities",
+              "runs": 5,
+              "p50": 9,
+              "p95": 14,
+              "min": 7,
+              "max": 14,
+              "bytes": 24011
+            },
+            "budget": {
+              "p95": 50,
+              "bytes": 28814
+            },
+            "budgetSource": "perf-baseline-tab"
+          }
+        },
+        {
+          "key": "secretary.todo",
+          "rule": "E1",
+          "severity": null,
+          "status": "pass",
+          "message": "读口在预算内：GET /api/v1/inspections（p95 9ms / 预算 50ms）",
+          "evidence": {
+            "endpoint": "GET /api/v1/inspections",
+            "stats": {
+              "endpoint": "GET /api/v1/inspections",
+              "runs": 5,
+              "p50": 8,
+              "p95": 9,
+              "min": 7,
+              "max": 9,
+              "bytes": 12124
+            },
+            "budget": {
+              "p95": 50,
+              "bytes": 14549
+            },
+            "budgetSource": "perf-baseline-tab"
+          }
+        },
+        {
+          "key": "secretary.todo",
+          "rule": "E1",
+          "severity": null,
+          "status": "pass",
+          "message": "读口在预算内：GET /api/v1/attendances（p95 10ms / 预算 50ms）",
+          "evidence": {
+            "endpoint": "GET /api/v1/attendances",
+            "stats": {
+              "endpoint": "GET /api/v1/attendances",
+              "runs": 5,
+              "p50": 9,
+              "p95": 10,
+              "min": 8,
+              "max": 10,
+              "bytes": 36170
+            },
+            "budget": {
+              "p95": 50,
+              "bytes": 43404
+            },
+            "budgetSource": "perf-baseline-tab"
+          }
+        },
+        {
+          "key": "secretary.todo",
+          "rule": "E1",
+          "severity": null,
+          "status": "pass",
+          "message": "读口在预算内：GET /api/v1/users（p95 7ms / 预算 50ms）",
+          "evidence": {
+            "endpoint": "GET /api/v1/users",
+            "stats": {
+              "endpoint": "GET /api/v1/users",
+              "runs": 5,
+              "p50": 5,
+              "p95": 7,
+              "min": 5,
+              "max": 7,
+              "bytes": 9892
+            },
+            "budget": {
+              "p95": 50,
+              "bytes": 11871
+            },
+            "budgetSource": "perf-baseline-tab"
+          }
+        },
+        {
+          "key": "secretary.todo",
+          "rule": "E1",
+          "severity": null,
+          "status": "pass",
+          "message": "读口在预算内：GET /api/v1/issues（p95 7ms / 预算 50ms）",
+          "evidence": {
+            "endpoint": "GET /api/v1/issues",
+            "stats": {
+              "endpoint": "GET /api/v1/issues",
+              "runs": 5,
+              "p50": 7,
+              "p95": 7,
+              "min": 6,
+              "max": 7,
+              "bytes": 7640
+            },
+            "budget": {
+              "p95": 50,
+              "bytes": 9168
+            },
+            "budgetSource": "perf-baseline-tab"
+          }
+        },
+        {
+          "key": "secretary.todo",
+          "rule": "E1",
+          "severity": null,
+          "status": "pass",
+          "message": "读口在预算内：GET /api/v1/member-confirmations（p95 4ms / 预算 50ms）",
+          "evidence": {
+            "endpoint": "GET /api/v1/member-confirmations",
+            "stats": {
+              "endpoint": "GET /api/v1/member-confirmations",
+              "runs": 5,
+              "p50": 3,
+              "p95": 4,
+              "min": 2,
+              "max": 4,
+              "bytes": 368
+            },
+            "budget": {
+              "p95": 50,
+              "bytes": 442
+            },
+            "budgetSource": "perf-baseline-tab"
+          }
+        },
+        {
+          "key": "secretary.todo",
+          "rule": "E1",
+          "severity": null,
+          "status": "pass",
+          "message": "读口在预算内：GET /api/v1/partyGroups（p95 3ms / 预算 50ms）",
+          "evidence": {
+            "endpoint": "GET /api/v1/partyGroups",
+            "stats": {
+              "endpoint": "GET /api/v1/partyGroups",
+              "runs": 5,
+              "p50": 3,
+              "p95": 3,
+              "min": 3,
+              "max": 3,
+              "bytes": 472
+            },
+            "budget": {
+              "p95": 50,
+              "bytes": 567
+            },
+            "budgetSource": "perf-baseline-tab"
+          }
+        },
+        {
+          "key": "secretary.todo",
+          "rule": "E2",
+          "severity": null,
+          "status": "pass",
+          "message": "接口性能摘要：最慢 5 条 / 最大 5 条",
+          "evidence": {
+            "slowest": [
+              {
+                "endpoint": "GET /api/v1/activities",
+                "p50": 9,
+                "p95": 14,
+                "bytes": 24011
+              },
+              {
+                "endpoint": "GET /api/v1/attendances",
+                "p50": 9,
+                "p95": 10,
+                "bytes": 36170
+              },
+              {
+                "endpoint": "GET /api/v1/todos",
+                "p50": 7,
+                "p95": 9,
+                "bytes": 554
+              },
+              {
+                "endpoint": "GET /api/v1/inspections",
+                "p50": 8,
+                "p95": 9,
+                "bytes": 12124
+              },
+              {
+                "endpoint": "GET /api/v1/users",
+                "p50": 5,
+                "p95": 7,
+                "bytes": 9892
+              }
+            ],
+            "largest": [
+              {
+                "endpoint": "GET /api/v1/attendances",
+                "p95": 10,
+                "bytes": 36170
+              },
+              {
+                "endpoint": "GET /api/v1/activities",
+                "p95": 14,
+                "bytes": 24011
+              },
+              {
+                "endpoint": "GET /api/v1/inspections",
+                "p95": 9,
+                "bytes": 12124
+              },
+              {
+                "endpoint": "GET /api/v1/users",
+                "p95": 7,
+                "bytes": 9892
+              },
+              {
+                "endpoint": "GET /api/v1/issues",
+                "p95": 7,
+                "bytes": 7640
+              }
+            ],
+            "measured": 9
+          }
+        }
+      ]
+    },
+    {
+      "key": "secretary.feedback",
+      "label": "意见反馈",
+      "blocks": 3,
+      "findings": [
+        {
+          "key": "secretary.feedback",
+          "rule": "F1",
+          "severity": "P1",
+          "status": "fail",
+          "message": "DOM 实测顶层块 1（原始直接子块 1）≠ 基线 3（块数口径需同批校准）",
+          "evidence": {
+            "measured": 1,
+            "raw": 1,
+            "baseline": 3,
+            "blocks": [
+              "div.card rounded-xl p-5"
+            ]
+          }
+        },
+        {
+          "key": "secretary.feedback",
+          "rule": "F2",
+          "severity": "P1",
+          "status": "pass",
+          "message": "1 条筛选条均 ≤2 行、非 column、reset 未整行",
+          "evidence": {
+            "bars": [
+              {
+                "rows": 2,
+                "height": 96,
+                "flexDirection": "row",
+                "resetFullWidth": false
+              }
+            ]
+          }
+        },
+        {
+          "key": "secretary.feedback",
+          "rule": "F3",
+          "severity": "P1",
+          "status": "pass",
+          "message": "无 input[list]/datalist；suggest 输入 ARIA 合规",
+          "evidence": {
+            "inputList": 0,
+            "datalist": 0,
+            "suggest": 0
+          }
+        },
+        {
+          "key": "secretary.feedback",
+          "rule": "F4",
+          "severity": "P1",
+          "status": "pass",
+          "message": "H1 0 / H2 1；标题序列 h2→h3",
+          "evidence": {
+            "headings": [
+              {
+                "level": 2,
+                "text": "意见反馈"
+              },
+              {
+                "level": 3,
+                "text": "反馈列表"
+              }
+            ],
+            "jumps": []
+          }
+        },
+        {
+          "key": "secretary.feedback",
+          "rule": "F5",
+          "severity": "P1",
+          "status": "pass",
+          "message": "0 个 section 均有名称，无嵌套",
+          "evidence": {
+            "sections": 0
+          }
+        },
+        {
+          "key": "secretary.feedback",
+          "rule": "F6",
+          "severity": "P2",
+          "status": "pass",
+          "message": "未发现 .empty-state 之外的空态文本",
+          "evidence": {
+            "hits": 0
+          }
+        },
+        {
+          "key": "secretary.feedback",
+          "rule": "F7",
+          "severity": "P1",
+          "status": "pass",
+          "message": "390 无横向溢出（390 ≤ 390 + 1）；长列表分页门槛通过",
+          "evidence": {
+            "scrollWidth": 390,
+            "innerWidth": 390
+          }
+        },
+        {
+          "key": "secretary.feedback",
+          "rule": "F8",
+          "severity": "P0",
+          "status": "pass",
+          "message": "pageerror 0 / console.error 0 / 4xx 0",
+          "evidence": {
+            "pageErrors": 0,
+            "consoleErrors": 0,
+            "http4xx": 0
+          }
+        },
+        {
+          "key": "secretary.feedback",
+          "rule": "D1",
+          "severity": null,
+          "status": "pass",
+          "message": "读口全部 2xx 且 JSON 可解析（5 个，每口 5 次）",
+          "evidence": {
+            "count": 5,
+            "perEndpoint": [
+              {
+                "endpoint": "GET /api/v1/issues",
+                "status": 200,
+                "runs": 5,
+                "p50": 9,
+                "p95": 19,
+                "bytes": 7640
+              },
+              {
+                "endpoint": "GET /api/v1/issue-unread",
+                "status": 200,
+                "runs": 5,
+                "p50": 4,
+                "p95": 8,
+                "bytes": 249
+              },
+              {
+                "endpoint": "GET /api/v1/users",
+                "status": 200,
+                "runs": 5,
+                "p50": 7,
+                "p95": 7,
+                "bytes": 9892
+              },
+              {
+                "endpoint": "GET /api/v1/todos",
+                "status": 200,
+                "runs": 5,
+                "p50": 5,
+                "p95": 5,
+                "bytes": 554
+              },
+              {
+                "endpoint": "GET /api/v1/partyGroups",
+                "status": 200,
+                "runs": 5,
+                "p50": 4,
+                "p95": 5,
+                "bytes": 472
+              }
+            ],
+            "measurements": [
+              {
+                "endpoint": "GET /api/v1/issues",
+                "runs": 5,
+                "p50": 9,
+                "p95": 19,
+                "min": 7,
+                "max": 19,
+                "bytes": 7640
+              },
+              {
+                "endpoint": "GET /api/v1/issue-unread",
+                "runs": 5,
+                "p50": 4,
+                "p95": 8,
+                "min": 3,
+                "max": 8,
+                "bytes": 249
+              },
+              {
+                "endpoint": "GET /api/v1/users",
+                "runs": 5,
+                "p50": 7,
+                "p95": 7,
+                "min": 6,
+                "max": 7,
+                "bytes": 9892
+              },
+              {
+                "endpoint": "GET /api/v1/todos",
+                "runs": 5,
+                "p50": 5,
+                "p95": 5,
+                "min": 4,
+                "max": 5,
+                "bytes": 554
+              },
+              {
+                "endpoint": "GET /api/v1/partyGroups",
+                "runs": 5,
+                "p50": 4,
+                "p95": 5,
+                "min": 3,
+                "max": 5,
+                "bytes": 472
+              }
+            ]
+          }
+        },
+        {
+          "key": "secretary.feedback",
+          "rule": "D3",
+          "severity": null,
+          "status": "pass",
+          "message": "首屏 /api/v1/ 4xx 归零（复用 F8 evidence）",
+          "evidence": {
+            "source": "F8",
+            "http4xx": 0,
+            "f8Status": "pass"
+          }
+        },
+        {
+          "key": "secretary.feedback",
+          "rule": "C1",
+          "severity": null,
+          "status": "pass",
+          "message": "写口按权限拒绝 visitor：PATCH /api/v1/issues/:id",
+          "evidence": {
+            "write": "issue-dispose",
+            "status": 403,
+            "path": "/api/v1/issues/issue-001"
+          }
+        },
+        {
+          "key": "secretary.feedback",
+          "rule": "C1",
+          "severity": null,
+          "status": "pass",
+          "message": "写口按权限拒绝 visitor：POST /api/v1/todos",
+          "evidence": {
+            "write": "todo-create",
+            "status": 403,
+            "path": "/api/v1/todos"
+          }
+        },
+        {
+          "key": "secretary.feedback",
+          "rule": "C1",
+          "severity": null,
+          "status": "pass",
+          "message": "写口按权限拒绝 visitor：PATCH /api/v1/todos/:id",
+          "evidence": {
+            "write": "todo-complete",
+            "status": 403,
+            "path": "/api/v1/todos/todo_seed_6"
+          }
+        },
+        {
+          "key": "secretary.feedback",
+          "rule": "C1",
+          "severity": null,
+          "status": "skip",
+          "message": "写口先被参数校验拦下（空体 400），未证明权限门：POST /api/v1/issues",
+          "evidence": {
+            "write": "issue-submit",
+            "status": 400,
+            "path": "/api/v1/issues",
+            "body": "{\"error\":\"正文不能为空\"}"
+          }
+        },
+        {
+          "key": "secretary.feedback",
+          "rule": "C1",
+          "severity": null,
+          "status": "skip",
+          "message": "写口先被参数校验拦下（空体 400），未证明权限门：POST /api/v1/issue-unread",
+          "evidence": {
+            "write": "issue-unread",
+            "status": 400,
+            "path": "/api/v1/issue-unread",
+            "body": "{\"error\":\"缺少必要字段：assigneeId/issueId\"}"
+          }
+        },
+        {
+          "key": "secretary.feedback",
+          "rule": "C2",
+          "severity": null,
+          "status": "pass",
+          "message": "CRUD 往返通过（todos）：create→read→patch→read→delete",
+          "evidence": {
+            "recipe": "todos",
+            "endpoint": "/api/v1/todos",
+            "destructiveProbeOnly": false,
+            "steps": [
+              {
+                "step": "create",
+                "status": 201,
+                "endpoint": "POST /api/v1/todos"
+              },
+              {
+                "step": "read-after-create",
+                "status": 200,
+                "found": true
+              },
+              {
+                "step": "patch",
+                "status": 200,
+                "endpoint": "PATCH /api/v1/todos/:id"
+              },
+              {
+                "step": "read-after-patch",
+                "status": 200,
+                "verified": true
+              },
+              {
+                "step": "delete",
+                "status": 204,
+                "endpoint": "DELETE /api/v1/todos/:id"
+              },
+              {
+                "step": "read-after-delete",
+                "status": 200,
+                "absent": true
+              }
+            ]
+          }
+        },
+        {
+          "key": "secretary.feedback",
+          "rule": "C2",
+          "severity": null,
+          "status": "skip",
+          "message": "无最小合法请求体配方，待人工补充：POST /api/v1/issues",
+          "evidence": {
+            "write": "issue-submit",
+            "reason": "no-recipe"
+          }
+        },
+        {
+          "key": "secretary.feedback",
+          "rule": "C2",
+          "severity": null,
+          "status": "skip",
+          "message": "无最小合法请求体配方，待人工补充：PATCH /api/v1/issues/:id",
+          "evidence": {
+            "write": "issue-dispose",
+            "reason": "no-recipe"
+          }
+        },
+        {
+          "key": "secretary.feedback",
+          "rule": "C2",
+          "severity": null,
+          "status": "skip",
+          "message": "无最小合法请求体配方，待人工补充：POST /api/v1/issue-unread",
+          "evidence": {
+            "write": "issue-unread",
+            "reason": "no-recipe"
+          }
+        },
+        {
+          "key": "secretary.feedback",
+          "rule": "C2",
+          "severity": null,
+          "status": "skip",
+          "message": "同一资源已在首条写口中完成完整往返：/api/v1/todos/:id",
+          "evidence": {
+            "write": "todo-complete",
+            "recipe": "todos",
+            "reason": "covered-by-recipe"
+          }
+        },
+        {
+          "key": "secretary.feedback",
+          "rule": "C3",
+          "severity": null,
+          "status": "pass",
+          "message": "页签无 data-action / data-todo-action / data-mfw 写动作选择器",
+          "evidence": {
+            "source": "docs/src/entries/tabs/secretary/feedback-tab.js",
+            "dataAttributes": [
+              "data-assignee-id",
+              "data-assignee-role",
+              "data-break-before",
+              "data-detail-action",
+              "data-draft-id",
+              "data-issue-action",
+              "data-issue-id",
+              "data-reason",
+              "data-seg",
+              "data-target-id",
+              "data-tip",
+              "data-tone"
+            ],
+            "note": "其余 data-* 仅作靶标（data-id / data-group 等），不当作动作语义"
+          }
+        },
+        {
+          "key": "secretary.feedback",
+          "rule": "C4",
+          "severity": null,
+          "status": "pass",
+          "message": "写口 gate 与路径全部可定位（3 个门）",
+          "evidence": {
+            "gates": [
+              "requireAuth",
+              "requireRole",
+              "todo-row"
+            ],
+            "endpoints": [
+              "POST /api/v1/issues",
+              "PATCH /api/v1/issues/:id",
+              "POST /api/v1/issue-unread",
+              "POST /api/v1/todos",
+              "PATCH /api/v1/todos/:id"
+            ]
+          }
+        },
+        {
+          "key": "secretary.feedback",
+          "rule": "E1",
+          "severity": null,
+          "status": "pass",
+          "message": "读口在预算内：GET /api/v1/issues（p95 19ms / 预算 50ms）",
+          "evidence": {
+            "endpoint": "GET /api/v1/issues",
+            "stats": {
+              "endpoint": "GET /api/v1/issues",
+              "runs": 5,
+              "p50": 9,
+              "p95": 19,
+              "min": 7,
+              "max": 19,
+              "bytes": 7640
+            },
+            "budget": {
+              "p95": 50,
+              "bytes": 9168
+            },
+            "budgetSource": "perf-baseline-tab"
+          }
+        },
+        {
+          "key": "secretary.feedback",
+          "rule": "E1",
+          "severity": null,
+          "status": "pass",
+          "message": "读口在预算内：GET /api/v1/issue-unread（p95 8ms / 预算 50ms）",
+          "evidence": {
+            "endpoint": "GET /api/v1/issue-unread",
+            "stats": {
+              "endpoint": "GET /api/v1/issue-unread",
+              "runs": 5,
+              "p50": 4,
+              "p95": 8,
+              "min": 3,
+              "max": 8,
+              "bytes": 249
+            },
+            "budget": {
+              "p95": 50,
+              "bytes": 299
+            },
+            "budgetSource": "perf-baseline-tab"
+          }
+        },
+        {
+          "key": "secretary.feedback",
+          "rule": "E1",
+          "severity": null,
+          "status": "pass",
+          "message": "读口在预算内：GET /api/v1/users（p95 7ms / 预算 50ms）",
+          "evidence": {
+            "endpoint": "GET /api/v1/users",
+            "stats": {
+              "endpoint": "GET /api/v1/users",
+              "runs": 5,
+              "p50": 7,
+              "p95": 7,
+              "min": 6,
+              "max": 7,
+              "bytes": 9892
+            },
+            "budget": {
+              "p95": 50,
+              "bytes": 11871
+            },
+            "budgetSource": "perf-baseline-tab"
+          }
+        },
+        {
+          "key": "secretary.feedback",
+          "rule": "E1",
+          "severity": null,
+          "status": "pass",
+          "message": "读口在预算内：GET /api/v1/todos（p95 5ms / 预算 50ms）",
+          "evidence": {
+            "endpoint": "GET /api/v1/todos",
+            "stats": {
+              "endpoint": "GET /api/v1/todos",
+              "runs": 5,
+              "p50": 5,
+              "p95": 5,
+              "min": 4,
+              "max": 5,
+              "bytes": 554
+            },
+            "budget": {
+              "p95": 50,
+              "bytes": 665
+            },
+            "budgetSource": "perf-baseline-tab"
+          }
+        },
+        {
+          "key": "secretary.feedback",
+          "rule": "E1",
+          "severity": null,
+          "status": "pass",
+          "message": "读口在预算内：GET /api/v1/partyGroups（p95 5ms / 预算 50ms）",
+          "evidence": {
+            "endpoint": "GET /api/v1/partyGroups",
+            "stats": {
+              "endpoint": "GET /api/v1/partyGroups",
+              "runs": 5,
+              "p50": 4,
+              "p95": 5,
+              "min": 3,
+              "max": 5,
+              "bytes": 472
+            },
+            "budget": {
+              "p95": 50,
+              "bytes": 567
+            },
+            "budgetSource": "perf-baseline-tab"
+          }
+        },
+        {
+          "key": "secretary.feedback",
+          "rule": "E2",
+          "severity": null,
+          "status": "pass",
+          "message": "接口性能摘要：最慢 5 条 / 最大 5 条",
+          "evidence": {
+            "slowest": [
+              {
+                "endpoint": "GET /api/v1/issues",
+                "p50": 9,
+                "p95": 19,
+                "bytes": 7640
+              },
+              {
+                "endpoint": "GET /api/v1/issue-unread",
+                "p50": 4,
+                "p95": 8,
+                "bytes": 249
+              },
+              {
+                "endpoint": "GET /api/v1/users",
+                "p50": 7,
+                "p95": 7,
+                "bytes": 9892
+              },
+              {
+                "endpoint": "GET /api/v1/todos",
+                "p50": 5,
+                "p95": 5,
+                "bytes": 554
+              },
+              {
+                "endpoint": "GET /api/v1/partyGroups",
+                "p50": 4,
+                "p95": 5,
+                "bytes": 472
+              }
+            ],
+            "largest": [
+              {
+                "endpoint": "GET /api/v1/users",
+                "p95": 7,
+                "bytes": 9892
+              },
+              {
+                "endpoint": "GET /api/v1/issues",
+                "p95": 19,
+                "bytes": 7640
+              },
+              {
+                "endpoint": "GET /api/v1/todos",
+                "p95": 5,
+                "bytes": 554
+              },
+              {
+                "endpoint": "GET /api/v1/partyGroups",
+                "p95": 5,
+                "bytes": 472
+              },
+              {
+                "endpoint": "GET /api/v1/issue-unread",
+                "p95": 8,
+                "bytes": 249
+              }
+            ],
+            "measured": 5
+          }
+        }
+      ]
+    },
+    {
+      "key": "secretary.overview",
+      "label": "全局概况",
+      "blocks": 7,
+      "findings": [
+        {
+          "key": "secretary.overview",
+          "rule": "F1",
+          "severity": "P1",
+          "status": "fail",
+          "message": "DOM 实测顶层块 6（原始直接子块 1）≠ 基线 7（块数口径需同批校准）",
+          "evidence": {
+            "measured": 6,
+            "raw": 1,
+            "baseline": 7,
+            "blocks": [
+              "section.metric-band metric-band--interactive metric-band--cards",
+              "div.card rounded-xl card-standard",
+              "div.card rounded-xl card-standard",
+              "div.card rounded-xl card-standard",
+              "section.card rounded-xl card-standard",
+              "section.card rounded-xl card-standard"
+            ]
+          }
+        },
+        {
+          "key": "secretary.overview",
+          "rule": "F2",
+          "severity": "P1",
+          "status": "pass",
+          "message": "1 条筛选条均 ≤2 行、非 column、reset 未整行",
+          "evidence": {
+            "bars": [
+              {
+                "rows": 1,
+                "height": 40,
+                "flexDirection": "row",
+                "resetFullWidth": false
+              }
+            ]
+          }
+        },
+        {
+          "key": "secretary.overview",
+          "rule": "F3",
+          "severity": "P1",
+          "status": "pass",
+          "message": "无 input[list]/datalist；suggest 输入 ARIA 合规",
+          "evidence": {
+            "inputList": 0,
+            "datalist": 0,
+            "suggest": 1
+          }
+        },
+        {
+          "key": "secretary.overview",
+          "rule": "F4",
+          "severity": "P1",
+          "status": "pass",
+          "message": "H1 0 / H2 1；标题序列 h2→h3→h3→h3→h3→h3",
+          "evidence": {
+            "headings": [
+              {
+                "level": 2,
+                "text": "全局概况"
+              },
+              {
+                "level": 3,
+                "text": "工作分工"
+              },
+              {
+                "level": 3,
+                "text": "待我处理"
+              },
+              {
+                "level": 3,
+                "text": "我已处理"
+              },
+              {
+                "level": 3,
+                "text": "周期归档待审核"
+              },
+              {
+                "level": 3,
+                "text": "活动工作组与专班工作组"
+              }
+            ],
+            "jumps": []
+          }
+        },
+        {
+          "key": "secretary.overview",
+          "rule": "F5",
+          "severity": "P1",
+          "status": "pass",
+          "message": "3 个 section 均有名称，无嵌套",
+          "evidence": {
+            "sections": 3
+          }
+        },
+        {
+          "key": "secretary.overview",
+          "rule": "F6",
+          "severity": "P2",
+          "status": "pass",
+          "message": "未发现 .empty-state 之外的空态文本",
+          "evidence": {
+            "hits": 0
+          }
+        },
+        {
+          "key": "secretary.overview",
+          "rule": "F7",
+          "severity": "P1",
+          "status": "pass",
+          "message": "390 无横向溢出（390 ≤ 390 + 1）；长列表分页门槛通过",
+          "evidence": {
+            "scrollWidth": 390,
+            "innerWidth": 390
+          }
+        },
+        {
+          "key": "secretary.overview",
+          "rule": "F8",
+          "severity": "P0",
+          "status": "pass",
+          "message": "pageerror 0 / console.error 0 / 4xx 0",
+          "evidence": {
+            "pageErrors": 0,
+            "consoleErrors": 0,
+            "http4xx": 0
+          }
+        },
+        {
+          "key": "secretary.overview",
+          "rule": "D1",
+          "severity": null,
+          "status": "pass",
+          "message": "读口全部 2xx 且 JSON 可解析（11 个，每口 5 次）",
+          "evidence": {
+            "count": 11,
+            "perEndpoint": [
+              {
+                "endpoint": "GET /api/v1/activities",
+                "status": 200,
+                "runs": 5,
+                "p50": 8,
+                "p95": 17,
+                "bytes": 24011
+              },
+              {
+                "endpoint": "GET /api/v1/attendances",
+                "status": 200,
+                "runs": 5,
+                "p50": 9,
+                "p95": 12,
+                "bytes": 36170
+              },
+              {
+                "endpoint": "GET /api/v1/tasks",
+                "status": 200,
+                "runs": 5,
+                "p50": 6,
+                "p95": 7,
+                "bytes": 1068
+              },
+              {
+                "endpoint": "GET /api/v1/todos",
+                "status": 200,
+                "runs": 5,
+                "p50": 5,
+                "p95": 8,
+                "bytes": 554
+              },
+              {
+                "endpoint": "GET /api/v1/notices",
+                "status": 200,
+                "runs": 5,
+                "p50": 8,
+                "p95": 9,
+                "bytes": 6175
+              },
+              {
+                "endpoint": "GET /api/v1/reviewRequests",
+                "status": 200,
+                "runs": 5,
+                "p50": 3,
+                "p95": 4,
+                "bytes": 412
+              },
+              {
+                "endpoint": "GET /api/v1/periodicArchives",
+                "status": 200,
+                "runs": 5,
+                "p50": 5,
+                "p95": 6,
+                "bytes": 1146
+              },
+              {
+                "endpoint": "GET /api/v1/archiveRecords",
+                "status": 200,
+                "runs": 5,
+                "p50": 7,
+                "p95": 8,
+                "bytes": 1237
+              },
+              {
+                "endpoint": "GET /api/v1/users",
+                "status": 200,
+                "runs": 5,
+                "p50": 7,
+                "p95": 7,
+                "bytes": 9892
+              },
+              {
+                "endpoint": "GET /api/v1/issues",
+                "status": 200,
+                "runs": 5,
+                "p50": 8,
+                "p95": 9,
+                "bytes": 7640
+              },
+              {
+                "endpoint": "GET /api/v1/partyGroups",
+                "status": 200,
+                "runs": 5,
+                "p50": 3,
+                "p95": 4,
+                "bytes": 472
+              }
+            ],
+            "measurements": [
+              {
+                "endpoint": "GET /api/v1/activities",
+                "runs": 5,
+                "p50": 8,
+                "p95": 17,
+                "min": 7,
+                "max": 17,
+                "bytes": 24011
+              },
+              {
+                "endpoint": "GET /api/v1/attendances",
+                "runs": 5,
+                "p50": 9,
+                "p95": 12,
+                "min": 7,
+                "max": 12,
+                "bytes": 36170
+              },
+              {
+                "endpoint": "GET /api/v1/tasks",
+                "runs": 5,
+                "p50": 6,
+                "p95": 7,
+                "min": 5,
+                "max": 7,
+                "bytes": 1068
+              },
+              {
+                "endpoint": "GET /api/v1/todos",
+                "runs": 5,
+                "p50": 5,
+                "p95": 8,
+                "min": 4,
+                "max": 8,
+                "bytes": 554
+              },
+              {
+                "endpoint": "GET /api/v1/notices",
+                "runs": 5,
+                "p50": 8,
+                "p95": 9,
+                "min": 5,
+                "max": 9,
+                "bytes": 6175
+              },
+              {
+                "endpoint": "GET /api/v1/reviewRequests",
+                "runs": 5,
+                "p50": 3,
+                "p95": 4,
+                "min": 3,
+                "max": 4,
+                "bytes": 412
+              },
+              {
+                "endpoint": "GET /api/v1/periodicArchives",
+                "runs": 5,
+                "p50": 5,
+                "p95": 6,
+                "min": 4,
+                "max": 6,
+                "bytes": 1146
+              },
+              {
+                "endpoint": "GET /api/v1/archiveRecords",
+                "runs": 5,
+                "p50": 7,
+                "p95": 8,
+                "min": 5,
+                "max": 8,
+                "bytes": 1237
+              },
+              {
+                "endpoint": "GET /api/v1/users",
+                "runs": 5,
+                "p50": 7,
+                "p95": 7,
+                "min": 5,
+                "max": 7,
+                "bytes": 9892
+              },
+              {
+                "endpoint": "GET /api/v1/issues",
+                "runs": 5,
+                "p50": 8,
+                "p95": 9,
+                "min": 6,
+                "max": 9,
+                "bytes": 7640
+              },
+              {
+                "endpoint": "GET /api/v1/partyGroups",
+                "runs": 5,
+                "p50": 3,
+                "p95": 4,
+                "min": 2,
+                "max": 4,
+                "bytes": 472
+              }
+            ]
+          }
+        },
+        {
+          "key": "secretary.overview",
+          "rule": "D3",
+          "severity": null,
+          "status": "pass",
+          "message": "首屏 /api/v1/ 4xx 归零（复用 F8 evidence）",
+          "evidence": {
+            "source": "F8",
+            "http4xx": 0,
+            "f8Status": "pass"
+          }
+        },
+        {
+          "key": "secretary.overview",
+          "rule": "C1",
+          "severity": null,
+          "status": "pass",
+          "message": "写口按权限拒绝 visitor：POST /api/v1/todos",
+          "evidence": {
+            "write": "todo-create",
+            "status": 403,
+            "path": "/api/v1/todos"
+          }
+        },
+        {
+          "key": "secretary.overview",
+          "rule": "C1",
+          "severity": null,
+          "status": "pass",
+          "message": "写口按权限拒绝 visitor：PATCH /api/v1/todos/:id",
+          "evidence": {
+            "write": "todo-complete",
+            "status": 403,
+            "path": "/api/v1/todos/todo_seed_6"
+          }
+        },
+        {
+          "key": "secretary.overview",
+          "rule": "C1",
+          "severity": null,
+          "status": "pass",
+          "message": "写口按权限拒绝 visitor：PATCH /api/v1/periodicArchives/:id",
+          "evidence": {
+            "write": "periodic-archive-review",
+            "status": 403,
+            "path": "/api/v1/periodicArchives/pa1"
+          }
+        },
+        {
+          "key": "secretary.overview",
+          "rule": "C1",
+          "severity": null,
+          "status": "skip",
+          "message": "写口先被参数校验拦下（空体 400），未证明权限门：POST /api/v1/issues",
+          "evidence": {
+            "write": "issue-submit",
+            "status": 400,
+            "path": "/api/v1/issues",
+            "body": "{\"error\":\"正文不能为空\"}"
+          }
+        },
+        {
+          "key": "secretary.overview",
+          "rule": "C2",
+          "severity": null,
+          "status": "pass",
+          "message": "CRUD 往返通过（todos）：create→read→patch→read→delete",
+          "evidence": {
+            "recipe": "todos",
+            "endpoint": "/api/v1/todos",
+            "destructiveProbeOnly": false,
+            "steps": [
+              {
+                "step": "create",
+                "status": 201,
+                "endpoint": "POST /api/v1/todos"
+              },
+              {
+                "step": "read-after-create",
+                "status": 200,
+                "found": true
+              },
+              {
+                "step": "patch",
+                "status": 200,
+                "endpoint": "PATCH /api/v1/todos/:id"
+              },
+              {
+                "step": "read-after-patch",
+                "status": 200,
+                "verified": true
+              },
+              {
+                "step": "delete",
+                "status": 204,
+                "endpoint": "DELETE /api/v1/todos/:id"
+              },
+              {
+                "step": "read-after-delete",
+                "status": 200,
+                "absent": true
+              }
+            ]
+          }
+        },
+        {
+          "key": "secretary.overview",
+          "rule": "C2",
+          "severity": null,
+          "status": "skip",
+          "message": "同一资源已在首条写口中完成完整往返：/api/v1/todos/:id",
+          "evidence": {
+            "write": "todo-complete",
+            "recipe": "todos",
+            "reason": "covered-by-recipe"
+          }
+        },
+        {
+          "key": "secretary.overview",
+          "rule": "C2",
+          "severity": null,
+          "status": "skip",
+          "message": "无最小合法请求体配方，待人工补充：PATCH /api/v1/periodicArchives/:id",
+          "evidence": {
+            "write": "periodic-archive-review",
+            "reason": "no-recipe"
+          }
+        },
+        {
+          "key": "secretary.overview",
+          "rule": "C2",
+          "severity": null,
+          "status": "skip",
+          "message": "无最小合法请求体配方，待人工补充：POST /api/v1/issues",
+          "evidence": {
+            "write": "issue-submit",
+            "reason": "no-recipe"
+          }
+        },
+        {
+          "key": "secretary.overview",
+          "rule": "C3",
+          "severity": null,
+          "status": "pass",
+          "message": "页签无 data-action / data-todo-action / data-mfw 写动作选择器",
+          "evidence": {
+            "source": "docs/src/entries/tabs/secretary/overview-tab.js",
+            "dataAttributes": [
+              "data-pa-id",
+              "data-pa-review",
+              "data-wo-layer"
+            ],
+            "note": "其余 data-* 仅作靶标（data-id / data-group 等），不当作动作语义"
+          }
+        },
+        {
+          "key": "secretary.overview",
+          "rule": "C4",
+          "severity": null,
+          "status": "pass",
+          "message": "写口 gate 与路径全部可定位（3 个门）",
+          "evidence": {
+            "gates": [
+              "todo-row",
+              "committee-only",
+              "requireAuth"
+            ],
+            "endpoints": [
+              "POST /api/v1/todos",
+              "PATCH /api/v1/todos/:id",
+              "PATCH /api/v1/periodicArchives/:id",
+              "POST /api/v1/issues"
+            ]
+          }
+        },
+        {
+          "key": "secretary.overview",
+          "rule": "E1",
+          "severity": null,
+          "status": "pass",
+          "message": "读口在预算内：GET /api/v1/activities（p95 17ms / 预算 50ms）",
+          "evidence": {
+            "endpoint": "GET /api/v1/activities",
+            "stats": {
+              "endpoint": "GET /api/v1/activities",
+              "runs": 5,
+              "p50": 8,
+              "p95": 17,
+              "min": 7,
+              "max": 17,
+              "bytes": 24011
+            },
+            "budget": {
+              "p95": 50,
+              "bytes": 28814
+            },
+            "budgetSource": "perf-baseline-tab"
+          }
+        },
+        {
+          "key": "secretary.overview",
+          "rule": "E1",
+          "severity": null,
+          "status": "pass",
+          "message": "读口在预算内：GET /api/v1/attendances（p95 12ms / 预算 50ms）",
+          "evidence": {
+            "endpoint": "GET /api/v1/attendances",
+            "stats": {
+              "endpoint": "GET /api/v1/attendances",
+              "runs": 5,
+              "p50": 9,
+              "p95": 12,
+              "min": 7,
+              "max": 12,
+              "bytes": 36170
+            },
+            "budget": {
+              "p95": 50,
+              "bytes": 43404
+            },
+            "budgetSource": "perf-baseline-tab"
+          }
+        },
+        {
+          "key": "secretary.overview",
+          "rule": "E1",
+          "severity": null,
+          "status": "pass",
+          "message": "读口在预算内：GET /api/v1/tasks（p95 7ms / 预算 50ms）",
+          "evidence": {
+            "endpoint": "GET /api/v1/tasks",
+            "stats": {
+              "endpoint": "GET /api/v1/tasks",
+              "runs": 5,
+              "p50": 6,
+              "p95": 7,
+              "min": 5,
+              "max": 7,
+              "bytes": 1068
+            },
+            "budget": {
+              "p95": 50,
+              "bytes": 1282
+            },
+            "budgetSource": "perf-baseline-tab"
+          }
+        },
+        {
+          "key": "secretary.overview",
+          "rule": "E1",
+          "severity": null,
+          "status": "pass",
+          "message": "读口在预算内：GET /api/v1/todos（p95 8ms / 预算 50ms）",
+          "evidence": {
+            "endpoint": "GET /api/v1/todos",
+            "stats": {
+              "endpoint": "GET /api/v1/todos",
+              "runs": 5,
+              "p50": 5,
+              "p95": 8,
+              "min": 4,
+              "max": 8,
+              "bytes": 554
+            },
+            "budget": {
+              "p95": 50,
+              "bytes": 665
+            },
+            "budgetSource": "perf-baseline-tab"
+          }
+        },
+        {
+          "key": "secretary.overview",
+          "rule": "E1",
+          "severity": null,
+          "status": "pass",
+          "message": "读口在预算内：GET /api/v1/notices（p95 9ms / 预算 50ms）",
+          "evidence": {
+            "endpoint": "GET /api/v1/notices",
+            "stats": {
+              "endpoint": "GET /api/v1/notices",
+              "runs": 5,
+              "p50": 8,
+              "p95": 9,
+              "min": 5,
+              "max": 9,
+              "bytes": 6175
+            },
+            "budget": {
+              "p95": 50,
+              "bytes": 7410
+            },
+            "budgetSource": "perf-baseline-tab"
+          }
+        },
+        {
+          "key": "secretary.overview",
+          "rule": "E1",
+          "severity": null,
+          "status": "pass",
+          "message": "读口在预算内：GET /api/v1/reviewRequests（p95 4ms / 预算 50ms）",
+          "evidence": {
+            "endpoint": "GET /api/v1/reviewRequests",
+            "stats": {
+              "endpoint": "GET /api/v1/reviewRequests",
+              "runs": 5,
+              "p50": 3,
+              "p95": 4,
+              "min": 3,
+              "max": 4,
+              "bytes": 412
+            },
+            "budget": {
+              "p95": 50,
+              "bytes": 495
+            },
+            "budgetSource": "perf-baseline-tab"
+          }
+        },
+        {
+          "key": "secretary.overview",
+          "rule": "E1",
+          "severity": null,
+          "status": "pass",
+          "message": "读口在预算内：GET /api/v1/periodicArchives（p95 6ms / 预算 50ms）",
+          "evidence": {
+            "endpoint": "GET /api/v1/periodicArchives",
+            "stats": {
+              "endpoint": "GET /api/v1/periodicArchives",
+              "runs": 5,
+              "p50": 5,
+              "p95": 6,
+              "min": 4,
+              "max": 6,
+              "bytes": 1146
+            },
+            "budget": {
+              "p95": 50,
+              "bytes": 1376
+            },
+            "budgetSource": "perf-baseline-tab"
+          }
+        },
+        {
+          "key": "secretary.overview",
+          "rule": "E1",
+          "severity": null,
+          "status": "pass",
+          "message": "读口在预算内：GET /api/v1/archiveRecords（p95 8ms / 预算 50ms）",
+          "evidence": {
+            "endpoint": "GET /api/v1/archiveRecords",
+            "stats": {
+              "endpoint": "GET /api/v1/archiveRecords",
+              "runs": 5,
+              "p50": 7,
+              "p95": 8,
+              "min": 5,
+              "max": 8,
+              "bytes": 1237
+            },
+            "budget": {
+              "p95": 50,
+              "bytes": 1485
+            },
+            "budgetSource": "perf-baseline-tab"
+          }
+        },
+        {
+          "key": "secretary.overview",
+          "rule": "E1",
+          "severity": null,
+          "status": "pass",
+          "message": "读口在预算内：GET /api/v1/users（p95 7ms / 预算 50ms）",
+          "evidence": {
+            "endpoint": "GET /api/v1/users",
+            "stats": {
+              "endpoint": "GET /api/v1/users",
+              "runs": 5,
+              "p50": 7,
+              "p95": 7,
+              "min": 5,
+              "max": 7,
+              "bytes": 9892
+            },
+            "budget": {
+              "p95": 50,
+              "bytes": 11871
+            },
+            "budgetSource": "perf-baseline-tab"
+          }
+        },
+        {
+          "key": "secretary.overview",
+          "rule": "E1",
+          "severity": null,
+          "status": "pass",
+          "message": "读口在预算内：GET /api/v1/issues（p95 9ms / 预算 50ms）",
+          "evidence": {
+            "endpoint": "GET /api/v1/issues",
+            "stats": {
+              "endpoint": "GET /api/v1/issues",
+              "runs": 5,
+              "p50": 8,
+              "p95": 9,
+              "min": 6,
+              "max": 9,
+              "bytes": 7640
+            },
+            "budget": {
+              "p95": 50,
+              "bytes": 9168
+            },
+            "budgetSource": "perf-baseline-tab"
+          }
+        },
+        {
+          "key": "secretary.overview",
+          "rule": "E1",
+          "severity": null,
+          "status": "pass",
+          "message": "读口在预算内：GET /api/v1/partyGroups（p95 4ms / 预算 50ms）",
+          "evidence": {
+            "endpoint": "GET /api/v1/partyGroups",
+            "stats": {
+              "endpoint": "GET /api/v1/partyGroups",
+              "runs": 5,
+              "p50": 3,
+              "p95": 4,
+              "min": 2,
+              "max": 4,
+              "bytes": 472
+            },
+            "budget": {
+              "p95": 50,
+              "bytes": 567
+            },
+            "budgetSource": "perf-baseline-tab"
+          }
+        },
+        {
+          "key": "secretary.overview",
+          "rule": "E2",
+          "severity": null,
+          "status": "pass",
+          "message": "接口性能摘要：最慢 5 条 / 最大 5 条",
+          "evidence": {
+            "slowest": [
+              {
+                "endpoint": "GET /api/v1/activities",
+                "p50": 8,
+                "p95": 17,
+                "bytes": 24011
+              },
+              {
+                "endpoint": "GET /api/v1/attendances",
+                "p50": 9,
+                "p95": 12,
+                "bytes": 36170
+              },
+              {
+                "endpoint": "GET /api/v1/notices",
+                "p50": 8,
+                "p95": 9,
+                "bytes": 6175
+              },
+              {
+                "endpoint": "GET /api/v1/issues",
+                "p50": 8,
+                "p95": 9,
+                "bytes": 7640
+              },
+              {
+                "endpoint": "GET /api/v1/todos",
+                "p50": 5,
+                "p95": 8,
+                "bytes": 554
+              }
+            ],
+            "largest": [
+              {
+                "endpoint": "GET /api/v1/attendances",
+                "p95": 12,
+                "bytes": 36170
+              },
+              {
+                "endpoint": "GET /api/v1/activities",
+                "p95": 17,
+                "bytes": 24011
+              },
+              {
+                "endpoint": "GET /api/v1/users",
+                "p95": 7,
+                "bytes": 9892
+              },
+              {
+                "endpoint": "GET /api/v1/issues",
+                "p95": 9,
+                "bytes": 7640
+              },
+              {
+                "endpoint": "GET /api/v1/notices",
+                "p95": 9,
+                "bytes": 6175
+              }
+            ],
+            "measured": 11
+          }
+        }
+      ]
+    }
+  ],
+  "summary": {
+    "P0": 0,
+    "P1": 3,
+    "P2": 0,
+    "exceptions": 0
+  }
+}

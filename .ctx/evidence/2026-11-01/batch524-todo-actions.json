@@ -1,0 +1,206 @@
+{
+  "generatedAt": "2026-11-01T09:04:10.828Z",
+  "base": "http://localhost:3000",
+  "roles": [
+    {
+      "role": "secretary",
+      "expectedTab": "calendar",
+      "clicked": "到活动管理处理",
+      "fromTab": "todo",
+      "toTab": "calendar",
+      "highlighted": true,
+      "highlightId": "act-9",
+      "toast": "i已跳转到活动管理，请跟进：复盘待提交（9月党小组会）×",
+      "pendingAfter": null,
+      "pageErrors": [],
+      "consoleErrors": [],
+      "failedRequests": [
+        "https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;800&family=Noto+Serif+SC:wght@400;500;600;700;800&display=swap :: net::ERR_ABORTED",
+        "http://localhost:3000/src/services/governance/issues.js?v=20261031b :: net::ERR_ABORTED",
+        "http://localhost:3000/src/components/ui/badges.js?v=20261031b :: net::ERR_ABORTED",
+        "https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;800&family=Noto+Serif+SC:wght@400;500;600;700;800&display=swap :: net::ERR_ABORTED",
+        "http://localhost:3000/src/core/boot/tab-nav.js?v=20261031b :: net::ERR_ABORTED",
+        "http://localhost:3000/src/capabilities/data-source.js?v=20261031b :: net::ERR_ABORTED",
+        "http://localhost:3000/src/capabilities/components.js?v=20261031b :: net::ERR_ABORTED",
+        "http://localhost:3000/src/components/ui/custom-select.js?v=20261031b :: net::ERR_ABORTED",
+        "http://localhost:3000/src/core/session/login-snapshot.js?v=20261031b :: net::ERR_ABORTED",
+        "http://localhost:3000/src/core/base/icons.js?v=20261031b :: net::ERR_ABORTED"
+      ]
+    },
+    {
+      "role": "leader",
+      "expectedTab": "write",
+      "clicked": "去处理",
+      "fromTab": "todo",
+      "toTab": "write",
+      "highlighted": false,
+      "highlightId": null,
+      "toast": "i已跳转，请处理：批次524冒烟·赋权×",
+      "pendingAfter": {
+        "tab": "write",
+        "kind": "group",
+        "id": "act-1"
+      },
+      "pageErrors": [],
+      "consoleErrors": [],
+      "failedRequests": [
+        "https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;800&family=Noto+Serif+SC:wght@400;500;600;700;800&display=swap :: net::ERR_ABORTED",
+        "http://localhost:3000/src/capabilities/data-source.js?v=20261031b :: net::ERR_ABORTED",
+        "http://localhost:3000/src/core/boot/tab-nav.js?v=20261031b :: net::ERR_ABORTED",
+        "http://localhost:3000/src/core/base/icons.js?v=20261031b :: net::ERR_ABORTED",
+        "http://localhost:3000/src/components/ui/badges.js?v=20261031b :: net::ERR_ABORTED",
+        "http://localhost:3000/src/core/domain/issue-visibility.js?v=20261031b :: net::ERR_ABORTED",
+        "http://localhost:3000/src/capabilities/components.js?v=20261031b :: net::ERR_ABORTED",
+        "https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;800&family=Noto+Serif+SC:wght@400;500;600;700;800&display=swap :: net::ERR_ABORTED",
+        "http://localhost:3000/src/core/session/login-snapshot.js?v=20261031b :: net::ERR_ABORTED"
+      ]
+    },
+    {
+      "role": "visitor",
+      "expectedTab": "activities",
+      "clicked": "去阅读",
+      "fromTab": "todo",
+      "toTab": "activities",
+      "highlighted": false,
+      "highlightId": null,
+      "toast": "i已跳转，请处理：批次524冒烟·阅读×",
+      "pendingAfter": {
+        "tab": "activities",
+        "kind": "activity",
+        "id": null
+      },
+      "pageErrors": [],
+      "consoleErrors": [],
+      "failedRequests": [
+        "https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;800&family=Noto+Serif+SC:wght@400;500;600;700;800&display=swap :: net::ERR_ABORTED",
+        "http://localhost:3000/src/core/session/login-snapshot.js?v=20261031b :: net::ERR_ABORTED",
+        "http://localhost:3000/src/core/boot/theme.js?v=20261031b :: net::ERR_ABORTED",
+        "http://localhost:3000/src/services/governance/milestones.js?v=20261031b :: net::ERR_ABORTED",
+        "https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;800&family=Noto+Serif+SC:wght@400;500;600;700;800&display=swap :: net::ERR_ABORTED",
+        "http://localhost:3000/src/core/boot/tab-nav.js?v=20261031b :: net::ERR_ABORTED",
+        "http://localhost:3000/src/capabilities/data-source.js?v=20261031b :: net::ERR_ABORTED",
+        "http://localhost:3000/src/components/ui/custom-select.js?v=20261031b :: net::ERR_ABORTED",
+        "http://localhost:3000/src/capabilities/components.js?v=20261031b :: net::ERR_ABORTED",
+        "http://localhost:3000/src/components/shell/header.js?v=20261031b :: net::ERR_ABORTED",
+        "http://localhost:3000/src/core/base/icons.js?v=20261031b :: net::ERR_ABORTED",
+        "http://localhost:3000/src/services/governance/issues.js?v=20261031b :: net::ERR_ABORTED"
+      ]
+    },
+    {
+      "role": "prop",
+      "expectedTab": "archive",
+      "clicked": "去归档",
+      "fromTab": "todo",
+      "toTab": "archive",
+      "highlighted": false,
+      "highlightId": null,
+      "toast": "i已跳转，请处理：提交\"红色徒步·香山行\"活动新闻稿×",
+      "pendingAfter": {
+        "tab": "archive",
+        "kind": "activity",
+        "id": "act-37"
+      },
+      "pageErrors": [],
+      "consoleErrors": [],
+      "failedRequests": [
+        "https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;800&family=Noto+Serif+SC:wght@400;500;600;700;800&display=swap :: net::ERR_ABORTED",
+        "http://localhost:3000/src/components/ui/badges.js?v=20261031b :: net::ERR_ABORTED",
+        "http://localhost:3000/src/services/governance/milestones.js?v=20261031b :: net::ERR_ABORTED",
+        "http://localhost:3000/src/core/boot/tab-nav.js?v=20261031b :: net::ERR_ABORTED",
+        "http://localhost:3000/src/core/boot/theme.js?v=20261031b :: net::ERR_ABORTED",
+        "http://localhost:3000/src/capabilities/components.js?v=20261031b :: net::ERR_ABORTED",
+        "http://localhost:3000/src/core/session/login-snapshot.js?v=20261031b :: net::ERR_ABORTED",
+        "http://localhost:3000/src/core/base/icons.js?v=20261031b :: net::ERR_ABORTED",
+        "http://localhost:3000/src/services/governance/issues.js?v=20261031b :: net::ERR_ABORTED",
+        "http://localhost:3000/src/components/ui/custom-select.js?v=20261031b :: net::ERR_ABORTED",
+        "http://localhost:3000/src/capabilities/data-source.js?v=20261031b :: net::ERR_ABORTED",
+        "https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;800&family=Noto+Serif+SC:wght@400;500;600;700;800&display=swap :: net::ERR_ABORTED"
+      ]
+    },
+    {
+      "role": "org",
+      "expectedTab": "talent",
+      "clicked": "去核对",
+      "fromTab": "todo",
+      "toTab": "talent",
+      "highlighted": false,
+      "highlightId": null,
+      "toast": "i已跳转到人才库，请在页底「录入考察」核对本半年考察意见（建档与核对归组织委员）×",
+      "pendingAfter": {
+        "tab": "talent",
+        "kind": "inspection",
+        "id": null
+      },
+      "pageErrors": [],
+      "consoleErrors": [],
+      "failedRequests": [
+        "https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;800&family=Noto+Serif+SC:wght@400;500;600;700;800&display=swap :: net::ERR_ABORTED",
+        "http://localhost:3000/src/components/ui/detail-anchor.js?v=20261031b :: net::ERR_ABORTED",
+        "http://localhost:3000/src/components/ui/custom-select.js?v=20261031b :: net::ERR_ABORTED",
+        "http://localhost:3000/src/core/boot/tab-loader.js?v=20261031b :: net::ERR_ABORTED",
+        "http://localhost:3000/src/components/shell/page-frame.js?v=20261031b :: net::ERR_ABORTED",
+        "http://localhost:3000/src/components/ui/modal.js?v=20261031b :: net::ERR_ABORTED",
+        "http://localhost:3000/src/components/shell/sidebar.js?v=20261031b :: net::ERR_ABORTED",
+        "https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;800&family=Noto+Serif+SC:wght@400;500;600;700;800&display=swap :: net::ERR_ABORTED",
+        "http://localhost:3000/src/core/base/icons.js?v=20261031b :: net::ERR_ABORTED",
+        "http://localhost:3000/src/core/boot/tab-nav.js?v=20261031b :: net::ERR_ABORTED",
+        "http://localhost:3000/src/services/governance/issues.js?v=20261031b :: net::ERR_ABORTED",
+        "http://localhost:3000/src/capabilities/data-source.js?v=20261031b :: net::ERR_ABORTED",
+        "http://localhost:3000/src/components/ui/form-shell.js?v=20261031b :: net::ERR_ABORTED",
+        "http://localhost:3000/src/components/ui/list-filter.js?v=20261031b :: net::ERR_ABORTED",
+        "http://localhost:3000/src/capabilities/components.js?v=20261031b :: net::ERR_ABORTED",
+        "http://localhost:3000/src/components/governance/workgroup-permissions.js?v=20261031b :: net::ERR_ABORTED",
+        "http://localhost:3000/src/components/shell/header.js?v=20261031b :: net::ERR_ABORTED",
+        "http://localhost:3000/src/components/ui/relation-matrix.js?v=20261031b :: net::ERR_ABORTED",
+        "http://localhost:3000/src/components/ui/badges.js?v=20261031b :: net::ERR_ABORTED",
+        "http://localhost:3000/src/core/domain/object-route.js?v=20261031b :: net::ERR_ABORTED",
+        "http://localhost:3000/src/components/ui/form-field.js?v=20261031b :: net::ERR_ABORTED",
+        "http://localhost:3000/src/services/governance/milestones.js?v=20261031b :: net::ERR_ABORTED",
+        "http://localhost:3000/src/components/governance/workgroup-member-editor.js?v=20261031b :: net::ERR_ABORTED",
+        "http://localhost:3000/src/core/boot/theme.js?v=20261031b :: net::ERR_ABORTED",
+        "http://localhost:3000/src/entries/tabs/secretary/assign-tab.js?v=20261031b :: net::ERR_ABORTED",
+        "http://localhost:3000/src/components/governance/person-picker.js?v=20261031b :: net::ERR_ABORTED",
+        "http://localhost:3000/src/components/governance/person-edit-modal.js?v=20261031b :: net::ERR_ABORTED",
+        "http://localhost:3000/src/components/governance/organizer-transfer.js?v=20261031b :: net::ERR_ABORTED"
+      ]
+    },
+    {
+      "role": "disc",
+      "expectedTab": "attendance",
+      "clicked": "去考勤管理",
+      "fromTab": "todo",
+      "toTab": "attendance",
+      "highlighted": false,
+      "highlightId": null,
+      "toast": "i已跳转，请处理：考勤待确认×",
+      "pendingAfter": {
+        "tab": "attendance",
+        "kind": "attendance",
+        "id": "att10"
+      },
+      "pageErrors": [],
+      "consoleErrors": [],
+      "failedRequests": [
+        "https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;800&family=Noto+Serif+SC:wght@400;500;600;700;800&display=swap :: net::ERR_ABORTED",
+        "http://localhost:3000/src/services/governance/issues.js?v=20261031b :: net::ERR_ABORTED",
+        "http://localhost:3000/src/core/boot/theme.js?v=20261031b :: net::ERR_ABORTED",
+        "http://localhost:3000/src/capabilities/data-source.js?v=20261031b :: net::ERR_ABORTED",
+        "http://localhost:3000/src/components/ui/custom-select.js?v=20261031b :: net::ERR_ABORTED",
+        "http://localhost:3000/src/capabilities/components.js?v=20261031b :: net::ERR_ABORTED",
+        "https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;800&family=Noto+Serif+SC:wght@400;500;600;700;800&display=swap :: net::ERR_ABORTED",
+        "http://localhost:3000/src/services/governance/milestones.js?v=20261031b :: net::ERR_ABORTED",
+        "http://localhost:3000/src/core/base/icons.js?v=20261031b :: net::ERR_ABORTED",
+        "http://localhost:3000/src/core/session/login-snapshot.js?v=20261031b :: net::ERR_ABORTED",
+        "http://localhost:3000/src/core/boot/tab-nav.js?v=20261031b :: net::ERR_ABORTED",
+        "http://localhost:3000/src/components/shell/header.js?v=20261031b :: net::ERR_ABORTED"
+      ]
+    }
+  ],
+  "feedbackCheck": {
+    "issueId": "issue-001",
+    "toTab": "feedback",
+    "toast": "",
+    "highlighted": "issue-001",
+    "pageErrors": []
+  }
+}

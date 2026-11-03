@@ -1,0 +1,136 @@
+{
+  "generatedAt": "2026-11-01T16:32:00.270Z",
+  "base": "http://localhost:3000",
+  "viewport": 1440,
+  "structure": {
+    "found": true,
+    "blocks": [
+      "页头",
+      "本组组员",
+      "组员汇报",
+      "低频查阅"
+    ],
+    "blockCount": 4,
+    "directChildren": 2,
+    "cards": [
+      {
+        "tag": "section",
+        "id": "leader-members-card",
+        "title": "本组组员"
+      },
+      {
+        "tag": "div",
+        "id": "",
+        "title": "组员汇报"
+      },
+      {
+        "tag": "section",
+        "id": "leader-more-card",
+        "title": "低频查阅"
+      }
+    ],
+    "visibleFilterBars": 0,
+    "filterBar": null,
+    "filterBarList": []
+  },
+  "screenshot": "batch525-leader-members.png",
+  "segments": {
+    "default": {
+      "pressed": "true",
+      "blockersVisible": true
+    },
+    "all": {
+      "structure": {
+        "found": true,
+        "blocks": [
+          "页头",
+          "本组组员",
+          "组员汇报",
+          "低频查阅"
+        ],
+        "blockCount": 4,
+        "directChildren": 2,
+        "cards": [
+          {
+            "tag": "section",
+            "id": "leader-members-card",
+            "title": "本组组员"
+          },
+          {
+            "tag": "div",
+            "id": "",
+            "title": "组员汇报"
+          },
+          {
+            "tag": "section",
+            "id": "leader-more-card",
+            "title": "低频查阅"
+          }
+        ],
+        "visibleFilterBars": 1,
+        "filterBar": {
+          "rows": 1,
+          "height": 40,
+          "items": 4
+        },
+        "filterBarList": [
+          {
+            "rows": 1,
+            "height": 40,
+            "items": 4
+          }
+        ]
+      },
+      "askInProgressRows": 0,
+      "pressed": "true"
+    }
+  },
+  "filterBarCheck": {
+    "segment": "all",
+    "visibleBars": 1,
+    "rows": 1,
+    "height": 40,
+    "blockersSegmentVisibleBars": 0,
+    "note": "卡点段 ≤8 行时引擎自动隐藏检索条；全部段唯一一条 1 行 40px"
+  },
+  "paths": {
+    "askReport": {
+      "ok": true,
+      "issueCountBefore": 6,
+      "issueCountAfter": 7,
+      "askCountBefore": 2,
+      "toast": "!\n当前为浏览模式：数据不会保存到本机，请登录后使用服务器数据。\n×",
+      "askOnlyInBlockerRows": true
+    },
+    "reportAnswer": {
+      "ok": true,
+      "reportId": "issue-102",
+      "toast": "!\n当前为浏览模式：数据不会保存到本机，请登录后使用服务器数据。\n×\n✓\n正式答复已发回\n×"
+    },
+    "reviewFold": {
+      "ok": true,
+      "foldOpen": true,
+      "foldOpenAfterItemRerender": true,
+      "completedCount": 5,
+      "completedExpanded": true
+    },
+    "otherGroups": {
+      "ok": true,
+      "groupCards": 2,
+      "foldOpen": true,
+      "hasForms": 0
+    },
+    "inspectionDeepLink": {
+      "ok": true,
+      "toggleExpanded": "true",
+      "formToggle": 1,
+      "url": "http://localhost:3000/workspace/leader.html"
+    },
+    "groupsDeepLink": {
+      "ok": true,
+      "groupCards": 2,
+      "url": "http://localhost:3000/workspace/leader.html"
+    }
+  },
+  "pageErrors": []
+}

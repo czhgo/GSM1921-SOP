@@ -2,7 +2,7 @@
 
 ## 读什么（最多 3 条）
 1. `content/05_ai_coding/README.md`（文件分职与 `read_strategy`）。
-2. `REVIEW_QUESTION_SET.md`（审查前置：Q-01…Q-21 逐条回答）。
+2. `REVIEW_QUESTION_SET.md`（审查前置：Q-01…Q-22 逐条回答）。
 3. `PARALLEL_SKILL_AUDIT.md` §0（问题集 → 分 lens → 汇总的顺序）。
 
 ## 改什么
@@ -13,7 +13,7 @@
 - 多代理审查 → `PARALLEL_SKILL_AUDIT.md`；问题集 → `REVIEW_QUESTION_SET.md` + `QUESTION_HIT_MATRIX.md`。
 
 ## 禁什么（3 条硬禁）
-1. 不得跳过问题集直接分 lens。判定：每轮审查须有 Q-01…Q-21 的「有 / 无 / 不适用＋理由」记录，并在 `QUESTION_HIT_MATRIX.md` 新增一行。
+1. 不得跳过问题集直接分 lens。判定：每轮审查须有 Q-01…Q-22 的「有 / 无 / 不适用＋理由」记录，并在 `QUESTION_HIT_MATRIX.md` 新增一行。
 2. 不得把「必须是什么」的规范判据写进本目录。判定：新增段落若出现祈使式规范或 `SD-` 编号，须改为方法步骤或迁 `content/03` / `content/04`。
 3. 不得裸引 `§N` 作为跨篇引用（必须带篇名 + 原编号）。判定：diff 中新增的跨篇 `§N` 逐条带篇名。
 

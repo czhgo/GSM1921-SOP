@@ -1,0 +1,174 @@
+{
+  "task": "server-opt: snapshot batch-read (A) + request-scope row projection (B)",
+  "date": "2026-11-01",
+  "db": "server/data.db (demo, 51 users, 38 activities, 144 attendances, 42 inspections)",
+  "accounts": {
+    "snapshot": "2300010001 (secretary, br-b1)",
+    "list": "2400012347 (participant, br-b1)"
+  },
+  "method": {
+    "latency_real_ports": "HTTP, 20 iterations, p50/p95 ms",
+    "query_count": "in-process app + db.prepare wrapper, one warmed POST /api/v1/snapshot (27 domains, ~106KB); point query = SQL contains WHERE id = ?",
+    "consistency": "raw response body byte comparison, old vs new code"
+  },
+  "snapshot": {
+    "in_process_before": {
+      "p50": 117.58,
+      "p95": 140.77,
+      "prepare": 1602,
+      "point": 1409
+    },
+    "in_process_after": {
+      "p50": 35.03,
+      "p95": 42.47,
+      "prepare": 189,
+      "point": 53
+    },
+    "port_3000_before": {
+      "p50": 86.37,
+      "p95": 101.85,
+      "domains": 27,
+      "bytes": 106455
+    },
+    "port_3100_after": {
+      "p50": 35.06,
+      "p95": 42.19,
+      "domains": 27,
+      "bytes": 106509
+    },
+    "top_point_sites_before": [
+      {
+        "site": "branch-scope.js:99 :: SELECT data FROM activities WHERE id = ?",
+        "n": 756
+      },
+      {
+        "site": "branch-scope.js:99 :: SELECT data FROM workgroups WHERE id = ?",
+        "n": 172
+      },
+      {
+        "site": "branch-scope.js:99 :: SELECT data FROM attendances WHERE id = ?",
+        "n": 144
+      },
+      {
+        "site": "workgroup-routes.js:33 :: SELECT data FROM workgroups WHERE id = ?",
+        "n": 76
+      },
+      {
+        "site": "branch-scope.js:99 :: SELECT data FROM inspections WHERE id = ?",
+        "n": 42
+      },
+      {
+        "site": "index.js:245 :: SELECT data FROM inspections WHERE id = ?",
+        "n": 42
+      },
+      {
+        "site": "workgroup-routes.js:33 :: SELECT data FROM activities WHERE id = ?",
+        "n": 38
+      },
+      {
+        "site": "branch-scope.js:99 :: SELECT data FROM taskforces WHERE id = ?",
+        "n": 32
+      }
+    ],
+    "top_point_sites_after": [
+      {
+        "site": "signup-write-guard.js:23 <- branch-scope.js:208 <- branch-scope.js:154 <- branch-scope.js:128 :: SELECT data FROM workgroups WHERE id = ?",
+        "n": 8
+      },
+      {
+        "site": "signup-write-guard.js:201 <- signup-write-guard.js:124 <- signup-write-guard.js:74 <- signup-write-guard.js:14 :: SELECT data FROM users WHERE id = ?",
+        "n": 7
+      },
+      {
+        "site": "signup-write-guard.js:23 <- branch-scope.js:208 <- branch-scope.js:142 <- branch-scope.js:128 :: SELECT data FROM activities WHERE id = ?",
+        "n": 6
+      },
+      {
+        "site": "signup-write-guard.js:188 <- signup-write-guard.js:188 <- branch-scope.js:201 <- branch-scope.js:128 :: SELECT data FROM taskforces WHERE id = ?",
+        "n": 5
+      },
+      {
+        "site": "signup-write-guard.js:124 <- signup-write-guard.js:62 <- signup-write-guard.js:21 <- signup-write-guard.js:14 :: SELECT data FROM taskforces WHERE id = ?",
+        "n": 5
+      },
+      {
+        "site": "signup-write-guard.js:201 <- signup-write-guard.js:126 <- signup-write-guard.js:21 <- signup-write-guard.js:14 :: SELECT data FROM taskforces WHERE id = ?",
+        "n": 5
+      },
+      {
+        "site": "branch-scope.js:203 <- branch-scope.js:208 <- branch-scope.js:154 <- branch-scope.js:128 :: SELECT data FROM workgroups WHERE id = ?",
+        "n": 4
+      },
+      {
+        "site": "branch-scope.js:203 <- branch-scope.js:208 <- branch-scope.js:142 <- branch-scope.js:128 :: SELECT data FROM activities WHERE id = ?",
+        "n": 3
+      }
+    ]
+  },
+  "lists": {
+    "attendances": {
+      "before": {
+        "p50": 13.55,
+        "p95": 17.44,
+        "rows": 14
+      },
+      "after": {
+        "p50": 4.79,
+        "p95": 5.55,
+        "rows": 14
+      },
+      "in_process_prepare": {
+        "before": 288,
+        "after": 6
+      },
+      "in_process_point": {
+        "before": 285,
+        "after": 2
+      }
+    },
+    "inspections": {
+      "before": {
+        "p50": 6.57,
+        "p95": 9.71,
+        "rows": 8
+      },
+      "after": {
+        "p50": 5.13,
+        "p95": 5.65,
+        "rows": 8
+      },
+      "in_process_prepare": {
+        "before": 83,
+        "after": 11
+      },
+      "in_process_point": {
+        "before": 76,
+        "after": 2
+      }
+    }
+  },
+  "resourceRowsForActor": {
+    "before_baseline_reported_ms": 6.23,
+    "after_ms": 0.74,
+    "note": "after = attendances+inspections each once with request-scope table reader; rows preloaded"
+  },
+  "consistency": {
+    "attendances": "IDENTICAL",
+    "attendances__secretary": "IDENTICAL",
+    "inspections": "IDENTICAL",
+    "inspections__secretary": "IDENTICAL"
+  },
+  "targets": {
+    "snapshot_point_le_100": true,
+    "snapshot_p50_le_50": true,
+    "attendances_p50_le_10": true,
+    "inspections_p50_le_10": true,
+    "resourceRowsForActor_le_1ms": true
+  },
+  "regression": {
+    "command": "node --test branch-resource-isolation write-path-guard r3-data-permission-regression participant-scope activity-member-privacy server-base",
+    "tests": 43,
+    "pass": 43,
+    "fail": 0
+  }
+}

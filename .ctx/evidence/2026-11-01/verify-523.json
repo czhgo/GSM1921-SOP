@@ -1,0 +1,86 @@
+{
+  "desktop": {
+    "rows": "80px",
+    "cards": [
+      {
+        "h": 80,
+        "padding": "16px",
+        "text": "3场 本月活动",
+        "noteCount": 0
+      },
+      {
+        "h": 80,
+        "padding": "16px",
+        "text": "1个 活跃专班",
+        "noteCount": 0
+      },
+      {
+        "h": 80,
+        "padding": "16px",
+        "text": "1条 未读通知",
+        "noteCount": 0
+      },
+      {
+        "h": 80,
+        "padding": "16px",
+        "text": "— 个人考勤",
+        "noteCount": 0
+      }
+    ]
+  },
+  "mobile": {
+    "rows": "80px 80px",
+    "cards": [
+      {
+        "h": 80,
+        "padding": "16px",
+        "text": "3场 本月活动",
+        "noteCount": 0
+      },
+      {
+        "h": 80,
+        "padding": "16px",
+        "text": "1个 活跃专班",
+        "noteCount": 0
+      },
+      {
+        "h": 80,
+        "padding": "16px",
+        "text": "1条 未读通知",
+        "noteCount": 0
+      },
+      {
+        "h": 80,
+        "padding": "16px",
+        "text": "— 个人考勤",
+        "noteCount": 0
+      }
+    ]
+  },
+  "strip": {
+    "summary": {
+      "w": 1150,
+      "h": 44,
+      "bg": "rgba(0, 0, 0, 0)",
+      "fontSize": "15px",
+      "fontWeight": "400"
+    },
+    "title": {
+      "fontSize": "16px",
+      "fontWeight": "600",
+      "lineHeight": "24px",
+      "family": "\"Noto Serif SC\"",
+      "color": "rgb(31, 41, 55)"
+    },
+    "open": true
+  },
+  "stripHover": {
+    "bg": "rgba(0, 0, 0, 0)",
+    "titleColor": "rgb(31, 41, 55)",
+    "chevronColor": "rgb(31, 41, 55)"
+  },
+  "stripClicks": {
+    "afterLeft": false,
+    "afterRight": true
+  }
+}

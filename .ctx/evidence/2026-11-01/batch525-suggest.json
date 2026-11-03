@@ -1,0 +1,35 @@
+{
+  "generatedAt": "2026-11-01T15:22:32.329Z",
+  "opened": true,
+  "input": {
+    "hasListAttr": false,
+    "role": "combobox",
+    "ariaExpanded": "true",
+    "ariaControls": "lf2-q-suggest-list",
+    "ariaActivedescendant": null,
+    "options": [
+      "11月党小组会：第三党小组理论学习",
+      "8月党小组会：第三党小组理论学习",
+      "8月党小组会：第二党小组理论学习"
+    ]
+  },
+  "screenshot": "batch525-suggest.png",
+  "arrow": {
+    "activeText": "11月党小组会：第三党小组理论学习",
+    "activedescendant": "lf2-q-suggest-list-0",
+    "ariaExpanded": "true"
+  },
+  "enter": {
+    "value": "11月党小组会：第三党小组理论学习"
+  },
+  "escape": {
+    "listHidden": true,
+    "ariaExpanded": "false"
+  },
+  "darkPixels": {
+    "width": 320,
+    "height": 41,
+    "count": 0
+  },
+  "pageErrors": []
+}

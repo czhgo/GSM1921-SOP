@@ -1,0 +1,51 @@
+{
+  "url": "http://localhost:3000/workspace/secretary.html?dev=secretary&tab=overview",
+  "steps": [],
+  "baseline": {
+    "outerHTML": "<input type=\"text\" id=\"lf2-q\" class=\"input-flat text-xs lf-kw\" placeholder=\"搜索工作组名称…\" aria-label=\"搜索工作组名称…\" value=\"\" list=\"lf2-kw\">",
+    "id": "lf2-q",
+    "listAttr": "lf2-kw",
+    "listId": "lf2-kw",
+    "datalistOptionCount": 34,
+    "datalistFirstOptions": [
+      "11月支委会：发展党员工作专题",
+      "11月党小组会：第三党小组理论学习",
+      "11月主题党日：学习贯彻党的二十届四中全会精神"
+    ],
+    "appearance": "auto / auto",
+    "backgroundImage": "none",
+    "paddingRight": "16px",
+    "pickerDisplay": "block",
+    "pickerWidth": "320px",
+    "pickerOpacity": "1",
+    "pickerVisibility": "visible",
+    "pickerBgImageLen": 4,
+    "matchesPickerRule": false,
+    "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/148.0.7778.96 Safari/537.36"
+  },
+  "baselineBox": {
+    "x": 161,
+    "y": 479.5,
+    "width": 320,
+    "height": 40
+  },
+  "afterRemoveList": {
+    "listAttr": null,
+    "datalistOptionCount": null
+  },
+  "afterHideIndicator": {
+    "pickerDisplay": "block",
+    "pickerWidth": "320px",
+    "listAttr": "lf2-kw"
+  },
+  "afterAppearanceNone": {
+    "appearance": "none",
+    "pickerDisplay": "block",
+    "pickerWidth": "320px"
+  },
+  "control": {
+    "outerHTML": "<input type=\"text\" id=\"cal-kw\" class=\"input-flat text-xs lf-kw\" placeholder=\"搜索活动名称…\" aria-label=\"搜索活动名称\" data-bound=\"1\">",
+    "listAttr": null,
+    "appearance": "auto"
+  }
+}

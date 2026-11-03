@@ -3,7 +3,7 @@ title: "工程化评估与改造行动线"
 type: audit_report
 role: "[工程师]+[AI]"
 created: 2026-09-03
-last_updated: "2026-10-23"
+last_updated: "2026-11-02"
 status: active
 related_files: [content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md, content/04_web_design/evolution/WORKFLOW_BLOCK_CONTRACT.md, content/04_web_design/evolution/PARTY_COMMITTEE_DESIGN.md, content/04_web_design/module/SOP_WEBSITE_GUIDE.md, content/04_web_design/deploy/DEPLOYMENT_GUIDE.md, .ctx/REVIEW_QUEUE.md, CLAUDE.md, content/03_doc_system/DOC_MAP.md, content/insights/README.md, content/insights/工程与AI协作的全栈实践.md, server/README.md, docs/help.html]
 ---
@@ -15,7 +15,7 @@ related_files: [content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md, conte
 > **受众**：[工程师]+[AI]（架构维护者）+ 支书（方向裁决人）
 > **关联**：`content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md`（组件化/插件化演进母文档，评估正文已压为其 §二 历史结论段）、`content/04_web_design/evolution/WORKFLOW_BLOCK_CONTRACT.md`（L3 工作流块契约）、`content/04_web_design/evolution/PARTY_COMMITTEE_DESIGN.md`（两级治理设计）、`.ctx/REVIEW_QUEUE.md`（全局评估总表，本文件一行）。
 > **职能（2026-09-17 立，规范见 [OPERATIONS_GUIDE §5.1](../content/03_doc_system/OPERATIONS_GUIDE.md)）**
-> **回答什么问题**：「**当前工程短板在哪里、什么是真返工、先改哪条边界**」——业务与数据、安全与权限、最小三成本体验、架构与变更成本、测试发布、运行部署六维证据；以及复盘结论与当前行动。
+> **回答什么问题**：「**当前工程短板在哪里、什么是真返工、先改哪条边界**」——业务与数据、安全与权限、最小三成本体验（含前端与交互）、测试发布、架构与可维护性、运行部署六维证据；以及复盘结论与当前行动。
 > **不回答什么**：① **哪一批做了什么**（沿革与逐批论证）→ `.ctx/logs/YYYY-MM-EXECUTION_LOG.md`；② **规则与守卫的判据细节** → `CLAUDE.md`（R 表）与 `content/05_ai_coding/DATA_CONSISTENCY_CHECKLIST.md §0.2`（规则→守卫→状态索引）；③ **测试清单与运行方式** → `README.md` / `server/README.md`；④ **系统当前长什么样**（目录树 / 表数 / 页面数）→ `.ctx/SNAPSHOT.md`；⑤ **文档职责与导航** → `content/03_doc_system/DOC_MAP.md`。
 > **谁什么时候读**：`[工程师]+[AI]`；**每次决定「下一批做什么」之前必读**；支书问工程化进展或方向时读。按需（on-demand）。
 
@@ -27,12 +27,12 @@ related_files: [content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md, conte
 
 | 维度 | 得分 | 证据、风险与未完成项 |
 |------|------|---------------------|
-| 业务与数据正确性 | **78 / 100** | SQLite 迁移、关键写事务、活动报名状态过滤与去重、活动物理删除、报告生成均已有测试；本轮又补出并修复无记名分工票决把参与记录当同意的缺陷。残项：SQLite 中许多业务对象仍以 JSON 宽行存储，跨表关联没有数据库外键兜底；票决名单仍由活动写入方固化，服务端没有按活动场景重算。 |
-| 安全与权限 | **52 / 100** | 活动、文件、审批、通知等已有服务端角色门，生产环境缺少口令会拒绝启动。但服务端仍明确限制为单支部单实例：同一实例的读取多数不按支部过滤；多数通用资源写口仅要求登录；会话不失效且全支部共用一个口令；活动写入方可保存表决名单。 |
-| 最小三成本体验 | **68 / 100** | 已有按角色工作台、任务待办、搜索、表单和页面成本守卫；本轮 Help 搜索扩为章节正文、操作步骤及卡片，并加入角色/任务直达。D-754 的 72 个工作台页签体检已经记录“对象轴与动作轴混在一起”会增加选择成本；全站入口简并与用户验证仍未完成。 |
-| 架构复杂度与变更成本 | **74 / 100** | 前端按服务、组件、能力、入口分域，功能目录、策略默认值、工作流块和报告读口已有单一源；服务器路由也按资源拆分。变更仍受双数据适配器、活动内嵌数据与多张关联表、静态模块版本戳、精细文档行号守卫牵动；跨层变更常需要同时更新代码、Help、索引、测试和台账。 |
-| 测试与发布质量 | **78 / 100** | 测试覆盖纯逻辑、数据库/API、浏览器流程和守卫，并按覆盖面分片；备份/恢复检查 SQLite 完整性。本轮累计 1,032 个不同测试用例通过。全量首跑有 8 个依赖固定端口服务的 E2E 超时，服务就绪后隔离重跑 8/8 通过，说明测试编排仍有环境依赖。残项：测试脚本清单维护面多，自动守卫仍有漏网之鱼；本轮无记名计票缺口就是测试未覆盖的真实反例。 |
-| 运行、部署与跨组织复用 | **62 / 100** | 仓库内 Node + SQLite 即可本地启动，默认库为 server/data.db；空库起步、备份恢复、换组织指南和部署说明都已落盘。SQLite 本身不是本地跑通障碍。当前硬边界是单实例不能安全承载多个支部；共享口令、无会话过期、缺业务字段索引和未完成的外部身份接入限制了生产与跨组织复用。 |
+| 业务与数据正确性 | **78 / 100** | 45 页签全量审计的 D1 读口全部 2xx / JSON 可解析 / ≤500KB；D2 计数对账一致（`org.roster` 50 = 50、`secretary.group-progress` 3 = 3、`party-committee.branches` 1 = 1）；C2 在 `:memory:` 临时库对非破坏性写口完成 create → 回读 → PATCH → 校验 → DELETE。残项：SQLite 中许多业务对象仍以 JSON 宽行存储，跨表关联没有数据库外键兜底；票决名单仍由活动写入方固化，服务端没有按活动场景重算；F6 三处空态启发式待人工确认（`org.thought-review` / `org.member-flow` / `visitor.attendance`）。本轮未发现新的业务数据缺陷，维持原分。 |
+| 安全与权限 | **52 / 100** | C1 越权探针确认：本角色读口 2xx，普通成员对绝大多数写口返回 401 / 403；C4 每个写口都有可定位的 `gate`。审计登记了 3 个 `requireAuth` 通用写口的已知系统性风险（`PATCH /api/v1/signups/:id`，见 `disc.attendance` / `leader.attendance` / `org.taskforce`），按例外处理、不逐页签判 P0；本轮未放宽任何权限门。残项：通用资源写口仍仅要求登录；共享口令、会话不失效、跨支部整表读取仍未闭合。 |
+| 最小三成本体验（含前端与交互） | **68 / 100** | 45 页签审计资产给出可复跑的密度 / 信息经济读数：**P0 0 / P1 0 / P2 3 / exception 47**；F1–F8 全绿（含 390 无横向溢出、筛选条 ≤2 行、唯一 H2 与标题不跳级、`section` 有可访问名称、F8 零 pageerror / 零 `/api/v1/` 4xx）；**M1–M3 已实现**（例外理由复核、重复卡头、多条筛选条，4 个双列表页签登记为「独立对象池」例外）；14 个 >4 块页签均有 `TAB_BLOCK_BASELINE` 登记理由。残项：F6 三处空态待人工确认；41 个页签仅登记未重构；尚无按常见任务的用户实测。工具与局部修复不足以证明三成本实质下降，维持原分。 |
+| 测试与发布质量 | **80 / 100** | `workbench-audit-coverage::W1–W5` 常驻校验 catalog 45 键 ≡ capabilities ≡ `TAB_BLOCK_BASELINE`，每个页签有真实源码入口、至少 1 个读口、写口有 `gate`、破坏性流程有 `reason`，并用反例自证会判红；C2 在临时内存库完成 CRUD 往返；最终全量审计 P0 0 / P1 0；旧 67 页签台账退役为只读档案。残项：审计脚本不进 `test:daily`，precommit / full 时长仍是发布风险；254 个 `skip` 表示「未测」而非通过；守卫证明形态，不等于业务输出正确。**78 → 80（+2）**：补的是「页签 → 读 / 写口 → 权限门」的常驻覆盖空白，审计脚本本身不计分。 |
+| 架构与可维护性（原「架构复杂度与变更成本」） | **74 / 100** | 审计脚本按 `audit-tabs.mjs`（编排）＋ `audit/catalog.mjs`（45 页签单一源）＋ `endpoint-map.mjs`（读 / 写 / gate 单一源）＋ `checks-*`（F / D / C / E / M）＋ `severity.mjs`（判级单一表）＋ `report.mjs`（JSON / Markdown / 截图）分层；复用既有 Playwright 与 better-sqlite3，未新增依赖。成本与残项：审计器与 `page-sweep` / `module-load` / `a11y-tree` 有部分重叠；catalog 仍须与 capabilities、baseline 同批维护；双数据适配器、活动内嵌数据、静态模块版本戳与文档行号守卫仍抬高跨层变更成本。分层是正面证据，但未降低跨层变更成本，维持原分。 |
+| 运行、部署与跨组织复用 | **68 / 100** | 仓库内 Node + SQLite 可本地启动；本轮补齐换轨证据：`export-all` / `import-all`（默认 dry-run、单事务、版本与 id 冲突校验、契约 required/enums）在副本库完成 **48 表 / 542 行**导出导入，逐表行数与 sha256 一致；`preflight-cutover` exit 0；`user_version > SCHEMA_VERSION` 拒绝降级启动；迁移前自动备份；`CUTOVER_RUNBOOK` 与首启六角色基线落盘。残项：`attachments/sessions` 不随库导出（需按 runbook 搬附件）；`committeeBroadcasts` 仍须人工导出 localStorage；生产空库 `--strict` 未实跑；单实例多支部、共享口令、无会话过期仍是硬边界。**62 → 68（+6）**：补的是「可演练、可回滚、可拒绝降级」的换轨闭环，不改变单实例多支部的硬边界。 |
 
 ### 评分锚点
 
@@ -44,11 +44,13 @@ related_files: [content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md, conte
 
 ### 阻断级风险
 
-1. **多支部共用一个服务实例会跨支部读出数据。** 服务器当前整表读取，支部隔离主要在前端做；部署说明因此要求一实例一支部。多支部共享前必须把支部过滤移到服务端。
-2. **多数通用写口只验证登录。** 若成员之间不能完全互信，上线前必须补按资源、角色、归属和动作的服务端写权限。
-3. **表决选民名单来自活动数据本身。** 创建/修改活动的服务端没有按场景从 users 和组织归属重算 voteConfig.voterIds；当前模型依赖可信的支委写入。
-4. **共用口令与不失效会话只适合受控部署。** 生产虽能强制设置口令，但仍是全体共用且没有个人凭证、token 过期或刷新。
-5. **SQLite JSON 宽表是规模边界。** 当前单支部规模可用；业务字段无索引、关联靠应用层扫描，万行级增长前需专项评估结构、索引和查询量。
+> **本轮复核（2026-11-02 批次 526）**：逐条标注「保留 / 闭环 / 新增」，闭环必须给证据。结论：无闭环项、无新增阻断风险；第 2 条由 C1 探针再次证实。
+
+1. **多支部共用一个服务实例会跨支部读出数据。** **保留**。服务器当前整表读取，支部隔离主要在前端做；部署说明因此要求一实例一支部。本轮审计未覆盖多支部场景，无闭环证据。
+2. **多数通用写口只验证登录。** **保留**。C1 越权探针在 `disc.attendance` / `leader.attendance` / `org.taskforce` 三处确认 `PATCH /api/v1/signups/:id` 仅 `requireAuth`，已按系统性风险记 `exception`；本轮未放宽任何门，也没有补写权限。若成员之间不能完全互信，上线前必须补按资源、角色、归属和动作的服务端写权限。
+3. **表决选民名单来自活动数据本身。** **保留**。创建/修改活动的服务端没有按场景从 users 和组织归属重算 `voteConfig.voterIds`；C2 只验证既有写口往返，不覆盖名单重算。
+4. **共用口令与不失效会话只适合受控部署。** **保留**。本轮无认证 / 会话改动。
+5. **SQLite JSON 宽表是规模边界。** **保留**。本轮无 schema / 索引改动。
 
 依据见 server/README.md「部署前必知限制」、server/.env.example、server/routes/committee.js 的票决授权注释及 server/routes/resources/index.js 的资源写口。上述边界不靠提升分数抵消。
 
@@ -62,41 +64,51 @@ related_files: [content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md, conte
 
 ### 2.1 业务与数据正确性 —— 78/100
 
-**得分依据**：活动人数按 activity.assignments 与已通过、未作废的活动报名按 personId 去重；议题匿名票把参与记录和 tally 放在 SQLite 事务内；删除活动时在一个事务中清理 agenda_votes、活动补充记录和其它子记录；DB schema 迁移有 user_version、失败回滚与备份恢复测试。
+**得分依据**：45 页签全量审计的 D1 读口全部 2xx、JSON 可解析、响应 ≤500KB；D2 计数对账一致（`org.roster` 50 = 50、`secretary.group-progress` 3 = 3、`party-committee.branches` 1 = 1）；C2 在 `:memory:` 临时库对非破坏性写口完成 create → 回读 → PATCH → 校验 → DELETE。既有活动报名去重、匿名票事务、活动删除级联与 DB 迁移 / 备份恢复测试仍有效（`server/test/workforce-gate.test.mjs`、`agenda-votes.test.mjs`、`report-count.test.mjs`、`db-integrity-guard.test.mjs`）。
 
-**本轮真实缺陷与修复**：分工/专班提案允许匿名表态，但汇总函数原只读逐人 position。无记名记录没有 position，旧分支会把“其它选项”算成同意；异议票因此可能被误判通过。本轮让共用的分工/专班票决函数读取匿名 tally、核对参与人数与汇总数，并对不一致数据 fail-closed；专班结果页改为传入完整票据行。报告人数测试补了报名状态变化、作废变化和无 personId 的边界。证据：server/test/workforce-gate.test.mjs、server/test/agenda-votes.test.mjs、server/test/report-count.test.mjs。
+**残项**：业务实体仍主要保存为 JSON 宽行；数据库不能替业务校验跨表引用或自动级联。表决名单服务端复算未闭合，见阻断风险 3。F6 三处空态启发式待人工确认（`org.thought-review` / `org.member-flow` / `visitor.attendance`）。
 
-**残项**：业务实体仍主要保存为 JSON data；数据库不能替业务校验跨表引用或自动级联。跨表读写要明确哪个字段/表是权威源，且 API、mock 和报告视图要持续对照。表决名单服务端复算未闭合，见阻断风险 3。
+**本轮结论**：审计未发现新的业务数据缺陷；本轮无业务规则改动，维持 **78**。
 
 ### 2.2 安全与权限 —— 52/100
 
-**得分依据**：服务端存在认证、角色与具体动作门；正式表决匿名写侧有校验；活动类型停用可在服务端拒写；生产模式会拒绝缺少 LOGIN_PASSWORD 的启动。
+**得分依据**：服务端存在认证、角色与具体动作门；正式表决匿名写侧有校验；活动类型停用可在服务端拒写；生产模式会拒绝缺少 LOGIN_PASSWORD 的启动。C1 越权探针确认本角色读口 2xx、普通成员对绝大多数写口返回 401 / 403；C4 每个写口都有可静态定位的 `gate`。
 
-**失分依据与残项**：server/README.md 已如实列出跨支部整表读取、通用资源写口大多仅登录、无业务字段索引、共用口令/无 token 过期四项限制。活动 voteConfig.voterIds 当前由客户端写入，投票 API 校验“是否在此活动名单”而不是服务端重建名单。当前部署边界是单支部、受信任成员；这些假设必须进入部署决策，不能被界面隐藏或测试账号模式替代。
+**失分依据与残项**：审计登记了 3 个 `requireAuth` 通用写口的已知系统性风险（`PATCH /api/v1/signups/:id`，见 `disc.attendance` / `leader.attendance` / `org.taskforce`），按 `exception` 处理而不是逐页签判 P0；本轮未放宽任何权限门。`server/README.md` 仍如实列出跨支部整表读取、通用资源写口大多仅登录、无业务字段索引、共用口令 / 无 token 过期四项限制；`voteConfig.voterIds` 仍由客户端写入。
 
-### 2.3 最小三成本体验 —— 68/100
+**本轮结论**：C1 只证实现有门的边界，没有新增权限能力；维持 **52**。
 
-**得分依据**：系统以角色工作台和任务入口承接主要操作，已有 click-cost、表单循环和浏览器流程检查。Help 现同时覆盖章节、卡片和正文表格，显示命中摘要并能跳转到稳定锚点；角色筛选与常见任务入口复用同一份目录元数据。
+### 2.3 最小三成本体验（含前端与交互） —— 68/100
 
-**失分依据与残项**：D-754 的页签轴线体检记下多个台内对象/动作混轴、同一功能跨台异名、知情查看占页签和页内混轴。此类问题不是再加一层菜单即可解决；要以常见任务的找入口、理解权限、完成操作三段实测，再决定是否合并“活动日历/活动管理”等入口。Help 改进已落地，但应继续用真实查询验证常用设置和跨角色任务。
+**得分依据**：45 页签审计资产给出可复跑的密度 / 信息经济读数——**P0 0 / P1 0 / P2 4 / exception 29**。F1–F8 全绿：390 无横向溢出、筛选条 ≤2 行、唯一 H2 且 H3 / H4 不跳级、`section` 均有可访问名称、F8 零 pageerror / 零 `/api/v1/` 4xx。14 个 >4 块页签在 `TAB_BLOCK_BASELINE` 有非空理由，按例外登记；本轮另修 7 个待办台 `section` 的 `aria-label`、档案照片墙与党委三页的嵌套 `section`、`[calendar]` 控制台错误，并把支书归组入口改为只读指引（消除 C3 死入口）。P2 为 `disc.review` 的 E1（`GET /api/v1/users` p95 95ms）与三处 F6 空态启发式。
 
-### 2.4 架构复杂度与变更成本 —— 74/100
+**残项**：F6 三处空态待人工确认；41 个页签仅登记未重构；尚无按常见任务的「找入口 → 理解权限 → 完成操作」三段实测。审计与局部修复不足以证明三成本实质下降。
 
-**得分依据**：docs/src 下已有 services、components、entries、capabilities 等域边界；function-catalog、policy-defaults、workflow manifests 和 person roster 服务减少同一口径多处重写。分工提案和专班提案现在共用同一个票决计算器，Help 两处章节目录也改为一个元数据源。
+**本轮结论**：维持 **68**；不因新增审计工具加分。
 
-**成本与残项**：mock 与 API 两种运行形态扩大回归面；活动项目角色写在活动 JSON 内，而任务赋权另在 assignments 表，名字相近却不是同一业务对象；版本 query stamp 促使跨模块改动常带全树版本号更新；README-server 的行号引用和 TIMESTAMPS 等机器守卫提升可查性，也增加改动触点。合并判断以“写入口、数据源、角色和业务语义均相同”为门槛。
+### 2.4 架构与可维护性（原「架构复杂度与变更成本」） —— 74/100
 
-### 2.5 测试与发布质量 —— 78/100
+**得分依据**：docs/src 下已有 services、components、entries、capabilities 等域边界；function-catalog、policy-defaults、workflow manifests 和 person roster 服务减少同一口径多处重写。分工提案和专班提案共用同一个票决计算器，Help 两处章节目录共用一个元数据源。本轮审计资产按 `audit-tabs.mjs`（编排）＋ `audit/catalog.mjs`（45 页签单一源）＋ `endpoint-map.mjs`（读 / 写 / gate 单一源）＋ `checks-*`（F / D / C / E / M）＋ `severity.mjs`（判级单一表）＋ `report.mjs`（JSON / Markdown / 截图）分层；复用既有 Playwright 与 better-sqlite3，未新增依赖。
 
-**得分依据**：server/test 同时覆盖纯逻辑、数据库/API、浏览器 E2E 与静态守卫；`npm test` 按片运行、`npm run test:full` 负责发布前全量；DB backup/restore 测试校验 `PRAGMA integrity_check`。本轮全量分片读数为 node 808/808、e2e-B 166/166、e2e-A 50/58；e2e-A 中 8 个固定端口用例因服务未就绪超时，使用隔离数据库和就绪服务单独复跑后 8/8 通过，因此累计 1,032 个不同用例通过。定向数据/投票/Help 测试 55/55、文档与模块守卫 59/59；全部写型测试使用内存库或隔离 `DB_PATH`，真实 `server/data.db` 未写入。
+**成本与残项**：审计器与 `page-sweep` / `module-load` / `a11y-tree` 有部分重叠；catalog 仍须与 capabilities、`TAB_BLOCK_BASELINE` 同批维护。mock 与 API 两种运行形态扩大回归面；活动项目角色写在活动 JSON 内，而任务赋权另在 assignments 表；版本 query stamp 促使跨模块改动常带全树版本号更新；README-server 的行号引用和 TIMESTAMPS 等机器守卫提升可查性，也增加改动触点。合并判断以「写入口、数据源、角色和业务语义均相同」为门槛。
 
-**失分与残项**：固定端口 E2E 的服务启动/就绪与测试执行没有完全封装在同一可靠编排里，导致全量首跑的 8 个用例需要人工隔离复跑；测试目录清单与多个 package scripts 也需要同步维护。守卫证明编码符合某个约定，不等价于业务输出正确。本次匿名票误算说明还需按数据形态、空值、重复值、状态变化和失败回滚补反例，而非只测主路径。
+**本轮结论**：分层与单一源是正面证据，但重叠与同批维护成本抵消收益，维持 **74**。
+
+### 2.5 测试与发布质量 —— 80/100
+
+**得分依据**：server/test 同时覆盖纯逻辑、数据库/API、浏览器 E2E 与静态守卫；`npm test` 按片运行、`npm run test:full` 负责发布前全量；DB backup/restore 测试校验 `PRAGMA integrity_check`。本轮新增常驻的 `workbench-audit-coverage::W1–W5`：catalog 45 键 ≡ capabilities ≡ `TAB_BLOCK_BASELINE`，每个页签有真实源码入口、至少 1 个读口、写口有 `gate`、破坏性流程有 `reason`，并用缺页签 / 空 `source` / 无 `gate` 的反例自证会判红。C2 在 `:memory:` 临时库完成 create → 回读 → PATCH → 校验 → DELETE；最终全量审计 **P0 0 / P1 0**；旧 67 页签台账退役为只读档案（W5）。
+
+**失分与残项**：审计脚本不进 `test:daily`，precommit / full 时长仍是发布风险；254 个 `skip` 表示「无法可靠测量」而非通过；测试目录清单与多个 package scripts 仍需同步维护。守卫证明编码符合某个约定，不等价于业务输出正确。
+
+**本轮结论**：**78 → 80（+2）**。补的是「页签 → 读 / 写口 → 权限门」的常驻覆盖空白；审计脚本本身不计分，故只加 2 分。
 
 ### 2.6 运行、部署与跨组织复用 —— 62/100
 
 **得分依据**：README 快速开始明确 npm start 使用 server/data.db；server 内置 better-sqlite3，不要求独立数据库服务；本地测试可以 :memory: 启动；固定 3000 端口 E2E 可通过 DB_PATH 指向专用 SQLite 测试文件。已具备空库起步、部署文档、备份恢复演练和换壳指南。
 
-**残项**：当前不是多租户部署形态；外部身份接入仍需计算中心接口材料与配置；共用口令/token 不过期要在正式推广前改；无业务字段索引只适用于现有规模。更换组织可以换支部数据与配置，但“多组织同实例并行”不是已经验证的复用能力。
+**残项**：当前不是多租户部署形态；外部身份接入仍需计算中心接口材料与配置；共用口令/token 不过期要在正式推广前改；无业务字段索引只适用于现有规模。更换组织可以换支部数据与配置，但「多组织同实例并行」不是已经验证的复用能力。
+
+**本轮结论**：本轮无部署 / 多支部新证据（**证据不足**），维持 **62**。
 
 ### 2.7 七个月工程复盘：哪些是正常演进，哪些是真返工
 
@@ -285,7 +297,7 @@ Git 从 2026-03-14 至 2026-10-14 共 1,133 条提交记录；按提交日期分
 
 ### 5.2 当前值（一屏看现状）
 
-- **六维（当前）**：业务与数据正确性 **78** · 安全与权限 **52** · 最小三成本体验 **68** · 架构复杂度与变更成本 **74** · 测试与发布质量 **78** · 运行/部署/跨组织复用 **62**。**不计算平均总分**；高风险见 §一「阻断级风险」，逐维依据见 §二。
+- **六维（当前）**：业务与数据正确性 **78** · 安全与权限 **52** · 最小三成本体验（含前端与交互） **68** · 测试与发布质量 **80** · 架构与可维护性 **74** · 运行/部署/跨组织复用 **62**。**不计算平均总分**；高风险见 §一「阻断级风险」，逐维依据见 §二。
 - **目录分层（当前 · 2026-09-29 批次 267 收官）**：`core/` **4 子域**（base 7 · domain 7 · boot 4 · session 4 = 22 件）· `data/` **新立**（4 适配器 ＋ `mock/` 15 件）· `services/` **5 域**（core 9 · member 9 · activity 12 · governance 11 · branch 8 = 49 件）· `components/` **7 域**（ui 13 · shell 6 · sections 2 · feedback 4 · record 11 · governance 13 · dashboard 4 = 53 件）· `capabilities/` **顶层 12 件**（2026-09-29 批次 268 增 `taskforce.js`） · `entries/` **3 类**（pages 15 · workspace 7 · tabs 68）· `workflow/` 8 件 · `config/` 1 件。**`modules/` 已消解**（能力声明上提顶层；3 件跨页件按判据归位：`branch-demo-nav` → `services/core/` · `references`/`help-catalog` → `components/sections/`）。落地方式与硬成本 ⇒ 见 §六 G2。
 - **测试规模**：**动态口径，不写死**——以 `server/test/` 实测为准（分档见 `server/README.md`「测试耗时台账」）。
 - **纪律与判据索引（当前）**：`§3.4` 收敛台账 **R13–R30 共 19 行**（含 `R28-附` / `R29` / `R30`）；`CLAUDE.md` 现行纪律 **R-68 ~ R-80**（真机同环境量测 · 不得以「等裁定」结束回合 · 授权声明可核验 · 异常面下沉动作级 · 守卫覆盖按接口逐维数 · 台账完备性三缺一 · 等待窗口须覆盖真实耗时 · 判据落在事实上而非手段上 · 增量而非绝对值 · 判据之间不得互相冒充 · 「不可达」只有两条出口 · 「成功」须确认落库 · 每个字段都要有判据）；自查问句 = `DATA_CONSISTENCY_CHECKLIST §0.1`（**现到二十七问**）；范本 = 同文件（**第六–第二十七**）；判例集 = `content/05_ai_coding/TEST_AND_VERIFICATION.md`。**逐条「哪一批增了哪一问 / 哪一范本」属沿革 ⇒ 见日志**。

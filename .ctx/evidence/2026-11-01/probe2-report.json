@@ -1,0 +1,10 @@
+[
+  {
+    "tag": "headless",
+    "error": "TimeoutError: page.waitForSelector: Timeout 25000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('#secretary-insight-card .lf-kw') to be visible\u001b[22m\n"
+  },
+  {
+    "tag": "headful",
+    "error": "TimeoutError: page.waitForSelector: Timeout 25000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('#secretary-insight-card .lf-kw') to be visible\u001b[22m\n"
+  }
+]

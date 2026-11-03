@@ -1,0 +1,166 @@
+{
+  "desktop": {
+    "rows": "78.7969px",
+    "columns": "276px 276px 276px 276px",
+    "gap": "16px",
+    "hero": null,
+    "heroToStats": null,
+    "cards": [
+      {
+        "cls": "card rounded-xl p-4 flex items-center gap-3 ",
+        "h": 78.8,
+        "w": 276,
+        "padding": "16px",
+        "gap": "12px",
+        "icon": {
+          "w": 40,
+          "h": 40
+        },
+        "value": {
+          "h": 28.8,
+          "font": "24px",
+          "lh": "28.8px"
+        },
+        "label": null,
+        "inner": "0场 本月活动"
+      },
+      {
+        "cls": "card rounded-xl p-4 flex items-center gap-3 ",
+        "h": 78.8,
+        "w": 276,
+        "padding": "16px",
+        "gap": "12px",
+        "icon": {
+          "w": 40,
+          "h": 40
+        },
+        "value": {
+          "h": 28.8,
+          "font": "24px",
+          "lh": "28.8px"
+        },
+        "label": null,
+        "inner": "4个 活跃专班"
+      },
+      {
+        "cls": "card rounded-xl p-4 flex items-center gap-3 ",
+        "h": 78.8,
+        "w": 276,
+        "padding": "16px",
+        "gap": "12px",
+        "icon": {
+          "w": 40,
+          "h": 40
+        },
+        "value": {
+          "h": 28.8,
+          "font": "24px",
+          "lh": "28.8px"
+        },
+        "label": null,
+        "inner": "0条 未读通知"
+      },
+      {
+        "cls": "card rounded-xl p-4 flex items-center gap-3 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 cursor-pointer",
+        "h": 78.8,
+        "w": 276,
+        "padding": "16px",
+        "gap": "12px",
+        "icon": {
+          "w": 40,
+          "h": 40
+        },
+        "value": {
+          "h": 28.8,
+          "font": "24px",
+          "lh": "28.8px"
+        },
+        "label": null,
+        "inner": "— 个人考勤"
+      }
+    ],
+    "version": "./src/theme-init.js?v=20261018h"
+  },
+  "mobile": {
+    "rows": "78.7969px 78.7969px",
+    "columns": "171px 171px",
+    "gap": "16px",
+    "hero": null,
+    "heroToStats": null,
+    "cards": [
+      {
+        "cls": "card rounded-xl p-4 flex items-center gap-3 ",
+        "h": 78.8,
+        "w": 171,
+        "padding": "16px",
+        "gap": "12px",
+        "icon": {
+          "w": 40,
+          "h": 40
+        },
+        "value": {
+          "h": 28.8,
+          "font": "24px",
+          "lh": "28.8px"
+        },
+        "label": null,
+        "inner": "0场 本月活动"
+      },
+      {
+        "cls": "card rounded-xl p-4 flex items-center gap-3 ",
+        "h": 78.8,
+        "w": 171,
+        "padding": "16px",
+        "gap": "12px",
+        "icon": {
+          "w": 40,
+          "h": 40
+        },
+        "value": {
+          "h": 28.8,
+          "font": "24px",
+          "lh": "28.8px"
+        },
+        "label": null,
+        "inner": "4个 活跃专班"
+      },
+      {
+        "cls": "card rounded-xl p-4 flex items-center gap-3 ",
+        "h": 78.8,
+        "w": 171,
+        "padding": "16px",
+        "gap": "12px",
+        "icon": {
+          "w": 40,
+          "h": 40
+        },
+        "value": {
+          "h": 28.8,
+          "font": "24px",
+          "lh": "28.8px"
+        },
+        "label": null,
+        "inner": "0条 未读通知"
+      },
+      {
+        "cls": "card rounded-xl p-4 flex items-center gap-3 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 cursor-pointer",
+        "h": 78.8,
+        "w": 171,
+        "padding": "16px",
+        "gap": "12px",
+        "icon": {
+          "w": 40,
+          "h": 40
+        },
+        "value": {
+          "h": 28.8,
+          "font": "24px",
+          "lh": "28.8px"
+        },
+        "label": null,
+        "inner": "— 个人考勤"
+      }
+    ],
+    "version": "./src/theme-init.js?v=20261018h"
+  }
+}

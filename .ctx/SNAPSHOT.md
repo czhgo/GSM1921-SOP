@@ -2,7 +2,7 @@
 title: "系统快照"
 type: snapshot
 role: "[AI]"
-last_updated: "2026-10-27"
+last_updated: "2026-11-02"
 status: "ACTIVE"
 date: "2026-10-23"
 version: "v62"
@@ -307,3 +307,43 @@ GSM1921-SOP/
 - **未决**：① 「今天」首屏空 71.5% 与「归档」63% 的补内容、低密度卡收拢（`B-522-1`，需内容与信息架构决策，本轮只做了卡片高度与栅格自适应）；② About 的 `about.css` 22 处裸毫秒与旋转／裁剪手法只登记未改（冻结件，`B-521-3` 延续）；③ `help.html` 532 处硬编码颜色（`B-522-2`，第二套色系）；④ 换组织向导预设表旧色名（`B-520-5`）；⑤ `.btn-md` 五个调用点 `!important`（`B-520-2`）。
 - **已迁 content 的条目**：`DS_01`（状态四族文字档、表面色、身份色）、`DS_02 §3.2.3/§3.2.4`（实测档位表、两套 sm 取用结论、先令牌后裸值）、`DS_03`（SD-46、危险色基准、动效三档）、`DS_04 §5.1`（三档时长）、`DS_05 §10.5.1`（hero 特例白名单）；新增守卫 `status-color-guard`、`touch-target-guard`、`nested-interaction-guard`、`card-summary-hero-guard`，扩展 `motion-guard`、`theme-palette-guard`、`modal-guard`、`type-scale-guard`、`spacing-scale-guard`。
 - **下批入口**：① 读本段与 `.trae/specs/harden-interface-quality/checklist.md`；② 证据在 `.ctx/evidence/2026-10-30/`（四路审查）与 `.ctx/evidence/2026-10-31/`（uifixes／touch-forms／motion）；③ 读数基线：daily **1710 / 1710**（267s）、戳 `20261031a`；④ 53 个本地提交未推送，发布时再 `git push`。
+
+## 批次 523 小结（2026-11-01）
+
+- **做了什么**：① 首页数字卡高 **96px → 80px**（桌面与 390 同值，手机两行合计 **176px**），取消第三行「本月无记录」，无记录只在数值位显示「—」；② 折叠头单一语法——`.disclosure__title` 统一 **16px / 600 / 行高 24px / `--font-display`**，`<summary class="disclosure__summary">` 退为 **44px 高整行宽热区、不承载文字与字级**，悬停只加深右侧箭头（`currentColor`）、不再给整行铺灰底，行内披露条仍保留灰底；③ 失败态**先自愈一次**（sessionStorage 一次性标记，成功后清除），仍失败文案为「这个页签没打开，页面可能刚更新过。数据没有丢失，重新载入一下就好」＋「重新载入」，不出现模块文件名 / `.js` /「请刷新」；④ 服务端请求级读表：`createTableReader`（每表一次读 ＋ id→row Map）、行投影请求级 Map、personId 集下推 SQL 预筛。
+- **结论**：n=20 实测——快照写 p50 **86.37 → 35.06ms**、点查 **1409 → 53**；成员 attendances **13.55 → 4.79ms**、inspections **6.57 → 5.13ms**；`resourceRowsForActor` **0.74ms**；组长进度 p50 **11.96 → 6.53ms**、p95 **16.82 → 9.12ms**；首屏 init 在 api / mock 两形态 4xx **均为 0**（复核结论：原报告的 2 个 404 不成立）。
+- **未决**：① 请求级读表**严禁跨请求缓存**，后续扩展须守住「每次请求自建 reader」；② 首屏 56 个请求合并成 bootstrap（实测 117KB / 26ms）收益大但回归面大，留独立批次。
+- **已迁 content 的条目**：`DS_02 §3.2.3`（折叠头 16/600/24、`summary` 不承载字级）、`DS_04 §5.2 / §5.9`（整行热区只加深指示器、失败态自愈与文案）、`DS_05 §10.5.1 H-5`（数字卡不进 hero 白名单）、`DS_03 §4.21.2`（数字卡两行 / 卡高 ≤80px）、`DESIGN_SYSTEM` 编目索引一行、`CLAUDE.md H40` 第 14 条（失败文案口径）、`DATA_CONSISTENCY_CHECKLIST §0.3`（新增本机临时键 `gsm1921-tab-selfheal-`）；守卫 `card-summary-hero-guard`、`ui-home-hero::E7`、`copy-guard::F1/F2`、`type-scale-guard::Q1`、`hover-state-guard::H10`、`localstorage-key-guard`、`module-load::E4`（首屏 4xx 归零）。
+- **下批入口**：① 读本段；② 服务端按「请求级读表」继续扩展、不得引入跨请求缓存；③ 读数基线：daily **1714 / 1714**（248s）、戳 `20261031b`；④ 本批改动未提交（工作树含全部改动），发布时统一提交并推送。
+
+## 批次 524 小结（2026-11-01）
+
+- **做了什么**：① 数据表表头去灰（`.data-table th` / `.data-table thead th` 均不再声明 `background`，统一白底 ＋ 1px 下边框）；② 可点行状态新裁定（8px 圆角、hover 用 `--app-accent-tint`、`::before` 3px 左条带 `opacity` 过渡、`:active` 用 `--app-accent-active-bg`、焦点环 `outline-offset:-2px`、删除 `list-row--selected`）；③ 嵌套卡去重（`workgroup-view` / `taskforce-view` 增 `embedded` 形态，`insight-view` 去 `card` 外层，真机 `#secretary-insight-card .card = 0`）；④ 语义标签 SD-55（59 处 `section` / 7 处 `article`）；⑤ 只读按 `core/domain/view-capability.js` 派生，4 处写死「· 只读」清零；⑥ 功能色分工（`METRIC_TONE`：待… / 组员汇报 → `--status-info-text`、逾期 → `--status-warning-text`、纯计数 → `--neutral-800`）；⑦ 输入单一源（`forms.js` 的 `textInput` / `selectInput`、`.lf-kw` ≤320px、原生 `<datalist>` 自动补全，先迁 5 文件：全站裸输入 251→192 处 / 58→57 文件）；⑧ 待办动作表（`todo-actions.js` ＋ `workspace-nav.js`，6 个 `todo-tab` 去掉 tabMap 与写死 URL）。
+- **结论**：本批八项同属「同一件事只有一个出口」——表头只有一种底色、可点行只有一种 hover、嵌入视图只有一层卡、`section` 只有一种语义、只读只有一个派生函数、指标与动作只分一次色、输入只经 `forms.js`、待办跳转只认动作表。落点均为「单一源 ＋ 守卫 ＋ 基线」，不改既有业务规则。
+- **未决**：① 裸输入仍有 192 处 / 57 文件，`textarea` 无布局中立 helper、选项由变量拼好的 `select` 未迁；② 全站 `section` 59 处只收「无名 / 嵌套」两条，未重排分区；③ 待办动作表虽已带 `kind + id`，纪检「考勤 / 考察待确认」目标页暂只落页 + toast（消费位下一批补）。
+- **已迁 content 的条目**：`DS_01 §2.10`（指标 / 状态与动作 / 导航 / 选中态分色）、`DS_03 §12.15 SD-55 / SD-56`（语义标签 / 输入单一源）＋ `SD-43` 行 hover 补句 ＋ `§4.3` 表头与 `forms.js` 出口、`DS_04 §5.2`（可点行状态新裁定，替代 2026-10-26 的 neutral-200 灰底）、`CLAUDE.md` 乙部「批次 524 执行约束」五条、`GUARD_INVENTORY §十三`（8 处守卫 / 15 条新增断言）。
+- **下批入口**：① 读本段与 `.ctx/logs/2026-11-DECISION_LOG.md`（`D-827`…`D-836`）；② 读数基线：daily **1728 / 1728**（279s）、戳 `20261101a`；③ 裸输入棘轮按 `style-baseline.mjs::RAW_INPUT_BASELINE` 只减不增，下一批先补 `textarea` helper；④ 本批改动未提交，发布时统一提交并推送。
+
+## 批次 525 小结（2026-11-01）
+
+- **做了什么**：① 45 个页签构成清单入库（`tab-inventory.json` ＋ `PRODUCT_IA` 45 行），新增 `TAB_BLOCK_BASELINE` 与「单页顶层 ≤4 块」守卫；② 党小组页改主从双栏（左组列表 / 右详情），复盘＋考勤合并为「活动台账」一张表，「选择党小组」重复卡与裸 `h4` 折叠壳删除，「变更留痕」降为底部「变更记录（N）」；③ 筛选条改「最多两行」：`.lf-bar` 可折行、`reset` 不再独占一行，活动日历 / 意见反馈 / 纪检考勤 / 查询器四处定版（1440 实测 2 行 96px）；④ 自建建议下拉替换原生 `<datalist>`，输入框三角消失（暗像素 24→0），键盘 ↑↓/Enter/Esc 可用；⑤ top4 超载页签收敛：档案归档 8→4、专班管理 6→4、组员进展 7→4、党小组 5→2。
+- **结论**：本轮把「看起来挤」拆成三条可机检规则（页签密度 / 筛选条两行 / 建议输入无系统图标），并按支书追问把**规范放 04（新第六编 DS_06，SD-57…59）**、**审查方法放 05（Q-22）**——04 记「长什么样」，05 记「怎么审」；13 处引用 / 链接 / 指针同批对齐（DESIGN_SYSTEM 六编、两份 README、DOC_MAP、PRODUCT_IA、CLAUDE、TIMESTAMPS、GUARD_INVENTORY 等）。
+- **未决**：① 其余 41 个页签只登记清单与超限理由，未改结构；② 支书账号在「未分组归组」上被服务端 `/members/:id/profile` 的 org-commissioner 权限门拒绝（既有门，非本轮布局），入口是否对支书隐藏待定；③ 390 下部分筛选条自然折到 3 行（未出现「一控件一行」，符合规则）。
+- **已迁 content 的条目**：新增 `DS_06_LAYOUT_AND_DENSITY.md`（十条判据 ＋ SD-57 页签密度 / SD-58 筛选条两行 / SD-59 建议输入无系统图标）、`DS_03 §12.15` 登记 SD-57…59、`PRODUCT_IA` 页签构成清单、`REVIEW_QUESTION_SET` Q-22（审查方法）＋ `QUESTION_HIT_MATRIX` 列、`DESIGN_SYSTEM` 六编编目、`CLAUDE.md` H40 第 15 项、`GUARD_INVENTORY §十四`。
+- **下批入口**：① 读本段与 `.trae/specs/consolidate-tab-density-and-filter-bars/`；② 读数基线：daily **1738 / 1738**（296s）、戳 `20261101c`；③ 41 个未改页签按 `TAB_BLOCK_BASELINE` 的 reason 排序推进；④ 本批改动未提交，发布时统一提交并推送。
+
+## 批次 526 小结（2026-11-02）
+
+- **做了什么**：① 建页签审计资产 `server/scripts/audit-tabs.mjs` ＋ `audit/{catalog,endpoint-map,severity,checks-front,checks-data,checks-crud,checks-economy,perf-baseline,report}.mjs`，一条命令跑 45 页签五维（F/D/C/E/M）并落 JSON / Markdown / 截图；② `workbench-audit-coverage` 由旧 67 台账改为 45 catalog 口径（W1–W5）；③ 修 7 个待办台 `section` 的 `aria-label`、档案照片墙与党委三页嵌套 `section`、`[calendar]` 控制台错误，党委下发通知改用 `system-notices`，支书归组入口在 API 形态改为只读指引（C3）；④ 文档化：`TAB_AUDIT_PLAYBOOK.md`、`DS_06 §五` 审计映射、H40 / 乙部 / DOC_MAP / 05 README / TIMESTAMPS / GUARD_INVENTORY 指针；⑤ 六维重评（测试与发布质量 78→80，其余维持）。
+- **结论**：全量审计 **45 页签，P0 0 / P1 0 / P2 4，exception 29**（F1 14 / C2 12 / C1 3）；F1 以 `TAB_BLOCK_BASELINE` 登记为准，DOM measured 仅复核；破坏性 CRUD 不在共享库真删；`requireAuth` 系统性风险按例外登记。
+- **未决**：① F6 三处空态待人工确认（`org.thought-review` / `org.member-flow` / `visitor.attendance`）；② `disc.review` 的 E1 p95 95ms 待下批优化；③ 41 个页签仅登记未重构；④ 读数：daily **1733 / 1733**（367s），戳 `20261102a`。
+- **已迁 content 的条目**：`content/05_ai_coding/TAB_AUDIT_PLAYBOOK.md`（何时用 / 五维检查表 / 严重度 / 怎么跑 / 加检查与加页签 / 判读 / 反模式）、`DS_06 §五` 审计映射表、`DS_03 §12.15` SD-57…59 指针、`GUARD_INVENTORY §十五`。
+- **下批入口**：① 读本段与 `.ctx/evidence/2026-11-02/tab-audit/summary-final.md`；② 先人工确认 F6 三处空态，再排 `disc.review` E1；③ 新增 / 改名页签同批补 `catalog.mjs` / `endpoint-map.mjs`；④ 发布前跑 `node scripts/audit-tabs.mjs --all`，P0 / P1 = 0；⑤ 本批未提交，发布时统一提交并推送。
+
+## 批次 527 小结（2026-11-02）
+
+- **做了什么**：① 审计简并：`audit-tabs` 拆出 `harness.mjs`（账号 / 起 :memory: 服务 / 登录 / 开页签单一源）与 `dom-probe.mjs`（`collectDom` / `hasPager` / `h2Summary`），`checks-front` / `checks-data` / `checks-crud` / `page-sweep` 共用；四口径收进 `AUDIT_CANON.md`（F2 控件行数 ≤2 / F4 H2 恰 1 / F7 `hasPager()` / C1 `requireAuth` 例外），daily 既有断言不删；② 信息经济 M1–M3 落地（顶层块 >4 须有理由 / 同页 H3 不重复 / 同页 `.lf-bar` ≤1），4 个双列表页签登记「独立对象池」例外；③ 数据契约：`server/data/domain-contract.mjs` 47 表单一源 ＋ fixtures ＋ `data-contract.test.mjs`（6 条进 daily），人读版落 `content/04_web_design/data/DATA_CONTRACT.md`；④ 换轨管线：`export-all`（48 表 ＋ manifest：schemaVersion / 行数 / sha256）、`import-all`（默认 dry-run、`--apply` 单事务、版本与 id 冲突 / 契约校验）、`preflight-cutover`；`db.js` 迁移前自动备份、`user_version > SCHEMA_VERSION` 拒绝启动；`deploy/CUTOVER_RUNBOOK.md` 落盘；⑤ 生产首启补 6 个角色账号，outbox 条目带 `payload`。
+- **结论**：最终全量审计 **45 页签，P0 0 / P1 0 / P2 3，exception 47**；副本库换轨演练 **48 表 / 542 行**导出导入逐表行数与 sha256 一致、`preflight-cutover` exit 0、`user_version=99` 拒绝启动；审计器与 `page-sweep` / `module-load` / `a11y-tree` 的重叠改为「audit 只做报告层、daily 守门」。
+- **未决**：① `attachments` / `sessions` 不随库导出，须按 runbook 另搬；② `committeeBroadcasts` 仍须人工导 localStorage；③ 生产空库 `--strict` 未实跑；④ 单实例多支部、共享口令、无会话过期仍是硬边界；⑤ 读数：daily **1740 / 1740**（339s），戳 `20261102b`。
+- **已迁 content 的条目**：新增 `content/05_ai_coding/AUDIT_CANON.md`（四口径唯一表 ＋ daily / precommit / audit 三档分工）、`content/04_web_design/data/DATA_CONTRACT.md`（47 表人读版）、`deploy/CUTOVER_RUNBOOK.md`；`TAB_AUDIT_PLAYBOOK` / `DS_06 §五` / `GUARD_INVENTORY §十五` 补 M1–M3 与例外口径；`.ctx/logs/2026-11-DECISION_LOG.md` 记 `D-842`…`D-846`。
+- **下批入口**：① 读本段与 `.ctx/logs/2026-11-DECISION_LOG.md`（`D-842`…`D-846`）；② 换轨前按 `CUTOVER_RUNBOOK` 先在本机副本跑一遍 dry-run，再对生产空库跑 `--strict`；③ 新增表 / 字段同批改 `domain-contract.mjs` 与 `DATA_CONTRACT.md`；④ 发布前跑 `node scripts/audit-tabs.mjs --all`，P0 / P1 = 0；⑤ 本批未提交，发布时统一提交并推送。

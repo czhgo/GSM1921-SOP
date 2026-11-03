@@ -1,0 +1,201 @@
+{
+  "passA": {
+    "dataSource": "mock",
+    "blocks": [
+      {
+        "tag": "header",
+        "id": "",
+        "text": "档案归档 待归档活动、宣传初稿与待补材料；归档后即可回看",
+        "h": 60
+      },
+      {
+        "tag": "section",
+        "id": "archive-todo-card",
+        "text": "归档待办 待归档 34 · 初稿 0 · 缺口 0 上传",
+        "h": 1011
+      },
+      {
+        "tag": "details",
+        "id": "archive-display-fold",
+        "text": "归档记录 6 条 支部 2026 年度工作计划（归档件）",
+        "h": 74
+      },
+      {
+        "tag": "section",
+        "id": "archive-review-card",
+        "text": "回看 活动风采 36 · 照片 0 活动风采 已收录 6",
+        "h": 1055
+      },
+      {
+        "tag": "section",
+        "id": "archive-lowfreq-card",
+        "text": "低频查阅 周报 · 模板与材料标准 周期归档报送当前按周",
+        "h": 174
+      }
+    ],
+    "blockStats": {
+      "visibleTopLevel": 5,
+      "contentBlocks": 4
+    },
+    "filterBars": [
+      {
+        "hidden": true,
+        "h": 0,
+        "segs": []
+      },
+      {
+        "hidden": true,
+        "h": 0,
+        "segs": []
+      },
+      {
+        "hidden": true,
+        "h": 0,
+        "segs": []
+      }
+    ],
+    "sessionCard": {
+      "todoCard": true,
+      "uploadInCard": true,
+      "recordsFold": true,
+      "reviewCard": true,
+      "lowFreqCard": true
+    },
+    "segments": {
+      "draft": {
+        "pressed": [
+          [
+            "ended",
+            "false"
+          ],
+          [
+            "draft",
+            "true"
+          ],
+          [
+            "gap",
+            "false"
+          ]
+        ],
+        "draftRows": 0,
+        "gapRows": 0,
+        "endedRows": 0,
+        "empty": false
+      },
+      "gap": {
+        "pressed": [
+          [
+            "ended",
+            "false"
+          ],
+          [
+            "draft",
+            "false"
+          ],
+          [
+            "gap",
+            "true"
+          ]
+        ],
+        "draftRows": 0,
+        "gapRows": 0,
+        "endedRows": 0,
+        "empty": false
+      },
+      "ended": {
+        "pressed": [
+          [
+            "ended",
+            "true"
+          ],
+          [
+            "draft",
+            "false"
+          ],
+          [
+            "gap",
+            "false"
+          ]
+        ],
+        "draftRows": 0,
+        "gapRows": 0,
+        "endedRows": 10,
+        "empty": false
+      }
+    },
+    "uploadEntry": {
+      "modalOpen": true,
+      "title": "上传宣传材料"
+    },
+    "review": {
+      "galleryRows": 10,
+      "pinBtns": 6,
+      "photoWall": true,
+      "annotateBtns": 0,
+      "voidBtns": 0
+    },
+    "gallery": {
+      "featureOffId": "act-38",
+      "featureOnId": "act-16",
+      "pinOffId": "act-21",
+      "featureToast": "! 当前为浏览模式：数据不会保存到本机，请登录后使用服务器数据。 ×",
+      "afterFeature": "true",
+      "afterFeatureRestore": "false",
+      "pinToast": "! 当前为浏览模式：数据不会保存到本机，请登录后使用服务器数据。（×3） ×",
+      "afterPin": "true",
+      "afterUnpin": "false"
+    },
+    "weeklyHost": {
+      "open": true,
+      "mounted": true,
+      "hasForm": true,
+      "insideLowFreq": true
+    },
+    "deeplink": {
+      "activityId": "act-25",
+      "opened": {
+        "foldOpen": true,
+        "rowExists": false,
+        "rowIds": [
+          "act-25",
+          "act-25",
+          "act-19"
+        ],
+        "toast": ""
+      },
+      "retryId": "act-25",
+      "openedRetry": {
+        "foldOpen": true,
+        "rowExists": true,
+        "toast": ""
+      }
+    },
+    "errors": [],
+    "bad4xx": []
+  },
+  "passB": {
+    "loginStatus": 200,
+    "tokenGot": true,
+    "dataSource": "api",
+    "apiMode": true,
+    "photoWallInsideReview": true,
+    "photoUpload": {
+      "modalClosed": true,
+      "toast": "",
+      "annotateBtns": 1,
+      "voidBtns": 1
+    },
+    "photoAnnotate": {
+      "title": "批次 525 取证照片（已标注）",
+      "modalClosed": true,
+      "toast": "✓ 标注已保存 ×"
+    },
+    "photoVoid": {
+      "modalClosed": true,
+      "voidBtns": 0,
+      "toast": "✓ 已作废（留痕、已出列） ×"
+    },
+    "errors": [],
+    "bad4xx": []
+  }
+}
