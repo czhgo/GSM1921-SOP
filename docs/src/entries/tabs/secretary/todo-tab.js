@@ -553,7 +553,7 @@ function renderSeedDetail(todo) {
       <dl class="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
         <div>
           <dt class="text-gray-500">状态</dt>
-          <dd><span class="state-badge state-badge--${statusVariant}">${statusLabel}</span></dd>
+          <dd>${badgeHtml(statusLabel, statusVariant)}</dd>
         </div>
         ${todo.deadline ? `<div>
           <dt class="text-gray-500">截止</dt>

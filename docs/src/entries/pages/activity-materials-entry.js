@@ -179,7 +179,7 @@ function render() {
       ${archived ? `
         <div class="rounded-xl border border-green-100 bg-green-50/60 px-4 py-3">
           <p class="text-sm text-green-800">本场已归档。</p>
-          <p class="text-xs text-gray-600 mt-1">归档记录 ${archiveRecords.length} 条（宣传台材料归档）；补交材料仍走宣传台。</p>
+          <p class="text-body-sm text-gray-600 mt-1">归档记录 ${archiveRecords.length} 条（宣传台材料归档）；补交材料仍走宣传台。</p>
         </div>` : `
         <div class="rounded-xl border border-gray-100 px-4 py-3">
           ${_archiveError ? `<p class="mt-2 text-xs text-red-700" role="alert">归档失败：${esc(_archiveError)}</p>` : ''}
@@ -257,8 +257,8 @@ function _confirmArchive(act, materials) {
   const missing = _missingText(materials);
   const bodyHtml = `
     ${missing
-      ? `<p class="text-xs text-amber-700 leading-6">以下核心材料仍缺：<b>${esc(missing)}</b>。归档后仍可在宣传台补交材料。</p>`
-      : '<p class="text-xs text-green-700 leading-6">核心材料已齐（宣传材料 / 考勤 / 考察）。</p>'}`;
+      ? `<p class="text-body-sm text-amber-700 leading-6">以下核心材料仍缺：<b>${esc(missing)}</b>。归档后仍可在宣传台补交材料。</p>`
+      : '<p class="text-body-sm text-green-700 leading-6">核心材料已齐（宣传材料 / 考勤 / 考察）。</p>'}`;
   openModal({
     id: 'materials-archive-confirm',
     title: '提交归档',

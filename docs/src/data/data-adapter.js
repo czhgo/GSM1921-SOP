@@ -25,7 +25,7 @@ import { trackWrite } from '../core/session/pending-writes.js?v=20261102b';
 import { recordOutboxFailure, clearOutbox, listOutbox, registerOutboxRetry } from '../core/session/pending-writes.js?v=20261102b';
 import { resolveDocumentUrl } from '../core/base/page-url.js?v=20261102b';
 // 角色集单一源（constants.js 只引零依赖叶子 date.js ⇒ 不形成业务环依赖）。
-import { BRANCH_COMMISSION_ROLES, PARTY_STAFF_ROLE } from '../core/domain/constants.js?v=20261102b';
+import { BRANCH_COMMISSION_ROLES, PARTY_STAFF_ROLE, DASHBOARD_LIMITS } from '../core/domain/constants.js?v=20261102b';
 // 工作组「在办」判据单一源（禁止裸状态数组回潮）
 // D10：首页工作组预载必须与 components/dashboard/taskforce-list.js 完全同口径 → 用其 active/recruiting 判据
 import { isTaskforceActiveStatus } from '../core/domain/domain.js?v=20261102b';
@@ -1680,11 +1680,11 @@ async function _loadWorkgroupAux(mockDB) {
     .slice()
     .sort((a, b) => String(b.createdAt || '').localeCompare(String(a.createdAt || ''))
       || String(a.name || '').localeCompare(String(b.name || '')));
-  // 只拉首页可见组（每类前 3，与 taskforce-list.js 同口径）——
+  // 只拉首页可见组（每类前 N，N = DASHBOARD_LIMITS.groupPreview，与 taskforce-list.js 同口径）——
   //   不为整库工作组逐组发请求；未拉到的组在首页显示「加载中」，不冒充「无任务」。
   const visible = [
-    ...active.filter((group) => group.kind === 'activity').slice(0, 3),
-    ...active.filter((group) => group.kind === 'taskforce').slice(0, 3),
+    ...active.filter((group) => group.kind === 'activity').slice(0, DASHBOARD_LIMITS.groupPreview),
+    ...active.filter((group) => group.kind === 'taskforce').slice(0, DASHBOARD_LIMITS.groupPreview),
   ];
   if (visible.length === 0) {
     mockDB.workgroupTasks = Array.isArray(mockDB.workgroupTasks) ? mockDB.workgroupTasks : [];

@@ -146,3 +146,27 @@ status: active
 - 定向守卫 **88 / 88**（含 `account-rename`）。
 - 全量 daily：**1768 / 1768**（368s），0 fail。
 - `CLAUDE.md`：约 205 行 / 19KB；引用框 10；乙部 5 行数据、丙部 0 行待裁。
+
+## 批次 530 收尾（2026-11-03）· 低风险项清账
+
+### 为什么
+
+乙部 530 分片推进的六个条目已由两支代理落地，但主代理尚未复跑与关账；本批只做核实、文档归口与提交，不改行为。
+
+### 完成了什么
+
+- `B-518-1` 状态胶囊两族：删除 `.state-badge*` 12 条 CSS，新增 `.badge--accent`；8 个调用点改走 `badges.js::badgeHtml`；`ui-color-semantics::C2` 改判「不得再定义 `.state-badge`」；`DS_03 §4.14` 落两族口径。
+- `B-518-2` 加载态：`empty-state.js` 新增 `skeletonHtml` / `renderSkeleton`；三处手写骨架统一；四台加载态补 `aria-busy`。
+- `B-520-3` 常量层：`DASHBOARD_LIMITS` 扩 5 项与 `SEMESTER_REMIND_*`；日历 / 队列 / 设置范围改引用，旧字面量零残留。
+- `B-520-5` 旧色名：`THEME_PRESETS` 名称由 `ACCENT_PALETTE` 派生；id 不变。
+- `B-515-3` content 重复表达：4 文件 / 6 处改指针，权威正文未动。
+
+### 边界
+
+- `B-515-5` 只迁 18 / 50 处，保留乙部并转入批次 533。
+- 不新增守卫文件；只迁移既有断言口径。
+
+### 读数
+
+- 全量 daily：**1768 / 1768**（333s），0 fail。
+- commit：见 `git log --grep="批次 530"`。

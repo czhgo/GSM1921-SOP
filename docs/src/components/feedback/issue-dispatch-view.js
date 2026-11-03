@@ -59,7 +59,7 @@ export function renderMyDispatchTab(role, userId, opts = {}) {
   html += `<div class="card rounded-xl p-5">`;
   html += `<h3 class="font-title-cn text-sm font-bold text-gray-700 mb-2">我已处理 <span class="tabular-nums text-gray-500">${doneRows.length}</span></h3>`;
   // R3-08：原 100 字令牌机制说明移 help，界面只留一句可执行提示。
-  html += `<p class="text-xs text-gray-500 mb-2">可回看本浏览器提交或参与的反馈；换设备后无法回认。<a href="./help.html#card-dom39-my-dispatch" class="text-accent">帮助</a></p>`;
+  html += `<p class="text-body-sm text-gray-500 mb-2">可回看本浏览器提交或参与的反馈；换设备后无法回认。<a href="./help.html#card-dom39-my-dispatch" class="text-accent">帮助</a></p>`;
   html += `<div id="mydispatch-done-host"></div>`;
   html += `</div>`;
   html += `</div>`;
@@ -180,7 +180,7 @@ function _reportRequestRowHtml(r) {
   return `
         <div class="rounded-lg bg-white border border-blue-100 p-3 mb-2">
           <p class="text-sm font-medium text-gray-800">${r.title}</p>
-          ${r.body && r.body !== r.title ? `<p class="text-xs text-gray-600 mt-1">${r.body}</p>` : ''}
+          ${r.body && r.body !== r.title ? `<p class="text-body-sm text-gray-600 mt-1">${r.body}</p>` : ''}
           <div class="flex gap-2 mt-2">
             <input type="text" id="report-req-input-${r.id}" class="input-flat flex-1" placeholder="填写汇报内容…">
             <button data-mydispatch-action="submit-report" data-issue-id="${r.id}" class="btn-accent-soft text-xs px-3 py-2 flex-shrink-0">汇报</button>
@@ -199,7 +199,7 @@ function _assignedIssueRowHtml(issue, userId) {
             <span class="text-xs px-1.5 py-0.5 rounded-full ${ds.badgeClass}">${ds.label}</span>
           </div>
           <p class="text-sm text-gray-800 font-medium">${issue.title}</p>
-          ${dispatchNote?.note ? `<p class="text-xs text-blue-600 mt-1">支书备注：${dispatchNote.note}</p>` : ''}
+          ${dispatchNote?.note ? `<p class="text-body-sm text-blue-600 mt-1">支书备注：${dispatchNote.note}</p>` : ''}
           <div class="text-xs text-gray-500 mt-1">${_displayName(issue.submittedBy)} · ${issue.submittedAt} · ${issue.commentCount || 0} 评论</div>
         </div>`;
 }
@@ -269,7 +269,7 @@ function _renderMyReportDetail(issueId, role, userId, container, opts = {}) {
         html += `<span class="text-xs px-1 py-0.5 rounded font-medium" style="background:var(--app-accent-soft-bg);color:var(--app-accent-soft-text);">正式答复</span>`;
       }
       html += `<span class="text-xs text-gray-500 ml-1">${c.createdAt}</span>`;
-      html += `<p class="text-xs text-gray-600 mt-0.5">${c.body}</p></div>`;
+      html += `<p class="text-body-sm text-gray-600 mt-0.5">${c.body}</p></div>`;
     });
   }
   html += `</div></div>`;
@@ -431,7 +431,7 @@ function _renderMyIssueDetail(issueId, role, userId, container) {
         html += `<span class="text-xs px-1 py-0.5 rounded font-medium ml-1" style="background:var(--app-accent-soft-bg);color:var(--app-accent-soft-text);">正式答复</span>`;
       }
       html += `<span class="text-xs text-gray-500 ml-1">${c.createdAt}</span>`;
-      html += `<p class="text-xs text-gray-600 mt-0.5">${c.body}</p></div>`;
+      html += `<p class="text-body-sm text-gray-600 mt-0.5">${c.body}</p></div>`;
     });
   }
   html += `</div></div>`;

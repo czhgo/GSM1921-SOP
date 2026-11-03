@@ -105,7 +105,7 @@ export function mountOverviewDispatchBar(el, { count, prefix, jumpTab }) {
   }
   slot.style.minHeight = '';
   // 2026-11-01 批次 524 支书裁定：待答复条是「待处理状态」指标，用功能色 info（不是角色主题色）；
-  //   动作 / 导航仍走主题色。底色 / 描边沿用 .state-badge--info 同一派生比例（12% / 28%）。
+  //   动作 / 导航仍走主题色。底色 / 描边沿用 .badge--info 同一派生比例（12% / 28%）。
   slot.innerHTML = `
     <button type="button" class="btn-outline overview-dispatch-bar w-full flex items-center justify-between gap-3 px-4 py-2.5 mb-3"
       style="background:color-mix(in srgb, var(--status-info-text) 12%, transparent);border:1px solid color-mix(in srgb, var(--status-info-text) 28%, transparent);color:var(--status-info-text);cursor:pointer;transition:background-color var(--motion-feedback) var(--ease-standard);"

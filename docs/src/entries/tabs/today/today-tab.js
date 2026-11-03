@@ -60,7 +60,7 @@ import { isVoterOf } from '../../../services/activity/vote-config.js?v=20261102b
 import { hasVoted } from '../../../services/activity/committee-vote.js?v=20261102b';
 // 活动类型胶囊（批次 301）：变体判据＝单一源 `activityTypeBadgeVariant`（三会一课＝brand 红 / 主题党日＝gold 金），
 //   渲染唯一源＝`components/ui/badge.js`；**本文件不手写类型色值**。
-import { activityTypeBadgeVariant, WORK_DOMAIN_COLORS } from '../../../core/domain/constants.js?v=20261102b';
+import { activityTypeBadgeVariant, WORK_DOMAIN_COLORS, SEMESTER_REMIND_OPEN_MONTHS, SEMESTER_REMIND_FIRST_WEEK_LAST_DAY } from '../../../core/domain/constants.js?v=20261102b';
 import { resolveDocumentUrl } from '../../../core/base/page-url.js?v=20261102b';
 // 徽章扎口出口（2026-09-30 批次 304 改准）：`components/ui/badges.js` 是**唯一调用口**
 //   （其文件头明写「调用方一律 import badges.js；内部实现文件 badge.js / status-badge.js 可各自演进」）；
@@ -463,8 +463,9 @@ function _allEmptyHtml() {
 // 窗口 = 每年两学期开学首周（3 月 / 9 月 1–7 日，简单实现——与滞留复核窗非同构故不引入学期窗表）；
 // 防重复弹 = 按人存 localStorage 键 gsm1921-pref-<personId>-semester-report-remind-<学期键>
 // （学期键 'YYYY-H1'（3 月）/'YYYY-H2'（9 月）；首次查看/去归集即标记，本学年同窗不再弹）。
-const LEADER_REMIND_OPEN_MONTHS = [3, 9];
-const LEADER_REMIND_FIRST_DAY_MAX = 7;
+// 提醒窗（开学首周）= 单一源 constants.js（批次 530 · B-520-3）：月份与首周末日不再本地写字面量。
+const LEADER_REMIND_OPEN_MONTHS = SEMESTER_REMIND_OPEN_MONTHS;
+const LEADER_REMIND_FIRST_DAY_MAX = SEMESTER_REMIND_FIRST_WEEK_LAST_DAY;
 
 /** 当前学期键（仅开学月返回 'YYYY-H1'/'YYYY-H2'；非开学月返回 null；纯函数供单测） */
 export function leaderSemesterReportTermKey(now = new Date()) {
@@ -472,8 +473,8 @@ export function leaderSemesterReportTermKey(now = new Date()) {
   if (Number.isNaN(d.getTime())) return null;
   const y = d.getFullYear();
   const mo = d.getMonth() + 1;
-  if (mo === 3) return `${y}-H1`;
-  if (mo === 9) return `${y}-H2`;
+  if (mo === LEADER_REMIND_OPEN_MONTHS[0]) return `${y}-H1`;
+  if (mo === LEADER_REMIND_OPEN_MONTHS[1]) return `${y}-H2`;
   return null;
 }
 

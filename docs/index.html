@@ -47,7 +47,16 @@
           <div class="flex items-center justify-between mb-4">
             <h2 class="font-title-cn text-base font-semibold text-gray-800">重要通知</h2>
           </div>
-          <div id="dashboard-notice-list" class="text-sm text-gray-500"><p>加载中…</p></div>
+          <!-- 批次 530（B-518-2）：加载态只出骨架（形状＝`empty-state.js::skeletonHtml`），
+               文案走 role=status；renderNoticeList 渲染后撤 aria-busy。 -->
+          <div id="dashboard-notice-list" class="text-sm text-gray-500" aria-busy="true">
+            <div class="skeleton-block" aria-hidden="true">
+              <div class="skeleton-line h-4 w-full animate-pulse"></div>
+              <div class="skeleton-line h-4 w-5/6 animate-pulse"></div>
+              <div class="skeleton-line h-4 w-2/3 animate-pulse"></div>
+            </div>
+            <p class="visually-hidden" role="status">正在加载通知…</p>
+          </div>
         </div>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
           <div class="card rounded-xl p-5">
@@ -83,23 +92,24 @@
                 <select id="month-selector" class="input-flat text-xs" style="min-width:120px;"></select>
               </div>
               <div id="cal-main-empty" class="hidden"><div class="empty-state"><p class="empty-state__text">本月暂无活动</p></div></div>
-              <!-- U3（2026-09-07）：日历网格 JS 填充前预置等高骨架（min-height 由骨架占位）——数据到达整块填充不再从 0 高弹出 -->
               <div id="cal-main-grid">
-                <div data-cal-skeleton style="min-height:340px;display:flex;flex-direction:column;gap:8px;">
+                <!-- U3（2026-09-07）：日历网格 JS 填充前预置等高骨架（min-height 由骨架占位）——数据到达整块填充不再从 0 高弹出。
+                     批次 530（B-518-2）：骨架形状单一源＝`components/ui/empty-state.js::skeletonHtml`（.skeleton-block / .skeleton-line）。 -->
+                <div data-cal-skeleton class="skeleton-block" style="min-height:340px;">
                   <div class="flex gap-2">
-                    <div class="flex-1 h-3 rounded bg-gray-100 animate-pulse"></div>
-                    <div class="flex-1 h-3 rounded bg-gray-100 animate-pulse"></div>
-                    <div class="flex-1 h-3 rounded bg-gray-100 animate-pulse"></div>
-                    <div class="flex-1 h-3 rounded bg-gray-100 animate-pulse"></div>
-                    <div class="flex-1 h-3 rounded bg-gray-100 animate-pulse"></div>
-                    <div class="flex-1 h-3 rounded bg-gray-100 animate-pulse"></div>
-                    <div class="flex-1 h-3 rounded bg-gray-100 animate-pulse"></div>
+                    <div class="skeleton-line flex-1 h-3 animate-pulse"></div>
+                    <div class="skeleton-line flex-1 h-3 animate-pulse"></div>
+                    <div class="skeleton-line flex-1 h-3 animate-pulse"></div>
+                    <div class="skeleton-line flex-1 h-3 animate-pulse"></div>
+                    <div class="skeleton-line flex-1 h-3 animate-pulse"></div>
+                    <div class="skeleton-line flex-1 h-3 animate-pulse"></div>
+                    <div class="skeleton-line flex-1 h-3 animate-pulse"></div>
                   </div>
-                  <div class="flex-1 rounded-lg bg-gray-100 animate-pulse"></div>
-                  <div class="flex-1 rounded-lg bg-gray-100 animate-pulse"></div>
-                  <div class="flex-1 rounded-lg bg-gray-100 animate-pulse"></div>
-                  <div class="flex-1 rounded-lg bg-gray-100 animate-pulse"></div>
-                  <div class="flex-1 rounded-lg bg-gray-100 animate-pulse"></div>
+                  <div class="skeleton-line flex-1 animate-pulse"></div>
+                  <div class="skeleton-line flex-1 animate-pulse"></div>
+                  <div class="skeleton-line flex-1 animate-pulse"></div>
+                  <div class="skeleton-line flex-1 animate-pulse"></div>
+                  <div class="skeleton-line flex-1 animate-pulse"></div>
                 </div>
               </div>
               <div id="calendar-legend" class="mt-3">

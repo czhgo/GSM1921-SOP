@@ -192,7 +192,7 @@ function renderOutOfScope(actId) {
 function expandedScopeNoticeHtml(n) {
   return `
     <div class="rounded-xl border border-blue-100 bg-blue-50/50 p-4">
-      <p class="text-xs font-semibold text-blue-800">你被扩大进 ${n} 场支委会（支委扩大会）</p>
+      <p class="text-body-sm font-semibold text-blue-800">你被扩大进 ${n} 场支委会（支委扩大会）</p>
       <p class="help-note help-note--inherit mt-1.5">本页只列扩大到你的场次。<a href="./help.html#card-copy-pcm-scope" class="help-note__link">见帮助 · 支委会页可见范围</a></p>
     </div>`;
 }
@@ -267,7 +267,7 @@ function scopeSectionHtml(act, step) {
         <span class="text-gray-500">${esc(g.groupName)} 组长</span>
         ${committee.includes(g.id) ? '<span class="text-xs text-gray-500">（已是支委）</span>' : ''}
       </label>`).join('')
-    : '<p class="text-xs text-gray-500">当前没有在册的党小组组长（可到支书台「党小组」确认组长设置）</p>';
+    : '<p class="text-body-sm text-gray-500">当前没有在册的党小组组长（可到支书台「党小组」确认组长设置）</p>';
   const rangeText = `当前应到 ${voterIds.length || committee.length} 人 ＝ 支委 ${committee.length} 人`
     + (expandedIds.length ? ` ＋ 扩大到 ${expandedIds.length} 人（${expandedIds.map((id) => getPersonName(id) || id).join('、')}）` : '');
   return `
@@ -291,8 +291,8 @@ function scopeSectionHtml(act, step) {
         <button id="pcm-save-scope" type="button" class="btn-outline" data-pcm-primary="${step === 0 ? '1' : '0'}">保存本场参会范围</button>
         <span class="text-xs text-gray-500">${esc(rangeText)}</span>
       </div>` : `
-      <p class="text-xs text-gray-600">${esc(rangeText)}</p>
-      <p class="text-xs text-gray-500 mt-1.5">按应到名单表态。</p>`}
+      <p class="text-body-sm text-gray-600">${esc(rangeText)}</p>
+      <p class="text-body-sm text-gray-500 mt-1.5">按应到名单表态。</p>`}
     </div>`;
 }
 
@@ -451,9 +451,9 @@ function resultSectionHtml(act, votes) {
           <div class="flex-1 min-w-0">
             <p class="text-sm font-medium text-gray-700">${esc(a.item)}</p>
             ${a.agendaStep === 'discussion' ? '<span class="inline-flex items-center mt-1 px-1.5 py-0.5 rounded text-xs font-medium text-indigo-700 bg-indigo-50">讨论项</span>' : (a.agendaStep === 'vote' ? '<span class="inline-flex items-center mt-1 px-1.5 py-0.5 rounded text-xs font-medium text-rose-700 bg-rose-50">表决项</span>' : '')}
-            ${a.discussionAgendaItemId ? `<p class="text-xs text-gray-500 mt-1">对应讨论：${esc((act.agenda || []).find((item) => item.id === a.discussionAgendaItemId)?.item || '议程关系无效')}</p>` : ''}
-            <p class="text-xs text-gray-500 mt-1">表态记录：${esc(detail)}</p>
-            <p class="text-xs text-gray-500 mt-0.5">讨论结果：${esc(resultLabel)}${a.reportToPartyMeeting ? '（报送党员大会表决）' : ''}${recorder ? '（记录人 ' + esc(recorder) + '）' : ''}</p>
+            ${a.discussionAgendaItemId ? `<p class="text-body-sm text-gray-500 mt-1">对应讨论：${esc((act.agenda || []).find((item) => item.id === a.discussionAgendaItemId)?.item || '议程关系无效')}</p>` : ''}
+            <p class="text-body-sm text-gray-500 mt-1">表态记录：${esc(detail)}</p>
+            <p class="text-body-sm text-gray-500 mt-0.5">讨论结果：${esc(resultLabel)}${a.reportToPartyMeeting ? '（报送党员大会表决）' : ''}${recorder ? '（记录人 ' + esc(recorder) + '）' : ''}</p>
             ${canRecord && !isDiscussion ? `<div class="mt-2 flex items-center gap-2 flex-wrap">
               <button type="button" class="btn-outline pcm-record text-xs px-2.5 py-1" data-item-id="${esc(a.id)}" data-result="passed">记录通过</button>
               <button type="button" class="btn-outline pcm-record text-xs px-2.5 py-1" data-item-id="${esc(a.id)}" data-result="rejected">记录未通过</button>
@@ -468,7 +468,7 @@ function resultSectionHtml(act, votes) {
       <p class="text-sm font-semibold text-gray-700 mb-1">留存 · 讨论结果</p>
       <p class="help-note mb-3"><a href="./help.html#card-copy-pcm-scope" class="help-note__link">见帮助 · 支委会页可见范围</a></p>
       <div class="space-y-3" id="pcm-result">${body}</div>
-      <p class="text-xs text-gray-500 mt-3">也可在 <a href="./${objectDetailHref('activity', act.id, { entry: 'cross-page-deeplink' })}" class="text-accent">活动详情</a> 查看全部记录。</p>
+      <p class="text-body-sm text-gray-500 mt-3">也可在 <a href="./${objectDetailHref('activity', act.id, { entry: 'cross-page-deeplink' })}" class="text-accent">活动详情</a> 查看全部记录。</p>
     </div>`;
 }
 
@@ -506,7 +506,7 @@ async function render() {
            </div>
            <a href="./${objectDetailHref('activity', act.id, { entry: 'cross-page-deeplink' })}" class="text-xs text-accent flex-shrink-0">活动详情 →</a>
          </div>
-         ${isAsync(act) ? '' : '<p class="text-xs text-amber-700 bg-amber-50 rounded-lg px-3 py-2 mt-3">本场未启用线上表决配置：如需委员线上表态，可在「活动管理」写入线上异步表决，或上方新建一场线上支委会。</p>'}
+         ${isAsync(act) ? '' : '<p class="text-body-sm text-amber-700 bg-amber-50 rounded-lg px-3 py-2 mt-3">本场未启用线上表决配置：如需委员线上表态，可在「活动管理」写入线上异步表决，或上方新建一场线上支委会。</p>'}
        </div>
        ${isAsync(act) ? scopeSectionHtml(act, step) : ''}
        ${extractSectionHtml(act, candidates, step)}

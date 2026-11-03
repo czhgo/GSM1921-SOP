@@ -34,8 +34,8 @@
 //   · .metric-band / .metric-band__item / .metric-band__jump（可交互指标卡容器）
 //   · .stat-card / .stat-card__body / .stat-card__value / .stat-card__label（数字组单一语法）
 //   · .stat-card__value--warning / .stat-grid（列数交给栅格）
-//   · .state-badge / .state-badge--neutral / .state-badge--success / .state-badge--warning
-//   · .state-badge--info / .state-badge--accent · .section-accent-left
+//   · .badge / .badge--neutral / .badge--success / .badge--warning
+//   · .badge--info / .badge--accent · .section-accent-left
 //   · 行型样式：.list-row[data-row-type="nav|action|select|display|master"]（本件输出 data-row-type）。
 import { escHtml as esc } from '../../core/base/utils.js?v=20261102b';
 

@@ -25,6 +25,7 @@ import { DEFAULT_BRANCH_ID, ROLE_LABELS, BRANCH_COMMISSIONER_ASSIGNABLE_ROLES } 
 import { resolveVoterIds } from '../../../services/activity/vote-config.js?v=20261102b';
 import { deriveMeetingStatus } from '../../../data/mock/derive.js?v=20261102b';
 import { renderDataTable, tableHeadHtml } from '../../../components/ui/data-table.js?v=20261102b';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20261102b';
 import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261102b';
 import { PersonPicker } from '../../../components/governance/pickers.js?v=20261102b';
 import { getAppliedAccentColors } from '../../../core/boot/theme.js?v=20261102b';
@@ -69,9 +70,9 @@ function rosterRows() {
   return rows;
 }
 
-/** 状态徽章（视觉口径 = styles.css::.state-badge；状态不写裸文字） */
+/** 状态徽章（视觉口径 = components/ui/badge.js；状态不写裸文字） */
 function statusBadge(label, variant) {
-  return `<span class="state-badge state-badge--${variant}">${esc(label)}</span>`;
+  return badgeHtml(esc(label), variant);
 }
 
 /** 支委构成行：末列 1 主（改派 / 补选）+「更多（撤销）」，只在本行内展开选人面板，

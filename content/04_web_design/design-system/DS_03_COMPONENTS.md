@@ -610,6 +610,12 @@ related_files: [DESIGN_SYSTEM.md, DS_02_TYPE_AND_SIZE.md, DS_04_INTERACTION_AND_
 - 交互：触屏可点（click 触发，非 hover）；点击外部 / ESC 关闭；已归档等只读场景禁用
 - 已落实：任务状态（inspector.js）原型先行；考勤/交接视效果决定推广
 
+**两族收口（2026-11-03 批次 530）**：
+
+- **展示型只许 `.badge`**（含 `.badge--accent` / tone 变体）：不可交互，色点 + 文字；不得再定义 `.state-badge*`。
+- **交互型只许 `.status-badge`**：可点 / 可切换，保留 focus-visible 与 aria；弹出选择器沿用 `.status-badge-popover`。
+- 三处手写胶囊（`workforce-panel` / `roster-tab` / `thought-report-tab`）一律改走 `badges.js::badgeHtml`；守卫 `ui-color-semantics::C2` 已改为「不得再定义 `.state-badge`」。`DS_03 §4.15` 是意见反馈，不承载徽章规则，勿混。
+
 #### 计数与提示（2026-09-29 立 · 支书裁定）
 
 - **未读 / 待处理计数＝数字小圆**（**微信消息提醒范式**）：`text-xs font-semibold` ＋ `min-width:16px;height:16px;padding:0 4px`，圆角 `9999px`，**贴宿主右上角**（如 `top:2px;right:2px`）；**≥10 收敛为 `9+`**（不撑破圆）。

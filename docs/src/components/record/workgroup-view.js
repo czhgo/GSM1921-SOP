@@ -12,7 +12,7 @@
 //     不新增接口、不复制第二份集合；
 //   · 只读：**不渲染任何写入口**（无增删成员 / 授权 / 编辑控件），办事一律回活动详情；
 //   · 行结构＝`components/ui/list-row.js::listRowHtml`（nav 行，整行可点）；检索 / 翻页＝`ui/list-filter.js`；
-//     空态＝`ui/empty-state.js`（一句话 + 一个下一步）；状态＝`.state-badge` 既有族。
+//     空态＝`ui/empty-state.js`（一句话 + 一个下一步）；状态＝`ui/badge.js` 展示徽章族。
 import { mockDB } from '../../core/domain/domain.js?v=20261102b';
 import { loadActivities } from '../../services/activity/activity.js?v=20261102b';
 import { getPersonName } from '../../services/member/person.js?v=20261102b';
@@ -21,6 +21,7 @@ import { getBranchIdOfPerson } from '../../services/branch/branch.js?v=20261102b
 import { listRowHtml } from '../ui/list-row.js?v=20261102b';
 import { renderFilteredList } from '../ui/list-filter.js?v=20261102b';
 import { emptyStateHtml } from '../ui/empty-state.js?v=20261102b';
+import { badgeHtml } from '../ui/badges.js?v=20261102b';
 import { renderCardHeader } from '../shell/page-frame.js?v=20261102b';
 import { flashHighlight, escHtml as esc, smoothScroll } from '../../core/base/utils.js?v=20261102b';
 // 批次 524（D）：只读由权限派生，不再写死「· 只读」字符串
@@ -111,7 +112,7 @@ function _rowHtml(row) {
   return listRowHtml({
     title: row.name,
     meta: `${sourcePart}负责人 ${ownerName} · 成员 ${row.memberCount} 人`,
-    trailing: `<span class="state-badge state-badge--${status.tone}">${esc(status.label)}</span>`
+    trailing: badgeHtml(esc(status.label), status.tone)
       + '<span class="text-xs text-accent whitespace-nowrap">进入活动 →</span>',
     href,
     dataAttrs: { 'data-wg-id': row.id, 'data-wg-activity-id': row.sourceId },

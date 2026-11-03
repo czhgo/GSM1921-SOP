@@ -6,8 +6,8 @@
 //  单一源关系：
 //   · 数据 = core/domain/domain.js 的 mockDB（hydrate 后与当前数据源同步，不新增接口）；
 //   · 行结构 = components/ui/list-row.js 的 listRowHtml / listGroupHtml（分隔线由 .list-group 出）；
-//     行型为导航行（rowType: 'nav'），状态以行尾 .state-badge 呈现（运行中 success / 招募中 info）；
-//   · 样式 = docs/src/styles.css 的 .list-row / .list-group / .state-badge 段与间距令牌。
+//     行型为导航行（rowType: 'nav'），状态以行尾 `.badge` 呈现（运行中 success / 招募中 warning）；
+//   · 样式 = docs/src/styles.css 的 .list-row / .list-group / .badge 段与间距令牌。
 //  口径：仅取 status 为 active / recruiting 的工作组；成员数＝status !== 'removed' 的成员行；
 //  任务完成数＝completed 数 / 非 cancelled 任务总数，无任务显示「—」；两类皆空则整卡隐藏。
 // ════════════════════════════════════════════════════════════════
@@ -16,8 +16,11 @@ import { mockDB, isTaskforceActiveStatus } from '../../core/domain/domain.js?v=2
 import { listRowHtml, listGroupHtml } from '../ui/list-row.js?v=20261102b';
 import { AuthStore } from '../../services/core/auth.js?v=20261102b';
 import { getBasePath } from '../../core/base/utils.js?v=20261102b';
+import { DASHBOARD_LIMITS } from '../../core/domain/constants.js?v=20261102b';
+import { badgeHtml } from '../ui/badges.js?v=20261102b';
 
-const GROUP_LIMIT = 3;
+// 每组预览条数 = 单一源（批次 530 · B-520-3；与 data-adapter 预载条数同值）
+const GROUP_LIMIT = DASHBOARD_LIMITS.groupPreview;
 // 2026-10-24 批次 508：状态色调对齐专班查看组件——招募中由 info（信息蓝）改为 warning（需要关注）；
 // 本卡只列 active / recruiting 两类工作组，故无 completed 键（完成态对齐见 record/taskforce-view.js）。
 const STATUS_BADGE = {
@@ -130,7 +133,7 @@ function groupRowHtml(group, sourceById) {
   const meta = [`成员 ${memberCount(group.id)} 人`, progress].join(' · ');
   const status = STATUS_BADGE[group.status];
   const trailing = [
-    status ? `<span class="state-badge state-badge--${status.tone}">${status.label}</span>` : '',
+    status ? badgeHtml(status.label, status.tone) : '',
     '<span class="text-xs text-accent whitespace-nowrap">进入 →</span>',
   ].join('');
   const detailAttr = group.kind === 'activity'
@@ -152,7 +155,7 @@ function groupRowHtml(group, sourceById) {
 function groupHeadHtml(label, count, isFirst, viewAllHref) {
   return `<div class="flex items-center gap-2 px-3 pb-2 ${isFirst ? '' : 'mt-4 pt-4 border-t border-neutral-100'}">
     <span class="section-head__title">${label}</span>
-    <span class="state-badge state-badge--neutral">${count}</span>
+    ${badgeHtml(count, 'neutral')}
     ${viewAllHref ? `<a href="${viewAllHref}" class="ml-auto text-xs text-accent whitespace-nowrap">查看全部 →</a>` : ''}
   </div>`;
 }

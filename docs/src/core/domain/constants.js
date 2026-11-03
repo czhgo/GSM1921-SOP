@@ -763,15 +763,27 @@ export function classifyActivityType(type) {
 //      **不要**在别处另写一套中文标签（本节曾短暂加过 ACTIVITY_LIFECYCLE_LABELS，属重复源，已撤除）。
 
 // ════════════════════════════════════════════════════════════════
-//  首页展示截断上限（单一源，R2-24，2026-10-20）
+//  展示截断上限（单一源，R2-24，2026-10-20）
 // ════════════════════════════════════════════════════════════════
 //  原先通知铃铛 10 / 活动风采 6 / 首页活动列表 10 三处各写死，调上限要改三处且容易漏。
 //  这里只收敛「数字」，排序/溢出提示仍由各组件按自身语义处理（通知按紧急/未读优先）。
+//  2026-11-03 批次 530（B-520-3）：再把首页工作组预览 / 工作概况内联动作 / 考勤待确认队列 /
+//   日历格子活动与任务条数一并收进本表——这些数字此前分散在四五个组件里各写一遍。
+//  ⚠ 本表是**版面口径**（显示几条），不是制度参数：制度参数一律走 core/domain/policy-defaults.js。
 export const DASHBOARD_LIMITS = Object.freeze({
   notices: 10,
   gallery: 6,
   activities: 10,
+  groupPreview: 3,          // 首页「工作组进展」每组条数（data-adapter 预载同值）
+  overviewInlineActions: 3, // 工作概况行内联动作条数（超出走「更多」）
+  attendanceQueueVisible: 8,// 考勤「待确认」队列默认可见条数（超出折叠）
+  calendarDayActivities: 3, // 月视图格子最多活动标签
+  calendarDayTasks: 2,      // 月视图格子最多任务标签
 });
+
+/** 组长「学期组员进展」提醒窗（每年两学期开学首周 3/9 月 1–7 日；判定与文案共用） */
+export const SEMESTER_REMIND_OPEN_MONTHS = Object.freeze([3, 9]);
+export const SEMESTER_REMIND_FIRST_WEEK_LAST_DAY = 7;
 
 /** 活动是否已结束（单一源）：status==='completed' 或 archived 标记 */
 export function isActivityEnded(activity) {

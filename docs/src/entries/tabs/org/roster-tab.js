@@ -65,6 +65,7 @@ import { buildSelfProfileImport } from '../../../services/member/self-profile-im
 //   「搜索 + 党小组 / 发展阶段 / 在册状态 三个下拉」；角色是低频维度、不进主行（改在个人档案看）。
 import { renderFilteredList, personKeyword, personFacets } from '../../../components/ui/list-filter.js?v=20261102b';
 import { renderTabHeader, renderCardHeader } from '../../../components/shell/page-frame.js?v=20261102b';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20261102b';
 // 成员流出登记（行内「移出」＝登记即生效）：2026-09-28 批次 220 · R10 拆分后，本 tab 只留「移出」这一
 //   行操作；「成员流动」面板（登记流入 / 登记流出 / 对账行 / 台账表 / 撤销）已拆到独立 tab（org/member-flow-tab.js）。
 import { registerOutflow } from '../../../services/member/member-flow.js?v=20261102b';
@@ -187,7 +188,7 @@ export function renderContent(ctx) {
           ${pendParts.length ? `
           <div class="flex items-center gap-1.5 flex-wrap mt-2">
             <span class="text-xs text-gray-500">待支书确认：</span>
-            ${pendParts.map(t => `<span class="text-xs px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-100">${t}</span>`).join('')}
+            ${pendParts.map(t => badgeHtml(t, 'warning')).join('')}
           </div>` : ''}
         </details>
         ${_listHeaderHtml()}
@@ -233,7 +234,7 @@ function _listHeaderHtml() {
 
 /** 「待确认」小标（阶段/在册 pending 时显示；行内对应格下方） */
 function _pendingPill(text, title) {
-  return `<span class="inline-flex text-xs px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-100 whitespace-nowrap" title="${esc(title)}">${text}</span>`;
+  return badgeHtml(text, 'warning', { extraClass: 'whitespace-nowrap', title: esc(title) });
 }
 
 /** 名单行（只读展示；编辑统一走成员档案模态，pending 显示「待确认」小标） */
@@ -249,7 +250,7 @@ function _rowHtml(p, pend) {
       <div class="min-w-0">
         <div class="text-sm font-medium text-gray-800 flex items-center gap-1.5 min-w-0">
           <span class="truncate">${esc(getPersonName(p.id))}</span>
-          ${detained ? `<span class="text-xs px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-100 flex-shrink-0" title="${esc(rs.residenceNote || '滞留：组织关系保留、应到剔除、通知照发')}">滞留</span>` : ''}
+          ${detained ? badgeHtml('滞留', 'warning', { extraClass: 'flex-shrink-0', title: esc(rs.residenceNote || '滞留：组织关系保留、应到剔除、通知照发') }) : ''}
         </div>
         ${roleLabel ? `<div class="text-xs text-gray-500 truncate">${esc(roleLabel)}</div>` : ''}
       </div>
@@ -316,10 +317,10 @@ function _openEdit(personId) {
 
 /** 状态 → 展示色（预览行小胶囊；文案 = 导入可否） */
 const SP_STATUS = {
-  matched: { text: '可导入', cls: 'bg-green-50 text-green-700 border-green-200' },
-  empty: { text: '无内容', cls: 'bg-gray-50 text-gray-500 border-gray-200' },
-  unmatched: { text: '未匹配', cls: 'bg-amber-50 text-amber-700 border-amber-200' },
-  ambiguous: { text: '重名', cls: 'bg-amber-50 text-amber-700 border-amber-200' },
+  matched: { text: '可导入', tone: 'success' },
+  empty: { text: '无内容', tone: 'neutral' },
+  unmatched: { text: '未匹配', tone: 'warning' },
+  ambiguous: { text: '重名', tone: 'warning' },
 };
 
 /** 导入区 HTML（阅读型折叠 · 原生 details；默认收起，避免名册主视图被批量工具挤占）
@@ -359,7 +360,7 @@ function _spPreviewHtml(r) {
       <div class="grid grid-cols-1 gap-1 md:gap-2 py-1.5 border-b border-gray-50 last:border-b-0 md:items-center md:[grid-template-columns:minmax(96px,1.2fr)_1fr_72px_72px_2fr]">
         <span class="text-xs text-gray-800 truncate">${esc(who)}</span>
         <span class="text-xs text-gray-500 truncate">${esc(row.studentId || '—')}</span>
-        <span class="text-xs px-1.5 py-0.5 rounded-full border ${meta.cls} justify-self-start whitespace-nowrap">${meta.text}</span>
+        ${badgeHtml(meta.text, meta.tone, { extraClass: 'justify-self-start whitespace-nowrap' })}
         <span class="text-xs text-gray-600">${row.status === 'matched' ? `${row.fields} 项` : '—'}</span>
         ${problems}
       </div>`;

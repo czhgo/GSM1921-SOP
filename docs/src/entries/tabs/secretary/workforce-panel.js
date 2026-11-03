@@ -19,6 +19,7 @@ import { getBranchWorkforce } from '../../../services/branch/branch.js?v=2026110
 import { confirmDanger } from '../../../components/ui/modal.js?v=20261102b';
 
 import { emptyStateHtml } from '../../../components/ui/empty-state.js?v=20261102b';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20261102b';
 const DRAFT_KEY = 'gsm1921-workforce-draft'; // 本机草稿（**仅本机·不上服务端**：未提交的拟定分工，属该设备上未完成的工作；白名单见 content/05_ai_coding/DATA_CONSISTENCY_CHECKLIST.md）
 
 function _today() {
@@ -108,14 +109,14 @@ function _outcomeHtml(outcome) {
   const { status, tally, needed } = outcome;
   const sum = `${tally.voted}/${needed} 表态 · 应到 ${tally.total} · 异议 ${tally.object}`;
   if (status === 'passed') {
-    return `<span class="text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-700">已通过·可采纳</span>
+    return `${badgeHtml('已通过·可采纳', 'success')}
       <p class="text-xs text-gray-500 mt-1">${sum}</p>`;
   }
   if (status === 'failed') {
-    return `<span class="text-xs px-2 py-0.5 rounded-full bg-red-100 text-red-700">未通过·有异议</span>
+    return `${badgeHtml('未通过·有异议', 'danger')}
       <p class="text-xs text-gray-500 mt-1">${sum}</p>`;
   }
-  return `<span class="text-xs px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">待足额（差 ${needed - tally.voted} 票）</span>
+  return `${badgeHtml(`待足额（差 ${needed - tally.voted} 票）`, 'warning')}
     <p class="text-xs text-gray-500 mt-1">${sum}</p>`;
 }
 
@@ -137,7 +138,7 @@ function _proposalCards(proposals, outcomesByAct) {
       return `<span class="text-xs px-1.5 py-0.5 rounded bg-red-50 text-red-700 border border-red-100">${esc(m ? m.name : c.moduleId)} → ${ownerHtml}</span>`;
     });
     const statusChip = adopted
-      ? '<span class="shrink-0 text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-700">已生效</span>'
+      ? badgeHtml('已生效', 'success', { extraClass: 'shrink-0' })
       : _outcomeHtml(outcome);
     // 「去表决」落点（2026-09-28 修）：表决入口＝本次支委会活动的线上表态页（支委会会议页，读 ?id=<活动id>）。
     //   原写 ./workspace/secretary.html?activityId= ⇒ 命中支书台壳的活动定位深链
@@ -196,7 +197,7 @@ export async function mountWorkforcePanel(branchId, hostEl) {
       <div class="rounded-xl border border-dashed border-red-200 bg-red-50/40 p-3.5 flex flex-col gap-2.5">
         <div class="flex items-center gap-2">
           <p class="font-title-cn text-sm font-bold text-gray-800">发起支部分工调整</p>
-          <span class="text-xs px-2 py-0.5 rounded-full bg-red-100 text-red-700">需经支委会议题表决后生效</span>
+          ${badgeHtml('需经支委会议题表决后生效', 'danger')}
         </div>
         ${draft ? `<div class="flex items-center gap-2 text-xs text-gray-500 bg-white/70 rounded-lg px-2.5 py-1.5">
             <span>有草稿（${new Date(draft.updatedAt || Date.now()).toLocaleString('zh-CN', { hour12: false }).slice(0, 16)} 保存）：</span>

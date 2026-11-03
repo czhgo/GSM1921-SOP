@@ -720,7 +720,7 @@ test('G5 浅底深字：不得直接用裸 var(--app-accent)；焦点环只用 -
     '.wp-agenda-kind.wp-agenda-kind-on',
     '.cs-option.is-selected',
     '.accent-avatar',
-    '.state-badge--accent',
+    '.badge--accent',
   ];
   for (const selector of textRules) {
     const body = ruleBody(STYLES, selector);

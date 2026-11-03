@@ -5000,12 +5000,15 @@ html.theme-dark .ref-doc-action-danger {
   border: 1px solid rgba(0,0,0,0.08);
 }
 .badge--success { background: #DCFCE7; color: #15803D; border-color: #BBF7D0; }
-.badge--warning { background: #FEF3C7; color: #92400E; border-color: #FDE68A; }
+/* 2026-11-03 批次 530：状态徽章文字走功能文字档（值与原 #92400E 逐字相等，零观感变化）。 */
+.badge--warning { background: #FEF3C7; color: var(--status-warning-text); border-color: #FDE68A; }
 .badge--danger  { background: #FEF2F2; color: #B91C1C; border-color: #FECACA; }
 .badge--info    { background: #DBEAFE; color: #1D4ED8; border-color: #BFDBFE; }
 .badge--neutral { background: #F3F4F6; color: var(--color-category-other); border-color: #E5E7EB; }
 .badge--brand   { background: #FEE2E2; color: var(--color-functional-red); border: 1px solid rgba(206, 17, 38, 0.25); }
 .badge--gold    { background: #FEF9C3; color: var(--color-functional-gold); border-color: #FDE68A; font-weight: 600; }
+/* 主题色档（2026-11-03 批次 530 承接原 `.state-badge--accent`）：软底三件套由别名切 *-dark。 */
+.badge--accent  { background: var(--app-accent-soft-bg); color: var(--app-accent-soft-text); border-color: var(--app-accent-soft-border); }
 
 /* ── 内联色块统一基础类（T231 第二轮）：内联样式只带 --tint，深浅两套由 CSS 计算 ──
    浅色：色值 10% 叠加透明 + 色字 + 28% 边框（与原 ROLE_COLORS rgba 底同构）；
@@ -6075,6 +6078,20 @@ html.theme-dark .agg-count-badge {
   margin-left: var(--space-1);
 }
 
+/* ── 加载骨架（批次 530 · B-518-2）：单一源，标记由 components/ui/empty-state.js::skeletonHtml 产出 ──
+   与空态同属「内容未就绪」：骨架只占位、不承载信息，故整块 aria-hidden，加载文案由相邻
+   `.visually-hidden[role=status]` 承担。形状只有这两个类，页面 / 页签不得再手写
+   `bg-gray-100 animate-pulse` 堆叠（脉冲动画仍复用工具类 `animate-pulse`）。 */
+.skeleton-block {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+.skeleton-line {
+  background: var(--neutral-100);
+  border-radius: var(--radius-sm);
+}
+
 /* ═══════════════════════════════════════════════════════════════
    静雅公文 · 基础视觉类（2026-10-18 立 · Spec「工作台视觉语言」Task 1）
    ── 口径单一源：DESIGN_SYSTEM.md §2.10 颜色四问 / §4.21 间距五档 /
@@ -6316,69 +6333,9 @@ button.metric-band__item--filter.is-active {
   right: var(--space-4);
 }
 
-/* ── 状态徽章：统一淡底深字（§2.10 明暗档「状态」行）──
-   11px 属 §3.2 标签档；只承担状态识别，不承担动作或身份。 */
-.state-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-1);
-  padding: 1px var(--space-2);
-  border-radius: 999px;
-  font-size: 0.6875rem;
-  font-weight: 500;
-  line-height: 18px;
-  white-space: nowrap;
-  border: 1px solid transparent;
-}
-.state-badge--neutral {
-  background: var(--neutral-100);
-  color: var(--neutral-600);
-  border-color: var(--neutral-200);
-}
-.state-badge--success {
-  background: color-mix(in srgb, var(--status-success) 12%, transparent);
-  /* 2026-10-31 P8：徽章文字也走文字档（填充色只承担 12% 底色与描边）。 */
-  color: var(--status-success-text);
-  border-color: color-mix(in srgb, var(--status-success) 28%, transparent);
-}
-.state-badge--warning {
-  background: color-mix(in srgb, var(--status-warning) 12%, transparent);
-  /* 2026-10-27 Task 11.1：文字走 warning 文字档（亮/暗别名自动切）。 */
-  color: var(--status-warning-text);
-  border-color: color-mix(in srgb, var(--status-warning) 28%, transparent);
-}
-.state-badge--info {
-  background: color-mix(in srgb, var(--status-info) 12%, transparent);
-  color: var(--status-info-text);
-  border-color: color-mix(in srgb, var(--status-info) 28%, transparent);
-}
-.state-badge--accent {
-  background: var(--app-accent-soft-bg);
-  color: var(--app-accent-soft-text);
-  border-color: var(--app-accent-soft-border);
-}
-/* 深色模式：底色略加深、文字提亮，保证浅底深字在深色底上仍可读（§7.2）。
-   提亮基色取 --neutral-900：深色模式下它反转为近白（--neutral-0 反而变深）。 */
-html.theme-dark .state-badge--success {
-  background: color-mix(in srgb, var(--status-success) 18%, transparent);
-  color: var(--status-success-text);
-  border-color: color-mix(in srgb, var(--status-success) 38%, transparent);
-}
-html.theme-dark .state-badge--warning {
-  background: color-mix(in srgb, var(--status-warning) 18%, transparent);
-  border-color: color-mix(in srgb, var(--status-warning) 38%, transparent);
-}
-html.theme-dark .state-badge--info {
-  background: color-mix(in srgb, var(--status-info) 18%, transparent);
-  color: var(--status-info-text);
-  border-color: color-mix(in srgb, var(--status-info) 38%, transparent);
-}
-html.theme-dark .state-badge--neutral {
-  background: var(--neutral-100);
-  color: var(--neutral-600);
-  border-color: var(--neutral-200);
-}
-/* 主题色徽章不再写深色补丁：软底三件套由别名切 *-dark，深底亮字自带（批次 506）。 */
+/* ── 状态徽章（批次 530 · B-518-1）：`.state-badge` 族已并入 `.badge`（展示型单一出口）。
+   状态只承担识别、不承担动作：展示型一律 `.badge` ＋ `.badge--*` / `[data-tone]`；
+   可点 / 可切换的状态走交互型 `.status-badge`。旧 `state-badge` 类不再定义，勿新增。 */
 
 /* ── 空席 / 风险行：左侧 2px 单色规则（§2.10 反例「整圈红边」的替代）──
    只用于空席 / 风险行，不做分区装饰（DESIGN_METHODOLOGY §1.5「同页左边条不得多色」）。 */

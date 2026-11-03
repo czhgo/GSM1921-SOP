@@ -2,7 +2,7 @@
 title: "AI 协作域判例库"
 type: governance
 role: "[工程师]+[AI]"
-last_updated: "2026-10-26"
+last_updated: "2026-11-03"
 status: active
 related_files: [README.md, content/03_doc_system/CASES_INDEX.md, content/03_doc_system/OPERATIONS_GUIDE.md]
 ---
@@ -38,7 +38,7 @@ related_files: [README.md, content/03_doc_system/CASES_INDEX.md, content/03_doc_
 
 - **编号**：CASE-AI-003
 - **场景（真实发生）**：ROADMAP→CLAUDE.md 更名时，只修改了文件名和部分引用，遗漏了 guides / insights / SOP 中的引用；该次更名被指出「一改具改执行不令人满意」。
-- **结论**：改文件名、编号或术语后，必须全仓 Grep 旧标识并做零残留复核（`CLAUDE.md H30.1`）。
+- **结论**：改名后旧标识的引用须一次清零；做法与判据见 `DOCUMENT_GOVERNANCE.md`「一改具改执行陷阱」＋ `CLAUDE.md H30.1`。
 - **边界**：触发面是「会被别处引用的标识」（文件名、编号、术语）；纯正文措辞润色不触发全仓扫描。
 - **对应规范编号**：`DOCUMENT_GOVERNANCE.md`「一改具改执行」＋ `CLAUDE.md H30.1`
 - **证据指针**：`content/05_ai_coding/DOCUMENT_GOVERNANCE.md:23`。

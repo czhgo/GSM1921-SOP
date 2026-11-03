@@ -6,7 +6,7 @@
 // ════════════════════════════════════════════════════════════════
 
 import { getAppState, setState } from '../../core/base/state.js?v=20261102b';
-import { ROLE_COLORS, getActivityColor, ACTIVITY_CATEGORY_COLORS, ACTIVITY_TYPE_LABELS, ACTIVITY_TYPE_SHORT, activityTypeTone } from '../../core/domain/constants.js?v=20261102b';
+import { ROLE_COLORS, getActivityColor, ACTIVITY_CATEGORY_COLORS, ACTIVITY_TYPE_LABELS, ACTIVITY_TYPE_SHORT, activityTypeTone, DASHBOARD_LIMITS } from '../../core/domain/constants.js?v=20261102b';
 import { _fmtDate, _currentYearMonth, showToast } from '../../core/base/utils.js?v=20261102b';
 // 2026-10-25 Task 1.3：节点缺失 / 页内失败统一走「错误卡 + 重试」单一源（tab-bar 同款）。
 import { mountTabFailure } from '../shell/tab-bar.js?v=20261102b';
@@ -16,6 +16,9 @@ import { filterTasksByManagementRole, activityLifecycleBadgeHtml } from './inspe
 import { isActivityClosed } from '../../core/domain/domain.js?v=20261102b';
 
 import { emptyStateHtml } from '../ui/empty-state.js?v=20261102b';
+// 月视图格子条数上限（批次 530 · B-520-3）：条数单一源＝core/domain/constants.js::DASHBOARD_LIMITS
+const MAX_DAY_ACTIVITIES = DASHBOARD_LIMITS.calendarDayActivities;
+const MAX_DAY_TASKS = DASHBOARD_LIMITS.calendarDayTasks;
 // ── 固定语义色 tone（不随主题）──
 // 2026-10-24 批次 508：活动类别色改由单一源 activityTypeTone 判定——
 //   主题党日（scenarioId=theme-party）→ gold；其余类别（三会一课等）→ party-red；无 type → neutral。
@@ -350,20 +353,20 @@ function _renderMonthView(grid, activeActivities, tasks, month, state) {
 function _renderCompactCellContent(dateKey, dayActs, ct, viaTasks, state) {
   const { managementRole } = state || {};
   let html = '';
-  dayActs.slice(0, 3).forEach(act => {
+  dayActs.slice(0, MAX_DAY_ACTIVITIES).forEach(act => {
     const color = getActivityColor(act);
     const shortLabel = ACTIVITY_TYPE_SHORT[act.scenarioId] || ACTIVITY_TYPE_SHORT[act.type] || (act.type ? act.type.slice(0, 2) : '活动');
     html += `<div class="cal-activity-tag cal-activity-item tint-fill tint-fill--outline cursor-pointer transition-colors" data-tone="${_activityTone(act)}" data-act-id="${act.id || ''}" data-date="${dateKey}" tabindex="0" role="button" aria-label="查看活动：${act.title || ''}" title="${act.title || ''}">` +
             `<span class="cal-activity-dot" style="${_accDot(color)}background:${color.text};"></span>` +
             `<span>${shortLabel}</span></div>`;
   });
-  if (dayActs.length > 3) html += `<div class=" text-xs text-gray-500 text-center mt-0.5">+${dayActs.length - 3} 项</div>`;
+  if (dayActs.length > MAX_DAY_ACTIVITIES) html += `<div class=" text-xs text-gray-500 text-center mt-0.5">+${dayActs.length - MAX_DAY_ACTIVITIES} 项</div>`;
   // 无活动时才显示任务标签（紧凑，最多 2 条，避免挤爆方形格）
   if (dayActs.length === 0) {
     // P1：viaTasks 已由日索引预分组（等价原 tasks.filter(!t.date && activityId∈当日)）
     const allDayTasks = [...ct, ...viaTasks];
     const filteredTasks = filterTasksByManagementRole(allDayTasks, managementRole);
-    filteredTasks.slice(0, 2).forEach(t => {
+    filteredTasks.slice(0, MAX_DAY_TASKS).forEach(t => {
       const c = ROLE_COLORS[t.executor] || ROLE_COLORS.all;
       html += `<div class="cal-task-tag tint-fill tint-fill--outline" data-tone="${_roleTone(t.executor)}"><span class="task-dot" style="${_accDot(c)}background:${c.text};"></span><span class="truncate">${t.title}</span></div>`;
     });
@@ -752,11 +755,11 @@ function _renderMobileDots(dayActs, ct, hasActivity, viaTasks, state) {
   if (viewType === 'participant') {
     if (dayActs.length > 0) {
       html += '<div class="cal-mobile-dots">';
-      dayActs.slice(0, 3).forEach(act => {
+      dayActs.slice(0, MAX_DAY_ACTIVITIES).forEach(act => {
         const color = getActivityColor(act);
         html += `<span class="cal-mobile-dot" style="${_accDot(color)}background:${color.text};"></span>`;
       });
-      if (dayActs.length > 3) html += `<span class="cal-mobile-dot-more">+${dayActs.length - 3}</span>`;
+      if (dayActs.length > MAX_DAY_ACTIVITIES) html += `<span class="cal-mobile-dot-more">+${dayActs.length - MAX_DAY_ACTIVITIES}</span>`;
       html += '</div>';
     }
   } else {
@@ -1109,14 +1112,14 @@ function _renderMonthViewCompact(grid, activeActivities, month, state, mode) {
 
     let cellHtml = `<div class="${cls} cal-cell-compact" data-date="${k}" tabindex="0" role="gridcell">`;
     cellHtml += `<div class=" text-[12px] font-semibold mb-1 ${isT ? 'text-red-700' : 'text-gray-600'}">${day}</div>`;
-    dayActs.slice(0, 3).forEach(act => {
+    dayActs.slice(0, MAX_DAY_ACTIVITIES).forEach(act => {
       const color = getActivityColor(act);
       const shortLabel = ACTIVITY_TYPE_SHORT[act.scenarioId] || ACTIVITY_TYPE_SHORT[act.type] || (act.type ? act.type.slice(0, 2) : '活动');
       cellHtml += `<div class="cal-activity-tag cal-activity-item tint-fill tint-fill--outline cursor-pointer transition-colors" data-tone="${_activityTone(act)}" data-act-id="${act.id || ''}" data-date="${k}" tabindex="0" role="button" aria-label="查看活动：${act.title || ''}" title="${act.title || ''}">` +
               `<span class="cal-activity-dot" style="${_accDot(color)}background:${color.text};"></span>` +
               `<span>${shortLabel}</span></div>`;
     });
-    if (dayActs.length > 3) cellHtml += `<div class=" text-xs text-gray-500 text-center mt-0.5">+${dayActs.length - 3} 项</div>`;
+    if (dayActs.length > MAX_DAY_ACTIVITIES) cellHtml += `<div class=" text-xs text-gray-500 text-center mt-0.5">+${dayActs.length - MAX_DAY_ACTIVITIES} 项</div>`;
     cellHtml += '</div>';
     dayCells.push(cellHtml);
   }

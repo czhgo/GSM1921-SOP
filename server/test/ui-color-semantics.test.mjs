@@ -6,7 +6,7 @@
 //
 // 判据：
 //   C1 DESIGN_SYSTEM 有「颜色四问」与逾期 / warning / error / 琥珀口径；
-//   C2 styles.css 有 `.state-badge--warning/success/info/accent` 变体；
+//   C2 styles.css 有 `.badge--warning/success/info/accent` 变体，且 `.state-badge` 族已收口；
 //   C3 关键页面文件内「逾期」附近 120 字符不得出现 `--functional-error`；
 //   C4 DESIGN_SYSTEM §2.10 写明三个反例（整圈红边 / 功能色主按钮 / 主题色状态徽章）；
 //   C5 非空转自检：邻近判定在合成正 / 负样本上必须命中 / 不命中。
@@ -64,11 +64,14 @@ test('C1 DESIGN_SYSTEM 含颜色四问与逾期 / warning / error 口径', () =>
   assert.ok(doc.includes('阻断 / 失败 / 删除 / 驳回'), '§2.10 未写明 error 只保留给阻断 / 失败 / 删除 / 驳回');
 });
 
-test('C2 styles.css 含状态徽章变体（warning / success / info / accent）', () => {
+test('C2 styles.css 含状态徽章变体（warning / success / info / accent），旧 state-badge 已收口', () => {
   const css = readFileSync(CSS, 'utf8');
   for (const variant of ['neutral', 'success', 'warning', 'info', 'accent']) {
-    assert.ok(css.includes(`.state-badge--${variant}`), `styles.css 缺 .state-badge--${variant}`);
+    assert.ok(css.includes(`.badge--${variant}`), `styles.css 缺 .badge--${variant}`);
   }
+  // 批次 530（B-518-1）：展示型胶囊只留 `.badge` 一族；`.state-badge` 不得再定义外观。
+  assert.doesNotMatch(css, /\.state-badge\s*\{/,
+    'styles.css 仍定义 .state-badge（展示胶囊已收口到 .badge，勿新增第二族）');
 });
 
 test('C3 关键页面「逾期」附近不得使用 --functional-error', () => {

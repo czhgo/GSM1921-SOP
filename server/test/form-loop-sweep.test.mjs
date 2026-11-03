@@ -946,6 +946,14 @@ function uncaughtErrors(page) {
   // 静默失败最直接的证据，不能只留在控制台。
   // 2026-10-26 批次 514：409 是乐观锁冲突，前端已用可见 toast「数据已被他人更新，已为你刷新」
   //   恢复并让用户重试；它不是静默失败。只把它从“未捕获错误”里排除，400/401/403/428/5xx 仍全收。
+  // ── 证据登记（2026-11-03 批次 530 · B-515-5；**只登记，不改断言**）──────────────────────
+  //   收紧口径（待后续批次落成断言）：排除 409 必须同时具备「可见恢复提示」与「后续成功重试」两件证据，
+  //   仅凭一句 toast 不得排除。现行证据（本批核对）：
+  //     ① 可见恢复：`docs/src/data/data-adapter.js:1048` 在 `_recoverFromConflict` 内经 `showToast('info',
+  //        '数据已被他人更新，已为你刷新')` 明示，且先按冲突集合 `_refreshCollections` 重拉服务端权威数据；
+  //     ② 可重试成功：重拉时 `_versions` 基线随服务端版本推进（`_commitVersions` / `_refreshCollections` 同源），
+  //        用户对同一表单再提交即不再撞同一冲突；写失败仍进 `pending-writes` 失败分支（成功提示不会误报）。
+  //   未落成断言的原因：真机侧「重试后成功」需按流程记录两次提交的读数，本批只做静态取证，避免伪绿。
   return (page.__errs || []).filter((m) => {
     if (/^HTTP 409\b/.test(m) && /数据已被他人更新/.test(m)) return false;
     return /ReferenceError|TypeError|is not a function|is not defined|Cannot read/.test(m) || /^HTTP [45]\d\d/.test(m);

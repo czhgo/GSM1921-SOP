@@ -22,7 +22,8 @@ import { showToast, flashHighlight, todayLocal, docAnchorHref, escHtml as esc, s
 import { icon } from '../../core/base/icons.js?v=20261102b';
 import { listRowHtml, listGroupHtml } from '../ui/list-row.js?v=20261102b';
 import { tableHeadHtml } from '../ui/data-table.js?v=20261102b';
-import { emptyStateHtml } from '../ui/empty-state.js?v=20261102b';
+import { emptyStateHtml, renderSkeleton } from '../ui/empty-state.js?v=20261102b';
+import { badgeHtml } from '../ui/badges.js?v=20261102b';
 import { renderTabHeader, renderCardHeader } from '../shell/page-frame.js?v=20261102b';
 import {
   TodoStore, seedTodos, isTodoExpired, WORK_DOMAIN, WORK_DOMAIN_LABELS, TodoStatus,
@@ -30,6 +31,7 @@ import {
 import { IssueStore } from '../../services/governance/issues.js?v=20261102b';
 import {
   isActivityEnded, isActivityArchived, isActivityInProgress, ROLE_LABELS, PARTY_GROUP_LEADER_ROLES,
+  DASHBOARD_LIMITS,
 } from '../../core/domain/constants.js?v=20261102b';
 import { loadActivities } from '../../services/activity/activity.js?v=20261102b';
 import { filterActivitiesForViewer, resolveVisibleTargets } from '../../services/core/visibility.js?v=20261102b';
@@ -51,7 +53,8 @@ let _woDetail = null; // { kind: 'activity' | 'taskforce', id } | null
 let _metricFilter = null;
 let _metricRole = null;
 
-const _MAX_INLINE = 3;
+// 批次 530（B-520-3）：内联动作条数改取展示上限单一源（DASHBOARD_LIMITS）。
+const _MAX_INLINE = DASHBOARD_LIMITS.overviewInlineActions;
 const _DONE_LIMIT = 5;
 /** 结论带指标色单一源（2026-11-01 批次 524 支书裁定）：指标与状态用功能色，动作 / 导航 / 选中态仍用主题色。
  *  pending = 待处理状态（待答复 / 待赋权 / 待归档 / 待补课 / 待汇报 / 组员汇报）；
@@ -402,7 +405,7 @@ const ROLE_OVERVIEW_CONFIG = {
  */
 export async function renderWorkOverview(container, opts) {
   if (!container) return;
-  container.innerHTML = '<p class="text-sm text-gray-500">正在加载工作概况…</p>';
+  renderSkeleton(container, 3, { ariaText: '正在加载工作概况…' });
   try {
     await _renderOverviewContent(container, opts);
   } catch (error) {
@@ -485,7 +488,7 @@ async function _renderOverviewContent(container, { role, personId, accent = '#B9
   const tableRows = lineRows.map((row) => {
     // 零值口径（2026-10-19）：0 是事实，不用「—」代替；「—」只留给缺失数据。
     const overdue = row.overdue > 0
-      ? `<span class="state-badge state-badge--warning tabular-nums">${row.overdue}</span>`
+      ? badgeHtml(String(row.overdue), 'warning', { extraClass: 'tabular-nums' })
       : '<span class="wo-zero">0</span>';
     return `<tr data-wo-line="${esc(row.line.key)}">
       <td class="wo-line-name" data-label="工作分工">${esc(row.line.label)}</td>

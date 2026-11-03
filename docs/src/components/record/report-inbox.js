@@ -17,6 +17,7 @@ import { solidAccentStyle } from '../../core/domain/constants.js?v=20261102b';
 import { renderFilteredList } from '../ui/list-filter.js?v=20261102b';
 
 import { emptyStateHtml } from '../ui/empty-state.js?v=20261102b';
+import { badgeHtml } from '../ui/badges.js?v=20261102b';
 // ── E-3（2026-09-09 · H60.7 面板保态复查③）：列表瞬态草稿互扰兜底 ──────
 // 某行正式答复成功 → onAnswered → 调用方整块重渲染（支书待办/组长组员汇报），
 // 原实现清掉其它已展开行的草稿与展开态。修法取「渲染前收集、渲染后回填」：
@@ -189,7 +190,7 @@ function _renderInboxDetail(r, accent, draft = '') {
       <div class="rounded-lg p-2 ${bg}"${bgDark}>
         <div class="flex items-center gap-1.5 mb-1">
           <span class="text-xs font-medium text-gray-700">${icon} ${getPersonName(c.author) || '匿名'}</span>
-          ${c.kind === 'reply' ? '<span class="state-badge state-badge--neutral">正式答复</span>' : ''}
+          ${c.kind === 'reply' ? badgeHtml('正式答复', 'neutral') : ''}
           <span class="text-xs text-gray-500">${c.createdAt}</span>
         </div>
         <p class="text-xs text-gray-600 whitespace-pre-wrap">${c.body}</p>
@@ -268,7 +269,7 @@ export function bindReportInbox(container, { role = 'secretary', scope = null, o
             <p class="notice-row__title">${r.title}</p>
             <p class="notice-row__meta flex items-center gap-2 min-w-0">
               <span class="truncate">${metaParts.join(' · ')}</span>
-              <span class="state-badge state-badge--${badgeVariant} flex-shrink-0">${ds.label}</span>
+              ${badgeHtml(ds.label, badgeVariant, { extraClass: 'flex-shrink-0' })}
             </p>
           </div>
           <div class="notice-row__actions">

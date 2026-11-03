@@ -18,7 +18,7 @@
 
 import { mockDB } from '../../core/domain/domain.js?v=20261102b';
 import { getCapabilities } from '../../core/boot/registry.js?v=20261102b';
-import { OUTPUT_BLOCK_DEFS, BRANCH_COMMISSION_ROLES, ROLE_LABELS, getAccentColors } from '../../core/domain/constants.js?v=20261102b';
+import { OUTPUT_BLOCK_DEFS, BRANCH_COMMISSION_ROLES, ROLE_LABELS, getAccentColors, ACCENT_PALETTE, normalizeAccentKey } from '../../core/domain/constants.js?v=20261102b';
 import { applyAccentThemeTokens } from '../../core/boot/theme.js?v=20261102b';
 import { CAPABILITY_PACKAGES } from '../../core/domain/capability-packages.js?v=20261102b';
 import { ORG_SUBJECT_LABELS, isBranchOrgSubject, ownerSubjectType } from '../../core/domain/work-map.js?v=20261102b';
@@ -62,11 +62,14 @@ export const WIZARD_STEPS = [
 // ── 主题预设（仅「可调令牌」= 角色识别层强调色 --app-accent 三件套，DESIGN_SYSTEM §2.3.2/§2.8）──
 // 党建红 party-red（#CE1126）与党徽金 party-gold（#FFD700）为固定合规底线 → 不提供任何预设/更改；
 // 预设取既有角色识别色系（accent 色相），id 与 core/config-clean THEME_PRESET_IDS 白名单一致。
+// ⚠ 名称一律取现行七色口径（`ACCENT_PALETTE` 的 label：金 / 红 / 橙 / 绿 / 青 / 蓝 / 紫）——
+//   2026-11-03 批次 530（B-520-5）：原「天蓝 / 海蓝 / 翠绿」是已撤的旧色名，不得回潮。
+const _accentLabelOf = (role) => ACCENT_PALETTE.find((c) => c.key === normalizeAccentKey(role))?.label || '金（默认）';
 export const THEME_PRESETS = [
-  { id: 'red',   name: '党建红调', accentRole: 'secretary',        note: '角色识别层红（贴近固定党建红，最稳）' },
-  { id: 'green', name: '翠绿',     accentRole: 'leader',           note: '执行层翠绿系' },
-  { id: 'sky',   name: '天蓝',     accentRole: 'org-commissioner', note: '组织线天蓝系' },
-  { id: 'blue',  name: '海蓝',     accentRole: 'prop-commissioner', note: '宣传线海蓝系' },
+  { id: 'red',   name: _accentLabelOf('secretary'),        accentRole: 'secretary',        note: '角色识别层红（贴近固定党建红，最稳）' },
+  { id: 'green', name: _accentLabelOf('leader'),           accentRole: 'leader',           note: '执行层绿系' },
+  { id: 'sky',   name: _accentLabelOf('org-commissioner'), accentRole: 'org-commissioner', note: '组织线青系' },
+  { id: 'blue',  name: _accentLabelOf('prop-commissioner'), accentRole: 'prop-commissioner', note: '宣传线蓝系' },
 ];
 
 // 固定令牌展示（只读说明，不作为可选预设）

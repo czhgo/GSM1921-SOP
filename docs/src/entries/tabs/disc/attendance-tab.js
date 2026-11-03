@@ -21,7 +21,7 @@ import { getPersonName } from '../../../services/member/person.js?v=20261102b';
 // （党员 正式+预备 且非滞留；滞留者「可见但禁用」、党课列席不计应到），不再全支部 50 人候选
 // 附录⑩ A批·S1（2026-09-06 支书裁定）：滞留线下到场可「到场补录」计入到席（实际应到=预应到 K + 补录 L）
 import { getMeetingRoster, getRosterStats, getMeetingRosterCandidates } from '../../../services/member/roster.js?v=20261102b';
-import { solidAccentStyle, ROLE_LABELS, isActivityArchived, isActivityLive } from '../../../core/domain/constants.js?v=20261102b';
+import { solidAccentStyle, ROLE_LABELS, isActivityArchived, isActivityLive, DASHBOARD_LIMITS } from '../../../core/domain/constants.js?v=20261102b';
 import { loadActivities } from '../../../services/activity/activity.js?v=20261102b';
 // R7-33：考勤「超期」按「活动日 + 补课时限（policy）」现算，不再直读记录上的 overdue 快照
 import { isAttendanceOverdue } from '../../../core/domain/policy-defaults.js?v=20261102b';
@@ -32,6 +32,7 @@ import { TodoStore, TodoSourceType } from '../../../services/governance/todo.js?
 import { NoticeStore } from '../../../services/governance/notice.js?v=20261102b';
 import { enhanceSelects } from '../../../components/ui/custom-select.js?v=20261102b';
 import { badgeHtml } from '../../../components/ui/badges.js?v=20261102b';
+import { skeletonHtml } from '../../../components/ui/empty-state.js?v=20261102b';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是人的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
 // pagerHtml = 翻页控件单一源（批次 38：全站手写翻页一律并轨；叶子件，避免与矩阵相互成环）
 import { pagerHtml } from '../../../components/ui/pager.js?v=20261102b';
@@ -100,10 +101,10 @@ export function focusSegment(seg) {
   if (seg === 'attendance' || seg === 'makeup') _segment = seg;
 }
 
-/** U3（2026-09-07）：矩阵/总表容器首帧骨架占位行（真实表格 rAF 后渐进填充，防整块弹出） */
+/** U3（2026-09-07）：矩阵/总表容器首帧骨架占位行（真实表格 rAF 后渐进填充，防整块弹出）
+ *  批次 530（B-518-2）：形状改由 `ui/empty-state.js::skeletonHtml` 单一源产出。 */
 function _attSectionSkeletonHtml() {
-  const row = '<div class="h-8 rounded bg-gray-100 animate-pulse"></div>';
-  return `<div class="space-y-1.5 py-1">${row}${row}${row}${row}</div>`;
+  return skeletonHtml(4, { lineClass: 'h-8', ariaText: '' });
 }
 
 /** 状态缩写 + 色点（矩阵单元格用：色点 + 2 字缩写，风格对齐日历） */
@@ -561,7 +562,7 @@ export function renderContent(ctx) {
 //  ① 待确认队列（异常驱动 · 极简白底无边框无条纹 · 默认 8 条折叠）
 //  T-304 第5轮：仅异常（缺勤/请假，含超期）进队列；出勤/已补源头已审校不占队列
 // ════════════════════════════════════════════════════════════════
-const QUEUE_VISIBLE = 8; // 最小信息成本：默认只暴露最近需处理的少量条目
+const QUEUE_VISIBLE = DASHBOARD_LIMITS.attendanceQueueVisible; // 最小信息成本：默认只暴露最近需处理的少量条目（单一源＝constants）
 let _queueExpanded = false;
 // 打包确认（SOP-B-41 / `D-455`）：纪检勾一批 → 一次确认（不逐条）。
 // 2026-10-15 支书确认：默认不选；只记录主动选择的记录，降低误批量确认风险。

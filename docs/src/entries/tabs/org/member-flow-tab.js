@@ -37,7 +37,7 @@ import { PersonPicker } from '../../../components/governance/pickers.js?v=202611
 // 自定义圆角下拉增强（select.input-flat.text-xs → cs-trigger；与全局 observer 幂等）
 import { enhanceSelects } from '../../../components/ui/custom-select.js?v=20261102b';
 
-import { emptyStateHtml } from '../../../components/ui/empty-state.js?v=20261102b';
+import { emptyStateHtml, renderSkeleton } from '../../../components/ui/empty-state.js?v=20261102b';
 // 模块级 ctx 缓存：登记/撤销后整页刷新复用首次渲染的 accent
 let _ctx = null;
 
@@ -155,7 +155,7 @@ async function _loadIaaaPending() {
   if (!host) return;
   const token = getAuthToken();
   if (!token) { host.innerHTML = '<p class="text-xs text-gray-500">本地浏览形态无入站申请；接入统一身份认证后在此确认。</p>'; return; }
-  host.innerHTML = '<p class="text-xs text-gray-500">正在加载…</p>';
+  renderSkeleton(host, 3, { ariaText: '正在加载待确认申请…' });
   try {
     const r = await fetch(`${getApiBaseUrl()}/api/v1/auth/iaaa/pending`, { headers: { Authorization: `Bearer ${token}` } });
     if (r.status === 403) { host.innerHTML = '<p class="text-xs text-gray-500">仅支书 / 副支书 / 组织委员可确认入站。</p>'; return; }

@@ -42,6 +42,8 @@ function committeeSourceChip() {
 export function renderNoticeList(containerId, limit = 5, opts = {}) {
   const container = document.getElementById(containerId);
   if (!container) return;
+  // 批次 530（B-518-2）：页面首帧骨架带 aria-busy；本函数同步渲染后即可撤标记（读屏不再停在「加载中」）。
+  container.removeAttribute('aria-busy');
 
   // 支书规则（2026-08-01）：任何带时间字段的列示一律按时间倒序（最新在前）
   // 支书裁决（2026-08-05）：重要通知仅保留未读，紧急通知无论已读未读均展示

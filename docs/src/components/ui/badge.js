@@ -1,7 +1,8 @@
 // role: [工程师]+[AI]
 // components/ui/badge.js — 全站统一徽章组件（根治"改不动"：无内联样式、无硬编码 Tailwind 任意值）
 // 用法：badgeHtml('待归档', 'warning', { title: '缺考勤、考察' })
-// variant ∈ success | warning | danger | info | neutral | brand | gold
+// variant ∈ success | warning | danger | info | neutral | brand | gold | accent
+// accent（2026-11-03 批次 530）承接原 `.state-badge--accent`：状态徽章已收口到本组件。
 
 // 覆盖类（Tailwind 工具类晚于 styles.css 注入 → 覆盖 badge--* 的字色）：
 // warning / neutral 两个变体的原字色对比不足 4.5（≈4.4 边界）⇒ 各自再加深一档至 AA。
@@ -18,6 +19,7 @@ const BADGE_VARIANT_CLASS = {
   neutral: 'badge--neutral text-gray-600',
   brand: 'badge--brand',
   gold: 'badge--gold',
+  accent: 'badge--accent',
 };
 
 export function badgeHtml(text, variant = 'neutral', opts = {}) {

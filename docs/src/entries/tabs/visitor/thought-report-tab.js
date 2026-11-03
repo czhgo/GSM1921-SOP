@@ -21,19 +21,17 @@ import { renderFilteredList } from '../../../components/ui/list-filter.js?v=2026
 import { renderTabHeader } from '../../../components/shell/page-frame.js?v=20261102b';
 
 import { emptyStateHtml } from '../../../components/ui/empty-state.js?v=20261102b';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20261102b';
 // ── 状态徽标（与服务层 _effective 同语义：无状态 / 状态非法 / 旧 'pending' → 已入库）──
 const STATUS_META = {
-  needs_revision: { label: '已打回·待补充', cls: 'bg-red-100 text-red-700' },
-  archived:       { label: '已入库', cls: 'bg-green-100 text-green-700' },
+  needs_revision: { label: '已打回·待补充', tone: 'danger' },
+  archived:       { label: '已入库', tone: 'success' },
 };
 
 const _effStatus = (r) => (STATUS_META[r && r.reviewStatus] ? r.reviewStatus : 'archived');
 const _dateTime = (iso) => { const s = (iso || ''); return s.length >= 16 ? s.slice(0, 16).replace('T', ' ') : s; };
 
-const _statusBadgeHtml = (status) => {
-  const m = STATUS_META[status];
-  return `<span class="text-xs px-1.5 py-0.5 rounded-full font-medium ${m.cls}">${m.label}</span>`;
-};
+const _statusBadgeHtml = (status) => badgeHtml(STATUS_META[status].label, STATUS_META[status].tone);
 
 export function renderContent(ctx, host) {
   const tc = host || document.getElementById('visitor-tab-content');

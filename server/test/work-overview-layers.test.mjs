@@ -61,7 +61,12 @@ test('W4 六个角色键与四数齐备（四数同为数字卡）', () => {
   for (const label of ['在办', '逾期', '待我处理', '待答复']) {
     assert.ok(OVERVIEW.includes(`'${label}'`), `四数缺「${label}」`);
   }
-  assert.match(OVERVIEW, /const _MAX_INLINE = 3/, '待我处理上限须为 3 且只有一份');
+  // 2026-11-03 批次 530（B-520-3）：上限数字收口到 constants.js::DASHBOARD_LIMITS，
+  //   本件只允许引用常量（判据仍是「上限为 3 且只有一份」）。
+  assert.match(OVERVIEW, /const _MAX_INLINE = DASHBOARD_LIMITS\.overviewInlineActions/,
+    '待我处理上限须引用 DASHBOARD_LIMITS.overviewInlineActions（不得回写字面量）');
+  assert.match(read('docs/src/core/domain/constants.js'), /overviewInlineActions:\s*3\b/,
+    'DASHBOARD_LIMITS.overviewInlineActions 须为 3（上限单一源）');
   assert.match(OVERVIEW, /lineOf\(item\)/, '每台配置须声明 lineOf(...)');
   // 2026-10-28「四个数统一为卡片数字」：原「在办 = 存量指标，降为 muted 脚注级（muted: true / 16px /
   //   neutral-500）」的判据随实现改到卡面结构——四数同级、同为数字卡。原三条 muted 断言按下列映射保留：

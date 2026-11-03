@@ -185,7 +185,7 @@ test('K6 逾期文字档：--status-warning-text 亮/暗 ≥4.5:1，warning 只�
 
   for (const [selector, why] of [
     ['.stat-card__value--warning', '逾期数值'],
-    ['.state-badge--warning', '逾期状态徽章文字'],
+    ['.badge--warning', '逾期状态徽章文字'],
     ['.workflow-substates-hint', '超期提示文字'],
   ]) {
     const body = (new RegExp(`${selector.replace(/\./g, '\\.')}\\s*\\{([^}]*)\\}`).exec(

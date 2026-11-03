@@ -1554,15 +1554,13 @@ await (async () => {
     .map((line, i) => ({ line: line.trim(), no: i + 1 }))
     .filter((x) => OLD_NAME_RE.test(x.line));
 
-  /** B2 棘轮（逐文件处数；只许随收口减少） */
+  /** B2 棘轮（逐文件处数；只许随收口减少）
+   *  2026-11-03 批次 530（B-520-5）：`org-setup-wizard.js` 的 2 处旧色名已改为七色名
+   *  （取自 `ACCENT_PALETTE` 的 label）⇒ 按收基线纪律**删条目**（该文件现为 0 处，新增即红）。 */
   const OLD_COLOR_NAME_EXEMPT = {
-    'docs/src/components/governance/org-setup-wizard.js': {
-      max: 2,
-      why: '换组织向导预设表仍用旧色名（B-520-5 待改为七色名）',
-    },
     'docs/src/components/shell/appearance-controls.js': {
       max: 1,
-      why: '旧偏好兼容映射的展示标签（B-520-5 待删或改为七色名）',
+      why: '旧偏好兼容映射的展示标签（用于迁移提示；B-520-5 裁定保留，不删）',
     },
   };
 

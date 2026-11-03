@@ -16,6 +16,7 @@
 
 import { listRowHtml } from '../ui/list-row.js?v=20261102b';
 import { emptyStateHtml } from '../ui/empty-state.js?v=20261102b';
+import { badgeHtml } from '../ui/badges.js?v=20261102b';
 import { renderMenuButton, bindMenuButtons } from '../ui/menu-button.js?v=20261102b';
 import { isTodoExpired } from '../../services/governance/todo.js?v=20261102b';
 import { resolveTodoAction } from '../../core/domain/todo-actions.js?v=20261102b';
@@ -173,7 +174,7 @@ function _renderUrgencyRow(prefix, g, opts, today, selectedTodoId) {
 
   const row = listRowHtml({
     rowType: 'master',
-    leading: hasVoidPending ? '<span class="state-badge state-badge--warning">待支委会确认</span>' : '',
+    leading: hasVoidPending ? badgeHtml('待支委会确认', 'warning') : '',
     title: g.title || '未命名待办',
     meta: metaParts.join(' · '),
     trailing,

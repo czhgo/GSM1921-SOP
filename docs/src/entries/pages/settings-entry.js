@@ -30,7 +30,7 @@ import {
   savePersonalTabOrder, resetPersonalTabOrder,
 } from '../../services/core/preferences.js?v=20261102b';
 // 批4（2026-09-09 支书批「域参数」）：制度默认单一源 = policy-defaults（设置页展示「制度默认」行与域参数默认值）
-import { POLICY_DEFAULTS, ACTIVITY_APPROVAL_MODES, ACTIVITY_APPROVAL_MODE_LABELS } from '../../core/domain/policy-defaults.js?v=20261102b';
+import { POLICY_DEFAULTS, ACTIVITY_APPROVAL_MODES, ACTIVITY_APPROVAL_MODE_LABELS, policyRange, POLICY_WINDOW_RANGE } from '../../core/domain/policy-defaults.js?v=20261102b';
 // 数据层初始化（2026-09-09 冒烟修复，同 wizard/search 独立页模式）：设置页治理区（支部信息/默认顺序/
 // 制度参数/域参数）与「我的工作台」需读支部配置——注册适配器并恢复本地 mock 数据（或 API 模式 init），
 // 否则整页加载后 mockDB 恒空 → 治理区误显「未找到您所属支部」且写口（保存默认顺序/域参数）不可达。
@@ -1253,6 +1253,18 @@ function domainCardHtml(meta, branch, P) {
               <input type="number" id="${id}" class="input-flat text-xs w-20 text-center" min="${min}" max="${max}" value="${v}" inputmode="numeric">
               <span class="text-xs text-gray-600">${post}</span>
             </label>`;
+    // 批次 530（B-520-3）：范围数字单一源＝policy-defaults.js::policyRange（与写口钳制同表）。
+    const rg = (path) => policyRange(path) || { min: 1, max: 90 };
+    const r = {
+      inspection: rg(['inspection', 'overdueDays']),
+      entry: rg(['attendance', 'entryRemindDays']),
+      summary: rg(['attendance', 'summaryDeadlineDays']),
+      lowRate: rg(['attendance', 'lowRateHint']),
+      review: rg(['review', 'overdueDays']),
+      reviewDeadline: rg(['review', 'deadlineDays']),
+      makeup: rg(['makeup', 'deadlineDays']),
+    };
+    const span = (x, unit = '天') => `范围 ${x.min}–${x.max}${unit ? ' ' + unit : ''}；`;
     const row = (label, field, hint) => `
         <div class="kv-row">
           <dt>${label}</dt>
@@ -1268,12 +1280,12 @@ function domainCardHtml(meta, branch, P) {
         </div>
         <p class="text-[13px] leading-relaxed text-gray-500 mb-4">考察超期、考勤与复盘时限、补课范围与时限。保存后：纪检台判定、支书台提醒与补课判据同源生效。</p>
         <div class="space-y-3">
-          ${row('考察确认超期', numField('pol-inp-disc-days', cur, 1, 90, '超过', '天未确认判超期'), `范围 1–90 天；默认 ${def} 天。${curState}`)}
-          ${row('考勤录入提醒', numField('pol-disc-entry-remind', cEntry, 1, 30, '活动结束超过', '天未录入判提醒'), `范围 1–30 天；默认 ${ad.entryRemindDays} 天（母本 24h）。`)}
-          ${row('考勤汇总期限', numField('pol-disc-summary-days', cSum, 1, 30, '截止 = 活动日 +', '天'), `范围 1–30 天；默认 ${ad.summaryDeadlineDays} 天（母本 48h）。`)}
-          ${row('出勤率提示线', numField('pol-disc-low-rate', cLow, 0, 100, '低于', '% 仅提示本人'), `范围 0–100；默认 ${ad.lowRateHint}%。只提示、不触发处置。`)}
-          ${row('复盘提醒', numField('pol-disc-review-remind', cRev, 1, 90, '活动结束超过', '天未交复盘判提醒'), `范围 1–90 天；默认 ${rd.overdueDays} 天。`)}
-          ${row('复盘提交期限', numField('pol-disc-review-deadline', cRevD, 1, 90, '截止 = 活动日 +', '天'), `范围 1–90 天；默认 ${rd.deadlineDays} 天。`)}
+          ${row('考察确认超期', numField('pol-inp-disc-days', cur, r.inspection.min, r.inspection.max, '超过', '天未确认判超期'), `${span(r.inspection, '天')}默认 ${def} 天。${curState}`)}
+          ${row('考勤录入提醒', numField('pol-disc-entry-remind', cEntry, r.entry.min, r.entry.max, '活动结束超过', '天未录入判提醒'), `${span(r.entry, '天')}默认 ${ad.entryRemindDays} 天（母本 24h）。`)}
+          ${row('考勤汇总期限', numField('pol-disc-summary-days', cSum, r.summary.min, r.summary.max, '截止 = 活动日 +', '天'), `${span(r.summary, '天')}默认 ${ad.summaryDeadlineDays} 天（母本 48h）。`)}
+          ${row('出勤率提示线', numField('pol-disc-low-rate', cLow, r.lowRate.min, r.lowRate.max, '低于', '% 仅提示本人'), `${span(r.lowRate, '')}默认 ${ad.lowRateHint}%。只提示、不触发处置。`)}
+          ${row('复盘提醒', numField('pol-disc-review-remind', cRev, r.review.min, r.review.max, '活动结束超过', '天未交复盘判提醒'), `${span(r.review, '天')}默认 ${rd.overdueDays} 天。`)}
+          ${row('复盘提交期限', numField('pol-disc-review-deadline', cRevD, r.reviewDeadline.min, r.reviewDeadline.max, '截止 = 活动日 +', '天'), `${span(r.reviewDeadline, '天')}默认 ${rd.deadlineDays} 天。`)}
           <div class="kv-row">
             <dt>补课范围</dt>
             <dd>
@@ -1287,7 +1299,7 @@ function domainCardHtml(meta, branch, P) {
               </label>
             </dd>
           </div>
-          ${row('补课时限', numField('pol-disc-makeup-deadline', cMkD, 1, 30, '活动后', '天内闭环'), `范围 1–30 天；${makeupScopeHint()}`)}
+          ${row('补课时限', numField('pol-disc-makeup-deadline', cMkD, r.makeup.min, r.makeup.max, '活动后', '天内闭环'), `范围 ${r.makeup.min}–${r.makeup.max} 天；${makeupScopeHint()}`)}
         </div>
         <div class="pt-3 border-t border-gray-100 flex items-center gap-2">
           <button type="button" class="btn-accent text-xs px-3 py-1.5" data-pol-save="domain-disc">保存</button>
@@ -1301,7 +1313,10 @@ function domainCardHtml(meta, branch, P) {
       ? po.memberConfirmation.semesterDetainedWindows : P.memberConfirmation.semesterDetainedWindows;
     const win = (idx) => cur[idx] || [6, 15, 7, 15];
     const w1 = win(0); const w2 = win(1);
-    const num = (v, id) => `<input type="number" id="${id}" class="input-flat text-xs w-16 text-center" min="1" max="31" value="${v}" inputmode="numeric">`;
+    // 复核窗口月 / 日范围单一源＝policy-defaults.js::POLICY_WINDOW_RANGE（批次 530 · B-520-3）。
+    const num = (v, id, kind = 'day') => `<input type="number" id="${id}" class="input-flat text-xs w-16 text-center" min="${kind === 'month' ? POLICY_WINDOW_RANGE.monthMin : POLICY_WINDOW_RANGE.dayMin}" max="${kind === 'month' ? POLICY_WINDOW_RANGE.monthMax : POLICY_WINDOW_RANGE.dayMax}" value="${v}" inputmode="numeric">`;
+    const wHint = policyRange(['thoughtReport', 'wordHint']) || { min: 100, max: 10000 };
+    const wSoft = policyRange(['thoughtReport', 'wordSoftMin']) || { min: 100, max: 10000 };
     const cHint = (Number.isInteger(po.thoughtReport?.wordHint) ? po.thoughtReport.wordHint : P.thoughtReport.wordHint);
     const cSoft = (Number.isInteger(po.thoughtReport?.wordSoftMin) ? po.thoughtReport.wordSoftMin : P.thoughtReport.wordSoftMin);
     return `
@@ -1316,18 +1331,18 @@ function domainCardHtml(meta, branch, P) {
             <dd class="space-y-1.5">
               <div class="flex items-center gap-1 flex-wrap">
                 <span class="text-xs text-gray-500 w-9 shrink-0">第一段</span>
-                ${num(w1[0], 'pol-org-1-sm')}<span class="text-xs text-gray-500">月</span>${num(w1[1], 'pol-org-1-sd')}<span class="text-xs text-gray-500">日 ～</span>${num(w1[2], 'pol-org-1-em')}<span class="text-xs text-gray-500">月</span>${num(w1[3], 'pol-org-1-ed')}<span class="text-xs text-gray-500">日</span>
+                ${num(w1[0], 'pol-org-1-sm', 'month')}<span class="text-xs text-gray-500">月</span>${num(w1[1], 'pol-org-1-sd')}<span class="text-xs text-gray-500">日 ～</span>${num(w1[2], 'pol-org-1-em', 'month')}<span class="text-xs text-gray-500">月</span>${num(w1[3], 'pol-org-1-ed')}<span class="text-xs text-gray-500">日</span>
               </div>
               <div class="flex items-center gap-1 flex-wrap">
                 <span class="text-xs text-gray-500 w-9 shrink-0">第二段</span>
-                ${num(w2[0], 'pol-org-2-sm')}<span class="text-xs text-gray-500">月</span>${num(w2[1], 'pol-org-2-sd')}<span class="text-xs text-gray-500">日 ～</span>${num(w2[2], 'pol-org-2-em')}<span class="text-xs text-gray-500">月</span>${num(w2[3], 'pol-org-2-ed')}<span class="text-xs text-gray-500">日</span><span class="text-xs text-gray-500">（跨年）</span>
+                ${num(w2[0], 'pol-org-2-sm', 'month')}<span class="text-xs text-gray-500">月</span>${num(w2[1], 'pol-org-2-sd')}<span class="text-xs text-gray-500">日 ～</span>${num(w2[2], 'pol-org-2-em', 'month')}<span class="text-xs text-gray-500">月</span>${num(w2[3], 'pol-org-2-ed')}<span class="text-xs text-gray-500">日</span><span class="text-xs text-gray-500">（跨年）</span>
               </div>
             </dd>
           </div>
           <div class="kv-row">
             <dt>篇幅建议</dt>
             <dd class="flex items-center gap-2">
-              <input type="number" id="pol-org-word-hint" class="input-flat text-xs w-24 text-center" min="100" max="10000" value="${cHint}" inputmode="numeric">
+              <input type="number" id="pol-org-word-hint" class="input-flat text-xs w-24 text-center" min="${wHint.min}" max="${wHint.max}" value="${cHint}" inputmode="numeric">
               <span class="text-xs text-gray-600">字以上</span>
             </dd>
           </div>
@@ -1335,7 +1350,7 @@ function domainCardHtml(meta, branch, P) {
             <dt>警告审阅线</dt>
             <dd class="flex items-center gap-2">
               <span class="text-xs text-gray-600">少于</span>
-              <input type="number" id="pol-org-word-soft" class="input-flat text-xs w-24 text-center" min="100" max="10000" value="${cSoft}" inputmode="numeric">
+              <input type="number" id="pol-org-word-soft" class="input-flat text-xs w-24 text-center" min="${wSoft.min}" max="${wSoft.max}" value="${cSoft}" inputmode="numeric">
               <span class="text-xs text-gray-600">字</span>
             </dd>
           </div>
@@ -1401,14 +1416,23 @@ function _readDomainPatch(meta, panel) {
     return v;
   };
   if (meta.role === 'disc-commissioner') {
-    const days = intField('pol-inp-disc-days', 1, 90, '考察确认超期');
+    // 范围单一源＝POLICY_OVERRIDABLE（批次 530 · B-520-3）：校验与输入框 min/max 同表。
+    const rg = (path) => policyRange(path) || { min: 1, max: 90 };
+    const rI = rg(['inspection', 'overdueDays']);
+    const rE = rg(['attendance', 'entryRemindDays']);
+    const rS = rg(['attendance', 'summaryDeadlineDays']);
+    const rL = rg(['attendance', 'lowRateHint']);
+    const rR = rg(['review', 'overdueDays']);
+    const rD = rg(['review', 'deadlineDays']);
+    const rM = rg(['makeup', 'deadlineDays']);
+    const days = intField('pol-inp-disc-days', rI.min, rI.max, '考察确认超期');
     if (days === null) return null;
-    const entry = intField('pol-disc-entry-remind', 1, 30, '考勤录入提醒');
-    const summary = intField('pol-disc-summary-days', 1, 30, '考勤汇总期限');
-    const low = intField('pol-disc-low-rate', 0, 100, '出勤率提示线');
-    const rRev = intField('pol-disc-review-remind', 1, 90, '复盘提醒');
-    const rDead = intField('pol-disc-review-deadline', 1, 90, '复盘提交期限');
-    const mkDead = intField('pol-disc-makeup-deadline', 1, 30, '补课时限');
+    const entry = intField('pol-disc-entry-remind', rE.min, rE.max, '考勤录入提醒');
+    const summary = intField('pol-disc-summary-days', rS.min, rS.max, '考勤汇总期限');
+    const low = intField('pol-disc-low-rate', rL.min, rL.max, '出勤率提示线');
+    const rRev = intField('pol-disc-review-remind', rR.min, rR.max, '复盘提醒');
+    const rDead = intField('pol-disc-review-deadline', rD.min, rD.max, '复盘提交期限');
+    const mkDead = intField('pol-disc-makeup-deadline', rM.min, rM.max, '补课时限');
     if ([entry, summary, low, rRev, rDead, mkDead].some((v) => v === null)) return null;
     const asm = panel.querySelector('#pol-disc-makeup-assembly');
     const cls = panel.querySelector('#pol-disc-makeup-class');
@@ -1427,16 +1451,20 @@ function _readDomainPatch(meta, panel) {
     };
     const names = [['pol-org-1-sm', 'pol-org-1-sd', 'pol-org-1-em', 'pol-org-1-ed'], ['pol-org-2-sm', 'pol-org-2-sd', 'pol-org-2-em', 'pol-org-2-ed']];
     const windows = names.map(ids => ids.map(read));
+    const { monthMin, monthMax, dayMin, dayMax } = POLICY_WINDOW_RANGE;
     for (const [sm, sd, em, ed] of windows) {
-      if (!(sm >= 1 && sm <= 12 && em >= 1 && em <= 12 && sd >= 1 && sd <= 31 && ed >= 1 && ed <= 31)) {
-        showPolicyStatus(panel, '窗口请填合法月日：月 1–12、日 1–31。', true);
+      if (!(sm >= monthMin && sm <= monthMax && em >= monthMin && em <= monthMax && sd >= dayMin && sd <= dayMax && ed >= dayMin && ed <= dayMax)) {
+        showPolicyStatus(panel, `窗口请填合法月日：月 ${monthMin}–${monthMax}、日 ${dayMin}–${dayMax}。`, true);
         return null;
       }
     }
     const hint = read('pol-org-word-hint');
     const soft = read('pol-org-word-soft');
-    if (!(hint >= 100 && hint <= 10000)) { showPolicyStatus(panel, '建议篇幅请输入 100–10000 之间的整数。', true); return null; }
-    if (!(soft >= 100 && soft <= 10000)) { showPolicyStatus(panel, '警告审阅线请输入 100–10000 之间的整数。', true); return null; }
+    // 范围单一源＝POLICY_OVERRIDABLE（与输入框 min/max 同表；批次 530 · B-520-3）。
+    const hintRg = policyRange(['thoughtReport', 'wordHint']) || { min: 100, max: 10000 };
+    const softRg = policyRange(['thoughtReport', 'wordSoftMin']) || { min: 100, max: 10000 };
+    if (!(hint >= hintRg.min && hint <= hintRg.max)) { showPolicyStatus(panel, `建议篇幅请输入 ${hintRg.min}–${hintRg.max} 之间的整数。`, true); return null; }
+    if (!(soft >= softRg.min && soft <= softRg.max)) { showPolicyStatus(panel, `警告审阅线请输入 ${softRg.min}–${softRg.max} 之间的整数。`, true); return null; }
     return {
       memberConfirmation: { semesterDetainedWindows: windows },
       thoughtReport: { wordHint: hint, wordSoftMin: soft },

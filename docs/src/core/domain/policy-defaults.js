@@ -333,9 +333,24 @@ export function activityApprovalMode() {
   return ACTIVITY_APPROVAL_MODES.includes(m) ? m : 'off';
 }
 
+/**
+ * 取某个可覆盖参数的输入范围（单一源＝`POLICY_OVERRIDABLE` 的 min/max，2026-11-03 批次 530 · B-520-3）。
+ * 设置页的 `min` / `max` 与「范围 a–b」提示、以及写口钳制必须同读本函数，不得再各写一遍数字。
+ * @param {string[]} path 形如 `['inspection', 'overdueDays']`
+ * @returns {{min:number,max:number}|null} 非 int 档 / 未登记返回 null
+ */
+export function policyRange(path) {
+  const key = (path || []).join('.');
+  const spec = POLICY_OVERRIDABLE.find((o) => o.path.join('.') === key);
+  if (!spec || spec.type !== 'int') return null;
+  return { min: spec.min, max: spec.max };
+}
+
+/** 窗口类参数（`[起月,起日,止月,止日]`）的月 / 日输入范围（设置页复核窗口用；POLICY_OVERRIDABLE 的 windows 档不带 min/max） */
+export const POLICY_WINDOW_RANGE = Object.freeze({ monthMin: 1, monthMax: 12, dayMin: 1, dayMax: 31 });
+
 /** policyOverrides 顶层节白名单（由 POLICY_OVERRIDABLE 派生；写口校验/删除语义用） */
 export const POLICY_OVERRIDE_SECTIONS = [...new Set(POLICY_OVERRIDABLE.map(o => o.path[0]))];
-
 /** 复位全部有效默认为出厂基准（读侧注入/跨支部切换前调用；幂等） */
 export function resetPolicyDefaults() {
   for (const k of Object.keys(_FACTORY)) {
